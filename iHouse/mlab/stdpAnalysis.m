@@ -1,7 +1,7 @@
 clear all; close all; more off; clc;
 system("clear");
 %Reconstruct Flags
-global SPIKING_OUT_FLAG;       SPIKING_OUT_FLAG       = 1;  %Create spiking output flag
+global SPIKING_OUT_FLAG;       SPIKING_OUT_FLAG       = 0;  %Create spiking output flag
 global RECONSTRUCTION_FLAG;    RECONSTRUCTION_FLAG    = 0;  %Create reconstructions
 global POST_WEIGHTS_MAP_FLAG;  POST_WEIGHTS_MAP_FLAG  = 1;     %Create weight maps
 global POST_WEIGHTS_CELL_FLAG; POST_WEIGHTS_CELL_FLAG = 0;
@@ -98,6 +98,8 @@ disp('stdpAnalysis: Reading pvp files')
 if (SPIKING_OUT_FLAG)
    readspikingpvp;
 end
+
+
 if NUM_PROCS == 1
    [data hdr] = cellfun(@readpvpfile, args, 'UniformOutput', 0);
 else

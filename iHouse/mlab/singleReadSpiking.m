@@ -10,8 +10,8 @@
 %%%%%%%%
 %%DELETE
 %%%%%%%%
-global output_path;  output_path  = '/Users/slundquist/Documents/workspace/iHouse/output/RetinaOn/';
-global filename;     filename     = '/Users/slundquist/Documents/workspace/iHouse/output/RetinaOff.pvp';
+global output_path;  output_path  = '/Users/slundquist/Documents/workspace/iHouse/LCAoutput/';
+global filename;     filename     = '/Users/slundquist/Documents/workspace/iHouse/LCAoutput/lif.pvp';
 
 %global activityfile;
 %global readPvpOutDir;

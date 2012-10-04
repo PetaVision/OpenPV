@@ -30,13 +30,20 @@ HyPerCol "column" = {
 
 Patterns "input" = {
    patternType = "DROP";
-   dropSpeed = 1;       //Radius expands dropSpeed pixles per timestep
+   dropSpeed = -1;       //Radius expands dropSpeed pixles per timestep, -1 for random speed
+   dropSpeedRandomMax = 3;
+   dropSpeedRandomMin = 1;
+   
    dropPeriod  = -1;    //-1 for random period, otherwise, number of frames inbetween drops
-   dropRandomMax = 90;  //Max random periods for each drop, 20 default
-   dropRandomMin = 30;   //Min random periods for each drop, 5 default
+   dropPeriodRandomMax = 90;  //Max random periods for each drop, 20 default
+   dropPeriodRandomMin = 30;   //Min random periods for each drop, 5 default
+   
+   randomPos = true;
+   
    halfNeutral = true;
-   startFrame = 20000;
-   endFrame = 10000;
+   startFrame = 100000;
+   endFrame = 100000;
+   
 //   pMove = 1;
 //   maxWidth = 16;
 //   maxHeight = 16;
@@ -128,6 +135,7 @@ LCALIFLayer "lif" = {
    tauLCA           = 200;
    tauTHR           = 20000;
    targetRate       = 1;
+   
    nxScale          = 1;		
    nyScale          = 1;		
    nf               = 1;       	// one feature for now
@@ -159,6 +167,37 @@ LCALIFLayer "lif" = {
    noiseFreqIB      =   0.;    	// should be scaled by the time constant - look at LIF model
    dynVthScale      = 15.0;     // Scale for the change of dynVthRest. Must be positive; defaults to VthRest - Vrest
 };
+
+//LIF "lif" = {       
+//   nxScale          = 1;		
+//   nyScale          = 1;		
+//   nf               = 1;       	// one feature for now
+//   spikingFlag      = 1;       	// the whole idea 
+//   marginWidth      = 0;     	// for MPI running - based on lateral radius and jitter
+//   writeStep        = 1.0;
+//   mirrorBCflag     = 0;     	// mirroring boundary conditions
+//   InitVType        = "ConstantV";
+//   method           = "beginning";
+//   valueV			= -70.0;
+//   Vrest            = -70.0;    
+//   restart          = 0.0;     	// from graylast
+//   Vexc             = 0.0;     	// reversal potential 
+//   Vinh             = -75.0;   	// chloride channel
+//   VinhB            = -90.0;   	// potassium reversal
+//   tau              = 10.0;    	// intrinsic leak membrane time constant (max)
+//   tauE             = 1.0;     	// how long glutamine stays bound
+//   tauI             = 5.0;     	// how long GABA stays bound
+//   tauIB            = 10.0;    	// inhibitory potassium channel 
+//   VthRest          = -55.0;   	// firing threshold 15 mV above rest
+//   tauVth           = 10.0;    	// 10.0 relative refractory period
+//   deltaVth         = 5.0;     	// jump of threshold when firing
+//  noiseAmpE        = 1;     	// 0.5 1 means conductance is equal to lead conductance  gjk
+//   noiseAmpI        = 1;     	// 0,5 "twice as easy for the membrane capacitance to discharge" gjk
+//   noiseAmpIB       = 0.0;     	// no noise here 
+//   noiseFreqE       = 250.;    	// spontaneous transmitter release/channel openings
+//   noiseFreqI       = 250.;    	// correlation to time step size !!!
+//   noiseFreqIB      =   0.;    	// should be scaled by the time constant - look at LIF model
+// };
 
 // Connections Connections Connections Connections Connections Connections
 // Connections Connections Connections Connections Connections Connections
@@ -316,111 +355,113 @@ KernelConn "ImagetoRetinaOFFSurround" = {
 
 
 // Retina connections      
-STDPConn "RetinaONtoS1" = {
-   preLayerName = "RetinaON";
+OjaSTDPConn "RetinaONtoS1" = {
+   preLayerName  = "RetinaON";
    postLayerName = "lif";
-   channelCode = 0;
-   nxp = 5;
-   nyp = 5;
-   nfp = 1;
+   nxp           = 5;
+   nyp           = 5;
+   nfp           = 1;
+   channelCode   = 0;
+   stdpFlag      = 1;
+   delay         = 0.0;
    
-   stdpFlag   = 1;
    initFromLastFlag = 0;  // 1;  /dr/ restart
-   writeStep = 200;
-
-   wMin = 0.001;
-   wMax = 5;
-   dWMax = 1;  // .01;
-
-   normalize = false;
-   normalize_max = true;
+   
+   writeStep = 1000;
+   
+   normalize             = false;
+   normalize_max         = true;
    normalize_zero_offset = 0.0;
-   strength = 10;
    
-   ampLTP = 0.02;
-   ampLTD = 0.0071;
-   tauLTP = 8.4;
-   tauLTD = 33.7;
+   strength        = 10;
+   ampLTP          = 0.02; //amp sets ratio of LTP to LTD, or how much more/less effective LTP is than LTD. LTP/LTD should ~= 0.9 per Gar
+   ampLTD          = 0.0071;
+   tauLTP          = 8.4;
+   tauLTD          = 33.7;
+   tauLTPLong      = 84;
+   tauLTDLong      = 337;
+   weightDecay     = 0;
+   ojaScale        = 0;
+   STDPScale       = 1;
+   dWMax           = 10;
+   wMin            = 0.001;
+   wMax 	       = 5;
+   numAxonalArbors = 1;
    
-   wMaxInit = 0.5;
-   wMinInit = 0.005;
-   //localWmaxFlag = 0.0;
-   
-   numAxonalArbors = 1; // pow(cliquePatchSize, cliqueSize-1), 
-   //keepKernelsSynchronized = true;
    combine_dW_with_W_flag = false;
-   selfFlag = false;
+   selfFlag               = false;
 
-//   weightInitType = "SpreadOverArborsWeight";
    weightInitType = "UniformRandomWeight";
-//   weightInitType = "Gauss2DWeight";
-   weightInit = 0.001;
+   weightInit     = 0.001;
+   wMaxInit       = 0.5;
+   wMinInit       = 0.005;
    
    symmetrizeWeights = 0;
    
-   plasticityFlag = true;
-   shrinkPatches = false;
+   plasticityFlag         = true;
+   shrinkPatches          = false;
    writeCompressedWeights = 0.0;
-   stochasticReleaseFlag = false;
-   weightUpdatePeriod = 1.0;
-   delay = 0.0;
+   stochasticReleaseFlag  = false;
+   weightUpdatePeriod     = 1.0;
    
    synscalingFlag = 0;
-   synscaling_v = 5;
+   synscaling_v   = 5;
 };
 
-STDPConn "RetinaOFFtoS1" = {
+
+OjaSTDPConn "RetinaOFFtoS1" = {
    preLayerName = "RetinaOFF";
    postLayerName = "lif";
-   channelCode = 0;
-   nxp = 5;
-   nyp = 5;
-   nfp = 1;
+   nxp           = 5;
+   nyp           = 5;
+   nfp           = 1;
+   channelCode   = 0;
+   stdpFlag      = 1;
+   delay         = 0.0;
    
-   stdpFlag   = 1;
-   initFromLastFlag = 0;  // 1;  // restart
-   writeStep = 200;
-
-   wMin = 0.001;
-   wMax = 5;
-   dWMax = 1;  // .01;
-
-   normalize = false;
-   normalize_max = true;
+   initFromLastFlag = 0;  // 1;  /dr/ restart
+   
+   writeStep = 1000;
+   
+   normalize             = false;
+   normalize_max         = true;
    normalize_zero_offset = 0.0;
-   strength = 10;
    
-   ampLTP = 0.02;
-   ampLTD = 0.0071;
-   tauLTP = 8.4;
-   tauLTD = 33.7;
+   strength        = 10;
+   ampLTP          = 0.02; //amp sets ratio of LTP to LTD, or how much more/less effective LTP is than LTD. LTP/LTD should ~= 0.9 per Gar
+   ampLTD          = 0.0071;
+   tauLTP          = 8.4;
+   tauLTD          = 33.7;
+   tauLTPLong      = 84;
+   tauLTDLong      = 337;
+   weightDecay     = 0;
+   ojaScale        = 0;
+   STDPScale       = 1;
+   dWMax           = 10;
+   wMin            = 0.001;
+   wMax 	       = 5;
+   numAxonalArbors = 1;
    
-   wMaxInit = 0.5;
-   wMinInit = 0.005;
-   //localWmaxFlag = 0.0;
-   
-   numAxonalArbors = 1; // pow(cliquePatchSize, cliqueSize-1), 
-   //keepKernelsSynchronized = true;
    combine_dW_with_W_flag = false;
-   selfFlag = false;
+   selfFlag               = false;
 
-//   weightInitType = "SpreadOverArborsWeight";
    weightInitType = "UniformRandomWeight";
-//   weightInitType = "Gauss2DWeight";
-   weightInit = 0.001;
+   weightInit     = 0.001;
+   wMaxInit       = 0.5;
+   wMinInit       = 0.005;
    
    symmetrizeWeights = 0;
    
-   plasticityFlag = true;
-   shrinkPatches = false;
+   plasticityFlag         = true;
+   shrinkPatches          = false;
    writeCompressedWeights = 0.0;
-   stochasticReleaseFlag = false;
-   weightUpdatePeriod = 1.0;
-   delay = 0.0;
+   stochasticReleaseFlag  = false;
+   weightUpdatePeriod     = 1.0;
    
    synscalingFlag = 0;
-   synscaling_v = 5;
+   synscaling_v   = 5;
 };
+
 //
 // Probes Probes Probes Probes Probes Probes
 // Probes Probes Probes Probes Probes Probes
