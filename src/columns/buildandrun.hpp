@@ -61,6 +61,7 @@
 #include "../connections/CloneKernelConn.hpp"
 #include "../connections/TransposeConn.hpp"
 #include "../connections/FeedbackConn.hpp"
+#include "../connections/LCALIFLateralConn.hpp"
 #include "../connections/STDPConn.hpp"
 #include "../connections/STDP3Conn.hpp"
 #include "../connections/BIDSConn.hpp"

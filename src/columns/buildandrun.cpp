@@ -140,12 +140,10 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
                  "GapConn",
                  "TransposeConn",
                    "FeedbackConn",
-               "PoolConn",
-               "RuleConn",
+               "LCALIFLateralConn",
                "STDPConn",
                "STDP3Conn",
                "OjaSTDPConn",
-               "SubunitConn",
                "BIDSConn",
            "_Stop_HyPerConns_",
            "_Start_ColProbes_",
@@ -840,6 +838,15 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
          addedConn = (HyPerConn *) new FeedbackConn(name, hc, dynamic_cast<KernelConn *>(auxConn) );
       }
       status = checknewobject((void *) addedConn, classkeyword, name, hc);
+   }
+   if( !keywordMatched && !strcmp(classkeyword, "LCALIFLateralConn")) {
+     keywordMatched = true;
+     getPreAndPostLayers(name, hc, &preLayer, &postLayer);
+     if( preLayer && postLayer ) {
+       fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
+       addedConn = (HyPerConn * ) new LCALIFLateralConn(name, hc, preLayer, postLayer, fileName, weightInitializer);
+     }
+     status = checknewobject((void *) addedConn, classkeyword, name, hc);
    }
    if( !keywordMatched && !strcmp(classkeyword, "STDPConn")) {
      keywordMatched = true;
