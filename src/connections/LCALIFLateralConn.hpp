@@ -36,7 +36,7 @@ protected:
    virtual int calc_dW(int axonId = 0);
 
    virtual float readIntegrationTimeConstant() {return getParent()->parameters()->value(name, "integrationTimeConstant", 1.0);}
-   virtual float readAdaptationTimeConstant() {return getParent()->parameters()->value(name, "adaptationTimeConstant", 0.0);}
+   virtual float readAdaptationTimeConstant() {return getParent()->parameters()->value(name, "adaptationTimeConstant", 1.0);}
 
    virtual int updateIntegratedSpikeCount();
 
@@ -46,8 +46,8 @@ private:
 // Member variables
 protected:
    float * integratedSpikeCount; // The leaky count of spikes (the weight is a decaying exponential of time since that spike)
-   float integrationTimeConstant; // often the same as the the LCALIFLayer's tau_LCA
-   float inhibitionTimeConstant;
+   float integrationTimeConstant; // Time constant for the integrated spike counts, often the same as the the LCALIFLayer's tau_LCA
+   float inhibitionTimeConstant; // Time constant for the updating the weights
 };
 
 } /* namespace PV */
