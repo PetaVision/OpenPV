@@ -11,6 +11,7 @@
 #include "HyPerConn.hpp"
 #include "../include/default_params.h"
 #include <stdio.h>
+#include "../io/fileio.hpp"
 
 namespace PV {
 
