@@ -153,7 +153,7 @@ int LCALIFLateralConn::checkpointWrite(const char * cpDir) {
    loc.nxGlobal = loc.nx * parent->icCommunicator()->numCommColumns();
    loc.nyGlobal = loc.ny * parent->icCommunicator()->numCommRows();
    loc.nb = 0;
-   write_pvdata(filename, parent->icCommunicator(), (double) parent->simulationTime(), integratedSpikeCount, &loc, PVP_NONSPIKING_ACT_FILE_TYPE, /*extended*/ false, /*contiguous*/ false);
+   write_pvdata(filename, parent->icCommunicator(), (double) parent->simulationTime(), integratedSpikeCount, &loc, PV_FLOAT_TYPE, /*extended*/ false, /*contiguous*/ false);
    return status;
 }
 
@@ -173,7 +173,7 @@ int LCALIFLateralConn::checkpointRead(const char * cpDir, float* timef) {
    loc.nxGlobal = loc.nx * parent->icCommunicator()->numCommColumns();
    loc.nyGlobal = loc.ny * parent->icCommunicator()->numCommRows();
    loc.nb = 0;
-   read_pvdata(filename, parent->icCommunicator(), &timed, integratedSpikeCount, &loc, PVP_NONSPIKING_ACT_FILE_TYPE, /*extended*/ false, /*contiguous*/ false);
+   read_pvdata(filename, parent->icCommunicator(), &timed, integratedSpikeCount, &loc, PV_FLOAT_TYPE, /*extended*/ false, /*contiguous*/ false);
    if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
       fprintf(stderr, "Warning: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
    }

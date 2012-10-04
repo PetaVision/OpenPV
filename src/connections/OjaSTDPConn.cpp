@@ -453,8 +453,8 @@ int OjaSTDPConn::checkpointRead(const char * cpDir, float* timef) {
    loc.nyGlobal = loc.ny * parent->icCommunicator()->numCommRows();
    loc.nb = 0;
 
-   read_pvdata(filename, parent->icCommunicator(), &timed, post_tr, &loc, PVP_NONSPIKING_ACT_FILE_TYPE, /*extended*/ false, /*contiguous*/ false);
-   read_pvdata(filename, parent->icCommunicator(), &timed, pre_tr, &loc, PVP_NONSPIKING_ACT_FILE_TYPE, /*extended*/ false, /*contiguous*/ false);
+   read_pvdata(filename, parent->icCommunicator(), &timed, post_tr, &loc, PV_FLOAT_TYPE, /*extended*/ false, /*contiguous*/ false);
+   read_pvdata(filename, parent->icCommunicator(), &timed, pre_tr, &loc, PV_FLOAT_TYPE, /*extended*/ false, /*contiguous*/ false);
    if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
       fprintf(stderr, "Warning: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
    }
@@ -479,8 +479,8 @@ int OjaSTDPConn::checkpointWrite(const char * cpDir) {
    loc.nyGlobal = loc.ny * parent->icCommunicator()->numCommRows();
    loc.nb = 0;
 
-   write_pvdata(filename, parent->icCommunicator(), (double) parent->simulationTime(), post_tr->data, &loc, PVP_NONSPIKING_ACT_FILE_TYPE, /*extended*/ false, /*contiguous*/ false);
-   write_pvdata(filename, parent->icCommunicator(), (double) parent->simulationTime(), pre_tr->data, &loc, PVP_NONSPIKING_ACT_FILE_TYPE, /*extended*/ false, /*contiguous*/ false);
+   write_pvdata(filename, parent->icCommunicator(), (double) parent->simulationTime(), post_tr->data, &loc, PV_FLOAT_TYPE, /*extended*/ false, /*contiguous*/ false);
+   write_pvdata(filename, parent->icCommunicator(), (double) parent->simulationTime(), pre_tr->data, &loc, PV_FLOAT_TYPE, /*extended*/ false, /*contiguous*/ false);
    return status;
 }
 
