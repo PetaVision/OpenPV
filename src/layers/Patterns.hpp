@@ -36,6 +36,14 @@ enum MovementType {
    RANDOMJUMP = 3,
 };
 
+typedef struct _Drop{
+   int centerX;
+   int centerY;
+   float speed;
+   float radius;
+   bool on;
+} Drop;
+
 class Patterns : public PV::Image {
 public:
    Patterns(const char * name, HyPerCol * hc, PatternType type);
@@ -84,15 +92,19 @@ protected:
    float positionBound; // The supremum of possible values of position
    int framenumber;
 
-   std::vector <float> radius;
+   std::vector <Drop>vDrops;
    float dropSpeed;
+   float dropSpeedRandomMax;
+   float dropSpeedRandomMin;
    int dropPeriod;
-   int dropRandomMax;
-   int dropRandomMin;
+   int dropPeriodRandomMax;
+   int dropPeriodRandomMin;
    int nextDropFrame;
    int onOffFlag;
+   int randomPosFlag;
    int startFrame;
    int endFrame;
+
    int minWidth, maxWidth;
    int minHeight, maxHeight;
    int wavelengthVert;
@@ -107,7 +119,6 @@ protected:
 
 private:
    float rotation;
-   bool newDrop;
 
    int initPatternCntr;
    int initialize_base();

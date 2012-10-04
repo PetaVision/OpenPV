@@ -29,7 +29,7 @@ int Patterns::initialize_base() {
    patternsOutputPath = NULL;
    patternsFile = NULL;
    framenumber = 0;
-   radius.clear();
+   vDrops.clear();
 
    return PV_SUCCESS;
 }
@@ -46,7 +46,6 @@ int Patterns::initialize(const char * name, HyPerCol * hc, PatternType type) {
    this->prefPosition = 0; // 3; why was the old default 3???
    this->position = this->prefPosition;
    this->lastPosition = this->prefPosition;
-
 
    // set orientation mode
    const char * allowedOrientationModes[] = { // these strings should correspond to the types in enum PatternType in Patterns.hpp
@@ -117,6 +116,9 @@ int Patterns::initialize(const char * name, HyPerCol * hc, PatternType type) {
    //
    PVParams * params = hc->parameters();
 
+   maxVal = params->value(name,"maxValue", PATTERNS_MAXVAL);
+   minVal = params->value(name,"minValue", PATTERNS_MINVAL);
+
    if( type == RECTANGLES ) {
       maxWidth  = params->value(name, "maxWidth", loc->nx);
       maxHeight = params->value(name, "maxHeight", loc->ny);
@@ -143,10 +145,21 @@ int Patterns::initialize(const char * name, HyPerCol * hc, PatternType type) {
 
    if(type == DROP){
       dropSpeed = params->value(name, "dropSpeed", 1);
+      dropSpeedRandomMax = params->value(name, "dropSpeedRandomMax", 3);
+      dropSpeedRandomMin = params->value(name, "dropSpeedRandomMin", 1);
+
       dropPeriod = params->value(name, "dropPeriod", 10);
-      dropRandomMax = params->value(name, "dropRandomMax", 20);
-      dropRandomMin = params->value(name, "dropRandomMin", 5);
+      dropPeriodRandomMax = params->value(name, "dropRandomMax", 20);
+      dropPeriodRandomMin = params->value(name, "dropRandomMin", 5);
+
       onOffFlag = params->value(name, "halfNeutral", 0);
+
+      if(!onOffFlag){
+         minVal = maxVal;
+      }
+
+      randomPosFlag = params->value(name, "randomPos", 0);
+
       startFrame = params->value(name, "startFrame", 0);
       endFrame = params->value(name, "endFrame", 0);
       //Assign first drop
@@ -157,11 +170,6 @@ int Patterns::initialize(const char * name, HyPerCol * hc, PatternType type) {
       }
       else{
          nextDropFrame = dropPeriod;
-      }
-      //Random initial drop pos or neg
-      //Pos means on stim, neg means off stim
-      if(pv_random_prob() < .5){
-         nextDropFrame = nextDropFrame * -1;
       }
       MPI_Bcast(&nextDropFrame, 1, MPI_INT, 0, parent->icCommunicator()->communicator());
    }
@@ -201,8 +209,6 @@ int Patterns::initialize(const char * name, HyPerCol * hc, PatternType type) {
       assert(patternsFile != NULL);
    }
 
-   maxVal = params->value(name,"maxValue", PATTERNS_MAXVAL);
-   minVal = params->value(name,"minValue", PATTERNS_MINVAL);
 
    displayPeriod = params->value(name,"displayPeriod", 0.0f);
    // displayPeriod = 0 means nextDisplayTime will always >= starting time and therefore the pattern will update every timestep
@@ -218,6 +224,7 @@ int Patterns::initialize(const char * name, HyPerCol * hc, PatternType type) {
 Patterns::~Patterns()
 {
    free(patternsOutputPath);
+   vDrops.clear();
 
    if( patternsFile != NULL ) {
       fclose(patternsFile);
@@ -289,85 +296,77 @@ int Patterns::generatePattern(float val)
 
 
       //Max radius at corner of screen
-      float max_radius = sqrt(nxgl/(float)2 * nxgl/(float)2 + nygl/(float)2 * nygl/(float)2);
+      float max_radius = sqrt(nxgl * nxgl + nygl * nygl);
       //Drop from center
-      const int xcg = (nxgl-1) / 2;
-      const int ycg = (nygl-1) / 2;
       std::vector<int> deleteme;
       deleteme.clear();
       //Radius of circle at current timestep
       //Remove extra circles
-      for(int i = 0; i < (int)radius.size(); i++){
-
+      for(int i = 0; i < (int)vDrops.size(); i++){
          //Negative means off stim
-         if(radius[i] < 0){
-            radius[i] -= dropSpeed;
-         }
-         //Positive means on stim
-         else if(radius[i] > 0){
-            radius[i] += dropSpeed;
-         }
-         else{
-            fprintf(stderr, "Patterns.cpp: radius should not be 0");
-            abort();
-         }
+         vDrops[i].radius += vDrops[i].speed;
 
          //No longer in the frame
-         if(radius[i] >= max_radius){
+         if(vDrops[i].radius >= max_radius){
+            //Save index
            deleteme.push_back(i);
          }
       }
       for(int i = 0; i < (int)deleteme.size(); i++){
-         radius.erase(radius.begin() + deleteme[i]);
+         //Erase from
+         vDrops.erase(vDrops.begin() + deleteme[i]);
       }
 
       //Add new circles
       //Add circle if necessary
       //Random
-      if(framenumber >= abs(nextDropFrame) && framenumber <= endFrame){
+      if(framenumber >= nextDropFrame && framenumber <= endFrame){
          if(dropPeriod == -1){
-            nextDropFrame = framenumber + dropRandomMin + ceil((dropRandomMax - dropRandomMin) * pv_random_prob());
+            nextDropFrame = framenumber + dropPeriodRandomMin + floor((dropPeriodRandomMax - dropPeriodRandomMin) * pv_random_prob());
          }
          else{
             nextDropFrame = framenumber + dropPeriod;
          }
-         //Random on/off input
-         if(pv_random_prob() < .5){
-            nextDropFrame = nextDropFrame * -1;
-         }
-         //Communicate nextDropFrame to rest of processors
-         MPI_Bcast(&nextDropFrame, 1, MPI_INT, 0, parent->icCommunicator()->communicator());
-
-         if(nextDropFrame < 0){
-            radius.push_back(-1);
+         //Create new structure
+         Drop newDrop;
+         //Random drop speed
+         if(dropSpeed == -1){
+            newDrop.speed = dropSpeedRandomMin + floor((dropSpeedRandomMax - dropSpeedRandomMin) * pv_random_prob());
          }
          else{
-            radius.push_back(1);
+            newDrop.speed = dropSpeed;
          }
+         //Random center pos
+         if(randomPosFlag > 0){
+            newDrop.centerX = (nxgl-1) * pv_random_prob();
+            newDrop.centerY = (nygl-1) * pv_random_prob();
+         }
+         else{
+            newDrop.centerX = (nxgl-1) / 2;
+            newDrop.centerY = (nygl-1) / 2;
+         }
+         //Random on/off input
+         if(pv_random_prob() < .5){
+            newDrop.on = true;
+         }
+         else{
+            newDrop.on = false;
+         }
+         newDrop.radius = 0;
+
+         //Communicate to rest of processors
+         MPI_Bcast(&nextDropFrame, 1, MPI_INT, 0, parent->icCommunicator()->communicator());
+         MPI_Bcast(&newDrop, sizeof(Drop), MPI_BYTE, 0, parent->icCommunicator()->communicator());
+         vDrops.push_back(newDrop);
       }
 
       //Draw circle
-      for(int i = 0; i < (int)radius.size(); i++){
-         bool on;
-         //Off stim
-         if(radius[i] < 0){
-            on = false;
-         }
-         //On stim
-         else if(radius[i] > 0){
-            on = true;
-         }
-         //nextDropFrame shouldn't be 0
-         else{
-            fprintf(stderr, "Patterns.cpp: radius should not be 0");
-            abort();
-         }
-
-         float delta_theta = fabs(atan((float)1./fabs(radius[i])));
+      for(int i = 0; i < (int)vDrops.size(); i++){
+         float delta_theta = fabs(atan((float)1./vDrops[i].radius));
          for (float theta = 0; theta < 2*PI; theta += delta_theta){
            // std::cout << "\t" << theta << "\n";
-            float fx = xcg + fabs(radius[i]) * cos(theta);
-            float fy = ycg + fabs(radius[i]) * sin(theta);
+            float fx = vDrops[i].centerX + vDrops[i].radius * cos(theta);
+            float fy = vDrops[i].centerY + vDrops[i].radius * sin(theta);
             int ix, iy;
 
             //Rounding
@@ -388,7 +387,7 @@ int Patterns::generatePattern(float val)
             //Check edge bounds based on nx/ny size
             if(ix < nx + kx0 && iy < ny + ky0 && ix >= kx0 && iy >= ky0){
                //Random either on circle or off circle
-               if(on){
+               if(vDrops[i].on){
                   data[(ix - kx0) * sx + (iy - ky0) * sy] = maxVal;
                }
                else{
