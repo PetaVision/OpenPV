@@ -126,8 +126,8 @@ Retina "RetinaOFF" = {
 
 //LIF "lif" = {       
 LCALIFLayer "lif" = {
-   tau_LCA          = 200;
-   tau_thr          = 20000;
+   tauLCA           = 200;
+   tauthr           = 20000;
    targetRate       = 1;
    nxScale          = 1;		
    nyScale          = 1;		
