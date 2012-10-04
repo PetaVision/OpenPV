@@ -22,6 +22,7 @@ LCALIFLateralConn::LCALIFLateralConn(const char * name, HyPerCol * hc, HyPerLaye
 
 LCALIFLateralConn::~LCALIFLateralConn()
 {
+   free(integratedSpikeCount); integratedSpikeCount = NULL;
 }
 
 int LCALIFLateralConn::initialize_base() {
