@@ -49,10 +49,10 @@ Patterns "input" = {
 //   maxHeight = 16;
 //   minWidth = 8;
 //   minHeight = 8;
-   writeImages = true;
+   writeImages = false;
    patternsOutputPath = "/Users/slundquist/Documents/workspace/iHouse/output/sourcefiles";
    displayPeriod = 1;
-   writeStep = 1;
+   writeStep = -1;
    writeNonspikingActivity = true;
    useImageBCflag = false;
    mirrorBCflag = false;
@@ -65,7 +65,7 @@ ANNLayer "scaled input" = {
     nxScale = 1;
     nyScale = 1;
     nf = 1;
-    marginWidth = 20;
+    marginWidth = 16;
     mirrorBCflag = 1;
     spikingFlag = false;
     writeStep = -1.0;
@@ -83,8 +83,8 @@ Retina "RetinaON" = {
     nxScale = 1;
     nyScale = 1;
     nf = 1;
-    marginWidth = 24;
-    writeStep = 1.0;
+    marginWidth = 16;
+    writeStep = -1.0;
     mirrorBCflag = 0;
     spikingFlag = true;  // false (no quotes) is translated to 0
 
@@ -110,8 +110,8 @@ Retina "RetinaOFF" = {
     nxScale = 1;
     nyScale = 1;
     nf = 1;
-    marginWidth = 24;
-    writeStep = 1.0;
+    marginWidth = 16;
+    writeStep = -1.0;
     mirrorBCflag = 0;
     spikingFlag = true;  // false (no quotes) is translated to 0
 
@@ -167,37 +167,6 @@ LCALIFLayer "lif" = {
    noiseFreqIB      =   0.;    	// should be scaled by the time constant - look at LIF model
    dynVthScale      = 15.0;     // Scale for the change of dynVthRest. Must be positive; defaults to VthRest - Vrest
 };
-
-//LIF "lif" = {       
-//   nxScale          = 1;		
-//   nyScale          = 1;		
-//   nf               = 1;       	// one feature for now
-//   spikingFlag      = 1;       	// the whole idea 
-//   marginWidth      = 0;     	// for MPI running - based on lateral radius and jitter
-//   writeStep        = 1.0;
-//   mirrorBCflag     = 0;     	// mirroring boundary conditions
-//   InitVType        = "ConstantV";
-//   method           = "beginning";
-//   valueV			= -70.0;
-//   Vrest            = -70.0;    
-//   restart          = 0.0;     	// from graylast
-//   Vexc             = 0.0;     	// reversal potential 
-//   Vinh             = -75.0;   	// chloride channel
-//   VinhB            = -90.0;   	// potassium reversal
-//   tau              = 10.0;    	// intrinsic leak membrane time constant (max)
-//   tauE             = 1.0;     	// how long glutamine stays bound
-//   tauI             = 5.0;     	// how long GABA stays bound
-//   tauIB            = 10.0;    	// inhibitory potassium channel 
-//   VthRest          = -55.0;   	// firing threshold 15 mV above rest
-//   tauVth           = 10.0;    	// 10.0 relative refractory period
-//   deltaVth         = 5.0;     	// jump of threshold when firing
-//  noiseAmpE        = 1;     	// 0.5 1 means conductance is equal to lead conductance  gjk
-//   noiseAmpI        = 1;     	// 0,5 "twice as easy for the membrane capacitance to discharge" gjk
-//   noiseAmpIB       = 0.0;     	// no noise here 
-//   noiseFreqE       = 250.;    	// spontaneous transmitter release/channel openings
-//   noiseFreqI       = 250.;    	// correlation to time step size !!!
-//   noiseFreqIB      =   0.;    	// should be scaled by the time constant - look at LIF model
-// };
 
 // Connections Connections Connections Connections Connections Connections
 // Connections Connections Connections Connections Connections Connections
