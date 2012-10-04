@@ -1,6 +1,6 @@
 ## Generator (most times) function to return a range of values with a float step
 def frange(start, stop, step):
-    if start == stop or stop == 0:
+    if start == stop or stop == 0 or step == 0:
         yield start
     r = start
     while r < stop:
