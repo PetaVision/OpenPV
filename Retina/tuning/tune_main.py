@@ -15,6 +15,7 @@ mpi_np           = '1'
 mpi_rows         = '1'
 mpi_columns      = '1'
 wrkspc_path      = '/Users/garkenyon/workspace-sync-anterior'
+#wrkspc_path      = '/Users/dpaiton/Documents/Work/LANL/workspace'
 param_filename   = 'params_text.pv'
 out_filename     = 'ConeCalibration'
 
@@ -33,7 +34,7 @@ run_path     = wrkspc_path+'/Retina/Debug/Retina'
 input_image = input_path+'/gray128image.png'
 
 ## INPUT MOVIE (One should be uncommented)
-#input_movie = input_path+'filenamesnjitter.txt';
+input_movie = input_path+'filenamesnjitter.txt';
 input_movie = input_path+'/filenames_graywhiteblack.txt'
 
 ## Declare layers
