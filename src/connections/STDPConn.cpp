@@ -190,7 +190,7 @@ int STDPConn::updateWeights(int axonId)
    const float decayLTD = exp(-dt / tauLTD);
    const int numExtended = pre->getNumExtended();
    assert(numExtended == getNumWeightPatches());
-   const pvdata_t * preLayerData = pre->getLayerData();
+   const pvdata_t * preLayerData = pre->getLayerData(); //doesn't get dalay for axon ID
 
    const pvdata_t aPre;
    PVPatch * w;

@@ -34,8 +34,6 @@ public:
    virtual int outputState(float time, bool last=false);
    virtual int writeTextWeightsExtra(FILE * fd, int k, int axonID);
 
-   virtual PVLayerCube * getPlasticityDecrement();
-
 protected:
 
    int initialize_base();
@@ -45,9 +43,7 @@ protected:
    virtual int initPlasticityPatches();
 
    PVLayerCube * post_tr;      // plasticity decrement variable for postsynaptic layer
-   PVLayerCube * post_long_tr; // summed spikes for reconstruction term
    PVLayerCube * pre_tr;       // plasticity increment variable for presynaptic layer
-   PVLayerCube * pre_long_tr;  // summed spikes (longer time constant) for reconstruction term
 
    bool stdpFlag;              // presence of spike timing dependent plasticity
 

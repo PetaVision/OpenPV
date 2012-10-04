@@ -33,7 +33,6 @@ int OjaSTDPConn::initialize_base() {
    // Default STDP parameters for modifying weights; defaults are overridden in setParams().
    // this->dwPatches = NULL;
    this->post_tr      = NULL;
-   this->post_long_tr = NULL;
    this->ampLTP       = 0.0065; //amp sets ratio of LTP to LTD, or how much more/less effective LTP is than LTD. LTP/LTD should ~= 0.9 per Gar
    this->ampLTD       = 0.0071;
    this->tauLTP       = 16.8;
@@ -44,10 +43,10 @@ int OjaSTDPConn::initialize_base() {
    this->dWMax        = 1;
    this->ojaScale     = 1;
    this->STDPScale    = 1;
+   this->wMax         = 0.0001;
 
    this->synscalingFlag = false;
    this->synscaling_v   = 1;
-   this->wMin           = 0.0;
 
    return PV_SUCCESS;
 }
@@ -77,13 +76,9 @@ int OjaSTDPConn::initPlasticityPatches()
    assert(status == 0);
 
    post_tr      = pvcube_new(&post->getCLayer()->loc, post->getNumExtended());
-   post_long_tr = pvcube_new(&post->getCLayer()->loc, post->getNumExtended());
    pre_tr       = pvcube_new(&pre->getCLayer()->loc, pre->getNumExtended());
-   pre_long_tr  = pvcube_new(&pre->getCLayer()->loc, pre->getNumExtended());
    assert(post_tr      != NULL);
-   assert(post_long_tr != NULL);
    assert(pre_tr       != NULL);
-   assert(pre_long_tr  != NULL);
 
    return PV_SUCCESS;
 }
@@ -93,16 +88,12 @@ int OjaSTDPConn::deleteWeights()
    if (stdpFlag) {
       pvcube_delete(post_tr);
       post_tr = NULL;
-      pvcube_delete(post_long_tr);
-      post_long_tr = NULL;
    }
    return 0;
 }
 
 int OjaSTDPConn::initializeThreadBuffers() {return 0;}
 int OjaSTDPConn::initializeThreadKernels() {return 0;}
-
-PVLayerCube * OjaSTDPConn::getPlasticityDecrement() {return post_tr;}
 
 // set member variables specified by user
 /*
@@ -184,7 +175,7 @@ int OjaSTDPConn::updateWeights(int axonID)
    int nk, ny;
 
    post_tr_m      = post_tr->data;
-   post_long_tr_m = post_long_tr->data;
+   post_long_tr_m = post_tr->data;
 
    // 1. Updates the postsynaptic traces
    for (int kPost = 0; kPost < nkPost; kPost++)
@@ -230,14 +221,11 @@ int OjaSTDPConn::updateWeights(int axonID)
             // Qmnt is weight at current time step
             // Qmnt-1 is weight at previous time step
             // Ax(t),Ay(t) is spike activity for pre/post respectively
-            W[k] += dWMax * (ojaScale * ((*pre_long_tr_m) - post_long_tr_m[k] * W[k]) *
-                  STDPScale * (ampLTP * aPost[k] * (*pre_tr_m) - ampLTD * aPre * post_tr_m[k]) - weightDecay * W[k]);
+            W[k] += dWMax * (((*pre_long_tr_m) - post_long_tr_m[k] * W[k]) *
+                  (ampLTP * aPost[k] * (*pre_tr_m) - ampLTD * aPre * post_tr_m[k]) - weightDecay * W[k]);
 
             W[k] = W[k] < wMin ? wMin : W[k]; // Stop weights from going all the way to 0
-
-            if (ojaScale == 0) { // Oja rule gets rid of the need to monitor max weight
-               W[k] = W[k] > wMax ? wMax : W[k]; //FIXME: No need for a max now that we have the decay terms and oja rule??
-            }
+            W[k] = W[k] > wMax ? wMax : W[k]; //FIXME: No need for a max now that we have the decay terms and oja rule??
          }
 
          // advance pointers in y
