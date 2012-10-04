@@ -141,6 +141,7 @@ int LCALIFLayer::updateState(float time, float dt)
    LCALIF_update_state(getNumNeurons(), time, dt, clayer->loc.nx, clayer->loc.ny, clayer->loc.nf,
          clayer->loc.nb, dynVthScale, dynVthRest, tauLCA, tauTHR, targetRate, integratedSpikeCount, &lParams,
          rand_state, clayer->V, Vth, G_E, G_I, G_IB, GSyn[0], clayer->activity->data, sumGap, G_Gap);
+   updateActiveIndices();
    return PV_SUCCESS;
 }
 }
