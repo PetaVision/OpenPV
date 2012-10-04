@@ -22,6 +22,9 @@ public:
    int updateState(float timef, float dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels, pvdata_t * gSynHead, bool spiking, unsigned int * active_indices, unsigned int * num_active);
    int findFlag(int numMatrixCol, int numMatrixRow);
 
+   virtual int checkpointRead(const char * cpDir, float * timef);
+   virtual int checkpointWrite(const char * cpDir);
+
    inline float getTargetRate() {return targetRate;};
    const float * getDynVthRest() {return dynVthRest;}
 protected:

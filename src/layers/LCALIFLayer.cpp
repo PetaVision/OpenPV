@@ -144,4 +144,61 @@ int LCALIFLayer::updateState(float time, float dt)
    updateActiveIndices();
    return PV_SUCCESS;
 }
+
+int LCALIFLayer::checkpointRead(const char * cpDir, float * timef) {
+   int status = LIFGap::checkpointRead(cpDir, timef);
+   InterColComm * icComm = parent->icCommunicator();
+   char basepath[PV_PATH_MAX];
+   char filename[PV_PATH_MAX];
+   int lenbase = snprintf(basepath, PV_PATH_MAX, "%s/%s", cpDir, name);
+   if (lenbase+strlen("_integratedSpikeCount.pvp") >= PV_PATH_MAX) { // currently _integratedSpikeCount.pvp is the longest suffix needed
+      if (icComm->commRank()==0) {
+         fprintf(stderr, "HyPerLayer::checkpointRead error in layer \"%s\".  Base pathname \"%s/%s_\" too long.\n", name, cpDir, name);
+      }
+      abort();
+   }
+   double timed;
+   assert(filename != NULL);
+   int chars_needed = snprintf(filename, PV_PATH_MAX, "%s_integratedSpikeCount.pvp", basepath);
+   assert(chars_needed < PV_PATH_MAX);
+   readBufferFile(filename, icComm, &timed, integratedSpikeCount, 1, /*extended*/ false, /*contiguous*/false);
+   if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
+      fprintf(stderr, "Warning: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
+   }
+
+   chars_needed = snprintf(filename, PV_PATH_MAX, "%s_dynVthRest.pvp", basepath);
+      assert(chars_needed < PV_PATH_MAX);
+      readBufferFile(filename, icComm, &timed, dynVthRest, 1, /*extended*/ false, /*contiguous*/false);
+      if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
+         fprintf(stderr, "Warning: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
+      }
+
+   return status;
 }
+
+int LCALIFLayer::checkpointWrite(const char * cpDir) {
+   int status = LIFGap::checkpointWrite(cpDir);
+   InterColComm * icComm = parent->icCommunicator();
+   char basepath[PV_PATH_MAX];
+   char filename[PV_PATH_MAX];
+   int lenbase = snprintf(basepath, PV_PATH_MAX, "%s/%s", cpDir, name);
+   if (lenbase+strlen("_integratedSpikeCount.pvp") >= PV_PATH_MAX) { // currently _integratedSpikeCount.pvp is the longest suffix needed
+      if (icComm->commRank()==0) {
+         fprintf(stderr, "LCALIFLayer::checkpointWrite error in layer \"%s\".  Base pathname \"%s/%s_\" too long.\n", name, cpDir, name);
+      }
+      abort();
+   }
+   double timed = (double) parent->simulationTime();
+   int chars_needed = snprintf(filename, PV_PATH_MAX, "%s_integratedSpikeCount.pvp", basepath);
+   assert(chars_needed < PV_PATH_MAX);
+   writeBufferFile(filename, icComm, timed, integratedSpikeCount, 1, /*extended*/false, /*contiguous*/false);
+
+   chars_needed = snprintf(filename, PV_PATH_MAX, "%s_dynVthRest.pvp", basepath);
+   assert(chars_needed < PV_PATH_MAX);
+   writeBufferFile(filename, icComm, timed, dynVthRest, 1, /*extended*/false, /*contiguous*/false);
+
+   return status;
+}
+
+
+}  // namespace PV
