@@ -3,69 +3,76 @@
 //
 // Complete model with SF WF And PolyAxonal Amacrine
 //
+// Formatted
 
 
 HyPerCol "column" = {
    nx                           = 256;
    ny                           = 256;
    dt                           = 1.;           // according GK
-   randomSeed                   = 1020304050.0; // remove when running for real
+   randomSeed                   = 1020304050.0; // comment when running for real
 //   checkpointRead               = true;         // normal run
    checkpointRead               = false;        // init run
    checkpointWrite              = true;         // always
    checkpointWriteDir           = "OUTPATH/checkpoint";
    checkpointWriteStepInterval  = 100;
    filenamesContainLayerNames   = 2;
+
+   numSteps                     = NUMSTEPS;
    
-   progressStep                 = 2000;
+   progressStep                 = 500;
    deleteOlderCheckpoints       = 0.0;
 
-   outputPath                   = "OUTPATH/output"; //output path
+   outputPath                   = "OUTPATH"; //output path
 // printParamsFilename          = "OUTPATH/PARAMSFILE";
 };
 
 
 //Image "Image" = {
-//    userParamsImage = 1; // initializing image at checkpoint from HERE!
-//    imagePath = "INIMGPATH";
-//    restart = 0;
-//    nxScale = 1;
-//    nyScale = 1;
-//    nf = 1;
-//    marginWidth = 0;
-//    writeStep = 0;
-//    mirrorBCflag = 0;
-//    spikingFlag = 0;
+//    userParamsImage         = 1; // initializing image at checkpoint from HERE!
+//    imagePath               = "INIMGPATH";
+//    restart                 = 0;
+//    nxScale                 = 1;
+//    nyScale                 = 1;
+//    nf                      = 1;
+//    marginWidth             = 0;
+//    writeStep               = 0;
+//    mirrorBCflag            = 0;
+//    spikingFlag             = 0;
+//    writeImages             = 0;  
+//    useImageBCflag          = 0;
+//    inverseFlag             = 0;
 //    writeNonspikingActivity = true; // true (no quotes) is translated to 1 
-//    writeImages = 0;  
 //};
       
 
 //Movie "Image" = {
-//    imageListPath = "INMOVPATH";
+//    imageListPath           = "INMOVPATH";
 //
-//    restart = 0;
-//    nxScale = 1;
-//    nyScale = 1;
-//    nf = 1;
-//    marginWidth = 0;
-//    writeStep = -1;
-//    mirrorBCflag = 1;
-//    spikingFlag = 0;
+//    restart                 = 0;
+//    nxScale                 = 1;
+//    nyScale                 = 1;
+//    nf                      = 1;
+//    marginWidth             = 0;
+//    writeStep               = -1;
+//    mirrorBCflag            = 1;
+//    spikingFlag             = 0;
 //    writeNonspikingActivity = -1;
 //
-//    writeImages = 0;
+//    writeImages             = 0;
 //
-//    displayPeriod = 100;
-//    jitterFlag = 0;
-//    //biasChangeTime = 20;
-//    randomMovie = 0;
-//    offsetX = 1;
-//    offsetY = 1;
+//    displayPeriod           = 100;
+//    jitterFlag              = 0;
+////    biasChangeTime          = 20;
+//    randomMovie             = 0;
+//    offsetX                 = 1;
+//    offsetY                 = 1;
 //
-//    start_frame_index = 0.0;
-//    skip_frame_index = 0.0;
-//    echoFramePathnameFlag = 0.0;
+//    start_frame_index       = 0.0;
+//    skip_frame_index        = 0.0;
+//    echoFramePathnameFlag   = 0.0;
+//    useImageBCflag          = 0.0;
+//    inverseFlag             = 0.0;
 //};
        
 
@@ -134,7 +141,7 @@ HyPerCol "column" = {
 //};
 
 
-//LIF "Cone" = {       // 1 //
+//LIFGap "Cone" = {       // 1 //
 //    //Case 3: nxScalePost < nxScalePre.
 //    //(the post-synaptic layer has fewer neurons than the pre-synaptic layer)
 //    //
@@ -179,6 +186,7 @@ HyPerCol "column" = {
 //};
 
 
+// ---------------------------------------------------------------- ON LAYER
 //SigmoidLayer "ConeSigmoidON" = {  // 2
 //    nxScale           = 1.;
 //    nyScale           = 1.;
@@ -186,44 +194,21 @@ HyPerCol "column" = {
 //    marginWidth       = 2.0;      // for MPI running
 //    originalLayerName = "Cone";
 //    InitVType         = "ConstantV";
-//    valueV            = -60.5;
-//    Vrest             = -60.5;    // ConeSigmoidON
-//    VthRest           = -53.5;    // was -40. before moving the threshold in the middle                  
+//    valueV            = -55.0;
+//    Vrest             = -55.0;    // 
+//    VthRest           = -36.0;    // was -40. before moving the threshold in the middle                  
 //    mirrorBCflag      = 1.0; 
+//    InverseFlag       = 0.0;
 //    restart           = 0.0;      // from graylast
 //
-//    writeStep        = 1;
-//    spikingFlag      = 0.0;
-//    InverseFlag      = 0.0;
-//    SigmoidFlag      = 1;
-//    SigmoidAlpha     = 0.10;
+//    writeStep         = 1;
+//    spikingFlag       = 0.0;
+//    SigmoidFlag       = 1;
+//    SigmoidAlpha      = 0.10;
 //    writeNonspikingActivity = 0.0;
 //};
 
 
-//SigmoidLayer "ConeSigmoidOFF" = {   // 3
-//    nxScale           = 1.;
-//    nyScale           = 1.;
-//    nf                = 1;
-//    marginWidth       = 2.0;        // for MPI running
-//    originalLayerName = "Cone";
-//    InitVType         = "ConstantV";
-//    valueV            = -60.5;
-//    Vrest             = -60.5;      // ConeSigmoidOFF
-//    VthRest           = -53.5;      // was -40. before moving the threshold in the middle                  
-//    mirrorBCflag      = 1.0;        // 
-//    InverseFlag       = 1.0; 
-//    restart           = 0.0;        // from graylast
-// 
-//    writeStep        = 1;
-//    spikingFlag      = 0.0;
-//    SigmoidFlag      = 1;
-//    SigmoidAlpha     = 0.1;
-//    writeNonspikingActivity = 0.0;
-//};
-
-
-// ---------------------------------------------------------------- ON LAYER
 //LIF "BipolarON" = {	            // 4
 //    nxScale          = 1.;
 //    nyScale          = 1.;
@@ -263,9 +248,9 @@ HyPerCol "column" = {
 //    nyScale           = 1.;
 //    marginWidth       = 4.0;           // for MPI running
 //    InitVType         = "ConstantV";
-//    valueV            = -50.0;
-//    Vrest             = -50.0;         // BipolarSigmoidON
-//    VthRest           = -45.0;         // Was -60 before moving the threshold in the middle                 
+//    valueV            = -70.0;
+//    Vrest             = -70.0;         // BipolarSigmoidON
+//    VthRest           = -38.0;         // Was -60 before moving the threshold in the middle                 
 //    mirrorBCflag      = 1.0;           // Margin boundaries are mirrored
 //    restart           = 0.0;           // from graylast
 //
@@ -562,7 +547,7 @@ HyPerCol "column" = {
 //    Vexc         = 0.0;     // reversal potential 
 //    Vinh         = -75.0;   // chloride channel
 //    VinhB        = -90.0;   // potassium reversal
-//    tau          =  2.0;    // intrinsic leak membrane time constant (max)
+//    tau          = 2.0;     // intrinsic leak membrane time constant (max)
 //    tauE         = 1.0;     // how long glutamine stays bound
 //    tauI         = 5.0;     // how long GABA stays bound
 //    tauIB        = 10.0;    // inhibitory potassium channel 
@@ -580,25 +565,50 @@ HyPerCol "column" = {
 
 
 //Retina "RetinaON" = {           // 17
-//   nxScale          = 1;
-//   nyScale          = 1;
-//   marginWidth      = 2;        //CER 2;
+//   nxScale             = 1;
+//   nyScale             = 1;
+//   nf                  = 1.0;
+//   marginWidth         = 2;        //CER 2;
 //   
-//   beginStim        = 0;
-//   endStim          = 9000000;
+//   beginStim           = 0;
+//   endStim             = 9000000;
 //
-//   burstFreq        = 4000; //25; // 0.001; //20;   // Hz
-//   burstDuration    = 10; //7.5; //1000000;         // ms
+//   burstFreq           = 4000; //25; // 0.001; //20;   // Hz
+//   burstDuration       = 10; //7.5; //1000000;         // ms
 //
-//   spikingFlag      = 1;       // spike as poisson
+//   spikingFlag         = 1;       // spike as poisson
+//   refractoryPeriod    = 5;
+//   absrefractoryPeriod = 3;
 //
-//   noiseOnFreq      = 100;     // (Hz) when this is defined poissonEdge overridden
-//   noiseOffFreq     = 25;//50; // (Hz) when this is defined poissonBlank overridden
+//   noiseOnFreq         = 100;     // (Hz) when this is defined poissonEdge overridden
+//   noiseOffFreq        = 25;//50; // (Hz) when this is defined poissonBlank overridden
 //   
-//   mirrorBCflag     = 1.0;
-//   writeStep        = -1.0;
-//   nf               = 1.0;
-//   restart          = 0.0;     // from graylast
+//   mirrorBCflag        = 1.0;
+//   writeStep           = -1.0;
+//   restart             = 0.0;     // from graylast
+//};
+
+
+// ---------------------------------------------------------------- OFF LAYER
+//SigmoidLayer "ConeSigmoidOFF" = {   // 3
+//    nxScale           = 1.;
+//    nyScale           = 1.;
+//    nf                = 1;
+//    marginWidth       = 2.0;        // for MPI running
+//    originalLayerName = "Cone";
+//    InitVType         = "ConstantV";
+//    valueV            = -59.172;
+//    Vrest             = -59.172;    // VthRest - 19
+//    VthRest           = -40.172;    // Vgray + abs(VrestON-Vgray)
+//    mirrorBCflag      = 1.0;        //   Vgray = 47.586
+//    InverseFlag       = 1.0;        //   abs(VthRestON - Vgray) = 7.414
+//    restart           = 0.0;        // from graylast
+// 
+//    writeStep         = 1;
+//    spikingFlag       = 0.0;
+//    SigmoidFlag       = 1;
+//    SigmoidAlpha      = 0.1;
+//    writeNonspikingActivity = 0.0;
 //};
 
 
@@ -705,13 +715,13 @@ HyPerCol "column" = {
 //    originalLayerName = "WFAmacrineOFF";
 //    nxScale           = 0.5;       // 5/18 discussion with Garrett
 //    nyScale           = 0.5;       // three are fewer horizontal 
+//    nf                = 1;
 //    marginWidth       = 2.0;       // for MPI running
 //    mirrorBCflag      = 1.0;       // 
 //    restart           = 0.0;       // from graylast
 //    InitVType         = "ConstantV";
 //    valueV            = -70.;
 //    
-//    nf                = 1;
 //    writeStep         = 1;
 //    spikingFlag       = 0.0;
 //    writeNonspikingActivity = 0.0;
@@ -874,25 +884,27 @@ HyPerCol "column" = {
 
 
 //Retina "RetinaOFF" = {       // 28
-//   nxScale         = 1;
-//   nyScale         = 1;
-//   marginWidth     = 2;        //CER 2;
+//   nxScale             = 1;
+//   nyScale             = 1;
+//   marginWidth         = 2;        //CER 2;
 //   
-//   beginStim       = 0;
-//   endStim         = 9000000;
+//   beginStim           = 0;
+//   endStim             = 9000000;
 //
-//   burstFreq       = 4000; //25; // 0.001; //20;  // Hz
-//   burstDuration   = 10; //7.5; //1000000;        // ms
+//   burstFreq           = 4000; //25; // 0.001; //20;  // Hz
+//   burstDuration       = 10; //7.5; //1000000;        // ms
 //
-//   spikingFlag     = 1;        // spike as poisson
+//   spikingFlag         = 1;        // spike as poisson
+//   refractoryPeriod    = 5;
+//   absRefractoryPeriod = 3;
 //
-//   noiseOnFreq     = 100;      // (Hz) when this is defined poissonEdge overridden
-//   noiseOffFreq    = 25;//50;  // (Hz) when this is defined poissonBlank overridden
+//   noiseOnFreq         = 100;      // (Hz) when this is defined poissonEdge overridden
+//   noiseOffFreq        = 25;//50;  // (Hz) when this is defined poissonBlank overridden
 //   
-//   mirrorBCflag    = 1.0;
-//   writeStep       = -1.0;
-//   nf              = 1.0;
-//   restart         = 0.0;      // from graylast
+//   mirrorBCflag        = 1.0;
+//   writeStep           = -1.0;
+//   nf                  = 1.0;
+//   restart             = 0.0;      // from graylast
 //};
 
 
@@ -1046,7 +1058,7 @@ HyPerCol "column" = {
 //};
 
 
-//KernelConn "ImageBuffer to Cone" = {          // 0
+//GapConn "ImageBuffer to Cone" = {          // 0
 //    preLayerName           = "ImageBuffer";
 //    postLayerName          = "Cone";
 //    weightInitType         = "Gauss2DWeight";
@@ -1077,6 +1089,7 @@ HyPerCol "column" = {
 //    shrinkPatches          = 0.0;
 //    nfp                    = 1;
 //    rMin                   = 0.0;
+//    normalizeTotalToPost   = 1;
 //};
 
 
@@ -1111,6 +1124,8 @@ HyPerCol "column" = {
 //    selfFlag               = 0.0;
 //    shrinkPatches          = 0.0;
 //    rMin                   = 0.0;
+//
+//    normalizeTotalToPost   = 1;
 //};
 
 
@@ -1124,26 +1139,30 @@ HyPerCol "column" = {
 //    nyp                    = 3;
 //    normalize              = 1.0;    //  
 //    strength               = ConeSigmoidBipolar; //0.2537; // 0.2537 gives 50 mV without feedback ConeSigmoidBipolar staerke
+//
+//    stochasticReleaseFlag  = 0.0;
 //    	
 //    aspect                 = 1.0;
 //    delay                  = 0.0;    // in time steps, additional to the one you always get
 //    nfp                    = 1.0;    // should fit the feature number of post synaptic layer
 //    sigma                  = 0.8;    // only for Gauss/cocirc
 //    rMax                   = 256.;   // maximum distance of connection
+//    rMin                   = 0.0;
 //
-//    normalize_max          = 0.0;    // all flags zero means it normalize total integrated output
-//    normalize_zero_offset  = 0.0;    //
-//    normalize_cutoff       = 0.0;    //
+//    normalize_max          = 0;      // all flags zero means it normalize total integrated output
+//    normalize_zero_offset  = 0;      //
+//    normalize_cutoff       = 0;      //
 //    writeStep              = -.1;    // do not write these out
 //
-//    symmetrizeWeights      = 0.0;
+//    symmetrizeWeights      = 0;
 //    numAxonalArbors        = 1;
-//    plasticityFlag         = 0.0;
-//    stochasticReleaseFlag  = 0.0;
+//    plasticityFlag         = 0;
 //    writeCompressedWeights = 1;
-//    selfFlag               = 0.0;
-//    shrinkPatches          = 0.0;
-//    rMin                   = 0.0;
+//    selfFlag               = 0;
+//    shrinkPatches          = 0;
+//    
+//    preActivityIsNotRate   = 1;
+//    normalizeTotalToPost   = 1;
 //};
 
 
@@ -1184,6 +1203,9 @@ HyPerCol "column" = {
 //    shrinkPatches          = 0.0;
 //    nfp                    = 1;
 //    rMin                   = 0.0;
+//
+//    preActivityIsNotRate   = 1;
+//    normalizeTotalToPost   = 1;
 //};
 
 
@@ -1217,6 +1239,8 @@ HyPerCol "column" = {
 //    selfFlag               = 0.0;
 //    shrinkPatches          = 0.0;
 //    nfp                    = 1;
+//
+//    normalizeTotalToPost   = 1;
 //};
 
 
@@ -1256,6 +1280,9 @@ HyPerCol "column" = {
 //    shrinkPatches          = 0.0;
 //    nfp                    = 1;
 //    rMin                   = 0.0;
+//
+//    preActivityIsNotRate   = 1;
+//    normalizeTotalToPost   = 1;
 //};
 
 
@@ -1296,6 +1323,9 @@ HyPerCol "column" = {
 //    shrinkPatches          = 0.0;
 //    nfp                    = 1;
 //    rMin                   = 0.0;
+//
+//    preActivityIsNotRate   = 1;
+//    normalizeTotalToPost   = 1;
 //};
 
 
@@ -1329,6 +1359,8 @@ HyPerCol "column" = {
 //    selfFlag               = 0.0;
 //    shrinkPatches          = 0.0;
 //    nfp                    = 1;
+//
+//    normalizeTotalToPost   = 1;
 //};
 
 
@@ -1348,7 +1380,7 @@ HyPerCol "column" = {
 //    normalize              = 1.0;      //
 //    strength               = WFAmacrineSigmoidBipolar; // 0.5; // 1.0; // 2.0; // 3.0; // 1.5 WFAmacrineSigmoidBipolar staerke
 //    
-//    stochasticReleaseFlag  = 1.0;
+//    stochasticReleaseFlag  = 0.0;
 //    	
 //    aspect                 = 1.0;
 //    delay                  = 0.0;      // in time steps, additional to the one you always get
@@ -1368,6 +1400,9 @@ HyPerCol "column" = {
 //    shrinkPatches          = 0.0;
 //    nfp                    = 1;
 //    rMin                   = 0.0;
+//
+//    preActivityIsNotRate   = 1;
+//    normalizeTotalToPost   = 1;
 //};
 
 
@@ -1381,7 +1416,7 @@ HyPerCol "column" = {
 //    normalize              = 1.0;     //  
 //    strength               = BipolarSigmoidGanglion; //0.12; //0.088; //0.2; //  BipolarSigmoidGanglion staerke
 //    
-//    stochasticReleaseFlag  = 1.0;
+//    stochasticReleaseFlag  = 0;
 //    	
 //    aspect                 = 1.0;
 //    delay                  = 0.0;     // in time steps, additional to the one you always get
@@ -1401,6 +1436,9 @@ HyPerCol "column" = {
 //    shrinkPatches          = 0.0;
 //    nfp                    = 1;
 //    rMin                   = 0.0;
+//
+//    preActivityIsNotRate   = 1;
+//    normalizeTotalToPost   = 1;
 //};
 
 
@@ -1432,6 +1470,8 @@ HyPerCol "column" = {
 //    shrinkPatches          = 0.0;
 //    nfp                    = 1;
 //    rMin                   = 0.0;
+//
+//    normalizeTotalToPost   = 1;
 //};
 
 
@@ -1463,6 +1503,8 @@ HyPerCol "column" = {
 //    shrinkPatches          = 0.0;
 //    nfp                    = 1;
 //    rMin                   = 0.0;
+//
+//    normalizeTotalToPost   = 1;
 //};
 
 
@@ -1495,6 +1537,8 @@ HyPerCol "column" = {
 //    selfFlag               = 0.0;
 //    shrinkPatches          = 0.0;
 //    nfp                    = 1;
+//
+//    normalizeTotalToPost   = 1;
 //};
 
 
@@ -1527,6 +1571,8 @@ HyPerCol "column" = {
 //    shrinkPatches          = 0.0;
 //    nfp                    = 1;
 //    rMin                   = 0.0;
+//
+//    normalizeTotalToPost   = 1;
 //};
 
 
@@ -1560,6 +1606,8 @@ HyPerCol "column" = {
 //    selfFlag               = 0.0;
 //    shrinkPatches          = 0.0;
 //    nfp                    = 1;
+//
+//    normalizeTotalToPost   = 1;
 //};
 
 
@@ -1592,6 +1640,8 @@ HyPerCol "column" = {
 //    shrinkPatches          = 0.0;
 //    nfp                    = 1;
 //    rMin                   = 0.0;
+//
+//    normalizeTotalToPost   = 1;
 //};
 
 
@@ -1610,7 +1660,7 @@ HyPerCol "column" = {
 //    weightInitType         = "Gauss2DWeight";
 //    channelCode            = 0;           // forward
 //
-//    stochasticReleaseFlag  = 1.0;
+//    stochasticReleaseFlag  = 0.0;
 //
 //    nxp                    = 3;           // odd times 1 because of scale factor
 //    nyp                    = 3;           //
@@ -1635,6 +1685,9 @@ HyPerCol "column" = {
 //    shrinkPatches          = 0.0;
 //    nfp                    = 1;
 //    rMin                   = 0.0;
+//
+//    preActivityIsNotRate   = 1;
+//    normalizeTotalToPost   = 1;
 //};
 
 
@@ -1655,7 +1708,7 @@ HyPerCol "column" = {
 //    normalize              = 1.0;                 // 
 //    strength               = SFAmacrineSigmoidGanglion; // today gjk 0.25 SFAmacrineSigmoidGanglion staerke
 //    
-//    stochasticReleaseFlag  = 1.0;
+//    stochasticReleaseFlag  = 0.0;
 //
 //    aspect                 = 1.0;
 //    delay                  = 0.0;                 // in time steps, additional to the one you always get
@@ -1675,6 +1728,9 @@ HyPerCol "column" = {
 //    shrinkPatches          = 0.0;
 //    nfp                    = 1;
 //    rMin                   = 0.0;
+//
+//    preActivityIsNotRate   = 1;
+//    normalizeTotalToPost   = 1;
 //};
 
 
@@ -1695,7 +1751,7 @@ HyPerCol "column" = {
 //    normalize              = 1.0;                 // 
 //    strength               = SFAmacrineSigmoidPAAmacrine; //0.25; // today 0.25 SFAmacrineSigmoidPAAmacrine staerke
 //    
-//    stochasticReleaseFlag  = 1.0;
+//    stochasticReleaseFlag  = 0.0;
 //
 //    aspect                 = 1.0;
 //    delay                  = 0.0;                 // in time steps, additional to the one you always get
@@ -1715,6 +1771,9 @@ HyPerCol "column" = {
 //    shrinkPatches          = 0.0;
 //    nfp                    = 1;
 //    rMin                   = 0.0;
+//
+//    preActivityIsNotRate   = 1;
+//    normalizeTotalToPost   = 1;
 //};
 
 
@@ -1735,6 +1794,8 @@ HyPerCol "column" = {
 //    normalize              = 1.0;                 //  
 //    strength               = PAAmacrineWFAmacrine;// 1.0; // 1.0 PAAmacrineWFAmacrine staerke
 //    
+//    stochasticReleaseFlag  = 0.0;
+//
 //    aspect                 = 1.0;                 //
 //    delay                  = 0.0;                 // in time steps, additional to the one you always get
 //    sigma                  = 6.0;                 // only for Gauss/cocirc
@@ -1748,12 +1809,14 @@ HyPerCol "column" = {
 //    symmetrizeWeights      = 0.0;
 //    numAxonalArbors        = 1;
 //    plasticityFlag         = 0.0;
-//    stochasticReleaseFlag  = 0.0;
 //    writeCompressedWeights = 1;
 //    selfFlag               = 0.0;
 //    shrinkPatches          = 0.0;
 //    nfp                    = 1;
 //    rMin                   = 0.0;
+//
+//    preActivityIsNotRate   = 1;
+//    normalizeTotalToPost   = 1;
 //};
 
 
@@ -1774,7 +1837,7 @@ HyPerCol "column" = {
 //    normalize              = 1.0;                 //  
 //    strength               = WFAmacrineSFAmacrine;// 2.0; // WFAmacrineSFAmacrine
 //
-//    stochasticReleaseFlag  = 1.0;
+//    stochasticReleaseFlag  = 0.0;
 //
 //    aspect                 = 1.0;                 //
 //    delay                  = 0.0;                 // in time steps, additional to the one you always get
@@ -1794,6 +1857,9 @@ HyPerCol "column" = {
 //    shrinkPatches          = 0.0;
 //    nfp                    = 1;
 //    rMin                   = 0.0;
+//
+//    preActivityIsNotRate   = 1;
+//    normalizeTotalToPost   = 1;
 //};
 
 
@@ -1808,9 +1874,11 @@ HyPerCol "column" = {
 //   
 //   normalize              = 1.0;
 //   
+//   stochasticReleaseFlag  = 0.0;
+//
 //   aspect                 = 1.0;
 //   sigma                  = 1.0;
-//   rMax                   =  4; 
+//   rMax                   = 4; 
 //   strength               = ImageRetina; //7; ImageRetinaOFF staerke
 //   
 //   writeStep              = -1.0;
@@ -1823,11 +1891,12 @@ HyPerCol "column" = {
 //
 //   numAxonalArbors        = 1;
 //   plasticityFlag         = 0.0;
-//   stochasticReleaseFlag  = 0.0;
 //   writeCompressedWeights = 1;
 //   selfFlag               = 0.0;
 //   shrinkPatches          = 0.0;
 //   rMin                   = 0.0;
+//
+//   normalizeTotalToPost   = 1;
 //};
 
 
@@ -1860,6 +1929,9 @@ HyPerCol "column" = {
 //    selfFlag               = 0.0;
 //    shrinkPatches          = 0.0;
 //    rMin                   = 0.0;
+//
+//    preActivityIsNotRate   = 1;
+//    normalizeTotalToPost   = 1;
 //};
 
 
@@ -1899,6 +1971,9 @@ HyPerCol "column" = {
 //    shrinkPatches          = 0.0;
 //    nfp                    = 1;
 //    rMin                   = 0.0;
+//
+//    preActivityIsNotRate   = 1;
+//    normalizeTotalToPost   = 1;
 //};
 
 
@@ -1932,6 +2007,8 @@ HyPerCol "column" = {
 //    writeCompressedWeights = 1;
 //    selfFlag               = 0.0;
 //    shrinkPatches          = 0.0;
+//
+//    normalizeTotalToPost   = 1;
 //};
 
 
@@ -1951,7 +2028,7 @@ HyPerCol "column" = {
 //    normalize              = 1.0;    //  
 //    strength               = WFAmacrineSigmoidBipolar; // 0.5; // 1.0; // 2.0; // 3.0; // 1.5 WFAmacrineSigmoidBipolar staerke
 //    
-//    stochasticReleaseFlag  = 1.0;
+//    stochasticReleaseFlag  = 0.0;
 //    	
 //    aspect                 = 1.0;
 //    delay                  = 0.0;    // in time steps, additional to the one you always get
@@ -1971,6 +2048,9 @@ HyPerCol "column" = {
 //    shrinkPatches          = 0.0;
 //    nfp                    = 1;
 //    rMin                   = 0.0;
+//
+//    preActivityIsNotRate   = 1;
+//    normalizeTotalToPost   = 1;
 //};
 
 
@@ -1984,7 +2064,7 @@ HyPerCol "column" = {
 //    normalize              = 1.0;             // 
 //    strength               = BipolarSigmoidGanglion; //0.12; //0.088; // 0.08 //0.2; //BipolarSigmoidGanglion staerke
 //    
-//    stochasticReleaseFlag  = 1.0;
+//    stochasticReleaseFlag  = 0.0;
 //    	
 //    aspect                 = 1.0;             //
 //    delay                  = 0.0;             // in time steps, additional to the one you always get
@@ -2004,6 +2084,9 @@ HyPerCol "column" = {
 //    shrinkPatches          = 0.0;
 //    nfp                    = 1;
 //    rMin                   = 0.0;
+//
+//    preActivityIsNotRate   = 1;
+//    normalizeTotalToPost   = 1;
 //};
 
 
@@ -2022,7 +2105,7 @@ HyPerCol "column" = {
 //    weightInitType         = "Gauss2DWeight";
 //    channelCode            = 0;               // forward
 //    
-//    stochasticReleaseFlag  = 1.0;
+//    stochasticReleaseFlag  = 0.0;
 //    
 //    nxp                    = 3;               // odd times 1 because of scale factor
 //    nyp                    = 3;               //
@@ -2047,6 +2130,9 @@ HyPerCol "column" = {
 //    shrinkPatches          = 0.0;
 //    nfp                    = 1;
 //    rMin                   = 0.0;
+//
+//    preActivityIsNotRate   = 1;
+//    normalizeTotalToPost   = 1;
 //};
 
 
@@ -2078,6 +2164,8 @@ HyPerCol "column" = {
 //    shrinkPatches          = 0.0;
 //    nfp                    = 1;
 //    rMin                   = 0.0;
+//
+//    normalizeTotalToPost   = 1;
 //};
 
 
@@ -2109,6 +2197,8 @@ HyPerCol "column" = {
 //    shrinkPatches          = 0.0;
 //    nfp                    = 1;
 //    rMin                   = 0.0;
+//
+//    normalizeTotalToPost   = 1;
 //};
 
 
@@ -2141,6 +2231,8 @@ HyPerCol "column" = {
 //    selfFlag               = 0.0;
 //    shrinkPatches          = 0.0;
 //    nfp                    = 1;
+//
+//    normalizeTotalToPost   = 1;
 //};
 
 
@@ -2173,6 +2265,8 @@ HyPerCol "column" = {
 //    shrinkPatches          = 0.0;
 //    nfp                    = 1;
 //    rMin                   = 0.0;
+//
+//    normalizeTotalToPost   = 1;
 //};
 
 
@@ -2206,6 +2300,8 @@ HyPerCol "column" = {
 //    selfFlag               = 0.0;
 //    shrinkPatches          = 0.0;
 //    nfp                    = 1;
+//
+//    normalizeTotalToPost   = 1;
 //};
 
 
@@ -2219,6 +2315,8 @@ HyPerCol "column" = {
 //    normalize              = 1.0;                 // 
 //    strength               = GanglionSynchronicity;  // GanglionSynchronicity staerke <============================   debug
 //    	
+//    stochasticReleaseFlag  = 0.0;
+//
 //    aspect                 = 1.0;
 //    delay                  = 0.0;                 // in time steps, additional to the one you always get
 //    sigma                  = 10.;                 // only for Gauss/cocirc
@@ -2232,12 +2330,13 @@ HyPerCol "column" = {
 //    symmetrizeWeights      = 0.0;
 //    numAxonalArbors        = 1;
 //    plasticityFlag         = 0.0;
-//    stochasticReleaseFlag  = 0.0;
 //    writeCompressedWeights = 1;
 //    selfFlag               = 0.0;
 //    shrinkPatches          = 0.0;
 //    nfp                    = 1;
 //    rMin                   = 0.0;
+//
+//   normalizeTotalToPost    = 1;
 //};
 
 
@@ -2258,7 +2357,7 @@ HyPerCol "column" = {
 //    normalize              = 1.0;                 //  
 //    strength               = SFAmacrineSigmoidGanglion; // today 0.25 SFAmacrineSigmoidGanglion staerke
 //
-//    stochasticReleaseFlag  = 1.0;
+//    stochasticReleaseFlag  = 0.0;
 //    
 //    aspect                 = 1.0;                 //
 //    delay                  = 0.0;                 // in time steps, additional to the one you always get
@@ -2278,6 +2377,9 @@ HyPerCol "column" = {
 //    shrinkPatches          = 0.0;
 //    nfp                    = 1;
 //    rMin                   = 0.0;
+//
+//    preActivityIsNotRate   = 1;
+//    normalizeTotalToPost   = 1;
 //};
 
 
@@ -2298,7 +2400,7 @@ HyPerCol "column" = {
 //    normalize              = 1.0;                 //  
 //    strength               = SFAmacrineSigmoidPAAmacrine;  //0.25; // today 0.25 SFAmacrineSigmoidPAAmacrine staerke
 //
-//    stochasticReleaseFlag  = 1.0;
+//    stochasticReleaseFlag  = 0.0;
 //
 //    aspect                 = 1.0;                 //
 //    delay                  = 0.0;                 // in time steps, additional to the one you always get
@@ -2318,6 +2420,9 @@ HyPerCol "column" = {
 //    shrinkPatches          = 0.0;
 //    nfp                    = 1;
 //    rMin                   = 0.0;
+//
+//    preActivityIsNotRate   = 1;
+//    normalizeTotalToPost   = 1;
 //};
 
 
@@ -2338,6 +2443,8 @@ HyPerCol "column" = {
 //    normalize              = 1.0;                 // 
 //    strength               = PAAmacrineWFAmacrine;// 1.0; // 1.0 PAAmacrineWFAmacrine staerke
 //    
+//    stochasticReleaseFlag  = 0.0;
+//
 //    aspect                 = 1.0;
 //    delay                  = 0.0;                 // in time steps, additional to the one you always get
 //    sigma                  = 6.0;                 // only for Gauss/cocirc
@@ -2351,12 +2458,13 @@ HyPerCol "column" = {
 //    symmetrizeWeights      = 0.0;
 //    numAxonalArbors        = 1;
 //    plasticityFlag         = 0.0;
-//    stochasticReleaseFlag  = 0.0;
 //    writeCompressedWeights = 1;
 //    selfFlag               = 0.0;
 //    shrinkPatches          = 0.0;
 //    nfp                    = 1;
 //    rMin                   = 0.0;
+//
+//    normalizeTotalToPost   = 1;
 //};
 
 
@@ -2377,7 +2485,7 @@ HyPerCol "column" = {
 //    normalize              = 1.0;                 // 
 //    strength               = WFAmacrineSFAmacrine;// 2.0;WFAmacrineSFAmacrine staerke
 //
-//    stochasticReleaseFlag  = 1.0;
+//    stochasticReleaseFlag  = 0.0;
 //
 //    aspect                 = 1.0;
 //    delay                  = 0.0;                 // in time steps, additional to the one you always get
@@ -2397,4 +2505,7 @@ HyPerCol "column" = {
 //    shrinkPatches          = 0.0;
 //    nfp                    = 1;
 //    rMin                   = 0.0;
+//
+//    preActivityIsNotRate   = 1;
+//    normalizeTotalToPost   = 1;
 //};
