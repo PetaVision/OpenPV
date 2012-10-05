@@ -10,21 +10,27 @@ from tune_functions import *
 ###             ###
 ###################
 
-run_PetaVision   = 0 #Will just create params file if set to 0
-mpi_np           = '1'
-mpi_rows         = '1'
-mpi_columns      = '1'
-num_steps_list   = ['500']
-#wrkspc_path      = '/Users/garkenyon/workspace-sync-anterior'
-wrkspc_path      = '/Users/dpaiton/Documents/Work/LANL/workspace'
-param_filename   = 'params_gar.pv'
-out_filename     = 'ConeCalibration'
-results_path     = wrkspc_path+'/Retina/output/coneCalibration-test'
+run_PetaVision      = 1       #Will just create params file if set to 0
+pipe_output_to_file = 1
+mpi_np              = '4'
+mpi_rows            = '2'
+mpi_columns         = '2'
 
-input_path   = wrkspc_path+'/Retina/input'
-param_file   = wrkspc_path+'/Retina/tuning/'+param_filename
-out_file     = wrkspc_path+'/Retina/tuning/'+out_filename
-run_path     = wrkspc_path+'/Retina/Debug/Retina'
+num_steps_list      = ['2000']
+stochastic_flag     = '0' #preActivityNotRate = !stochastic_flag
+
+param_template_name = 'params_gar.pv'
+run_name            = 'HoriGapCalibration'
+
+#wrkspc_path         = '/Users/garkenyon/workspace-sync-anterior'
+wrkspc_path         = '/Users/dpaiton/Documents/Work/LANL/workspace'
+out_filename        = run_name
+results_path        = wrkspc_path+'/Retina/output/'+run_name
+
+input_path          = wrkspc_path+'/Retina/input'
+param_in_file       = wrkspc_path+'/Retina/tuning/'+param_template_name
+param_out_file      = wrkspc_path+'/Retina/tuning/'+out_filename
+run_path            = wrkspc_path+'/Retina/Debug/Retina'
 
 ## INPUT FILE (One should be uncommented)
 #input_image = input_path+'/amoeba/1f/sigma1/amoeba_1f_1_64_same_gjk.png'
@@ -36,7 +42,8 @@ input_image = input_path+'/gray128image.png'
 
 ## INPUT MOVIE (One should be uncommented)
 #input_movie = input_path+'filenamesnjitter.txt';
-input_movie = input_path+'/filenames_graywhiteblack.txt'
+#input_movie = input_path+'/filenames_graywhiteblack.txt'
+input_movie = input_path+'/filenames_graywhiteblackspots.txt'
 
 ## Declare layers
 #INPUTS
@@ -65,18 +72,18 @@ HoriGap              = 1
 HoriSigmoid          = 1
 
 #AMACRINE
-WFAmacrineON         = 1
-WFAmacrineGapON      = 1
-WFAmacrineSigmoidON  = 1
-PAAmacrineON         = 1
-PAAmaGapON           = 1
+WFAmacrineON         = 0
+WFAmacrineGapON      = 0
+WFAmacrineSigmoidON  = 0
+PAAmacrineON         = 0
+PAAmaGapON           = 0
 WFAmacrineOFF        = WFAmacrineON
 WFAmacrineGapOFF     = WFAmacrineGapON
 WFAmacrineSigmoidOFF = WFAmacrineSigmoidON
 PAAmacrineOFF        = PAAmacrineON
 PAAmaGapOFF          = PAAmaGapON
-SFAmacrine           = 1
-SFAmacrineSigmoid    = 1
+SFAmacrine           = 0
+SFAmacrineSigmoid    = 0
 
 #GANGLION
 GanglionON           = 1
@@ -85,38 +92,38 @@ GanglionOFF          = GanglionON
 GangliGapOFF         = GangliGapON
 
 #SYNCHRONICITY
-SynchronicityON      = 1
+SynchronicityON      = 0
 SynchronicityOFF     = SynchronicityON
 
 #RETINA
-RetinaON             = 1
+RetinaON             = 0
 RetinaOFF            = RetinaON
 
 ## Declare conn strength values
 ##    frange is (start, end, int)
-ImageImageBuffer            = ["%g" % x for x in frange(40,0,0)]   #40   - Image to ImageBuffer
-ConstantVrestImageBuffer    = ["%g" % x for x in frange(1,0,0)]    #1    - ConstantVrest to ImageBuffer
-ImageBufferCone             = ["%g" % x for x in frange(1,0,0)]    #1    - ImageBuffer to Cone
-ImageRetina                 = ["%g" % x for x in frange(0,0,0)]    #1    - Image to Retina
-ConeSigmoidBipolar          = ["%g" % x for x in frange(0.5,0,0)]  #0.5  - ConeSigmoid to Bipolar
-ConeSigmoidHorizontal       = ["%g" % x for x in frange(0.5,0,0)]  #0.5  - ConeSigmoid to Horizontal
-HoriGapHorizontal           = ["%g" % x for x in frange(1,0,0)]    #1    - HoriGap to Horizontal
-HoriSigmoidCone             = ["%g" % x for x in frange(0.5,0,0)]  #0.5  - HoriSigmoid to Cone
-BipolarSigmoidWFAmacrine    = ["%g" % x for x in frange(0,0,0)]    #0    - BipolarSigmoid to WFAmacrine
-WFAmacrineGapWFAmacrine     = ["%g" % x for x in frange(0,0,0)]    #0    - WFAmacrineGAP to WFAmacrine
-WFAmacrineSigmoidBipolar    = ["%g" % x for x in frange(0,0,0)]    #0    - WFAmacrineSigmoid to Bipolar
-BipolarSigmoidGanglion      = ["%g" % x for x in frange(1,0,0)]    #1    - BipolarSigmoid to Ganglion
-GangliGapPAAmacrine         = ["%g" % x for x in frange(0,0,0)]    #0    - GangliGap to PAAmacrine
-PAAmaGapGanglion            = ["%g" % x for x in frange(0,0,0)]    #0    - PAAmaGap to Ganglion
-PAAmaGapPAAmacrine          = ["%g" % x for x in frange(0,0,0)]    #0    - PAAmaGap to PAAmacrine
-PAAmacrineGanglion          = ["%g" % x for x in frange(0,0,0)]    #0    - PAAmacrine to Ganglion
-PAAmacrinePAAmacrine        = ["%g" % x for x in frange(0,0,0)]    #0    - PAAmacrine to PAAmacrine
-GanglionSynchronicity       = ["%g" % x for x in frange(0,0,0)]    #0    - Ganglion to Synchronicity
-BipolarSigmoidSFAmacrine    = ["%g" % x for x in frange(0.05,0,0)] #0.05 - BipolarSigmoid to SFAmacrine
-SFAmacrineSigmoidGanglion   = ["%g" % x for x in frange(0,0,0)]    #0    - SFAmacrineSigmoid to Ganglion
-SFAmacrineSigmoidPAAmacrine = ["%g" % x for x in frange(0,0,0)]    #0    - SFAmacrineSigmoid to PAAmacrine
-PAAmacrineWFAmacrine        = ["%g" % x for x in frange(0,0,0)]    #0    - PAAmacrine to WFAmacrine
-WFAmacrineSFAmacrine        = ["%g" % x for x in frange(0,0,0)]    #0    - WFAmacrine to SFAmacrine
+ImageImageBuffer            = ["%g" % x for x in frange(40,0,0)]   # Image to ImageBuffer
+ConstantVrestImageBuffer    = ["%g" % x for x in frange(1,0,0)]    # ConstantVrest to ImageBuffer
+ImageBufferCone             = ["%g" % x for x in frange(1,0,0)]    # ImageBuffer to Cone
+ImageRetina                 = ["%g" % x for x in frange(0,0,0)]    # Image to Retina
+ConeSigmoidBipolar          = ["%g" % x for x in frange(0.5,0,0)]  # ConeSigmoid to Bipolar
+ConeSigmoidHorizontal       = ["%g" % x for x in frange(0.5,0,0)]  # ConeSigmoid to Horizontal
+HoriGapHorizontal           = ["%g" % x for x in frange(3,0,0)]    # HoriGap to Horizontal
+HoriSigmoidCone             = ["%g" % x for x in frange(1,0,0)]    # HoriSigmoid to Cone
+BipolarSigmoidWFAmacrine    = ["%g" % x for x in frange(0,0,0)]    # BipolarSigmoid to WFAmacrine
+WFAmacrineGapWFAmacrine     = ["%g" % x for x in frange(0,0,0)]    # WFAmacrineGAP to WFAmacrine
+WFAmacrineSigmoidBipolar    = ["%g" % x for x in frange(0,0,0)]    # WFAmacrineSigmoid to Bipolar
+BipolarSigmoidGanglion      = ["%g" % x for x in frange(1,0,0)]    # BipolarSigmoid to Ganglion
+GangliGapPAAmacrine         = ["%g" % x for x in frange(0,0,0)]    # GangliGap to PAAmacrine
+PAAmaGapGanglion            = ["%g" % x for x in frange(0,0,0)]    # PAAmaGap to Ganglion
+PAAmaGapPAAmacrine          = ["%g" % x for x in frange(0,0,0)]    # PAAmaGap to PAAmacrine
+PAAmacrineGanglion          = ["%g" % x for x in frange(0,0,0)]    # PAAmacrine to Ganglion
+PAAmacrinePAAmacrine        = ["%g" % x for x in frange(0,0,0)]    # PAAmacrine to PAAmacrine
+GanglionSynchronicity       = ["%g" % x for x in frange(0,0,0)]    # Ganglion to Synchronicity
+BipolarSigmoidSFAmacrine    = ["%g" % x for x in frange(0.05,0,0)] # BipolarSigmoid to SFAmacrine
+SFAmacrineSigmoidGanglion   = ["%g" % x for x in frange(0,0,0)]    # SFAmacrineSigmoid to Ganglion
+SFAmacrineSigmoidPAAmacrine = ["%g" % x for x in frange(0,0,0)]    # SFAmacrineSigmoid to PAAmacrine
+PAAmacrineWFAmacrine        = ["%g" % x for x in frange(0,0,0)]    # PAAmacrine to WFAmacrine
+WFAmacrineSFAmacrine        = ["%g" % x for x in frange(0,0,0)]    # WFAmacrine to SFAmacrine
 
 conn_list = ["ImageImageBuffer",
             "ConstantVrestImageBuffer",
@@ -166,40 +173,43 @@ conn_lol = [ImageImageBuffer,
             PAAmacrineWFAmacrine,
             WFAmacrineSFAmacrine]
 
+print "tune_params: Verifying parameters."
 ## Assert that all parameter lists are the same length or of length 1
-max_list_len = max([len(x) for x in conn_lol])
+max_list_len = max([len(x) for x in conn_lol]) #max lenght of sub list in lol
 if not all(len(i)==max_list_len or len(i)==1 for i in conn_lol):
     exit("\ntune_params: ERROR: One of the lists is not the right size!\n")
 
 ## Check to see if any of the strengths are set to 0
 ##   nonZeroStrength is true if there is a nonzero strength (false if strength is 0)
-nonZeroStrength = [strength not in '0' for connlist in conn_lol for strength in [max(connlist)]]
+nonZeroStrength = [strength not in '0' for connlist in conn_lol for strength in [max(connlist)]] # max val in each list is not 0
 if len(conn_lol) is not len(nonZeroStrength):
     exit("\ntune_params: ERROR: nonZeroStrength array is not the appropriate length")
 
 ## Open file
-if os.path.isfile(param_file):
+if os.path.isfile(param_in_file):
     try:
-        print "tune_params: Opening param file "+param_file+"."
-        in_fid = open(param_file)
+        print "tune_params: Opening template param file "+param_in_file+"."
+        in_fid = open(param_in_file)
         param_lines = in_fid.readlines()
         in_fid.close()
     except IOError as e:
-        print "tune_params: Failed to open file "+param_file+" with error:\n"
+        print "tune_params: Failed to open file "+param_in_file+" with error:\n"
         exit(e)
 else:
-    exit("\ntune_params: ERROR: Couldn't find file "+param_file+"!\n")
+    exit("\ntune_params: ERROR: Couldn't find file "+param_in_file+"!\n")
 
 ## Modify pvp file and run petavision for each parameter
 for num_steps in num_steps_list:
     for param_idx in range(max_list_len):
-        out_lines = param_lines
+        out_lines = param_lines[:] # Dereference to make copy of list
 
-        idx_out_filename = out_filename+str(param_idx)+'.pv'
-        full_out_file = out_file+'_p'+str(param_idx)+'_ns'+num_steps+'.pv'
+        idx_out_filename  = out_filename+str(param_idx)+'.pv'
+        full_out_file     = param_out_file+'_p'+str(param_idx)+'_ns'+num_steps+'.pv'
+        full_results_path = results_path+'/p'+str(param_idx)+'/ns'+num_steps
 
-        for line_num in range(len(param_lines)):
-            line = param_lines[line_num]
+        print "tune_params: Modifying template file."
+        for line_num in range(len(out_lines)):
+            line = out_lines[line_num]
 
             ## Activate layers that have been set in the global vars section
             uncomment = False 
@@ -480,7 +490,7 @@ for num_steps in num_steps_list:
             uncomment = False
 
             ## Make substitutions for desired param values
-            indices = [idx for idx, enum in enumerate([param in line for param in conn_list]) if enum == True]
+            indices = [idx for idx, enum in enumerate([param in line for param in conn_list]) if enum == True] #list of indices (locations in line) where word of interest (param) is located
             if len(indices) > 0: #if the current line has any of the parameters
                 for lol_idx in indices:
                     if len(conn_lol[lol_idx])>1:
@@ -489,25 +499,37 @@ for num_steps in num_steps_list:
                         new_line = re.sub(conn_list[lol_idx],conn_lol[lol_idx][0],out_lines[line_num],count=1)
                     out_lines[line_num] = new_line
             if 'NUMSTEPS' in line:
-                new_line = re.sub('NUMSTEPS',num_steps,out_lines[line_num],count=0)
+                new_line = re.sub('NUMSTEPS',num_steps,line,count=0)
                 out_lines[line_num] = new_line
             if 'OUTPATH' in line:
-                new_line = re.sub('OUTPATH',results_path+'_p'+str(param_idx)+'_ns'+num_steps,out_lines[line_num],count=0)
+                new_line = re.sub('OUTPATH',full_results_path,line,count=0)
                 out_lines[line_num] = new_line
             if 'PARAMSFILE' in line:
-                new_line = re.sub('PARAMSFILE',idx_out_filename,out_lines[line_num],count=0)
+                new_line = re.sub('PARAMSFILE',idx_out_filename,line,count=0)
                 out_lines[line_num] = new_line
             if 'INIMGPATH' in line:
-                new_line = re.sub('INIMGPATH',input_image,out_lines[line_num],count=0)
+                new_line = re.sub('INIMGPATH',input_image,line,count=0)
                 out_lines[line_num] = new_line
             if 'INMOVPATH' in line:
-                new_line = re.sub('INMOVPATH',input_movie,out_lines[line_num],count=0)
+                new_line = re.sub('INMOVPATH',input_movie,line,count=0)
+                out_lines[line_num] = new_line
+            if 'STOCHASTICRELFLAG' in line:
+                new_line = re.sub('STOCHASTICRELFLAG',stochastic_flag,line,count=0)
+                out_lines[line_num] = new_line
+            if 'PREACTNOTRATE' in line:
+                if stochastic_flag is '0':
+                    new_line = re.sub('PREACTNOTRATE','1',line,count=0)
+                elif stochastic_flag is '1':
+                    new_line = re.sub('PREACTNOTRATE','0',line,count=0)
+                else:
+                    print("\ntune_params: STOCHASTICRELFLAG must be 0 or 1")
+                    exit()
                 out_lines[line_num] = new_line
 
         #####ENDFOR - line_num
 
         ##Write to output file
-        print "tune_params: Writing new params."
+        print "tune_params: Writing new params file."
         try:
             out_fid = open(full_out_file,'w')
         except IOError as e:
@@ -520,11 +542,16 @@ for num_steps in num_steps_list:
         ## Run petavision for this output file
         if run_PetaVision:
             print "tune_params: Running PetaVision.\n\n"
-            mpi_cmd = '/opt/local/bin/openmpirun -np '+mpi_np+' -rows '+mpi_rows+' -columns '+mpi_columns
-            run_cmd = mpi_cmd+' '+run_path+' -p '+full_out_file
-            os.system(run_cmd)
-            os.system('mv '+full_out_file+' '+results_path+'_p'+str(param_idx))+'_ns'+num_steps
+            os.system('mkdir -p '+full_results_path)
+            mpi_cmd = '/opt/local/bin/openmpirun -np '+mpi_np
+            if pipe_output_to_file:
+                run_cmd = mpi_cmd+' '+run_path+' -rows '+mpi_rows+' -columns '+mpi_columns+' -p '+full_out_file+' > '+full_results_path+'/stdout.txt'
+            else:
+                run_cmd = mpi_cmd+' '+run_path+' -rows '+mpi_rows+' -columns '+mpi_columns+' -p '+full_out_file
+            os.system('time '+run_cmd)
+            os.system('cp '+full_out_file+' '+full_results_path)
             print "\n\ntune_params: Finished running PetaVision."
+
     #####ENDFOR - param_idx
 #####ENDFOR - num_steps
 #####ENDFUNCTION

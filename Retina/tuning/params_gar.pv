@@ -11,9 +11,8 @@ HyPerCol "column" = {
    ny                           = 256;
    dt                           = 1.;           // according GK
    randomSeed                   = 1020304050.0; // comment when running for real
-//   checkpointRead               = true;         // normal run
    checkpointRead               = false;        // init run
-   checkpointWrite              = true;         // always
+   checkpointWrite              = false;         // always
    checkpointWriteDir           = "OUTPATH/checkpoint";
    checkpointWriteStepInterval  = 100;
    filenamesContainLayerNames   = 2;
@@ -21,6 +20,7 @@ HyPerCol "column" = {
    numSteps                     = NUMSTEPS;
    
    progressStep                 = 500;
+   writeProgressToErr           = 1;
    deleteOlderCheckpoints       = 0.0;
 
    outputPath                   = "OUTPATH"; //output path
@@ -120,24 +120,24 @@ HyPerCol "column" = {
 //};
 
 
-//ANNLayer "ConstantVrest" = {
-//    restart = 0;
-//    nxScale = 1;
-//    nyScale = 1;
-//    nf      = 1;
+//ANNLayer "ConstantVrest" = {          //Offset cone input to -55mV for black spot (no input)
+//    restart                 = 0;
+//    nxScale                 = 1;
+//    nyScale                 = 1;
+//    nf                      = 1;
 //
-//    marginWidth  = 0;
-//    writeStep    = 1.0;
-//    mirrorBCflag = 1;
-//    spikingFlag  = 0;
+//    marginWidth             = 0;
+//    writeStep               = 1.0;
+//    mirrorBCflag            = 1;
+//    spikingFlag             = 0;
 //
 //    writeNonspikingActivity = 1;
 //
-//    InitVType = "ConstantV";
-//    valueV    = -55;
-//    VThresh   = -55.;
-//    VMax      = -55.;
-//    VMin      = -55.;
+//    InitVType               = "ConstantV";
+//    valueV                  = -55;
+//    VThresh                 = -55.;
+//    VMax                    = -55.;
+//    VMin                    = -55.;
 //};
 
 
@@ -975,17 +975,17 @@ HyPerCol "column" = {
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
-//   Connections Connections Connections Connections Connectioncs Connections Connections
-//   Connections Connections Connections Connections Connectioncs Connections Connections
-//   Connections Connections Connections Connections Connectioncs Connections Connections
-//   Connections Connections Connections Connections Connectioncs Connections Connections
-//   Connections Connections Connections Connections Connectioncs Connections Connections
-//   Connections Connections Connections Connections Connectioncs Connections Connections
-//   Connections Connections Connections Connections Connectioncs Connections Connections
-//   Connections Connections Connections Connections Connectioncs Connections Connections
-//   Connections Connections Connections Connections Connectioncs Connections Connections
-//   Connections Connections Connections Connections Connectioncs Connections Connections
-//   Connections Connections Connections Connections Connectioncs Connections Connections
+//   Connections Connections Connections Connections  Connections Connections Connections
+//   Connections Connections Connections Connections  Connections Connections Connections
+//   Connections Connections Connections Connections  Connections Connections Connections
+//   Connections Connections Connections Connections  Connections Connections Connections
+//   Connections Connections Connections Connections  Connections Connections Connections
+//   Connections Connections Connections Connections  Connections Connections Connections
+//   Connections Connections Connections Connections  Connections Connections Connections
+//   Connections Connections Connections Connections  Connections Connections Connections
+//   Connections Connections Connections Connections  Connections Connections Connections
+//   Connections Connections Connections Connections  Connections Connections Connections
+//   Connections Connections Connections Connections  Connections Connections Connections
 //////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -1140,7 +1140,7 @@ HyPerCol "column" = {
 //    normalize              = 1.0;    //  
 //    strength               = ConeSigmoidBipolar; //0.2537; // 0.2537 gives 50 mV without feedback ConeSigmoidBipolar staerke
 //
-//    stochasticReleaseFlag  = 0.0;
+//    stochasticReleaseFlag  = STOCHASTICRELFLAG;
 //    	
 //    aspect                 = 1.0;
 //    delay                  = 0.0;    // in time steps, additional to the one you always get
@@ -1152,7 +1152,7 @@ HyPerCol "column" = {
 //    normalize_max          = 0;      // all flags zero means it normalize total integrated output
 //    normalize_zero_offset  = 0;      //
 //    normalize_cutoff       = 0;      //
-//    writeStep              = -.1;    // do not write these out
+//    writeStep              = -1;     // do not write these out
 //
 //    symmetrizeWeights      = 0;
 //    numAxonalArbors        = 1;
@@ -1161,7 +1161,7 @@ HyPerCol "column" = {
 //    selfFlag               = 0;
 //    shrinkPatches          = 0;
 //    
-//    preActivityIsNotRate   = 1;
+//    preActivityIsNotRate   = PREACTNOTRATE;
 //    normalizeTotalToPost   = 1;
 //};
 
@@ -1188,23 +1188,23 @@ HyPerCol "column" = {
 //    delay                  = 0.0;                 // in time steps, additional to the one you always get
 //    sigma                  = 2.0;                 // only for Gauss/cocirc
 //    rMax                   = 256.;                // maximum distance of connection was 1.4
+//    rMin                   = 0.0;
 //
 //    normalize_max          = 0.0;                 // all flags zero means it normalize total integrated output
 //    normalize_zero_offset  = 0.0;                 //
 //    normalize_cutoff       = 0.0;                 //
-//    writeStep              = -1.0;                // do not write these out
+//    writeStep              = -1;                  // do not write these out
 //
 //    symmetrizeWeights      = 0.0;
 //    numAxonalArbors        = 1;
 //    plasticityFlag         = 0.0;
-//    stochasticReleaseFlag  = 0.0;
+//    stochasticReleaseFlag  = STOCHASTICRELFLAG;
 //    writeCompressedWeights = 1;
 //    selfFlag               = 0.0;
 //    shrinkPatches          = 0.0;
 //    nfp                    = 1;
-//    rMin                   = 0.0;
 //
-//    preActivityIsNotRate   = 1;
+//    preActivityIsNotRate   = PREACTNOTRATE;
 //    normalizeTotalToPost   = 1;
 //};
 
@@ -1274,14 +1274,14 @@ HyPerCol "column" = {
 //    symmetrizeWeights      = 0.0;
 //    numAxonalArbors        = 1;
 //    plasticityFlag         = 0.0;
-//    stochasticReleaseFlag  = 0.0;
+//    stochasticReleaseFlag  = STOCHASTICRELFLAG;
 //    writeCompressedWeights = 1;
 //    selfFlag               = 0.0;
 //    shrinkPatches          = 0.0;
 //    nfp                    = 1;
 //    rMin                   = 0.0;
 //
-//    preActivityIsNotRate   = 1;
+//    preActivityIsNotRate   = PREACTNOTRATE;
 //    normalizeTotalToPost   = 1;
 //};
 
@@ -1317,14 +1317,14 @@ HyPerCol "column" = {
 //    symmetrizeWeights      = 0.0;
 //    numAxonalArbors        = 1;
 //    plasticityFlag         = 0.0;
-//    stochasticReleaseFlag  = 0.0;
+//    stochasticReleaseFlag  = STOCHASTICRELFLAG;
 //    writeCompressedWeights = 1;
 //    selfFlag               = 0.0;
 //    shrinkPatches          = 0.0;
 //    nfp                    = 1;
 //    rMin                   = 0.0;
 //
-//    preActivityIsNotRate   = 1;
+//    preActivityIsNotRate   = PREACTNOTRATE;
 //    normalizeTotalToPost   = 1;
 //};
 
@@ -1380,7 +1380,7 @@ HyPerCol "column" = {
 //    normalize              = 1.0;      //
 //    strength               = WFAmacrineSigmoidBipolar; // 0.5; // 1.0; // 2.0; // 3.0; // 1.5 WFAmacrineSigmoidBipolar staerke
 //    
-//    stochasticReleaseFlag  = 0.0;
+//    stochasticReleaseFlag  = STOCHASTICRELFLAG;
 //    	
 //    aspect                 = 1.0;
 //    delay                  = 0.0;      // in time steps, additional to the one you always get
@@ -1401,7 +1401,7 @@ HyPerCol "column" = {
 //    nfp                    = 1;
 //    rMin                   = 0.0;
 //
-//    preActivityIsNotRate   = 1;
+//    preActivityIsNotRate   = PREACTNOTRATE;
 //    normalizeTotalToPost   = 1;
 //};
 
@@ -1416,7 +1416,7 @@ HyPerCol "column" = {
 //    normalize              = 1.0;     //  
 //    strength               = BipolarSigmoidGanglion; //0.12; //0.088; //0.2; //  BipolarSigmoidGanglion staerke
 //    
-//    stochasticReleaseFlag  = 0;
+//    stochasticReleaseFlag  = STOCHASTICRELFLAG;
 //    	
 //    aspect                 = 1.0;
 //    delay                  = 0.0;     // in time steps, additional to the one you always get
@@ -1437,7 +1437,7 @@ HyPerCol "column" = {
 //    nfp                    = 1;
 //    rMin                   = 0.0;
 //
-//    preActivityIsNotRate   = 1;
+//    preActivityIsNotRate   = PREACTNOTRATE;
 //    normalizeTotalToPost   = 1;
 //};
 
@@ -1660,13 +1660,13 @@ HyPerCol "column" = {
 //    weightInitType         = "Gauss2DWeight";
 //    channelCode            = 0;           // forward
 //
-//    stochasticReleaseFlag  = 0.0;
-//
 //    nxp                    = 3;           // odd times 1 because of scale factor
 //    nyp                    = 3;           //
 //    normalize              = 1.0;         //  
 //    strength               = BipolarSigmoidSFAmacrine; // 0.1; //0.2766;// 0.02766;// BipolarSigmoidSFAmacrine
 //    
+//    stochasticReleaseFlag  = STOCHASTICRELFLAG;
+//
 //    aspect                 = 1.0;
 //    delay                  = 0.0;         // in time steps, additional to the one you always get
 //    sigma                  = 2.0;         // only for Gauss/cocirc
@@ -1686,7 +1686,7 @@ HyPerCol "column" = {
 //    nfp                    = 1;
 //    rMin                   = 0.0;
 //
-//    preActivityIsNotRate   = 1;
+//    preActivityIsNotRate   = PREACTNOTRATE;
 //    normalizeTotalToPost   = 1;
 //};
 
@@ -1708,7 +1708,7 @@ HyPerCol "column" = {
 //    normalize              = 1.0;                 // 
 //    strength               = SFAmacrineSigmoidGanglion; // today gjk 0.25 SFAmacrineSigmoidGanglion staerke
 //    
-//    stochasticReleaseFlag  = 0.0;
+//    stochasticReleaseFlag  = STOCHASTICRELFLAG;
 //
 //    aspect                 = 1.0;
 //    delay                  = 0.0;                 // in time steps, additional to the one you always get
@@ -1729,7 +1729,7 @@ HyPerCol "column" = {
 //    nfp                    = 1;
 //    rMin                   = 0.0;
 //
-//    preActivityIsNotRate   = 1;
+//    preActivityIsNotRate   = PREACTNOTRATE;
 //    normalizeTotalToPost   = 1;
 //};
 
@@ -1751,7 +1751,7 @@ HyPerCol "column" = {
 //    normalize              = 1.0;                 // 
 //    strength               = SFAmacrineSigmoidPAAmacrine; //0.25; // today 0.25 SFAmacrineSigmoidPAAmacrine staerke
 //    
-//    stochasticReleaseFlag  = 0.0;
+//    stochasticReleaseFlag  = STOCHASTICRELFLAG;
 //
 //    aspect                 = 1.0;
 //    delay                  = 0.0;                 // in time steps, additional to the one you always get
@@ -1772,7 +1772,7 @@ HyPerCol "column" = {
 //    nfp                    = 1;
 //    rMin                   = 0.0;
 //
-//    preActivityIsNotRate   = 1;
+//    preActivityIsNotRate   = PREACTNOTRATE;
 //    normalizeTotalToPost   = 1;
 //};
 
@@ -1837,7 +1837,7 @@ HyPerCol "column" = {
 //    normalize              = 1.0;                 //  
 //    strength               = WFAmacrineSFAmacrine;// 2.0; // WFAmacrineSFAmacrine
 //
-//    stochasticReleaseFlag  = 0.0;
+//    stochasticReleaseFlag  = STOCHASTICRELFLAG;
 //
 //    aspect                 = 1.0;                 //
 //    delay                  = 0.0;                 // in time steps, additional to the one you always get
@@ -1858,7 +1858,7 @@ HyPerCol "column" = {
 //    nfp                    = 1;
 //    rMin                   = 0.0;
 //
-//    preActivityIsNotRate   = 1;
+//    preActivityIsNotRate   = PREACTNOTRATE;
 //    normalizeTotalToPost   = 1;
 //};
 
@@ -1910,6 +1910,8 @@ HyPerCol "column" = {
 //    normalize              = 1.0;     // 
 //    strength               = ConeSigmoidBipolar; //0.2537; // 0.2537 gives 50 mV without feedback ConeSigmoidBipolar staerke
 //    	
+//    stochasticReleaseFlag  = STOCHASTICRELFLAG;
+//
 //    aspect                 = 1.0;
 //    delay                  = 0.0;     // in time steps, additional to the one you always get
 //    nfp                    = 1.0;     // should fit the feature number of post synaptic layer
@@ -1924,13 +1926,12 @@ HyPerCol "column" = {
 //    symmetrizeWeights      = 0.0;
 //    numAxonalArbors        = 1;
 //    plasticityFlag         = 0.0;
-//    stochasticReleaseFlag  = 0.0;
 //    writeCompressedWeights = 1;
 //    selfFlag               = 0.0;
 //    shrinkPatches          = 0.0;
 //    rMin                   = 0.0;
 //
-//    preActivityIsNotRate   = 1;
+//    preActivityIsNotRate   = PREACTNOTRATE;
 //    normalizeTotalToPost   = 1;
 //};
 
@@ -1952,6 +1953,9 @@ HyPerCol "column" = {
 //    nyp                    = 3;        //
 //    normalize              = 1.0;      // 
 //    strength               = BipolarSigmoidWFAmacrine; //1.0;//0.1; //  adjusted to give swing of -55 to -20 BipolarSigmoidWFAmacrine staerke
+//
+//    stochasticReleaseFlag  = STOCASTICRELFLAG;
+//
 //    aspect                 = 1.0;
 //    delay                  = 0.0;      // in time steps, additional to the one you always get
 //    sigma                  = 2.0;      // only for Gauss/cocirc
@@ -1965,14 +1969,13 @@ HyPerCol "column" = {
 //    symmetrizeWeights      = 0.0;
 //    numAxonalArbors        = 1;
 //    plasticityFlag         = 0.0;
-//    stochasticReleaseFlag  = 0.0;
 //    writeCompressedWeights = 1;
 //    selfFlag               = 0.0;
 //    shrinkPatches          = 0.0;
 //    nfp                    = 1;
 //    rMin                   = 0.0;
 //
-//    preActivityIsNotRate   = 1;
+//    preActivityIsNotRate   = PREACTNOTRATE;
 //    normalizeTotalToPost   = 1;
 //};
 
@@ -2028,7 +2031,7 @@ HyPerCol "column" = {
 //    normalize              = 1.0;    //  
 //    strength               = WFAmacrineSigmoidBipolar; // 0.5; // 1.0; // 2.0; // 3.0; // 1.5 WFAmacrineSigmoidBipolar staerke
 //    
-//    stochasticReleaseFlag  = 0.0;
+//    stochasticReleaseFlag  = STOCHASTICRELFLAG;
 //    	
 //    aspect                 = 1.0;
 //    delay                  = 0.0;    // in time steps, additional to the one you always get
@@ -2049,7 +2052,7 @@ HyPerCol "column" = {
 //    nfp                    = 1;
 //    rMin                   = 0.0;
 //
-//    preActivityIsNotRate   = 1;
+//    preActivityIsNotRate   = PREACTNOTRATE;
 //    normalizeTotalToPost   = 1;
 //};
 
@@ -2064,7 +2067,7 @@ HyPerCol "column" = {
 //    normalize              = 1.0;             // 
 //    strength               = BipolarSigmoidGanglion; //0.12; //0.088; // 0.08 //0.2; //BipolarSigmoidGanglion staerke
 //    
-//    stochasticReleaseFlag  = 0.0;
+//    stochasticReleaseFlag  = STOCHASTICRELFLAG;
 //    	
 //    aspect                 = 1.0;             //
 //    delay                  = 0.0;             // in time steps, additional to the one you always get
@@ -2085,7 +2088,7 @@ HyPerCol "column" = {
 //    nfp                    = 1;
 //    rMin                   = 0.0;
 //
-//    preActivityIsNotRate   = 1;
+//    preActivityIsNotRate   = PREACTNOTRATE;
 //    normalizeTotalToPost   = 1;
 //};
 
@@ -2105,7 +2108,7 @@ HyPerCol "column" = {
 //    weightInitType         = "Gauss2DWeight";
 //    channelCode            = 0;               // forward
 //    
-//    stochasticReleaseFlag  = 0.0;
+//    stochasticReleaseFlag  = STOCHASTICRELFLAG;
 //    
 //    nxp                    = 3;               // odd times 1 because of scale factor
 //    nyp                    = 3;               //
@@ -2131,7 +2134,7 @@ HyPerCol "column" = {
 //    nfp                    = 1;
 //    rMin                   = 0.0;
 //
-//    preActivityIsNotRate   = 1;
+//    preActivityIsNotRate   = PREACTNOTRATE;
 //    normalizeTotalToPost   = 1;
 //};
 
@@ -2357,7 +2360,7 @@ HyPerCol "column" = {
 //    normalize              = 1.0;                 //  
 //    strength               = SFAmacrineSigmoidGanglion; // today 0.25 SFAmacrineSigmoidGanglion staerke
 //
-//    stochasticReleaseFlag  = 0.0;
+//    stochasticReleaseFlag  = STOCHASTICRELFLAG;
 //    
 //    aspect                 = 1.0;                 //
 //    delay                  = 0.0;                 // in time steps, additional to the one you always get
@@ -2378,7 +2381,7 @@ HyPerCol "column" = {
 //    nfp                    = 1;
 //    rMin                   = 0.0;
 //
-//    preActivityIsNotRate   = 1;
+//    preActivityIsNotRate   = PREACTNOTRATE;
 //    normalizeTotalToPost   = 1;
 //};
 
@@ -2400,7 +2403,7 @@ HyPerCol "column" = {
 //    normalize              = 1.0;                 //  
 //    strength               = SFAmacrineSigmoidPAAmacrine;  //0.25; // today 0.25 SFAmacrineSigmoidPAAmacrine staerke
 //
-//    stochasticReleaseFlag  = 0.0;
+//    stochasticReleaseFlag  = STOCHASTICRELFLAG;
 //
 //    aspect                 = 1.0;                 //
 //    delay                  = 0.0;                 // in time steps, additional to the one you always get
@@ -2421,7 +2424,7 @@ HyPerCol "column" = {
 //    nfp                    = 1;
 //    rMin                   = 0.0;
 //
-//    preActivityIsNotRate   = 1;
+//    preActivityIsNotRate   = PREACTNOTRATE;
 //    normalizeTotalToPost   = 1;
 //};
 
@@ -2485,7 +2488,7 @@ HyPerCol "column" = {
 //    normalize              = 1.0;                 // 
 //    strength               = WFAmacrineSFAmacrine;// 2.0;WFAmacrineSFAmacrine staerke
 //
-//    stochasticReleaseFlag  = 0.0;
+//    stochasticReleaseFlag  = STOCHASTICRELFLAG;
 //
 //    aspect                 = 1.0;
 //    delay                  = 0.0;                 // in time steps, additional to the one you always get
@@ -2506,6 +2509,76 @@ HyPerCol "column" = {
 //    nfp                    = 1;
 //    rMin                   = 0.0;
 //
-//    preActivityIsNotRate   = 1;
+//    preActivityIsNotRate   = PREACTNOTRATE;
 //    normalizeTotalToPost   = 1;
 //};
+
+
+//////////////////////////////////////////////////////////////////////////////////////////
+//   Probes Probes Probes Probes Probes Probes Probes Probes  Probes Probes Probes Probes 
+//   Probes Probes Probes Probes Probes Probes Probes Probes  Probes Probes Probes Probes 
+//   Probes Probes Probes Probes Probes Probes Probes Probes  Probes Probes Probes Probes 
+//   Probes Probes Probes Probes Probes Probes Probes Probes  Probes Probes Probes Probes 
+//   Probes Probes Probes Probes Probes Probes Probes Probes  Probes Probes Probes Probes 
+//   Probes Probes Probes Probes Probes Probes Probes Probes  Probes Probes Probes Probes 
+//   Probes Probes Probes Probes Probes Probes Probes Probes  Probes Probes Probes Probes 
+//   Probes Probes Probes Probes Probes Probes Probes Probes  Probes Probes Probes Probes 
+//   Probes Probes Probes Probes Probes Probes Probes Probes  Probes Probes Probes Probes 
+//   Probes Probes Probes Probes Probes Probes Probes Probes  Probes Probes Probes Probes 
+//   Probes Probes Probes Probes Probes Probes Probes Probes  Probes Probes Probes Probes 
+//////////////////////////////////////////////////////////////////////////////////////////
+
+PointLIFProbe "Cone Probe" = {
+   targetLayer = "Cone";
+//   msg = "Cone       ";
+   probeOutputFile = "ptCone.txt";
+   xLoc = 128;
+   yLoc = 128;
+   fLoc = 0;
+};
+
+PointLIFProbe "Horizontal Probe" = {
+   targetLayer = "Horizontal";
+//   msg = "Horizontal       ";
+   probeOutputFile = "ptHorizontal.txt";
+   xLoc = 64;
+   yLoc = 64;
+   fLoc = 0;
+};
+
+PointLIFProbe "BipolarON Probe" = {
+   targetLayer = "BipolarON";
+//   msg = "BipolarON       ";
+   probeOutputFile = "ptBipolarON.txt";
+   xLoc = 128;
+   yLoc = 128;
+   fLoc = 0;
+};
+
+PointLIFProbe "BipolarOFF Probe" = {
+   targetLayer = "BipolarOFF";
+//   msg = "BipolarOFF       ";
+   probeOutputFile = "ptBipolarOFF.txt";
+   xLoc = 128;
+   yLoc = 128;
+   fLoc = 0;
+};
+
+PointLIFProbe "GanglionON Probe" = {
+   targetLayer = "GanglionON";
+//   msg = "GanglionON       ";
+   probeOutputFile = "ptGanglionON.txt";
+   xLoc = 64;
+   yLoc = 64;
+   fLoc = 0;
+};
+
+PointLIFProbe "GanglionOFF Probe" = {
+   targetLayer = "GanglionOFF";
+//   msg = "GanglionOFF       ";
+   probeOutputFile = "ptGanglionOFF.txt";
+   xLoc = 64;
+   yLoc = 64;
+   fLoc = 0;
+};
+
