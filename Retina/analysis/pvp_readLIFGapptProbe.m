@@ -1,14 +1,10 @@
-function [time,ret1,ret2,ret3,ret4,ret5,ret6,ret7] = pvp_readLIFGapptProbe(runnumber,filename,inputs)
+function [time,ret1,ret2,ret3,ret4,ret5,ret6,ret7] = pvp_readLIFGapptProbe(run_num,num_time_steps,run_name,filename,inputs)
 
 %Allows for the input of 1 to 7 variables and returns time and values of input variables
 %Inputs must be a cell array of strings {'A','B',...'}
 %Example: [time,G_I,V] = pvp_readPointLIFprobeRun('ConeP5',{'G_I','V'})
 
-if runnumber == 0 
-filename = ["../output/pt",filename,".txt"]
-else
-filename = ["../output/Run",num2str(runnumber),"/pt",filename,".txt"]
-endif
+filename = ['../output/',run_name,'/p',num2str(run_num),'/ns',num2str(num_time_steps),'/pt',filename,'.txt']
 
 myfile = fopen(filename,"r");
 if myfile == -1
@@ -20,7 +16,7 @@ while ~feof(myfile)
 lines = fgetl(myfile);
 count = count + 1;
 end %while
-nLines = count
+nLines = count;
 
 startLine=1;
 
@@ -36,16 +32,16 @@ s = inputs;
 %startLine = 1;
 
 
-G_E  = zeros(nLines, 1);
-G_I  = zeros(nLines, 1);
-G_IB = zeros(nLines, 1);
-G_GAP = zeros(nLines,1);
-V    = zeros(nLines, 1);
-Vth  = zeros(nLines, 1);
-A    = zeros(nLines, 1);
+G_E      = zeros(nLines, 1);
+G_I      = zeros(nLines, 1);
+G_IB     = zeros(nLines, 1);
+G_GAP    = zeros(nLines, 1);
+V        = zeros(nLines, 1);
+Vth      = zeros(nLines, 1);
+A        = zeros(nLines, 1);
 location = zeros(nLines, 1);
 
-nLines
+disp(['Number of lines: ',num2str(nLines)])
 
    for i_step = 1:nLines
 
@@ -128,44 +124,41 @@ ret7 = [];
 
 outp = zeros(nLines-startLine+1,length(s));
 
-length(s)
+for i=1:length(s)
 
-   for i=1:length(s)
+    switch s{i}
 
-	switch s{i}
+        case 'A'
 
-		case 'A'
+          outp(:,i) = A(startLine:nLines);
 
-	          outp(:,i) = A(startLine:nLines);
-                          
+        case 'G_I'
 
-                case 'G_I'
+          outp(:,i) = G_I(startLine:nLines);
 
-                  outp(:,i) = G_I(startLine:nLines);
+        case 'G_IB'
 
-		case 'G_IB'
+          outp(:,i) = G_IB(startLine:nLines);
 
-		  outp(:,i) = G_IB(startLine:nLines);
+        case 'G_E'
 
-		case 'G_E'
+          outp(:,i) = G_E(startLine:nLines);
 
-		  outp(:,i) = G_E(startLine:nLines);
+        case 'G_GAP'
 
-		case 'G_GAP'
+          outp(:,i) = G_GAP(startLine:nLines);
 
-		  outp(:,i) = G_GAP(startLine:nLines);
+        case 'Vth'
 
-		case 'Vth'
+          outp(:,i) = Vth(startLine:nLines);
 
-		  outp(:,i) = Vth(startLine:nLines);
+        case 'V'
 
-		case 'V'
+          outp(:,i) = V(startLine:nLines);
 
-		  outp(:,i) = V(startLine:nLines);
+   end %switch
 
-	   end %switch
-
-    end %for
+end %for
 
 if length(s)>0
    ret1 = outp(:,1);
