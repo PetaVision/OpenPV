@@ -14,16 +14,16 @@ HyPerCol "column" = {
    progressStep                 = 500;
    
    //outputPath                 = "~/Documents/workspace/iHouse/output";
-   //outputPath                   = "~/Documents/Work/LANL/workspace/iHouse/output"; //Dylan's Mac
-   outputPath                   = "~/workspace/iHouse/output"; //Dylan's Neuro
+   outputPath                   = "~/Documents/Work/LANL/workspace/iHouse/output"; //Dylan's Mac
+   //outputPath                   = "~/workspace/iHouse/output"; //Dylan's Neuro
    
    filenamesContainLayerNames   = 2; 	// stores pvp files as: 0 = layer number/1 = layer number and layer name/2 = layer name
    
    checkpointRead  				= false;
    checkpointWrite 				= false;
    //checkpointWriteDir  			= "~/Documents/workspace/iHouse/output/checkpoints";
-   //checkpointWriteDir  			= "~/Documents/Work/LANL/workspace/iHouse/output/checkpoints"; // Dylan's Mac
-   checkpointWriteDir  			= "~/workspace/iHouse/output/checkpoints"; // Dylan's Neuro
+   checkpointWriteDir  			= "~/Documents/Work/LANL/workspace/iHouse/output/checkpoints"; // Dylan's Mac
+   //checkpointWriteDir  			= "~/workspace/iHouse/output/checkpoints"; // Dylan's Neuro
    checkpointWriteStepInterval  = 50000;
 };
 
@@ -54,8 +54,8 @@ Patterns "input" = {
    writeImages    = false;
    
    //patternsOutputPath = "~/Documents/workspace/iHouse/output/sourcefiles";
-   //patternsOutputPath = "~/Documents/Work/LANL/workspace/iHouse/output/sourcefiles"; // Dylan's Mac
-   patternsOutputPath = "~/workspace/iHouse/output/sourcefiles"; // Dylan's Neuro 
+   patternsOutputPath = "~/Documents/Work/LANL/workspace/iHouse/output/sourcefiles"; // Dylan's Mac
+   //patternsOutputPath = "~/workspace/iHouse/output/sourcefiles"; // Dylan's Neuro 
    
    displayPeriod  = 1;
    writeStep      = 1;
