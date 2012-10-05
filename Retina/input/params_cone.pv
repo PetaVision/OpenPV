@@ -7,13 +7,17 @@ HyPerCol "column" = {
    nx = 256;
    ny = 256;
    dt = 1.0;                  // according GK
-   //randomSeed = 1020304050.0; // remove when running for real
+   randomSeed = 1020304050.0; // remove when running for real
    //checkpointRead  = true;  // normal run
    checkpointRead  = false; // init run
    checkpointWrite = true;  // always
-   checkpointWriteDir = "ConeCalibration";
    checkpointWriteStepInterval = 100;
    filenamesContainLayerNames = 1;
+
+   outputPath                   = "output/ConeCalibration-Gerd";
+   checkpointWriteDir           = "output/ConeCalibration-Gerd/checkpoint";
+
+   numSteps = 500;
    
    progressStep = 500;
    deleteOlderCheckpoints = 0.0;
