@@ -25,6 +25,8 @@ global WEIGHTS_IMAGE_SC; WEIGHTS_IMAGE_SC = -1; %-1 for autoscale
 global GRID_FLAG;        GRID_FLAG        = 0;
 global NUM_PROCS;        NUM_PROCS        = nproc();
 
+global staringTime;      startingTime     = 100000;
+
 %File names
 rootDir                                    = '/Users/slundquist';
 workspaceDir                               = [rootDir,'/Documents/workspace/iHouse'];
@@ -213,7 +215,7 @@ for weightTimeIndex = 1:numWeightSteps %For every weight timestep
       if (RECONSTRUCTION_FLAG > 0)
          if(activityTimeIndex > i)
             %To do
-            outMat = reconstruct(activityData{activityTimeIndex - i}.values,  postWeightDataOn{weightTimeIndex}.values, postWeightDataOff{weightTimeIndex}.values, i);
+            outMat = reconstruct(activityData{activityTimeIndex - startingTime - i}.values,  postWeightDataOn{weightTimeIndex}.values, postWeightDataOff{weightTimeIndex}.values, i);
             printImage(outMat, activityTimeIndex, i, reconstructOutDir, RECON_IMAGE_SC, 'Reconstruction');
          end
       end %End reconstruction
