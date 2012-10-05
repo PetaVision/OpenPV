@@ -10,7 +10,7 @@ HyPerCol "column" = {
    
    randomSeed 	= 1020304050.0;   
 
-   numSteps     = 5000;	// amount of time steps performed during run-time
+   numSteps     = 100000;	// amount of time steps performed during run-time
    progressStep = 100;
    
    outputPath   = "~/Documents/Work/LANL/workspace/iHouse/output";
