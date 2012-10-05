@@ -1227,6 +1227,27 @@ int HyPerConn::checkpointRead(const char * cpDir, float * timef) {
    assert(status==PV_SUCCESS);
    InitWeights * weightsInitObject = new InitWeights();
    weightsInitObject->initializeWeights(wPatches, get_wDataStart(), getNumDataPatches(), path, this, timef);
+
+
+   int chars_needed = snprintf(path, PV_PATH_MAX, "%s/%s_nextWrite.bin", cpDir, name);
+   assert(chars_needed < PV_PATH_MAX);
+   if( parent->icCommunicator()->commRank() == 0 ) {
+      FILE * fpWriteTime = fopen(path, "r");
+      pvdata_t write_time = writeTime;
+      if (fpWriteTime==NULL) {
+         fprintf(stderr, "HyPerLayer::checkpointRead warning: unable to open path %s for reading.  writeTime will be %f\n", path, write_time);
+      }
+      else {
+         int num_read = fread(&writeTime, sizeof(writeTime), 1, fpWriteTime);
+         if (num_read != 1) {
+            fprintf(stderr, "HyPerLayer::checkpointRead warning: unable to read from %s.  writeTime will be %f\n", path, write_time);
+            writeTime = write_time;
+         }
+      }
+      fclose(fpWriteTime);
+   }
+
+
    return status;
 }
 
@@ -1235,6 +1256,9 @@ int HyPerConn::checkpointWrite(const char * cpDir) {
    int status = checkpointFilename(filename, PV_PATH_MAX, cpDir);
    assert(status==PV_SUCCESS);
    status = writeWeights(wPatches, wDataStart, getNumWeightPatches(), filename, parent->simulationTime(), true);
+   assert(status==PV_SUCCESS);
+   status = writeScalarFloat(cpDir, "nextWrite", writeTime);
+   assert(status==PV_SUCCESS);
    return status;
 }
 
@@ -1247,6 +1271,39 @@ int HyPerConn::checkpointFilename(char * cpFilename, int size, const char * cpDi
       abort();
    }
    return PV_SUCCESS;
+}
+
+int HyPerConn::writeScalarFloat(const char * cp_dir, const char * val_name, float val) {
+   int status = PV_SUCCESS;
+   if (parent->columnId()==0)  {
+      char filename[PV_PATH_MAX];
+      int chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_%s.bin", cp_dir, name, val_name);
+      if (chars_needed >= PV_PATH_MAX) {
+         fprintf(stderr, "writeScalarFloat error: path %s/%s_%s.bin is too long.\n", cp_dir, name, val_name);
+         abort();
+      }
+      FILE * fpWriteTime = fopen(filename, "w");
+      if (fpWriteTime==NULL) {
+         fprintf(stderr, "HyPerLayer::checkpointWrite error: unable to open path %s for writing.\n", filename);
+         abort();
+      }
+      int num_written = fwrite(&val, sizeof(writeTime), 1, fpWriteTime);
+      if (num_written != 1) {
+         fprintf(stderr, "HyPerLayer::checkpointWrite error while writing to %s.\n", filename);
+         abort();
+      }
+      fclose(fpWriteTime);
+      chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_%s.txt", cp_dir, name, val_name);
+      assert(chars_needed < PV_PATH_MAX);
+      fpWriteTime = fopen(filename, "w");
+      if (fpWriteTime==NULL) {
+         fprintf(stderr, "HyPerLayer::checkpointWrite error: unable to open path %s for writing.\n", filename);
+         abort();
+      }
+      fprintf(fpWriteTime, "%f\n", val);
+      fclose(fpWriteTime);
+   }
+   return status;
 }
 
 float HyPerConn::maxWeight(int arborId)

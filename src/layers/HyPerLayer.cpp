@@ -1092,12 +1092,12 @@ int HyPerLayer::checkpointRead(const char * cpDir, float * timef) {
    if( parent->icCommunicator()->commRank() == 0 ) {
       FILE * fpWriteTime = fopen(filename, "r");
       pvdata_t write_time = writeTime;
-      if (fpWriteTime==NULL  && parent->icCommunicator()->commRank() == 0 ) {
+      if (fpWriteTime==NULL) {
          fprintf(stderr, "HyPerLayer::checkpointRead warning: unable to open path %s for reading.  writeTime will be %f\n", filename, write_time);
       }
       else {
          int num_read = fread(&writeTime, sizeof(writeTime), 1, fpWriteTime);
-         if (num_read != 1 && parent->icCommunicator()->commRank() == 0 ) {
+         if (num_read != 1) {
             fprintf(stderr, "HyPerLayer::checkpointRead warning: unable to read from %s.  writeTime will be %f\n", filename, write_time);
             writeTime = write_time;
          }

@@ -476,6 +476,8 @@ protected:
    // virtual int deleteWeights(); // Changed to a private method.  Should not be virtual since it's called from the destructor.
    virtual int adjustAxonalArbors(int arborId);
    int checkpointFilename(char * cpFilename, int size, const char * cpDir);
+   int writeScalarFloat(const char * cp_dir, const char * val_name, float val);
+
    virtual int calc_dW(int axonId = 0);
    void connOutOfMemory(const char* funcname);
 
