@@ -1,7 +1,5 @@
 clear all; close all; more off; clc;
 system("clear");
-%Due to bugs in PetaVision and pvp files, this needs to be put in by the user
-weightWriteStep = 200;
 
 %Reconstruct Flags
 global SPIKING_OUT_FLAG;       SPIKING_OUT_FLAG       = 0;  %Create spiking output flag
@@ -132,9 +130,6 @@ else
    preWeightHdrOff = postWeightHdrOff;
 end
 
-%Output spiking
-%readspikingpvp;
-
 %PetaVision params
 assert((preWeightHdrOn.nbands == preWeightHdrOff.nbands) && (preWeightHdrOff.nbands == postWeightHdrOn.nbands) && (postWeightHdrOn.nbands == postWeightHdrOff.nbands));
 assert((preWeightHdrOn.nfp == preWeightHdrOff.nfp) && (preWeightHdrOff.nfp == postWeightHdrOn.nfp) && (postWeightHdrOn.nfp == postWeightHdrOff.nfp));
@@ -151,14 +146,13 @@ assert(length(postWeightDataOn) >= 2);
 assert(length(activityData) >= 2);
 
 global activityWriteStep = activityData{2}.time - activityData{1}.time;
-%Bug in petavision where weightWriteStep is not set through index 2's time - index 1's time
-%global weightWriteStep = postWeightDataOn{2}.time - postWeightDataOn{1}.time;
+global weightWriteStep = postWeightDataOn{2}.time - postWeightDataOn{1}.time;
 
 %Each weight must have an activity associated with it
 assert(weightWriteStep >= activityWriteStep);
 assert(mod(weightWriteStep, activityWriteStep) == 0);
 
-global activityToWeight = weightWriteStep/activityWriteStep %The factor of activity step to write step
+global weightToActivity = weightWriteStep/activityWriteStep %The factor of activity step to write step
 global numWeightSteps; numWeightSteps = length(postWeightDataOn)
 global columnSizeX; columnSizeX = postWeightHdrOn.nxGlobal 
 global columnSizeY; columnSizeY = postWeightHdrOn.nyGlobal 
@@ -181,8 +175,6 @@ global marginY; marginY = floor(patchSizeY/2) * postNyScale
 mask = zeros(columnSizeY, columnSizeX);
 mask(1 + marginY:columnSizeY - marginY, 1+marginX:columnSizeX-marginX) = 1;
 %Based on X, Y coords
-%global marginIndexY marginIndexX;
-%[marginIndexY marginIndexX] = find(mask);
 global marginIndex; marginIndex = find(mask'(:));
 
 if (POST_WEIGHTS_CELL_FLAG || PRE_WEIGHTS_CELL_FLAG)
@@ -197,31 +189,9 @@ end
 disp('stdpAnalysis: Creating Images');
 fflush(1);
 
-%Take this out once PetaVision bug is fixed
-%Keeps track of what index weight index is on to map activity
-activityCurrentIndex = 0;
-
 for weightTimeIndex = 1:numWeightSteps %For every weight timestep
-   %Get time step of run
-   time = postWeightDataOn{weightTimeIndex}.time;
-   %Take this out once PetaVision bug gets fixed
-   %Make sure time is actually part of the write step
-   if(mod(time, weightWriteStep) ~= 0)
-      continue;
-   end
-   %Get cooresponding activity time index
-
-   %This line once PetaVision bug is fixed
-   %activityTimeIndex = weightTimeIndex * activityToWeight;
-   %For now, use this
-   while true
-      activityCurrentIndex += 1;
-      assert(activityData{activityCurrentIndex}.time <= time);
-      if(activityData{activityCurrentIndex}.time == time)
-         activityTimeIndex = activityCurrentIndex;
-         break;
-      end
-   end
+   %Calculate weight time index to activity
+   activityTimeIndex = weightTimeIndex * weightToActivity;
    
    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
    %%Weight Histogram
