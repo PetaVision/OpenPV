@@ -20,7 +20,7 @@ HyPerCol "column" = {
    filenamesContainLayerNames   = 2; 	// stores pvp files as: 0 = layer number/1 = layer number and layer name/2 = layer name
    
    checkpointRead  				= false;
-   checkpointWrite 				= true;
+   checkpointWrite 				= false;
    //checkpointWriteDir  			= "~/Documents/workspace/iHouse/output/checkpoints";
    //checkpointWriteDir  			= "~/Documents/Work/LANL/workspace/iHouse/output/checkpoints"; // Dylan's Mac
    checkpointWriteDir  			= "~/workspace/iHouse/output/checkpoints"; // Dylan's Neuro
