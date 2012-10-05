@@ -1390,7 +1390,7 @@ pvdata_t * HyPerConn::createWeights(PVPatch *** patches, int nPatches, int nxPat
    }
 
    // allocate space for all weights at once (inplace), return pointer to beginning of weight array
-   pvdata_t * data_patches = allocWeights(patches, getNumDataPatches(), nxPatch, nyPatch, nfPatch, axonId);
+   pvdata_t * data_patches = allocWeights(patches, nPatches, nxPatch, nyPatch, nfPatch, axonId);
    return data_patches;
 }
 
