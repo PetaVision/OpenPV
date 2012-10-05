@@ -8,19 +8,10 @@ function [outMat] = reconstruct(activityIndex, onWeightValues, offWeightValues, 
    global columnSizeX columnSizeY;
    global marginX marginY;
    global marginIndex;
-   %Index based on X, Y coords
-   %[activityIndexY activityIndexX] = find(activityValues);
-   %Index based on one dimension, same index as activityIndexY and activityIndexX
-   %TODO Use sub2ind instead of this
-   %activityIndex = activityData{activityTimeIndex - (arborId)}.values;
-   %Convert to weight time index
    outMat = zeros(columnSizeY, columnSizeX);
    for activityi = 1:length(activityIndex)
       %Calculate what proc activity is in
       %Since this is being calculated as row first, use X Y instead of Y X
-      %PROBLEM HERE
-      %disp(activityi)
-      %disp(activityIndex(activityi));
       [aIx aIy] = ind2sub([columnSizeX columnSizeY], activityIndex(activityi) + 1); 
 
       %Calculate what process this is in

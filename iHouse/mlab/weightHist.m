@@ -1,4 +1,4 @@
-function weightHist(weightValues, activityTimeIndex, numbins, outDir, figTitle)
+function weightHist(weightValues, time, numbins, outDir, figTitle)
    global VIEW_FIGS;
    global GRAY_SC;
    global WRITE_FIGS;
@@ -20,9 +20,9 @@ function weightHist(weightValues, activityTimeIndex, numbins, outDir, figTitle)
    if(GRAY_SC)
       colormap(gray);
    end
-   title([figTitle, ' - time: ', num2str(activityTimeIndex - 1)]);
+   title([figTitle, ' - time: ', num2str(time)]);
    if(WRITE_FIGS)
-      print_filename = [outDir, figTitle, '_', num2str(activityTimeIndex - 1), '.jpg'];
+      print_filename = [outDir, figTitle, '_', num2str(time), '.jpg'];
       print(print_filename);
    end
 end

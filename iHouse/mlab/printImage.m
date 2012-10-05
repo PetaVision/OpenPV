@@ -1,12 +1,14 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%Image Printing
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function printImage(mat, activityTimeIndex, arborId, outDir, scaleFlag, figTitle)
+function printImage(mat, time, arborId, outDir, scaleFlag, figTitle)
    global VIEW_FIGS;
    global GRAY_SC;
    global WRITE_FIGS;
 
-   assert(~isempty(find(mat)), 'printImage: Empty Matrix');
+   if(isempty(find(mat)))
+      scaleFlag = 1;
+   end
    assert(isempty(find(isnan(mat))), 'printImage: NaN in Matrix');
    
    if(VIEW_FIGS)
@@ -18,7 +20,7 @@ function printImage(mat, activityTimeIndex, arborId, outDir, scaleFlag, figTitle
       scaleMax = max(max(mat(:)), abs(min(mat(:))));
       scale = [-scaleMax, scaleMax];
    else
-      scale = [-scaleFlag, scaleFlag]
+      scale = [-scaleFlag, scaleFlag];
    end
    imagesc(mat, scale);
    %Find max/min of mat, and set scale equal to that
@@ -29,9 +31,9 @@ function printImage(mat, activityTimeIndex, arborId, outDir, scaleFlag, figTitle
    end
    colorbar;
 
-   title([figTitle, ' - time: ', num2str(activityTimeIndex - 1), ' arbor: ', num2str(arborId)]);
+   title([figTitle, ' - time: ', num2str(time), ' arbor: ', num2str(arborId)]);
    if(WRITE_FIGS)
-      print_filename = [outDir, figTitle, '_', num2str(activityTimeIndex - 1), '_', num2str(arborId), '.jpg'];
+      print_filename = [outDir, figTitle, '_', num2str(time), '_', num2str(arborId), '.jpg'];
       print(print_filename);
    end
 end

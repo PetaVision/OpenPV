@@ -1,8 +1,11 @@
 clear all; close all; more off; clc;
 system("clear");
+%Due to bugs in PetaVision and pvp files, this needs to be put in by the user
+weightWriteStep = 200;
+
 %Reconstruct Flags
 global SPIKING_OUT_FLAG;       SPIKING_OUT_FLAG       = 0;  %Create spiking output flag
-global RECONSTRUCTION_FLAG;    RECONSTRUCTION_FLAG    = 0;  %Create reconstructions
+global RECONSTRUCTION_FLAG;    RECONSTRUCTION_FLAG    = 1;  %Create reconstructions
 global POST_WEIGHTS_MAP_FLAG;  POST_WEIGHTS_MAP_FLAG  = 1;     %Create weight maps
 global POST_WEIGHTS_CELL_FLAG; POST_WEIGHTS_CELL_FLAG = 0;
 global PRE_WEIGHTS_MAP_FLAG;   PRE_WEIGHTS_MAP_FLAG   = 0;     %Create weight maps
@@ -25,7 +28,6 @@ global WEIGHTS_IMAGE_SC; WEIGHTS_IMAGE_SC = -1; %-1 for autoscale
 global GRID_FLAG;        GRID_FLAG        = 0;
 global NUM_PROCS;        NUM_PROCS        = nproc();
 
-global staringTime;      startingTime     = 100000;
 
 %File names
 rootDir                                    = '/Users/slundquist';
@@ -134,8 +136,6 @@ end
 %readspikingpvp;
 
 %PetaVision params
-%TODO Replace with header values
-
 assert((preWeightHdrOn.nbands == preWeightHdrOff.nbands) && (preWeightHdrOff.nbands == postWeightHdrOn.nbands) && (postWeightHdrOn.nbands == postWeightHdrOff.nbands));
 assert((preWeightHdrOn.nfp == preWeightHdrOff.nfp) && (preWeightHdrOff.nfp == postWeightHdrOn.nfp) && (postWeightHdrOn.nfp == postWeightHdrOff.nfp));
 assert((preWeightHdrOn.nxp == preWeightHdrOff.nxp) && (preWeightHdrOff.nxp == postWeightHdrOn.nxp) && (postWeightHdrOn.nxp == postWeightHdrOff.nxp));
@@ -147,8 +147,18 @@ assert((preWeightHdrOn.ny == preWeightHdrOff.ny) && (preWeightHdrOff.ny == postW
 assert((preWeightHdrOn.nxGlobal == preWeightHdrOff.nxGlobal) && (preWeightHdrOff.nxGlobal == postWeightHdrOn.nxGlobal) && (postWeightHdrOn.nxGlobal == postWeightHdrOff.nxGlobal));
 assert((preWeightHdrOn.nyGlobal == preWeightHdrOff.nyGlobal) && (preWeightHdrOff.nyGlobal == postWeightHdrOn.nyGlobal) && (postWeightHdrOn.nyGlobal == postWeightHdrOff.nyGlobal));
 assert((length(preWeightDataOn) == length(preWeightDataOff)) && (length(preWeightDataOff) == length(postWeightDataOn)) && (length(postWeightDataOn) == length(postWeightDataOff)));
+assert(length(postWeightDataOn) >= 2);
+assert(length(activityData) >= 2);
 
-%global numsteps; numsteps = activityHdr.nbands
+global activityWriteStep = activityData{2}.time - activityData{1}.time;
+%Bug in petavision where weightWriteStep is not set through index 2's time - index 1's time
+%global weightWriteStep = postWeightDataOn{2}.time - postWeightDataOn{1}.time;
+
+%Each weight must have an activity associated with it
+assert(weightWriteStep >= activityWriteStep);
+assert(mod(weightWriteStep, activityWriteStep) == 0);
+
+global activityToWeight = weightWriteStep/activityWriteStep %The factor of activity step to write step
 global numWeightSteps; numWeightSteps = length(postWeightDataOn)
 global columnSizeX; columnSizeX = postWeightHdrOn.nxGlobal 
 global columnSizeY; columnSizeY = postWeightHdrOn.nyGlobal 
@@ -187,25 +197,42 @@ end
 disp('stdpAnalysis: Creating Images');
 fflush(1);
 
+%Take this out once PetaVision bug is fixed
+%Keeps track of what index weight index is on to map activity
+activityCurrentIndex = 0;
+
 for weightTimeIndex = 1:numWeightSteps %For every weight timestep
-   %Index based on X, Y coords
-%   [activityIndexY activityIndexX] = find(activityData{activityTimeIndex});
-   %Index based on one dimension, same index as activityIndexY and activityIndexX
-   %TODO Use sub2ind instead of this
-   %activityIndex = find(activityData{activityTimeIndex});
-   %Convert to weight time index
-%   weightTimeIndex = floor(activityTimeIndex / writeStep); 
-   activityTimeIndex = postWeightDataOn{weightTimeIndex}.time + 1;
+   %Get time step of run
+   time = postWeightDataOn{weightTimeIndex}.time;
+   %Take this out once PetaVision bug gets fixed
+   %Make sure time is actually part of the write step
+   if(mod(time, weightWriteStep) ~= 0)
+      continue;
+   end
+   %Get cooresponding activity time index
+
+   %This line once PetaVision bug is fixed
+   %activityTimeIndex = weightTimeIndex * activityToWeight;
+   %For now, use this
+   while true
+      activityCurrentIndex += 1;
+      assert(activityData{activityCurrentIndex}.time <= time);
+      if(activityData{activityCurrentIndex}.time == time)
+         activityTimeIndex = activityCurrentIndex;
+         break;
+      end
+   end
+   
    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
    %%Weight Histogram
    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
    if (POST_WEIGHT_HIST_FLAG > 0)
-      weightHist(postWeightDataOn{weightTimeIndex}.values, activityTimeIndex, NUM_BINS, postOnWeightHistOutDir, 'Post_On_Weight_Hist');
-      weightHist(postWeightDataOff{weightTimeIndex}.values, activityTimeIndex, NUM_BINS, postOffWeightHistOutDir, 'Post_Off_Weight_Hist');
+      weightHist(postWeightDataOn{weightTimeIndex}.values, time, NUM_BINS, postOnWeightHistOutDir, 'Post_On_Weight_Hist');
+      weightHist(postWeightDataOff{weightTimeIndex}.values, time, NUM_BINS, postOffWeightHistOutDir, 'Post_Off_Weight_Hist');
    end
    if (PRE_WEIGHT_HIST_FLAG > 0)
-      weightHist(preWeightDataOn{weightTimeIndex}.values, activityTimeIndex, NUM_BINS, preOnWeightHistOutDir, 'Pre_On_Weight_Hist');
-      weightHist(preWeightDataOff{weightTimeIndex}.values, activityTimeIndex, NUM_BINS, preOffWeightHistOutDir, 'Pre_Off_Weight_Hist');
+      weightHist(preWeightDataOn{weightTimeIndex}.values, time, NUM_BINS, preOnWeightHistOutDir, 'Pre_On_Weight_Hist');
+      weightHist(preWeightDataOff{weightTimeIndex}.values, time, NUM_BINS, preOffWeightHistOutDir, 'Pre_Off_Weight_Hist');
    end
 
    for i = 1:numArbors      %Iterate through number of arbors 
@@ -213,11 +240,8 @@ for weightTimeIndex = 1:numWeightSteps %For every weight timestep
       %%Image reconstruction
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       if (RECONSTRUCTION_FLAG > 0)
-         if(activityTimeIndex > i)
-            %To do
-            outMat = reconstruct(activityData{activityTimeIndex - startingTime - i}.values,  postWeightDataOn{weightTimeIndex}.values, postWeightDataOff{weightTimeIndex}.values, i);
-            printImage(outMat, activityTimeIndex, i, reconstructOutDir, RECON_IMAGE_SC, 'Reconstruction');
-         end
+         outMat = reconstruct(activityData{activityTimeIndex}.values,  postWeightDataOn{weightTimeIndex}.values, postWeightDataOff{weightTimeIndex}.values, i);
+         printImage(outMat, time, i, reconstructOutDir, RECON_IMAGE_SC, 'Reconstruction');
       end %End reconstruction
 
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -225,11 +249,11 @@ for weightTimeIndex = 1:numWeightSteps %For every weight timestep
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       if (PRE_WEIGHTS_MAP_FLAG > 0)
          outMat = weightMap(preWeightDataOn{weightTimeIndex}.values, preWeightDataOff{weightTimeIndex}.values, i);
-         printImage(outMat, activityTimeIndex, i, preWeightMapOutDir, WEIGHTS_IMAGE_SC, 'Pre_Weight_Map');
+         printImage(outMat, time, i, preWeightMapOutDir, WEIGHTS_IMAGE_SC, 'Pre_Weight_Map');
       end
       if (POST_WEIGHTS_MAP_FLAG > 0)
          outMat = weightMap(postWeightDataOn{weightTimeIndex}.values, postWeightDataOff{weightTimeIndex}.values, i);
-         printImage(outMat, activityTimeIndex, i, postWeightMapOutDir, WEIGHTS_IMAGE_SC, 'Post_Weight_Map');
+         printImage(outMat, time, i, postWeightMapOutDir, WEIGHTS_IMAGE_SC, 'Post_Weight_Map');
       end
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       %% Weight Cell
@@ -237,13 +261,13 @@ for weightTimeIndex = 1:numWeightSteps %For every weight timestep
       if (PRE_WEIGHTS_CELL_FLAG > 0)
          for cellIndex = 1:length(CELL)
             outMat = cellMap(preWeightDataOn{weightTimeIndex}.values, preWeightDataOff{weightTimeIndex}.values, i, CELL{cellIndex});
-            printImage(outMat, activityTimeIndex, i, preCellMapOutDir, WEIGHTS_IMAGE_SC, ['Pre_Cell_Map_',num2str(CELL{cellIndex}(1)),'_',num2str(CELL{cellIndex}(2))]) 
+            printImage(outMat, time, i, preCellMapOutDir, WEIGHTS_IMAGE_SC, ['Pre_Cell_Map_',num2str(CELL{cellIndex}(1)),'_',num2str(CELL{cellIndex}(2))]) 
          end
       end
       if (POST_WEIGHTS_CELL_FLAG > 0)
          for cellIndex = 1:length(CELL)
             outMat = cellMap(postWeightDataOn{weightTimeIndex}.values, postWeightDataOff{weightTimeIndex}.values, i, CELL{cellIndex});
-            printImage(outMat, activityTimeIndex, i, postCellMapOutDir, WEIGHTS_IMAGE_SC, ['Post_Cell_Map_',num2str(CELL{cellIndex}(1)),'_',num2str(CELL{cellIndex}(2))]) 
+            printImage(outMat, time, i, postCellMapOutDir, WEIGHTS_IMAGE_SC, ['Post_Cell_Map_',num2str(CELL{cellIndex}(1)),'_',num2str(CELL{cellIndex}(2))]) 
          end
       end
    end
