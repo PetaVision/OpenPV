@@ -439,7 +439,7 @@ void STDP_update_state_pre(
 int OjaSTDPConn::checkpointRead(const char * cpDir, float* timef) {
    int status = HyPerConn::checkpointRead(cpDir, timef);
    char filename[PV_PATH_MAX];
-   int chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_post_long_tr.pvp", cpDir, name);
+   int chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_post_tr.pvp", cpDir, name);
    if (chars_needed >= PV_PATH_MAX) {
       fprintf(stderr, "LCALIFLateralConn::checkpointWrite error.  Path \"%s/%s_post_tr.pvp\" is too long.\n", cpDir, name);
       abort();
