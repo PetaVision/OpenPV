@@ -441,7 +441,7 @@ int OjaSTDPConn::checkpointRead(const char * cpDir, float* timef) {
    char filename[PV_PATH_MAX];
    int chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_post_long_tr.pvp", cpDir, name);
    if (chars_needed >= PV_PATH_MAX) {
-      fprintf(stderr, "LCALIFLateralConn::checkpointWrite error.  Path \"%s/%s_post_long_tr.pvp\" is too long.\n", cpDir, name);
+      fprintf(stderr, "LCALIFLateralConn::checkpointWrite error.  Path \"%s/%s_post_tr.pvp\" is too long.\n", cpDir, name);
       abort();
    }
    double timed;
@@ -472,13 +472,9 @@ int OjaSTDPConn::checkpointRead(const char * cpDir, float* timef) {
 
 int OjaSTDPConn::checkpointWrite(const char * cpDir) {
    int status = HyPerConn::checkpointWrite(cpDir);
-   // This is kind of hacky, but we save the extended buffers post_tr, post_long_tr, pre_tr, pre_long_tr as if they were nonextended buffers of size (nx+2*nb)-by-(ny+2*nb)
+   // This is kind of hacky, but we save the extended buffers post_tr, pre_tr as if they were nonextended buffers of size (nx+2*nb)-by-(ny+2*nb)
    char filename[PV_PATH_MAX];
-   int chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_post_long_tr.pvp", cpDir, name);
-   if (chars_needed >= PV_PATH_MAX) {
-      fprintf(stderr, "LCALIFLateralConn::checkpointWrite error.  Path \"%s/%s_post_long_tr.pvp\" is too long.\n", cpDir, name);
-      abort();
-   }
+   int chars_needed;
    PVLayerLoc loc;
 
    memcpy(&loc, pre->getLayerLoc(), sizeof(PVLayerLoc));
@@ -487,6 +483,11 @@ int OjaSTDPConn::checkpointWrite(const char * cpDir) {
    loc.nxGlobal = loc.nx * parent->icCommunicator()->numCommColumns();
    loc.nyGlobal = loc.ny * parent->icCommunicator()->numCommRows();
    loc.nb = 0;
+   chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_pre_tr.pvp", cpDir, name);
+   if (chars_needed >= PV_PATH_MAX) {
+      fprintf(stderr, "LCALIFLateralConn::checkpointWrite error.  Path \"%s/%s_pre_tr.pvp\" is too long.\n", cpDir, name);
+      abort();
+   }
    write_pvdata(filename, parent->icCommunicator(), (double) parent->simulationTime(), pre_tr->data, &loc, PV_FLOAT_TYPE, /*extended*/ false, /*contiguous*/ false);
 
    memcpy(&loc, post->getLayerLoc(), sizeof(PVLayerLoc));
@@ -495,6 +496,11 @@ int OjaSTDPConn::checkpointWrite(const char * cpDir) {
    loc.nxGlobal = loc.nx * parent->icCommunicator()->numCommColumns();
    loc.nyGlobal = loc.ny * parent->icCommunicator()->numCommRows();
    loc.nb = 0;
+   chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_post_tr.pvp", cpDir, name);
+   if (chars_needed >= PV_PATH_MAX) {
+      fprintf(stderr, "LCALIFLateralConn::checkpointWrite error.  Path \"%s/%s_post_tr.pvp\" is too long.\n", cpDir, name);
+      abort();
+   }
    write_pvdata(filename, parent->icCommunicator(), (double) parent->simulationTime(), post_tr->data, &loc, PV_FLOAT_TYPE, /*extended*/ false, /*contiguous*/ false);
    return status;
 }
