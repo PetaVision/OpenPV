@@ -729,6 +729,15 @@ int Patterns::checkpointRead(const char * cpDir, float * timef) {
          status = fread(&position, sizeof(float), 1, fp) ? status : PV_FAILURE;
          status = fread(&nextDisplayTime, sizeof(float), 1, fp) ? status : PV_FAILURE;
          status = fread(&initPatternCntr, sizeof(int), 1, fp) ? status : PV_FAILURE;
+         status = fread(&nextDropFrame, sizeof(int), 1, fp) ? status : PV_FAILURE;
+         int size;
+         status = fread(&size, sizeof(int), 1, fp) ? status : PV_FAILURE;
+         for (int k=0; k<size; k++) {
+            Drop drop;
+            fread(&drop, sizeof(Drop), 1, fp);
+            vDrops.push_back(drop);
+         }
+         assert(vDrops.size()==size);
          fclose(fp);
       }
       else {
@@ -749,11 +758,17 @@ int Patterns::checkpointWrite(const char * cpDir) {
    sprintf(filename, "%s/%s_PatternState.bin", cpDir, name);
    if( icComm->commRank() == 0 ) {
       FILE * fp = fopen(filename, "w");
+      int size = vDrops.size();
       if( fp != NULL ) {
          status = fwrite(&orientation, sizeof(OrientationMode), 1, fp) == 1 ? status : PV_FAILURE;
          status = fwrite(&position, sizeof(float), 1, fp) ? status : PV_FAILURE;
          status = fwrite(&nextDisplayTime, sizeof(float), 1, fp) ? status : PV_FAILURE;
          status = fwrite(&initPatternCntr, sizeof(int), 1, fp) ? status : PV_FAILURE;
+         status = fwrite(&nextDropFrame, sizeof(int), 1, fp) ? status : PV_FAILURE;
+         status = fwrite(&size, sizeof(int), 1, fp) ? status : PV_FAILURE;
+         for (int k=0; k<size; k++) {
+            status = fwrite(&vDrops[k], sizeof(Drop), 1, fp) ? status : PV_FAILURE;
+         }
          fclose(fp);
       }
       else {
@@ -779,6 +794,13 @@ int Patterns::checkpointWrite(const char * cpDir) {
       fprintf(fp, "Position = %f\n", position);
       fprintf(fp, "nextDisplayTime = %f\n", nextDisplayTime);
       fprintf(fp, "initPatternCntr = %d\n", initPatternCntr);
+      fprintf(fp, "nextDropFrame = %d\n", nextDropFrame);
+      fprintf(fp, "size of vDrops vector = %d\n", size);
+      for (int k=0; k<size; k++) {
+         fprintf(fp, "   element %d: centerX = %d, centerY = %d, speed = %f, radius = %f, on = %d\n",
+                     k, vDrops[k].centerX, vDrops[k].centerY, vDrops[k].speed, vDrops[k].radius, vDrops[k].on);
+      }
+      fclose(fp);
    }
    return PV_SUCCESS;
 }
