@@ -1,0 +1,4 @@
+./input/images/whiteimage.png
+./input/images/blackimage.png
+./input/images/whiteimage.png
+./input/images/gray128image.png
