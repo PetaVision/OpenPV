@@ -33,16 +33,17 @@ rootDir                                    = '/Users/slundquist';
 workspaceDir                               = [rootDir,'/Documents/workspace/iHouse'];
 %rootDir                                    = '/Users/dpaiton';
 %workspaceDir                               = [rootDir,'/Documents/Work/LANL/workspace/iHouse'];
-global activityfile; activityfile          = [workspaceDir,'/output/lif.pvp'];
-ONweightfile                           = [workspaceDir,'/output/w5_post.pvp'];
-OFFweightfile                          = [workspaceDir,'/output/w6_post.pvp'];
+pvpDir                                     = [workspaceDir,'/output/'];
+global activityfile; activityfile          = [pvpDir,'lif.pvp'];
+ONweightfile                               = [pvpDir,'w5_post.pvp'];
+OFFweightfile                              = [pvpDir,'w6_post.pvp'];
 outputDir                                  = [workspaceDir,'/output/'];
 global readPvpOutDir; readPvpOutDir        = [outputDir, 'pvp/'];
 reconstructOutDir                          = [outputDir, 'reconstruct/'];
-weightMapOutDir                        = [outputDir, 'weight_map/'];
-cellMapOutDir                          = [outputDir, 'cell_map/'];
-onWeightHistOutDir                     = [outputDir, 'on_hist/'];
-offWeightHistOutDir                    = [outputDir, 'off_hist/'];
+weightMapOutDir                            = [outputDir, 'weight_map/'];
+cellMapOutDir                              = [outputDir, 'cell_map/'];
+onWeightHistOutDir                         = [outputDir, 'on_hist/'];
+offWeightHistOutDir                        = [outputDir, 'off_hist/'];
 sourcefile                                 = [workspaceDir,'/output/DropInput.txt'];
 
 %Make nessessary directories
