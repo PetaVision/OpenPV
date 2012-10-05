@@ -368,6 +368,7 @@ static inline int setActivity_GapLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * 
 static inline int setActivity_SigmoidLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * A, CL_MEM_GLOBAL pvdata_t * V, int nx, int ny, int nf, int nb, float Vth, float V0, float sigmoid_alpha, bool sigmoid_flag, bool inverse_flag, float dt) {
    pvdata_t sig_scale = 1.0f;
    if( Vth > V0 ) {
+      //VthRest turns the 0.9 point on the sigmoid function, or the average between V0 and the parameter VthRest
       if( sigmoid_flag ) {
  //        sig_scale = -0.5f * log(1.0f/sigmoid_alpha - 1.0f) / (Vth - V0);   // scale to get response alpha at Vrest
          Vth = (Vth+V0)/2.; // the middle for L_G_E = 1
@@ -398,7 +399,7 @@ static inline int setActivity_SigmoidLayer(int numNeurons, CL_MEM_GLOBAL pvdata_
          }
       }
       else{
-         A[kex] = 1.0f / (1.0f + exp(2.0f * (V[k] - Vth)*sig_scale));
+         A[kex] = 1.0f / (1.0f + exp(2.0f * (V[k] - Vth) * sig_scale));
       }
       if (inverse_flag) A[kex] = 1.0f - A[kex];
       // At this point A[kex] is in spikes per milli seconds;
