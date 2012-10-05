@@ -1,19 +1,20 @@
 clear all; close all; more off; clc;
 system("clear");
 
+%Nessessary Petavision Variables 
+postNxScale = 4; 
+postNyScale = 4;
+
 %Reconstruct Flags
 global SPIKING_OUT_FLAG;       SPIKING_OUT_FLAG       = 0;  %Create spiking output flag
 global RECONSTRUCTION_FLAG;    RECONSTRUCTION_FLAG    = 1;  %Create reconstructions
-global POST_WEIGHTS_MAP_FLAG;  POST_WEIGHTS_MAP_FLAG  = 1;     %Create weight maps
-global POST_WEIGHTS_CELL_FLAG; POST_WEIGHTS_CELL_FLAG = 0;
-global PRE_WEIGHTS_MAP_FLAG;   PRE_WEIGHTS_MAP_FLAG   = 0;     %Create weight maps
-global PRE_WEIGHTS_CELL_FLAG;  PRE_WEIGHTS_CELL_FLAG  = 0;
+global WEIGHTS_MAP_FLAG;  WEIGHTS_MAP_FLAG  = 1;     %Create weight maps
+global WEIGHTS_CELL_FLAG; WEIGHTS_CELL_FLAG = 1;
 global CELL; CELL = {...
    [35, 20]...
    [10, 20]...
 };        %X by Y of weigh cell
-global POST_WEIGHT_HIST_FLAG;  POST_WEIGHT_HIST_FLAG  = 1;
-global PRE_WEIGHT_HIST_FLAG;   PRE_WEIGHT_HIST_FLAG   = 0;
+global WEIGHT_HIST_FLAG;  WEIGHT_HIST_FLAG  = 1;
 global NUM_BINS;               NUM_BINS               = 20;
 
 global VIEW_FIGS;  VIEW_FIGS  = 0;
@@ -33,21 +34,15 @@ workspaceDir                               = [rootDir,'/Documents/workspace/iHou
 %rootDir                                    = '/Users/dpaiton';
 %workspaceDir                               = [rootDir,'/Documents/Work/LANL/workspace/iHouse'];
 global activityfile; activityfile          = [workspaceDir,'/output/lif.pvp'];
-ONpreweightfile                            = [workspaceDir,'/output/w5.pvp'];
-OFFpreweightfile                           = [workspaceDir,'/output/w6.pvp'];
-ONpostweightfile                           = [workspaceDir,'/output/w5_post.pvp'];
-OFFpostweightfile                          = [workspaceDir,'/output/w6_post.pvp'];
+ONweightfile                           = [workspaceDir,'/output/w5_post.pvp'];
+OFFweightfile                          = [workspaceDir,'/output/w6_post.pvp'];
 outputDir                                  = [workspaceDir,'/output/'];
 global readPvpOutDir; readPvpOutDir        = [outputDir, 'pvp/'];
 reconstructOutDir                          = [outputDir, 'reconstruct/'];
-preWeightMapOutDir                         = [outputDir, 'pre_weight_map/'];
-preCellMapOutDir                           = [outputDir, 'pre_cell_map/'];
-postWeightMapOutDir                        = [outputDir, 'post_weight_map/'];
-postCellMapOutDir                          = [outputDir, 'post_cell_map/'];
-preOnWeightHistOutDir                      = [outputDir, 'pre_on_hist/'];
-postOnWeightHistOutDir                     = [outputDir, 'post_on_hist/'];
-preOffWeightHistOutDir                     = [outputDir, 'pre_off_hist/'];
-postOffWeightHistOutDir                    = [outputDir, 'post_off_hist/'];
+weightMapOutDir                        = [outputDir, 'weight_map/'];
+cellMapOutDir                          = [outputDir, 'cell_map/'];
+onWeightHistOutDir                     = [outputDir, 'on_hist/'];
+offWeightHistOutDir                    = [outputDir, 'off_hist/'];
 sourcefile                                 = [workspaceDir,'/output/DropInput.txt'];
 
 %Make nessessary directories
@@ -60,47 +55,29 @@ end
 if (exist(reconstructOutDir, 'dir') ~= 7)
    mkdir(reconstructOutDir);
 end
-if (exist(preWeightMapOutDir, 'dir') ~= 7)
-   mkdir(preWeightMapOutDir);
+if (exist(weightMapOutDir, 'dir') ~= 7)
+   mkdir(weightMapOutDir);
 end
-if (exist(preCellMapOutDir, 'dir') ~= 7)
-   mkdir(preCellMapOutDir);
+if (exist(cellMapOutDir, 'dir') ~= 7)
+   mkdir(cellMapOutDir);
 end
-if (exist(postWeightMapOutDir, 'dir') ~= 7)
-   mkdir(postWeightMapOutDir);
+if (exist(onWeightHistOutDir, 'dir') ~= 7)
+   mkdir(onWeightHistOutDir);
 end
-if (exist(postCellMapOutDir, 'dir') ~= 7)
-   mkdir(postCellMapOutDir);
-end
-if (exist(preOnWeightHistOutDir, 'dir') ~= 7)
-   mkdir(preOnWeightHistOutDir);
-end
-if (exist(postOnWeightHistOutDir, 'dir') ~= 7)
-   mkdir(postOnWeightHistOutDir);
-end
-if (exist(preOffWeightHistOutDir, 'dir') ~= 7)
-   mkdir(preOffWeightHistOutDir);
-end
-if (exist(postOffWeightHistOutDir, 'dir') ~= 7)
-   mkdir(postOffWeightHistOutDir);
+if (exist(offWeightHistOutDir, 'dir') ~= 7)
+   mkdir(offWeightHistOutDir);
 end
 
-disp('stdpAnalysis: Reading activity pvp');
 fflush(1);
 %Read activity file in parallel
 args{1} = activityfile;
-args{2}= ONpostweightfile;
-args{3} = OFFpostweightfile;
-if (PRE_WEIGHTS_CELL_FLAG || PRE_WEIGHTS_MAP_FLAG)
-   args{4} = ONpreweightfile;
-   args{5} = OFFpreweightfile;
-end
+args{2}= ONweightfile;
+args{3} = OFFweightfile;
 
 disp('stdpAnalysis: Reading pvp files')
 if (SPIKING_OUT_FLAG)
    readspikingpvp;
 end
-
 
 if NUM_PROCS == 1
    [data hdr] = cellfun(@readpvpfile, args, 'UniformOutput', 0);
@@ -109,75 +86,72 @@ else
 end
 
 activityData = data{1};
-postWeightDataOn = data{2};
-postWeightDataOff = data{3};
-if (PRE_WEIGHTS_CELL_FLAG || PRE_WEIGHTS_MAP_FLAG || PRE_WEIGHT_HIST_FLAG)
-   preWeightDataOn = data{4};
-   preWeightDataOff = data{5};
-else
-   preWeightDataOn = postWeightDataOn;
-   preWeightDataOff = postWeightDataOff;
-end
+weightDataOn = data{2};
+weightDataOff = data{3};
 
 activityHdr = hdr{1};
-postWeightHdrOn = hdr{2};
-postWeightHdrOff = hdr{3};
-if (PRE_WEIGHTS_CELL_FLAG || PRE_WEIGHTS_MAP_FLAG || PRE_WEIGHT_HIST_FLAG)
-   preWeightHdrOn = hdr{4};
-   preWeightHdrOff = hdr{5};
-else
-   preWeightHdrOn = postWeightHdrOn;
-   preWeightHdrOff = postWeightHdrOff;
-end
+weightHdrOn = hdr{2};
+weightHdrOff = hdr{3};
 
 %PetaVision params
-assert((preWeightHdrOn.nbands == preWeightHdrOff.nbands) && (preWeightHdrOff.nbands == postWeightHdrOn.nbands) && (postWeightHdrOn.nbands == postWeightHdrOff.nbands));
-assert((preWeightHdrOn.nfp == preWeightHdrOff.nfp) && (preWeightHdrOff.nfp == postWeightHdrOn.nfp) && (postWeightHdrOn.nfp == postWeightHdrOff.nfp));
-assert((preWeightHdrOn.nxp == preWeightHdrOff.nxp) && (preWeightHdrOff.nxp == postWeightHdrOn.nxp) && (postWeightHdrOn.nxp == postWeightHdrOff.nxp));
-assert((preWeightHdrOn.nyp == preWeightHdrOff.nyp) && (preWeightHdrOff.nyp == postWeightHdrOn.nyp) && (postWeightHdrOn.nyp == postWeightHdrOff.nyp));
-assert((preWeightHdrOn.nxprocs == preWeightHdrOff.nxprocs) && (preWeightHdrOff.nxprocs == postWeightHdrOn.nxprocs) && (postWeightHdrOn.nxprocs == postWeightHdrOff.nxprocs));
-assert((preWeightHdrOn.nyprocs == preWeightHdrOff.nyprocs) && (preWeightHdrOff.nyprocs == postWeightHdrOn.nyprocs) && (postWeightHdrOn.nyprocs == postWeightHdrOff.nyprocs));
-assert((preWeightHdrOn.nx == preWeightHdrOff.nx) && (preWeightHdrOff.nx == postWeightHdrOn.nx) && (postWeightHdrOn.nx == postWeightHdrOff.nx));
-assert((preWeightHdrOn.ny == preWeightHdrOff.ny) && (preWeightHdrOff.ny == postWeightHdrOn.ny) && (postWeightHdrOn.ny == postWeightHdrOff.ny));
-assert((preWeightHdrOn.nxGlobal == preWeightHdrOff.nxGlobal) && (preWeightHdrOff.nxGlobal == postWeightHdrOn.nxGlobal) && (postWeightHdrOn.nxGlobal == postWeightHdrOff.nxGlobal));
-assert((preWeightHdrOn.nyGlobal == preWeightHdrOff.nyGlobal) && (preWeightHdrOff.nyGlobal == postWeightHdrOn.nyGlobal) && (postWeightHdrOn.nyGlobal == postWeightHdrOff.nyGlobal));
-assert((length(preWeightDataOn) == length(preWeightDataOff)) && (length(preWeightDataOff) == length(postWeightDataOn)) && (length(postWeightDataOn) == length(postWeightDataOff)));
-assert(length(postWeightDataOn) >= 2);
+assert(weightHdrOn.nbands == weightHdrOff.nbands);
+assert(weightHdrOn.nfp == weightHdrOff.nfp);
+assert(weightHdrOn.nxprocs == weightHdrOff.nxprocs);
+assert(weightHdrOn.nyprocs == weightHdrOff.nyprocs);
+assert(weightHdrOn.nxp == weightHdrOff.nxp);
+assert(weightHdrOn.nyp == weightHdrOff.nyp);
+assert(weightHdrOn.nx == weightHdrOff.nx);
+assert(weightHdrOn.ny == weightHdrOff.ny);
+assert(weightHdrOn.nxGlobal == weightHdrOff.nxGlobal);
+assert(weightHdrOn.nyGlobal == weightHdrOff.nyGlobal);
+assert(length(weightDataOn) == length(weightDataOff));
+assert(length(weightDataOn) >= 2);
 assert(length(activityData) >= 2);
 
-global activityWriteStep = activityData{2}.time - activityData{1}.time;
-global weightWriteStep = postWeightDataOn{2}.time - postWeightDataOn{1}.time;
+activityWriteStep = activityData{2}.time - activityData{1}.time;
+weightWriteStep = weightDataOn{2}.time - weightDataOn{1}.time;
 
 %Each weight must have an activity associated with it
 assert(weightWriteStep >= activityWriteStep);
 assert(mod(weightWriteStep, activityWriteStep) == 0);
 
-global weightToActivity = weightWriteStep/activityWriteStep %The factor of activity step to write step
-global numWeightSteps; numWeightSteps = length(postWeightDataOn)
-global columnSizeX; columnSizeX = postWeightHdrOn.nxGlobal 
-global columnSizeY; columnSizeY = postWeightHdrOn.nyGlobal 
-global sizeX; sizeX = postWeightHdrOn.nx
-global sizeY; sizeY = postWeightHdrOn.ny
-global postNxScale; postNxScale = 1 
-global postNyScale; postNyScale = 1
-global numArbors; numArbors = postWeightHdrOn.nbands
-global numFeatures; numFeatures = postWeightHdrOn.nfp
-global patchSizeX; patchSizeX = postWeightHdrOn.nxp
-global patchSizeY; patchSizeY = postWeightHdrOn.nyp
-global procsX; procsX = postWeightHdrOn.nxprocs 
-global procsY; procsY = postWeightHdrOn.nyprocs
+weightToActivity = weightWriteStep/activityWriteStep %The factor of activity step to write step
+numWeightSteps = length(weightDataOn)
+
+%Number of arbors
+numArbors = weightHdrOn.nbands
+%Number of features
+numFeatures = weightHdrOn.nfp
+
+%Size of postweight patch size
+patchSizeX = weightHdrOn.nxp
+patchSizeY = weightHdrOn.nyp
+
+%Number of processes
+procsX = weightHdrOn.nxprocs 
+procsY = weightHdrOn.nyprocs
+
+%Size of post layer
+global columnSizeX; columnSizeX = weightHdrOn.nxGlobal 
+global columnSizeY; columnSizeY = weightHdrOn.nyGlobal 
+
+%Size of post layer process sector
+global sizeX; sizeX = weightHdrOn.nx
+global sizeY; sizeY = weightHdrOn.ny
+
 
 %Margin for post layer to avoid margins
-global marginX; marginX = floor(patchSizeX/2) * postNxScale
-global marginY; marginY = floor(patchSizeY/2) * postNyScale
+marginX = floor(patchSizeX/2) * postNxScale
+marginY = floor(patchSizeY/2) * postNyScale
 
 %Create list of indicies in mask that are valid points
 mask = zeros(columnSizeY, columnSizeX);
 mask(1 + marginY:columnSizeY - marginY, 1+marginX:columnSizeX-marginX) = 1;
-%Based on X, Y coords
+%Based on vectorized mask
+%Row first index
 global marginIndex; marginIndex = find(mask'(:));
 
-if (POST_WEIGHTS_CELL_FLAG || PRE_WEIGHTS_CELL_FLAG)
+if (WEIGHTS_CELL_FLAG)
    for cellIndex = 1:length(CELL)
       assert(CELL{cellIndex}(1) <= columnSizeX - marginX);
       assert(CELL{cellIndex}(1) > marginX);
@@ -190,19 +164,17 @@ disp('stdpAnalysis: Creating Images');
 fflush(1);
 
 for weightTimeIndex = 1:numWeightSteps %For every weight timestep
+   time = weightDataOn{weightTimeIndex}.time; 
    %Calculate weight time index to activity
    activityTimeIndex = weightTimeIndex * weightToActivity;
+   assert(activityData{activityTimeIndex}.time == time);
    
    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
    %%Weight Histogram
    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-   if (POST_WEIGHT_HIST_FLAG > 0)
-      weightHist(postWeightDataOn{weightTimeIndex}.values, time, NUM_BINS, postOnWeightHistOutDir, 'Post_On_Weight_Hist');
-      weightHist(postWeightDataOff{weightTimeIndex}.values, time, NUM_BINS, postOffWeightHistOutDir, 'Post_Off_Weight_Hist');
-   end
-   if (PRE_WEIGHT_HIST_FLAG > 0)
-      weightHist(preWeightDataOn{weightTimeIndex}.values, time, NUM_BINS, preOnWeightHistOutDir, 'Pre_On_Weight_Hist');
-      weightHist(preWeightDataOff{weightTimeIndex}.values, time, NUM_BINS, preOffWeightHistOutDir, 'Pre_Off_Weight_Hist');
+   if (WEIGHT_HIST_FLAG > 0)
+      weightHist(weightDataOn{weightTimeIndex}.values, time, NUM_BINS, onWeightHistOutDir, 'On_Weight_Hist');
+      weightHist(weightDataOff{weightTimeIndex}.values, time, NUM_BINS, offWeightHistOutDir, 'Off_Weight_Hist');
    end
 
    for i = 1:numArbors      %Iterate through number of arbors 
@@ -210,34 +182,24 @@ for weightTimeIndex = 1:numWeightSteps %For every weight timestep
       %%Image reconstruction
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       if (RECONSTRUCTION_FLAG > 0)
-         outMat = reconstruct(activityData{activityTimeIndex}.values,  postWeightDataOn{weightTimeIndex}.values, postWeightDataOff{weightTimeIndex}.values, i);
+         outMat = reconstruct(activityData{activityTimeIndex}.values,  weightDataOn{weightTimeIndex}.values, weightDataOff{weightTimeIndex}.values, i);
          printImage(outMat, time, i, reconstructOutDir, RECON_IMAGE_SC, 'Reconstruction');
       end %End reconstruction
 
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       %%Weight Map
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-      if (PRE_WEIGHTS_MAP_FLAG > 0)
-         outMat = weightMap(preWeightDataOn{weightTimeIndex}.values, preWeightDataOff{weightTimeIndex}.values, i);
-         printImage(outMat, time, i, preWeightMapOutDir, WEIGHTS_IMAGE_SC, 'Pre_Weight_Map');
-      end
-      if (POST_WEIGHTS_MAP_FLAG > 0)
-         outMat = weightMap(postWeightDataOn{weightTimeIndex}.values, postWeightDataOff{weightTimeIndex}.values, i);
-         printImage(outMat, time, i, postWeightMapOutDir, WEIGHTS_IMAGE_SC, 'Post_Weight_Map');
+      if (WEIGHTS_MAP_FLAG > 0)
+         outMat = weightMap(weightDataOn{weightTimeIndex}.values, weightDataOff{weightTimeIndex}.values, i);
+         printImage(outMat, time, i, weightMapOutDir, WEIGHTS_IMAGE_SC, 'Weight_Map');
       end
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       %% Weight Cell
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-      if (PRE_WEIGHTS_CELL_FLAG > 0)
+      if (WEIGHTS_CELL_FLAG > 0)
          for cellIndex = 1:length(CELL)
-            outMat = cellMap(preWeightDataOn{weightTimeIndex}.values, preWeightDataOff{weightTimeIndex}.values, i, CELL{cellIndex});
-            printImage(outMat, time, i, preCellMapOutDir, WEIGHTS_IMAGE_SC, ['Pre_Cell_Map_',num2str(CELL{cellIndex}(1)),'_',num2str(CELL{cellIndex}(2))]) 
-         end
-      end
-      if (POST_WEIGHTS_CELL_FLAG > 0)
-         for cellIndex = 1:length(CELL)
-            outMat = cellMap(postWeightDataOn{weightTimeIndex}.values, postWeightDataOff{weightTimeIndex}.values, i, CELL{cellIndex});
-            printImage(outMat, time, i, postCellMapOutDir, WEIGHTS_IMAGE_SC, ['Post_Cell_Map_',num2str(CELL{cellIndex}(1)),'_',num2str(CELL{cellIndex}(2))]) 
+            outMat = cellMap(weightDataOn{weightTimeIndex}.values, weightDataOff{weightTimeIndex}.values, i, CELL{cellIndex});
+            printImage(outMat, time, i, cellMapOutDir, WEIGHTS_IMAGE_SC, ['Cell_Map_',num2str(CELL{cellIndex}(1)),'_',num2str(CELL{cellIndex}(2))]) 
          end
       end
    end

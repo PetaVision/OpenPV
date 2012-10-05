@@ -3,10 +3,9 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [outMat] = reconstruct(activityIndex, onWeightValues, offWeightValues, arborId)
    [procsX procsY numArbors] = size(onWeightValues);
-   global numFeatures;
+   [patchSizeX patchSizeY numFeatures temp] = size(onWeightValues{procsX, procsY, numArbors});
    global sizeX sizeY;
    global columnSizeX columnSizeY;
-   global marginX marginY;
    global marginIndex;
    outMat = zeros(columnSizeY, columnSizeX);
    for activityi = 1:length(activityIndex)
@@ -24,10 +23,10 @@ function [outMat] = reconstruct(activityIndex, onWeightValues, offWeightValues, 
       end
 
       %Get bounds for out
-      yStart = aIy - marginY;
-      yEnd = aIy + marginY;
-      xStart = aIx - marginX;
-      xEnd = aIx + marginX;
+      yStart = aIy - floor(patchSizeX/2);
+      yEnd = aIy + floor(patchSizeY/2);
+      xStart = aIx - floor(patchSizeX/2);
+      xEnd = aIx + floor(patchSizeY/2);
       %get index based on what quaderant
       newIndX = mod((aIx - 1), sizeX) + 1;
       newIndY = mod((aIy - 1), sizeY) + 1;
