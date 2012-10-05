@@ -90,8 +90,8 @@ int addcustom(HyPerCol * hc, int argc, char * argv[]) {
     int locY = 128;      // probing the center
     int locF = 0;        // feature 0
 
-    locY = 225;      // probing the bottom
-    locF = 0;        // feature 0
+    //locY = 225;      // probing the bottom
+    //locF = 0;        // feature 0
 
     //const int ptb  = 248;  //black
     //const int pt10 =   8;  //100 %
