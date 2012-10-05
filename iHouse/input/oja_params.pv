@@ -10,19 +10,21 @@ HyPerCol "column" = {
    
    randomSeed 	                = 1020304050.0;   
 
-   numSteps                     = 10000;	// amount of time steps performed during run-time
-   progressStep                 = 100;
+   numSteps                     = 200000;	// amount of time steps performed during run-time
+   progressStep                 = 500;
    
    //outputPath                 = "~/Documents/workspace/iHouse/output";
-   outputPath                   = "~/Documents/Work/LANL/workspace/iHouse/output";
+   //outputPath                   = "~/Documents/Work/LANL/workspace/iHouse/output"; //Dylan's Mac
+   outputPath                   = "~/workspace/iHouse/output"; //Dylan's Neuro
    
    filenamesContainLayerNames   = 2; 	// stores pvp files as: 0 = layer number/1 = layer number and layer name/2 = layer name
    
    checkpointRead  				= false;
-   checkpointWrite 				= false;
+   checkpointWrite 				= true;
    //checkpointWriteDir  			= "~/Documents/workspace/iHouse/output/checkpoints";
-   checkpointWriteDir  			= "~/Documents/Work/LANL/workspace/iHouse/output/checkpoints";
-   checkpointWriteStepInterval  = 200;
+   //checkpointWriteDir  			= "~/Documents/Work/LANL/workspace/iHouse/output/checkpoints"; // Dylan's Mac
+   checkpointWriteDir  			= "~/workspace/iHouse/output/checkpoints"; // Dylan's Neuro
+   checkpointWriteStepInterval  = 50000;
 };
 
 
@@ -46,13 +48,14 @@ Patterns "input" = {
    halfNeutral    = true;
    randomPos      = true;
 
-   startFrame     = 100000;
+   startFrame     = 50000;
    endFrame       = 200000;
    
    writeImages    = false;
    
    //patternsOutputPath = "~/Documents/workspace/iHouse/output/sourcefiles";
-   patternsOutputPath = "~/Documents/Work/LANL/workspace/iHouse/output/sourcefiles";
+   //patternsOutputPath = "~/Documents/Work/LANL/workspace/iHouse/output/sourcefiles"; // Dylan's Mac
+   patternsOutputPath = "~/workspace/iHouse/output/sourcefiles"; // Dylan's Neuro 
    
    displayPeriod  = 1;
    writeStep      = 1;
@@ -134,8 +137,8 @@ Retina "RetinaOFF" = {
 
 
 LCALIFLayer "lif" = {
-   nxScale          = 1;		
-   nyScale          = 1;		
+   nxScale          = 16;		
+   nyScale          = 16;		
    nf               = 1;       	
 
    tauLCA           = 200;
@@ -319,8 +322,8 @@ KernelConn "ImagetoRetinaOFFSurround" = {
 OjaSTDPConn "RetinaONtoS1" = {
    preLayerName           = "RetinaON";
    postLayerName          = "lif";
-   nxp                    = 5;
-   nyp                    = 5;
+   nxp                    = 16;
+   nyp                    = 16;
    nfp                    = 1;
    channelCode            = 0;
    stdpFlag               = 1;
@@ -328,7 +331,7 @@ OjaSTDPConn "RetinaONtoS1" = {
    
    initFromLastFlag       = 0;  // 1;  /dr/ restart
    
-   writeStep              = 200;
+   writeStep              = 1000;
    
    normalize              = false;
    normalize_max          = true;
@@ -373,8 +376,8 @@ OjaSTDPConn "RetinaONtoS1" = {
 OjaSTDPConn "RetinaOFFtoS1" = {
    preLayerName           = "RetinaOFF";
    postLayerName          = "lif";
-   nxp                    = 5;
-   nyp                    = 5;
+   nxp                    = 16;
+   nyp                    = 16;
    nfp                    = 1;
    channelCode            = 0;
    stdpFlag               = 1;
@@ -382,7 +385,7 @@ OjaSTDPConn "RetinaOFFtoS1" = {
    
    initFromLastFlag       = 0;  // 1;  /dr/ restart
    
-   writeStep              = 200;
+   writeStep              = 1000;
    
    normalize              = false;
    normalize_max          = true;
