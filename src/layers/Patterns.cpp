@@ -149,8 +149,8 @@ int Patterns::initialize(const char * name, HyPerCol * hc, PatternType type) {
       dropSpeedRandomMin = params->value(name, "dropSpeedRandomMin", 1);
 
       dropPeriod = params->value(name, "dropPeriod", 10);
-      dropPeriodRandomMax = params->value(name, "dropRandomMax", 20);
-      dropPeriodRandomMin = params->value(name, "dropRandomMin", 5);
+      dropPeriodRandomMax = params->value(name, "dropPeriodRandomMax", 20);
+      dropPeriodRandomMin = params->value(name, "dropPeriodRandomMin", 5);
 
       onOffFlag = params->value(name, "halfNeutral", 0);
 
@@ -303,7 +303,6 @@ int Patterns::generatePattern(float val)
       //Radius of circle at current timestep
       //Remove extra circles
       for(int i = 0; i < (int)vDrops.size(); i++){
-         //Negative means off stim
          vDrops[i].radius += vDrops[i].speed;
 
          //No longer in the frame
@@ -338,12 +337,12 @@ int Patterns::generatePattern(float val)
          }
          //Random center pos
          if(randomPosFlag > 0){
-            newDrop.centerX = (nxgl-1) * pv_random_prob();
-            newDrop.centerY = (nygl-1) * pv_random_prob();
+            newDrop.centerX = floor(nxgl * pv_random_prob());
+            newDrop.centerY = floor(nygl * pv_random_prob());
          }
          else{
-            newDrop.centerX = (nxgl-1) / 2;
-            newDrop.centerY = (nygl-1) / 2;
+            newDrop.centerX = floor((nxgl-1) / 2);
+            newDrop.centerY = floor((nygl-1) / 2);
          }
          //Random on/off input
          if(pv_random_prob() < .5){
@@ -365,24 +364,8 @@ int Patterns::generatePattern(float val)
          float delta_theta = fabs(atan((float)1./vDrops[i].radius));
          for (float theta = 0; theta < 2*PI; theta += delta_theta){
            // std::cout << "\t" << theta << "\n";
-            float fx = vDrops[i].centerX + vDrops[i].radius * cos(theta);
-            float fy = vDrops[i].centerY + vDrops[i].radius * sin(theta);
-            int ix, iy;
-
-            //Rounding
-            if(fx + .5 >= (int)fx + 1){
-               ix = (int)fx + 1;
-            }
-            else{
-               ix = (int)fx;
-            }
-
-            if(fy + .5 >= (int)fy + 1){
-               iy = (int)fy + 1;
-            }
-            else{
-               iy = (int)fy;
-            }
+            int ix = round(vDrops[i].centerX + vDrops[i].radius * cos(theta));
+            int iy = round(vDrops[i].centerY + vDrops[i].radius * sin(theta));
 
             //Check edge bounds based on nx/ny size
             if(ix < nx + kx0 && iy < ny + ky0 && ix >= kx0 && iy >= ky0){
