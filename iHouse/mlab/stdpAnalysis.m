@@ -3,7 +3,7 @@ system("clear");
 
 %Nessessary Petavision Variables 
 global postNxScale; postNxScale = 4; 
-global postNyScale; postNxScale = 4;
+global postNyScale; postNyScale = 4;
 
 %Reconstruct Flags
 global SPIKING_OUT_FLAG;       SPIKING_OUT_FLAG       = 0;  %Create spiking output flag

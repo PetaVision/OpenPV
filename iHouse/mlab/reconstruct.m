@@ -12,7 +12,6 @@ function [outMat] = reconstruct(activityIndex, onWeightValues, offWeightValues, 
    preSizeX = columnSizeX / postNxScale;
    preSizeY = columnSizeY / postNyScale;
 
-
    outMat = zeros(preSizeY, preSizeX);
    for activityi = 1:length(activityIndex)
       %Calculate what proc activity is in
