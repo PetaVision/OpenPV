@@ -7,7 +7,13 @@ function [outMat] = reconstruct(activityIndex, onWeightValues, offWeightValues, 
    global sizeX sizeY;
    global columnSizeX columnSizeY;
    global marginIndex;
-   outMat = zeros(columnSizeY, columnSizeX);
+   global postNxScale postNyScale;
+   %Convert to preLayer scale
+   preSizeX = columnSizeX / postNxScale;
+   preSizeY = columnSizeY / postNyScale;
+
+
+   outMat = zeros(preSizeY, preSizeX);
    for activityi = 1:length(activityIndex)
       %Calculate what proc activity is in
       %Since this is being calculated as row first, use X Y instead of Y X
@@ -22,11 +28,16 @@ function [outMat] = reconstruct(activityIndex, onWeightValues, offWeightValues, 
          continue;   %Skip
       end
 
+      %Convert postsynaptic cell to center of presynaptic cell
+      preIx = floor((aIx - 1)/postNxScale) + 1;
+      preIy = floor((aIy - 1)/postNyScale) + 1;
+
       %Get bounds for out
-      yStart = aIy - floor(patchSizeX/2);
-      yEnd = aIy + floor(patchSizeY/2);
-      xStart = aIx - floor(patchSizeX/2);
-      xEnd = aIx + floor(patchSizeY/2);
+      yStart = preIy - floor(patchSizeX/2);
+      yEnd = preIy + floor(patchSizeY/2);
+      xStart = preIx - floor(patchSizeX/2);
+      xEnd = preIx + floor(patchSizeY/2);
+
       %get index based on what quaderant
       newIndX = mod((aIx - 1), sizeX) + 1;
       newIndY = mod((aIy - 1), sizeY) + 1;

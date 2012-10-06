@@ -2,8 +2,8 @@ clear all; close all; more off; clc;
 system("clear");
 
 %Nessessary Petavision Variables 
-postNxScale = 4; 
-postNyScale = 4;
+global postNxScale; postNxScale = 4; 
+global postNyScale; postNxScale = 4;
 
 %Reconstruct Flags
 global SPIKING_OUT_FLAG;       SPIKING_OUT_FLAG       = 0;  %Create spiking output flag
@@ -166,6 +166,7 @@ fflush(1);
 
 for weightTimeIndex = 1:numWeightSteps %For every weight timestep
    time = weightDataOn{weightTimeIndex}.time; 
+   disp(['Time: ', num2str(time)]);
    %Calculate weight time index to activity
    activityTimeIndex = weightTimeIndex * weightToActivity;
    assert(activityData{activityTimeIndex}.time == time);
