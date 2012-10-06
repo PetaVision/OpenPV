@@ -9,7 +9,7 @@ function weightHist(weightValues, time, numbins, outDir, figTitle)
    end
 
    inc = 1/numbins;
-   scVec = [0:inc:5];
+   scVec = [0:inc:1];
 
    if(VIEW_FIGS)
       figure;

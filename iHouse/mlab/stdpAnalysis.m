@@ -2,14 +2,26 @@ clear all; close all; more off; clc;
 system("clear");
 
 %Nessessary Petavision Variables 
-global postNxScale; postNxScale = 4; 
-global postNyScale; postNyScale = 4;
+global postNxScale; postNxScale = 1; 
+global postNyScale; postNyScale = 1;
 
 %Reconstruct Flags
-global SPIKING_OUT_FLAG;       SPIKING_OUT_FLAG       = 0;  %Create spiking output flag
-global RECONSTRUCTION_FLAG;    RECONSTRUCTION_FLAG    = 1;  %Create reconstructions
-global WEIGHTS_MAP_FLAG;  WEIGHTS_MAP_FLAG  = 1;     %Create weight maps
-global WEIGHTS_CELL_FLAG; WEIGHTS_CELL_FLAG = 1;
+global SPIKING_POST_FLAG;      SPIKING_POST_FLAG      = 1;  %Create spiking post output flag
+global SPIKING_PRE_FLAG;       SPIKING_PRE_FLAG       = 0;
+
+%Spiking Output
+global FNUM_ALL; FNUM_ALL = 0;         %1 for all frames, 0 for FNUM_SPEC
+global FNUM_SPEC; FNUM_SPEC    = {...    %start:int:end frames
+   [10000:1:20000]...
+   [50000:1:60000]...
+   [90000:1:100000]...
+   [130000:1:140000]...
+   [190000:1:200000]...
+};
+
+global RECONSTRUCTION_FLAG;    RECONSTRUCTION_FLAG    = 0;  %Create reconstructions
+global WEIGHTS_MAP_FLAG;  WEIGHTS_MAP_FLAG  = 0;     %Create weight maps
+global WEIGHTS_CELL_FLAG; WEIGHTS_CELL_FLAG = 0;
 global CELL; CELL = {...
    [35, 20]...
    [10, 20]...
@@ -34,11 +46,16 @@ workspaceDir                               = [rootDir,'/Documents/workspace/iHou
 %rootDir                                    = '/Users/dpaiton';
 %workspaceDir                               = [rootDir,'/Documents/Work/LANL/workspace/iHouse'];
 pvpDir                                     = [workspaceDir,'/output/'];
-global activityfile; activityfile          = [pvpDir,'lif.pvp'];
+postActivityFile                           = [pvpDir,'lif.pvp'];
+preOnActivityFile                          = [pvpDir,'RetinaON.pvp'];
+preOffActivityFile                         = [pvpDir,'RetinaOFF.pvp'];
 ONweightfile                               = [pvpDir,'w5_post.pvp'];
 OFFweightfile                              = [pvpDir,'w6_post.pvp'];
-outputDir                                  = [workspaceDir,'/output/'];
-global readPvpOutDir; readPvpOutDir        = [outputDir, 'pvp/'];
+outputDir                                  = [workspaceDir,'/output/analysis/'];
+readPostSpikingDir                         = [outputDir, 'postpvp/'];
+readPreSpikingDir                          = [outputDir, 'prepvp/'];
+readPreOnSpikingDir                        = [readPreSpikingDir, 'On/'];
+readPreOffSpikingDir                       = [readPreSpikingDir, 'Off/'];
 reconstructOutDir                          = [outputDir, 'reconstruct/'];
 weightMapOutDir                            = [outputDir, 'weight_map/'];
 cellMapOutDir                              = [outputDir, 'cell_map/'];
@@ -50,8 +67,17 @@ sourcefile                                 = [workspaceDir,'/output/DropInput.tx
 if (exist(outputDir, 'dir') ~= 7)
    mkdir(outputDir);
 end
-if (exist(readPvpOutDir, 'dir') ~= 7)
-   mkdir(readPvpOutDir);
+if (exist(readPostSpikingDir, 'dir') ~= 7)
+   mkdir(readPostSpikingDir);
+end
+if (exist(readPreSpikingDir, 'dir') ~= 7)
+   mkdir(readPreSpikingDir);
+end
+if (exist(readPreOnSpikingDir, 'dir') ~= 7)
+   mkdir(readPreOnSpikingDir);
+end
+if (exist(readPreOffSpikingDir, 'dir') ~= 7)
+   mkdir(readPreOffSpikingDir);
 end
 if (exist(reconstructOutDir, 'dir') ~= 7)
    mkdir(reconstructOutDir);
@@ -69,30 +95,80 @@ if (exist(offWeightHistOutDir, 'dir') ~= 7)
    mkdir(offWeightHistOutDir);
 end
 
-fflush(1);
+numFun = 0;
+
+
 %Read activity file in parallel
-args{1} = activityfile;
-args{2}= ONweightfile;
-args{3} = OFFweightfile;
+%Post Activity File
+if(RECONSTRUCTION_FLAG || SPIKING_POST_FLAG)
+   numFun += 1;
+   fileName{numFun} = postActivityFile;
+   output_path{numFun} = readPostSpikingDir;
+   print{numFun} = SPIKING_POST_FLAG;
+end
+%Pre Activity File
+if(SPIKING_PRE_FLAG)
+   %On
+   numFun += 1;
+   fileName{numFun} = preOnActivityFile;
+   output_path{numFun} = readPreOnSpikingDir;
+   print{numFun} = SPIKING_PRE_FLAG;
+   %Off
+   numFun += 1;
+   fileName{numFun} = preOffActivityFile;
+   out_path{numFun} = readPreOffSpikingDir;
+   print{numFun} = SPIKING_PRE_FLAG;
+end
+%Post weights
+if(RECONSTRUCTION_FLAG || WEIGHTS_MAP_FLAG || WEIGHTS_CELL_FLAG || WEIGHT_HIST_FLAG)
+   %On
+   numFun += 1;
+   fileName{numFun} = ONweightfile;
+   output_path{numFun} = '';  %No output path needed for weights
+   print{numFun} = 0;
+   %Off
+   numFun += 1;
+   fileName{numFun} = OFFweightfile;
+   output_path{numFun} = '';  %No output path needed for weights
+   print{numFun} = 0;
+end
 
 disp('stdpAnalysis: Reading pvp files')
-if (SPIKING_OUT_FLAG)
-   readspikingpvp;
-end
-
+fflush(1);
 if NUM_PROCS == 1
-   [data hdr] = cellfun(@readpvpfile, args, 'UniformOutput', 0);
+   [data hdr] = cellfun(@readpvpfile, fileName, output_path, print, 'UniformOutput', 0);
 else
-   [data hdr] = parcellfun(NUM_PROCS, @readpvpfile, args, 'UniformOutput', 0);
+   [data hdr] = parcellfun(NUM_PROCS, @readpvpfile, fileName, output_path, print, 'UniformOutput', 0);
 end
 
-activityData = data{1};
-weightDataOn = data{2};
-weightDataOff = data{3};
+%Grab data from (par)cellfun
+numFun = 0;
+%Post Activity File
+if(RECONSTRUCTION_FLAG || SPIKING_POST_FLAG)
+   numFun += 1;
+   activityData = data{numFun};
+   activityHdr = hdr{numFun};
+end
+%Pre Activity File, no data needed
+if(SPIKING_PRE_FLAG)
+   numFun += 2;
+end
+%Post weights
+if(RECONSTRUCTION_FLAG || WEIGHTS_MAP_FLAG || WEIGHTS_CELL_FLAG || WEIGHT_HIST_FLAG)
+   %On
+   numFun += 1;
+   weightDataOn = data{numFun};
+   weightHdrOn = hdr{numFun};
+   %Off
+   numFun += 1;
+   weightDataOff = data{numFun};
+   weightHdrOff = hdr{numFun};
+end
 
-activityHdr = hdr{1};
-weightHdrOn = hdr{2};
-weightHdrOff = hdr{3};
+%If no analysis needed
+if(~(RECONSTRUCTION_FLAG || WEIGHTS_MAP_FLAG || WEIGHTS_CELL_FLAG || WEIGHT_HIST_FLAG))
+   return
+end
 
 %PetaVision params
 assert(weightHdrOn.nbands == weightHdrOff.nbands);
@@ -110,6 +186,9 @@ assert(length(weightDataOn) >= 2);
 assert(length(activityData) >= 2);
 
 activityWriteStep = activityData{2}.time - activityData{1}.time;
+if(SPIKING_POST_FLAG)
+   assert(activityWriteStep == 1, 'Post layer write step must be 1 with spiking post flag on');
+end
 weightWriteStep = weightDataOn{2}.time - weightDataOn{1}.time;
 
 %Each weight must have an activity associated with it
@@ -164,12 +243,20 @@ end
 disp('stdpAnalysis: Creating Images');
 fflush(1);
 
-for weightTimeIndex = 1:numWeightSteps %For every weight timestep
+%Pull all activity time by index
+aTimeI = [[activityData{:}].time];
+
+
+for weightTimeIndex = 1:numWeightSteps; %For every weight timestep
    time = weightDataOn{weightTimeIndex}.time; 
    disp(['Time: ', num2str(time)]);
    %Calculate weight time index to activity
-   activityTimeIndex = weightTimeIndex * weightToActivity;
-   assert(activityData{activityTimeIndex}.time == time);
+   activityTimeIndex = find(aTimeI == time);
+   assert(length(activityTimeIndex) <= 1);
+   %Time is not found
+   if (length(activityTimeIndex) == 0)
+      continue;
+   end
    
    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
    %%Weight Histogram
@@ -206,3 +293,4 @@ for weightTimeIndex = 1:numWeightSteps %For every weight timestep
       end
    end
 end
+

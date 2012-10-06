@@ -9,14 +9,13 @@ HyPerCol "column" = {
 //   ny 							= 128; 			// pixel height of input image
    dt 							= 1.;           // according GK
 //   randomSeed 				= 1020304050.0; // remove when running for real
-   //checkpointRead  			= true;  		// normal run
    checkpointRead  				= false; 		// init run
 //   checkpointWrite 				= true;  		// always
    checkpointWrite 				= false;  		// always
-//   checkpointWriteDir = "/Users/slundquist/Documents/workspace/iHouse/output/checkpoints";
-//   checkpointWriteStepInterval = 200;
-   numSteps 					= 10000;			// amount of time steps performed during run-time
-   progressStep					= 1000;
+   checkpointWriteDir = "/Users/slundquist/Documents/workspace/iHouse/checkpoints";
+   checkpointWriteStepInterval = 2000;
+   numSteps 				    	= 200000;			// amount of time steps performed during run-time
+   progressStep					= 500;
 //   deleteOlderCheckpoints = false;
    outputPath                   = "/Users/slundquist/Documents/workspace/iHouse/output";
    filenamesContainLayerNames 	= 2; 			// stores pvp files as: 1 = layer number/2 = layer number and layer name/3 = layer name
@@ -30,19 +29,23 @@ HyPerCol "column" = {
 
 Patterns "input" = {
    patternType = "DROP";
+   
+   maxValue = .75;
+   minValue = .25;
+   
    dropSpeed = -1;       //Radius expands dropSpeed pixles per timestep, -1 for random speed
    dropSpeedRandomMax = 3;
    dropSpeedRandomMin = 1;
    
    dropPeriod  = -1;    //-1 for random period, otherwise, number of frames inbetween drops
-   dropPeriodRandomMax = 90;  //Max random periods for each drop, 20 default
-   dropPeriodRandomMin = 30;   //Min random periods for each drop, 5 default
+   dropPeriodRandomMax = 60;  //Max random periods for each drop, 20 default
+   dropPeriodRandomMin = 15;   //Min random periods for each drop, 5 default
    
    randomPos = true;
    
    halfNeutral = true;
-   startFrame = 100000;
-   endFrame = 100000;
+   startFrame = 0;
+   endFrame = 200000;
    
 //   pMove = 1;
 //   maxWidth = 16;
@@ -84,7 +87,7 @@ Retina "RetinaON" = {
     nyScale = 1;
     nf = 1;
     marginWidth = 16;
-    writeStep = -1.0;
+    writeStep = 1.0;
     mirrorBCflag = 0;
     spikingFlag = true;  // false (no quotes) is translated to 0
 
@@ -111,7 +114,7 @@ Retina "RetinaOFF" = {
     nyScale = 1;
     nf = 1;
     marginWidth = 16;
-    writeStep = -1.0;
+    writeStep = 1.0;
     mirrorBCflag = 0;
     spikingFlag = true;  // false (no quotes) is translated to 0
 
@@ -133,7 +136,7 @@ Retina "RetinaOFF" = {
 
 LCALIFLayer "lif" = {
    tauLCA           = 200;
-   tauTHR           = 20000;
+   tauTHR           = 10000;
    targetRate       = 1;
    
    nxScale          = 1;		
@@ -167,6 +170,43 @@ LCALIFLayer "lif" = {
    noiseFreqIB      =   0.;    	// should be scaled by the time constant - look at LIF model
    dynVthScale      = 15.0;     // Scale for the change of dynVthRest. Must be positive; defaults to VthRest - Vrest
 };
+
+//LCALIFLayer "lifInh" = {
+//   tauLCA           = 200;
+//   tauTHR           = 2000;
+//   targetRate       = 20;
+//   
+//   nxScale          = 1;		
+//   nyScale          = 1;		
+//   nf               = 1;       	// one feature for now
+//   spikingFlag      = 1;       	// the whole idea 
+//   marginWidth      = 0;     	// for MPI running - based on lateral radius and jitter
+////   marginWidth      = 0;     	// for MPI running - based on lateral radius and jitter
+//   writeStep        = 1.0;
+//   mirrorBCflag     = 0;     	// mirroring boundary conditions
+//   InitVType        = "ConstantV";
+//   method           = "beginning";
+//   valueV			= -70.0;
+//   Vrest            = -70.0;    
+//   restart          = 0.0;     	// from graylast
+//   Vexc             = 0.0;     	// reversal potential 
+//   Vinh             = -75.0;   	// chloride channel
+//   VinhB            = -90.0;   	// potassium reversal
+//   tau              = 10.0;    	// intrinsic leak membrane time constant (max)
+//   tauE             = 1.0;     	// how long glutamine stays bound
+//   tauI             = 5.0;     	// how long GABA stays bound
+//   tauIB            = 10.0;    	// inhibitory potassium channel 
+//   VthRest          = -55.0;   	// firing threshold 15 mV above rest
+//   tauVth           = 10.0;    	// 10.0 relative refractory period
+//   deltaVth         = 5.0;     	// jump of threshold when firing
+//   noiseAmpE        = 1;     	// 0.5 1 means conductance is equal to lead conductance  gjk
+//   noiseAmpI        = 1;     	// 0,5 "twice as easy for the membrane capacitance to discharge" gjk
+//   noiseAmpIB       = 0.0;     	// no noise here 
+//   noiseFreqE       = 250.;    	// spontaneous transmitter release/channel openings
+//   noiseFreqI       = 250.;    	// correlation to time step size !!!
+//   noiseFreqIB      =   0.;    	// should be scaled by the time constant - look at LIF model
+//   dynVthScale      = 15.0;     // Scale for the change of dynVthRest. Must be positive; defaults to VthRest - Vrest
+//};
 
 // Connections Connections Connections Connections Connections Connections
 // Connections Connections Connections Connections Connections Connections
@@ -324,7 +364,7 @@ KernelConn "ImagetoRetinaOFFSurround" = {
 
 
 // Retina connections      
-OjaSTDPConn "RetinaONtoS1" = {
+STDPConn "RetinaONtoS1" = {
    preLayerName  = "RetinaON";
    postLayerName = "lif";
    nxp           = 5;
@@ -336,7 +376,7 @@ OjaSTDPConn "RetinaONtoS1" = {
    
    initFromLastFlag = 0;  // 1;  /dr/ restart
    
-   writeStep = 1000;
+   writeStep = 2000;
    
    normalize             = false;
    normalize_max         = true;
@@ -352,9 +392,9 @@ OjaSTDPConn "RetinaONtoS1" = {
    weightDecay     = 0;
    ojaScale        = 0;
    STDPScale       = 1;
-   dWMax           = 10;
+   dWMax           = 5;
    wMin            = 0.001;
-   wMax 	       = 5;
+   wMax 	       = 1;
    numAxonalArbors = 1;
    
    combine_dW_with_W_flag = false;
@@ -378,7 +418,7 @@ OjaSTDPConn "RetinaONtoS1" = {
 };
 
 
-OjaSTDPConn "RetinaOFFtoS1" = {
+STDPConn "RetinaOFFtoS1" = {
    preLayerName = "RetinaOFF";
    postLayerName = "lif";
    nxp           = 5;
@@ -390,7 +430,7 @@ OjaSTDPConn "RetinaOFFtoS1" = {
    
    initFromLastFlag = 0;  // 1;  /dr/ restart
    
-   writeStep = 1000;
+   writeStep = 2000;
    
    normalize             = false;
    normalize_max         = true;
@@ -406,9 +446,9 @@ OjaSTDPConn "RetinaOFFtoS1" = {
    weightDecay     = 0;
    ojaScale        = 0;
    STDPScale       = 1;
-   dWMax           = 10;
+   dWMax           = 5;
    wMin            = 0.001;
-   wMax 	       = 5;
+   wMax 	       = 1;
    numAxonalArbors = 1;
    
    combine_dW_with_W_flag = false;
@@ -431,6 +471,66 @@ OjaSTDPConn "RetinaOFFtoS1" = {
    synscaling_v   = 5;
 };
 
+////Inhib Connections
+//KernelConn "lif to lifInh" = {
+//   channelCode = 0;
+//   nxp = 5;
+//   nyp = 5;
+//   nfp = 1;
+//
+//   stdpFlag   = 0;
+//   initFromLastFlag = 0;
+//   //gauss2DCalcWeights = 1;
+//   writeStep = -1;
+//   
+//   weightInitType = "InitGauss2DWeights";
+//   aspect = 1;
+//   sigma = 10;
+//   rMax = 5;
+//   rMin = 0;
+//
+//   //   aspect = 1;
+//   //   sigma = 1;
+//   //   rMax  = 100;
+//   strength = 50;
+//   //strength =  25500.0;
+//   normalize = true;
+//   normalize_zero_offset = 0.0;
+//   normalize_max = 0.0;
+//   symmetrizeWeights = 0;
+//   delay = 0;
+//};
+//
+//KernelConn "lifInh to lif" = {
+//   channelCode = 1;
+//   nxp = 20;
+//   nyp = 20;
+//   nfp = 1;
+//
+//   stdpFlag   = 0;
+//   initFromLastFlag = 0;
+//   //gauss2DCalcWeights = 1;
+//   writeStep = -1;
+//   
+//   weightInitType = "InitGauss2DWeights";
+//   aspect = 1;
+//   sigma = 1;
+//   rMax = 5;
+//   rMin = 0;
+//
+//   //   aspect = 1;
+//   //   sigma = 1;
+//   //   rMax  = 100;
+//   strength = 50;
+//   //strength =  25500.0;
+//   normalize = true;
+//   normalize_zero_offset = 0.0;
+//   normalize_max = 0.0;
+//   symmetrizeWeights = 0;
+//   delay = 0;
+//};
+
+
 //
 // Probes Probes Probes Probes Probes Probes
 // Probes Probes Probes Probes Probes Probes
@@ -438,3 +538,30 @@ OjaSTDPConn "RetinaOFFtoS1" = {
 // Probes Probes Probes Probes Probes Probes
 // Probes Probes Probes Probes Probes Probes
 // Probes Probes Probes Probes Probes Probes
+
+PointProbe "RetinaON Probe" = {
+   targetLayer = "RetinaON";
+   msg = "RetinaON       ";
+   probeOutputFile = "RetinaON_31_31_0.txt";
+   xLoc = 31;
+   yLoc = 31;
+   fLoc = 0;
+};
+
+PointProbe "RetinaOFF Probe" = {
+   targetLayer = "RetinaOFF";
+   msg = "RetinaOFF      ";
+   probeOutputFile = "RetinaOFF_31_31_0.txt";
+   xLoc = 31;
+   yLoc = 31;
+   fLoc = 0;
+};
+
+PointLCALIFProbe "LCALIF Probe" = {
+   targetLayer = "lif";
+   msg = "LIF            ";
+   probeOutputFile = "LCALIF_31_31_0.txt";
+   xLoc = 31;
+   yLoc = 31;
+   fLoc = 0;
+};
