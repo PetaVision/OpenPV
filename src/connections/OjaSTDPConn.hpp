@@ -64,6 +64,7 @@ protected:
    float STDPScale;
 
    bool  synscalingFlag;
+   bool  ojaFlag;
    float synscaling_v;
 
 #ifdef OBSOLETE_STDP
