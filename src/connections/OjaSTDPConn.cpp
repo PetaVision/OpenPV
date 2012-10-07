@@ -31,20 +31,20 @@ OjaSTDPConn::~OjaSTDPConn()
 
 int OjaSTDPConn::initialize_base() {
    // Default STDP parameters for modifying weights; defaults are overridden in setParams().
-   // this->dwPatches = NULL;
-   this->post_tr      = NULL;
-   this->ampLTP       = 0.0065; //amp sets ratio of LTP to LTD, or how much more/less effective LTP is than LTD. LTP/LTD should ~= 0.9 per Gar
-   this->ampLTD       = 0.0071;
-   this->tauLTP       = 16.8;
-   this->tauLTD       = 33.7;
-   this->tauLTPLong   = 168;
-   this->tauLTDLong   = 33.7;
-   this->weightDecay  = 0.01;
-   this->dWMax        = 1;
-   this->ojaScale     = 1;
-   this->STDPScale    = 1;
-   this->wMax         = 0.0001;
+   this->post_tr        = NULL;
+   this->ampLTP         = 0.0065; //amp sets ratio of LTP to LTD, or how much more/less effective LTP is than LTD. LTP/LTD should ~= 0.9 per Gar
+   this->ampLTD         = 0.0071;
+   this->tauLTP         = 16.8;
+   this->tauLTD         = 33.7;
+   this->tauLTPLong     = 168;
+   this->tauLTDLong     = 33.7;
+   this->weightDecay    = 0.01;
+   this->dWMax          = 1;
+   this->ojaScale       = 1;
+   this->STDPScale      = 1;
+   this->wMax           = 0.0001;
 
+   this->ojaFlag        = true;
    this->synscalingFlag = false;
    this->synscaling_v   = 1;
 
@@ -119,6 +119,8 @@ int OjaSTDPConn::setParams(PVParams * params)
       wMax           = params->value(getName(), "wMax", wMax);
       wMin           = params->value(getName(), "wMin", wMin);
       dWMax          = params->value(getName(), "dWMax", dWMax);
+
+      ojaFlag        = params->value(getName(), "ojaFlag",ojaFlag);
       synscalingFlag = params->value(getName(), "synscalingFlag", synscalingFlag);
       synscaling_v   = params->value(getName(), "synscaling_v", synscaling_v);
    }
@@ -221,8 +223,17 @@ int OjaSTDPConn::updateWeights(int axonID)
             // Qmnt is weight at current time step
             // Qmnt-1 is weight at previous time step
             // Ax(t),Ay(t) is spike activity for pre/post respectively
-            W[k] += dWMax * (((*pre_long_tr_m) - post_long_tr_m[k] * W[k]) *
-                  (ampLTP * aPost[k] * (*pre_tr_m) - ampLTD * aPre * post_tr_m[k]) - weightDecay * W[k]);
+            float ojaTerm;
+            if (ojaFlag) {
+               ojaTerm = (*pre_long_tr_m) - post_long_tr_m[k] * W[k];
+            }
+            else
+            {
+              ojaTerm = 1.0;
+            }
+
+            W[k] += dWMax * ojaTerm  *
+                  (ampLTP * aPost[k] * (*pre_tr_m) - ampLTD * aPre * post_tr_m[k]) - weightDecay * W[k];
 
             W[k] = W[k] < wMin ? wMin : W[k]; // Stop weights from going all the way to 0
             W[k] = W[k] > wMax ? wMax : W[k]; //FIXME: No need for a max now that we have the decay terms and oja rule??
