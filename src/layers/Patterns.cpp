@@ -299,11 +299,12 @@ int Patterns::generatePattern(float val)
       float max_radius = sqrt(nxgl * nxgl + nygl * nygl);
 
       //Using iterators to iterate while removing from loop
-      for(std::vector<Drop>::iterator dropIt = vDrops.begin(); dropIt != vDrops.end(); dropIt++){
+      for(std::vector<Drop>::iterator dropIt = vDrops.begin(); dropIt < vDrops.end(); dropIt++){
          //Update radius
          dropIt->radius += dropIt->speed;
          //If no longer in the frame
          if(dropIt->radius >= max_radius){
+
             //Erase from vector, erase returns next iterator object
             dropIt = vDrops.erase(dropIt);
          }
