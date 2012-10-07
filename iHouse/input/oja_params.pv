@@ -10,8 +10,8 @@ HyPerCol "column" = {
    
    randomSeed 	                = 1020304050.0;   
 
-   numSteps                     = 10000;	// amount of time steps performed during run-time
-   //progressStep                 = 500;    // write output to see progress
+   numSteps                     = 100000;	// amount of time steps performed during run-time
+   progressStep                 = 500;    // write output to see progress
    //writeProgressToErr           = 0;      // write progress steps to std err
    
    //outputPath                 = "~/Documents/workspace/iHouse/output";
@@ -41,18 +41,24 @@ HyPerCol "column" = {
 Patterns "input" = {
    patternType    = "DROP";
 
-   dropSpeed      = 1;    //Radius expands dropSpeed pixles per timestep
-   dropPeriod     = -1;   //-1 for random period, otherwise, number of frames inbetween drops
-   dropRandomMax  = 90;   //Max random periods for each drop, 20 default
-   dropRandomMin  = 30;   //Min random periods for each drop, 5 default
-
-   halfNeutral    = true;
-   randomPos      = true;
-
-   startFrame     = 50000;
-   endFrame       = 200000;
+   dropSpeed           = -1;   //Radius expands dropSpeed pixles per timestep
+   dropSpeedRandomMax  = 3;
+   dropSpeedRandomMin  = 1;
    
-   writeImages    = false;
+   dropPeriod          = -1;   //-1 for random period, otherwise, number of frames inbetween drops
+   dropPeriodRandomMax = 50;
+   dropPeriodRandomMin = 15;
+   
+   maxValue            = 0.75;
+   minValue            = 0.25;
+
+   halfNeutral         = true;
+   randomPos           = true;
+
+   startFrame          = 0; 
+   endFrame            = 200000;
+   
+   writeImages         = false;
    
    //patternsOutputPath = "~/Documents/workspace/iHouse/output/sourcefiles";
    patternsOutputPath = "~/Documents/Work/LANL/workspace/iHouse/output/sourcefiles"; // Dylan's Mac
@@ -90,6 +96,7 @@ Retina "RetinaON" = {
     nxScale       = 1;
     nyScale       = 1;
     nf            = 1;
+    
     marginWidth   = 16;
     writeStep     = -1.0;
     mirrorBCflag  = 0;
@@ -138,12 +145,12 @@ Retina "RetinaOFF" = {
 
 
 LCALIFLayer "lif" = {
-   nxScale          = 16;		
-   nyScale          = 16;		
+   nxScale          = 4;		
+   nyScale          = 4;		
    nf               = 1;       	
 
    tauLCA           = 200;
-   tauTHR           = 20000;
+   tauTHR           = 10000;
    targetRate       = 1;
 
    spikingFlag      = 1;       	
