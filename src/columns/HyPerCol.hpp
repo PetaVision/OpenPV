@@ -155,6 +155,7 @@ private:
    float stopTime;         // time to stop time
    float deltaTime;        // time step interval
    int progressStep;       // How many timesteps between outputting progress
+   bool writeProgressToErr;// Whether to write progress step to standard error (True) or out (False) (default is out)
 
    CLDevice * clDevice;    // object for running kernels on OpenCL device
 

@@ -173,6 +173,7 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * p
    deleteOlderCheckpoints = false;
    parse_options(argc, argv, &outputPath, &param_file,
                  &numSteps, &opencl_device, &random_seed, &working_dir);
+   writeProgressToErr = false;
 
    if(working_dir) {
       int status = chdir(working_dir);
@@ -227,7 +228,8 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * p
    }
 
    // set how often advanceTime() prints a message indicating progress
-   progressStep = params->value(name, "progressStep", 2000, true);
+   progressStep       = params->value(name, "progressStep");
+   writeProgressToErr = params->value(name, "writeProgressToErr");
 
    // set output path from params file if it wasn't set on the command line
    if (outputPath == NULL ) {
@@ -698,7 +700,13 @@ float HyPerCol::advanceTime(float sim_time)
 {
 #ifdef TIMESTEP_OUTPUT
    if (currentStep%progressStep == 0 && columnId() == 0) {
-      printf("   [%d]: time==%f\n", columnId(), sim_time);
+      if (writeProgressToErr) {
+         fprintf(stderr, "   [%d]: time==%f\n", columnId(), sim_time);
+      }
+      else
+      {
+         printf("   [%d]: time==%f\n", columnId(), sim_time);
+      }
    }
 #endif
 
