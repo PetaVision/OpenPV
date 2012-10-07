@@ -297,28 +297,19 @@ int Patterns::generatePattern(float val)
 
       //Max radius at corner of screen
       float max_radius = sqrt(nxgl * nxgl + nygl * nygl);
-      //Drop from center
-      std::vector<int> deleteme;
-      deleteme.clear();
-      //Radius of circle at current timestep
-      //Remove extra circles
-      for(int i = 0; i < (int)vDrops.size(); i++){
-         vDrops[i].radius += vDrops[i].speed;
 
-         //No longer in the frame
-         if(vDrops[i].radius >= max_radius){
-            //Save index
-           deleteme.push_back(i);
+      //Using iterators to iterate while removing from loop
+      for(std::vector<Drop>::iterator dropIt = vDrops.begin(); dropIt != vDrops.end(); dropIt++){
+         //Update radius
+         dropIt->radius += dropIt->speed;
+         //If no longer in the frame
+         if(dropIt->radius >= max_radius){
+            //Erase from vector, erase returns next iterator object
+            dropIt = vDrops.erase(dropIt);
          }
-      }
-      for(int i = 0; i < (int)deleteme.size(); i++){
-         //Erase from
-         vDrops.erase(vDrops.begin() + deleteme[i]);
       }
 
       //Add new circles
-      //Add circle if necessary
-      //Random
       if(framenumber >= nextDropFrame && framenumber <= endFrame){
          if(dropPeriod == -1){
             nextDropFrame = framenumber + dropPeriodRandomMin + floor((dropPeriodRandomMax - dropPeriodRandomMin) * pv_random_prob());
@@ -722,7 +713,7 @@ int Patterns::checkpointRead(const char * cpDir, float * timef) {
             vDrops.push_back(drop);
          }
          std::cout << "\n" << vDrops.size() << " " << size << "\n";
-         assert(vDrops.size()==size);
+         assert((int)vDrops.size()==size);
          fclose(fp);
       }
       else {
