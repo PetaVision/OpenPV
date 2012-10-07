@@ -173,6 +173,7 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * p
    deleteOlderCheckpoints = false;
    parse_options(argc, argv, &outputPath, &param_file,
                  &numSteps, &opencl_device, &random_seed, &working_dir);
+   progressStep       = 1;
    writeProgressToErr = false;
 
    if(working_dir) {
@@ -228,8 +229,8 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * p
    }
 
    // set how often advanceTime() prints a message indicating progress
-   progressStep       = params->value(name, "progressStep");
-   writeProgressToErr = params->value(name, "writeProgressToErr");
+   progressStep       = params->value(name, "progressStep",progressStep);
+   writeProgressToErr = params->value(name, "writeProgressToErr",writeProgressToErr);
 
    // set output path from params file if it wasn't set on the command line
    if (outputPath == NULL ) {
