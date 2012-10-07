@@ -14,9 +14,6 @@ global FNUM_ALL;
 global FNUM_SPEC;              %Can be -1 for all or specify multiple start:int:end frames
 
 inst_movie_path = [output_path,'Instantaneous_Frames/'];
-if ne(exist(inst_movie_path,'dir'),7) %if exists func doesn't return a 7, then inst_movie_path is not a dir
-   mkdir(inst_movie_path);
-end%if ne(exist(),7)
 
 %% Parse FNUM_SPEC
 if (FNUM_ALL <= 0)
@@ -140,11 +137,11 @@ if isempty(errorstring)
                    %%%%%%%
                    %% Set up frame string for printing
                    %%%%%%%
-                   if lt(frame,10)
+                   if lt(movieFrame,10)
                        frame_str = ['00',num2str(movieFrame)];
-                   elseif ge(frame,10) && lt(frame,100)
+                   elseif ge(movieFrame,10) && lt(movieFrame,100)
                        frame_str = ['0', num2str(movieFrame)];
-                   elseif gt(frame,99)
+                   elseif gt(movieFrame,99)
                        frame_str = num2str(movieFrame);
                    end%if lt(frame,10)
                    outImg = zeros([hdr.nyGlobal, hdr.nxGlobal]);
@@ -155,10 +152,10 @@ if isempty(errorstring)
                    print_movie_filename = [inst_movie_path,rootname,'_',frame_str,'.',OUT_FILE_EXT];
                    try
                        imwrite(outImg,print_movie_filename,OUT_FILE_EXT)
+                       movieFrame += 1;
                    catch
                        disp(['readpvpfile: WARNING. Could not print file: ',char(10),print_movie_filename])
                    end%_try_catch
-                   movieFrame += 1;
                  end%End frame_of_interest printing
             end%End num_frames
             if eq(MOVIE_FLAG,1)
