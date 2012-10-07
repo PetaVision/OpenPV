@@ -216,11 +216,8 @@ for (k = 0; k < nx*ny*nf; k++) {
    l_G_I = G_I_final;
    l_G_IB = G_IB_final;
 
-   //integratedSpikeCount is the trace activity of the neuron, with an exponential decay
-   integratedSpikeCount[k] = exp_tauLCA * (activity[k] + integratedSpikeCount[k]);
-
    //l_Vth updates according to traditional LIF rule in addition to the following slow threshold adaptation
-   //   Theta += (dt/tauTHR) * (int_spike_count/tau_lca - fo) * (dynVthRest/fo)
+   //   Theta += (dt/tauTHR) * (int_spike_count/tau_lca - fo) * abs(dynVthRest/fo)
    //      tauTHR is slow update
    //      tau_lca is ~1/5 tauTHR, faster update for traces
    //      int_spike_count is trace
@@ -236,6 +233,10 @@ for (k = 0; k < nx*ny*nf; k++) {
    l_Vth   = fired_flag ? l_Vth + deltaVth : l_Vth;
    l_G_IB  = fired_flag ? l_G_IB + 1.0f    : l_G_IB;
 
+
+   //integratedSpikeCount is the trace activity of the neuron, with an exponential decay
+   integratedSpikeCount[k] = exp_tauLCA * (l_activ + integratedSpikeCount[k]);
+
    //
    // These actions must be done outside of kernel
    //    1. set activity to 0 in boundary (if needed)
@@ -247,7 +248,7 @@ for (k = 0; k < nx*ny*nf; k++) {
    rnd[k] = l_rnd;
 
    activity[kex] = l_activ;
-   
+
    V[k]   = l_V;
    Vth[k] = l_Vth;
 
