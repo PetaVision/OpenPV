@@ -10,8 +10,9 @@ HyPerCol "column" = {
    
    randomSeed 	                = 1020304050.0;   
 
-   numSteps                     = 200000;	// amount of time steps performed during run-time
-   progressStep                 = 500;
+   numSteps                     = 10000;	// amount of time steps performed during run-time
+   //progressStep                 = 500;    // write output to see progress
+   //writeProgressToErr           = 0;      // write progress steps to std err
    
    //outputPath                 = "~/Documents/workspace/iHouse/output";
    outputPath                   = "~/Documents/Work/LANL/workspace/iHouse/output"; //Dylan's Mac
@@ -342,15 +343,14 @@ OjaSTDPConn "RetinaONtoS1" = {
    ampLTD                 = 0.0071;
    tauLTP                 = 8.4;
    tauLTD                 = 33.7;
-   tauLTPLong             = 84;
-   tauLTDLong             = 337;
+   tauLTPLong             = 84;    //Oja tau LTP
+   tauLTDLong             = 337;   //Oja tau LTD
    weightDecay            = 0;
-   ojaScale               = 0;
-   STDPScale              = 1;
    dWMax                  = 10;
    wMin                   = 0.001;
    wMax 	              = 5;
    numAxonalArbors        = 1;
+   ojaFlag                = 0;      //Turns oja rule on or off.
    
    combine_dW_with_W_flag = false;
    selfFlag               = false;
@@ -396,15 +396,14 @@ OjaSTDPConn "RetinaOFFtoS1" = {
    ampLTD                 = 0.0071;
    tauLTP                 = 8.4;
    tauLTD                 = 33.7;
-   tauLTPLong             = 84;
-   tauLTDLong             = 337;
+   tauLTPLong             = 84;    //Oja tau LTP
+   tauLTDLong             = 337;   //Oja tau LTD
    weightDecay            = 0;
-   ojaScale               = 0;
-   STDPScale              = 1;
    dWMax                  = 10;
    wMin                   = 0.001;
    wMax 	              = 5;
    numAxonalArbors        = 1;
+   ojaFlag                = 0;      //Turns oja rule on or off.
    
    combine_dW_with_W_flag = false;
    selfFlag               = false;
