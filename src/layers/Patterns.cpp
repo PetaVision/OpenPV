@@ -715,11 +715,13 @@ int Patterns::checkpointRead(const char * cpDir, float * timef) {
          status = fread(&nextDropFrame, sizeof(int), 1, fp) ? status : PV_FAILURE;
          int size;
          status = fread(&size, sizeof(int), 1, fp) ? status : PV_FAILURE;
+         vDrops.clear();
          for (int k=0; k<size; k++) {
             Drop drop;
             fread(&drop, sizeof(Drop), 1, fp);
             vDrops.push_back(drop);
          }
+         std::cout << "\n" << vDrops.size() << " " << size << "\n";
          assert(vDrops.size()==size);
          fclose(fp);
       }

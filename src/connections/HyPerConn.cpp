@@ -1246,8 +1246,8 @@ int HyPerConn::checkpointRead(const char * cpDir, float * timef) {
       }
       fclose(fpWriteTime);
    }
-
-
+   //writeTime
+   MPI_Bcast(&writeTime, 1, MPI_FLOAT, 0, parent->icCommunicator()->communicator());
    return status;
 }
 
