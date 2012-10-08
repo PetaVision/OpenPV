@@ -152,7 +152,7 @@ LCALIFLayer "lif" = {
    tauLCA           = 200;
    tauTHR           = 10000;
    targetRate       = 1;
-   dynVthScale      = 15;
+   dynVthScale      = 15; // Scale for the change of dynVthRest. Must be positive; defaults to VthRest - Vrest
 
    spikingFlag      = 1;       	
    marginWidth      = 8;     	
