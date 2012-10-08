@@ -13,14 +13,14 @@ begin_x_step   = 100;
 
 legend_flag = 1;
 
-Cone_view       = 0;
-Horizontal_view = 0;
-Bipolar_view    = 0;
-WFAmacrine_view = 0;
-SFAmacrine_view = 0;
+Cone_view       = 1;
+Horizontal_view = 1;
+Bipolar_view    = 1;
+WFAmacrine_view = 1;
+SFAmacrine_view = 1;
 PAAmacrine_view = 1;
 Ganglion_view   = 1;
-Sigmoid_view    = 0;
+Sigmoid_view    = 1;
 
 for i = 1:length(run_numbers)
     run_num = i-1;
