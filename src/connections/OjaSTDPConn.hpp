@@ -47,7 +47,9 @@ protected:
    virtual int initPlasticityPatches();
 
    PVLayerCube * post_tr;      // plasticity decrement variable for postsynaptic layer
+   PVLayerCube * post_long_tr; // plasticity decrement variable for longer time-constant
    PVLayerCube * pre_tr;       // plasticity increment variable for presynaptic layer
+   PVLayerCube * pre_long_tr;  // plasticity increment variable for presynaptic layer with longer time-constant
 
    bool stdpFlag;              // presence of spike timing dependent plasticity
 

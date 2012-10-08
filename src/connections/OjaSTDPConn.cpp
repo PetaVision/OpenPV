@@ -32,6 +32,7 @@ OjaSTDPConn::~OjaSTDPConn()
 int OjaSTDPConn::initialize_base() {
    // Default STDP parameters for modifying weights; defaults are overridden in setParams().
    this->post_tr        = NULL;
+   this->post_long_tr   = NULL;
    this->ampLTP         = 0.0065; //amp sets ratio of LTP to LTD, or how much more/less effective LTP is than LTD. LTP/LTD should ~= 0.9 per Gar
    this->ampLTD         = 0.0071;
    this->tauLTP         = 16.8;
@@ -76,9 +77,14 @@ int OjaSTDPConn::initPlasticityPatches()
    assert(status == 0);
 
    post_tr      = pvcube_new(&post->getCLayer()->loc, post->getNumExtended());
+   post_long_tr = pvcube_new(&post->getCLayer()->loc, post->getNumExtended());
    pre_tr       = pvcube_new(&pre->getCLayer()->loc, pre->getNumExtended());
+   pre_long_tr  = pvcube_new(&pre->getCLayer()->loc, pre->getNumExtended());
+
    assert(post_tr      != NULL);
+   assert(post_long_tr != NULL);
    assert(pre_tr       != NULL);
+   assert(pre_long_tr  != NULL);
 
    return PV_SUCCESS;
 }
@@ -177,7 +183,7 @@ int OjaSTDPConn::updateWeights(int axonID)
    int nk, ny;
 
    post_tr_m      = post_tr->data;
-   post_long_tr_m = post_tr->data;
+   post_long_tr_m = post_long_tr->data;
 
    // 1. Updates the postsynaptic traces
    for (int kPost = 0; kPost < nkPost; kPost++)
@@ -197,9 +203,9 @@ int OjaSTDPConn::updateWeights(int axonID)
       aPre           = preLayerData[kPre];                // Spiking activity
       aPost          = &post->getLayerData()[postOffset]; // Gets address of postsynaptic activity
       post_tr_m      = &(post_tr->data[postOffset]);      // Reference to STDP post trace
-      post_long_tr_m = &(post_tr->data[postOffset]);
+      post_long_tr_m = &(post_long_tr->data[postOffset]);
       pre_tr_m       = &(pre_tr->data[kPre]);             // PreTrace for given presynaptic neuron kPre
-      pre_long_tr_m  = &(pre_tr->data[kPre]);
+      pre_long_tr_m  = &(pre_long_tr->data[kPre]);
 
       W = get_wData(axonID, kPre);                       // Pointer to data of given axon & presynaptic neuron
 
