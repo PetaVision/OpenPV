@@ -152,10 +152,11 @@ LCALIFLayer "lif" = {
    tauLCA           = 200;
    tauTHR           = 10000;
    targetRate       = 1;
+   dynVthScale      = 15;
 
    spikingFlag      = 1;       	
-   marginWidth      = 0;     	
-   writeStep        = 1.0;
+   marginWidth      = 8;     	
+   writeStep        = -1;
    mirrorBCflag     = 0;     	// mirroring boundary conditions
    InitVType        = "ConstantV";
    method           = "beginning";
@@ -330,8 +331,8 @@ KernelConn "ImagetoRetinaOFFSurround" = {
 OjaSTDPConn "RetinaONtoS1" = {
    preLayerName           = "RetinaON";
    postLayerName          = "lif";
-   nxp                    = 16;
-   nyp                    = 16;
+   nxp                    = 20;
+   nyp                    = 20;
    nfp                    = 1;
    channelCode            = 0;
    stdpFlag               = 1;
@@ -339,7 +340,7 @@ OjaSTDPConn "RetinaONtoS1" = {
    
    initFromLastFlag       = 0;  // 1;  /dr/ restart
    
-   writeStep              = 1000;
+   writeStep              = 2000;
    
    normalize              = false;
    normalize_max          = true;
@@ -353,9 +354,9 @@ OjaSTDPConn "RetinaONtoS1" = {
    tauLTPLong             = 84;    //Oja tau LTP
    tauLTDLong             = 337;   //Oja tau LTD
    weightDecay            = 0;
-   dWMax                  = 10;
+   dWMax                  = 5;
    wMin                   = 0.001;
-   wMax 	              = 5;
+   wMax 	              = 1;
    numAxonalArbors        = 1;
    ojaFlag                = 0;      //Turns oja rule on or off.
    
@@ -383,8 +384,8 @@ OjaSTDPConn "RetinaONtoS1" = {
 OjaSTDPConn "RetinaOFFtoS1" = {
    preLayerName           = "RetinaOFF";
    postLayerName          = "lif";
-   nxp                    = 16;
-   nyp                    = 16;
+   nxp                    = 20;
+   nyp                    = 20;
    nfp                    = 1;
    channelCode            = 0;
    stdpFlag               = 1;
@@ -392,7 +393,7 @@ OjaSTDPConn "RetinaOFFtoS1" = {
    
    initFromLastFlag       = 0;  // 1;  /dr/ restart
    
-   writeStep              = 1000;
+   writeStep              = 2000;
    
    normalize              = false;
    normalize_max          = true;
@@ -406,9 +407,9 @@ OjaSTDPConn "RetinaOFFtoS1" = {
    tauLTPLong             = 84;    //Oja tau LTP
    tauLTDLong             = 337;   //Oja tau LTD
    weightDecay            = 0;
-   dWMax                  = 10;
+   dWMax                  = 5;
    wMin                   = 0.001;
-   wMax 	              = 5;
+   wMax 	              = 1;
    numAxonalArbors        = 1;
    ojaFlag                = 0;      //Turns oja rule on or off.
    
