@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 
+#For tuning Gerd Kunde & Gar Kenyon's retina
+#Created by Dylan Paiton
+
 import os
 import re
 from tune_functions import *
