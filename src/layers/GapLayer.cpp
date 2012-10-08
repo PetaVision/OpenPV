@@ -25,6 +25,7 @@ GapLayer::~GapLayer()
 
 int GapLayer::initialize_base() {
    sourceLayer = NULL;
+   ampSpikelet = 50;
    return PV_SUCCESS;
 }
 
@@ -46,6 +47,8 @@ int GapLayer::initialize(const char * name, HyPerCol * hc, LIFGap * originalLaye
    sourceLayer = originalLayer;
    free(clayer->V);
    clayer->V = sourceLayer->getV();
+
+   ampSpikelet = parent->parameters()->value(name,"ampSpikelet",ampSpikelet);
 
    const PVLayerLoc * loc = getLayerLoc();
    // HyPerLayer::setActivity();
@@ -69,7 +72,7 @@ int GapLayer::updateState(float timef, float dt, const PVLayerLoc * loc, pvdata_
    int nf = loc->nf;
    int num_neurons = nx*ny*nf;
    updateV_GapLayer();
-   setActivity_GapLayer(num_neurons, A, V, nx, ny, nf, loc->nb, checkActive);
+   setActivity_GapLayer(num_neurons, A, V, nx, ny, nf, loc->nb, checkActive, ampSpikelet);
    // resetGSynBuffers(); // Since GapLayer uses sourceLayer's V, it doesn't seem to use the GSyn channels, so no need to blank them?
    return PV_SUCCESS;
 }
@@ -86,10 +89,9 @@ int GapLayer::updateState(float timef, float dt, const PVLayerLoc * loc, pvdata_
 //   return PV_SUCCESS;
 //}
 
-////!!!TODO: add param in LIFGap for spikelet amplitude
 int GapLayer::setActivity() {
    const PVLayerLoc * loc = getLayerLoc();
-   return setActivity_GapLayer(getNumNeurons(), getCLayer()->activity->data, getV(), loc->nx, loc->ny, loc->nf, loc->nb, getCLayer()->activity->data);
+   return setActivity_GapLayer(getNumNeurons(), getCLayer()->activity->data, getV(), loc->nx, loc->ny, loc->nf, loc->nb, getCLayer()->activity->data,ampSpikelet);
 }
 
 //int GapLayer::setActivity() {

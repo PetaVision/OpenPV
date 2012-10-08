@@ -61,7 +61,7 @@ static inline pvdata_t lateralCompetitionPenalty(CL_MEM_GLOBAL pvdata_t * V, int
 static inline int setActivity_HyPerLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * A, CL_MEM_GLOBAL pvdata_t * V, int nx, int ny, int nf, int nb);
 static inline int setActivity_GenerativeLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * A, CL_MEM_GLOBAL pvdata_t * V, int nx, int ny, int nf, int nb, pvdata_t activity_threshold);
 static inline int setActivity_IncrementLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * A, CL_MEM_GLOBAL pvdata_t * V, CL_MEM_GLOBAL pvdata_t * Vprev, int nx, int ny, int nf, int nb);
-static inline int setActivity_GapLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * A, CL_MEM_GLOBAL pvdata_t * V, int nx, int ny, int nf, int nb, CL_MEM_GLOBAL pvdata_t * active);
+static inline int setActivity_GapLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * A, CL_MEM_GLOBAL pvdata_t * V, int nx, int ny, int nf, int nb, CL_MEM_GLOBAL pvdata_t * active, float ampSpiklet);
 //#ifndef PV_USE_OPENCL
 //static inline int setActivity_GapLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * A, CL_MEM_GLOBAL pvdata_t * V, int nx, int ny, int nf, int nb, const PVLayerLoc * src_loc, bool src_spiking, unsigned int src_num_active, unsigned int * src_active_indices);
 //#endif //PV_USE_OPENCL
@@ -348,9 +348,7 @@ static inline int setActivity_IncrementLayer(int numNeurons, CL_MEM_GLOBAL pvdat
    return PV_SUCCESS;
 }
 
-
-//!!!TODO: add param in LIFGap for spikelet amplitude
-static inline int setActivity_GapLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * A, CL_MEM_GLOBAL pvdata_t * V, int nx, int ny, int nf, int nb, CL_MEM_GLOBAL pvdata_t * checkActive) {
+static inline int setActivity_GapLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * A, CL_MEM_GLOBAL pvdata_t * V, int nx, int ny, int nf, int nb, CL_MEM_GLOBAL pvdata_t * checkActive, float ampSpikelet) {
    int k;
 #ifndef PV_USE_OPENCL
    for( k=0; k<numNeurons; k++ )
@@ -360,7 +358,7 @@ static inline int setActivity_GapLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * 
    {
       int kex = kIndexExtended(k,nx,ny,nf,nb);
       A[kex] = V[k];
-      if( checkActive[kex] > 0.0) A[kex] += 50; // checkActive must have the same marginWidth as A
+      if( checkActive[kex] > 0.0) A[kex] += ampSpikelet; // checkActive must have the same marginWidth as A
    }
    return PV_SUCCESS;
 }

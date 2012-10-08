@@ -37,6 +37,8 @@ protected:
 private:
    int initialize_base();
 
+   float ampSpikelet;
+
 };
 
 }
