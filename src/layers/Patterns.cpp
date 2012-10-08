@@ -713,7 +713,6 @@ int Patterns::checkpointRead(const char * cpDir, float * timef) {
             fread(&drop, sizeof(Drop), 1, fp);
             vDrops.push_back(drop);
          }
-         std::cout << "\n" << vDrops.size() << " " << size << "\n";
          assert((int)vDrops.size()==size);
          fclose(fp);
       }
@@ -721,6 +720,48 @@ int Patterns::checkpointRead(const char * cpDir, float * timef) {
          fprintf(stderr, "Unable to read from \"%s\"\n", filename);
       }
    }
+
+   // TODO improve and polish the way the code handles file I/O and the MPI data buffer.
+   // This will get bad if the number of member variables that need to be saved keeps increasing.
+#ifdef PV_USE_MPI
+   if (parent->icCommunicator()->commSize()>1) {
+      int bufsize = sizeof(OrientationMode) + 2*sizeof(float) + 3*sizeof(int) + vDrops.size()*sizeof(Drop);
+      char tempbuf[bufsize];
+      OrientationMode * om = (OrientationMode *) (tempbuf+0);
+      float * floats = (float *) (tempbuf+sizeof(OrientationMode));
+      int * ints = (int *) (tempbuf+sizeof(OrientationMode)+2*sizeof(float));
+      Drop * drops = (Drop *) (tempbuf+sizeof(OrientationMode)+2*sizeof(float)+3*sizeof(int));
+      int numdrops;
+      if (parent->columnId()==0) {
+         *om = orientation;
+         floats[0] = position;
+         floats[1] = nextDisplayTime;
+         ints[0] = initPatternCntr;
+         ints[1] = nextDropFrame;
+         numdrops = vDrops.size();
+         ints[2] = numdrops;
+         for (int k=0; k<numdrops; k++) {
+            memcpy(&drops[k], &vDrops, sizeof(Drop));
+         }
+         MPI_Bcast(tempbuf, bufsize, MPI_CHAR, 0, parent->icCommunicator()->communicator());
+      }
+      else {
+         MPI_Bcast(tempbuf, bufsize, MPI_CHAR, 0, parent->icCommunicator()->communicator());
+         orientation = *om;
+         position = floats[0];
+         nextDisplayTime = floats[1];
+         initPatternCntr = ints[0];
+         nextDropFrame = ints[1];
+         numdrops = ints[2];
+         vDrops.clear();
+         for (int k=0; k<numdrops; k++) {
+            Drop drop = drops[k];
+            vDrops.push_back(drop);
+         }
+         assert((int)vDrops.size()==numdrops);
+      }
+   }
+#endif // PV_USE_MPI
    return status;
 }
 
