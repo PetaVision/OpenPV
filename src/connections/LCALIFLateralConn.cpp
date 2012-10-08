@@ -137,7 +137,7 @@ int LCALIFLateralConn::updateWeights(int axonId) {
             for (int x=0; x<nx; x++) {
                for (int f=0; f<nfp; f++) {
                   int idx = sxp*x + syp*y + sfp*f;
-                  pvdata_t w = w_data[idx] += dw_data[idx];
+                  pvdata_t w = w_data[idx] + dw_data[idx];
                   if (w<0) w=0;
                   w_data[idx] = w;
                }
