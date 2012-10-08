@@ -102,9 +102,9 @@ int LCALIFLayer::initialize(const char * name, HyPerCol * hc, int num_channels, 
 
    //Initialize dynVthRest to vthRest
    for (int i = 0; i < (int)getNumNeurons(); i++){
-      //std::cout << "VthRest: " << VthRest << "\n";
       dynVthRest[i] = lParams.VthRest;
    }
+
    float defaultDynVthScale = lParams.VthRest-lParams.Vrest;
    dynVthScale = defaultDynVthScale > 0 ? defaultDynVthScale : DEFAULT_DYNVTHSCALE;
    dynVthScale = params->value(name, "dynVthScale", dynVthScale);
