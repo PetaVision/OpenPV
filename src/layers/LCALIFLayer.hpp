@@ -25,8 +25,9 @@ public:
    virtual int checkpointRead(const char * cpDir, float * timef);
    virtual int checkpointWrite(const char * cpDir);
 
-   inline float getTargetRate() {return targetRate;};
+   inline float getTargetRate() {return targetRate;}
    const float * getDynVthRest() {return dynVthRest;}
+   const pvdata_t * getIntegratedSpikeCount() {return integratedSpikeCount;}
 protected:
 #ifdef PV_USE_OPENCL
    virtual int initializeThreadBuffers(const char * kernelName);

@@ -51,11 +51,13 @@ int PointLCALIFProbe::writeState(float timef, HyPerLayer * l, int k, int kex)
       pvdata_t * G_GAP = LCALIF_layer->getConductance(CHANNEL_GAP);
       pvdata_t * Vth  = LCALIF_layer->getVth();
       const pvdata_t * dynVthRest = LCALIF_layer->getDynVthRest();
+      const pvdata_t * integratedSpikeCount = LCALIF_layer->getIntegratedSpikeCount();
 
       fprintf(fp, " G_E=%6.3f", G_E[k]);
       fprintf(fp, " G_I=%6.3f", G_I[k]);
       fprintf(fp, " G_IB=%6.3f", G_IB[k]);
       if (G_GAP != NULL) fprintf(fp, " G_GAP=%6.3f", G_GAP[k]);
+      fprintf(fp, " integratedSpikeCount=%6.3f", integratedSpikeCount[k]);
       fprintf(fp, " dynVthRest=%6.3f", dynVthRest[k]);
       fprintf(fp, " V=%6.3f", V[k]);
       fprintf(fp, " Vth=%6.3f", Vth[k]);
