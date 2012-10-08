@@ -433,33 +433,33 @@ STDPConn "RetinaOFFtoS1" = {
 
 
 //Inhib Connections
-LCALIFLateralConn "lcalif lateral inhibition" = {
-    preLayerName = "lif";
-    postLayerName = "lif";
-    channelCode = 1;
-    nxp = 21;
-    nyp = 21;
-    nfp = 1;
-
-    numAxonalArbors = 1;
-    writeStep = -1;
-    initFromLastFlag = 0;
-    
-    weightInitType = "UniformWeight";
-    weightInit = 1.0;
-      
-    normalize = false;
-    preActivityIsNotRate = false;
-
-    writeCompressedWeights = false;
-    plasticityFlag = true;
-    selfFlag = false;
-
-    delay = 0;
-
-    stochasticReleaseFlag = false;
-    shrinkPatches = false;
-};
+//LCALIFLateralConn "lcalif lateral inhibition" = {
+//    preLayerName = "lif";
+//    postLayerName = "lif";
+//    channelCode = 1;
+//    nxp = 21;
+//    nyp = 21;
+//    nfp = 1;
+//
+//    numAxonalArbors = 1;
+//    writeStep = -1;
+//    initFromLastFlag = 0;
+//    
+//    weightInitType = "UniformWeight";
+//    weightInit = 1.0;
+//      
+//    normalize = false;
+//    preActivityIsNotRate = false;
+//
+//    writeCompressedWeights = false;
+//    plasticityFlag = true;
+//    selfFlag = false;
+//
+//    delay = 0;
+//
+//    stochasticReleaseFlag = false;
+//    shrinkPatches = false;
+//};
 
 
 //

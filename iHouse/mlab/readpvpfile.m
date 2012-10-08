@@ -14,6 +14,9 @@ global FNUM_ALL;
 global FNUM_SPEC;              %Can be -1 for all or specify multiple start:int:end frames
 
 inst_movie_path = [output_path,'Instantaneous_Frames/'];
+if (exist(inst_movie_path, 'dir') ~= 7)
+   mkdir(inst_movie_path);
+end
 
 %% Parse FNUM_SPEC
 if (FNUM_ALL <= 0)
@@ -159,7 +162,7 @@ if isempty(errorstring)
                  end%End frame_of_interest printing
             end%End num_frames
             if eq(MOVIE_FLAG,1)
-                system(['ffmpeg -loglevel 0 -v 0 -r 12 -f image2 -i ',inst_movie_path,rootname,'_%03d.',OUT_FILE_EXT,' -sameq -y ',output_path,'pvp_instantaneous_movie.mp4 &']);
+                system(['ffmpeg -loglevel 0 -v 0 -r 20 -f image2 -i ',inst_movie_path,rootname,'_%03d.',OUT_FILE_EXT,' -sameq -y ',output_path,'pvp_instantaneous_movie.mp4 &']);
             end%if eq(MOVIE_FLAG,1)
         case 3 % PVP_WGT_FILE_TYPE
             fseek(fid,0,'bof');
