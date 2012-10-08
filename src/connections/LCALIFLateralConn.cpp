@@ -151,8 +151,8 @@ int LCALIFLateralConn::updateWeights(int axonId) {
 int LCALIFLateralConn::updateIntegratedSpikeCount() {
    float exp_dt_tau = exp(-parent->getDeltaTime()/integrationTimeConstant);
    pvdata_t * activity = pre->getActivity();
-   for (int k=0; k<getNumWeightPatches(); k++) {
-      integratedSpikeCount[k] = exp_dt_tau*(integratedSpikeCount[k]+activity[k]);
+   for (int kext=0; kext<getNumWeightPatches(); kext++) {
+      integratedSpikeCount[kext] = exp_dt_tau*(integratedSpikeCount[kext]+activity[kext]);
    }
    return PV_SUCCESS;
 }
