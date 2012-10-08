@@ -223,7 +223,7 @@ for (k = 0; k < nx*ny*nf; k++) {
    //      int_spike_count is trace
    //      fo is desired baseline spike rate
    
-   dynVthRest[k] += (dt/tauTHR) * (integratedSpikeCount[k]/tauLCA - conv_targetRate) * abs(VthRest/conv_targetRate);
+   dynVthRest[k] += (dt/tauTHR) * (integratedSpikeCount[k]/tauLCA - conv_targetRate) * dynVthScale/conv_targetRate;
    l_Vth = dynVthRest[k] + (l_Vth - dynVthRest[k])*exp_tauVth;
    
    bool fired_flag = (l_V > l_Vth);

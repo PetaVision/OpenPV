@@ -106,7 +106,7 @@ int LCALIFLayer::initialize(const char * name, HyPerCol * hc, int num_channels, 
       dynVthRest[i] = lParams.VthRest;
    }
    float defaultDynVthScale = lParams.VthRest-lParams.Vrest;
-   dynVthScale = defaultDynVthScale > 0 ? dynVthScale : DEFAULT_DYNVTHSCALE;
+   dynVthScale = defaultDynVthScale > 0 ? defaultDynVthScale : DEFAULT_DYNVTHSCALE;
    dynVthScale = params->value(name, "dynVthScale", dynVthScale);
    if (dynVthScale <= 0) {
       if (hc->columnId()==0) {
