@@ -17,20 +17,21 @@ mpi_rows            = '2'
 mpi_columns         = '2'
 
 num_steps_list      = ['2000']
-stochastic_flag     = '0' #preActivityNotRate = !stochastic_flag
+stochastic_flag     = '1' #preActivityNotRate = !stochastic_flag
 
-param_template_name = 'params_gar.pv'
-run_name            = 'HoriGapCalibration'
+param_template_name = 'retina_params.template'
+run_name            = 'OscillationCalibration'
 
 #wrkspc_path         = '/Users/garkenyon/workspace-sync-anterior'
 wrkspc_path         = '/Users/dpaiton/Documents/Work/LANL/workspace'
 out_filename        = run_name
-results_path        = wrkspc_path+'/Retina/output/'+run_name
+results_path        = wrkspc_path+'/HyPerRetina/output/'+run_name
 
-input_path          = wrkspc_path+'/Retina/input'
-param_in_file       = wrkspc_path+'/Retina/tuning/'+param_template_name
-param_out_file      = wrkspc_path+'/Retina/tuning/'+out_filename
-run_path            = wrkspc_path+'/Retina/Debug/Retina'
+input_path          = wrkspc_path+'/HyPerRetina/input'
+tuning_path         = wrkspc_path+'/HyPerRetina/tuning'
+param_in_file       = tuning_path+'/'+param_template_name
+param_out_file      = tuning_path+'/params_files/'+out_filename
+run_path            = wrkspc_path+'/HyPerRetina/Debug/HyPerRetina'
 
 ## INPUT FILE (One should be uncommented)
 #input_image = input_path+'/amoeba/1f/sigma1/amoeba_1f_1_64_same_gjk.png'
@@ -71,19 +72,22 @@ Horizontal           = 1
 HoriGap              = 1
 HoriSigmoid          = 1
 
-#AMACRINE
-WFAmacrineON         = 0
-WFAmacrineGapON      = 0
-WFAmacrineSigmoidON  = 0
-PAAmacrineON         = 0
-PAAmaGapON           = 0
+#WFAMACRINE
+WFAmacrineON         = 1
+WFAmacrineSigmoidON  = 1
 WFAmacrineOFF        = WFAmacrineON
-WFAmacrineGapOFF     = WFAmacrineGapON
 WFAmacrineSigmoidOFF = WFAmacrineSigmoidON
+
+#PAAmacrie
+PAAmacrineON         = 1
+PAAmaGapON           = 1
 PAAmacrineOFF        = PAAmacrineON
 PAAmaGapOFF          = PAAmaGapON
-SFAmacrine           = 0
-SFAmacrineSigmoid    = 0
+
+#SFAmacrine
+SFAmacrine           = 1
+SFAmacrineSigmoid    = 1
+SFAmacrineGap        = 1
 
 #GANGLION
 GanglionON           = 1
@@ -91,87 +95,90 @@ GangliGapON          = 1
 GanglionOFF          = GanglionON
 GangliGapOFF         = GangliGapON
 
-#SYNCHRONICITY
-SynchronicityON      = 0
-SynchronicityOFF     = SynchronicityON
-
-#RETINA
-RetinaON             = 0
-RetinaOFF            = RetinaON
-
 ## Declare conn strength values
-##    frange is (start, end, int)
-ImageImageBuffer            = ["%g" % x for x in frange(40,0,0)]   # Image to ImageBuffer
-ConstantVrestImageBuffer    = ["%g" % x for x in frange(1,0,0)]    # ConstantVrest to ImageBuffer
-ImageBufferCone             = ["%g" % x for x in frange(1,0,0)]    # ImageBuffer to Cone
-ImageRetina                 = ["%g" % x for x in frange(0,0,0)]    # Image to Retina
-ConeSigmoidBipolar          = ["%g" % x for x in frange(0.5,0,0)]  # ConeSigmoid to Bipolar
-ConeSigmoidHorizontal       = ["%g" % x for x in frange(0.5,0,0)]  # ConeSigmoid to Horizontal
-HoriGapHorizontal           = ["%g" % x for x in frange(3,0,0)]    # HoriGap to Horizontal
-HoriSigmoidCone             = ["%g" % x for x in frange(1,0,0)]    # HoriSigmoid to Cone
-BipolarSigmoidWFAmacrine    = ["%g" % x for x in frange(0,0,0)]    # BipolarSigmoid to WFAmacrine
-WFAmacrineGapWFAmacrine     = ["%g" % x for x in frange(0,0,0)]    # WFAmacrineGAP to WFAmacrine
-WFAmacrineSigmoidBipolar    = ["%g" % x for x in frange(0,0,0)]    # WFAmacrineSigmoid to Bipolar
-BipolarSigmoidGanglion      = ["%g" % x for x in frange(1,0,0)]    # BipolarSigmoid to Ganglion
-GangliGapPAAmacrine         = ["%g" % x for x in frange(0,0,0)]    # GangliGap to PAAmacrine
-PAAmaGapGanglion            = ["%g" % x for x in frange(0,0,0)]    # PAAmaGap to Ganglion
-PAAmaGapPAAmacrine          = ["%g" % x for x in frange(0,0,0)]    # PAAmaGap to PAAmacrine
-PAAmacrineGanglion          = ["%g" % x for x in frange(0,0,0)]    # PAAmacrine to Ganglion
-PAAmacrinePAAmacrine        = ["%g" % x for x in frange(0,0,0)]    # PAAmacrine to PAAmacrine
-GanglionSynchronicity       = ["%g" % x for x in frange(0,0,0)]    # Ganglion to Synchronicity
-BipolarSigmoidSFAmacrine    = ["%g" % x for x in frange(0.05,0,0)] # BipolarSigmoid to SFAmacrine
-SFAmacrineSigmoidGanglion   = ["%g" % x for x in frange(0,0,0)]    # SFAmacrineSigmoid to Ganglion
-SFAmacrineSigmoidPAAmacrine = ["%g" % x for x in frange(0,0,0)]    # SFAmacrineSigmoid to PAAmacrine
-PAAmacrineWFAmacrine        = ["%g" % x for x in frange(0,0,0)]    # PAAmacrine to WFAmacrine
-WFAmacrineSFAmacrine        = ["%g" % x for x in frange(0,0,0)]    # WFAmacrine to SFAmacrine
+##    frange is (start, stop, step)
+ImageImageBuffer             = ["%g" % x for x in frange(40,0,0)]   # Image to ImageBuffer
+ConstantVrestImageBuffer     = ["%g" % x for x in frange(1,0,0)]    # ConstantVrest to ImageBuffer
+ImageBufferCone              = ["%g" % x for x in frange(1,0,0)]    # ImageBuffer to Cone
 
+ConeSigmoidBipolar           = ["%g" % x for x in frange(0.5,0,0)]  # ConeSigmoid to Bipolar
+ConeSigmoidHorizontal        = ["%g" % x for x in frange(0.5,0,0)]  # ConeSigmoid to Horizontal
+
+HoriGapHorizontal            = ["%g" % x for x in frange(3,0,0)]    # HoriGap to Horizontal
+HoriSigmoidCone              = ["%g" % x for x in frange(1,0,0)]    # HoriSigmoid to Cone
+
+BipolarSigmoidWFAmacrine     = ["%g" % x for x in frange(1,0,0)]    # BipolarSigmoid to WFAmacrine
+BipolarSigmoidGanglion       = ["%g" % x for x in frange(2,0,0)]    # BipolarSigmoid to Ganglion
+BipolarSigmoidSFAmacrine     = ["%g" % x for x in frange(1,0,0)]    # BipolarSigmoid to SFAmacrine
+
+WFAmacrineSigmoidBipolarON   = ["%g" % x for x in frange(0.15,0,0)]  # WFAmacrineSigmoidON to Bipolar
+WFAmacrineSigmoidBipolarOFF  = ["%g" % x for x in frange(0.25,0,0)] # WFAmacrineSigmoidOFF to Bipolar
+WFAmacrineONSFAmacrine       = ["%g" % x for x in frange(2,0,0)]    # WFAmacrineON to SFAmacrine
+WFAmacrineOFFSFAmacrine      = ["%g" % x for x in frange(2,0,0)]    # WFAmacrineOFF to SFAmacrine
+
+SFAmacrineGapSFAmacrine      = ["%g" % x for x in frange(1,0,0)]    # SFAmacrineGAP to SFAmacrine
+SFAmacrineSigmoidGanglionON  = ["%g" % x for x in frange(0,0,0)]    # SFAmacrineSigmoid to GanglionON
+SFAmacrineSigmoidGanglionOFF = ["%g" % x for x in frange(0,0,0)]    # SFAmacrineSigmoid to GanglionOFF
+SFAmacrineSigmoidPAAmacrine  = ["%g" % x for x in frange(2,0,0)]    #Doubled bc we cut the tau # SFAmacrineSigmoid to PAAmacrine
+
+PAAmaGapGanglion             = ["%g" % x for x in frange(2,0,0)]    # PAAmaGap to Ganglion
+PAAmaGapPAAmacrine           = ["%g" % x for x in frange(1,0,0)]    # PAAmaGap to PAAmacrine
+PAAmacrineGanglion           = ["%g" % x for x in frange(2,0,0)]    #Doubled bc we halved the Tinh# PAAmacrine to Ganglion
+PAAmacrineWFAmacrine         = ["%g" % x for x in frange(1,0,0)]    # PAAmacrine to WFAmacrine
+PAAmacrinePAAmacrine         = ["%g" % x for x in frange(2,0,0)]    #Doubled bc we cut the tau # PAAmacrine to PAAmacrine
+
+GangliGapPAAmacrine          = ["%g" % x for x in frange(2,0,0)]    # GangliGap to PAAmacrine
+
+#List possible connections
 conn_list = ["ImageImageBuffer",
             "ConstantVrestImageBuffer",
             "ImageBufferCone",
-            "ImageRetina",
             "ConeSigmoidBipolar",
             "ConeSigmoidHorizontal",
             "HoriGapHorizontal",
             "HoriSigmoidCone",
             "BipolarSigmoidWFAmacrine",
-            "WFAmacrineGapWFAmacrine",
-            "WFAmacrineSigmoidBipolar",
+            "SFAmacrineGapSFAmacrine",
+            "WFAmacrineSigmoidBipolarON",
+            "WFAmacrineSigmoidBipolarOFF",
             "BipolarSigmoidGanglion",
             "GangliGapPAAmacrine",
             "PAAmaGapGanglion",
             "PAAmaGapPAAmacrine",
             "PAAmacrineGanglion",
             "PAAmacrinePAAmacrine",
-            "GanglionSynchronicity",
             "BipolarSigmoidSFAmacrine",
-            "SFAmacrineSigmoidGanglion",
+            "SFAmacrineSigmoidGanglionON",
+            "SFAmacrineSigmoidGanglionOFF",
             "SFAmacrineSigmoidPAAmacrine",
             "PAAmacrineWFAmacrine",
-            "WFAmacrineSFAmacrine"]
+            "WFAmacrineONSFAmacrine",
+            "WFAmacrineOFFSFAmacrine"]
 
 conn_lol = [ImageImageBuffer,
             ConstantVrestImageBuffer,
             ImageBufferCone,
-            ImageRetina,
             ConeSigmoidBipolar,
             ConeSigmoidHorizontal,
             HoriGapHorizontal,
             HoriSigmoidCone,
             BipolarSigmoidWFAmacrine,
-            WFAmacrineGapWFAmacrine,
-            WFAmacrineSigmoidBipolar,
+            SFAmacrineGapSFAmacrine,
+            WFAmacrineSigmoidBipolarON,
+            WFAmacrineSigmoidBipolarOFF,
             BipolarSigmoidGanglion,
             GangliGapPAAmacrine,
             PAAmaGapGanglion,
             PAAmaGapPAAmacrine,
             PAAmacrineGanglion,
             PAAmacrinePAAmacrine,
-            GanglionSynchronicity,
             BipolarSigmoidSFAmacrine,
-            SFAmacrineSigmoidGanglion,
+            SFAmacrineSigmoidGanglionON,
+            SFAmacrineSigmoidGanglionOFF,
             SFAmacrineSigmoidPAAmacrine,
             PAAmacrineWFAmacrine,
-            WFAmacrineSFAmacrine]
+            WFAmacrineONSFAmacrine,
+            WFAmacrineOFFSFAmacrine]
 
 print "tune_params: Verifying parameters."
 ## Assert that all parameter lists are the same length or of length 1
@@ -239,9 +246,9 @@ for num_steps in num_steps_list:
                 uncomment = True
             elif 'SigmoidLayer "HoriSigmoid"' in line and HoriSigmoid==1:
                 uncomment = True 
-            elif 'LIFGap "WFAmacrineON"' in line and WFAmacrineON==1:
+            elif 'LIF "WFAmacrineON"' in line and WFAmacrineON==1:
                 uncomment = True 
-            elif 'GapLayer "WFAmacrineGapON"' in line and WFAmacrineGapON==1:
+            elif 'GapLayer "SFAmacrineGap"' in line and SFAmacrineGap==1:
                 uncomment = True 
             elif 'SigmoidLayer "WFAmacrineSigmoidON"' in line and WFAmacrineSigmoidON==1:
                 uncomment = True 
@@ -253,17 +260,11 @@ for num_steps in num_steps_list:
                 uncomment = True 
             elif 'GapLayer "PAAmaGapON"' in line and PAAmaGapON==1:
                 uncomment = True 
-            elif 'LIF "SynchronicityON"' in line and SynchronicityON==1:
-                uncomment = True 
-            elif 'Retina "RetinaON"' in line and RetinaON==1:
-                uncomment = True 
             elif 'LIF "BipolarOFF"' in line and BipolarOFF==1:
                 uncomment = True
             elif 'SigmoidLayer "BipolarSigmoidOFF"' in line and BipolarSigmoidOFF==1:
                 uncomment = True 
-            elif 'LIFGap "WFAmacrineOFF"' in line and WFAmacrineOFF==1:
-                uncomment = True 
-            elif 'GapLayer "WFAmacrineGapOFF"' in line and WFAmacrineGapOFF==1:
+            elif 'LIF "WFAmacrineOFF"' in line and WFAmacrineOFF==1:
                 uncomment = True 
             elif 'SigmoidLayer "WFAmacrineSigmoidOFF"' in line and WFAmacrineSigmoidOFF==1:
                 uncomment = True 
@@ -275,11 +276,7 @@ for num_steps in num_steps_list:
                 uncomment = True 
             elif 'GapLayer "PAAmaGapOFF"' in line and PAAmaGapOFF==1:
                 uncomment = True
-            elif 'LIF "SynchronicityOFF"' in line and SynchronicityOFF==1:
-                uncomment = True
-            elif 'Retina "RetinaOFF"' in line and RetinaOFF==1:
-                uncomment = True
-            elif 'LIF "SFAmacrine"' in line and SFAmacrine==1:
+            elif 'LIFGap "SFAmacrine"' in line and SFAmacrine==1:
                 uncomment = True
             elif 'SigmoidLayer "SFAmacrineSigmoid"' in line and SFAmacrineSigmoid==1:
                 uncomment = True
@@ -295,11 +292,6 @@ for num_steps in num_steps_list:
                         uncomment = True
             elif 'GapConn "ImageBuffer to Cone"' in line and Cone==1:
                 zero_index = [idx for idx, enum in enumerate([param in 'ImageBufferCone' for param in conn_list]) if enum==True]
-                if len(zero_index)>0:
-                    if nonZeroStrength[zero_index[0]]:
-                        uncomment = True
-            elif 'KernelConn "Image to RetinaON"' in line and RetinaON==1:
-                zero_index = [idx for idx, enum in enumerate([param in 'ImageRetina' for param in conn_list]) if enum==True]
                 if len(zero_index)>0:
                     if nonZeroStrength[zero_index[0]]:
                         uncomment = True
@@ -328,13 +320,13 @@ for num_steps in num_steps_list:
                 if len(zero_index)>0:
                     if nonZeroStrength[zero_index[0]]:
                         uncomment = True
-            elif 'GapConn "WFAmacrineGapON to WFAmacrineON"' in line and WFAmacrineGapON==1 and WFAmacrineON==1:
-                zero_index = [idx for idx, enum in enumerate([param in 'WFAmacrineGapWFAmacrine' for param in conn_list]) if enum==True]
+            elif 'GapConn "SFAmacrineGap to SFAmacrine"' in line and SFAmacrineGap==1 and SFAmacrine==1:
+                zero_index = [idx for idx, enum in enumerate([param in 'SFAmacrineGapSFAmacrine' for param in conn_list]) if enum==True]
                 if len(zero_index)>0:
                     if nonZeroStrength[zero_index[0]]:
                         uncomment = True
             elif 'KernelConn "WFAmacrineSigmoidON to BipolarON"' in line and WFAmacrineSigmoidON==1 and BipolarON==1:
-                zero_index = [idx for idx, enum in enumerate([param in 'WFAmacrineSigmoidBipolar' for param in conn_list]) if enum==True]
+                zero_index = [idx for idx, enum in enumerate([param in 'WFAmacrineSigmoidBipolarON' for param in conn_list]) if enum==True]
                 if len(zero_index)>0:
                     if nonZeroStrength[zero_index[0]]:
                         uncomment = True
@@ -368,18 +360,13 @@ for num_steps in num_steps_list:
                 if len(zero_index)>0:
                     if nonZeroStrength[zero_index[0]]:
                         uncomment = True
-            elif 'KernelConn "GanglionON to SynchronicityON"' in line and GanglionON==1 and SynchronicityON==1:
-                zero_index = [idx for idx, enum in enumerate([param in 'GanglionSynchronicity' for param in conn_list]) if enum==True]
-                if len(zero_index)>0:
-                    if nonZeroStrength[zero_index[0]]:
-                        uncomment = True
             elif 'KernelConn "BipolarSigmoidON to SFAmacrine"' in line and BipolarSigmoidON==1 and SFAmacrine==1:
                 zero_index = [idx for idx, enum in enumerate([param in 'BipolarSigmoidSFAmacrine' for param in conn_list]) if enum==True]
                 if len(zero_index)>0:
                     if nonZeroStrength[zero_index[0]]:
                         uncomment = True
             elif 'KernelConn "SFAmacrineSigmoid to GanglionON"' in line and SFAmacrineSigmoid==1 and GanglionON==1:
-                zero_index = [idx for idx, enum in enumerate([param in 'SFAmacrineSigmoidGanglion' for param in conn_list]) if enum==True]
+                zero_index = [idx for idx, enum in enumerate([param in 'SFAmacrineSigmoidGanglionON' for param in conn_list]) if enum==True]
                 if len(zero_index)>0:
                     if nonZeroStrength[zero_index[0]]:
                         uncomment = True
@@ -394,12 +381,12 @@ for num_steps in num_steps_list:
                     if nonZeroStrength[zero_index[0]]:
                         uncomment = True
             elif 'KernelConn "WFAmacrineSigmoidON to SFAmacrine"' in line and WFAmacrineSigmoidON==1 and SFAmacrine==1:
-                zero_index = [idx for idx, enum in enumerate([param in 'WFAmacrineSFAmacrine' for param in conn_list]) if enum==True]
+                zero_index = [idx for idx, enum in enumerate([param in 'WFAmacrineONSFAmacrine' for param in conn_list]) if enum==True]
                 if len(zero_index)>0:
                     if nonZeroStrength[zero_index[0]]:
                         uncomment = True
-            elif 'KernelConn "Image to RetinaOFF"' in line and RetinaOFF==1:
-                zero_index = [idx for idx, enum in enumerate([param in 'ImageRetina' for param in conn_list]) if enum==True]
+            elif 'KernelConn "WFAmacrineSigmoidOFF to SFAmacrine"' in line and WFAmacrineSigmoidOFF==1 and SFAmacrine==1:
+                zero_index = [idx for idx, enum in enumerate([param in 'WFAmacrineOFFSFAmacrine' for param in conn_list]) if enum==True]
                 if len(zero_index)>0:
                     if nonZeroStrength[zero_index[0]]:
                         uncomment = True
@@ -413,13 +400,8 @@ for num_steps in num_steps_list:
                 if len(zero_index)>0:
                     if nonZeroStrength[zero_index[0]]:
                         uncomment = True
-            elif 'GapConn "WFAmacrineGapOFF to WFAmacrineOFF"' in line and WFAmacrineGapOFF==1 and WFAmacrineOFF==1:
-                zero_index = [idx for idx, enum in enumerate([param in 'WFAmacrineGapWFAmacrine' for param in conn_list]) if enum==True]
-                if len(zero_index)>0:
-                    if nonZeroStrength[zero_index[0]]:
-                        uncomment = True
             elif 'KernelConn "WFAmacrineSigmoidOFF to BipolarOFF"' in line and WFAmacrineSigmoidOFF==1 and BipolarOFF==1:
-                zero_index = [idx for idx, enum in enumerate([param in 'WFAmacrineSigmoidBipolar' for param in conn_list]) if enum==True]
+                zero_index = [idx for idx, enum in enumerate([param in 'WFAmacrineSigmoidBipolarOFF' for param in conn_list]) if enum==True]
                 if len(zero_index)>0:
                     if nonZeroStrength[zero_index[0]]:
                         uncomment = True
@@ -458,13 +440,8 @@ for num_steps in num_steps_list:
                 if len(zero_index)>0:
                     if nonZeroStrength[zero_index[0]]:
                         uncomment = True
-            elif 'KernelConn "GanglionOFF to SynchronicityOFF"' in line and GanglionOFF==1 and SynchronicityOFF==1:
-                zero_index = [idx for idx, enum in enumerate([param in 'GanglionSynchronicity' for param in conn_list]) if enum==True]
-                if len(zero_index)>0:
-                    if nonZeroStrength[zero_index[0]]:
-                        uncomment = True
             elif 'KernelConn "SFAmacrineSigmoid to GanglionOFF"' in line and SFAmacrineSigmoid==1 and GanglionOFF==1:
-                zero_index = [idx for idx, enum in enumerate([param in 'SFAmacrineSigmoidGanglion' for param in conn_list]) if enum==True]
+                zero_index = [idx for idx, enum in enumerate([param in 'SFAmacrineSigmoidGanglionOFF' for param in conn_list]) if enum==True]
                 if len(zero_index)>0:
                     if nonZeroStrength[zero_index[0]]:
                         uncomment = True
