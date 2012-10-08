@@ -1,0 +1,71 @@
+\documentclass{article}
+\usepackage{amssymb,amsmath}
+
+\begin{document}
+
+
+
+\centerline{\sc \large Oja + LCA + Spiking = image comprehension}
+\vspace{.5pc}
+\centerline{\sc Equations governing our 2 months at the Darpa Innovation House in Arlington, VA}
+\centerline{\it Gar Kenyon}
+\centerline{\it Gerd Kunde}
+\centerline{\it Pete Schultz}
+\centerline{\it Keni Patel}
+\centerline{\it Dylan Paiton}
+\centerline{\it Sheng Lundquist}
+
+\vspace{3pc}
+
+{\bf Feed-forward weight adaptation:}
+\begin{equation}\nonumber
+    \Delta Q(t) \varpropto weight * \left\{[Oja] * [STDP] - decay\right\}
+\end{equation}
+\begin{equation}\begin{split}
+Q_{ij}(t+\Delta t) &+= dwMax \left\{\right.\\[2mm]
+                        &\left[ e^{\frac{-\Delta t}{\displaystyle{\tau}_{_{PL}}}} X_{i}^{'}(t) + A_{X}(t) - Q_{ij}(t) \left(e^{\frac{-\Delta t}{\displaystyle{\tau}_{_{DL}}}} Y_{j}^{'}(t) + A_{Y}(t)\right) \right] *\\[2mm]
+                        &\left[ \lambda_{P} A_{Y}(t) \left(e^{\frac{-\Delta t}{\displaystyle{\tau}_{_{P}}}} X_{i}(t) + A_{X}(t)\right) - \lambda_{D} A_{X}(t) \left(e^{\frac{-\Delta t}{\displaystyle{\tau}_{_{D}}}} Y_{j}(t) + A_{Y}(t)\right) \right] -\\[2mm]
+                        &\alpha_{dec} Q_{ij}(t)\left\}\right.\\
+\end{split}\end{equation}
+
+%\vspace{2pc}
+
+{\bf Neuron adaptive threshold:}
+\begin{align}
+    %\begin{equation}
+        V_{th}_{j} &= dynVthRest_{j} +
+        e^{\frac{-\Delta t}{\displaystyle{\tau}_{_{V_{th}}}}} \left(V_{th}_{j} - dynVthRest_{j}\right)
+        \label{Vth}\\[3mm]
+\intertext{where}
+    %\end{equation}
+    %\begin{equation}
+        dynVthRest[0] &= V_{thRest}\nonumber
+        \label{dynVthRestInit}\\[3mm]
+    %\end{equation}
+    %\begin{equation}
+        DynVthRest_{j} +&= \frac{\Delta t}{\displaystyle{\tau}_{_{THR}}}
+        \left[\frac{n_{j}(t)}{\displaystyle{\tau}_{_{LCA}}} - f_o\right]
+        \frac{V_{scale}}{f_o}\nonumber
+        \label{dynVthRest}\\[3mm]
+    %\end{equation}
+    %\begin{equation}
+        V_{scale} &= V_{thRest} - V_{rest} > 0 ? V_{thRest} - V_{rest} : DEF\_VSCALE\nonumber
+        \label{Vscale}
+    %\end{equation}
+\end{align}
+
+%\vspace{2pc}
+
+{\bf Neuron average firing rates:}
+\begin{equation}\label{avgSpikes}
+n_{j}(t+\Delta t) = e^{\frac{-\Delta t}{\displaystyle{\tau}_{_{LCA}}}} \left[A_{j}(t) + n_{j}(t)\right]
+\end{equation}
+
+%\vspace{2pc}
+
+{\bf Lateral inhibition:}
+\begin{equation}\label{lateralInhib}
+w_{jk}(t+\Delta t) += \frac{\Delta t}{\displaystyle{\tau}_{_{INH}}} \left[ \frac{n_{j}(t)}{\displaystyle{\tau}_{_{LCA}}} \frac{n_{k}(t)}{\displaystyle{\tau}_{_{LCA}}} - f_{o}^{2} \right] \frac{1}{f_{o}^{2}}
+\end{equation}
+
+\end{document}
