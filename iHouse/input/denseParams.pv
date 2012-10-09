@@ -12,7 +12,7 @@ HyPerCol "column" = {
    checkpointWrite 				= false;  		// always
    checkpointWriteDir = "/Users/slundquist/Documents/workspace/iHouse/checkpoints";
    checkpointWriteStepInterval = 2000;
-   numSteps 				    	= 20000;			// amount of time steps performed during run-time
+   numSteps 				    	= 1000;			// amount of time steps performed during run-time
    progressStep					= 500;
 //   deleteOlderCheckpoints = false;
    outputPath                   = "/Users/slundquist/Documents/workspace/iHouse/denseOutput";
@@ -85,7 +85,7 @@ Retina "RetinaON" = {
     nyScale = 1;
     nf = 1;
     marginWidth = 16;
-    writeStep = 1.0;
+    writeStep = -1.0;
     mirrorBCflag = 0;
     spikingFlag = true;  // false (no quotes) is translated to 0
 
@@ -112,7 +112,7 @@ Retina "RetinaOFF" = {
     nyScale = 1;
     nf = 1;
     marginWidth = 16;
-    writeStep = 1.0;
+    writeStep = -1.0;
     mirrorBCflag = 0;
     spikingFlag = true;  // false (no quotes) is translated to 0
 
@@ -133,7 +133,7 @@ Retina "RetinaOFF" = {
 };
 
 LCALIFLayer "lif" = {
-   tauLCA           = 200;
+   tauLCA           = 20;
    tauTHR           = 2000;
    targetRate       = 2;
    dynVthScale      = 15; // Scale for the change of dynVthRest. Must be positive; defaults to VthRest - Vrest
@@ -441,7 +441,7 @@ LCALIFLateralConn "lcalif lateral inhibition" = {
     nyp = 21;
     nfp = 1;
     
-    integrationTimeConstant = 200;
+    integrationTimeConstant = 20;
     adaptationTimeConstant = 2000;
 
     numAxonalArbors = 1;
