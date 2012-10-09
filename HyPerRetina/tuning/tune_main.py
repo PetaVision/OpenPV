@@ -19,11 +19,11 @@ mpi_np              = '4'
 mpi_rows            = '2'
 mpi_columns         = '2'
 
-num_steps_list      = ['2000']
+num_steps_list      = ['14420']
 stochastic_flag     = '1' #preActivityNotRate = !stochastic_flag
 
 param_template_name = 'retina_params.template'
-run_name            = 'OscillationCalibration'
+run_name            = 'AntiTerrorism'
 
 #wrkspc_path         = '/Users/garkenyon/workspace-sync-anterior'
 wrkspc_path         = '/Users/dpaiton/Documents/Work/LANL/workspace'
@@ -47,7 +47,8 @@ input_image = input_path+'/gray128image.png'
 ## INPUT MOVIE (One should be uncommented)
 #input_movie = input_path+'filenamesnjitter.txt';
 #input_movie = input_path+'/filenames_graywhiteblack.txt'
-input_movie = input_path+'/filenames_graywhiteblackspots.txt'
+#input_movie = input_path+'/filenames_graywhiteblackspots.txt'
+input_movie = input_path+'/filenames_movie.txt'
 
 ## Declare layers
 #INPUTS

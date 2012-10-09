@@ -8,7 +8,7 @@
 
 HyPerCol "column" = {
    nx                           = 256;
-   ny                           = 256;
+   ny                           = 144;
    dt                           = 1.;           // according GK
    randomSeed                   = 1020304050.0; // comment when running for real
    checkpointRead               = false;        // init run
@@ -61,7 +61,7 @@ HyPerCol "column" = {
 //
 //    writeImages             = 0;
 //
-//    displayPeriod           = 100;
+//    displayPeriod           = 20;
 //    jitterFlag              = 0;
 ////    biasChangeTime          = 20;
 //    randomMovie             = 0;
