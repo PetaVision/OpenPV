@@ -1,71 +1,115 @@
 \documentclass{article}
 \usepackage{amssymb,amsmath}
+\def\nterm#1#2{n_{#1}^{\displaystyle{\tau_{#2}}}}
+\def\fterm#1#2{f_{#1}^{\displaystyle{\tau_{#2}}}}
 
 \begin{document}
 
 
 
-\centerline{\sc \large Oja + LCA + Spiking = image comprehension}
+\centerline{\sc \large Spiking + Oja + LCA = image comprehension and compression}
 \vspace{.5pc}
 \centerline{\sc Equations governing our 2 months at the Darpa Innovation House in Arlington, VA}
+\begin{minipage}[t]{0.5\textwidth}
 \centerline{\it Gar Kenyon}
 \centerline{\it Gerd Kunde}
 \centerline{\it Pete Schultz}
+\end{minipage}
+\begin{minipage}[t]{0.5\textwidth}
 \centerline{\it Keni Patel}
 \centerline{\it Dylan Paiton}
 \centerline{\it Sheng Lundquist}
+\end{minipage}
 
-\vspace{3pc}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\vspace{1pc}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+{\bf Average firing counts over interval $\tau$:}
+\begin{equation}\label{avgSpikes}
+\nterm{j}{}(t+\Delta t) = e^{\frac{-\Delta t}{\displaystyle{\tau}}} \left[A_{j}(t) + \nterm{j}{}(t)\right]
+\end{equation}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\vspace{2pc}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+{\bf Average firing rate over interval $\tau$:}
+\begin{equation}\label{avgRate}
+\fterm{i}{}(t) = \frac{\nterm{i}{}(t)}{\tau}
+\end{equation}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\vspace{2pc}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 {\bf Feed-forward weight adaptation:}
 \begin{equation}\nonumber
-    \Delta Q(t) \varpropto weight * \left\{[Oja] * [STDP] - decay\right\}
+    \Delta Q(t) = \beta \left\{[Oja] \cdot [STDP] - decay\right\}
 \end{equation}
 \begin{equation}\begin{split}
-Q_{ij}(t+\Delta t) &+= dwMax \left\{\right.\\[2mm]
-                        &\left[ e^{\frac{-\Delta t}{\displaystyle{\tau}_{_{PL}}}} X_{i}^{'}(t) + A_{X}(t) - Q_{ij}(t) \left(e^{\frac{-\Delta t}{\displaystyle{\tau}_{_{DL}}}} Y_{j}^{'}(t) + A_{Y}(t)\right) \right] *\\[2mm]
-                        &\left[ \lambda_{P} A_{Y}(t) \left(e^{\frac{-\Delta t}{\displaystyle{\tau}_{_{P}}}} X_{i}(t) + A_{X}(t)\right) - \lambda_{D} A_{X}(t) \left(e^{\frac{-\Delta t}{\displaystyle{\tau}_{_{D}}}} Y_{j}(t) + A_{Y}(t)\right) \right] -\\[2mm]
+Q_{ij}(t+\Delta t) &= Q_{ij}(t) + \beta \left\{\right.\\[2mm]
+                        &\fterm{Y_j}{oja}(t) \left[\fterm{X_i}{oja}(t) - Q_{ij}(t) \fterm{Y_j}{oja}(t)\right] \cdot\\[2mm]
+                        &\left[ \lambda_{P} A_{Y}(t) \fterm{X_{i}}{P}(t) - \lambda_{D} A_{X}_{i}(t) \fterm{Y_{j}}{D}(t)\right] -\\[2mm]
                         &\alpha_{dec} Q_{ij}(t)\left\}\right.\\
 \end{split}\end{equation}
+where $\beta$ is a learning rate:
+\begin{equation}\nonumber
+\beta = dwMax \cdot \frac{\Delta t}{\tau_{oja}f_o}
+\end{equation}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %\vspace{2pc}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-{\bf Neuron adaptive threshold:}
+{\bf Neuron adaptive firing threshold:}
 \begin{align}
     %\begin{equation}
-        V_{th}_{j} &= dynVthRest_{j} +
-        e^{\frac{-\Delta t}{\displaystyle{\tau}_{_{V_{th}}}}} \left(V_{th}_{j} - dynVthRest_{j}\right)
+        V^{th}_{j} &= V^{adpt}_{j} +
+        e^{\frac{-\Delta t}{\displaystyle{\tau}_{_{V_{th}}}}} \left(V^{th}_{j} - V^{adpt}_{j}\right)
         \label{Vth}\\[3mm]
 \intertext{where}
     %\end{equation}
     %\begin{equation}
-        dynVthRest[0] &= V_{thRest}\nonumber
+        V^{adpt}_{j}(0) &= V^{thRest}_{j}\nonumber
         \label{dynVthRestInit}\\[3mm]
     %\end{equation}
     %\begin{equation}
-        DynVthRest_{j} +&= \frac{\Delta t}{\displaystyle{\tau}_{_{THR}}}
-        \left[\frac{n_{j}(t)}{\displaystyle{\tau}_{_{LCA}}} - f_o\right]
+        V^{adpt}_{j}(t+\Delta t) &= V^{adpt}_{j}(t) + \frac{\Delta t}{\displaystyle{\tau}_{_{THR}}}
+        \left[\fterm{j}{o}(t) - f_o\right]
         \frac{V_{scale}}{f_o}\nonumber
         \label{dynVthRest}\\[3mm]
     %\end{equation}
-    %\begin{equation}
-        V_{scale} &= V_{thRest} - V_{rest} > 0 ? V_{thRest} - V_{rest} : DEF\_VSCALE\nonumber
-        \label{Vscale}
-    %\end{equation}
 \end{align}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %\vspace{2pc}
-
-{\bf Neuron average firing rates:}
-\begin{equation}\label{avgSpikes}
-n_{j}(t+\Delta t) = e^{\frac{-\Delta t}{\displaystyle{\tau}_{_{LCA}}}} \left[A_{j}(t) + n_{j}(t)\right]
-\end{equation}
-
-%\vspace{2pc}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 {\bf Lateral inhibition:}
 \begin{equation}\label{lateralInhib}
-w_{jk}(t+\Delta t) += \frac{\Delta t}{\displaystyle{\tau}_{_{INH}}} \left[ \frac{n_{j}(t)}{\displaystyle{\tau}_{_{LCA}}} \frac{n_{k}(t)}{\displaystyle{\tau}_{_{LCA}}} - f_{o}^{2} \right] \frac{1}{f_{o}^{2}}
+w_{jk}(t+\Delta t) += \frac{\Delta t}{\displaystyle{\tau}_{_{INH}}} \left[\fterm{j}{LCA}(t)\fterm{k}{LCA}(t) - f_{o}^{2} \right] \frac{1}{f_{o}^{2}}
 \end{equation}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\vspace{2pc}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+{\bf Current scales for $\tau$ values}
+\begin{align}
+\displaystyle{\tau}_{oja} &\approx 50-200 ms\nonumber\\[2mm]
+\displaystyle{\tau}_{P} &\approx 10-20 ms\nonumber\\[2mm]
+\displaystyle{\tau}_{D} &\approx 20-40 ms\nonumber\\[2mm]
+\displaystyle{\tau}_{LCA} &\approx \displaystyle{\tau}_{oja}\nonumber\\[2mm]
+\displaystyle{\tau}_{o} &= \frac{1}{f_o}\nonumber\\[2mm]
+\displaystyle{\tau}_{THR} &\gg \displaystyle{\tau}_{o}\nonumber\\[2mm]
+\displaystyle{\tau}_{INH} &\gg \displaystyle{\tau}_{LCA}\nonumber\\[2mm]
+\displaystyle{\tau}_{V_{th}} &\approx 5ms\nonumber
+\end{align}
+
+{\bf Current values for constants:}
+\begin{align}
+V_{thRest} &= -55 mV\nonumber\\[2mm]
+V_{rest} &= -70 mV\nonumber\\[2mm]
+V_{scale} &\approx V_{thRest} - V_{rest}\nonumber
+\end{align}
 \end{document}
