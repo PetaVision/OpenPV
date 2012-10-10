@@ -2,23 +2,29 @@ clear all; close all; more off; clc;
 system("clear");
 
 %Nessessary Petavision Variables 
-global postNxScale; postNxScale = 1; 
-global postNyScale; postNyScale = 1;
+global postNxScale; postNxScale = 4; 
+global postNyScale; postNyScale = 4;
+global lifInhPatchX; lifInhPatchX = 21;
+global lifInhPatchY; lifInhPatchY = 21;
+global deltaT; deltaT = 1;
+global tLCA; tLCA = 20;
+rootDir                                    = '/Users/slundquist';
+workspaceDir                               = [rootDir,'/Documents/workspace/iHouse'];
+pvpDir                                     = [workspaceDir,'/denseOutput/'];
+outputDir                                  = [workspaceDir,'/denseOutput/analysis/'];
 
 %Reconstruct Flags
-global SPIKING_POST_FLAG;      SPIKING_POST_FLAG      = 1;  %Create spiking post output flag
+global SPIKING_POST_FLAG;      SPIKING_POST_FLAG      = 0;  %Create spiking post output flag
 global SPIKING_PRE_FLAG;       SPIKING_PRE_FLAG       = 0;
 
 %Spiking Output
-global FNUM_ALL; FNUM_ALL = 0;         %1 for all frames, 0 for FNUM_SPEC
+global FNUM_ALL; FNUM_ALL = 1;         %1 for all frames, 0 for FNUM_SPEC
 global FNUM_SPEC; FNUM_SPEC    = {...    %start:int:end frames
-[100:1:200]
-[400:1:500]
-%   [10000:1:20000]...
-%   [50000:1:60000]...
-%   [90000:1:100000]...
-%   [130000:1:140000]...
-%   [180000:1:190000]...
+   [10000:1:20000]...
+   [50000:1:60000]...
+   [90000:1:100000]...
+   [130000:1:140000]...
+   [180000:1:190000]...
 };
 
 global RECONSTRUCTION_FLAG;    RECONSTRUCTION_FLAG    = 0;  %Create reconstructions
@@ -28,8 +34,11 @@ global CELL; CELL = {...
    [35, 20]...
    [10, 20]...
 };        %X by Y of weigh cell
+
 global WEIGHT_HIST_FLAG;  WEIGHT_HIST_FLAG  = 1;
 global NUM_BINS;               NUM_BINS               = 20;
+
+%global COOR_FLAG; COOR_FLAG = 1;
 
 global VIEW_FIGS;  VIEW_FIGS  = 0;
 global WRITE_FIGS; WRITE_FIGS = 1;
@@ -43,17 +52,13 @@ global NUM_PROCS;        NUM_PROCS        = nproc();
 
 
 %File names
-rootDir                                    = '/Users/slundquist';
-workspaceDir                               = [rootDir,'/Documents/workspace/iHouse'];
 %rootDir                                    = '/Users/dpaiton';
 %workspaceDir                               = [rootDir,'/Documents/Work/LANL/workspace/iHouse'];
-pvpDir                                     = [workspaceDir,'/output/'];
 postActivityFile                           = [pvpDir,'lif.pvp'];
 preOnActivityFile                          = [pvpDir,'RetinaON.pvp'];
 preOffActivityFile                         = [pvpDir,'RetinaOFF.pvp'];
 ONweightfile                               = [pvpDir,'w5_post.pvp'];
 OFFweightfile                              = [pvpDir,'w6_post.pvp'];
-outputDir                                  = [workspaceDir,'/output/analysis/'];
 readPostSpikingDir                         = [outputDir, 'postpvp/'];
 readPreSpikingDir                          = [outputDir, 'prepvp/'];
 readPreOnSpikingDir                        = [readPreSpikingDir, 'On/'];
@@ -146,7 +151,7 @@ end
 %Grab data from (par)cellfun
 numFun = 0;
 %Post Activity File
-if(RECONSTRUCTION_FLAG || SPIKING_POST_FLAG)
+if(RECONSTRUCTION_FLAG || SPIKING_POST_FLAG) 
    numFun += 1;
    activityData = data{numFun};
    activityHdr = hdr{numFun};
@@ -173,18 +178,20 @@ if(~(RECONSTRUCTION_FLAG || WEIGHTS_MAP_FLAG || WEIGHTS_CELL_FLAG || WEIGHT_HIST
 end
 
 %PetaVision params
-assert(weightHdrOn.nbands == weightHdrOff.nbands);
-assert(weightHdrOn.nfp == weightHdrOff.nfp);
-assert(weightHdrOn.nxprocs == weightHdrOff.nxprocs);
-assert(weightHdrOn.nyprocs == weightHdrOff.nyprocs);
-assert(weightHdrOn.nxp == weightHdrOff.nxp);
-assert(weightHdrOn.nyp == weightHdrOff.nyp);
-assert(weightHdrOn.nx == weightHdrOff.nx);
-assert(weightHdrOn.ny == weightHdrOff.ny);
-assert(weightHdrOn.nxGlobal == weightHdrOff.nxGlobal);
-assert(weightHdrOn.nyGlobal == weightHdrOff.nyGlobal);
-assert(length(weightDataOn) == length(weightDataOff));
-assert(length(weightDataOn) >= 2);
+if(RECONSTRUCTION_FLAG || WEIGHTS_MAP_FLAG || WEIGHTS_CELL_FLAG || WEIGHT_HIST_FLAG)
+   assert(weightHdrOn.nbands == weightHdrOff.nbands);
+   assert(weightHdrOn.nfp == weightHdrOff.nfp);
+   assert(weightHdrOn.nxprocs == weightHdrOff.nxprocs);
+   assert(weightHdrOn.nyprocs == weightHdrOff.nyprocs);
+   assert(weightHdrOn.nxp == weightHdrOff.nxp);
+   assert(weightHdrOn.nyp == weightHdrOff.nyp);
+   assert(weightHdrOn.nx == weightHdrOff.nx);
+   assert(weightHdrOn.ny == weightHdrOff.ny);
+   assert(weightHdrOn.nxGlobal == weightHdrOff.nxGlobal);
+   assert(weightHdrOn.nyGlobal == weightHdrOff.nyGlobal);
+   assert(length(weightDataOn) == length(weightDataOff));
+   assert(length(weightDataOn) >= 2);
+end
 assert(length(activityData) >= 2);
 
 activityWriteStep = activityData{2}.time - activityData{1}.time;
@@ -221,7 +228,6 @@ global columnSizeY; columnSizeY = weightHdrOn.nyGlobal
 global sizeX; sizeX = weightHdrOn.nx
 global sizeY; sizeY = weightHdrOn.ny
 
-
 %Margin for post layer to avoid margins
 marginX = floor(patchSizeX/2) * postNxScale
 marginY = floor(patchSizeY/2) * postNyScale
@@ -248,6 +254,14 @@ fflush(1);
 %Pull all activity time by index
 aTimeI = [[activityData{:}].time];
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Coorelation Function
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%if (COOR_FLAG > 0)
+%   disp("Running coord")
+%   coorFunc(activityData);
+%end
 
 for weightTimeIndex = 1:numWeightSteps; %For every weight timestep
    time = weightDataOn{weightTimeIndex}.time; 

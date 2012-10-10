@@ -5,7 +5,7 @@ from collections import OrderedDict
 filename = "/Users/slundquist/Desktop/LCALIF_31_31_0.txt"
 
 #Values for range of frames
-all = False; #All values
+all = True; #All values
 startVal = 0
 endVal = 300
 
@@ -18,7 +18,8 @@ data = {
       'dynVthRest':    [],
       'V':             [],
       'Vth':           [],
-      'a':             []
+      'a':             [],
+      'integratedSpikeCount': []
 }
 
 #Which data points needs to be plotted
@@ -26,6 +27,7 @@ plotData = OrderedDict()
 plotData['V'] = 1
 plotData['Vth'] = 1
 plotData['a'] = 10
+plotData['integratedSpikeCount'] = 1
 
 
 f = open(filename, 'r')
