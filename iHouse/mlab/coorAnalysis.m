@@ -19,7 +19,7 @@ if (exist(outputDir, 'dir') ~= 7)
 end
 
 
-function [out] = coorFunc(activityData)
+function coorFunc(activityData)
    global lifInhPatchX lifInhPatchY;
    global columnSizeX columnSizeY;
    global tLCA;
@@ -51,28 +51,39 @@ function [out] = coorFunc(activityData)
 
    %Define output matrix of values
    outMat = zeros(maxDist, timeSteps);
-   intSpike = zeros(columnSizeY, columnSizeX);
+   intSpike = zeros(columnSizeY, columnSizeX, timeSteps);
 
-   procSize = floor(length(marginIndex) / NUM_PROCS);
-   lastSize = mod(length(marginIndex), NUM_PROCS);
-   if (lastSize == 0)
+   if (mod(length(marginIndex), NUM_PROCS) == 0)
+      procSize = floor(length(marginIndex) / NUM_PROCS);
       cellIndex = mat2cell(marginIndex, ones(1, NUM_PROCS) .* procSize, 1);
    else
+      procSize = floor(length(marginIndex) / (NUM_PROCS - 1));
+      lastSize = mod(length(marginIndex), NUM_PROCS - 1);
       cellIndex = mat2cell(marginIndex, [ones(1, NUM_PROCS - 1) .* procSize, lastSize], 1);
    end
    
-   for ts = 1:timeSteps
-      disp(['Time: ', num2str(ts)]);
-      fflush(1);
-      intSpike = updateIntSpike(intSpike, tLCA, deltaT, activityData{ts}.values, columnSizeX, columnSizeY);
-      %Put intSpike into cell array for cell fun
-      cellIntSpike{1} = intSpike;
-      cellPixDist{1} = pixDist;
-      [out] = parcellfun(NUM_PROCS, @parFindMean, cellIndex, cellIntSpike, cellPixDist);
-      %Calculate average based on all pixels
-      out = sum(out) ./ length(marginIndex);
-      outMat(:, ts) = out;
+   %Calculate intSpike for all time
+   disp('Calculating intSpike');
+   fflush(1);
+   for ts = 1:(timeSteps - 1)
+      intSpike(:, :, ts+1) = updateIntSpike(intSpike(:, :, ts), tLCA, deltaT, activityData{ts}.values, columnSizeX, columnSizeY);
    end
+   disp('Done');
+   fflush(1);
+
+   %Put intSpike into cell array for cell fun
+   cellIntSpike{1} = intSpike;
+   cellPixDist{1} = pixDist;
+   cellTimeSteps{1} = timeSteps;
+   %Uniform output as false to store in cell arrays
+%   [out] = parcellfun(NUM_PROCS, @parFindMean, cellIndex, cellIntSpike, cellPixDist, 'UniformOutput', 0);
+   [out] = cellfun(@parFindMean, cellIndex, cellIntSpike, cellPixDist, cellTimeSteps, 'UniformOutput', 0);
+   %Calculate average based on all pixels
+   for i = 1:length(out)
+      outMat += out{i};
+   end
+   
+   outMat = outMat./length(marginIndex);
 
    figure;
    hold all;
@@ -82,31 +93,35 @@ function [out] = coorFunc(activityData)
    hold off;
 end
 
-function [out] = parFindMean(index, intSpike, pixDist) 
+function [out] = parFindMean(index, intSpike, pixDist, timeSteps) 
    %Put index into a cell array for cell fun
   % cellIntSpike{1} = intSpike;
   % cellMargIdx{1} = index;
-   out = zeros(1, length(pixDist))
+   out = zeros(timeSteps, length(pixDist));
    %Put intSpike into a cell to avoid arrayfun iterating
    cIntSpike{1} = intSpike;
-   for i=1:length(pixDist)
-      %Put pix dist into a cell to avoid arrayfun iterating
-      cPixDist{1} = pixDist{i};
-      %Find the mean of all indicies of that specific distance
-      aOut = arrayfun(@findMean, index, cPixDist, cIntSpike);
-      %Add it up, and store based on distance
-      out(i) = sum(aOut);
+
+   for ts = 1:timeSteps
+      for d=1:length(pixDist)
+         %Put pix dist into a cell to avoid arrayfun iterating
+         cPixDist{1} = pixDist{d};
+         cTs{1} = ts;
+         %Find the mean of all indicies of that specific distance
+         aOut = arrayfun(@findMean, index, cPixDist, cIntSpike, cTs);
+         %Add it up, and store based on distance
+         out(ts, d) = sum(aOut);
+      end
    end
   %out = parcellfun(4, @findMean, pixDist, cellMargIdx, cellIntSpike);
 end
 
-function [outMean] = findMean(idx, dist, intSpike) 
+function [outMean] = findMean(idx, dist, intSpike, ts) 
    global columnSizeX columnSizeY;
    [mIx mIy] = ind2sub([columnSizeX columnSizeY], idx);
    %Using x and y offset, grab actual pixels based on center point
    xCoord = dist{1}.x + mIx;
    yCoord = dist{1}.y + mIy;
-   outMean = mean(intSpike{1}(yCoord, xCoord)(:));
+   outMean = mean(intSpike{1}(yCoord, xCoord, ts{1})(:));
 end
 
 function [outIntSpike] = updateIntSpike(inIntSpike, tLCA, deltaT, activityIndex, colX, colY)
