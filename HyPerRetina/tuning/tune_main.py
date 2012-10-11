@@ -13,7 +13,7 @@ from tune_functions import *
 ###             ###
 ###################
 
-run_PetaVision      = 1       #Will just create params file if set to 0
+run_PetaVision      = 0       #Will just create params file if set to 0
 pipe_output_to_file = 1
 mpi_np              = '4'
 mpi_rows            = '2'
@@ -23,7 +23,7 @@ num_steps_list      = ['14420']
 stochastic_flag     = '1' #preActivityNotRate = !stochastic_flag
 
 param_template_name = 'retina_params.template'
-run_name            = 'AntiTerrorism'
+run_name            = 'BigRun'
 
 #wrkspc_path         = '/Users/garkenyon/workspace-sync-anterior'
 wrkspc_path         = '/Users/dpaiton/Documents/Work/LANL/workspace'
