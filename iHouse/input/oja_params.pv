@@ -151,7 +151,7 @@ LCALIFLayer "lif" = {
 
    tauTHR           = 10000;
    targetRate       = 1;
-   Vscale       	= 15; // Scale for the change of dynVthRest. Must be positive; defaults to VthRest - Vrest
+   Vscale       	= 15; // Scale for the change of Vadpt. Must be positive; defaults to VthRest - Vrest
 
    spikingFlag      = 1;       	
    marginWidth      = 8;     	
@@ -178,7 +178,6 @@ LCALIFLayer "lif" = {
    noiseFreqE       = 250.;    	// spontaneous transmitter release/channel openings
    noiseFreqI       = 250.;    	// correlation to time step size !!!
    noiseFreqIB      =   0.;    	// should be scaled by the time constant - look at LIF model
-   dynVthScale      = 15.0;     // Scale for the change of dynVthRest. Must be positive; defaults to VthRest - Vrest
 };
 
 

@@ -158,7 +158,7 @@ LIF "lif" = {
 
    //tauTHR           = 10000;  // thresholdAdaptationTime
    //targetRate       = 1;      // (Hz) Desired mean firing rate 
-   //Vscale           = 15;     // Scale for the change of dynVthRest. Must be positive; defaults to VthRest - Vrest
+   //Vscale           = 15;     // Scale for the change of Vadpt. Must be positive; defaults to VthRest - Vrest
    
    writeStep        = 200;
 
@@ -186,7 +186,6 @@ LIF "lif" = {
    noiseFreqE       = 250.;    	// spontaneous transmitter release/channel openings
    noiseFreqI       = 250.;    	// correlation to time step size !!!
    noiseFreqIB      =   0.;    	// should be scaled by the time constant - look at LIF model
-   dynVthScale      = 15.0;     // Scale for the change of dynVthRest. Must be positive; defaults to VthRest - Vrest
 };
 
 
