@@ -75,7 +75,6 @@ int LCALIFLateralConn::calc_dW(int axonId) {
    pvdata_t targetRate = lcapre->getTargetRate() / 1000; // Convert to kHz (DMP)
    pvdata_t target_rate_sq = targetRate * targetRate;
    float dt_inh = parent->getDeltaTime()/inhibitionTimeConstant;
-   float tausq = integrationTimeConstant*integrationTimeConstant;
    const PVPatchStrides * strides  = getPostNonextStrides();
    const int sx = strides->sx;
    const int sy = strides->sy;
