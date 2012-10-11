@@ -79,8 +79,8 @@ int pvlayer_copyUpdate(PVLayer * l);
 
 float pvlayer_getWeight(float x0, float x, float r, float sigma);
 
-PVLayerCube * pvcube_new(PVLayerLoc * loc, int numItems);
-PVLayerCube * pvcube_init(PVLayerCube * cube, PVLayerLoc * loc, int numItems);
+PVLayerCube * pvcube_new(const PVLayerLoc * loc, int numItems);
+PVLayerCube * pvcube_init(PVLayerCube * cube, const PVLayerLoc * loc, int numItems);
 int           pvcube_delete(PVLayerCube * cube);
 size_t        pvcube_size(int numItems);
 int           pvcube_setAddr(PVLayerCube * cube);

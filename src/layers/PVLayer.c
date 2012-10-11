@@ -286,7 +286,7 @@ int pvpatch_max(int nk, float * RESTRICT v, float a, float * RESTRICT w, int fea
 // pvcube interface implementation
 //
 
-PVLayerCube * pvcube_init(PVLayerCube * cube, PVLayerLoc * loc, int numItems)
+PVLayerCube * pvcube_init(PVLayerCube * cube, const PVLayerLoc * loc, int numItems)
 {
    cube->size = pvcube_size(numItems);
    cube->numItems = numItems;
@@ -295,7 +295,7 @@ PVLayerCube * pvcube_init(PVLayerCube * cube, PVLayerLoc * loc, int numItems)
    return cube;
 }
 
-PVLayerCube * pvcube_new(PVLayerLoc * loc, int numItems)
+PVLayerCube * pvcube_new(const PVLayerLoc * loc, int numItems)
 {
    PVLayerCube * cube = (PVLayerCube*) calloc(pvcube_size(numItems), sizeof(char));
    assert(cube !=NULL);
