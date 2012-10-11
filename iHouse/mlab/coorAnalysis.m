@@ -132,14 +132,12 @@ function coorFunc(activityData)
    %Divide by tau squared to make value a rate
    outMat = outMat ./ (tLCA * tLCA);
 
-   figure;
-   hold all;
    for d = 1:maxDist
+      figure;
       plot(outMat(d, :));
+      print_filename = [outputDir, 'Coorfunc_', num2str(d), '.jpg'];
+      print(print_filename);
    end
-   hold off;
-   print_filename = [outDir, 'Coorfunc.jpg'];
-   print(print_filename);
    
 end
 
