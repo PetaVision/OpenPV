@@ -414,16 +414,16 @@ int LIF::checkpointWrite(const char * cpDir) {
    assert(filename != NULL);
    int chars_needed = snprintf(filename, filenamesize, "%s/%s_Vth.pvp", cpDir, name);
    assert(chars_needed < filenamesize);
-   writeBufferFile(filename, icComm, timed, Vth, 1, /*extended*/false, /*contiguous*/false); // TODO contiguous=true
+   writeBufferFile(filename, icComm, timed, Vth, 1, /*extended*/false, /*contiguous*/false, getLayerLoc()); // TODO contiguous=true
    chars_needed = snprintf(filename, filenamesize, "%s/%s_G_E.pvp", cpDir, name);
    assert(chars_needed < filenamesize);
-   writeBufferFile(filename, icComm, timed, G_E, 1, /*extended*/false, /*contiguous*/false); // TODO contiguous=true
+   writeBufferFile(filename, icComm, timed, G_E, 1, /*extended*/false, /*contiguous*/false, getLayerLoc()); // TODO contiguous=true
    chars_needed = snprintf(filename, filenamesize, "%s/%s_G_I.pvp", cpDir, name);
    assert(chars_needed < filenamesize);
-   writeBufferFile(filename, icComm, timed, G_I, 1, /*extended*/false, /*contiguous*/false); // TODO contiguous=true
+   writeBufferFile(filename, icComm, timed, G_I, 1, /*extended*/false, /*contiguous*/false, getLayerLoc()); // TODO contiguous=true
    chars_needed = snprintf(filename, filenamesize, "%s/%s_G_IB.pvp", cpDir, name);
    assert(chars_needed < filenamesize);
-   writeBufferFile(filename, icComm, timed, G_IB, 1, /*extended*/false, /*contiguous*/false); // TODO contiguous=true
+   writeBufferFile(filename, icComm, timed, G_IB, 1, /*extended*/false, /*contiguous*/false, getLayerLoc()); // TODO contiguous=true
    free(filename);
    return PV_SUCCESS;
 }

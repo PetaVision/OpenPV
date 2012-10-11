@@ -243,7 +243,7 @@ int LIFGap::checkpointWrite(const char * cpDir) {
    char * filename = (char *) malloc( filenamesize*sizeof(char) );
    assert(filename != NULL);
    sprintf(filename, "%s/%s_G_Gap.pvp", cpDir, name);
-   writeBufferFile(filename, icComm, timed, G_Gap, 1, /*extended*/false, /*contiguous*/false); // TODO contiguous=true
+   writeBufferFile(filename, icComm, timed, G_Gap, 1, /*extended*/false, /*contiguous*/false, getLayerLoc()); // TODO contiguous=true
    free(filename);
    return PV_SUCCESS;
 }

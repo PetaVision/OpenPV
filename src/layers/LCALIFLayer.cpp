@@ -191,11 +191,11 @@ int LCALIFLayer::checkpointWrite(const char * cpDir) {
    double timed = (double) parent->simulationTime();
    int chars_needed = snprintf(filename, PV_PATH_MAX, "%s_integratedSpikeCount.pvp", basepath);
    assert(chars_needed < PV_PATH_MAX);
-   writeBufferFile(filename, icComm, timed, integratedSpikeCount, 1, /*extended*/false, /*contiguous*/false);
+   writeBufferFile(filename, icComm, timed, integratedSpikeCount, 1, /*extended*/false, /*contiguous*/false, getLayerLoc());
 
    chars_needed = snprintf(filename, PV_PATH_MAX, "%s_dynVthRest.pvp", basepath);
    assert(chars_needed < PV_PATH_MAX);
-   writeBufferFile(filename, icComm, timed, dynVthRest, 1, /*extended*/false, /*contiguous*/false);
+   writeBufferFile(filename, icComm, timed, dynVthRest, 1, /*extended*/false, /*contiguous*/false, getLayerLoc());
 
    return status;
 }

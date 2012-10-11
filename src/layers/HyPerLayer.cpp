@@ -1248,12 +1248,12 @@ int HyPerLayer::checkpointWrite(const char * cpDir) {
    double timed = (double) parent->simulationTime();
    int chars_needed = snprintf(filename, PV_PATH_MAX, "%s_A.pvp", basepath);
    assert(chars_needed < PV_PATH_MAX);
-   writeBufferFile(filename, icComm, timed, clayer->activity->data, 1, /*extended*/true, /*contiguous*/false);
+   writeBufferFile(filename, icComm, timed, getActivity(), 1, /*extended*/true, /*contiguous*/false, getLayerLoc());
    // TODO contiguous should be true in the writeBufferFile calls (needs to be added to writeBuffer method)
    if( getV() != NULL ) {
       chars_needed = snprintf(filename, PV_PATH_MAX, "%s_V.pvp", basepath);
       assert(chars_needed < PV_PATH_MAX);
-      writeBufferFile(filename, icComm, timed, getV(), 1, /*extended*/false, /*contiguous*/false);
+      writeBufferFile(filename, icComm, timed, getV(), 1, /*extended*/false, /*contiguous*/false, getLayerLoc());
    }
    chars_needed = snprintf(filename, PV_PATH_MAX, "%s_Delays.pvp", basepath);
    assert(chars_needed < PV_PATH_MAX);
@@ -1264,16 +1264,16 @@ int HyPerLayer::checkpointWrite(const char * cpDir) {
    return PV_SUCCESS;
 }
 
-int HyPerLayer::writeBufferFile(const char * filename, InterColComm * comm, double timed, pvdata_t * buffer, int numbands, bool extended, bool contiguous) {
+int HyPerLayer::writeBufferFile(const char * filename, InterColComm * comm, double timed, pvdata_t * buffer, int numbands, bool extended, bool contiguous, const PVLayerLoc * loc) {
    FILE * writeFile = pvp_open_write_file(filename, comm, /*append*/false);
    assert( writeFile != NULL || comm->commRank() != 0 );
-   int status = writeBuffer(writeFile, comm, timed, buffer, numbands, extended, contiguous);
+   int status = writeBuffer(writeFile, comm, timed, buffer, numbands, extended, contiguous, loc);
    pvp_close_file(writeFile, comm);
    writeFile = NULL;
    return status;
 }
 
-int HyPerLayer::writeBuffer(FILE * fp, InterColComm * comm, double timed, pvdata_t * buffer, int numbands, bool extended, bool contiguous) {
+int HyPerLayer::writeBuffer(FILE * fp, InterColComm * comm, double timed, pvdata_t * buffer, int numbands, bool extended, bool contiguous, const PVLayerLoc * loc) {
    assert(contiguous == false); // TODO contiguous == true case
 
    // write header, but only at the beginning
@@ -1285,23 +1285,24 @@ int HyPerLayer::writeBuffer(FILE * fp, InterColComm * comm, double timed, pvdata
    if( rank == 0 ) {
       long fpos = ftell(fp);
       if (fpos == 0L) {
-         int status = pvp_write_header(fp, comm, timed, getLayerLoc(), PVP_NONSPIKING_ACT_FILE_TYPE,
-                                       PV_FLOAT_TYPE, numbands, extended, contiguous, NUM_BIN_PARAMS, (size_t) getNumNeurons());
+         int numNeurons = loc->nx*loc->ny*loc->nf;
+         int status = pvp_write_header(fp, comm, timed, loc, PVP_NONSPIKING_ACT_FILE_TYPE,
+                                       PV_FLOAT_TYPE, numbands, extended, contiguous, NUM_BIN_PARAMS, numNeurons);
          if (status != PV_SUCCESS) return status;
       }
    }
 
    int buffersize;
    if( extended ) {
-      buffersize = (getLayerLoc()->nx+2*getLayerLoc()->nb)*(getLayerLoc()->ny+2*getLayerLoc()->nb)*getLayerLoc()->nf;
+      buffersize = (loc->nx+2*loc->nb)*(loc->ny+2*loc->nb)*loc->nf;
    }
    else {
-      buffersize = getLayerLoc()->nx*getLayerLoc()->ny*getLayerLoc()->nf;
+      buffersize = loc->nx*loc->ny*loc->nf;
    }
    int status = PV_SUCCESS;
    for( int band=0; band<numbands; band++ ) {
       if ( rank==0 && fwrite(&timed, sizeof(double), 1, fp) != 1 )              return -1;
-      int status1 =  write_pvdata(fp, comm, timed, buffer+band*buffersize, getLayerLoc(), PV_FLOAT_TYPE,
+      int status1 =  write_pvdata(fp, comm, timed, buffer+band*buffersize, loc, PV_FLOAT_TYPE,
                                   extended, contiguous, PVP_NONSPIKING_ACT_FILE_TYPE);
       status = status1 != PV_SUCCESS ? status1 : status;
    }
