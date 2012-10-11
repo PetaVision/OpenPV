@@ -62,11 +62,10 @@ void LCALIF_update_state(
     const int nf,
     const int nb,
     
-    float dynVthScale,
-    float * dynVthRest,
-    const float tauLCA,
-    const float tauTHR,
-    const float targetRate,
+    float Vscale,
+    float * Vadpt,
+    float tauTHR,
+    const float targetRateHz,
 
     pvdata_t * integratedSpikeCount,
     
@@ -87,17 +86,23 @@ void LCALIF_update_state(
     const float sum_gap,
     CL_MEM_GLOBAL float * G_Gap)
 {
+
    int k;
 
-   const float exp_tauE    = EXP(-dt/params->tauE);
-   const float exp_tauI    = EXP(-dt/params->tauI);
-   const float exp_tauIB   = EXP(-dt/params->tauIB);
-   const float exp_tauVth  = EXP(-dt/params->tauVth);
-   const float exp_tauLCA  = EXP(-dt/tauLCA);
-   //Convert target rate from hz to ms
-   const float conv_targetRate = targetRate/1000;
+   // convert target rate from Hz to kHz
+   float targetRatekHz = targetRateHz/1000;
 
-   const float dt_sec = .001 * dt;   // convert to seconds
+   // tau parameters
+   const float tauO = 1/targetRatekHz;   //Convert target rate from kHz to ms (tauO)
+
+   const float decayE   = EXP(-dt/params->tauE);
+   const float decayI   = EXP(-dt/params->tauI);
+   const float decayIB  = EXP(-dt/params->tauIB);
+   const float decayVth = EXP(-dt/params->tauVth);
+   const float decayO   = EXP(-dt/tauO);
+
+   //Convert dt to seconds
+   const float dt_sec = .001 * dt;
 
 #ifndef PV_USE_OPENCL
 
@@ -201,9 +206,9 @@ for (k = 0; k < nx*ny*nf; k++) {
    G_I_initial  = (G_I_initial  > GMAX) ? GMAX : G_I_initial;
    G_IB_initial = (G_IB_initial > GMAX) ? GMAX : G_IB_initial;
 
-   G_E_final = G_E_initial*exp_tauE;
-   G_I_final = G_I_initial*exp_tauI;
-   G_IB_final = G_IB_initial*exp_tauIB;
+   G_E_final = G_E_initial * decayE;
+   G_I_final = G_I_initial * decayI;
+   G_IB_final = G_IB_initial * decayIB;
 
    l_G_Gap = l_GSynGap;
 
@@ -216,15 +221,17 @@ for (k = 0; k < nx*ny*nf; k++) {
    l_G_I = G_I_final;
    l_G_IB = G_IB_final;
 
-   //l_Vth updates according to traditional LIF rule in addition to the following slow threshold adaptation
-   //   Theta += (dt/tauTHR) * (int_spike_count/tau_lca - fo) * abs(dynVthRest/fo)
-   //      tauTHR is slow update
-   //      tau_lca is ~1/5 tauTHR, faster update for traces
-   //      int_spike_count is trace
-   //      fo is desired baseline spike rate
+   //l_Vth updates according to traditional LIF rule in addition to the slow threshold adaptation
+   //      See LCA_Equations.pdf in the documentation for a full description of the neuron adaptive firing threshold.
    
-   dynVthRest[k] += (dt/tauTHR) * (integratedSpikeCount[k]/tauLCA - conv_targetRate) * dynVthScale/conv_targetRate;
-   l_Vth = dynVthRest[k] + (l_Vth - dynVthRest[k])*exp_tauVth;
+   if (k==0) { //initial sate
+      Vadpt[k] = VthRest;
+   }
+   else {
+      Vadpt[k] += (dt/tauTHR) * (integratedSpikeCount[k] - targetRatekHz) * (Vscale/targetRatekHz);
+   }
+
+   l_Vth = Vadpt[k] + decayVth * (l_Vth - Vadpt[k]);
    
    bool fired_flag = (l_V > l_Vth);
 
@@ -235,7 +242,7 @@ for (k = 0; k < nx*ny*nf; k++) {
 
 
    //integratedSpikeCount is the trace activity of the neuron, with an exponential decay
-   integratedSpikeCount[k] = exp_tauLCA * (l_activ + integratedSpikeCount[k]);
+   integratedSpikeCount[k] = (decayO / tauO) * (l_activ + integratedSpikeCount[k]);
 
    //
    // These actions must be done outside of kernel
