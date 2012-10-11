@@ -75,7 +75,7 @@ int LCALayer::checkpointWrite(const char * cpDir) {
    char filename[PV_PATH_MAX];
    int chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_stimulus.pvp", cpDir, name);
    assert(chars_needed < PV_PATH_MAX);
-   status = writeBufferFile(filename, getParent()->icCommunicator(), getParent()->simulationTime(), stimulus, 1, /*extended*/false, /*contiguous*/false)
+   status = writeBufferFile(filename, getParent()->icCommunicator(), getParent()->simulationTime(), stimulus, 1, /*extended*/false, /*contiguous*/false, getLayerLoc())
                 == PV_SUCCESS ? status : PV_FAILURE;
    return status;
 }
