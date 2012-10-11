@@ -41,9 +41,10 @@ int SigmoidLayer::initialize(const char * name, HyPerCol * hc, LIF * clone) {
    SigmoidFlag = parent->parameters()->value(name,"SigmoidFlag",SIGMOIDFLAG);
    SigmoidAlpha = parent->parameters()->value(name,"SigmoidAlpha",SIGMOIDALPHA);
 
-
-   if(InverseFlag)   fprintf(stdout,"SigmoidLayer: Inverse flag is set");
-   if(SigmoidFlag)   fprintf(stdout,"SigmoidLayer: True Sigmoid flag is set");
+   if (parent->columnId()==0) {
+      if(InverseFlag)   fprintf(stdout,"SigmoidLayer: Inverse flag is set\n");
+      if(SigmoidFlag)   fprintf(stdout,"SigmoidLayer: True Sigmoid flag is set\n");
+   }
 
    this->spikingFlag = false;
    sourceLayer = clone;
