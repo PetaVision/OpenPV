@@ -225,7 +225,7 @@ int LIFGap::checkpointRead(const char * cpDir, float * timef) {
 
    int chars_needed = snprintf(filename, filenamesize, "%s/%s_G_Gap.pvp", cpDir, name);
    assert(chars_needed < filenamesize);
-   readBufferFile(filename, icComm, &timed, G_Gap, 1, /*extended*/false, /*contiguous*/false);
+   readBufferFile(filename, icComm, &timed, G_Gap, 1, /*extended*/false, /*contiguous*/false, getLayerLoc());
    if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
       fprintf(stderr, "Warning: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
    }

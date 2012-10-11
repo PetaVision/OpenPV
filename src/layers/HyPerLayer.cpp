@@ -1069,13 +1069,13 @@ int HyPerLayer::checkpointRead(const char * cpDir, float * timef) {
    assert(filename != NULL);
    int chars_needed = snprintf(filename, PV_PATH_MAX, "%s_A.pvp", basepath);
    assert(chars_needed < PV_PATH_MAX);
-   readBufferFile(filename, icComm, &timed, clayer->activity->data, 1, /*extended*/true, /*contiguous*/false);
+   readBufferFile(filename, icComm, &timed, clayer->activity->data, 1, /*extended*/true, /*contiguous*/false, getLayerLoc());
    *timef = (float) timed;
    // TODO contiguous should be true in the writeBufferFile calls (needs to be added to writeBuffer method)
    if( getV() != NULL ) {
       chars_needed = snprintf(filename, PV_PATH_MAX, "%s_V.pvp", basepath);
       assert(chars_needed < PV_PATH_MAX);
-      readBufferFile(filename, icComm, &timed, getV(), 1, /*extended*/false, /*contiguous*/false);
+      readBufferFile(filename, icComm, &timed, getV(), 1, /*extended*/false, /*contiguous*/false, getLayerLoc());
       if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
          fprintf(stderr, "Warning: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
       }
@@ -1111,21 +1111,21 @@ int HyPerLayer::checkpointRead(const char * cpDir, float * timef) {
    return PV_SUCCESS;
 }
 
-int HyPerLayer::readBufferFile(const char * filename, InterColComm * comm, double * timed, pvdata_t * buffer, int numbands, bool extended, bool contiguous) {
+int HyPerLayer::readBufferFile(const char * filename, InterColComm * comm, double * timed, pvdata_t * buffer, int numbands, bool extended, bool contiguous, const PVLayerLoc * loc) {
    int status;
    int params[NUM_BIN_PARAMS];
-   readHeader(filename, comm, timed, params);
+   readHeader(filename, comm, timed, params, loc);
    int buffersize;
    if(extended) {
-      buffersize = (getLayerLoc()->nx+2*getLayerLoc()->nb)*(getLayerLoc()->ny+2*getLayerLoc()->nb)*getLayerLoc()->nf;
+      buffersize = (loc->nx+2*loc->nb)*(loc->ny+2*loc->nb)*loc->nf;
    }
    else {
-      buffersize = getLayerLoc()->nx*getLayerLoc()->ny*getLayerLoc()->nf;
+      buffersize = loc->nx*loc->ny*loc->nf;
    }
    for( int band=0; band<numbands; band++ ) {
       int status1;
       status1 = readNonspikingActFile(filename, comm, timed, buffer+band*buffersize,
-                            band, getLayerLoc(), params[INDEX_DATA_TYPE], extended, contiguous);
+                            band, loc, params[INDEX_DATA_TYPE], extended, contiguous);
       if( status1 != PV_SUCCESS ) {
          status = PV_FAILURE;
       }
@@ -1137,7 +1137,7 @@ int HyPerLayer::readBufferFile(const char * filename, InterColComm * comm, doubl
 int HyPerLayer::readDataStoreFromFile(const char * filename, InterColComm * comm, double * timeptr) {
    assert(timeptr != NULL);
    int params[NUM_BIN_PARAMS];
-   readHeader(filename, comm, timeptr, params);
+   readHeader(filename, comm, timeptr, params, getLayerLoc());
    assert(params[INDEX_NBANDS] == comm->publisherStore(getCLayer()->layerId)->numberOfLevels());
    assert(params[INDEX_NBANDS] == getCLayer()->numDelayLevels);
 
@@ -1182,7 +1182,7 @@ int HyPerLayer::readDataStoreFromFile(const char * filename, InterColComm * comm
    return status;
 }
 
-int HyPerLayer::readHeader(const char * filename, InterColComm * comm, double * timed, int * params) {
+int HyPerLayer::readHeader(const char * filename, InterColComm * comm, double * timed, int * params, const PVLayerLoc * loc) {
    int filetype, datatype;
    int numParams = NUM_BIN_PARAMS;
    pvp_read_header(filename, comm, timed,
@@ -1193,12 +1193,12 @@ int HyPerLayer::readHeader(const char * filename, InterColComm * comm, double * 
    assert(params[INDEX_HEADER_SIZE] == NUM_BIN_PARAMS*sizeof(pvdata_t));
    assert(params[INDEX_NUM_PARAMS] == NUM_BIN_PARAMS);
    assert(params[INDEX_FILE_TYPE] == PVP_NONSPIKING_ACT_FILE_TYPE); // TODO allow params[INDEX_FILE_TYPE] == PVP_ACT_FILE_TYPE
-   assert(params[INDEX_NF] == getLayerLoc()->nf);
+   assert(params[INDEX_NF] == loc->nf);
    assert(params[INDEX_DATA_SIZE] == sizeof(pvdata_t));
    assert(params[INDEX_DATA_TYPE] == PV_FLOAT_TYPE);
    assert(params[INDEX_KX0] == 0);
    assert(params[INDEX_KY0] == 0);
-   assert(params[INDEX_NB] == getLayerLoc()->nb);
+   assert(params[INDEX_NB] == loc->nb);
    return PV_SUCCESS;
 }
 

@@ -161,14 +161,14 @@ int LCALIFLayer::checkpointRead(const char * cpDir, float * timef) {
    assert(filename != NULL);
    int chars_needed = snprintf(filename, PV_PATH_MAX, "%s_integratedSpikeCount.pvp", basepath);
    assert(chars_needed < PV_PATH_MAX);
-   readBufferFile(filename, icComm, &timed, integratedSpikeCount, 1, /*extended*/ false, /*contiguous*/false);
+   readBufferFile(filename, icComm, &timed, integratedSpikeCount, 1, /*extended*/ false, /*contiguous*/false, getLayerLoc());
    if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
       fprintf(stderr, "Warning: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
    }
 
    chars_needed = snprintf(filename, PV_PATH_MAX, "%s_dynVthRest.pvp", basepath);
       assert(chars_needed < PV_PATH_MAX);
-      readBufferFile(filename, icComm, &timed, dynVthRest, 1, /*extended*/ false, /*contiguous*/false);
+      readBufferFile(filename, icComm, &timed, dynVthRest, 1, /*extended*/ false, /*contiguous*/false, getLayerLoc());
       if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
          fprintf(stderr, "Warning: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
       }

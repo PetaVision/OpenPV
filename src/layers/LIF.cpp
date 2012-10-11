@@ -374,28 +374,28 @@ int LIF::checkpointRead(const char * cpDir, float * timef) {
 
    int chars_needed = snprintf(filename, filenamesize, "%s/%s_Vth.pvp", cpDir, name);
    assert(chars_needed < filenamesize);
-   readBufferFile(filename, icComm, &timed, Vth, 1, /*extended*/false, /*contiguous*/false);
+   readBufferFile(filename, icComm, &timed, Vth, 1, /*extended*/false, /*contiguous*/false, getLayerLoc());
    if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
       fprintf(stderr, "Warning: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
    }
 
    chars_needed = snprintf(filename, filenamesize, "%s/%s_G_E.pvp", cpDir, name);
    assert(chars_needed < filenamesize);
-   readBufferFile(filename, icComm, &timed, G_E, 1, /*extended*/false, /*contiguous*/false);
+   readBufferFile(filename, icComm, &timed, G_E, 1, /*extended*/false, /*contiguous*/false, getLayerLoc());
    if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
       fprintf(stderr, "Warning: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
    }
 
    chars_needed = snprintf(filename, filenamesize, "%s/%s_G_I.pvp", cpDir, name);
    assert(chars_needed < filenamesize);
-   readBufferFile(filename, icComm, &timed, G_I, 1, /*extended*/false, /*contiguous*/false);
+   readBufferFile(filename, icComm, &timed, G_I, 1, /*extended*/false, /*contiguous*/false, getLayerLoc());
    if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
       fprintf(stderr, "Warning: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
    }
 
    chars_needed = snprintf(filename, filenamesize, "%s/%s_G_IB.pvp", cpDir, name);
    assert(chars_needed < filenamesize);
-   readBufferFile(filename, icComm, &timed, G_IB, 1, /*extended*/false, /*contiguous*/false);
+   readBufferFile(filename, icComm, &timed, G_IB, 1, /*extended*/false, /*contiguous*/false, getLayerLoc());
    if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
       fprintf(stderr, "Warning: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
    }

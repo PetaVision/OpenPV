@@ -97,9 +97,9 @@ protected:
    virtual int initializeLayerId(int layerId);
    int setLayerLoc(PVLayerLoc * layerLoc, float nxScale, float nyScale, int margin, int nf);
    virtual int allocateBuffers();
-   int readBufferFile(const char * filename, InterColComm * comm, double * timed, pvdata_t * buffer, int numbands, bool extended, bool contiguous);
+   static int readBufferFile(const char * filename, InterColComm * comm, double * timed, pvdata_t * buffer, int numbands, bool extended, bool contiguous, const PVLayerLoc * loc);
    int readDataStoreFromFile(const char * filename, InterColComm * comm, double * timed);
-   int readHeader(const char * filename, InterColComm * comm, double * timed, int * params);
+   static int readHeader(const char * filename, InterColComm * comm, double * timed, int * params, const PVLayerLoc * loc);
    static int writeBufferFile(const char * filename, InterColComm * comm, double dtime, pvdata_t * buffer, int numbands, bool extended, bool contiguous, const PVLayerLoc * loc);
    static int writeBuffer(FILE * fp, InterColComm * comm, double dtime, pvdata_t * buffer, int numbands, bool extended, bool contiguous, const PVLayerLoc * loc);
    int incrementNBands(int * numCalls);
