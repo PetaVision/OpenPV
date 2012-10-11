@@ -7,8 +7,8 @@
 
 
 HyPerCol "column" = {
-   nx                           = 256;
-   ny                           = 144;
+   nx                           = 1280;
+   ny                           = 720;
    dt                           = 1.;           // according GK
    randomSeed                   = 1020304050.0; // comment when running for real
    checkpointRead               = false;        // init run
