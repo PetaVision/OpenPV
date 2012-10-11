@@ -58,12 +58,19 @@ else
     function mpirunandecho() {
         testname=$1
         shift
+        if $PV_MPIRUN -np 2 $* 1> /dev/null 2>/dev/null
+        then
+            echo "$testname with two processes passed"
+        else
+            echo "$testname with two processes FAILED"
+        fi
         if $PV_MPIRUN -np 4 $* 1> /dev/null 2>/dev/null
         then
             echo "$testname with four processes passed"
         else
             echo "$testname with four processes FAILED"
         fi
+
     }
 fi
 
