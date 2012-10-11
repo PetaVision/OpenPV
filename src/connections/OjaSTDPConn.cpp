@@ -37,13 +37,13 @@ int OjaSTDPConn::initialize_base() {
    this->ampLTD         = 0.0071;
    this->tauLTP         = 16.8;
    this->tauLTD         = 33.7;
-   this->tauLTPLong     = 168;
-   this->tauLTDLong     = 33.7;
+   this->tauOja         = 337;
    this->weightDecay    = 0.01;
    this->dWMax          = 1;
-   this->ojaScale       = 1;
-   this->STDPScale      = 1;
-   this->wMax           = 0.0001;
+   this->targetRate     = 10;
+
+   this->wMin           = 0.0001;
+   this->wMax           = 1;
 
    this->ojaFlag        = true;
    this->synscalingFlag = false;
@@ -93,9 +93,15 @@ int OjaSTDPConn::deleteWeights()
 {
    if (stdpFlag) {
       pvcube_delete(post_tr);
+      pvcube_delete(post_long_tr);
+      pvcube_delete(pre_tr);
+      pvcube_delete(pre_long_tr);
       post_tr = NULL;
+      post_long_tr = NULL;
+      pre_tr = NULL;
+      pre_long_tr = NULL;
    }
-   return 0;
+   return 0; //HyPerConn destructor is automatically called
 }
 
 int OjaSTDPConn::initializeThreadBuffers() {return 0;}
@@ -116,11 +122,9 @@ int OjaSTDPConn::setParams(PVParams * params)
       ampLTD         = params->value(getName(), "ampLTD", ampLTD);
       tauLTP         = params->value(getName(), "tauLTP", tauLTP);
       tauLTD         = params->value(getName(), "tauLTD", tauLTD);
-      tauLTDLong     = params->value(getName(), "tauLTDLong", tauLTDLong);
-      tauLTPLong     = params->value(getName(), "tauLTPLong", tauLTPLong);
+      tauOja         = params->value(getName(), "tauOja", tauOja);
       weightDecay    = params->value(getName(), "weightDecay", weightDecay);
-      ojaScale       = params->value(getName(), "ojaScale", ojaScale);
-      STDPScale      = params->value(getName(), "STDPScale", ojaScale);
+      targetRate     = params->value(getName(), "targetRate", targetRate);
 
       wMax           = params->value(getName(), "wMax", wMax);
       wMin           = params->value(getName(), "wMin", wMin);
@@ -163,8 +167,7 @@ int OjaSTDPConn::updateWeights(int axonID)
    const float dt           = parent->getDeltaTime();
    const float decayLTP     = exp(-dt / tauLTP);
    const float decayLTD     = exp(-dt / tauLTD);
-   const float decayLTDLong = exp(-dt / tauLTDLong);
-   const float decayLTPLong = exp(-dt / tauLTPLong);
+   const float decayOja     = exp(-dt / tauOja);
 
    const int nkPost = post_tr->numItems;
    const int nkpre  = pre->getNumExtended();
@@ -188,13 +191,16 @@ int OjaSTDPConn::updateWeights(int axonID)
    // 1. Updates the postsynaptic traces
    for (int kPost = 0; kPost < nkPost; kPost++)
    {
-      post_tr_m[kPost]      = decayLTD * post_tr_m[kPost] + aPost[kPost];
-      post_long_tr_m[kPost] = decayLTDLong * post_long_tr_m[kPost] + aPost[kPost];
+      post_tr_m[kPost]      = (decayLTD / tauLTD) * (post_tr_m[kPost] + aPost[kPost]);
+      post_long_tr_m[kPost] = (decayOja / tauOja) * (post_long_tr_m[kPost] + aPost[kPost]);
    }
 
    // this stride is in extended space for post-synaptic activity and STDP decrement variable
    const int postStrideY = post->getLayerLoc()->nf * (post->getLayerLoc()->nx + 2 * post->getLayerLoc()->nb);
    //FIXME: In the first iteration post is -70!! (May not still be true)
+
+   float scaleFactor;
+   scaleFactor = dWMax * (dt / (tauOja * targetRate));
 
    for (int kPre = 0; kPre < nkpre; kPre++)              // Loop over all presynaptic neurons
    {
@@ -217,32 +223,28 @@ int OjaSTDPConn::updateWeights(int axonID)
       ny  = w->ny;
 
       // 2. Updates the presynaptic trace
-      *pre_tr_m      = decayLTP * (*pre_tr_m) + aPre;        //If spiked, minimum is 1. If no spike, minimum is 0.
-      *pre_long_tr_m = decayLTPLong * (*pre_long_tr_m) + aPre;
+      *pre_tr_m      = (decayLTP / tauLTP) * ((*pre_tr_m) + aPre);        //If spiked, minimum is 1. If no spike, minimum is 0.
+      *pre_long_tr_m = (decayOja / tauOja) * ((*pre_long_tr_m) + aPre);
 
       //3. Update weights
       for (int y = 0; y < ny; y++) {
          for (int k = 0; k < nk; k++) {
-            //deltaQmnt ~ [Xm'(t) - Yn'(t) * Qmnt-1] * [a * Ay(t) * Xm(t) - Ax(t) * Yn(t)] - l*Qmnt-1
-            // Xm(t), Yn(t) = pre & post Oja trace (respectively)
-            // Xm'(t), Yn'(t) = pre & post trace, but on a longer time scale (to get a more integrated trace)
-            // Qmnt is weight at current time step
-            // Qmnt-1 is weight at previous time step
-            // Ax(t),Ay(t) is spike activity for pre/post respectively
+            // See LCA_Equations.pdf in documentation for description of Oja (feed-forward weight adaptation) equations.
             float ojaTerm;
             if (ojaFlag) {
-               ojaTerm = (*pre_long_tr_m) - post_long_tr_m[k] * W[k];
-            }
-            else
-            {
+               ojaTerm = post_long_tr_m[k] * ((*pre_long_tr_m) - W[k] * post_long_tr_m[k]);
+            } else { //should just be standard STDP at this point
               ojaTerm = 1.0;
             }
 
-            W[k] += dWMax * ojaTerm  *
-                  (ampLTP * aPost[k] * (*pre_tr_m) - ampLTD * aPre * post_tr_m[k]) - weightDecay * W[k];
+            W[k] += scaleFactor * (ojaTerm  *
+                  (ampLTP * aPost[k] * (*pre_tr_m) - ampLTD * aPre * post_tr_m[k]) -
+                  weightDecay * W[k]);
 
             W[k] = W[k] < wMin ? wMin : W[k]; // Stop weights from going all the way to 0
-            W[k] = W[k] > wMax ? wMax : W[k]; //FIXME: No need for a max now that we have the decay terms and oja rule??
+            if (!ojaFlag) { //oja term should get rid of the need to impose a maximum weight
+               W[k] = W[k] > wMax ? wMax : W[k];
+            }
          }
 
          // advance pointers in y

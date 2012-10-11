@@ -323,8 +323,8 @@ int STDPConn::updateWeights(int axonId)
          ny  = w->ny;
 
          // 2. Updates the presynaptic trace
-         pre_tr_m[0] = aPre ? aPre : (decayLTP * pre_tr_m[0]); //nearest neighbor approximation
-         //pre_tr_m[0] = decayLTP * pre_tr_m[0] + aPre;
+         //pre_tr_m[0] = aPre ? aPre : (decayLTP * pre_tr_m[0]); // Commented because it does not account for previous time-step //nearest neighbor approximation
+         pre_tr_m[0] = decayLTP * pre_tr_m[0] + aPre;
 
          //3. Update weights
          for (int y = 0; y < ny; y++) {

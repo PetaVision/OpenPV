@@ -58,12 +58,12 @@ protected:
    float ampLTD; // long term depression amplitude
    float tauLTP;
    float tauLTD;
-   float tauLTPLong;
-   float tauLTDLong;
+   float tauOja;
    float weightDecay;
    float dWMax;
    float ojaScale;
    float STDPScale;
+   float targetRate;
 
    bool  synscalingFlag;
    bool  ojaFlag;
