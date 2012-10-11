@@ -11,7 +11,7 @@ global NUM_PROCS; NUM_PROCS =  nproc();
 rootDir                                    = '/Users/slundquist';
 workspaceDir                               = [rootDir,'/Documents/workspace/iHouse'];
 pvpDir                                     = [workspaceDir,'/denseOutput/'];
-outputDir                                  = [workspaceDir,'/denseOutput/analysis/'];
+global outputDir; outputDir                = [workspaceDir,'/denseOutput/analysis/'];
 postActivityFile                           = [pvpDir,'lif.pvp'];
 
 if (exist(outputDir, 'dir') ~= 7)
@@ -25,6 +25,7 @@ function coorFunc(activityData)
    global tLCA;
    global deltaT;
    global NUM_PROCS;
+   global outputDir;
 
    
    disp('Calculating intSpike');
