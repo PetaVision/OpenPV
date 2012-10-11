@@ -25,8 +25,8 @@ public:
    virtual int checkpointRead(const char * cpDir, float * timef);
    virtual int checkpointWrite(const char * cpDir);
 
-   inline float getTargetRate() {return targetRate;}
-   const float * getDynVthRest() {return dynVthRest;}
+   inline float getTargetRate() {return targetRateHz;}
+   const float * getDynVthRest() {return Vadpt;}
    const pvdata_t * getIntegratedSpikeCount() {return integratedSpikeCount;}
 protected:
 #ifdef PV_USE_OPENCL
@@ -53,9 +53,9 @@ protected:
    pvdata_t * integratedSpikeCount;      // plasticity decrement variable for postsynaptic layer
    float tauLCA;
    float tauTHR;
-   float targetRate;
-   float dynVthScale;
-   float * dynVthRest;
+   float targetRateHz;
+   float Vscale;
+   float * Vadpt;
    LCALIFLayer();
    int initialize(const char * name, HyPerCol * hc, int num_channels, const char * kernel_name);
    int initialize_base();

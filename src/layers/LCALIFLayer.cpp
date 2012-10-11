@@ -46,11 +46,10 @@ void LCALIF_update_state(
    const int nf,
    const int nb,
 
-   pvdata_t dynVthScale,
-   pvdata_t * dynVthRest,
-   const float tauLCA,
+   pvdata_t Vscale,
+   pvdata_t * Vadpt,
    const float tauTHR,
-   const float targetRate,
+   const float targetRateHz,
 
    pvdata_t * integratedSpikeCount,
 
@@ -85,9 +84,9 @@ LCALIFLayer::LCALIFLayer(const char * name, HyPerCol * hc) {
 int LCALIFLayer::initialize_base(){
    tauLCA = 200;
    tauTHR = 1000;
-   targetRate = 50;
-   dynVthScale = DEFAULT_DYNVTHSCALE;
-   dynVthRest = NULL;
+   targetRateHz = 50;
+   Vscale = DEFAULT_DYNVTHSCALE;
+   Vadpt = NULL;
    integratedSpikeCount = NULL;
    return PV_SUCCESS;
 }
@@ -98,19 +97,14 @@ int LCALIFLayer::initialize(const char * name, HyPerCol * hc, int num_channels, 
 
    tauLCA     = params->value(name, "tauLCA", tauLCA);
    tauTHR     = params->value(name, "tauTHR", tauTHR);
-   targetRate = params->value(name, "targetRate", targetRate);
-
-   //Initialize dynVthRest to vthRest
-   for (int i = 0; i < (int)getNumNeurons(); i++){
-      dynVthRest[i] = lParams.VthRest;
-   }
+   targetRateHz = params->value(name, "targetRate", targetRateHz);
 
    float defaultDynVthScale = lParams.VthRest-lParams.Vrest;
-   dynVthScale = defaultDynVthScale > 0 ? defaultDynVthScale : DEFAULT_DYNVTHSCALE;
-   dynVthScale = params->value(name, "dynVthScale", dynVthScale);
-   if (dynVthScale <= 0) {
+   Vscale = defaultDynVthScale > 0 ? defaultDynVthScale : DEFAULT_DYNVTHSCALE;
+   Vscale = params->value(name, "Vscale", Vscale);
+   if (Vscale <= 0) {
       if (hc->columnId()==0) {
-         fprintf(stderr,"LCALIFLayer \"%s\": dynVthScale must be positive (value in params is %f).\n", name, dynVthScale);
+         fprintf(stderr,"LCALIFLayer \"%s\": Vscale must be positive (value in params is %f).\n", name, Vscale);
       }
       abort();
    }
@@ -121,7 +115,7 @@ int LCALIFLayer::initialize(const char * name, HyPerCol * hc, int num_channels, 
 LCALIFLayer::~LCALIFLayer()
 {
    free(integratedSpikeCount);
-   free(dynVthRest);
+   free(Vadpt);
 }
 
 int LCALIFLayer::allocateBuffers() {
@@ -129,8 +123,8 @@ int LCALIFLayer::allocateBuffers() {
    //Allocate data to keep track of trace
    integratedSpikeCount = (pvdata_t *) calloc(numNeurons, sizeof(pvdata_t));
    assert(integratedSpikeCount != NULL);
-   dynVthRest = (pvdata_t *) calloc(numNeurons, sizeof(pvdata_t));
-   assert(dynVthRest != NULL);
+   Vadpt = (pvdata_t *) calloc(numNeurons, sizeof(pvdata_t));
+   assert(Vadpt != NULL);
    return LIFGap::allocateBuffers();
 }
 
@@ -139,7 +133,7 @@ int LCALIFLayer::updateState(float time, float dt)
    //Call update_state kernel
 //   std::cout << clayer->activity->data[1000] << " " << integratedSpikeCount[1000] << "\n";
    LCALIF_update_state(getNumNeurons(), time, dt, clayer->loc.nx, clayer->loc.ny, clayer->loc.nf,
-         clayer->loc.nb, dynVthScale, dynVthRest, tauLCA, tauTHR, targetRate, integratedSpikeCount, &lParams,
+         clayer->loc.nb, Vscale, Vadpt, tauTHR, targetRateHz, integratedSpikeCount, &lParams,
          rand_state, clayer->V, Vth, G_E, G_I, G_IB, GSyn[0], clayer->activity->data, sumGap, G_Gap);
    updateActiveIndices();
    return PV_SUCCESS;
@@ -166,9 +160,9 @@ int LCALIFLayer::checkpointRead(const char * cpDir, float * timef) {
       fprintf(stderr, "Warning: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
    }
 
-   chars_needed = snprintf(filename, PV_PATH_MAX, "%s_dynVthRest.pvp", basepath);
+   chars_needed = snprintf(filename, PV_PATH_MAX, "%s_Vadpt.pvp", basepath);
       assert(chars_needed < PV_PATH_MAX);
-      readBufferFile(filename, icComm, &timed, dynVthRest, 1, /*extended*/ false, /*contiguous*/false, getLayerLoc());
+      readBufferFile(filename, icComm, &timed, Vadpt, 1, /*extended*/ false, /*contiguous*/false, getLayerLoc());
       if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
          fprintf(stderr, "Warning: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
       }
@@ -193,9 +187,9 @@ int LCALIFLayer::checkpointWrite(const char * cpDir) {
    assert(chars_needed < PV_PATH_MAX);
    writeBufferFile(filename, icComm, timed, integratedSpikeCount, 1, /*extended*/false, /*contiguous*/false, getLayerLoc());
 
-   chars_needed = snprintf(filename, PV_PATH_MAX, "%s_dynVthRest.pvp", basepath);
+   chars_needed = snprintf(filename, PV_PATH_MAX, "%s_Vadpt.pvp", basepath);
    assert(chars_needed < PV_PATH_MAX);
-   writeBufferFile(filename, icComm, timed, dynVthRest, 1, /*extended*/false, /*contiguous*/false, getLayerLoc());
+   writeBufferFile(filename, icComm, timed, Vadpt, 1, /*extended*/false, /*contiguous*/false, getLayerLoc());
 
    return status;
 }
