@@ -44,7 +44,7 @@ int PointLCALIFProbe::writeState(float timef, HyPerLayer * l, int k, int kex)
 
    if (timef >= writeTime) {
       writeTime += writeStep;
-      fprintf(fp, "%s t=%.1f k=%d", msg, timef, k);
+      fprintf(fp, "%s t=%.1f k=%d kex=%d", msg, timef, k, kex);
       pvdata_t * G_E  = LCALIF_layer->getConductance(CHANNEL_EXC);
       pvdata_t * G_I  = LCALIF_layer->getConductance(CHANNEL_INH);
       pvdata_t * G_IB = LCALIF_layer->getConductance(CHANNEL_INHB);
