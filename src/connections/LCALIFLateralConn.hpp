@@ -23,7 +23,7 @@ public:
    virtual ~LCALIFLateralConn();
    virtual int updateWeights(int axonId = 0);
 
-   float getIntegratedSpikeCount(int kex) {return integratedSpikeCount[kex];}
+   float getIntegratedSpikeCount(int kex) {return integratedSpikeRate[kex];}
    float getIntegrationTimeConstant() {return integrationTimeConstant;}
    float getAdaptationTimeConstant() {return inhibitionTimeConstant;}
 
@@ -47,7 +47,7 @@ private:
 
 // Member variables
 protected:
-   float * integratedSpikeCount; // The leaky count of spikes (the weight is a decaying exponential of time since that spike)
+   float * integratedSpikeRate; // The leaky count of spikes (the weight is a decaying exponential of time since that spike)
    float integrationTimeConstant; // Time constant for the integrated spike counts, often the same as the the LCALIFLayer's tau_LCA
    float inhibitionTimeConstant; // Time constant tau_{inh}, the timescale for updating he weights in this connection
 };

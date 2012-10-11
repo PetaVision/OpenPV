@@ -22,11 +22,11 @@ LCALIFLateralConn::LCALIFLateralConn(const char * name, HyPerCol * hc, HyPerLaye
 
 LCALIFLateralConn::~LCALIFLateralConn()
 {
-   free(integratedSpikeCount); integratedSpikeCount = NULL;
+   free(integratedSpikeRate); integratedSpikeRate = NULL;
 }
 
 int LCALIFLateralConn::initialize_base() {
-   integratedSpikeCount = NULL;
+   integratedSpikeRate = NULL;
    return PV_SUCCESS;
 }
 
@@ -55,7 +55,7 @@ int LCALIFLateralConn::initialize(const char * name, HyPerCol * hc, HyPerLayer *
       }
       abort();
    }
-   integratedSpikeCount = (float *) calloc(pre->getNumExtended(), sizeof(float)); // Spike counts initialized to 0
+   integratedSpikeRate = (float *) calloc(pre->getNumExtended(), sizeof(float)); // Spike counts initialized to 0
    return status;
 }
 
@@ -72,7 +72,7 @@ int LCALIFLateralConn::calc_dW(int axonId) {
    pvdata_t * gSyn_buffer_start = post->getChannel(channel);
    LCALIFLayer * lcapre = dynamic_cast<LCALIFLayer *>(pre);
    assert(lcapre != NULL);
-   pvdata_t targetRate = lcapre->getTargetRate();
+   pvdata_t targetRate = lcapre->getTargetRate() / 1000; // Convert to kHz (DMP)
    pvdata_t target_rate_sq = targetRate * targetRate;
    float dt_inh = parent->getDeltaTime()/inhibitionTimeConstant;
    float tausq = integrationTimeConstant*integrationTimeConstant;
@@ -105,7 +105,7 @@ int LCALIFLateralConn::calc_dW(int axonId) {
             for (int f=0; f<nfp; f++) {
                int postindex = patch_start_index + sy*y + sx*x + sf*f;
                int postindexext = kIndexExtended(postindex, nxpost, nypost, nfpost, nbpost);
-               pvdata_t delta_weight = dt_inh*(integratedSpikeCount[kPre]*integratedSpikeCount[postindexext]/tausq/target_rate_sq-1.0);
+               pvdata_t delta_weight = (dt_inh/target_rate_sq) * (integratedSpikeRate[kPre] * integratedSpikeRate[postindexext] - target_rate_sq);
                dw_data[sxp*x + syp*y + sfp*f] = delta_weight;
 //               int xpre = kxPos(kPre, nxPre+2*nbPre, nyPre+2*nbPre, nfPre)-nbPre;
 //               int ypre = kyPos(kPre, nxPre+2*nbPre, nyPre+2*nbPre, nfPre)-nbPre;
@@ -152,18 +152,18 @@ int LCALIFLateralConn::updateIntegratedSpikeCount() {
    float exp_dt_tau = exp(-parent->getDeltaTime()/integrationTimeConstant);
    pvdata_t * activity = pre->getActivity();
    for (int kext=0; kext<getNumWeightPatches(); kext++) {
-      integratedSpikeCount[kext] = exp_dt_tau*(integratedSpikeCount[kext]+activity[kext]);
+      integratedSpikeRate[kext] = (exp_dt_tau/integrationTimeConstant) * (integratedSpikeRate[kext]+activity[kext]);
    }
    return PV_SUCCESS;
 }
 
 int LCALIFLateralConn::checkpointWrite(const char * cpDir) {
    int status = HyPerConn::checkpointWrite(cpDir);
-   // This is kind of hacky, but we save the extended buffer integratedSpikeCount as if it were a nonextended buffer of size (nx+2*nb)-by-(ny+2*nb)
+   // This is kind of hacky, but we save the extended buffer integratedSpikeRate as if it were a nonextended buffer of size (nx+2*nb)-by-(ny+2*nb)
    char filename[PV_PATH_MAX];
-   int chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_integratedSpikeCount.pvp", cpDir, name);
+   int chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_integratedSpikeRate.pvp", cpDir, name);
    if (chars_needed >= PV_PATH_MAX) {
-      fprintf(stderr, "LCALIFLateralConn::checkpointWrite error.  Path \"%s/%s_integratedSpikeCount.pvp\" is too long.\n", cpDir, name);
+      fprintf(stderr, "LCALIFLateralConn::checkpointWrite error.  Path \"%s/%s_integratedSpikeRate.pvp\" is too long.\n", cpDir, name);
       abort();
    }
    PVLayerLoc loc;
@@ -173,16 +173,16 @@ int LCALIFLateralConn::checkpointWrite(const char * cpDir) {
    loc.nxGlobal = loc.nx * parent->icCommunicator()->numCommColumns();
    loc.nyGlobal = loc.ny * parent->icCommunicator()->numCommRows();
    loc.nb = 0;
-   write_pvdata(filename, parent->icCommunicator(), (double) parent->simulationTime(), integratedSpikeCount, &loc, PV_FLOAT_TYPE, /*extended*/ false, /*contiguous*/ false);
+   write_pvdata(filename, parent->icCommunicator(), (double) parent->simulationTime(), integratedSpikeRate, &loc, PV_FLOAT_TYPE, /*extended*/ false, /*contiguous*/ false);
    return status;
 }
 
 int LCALIFLateralConn::checkpointRead(const char * cpDir, float* timef) {
    int status = HyPerConn::checkpointRead(cpDir, timef);
    char filename[PV_PATH_MAX];
-   int chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_integratedSpikeCount.pvp", cpDir, name);
+   int chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_integratedSpikeRate.pvp", cpDir, name);
    if (chars_needed >= PV_PATH_MAX) {
-      fprintf(stderr, "LCALIFLateralConn::checkpointWrite error.  Path \"%s/%s_integratedSpikeCount.pvp\" is too long.\n", cpDir, name);
+      fprintf(stderr, "LCALIFLateralConn::checkpointWrite error.  Path \"%s/%s_integratedSpikeRate.pvp\" is too long.\n", cpDir, name);
       abort();
    }
    double timed;
@@ -193,7 +193,7 @@ int LCALIFLateralConn::checkpointRead(const char * cpDir, float* timef) {
    loc.nxGlobal = loc.nx * parent->icCommunicator()->numCommColumns();
    loc.nyGlobal = loc.ny * parent->icCommunicator()->numCommRows();
    loc.nb = 0;
-   read_pvdata(filename, parent->icCommunicator(), &timed, integratedSpikeCount, &loc, PV_FLOAT_TYPE, /*extended*/ false, /*contiguous*/ false);
+   read_pvdata(filename, parent->icCommunicator(), &timed, integratedSpikeRate, &loc, PV_FLOAT_TYPE, /*extended*/ false, /*contiguous*/ false);
    if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
       fprintf(stderr, "Warning: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
    }
