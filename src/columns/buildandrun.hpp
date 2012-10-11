@@ -51,6 +51,7 @@
 #include "../connections/HyPerConn.hpp"
 #include "../connections/KernelConn.hpp"
 #include "../connections/NoSelfKernelConn.hpp"
+#include "../connections/OjaKernelConn.hpp"
 #include "../connections/GapConn.hpp"
 #include "../connections/CliqueConn.hpp"
 #include "../connections/SiblingConn.hpp"

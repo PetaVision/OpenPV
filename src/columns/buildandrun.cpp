@@ -130,6 +130,7 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
                "KernelConn",
                  "CloneKernelConn",
                  "NoSelfKernelConn",
+                 "OjaKernelConn",
                  "IdentConn",
                  "GenerativeConn",
                    "PoolingGenConn",
@@ -757,6 +758,15 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
       if( preLayer && postLayer ) {
          fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
          addedConn = new NoSelfKernelConn(name, hc, preLayer, postLayer, fileName, weightInitializer);
+      }
+      status = checknewobject((void *) addedConn, classkeyword, name, hc);
+   }
+   if( !keywordMatched && !strcmp(classkeyword, "OjaKernelConn") ) {
+      keywordMatched = true;
+      getPreAndPostLayers(name, hc, &preLayer, &postLayer);
+      if( preLayer && postLayer ) {
+         fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
+         addedConn = new OjaKernelConn(name, hc, preLayer, postLayer, fileName, weightInitializer);
       }
       status = checknewobject((void *) addedConn, classkeyword, name, hc);
    }
