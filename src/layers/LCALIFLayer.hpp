@@ -51,7 +51,6 @@ protected:
 
    int allocateBuffers();
    pvdata_t * integratedSpikeCount;      // plasticity decrement variable for postsynaptic layer
-   float tauLCA;
    float tauTHR;
    float targetRateHz;
    float Vscale;

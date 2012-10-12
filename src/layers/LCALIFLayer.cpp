@@ -82,9 +82,8 @@ LCALIFLayer::LCALIFLayer(const char * name, HyPerCol * hc) {
 }
 
 int LCALIFLayer::initialize_base(){
-   tauLCA = 200;
    tauTHR = 1000;
-   targetRateHz = 50;
+   targetRateHz = 1;
    Vscale = DEFAULT_DYNVTHSCALE;
    Vadpt = NULL;
    integratedSpikeCount = NULL;
@@ -95,7 +94,6 @@ int LCALIFLayer::initialize(const char * name, HyPerCol * hc, int num_channels, 
    LIFGap::initialize(name, hc, TypeLCA, num_channels, kernel_name);
    PVParams * params = hc->parameters();
 
-   tauLCA     = params->value(name, "tauLCA", tauLCA);
    tauTHR     = params->value(name, "tauTHR", tauTHR);
    targetRateHz = params->value(name, "targetRate", targetRateHz);
 
