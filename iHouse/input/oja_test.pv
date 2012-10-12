@@ -27,6 +27,8 @@ HyPerCol "column" = {
    //checkpointWriteDir  			= "~/workspace/iHouse/output/checkpoints"; // Dylan's Neuro
    checkpointWriteStepInterval  = 50000;
    suppressLastOutput           = 0;
+   
+   printParamsFilename          = "~/Documents/Work/LANL/workspace/iHouse/output/params_run.pv";
 };
 
 
@@ -85,7 +87,7 @@ ANNLayer "scaled input" = {
     nxScale                 = 1;
     nyScale                 = 1;
     nf                      = 1;
-    marginWidth             = 16;
+    marginWidth             = 1;
     mirrorBCflag            = 1;
     spikingFlag             = false;
     writeStep               = -1.0;
@@ -104,7 +106,7 @@ Retina "RetinaON" = {
     nyScale       = 1;
     nf            = 1;
     
-    marginWidth   = 16;
+    marginWidth   = 2;
     writeStep     = -1.0;
     mirrorBCflag  = 0;
     spikingFlag   = true;  // false (no quotes) is translated to 0
@@ -130,7 +132,7 @@ Retina "RetinaOFF" = {
     nyScale       = 1;
     nf            = 1;
     
-    marginWidth   = 16;
+    marginWidth   = 2;
     writeStep     = -1.0;
     mirrorBCflag  = 0;
     spikingFlag   = true;  // false (no quotes) is translated to 0
@@ -151,19 +153,19 @@ Retina "RetinaOFF" = {
 };
 
 
-LIF "lif" = {
+LCALIFLayer "lif" = {
    nxScale          = 1;		
    nyScale          = 1;		
    nf               = 1;       	
 
-   //tauTHR           = 10000;  // thresholdAdaptationTime
-   //targetRate       = 1;      // (Hz) Desired mean firing rate 
-   //Vscale           = 15;     // Scale for the change of Vadpt. Must be positive; defaults to VthRest - Vrest
+   tauTHR           = 100;  // thresholdAdaptationTime
+   targetRate       = 40;     // (Hz) Desired mean firing rate 
+   Vscale           = 15;     // Scale for the change of Vadpt. Must be positive; defaults to VthRest - Vrest
    
    writeStep        = 200;
 
    spikingFlag      = 1;       	
-   marginWidth      = 8;     	
+   marginWidth      = 0;     	
    mirrorBCflag     = 0;     	// mirroring boundary conditions
    InitVType        = "ConstantV";
    method           = "beginning";
@@ -353,9 +355,9 @@ OjaSTDPConn "RetinaON to lif" = {
    normalize_zero_offset  = 0.0;
    
    strength               = 10;
-   ampLTP                 = 1.4;//2.8; //0.02; // (ms)
-   ampLTD                 = 1; //0.0071; // (ms)
-   tauLTP                 = 2.1;//4.2;//8.4;  // (ms)
+   ampLTP                 = 2.8;  // (ms)
+   ampLTD                 = 1;    // (ms)
+   tauLTP                 = 8.4;  // (ms)
    tauLTD                 = 33.7; // (ms)
    tauOja                 = 150;  // (ms)
    targetRate             = 1;    // (Hz)
@@ -406,9 +408,9 @@ OjaSTDPConn "RetinaOFF to lif" = {
    normalize_zero_offset  = 0.0;
    
    strength               = 10;
-   ampLTP                 = 1.4;//2.8; //0.02; // (ms)
-   ampLTD                 = 1; //0.0071; // (ms)
-   tauLTP                 = 2.1;//4.2;//8.4;  // (ms)
+   ampLTP                 = 2.8;  // (ms)
+   ampLTD                 = 1;    // (ms)
+   tauLTP                 = 8.4;  // (ms)
    tauLTD                 = 33.7; // (ms)
    tauOja                 = 150;  // (ms)
    targetRate             = 1;    // (Hz)
