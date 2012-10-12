@@ -4,11 +4,11 @@
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 HyPerCol "column" = {
-   nx  			                = 64; 	// pixel width of input image
+   nx                           = 64; 	// pixel width of input image
    ny                           = 64; 	// pixel height of input image
    dt                           = 1.;     // ms // according GK
    
-   randomSeed 	                = 1020304050.0;   
+   randomSeed                   = 1020304050.0;   
 
    numSteps                     = 100000;	// amount of time steps performed during run-time
    progressStep                 = 500;    // write output to see progress
@@ -20,11 +20,11 @@ HyPerCol "column" = {
    
    filenamesContainLayerNames   = 2; 	// stores pvp files as: 0 = layer number/1 = layer number and layer name/2 = layer name
    
-   checkpointRead  				= false;
-   checkpointWrite 				= false;
-   //checkpointWriteDir  			= "~/Documents/workspace/iHouse/output/checkpoints";
-   checkpointWriteDir  			= "~/Documents/Work/LANL/workspace/iHouse/output/checkpoints"; // Dylan's Mac
-   //checkpointWriteDir  			= "~/workspace/iHouse/output/checkpoints"; // Dylan's Neuro
+   checkpointRead               = false;
+   checkpointWrite              = false;
+   //checkpointWriteDir             = "~/Documents/workspace/iHouse/output/checkpoints";
+   checkpointWriteDir           = "~/Documents/Work/LANL/workspace/iHouse/output/checkpoints"; // Dylan's Mac
+   //checkpointWriteDir             = "~/workspace/iHouse/output/checkpoints"; // Dylan's Neuro
    checkpointWriteStepInterval  = 50000;
 };
 

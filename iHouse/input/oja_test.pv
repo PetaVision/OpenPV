@@ -10,7 +10,7 @@ HyPerCol "column" = {
    
    randomSeed 	                = 1020304050.0;   
 
-   numSteps                     = 20000;	// amount of time steps performed during run-time
+   numSteps                     = 10000;	// amount of time steps performed during run-time
    progressStep                 = 500;    // write output to see progress
    writeProgressToErr           = 0;      // write progress steps to std err
    
@@ -54,13 +54,13 @@ Patterns "input" = {
    //dropPeriodRandomMax = 50;
    //dropPeriodRandomMin = 15;
    
-   maxValue            = 1;
-   minValue            = 0;
+   maxValue            = 0.75;
+   minValue            = 0.25;
 
    halfNeutral         = true;
    randomPos           = false;
 
-   startFrame          = 10000; 
+   startFrame          = 200000; 
    endFrame            = 200000;
    
    writeImages         = false;
@@ -334,7 +334,7 @@ KernelConn "ImagetoRetinaOFFSurround" = {
 // STDP connections      STDP connections      STDP connections      STDP connections      STDP connections      STDP connections      
 // STDP connections      STDP connections      STDP connections      STDP connections      STDP connections      STDP connections      
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-STDPConn "RetinaON to lif" = {
+OjaSTDPConn "RetinaON to lif" = {
    preLayerName           = "RetinaON";
    postLayerName          = "lif";
    nxp                    = 5;
@@ -353,19 +353,18 @@ STDPConn "RetinaON to lif" = {
    normalize_zero_offset  = 0.0;
    
    strength               = 10;
-   ampLTP                 = 0.02; //amp sets ratio of LTP to LTD, or how much more/less effective LTP is than LTD. LTP/LTD should ~= 0.9 per Gar
-   ampLTD                 = 0.0071;
-   tauLTP                 = 8.4;
-   tauLTD                 = 33.7;
-   tauLTPLong             = 84;    //Oja tau LTP
-   tauLTDLong             = 337;   //Oja tau LTD
-   targetRate             = 1;
+   ampLTP                 = 1.4;//2.8; //0.02; // (ms)
+   ampLTD                 = 1; //0.0071; // (ms)
+   tauLTP                 = 2.1;//4.2;//8.4;  // (ms)
+   tauLTD                 = 33.7; // (ms)
+   tauOja                 = 150;  // (ms)
+   targetRate             = 1;    // (Hz)
    weightDecay            = 0;
-   dWMax                  = 5;
+   dWMax                  = 0.001;
    wMin                   = 0.001;
    wMax 	              = 1;
    numAxonalArbors        = 1;
-   ojaFlag                = 0;      //Turns oja rule on or off.
+   ojaFlag                = 0;      //Turns oja rule on or off. Standard STDP if off
    
    combine_dW_with_W_flag = false;
    selfFlag               = false;
@@ -388,7 +387,7 @@ STDPConn "RetinaON to lif" = {
 };
 
 
-STDPConn "RetinaOFF to lif" = {
+OjaSTDPConn "RetinaOFF to lif" = {
    preLayerName           = "RetinaOFF";
    postLayerName          = "lif";
    nxp                    = 5;
@@ -407,19 +406,18 @@ STDPConn "RetinaOFF to lif" = {
    normalize_zero_offset  = 0.0;
    
    strength               = 10;
-   ampLTP                 = 0.02; //amp sets ratio of LTP to LTD, or how much more/less effective LTP is than LTD. LTP/LTD should ~= 0.9 per Gar
-   ampLTD                 = 0.0071;
-   tauLTP                 = 8.4;
-   tauLTD                 = 33.7;
-   tauLTPLong             = 84;    //Oja tau LTP
-   tauLTDLong             = 337;   //Oja tau LTD
-   targetRate             = 1;
+   ampLTP                 = 1.4;//2.8; //0.02; // (ms)
+   ampLTD                 = 1; //0.0071; // (ms)
+   tauLTP                 = 2.1;//4.2;//8.4;  // (ms)
+   tauLTD                 = 33.7; // (ms)
+   tauOja                 = 150;  // (ms)
+   targetRate             = 1;    // (Hz)
    weightDecay            = 0;
-   dWMax                  = 5;
+   dWMax                  = 0.001;
    wMin                   = 0.001;
    wMax 	              = 1;
    numAxonalArbors        = 1;
-   ojaFlag                = 0;      //Turns oja rule on or off.
+   ojaFlag                = 0;      //Turns oja rule on or off. Standard STDP if off
    
    combine_dW_with_W_flag = false;
    selfFlag               = false;
