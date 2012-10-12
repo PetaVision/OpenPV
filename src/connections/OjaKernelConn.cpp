@@ -32,10 +32,10 @@ int OjaKernelConn::initialize_base() {
 int OjaKernelConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
       const char * filename, InitWeights *weightInit) {
    int status = KernelConn::initialize(name, hc, pre, post, filename, weightInit);
-   readIntegrationTime();
-   readInputTargetRate();
-   readOutputTargetRate();
-   readIntegrationTime();
+   learningRate = readLearningRate();
+   inputTargetRate = readInputTargetRate();
+   outputTargetRate = readOutputTargetRate();
+   integrationTime = readIntegrationTime();
 
    int numarbors = numberOfAxonalArborLists();
    int n_pre_ext = getNumWeightPatches();
