@@ -339,11 +339,11 @@ pvdata_t KernelConn::updateRule_dW(pvdata_t pre, pvdata_t post) {
 }
 
 int KernelConn::updateState(float timef, float dt) {
-   update_timer->start();
    int status = PV_SUCCESS;
    if( !plasticityFlag ) {
       return status;
    }
+   update_timer->start();
    if( timef >= weightUpdateTime) {
       computeNewWeightUpdateTime(timef, weightUpdateTime);
       for(int axonID=0;axonID<numberOfAxonalArborLists();axonID++) {

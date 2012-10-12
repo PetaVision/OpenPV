@@ -1379,9 +1379,12 @@ int HyPerConn::outputState(float timef, bool last)
 
 int HyPerConn::updateState(float time, float dt)
 {
+   int status = PV_SUCCESS;
+   if( !plasticityFlag ) {
+      return status;
+   }
    update_timer->start();
 
-   int status = PV_SUCCESS;
    //const int axonId = 0;       // assume only one for now
    for(int axonId=0;axonId<numberOfAxonalArborLists();axonId++) {
       status = calc_dW(axonId);        // Calculate changes in weights
