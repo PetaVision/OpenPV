@@ -192,8 +192,8 @@ int OjaSTDPConn::updateWeights(int axonID)
    // 1. Updates the postsynaptic traces
    for (int kPost = 0; kPost < nkPost; kPost++)
    {
-      post_tr_m[kPost]      = (decayLTD) * (post_tr_m[kPost] + aPost[kPost]);
-      post_long_tr_m[kPost] = (decayOja / tauOja) * (post_long_tr_m[kPost] + aPost[kPost]);
+      post_tr_m[kPost]      = decayLTD * (post_tr_m[kPost] + aPost[kPost]);
+      post_long_tr_m[kPost] = decayOja * (post_long_tr_m[kPost] + aPost[kPost]);
    }
 
    // this stride is in extended space for post-synaptic activity and STDP decrement variable
@@ -224,8 +224,8 @@ int OjaSTDPConn::updateWeights(int axonID)
       ny  = w->ny;
 
       // 2. Updates the presynaptic trace
-      *pre_tr_m      = (decayLTP) * ((*pre_tr_m) + aPre);        //If spiked, minimum is 1. If no spike, minimum is 0.
-      *pre_long_tr_m = (decayOja / tauOja) * ((*pre_long_tr_m) + aPre);
+      *pre_tr_m      = decayLTP * ((*pre_tr_m) + aPre);        //If spiked, minimum is 1. If no spike, minimum is 0.
+      *pre_long_tr_m = decayOja * ((*pre_long_tr_m) + aPre);
 
       //3. Update weights
       for (int y = 0; y < ny; y++) {
@@ -234,7 +234,7 @@ int OjaSTDPConn::updateWeights(int axonID)
             // See LCA_Equations.pdf in documentation for description of Oja (feed-forward weight adaptation) equations.
             float ojaTerm;
             if (ojaFlag) {
-               ojaTerm = post_long_tr_m[k] * ((*pre_long_tr_m) - W[k] * post_long_tr_m[k]);
+               ojaTerm = (post_long_tr_m[k]/tauOja) * ((*pre_long_tr_m/tauOja) - W[k] * (post_long_tr_m[k]/tauOja));
             } else { //should just be standard STDP at this point
               ojaTerm = 1.0;
             }

@@ -87,8 +87,6 @@ void LCALIF_update_state(
     CL_MEM_GLOBAL float * G_Gap)
 {
 
-   int k;
-
    // convert target rate from Hz to kHz
    float targetRatekHz = targetRateHz/1000;
 
@@ -106,7 +104,7 @@ void LCALIF_update_state(
 
 #ifndef PV_USE_OPENCL
 
-for (k = 0; k < nx*ny*nf; k++) {
+for (int k = 0; k < nx*ny*nf; k++) {
 #else   
    k = get_global_id(0);
 #endif
@@ -228,7 +226,7 @@ for (k = 0; k < nx*ny*nf; k++) {
       Vadpt[k] = VthRest;
    }
    else {
-      Vadpt[k] += (dt/tauTHR) * (integratedSpikeCount[k] - targetRatekHz) * (Vscale/targetRatekHz);
+      Vadpt[k] += (dt/tauTHR) * ((integratedSpikeCount[k]/tauO) - targetRatekHz) * (Vscale/targetRatekHz);
    }
 
    l_Vth = Vadpt[k] + decayVth * (l_Vth - Vadpt[k]);
@@ -242,7 +240,7 @@ for (k = 0; k < nx*ny*nf; k++) {
 
 
    //integratedSpikeCount is the trace activity of the neuron, with an exponential decay
-   integratedSpikeCount[k] = (decayO / tauO) * (l_activ + integratedSpikeCount[k]);
+   integratedSpikeCount[k] = decayO * (l_activ + integratedSpikeCount[k]);
 
    //
    // These actions must be done outside of kernel

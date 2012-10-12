@@ -26,7 +26,7 @@ public:
    virtual int checkpointWrite(const char * cpDir);
 
    inline float getTargetRate() {return targetRateHz;}
-   const float * getDynVthRest() {return Vadpt;}
+   const float * getVadpt() {return Vadpt;}
    const pvdata_t * getIntegratedSpikeCount() {return integratedSpikeCount;}
 protected:
 #ifdef PV_USE_OPENCL

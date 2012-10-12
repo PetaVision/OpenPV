@@ -123,6 +123,9 @@ int LCALIFLayer::allocateBuffers() {
    //Allocate data to keep track of trace
    integratedSpikeCount = (pvdata_t *) calloc(numNeurons, sizeof(pvdata_t));
    assert(integratedSpikeCount != NULL);
+   for (int k=0; k<numNeurons; k++) { // Initialize integrated spikes to non-zero value
+      integratedSpikeCount[k] = targetRateHz/1000;
+   }
    Vadpt = (pvdata_t *) calloc(numNeurons, sizeof(pvdata_t));
    assert(Vadpt != NULL);
    return LIFGap::allocateBuffers();
