@@ -17,12 +17,6 @@ TrainingLayer::TrainingLayer(const char * name, HyPerCol * hc, const char * file
    initialize_base();
    initialize(name, hc, filename);
 }
-/*
-TrainingLayer::TrainingLayer(const char * name, HyPerCol * hc, const char * filename)
-: ANNLayer(name, hc) {
-   initialize( filename, hc->parameters() );
-}
-*/
 
 TrainingLayer::~TrainingLayer() {
    free(trainingLabels);
