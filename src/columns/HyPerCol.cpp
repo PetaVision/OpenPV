@@ -247,9 +247,12 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * p
    }
    ensureDirExists(outputPath);
 
-   const char * printParamsFilename = params->stringValue(name, "printParamsFilename", false);
-   if( printParamsFilename != NULL ) {
+   if (params->stringPresent(name, "printParamsFilename")) {
+      const char * printParamsFilename = params->stringValue(name, "printParamsFilename", false);
       outputParams(printParamsFilename);
+   }
+   else {
+      outputParams("params.pv");
    }
 
    // run only on GPU for now
