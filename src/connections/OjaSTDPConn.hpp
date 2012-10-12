@@ -63,7 +63,7 @@ protected:
    float dWMax;
    float ojaScale;
    float STDPScale;
-   float targetRate;
+   float targetRateHz;
 
    bool  synscalingFlag;
    bool  ojaFlag;

@@ -40,7 +40,7 @@ int OjaSTDPConn::initialize_base() {
    this->tauOja         = 337;
    this->weightDecay    = 0.01;
    this->dWMax          = 1;
-   this->targetRate     = 10;
+   this->targetRateHz   = 1;
 
    this->wMin           = 0.0001;
    this->wMax           = 1;
@@ -124,7 +124,7 @@ int OjaSTDPConn::setParams(PVParams * params)
       tauLTD         = params->value(getName(), "tauLTD", tauLTD);
       tauOja         = params->value(getName(), "tauOja", tauOja);
       weightDecay    = params->value(getName(), "weightDecay", weightDecay);
-      targetRate     = params->value(getName(), "targetRate", targetRate);
+      targetRateHz   = params->value(getName(), "targetRate", targetRateHz);
 
       wMax           = params->value(getName(), "wMax", wMax);
       wMin           = params->value(getName(), "wMin", wMin);
@@ -164,10 +164,11 @@ int OjaSTDPConn::updateWeights(int axonID)
    // 2. Update pre_tr
    // 3. Update w_ij
 
-   const float dt           = parent->getDeltaTime();
-   const float decayLTP     = exp(-dt / tauLTP);
-   const float decayLTD     = exp(-dt / tauLTD);
-   const float decayOja     = exp(-dt / tauOja);
+   const float dt            = parent->getDeltaTime();
+   const float decayLTP      = exp(-dt / tauLTP);
+   const float decayLTD      = exp(-dt / tauLTD);
+   const float decayOja      = exp(-dt / tauOja);
+   const float targetRatekHz = targetRateHz/1000; // Convert Hz to kHz
 
    const int nkPost = post_tr->numItems;
    const int nkpre  = pre->getNumExtended();
@@ -191,7 +192,7 @@ int OjaSTDPConn::updateWeights(int axonID)
    // 1. Updates the postsynaptic traces
    for (int kPost = 0; kPost < nkPost; kPost++)
    {
-      post_tr_m[kPost]      = (decayLTD / tauLTD) * (post_tr_m[kPost] + aPost[kPost]);
+      post_tr_m[kPost]      = (decayLTD) * (post_tr_m[kPost] + aPost[kPost]);
       post_long_tr_m[kPost] = (decayOja / tauOja) * (post_long_tr_m[kPost] + aPost[kPost]);
    }
 
@@ -200,7 +201,7 @@ int OjaSTDPConn::updateWeights(int axonID)
    //FIXME: In the first iteration post is -70!! (May not still be true)
 
    float scaleFactor;
-   scaleFactor = dWMax * (dt / (tauOja * targetRate));
+   scaleFactor = dWMax * (dt / (tauOja * targetRatekHz));
 
    for (int kPre = 0; kPre < nkpre; kPre++)              // Loop over all presynaptic neurons
    {
@@ -223,12 +224,13 @@ int OjaSTDPConn::updateWeights(int axonID)
       ny  = w->ny;
 
       // 2. Updates the presynaptic trace
-      *pre_tr_m      = (decayLTP / tauLTP) * ((*pre_tr_m) + aPre);        //If spiked, minimum is 1. If no spike, minimum is 0.
+      *pre_tr_m      = (decayLTP) * ((*pre_tr_m) + aPre);        //If spiked, minimum is 1. If no spike, minimum is 0.
       *pre_long_tr_m = (decayOja / tauOja) * ((*pre_long_tr_m) + aPre);
 
       //3. Update weights
       for (int y = 0; y < ny; y++) {
          for (int k = 0; k < nk; k++) {
+
             // See LCA_Equations.pdf in documentation for description of Oja (feed-forward weight adaptation) equations.
             float ojaTerm;
             if (ojaFlag) {
