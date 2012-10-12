@@ -721,10 +721,22 @@ fprintf(stderr, "[%2d]: scatterImageFileGDAL: sending to %d xSize==%d"
 #endif // PV_USE_GDAL
 
    if (status == 0) {
-     float fac = 1.0f / 255.0f;  // normalize to 1.0
-     for( int n=0; n<numTotal; n++ ) {
-        buf[n] *= fac;
-     }
+      // Workaround for gdal problem with binary images.
+      // If the all values are zero or 1, assume its a binary image and keep the values the same.
+      // If other values appear, divide by 255 to scale to [0,1]
+      bool isgrayscale = false;
+      for (int n=0; n<numTotal; n++) {
+         if (buf[n] != 0.0 && buf[n] != 1.0) {
+            isgrayscale = true;
+            break;
+         }
+      }
+      if (isgrayscale) {
+         float fac = 1.0f / 255.0f;  // normalize to 1.0
+         for( int n=0; n<numTotal; n++ ) {
+            buf[n] *= fac;
+         }
+      }
    }
    return status;
 }
