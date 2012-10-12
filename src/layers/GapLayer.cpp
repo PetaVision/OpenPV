@@ -15,6 +15,7 @@ GapLayer::GapLayer() {
 }
 
 GapLayer::GapLayer(const char * name, HyPerCol * hc, LIFGap * originalLayer) {
+   initialize_base();
    initialize(name, hc, originalLayer);
 }
 
