@@ -15,6 +15,7 @@ HMaxSimple::HMaxSimple() {
 }
 
 HMaxSimple::HMaxSimple(const char * name, HyPerCol * hc) {
+   initialize_base();
    initialize(name, hc);
 }
 
