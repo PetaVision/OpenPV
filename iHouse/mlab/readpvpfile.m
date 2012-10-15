@@ -96,6 +96,8 @@ if isempty(errorstring)
         case 3 % PV_FLOAT_TYPE
             precision = 'float32';
     end
+
+
     switch hdr.filetype
     case 1 % PVP_FILE_TYPE, used in HyPerCol::exitRunLoop
             numvalues = hdr.recordsize/hdr.datasize;
@@ -130,11 +132,20 @@ if isempty(errorstring)
             %Only one feature for now
             assert(hdr.nf == 1);
             movieFrame = 0;
+            buffer = fread(fid, Inf, '*uint8');
+            fclose(fid);
+            bufPos = 1;
             for frame=1:numframes
                 data{frame} = struct('time',0,'values',[]);
-                data{frame}.time = fread(fid,1,'float64');
-                numactive = fread(fid,1,'uint32');
-                data{frame}.values = fread(fid,numactive,'uint32');
+                data{frame}.time = typecast(buffer(bufPos:bufPos + 7), 'double');
+                bufPos += 8;
+                numactive = typecast(buffer(bufPos:bufPos + 3), 'uint32'); 
+                bufPos += 4;
+                data{frame}.values = typecast(buffer(bufPos:bufPos + (4 * numactive) - 1), 'uint32');
+                bufPos += 4 * numactive;
+               % data{frame}.time = fread(fid,1,'float64');
+               % numactive = fread(fid,1,'uint32');
+               % data{frame}.values = fread(fid,numactive,'uint32');
                 %If this is a frame of intrest
                 if((~isempty(find(frame_of_interest == frame)) || FNUM_ALL > 0) && MOVIE_FLAG > 0)
                    %%%%%%%
@@ -167,6 +178,7 @@ if isempty(errorstring)
         case 3 % PVP_WGT_FILE_TYPE
             fseek(fid,0,'bof');
             for f=1:numframes
+                %Read header
                 hdr = readpvpheader(fid,ftell(fid));
                 hdr = rmfield(hdr,'additional');
                 numextrabytes = hdr.headersize - 80;
@@ -292,7 +304,7 @@ if isempty(errorstring)
     end
 end
 
-fclose(fid);
+%fclose(fid);
 
 if ~isempty(errorident)
     error(errorident,errorstring);
