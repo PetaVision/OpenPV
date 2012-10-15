@@ -164,7 +164,7 @@ int LIF::initialize_base() {
  *
  */
 int LIF::initialize(const char * name, HyPerCol * hc, PVLayerType type, int num_channels, const char * kernel_name) {
-   setParams(parent->parameters());
+   setParams(hc->parameters(), hc->getDeltaTime());
    HyPerLayer::initialize(name, hc, num_channels);
    clayer->layerType = type;
    const size_t numNeurons = getNumNeurons();
@@ -290,9 +290,9 @@ int LIF::initializeThreadKernels(const char * kernel_name)
 
 // Set Parameters
 //
-int LIF::setParams(PVParams * p)
+int LIF::setParams(PVParams * p, float dt)
 {
-   float dt_sec = .001 * parent->getDeltaTime();  // seconds
+   float dt_sec = .001 * dt;// seconds
 
    clayer->params = &lParams;
 
