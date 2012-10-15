@@ -133,7 +133,6 @@ if isempty(errorstring)
             assert(hdr.nf == 1);
             movieFrame = 0;
             buffer = fread(fid, Inf, '*uint8');
-            fclose(fid);
             bufPos = 1;
             for frame=1:numframes
                 data{frame} = struct('time',0,'values',[]);
@@ -304,7 +303,7 @@ if isempty(errorstring)
     end
 end
 
-%fclose(fid);
+fclose(fid);
 
 if ~isempty(errorident)
     error(errorident,errorstring);

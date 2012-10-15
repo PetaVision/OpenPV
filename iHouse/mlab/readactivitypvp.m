@@ -102,13 +102,18 @@ if isempty(errorstring)
             %Only one feature for now
             assert(hdr.nf == 1);
             movieFrame = 0;
+            buffer = fread(fid, Inf, '*uint8');
+            bufPos = 1;
             frameVec = [];
             valuesVec = [];
             for frame=1:numframes
                 data{frame} = struct('time',0,'values',[]);
-                data{frame}.time = fread(fid,1,'float64');
-                numactive = fread(fid,1,'uint32');
-                data{frame}.values = fread(fid,numactive,'uint32');
+                data{frame}.time = typecast(buffer(bufPos:bufPos + 7), 'double');
+                bufPos += 8;
+                numactive = typecast(buffer(bufPos:bufPos + 3), 'uint32'); 
+                bufPos += 4;
+                data{frame}.values = typecast(buffer(bufPos:bufPos + (4 * numactive) - 1), 'uint32');
+                bufPos += 4 * numactive;
                 valuesVec = [valuesVec;(data{frame}.values + 1)];
                 frameVec = [frameVec; ones(length(data{frame}.values), 1) .* frame];
             end%End num_frames
