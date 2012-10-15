@@ -222,12 +222,7 @@ for (int k = 0; k < nx*ny*nf; k++) {
    //l_Vth updates according to traditional LIF rule in addition to the slow threshold adaptation
    //      See LCA_Equations.pdf in the documentation for a full description of the neuron adaptive firing threshold.
    
-   if (k==0) { //initial sate
-      Vadpt[k] = VthRest;
-   }
-   else {
-      Vadpt[k] += (dt/tauTHR) * ((integratedSpikeCount[k]/tauO) - targetRatekHz) * (Vscale/targetRatekHz);
-   }
+   Vadpt[k] += (dt/tauTHR) * ((integratedSpikeCount[k]/tauO) - targetRatekHz) * (Vscale/targetRatekHz);
 
    l_Vth = Vadpt[k] + decayVth * (l_Vth - Vadpt[k]);
    
