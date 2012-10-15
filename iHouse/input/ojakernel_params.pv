@@ -3,25 +3,28 @@
 // DPaiton et SLundquist y PSchultz
 ///////////////////////////////////////////////////////////////////////////////////////////
 
+debugParsing = false;
+
 HyPerCol "column" = {
-   nx  			                = 64; 	// pixel width of input image
-   ny                           = 64; 	// pixel height of input image
+   nx                           = 64;     // pixel width of input image
+   ny                           = 64;     // pixel height of input image
    dt                           = 1.;     // ms // according GK
    
-   randomSeed 	                = 1020304050.0;   
+   randomSeed                   = 1020304050.0;   
 
-   numSteps                     = 100000;	// amount of time steps performed during run-time
-   progressStep                 = 500;    // write output to see progress
-   //writeProgressToErr           = 0;      // write progress steps to std err
+   numSteps                     = 10000;    // amount of time steps performed during run-time
+   progressStep                 = 100;    // write output to see progress
+   writeProgressToErr           = 0;      // write progress steps to std err
    
    outputPath                   = "output";
    
-   filenamesContainLayerNames   = 2; 	// stores pvp files as: 0 = layer number/1 = layer number and layer name/2 = layer name
+   filenamesContainLayerNames   = 2;     // stores pvp files as: 0 = layer number/1 = layer number and layer name/2 = layer name
    
-   checkpointRead  				= false;
-   checkpointWrite 				= false;
-   checkpointWriteDir  			= "checkpoints";
-   checkpointWriteStepInterval  = 50000;
+   checkpointRead               = false;
+   checkpointWrite              = false;
+   //checkpointWriteDir           = "checkpoints";
+   //checkpointWriteStepInterval  = 50000;
+   suppressLastOutput           = false;
 };
 
 
@@ -35,8 +38,13 @@ HyPerCol "column" = {
 
 
 Patterns "input" = {
-   patternType    = "DROP";
-
+   nxScale        = 1;
+   nyScale        = 1;
+   nf             = 1;
+   marginWidth    = 0;
+   restart        = false;
+   
+   patternType         = "DROP";
    dropSpeed           = -1;   //Radius expands dropSpeed pixles per timestep
    dropSpeedRandomMax  = 3;
    dropSpeedRandomMin  = 1;
@@ -55,8 +63,7 @@ Patterns "input" = {
    endFrame            = 200000;
    
    writeImages         = false;
-   
-   patternsOutputPath = "output/sourcefiles";
+   // patternsOutputPath = "output/sourcefiles";
    
    displayPeriod  = 1;
    writeStep      = 1;
@@ -64,6 +71,7 @@ Patterns "input" = {
    mirrorBCflag   = false;
    inverseFlag    = false;
    
+   spikingFlag             = false;
    writeNonspikingActivity = true;
 };
 
@@ -77,6 +85,7 @@ ANNLayer "scaled input" = {
     spikingFlag             = false;
     writeStep               = -1.0;
 
+    restart                 = false;
     InitVType               = "ZeroV";
 
     VThresh                 = -infinity;
@@ -90,8 +99,9 @@ Retina "RetinaON" = {
     nxScale       = 1;
     nyScale       = 1;
     nf            = 1;
-    
     marginWidth   = 16;
+    restart       = false;
+    
     writeStep     = -1.0;
     mirrorBCflag  = 0;
     spikingFlag   = true;  // false (no quotes) is translated to 0
@@ -102,22 +112,20 @@ Retina "RetinaON" = {
     burstFreq     = 50;    // Hz // Everything coming into the retina should be burstin burstFreq times per sec
     burstDuration = 20;    // ms // Bursts last burstDuration ms
 
-    //beginStim   = 1;       // Restrict stimulus to a window of time
-    //endStim     = 50000;
-
-    Vrest         = 0.0;
+    beginStim     = 1;       // Restrict stimulus to a window of time
+    endStim       = 50000;
     
     refractoryPeriod    = 0;
     absRefractoryPeriod = 0;
 };
-
 
 Retina "RetinaOFF" = {
     nxScale       = 1;
     nyScale       = 1;
     nf            = 1;
-    
     marginWidth   = 16;
+    restart       = false;
+    
     writeStep     = -1.0;
     mirrorBCflag  = 0;
     spikingFlag   = true;  // false (no quotes) is translated to 0
@@ -128,51 +136,48 @@ Retina "RetinaOFF" = {
     burstFreq     = 50;    // Hz // Everything coming into the retina should be burstin burstFreq times per sec
     burstDuration = 20;    // ms // Bursts last burstDuration ms
 
-    //beginStim   = 1;       // Restrict stimulus to a window of time
-    //endStim     = 50000;
-    
-    Vrest = 0.0;
-    
+    beginStim     = 1;       // Restrict stimulus to a window of time
+    endStim       = 50000;
+        
     refractoryPeriod    = 0;
     absRefractoryPeriod = 0;
 };
 
 
-LCALIFLayer "lif" = {
-   nxScale          = 4;		
-   nyScale          = 4;		
-   nf               = 1;       	
+LCALIFLayer "lcalif" = {
+   nxScale          = 4;        
+   nyScale          = 4;        
+   nf               = 1;           
 
-   tauLCA           = 200;
    tauTHR           = 10000;
    targetRate       = 1;
 
-   spikingFlag      = 1;       	
-   marginWidth      = 8;     	
+   spikingFlag      = 1;           
+   marginWidth      = 8;         
    writeStep        = -1;
-   mirrorBCflag     = 0;     	// mirroring boundary conditions
+   mirrorBCflag     = 0;         // mirroring boundary conditions
    InitVType        = "ConstantV";
    method           = "beginning";
-   valueV			= -70.0;
+   valueV            = -70.0;
    Vrest            = -70.0;    
-   restart          = 0.0;     	// from graylast
-   Vexc             = 0.0;     	// reversal potential 
-   Vinh             = -75.0;   	// chloride channel
-   VinhB            = -90.0;   	// potassium reversal
-   tau              = 10.0;    	// intrinsic leak membrane time constant (max)
-   tauE             = 1.0;     	// how long glutamine stays bound
-   tauI             = 5.0;     	// how long GABA stays bound
-   tauIB            = 10.0;    	// inhibitory potassium channel 
-   VthRest          = -55.0;   	// firing threshold 15 mV above rest
-   tauVth           = 10.0;    	// 10.0 relative refractory period
-   deltaVth         = 5.0;     	// jump of threshold when firing
-   noiseAmpE        = 1;     	// 0.5 1 means conductance is equal to lead conductance  gjk
-   noiseAmpI        = 1;     	// 0,5 "twice as easy for the membrane capacitance to discharge" gjk
-   noiseAmpIB       = 0.0;     	// no noise here 
-   noiseFreqE       = 250.;    	// spontaneous transmitter release/channel openings
-   noiseFreqI       = 250.;    	// correlation to time step size !!!
-   noiseFreqIB      =   0.;    	// should be scaled by the time constant - look at LIF model
-   dynVthScale      = 15.0;     // Scale for the change of dynVthRest. Must be positive; defaults to VthRest - Vrest
+   restart          = 0.0;         // from graylast
+   Vexc             = 0.0;         // reversal potential 
+   Vinh             = -75.0;       // chloride channel
+   VinhB            = -90.0;       // potassium reversal
+   tau              = 10.0;        // intrinsic leak membrane time constant (max)
+   tauE             = 1.0;         // how long glutamine stays bound
+   tauI             = 5.0;         // how long GABA stays bound
+   tauIB            = 10.0;        // inhibitory potassium channel 
+   VthRest          = -55.0;       // firing threshold 15 mV above rest
+   tauVth           = 10.0;        // 10.0 relative refractory period
+   deltaVth         = 5.0;         // jump of threshold when firing
+   noiseAmpE        = 1;         // 0.5 1 means conductance is equal to lead conductance  gjk
+   noiseAmpI        = 1;         // 0,5 "twice as easy for the membrane capacitance to discharge" gjk
+   noiseAmpIB       = 0.0;         // no noise here 
+   noiseFreqE       = 250.;        // spontaneous transmitter release/channel openings
+   noiseFreqI       = 250.;        // correlation to time step size !!!
+   noiseFreqIB      =   0.;        // should be scaled by the time constant - look at LIF model
+   Vscale           = 15.0;        // Scale for the change of dynVthRest. Must be positive; defaults to VthRest - Vrest
 };
 
 
@@ -188,14 +193,14 @@ LCALIFLayer "lif" = {
 KernelConn "input to scaled input" = {
     preLayerName  = "input";
     postLayerName = "scaled input";
+    channelCode     = 0;
 
-    channelCode   = 0;
-    nxp           = 1;
-    nyp           = 1;
-    nfp           = 1;
-    delay         = 0;
+    nxp             = 1;
+    nyp             = 1;
+    nfp             = 1;
+    numAxonalArbors = 1;
+    delay           = 0;
 
-    numAxonalArbors  = 1;
     writeStep        = -1;
     initFromLastFlag = 0;
     
@@ -209,31 +214,37 @@ KernelConn "input to scaled input" = {
     writeCompressedWeights = true;
     selfFlag               = false;
     shrinkPatches          = false;
+    preActivityIsNotRate   = false;
 };
 
 KernelConn "ImagetoRetinaONCenter" = {
-   preLayerName  = "scaled input";
-   postLayerName = "RetinaON";
-   channelCode   = 0;
-   nxp           = 1; 
-   nyp           = 1; 
-   nfp           = 1;
-   delay         = 0;
+   preLayerName    = "scaled input";
+   postLayerName   = "RetinaON";
+   channelCode     = 0;
+   nxp             = 1; 
+   nyp             = 1; 
+   nfp             = 1;
+   numAxonalArbors = 1;
+   delay           = 0;
    
-   stdpFlag         = 0;
    initFromLastFlag = 0;  
    writeStep        = -1;
 
-   weightInitType = "InitGauss2DWeights";
+   weightInitType = "Gauss2DWeight";
    aspect         = 1;
    sigma          = 1;
+   rMin           = 0;
    rMax           = 1;   
    strength       = 50;
 
-   normalize             = false;
-   normalize_zero_offset = 0.0;
-   normalize_max 	     = 0.0;
-   symmetrizeWeights     = 0;
+   normalize              = false;
+   symmetrizeWeights      = false;
+   plasticityFlag         = false;
+   stochasticReleaseFlag  = false;
+   writeCompressedWeights = true;
+   selfFlag               = false;
+   shrinkPatches          = false;
+   preActivityIsNotRate   = false;
 };
 
 KernelConn "ImagetoRetinaONSurround" = {
@@ -243,23 +254,31 @@ KernelConn "ImagetoRetinaONSurround" = {
    nxp                   = 3;
    nyp                   = 3;
    nfp                   = 1;
+   numAxonalArbors       = 1;
    delay                 = 0;
 
-   stdpFlag              = 0;
    initFromLastFlag      = 0;
    writeStep             = -1;
 
-   weightInitType        = "InitGauss2DWeights";
+   weightInitType        = "Gauss2DWeight";
    aspect                = 1;
    sigma                 = 1;
    rMax                  = 5;
    rMin                  = 0;
    strength              = 50;
 
-   normalize             = true;
-   normalize_zero_offset = 0.0;
-   normalize_max         = 0.0;
-   symmetrizeWeights     = 0;
+   normalize              = true;
+   normalizeTotalToPost   = false;
+   normalize_max          = false;
+   normalize_zero_offset  = false;
+   normalize_cutoff       = false;
+   symmetrizeWeights      = false;
+   plasticityFlag         = false;
+   stochasticReleaseFlag  = false;
+   writeCompressedWeights = true;
+   selfFlag               = false;
+   shrinkPatches          = false;
+   preActivityIsNotRate   = false;
 };
 
 
@@ -270,22 +289,27 @@ KernelConn "ImagetoRetinaOFFCenter" = {
    nxp                   = 1; 
    nyp                   = 1; 
    nfp                   = 1;
+   numAxonalArbors       = 1;
    delay                 = 0;
    
-   stdpFlag              = 0;
    initFromLastFlag      = 0;  
    writeStep             = -1;
 
-   weightInitType        = "InitGauss2DWeights";
+   weightInitType        = "Gauss2DWeight";
    aspect                = 1;
    sigma                 = 1;
+   rMin                  = 0;
    rMax                  = 1;   
    strength              = 50;
 
    normalize             = false;
-   normalize_zero_offset = 0.0;
-   normalize_max 	     = 0.0;
-   symmetrizeWeights     = 0;
+   symmetrizeWeights      = false;
+   plasticityFlag         = false;
+   stochasticReleaseFlag  = false;
+   writeCompressedWeights = true;
+   selfFlag               = false;
+   shrinkPatches          = false;
+   preActivityIsNotRate  = false;
 };
 
 
@@ -296,62 +320,57 @@ KernelConn "ImagetoRetinaOFFSurround" = {
    nxp                   = 3;
    nyp                   = 3;
    nfp                   = 1;
+   numAxonalArbors       = 1;
    delay                 = 0;
    strength              = 50;
 
-   stdpFlag              = 0;
    initFromLastFlag      = 0;
    writeStep             = -1;
 
-   weightInitType        = "InitGauss2DWeights";
+   weightInitType        = "Gauss2DWeight";
    aspect                = 1;
    sigma                 = 1;
    rMax                  = 5;
    rMin                  = 0;
 
-   normalize             = true;
-   normalize_zero_offset = 0.0;
-   normalize_max         = 0.0;
-   symmetrizeWeights     = 0;
+   normalize              = true;
+   normalizeTotalToPost   = false;
+   normalize_max          = false;
+   normalize_zero_offset  = false;
+   normalize_cutoff       = false;
+   symmetrizeWeights      = false;
+   plasticityFlag         = false;
+   stochasticReleaseFlag  = false;
+   writeCompressedWeights = true;
+   selfFlag               = false;
+   shrinkPatches          = false;
+   preActivityIsNotRate   = false;
 };
 
 OjaKernelConn "RetinaONtoS1" = {
    preLayerName           = "RetinaON";
-   postLayerName          = "lif";
+   postLayerName          = "lcalif";
    nxp                    = 20;
    nyp                    = 20;
    nfp                    = 1;
+   numAxonalArbors        = 1;
    channelCode            = 0;
-   stdpFlag               = 1;
    delay                  = 0.0;
    
    initFromLastFlag       = 0;  // 1;  /dr/ restart
    
+   initialWriteTime       = 0;
    writeStep              = 2000;
+   writeCompressedWeights = 0.0;
    
    normalize              = false;
-   normalize_max          = true;
-   normalize_zero_offset  = 0.0;
-   
-   strength               = 10;
-   ampLTP                 = 0.02; //amp sets ratio of LTP to LTD, or how much more/less effective LTP is than LTD. LTP/LTD should ~= 0.9 per Gar
-   ampLTD                 = 0.0071;
-   tauLTP                 = 8.4;
-   tauLTD                 = 33.7;
-   tauLTPLong             = 84;    //Oja tau LTP
-   tauLTDLong             = 337;   //Oja tau LTD
-   weightDecay            = 0;
-   dWMax                  = 5;
-   wMin                   = 0.001;
-   wMax 	              = 1;
-   numAxonalArbors        = 1;
-   ojaFlag                = 0;      //Turns oja rule on or off.
-   
+
    combine_dW_with_W_flag = false;
    selfFlag               = false;
+   preActivityIsNotRate   = false;
+   keepKernelsSynchronized = true;
 
    weightInitType         = "UniformRandomWeight";
-   weightInit             = 0.001;
    wMaxInit               = 0.5;
    wMinInit               = 0.005;
    
@@ -359,52 +378,37 @@ OjaKernelConn "RetinaONtoS1" = {
    
    plasticityFlag         = true;
    shrinkPatches          = false;
-   writeCompressedWeights = 0.0;
    stochasticReleaseFlag  = false;
+   initialWeightUpdateTime = 0.0;
    weightUpdatePeriod     = 1.0;
    
-   synscalingFlag         = 0;
-   synscaling_v           = 5;
 };
 
 
 OjaKernelConn "RetinaOFFtoS1" = {
    preLayerName           = "RetinaOFF";
-   postLayerName          = "lif";
+   postLayerName          = "lcalif";
    nxp                    = 20;
    nyp                    = 20;
    nfp                    = 1;
+   numAxonalArbors        = 1;
    channelCode            = 0;
-   stdpFlag               = 1;
    delay                  = 0.0;
    
    initFromLastFlag       = 0;  // 1;  /dr/ restart
    
+   initialWriteTime       = 0.0;
    writeStep              = 2000;
+   writeCompressedWeights = 0.0;
    
    normalize              = false;
-   normalize_max          = true;
-   normalize_zero_offset  = 0.0;
-   
-   strength               = 10;
-   ampLTP                 = 0.02; //amp sets ratio of LTP to LTD, or how much more/less effective LTP is than LTD. LTP/LTD should ~= 0.9 per Gar
-   ampLTD                 = 0.0071;
-   tauLTP                 = 8.4;
-   tauLTD                 = 33.7;
-   tauLTPLong             = 84;    //Oja tau LTP
-   tauLTDLong             = 337;   //Oja tau LTD
-   weightDecay            = 0;
-   dWMax                  = 5;
-   wMin                   = 0.001;
-   wMax 	              = 1;
-   numAxonalArbors        = 1;
-   ojaFlag                = 0;      //Turns oja rule on or off.
    
    combine_dW_with_W_flag = false;
    selfFlag               = false;
+   preActivityIsNotRate   = false;
+   keepKernelsSynchronized = true;
 
    weightInitType         = "UniformRandomWeight";
-   weightInit             = 0.001;
    wMaxInit               = 0.5;
    wMinInit               = 0.005;
    
@@ -412,10 +416,17 @@ OjaKernelConn "RetinaOFFtoS1" = {
    
    plasticityFlag         = true;
    shrinkPatches          = false;
-   writeCompressedWeights = 0.0;
    stochasticReleaseFlag  = false;
+   initialWeightUpdateTime = 0.0;
    weightUpdatePeriod     = 1.0;
    
-   synscalingFlag         = 0;
-   synscaling_v           = 5;
+};
+
+PointProbe "RetinaON Probe" = {
+   targetLayer = "RetinaON";
+   probeOutputFile = "RetinaON_31_31_0.txt";
+   message = "RetinaON Probe ";
+   xLoc = 31;
+   yLoc = 31;
+   fLoc = 0;
 };
