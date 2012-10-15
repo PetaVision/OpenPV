@@ -174,6 +174,7 @@ if isempty(errorstring)
             if eq(MOVIE_FLAG,1)
                 system(['ffmpeg -loglevel 0 -v 0 -r 20 -f image2 -i ',inst_movie_path,rootname,'_%03d.',OUT_FILE_EXT,' -sameq -y ',output_path,'pvp_instantaneous_movie.mp4 &']);
             end%if eq(MOVIE_FLAG,1)
+            clear buffer;
         case 3 % PVP_WGT_FILE_TYPE
             fseek(fid,0,'bof');
             for f=1:numframes

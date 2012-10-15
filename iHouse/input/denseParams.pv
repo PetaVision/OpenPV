@@ -347,11 +347,11 @@ OjaSTDPConn "RetinaONtoS1" = {
    normalize_zero_offset  = 0.0;
    
    strength               = 10;
-   ampLTP                 = 0.02; //amp sets ratio of LTP to LTD, or how much more/less effective LTP is than LTD. LTP/LTD should ~= 0.9 per Gar
-   ampLTD                 = 0.0071;
-   tauLTP                 = 8.4;
+   ampLTP                 = 2.8; 
+   ampLTD                 = 1;
+   tauLTP                 = 4.4;
    tauLTD                 = 33.7;
-   tauOja                 = 84;    //Oja tau LTP
+   tauOja                 = 150;    //Oja tau LTP
    targetRate             = 1;
    weightDecay            = 0;
    dWMax                  = 5;
@@ -400,11 +400,11 @@ OjaSTDPConn "RetinaOFFtoS1" = {
    normalize_zero_offset  = 0.0;
    
    strength               = 10;
-   ampLTP                 = 0.02; //amp sets ratio of LTP to LTD, or how much more/less effective LTP is than LTD. LTP/LTD should ~= 0.9 per Gar
-   ampLTD                 = 0.0071;
-   tauLTP                 = 8.4;
+   ampLTP                 = 2.8; //amp sets ratio of LTP to LTD, or how much more/less effective LTP is than LTD. LTP/LTD should ~= 0.9 per Gar
+   ampLTD                 = 1;
+   tauLTP                 = 4.4;
    tauLTD                 = 33.7;
-   tauOja                 = 125;    //Oja tau
+   tauOja                 = 150;    //Oja tau
    targetRate             = 1;
    weightDecay            = 0;
    dWMax                  = 5;
