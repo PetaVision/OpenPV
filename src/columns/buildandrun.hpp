@@ -50,6 +50,7 @@
 #include "../connections/HyPerConn.hpp"
 #include "../connections/HyPerConn.hpp"
 #include "../connections/KernelConn.hpp"
+#include "../connections/LCAConn.hpp"
 #include "../connections/NoSelfKernelConn.hpp"
 #include "../connections/OjaKernelConn.hpp"
 #include "../connections/GapConn.hpp"

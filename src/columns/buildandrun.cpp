@@ -128,6 +128,7 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
            "_Start_HyPerConns_",
              "HyPerConn",
                "KernelConn",
+	       "LCAConn",
                  "CloneKernelConn",
                  "NoSelfKernelConn",
                  "OjaKernelConn",
@@ -700,6 +701,7 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
    const char * fileName;
    HyPerLayer * preLayer, * postLayer;
    HyPerConn * auxConn;
+   HyPerLayer * auxLayer;
    PVParams * params = hc->parameters();
    InitWeights *weightInitializer;
 
@@ -742,6 +744,16 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
          addedConn = (HyPerConn * ) new KernelConn(name, hc, preLayer, postLayer, fileName, weightInitializer);
       }
       status = checknewobject((void *) addedConn, classkeyword, name, hc);
+   }
+   if( !keywordMatched && !strcmp(classkeyword, "LCAConn") ) {
+     keywordMatched = true;
+     getPreAndPostLayers(name, hc, &preLayer, &postLayer);
+     if( preLayer && postLayer ) {
+       fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
+       auxLayer = getLayerFromParameterGroup(name, hc, "otherLayerName");
+       addedConn = (HyPerConn * ) new LCAConn(name, hc, preLayer, postLayer, fileName, weightInitializer, dynamic_cast<Movie *>(auxLayer) );
+     }
+     status = checknewobject((void *) addedConn, classkeyword, name, hc);
    }
    if( !keywordMatched && !strcmp( classkeyword, "CloneKernelConn") ) {
       keywordMatched = true;
