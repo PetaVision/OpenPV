@@ -25,7 +25,6 @@ namespace PV {
     pvdata_t input = *(layerOfInterest->getImageBuffer());
     return pre*(post-input);
   }
-
 }
 
 
