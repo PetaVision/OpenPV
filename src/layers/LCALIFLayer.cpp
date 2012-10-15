@@ -107,6 +107,16 @@ int LCALIFLayer::initialize(const char * name, HyPerCol * hc, int num_channels, 
       abort();
    }
 
+   int numNeurons = getNumNeurons();
+   for (int k=0; k<numNeurons; k++) { // Initialize integrated spikes to non-zero value
+      integratedSpikeCount[k] = targetRateHz/1000;
+   }
+
+   std::cout << "VthRest: " << lParams.VthRest << "\n";
+   for (int k=0; k<numNeurons; k++) { // Initialize integrated spikes to non-zero value
+      Vadpt[k] = lParams.VthRest;
+   }
+
    return PV_SUCCESS;
 }
 
@@ -121,16 +131,8 @@ int LCALIFLayer::allocateBuffers() {
    //Allocate data to keep track of trace
    integratedSpikeCount = (pvdata_t *) calloc(numNeurons, sizeof(pvdata_t));
    assert(integratedSpikeCount != NULL);
-   for (int k=0; k<numNeurons; k++) { // Initialize integrated spikes to non-zero value
-      integratedSpikeCount[k] = targetRateHz/1000;
-   }
    Vadpt = (pvdata_t *) calloc(numNeurons, sizeof(pvdata_t));
    assert(Vadpt != NULL);
-   std::cout << "VthRest: " << lParams.VthRest << "\n";
-   for (int k=0; k<numNeurons; k++) { // Initialize integrated spikes to non-zero value
-      Vadpt[k] = lParams.VthRest;
-   }
-
    return LIFGap::allocateBuffers();
 }
 
