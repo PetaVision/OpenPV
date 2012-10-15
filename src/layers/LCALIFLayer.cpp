@@ -126,6 +126,7 @@ int LCALIFLayer::allocateBuffers() {
    }
    Vadpt = (pvdata_t *) calloc(numNeurons, sizeof(pvdata_t));
    assert(Vadpt != NULL);
+   std::cout << "VthRest: " << lParams.VthRest << "\n";
    for (int k=0; k<numNeurons; k++) { // Initialize integrated spikes to non-zero value
       Vadpt[k] = lParams.VthRest;
    }
