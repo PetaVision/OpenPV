@@ -27,7 +27,6 @@ protected:
 		 InitWeights *weightInit=NULL,
 		 Movie * auxLayer=NULL);
   pvdata_t updateRule_dW(pvdata_t pre, pvdata_t post);
-  int updateState(float timef, float dt);
   Movie * layerOfInterest;
 };
 
