@@ -104,8 +104,13 @@ protected:
    int dropPeriodRandomMax;
    int dropPeriodRandomMin;
    int nextDropFrame;
+   int nextPosChangeFrame;
+   int xPos;
+   int yPos;
    int onOffFlag;
-   int randomPosFlag;
+   int dropPosition;
+   int dropPositionRandomMax;
+   int dropPositionRandomMin;
    int startFrame;
    int endFrame;
 

@@ -138,7 +138,6 @@ int LCALIFLayer::allocateBuffers() {
 int LCALIFLayer::updateState(float time, float dt)
 {
    //Calculate_state kernel
-//   std::cout << clayer->activity->data[1000] << " " << integratedSpikeCount[1000] << "\n";
    LCALIF_update_state(getNumNeurons(), time, dt, clayer->loc.nx, clayer->loc.ny, clayer->loc.nf,
          clayer->loc.nb, Vscale, Vadpt, tauTHR, targetRateHz, integratedSpikeCount, &lParams,
          rand_state, clayer->V, Vth, G_E, G_I, G_IB, GSyn[0], clayer->activity->data, sumGap, G_Gap);

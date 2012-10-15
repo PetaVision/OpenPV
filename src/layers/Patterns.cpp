@@ -105,6 +105,12 @@ int Patterns::initialize(const char * name, HyPerCol * hc, PatternType type) {
       dropPeriodRandomMax = params->value(name, "dropPeriodRandomMax", 20);
       dropPeriodRandomMin = params->value(name, "dropPeriodRandomMin", 5);
 
+      //Random position is -1 for random number of drops from pos, 0 for drop from center, otherwise
+      //number of timesteps in which the drop stays at the position
+      dropPosition = params->value(name, "dropPosition", 0);
+      dropPositionRandomMax = params->value(name, "dropPositionRandomMax", 20);
+      dropPositionRandomMin = params->value(name, "dropPositionRandomMin", 5);
+
       maxVal = params->value(name,"maxValue", PATTERNS_MAXVAL);
       onOffFlag = params->value(name, "halfNeutral", 0);
 
@@ -114,8 +120,6 @@ int Patterns::initialize(const char * name, HyPerCol * hc, PatternType type) {
       else {
          minVal = maxVal;
       }
-
-      randomPosFlag = params->value(name, "randomPos", 0);
 
       startFrame = params->value(name, "startFrame", 0);
       endFrame = params->value(name, "endFrame", 0);
@@ -127,6 +131,21 @@ int Patterns::initialize(const char * name, HyPerCol * hc, PatternType type) {
       }
       else{
          nextDropFrame = dropPeriod;
+      }
+
+      if(dropPosition == -1){
+         nextPosChangeFrame = nextDropFrame + dropPositionRandomMin + (dropPositionRandomMax - dropPositionRandomMin) * pv_random_prob();
+         xPos = floor(loc->nxGlobal * pv_random_prob());
+         yPos = floor(loc->nyGlobal * pv_random_prob());
+      }
+      else if(dropPosition == 0){
+         xPos = floor((loc->nxGlobal - 1) / 2);
+         yPos = floor((loc->nyGlobal - 1) / 2);
+      }
+      else{
+         nextPosChangeFrame = nextDropFrame + dropPosition;
+         xPos = floor(loc->nxGlobal * pv_random_prob());
+         yPos = floor(loc->nyGlobal * pv_random_prob());
       }
       MPI_Bcast(&nextDropFrame, 1, MPI_INT, 0, parent->icCommunicator()->communicator());
    }
@@ -522,6 +541,21 @@ int Patterns::drawDrops() {
       }
    }
 
+   //Change x and y position if needed
+   if(framenumber >= nextPosChangeFrame && dropPosition != 0){
+      if(dropPosition == -1){
+         nextPosChangeFrame += dropPositionRandomMin + (dropPositionRandomMax - dropPositionRandomMin) * pv_random_prob();
+         xPos = floor(loc->nxGlobal * pv_random_prob());
+         yPos = floor(loc->nyGlobal * pv_random_prob());
+      }
+      else{
+         nextPosChangeFrame += dropPosition;
+         xPos = floor(loc->nxGlobal * pv_random_prob());
+         yPos = floor(loc->nyGlobal * pv_random_prob());
+      }
+      //No need to communicate it since drop creator will decide where to drop
+   }
+
    //Add new circles
    if(framenumber >= nextDropFrame && framenumber <= endFrame){
       if(dropPeriod == -1){
@@ -539,15 +573,8 @@ int Patterns::drawDrops() {
       else{
          newDrop.speed = dropSpeed;
       }
-      //Random center pos
-      if(randomPosFlag > 0){
-         newDrop.centerX = floor(nxgl * pv_random_prob());
-         newDrop.centerY = floor(nygl * pv_random_prob());
-      }
-      else{
-         newDrop.centerX = floor((nxgl-1) / 2);
-         newDrop.centerY = floor((nygl-1) / 2);
-      }
+      newDrop.centerX = xPos;
+      newDrop.centerY = yPos;
       //Random on/off input
       if(pv_random_prob() < .5){
          newDrop.on = true;
