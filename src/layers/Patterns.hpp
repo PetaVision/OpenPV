@@ -68,9 +68,15 @@ protected:
    Patterns();
    int initialize(const char * name, HyPerCol * hc, PatternType type);
    virtual int readOffsets() {return PV_SUCCESS;}
+   OrientationMode readOrientation();
    int setOrientation(OrientationMode ormode);
-   int generatePattern(float val);
-   int generateBars(OrientationMode ormode, pvdata_t * buf, int nx, int ny, float val);
+   MovementType readMovementType();
+   int drawPattern(float val);
+   int drawBars(OrientationMode ormode, pvdata_t * buf, int nx, int ny, float val);
+   int drawRectangles(float val);
+   int drawWaves(float val);
+   int drawImpulse();
+   int drawDrops();
    int updatePattern(float timef);
    float calcPosition(float pos, int step);
 
@@ -82,10 +88,8 @@ protected:
                               //or random jumping)
 
 //   int writeImages;  // Base class Image already has member variable writeImages
-   int writePosition;     // If using jitter, write positions to input/image-pos.txt
+   int writePosition;     // write positions to input/image-pos.txt
    float position;
-   int lastPosition;
-   int prefPosition;
    float pSwitch;
    float pMove;
    float movementSpeed; //save a movement speed in pixels/time step

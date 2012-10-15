@@ -25,125 +25,78 @@ Patterns::Patterns(const char * name, HyPerCol * hc, PatternType type) {
    initialize(name, hc, type);
 }
 
+Patterns::~Patterns()
+{
+   free(patternsOutputPath);
+   vDrops.clear();
+
+   if( patternsFile != NULL ) {
+      fclose(patternsFile);
+      patternsFile = NULL;
+   }
+}
+
 int Patterns::initialize_base() {
+   writePosition = 0;
    patternsOutputPath = NULL;
    patternsFile = NULL;
    framenumber = 0;
+   maxVal = 0.0;
+   initPatternCntr = 0;
    vDrops.clear();
 
    return PV_SUCCESS;
 }
 
-
-
 int Patterns::initialize(const char * name, HyPerCol * hc, PatternType type) {
    Image::initialize(name, hc, NULL);
-   assert(this->clayer->loc.nf == 1);
+   assert(getLayerLoc()->nf == 1);
    this->type = type;
-
-   // set default params
-   // set reference position of bars
-   this->prefPosition = 0; // 3; why was the old default 3???
-   this->position = this->prefPosition;
-   this->lastPosition = this->prefPosition;
-
-   // set orientation mode
-   const char * allowedOrientationModes[] = { // these strings should correspond to the types in enum PatternType in Patterns.hpp
-         "HORIZONTAL",
-         "VERTICAL",
-         "MIXED",
-         "_End_allowedOrientationTypes"  // Keep this string; it allows the string matching loop to know when to stop.
-   };
-   //if the orientation isn't set, use vertical as the default...
-   const char * orientationModeStr = hc->parameters()->stringValue(name, "orientation");
-   if( ! orientationModeStr ) {
-      this->orientation = vertical;
-   }
-   else {
-      OrientationMode orientationMode;
-      int orientationModeMatch = false;
-      for( int i=0; strcmp(allowedOrientationModes[i],"_End_allowedOrientationTypes"); i++ ) {
-         const char * thisorientationmode = allowedOrientationModes[i];
-         if( !strcmp(orientationModeStr, thisorientationmode) ) {
-            orientationMode = (OrientationMode) i;
-            orientationModeMatch = true;
-            break;
-         }
-      }
-      if( orientationModeMatch ) {
-         this->orientation = orientationMode;
-      }
-      else { //if the set orientation isn't recognized, use vertical as default
-         this->orientation = vertical;
-      }
-   }
-
-   //set movement type (random walk is default)
-   const char * allowedMovementTypes[] = { // these strings should correspond to the types in enum PatternType in Patterns.hpp
-         "RANDOMWALK",
-         "MOVEFORWARD",
-         "MOVEBACKWARD",
-         "RANDOMJUMP",
-         "_End_allowedPatternTypes"  // Keep this string; it allows the string matching loop to know when to stop.
-   };
-   //if the movement type isn't set, use random walk as the default...
-   const char * movementTypeStr = hc->parameters()->stringValue(name, "movementType");
-   if( ! movementTypeStr ) {
-      this->movementType = RANDOMWALK;
-   }
-   else {
-      MovementType movementType;
-      int movementTypeMatch = false;
-      for( int i=0; strcmp(allowedMovementTypes[i],"_End_allowedPatternTypes"); i++ ) {
-         const char * thisMovementType = allowedMovementTypes[i];
-         if( !strcmp(movementTypeStr, thisMovementType) ) {
-            movementType = (MovementType) i;
-            movementTypeMatch = true;
-            break;
-         }
-      }
-      if( movementTypeMatch ) {
-         this->movementType = movementType;
-      }
-      else { //if the set movement type isn't recognized, use random walk as default
-         this->movementType = RANDOMWALK;
-      }
-   }
-
+   PVParams * params = hc->parameters();
    const PVLayerLoc * loc = getLayerLoc();
 
-   // check for explicit parameters in params.stdp
-   //
-   PVParams * params = hc->parameters();
-
-   maxVal = params->value(name,"maxValue", PATTERNS_MAXVAL);
-   minVal = params->value(name,"minValue", PATTERNS_MINVAL);
-
-   if( type == RECTANGLES ) {
+   if (type==BARS) {
+      orientation = readOrientation();
+      setOrientation(orientation);
+      pMove   = params->value(name, "pMove", 0.0);
+      pSwitch = params->value(name, "pSwitch", 0.0);
+      movementType = readMovementType();
+      movementSpeed = params->value(name, "movementSpeed", 1);
+      writePosition = (int) params->value(name,"writePosition", 0);
+      maxVal = params->value(name,"maxValue", PATTERNS_MAXVAL);
+      maxWidth  = params->value(name, "width", loc->nx); // width of bar when bar is vertical
+      maxHeight = params->value(name, "height", loc->ny); // height of bar when bar is horizontal
+      wavelengthVert = params->value(name, "wavelengthVert", 2*maxWidth);
+      wavelengthHoriz = params->value(name, "wavelengthHoriz", 2*maxHeight);
+      position = 0;
+   }
+   if (type==RECTANGLES) {
+      maxVal = params->value(name,"maxValue", PATTERNS_MAXVAL);
       maxWidth  = params->value(name, "maxWidth", loc->nx);
       maxHeight = params->value(name, "maxHeight", loc->ny);
       minWidth = params->value(name, "minWidth", maxWidth);
       minHeight = params->value(name, "minWeight", maxHeight);
+      movementType = readMovementType();
+      movementSpeed = params->value(name, "movementSpeed", 1);
+      writePosition = (int) params->value(name,"writePosition", 0);
    }
-   else {
+   if (type==SINEWAVE || type==COSWAVE || type==SINEV || type==COSV) {
+      orientation = readOrientation();
+      setOrientation(orientation);
+      pMove   = params->value(name, "pMove", 0.0);
+      pSwitch = params->value(name, "pSwitch", 0.0);
+      maxVal = params->value(name,"maxValue", PATTERNS_MAXVAL);
       maxWidth  = params->value(name, "width", loc->nx); // width of bar when bar is vertical
       maxHeight = params->value(name, "height", loc->ny); // height of bar when bar is horizontal
-   }
-
-   if(( type == BARS )||(type == COSWAVE)||(type == SINEWAVE)||
-         (type == COSV)||(type == SINEV)) {
       wavelengthVert = params->value(name, "wavelengthVert", 2*maxWidth);
       wavelengthHoriz = params->value(name, "wavelengthHoriz", 2*maxHeight);
-   }
-
-   pMove   = params->value(name, "pMove", 0.0);
-   pSwitch = params->value(name, "pSwitch", 0.0);
-
-   if((type == COSWAVE)||(type == SINEWAVE)||
-         (type == COSV)||(type == SINEV))
       rotation = params->value(name, "rotation", 0.0);
-
-   if(type == DROP){
+      writePosition = (int) params->value(name,"writePosition", 0);
+   }
+   if (type==IMPULSE) {
+      initPatternCntr = 0;
+   }
+   if (type==DROP) {
       dropSpeed = params->value(name, "dropSpeed", 1);
       dropSpeedRandomMax = params->value(name, "dropSpeedRandomMax", 3);
       dropSpeedRandomMin = params->value(name, "dropSpeedRandomMin", 1);
@@ -152,9 +105,13 @@ int Patterns::initialize(const char * name, HyPerCol * hc, PatternType type) {
       dropPeriodRandomMax = params->value(name, "dropPeriodRandomMax", 20);
       dropPeriodRandomMin = params->value(name, "dropPeriodRandomMin", 5);
 
+      maxVal = params->value(name,"maxValue", PATTERNS_MAXVAL);
       onOffFlag = params->value(name, "halfNeutral", 0);
 
-      if(!onOffFlag){
+      if(onOffFlag){
+         minVal = params->value(name,"minValue", PATTERNS_MINVAL);
+      }
+      else {
          minVal = maxVal;
       }
 
@@ -174,9 +131,6 @@ int Patterns::initialize(const char * name, HyPerCol * hc, PatternType type) {
       MPI_Bcast(&nextDropFrame, 1, MPI_INT, 0, parent->icCommunicator()->communicator());
    }
 
-
-   movementSpeed = params->value(name, "movementSpeed", 1); //1 is the old default...
-
    // set parameters that controls writing of new images
    writeImages = params->value(name, "writeImages", 0.0);
    // set output path for movie frames
@@ -193,8 +147,6 @@ int Patterns::initialize(const char * name, HyPerCol * hc, PatternType type) {
                "Patterns output path set to default \"%s\"\n",patternsOutputPath);
       }
    }
-   initPatternCntr=0;
-   writePosition = (int) params->value(name,"writePosition", 0);
    if(writePosition){
       char file_name[PV_PATH_MAX];
 
@@ -203,10 +155,17 @@ int Patterns::initialize(const char * name, HyPerCol * hc, PatternType type) {
       //
       snprintf(file_name, PV_PATH_MAX-1, "%s/patterns-pos.txt", patternsOutputPath);
       //int nchars = snprintf(file_name, PV_PATH_MAX-1, "%s/bar-pos.txt", patternsOutputPath);
-      printf("write position to %s\n",file_name);
-      // TODO In MPI, fp should only be opened and written to by root process
-      patternsFile = fopen(file_name,"a");
-      assert(patternsFile != NULL);
+      if (parent->columnId()==0) {
+         printf("write position to %s\n",file_name);
+         patternsFile = fopen(file_name,"a");
+         if(patternsFile == NULL) {
+            fprintf(stderr, "Patterns layer \"%s\" unable to open \"%s\" for writing: error %s\n", name, file_name, strerror(errno));
+            abort();
+         }
+      }
+      else {
+         patternsFile = NULL; // Only root process should write to patternsFile
+      }
    }
 
 
@@ -214,22 +173,42 @@ int Patterns::initialize(const char * name, HyPerCol * hc, PatternType type) {
    // displayPeriod = 0 means nextDisplayTime will always >= starting time and therefore the pattern will update every timestep
    nextDisplayTime = hc->simulationTime() + displayPeriod;
 
-   setOrientation(orientation); // Sets positionBound based on orientation
-
-   generatePattern(maxVal);
+   drawPattern(maxVal);
 
    return PV_SUCCESS;
 }
 
-Patterns::~Patterns()
-{
-   free(patternsOutputPath);
-   vDrops.clear();
-
-   if( patternsFile != NULL ) {
-      fclose(patternsFile);
-      patternsFile = NULL;
+OrientationMode Patterns::readOrientation() {
+   const char * allowedOrientationModes[] = { // these strings should correspond to the types in enum PatternType in Patterns.hpp
+         "HORIZONTAL",
+         "VERTICAL",
+         "MIXED",
+         "_End_allowedOrientationTypes"  // Keep this string; it allows the string matching loop to know when to stop.
+   };
+   OrientationMode ormode = vertical;
+   //if the orientation isn't set, use vertical as the default...
+   const char * orientationModeStr = parent->parameters()->stringValue(name, "orientation");
+   if( ! orientationModeStr ) {
+      ormode = vertical; // PVParams::stringValue will print a warning message if absent
    }
+   else {
+      int orientationModeMatch = false;
+      for( int i=0; strcmp(allowedOrientationModes[i],"_End_allowedOrientationTypes"); i++ ) {
+         const char * thisorientationmode = allowedOrientationModes[i];
+         if( !strcmp(orientationModeStr, thisorientationmode) ) {
+            ormode = (OrientationMode) i;
+            orientationModeMatch = true;
+            break;
+         }
+      }
+      if( !orientationModeMatch ) { //if the set orientation isn't recognized, use vertical as default
+         if (parent->columnId()==0) {
+            fprintf(stderr, "Warning: orientation mode \"%s\" not recognized.  Using VERTICAL.\n", orientationModeStr);
+         }
+         ormode = vertical;
+      }
+   }
+   return ormode;
 }
 
 int Patterns::setOrientation(OrientationMode ormode) {
@@ -249,6 +228,41 @@ int Patterns::setOrientation(OrientationMode ormode) {
    return PV_SUCCESS;
 }
 
+MovementType Patterns::readMovementType() {
+   //set movement type (random walk is default)
+   MovementType movement_type = RANDOMWALK;
+   const char * allowedMovementTypes[] = { // these strings should correspond to the types in enum PatternType in Patterns.hpp
+         "RANDOMWALK",
+         "MOVEFORWARD",
+         "MOVEBACKWARD",
+         "RANDOMJUMP",
+         "_End_allowedPatternTypes"  // Keep this string; it allows the string matching loop to know when to stop.
+   };
+   //if the movement type isn't set, use random walk as the default...
+   const char * movementTypeStr = parent->parameters()->stringValue(name, "movementType");
+   if( ! movementTypeStr ) {
+      movement_type = RANDOMWALK; // PVParams::stringValue will print a warning message if absent
+   }
+   else {
+      int movementTypeMatch = false;
+      for( int i=0; strcmp(allowedMovementTypes[i],"_End_allowedPatternTypes"); i++ ) {
+         const char * thisMovementType = allowedMovementTypes[i];
+         if( !strcmp(movementTypeStr, thisMovementType) ) {
+            movement_type = (MovementType) i;
+            movementTypeMatch = true;
+            break;
+         }
+      }
+      if( !movementTypeMatch ) { //if the set movement type isn't recognized, use random walk as default
+         if (parent->columnId()==0) {
+            fprintf(stderr, "Warning: movement type \"%s\" not recognized.  Using RANDOMWALK.\n", movementTypeStr);
+         }
+         movement_type = RANDOMWALK;
+      }
+   }
+   return movement_type;
+}
+
 int Patterns::tag()
 {
    if (orientation == vertical)
@@ -257,23 +271,13 @@ int Patterns::tag()
       return 10*position;
 }
 
-int Patterns::generatePattern(float val)
+int Patterns::drawPattern(float val)
 {
-   int width, height;
-
    // extended frame
    const PVLayerLoc * loc = getLayerLoc();
 
    const int nx = loc->nx + 2 * loc->nb;
    const int ny = loc->ny + 2 * loc->nb;
-   const int nb = loc->nb;
-   const int sx = 1;
-   const int sy = sx * nx;
-   const int kx0 = loc->kx0;
-   const int ky0 = loc->ky0;
-
-   const int nxgl = loc->nxGlobal;
-   const int nygl = loc->nyGlobal;
 
    // reset data buffer
    const int nk = nx * ny;
@@ -290,209 +294,27 @@ int Patterns::generatePattern(float val)
       data[k] = neutralval;
    }
 
-   if (type == DROP){
-
-//      std::cout << "Frame number " << framenumber << "\n";
-
-
-      //Max radius at corner of screen
-      float max_radius = sqrt(nxgl * nxgl + nygl * nygl);
-
-      //Using iterators to iterate while removing from loop
-      for(std::vector<Drop>::iterator dropIt = vDrops.begin(); dropIt < vDrops.end(); dropIt++){
-         //Update radius
-         dropIt->radius += dropIt->speed;
-         //If no longer in the frame
-         if(dropIt->radius >= max_radius){
-
-            //Erase from vector, erase returns next iterator object
-            dropIt = vDrops.erase(dropIt);
-         }
-      }
-
-      //Add new circles
-      if(framenumber >= nextDropFrame && framenumber <= endFrame){
-         if(dropPeriod == -1){
-            nextDropFrame = framenumber + dropPeriodRandomMin + floor((dropPeriodRandomMax - dropPeriodRandomMin) * pv_random_prob());
-         }
-         else{
-            nextDropFrame = framenumber + dropPeriod;
-         }
-         //Create new structure
-         Drop newDrop;
-         //Random drop speed
-         if(dropSpeed == -1){
-            newDrop.speed = dropSpeedRandomMin + floor((dropSpeedRandomMax - dropSpeedRandomMin) * pv_random_prob());
-         }
-         else{
-            newDrop.speed = dropSpeed;
-         }
-         //Random center pos
-         if(randomPosFlag > 0){
-            newDrop.centerX = floor(nxgl * pv_random_prob());
-            newDrop.centerY = floor(nygl * pv_random_prob());
-         }
-         else{
-            newDrop.centerX = floor((nxgl-1) / 2);
-            newDrop.centerY = floor((nygl-1) / 2);
-         }
-         //Random on/off input
-         if(pv_random_prob() < .5){
-            newDrop.on = true;
-         }
-         else{
-            newDrop.on = false;
-         }
-         newDrop.radius = 0;
-
-         //Communicate to rest of processors
-         MPI_Bcast(&nextDropFrame, 1, MPI_INT, 0, parent->icCommunicator()->communicator());
-         MPI_Bcast(&newDrop, sizeof(Drop), MPI_BYTE, 0, parent->icCommunicator()->communicator());
-         vDrops.push_back(newDrop);
-      }
-
-      //Draw circle
-      for(int i = 0; i < (int)vDrops.size(); i++){
-         float delta_theta = fabs(atan((float)1./vDrops[i].radius));
-         for (float theta = 0; theta < 2*PI; theta += delta_theta){
-           // std::cout << "\t" << theta << "\n";
-            int ix = round(vDrops[i].centerX + vDrops[i].radius * cos(theta));
-            int iy = round(vDrops[i].centerY + vDrops[i].radius * sin(theta));
-
-            //Check edge bounds based on nx/ny size
-            if(ix < nx + kx0 && iy < ny + ky0 && ix >= kx0 && iy >= ky0){
-               //Random either on circle or off circle
-               if(vDrops[i].on){
-                  data[(ix - kx0) * sx + (iy - ky0) * sy] = maxVal;
-               }
-               else{
-                  data[(ix - kx0) * sx + (iy - ky0) * sy] = minVal;
-               }
-            }
-         }
-      }//End radius for loop
-      return 0;
-   }
-   else if (type == RECTANGLES) {
-      width  = minWidth  + (maxWidth  - minWidth)  * pv_random_prob();
-      height = minHeight + (maxHeight - minHeight) * pv_random_prob();
-
-      const int half_w = width/2;
-      const int half_h = height/2;
-
-      // random center location
-      const int xc = (nx-1) * pv_random_prob();
-      const int yc = (ny-1) * pv_random_prob();
-
-      const int x0 = (xc - half_w < 0) ? 0 : xc - half_w;
-      const int y0 = (yc - half_h < 0) ? 0 : yc - half_h;
-
-      const int x1 = (xc + half_w > nx) ? nx : xc + half_w;
-      const int y1 = (yc + half_h > ny) ? ny : yc + half_h;
-
-      for (int iy = y0; iy < y1; iy++) {
-         for (int ix = x0; ix < x1; ix++) {
-            data[ix * sx + iy * sy] = val;
-         }
-      }
-      position = x0 + y0*nx;
-      return 0;
+   if (type == RECTANGLES) {
+      return drawRectangles(val);
    }
    else if (type == BARS) { // type is bars
-      return generateBars(orientation, data, nx, ny, val);
+      return drawBars(orientation, data, nx, ny, val);
    }
-//   else if (type == COSWAVE) {
-//      if (orientation == vertical) { // vertical bars
-//         width = maxWidth;
-//         for (int iy = 0; iy < ny; iy++) {
-//            for (int ix = 0; ix < nx; ix++) {
-//               int glx = ix+kx0-nb;
-//               int gly = iy+ky0-nb;
-//               float m = glx*cos(rotation) - gly*sin(rotation)  + position; //calculate position including fraction
-//
-//               //sin of 2*pi*m/wavelength, where wavelength=2*width:
-//               data[ix * sx + iy * sy] = cosf(PI*m/width);
-//            }
-//         }
-//      }
-//      else { // horizontal bars
-//         height = maxHeight;
-//         for (int iy = 0; iy < ny; iy++) {
-//            int gly = iy+ky0-nb;
-//            for (int ix = 0; ix < nx; ix++) {
-//               int glx = ix+kx0-nb;
-//               float m = gly*cos(rotation) + glx*sin(rotation)  + position; //calculate position including fraction
-//               //float value=sinf(2*PI*m/height);
-//               data[ix * sx + iy * sy] = cosf(PI*m/height);
-//            }
-//         }
-//      }
-//      return 0;
-//   }
    else if((type == COSWAVE)||(type == SINEWAVE)||
            (type == COSV)||(type == SINEV)) {
-      int wavelength=0;
-      float rot=0;
-      if (orientation == vertical) { // vertical bars
-         wavelength = maxWidth;
-         rot=rotation;
-      }
-      else if (orientation == horizontal) { // horizontal bars
-         wavelength = maxHeight;
-         rot=rotation+PI/2;
-      }
-      else { // invalid rotation
-         assert(true);
-      }
-      for (int iy = 0; iy < ny; iy++) {
-         for (int ix = 0; ix < nx; ix++) {
-            int glx = ix+kx0-nb;
-            int gly = iy+ky0-nb;
-            float rot2 = rot;
-            float phi = 0;
-            if((type == COSV)||(type == SINEV)) {
-               float yp=float(glx)*cos(rot) + float(gly)*sin(rot);
-               if(yp<nygl/2) {
-                  rot2+= 3*PI/4;
-                  phi=float(wavelength)/2;
-               }
-               else if(yp>nygl/2) {
-                  rot2+= PI/4;
-                  phi=0;
-               }
-            }
-            float m = float(glx)*cos(rot2) - float(gly)*sin(rot2) + phi + position; //calculate position including fraction
-
-            //sin of 2*pi*m/wavelength, where wavelength=2*width:
-            if((type == SINEWAVE)||(type == SINEV))
-               data[ix * sx + iy * sy] = sin(PI*m/float(wavelength));
-            else if((type == COSWAVE)||(type == COSV))
-               data[ix * sx + iy * sy] = cos(PI*m/float(wavelength));
-
-         }
-      }
-      return 0;
+      return drawWaves(val);
    }
    else if (type == IMPULSE) {
-      for (int iy = 0; iy < ny; iy++) {
-         for (int ix = 0; ix < nx; ix++) {
-            int glx = ix+kx0-nb;
-            int gly = iy+ky0-nb;
-
-            if((glx==nxgl/2)&&(gly==nygl/2)&&(initPatternCntr==5))
-               data[ix * sx + iy * sy] = 50000.0f;
-            else
-               data[ix * sx + iy * sy] = 0;
-         }
-      }
-      initPatternCntr++;
-      return 0;
+      return drawImpulse();
+   }
+   else if (type == DROP){
+      return drawDrops();
    }
 
    return 0;
 }
 
-int Patterns::generateBars(OrientationMode ormode, pvdata_t * buf, int nx, int ny, float val) {
+int Patterns::drawBars(OrientationMode ormode, pvdata_t * buf, int nx, int ny, float val) {
    int crossstride, alongstride;  // strides in the direction across the bar and along the bar, respectively
    int crosssize, alongsize; // Size of buffer in the direction across the bar and along the bar, respectively
    int wavelength;
@@ -560,6 +382,210 @@ int Patterns::generateBars(OrientationMode ormode, pvdata_t * buf, int nx, int n
    return PV_SUCCESS;
 }
 
+int Patterns::drawRectangles(float val) {
+   int status = PV_SUCCESS;
+   int width  = minWidth  + (maxWidth  - minWidth)  * pv_random_prob();
+   int height = minHeight + (maxHeight - minHeight) * pv_random_prob();
+   const PVLayerLoc * loc = getLayerLoc();
+   const int nx = loc->nx + 2 * loc->nb;
+   const int ny = loc->ny + 2 * loc->nb;
+   const int sx = 1;
+   const int sy = sx * nx;
+
+   const int half_w = width/2;
+   const int half_h = height/2;
+
+   // random center location
+   const int xc = (nx-1) * pv_random_prob();
+   const int yc = (ny-1) * pv_random_prob();
+
+   const int x0 = (xc - half_w < 0) ? 0 : xc - half_w;
+   const int y0 = (yc - half_h < 0) ? 0 : yc - half_h;
+
+   const int x1 = (xc + half_w > nx) ? nx : xc + half_w;
+   const int y1 = (yc + half_h > ny) ? ny : yc + half_h;
+
+   for (int iy = y0; iy < y1; iy++) {
+      for (int ix = x0; ix < x1; ix++) {
+         data[ix * sx + iy * sy] = val;
+      }
+   }
+   position = x0 + y0*nx;
+   return status;
+}
+
+int Patterns::drawWaves(float val) {
+   int status = PV_SUCCESS;
+   const PVLayerLoc * loc = getLayerLoc();
+   const int nx = loc->nx + 2 * loc->nb;
+   const int ny = loc->ny + 2 * loc->nb;
+   const int nb = loc->nb;
+   const int sx = 1;
+   const int sy = sx * nx;
+   const int kx0 = loc->kx0;
+   const int ky0 = loc->ky0;
+   const int nygl = loc->nyGlobal;
+
+   int wavelength=0;
+   float rot=0;
+   if (orientation == vertical) { // vertical bars
+      wavelength = maxWidth;
+      rot=rotation;
+   }
+   else if (orientation == horizontal) { // horizontal bars
+      wavelength = maxHeight;
+      rot=rotation+PI/2;
+   }
+   else { // invalid rotation
+      assert(true);
+   }
+   for (int iy = 0; iy < ny; iy++) {
+      for (int ix = 0; ix < nx; ix++) {
+         int glx = ix+kx0-nb;
+         int gly = iy+ky0-nb;
+         float rot2 = rot;
+         float phi = 0;
+         if((type == COSV)||(type == SINEV)) {
+            float yp=float(glx)*cos(rot) + float(gly)*sin(rot);
+            if(yp<nygl/2) {
+               rot2+= 3*PI/4;
+               phi=float(wavelength)/2;
+            }
+            else if(yp>nygl/2) {
+               rot2+= PI/4;
+               phi=0;
+            }
+         }
+         float m = float(glx)*cos(rot2) - float(gly)*sin(rot2) + phi + position; //calculate position including fraction
+
+         //sin of 2*pi*m/wavelength, where wavelength=2*width:
+         if((type == SINEWAVE)||(type == SINEV))
+            data[ix * sx + iy * sy] = val*sin(PI*m/float(wavelength));
+         else if((type == COSWAVE)||(type == COSV))
+            data[ix * sx + iy * sy] = val*cos(PI*m/float(wavelength));
+
+      }
+   }
+   return status;
+}
+
+int Patterns::drawImpulse() {
+   const PVLayerLoc * loc = getLayerLoc();
+   const int nx = loc->nx;
+   const int ny = loc->ny;
+   const int nb = loc->nb;
+   const int kx0 = loc->kx0;
+   const int ky0 = loc->ky0;
+   const int nxgl = loc->nxGlobal;
+   const int nygl = loc->nyGlobal;
+   const int sx = 1;
+   const int sy = sx * nx;
+   for (int iy = 0; iy < ny; iy++) {
+      for (int ix = 0; ix < nx; ix++) {
+         int glx = ix+kx0-nb;
+         int gly = iy+ky0-nb;
+
+         if((glx==nxgl/2)&&(gly==nygl/2)&&(initPatternCntr==5))
+            data[ix * sx + iy * sy] = 50000.0f;
+         else
+            data[ix * sx + iy * sy] = 0;
+      }
+   }
+   initPatternCntr++;
+   return 0;
+}
+
+int Patterns::drawDrops() {
+   int status = PV_SUCCESS;
+   const PVLayerLoc * loc = getLayerLoc();
+   const int nx = loc->nx + 2 * loc->nb;
+   const int ny = loc->ny + 2 * loc->nb;
+   const int sx = 1;
+   const int sy = sx * nx;
+   const int kx0 = loc->kx0;
+   const int ky0 = loc->ky0;
+   const int nxgl = loc->nxGlobal;
+   const int nygl = loc->nyGlobal;
+
+   //Max radius at corner of screen
+   float max_radius = sqrt(nxgl * nxgl + nygl * nygl);
+
+   //Using iterators to iterate while removing from loop
+   for(std::vector<Drop>::iterator dropIt = vDrops.begin(); dropIt < vDrops.end(); dropIt++){
+      //Update radius
+      dropIt->radius += dropIt->speed;
+      //If no longer in the frame
+      if(dropIt->radius >= max_radius){
+
+         //Erase from vector, erase returns next iterator object
+         dropIt = vDrops.erase(dropIt);
+      }
+   }
+
+   //Add new circles
+   if(framenumber >= nextDropFrame && framenumber <= endFrame){
+      if(dropPeriod == -1){
+         nextDropFrame = framenumber + dropPeriodRandomMin + floor((dropPeriodRandomMax - dropPeriodRandomMin) * pv_random_prob());
+      }
+      else{
+         nextDropFrame = framenumber + dropPeriod;
+      }
+      //Create new structure
+      Drop newDrop;
+      //Random drop speed
+      if(dropSpeed == -1){
+         newDrop.speed = dropSpeedRandomMin + floor((dropSpeedRandomMax - dropSpeedRandomMin) * pv_random_prob());
+      }
+      else{
+         newDrop.speed = dropSpeed;
+      }
+      //Random center pos
+      if(randomPosFlag > 0){
+         newDrop.centerX = floor(nxgl * pv_random_prob());
+         newDrop.centerY = floor(nygl * pv_random_prob());
+      }
+      else{
+         newDrop.centerX = floor((nxgl-1) / 2);
+         newDrop.centerY = floor((nygl-1) / 2);
+      }
+      //Random on/off input
+      if(pv_random_prob() < .5){
+         newDrop.on = true;
+      }
+      else{
+         newDrop.on = false;
+      }
+      newDrop.radius = 0;
+
+      //Communicate to rest of processors
+      MPI_Bcast(&nextDropFrame, 1, MPI_INT, 0, parent->icCommunicator()->communicator());
+      MPI_Bcast(&newDrop, sizeof(Drop), MPI_BYTE, 0, parent->icCommunicator()->communicator());
+      vDrops.push_back(newDrop);
+   }
+
+   //Draw circle
+   for(int i = 0; i < (int)vDrops.size(); i++){
+      float delta_theta = fabs(atan((float)1./vDrops[i].radius));
+      for (float theta = 0; theta < 2*PI; theta += delta_theta){
+        // std::cout << "\t" << theta << "\n";
+         int ix = round(vDrops[i].centerX + vDrops[i].radius * cos(theta));
+         int iy = round(vDrops[i].centerY + vDrops[i].radius * sin(theta));
+
+         //Check edge bounds based on nx/ny size
+         if(ix < nx + kx0 && iy < ny + ky0 && ix >= kx0 && iy >= ky0){
+            //Random either on circle or off circle
+            if(vDrops[i].on){
+               data[(ix - kx0) * sx + (iy - ky0) * sy] = maxVal;
+            }
+            else{
+               data[(ix - kx0) * sx + (iy - ky0) * sy] = minVal;
+            }
+         }
+      }
+   }//End radius for loop
+   return status;
+}
+
 /**
  * update the image buffers
  */
@@ -572,13 +598,6 @@ int Patterns::updateState(float timef, float dt) {
       nextDisplayTime += displayPeriod;
       status = updatePattern(timef);
    }
-
-   //Here
-
-  // std::cout << timef;
- //  setActivity();
-//   writeActivity(timef);
-   //writeState();
    return status;
 }
 
@@ -589,16 +608,20 @@ int Patterns::updatePattern(float timef) {
    double p = pv_random_prob();
    bool newPattern = false;
 
-   if( p < pSwitch) { // switch with probability pSwitch
-      setOrientation(orientation == vertical ? horizontal : vertical);
-      newPattern = true;
-   }
 
-   // moving probability
-   p -= pSwitch; // Doesn't make sense to both switch and move
-   if (p >= 0 && p < pMove) {
-      newPattern = true;
-      //fprintf(fp, "%d %d %d\n", 2*(int)time, position, lastPosition);
+   if (type==RECTANGLES || type==SINEWAVE || type==COSWAVE || type==SINEV || type==COSV) {
+      if( p < pSwitch) { // switch orientation with probability pSwitch
+         setOrientation(orientation == vertical ? horizontal : vertical);
+         newPattern = true;
+      }
+      // moving probability
+      p -= pSwitch; // Doesn't make sense to both switch and move
+      if (p >= 0 && p < pMove) {
+         newPattern = true;
+      }
+      if (newPattern) {
+         position = calcPosition(position, positionBound);
+      }
    }
 
    if (type == DROP){
@@ -607,13 +630,10 @@ int Patterns::updatePattern(float timef) {
 
    if (newPattern) {
       lastUpdateTime = timef;
-      if (type != DROP){
-         position = calcPosition(position, positionBound);
-      }
 
-      generatePattern(maxVal);
+      drawPattern(maxVal);
       if (writeImages) {
-         char basicfilename[PV_PATH_MAX+1]; // is +1 needed?
+         char basicfilename[PV_PATH_MAX];
          if (type == BARS)
             snprintf(basicfilename, PV_PATH_MAX, "%s/Bars_%.2f.tif", patternsOutputPath, timef);
          else if (type == RECTANGLES){
@@ -635,7 +655,6 @@ int Patterns::updatePattern(float timef) {
             snprintf(basicfilename, PV_PATH_MAX, "%s/Impulse%.2f.tif", patternsOutputPath, timef);
          }
          else if (type == DROP){
-           //std::cout << timef << "\n";
             snprintf(basicfilename, PV_PATH_MAX, "%s/Drop%.3d.tif", patternsOutputPath, (int)timef);
          }
          write(basicfilename);
@@ -681,6 +700,10 @@ float Patterns::calcPosition(float pos, int step)
          pos = ((int)(pos-movementSpeed)) % step;
       }
       break;
+   }
+   if (patternsFile != NULL) {
+      assert(parent->columnId()==0);
+      fprintf(patternsFile, "Time %f, position %f\n", parent->simulationTime(), pos);
    }
 
    return pos;
