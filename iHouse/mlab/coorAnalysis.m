@@ -130,7 +130,10 @@ function coorFunc(activityData)
    %Plot
    for d = 1:maxDist
       figure('Visible', 'off');
+      hold all;
       plot(outMat(d, :));
+      plot(mean(intSpike));
+      hold off;
       print_filename = [outputDir, 'Coorfunc_', num2str(d), '.jpg'];
       print(print_filename);
    end

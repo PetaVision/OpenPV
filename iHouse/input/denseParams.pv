@@ -10,10 +10,10 @@ HyPerCol "column" = {
    checkpointRead  				= false; 		// init run
    checkpointWrite 				= false;  		// always
    checkpointWriteDir = "/Users/slundquist/Documents/workspace/iHouse/checkpoints";
-   checkpointWriteStepInterval = 2000;
-   numSteps 				    	= 30000;			// amount of time steps performed during run-time
+   checkpointWriteStepInterval = 30000;
+   numSteps 				    	= 1000;			// amount of time steps performed during run-time
    progressStep					= 500;
-   outputPath                   = "/Users/slundquist/Documents/workspace/iHouse/denseOutput";
+   outputPath                   = "/Users/slundquist/Documents/workspace/iHouse/testOutput";
    filenamesContainLayerNames 	= 2; 			// stores pvp files as: 1 = layer number/2 = layer number and layer name/3 = layer name
 };
 
@@ -37,7 +37,9 @@ Patterns "input" = {
    dropPeriodRandomMax = 60;  //Max random periods for each drop, 20 default
    dropPeriodRandomMin = 15;   //Min random periods for each drop, 5 default
    
-   randomPos = true;
+   dropPosition = -1;    //Number of frames each drop stays in a certain position, -1 for random period, 0 for drop from center
+   dropPositionRandomMax = 1000;
+   dropPositionRandomMin = 200;
    
    halfNeutral = true;
    startFrame = 0;
@@ -131,9 +133,9 @@ Retina "RetinaOFF" = {
 };
 
 LCALIFLayer "lif" = {
-   tauLCA           = 20;
+   tauLCA           = 200;
    tauTHR           = 2000;
-   targetRate       = 2;
+   targetRate       = 5;
    Vscale      = 15; // Scale for the change of dynVthRest. Must be positive; defaults to VthRest - Vrest
    
    nxScale          = 4;		
@@ -441,7 +443,7 @@ LCALIFLateralConn "lcalif lateral inhibition" = {
     nyp = 21;
     nfp = 1;
     
-    integrationTimeConstant = 20;
+    integrationTimeConstant = 200;
     adaptationTimeConstant = 2000;
 
     numAxonalArbors = 1;

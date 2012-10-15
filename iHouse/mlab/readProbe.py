@@ -7,7 +7,7 @@ filename = "/Users/slundquist/Desktop/LCALIF_31_31_0.txt"
 #Values for range of frames
 all = True; #All values
 startVal = 0
-endVal = 300
+endVal = 100
 
 t = []
 #Data that is to be pulled out from the probe
@@ -15,7 +15,7 @@ data = {
       'G_E':           [],
       'G_I':           [],
       'G_IB':          [],
-      'dynVthRest':    [],
+      'Vadpt':        [],
       'V':             [],
       'Vth':           [],
       'a':             [],
@@ -26,6 +26,7 @@ data = {
 plotData = OrderedDict()
 plotData['V'] = 1
 plotData['Vth'] = 1
+plotData['Vadpt'] = 1
 plotData['a'] = 10
 plotData['integratedSpikeCount'] = 1
 

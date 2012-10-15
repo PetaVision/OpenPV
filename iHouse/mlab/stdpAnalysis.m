@@ -123,7 +123,7 @@ if(SPIKING_PRE_FLAG)
    %Off
    numFun += 1;
    fileName{numFun} = preOffActivityFile;
-   out_path{numFun} = readPreOffSpikingDir;
+   output_path{numFun} = readPreOffSpikingDir;
    print{numFun} = SPIKING_PRE_FLAG;
 end
 %Post weights
