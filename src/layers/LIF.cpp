@@ -164,11 +164,11 @@ int LIF::initialize_base() {
  *
  */
 int LIF::initialize(const char * name, HyPerCol * hc, PVLayerType type, int num_channels, const char * kernel_name) {
+   setParams(parent->parameters());
    HyPerLayer::initialize(name, hc, num_channels);
    clayer->layerType = type;
    const size_t numNeurons = getNumNeurons();
 
-   setParams(parent->parameters());
    for (size_t k = 0; k < numNeurons; k++){
       Vth[k] = lParams.VthRest; // lParams.VthRest is set in setParams
    }
