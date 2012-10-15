@@ -10,7 +10,7 @@ HyPerCol "column" = {
    
    randomSeed 	                = 1020304050.0;   
 
-   numSteps                     = 10000;	// amount of time steps performed during run-time
+   numSteps                     = 40000;	// amount of time steps performed during run-time
    progressStep                 = 500;    // write output to see progress
    writeProgressToErr           = 0;      // write progress steps to std err
    
@@ -21,6 +21,8 @@ HyPerCol "column" = {
    filenamesContainLayerNames   = 2; 	// stores pvp files as: 0 = layer number/1 = layer number and layer name/2 = layer name
    
    checkpointRead  				= false;
+   checkpointReadDir            = "~/Documents/Work/LANL/workspace/iHouse/checkpoints/";
+   checkpointReadDirIndex       = 20000;
    checkpointWrite 				= false;
    //checkpointWriteDir  			= "~/Documents/workspace/iHouse/output/checkpoints";
    checkpointWriteDir  			= "~/Documents/Work/LANL/workspace/iHouse/output/checkpoints"; // Dylan's Mac
@@ -102,65 +104,65 @@ ANNLayer "scaled input" = {
 
 
 Retina "RetinaON" = {
-    nxScale       = 1;
-    nyScale       = 1;
-    nf            = 1;
+    nxScale             = 1;
+    nyScale             = 1;
+    nf                  = 1;
     
-    marginWidth   = 2;
-    writeStep     = -1.0;
-    mirrorBCflag  = 0;
-    spikingFlag   = true;  // false (no quotes) is translated to 0
+    marginWidth         = 2;
+    writeStep           = -1.0;
+    mirrorBCflag        = 0;
+    spikingFlag         = true;  // false (no quotes) is translated to 0
 
-    noiseOnFreq   = 200;   // Hz // Max poisson spiking rate when input is 255
-    noiseOffFreq  = 20;    // Hz // Min poisson spiking rate when input is 0
+    noiseOnFreq         = 200;   // Hz // Max poisson spiking rate when input is 255
+    noiseOffFreq        = 20;    // Hz // Min poisson spiking rate when input is 0
 
-    burstFreq     = 50;    // Hz // Everything coming into the retina should be burstin burstFreq times per sec
-    burstDuration = 20;    // ms // Bursts last burstDuration ms
+    burstFreq           = 50;    // Hz // Everything coming into the retina should be burstin burstFreq times per sec
+    burstDuration       = 20;    // ms // Bursts last burstDuration ms
 
-    //beginStim   = 1;       // Restrict stimulus to a window of time
-    //endStim     = 50000;
+    //beginStim         = 1;       // Restrict stimulus to a window of time
+    //endStim           = 50000;
 
-    Vrest         = 0.0;
+    Vrest               = 0.0;
     
-    refractoryPeriod    = 0;
-    absRefractoryPeriod = 0;
+    refractoryPeriod    = 5;
+    absRefractoryPeriod = 2;
 };
 
 
 Retina "RetinaOFF" = {
-    nxScale       = 1;
-    nyScale       = 1;
-    nf            = 1;
+    nxScale             = 1;
+    nyScale             = 1;
+    nf                  = 1;
     
-    marginWidth   = 2;
-    writeStep     = -1.0;
-    mirrorBCflag  = 0;
-    spikingFlag   = true;  // false (no quotes) is translated to 0
+    marginWidth         = 2;
+    writeStep           = -1.0;
+    mirrorBCflag        = 0;
+    spikingFlag         = true;  // false (no quotes) is translated to 0
 
-    noiseOnFreq   = 200;   // Hz // Max poisson spiking rate when input is 255
-    noiseOffFreq  = 20;    // Hz // Min poisson spiking rate when input is 0
+    noiseOnFreq         = 200;   // Hz // Max poisson spiking rate when input is 255
+    noiseOffFreq        = 20;    // Hz // Min poisson spiking rate when input is 0
 
-    burstFreq     = 50;    // Hz // Everything coming into the retina should be burstin burstFreq times per sec
-    burstDuration = 20;    // ms // Bursts last burstDuration ms
+    burstFreq           = 50;    // Hz // Everything coming into the retina should be burstin burstFreq times per sec
+    burstDuration       = 20;    // ms // Bursts last burstDuration ms
 
-    //beginStim   = 1;       // Restrict stimulus to a window of time
-    //endStim     = 50000;
+    //beginStim         = 1;       // Restrict stimulus to a window of time
+    //endStim           = 50000;
     
-    Vrest = 0.0;
+    Vrest               = 0.0;
     
-    refractoryPeriod    = 0;
-    absRefractoryPeriod = 0;
+    refractoryPeriod    = 5;
+    absRefractoryPeriod = 2;
 };
 
 
-LCALIFLayer "lif" = {
+LCALIFLayer "lca_lif" = {
    nxScale          = 1;		
    nyScale          = 1;		
    nf               = 1;       	
 
-   tauTHR           = 100;  // thresholdAdaptationTime
-   targetRate       = 40;     // (Hz) Desired mean firing rate 
-   Vscale           = 15;     // Scale for the change of Vadpt. Must be positive; defaults to VthRest - Vrest
+   tauTHR           = 1000;    // thresholdAdaptationTime
+   targetRate       = 10;       // (Hz) Desired mean firing rate 
+   Vscale           = 15;      // Scale for the change of Vadpt. Must be positive; defaults to VthRest - Vrest
    
    writeStep        = 200;
 
@@ -336,9 +338,9 @@ KernelConn "ImagetoRetinaOFFSurround" = {
 // STDP connections      STDP connections      STDP connections      STDP connections      STDP connections      STDP connections      
 // STDP connections      STDP connections      STDP connections      STDP connections      STDP connections      STDP connections      
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-OjaSTDPConn "RetinaON to lif" = {
+OjaSTDPConn "RetinaON to lca_lif" = {
    preLayerName           = "RetinaON";
-   postLayerName          = "lif";
+   postLayerName          = "lca_lif";
    nxp                    = 5;
    nyp                    = 5;
    nfp                    = 1;
@@ -357,24 +359,24 @@ OjaSTDPConn "RetinaON to lif" = {
    strength               = 10;
    ampLTP                 = 2.8;  // (ms)
    ampLTD                 = 1;    // (ms)
-   tauLTP                 = 8.4;  // (ms)
+   tauLTP                 = 4.4;  // (ms)
    tauLTD                 = 33.7; // (ms)
    tauOja                 = 150;  // (ms)
    targetRate             = 1;    // (Hz)
    weightDecay            = 0;
-   dWMax                  = 0.001;
+   dWMax                  = 1;
    wMin                   = 0.001;
-   wMax 	              = 1;
+   wMax 	              = 1;    // Does not matter if ojaFlag = true
    numAxonalArbors        = 1;
-   ojaFlag                = 0;      //Turns oja rule on or off. Standard STDP if off
+   ojaFlag                = 1;    //Turns oja rule on or off. Standard STDP if off
    
    combine_dW_with_W_flag = false;
    selfFlag               = false;
 
    weightInitType         = "UniformRandomWeight";
    weightInit             = 0.001;
-   wMaxInit               = 0.5;
-   wMinInit               = 0.005;
+   wMaxInit               = 0.0011;
+   wMinInit               = 0.0011;
    
    symmetrizeWeights      = 0;
    
@@ -389,9 +391,9 @@ OjaSTDPConn "RetinaON to lif" = {
 };
 
 
-OjaSTDPConn "RetinaOFF to lif" = {
+OjaSTDPConn "RetinaOFF to lca_lif" = {
    preLayerName           = "RetinaOFF";
-   postLayerName          = "lif";
+   postLayerName          = "lca_lif";
    nxp                    = 5;
    nyp                    = 5;
    nfp                    = 1;
@@ -410,24 +412,24 @@ OjaSTDPConn "RetinaOFF to lif" = {
    strength               = 10;
    ampLTP                 = 2.8;  // (ms)
    ampLTD                 = 1;    // (ms)
-   tauLTP                 = 8.4;  // (ms)
+   tauLTP                 = 4.4;  // (ms)
    tauLTD                 = 33.7; // (ms)
    tauOja                 = 150;  // (ms)
    targetRate             = 1;    // (Hz)
    weightDecay            = 0;
-   dWMax                  = 0.001;
+   dWMax                  = 1;
    wMin                   = 0.001;
-   wMax 	              = 1;
+   wMax 	              = 1;    // Does not matter if ojaFlag = true
    numAxonalArbors        = 1;
-   ojaFlag                = 0;      //Turns oja rule on or off. Standard STDP if off
+   ojaFlag                = 1;    //Turns oja rule on or off. Standard STDP if off
    
    combine_dW_with_W_flag = false;
    selfFlag               = false;
 
    weightInitType         = "UniformRandomWeight";
    weightInit             = 0.001;
-   wMaxInit               = 0.5;
-   wMinInit               = 0.005;
+   wMaxInit               = 0.0011;
+   wMinInit               = 0.0011;
    
    symmetrizeWeights      = 0;
    
@@ -441,9 +443,9 @@ OjaSTDPConn "RetinaOFF to lif" = {
    synscaling_v           = 5;
 };
 
-PointLIFProbe "LIF Probe" = {
-   targetLayer = "lif";
-   probeOutputFile = "ptLIF.txt";
+PointLCALIFProbe "LCALIF Probe" = {
+   targetLayer = "lca_lif";
+   probeOutputFile = "ptLCALIF.txt";
    xLoc = 47;
    yLoc = 47;
    fLoc = 0;
