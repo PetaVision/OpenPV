@@ -62,15 +62,22 @@ int OjaKernelConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre
 }
 
 int OjaKernelConn::updateState(float timef, float dt) {
+
    float decayfactor = expf(-parent->getDeltaTime()/integrationTime);
-
-
    // Update output firing rate
    const PVLayerLoc * postloc = post->getLayerLoc();
    for (int kpost=0; kpost<post->getNumNeurons(); kpost++) {
       int kpostext = kIndexExtended(kpost, postloc->nx, postloc->ny, postloc->nf, postloc->nb);
       outputFiringRate[kpost] = decayfactor * (outputFiringRate[kpost] + post->getActivity()[kpostext]/integrationTime);
    }
+   // Update input firing rates
+   for (int arbor=0; arbor<numberOfAxonalArborLists(); arbor++) {
+      pvdata_t * input_rate = inputFiringRate[arbor];
+      for (int kex=0; kex<getNumWeightPatches(); kex++) {
+         input_rate[kex] = decayfactor * (input_rate[kex] + pre->getLayerData(getDelay(arbor))[kex]/integrationTime);
+      }
+   }
+
 
    // HyPerConn::updateState calls update_dW and updateWeights; we override update_dW but there is no need to override updateWeights
    int status = HyPerConn::updateState(timef, dt);
@@ -80,13 +87,7 @@ int OjaKernelConn::updateState(float timef, float dt) {
 int OjaKernelConn::update_dW(int axonId) {
    int status = PV_SUCCESS;
    assert(axonId>=0 && axonId<this->numberOfAxonalArborLists());
-
-   // Update input firing rate
    pvdata_t * input_rate = inputFiringRate[axonId];
-   float decayfactor = expf(-parent->getDeltaTime()/integrationTime);
-   for (int kex=0; kex<getNumWeightPatches(); kex++) {
-      input_rate[kex] = decayfactor * (input_rate[kex] + pre->getLayerData(getDelay(axonId))[kex]/integrationTime);
-   }
 
    // Update weights
    int sya = (post->getLayerLoc()->nf * (post->getLayerLoc()->nx + 2*post->getLayerLoc()->nb));
@@ -100,10 +101,11 @@ int OjaKernelConn::update_dW(int axonId) {
       const pvdata_t * wdata = get_wData(axonId, kex);
       int lineoffsetw = 0;
       int lineoffseta = 0;
+      pvdata_t inputFR = input_rate[kex];
       for( int y=0; y<ny; y++ ) {
          for( int k=0; k<nk; k++ ) {
             pvdata_t outputFR = outputFiringRate[offset+lineoffseta+k];
-            dwdata[lineoffsetw + k] += (input_rate[kex] - wdata[lineoffsetw+k]*outputFR)*outputFR;
+            dwdata[lineoffsetw + k] += (inputFR - wdata[lineoffsetw+k]*outputFR)*outputFR;
          }
          lineoffsetw += syp;
          lineoffseta += sya;

@@ -33,6 +33,9 @@ public:
    float getOutputTargetRate() {return outputTargetRate;}
    float getIntegrationTime() {return integrationTime;}
 
+   const pvdata_t * getInputFiringRate(int axonID) {return inputFiringRate[axonID];}
+   const pvdata_t * getOutputFiringRate() {return outputFiringRate;}
+
 protected:
    OjaKernelConn(); // Called by derived classes' constructors
    int initialize(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
