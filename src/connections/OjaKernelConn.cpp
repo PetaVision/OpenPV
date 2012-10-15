@@ -102,7 +102,8 @@ int OjaKernelConn::update_dW(int axonId) {
       int lineoffseta = 0;
       for( int y=0; y<ny; y++ ) {
          for( int k=0; k<nk; k++ ) {
-            dwdata[lineoffsetw + k] += input_rate[kex] - wdata[lineoffsetw+k]*outputFiringRate[offset+lineoffseta+k];
+            pvdata_t outputFR = outputFiringRate[offset+lineoffseta+k];
+            dwdata[lineoffsetw + k] += (input_rate[kex] - wdata[lineoffsetw+k]*outputFR)*outputFR;
          }
          lineoffsetw += syp;
          lineoffseta += sya;
