@@ -136,7 +136,7 @@ LCALIFLayer "lif" = {
    tauLCA           = 200;
    tauTHR           = 2000;
    targetRate       = 5;
-   Vscale      = 15; // Scale for the change of dynVthRest. Must be positive; defaults to VthRest - Vrest
+   Vscale           = 15; // Scale for the change of dynVthRest. Must be positive; defaults to VthRest - Vrest
    
    nxScale          = 4;		
    nyScale          = 4;		
@@ -347,14 +347,14 @@ OjaSTDPConn "RetinaONtoS1" = {
    normalize_zero_offset  = 0.0;
    
    strength               = 10;
-   ampLTP                 = 2.8; 
+   ampLTP                 = 4; 
    ampLTD                 = 1;
-   tauLTP                 = 4.4;
-   tauLTD                 = 33.7;
+   tauLTP                 = 4;
+   tauLTD                 = 32;
    tauOja                 = 150;    //Oja tau LTP
    targetRate             = 1;
    weightDecay            = 0;
-   dWMax                  = 5;
+   dWMax                  = 1;
    wMin                   = 0.001;
    wMax   	              = 1;
    numAxonalArbors        = 1;
@@ -400,14 +400,14 @@ OjaSTDPConn "RetinaOFFtoS1" = {
    normalize_zero_offset  = 0.0;
    
    strength               = 10;
-   ampLTP                 = 2.8; //amp sets ratio of LTP to LTD, or how much more/less effective LTP is than LTD. LTP/LTD should ~= 0.9 per Gar
+   ampLTP                 = 4; //amp sets ratio of LTP to LTD, or how much more/less effective LTP is than LTD. LTP/LTD should ~= 0.9 per Gar
    ampLTD                 = 1;
-   tauLTP                 = 4.4;
-   tauLTD                 = 33.7;
+   tauLTP                 = 4;
+   tauLTD                 = 32;
    tauOja                 = 150;    //Oja tau
    targetRate             = 1;
    weightDecay            = 0;
-   dWMax                  = 5;
+   dWMax                  = 1;
    wMin                   = 0.001;
    wMax  	              = 1;
    numAxonalArbors        = 1;
