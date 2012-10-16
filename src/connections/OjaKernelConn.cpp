@@ -136,7 +136,7 @@ int OjaKernelConn::checkpointRead(const char * cpDir, float* timef) {
    chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_outputFiringRate.pvp", cpDir, name);
    if (chars_needed>=PV_PATH_MAX) {
       if (parent->columnId()==0) {
-         fprintf(stderr, "OjaKernelConn::checkpointWrite error: Path \"%s/%s_outputFiringRate.pvp\" is too long.\n", cpDir, name);
+         fprintf(stderr, "OjaKernelConn::checkpointRead error: Path \"%s/%s_outputFiringRate.pvp\" is too long.\n", cpDir, name);
          abort();
       }
    }
