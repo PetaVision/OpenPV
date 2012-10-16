@@ -90,23 +90,14 @@ int OjaConnProbe::outputState(float timef)
    const PVLayerLoc * preLoc  = ojaConn->preSynapticLayer()->getLayerLoc(); //need pre layer sizes for patch index info
 
    int preTraceIdx = 0;
-   for (int arborID=0; arborID < numArbors; arborID++) {
+   for (int arborID=0; arborID < numArbors; arborID++)
+   {
       postWeights = ojaConn->getPostWeights(arborID,kPost); // Pointer array full of addresses pointing to the weights for all of the preNeurons connected to the given postNeuron's receptive field
       float * startAdd = ojaConn->get_wDataStart(arborID);                    // Address of first preNeuron in pre layer
-      for (int preNeuronID=0; preNeuronID<numPostPOVPatch; preNeuronID++) {
+      for (int preNeuronID=0; preNeuronID<numPostPOVPatch; preNeuronID++)
+      {
          float * kPreAdd = postWeights[preNeuronID];                             // Address of first preNeuron in receptive field of postNeuron
          int kPre = (kPreAdd-startAdd) / (preLoc->nx * preLoc->ny * preLoc->nf); // Specific preNeuron's (extended) index
-
-//         std::cout << "OjaConnProbe: kPost:    " << kPost <<"\n";
-//         std::cout << "OjaConnProbe: kPreAdd:  " << kPreAdd <<"\n";
-//         std::cout << "OjaConnProbe: &kPreAdd: " << &kPreAdd <<"\n";
-//         std::cout << "OjaConnProbe: startAdd: " << startAdd <<"\n";
-//         std::cout << "OjaConnProbe: &startAdd:" << &startAdd <<"\n";
-//         std::cout << "OjaConnProbe: kPre:     " << kPre <<"\n";
-//         std::cout << "OjaConnProbe: postWeights: " << *(postWeights[preNeuronID]) <<"\n";
-//         float diff = (kPreAdd - startAdd) / (preLoc->nx * preLoc->ny * preLoc->nf);
-//         std::cout << "OjaConnProbe: kPreAdd-startAdd: " << diff << "\n";
-//         std::cout << "OjaConnProbe: " << "\n";
 
          assert(preTraceIdx < numArbors*numPostPOVPatch);
          preWeights[preTraceIdx] = *(postWeights[preNeuronID]); // One weight per arbor per preNeuron in postNeuron's receptive field
