@@ -36,7 +36,7 @@ int OjaConnProbe::initialize_base() {
    preStdpTrs = NULL;
    preOjaTrs  = NULL;
    preWeights = NULL;
-   kPost      = NULL;
+   kPost      = -1;
    return PV_SUCCESS;
 }
 
@@ -61,7 +61,7 @@ int OjaConnProbe::initialize(const char * probename, const char * filename,
       //std::cout << "OjaConnProbe: kPost (COORDINATE): " << kPost << "\n";
    }
    else assert(false);
-   assert(kPost != NULL || kPost != -1);
+   assert(kPost != -1);
 
    return PV_SUCCESS;
 }
