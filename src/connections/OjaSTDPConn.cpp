@@ -140,9 +140,9 @@ int OjaSTDPConn::initPlasticityPatches()
    int status = HyPerConn::initPlasticityPatches();
    assert(status == 0);
 
-   post_stdp_tr = pvcube_new(&post->getCLayer()->loc, post->getNumExtended());
-   post_oja_tr  = pvcube_new(&post->getCLayer()->loc, post->getNumExtended());
-   post_int_tr  = pvcube_new(&post->getCLayer()->loc, post->getNumExtended());
+   post_stdp_tr = pvcube_new(&post->getCLayer()->loc, post->getNumNeurons());
+   post_oja_tr  = pvcube_new(&post->getCLayer()->loc, post->getNumNeurons());
+   post_int_tr  = pvcube_new(&post->getCLayer()->loc, post->getNumNeurons());
    pre_stdp_tr  = pvcube_new(&pre->getCLayer()->loc, pre->getNumExtended());
    pre_oja_tr   = pvcube_new(&pre->getCLayer()->loc, pre->getNumExtended());
 
@@ -154,10 +154,10 @@ int OjaSTDPConn::initPlasticityPatches()
 
    int numPost = post_stdp_tr->numItems;
    int numPre  = pre_stdp_tr->numItems;
-   for (int kexPost = 0; kexPost < numPost; kexPost++) {
-      post_stdp_tr->data[kexPost] = tauLTD * targetRateHz/1000;
-      post_oja_tr->data[kexPost]  = tauOja * targetRateHz/1000;
-      post_int_tr->data[kexPost]  = tauO   * targetRateHz/1000;
+   for (int kPost = 0; kPost < numPost; kPost++) {
+      post_stdp_tr->data[kPost] = tauLTD * targetRateHz/1000;
+      post_oja_tr->data[kPost]  = tauOja * targetRateHz/1000;
+      post_int_tr->data[kPost]  = tauO   * targetRateHz/1000;
    }
    for (int kexPre = 0; kexPre < numPre; kexPre++) {
       pre_stdp_tr->data[kexPre] = tauLTP * targetRateHz/1000;
@@ -309,9 +309,6 @@ int OjaSTDPConn::updateWeights(int arborID)
             W[k] += scaleFactor *
                   (ojaTerm * ampLTP * aPost[k] * (*pre_stdp_tr_m) - ampLTD[k] * aPre * post_stdp_tr_m[k] -
                   weightDecay * W[k]);
-//            W[k] += scaleFactor * (ojaTerm  *
-//                  (ampLTP * aPost[k] * (*pre_stdp_tr_m) - ampLTD[k] * aPre * post_stdp_tr_m[k]) -
-//                  weightDecay * W[k]);
 
             W[k] = W[k] < wMin ? wMin : W[k]; // Stop weights from going all the way to 0
             if (!ojaFlag) { //oja term should get rid of the need to impose a maximum weight
@@ -400,126 +397,90 @@ int OjaSTDPConn::outputState(float timef, bool last)
    return status;
 }
 
+// Overwrite from HyPerConn to return the max limit, instead of computing the max weight in all weights
 float OjaSTDPConn::maxWeight(int arborID)
 {
    return wMax;
 }
 
+// Anything extra that you want to write out when HyPerConn calls writeTextWeights
 int OjaSTDPConn::writeTextWeightsExtra(FILE * fd, int k, int arborID)
 {
    if (plasticityFlag) {
-      pv_text_write_patch(fd, getWeights(k, arborID), get_dwData(arborID, k), nfp, sxp, syp, sfp); // write the Ps variable
+      pv_text_write_patch(fd, getWeights(k, arborID), get_dwData(arborID, k), nfp, sxp, syp, sfp); // write data[xp,yp,fp]
    }
    return 0;
 }
 
-#ifdef NOTYET
-void STDP_update_state_post(
-      const float dt,
+int OjaSTDPConn::checkpointWrite(const char * cpDir) {
+   int status = HyPerConn::checkpointWrite(cpDir);
+   // This is kind of hacky, but we save the extended buffers pre_stdp_tr as if they were nonextended buffers of size (nx+2*nb)-by-(ny+2*nb)-by-nf
+   // post_stdp_tr is buffer of size nx-by-ny-by-nf
+   char filename[PV_PATH_MAX];
+   int chars_needed;
+   PVLayerLoc loc;
 
-      const int nx,
-      const int ny,
-      const int nf,
-      const int nb,
+   // **** PRE LAYER INFO *** //
+   memcpy(&loc, pre->getLayerLoc(), sizeof(PVLayerLoc));
+   loc.nx += 2*loc.nb;
+   loc.ny += 2*loc.nb;
+   loc.nxGlobal = loc.nx * parent->icCommunicator()->numCommColumns();
+   loc.nyGlobal = loc.ny * parent->icCommunicator()->numCommRows();
+   loc.nb = 0;
 
-      const int nxp,
-      const int nyp,
-
-      STDP_params * params,
-
-      float * M,
-      float * Wmax,
-      float * Apost,
-      float * Rpost)
-{
-
-   int kex;
-#ifndef PV_USE_OPENCL
-   for (kex = 0; kex < nx*ny*nf; kex++) {
-#else
-      kex = get_global_id(0);
-#endif
-
-      //
-      // kernel (nonheader part) begins here
-      //
-
-      // update the decrement variable
-      //
-      M[kex] = decay * M[kex] - fac * Apost[kex];
-
-#ifndef PV_USE_OPENCL
+   // pre_stdp_tr
+   chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_pre_stdp_tr.pvp", cpDir, name);
+   if (chars_needed >= PV_PATH_MAX) {
+      fprintf(stderr, "OjaSTDPConn::checkpointWrite error.  Path \"%s/%s_pre_stdp_tr.pvp\" is too long.\n", cpDir, name);
+      abort();
    }
-#endif
+   write_pvdata(filename, parent->icCommunicator(), (double) parent->simulationTime(), pre_stdp_tr->data, &loc, PV_FLOAT_TYPE, /*extended*/ false, /*contiguous*/ false);
 
-}
-
-
-/**
- * Loop over presynaptic extended layer.  Calculate dwPatches, and weights.
- */
-void STDP_update_state_pre(
-      const float time,
-      const float dt,
-
-      const int nx,
-      const int ny,
-      const int nf,
-      const int nb,
-
-      const int nxp,
-      const int nyp,
-
-      STDP_params * params,
-
-      float * M,
-      float * P,
-      float * W,
-      float * Wmax,
-      float * Apre,
-      float * Apost)
-{
-
-   int kex;
-
-   float m[NXP*NYP], aPost[NXP*NYP], wMax[NXP*NYP];
-
-#ifndef PV_USE_OPENCL
-   for (kex = 0; kex < nx*ny*nf; kex++) {
-#else
-      kex = get_global_id(0);
-#endif
-
-      //
-      // kernel (nonheader part) begins here
-      //
-
-      // update the increment variable
-      //
-      float aPre = Apre[kex];
-      float * p = P[kex*stride];
-
-      // copy into local variable
-      //
-
-      copy(m, M);
-      copy(aPost, Apost);
-      copy(wMax, Wmax);
-
-      // update the weights
-      //
-      for (int kp = 0; kp < nxp*nyp; kp++) {
-         p[kp] = decay * p[kp] + ltpAmp * aPre;
-         w[kp] += dWMax * (aPre * m[kp] + aPost[kp] * p[kp]);
-         w[kp] = w[kp] < wMin ? wMin : w[kp];
-         w[kp] = w[kp] > wMax ? wMax : w[kp];
-      }
-#ifndef PV_USE_OPENCL
+   // pre_oja_tr
+   chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_pre_oja_tr.pvp", cpDir, name);
+   if (chars_needed >= PV_PATH_MAX) {
+      fprintf(stderr, "OjaSTDPConn::checkpointWrite error.  Path \"%s/%s_pre_oja_tr.pvp\" is too long.\n", cpDir, name);
+      abort();
    }
-#endif
+   write_pvdata(filename, parent->icCommunicator(), (double) parent->simulationTime(), pre_oja_tr->data, &loc, PV_FLOAT_TYPE, /*extended*/ false, /*contiguous*/ false);
 
+   // **** POST LAYER INFO *** //
+   memcpy(&loc, post->getLayerLoc(), sizeof(PVLayerLoc));
+
+   // post_stdp_tr
+   chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_post_stdp_tr.pvp", cpDir, name);
+   if (chars_needed >= PV_PATH_MAX) {
+      fprintf(stderr, "OjaSTDPConn::checkpointWrite error.  Path \"%s/%s_post_stdp_tr.pvp\" is too long.\n", cpDir, name);
+      abort();
+   }
+   write_pvdata(filename, parent->icCommunicator(), (double) parent->simulationTime(), post_stdp_tr->data, &loc, PV_FLOAT_TYPE, /*extended*/ false, /*contiguous*/ false);
+
+   // post_oja_tr
+   chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_post_oja_tr.pvp", cpDir, name);
+   if (chars_needed >= PV_PATH_MAX) {
+      fprintf(stderr, "OjaSTDPConn::checkpointWrite error.  Path \"%s/%s_post_oja_tr.pvp\" is too long.\n", cpDir, name);
+      abort();
+   }
+   write_pvdata(filename, parent->icCommunicator(), (double) parent->simulationTime(), post_oja_tr->data, &loc, PV_FLOAT_TYPE, /*extended*/ false, /*contiguous*/ false);
+
+   // post_int_tr
+   chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_post_int_tr.pvp", cpDir, name);
+   if (chars_needed >= PV_PATH_MAX) {
+      fprintf(stderr, "OjaSTDPConn::checkpointWrite error.  Path \"%s/%s_post_int_tr.pvp\" is too long.\n", cpDir, name);
+      abort();
+   }
+   write_pvdata(filename, parent->icCommunicator(), (double) parent->simulationTime(), post_int_tr->data, &loc, PV_FLOAT_TYPE, /*extended*/ false, /*contiguous*/ false);
+
+   // ampLTD
+   chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_ampLTD.pvp", cpDir, name);
+   if (chars_needed >= PV_PATH_MAX) {
+      fprintf(stderr, "OjaSTDPConn::checkpointWrite error.  Path \"%s/%sampLTD.pvp\" is too long.\n", cpDir, name);
+      abort();
+   }
+   write_pvdata(filename, parent->icCommunicator(), (double) parent->simulationTime(), ampLTD, &loc, PV_FLOAT_TYPE, /*extended*/ false, /*contiguous*/ false);
+
+   return status;
 }
-#endif //NOTYET - TODO
 
 int OjaSTDPConn::checkpointRead(const char * cpDir, float* timef) {
    int status = HyPerConn::checkpointRead(cpDir, timef);
@@ -528,73 +489,84 @@ int OjaSTDPConn::checkpointRead(const char * cpDir, float* timef) {
    double timed;
    PVLayerLoc loc;
 
+   // **** PRE LAYER INFO *** //
    memcpy(&loc, pre->getLayerLoc(), sizeof(PVLayerLoc));
    loc.nx += 2*loc.nb;
    loc.ny += 2*loc.nb;
    loc.nxGlobal = loc.nx * parent->icCommunicator()->numCommColumns();
    loc.nyGlobal = loc.ny * parent->icCommunicator()->numCommRows();
    loc.nb = 0;
+
+   // pre_stdp_tr
    chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_pre_stdp_tr.pvp", cpDir, name);
    if (chars_needed >= PV_PATH_MAX) {
-      fprintf(stderr, "LCALIFLateralConn::checkpointWrite error.  Path \"%s/%s_pre_stdp_tr.pvp\" is too long.\n", cpDir, name);
+      fprintf(stderr, "OjaSTDPConn::checkpointRead error.  Path \"%s/%s_pre_stdp_tr.pvp\" is too long.\n", cpDir, name);
       abort();
    }
    read_pvdata(filename, parent->icCommunicator(), &timed, pre_stdp_tr->data, &loc, PV_FLOAT_TYPE, /*extended*/ false, /*contiguous*/ false);
+   if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
+      fprintf(stderr, "Warning in OjaSTDPConn: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
+   }
 
+   // pre_oja_tr
+   chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_pre_oja_tr.pvp", cpDir, name);
+   if (chars_needed >= PV_PATH_MAX) {
+      fprintf(stderr, "OjaSTDPConn::checkpointRead error.  Path \"%s/%s_pre_oja_tr.pvp\" is too long.\n", cpDir, name);
+      abort();
+   }
+   read_pvdata(filename, parent->icCommunicator(), &timed, pre_oja_tr->data, &loc, PV_FLOAT_TYPE, /*extended*/ false, /*contiguous*/ false);
+   if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
+      fprintf(stderr, "Warning in OjaSTDPConn: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
+   }
+
+   // **** POST LAYER INFO *** //
    memcpy(&loc, post->getLayerLoc(), sizeof(PVLayerLoc));
-   loc.nx += 2*loc.nb;
-   loc.ny += 2*loc.nb;
-   loc.nxGlobal = loc.nx * parent->icCommunicator()->numCommColumns();
-   loc.nyGlobal = loc.ny * parent->icCommunicator()->numCommRows();
-   loc.nb = 0;
+
+   // post_stdp_tr
    chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_post_stdp_tr.pvp", cpDir, name);
    if (chars_needed >= PV_PATH_MAX) {
-      fprintf(stderr, "LCALIFLateralConn::checkpointWrite error.  Path \"%s/%s_post_stdp_tr.pvp\" is too long.\n", cpDir, name);
+      fprintf(stderr, "OjaSTDPConn::checkpointRead error.  Path \"%s/%s_post_stdp_tr.pvp\" is too long.\n", cpDir, name);
       abort();
    }
    read_pvdata(filename, parent->icCommunicator(), &timed, post_stdp_tr->data, &loc, PV_FLOAT_TYPE, /*extended*/ false, /*contiguous*/ false);
+   if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
+      fprintf(stderr, "Warning in OjaSTDPConn: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
+   }
 
+   // post_oja_tr
+   chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_post_oja_tr.pvp", cpDir, name);
+   if (chars_needed >= PV_PATH_MAX) {
+      fprintf(stderr, "OjaSTDPConn::checkpointRead error.  Path \"%s/%s_post_oja_tr.pvp\" is too long.\n", cpDir, name);
+      abort();
+   }
+   read_pvdata(filename, parent->icCommunicator(), &timed, post_oja_tr->data, &loc, PV_FLOAT_TYPE, /*extended*/ false, /*contiguous*/ false);
+   if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
+      fprintf(stderr, "Warning in OjaSTDPConn: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
+   }
+
+   // post_int_tr
+   chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_post_int_tr.pvp", cpDir, name);
+   if (chars_needed >= PV_PATH_MAX) {
+      fprintf(stderr, "OjaSTDPConn::checkpointRead error.  Path \"%s/%s_post_int_tr.pvp\" is too long.\n", cpDir, name);
+      abort();
+   }
+   read_pvdata(filename, parent->icCommunicator(), &timed, post_int_tr->data, &loc, PV_FLOAT_TYPE, /*extended*/ false, /*contiguous*/ false);
+   if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
+      fprintf(stderr, "Warning in OjaSTDPConn: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
+   }
+
+   // ampLTD
+   chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_ampLTD.pvp", cpDir, name);
+   if (chars_needed >= PV_PATH_MAX) {
+      fprintf(stderr, "OjaSTDPConn::checkpointRead error.  Path \"%s/%sampLTD.pvp\" is too long.\n", cpDir, name);
+      abort();
+   }
+   read_pvdata(filename, parent->icCommunicator(), &timed, ampLTD, &loc, PV_FLOAT_TYPE, /*extended*/ false, /*contiguous*/ false);
    if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
       fprintf(stderr, "Warning: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
    }
 
    return status;
 }
-
-int OjaSTDPConn::checkpointWrite(const char * cpDir) {
-   int status = HyPerConn::checkpointWrite(cpDir);
-   // This is kind of hacky, but we save the extended buffers post_stdp_tr, pre_stdp_tr as if they were nonextended buffers of size (nx+2*nb)-by-(ny+2*nb)
-   char filename[PV_PATH_MAX];
-   int chars_needed;
-   PVLayerLoc loc;
-
-   memcpy(&loc, pre->getLayerLoc(), sizeof(PVLayerLoc));
-   loc.nx += 2*loc.nb;
-   loc.ny += 2*loc.nb;
-   loc.nxGlobal = loc.nx * parent->icCommunicator()->numCommColumns();
-   loc.nyGlobal = loc.ny * parent->icCommunicator()->numCommRows();
-   loc.nb = 0;
-   chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_pre_stdp_tr.pvp", cpDir, name);
-   if (chars_needed >= PV_PATH_MAX) {
-      fprintf(stderr, "LCALIFLateralConn::checkpointWrite error.  Path \"%s/%s_pre_stdp_tr.pvp\" is too long.\n", cpDir, name);
-      abort();
-   }
-   write_pvdata(filename, parent->icCommunicator(), (double) parent->simulationTime(), pre_stdp_tr->data, &loc, PV_FLOAT_TYPE, /*extended*/ false, /*contiguous*/ false);
-
-   memcpy(&loc, post->getLayerLoc(), sizeof(PVLayerLoc));
-   loc.nx += 2*loc.nb;
-   loc.ny += 2*loc.nb;
-   loc.nxGlobal = loc.nx * parent->icCommunicator()->numCommColumns();
-   loc.nyGlobal = loc.ny * parent->icCommunicator()->numCommRows();
-   loc.nb = 0;
-   chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_post_stdp_tr.pvp", cpDir, name);
-   if (chars_needed >= PV_PATH_MAX) {
-      fprintf(stderr, "LCALIFLateralConn::checkpointWrite error.  Path \"%s/%s_post_stdp_tr.pvp\" is too long.\n", cpDir, name);
-      abort();
-   }
-   write_pvdata(filename, parent->icCommunicator(), (double) parent->simulationTime(), post_stdp_tr->data, &loc, PV_FLOAT_TYPE, /*extended*/ false, /*contiguous*/ false);
-   return status;
-}
-
 
 } // End of namespace PV
