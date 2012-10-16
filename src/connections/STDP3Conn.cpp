@@ -56,7 +56,7 @@ int STDP3Conn::initialize(const char * name, HyPerCol * hc,
    status |= initPlasticityPatches();
 
    if(synscalingFlag){
-      point2PreSynapticWeights(0);
+      point2PreSynapticWeights();
    }
 
    return status;
