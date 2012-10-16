@@ -10,7 +10,7 @@ HyPerCol "column" = {
    
    randomSeed 	                = 1020304050.0;   
 
-   numSteps                     = 1000000;	// amount of time steps performed during run-time
+   numSteps                     = 50000;	// amount of time steps performed during run-time
    progressStep                 = 1000;     // write output to see progress
    writeProgressToErr           = 0;        // write progress steps to std err
    
@@ -22,12 +22,12 @@ HyPerCol "column" = {
    
    checkpointRead  				= false;
    checkpointReadDir            = "~/Documents/Work/LANL/workspace/iHouse/checkpoints/";
-   checkpointReadDirIndex       = 20000;
+   checkpointReadDirIndex       = 50000;
    checkpointWrite 				= false;
    //checkpointWriteDir  			= "~/Documents/workspace/iHouse/output/checkpoints";
    checkpointWriteDir  			= "~/Documents/Work/LANL/workspace/iHouse/output/checkpoints"; // Dylan's Mac
    //checkpointWriteDir  			= "~/workspace/iHouse/output/checkpoints"; // Dylan's Neuro
-   checkpointWriteStepInterval  = 50000;
+   checkpointWriteStepInterval  = 1000000;
    suppressLastOutput           = 0;
    
    printParamsFilename          = "~/Documents/Work/LANL/workspace/iHouse/output/params_run.pv";
@@ -85,7 +85,7 @@ Patterns "input" = {
 };
 
 
-ANNLayer "scaled input" = {
+ANNLayer "scaled_input" = {
     nxScale                 = 1;
     nyScale                 = 1;
     nf                      = 1;
@@ -198,9 +198,9 @@ LIF "lif" = {
 // Connections Connections Connections Connections Connections Connections
 ////////////////////////////////////////////////////////////////////////////////
 
-KernelConn "input to scaled input" = {
+KernelConn "InputtoScaledInput" = {
     preLayerName  = "input";
-    postLayerName = "scaled input";
+    postLayerName = "scaled_input";
 
     channelCode   = 0;
     nxp           = 1;
@@ -223,110 +223,157 @@ KernelConn "input to scaled input" = {
     selfFlag               = false;
     shrinkPatches          = false;
     preActivityIsNotRate   = false;
+    combineWeightFiles     = false;
 };
 
 KernelConn "ImagetoRetinaONCenter" = {
-   preLayerName          = "scaled input";
-   postLayerName         = "RetinaON";
-   channelCode           = 0;
-   nxp                   = 1; 
-   nyp                   = 1; 
-   nfp                   = 1;
-   delay                 = 0;
+   preLayerName           = "scaled_input";
+   postLayerName          = "RetinaON";
+   channelCode            = 0;
+   nxp                    = 1; 
+   nyp                    = 1; 
+   nfp                    = 1;
+   delay                  = 0;
+ 
+   stdpFlag               = 0;
+   initFromLastFlag       = 0;  
+   writeStep              = -1;
+
+   weightInitType         = "Gauss2DWeights";
+   aspect                 = 1;
+   sigma                  = 1;
+   rMax                   = 1;   
+   rMin                   = 0;
+   strength               = 50;
+   combineWeightFiles     = false;
    
-   stdpFlag              = 0;
-   initFromLastFlag      = 0;  
-   writeStep             = -1;
+   numAxonalArbors        = 1;
+   plasticityFlag         = false;
+   stochasticReleaseFlag  = false;
+   preActivityIsNotRate   = false;
+   writeCompressedWeights = true;
+   selfFlag               = false;
+   shrinkPatches          = false;
+   normalizeTotalToPost   = false;
+   normalize_cutoff       = false;
 
-   weightInitType        = "InitGauss2DWeights";
-   aspect                = 1;
-   sigma                 = 1;
-   rMax                  = 1;   
-   strength              = 50;
-
-   normalize             = false;
-   normalize_zero_offset = 0.0;
-   normalize_max 	     = 0.0;
-   symmetrizeWeights     = 0;
+   normalize              = true;
+   normalize_zero_offset  = 0.0;
+   normalize_max 	      = 0.0;
+   symmetrizeWeights      = 0;
 };
 
 KernelConn "ImagetoRetinaONSurround" = {
-   preLayerName          = "scaled input";
-   postLayerName         = "RetinaON";
-   channelCode           = 1;
-   nxp                   = 3;
-   nyp                   = 3;
-   nfp                   = 1;
-   delay                 = 0;
+   preLayerName           = "scaled_input";
+   postLayerName          = "RetinaON";
+   channelCode            = 1;
+   nxp                    = 3;
+   nyp                    = 3;
+   nfp                    = 1;
+   delay                  = 0;
 
-   stdpFlag              = 0;
-   initFromLastFlag      = 0;
-   writeStep             = -1;
+   stdpFlag               = 0;
+   initFromLastFlag       = 0;
+   writeStep              = -1;
 
-   weightInitType        = "InitGauss2DWeights";
-   aspect                = 1;
-   sigma                 = 1;
-   rMax                  = 5;
-   rMin                  = 0;
-   strength              = 50;
+   weightInitType         = "Gauss2DWeights";
+   aspect                 = 1;
+   sigma                  = 1;
+   rMax                   = 5;
+   rMin                   = 0;
+   strength               = 50;
+   combineWeightFiles     = false;
 
-   normalize             = true;
-   normalize_zero_offset = 0.0;
-   normalize_max         = 0.0;
-   symmetrizeWeights     = 0;
+   numAxonalArbors        = 1;
+   plasticityFlag         = false;
+   stochasticReleaseFlag  = false;
+   preActivityIsNotRate   = false;
+   writeCompressedWeights = true;
+   selfFlag               = false;
+   shrinkPatches          = false;
+   normalizeTotalToPost   = false;
+   normalize_cutoff       = false;
+   
+   normalize              = true;
+   normalize_zero_offset  = 0.0;
+   normalize_max          = 0.0;
+   symmetrizeWeights      = 0;
 };
 
 
 KernelConn "ImagetoRetinaOFFCenter" = {
-   preLayerName          = "scaled input";
-   postLayerName         = "RetinaOFF";
-   channelCode           = 1;
-   nxp                   = 1; 
-   nyp                   = 1; 
-   nfp                   = 1;
-   delay                 = 0;
+   preLayerName           = "scaled_input";
+   postLayerName          = "RetinaOFF";
+   channelCode            = 1;
+   nxp                    = 1; 
+   nyp                    = 1; 
+   nfp                    = 1;
+   delay                  = 0;
    
-   stdpFlag              = 0;
-   initFromLastFlag      = 0;  
-   writeStep             = -1;
+   stdpFlag               = 0;
+   initFromLastFlag       = 0;  
+   writeStep              = -1;
 
-   weightInitType        = "InitGauss2DWeights";
-   aspect                = 1;
-   sigma                 = 1;
-   rMax                  = 1;   
-   strength              = 50;
+   weightInitType         = "Gauss2DWeights";
+   aspect                 = 1;
+   sigma                  = 1;
+   rMax                   = 1;   
+   rMin                   = 0;
+   strength               = 50;
+   combineWeightFiles     = false;
 
-   normalize             = false;
-   normalize_zero_offset = 0.0;
-   normalize_max 	     = 0.0;
-   symmetrizeWeights     = 0;
+   numAxonalArbors        = 1;
+   plasticityFlag         = false;
+   stochasticReleaseFlag  = false;
+   preActivityIsNotRate   = false;
+   writeCompressedWeights = true;
+   selfFlag               = false;
+   shrinkPatches          = false;
+   normalizeTotalToPost   = false;
+   normalize_cutoff       = false;
+   
+   normalize              = true;
+   normalize_zero_offset  = 0.0;
+   normalize_max 	      = 0.0;
+   symmetrizeWeights      = 0;
 };
 
 
 KernelConn "ImagetoRetinaOFFSurround" = {
-   preLayerName          = "scaled input";
-   postLayerName         = "RetinaOFF";
-   channelCode           = 0;
-   nxp                   = 3;
-   nyp                   = 3;
-   nfp                   = 1;
-   delay                 = 0;
-   strength              = 50;
+   preLayerName           = "scaled_input";
+   postLayerName          = "RetinaOFF";
+   channelCode            = 0;
+   nxp                    = 3;
+   nyp                    = 3;
+   nfp                    = 1;
+   delay                  = 0;
 
-   stdpFlag              = 0;
-   initFromLastFlag      = 0;
-   writeStep             = -1;
+   stdpFlag               = 0;
+   initFromLastFlag       = 0;
+   writeStep              = -1;
 
-   weightInitType        = "InitGauss2DWeights";
-   aspect                = 1;
-   sigma                 = 1;
-   rMax                  = 5;
-   rMin                  = 0;
+   weightInitType         = "Gauss2DWeights";
+   aspect                 = 1;
+   sigma                  = 1;
+   rMax                   = 5;
+   rMin                   = 0;
+   strength               = 50;
+   combineWeightFiles     = false;
 
-   normalize             = true;
-   normalize_zero_offset = 0.0;
-   normalize_max         = 0.0;
-   symmetrizeWeights     = 0;
+   numAxonalArbors        = 1;
+   plasticityFlag         = false;
+   stochasticReleaseFlag  = false;
+   preActivityIsNotRate   = false;
+   writeCompressedWeights = true;
+   selfFlag               = false;
+   shrinkPatches          = false;
+   normalizeTotalToPost   = false;
+   normalize_cutoff       = false;
+   
+   normalize              = true;
+   normalize_zero_offset  = 0.0;
+   normalize_max          = 0.0;
+   symmetrizeWeights      = 0;
 };
 
 
@@ -335,7 +382,7 @@ KernelConn "ImagetoRetinaOFFSurround" = {
 // STDP connections      STDP connections      STDP connections      STDP connections      STDP connections      STDP connections      
 // STDP connections      STDP connections      STDP connections      STDP connections      STDP connections      STDP connections      
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-OjaSTDPConn "RetinaON to lif" = {
+OjaSTDPConn "RetinaONtoLif" = {
    preLayerName           = "RetinaON";
    postLayerName          = "lif";
    nxp                    = 5;
@@ -352,6 +399,7 @@ OjaSTDPConn "RetinaON to lif" = {
    normalize_max          = false;
    normalize_zero_offset  = 0.0;
    strength               = 0;
+   combineWeightFiles     = false;
    
    ampLTP                 = 1;    // (ms)
    initAmpLTD             = 1;    // (ms)
@@ -386,10 +434,12 @@ OjaSTDPConn "RetinaON to lif" = {
    
    synscalingFlag         = 0;
    synscaling_v           = 1;
+   preActivityIsNotRate   = 0;
+   initialWriteTime       = 0;
 };
 
 
-OjaSTDPConn "RetinaOFF to lif" = {
+OjaSTDPConn "RetinaOFFtoLif" = {
    preLayerName           = "RetinaOFF";
    postLayerName          = "lif";
    nxp                    = 5;
@@ -406,6 +456,7 @@ OjaSTDPConn "RetinaOFF to lif" = {
    normalize_max          = false;
    normalize_zero_offset  = 0.0;
    strength               = 0;
+   combineWeightFiles     = false;
    
    ampLTP                 = 1;    // (ms)
    initAmpLTD             = 1;    // (ms)
@@ -440,6 +491,8 @@ OjaSTDPConn "RetinaOFF to lif" = {
    
    synscalingFlag         = 0;
    synscaling_v           = 1;
+   preActivityIsNotRate   = 0;
+   initialWriteTime       = 0;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -451,7 +504,7 @@ OjaSTDPConn "RetinaOFF to lif" = {
 // Probes Probes Probes Probes Probes Probes Probes Probes Probes Probes Probes
 ////////////////////////////////////////////////////////////////////////////////
 
-PointLIFProbe "LIF Probe" = {
+PointLIFProbe "LIF_Probe" = {
    targetLayer     = "lif";
    probeOutputFile = "ptLIF.txt";
    xLoc            = 47;
@@ -459,8 +512,8 @@ PointLIFProbe "LIF Probe" = {
    fLoc            = 0;
 };
 
-OjaConnProbe "Oja ON Probe" = {
-    targetConnection = "RetinaON to lif";
+OjaConnProbe "Oja_ON_Probe" = {
+    targetConnection = "RetinaONtoLif";
     probeOutputFile  = "retONtoLif.txt";
     msg              = "OjaON";
     kxPost           = 40; //About half way in
@@ -469,8 +522,8 @@ OjaConnProbe "Oja ON Probe" = {
 };
 
 
-OjaConnProbe "Oja OFF Probe" = {
-    targetConnection = "RetinaOFF to lif";
+OjaConnProbe "Oja_OFF_Probe" = {
+    targetConnection = "RetinaOFFtoLif";
     probeOutputFile  = "retOFFtoLif.txt";
     msg              = "OjaOFF";
     kPost            = 2000;
