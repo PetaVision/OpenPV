@@ -33,8 +33,8 @@ int OjaKernelConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre
       const char * filename, InitWeights *weightInit) {
    int status = KernelConn::initialize(name, hc, pre, post, filename, weightInit);
    learningRate = readLearningRate();
-   inputTargetRate = readInputTargetRate();
-   outputTargetRate = readOutputTargetRate();
+   inputTargetRate = 0.001*readInputTargetRate(); // params file specifies target rates
+   outputTargetRate = 0.001*readOutputTargetRate();
    integrationTime = readIntegrationTime();
 
    int numarbors = numberOfAxonalArborLists();
@@ -81,6 +81,7 @@ int OjaKernelConn::updateState(float timef, float dt) {
 
    // HyPerConn::updateState calls update_dW and updateWeights; we override update_dW but there is no need to override updateWeights
    int status = HyPerConn::updateState(timef, dt);
+
    return status;
 }
 
