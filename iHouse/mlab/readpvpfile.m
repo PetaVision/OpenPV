@@ -158,10 +158,9 @@ if isempty(errorstring)
                        frame_str = num2str(movieFrame);
                    end%if lt(frame,10)
                    outImg = zeros([hdr.nyGlobal, hdr.nxGlobal]);
-                   for val = 1:length(data{frame}.values) 
-                      [vX vY] = ind2sub([hdr.nxGlobal hdr.nyGlobal], data{frame}.values(val) + 1);
-                      outImg(vY, vX) = 1;
-                   end
+                   tempOutImg = outImg';
+                   tempOutImg(data{frame}.values + 1) = 1;
+                   outImg = tempOutImg';
                    print_movie_filename = [inst_movie_path,rootname,'_',frame_str,'.',OUT_FILE_EXT];
                    try
                        imwrite(outImg,print_movie_filename,OUT_FILE_EXT)
