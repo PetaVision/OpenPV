@@ -420,6 +420,9 @@ int HyPerConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
    this->post = post;
 
    PVParams * inputParams = parent->parameters();
+   status = setParams(inputParams /*, &defaultConnParams*/);
+   defaultDelay = (int) inputParams->value(name, "delay", 0);
+
 
    ChannelType channel = readChannelCode(inputParams);
 
@@ -449,9 +452,6 @@ int HyPerConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
    // assert(this->weightInitializer != NULL); // TransposeConn doesn't use weightInitializer so it overrides handleMissingInitWeights to return NULL.
 
    selfFlag = (pre == post);
-
-   status = setParams(inputParams /*, &defaultConnParams*/);
-   defaultDelay = (int) inputParams->value(name, "delay", 0);
 
 //   stochasticReleaseFlag = inputParams->value(name, "stochasticReleaseFlag", 0, true) != 0;
    accumulateFunctionPointer = stochasticReleaseFlag ? &pvpatch_accumulate_stochastic : &pvpatch_accumulate;
@@ -1325,7 +1325,7 @@ float HyPerConn::maxWeight(int arborId)
 int HyPerConn::insertProbe(BaseConnectionProbe * p)
 {
    if(p->getTargetConn() != this) {
-      fprintf(stderr, "HyPerConn \"%s\": insertProbe called with probe %p, whose targetConn is not this conneciton.  Probe was not inserted.\n", name, p);
+      fprintf(stderr, "HyPerConn \"%s\": insertProbe called with probe %p, whose targetConn is not this connection.  Probe was not inserted.\n", name, p);
       return numProbes;
    }
    for( int i=0; i<numProbes; i++ ) {
@@ -1785,12 +1785,8 @@ PVPatch *** HyPerConn::convertPreSynapticWeights(float time)
 
 
 
-PVPatch **** HyPerConn::point2PreSynapticWeights(float time)
+PVPatch **** HyPerConn::point2PreSynapticWeights()
 {
-//   if (time <= wPostTime) {
-//      return wPostPatchesp;
-//   }
-//   wPostTime = time;
 
    const PVLayer * lPre  = pre->getCLayer();
    const PVLayer * lPost = post->getCLayer();
