@@ -12,19 +12,22 @@ HyPerCol "column" = {
    
    randomSeed                   = 1020304050.0;   
 
-   numSteps                     = 10000;    // amount of time steps performed during run-time
-   progressStep                 = 100;    // write output to see progress
-   writeProgressToErr           = 0;      // write progress steps to std err
+   numSteps                     = 10000;  // amount of time steps performed during run-time
+   progressStep                 = 10;  // write output to see progress
+   writeProgressToErr           = 0;     // write progress steps to std err
    
    outputPath                   = "output";
    
    filenamesContainLayerNames   = 2;     // stores pvp files as: 0 = layer number/1 = layer number and layer name/2 = layer name
    
    checkpointRead               = false;
-   checkpointWrite              = false;
-   //checkpointWriteDir           = "checkpoints";
-   //checkpointWriteStepInterval  = 50000;
-   suppressLastOutput           = false;
+   // checkpointReadDir            = "checkpoints";
+   // checkpointReadDirIndex       = 100;
+   checkpointWrite              = true;
+   checkpointWriteDir           = "checkpoints";
+   checkpointWriteStepInterval  = 1000;
+   deleteOlderCheckpoints       = true;
+   // suppressLastOutput           = false;
 };
 
 
@@ -38,41 +41,43 @@ HyPerCol "column" = {
 
 
 Patterns "input" = {
-   nxScale        = 1;
-   nyScale        = 1;
-   nf             = 1;
-   marginWidth    = 0;
-   restart        = false;
+   nxScale                       = 1;
+   nyScale                       = 1;
+   nf                            = 1;
+   marginWidth                   = 0;
+   restart                       = false;
    
-   patternType         = "DROP";
-   dropSpeed           = -1;   //Radius expands dropSpeed pixles per timestep
-   dropSpeedRandomMax  = 3;
-   dropSpeedRandomMin  = 1;
+   patternType                   = "DROP";
+   dropSpeed                     = -1;   //Radius expands dropSpeed pixles per timestep
+   dropSpeedRandomMax            = 0.03;
+   dropSpeedRandomMin            = 0.01;
    
-   dropPeriod          = -1;   //-1 for random period, otherwise, number of frames inbetween drops
-   dropPeriodRandomMax = 50;
-   dropPeriodRandomMin = 15;
+   dropPeriod                    = -1;   //-1 for random period, otherwise, number of frames inbetween drops
+   dropPeriodRandomMax           = 2000;
+   dropPeriodRandomMin           = 1000;
    
-   maxValue            = 0.75;
-   minValue            = 0.25;
+   maxValue                      = 0.75;
+   minValue                      = 0.25;
 
-   halfNeutral         = true;
-   randomPos           = true;
+   halfNeutral                   = true;
+   dropPosition                  = -1;
+   dropPositionRandomMax         = 20;
+   dropPositionRandomMin         = 5;
 
-   startFrame          = 0; 
-   endFrame            = 200000;
+   startFrame                    = 0; 
+   endFrame                      = 200000;
    
-   writeImages         = false;
-   // patternsOutputPath = "output/sourcefiles";
+   writeImages                   = false;
+   // patternsOutputPath           = "output/sourcefiles";
    
-   displayPeriod  = 1;
-   writeStep      = 1;
-   useImageBCflag = false;
-   mirrorBCflag   = false;
-   inverseFlag    = false;
+   displayPeriod                 = 1;
+   writeStep                     = -1;
+   useImageBCflag                = false;
+   mirrorBCflag                  = false;
+   inverseFlag                   = false;
    
-   spikingFlag             = false;
-   writeNonspikingActivity = true;
+   spikingFlag                   = false;
+   writeNonspikingActivity       = true;
 };
 
 
@@ -83,7 +88,7 @@ ANNLayer "scaled input" = {
     marginWidth             = 16;
     mirrorBCflag            = 1;
     spikingFlag             = false;
-    writeStep               = -1.0;
+    writeStep               = -1;
 
     restart                 = false;
     InitVType               = "ZeroV";
@@ -102,7 +107,7 @@ Retina "RetinaON" = {
     marginWidth   = 16;
     restart       = false;
     
-    writeStep     = -1.0;
+    writeStep     = -1;
     mirrorBCflag  = 0;
     spikingFlag   = true;  // false (no quotes) is translated to 0
 
@@ -126,7 +131,7 @@ Retina "RetinaOFF" = {
     marginWidth   = 16;
     restart       = false;
     
-    writeStep     = -1.0;
+    writeStep     = -1;
     mirrorBCflag  = 0;
     spikingFlag   = true;  // false (no quotes) is translated to 0
 
@@ -145,39 +150,39 @@ Retina "RetinaOFF" = {
 
 
 LCALIFLayer "lcalif" = {
-   nxScale          = 4;        
-   nyScale          = 4;        
-   nf               = 1;           
+   nxScale              = 4;        
+   nyScale              = 4;        
+   nf                   = 1;           
 
-   tauTHR           = 10000;
-   targetRate       = 1;
+   tauTHR               = 10000;       // Timescale for changing adaptive threshold, in milliseconds
+   targetRate           = 5;           // Target rate of output spikes in Hertz
 
-   spikingFlag      = 1;           
-   marginWidth      = 8;         
-   writeStep        = -1;
-   mirrorBCflag     = 0;         // mirroring boundary conditions
-   InitVType        = "ConstantV";
-   method           = "beginning";
-   valueV            = -70.0;
-   Vrest            = -70.0;    
-   restart          = 0.0;         // from graylast
-   Vexc             = 0.0;         // reversal potential 
-   Vinh             = -75.0;       // chloride channel
-   VinhB            = -90.0;       // potassium reversal
-   tau              = 10.0;        // intrinsic leak membrane time constant (max)
-   tauE             = 1.0;         // how long glutamine stays bound
-   tauI             = 5.0;         // how long GABA stays bound
-   tauIB            = 10.0;        // inhibitory potassium channel 
-   VthRest          = -55.0;       // firing threshold 15 mV above rest
-   tauVth           = 10.0;        // 10.0 relative refractory period
-   deltaVth         = 5.0;         // jump of threshold when firing
-   noiseAmpE        = 1;         // 0.5 1 means conductance is equal to lead conductance  gjk
-   noiseAmpI        = 1;         // 0,5 "twice as easy for the membrane capacitance to discharge" gjk
-   noiseAmpIB       = 0.0;         // no noise here 
-   noiseFreqE       = 250.;        // spontaneous transmitter release/channel openings
-   noiseFreqI       = 250.;        // correlation to time step size !!!
-   noiseFreqIB      =   0.;        // should be scaled by the time constant - look at LIF model
-   Vscale           = 15.0;        // Scale for the change of dynVthRest. Must be positive; defaults to VthRest - Vrest
+   spikingFlag          = 1;           
+   marginWidth          = 8;         
+   writeStep            = -1;
+   mirrorBCflag         = 0;         // mirroring boundary conditions
+   InitVType            = "ConstantV";
+   method               = "beginning";
+   valueV                = -70.0;
+   Vrest                = -70.0;    
+   restart              = 0.0;         // from graylast
+   Vexc                 = 0.0;         // reversal potential 
+   Vinh                 = -75.0;       // chloride channel
+   VinhB                = -90.0;       // potassium reversal
+   tau                  = 10.0;        // intrinsic leak membrane time constant (max)
+   tauE                 = 1.0;         // how long glutamine stays bound
+   tauI                 = 5.0;         // how long GABA stays bound
+   tauIB                = 10.0;        // inhibitory potassium channel 
+   VthRest              = -55.0;       // firing threshold 15 mV above rest
+   tauVth               = 10.0;        // 10.0 relative refractory period
+   deltaVth             = 5.0;         // jump of threshold when firing
+   noiseAmpE            = 1;         // 0.5 1 means conductance is equal to lead conductance  gjk
+   noiseAmpI            = 1;         // 0,5 "twice as easy for the membrane capacitance to discharge" gjk
+   noiseAmpIB           = 0.0;         // no noise here 
+   noiseFreqE           = 250.;        // spontaneous transmitter release/channel openings
+   noiseFreqI           = 250.;        // correlation to time step size !!!
+   noiseFreqIB          =   0.;        // should be scaled by the time constant - look at LIF model
+   Vscale               = 15.0;        // Scale for the change of dynVthRest. Must be positive; defaults to VthRest - Vrest
 };
 
 
@@ -191,60 +196,60 @@ LCALIFLayer "lcalif" = {
 ////////////////////////////////////////////////////////////////////////////////
 
 KernelConn "input to scaled input" = {
-    preLayerName  = "input";
-    postLayerName = "scaled input";
-    channelCode     = 0;
+    preLayerName            = "input";
+    postLayerName           = "scaled input";
+    channelCode             = 0;
 
-    nxp             = 1;
-    nyp             = 1;
-    nfp             = 1;
-    numAxonalArbors = 1;
-    delay           = 0;
+    nxp                     = 1;
+    nyp                     = 1;
+    nfp                     = 1;
+    numAxonalArbors         = 1;
+    delay                   = 0;
 
-    writeStep        = -1;
-    initFromLastFlag = 0;
+    writeStep               = -1;
+    initFromLastFlag        = 0;
     
-    weightInitType = "OneToOneWeights";
-    weightInit     = 2.0;
+    weightInitType          = "OneToOneWeights";
+    weightInit              = 2.0;
       
-    normalize              = false;
-    symmetrizeWeights      = false;
-    plasticityFlag         = false;
-    stochasticReleaseFlag  = false;
-    writeCompressedWeights = true;
-    selfFlag               = false;
-    shrinkPatches          = false;
-    preActivityIsNotRate   = false;
+    normalize               = false;
+    symmetrizeWeights       = false;
+    plasticityFlag          = false;
+    stochasticReleaseFlag   = false;
+    writeCompressedWeights  = true;
+    selfFlag                = false;
+    shrinkPatches           = false;
+    preActivityIsNotRate    = false;
 };
 
 KernelConn "ImagetoRetinaONCenter" = {
-   preLayerName    = "scaled input";
-   postLayerName   = "RetinaON";
-   channelCode     = 0;
-   nxp             = 1; 
-   nyp             = 1; 
-   nfp             = 1;
-   numAxonalArbors = 1;
-   delay           = 0;
+   preLayerName             = "scaled input";
+   postLayerName            = "RetinaON";
+   channelCode              = 0;
+   nxp                      = 1; 
+   nyp                      = 1; 
+   nfp                      = 1;
+   numAxonalArbors          = 1;
+   delay                    = 0;
    
-   initFromLastFlag = 0;  
-   writeStep        = -1;
+   initFromLastFlag          = 0;  
+   writeStep                 = -1;
 
-   weightInitType = "Gauss2DWeight";
-   aspect         = 1;
-   sigma          = 1;
-   rMin           = 0;
-   rMax           = 1;   
-   strength       = 50;
+   weightInitType          = "Gauss2DWeight";
+   aspect                  = 1;
+   sigma                   = 1;
+   rMin                    = 0;
+   rMax                    = 1;   
+   strength                = 50;
 
-   normalize              = false;
-   symmetrizeWeights      = false;
-   plasticityFlag         = false;
-   stochasticReleaseFlag  = false;
-   writeCompressedWeights = true;
-   selfFlag               = false;
-   shrinkPatches          = false;
-   preActivityIsNotRate   = false;
+   normalize               = false;
+   symmetrizeWeights       = false;
+   plasticityFlag          = false;
+   stochasticReleaseFlag   = false;
+   writeCompressedWeights  = true;
+   selfFlag                = false;
+   shrinkPatches           = false;
+   preActivityIsNotRate    = false;
 };
 
 KernelConn "ImagetoRetinaONSurround" = {
@@ -314,112 +319,152 @@ KernelConn "ImagetoRetinaOFFCenter" = {
 
 
 KernelConn "ImagetoRetinaOFFSurround" = {
-   preLayerName          = "scaled input";
-   postLayerName         = "RetinaOFF";
-   channelCode           = 0;
-   nxp                   = 3;
-   nyp                   = 3;
-   nfp                   = 1;
-   numAxonalArbors       = 1;
-   delay                 = 0;
-   strength              = 50;
+   preLayerName             = "scaled input";
+   postLayerName            = "RetinaOFF";
+   channelCode              = 0;
+   nxp                      = 3;
+   nyp                      = 3;
+   nfp                      = 1;
+   numAxonalArbors          = 1;
+   delay                    = 0;
+   strength                 = 50;
 
-   initFromLastFlag      = 0;
-   writeStep             = -1;
+   initFromLastFlag         = 0;
+   writeStep                = -1;
 
-   weightInitType        = "Gauss2DWeight";
-   aspect                = 1;
-   sigma                 = 1;
-   rMax                  = 5;
-   rMin                  = 0;
+   weightInitType           = "Gauss2DWeight";
+   aspect                   = 1;
+   sigma                    = 1;
+   rMax                     = 5;
+   rMin                     = 0;
 
-   normalize              = true;
-   normalizeTotalToPost   = false;
-   normalize_max          = false;
-   normalize_zero_offset  = false;
-   normalize_cutoff       = false;
-   symmetrizeWeights      = false;
-   plasticityFlag         = false;
-   stochasticReleaseFlag  = false;
-   writeCompressedWeights = true;
-   selfFlag               = false;
-   shrinkPatches          = false;
-   preActivityIsNotRate   = false;
+   normalize                = true;
+   normalizeTotalToPost     = false;
+   normalize_max            = false;
+   normalize_zero_offset    = false;
+   normalize_cutoff         = false;
+   symmetrizeWeights        = false;
+   plasticityFlag           = false;
+   stochasticReleaseFlag    = false;
+   writeCompressedWeights   = true;
+   selfFlag                 = false;
+   shrinkPatches            = false;
+   preActivityIsNotRate     = false;
 };
 
 OjaKernelConn "RetinaONtoS1" = {
-   preLayerName           = "RetinaON";
-   postLayerName          = "lcalif";
-   nxp                    = 20;
-   nyp                    = 20;
-   nfp                    = 1;
-   numAxonalArbors        = 1;
-   channelCode            = 0;
-   delay                  = 0.0;
+   preLayerName             = "RetinaON";
+   postLayerName            = "lcalif";
+   nxp                      = 20;
+   nyp                      = 20;
+   nfp                      = 1;
+   numAxonalArbors          = 1;
+   channelCode              = 0;
+   delay                    = 0.0;
    
-   initFromLastFlag       = 0;  // 1;  /dr/ restart
+   initFromLastFlag         = 0;  // 1;  /dr/ restart
    
-   initialWriteTime       = 0;
-   writeStep              = 2000;
-   writeCompressedWeights = 0.0;
+   writeStep                = -1;
+   // initialWriteTime         = 0;
+   writeCompressedWeights   = 0.0;
    
-   normalize              = false;
+   normalize                = false;
 
-   combine_dW_with_W_flag = false;
-   selfFlag               = false;
-   preActivityIsNotRate   = false;
-   keepKernelsSynchronized = true;
+   combine_dW_with_W_flag   = false;
+   selfFlag                 = false;
+   preActivityIsNotRate     = false;
+   keepKernelsSynchronized  = true;
 
-   weightInitType         = "UniformRandomWeight";
-   wMaxInit               = 0.5;
-   wMinInit               = 0.005;
+   weightInitType           = "UniformRandomWeight";
+   wMaxInit                 = 0.010;
+   wMinInit                 = 0.005;
    
-   symmetrizeWeights      = 0;
+   symmetrizeWeights        = 0;
    
-   plasticityFlag         = true;
-   shrinkPatches          = false;
-   stochasticReleaseFlag  = false;
-   initialWeightUpdateTime = 0.0;
-   weightUpdatePeriod     = 1.0;
+   plasticityFlag           = true;
+   shrinkPatches            = false;
+   stochasticReleaseFlag    = false;
+   initialWeightUpdateTime  = 0.0;
+   weightUpdatePeriod       = 1.0;
    
+   integrationTime          = 83.33; // Should be a few movie frames in length
+   inputTargetRate          = 5.0;   // Between 1 and 10 Hz
+   outputTargetRate         = 5.0;   // Between 1 and 10 Hz
+   learningRate             = 0.01;   // Reference rate for change in weights, in units of W per millisecond
 };
 
 
 OjaKernelConn "RetinaOFFtoS1" = {
-   preLayerName           = "RetinaOFF";
-   postLayerName          = "lcalif";
-   nxp                    = 20;
-   nyp                    = 20;
-   nfp                    = 1;
-   numAxonalArbors        = 1;
-   channelCode            = 0;
-   delay                  = 0.0;
+   preLayerName             = "RetinaOFF";
+   postLayerName            = "lcalif";
+   nxp                      = 20;
+   nyp                      = 20;
+   nfp                      = 1;
+   numAxonalArbors          = 1;
+   channelCode              = 0;
+   delay                    = 0.0;
    
-   initFromLastFlag       = 0;  // 1;  /dr/ restart
-   
-   initialWriteTime       = 0.0;
-   writeStep              = 2000;
-   writeCompressedWeights = 0.0;
-   
-   normalize              = false;
-   
-   combine_dW_with_W_flag = false;
-   selfFlag               = false;
-   preActivityIsNotRate   = false;
-   keepKernelsSynchronized = true;
+   initFromLastFlag         = 0;  // 1;  /dr/ restart
 
-   weightInitType         = "UniformRandomWeight";
-   wMaxInit               = 0.5;
-   wMinInit               = 0.005;
+   writeStep                = -1;
+   // initialWriteTime         = 0.0;
+   writeCompressedWeights   = 0.0;
    
-   symmetrizeWeights      = 0;
+   normalize                = false;
    
-   plasticityFlag         = true;
-   shrinkPatches          = false;
-   stochasticReleaseFlag  = false;
-   initialWeightUpdateTime = 0.0;
-   weightUpdatePeriod     = 1.0;
+   combine_dW_with_W_flag   = false;
+   selfFlag                 = false;
+   preActivityIsNotRate     = false;
+   keepKernelsSynchronized  = true;
+
+   weightInitType           = "UniformRandomWeight";
+   wMaxInit                 = 0.010;
+   wMinInit                 = 0.005;
    
+   symmetrizeWeights        = 0;
+   
+   plasticityFlag           = true;
+   shrinkPatches            = false;
+   stochasticReleaseFlag    = false;
+   initialWeightUpdateTime  = 0.0;
+   weightUpdatePeriod       = 1.0;
+   
+   integrationTime          = 83.33; // Should be a few movie frames in length
+   inputTargetRate          = 5.0;   // Between 1 and 10 Hz
+   outputTargetRate         = 5.0;   // Between 1 and 10 Hz
+   learningRate             = 0.01;     // Reference rate for change in weights, in units of W per millisecond
+};
+
+LCALIFLateralConn "Lateral Inhibition" = {
+   preLayerName             = "lcalif";
+   postLayerName            = "lcalif";
+   nxp                      = 17;
+   nyp                      = 17;
+   nfp                      = 1;
+   numAxonalArbors          = 1;
+   channelCode              = 1;
+   delay                    = 0.0;
+
+   initFromLastFlag         = false;
+   
+   writeStep                = -1;
+   // initialWriteTime         = 0.0;
+   
+   plasticityFlag           = true;
+   stochasticReleaseFlag    = false;
+   preActivityIsNotRate     = false;
+   writeCompressedWeights   = false;
+   selfFlag                 = false;
+   shrinkPatches            = false;
+   combine_dW_with_W_flag   = false;
+   
+   weightInitType           = "UniformWeight";
+   weightInit               = 0.0;
+   
+   normalize                = false;
+
+   integrationTimeConstant  = 83.33;
+   inhibitionTimeConstant   = 2000;
 };
 
 PointProbe "RetinaON Probe" = {
@@ -428,5 +473,23 @@ PointProbe "RetinaON Probe" = {
    message = "RetinaON Probe ";
    xLoc = 31;
    yLoc = 31;
+   fLoc = 0;
+};
+
+PointProbe "RetinaOFF Probe" = {
+   targetLayer = "RetinaOFF";
+   probeOutputFile = "RetinaOFF_31_31_0.txt";
+   message = "RetinaON Probe ";
+   xLoc = 31;
+   yLoc = 31;
+   fLoc = 0;
+};
+
+PointLCALIFProbe "LCALIF Probe" = {
+   targetLayer = "lcalif";
+   probeOutputFile = "LCALIF_127_127_0.txt";
+   message = "LCALIF Probe   ";
+   xLoc = 127;
+   yLoc = 127;
    fLoc = 0;
 };
