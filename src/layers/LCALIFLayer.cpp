@@ -106,14 +106,11 @@ int LCALIFLayer::initialize(const char * name, HyPerCol * hc, int num_channels, 
       }
       abort();
    }
-
+   
    int numNeurons = getNumNeurons();
-   for (int k=0; k<numNeurons; k++) { // Initialize integrated spikes to non-zero value
-      integratedSpikeCount[k] = targetRateHz/1000;
-   }
-
-   for (int k=0; k<numNeurons; k++) { // Initialize integrated spikes to non-zero value
-      Vadpt[k] = lParams.VthRest;
+   for (int k=0; k<numNeurons; k++) { 
+      integratedSpikeCount[k] = targetRateHz/1000; // Initialize integrated spikes to non-zero value
+      Vadpt[k]                = lParams.VthRest;   // Initialize integrated spikes to non-zero value
    }
 
    return PV_SUCCESS;
@@ -141,22 +138,6 @@ int LCALIFLayer::updateState(float time, float dt)
    LCALIF_update_state(getNumNeurons(), time, dt, clayer->loc.nx, clayer->loc.ny, clayer->loc.nf,
          clayer->loc.nb, Vscale, Vadpt, tauTHR, targetRateHz, integratedSpikeCount, &lParams,
          rand_state, clayer->V, Vth, G_E, G_I, G_IB, GSyn[0], clayer->activity->data, sumGap, G_Gap);
-
-//   int nx = clayer->loc.nx;
-//   int ny = clayer->loc.ny;
-//   int nb = clayer->loc.nb;
-//   int nf = clayer->loc.nf;
-//
-//   for(int k = 0; k < nx*ny*nf; k++){
-//      int kex = kIndexExtended(k, nx, ny, nf, nb);
-//      if (clayer->activity->data[kex] == 1){
-//         int xPos = kxPos(k, nx, ny, nf);
-//         int yPos = kyPos(k, nx, ny, nf);
-//         std::cout << "After Extended Index: " << kex << "   Rest Coords: (" << xPos << "," << yPos <<")\n";
-//      }
-//   }
-
-
    updateActiveIndices();
    return PV_SUCCESS;
 }
