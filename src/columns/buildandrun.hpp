@@ -90,6 +90,7 @@
 
 #include "../io/BaseConnectionProbe.hpp"
 #include "../io/KernelProbe.hpp"
+#include "../io/OjaConnProbe.hpp"
 #include "../io/PatchProbe.hpp"
 #include "../io/ReciprocalEnergyProbe.hpp"
 #include "../io/LayerProbe.hpp"

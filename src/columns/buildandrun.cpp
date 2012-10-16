@@ -128,7 +128,7 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
            "_Start_HyPerConns_",
              "HyPerConn",
                "KernelConn",
-	       "LCAConn",
+	             "LCAConn",
                  "CloneKernelConn",
                  "NoSelfKernelConn",
                  "OjaKernelConn",
@@ -165,6 +165,7 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
            "_Stop_LayerProbes_",
            "_Start_BaseConnectionProbes_",
              "KernelProbe",
+             "OjaConnProbe",
              "PatchProbe",
              "ReciprocalEnergyProbe",
            "_Stop_BaseConnectionProbes_",
@@ -893,10 +894,9 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
    if( !keywordMatched && !strcmp(classkeyword, "OjaSTDPConn")) {
         keywordMatched = true;
         getPreAndPostLayers(name, hc, &preLayer, &postLayer);
-        bool stdpFlag = params->value(name, "stdpFlag", (float) true, true);
         if( preLayer && postLayer ) {
           fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
-          addedConn = (HyPerConn * ) new OjaSTDPConn(name, hc, preLayer, postLayer, fileName, stdpFlag, weightInitializer);
+          addedConn = (HyPerConn * ) new OjaSTDPConn(name, hc, preLayer, postLayer, fileName, weightInitializer);
         }
         status = checknewobject((void *) addedConn, classkeyword, name, hc);
       }
@@ -1082,6 +1082,38 @@ BaseConnectionProbe * addBaseConnectionProbeToColumn(const char * classkeyword, 
          fprintf(stderr, "Error: connection probe \"%s\" requires parameter \"targetConnection\".\n", name);
          status = PV_FAILURE;
       }
+   }
+   if( !strcmp(classkeyword, "OjaConnProbe")) {
+      keywordMatched = true;
+      const char * filename = params->stringValue(name, "probeOutputFile");
+      targetConn = hc->getConnFromName(params->stringValue(name, "targetConnection"));
+      if( targetConn == NULL ) {
+         fprintf(stderr, "Error: connection probe \"%s\" requires parameter \"targetConnection\".\n", name);
+         return NULL;
+      }
+      const char * msg = params->stringValue(name,"msg", name);
+      int indexmethod = params->present(name, "kPost");
+      int coordmethod = params->present(name, "kxPost") && params->present(name,"kyPost") && params->present(name,"kfPost");
+      if( indexmethod && coordmethod ) {
+         fprintf(stderr, "OjaConnProbe \"%s\": Ambiguous definition with both kPost and (kxPost,kyPost,kfPost) defined\n", name);
+         return NULL;
+      }
+      if( !indexmethod && !coordmethod ) {
+         fprintf(stderr, "OjaConnProbe \"%s\": Exactly one of kPost and (kxPost,kyPost,kfPost) must be defined\n", name);
+         return NULL;
+      }
+      if( indexmethod ) {
+         int kPost = params->value(name, "kPost");
+         addedProbe = new OjaConnProbe(msg, filename, targetConn, kPost);
+      }
+      else {
+         assert(coordmethod);
+         int kxPost = params->value(name, "kxPost");
+         int kyPost = params->value(name, "kyPost");
+         int kfPost = params->value(name, "kfPost");
+         addedProbe = new OjaConnProbe(msg, filename, targetConn, kxPost, kyPost, kfPost);
+      }
+      status = checknewobject((void *) addedProbe, classkeyword, name, hc);
    }
    if( !strcmp(classkeyword, "PatchProbe") ) {
       keywordMatched = true;
