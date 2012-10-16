@@ -85,10 +85,6 @@ int LCALIFLateralConn::calc_dW(int axonId) {
    const int nfpost = postloc->nf;
    const int nbpost = postloc->nb;
 
-//   int nxPre = preSynapticLayer()->getLayerLoc()->nx;
-//   int nyPre = preSynapticLayer()->getLayerLoc()->ny;
-//   int nfPre = preSynapticLayer()->getLayerLoc()->nf;
-//   int nbPre = preSynapticLayer()->getLayerLoc()->nb;
    for (int kPre=0; kPre<getNumWeightPatches(); kPre++) {
       // The weight p(x,y,f) connects a presynaptic neuron in extended space to a postsynaptic neuron in restricted space.
       // We need to get the indices.  The presynaptic index is k.  To get the postsynaptic index, find
@@ -104,19 +100,10 @@ int LCALIFLateralConn::calc_dW(int axonId) {
             for (int f=0; f<nfp; f++) {
                int postindex = patch_start_index + sy*y + sx*x + sf*f;
                int postindexext = kIndexExtended(postindex, nxpost, nypost, nfpost, nbpost);
-               pvdata_t delta_weight = (dt_inh/target_rate_sq) * ((integratedSpikeCount[kPre]/integrationTimeConstant) * (integratedSpikeCount[postindexext]/integrationTimeConstant) - target_rate_sq);
-               dw_data[sxp*x + syp*y + sfp*f] = delta_weight;
-//               int xpre = kxPos(kPre, nxPre+2*nbPre, nyPre+2*nbPre, nfPre)-nbPre;
-//               int ypre = kyPos(kPre, nxPre+2*nbPre, nyPre+2*nbPre, nfPre)-nbPre;
-//               int fpre = featureIndex(kPre, nxPre+2*nbPre, nyPre+2*nbPre, nfPre);
-//               int xpost = kxPos(postindex, postloc->nx, postloc->ny, postloc->nf);
-//               int ypost = kyPos(postindex, postloc->nx, postloc->ny, postloc->nf);
-//               int fpost = featureIndex(postindex, postloc->nx, postloc->ny, postloc->nf);
-//               int xpostext = kxPos(postindexext, postloc->nx+2*postloc->nb, postloc->ny+2*postloc->ny, postloc->nf)-postloc->nb;
-//               int ypostext = kyPos(postindexext, postloc->nx+2*postloc->nb, postloc->ny+2*postloc->ny, postloc->nf)-postloc->nb;
-//               int fpostext = featureIndex(postindexext, postloc->nx+2*postloc->nb, postloc->ny+2*postloc->ny, postloc->nf);
-//               printf("Patch %d, presynaptic coordinates x=%d, y=%d, f=%d: patch coordinates x=%d, y=%d, f=%d, postindex=%d, coordinates x=%d, y=%d, f=%d, extended post index %d, coordinates x=%d, y=%d, f=%d\n",
-//                      kPre, xpre, ypre, fpre, x, y, f, postindex, xpost, ypost, fpost, postindexext, xpostext, ypostext, fpostext);
+               if (postindexext != kPre) {
+                  pvdata_t delta_weight = (dt_inh/target_rate_sq) * ((integratedSpikeCount[kPre]/integrationTimeConstant) * (integratedSpikeCount[postindexext]/integrationTimeConstant) - target_rate_sq);
+                  dw_data[sxp*x + syp*y + sfp*f] = delta_weight;
+               }
             }
          }
       }
