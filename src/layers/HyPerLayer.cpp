@@ -1069,20 +1069,23 @@ int HyPerLayer::checkpointRead(const char * cpDir, float * timef) {
    assert(filename != NULL);
    int chars_needed = snprintf(filename, PV_PATH_MAX, "%s_A.pvp", basepath);
    assert(chars_needed < PV_PATH_MAX);
-   readBufferFile(filename, icComm, &timed, clayer->activity->data, 1, /*extended*/true, /*contiguous*/false, getLayerLoc());
+   int status = readBufferFile(filename, icComm, &timed, clayer->activity->data, 1, /*extended*/true, /*contiguous*/false, getLayerLoc());
+   assert(status == PV_SUCCESS);
    *timef = (float) timed;
    // TODO contiguous should be true in the writeBufferFile calls (needs to be added to writeBuffer method)
    if( getV() != NULL ) {
       chars_needed = snprintf(filename, PV_PATH_MAX, "%s_V.pvp", basepath);
       assert(chars_needed < PV_PATH_MAX);
-      readBufferFile(filename, icComm, &timed, getV(), 1, /*extended*/false, /*contiguous*/false, getLayerLoc());
+      status = readBufferFile(filename, icComm, &timed, getV(), 1, /*extended*/false, /*contiguous*/false, getLayerLoc());
+      assert(status == PV_SUCCESS);
       if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
          fprintf(stderr, "Warning: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
       }
    }
    chars_needed = snprintf(filename, PV_PATH_MAX, "%s_Delays.pvp", basepath);
    assert(chars_needed < PV_PATH_MAX);
-   readDataStoreFromFile(filename, icComm, &timed);
+   status = readDataStoreFromFile(filename, icComm, &timed);
+   assert(status == PV_SUCCESS);
    if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
       fprintf(stderr, "Warning: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
    }
@@ -1112,9 +1115,9 @@ int HyPerLayer::checkpointRead(const char * cpDir, float * timef) {
 }
 
 int HyPerLayer::readBufferFile(const char * filename, InterColComm * comm, double * timed, pvdata_t * buffer, int numbands, bool extended, bool contiguous, const PVLayerLoc * loc) {
-   int status;
    int params[NUM_BIN_PARAMS];
-   readHeader(filename, comm, timed, params, loc);
+   int status = readHeader(filename, comm, timed, params, loc);
+   assert(status == PV_SUCCESS);
    int buffersize;
    if(extended) {
       buffersize = (loc->nx+2*loc->nb)*(loc->ny+2*loc->nb)*loc->nf;
@@ -1178,17 +1181,19 @@ int HyPerLayer::readDataStoreFromFile(const char * filename, InterColComm * comm
       if( status1 != PV_SUCCESS ) status = PV_FAILURE;
       status1 = comm->exchangeBorders(getCLayer()->layerId, getLayerLoc(), level);
    }
-   assert( status == PV_SUCCESS);
+   assert(status == PV_SUCCESS);
    return status;
 }
 
 int HyPerLayer::readHeader(const char * filename, InterColComm * comm, double * timed, int * params, const PVLayerLoc * loc) {
    int filetype, datatype;
    int numParams = NUM_BIN_PARAMS;
-   pvp_read_header(filename, comm, timed,
-                       &filetype, &datatype, params, &numParams);
+   int status = pvp_read_header(filename, comm, timed,
+                                &filetype, &datatype, params, &numParams);
+
 
    // Sanity checks
+   assert(status == PV_SUCCESS);
    assert(numParams == NUM_BIN_PARAMS);
    assert(params[INDEX_HEADER_SIZE] == NUM_BIN_PARAMS*sizeof(pvdata_t));
    assert(params[INDEX_NUM_PARAMS] == NUM_BIN_PARAMS);
