@@ -10,9 +10,9 @@ HyPerCol "column" = {
    
    randomSeed 	                = 1020304050.0;   
 
-   numSteps                     = 40000;	// amount of time steps performed during run-time
-   progressStep                 = 500;    // write output to see progress
-   writeProgressToErr           = 0;      // write progress steps to std err
+   numSteps                     = 1000000;	// amount of time steps performed during run-time
+   progressStep                 = 1000;     // write output to see progress
+   writeProgressToErr           = 0;        // write progress steps to std err
    
    //outputPath                 = "~/Documents/workspace/iHouse/output";
    outputPath                   = "~/Documents/Work/LANL/workspace/iHouse/output"; //Dylan's Mac
@@ -119,8 +119,8 @@ Retina "RetinaON" = {
     burstFreq           = 50;    // Hz // Everything coming into the retina should be burstin burstFreq times per sec
     burstDuration       = 20;    // ms // Bursts last burstDuration ms
 
-    //beginStim         = 1;       // Restrict stimulus to a window of time
-    //endStim           = 50000;
+    beginStim         = 0;       // Restrict stimulus to a window of time
+    endStim           = 10000000000;
 
     Vrest               = 0.0;
     
@@ -145,8 +145,8 @@ Retina "RetinaOFF" = {
     burstFreq           = 50;    // Hz // Everything coming into the retina should be burstin burstFreq times per sec
     burstDuration       = 20;    // ms // Bursts last burstDuration ms
 
-    //beginStim         = 1;       // Restrict stimulus to a window of time
-    //endStim           = 50000;
+    beginStim         = 0;       // Restrict stimulus to a window of time
+    endStim           = 10000000000;
     
     Vrest               = 0.0;
     
@@ -155,14 +155,10 @@ Retina "RetinaOFF" = {
 };
 
 
-LCALIFLayer "lca_lif" = {
+LIF "lif" = {
    nxScale          = 1;		
    nyScale          = 1;		
    nf               = 1;       	
-
-   tauTHR           = 1000;    // thresholdAdaptationTime
-   targetRate       = 10;       // (Hz) Desired mean firing rate 
-   Vscale           = 15;      // Scale for the change of Vadpt. Must be positive; defaults to VthRest - Vrest
    
    writeStep        = 200;
 
@@ -226,6 +222,7 @@ KernelConn "input to scaled input" = {
     writeCompressedWeights = true;
     selfFlag               = false;
     shrinkPatches          = false;
+    preActivityIsNotRate   = false;
 };
 
 KernelConn "ImagetoRetinaONCenter" = {
@@ -338,37 +335,38 @@ KernelConn "ImagetoRetinaOFFSurround" = {
 // STDP connections      STDP connections      STDP connections      STDP connections      STDP connections      STDP connections      
 // STDP connections      STDP connections      STDP connections      STDP connections      STDP connections      STDP connections      
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-OjaSTDPConn "RetinaON to lca_lif" = {
+OjaSTDPConn "RetinaON to lif" = {
    preLayerName           = "RetinaON";
-   postLayerName          = "lca_lif";
+   postLayerName          = "lif";
    nxp                    = 5;
    nyp                    = 5;
    nfp                    = 1;
    channelCode            = 0;
-   stdpFlag               = 1;
    delay                  = 0.0;
    
-   initFromLastFlag       = 0;       // 1;  /dr/ restart
+   initFromLastFlag       = 0;      
    
    writeStep              = 200;
    
    normalize              = false;
-   normalize_max          = true;
+   normalize_max          = false;
    normalize_zero_offset  = 0.0;
+   strength               = 0;
    
-   strength               = 10;
-   ampLTP                 = 2.8;  // (ms)
-   ampLTD                 = 1;    // (ms)
-   tauLTP                 = 4.4;  // (ms)
-   tauLTD                 = 33.7; // (ms)
+   ampLTP                 = 1;    // (ms)
+   initAmpLTD             = 1;    // (ms)
+   tauLTP                 = 8;    // (ms)
+   tauLTD                 = 32;   // (ms)
    tauOja                 = 150;  // (ms)
-   targetRate             = 1;    // (Hz)
+   tauTHR                 = 5000; // (ms) thresholdAdaptationTime
+   targetRate             = 10;   // (Hz)
    weightDecay            = 0;
-   dWMax                  = 1;
+   dWMax                  = 2;
    wMin                   = 0.001;
    wMax 	              = 1;    // Does not matter if ojaFlag = true
    numAxonalArbors        = 1;
    ojaFlag                = 1;    //Turns oja rule on or off. Standard STDP if off
+   LTDscale               = 1;   // Scale for the change of ampLTD. Must be positive; defaults to postVthRest - posVrest. If 0, adaptive LTD is fixed to initAmpLTD
    
    combine_dW_with_W_flag = false;
    selfFlag               = false;
@@ -387,41 +385,42 @@ OjaSTDPConn "RetinaON to lca_lif" = {
    weightUpdatePeriod     = 1.0;
    
    synscalingFlag         = 0;
-   synscaling_v           = 5;
+   synscaling_v           = 1;
 };
 
 
-OjaSTDPConn "RetinaOFF to lca_lif" = {
+OjaSTDPConn "RetinaOFF to lif" = {
    preLayerName           = "RetinaOFF";
-   postLayerName          = "lca_lif";
+   postLayerName          = "lif";
    nxp                    = 5;
    nyp                    = 5;
    nfp                    = 1;
    channelCode            = 0;
-   stdpFlag               = 1;
    delay                  = 0.0;
    
-   initFromLastFlag       = 0;  // 1;  /dr/ restart
+   initFromLastFlag       = 0;  
    
    writeStep              = 200;
    
    normalize              = false;
-   normalize_max          = true;
+   normalize_max          = false;
    normalize_zero_offset  = 0.0;
+   strength               = 0;
    
-   strength               = 10;
-   ampLTP                 = 2.8;  // (ms)
-   ampLTD                 = 1;    // (ms)
-   tauLTP                 = 4.4;  // (ms)
-   tauLTD                 = 33.7; // (ms)
+   ampLTP                 = 1;    // (ms)
+   initAmpLTD             = 1;    // (ms)
+   tauLTP                 = 8;    // (ms)
+   tauLTD                 = 32;   // (ms)
    tauOja                 = 150;  // (ms)
-   targetRate             = 1;    // (Hz)
+   tauTHR                 = 5000; // (ms) thresholdAdaptationTime
+   targetRate             = 10;   // (Hz)
    weightDecay            = 0;
-   dWMax                  = 1;
+   dWMax                  = 2;
    wMin                   = 0.001;
    wMax 	              = 1;    // Does not matter if ojaFlag = true
    numAxonalArbors        = 1;
    ojaFlag                = 1;    //Turns oja rule on or off. Standard STDP if off
+   LTDscale               = 1;    // Scale for the change of ampLTD. Must be positive; defaults to postVthRest - posVrest
    
    combine_dW_with_W_flag = false;
    selfFlag               = false;
@@ -440,13 +439,42 @@ OjaSTDPConn "RetinaOFF to lca_lif" = {
    weightUpdatePeriod     = 1.0;
    
    synscalingFlag         = 0;
-   synscaling_v           = 5;
+   synscaling_v           = 1;
 };
 
-PointLCALIFProbe "LCALIF Probe" = {
-   targetLayer = "lca_lif";
-   probeOutputFile = "ptLCALIF.txt";
-   xLoc = 47;
-   yLoc = 47;
-   fLoc = 0;
+////////////////////////////////////////////////////////////////////////////////
+// Probes Probes Probes Probes Probes Probes Probes Probes Probes Probes Probes
+// Probes Probes Probes Probes Probes Probes Probes Probes Probes Probes Probes
+// Probes Probes Probes Probes Probes Probes Probes Probes Probes Probes Probes
+// Probes Probes Probes Probes Probes Probes Probes Probes Probes Probes Probes
+// Probes Probes Probes Probes Probes Probes Probes Probes Probes Probes Probes
+// Probes Probes Probes Probes Probes Probes Probes Probes Probes Probes Probes
+////////////////////////////////////////////////////////////////////////////////
+
+PointLIFProbe "LIF Probe" = {
+   targetLayer     = "lif";
+   probeOutputFile = "ptLIF.txt";
+   xLoc            = 47;
+   yLoc            = 47;
+   fLoc            = 0;
+};
+
+OjaConnProbe "Oja ON Probe" = {
+    targetConnection = "RetinaON to lif";
+    probeOutputFile  = "retONtoLif.txt";
+    msg              = "OjaON";
+    kxPost           = 40; //About half way in
+    kyPost           = 40; //About half way in
+    kfPost           = 1;  //About half way in (1 feature)
+};
+
+
+OjaConnProbe "Oja OFF Probe" = {
+    targetConnection = "RetinaOFF to lif";
+    probeOutputFile  = "retOFFtoLif.txt";
+    msg              = "OjaOFF";
+    kPost            = 2000;
+    //kxPost           = 47; //About half way in
+    //kyPost           = 47; //About half way in
+    //kfPost           = 1;  //About half way in (1 feature)
 };
