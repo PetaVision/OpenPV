@@ -11,7 +11,7 @@ HyPerCol "column" = {
    checkpointWrite 				= false;  		// always
    checkpointWriteDir = "/Users/slundquist/Documents/workspace/iHouse/checkpoints";
    checkpointWriteStepInterval = 30000;
-   numSteps 				    	= 1000;			// amount of time steps performed during run-time
+   numSteps 				    	= 20000;			// amount of time steps performed during run-time
    progressStep					= 500;
    outputPath                   = "/Users/slundquist/Documents/workspace/iHouse/testOutput";
    filenamesContainLayerNames 	= 2; 			// stores pvp files as: 1 = layer number/2 = layer number and layer name/3 = layer name
@@ -356,7 +356,7 @@ OjaSTDPConn "RetinaONtoS1" = {
    weightDecay            = 0;
    dWMax                  = 1;
    wMin                   = 0.001;
-   wMax   	              = 1;
+   wMax   	              = .5;
    numAxonalArbors        = 1;
    ojaFlag                = 0;      //Turns oja rule on or off.
    
@@ -409,7 +409,7 @@ OjaSTDPConn "RetinaOFFtoS1" = {
    weightDecay            = 0;
    dWMax                  = 1;
    wMin                   = 0.001;
-   wMax  	              = 1;
+   wMax  	              = .5;
    numAxonalArbors        = 1;
    ojaFlag                = 0;      //Turns oja rule on or off.
    
