@@ -25,7 +25,7 @@ public:
 
    float getIntegratedSpikeCount(int kex) {return integratedSpikeCount[kex];}
    float getIntegrationTimeConstant() {return integrationTimeConstant;}
-   float getAdaptationTimeConstant() {return inhibitionTimeConstant;}
+   float getInhibitionTimeConstant() {return inhibitionTimeConstant;}
 
    virtual int setParams(PVParams * params); // Really should be protected
 
@@ -38,7 +38,7 @@ protected:
    virtual int calc_dW(int axonId = 0);
 
    virtual float readIntegrationTimeConstant() {return getParent()->parameters()->value(name, "integrationTimeConstant", 1.0);}
-   virtual float readAdaptationTimeConstant() {return getParent()->parameters()->value(name, "adaptationTimeConstant", 1.0);}
+   virtual float readInhibitionTimeConstant() {return getParent()->parameters()->value(name, "inhibitionTimeConstant", 1.0);}
 
    virtual int updateIntegratedSpikeCount();
 

@@ -62,7 +62,7 @@ int LCALIFLateralConn::initialize(const char * name, HyPerCol * hc, HyPerLayer *
 int LCALIFLateralConn::setParams(PVParams * params) {
    int status = HyPerConn::setParams(params);
    integrationTimeConstant = readIntegrationTimeConstant();
-   inhibitionTimeConstant = readAdaptationTimeConstant();
+   inhibitionTimeConstant = readInhibitionTimeConstant();
    return status;
 }
 
