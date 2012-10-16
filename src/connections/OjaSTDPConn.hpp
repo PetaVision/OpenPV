@@ -2,7 +2,7 @@
  * OjaSTDPConn.h
  *
  *  Created on: Sep 27, 2012
- *      Author: dpaiton et slundquist
+ *      Author: dpaiton
  */
 
 #ifndef OJASTDPCONN_H_
@@ -15,12 +15,11 @@
 
 namespace PV {
 
-class OjaSTDPConn: HyPerConn {
+class OjaSTDPConn: public HyPerConn {
 public:
    OjaSTDPConn();
    OjaSTDPConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
-            const char * filename=NULL, bool stdpFlag=true,
-            InitWeights *weightInit=NULL);
+            const char * filename=NULL, InitWeights *weightInit=NULL);
    virtual ~OjaSTDPConn();
 
    int setParams(PVParams * params);
@@ -38,32 +37,48 @@ public:
    virtual int checkpointRead(const char * cpDir, float* timef);
    virtual int checkpointWrite(const char * cpDir);
 
+   //get functions
+   float getPostStdpTr(int k)  {return post_stdp_tr->data[k];}
+   float getPostOjaTr(int k)   {return post_oja_tr->data[k];}
+   float getPostIntTr(int k)   {return post_int_tr->data[k];}
+   float getPreStdpTr(int kex) {return pre_stdp_tr->data[kex];}
+   float getPreOjaTr(int kex)  {return pre_oja_tr->data[kex];}
+   float getAmpLTD(int k)      {return ampLTD[k];}
+
+   pvdata_t ** getPostWeights(int axonID, int kPost);
+
+   int getNxpPost() {return nxpPost;}
+   int getNypPost() {return nypPost;}
+   int getNfpPost() {return nfpPost;}
+
 protected:
 
    int initialize_base();
    int initialize(const char * name, HyPerCol * hc,
                   HyPerLayer * pre, HyPerLayer * post,
-                  const char * filename, bool stdpFlag, InitWeights *weightInit);
+                  const char * filename, InitWeights *weightInit);
    virtual int initPlasticityPatches();
 
-   PVLayerCube * post_tr;      // plasticity decrement variable for postsynaptic layer
-   PVLayerCube * post_long_tr; // plasticity decrement variable for longer time-constant
-   PVLayerCube * pre_tr;       // plasticity increment variable for presynaptic layer
-   PVLayerCube * pre_long_tr;  // plasticity increment variable for presynaptic layer with longer time-constant
+   PVLayerCube * post_stdp_tr; // plasticity decrement variable for postsynaptic layer
+   PVLayerCube * post_oja_tr;  // plasticity decrement variable for longer time-constant
+   PVLayerCube * post_int_tr;  // plasticity decrement variable for longer time-constant
+   PVLayerCube * pre_stdp_tr;  // plasticity increment variable for presynaptic layer
+   PVLayerCube * pre_oja_tr;   // plasticity increment variable for presynaptic layer with longer time-constant
 
-   bool stdpFlag;              // presence of spike timing dependent plasticity
+   float * ampLTD;
 
    // STDP parameters for modifying weights
    float ampLTP; // long term potentiation amplitude
-   float ampLTD; // long term depression amplitude
+   float initAmpLTD; // long term depression amplitude
    float tauLTP;
    float tauLTD;
    float tauOja;
+   float tauTHR;
+   float tauO;
    float weightDecay;
    float dWMax;
-   float ojaScale;
-   float STDPScale;
    float targetRateHz;
+   float LTDscale;
 
    bool  synscalingFlag;
    bool  ojaFlag;
