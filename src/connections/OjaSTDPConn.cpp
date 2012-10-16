@@ -84,9 +84,9 @@ int OjaSTDPConn::initialize(const char * name, HyPerCol * hc,
    VthRest = postLIF->getLIFParams()->VthRest;
 
    //allocate ampLTD and set to initial value
-   ampLTD = (float *) calloc(post->getNumExtended(), sizeof(float));
-   for (int kex = 0; kex < post->getNumExtended(); kex++) {
-      ampLTD[kex] = initAmpLTD;
+   ampLTD = (float *) calloc(post->getNumNeurons(), sizeof(float));
+   for (int k = 0; k < post->getNumNeurons(); k++) {
+      ampLTD[k] = initAmpLTD;
    }
 
    //set LTDscale param (should default to ampLTP
@@ -414,14 +414,14 @@ int OjaSTDPConn::writeTextWeightsExtra(FILE * fd, int k, int arborID)
 
 int OjaSTDPConn::checkpointWrite(const char * cpDir) {
    int status = HyPerConn::checkpointWrite(cpDir);
-   // This is kind of hacky, but we save the extended buffers pre_stdp_tr as if they were nonextended buffers of size (nx+2*nb)-by-(ny+2*nb)-by-nf
-   // post_stdp_tr is buffer of size nx-by-ny-by-nf
    char filename[PV_PATH_MAX];
    int chars_needed;
    PVLayerLoc loc;
 
    // **** PRE LAYER INFO *** //
    memcpy(&loc, pre->getLayerLoc(), sizeof(PVLayerLoc));
+   // This is kind of hacky, but we save the extended buffers pre_stdp_tr as if they were nonextended buffers of size (nx+2*nb)-by-(ny+2*nb)-by-nf
+   // post_stdp_tr is buffer of size nx-by-ny-by-nf
    loc.nx += 2*loc.nb;
    loc.ny += 2*loc.nb;
    loc.nxGlobal = loc.nx * parent->icCommunicator()->numCommColumns();
