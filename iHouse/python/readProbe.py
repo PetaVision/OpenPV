@@ -9,8 +9,8 @@ from collections import OrderedDict
 filename = "/Users/dpaiton/Documents/Work/LANL/workspace/iHouse/checkpoints/Checkpoint3000000/retONtoLif.txt"
 
 #Values for range of frames
-all = False #All values if True
-startVal = 2550000
+all_lines = False #All values if True
+startVal = 2980000
 #End must be under number of lines in file
 endVal = 2999999
 
@@ -51,13 +51,13 @@ def splitLine(line):
    return lineSp
 
 
-if startVal < 0 and not all :
+if startVal < 0 and not all_lines :
    print "Start value must be above 0"
-#if endVal >= len(lines) and not all:
+#if endVal >= len(lines) and not all_lines:
 #   print "End value must be below the total time"
 
 f = open(filename, 'r')
-if (all):
+if (all_lines):
    lines = f.readlines()
 else:
    timeRange = range(startVal, endVal)
