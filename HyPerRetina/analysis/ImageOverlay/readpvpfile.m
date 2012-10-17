@@ -12,66 +12,33 @@
 %%%%%%%%
 clear all; close all; more off;
 
-global wrkspc_path;  wrkspc_path  = '/Users/dpaiton/Documents/Work/LANL/workspace';
-global output_path;  output_path  = [wrkspc_path,'/HyPerRetina/output/'];
-global filename;     filename     = [wrkspc_path,'/HyPerRetina/output/AntiTerrorism/p0/ns14420/GanglionOFF.pvp'];
+global wrkspc_path;  wrkspc_path  = '~/workspace-sync-anterior';
+global output_path;  output_path  = [wrkspc_path,'/HyPerRetina/output/Heli_Challenge_026/p0/ns14850'];
+global filename;     filename     = [output_path,'/GanglionON.pvp'];
 global rootname;     rootname     = '00';
 
 global OUT_FILE_EXT; OUT_FILE_EXT = 'png';             %either png or jpg for now
-
-global MOVIE_FLAG;   MOVIE_FLAG   = 0;                 %set 1 to make a movie, set -1 to not make a movie
-global FNUM_SPEC;    FNUM_SPEC    = '-1';               %can be '-1', 'int(frame)', or 'start:int:end'
-global GRAPH_FLAG;   GRAPH_FLAG   = 0;                 %set to 1 to plot Histograms and ROC Curves, -1 to not
-global GRAPH_SPEC;   GRAPH_SPEC   = [237,437,438,638]; %set to [no_stim_start, no_stim_end, stim_start, stim_end]
-global PRINT_FLAG;   PRINT_FLAG   = 0;                 %set to 1 to print all fiures to output dir, -1 to not
+global IN_FILE_EXT; IN_FILE_EXT = 'png';
 %%%%%%%%
 
-global recon_output_path;  recon_output_path  = [wrkspc_path,'/HyPerRetina/output/movOFF'];
-global sourceDir;    sourceDir    = [wrkspc_path,'/HyPerRetina/input/movie/small'];
+global recon_output_path;  recon_output_path  = [output_path,'/movOFF'];
+global sourceDir;    sourceDir    = ['~/Pictures/neovision-data-challenge-heli/026'];
 gray2rgb = @(Image) double(cat(3,Image,Image,Image))./255;
-fps = 20;
+fps = 33;
 
-%% Parse some flags
-if ~strcmpi(FNUM_SPEC,'-1') %if flag is not set to -1
-    fnum_flag = 1;
-
-    disp_frames = str2num(FNUM_SPEC);
-    if gt(length(disp_frames),1) %flag delimits start-frame:interval:end-frame
-        frame_of_interest = -1; %will only be set if user gave a single frame as input to FNUM_SPEC
-    elseif eq(length(disp_frames),1) %single number is given
-        frame_of_interest = disp_frames+1;
-    else
-        error(['FNUM_SPEC is not correct. FNUM_SPEC = ',FNUM_SPEC])
-    end%if gt(length(disp_frames),1)
-else
-    fnum_flag = -1;
-    frame_of_interest = -1;
-end%if strcmpi
-
-%% ROC Graph stuff
-if gt(GRAPH_FLAG,0)
-   no_stim_length = GRAPH_SPEC(2) - GRAPH_SPEC(1);
-   stim_length    = GRAPH_SPEC(4) - GRAPH_SPEC(3);
-   if (lt(no_stim_length,0) || lt(stim_length,0) || ne(no_stim_length,stim_length))
-      die('readpvpfile: Graph spec not properly formatted!');
-   end
-   half_length = stim_length;
-   clear stim_length;
-   clear no_stim_length;
-end
 
 
 filedata = dir(filename);
 if length(filedata) ~= 1
-    error('readpvpfile:notonefile',...
-          'Path %s should expand to exactly one file; in this case there are %d',...
-          filename,length(filedata));
+  error('readpvpfile:notonefile',...
+        'Path %s should expand to exactly one file; in this case there are %d',...
+        filename,length(filedata));
 end
 
 if filedata(1).bytes < 1
-    error('readpvpfile:fileempty',...
-          'File %s is empty',filename);
-end%if filedata(1).bytes
+  error(['readpvpfile:fileempty',...
+         'File', filname, 'is empty']);
+endif %%filedata(1).bytes
 
 fid = fopen(filename);
 
@@ -80,40 +47,31 @@ errorstring = '';
 
 hdr = readpvpheader(fid);
 
-%% Correct for max frame
-if gt(fnum_flag,0)
-    if gt(length(disp_frames),1)
-        if gt(max(disp_frames(:)),hdr.nbands-1)
-            disp_frames(end) = hdr.nbands-1;
-        end%if gt(max...
-    end%if gt(length...
-end%if fnum_flag
-
 
 switch hdr.filetype
-    case 1 % PVP_FILE_TYPE
-        framesize = hdr.recordsize*hdr.numrecords;
-        numframes = (filedata(1).bytes - hdr.headersize)/framesize;
-    case 2 % PVP_ACT_FILE_TYPE % Compressed for spiking
-        disp(['PVP File Type: Spiking'])
-        numframes = hdr.nbands;
-        % framesize is variable
-    case 3 % PVP_WGT_FILE_TYPE % HyPerConns that aren't KernelConns
-        framesize = hdr.recordsize*hdr.numrecords*hdr.nbands+hdr.headersize;
-        numframes = filedata(1).bytes/framesize;
-    case 4 % PVP_NONSPIKING_ACT_FILE_TYPE
-        nxprocs = hdr.nxGlobal/hdr.nx;
-        nyprocs = hdr.nyGlobal/hdr.ny;
-        framesize = hdr.recordsize*hdr.datasize*nxprocs*nyprocs+8;
-        numframes = hdr.nbands;
-    case 5 % PVP_KERNEL_FILE_TYPE
-        framesize = hdr.recordsize*hdr.nbands+hdr.headersize;
-        numframes = filedata(1).bytes/framesize;
-    otherwise
-        errorident = 'readpvpfile:badfiletype';
-        errorstring = sprintf('readpvpfile:File %s has unrecognized file type %d',filename,hdr.filetype);
-end
-
+  case 1 % PVP_FILE_TYPE
+    framesize = hdr.recordsize*hdr.numrecords;
+    numframes = (filedata(1).bytes - hdr.headersize)/framesize;
+  case 2 % PVP_ACT_FILE_TYPE % Compressed for spiking
+    disp(['PVP File Type: Spiking'])
+    numframes = hdr.nbands;
+				% framesize is variable
+  case 3 % PVP_WGT_FILE_TYPE % HyPerConns that aren't KernelConns
+    framesize = hdr.recordsize*hdr.numrecords*hdr.nbands+hdr.headersize;
+    numframes = filedata(1).bytes/framesize;
+  case 4 % PVP_NONSPIKING_ACT_FILE_TYPE
+    nxprocs = hdr.nxGlobal/hdr.nx;
+    nyprocs = hdr.nyGlobal/hdr.ny;
+    framesize = hdr.recordsize*hdr.datasize*nxprocs*nyprocs+8;
+    numframes = hdr.nbands;
+  case 5 % PVP_KERNEL_FILE_TYPE
+    framesize = hdr.recordsize*hdr.nbands+hdr.headersize;
+    numframes = filedata(1).bytes/framesize;
+  otherwise
+    errorident = 'readpvpfile:badfiletype';
+    errorstring = sprintf(["readpvpfile:File ", filename, " has unrecognized file type ", hdr.filetype]);
+endswitch
+			  
 if isempty(errorstring)
     if(numframes ~= round(numframes) || numframes <= 0)
         errorident = 'readpvpfile:badfilelength';
@@ -161,24 +119,15 @@ if isempty(errorstring)
                     end
                 end
             end
-        case 2 % PVP_ACT_FILE_TYPE % Compressed for spiking; I'm not using yet
+        case 2 % PVP_ACT_FILE_TYPE % Compressed for spiking; 
             status = fseek(fid,4*hdr.numparams,"bof"); %hdr.numparams = number of parameters specified in the header file
             if ne(status,0)
                 error('readpvpfile: unable to seek to the end of the header for pvp file ',filedata)
             end%if ne(status,0)while pvp_time < pvp_frame
 
-            integrated_image = zeros([hdr.nyGlobal,hdr.nxGlobal]);
-
-            if gt(GRAPH_FLAG,0)
-               integrated_half1   = zeros([hdr.nyGlobal,hdr.nxGlobal]);
-               integrated_half0   = zeros([hdr.nyGlobal,hdr.nxGlobal]);
-            end
-
-            spike_count = zeros([numframes 1]);
-
-            inFiles = glob([sourceDir,'/*.jpg']);
-            if ne(length(inFiles)*fps,numframes)
-                error('readpvpfile: shit don work!')
+	    inFiles = glob([sourceDir,'/*.', IN_FILE_EXT]);
+	    if ne(length(inFiles)*fps,numframes)
+		error(["length(inFiles)*fps != numframes in:", sourceDir]);
             endif
 
             inFrame = 1;
@@ -231,32 +180,6 @@ if isempty(errorstring)
                 pvp_image = squeeze(sum(features,1));
                 pvp_image = flipud(rot90(pvp_image));
 
-                integrated_image += pvp_image;
-
-
-                %%%%%%%
-                %% Count spikes
-                %%%%%%%
-                spike_count(frame+1) = length(find(pvp_image));
-
-                if gt(GRAPH_FLAG,0)
-                   if (gt(frame,GRAPH_SPEC(1)) && lt(frame,GRAPH_SPEC(2)))
-                       integrated_half0 += pvp_image;
-                    elseif (gt(frame,GRAPH_SPEC(3)) && lt(frame,GRAPH_SPEC(4)))
-                       integrated_half1 += pvp_image;
-                   end
-                end
-               
-                %%%%%%%
-                %% Set up frame string for printing
-                %%%%%%%
-                if lt(frame,10)
-                    frame_str = ['00',num2str(frame)];
-                elseif ge(frame,10) && lt(frame,100)
-                    frame_str = ['0', num2str(frame)];
-                elseif gt(frame,99)
-                    frame_str = num2str(frame);
-                end%if lt(frame,10)
 
                 %%%%%%%
                 %% Overlay onto input image
@@ -283,219 +206,21 @@ if isempty(errorstring)
                 orig_img(idx) = 64;
                 idx = find(orig_img>192);
                 orig_img(idx) = 192;
-                out_img = gray2rgb(orig_img);
-                resized_pvp_image = logical(imresize(pvp_image,2));
+		if (~isrgb(orig_img))
+                  orig_img = gray2rgb(orig_img);
+	        endif                
+		resized_pvp_image = logical(imresize(pvp_image,2));
                 %resized_pvp_image += abs(min(resized_pvp_image(:)));
-                out_img(:,:,1) += 100.*resized_pvp_image;
-                idx = find(out_img>255);
-                out_img(idx) = 255;
-                imwrite(out_img,[recon_output_path,'/Image_',inFrame_str,'.jpg'])
+                orig_img(:,:,1) += 100.*resized_pvp_image;
+                idx = find(orig_img>255);
+                orig_img(idx) = 255;
+                imwrite(orig_img,[recon_output_path,'/Image_',inFrame_str,'.jpg'])
                 if eq(mod(frame,fps),0)
                     inFrame += 1;
                 end
 
-                %%%%%%%
-                %%%%%%%
-
-                if eq(MOVIE_FLAG,1)
-                    movie_path = [output_path, 'Movie/'];
-                    if ne(exist(movie_path,'dir'),7) %if exists func doesn't return a 7, then movie_path is not a dir
-                        mkdir(movie_path);
-                    end%if ne(exist(),7)
-
-                    inst_movie_path = [movie_path,'Instantaneous_Frames/'];
-                    if ne(exist(inst_movie_path,'dir'),7) %if exists func doesn't return a 7, then inst_movie_path is not a dir
-                        mkdir(inst_movie_path);
-                    end%if ne(exist(),7)
-
-                    print_movie_filename = [inst_movie_path,rootname,'_',frame_str,'.',OUT_FILE_EXT];
-
-                    try
-                        imwrite(pvp_image,print_movie_filename,OUT_FILE_EXT)
-                    catch
-                        disp(['readpvpfile: WARNING. Could not print file: ',char(10),print_movie_filename])
-                    end%_try_catch
-                end%if eq(MOVIE_FLAG,1)
-
-                if gt(fnum_flag,0)
-                    if eq(frame,frame_of_interest) || find(disp_frames==frame)
-                        figs_disp_flag = 1;
-
-                        tim_fig_id = figure;
-                            imshow(pvp_image)
-                            axis image
-                            %axis off
-
-                        int_fig_id = figure;
-                            imagesc(integrated_image)
-                            axis image
-                            %axis off
-                            colorbar
-
-                        fig_ids = [2];
-                        fig_ids(1) = tim_fig_id;
-                        fig_ids(2) = int_fig_id;
-                    else
-                        figs_disp_flag = 0;
-                    end%if eq(frame,frame_of_interest)
-                end %gt(fnum_flag,0)
-
-                if gt(PRINT_FLAG,0)
-                    if figs_disp_flag
-                        print_fig_path = [output_path, 'Figures/'];
-                        if ne(exist(print_fig_path,'dir'),7) %if exists func doesn't return a 7, then print_fig_path is not a dir
-                            mkdir(print_fig_path);
-                        end%if ne(exist(),7)
-
-                        print_fig_filename = [print_fig_path,rootname,'_','frame',frame_str,'_fig'];
-                        try
-                            for fig_idx = 1:length(fig_ids)
-                                curr_fig_id = fig_ids(fig_idx);
-                                if ne(curr_fig_id,-1)
-                                   print(curr_fig_id,['-d',OUT_FILE_EXT],[print_fig_filename,num2str(curr_fig_id),'.',OUT_FILE_EXT]);
-                                   close(curr_fig_id);
-                                end
-                            end%for fig_idx
-                        catch
-                            disp(['readpvpfile: Couldn''t print figure ',print_fig_filename])
-                        end%_try_catch
-                    end%if fig_id
-                end%if PRINT_FLAG
             end%for frame
 
-            if gt(GRAPH_FLAG,0)
-                %%%%%%%
-                %% Count spikes per node per half
-                %%%%%%%
-                num_spikes_nostim = sum(spike_count(GRAPH_SPEC(1):GRAPH_SPEC(2)))/half_length;
-                num_spikes_stim   = sum(spike_count(GRAPH_SPEC(3):GRAPH_SPEC(4)))/half_length;
-
-                num_bins = 500;
-                p_set = zeros(2,num_bins);
-                mask = ones([hdr.nyGlobal,hdr.nxGlobal]);
-                
-                %% Find number of spikes in half
-                [rows0 cols0 counts0] = find(integrated_half0.*mask);
-                [rows1 cols1 counts1] = find(integrated_half1.*mask);
-                if (eq(length(counts0),0) || eq(length(counts1),0))
-                  Pd = 0;
-                  Pf = 0;
-                else
-                   tot_counts = [counts1;counts0];
-
-                   [freq_counts, bin_loc] = hist(tot_counts,num_bins);
-                   
-                   h0 = hist(counts0,bin_loc,1);
-                   h1 = hist(counts1,bin_loc,1);
-
-                   figure
-                   hold on
-                   fid0 = bar(bin_loc,h0);
-                   fid1 = bar(bin_loc,h1);
-                   hold off
-                   set(fid0,'facecolor',[0 0 1])
-                   set(fid0,'edgecolor',[0 0 1])
-                   set(fid1,'facecolor',[1 0 0])
-                   set(fid1,'edgecolor',[1 0 0])
-                   xlabel('Number of spikes')
-                   ylabel('Normalized value number of nodes')
-                   title('Histogram Plot for BIDS nodes')
-
-                   Pd = cumsum(h1);
-                   Pf = cumsum(h0);
-                end %length(counts0)
-
-                p_set(1,:) = Pd;
-                p_set(2,:) = Pf;
-
-                figure
-                hold on
-                plot([0,1],[0,1],'k')
-                plot(p_set(1,:),p_set(2,:),'Color','red')
-                text(.05, .95, ['Area under Roc Curve: ', num2str(trapz(Pd, Pf))], 'Color', 'k');
-                hold off
-                xlim([0 1])
-                ylim([0 1])
-                legend('Chance','No Stimulus','Location','SouthEast')
-                ylabel('Probability of Detection')
-                xlabel('Probability of False Alarm')
-                title('ROC Plot for BIDS nodes')
-
-                %%%%%%%%%%%%%%%%%%%%
-                %%%%%%%%%%%%%%%%%%%%
-                %lim = 256/2 - 0.5; %center
-                %[X Y] = meshgrid(-1*lim:lim,-1*lim:lim);
-                %R = sqrt(X.^2+Y.^2);
-                %
-                %thickness = 10;
-                %num_bins = 500;
-                %radius_set = [1, 20, 40, 60, 80, 100];
-                %p_set = zeros(2,length(radius_set),num_bins);
-                %for i = 1:length(radius_set)
-                %    radius = radius_set(i);
-                %    mask = R>radius & R<radius+thickness;
-                %
-                %    %figure
-                %    %imagesc(double(mask))
-                %    %axis(image)
-                %
-                %    ring0 = integrated_half0.*mask;
-                %    ring1 = integrated_half1.*mask;
-                %
-                %    [rows0 cols0 counts0] = find(ring0);
-                %    [rows1 cols1 counts1] = find(ring1);
-                %
-                %    if (eq(length(counts0),0) || eq(length(counts1),0))
-                %        Pd = 0;
-                %        Pf = 0;
-                %    else
-                %
-                %        tot_counts = [counts1;counts0];
-                %        [freq_counts, bin_loc] = hist(tot_counts,num_bins);
-                %        
-                %        h0 = hist(counts0,bin_loc,1);
-                %        h1 = hist(counts1,bin_loc,1);
-                %
-                %        figure
-                %        hold on
-                %        fid0 = bar(bin_loc,h0,0.8);
-                %        fid1 = bar(bin_loc,h1,1);
-                %        hold off
-                %        set(fid0,'facecolor',[0 0 1])
-                %        set(fid0,'edgecolor',[0 0 1])
-                %        set(fid1,'facecolor',[1 0 0])
-                %        set(fid1,'edgecolor',[1 0 0])
-                %
-                %        Pd = cumsum(h1);
-                %        Pf = cumsum(h0);
-                %    end 
-                %    p_set(1,i,:) = Pd;
-                %    p_set(2,i,:) = Pf;
-                %end
-                %
-                %figure
-                %cmap = prism(length(radius_set));  %DOES NOT WORK IN MATLAB
-                %hold on
-                %plot([0,1],[0,1],'k')
-                %for i = 1:length(radius_set)
-                %    plot(1 - [0;squeeze(p_set(1,i,:));1],1 - [0;squeeze(p_set(2,i,:));1],'Color',cmap(i,:))
-                %end
-                %hold off
-                %xlim([0 1])
-                %ylim([0 1])
-                %hleg = legend('Chance','r = 1     ','r = 20   ','r = 40   ','r = 60   ','r = 80   ','r = 100 ','Location','SouthEastOutside');
-                %ylabel('Probability of Detection')
-                %xlabel('Probability of False Alarm')
-                %title('ROC Plot for BIDS nodes')
-                %%%%%%%%%%%%%%%%%%%%
-                %%%%%%%%%%%%%%%%%%%%
-
-            end %gt(GRAPH_FLAG,0)
-
-            if eq(MOVIE_FLAG,1)
-                system(['ffmpeg -r 12 -f image2 -i ',inst_movie_path,'00_%03d.png -sameq -y ',movie_path,'pvp_instantaneous_movie.mp4']);
-                %system(['rm -rf ',inst_movie_path]);
-            end%if eq(MOVIE_FLAG,1)
 
         case 3 % PVP_WGT_FILE_TYPE
             fseek(fid,0,'bof');
