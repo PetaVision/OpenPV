@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 from matplotlib.pyplot import plot, legend, show
 from numpy import array, dot, arange, mean, polyfit, ndarray, std
 from collections import OrderedDict
@@ -6,8 +7,9 @@ from collections import OrderedDict
 filename = "/Users/slundquist/Desktop/retONtoLif.txt"
 
 #Values for range of frames
-all = True; #All values
+all = False; #All values
 startVal = 0
+#End must be under number of lines in file
 endVal = 100
 
 numBins = 2
@@ -45,20 +47,18 @@ def splitLine(line):
    return lineSp
 
 
-f = open(filename, 'r')
-lines = f.readlines()
-f.close()
-
 if startVal < 0 and not all :
    print "Start value must be above 0"
-if endVal >= len(lines) and not all:
-   print "End value must be below the total time"
+#if endVal >= len(lines) and not all:
+#   print "End value must be below the total time"
 
+f = open(filename, 'r')
 if (all):
-   timeRange = range(len(lines))
+   lines = f.readlines()
 else:
    timeRange = range(startVal, endVal)
-
+   lines = [f.readline() for i in timeRange]
+f.close()
 
 bounds = {}
 stds = {}
