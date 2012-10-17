@@ -26,6 +26,7 @@ public:
    float getIntegratedSpikeCount(int kex) {return integratedSpikeCount[kex];}
    float getIntegrationTimeConstant() {return integrationTimeConstant;}
    float getInhibitionTimeConstant() {return inhibitionTimeConstant;}
+   float getTargetRateKHz() {return targetRateKHz;}
 
    virtual int setParams(PVParams * params); // Really should be protected
 
@@ -39,6 +40,7 @@ protected:
 
    virtual float readIntegrationTimeConstant() {return getParent()->parameters()->value(name, "integrationTimeConstant", 1.0);}
    virtual float readInhibitionTimeConstant() {return getParent()->parameters()->value(name, "inhibitionTimeConstant", 1.0);}
+   virtual float readTargetRate() {return getParent()->parameters()->value(name, "targetRate", 1.0);}
 
    virtual int updateIntegratedSpikeCount();
 
@@ -50,6 +52,7 @@ protected:
    float * integratedSpikeCount; // The leaky count of spikes (the weight is a decaying exponential of time since that spike)
    float integrationTimeConstant; // Time constant for the integrated spike counts, often the same as the the LCALIFLayer's tau_LCA
    float inhibitionTimeConstant; // Time constant tau_{inh}, the timescale for updating he weights in this connection
+   float targetRateKHz;          // Target rate in kilohertz; note that params file is understood to give value in hertz
 };
 
 } /* namespace PV */

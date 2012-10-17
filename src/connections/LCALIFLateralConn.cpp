@@ -33,14 +33,6 @@ int LCALIFLateralConn::initialize_base() {
 int LCALIFLateralConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
       const char * filename, InitWeights * weightInit) {
    int status = HyPerConn::initialize(name, hc, pre, post, filename, weightInit);
-   LCALIFLayer * lcapre = dynamic_cast<LCALIFLayer * >(pre);
-   LCALIFLayer * lcapost = dynamic_cast<LCALIFLayer *>(post);
-   if (lcapre == NULL || lcapost == NULL) {
-      if (parent->columnId()==0) {
-         fprintf(stderr, "LCALIFLateralConn \"%s\": Presynaptic layer \"%s\" and postsynaptic layer \"%s\" must both be LCALIFLayers.\n", name, pre->getName(), post->getName());
-      }
-      abort();
-   }
    const PVLayerLoc * preloc = pre->getLayerLoc();
    const PVLayerLoc * postloc = post->getLayerLoc();
    int nxpre = preloc->nx; int nxpost = postloc->nx;
@@ -63,6 +55,7 @@ int LCALIFLateralConn::setParams(PVParams * params) {
    int status = HyPerConn::setParams(params);
    integrationTimeConstant = readIntegrationTimeConstant();
    inhibitionTimeConstant = readInhibitionTimeConstant();
+   targetRateKHz = 0.001 * readTargetRate();
    return status;
 }
 
@@ -70,10 +63,7 @@ int LCALIFLateralConn::calc_dW(int axonId) {
    assert(axonId>=0 && axonId < numberOfAxonalArborLists());
    updateIntegratedSpikeCount();
    pvdata_t * gSyn_buffer_start = post->getChannel(channel);
-   LCALIFLayer * lcapre = dynamic_cast<LCALIFLayer *>(pre);
-   assert(lcapre != NULL);
-   pvdata_t targetRate = lcapre->getTargetRate() / 1000; // Convert to kHz (DMP)
-   pvdata_t target_rate_sq = targetRate * targetRate;
+   pvdata_t target_rate_sq = getTargetRateKHz() * getTargetRateKHz();
    float dt_inh = parent->getDeltaTime()/inhibitionTimeConstant;
    const PVPatchStrides * strides  = getPostNonextStrides();
    const int sx = strides->sx;
