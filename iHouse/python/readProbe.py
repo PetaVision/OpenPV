@@ -1,13 +1,15 @@
 #!/usr/bin/env python
+
 from matplotlib.pyplot import plot, legend, show
 from numpy import array, dot, arange, mean, polyfit, ndarray, std
 from collections import OrderedDict
 
 #filename = "/Users/slundquist/Desktop/LCALIF_31_31_0.txt"
-filename = "/Users/slundquist/Desktop/retONtoLif.txt"
+#filename = "/Users/slundquist/Desktop/retONtoLif.txt"
+filename = "/Users/dpaiton/Documents/Work/LANL/workspace/iHouse/checkpoints/Checkpoint3000000/retONtoLif.txt"
 
 #Values for range of frames
-all = False; #All values
+all = True #All values
 startVal = 0
 #End must be under number of lines in file
 endVal = 100
