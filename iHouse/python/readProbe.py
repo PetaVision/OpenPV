@@ -9,10 +9,10 @@ from collections import OrderedDict
 filename = "/Users/dpaiton/Documents/Work/LANL/workspace/iHouse/checkpoints/Checkpoint3000000/retONtoLif.txt"
 
 #Values for range of frames
-all = True #All values
-startVal = 0
+all = False #All values if True
+startVal = 2550000
 #End must be under number of lines in file
-endVal = 100
+endVal = 2999999
 
 numBins = 2
 
@@ -28,11 +28,13 @@ data['t']                     = []
 #data['a']                    = []
 #data['integratedSpikeCount'] = []
 
-#data['weights*']             = []
-data['prOjaTr15']             = []
-data['prOjaTr*']              = []
-data['prStdpTr*']             = []
-data['poIntTr']               = []
+data['weights*']  = []
+#data['prOjaTr*']  = []
+data['prStdpTr*'] = []
+data['poIntTr']   = []
+data['poOjaTr']   = []
+data['poStdpTr']  = []
+#data['ampLTD']    = []
 
 
 def splitLine(line):
