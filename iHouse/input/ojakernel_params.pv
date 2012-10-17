@@ -6,14 +6,14 @@
 debugParsing = false;
 
 HyPerCol "column" = {
-   nx                           = 64;     // pixel width of input image
-   ny                           = 64;     // pixel height of input image
+   nx                           = 32;     // pixel width of input image
+   ny                           = 32;     // pixel height of input image
    dt                           = 1.;     // ms // according GK
    
    randomSeed                   = 1020304050.0;   
 
-   numSteps                     = 10000;  // amount of time steps performed during run-time
-   progressStep                 = 10;  // write output to see progress
+   numSteps                     = 1000000;  // amount of time steps performed during run-time
+   progressStep                 = 100;  // write output to see progress
    writeProgressToErr           = 0;     // write progress steps to std err
    
    outputPath                   = "output";
@@ -23,11 +23,11 @@ HyPerCol "column" = {
    checkpointRead               = false;
    // checkpointReadDir            = "checkpoints";
    // checkpointReadDirIndex       = 100;
-   checkpointWrite              = true;
-   checkpointWriteDir           = "checkpoints";
-   checkpointWriteStepInterval  = 1000;
-   deleteOlderCheckpoints       = true;
-   // suppressLastOutput           = false;
+   checkpointWrite              = false;
+   // checkpointWriteDir           = "checkpoints";
+   // checkpointWriteStepInterval  = 1000;
+   // deleteOlderCheckpoints       = true;
+   suppressLastOutput           = false;
 };
 
 
@@ -88,6 +88,7 @@ ANNLayer "scaled input" = {
     marginWidth             = 16;
     mirrorBCflag            = 1;
     spikingFlag             = false;
+    writeNonspikingActivity = false;
     writeStep               = -1;
 
     restart                 = false;
@@ -96,7 +97,6 @@ ANNLayer "scaled input" = {
     VThresh                 = -infinity;
     VMax                    = infinity;
     VMin                    = -infinity;
-    writeNonspikingActivity = 1;
 };
 
 
@@ -118,7 +118,7 @@ Retina "RetinaON" = {
     burstDuration = 20;    // ms // Bursts last burstDuration ms
 
     beginStim     = 1;       // Restrict stimulus to a window of time
-    endStim       = 50000;
+    endStim       = 1000000;
     
     refractoryPeriod    = 0;
     absRefractoryPeriod = 0;
@@ -148,13 +148,12 @@ Retina "RetinaOFF" = {
     absRefractoryPeriod = 0;
 };
 
-
 LCALIFLayer "lcalif" = {
    nxScale              = 4;        
    nyScale              = 4;        
    nf                   = 1;           
 
-   tauTHR               = 10000;       // Timescale for changing adaptive threshold, in milliseconds
+   tauTHR               = 4000;       // Timescale for changing adaptive threshold, in milliseconds
    targetRate           = 5;           // Target rate of output spikes in Hertz
 
    spikingFlag          = 1;           
@@ -184,7 +183,6 @@ LCALIFLayer "lcalif" = {
    noiseFreqIB          =   0.;        // should be scaled by the time constant - look at LIF model
    Vscale               = 15.0;        // Scale for the change of dynVthRest. Must be positive; defaults to VthRest - Vrest
 };
-
 
 ////////////////////////////////////////////////////////////////////////////////
 // Connections Connections Connections Connections Connections Connections
@@ -286,7 +284,6 @@ KernelConn "ImagetoRetinaONSurround" = {
    preActivityIsNotRate   = false;
 };
 
-
 KernelConn "ImagetoRetinaOFFCenter" = {
    preLayerName          = "scaled input";
    postLayerName         = "RetinaOFF";
@@ -364,9 +361,9 @@ OjaKernelConn "RetinaONtoS1" = {
    
    initFromLastFlag         = 0;  // 1;  /dr/ restart
    
-   writeStep                = -1;
-   // initialWriteTime         = 0;
-   writeCompressedWeights   = 0.0;
+   writeStep                = 1000;
+   initialWriteTime         = 0;
+   writeCompressedWeights   = false;
    
    normalize                = false;
 
@@ -390,7 +387,7 @@ OjaKernelConn "RetinaONtoS1" = {
    integrationTime          = 83.33; // Should be a few movie frames in length
    inputTargetRate          = 5.0;   // Between 1 and 10 Hz
    outputTargetRate         = 5.0;   // Between 1 and 10 Hz
-   learningRate             = 0.01;   // Reference rate for change in weights, in units of W per millisecond
+   learningTime             = 16000;   // Timescale for change in weights, in seconds
 };
 
 
@@ -406,9 +403,9 @@ OjaKernelConn "RetinaOFFtoS1" = {
    
    initFromLastFlag         = 0;  // 1;  /dr/ restart
 
-   writeStep                = -1;
-   // initialWriteTime         = 0.0;
-   writeCompressedWeights   = 0.0;
+   writeStep                = 1000;
+   initialWriteTime         = 0;
+   writeCompressedWeights   = false;
    
    normalize                = false;
    
@@ -432,7 +429,7 @@ OjaKernelConn "RetinaOFFtoS1" = {
    integrationTime          = 83.33; // Should be a few movie frames in length
    inputTargetRate          = 5.0;   // Between 1 and 10 Hz
    outputTargetRate         = 5.0;   // Between 1 and 10 Hz
-   learningRate             = 0.01;     // Reference rate for change in weights, in units of W per millisecond
+   learningTime             = 16000;   // Timescale for change in weights, in seconds
 };
 
 LCALIFLateralConn "Lateral Inhibition" = {
@@ -464,8 +461,11 @@ LCALIFLateralConn "Lateral Inhibition" = {
    normalize                = false;
 
    integrationTimeConstant  = 83.33;
-   inhibitionTimeConstant   = 2000;
+   inhibitionTimeConstant   = 1000;
+   targetRate               = 5;
 };
+
+disable = true;
 
 PointProbe "RetinaON Probe" = {
    targetLayer = "RetinaON";
