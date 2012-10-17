@@ -6,7 +6,6 @@
  */
 
 #include "LCAConn.hpp"
-#include "../../../LCA/LCALayer.hpp"
 #include "../include/pv_common.h"
 #include <stdio.h>
 #include <stdlib.h>
