@@ -45,6 +45,7 @@
 #include "../layers/BIDSMovieCloneMap.hpp"
 #include "../layers/BIDSSensorLayer.hpp"
 #include "../layers/LCALIFLayer.hpp"
+#include "../layers/LCALayer.hpp"
 
 
 #include "../connections/HyPerConn.hpp"
@@ -92,6 +93,7 @@
 #include "../io/KernelProbe.hpp"
 #include "../io/OjaConnProbe.hpp"
 #include "../io/PatchProbe.hpp"
+#include "../io/LCAProbe.hpp"
 #include "../io/ReciprocalEnergyProbe.hpp"
 #include "../io/LayerProbe.hpp"
 #include "../io/PointProbe.hpp"

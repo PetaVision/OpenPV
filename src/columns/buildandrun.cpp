@@ -109,6 +109,7 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
                "PtwiseProductLayer",
                "TrainingLayer",
              "GapLayer",
+	     "LCALayer",
              "HMaxSimple",
              "Image",
                "CreateMovies",
@@ -155,6 +156,7 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
            "_Start_LayerProbes_",
              "LayerProbe",
                "PointProbe",
+	       "LCAProbe",
                   "PointLIFProbe",
                     "PointLCALIFProbe",
                "StatsProbe",
@@ -420,6 +422,11 @@ HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPe
       keywordMatched = true;
       addedLayer = (HyPerLayer *) addGapLayer(name, hc);
       status = checknewobject((void *) addedLayer, classkeyword, name, hc);
+   }
+   if( !strcmp(classkeyword, "LCALayer") ) {
+     keywordMatched = true;
+     addedLayer = (HyPerLayer *) new LCALayer(name, hc);
+     status = checknewobject((void *) addedLayer, classkeyword, name, hc); 
    }
    if( !strcmp(classkeyword, "SigmoidLayer") ) {
       keywordMatched = true;
@@ -1225,6 +1232,39 @@ LayerProbe * addLayerProbeToColumn(const char * classkeyword, const char * name,
          }
       }
       free(message); message=NULL; // message was alloc'ed in getLayerFunctionProbeParameters call
+   }
+   if( !strcmp(classkeyword, "LCAProbe") ) {
+     LCAProbe * addedProbe = NULL;
+     HyPerLayer * targetlayer = NULL;
+     char * message = NULL;
+     const char * filename = NULL;
+     int status = getLayerFunctionProbeParameters(name, classkeyword, hc, &targetlayer, &message, &filename);
+     int errorFound = status!=PV_SUCCESS;
+     int xLoc, yLoc, fLoc;
+     PVParams * params = targetlayer->getParent()->parameters();
+     if( !errorFound ) {
+       xLoc = params->value(name, "xLoc", -1);
+       yLoc = params->value(name, "yLoc", -1);
+       fLoc = params->value(name, "fLoc", -1);
+       if( xLoc <= -1 || yLoc <= -1 || fLoc <= -1) {
+	 fprintf(stderr, "Group \"%s\": Class %s requires xLoc, yLoc, and fLoc be set\n", name, classkeyword);
+	 errorFound = true;
+       }
+     }
+     if( !errorFound ) {
+       if( filename ) {
+	 addedProbe = new LCAProbe(filename, targetlayer, xLoc, yLoc, fLoc, message);
+	 status = checknewobject((void *) addedProbe, classkeyword, name, hc);
+       }
+       else {
+	 addedProbe = new LCAProbe(targetlayer, xLoc, yLoc, fLoc, message);
+	 status = checknewobject((void *) addedProbe, classkeyword, name, hc);
+       }
+       if( !addedProbe ) {
+	 fprintf(stderr, "Group \"%s\": Unable to create probe\n", name);
+	 errorFound = true;
+       }
+     }
    }
    if( !strcmp(classkeyword, "PointLIFProbe") ) {
       status = getLayerFunctionProbeParameters(name, classkeyword, hc, &targetlayer, &message, &filename);
