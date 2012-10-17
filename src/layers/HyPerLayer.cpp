@@ -149,6 +149,8 @@ int HyPerLayer::initialize(const char * name, HyPerCol * hc, int numChannels) {
    float defaultWriteNonspikingActivity = 0.0;
 #endif
 
+   // TODO change the name of spikingFlag to something like "writeSparseActivity"
+   // and get rid of writeNonspikingActivity, since we can set writeStep to a negative value
    spikingFlag = (bool) params->value(name, "spikingFlag", 0);
    if( !spikingFlag )
       writeNonspikingActivity = (bool) params->value(name,
