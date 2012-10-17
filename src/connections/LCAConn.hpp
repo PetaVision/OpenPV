@@ -14,7 +14,7 @@
 
 namespace PV {
 
-class LCAConn : public PV::KernelConn {
+class LCAConn : KernelConn {
 
 public:
   LCAConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
@@ -26,7 +26,9 @@ protected:
 		 const char * filename,
 		 InitWeights *weightInit=NULL,
 		 Movie * auxLayer=NULL);
-  pvdata_t updateRule_dW(pvdata_t pre, pvdata_t post);
+  int defaultUpdate_dW(int axonId);
+  pvdata_t updateRule_dW(pvdata_t pre, pvdata_t post, int offset);
+  int update_dW(int axonId);
   Movie * layerOfInterest;
 };
 

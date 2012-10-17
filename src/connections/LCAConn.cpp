@@ -6,6 +6,8 @@
  */
 
 #include "LCAConn.hpp"
+#include "../../../LCA/LCALayer.hpp"
+#include "../include/pv_common.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -17,14 +19,69 @@ namespace PV {
   {
     KernelConn::initialize_base();
     KernelConn::initialize(name, hc, pre, post, filename, weightInit);
+    //this->plasticityFlag = true;
     layerOfInterest = auxLayer;
   }
-
-  pvdata_t LCAConn::updateRule_dW(pvdata_t pre, pvdata_t post)
+  
+  int LCAConn::update_dW(int axonId)
   {
-    pvdata_t input = *(layerOfInterest->getImageBuffer());
-    return pre*(post-input);
+    return defaultUpdate_dW(axonId);
   }
+
+  int LCAConn::defaultUpdate_dW(int axonId) {
+    // compute dW but don't add them to the weights yet.
+    // That takes place in reduceKernels, so that the output is
+    // independent of the number of processors.
+    int nExt = preSynapticLayer()->getNumExtended();
+    int numKernelIndices = getNumDataPatches();
+    const pvdata_t * preactbuf = preSynapticLayer()->getLayerData(getDelay(axonId));
+    const pvdata_t * postactbuf = postSynapticLayer()->getLayerData(getDelay(axonId));
+
+    int sya = (post->getLayerLoc()->nf * (post->getLayerLoc()->nx + 2*post->getLayerLoc()->nb));
+    
+    for(int kExt=0; kExt<nExt;kExt++) {
+      PVPatch * weights = getWeights(kExt,axonId);
+      size_t offset = getAPostOffset(kExt, axonId);
+      pvdata_t preact = preactbuf[kExt];
+      int ny = weights->ny;
+      int nk = weights->nx * nfp;
+      const pvdata_t * postactRef = &postactbuf[offset];
+      pvdata_t * dwdata = get_dwData(axonId, kExt);
+      int lineoffsetw = 0;
+      int lineoffseta = 0;
+      for( int y=0; y<ny; y++ ) {
+	for( int k=0; k<nk; k++ ) {
+	  dwdata[lineoffsetw + k] += updateRule_dW(preact, postactRef[lineoffseta+k],lineoffseta+k);
+	}
+	lineoffsetw += syp;
+	lineoffseta += sya;
+      }
+    }
+    
+    // Divide by (numNeurons/numKernels)
+    int divisor = pre->getNumNeurons()/numKernelIndices;
+    assert( divisor*numKernelIndices == pre->getNumNeurons() );
+    for( int kernelindex=0; kernelindex<numKernelIndices; kernelindex++ ) {
+      int numpatchitems = nxp*nyp*nfp;
+      pvdata_t * dwpatchdata = get_dwDataHead(axonId,kernelindex);
+      for( int n=0; n<numpatchitems; n++ ) {
+	dwpatchdata[n] /= divisor;
+      }
+    }
+
+    lastUpdateTime = parent->simulationTime();
+
+    return PV_SUCCESS;
+  }
+
+  pvdata_t LCAConn::updateRule_dW(pvdata_t preact, pvdata_t postact, int offset)
+  {
+    pvdata_t * image = layerOfInterest->getImageBuffer();
+    pvdata_t * recon = postSynapticLayer()->getActivity();
+    float beta = 0.001;    
+    return beta*(image[offset] - recon[offset])*preact;
+  }
+
 }
 
 
