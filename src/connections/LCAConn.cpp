@@ -23,12 +23,7 @@ namespace PV {
   }
   
   int LCAConn::update_dW(int axonId)
-  {
-    return defaultUpdate_dW(axonId);
-  }
-
-  int LCAConn::defaultUpdate_dW(int axonId) {
-    // compute dW but don't add them to the weights yet.
+  { // compute dW but don't add them to the weights yet.
     // That takes place in reduceKernels, so that the output is
     // independent of the number of processors.
     int nExt = preSynapticLayer()->getNumExtended();
@@ -70,7 +65,7 @@ namespace PV {
 
     lastUpdateTime = parent->simulationTime();
 
-    return PV_SUCCESS;
+    return PV_SUCCESS;    
   }
 
   pvdata_t LCAConn::updateRule_dW(pvdata_t preact, pvdata_t postact, int offset)
