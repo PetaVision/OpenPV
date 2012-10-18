@@ -1103,6 +1103,7 @@ BaseConnectionProbe * addBaseConnectionProbeToColumn(const char * classkeyword, 
    if( !strcmp(classkeyword, "OjaConnProbe")) {
       keywordMatched = true;
       const char * filename = params->stringValue(name, "probeOutputFile");
+      const bool isPostProbe = params->value(name,"isPostProbe",true);
       targetConn = hc->getConnFromName(params->stringValue(name, "targetConnection"));
       if( targetConn == NULL ) {
          fprintf(stderr, "Error: connection probe \"%s\" requires parameter \"targetConnection\".\n", name);
@@ -1121,14 +1122,14 @@ BaseConnectionProbe * addBaseConnectionProbeToColumn(const char * classkeyword, 
       }
       if( indexmethod ) {
          int kPost = params->value(name, "kPost");
-         addedProbe = new OjaConnProbe(msg, filename, targetConn, kPost);
+         addedProbe = new OjaConnProbe(msg, filename, targetConn, kPost, isPostProbe);
       }
       else {
          assert(coordmethod);
          int kxPost = params->value(name, "kxPost");
          int kyPost = params->value(name, "kyPost");
          int kfPost = params->value(name, "kfPost");
-         addedProbe = new OjaConnProbe(msg, filename, targetConn, kxPost, kyPost, kfPost);
+         addedProbe = new OjaConnProbe(msg, filename, targetConn, kxPost, kyPost, kfPost, isPostProbe);
       }
       status = checknewobject((void *) addedProbe, classkeyword, name, hc);
    }
