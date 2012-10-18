@@ -10,8 +10,8 @@ HyPerCol "column" = {
    
    randomSeed 	                = 1020304050.0;   
 
-   numSteps                     = 3000000;	// amount of time steps performed during run-time
-   progressStep                 = 1000;     // write output to see progress
+   numSteps                     = 4000000;	// amount of time steps performed during run-time
+   progressStep                 = 10000;     // write output to see progress
    writeProgressToErr           = 0;        // write progress steps to std err
    
    //outputPath                 = "~/Documents/workspace/iHouse/output";
@@ -22,7 +22,7 @@ HyPerCol "column" = {
    
    checkpointRead  				= true;
    checkpointReadDir            = "~/Documents/Work/LANL/workspace/iHouse/checkpoints";
-   checkpointReadDirIndex       = 300000;
+   checkpointReadDirIndex       = 3000000;
    checkpointWrite 				= false;
    //checkpointWriteDir  			= "~/Documents/workspace/iHouse/output/checkpoints";
    checkpointWriteDir  			= "~/Documents/Work/LANL/workspace/iHouse/checkpoints"; // Dylan's Mac
@@ -64,8 +64,8 @@ Patterns "input" = {
    halfNeutral             = true;
    randomPos               = false;
 
-   startFrame              = 200000; 
-   endFrame                = 200000;
+   startFrame              = 0; 
+   endFrame                = 400000000;
    
    writeImages             = false;
    
@@ -93,7 +93,7 @@ ANNLayer "scaled_input" = {
     marginWidth             = 1;
     mirrorBCflag            = 1;
     spikingFlag             = false;
-    writeStep               = -1.0;
+    writeStep               = -1;
 
     InitVType               = "ZeroV";
 
@@ -111,7 +111,7 @@ Retina "RetinaON" = {
     nf                  = 1;
     
     marginWidth         = 2;
-    writeStep           = -1.0;
+    writeStep           = -1;
     mirrorBCflag        = 0;
     spikingFlag         = true;  // false (no quotes) is translated to 0
 
@@ -138,7 +138,7 @@ Retina "RetinaOFF" = {
     nf                  = 1;
     
     marginWidth         = 2;
-    writeStep           = -1.0;
+    writeStep           = -1;
     mirrorBCflag        = 0;
     spikingFlag         = true;  // false (no quotes) is translated to 0
 
@@ -402,7 +402,7 @@ OjaSTDPConn "RetinaONtoLif" = {
    normalize              = false;
    normalize_max          = false;
    normalize_zero_offset  = 0.0;
-   strength               = 0;
+   strength               = 0;    // Strength doesn't matter when weightInitType is UniformRandomWeight
    combineWeightFiles     = false;
    
    ampLTP                 = 1;    // (ms)
@@ -411,7 +411,7 @@ OjaSTDPConn "RetinaONtoLif" = {
    tauLTD                 = 32;   // (ms)
    tauOja                 = 150;  // (ms)
    tauTHR                 = 5000; // (ms) thresholdAdaptationTime
-   targetRate             = 10;   // (Hz)
+   targetRate             = 20;   // (Hz)
    weightDecay            = 0;
    dWMax                  = 2;
    wMin                   = 0.001;
@@ -468,7 +468,7 @@ OjaSTDPConn "RetinaOFFtoLif" = {
    tauLTD                 = 32;   // (ms)
    tauOja                 = 150;  // (ms)
    tauTHR                 = 5000; // (ms) thresholdAdaptationTime
-   targetRate             = 10;   // (Hz)
+   targetRate             = 20;   // (Hz)
    weightDecay            = 0;
    dWMax                  = 2;
    wMin                   = 0.001;
