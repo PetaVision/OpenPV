@@ -122,7 +122,8 @@ int Patterns::initialize(const char * name, HyPerCol * hc, PatternType type) {
       }
 
       startFrame = params->value(name, "startFrame", 0);
-      endFrame = params->value(name, "endFrame", 0);
+      endFrame = params->value(name, "endFrame", -1);
+      if (endFrame < 0) endFrame = INT_MAX;
       //Assign first drop
       //radius.push_back(0);
       //Assign next drop
