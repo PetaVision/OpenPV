@@ -32,7 +32,7 @@ int OjaKernelConn::initialize_base() {
 int OjaKernelConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
       const char * filename, InitWeights *weightInit) {
    int status = KernelConn::initialize(name, hc, pre, post, filename, weightInit);
-   learningRate = readLearningRate();
+   learningTime = readLearningTime();
    inputTargetRate = 0.001*readInputTargetRate(); // params file specifies target rates
    outputTargetRate = 0.001*readOutputTargetRate();
    integrationTime = readIntegrationTime();
@@ -116,7 +116,7 @@ int OjaKernelConn::update_dW(int axonId) {
    int numKernelIndices = getNumDataPatches();
    int divisor = pre->getNumNeurons()/numKernelIndices;
    assert( divisor*numKernelIndices == pre->getNumNeurons() );
-   float scalefactor = parent->getDeltaTime()*getLearningRate()/(getInputTargetRate()*getOutputTargetRate())/((float) divisor);
+   float scalefactor = parent->getDeltaTime()/getLearningTime()/(getInputTargetRate()*getOutputTargetRate())/((float) divisor);
    for( int kernelindex=0; kernelindex<numKernelIndices; kernelindex++ ) {
       int numpatchitems = nxp*nyp*nfp;
       pvdata_t * dwpatchdata = get_dwDataHead(axonId,kernelindex);

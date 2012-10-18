@@ -28,7 +28,7 @@ public:
    virtual int updateState(float timef, float dt);
 
    // Public get-methods
-   float getLearningRate() {return learningRate;}
+   float getLearningTime() {return learningTime;}
    float getInputTargetRate() {return inputTargetRate;}
    float getOutputTargetRate() {return outputTargetRate;}
    float getIntegrationTime() {return integrationTime;}
@@ -43,7 +43,7 @@ protected:
    virtual int update_dW(int axonId);
 
    // Load member variables from params.  Virtual so that derived classes can deactivate a param if it isn't needed.
-   virtual float readLearningRate() {return getParent()->parameters()->value(name, "learningRate", 1.0);}
+   virtual float readLearningTime() {return getParent()->parameters()->value(name, "learningTime", 1.0);}
    virtual float readInputTargetRate() {return getParent()->parameters()->value(name, "inputTargetRate", 1.0);}
    virtual float readOutputTargetRate() {return getParent()->parameters()->value(name, "outputTargetRate", 1.0);}
    virtual float readIntegrationTime() {return getParent()->parameters()->value(name, "integrationTime", 1.0);}
@@ -53,7 +53,7 @@ private:
 
 // Member variables
 protected:
-   float learningRate;
+   float learningTime;
    float inputTargetRate;
    float outputTargetRate;
    float integrationTime; // \tau_{\hbox{\it Oja}}
