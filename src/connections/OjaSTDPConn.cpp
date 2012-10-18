@@ -84,6 +84,7 @@ int OjaSTDPConn::initialize(const char * name, HyPerCol * hc,
    VthRest = postLIF->getLIFParams()->VthRest;
 
    //allocate ampLTD and set to initial value
+   //Restricted post
    ampLTD = (float *) calloc(post->getNumNeurons(), sizeof(float));
    for (int k = 0; k < post->getNumNeurons(); k++) {
       ampLTD[k] = initAmpLTD;
@@ -222,14 +223,18 @@ int OjaSTDPConn::updateWeights(int arborID)
    const float decayO        = exp(-dt / tauO);
    const float targetRatekHz = targetRateHz/1000; // Convert Hz to kHz
 
+   //Restricted Post
    const int nkPost = post_stdp_tr->numItems;
+   //Extended Pre
    const int nkPre  = pre->getNumExtended();
    assert(nkPre == getNumWeightPatches());
 
    const pvdata_t * preLayerData = pre->getLayerData(getDelay(arborID));
+   //Extended Post
    const pvdata_t * aPost        = post->getLayerData();
    pvdata_t aPre;
 
+   //Restricted Post
    pvdata_t * post_stdp_tr_m;   // Postsynaptic trace matrix; i.e. data of post_stdp_tr struct
    pvdata_t * post_oja_tr_m;    // Postsynaptic mean trace matrix
    pvdata_t * post_int_tr_m;    // Postsynaptic mean trace matrix
@@ -243,20 +248,28 @@ int OjaSTDPConn::updateWeights(int arborID)
    post_oja_tr_m  = post_oja_tr->data;
    post_int_tr_m  = post_int_tr->data;
 
-   // 1. Updates the postsynaptic traces
-   for (int kPost = 0; kPost < nkPost; kPost++)
-   {
-      post_stdp_tr_m[kPost] = decayLTD * (post_stdp_tr_m[kPost] + aPost[kPost]);
-      post_oja_tr_m[kPost]  = decayOja * (post_oja_tr_m[kPost] + aPost[kPost]);
-      post_int_tr_m[kPost]  = decayO   * (post_int_tr_m[kPost] + aPost[kPost]);
+   const int postNx = post->getLayerLoc()->nx;
+   const int postNy = post->getLayerLoc()->ny;
+   const int postNf = post->getLayerLoc()->nf;
+   const int postNb = post->getLayerLoc()->nb;
 
-      ampLTD[kPost] += (dt/tauTHR) * ((post_int_tr_m[kPost]/tauO) - targetRatekHz) * (LTDscale/targetRatekHz);
-      ampLTD[kPost] = ampLTD[kPost] < 0 ? 0 : ampLTD[kPost]; // Stop ampLTD from being 0
-      assert(ampLTD[kPost] == ampLTD[kPost]); // Make sure it is not NaN (which would only happen if tergetRatekHz or tauO becomes 0
+   // 1. Updates the postsynaptic traces
+   for (int kPostRes = 0; kPostRes < nkPost; kPostRes++)
+   {
+      int kPostExt = kIndexExtended(kPostRes, postNx, postNy, postNf, postNb);
+      post_stdp_tr_m[kPostRes] = decayLTD * (post_stdp_tr_m[kPostRes] + aPost[kPostExt]);
+      post_oja_tr_m[kPostRes]  = decayOja * (post_oja_tr_m[kPostRes] + aPost[kPostExt]);
+      post_int_tr_m[kPostRes]  = decayO   * (post_int_tr_m[kPostRes] + aPost[kPostExt]);
+
+      ampLTD[kPostRes] += (dt/tauTHR) * ((post_int_tr_m[kPostRes]/tauO) - targetRatekHz) * (LTDscale/targetRatekHz);
+      ampLTD[kPostRes] = ampLTD[kPostRes] < 0 ? 0 : ampLTD[kPostRes]; // Stop ampLTD from being 0
+      assert(ampLTD[kPostRes] == ampLTD[kPostRes]); // Make sure it is not NaN (which would only happen if tergetRatekHz or tauO becomes 0
    }
 
    // this stride is in extended space for post-synaptic activity and STDP decrement variable
-   const int postStrideY = post->getLayerLoc()->nf * (post->getLayerLoc()->nx + 2 * post->getLayerLoc()->nb);
+   const int postStrideYExt = postNf * (postNx + 2 * postNb);
+   //stride in restricted space
+   const int postStrideYRes = postNf * postNx;
    //FIXME: In the first iteration post is -70!! (May not still be true)
 
    float scaleFactor;
@@ -269,23 +282,26 @@ int OjaSTDPConn::updateWeights(int arborID)
    }
    assert(scaleFactor == scaleFactor); // Make sure it is not NaN (can only happen if tauOja or targetRatekHz = 0)
 
-   for (int kPre = 0; kPre < nkPre; kPre++)              // Loop over all presynaptic neurons
+   for (int kPreExt = 0; kPreExt < nkPre; kPreExt++)              // Loop over all presynaptic neurons
    {
-      size_t postOffset = getAPostOffset(kPre, arborID);  // Gets start index for postsynaptic vectors for given presynaptic neuron and axon
+      size_t postOffsetExt = getAPostOffset(kPreExt, arborID);  // Gets start index for postsynaptic vectors for given presynaptic neuron and axon
+      size_t postOffsetRes = kIndexExtended(postOffsetExt, postNx, postNy, postNf, postNb);
+     // size_t postOffsetRes = postOffsetExt - (postNb * (postNx + 2*postNb) + postNb);
 
-      aPre           = preLayerData[kPre];                // Spiking activity
-      aPost          = &post->getLayerData()[postOffset]; // Gets address of postsynaptic activity
-      post_stdp_tr_m = &(post_stdp_tr->data[postOffset]); // Reference to STDP post trace
-      post_oja_tr_m  = &(post_oja_tr->data[postOffset]);
-      pre_stdp_tr_m  = &(pre_stdp_tr->data[kPre]);        // PreTrace for given presynaptic neuron kPre
-      pre_oja_tr_m   = &(pre_oja_tr->data[kPre]);
+      aPre           = preLayerData[kPreExt];                // Spiking activity
+      aPost          = &post->getLayerData()[postOffsetExt]; // Gets address of postsynaptic activity
+      post_stdp_tr_m = &(post_stdp_tr->data[postOffsetRes]); // Reference to STDP post trace
+      post_oja_tr_m  = &(post_oja_tr->data[postOffsetRes]);
+      //Pre in extended space
+      pre_stdp_tr_m  = &(pre_stdp_tr->data[kPreExt]);        // PreTrace for given presynaptic neuron kPre
+      pre_oja_tr_m   = &(pre_oja_tr->data[kPreExt]);
 
-      W = get_wData(arborID, kPre);                        // Pointer to data of given axon & presynaptic neuron
+      W = get_wData(arborID, kPreExt);                        // Pointer to data of given axon & presynaptic neuron
 
       // Get weights in form of a patch (nx,ny,nf)
       // nk and ny are the number of neurons connected to the given presynaptic neuron in the x*nfp and y
       // if each of the presynaptic neurons connects to all postsynaptic than nk*ny = nkPost TODO: Is this true? Rui says yes.
-      PVPatch * w = getWeights(kPre, arborID);                // Get weights in form of a patch (nx,ny,nf), TODO: what's the role of the offset?
+      PVPatch * w = getWeights(kPreExt, arborID);                // Get weights in form of a patch (nx,ny,nf), TODO: what's the role of the offset?
       nk  = nfp * w->nx; // one line in x at a time
       ny  = w->ny;
 
@@ -295,35 +311,35 @@ int OjaSTDPConn::updateWeights(int arborID)
 
       //3. Update weights
       for (int y = 0; y < ny; y++) {
-         for (int k = 0; k < nk; k++) {
+         for (int kPatch = 0; kPatch < nk; kPatch++) {
 
             // See LCA_Equations.pdf in documentation for description of Oja (feed-forward weight adaptation) equations.
             float ojaTerm;
             if (ojaFlag) {
-               ojaTerm = (post_oja_tr_m[k]/tauOja) * ((*pre_oja_tr_m/tauOja) - W[k] * (post_oja_tr_m[k]/tauOja));
+               ojaTerm = (post_oja_tr_m[kPatch]/tauOja) * ((*pre_oja_tr_m/tauOja) - W[kPatch] * (post_oja_tr_m[kPatch]/tauOja));
                assert(ojaTerm == ojaTerm); // Make sure it is not NaN (only happens if tauOja is 0)
             } else { //should just be standard STDP at this point
               ojaTerm = 1.0;
             }
 
-            W[k] += scaleFactor *
-                  (ojaTerm * ampLTP * aPost[k] * (*pre_stdp_tr_m) - ampLTD[k] * aPre * post_stdp_tr_m[k] -
-                  weightDecay * W[k]);
+            W[kPatch] += scaleFactor *
+                  (ojaTerm * ampLTP * aPost[kPatch] * (*pre_stdp_tr_m) - ampLTD[kPatch] * aPre * post_stdp_tr_m[kPatch] -
+                  weightDecay * W[kPatch]);
 
-            W[k] = W[k] < wMin ? wMin : W[k]; // Stop weights from going all the way to 0
+            W[kPatch] = W[kPatch] < wMin ? wMin : W[kPatch]; // Stop weights from going all the way to 0
             if (!ojaFlag) { //oja term should get rid of the need to impose a maximum weight
-               W[k] = W[k] > wMax ? wMax : W[k];
+               W[kPatch] = W[kPatch] > wMax ? wMax : W[kPatch];
             }
          }
 
          // advance pointers in y
-         W += syp; //FIXME: W += nk
+         W += syp;
 
          // postActivity and post trace are extended layer
-         aPost          += postStrideY; //TODO: is this really in the extended space?
-         post_stdp_tr_m += postStrideY;
-         post_int_tr_m  += postStrideY;
-         post_oja_tr_m  += postStrideY;
+         aPost          += postStrideYExt; //TODO: is this really in the extended space?
+         post_stdp_tr_m += postStrideYRes;
+         post_int_tr_m  += postStrideYRes;
+         post_oja_tr_m  += postStrideYRes;
       }
    }
 
