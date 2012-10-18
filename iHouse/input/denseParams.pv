@@ -403,12 +403,12 @@ OjaSTDPConn "RetinaONtoS1" = {
    combineWeightFiles     = false;
 
    ampLTP                 = 1; 
-   ampLTD                 = 1;
+   initAmpLTD             = 1;    // (ms)
    tauLTP                 = 8;
    tauLTD                 = 32;
    tauOja                 = 150;    //Oja tau LTP
    tauTHR                 = 5000; // (ms) thresholdAdaptationTime
-   targetRate             = 10;
+   targetRate             = 20;
    weightDecay            = 0;
    dWMax                  = 2;
    wMin                   = 0.001;
@@ -459,13 +459,13 @@ OjaSTDPConn "RetinaOFFtoS1" = {
    strength               = 0;
    combineWeightFiles     = false;
 
-   ampLTP                 = 1; //amp sets ratio of LTP to LTD, or how much more/less effective LTP is than LTD. LTP/LTD should ~= 0.9 per Gar
-   ampLTD                 = 1;
+   ampLTP                 = 1; 
+   initAmpLTD             = 1;
    tauLTP                 = 8;
    tauLTD                 = 32;
    tauOja                 = 150;    //Oja tau
    tauTHR                 = 5000; // (ms) thresholdAdaptationTime
-   targetRate             = 10;
+   targetRate             = 20;
    weightDecay            = 0;
    dWMax                  = 2;
    wMin                   = 0.001;
