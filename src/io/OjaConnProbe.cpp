@@ -51,8 +51,18 @@ int OjaConnProbe::initialize(const char * probename, const char * filename,
 
    postLoc = ojaConn->postSynapticLayer()->getLayerLoc();
 
+   int nxGlobal = postLoc->nxGlobal;
+   int nyGlobal = postLoc->nyGlobal;
+   int nf = postLoc->nf;
+   int nb = postLoc->nb;
+   int nxext = nxGlobal+2*nb;
+   int nyext = nyGlobal+2*nb;
+
    if (pidMethod == INDEX_METHOD) {
       kPost = postIndex;
+      kxPost = kxPos(kPost,nxext,nyext,nf)-nb;
+      kyPost = kyPos(kPost,nxext,nyext,nf)-nb;
+      kfPost = featureIndex(kPost,nxext,nyext,nf);
       //std::cout << "OjaConnProbe: kPost (INDEX): " << kPost << "\n";
    }
    else if(pidMethod == COORDINATE_METHOD) {
@@ -62,6 +72,26 @@ int OjaConnProbe::initialize(const char * probename, const char * filename,
    }
    else assert(false);
    assert(kPost != -1);
+
+// Now convert from global coordinates to local coordinates
+   int kxPostLocal = kxPost - postLoc->kx0;
+   int kyPostLocal = kyPost - postLoc->ky0;
+   int nxLocal = postLoc->nx;
+   int nyLocal = postLoc->ny;
+   int kLocal = kIndex(kxPostLocal+nb,kyPostLocal+nb,kfPost,nxLocal+2*nb,nyLocal+2*nb,nf);
+   assert(kLocal >=0 && kLocal < ojaConn->postSynapticLayer()->getNumExtended());
+
+   int inbounds = kxPostLocal < -nb || kxPostLocal > postLoc->nx+nb || kyPostLocal < -nb || kyPostLocal > postLoc->ny+nb;
+
+   if(inbounds) {
+      FILE * fp = getFilePtr();
+      fprintf(fp, "Rank %d process is in bounds for index %d, x=%d, y=%d, f=%d\n", 0, kPost, kxPost, kyPost, kfPost);
+      std::cout << "in bounds!\n";
+   }
+   else
+   {
+      assert(false);
+   }
 
    return PV_SUCCESS;
 }
@@ -126,7 +156,7 @@ int OjaConnProbe::outputState(float timef)
    for (int weightIdx=0; weightIdx < numArbors*numPostPOVPatch; weightIdx++) {
       fprintf(fp, " prStdpTr%d=%-6.3f",weightIdx,preStdpTrs[weightIdx]);
       fprintf(fp, " prOjaTr%d=%-6.3f",weightIdx,preOjaTrs[weightIdx]);
-      fprintf(fp, " weight%d=%-6.3f",weightIdx,preWeights[weightIdx]);
+      fprintf(fp, " weights%d=%-6.3f",weightIdx,preWeights[weightIdx]);
    }
    fprintf(fp, "\n");
    fflush(fp);
