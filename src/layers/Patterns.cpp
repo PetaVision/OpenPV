@@ -44,6 +44,7 @@ int Patterns::initialize_base() {
    maxVal = 0.0;
    initPatternCntr = 0;
    vDrops.clear();
+   orientation = vertical;
 
    return PV_SUCCESS;
 }
