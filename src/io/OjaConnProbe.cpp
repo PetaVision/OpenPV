@@ -126,7 +126,7 @@ int OjaConnProbe::outputState(float timef)
    for (int weightIdx=0; weightIdx < numArbors*numPostPOVPatch; weightIdx++) {
       fprintf(fp, " prStdpTr%d=%-6.3f",weightIdx,preStdpTrs[weightIdx]);
       fprintf(fp, " prOjaTr%d=%-6.3f",weightIdx,preOjaTrs[weightIdx]);
-      fprintf(fp, " weights%d=%-6.3f",weightIdx,preWeights[weightIdx]);
+      fprintf(fp, " weight%d=%-6.3f",weightIdx,preWeights[weightIdx]);
    }
    fprintf(fp, "\n");
    fflush(fp);
