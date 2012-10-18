@@ -54,7 +54,6 @@ int OjaConnProbe::initialize(const char * probename, const char * filename,
    int nxGlobal = postLoc->nxGlobal;
    int nyGlobal = postLoc->nyGlobal;
    int nf = postLoc->nf;
-   int nb = postLoc->nb;
 
    if (pidMethod == INDEX_METHOD) {
       kxPost = kxPos(kPost,nxGlobal,nyGlobal,nf);
@@ -78,16 +77,16 @@ int OjaConnProbe::initialize(const char * probename, const char * filename,
 
    inBounds = !(kxPostLocal < 0 || kxPostLocal >= postLoc->nx || kyPostLocal < 0 || kyPostLocal >= postLoc->ny);
 
-   if(inBounds) {
-      FILE * fp = getFilePtr();
-      fprintf(fp, "Rank %d process is in bounds for index %d, x=%d, y=%d, f=%d\n", 0, kPost, kxPost, kyPost, kfPost);
-   }
 
    return PV_SUCCESS;
 }
 
 int OjaConnProbe::outputState(float timef)
 {
+   if (!inBounds) {
+      return PV_SUCCESS;
+   }
+
    // Get post layer sizes
    int nxpPost = ojaConn->getNxpPost();
    int nypPost = ojaConn->getNypPost();
