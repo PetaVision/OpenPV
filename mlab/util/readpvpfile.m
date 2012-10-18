@@ -105,6 +105,12 @@ if isempty(errorstring)
                 data{f}.time = fread(fid,1,'float64');
                 numactive = fread(fid,1,'uint32');
                 data{f}.values = fread(fid,numactive,'uint32');
+                if exist('progressperiod','var')
+                    if ~mod(f,progressperiod)
+                        fprintf(1,'File %s: frame %d of %d\n',filename, f, numframes);
+                        fflush(1);
+                    end
+                end
             end
         case 3 % PVP_WGT_FILE_TYPE
             fseek(fid,0,'bof');
