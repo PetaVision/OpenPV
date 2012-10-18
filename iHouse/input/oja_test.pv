@@ -10,8 +10,8 @@ HyPerCol "column" = {
    
    randomSeed 	                = 1020304050.0;   
 
-   numSteps                     = 4000000;	// amount of time steps performed during run-time
-   progressStep                 = 10000;     // write output to see progress
+   numSteps                     = 20000;	// amount of time steps performed during run-time
+   progressStep                 = 1000;     // write output to see progress
    writeProgressToErr           = 0;        // write progress steps to std err
    
    //outputPath                 = "~/Documents/workspace/iHouse/output";
@@ -20,9 +20,9 @@ HyPerCol "column" = {
    
    filenamesContainLayerNames   = 2; 	// stores pvp files as: 0 = layer number/1 = layer number and layer name/2 = layer name
    
-   checkpointRead  				= true;
+   checkpointRead  				= false;
    checkpointReadDir            = "~/Documents/Work/LANL/workspace/iHouse/checkpoints";
-   checkpointReadDirIndex       = 3000000;
+   checkpointReadDirIndex       = 300000;
    checkpointWrite 				= false;
    //checkpointWriteDir  			= "~/Documents/workspace/iHouse/output/checkpoints";
    checkpointWriteDir  			= "~/Documents/Work/LANL/workspace/iHouse/checkpoints"; // Dylan's Mac
@@ -520,17 +520,18 @@ OjaConnProbe "Oja_ON_Probe" = {
     targetConnection = "RetinaONtoLif";
     probeOutputFile  = "retONtoLif.txt";
     msg              = "OjaON";
+    isPostProbe      = true;
     kxPost           = 40; //About half way in
     kyPost           = 40; //About half way in
     kfPost           = 1;  //About half way in (1 feature)
 };
-
 
 OjaConnProbe "Oja_OFF_Probe" = {
     targetConnection = "RetinaOFFtoLif";
     probeOutputFile  = "retOFFtoLif.txt";
     msg              = "OjaOFF";
     kPost            = 2000;
+    isPostProbe      = true;
     //kxPost           = 47; //About half way in
     //kyPost           = 47; //About half way in
     //kfPost           = 1;  //About half way in (1 feature)
