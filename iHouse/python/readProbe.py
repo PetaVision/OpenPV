@@ -1,7 +1,5 @@
 #!/usr/bin/env python
-
-import matplotlib.pyplot as plt
-#from matplotlib.pyplot import plot, legend, show, bar, figure
+from matplotlib.pyplot import plot, legend, show, bar, figure, xticks, tight_layout
 from numpy import array, dot, arange, mean, polyfit, ndarray, std, zeros
 from collections import OrderedDict
 
@@ -20,9 +18,9 @@ def splitLine(line):
    lineSp = zip(*[lineSp[i::2] for i in range(2)])
    return lineSp
 
-#filename = "/Users/slundquist/Desktop/LCALIF_31_31_0.txt"
+filename = "/Users/slundquist/Desktop/ptLIF.txt"
 #filename = "/Users/slundquist/Desktop/retONtoLif.txt"
-filename = "/Users/dpaiton/Documents/Work/LANL/workspace/iHouse/checkpoints/Checkpoint3000000/retONtoLif.txt"
+#filename = "/Users/dpaiton/Documents/Work/LANL/workspace/iHouse/checkpoints/Checkpoint3000000/retONtoLif.txt"
 
 #Values for range of frames
 all_lines = False #All values if True
@@ -39,19 +37,15 @@ data = OrderedDict()
 #TIME MUST EXIST AND BE FIRST IN THIS LIST
 data['t']                     = []
 
-#data['V']                    = []
-#data['Vth']                  = []
-#data['Vadpt']                = []
-#data['a']                    = []
-#data['integratedSpikeCount'] = []
+data['V']                    = []
+data['Vth']                  = []
+data['a']                    = []
 
-data['weight*']  = []
-#data['prOjaTr*']  = []
-#data['prStdpTr*'] = []
-#data['poIntTr']   = []
-#data['poOjaTr']   = []
-#data['poStdpTr']  = []
-#data['ampLTD']    = []
+##data['weights*']             = []
+#data['prOjaTr15']             = []
+#data['prOjaTr*']              = []
+#data['prStdpTr*']             = []
+#data['poIntTr']               = []
 
 print "readProbe: Reading file..."
 f = open(filename, 'r')
@@ -182,7 +176,7 @@ for key in data.keys():
 
 print "readProbe: Done parsing keys."
 print "readProbe: Creating time course plot..."
-plt.figure(0)
+figure(0)
 time = array(data['t'])
 for key in data.keys():
     if key == 't':
@@ -192,25 +186,25 @@ for key in data.keys():
             for i in range(numTCBins):
                 if(len(data[key][i]) != 0):
                     plotMe = time * data[key][i][0] + data[key][i][1] 
-                plt.plot(time, plotMe, label=key + ' bin:(' + str(bounds[key][i]) + ',' + str(bounds[key][i+1]) + ')' + 'std:' + str(stds[key][i]))
+                plot(time, plotMe, label=key + ' bin:(' + str(bounds[key][i]) + ',' + str(bounds[key][i+1]) + ')' + 'std:' + str(stds[key][i]))
         else:
             plotMe = array(data[key])
-        plt.plot(time, plotMe, label=key)
+        plot(time, plotMe, label=key)
     else:
         plotMe = array(data[key])
-    plt.plot(time, plotMe, label=key)
-plt.legend()#bbox_to_anchor=(0., 1.02, 1., .102), ncol = 2, mode="expand", borderaxespad=0.,loc=3)
-plt.tight_layout()
+    plot(time, plotMe, label=key)
+legend()#bbox_to_anchor=(0., 1.02, 1., .102), ncol = 2, mode="expand", borderaxespad=0.,loc=3)
+tight_layout()
 
 print "readProbe: Creating histogram plot..."
-fig1 = plt.figure(1)
+fig1 = figure(1)
 maxWeight = max(max(max(tempVals))) #TODO: is there a better way to do this?
 xVals = arange(0,maxWeight,maxWeight/len(counts))
-plt.bar(range(len(counts)),counts)
-plt.xticks(arange(20),xVals,rotation='vertical')
-plt.tight_layout()
+bar(range(len(counts)),counts)
+xticks(arange(20),xVals,rotation='vertical')
+tight_layout()
 
 print "readProbe: Script complete."
 
-plt.show()
+show()
 
