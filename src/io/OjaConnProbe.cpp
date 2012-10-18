@@ -60,14 +60,14 @@ int OjaConnProbe::initialize(const char * probename, const char * filename,
 
    if (pidMethod == INDEX_METHOD) {
       kPost = postIndex;
-      kxPost = kxPos(kPost,nxext,nyext,nf)-nb;
-      kyPost = kyPos(kPost,nxext,nyext,nf)-nb;
-      kfPost = featureIndex(kPost,nxext,nyext,nf);
+      kxPost = kxPos(kPost,nxGlobal,nyGlobal,nf);
+      kyPost = kyPos(kPost,nxGlobal,nyGlobal,nf);
+      kfPost = featureIndex(kPost,nxGlobal,nyGlobal,nf);
       //std::cout << "OjaConnProbe: kPost (INDEX): " << kPost << "\n";
    }
    else if(pidMethod == COORDINATE_METHOD) {
-      assert(kfPost != 0); //TODO: Why does a single feature not have a kf of 0?
-      kPost = kIndex(kxPost,kyPost,kfPost,postLoc->nx,postLoc->ny,postLoc->nf);// nx, ny, nf NOT in extended space
+      // assert(kfPost != 0); //TODO: Why does a single feature not have a kf of 0?
+      kPost = kIndex(kxPost,kyPost,kfPost,nxGlobal,nyGlobal,nf); // nx, ny, nf NOT in extended space
       //std::cout << "OjaConnProbe: kPost (COORDINATE): " << kPost << "\n";
    }
    else assert(false);
@@ -78,10 +78,10 @@ int OjaConnProbe::initialize(const char * probename, const char * filename,
    int kyPostLocal = kyPost - postLoc->ky0;
    int nxLocal = postLoc->nx;
    int nyLocal = postLoc->ny;
-   int kLocal = kIndex(kxPostLocal+nb,kyPostLocal+nb,kfPost,nxLocal+2*nb,nyLocal+2*nb,nf);
-   assert(kLocal >=0 && kLocal < ojaConn->postSynapticLayer()->getNumExtended());
+   int kLocal = kIndex(kxPostLocal,kyPostLocal,kfPost,nxLocal,nyLocal,nf);
+   // assert(kLocal >=0 && kLocal < ojaConn->postSynapticLayer()->getNumExtended());
 
-   int inbounds = kxPostLocal < -nb || kxPostLocal > postLoc->nx+nb || kyPostLocal < -nb || kyPostLocal > postLoc->ny+nb;
+   int inbounds = !(kxPostLocal < 0 || kxPostLocal >= postLoc->nx || kyPostLocal < 0 || kyPostLocal >= postLoc->ny);
 
    if(inbounds) {
       FILE * fp = getFilePtr();
