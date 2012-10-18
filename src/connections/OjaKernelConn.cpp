@@ -100,7 +100,7 @@ int OjaKernelConn::update_dW(int axonId) {
       int nk = weights->nx * nfp;
       pvdata_t * dwdata = get_dwData(axonId, kex);
       const pvdata_t * wdata = get_wData(axonId, kex);
-      int lineoffsetw = 0;
+      int lineoffsetw = weights->offset;
       int lineoffseta = 0;
       pvdata_t inputFR = input_rate[kex];
       for( int y=0; y<ny; y++ ) {
