@@ -27,6 +27,7 @@ protected:
 		 InitWeights *weightInit=NULL,
 		 Movie * auxLayer=NULL);
   int update_dW(int axonId);
+  pvdata_t updateRule_dW(pvdata_t pre, pvdata_t post); // Inherits from KernelConn; without it the rule below causes an overloaded-virtual warning
   pvdata_t updateRule_dW(pvdata_t pre, pvdata_t post, int offset);
   Movie * layerOfInterest;
 };

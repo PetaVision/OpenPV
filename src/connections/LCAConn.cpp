@@ -68,6 +68,10 @@ namespace PV {
     return PV_SUCCESS;    
   }
 
+  pvdata_t LCAConn::updateRule_dW(pvdata_t preact, pvdata_t postact) {
+     return KernelConn::updateRule_dW(preact, postact);
+  }
+
   pvdata_t LCAConn::updateRule_dW(pvdata_t preact, pvdata_t postact, int offset)
   {
     pvdata_t * image = layerOfInterest->getImageBuffer();
