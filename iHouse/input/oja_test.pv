@@ -10,7 +10,7 @@ HyPerCol "column" = {
    
    randomSeed 	                = 1020304050.0;   
 
-   numSteps                     = 20000;	// amount of time steps performed during run-time
+   numSteps                     = 40000;	// amount of time steps performed during run-time
    progressStep                 = 1000;     // write output to see progress
    writeProgressToErr           = 0;        // write progress steps to std err
    
@@ -20,9 +20,9 @@ HyPerCol "column" = {
    
    filenamesContainLayerNames   = 2; 	// stores pvp files as: 0 = layer number/1 = layer number and layer name/2 = layer name
    
-   checkpointRead  				= false;
+   checkpointRead  				= true;
    checkpointReadDir            = "~/Documents/Work/LANL/workspace/iHouse/checkpoints";
-   checkpointReadDirIndex       = 300000;
+   checkpointReadDirIndex       = 20000;
    checkpointWrite 				= false;
    //checkpointWriteDir  			= "~/Documents/workspace/iHouse/output/checkpoints";
    checkpointWriteDir  			= "~/Documents/Work/LANL/workspace/iHouse/checkpoints"; // Dylan's Mac
@@ -100,7 +100,8 @@ ANNLayer "scaled_input" = {
     VThresh                 = -infinity;
     VMax                    = infinity;
     VMin                    = -infinity;
-    writeNonspikingActivity = 1;
+    
+    writeNonspikingActivity = true;
     restart                 = 0;
 };
 
