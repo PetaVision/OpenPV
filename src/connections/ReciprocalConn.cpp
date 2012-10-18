@@ -185,7 +185,7 @@ int ReciprocalConn::update_dW(int axonID) {
       pvdata_t preact = preactbuf[kExt];
       const pvdata_t * postactRef = &postactbuf[offset];
       pvdata_t * dwdata = get_dwData(axonID, kExt);
-      int lineoffsetw = weights->offset;
+      int lineoffsetw = 0;
       int lineoffseta = 0;
       for( int y=0; y<ny; y++ ) {
          for( int k=0; k<nk; k++ ) {
@@ -198,7 +198,7 @@ int ReciprocalConn::update_dW(int axonID) {
          preact = slownessprebuf[kExt];
          postactRef = &slownesspostbuf[offset];
 
-         int lineoffsetw = weights->offset;
+         int lineoffsetw = 0;
          int lineoffseta = 0;
          for( int y=0; y<ny; y++ ) {
             for( int k=0; k<nk; k++ ) {

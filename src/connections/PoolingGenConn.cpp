@@ -114,9 +114,9 @@ int PoolingGenConn::updateWeights(int axonID) {
         int sya = getPostNonextStrides()->sy;
         pvdata_t * wtpatch = get_wData(axonID, kExt); // weights->data;
         int syw = syp;
-        int lineoffsetw = weights->offset;
-        int lineoffseta = 0;
         for( int y=0; y<nyp; y++ ) {
+            int lineoffsetw = 0;
+            int lineoffseta = 0;
             for( int k=0; k<nk; k++ ) {
                 float w = wtpatch[lineoffsetw + k] + relaxation*(preact*postactRef[lineoffseta + k]+preact2*postact2Ref[lineoffseta + k]);
                 wtpatch[lineoffsetw + k] = w;
