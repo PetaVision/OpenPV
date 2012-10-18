@@ -5,12 +5,6 @@
 
 #include "../PetaVision/src/columns/buildandrun.hpp"
 
-#include <src/io/PointProbe.hpp>            // linear activity of a point
-
-#include <src/io/PointLIFProbe.hpp>
-
-#include <src/io/StatsProbe.hpp>
-
 #define MAIN_USES_ADDCUSTOM
 
 #ifdef MAIN_USES_ADDCUSTOM
