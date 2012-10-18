@@ -225,11 +225,13 @@ int OjaSTDPConn::updateWeights(int arborID)
 
    //Restricted Post
    const int nkPost = post_stdp_tr->numItems;
+
    //Extended Pre
    const int nkPre  = pre->getNumExtended();
    assert(nkPre == getNumWeightPatches());
 
    const pvdata_t * preLayerData = pre->getLayerData(getDelay(arborID));
+
    //Extended Post
    const pvdata_t * aPost        = post->getLayerData();
    pvdata_t aPre;
