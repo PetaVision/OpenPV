@@ -757,6 +757,9 @@ int Patterns::checkpointRead(const char * cpDir, float * timef) {
          status = fread(&nextDisplayTime, sizeof(float), 1, fp) ? status : PV_FAILURE;
          status = fread(&initPatternCntr, sizeof(int), 1, fp) ? status : PV_FAILURE;
          status = fread(&nextDropFrame, sizeof(int), 1, fp) ? status : PV_FAILURE;
+         status = fread(&nextPosChangeFrame, sizeof(int), 1, fp) ? status : PV_FAILURE;
+         status = fread(&xPos, sizeof(int), 1, fp) ? status : PV_FAILURE;
+         status = fread(&yPos, sizeof(int), 1, fp) ? status : PV_FAILURE;
          int size;
          status = fread(&size, sizeof(int), 1, fp) ? status : PV_FAILURE;
          vDrops.clear();
@@ -777,12 +780,14 @@ int Patterns::checkpointRead(const char * cpDir, float * timef) {
    // This will get bad if the number of member variables that need to be saved keeps increasing.
 #ifdef PV_USE_MPI
    if (parent->icCommunicator()->commSize()>1) {
-      int bufsize = sizeof(OrientationMode) + 2*sizeof(float) + 3*sizeof(int) + vDrops.size()*sizeof(Drop);
+      int bufsize = sizeof(OrientationMode) + 2*sizeof(float) + 6*sizeof(int) + vDrops.size()*sizeof(Drop);
+      //Communicate buffer size to rest of processes
+      MPI_Bcast(&bufsize, 1, MPI_INT, 0, parent->icCommunicator()->communicator());
       char tempbuf[bufsize];
       OrientationMode * om = (OrientationMode *) (tempbuf+0);
       float * floats = (float *) (tempbuf+sizeof(OrientationMode));
       int * ints = (int *) (tempbuf+sizeof(OrientationMode)+2*sizeof(float));
-      Drop * drops = (Drop *) (tempbuf+sizeof(OrientationMode)+2*sizeof(float)+3*sizeof(int));
+      Drop * drops = (Drop *) (tempbuf+sizeof(OrientationMode)+2*sizeof(float)+6*sizeof(int));
       int numdrops;
       if (parent->columnId()==0) {
          *om = orientation;
@@ -790,10 +795,13 @@ int Patterns::checkpointRead(const char * cpDir, float * timef) {
          floats[1] = nextDisplayTime;
          ints[0] = initPatternCntr;
          ints[1] = nextDropFrame;
-         numdrops = vDrops.size();
-         ints[2] = numdrops;
+         ints[2] = nextPosChangeFrame;
+         ints[3] = xPos;
+         ints[4] = yPos;
+         numdrops = (int) vDrops.size();
+         ints[5] = numdrops;
          for (int k=0; k<numdrops; k++) {
-            memcpy(&drops[k], &vDrops, sizeof(Drop));
+            memcpy(&(drops[k]), &(vDrops[k]), sizeof(Drop));
          }
          MPI_Bcast(tempbuf, bufsize, MPI_CHAR, 0, parent->icCommunicator()->communicator());
       }
@@ -804,7 +812,10 @@ int Patterns::checkpointRead(const char * cpDir, float * timef) {
          nextDisplayTime = floats[1];
          initPatternCntr = ints[0];
          nextDropFrame = ints[1];
-         numdrops = ints[2];
+         nextPosChangeFrame = ints[2];
+         xPos = ints[3];
+         yPos = ints[4];
+         numdrops = ints[5];
          vDrops.clear();
          for (int k=0; k<numdrops; k++) {
             Drop drop = drops[k];
@@ -835,6 +846,9 @@ int Patterns::checkpointWrite(const char * cpDir) {
          status = fwrite(&nextDisplayTime, sizeof(float), 1, fp) ? status : PV_FAILURE;
          status = fwrite(&initPatternCntr, sizeof(int), 1, fp) ? status : PV_FAILURE;
          status = fwrite(&nextDropFrame, sizeof(int), 1, fp) ? status : PV_FAILURE;
+         status = fwrite(&nextPosChangeFrame, sizeof(int), 1, fp) ? status : PV_FAILURE;
+         status = fwrite(&xPos, sizeof(int), 1, fp) ? status : PV_FAILURE;
+         status = fwrite(&yPos, sizeof(int), 1, fp) ? status : PV_FAILURE;
          status = fwrite(&size, sizeof(int), 1, fp) ? status : PV_FAILURE;
          for (int k=0; k<size; k++) {
             status = fwrite(&vDrops[k], sizeof(Drop), 1, fp) ? status : PV_FAILURE;
@@ -865,6 +879,9 @@ int Patterns::checkpointWrite(const char * cpDir) {
       fprintf(fp, "nextDisplayTime = %f\n", nextDisplayTime);
       fprintf(fp, "initPatternCntr = %d\n", initPatternCntr);
       fprintf(fp, "nextDropFrame = %d\n", nextDropFrame);
+      fprintf(fp, "nextPosChangeFrame = %d\n", nextPosChangeFrame);
+      fprintf(fp, "xPos = %d\n", xPos);
+      fprintf(fp, "yPos = %d\n", yPos);
       fprintf(fp, "size of vDrops vector = %d\n", size);
       for (int k=0; k<size; k++) {
          fprintf(fp, "   element %d: centerX = %d, centerY = %d, speed = %f, radius = %f, on = %d\n",
