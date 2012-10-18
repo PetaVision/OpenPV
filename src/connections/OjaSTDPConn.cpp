@@ -238,6 +238,7 @@ int OjaSTDPConn::updateWeights(int arborID)
    pvdata_t * post_stdp_tr_m;   // Postsynaptic trace matrix; i.e. data of post_stdp_tr struct
    pvdata_t * post_oja_tr_m;    // Postsynaptic mean trace matrix
    pvdata_t * post_int_tr_m;    // Postsynaptic mean trace matrix
+   //Extended Pre
    pvdata_t * pre_stdp_tr_m;    // Presynaptic trace matrix
    pvdata_t * pre_oja_tr_m;
    pvdata_t * W;                // Weight matrix pointer
@@ -270,7 +271,6 @@ int OjaSTDPConn::updateWeights(int arborID)
    const int postStrideYExt = postNf * (postNx + 2 * postNb);
    //stride in restricted space
    const int postStrideYRes = postNf * postNx;
-   //FIXME: In the first iteration post is -70!! (May not still be true)
 
    float scaleFactor;
    if (ojaFlag) {
@@ -301,7 +301,7 @@ int OjaSTDPConn::updateWeights(int arborID)
       // Get weights in form of a patch (nx,ny,nf)
       // nk and ny are the number of neurons connected to the given presynaptic neuron in the x*nfp and y
       // if each of the presynaptic neurons connects to all postsynaptic than nk*ny = nkPost TODO: Is this true? Rui says yes.
-      PVPatch * w = getWeights(kPreExt, arborID);                // Get weights in form of a patch (nx,ny,nf), TODO: what's the role of the offset?
+      PVPatch * w = getWeights(kPreExt, arborID);        // Get weights in form of a patch (nx,ny,nf)
       nk  = nfp * w->nx; // one line in x at a time
       ny  = w->ny;
 
@@ -317,7 +317,7 @@ int OjaSTDPConn::updateWeights(int arborID)
             float ojaTerm;
             if (ojaFlag) {
                ojaTerm = (post_oja_tr_m[kPatch]/tauOja) * ((*pre_oja_tr_m/tauOja) - W[kPatch] * (post_oja_tr_m[kPatch]/tauOja));
-               assert(ojaTerm == ojaTerm); // Make sure it is not NaN (only happens if tauOja is 0)
+               assert(ojaTerm == ojaTerm); // Make sure it is not NaN. Should only happen if tauOja is 0 or W[kPatch] is NaN.
             } else { //should just be standard STDP at this point
               ojaTerm = 1.0;
             }
