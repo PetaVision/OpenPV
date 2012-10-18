@@ -249,6 +249,7 @@ int OjaSTDPConn::updateWeights(int arborID)
    post_oja_tr_m  = post_oja_tr->data;
    post_int_tr_m  = post_int_tr->data;
 
+   //Restricted post vals
    const int postNx = post->getLayerLoc()->nx;
    const int postNy = post->getLayerLoc()->ny;
    const int postNf = post->getLayerLoc()->nf;
@@ -286,7 +287,7 @@ int OjaSTDPConn::updateWeights(int arborID)
    for (int kPreExt = 0; kPreExt < nkPre; kPreExt++)              // Loop over all presynaptic neurons
    {
       size_t postOffsetExt = getAPostOffset(kPreExt, arborID);  // Gets start index for postsynaptic vectors for given presynaptic neuron and axon
-      size_t postOffsetRes = kIndexExtended(postOffsetExt, postNx, postNy, postNf, postNb);
+      size_t postOffsetRes = kIndexRestricted(postOffsetExt, postNx, postNy, postNf, postNb);
      // size_t postOffsetRes = postOffsetExt - (postNb * (postNx + 2*postNb) + postNb);
 
       aPre           = preLayerData[kPreExt];                // Spiking activity
