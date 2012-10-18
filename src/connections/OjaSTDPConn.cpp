@@ -225,13 +225,11 @@ int OjaSTDPConn::updateWeights(int arborID)
 
    //Restricted Post
    const int nkPost = post_stdp_tr->numItems;
-
    //Extended Pre
    const int nkPre  = pre->getNumExtended();
    assert(nkPre == getNumWeightPatches());
 
    const pvdata_t * preLayerData = pre->getLayerData(getDelay(arborID));
-
    //Extended Post
    const pvdata_t * aPost        = post->getLayerData();
    pvdata_t aPre;
@@ -273,6 +271,7 @@ int OjaSTDPConn::updateWeights(int arborID)
    const int postStrideYExt = postNf * (postNx + 2 * postNb);
    //stride in restricted space
    const int postStrideYRes = postNf * postNx;
+   //FIXME: In the first iteration post is -70!! (May not still be true)
 
    float scaleFactor;
    if (ojaFlag) {
@@ -303,7 +302,7 @@ int OjaSTDPConn::updateWeights(int arborID)
       // Get weights in form of a patch (nx,ny,nf)
       // nk and ny are the number of neurons connected to the given presynaptic neuron in the x*nfp and y
       // if each of the presynaptic neurons connects to all postsynaptic than nk*ny = nkPost TODO: Is this true? Rui says yes.
-      PVPatch * w = getWeights(kPreExt, arborID);        // Get weights in form of a patch (nx,ny,nf)
+      PVPatch * w = getWeights(kPreExt, arborID);                // Get weights in form of a patch (nx,ny,nf), TODO: what's the role of the offset?
       nk  = nfp * w->nx; // one line in x at a time
       ny  = w->ny;
 
@@ -319,7 +318,7 @@ int OjaSTDPConn::updateWeights(int arborID)
             float ojaTerm;
             if (ojaFlag) {
                ojaTerm = (post_oja_tr_m[kPatch]/tauOja) * ((*pre_oja_tr_m/tauOja) - W[kPatch] * (post_oja_tr_m[kPatch]/tauOja));
-               assert(ojaTerm == ojaTerm); // Make sure it is not NaN. Should only happen if tauOja is 0 or W[kPatch] is NaN.
+               assert(ojaTerm == ojaTerm); // Make sure it is not NaN (only happens if tauOja is 0)
             } else { //should just be standard STDP at this point
               ojaTerm = 1.0;
             }
