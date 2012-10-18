@@ -322,25 +322,19 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * p
          checkpointReadDir = strdup(cpreaddir);
       }
       else {
-         if( rank == 0 ) {
-            fprintf(stderr, "Column \"%s\": if checkpointRead is set, the string checkpointReadDir must be defined.  Exiting.\n", name);
-         }
+         fprintf(stderr, "Rank %d: Column \"%s\": if checkpointRead is set, the string checkpointReadDir must be defined.  Exiting.\n", rank, name);
          exit(EXIT_FAILURE);
       }
       struct stat checkpointReadDirStat;
       int dirExistStatus = checkDirExists(checkpointReadDir, &checkpointReadDirStat);
       if( dirExistStatus != 0 ) {
-         if( rank == 0 ) {
-            fprintf(stderr, "Column \"%s\": unable to read checkpointReadDir \"%s\": %s\n", name, checkpointReadDir, strerror(dirExistStatus));
-         }
+         fprintf(stderr, "Rank %d: Column \"%s\": unable to read checkpointReadDir \"%s\": %s\n", rank, name, checkpointReadDir, strerror(dirExistStatus));
          exit(EXIT_FAILURE);
       }
       cpReadDirIndex = (int) params->value(name, "checkpointReadDirIndex", -1, true);
       if( cpReadDirIndex < 0 || cpReadDirIndex > HYPERCOL_DIRINDEX_MAX ) {
-         if( rank == 0 ) {
             fflush(stdout);
-            fprintf(stderr, "Column \"%s\": checkpointReadDirIndex must be between 0 and %d, inclusive.  Exiting.\n", name, HYPERCOL_DIRINDEX_MAX);
-         }
+            fprintf(stderr, "Rank %d: Column \"%s\": checkpointReadDirIndex must be between 0 and %d, inclusive.  Exiting.\n", rank, name, HYPERCOL_DIRINDEX_MAX);
          exit(EXIT_FAILURE);
       }
    }
