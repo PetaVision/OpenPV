@@ -546,22 +546,22 @@ PointLIFProbe "LIF_Probe" = {
    fLoc            = 0;
 };
 
-OjaConnProbe "Oja_ON_Probe" = {
-    targetConnection = "RetinaONtoLif";
-    probeOutputFile  = "retONtoLif.txt";
-    msg              = "OjaON";
-    kxPost           = 40; //About half way in
-    kyPost           = 40; //About half way in
-    kfPost           = 1;  //About half way in (1 feature)
-};
-
-
-OjaConnProbe "Oja_OFF_Probe" = {
-    targetConnection = "RetinaOFFtoLif";
-    probeOutputFile  = "retOFFtoLif.txt";
-    msg              = "OjaOFF";
-    kPost            = 2000;
-    //kxPost           = 47; //About half way in
-    //kyPost           = 47; //About half way in
-    //kfPost           = 1;  //About half way in (1 feature)
-};
+//OjaConnProbe "Oja_ON_Probe" = {
+//    targetConnection = "RetinaONtoLif";
+//    probeOutputFile  = "retONtoLif.txt";
+//    msg              = "OjaON";
+//    kxPost           = 40; //About half way in
+//    kyPost           = 40; //About half way in
+//    kfPost           = 1;  //About half way in (1 feature)
+//};
+//
+//
+//OjaConnProbe "Oja_OFF_Probe" = {
+//    targetConnection = "RetinaOFFtoLif";
+//    probeOutputFile  = "retOFFtoLif.txt";
+//    msg              = "OjaOFF";
+//    kPost            = 2000;
+//    //kxPost           = 47; //About half way in
+//    //kyPost           = 47; //About half way in
+//    //kfPost           = 1;  //About half way in (1 feature)
+//};

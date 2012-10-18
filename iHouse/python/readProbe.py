@@ -23,13 +23,13 @@ filename = "/Users/slundquist/Desktop/ptLIF.txt"
 #filename = "/Users/dpaiton/Documents/Work/LANL/workspace/iHouse/checkpoints/Checkpoint3000000/retONtoLif.txt"
 
 #Values for range of frames
-all_lines = False #All values if True
+all_lines = True#All values if True
 startTime = 2900000
 #End must be under number of lines in file
 endTime   = 3000000
 
 numTCBins   = 2  #number of bins for time course plot
-numHistBins = 20 #number of bins for histogram of weights (-1 means no histogram)
+numHistBins = -1 #number of bins for histogram of weights (-1 means no histogram)
 
 #Data structure for scale, and data array to store all the data
 data = OrderedDict()
@@ -164,7 +164,7 @@ for key in data.keys():
                         yVals[i].extend(bins)
                         xVals[i].extend([data['t'][time] for i in range(len(bins))])
             #Find line of best fit, one for each bin
-            print "readProbe: --Formatting data and computing the standard deviation..." 
+            print "readProbe: --Formatting data and computing the standard deviation..."
             #Output (data) is polynomial value, as such: (slope, yintercept)
             data[key] = [polyfit(xVals[i], yVals[i], 1) if len(yVals[i]) != 0 else array([]) for i in range(numTCBins)]
             #Calculate standard deviation
@@ -185,24 +185,26 @@ for key in data.keys():
         if type(data[key][1]) is ndarray:
             for i in range(numTCBins):
                 if(len(data[key][i]) != 0):
-                    plotMe = time * data[key][i][0] + data[key][i][1] 
+                    plotMe = time * data[key][i][0] + data[key][i][1]
                 plot(time, plotMe, label=key + ' bin:(' + str(bounds[key][i]) + ',' + str(bounds[key][i+1]) + ')' + 'std:' + str(stds[key][i]))
         else:
             plotMe = array(data[key])
         plot(time, plotMe, label=key)
     else:
         plotMe = array(data[key])
-    plot(time, plotMe, label=key)
+        plot(time, plotMe, label=key)
 legend()#bbox_to_anchor=(0., 1.02, 1., .102), ncol = 2, mode="expand", borderaxespad=0.,loc=3)
 tight_layout()
 
-print "readProbe: Creating histogram plot..."
-fig1 = figure(1)
-maxWeight = max(max(max(tempVals))) #TODO: is there a better way to do this?
-xVals = arange(0,maxWeight,maxWeight/len(counts))
-bar(range(len(counts)),counts)
-xticks(arange(20),xVals,rotation='vertical')
-tight_layout()
+if doHist:
+   print "readProbe: Creating histogram plot..."
+   fig1 = figure(1)
+   maxWeight = max(max(max(tempVals))) #TODO: is there a better way to do this?
+   xVals = arange(0,maxWeight,maxWeight/len(counts))
+   bar(range(len(counts)),counts)
+   xticks(arange(20),xVals,rotation='vertical')
+   tight_layout()
+
 
 print "readProbe: Script complete."
 
