@@ -129,8 +129,9 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
            "_Start_HyPerConns_",
              "HyPerConn",
                "KernelConn",
-	             "LCAConn",
                  "CloneKernelConn",
+                 "LCAConn",
+                 "LCALIFLateralKernelConn",
                  "NoSelfKernelConn",
                  "OjaKernelConn",
                  "IdentConn",
@@ -769,6 +770,15 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
       auxConn = getConnFromParameterGroup(name, hc, "originalConnName");
       if( auxConn && preLayer && postLayer ) {
          addedConn = (HyPerConn *) new CloneKernelConn(name, hc, preLayer, postLayer, dynamic_cast<KernelConn *>(auxConn)  );
+      }
+      status = checknewobject((void *) addedConn, classkeyword, name, hc);
+   }
+   if( !keywordMatched && !strcmp(classkeyword, "LCALIFLateralKernelConn") ) {
+      keywordMatched = true;
+      getPreAndPostLayers(name, hc, &preLayer, &postLayer);
+      if( preLayer && postLayer ) {
+         fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
+         addedConn = new LCALIFLateralKernelConn(name, hc, preLayer, postLayer, fileName, weightInitializer);
       }
       status = checknewobject((void *) addedConn, classkeyword, name, hc);
    }
