@@ -2136,12 +2136,15 @@ int HyPerConn::writePostSynapticWeights(float timef, bool last) {
    snprintf(path, PV_PATH_MAX-1, "%s/w%d_post%s.pvp", parent->getOutputPath(), getConnectionId(), last_str);
 
    const PVLayerLoc * loc  = post->getLayerLoc();
+   //Testing post weights should have no margins
+   PVLayerLoc newloc = *loc;
+   newloc.nb = 0;
    Communicator * comm = parent->icCommunicator();
 
    bool append = (last) ? false : ioAppend;
 
    status = PV::writeWeights(path, comm, (double) timef, append,
-                             loc, nxPostPatch, nyPostPatch, nfPostPatch, minVal, maxVal,
+                             &newloc, nxPostPatch, nyPostPatch, nfPostPatch, minVal, maxVal,
                              wPostPatches, wPostDataStart, numPostPatches, numberOfAxonalArborLists(), writeCompressedWeights, fileType);
 
    if(status != PV_SUCCESS) {
