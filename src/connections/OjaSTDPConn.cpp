@@ -483,6 +483,8 @@ int OjaSTDPConn::checkpointWrite(const char * cpDir) {
 }
 
 int OjaSTDPConn::checkpointRead(const char * cpDir, float* timef) {
+   std::cout << "INSIDE CHECKPOINTREAD\n";
+
    int status = HyPerConn::checkpointRead(cpDir, timef);
    char filename[PV_PATH_MAX];
    int chars_needed;
@@ -565,6 +567,8 @@ int OjaSTDPConn::checkpointRead(const char * cpDir, float* timef) {
    if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
       fprintf(stderr, "Warning: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
    }
+
+   std::cout << "LEAVING CHECKPOINTREAD\n";
 
    return status;
 }
