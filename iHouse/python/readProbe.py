@@ -23,7 +23,7 @@ filename = "/Users/slundquist/Desktop/ptLIF.txt"
 #filename = "/Users/dpaiton/Documents/Work/LANL/workspace/iHouse/checkpoints/Checkpoint3000000/retONtoLif.txt"
 
 #Values for range of frames
-all_lines = True#All values if True
+all_lines = False #All values if True
 startTime = 2900000
 #End must be under number of lines in file
 endTime   = 3000000
@@ -197,13 +197,13 @@ legend()#bbox_to_anchor=(0., 1.02, 1., .102), ncol = 2, mode="expand", borderaxe
 tight_layout()
 
 if doHist:
-   print "readProbe: Creating histogram plot..."
-   fig1 = figure(1)
-   maxWeight = max(max(max(tempVals))) #TODO: is there a better way to do this?
-   xVals = arange(0,maxWeight,maxWeight/len(counts))
-   bar(range(len(counts)),counts)
-   xticks(arange(20),xVals,rotation='vertical')
-   tight_layout()
+    print "readProbe: Creating histogram plot..."
+    fig1 = figure(1)
+    maxWeight = max(max(max(tempVals))) #TODO: is there a better way to do this?
+    xVals = arange(0,maxWeight,maxWeight/len(counts))
+    bar(range(len(counts)),counts)
+    xticks(arange(20),xVals,rotation='vertical')
+    tight_layout()
 
 
 print "readProbe: Script complete."
