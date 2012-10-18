@@ -66,8 +66,8 @@ function coorFunc(activityData)
    fflush(1);
    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
    %Create decay kernel
-   tau_kernel = exp(-[0:128]/20);
-   tau_kernel = [zeros(1, 129), tau_kernel];
+   tau_kernel = exp(-[0:(5*tLCA)]/tLCA);
+   tau_kernel = [zeros(1, (5*tLCA)+1), tau_kernel];
 
    %Split activity into number of processes
    if (mod(numactivity, NUM_PROCS) == 0)
@@ -156,7 +156,9 @@ function [out] = parFindMean(index, intSpike, pixDist, timeSteps)
       aOut = arrayfun(@findMean, index, cPixDist, cIntSpike, 'UniformOutput', 0);
       %Combine and reshape into matrix
       %Matrix is (sets of sumed indicies for given distance, timesteps)
-      mOut = reshape([aOut{:}], length(aOut), timeSteps); 
+      %Recombine from cells, needs to be rotated for collection of cell arrays
+      mOut = cellfun(@(x) x', aOut, 'UniformOutput', false);
+      mOut = [mOut{:}]';
       %Add it up and store by distance
       out(d, :) = sum(mOut);
    end
