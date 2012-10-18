@@ -55,9 +55,6 @@ int OjaConnProbe::initialize(const char * probename, const char * filename,
    int nyGlobal = postLoc->nyGlobal;
    int nf = postLoc->nf;
    int nb = postLoc->nb;
-   //Variables not used
-   //int nxext = nxGlobal+2*nb;
-   //int nyext = nyGlobal+2*nb;
 
    if (pidMethod == INDEX_METHOD) {
       kxPost = kxPos(kPost,nxGlobal,nyGlobal,nf);
