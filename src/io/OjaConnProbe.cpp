@@ -13,16 +13,16 @@ OjaConnProbe::OjaConnProbe() {
    initialize_base();
 }
 
-OjaConnProbe::OjaConnProbe(const char * probename, const char * filename, HyPerConn * conn, int postIndex)
+OjaConnProbe::OjaConnProbe(const char * probename, const char * filename, HyPerConn * conn, int postIndex, bool isPostProbe)
 {
    initialize_base();
-   initialize(probename, filename, conn, INDEX_METHOD, postIndex, -1, -1, -1);
+   initialize(probename, filename, conn, INDEX_METHOD, postIndex, -1, -1, -1, isPostProbe);
 }
 
-OjaConnProbe::OjaConnProbe(const char * probename, const char * filename, HyPerConn * conn, int kxPost, int kyPost, int kfPost)
+OjaConnProbe::OjaConnProbe(const char * probename, const char * filename, HyPerConn * conn, int kxPost, int kyPost, int kfPost, bool isPostProbe)
 {
    initialize_base();
-   initialize(probename, filename, conn, COORDINATE_METHOD, -1, kxPost, kyPost, kfPost);
+   initialize(probename, filename, conn, COORDINATE_METHOD, -1, kxPost, kyPost, kfPost, isPostProbe);
 }
 
 OjaConnProbe::~OjaConnProbe()
@@ -42,13 +42,12 @@ int OjaConnProbe::initialize_base() {
 
 int OjaConnProbe::initialize(const char * probename, const char * filename,
       HyPerConn * conn, PatchIDMethod pidMethod, int kPost,
-      int kxPost, int kyPost, int kfPost)
+      int kxPost, int kyPost, int kfPost, bool isPostProbe)
 {
-   BaseConnectionProbe::initialize(probename, filename, conn);
-
    ojaConn = dynamic_cast<OjaSTDPConn *>(conn);
    assert(ojaConn != NULL);
 
+   const PVLayerLoc * postLoc;
    postLoc = ojaConn->postSynapticLayer()->getLayerLoc();
 
    int nxGlobal = postLoc->nxGlobal;
@@ -66,6 +65,8 @@ int OjaConnProbe::initialize(const char * probename, const char * filename,
    }
    else assert(false);
    assert(kPost != -1);
+
+   BaseConnectionProbe::initialize(probename, filename, conn,kxPost,kyPost,kfPost,isPostProbe);
 
 // Now convert from global coordinates to local coordinates
    int kxPostLocal = kxPost - postLoc->kx0;
@@ -133,7 +134,7 @@ int OjaConnProbe::outputState(float timef)
 
    // Write out to file
    FILE * fp = getFilePtr();
-   assert(fp);
+   assert(fp); // invalid pointer
 
    const char * msg = getName(); // Message to precede the probe's output line
 

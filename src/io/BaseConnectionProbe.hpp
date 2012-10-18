@@ -26,6 +26,8 @@ public:
 protected:
    BaseConnectionProbe(); // Default constructor, can only be called by derived classes
    int initialize(const char * probename, const char * filename, HyPerConn * conn);
+   int initialize(const char * probename, const char * filename, HyPerConn * conn, int k, bool postProbeFlag);
+   int initialize(const char * probename, const char * filename, HyPerConn * conn, int kx, int ky, int kf, bool postProbeFlag);
 
 private:
    int initialize_base();
@@ -36,6 +38,7 @@ private:
    char * filename; // Name of the output file.  Can be NULL if output goes to stdout
    FILE * fp; // pointer to output file; NULL except for root process.  If filename is NULL, fp will be stdout.
    HyPerConn * targetConn;
+   bool isPostProbe;
 
 }; // end of class BaseConnectionProbe block
 

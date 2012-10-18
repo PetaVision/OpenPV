@@ -20,8 +20,8 @@ class OjaConnProbe: public BaseConnectionProbe {
    //Methods
 public:
    OjaConnProbe();
-   OjaConnProbe(const char * probename, const char * filename, HyPerConn * conn, int postIndex);
-   OjaConnProbe(const char * probename, const char * filename, HyPerConn * conn, int kxPost, int kyPost, int kfPost);
+   OjaConnProbe(const char * probename, const char * filename, HyPerConn * conn, int postIndex, bool isPostProbe);
+   OjaConnProbe(const char * probename, const char * filename, HyPerConn * conn, int kxPost, int kyPost, int kfPost, bool isPostProbe);
    virtual ~OjaConnProbe();
 
    virtual int outputState(float timef);
@@ -31,12 +31,11 @@ public:
                                   const PVLayerLoc * loc, int kx0, int ky0, int kf0);
 
 protected:
-   int initialize(const char * probename, const char * filename, HyPerConn * conn, PatchIDMethod method, int postIndex, int kxPost, int kyPost, int kfPost);
+   int initialize(const char * probename, const char * filename, HyPerConn * conn, PatchIDMethod method, int postIndex, int kxPost, int kyPost, int kfPost, bool isPostProbe);
 
 private:
    int initialize_base();
    OjaSTDPConn * ojaConn;
-   const PVLayerLoc * postLoc;
    int kLocal;
    int inBounds;
 
