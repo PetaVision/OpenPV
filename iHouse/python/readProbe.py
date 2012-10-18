@@ -45,7 +45,7 @@ data['t']                     = []
 #data['a']                    = []
 #data['integratedSpikeCount'] = []
 
-data['weights*']  = []
+data['weight*']  = []
 #data['prOjaTr*']  = []
 #data['prStdpTr*'] = []
 #data['poIntTr']   = []
@@ -114,7 +114,7 @@ for key in data.keys():
         tok = key
     #Grab the value if element is the same as token
     if key[len(key)-1] == "*":
-        if key == "weights*" and numHistBins != -1:
+        if key == "weight*" and numHistBins != -1:
             doHist = 1
         else:
             doHist = 0
