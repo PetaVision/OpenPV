@@ -37,7 +37,8 @@ private:
    int initialize_base();
    OjaSTDPConn * ojaConn;
    const PVLayerLoc * postLoc;
-   int kPost;
+   int kLocal;
+   int inBounds;
 
    //output variables
    float postStdpTr;

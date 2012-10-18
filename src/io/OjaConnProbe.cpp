@@ -36,12 +36,12 @@ int OjaConnProbe::initialize_base() {
    preStdpTrs = NULL;
    preOjaTrs  = NULL;
    preWeights = NULL;
-   kPost      = -1;
+   kLocal      = -1;
    return PV_SUCCESS;
 }
 
 int OjaConnProbe::initialize(const char * probename, const char * filename,
-      HyPerConn * conn, PatchIDMethod pidMethod, int postIndex,
+      HyPerConn * conn, PatchIDMethod pidMethod, int kPost,
       int kxPost, int kyPost, int kfPost)
 {
    BaseConnectionProbe::initialize(probename, filename, conn);
@@ -59,16 +59,13 @@ int OjaConnProbe::initialize(const char * probename, const char * filename,
    int nyext = nyGlobal+2*nb;
 
    if (pidMethod == INDEX_METHOD) {
-      kPost = postIndex;
       kxPost = kxPos(kPost,nxGlobal,nyGlobal,nf);
       kyPost = kyPos(kPost,nxGlobal,nyGlobal,nf);
       kfPost = featureIndex(kPost,nxGlobal,nyGlobal,nf);
-      //std::cout << "OjaConnProbe: kPost (INDEX): " << kPost << "\n";
    }
    else if(pidMethod == COORDINATE_METHOD) {
-      // assert(kfPost != 0); //TODO: Why does a single feature not have a kf of 0?
+      // assert(kfPost != 0); //TODO: Why does a single feature not have a kf of 0? // it doesn't?
       kPost = kIndex(kxPost,kyPost,kfPost,nxGlobal,nyGlobal,nf); // nx, ny, nf NOT in extended space
-      //std::cout << "OjaConnProbe: kPost (COORDINATE): " << kPost << "\n";
    }
    else assert(false);
    assert(kPost != -1);
@@ -78,19 +75,14 @@ int OjaConnProbe::initialize(const char * probename, const char * filename,
    int kyPostLocal = kyPost - postLoc->ky0;
    int nxLocal = postLoc->nx;
    int nyLocal = postLoc->ny;
-   int kLocal = kIndex(kxPostLocal,kyPostLocal,kfPost,nxLocal,nyLocal,nf);
+   kLocal = kIndex(kxPostLocal,kyPostLocal,kfPost,nxLocal,nyLocal,nf);
    // assert(kLocal >=0 && kLocal < ojaConn->postSynapticLayer()->getNumExtended());
 
-   int inbounds = !(kxPostLocal < 0 || kxPostLocal >= postLoc->nx || kyPostLocal < 0 || kyPostLocal >= postLoc->ny);
+   inBounds = !(kxPostLocal < 0 || kxPostLocal >= postLoc->nx || kyPostLocal < 0 || kyPostLocal >= postLoc->ny);
 
-   if(inbounds) {
+   if(inBounds) {
       FILE * fp = getFilePtr();
       fprintf(fp, "Rank %d process is in bounds for index %d, x=%d, y=%d, f=%d\n", 0, kPost, kxPost, kyPost, kfPost);
-      std::cout << "in bounds!\n";
-   }
-   else
-   {
-      assert(false);
    }
 
    return PV_SUCCESS;
@@ -122,7 +114,7 @@ int OjaConnProbe::outputState(float timef)
    int preTraceIdx = 0;
    for (int arborID=0; arborID < numArbors; arborID++)
    {
-      postWeights = ojaConn->getPostWeights(arborID,kPost); // Pointer array full of addresses pointing to the weights for all of the preNeurons connected to the given postNeuron's receptive field
+      postWeights = ojaConn->getPostWeights(arborID,kLocal); // Pointer array full of addresses pointing to the weights for all of the preNeurons connected to the given postNeuron's receptive field
       float * startAdd = ojaConn->get_wDataStart(arborID);                    // Address of first preNeuron in pre layer
       for (int preNeuronID=0; preNeuronID<numPostPOVPatch; preNeuronID++)
       {
@@ -137,10 +129,10 @@ int OjaConnProbe::outputState(float timef)
       }
    }
 
-   postStdpTr  = ojaConn->getPostStdpTr(kPost);
-   postOjaTr   = ojaConn->getPostOjaTr(kPost);
-   postIntTr   = ojaConn->getPostIntTr(kPost);
-   ampLTD      = ojaConn->getAmpLTD(kPost);
+   postStdpTr  = ojaConn->getPostStdpTr(kLocal);
+   postOjaTr   = ojaConn->getPostOjaTr(kLocal);
+   postIntTr   = ojaConn->getPostIntTr(kLocal);
+   ampLTD      = ojaConn->getAmpLTD(kLocal);
 
    // Write out to file
    FILE * fp = getFilePtr();
@@ -148,7 +140,7 @@ int OjaConnProbe::outputState(float timef)
 
    const char * msg = getName(); // Message to precede the probe's output line
 
-   fprintf(fp, "%s:      t=%.1f kPost=%d", msg, timef, kPost);
+   fprintf(fp, "%s:      t=%.1f kLocal=%d", msg, timef, kLocal);
    fprintf(fp, " poStdpTr=%-6.3f",postStdpTr);
    fprintf(fp, " poOjaTr=%-6.3f",postOjaTr);
    fprintf(fp, " poIntTr=%-6.3f",postIntTr);
