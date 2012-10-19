@@ -156,10 +156,12 @@ function coorFunc(activityData)
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       %Plot
       legName = cell(maxDist, 1);
-      hold all;
+      colorStep = 1/maxDist;
       figure('Visible', 'off');
+      hold all;
       for d = 1:maxDist
-         plot(FNUM_SPEC{c}, outMat(d, :));
+         colorVal = colorStep * d;
+         plot(FNUM_SPEC{c}, outMat(d, :), 'Color', [colorVal, colorVal, colorVal]);
          legName{d} = ['Dist: ', num2str(d)];
          %plot(mean(intSpike));
       end
