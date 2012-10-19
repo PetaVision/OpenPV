@@ -100,7 +100,11 @@ function coorFunc(activityData)
 
       %Create intSpikeCount matrix where it is indexed by (vectorized index, timestep)
       %intSpike = conv2(sparse_act, tau_kernel, 'same');
-      cIntSpike = parcellfun(NUM_PROCS, @conv2, cellAct, cTau_Kernel, cShape, 'UniformOutput', false);
+      if NUM_PROCS == 1
+         cIntSpike = cellfun(@conv2, cellAct, cTau_Kernel, cShape);
+      else
+         cIntSpike = parcellfun(NUM_PROCS, @conv2, cellAct, cTau_Kernel, cShape, 'UniformOutput', false);
+      end
 
       %Recombine from cells, needs to be rotated for collection of cell arrays
       cIntSpike = cellfun(@(x) x', cIntSpike, 'UniformOutput', false);
@@ -127,15 +131,17 @@ function coorFunc(activityData)
       cellPixDist{1} = pixDist;
       cellTimeSteps{1} = timesteps;
       %Uniform output as false to store in cell arrays
-      [out] = parcellfun(NUM_PROCS, @parFindMean, cellIndex, cellIntSpike, cellPixDist, cellTimeSteps, 'UniformOutput', 0);
+      if NUM_PROCS == 1
+         [out] = cellfun(@parFindMean, cellIndex, cellIntSpike, cellPixDist, cellTimeSteps);
+      else
+         [out] = parcellfun(NUM_PROCS, @parFindMean, cellIndex, cellIntSpike, cellPixDist, cellTimeSteps, 'UniformOutput', 0);
+      end
       %Calculate average based on all pixels
       for i = 1:length(out)
          outMat += out{i};
       end
       %Divide by total number of idicies to find average
       outMat = outMat./length(marginIndex);
-      %Divide by tau squared to make value a rate
-      outMat = outMat ./ (tLCA * tLCA);
 
 
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -145,10 +151,8 @@ function coorFunc(activityData)
       %Plot
       for d = 1:maxDist
          figure('Visible', 'off');
-         hold all;
-         plot(outMat(d, :));
-         plot(mean(intSpike));
-         hold off;
+         plot(FNUM{c}, outMat(d, :));
+         %plot(mean(intSpike));
          print_filename = [outputDir, 'Coorfunc_', num2str(c), "_", num2str(d), '.jpg'];
          print(print_filename);
       end
@@ -199,7 +203,7 @@ function [outMean] = findMean(idx, dist, intSpike)
    %Repeate to make the same size as circleIntSpike
    centerIntSpike = repmat(centerIntSpike, length(circIdx), 1);
    %Multiply and sum
-   prodMat = circleIntSpike .* centerIntSpike;
+   prodMat = (circleIntSpike .* centerIntSpike)./(tLCA * tLCA);
    outMean = sum(prodMat);
    outMean = outMean ./ length(circIdx);
 end
