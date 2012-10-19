@@ -72,11 +72,8 @@ function coorFunc(activityData)
       %Change activitydata into sparse matrix
       activity = activityData{c}.spikeVec;
       time = activityData{c}.frameVec;
-      numactivity = columnSizeX * columnSizeY
-      timesteps = activityData{c}.numframes
-      max(time)
-      [sy sx] = size(time)
-      max(activity)
+      numactivity = columnSizeX * columnSizeY;
+      timesteps = activityData{c}.numframes;
       sparse_act = sparse(activity, time, 1, numactivity, timesteps);
 
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

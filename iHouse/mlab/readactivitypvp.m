@@ -122,7 +122,7 @@ if isempty(errorstring)
                 for c = 1:length(FNUM)
                    if (~isempty(find(FNUM{c} == frame)) || FNUM_ALL > 0)
                       newData{c}.spikeVec = [newData{c}.spikeVec; values + 1];
-                      newData{c}.frameVec = [newData{c}.frameVec; ones(numactive, 1) .* frame];
+                      newData{c}.frameVec = [newData{c}.frameVec; ones(numactive, 1) .* (frame - min(FNUM{c}))];
                    end
                 end
             end%End num_frames
