@@ -108,7 +108,7 @@ if isempty(errorstring)
 
             if FNUM_ALL > 0
                FNUM_SPEC = cell(1, 1);
-               FNUM_SPEC{1} = 1;
+               FNUM_SPEC{1} = [1:numframes];
             end
             newData = cell(1, length(FNUM_SPEC));
             for c = 1:length(FNUM_SPEC)
@@ -120,20 +120,15 @@ if isempty(errorstring)
                 numactive = fread(fid,1,'uint32');
                 values = fread(fid,numactive,'uint32');
                 for c = 1:length(FNUM_SPEC)
-                   if (~isempty(find(FNUM_SPEC{c} == frame)) || FNUM_ALL > 0)
+                   if (~isempty(find(FNUM_SPEC{c} == frame)))
                       newData{c}.spikeVec = [newData{c}.spikeVec; values + 1];
                       newData{c}.frameVec = [newData{c}.frameVec; ones(numactive, 1) .* ((frame - min(FNUM_SPEC{c})) + 1)];
                    end
                 end
             end%End num_frames
             for c = 1:length(FNUM_SPEC)
-               if FNUM_ALL > 0
-                  newData{c}.numframes = numframes;
-               else
-                  newData{c}.numframes = length(FNUM_SPEC{c});
-               end
+               newData{c}.numframes = length(FNUM_SPEC{c});
             end
-
         case 3 % PVP_WGT_FILE_TYPE
             fseek(fid,0,'bof');
             for f=1:numframes
