@@ -47,7 +47,10 @@ int LCALIFLateralKernelConn::initialize(const char * name, HyPerCol * hc, HyPerL
       }
       abort();
    }
-   integratedSpikeCount = (float *) calloc(pre->getNumExtended(), sizeof(float)); // Spike counts initialized to 0
+   integratedSpikeCount = (float *) malloc(pre->getNumExtended() * sizeof(float));
+   for (int k=0; k<pre->getNumExtended(); k++) {
+      integratedSpikeCount[k] = getTargetRateKHz(); // Spike counts initialized to target rate
+   }
    return status;
 }
 
@@ -62,6 +65,10 @@ int LCALIFLateralKernelConn::setParams(PVParams * params) {
 int LCALIFLateralKernelConn::update_dW(int axonId) {
    int nExt = preSynapticLayer()->getNumExtended();
    int numKernelIndices = getNumDataPatches();
+   updateIntegratedSpikeCount();
+   float target_rate_sq = getTargetRateKHz()*getTargetRateKHz();
+   float dt = parent->getDeltaTime();
+   float tauINH = getInhibitionTimeConstant();
    const pvdata_t * preactbuf = integratedSpikeCount;
    const pvdata_t * postactbuf = integratedSpikeCount;
 
@@ -79,7 +86,8 @@ int LCALIFLateralKernelConn::update_dW(int axonId) {
       int lineoffseta = 0;
       for( int y=0; y<ny; y++ ) {
          for( int k=0; k<nk; k++ ) {
-            dwdata[lineoffsetw + k] += updateRule_dW(preact, postactRef[lineoffseta+k]);
+            pvdata_t postact = postactRef[lineoffseta+k];
+            dwdata[lineoffsetw + k] += dt/tauINH*(preact*postact-target_rate_sq)/target_rate_sq;
          }
          lineoffsetw += syp;
          lineoffseta += sya;
