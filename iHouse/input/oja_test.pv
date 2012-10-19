@@ -10,8 +10,8 @@ HyPerCol "column" = {
    
    randomSeed 	                = 1020304050.0;   
 
-   numSteps                     = 40000;	// amount of time steps performed during run-time
-   progressStep                 = 1000;     // write output to see progress
+   numSteps                     = 1000000;	// amount of time steps performed during run-time
+   progressStep                 = 1500;     // write output to see progress
    writeProgressToErr           = 0;        // write progress steps to std err
    
    //outputPath                 = "~/Documents/workspace/iHouse/output";
@@ -20,9 +20,9 @@ HyPerCol "column" = {
    
    filenamesContainLayerNames   = 2; 	// stores pvp files as: 0 = layer number/1 = layer number and layer name/2 = layer name
    
-   checkpointRead  				= true;
+   checkpointRead  				= false;
    checkpointReadDir            = "~/Documents/Work/LANL/workspace/iHouse/checkpoints";
-   checkpointReadDirIndex       = 20000;
+   checkpointReadDirIndex       = 2000000;
    checkpointWrite 				= false;
    //checkpointWriteDir  			= "~/Documents/workspace/iHouse/output/checkpoints";
    checkpointWriteDir  			= "~/Documents/Work/LANL/workspace/iHouse/checkpoints"; // Dylan's Mac
@@ -65,7 +65,7 @@ Patterns "input" = {
    randomPos               = false;
 
    startFrame              = 0; 
-   endFrame                = 400000000;
+   endFrame                = -1;
    
    writeImages             = false;
    
@@ -123,7 +123,7 @@ Retina "RetinaON" = {
     burstDuration       = 20;    // ms // Bursts last burstDuration ms
 
     beginStim           = 0;       // Restrict stimulus to a window of time
-    endStim             = 10000000000;
+    endStim             = -1;
 
     Vrest               = 0.0;
     
@@ -150,7 +150,7 @@ Retina "RetinaOFF" = {
     burstDuration       = 20;    // ms // Bursts last burstDuration ms
 
     beginStim           = 0;       // Restrict stimulus to a window of time
-    endStim             = 10000000000;
+    endStim             = -1;
     
     Vrest               = 0.0;
     
@@ -165,7 +165,7 @@ LIF "lif" = {
    nyScale          = 1;		
    nf               = 1;       	
    
-   writeStep        = 200;
+   writeStep        = -1;
 
    spikingFlag      = 1;       	
    marginWidth      = 0;     	
@@ -398,7 +398,7 @@ OjaSTDPConn "RetinaONtoLif" = {
    
    initFromLastFlag       = 0;      
    
-   writeStep              = 200;
+   writeStep              = 10000;
    
    normalize              = false;
    normalize_max          = false;
@@ -412,6 +412,7 @@ OjaSTDPConn "RetinaONtoLif" = {
    tauLTD                 = 32;   // (ms)
    tauOja                 = 150;  // (ms)
    tauTHR                 = 5000; // (ms) thresholdAdaptationTime
+   tauO                   = 300;  // (ms)
    targetRate             = 20;   // (Hz)
    weightDecay            = 0;
    dWMax                  = 2;
@@ -455,7 +456,7 @@ OjaSTDPConn "RetinaOFFtoLif" = {
    
    initFromLastFlag       = 0;  
    
-   writeStep              = 200;
+   writeStep              = 10000;
    
    normalize              = false;
    normalize_max          = false;
@@ -469,6 +470,7 @@ OjaSTDPConn "RetinaOFFtoLif" = {
    tauLTD                 = 32;   // (ms)
    tauOja                 = 150;  // (ms)
    tauTHR                 = 5000; // (ms) thresholdAdaptationTime
+   tauO                   = 300;  // (ms)
    targetRate             = 20;   // (Hz)
    weightDecay            = 0;
    dWMax                  = 2;
@@ -512,28 +514,47 @@ OjaSTDPConn "RetinaOFFtoLif" = {
 PointLIFProbe "LIF_Probe" = {
    targetLayer     = "lif";
    probeOutputFile = "ptLIF.txt";
-   xLoc            = 47;
-   yLoc            = 47;
+   xLoc            = 48;
+   yLoc            = 48;
    fLoc            = 0;
 };
 
-OjaConnProbe "Oja_ON_Probe" = {
+OjaConnProbe "Oja_ON_Probe_Hor" = {
     targetConnection = "RetinaONtoLif";
     probeOutputFile  = "retONtoLif.txt";
     msg              = "OjaON";
     isPostProbe      = true;
-    kxPost           = 40; //About half way in
-    kyPost           = 40; //About half way in
+    kxPost           = 47; //About half way in
+    kyPost           = 31; //About half way in
     kfPost           = 1;  //About half way in (1 feature)
 };
 
-OjaConnProbe "Oja_OFF_Probe" = {
+OjaConnProbe "Oja_ON_Probe_Ver" = {
+    targetConnection = "RetinaONtoLif";
+    probeOutputFile  = "retONtoLif.txt";
+    msg              = "OjaON";
+    isPostProbe      = true;
+    kxPost           = 31; //About half way in
+    kyPost           = 47; //About half way in
+    kfPost           = 1;  //About half way in (1 feature)
+};
+
+OjaConnProbe "Oja_OFF_Probe_Hor" = {
     targetConnection = "RetinaOFFtoLif";
     probeOutputFile  = "retOFFtoLif.txt";
     msg              = "OjaOFF";
-    kPost            = 2000;
     isPostProbe      = true;
-    //kxPost           = 47; //About half way in
-    //kyPost           = 47; //About half way in
-    //kfPost           = 1;  //About half way in (1 feature)
+    kxPost           = 47; //About half way in
+    kyPost           = 31; //About half way in
+    kfPost           = 1;  //About half way in (1 feature)
+};
+
+OjaConnProbe "Oja_OFF_Probe_Ver" = {
+    targetConnection = "RetinaOFFtoLif";
+    probeOutputFile  = "retOFFtoLif.txt";
+    msg              = "OjaOFF";
+    isPostProbe      = true;
+    kxPost           = 31; //About half way in
+    kyPost           = 47; //About half way in
+    kfPost           = 1;  //About half way in (1 feature)
 };
