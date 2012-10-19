@@ -101,7 +101,7 @@ function coorFunc(activityData)
       %Create intSpikeCount matrix where it is indexed by (vectorized index, timestep)
       %intSpike = conv2(sparse_act, tau_kernel, 'same');
       if NUM_PROCS == 1
-         cIntSpike = cellfun(@conv2, cellAct, cTau_Kernel, cShape);
+         cIntSpike = cellfun(@conv2, cellAct, cTau_Kernel, cShape, 'UniformOutput', false);
       else
          cIntSpike = parcellfun(NUM_PROCS, @conv2, cellAct, cTau_Kernel, cShape, 'UniformOutput', false);
       end
@@ -132,7 +132,7 @@ function coorFunc(activityData)
       cellTimeSteps{1} = timesteps;
       %Uniform output as false to store in cell arrays
       if NUM_PROCS == 1
-         [out] = cellfun(@parFindMean, cellIndex, cellIntSpike, cellPixDist, cellTimeSteps);
+         [out] = cellfun(@parFindMean, cellIndex, cellIntSpike, cellPixDist, cellTimeSteps, 'UniformOutput', 0);
       else
          [out] = parcellfun(NUM_PROCS, @parFindMean, cellIndex, cellIntSpike, cellPixDist, cellTimeSteps, 'UniformOutput', 0);
       end
