@@ -190,6 +190,7 @@ end
 %intSpike is a matrix of integrated spike count that is defined as (pos, time)
 function [outMean] = findMean(idx, dist, intSpike) 
    global columnSizeX columnSizeY;
+   global tLCA;
    [mIx mIy] = ind2sub([columnSizeX columnSizeY], idx);
    %Using x and y offset, grab circle pixels based on center point
    xCoord = dist{1}.x + mIx;
