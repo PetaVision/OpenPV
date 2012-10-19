@@ -40,17 +40,18 @@ int OjaSTDPConn::initialize_base() {
    this->pre_oja_tr     = NULL;
 
    this->ampLTP         = 0.357; //amp sets ratio of LTP to LTD, or how much more/less effective LTP is than LTD. LTP/LTD should ~= 0.9 per Gar
+   this->ampLTD         = NULL; // Will allocate later
+   this->initAmpLTD     = 1;
+   this->targetRateHz   = 1;
+   this->LTDscale       = ampLTP;
+   this->weightDecay    = 0.01;
+   this->dWMax          = 1;
+
    this->tauLTP         = 16.8;
    this->tauLTD         = 33.7;
    this->tauOja         = 337;
    this->tauTHR         = 1000;
-   this->weightDecay    = 0.01;
-   this->dWMax          = 1;
-
-   this->initAmpLTD     = 1;
-   this->targetRateHz   = 1;
-   this->LTDscale       = ampLTP;
-   this->ampLTD         = NULL; // Will allocate later
+   this->tauO           = 1/targetRateHz;
 
    this->wMin           = 0.0001;
    this->wMax           = 1;
@@ -118,10 +119,11 @@ int OjaSTDPConn::setParams(PVParams * params)
    tauLTD         = params->value(getName(), "tauLTD", tauLTD);
    tauOja         = params->value(getName(), "tauOja", tauOja);
    tauTHR         = params->value(getName(), "tauTHR", tauTHR);
+   tauO           = params->value(getName(), "tauO",tauO);
+
    weightDecay    = params->value(getName(), "weightDecay", weightDecay);
    targetRateHz   = params->value(getName(), "targetRate", targetRateHz);
 
-   tauO           = 1/(targetRateHz/1000); //I put this here because it could be a params file param at some point. - DMP
 
    wMax           = params->value(getName(), "wMax", wMax);
    wMin           = params->value(getName(), "wMin", wMin);
