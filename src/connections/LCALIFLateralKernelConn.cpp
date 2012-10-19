@@ -82,7 +82,7 @@ int LCALIFLateralKernelConn::update_dW(int axonId) {
       int nk = weights->nx * nfp;
       const pvdata_t * postactRef = &postactbuf[offset];
       pvdata_t * dwdata = get_dwData(axonId, kExt);
-      int lineoffsetw = weights->offset;
+      int lineoffsetw = 0;
       int lineoffseta = 0;
       for( int y=0; y<ny; y++ ) {
          for( int k=0; k<nk; k++ ) {
