@@ -383,7 +383,7 @@ KernelConn "ImagetoRetinaOFFSurround" = {
 // STDP connections  STDP connections  STDP connections  STDP connections  STDP connections
 // STDP connections  STDP connections  STDP connections  STDP connections  STDP connections
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-OjaSTDPConn "RetinaONtoS1" = {
+OjaSTDPConn "RetinaONtoLif" = {
    preLayerName           = "RetinaON";
    postLayerName          = "lif";
    nxp                    = 20;
@@ -440,7 +440,7 @@ OjaSTDPConn "RetinaONtoS1" = {
 };
 
 
-OjaSTDPConn "RetinaOFFtoS1" = {
+OjaSTDPConn "RetinaOFFtoLif" = {
    preLayerName           = "RetinaOFF";
    postLayerName          = "lif";
    nxp                    = 20;

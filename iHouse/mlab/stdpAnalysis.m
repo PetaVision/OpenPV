@@ -14,11 +14,11 @@ pvpDir                                     = [workspaceDir,'/denseOutput/'];
 outputDir                                  = [workspaceDir,'/denseOutput/analysis/'];
 
 %Reconstruct Flags
-global SPIKING_POST_FLAG;      SPIKING_POST_FLAG      = 0;  %Create spiking post output flag
+global SPIKING_POST_FLAG;      SPIKING_POST_FLAG      = 1;  %Create spiking post output flag
 global SPIKING_PRE_FLAG;       SPIKING_PRE_FLAG       = 0;
 
 %Spiking Output
-global FNUM_ALL; FNUM_ALL = 1;         %1 for all frames, 0 for FNUM_SPEC
+global FNUM_ALL; FNUM_ALL = 0;         %1 for all frames, 0 for FNUM_SPEC
 global FNUM_SPEC; FNUM_SPEC    = {...    %start:int:end frames
    [10000:1:20000]...
    [50000:1:60000]...

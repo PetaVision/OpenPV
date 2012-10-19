@@ -21,10 +21,7 @@ end
 %% Parse FNUM_SPEC
 if (FNUM_ALL <= 0)
    fnum_flag = 1;
-   frame_of_interest = [];
-   for i = 1:length(FNUM_SPEC)
-      frame_of_interest = [frame_of_interest, FNUM_SPEC{i}];
-   end
+   frame_of_interest = [FNUM_SPEC{:}];
 else
    fnum_flag = -1;
    frame_of_interest = [];
