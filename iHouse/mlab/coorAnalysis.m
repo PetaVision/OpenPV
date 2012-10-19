@@ -6,21 +6,27 @@ global tLCA; tLCA = 20;
 global columnSizeY; columnSizeY = 256;
 global columnSizeX; columnSizeX = 256;
 
-global FNUM_ALL; FNUM_ALL = 0;
-global FNUM; 
-%FNUM{1} = [99000, 100000];
-%FNUM{2} = [199000, 200000];
-FNUM{1} = [1:10];
-FNUM{2} = [20:30];
+global FNUM_ALL; FNUM_ALL = 1;
+global FNUM_SPEC; FNUM_SPEC    = {...    %start:int:end frames
+   [10000:20000]...
+   [50000:60000]...
+   [90000:100000]...
+   [130000:140000]...
+   [180000:190000]...
+};
 
 global NUM_PROCS; NUM_PROCS =  nproc();
 
 rootDir                                    = '/Users/slundquist';
 workspaceDir                               = [rootDir,'/Documents/workspace/iHouse'];
 pvpDir                                     = [workspaceDir,'/denseOutput/'];
-global outputDir; outputDir                = [workspaceDir,'/denseOutput/analysis/'];
+outDir                                     = [workspaceDir,'/denseOutput/analysis/'];
+global outputDir; outputDir                = [outDir, 'coor/'];
 postActivityFile                           = [pvpDir,'lif.pvp'];
 
+if (exist(outDir, 'dir') ~= 7)
+   mkdir(outDir);
+end
 if (exist(outputDir, 'dir') ~= 7)
    mkdir(outputDir);
 end
@@ -33,12 +39,12 @@ function coorFunc(activityData)
    global deltaT;
    global NUM_PROCS;
    global outputDir;
-   global FNUM;
+   global FNUM_SPEC;
    global FNUM_ALL;
 
    if FNUM_ALL > 0
-      FNUM = cell(1, 1);
-      FNUM{1} = 1;
+      FNUM_SPEC = cell(1, 1);
+      FNUM_SPEC{1} = 1;
    end
    
    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -68,7 +74,7 @@ function coorFunc(activityData)
       pixDist{d}.y = tempY;
    end
 
-   for c = 1:length(FNUM)
+   for c = 1:length(FNUM_SPEC)
       %Change activitydata into sparse matrix
       activity = activityData{c}.spikeVec;
       time = activityData{c}.frameVec;
@@ -149,13 +155,16 @@ function coorFunc(activityData)
       fflush(1);
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       %Plot
+      hold all;
       for d = 1:maxDist
          figure('Visible', 'off');
-         plot(FNUM{c}, outMat(d, :));
+         plot(FNUM_SPEC{c}, outMat(d, :));
          %plot(mean(intSpike));
-         print_filename = [outputDir, 'Coorfunc_', num2str(c), "_", num2str(d), '.jpg'];
-         print(print_filename);
       end
+      hold off;
+      legend([1:d]);
+      print_filename = [outputDir, 'Coorfunc_', num2str(c), '.jpg'];
+      print(print_filename);
    end
 end
 
