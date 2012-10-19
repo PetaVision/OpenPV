@@ -3,14 +3,14 @@
 //
 
 HyPerCol "column" = {
-   nx                          = 32; 			// pixel width of input image
-   ny                          = 32; 			// pixel height of input image
+   nx                          = 33; 			// pixel width of input image
+   ny                          = 33; 			// pixel height of input image
    dt                          = 1.;           // according GK
 
 //   randomSeed                  = 1020304050.0; // remove when running for real
 
-   numSteps                    = 10000;			// amount of time steps performed during run-time
-   progressStep                = 500;
+   numSteps                    = 100000;			// amount of time steps performed during run-time
+   progressStep                = 1000;
    writeProgressToErr           = 0;        // write progress steps to std err
 
    outputPath                  = "/home/slundquist/workspace/iHouse/denseOutput";
@@ -61,7 +61,7 @@ Patterns "input" = {
    halfNeutral = true;
 
    startFrame = 0;
-   endFrame = 200000000;
+   endFrame = -1;
    
    writeImages = false;
    patternsOutputPath = "/Users/slundquist/Documents/workspace/iHouse/output/sourcefiles";
@@ -79,43 +79,44 @@ Patterns "input" = {
 };
 
 ANNLayer "scaled_input" = {
-    nxScale = 1;
-    nyScale = 1;
-    nf = 1;
-    marginWidth = 2;
-    mirrorBCflag = 1;
-    spikingFlag = false;
-    writeStep = -1.0;
+    nxScale                 = 1;
+    nyScale                 = 1;
+    nf                      = 1;
+    marginWidth             = 2;
+    mirrorBCflag            = 1;
+    spikingFlag             = false;
+    writeStep               = -1;
 
-    InitVType = "ZeroV";
+    InitVType               = "ZeroV";
 
-    VThresh = -infinity;
-    VMax = infinity;
-    VMin = -infinity;
-    writeNonspikingActivity = 1;
-    restart = false;
+    VThresh                 = -infinity;
+    VMax                    = infinity;
+    VMin                    = -infinity;
+    
+    writeNonspikingActivity = true;
+    restart                 = 0;
 };
 
 Retina "RetinaON" = {
-    nxScale       = 1;
-    nyScale       = 1;
-    nf            = 1;
+    nxScale             = 1;
+    nyScale             = 1;
+    nf                  = 1;
     
-    marginWidth   = 2;
-    writeStep     = -1.0;
-    mirrorBCflag  = 0;
-    spikingFlag   = true;  // false (no quotes) is translated to 0
+    marginWidth         = 2;
+    writeStep           = -1;
+    mirrorBCflag        = 0;
+    spikingFlag         = true;  // false (no quotes) is translated to 0
 
-    noiseOnFreq   = 200;   // (Hz) // 100.0; // Soren's value
-    noiseOffFreq  = 20;    // (Hz) // 25.0; // Soren's value FOR SOME REASON EVEN A SMALL VALUE IS TOO STRONG
+    noiseOnFreq         = 200;   // Hz // Max poisson spiking rate when input is 255
+    noiseOffFreq        = 20;    // Hz // Min poisson spiking rate when input is 0
 
-    burstFreq     = 50;      // Hz
-    burstDuration = 20;  // ms
+    burstFreq           = 50;    // Hz // Everything coming into the retina should be burstin burstFreq times per sec
+    burstDuration       = 20;    // ms // Bursts last burstDuration ms
 
-    beginStim     = 0;
-    endStim       = 10000000000;
+    beginStim           = 0;       // Restrict stimulus to a window of time
+    endStim             = -1;
 
-    Vrest         = 0.0;
+    Vrest               = 0.0;
     
     refractoryPeriod    = 5;
     absRefractoryPeriod = 2;
@@ -124,25 +125,25 @@ Retina "RetinaON" = {
 
 
 Retina "RetinaOFF" = {
-    nxScale = 1;
-    nyScale = 1;
-    nf = 1;
+    nxScale             = 1;
+    nyScale             = 1;
+    nf                  = 1;
     
-    marginWidth   = 2;
-    writeStep     = -1.0;
-    mirrorBCflag  = 0;
-    spikingFlag   = true;  // false (no quotes) is translated to 0
+    marginWidth         = 2;
+    writeStep           = -1;
+    mirrorBCflag        = 0;
+    spikingFlag         = true;  // false (no quotes) is translated to 0
 
-    noiseOnFreq   = 200;   // (Hz) // 100.0; // Soren's value
-    noiseOffFreq  = 20;    // (Hz) // 25.0; // Soren's value FOR SOME REASON EVEN A SMALL VALUE IS TOO STRONG
+    noiseOnFreq         = 200;   // Hz // Max poisson spiking rate when input is 255
+    noiseOffFreq        = 20;    // Hz // Min poisson spiking rate when input is 0
 
-    burstFreq     = 50;      // Hz
-    burstDuration = 20;  // ms
+    burstFreq           = 50;    // Hz // Everything coming into the retina should be burstin burstFreq times per sec
+    burstDuration       = 20;    // ms // Bursts last burstDuration ms
 
-    beginStim     = 0;
-    endStim       = 10000000000;
-
-    Vrest         = 0.0;
+    beginStim           = 0;       // Restrict stimulus to a window of time
+    endStim             = -1;
+    
+    Vrest               = 0.0;
     
     refractoryPeriod    = 5;
     absRefractoryPeriod = 2;
@@ -166,7 +167,7 @@ LIF "lif" = {
    mirrorBCflag     = 0;     	// mirroring boundary conditions
    InitVType        = "ConstantV";
    method           = "beginning";
-   valueV           = -70.0;
+   valueV			= -70.0;
    Vrest            = -70.0;    
    restart          = 0.0;     	// from graylast
    Vexc             = 0.0;     	// reversal potential 
@@ -199,19 +200,19 @@ LIF "lif" = {
 KernelConn "InputtoScaledInput" = {
     preLayerName = "input";
     postLayerName = "scaled_input";
-    
-    channelCode = 0;
-    nxp         = 1;
-    nyp         = 1;
-    nfp         = 1;
-    delay       = 0;
-    
+
+    channelCode   = 0;
+    nxp           = 1;
+    nyp           = 1;
+    nfp           = 1;
+    delay         = 0;
+
     numAxonalArbors  = 1;
     writeStep        = -1;
     initFromLastFlag = 0;
 
     weightInitType = "OneToOneWeights";
-    weightInit = 2.0;
+    weightInit     = 2.0;
       
     normalize              = false;
     symmetrizeWeights      = false;
@@ -257,7 +258,7 @@ KernelConn "ImagetoRetinaONCenter" = {
 
    normalize              = true;
    normalize_zero_offset  = 0.0;
-   normalize_max 	        = 0.0;
+   normalize_max          = 0.0;
    symmetrizeWeights      = 0;
 };
 
@@ -408,7 +409,8 @@ OjaSTDPConn "RetinaONtoLif" = {
    tauLTD                 = 32;
    tauOja                 = 150;    //Oja tau LTP
    tauTHR                 = 5000; // (ms) thresholdAdaptationTime
-   targetRate             = 20;
+   tauO                   = 300;  // (ms)
+   targetRate             = 20;   // (Hz)
    weightDecay            = 0;
    dWMax                  = 2;
    wMin                   = 0.001;
@@ -458,14 +460,15 @@ OjaSTDPConn "RetinaOFFtoLif" = {
    normalize_zero_offset  = 0.0;
    strength               = 0;
    combineWeightFiles     = false;
-
-   ampLTP                 = 1; 
-   initAmpLTD             = 1;
-   tauLTP                 = 8;
-   tauLTD                 = 32;
-   tauOja                 = 150;    //Oja tau
+   
+   ampLTP                 = 1;    // (ms)
+   initAmpLTD             = 1;    // (ms)
+   tauLTP                 = 8;    // (ms)
+   tauLTD                 = 32;   // (ms)
+   tauOja                 = 150;  // (ms)
    tauTHR                 = 5000; // (ms) thresholdAdaptationTime
-   targetRate             = 20;
+   tauO                   = 300;  // (ms)
+   targetRate             = 20;   // (Hz)
    weightDecay            = 0;
    dWMax                  = 2;
    wMin                   = 0.001;
@@ -541,29 +544,47 @@ LCALIFLateralConn "lcalif lateral inhibition" = {
 PointLIFProbe "LIF_Probe" = {
    targetLayer     = "lif";
    probeOutputFile = "ptLIF.txt";
-   xLoc            = 47;
-   yLoc            = 47;
+   xLoc            = 48;
+   yLoc            = 48;
    fLoc            = 0;
 };
 
-OjaConnProbe "Oja_ON_Probe" = {
+OjaConnProbe "Oja_ON_Probe_Hor" = {
     targetConnection = "RetinaONtoLif";
     probeOutputFile  = "retONtoLif.txt";
-    isPostProbe      = true;
     msg              = "OjaON";
-    kxPost           = 40; //About half way in
-    kyPost           = 40; //About half way in
+    isPostProbe      = true;
+    kxPost           = 47; //About half way in
+    kyPost           = 31; //About half way in
     kfPost           = 1;  //About half way in (1 feature)
 };
 
+OjaConnProbe "Oja_ON_Probe_Ver" = {
+    targetConnection = "RetinaONtoLif";
+    probeOutputFile  = "retONtoLif.txt";
+    msg              = "OjaON";
+    isPostProbe      = true;
+    kxPost           = 31; //About half way in
+    kyPost           = 47; //About half way in
+    kfPost           = 1;  //About half way in (1 feature)
+};
 
-OjaConnProbe "Oja_OFF_Probe" = {
+OjaConnProbe "Oja_OFF_Probe_Hor" = {
     targetConnection = "RetinaOFFtoLif";
     probeOutputFile  = "retOFFtoLif.txt";
     msg              = "OjaOFF";
-    kPost            = 2000;
     isPostProbe      = true;
-    //kxPost           = 47; //About half way in
-    //kyPost           = 47; //About half way in
-    //kfPost           = 1;  //About half way in (1 feature)
+    kxPost           = 47; //About half way in
+    kyPost           = 31; //About half way in
+    kfPost           = 1;  //About half way in (1 feature)
+};
+
+OjaConnProbe "Oja_OFF_Probe_Ver" = {
+    targetConnection = "RetinaOFFtoLif";
+    probeOutputFile  = "retOFFtoLif.txt";
+    msg              = "OjaOFF";
+    isPostProbe      = true;
+    kxPost           = 31; //About half way in
+    kyPost           = 47; //About half way in
+    kfPost           = 1;  //About half way in (1 feature)
 };
