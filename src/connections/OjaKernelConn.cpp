@@ -91,25 +91,29 @@ int OjaKernelConn::update_dW(int axonId) {
    pvdata_t * input_rate = inputFiringRate[axonId];
 
    // Update weights
-   int sya = (post->getLayerLoc()->nf * (post->getLayerLoc()->nx + 2*post->getLayerLoc()->nb));
+   int sya = post->getLayerLoc()->nf * post->getLayerLoc()->nx;
 
    for (int kex=0; kex<getNumWeightPatches(); kex++) {
       PVPatch * weights = getWeights(kex,axonId);
-      size_t offset = getAPostOffset(kex, axonId);
+      int offset = getGSynPatchStart(kex,axonId)-post->getChannel(channel);
       int ny = weights->ny;
       int nk = weights->nx * nfp;
       pvdata_t * dwdata = get_dwData(axonId, kex);
       const pvdata_t * wdata = get_wData(axonId, kex);
       int lineoffsetw = 0;
-      int lineoffseta = 0;
+      int lineoffsetg = 0;
       pvdata_t inputFR = input_rate[kex];
       for( int y=0; y<ny; y++ ) {
          for( int k=0; k<nk; k++ ) {
-            pvdata_t outputFR = outputFiringRate[offset+lineoffseta+k];
+            if(offset+lineoffsetg+k<0 || offset+lineoffsetg+k>=post->getNumNeurons()) {
+               fprintf(stderr, "%s offset=%d, lineoffseta=%d, k=%d, numNeurons=%d\n", name, offset, lineoffsetg, k, post->getNumNeurons());
+               abort();
+            }
+            pvdata_t outputFR = outputFiringRate[offset+lineoffsetg+k];
             dwdata[lineoffsetw + k] += (inputFR - wdata[lineoffsetw+k]*outputFR)*outputFR;
          }
          lineoffsetw += syp;
-         lineoffseta += sya;
+         lineoffsetg += sya;
       }
    }
    // Multiply by dt*learningRate, normalize by dividing by inputTargetRate*outputTargetRate, and average by dividing by (numNeurons/numKernels)
