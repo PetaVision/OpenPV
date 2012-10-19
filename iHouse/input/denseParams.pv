@@ -3,8 +3,8 @@
 //
 
 HyPerCol "column" = {
-   nx                          = 64; 			// pixel width of input image
-   ny                          = 64; 			// pixel height of input image
+   nx                          = 32; 			// pixel width of input image
+   ny                          = 32; 			// pixel height of input image
    dt                          = 1.;           // according GK
 
 //   randomSeed                  = 1020304050.0; // remove when running for real
@@ -394,7 +394,7 @@ OjaSTDPConn "RetinaONtoLif" = {
    
    initFromLastFlag       = 0; 
    
-   writeStep              = 2000;
+   writeStep              = 10000;
    
    normalize              = false;
    normalize_max          = false;
@@ -451,7 +451,7 @@ OjaSTDPConn "RetinaOFFtoLif" = {
    
    initFromLastFlag       = 0;  // 1;  /dr/ restart
    
-   writeStep              = 2000;
+   writeStep              = 10000;
    
    normalize              = false;
    normalize_max          = false;
