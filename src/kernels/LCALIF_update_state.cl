@@ -252,9 +252,9 @@ for (int k = 0; k < nx*ny*nf; k++) {
    V[k]   = l_V;
    Vth[k] = l_Vth;
 
-   G_E[k]  = l_G_E; // G_E_final;
-   G_I[k]  = l_G_I; // G_I_final;
-   G_IB[k] = l_G_IB; // G_IB_final;
+   G_E[k]  = l_G_E;
+   G_I[k]  = l_G_I;
+   G_IB[k] = l_G_IB;
    G_Gap[k] = l_G_Gap;
 
    GSynExc[k]  = 0.0f;
