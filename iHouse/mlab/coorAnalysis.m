@@ -155,14 +155,16 @@ function coorFunc(activityData)
       fflush(1);
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       %Plot
+      legName = cell(maxDist, 1);
       hold all;
+      figure('Visible', 'off');
       for d = 1:maxDist
-         figure('Visible', 'off');
          plot(FNUM_SPEC{c}, outMat(d, :));
+         legName{d} = ['Dist: ', num2str(d)];
          %plot(mean(intSpike));
       end
       hold off;
-      legend([1:d]);
+      legend(legName);
       print_filename = [outputDir, 'Coorfunc_', num2str(c), '.jpg'];
       print(print_filename);
    end
