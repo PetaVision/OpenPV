@@ -6,6 +6,13 @@ global tLCA; tLCA = 20;
 global columnSizeY; columnSizeY = 256;
 global columnSizeX; columnSizeX = 256;
 
+global FNUM_ALL; FNUM_ALL = 0;
+global FNUM; 
+%FNUM{1} = [99000, 100000];
+%FNUM{2} = [199000, 200000];
+FNUM{1} = [1:10];
+FNUM{2} = [20:30];
+
 global NUM_PROCS; NUM_PROCS =  nproc();
 
 rootDir                                    = '/Users/slundquist';
@@ -26,14 +33,14 @@ function coorFunc(activityData)
    global deltaT;
    global NUM_PROCS;
    global outputDir;
-   
-   %Change activitydata into sparse matrix
-   activity = activityData.spikeVec;
-   time = activityData.frameVec;
-   numactivity = columnSizeX * columnSizeY;
-   timesteps = activityData.numframes;
-   sparse_act = sparse(activity, time, 1, numactivity, timesteps);
+   global FNUM;
+   global FNUM_ALL;
 
+   if FNUM_ALL > 0
+      FNUM = cell(1, 1);
+      FNUM{1} = 1;
+   end
+   
    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
    disp('Calculating range coordinates');
    fflush(1);
@@ -61,81 +68,93 @@ function coorFunc(activityData)
       pixDist{d}.y = tempY;
    end
 
-   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-   disp('Calculating intSpike');
-   fflush(1);
-   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-   %Create decay kernel
-   tau_kernel = exp(-[0:(5*tLCA)]/tLCA);
-   tau_kernel = [zeros(1, (5*tLCA)+1), tau_kernel];
+   for c = 1:length(FNUM)
+      %Change activitydata into sparse matrix
+      activity = activityData{c}.spikeVec;
+      time = activityData{c}.frameVec;
+      numactivity = columnSizeX * columnSizeY
+      timesteps = activityData{c}.numframes
+      max(time)
+      [sy sx] = size(time)
+      max(activity)
+      sparse_act = sparse(activity, time, 1, numactivity, timesteps);
 
-   %Split activity into number of processes
-   if (mod(numactivity, NUM_PROCS) == 0)
-      procSize = floor(numactivity / NUM_PROCS);
-      cellAct = mat2cell(sparse_act, ones(1, NUM_PROCS) .* procSize, timesteps);
-   else
-      procSize = floor(numactivity / (NUM_PROCS - 1));
-      lastSize = mod(numactivity, NUM_PROCS - 1);
-      cellAct = mat2cell(sparse_act, [ones(1, NUM_PROCS - 1) .* procSize, lastSize], timesteps);
-   end
+      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+      disp('Calculating intSpike');
+      fflush(1);
+      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+      %Create decay kernel
+      tau_kernel = exp(-[0:(5*tLCA)]/tLCA);
+      tau_kernel = [zeros(1, (5*tLCA)+1), tau_kernel];
 
-   %Set rest of variables as cells for parcellfun
-   cTau_Kernel{1} = tau_kernel;
-   cShape{1} = 'same';
+      %Split activity into number of processes
+      if (mod(numactivity, NUM_PROCS) == 0)
+         procSize = floor(numactivity / NUM_PROCS);
+         cellAct = mat2cell(sparse_act, ones(1, NUM_PROCS) .* procSize, timesteps);
+      else
+         procSize = floor(numactivity / (NUM_PROCS - 1));
+         lastSize = mod(numactivity, NUM_PROCS - 1);
+         cellAct = mat2cell(sparse_act, [ones(1, NUM_PROCS - 1) .* procSize, lastSize], timesteps);
+      end
 
-   %Create intSpikeCount matrix where it is indexed by (vectorized index, timestep)
-   %intSpike = conv2(sparse_act, tau_kernel, 'same');
-   cIntSpike = parcellfun(NUM_PROCS, @conv2, cellAct, cTau_Kernel, cShape, 'UniformOutput', false);
+      %Set rest of variables as cells for parcellfun
+      cTau_Kernel{1} = tau_kernel;
+      cShape{1} = 'same';
 
-   %Recombine from cells, needs to be rotated for collection of cell arrays
-   cIntSpike = cellfun(@(x) x', cIntSpike, 'UniformOutput', false);
-   intSpike = [cIntSpike{:}]';
+      %Create intSpikeCount matrix where it is indexed by (vectorized index, timestep)
+      %intSpike = conv2(sparse_act, tau_kernel, 'same');
+      cIntSpike = parcellfun(NUM_PROCS, @conv2, cellAct, cTau_Kernel, cShape, 'UniformOutput', false);
 
-   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-   disp('Calculating coorlation function');
-   fflush(1);
-   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-   %Define output matrix of values
-   outMat = zeros(maxDist, timesteps);
-   %Split margin index into number of processes
-   if (mod(length(marginIndex), NUM_PROCS) == 0)
-      procSize = floor(length(marginIndex) / NUM_PROCS);
-      cellIndex = mat2cell(marginIndex, ones(1, NUM_PROCS) .* procSize, 1);
-   else
-      procSize = floor(length(marginIndex) / (NUM_PROCS - 1));
-      lastSize = mod(length(marginIndex), NUM_PROCS - 1);
-      cellIndex = mat2cell(marginIndex, [ones(1, NUM_PROCS - 1) .* procSize, lastSize], 1);
-   end
+      %Recombine from cells, needs to be rotated for collection of cell arrays
+      cIntSpike = cellfun(@(x) x', cIntSpike, 'UniformOutput', false);
+      intSpike = [cIntSpike{:}]';
 
-   %Put intSpike into cell array for cell fun
-   cellIntSpike{1} = intSpike;
-   cellPixDist{1} = pixDist;
-   cellTimeSteps{1} = timesteps;
-   %Uniform output as false to store in cell arrays
-   [out] = parcellfun(NUM_PROCS, @parFindMean, cellIndex, cellIntSpike, cellPixDist, cellTimeSteps, 'UniformOutput', 0);
-   %Calculate average based on all pixels
-   for i = 1:length(out)
-      outMat += out{i};
-   end
-   %Divide by total number of idicies to find average
-   outMat = outMat./length(marginIndex);
-   %Divide by tau squared to make value a rate
-   outMat = outMat ./ (tLCA * tLCA);
+      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+      disp('Calculating coorlation function');
+      fflush(1);
+      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+      %Define output matrix of values
+      outMat = zeros(maxDist, timesteps);
+      %Split margin index into number of processes
+      if (mod(length(marginIndex), NUM_PROCS) == 0)
+         procSize = floor(length(marginIndex) / NUM_PROCS);
+         cellIndex = mat2cell(marginIndex, ones(1, NUM_PROCS) .* procSize, 1);
+      else
+         procSize = floor(length(marginIndex) / (NUM_PROCS - 1));
+         lastSize = mod(length(marginIndex), NUM_PROCS - 1);
+         cellIndex = mat2cell(marginIndex, [ones(1, NUM_PROCS - 1) .* procSize, lastSize], 1);
+      end
+
+      %Put intSpike into cell array for cell fun
+      cellIntSpike{1} = intSpike;
+      cellPixDist{1} = pixDist;
+      cellTimeSteps{1} = timesteps;
+      %Uniform output as false to store in cell arrays
+      [out] = parcellfun(NUM_PROCS, @parFindMean, cellIndex, cellIntSpike, cellPixDist, cellTimeSteps, 'UniformOutput', 0);
+      %Calculate average based on all pixels
+      for i = 1:length(out)
+         outMat += out{i};
+      end
+      %Divide by total number of idicies to find average
+      outMat = outMat./length(marginIndex);
+      %Divide by tau squared to make value a rate
+      outMat = outMat ./ (tLCA * tLCA);
 
 
-   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-   disp('Plotting');
-   fflush(1);
-   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-   %Plot
-   for d = 1:maxDist
-      figure('Visible', 'off');
-      hold all;
-      plot(outMat(d, :));
-      plot(mean(intSpike));
-      hold off;
-      print_filename = [outputDir, 'Coorfunc_', num2str(d), '.jpg'];
-      print(print_filename);
+      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+      disp('Plotting');
+      fflush(1);
+      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+      %Plot
+      for d = 1:maxDist
+         figure('Visible', 'off');
+         hold all;
+         plot(outMat(d, :));
+         plot(mean(intSpike));
+         hold off;
+         print_filename = [outputDir, 'Coorfunc_', num2str(c), "_", num2str(d), '.jpg'];
+         print(print_filename);
+      end
    end
 end
 

@@ -7,6 +7,9 @@ function [newData] = readactivitypvp(filename,progressperiod)
 %     For activities, values is an nx-by-ny-by-nf array.
 %     For weights, values is a cell array, each element is an nxp-by-nyp-by-nfp array.
 
+global FNUM_ALL;
+global FNUM;
+
 filedata = dir(filename);
 if length(filedata) ~= 1
    error('readpvpfile:notonefile',...
@@ -102,19 +105,31 @@ if isempty(errorstring)
             %Only one feature for now
             assert(hdr.nf == 1);
             movieFrame = 0;
-            frameVec = [];
-            valuesVec = [];
+
+            if FNUM_ALL > 0
+               FNUM = cell(1, 1);
+               FNUM{1} = 1;
+            end
+            newData = cell(1, length(FNUM));
+            for c = 1:length(FNUM)
+               newData{c}.spikeVec = [];
+               newData{c}.frameVec = [];
+            end
             for frame=1:numframes
-                data{frame} = struct('time',0,'values',[]);
-                data{frame}.time = fread(fid,1,'float64');
+                fread(fid,1,'float64');
                 numactive = fread(fid,1,'uint32');
-                data{frame}.values = fread(fid,numactive,'uint32');
-                valuesVec = [valuesVec;(data{frame}.values + 1)];
-                frameVec = [frameVec; ones(length(data{frame}.values), 1) .* frame];
+                values = fread(fid,numactive,'uint32');
+                for c = 1:length(FNUM)
+                   if (~isempty(find(FNUM{c} == frame)) || FNUM_ALL > 0)
+                      newData{c}.spikeVec = [newData{c}.spikeVec; values + 1];
+                      newData{c}.frameVec = [newData{c}.frameVec; ones(numactive, 1) .* frame];
+                   end
+                end
             end%End num_frames
-            newData.spikeVec = valuesVec;
-            newData.frameVec = frameVec;
-            newData.numframes = numframes;
+            for c = 1:length(FNUM)
+               newData{c}.numframes = length(FNUM{c});
+            end
+
         case 3 % PVP_WGT_FILE_TYPE
             fseek(fid,0,'bof');
             for f=1:numframes
