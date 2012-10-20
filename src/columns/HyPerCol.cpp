@@ -352,6 +352,16 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * p
          exit(EXIT_FAILURE);
       }
       ensureDirExists(checkpointWriteDir);
+
+      char cpDir[PV_PATH_MAX];
+      int chars_printed = snprintf(cpDir, PV_PATH_MAX, "%s/Checkpoint%d", checkpointWriteDir, numSteps);
+      if(chars_printed >= PV_PATH_MAX) {
+         if (icComm->commRank()==0) {
+            fprintf(stderr,"HyPerCol::run error.  Checkpoint directory \"%s/Checkpoint%d\" will be needed to hold the checkpoint at end of run, but this path is too long.\n", checkpointWriteDir, numSteps);
+            abort();
+         }
+      }
+
       bool usingWriteStep = params->present(name, "checkpointWriteStepInterval") && params->value(name, "checkpointWriteStepInterval")>0;
       bool usingWriteTime = params->present(name, "checkpointWriteTimeInterval") && params->value(name, "checkpointWriteTimeInterval")>0;
       if( !usingWriteStep && !usingWriteTime ) {
@@ -594,15 +604,16 @@ int HyPerCol::run(int nTimeSteps)
       char * cpDir = (char *) malloc( (str_len+1)*sizeof(char) );
       snprintf(cpDir, str_len+1, "%s/Checkpoint%d", checkpointReadDir, cpReadDirIndex);
       checkpointRead(cpDir);
-      if (checkpointWriteFlag && deleteOlderCheckpoints) {
-         int chars_needed = snprintf(lastCheckpointDir, PV_PATH_MAX, "%s", cpDir);
-         if (chars_needed >= PV_PATH_MAX) {
-            if (icComm->commRank()==0) {
-               fprintf(stderr, "checkpointRead error: path \"%s\" is too long.\n", cpDir);
-            }
-            abort();
-         }
-      }
+      // Lines below commented out 2012-10-20.  We shouldn't delete the checkpoint we read from, for archival purposes
+//      if (checkpointWriteFlag && deleteOlderCheckpoints) {
+//         int chars_needed = snprintf(lastCheckpointDir, PV_PATH_MAX, "%s", cpDir);
+//         if (chars_needed >= PV_PATH_MAX) {
+//            if (icComm->commRank()==0) {
+//               fprintf(stderr, "checkpointRead error: path \"%s\" is too long.\n", cpDir);
+//            }
+//            abort();
+//         }
+//      }
    }
    else {
       for ( int l=0; l<numLayers; l++ ) {
@@ -638,25 +649,32 @@ int HyPerCol::run(int nTimeSteps)
    int step = 0;
    while (simTime < stopTime) {
       if( checkpointWriteFlag && advanceCPWriteTime() ) {
-         if (icComm->commRank()==0) {
-            fprintf(stderr, "Checkpointing, simTime = %f\n", simulationTime());
-         }
-         if( currentStep >= HYPERCOL_DIRINDEX_MAX+1 ) {
-            if( icComm->commRank() == 0 ) {
-               fflush(stdout);
-               fprintf(stderr, "Column \"%s\": step number exceeds maximum value %d.  Exiting\n", name, HYPERCOL_DIRINDEX_MAX);
-            }
-            exit(EXIT_FAILURE);
-         }
-         char cpDir[PV_PATH_MAX];
-         int chars_printed = snprintf(cpDir, PV_PATH_MAX, "%s/Checkpoint%d", checkpointWriteDir, currentStep);
-         if(chars_printed >= PV_PATH_MAX) {
+         if ( !checkpointReadFlag || strcmp(checkpointReadDir, checkpointWriteDir) || cpReadDirIndex!=currentStep ) {
             if (icComm->commRank()==0) {
-               fprintf(stderr,"HyPerCol::run error.  Checkpoint directory \"%s/Checkpoint%d\" is too long.\n", checkpointWriteDir, currentStep);
-               abort();
+               printf("Checkpointing, simTime = %f\n", simulationTime());
+            }
+            if( currentStep >= HYPERCOL_DIRINDEX_MAX+1 ) {
+               if( icComm->commRank() == 0 ) {
+                  fflush(stdout);
+                  fprintf(stderr, "Column \"%s\": step number exceeds maximum value %d.  Exiting\n", name, HYPERCOL_DIRINDEX_MAX);
+               }
+               exit(EXIT_FAILURE);
+            }
+            char cpDir[PV_PATH_MAX];
+            int chars_printed = snprintf(cpDir, PV_PATH_MAX, "%s/Checkpoint%d", checkpointWriteDir, currentStep);
+            if(chars_printed >= PV_PATH_MAX) {
+               if (icComm->commRank()==0) {
+                  fprintf(stderr,"HyPerCol::run error.  Checkpoint directory \"%s/Checkpoint%d\" is too long.\n", checkpointWriteDir, currentStep);
+                  abort();
+               }
+            }
+            checkpointWrite(cpDir);
+         }
+         else {
+            if (icComm->commRank()==0) {
+               printf("Skipping checkpoint at time %f, since this would clobber the checkpointRead checkpoint.\n", simulationTime());
             }
          }
-         checkpointWrite(cpDir);
       }
       simTime = advanceTime(simTime);
 
