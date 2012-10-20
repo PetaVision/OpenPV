@@ -65,6 +65,7 @@ int OjaConnProbe::initialize(const char * probename, const char * filename,
    }
    else assert(false);
    assert(kPost != -1);
+   assert(kfPost <= nf);
 
    BaseConnectionProbe::initialize(probename, filename, conn,kxPost,kyPost,kfPost,isPostProbe);
 
@@ -96,8 +97,8 @@ int OjaConnProbe::outputState(float timef)
    int numArbors = ojaConn->numberOfAxonalArborLists(); //will loop through arbors
    int numPostPOVPatch = nxpPost * nypPost * nfpPost; // Post-synaptic weights are never shrunken
 
-//   std::cout << "OjaConnProbe: numArbors: " << numArbors << "\n";
-//   std::cout << "OjaConnProbe: numPostPOVPatch: " << numPostPOVPatch << "\n";
+   InterColComm * icComm = ojaConn->getParent()->icCommunicator();
+   const int rank = icComm->commRank();
 
    // Allocate buffers for pre info
    preStdpTrs = (float *) calloc(numPostPOVPatch*numArbors, sizeof(float));
@@ -107,8 +108,7 @@ int OjaConnProbe::outputState(float timef)
    assert(preOjaTrs != NULL);
    assert(preWeights != NULL);
 
-   const PVLayerLoc * preLoc  = ojaConn->preSynapticLayer()->getLayerLoc(); //need pre layer sizes for patch index info
-
+   int num_weights_in_patch = ojaConn->xPatchSize()*ojaConn->yPatchSize()*ojaConn->fPatchSize();
    int preTraceIdx = 0;
    for (int arborID=0; arborID < numArbors; arborID++)
    {
@@ -116,8 +116,9 @@ int OjaConnProbe::outputState(float timef)
       float * startAdd = ojaConn->get_wDataStart(arborID);                    // Address of first preNeuron in pre layer
       for (int preNeuronID=0; preNeuronID<numPostPOVPatch; preNeuronID++)
       {
-         float * kPreAdd = postWeights[preNeuronID];                             // Address of first preNeuron in receptive field of postNeuron
-         int kPre = (kPreAdd-startAdd) / (preLoc->nx * preLoc->ny * preLoc->nf); // Specific preNeuron's (extended) index
+         float * kPreAdd = postWeights[preNeuronID];  // Address of first preNeuron in receptive field of postNeuron
+         assert(kPreAdd != NULL);
+         int kPre = (kPreAdd-startAdd) / num_weights_in_patch;
 
          assert(preTraceIdx < numArbors*numPostPOVPatch);
          preWeights[preTraceIdx] = *(postWeights[preNeuronID]); // One weight per arbor per preNeuron in postNeuron's receptive field
