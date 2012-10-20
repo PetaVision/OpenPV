@@ -942,13 +942,9 @@ int HyPerCol::checkpointWrite(const char * cpDir) {
                   fprintf(stderr, "Deleting older checkpoint: \"%s\" exists but is not a directory.\n", lastCheckpointDir);
                }
             }
-// Delete old checkpoint.  Calling system('rm -r ...') rings alarm bells, and should.  So I masked the rm -r with an echo command.
-// As it appears on the repository, setting deleteOlderCheckpoints to true doesn't actually delete the checkpoint, but instead
-// sends the string 'rm -r ...' to standard output.  To really activate the deleteOlderCheckpoint feature,
-// delete the echo from the snprintf format string below.
 #define RMRFSIZE (PV_PATH_MAX + 13)
             char rmrf_string[RMRFSIZE];
-            int chars_needed = snprintf(rmrf_string, RMRFSIZE, "rm -r '%s'", lastCheckpointDir);  // deleted "echo"  disabling
+            int chars_needed = snprintf(rmrf_string, RMRFSIZE, "rm -r '%s'", lastCheckpointDir);
             assert(chars_needed < RMRFSIZE);
 #undef RMRFSIZE
             system(rmrf_string);
