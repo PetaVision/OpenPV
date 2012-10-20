@@ -13,15 +13,18 @@ HyPerCol "column" = {
    progressStep                = 100;
    writeProgressToErr           = 0;        // write progress steps to std err
 
-   outputPath                  = "/Users/slundquist/Documents/workspace/iHouse/testOutput";
+//   outputPath                  = "/Users/slundquist/Documents/workspace/iHouse/testOutput";
+   outputPath                  = "/Users/dpaiton/Documents/Work/LANL/workspace/iHouse/testOutput";
 
    filenamesContainLayerNames  = 2; 			// stores pvp files as: 1 = layer number/2 = layer number and layer name/3 = layer name
 
    checkpointRead               = true;
-   checkpointReadDir          = "/Users/slundquist/Documents/workspace/iHouse/testOutput/checkpoints";
+   //checkpointReadDir          = "/Users/slundquist/Documents/workspace/iHouse/testOutput/checkpoints";
+   checkpointReadDir          = "/Users/dpaiton/Documents/Work/LANL/workspace/iHouse/testOutput/checkpoints";
    checkpointReadDirIndex     = 500;
    checkpointWrite              = false;
-   checkpointWriteDir           = "~/workspace/iHouse/denseOutput/checkpoints";
+   //checkpointWriteDir           = "~/workspace/iHouse/testOutput/checkpoints";
+   checkpointWriteDir           = "/Users/dpaiton/Documents/Work/LANL/workspace/iHouse/testOutput/checkpoints";
    checkpointWriteStepInterval  = 50000;
    suppressLastOutput           = 0;
    
@@ -64,7 +67,8 @@ Patterns "input" = {
    endFrame = 200000;
    
    writeImages = true;
-   patternsOutputPath = "/Users/slundquist/Documents/workspace/iHouse/testOutput/sourcefiles";
+   //patternsOutputPath = "/Users/slundquist/Documents/workspace/iHouse/testOutput/sourcefiles";
+   patternsOutputPath = "/Users/dpaiton/Documents/Work/LANL/workspace/iHouse/testOutput/sourcefiles";
 
    displayPeriod = 1;
    writeStep = -1;
