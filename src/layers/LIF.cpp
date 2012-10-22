@@ -297,7 +297,7 @@ int LIF::setParams(PVParams * p)
    clayer->params = &lParams;
 
    spikingFlag = (int) p->value(name, "spikingFlag", 1);
-   assert(spikingFlag == 1);  // LIF is a spiking layer
+   //assert(spikingFlag == 1);  // spikingFlag only controls whether sparse or non-sparse activity is output to file
 
    lParams.Vrest     = p->value(name, "Vrest", V_REST);
    lParams.Vexc      = p->value(name, "Vexc" , V_EXC);
