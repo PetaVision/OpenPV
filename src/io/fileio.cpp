@@ -14,15 +14,18 @@
 
 namespace PV {
 
+// timeToParams and timeFromParams use memcpy instead of casting pointers
+// because casting pointers violates strict aliasing.
 static void timeToParams(double time, void * params)
 {
-   double * dptr = (double *) params;
-   *dptr = time;
+   memcpy(params, &time, sizeof(double));
 }
 
 static double timeFromParams(void * params)
 {
-   return * ( (double *) params );
+   double x;
+   memcpy(&x, params, sizeof(double));
+   return x;
 }
 
 size_t pv_sizeof(int datatype)
@@ -625,7 +628,8 @@ size_t read_pvdata_oneproc(FILE * fp, int px, int py, const PVLayerLoc * loc, un
    bool startset = false;
    size_t numread = 0;
    long offset;
-   long blockstart, blockstop;
+   long blockstart = -1;
+   long blockstop = -1;
    for( int y=py*loc->ny; y<(py+1)*loc->ny; y++ ) {
       for( int x=px*loc->nx; x<(px+1)*loc->nx; x++ ) {
          int xProcInFile = x/params[INDEX_NX];
@@ -636,6 +640,7 @@ size_t read_pvdata_oneproc(FILE * fp, int px, int py, const PVLayerLoc * loc, un
          int idxInProc = kIndex(xInProc, yInProc, 0, params[INDEX_NX], params[INDEX_NY], params[INDEX_NF]);
          offset = params[INDEX_HEADER_SIZE] + kProcInFile * params[INDEX_RECORD_SIZE] + idxInProc*params[INDEX_DATA_SIZE];
          if( startset ) {
+            assert(blockstart>=0 && blockstop>=0);
             if( offset == blockstop ) {
                blockstop += params[INDEX_NF]*params[INDEX_DATA_SIZE];
             }
