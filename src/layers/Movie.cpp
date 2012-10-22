@@ -56,8 +56,6 @@ int Movie::checkpointRead(const char * cpDir, float * timef){
 int Movie::initialize(const char * name, HyPerCol * hc, const char * fileOfFileNames, float defaultDisplayPeriod) {
    Image::initialize(name, hc, NULL);
 
-   PVLayerLoc * loc = &clayer->loc;
-
    if( getParent()->icCommunicator()->commRank()==0 ) {
       fp = fopen(fileOfFileNames, "r");
       if( fp == NULL ) {
