@@ -34,8 +34,6 @@ static void gl_draw_texture(int id);
 }
 #endif
 
-class PV::GLDisplay;
-
 // global variables
 //
 
