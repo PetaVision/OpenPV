@@ -842,14 +842,6 @@ int HyPerCol::checkpointRead(const char * cpDir) {
 #ifdef PV_USE_MPI
    MPI_Bcast(buf,bufsize,MPI_CHAR,0,icCommunicator()->communicator());
 #endif // PV_USE_MPI
-#ifdef OBSOLETE // Marked obsolete Feb 6, 2012.  nextCPWrite{Time,Step} is retrieved from params file so it doesn't have to be saved in timeinfo
-   float * fbuf = (float *) (buf);
-   int * ibuf = (int *) (buf+2*sizeof(float));
-   simTime = fbuf[0];
-   nextCPWriteTime = fbuf[1];
-   currentStep = ibuf[0];
-   nextCPWriteStep = ibuf[1];
-#endif // OBSOLETE
    simTime = *((float *) buf);
    currentStep = *((int *) (buf+sizeof(float)));
    float checkTime;
