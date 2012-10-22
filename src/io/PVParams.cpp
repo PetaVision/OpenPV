@@ -880,9 +880,9 @@ int PVParams::setSweepValues(int n) {
       assert(gp!=NULL);
 
       const char * s;
+      float v = 0.0f;
       switch (type) {
       case PARAMSWEEP_NUMBER:
-         float v;
          paramSweep->getNumericValue(n, &v);
          gp->setValue(param_name, v);
          break;
