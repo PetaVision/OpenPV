@@ -7,7 +7,7 @@
 //  A params file for testing LIF, GapLayer, LIFGapLayer, SigmoidLayer
 //
 
-debugParsing = false;
+debugParsing = true;
 
 HyPerCol "column" = {
    nx = 64;   
@@ -16,6 +16,7 @@ HyPerCol "column" = {
    randomSeed = 1829107657; // if not set here,  clock time is used to generate seed
    numSteps = 8001;
    progressStep = 400;
+   writeProgressToErr = false;
    outputPath = "output";
    filenamesContainLayerNames = false;
    checkpointRead = false;
@@ -169,7 +170,7 @@ GenerativeLayer "LIFTest Spike Counter" = {
     persistence = 0.0;
 };
 
-GapLayer "GapTest" ={
+GapLayer "GapTest" = {
     restart      = false;
     originalLayerName="LIFTest";
     nxScale      = 1; // Should this be 0.5 or 1?
@@ -184,6 +185,8 @@ GapLayer "GapTest" ={
 
     writeStep = -1;
     writeNonspikingActivity = true;
+
+    ampSpikelet = 50;
 };
 
 LIFGap "LIFGapTest" = {
@@ -266,6 +269,7 @@ KernelConn "input to scaled input" = {
     writeCompressedWeights = true;
     selfFlag = false;
     shrinkPatches = false;
+    preActivityIsNotRate = false;
 };
 
 IdentConn "scaled input to retina" = {
@@ -301,6 +305,7 @@ KernelConn "retina to LIFTest" = {
     writeCompressedWeights = true;
     selfFlag = false;
     shrinkPatches = false;
+    preActivityIsNotRate = false;
 };
 
 IdentConn "LIFTest to LIFTest Spike Counter" = {
@@ -330,12 +335,14 @@ GapConn "GapTest to LIFGapTest" = {
     normalize_max = false;        // all flags zero means it normalize total integrated output
     normalize_zero_offset = false;  //
     normalize_cutoff      = false;  //
+    normalizeTotalToPost  = false; // If true, normalize the average of the sum of all weights into a post neuron
     
     symmetrizeWeights = false;
     plasticityFlag = false;
     stochasticReleaseFlag = false;
     selfFlag = false;
     shrinkPatches = false;
+    preActivityIsNotRate = false;
     
     writeCompressedWeights = false;
     writeStep = -1;
