@@ -84,9 +84,6 @@ int Movie::initialize(const char * name, HyPerCol * hc, const char * fileOfFileN
       abort();
    }
 
-   // create mpi_datatypes for border transfer
-   mpi_datatypes = Communicator::newDatatypes(loc);
-
    this->displayPeriod = params->value(name,"displayPeriod", defaultDisplayPeriod);
    nextDisplayTime = hc->simulationTime() + this->displayPeriod;
 
