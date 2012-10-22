@@ -6,7 +6,9 @@ global tLCA; tLCA = 20;
 global columnSizeY; columnSizeY = 256;
 global columnSizeX; columnSizeX = 256;
 
-global FNUM_ALL; FNUM_ALL = 1;
+global PRINT_N; PRINT_N = 0;
+
+global FNUM_ALL; FNUM_ALL = 1;           %All farmes
 global FNUM_SPEC; FNUM_SPEC    = {...    %start:int:end frames
    [10000:20000]...
    [50000:60000]...
@@ -22,6 +24,7 @@ workspaceDir                               = [rootDir,'/Documents/workspace/iHou
 pvpDir                                     = [workspaceDir,'/denseOutput/'];
 outDir                                     = [workspaceDir,'/denseOutput/analysis/'];
 global outputDir; outputDir                = [outDir, 'coor/'];
+global outputMovieDir; outputMovieDir      = [outputDir, 'nMovie/'];
 postActivityFile                           = [pvpDir,'lif.pvp'];
 
 if (exist(outDir, 'dir') ~= 7)
@@ -29,6 +32,9 @@ if (exist(outDir, 'dir') ~= 7)
 end
 if (exist(outputDir, 'dir') ~= 7)
    mkdir(outputDir);
+end
+if (exist(outputMovieDir, 'dir') ~= 7)
+   mkdir(outputMovieDir);
 end
 
 
@@ -39,8 +45,10 @@ function coorFunc(activityData)
    global deltaT;
    global NUM_PROCS;
    global outputDir;
+   global outputMovieDir;
    global FNUM_SPEC;
    global FNUM_ALL;
+   global PRINT_N;
 
    if FNUM_ALL > 0
       FNUM_SPEC = cell(1, 1);
@@ -117,6 +125,25 @@ function coorFunc(activityData)
       intSpike = [cIntSpike{:}]';
 
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+      disp('Printing integrated write steps');
+      fflush(1);
+      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+      if(PRINT_N > 0)
+         m = max(intSpike(:));
+
+         for t = 1:timesteps
+            nOutMat = zeros(columnSizeY, columnSizeX);
+            i = 1:numactivity;
+            nOutMat = nOutMat';
+            nOutMat(i) = intSpike(:, t);
+            nOutMat = nOutMat';
+            nOutMat = nOutMat ./ m;
+            print_filename = [outputMovieDir, 'n_', num2str(c) , '_' , num2str(t), '.jpg'];
+            imwrite(nOutMat, print_filename);
+         end
+      end
+
+      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       disp('Calculating coorlation function');
       fflush(1);
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -160,9 +187,9 @@ function coorFunc(activityData)
       figure('Visible', 'off');
       hold all;
       for d = 1:maxDist
-         redColorVal = colorStep * d;
-         blueColorVal = 1 - redColorVal;
-         plot(FNUM_SPEC{c}, outMat(d, :), 'Color', [redColorVal, 0, blueColorVal]);
+         blueColorVal = colorStep * d;
+         redColorVal = 1 - blueColorVal;
+         plot(FNUM_SPEC{c}, outMat(d, :), 'Color', [redColorVal, 128, blueColorVal]);
          legName{d} = ['Dist: ', num2str(d)];
          %plot(mean(intSpike));
       end
