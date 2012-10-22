@@ -7,7 +7,7 @@
 //  A params file for testing LIF, GapLayer, LIFGapLayer, SigmoidLayer
 //
 
-debugParsing = true;
+debugParsing = false;
 
 HyPerCol "column" = {
    nx = 64;   
