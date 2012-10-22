@@ -48,10 +48,10 @@ HyPerCol "column" = {
 //    offsetY                 = 1;
 //    start_frame_index       = 0.0;
 //    skip_frame_index        = 0.0;
-//    echoFramePathnameFlag   = 0.0;
-//    useImageBCflag          = 0.0;
-//    inverseFlag             = 0.0;
-//    spikingFlag             = 0;
+//    echoFramePathnameFlag   = true;
+//    useImageBCflag          = false;
+//    inverseFlag             = false;
+//    spikingFlag             = false;
 //    writeStep               = -1;
 //    writeNonspikingActivity = false;
 //};
@@ -747,108 +747,67 @@ HyPerCol "column" = {
 //KernelConn "ImageToImageBuffer" = {   
 //    preLayerName           = "Image";
 //    postLayerName          = "ImageBuffer";
-//    weightInitType         = "Gauss2DWeight";
 //    channelCode            = 0;    // forward
 //    nxp                    = 1;
 //    nyp                    = 1;
-//    strength               = ImageImageBuffer; //40.0; // This is scaling the image to 0-40
-//
+//    nfp                    = 1;
 //    stochasticReleaseFlag  = 0.0;
-//
-//    aspect                 = 1.0;
-//    delay                  = 0.0;  // in time steps, additional to the one you always get
-//    sigma                  = 0.8;  //
-//    rMax                   = 256.; // maximum distance of connection
-//
+//    weightInitType         = "UniformWeight";
+//    weightInit              = ImageImageBuffer; //40.0; // This is scaling the image to 0-40
 //    normalize              = 1;    // 
-//    normalize_max          = 0.0;  // all flags zero means it normalize total integrated output
-//    normalize_cutoff       = 0.0;  //
-//    normalize_zero_offset  = 0.0;  //
 //    writeStep              = -1.0; // do not write these out
-//
 //    symmetrizeWeights      = 0.0;
 //    numAxonalArbors        = 1;
 //    plasticityFlag         = 0.0;
 //    writeCompressedWeights = 1;
 //    selfFlag               = 0.0;
 //    shrinkPatches          = 0.0;
-//    nfp                    = 1;
-//    rMin                   = 0.0;
-//    
+//    delay                  = 0.0;  // in time steps, additional to the one you always get
 //    preActivityIsNotRate   = 0;
-//    normalizeTotalToPost   = 1.0;
 //};
 
 
 //KernelConn "ConstantVrestToImageBuffer" = {   
 //    preLayerName           = "ConstantVrest";
 //    postLayerName          = "ImageBuffer";
-//    weightInitType         = "Gauss2DWeight";
 //    channelCode            = 0;    // move it down to -55
 //    nxp                    = 1;
 //    nyp                    = 1;
-//    normalize              = 1;    // 
-//    strength               = ConstantVrestImageBuffer;      //1.0;//  This will give a G_E of 0.25 to sit
-//    // at the linear part of the Cone response
-//
+//    nfp                    = 1;
 //    stochasticReleaseFlag  = 0.0;
-//
-//    aspect                 = 1.0;
 //    delay                  = 0.0;  // in time steps, additional to the one you always get
-//    sigma                  = 0.8;  // 
-//    rMax                   = 256.; // maximum distance of connection
-//
-//    normalize_max          = 0.0;  // all flags zero means it normalize total integrated output
-//    normalize_zero_offset  = 0.0;  //
-//    normalize_cutoff       = 0.0;  //
+//    weightInitType         = "UniformWeight";
+//    weightInit               = ConstantVrestImageBuffer;      //1.0;//  This will give a G_E of 0.25 to sit
+//    normalize              = 0;    // 
 //    writeStep              = -1.0; // do not write these out
-//
 //    symmetrizeWeights      = 0.0;
 //    numAxonalArbors        = 1;
 //    plasticityFlag         = 0.0;
 //    writeCompressedWeights = 1;
 //    selfFlag               = 0.0;
 //    shrinkPatches          = 0.0;
-//    nfp                    = 1;
-//    rMin                   = 0.0;
-//    
 //    preActivityIsNotRate   = 0;
-//    normalizeTotalToPost   = 1.0;
 //};
 
 
 //GapConn "ImageBufferToCone" = {          // 0
 //    preLayerName           = "ImageBuffer";
 //    postLayerName          = "Cone";
-//    weightInitType         = "Gauss2DWeight";
-//    channelCode            = 0;         // forward
+//    weightInitType         = "UniformWeight";
 //    nxp                    = 1;
 //    nyp                    = 1;
-//    normalize              = 1;         // 
-////    strength               = 0.1475;    // adjusted to give a 15 mv swing for input of 1.0, id est 40 mV
-////    strength               = 0.97;      // adjusted to give 0.5 ConeSigmoid for 46 
-//    strength               = ImageBufferCone; // ImageCone adjusted to give symmetric ON/OFF response staerke
-//    	
+//    nfp                    = 1;
+//    weightInit             = ImageBufferCone; // ImageCone adjusted to give symmetric ON/OFF response staerke
 //    stochasticReleaseFlag  = 0.0;
-//
-//    aspect                 = 1.0;
 //    delay                  = 0.0;       // in time steps, additional to the one you always get
-//    sigma                  = 0.8;       // 
-//    rMax                   = 256.;      // maximum distance of connection
-//
-//    normalize_max          = 0.0;       // all flags zero means it normalize total integrated output
-//    normalize_zero_offset  = 0.0;       //
-//    normalize_cutoff       = 0.0;       //
+//    normalize              = 0;         // 
 //    writeStep              = -1.0;      // do not write these out
-//
 //    symmetrizeWeights      = 0.0;
 //    numAxonalArbors        = 1;
 //    plasticityFlag         = 0.0;
 //    writeCompressedWeights = 1;
 //    selfFlag               = 0.0;
 //    shrinkPatches          = 0.0;
-//    nfp                    = 1;
-//    rMin                   = 0.0;
 //    preActivityIsNotRate   = 0;
 //    normalizeTotalToPost   = 1;
 //};
@@ -2199,6 +2158,15 @@ HyPerCol "column" = {
 //   Probes Probes Probes Probes Probes Probes Probes Probes  Probes Probes Probes Probes 
 //   Probes Probes Probes Probes Probes Probes Probes Probes  Probes Probes Probes Probes 
 //////////////////////////////////////////////////////////////////////////////////////////
+
+PointProbe "ImageBuffer Probe" = {
+   targetLayer = "ImageBuffer";
+//   msg = "Cone       ";
+   probeOutputFile = "ptImageBuffer.txt";
+   xLoc = 128;
+   yLoc = 128;
+   fLoc = 0;
+};
 
 PointLIFProbe "Cone Probe" = {
    targetLayer = "Cone";

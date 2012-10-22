@@ -280,177 +280,177 @@ for num_steps in num_steps_list:
                 if len(zero_index)>0:
                     if nonZeroStrength[zero_index[0]]:
                         uncomment = True
-            elif 'KernelConn "ConstantVrest to ImageBuffer"' in line and ConstantVrest==1 and ImageBuffer==1:
+            elif 'KernelConn "ConstantVrestToImageBuffer"' in line and ConstantVrest==1 and ImageBuffer==1:
                 zero_index = [idx for idx, enum in enumerate([param in 'ConstantVrestImageBuffer' for param in conn_list]) if enum==True]
                 if len(zero_index)>0:
                     if nonZeroStrength[zero_index[0]]:
                         uncomment = True
-            elif 'GapConn "ImageBuffer to Cone"' in line and Cone==1:
+            elif 'GapConn "ImageBufferToCone"' in line and Cone==1:
                 zero_index = [idx for idx, enum in enumerate([param in 'ImageBufferCone' for param in conn_list]) if enum==True]
                 if len(zero_index)>0:
                     if nonZeroStrength[zero_index[0]]:
                         uncomment = True
-            elif 'KernelConn "ConeSigmoidON to BipolarON"' in line and ConeSigmoidON==1 and BipolarON==1:
+            elif 'KernelConn "ConeSigmoidONToBipolarON"' in line and ConeSigmoidON==1 and BipolarON==1:
                 zero_index = [idx for idx, enum in enumerate([param in 'ConeSigmoidBipolar' for param in conn_list]) if enum==True]
                 if len(zero_index)>0:
                     if nonZeroStrength[zero_index[0]]:
                         uncomment = True
-            elif 'KernelConn "ConeSigmoidON to Horizontal"' in line and ConeSigmoidON==1 and Horizontal==1:
+            elif 'KernelConn "ConeSigmoidONToHorizontal"' in line and ConeSigmoidON==1 and Horizontal==1:
                 zero_index = [idx for idx, enum in enumerate([param in 'ConeSigmoidHorizontal' for param in conn_list]) if enum==True]
                 if len(zero_index)>0:
                     if nonZeroStrength[zero_index[0]]:
                         uncomment = True
-            elif 'GapConn "HoriGap to Horizontal"' in line and HoriGap==1 and Horizontal==1:
+            elif 'GapConn "HoriGapToHorizontal"' in line and HoriGap==1 and Horizontal==1:
                 zero_index = [idx for idx, enum in enumerate([param in 'HoriGapHorizontal' for param in conn_list]) if enum==True]
                 if len(zero_index)>0:
                     if nonZeroStrength[zero_index[0]]:
                         uncomment = True
-            elif 'KernelConn "HoriSigmoid to Cone"' in line and HoriSigmoid==1 and Cone==1:
+            elif 'KernelConn "HoriSigmoidToCone"' in line and HoriSigmoid==1 and Cone==1:
                 zero_index = [idx for idx, enum in enumerate([param in 'HoriSigmoidCone' for param in conn_list]) if enum==True]
                 if len(zero_index)>0:
                     if nonZeroStrength[zero_index[0]]:
                         uncomment = True
-            elif 'KernelConn "BipolarSigmoidON to GanglionON"' in line and BipolarSigmoidON==1 and GanglionON==1:
+            elif 'KernelConn "BipolarSigmoidONToGanglionON"' in line and BipolarSigmoidON==1 and GanglionON==1:
                 zero_index = [idx for idx, enum in enumerate([param in 'BipolarSigmoidGanglion' for param in conn_list]) if enum==True]
                 if len(zero_index)>0:
                     if nonZeroStrength[zero_index[0]]:
                         uncomment = True
-            elif 'GapConn "SFAmacrineGap to SFAmacrine"' in line and SFAmacrineGap==1 and SFAmacrine==1:
+            elif 'GapConn "SFAmacrineGapToSFAmacrine"' in line and SFAmacrineGap==1 and SFAmacrine==1:
                 zero_index = [idx for idx, enum in enumerate([param in 'SFAmacrineGapSFAmacrine' for param in conn_list]) if enum==True]
                 if len(zero_index)>0:
                     if nonZeroStrength[zero_index[0]]:
                         uncomment = True
-            elif 'KernelConn "WFAmacrineSigmoidON to BipolarON"' in line and WFAmacrineSigmoidON==1 and BipolarON==1:
+            elif 'KernelConn "WFAmacrineSigmoidONToBipolarON"' in line and WFAmacrineSigmoidON==1 and BipolarON==1:
                 zero_index = [idx for idx, enum in enumerate([param in 'WFAmacrineSigmoidBipolarON' for param in conn_list]) if enum==True]
                 if len(zero_index)>0:
                     if nonZeroStrength[zero_index[0]]:
                         uncomment = True
-            elif 'KernelConn "BipolarSigmoidON to WFAmacrineON"' in line and BipolarSigmoidON==1 and WFAmacrineON==1:
+            elif 'KernelConn "BipolarSigmoidONToWFAmacrineON"' in line and BipolarSigmoidON==1 and WFAmacrineON==1:
                 zero_index = [idx for idx, enum in enumerate([param in 'BipolarSigmoidWFAmacrine' for param in conn_list]) if enum==True]
                 if len(zero_index)>0:
                     if nonZeroStrength[zero_index[0]]:
                         uncomment = True
-            elif 'GapConn "GangliGapON to PAAmacrineON"' in line and GangliGapON==1 and PAAmacrineON==1:
+            elif 'GapConn "GangliGapONToPAAmacrineON"' in line and GangliGapON==1 and PAAmacrineON==1:
                 zero_index = [idx for idx, enum in enumerate([param in 'GangliGapPAAmacrine' for param in conn_list]) if enum==True]
                 if len(zero_index)>0:
                     if nonZeroStrength[zero_index[0]]:
                         uncomment = True
-            elif 'GapConn "PAAmaGapON to GanglionON"' in line and PAAmaGapON==1 and GanglionON==1:
+            elif 'GapConn "PAAmaGapONToGanglionON"' in line and PAAmaGapON==1 and GanglionON==1:
                 zero_index = [idx for idx, enum in enumerate([param in 'PAAmaGapGanglion' for param in conn_list]) if enum==True]
                 if len(zero_index)>0:
                     if nonZeroStrength[zero_index[0]]:
                         uncomment = True
-            elif 'GapConn "PAAmaGapON to PAAmacrineON"' in line and PAAmaGapON==1 and PAAmacrineON==1:
+            elif 'GapConn "PAAmaGapONToPAAmacrineON"' in line and PAAmaGapON==1 and PAAmacrineON==1:
                 zero_index = [idx for idx, enum in enumerate([param in 'PAAmaGapPAAmacrine' for param in conn_list]) if enum==True]
                 if len(zero_index)>0:
                     if nonZeroStrength[zero_index[0]]:
                         uncomment = True
-            elif 'KernelConn "PAAmacrineON to GanglionON"' in line and PAAmacrineON==1 and GanglionON==1:
+            elif 'KernelConn "PAAmacrineONToGanglionON"' in line and PAAmacrineON==1 and GanglionON==1:
                 zero_index = [idx for idx, enum in enumerate([param in 'PAAmacrineGanglion' for param in conn_list]) if enum==True]
                 if len(zero_index)>0:
                     if nonZeroStrength[zero_index[0]]:
                         uncomment = True
-            elif 'KernelConn "PAAmacrineON to PAAmacrineON"' in line and PAAmacrineON==1:
+            elif 'KernelConn "PAAmacrineONToPAAmacrineON"' in line and PAAmacrineON==1:
                 zero_index = [idx for idx, enum in enumerate([param in 'PAAmacrinePAAmacrine' for param in conn_list]) if enum==True]
                 if len(zero_index)>0:
                     if nonZeroStrength[zero_index[0]]:
                         uncomment = True
-            elif 'KernelConn "BipolarSigmoidON to SFAmacrine"' in line and BipolarSigmoidON==1 and SFAmacrine==1:
+            elif 'KernelConn "BipolarSigmoidONToSFAmacrine"' in line and BipolarSigmoidON==1 and SFAmacrine==1:
                 zero_index = [idx for idx, enum in enumerate([param in 'BipolarSigmoidSFAmacrine' for param in conn_list]) if enum==True]
                 if len(zero_index)>0:
                     if nonZeroStrength[zero_index[0]]:
                         uncomment = True
-            elif 'KernelConn "SFAmacrineSigmoid to GanglionON"' in line and SFAmacrineSigmoid==1 and GanglionON==1:
+            elif 'KernelConn "SFAmacrineSigmoidToGanglionON"' in line and SFAmacrineSigmoid==1 and GanglionON==1:
                 zero_index = [idx for idx, enum in enumerate([param in 'SFAmacrineSigmoidGanglionON' for param in conn_list]) if enum==True]
                 if len(zero_index)>0:
                     if nonZeroStrength[zero_index[0]]:
                         uncomment = True
-            elif 'KernelConn "SFAmacrineSigmoid to PAAmacrineON"' in line and SFAmacrineSigmoid==1 and PAAmacrineON==1:
+            elif 'KernelConn "SFAmacrineSigmoidToPAAmacrineON"' in line and SFAmacrineSigmoid==1 and PAAmacrineON==1:
                 zero_index = [idx for idx, enum in enumerate([param in 'SFAmacrineSigmoidPAAmacrine' for param in conn_list]) if enum==True]
                 if len(zero_index)>0:
                     if nonZeroStrength[zero_index[0]]:
                         uncomment = True
-            elif 'KernelConn "PAAmacrineON to WFAmacrineON"' in line and PAAmacrineON==1 and WFAmacrineON==1:
+            elif 'KernelConn "PAAmacrineONToWFAmacrineON"' in line and PAAmacrineON==1 and WFAmacrineON==1:
                 zero_index = [idx for idx, enum in enumerate([param in 'PAAmacrineWFAmacrine' for param in conn_list]) if enum==True]
                 if len(zero_index)>0:
                     if nonZeroStrength[zero_index[0]]:
                         uncomment = True
-            elif 'KernelConn "WFAmacrineSigmoidON to SFAmacrine"' in line and WFAmacrineSigmoidON==1 and SFAmacrine==1:
+            elif 'KernelConn "WFAmacrineSigmoidONToSFAmacrine"' in line and WFAmacrineSigmoidON==1 and SFAmacrine==1:
                 zero_index = [idx for idx, enum in enumerate([param in 'WFAmacrineONSFAmacrine' for param in conn_list]) if enum==True]
                 if len(zero_index)>0:
                     if nonZeroStrength[zero_index[0]]:
                         uncomment = True
-            elif 'KernelConn "WFAmacrineSigmoidOFF to SFAmacrine"' in line and WFAmacrineSigmoidOFF==1 and SFAmacrine==1:
+            elif 'KernelConn "WFAmacrineSigmoidOFFToSFAmacrine"' in line and WFAmacrineSigmoidOFF==1 and SFAmacrine==1:
                 zero_index = [idx for idx, enum in enumerate([param in 'WFAmacrineOFFSFAmacrine' for param in conn_list]) if enum==True]
                 if len(zero_index)>0:
                     if nonZeroStrength[zero_index[0]]:
                         uncomment = True
-            elif 'KernelConn "ConeSigmoidOFF to BipolarOFF"' in line and ConeSigmoidOFF==1 and BipolarOFF==1:
+            elif 'KernelConn "ConeSigmoidOFFToBipolarOFF"' in line and ConeSigmoidOFF==1 and BipolarOFF==1:
                 zero_index = [idx for idx, enum in enumerate([param in 'ConeSigmoidBipolar' for param in conn_list]) if enum==True]
                 if len(zero_index)>0:
                     if nonZeroStrength[zero_index[0]]:
                         uncomment = True
-            elif 'KernelConn "BipolarSigmoidOFF to WFAmacrineOFF"' in line and BipolarSigmoidOFF==1 and WFAmacrineOFF==1:
+            elif 'KernelConn "BipolarSigmoidOFFToWFAmacrineOFF"' in line and BipolarSigmoidOFF==1 and WFAmacrineOFF==1:
                 zero_index = [idx for idx, enum in enumerate([param in 'BipolarSigmoidWFAmacrine' for param in conn_list]) if enum==True]
                 if len(zero_index)>0:
                     if nonZeroStrength[zero_index[0]]:
                         uncomment = True
-            elif 'KernelConn "WFAmacrineSigmoidOFF to BipolarOFF"' in line and WFAmacrineSigmoidOFF==1 and BipolarOFF==1:
+            elif 'KernelConn "WFAmacrineSigmoidOFFToBipolarOFF"' in line and WFAmacrineSigmoidOFF==1 and BipolarOFF==1:
                 zero_index = [idx for idx, enum in enumerate([param in 'WFAmacrineSigmoidBipolarOFF' for param in conn_list]) if enum==True]
                 if len(zero_index)>0:
                     if nonZeroStrength[zero_index[0]]:
                         uncomment = True
-            elif 'KernelConn "BipolarSigmoidOFF to GanglionOFF"' in line and BipolarSigmoidOFF==1 and GanglionOFF==1:
+            elif 'KernelConn "BipolarSigmoidOFFToGanglionOFF"' in line and BipolarSigmoidOFF==1 and GanglionOFF==1:
                 zero_index = [idx for idx, enum in enumerate([param in 'BipolarSigmoidGanglion' for param in conn_list]) if enum==True]
                 if len(zero_index)>0:
                     if nonZeroStrength[zero_index[0]]:
                         uncomment = True
-            elif 'KernelConn "BipolarSigmoidOFF to SFAmacrine"' in line and BipolarSigmoidOFF==1 and SFAmacrine==1:
+            elif 'KernelConn "BipolarSigmoidOFFToSFAmacrine"' in line and BipolarSigmoidOFF==1 and SFAmacrine==1:
                 zero_index = [idx for idx, enum in enumerate([param in 'BipolarSigmoidSFAmacrine' for param in conn_list]) if enum==True]
                 if len(zero_index)>0:
                     if nonZeroStrength[zero_index[0]]:
                         uncomment = True
-            elif 'GapConn "GangliGapOFF to PAAmacrineOFF"' in line and GangliGapOFF==1 and PAAmacrineOFF==1:
+            elif 'GapConn "GangliGapOFFToPAAmacrineOFF"' in line and GangliGapOFF==1 and PAAmacrineOFF==1:
                 zero_index = [idx for idx, enum in enumerate([param in 'GangliGapPAAmacrine' for param in conn_list]) if enum==True]
                 if len(zero_index)>0:
                     if nonZeroStrength[zero_index[0]]:
                         uncomment = True
-            elif 'GapConn "PAAmaGapOFF to GanglionOFF"' in line and PAAmaGapOFF==1 and GanglionOFF==1:
+            elif 'GapConn "PAAmaGapOFFToGanglionOFF"' in line and PAAmaGapOFF==1 and GanglionOFF==1:
                 zero_index = [idx for idx, enum in enumerate([param in 'PAAmaGapGanglion' for param in conn_list]) if enum==True]
                 if len(zero_index)>0:
                     if nonZeroStrength[zero_index[0]]:
                         uncomment = True
-            elif 'GapConn "PAAmaGapOFF to PAAmacrineOFF"' in line and PAAmaGapOFF==1 and PAAmacrineOFF==1:
+            elif 'GapConn "PAAmaGapOFFToPAAmacrineOFF"' in line and PAAmaGapOFF==1 and PAAmacrineOFF==1:
                 zero_index = [idx for idx, enum in enumerate([param in 'PAAmaGapPAAmacrine' for param in conn_list]) if enum==True]
                 if len(zero_index)>0:
                     if nonZeroStrength[zero_index[0]]:
                         uncomment = True
-            elif 'KernelConn "PAAmacrineOFF to GanglionOFF"' in line and PAAmacrineOFF==1 and GanglionOFF==1:
+            elif 'KernelConn "PAAmacrineOFFToGanglionOFF"' in line and PAAmacrineOFF==1 and GanglionOFF==1:
                 zero_index = [idx for idx, enum in enumerate([param in 'PAAmacrineGanglion' for param in conn_list]) if enum==True]
                 if len(zero_index)>0:
                     if nonZeroStrength[zero_index[0]]:
                         uncomment = True
-            elif 'KernelConn "PAAmacrineOFF to PAAmacrineOFF"' in line and PAAmacrineOFF==1:
+            elif 'KernelConn "PAAmacrineOFFToPAAmacrineOFF"' in line and PAAmacrineOFF==1:
                 zero_index = [idx for idx, enum in enumerate([param in 'PAAmacrinePAAmacrine' for param in conn_list]) if enum==True]
                 if len(zero_index)>0:
                     if nonZeroStrength[zero_index[0]]:
                         uncomment = True
-            elif 'KernelConn "SFAmacrineSigmoid to GanglionOFF"' in line and SFAmacrineSigmoid==1 and GanglionOFF==1:
+            elif 'KernelConn "SFAmacrineSigmoidToGanglionOFF"' in line and SFAmacrineSigmoid==1 and GanglionOFF==1:
                 zero_index = [idx for idx, enum in enumerate([param in 'SFAmacrineSigmoidGanglionOFF' for param in conn_list]) if enum==True]
                 if len(zero_index)>0:
                     if nonZeroStrength[zero_index[0]]:
                         uncomment = True
-            elif 'KernelConn "SFAmacrineSigmoid to PAAmacrineOFF"' in line and SFAmacrineSigmoid==1 and PAAmacrineOFF==1:
+            elif 'KernelConn "SFAmacrineSigmoidToPAAmacrineOFF"' in line and SFAmacrineSigmoid==1 and PAAmacrineOFF==1:
                 zero_index = [idx for idx, enum in enumerate([param in 'SFAmacrineSigmoidPAAmacrine' for param in conn_list]) if enum==True]
                 if len(zero_index)>0:
                     if nonZeroStrength[zero_index[0]]:
                         uncomment = True
-            elif 'KernelConn "PAAmacrineOFF to WFAmacrineOFF"' in line and PAAmacrineOFF==1 and WFAmacrineOFF==1:
+            elif 'KernelConn "PAAmacrineOFFToWFAmacrineOFF"' in line and PAAmacrineOFF==1 and WFAmacrineOFF==1:
                 zero_index = [idx for idx, enum in enumerate([param in 'PAAmacrineWFAmacrine' for param in conn_list]) if enum==True]
                 if len(zero_index)>0:
                     if nonZeroStrength[zero_index[0]]:
                         uncomment = True
-            elif 'KernelConn "WFAmacrineSigmoidOFF to SFAmacrine"' in line and WFAmacrineSigmoidOFF==1 and SFAmacrine==1:
+            elif 'KernelConn "WFAmacrineSigmoidOFFToSFAmacrine"' in line and WFAmacrineSigmoidOFF==1 and SFAmacrine==1:
                 zero_index = [idx for idx, enum in enumerate([param in 'WFAmacrineSigmoidSFAmacrine' for param in conn_list]) if enum==True]
                 if len(zero_index)>0:
                     if nonZeroStrength[zero_index[0]]:
