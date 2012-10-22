@@ -18,18 +18,16 @@ def splitLine(line):
    lineSp = zip(*[lineSp[i::2] for i in range(2)])
    return lineSp
 
-#filename = "/Users/slundquist/Desktop/ptLIF.txt"
-#filename = "/Users/slundquist/Desktop/retONtoLif.txt"
-filename = "/Users/dpaiton/Documents/Work/LANL/workspace/iHouse/checkpoints/Checkpoint3000000/retONtoLif.txt"
+filename = "/Users/dpaiton/Documents/Work/LANL/workspace/iHouse/checkpoints/Checkpoint1000000/retONtoLifHor.txt"
 
 #Values for range of frames
-all_lines = False #All values if True
-startTime = 2475000
-#End must be under number of lines in file
-endTime   = 2625000
+all_lines = False    #All values if True
+startTime = 700000
+endTime   = 1000000  #End must be under number of lines in file
 
-numTCBins   = 2  #number of bins for time course plot
-numHistBins = -1 #number of bins for histogram of weights (-1 means no histogram)
+numTCBins   = 2     #number of bins for time course plot
+numHistBins = -1    #number of bins for histogram of weights (-1 means no histogram)
+do_legend   = True  #if True, time graph will have a legend
 
 #Data structure for scale, and data array to store all the data
 data = OrderedDict()
@@ -43,6 +41,8 @@ data['t']                     = []
 
 #data['prOjaTr*']              = []
 #data['prStdpTr*']             = []
+#data['prOjaTr0']              = []
+#data['prStdpTr0']             = []
 #data['poIntTr']               = []
 #data['poOjaTr']               = []
 #data['poStdpTr']              = []
@@ -74,6 +74,13 @@ data['weight23']              = []
 data['weight24']              = []
 #data['ampLTD']                = []
 
+if numTCBins <= 0:
+    numTCBins = 1
+    print "readProbe: WARNING: numTCBins <= 0, which is not allowed. Setting numTCBins to 1."
+if numHistBins == 0:
+    numHistBins = -1
+    print "readProbe: WARNING: numHistBins == 0, which is not allowed. Setting numHistBins to -1."
+
 print "readProbe: Reading file..."
 f = open(filename, 'r')
 if (all_lines):
@@ -82,8 +89,11 @@ else:
     firstLine = f.readline()
     firstLineSplit = splitLine(firstLine) #list of tuples. list[0] is always time. tuple is ('label','val')
     fileStartTime = float(firstLineSplit[0][1])
+    assert endTime > fileStartTime, "readProbe: endTime ("+str(endTime)+") is less than fileStartTime ("+str(fileStartTime)+")"
     if startTime < fileStartTime: #can't start from a time earlier than the first time
         startTime = fileStartTime
+        print "readProbe: WARNING: startTime is less than the file's start time. Setting startTime = fileStartTime"
+    assert endTime > startTime, "readProbe: endTime must be greater than startTime."
     timeOffset = startTime - fileStartTime #now we know how many lines forward we need to go
     lineLength = len(firstLine)
     f.seek(lineLength*timeOffset,0)
@@ -164,12 +174,11 @@ for key in data.keys():
         else:
             print "readProbe: --Binning the values..."
         #Grab boundary points based on range and bins
-        if step == 0:
-            print "readProbe: --" + key + " Min and Max equivelant, defaulting to one bin."
+        if step == 0 or numTCBins==1:
             #data refers to list of all values in time. mean() will reduce number of instances to 1
             data[key] = [mean(x) for x in workingLines]
-            if doHist:
-                numHistBins = 1
+            if step == 0:
+                print "readProbe: --" + key + " Min and Max equivelant, defaulting to one bin."
         else:
             boundList = list(arange(minVal, maxVal, step))
             boundList.append(maxVal)
@@ -212,11 +221,11 @@ for key in data.keys():
             bounds[key] = boundList
     else:
         data[key] = [float(x[1]) for lineSp in workingLines for x in lineSp if len(x[0]) == len(tok) and x[0][:len(tok)] == tok]
-    print "readProbe: -Done formatting '"+key+"'."
+    print "readProbe: -Done formatting '"+key+"'"
 
 print "readProbe: Done parsing keys."
 print "readProbe: Creating time course plot..."
-figure(0)
+fig0 = figure(0)
 time = array(data['t'])
 for key in data.keys():
     if key == 't':
@@ -232,12 +241,13 @@ for key in data.keys():
             plot(time, plotMe, label=key)
     else:
         if key == 'poIntTr':
-            plotMe = array(data[key]) - 1
+            plotMe = array(data[key])/300
         else:
             plotMe = array(data[key])
         if len(plotMe) != 0:
             plot(time, plotMe, label=key)
-legend()#bbox_to_anchor=(0., 1.02, 1., .102), ncol = 2, mode="expand", borderaxespad=0.,loc=3)
+if do_legend:
+    legend()#bbox_to_anchor=(0., 1.02, 1., .102), ncol = 2, mode="expand", borderaxespad=0.,loc=3)
 tight_layout()
 
 if doHist:
