@@ -479,24 +479,31 @@ for num_steps in num_steps_list:
                     else:
                         new_line = re.sub(conn_list[lol_idx],conn_lol[lol_idx][0],out_lines[line_num],count=1)
                     out_lines[line_num] = new_line
+                    line = new_line
             if 'NUMSTEPS' in line:
                 new_line = re.sub('NUMSTEPS',num_steps,line,count=0)
                 out_lines[line_num] = new_line
+                line = new_line
             if 'OUTPATH' in line:
                 new_line = re.sub('OUTPATH',full_results_path,line,count=0)
                 out_lines[line_num] = new_line
+                line = new_line
             if 'PARAMSFILE' in line:
                 new_line = re.sub('PARAMSFILE',idx_out_filename,line,count=0)
                 out_lines[line_num] = new_line
+                line = new_line
             if 'INIMGPATH' in line:
                 new_line = re.sub('INIMGPATH',input_image,line,count=0)
                 out_lines[line_num] = new_line
+                line = new_line
             if 'INMOVPATH' in line:
                 new_line = re.sub('INMOVPATH',input_movie,line,count=0)
                 out_lines[line_num] = new_line
+                line = new_line
             if 'STOCHASTICRELFLAG' in line:
                 new_line = re.sub('STOCHASTICRELFLAG',stochastic_flag,line,count=0)
                 out_lines[line_num] = new_line
+                line = new_line
             if 'PREACTNOTRATE' in line:
                 if stochastic_flag is '0':
                     new_line = re.sub('PREACTNOTRATE','1',line,count=0)
@@ -506,6 +513,7 @@ for num_steps in num_steps_list:
                     print("\ntune_params: STOCHASTICRELFLAG must be 0 or 1")
                     exit()
                 out_lines[line_num] = new_line
+                line = new_line
 
         #####ENDFOR - line_num
 
