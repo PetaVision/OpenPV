@@ -5,7 +5,7 @@ more off;
 setenv("GNUTERM","X11");
 close all;
 
-run_name       = 'graywhiteblackspots';
+run_name       = 'OscillationCalibration';
 run_numbers    = 1;%[1:1:4];
 num_time_steps = 2000;
 
@@ -74,9 +74,9 @@ for i = 1:length(run_numbers)
 
         if Sigmoid_view
             figure();
-            plot(H_V,C_G_I*2); grid;% have to take the connection strength out
+            plot(H_V,H_G_I*2); grid;% have to take the connection strength out
             xlabel('H_V')
-            ylabel('C_G_I*2')
+            ylabel('H_G_I*2')
             titlestring = ['Horizontal Sigmoid\_p',num2str(run_num)];
             title(titlestring,"fontsize",15);
         end
@@ -113,16 +113,16 @@ for i = 1:length(run_numbers)
 
         if Sigmoid_view
             figure();
-            plot(Bon_V,Gon_G_E*1);grid;
+            plot(Bon_V,Bon_G_E*1);grid;
             xlabel('Bon_V')
-            ylabel('Gon_G_E')
+            ylabel('Bon_G_E')
             titlestring = ['BipolarON Sigmoid\_p',num2str(run_num)];
             title(titlestring,"fontsize",15);
             
             figure();
-            plot(Boff_V,Goff_G_E*1);grid;
+            plot(Boff_V,Boff_G_E*1);grid;
             xlabel('Boff_V')
-            ylabel('Goff_G_E')
+            ylabel('Boff_G_E')
             titlestring = ['BipolarOFF Sigmoid\_p',num2str(run_num)];
             title(titlestring,"fontsize",15);
         end
