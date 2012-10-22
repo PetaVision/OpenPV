@@ -1142,15 +1142,19 @@ int readWeights(PVPatch *** patches, pvdata_t ** dataStart, int numArbors, int n
 
    // extra weight parameters, done as a void pointer, since some are int and some are float
    //
-   void * wgtParams = &params[NUM_BIN_PARAMS];
-   int * wgtIntParams = (int *) wgtParams;
-   float * wgtFloatParams = (float *) wgtParams;
+   int * wgtParams = &params[NUM_BIN_PARAMS];
 
-   const int nxp = wgtIntParams[INDEX_WGT_NXP];
-   const int nyp = wgtIntParams[INDEX_WGT_NYP];
-   const int nfp = wgtIntParams[INDEX_WGT_NFP];
-   const float minVal = * ((float*) &wgtFloatParams[INDEX_WGT_MIN]);
-   const float maxVal = * ((float*) &wgtFloatParams[INDEX_WGT_MAX]);
+   const int nxp = wgtParams[INDEX_WGT_NXP];
+   const int nyp = wgtParams[INDEX_WGT_NYP];
+   const int nfp = wgtParams[INDEX_WGT_NFP];
+
+   // Have to use memcpy instead of casting floats because of strict aliasing rules
+   float minVal = 0.0f;
+   memcpy(&minVal, &wgtParams[INDEX_WGT_MIN], sizeof(float));
+   float maxVal = 0.0f;
+   memcpy(&maxVal, &wgtParams[INDEX_WGT_MAX], sizeof(float));
+   // const float minVal = * ((float*) &wgtFloatParams[INDEX_WGT_MIN]);
+   // const float maxVal = * ((float*) &wgtFloatParams[INDEX_WGT_MAX]);
 
    if (contiguous) {
       nxBlocks = 1;
@@ -1179,15 +1183,15 @@ int readWeights(PVPatch *** patches, pvdata_t ** dataStart, int numArbors, int n
       }
    }
    if (header_file_type != PVP_KERNEL_FILE_TYPE){
-      status = (numPatches*nxProcs*nyProcs != wgtIntParams[INDEX_WGT_NUMPATCHES]);
+      status = (numPatches*nxProcs*nyProcs != wgtParams[INDEX_WGT_NUMPATCHES]);
    }
    else{
-      status = ((numPatches != wgtIntParams[INDEX_WGT_NUMPATCHES]));
+      status = ((numPatches != wgtParams[INDEX_WGT_NUMPATCHES]));
    }
    if (status != 0) {
       fprintf(stderr, "[%2d]: readWeights: failed in pvp_check_file_header, "
             "numPatches==%d, nxProcs==%d\n, nyProcs==%d, wgtParams[INDEX_WGT_NUMPATCHES]==%d\n",
-            comm->commRank(), numPatches, nxProcs, nyProcs, wgtIntParams[INDEX_WGT_NUMPATCHES]);
+            comm->commRank(), numPatches, nxProcs, nyProcs, wgtParams[INDEX_WGT_NUMPATCHES]);
       return status;
    }
 
