@@ -18,6 +18,7 @@ HyPerCol "column" = {
    randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
    numSteps = 10;
    progressStep = 10;
+   writeProgressToErr = false;
    outputPath = "output/";
    filenamesContainLayerNames = false;
    checkpointRead = false;
