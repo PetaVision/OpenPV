@@ -36,12 +36,6 @@
 static inline unsigned int taus_get (void *vstate);
 static void taus_set (void *state, unsigned int s);
 
-typedef struct
-  {
-    unsigned int s1, s2, s3;
-  }
-taus_state_t;
-
 uint4 cl_random_get(uint4 state)
 {
    state.s0 = taus_get(&state.s1);

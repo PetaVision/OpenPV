@@ -16,6 +16,12 @@ extern "C"
 {
 #endif
 
+typedef struct
+  {
+    unsigned int s1, s2, s3;
+  }
+taus_state_t;
+
 uint4 * cl_random_init(size_t count, unsigned int seed);
 uint4   cl_random_get(uint4 state);
 
