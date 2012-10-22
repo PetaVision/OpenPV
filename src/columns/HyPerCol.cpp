@@ -34,16 +34,6 @@ HyPerCol::HyPerCol(const char * name, int argc, char * argv[], PVParams * params
    initialize(name, argc, argv, params);
 }
 
-#ifdef OBSOLETE // Marked obsolete Jul 29, 2011.  Use -w option in argc and argv instead of pv_path.
-HyPerCol::HyPerCol(const char * name, int argc, char * argv[], const char * pv_path)
-         : warmStart(false), isInitialized(false)
-{
-   initialize(name, argc, argv);
-   assert(strlen(path) + strlen(pv_path) < PV_PATH_MAX);
-   sprintf(path, "%s/%s", path, pv_path);
-}
-#endif // OBSOLETE
-
 HyPerCol::~HyPerCol()
 {
    int n;
