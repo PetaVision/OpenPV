@@ -97,9 +97,6 @@ int OjaConnProbe::outputState(float timef)
    int numArbors = ojaConn->numberOfAxonalArborLists(); //will loop through arbors
    int numPostPOVPatch = nxpPost * nypPost * nfpPost; // Post-synaptic weights are never shrunken
 
-   InterColComm * icComm = ojaConn->getParent()->icCommunicator();
-   const int rank = icComm->commRank();
-
    // Allocate buffers for pre info
    preStdpTrs = (float *) calloc(numPostPOVPatch*numArbors, sizeof(float));
    preOjaTrs  = (float *) calloc(numPostPOVPatch*numArbors, sizeof(float));
