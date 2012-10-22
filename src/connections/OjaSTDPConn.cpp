@@ -240,6 +240,7 @@ int OjaSTDPConn::updateWeights(int arborID)
    pvdata_t * post_stdp_tr_m;   // Postsynaptic trace matrix; i.e. data of post_stdp_tr struct
    pvdata_t * post_oja_tr_m;    // Postsynaptic mean trace matrix
    pvdata_t * post_int_tr_m;    // Postsynaptic mean trace matrix
+   pvdata_t * ampLTD_m;         // local ampLTD
    //Extended Pre
    pvdata_t * pre_stdp_tr_m;    // Presynaptic trace matrix
    pvdata_t * pre_oja_tr_m;
@@ -266,15 +267,14 @@ int OjaSTDPConn::updateWeights(int arborID)
       post_int_tr_m[kPostRes]  = decayO   * (post_int_tr_m[kPostRes] + aPost[kPostExt]);
 
       ampLTD[kPostRes] += (dt/tauTHR) * ((post_int_tr_m[kPostRes]/tauO) - targetRatekHz) * (LTDscale/targetRatekHz);
-      ampLTD[kPostRes] = ampLTD[kPostRes] < 0 ? 0 : ampLTD[kPostRes]; // Stop ampLTD from being 0
-      assert(ampLTD[kPostRes] == ampLTD[kPostRes]); // Make sure it is not NaN (which would only happen if tergetRatekHz or tauO becomes 0
+      ampLTD[kPostRes] = ampLTD[kPostRes] < 0 ? 0 : ampLTD[kPostRes]; // ampLTD should not go below 0
+      assert(ampLTD[kPostRes] == ampLTD[kPostRes]); // Make sure it is not NaN
    }
 
    // this stride is in extended space for post-synaptic activity and STDP decrement variable
    const int postStrideYExt = postNf * (postNx + 2 * postNb);
    //stride in restricted space
    const int postStrideYRes = postNf * postNx;
-   //FIXME: In the first iteration post is -70!! (May not still be true)
 
    float scaleFactor;
    if (ojaFlag) {
@@ -292,11 +292,14 @@ int OjaSTDPConn::updateWeights(int arborID)
       size_t postOffsetRes = kIndexRestricted(postOffsetExt, postNx, postNy, postNf, postNb);
      // size_t postOffsetRes = postOffsetExt - (postNb * (postNx + 2*postNb) + postNb);
 
-      aPre           = preLayerData[kPreExt];                // Spiking activity
+      //Post in extended space
       aPost          = &post->getLayerData()[postOffsetExt]; // Gets address of postsynaptic activity
+      //Post in restricted space
       post_stdp_tr_m = &(post_stdp_tr->data[postOffsetRes]); // Reference to STDP post trace
       post_oja_tr_m  = &(post_oja_tr->data[postOffsetRes]);
+      ampLTD_m       = &(ampLTD[postOffsetRes]);
       //Pre in extended space
+      aPre           = preLayerData[kPreExt];                // Spiking activity
       pre_stdp_tr_m  = &(pre_stdp_tr->data[kPreExt]);        // PreTrace for given presynaptic neuron kPre
       pre_oja_tr_m   = &(pre_oja_tr->data[kPreExt]);
 
@@ -327,7 +330,7 @@ int OjaSTDPConn::updateWeights(int arborID)
             }
 
             W[kPatch] += scaleFactor *
-                  (ojaTerm * ampLTP * aPost[kPatch] * (*pre_stdp_tr_m) - ampLTD[kPatch] * aPre * post_stdp_tr_m[kPatch] -
+                  (ojaTerm * ampLTP * aPost[kPatch] * (*pre_stdp_tr_m) - ampLTD_m[kPatch] * aPre * post_stdp_tr_m[kPatch] -
                   weightDecay * W[kPatch]);
 
             W[kPatch] = W[kPatch] < wMin ? wMin : W[kPatch]; // Stop weights from going all the way to 0
@@ -344,6 +347,7 @@ int OjaSTDPConn::updateWeights(int arborID)
          post_stdp_tr_m += postStrideYRes;
          post_int_tr_m  += postStrideYRes;
          post_oja_tr_m  += postStrideYRes;
+         ampLTD_m       += postStrideYRes;
       }
    }
 
