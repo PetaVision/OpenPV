@@ -1135,15 +1135,17 @@ int readWeights(PVPatch *** patches, pvdata_t ** dataStart, int numArbors, int n
    const int nxFileBlocks = params[INDEX_NX_PROCS];
    const int nyFileBlocks = params[INDEX_NY_PROCS];
 
-   // extra weight parameters
+   // extra weight parameters, done as a void pointer, since some are int and some are float
    //
-   int * wgtParams = &params[NUM_BIN_PARAMS];
+   void * wgtParams = &params[NUM_BIN_PARAMS];
+   int * wgtIntParams = (int *) wgtParams;
+   float * wgtFloatParams = (float *) wgtParams;
 
-   const int nxp = wgtParams[INDEX_WGT_NXP];
-   const int nyp = wgtParams[INDEX_WGT_NYP];
-   const int nfp = wgtParams[INDEX_WGT_NFP];
-   const float minVal = * ((float*) &wgtParams[INDEX_WGT_MIN]);
-   const float maxVal = * ((float*) &wgtParams[INDEX_WGT_MAX]);
+   const int nxp = wgtIntParams[INDEX_WGT_NXP];
+   const int nyp = wgtIntParams[INDEX_WGT_NYP];
+   const int nfp = wgtIntParams[INDEX_WGT_NFP];
+   const float minVal = * ((float*) &wgtFloatParams[INDEX_WGT_MIN]);
+   const float maxVal = * ((float*) &wgtFloatParams[INDEX_WGT_MAX]);
 
    if (contiguous) {
       nxBlocks = 1;
@@ -1172,15 +1174,15 @@ int readWeights(PVPatch *** patches, pvdata_t ** dataStart, int numArbors, int n
       }
    }
    if (header_file_type != PVP_KERNEL_FILE_TYPE){
-      status = (numPatches*nxProcs*nyProcs != wgtParams[INDEX_WGT_NUMPATCHES]);
+      status = (numPatches*nxProcs*nyProcs != wgtIntParams[INDEX_WGT_NUMPATCHES]);
    }
    else{
-      status = ((numPatches != wgtParams[INDEX_WGT_NUMPATCHES]));
+      status = ((numPatches != wgtIntParams[INDEX_WGT_NUMPATCHES]));
    }
    if (status != 0) {
       fprintf(stderr, "[%2d]: readWeights: failed in pvp_check_file_header, "
             "numPatches==%d, nxProcs==%d\n, nyProcs==%d, wgtParams[INDEX_WGT_NUMPATCHES]==%d\n",
-            comm->commRank(), numPatches, nxProcs, nyProcs, wgtParams[INDEX_WGT_NUMPATCHES]);
+            comm->commRank(), numPatches, nxProcs, nyProcs, wgtIntParams[INDEX_WGT_NUMPATCHES]);
       return status;
    }
 
@@ -1401,7 +1403,9 @@ int writeWeights(const char * filename, Communicator * comm, double timed, bool 
       }
 
       numParams = NUM_WGT_EXTRA_PARAMS;
-      if ( fwrite(wgtExtraParams, sizeof(int), numParams, fp) != (unsigned int) numParams ) return -1;
+      unsigned int num_written = fwrite(wgtExtraParams, sizeof(int), numParams, fp);
+      free(wgtExtraParams); wgtExtraParams=NULL; wgtExtraIntParams=NULL; wgtExtraFloatParams=NULL;
+      if ( num_written != (unsigned int) numParams ) return -1;
 
       for( int arbor=0; arbor<numArbors; arbor++ ) {
          // write local portion
