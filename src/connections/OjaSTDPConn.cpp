@@ -2,7 +2,7 @@
  * OjaOjaSTDPConn.cpp
  *
  *  Created on: Sep 27, 2012
- *      Author: dpaiton
+ *      Author: dpaiton et slundquist
  */
 
 #include "OjaSTDPConn.hpp"
@@ -295,9 +295,9 @@ int OjaSTDPConn::updateWeights(int arborID)
       //Post in extended space
       aPost          = &post->getLayerData()[postOffsetExt]; // Gets address of postsynaptic activity
       //Post in restricted space
-      post_stdp_tr_m = &(post_stdp_tr->data[postOffsetRes]); // Reference to STDP post trace
+      post_stdp_tr_m = &(post_stdp_tr->data[postOffsetRes]); // Reference to STDP post trace (local)
       post_oja_tr_m  = &(post_oja_tr->data[postOffsetRes]);
-      ampLTD_m       = &(ampLTD[postOffsetRes]);
+      ampLTD_m       = &(ampLTD[postOffsetRes]);             // Points to local address
       //Pre in extended space
       aPre           = preLayerData[kPreExt];                // Spiking activity
       pre_stdp_tr_m  = &(pre_stdp_tr->data[kPreExt]);        // PreTrace for given presynaptic neuron kPre

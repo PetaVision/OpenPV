@@ -2,7 +2,7 @@
  * OjaSTDPConn.h
  *
  *  Created on: Sep 27, 2012
- *      Author: dpaiton
+ *      Author: dpaiton et slundquist
  */
 
 #ifndef OJASTDPCONN_H_
