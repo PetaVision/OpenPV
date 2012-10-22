@@ -1362,8 +1362,14 @@ int writeWeights(const char * filename, Communicator * comm, double timed, bool 
 #endif // PV_USE_MPI
    } // icRank > 0
    else /* icRank==0 */ {
-      float * fptr;
-      int wgtExtraParams[NUM_WGT_EXTRA_PARAMS];
+      void * wgtExtraParams = calloc(NUM_WGT_EXTRA_PARAMS, sizeof(int));
+      if (wgtExtraParams == NULL) {
+         fprintf(stderr, "calloc error in writeWeights for \"%s\": %s\n", filename, strerror(errno));
+         abort();
+      }
+      int * wgtExtraIntParams = (int *) wgtExtraParams;
+      float * wgtExtraFloatParams = (float *) wgtExtraParams;
+      // int wgtExtraParams[NUM_WGT_EXTRA_PARAMS];
 
       int numParams = NUM_WGT_PARAMS;
 
@@ -1380,20 +1386,18 @@ int writeWeights(const char * filename, Communicator * comm, double timed, bool 
 
       // write extra weight parameters
       //
-      wgtExtraParams[INDEX_WGT_NXP] = nxp;
-      wgtExtraParams[INDEX_WGT_NYP] = nyp;
-      wgtExtraParams[INDEX_WGT_NFP] = nfp;
+      wgtExtraIntParams[INDEX_WGT_NXP] = nxp;
+      wgtExtraIntParams[INDEX_WGT_NYP] = nyp;
+      wgtExtraIntParams[INDEX_WGT_NFP] = nfp;
 
-      fptr  = (float *) &wgtExtraParams[INDEX_WGT_MIN];
-      *fptr = minVal;
-      fptr  = (float *) &wgtExtraParams[INDEX_WGT_MAX];
-      *fptr = maxVal;
+      wgtExtraFloatParams[INDEX_WGT_MIN] = minVal;
+      wgtExtraFloatParams[INDEX_WGT_MAX] = maxVal;
 
       if (file_type == PVP_KERNEL_FILE_TYPE){
-         wgtExtraParams[INDEX_WGT_NUMPATCHES] = numPatches; // KernelConn has same weights in all processes
+         wgtExtraIntParams[INDEX_WGT_NUMPATCHES] = numPatches; // KernelConn has same weights in all processes
       }
       else {
-         wgtExtraParams[INDEX_WGT_NUMPATCHES] = numPatches * nxBlocks * nyBlocks;
+         wgtExtraIntParams[INDEX_WGT_NUMPATCHES] = numPatches * nxBlocks * nyBlocks;
       }
 
       numParams = NUM_WGT_EXTRA_PARAMS;
