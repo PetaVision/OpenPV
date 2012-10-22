@@ -5,8 +5,8 @@
 //
 
 //  A params file for testing checkpointing.
-//  CheckpointParameters1.params runs a simulation for 10 timesteps, checkpointing every 5 timesteps.
-//  CheckpointParameters2.params runs a simulation for 5 timesteps starting with the previous checkpoint after 5 timesteps.
+//  CheckpointParameters1.params runs a simulation for 50 timesteps, checkpointing every 4 timesteps.
+//  CheckpointParameters2.params runs a simulation for starting with the previous t=12 checkpoint, until t=50, checkpointing every 4 timestep.
 //  The result of the two simulations should be the same.
 //
 
