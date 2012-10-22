@@ -2,9 +2,10 @@
 %%%%%
 %%%%%
 more off;
+setenv("GNUTERM","X11");
 close all;
 
-run_name       = 'OscillationCalibration';
+run_name       = 'graywhiteblackspots';
 run_numbers    = 1;%[1:1:4];
 num_time_steps = 2000;
 
@@ -13,6 +14,7 @@ begin_x_step   = 100;
 
 legend_flag = 1;
 
+ImageBuffer_view= 1; %% not implemented
 Cone_view       = 1;
 Horizontal_view = 1;
 Bipolar_view    = 1;
@@ -20,7 +22,7 @@ WFAmacrine_view = 1;
 SFAmacrine_view = 1;
 PAAmacrine_view = 1;
 Ganglion_view   = 1;
-Sigmoid_view    = 1;
+Sigmoid_view    = 0;
 
 for i = 1:length(run_numbers)
     run_num = i-1;
@@ -28,7 +30,7 @@ for i = 1:length(run_numbers)
     out_path    = ['../output/',run_name,'/p',num2str(run_num),'/ns',num2str(num_time_steps),'/figs/'];
     mkdir(out_path);
 
-    if cone_view
+    if Cone_view
         [time, C_G_GAP, C_G_I, C_V]           = pvp_readLIFGapptProbe(run_num,num_time_steps,run_name,'Cone',{'G_GAP','G_I','V'});
 
         figure();
@@ -46,9 +48,9 @@ for i = 1:length(run_numbers)
 
         if Sigmoid_view
             figure();
-            plot(C_V,H_G_E*2);grid;
+            plot(C_V,C_G_E*2);grid;
             xlabel('C_V')
-            ylabel('H_G_E*2')
+            ylabel('C_G_E*2')
             titlestring = ['Cone Sigmoid\_p',num2str(run_num)];
             title(titlestring,"fontsize",15);
         end
