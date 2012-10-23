@@ -8,6 +8,9 @@
 #include "Image.hpp"
 #include "../io/imageio.hpp"
 
+#ifdef PV_USE_MPI
+   #include <mpi.h>
+#endif
 #include <assert.h>
 #include <string.h>
 
@@ -67,6 +70,7 @@ int Image::initialize(const char * name, HyPerCol * hc, const char * filename) {
    this->writeImages = params->value(name, "writeImages", 0) != 0;
    this->useImageBCflag = (bool) params->value(name, "useImageBCflag", 0);
    this->inverseFlag = (bool) params->value(name, "inverseFlag", 0);
+   this->normalizeLuminanceFlag = (bool) params->value(name, "normalizeLuminanceFlag", 0);
    readOffsets();
 
    GDALColorInterp * colorbandtypes = NULL;
@@ -95,7 +99,8 @@ int Image::initialize(const char * name, HyPerCol * hc, const char * filename) {
    mpi_datatypes = Communicator::newDatatypes(getLayerLoc());
 
    if (filename != NULL) {
-      readImage(filename, offsetX, offsetY, colorbandtypes);
+      status = readImage(filename, offsetX, offsetY, colorbandtypes);
+      assert(status == PV_SUCCESS);
    }
    free(colorbandtypes); colorbandtypes = NULL;
 
@@ -213,6 +218,7 @@ int Image::readImage(const char * filename, int offsetX, int offsetY, GDALColorI
 
    // read the image and scatter the local portions
    status = scatterImageFile(filename, offsetX, offsetY, parent->icCommunicator(), loc, buf);
+   assert(status == PV_SUCCESS);
    if( loc->nf == 1 && imageLoc.nf > 1 ) {
       float * graybuf = convertToGrayScale(buf,loc->nx,loc->ny,imageLoc.nf, colorbandtypes);
       delete buf;
@@ -222,13 +228,29 @@ int Image::readImage(const char * filename, int offsetX, int offsetY, GDALColorI
    }
    // now buf is loc->nf by loc->nx by loc->ny
 
+   if(normalizeLuminanceFlag){
+      double image_sum = 0.0f;
+      for (int k=0; k<n; k++) {
+         image_sum += buf[k];
+      }
+      double image_ave = image_sum / n;
+#ifdef PV_USE_MPI
+      MPI_Allreduce(MPI_IN_PLACE, &image_ave, 1, MPI_DOUBLE, MPI_SUM, parent->icCommunicator()->communicator());
+      image_ave /= parent->icCommunicator()->commSize();
+#endif
+      float image_shift = 0.5f - image_ave;
+      for (int k=0; k<n; k++) {
+         buf[k] += image_shift;
+      }
+   } // normalizeLuminanceFlag
+
    if( inverseFlag ) {
       for (int k=0; k<n; k++) {
          buf[k] = 1 - buf[k];
       }
    }
 
-   if( status == 0 ) copyFromInteriorBuffer(buf, 1.0f);
+   if( status == PV_SUCCESS ) copyFromInteriorBuffer(buf, 1.0f);
 
    delete buf;
 

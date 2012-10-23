@@ -105,7 +105,8 @@ int Movie::initialize(const char * name, HyPerCol * hc, const char * fileOfFileN
       // random number generator initialized by HyPerCol::initialize
       randomFrame();
    }else{
-      readImage(filename, offsetX, offsetY, colorbandtypes);
+      status = readImage(filename, offsetX, offsetY, colorbandtypes);
+      assert(status == PV_SUCCESS);
    }
    free(colorbandtypes); colorbandtypes = NULL;
 
