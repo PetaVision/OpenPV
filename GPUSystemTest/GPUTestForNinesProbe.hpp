@@ -18,7 +18,7 @@ public:
 	GPUTestForNinesProbe(HyPerLayer * layer, const char * msg);
 	virtual ~GPUTestForNinesProbe();
 
-	virtual int outputState(float timef);
+	virtual int outputState(double timed);
 
 };
 

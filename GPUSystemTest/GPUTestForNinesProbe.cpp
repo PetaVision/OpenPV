@@ -25,9 +25,9 @@ GPUTestForNinesProbe::GPUTestForNinesProbe(HyPerLayer * layer, const char * msg)
 
 GPUTestForNinesProbe::~GPUTestForNinesProbe() {}
 
-int GPUTestForNinesProbe::outputState(float timef)
+int GPUTestForNinesProbe::outputState(double timed)
 {
-	int status = StatsProbe::outputState(timef);
+	int status = StatsProbe::outputState(timed);
 #ifdef PV_USE_MPI
    InterColComm * icComm = getTargetLayer()->getParent()->icCommunicator();
    const int rcvProc = 0;
@@ -35,7 +35,7 @@ int GPUTestForNinesProbe::outputState(float timef)
       return 0;
    }
 #endif // PV_USE_MPI
-	if(timef>2.0f){
+	if(timed>2.0f){
 		assert((fMin>8.99)&&(fMin<9.01));
 		assert((fMax>8.99)&&(fMax<9.01));
 		assert((avg>8.99)&&(avg<9.01));
