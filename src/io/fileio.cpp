@@ -1414,7 +1414,10 @@ int writeWeights(const char * filename, Communicator * comm, double timed, bool 
       numParams = NUM_WGT_EXTRA_PARAMS;
       unsigned int num_written = fwrite(wgtExtraParams, sizeof(int), numParams, fp);
       free(wgtExtraParams); wgtExtraParams=NULL; wgtExtraIntParams=NULL; wgtExtraFloatParams=NULL;
-      if ( num_written != (unsigned int) numParams ) return -1;
+      if ( num_written != (unsigned int) numParams ) {
+         fprintf(stderr, "PV::writeWeights: error writing weight header to file %s\n", filename);
+         return -1;
+      }
 
       for( int arbor=0; arbor<numArbors; arbor++ ) {
          // write local portion
@@ -1422,7 +1425,10 @@ int writeWeights(const char * filename, Communicator * comm, double timed, bool 
          PVPatch ** arborPatches = file_type == PVP_KERNEL_FILE_TYPE ? NULL : patches[arbor];
          pvp_copy_patches(cbuf, arborPatches, dataStart[arbor], numPatches, nxp, nyp, nfp, minVal, maxVal, compress);
          size_t numfwritten = fwrite(cbuf, localSize, 1, fp);
-         if ( numfwritten != 1 ) return -1;
+         if ( numfwritten != 1 ) {
+            fprintf(stderr, "PV::writeWeights: error writing weight data to file %s\n", filename);
+            return -1;
+         }
 
          if (file_type == PVP_KERNEL_FILE_TYPE) continue;
 
