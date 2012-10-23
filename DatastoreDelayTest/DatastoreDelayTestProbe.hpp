@@ -18,7 +18,7 @@ class DatastoreDelayTestProbe: public StatsProbe {
 public:
    DatastoreDelayTestProbe(const char * probename, const char * filename, HyPerLayer * layer, const char * msg);
 
-   virtual int outputState(float timef);
+   virtual int outputState(double timed);
 
    virtual ~DatastoreDelayTestProbe();
 
