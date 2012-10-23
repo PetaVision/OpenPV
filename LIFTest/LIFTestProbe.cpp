@@ -100,7 +100,7 @@ LIFTestProbe::~LIFTestProbe() {
    free(counts);
 }
 
-int LIFTestProbe::outputState(float timef) {
+int LIFTestProbe::outputState(double timed) {
    int status = PV_SUCCESS;
 
    HyPerLayer * l = getTargetLayer();
@@ -127,19 +127,19 @@ int LIFTestProbe::outputState(float timef) {
 #endif // PV_USE_MPI
    if (icComm->commRank()==root_proc) {
       MPI_Reduce(MPI_IN_PLACE, rates, LIFTESTPROBE_BINS, MPI_DOUBLE, MPI_SUM, root_proc, icComm->communicator());
-      fprintf(fp, "%s t=%f:", msg, timef);
+      fprintf(fp, "%s t=%f:", msg, timed);
       for (int j=0; j<LIFTESTPROBE_BINS; j++) {
-         rates[j] /= counts[j]*timef/1000.0;
+         rates[j] /= counts[j]*timed/1000.0;
          fprintf(fp, " %f", rates[j]);
       }
       fprintf(fp, "\n");
-      if (timef >= endingTime) {
-         double stdfactor = sqrt(timef/1000.0); // Since the values of std are based on t=1000.
+      if (timed >= endingTime) {
+         double stdfactor = sqrt(timed/1000.0); // Since the values of std are based on t=1000.
          for (int j=0; j<LIFTESTPROBE_BINS; j++) {
             double scaledstdev = stddevs[j]/stdfactor;
             double observed = (rates[j]-targetrates[j])/scaledstdev;
             if(fabs(observed)>tolerance) {
-               fprintf(stderr, "Bin number %d failed at time %f: %f standard deviations off, with tolerance %f.\n", j, timef, observed, tolerance);
+               fprintf(stderr, "Bin number %d failed at time %f: %f standard deviations off, with tolerance %f.\n", j, timed, observed, tolerance);
                abort();
             }
          }

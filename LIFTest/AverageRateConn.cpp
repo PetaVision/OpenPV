@@ -36,8 +36,8 @@ int AverageRateConn::setParams(PVParams * inputParams) {
    return status;
 }
 
-int AverageRateConn::updateState(float timef, float dt) {
-   float t = timef <= dt ? dt : timef; // Avoid dividing by zero.
+int AverageRateConn::updateState(double timed, double dt) {
+   float t = timed <= dt ? dt : timed; // Avoid dividing by zero.
    float w = 1/t;
    int arbor = 0; // Assumes one axonal arbor.
    assert(nfp==getNumDataPatches());

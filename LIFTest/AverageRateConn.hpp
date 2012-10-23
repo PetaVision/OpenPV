@@ -17,7 +17,7 @@ public:
    AverageRateConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post);
    virtual ~AverageRateConn();
    virtual int setParams(PVParams * inputParams);
-   virtual int updateState(float timef, float dt);
+   virtual int updateState(double timed, double dt);
 
 protected:
    AverageRateConn();

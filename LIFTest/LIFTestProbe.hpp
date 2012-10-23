@@ -21,7 +21,7 @@ public:
    LIFTestProbe(HyPerLayer * layer, PVBufType type, const char * msg, const char * probename);
    virtual ~LIFTestProbe();
 
-   virtual int outputState(float timef);
+   virtual int outputState(double timed);
 
 protected:
    LIFTestProbe();
