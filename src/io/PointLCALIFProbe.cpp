@@ -33,7 +33,7 @@ PointLCALIFProbe::~PointLCALIFProbe() {
  *     frame.
  *     - sparseOutput was introduced to deal with ConditionalProbes.
  */
-int PointLCALIFProbe::writeState(float timef, HyPerLayer * l, int k, int kex)
+int PointLCALIFProbe::writeState(double timed, HyPerLayer * l, int k, int kex)
 {
    assert(fp);
    LCALIFLayer * LCALIF_layer = dynamic_cast<LCALIFLayer *>(l);
@@ -42,9 +42,9 @@ int PointLCALIFProbe::writeState(float timef, HyPerLayer * l, int k, int kex)
    const pvdata_t * V = l->getV();
    const pvdata_t * activity = l->getLayerData();
 
-   if (timef >= writeTime) {
+   if (timed >= writeTime) {
       writeTime += writeStep;
-      fprintf(fp, "%s t=%.1f k=%d kex=%d", msg, timef, k, kex);
+      fprintf(fp, "%s t=%.1f k=%d kex=%d", msg, timed, k, kex);
       pvdata_t * G_E  = LCALIF_layer->getConductance(CHANNEL_EXC);
       pvdata_t * G_I  = LCALIF_layer->getConductance(CHANNEL_INH);
       pvdata_t * G_IB = LCALIF_layer->getConductance(CHANNEL_INHB);

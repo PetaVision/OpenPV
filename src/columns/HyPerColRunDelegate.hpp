@@ -26,7 +26,7 @@ public:
    HyPerColRunDelegate();
    virtual ~HyPerColRunDelegate();
 
-   virtual void run(float time, float stopTime) = 0;
+   virtual void run(double time, double stopTime) = 0;
 };
 
 }

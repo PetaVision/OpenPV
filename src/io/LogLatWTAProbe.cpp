@@ -30,13 +30,13 @@ int LogLatWTAProbe::initLogLatWTAProbe(const char * filename, HyPerLayer * layer
    return initLayerFunctionProbe(filename, layer, msg, loglat);
 }
 
-int LogLatWTAProbe::writeState(float timef, HyPerLayer * l, pvdata_t value) {
+int LogLatWTAProbe::writeState(double timed, HyPerLayer * l, pvdata_t value) {
 #ifdef PV_USE_MPI
    // In MPI mode, this function should only be called by the root processor.
    assert(l->getParent()->icCommunicator()->commRank() == 0);
 #endif // PV_USE_MPI
    int nk = l->getNumGlobalNeurons();
-   fprintf(fp, "%st = %6.3f numNeurons = %8d Lateral Competition Penalty = %f\n", msg, timef, nk, value);
+   fprintf(fp, "%st = %6.3f numNeurons = %8d Lateral Competition Penalty = %f\n", msg, timed, nk, value);
 
    return PV_SUCCESS;
 }

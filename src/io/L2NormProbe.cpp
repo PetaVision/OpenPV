@@ -29,11 +29,11 @@ int L2NormProbe::initL2NormProbe(const char * filename, HyPerLayer * layer, cons
    return initLayerFunctionProbe(filename, layer, msg, l2norm);
 }
 
-int L2NormProbe::writeState(float timef, HyPerLayer * l, pvdata_t value) {
+int L2NormProbe::writeState(double timed, HyPerLayer * l, pvdata_t value) {
    // In MPI mode, this function should only be called by the root processor.
    assert(l->getParent()->icCommunicator()->commRank() == 0);
    int nk = l->getNumGlobalNeurons();
-   fprintf(fp, "%st = %6.3f numNeurons = %8d L2-norm          = %f\n", msg, timef, nk, value);
+   fprintf(fp, "%st = %6.3f numNeurons = %8d L2-norm          = %f\n", msg, timed, nk, value);
 
    return PV_SUCCESS;
 }

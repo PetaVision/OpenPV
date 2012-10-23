@@ -18,7 +18,7 @@ public:
    // public methods
    ReciprocalEnergyProbe(const char * probename, const char * filename, HyPerConn * conn);
    virtual ~ReciprocalEnergyProbe();
-   virtual double evaluate(float timef);
+   virtual double evaluate(double timed);
 
 protected:
    ReciprocalEnergyProbe();

@@ -21,7 +21,7 @@ public:
 
 protected:
    int initLCAProbe(const char * filename, HyPerLayer * layer, int xLoc, int yLoc, int fLoc, const char * msg);
-   virtual int writeState(float timef, HyPerLayer * l, int k, int kex);
+   virtual int writeState(double timed, HyPerLayer * l, int k, int kex);
 
 private:
 

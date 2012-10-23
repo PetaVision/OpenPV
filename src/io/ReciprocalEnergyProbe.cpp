@@ -35,7 +35,7 @@ int ReciprocalEnergyProbe::initialize(const char * probename, const char * filen
    return status;
 }
 
-double ReciprocalEnergyProbe::evaluate(float timef) {
+double ReciprocalEnergyProbe::evaluate(double timed) {
    double energy = 0.0f;
    float thisnfp = targetRecipConn->fPatchSize();
    if( targetRecipConn->getReciprocalWgts() == NULL ) {

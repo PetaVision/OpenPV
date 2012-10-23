@@ -28,7 +28,7 @@ int LCAProbe::initLCAProbe(const char * filename, HyPerLayer * layer, int xLoc, 
    return 0;
 }
 
-int LCAProbe::writeState(float time, HyPerLayer * l, int k, int kex)
+int LCAProbe::writeState(double timed, HyPerLayer * l, int k, int kex)
 {
    assert(fp);
    LCALayer * lca_layer = dynamic_cast<LCALayer *>(l);
@@ -39,7 +39,7 @@ int LCAProbe::writeState(float time, HyPerLayer * l, int k, int kex)
    const pvdata_t * stim = lca_layer->getStimulus();
 
    fprintf(fp, "%s t=%.1f k=%d kex=%d V=%6.3f A=%6.3f Gsyn=%6.3f\n",
-           msg, time, k, kex, V[k], activity[kex], stim[k]);
+           msg, timed, k, kex, V[k], activity[kex], stim[k]);
    fflush(fp);
    return 0;
 }

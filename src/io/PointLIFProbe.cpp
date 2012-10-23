@@ -67,7 +67,7 @@ PointLIFProbe::PointLIFProbe(HyPerLayer * layer, int xLoc, int yLoc, int fLoc, f
  *     frame.
  *     - sparseOutput was introduced to deal with ConditionalProbes.
  */
-int PointLIFProbe::writeState(float time, HyPerLayer * l, int k, int kex)
+int PointLIFProbe::writeState(double timed, HyPerLayer * l, int k, int kex)
 {
    assert(fp);
    LIF * LIF_layer = dynamic_cast<LIF *>(l);
@@ -76,9 +76,9 @@ int PointLIFProbe::writeState(float time, HyPerLayer * l, int k, int kex)
    const pvdata_t * V = l->getV();
    const pvdata_t * activity = l->getLayerData();
 
-   if (time >= writeTime) {
+   if (timed >= writeTime) {
       writeTime += writeStep;
-      fprintf(fp, "%s t=%.1f k=%d", msg, time, k);
+      fprintf(fp, "%s t=%.1f k=%d", msg, timed, k);
       pvdata_t * G_E  = LIF_layer->getConductance(CHANNEL_EXC);
       pvdata_t * G_I  = LIF_layer->getConductance(CHANNEL_INH);
       pvdata_t * G_IB = LIF_layer->getConductance(CHANNEL_INHB);

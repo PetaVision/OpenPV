@@ -23,7 +23,7 @@ public:
 
 protected:
    int initLogLatWTAProbe(const char * filename, HyPerLayer * layer, const char * msg);
-   virtual int writeState(float timef, HyPerLayer * l, pvdata_t value);
+   virtual int writeState(double timed, HyPerLayer * l, pvdata_t value);
 };
 
 }  // end namespace PV

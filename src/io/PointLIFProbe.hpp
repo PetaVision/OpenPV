@@ -20,11 +20,11 @@ public:
    PointLIFProbe(HyPerLayer * layer, int xLoc, int yLoc, int fLoc, const char * msg);
    PointLIFProbe(HyPerLayer * layer, int xLoc, int yLoc, int fLoc, float writeStep, const char * msg);
 
-   virtual int writeState(float time, HyPerLayer * l, int k, int kex);
+   virtual int writeState(double timed, HyPerLayer * l, int k, int kex);
 
 protected:
-   float writeTime;             // time of next output
-   float writeStep;             // output time interval
+   double writeTime;             // time of next output
+   double writeStep;             // output time interval
 
 };
 
