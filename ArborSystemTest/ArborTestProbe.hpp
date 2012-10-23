@@ -18,7 +18,7 @@ public:
 	ArborTestProbe(HyPerLayer * layer, const char * msg);
 	virtual ~ArborTestProbe();
 
-	virtual int outputState(float timef);
+	virtual int outputState(double timed);
 
 };
 

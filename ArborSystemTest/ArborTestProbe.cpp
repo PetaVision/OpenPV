@@ -26,9 +26,9 @@ ArborTestProbe::ArborTestProbe(HyPerLayer * layer, const char * msg)
 ArborTestProbe::~ArborTestProbe() {}
 
 
-int ArborTestProbe::outputState(float timef)
+int ArborTestProbe::outputState(double timed)
 {
-	int status = StatsProbe::outputState(timef);
+	int status = StatsProbe::outputState(timed);
 #ifdef PV_USE_MPI
    InterColComm * icComm = getTargetLayer()->getParent()->icCommunicator();
    const int rcvProc = 0;
@@ -36,16 +36,16 @@ int ArborTestProbe::outputState(float timef)
       return 0;
    }
 #endif // PV_USE_MPI
-	if(timef==3.0f){
+	if(timed==3.0f){
 		assert((avg>0.2499)&&(avg<0.2501));
 	}
-	else if(timef==4.0f){
+	else if(timed==4.0f){
 		assert((avg>0.4999)&&(avg<0.5001));
 	}
-	else if(timef==5.0f){
+	else if(timed==5.0f){
 		assert((avg>0.7499)&&(avg<0.7501));
 	}
-	else if(timef>5.0f){
+	else if(timed>5.0f){
 		assert((fMin>0.9999)&&(fMin<1.001));
 		assert((fMax>0.9999)&&(fMax<1.001));
 		assert((avg>0.9999)&&(avg<1.001));
