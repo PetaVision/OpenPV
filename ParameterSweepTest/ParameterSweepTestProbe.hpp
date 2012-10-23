@@ -20,7 +20,7 @@ public:
 	ParameterSweepTestProbe(const char * filename, HyPerLayer * layer, const char * msg);
 	virtual ~ParameterSweepTestProbe();
 
-	virtual int outputState(float timef);
+	virtual int outputState(double timed);
 protected:
     int initParameterSweepTestProbe(const char * filename, HyPerLayer * layer, const char * msg);
 

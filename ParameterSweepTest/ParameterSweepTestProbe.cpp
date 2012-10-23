@@ -28,8 +28,8 @@ int ParameterSweepTestProbe::initParameterSweepTestProbe(const char * filename, 
    return status;
 }
 
-int ParameterSweepTestProbe::outputState(float timef) {
-   int status = StatsProbe::outputState(timef);
+int ParameterSweepTestProbe::outputState(double timed) {
+   int status = StatsProbe::outputState(timed);
 #ifdef PV_USE_MPI
    InterColComm * icComm = getTargetLayer()->getParent()->icCommunicator();
    const int rcvProc = 0;
@@ -37,7 +37,7 @@ int ParameterSweepTestProbe::outputState(float timef) {
       return 0;
    }
 #endif // PV_USE_MPI
-   if (timef >= 3.0 ) {
+   if (timed >= 3.0 ) {
       assert(fabs(expectedSum - sum)<1e-6);
       assert(fabs(expectedMin - fMin)<1e-6);
       assert(fabs(expectedMax - fMax)<1e-6);
