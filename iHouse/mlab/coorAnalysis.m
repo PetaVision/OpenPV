@@ -6,15 +6,16 @@ global tLCA; tLCA = 20;
 global columnSizeY; columnSizeY = 256;
 global columnSizeX; columnSizeX = 256;
 
-global PRINT_N; PRINT_N = 0;
+global PRINT_N; PRINT_N = 1;
+global PRINT_COOR; PRINT_COOR = 0;
 
-global FNUM_ALL; FNUM_ALL = 1;           %All farmes
+global FNUM_ALL; FNUM_ALL = 0;           %All farmes
 global FNUM_SPEC; FNUM_SPEC    = {...    %start:int:end frames
-   [10000:20000]...
-   [50000:60000]...
-   [90000:100000]...
-   [130000:140000]...
-   [180000:190000]...
+   [100:200]...
+   [500:600]...
+   [900:1000]...
+ %  [130000:140000]...
+ %  [180000:190000]...
 };
 
 global NUM_PROCS; NUM_PROCS =  nproc();
@@ -49,12 +50,8 @@ function coorFunc(activityData)
    global FNUM_SPEC;
    global FNUM_ALL;
    global PRINT_N;
+   global PRINT_COOR;
 
-   if FNUM_ALL > 0
-      FNUM_SPEC = cell(1, 1);
-      FNUM_SPEC{1} = 1;
-   end
-   
    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
    disp('Calculating range coordinates');
    fflush(1);
@@ -143,62 +140,64 @@ function coorFunc(activityData)
          end
       end
 
-      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-      disp('Calculating coorlation function');
-      fflush(1);
-      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-      %Define output matrix of values
-      outMat = zeros(maxDist, timesteps);
-      %Split margin index into number of processes
-      if (mod(length(marginIndex), NUM_PROCS) == 0)
-         procSize = floor(length(marginIndex) / NUM_PROCS);
-         cellIndex = mat2cell(marginIndex, ones(1, NUM_PROCS) .* procSize, 1);
-      else
-         procSize = floor(length(marginIndex) / (NUM_PROCS - 1));
-         lastSize = mod(length(marginIndex), NUM_PROCS - 1);
-         cellIndex = mat2cell(marginIndex, [ones(1, NUM_PROCS - 1) .* procSize, lastSize], 1);
-      end
+      if(PRINT_COOR > 0)
+         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+         disp('Calculating coorlation function');
+         fflush(1);
+         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+         %Define output matrix of values
+         outMat = zeros(maxDist, timesteps);
+         %Split margin index into number of processes
+         if (mod(length(marginIndex), NUM_PROCS) == 0)
+            procSize = floor(length(marginIndex) / NUM_PROCS);
+            cellIndex = mat2cell(marginIndex, ones(1, NUM_PROCS) .* procSize, 1);
+         else
+            procSize = floor(length(marginIndex) / (NUM_PROCS - 1));
+            lastSize = mod(length(marginIndex), NUM_PROCS - 1);
+            cellIndex = mat2cell(marginIndex, [ones(1, NUM_PROCS - 1) .* procSize, lastSize], 1);
+         end
 
-      %Put intSpike into cell array for cell fun
-      cellIntSpike{1} = intSpike;
-      cellPixDist{1} = pixDist;
-      cellTimeSteps{1} = timesteps;
-      %Uniform output as false to store in cell arrays
-      if NUM_PROCS == 1
-         [out] = cellfun(@parFindMean, cellIndex, cellIntSpike, cellPixDist, cellTimeSteps, 'UniformOutput', 0);
-      else
-         [out] = parcellfun(NUM_PROCS, @parFindMean, cellIndex, cellIntSpike, cellPixDist, cellTimeSteps, 'UniformOutput', 0);
-      end
-      %Calculate average based on all pixels
-      for i = 1:length(out)
-         outMat += out{i};
-      end
-      %Divide by total number of idicies to find average
-      outMat = outMat./length(marginIndex);
+         %Put intSpike into cell array for cell fun
+         cellIntSpike{1} = intSpike;
+         cellPixDist{1} = pixDist;
+         cellTimeSteps{1} = timesteps;
+         %Uniform output as false to store in cell arrays
+         if NUM_PROCS == 1
+            [out] = cellfun(@parFindMean, cellIndex, cellIntSpike, cellPixDist, cellTimeSteps, 'UniformOutput', 0);
+         else
+            [out] = parcellfun(NUM_PROCS, @parFindMean, cellIndex, cellIntSpike, cellPixDist, cellTimeSteps, 'UniformOutput', 0);
+         end
+         %Calculate average based on all pixels
+         for i = 1:length(out)
+            outMat += out{i};
+         end
+         %Divide by total number of idicies to find average
+         outMat = outMat./length(marginIndex);
 
 
-      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-      disp('Plotting');
-      fflush(1);
-      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-      %Plot
-      legName = cell(maxDist, 1);
-      colorStep = 1/maxDist;
-      figure('Visible', 'off');
-      hold all;
-      for d = 1:maxDist
-         blueColorVal = colorStep * d;
-         redColorVal = 1 - blueColorVal;
-         plot(FNUM_SPEC{c}, outMat(d, :), 'Color', [redColorVal, 128, blueColorVal]);
-         legName{d} = ['Dist: ', num2str(d)];
-         %plot(mean(intSpike));
-      end
-      hold off;
-      legend(legName);
-      print_filename = [outputDir, 'Coorfunc_', num2str(c), '.jpg'];
-      print(print_filename);
-   end
-end
+         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+         disp('Plotting');
+         fflush(1);
+         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+         %Plot
+         legName = cell(maxDist, 1);
+         colorStep = 1/maxDist;
+         figure('Visible', 'off');
+         hold all;
+         for d = 1:maxDist
+            blueColorVal = colorStep * d;
+            redColorVal = 1 - blueColorVal;
+            plot(FNUM_SPEC{c}, outMat(d, :), 'Color', [redColorVal, 128, blueColorVal]);
+            legName{d} = ['Dist: ', num2str(d)];
+            %plot(mean(intSpike));
+         end
+         hold off;
+         legend(legName);
+         print_filename = [outputDir, 'Coorfunc_', num2str(c), '.jpg'];
+         print(print_filename);
+      end %if PRINT_COOR > 0
+   end %if c=1:len(FNUM_SPEC)
+end %function
 
 %index is an array of indexes to calculate coor function
 %intSpike is integrated spike count that is defined as (pos, time)
