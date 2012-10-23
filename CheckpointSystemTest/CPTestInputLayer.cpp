@@ -74,19 +74,19 @@ int CPTestInputLayer::initializeThreadKernels(const char * kernel_name)
 {
    return ANNLayer::initializeThreadKernels(kernel_name);
 }
-int CPTestInputLayer::updateStateOpenCL(float timef, float dt)
+int CPTestInputLayer::updateStateOpenCL(double timed, double dt)
 {
    //at the moment there's no reason to do anything differently
    //for CPTestInputLayer, but I still defined the method in case
    //that changes in the future.
-   int status = ANNLayer::updateStateOpenCL(timef, dt);
+   int status = ANNLayer::updateStateOpenCL(timed, dt);
    return status;
 }
 
 #endif // PV_USE_OPENCL
 
 
-int CPTestInputLayer::updateState(float timef, float dt) {
+int CPTestInputLayer::updateState(double timed, double dt) {
    update_timer->start();
 #ifdef PV_USE_OPENCL
    if(gpuAccelerateFlag) {

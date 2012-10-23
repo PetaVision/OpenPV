@@ -17,7 +17,7 @@ class CPTestInputLayer : public ANNLayer {
 public:
    CPTestInputLayer(const char * name, HyPerCol * hc);
    virtual ~CPTestInputLayer();
-   virtual int updateState(float time, float dt);
+   virtual int updateState(double timed, double dt);
 
 protected:
    int initialize();
@@ -30,7 +30,7 @@ protected:
    virtual const char * getKernelName() { return "ANNLayer_update_state"; }
    virtual int initializeThreadBuffers(const char * kernel_name);
    virtual int initializeThreadKernels(const char * kernel_name);
-   int updateStateOpenCL(float time, float dt);
+   int updateStateOpenCL(double timed, double dt);
 
 #endif // PV_USE_OPENCL
 
