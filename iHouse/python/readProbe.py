@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 from matplotlib.pyplot import plot, legend, show, bar, figure, xticks, tight_layout
-from numpy import array, dot, arange, mean, polyfit, ndarray, std, zeros
+from numpy import array, dot, arange, mean, polyfit, ndarray, std, zeros, nonzero
 from collections import OrderedDict
 
 def splitLine(line):
@@ -18,12 +18,15 @@ def splitLine(line):
    lineSp = zip(*[lineSp[i::2] for i in range(2)])
    return lineSp
 
-filename = "/Users/dpaiton/Documents/Work/LANL/workspace/iHouse/checkpoints/Checkpoint1000000/retONtoLifHor.txt"
+filename = "/Users/slundquist/Desktop/ptLIF.txt"
+#filename = "/Users/slundquist/Desktop/retONtoLif.txt"
+#filename = "/Users/dpaiton/Documents/Work/LANL/workspace/iHouse/checkpoints/Checkpoint3000000/retONtoLif.txt"
 
 #Values for range of frames
-all_lines = False    #All values if True
-startTime = 700000
-endTime   = 1000000  #End must be under number of lines in file
+all_lines = False #All values if True
+startTime = 2900000
+#End must be under number of lines in file
+endTime   = 3000000
 
 numTCBins   = 2     #number of bins for time course plot
 numHistBins = -1    #number of bins for histogram of weights (-1 means no histogram)
@@ -35,10 +38,12 @@ data = OrderedDict()
 #TIME MUST EXIST AND BE FIRST IN THIS LIST
 data['t']                     = []
 
-#data['V']                    = []
-#data['Vth']                  = []
-#data['a']                    = []
+data['V']                    = []
+data['Vth']                  = []
+data['a']                    = []
 
+#data['weights*']             = []
+##data['prOjaTr15']             = []
 #data['prOjaTr*']              = []
 #data['prStdpTr*']             = []
 #data['prOjaTr0']              = []
@@ -230,6 +235,8 @@ time = array(data['t'])
 for key in data.keys():
     if key == 't':
         continue
+    if key == 'a':
+       print "Num activity: " + str(len(nonzero(data[key])[0]))
     if key[len(key)-1] == "*":
         if type(data[key][1]) is ndarray:
             for i in range(numTCBins):
