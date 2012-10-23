@@ -26,9 +26,9 @@ InitWeightTestProbe::InitWeightTestProbe(HyPerLayer * layer, const char * msg)
 }
 
 
-int InitWeightTestProbe::outputState(float timef)
+int InitWeightTestProbe::outputState(double timed)
 {
-   int status = StatsProbe::outputState(timef);
+   int status = StatsProbe::outputState(timed);
 #ifdef PV_USE_MPI
    InterColComm * icComm = getTargetLayer()->getParent()->icCommunicator();
    const int rcvProc = 0;
@@ -36,7 +36,7 @@ int InitWeightTestProbe::outputState(float timef)
       return 0;
    }
 #endif // PV_USE_MPI
-   if(timef>2.0f){
+   if(timed>2.0f){
       assert((fMin>-0.001)&&(fMin<0.001));
       assert((fMax>-0.001)&&(fMax<0.001));
       assert((avg>-0.001)&&(avg<0.001));

@@ -17,7 +17,7 @@ public:
 	InitWeightTestProbe(const char * filename, HyPerLayer * layer, const char * msg);
 	InitWeightTestProbe(HyPerLayer * layer, const char * msg);
 
-	virtual int outputState(float timef);
+	virtual int outputState(double timef);
 
 };
 
