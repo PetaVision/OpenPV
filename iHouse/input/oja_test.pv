@@ -21,16 +21,19 @@ HyPerCol "column" = {
    filenamesContainLayerNames   = 2;       // stores pvp files as: 0 = layer number/1 = layer number and layer name/2 = layer name
    
    checkpointRead               = true;
-   checkpointReadDir            = "~/Documents/Work/LANL/workspace/iHouse/checkpoints";
+   checkpointReadDir            = "~/Documents/Work/LANL/workspace/iHouse/checkpoints"; //Dylan's Mac
+   //checkpointReadDir            = "~/workspace/iHouse/checkpoints"; //Dylan's Neuro
    checkpointReadDirIndex       = 2000000;
    checkpointWrite              = true;
    deleteOlderCheckpoints       = false;
    ///checkpointWriteDir           = "~/Documents/workspace/iHouse/output/checkpoints";
-   checkpointWriteDir           = "~/Documents/Work/LANL/workspace/iHouse/checkpoints"; // Dylan's Mac
+   checkpointWriteDir           = "~/Documents/Work/LANL/workspace/iHouse/checkpoints"; //Dylan's Mac
+   //checkpointWriteDir           = "~/workspace/iHouse/checkpoints"; //Dylan's Neuro
    checkpointWriteStepInterval  = 1000000;
    suppressLastOutput           = 0;
    
-   printParamsFilename          = "~/Documents/Work/LANL/workspace/iHouse/output/params_run.pv";
+   printParamsFilename          = "~/Documents/Work/LANL/workspace/iHouse/output/params_run.pv"; //Dylan's Mac
+   //printParamsFilename          = "~/workspace/iHouse/output/params_run.pv"; //Dylan's Neuro
 };
 
 
