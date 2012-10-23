@@ -20,9 +20,9 @@ HyPerCol "column" = {
    
    filenamesContainLayerNames   = 2;       // stores pvp files as: 0 = layer number/1 = layer number and layer name/2 = layer name
    
-   checkpointRead               = false;
+   checkpointRead               = true;
    checkpointReadDir            = "~/Documents/Work/LANL/workspace/iHouse/checkpoints";
-   checkpointReadDirIndex       = 1000000;
+   checkpointReadDirIndex       = 2000000;
    checkpointWrite              = true;
    deleteOlderCheckpoints       = false;
    ///checkpointWriteDir           = "~/Documents/workspace/iHouse/output/checkpoints";
@@ -162,7 +162,7 @@ LIF "lif" = {
    nyScale          = 1;
    nf               = 1;
    
-   writeStep        = -1;
+   writeStep        = -1; 		//Set to 1 to make movie
 
    spikingFlag      = 1;
    marginWidth      = 0;
@@ -405,13 +405,10 @@ OjaSTDPConn "RetinaONtoLif" = {
    dWMax                  = 2;
    wMin                   = 0.001;
    wMax                   = 1;    // Does not matter if ojaFlag = true
-   numAxonalArbors        = 1;
    ojaFlag                = 1;    //Turns oja rule on or off. Standard STDP if off
    LTDscale               = 1;   // Scale for the change of ampLTD. Must be positive; defaults to postVthRest - posVrest. If 0, adaptive LTD is fixed to initAmpLTD
-   
-   combine_dW_with_W_flag = false;
-   selfFlag               = false;
 
+   numAxonalArbors        = 5;
    weightInitType         = "UniformRandomWeight";
    //weightInit             = 0.001;
    wMaxInit               = 0.0011;
@@ -423,6 +420,8 @@ OjaSTDPConn "RetinaONtoLif" = {
    //combineWeightFiles     = false;
    //symmetrizeWeights      = 0;
    
+   combine_dW_with_W_flag = false;
+   selfFlag               = false;
    plasticityFlag         = true;
    shrinkPatches          = false;
    writeCompressedWeights = 0.0;
@@ -461,13 +460,10 @@ OjaSTDPConn "RetinaOFFtoLif" = {
    dWMax                  = 2;
    wMin                   = 0.001;
    wMax                   = 1;    // Does not matter if ojaFlag = true
-   numAxonalArbors        = 1;
    ojaFlag                = 1;    //Turns oja rule on or off. Standard STDP if off
    LTDscale               = 1;   // Scale for the change of ampLTD. Must be positive; defaults to postVthRest - posVrest. If 0, adaptive LTD is fixed to initAmpLTD
    
-   combine_dW_with_W_flag = false;
-   selfFlag               = false;
-
+   numAxonalArbors        = 5;
    weightInitType         = "UniformRandomWeight";
    //weightInit             = 0.001;
    wMaxInit               = 0.0011;
@@ -479,6 +475,8 @@ OjaSTDPConn "RetinaOFFtoLif" = {
    //combineWeightFiles     = false;
    //symmetrizeWeights      = 0;
    
+   combine_dW_with_W_flag = false;
+   selfFlag               = false;
    plasticityFlag         = true;
    shrinkPatches          = false;
    writeCompressedWeights = 0.0;
