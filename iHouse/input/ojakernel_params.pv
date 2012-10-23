@@ -61,7 +61,7 @@ Patterns "input" = {
    minValue                      = 0.25;
 
    halfNeutral                   = true;
-   dropPosition                  = -1;
+   dropPosition                  = 0;
    dropPositionRandomMax         = 20;
    dropPositionRandomMin         = 5;
 
@@ -109,7 +109,7 @@ Retina "RetinaON" = {
     restart       = false;
     
     writeStep     = 1;
-    mirrorBCflag  = 0;
+    mirrorBCflag  = true;
     spikingFlag   = true;  // false (no quotes) is translated to 0
 
     noiseOnFreq   = 200;   // Hz // Max poisson spiking rate when input is 255
@@ -133,7 +133,7 @@ Retina "RetinaOFF" = {
     restart       = false;
     
     writeStep     = -1;
-    mirrorBCflag  = 0;
+    mirrorBCflag  = true;
     spikingFlag   = true;  // false (no quotes) is translated to 0
 
     noiseOnFreq   = 200;   // Hz // Max poisson spiking rate when input is 255
@@ -160,7 +160,7 @@ LCALIFLayer "lcalif" = {
    spikingFlag          = 1;           
    marginWidth          = 8;         
    writeStep            = -1;
-   mirrorBCflag         = 0;         // mirroring boundary conditions
+   mirrorBCflag         = true;        // mirroring boundary conditions
    InitVType            = "ConstantV";
    method               = "beginning";
    valueV                = -70.0;
