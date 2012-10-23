@@ -26,9 +26,9 @@ KernelTestProbe::KernelTestProbe(HyPerLayer * layer, const char * msg)
 }
 
 
-int KernelTestProbe::outputState(float timef)
+int KernelTestProbe::outputState(double timed)
 {
-   int status = StatsProbe::outputState(timef);
+   int status = StatsProbe::outputState(timed);
 #ifdef PV_USE_MPI
    InterColComm * icComm = getTargetLayer()->getParent()->icCommunicator();
    const int rcvProc = 0;
@@ -36,7 +36,7 @@ int KernelTestProbe::outputState(float timef)
       return 0;
    }
 #endif // PV_USE_MPI
-   if(timef>2.0f){
+   if(timed>2.0f){
       assert((fMin>0.99)&&(fMin<1.010));
       assert((fMax>0.99)&&(fMax<1.010));
       assert((avg>0.99)&&(avg<1.010));
