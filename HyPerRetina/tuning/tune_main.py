@@ -17,11 +17,11 @@ mpi_np              = '4'
 mpi_rows            = '2'
 mpi_columns         = '2'
 
-num_steps_list      = ['2000'] #[str(450*33)]
+num_steps_list      = [str(450*33)]#['2000'] #
 stochastic_flag     = '1' #preActivityNotRate = !stochastic_flag
 
 param_template_name = 'retina_params.template'
-run_name            = 'graywhiteblackspots' #'Heli_Challenge_026'
+run_name            = 'Heli_Challenge_026'#'graywhiteblackspots' #
 
 #######################################################################################
 ## PATH PARAMS
