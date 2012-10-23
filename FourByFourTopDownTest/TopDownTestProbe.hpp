@@ -18,7 +18,7 @@ public:
    TopDownTestProbe(const char * filename, HyPerLayer * layer, const char * msg, float checkperiod);
    virtual ~TopDownTestProbe();
 
-   virtual int outputState(float timef);
+   virtual int outputState(double timed);
 
 protected:
    int initTopDownTestProbe(const char * filename, HyPerLayer * layer, const char * msg, float checkperiod);

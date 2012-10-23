@@ -53,8 +53,8 @@ int TopDownTestProbe::initTopDownTestProbe(const char * filename, HyPerLayer * l
  * @time
  * @l
  */
-int TopDownTestProbe::outputState(float timef) {
-   if( checkperiod > 0 && timef >= nextupdate ) {
+int TopDownTestProbe::outputState(double timed) {
+   if( checkperiod > 0 && timed >= nextupdate ) {
 #ifdef PV_USE_MPI
       InterColComm * icComm = getTargetLayer()->getParent()->icCommunicator();
       MPI_Comm mpi_comm = icComm->communicator();
@@ -86,7 +86,7 @@ int TopDownTestProbe::outputState(float timef) {
       }
       assert(numatmin > 0);
       minscore = sqrtf(minscore);
-      fprintf(fp,"%stime=%f, reconstruction within %f of image %d in L2",msg, timef, minscore, minidx);
+      fprintf(fp,"%stime=%f, reconstruction within %f of image %d in L2",msg, timed, minscore, minidx);
       if( numatmin > 1) {
          fprintf(fp, " (as well as %d others)", numatmin-1);
       }
