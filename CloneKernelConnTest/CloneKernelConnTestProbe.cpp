@@ -24,9 +24,9 @@ CloneKernelConnTestProbe::CloneKernelConnTestProbe(HyPerLayer * layer, const cha
 }
 
 
-int CloneKernelConnTestProbe::outputState(float timef)
+int CloneKernelConnTestProbe::outputState(double timed)
 {
-   int status = StatsProbe::outputState(timef);
+   int status = StatsProbe::outputState(timed);
 #ifdef PV_USE_MPI
    InterColComm * icComm = getTargetLayer()->getParent()->icCommunicator();
    const int rcvProc = 0;
@@ -34,7 +34,7 @@ int CloneKernelConnTestProbe::outputState(float timef)
       return 0;
    }
 #endif // PV_USE_MPI
-   if(timef>2.0f){
+   if(timed>2.0f){
       assert(fabs(fMin) < 1e-6);
       assert(fabs(fMax) < 1e-6);
       assert(fabs(avg) < 1e-6);

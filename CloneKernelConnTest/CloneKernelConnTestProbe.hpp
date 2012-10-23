@@ -17,7 +17,7 @@ public:
    CloneKernelConnTestProbe(const char * filename, HyPerLayer * layer, const char * msg);
    CloneKernelConnTestProbe(HyPerLayer * layer, const char * msg);
 
-   virtual int outputState(float timef);
+   virtual int outputState(double timed);
 
 };
 
