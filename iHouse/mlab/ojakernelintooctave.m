@@ -14,7 +14,6 @@ feedforwardweightx = 5;
 feedforwardweighty = 5;
 lateralweightx = 9;
 lateralweighty = 9;
-lcalifmargin = 8;
 
 Y.scaledinput = zeros(colsizex,colsizey,nt);
 Y.retinaon = zeros(colsizex,colsizey,nt);
@@ -35,7 +34,7 @@ Y.ojakerneloff.weights = zeros(feedforwardweightx,feedforwardweighty,nf,nt);
 Y.ojakerneloff.inputFiringRate = zeros(colsizex,colsizey,nt);
 Y.ojakerneloff.outputFiringRate = zeros(colsizex,colsizey,nf,nt);
 Y.lateralinhibition.weights = zeros(lateralweightx,lateralweighty,nf,nf,nt);
-Y.lateralinhibition.integratedSpikeCount = zeros(64,64,nf,nt); % zeros(colsizex+2*lcalifmargin,colsizey+2*lcalifmargin,nf,nt);
+Y.lateralinhibition.integratedSpikeCount = zeros(colsizex,colsizey,nf,nt);
 
 for k=1:nt
     t = timeindices(k);
