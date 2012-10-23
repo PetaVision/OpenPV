@@ -144,21 +144,13 @@ int LCALIFLateralKernelConn::updateIntegratedSpikeCount() {
 
 int LCALIFLateralKernelConn::checkpointWrite(const char * cpDir) {
    int status = KernelConn::checkpointWrite(cpDir);
-   // This is kind of hacky, but we save the extended buffer integratedSpikeCount as if it were a nonextended buffer of size (nx+2*nb)-by-(ny+2*nb)
    char filename[PV_PATH_MAX];
    int chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_integratedSpikeCount.pvp", cpDir, name);
    if (chars_needed >= PV_PATH_MAX) {
       fprintf(stderr, "LCALIFLateralKernelConn::checkpointWrite error.  Path \"%s/%s_integratedSpikeCount.pvp\" is too long.\n", cpDir, name);
       abort();
    }
-   PVLayerLoc loc;
-   memcpy(&loc, pre->getLayerLoc(), sizeof(PVLayerLoc));
-   loc.nx += 2*loc.nb;
-   loc.ny += 2*loc.nb;
-   loc.nxGlobal = loc.nx * parent->icCommunicator()->numCommColumns();
-   loc.nyGlobal = loc.ny * parent->icCommunicator()->numCommRows();
-   loc.nb = 0;
-   write_pvdata(filename, parent->icCommunicator(), (double) parent->simulationTime(), integratedSpikeCount, &loc, PV_FLOAT_TYPE, /*extended*/ false, /*contiguous*/ false);
+   write_pvdata(filename, parent->icCommunicator(), (double) parent->simulationTime(), integratedSpikeCount, pre->getLayerLoc(), PV_FLOAT_TYPE, /*extended*/ true, /*contiguous*/ false);
    return status;
 }
 
