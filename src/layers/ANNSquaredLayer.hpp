@@ -20,7 +20,7 @@ public:
    ANNSquaredLayer(const char* name, HyPerCol * hc, int numChannels);
    ANNSquaredLayer(const char* name, HyPerCol * hc);
    virtual ~ANNSquaredLayer();
-   virtual int updateState(float time, float dt);
+   virtual int updateState(double time, double dt);
 //    virtual int updateV();
 
 //    virtual int squareV();
@@ -35,7 +35,7 @@ protected:
    virtual int initializeThreadBuffers(const char * kernel_name);
    virtual int initializeThreadKernels(const char * kernel_name);
    //virtual int getEVActivity() {return EV_ANNSQ_ACTIVITY;}
-   int updateStateOpenCL(float time, float dt);
+   int updateStateOpenCL(double time, double dt);
 #endif
 
 private:

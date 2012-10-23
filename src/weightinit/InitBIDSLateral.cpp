@@ -39,7 +39,7 @@ InitBIDSLateral::~InitBIDSLateral(){
  * This method initializes the full unshrunken patch.  The input argument numPatches is ignored.  Instead, method uses getNumDataPatches to determine number of
  * data patches.
  */
-int InitBIDSLateral::initializeWeights(PVPatch *** patches, pvdata_t ** dataStart, int numPatches, const char * filename, HyPerConn * callingConn, float * timef /*default NULL*/){
+int InitBIDSLateral::initializeWeights(PVPatch *** patches, pvdata_t ** dataStart, int numPatches, const char * filename, HyPerConn * callingConn, double * timef /*default NULL*/){
    PVParams * inputParams = callingConn->getParent()->parameters();
    movieLayer = (BIDSMovieCloneMap*)(callingConn->getParent()->getLayerFromName("BIDS_Movie"));
    int initFromLastFlag = inputParams->value(callingConn->getName(), "initFromLastFlag", 0.0f, false) != 0;
@@ -182,7 +182,7 @@ int InitBIDSLateral::BIDSLateralCalcWeights(/* PVPatch * patch */ int kPre, pvda
       int patchCentery = (kPreResy * patchSizey) + (patchSizey / 2);
 
       const char * jitterSourceName = conn->getParent()->parameters()->stringValue(conn->getName(), "jitterSource");
-      int jitter = weightParamPtr->getPre()->getParent()->parameters()->value(jitterSourceName, "jitter");
+      int jitter = (int)weightParamPtr->getPre()->getParent()->parameters()->value(jitterSourceName, "jitter");
       //Divide by patch size to convert to BIDS units
       int principleJittDiffx = (jitter - abs(preCoordx - patchCenterx)) / patchSizex;
       int principleJittDiffy = (jitter - abs(preCoordy - patchCentery)) / patchSizey;
@@ -217,7 +217,7 @@ int InitBIDSLateral::BIDSLateralCalcWeights(/* PVPatch * patch */ int kPre, pvda
 
 
             //Test for ranges
-            int radius = conn->getParent()->parameters()->value(conn->getName(), "lateralRadius");
+            int radius = (int)conn->getParent()->parameters()->value(conn->getName(), "lateralRadius");
             int range = 2 * (radius + 2 * jitter) + 1;
 
             if(abs(preCoordx - postcoordx) > range || abs(preCoordy - postcoordy) > range){
@@ -252,7 +252,7 @@ int InitBIDSLateral::BIDSLateralCalcWeights(/* PVPatch * patch */ int kPre, pvda
                w[delX] = (1 / (distance * distance + 1)) * weightParamPtr->getStrength();
             }
             else if(strcmp("Log", weightParamPtr->getFalloffType()) == 0){
-               int lateralRad = conn->getParent()->parameters()->value(conn->getName(), "lateralRadius");
+               int lateralRad = (int)conn->getParent()->parameters()->value(conn->getName(), "lateralRadius");
                float connDist2 = 2*lateralRad*lateralRad;
                float w_tmp = ((1 / (distance * distance + 1)) / (1 / (connDist2 + 1)));
                if (w_tmp > 1.0f){

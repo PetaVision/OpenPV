@@ -16,8 +16,8 @@ namespace PV {
 class BIDSLayer : public PV::LIF {
 public:
    BIDSLayer(const char* name, HyPerCol * hc); // The constructor called by other methods
-   int updateState(float timef, float dt);
-   int updateState(float timef, float dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels, pvdata_t * gSynHead, bool spiking, unsigned int * active_indices, unsigned int * num_active);
+   int updateState(double timef, double dt);
+   int updateState(double timef, double dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels, pvdata_t * gSynHead, bool spiking, unsigned int * active_indices, unsigned int * num_active);
    int findFlag(int numMatrixCol, int numMatrixRow);
 protected:
   BIDSLayer();

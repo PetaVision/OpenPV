@@ -120,7 +120,7 @@ int ANNLayer::initializeThreadKernels(const char * kernel_name)
 
    return status;
 }
-int ANNLayer::updateStateOpenCL(float time, float dt)
+int ANNLayer::updateStateOpenCL(double time, double dt)
 {
    int status = CL_SUCCESS;
 
@@ -167,7 +167,7 @@ int ANNLayer::readVThreshParams(PVParams * params) {
  *
  *
  */
-int ANNLayer::updateState(float time, float dt)
+int ANNLayer::updateState(double time, double dt)
 {
    update_timer->start();
 #ifdef PV_USE_OPENCL

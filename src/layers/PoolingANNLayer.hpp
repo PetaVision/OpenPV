@@ -26,7 +26,7 @@ public:
    PoolingANNLayer(const char * name, HyPerCol * hc);
    int initialize();
 
-   virtual int updateState(float timef, float dt);
+   virtual int updateState(double timef, double dt);
 
    pvdata_t getBiasa() { return biasa;}
    pvdata_t getBiasb() { return biasb;}
@@ -35,7 +35,7 @@ public:
 protected:
    PoolingANNLayer();
    int initialize(const char * name, HyPerCol * hc);
-   /* static */ int updateState(float timef, float dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels, pvdata_t * gSynHead, pvdata_t biasa, pvdata_t biasb, unsigned int * active_indices, unsigned int * num_active);
+   /* static */ int updateState(double timef, double dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels, pvdata_t * gSynHead, pvdata_t biasa, pvdata_t biasb, unsigned int * active_indices, unsigned int * num_active);
    // int updateV();
 
 private:

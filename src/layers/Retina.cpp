@@ -240,7 +240,7 @@ int Retina::initializeState() {
    PVParams * params = parent->parameters();
    bool restart_flag = params->value(name, "restart", 0.0f) != 0.0f;
    if( restart_flag ) {
-      float timef;
+      double timef;
       readState(&timef);
    }
 
@@ -249,7 +249,7 @@ int Retina::initializeState() {
 
 int Retina::setParams(PVParams * p)
 {
-   float dt_sec = parent->getDeltaTime() * .001;  // seconds
+   double dt_sec = parent->getDeltaTime() * .001;  // seconds
 
    clayer->loc.nf = 1;
    clayer->loc.nb = (int) p->value(name, "marginWidth", 0.0);
@@ -290,7 +290,7 @@ int Retina::setParams(PVParams * p)
    return 0;
 }
 
-int Retina::checkpointRead(const char * cpDir, float * timef) {
+int Retina::checkpointRead(const char * cpDir, double * timef) {
    int status = HyPerLayer::checkpointRead(cpDir, timef);
 
    char filename[PV_PATH_MAX];
@@ -441,7 +441,7 @@ int Retina::checkpointWrite(const char * cpDir) {
 }
 
 
-int Retina::updateStateOpenCL(float time, float dt)
+int Retina::updateStateOpenCL(double time, double dt)
 {
    int status = CL_SUCCESS;
 
@@ -530,7 +530,7 @@ int Retina::waitOnPublish(InterColComm* comm)
  *
  *
  */
-int Retina::updateState(float time, float dt)
+int Retina::updateState(double time, double dt)
 {
    update_timer->start();
 #ifdef PV_USE_OPENCL
@@ -584,7 +584,7 @@ int Retina::updateState(float time, float dt)
    return 0;
 }
 
-int Retina::updateBorder(float time, float dt)
+int Retina::updateBorder(double time, double dt)
 {
    // wait for OpenCL data transfers to finish
    HyPerLayer::updateBorder(time, dt);
@@ -633,7 +633,7 @@ int Retina::updateBorder(float time, float dt)
 }
 
 #ifdef OBSOLETE // Marked obsolete Jul 13, 2012.  Dumping the state is now done by CheckpointWrite.
-int Retina::writeState(float timef, bool last)
+int Retina::writeState(double timef, bool last)
 {
    int status = HyPerLayer::writeState(timef, last);
 
@@ -659,7 +659,7 @@ int Retina::writeState(float timef, bool last)
 }
 #endif // OBSOLETE
 
-int Retina::outputState(float time, bool last)
+int Retina::outputState(double time, bool last)
 {
    // if( spikingFlag ) updateActiveIndices(); // updateActiveIndices moved back into updateState.
    return HyPerLayer::outputState(time, last);

@@ -500,7 +500,7 @@ ChannelType HyPerConn::readChannelCode(PVParams * params) {
       fprintf(stderr, "Group \"%s\" must set parameter channelCode.\n", name);
       abort();
    }
-   int ch = params->value(name, "channelCode");
+   int ch = (int)params->value(name, "channelCode");
    int status = decodeChannel(ch, &channel);
    if (status != PV_SUCCESS) {
       fprintf(stderr, "HyPerConn::readChannelCode: channelCode %d for connection \"%s\" is not a valid channel.\n",  ch, name);
@@ -823,7 +823,7 @@ int HyPerConn::checkWeightsHeader(const char * filename, int * wgtParams)
    return 0;
 }
 
-int HyPerConn::writeWeights(float time, bool last)
+int HyPerConn::writeWeights(double time, bool last)
 {
    const int numPatches = getNumWeightPatches();
    return writeWeights(wPatches, wDataStart, numPatches, NULL, time, last);
@@ -834,7 +834,7 @@ int HyPerConn::writeWeights(const char * filename) {
 }
 
 #ifdef OBSOLETE_NBANDSFORARBORS
-int HyPerConn::writeWeights(float time, bool last)
+int HyPerConn::writeWeights(double time, bool last)
 {
    //const int arbor = 0;
    const int numPatches = getNumWeightPatches();
@@ -846,7 +846,7 @@ int HyPerConn::writeWeights(float time, bool last)
 }
 #endif // OBSOLETE_NBANDSFORARBORS
 
-int HyPerConn::writeWeights(PVPatch *** patches, pvdata_t ** dataStart, int numPatches, const char * filename, float timef, bool last) {
+int HyPerConn::writeWeights(PVPatch *** patches, pvdata_t ** dataStart, int numPatches, const char * filename, double timef, bool last) {
    int status = PV_SUCCESS;
    char path[PV_PATH_MAX];
 
@@ -889,7 +889,7 @@ int HyPerConn::writeWeights(PVPatch *** patches, pvdata_t ** dataStart, int numP
 
 #ifdef OBSOLETE_NBANDSFORARBORS
 int HyPerConn::writeWeights(PVPatch ** patches, int numPatches,
-                            const char * filename, float time, bool last, int arborId)
+                            const char * filename, double time, bool last, int arborId)
 {
    int status = 0;
    char path[PV_PATH_MAX];
@@ -997,7 +997,7 @@ int HyPerConn::writeTextWeights(const char * filename, int k)
 
 void HyPerConn::setDelay(int arborId, float delay) {
    assert(arborId>=0 && arborId<numAxonalArborLists);
-   delays[arborId] = round(delay / parent->getDeltaTime());
+   delays[arborId] = (int)(round(delay / parent->getDeltaTime()));
 //   int numPatches = numWeightPatches();
 //    for(int pID=0;pID<numPatches; pID++) {
 //       axonalArbor(pID, arborId)->delay = delay;
@@ -1219,7 +1219,7 @@ int HyPerConn::deliver(Publisher * pub, const PVLayerCube * cube, int neighbor)
    return 0;
 }
 
-int HyPerConn::checkpointRead(const char * cpDir, float * timef) {
+int HyPerConn::checkpointRead(const char * cpDir, double * timef) {
    clearWeights(get_wDataStart(), getNumDataPatches(), nxp, nyp, nfp);
 
    char path[PV_PATH_MAX];
@@ -1233,7 +1233,7 @@ int HyPerConn::checkpointRead(const char * cpDir, float * timef) {
    assert(chars_needed < PV_PATH_MAX);
    if( parent->icCommunicator()->commRank() == 0 ) {
       FILE * fpWriteTime = fopen(path, "r");
-      pvdata_t write_time = writeTime;
+      double write_time = writeTime;
       if (fpWriteTime==NULL) {
          fprintf(stderr, "HyPerLayer::checkpointRead warning: unable to open path %s for reading.  writeTime will be %f\n", path, write_time);
       }
@@ -1247,7 +1247,7 @@ int HyPerConn::checkpointRead(const char * cpDir, float * timef) {
       fclose(fpWriteTime);
    }
    //writeTime
-   MPI_Bcast(&writeTime, 1, MPI_FLOAT, 0, parent->icCommunicator()->communicator());
+   MPI_Bcast(&writeTime, 1, MPI_DOUBLE, 0, parent->icCommunicator()->communicator());
    return status;
 }
 
@@ -1273,7 +1273,7 @@ int HyPerConn::checkpointFilename(char * cpFilename, int size, const char * cpDi
    return PV_SUCCESS;
 }
 
-int HyPerConn::writeScalarFloat(const char * cp_dir, const char * val_name, float val) {
+int HyPerConn::writeScalarFloat(const char * cp_dir, const char * val_name, double val) {
    int status = PV_SUCCESS;
    if (parent->columnId()==0)  {
       char filename[PV_PATH_MAX];
@@ -1350,7 +1350,7 @@ int HyPerConn::insertProbe(BaseConnectionProbe * p)
    return ++numProbes;
 }
 
-int HyPerConn::outputState(float timef, bool last)
+int HyPerConn::outputState(double timef, bool last)
 {
    int status = 0;
 
@@ -1377,7 +1377,7 @@ int HyPerConn::outputState(float timef, bool last)
    return status;
 }
 
-int HyPerConn::updateState(float time, float dt)
+int HyPerConn::updateState(double time, double dt)
 {
    int status = PV_SUCCESS;
    if( !plasticityFlag ) {
@@ -1634,7 +1634,7 @@ int HyPerConn::adjustAxonalArbors(int arborId)
    return 0;
 }
 
-PVPatch *** HyPerConn::convertPreSynapticWeights(float time)
+PVPatch *** HyPerConn::convertPreSynapticWeights(double time)
 {
    if (time <= wPostTime) {
       return wPostPatches;
@@ -2105,7 +2105,7 @@ int HyPerConn::postSynapticPatchHead(int kPreEx,
    return status;
 }
 
-int HyPerConn::writePostSynapticWeights(float timef, bool last) {
+int HyPerConn::writePostSynapticWeights(double timef, bool last) {
    int status = PV_SUCCESS;
    char path[PV_PATH_MAX];
 
@@ -2156,14 +2156,14 @@ int HyPerConn::writePostSynapticWeights(float timef, bool last) {
 }
 
 #ifdef OBSOLETE // Marked obsolete Nov 29, 2011.
-int HyPerConn::writePostSynapticWeights(float time, bool last) {
+int HyPerConn::writePostSynapticWeights(double time, bool last) {
    for(int axonID=0;axonID<numberOfAxonalArborLists();axonID++) {
       writePostSynapticWeights(time, last, axonID);
    }
    return PV_SUCCESS;
 }
 
-int HyPerConn::writePostSynapticWeights(float time, bool last, int axonID)
+int HyPerConn::writePostSynapticWeights(double time, bool last, int axonID)
 {
    int status = 0;
    char path[PV_PATH_MAX];

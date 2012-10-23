@@ -45,7 +45,7 @@ int KernelProbe::initialize(const char * probename, const char * filename, HyPer
    return status;
 }
 
-int KernelProbe::outputState(float timef) {
+int KernelProbe::outputState(double timef) {
 #ifdef PV_USE_MPI
    InterColComm * icComm = getTargetKConn()->getParent()->icCommunicator();
    const int rank = icComm->commRank();

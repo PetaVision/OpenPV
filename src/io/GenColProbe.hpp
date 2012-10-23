@@ -38,11 +38,11 @@ public:
 
    int addConnTerm(ConnFunctionProbe * p, HyPerConn * c, pvdata_t coeff);
    int addLayerTerm(LayerFunctionProbe * p, HyPerLayer * l, pvdata_t coeff);
-   virtual int outputState(float time, HyPerCol * hc);
+   virtual int outputState(double time, HyPerCol * hc);
 
 protected:
    int initializeGenColProbe(const char * probename, const char * filename, HyPerCol * hc);
-   virtual pvdata_t evaluate(float timef);
+   virtual pvdata_t evaluate(double timef);
 
    int numLayerTerms;
    gencolprobelayerterm * layerTerms;

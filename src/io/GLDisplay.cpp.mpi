@@ -172,7 +172,7 @@ void GLDisplay::advanceTime(void)
    fflush(stdout);
 }
 
-void GLDisplay::run(float time, float stopTime)
+void GLDisplay::run(double time, double stopTime)
 {
    this->time = time;
    this->stopTime = stopTime;
@@ -300,7 +300,7 @@ void GLDisplay::drawDisplays()
 
 // implement LayerProbe interface
 //
-int GLDisplay::outputState(float time, HyPerLayer * l)
+int GLDisplay::outputState(double time, HyPerLayer * l)
 {
    fprintf(stderr, "[%2d]: GLDisplay::outputState time==%f", parent->columnId(), time);
    return loadTexture(getTextureId(l), l);

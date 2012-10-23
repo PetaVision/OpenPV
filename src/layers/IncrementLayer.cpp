@@ -57,14 +57,14 @@ int IncrementLayer::readVThreshParams(PVParams * params) {
    return PV_SUCCESS;
 }
 
-int IncrementLayer::updateState(float timef, float dt) {
+int IncrementLayer::updateState(double timef, double dt) {
    int status;
    status = updateState(timef, dt, &VInited, &nextUpdateTime, firstUpdateTime, displayPeriod, getLayerLoc(), getCLayer()->activity->data, getV(), getVprev(), getNumChannels(), GSyn[0], getCLayer()->activeIndices, &getCLayer()->numActive);
    if( status == PV_SUCCESS ) status = updateActiveIndices();
    return status;
 }
 
-int IncrementLayer::updateState(float timef, float dt, bool * inited, float * next_update_time, float first_update_time, float display_period, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, pvdata_t * Vprev, int num_channels, pvdata_t * gSynHead, unsigned int * active_indices, unsigned int * num_active) {
+int IncrementLayer::updateState(double timef, double dt, bool * inited, double * next_update_time, double first_update_time, double display_period, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, pvdata_t * Vprev, int num_channels, pvdata_t * gSynHead, unsigned int * active_indices, unsigned int * num_active) {
    int status = PV_SUCCESS;
    int nx = loc->nx;
    int ny = loc->ny;
@@ -102,7 +102,7 @@ int IncrementLayer::setActivity() {
    return setActivity_IncrementLayer(getNumNeurons(), clayer->activity->data, getV(), getVprev(), loc->nx, loc->ny, loc->nf, loc->nb);
 }
 
-int IncrementLayer::checkpointRead(const char * cpDir, float * timef) {
+int IncrementLayer::checkpointRead(const char * cpDir, double * timef) {
    HyPerLayer::checkpointRead(cpDir, timef);
    InterColComm * icComm = parent->icCommunicator();
    double timed;

@@ -36,7 +36,7 @@ public:
     * initweights classes
     */
    //void initializeWeights(const char * filename, HyPerConn * callingConn, float * timef=NULL);
-   virtual int initializeWeights(PVPatch *** patches, pvdata_t ** dataStart, int numPatches, const char * filename, HyPerConn * callingConn, float * timef=NULL);
+   virtual int initializeWeights(PVPatch *** patches, pvdata_t ** dataStart, int numPatches, const char * filename, HyPerConn * callingConn, double * timef=NULL);
    virtual InitWeightsParams * createNewWeightParams(HyPerConn * callingConn);
 
    virtual int calcWeightsBIDS(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, int arborId, InitWeightsParams *weightParams, HyPerConn * conn);

@@ -56,10 +56,10 @@ int InitBIDSLateralParams::initialize(HyPerConn * parentConn) {
    rMax     = params->value(getName(), "rMax", rMax);
    rMin     = params->value(getName(), "rMin", rMin);
    strength = params->value(getName(), "strength", strength);
-   nxp      = params->value(getName(), "nxp", nxp);
-   nyp      = params->value(getName(), "nyp", nyp);
+   nxp      = (int)params->value(getName(), "nxp", nxp);
+   nyp      = (int)params->value(getName(), "nyp", nyp);
    falloffType = params->stringValue(getName(), "falloffType", falloffType);
-   lateralRadius = params->value(getName(), "lateralRadius", lateralRadius);
+   lateralRadius = (int)params->value(getName(), "lateralRadius", lateralRadius);
    // old if condition failed to account for connections between oriented to non-oriented cells
 //   if (parentConn->fPatchSize() > 1) {
    if (aspect != 1.0) {      //noPost = (int) params->value(post->getName(), "no", parentConn->fPatchSize());

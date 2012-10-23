@@ -27,7 +27,7 @@ public:
    LayerProbe(const char * filename, HyPerLayer * layer);
    virtual ~LayerProbe();
 
-   virtual int outputState(float timef) = 0;
+   virtual int outputState(double timef) = 0;
 
    HyPerLayer * getTargetLayer() {return targetLayer;}
 

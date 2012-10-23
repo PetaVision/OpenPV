@@ -34,7 +34,7 @@ public:
 
    int setReciprocalWgts(const char * recipName);
 
-   virtual int updateState(float timef, float dt);
+   virtual int updateState(double timef, double dt);
 
 protected:
    // protected methods

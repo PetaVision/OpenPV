@@ -60,14 +60,14 @@ int GapLayer::initialize(const char * name, HyPerCol * hc, LIFGap * originalLaye
    return status_init;
 }
 
-int GapLayer::updateState(float timef, float dt) {
+int GapLayer::updateState(double timef, double dt) {
    int status;
    status = updateState(timef, dt, getLayerLoc(), getCLayer()->activity->data, getV(), sourceLayer->getCLayer()->activity->data);
    if( status == PV_SUCCESS  ) status = updateActiveIndices();
    return status;
 }
 
-int GapLayer::updateState(float timef, float dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, pvdata_t * checkActive) {
+int GapLayer::updateState(double timef, double dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, pvdata_t * checkActive) {
    int nx = loc->nx;
    int ny = loc->ny;
    int nf = loc->nf;

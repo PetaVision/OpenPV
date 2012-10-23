@@ -24,13 +24,13 @@ public:
    int setImage(Image * image);
    void setDelay(float msecs);
 
-   void run(float time, float stopTime);
+   void run(double time, double stopTime);
 
    void drawDisplays();
 
    // implement LayerProbe interface
    //
-   int outputState(float timef);
+   int outputState(double timef);
 
 private:
 
@@ -55,9 +55,9 @@ private:
 
    int * textureIds; // texture ids for displays
 
-   float time;
-   float stopTime;
-   float lastUpdateTime;
+   double time;
+   double stopTime;
+   double lastUpdateTime;
 };
 
 }

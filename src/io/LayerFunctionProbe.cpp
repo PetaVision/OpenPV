@@ -61,7 +61,7 @@ int LayerFunctionProbe::setFunction(LayerFunction * F) {
    }
 }
 
-int LayerFunctionProbe::outputState(float timef) {
+int LayerFunctionProbe::outputState(double timef) {
    pvdata_t val = function->evaluate(timef, getTargetLayer());
 #ifdef PV_USE_MPI
    if( getTargetLayer()->getParent()->icCommunicator()->commRank() != 0 ) return PV_SUCCESS;
@@ -75,7 +75,7 @@ int LayerFunctionProbe::outputState(float timef) {
    }
 }  // end LayerFunctionProbe::outputState(float, HyPerLayer *)
 
-int LayerFunctionProbe::writeState(float timef, HyPerLayer * l, pvdata_t value) {
+int LayerFunctionProbe::writeState(double timef, HyPerLayer * l, pvdata_t value) {
 #ifdef PV_USE_MPI
    // In MPI mode, this function should only be called by the root processor.
    assert(l->getParent()->icCommunicator()->commRank() == 0);

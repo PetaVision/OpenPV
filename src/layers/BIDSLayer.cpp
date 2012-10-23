@@ -30,7 +30,7 @@ int BIDSLayer::initialize(const char * name, HyPerCol * hc, PVLayerType type, in
    return PV_SUCCESS;
 }
 
-int BIDSLayer::updateState(float time, float dt)
+int BIDSLayer::updateState(double time, double dt)
 {
    int status = 0;
    update_timer->start();

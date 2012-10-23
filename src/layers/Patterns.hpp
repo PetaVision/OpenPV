@@ -48,7 +48,7 @@ class Patterns : public PV::Image {
 public:
    Patterns(const char * name, HyPerCol * hc, PatternType type);
    virtual ~Patterns();
-   virtual int updateState(float timef, float dt);
+   virtual int updateState(double timef, double dt);
 
    void setProbMove(float p)     {pMove = p;}
    void setProbSwitch(float p)   {pSwitch = p;}
@@ -60,7 +60,7 @@ public:
 
    virtual int tag();
 
-   int checkpointRead(const char * cpDir, float * timef);
+   int checkpointRead(const char * cpDir, double * timef);
    int checkpointWrite(const char * cpDir);
 
 protected:
@@ -77,7 +77,7 @@ protected:
    int drawWaves(float val);
    int drawImpulse();
    int drawDrops();
-   int updatePattern(float timef);
+   int updatePattern(double timef);
    float calcPosition(float pos, int step);
 
    PatternType type;
@@ -94,7 +94,7 @@ protected:
    float pMove;
    float movementSpeed; //save a movement speed in pixels/time step
    float positionBound; // The supremum of possible values of position
-   int framenumber;
+   double framenumber;
 
    std::vector <Drop>vDrops;
    float dropSpeed;
@@ -103,16 +103,16 @@ protected:
    int dropPeriod;
    int dropPeriodRandomMax;
    int dropPeriodRandomMin;
-   int nextDropFrame;
-   int nextPosChangeFrame;
+   double nextDropFrame;
+   double nextPosChangeFrame;
    int xPos;
    int yPos;
    int onOffFlag;
    int dropPosition;
    int dropPositionRandomMax;
    int dropPositionRandomMin;
-   int startFrame;
-   int endFrame;
+   double startFrame;
+   double endFrame;
 
    int minWidth, maxWidth;
    int minHeight, maxHeight;
@@ -122,8 +122,8 @@ protected:
    float minVal;
    char * patternsOutputPath;  // path to output file directory for patterns
 
-   float displayPeriod;   // length of time a frame is displayed
-   float nextDisplayTime; // time of next frame
+   double displayPeriod;   // length of time a frame is displayed
+   double nextDisplayTime; // time of next frame
    FILE * patternsFile;
 
 private:

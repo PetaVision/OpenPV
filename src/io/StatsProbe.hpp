@@ -20,7 +20,7 @@ public:
    StatsProbe(HyPerLayer * layer, PVBufType type, const char * msg);
    virtual ~StatsProbe();
 
-   virtual int outputState(float timef);
+   virtual int outputState(double timef);
 
 protected:
    StatsProbe();

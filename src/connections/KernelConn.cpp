@@ -220,9 +220,9 @@ PVPatch ***  KernelConn::initializeWeights(PVPatch *** arbors, pvdata_t ** dataS
 
 int KernelConn::initNumDataPatches()
 {
-   int nxKernel = (pre->getXScale() < post->getXScale()) ? pow(2,
+   int nxKernel = (pre->getXScale() < post->getXScale()) ? (int)pow(2,
          post->getXScale() - pre->getXScale()) : 1;
-   int nyKernel = (pre->getYScale() < post->getYScale()) ? pow(2,
+   int nyKernel = (pre->getYScale() < post->getYScale()) ? (int)pow(2,
          post->getYScale() - pre->getYScale()) : 1;
    numDataPatches = pre->clayer->loc.nf * nxKernel * nyKernel;
    return PV_SUCCESS;
@@ -338,7 +338,7 @@ pvdata_t KernelConn::updateRule_dW(pvdata_t pre, pvdata_t post) {
    return pre*post;
 }
 
-int KernelConn::updateState(float timef, float dt) {
+int KernelConn::updateState(double timef, double dt) {
    int status = PV_SUCCESS;
    if( !plasticityFlag ) {
       return status;
@@ -404,7 +404,7 @@ int KernelConn::updateWeights(int axonId){
    return PV_BREAK;
 }
 
-float KernelConn::computeNewWeightUpdateTime(float time, float currentUpdateTime) {
+float KernelConn::computeNewWeightUpdateTime(double time, double currentUpdateTime) {
    // Is only called by KernelConn::updateState if plasticityFlag is true
    weightUpdateTime += weightUpdatePeriod;
    return weightUpdateTime;
@@ -599,7 +599,7 @@ int KernelConn::symmetrizeWeights(pvdata_t * dataStart, int numPatches, int arbo
    return status;
 }
 
-int KernelConn::writeWeights(float timef, bool last) {
+int KernelConn::writeWeights(double timef, bool last) {
    const int numPatches = getNumDataPatches();
    return HyPerConn::writeWeights(NULL, get_wDataStart(), numPatches, NULL, timef, last);
 }
@@ -608,7 +608,7 @@ int KernelConn::writeWeights(const char * filename) {
    return HyPerConn::writeWeights(NULL, get_wDataStart(), getNumDataPatches(), filename, parent->simulationTime(), true);
 }
 
-int KernelConn::checkpointRead(const char * cpDir, float * timef) {
+int KernelConn::checkpointRead(const char * cpDir, double * timef) {
    // Only difference from HyPerConn::checkpointRead() is first argument to weightsInitObject->initializeWeights.
    // Can we juggle things so that KernelConn::checkpointWrite is unnecessary?
    clearWeights(get_wDataStart(), getNumDataPatches(), nxp, nyp, nfp);

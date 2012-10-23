@@ -59,7 +59,7 @@ int Init3DGaussWeightsParams::initialize(HyPerConn * parentConn) {
    sigma    = params->value(getName(), "sigma", sigma);
    rMax     = params->value(getName(), "rMax", rMax);
    strength = params->value(getName(), "strength", strength);
-   dT = params->value(getName(), "dT", dT);
+   dT = (double)params->value(getName(), "dT", dT);
    shiftT = params->value(getName(), "shiftT", shiftT);
    float flowSpeed = params->value(getName(), "flowSpeed", 1.0f); //pixels per time step
 

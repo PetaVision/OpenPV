@@ -39,7 +39,7 @@ InitWeights::~InitWeights()
  * This method initializes the full unshrunken patch.  The input argument numPatches is ignored.  Instead, method uses getNumDataPatches to determine number of
  * data patches.
  */
-int InitWeights::initializeWeights(PVPatch *** patches, pvdata_t ** dataStart, int numPatches, const char * filename, HyPerConn * callingConn, float * timef /*default NULL*/) {
+int InitWeights::initializeWeights(PVPatch *** patches, pvdata_t ** dataStart, int numPatches, const char * filename, HyPerConn * callingConn, double * timef /*default NULL*/) {
 //void InitWeights::initializeWeights(const char * filename, HyPerConn * callingConn, float * timef /*default NULL*/) {
    PVParams * inputParams = callingConn->getParent()->parameters();
    int initFromLastFlag = inputParams->value(callingConn->getName(), "initFromLastFlag", 0.0f, false) != 0;
@@ -129,7 +129,7 @@ int InitWeights::initialize_base() {
    return PV_SUCCESS;
 }
 
-int InitWeights::readWeights(PVPatch *** patches, pvdata_t ** dataStart, int numPatches, const char * filename, HyPerConn * conn, float * timef/*default=NULL*/) {
+int InitWeights::readWeights(PVPatch *** patches, pvdata_t ** dataStart, int numPatches, const char * filename, HyPerConn * conn, double * timef/*default=NULL*/) {
    InterColComm *icComm = conn->getParent()->icCommunicator();
    int numArbors = conn->numberOfAxonalArborLists();
    const PVLayerLoc *preLoc = conn->preSynapticLayer()->getLayerLoc();
@@ -194,7 +194,7 @@ int InitWeights::readWeights(PVPatch *** patches, pvdata_t ** dataStart, int num
    else if (combineWeightFiles){
       int rootproc = 0;
       int max_weight_files = 1;  // arbitrary limit...
-      int num_weight_files = conn->getParent()->parameters()->value(conn->getName(), "numWeightFiles", max_weight_files, true);
+      int num_weight_files = (int)conn->getParent()->parameters()->value(conn->getName(), "numWeightFiles", max_weight_files, true);
       int file_count=0;
       FILE * weightsfp = pvp_open_read_file(filename, icComm);
       if ((weightsfp == NULL) && (icComm->commRank() == rootproc) ){

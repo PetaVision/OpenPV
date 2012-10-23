@@ -31,7 +31,7 @@ public:
    inline double getR2Max()        {return r2Max;}
    inline float getThetaXT()        {return thetaXT;}
    inline int getTime()        {return time;}
-   inline void setTime(int t)        {time=t*dT;}
+   inline void setTime(int t)        {time=(int)(t*dT);}
    inline float getStrength()        {return strength;}
 
 protected:
@@ -52,7 +52,7 @@ private:
    float shiftT;
    bool bowtieFlag;  // flag for setting bowtie angle
    float bowtieAngle;  // bowtie angle
-   int dT; //change in delay between arbors
+   double dT; //change in delay between arbors
 
    //calculated values;
    float thetaXT;  //=>angle corresponding to feature velocity

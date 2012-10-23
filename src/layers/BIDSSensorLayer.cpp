@@ -39,8 +39,8 @@ int BIDSSensorLayer::initialize(const char * name, HyPerCol * hc, int numChannel
    int HyPerColy = (int)(parent->parameters()->value("column", "ny"));
 
    freq = (float)(parent->parameters()->value(name, "frequency"));
-   ts = (float)1/((float)(parent->parameters()->value(name, "ts_per_period")) * freq);
-   buf_size = (float)(parent->parameters()->value(name, "buffer_size"));
+   ts = (double)1/((float)(parent->parameters()->value(name, "ts_per_period")) * freq);
+   buf_size = (int)(parent->parameters()->value(name, "buffer_size"));
    neutral_val = (float)(parent->parameters()->value(name, "neutral_val"));
    weight = (float)(parent->parameters()->value(name, "weight"));
 
@@ -52,8 +52,8 @@ int BIDSSensorLayer::initialize(const char * name, HyPerCol * hc, int numChannel
    numNodes = blayer->getNumNodes();
 
    //Set nx and ny
-   nx = nxScale * HyPerColx;
-   ny = nyScale * HyPerColy;
+   nx = (int)(nxScale * HyPerColx);
+   ny = (int)(nyScale * HyPerColy);
    nf = blayer->getLayerLoc()->nf;
 
    //Create data structure for data
@@ -73,7 +73,7 @@ int BIDSSensorLayer::initialize(const char * name, HyPerCol * hc, int numChannel
    return PV_SUCCESS;
 }
 
-int BIDSSensorLayer::updateState(float timef, float dt){
+int BIDSSensorLayer::updateState(double timef, double dt){
    pvdata_t * output = getCLayer()->V;
    pvdata_t * input = blayer->getCLayer()->activity->data;
    int index;

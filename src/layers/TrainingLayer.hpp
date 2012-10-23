@@ -24,8 +24,8 @@ public:
    virtual ~TrainingLayer();
    int readTrainingLabels(const char * filename, int ** trainingLabels);
    virtual int initializeState();
-   virtual int updateState(float timef, float dt);
-   virtual int checkpointRead(const char * cpDir, float * timef);
+   virtual int updateState(double timef, double dt);
+   virtual int checkpointRead(const char * cpDir, double * timef);
    virtual int checkpointWrite(const char * cpDir);
 
 protected:
@@ -39,7 +39,7 @@ protected:
    int nextLabelTime;
    pvdata_t strength;
 
-   /* static */ int updateState(float timef, float dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int numTrainingLabels, int * trainingLabels, int traininglabelindex, int strength);
+   /* static */ int updateState(double timef, double dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int numTrainingLabels, int * trainingLabels, int traininglabelindex, int strength);
    // int setLabeledNeuronToValue(pvdata_t val);
    // int setLabeledNeuron() {return setLabeledNeuronToValue(strength);}
    // int clearLabeledNeuron() {return setLabeledNeuronToValue(0);}

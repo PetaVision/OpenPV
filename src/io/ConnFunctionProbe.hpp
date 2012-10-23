@@ -17,8 +17,8 @@ class ConnFunctionProbe: public BaseConnectionProbe {
 public:
    ConnFunctionProbe(const char * probename, const char * filename, HyPerConn * conn);
    virtual ~ConnFunctionProbe();
-   virtual int outputState(float timef);
-   virtual double evaluate(float timef) {return 0.0f;}
+   virtual int outputState(double timef);
+   virtual double evaluate(double timef) {return 0.0f;}
 
 protected:
    ConnFunctionProbe();

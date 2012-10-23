@@ -18,7 +18,7 @@ public:
    ActivityProbe(const char * filename, HyPerLayer * layer);
    virtual ~ActivityProbe();
 
-   virtual int outputState(float time);
+   virtual int outputState(double time);
 
 private:
    HyPerCol * parent;

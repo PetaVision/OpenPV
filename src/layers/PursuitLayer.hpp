@@ -23,10 +23,10 @@ public:
    virtual ~PursuitLayer();
 
    virtual int initializeState();
-   virtual int checkpointRead(const char * cpDir, float * timef);
+   virtual int checkpointRead(const char * cpDir, double * timef);
    virtual int checkpointWrite(const char * cpDir);
 
-   int updateState(float time, float dt);
+   int updateState(double time, double dt);
 
    virtual int recvSynapticInput(HyPerConn * conn, const PVLayerCube * cube, int arborID);
 
@@ -55,9 +55,9 @@ protected:
    pvdata_t * gSynSparse;
    pvdata_t * minEnergyFiltered;
 
-   float firstUpdate;
-   float updatePeriod;
-   float nextUpdate;
+   double firstUpdate;
+   double updatePeriod;
+   double nextUpdate;
    bool updateReady;
 
 private:

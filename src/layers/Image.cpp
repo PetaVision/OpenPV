@@ -37,7 +37,7 @@ int Image::initialize_base() {
    return PV_SUCCESS;
 }
 
-int Image::checkpointRead(const char * cpDir, float * timef){
+int Image::checkpointRead(const char * cpDir, double * timef){
 
    PVParams * params = parent->parameters();
    this->useParamsImage      = (int) params->value(name,"useParamsImage", 0);
@@ -120,7 +120,7 @@ int Image::initializeState() {
    PVParams * params = parent->parameters();
    bool restart_flag = params->value(name, "restart", 0.0f) != 0.0f;
    if( restart_flag ) {
-      float timef;
+      double timef;
       status = readState(&timef);
    }
    return status;
@@ -161,7 +161,7 @@ int Image::recvSynapticInput(HyPerConn * conn, const PVLayerCube * cube, int nei
 /**
  * update the image buffers
  */
-int Image::updateState(float time, float dt)
+int Image::updateState(double time, double dt)
 {
    // make sure image is copied to activity buffer
    //
@@ -170,7 +170,7 @@ int Image::updateState(float time, float dt)
    return 0;
 }
 
-int Image::outputState(float time, bool last)
+int Image::outputState(double time, bool last)
 {
    // this could probably use Marion's update time interval
    // for some classes

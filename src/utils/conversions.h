@@ -415,7 +415,7 @@ static inline int localIndexFromGlobal(int kGlobal, const PVLayerLoc loc)
 }
 
 static inline int zUnitCellSize(float preZScale, float postZScale){
-   return (preZScale < postZScale) ? pow(2,
+   return (preZScale < postZScale) ? (int)pow(2,
          postZScale - preZScale) : 1;
 }
 

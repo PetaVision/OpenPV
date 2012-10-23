@@ -195,7 +195,7 @@ int OjaSTDPConn::deleteWeights()
  * First function to be executed
  * Updates the postsynaptic trace and calls the updateWeights function
  */
-int OjaSTDPConn::updateState(float time, float dt)
+int OjaSTDPConn::updateState(double time, double dt)
 {
    update_timer->start();
 
@@ -395,7 +395,7 @@ pvdata_t ** OjaSTDPConn::getPostWeights(int arborID, int kPost) {
    return postData;
 }
 
-int OjaSTDPConn::outputState(float timef, bool last)
+int OjaSTDPConn::outputState(double timef, bool last)
 {
    int status;
 
@@ -506,7 +506,7 @@ int OjaSTDPConn::checkpointWrite(const char * cpDir) {
    return status;
 }
 
-int OjaSTDPConn::checkpointRead(const char * cpDir, float* timef) {
+int OjaSTDPConn::checkpointRead(const char * cpDir, double * timef) {
    int status = HyPerConn::checkpointRead(cpDir, timef);
    char filename[PV_PATH_MAX];
    int chars_needed;

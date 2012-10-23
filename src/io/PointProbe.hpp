@@ -18,7 +18,7 @@ public:
    PointProbe(HyPerLayer * layer, int xLoc, int yLoc, int fLoc, const char * msg);
    virtual ~PointProbe();
 
-   virtual int outputState(float timef);
+   virtual int outputState(double timef);
 
    // void setSparseOutput(bool flag) {sparseOutput = flag;}
 
@@ -32,7 +32,7 @@ protected:
 
    int initPointProbe(const char * filename, HyPerLayer * layer, int xLoc, int yLoc, int fLoc, const char * msg);
    virtual int initFilePointer(const char * filename, HyPerLayer * layer);
-   virtual int writeState(float timef, HyPerLayer * l, int k, int kex);
+   virtual int writeState(double timef, HyPerLayer * l, int k, int kex);
 
 private:
    int initMessage(const char * msg);

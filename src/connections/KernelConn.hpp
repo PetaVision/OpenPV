@@ -34,7 +34,7 @@ public:
    virtual int normalizeWeights(PVPatch ** patches, pvdata_t ** dataStart, int numPatches, int arborId);
    virtual int symmetrizeWeights(pvdata_t * dataStart, int numPatches, int arborId);
 
-   virtual int writeWeights(float time, bool last=false);
+   virtual int writeWeights(double time, bool last=false);
    virtual int writeWeights(const char * filename);
 
    bool getPlasticityFlag() {return plasticityFlag;}
@@ -44,7 +44,7 @@ public:
 
 
    virtual int checkpointWrite(const char * cpDir);
-   virtual int checkpointRead(const char * cpDir, float *timef);
+   virtual int checkpointRead(const char * cpDir, double *timef);
 
 #ifdef PV_USE_OPENCL
    virtual int * getLUTpointer() {return patch2datalookuptable;}
@@ -102,9 +102,9 @@ protected:
    virtual int defaultUpdate_dW(int axonId);
    virtual pvdata_t updateRule_dW(pvdata_t pre, pvdata_t post);
 
-   virtual int updateState(float time, float dt);
+   virtual int updateState(double time, double dt);
    virtual int updateWeights(int axonId);
-   virtual float computeNewWeightUpdateTime(float time, float currentUpdateTime);
+   virtual float computeNewWeightUpdateTime(double time, double currentUpdateTime);
 #ifdef PV_USE_MPI
    virtual int reduceKernels(int axonID);
 #endif // PV_USE_MPI

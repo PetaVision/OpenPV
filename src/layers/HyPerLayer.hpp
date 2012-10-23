@@ -103,8 +103,8 @@ protected:
    int incrementNBands(int * numCalls);
    int writeDataStoreToFile(const char * filename, InterColComm * comm, double dtime);
    virtual int calcActiveIndices();
-   int readScalarFloat(const char * cp_dir, const char * val_name, float * val_ptr, float default_value=0.0f);
-   int writeScalarFloat(const char * cp_dir, const char * val_name, float value);
+   int readScalarFloat(const char * cp_dir, const char * val_name, double * val_ptr, double default_value=0.0f);
+   int writeScalarFloat(const char * cp_dir, const char * val_name, double value);
 
 #ifdef PV_USE_OPENCL
    virtual int initializeThreadBuffers(const char * kernelName);
@@ -136,9 +136,9 @@ public:
 
    virtual int triggerReceive(InterColComm * comm);
    virtual int recvSynapticInput(HyPerConn * conn, const PVLayerCube * cube, int arborID);
-   virtual int updateState (float time, float dt);
-   virtual int updateBorder(float time, float dt);
-   virtual int publish(InterColComm * comm, float time);
+   virtual int updateState (double time, double dt);
+   virtual int updateBorder(double time, double dt);
+   virtual int publish(InterColComm * comm, double time);
    virtual int waitOnPublish(InterColComm * comm);
 
    virtual int updateActiveIndices();
@@ -152,18 +152,18 @@ public:
 
    virtual int columnWillAddLayer(InterColComm * comm, int id);
 
-   virtual int checkpointRead(const char * cpDir, float * timef);
+   virtual int checkpointRead(const char * cpDir, double * timef);
    virtual int checkpointWrite(const char * cpDir);
    static int readBufferFile(const char * filename, InterColComm * comm, double * timed, pvdata_t * buffer, int numbands, bool extended, bool contiguous, const PVLayerLoc * loc);
    static int writeBufferFile(const char * filename, InterColComm * comm, double dtime, pvdata_t * buffer, int numbands, bool extended, bool contiguous, const PVLayerLoc * loc);
 
-   virtual int readState (float * timef);
+   virtual int readState (double * timef);
 #ifdef OBSOLETE // Marked obsolete July 13, 2012.  Dumping the state is now done by checkpointWrite.
-   virtual int writeState(float timef, bool last=false);
+   virtual int writeState(double timef, bool last=false);
 #endif // OBSOLETE
-   virtual int outputState(float timef, bool last=false);
-   virtual int writeActivity(float timef);
-   virtual int writeActivitySparse(float timef);
+   virtual int outputState(double timef, bool last=false);
+   virtual int writeActivity(double timef);
+   virtual int writeActivitySparse(double timef);
 
    virtual int insertProbe(LayerProbe * probe);
 
@@ -226,7 +226,7 @@ public:
 
 protected:
 
-   /* static */ int updateState(float timef, float dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels, pvdata_t * GSynHead, bool spiking, unsigned int * active_indices, unsigned int * num_active);
+   /* static */ int updateState(double timef, double dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels, pvdata_t * GSynHead, bool spiking, unsigned int * active_indices, unsigned int * num_active);
    virtual int setActivity();
    void freeChannels();
 
@@ -245,7 +245,7 @@ protected:
    bool mirrorBCflag;           // true when mirror BC are to be applied
 
    int ioAppend;                // controls opening of binary files
-   float writeTime;             // time of next output
+   double writeTime;             // time of next output
    float writeStep;             // output time interval
 
    bool spikingFlag;

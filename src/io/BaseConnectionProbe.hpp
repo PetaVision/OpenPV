@@ -17,7 +17,7 @@ class BaseConnectionProbe {
 // Methods
 public:
    virtual ~BaseConnectionProbe();
-   virtual int outputState(float timef) = 0;
+   virtual int outputState(double timef) = 0;
    const char * getName()               {return name;}
    const char * getFilename()           {return filename;}
    FILE * getFilePtr()                  {return fp;}

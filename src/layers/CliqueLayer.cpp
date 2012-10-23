@@ -171,7 +171,7 @@ int CliqueLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activit
       if (numActiveElements < (cliqueSize-1)) continue;
 
       // loop over all active combinations of size=cliqueSize-1 in clique radius
-      int numActiveCliques = pow(numActiveElements, cliqueSize - 1);
+      int numActiveCliques = (int)pow(numActiveElements, cliqueSize - 1);
       for (int kClique = 0; kClique < numActiveCliques; kClique++) {
 
          //initialize a_post_tmp
@@ -201,7 +201,7 @@ int CliqueLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activit
             int kCliqueExt = cliqueActiveIndices[kPatchActive];
             cliqueProd *= aPre[kCliqueExt];
             kResidue = kResidue
-                  - kPatchActive * pow(numActiveElements, cliqueSize - 1 - iProd - 1);
+                  - kPatchActive * (int)pow(numActiveElements, cliqueSize - 1 - iProd - 1);
 
             // compute arborIndex for this clique element
             int kxCliqueExt = kxPos(kCliqueExt, nxPreExt, nyPreExt, nfPre);
@@ -211,7 +211,7 @@ int CliqueLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activit
             int kyPatch = kyCliqueExt - kyPreExt + nyCliqueRadius;
             unsigned int kArbor = kIndex(kxPatch, kyPatch, kfClique,
                   (2 * nxCliqueRadius + 1), (2*nyCliqueRadius + 1), nfPre);
-            arborNdx += kArbor * pow(cliquePatchSize, cliqueSize - 1 - iProd - 1);
+            arborNdx += kArbor * (int)pow(cliquePatchSize, cliqueSize - 1 - iProd - 1);
             if ((arborNdx < 0) || (arborNdx >= numCliques)){
                   assert((arborNdx >= 0) && (arborNdx < numCliques));
             }
@@ -255,12 +255,12 @@ int CliqueLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activit
 
 // TODO: direct clique input to separate GSyn: CHANNEL_CLIQUE
 // the following is copied directly from ODDLayer::updateState()
-int CliqueLayer::updateState(float timef, float dt)
+int CliqueLayer::updateState(double timef, double dt)
 {
    return updateState(timef, dt, getLayerLoc(), getCLayer()->activity->data, getV(), getNumChannels(), GSyn[0], this->Voffset, this->Vgain, this->VMax, this->VMin, this->VThresh, clayer->columnId);
 }
 
-int CliqueLayer::updateState(float timef, float dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels, pvdata_t * gSynHead, pvdata_t Voffset, pvdata_t Vgain, pvdata_t VMax, pvdata_t VMin, pvdata_t VThresh, int columnID) {
+int CliqueLayer::updateState(double timef, double dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels, pvdata_t * gSynHead, pvdata_t Voffset, pvdata_t Vgain, pvdata_t VMax, pvdata_t VMin, pvdata_t VThresh, int columnID) {
    pv_debug_info("[%d]: CliqueLayer::updateState:", columnID);
 
    int nx = loc->nx;

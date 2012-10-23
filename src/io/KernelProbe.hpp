@@ -19,7 +19,7 @@ class KernelProbe : public BaseConnectionProbe {
 public:
    KernelProbe(const char * probename, const char * filename, HyPerConn * conn, int kernelIndex, int arborID);
    virtual ~KernelProbe();
-   virtual int outputState(float timef);
+   virtual int outputState(double timef);
 protected:
    KernelProbe(); // Default constructor, can only be called by derived classes
    int initialize(const char * probename, const char * filename, HyPerConn * conn, int kernel, int arbor);

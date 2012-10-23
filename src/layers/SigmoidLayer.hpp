@@ -21,7 +21,7 @@ class SigmoidLayer: public HyPerLayer {
 public:
    SigmoidLayer(const char * name, HyPerCol * hc, LIF * clone);
    virtual ~SigmoidLayer();
-   virtual int updateState(float timef, float dt);
+   virtual int updateState(double timef, double dt);
    // virtual int updateV();
    // virtual int setActivity();
    // virtual int resetGSynBuffers();
@@ -30,7 +30,7 @@ public:
 protected:
    SigmoidLayer();
    int initialize(const char * name, HyPerCol * hc, LIF * clone);
-   /* static */ int updateState(float timef, float dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels, pvdata_t * gSynHead, float Vth, float V0, float sigmoid_alpha, bool sigmoid_flag, bool inverse_flag, unsigned int * active_indices, unsigned int * num_active);
+   /* static */ int updateState(double timef, double dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels, pvdata_t * gSynHead, float Vth, float V0, float sigmoid_alpha, bool sigmoid_flag, bool inverse_flag, unsigned int * active_indices, unsigned int * num_active);
 private:
    int initialize_base();
    float V0;

@@ -34,6 +34,8 @@ static void gl_draw_texture(int id);
 }
 #endif
 
+class PV::GLDisplay;
+
 // global variables
 //
 
@@ -157,7 +159,7 @@ void GLDisplay::advanceTime(void)
    time = parent->advanceTime(time);
 }
 
-void GLDisplay::run(float time, float stopTime)
+void GLDisplay::run(double time, double stopTime)
 {
    this->time = time;
    this->stopTime = stopTime;
@@ -279,7 +281,7 @@ void GLDisplay::drawDisplays()
 
 // implement LayerProbe interface
 //
-int GLDisplay::outputState(float timef)
+int GLDisplay::outputState(double timef)
 {
    return loadTexture(getTextureId(getTargetLayer()), getTargetLayer());
 }

@@ -30,11 +30,11 @@ int CliqueConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
    KernelConn::initialize(name, hc, pre, post, filename, weightInit);
    // pvdata_t *** dw_data;
    PVParams * params = parent->parameters();
-   cliqueSize = params->value(name, "cliqueSize", 1, true);
+   cliqueSize = (int)params->value(name, "cliqueSize", 1, true);
    return PV_SUCCESS;
 }
 
-int CliqueConn::updateState(float time, float dt)
+int CliqueConn::updateState(double time, double dt)
 {
 //   int status = KernelConn::updateState(time, dt);
 //   assert(status == PV_SUCCESS);
@@ -147,7 +147,7 @@ int CliqueConn::update_dW(int arborId)
    int nxCliqueRadius = (int) (nxPostPatch / 2);
    int cliquePatchSize = (2 * nxCliqueRadius + 1) * (2 * nyCliqueRadius + 1) * nfPre;
    //int numKernels = conn->numDataPatches();  // per arbor?
-   int numCliques = pow(cliquePatchSize, cliqueSize - 1);
+   int numCliques = (int)pow(cliquePatchSize, cliqueSize - 1);
    assert(numCliques == this->numberOfAxonalArborLists());
 
    // loop over all products of cliqueSize active presynaptic cells
@@ -186,7 +186,7 @@ int CliqueConn::update_dW(int arborId)
       if (numActiveElements < (cliqueSize-1)) continue;
 
       // loop over all active combinations of size=cliqueSize-1 in clique radius
-      int numActiveCliques = pow(numActiveElements, cliqueSize - 1);
+      int numActiveCliques = (int)pow(numActiveElements, cliqueSize - 1);
       for (int kClique = 0; kClique < numActiveCliques; kClique++) {
 
          //initialize a_post_tmp
@@ -216,7 +216,7 @@ int CliqueConn::update_dW(int arborId)
             int kCliqueExt = cliqueActiveIndices[kPatchActive];
             cliqueProd *= aPre[kCliqueExt];
             kResidue = kResidue
-                  - kPatchActive * pow(numActiveElements, cliqueSize - 1 - iProd - 1);
+                  - kPatchActive * (int)pow(numActiveElements, cliqueSize - 1 - iProd - 1);
 
             // compute arborIndex for this clique element
             int kxCliqueExt = kxPos(kCliqueExt, nxPreExt, nyPreExt, nfPre);
@@ -226,7 +226,7 @@ int CliqueConn::update_dW(int arborId)
             int kyPatch = kyCliqueExt - kyPreExt + nyCliqueRadius;
             unsigned int kArbor = kIndex(kxPatch, kyPatch, kfClique,
                   (2 * nxCliqueRadius + 1), (2*nyCliqueRadius + 1), nfPre);
-            arborNdx += kArbor * pow(cliquePatchSize, cliqueSize - 1 - iProd - 1);
+            arborNdx += kArbor * (int)pow(cliquePatchSize, cliqueSize - 1 - iProd - 1);
             if ((arborNdx < 0) || (arborNdx >= numCliques)){
                   assert((arborNdx >= 0) && (arborNdx < numCliques));
             }

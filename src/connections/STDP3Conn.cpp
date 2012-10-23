@@ -149,7 +149,7 @@ int STDP3Conn::setParams(PVParams * params)
  * First function to be executed
  * Updates the postsynaptic trace and calls the updateWeights function
  */
-int STDP3Conn::updateState(float time, float dt)
+int STDP3Conn::updateState(double time, double dt)
 {
    update_timer->start();
 
@@ -329,7 +329,7 @@ int STDP3Conn::pvpatch_update_weights(int nk, float * RESTRICT w, const float * 
 }
 
 
-int STDP3Conn::outputState(float timef, bool last)
+int STDP3Conn::outputState(double timef, bool last)
 {
    int status;
 

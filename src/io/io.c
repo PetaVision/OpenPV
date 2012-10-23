@@ -35,7 +35,7 @@ void usage()
  * @device
  */
 int parse_options(int argc, char * argv[], char ** output_path,
-                  char ** param_file, int * n_time_steps, int * opencl_device,
+                  char ** param_file, long int * n_time_steps, int * opencl_device,
                   unsigned long * random_seed, char ** working_dir)
 {
    if (argc < 2) {
@@ -47,7 +47,7 @@ int parse_options(int argc, char * argv[], char ** output_path,
    // parse_options should not set defaults; calling routine should set default
    // before calling parse_options.
 
-   pv_getopt_int(argc, argv, "-n", n_time_steps);
+   pv_getopt_long(argc, argv, "-n", n_time_steps);
    pv_getopt_int(argc, argv, "-d", opencl_device);
    pv_getopt_str(argc, argv, "-o", output_path);
    pv_getopt_str(argc, argv, "-p", param_file);
@@ -69,6 +69,24 @@ int pv_getopt_int(int argc, char * argv[], const char * opt, int * iVal)
    for (i = 1; i < argc; i += 1) {
       if (i+1 < argc && strcmp(argv[i], opt) == 0) {
          if( iVal != NULL ) *iVal = atoi(argv[i+1]);
+         return 0;
+      }
+   }
+   return -1;  // not found
+}
+
+/**
+ * @argc
+ * @argv
+ * @opt
+ * @iVal
+ */
+int pv_getopt_long(int argc, char * argv[], const char * opt, long int * iVal)
+{
+   int i;
+   for (i = 1; i < argc; i += 1) {
+      if (i+1 < argc && strcmp(argv[i], opt) == 0) {
+         if( iVal != NULL ) *iVal = strtol(argv[i+1], NULL, 0);
          return 0;
       }
    }

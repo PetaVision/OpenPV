@@ -31,7 +31,7 @@ public:
    virtual int setParams(PVParams * params); // Really should be protected
 
    virtual int checkpointWrite(const char * cpDir);
-   virtual int checkpointRead(const char * cpDir, float* timef);
+   virtual int checkpointRead(const char * cpDir, double * timef);
 
 protected:
    LCALIFLateralConn();

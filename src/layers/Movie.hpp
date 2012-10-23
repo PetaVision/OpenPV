@@ -21,10 +21,10 @@ public:
    virtual pvdata_t * getImageBuffer();
    virtual PVLayerLoc getImageLoc();
 
-   virtual int checkpointRead(const char * cpDir, float * timef);
-   virtual int outputState(float time, bool last=false);
-   virtual int updateState(float time, float dt);
-   bool        updateImage(float time, float dt);
+   virtual int checkpointRead(const char * cpDir, double * timef);
+   virtual int outputState(double time, bool last=false);
+   virtual int updateState(double time, double dt);
+   bool        updateImage(double time, double dt);
 
    int  randomFrame();
    void calcBias(int step, int sizeLength);

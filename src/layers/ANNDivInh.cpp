@@ -132,7 +132,7 @@ int ANNDivInh::initializeThreadKernels(const char * kernel_name)
 //   return status;
    return ANNLayer::initializeThreadKernels(kernel_name);
 }
-int ANNDivInh::updateStateOpenCL(float time, float dt)
+int ANNDivInh::updateStateOpenCL(double time, double dt)
 {
    //at the moment there's no reason to do anything differently
    //for ANNSquaredLayer, but I still defined the method in case
@@ -170,7 +170,7 @@ int ANNDivInh::updateStateOpenCL(float time, float dt)
  *
  *
  */
-int ANNDivInh::updateState(float time, float dt)
+int ANNDivInh::updateState(double time, double dt)
 {
    update_timer->start();
 #ifdef PV_USE_OPENCL

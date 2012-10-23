@@ -23,7 +23,7 @@
 #include <unistd.h>
 #include <float.h>
 
-#define PV_MAX_NUMSTEPS (pow(2,FLT_MANT_DIG))
+#define PV_MAX_NUMSTEPS (pow(2,DBL_MANT_DIG))
 #define HYPERCOL_DIRINDEX_MAX 99999999
 
 namespace PV {
@@ -214,7 +214,7 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * p
       }
    }
    if( (double) numSteps > PV_MAX_NUMSTEPS ) {
-      fprintf(stderr, "The number of time steps %d is greater than %ld, the maximum allowed by floating point precision\n", numSteps, (long int) PV_MAX_NUMSTEPS);
+      fprintf(stderr, "The number of time steps %ld is greater than %ld, the maximum allowed by floating point precision\n", numSteps, (long int) PV_MAX_NUMSTEPS);
       exit(EXIT_FAILURE);
    }
 
@@ -286,7 +286,7 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * p
    numProbes = 0;
    probes = NULL;
 
-   filenamesContainLayerNames = params->value(name, "filenamesContainLayerNames", 0);
+   filenamesContainLayerNames = (int)params->value(name, "filenamesContainLayerNames", 0);
    if(filenamesContainLayerNames < 0 || filenamesContainLayerNames > 2) {
       fprintf(stderr,"HyPerCol %s: filenamesContainLayerNames must have the value 0, 1, or 2.\n", name);
       abort();
@@ -344,10 +344,10 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * p
       ensureDirExists(checkpointWriteDir);
 
       char cpDir[PV_PATH_MAX];
-      int chars_printed = snprintf(cpDir, PV_PATH_MAX, "%s/Checkpoint%d", checkpointWriteDir, numSteps);
+      int chars_printed = snprintf(cpDir, PV_PATH_MAX, "%s/Checkpoint%ld", checkpointWriteDir, numSteps);
       if(chars_printed >= PV_PATH_MAX) {
          if (icComm->commRank()==0) {
-            fprintf(stderr,"HyPerCol::run error.  Checkpoint directory \"%s/Checkpoint%d\" will be needed to hold the checkpoint at end of run, but this path is too long.\n", checkpointWriteDir, numSteps);
+            fprintf(stderr,"HyPerCol::run error.  Checkpoint directory \"%s/Checkpoint%ld\" will be needed to hold the checkpoint at end of run, but this path is too long.\n", checkpointWriteDir, numSteps);
             abort();
          }
       }
@@ -369,7 +369,7 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * p
          exit(EXIT_FAILURE);
       }
       if( usingWriteStep ) {
-         cpWriteStepInterval = (int) params->value(name, "checkpointWriteStepInterval");
+         cpWriteStepInterval = (long int) params->value(name, "checkpointWriteStepInterval");
          cpWriteTimeInterval = -1;
       }
       if( usingWriteTime ) {
@@ -539,7 +539,7 @@ int HyPerCol::addConnection(HyPerConn * conn)
    return connId;
 }
 
-int HyPerCol::run(int nTimeSteps)
+int HyPerCol::run(long int nTimeSteps)
 {
    if( checkMarginWidths() != PV_SUCCESS ) {
       fprintf(stderr, "Margin width failure; unable to continue.\n");
@@ -590,9 +590,9 @@ int HyPerCol::run(int nTimeSteps)
    // This needs to happen after initPublishers so that we can initialize the values in the data stores,
    // and before the layers' publish calls so that the data in border regions gets copied correctly.
    if ( checkpointReadFlag ) {
-      int str_len = snprintf(NULL, 0, "%s/Checkpoint%d", checkpointReadDir, cpReadDirIndex);
+      int str_len = snprintf(NULL, 0, "%s/Checkpoint%ld", checkpointReadDir, cpReadDirIndex);
       char * cpDir = (char *) malloc( (str_len+1)*sizeof(char) );
-      snprintf(cpDir, str_len+1, "%s/Checkpoint%d", checkpointReadDir, cpReadDirIndex);
+      snprintf(cpDir, str_len+1, "%s/Checkpoint%ld", checkpointReadDir, cpReadDirIndex);
       checkpointRead(cpDir);
       // Lines below commented out 2012-10-20.  We shouldn't delete the checkpoint we read from, for archival purposes
 //      if (checkpointWriteFlag && deleteOlderCheckpoints) {
@@ -636,7 +636,7 @@ int HyPerCol::run(int nTimeSteps)
 #endif
    // time loop
    //
-   int step = 0;
+   long int step = 0;
    while (simTime < stopTime) {
       if( checkpointWriteFlag && advanceCPWriteTime() ) {
          if ( !checkpointReadFlag || strcmp(checkpointReadDir, checkpointWriteDir) || cpReadDirIndex!=currentStep ) {
@@ -651,10 +651,10 @@ int HyPerCol::run(int nTimeSteps)
                exit(EXIT_FAILURE);
             }
             char cpDir[PV_PATH_MAX];
-            int chars_printed = snprintf(cpDir, PV_PATH_MAX, "%s/Checkpoint%d", checkpointWriteDir, currentStep);
+            int chars_printed = snprintf(cpDir, PV_PATH_MAX, "%s/Checkpoint%ld", checkpointWriteDir, currentStep);
             if(chars_printed >= PV_PATH_MAX) {
                if (icComm->commRank()==0) {
-                  fprintf(stderr,"HyPerCol::run error.  Checkpoint directory \"%s/Checkpoint%d\" is too long.\n", checkpointWriteDir, currentStep);
+                  fprintf(stderr,"HyPerCol::run error.  Checkpoint directory \"%s/Checkpoint%ld\" is too long.\n", checkpointWriteDir, currentStep);
                   abort();
                }
             }
@@ -702,7 +702,7 @@ int HyPerCol::initPublishers() {
    return PV_SUCCESS;
 }
 
-float HyPerCol::advanceTime(float sim_time)
+double HyPerCol::advanceTime(double sim_time)
 {
 #ifdef TIMESTEP_OUTPUT
    if (currentStep%progressStep == 0 && columnId() == 0) {
@@ -783,7 +783,7 @@ float HyPerCol::advanceTime(float sim_time)
 
    // make sure simTime is updated even if HyPerCol isn't running time loop
 
-   float outputTime = simTime; // so that outputState is called with the correct time
+   double outputTime = simTime; // so that outputState is called with the correct time
                                // but doesn't effect runTimer
 
    simTime = sim_time + deltaTime;
@@ -800,13 +800,13 @@ bool HyPerCol::advanceCPWriteTime() {
    // returns true if nextCPWrite{Step,Time} has been advanced
    bool advanceCPTime;
    if( cpWriteStepInterval>0 ) {
-      assert(cpWriteTimeInterval<0.0f);
+      assert(cpWriteTimeInterval<0.0);
       advanceCPTime = currentStep >= nextCPWriteStep;
       if( advanceCPTime ) {
          nextCPWriteStep += cpWriteStepInterval;
       }
    }
-   else if( cpWriteTimeInterval>0.0f ) {
+   else if( cpWriteTimeInterval>0.0) {
       assert(cpWriteStepInterval<0);
       advanceCPTime = simTime >= nextCPWriteTime;
       if( advanceCPTime ) {
@@ -821,7 +821,7 @@ bool HyPerCol::advanceCPWriteTime() {
 }
 
 int HyPerCol::checkpointRead(const char * cpDir) {
-   size_t bufsize = sizeof(int) + sizeof(float);
+   size_t bufsize = sizeof(long int) + sizeof(double);
    unsigned char * buf = (unsigned char *) malloc(bufsize);
    assert(buf);
    if( icCommunicator()->commRank()==0 ) {
@@ -842,9 +842,10 @@ int HyPerCol::checkpointRead(const char * cpDir) {
 #ifdef PV_USE_MPI
    MPI_Bcast(buf,bufsize,MPI_CHAR,0,icCommunicator()->communicator());
 #endif // PV_USE_MPI
-   simTime = *((float *) buf);
-   currentStep = *((int *) (buf+sizeof(float)));
-   float checkTime;
+   simTime = *((double *) buf);
+   currentStep = *((long int *) (buf+sizeof(double)));
+   free(buf);
+   double checkTime;
    for( int l=0; l<numLayers; l++ ) {
       layers[l]->checkpointRead(cpDir, &checkTime);
       assert(checkTime==simTime);
@@ -916,15 +917,15 @@ int HyPerCol::checkpointWrite(const char * cpDir) {
       assert(chars_needed < PV_PATH_MAX);
       FILE * timestampfile = fopen(timestamppath,"w");
       assert(timestampfile);
-      fwrite(&simTime,1,sizeof(float),timestampfile);
-      fwrite(&currentStep,1,sizeof(int),timestampfile);
+      fwrite(&simTime,1,sizeof(double),timestampfile);
+      fwrite(&currentStep,1,sizeof(long int),timestampfile);
       fclose(timestampfile);
       chars_needed = snprintf(timestamppath, PV_PATH_MAX, "%s/timeinfo.txt", cpDir);
       assert(chars_needed < PV_PATH_MAX);
       timestampfile = fopen(timestamppath,"w");
       assert(timestampfile);
       fprintf(timestampfile,"time = %g\n", simTime);
-      fprintf(timestampfile,"timestep = %d\n", currentStep);
+      fprintf(timestampfile,"timestep = %ld\n", currentStep);
       fclose(timestampfile);
    }
 
@@ -1009,7 +1010,7 @@ int HyPerCol::exitRunLoop(bool exitOnFinish)
    if (checkpointWriteFlag || !suppressLastOutput) {
       int chars_printed;
       if (checkpointWriteFlag) {
-         chars_printed = snprintf(cpDir, PV_PATH_MAX, "%s/Checkpoint%d", checkpointWriteDir, currentStep);
+         chars_printed = snprintf(cpDir, PV_PATH_MAX, "%s/Checkpoint%ld", checkpointWriteDir, currentStep);
       }
       else {
          assert(!suppressLastOutput);
@@ -1017,7 +1018,7 @@ int HyPerCol::exitRunLoop(bool exitOnFinish)
       }
       if(chars_printed >= PV_PATH_MAX) {
          if (icComm->commRank()==0) {
-            fprintf(stderr,"HyPerCol::run error.  Checkpoint directory \"%s/Checkpoint%d\" is too long.\n", checkpointWriteDir, currentStep);
+            fprintf(stderr,"HyPerCol::run error.  Checkpoint directory \"%s/Checkpoint%ld\" is too long.\n", checkpointWriteDir, currentStep);
             abort();
          }
       }
@@ -1090,7 +1091,7 @@ int HyPerCol::insertProbe(ColProbe * p)
    return ++numProbes;
 }
 
-int HyPerCol::outputState(float time)
+int HyPerCol::outputState(double time)
 {
    for( int n = 0; n < numProbes; n++ ) {
        probes[n]->outputState(time, this);

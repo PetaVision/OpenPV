@@ -40,7 +40,7 @@ int TestLayer::recvSynapticInput(HyPerConn * conn, PVLayerCube * cube, int neigh
    return 0;
 }
 
-int TestLayer::updateState(float time, float dt)
+int TestLayer::updateState(double time, double dt)
 {
 #ifdef DEBUG_OUTPUT
    fprintf(stderr, "[%d]: TestLayer::updateState:\n", clayer->columnId);
@@ -66,7 +66,7 @@ int TestLayer::setParams(int numParams, float* params)
    return 0;
 }
 
-int TestLayer::outputState(float time)
+int TestLayer::outputState(double time)
 {
 #ifdef DEBUG_OUTPUT
    fprintf(stderr, "[%d]: TestLayer::outputState: time=%f\n", clayer->columnId, time);

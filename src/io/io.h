@@ -76,6 +76,7 @@ extern "C"
 
 int pv_getopt_int(int argc, char * argv[], const char * opt, int *   iVal);
 int pv_getopt_str(int argc, char * argv[], const char * opt, char ** sVal);
+int pv_getopt_long(int argc, char * argv[], const char * opt, long int * ulVal);
 int pv_getopt_unsigned_long(int argc, char * argv[], const char * opt, unsigned long * ulVal);
 
 int readFile(const char * filename, float * buf, int * nx, int * ny);
@@ -89,7 +90,7 @@ int    pv_close_binary(FILE * fp);
 size_t pv_read_binary_record(FILE * fp, pvdata_t * buf, int nItems);
 
 int parse_options(int argc, char * argv[], char ** output_path,
-                  char ** param_file, int * n_time_steps, int * opencl_device,
+                  char ** param_file, long int * n_time_steps, int * opencl_device,
                   unsigned long * random_seed, char ** working_dir);
 
 #ifdef __cplusplus

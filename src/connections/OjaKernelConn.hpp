@@ -22,10 +22,10 @@ public:
 
    virtual ~OjaKernelConn();
 
-   virtual int checkpointRead(const char * cpDir, float* timef);
+   virtual int checkpointRead(const char * cpDir, double * timef);
    virtual int checkpointWrite(const char * cpDir);
 
-   virtual int updateState(float timef, float dt);
+   virtual int updateState(double timef, double dt);
 
    // Public get-methods
    float getLearningTime() {return learningTime;}

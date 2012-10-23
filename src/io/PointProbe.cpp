@@ -143,7 +143,7 @@ int PointProbe::initMessage(const char * msg) {
  *     writeState is only called by the processor with (xLoc,yLoc) in its
  *     non-extended region.
  */
-int PointProbe::outputState(float timef)
+int PointProbe::outputState(double timef)
 {
    const PVLayerLoc * loc = getTargetLayer()->getLayerLoc();
 
@@ -169,7 +169,7 @@ int PointProbe::outputState(float timef)
  * @k
  * @kex
  */
-int PointProbe::writeState(float timef, HyPerLayer * l, int k, int kex) {
+int PointProbe::writeState(double timef, HyPerLayer * l, int k, int kex) {
 
    assert(fp);
    const pvdata_t * V = l->getV();

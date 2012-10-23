@@ -38,7 +38,7 @@ int Example::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activity, i
    return 0;
 }
 
-int Example::updateState(float time, float dt)
+int Example::updateState(double time, double dt)
 {
    pv_debug_info("[%d]: Example::updateState:", clayer->columnId);
 
@@ -77,7 +77,7 @@ int Example::initFinish(int colId, int colRow, int colCol)
    return 0;
 }
 
-int Example::outputState(float timef, bool last)
+int Example::outputState(double timef, bool last)
 {
    pv_debug_info("[%d]: Example::outputState:", clayer->columnId);
 

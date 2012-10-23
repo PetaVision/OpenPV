@@ -34,14 +34,14 @@ int PtwiseProductLayer::initialize(const char * name, HyPerCol * hc) {
    return ANNLayer::initialize(name, hc, 2);
 }
 
-int PtwiseProductLayer::updateState(float timef, float dt) {
+int PtwiseProductLayer::updateState(double timef, double dt) {
    int status;
    status = updateState(timef, dt, getLayerLoc(), getCLayer()->activity->data, getV(), getNumChannels(), GSyn[0], getCLayer()->activeIndices, &getCLayer()->numActive);
    if( status == PV_SUCCESS ) status = updateActiveIndices();
    return status;
 }
 
-int PtwiseProductLayer::updateState(float timef, float dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels, pvdata_t * gSynHead, unsigned int * active_indices, unsigned int * num_active) {
+int PtwiseProductLayer::updateState(double timef, double dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels, pvdata_t * gSynHead, unsigned int * active_indices, unsigned int * num_active) {
    int nx = loc->nx;
    int ny = loc->ny;
    int nf = loc->nf;

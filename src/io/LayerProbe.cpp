@@ -70,7 +70,7 @@ int LayerProbe::initFilePointer(const char * filename, HyPerLayer * layer) {
 /**
  * @time
  */
-int LayerProbe::outputState(float timef)
+int LayerProbe::outputState(double timef)
 {
    return 0;
 }

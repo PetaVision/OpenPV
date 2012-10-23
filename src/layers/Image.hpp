@@ -31,10 +31,10 @@ public:
    // primary layer interface
    //
    virtual int recvSynapticInput(HyPerConn * conn, const PVLayerCube * cube, int neighbor);
-   virtual int updateState(float time, float dt);
-   virtual int outputState(float time, bool last=false);
+   virtual int updateState(double time, double dt);
+   virtual int outputState(double time, bool last=false);
 
-   virtual int checkpointRead(const char * cpDir, float * timef);
+   virtual int checkpointRead(const char * cpDir, double * timef);
 
    // partially override implementation of LayerDataInterface interface
    //
@@ -98,8 +98,8 @@ protected:
    bool useImageBCflag;
    bool inverseFlag;
 
-   float lastPhase;
-   float lastUpdateTime; // time of last image update
+   //float lastPhase;
+   double lastUpdateTime; // time of last image update
 
    // float tau;  // tau is not used by image or any subclasses
 };

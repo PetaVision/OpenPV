@@ -56,7 +56,7 @@ int LinearActivityProbe::initLinearActivityProbe(const char * filename, HyPerLay
  *    along the line or along the column.
  *    .
  */
-int LinearActivityProbe::outputState(float timef)
+int LinearActivityProbe::outputState(double timef)
 {
    int width, sLine;
    const float * line;

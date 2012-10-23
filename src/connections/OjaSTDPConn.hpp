@@ -30,11 +30,11 @@ public:
    virtual float maxWeight(int axonID);
    virtual int writeTextWeightsExtra(FILE * fd, int k, int axonID);
 
-   virtual int updateState(float time, float dt);
+   virtual int updateState(double time, double dt);
    virtual int updateWeights(int axonID);
-   virtual int outputState(float time, bool last=false);
+   virtual int outputState(double time, bool last=false);
 
-   virtual int checkpointRead(const char * cpDir, float* timef);
+   virtual int checkpointRead(const char * cpDir, double * timef);
    virtual int checkpointWrite(const char * cpDir);
 
    //get functions

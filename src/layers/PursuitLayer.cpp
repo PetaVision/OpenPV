@@ -132,14 +132,14 @@ int PursuitLayer::initializeState() {
    PVParams * params = parent->parameters();
    bool restart_flag = params->value(name, "restart", 0.0f) != 0.0f;
    if( restart_flag ) {
-      float timef;
+      double timef;
       status = readState(&timef);
    }
    return status;
 }
 
 
-int PursuitLayer::checkpointRead(const char * cpDir, float * timef) {
+int PursuitLayer::checkpointRead(const char * cpDir, double * timef) {
    int status = HyPerLayer::checkpointRead(cpDir, timef);
    double timed;
    int filenamesize = strlen(cpDir)+1+strlen(name)+29;
@@ -241,7 +241,7 @@ int PursuitLayer::writeBufferFileVariantLoc(const char * filename, InterColComm 
    return status;
 }
 
-int PursuitLayer::updateState(float time, float dt) {
+int PursuitLayer::updateState(double time, double dt) {
    if (!updateReady) return PV_SUCCESS;
    int nx = getLayerLoc()->nx;
    int ny = getLayerLoc()->ny;

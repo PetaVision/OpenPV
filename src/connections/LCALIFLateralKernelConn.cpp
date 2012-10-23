@@ -162,7 +162,7 @@ int LCALIFLateralKernelConn::checkpointWrite(const char * cpDir) {
    return status;
 }
 
-int LCALIFLateralKernelConn::checkpointRead(const char * cpDir, float* timef) {
+int LCALIFLateralKernelConn::checkpointRead(const char * cpDir, double * timef) {
    int status = KernelConn::checkpointRead(cpDir, timef);
    char filename[PV_PATH_MAX];
    int chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_integratedSpikeCount.pvp", cpDir, name);

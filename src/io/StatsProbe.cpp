@@ -108,7 +108,7 @@ int StatsProbe::initMessage(const char * msg) {
  * @time
  * @l
  */
-int StatsProbe::outputState(float timef)
+int StatsProbe::outputState(double timef)
 {
 #ifdef PV_USE_MPI
    InterColComm * icComm = getTargetLayer()->getParent()->icCommunicator();

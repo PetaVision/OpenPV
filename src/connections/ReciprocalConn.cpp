@@ -126,7 +126,7 @@ int ReciprocalConn::initNormalize() {
    return PV_SUCCESS;
 }
 
-int ReciprocalConn::updateState(float timef, float dt) {
+int ReciprocalConn::updateState(double timef, double dt) {
    // Need to set reciprocalWgts the first time updateState is called, so that each ReciprocalConn in a pair can define the other
    // If it was set in initialize, the second would not have been defined when the first was called.
    if( reciprocalWgts == NULL) {

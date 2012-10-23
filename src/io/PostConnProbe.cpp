@@ -53,7 +53,7 @@ int PostConnProbe::initialize(const char * probename, const char * filename, HyP
  *    - kPost, kxPost, kyPost are indices in the restricted post-synaptic layer.
  *
  */
-int PostConnProbe::outputState(float timef)
+int PostConnProbe::outputState(double timef)
 {
    int k, kxPre, kyPre;
    HyPerConn * c = getTargetConn();

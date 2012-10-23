@@ -92,7 +92,7 @@ int BIDSCloneLayer::setActivity() {
    return 0;
 }
 
-int BIDSCloneLayer::outputState(float timef, bool last){
+int BIDSCloneLayer::outputState(double timef, bool last){
    int status = PV_SUCCESS;
 
    for (int i = 0; i < numProbes; i++) {
@@ -113,7 +113,7 @@ int BIDSCloneLayer::outputState(float timef, bool last){
    return status;
 }
 
-int BIDSCloneLayer::updateState(float timef, float dt) {
+int BIDSCloneLayer::updateState(double timef, double dt) {
    int status = PV_SUCCESS;
    mapCoords();
    if( status == PV_SUCCESS ) status = updateActiveIndices();

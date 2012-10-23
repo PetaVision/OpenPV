@@ -18,7 +18,7 @@ public:
    CliqueConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
               const char * filename, InitWeights *weightInit);
    virtual int update_dW(int axonId);
-   virtual int updateState(float time, float dt);
+   virtual int updateState(double time, double dt);
    virtual int updateWeights(int arbor);
    //virtual int normalizeWeights(PVPatch ** patches, int numPatches, int arborId);
 

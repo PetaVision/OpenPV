@@ -12,6 +12,7 @@
 #define MPI_CHAR           1
 #define MPI_INT            2
 #define MPI_FLOAT          4
+#define MPI_DOUBLE         8
 
 #define MPI_STATUS_IGNORE   0
 #define MPI_STATUSES_IGNORE 0

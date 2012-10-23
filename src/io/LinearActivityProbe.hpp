@@ -23,7 +23,7 @@ public:
    LinearActivityProbe(HyPerLayer * layer, PVDimType dim, int linePos, int f);
    LinearActivityProbe(const char * filename, HyPerLayer * layer, PVDimType dim, int linePos, int f);
 
-   virtual int outputState(float timef);
+   virtual int outputState(double timef);
 
 protected:
    LinearActivityProbe();

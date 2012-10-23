@@ -399,7 +399,7 @@ int HyPerLayer::initializeState() {
    PVParams * params = parent->parameters();
    bool restart_flag = params->value(name, "restart", 0.0f) != 0.0f;
    if( restart_flag ) {
-      float timef;
+      double timef;
       status = readState(&timef);
    }
    else {
@@ -747,14 +747,14 @@ int HyPerLayer::copyFromBuffer(const unsigned char * buf, pvdata_t * data,
    return 0;
 }
 
-int HyPerLayer::updateState(float timef, float dt) {
+int HyPerLayer::updateState(double timef, double dt) {
    int status;
    status = updateState(timef, dt, getLayerLoc(), getCLayer()->activity->data, getV(), getNumChannels(), GSyn[0], getSpikingFlag(), getCLayer()->activeIndices, &getCLayer()->numActive);
    if(status == PV_SUCCESS) status = updateActiveIndices();
    return status;
 }
 
-int HyPerLayer::updateState(float timef, float dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels, pvdata_t * gSynHead, bool spiking, unsigned int * active_indices, unsigned int * num_active)
+int HyPerLayer::updateState(double timef, double dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels, pvdata_t * gSynHead, bool spiking, unsigned int * active_indices, unsigned int * num_active)
 {
    // just copy accumulation buffer to membrane potential
    // and activity buffer (nonspiking)
@@ -778,7 +778,7 @@ int HyPerLayer::setActivity() {
    return setActivity_HyPerLayer(getNumNeurons(), clayer->activity->data, getV(), loc->nx, loc->ny, loc->nf, loc->nb);
 }
 
-int HyPerLayer::updateBorder(float time, float dt)
+int HyPerLayer::updateBorder(double time, double dt)
 {
    int status = PV_SUCCESS;
 
@@ -961,7 +961,7 @@ int HyPerLayer::triggerReceive(InterColComm* comm)
    return status;
 }
 
-int HyPerLayer::publish(InterColComm* comm, float time)
+int HyPerLayer::publish(InterColComm* comm, double time)
 {
    if ( useMirrorBCs() ) {
       for (int borderId = 1; borderId < NUM_NEIGHBORHOOD; borderId++){
@@ -1021,7 +1021,7 @@ int HyPerLayer::insertProbe(LayerProbe * p)
    return ++numProbes;
 }
 
-int HyPerLayer::outputState(float timef, bool last)
+int HyPerLayer::outputState(double timef, bool last)
 {
    int status = PV_SUCCESS;
 
@@ -1056,7 +1056,7 @@ const char * HyPerLayer::getOutputFilename(char * buf, const char * dataName, co
    return buf;
 }
 
-int HyPerLayer::checkpointRead(const char * cpDir, float * timef) {
+int HyPerLayer::checkpointRead(const char * cpDir, double * timef) {
    InterColComm * icComm = parent->icCommunicator();
    char basepath[PV_PATH_MAX];
    char filename[PV_PATH_MAX];
@@ -1073,30 +1073,30 @@ int HyPerLayer::checkpointRead(const char * cpDir, float * timef) {
    assert(chars_needed < PV_PATH_MAX);
    int status = readBufferFile(filename, icComm, &timed, clayer->activity->data, 1, /*extended*/true, /*contiguous*/false, getLayerLoc());
    assert(status == PV_SUCCESS);
-   *timef = (float) timed;
+   *timef = timed;
    // TODO contiguous should be true in the writeBufferFile calls (needs to be added to writeBuffer method)
    if( getV() != NULL ) {
       chars_needed = snprintf(filename, PV_PATH_MAX, "%s_V.pvp", basepath);
       assert(chars_needed < PV_PATH_MAX);
       status = readBufferFile(filename, icComm, &timed, getV(), 1, /*extended*/false, /*contiguous*/false, getLayerLoc());
       assert(status == PV_SUCCESS);
-      if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
-         fprintf(stderr, "Warning: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
+      if( timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
+         fprintf(stderr, "Warning: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, timed, *timef);
       }
    }
    chars_needed = snprintf(filename, PV_PATH_MAX, "%s_Delays.pvp", basepath);
    assert(chars_needed < PV_PATH_MAX);
    status = readDataStoreFromFile(filename, icComm, &timed);
    assert(status == PV_SUCCESS);
-   if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
-      fprintf(stderr, "Warning: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
+   if( timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
+      fprintf(stderr, "Warning: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, timed, *timef);
    }
 
    chars_needed = snprintf(filename, PV_PATH_MAX, "%s_nextWrite.bin", basepath);
    assert(chars_needed < PV_PATH_MAX);
    if( parent->icCommunicator()->commRank() == 0 ) {
       FILE * fpWriteTime = fopen(filename, "r");
-      pvdata_t write_time = writeTime;
+      double write_time = writeTime;
       if (fpWriteTime==NULL) {
          fprintf(stderr, "HyPerLayer::checkpointRead warning: unable to open path %s for reading.  writeTime will be %f\n", filename, write_time);
       }
@@ -1110,7 +1110,7 @@ int HyPerLayer::checkpointRead(const char * cpDir, float * timef) {
       fclose(fpWriteTime);
    }
 #ifdef PV_USE_MPI
-   MPI_Bcast(&writeTime, 1, MPI_FLOAT, 0, icComm->communicator());
+   MPI_Bcast(&writeTime, 1, MPI_DOUBLE, 0, icComm->communicator());
 #endif // PV_USE_MPI
 
    return PV_SUCCESS;
@@ -1209,7 +1209,7 @@ int HyPerLayer::readHeader(const char * filename, InterColComm * comm, double * 
    return PV_SUCCESS;
 }
 
-int HyPerLayer::readScalarFloat(const char * cp_dir, const char * val_name, float * val_ptr, float default_value) {
+int HyPerLayer::readScalarFloat(const char * cp_dir, const char * val_name, double * val_ptr, double default_value) {
    int status = PV_SUCCESS;
    if( parent->icCommunicator()->commRank() == 0 ) {
       char filename[PV_PATH_MAX];
@@ -1233,7 +1233,7 @@ int HyPerLayer::readScalarFloat(const char * cp_dir, const char * val_name, floa
       fclose(fpWriteTime);
    }
 #ifdef PV_USE_MPI
-   MPI_Bcast(&writeTime, 1, MPI_FLOAT, 0, getParent()->icCommunicator()->communicator());
+   MPI_Bcast(val_ptr, 1, MPI_DOUBLE, 0, getParent()->icCommunicator()->communicator());
 #endif // PV_USE_MPI
 
    return status;
@@ -1346,7 +1346,7 @@ int HyPerLayer::writeDataStoreToFile(const char * filename, InterColComm * comm,
    return status;
 }
 
-int HyPerLayer::writeScalarFloat(const char * cp_dir, const char * val_name, float val) {
+int HyPerLayer::writeScalarFloat(const char * cp_dir, const char * val_name, double val) {
    int status = PV_SUCCESS;
    if (parent->columnId()==0)  {
       char filename[PV_PATH_MAX];
@@ -1379,7 +1379,7 @@ int HyPerLayer::writeScalarFloat(const char * cp_dir, const char * val_name, flo
    return status;
 }
 
-int HyPerLayer::readState(float * timef)
+int HyPerLayer::readState(double * timef)
 {
    char last_dir[PV_PATH_MAX];
    int chars_needed = snprintf(last_dir, PV_PATH_MAX, "%s/Last", parent->getOutputPath());
@@ -1419,7 +1419,7 @@ int HyPerLayer::writeState(float timef, bool last)
 }
 #endif // OBSOLETE
 
-int HyPerLayer::writeActivitySparse(float timef)
+int HyPerLayer::writeActivitySparse(double timef)
 {
    int status = PV::writeActivitySparse(clayer->activeFP, parent->icCommunicator(), timef, clayer);
    incrementNBands(&writeActivitySparseCalls);
@@ -1427,7 +1427,7 @@ int HyPerLayer::writeActivitySparse(float timef)
 }
 
 // write non-spiking activity
-int HyPerLayer::writeActivity(float timef)
+int HyPerLayer::writeActivity(double timef)
 {
    // currently numActive only used by writeActivitySparse
    //

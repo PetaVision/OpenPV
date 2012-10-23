@@ -40,15 +40,15 @@ public:
    int setParams(PVParams * p);
 
    virtual int triggerReceive(InterColComm* comm);
-   virtual int updateState(float time, float dt);
-   virtual int outputState(float time, bool last);
-   virtual int updateStateOpenCL(float time, float dt);
-   virtual int updateBorder(float time, float dt);
+   virtual int updateState(double time, double dt);
+   virtual int outputState(double time, bool last);
+   virtual int updateStateOpenCL(double time, double dt);
+   virtual int updateBorder(double time, double dt);
    virtual int waitOnPublish(InterColComm* comm);
 #ifdef OBSOLETE // Marked obsolete Jul 13, 2012.  Dumping the state is now done by CheckpointWrite.
-   virtual int writeState(float timef, bool last=false);
+   virtual int writeState(double timef, bool last=false);
 #endif // OBSOLETE
-   virtual int checkpointRead(const char * cpDir, float * timef);
+   virtual int checkpointRead(const char * cpDir, double * timef);
    virtual int checkpointWrite(const char * cpDir);
 
 protected:

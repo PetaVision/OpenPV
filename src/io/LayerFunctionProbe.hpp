@@ -24,12 +24,12 @@ public:
 
    LayerFunction * getFunction() {return function;}
    int setFunction(LayerFunction * f);
-   virtual int outputState(float timef);
+   virtual int outputState(double timef);
 
 protected:
    LayerFunctionProbe();
    int initLayerFunctionProbe(const char * filename, HyPerLayer * layer, const char * msg, LayerFunction * F);
-   virtual int writeState(float timef, HyPerLayer * l, pvdata_t value);
+   virtual int writeState(double timef, HyPerLayer * l, pvdata_t value);
    LayerFunction * function;
 };
 

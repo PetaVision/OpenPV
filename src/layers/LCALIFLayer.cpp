@@ -132,7 +132,7 @@ int LCALIFLayer::allocateBuffers() {
    return LIFGap::allocateBuffers();
 }
 
-int LCALIFLayer::updateState(float time, float dt)
+int LCALIFLayer::updateState(double time, double dt)
 {
    //Calculate_state kernel
    LCALIF_update_state(getNumNeurons(), time, dt, clayer->loc.nx, clayer->loc.ny, clayer->loc.nf,
@@ -142,7 +142,7 @@ int LCALIFLayer::updateState(float time, float dt)
    return PV_SUCCESS;
 }
 
-int LCALIFLayer::checkpointRead(const char * cpDir, float * timef) {
+int LCALIFLayer::checkpointRead(const char * cpDir, double * timef) {
    int status = LIFGap::checkpointRead(cpDir, timef);
    InterColComm * icComm = parent->icCommunicator();
    char basepath[PV_PATH_MAX];

@@ -229,7 +229,7 @@ void InitCocircWeightsParams::updateCocircNChord(
    const int noPost = getNoPost();
    const float sigma_cocirc2 = 2 * getSigma_cocirc() * getSigma_cocirc();
    const float sigma_chord2 = 2.0 * getSigma_chord() * getSigma_chord();
-   const int nKurvePre = getnKurvePre();
+   const int nKurvePre = (int)getnKurvePre();
 
    float atanx2_shift = thetaPre + 2. * atan2f(dyP_shift, dxP); // preferred angle (rad)
    atanx2_shift += 2. * PI;

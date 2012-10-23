@@ -24,7 +24,7 @@ public:
    virtual ~BIDSSensorLayer();
    int initialize_base();
    int initialize(const char * name, HyPerCol * hc, int numChannels=MAX_CHANNELS);
-   int updateState(float timef, float dt);
+   int updateState(double timef, double dt);
 protected:
    BIDSSensorLayer();
    float matchFilter(int node_index, int frame_index);
@@ -39,7 +39,7 @@ protected:
    int ny;
    int nf;
    int buf_index;
-   float ts;
+   double ts;
    float freq;
    float weight;
    int numNodes;

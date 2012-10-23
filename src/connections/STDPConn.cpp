@@ -151,7 +151,7 @@ int STDPConn::setParams(PVParams * params)
  * First function to be executed
  * Updates the postsynaptic trace and calls the updateWeights function
  */
-int STDPConn::updateState(float time, float dt)
+int STDPConn::updateState(double time, double dt)
 {
    update_timer->start();
 
@@ -414,7 +414,7 @@ int STDPConn::pvpatch_update_weights(int nk, float * RESTRICT w, const float * R
    return 0;
 }
 
-int STDPConn::outputState(float timef, bool last)
+int STDPConn::outputState(double timef, bool last)
 {
    int status;
 

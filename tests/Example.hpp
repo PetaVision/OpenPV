@@ -24,11 +24,11 @@ public:
 #endif
 
    virtual int recvSynapticInput(HyPerConn* conn, const PVLayerCube* activity, int neighbor);
-   virtual int updateState(float time, float dt);
+   virtual int updateState(double time, double dt);
 
    virtual int initFinish(int colId, int colRow, int colCol);
 
-   virtual int outputState(float timef, bool last=false);
+   virtual int outputState(double timef, bool last=false);
 };
 
 }

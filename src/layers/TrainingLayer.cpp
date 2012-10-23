@@ -92,7 +92,7 @@ int TrainingLayer::initializeState() {
    PVParams * params = parent->parameters();
    bool restart_flag = params->value(name, "restart", 0.0f) != 0.0f;
    if (restart_flag) {
-      float timef;
+      double timef;
       status = readState(&timef);
    }
    else {
@@ -108,7 +108,7 @@ int TrainingLayer::initializeState() {
    return status;
 }
 
-int TrainingLayer::updateState(float timef, float dt) {
+int TrainingLayer::updateState(double timef, double dt) {
    int status = PV_SUCCESS;
    if(timef >= nextLabelTime) {
       nextLabelTime += displayPeriod;
@@ -118,7 +118,7 @@ int TrainingLayer::updateState(float timef, float dt) {
    return status;
 }
 
-int TrainingLayer::updateState(float timef, float dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int numTrainingLabels, int * trainingLabels, int traininglabelindex, int strength) {
+int TrainingLayer::updateState(double timef, double dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int numTrainingLabels, int * trainingLabels, int traininglabelindex, int strength) {
    int nx = loc->nx;
    int ny = loc->ny;
    int nf = loc->nf;
@@ -131,7 +131,7 @@ int TrainingLayer::updateState(float timef, float dt, const PVLayerLoc * loc, pv
    return PV_SUCCESS;
 }
 
-int TrainingLayer::checkpointRead(const char * cpDir, float * timef) {
+int TrainingLayer::checkpointRead(const char * cpDir, double * timef) {
    int status = HyPerLayer::checkpointRead(cpDir, timef);
    assert(status == PV_SUCCESS);
    InterColComm * icComm = parent->icCommunicator();

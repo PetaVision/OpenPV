@@ -43,9 +43,9 @@ public:
 #endif //PV_USE_OPENCL
 
    int run()  {return run(numSteps);}
-   int run(int nTimeSteps);
+   int run(long int nTimeSteps);
 
-   float advanceTime(float time);
+   double advanceTime(double time);
    int   exitRunLoop(bool exitOnFinish);
 
    int loadState();
@@ -77,16 +77,16 @@ public:
 
    bool  warmStartup()                    {return warmStart;}
 
-   float getDeltaTime()                   {return deltaTime;}
-   float simulationTime()                 {return simTime;}
-   float getStopTime()                    {return stopTime;}
-   int getCurrentStep()                   {return currentStep;}
+   double getDeltaTime()                   {return deltaTime;}
+   double simulationTime()                 {return simTime;}
+   double getStopTime()                    {return stopTime;}
+   long int getCurrentStep()                   {return currentStep;}
 
    int includeLayerName()                 {return filenamesContainLayerNames;}
 
    const char * inputFile()               {return image_file;}
 
-   int numberOfTimeSteps()                {return numSteps;}
+   long int numberOfTimeSteps()                {return numSteps;}
 
    int numberOfColumns();
 
@@ -111,7 +111,7 @@ public:
    void setDelegate(HyPerColRunDelegate * delegate)  {runDelegate = delegate;}
 
    int insertProbe(ColProbe * p);
-   int outputState(float time);
+   int outputState(double time);
    int ensureDirExists(const char * dirname);
 
 private:
@@ -126,8 +126,8 @@ private:
    int zCheckMarginWidth(HyPerConn * conn, const char * dim, int patchSize, int scalePre, int scalePost, int prevStatus);
    int lCheckMarginWidth(HyPerLayer * layer, const char * dim, int layerSize, int layerGlobalSize, int prevStatus);
 
-   int numSteps;
-   int currentStep;
+   long int numSteps;
+   long int currentStep;
    int layerArraySize;
    int numLayers;
    int connectionArraySize;
@@ -138,12 +138,12 @@ private:
    bool checkpointReadFlag;    // whether to load from a checkpoint directory
    bool checkpointWriteFlag;   // whether to write from a checkpoint directory
    char * checkpointReadDir;   // name of the directory to read an initializing checkpoint from
-   int cpReadDirIndex;  // checkpoint number within checkpointReadDir to read
+   long int cpReadDirIndex;  // checkpoint number within checkpointReadDir to read
    char * checkpointWriteDir; // name of the directory to write checkpoints to
-   int cpWriteStepInterval;
-   int nextCPWriteStep;
-   float cpWriteTimeInterval;
-   float nextCPWriteTime;
+   long int cpWriteStepInterval;
+   long int nextCPWriteStep;
+   double cpWriteTimeInterval;
+   double nextCPWriteTime;
    bool deleteOlderCheckpoints; // If true, whenever a checkpoint other than the first is written, the preceding checkpoint is deleted. Default is false.
    char lastCheckpointDir[PV_PATH_MAX]; // Holds the last checkpoint directory written; used if deleteOlderCheckpoints is true.
 
@@ -151,10 +151,10 @@ private:
                             // If checkpointWriteFlag is false and this flag is true, no checkpoint is done on exit.
                             // The flag has no effect if checkpointWriteFlag is true (in which case a checkpoint is written on exit to the next directory in checkpointWriteDir
 
-   float simTime;          // current time in milliseconds
-   float stopTime;         // time to stop time
-   float deltaTime;        // time step interval
-   int progressStep;       // How many timesteps between outputting progress
+   double simTime;          // current time in milliseconds
+   double stopTime;         // time to stop time
+   double deltaTime;        // time step interval
+   long int progressStep;       // How many timesteps between outputting progress
    bool writeProgressToErr;// Whether to write progress step to standard error (True) or out (False) (default is out)
 
    CLDevice * clDevice;    // object for running kernels on OpenCL device

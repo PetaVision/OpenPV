@@ -23,13 +23,13 @@ class BIDSCloneLayer: public HyPerLayer {
 public:
    BIDSCloneLayer(const char * name, HyPerCol * hc, LIF * clone);
    virtual ~BIDSCloneLayer();
-   virtual int updateState(float timef, float dt);
+   virtual int updateState(double timef, double dt);
    // virtual int updateV();
    // virtual int setActivity();
    // virtual int resetGSynBuffers();
    LIF * sourceLayer;
    virtual int setActivity();
-   int outputState(float timef, bool last);
+   int outputState(double timef, bool last);
    int mapCoords();
 protected:
    BIDSCloneLayer();

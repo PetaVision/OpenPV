@@ -83,7 +83,7 @@ int CreateMovies::initialize(const char * name, HyPerCol * hc) {
    loc->nx = cp->nx;
    loc->ny = cp->ny;
    loc->nf = 1;
-   loc->nb = pvparams->value(name, "marginWidth", 0);
+   loc->nb = (int)pvparams->value(name, "marginWidth", 0);
    loc->halo.lt = loc->halo.rt = loc->halo.dn = loc->halo.up = loc->nb;
 
    free(data);
@@ -91,13 +91,13 @@ int CreateMovies::initialize(const char * name, HyPerCol * hc) {
                                   * (loc->ny + loc->halo.dn + loc->halo.up) * sizeof(pvdata_t);
    data = (pvdata_t *) malloc(dn);
    assert(data != NULL);
-   memset((pvdata_t *)data, cp->backgroundval, dn);
+   memset((pvdata_t *)data, (int)(cp->backgroundval), dn);
    Transform(0, 0, 0);
 
 #ifdef DEBUG_OUTPUTIMAGES
-   int T = hc->simulationTime() ;
+   double T = hc->simulationTime() ;
    char title[1000];
-   ::sprintf(title,"output/images/%05d.tif",T);
+   ::sprintf(title,"output/images/%05d.tif",(int)T);
    write(title);
 #endif
 
@@ -113,22 +113,22 @@ int CreateMovies::setParams(PVParams * params, CreateMovies_Params * p)
 
    CreateMovies_Params * cp = CMParams;
 
-   if (params->present(name, "nx"))  			cp->nx  = params->value(name, "nx");
-   if (params->present(name, "ny"))  			cp->ny = params->value(name, "ny");
+   if (params->present(name, "nx"))  			cp->nx  = (int)params->value(name, "nx");
+   if (params->present(name, "ny"))  			cp->ny = (int)params->value(name, "ny");
    if (params->present(name, "foregroundval"))  cp->foregroundval = params->value(name, "foregroundval");
    if (params->present(name, "backgroundval"))  cp->backgroundval = params->value(name, "backgroundval");
    if (params->present(name, "isgray"))    		cp->isgray  = params->value(name, "isgray");
    if (params->present(name, "rotateangle"))    cp->rotateangle  = params->value(name, "rotateangle");
-   if (params->present(name, "centerx"))      	cp->centerx = params->value(name, "centerx");
-   if (params->present(name, "centery"))  		cp->centery  = params->value(name, "centery");
-   if (params->present(name, "period")) 		cp->period  = params->value(name, "period");
-   if (params->present(name, "linewidth")) 		cp->linewidth  = params->value(name, "linewidth");
-   if (params->present(name, "vx")) 			cp->vx  = params->value(name, "vx");
-   if (params->present(name, "vy")) 			cp->vy  = params->value(name, "vy");
+   if (params->present(name, "centerx"))      	cp->centerx = (int)params->value(name, "centerx");
+   if (params->present(name, "centery"))  		cp->centery  = (int)params->value(name, "centery");
+   if (params->present(name, "period")) 		cp->period  = (int)params->value(name, "period");
+   if (params->present(name, "linewidth")) 		cp->linewidth  = (int)params->value(name, "linewidth");
+   if (params->present(name, "vx")) 			cp->vx  = (int)params->value(name, "vx");
+   if (params->present(name, "vy")) 			cp->vy  = (int)params->value(name, "vy");
    if (params->present(name, "vr")) 			cp->vr  = params->value(name, "vr");
-   if (params->present(name, "isshiftx")) 		cp->isshiftx  = params->value(name, "isshiftx");
-   if (params->present(name, "isshifty")) 		cp->isshifty  = params->value(name, "isshifty");
-   if (params->present(name, "isrotate")) 		cp->isrotate  = params->value(name, "isrotate");
+   if (params->present(name, "isshiftx")) 		cp->isshiftx  = (int)params->value(name, "isshiftx");
+   if (params->present(name, "isshifty")) 		cp->isshifty  = (int)params->value(name, "isshifty");
+   if (params->present(name, "isrotate")) 		cp->isrotate  = (int)params->value(name, "isrotate");
 
    return 0;
 }
@@ -153,7 +153,7 @@ int CreateMovies::Rotate(const float DAngle, const int centerx, const int center
    }
 
    float Agl = Pi*param->rotateangle/180.0;
-   int cx = Nx/2.0, cy = Ny/2.0;
+   int cx = (int)(Nx/2.0), cy = (int)(Ny/2.0);
    int period = param->period;
    int linewidth = param->linewidth;
    pvdata_t foregroundval = param->foregroundval;
@@ -166,7 +166,7 @@ int CreateMovies::Rotate(const float DAngle, const int centerx, const int center
    }
    assert(data != NULL);
 
-   memset((pvdata_t *)data, backgroundval, dn);
+   memset((pvdata_t *)data, (int)backgroundval, dn);
 
    float cs = ::cos((double)Agl),  sn = ::sin((double)Agl);
    int i,j,i1;
@@ -236,7 +236,7 @@ bool CreateMovies::updateImage(float time, float dt){
 
 #ifdef DEBUG_OUTPUTIMAGES
    if (numFrame < MaxNumberFrames){
-      int T = nextDisplayTime - displayPeriod;
+      int T = (int)(nextDisplayTime - displayPeriod);
       char title[1000];
       ::sprintf(title,"output/images/%05d.tif",T);
       write(title);

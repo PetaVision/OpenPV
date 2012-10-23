@@ -9,6 +9,7 @@
 #define MPI_COMM_WORLD     1
 #define MPI_CHAR           1
 #define MPI_FLOAT          4
+#define MPI_DOUBLE         8
 #define MPI_STATUS_IGNORE  0
 
 #ifdef __cplusplus

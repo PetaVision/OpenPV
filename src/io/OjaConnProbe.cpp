@@ -83,7 +83,7 @@ int OjaConnProbe::initialize(const char * probename, const char * filename,
    return PV_SUCCESS;
 }
 
-int OjaConnProbe::outputState(float timef)
+int OjaConnProbe::outputState(double timef)
 {
    if (!inBounds) {
       return PV_SUCCESS;

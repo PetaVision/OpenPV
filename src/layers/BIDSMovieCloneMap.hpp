@@ -27,7 +27,7 @@ public:
    void setCoords(int jitter, float nxScale, float nyScale, int HyPerColx, int HyPerColy);
    BIDSCoords* getCoords();
    int getNumNodes();
-   int updateState(float timef, float dt);
+   int updateState(double timef, double dt);
    ~BIDSMovieCloneMap();
    
 protected:

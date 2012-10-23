@@ -41,8 +41,8 @@ int BIDSMovieCloneMap::initialize(const char * name, HyPerCol * hc, int numChann
    int HyPerColx = (int)(parent->parameters()->value("column", "nx"));
    int HyPerColy = (int)(parent->parameters()->value("column", "ny"));
 
-   nxPost = nxScale * HyPerColx;
-   nyPost = nyScale * HyPerColy;
+   nxPost = (int)(nxScale * HyPerColx);
+   nyPost = (int)(nyScale * HyPerColy);
    int jitter = (int)(parent->parameters()->value(name, "jitter"));
 
    //Check jitter
@@ -59,8 +59,8 @@ int BIDSMovieCloneMap::initialize(const char * name, HyPerCol * hc, int numChann
 }
 
 void BIDSMovieCloneMap::setCoords(int jitter, float nxScale, float nyScale, int HyPerColx, int HyPerColy){
-   int patchSizex = (1/nxScale); //the length of a side of a patch in the HyPerColumn
-   int patchSizey = (1/nyScale); //the length of a side of a patch in the HyPerColumn
+   int patchSizex = (int)(1/nxScale); //the length of a side of a patch in the HyPerColumn
+   int patchSizey = (int)(1/nyScale); //the length of a side of a patch in the HyPerColumn
    int jitterRange = jitter * 2;
 
    //TODO: Set up physical position for margin nodes
@@ -85,7 +85,7 @@ BIDSCoords* BIDSMovieCloneMap::getCoords(){
    return coords;
 }
 
-int BIDSMovieCloneMap::updateState(float timef, float dt){
+int BIDSMovieCloneMap::updateState(double timef, double dt){
    //Get output buffer
    pvdata_t * output = getCLayer()->V;
    pvdata_t * input = originalMovie->getCLayer()->activity->data;

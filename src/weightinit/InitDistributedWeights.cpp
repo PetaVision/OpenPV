@@ -39,7 +39,7 @@ InitWeightsParams * InitDistributedWeights::createNewWeightParams(HyPerConn * ca
    return tempPtr;
 }
 
-int InitDistributedWeights::initializeWeights(PVPatch *** patches, pvdata_t ** dataStart, int numPatches, const char * filename, HyPerConn * callingConn, float * timef /*default NULL*/) {
+int InitDistributedWeights::initializeWeights(PVPatch *** patches, pvdata_t ** dataStart, int numPatches, const char * filename, HyPerConn * callingConn, double * timef /*default NULL*/) {
    PVParams * inputParams = callingConn->getParent()->parameters();
    assert(callingConn->getNumDataPatches() == callingConn->getNumWeightPatches()); //assures that this function can only be called in a HyPerConn
    int initFromLastFlag = inputParams->value(callingConn->getName(), "initFromLastFlag", 0.0f, false) != 0;
@@ -56,7 +56,7 @@ int InitDistributedWeights::initializeWeights(PVPatch *** patches, pvdata_t ** d
    else {
       weightParams = createNewWeightParams(callingConn);
       InitDistributedWeightsParams *weightParamPtr = dynamic_cast<InitDistributedWeightsParams*>(weightParams);
-      const int numNodes = weightParamPtr->getNumNodes(); //retrieves the number of nodes specified in the params file
+      const int numNodes = (int)weightParamPtr->getNumNodes(); //retrieves the number of nodes specified in the params file
       const int numDataPatches = callingConn->getNumDataPatches(); //retrieves the number of patches present in the current image
       assert(numArbors == 1); //makes sure #of arbors will always be 1
       assert(numNodes <= numDataPatches);

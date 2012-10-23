@@ -75,7 +75,7 @@ int HMaxSimple::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activity
    return 0;
 }
 
-int HMaxSimple::updateState(float time, float dt)
+int HMaxSimple::updateState(double time, double dt)
 {
    pv_debug_info("[%d]: HMaxSimple::updateState:", clayer->columnId);
 
@@ -109,7 +109,7 @@ int HMaxSimple::initFinish(int colId, int colRow, int colCol)
    return 0;
 }
 
-int HMaxSimple::outputState(float time, bool last)
+int HMaxSimple::outputState(double time, bool last)
 {
    pv_debug_info("[%d]: HMaxSimple::outputState:", clayer->columnId);
 

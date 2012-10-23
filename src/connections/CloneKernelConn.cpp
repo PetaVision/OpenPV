@@ -142,7 +142,7 @@ int CloneKernelConn::setParams(PVParams * params) {
    return PV_SUCCESS;
 }
 
-int CloneKernelConn::updateState(float time, float dt) {
+int CloneKernelConn::updateState(double time, double dt) {
    lastUpdateTime = originalConn->getLastUpdateTime();
    return PV_SUCCESS;
 }

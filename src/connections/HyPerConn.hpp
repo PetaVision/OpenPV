@@ -57,23 +57,23 @@ public:
    virtual ~HyPerConn();
 
    virtual int deliver(Publisher * pub, const PVLayerCube * cube, int neighbor);
-   virtual int checkpointRead(const char * cpDir, float* timef);
+   virtual int checkpointRead(const char * cpDir, double* timef);
    virtual int checkpointWrite(const char * cpDir);
    virtual int insertProbe(BaseConnectionProbe* p);
-   virtual int outputState(float time, bool last = false);
-   virtual int updateState(float time, float dt);
+   virtual int outputState(double time, bool last = false);
+   virtual int updateState(double time, double dt);
    virtual int updateWeights(int axonId = 0);
-   virtual int writeWeights(float time, bool last = false);
+   virtual int writeWeights(double time, bool last = false);
    virtual int writeWeights(const char* filename);
    virtual int writeWeights(PVPatch*** patches, float** dataStart,
-         int numPatches, const char* filename, float timef, bool last);
+         int numPatches, const char* filename, double timef, bool last);
    virtual int writeTextWeights(const char* filename, int k);
 
    virtual int writeTextWeightsExtra(FILE* fd, int k, int arborID) {
       return PV_SUCCESS;
    }
 
-   virtual int writePostSynapticWeights(float time, bool last);
+   virtual int writePostSynapticWeights(double time, bool last);
    int readWeights(const char* filename);
    bool stochasticReleaseFlag;
    int (*accumulateFunctionPointer)(int nk, float* v, float a, float* w);
@@ -261,7 +261,7 @@ public:
    }
 
    virtual int setParams(PVParams* params);
-   PVPatch*** convertPreSynapticWeights(float time);
+   PVPatch*** convertPreSynapticWeights(double time);
    PVPatch**** point2PreSynapticWeights();
    int preSynapticPatchHead(int kxPost, int kyPost, int kfPost, int* kxPre,
          int* kyPre);
@@ -355,9 +355,9 @@ protected:
    int numProbes;
    BaseConnectionProbe** probes; // probes used to output data
    bool ioAppend; // controls opening of binary files
-   float wPostTime; // time of last conversion to wPostPatches
-   float writeTime; // time of next output, initialized in params file parameter initialWriteTime
-   float writeStep; // output time interval
+   double wPostTime; // time of last conversion to wPostPatches
+   double writeTime; // time of next output, initialized in params file parameter initialWriteTime
+   double writeStep; // output time interval
    bool writeCompressedWeights; // true=write weights with 8-bit precision;
    // false=write weights with float precision
    int fileType; // type ID for file written by PV::writeWeights
@@ -476,7 +476,7 @@ protected:
    // virtual int deleteWeights(); // Changed to a private method.  Should not be virtual since it's called from the destructor.
    virtual int adjustAxonalArbors(int arborId);
    int checkpointFilename(char * cpFilename, int size, const char * cpDir);
-   int writeScalarFloat(const char * cp_dir, const char * val_name, float val);
+   int writeScalarFloat(const char * cp_dir, const char * val_name, double val);
 
    virtual int calc_dW(int axonId = 0);
    void connOutOfMemory(const char* funcname);

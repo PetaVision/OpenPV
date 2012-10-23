@@ -22,14 +22,14 @@ public:
    PtwiseProductLayer(const char * name, HyPerCol * hc);
    virtual ~PtwiseProductLayer();
 
-   virtual int updateState(float timef, float dt);
+   virtual int updateState(double timef, double dt);
    // virtual int updateV();
 
 protected:
    PtwiseProductLayer();
    int initialize(const char * name, HyPerCol * hc);
 
-   /* static */ int updateState(float timef, float dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels, pvdata_t * gSynHead, unsigned int * active_indices, unsigned int * num_active);
+   /* static */ int updateState(double timef, double dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels, pvdata_t * gSynHead, unsigned int * active_indices, unsigned int * num_active);
 
 private:
    int initialize_base();

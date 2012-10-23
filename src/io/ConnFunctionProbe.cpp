@@ -28,7 +28,7 @@ int ConnFunctionProbe::initialize(const char * probename, const char * filename,
    return PV_SUCCESS;
 }
 
-int ConnFunctionProbe::outputState(float timef) {
+int ConnFunctionProbe::outputState(double timef) {
    int status = PV_SUCCESS;
    if( status == PV_SUCCESS ) {
       double energy = evaluate(timef);

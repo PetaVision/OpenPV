@@ -25,7 +25,7 @@ public:
 //   InitUniformRandomWeights(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
 //         ChannelType channel);
    virtual ~InitDistributedWeights();
-   virtual int initializeWeights(PVPatch *** patches, pvdata_t ** dataStart, int numPatches, const char * filename, HyPerConn * callingConn, float * timef=NULL);
+   virtual int initializeWeights(PVPatch *** patches, pvdata_t ** dataStart, int numPatches, const char * filename, HyPerConn * callingConn, double * timef=NULL);
 
    virtual InitWeightsParams * createNewWeightParams(HyPerConn * callingConn);
 

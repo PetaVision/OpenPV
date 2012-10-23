@@ -19,7 +19,7 @@ public:
     ColProbe(const char * probeName, const char * filename, HyPerCol * hc);
     virtual ~ColProbe();
 
-    virtual int outputState(float time, HyPerCol * hc) {return PV_SUCCESS;}
+    virtual int outputState(double time, HyPerCol * hc) {return PV_SUCCESS;}
     const char * getColProbeName() { return colProbeName; }
 
 protected:

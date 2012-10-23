@@ -61,7 +61,7 @@ int OjaKernelConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre
    return status;
 }
 
-int OjaKernelConn::updateState(float timef, float dt) {
+int OjaKernelConn::updateState(double timef, double dt) {
 
    float decayfactor = expf(-parent->getDeltaTime()/integrationTime);
    // Update output firing rate
@@ -133,7 +133,7 @@ int OjaKernelConn::update_dW(int axonId) {
    return status;
 }
 
-int OjaKernelConn::checkpointRead(const char * cpDir, float* timef) {
+int OjaKernelConn::checkpointRead(const char * cpDir, double * timef) {
    int status = KernelConn::checkpointRead(cpDir, timef);
    char filename[PV_PATH_MAX];
    int chars_needed;

@@ -22,7 +22,7 @@ public:
    ANNDivInh(const char* name, HyPerCol * hc);
    virtual ~ANNDivInh();
 
-   virtual int updateState(float time, float dt);
+   virtual int updateState(double time, double dt);
    // virtual int updateV();
 
 protected:
@@ -41,7 +41,7 @@ protected:
       return -1;
    }
    //virtual int getEVActivity() {return EV_ANNDV_ACTIVITY;}
-   int updateStateOpenCL(float time, float dt);
+   int updateStateOpenCL(double time, double dt);
    //virtual int triggerReceive(InterColComm* comm);
 #endif
 

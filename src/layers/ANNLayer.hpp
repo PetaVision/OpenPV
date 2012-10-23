@@ -19,7 +19,7 @@ class ANNLayer : public HyPerLayer {
 public:
    ANNLayer(const char* name, HyPerCol * hc, int numChannels=MAX_CHANNELS);
    virtual ~ANNLayer();
-   virtual int updateState(float time, float dt);
+   virtual int updateState(double time, double dt);
    // virtual int updateV();
    // virtual int applyVMax();
    // virtual int applyVThresh();
@@ -39,7 +39,7 @@ protected:
    virtual int initializeThreadBuffers(const char * kernel_name);
    virtual int initializeThreadKernels(const char * kernel_name);
    //virtual int getEVActivity() {return EV_ANN_ACTIVITY;}
-   int updateStateOpenCL(float time, float dt);
+   int updateStateOpenCL(double time, double dt);
    //temporary method for debuging recievesynapticinput
 public:
 //   virtual void copyChannelExcFromDevice() {

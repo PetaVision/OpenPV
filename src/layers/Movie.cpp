@@ -38,7 +38,7 @@ int Movie::initialize_base() {
    return PV_SUCCESS;
 }
 
-int Movie::checkpointRead(const char * cpDir, float * timef){
+int Movie::checkpointRead(const char * cpDir, double * timef){
    Image::checkpointRead(cpDir, timef);
 
    if (this->useParamsImage) { //Sets nextDisplayTime = simulationtime (i.e. effectively restarting)
@@ -187,7 +187,7 @@ PVLayerLoc Movie::getImageLoc()
    // getLayerLoc().  --pete 2011-07-10
 }
 
-int Movie::updateState(float time, float dt)
+int Movie::updateState(double time, double dt)
 {
   updateImage(time, dt);
   return 0;
@@ -205,7 +205,7 @@ int Movie::updateState(float time, float dt)
  *   If nf>1 then the image is loaded with color information preserved.
  * - Return true if buffers have changed
  */
-bool Movie::updateImage(float time, float dt)
+bool Movie::updateImage(double time, double dt)
 {
    PVLayerLoc * loc = &clayer->loc;
 
@@ -277,7 +277,7 @@ bool Movie::updateImage(float time, float dt)
  * we call writeActivitySparse(time) in order to write the "activity" in the image.
  *
  */
-int Movie::outputState(float time, bool last)
+int Movie::outputState(double time, bool last)
 {
    if (writeImages) {
       char basicFilename[PV_PATH_MAX + 1];

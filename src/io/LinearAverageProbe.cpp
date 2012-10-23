@@ -56,7 +56,7 @@ int LinearAverageProbe::initLinearAverageProbe(const char * filename, HyPerLayer
  * @time
  * @l
  */
-int LinearAverageProbe::outputState(float timef)
+int LinearAverageProbe::outputState(double timef)
 {
    int nk, sk;
    const pvdata_t * line;

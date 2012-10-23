@@ -24,7 +24,7 @@ public:
 //   GenerativeLayer(const char * name, HyPerCol * hc, PVLayerType type);
    ~GenerativeLayer();
 
-   virtual int updateState(float timef, float dt);
+   virtual int updateState(double timef, double dt);
 
    pvdata_t getRelaxation() {return relaxation;}
    pvdata_t getActivityThreshold() { return activityThreshold; }
@@ -32,7 +32,7 @@ public:
 protected:
    GenerativeLayer();
    int initialize(const char * name, HyPerCol * hc);
-   /* static */ int updateState(float timef, float dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels, pvdata_t * gSynHead, pvdata_t * sparsitytermderivative, pvdata_t * dAold, pvdata_t VMax, pvdata_t VMin, pvdata_t VThresh, pvdata_t relaxation, pvdata_t auxChannelCoeff, pvdata_t sparsityTermCoeff, pvdata_t persistence, pvdata_t activity_threshold, bool spiking, unsigned int * active_indices, unsigned int * num_active);
+   /* static */ int updateState(double timef, double dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels, pvdata_t * gSynHead, pvdata_t * sparsitytermderivative, pvdata_t * dAold, pvdata_t VMax, pvdata_t VMin, pvdata_t VThresh, pvdata_t relaxation, pvdata_t auxChannelCoeff, pvdata_t sparsityTermCoeff, pvdata_t persistence, pvdata_t activity_threshold, bool spiking, unsigned int * active_indices, unsigned int * num_active);
    virtual int setActivity();
    static pvdata_t reduce_relaxation(int num_neurons, pvdata_t * V, pvdata_t * dV, pvdata_t relaxation);
 

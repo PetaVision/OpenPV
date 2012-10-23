@@ -39,19 +39,19 @@ public:
    virtual ~LIF();
 
    virtual int triggerReceive(InterColComm* comm);
-   virtual int updateState(float time, float dt);
-   virtual int updateStateOpenCL(float time, float dt);
+   virtual int updateState(double time, double dt);
+   virtual int updateStateOpenCL(double time, double dt);
    virtual int waitOnPublish(InterColComm* comm);
    virtual int setActivity();
    
-   virtual int checkpointRead(const char * cpDir, float * timef);
+   virtual int checkpointRead(const char * cpDir, double * timef);
    virtual int checkpointWrite(const char * cpDir);
 
 #ifdef OBSOLETE // Marked obsolete July 13, 2012.  Restarting from last now handled by a call to checkpointRead from within HyPerLayer::initializeState
-   virtual int readState (float * time);
+   virtual int readState (double * time);
 #endif // OBSOLETE
 #ifdef OBSOLETE // Marked obsolete Jul 13, 2012.  Dumping the state is now done by CheckpointWrite.
-   virtual int writeState(float time, bool last=false);
+   virtual int writeState(double time, bool last=false);
 #endif // OBSOLETE
 
    pvdata_t * getVth()              {return Vth;}

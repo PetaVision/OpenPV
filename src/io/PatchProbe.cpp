@@ -78,7 +78,7 @@ int PatchProbe::initialize(const char * probename, const char * filename,
  *    - kPre is the linear index of the neuron in the extended space.
  *
  */
-int PatchProbe::outputState(float timef)
+int PatchProbe::outputState(double timef)
 {
    HyPerConn * c = getTargetConn();
 #ifdef PV_USE_MPI

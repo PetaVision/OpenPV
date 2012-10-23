@@ -31,9 +31,9 @@ public:
 
    virtual float maxWeight(int arborId = 0);
 
-   virtual int updateState(float time, float dt);
+   virtual int updateState(double time, double dt);
    virtual int updateWeights(int axonId);
-   virtual int outputState(float time, bool last=false);
+   virtual int outputState(double time, bool last=false);
    virtual int writeTextWeightsExtra(FILE * fd, int k, int arborID);
 
    virtual PVLayerCube * getPlasticityDecrement();

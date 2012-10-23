@@ -37,7 +37,7 @@ int InitGaborWeightsParams::initialize_base() {
    //rotate = 1.0f; // rotate so that axis isn't aligned
    setRotate(0.0f); // rotate so that axis isn't aligned
 
-   lambda = sigma/0.8;
+   lambda = (int)(sigma/0.8);
    phi=0;
    invert=true;
 
@@ -55,7 +55,7 @@ int InitGaborWeightsParams::initialize(HyPerConn * parentConn) {
    aspect = params->value(name, "aspect", aspect);
    sigma = params->value(name, "sigma", sigma);
    rMax = params->value(name, "rMax", rMax);
-   lambda   = params->value(name, "lambda", lambda);
+   lambda   = (int)params->value(name, "lambda", lambda);
    strength = params->value(name, "strength", strength);
    phi = params->value(name, "phi", phi);
    double rMaxd = (double) rMax;

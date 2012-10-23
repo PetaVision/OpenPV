@@ -19,7 +19,7 @@ public:
    PostConnProbe(const char * filename, HyPerConn * conn, int kxPost, int kyPost, int kfPost, int arbID=0);
    virtual ~PostConnProbe();
 
-   virtual int outputState(float timef);
+   virtual int outputState(double timef);
    void setImage(Image * image)   {this->image = image;}
 
    int text_write_patch_extra(FILE * fp, PVPatch * patch,

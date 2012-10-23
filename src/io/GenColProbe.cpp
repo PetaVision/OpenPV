@@ -67,7 +67,7 @@ int GenColProbe::addConnTerm(ConnFunctionProbe * p, HyPerConn * c, pvdata_t coef
    return PV_SUCCESS;
 }
 
-pvdata_t GenColProbe::evaluate(float timef) {
+pvdata_t GenColProbe::evaluate(double timef) {
    pvdata_t sum = 0;
    for( int n=0; n<numLayerTerms; n++) {
       gencolprobelayerterm thisterm = layerTerms[n];
@@ -80,7 +80,7 @@ pvdata_t GenColProbe::evaluate(float timef) {
    return sum;
 }  // end GenColProbe::evaluate(float)
 
-int GenColProbe::outputState(float time, HyPerCol * hc) {
+int GenColProbe::outputState(double time, HyPerCol * hc) {
    pvdata_t colprobeval = evaluate(time);
 #ifdef PV_USE_MPI
    if( hc->icCommunicator()->commRank() != 0 ) return PV_SUCCESS;

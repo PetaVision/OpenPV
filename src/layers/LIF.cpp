@@ -363,7 +363,7 @@ int LIF::allocateBuffers() {
    return HyPerLayer::allocateBuffers();
 }
 
-int LIF::checkpointRead(const char * cpDir, float * timef) {
+int LIF::checkpointRead(const char * cpDir, double * timef) {
    HyPerLayer::checkpointRead(cpDir, timef);
    InterColComm * icComm = parent->icCommunicator();
    double timed;
@@ -428,7 +428,7 @@ int LIF::checkpointWrite(const char * cpDir) {
    return PV_SUCCESS;
 }
 
-int LIF::updateStateOpenCL(float time, float dt)
+int LIF::updateStateOpenCL(double time, double dt)
 {
    int status = CL_SUCCESS;
 
@@ -505,7 +505,7 @@ int LIF::waitOnPublish(InterColComm* comm)
    return status;
 }
 
-int LIF::updateState(float time, float dt)
+int LIF::updateState(double time, double dt)
 {
    int status = 0;
    update_timer->start();

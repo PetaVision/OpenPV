@@ -25,11 +25,11 @@ public:
    virtual ~LIFGap();
 
    void addGapStrength(float gap_strength){sumGap += gap_strength;}
-   int virtual updateStateOpenCL(float time, float dt);
+   int virtual updateStateOpenCL(double time, double dt);
    int virtual triggerReceive(InterColComm* comm);
-   int virtual updateState(float time, float dt);
+   int virtual updateState(double time, double dt);
 
-   virtual int checkpointRead(const char * cpDir, float * timef);
+   virtual int checkpointRead(const char * cpDir, double * timef);
    virtual int checkpointWrite(const char * cpDir);
 
 #ifdef OBSOLETE // Marked obsolete July 13, 2012.  Restarting from last now handled by a call to checkpointRead from within HyPerLayer::initializeState

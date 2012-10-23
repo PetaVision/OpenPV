@@ -214,7 +214,7 @@ int LIFGap::allocateBuffers() {
    return status;
 }
 
-int LIFGap::checkpointRead(const char * cpDir, float * timef) {
+int LIFGap::checkpointRead(const char * cpDir, double * timef) {
    LIF::checkpointRead(cpDir, timef);
    InterColComm * icComm = parent->icCommunicator();
    double timed;
@@ -248,7 +248,7 @@ int LIFGap::checkpointWrite(const char * cpDir) {
    return PV_SUCCESS;
 }
 
-int LIFGap::updateStateOpenCL(float time, float dt)
+int LIFGap::updateStateOpenCL(double time, double dt)
 {
    int status = CL_SUCCESS;
 
@@ -291,7 +291,7 @@ int LIFGap::triggerReceive(InterColComm* comm)
 }
 
 
-int LIFGap::updateState(float time, float dt)
+int LIFGap::updateState(double time, double dt)
 {
    int status = CL_SUCCESS;
    update_timer->start();

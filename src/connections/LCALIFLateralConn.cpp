@@ -153,7 +153,7 @@ int LCALIFLateralConn::checkpointWrite(const char * cpDir) {
    return status;
 }
 
-int LCALIFLateralConn::checkpointRead(const char * cpDir, float* timef) {
+int LCALIFLateralConn::checkpointRead(const char * cpDir, double* timef) {
    int status = HyPerConn::checkpointRead(cpDir, timef);
    char filename[PV_PATH_MAX];
    int chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_integratedSpikeCount.pvp", cpDir, name);

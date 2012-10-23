@@ -38,7 +38,7 @@ ActivityProbe::~ActivityProbe()
    }
 }
 
-int ActivityProbe::outputState(float time)
+int ActivityProbe::outputState(double time)
 {
    int status = 0;
 

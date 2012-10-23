@@ -137,23 +137,23 @@ int Patterns::initialize(const char * name, HyPerCol * hc, PatternType type) {
 
       if(dropPosition == -1){
          nextPosChangeFrame = nextDropFrame + dropPositionRandomMin + (dropPositionRandomMax - dropPositionRandomMin) * pv_random_prob();
-         xPos = floor(loc->nxGlobal * pv_random_prob());
-         yPos = floor(loc->nyGlobal * pv_random_prob());
+         xPos = (int)floor(loc->nxGlobal * pv_random_prob());
+         yPos = (int)floor(loc->nyGlobal * pv_random_prob());
       }
       else if(dropPosition == 0){
-         xPos = floor((loc->nxGlobal - 1) / 2);
-         yPos = floor((loc->nyGlobal - 1) / 2);
+         xPos = (int)floor((loc->nxGlobal - 1) / 2);
+         yPos = (int)floor((loc->nyGlobal - 1) / 2);
       }
       else{
          nextPosChangeFrame = nextDropFrame + dropPosition;
-         xPos = floor(loc->nxGlobal * pv_random_prob());
-         yPos = floor(loc->nyGlobal * pv_random_prob());
+         xPos = (int)floor(loc->nxGlobal * pv_random_prob());
+         yPos = (int)floor(loc->nyGlobal * pv_random_prob());
       }
-      MPI_Bcast(&nextDropFrame, 1, MPI_INT, 0, parent->icCommunicator()->communicator());
+      MPI_Bcast(&nextDropFrame, 1, MPI_DOUBLE, 0, parent->icCommunicator()->communicator());
    }
 
    // set parameters that controls writing of new images
-   writeImages = params->value(name, "writeImages", 0.0);
+   writeImages = (int)params->value(name, "writeImages", 0.0);
    // set output path for movie frames
    if(writeImages){
       if ( params->stringPresent(name, "patternsOutputPath") ) {
@@ -405,8 +405,8 @@ int Patterns::drawBars(OrientationMode ormode, pvdata_t * buf, int nx, int ny, f
 
 int Patterns::drawRectangles(float val) {
    int status = PV_SUCCESS;
-   int width  = minWidth  + (maxWidth  - minWidth)  * pv_random_prob();
-   int height = minHeight + (maxHeight - minHeight) * pv_random_prob();
+   int width  = (int)(minWidth  + (maxWidth  - minWidth)  * pv_random_prob());
+   int height = (int)(minHeight + (maxHeight - minHeight) * pv_random_prob());
    const PVLayerLoc * loc = getLayerLoc();
    const int nx = loc->nx + 2 * loc->nb;
    const int ny = loc->ny + 2 * loc->nb;
@@ -417,8 +417,8 @@ int Patterns::drawRectangles(float val) {
    const int half_h = height/2;
 
    // random center location
-   const int xc = (nx-1) * pv_random_prob();
-   const int yc = (ny-1) * pv_random_prob();
+   const int xc = (int)((nx-1) * pv_random_prob());
+   const int yc = (int)((ny-1) * pv_random_prob());
 
    const int x0 = (xc - half_w < 0) ? 0 : xc - half_w;
    const int y0 = (yc - half_h < 0) ? 0 : yc - half_h;
@@ -546,14 +546,14 @@ int Patterns::drawDrops() {
    //Change x and y position if needed
    if(framenumber >= nextPosChangeFrame && dropPosition != 0){
       if(dropPosition == -1){
-         nextPosChangeFrame += dropPositionRandomMin + (dropPositionRandomMax - dropPositionRandomMin) * pv_random_prob();
-         xPos = floor(loc->nxGlobal * pv_random_prob());
-         yPos = floor(loc->nyGlobal * pv_random_prob());
+         nextPosChangeFrame += dropPositionRandomMin + floor((dropPositionRandomMax - dropPositionRandomMin) * pv_random_prob());
+         xPos = (int)(floor(loc->nxGlobal * pv_random_prob()));
+         yPos = (int)(floor(loc->nyGlobal * pv_random_prob()));
       }
       else{
          nextPosChangeFrame += dropPosition;
-         xPos = floor(loc->nxGlobal * pv_random_prob());
-         yPos = floor(loc->nyGlobal * pv_random_prob());
+         xPos = (int)(floor(loc->nxGlobal * pv_random_prob()));
+         yPos = (int)(floor(loc->nyGlobal * pv_random_prob()));
       }
       //No need to communicate it since drop creator will decide where to drop
    }
@@ -587,7 +587,7 @@ int Patterns::drawDrops() {
       newDrop.radius = 0;
 
       //Communicate to rest of processors
-      MPI_Bcast(&nextDropFrame, 1, MPI_INT, 0, parent->icCommunicator()->communicator());
+      MPI_Bcast(&nextDropFrame, 1, MPI_DOUBLE, 0, parent->icCommunicator()->communicator());
       MPI_Bcast(&newDrop, sizeof(Drop), MPI_BYTE, 0, parent->icCommunicator()->communicator());
       vDrops.push_back(newDrop);
    }
@@ -597,8 +597,8 @@ int Patterns::drawDrops() {
       float delta_theta = fabs(atan((float)1./vDrops[i].radius));
       for (float theta = 0; theta < 2*PI; theta += delta_theta){
         // std::cout << "\t" << theta << "\n";
-         int ix = round(vDrops[i].centerX + vDrops[i].radius * cos(theta));
-         int iy = round(vDrops[i].centerY + vDrops[i].radius * sin(theta));
+         int ix = (int)(round(vDrops[i].centerX + vDrops[i].radius * cos(theta)));
+         int iy = (int)(round(vDrops[i].centerY + vDrops[i].radius * sin(theta)));
 
          //Check edge bounds based on nx/ny size
          if(ix < nx + kx0 && iy < ny + ky0 && ix >= kx0 && iy >= ky0){
@@ -618,7 +618,7 @@ int Patterns::drawDrops() {
 /**
  * update the image buffers
  */
-int Patterns::updateState(float timef, float dt) {
+int Patterns::updateState(double timef, double dt) {
    int status = PV_SUCCESS;
    framenumber = timef * dt;
    bool needNewPattern = timef >= nextDisplayTime;
@@ -630,7 +630,7 @@ int Patterns::updateState(float timef, float dt) {
    return status;
 }
 
-int Patterns::updatePattern(float timef) {
+int Patterns::updatePattern(double timef) {
    update_timer->start();
 
    // alternate between vertical and horizontal bars
@@ -739,7 +739,7 @@ float Patterns::calcPosition(float pos, int step)
 }
 
 
-int Patterns::checkpointRead(const char * cpDir, float * timef) {
+int Patterns::checkpointRead(const char * cpDir, double * timef) {
    int status = HyPerLayer::checkpointRead(cpDir, timef);
    InterColComm * icComm = parent->icCommunicator();
    int filenamesize = strlen(cpDir)+1+strlen(name)+18;
@@ -754,10 +754,10 @@ int Patterns::checkpointRead(const char * cpDir, float * timef) {
       if( fp != NULL ) {
          status = fread(&orientation, sizeof(OrientationMode), 1, fp) == 1 ? status : PV_FAILURE;
          status = fread(&position, sizeof(float), 1, fp) ? status : PV_FAILURE;
-         status = fread(&nextDisplayTime, sizeof(float), 1, fp) ? status : PV_FAILURE;
+         status = fread(&nextDisplayTime, sizeof(double), 1, fp) ? status : PV_FAILURE;
+         status = fread(&nextDropFrame, sizeof(double), 1, fp) ? status : PV_FAILURE;
+         status = fread(&nextPosChangeFrame, sizeof(double), 1, fp) ? status : PV_FAILURE;
          status = fread(&initPatternCntr, sizeof(int), 1, fp) ? status : PV_FAILURE;
-         status = fread(&nextDropFrame, sizeof(int), 1, fp) ? status : PV_FAILURE;
-         status = fread(&nextPosChangeFrame, sizeof(int), 1, fp) ? status : PV_FAILURE;
          status = fread(&xPos, sizeof(int), 1, fp) ? status : PV_FAILURE;
          status = fread(&yPos, sizeof(int), 1, fp) ? status : PV_FAILURE;
          int size;
@@ -780,26 +780,27 @@ int Patterns::checkpointRead(const char * cpDir, float * timef) {
    // This will get bad if the number of member variables that need to be saved keeps increasing.
 #ifdef PV_USE_MPI
    if (parent->icCommunicator()->commSize()>1) {
-      int bufsize = sizeof(OrientationMode) + 2*sizeof(float) + 6*sizeof(int) + vDrops.size()*sizeof(Drop);
+      int bufsize = sizeof(OrientationMode) + sizeof(float) + 3*sizeof(double) + 4*sizeof(int) + vDrops.size()*sizeof(Drop);
       //Communicate buffer size to rest of processes
       MPI_Bcast(&bufsize, 1, MPI_INT, 0, parent->icCommunicator()->communicator());
       char tempbuf[bufsize];
       OrientationMode * om = (OrientationMode *) (tempbuf+0);
       float * floats = (float *) (tempbuf+sizeof(OrientationMode));
-      int * ints = (int *) (tempbuf+sizeof(OrientationMode)+2*sizeof(float));
-      Drop * drops = (Drop *) (tempbuf+sizeof(OrientationMode)+2*sizeof(float)+6*sizeof(int));
+      double * doubles = (double *) (tempbuf+sizeof(OrientationMode)+sizeof(float));
+      int * ints = (int *) (tempbuf+sizeof(OrientationMode)+sizeof(float)+3*sizeof(double));
+      Drop * drops = (Drop *) (tempbuf+sizeof(OrientationMode)+sizeof(float)+3*sizeof(double)+4*sizeof(int));
       int numdrops;
       if (parent->columnId()==0) {
          *om = orientation;
          floats[0] = position;
-         floats[1] = nextDisplayTime;
+         doubles[0] = nextDisplayTime;
+         doubles[1] = nextDropFrame;
+         doubles[2] = nextPosChangeFrame;
          ints[0] = initPatternCntr;
-         ints[1] = nextDropFrame;
-         ints[2] = nextPosChangeFrame;
-         ints[3] = xPos;
-         ints[4] = yPos;
+         ints[1] = xPos;
+         ints[2] = yPos;
          numdrops = (int) vDrops.size();
-         ints[5] = numdrops;
+         ints[3] = numdrops;
          for (int k=0; k<numdrops; k++) {
             memcpy(&(drops[k]), &(vDrops[k]), sizeof(Drop));
          }
@@ -809,13 +810,13 @@ int Patterns::checkpointRead(const char * cpDir, float * timef) {
          MPI_Bcast(tempbuf, bufsize, MPI_CHAR, 0, parent->icCommunicator()->communicator());
          orientation = *om;
          position = floats[0];
-         nextDisplayTime = floats[1];
+         nextDisplayTime = doubles[0];
+         nextDropFrame = doubles[1];
+         nextPosChangeFrame = doubles[2];
          initPatternCntr = ints[0];
-         nextDropFrame = ints[1];
-         nextPosChangeFrame = ints[2];
-         xPos = ints[3];
-         yPos = ints[4];
-         numdrops = ints[5];
+         xPos = ints[1];
+         yPos = ints[2];
+         numdrops = ints[3];
          vDrops.clear();
          for (int k=0; k<numdrops; k++) {
             Drop drop = drops[k];
@@ -843,10 +844,10 @@ int Patterns::checkpointWrite(const char * cpDir) {
       if( fp != NULL ) {
          status = fwrite(&orientation, sizeof(OrientationMode), 1, fp) == 1 ? status : PV_FAILURE;
          status = fwrite(&position, sizeof(float), 1, fp) ? status : PV_FAILURE;
-         status = fwrite(&nextDisplayTime, sizeof(float), 1, fp) ? status : PV_FAILURE;
+         status = fwrite(&nextDisplayTime, sizeof(double), 1, fp) ? status : PV_FAILURE;
+         status = fwrite(&nextDropFrame, sizeof(double), 1, fp) ? status : PV_FAILURE;
+         status = fwrite(&nextPosChangeFrame, sizeof(double), 1, fp) ? status : PV_FAILURE;
          status = fwrite(&initPatternCntr, sizeof(int), 1, fp) ? status : PV_FAILURE;
-         status = fwrite(&nextDropFrame, sizeof(int), 1, fp) ? status : PV_FAILURE;
-         status = fwrite(&nextPosChangeFrame, sizeof(int), 1, fp) ? status : PV_FAILURE;
          status = fwrite(&xPos, sizeof(int), 1, fp) ? status : PV_FAILURE;
          status = fwrite(&yPos, sizeof(int), 1, fp) ? status : PV_FAILURE;
          status = fwrite(&size, sizeof(int), 1, fp) ? status : PV_FAILURE;
@@ -878,8 +879,8 @@ int Patterns::checkpointWrite(const char * cpDir) {
       fprintf(fp, "Position = %f\n", position);
       fprintf(fp, "nextDisplayTime = %f\n", nextDisplayTime);
       fprintf(fp, "initPatternCntr = %d\n", initPatternCntr);
-      fprintf(fp, "nextDropFrame = %d\n", nextDropFrame);
-      fprintf(fp, "nextPosChangeFrame = %d\n", nextPosChangeFrame);
+      fprintf(fp, "nextDropFrame = %f\n", nextDropFrame);
+      fprintf(fp, "nextPosChangeFrame = %f\n", nextPosChangeFrame);
       fprintf(fp, "xPos = %d\n", xPos);
       fprintf(fp, "yPos = %d\n", yPos);
       fprintf(fp, "size of vDrops vector = %d\n", size);
