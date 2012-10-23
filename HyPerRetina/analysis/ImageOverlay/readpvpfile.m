@@ -21,7 +21,7 @@ global OUT_FILE_EXT; OUT_FILE_EXT = 'png';             %either png or jpg for no
 global IN_FILE_EXT; IN_FILE_EXT = 'png';
 %%%%%%%%
 
-global recon_output_path;  recon_output_path  = [output_path,'/movOFF'];
+global recon_output_path;  recon_output_path  = [output_path,'/movON'];
 global sourceDir;    sourceDir    = ['~/Pictures/neovision-data-challenge-heli/026'];
 gray2rgb = @(Image) double(cat(3,Image,Image,Image))./255;
 fps = 33;
@@ -215,7 +215,7 @@ if isempty(errorstring)
                 idx = find(orig_img>255);
                 orig_img(idx) = 255;
                 imwrite(orig_img,[recon_output_path,'/Image_',inFrame_str,'.jpg'])
-                if eq(mod(frame,fps),0)
+                if eq(mod(frame+1,fps),0)
                     inFrame += 1;
                 end
 
