@@ -18,6 +18,11 @@ workspaceDir                               = [rootDir,'/Documents/Work/LANL/work
 pvpDir                                     = [workspaceDir,'/checkpoints/Checkpoint3100000/'];
 outputDir                                  = [pvpDir,'/analysis/'];
 
+%rootDir                                    = '/home/dpaiton';
+%workspaceDir                               = [rootDir,'/workspace/iHouse'];
+%pvpDir                                     = [workspaceDir,'/checkpoints/Checkpoint3100000/'];
+%outputDir                                  = [pvpDir,'/analysis/'];
+
 %Reconstruct Flags
 global SPIKING_POST_FLAG;      SPIKING_POST_FLAG      = 1;  %Create spiking post output flag
 global SPIKING_PRE_FLAG;       SPIKING_PRE_FLAG       = 0;
@@ -53,7 +58,7 @@ global GRAY_SC;    GRAY_SC    = 0;              %Image in grayscale
 global RECON_IMAGE_SC;   RECON_IMAGE_SC   = -1; %-1 for autoscale
 global WEIGHTS_IMAGE_SC; WEIGHTS_IMAGE_SC = -1; %-1 for autoscale
 global GRID_FLAG;        GRID_FLAG        = 0;
-global NUM_PROCS;        NUM_PROCS        = 1;%nproc();
+global NUM_PROCS;        NUM_PROCS        = nproc();
 
 
 %File names
