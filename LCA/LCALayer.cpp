@@ -41,7 +41,7 @@ int LCALayer::initialize(const char * name, HyPerCol * hc, int num_channels) {
    return status;
 }
 
-int LCALayer::updateState(float timef, float dt) {
+int LCALayer::updateState(double timed, double dt) {
 #define LCALAYER_FEEDBACK_LENGTH 3
 #define LCALAYER_START_STEP 2
    int step = parent->getCurrentStep();
