@@ -1,5 +1,14 @@
 #!/usr/bin/env python
-from matplotlib.pyplot import plot, legend, show, bar, figure, xticks, tight_layout
+#####
+## readProbe.py
+##   Read in PetaVision probe output
+##   Display time-course plots and histograms of values
+##   Should work with any standard probe. Currently tested with LIF, OjaSTDPConn, LCALIF probes.
+##
+##Dylan Paiton and Sheng Lundquist
+#####
+
+import matplotlib
 from numpy import array, dot, arange, mean, polyfit, ndarray, std, zeros, nonzero
 from collections import OrderedDict
 
@@ -18,18 +27,29 @@ def splitLine(line):
    lineSp = zip(*[lineSp[i::2] for i in range(2)])
    return lineSp
 
-filename = "/Users/slundquist/Desktop/ptLIF.txt"
-#filename = "/Users/slundquist/Desktop/retONtoLif.txt"
-#filename = "/Users/dpaiton/Documents/Work/LANL/workspace/iHouse/checkpoints/Checkpoint3000000/retONtoLif.txt"
+#Paths
+workspaceDir = "/Users/dpaiton/Documents/Work/Lanl/workspace"
+#filename     = "/Users/slundquist/Desktop/ptLIF.txt"
+#filename     = "/Users/slundquist/Desktop/retONtoLif.txt"
+filename     = workspaceDir+"/iHouse/checkpoints/no_delay/Checkpoint3100000/retONtoLifVer.txt"
+figOutDir    = workspaceDir+"/iHouse/checkpoints/no_delay/Checkpoint3100000/analysis/probeFigs/"
+figRootName  = 'traces'
 
 #Values for range of frames
 all_lines = False    #All values if True
-startTime = 2999000
-endTime   = 3000000  #End must be under number of lines in file
+startTime = 3000000
+endTime   = 3100000  #End must be under number of lines in file
 
-numTCBins   = 2     #number of bins for time course plot
+#Other flags
+numTCBins   = 1     #number of bins for time course plot
 numHistBins = -1    #number of bins for histogram of weights (-1 means no histogram)
-do_legend   = True  #if True, time graph will have a legend
+doLegend    = True  #if True, time graph will have a legend
+dispFigs    = False #if True, display figures. Otherwise, print them to file.
+
+#Must be done before importing pyplot (or anything from pyplot)
+if not dispFigs:
+    matplotlib.use('Agg')
+from matplotlib.pyplot import plot, legend, show, bar, figure, xticks, tight_layout
 
 #Data structure for scale, and data array to store all the data
 data = OrderedDict()
@@ -41,14 +61,6 @@ data['t']                     = []
 #data['Vth']                  = []
 #data['a']                    = []
 
-#data['prOjaTr*']              = []
-#data['prStdpTr*']             = []
-#data['prOjaTr0']              = []
-#data['prStdpTr0']             = []
-#data['poIntTr']               = []
-#data['poOjaTr']               = []
-#data['poStdpTr']              = []
-#data['weight*']               = []
 #data['weight0']               = []
 #data['weight1']               = []
 #data['weight2']               = []
@@ -74,7 +86,13 @@ data['t']                     = []
 #data['weight22']              = []
 #data['weight23']              = []
 #data['weight24']              = []
-data['ampLTD']                = []
+#data['weight*']               = []
+data['prOjaTr*']              = []
+data['prStdpTr*']             = []
+data['poIntTr']               = []
+data['poOjaTr']               = []
+#data['poStdpTr']              = []
+#data['ampLTD']                = []
 
 if numTCBins <= 0:
     numTCBins = 1
@@ -91,7 +109,7 @@ else:
     firstLine = f.readline()
     firstLineSplit = splitLine(firstLine) #list of tuples. list[0] is always time. tuple is ('label','val')
     fileStartTime = float(firstLineSplit[0][1])
-    assert endTime > fileStartTime, "readProbe: endTime ("+str(endTime)+") is less than fileStartTime ("+str(fileStartTime)+")"
+    assert endTime > fileStartTime, "readProbe: endTime ("+str(endTime)+") is <= fileStartTime ("+str(fileStartTime)+")"
     if startTime < fileStartTime: #can't start from a time earlier than the first time
         startTime = fileStartTime
         print "readProbe: WARNING: startTime is less than the file's start time. Setting startTime = fileStartTime"
@@ -250,7 +268,7 @@ for key in data.keys():
             plotMe = array(data[key])
         if len(plotMe) != 0:
             plot(time, plotMe, label=key)
-if do_legend:
+if doLegend:
     legend()#bbox_to_anchor=(0., 1.02, 1., .102), ncol = 2, mode="expand", borderaxespad=0.,loc=3)
 tight_layout()
 
@@ -262,8 +280,16 @@ if doHist:
     xticks(arange(20),xVals,rotation='vertical')
     tight_layout()
 
+if dispFigs:
+    print "readProbe: Displaying figures..."
+    show()
+else:
+    print "readProbe: Saving figure(s)..."
+    from os import path, makedirs
+    if not path.exists(figOutDir):
+        makedirs(figOutDir)
+    fig0.savefig(figOutDir+figRootName+"_timeCourse.png")
+    if doHist:
+        fig1.savefig(figOutDir+figRootName+"_hist.png")
 
 print "readProbe: Script complete."
-
-show()
-
