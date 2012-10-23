@@ -69,7 +69,7 @@ int MPITestLayer::initialize(const char * name, HyPerCol * hc, int numChannels){
    return PV_SUCCESS;
 }
 
-int MPITestLayer::updateState(float time, float dt)
+int MPITestLayer::updateState(double timed, double dt)
 {
    //updateV();
    //setActivity();
@@ -79,7 +79,7 @@ int MPITestLayer::updateState(float time, float dt)
    return PV_SUCCESS;
 }
 
-int MPITestLayer::publish(InterColComm* comm, float time)
+int MPITestLayer::publish(InterColComm* comm, double timed)
 {
    setActivitytoGlobalPos();
    int status = comm->publish(this, clayer->activity);

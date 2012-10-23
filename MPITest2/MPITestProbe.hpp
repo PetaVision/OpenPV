@@ -17,7 +17,7 @@ public:
    MPITestProbe(const char * filename, HyPerLayer * layer, const char * msg);
    MPITestProbe(HyPerLayer * layer, const char * msg);
 
-   virtual int outputState(float timef);
+   virtual int outputState(double timed);
 
 protected:
    double cumAvg;

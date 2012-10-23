@@ -41,8 +41,8 @@ MPITestProbe::MPITestProbe(HyPerLayer * layer, const char * msg)
  * @time
  * @l
  */
-int MPITestProbe::outputState(float timef) {
-	int status = StatsProbe::outputState(timef);
+int MPITestProbe::outputState(double timed) {
+	int status = StatsProbe::outputState(timed);
 #ifdef PV_USE_MPI
 	InterColComm * icComm = getTargetLayer()->getParent()->icCommunicator();
 	const int rcvProc = 0;
@@ -79,7 +79,7 @@ int MPITestProbe::outputState(float timef) {
 	fprintf(fp, "%s min_global_xpos==%f ave_global_xpos==%f max_global_xpos==%f \n",
 			msg, min_global_xpos, ave_global_xpos, max_global_xpos);
 	fflush(fp);
-	if (timef > 3.0f) {
+	if (timed > 3.0f) {
 		assert((fMin > (min_global_xpos - tol)) && (fMin < (min_global_xpos + tol)));
 		assert((fMax > (max_global_xpos - tol)) && (fMax < (max_global_xpos + tol)));
 		assert((avg > (ave_global_xpos - tol)) && (avg < (ave_global_xpos + tol)));
