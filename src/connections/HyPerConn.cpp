@@ -2145,10 +2145,8 @@ int HyPerConn::writePostSynapticWeights(double timef, bool last) {
                              wPostPatches, wPostDataStart, numPostPatches, numberOfAxonalArborLists(), writeCompressedWeights, fileType);
 
    if(status != PV_SUCCESS) {
-      if( parent->icCommunicator()->commRank() != 0 ) {
-         fflush(stdout);
-         fprintf(stderr, "Connection \"%s\": writePostSynapticWeights failed at time %f.  Exiting.\n", name, timef);
-      }
+      fflush(stdout);
+      fprintf(stderr, "Connection \"%s\": writePostSynapticWeights failed at time %f.  Exiting.\n", name, timef);
       abort();
    }
 
