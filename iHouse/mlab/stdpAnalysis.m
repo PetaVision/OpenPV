@@ -8,30 +8,31 @@ global lifInhPatchX; lifInhPatchX = 21;
 global lifInhPatchY; lifInhPatchY = 21;
 global deltaT; deltaT = 1;
 global tLCA; tLCA = 20;
-rootDir                                    = '/Users/slundquist';
-workspaceDir                               = [rootDir,'/Documents/workspace/iHouse'];
-pvpDir                                     = [workspaceDir,'/denseOutput/'];
-outputDir                                  = [workspaceDir,'/denseOutput/analysis/'];
-%rootDir                                    = '/Users/dpaiton';
-%workspaceDir                               = [rootDir,'/Documents/Work/LANL/workspace/iHouse'];
-%pvpDir                                     = [workspaceDir,'/checkpoints/Checkpoint1000000/'];
-%outputDir                                  = [pvpDir,'/analysis/'];
+%rootDir                                    = '/Users/slundquist';
+%workspaceDir                               = [rootDir,'/Documents/workspace/iHouse'];
+%pvpDir                                     = [workspaceDir,'/denseOutput/'];
+%outputDir                                  = [workspaceDir,'/denseOutput/analysis/'];
+
+rootDir                                    = '/Users/dpaiton';
+workspaceDir                               = [rootDir,'/Documents/Work/LANL/workspace/iHouse'];
+pvpDir                                     = [workspaceDir,'/checkpoints/Checkpoint3100000/'];
+outputDir                                  = [pvpDir,'/analysis/'];
 
 %Reconstruct Flags
-global SPIKING_POST_FLAG;      SPIKING_POST_FLAG      = 0;  %Create spiking post output flag
+global SPIKING_POST_FLAG;      SPIKING_POST_FLAG      = 1;  %Create spiking post output flag
 global SPIKING_PRE_FLAG;       SPIKING_PRE_FLAG       = 0;
 
 %Spiking Output
-global FNUM_ALL;  FNUM_ALL = 0;   %1 for all frames, 0 for FNUM_SPEC
+global FNUM_ALL;  FNUM_ALL = 1;   %1 for all frames, 0 for FNUM_SPEC
 global FNUM_SPEC; FNUM_SPEC= {... %start:int:end frames
    [10000:20000]...
    [50000:60000]...
-   [90000:99999]...
+   [90000:100000]...
   % [130000:140000]...
   % [180000:190000]...
 };
 
-global RECONSTRUCTION_FLAG;    RECONSTRUCTION_FLAG = 0; %Create reconstructions
+global RECONSTRUCTION_FLAG;    RECONSTRUCTION_FLAG = 1; %Create reconstructions
 global WEIGHTS_MAP_FLAG;       WEIGHTS_MAP_FLAG    = 1; %Create weight maps
 global WEIGHTS_CELL_FLAG;      WEIGHTS_CELL_FLAG   = 0;
 global CELL; CELL = {...
@@ -52,7 +53,7 @@ global GRAY_SC;    GRAY_SC    = 0;              %Image in grayscale
 global RECON_IMAGE_SC;   RECON_IMAGE_SC   = -1; %-1 for autoscale
 global WEIGHTS_IMAGE_SC; WEIGHTS_IMAGE_SC = -1; %-1 for autoscale
 global GRID_FLAG;        GRID_FLAG        = 0;
-global NUM_PROCS;        NUM_PROCS        = nproc();
+global NUM_PROCS;        NUM_PROCS        = 1;%nproc();
 
 
 %File names
