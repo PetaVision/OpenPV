@@ -13,10 +13,12 @@ HyPerCol "column" = {
     randomSeed = 609627238;
     numSteps = 10000;
     progressStep = 2000;
+    writeProgressToErr = false;
     outputPath = "output/";
     filenamesContainLayerNames = true;
     checkpointRead = false;
     checkpointWrite = false;
+    suppressLastOutput = false;
     outputNamesOfLayersAndConns = "LayerAndConnNames.txt";
 };
 
@@ -41,11 +43,17 @@ Movie "Slideshow" = {
     nf = 1;
     marginWidth = 0;
     writeStep = -1;
-    mirrorBCflag = 0;
-    spikingFlag = 0;
+    mirrorBCflag = false;
+    spikingFlag = false;
     writeNonspikingActivity = -1;
     
     writeImages = 0;
+    useImageBCflag = false;
+    inverseFlag = false;
+    normalizeLuminanceFlag = false;
+    
+    start_frame_index = 0;
+    skip_frame_index = 0;
 
     displayPeriod = 50;
     jitterFlag = 0;
@@ -64,6 +72,9 @@ Retina "Retina" = {
     mirrorBCflag = 1;
     spikingFlag = 0;
     writeNonspikingActivity = -1;
+    
+    refractoryPeriod = 5;
+    absRefractoryPeriod = 3;
 
     poissonEdgeProb = 1;
     poissonBlankProb = 0;
@@ -204,8 +215,6 @@ TrainingLayer "Layer B" = {
     mirrorBCflag = 1;
     spikingFlag = 0;
     writeNonspikingActivity = -1;
-        
-    InitVType = "ZeroV";
     
     VMax = infinity;
     VThresh = -infinity;
@@ -294,6 +303,7 @@ GenerativeConn "AnaRetina to Layer A" = {
     numAxonalArbors = 1;
 
     writeStep = 10;
+    initialWriteTime = 0;
     writeCompressedWeights = false;
     selfFlag = false;
     
@@ -312,8 +322,10 @@ GenerativeConn "AnaRetina to Layer A" = {
     symmetrizeWeights = 0;
     stochasticReleaseFlag = false;
     shrinkPatches = false;
+    preActivityIsNotRate = false;
 
     weightUpdatePeriod = 10;
+    initialWeightUpdateTime = 0;
     relaxation = 2E-1;
     imprintingFlag = false;
     weightDecayFlag = false;
@@ -415,6 +427,7 @@ PoolingGenConn "Arrow AnaLayer A to Layer B" = {
 
     writeStep = 10;
     writeCompressedWeights = false;
+    initialWriteTime = 0;
     selfFlag = false;
     
     delay = 0;
@@ -432,10 +445,12 @@ PoolingGenConn "Arrow AnaLayer A to Layer B" = {
     slownessFlag = false;
     stochasticReleaseFlag = false;
     shrinkPatches = false;
+    preActivityIsNotRate = false;
 
     imprintingFlag = false;
     weightDecayFlag = false;
     weightUpdatePeriod = 10;
+    initialWeightUpdateTime = 0;
     relaxation = 1E-1;
     nonnegConstraintFlag = 1;
     normalizeMethod = 3;
@@ -454,6 +469,7 @@ CloneKernelConn "Layer A to CataLayer B" = {
     writeStep = -1;
     writeCompressedWeights = false;
     selfFlag = false;
+    preActivityIsNotRate = false;
 
     delay = 0;
     
@@ -485,6 +501,7 @@ CloneKernelConn "Layer B to Flat AnaLayer A" = {
     writeStep = -1;
     writeCompressedWeights = false;
     selfFlag = false;
+    preActivityIsNotRate = false;
     
     delay = 0;
     
