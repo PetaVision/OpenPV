@@ -845,7 +845,9 @@ GapConn "ImageBufferToCone" = {          // 0
 
 
 //---------ON CONN---------------------//
+
 disable = true;
+
 KernelConn "ConeSigmoidONToBipolarON" = {        // 1
     preLayerName           = "ConeSigmoidON";
     postLayerName          = "BipolarON";
