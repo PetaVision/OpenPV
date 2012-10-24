@@ -16,8 +16,8 @@ class PlasticConnTestLayer: public PV::ANNLayer {
 public:
 	PlasticConnTestLayer(const char* name, HyPerCol * hc, int numChannels);
 	PlasticConnTestLayer(const char* name, HyPerCol * hc);
-	virtual int updateState(float time, float dt);
-	virtual int publish(InterColComm * comm, float time);
+	virtual int updateState(double timef, double dt);
+	virtual int publish(InterColComm * comm, double timef);
 protected:
 	int copyAtoV();
 	int setActivitytoGlobalPos();

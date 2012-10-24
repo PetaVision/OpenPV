@@ -54,7 +54,7 @@ int PlasticConnTestLayer::initialize(){
 	return PV_SUCCESS;
 }
 
-int PlasticConnTestLayer::updateState(float time, float dt)
+int PlasticConnTestLayer::updateState(double timef, double dt)
 {
    //updateV();
    //setActivity();
@@ -64,7 +64,7 @@ int PlasticConnTestLayer::updateState(float time, float dt)
    return PV_SUCCESS;
 }
 
-int PlasticConnTestLayer::publish(InterColComm* comm, float time)
+int PlasticConnTestLayer::publish(InterColComm* comm, double timef)
 {
 	setActivitytoGlobalPos();
 	int status = comm->publish(this, clayer->activity);

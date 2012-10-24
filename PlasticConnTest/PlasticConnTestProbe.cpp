@@ -29,7 +29,7 @@ int PlasticConnTestProbe::initialize(const char * probename, const char * filena
 /**
  * @timef
  */
-int PlasticConnTestProbe::outputState(float timef) {
+int PlasticConnTestProbe::outputState(double timed) {
    HyPerConn * c = getTargetConn();
 #ifdef PV_USE_MPI
    InterColComm * icComm = c->getParent()->icCommunicator();
@@ -43,7 +43,7 @@ int PlasticConnTestProbe::outputState(float timef) {
       fprintf(stderr, "PlasticConnTestProbe \"%s\": connection \"%s\" is not a KernelConn.\n", getName(), c->getName() );
       return PV_FAILURE;
    }
-   fprintf(getFilePtr(), "    Time %f, connection \"%s\":\n", timef, kconn->getName());
+   fprintf(getFilePtr(), "    Time %f, connection \"%s\":\n", timed, kconn->getName());
    // kconn->getKernelPatch(arborID, kernelIndex);
    const pvdata_t * w = kconn->get_wDataHead(arborID, kernelIndex); // wPatch->data;
    const pvdata_t * dw = kconn->get_dwDataHead(arborID, kernelIndex); // kconn->get_dKernelData(arborID, kernelIndex);
@@ -59,16 +59,16 @@ int PlasticConnTestProbe::outputState(float timef) {
       int x=kxPos(k,nxp,nyp,nfp);
       int wx = (nxp-1)/2 - x; // assumes connection is one-to-one
       if(outputWeights) {
-         pvdata_t wCorrect = timef*wx;
+         pvdata_t wCorrect = timed*wx;
          pvdata_t wObserved = w[k];
-         if( fabs( (wObserved - wCorrect)/timef ) > 1e-4 ) {
+         if( fabs( ((double) (wObserved - wCorrect))/timed ) > 1e-4 ) {
 //            status = PV_FAILURE;
             int y=kyPos(k,nxp,nyp,nfp);
             int f=featureIndex(k,nxp,nyp,nfp);
             fprintf(getFilePtr(), "        index %d (x=%d, y=%d, f=%d: w = %f, should be %f\n", k, x, y, f, wObserved, wCorrect);
          }
       }
-      if(timef > 0 && outputPlasticIncr && dw != NULL) {
+      if(timed > 0 && outputPlasticIncr && dw != NULL) {
          pvdata_t dwCorrect = wx;
          pvdata_t dwObserved = dw[k];
          if( dwObserved != dwCorrect ) {

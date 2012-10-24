@@ -16,7 +16,7 @@ class PlasticConnTestProbe: public KernelProbe {
 public:
    PlasticConnTestProbe(const char * probename, const char * filename, HyPerConn * conn, int kernelIndex, int arborId);
 
-   virtual int outputState(float timef);
+   virtual int outputState(double timed);
 
    virtual ~PlasticConnTestProbe();
 
