@@ -63,6 +63,22 @@ ANNLayer "output" = {
     VMin = -infinity;
 };
 
+ANNLayer "outputArbor" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 0;
+    writeStep = 1;
+    mirrorBCflag = false;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+    
+    InitVType = "ZeroV";
+    VMax = infinity;
+    VThresh = -infinity;
+    VMin = -infinity;
+};
 // Connections
 
 IdentConn "delay0" = {
@@ -105,7 +121,41 @@ IdentConn "delay4" = {
     writeStep = -1;
 };
 
+KernelConn "delayArbor" = {
+    preLayerName = "input";
+    postLayerName = "outputArbor";
+    
+    channelCode = 0;
+    nxp         = 1;
+    nyp         = 1;
+    nfp         = 1;
+    //Set delay from 0 to 4
+    delay       = [0, 1, 2, 3, 4];
+    
+    numAxonalArbors  = 5;
+    writeStep        = -1;
+    initFromLastFlag = 0;
+
+    weightInitType = "OneToOneWeights";
+    weightInit = 1.0;
+      
+    normalize              = false;
+    symmetrizeWeights      = false;
+    plasticityFlag         = false;
+    stochasticReleaseFlag  = false;
+    writeCompressedWeights = true;
+    selfFlag               = false;
+    shrinkPatches          = false;
+    preActivityIsNotRate   = false;
+    combineWeightFiles     = false;
+};
+
 DatastoreDelayTestProbe "probe" = {
     targetLayer = "output";
     probeOutputFile = "probe.txt";
+};
+
+DatastoreDelayTestProbe "probeArbor" = {
+    targetLayer = "outputArbor";
+    probeOutputFile = "probeArbor.txt";
 };
