@@ -25,7 +25,8 @@ public:
    virtual ~Parameter();
 
    const char * name()      { return paramName; }
-   double value()           { hasBeenReadFlag = true; return paramValue; }
+   float value()           { hasBeenReadFlag = true; return paramValue; }
+   const float * valuePtr() { hasBeenReadFlag = true; return &paramValue; }
    bool hasBeenRead()       { return hasBeenReadFlag; }
    int outputParam(FILE * fp, int indentation);
    void clearHasBeenRead()    { hasBeenReadFlag = false; }
@@ -33,8 +34,26 @@ public:
 
 private:
    char * paramName;
-   double paramValue;
+   float paramValue;
    bool   hasBeenReadFlag;
+};
+
+class ParameterArray {
+public:
+   ParameterArray(int initialSize);
+   virtual ~ParameterArray();
+   int getArraySize() {return arraySize;}
+   const char * name() {return paramName;}
+   int setName(const char * name);
+   const float * getValues(int * sz) { *sz = arraySize; return values;}
+   int pushValue(float value);
+
+private:
+   bool paramNameSet;
+   char * paramName;
+   int arraySize; // The number of values that have been pushed
+   int bufferSize; // The size of the buffer in memory
+   float * values;
 };
 
 class ParameterString {
@@ -72,6 +91,21 @@ private:
    Parameter ** parameters;
 };
 
+class ParameterArrayStack {
+public:
+   ParameterArrayStack(int initialCount);
+   virtual ~ParameterArrayStack();
+   int push(ParameterArray * array);
+   int size() {return count;}
+   ParameterArray * peek(int index) {return index>=0 && index<count ? parameterArrays[index] : NULL; }
+
+private:
+   int count; // Number of ParameterArrays
+   int allocation; // Size of buffer
+   ParameterArray ** parameterArrays;
+
+};
+
 class ParameterStringStack {
 public:
    ParameterStringStack(int initialCount);
@@ -95,7 +129,7 @@ public:
 #ifdef OBSOLETE // Marked obsolete Aug 10, 2012.  String parameters should be handled on an equal footing with numerical parameters
    ParameterGroup(char * name, ParameterStack * stack, int rank=0);
 #endif // OBSOLETE
-   ParameterGroup(char * name, ParameterStack * stack, ParameterStringStack * string_stack, int rank=0);
+   ParameterGroup(char * name, ParameterStack * stack, ParameterArrayStack * array_stack, ParameterStringStack * string_stack, int rank=0);
    virtual ~ParameterGroup();
 
    const char * name()   { return groupName; }
@@ -104,6 +138,8 @@ public:
    int setStringStack(ParameterStringStack * stringStack);
    int   present(const char * name);
    float value  (const char * name);
+   int   arrayPresent(const char * name);
+   const float * arrayValues(const char * name, int * size);
    int   stringPresent(const char * stringName);
    const char * stringValue(const char * stringName);
    int warnUnread();
@@ -118,6 +154,7 @@ private:
    char * groupName;
    char * groupKeyword;
    ParameterStack * stack;
+   ParameterArrayStack * arrayStack;
    ParameterStringStack * stringStack;
    int processRank;
 };
@@ -198,6 +235,7 @@ public:
    int   present(const char * groupName, const char * paramName);
    float value  (const char * groupName, const char * paramName);
    float value  (const char * groupName, const char * paramName, float initialValue, bool warnIfAbsent=true);
+   const float * arrayValues(const char * groupName, const char * paramName, int * arraySize);
    int   stringPresent(const char * groupName, const char * paramStringName);
    const char * stringValue(const char * groupName, const char * paramStringName, bool warnIfAbsent=true);
    ParameterGroup * group(const char * groupName);
@@ -213,6 +251,8 @@ public:
    void action_pvparams_directive(char * id, double val);
    void action_parameter_group(char * keyword, char * name);
    void action_parameter_def(char * id, double val);
+   void action_parameter_array(char * id);
+   void action_parameter_array_value(double val);
    void action_parameter_string_def(const char * id, const char * stringval);
    void action_parameter_filename_def(const char * id, const char * stringval);
    void action_include_directive(const char * stringval);
@@ -233,6 +273,7 @@ private:
    // int maxGroups;
    ParameterGroup ** groups;
    ParameterStack * stack;
+   ParameterArrayStack * arrayStack;
    ParameterStringStack * stringStack;
 #ifdef OBSOLETE // Marked obsolete Aug 9, 2012.  No one uses this, and filenames can be defined as string parameters in parameter groups
    FilenameStack * fnstack; // Deprecated Oct 27, 2011
@@ -241,6 +282,8 @@ private:
    bool disable;
    InterColComm * icComm;
    int getRank() {return icComm->commRank();}
+
+   ParameterArray * currentParamArray;
 
    int numParamSweeps; // The number of different parameters that are changed during the sweep.
    ParameterSweep ** paramSweeps;

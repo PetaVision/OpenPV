@@ -171,8 +171,23 @@ parameter_group : T_ID T_STRING '=' '{' parameter_defs '}' ';'
 parameter_defs : /* empty */
                | parameter_defs parameter_def
                | parameter_defs parameter_string_def
+               | parameter_defs parameter_array_def
                | parameter_defs include_directive
                ;
+
+parameter_array_def : T_ID '=' parameter_array ';'
+                            { handler->action_parameter_array($1); }
+
+parameter_array : '[' parameter_array_values ']'
+
+parameter_array_values : parameter_array_value
+                       | parameter_array_values ',' parameter_array_value
+                      ;
+
+parameter_array_value : T_NUMBER
+                         { handler->action_parameter_array_value($1); }
+                      ;
+                         
 
 parameter_def : T_ID '=' T_NUMBER ';'
                  { handler->action_parameter_def($1, $3); }

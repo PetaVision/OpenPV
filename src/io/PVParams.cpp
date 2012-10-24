@@ -15,6 +15,7 @@
 #ifdef OBSOLETE // Marked obsolete Aug 9, 2012.  No one uses this, and filenames can be defined as string parameters in parameter groups
 #define FILENAMESTACKMAXCOUNT 10
 #endif // OBSOLETE
+#define PARAMETERARRAYSTACK_INITIALCOUNT 5
 #define PARAMETERSTRINGSTACK_INITIALCOUNT 5
 #define PARAMETERSWEEP_INCREMENTCOUNT 10
 
@@ -58,7 +59,7 @@ namespace PV {
 Parameter::Parameter(const char * name, double value)
 {
    paramName  = strdup(name);
-   paramValue = value;
+   paramValue = (float) value;
    hasBeenReadFlag = false;
 }
 
@@ -71,13 +72,65 @@ int Parameter::outputParam(FILE * fp, int indentation) {
    int status = PV_SUCCESS;
    for( int i=indentation; i>0; i-- ) fputc(' ', fp);
    fprintf(fp, "%s : %.17e", paramName, paramValue);
-   if( paramValue == 1 ) fprintf(fp, " (true)");
-   else if( paramValue == 1 ) fprintf(fp, " (false)");
+   if( paramValue == 1.0f ) fprintf(fp, " (true)");
+   else if( paramValue == 1.0f ) fprintf(fp, " (false)");
    else if( paramValue == FLT_MAX ) fprintf(fp, " (infinity)");
    else if( paramValue == -FLT_MAX ) fprintf(fp, " (-infinity)");
    fprintf(fp, "\n");
    return status;
 }
+
+ParameterArray::ParameterArray(int initialSize) {
+   paramNameSet = false;
+   paramName = strdup("Unnamed Parameter array");
+   bufferSize = initialSize;
+   arraySize = 0;
+   values = NULL;
+   if (bufferSize>0) {
+      values = (float *) calloc(bufferSize,sizeof(float));
+      if (values == NULL) {
+         fprintf(stderr, "ParameterArray error allocating memory for \"%s\"\n", name());
+         abort();
+      }
+   }
+}
+
+ParameterArray::~ParameterArray() {
+   free(paramName); paramName = NULL;
+   free(values); values = NULL;
+}
+
+int ParameterArray::setName(const char * name) {
+   int status = PV_SUCCESS;
+   if (paramNameSet == false) {
+      free(paramName); paramName = strdup(name);
+      paramNameSet = true;
+   }
+   else {
+      fprintf(stderr, "ParameterArray::setName called with \"%s\" but name is already set to \"%s\"\n", name, paramName);
+      status = PV_FAILURE;
+   }
+   return status;
+}
+
+int ParameterArray::pushValue(float value) {
+   assert(bufferSize>=arraySize);
+   if (bufferSize==arraySize) {
+      bufferSize += 8;
+      float * new_values = (float *) calloc(bufferSize,sizeof(double));
+      if (new_values == NULL) {
+         fprintf(stderr, "ParameterArray::pushValue error increasing array \"%s\" to %d values\n", name(), arraySize+1);
+         abort();
+      }
+      memcpy(new_values, values, sizeof(float)*arraySize);
+      free(values); values = new_values;
+   }
+   assert(arraySize<bufferSize);
+   values[arraySize] = value;
+   arraySize++;
+   return arraySize;
+}
+
 
 /**
  * @name
@@ -148,6 +201,46 @@ int ParameterStack::outputStack(FILE * fp, int indentation) {
    }
    return status;
 }
+
+ParameterArrayStack::ParameterArrayStack(int initialCount)
+{
+   allocation = initialCount;
+   count = 0;
+   parameterArrays = NULL;
+   if (initialCount > 0) {
+      parameterArrays = (ParameterArray **) calloc(allocation, sizeof(ParameterArray *));
+      if (parameterArrays == NULL) {
+         fprintf(stderr, "ParameterArrayStack unable to allocate %d parameter arrays\n", initialCount);
+         abort();
+      }
+   }
+}
+
+ParameterArrayStack::~ParameterArrayStack() {
+   for (int k=0; k<count; k++) {
+      delete parameterArrays[k]; parameterArrays[k] = NULL;
+   }
+   free(parameterArrays); parameterArrays = NULL;
+}
+
+int ParameterArrayStack::push(ParameterArray * array) {
+   assert(count<=allocation);
+   if (count == allocation) {
+      int newallocation = allocation + RESIZE_ARRAY_INCR;
+      ParameterArray ** newParameterArrays = (ParameterArray **) malloc( newallocation*sizeof(ParameterArray *) );
+      if( !newParameterArrays ) return PV_FAILURE;
+      for( int i=0; i<count; i++ ) {
+         newParameterArrays[i] = parameterArrays[i];
+      }
+      allocation = newallocation;
+      free(parameterArrays); parameterArrays = newParameterArrays;
+   }
+   assert( count < allocation );
+   parameterArrays[count] = array;
+   count++;
+   return PV_SUCCESS;
+}
+
 
 /*
  * initialCount
@@ -242,11 +335,12 @@ ParameterGroup::ParameterGroup(char * name, ParameterStack * stack, int rank)
  * @string_stack
  * @rank
  */
-ParameterGroup::ParameterGroup(char * name, ParameterStack * stack, ParameterStringStack * string_stack, int rank)
+ParameterGroup::ParameterGroup(char * name, ParameterStack * stack, ParameterArrayStack * array_stack, ParameterStringStack * string_stack, int rank)
 {
    this->groupName = strdup(name);
    this->groupKeyword = NULL;
    this->stack     = stack;
+   this->arrayStack = array_stack;
    this->stringStack = string_stack;
    this->processRank = rank;
 }
@@ -310,6 +404,47 @@ float ParameterGroup::value(const char * name)
    fprintf(stderr, "PVParams::ParameterGroup::value: ERROR, couldn't find a value for %s"
                    " in group %s\n", name, groupName);
    exit(1);
+}
+
+int ParameterGroup::arrayPresent(const char * name) {
+   int array_found = 0;
+   int count = arrayStack->size();
+   for (int i=0; i<count; i++) {
+      ParameterArray * p = arrayStack->peek(i);
+      if (strcmp(name, p->name())==0) {
+         array_found = 1; // string is present
+         break;
+      }
+   }
+   return array_found; // string is not present
+}
+
+const float * ParameterGroup::arrayValues(const char * name, int * size) {
+   int count = arrayStack->size();
+   *size = 0;
+   const float * v = NULL;
+   ParameterArray * p = NULL;
+   for (int i=0; i<count; i++) {
+      p = arrayStack->peek(i);
+      if (strcmp(name, p->name())==0) {
+         v = p->getValues(size);
+         break;
+      }
+   }
+   if (!v) {
+      Parameter * q = NULL;
+      for (int i=0; i<stack->size(); i++) {
+         q = stack->peek(i);
+         if (strcmp(name, q->name())==0) {
+            break;
+         }
+      }
+      if (q) {
+         v = q->valuePtr();
+         *size = 1;
+      }
+   }
+   return v;
 }
 
 int ParameterGroup::stringPresent(const char * stringName) {
@@ -662,7 +797,10 @@ int PVParams::initialize(int initialSize, InterColComm * icComm) {
 
    groups = (ParameterGroup **) malloc(initialSize * sizeof(ParameterGroup *));
    stack = new ParameterStack(MAX_PARAMS);
+   arrayStack = new ParameterArrayStack(PARAMETERARRAYSTACK_INITIALCOUNT);
    stringStack = new ParameterStringStack(PARAMETERSTRINGSTACK_INITIALCOUNT);
+
+   currentParamArray = new ParameterArray(8);
 
    numParamSweeps = 0;
    paramSweeps = NULL;
@@ -951,6 +1089,15 @@ float PVParams::value(const char * groupName, const char * paramName, float init
       return initialValue;
    }
 }
+/*
+ *  @groupName
+ *  @paramName
+ *  @size
+ */
+const float * PVParams::arrayValues(const char * groupName, const char * paramName, int * size) {
+   *size = 0;
+   return NULL;
+}
 
 /*
  *  @groupName
@@ -1046,11 +1193,12 @@ void PVParams::addGroup(char * keyword, char * name)
       groups = newGroups;
    }
 
-   groups[numGroups] = new ParameterGroup(name, stack, stringStack, getRank());
+   groups[numGroups] = new ParameterGroup(name, stack, arrayStack, stringStack, getRank());
    groups[numGroups]->setGroupKeyword(keyword);
 
    // the parameter group takes over control of the PVParams's stack and stringStack; make new ones.
    stack = new ParameterStack(MAX_PARAMS);
+   arrayStack = new ParameterArrayStack(PARAMETERARRAYSTACK_INITIALCOUNT);
    stringStack = new ParameterStringStack(PARAMETERSTRINGSTACK_INITIALCOUNT);
 
    numGroups++;
@@ -1175,6 +1323,30 @@ void PVParams::action_parameter_def(char * id, double val)
    stack->push(p);
 }
 
+void PVParams::action_parameter_array(char * id)
+{
+   int status = currentParamArray->setName(id);
+   assert(status==PV_SUCCESS);
+   if (debugParsing && getRank() == 0) {
+      fflush(stdout);
+      printf("action_parameter_array: %s\n", id);
+      fflush(stdout);
+   }
+   arrayStack->push(currentParamArray);
+   currentParamArray = new ParameterArray(PARAMETERARRAYSTACK_INITIALCOUNT);
+}
+
+void PVParams::action_parameter_array_value(double val)
+{
+   int sz = currentParamArray->getArraySize();
+   int newsize = currentParamArray->pushValue((float) val);
+   assert(newsize == sz+1);
+   if(debugParsing && getRank() == 0) {
+      fflush(stdout);
+      printf("action_parameter_array_value %f\n", (float) val);
+   }
+}
+
 void PVParams::action_parameter_string_def(const char * id, const char * stringval) {
    if (disable) return;
    if( debugParsing && getRank() == 0 ) {
@@ -1235,6 +1407,7 @@ void PVParams::action_include_directive(const char * stringval) {
       fflush(stdout);
    }
 }
+
 void PVParams::action_parameter_sweep(const char * id, const char * groupname, const char * paramname)
 {
    if (disable) return;
