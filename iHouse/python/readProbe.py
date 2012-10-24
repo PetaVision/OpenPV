@@ -12,44 +12,32 @@ import matplotlib
 from numpy import array, dot, arange, mean, polyfit, ndarray, std, zeros, nonzero
 from collections import OrderedDict
 
-def splitLine(line):
-   #Split line by :
-   lineSp = line.split(":")
-   assert(len(lineSp) == 2) ##only one colon in params name
-   lineSp = lineSp[1]
-   #Split line by =
-   lineSp = lineSp.split("=")
-   #Split further by spaces
-   lineSp = [x.split() for x in lineSp]
-   #Combine into one list
-   lineSp = [a for x in lineSp for a in x]
-   #Group elements into tuples
-   lineSp = zip(*[lineSp[i::2] for i in range(2)])
-   return lineSp
-
+#*************************#
+#          PARAMS         #
+#*************************#
 #Paths
 workspaceDir = "/Users/dpaiton/Documents/Work/Lanl/workspace"
+#workspaceDir = "/home/dpaiton/workspace"
 #filename     = "/Users/slundquist/Desktop/ptLIF.txt"
 #filename     = "/Users/slundquist/Desktop/retONtoLif.txt"
-filename     = workspaceDir+"/iHouse/checkpoints/Checkpoint3100000/retOFFtoLifVer.txt"
-figOutDir    = workspaceDir+"/iHouse/checkpoints/Checkpoint3100000/analysis/probeFigs/"
-figRootName  = 'off_weights'
+filename     = workspaceDir+"/iHouse/checkpoints/Checkpoint3010000/retONtoLifVer.txt"
+figOutDir    = workspaceDir+"/iHouse/checkpoints/Checkpoint3010000/analysis/probeFigs/"
+figRootName  = 'on_weights'
 
 #Values for range of frames
 all_lines = False    #All values if True
 startTime = 3000000
-endTime   = 3100000  #End must be under number of lines in file
+endTime   = 3010000  #End must be under number of lines in file
 
 #Other flags
-numTCBins   = 1     #number of bins for time course plot
+numTCBins   = 3     #number of bins for time course plot
 numHistBins = -1    #number of bins for histogram of weights (-1 means no histogram)
-doLegend    = False #if True, time graph will have a legend
-dispFigs    = False #if True, display figures. Otherwise, print them to file.
+doLegend    = True  #if True, time graph will have a legend
+dispFigs    = True  #if True, display figures. Otherwise, print them to file.
+weightMap   = True  #if True, display a weight map
 
-#Must be done before importing pyplot (or anything from pyplot)
-if not dispFigs:
-    matplotlib.use('Agg')
-from matplotlib.pyplot import plot, legend, show, bar, figure, xticks, tight_layout
+#Flags for weightMap
+numWeights = 25 #number of weights in map
 
 #Data structure for scale, and data array to store all the data
 data = OrderedDict()
@@ -86,13 +74,42 @@ data['weight21']              = []
 data['weight22']              = []
 data['weight23']              = []
 data['weight24']              = []
-data['weight*']               = []
+#data['weight*']               = []
 #data['prOjaTr*']              = []
 #data['prStdpTr*']             = []
 #data['poOjaTr']               = []
 #data['poStdpTr']              = []
 #data['poIntTr']               = []
 #data['ampLTD']                = []
+
+#*************************#
+#        MAIN CODE        #
+#*************************#
+
+def splitLine(line):
+   #Split line by :
+   lineSp = line.split(":")
+   assert(len(lineSp) == 2) ##only one colon in params name
+   lineSp = lineSp[1]
+   #Split line by =
+   lineSp = lineSp.split("=")
+   #Split further by spaces
+   lineSp = [x.split() for x in lineSp]
+   #Combine into one list
+   lineSp = [a for x in lineSp for a in x]
+   #Group elements into tuples
+   lineSp = zip(*[lineSp[i::2] for i in range(2)])
+   return lineSp
+
+#Must be done before importing pyplot (or anything from pyplot)
+if not dispFigs:
+    matplotlib.use('Agg')
+from matplotlib.pyplot import plot, legend, show, bar, figure, xticks, tight_layout, gray
+
+#Imports for weightMap
+if weightMap:
+    from numpy import mean, sqrt, reshape
+    from matplotlib.pyplot import imshow, grid
 
 if numTCBins <= 0:
     numTCBins = 1
@@ -159,6 +176,11 @@ bounds = {}
 stds = {}
 lines = [splitLine(line) for line in lines]
 
+if weightMap:
+    #TODO: assert that the sqrt of numWeights exists
+    wMap = zeros(numWeights)
+    keyIndex = 0
+
 print "readProbe: Parsing Keys..."
 doHist = 0
 #Loop through all keys given by user
@@ -172,7 +194,7 @@ for key in data.keys():
         tok = key
     #Grab the value if element is the same as token
     if key[len(key)-1] == "*":
-        if key == "weight*" and numHistBins != -1:
+        if key == "weight*" and numHistBins is not -1:
             doHist = 1
         else:
             doHist = 0
@@ -194,7 +216,7 @@ for key in data.keys():
         else:
             print "readProbe: --Binning the values..."
         #Grab boundary points based on range and bins
-        if step == 0 or numTCBins==1:
+        if step == 0 or numTCBins==1: #TODO: This is kind of funky... can only hist if numTCBins > 1
             #data refers to list of all values in time. mean() will reduce number of instances to 1
             data[key] = [mean(x) for x in workingLines]
             if step == 0:
@@ -241,7 +263,18 @@ for key in data.keys():
             bounds[key] = boundList
     else:
         data[key] = [float(x[1]) for lineSp in workingLines for x in lineSp if len(x[0]) == len(tok) and x[0][:len(tok)] == tok]
+
+    #Calculate weight map if requested
+    if weightMap:
+        if 'weight' in key and '*' not in key:
+            print "readProbe: --Computing weight map..."
+            wMap[keyIndex] = mean(data[key])
+            keyIndex += 1
     print "readProbe: -Done formatting '"+key+"'"
+
+if weightMap:
+    #TODO: Make sure sqrt(numWeights) exists
+    wMap = reshape(wMap,(sqrt(numWeights),sqrt(numWeights))) #reshape(vect, (nRows,nCols)), writes cols first
 
 print "readProbe: Done parsing keys."
 print "readProbe: Creating time course plot..."
@@ -277,6 +310,12 @@ if doHist:
     xticks(arange(20),xVals,rotation='vertical')
     tight_layout()
 
+if weightMap:
+    print "readProbe: Creating weight map..."
+    fig2 = figure(2)
+    imshow(wMap,aspect='auto',extent=[0,sqrt(numWeights),0,sqrt(numWeights)])
+    grid(color='white')
+
 if dispFigs:
     print "readProbe: Displaying figures..."
     show()
@@ -288,5 +327,7 @@ else:
     fig0.savefig(figOutDir+figRootName+"_timeCourse.png")
     if doHist:
         fig1.savefig(figOutDir+figRootName+"_hist.png")
+    if weightMap:
+        fig2.savefig(figOutDir+figRootName+"_weightMap.png")
 
 print "readProbe: Script complete."
