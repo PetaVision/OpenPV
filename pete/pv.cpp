@@ -5,6 +5,7 @@
 
 #include <src/columns/buildandrun.hpp>
 #include "ChannelProbe.hpp"
+#include "OnlineLearningKConn.hpp"
 #include "RandomPatchMovie.hpp"
 #include "RandomPatchMovieProbe.hpp"
 #include "ShadowRandomPatchMovie.hpp"
@@ -59,6 +60,22 @@ void * customgroups(const char * keyword, const char * name, HyPerCol * hc) {
          checknewobject((void *) channelProbe, keyword, name, hc);
          return (void *) channelProbe;
       }
+   }
+   if( !strcmp( keyword, "OnlineLearningKConn") ) {
+      OnlineLearningKConn * addedConn = NULL;
+      HyPerLayer * pre = NULL;
+      HyPerLayer * post = NULL;
+      getPreAndPostLayers(name, hc, &pre, &post);
+      if (pre && post) {
+         InitWeights * weightInitializer = createInitWeightsObject(name, hc);
+         if( weightInitializer == NULL ) {
+            weightInitializer = new InitWeights();
+            fprintf(stderr, "weightInitType not set or unrecognized.  Using default method.\n");
+         }
+         const char * filename = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
+         addedConn = new OnlineLearningKConn(name, hc, pre, post, filename, weightInitializer);
+      }
+      status = checknewobject((void *) addedConn, keyword, name, hc);
    }
    if( !strcmp( keyword, "RandomPatchMovie") ) {
       RandomPatchMovie * addedLayer;

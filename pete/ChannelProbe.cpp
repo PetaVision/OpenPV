@@ -19,12 +19,12 @@ ChannelProbe::ChannelProbe(const char * filename, HyPerLayer * layer, ChannelTyp
    pChannel = channel;
 }  // end ChannelProbe::ChannelProbe(const char *, HyPerCol *, ChannelType)
 
-int ChannelProbe::outputState(float timef) {
+int ChannelProbe::outputState(double timed) {
     pvdata_t * buf = getTargetLayer()->getChannel(pChannel);
     int n = getTargetLayer()->getNumNeurons();
     for( int k=0; k<n; k++) {
         fprintf(fp, "Layer %s, channel %d, time %f, neuron %8d, value=%.8g\n",
-        		getTargetLayer()->getName(), (int) pChannel, timef, k, buf[k]);
+        		getTargetLayer()->getName(), (int) pChannel, timed, k, buf[k]);
     }
     return EXIT_SUCCESS;
 }  // end ChannelProbe::outputState(float, HyPerLayer *)

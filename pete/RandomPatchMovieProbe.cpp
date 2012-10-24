@@ -29,7 +29,7 @@ int RandomPatchMovieProbe::initRandomPatchMovieProbe(const char * filename, HyPe
    return status;
 }
 
-int RandomPatchMovieProbe::outputState(float timef) {
+int RandomPatchMovieProbe::outputState(double timed) {
 #ifdef PV_USE_MPI
    int rank = getTargetLayer()->getParent()->icCommunicator()->commRank();
    if( rank != 0) return PV_SUCCESS;
@@ -39,14 +39,14 @@ int RandomPatchMovieProbe::outputState(float timef) {
       fprintf(stderr, "RandomPatchMovieProbe: Layer \"%s\" is not a RandomPatchMovie.", getTargetLayer()->getName());
       return PV_FAILURE;
    }
-   if( timef == 0 ) {
+   if( timed == 0 ) {
       displayPeriod = rpm->getDisplayPeriod();
       nextDisplayTime = 0;
    }
-   if( timef >= nextDisplayTime ) {
+   if( timed >= nextDisplayTime ) {
       nextDisplayTime += displayPeriod;
       const PVLayerLoc * loc = rpm->getLayerLoc();
-      fprintf(fp, "RandomPatchMovie \"%s\": Time %f, Offset (%d,%d), Patch size (%d,%d), File \"%s\"\n", name, timef, rpm->getOffsetX(), rpm->getOffsetY(), loc->nxGlobal, loc->nyGlobal, rpm->getFilename());
+      fprintf(fp, "RandomPatchMovie \"%s\": Time %f, Offset (%d,%d), Patch size (%d,%d), File \"%s\"\n", name, timed, rpm->getOffsetX(), rpm->getOffsetY(), loc->nxGlobal, loc->nyGlobal, rpm->getFilename());
    }
    return PV_SUCCESS;
 }  // end outputState(float, HyPerLayer *)

@@ -18,7 +18,7 @@ public:
    RandomPatchMovieProbe(const char * filename, HyPerLayer * layer, const char * probename = NULL);
    virtual ~RandomPatchMovieProbe();
    int initRandomPatchMovieProbe(const char * filename, HyPerLayer * layer, const char * probename);
-   virtual int outputState(float timef);
+   virtual int outputState(double timed);
 
 protected:
    char * name;

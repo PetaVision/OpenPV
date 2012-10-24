@@ -214,32 +214,32 @@ int RandomPatchMovie::retrieveRandomPatch() {
    return PV_SUCCESS;
 }
 
-int RandomPatchMovie::outputState(float timef, bool last)
+int RandomPatchMovie::outputState(double timed, bool last)
 {
    if (writeImages) {
       char basicFilename[PV_PATH_MAX + 1];
-      snprintf(basicFilename, PV_PATH_MAX, "%s/Movie_%f.tif", parent->getOutputPath(), timef);
+      snprintf(basicFilename, PV_PATH_MAX, "%s/Movie_%f.tif", parent->getOutputPath(), timed);
       write(basicFilename);
    }
 
    for (int i = 0; i < numProbes; i++) {
-      probes[i]->outputState(timef);
+      probes[i]->outputState(timed);
    }
 
-   return HyPerLayer::outputState(timef, last);
+   return HyPerLayer::outputState(timed, last);
 }
 
-int RandomPatchMovie::updateState(float timef, float dt)
+int RandomPatchMovie::updateState(double timed, double dt)
 {
-   updateImage(timef, dt);
+   updateImage(timed, dt);
    return 0;
 }
 
-bool RandomPatchMovie::updateImage(float timef, float dt) {
-   bool needNewImage = timef >= nextDisplayTime;
+bool RandomPatchMovie::updateImage(double timed, double dt) {
+   bool needNewImage = timed >= nextDisplayTime;
    if( needNewImage ) {
       nextDisplayTime += displayPeriod;
-      lastUpdateTime = timef;
+      lastUpdateTime = timed;
       retrieveRandomPatch();
    }
    exchange();

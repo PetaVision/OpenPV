@@ -19,7 +19,7 @@ public:
     ChannelProbe(HyPerLayer * layer, ChannelType channel);
     ChannelProbe(const char * filename, HyPerLayer * layer, ChannelType channel);
 
-    virtual int outputState(float timef);
+    virtual int outputState(double timed);
 protected:
     ChannelType pChannel;
 

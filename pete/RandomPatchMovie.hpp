@@ -19,8 +19,8 @@ public:
    RandomPatchMovie(const char * name, HyPerCol * hc);
    RandomPatchMovie(const char * name, HyPerCol * hc, const char * fileOfFileNames, float defaultDisplayPeriod = DISPLAY_PERIOD);
    virtual ~RandomPatchMovie();
-   virtual int updateState(float time, float dt);
-   virtual int outputState(float time, bool last=false);
+   virtual int updateState(double timed, double dt);
+   virtual int outputState(double timed, bool last=false);
 
    float getDisplayPeriod() { return displayPeriod; }
 
@@ -33,7 +33,7 @@ protected:
    int initialize(const char * name, HyPerCol * hc, const char * fileOfFileNames, float defaultDisplayPeriod);
    int readOffsets();
    int retrieveRandomPatch();
-   virtual bool updateImage(float time, float dt);
+   virtual bool updateImage(double timed, double dt);
    char * getRandomFilename();
 
    float displayPeriod;
