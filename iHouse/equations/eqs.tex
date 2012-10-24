@@ -5,8 +5,6 @@
 
 \begin{document}
 
-
-
 \centerline{\sc \large Spiking + Oja + LCA = image comprehension and compression}
 \vspace{.5pc}
 \centerline{\sc Equations governing our 2 months at the Darpa Innovation House in Arlington, VA}
@@ -25,7 +23,7 @@
 \vspace{1pc}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-{\bf Average firing counts over interval $\tau$:}
+{\bf Average spike count over interval $\tau$:}
 \begin{equation}\label{avgSpikes}
 \nterm{j}{}(t+\Delta t) = e^{\frac{-\Delta t}{\displaystyle{\tau}}} \left[A_{j}(t) + \nterm{j}{}(t)\right]
 \end{equation}
@@ -61,12 +59,13 @@ Q_{ij}(t+\Delta t) &= Q_{ij}(t) + \beta \left(\frac{\Delta t}{\tau_{oja}}\right)
 
 {\bf Adaptive LTD for feed-forward weights}
 \begin{align}\label{LTD}
-        \lambda_{D}_{j}(t+\Delta t) &= \lambda_{D}_{j}(t) + \frac{\Delta t}{\displaystyle{\tau}_{_{THR}}}
+        \lambda_{D}_{j}(t+\Delta t) &= \lambda_{D}_{j}(t) +
+            \frac{\Delta t}{\displaystyle{\tau}_{_{THR}}}
             \left[\fterm{j}{o}(t) - f_o\right]
-            \frac{\lambda_{D}_{scale}}{f_o}\\[3mm]
+            \frac{\lambda_{Dscale}}{f_o}\\[3mm]
 \intertext{where}
         \lambda_{D}_{j} &> 0\nonumber\\[3mm]
-        \lambda_{D}_{j}(0) &= \lambda_{Dinit}\nonumber\\[3mm]
+        \lambda_{D}_{j}(0) &= \lambda_{Dinit}\nonumber
 \end{align}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -99,7 +98,7 @@ w_{jk}(t+\Delta t) = w_{jk}(t) + \frac{\Delta t}{\displaystyle{\tau}_{_{INH}}} \
 V_{thRest} &= -55 mV\nonumber\\[2mm]
 V_{rest} &= -70 mV\nonumber\\[2mm]
 \lambda_{P} &\approx 1\nonumber\\[2mm]
-\lambda_{scale} &\approx \lambda_{P}\nonumber\\[2mm]
+\lambda_{Dscale} &\approx \lambda_{P}\nonumber\\[2mm]
 \lambda_{Dinit} &\approx 1\nonumber\\[2mm]
 \beta &= 2\nonumber\\[2mm]
 \alpha_{dec} &= 0\nonumber
