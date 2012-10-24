@@ -5,7 +5,7 @@ more off;
 setenv("GNUTERM","X11");
 close all;
 
-run_name       = 'OscillationCalibration';
+run_name       = "graywhiteblackspots";
 run_numbers    = 1;%[1:1:4];
 num_time_steps = 2000;
 
