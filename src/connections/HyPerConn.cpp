@@ -262,11 +262,11 @@ int HyPerConn::createArbors() {
       aPostOffset[k] = aPostOffsetBuffer
             + this->shrinkPatches_flag * k * preSynapticLayer()->getNumExtended();
    }
-   delays = (int *) calloc(numAxonalArborLists, sizeof(int));
-   if( delays == NULL ) {
-      createArborsOutOfMemory();
-      assert(false);
-   }
+//   delays = (int *) calloc(numAxonalArborLists, sizeof(int));
+//   if( delays == NULL ) {
+//      createArborsOutOfMemory();
+//      assert(false);
+//   }
    wDataStart = (pvdata_t **) calloc(numAxonalArborLists, sizeof(pvdata_t *));
    if( wDataStart == NULL ) {
       createArborsOutOfMemory();
@@ -421,8 +421,15 @@ int HyPerConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
 
    PVParams * inputParams = parent->parameters();
    status = setParams(inputParams /*, &defaultConnParams*/);
-   defaultDelay = (int) inputParams->value(name, "delay", 0);
 
+   //Grab delays in ms and change into timesteps
+   //TODO: Change to allow for multiple delays for multiple arbors
+   //defaultDelay = round(inputParams->value(name, "delay", 0)/parent->getDeltaTime());
+
+
+   int delayArraySize;
+   //fDelayArray is the float representation from the array values
+   fDelayArray = inputParams->arrayValues(name, "delay", &delayArraySize);
 
    ChannelType channel = readChannelCode(inputParams);
 
@@ -464,7 +471,9 @@ int HyPerConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
       writeTime = inputParams->value(name, "initialWriteTime", writeTime);
    }
 
+   initializeDelays(delayArraySize);
    constructWeights(filename);
+
 
    // Find maximum delay over all the arbors and send it to the presynaptic layer
    int maxdelay = 0;
@@ -493,6 +502,8 @@ int HyPerConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
 
    return status;
 }
+
+
 
 ChannelType HyPerConn::readChannelCode(PVParams * params) {
    int is_present = params->present(name, "channelCode");
@@ -531,7 +542,6 @@ int HyPerConn::decodeChannel(int channel_code, ChannelType * channel_type) {
    }
    return status;
 }
-
 
 int HyPerConn::initNumWeightPatches() {
    numWeightPatches = pre->getNumExtended();
@@ -578,6 +588,37 @@ int HyPerConn::setParams(PVParams * inputParams /*, PVConnParams * p*/)
    }
 
    return 0;
+}
+
+int HyPerConn::initializeDelays(int size){
+
+   int status = PV_SUCCESS;
+   //Allocate delay data structure
+   delays = (int *) calloc(numAxonalArborLists, sizeof(int));
+   if( delays == NULL ) {
+      createArborsOutOfMemory();
+      assert(false);
+   }
+
+   //Initialize delays for each arbor
+   //Using setDelay to convert ms to timesteps
+   for (int arborId=0;arborId<numAxonalArborLists;arborId++) {
+      if (size == 0){
+         //No delay
+         setDelay(arborId, 0);
+      }
+      else if (size == 1){
+         setDelay(arborId, fDelayArray[0]);
+      }
+      else if (size == numAxonalArborLists){
+         setDelay(arborId, fDelayArray[arborId]);
+      }
+      else{
+         fprintf(stderr, "Delay must be either a single value or the same length as the number of arbors\n");
+         abort();
+      }
+   }
+   return status;
 }
 
 // returns handle to initialized weight patches
@@ -995,8 +1036,14 @@ int HyPerConn::writeTextWeights(const char * filename, int k)
    return 0;
 }
 
+//Input delay is in ms
 void HyPerConn::setDelay(int arborId, float delay) {
    assert(arborId>=0 && arborId<numAxonalArborLists);
+   int intDelay = round(delay/parent->getDeltaTime());
+   if (fmod(delay, parent->getDeltaTime()) != 0){
+      float actualDelay = intDelay * parent->getDeltaTime();
+      std::cerr << name << ": A delay of " << delay << " will be rounded to " << actualDelay << "\n";
+   }
    delays[arborId] = (int)(round(delay / parent->getDeltaTime()));
 //   int numPatches = numWeightPatches();
 //    for(int pID=0;pID<numPatches; pID++) {
@@ -1629,7 +1676,8 @@ int HyPerConn::adjustAxonalArbors(int arborId)
 
    } // loop over patches
 
-   delays[arborId] = defaultDelay;
+   //TODO: Move this into set delay in initialize in HyPerConn
+   //delays[arborId] = defaultDelay;
 
    return 0;
 }

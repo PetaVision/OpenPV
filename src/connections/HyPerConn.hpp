@@ -332,6 +332,7 @@ private:
    float** dwDataStart; //now that data for all patches are allocated to one continuous block of memory, this pointer saves the starting address of that array
    bool combine_dW_with_W_flag; // indicates that dwDataStart should be set equal to wDataStart, useful for saving memory when weights are not being learned but not used
    int defaultDelay; //added to save params file defined delay...
+   const float* fDelayArray;
 
 protected:
    char* name;
@@ -453,6 +454,7 @@ protected:
    int initialize_base();
    virtual int createArbors();
    void createArborsOutOfMemory();
+   int initializeDelays(int size);
    virtual int constructWeights(const char* filename);
    int initialize(const char* name, HyPerCol* hc, HyPerLayer* pre,
          HyPerLayer* post, const char* filename,

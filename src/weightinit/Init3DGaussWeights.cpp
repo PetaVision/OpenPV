@@ -49,6 +49,7 @@ int Init3DGaussWeights::calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, 
    //PVAxonalArbor * arbor = weightParamPtr->getParentConn()->axonalArbor(patchIndex, arborId);
    //arbor->delay = weightParamPtr->getTime();
 
+   //Overwriting initDelays
    weightParamPtr->getParentConn()->setDelay(arborId, weightParamPtr->getTime());
 
    return PV_SUCCESS;
