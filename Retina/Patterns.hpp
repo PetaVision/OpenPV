@@ -23,7 +23,7 @@ class Patterns : public PV::Image {
 public:
    Patterns(const char * name, HyPerCol * hc, PatternType type);
    virtual ~Patterns();
-   virtual int updateState(float time, float dt);
+   virtual int updateState(double timef, double dt);
 
    void setProbMove(float p)     {pMove = p;}
    void setProbSwitch(float p)   {pSwitch = p;}

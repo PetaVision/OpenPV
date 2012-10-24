@@ -397,7 +397,7 @@ int Patterns::clearPattern(float val)
 /**
  * update the image buffers
  */
-int Patterns::updateState(float time, float dt)
+int Patterns::updateState(double timed, double dt)
 {
    update_timer->start();
 
@@ -409,23 +409,23 @@ int Patterns::updateState(float time, float dt)
    // alternate between vertical and horizontal bars
    double p = pv_random_prob();
 
-   if (time== 0.0){
+   if (timed== 0.0){
 	clearPattern(0.0);
-    fprintf(stdout,"---- this is updateState of Patterns with CLEAR at %f ----\n",time);
+    fprintf(stdout,"---- this is updateState of Patterns with CLEAR at %f ----\n",timed);
 
    }
 
-   if(time>49.0 && time<1900)
+   if(timed>49.0 && timed<1900)
    {
 	           //orientation = vertical;
-	           initPattern(PATTERNS_MAXVAL,time);
-	           fprintf(stdout,"---- this is updateState of Patterns with INIT %f ----\n",time);
+	           initPattern(PATTERNS_MAXVAL,timed);
+	           fprintf(stdout,"---- this is updateState of Patterns with INIT %f ----\n",timed);
    }
 
 
-   if (time== 1900.0){
+   if (timed== 1900.0){
 	clearPattern(0.0);
-    fprintf(stdout,"---- this is updateState of Patterns with CLEAR %f ----\n",time);
+    fprintf(stdout,"---- this is updateState of Patterns with CLEAR %f ----\n",timed);
    }
 
 
@@ -465,11 +465,11 @@ int Patterns::updateState(float time, float dt)
    if (lastPosition != position || lastOrientation != orientation) {
       lastPosition = position;
       lastOrientation = orientation;
-      lastUpdateTime = time;
+      lastUpdateTime = timed;
       changed = 1;
       if (writeImages) {
          char basicfilename[PV_PATH_MAX+1]; // is +1 needed?
-         snprintf(basicfilename, PV_PATH_MAX, "Bars_%.2f.tif", time);
+         snprintf(basicfilename, PV_PATH_MAX, "Bars_%.2f.tif", timed);
          write(basicfilename);
       }
    }
