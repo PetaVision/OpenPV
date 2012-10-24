@@ -44,26 +44,29 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 {\bf Feed-forward weight adaptation:}
+\begin{equation}\nonumber
+Q_{ij}(t+\Delta t) &= Q_{ij}(t) + \beta \left(\frac{\Delta t}{\tau_{oja}}\right)^{2} \left\{Oja*LTP - LTD - decay\right\} \right}
+\end{equation}
+i.e.\\
 \begin{equation}\begin{split}
-Q_{ij}(t+\Delta t) &= Q_{ij}(t) + \beta \left\{\right.\\[2mm]
-                        &\fterm{Y_j}{oja}(t) \left[\fterm{X_i}{oja}(t) - Q_{ij}(t) \fterm{Y_j}{oja}(t)\right] \cdot\\[2mm]
-                        &\lambda_{P} A_{Y}(t) \nterm{X_{i}}{P}(t) - \lambda_{D}_{j} A_{X}_{i}(t) \nterm{Y_{j}}{D}(t) -\\[2mm]
+Q_{ij}(t+\Delta t) &= Q_{ij}(t) + \beta \left(\frac{\Delta t}{\tau_{oja}}\right)^{2} \left\{\right.\\[2mm]
+                        &\nterm{Y_j}{oja}(t) \left[\nterm{X_i}{oja}(t) - Q_{ij}(t) \nterm{Y_j}{oja}(t)\right] \cdot \lambda_{P} A_{Y}(t) \nterm{X_{i}}{P}(t) -\\[2mm]
+                        &\lambda_{D}_{j} A_{X}_{i}(t) \nterm{Y_{j}}{D}(t) -\\[2mm]
                         &\alpha_{dec} Q_{ij}(t)\left\}\right.\\
 \end{split}\end{equation}
-where $\beta$ is a learning rate:
-\begin{equation}\nonumber
-\beta = dwMax \cdot \frac{\Delta t}{\tau_{oja}f_o}
-\end{equation}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\vspace{2pc}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 {\bf Adaptive LTD for feed-forward weights}
-\begin{align}
-        \lambda_{D}_{j} &> 0\nonumber\\[3mm]
-
-        \lambda_{D}_{j}(0) &= \lambda_{Dinit}\nonumber\\[3mm]
-
+\begin{align}\label{LTD}
         \lambda_{D}_{j}(t+\Delta t) &= \lambda_{D}_{j}(t) + \frac{\Delta t}{\displaystyle{\tau}_{_{THR}}}
             \left[\fterm{j}{o}(t) - f_o\right]
-            \frac{\lambda_{D}_{scale}}{f_o}\nonumber\\[3mm]
+            \frac{\lambda_{D}_{scale}}{f_o}\\[3mm]
+\intertext{where}
+        \lambda_{D}_{j} &> 0\nonumber\\[3mm]
+        \lambda_{D}_{j}(0) &= \lambda_{Dinit}\nonumber\\[3mm]
 \end{align}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -78,6 +81,7 @@ w_{jk}(t+\Delta t) = w_{jk}(t) + \frac{\Delta t}{\displaystyle{\tau}_{_{INH}}} \
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %\vspace{2pc}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 {\bf Current scales for $\tau$ values}
 \begin{align}
 \displaystyle{\tau}_{oja} &\approx 50-200 ms\nonumber\\[2mm]
@@ -96,6 +100,7 @@ V_{thRest} &= -55 mV\nonumber\\[2mm]
 V_{rest} &= -70 mV\nonumber\\[2mm]
 \lambda_{scale} &\approx \lambda_{P}\nonumber\\[2mm]
 \lambda_{P} &\approx 1\nonumber\\[2mm]
-\lambda_{Dinit} &\approx 1\nonumber
+\lambda_{Dinit} &\approx 1\nonumber\\[2mm]
+\beta &= 2\nonumber
 \end{align}
 \end{document}
