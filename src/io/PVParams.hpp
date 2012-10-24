@@ -31,7 +31,7 @@ public:
    bool hasBeenRead()       { return hasBeenReadFlag; }
    int outputParam(FILE * fp, int indentation);
    void clearHasBeenRead()    { hasBeenReadFlag = false; }
-   void setValue(double v)  { paramValue = (float) v; }
+   void setValue(double v)  { paramValue = (float) v; paramDblValue = v;}
 
 private:
    char * paramName;
