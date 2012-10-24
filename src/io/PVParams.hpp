@@ -180,11 +180,11 @@ public:
    virtual ~ParameterSweep();
 
    int setGroupAndParameter(const char * groupname, const char * paramname);
-   int pushNumericValue(float val);
+   int pushNumericValue(double val);
    int pushStringValue(const char * sval);
    int getNumValues() {return numValues;}
    ParameterSweepType getType() {return type;}
-   int getNumericValue(int n, float * val);
+   int getNumericValue(int n, double * val);
    const char * getStringValue(int n);
    const char * getGroupName() {return groupName;}
    const char * getParamName() {return paramName;}
@@ -195,7 +195,7 @@ private:
    ParameterSweepType type;
    int numValues;
    int currentBufferSize;
-   float * valuesNumber;
+   double * valuesNumber;
    char ** valuesString;
 };
 
@@ -235,14 +235,14 @@ private:
 
 class PVParams {
 public:
-   PVParams(int initialSize, InterColComm * icComm); // TODO Should be const InterColComm * comm
-   PVParams(const char * filename, int initialSize, InterColComm * icComm);
+   PVParams(size_t initialSize, InterColComm * icComm); // TODO Should be const InterColComm * comm
+   PVParams(const char * filename, size_t initialSize, InterColComm * icComm);
    virtual ~PVParams();
 
    bool getParseStatus() { return parseStatus; }
    int   present(const char * groupName, const char * paramName);
    double value  (const char * groupName, const char * paramName);
-   double value  (const char * groupName, const char * paramName, float initialValue, bool warnIfAbsent=true);
+   double value  (const char * groupName, const char * paramName, double initialValue, bool warnIfAbsent=true);
    const float * arrayValues(const char * groupName, const char * paramName, int * arraySize);
    const double * arrayValuesDbl(const char * groupName, const char * paramName, int * arraySize);
    int   stringPresent(const char * groupName, const char * paramStringName);
@@ -278,7 +278,7 @@ public:
 private:
    int parseStatus;
    int numGroups;
-   int groupArraySize;
+   size_t groupArraySize;
    // int maxGroups;
    ParameterGroup ** groups;
    ParameterStack * stack;
@@ -299,7 +299,7 @@ private:
    ParameterSweep * activeParamSweep;
    int sweepSize; // The number of parameter value sets in the sweep.  Each ParameterSweep group in the params file must contain the same number of values, which is sweepSize.
 
-   int initialize(int initialSize, InterColComm * icComm);
+   int initialize(size_t initialSize, InterColComm * icComm);
    int parsefile(const char * filename);
    int setSweepSize();
    void addGroup(char * keyword, char * name);

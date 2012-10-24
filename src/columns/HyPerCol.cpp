@@ -181,7 +181,7 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * p
 
    ownsParams = params==NULL;
    if (ownsParams) {
-      int groupArraySize = 2*(layerArraySize + connectionArraySize);
+      size_t groupArraySize = 2*(layerArraySize + connectionArraySize);
       params = new PVParams(param_file, groupArraySize, icComm);  // PVParams::addGroup can resize if initialGroups is exceeded
    }
    this->params = params;
@@ -205,7 +205,7 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * p
    // set number of steps from params file if it wasn't set on the command line
    if( !numSteps ) {
       if( params->present(name, "numSteps") ) {
-         numSteps = params->value(name, "numSteps");
+         numSteps = (long int) params->value(name, "numSteps");
       }
       else {
          numSteps = NUMSTEPS;
@@ -219,8 +219,8 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * p
    }
 
    // set how often advanceTime() prints a message indicating progress
-   progressStep       = params->value(name, "progressStep",progressStep);
-   writeProgressToErr = params->value(name, "writeProgressToErr",writeProgressToErr);
+   progressStep       = (long int) params->value(name, "progressStep",progressStep);
+   writeProgressToErr = params->value(name, "writeProgressToErr",writeProgressToErr)!=0;
 
    // set output path from params file if it wasn't set on the command line
    if (outputPath == NULL ) {
@@ -255,7 +255,7 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * p
    bool seedfromclock = false;
    if( !random_seed ) {
       if( params->present(name, "randomSeed") ) {
-         random_seed = params->value(name, "randomSeed");
+         random_seed = (unsigned long) params->value(name, "randomSeed");
       }
       else {
          random_seed = getRandomSeed();
@@ -266,7 +266,7 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * p
       fprintf(stderr, "Error: random seed %lu is too small. Use a seed of at least 10000000.\n", random_seed);
       abort();
    }
-   random_seed /= 1+columnId();
+   random_seed /= (unsigned long) (1+columnId());
    if (seedfromclock) {
       if (icComm->commRank()==0) {
          printf("Using time to get random seed.\n");
@@ -482,7 +482,7 @@ int HyPerCol::commRow(int colId)
 
 int HyPerCol::addLayer(HyPerLayer * l)
 {
-   assert(numLayers <= layerArraySize);
+   assert((size_t) numLayers <= layerArraySize);
 
    // Check for duplicate layer names (currently breaks InitWeightsTest, so commented out)
    // for(int k=0; k<numLayers; k++) {
@@ -492,7 +492,7 @@ int HyPerCol::addLayer(HyPerLayer * l)
    //    }
    // }
 
-   if( numLayers ==  layerArraySize ) {
+   if( (size_t) numLayers ==  layerArraySize ) {
       layerArraySize += RESIZE_ARRAY_INCR;
       HyPerLayer ** newLayers = (HyPerLayer **) malloc( layerArraySize * sizeof(HyPerLayer *) );
       assert(newLayers);
@@ -511,7 +511,7 @@ int HyPerCol::addConnection(HyPerConn * conn)
 {
    int connId = numConnections;
 
-   assert(numConnections <= connectionArraySize);
+   assert((size_t) numConnections <= connectionArraySize);
    // Check for duplicate connection names (currently breaks InitWeightsTest, so commented out)
    // for(int k=0; k<numConnections; k++) {
    //    if( !strcmp(conn->getName(), connections[k]->getName())) {
@@ -519,7 +519,7 @@ int HyPerCol::addConnection(HyPerConn * conn)
    //       exit(EXIT_FAILURE);
    //    }
    // }
-   if( numConnections == connectionArraySize ) {
+   if( (size_t) numConnections == connectionArraySize ) {
       connectionArraySize += RESIZE_ARRAY_INCR;
       HyPerConn ** newConnections = (HyPerConn **) malloc( connectionArraySize * sizeof(HyPerConn *) );
       assert(newConnections);
@@ -591,8 +591,9 @@ int HyPerCol::run(long int nTimeSteps)
    // and before the layers' publish calls so that the data in border regions gets copied correctly.
    if ( checkpointReadFlag ) {
       int str_len = snprintf(NULL, 0, "%s/Checkpoint%ld", checkpointReadDir, cpReadDirIndex);
-      char * cpDir = (char *) malloc( (str_len+1)*sizeof(char) );
-      snprintf(cpDir, str_len+1, "%s/Checkpoint%ld", checkpointReadDir, cpReadDirIndex);
+      size_t str_size = (size_t) (str_len+1);
+      char * cpDir = (char *) malloc( str_size*sizeof(char) );
+      snprintf(cpDir, str_size, "%s/Checkpoint%ld", checkpointReadDir, cpReadDirIndex);
       checkpointRead(cpDir);
       // Lines below commented out 2012-10-20.  We shouldn't delete the checkpoint we read from, for archival purposes
 //      if (checkpointWriteFlag && deleteOlderCheckpoints) {
@@ -840,7 +841,7 @@ int HyPerCol::checkpointRead(const char * cpDir) {
       fclose(timestampfile);
    }
 #ifdef PV_USE_MPI
-   MPI_Bcast(buf,bufsize,MPI_CHAR,0,icCommunicator()->communicator());
+   MPI_Bcast(buf,(int) bufsize,MPI_CHAR,0,icCommunicator()->communicator());
 #endif // PV_USE_MPI
    simTime = *((double *) buf);
    currentStep = *((long int *) (buf+sizeof(double)));
@@ -1034,12 +1035,12 @@ int HyPerCol::exitRunLoop(bool exitOnFinish)
    for (int c = 0; c < numConnections; c++) {
       connections[c]->outputState(simTime, last);
    }
+#endif // OBSOLETE
 
    if (exitOnFinish) {
       delete this;
       exit(0);
    }
-#endif // OBSOLETE
 
    return status;
 }
@@ -1077,7 +1078,7 @@ int HyPerCol::writeState()
 int HyPerCol::insertProbe(ColProbe * p)
 {
    ColProbe ** newprobes;
-   newprobes = (ColProbe **) malloc((numProbes + 1) * sizeof(ColProbe *));
+   newprobes = (ColProbe **) malloc( ((size_t) (numProbes + 1)) * sizeof(ColProbe *) );
    assert(newprobes != NULL);
 
    for (int i = 0; i < numProbes; i++) {

@@ -128,9 +128,9 @@ private:
 
    long int numSteps;
    long int currentStep;
-   int layerArraySize;
+   size_t layerArraySize;
    int numLayers;
-   int connectionArraySize;
+   size_t connectionArraySize;
    int numConnections;
 
    bool warmStart;

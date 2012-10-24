@@ -654,7 +654,7 @@ int ParameterSweep::setGroupAndParameter(const char * groupname, const char * pa
    return status;
 }
 
-int ParameterSweep::pushNumericValue(float val) {
+int ParameterSweep::pushNumericValue(double val) {
    int status = PV_SUCCESS;
    if (numValues==0) {
       type = PARAMSWEEP_NUMBER;
@@ -665,7 +665,7 @@ int ParameterSweep::pushNumericValue(float val) {
    assert(numValues <= currentBufferSize);
    if (numValues == currentBufferSize) {
       currentBufferSize += PARAMETERSWEEP_INCREMENTCOUNT;
-      float * newValuesNumber = (float *) calloc(currentBufferSize, sizeof(float));
+      double * newValuesNumber = (double *) calloc(currentBufferSize, sizeof(double));
       if (newValuesNumber == NULL) {
          fprintf(stderr, "ParameterSweep:pushNumericValue error: unable to allocate memory\n");
          status = PV_FAILURE;
@@ -710,7 +710,7 @@ int ParameterSweep::pushStringValue(const char * sval) {
    return status;
 }
 
-int ParameterSweep::getNumericValue(int n, float * val) {
+int ParameterSweep::getNumericValue(int n, double * val) {
    int status = PV_SUCCESS;
    assert(valuesNumber != NULL);
    if ( type != PARAMSWEEP_NUMBER || n<0 || n >= numValues ) {
@@ -805,7 +805,7 @@ FilenameDef * FilenameStack::pop() {
  * @initialSize
  * @hc
  */
-PVParams::PVParams(const char * filename, int initialSize, InterColComm * icComm)
+PVParams::PVParams(const char * filename, size_t initialSize, InterColComm * icComm)
 {
 
    initialize(initialSize, icComm);
@@ -816,7 +816,7 @@ PVParams::PVParams(const char * filename, int initialSize, InterColComm * icComm
  * @initialSize
  * @hc
  */
-PVParams::PVParams(int initialSize, InterColComm * icComm)
+PVParams::PVParams(size_t initialSize, InterColComm * icComm)
 {
    initialize(initialSize, icComm);
    parsefile(NULL);
@@ -843,7 +843,7 @@ PVParams::~PVParams()
 /*
  * @initialSize
  */
-int PVParams::initialize(int initialSize, InterColComm * icComm) {
+int PVParams::initialize(size_t initialSize, InterColComm * icComm) {
    this->numGroups = 0;
    groupArraySize = initialSize;
    this->icComm = icComm;
@@ -1071,7 +1071,7 @@ int PVParams::setSweepValues(int n) {
       assert(gp!=NULL);
 
       const char * s;
-      float v = 0.0f;
+      double v = 0.0f;
       switch (type) {
       case PARAMSWEEP_NUMBER:
          paramSweep->getNumericValue(n, &v);
@@ -1130,14 +1130,14 @@ double PVParams::value(const char * groupName, const char * paramName)
  * @paramName
  * @initialValue
  */
-double PVParams::value(const char * groupName, const char * paramName, float initialValue, bool warnIfAbsent)
+double PVParams::value(const char * groupName, const char * paramName, double initialValue, bool warnIfAbsent)
 {
    if (present(groupName, paramName)) {
       return value(groupName, paramName);
    }
    else {
       if( warnIfAbsent && getRank() == 0 ) {
-          printf("Using default value %f for parameter \"%s\" in group \"%s\"\n",initialValue, paramName, groupName);
+          printf("Using default value %f for parameter \"%s\" in group \"%s\"\n", initialValue, paramName, groupName);
       }
       return initialValue;
    }
@@ -1260,7 +1260,7 @@ void PVParams::addGroup(char * keyword, char * name)
       }
    }
 
-   if( numGroups == groupArraySize ) {
+   if( (size_t) numGroups == groupArraySize ) {
       groupArraySize += RESIZE_ARRAY_INCR;
       ParameterGroup ** newGroups = (ParameterGroup **) malloc( groupArraySize * sizeof(ParameterGroup *) );
       assert(newGroups);
