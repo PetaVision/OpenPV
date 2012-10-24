@@ -124,13 +124,15 @@ int OjaSTDPConn::setParams(PVParams * params)
    targetRateHz   = params->value(getName(), "targetRate", targetRateHz);
 
 
-   wMax           = params->value(getName(), "wMax", wMax);
-   wMin           = params->value(getName(), "wMin", wMin);
-   dWMax          = params->value(getName(), "dWMax", dWMax);
-
    ojaFlag        = params->value(getName(), "ojaFlag",ojaFlag);
    synscalingFlag = params->value(getName(), "synscalingFlag", synscalingFlag);
    synscaling_v   = params->value(getName(), "synscaling_v", synscaling_v);
+
+   if (ojaFlag) { //Don't even look for the param if ojaFlag is set to 1
+      wMax           = params->value(getName(), "wMax", wMax);
+   }
+   wMin           = params->value(getName(), "wMin", wMin);
+   dWMax          = params->value(getName(), "dWMax", dWMax);
 
    return 0;
 }
