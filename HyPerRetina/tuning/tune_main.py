@@ -17,20 +17,20 @@ mpi_np              = '4'
 mpi_rows            = '2'
 mpi_columns         = '2'
 
-num_steps_list      = [str(450*33)]#['2000'] #
+num_steps_list      = ['2000'] #[str(450*33)]#
 stochastic_flag     = '1' #preActivityNotRate = !stochastic_flag
 
 param_template_name = 'retina_params.template'
-run_name            = 'Heli_Challenge_026'#'graywhiteblackspots' #
+run_name            = 'graywhiteblackspots' #'Heli_Challenge_026'#
 
 #######################################################################################
 ## PATH PARAMS
 #######################################################################################
 #Gar
 wrkspc_path         = '/Users/garkenyon/workspace-sync-anterior'
-remote_wrkspc_path  = '/home/gkenyon/workspace-sync-anterior'
+remote_wrkspc_path  = wrkspc_path #'/home/gkenyon/workspace-sync-anterior'#
 out_filename        = run_name
-data_path           = '/home/gkenyon/workspace-sync-anterior' #'/nh/compneuro/Data'
+data_path           = wrkspc_path #'/home/gkenyon/workspace-sync-anterior' #'/nh/compneuro/Data'
 results_path        = data_path+'/HyPerRetina/output/'+run_name
 remote_input_path   = remote_wrkspc_path+'/HyPerRetina/input'
 input_path          = wrkspc_path+'/HyPerRetina/input'
