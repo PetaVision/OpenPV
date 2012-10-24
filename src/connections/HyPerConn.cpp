@@ -262,6 +262,8 @@ int HyPerConn::createArbors() {
       aPostOffset[k] = aPostOffsetBuffer
             + this->shrinkPatches_flag * k * preSynapticLayer()->getNumExtended();
    }
+
+// Moved to initializeDelays(), which is called by initialize(), just before constructWeights() -Oct 24, 2012
 //   delays = (int *) calloc(numAxonalArborLists, sizeof(int));
 //   if( delays == NULL ) {
 //      createArborsOutOfMemory();
