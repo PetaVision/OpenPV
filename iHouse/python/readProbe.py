@@ -20,9 +20,9 @@ workspaceDir = "/Users/dpaiton/Documents/Work/Lanl/workspace"
 #workspaceDir = "/home/dpaiton/workspace"
 #filename     = "/Users/slundquist/Desktop/ptLIF.txt"
 #filename     = "/Users/slundquist/Desktop/retONtoLif.txt"
-filename     = workspaceDir+"/iHouse/checkpoints/Checkpoint3010000/retONtoLifVer.txt"
+filename     = workspaceDir+"/iHouse/checkpoints/Checkpoint3010000/retONtoLifHor.txt"
 figOutDir    = workspaceDir+"/iHouse/checkpoints/Checkpoint3010000/analysis/probeFigs/"
-figRootName  = 'on_weights'
+figRootName  = 'onVer_weights'
 
 #Values for range of frames
 all_lines = False    #All values if True
@@ -31,10 +31,10 @@ endTime   = 3010000  #End must be under number of lines in file
 
 #Other flags
 numTCBins   = 3     #number of bins for time course plot
-numHistBins = -1    #number of bins for histogram of weights (-1 means no histogram)
-doLegend    = True  #if True, time graph will have a legend
-dispFigs    = True  #if True, display figures. Otherwise, print them to file.
+numHistBins = 20    #number of bins for histogram of weights (-1 means no histogram)
 weightMap   = True  #if True, display a weight map
+doLegend    = False #if True, time graph will have a legend
+dispFigs    = False #if True, display figures. Otherwise, print them to file.
 
 #Flags for weightMap
 numWeights = 25 #number of weights in map
@@ -74,7 +74,7 @@ data['weight21']              = []
 data['weight22']              = []
 data['weight23']              = []
 data['weight24']              = []
-#data['weight*']               = []
+data['weight*']               = []
 #data['prOjaTr*']              = []
 #data['prStdpTr*']             = []
 #data['poOjaTr']               = []
