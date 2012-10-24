@@ -13,8 +13,8 @@ HyPerCol "column" = {
    
    randomSeed                   = 1020304050.0;   
 
-   numSteps                     = 1000;  // amount of time steps performed during run-time
-   progressStep                 = 1000;  // write output to see progress
+   numSteps                     = 25000;  // amount of time steps performed during run-time
+   progressStep                 = 25000;  // write output to see progress
    writeProgressToErr           = 0;     // write progress steps to std err
    
    outputPath                   = "output";
@@ -23,10 +23,10 @@ HyPerCol "column" = {
    
    checkpointRead               = false;
    // checkpointReadDir            = "checkpoints";
-   // checkpointReadDirIndex       = 100;
+   // checkpointReadDirIndex       = 500;
    checkpointWrite              = true;
    checkpointWriteDir           = "checkpoints";
-   checkpointWriteStepInterval  = 1;
+   checkpointWriteStepInterval  = 50;
    deleteOlderCheckpoints       = false;
    // suppressLastOutput           = false;
 };
@@ -61,7 +61,7 @@ Patterns "input" = {
    minValue                      = 0.25;
 
    halfNeutral                   = true;
-   dropPosition                  = 0;
+   dropPosition                  = -1;
    dropPositionRandomMax         = 20;
    dropPositionRandomMin         = 5;
 
@@ -108,7 +108,7 @@ Retina "RetinaON" = {
     marginWidth   = 16;
     restart       = false;
     
-    writeStep     = 1;
+    writeStep     = -1;
     mirrorBCflag  = true;
     spikingFlag   = true;  // false (no quotes) is translated to 0
 
@@ -154,7 +154,7 @@ LCALIFLayer "lcalif" = {
    nyScale              = 1;        
    nf                   = 16;           
 
-   tauTHR               = 4000;       // Timescale for changing adaptive threshold, in milliseconds
+   tauTHR               = 16000;       // Timescale for changing adaptive threshold, in milliseconds
    targetRate           = 5;           // Target rate of output spikes in Hertz
 
    spikingFlag          = 1;           
@@ -389,7 +389,7 @@ OjaKernelConn "RetinaONtoS1" = {
    integrationTime          = 83.33; // Should be a few movie frames in length
    inputTargetRate          = 5.0;   // Between 1 and 10 Hz
    outputTargetRate         = 5.0;   // Between 1 and 10 Hz
-   learningTime             = 16000;   // Timescale for change in weights, in seconds
+   learningTime             = 40000;   // Timescale for change in weights, in seconds
 };
 
 
@@ -431,7 +431,7 @@ OjaKernelConn "RetinaOFFtoS1" = {
    integrationTime          = 83.33; // Should be a few movie frames in length
    inputTargetRate          = 5.0;   // Between 1 and 10 Hz
    outputTargetRate         = 5.0;   // Between 1 and 10 Hz
-   learningTime             = 16000;   // Timescale for change in weights, in seconds
+   learningTime             = 40000;   // Timescale for change in weights, in seconds
 };
 
 LCALIFLateralKernelConn "Lateral Inhibition" = {
@@ -471,31 +471,29 @@ LCALIFLateralKernelConn "Lateral Inhibition" = {
    targetRate               = 5;
 };
 
-disable = true;
-
 PointProbe "RetinaON Probe" = {
    targetLayer = "RetinaON";
-   probeOutputFile = "RetinaON_31_31_0.txt";
+   probeOutputFile = "RetinaON_8_17.txt";
    message = "RetinaON Probe ";
-   xLoc = 31;
-   yLoc = 31;
+   xLoc = 8;
+   yLoc = 17;
    fLoc = 0;
 };
 
 PointProbe "RetinaOFF Probe" = {
    targetLayer = "RetinaOFF";
-   probeOutputFile = "RetinaOFF_31_31_0.txt";
+   probeOutputFile = "RetinaOFF_8_17.txt";
    message = "RetinaON Probe ";
-   xLoc = 31;
-   yLoc = 31;
+   xLoc = 8;
+   yLoc = 17;
    fLoc = 0;
 };
 
 PointLCALIFProbe "LCALIF Probe" = {
    targetLayer = "lcalif";
-   probeOutputFile = "LCALIF_127_127_0.txt";
+   probeOutputFile = "LCALIF_8_17_12.txt";
    message = "LCALIF Probe   ";
-   xLoc = 127;
-   yLoc = 127;
-   fLoc = 0;
+   xLoc = 8;
+   yLoc = 17;
+   fLoc = 12;
 };
