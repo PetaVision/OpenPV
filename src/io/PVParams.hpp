@@ -45,8 +45,10 @@ public:
    int getArraySize() {return arraySize;}
    const char * name() {return paramName;}
    int setName(const char * name);
-   const float * getValues(int * sz) { *sz = arraySize; return values;}
+   const float * getValues(int * sz) { hasBeenReadFlag = true; *sz = arraySize; return values;}
    int pushValue(float value);
+   bool hasBeenRead() { return hasBeenReadFlag; }
+   void clearHasBeenRead() { hasBeenReadFlag = false; }
 
 private:
    bool paramNameSet;
@@ -54,6 +56,7 @@ private:
    int arraySize; // The number of values that have been pushed
    int bufferSize; // The size of the buffer in memory
    float * values;
+   bool hasBeenReadFlag;
 };
 
 class ParameterString {

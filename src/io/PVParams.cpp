@@ -81,6 +81,7 @@ int Parameter::outputParam(FILE * fp, int indentation) {
 }
 
 ParameterArray::ParameterArray(int initialSize) {
+   hasBeenReadFlag = false;
    paramNameSet = false;
    paramName = strdup("Unnamed Parameter array");
    bufferSize = initialSize;
@@ -478,12 +479,20 @@ const char * ParameterGroup::stringValue(const char * stringName ) {
 
 int ParameterGroup::warnUnread() {
    int status = PV_SUCCESS;
-   int count = stack->size();
+   int count;
+   count = stack->size();
    for( int i=0; i<count; i++ ) {
       Parameter * p = stack->peek(i);
       if( !p->hasBeenRead() ) {
          if( processRank==0 ) fprintf(stderr,"Parameter group \"%s\": parameter \"%s\" has not been read.\n", name(), p->name());
          status = PV_FAILURE;
+      }
+   }
+   count = arrayStack->size();
+   for (int i=0; i<count; i++) {
+      ParameterArray * parr = arrayStack->peek(i);
+      if (!parr->hasBeenRead()) {
+         if (processRank==0) fprintf(stderr,"Parameter group \"%s\": array parameter \"%s\" has not been read.\n", name(), parr->name());
       }
    }
    count = stringStack->size();
@@ -503,6 +512,11 @@ int ParameterGroup::clearHasBeenReadFlags() {
    for( int i=0; i<count; i++ ) {
       Parameter * p = stack->peek(i);
       p->clearHasBeenRead();
+   }
+   count = arrayStack->size();
+   for (int i=0; i<count; i++) {
+      ParameterArray * parr = arrayStack->peek(i);
+      parr->clearHasBeenRead();
    }
    count = stringStack->size();
    for( int i=0; i<count; i++ ) {
