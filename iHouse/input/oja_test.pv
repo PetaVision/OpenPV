@@ -168,7 +168,7 @@ LIF "lif" = {
    nyScale          = 1;
    nf               = 1;
                                  // 
-   writeStep        = -1; 		 //Set to 1 to make movie
+   writeStep        = -1; 		 // Set to 1 to make movie
                                  //
    spikingFlag      = 1;
    marginWidth      = 0;
@@ -397,7 +397,7 @@ OjaSTDPConn "RetinaONtoLif" = {
                                    //
    initFromLastFlag       = 0;      
                                    //
-   writeStep              = -1;
+   writeStep              = -1;    // Must be a multiple of postLayer's writeStep for analysis
                                    //
    ampLTP                 = 1;     // (ms)
    initAmpLTD             = 1;     // (ms)
@@ -424,7 +424,7 @@ OjaSTDPConn "RetinaONtoLif" = {
    normalize              = false;
    //normalize_max          = false;
    //normalize_zero_offset  = 0.0;
-   //strength               = 0;   // Strength doesn't matter when weightInitType is UniformRandomWeight
+   //strength               = 0;     // Strength doesn't matter when weightInitType is UniformRandomWeight
    //combineWeightFiles     = false;
    //symmetrizeWeights      = 0;
                                    //
@@ -439,7 +439,7 @@ OjaSTDPConn "RetinaONtoLif" = {
    synscalingFlag         = 0;
    synscaling_v           = 1;
    preActivityIsNotRate   = 0;
-   initialWriteTime       = 0;
+   //initialWriteTime       = 0;
 };
 
 
@@ -454,7 +454,7 @@ OjaSTDPConn "RetinaOFFtoLif" = {
                                    //
    initFromLastFlag       = 0;      
                                    //
-   writeStep              = -1;
+   writeStep              = -1;    // Must be a multiple of postLayer's writeStep for analysis
                                    //
    ampLTP                 = 1;     // (ms)
    initAmpLTD             = 1;     // (ms)
@@ -496,7 +496,7 @@ OjaSTDPConn "RetinaOFFtoLif" = {
    synscalingFlag         = 0;
    synscaling_v           = 1;
    preActivityIsNotRate   = 0;
-   initialWriteTime       = 0;
+   //initialWriteTime       = 0;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
