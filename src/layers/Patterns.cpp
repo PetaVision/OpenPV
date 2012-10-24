@@ -315,21 +315,39 @@ int Patterns::drawPattern(float val)
       data[k] = neutralval;
    }
 
+   int status = PV_SUCCESS;
    if (type == RECTANGLES) {
-      return drawRectangles(val);
+      status = drawRectangles(val);
    }
    else if (type == BARS) { // type is bars
-      return drawBars(orientation, data, nx, ny, val);
+      status = drawBars(orientation, data, nx, ny, val);
    }
    else if((type == COSWAVE)||(type == SINEWAVE)||
            (type == COSV)||(type == SINEV)) {
-      return drawWaves(val);
+      status = drawWaves(val);
    }
    else if (type == IMPULSE) {
-      return drawImpulse();
+      status = drawImpulse();
    }
    else if (type == DROP){
-      return drawDrops();
+      status = drawDrops();
+   }
+
+   if (normalizeLuminanceFlag) { // Copied from Image::readImage except for names of a couple variables.  Make a normalizeLuminance() function?
+      int n=getNumNeurons();
+      double image_sum = 0.0f;
+      for (int k=0; k<n; k++) {
+         image_sum += data[k];
+      }
+      double image_ave = image_sum / n;
+#ifdef PV_USE_MPI
+      MPI_Allreduce(MPI_IN_PLACE, &image_ave, 1, MPI_DOUBLE, MPI_SUM, parent->icCommunicator()->communicator());
+      image_ave /= parent->icCommunicator()->commSize();
+#endif
+      float image_shift = 0.5f - image_ave;
+      for (int k=0; k<n; k++) {
+         data[k] += image_shift;
+      }
    }
 
    return 0;
