@@ -262,10 +262,7 @@ for key in data.keys():
             plotMe = array(data[key])
             plot(time, plotMe, label=key)
     else:
-        if key == 'poIntTr':
-            plotMe = array(data[key])/300
-        else:
-            plotMe = array(data[key])
+        plotMe = array(data[key])
         if len(plotMe) != 0:
             plot(time, plotMe, label=key)
 if doLegend:
