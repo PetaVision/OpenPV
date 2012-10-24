@@ -393,7 +393,6 @@ OjaSTDPConn "RetinaONtoLif" = {
    nyp                    = 5;
    nfp                    = 1;
    channelCode            = 0;
-   delay                  = 0.0;
                                    //
    initFromLastFlag       = 0;      
                                    //
@@ -450,7 +449,6 @@ OjaSTDPConn "RetinaOFFtoLif" = {
    nyp                    = 5;
    nfp                    = 1;
    channelCode            = 0;
-   delay                  = 0.0;
                                    //
    initFromLastFlag       = 0;      
                                    //
