@@ -38,7 +38,7 @@ int OjaSTDPConn::initialize_base() {
    this->pre_stdp_tr    = NULL;
    this->pre_oja_tr     = NULL;
 
-   this->ampLTP         = 0.357; //amp sets ratio of LTP to LTD, or how much more/less effective LTP is than LTD. LTP/LTD should ~= 0.9 per Gar
+   this->ampLTP         = 1;
    this->ampLTD         = NULL; // Will allocate later
    this->initAmpLTD     = 1;
    this->targetRateHz   = 1;
