@@ -35,7 +35,6 @@ int OjaSTDPConn::initialize_base() {
    this->post_stdp_tr   = NULL;
    this->post_oja_tr    = NULL;
    this->post_int_tr    = NULL;
-   this->post_int_tr    = NULL;
    this->pre_stdp_tr    = NULL;
    this->pre_oja_tr     = NULL;
 
@@ -263,11 +262,11 @@ int OjaSTDPConn::updateWeights(int arborID)
    {
       int kPostExt = kIndexExtended(kPostRes, postNx, postNy, postNf, postNb);
       post_stdp_tr_m[kPostRes] = decayLTD * (post_stdp_tr_m[kPostRes] + aPost[kPostExt]);
-      post_oja_tr_m[kPostRes]  = decayOja * (post_oja_tr_m[kPostRes] + aPost[kPostExt]);
-      post_int_tr_m[kPostRes]  = decayO   * (post_int_tr_m[kPostRes] + aPost[kPostExt]);
+      post_oja_tr_m[kPostRes]  = decayOja * (post_oja_tr_m[kPostRes]  + aPost[kPostExt]);
+      post_int_tr_m[kPostRes]  = decayO   * (post_int_tr_m[kPostRes]  + aPost[kPostExt]);
 
       ampLTD[kPostRes] += (dt/tauTHR) * ((post_int_tr_m[kPostRes]/tauO) - targetRatekHz) * (LTDscale/targetRatekHz);
-      ampLTD[kPostRes] = ampLTD[kPostRes] < 0 ? 0 : ampLTD[kPostRes]; // ampLTD should not go below 0
+      ampLTD[kPostRes]  = ampLTD[kPostRes] < 0 ? 0 : ampLTD[kPostRes]; // ampLTD should not go below 0
       assert(ampLTD[kPostRes] == ampLTD[kPostRes]); // Make sure it is not NaN
    }
 
@@ -278,7 +277,7 @@ int OjaSTDPConn::updateWeights(int arborID)
 
    float scaleFactor;
    if (ojaFlag) {
-      scaleFactor = dWMax * (dt / (tauOja * targetRatekHz));
+      scaleFactor = dWMax * powf(dt/tauOja,2.0);
    }
    else
    {
@@ -323,15 +322,14 @@ int OjaSTDPConn::updateWeights(int arborID)
             // See LCA_Equations.pdf in documentation for description of Oja (feed-forward weight adaptation) equations.
             float ojaTerm;
             if (ojaFlag) {
-               ojaTerm = (post_oja_tr_m[kPatch]/tauOja) * ((*pre_oja_tr_m/tauOja) - W[kPatch] * (post_oja_tr_m[kPatch]/tauOja));
+               ojaTerm = post_oja_tr_m[kPatch] * ((*pre_oja_tr_m) - W[kPatch] * post_oja_tr_m[kPatch]);
                assert(ojaTerm == ojaTerm); // Make sure it is not NaN (only happens if tauOja is 0)
             } else { //should just be standard STDP at this point
               ojaTerm = 1.0;
             }
 
             W[kPatch] += scaleFactor *
-                  (ojaTerm * ampLTP * aPost[kPatch] * (*pre_stdp_tr_m) - ampLTD_m[kPatch] * aPre * post_stdp_tr_m[kPatch] -
-                  weightDecay * W[kPatch]);
+              (ojaTerm * ampLTP * aPost[kPatch] * (*pre_stdp_tr_m) - ampLTD_m[kPatch] * aPre * post_stdp_tr_m[kPatch] - weightDecay * W[kPatch]);
 
             W[kPatch] = W[kPatch] < wMin ? wMin : W[kPatch]; // Stop weights from going all the way to 0
             if (!ojaFlag) { //oja term should get rid of the need to impose a maximum weight
