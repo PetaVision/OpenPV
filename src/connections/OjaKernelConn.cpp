@@ -80,7 +80,7 @@ int OjaKernelConn::updateState(double timef, double dt) {
 
 
    // HyPerConn::updateState calls update_dW and updateWeights; we override update_dW but there is no need to override updateWeights
-   int status = HyPerConn::updateState(timef, dt);
+   int status = KernelConn::updateState(timef, dt);
 
    return status;
 }
@@ -91,7 +91,7 @@ int OjaKernelConn::update_dW(int axonId) {
    pvdata_t * input_rate = inputFiringRate[axonId];
 
    // Update weights
-   int sya = post->getLayerLoc()->nf * post->getLayerLoc()->nx;
+   int syg = post->getLayerLoc()->nf * post->getLayerLoc()->nx;
 
    for (int kex=0; kex<getNumWeightPatches(); kex++) {
       PVPatch * weights = getWeights(kex,axonId);
@@ -113,7 +113,7 @@ int OjaKernelConn::update_dW(int axonId) {
             dwdata[lineoffsetw + k] += (inputFR - wdata[lineoffsetw+k]*outputFR)*outputFR;
          }
          lineoffsetw += syp;
-         lineoffsetg += sya;
+         lineoffsetg += syg;
       }
    }
    // Multiply by dt*learningRate, normalize by dividing by inputTargetRate*outputTargetRate, and average by dividing by (numNeurons/numKernels)
