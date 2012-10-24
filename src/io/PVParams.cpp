@@ -15,6 +15,7 @@
 #ifdef OBSOLETE // Marked obsolete Aug 9, 2012.  No one uses this, and filenames can be defined as string parameters in parameter groups
 #define FILENAMESTACKMAXCOUNT 10
 #endif // OBSOLETE
+#define PARAMETERARRAY_INITIALSIZE 8
 #define PARAMETERARRAYSTACK_INITIALCOUNT 5
 #define PARAMETERSTRINGSTACK_INITIALCOUNT 5
 #define PARAMETERSWEEP_INCREMENTCOUNT 10
@@ -60,6 +61,7 @@ Parameter::Parameter(const char * name, double value)
 {
    paramName  = strdup(name);
    paramValue = (float) value;
+   paramDblValue = value;
    hasBeenReadFlag = false;
 }
 
@@ -71,11 +73,11 @@ Parameter::~Parameter()
 int Parameter::outputParam(FILE * fp, int indentation) {
    int status = PV_SUCCESS;
    for( int i=indentation; i>0; i-- ) fputc(' ', fp);
-   fprintf(fp, "%s : %.17e", paramName, paramValue);
-   if( paramValue == 1.0f ) fprintf(fp, " (true)");
-   else if( paramValue == 1.0f ) fprintf(fp, " (false)");
-   else if( paramValue == FLT_MAX ) fprintf(fp, " (infinity)");
-   else if( paramValue == -FLT_MAX ) fprintf(fp, " (-infinity)");
+   fprintf(fp, "%s : %.17e", paramName, paramDblValue);
+   if( paramDblValue == 1.0f ) fprintf(fp, " (true)");
+   else if( paramDblValue == 1.0f ) fprintf(fp, " (false)");
+   else if( paramDblValue == FLT_MAX ) fprintf(fp, " (infinity)");
+   else if( paramDblValue == -FLT_MAX ) fprintf(fp, " (-infinity)");
    fprintf(fp, "\n");
    return status;
 }
@@ -89,7 +91,8 @@ ParameterArray::ParameterArray(int initialSize) {
    values = NULL;
    if (bufferSize>0) {
       values = (float *) calloc(bufferSize,sizeof(float));
-      if (values == NULL) {
+      valuesDbl = (double *) calloc(bufferSize, sizeof(double));
+      if (values == NULL || valuesDbl == NULL) {
          fprintf(stderr, "ParameterArray error allocating memory for \"%s\"\n", name());
          abort();
       }
@@ -99,6 +102,7 @@ ParameterArray::ParameterArray(int initialSize) {
 ParameterArray::~ParameterArray() {
    free(paramName); paramName = NULL;
    free(values); values = NULL;
+   free(valuesDbl); valuesDbl = NULL;
 }
 
 int ParameterArray::setName(const char * name) {
@@ -114,16 +118,23 @@ int ParameterArray::setName(const char * name) {
    return status;
 }
 
-int ParameterArray::pushValue(float value) {
+int ParameterArray::pushValue(double value) {
    assert(bufferSize>=arraySize);
    if (bufferSize==arraySize) {
-      bufferSize += 8;
-      float * new_values = (float *) calloc(bufferSize,sizeof(double));
+      bufferSize += PARAMETERARRAY_INITIALSIZE;
+      float * new_values = (float *) calloc(bufferSize,sizeof(float));
       if (new_values == NULL) {
          fprintf(stderr, "ParameterArray::pushValue error increasing array \"%s\" to %d values\n", name(), arraySize+1);
          abort();
       }
       memcpy(new_values, values, sizeof(float)*arraySize);
+      free(values); values = new_values;
+      double * new_values_dbl = (double *) calloc(bufferSize,sizeof(double));
+      if (new_values == NULL) {
+         fprintf(stderr, "ParameterArray::pushValue error increasing array \"%s\" to %d values\n", name(), arraySize+1);
+         abort();
+      }
+      memcpy(new_values_dbl, valuesDbl, sizeof(double)*arraySize);
       free(values); values = new_values;
    }
    assert(arraySize<bufferSize);
@@ -393,7 +404,7 @@ int ParameterGroup::present(const char * name)
 /**
  * @name
  */
-float ParameterGroup::value(const char * name)
+double ParameterGroup::value(const char * name)
 {
    int count = stack->size();
    for (int i = 0; i < count; i++) {
@@ -442,6 +453,34 @@ const float * ParameterGroup::arrayValues(const char * name, int * size) {
       }
       if (q) {
          v = q->valuePtr();
+         *size = 1;
+      }
+   }
+   return v;
+}
+
+const double * ParameterGroup::arrayValuesDbl(const char * name, int * size) {
+   int count = arrayStack->size();
+   *size = 0;
+   const double * v = NULL;
+   ParameterArray * p = NULL;
+   for (int i=0; i<count; i++) {
+      p = arrayStack->peek(i);
+      if (strcmp(name, p->name())==0) {
+         v = p->getValuesDbl(size);
+         break;
+      }
+   }
+   if (!v) {
+      Parameter * q = NULL;
+      for (int i=0; i<stack->size(); i++) {
+         q = stack->peek(i);
+         if (strcmp(name, q->name())==0) {
+            break;
+         }
+      }
+      if (q) {
+         v = q->valueDblPtr();
          *size = 1;
       }
    }
@@ -1072,7 +1111,7 @@ int PVParams::present(const char * groupName, const char * paramName)
  * @groupName
  * @paramName
  */
-float PVParams::value(const char * groupName, const char * paramName)
+double PVParams::value(const char * groupName, const char * paramName)
 {
    ParameterGroup * g = group(groupName);
    if (g == NULL) {
@@ -1091,7 +1130,7 @@ float PVParams::value(const char * groupName, const char * paramName)
  * @paramName
  * @initialValue
  */
-float PVParams::value(const char * groupName, const char * paramName, float initialValue, bool warnIfAbsent)
+double PVParams::value(const char * groupName, const char * paramName, float initialValue, bool warnIfAbsent)
 {
    if (present(groupName, paramName)) {
       return value(groupName, paramName);
@@ -1103,14 +1142,39 @@ float PVParams::value(const char * groupName, const char * paramName, float init
       return initialValue;
    }
 }
+
 /*
  *  @groupName
  *  @paramName
  *  @size
  */
 const float * PVParams::arrayValues(const char * groupName, const char * paramName, int * size) {
-   *size = 0;
-   return NULL;
+   ParameterGroup * g = group(groupName);
+   if (g == NULL) {
+      if( getRank() == 0 ) {
+         fprintf(stderr, "PVParams::value: ERROR, couldn't find a group for %s\n",
+               groupName);
+      }
+      return NULL;
+   }
+   return g->arrayValues(paramName, size);
+}
+
+/*
+ *  @groupName
+ *  @paramName
+ *  @size
+ */
+const double * PVParams::arrayValuesDbl(const char * groupName, const char * paramName, int * size) {
+   ParameterGroup * g = group(groupName);
+   if (g == NULL) {
+      if( getRank() == 0 ) {
+         fprintf(stderr, "PVParams::value: ERROR, couldn't find a group for %s\n",
+               groupName);
+      }
+      return NULL;
+   }
+   return g->arrayValuesDbl(paramName, size);
 }
 
 /*
@@ -1353,11 +1417,11 @@ void PVParams::action_parameter_array(char * id)
 void PVParams::action_parameter_array_value(double val)
 {
    int sz = currentParamArray->getArraySize();
-   int newsize = currentParamArray->pushValue((float) val);
+   int newsize = currentParamArray->pushValue(val);
    assert(newsize == sz+1);
    if(debugParsing && getRank() == 0) {
       fflush(stdout);
-      printf("action_parameter_array_value %f\n", (float) val);
+      printf("action_parameter_array_value %lf\n", val);
    }
 }
 
