@@ -39,29 +39,35 @@ Y.lateralinhibition.integratedSpikeCount = zeros(colsizex,colsizey,nf,nt);
 for k=1:nt
     t = timeindices(k);
     dirname = sprintf('Checkpoint%d/',t);
-    Y.scaledinput(:,:,k) = readpvpfile([dirname 'scaled input_A.pvp']){1}.values;
-    Y.retinaon(:,:,k) = readpvpfile([dirname 'RetinaON_A.pvp']){1}.values;
-    Y.retinaoff(:,:,k) = readpvpfile([dirname 'RetinaOFF_A.pvp']){1}.values;
-    Y.lcalif.activity(:,:,:,k) = readpvpfile([dirname 'lcalif_A.pvp']){1}.values;
-    Y.lcalif.V(:,:,:,k) = readpvpfile([dirname 'lcalif_V.pvp']){1}.values;
-    Y.lcalif.Vth(:,:,:,k) = readpvpfile([dirname 'lcalif_Vth.pvp']){1}.values;
-    Y.lcalif.Vadpt(:,:,:,k) = readpvpfile([dirname 'lcalif_Vadpt.pvp']){1}.values;
-    Y.lcalif.G_E(:,:,:,k) = readpvpfile([dirname 'lcalif_G_E.pvp']){1}.values;
-    Y.lcalif.G_I(:,:,:,k) = readpvpfile([dirname 'lcalif_G_I.pvp']){1}.values;
-    Y.lcalif.G_IB(:,:,:,k) = readpvpfile([dirname 'lcalif_G_IB.pvp']){1}.values;
-    Y.lcalif.G_Gap(:,:,:,k) = readpvpfile([dirname 'lcalif_G_Gap.pvp']){1}.values;
-    Y.lcalif.integratedSpikeCount(:,:,:,k) = readpvpfile([dirname 'lcalif_integratedspikecount.pvp']){1}.values;
-    Y.ojakernelon.weights(:,:,:,k) = readpvpfile([dirname 'RetinaONtoS1_W.pvp']){1}.values{1};
-    Y.ojakernelon.inputFiringRate(:,:,k) = readpvpfile([dirname 'RetinaONtoS1_inputFiringRate.pvp']){1}.values;
-    Y.ojakernelon.outputFiringRate(:,:,:,k) = readpvpfile([dirname 'RetinaONtoS1_outputFiringRate.pvp']){1}.values;
-    Y.ojakerneloff.weights(:,:,:,k) = readpvpfile([dirname 'RetinaOFFtoS1_W.pvp']){1}.values{1};
-    Y.ojakerneloff.inputFiringRate(:,:,k) = readpvpfile([dirname 'RetinaOFFtoS1_inputFiringRate.pvp']){1}.values;
-    Y.ojakerneloff.outputFiringRate(:,:,:,k) = readpvpfile([dirname 'RetinaOFFtoS1_outputFiringRate.pvp']){1}.values;
-    Y.lateralinhibition.weights(:,:,:,:,k) = readpvpfile([dirname 'Lateral Inhibition_W.pvp']){1}.values{1};
-    Y.lateralinhibition.integratedSpikeCount(:,:,:,k) = readpvpfile([dirname 'Lateral Inhibition_integratedSpikeCount.pvp']){1}.values;
+    Y.scaledinput(:,:,k) = readpvpfile1values([dirname 'scaled input_A.pvp']);
+    Y.retinaon(:,:,k) = readpvpfile1values([dirname 'RetinaON_A.pvp']);
+    Y.retinaoff(:,:,k) = readpvpfile1values([dirname 'RetinaOFF_A.pvp']);
+    Y.lcalif.activity(:,:,:,k) = readpvpfile1values([dirname 'lcalif_A.pvp']);
+    Y.lcalif.V(:,:,:,k) = readpvpfile1values([dirname 'lcalif_V.pvp']);
+    Y.lcalif.Vth(:,:,:,k) = readpvpfile1values([dirname 'lcalif_Vth.pvp']);
+    Y.lcalif.Vadpt(:,:,:,k) = readpvpfile1values([dirname 'lcalif_Vadpt.pvp']);
+    Y.lcalif.G_E(:,:,:,k) = readpvpfile1values([dirname 'lcalif_G_E.pvp']);
+    Y.lcalif.G_I(:,:,:,k) = readpvpfile1values([dirname 'lcalif_G_I.pvp']);
+    Y.lcalif.G_IB(:,:,:,k) = readpvpfile1values([dirname 'lcalif_G_IB.pvp']);
+    Y.lcalif.G_Gap(:,:,:,k) = readpvpfile1values([dirname 'lcalif_G_Gap.pvp']);
+    Y.lcalif.integratedSpikeCount(:,:,:,k) = readpvpfile1values([dirname 'lcalif_integratedspikecount.pvp']);
+    wtmp = readpvpfile1values([dirname 'RetinaONtoS1_W.pvp']);
+    Y.ojakernelon.weights(:,:,:,k) = wtmp{1};
+    Y.ojakernelon.inputFiringRate(:,:,k) = readpvpfile1values([dirname 'RetinaONtoS1_inputFiringRate.pvp']);
+    Y.ojakernelon.outputFiringRate(:,:,:,k) = readpvpfile1values([dirname 'RetinaONtoS1_outputFiringRate.pvp']);
+    wtmp = readpvpfile1values([dirname 'RetinaOFFtoS1_W.pvp']);
+    Y.ojakerneloff.weights(:,:,:,k) = wtmp{1};
+    Y.ojakerneloff.inputFiringRate(:,:,k) = readpvpfile1values([dirname 'RetinaOFFtoS1_inputFiringRate.pvp']);
+    Y.ojakerneloff.outputFiringRate(:,:,:,k) = readpvpfile1values([dirname 'RetinaOFFtoS1_outputFiringRate.pvp']);
+    wtmp = readpvpfile1values([dirname 'Lateral Inhibition_W.pvp']);
+    Y.lateralinhibition.weights(:,:,:,:,k) = wtmp{1};
+    Y.lateralinhibition.integratedSpikeCount(:,:,:,k) = readpvpfile1values([dirname 'Lateral Inhibition_integratedSpikeCount.pvp']);
     
     fprintf(1,'t=%d, index %d of %d\n', t, k, nt);
-    fflush(1);
 end
 
 cd(curpwd);
+
+function V = readpvpfile1values(dirname)
+raw = readpvpfile(dirname);
+V = raw{1}.values;
