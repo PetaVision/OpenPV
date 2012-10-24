@@ -1492,6 +1492,13 @@ int PVParams::checkDuplicates(const char * paramName) {
          break;
       }
    }
+   for( int k=0; k<arrayStack->size(); k++ ) {
+      if( !strcmp(paramName, arrayStack->peek(k)->name() ) ) {
+         fprintf(stderr, "Rank %d process: parameter name \"%s\" duplicates a previous array parameter name\n", getRank(), paramName);
+         status = PV_FAILURE;
+         break;
+      }
+   }
    for( int k=0; k<stringStack->size(); k++ ) {
       if( !strcmp(paramName, stringStack->peek(k)->getName() ) ) {
          fprintf(stderr, "Rank %d process: parameter name \"%s\" duplicates a previous string parameter name\n", getRank(), paramName);
