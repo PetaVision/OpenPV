@@ -52,6 +52,9 @@ int GapConn::initNormalize(){
    if (this->initNormalizeFlag == false){
       initNormalizeFlag = true;
       pvdata_t gap_strength;
+      //TODO!!! terrible hack here: should compute sum of gap junctions connection strengths into each post synaptic cell
+      // instead, we check that normalize is true as a stop gap
+      assert(this->normalize_flag);
       gap_strength = this->normalize_strength / this->postSynapticLayer()->getNumNeurons() * this->preSynapticLayer()->getNumNeurons();
       //      fprintf(stdout,"This is connection %i, setting initNormalizeFlag to true and adding gap_strength %f \n",this->getConnectionId(),gap_strength);
       postLIFGap->addGapStrength(gap_strength);
