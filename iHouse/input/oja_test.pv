@@ -31,7 +31,7 @@ HyPerCol "column" = {
    //checkpointWriteDir           = "~/Documents/workspace/iHouse/output/checkpoints";
    //checkpointWriteDir           = "~/Documents/Work/LANL/workspace/iHouse/checkpoints"; //Dylan's Mac
    checkpointWriteDir           = "~/workspace/iHouse/checkpoints"; //Dylan's Neuro
-   checkpointWriteStepInterval  = 3000000;
+   checkpointWriteStepInterval  = 1000000;
    suppressLastOutput           = 0;
                                            //
    //printParamsFilename          = "~/Documents/workspace/iHouse/output/params_run.pv";
