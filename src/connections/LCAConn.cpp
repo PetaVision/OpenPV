@@ -75,7 +75,7 @@ namespace PV {
   pvdata_t LCAConn::updateRule_dW(pvdata_t preact, pvdata_t postact, int offset)
   {
     pvdata_t * image = layerOfInterest->getImageBuffer();
-    pvdata_t * recon = postSynapticLayer()->getActivity();
+    const pvdata_t * recon = postSynapticLayer()->getLayerData();
     float beta = 0.001;    
     return beta*(image[offset] - recon[offset])*preact;
   }

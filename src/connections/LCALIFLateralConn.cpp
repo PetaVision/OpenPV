@@ -126,7 +126,7 @@ int LCALIFLateralConn::updateWeights(int axonId) {
 
 int LCALIFLateralConn::updateIntegratedSpikeCount() {
    float exp_dt_tau = exp(-parent->getDeltaTime()/integrationTimeConstant);
-   pvdata_t * activity = pre->getActivity();
+   const pvdata_t * activity = pre->getLayerData();// pre->getActivity(); // Gar owes Sheng another beer because of this bug. --Pete
    for (int kext=0; kext<getNumWeightPatches(); kext++) {
       integratedSpikeCount[kext] = exp_dt_tau * (integratedSpikeCount[kext]+activity[kext]);
    }

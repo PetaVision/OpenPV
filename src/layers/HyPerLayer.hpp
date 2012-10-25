@@ -106,6 +106,8 @@ protected:
    int readScalarFloat(const char * cp_dir, const char * val_name, double * val_ptr, double default_value=0.0f);
    int writeScalarFloat(const char * cp_dir, const char * val_name, double value);
 
+   pvdata_t * getActivity()          {return clayer->activity->data;}
+
 #ifdef PV_USE_OPENCL
    virtual int initializeThreadBuffers(const char * kernelName);
    virtual int initializeThreadKernels(const char * kernelName);
@@ -197,7 +199,6 @@ public:
 
    PVLayer*  getCLayer()             {return clayer;}
    pvdata_t * getV()                 {return clayer->V;}           // name query
-   pvdata_t * getActivity()          {return clayer->activity->data;}
    int getNumChannels()              {return numChannels;}
    pvdata_t * getChannel(ChannelType ch) {                         // name query
       return ch < this->numChannels ? GSyn[ch] : NULL;
