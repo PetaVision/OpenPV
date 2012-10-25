@@ -187,7 +187,7 @@ function coorFunc(activityData)
          for d = 1:maxDist
             blueColorVal = colorStep * d;
             redColorVal = 1 - blueColorVal;
-            plot(FNUM_SPEC{c}, outMat(d, :), 'Color', [redColorVal, 128, blueColorVal]);
+            plot(FNUM_SPEC{c}, outMat(d, :), 'Color', [redColorVal, .5, blueColorVal]);
             legName{d} = ['Dist: ', num2str(d)];
             %plot(mean(intSpike));
          end

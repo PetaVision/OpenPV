@@ -9,9 +9,9 @@ HyPerCol "column" = {
 
 //   randomSeed                  = 1020304050.0; // remove when running for real
 
-   numSteps                    = 100000;			// amount of time steps performed during run-time
-   progressStep                = 1000;
-   writeProgressToErr           = 0;        // write progress steps to std err
+   numSteps                    = 1500000;			// amount of time steps performed during run-time
+   progressStep                = 5000;
+   writeProgressToErr          = 0;        // write progress steps to std err
 
    outputPath                  = "/home/slundquist/workspace/iHouse/denseOutput";
 
@@ -20,9 +20,10 @@ HyPerCol "column" = {
    checkpointRead               = false;
    //checkpointReadDir          = "~/workspace/iHouse/denseOutput/checkpoints";
    //checkpointReadDirIndex     = 300000;
-   checkpointWrite              = false;
-   //checkpointWriteDir           = "~/workspace/iHouse/denseOutput/checkpoints";
-   //checkpointWriteStepInterval  = 50000;
+   checkpointWrite              = true;
+   deleteOlderCheckpoints       = false;
+   checkpointWriteDir           = "~/workspace/iHouse/denseOutput/checkpoints";
+   checkpointWriteStepInterval  = 100000;
    suppressLastOutput           = 0;
    
    //printParamsFilename          = "~/Documents/Work/LANL/workspace/iHouse/output/params_run.pv";
@@ -47,8 +48,8 @@ Patterns "input" = {
    minValue = .25;
    
    dropSpeed = -1;       //Radius expands dropSpeed pixles per timestep, -1 for random speed
-   dropSpeedRandomMax = 3;
-   dropSpeedRandomMin = 1;
+   dropSpeedRandomMax = 1.5;
+   dropSpeedRandomMin = .5;
    
    dropPeriod  = -1;    //-1 for random period, otherwise, number of frames inbetween drops
    dropPeriodRandomMax = 60;  //Max random periods for each drop, 20 default
@@ -64,7 +65,7 @@ Patterns "input" = {
    endFrame = -1;
    
    writeImages = false;
-   patternsOutputPath = "/Users/slundquist/Documents/workspace/iHouse/output/sourcefiles";
+   patternsOutputPath = "~/workspace/iHouse/sourcefiles";
 
    displayPeriod = 1;
    writeStep = -1;
@@ -116,8 +117,6 @@ Retina "RetinaON" = {
     beginStim           = 0;       // Restrict stimulus to a window of time
     endStim             = -1;
 
-    Vrest               = 0.0;
-    
     refractoryPeriod    = 5;
     absRefractoryPeriod = 2;
     restart             = 0;
@@ -143,27 +142,20 @@ Retina "RetinaOFF" = {
     beginStim           = 0;       // Restrict stimulus to a window of time
     endStim             = -1;
     
-    Vrest               = 0.0;
-    
     refractoryPeriod    = 5;
     absRefractoryPeriod = 2;
     restart             = 0;
 };
 
 LIF "lif" = {
-//   tauLCA           = 200;
-//   tauTHR           = 2000;
-//   targetRate       = 5;
-//   Vscale           = 15; // Scale for the change of dynVthRest. Must be positive; defaults to VthRest - Vrest
-   
    nxScale          = 4;		
    nyScale          = 4;		
    nf               = 1;       	// one feature for now
    
-   writeStep        = 1.0;
+   writeStep        = -1.0;
    
    spikingFlag      = 1;       	// the whole idea 
-   marginWidth      = 10;     	// for MPI running - based on lateral radius and jitter
+   marginWidth      = 10;	
    mirrorBCflag     = 0;     	// mirroring boundary conditions
    InitVType        = "ConstantV";
    method           = "beginning";
@@ -222,7 +214,7 @@ KernelConn "InputtoScaledInput" = {
     selfFlag               = false;
     shrinkPatches          = false;
     preActivityIsNotRate   = false;
-    combineWeightFiles     = false;
+    //combineWeightFiles     = false;
 };
 
 KernelConn "ImagetoRetinaONCenter" = {
@@ -234,7 +226,6 @@ KernelConn "ImagetoRetinaONCenter" = {
    nfp                    = 1;
    delay                  = 0;
  
-   stdpFlag               = 0;
    initFromLastFlag       = 0;  
    writeStep              = -1;
 
@@ -244,7 +235,7 @@ KernelConn "ImagetoRetinaONCenter" = {
    rMax                   = 1;   
    rMin                   = 0;
    strength               = 50;
-   combineWeightFiles     = false;
+   //combineWeightFiles     = false;
    
    numAxonalArbors        = 1;
    plasticityFlag         = false;
@@ -271,7 +262,6 @@ KernelConn "ImagetoRetinaONSurround" = {
    nfp                    = 1;
    delay                  = 0;
 
-   stdpFlag               = 0;
    initFromLastFlag       = 0;
    writeStep              = -1;
 
@@ -309,7 +299,6 @@ KernelConn "ImagetoRetinaOFFCenter" = {
    nfp                    = 1;
    delay                  = 0;
    
-   stdpFlag               = 0;
    initFromLastFlag       = 0;  
    writeStep              = -1;
 
@@ -319,7 +308,7 @@ KernelConn "ImagetoRetinaOFFCenter" = {
    rMax                   = 1;   
    rMin                   = 0;
    strength               = 50;
-   combineWeightFiles     = false;
+   //combineWeightFiles     = false;
 
    numAxonalArbors        = 1;
    plasticityFlag         = false;
@@ -347,7 +336,6 @@ KernelConn "ImagetoRetinaOFFSurround" = {
    nfp                    = 1;
    delay                  = 0;
 
-   stdpFlag               = 0;
    initFromLastFlag       = 0;
    writeStep              = -1;
 
@@ -395,14 +383,8 @@ OjaSTDPConn "RetinaONtoLif" = {
    
    initFromLastFlag       = 0; 
    
-   writeStep              = 10000;
+   writeStep              = -1;
    
-   normalize              = false;
-   normalize_max          = false;
-   normalize_zero_offset  = 0.0;
-   strength               = 0;
-   combineWeightFiles     = false;
-
    ampLTP                 = 1; 
    initAmpLTD             = 1;    // (ms)
    tauLTP                 = 8;
@@ -410,30 +392,33 @@ OjaSTDPConn "RetinaONtoLif" = {
    tauOja                 = 150;    //Oja tau LTP
    tauTHR                 = 5000; // (ms) thresholdAdaptationTime
    tauO                   = 300;  // (ms)
-   targetRate             = 20;   // (Hz)
+   targetRate             = 2;   // (Hz)
    weightDecay            = 0;
    dWMax                  = 2;
    wMin                   = 0.001;
    wMax   	              = 1;
-   numAxonalArbors        = 1;
    ojaFlag                = 1;      //Turns oja rule on or off.
    LTDscale               = 1;   // Scale for the change of ampLTD. Must be positive; defaults to postVthRest - posVrest. If 0, adaptive LTD is fixed to initAmpLTD
    
-   combine_dW_with_W_flag = false;
-   selfFlag               = false;
-
+   numAxonalArbors        = 1;
    weightInitType         = "UniformRandomWeight";
-   weightInit             = 0.001;
+   //weightInit             = 0.001;
    wMaxInit               = 0.0011;
    wMinInit               = 0.0011;
+   normalize              = false;
+   //normalize_max          = false;
+   //normalize_zero_offset  = 0.0;
+   //strength               = 0;
+   //combineWeightFiles     = false;
+   //symmetrizeWeights      = 0;
    
-   symmetrizeWeights      = 0;
-   
+   combine_dW_with_W_flag = false;
+   selfFlag               = false;
    plasticityFlag         = true;
    shrinkPatches          = false;
    writeCompressedWeights = 0.0;
    stochasticReleaseFlag  = false;
-   weightUpdatePeriod     = 1.0;
+   //weightUpdatePeriod     = 1.0;
    
    synscalingFlag         = 0;
    synscaling_v           = 1;
@@ -453,13 +438,7 @@ OjaSTDPConn "RetinaOFFtoLif" = {
    
    initFromLastFlag       = 0;  // 1;  /dr/ restart
    
-   writeStep              = 10000;
-   
-   normalize              = false;
-   normalize_max          = false;
-   normalize_zero_offset  = 0.0;
-   strength               = 0;
-   combineWeightFiles     = false;
+   writeStep              = -1;
    
    ampLTP                 = 1;    // (ms)
    initAmpLTD             = 1;    // (ms)
@@ -468,25 +447,28 @@ OjaSTDPConn "RetinaOFFtoLif" = {
    tauOja                 = 150;  // (ms)
    tauTHR                 = 5000; // (ms) thresholdAdaptationTime
    tauO                   = 300;  // (ms)
-   targetRate             = 20;   // (Hz)
+   targetRate             = 2;   // (Hz)
    weightDecay            = 0;
    dWMax                  = 2;
    wMin                   = 0.001;
    wMax  	              = 1;
-   numAxonalArbors        = 1;
    ojaFlag                = 1;      //Turns oja rule on or off.
    LTDscale               = 1;    // Scale for the change of ampLTD. Must be positive; defaults to postVthRest - posVrest
    
-   combine_dW_with_W_flag = false;
-   selfFlag               = false;
-
+   numAxonalArbors        = 1;
    weightInitType         = "UniformRandomWeight";
-   weightInit             = 0.001;
+   //weightInit             = 0.001;
    wMaxInit               = 0.0011;
    wMinInit               = 0.0011;
+   normalize              = false;
+   //normalize_max          = false;
+   //normalize_zero_offset  = 0.0;
+   //strength               = 0;
+   //combineWeightFiles     = false;
+   //symmetrizeWeights      = 0;
    
-   symmetrizeWeights      = 0;
-   
+   combine_dW_with_W_flag = false;
+   selfFlag               = false;
    plasticityFlag         = true;
    shrinkPatches          = false;
    writeCompressedWeights = 0.0;
@@ -509,8 +491,9 @@ LCALIFLateralConn "lcalif lateral inhibition" = {
     nyp = 21;
     nfp = 1;
     
-    integrationTimeConstant = 200;
-    adaptationTimeConstant = 2000;
+    integrationTimeConstant = 300;
+    inhibitionTimeConstant  = 1000;
+    targetRate              = 2;
 
     numAxonalArbors = 1;
     writeStep = -1;
@@ -541,50 +524,58 @@ LCALIFLateralConn "lcalif lateral inhibition" = {
 // Probes Probes Probes Probes Probes Probes Probes Probes Probes Probes Probes
 ////////////////////////////////////////////////////////////////////////////////
 
-PointLIFProbe "LIF_Probe" = {
-   targetLayer     = "lif";
-   probeOutputFile = "ptLIF.txt";
-   xLoc            = 48;
-   yLoc            = 48;
-   fLoc            = 0;
-};
-
-OjaConnProbe "Oja_ON_Probe_Hor" = {
-    targetConnection = "RetinaONtoLif";
-    probeOutputFile  = "retONtoLif.txt";
-    msg              = "OjaON";
-    isPostProbe      = true;
-    kxPost           = 47; //About half way in
-    kyPost           = 31; //About half way in
-    kfPost           = 1;  //About half way in (1 feature)
-};
-
-OjaConnProbe "Oja_ON_Probe_Ver" = {
-    targetConnection = "RetinaONtoLif";
-    probeOutputFile  = "retONtoLif.txt";
-    msg              = "OjaON";
-    isPostProbe      = true;
-    kxPost           = 31; //About half way in
-    kyPost           = 47; //About half way in
-    kfPost           = 1;  //About half way in (1 feature)
-};
-
-OjaConnProbe "Oja_OFF_Probe_Hor" = {
-    targetConnection = "RetinaOFFtoLif";
-    probeOutputFile  = "retOFFtoLif.txt";
-    msg              = "OjaOFF";
-    isPostProbe      = true;
-    kxPost           = 47; //About half way in
-    kyPost           = 31; //About half way in
-    kfPost           = 1;  //About half way in (1 feature)
-};
-
-OjaConnProbe "Oja_OFF_Probe_Ver" = {
-    targetConnection = "RetinaOFFtoLif";
-    probeOutputFile  = "retOFFtoLif.txt";
-    msg              = "OjaOFF";
-    isPostProbe      = true;
-    kxPost           = 31; //About half way in
-    kyPost           = 47; //About half way in
-    kfPost           = 1;  //About half way in (1 feature)
-};
+//PointLIFProbe "LIF_Probe_Edge" = {
+//   targetLayer     = "lif";
+//   probeOutputFile = "ptLIF_Edge.txt";
+//   xLoc            = 35;
+//   yLoc            = 35;
+//   fLoc            = 0;
+//};
+//
+//PointLIFProbe "LIF_Probe_Center" = {
+//   targetLayer     = "lif";
+//   probeOutputFile = "ptLIF_Center.txt";
+//   xLoc            = 42;
+//   yLoc            = 42;
+//   fLoc            = 0;
+//};
+//
+//OjaConnProbe "Oja_ON_Probe_Edge" = {
+//    targetConnection = "RetinaONtoLif";
+//    probeOutputFile  = "retONtoLif_Edge.txt";
+//    msg              = "OjaON_Edge";
+//    isPostProbe      = true;
+//    kxPost           = 35; //About half way in
+//    kyPost           = 35; //About half way in
+//    kfPost           = 1;  //About half way in (1 feature)
+//};
+//
+//OjaConnProbe "Oja_ON_Probe_Center" = {
+//    targetConnection = "RetinaONtoLif";
+//    probeOutputFile  = "retONtoLif_Center.txt";
+//    msg              = "OjaON_Center";
+//    isPostProbe      = true;
+//    kxPost           = 42; //About half way in
+//    kyPost           = 42; //About half way in
+//    kfPost           = 1;  //About half way in (1 feature)
+//};
+//
+//OjaConnProbe "Oja_OFF_Probe_Edge" = {
+//    targetConnection = "RetinaOFFtoLif";
+//    probeOutputFile  = "retOFFtoLif_Edge.txt";
+//    msg              = "OjaOFF_Edge";
+//    isPostProbe      = true;
+//    kxPost           = 35; //About half way in
+//    kyPost           = 35; //About half way in
+//    kfPost           = 1;  //About half way in (1 feature)
+//};
+//
+//OjaConnProbe "Oja_OFF_Probe_Center" = {
+//    targetConnection = "RetinaOFFtoLif";
+//    probeOutputFile  = "retOFFtoLif_Center.txt";
+//    msg              = "OjaOFF";
+//    isPostProbe      = true;
+//    kxPost           = 42; //About half way in
+//    kyPost           = 42; //About half way in
+//    kfPost           = 1;  //About half way in (1 feature)
+//};
