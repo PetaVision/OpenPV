@@ -103,19 +103,19 @@ int LCALIFLateralConn::calc_dW(int axonId) {
 
 int LCALIFLateralConn::updateWeights(int axonId) {
    if (plasticityFlag) {
-      for (int kPre=0; kPre<getNumWeightPatches(); kPre++) {
-         const PVPatch * p = getWeights(kPre, axonId);
-         pvdata_t * dw_data = get_dwData(axonId,kPre);
-         pvdata_t * w_data = get_wData(axonId,kPre);
-         int nx = p->nx;
-         int ny = p->ny;
-         for (int y=0; y<ny; y++) {
-            for (int x=0; x<nx; x++) {
-               for (int f=0; f<nfp; f++) {
-                  int idx = sxp*x + syp*y + sfp*f;
-                  pvdata_t w = w_data[idx] + dw_data[idx];
+      for (int kPre_extended=0; kPre_extended<getNumWeightPatches(); kPre_extended++) {
+         const PVPatch * p = getWeights(kPre_extended, axonId);
+         pvdata_t * dw_data = get_dwData(axonId,kPre_extended);
+         pvdata_t * w_data = get_wData(axonId,kPre_extended);
+         int nx_patch = p->nx;
+         int ny_patch = p->ny;
+         for (int ky_patch=0; ky_patch<ny_patch; ky_patch++) {
+            for (int kx_patch=0; kx_patch<nx_patch; kx_patch++) {
+               for (int kf_patch=0; kf_patch<nfp; kf_patch++) {
+                  int k_patch = sxp*kx_patch + syp*ky_patch + sfp*kf_patch;
+                  pvdata_t w = w_data[k_patch] + dw_data[k_patch];
                   if (w<0) w=0;
-                  w_data[idx] = w;
+                  w_data[k_patch] = w;
                }
             }
          }
