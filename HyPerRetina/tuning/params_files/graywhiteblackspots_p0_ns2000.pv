@@ -39,7 +39,7 @@ Movie "Movie" = {
     marginWidth             = 0;
     mirrorBCflag            = 1;
     writeImages             = 0;
-    displayPeriod           = 100; //33;
+    displayPeriod           = 100; //33;//
     jitterFlag              = 0;
 //    biasChangeTime          = 20;
     randomMovie             = 0;
@@ -1384,21 +1384,21 @@ KernelConn "BipolarSigmoidONToSFAmacrine" = {        // 2
     normalizeTotalToPost   = 1;
 };
 
-disable = true;
+disable = false;
 
-KernelConn "SFAmacrineSigmoidToGanglionON" = {  // 4
-    preLayerName           = "SFAmacrineSigmoid";
+KernelConn "WFAmacrineSigmoidONToGanglionON" = { // 4
+    preLayerName           = "WFAmacrineSigmoidON";
     postLayerName          = "GanglionON";
     weightInitType         = "Gauss2DWeight";
-    channelCode            = 1;                   // inhibitory   feedback
-    nxp                    = 3;                   // odd times 2 because of scale factor
+    channelCode            = 1;                   // inhibitory
+    nxp                    = 3;                   // odd times 
     nyp                    = 3;                   // 
-    normalize              = 1;                   // 
-    strength               = 0; // today gjk 0.25 SFAmacrineSigmoidGanglion staerke
-    
-    stochasticReleaseFlag  = 1;
+    normalize              = 1;                 //  
+    strength               = 1; // 
 
-    aspect                 = 1.0;
+    stochasticReleaseFlag  = 1;
+    
+    aspect                 = 1.0;                 //
     delay                  = 0.0;                 // in time steps, additional to the one you always get
     sigma                  = 3.0;                 // 
     rMax                   = 256.;                // maximum distance of connection
@@ -1420,6 +1420,7 @@ KernelConn "SFAmacrineSigmoidToGanglionON" = {  // 4
     preActivityIsNotRate   = 0;
     normalizeTotalToPost   = 1;
 };
+
 
 disable = false;
 
@@ -1461,13 +1462,6 @@ KernelConn "SFAmacrineSigmoidToPAAmacrineON" = {        // 4
 disable = false;
 
 KernelConn "PAAmacrineONToWFAmacrineON" = {     // 4
-    // Case 2: nxScalePost > nxScalePre.
-    // (the post-synaptic layer has more neurons than the pre-synaptic layer)
-    //
-    // nxp must be an odd multiple of the nxScaleRatio
-    //
-    // marginWidthPre must be at least ( (nxp/nxScaleRatio) - 1 )/2
-
     preLayerName           = "PAAmacrineON";
     postLayerName          = "WFAmacrineON";
     weightInitType         = "Gauss2DWeight";
@@ -1944,24 +1938,17 @@ KernelConn "PAAmacrineOFFToPAAmacrineOFF" = {   // 10 self shut down
     normalizeTotalToPost   = 1;
 };
 
-disable = true;
+disable = false;
 
-KernelConn "SFAmacrineSigmoidToGanglionOFF" = { // 4
-    // Case 2: nxScalePost > nxScalePre.
-    // (the post-synaptic layer has more neurons than the pre-synaptic layer)
-    //
-    // nxp must be an odd multiple of the nxScaleRatio
-    //
-    // marginWidthPre must be at least ( (nxp/nxScaleRatio) - 1 )/2
-
-    preLayerName           = "SFAmacrineSigmoid";
+KernelConn "WFAmacrineSigmoidOFFToGanglionOFF" = { // 4
+    preLayerName           = "WFAmacrineSigmoidOFF";
     postLayerName          = "GanglionOFF";
     weightInitType         = "Gauss2DWeight";
-    channelCode            = 1;                   // inhibitory   feedback
+    channelCode            = 1;                   // inhibitory
     nxp                    = 3;                   // odd times 
     nyp                    = 3;                   // 
     normalize              = 1;                 //  
-    strength               = 0; // today 0.25 SFAmacrineSigmoidGanglion staerke
+    strength               = 1; // 
 
     stochasticReleaseFlag  = 1;
     
@@ -1991,13 +1978,6 @@ KernelConn "SFAmacrineSigmoidToGanglionOFF" = { // 4
 disable = false;
 
 KernelConn "SFAmacrineSigmoidToPAAmacrineOFF" = {   // 4
-    // Case 2: nxScalePost > nxScalePre.
-    // (the post-synaptic layer has more neurons than the pre-synaptic layer)
-    //
-    // nxp must be an odd multiple of the nxScaleRatio
-    //
-    // marginWidthPre must be at least ( (nxp/nxScaleRatio) - 1 )/2
-
     preLayerName           = "SFAmacrineSigmoid";
     postLayerName          = "PAAmacrineOFF";
     weightInitType         = "Gauss2DWeight";
@@ -2035,13 +2015,6 @@ KernelConn "SFAmacrineSigmoidToPAAmacrineOFF" = {   // 4
 disable = false;
 
 KernelConn "PAAmacrineOFFToWFAmacrineOFF" = {   // 4
-    // Case 2: nxScalePost > nxScalePre.
-    // (the post-synaptic layer has more neurons than the pre-synaptic layer)
-    //
-    // nxp must be an odd multiple of the nxScaleRatio
-    //
-    // marginWidthPre must be at least ( (nxp/nxScaleRatio) - 1 )/2
-
     preLayerName           = "PAAmacrineOFF";
     postLayerName          = "WFAmacrineOFF";
     weightInitType         = "Gauss2DWeight";
@@ -2079,13 +2052,6 @@ KernelConn "PAAmacrineOFFToWFAmacrineOFF" = {   // 4
 disable = false;
 
 KernelConn "WFAmacrineSigmoidOFFToSFAmacrine" = {        // 4
-    // Case 2: nxScalePost > nxScalePre.
-    // (the post-synaptic layer has more neurons than the pre-synaptic layer)
-    //
-    // nxp must be an odd multiple of the nxScaleRatio
-    //
-    // marginWidthPre must be at least ( (nxp/nxScaleRatio) - 1 )/2
-
     preLayerName           = "WFAmacrineSigmoidOFF";
     postLayerName          = "SFAmacrine";
     weightInitType         = "Gauss2DWeight";

@@ -28,11 +28,10 @@ HyPerCol "column" = {
    suppressLastOutput           = true;
 };
 
+disable = false;
 
-
-Movie "Image" = {
+Movie "Movie" = {
     imageListPath           = "/home/gkenyon/workspace-sync-anterior/HyPerRetina/input/heli_challenge_026_framenames.txt";
-
     restart                 = 0;
     nxScale                 = 1;
     nyScale                 = 1;
@@ -57,8 +56,7 @@ Movie "Image" = {
     writeNonspikingActivity = false;
 };
      
-
-
+disable = false;
 
 ANNLayer "ImageBuffer" = {
     restart = 0;
@@ -77,6 +75,7 @@ ANNLayer "ImageBuffer" = {
     writeNonspikingActivity = false;
 };
 
+disable = false;
 
 ANNLayer "ConstantVrest" = {          //Offset cone input to -55mV for black spot (no input)
     restart                 = 0;
@@ -95,6 +94,7 @@ ANNLayer "ConstantVrest" = {          //Offset cone input to -55mV for black spo
     writeNonspikingActivity = false;
 };
 
+disable = false;
 
 LIFGap "Cone" = {       // 1 //
     nxScale          = 1.;
@@ -128,6 +128,7 @@ LIFGap "Cone" = {       // 1 //
     writeNonspikingActivity = true;
 };
 
+disable = false;
 
 // ---------------------------------------------------------------- ON LAYER
 SigmoidLayer "ConeSigmoidON" = {  // 2
@@ -150,6 +151,7 @@ SigmoidLayer "ConeSigmoidON" = {  // 2
     writeNonspikingActivity = true;
 };
 
+disable = false;
 
 LIF "BipolarON" = {	            // 4
     nxScale          = 1.;
@@ -183,6 +185,7 @@ LIF "BipolarON" = {	            // 4
     writeNonspikingActivity = true;
 };
 
+disable = false;
 
 SigmoidLayer "BipolarSigmoidON" = {     //5
     originalLayerName = "BipolarON";
@@ -204,6 +207,7 @@ SigmoidLayer "BipolarSigmoidON" = {     //5
     writeNonspikingActivity = true;
 };
 
+disable = false;
 
 LIFGap "Horizontal" = {             //6
     nxScale          = 0.5;     // 5/18 discussion with Garrett
@@ -237,6 +241,7 @@ LIFGap "Horizontal" = {             //6
     writeNonspikingActivity = true;
 };
 
+disable = false;
 
 GapLayer "HoriGap" = {                // 7
     originalLayerName ="Horizontal";
@@ -254,6 +259,7 @@ GapLayer "HoriGap" = {                // 7
     writeNonspikingActivity = true;
 };
 
+disable = false;
 
 SigmoidLayer "HoriSigmoid" = {        // 8
     originalLayerName ="Horizontal";
@@ -275,6 +281,7 @@ SigmoidLayer "HoriSigmoid" = {        // 8
     writeNonspikingActivity = true;
 };
 
+disable = false;
 
 LIF "WFAmacrineON" = {            //9
     nxScale          = 0.5;        // 5/18 discussion with Garrett
@@ -308,6 +315,7 @@ LIF "WFAmacrineON" = {            //9
     writeNonspikingActivity = true;
 };
 
+disable = false;
 
 SigmoidLayer "WFAmacrineSigmoidON" = {  // 11
     originalLayerName = "WFAmacrineON";
@@ -329,6 +337,7 @@ SigmoidLayer "WFAmacrineSigmoidON" = {  // 11
     writeNonspikingActivity = true;
 };
 
+disable = false;
 
 LIFGap "GanglionON" = {         // 12
     nxScale          = 0.5;
@@ -362,6 +371,7 @@ LIFGap "GanglionON" = {         // 12
     writeStep        = 1.0;
 };
 
+disable = false;
 
 GapLayer "GangliGapON" = {          // 13
     originalLayerName = "GanglionON";
@@ -379,6 +389,7 @@ GapLayer "GangliGapON" = {          // 13
     writeNonspikingActivity = true;
 };
 
+disable = false;
 
 LIFGap "PAAmacrineON" = {        // 14
     nxScale           = 0.25;
@@ -411,6 +422,7 @@ LIFGap "PAAmacrineON" = {        // 14
     writeStep         = 1.0;
 };
 
+disable = false;
 
 GapLayer "PAAmaGapON" = {           // 15
     originalLayerName = "PAAmacrineON";
@@ -430,6 +442,7 @@ GapLayer "PAAmaGapON" = {           // 15
 
 
 // ---------------------------------------------------------------- OFF LAYER
+disable = false;
 SigmoidLayer "ConeSigmoidOFF" = {   // 3
     nxScale           = 1.;
     nyScale           = 1.;
@@ -450,6 +463,7 @@ SigmoidLayer "ConeSigmoidOFF" = {   // 3
     writeNonspikingActivity = true;
 };
 
+disable = false;
 
 LIF "BipolarOFF" = {	           // 18
     nxScale          = 1.;
@@ -483,6 +497,7 @@ LIF "BipolarOFF" = {	           // 18
     writeNonspikingActivity = true;
 };
 
+disable = false;
 
 SigmoidLayer "BipolarSigmoidOFF" = {    //19
     originalLayerName = "BipolarOFF";
@@ -504,6 +519,7 @@ SigmoidLayer "BipolarSigmoidOFF" = {    //19
     writeNonspikingActivity = true;
 };
 
+disable = false;
 
 LIF "WFAmacrineOFF" = {      //20
     nxScale          = 0.5;     // 5/18 discussion with Garrett
@@ -537,6 +553,7 @@ LIF "WFAmacrineOFF" = {      //20
     writeNonspikingActivity = true;
 };
 
+disable = false;
 
 SigmoidLayer "WFAmacrineSigmoidOFF" = {   // 22
     originalLayerName = "WFAmacrineOFF";
@@ -558,6 +575,7 @@ SigmoidLayer "WFAmacrineSigmoidOFF" = {   // 22
     writeNonspikingActivity = true;
 };
 
+disable = false;
 
 LIFGap "GanglionOFF" = {        // 23
     nxScale          = 0.5;
@@ -591,6 +609,7 @@ LIFGap "GanglionOFF" = {        // 23
     writeStep        = 1.0;
 };
 
+disable = false;
 
 GapLayer "GangliGapOFF" = {         // 24
     originalLayerName = "GanglionOFF";
@@ -608,6 +627,7 @@ GapLayer "GangliGapOFF" = {         // 24
     writeNonspikingActivity = true;
 };
 
+disable = false;
 
 LIFGap "PAAmacrineOFF" = {      // 25
     nxScale          = 0.25;
@@ -640,6 +660,7 @@ LIFGap "PAAmacrineOFF" = {      // 25
     writeStep        = 1.0;
 };
 
+disable = false;
 
 GapLayer "PAAmaGapOFF" = {           // 26
     originalLayerName  = "PAAmacrineOFF";
@@ -657,7 +678,7 @@ GapLayer "PAAmaGapOFF" = {           // 26
     writeNonspikingActivity = true;
 };
 
-
+disable = false;
 
 LIFGap "SFAmacrine" = {             //29
     nxScale          = 0.5;    // 5/18 0.25 discussion with Garrett. 10/6 changed back to 0.5 per Garrett, the previous Garrett is an idiot.
@@ -691,6 +712,7 @@ LIFGap "SFAmacrine" = {             //29
     writeNonspikingActivity = true;
 };
 
+disable = false;
 
 GapLayer "SFAmacrineGap" = {          // 10
     originalLayerName = "SFAmacrine";
@@ -708,6 +730,7 @@ GapLayer "SFAmacrineGap" = {          // 10
     writeNonspikingActivity = true;
 };
 
+disable = false;
 
 SigmoidLayer "SFAmacrineSigmoid" = {         // 30
     originalLayerName = "SFAmacrine";
@@ -744,18 +767,19 @@ SigmoidLayer "SFAmacrineSigmoid" = {         // 30
 //   Connections Connections Connections Connections  Connections Connections Connections
 //////////////////////////////////////////////////////////////////////////////////////////
 
+disable = false;
 
 KernelConn "ImageToImageBuffer" = {   
-    preLayerName           = "Image";
+    preLayerName           = "Movie";
     postLayerName          = "ImageBuffer";
     channelCode            = 0;    // forward
     nxp                    = 1;
     nyp                    = 1;
     nfp                    = 1;
+    stochasticReleaseFlag  = 0.0;
     weightInitType         = "UniformWeight";
     weightInit              = 40; //40.0; // This is scaling the image to 0-40
     normalize              = 0;    // 
-    stochasticReleaseFlag  = 0.0;
     writeStep              = -1.0; // do not write these out
     symmetrizeWeights      = 0.0;
     numAxonalArbors        = 1;
@@ -763,10 +787,11 @@ KernelConn "ImageToImageBuffer" = {
     writeCompressedWeights = 1;
     selfFlag               = 0.0;
     shrinkPatches          = 0.0;
-    preActivityIsNotRate   = 0;
     delay                  = 0.0;  // in time steps, additional to the one you always get
+    preActivityIsNotRate   = 0;
 };
 
+disable = false;
 
 KernelConn "ConstantVrestToImageBuffer" = {   
     preLayerName           = "ConstantVrest";
@@ -775,10 +800,11 @@ KernelConn "ConstantVrestToImageBuffer" = {
     nxp                    = 1;
     nyp                    = 1;
     nfp                    = 1;
+    stochasticReleaseFlag  = 0.0;
+    delay                  = 0.0;  // in time steps, additional to the one you always get
     weightInitType         = "UniformWeight";
     weightInit               = 1;      //1.0;//  This will give a G_E of 0.25 to sit
     normalize              = 0;    // 
-    stochasticReleaseFlag  = 0.0;
     writeStep              = -1.0; // do not write these out
     symmetrizeWeights      = 0.0;
     numAxonalArbors        = 1;
@@ -787,21 +813,22 @@ KernelConn "ConstantVrestToImageBuffer" = {
     selfFlag               = 0.0;
     shrinkPatches          = 0.0;
     preActivityIsNotRate   = 0;
-    delay                  = 0.0;  // in time steps, additional to the one you always get
 };
 
+disable = false;
 
 GapConn "ImageBufferToCone" = {          // 0
     preLayerName           = "ImageBuffer";
     postLayerName          = "Cone";
+    weightInitType         = "UniformWeight";
     nxp                    = 1;
     nyp                    = 1;
     nfp                    = 1;
-    weightInitType         = "UniformWeight";
     weightInit             = 1; // ImageCone adjusted to give symmetric ON/OFF response staerke
     stochasticReleaseFlag  = 0.0;
-    strength               = 1;
-    normalize              = 1;         // 
+    delay                  = 0.0;       // in time steps, additional to the one you always get
+    normalize              = 1;    
+    strength               = 1;     // 
     normalize_max          = 0;      // all flags zero means it normalize total integrated output
     normalize_zero_offset  = 0;      //
     normalize_cutoff       = 0;      //
@@ -813,11 +840,12 @@ GapConn "ImageBufferToCone" = {          // 0
     selfFlag               = 0.0;
     shrinkPatches          = 0.0;
     preActivityIsNotRate   = 0;
-    delay                  = 0.0;       // in time steps, additional to the one you always get
+    normalizeTotalToPost   = 1; // not used for UniformWeight init method
 };
 
 
 //---------ON CONN---------------------//
+disable = false;
 KernelConn "ConeSigmoidONToBipolarON" = {        // 1
     preLayerName           = "ConeSigmoidON";
     postLayerName          = "BipolarON";
@@ -854,6 +882,7 @@ KernelConn "ConeSigmoidONToBipolarON" = {        // 1
     normalizeTotalToPost   = 1;
 };
 
+disable = false;
 
 KernelConn "ConeSigmoidONToHorizontal" = {      // 2
     //Case 3: nxScalePost < nxScalePre.
@@ -899,6 +928,7 @@ KernelConn "ConeSigmoidONToHorizontal" = {      // 2
     normalizeTotalToPost   = 1;
 };
 
+disable = false;
 
 GapConn "HoriGapToHorizontal" = {        // 3  gap junction, watch the strength
     preLayerName           = "HoriGap";
@@ -936,15 +966,9 @@ GapConn "HoriGapToHorizontal" = {        // 3  gap junction, watch the strength
     normalizeTotalToPost   = 1;
 };
 
+disable = false;
 
 KernelConn "HoriSigmoidToCone" = {        // 4
-    // Case 2: nxScalePost > nxScalePre.
-    // (the post-synaptic layer has more neurons than the pre-synaptic layer)
-    //
-    // nxp must be an odd multiple of the nxScaleRatio
-    //
-    // marginWidthPre must be at least ( (nxp/nxScaleRatio) - 1 )/2
-
     preLayerName           = "HoriSigmoid";
     postLayerName          = "Cone";
     weightInitType         = "Gauss2DWeight";
@@ -979,6 +1003,7 @@ KernelConn "HoriSigmoidToCone" = {        // 4
     normalizeTotalToPost   = 1;
 };
 
+disable = false;
 
 KernelConn "BipolarSigmoidONToWFAmacrineON" = {  // 2
     //Case 3: nxScalePost < nxScalePre.
@@ -1024,42 +1049,44 @@ KernelConn "BipolarSigmoidONToWFAmacrineON" = {  // 2
     normalizeTotalToPost   = 1;
 };
 
+disable = true;
 
-//GapConn "SFAmacrineGapONToSFAmacrineON" = {     // 3  gap junction, watch the strength
-//    preLayerName            = "SFAmacrineGapON";
-//    postLayerName           = "SFAmacrine";
-//    weightInitType          = "Gauss2DWeight";
-//
-//    nxp                     = 3;                  // not to itself !!
-//    nyp                     = 3;                  //
-//    normalize               = 1;                  // 
-//    strength                = 1; // 0.1; // 2.0 ZERO  for nogap staerke <=================================
-//    
-//    rMin                    = 0.1;                // take out the self connection
-//    
-//    aspect                  = 1.0;
-//    delay                   = 0.0;                // in time steps, additional to the one you always get
-//    sigma                   = 3.0;                // 
-//    rMax                    = 256.;               // maximum distance of connection
-//
-//    normalize_max          = 0.0;                 // all flags zero means it normalize total integrated output
-//    normalize_zero_offset  = 0.0;                 //
-//    normalize_cutoff       = 0.0;                 //
-//    writeStep              = -1.0;                // do not write these out
-//
-//    symmetrizeWeights      = 0.0;
-//    numAxonalArbors        = 1;
-//    plasticityFlag         = 0.0;
-//    stochasticReleaseFlag  = 0.0;
-//    writeCompressedWeights = 1;
-//    selfFlag               = 0.0;
-//    shrinkPatches          = 0.0;
-//    nfp                    = 1;
-//
-//    preActivityIsNotRate   = 0;
-//    normalizeTotalToPost   = 1;
-//};
+GapConn "SFAmacrineGapONToSFAmacrineON" = {     // 3  gap junction, watch the strength
+    preLayerName            = "SFAmacrineGapON";
+    postLayerName           = "SFAmacrine";
+    weightInitType          = "Gauss2DWeight";
 
+    nxp                     = 3;                  // not to itself !!
+    nyp                     = 3;                  //
+    normalize               = 1;                  // 
+    strength                = 1; // 0.1; // 2.0 ZERO  for nogap staerke <=================================
+    
+    rMin                    = 0.1;                // take out the self connection
+    
+    aspect                  = 1.0;
+    delay                   = 0.0;                // in time steps, additional to the one you always get
+    sigma                   = 3.0;                // 
+    rMax                    = 256.;               // maximum distance of connection
+
+    normalize_max          = 0.0;                 // all flags zero means it normalize total integrated output
+    normalize_zero_offset  = 0.0;                 //
+    normalize_cutoff       = 0.0;                 //
+    writeStep              = -1.0;                // do not write these out
+
+    symmetrizeWeights      = 0.0;
+    numAxonalArbors        = 1;
+    plasticityFlag         = 0.0;
+    stochasticReleaseFlag  = 0.0;
+    writeCompressedWeights = 1;
+    selfFlag               = 0.0;
+    shrinkPatches          = 0.0;
+    nfp                    = 1;
+
+    preActivityIsNotRate   = 0;
+    normalizeTotalToPost   = 1;
+};
+
+disable = false;
 
 KernelConn "WFAmacrineSigmoidONToBipolarON" = {        // 4
     // Case 2: nxScalePost > nxScalePre.
@@ -1102,6 +1129,7 @@ KernelConn "WFAmacrineSigmoidONToBipolarON" = {        // 4
     normalizeTotalToPost   = 1;
 };
 
+disable = false;
 
 KernelConn "BipolarSigmoidONToGanglionON" = {        // 5  sigmoid, need linear output ?
     preLayerName           = "BipolarSigmoidON";
@@ -1138,6 +1166,7 @@ KernelConn "BipolarSigmoidONToGanglionON" = {        // 5  sigmoid, need linear 
     normalizeTotalToPost   = 1;
 };
 
+disable = false;
 
 GapConn "GangliGapONToPAAmacrineON" = {        // 7  gap junction
     preLayerName            = "GangliGapON";
@@ -1172,6 +1201,7 @@ GapConn "GangliGapONToPAAmacrineON" = {        // 7  gap junction
     normalizeTotalToPost   = 1;
 };
 
+disable = false;
 
 GapConn "PAAmaGapONToGanglionON" = {        // 8   gap junction
     preLayerName           = "PAAmaGapON";
@@ -1206,6 +1236,7 @@ GapConn "PAAmaGapONToGanglionON" = {        // 8   gap junction
     normalizeTotalToPost   = 1;
 };
 
+disable = false;
 
 GapConn "PAAmaGapONToPAAmacrineON" = {        // 9  gap junction, watch the strength
     preLayerName            = "PAAmaGapON";
@@ -1241,6 +1272,7 @@ GapConn "PAAmaGapONToPAAmacrineON" = {        // 9  gap junction, watch the stre
     normalizeTotalToPost   = 1;
 };
 
+disable = false;
 
 KernelConn "PAAmacrineONToGanglionON" = {        // 10 NOT CONNECTED
     preLayerName           = "PAAmacrineON";
@@ -1277,6 +1309,7 @@ KernelConn "PAAmacrineONToGanglionON" = {        // 10 NOT CONNECTED
     normalizeTotalToPost   = 1;
 };
 
+disable = false;
 
 KernelConn "PAAmacrineONToPAAmacrineON" = {        // 10
     preLayerName           = "PAAmacrineON";
@@ -1313,17 +1346,9 @@ KernelConn "PAAmacrineONToPAAmacrineON" = {        // 10
     normalizeTotalToPost   = 1;
 };
 
+disable = false;
 
 KernelConn "BipolarSigmoidONToSFAmacrine" = {        // 2
-    //Case 3: nxScalePost < nxScalePre.
-    //(the post-synaptic layer has fewer neurons than the pre-synaptic layer)
-    //
-    //nxp must be odd.
-    //
-    //marginWidthPre must be at least (nxp-1)/2 * (1/nxScaleRatio)
-    //(since nxScalePre will be a positive multiple of nxScalePost,
-    //1/nxScaleRatio is a positive integer).
-
     preLayerName           = "BipolarSigmoidON";
     postLayerName          = "SFAmacrine";
     weightInitType         = "Gauss2DWeight";
@@ -1359,49 +1384,44 @@ KernelConn "BipolarSigmoidONToSFAmacrine" = {        // 2
     normalizeTotalToPost   = 1;
 };
 
+disable = true;
 
-//KernelConn "SFAmacrineSigmoidToGanglionON" = {  // 4
-//    // Case 2: nxScalePost > nxScalePre.
-//    // (the post-synaptic layer has more neurons than the pre-synaptic layer)
-//    //
-//    // nxp must be an odd multiple of the nxScaleRatio
-//    //
-//    // marginWidthPre must be at least ( (nxp/nxScaleRatio) - 1 )/2
-//
-//    preLayerName           = "SFAmacrineSigmoid";
-//    postLayerName          = "GanglionON";
-//    weightInitType         = "Gauss2DWeight";
-//    channelCode            = 1;                   // inhibitory   feedback
-//    nxp                    = 3;                   // odd times 2 because of scale factor
-//    nyp                    = 3;                   // 
-//    normalize              = 1;                   // 
-//    strength               = 0; // today gjk 0.25 SFAmacrineSigmoidGanglion staerke
-//    
-//    stochasticReleaseFlag  = 1;
-//
-//    aspect                 = 1.0;
-//    delay                  = 0.0;                 // in time steps, additional to the one you always get
-//    sigma                  = 3.0;                 // 
-//    rMax                   = 256.;                // maximum distance of connection
-//
-//    normalize_max          = 0.0;                 // all flags zero means it normalize total integrated output
-//    normalize_zero_offset  = 0.0;                 //
-//    normalize_cutoff       = 0.0;                 //
-//    writeStep              = -1.0;                // do not write these out
-//
-//    symmetrizeWeights      = 0.0;
-//    numAxonalArbors        = 1;
-//    plasticityFlag         = 0.0;
-//    writeCompressedWeights = 1;
-//    selfFlag               = 0.0;
-//    shrinkPatches          = 0.0;
-//    nfp                    = 1;
-//    rMin                   = 0.0;
-//
-//    preActivityIsNotRate   = 0;
-//    normalizeTotalToPost   = 1;
-//};
+KernelConn "SFAmacrineSigmoidToGanglionON" = {  // 4
+    preLayerName           = "SFAmacrineSigmoid";
+    postLayerName          = "GanglionON";
+    weightInitType         = "Gauss2DWeight";
+    channelCode            = 1;                   // inhibitory   feedback
+    nxp                    = 3;                   // odd times 2 because of scale factor
+    nyp                    = 3;                   // 
+    normalize              = 1;                   // 
+    strength               = 0; // today gjk 0.25 SFAmacrineSigmoidGanglion staerke
+    
+    stochasticReleaseFlag  = 1;
 
+    aspect                 = 1.0;
+    delay                  = 0.0;                 // in time steps, additional to the one you always get
+    sigma                  = 3.0;                 // 
+    rMax                   = 256.;                // maximum distance of connection
+
+    normalize_max          = 0.0;                 // all flags zero means it normalize total integrated output
+    normalize_zero_offset  = 0.0;                 //
+    normalize_cutoff       = 0.0;                 //
+    writeStep              = -1.0;                // do not write these out
+
+    symmetrizeWeights      = 0.0;
+    numAxonalArbors        = 1;
+    plasticityFlag         = 0.0;
+    writeCompressedWeights = 1;
+    selfFlag               = 0.0;
+    shrinkPatches          = 0.0;
+    nfp                    = 1;
+    rMin                   = 0.0;
+
+    preActivityIsNotRate   = 0;
+    normalizeTotalToPost   = 1;
+};
+
+disable = false;
 
 KernelConn "SFAmacrineSigmoidToPAAmacrineON" = {        // 4
     preLayerName           = "SFAmacrineSigmoid";
@@ -1438,6 +1458,7 @@ KernelConn "SFAmacrineSigmoidToPAAmacrineON" = {        // 4
     normalizeTotalToPost   = 1;
 };
 
+disable = false;
 
 KernelConn "PAAmacrineONToWFAmacrineON" = {     // 4
     // Case 2: nxScalePost > nxScalePre.
@@ -1481,15 +1502,9 @@ KernelConn "PAAmacrineONToWFAmacrineON" = {     // 4
     normalizeTotalToPost   = 1;
 };
 
+disable = false;
 
 KernelConn "WFAmacrineSigmoidONToSFAmacrine" = {  // 4
-    // Case 2: nxScalePost > nxScalePre.
-    // (the post-synaptic layer has more neurons than the pre-synaptic layer)
-    //
-    // nxp must be an odd multiple of the nxScaleRatio
-    //
-    // marginWidthPre must be at least ( (nxp/nxScaleRatio) - 1 )/2
-
     preLayerName           = "WFAmacrineSigmoidON";
     postLayerName          = "SFAmacrine";
     weightInitType         = "Gauss2DWeight";
@@ -1524,44 +1539,10 @@ KernelConn "WFAmacrineSigmoidONToSFAmacrine" = {  // 4
     normalizeTotalToPost   = 1;
 };
 
-
 //---------OFF CONNS---------------------//
-//KernelConn "ImageToRetinaOFF" = {
-//   preLayerName           = "Image";
-//   postLayerName          = "RetinaOFF";
-//   weightInitType         = "Gauss2DWeight";
-//   channelCode            = 0; 
-//   nxp                    = 1;
-//   nyp                    = 1;
-//   
-//   normalize              = 1.0;
-//   
-//   stochasticReleaseFlag  = 0.0;
-//
-//   aspect                 = 1.0;
-//   sigma                  = 1.0;
-//   rMax                   = 4; 
-//   strength               = ImageRetina; //7; ImageRetinaOFF staerke
-//   
-//   writeStep              = -1.0;
-//   symmetrizeWeights      = 0.0;
-//   normalize_cutoff       = 0.0;
-//   normalize_zero_offset  = 0.0;
-//   normalize_max          = 0.0;
-//   nfp                    = 1.0;
-//   delay                  = 0.0;
-//
-//   numAxonalArbors        = 1;
-//   plasticityFlag         = 0.0;
-//   writeCompressedWeights = 1;
-//   selfFlag               = 0.0;
-//   shrinkPatches          = 0.0;
-//   rMin                   = 0.0;
-//
-//   preActivityIsNotRate   = 0;
-//   normalizeTotalToPost   = 1;
-//};
 
+
+disable = false;
 
 KernelConn "ConeSigmoidOFFToBipolarOFF" = {        // 1
     preLayerName           = "ConeSigmoidOFF";
@@ -1598,16 +1579,9 @@ KernelConn "ConeSigmoidOFFToBipolarOFF" = {        // 1
     normalizeTotalToPost   = 1;
 };
 
+disable = false;
 
 KernelConn "BipolarSigmoidOFFToWFAmacrineOFF" = {        // 2
-    //Case 3: nxScalePost < nxScalePre.
-    //(the post-synaptic layer has fewer neurons than the pre-synaptic layer)
-    //
-    //nxp must be odd.
-    //
-    //marginWidthPre must be at least (nxp-1)/2 * (1/nxScaleRatio)
-    //(since nxScalePre will be a positive multiple of nxScalePost,
-    //1/nxScaleRatio is a positive integer).
     preLayerName           = "BipolarSigmoidOFF";
     postLayerName          = "WFAmacrineOFF";
     weightInitType         = "Gauss2DWeight";
@@ -1642,6 +1616,7 @@ KernelConn "BipolarSigmoidOFFToWFAmacrineOFF" = {        // 2
     normalizeTotalToPost   = 1;
 };
 
+disable = false;
 
 GapConn "SFAmacrineGapToSFAmacrine" = {        // 3  gap junction, watch the strength
     preLayerName           = "SFAmacrineGap";
@@ -1678,14 +1653,9 @@ GapConn "SFAmacrineGapToSFAmacrine" = {        // 3  gap junction, watch the str
     normalizeTotalToPost   = 1;
 };
 
+disable = false;
 
 KernelConn "WFAmacrineSigmoidOFFToBipolarOFF" = {        // 4
-    // Case 2: nxScalePost > nxScalePre.
-    // (the post-synaptic layer has more neurons than the pre-synaptic layer)
-    //
-    // nxp must be an odd multiple of the nxScaleRatio
-    //
-    // marginWidthPre must be at least ( (nxp/nxScaleRatio) - 1 )/2
     preLayerName           = "WFAmacrineSigmoidOFF";
     postLayerName          = "BipolarOFF";
     weightInitType         = "Gauss2DWeight";
@@ -1720,6 +1690,7 @@ KernelConn "WFAmacrineSigmoidOFFToBipolarOFF" = {        // 4
     normalizeTotalToPost   = 1;
 };
 
+disable = false;
 
 KernelConn "BipolarSigmoidOFFToGanglionOFF" = {        // 5  sigmoid, need linear output ?
     preLayerName           = "BipolarSigmoidOFF";
@@ -1756,17 +1727,9 @@ KernelConn "BipolarSigmoidOFFToGanglionOFF" = {        // 5  sigmoid, need linea
     normalizeTotalToPost   = 1;
 };
 
+disable = false;
 
 KernelConn "BipolarSigmoidOFFToSFAmacrine" = {        // 2
-    //Case 3: nxScalePost < nxScalePre.
-    //(the post-synaptic layer has fewer neurons than the pre-synaptic layer)
-    //
-    //nxp must be odd.
-    //
-    //marginWidthPre must be at least (nxp-1)/2 * (1/nxScaleRatio)
-    //(since nxScalePre will be a positive multiple of nxScalePost,
-    //1/nxScaleRatio is a positive integer).
-
     preLayerName           = "BipolarSigmoidOFF";
     postLayerName          = "SFAmacrine";
     weightInitType         = "Gauss2DWeight";
@@ -1802,6 +1765,7 @@ KernelConn "BipolarSigmoidOFFToSFAmacrine" = {        // 2
     normalizeTotalToPost   = 1;
 };
 
+disable = false;
 
 GapConn "GangliGapOFFToPAAmacrineOFF" = {       // 7  gap junction
     preLayerName           = "GangliGapOFF";
@@ -1836,6 +1800,7 @@ GapConn "GangliGapOFFToPAAmacrineOFF" = {       // 7  gap junction
     normalizeTotalToPost   = 1;
 };
 
+disable = false;
 
 GapConn "PAAmaGapOFFToGanglionOFF" = {          // 8   gap junction
     preLayerName           = "PAAmaGapOFF";
@@ -1870,6 +1835,7 @@ GapConn "PAAmaGapOFFToGanglionOFF" = {          // 8   gap junction
     normalizeTotalToPost   = 1;
 };
 
+disable = false;
 
 GapConn "PAAmaGapOFFToPAAmacrineOFF" = {        // 9  gap junction, watch the strength
     preLayerName           = "PAAmaGapOFF";
@@ -1905,6 +1871,7 @@ GapConn "PAAmaGapOFFToPAAmacrineOFF" = {        // 9  gap junction, watch the st
     normalizeTotalToPost   = 1;
 };
 
+disable = false;
 
 KernelConn "PAAmacrineOFFToGanglionOFF" = {     // 10 NOT CONNECTED
     preLayerName           = "PAAmacrineOFF";
@@ -1940,6 +1907,7 @@ KernelConn "PAAmacrineOFFToGanglionOFF" = {     // 10 NOT CONNECTED
     normalizeTotalToPost   = 1;
 };
 
+disable = false;
 
 KernelConn "PAAmacrineOFFToPAAmacrineOFF" = {   // 10 self shut down
     preLayerName           = "PAAmacrineOFF";
@@ -1976,49 +1944,51 @@ KernelConn "PAAmacrineOFFToPAAmacrineOFF" = {   // 10 self shut down
     normalizeTotalToPost   = 1;
 };
 
+disable = true;
 
-//KernelConn "SFAmacrineSigmoidToGanglionOFF" = { // 4
-//    // Case 2: nxScalePost > nxScalePre.
-//    // (the post-synaptic layer has more neurons than the pre-synaptic layer)
-//    //
-//    // nxp must be an odd multiple of the nxScaleRatio
-//    //
-//    // marginWidthPre must be at least ( (nxp/nxScaleRatio) - 1 )/2
-//
-//    preLayerName           = "SFAmacrineSigmoid";
-//    postLayerName          = "GanglionOFF";
-//    weightInitType         = "Gauss2DWeight";
-//    channelCode            = 1;                   // inhibitory   feedback
-//    nxp                    = 3;                   // odd times 
-//    nyp                    = 3;                   // 
-//    normalize              = 1;                 //  
-//    strength               = 0; // today 0.25 SFAmacrineSigmoidGanglion staerke
-//
-//    stochasticReleaseFlag  = 1;
-//    
-//    aspect                 = 1.0;                 //
-//    delay                  = 0.0;                 // in time steps, additional to the one you always get
-//    sigma                  = 3.0;                 // 
-//    rMax                   = 256.;                // maximum distance of connection
-//
-//    normalize_max          = 0.0;                 // all flags zero means it normalize total integrated output
-//    normalize_zero_offset  = 0.0;                 //
-//    normalize_cutoff       = 0.0;                 //
-//    writeStep              = -1.0;                // do not write these out
-//
-//    symmetrizeWeights      = 0.0;
-//    numAxonalArbors        = 1;
-//    plasticityFlag         = 0.0;
-//    writeCompressedWeights = 1;
-//    selfFlag               = 0.0;
-//    shrinkPatches          = 0.0;
-//    nfp                    = 1;
-//    rMin                   = 0.0;
-//
-//    preActivityIsNotRate   = 0;
-//    normalizeTotalToPost   = 1;
-//};
+KernelConn "SFAmacrineSigmoidToGanglionOFF" = { // 4
+    // Case 2: nxScalePost > nxScalePre.
+    // (the post-synaptic layer has more neurons than the pre-synaptic layer)
+    //
+    // nxp must be an odd multiple of the nxScaleRatio
+    //
+    // marginWidthPre must be at least ( (nxp/nxScaleRatio) - 1 )/2
 
+    preLayerName           = "SFAmacrineSigmoid";
+    postLayerName          = "GanglionOFF";
+    weightInitType         = "Gauss2DWeight";
+    channelCode            = 1;                   // inhibitory   feedback
+    nxp                    = 3;                   // odd times 
+    nyp                    = 3;                   // 
+    normalize              = 1;                 //  
+    strength               = 0; // today 0.25 SFAmacrineSigmoidGanglion staerke
+
+    stochasticReleaseFlag  = 1;
+    
+    aspect                 = 1.0;                 //
+    delay                  = 0.0;                 // in time steps, additional to the one you always get
+    sigma                  = 3.0;                 // 
+    rMax                   = 256.;                // maximum distance of connection
+
+    normalize_max          = 0.0;                 // all flags zero means it normalize total integrated output
+    normalize_zero_offset  = 0.0;                 //
+    normalize_cutoff       = 0.0;                 //
+    writeStep              = -1.0;                // do not write these out
+
+    symmetrizeWeights      = 0.0;
+    numAxonalArbors        = 1;
+    plasticityFlag         = 0.0;
+    writeCompressedWeights = 1;
+    selfFlag               = 0.0;
+    shrinkPatches          = 0.0;
+    nfp                    = 1;
+    rMin                   = 0.0;
+
+    preActivityIsNotRate   = 0;
+    normalizeTotalToPost   = 1;
+};
+
+disable = false;
 
 KernelConn "SFAmacrineSigmoidToPAAmacrineOFF" = {   // 4
     // Case 2: nxScalePost > nxScalePre.
@@ -2062,6 +2032,7 @@ KernelConn "SFAmacrineSigmoidToPAAmacrineOFF" = {   // 4
     normalizeTotalToPost   = 1;
 };
 
+disable = false;
 
 KernelConn "PAAmacrineOFFToWFAmacrineOFF" = {   // 4
     // Case 2: nxScalePost > nxScalePre.
@@ -2105,6 +2076,7 @@ KernelConn "PAAmacrineOFFToWFAmacrineOFF" = {   // 4
     normalizeTotalToPost   = 1;
 };
 
+disable = false;
 
 KernelConn "WFAmacrineSigmoidOFFToSFAmacrine" = {        // 4
     // Case 2: nxScalePost > nxScalePre.
@@ -2163,6 +2135,8 @@ KernelConn "WFAmacrineSigmoidOFFToSFAmacrine" = {        // 4
 //   Probes Probes Probes Probes Probes Probes Probes Probes  Probes Probes Probes Probes 
 //////////////////////////////////////////////////////////////////////////////////////////
 
+disable = true;
+
 PointProbe "ImageBuffer Probe" = {
    targetLayer = "ImageBuffer";
 //   msg = "Cone       ";
@@ -2171,6 +2145,8 @@ PointProbe "ImageBuffer Probe" = {
    yLoc = 128;
    fLoc = 0;
 };
+
+disable = true;
 
 PointLIFProbe "Cone Probe" = {
    targetLayer = "Cone";
@@ -2181,6 +2157,8 @@ PointLIFProbe "Cone Probe" = {
    fLoc = 0;
 };
 
+disable = true;
+
 PointLIFProbe "Horizontal Probe" = {
    targetLayer = "Horizontal";
 //   msg = "Horizontal       ";
@@ -2189,6 +2167,8 @@ PointLIFProbe "Horizontal Probe" = {
    yLoc = 64;
    fLoc = 0;
 };
+
+disable = true;
 
 PointLIFProbe "BipolarON Probe" = {
    targetLayer = "BipolarON";
@@ -2199,6 +2179,8 @@ PointLIFProbe "BipolarON Probe" = {
    fLoc = 0;
 };
 
+disable = true;
+
 PointLIFProbe "BipolarOFF Probe" = {
    targetLayer = "BipolarOFF";
 //   msg = "BipolarOFF       ";
@@ -2207,6 +2189,8 @@ PointLIFProbe "BipolarOFF Probe" = {
    yLoc = 128;
    fLoc = 0;
 };
+
+disable = true;
 
 PointLIFProbe "WFAmacrineON Probe" = {
    targetLayer = "WFAmacrineON";
@@ -2217,6 +2201,8 @@ PointLIFProbe "WFAmacrineON Probe" = {
    fLoc = 0;
 };
 
+disable = true;
+
 PointLIFProbe "WFAmacrineOFF Probe" = {
    targetLayer = "WFAmacrineOFF";
 //   msg = "WFAmacrineOFF       ";
@@ -2225,6 +2211,8 @@ PointLIFProbe "WFAmacrineOFF Probe" = {
    yLoc = 64;
    fLoc = 0;
 };
+
+disable = true;
 
 PointLIFProbe "SFAmacrine Probe" = {
    targetLayer = "SFAmacrine";
@@ -2235,6 +2223,8 @@ PointLIFProbe "SFAmacrine Probe" = {
    fLoc = 0;
 };
 
+disable = true;
+
 PointLIFProbe "PAAmacrineON Probe" = {
    targetLayer = "PAAmacrineON";
 //   msg = "PAAmacrineON       ";
@@ -2243,6 +2233,8 @@ PointLIFProbe "PAAmacrineON Probe" = {
    yLoc = 32;
    fLoc = 0;
 };
+
+disable = true;
 
 PointLIFProbe "PAAmacrineOFF Probe" = {
    targetLayer = "PAAmacrineOFF";
@@ -2253,6 +2245,8 @@ PointLIFProbe "PAAmacrineOFF Probe" = {
    fLoc = 0;
 };
 
+disable = true;
+
 PointLIFProbe "GanglionON Probe" = {
    targetLayer = "GanglionON";
 //   msg = "GanglionON       ";
@@ -2262,6 +2256,8 @@ PointLIFProbe "GanglionON Probe" = {
    fLoc = 0;
 };
 
+disable = true;
+
 PointLIFProbe "GanglionOFF Probe" = {
    targetLayer = "GanglionOFF";
 //   msg = "GanglionOFF       ";
@@ -2270,4 +2266,3 @@ PointLIFProbe "GanglionOFF Probe" = {
    yLoc = 64;
    fLoc = 0;
 };
-
