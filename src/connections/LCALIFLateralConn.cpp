@@ -80,7 +80,7 @@ int LCALIFLateralConn::calc_dW(int axonId) {
       // We need to get the indices.  The presynaptic index is k.  To get the postsynaptic index, find
       // The memory location this weight is mapped to and subtract it from the start of the postsynaptic GSyn buffer.
       pvdata_t * gSyn_patch_start = getGSynPatchStart(kPre_extended, axonId);
-      int patch_start_index = gSyn_patch_start - gSyn_buffer_start;
+      int start_index_restricted = gSyn_patch_start - gSyn_buffer_start;
       const PVPatch * p = getWeights(kPre_extended, axonId);
       pvdata_t * dw_data = get_dwData(axonId,kPre_extended);
       int nx_patch = p->nx;
@@ -88,7 +88,7 @@ int LCALIFLateralConn::calc_dW(int axonId) {
       for (int ky_patch=0; ky_patch<ny_patch; ky_patch++) {
          for (int kx_patch=0; kx_patch<nx_patch; kx_patch++) {
             for (int kf_patch=0; kf_patch<nfp; kf_patch++) {
-               int post_index_restricted = patch_start_index + sy_restricted*ky_patch + sx_restricted*kx_patch + sf*kf_patch;
+               int post_index_restricted = start_index_restricted + sy_restricted*ky_patch + sx_restricted*kx_patch + sf*kf_patch;
                int postindexext = kIndexExtended(post_index_restricted, nxpost, nypost, nfpost, nbpost);
                if (postindexext != kPre_extended) {
                   pvdata_t delta_weight = (dt_inh/target_rate_sq) * ((integratedSpikeCount[kPre_extended]/integrationTimeConstant) * (integratedSpikeCount[postindexext]/integrationTimeConstant) - target_rate_sq);
