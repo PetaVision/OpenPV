@@ -1403,26 +1403,29 @@ void PVParams::action_parameter_def(char * id, double val)
 
 void PVParams::action_parameter_array(char * id)
 {
-   int status = currentParamArray->setName(id);
-   assert(status==PV_SUCCESS);
+   if (disable) return;
    if (debugParsing && getRank() == 0) {
       fflush(stdout);
       printf("action_parameter_array: %s\n", id);
       fflush(stdout);
    }
+   int status = currentParamArray->setName(id);
+   assert(status==PV_SUCCESS);
+   if( checkDuplicates(id) != PV_SUCCESS ) exit(EXIT_FAILURE);
    arrayStack->push(currentParamArray);
    currentParamArray = new ParameterArray(PARAMETERARRAYSTACK_INITIALCOUNT);
 }
 
 void PVParams::action_parameter_array_value(double val)
 {
-   int sz = currentParamArray->getArraySize();
-   int newsize = currentParamArray->pushValue(val);
-   assert(newsize == sz+1);
+   if (disable) return;
    if(debugParsing && getRank() == 0) {
       fflush(stdout);
       printf("action_parameter_array_value %lf\n", val);
    }
+   int sz = currentParamArray->getArraySize();
+   int newsize = currentParamArray->pushValue(val);
+   assert(newsize == sz+1);
 }
 
 void PVParams::action_parameter_string_def(const char * id, const char * stringval) {
