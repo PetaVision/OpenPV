@@ -89,9 +89,9 @@ int LCALIFLateralConn::calc_dW(int axonId) {
          for (int kx_patch=0; kx_patch<nx_patch; kx_patch++) {
             for (int kf_patch=0; kf_patch<nfp; kf_patch++) {
                int post_index_restricted = start_index_restricted + sy_restricted*ky_patch + sx_restricted*kx_patch + sf*kf_patch;
-               int postindexext = kIndexExtended(post_index_restricted, nxpost, nypost, nfpost, nbpost);
-               if (postindexext != kPre_extended) {
-                  pvdata_t delta_weight = (dt_inh/target_rate_sq) * ((integratedSpikeCount[kPre_extended]/integrationTimeConstant) * (integratedSpikeCount[postindexext]/integrationTimeConstant) - target_rate_sq);
+               int kPost_extended = kIndexExtended(post_index_restricted, nxpost, nypost, nfpost, nbpost);
+               if (kPost_extended != kPre_extended) {
+                  pvdata_t delta_weight = (dt_inh/target_rate_sq) * ((integratedSpikeCount[kPre_extended]/integrationTimeConstant) * (integratedSpikeCount[kPost_extended]/integrationTimeConstant) - target_rate_sq);
                   dw_data[sxp*kx_patch + syp*ky_patch + sfp*kf_patch] = delta_weight;
                }
             }
