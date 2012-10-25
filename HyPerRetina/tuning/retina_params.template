@@ -410,7 +410,7 @@ LIFGap "PAAmacrineON" = {        // 14
 };
 
 disable = true;
-GapLayer "PAAmaGapON" = {           // 15
+GapLayer "PAAmacrineGapON" = {           // 15
     originalLayerName = "PAAmacrineON";
     nxScale           = 0.25;
     nyScale           = 0.25;
@@ -641,7 +641,7 @@ LIFGap "PAAmacrineOFF" = {      // 25
 };
 
 disable = true;
-GapLayer "PAAmaGapOFF" = {           // 26
+GapLayer "PAAmacrineGapOFF" = {           // 26
     originalLayerName  = "PAAmacrineOFF";
     nxScale            = 0.25;
     nyScale            = 0.25;
@@ -1240,27 +1240,28 @@ KernelConn "BipolarSigmoidOFFToGanglionOFF" = {        // 5  sigmoid, need linea
 
 
 disable = true;
-GapConn "SFAmacrineGapONToSFAmacrineON" = {     // 3  gap junction, watch the strength
-    preLayerName            = "SFAmacrineGapON";
-    postLayerName           = "SFAmacrine";
-    weightInitType          = "Gauss2DWeight";
-
-    nxp                     = 3;                  // not to itself !!
-    nyp                     = 3;                  //
-    normalize               = 1;                  // 
-    strength                = SFAmacrineGapSFAmacrine; 
+GapConn "SFAmacrineGapToSFAmacrine" = {        // 3  gap junction, watch the strength
+    preLayerName           = "SFAmacrineGap";
+    postLayerName          = "SFAmacrine";
+    weightInitType         = "Gauss2DWeight";
+   
+    nxp                    = 3;       // not to itself !!
+    nyp                    = 3;       //
+    normalize              = 1;     //  
+    strength               = SFAmacrineGapSFAmacrine;
     
-    rMin                    = 0.1;                // take out the self connection
+    rMin                   = 0.1;     // take out the self connection
     
-    aspect                  = 1.0;
-    delay                   = 0.0;                // in time steps, additional to the one you always get
-    sigma                   = 3.0;                // 
-    rMax                    = 256.;               // maximum distance of connection
+    aspect                 = 1.0;
+    delay                  = 0.0;     // in time steps, additional to the one you always get
+    nfp                    = 1.0;     // should fit the feature number of post synaptic layer
+    sigma                  = 3.0;     // 
+    rMax                   = 256.;    // maximum distance of connection
 
-    normalize_max          = 0.0;                 // all flags zero means it normalize total integrated output
-    normalize_zero_offset  = 0.0;                 //
-    normalize_cutoff       = 0.0;                 //
-    writeStep              = -1.0;                // do not write these out
+    normalize_max          = 0.0;     // all flags zero means it normalize total integrated output
+    normalize_zero_offset  = 0.0;     //
+    normalize_cutoff       = 0.0;     //
+    writeStep              = -1.0;    // do not write these out
 
     symmetrizeWeights      = 0.0;
     numAxonalArbors        = 1;
@@ -1269,7 +1270,6 @@ GapConn "SFAmacrineGapONToSFAmacrineON" = {     // 3  gap junction, watch the st
     writeCompressedWeights = 1;
     selfFlag               = 0.0;
     shrinkPatches          = 0.0;
-    nfp                    = 1;
 
     preActivityIsNotRate   = 0;
     normalizeTotalToPost   = 1;
@@ -1653,14 +1653,14 @@ KernelConn "PAAmacrineOFFToWFAmacrineOFF" = {   // 4
 
 
 disable = true;
-GapConn "PAAmaGapONToPAAmacrineON" = {        // 9  gap junction, watch the strength
-    preLayerName            = "PAAmaGapON";
+GapConn "PAAmacrineGapONToPAAmacrineON" = {        // 9  gap junction, watch the strength
+    preLayerName            = "PAAmacrineGapON";
     postLayerName           = "PAAmacrineON";
     weightInitType          = "Gauss2DWeight";
     nxp                     = 3;      //
     nyp                     = 3;      // not to itself
     normalize               = 1;      //  
-    strength                = PAAmaGapPAAmacrine; 
+    strength                = PAAmacrineGapPAAmacrine; 
     
     rMin                    = 0.1;    // take out the self connection
     	
@@ -1689,14 +1689,14 @@ GapConn "PAAmaGapONToPAAmacrineON" = {        // 9  gap junction, watch the stre
 
 
 disable = true;
-GapConn "PAAmaGapOFFToPAAmacrineOFF" = {        // 9  gap junction, watch the strength
-    preLayerName           = "PAAmaGapOFF";
+GapConn "PAAmacrineGapOFFToPAAmacrineOFF" = {        // 9  gap junction, watch the strength
+    preLayerName           = "PAAmacrineGapOFF";
     postLayerName          = "PAAmacrineOFF";
     weightInitType         = "Gauss2DWeight";
     nxp                    = 3;
     nyp                    = 3;                   // not to itself
     normalize              = 1;                 // 
-    strength               = PAAmaGapPAAmacrine;  
+    strength               = PAAmacrineGapPAAmacrine;  
     
     rMin                   = 0.1;                 // take out the self connection
     	
@@ -1799,14 +1799,14 @@ KernelConn "PAAmacrineOFFToPAAmacrineOFF" = {   // 10 self shut down
 
 
 disable = true;
-GapConn "PAAmaGapONToGanglionON" = {        // 8   gap junction
-    preLayerName           = "PAAmaGapON";
+GapConn "PAAmacrineGapONToGanglionON" = {        // 8   gap junction
+    preLayerName           = "PAAmacrineGapON";
     postLayerName          = "GanglionON";
     weightInitType         = "Gauss2DWeight";
     nxp                    = 6;
     nyp                    = 6;        // scaling is 0.12 * 4/36 * 1.25% =0.06
     normalize              = 1;        //  
-    strength               = PAAmaGapGanglion; 
+    strength               = PAAmacrineGapGanglion; 
     	
     aspect                 = 1.0;
     delay                  = 0.0;      // in time steps, additional to the one you always get
@@ -1834,14 +1834,14 @@ GapConn "PAAmaGapONToGanglionON" = {        // 8   gap junction
 
 
 disable = true;
-GapConn "PAAmaGapOFFToGanglionOFF" = {          // 8   gap junction
-    preLayerName           = "PAAmaGapOFF";
+GapConn "PAAmacrineGapOFFToGanglionOFF" = {          // 8   gap junction
+    preLayerName           = "PAAmacrineGapOFF";
     postLayerName          = "GanglionOFF";
     weightInitType         = "Gauss2DWeight";
     nxp                    = 6;
     nyp                    = 6;
     normalize              = 1;                 // see scaling on ON cells  
-    strength               = PAAmaGapGanglion;    
+    strength               = PAAmacrineGapGanglion;    
     	
     aspect                 = 1.0;
     delay                  = 0.0;                 // in time steps, additional to the one you always get
@@ -1984,55 +1984,6 @@ GapConn "GangliGapONToPAAmacrineON" = {        // 7  gap junction
 
 
 disable = true;
-
-
-
-//---------OFF CONNS---------------------//
-
-
-
-disable = true;
-
-GapConn "SFAmacrineGapToSFAmacrine" = {        // 3  gap junction, watch the strength
-    preLayerName           = "SFAmacrineGap";
-    postLayerName          = "SFAmacrine";
-    weightInitType         = "Gauss2DWeight";
-   
-    nxp                    = 3;       // not to itself !!
-    nyp                    = 3;       //
-    normalize              = 1;     //  
-    strength               = SFAmacrineGapSFAmacrine; // 0.1; // 2.0 ZERO  staerke <=================================
-    
-    rMin                   = 0.1;     // take out the self connection
-    
-    aspect                 = 1.0;
-    delay                  = 0.0;     // in time steps, additional to the one you always get
-    nfp                    = 1.0;     // should fit the feature number of post synaptic layer
-    sigma                  = 3.0;     // 
-    rMax                   = 256.;    // maximum distance of connection
-
-    normalize_max          = 0.0;     // all flags zero means it normalize total integrated output
-    normalize_zero_offset  = 0.0;     //
-    normalize_cutoff       = 0.0;     //
-    writeStep              = -1.0;    // do not write these out
-
-    symmetrizeWeights      = 0.0;
-    numAxonalArbors        = 1;
-    plasticityFlag         = 0.0;
-    stochasticReleaseFlag  = 0.0;
-    writeCompressedWeights = 1;
-    selfFlag               = 0.0;
-    shrinkPatches          = 0.0;
-
-    preActivityIsNotRate   = 0;
-    normalizeTotalToPost   = 1;
-};
-
-
-
-
-disable = true;
-
 GapConn "GangliGapOFFToPAAmacrineOFF" = {       // 7  gap junction
     preLayerName           = "GangliGapOFF";
     postLayerName          = "PAAmacrineOFF";
@@ -2065,6 +2016,11 @@ GapConn "GangliGapOFFToPAAmacrineOFF" = {       // 7  gap junction
     preActivityIsNotRate   = 0;
     normalizeTotalToPost   = 1;
 };
+
+
+
+
+
 
 
 //////////////////////////////////////////////////////////////////////////////////////////

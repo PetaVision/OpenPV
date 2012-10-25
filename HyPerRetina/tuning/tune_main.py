@@ -82,9 +82,9 @@ WFAmacrineSigmoidOFF = WFAmacrineSigmoidON
 
 #PAAmacrie
 PAAmacrineON         = 1
-PAAmaGapON           = 1
+PAAmacrineGapON           = 1
 PAAmacrineOFF        = PAAmacrineON
-PAAmaGapOFF          = PAAmaGapON
+PAAmacrineGapOFF          = PAAmacrineGapON
 
 #SFAmacrine
 SFAmacrine           = 1
@@ -113,7 +113,7 @@ BipolarSigmoidWFAmacrine     = ["%g" % x for x in frange(1,0,0)]    # BipolarSig
 BipolarSigmoidGanglion       = ["%g" % x for x in frange(2,0,0)]    # BipolarSigmoid to Ganglion
 BipolarSigmoidSFAmacrine     = ["%g" % x for x in frange(1,0,0)]    # BipolarSigmoid to SFAmacrine
 
-WFAmacrineSigmoidBipolarON   = ["%g" % x for x in frange(0.15,0,0)]  # WFAmacrineSigmoidON to Bipolar
+WFAmacrineSigmoidBipolarON   = ["%g" % x for x in frange(0.10,0,0)]  # WFAmacrineSigmoidON to Bipolar
 WFAmacrineSigmoidBipolarOFF  = ["%g" % x for x in frange(0.25,0,0)] # WFAmacrineSigmoidOFF to Bipolar
 WFAmacrineONSFAmacrine       = ["%g" % x for x in frange(2,0,0)]    # WFAmacrineON to SFAmacrine
 WFAmacrineOFFSFAmacrine      = ["%g" % x for x in frange(2,0,0)]    # WFAmacrineOFF to SFAmacrine
@@ -123,8 +123,8 @@ WFAmacrineSigmoidGanglionOFF = ["%g" % x for x in frange(1,0,0)]    # WFAmacrine
 SFAmacrineGapSFAmacrine      = ["%g" % x for x in frange(1,0,0)]    # SFAmacrineGAP to SFAmacrine
 SFAmacrineSigmoidPAAmacrine  = ["%g" % x for x in frange(2,0,0)]    #Doubled bc we cut the tau # SFAmacrineSigmoid to PAAmacrine
 
-PAAmaGapGanglion             = ["%g" % x for x in frange(2,0,0)]    # PAAmaGap to Ganglion
-PAAmaGapPAAmacrine           = ["%g" % x for x in frange(1,0,0)]    # PAAmaGap to PAAmacrine
+PAAmacrineGapGanglion             = ["%g" % x for x in frange(2,0,0)]    # PAAmacrineGap to Ganglion
+PAAmacrineGapPAAmacrine           = ["%g" % x for x in frange(1,0,0)]    # PAAmacrineGap to PAAmacrine
 PAAmacrineGanglion           = ["%g" % x for x in frange(2,0,0)]    #Doubled bc we halved the Tinh# PAAmacrine to Ganglion
 PAAmacrineWFAmacrine         = ["%g" % x for x in frange(1,0,0)]    # PAAmacrine to WFAmacrine
 PAAmacrinePAAmacrine         = ["%g" % x for x in frange(2,0,0)]    #Doubled bc we cut the tau # PAAmacrine to PAAmacrine
@@ -147,8 +147,8 @@ conn_list = ["ImageImageBuffer",
             "WFAmacrineSigmoidGanglionOFF",
             "BipolarSigmoidGanglion",
             "GangliGapPAAmacrine",
-            "PAAmaGapGanglion",
-            "PAAmaGapPAAmacrine",
+            "PAAmacrineGapGanglion",
+            "PAAmacrineGapPAAmacrine",
             "PAAmacrineGanglion",
             "PAAmacrinePAAmacrine",
             "BipolarSigmoidSFAmacrine",
@@ -172,8 +172,8 @@ conn_lol = [ImageImageBuffer,
             WFAmacrineSigmoidGanglionOFF,
             BipolarSigmoidGanglion,
             GangliGapPAAmacrine,
-            PAAmaGapGanglion,
-            PAAmaGapPAAmacrine,
+            PAAmacrineGapGanglion,
+            PAAmacrineGapPAAmacrine,
             PAAmacrineGanglion,
             PAAmacrinePAAmacrine,
             BipolarSigmoidSFAmacrine,
@@ -256,7 +256,7 @@ for num_steps in num_steps_list:
                 enable = True 
             elif 'LIFGap "PAAmacrineON"' in line and PAAmacrineON==1:
                 enable = True 
-            elif 'GapLayer "PAAmaGapON"' in line and PAAmaGapON==1:
+            elif 'GapLayer "PAAmacrineGapON"' in line and PAAmacrineGapON==1:
                 enable = True 
             elif 'LIF "BipolarOFF"' in line and BipolarOFF==1:
                 enable = True
@@ -272,7 +272,7 @@ for num_steps in num_steps_list:
                 enable = True 
             elif 'LIFGap "PAAmacrineOFF"' in line and PAAmacrineOFF==1:
                 enable = True 
-            elif 'GapLayer "PAAmaGapOFF"' in line and PAAmaGapOFF==1:
+            elif 'GapLayer "PAAmacrineGapOFF"' in line and PAAmacrineGapOFF==1:
                 enable = True
             elif 'LIFGap "SFAmacrine"' in line and SFAmacrine==1:
                 enable = True
@@ -338,13 +338,13 @@ for num_steps in num_steps_list:
                 if len(zero_index)>0:
                     if nonZeroStrength[zero_index[0]]:
                         enable = True
-            elif 'GapConn "PAAmaGapONToGanglionON"' in line and PAAmaGapON==1 and GanglionON==1:
-                zero_index = [idx for idx, enum in enumerate([param in 'PAAmaGapGanglion' for param in conn_list]) if enum==True]
+            elif 'GapConn "PAAmacrineGapONToGanglionON"' in line and PAAmacrineGapON==1 and GanglionON==1:
+                zero_index = [idx for idx, enum in enumerate([param in 'PAAmacrineGapGanglion' for param in conn_list]) if enum==True]
                 if len(zero_index)>0:
                     if nonZeroStrength[zero_index[0]]:
                         enable = True
-            elif 'GapConn "PAAmaGapONToPAAmacrineON"' in line and PAAmaGapON==1 and PAAmacrineON==1:
-                zero_index = [idx for idx, enum in enumerate([param in 'PAAmaGapPAAmacrine' for param in conn_list]) if enum==True]
+            elif 'GapConn "PAAmacrineGapONToPAAmacrineON"' in line and PAAmacrineGapON==1 and PAAmacrineON==1:
+                zero_index = [idx for idx, enum in enumerate([param in 'PAAmacrineGapPAAmacrine' for param in conn_list]) if enum==True]
                 if len(zero_index)>0:
                     if nonZeroStrength[zero_index[0]]:
                         enable = True
@@ -418,13 +418,13 @@ for num_steps in num_steps_list:
                 if len(zero_index)>0:
                     if nonZeroStrength[zero_index[0]]:
                         enable = True
-            elif 'GapConn "PAAmaGapOFFToGanglionOFF"' in line and PAAmaGapOFF==1 and GanglionOFF==1:
-                zero_index = [idx for idx, enum in enumerate([param in 'PAAmaGapGanglion' for param in conn_list]) if enum==True]
+            elif 'GapConn "PAAmacrineGapOFFToGanglionOFF"' in line and PAAmacrineGapOFF==1 and GanglionOFF==1:
+                zero_index = [idx for idx, enum in enumerate([param in 'PAAmacrineGapGanglion' for param in conn_list]) if enum==True]
                 if len(zero_index)>0:
                     if nonZeroStrength[zero_index[0]]:
                         enable = True
-            elif 'GapConn "PAAmaGapOFFToPAAmacrineOFF"' in line and PAAmaGapOFF==1 and PAAmacrineOFF==1:
-                zero_index = [idx for idx, enum in enumerate([param in 'PAAmaGapPAAmacrine' for param in conn_list]) if enum==True]
+            elif 'GapConn "PAAmacrineGapOFFToPAAmacrineOFF"' in line and PAAmacrineGapOFF==1 and PAAmacrineOFF==1:
+                zero_index = [idx for idx, enum in enumerate([param in 'PAAmacrineGapPAAmacrine' for param in conn_list]) if enum==True]
                 if len(zero_index)>0:
                     if nonZeroStrength[zero_index[0]]:
                         enable = True
