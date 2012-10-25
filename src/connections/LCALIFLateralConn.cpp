@@ -65,34 +65,34 @@ int LCALIFLateralConn::calc_dW(int axonId) {
    pvdata_t * gSyn_buffer_start = post->getChannel(channel);
    pvdata_t target_rate_sq = getTargetRateKHz() * getTargetRateKHz();
    float dt_inh = parent->getDeltaTime()/inhibitionTimeConstant;
-   const PVPatchStrides * strides  = getPostNonextStrides();
-   const int sx = strides->sx;
-   const int sy = strides->sy;
-   const int sf = strides->sf;
+   const PVPatchStrides * strides_restricted  = getPostNonextStrides();
+   const int sx_restricted = strides_restricted->sx;
+   const int sy_restricted = strides_restricted->sy;
+   const int sf = strides_restricted->sf;
    const PVLayerLoc * postloc = post->getLayerLoc();
    const int nxpost = postloc->nx;
    const int nypost = postloc->ny;
    const int nfpost = postloc->nf;
    const int nbpost = postloc->nb;
 
-   for (int kPre=0; kPre<getNumWeightPatches(); kPre++) {
+   for (int kPre_extended=0; kPre_extended<getNumWeightPatches(); kPre_extended++) {
       // The weight p(x,y,f) connects a presynaptic neuron in extended space to a postsynaptic neuron in restricted space.
       // We need to get the indices.  The presynaptic index is k.  To get the postsynaptic index, find
       // The memory location this weight is mapped to and subtract it from the start of the postsynaptic GSyn buffer.
-      pvdata_t * gSyn_patch_start = getGSynPatchStart(kPre, axonId);
+      pvdata_t * gSyn_patch_start = getGSynPatchStart(kPre_extended, axonId);
       int patch_start_index = gSyn_patch_start - gSyn_buffer_start;
-      const PVPatch * p = getWeights(kPre, axonId);
-      pvdata_t * dw_data = get_dwData(axonId,kPre);
-      int nx = p->nx;
-      int ny = p->ny;
-      for (int y=0; y<ny; y++) {
-         for (int x=0; x<nx; x++) {
-            for (int f=0; f<nfp; f++) {
-               int postindex = patch_start_index + sy*y + sx*x + sf*f;
-               int postindexext = kIndexExtended(postindex, nxpost, nypost, nfpost, nbpost);
-               if (postindexext != kPre) {
-                  pvdata_t delta_weight = (dt_inh/target_rate_sq) * ((integratedSpikeCount[kPre]/integrationTimeConstant) * (integratedSpikeCount[postindexext]/integrationTimeConstant) - target_rate_sq);
-                  dw_data[sxp*x + syp*y + sfp*f] = delta_weight;
+      const PVPatch * p = getWeights(kPre_extended, axonId);
+      pvdata_t * dw_data = get_dwData(axonId,kPre_extended);
+      int nx_patch = p->nx;
+      int ny_patch = p->ny;
+      for (int ky_patch=0; ky_patch<ny_patch; ky_patch++) {
+         for (int kx_patch=0; kx_patch<nx_patch; kx_patch++) {
+            for (int kf_patch=0; kf_patch<nfp; kf_patch++) {
+               int post_patch_index = patch_start_index + sy_restricted*ky_patch + sx_restricted*kx_patch + sf*kf_patch;
+               int postindexext = kIndexExtended(post_patch_index, nxpost, nypost, nfpost, nbpost);
+               if (postindexext != kPre_extended) {
+                  pvdata_t delta_weight = (dt_inh/target_rate_sq) * ((integratedSpikeCount[kPre_extended]/integrationTimeConstant) * (integratedSpikeCount[postindexext]/integrationTimeConstant) - target_rate_sq);
+                  dw_data[sxp*kx_patch + syp*ky_patch + sfp*kf_patch] = delta_weight;
                }
             }
          }
