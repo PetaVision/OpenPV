@@ -1047,10 +1047,6 @@ void HyPerConn::setDelay(int arborId, float delay) {
       std::cerr << name << ": A delay of " << delay << " will be rounded to " << actualDelay << "\n";
    }
    delays[arborId] = (int)(round(delay / parent->getDeltaTime()));
-//   int numPatches = numWeightPatches();
-//    for(int pID=0;pID<numPatches; pID++) {
-//       axonalArbor(pID, arborId)->delay = delay;
-//    }
 }
 
 // NOTE: this should be temporary until delivery interface is straightened out
