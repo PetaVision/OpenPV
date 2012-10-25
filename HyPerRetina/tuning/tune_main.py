@@ -29,8 +29,15 @@ run_name            = 'graywhiteblackspots' #'Heli_Challenge_026'#
 #Gar
 wrkspc_path         = '/Users/garkenyon/workspace-sync-anterior'
 remote_wrkspc_path  = wrkspc_path #'/home/gkenyon/workspace-sync-anterior'#
+data_path           = wrkspc_path #remote_wrkspc_path #'/nh/compneuro/Data'
+
+#Dylan
+#wrkspc_path         = '/Users/dpaiton/Documents/Work/LANL/workspace'
+#remote_wrkspc_path  = wrkspc_path
+#data_path           = wrkspc_path
+
+#Common
 out_filename        = run_name
-data_path           = wrkspc_path #'/home/gkenyon/workspace-sync-anterior' #'/nh/compneuro/Data'
 results_path        = data_path+'/HyPerRetina/output/'+run_name
 remote_input_path   = remote_wrkspc_path+'/HyPerRetina/input'
 input_path          = wrkspc_path+'/HyPerRetina/input'
@@ -38,23 +45,10 @@ tuning_path         = wrkspc_path+'/HyPerRetina/tuning'
 param_in_file       = tuning_path+'/'+param_template_name
 param_out_file      = tuning_path+'/params_files/'+out_filename
 run_file            = wrkspc_path+'/HyPerRetina/Debug_remote/HyPerRetina'
-
-#Dylan
-#wrkspc_path         = '/Users/dpaiton/Documents/Work/LANL/workspace'
-#remote_wrkspc_path  = wrkspc_path
-#out_filename        = run_name
-#data_path           = wrkspc_path
-#results_path        = data_path+'/HyPerRetina/output/'+run_name
-#remote_input_path   = remote_wrkspc_path+'/HyPerRetina/input'
-#input_path          = wrkspc_path+'/HyPerRetina/input'
-#tuning_path         = wrkspc_path+'/HyPerRetina/tuning'
-#param_in_file       = tuning_path+'/'+param_template_name
-#param_out_file      = tuning_path+'/params_files/'+out_filename
-#run_file            = wrkspc_path+'/HyPerRetina/Debug/HyPerRetina'
 #######################################################################################
 
 ## INPUT MOVIE (One must be enabled)
-input_file = remote_input_path+'/filenames_graywhiteblackspots.txt'#'/heli_challenge_026_framenames.txt'
+input_file = remote_input_path+'/filenames_graywhiteblackspots.txt'#'/heli_challenge_026_framenames.txt'#
 
 ## Declare layers
 #INPUTS
@@ -123,10 +117,10 @@ WFAmacrineSigmoidBipolarON   = ["%g" % x for x in frange(0.15,0,0)]  # WFAmacrin
 WFAmacrineSigmoidBipolarOFF  = ["%g" % x for x in frange(0.25,0,0)] # WFAmacrineSigmoidOFF to Bipolar
 WFAmacrineONSFAmacrine       = ["%g" % x for x in frange(2,0,0)]    # WFAmacrineON to SFAmacrine
 WFAmacrineOFFSFAmacrine      = ["%g" % x for x in frange(2,0,0)]    # WFAmacrineOFF to SFAmacrine
+WFAmacrineSigmoidGanglionON  = ["%g" % x for x in frange(1,0,0)]    # WFAmacrineSigmoidON to GanglionON
+WFAmacrineSigmoidGanglionOFF = ["%g" % x for x in frange(1,0,0)]    # WFAmacrineSigmoidOFF to GanglionOFF
 
 SFAmacrineGapSFAmacrine      = ["%g" % x for x in frange(1,0,0)]    # SFAmacrineGAP to SFAmacrine
-SFAmacrineSigmoidGanglionON  = ["%g" % x for x in frange(0,0,0)]    # SFAmacrineSigmoid to GanglionON
-SFAmacrineSigmoidGanglionOFF = ["%g" % x for x in frange(0,0,0)]    # SFAmacrineSigmoid to GanglionOFF
 SFAmacrineSigmoidPAAmacrine  = ["%g" % x for x in frange(2,0,0)]    #Doubled bc we cut the tau # SFAmacrineSigmoid to PAAmacrine
 
 PAAmaGapGanglion             = ["%g" % x for x in frange(2,0,0)]    # PAAmaGap to Ganglion
@@ -149,6 +143,8 @@ conn_list = ["ImageImageBuffer",
             "SFAmacrineGapSFAmacrine",
             "WFAmacrineSigmoidBipolarON",
             "WFAmacrineSigmoidBipolarOFF",
+            "WFAmacrineSigmoidGanglionON",
+            "WFAmacrineSigmoidGanglionOFF",
             "BipolarSigmoidGanglion",
             "GangliGapPAAmacrine",
             "PAAmaGapGanglion",
@@ -156,8 +152,6 @@ conn_list = ["ImageImageBuffer",
             "PAAmacrineGanglion",
             "PAAmacrinePAAmacrine",
             "BipolarSigmoidSFAmacrine",
-            "SFAmacrineSigmoidGanglionON",
-            "SFAmacrineSigmoidGanglionOFF",
             "SFAmacrineSigmoidPAAmacrine",
             "PAAmacrineWFAmacrine",
             "WFAmacrineONSFAmacrine",
@@ -174,6 +168,8 @@ conn_lol = [ImageImageBuffer,
             SFAmacrineGapSFAmacrine,
             WFAmacrineSigmoidBipolarON,
             WFAmacrineSigmoidBipolarOFF,
+            WFAmacrineSigmoidGanglionON,
+            WFAmacrineSigmoidGanglionOFF,
             BipolarSigmoidGanglion,
             GangliGapPAAmacrine,
             PAAmaGapGanglion,
@@ -181,8 +177,6 @@ conn_lol = [ImageImageBuffer,
             PAAmacrineGanglion,
             PAAmacrinePAAmacrine,
             BipolarSigmoidSFAmacrine,
-            SFAmacrineSigmoidGanglionON,
-            SFAmacrineSigmoidGanglionOFF,
             SFAmacrineSigmoidPAAmacrine,
             PAAmacrineWFAmacrine,
             WFAmacrineONSFAmacrine,
@@ -369,8 +363,8 @@ for num_steps in num_steps_list:
                 if len(zero_index)>0:
                     if nonZeroStrength[zero_index[0]]:
                         enable = True
-            elif 'KernelConn "SFAmacrineSigmoidToGanglionON"' in line and SFAmacrineSigmoid==1 and GanglionON==1:
-                zero_index = [idx for idx, enum in enumerate([param in 'SFAmacrineSigmoidGanglionON' for param in conn_list]) if enum==True]
+            elif 'KernelConn "WFAmacrineSigmoidONToGanglionON"' in line and WFAmacrineSigmoidON==1 and GanglionON==1:
+                zero_index = [idx for idx, enum in enumerate([param in 'WFAmacrineSigmoidGanglionON' for param in conn_list]) if enum==True]
                 if len(zero_index)>0:
                     if nonZeroStrength[zero_index[0]]:
                         enable = True
@@ -444,8 +438,8 @@ for num_steps in num_steps_list:
                 if len(zero_index)>0:
                     if nonZeroStrength[zero_index[0]]:
                         enable = True
-            elif 'KernelConn "SFAmacrineSigmoidToGanglionOFF"' in line and SFAmacrineSigmoid==1 and GanglionOFF==1:
-                zero_index = [idx for idx, enum in enumerate([param in 'SFAmacrineSigmoidGanglionOFF' for param in conn_list]) if enum==True]
+            elif 'KernelConn "WFAmacrineSigmoidOFFToGanglionOFF"' in line and WFAmacrineSigmoidOFF==1 and GanglionOFF==1:
+                zero_index = [idx for idx, enum in enumerate([param in 'WFAmacrineSigmoidGanglionOFF' for param in conn_list]) if enum==True]
                 if len(zero_index)>0:
                     if nonZeroStrength[zero_index[0]]:
                         enable = True
