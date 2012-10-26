@@ -49,7 +49,7 @@ int LCALIFLateralKernelConn::initialize(const char * name, HyPerCol * hc, HyPerL
    }
    integratedSpikeCount = (float *) malloc(pre->getNumExtended() * sizeof(float));
    for (int k=0; k<pre->getNumExtended(); k++) {
-      integratedSpikeCount[k] = getTargetRateKHz(); // Spike counts initialized to target rate
+      integratedSpikeCount[k] = integrationTimeConstant*getTargetRateKHz(); // Spike counts initialized to equilibrium value
    }
    return status;
 }
@@ -67,8 +67,7 @@ int LCALIFLateralKernelConn::update_dW(int axonId) {
    int numKernelIndices = getNumDataPatches();
    updateIntegratedSpikeCount();
    float target_rate_sq = getTargetRateKHz()*getTargetRateKHz();
-   float integration_time_constant_sq = integrationTimeConstant * integrationTimeConstant;
-   float dt = parent->getDeltaTime();
+   float dt = (float) parent->getDeltaTime();
    float tauINH = getInhibitionTimeConstant();
    const pvdata_t * preactbuf = integratedSpikeCount;
    const pvdata_t * postactbuf = integratedSpikeCount;
@@ -78,7 +77,7 @@ int LCALIFLateralKernelConn::update_dW(int axonId) {
    for(int kExt=0; kExt<nExt;kExt++) {
       PVPatch * weights = getWeights(kExt,axonId);
       size_t offset = getAPostOffset(kExt, axonId);
-      pvdata_t preact = preactbuf[kExt];
+      pvdata_t preactrate = preactbuf[kExt]/integrationTimeConstant;
       int ny = weights->ny;
       int nk = weights->nx * nfp;
       pvdata_t * dwdata = get_dwData(axonId, kExt);
@@ -88,8 +87,8 @@ int LCALIFLateralKernelConn::update_dW(int axonId) {
          for( int k=0; k<nk; k++ ) {
             int postactindex = offset+lineoffseta+k;
             if (postactindex != kExt) { // Neurons don't inhibit themselves
-               pvdata_t postact = postactbuf[postactindex];
-               pvdata_t dw = dt/tauINH*(preact*postact/integration_time_constant_sq-target_rate_sq)/target_rate_sq;
+               pvdata_t postactrate = postactbuf[postactindex]/integrationTimeConstant;
+               pvdata_t dw = preactrate*postactrate-target_rate_sq;
                dwdata[lineoffsetw + k] += dw;
             }
          }
@@ -98,14 +97,15 @@ int LCALIFLateralKernelConn::update_dW(int axonId) {
       }
    }
 
-   // Divide by (numNeurons/numKernels)
+   // Normalize by dt/tauINH/(targetrate^2) and divide by (numNeurons/numKernels)
    int divisor = pre->getNumNeurons()/numKernelIndices;
+   float normalizer = dt/tauINH/target_rate_sq/divisor;
    assert( divisor*numKernelIndices == pre->getNumNeurons() );
    for( int kernelindex=0; kernelindex<numKernelIndices; kernelindex++ ) {
       int numpatchitems = nxp*nyp*nfp;
       pvdata_t * dwpatchdata = get_dwDataHead(axonId,kernelindex);
       for( int n=0; n<numpatchitems; n++ ) {
-         dwpatchdata[n] /= divisor;
+         dwpatchdata[n] *= normalizer;
       }
    }
 
@@ -116,14 +116,11 @@ int LCALIFLateralKernelConn::update_dW(int axonId) {
 
 int LCALIFLateralKernelConn::updateWeights(int axonId) {
    if (plasticityFlag) {
-      for (int kPre=0; kPre<getNumWeightPatches(); kPre++) {
-         const PVPatch * p = getWeights(kPre, axonId);
-         pvdata_t * dw_data = get_dwData(axonId,kPre);
-         pvdata_t * w_data = get_wData(axonId,kPre);
-         int nx = p->nx;
-         int ny = p->ny;
-         for (int y=0; y<ny; y++) {
-            for (int x=0; x<nx; x++) {
+      for (int kernel=0; kernel<getNumDataPatches(); kernel++) {
+         pvdata_t * dw_data = get_dwDataHead(axonId,kernel);
+         pvdata_t * w_data = get_wDataHead(axonId,kernel);
+         for (int y=0; y<nyp; y++) {
+            for (int x=0; x<nxp; x++) {
                for (int f=0; f<nfp; f++) {
                   int idx = sxp*x + syp*y + sfp*f;
                   pvdata_t w = w_data[idx] + dw_data[idx];
