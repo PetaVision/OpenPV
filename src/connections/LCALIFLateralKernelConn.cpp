@@ -67,6 +67,7 @@ int LCALIFLateralKernelConn::update_dW(int axonId) {
    int numKernelIndices = getNumDataPatches();
    updateIntegratedSpikeCount();
    float target_rate_sq = getTargetRateKHz()*getTargetRateKHz();
+   float integration_time_constant_sq = integrationTimeConstant * integrationTimeConstant;
    float dt = parent->getDeltaTime();
    float tauINH = getInhibitionTimeConstant();
    const pvdata_t * preactbuf = integratedSpikeCount;
@@ -80,14 +81,17 @@ int LCALIFLateralKernelConn::update_dW(int axonId) {
       pvdata_t preact = preactbuf[kExt];
       int ny = weights->ny;
       int nk = weights->nx * nfp;
-      const pvdata_t * postactRef = &postactbuf[offset];
       pvdata_t * dwdata = get_dwData(axonId, kExt);
       int lineoffsetw = 0;
       int lineoffseta = 0;
       for( int y=0; y<ny; y++ ) {
          for( int k=0; k<nk; k++ ) {
-            pvdata_t postact = postactRef[lineoffseta+k];
-            dwdata[lineoffsetw + k] += dt/tauINH*(preact*postact-target_rate_sq)/target_rate_sq;
+            int postactindex = offset+lineoffseta+k;
+            if (postactindex != kExt) { // Neurons don't inhibit themselves
+               pvdata_t postact = postactbuf[postactindex];
+               pvdata_t dw = dt/tauINH*(preact*postact/integration_time_constant_sq-target_rate_sq)/target_rate_sq;
+               dwdata[lineoffsetw + k] += dw;
+            }
          }
          lineoffsetw += syp;
          lineoffseta += sya;
