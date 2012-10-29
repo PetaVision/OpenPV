@@ -26,6 +26,7 @@ protected:
                   const char * filename,
                   InitWeights *weightInit=NULL);
 private:
+   int initialize_base();
    virtual int initNormalize();
    bool initNormalizeFlag;
 

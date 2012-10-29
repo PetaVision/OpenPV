@@ -16,6 +16,7 @@ namespace PV {
 
 GapConn::GapConn()
 {
+   initialize_base();
 }
 
 GapConn::GapConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
@@ -28,11 +29,16 @@ GapConn::~GapConn()
 {
 }
 
+int GapConn::initialize_base(){
+   initNormalizeFlag = false;
+   return PV_SUCCESS;
+}
+
 int GapConn::initialize(const char * name, HyPerCol * hc,
                HyPerLayer * pre, HyPerLayer * post,
                const char * filename,
                InitWeights *weightInit){
-   initNormalizeFlag = false;
+   initialize_base();
    return KernelConn::initialize(name, hc, pre, post, filename, weightInit);
 }
 
