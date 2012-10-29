@@ -183,6 +183,9 @@ int OjaConnProbe::outputState(double timef)
    }
    fprintf(fp, "\n");
    fflush(fp);
+   free(preStdpTrs);
+   free(preOjaTrs);
+   free(preWeights);
 
    return PV_SUCCESS;
 }
