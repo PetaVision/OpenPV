@@ -119,7 +119,7 @@ SFAmacrineGapSFAmacrine      = ["%g" % x for x in frange(1,0,0)]     # SFAmacrin
 SFAmacrineSigmoidPAAmacrine  = ["%g" % x for x in frange(2,0,0)]     #
                                                                      
 WFAmacrineSigmoidBipolarON   = ["%g" % x for x in frange(0.10,0,0)]  # WFAmacrineSigmoidON to Bipolar
-WFAmacrineSigmoidBipolarOFF  = ["%g" % x for x in frange(0.5,0,0)]   # WFAmacrineSigmoidOFF to Bipolar
+WFAmacrineSigmoidBipolarOFF  = ["%g" % x for x in frange(0.10,0,0)]   # WFAmacrineSigmoidOFF to Bipolar
 WFAmacrineONSFAmacrine       = ["%g" % x for x in frange(4,0,0)]     # WFAmacrineON to SFAmacrine
 WFAmacrineOFFSFAmacrine      = ["%g" % x for x in frange(4,0,0)]     # WFAmacrineOFF to SFAmacrine
 WFAmacrineSigmoidGanglionON  = ["%g" % x for x in frange(1,0,0)]     # WFAmacrineSigmoidON to GanglionON
@@ -127,7 +127,7 @@ WFAmacrineSigmoidGanglionOFF = ["%g" % x for x in frange(1,0,0)]     # WFAmacrin
                                                                      
 PAAmacrineWFAmacrine         = ["%g" % x for x in frange(4,0,0)]     # PAAmacrine to WFAmacrine
 PAAmacrineGapPAAmacrine      = ["%g" % x for x in frange(1.5,0,0)]   # PAAmacrineGap to PAAmacrine
-PAAmacrinePAAmacrine         = ["%g" % x for x in frange(3,0,0)]     #
+PAAmacrinePAAmacrine         = ["%g" % x for x in frange(1.5,0,0)]     #
 PAAmacrineGapGanglion        = ["%g" % x for x in frange(1.5,0,0)]   # PAAmacrineGap to Ganglion
 PAAmacrineGanglion           = ["%g" % x for x in frange(6,0,0)]     #
                                                                      

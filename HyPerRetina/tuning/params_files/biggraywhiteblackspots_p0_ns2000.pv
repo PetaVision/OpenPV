@@ -1491,7 +1491,7 @@ KernelConn "WFAmacrineSigmoidOFFToBipolarOFF" = {        // 4
 
     weightInitType         = "Gauss2DWeight";
     normalize              = 1;           //  
-    strength               = 0.5; 
+    strength               = 0.1; 
     normalize_max          = 0.0;         // all flags zero means it normalize total integrated output
     normalize_zero_offset  = 0.0;         //
     normalize_cutoff       = 0.0;         //
@@ -1798,7 +1798,7 @@ KernelConn "PAAmacrineONToPAAmacrineON" = {        // 10
 
     weightInitType         = "Gauss2DWeight";
     normalize              = 1;           //  
-    strength               = 3; 
+    strength               = 1.5; 
     normalize_max          = 0.0;         // all flags zero means it normalize total integrated output
     normalize_zero_offset  = 0.0;         //
     normalize_cutoff       = 0.0;         //
@@ -1832,7 +1832,7 @@ KernelConn "PAAmacrineOFFToPAAmacrineOFF" = {   // 10 self shut down
 
     weightInitType         = "Gauss2DWeight";
     normalize              = 1;           //  
-    strength               = 3; 
+    strength               = 1.5; 
     normalize_max          = 0.0;         // all flags zero means it normalize total integrated output
     normalize_zero_offset  = 0.0;         //
     normalize_cutoff       = 0.0;         //
