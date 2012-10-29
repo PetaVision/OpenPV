@@ -9,7 +9,7 @@ HyPerCol "column" = {
 
 //   randomSeed                  = 1020304050.0; // remove when running for real
 
-   numSteps                    = 100;			// amount of time steps performed during run-time
+   numSteps                    = 200;			// amount of time steps performed during run-time
    progressStep                = 50;
    writeProgressToErr          = 0;        // write progress steps to std err
 
@@ -17,9 +17,9 @@ HyPerCol "column" = {
 
    filenamesContainLayerNames  = 2; 			// stores pvp files as: 1 = layer number/2 = layer number and layer name/3 = layer name
 
-   checkpointRead               = false;
-   //checkpointReadDir          = "~/workspace/iHouse/denseOutput/checkpoints";
-   //checkpointReadDirIndex     = 300000;
+   checkpointRead               = true;
+   checkpointReadDir            = "/Users/slundquist/Documents/workspace/iHouse/checkpoints";
+   checkpointReadDirIndex       = 100;
    checkpointWrite              = true;
    deleteOlderCheckpoints       = false;
    checkpointWriteDir           = "/Users/slundquist/Documents/workspace/iHouse/checkpoints";
@@ -524,22 +524,22 @@ LCALIFLateralConn "lcalif lateral inhibition" = {
 // Probes Probes Probes Probes Probes Probes Probes Probes Probes Probes Probes
 ////////////////////////////////////////////////////////////////////////////////
 
-//OjaConnProbe "Oja_ON_Probe" = {
-//    targetConnection = "RetinaONtoLif";
-//    probeOutputFile  = "retONtoLif.txt";
-//    msg              = "OjaON";
-//    isPostProbe      = true;
-//    kxPost           = 100; //About half way in
-//    kyPost           = 100; //About half way in
-//    kfPost           = 1;  //About half way in (1 feature)
-//};
-//
-//OjaConnProbe "Oja_OFF_Probe" = {
-//    targetConnection = "RetinaOFFtoLif";
-//    probeOutputFile  = "retOFFtoLif.txt";
-//    msg              = "OjaOFF";
-//    isPostProbe      = true;
-//    kxPost           = 100; //About half way in
-//    kyPost           = 100; //About half way in
-//    kfPost           = 1;  //About half way in (1 feature)
-//};
+OjaConnProbe "Oja_ON_Probe" = {
+    targetConnection = "RetinaONtoLif";
+    probeOutputFile  = "retONtoLif.txt";
+    msg              = "OjaON";
+    isPostProbe      = true;
+    kxPost           = 100; //About half way in
+    kyPost           = 100; //About half way in
+    kfPost           = 1;  //About half way in (1 feature)
+};
+
+OjaConnProbe "Oja_OFF_Probe" = {
+    targetConnection = "RetinaOFFtoLif";
+    probeOutputFile  = "retOFFtoLif.txt";
+    msg              = "OjaOFF";
+    isPostProbe      = true;
+    kxPost           = 100; //About half way in
+    kyPost           = 100; //About half way in
+    kfPost           = 1;  //About half way in (1 feature)
+};
