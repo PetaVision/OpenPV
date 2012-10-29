@@ -141,10 +141,14 @@ int OjaConnProbe::outputState(double timef)
    fprintf(fp, " poOjaTr=%-6.3f",postOjaTr);
    fprintf(fp, " poIntTr=%-6.3f",postIntTr);
    fprintf(fp, " ampLTD=%-6.3f",ampLTD);
-   for (int weightIdx=0; weightIdx < numArbors*numPostPOVPatch; weightIdx++) {
-      fprintf(fp, " prStdpTr%d=%-6.3f",weightIdx,preStdpTrs[weightIdx]);
-      fprintf(fp, " prOjaTr%d=%-6.3f",weightIdx,preOjaTrs[weightIdx]);
-      fprintf(fp, " weight%d=%-6.3f",weightIdx,preWeights[weightIdx]);
+   int weightIdx = 0;
+   for (int arborID=0; arborID < numArbors; arborID++) {
+      for (int patchID=0; patchID < numPostPOVPatch; patchID++) {
+         fprintf(fp, " prStdpTr%d_%d=%-6.3f",arborID,patchID,preStdpTrs[weightIdx]);
+         fprintf(fp, " prOjaTr%d_%d=%-6.3f",arborID,patchID,preOjaTrs[weightIdx]);
+         fprintf(fp, " weight%d_%d=%-6.3f",arborID,patchID,preWeights[weightIdx]);
+         weightIdx++;
+      }
    }
    fprintf(fp, "\n");
    fflush(fp);
