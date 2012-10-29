@@ -27,6 +27,18 @@
 #endif
 
 inline
+float LCALIF_tauInf(const float tau, const float G_E, const float G_I, const float G_IB, const float sum_gap) {
+   return tau/(1+G_E+G_I+G_IB+sum_gap);
+}
+
+inline
+float LCALIF_VmemInf(const float Vrest, const float V_E, const float V_I, const float V_B, const float G_E, const float G_I, const float G_B, const float G_gap, const float sumgap) {
+   return (Vrest + V_E*G_E + V_I*G_I + V_B*G_B + G_gap)/(1+G_E+G_I+G_B+sumgap);
+}
+
+// The commented-out code below is only used for the Heun's method integration, which works very poorly when the equation is stiff.
+/*
+inline
 float LIFGap_Vmem_derivative(
       const float Vmem,
       const float G_E,
@@ -43,6 +55,7 @@ float LIFGap_Vmem_derivative(
    float Vmeminf = (Vrest + V_E*G_E + V_I*G_I + V_IB*G_IB + G_Gap)/totalconductance;
    return totalconductance*(Vmeminf-Vmem)/tau;
 }
+ */
 
 //
 // update the state of a LCALIF layer (spiking)
@@ -84,7 +97,9 @@ void LCALIF_update_state(
     CL_MEM_GLOBAL float * activity, 
 
     const float sum_gap,
-    CL_MEM_GLOBAL float * G_Gap)
+    CL_MEM_GLOBAL float * G_Gap,
+    CL_MEM_GLOBAL float * Vattained,
+    CL_MEM_GLOBAL float * Vmeminf)
 {
 
    // convert target rate from Hz to kHz
@@ -190,11 +205,10 @@ for (int k = 0; k < nx*ny*nf; k++) {
    }
 #endif
 
-   const float GMAX = 10.0;
+   const float GMAX = FLT_MAX;
 
    // The portion of code below uses the newer method of calculating l_V.
    float G_E_initial, G_I_initial, G_IB_initial, G_E_final, G_I_final, G_IB_final;
-   float dV1, dV2, dV;
 
    G_E_initial = l_G_E + l_GSynExc;
    G_I_initial = l_G_I + l_GSynInh;
@@ -204,16 +218,25 @@ for (int k = 0; k < nx*ny*nf; k++) {
    G_I_initial  = (G_I_initial  > GMAX) ? GMAX : G_I_initial;
    G_IB_initial = (G_IB_initial > GMAX) ? GMAX : G_IB_initial;
 
+   float totalconductance = 1.0 + G_E_initial + G_I_initial + G_IB_initial + sum_gap;
+   Vmeminf[k] = (Vrest + Vexc*G_E_initial + Vinh*G_I_initial + VinhB*G_IB_initial + l_GSynGap)/totalconductance;
+
    G_E_final = G_E_initial * decayE;
    G_I_final = G_I_initial * decayI;
    G_IB_final = G_IB_initial * decayIB;
 
    l_G_Gap = l_GSynGap;
 
-   dV1 = LIFGap_Vmem_derivative(l_V, G_E_initial, G_I_initial, G_IB_initial, l_G_Gap, Vexc, Vinh, VinhB, sum_gap, Vrest, tau);
-   dV2 = LIFGap_Vmem_derivative(l_V+dt*dV1, G_E_final, G_I_final, G_IB_final, l_G_Gap, Vexc, Vinh, VinhB, sum_gap, Vrest, tau);
-   dV = (dV1+dV2)*0.5;
-   l_V = l_V + dt*dV;
+   float VmemInf1 = LCALIF_VmemInf(Vrest, Vexc, Vinh, VinhB, G_E_initial, G_I_initial, G_IB_initial, l_G_Gap, sum_gap);
+   float tauInf1 = LCALIF_tauInf(tau, G_E_initial, G_I_initial, G_IB_initial, l_G_Gap);
+   // float VmemInf2 = LCALIF_VmemInf(Vrest, Vexc, Vinh, VinhB, G_E_final, G_I_final, G_IB_final, l_G_Gap, sum_gap);
+   // float tauInf2 = LCALIF_tauInf(tau, G_E_final, G_I_final, G_IB_final, l_G_Gap);
+   l_V = exp(-dt/tauInf1)*(l_V - VmemInf1) + VmemInf1;
+   // The commented-out code works very poorly if the equation for the membrane potential is stiff, which happens if tauInf < dt
+   // dV1 = LIFGap_Vmem_derivative(l_V, G_E_initial, G_I_initial, G_IB_initial, l_G_Gap, Vexc, Vinh, VinhB, sum_gap, Vrest, tau);
+   // dV2 = LIFGap_Vmem_derivative(l_V+dt*dV1, G_E_final, G_I_final, G_IB_final, l_G_Gap, Vexc, Vinh, VinhB, sum_gap, Vrest, tau);
+   // dV = (dV1+dV2)*0.5;
+   // l_V = l_V + dt*dV;
    
    l_G_E = G_E_final;
    l_G_I = G_I_final;
@@ -229,6 +252,7 @@ for (int k = 0; k < nx*ny*nf; k++) {
    bool fired_flag = (l_V > l_Vth);
 
    l_activ = fired_flag ? 1.0f             : 0.0f;
+   Vattained[k] = l_V; // Save the value of V before it drops due to the spike
    l_V     = fired_flag ? Vrest            : l_V;
    l_Vth   = fired_flag ? l_Vth + deltaVth : l_Vth;
    l_G_IB  = fired_flag ? l_G_IB + 1.0f    : l_G_IB;
@@ -261,7 +285,6 @@ for (int k = 0; k < nx*ny*nf; k++) {
    GSynInh[k]  = 0.0f;
    GSynInhB[k] = 0.0f;
    GSynGap[k]  = 0.0f;
-   
 
 #ifndef PV_USE_OPENCL
    } // loop over k

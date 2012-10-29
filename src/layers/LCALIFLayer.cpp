@@ -64,7 +64,9 @@ void LCALIF_update_state(
    CL_MEM_GLOBAL float * activity,
 
    const float sum_gap,
-   CL_MEM_GLOBAL float * G_Gap
+   CL_MEM_GLOBAL float * G_Gap,
+   CL_MEM_GLOBAL float * Vattained,
+   CL_MEM_GLOBAL float * Vmeminf
 );
 #ifdef __cplusplus
 }
@@ -129,6 +131,10 @@ int LCALIFLayer::allocateBuffers() {
    assert(integratedSpikeCount != NULL);
    Vadpt = (pvdata_t *) calloc(numNeurons, sizeof(pvdata_t));
    assert(Vadpt != NULL);
+   Vattained = (pvdata_t *) calloc(numNeurons, sizeof(pvdata_t));
+   assert(Vattained != NULL);
+   Vmeminf = (pvdata_t *) calloc(numNeurons, sizeof(pvdata_t));
+   assert(Vattained != NULL);
    return LIFGap::allocateBuffers();
 }
 
@@ -137,7 +143,7 @@ int LCALIFLayer::updateState(double time, double dt)
    //Calculate_state kernel
    LCALIF_update_state(getNumNeurons(), time, dt, clayer->loc.nx, clayer->loc.ny, clayer->loc.nf,
          clayer->loc.nb, Vscale, Vadpt, tauTHR, targetRateHz, integratedSpikeCount, &lParams,
-         rand_state, clayer->V, Vth, G_E, G_I, G_IB, GSyn[0], clayer->activity->data, sumGap, G_Gap);
+         rand_state, clayer->V, Vth, G_E, G_I, G_IB, GSyn[0], clayer->activity->data, sumGap, G_Gap, Vattained, Vmeminf);
    updateActiveIndices();
    return PV_SUCCESS;
 }
@@ -193,6 +199,14 @@ int LCALIFLayer::checkpointWrite(const char * cpDir) {
    chars_needed = snprintf(filename, PV_PATH_MAX, "%s_Vadpt.pvp", basepath);
    assert(chars_needed < PV_PATH_MAX);
    writeBufferFile(filename, icComm, timed, Vadpt, 1, /*extended*/false, /*contiguous*/false, getLayerLoc());
+
+   chars_needed = snprintf(filename, PV_PATH_MAX, "%s_Vattained.pvp", basepath);
+   assert(chars_needed < PV_PATH_MAX);
+   writeBufferFile(filename, icComm, timed, Vattained, 1, /*extended*/false, /*contiguous*/false, getLayerLoc());
+
+   chars_needed = snprintf(filename, PV_PATH_MAX, "%s_Vmeminf.pvp", basepath);
+   assert(chars_needed < PV_PATH_MAX);
+   writeBufferFile(filename, icComm, timed, Vmeminf, 1, /*extended*/false, /*contiguous*/false, getLayerLoc());
 
    return status;
 }
