@@ -263,6 +263,7 @@ public:
    virtual int setParams(PVParams* params);
    PVPatch*** convertPreSynapticWeights(double time);
    PVPatch**** point2PreSynapticWeights();
+   //PVPatch**** point2PreSynapticWeights2();
    int preSynapticPatchHead(int kxPost, int kyPost, int kfPost, int* kxPre,
          int* kyPre);
    int postSynapticPatchHead(int kPre, int* kxPostOut, int* kyPostOut,

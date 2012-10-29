@@ -45,7 +45,7 @@ public:
    float getPreOjaTr(int kex)  {return pre_oja_tr->data[kex];}
    float getAmpLTD(int k)      {return ampLTD[k];}
 
-   pvdata_t ** getPostWeights(int axonID, int kPost);
+   pvdata_t ** getPostWeightsp(int axonID, int kPost);
 
    int getNxpPost() {return nxpPost;}
    int getNypPost() {return nypPost;}

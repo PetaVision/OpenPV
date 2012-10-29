@@ -1829,6 +1829,77 @@ PVPatch *** HyPerConn::convertPreSynapticWeights(double time)
    return wPostPatches;
 }
 
+//PVPatch **** HyPerConn::point2PreSynapticWeights2(){
+//
+//   const PVLayer * lPre  = pre->getCLayer();
+//   const PVLayer * lPost = post->getCLayer();
+//
+//   //xScale is in log format, powScale is post/pre
+//   const int xScale = post->getXScale() - pre->getXScale();
+//   const int yScale = post->getYScale() - pre->getYScale();
+//   const double powXScale = pow(2.0f, (double) xScale);
+//   const double powYScale = pow(2.0f, (double) yScale);
+//
+//// fixed?
+//// TODO - fix this
+////   assert(xScale <= 0);
+////   assert(yScale <= 0);
+//
+//   const int prePad = lPre->loc.nb;
+//
+//   // pre-synaptic weights are in extended layer reference frame
+//   const int nxPre = lPre->loc.nx + 2 * prePad;
+//   const int nyPre = lPre->loc.ny + 2 * prePad;
+//   const int nfPre = lPre->loc.nf;
+//
+//   // post-synaptic weights are in restricted layer
+//   const int nxPost  = lPost->loc.nx;
+//   const int nyPost  = lPost->loc.ny;
+//   const int nfPost  = lPost->loc.nf;
+//   const int numPost = lPost->numNeurons;
+//
+//   nxpPost = (int) (nxp * powXScale);
+//   nypPost = (int) (nyp * powYScale);
+//   nfpPost = lPre->loc.nf;
+//   float z = 0;
+//
+//   // the number of features is the end-point value (normally post-synaptic)
+//   const int numPostPatch = nxpPost * nypPost * nfpPost; // Post-synaptic weights are never shrunken
+//
+//   if (wPostPatchesp == NULL) {
+//
+//      //Return data structure
+//      wPostPatchesp = (PVPatch****) calloc(numAxonalArborLists, sizeof(PVPatch***));
+//      assert(wPostPatchesp!=NULL);
+//      assert(wPostDataStartp == NULL);
+//      wPostDataStartp = (pvdata_t ***) calloc(numAxonalArborLists, sizeof(pvdata_t **));
+//      assert(wPostDataStartp!=NULL);
+//
+//      for(int axonID=0;axonID<numberOfAxonalArborLists();axonID++) {
+//
+//         wPostPatchesp[axonID] = (PVPatch***) calloc(numPost, sizeof(PVPatch**));
+//
+//         int sx = nfpPost;
+//         int sy = sx * nxpPost;
+//         int sp = sy * nypPost;
+//
+//         size_t patchSize = sp * sizeof(pvdata_t);
+//         size_t dataSize = numPost * patchSize;
+//
+//         wPostDataStartp[axonID] = (pvdata_t **) calloc(dataSize, sizeof(char*));
+//
+//
+//         PVPatch** patcharray = (PVPatch**) (calloc(numPost, sizeof(PVPatch*)));
+//         PVPatch ** curpatch = patcharray;
+//         for (int i = 0; i < numPost; i++) {
+//            wPostPatchesp[axonID][i] = curpatch;
+//            curpatch++;
+//         }
+//        //createWeights(wPostPatches, numPost, nxpPost, nypPost, nfpPost, axonID);
+//      }
+//   }
+//
+//}
 
 
 PVPatch **** HyPerConn::point2PreSynapticWeights()
@@ -1869,6 +1940,7 @@ PVPatch **** HyPerConn::point2PreSynapticWeights()
 
    if (wPostPatchesp == NULL) {
 
+      //Return data structure
       wPostPatchesp = (PVPatch****) calloc(numAxonalArborLists, sizeof(PVPatch***));
       assert(wPostPatchesp!=NULL);
       assert(wPostDataStartp == NULL);
@@ -1921,6 +1993,7 @@ PVPatch **** HyPerConn::point2PreSynapticWeights()
    //      int xShift = (ax - 1) - (kxPost + (int) (0.5f * ax)) % ax;
    //      int yShift = (ay - 1) - (kyPost + (int) (0.5f * ay)) % ay;
 
+         //Accessing by patch offset through wPostDataStart by x,y,and feature of a patch
          pvdata_t ** postData = wPostDataStartp[axonID] + nxpPost*nypPost*nfpPost*kPost + 0;
          for (int kp = 0; kp < numPostPatch; kp++) {
 

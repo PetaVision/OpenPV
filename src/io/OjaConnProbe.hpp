@@ -8,6 +8,8 @@
 #ifndef OJACONNPROBE_HPP_
 #define OJACONNPROBE_HPP_
 
+#undef POSTW_CHECK
+
 #include "BaseConnectionProbe.hpp"
 #include "../connections/OjaSTDPConn.hpp"
 #include <assert.h>
@@ -46,8 +48,10 @@ private:
    float ampLTD;
    float * preStdpTrs;
    float * preOjaTrs;
+   float * preWeightsOld;
    float * preWeights;
-   pvdata_t ** postWeights;
+   pvdata_t ** postWeightsp;
+   pvdata_t * postWeights;
 
 };
 } // end namespace PV

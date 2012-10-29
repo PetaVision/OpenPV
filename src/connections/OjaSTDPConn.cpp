@@ -388,7 +388,7 @@ int OjaSTDPConn::updateWeights(int arborID)
    return 0;
 }
 
-pvdata_t ** OjaSTDPConn::getPostWeights(int arborID, int kPost) {
+pvdata_t ** OjaSTDPConn::getPostWeightsp(int arborID, int kPost) {
    const int numPostPatch = nxpPost * nypPost * nfpPost; // Post-synaptic weights are never shrunken
    pvdata_t ** postData = wPostDataStartp[arborID] + numPostPatch*kPost + 0;
 

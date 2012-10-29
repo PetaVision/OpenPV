@@ -88,6 +88,7 @@ int LCALIFLateralConn::calc_dW(int axonId) {
       for (int ky_patch=0; ky_patch<ny_patch; ky_patch++) {
          for (int kx_patch=0; kx_patch<nx_patch; kx_patch++) {
             for (int kf_patch=0; kf_patch<nfp; kf_patch++) {
+               //Calculate indicies of post weights
                int kPost_restricted = start_index_restricted + sy_restricted*ky_patch + sx_restricted*kx_patch + sf*kf_patch;
                int kPost_extended = kIndexExtended(kPost_restricted, nxpost, nypost, nfpost, nbpost);
                if (kPost_extended != kPre_extended) {
