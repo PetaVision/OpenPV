@@ -37,26 +37,13 @@ int Image::initialize_base() {
    filename = NULL;
    imageData = NULL;
    useImageBCflag = false;
+   writeImages = false;
+   inverseFlag = false;
+   normalizeLuminanceFlag = false;
+   offsetX = 0;
+   offsetY = 0;
    return PV_SUCCESS;
 }
-
-int Image::checkpointRead(const char * cpDir, double * timef){
-
-   PVParams * params = parent->parameters();
-   this->useParamsImage      = (int) params->value(name,"useParamsImage", 0);
-   if (this->useParamsImage) {
-      fprintf(stderr,"Initializing image from params file location ! \n");
-      * timef = parent->simulationTime(); // fakes the pvp time stamp
-   }
-   else {
-      fprintf(stderr,"Initializing image from checkpoint NOT from params file location! \n");
-      HyPerLayer::checkpointRead(cpDir, timef);
-   }
-
-
-   return PV_SUCCESS;
-}
-
 
 int Image::initialize(const char * name, HyPerCol * hc, const char * filename) {
    HyPerLayer::initialize(name, hc, 0);
@@ -67,10 +54,10 @@ int Image::initialize(const char * name, HyPerCol * hc, const char * filename) {
    int status = PV_SUCCESS;
 
    PVParams * params = parent->parameters();
-   this->writeImages = params->value(name, "writeImages", 0) != 0;
-   this->useImageBCflag = (bool) params->value(name, "useImageBCflag", 0);
-   this->inverseFlag = (bool) params->value(name, "inverseFlag", 0);
-   this->normalizeLuminanceFlag = (bool) params->value(name, "normalizeLuminanceFlag", 0);
+   this->writeImages = params->value(name, "writeImages", writeImages) != 0;
+   this->useImageBCflag = (bool) params->value(name, "useImageBCflag", useImageBCflag);
+   this->inverseFlag = (bool) params->value(name, "inverseFlag", inverseFlag);
+   this->normalizeLuminanceFlag = (bool) params->value(name, "normalizeLuminanceFlag", normalizeLuminanceFlag);
    readOffsets();
 
    GDALColorInterp * colorbandtypes = NULL;
@@ -113,8 +100,8 @@ int Image::initialize(const char * name, HyPerCol * hc, const char * filename) {
 int Image::readOffsets() {
    PVParams * params = parent->parameters();
 
-   this->offsetX      = (int) params->value(name,"offsetX", 0);
-   this->offsetY      = (int) params->value(name,"offsetY", 0);
+   this->offsetX      = (int) params->value(name,"offsetX", offsetX);
+   this->offsetY      = (int) params->value(name,"offsetY", offsetY);
 
    return PV_SUCCESS;
 }
@@ -182,6 +169,28 @@ int Image::outputState(double time, bool last)
    //
    return 0;
 }
+
+
+
+int Image::checkpointRead(const char * cpDir, double * timef){
+
+   PVParams * params = parent->parameters();
+   this->useParamsImage      = (int) params->value(name,"useParamsImage", 0);
+   if (this->useParamsImage) {
+      fprintf(stderr,"Initializing image from params file location ! \n");
+      * timef = parent->simulationTime(); // fakes the pvp time stamp
+   }
+   else {
+      fprintf(stderr,"Initializing image from checkpoint NOT from params file location! \n");
+      HyPerLayer::checkpointRead(cpDir, timef);
+   }
+
+
+   return PV_SUCCESS;
+}
+
+
+
 
 //! CLEAR IMAGE
 /*!
