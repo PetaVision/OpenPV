@@ -52,7 +52,7 @@ int OjaSTDPConn::initialize_base() {
    this->tauTHR         = 1000;
    this->tauO           = 1/targetRateHz;
 
-   this->wMin           = 0.0001;
+   this->wMin           = 0.0001f;
    this->wMax           = 1;
 
    this->ojaFlag        = true;
@@ -86,8 +86,8 @@ int OjaSTDPConn::initialize(const char * name, HyPerCol * hc,
    //allocate ampLTD and set to initial value
    //Restricted post
    ampLTD = (float *) calloc(post->getNumNeurons(), sizeof(float));
-   for (int k = 0; k < post->getNumNeurons(); k++) {
-      ampLTD[k] = initAmpLTD;
+   for (int kRes = 0; kRes < post->getNumNeurons(); kRes++) {
+      ampLTD[kRes] = initAmpLTD;
    }
 
    //set LTDscale param (should default to ampLTP
@@ -158,14 +158,14 @@ int OjaSTDPConn::initPlasticityPatches()
 
    int numPost = post_stdp_tr->numItems;
    int numPre  = pre_stdp_tr->numItems;
-   for (int kPost = 0; kPost < numPost; kPost++) {
-      post_stdp_tr->data[kPost] = tauLTD * targetRateHz/1000;
-      post_oja_tr->data[kPost]  = tauOja * targetRateHz/1000;
-      post_int_tr->data[kPost]  = tauO   * targetRateHz/1000;
+   for (int kPostRes = 0; kPostRes < numPost; kPostRes++) {
+      post_stdp_tr->data[kPostRes] = tauLTD * targetRateHz/1000;
+      post_oja_tr->data[kPostRes]  = tauOja * targetRateHz/1000;
+      post_int_tr->data[kPostRes]  = tauO   * targetRateHz/1000;
    }
-   for (int kexPre = 0; kexPre < numPre; kexPre++) {
-      pre_stdp_tr->data[kexPre] = tauLTP * targetRateHz/1000;
-      pre_oja_tr->data[kexPre]  = tauOja * targetRateHz/1000;
+   for (int kPreExt = 0; kPreExt < numPre; kPreExt++) {
+      pre_stdp_tr->data[kPreExt] = tauLTP * targetRateHz/1000;
+      pre_oja_tr->data[kPreExt]  = tauOja * targetRateHz/1000;
    }
 
    return PV_SUCCESS;
@@ -319,23 +319,23 @@ int OjaSTDPConn::updateWeights(int arborID)
 
       //3. Update weights
       for (int y = 0; y < ny; y++) {
-         for (int kPatch = 0; kPatch < nk; kPatch++) {
+         for (int kPatchLoc = 0; kPatchLoc < nk; kPatchLoc++) {
 
             // See LCA_Equations.pdf in documentation for description of Oja (feed-forward weight adaptation) equations.
             float ojaTerm;
             if (ojaFlag) {
-               ojaTerm = post_oja_tr_m[kPatch] * ((*pre_oja_tr_m) - W[kPatch] * post_oja_tr_m[kPatch]);
+               ojaTerm = post_oja_tr_m[kPatchLoc] * ((*pre_oja_tr_m) - W[kPatchLoc] * post_oja_tr_m[kPatchLoc]);
                assert(ojaTerm == ojaTerm); // Make sure it is not NaN (only happens if tauOja is 0)
             } else { //should just be standard STDP at this point
               ojaTerm = 1.0;
             }
 
-            W[kPatch] += scaleFactor *
-              (ojaTerm * ampLTP * aPost[kPatch] * (*pre_stdp_tr_m) - ampLTD_m[kPatch] * aPre * post_stdp_tr_m[kPatch] - weightDecay * W[kPatch]);
+            W[kPatchLoc] += scaleFactor *
+              (ojaTerm * ampLTP * aPost[kPatchLoc] * (*pre_stdp_tr_m) - ampLTD_m[kPatchLoc] * aPre * post_stdp_tr_m[kPatchLoc] - weightDecay * W[kPatchLoc]);
 
-            W[kPatch] = W[kPatch] < wMin ? wMin : W[kPatch]; // Stop weights from going all the way to 0
+            W[kPatchLoc] = W[kPatchLoc] < wMin ? wMin : W[kPatchLoc]; // Stop weights from going all the way to 0
             if (!ojaFlag) { //oja term should get rid of the need to impose a maximum weight
-               W[kPatch] = W[kPatch] > wMax ? wMax : W[kPatch];
+               W[kPatchLoc] = W[kPatchLoc] > wMax ? wMax : W[kPatchLoc];
             }
          }
 
