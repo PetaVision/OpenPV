@@ -9,7 +9,7 @@ HyPerCol "column" = {
 
 //   randomSeed                  = 1020304050.0; // remove when running for real
 
-   numSteps                    = 2000000;			// amount of time steps performed during run-time
+   numSteps                    = 2010000;			// amount of time steps performed during run-time
    progressStep                = 5000;
    writeProgressToErr          = 0;        // write progress steps to std err
 
@@ -19,7 +19,7 @@ HyPerCol "column" = {
 
    checkpointRead               = true;
    checkpointReadDir            = "~/workspace/iHouse/denseOutput/checkpoints";
-   checkpointReadDirIndex       = 1500000;
+   checkpointReadDirIndex       = 2000000;
    checkpointWrite              = true;
    deleteOlderCheckpoints       = false;
    checkpointWriteDir           = "~/workspace/iHouse/denseOutput/checkpoints";
@@ -383,7 +383,7 @@ OjaSTDPConn "RetinaONtoLif" = {
    
    initFromLastFlag       = 0; 
    
-   writeStep              = 100000;
+   writeStep              = 1000;
    
    ampLTP                 = 1; 
    initAmpLTD             = 1;    // (ms)
@@ -414,7 +414,7 @@ OjaSTDPConn "RetinaONtoLif" = {
    
    combine_dW_with_W_flag = false;
    selfFlag               = false;
-   plasticityFlag         = true;
+   plasticityFlag         = false;
    shrinkPatches          = false;
    writeCompressedWeights = 0.0;
    stochasticReleaseFlag  = false;
@@ -438,7 +438,7 @@ OjaSTDPConn "RetinaOFFtoLif" = {
    
    initFromLastFlag       = 0;  // 1;  /dr/ restart
    
-   writeStep              = 100000;
+   writeStep              = 1000;
    
    ampLTP                 = 1;    // (ms)
    initAmpLTD             = 1;    // (ms)
@@ -469,7 +469,7 @@ OjaSTDPConn "RetinaOFFtoLif" = {
    
    combine_dW_with_W_flag = false;
    selfFlag               = false;
-   plasticityFlag         = true;
+   plasticityFlag         = false;
    shrinkPatches          = false;
    writeCompressedWeights = 0.0;
    stochasticReleaseFlag  = false;
@@ -491,8 +491,8 @@ LCALIFLateralConn "lcalif lateral inhibition" = {
     nyp = 21;
     nfp = 1;
     
-    integrationTimeConstant = 300;
-    inhibitionTimeConstant  = 1000;
+    integrationTimeConstant = 30000;
+    inhibitionTimeConstant  = 200000;
     targetRate              = 2;
 
     numAxonalArbors = 1;
@@ -506,7 +506,7 @@ LCALIFLateralConn "lcalif lateral inhibition" = {
     preActivityIsNotRate = false;
 
     writeCompressedWeights = false;
-    plasticityFlag = true;
+    plasticityFlag = false;
     selfFlag = false;
 
     delay = 0;

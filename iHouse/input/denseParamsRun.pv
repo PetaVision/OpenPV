@@ -9,7 +9,7 @@ HyPerCol "column" = {
 
 //   randomSeed                  = 1020304050.0; // remove when running for real
 
-   numSteps                    = 1500000;			// amount of time steps performed during run-time
+   numSteps                    = 2000000;			// amount of time steps performed during run-time
    progressStep                = 5000;
    writeProgressToErr          = 0;        // write progress steps to std err
 
@@ -491,8 +491,8 @@ LCALIFLateralConn "lcalif lateral inhibition" = {
     nyp = 21;
     nfp = 1;
     
-    integrationTimeConstant = 300;
-    inhibitionTimeConstant  = 1000;
+    integrationTimeConstant = 30000;
+    inhibitionTimeConstant  = 200000;
     targetRate              = 2;
 
     numAxonalArbors = 1;
