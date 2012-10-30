@@ -166,11 +166,6 @@ int LCALIFLateralKernelConn::checkpointRead(const char * cpDir, double * timef) 
    double timed;
    PVLayerLoc loc;
    memcpy(&loc, pre->getLayerLoc(), sizeof(PVLayerLoc));
-   loc.nx += 2*loc.nb;
-   loc.ny += 2*loc.nb;
-   loc.nxGlobal = loc.nx * parent->icCommunicator()->numCommColumns();
-   loc.nyGlobal = loc.ny * parent->icCommunicator()->numCommRows();
-   loc.nb = 0;
    read_pvdata(filename, parent->icCommunicator(), &timed, integratedSpikeCount, &loc, PV_FLOAT_TYPE, /*extended*/ false, /*contiguous*/ false);
    if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
       fprintf(stderr, "Warning: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
