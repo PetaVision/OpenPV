@@ -136,7 +136,7 @@ int Patterns::initialize(const char * name, HyPerCol * hc, PatternType type) {
       }
 
       if(dropPosition == -1){
-         nextPosChangeFrame = nextDropFrame + dropPositionRandomMin + (dropPositionRandomMax - dropPositionRandomMin) * pv_random_prob();
+         nextPosChangeFrame = nextDropFrame + dropPositionRandomMin + floor((dropPositionRandomMax - dropPositionRandomMin) * pv_random_prob());
          xPos = (int)floor(loc->nxGlobal * pv_random_prob());
          yPos = (int)floor(loc->nyGlobal * pv_random_prob());
       }
@@ -588,7 +588,7 @@ int Patterns::drawDrops() {
       Drop newDrop;
       //Random drop speed
       if(dropSpeed == -1){
-         newDrop.speed = dropSpeedRandomMin + floor((dropSpeedRandomMax - dropSpeedRandomMin) * pv_random_prob());
+         newDrop.speed = dropSpeedRandomMin + (dropSpeedRandomMax - dropSpeedRandomMin) * pv_random_prob();
       }
       else{
          newDrop.speed = dropSpeed;
