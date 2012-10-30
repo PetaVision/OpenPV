@@ -9,7 +9,7 @@
 #define CLIQUELAYER_H_
 
 #include "../columns/HyPerCol.hpp"
-#include "../connections/HyPerConn.hpp"
+//#include "../connections/HyPerConn.hpp"
 #include "ANNLayer.hpp"
 
 
