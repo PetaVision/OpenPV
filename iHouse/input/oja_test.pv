@@ -15,28 +15,28 @@ HyPerCol "column" = {
    writeProgressToErr           = 0;       // write progress steps to std err
                                            // 
    //outputPath                 = "~/Documents/workspace/iHouse/output";
-   outputPath                   = "~/Documents/Work/LANL/workspace/iHouse/output"; //Dylan's Mac
-   //outputPath                   = "~/workspace/iHouse/output"; //Dylan's Neuro
+   //outputPath                   = "~/Documents/Work/LANL/workspace/iHouse/output"; //Dylan's Mac
+   outputPath                   = "~/workspace/iHouse/output"; //Dylan's Neuro
                                            // 
    filenamesContainLayerNames   = 2;       // stores pvp files as: 0 = layer number/1 = layer number and layer name/2 = layer name
                                            // 
    checkpointRead               = false;
    //checkpointReadDir            = "~/Documents/workspace/iHouse/checkpoints";
-   checkpointReadDir            = "~/Documents/Work/LANL/workspace/iHouse/checkpoints"; //Dylan's Mac
-   //checkpointReadDir            = "~/workspace/iHouse/checkpoints"; //Dylan's Neuro
+   //checkpointReadDir            = "~/Documents/Work/LANL/workspace/iHouse/checkpoints"; //Dylan's Mac
+   checkpointReadDir            = "~/workspace/iHouse/checkpoints"; //Dylan's Neuro
    checkpointReadDirIndex       = 3000000;
                                            //
    checkpointWrite              = true;
    deleteOlderCheckpoints       = false;
    //checkpointWriteDir           = "~/Documents/workspace/iHouse/output/checkpoints";
-   checkpointWriteDir           = "~/Documents/Work/LANL/workspace/iHouse/checkpoints"; //Dylan's Mac
-   //checkpointWriteDir           = "~/workspace/iHouse/checkpoints"; //Dylan's Neuro
+   //checkpointWriteDir           = "~/Documents/Work/LANL/workspace/iHouse/checkpoints"; //Dylan's Mac
+   checkpointWriteDir           = "~/workspace/iHouse/checkpoints"; //Dylan's Neuro
    checkpointWriteStepInterval  = 1000000;
    suppressLastOutput           = 0;
                                            //
    //printParamsFilename          = "~/Documents/workspace/iHouse/output/params_run.pv";
-   printParamsFilename          = "~/Documents/Work/LANL/workspace/iHouse/output/params_run.pv"; //Dylan's Mac
-   //printParamsFilename          = "~/workspace/iHouse/output/params_run.pv"; //Dylan's Neuro
+   //printParamsFilename          = "~/Documents/Work/LANL/workspace/iHouse/output/params_run.pv"; //Dylan's Mac
+   printParamsFilename          = "~/workspace/iHouse/output/params_run.pv"; //Dylan's Neuro
 };
 
 
@@ -400,8 +400,8 @@ OjaSTDPConn "RetinaONtoLif" = {
                                    //
    ampLTP                 = 1;     // (ms)
    initAmpLTD             = 1;     // (ms)
-   tauLTP                 = 8;     // (ms)
-   tauLTD                 = 32;    // (ms)
+   tauLTP                 = 4;//8;     // (ms)
+   tauLTD                 = 8;//32;    // (ms)
    tauOja                 = 150;   // (ms)
    tauTHR                 = 5000;  // (ms) thresholdAdaptationTime
    tauO                   = 300;   // (ms)
@@ -456,8 +456,8 @@ OjaSTDPConn "RetinaOFFtoLif" = {
                                    //
    ampLTP                 = 1;     // (ms)
    initAmpLTD             = 1;     // (ms)
-   tauLTP                 = 8;     // (ms)
-   tauLTD                 = 32;    // (ms)
+   tauLTP                 = 4;//8;     // (ms)
+   tauLTD                 = 8;//32;    // (ms)
    tauOja                 = 150;   // (ms)
    tauTHR                 = 5000;  // (ms) thresholdAdaptationTime
    tauO                   = 300;   // (ms)
@@ -479,7 +479,7 @@ OjaSTDPConn "RetinaOFFtoLif" = {
    normalize              = false;
    //normalize_max          = false;
    //normalize_zero_offset  = 0.0;
-   //strength               = 0;   // Strength doesn't matter when weightInitType is UniformRandomWeight
+   //strength               = 0;     // Strength doesn't matter when weightInitType is UniformRandomWeight
    //combineWeightFiles     = false;
    //symmetrizeWeights      = 0;
                                    //
