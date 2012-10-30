@@ -92,8 +92,8 @@ int OjaConnProbe::initialize(const char * probename, const char * filename,
    int numPostPatch = nxpPost * nypPost * nfpPost; // Post-synaptic weights are never shrunken
 
    // Allocate buffers for pre info
-   preStdpTrs = (float *) calloc(numPostPatch*numArbors, sizeof(float));
-   preOjaTrs  = (float *) calloc(numPostPatch*numArbors, sizeof(float));
+   preStdpTrs    = (float *) calloc(numPostPatch*numArbors, sizeof(float));
+   preOjaTrs     = (float *) calloc(numPostPatch*numArbors, sizeof(float));
    preWeightsOld = (float *) calloc(numPostPatch*numArbors, sizeof(float));
 #ifdef POSTW_CHECK
    preWeights = (float *) calloc(numPostPatch*numArbors, sizeof(float));
