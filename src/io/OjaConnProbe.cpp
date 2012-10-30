@@ -125,36 +125,29 @@ int OjaConnProbe::outputState(double timef)
    int num_weights_in_patch = ojaConn->xPatchSize()*ojaConn->yPatchSize()*ojaConn->fPatchSize();
    int preTraceIdx = 0;
 
-   //std::cout << "Number of arbors: " << numArbors << "\n";
    for (int arborID=0; arborID < numArbors; arborID++)
    {
-      //std::cout << "Arbor: " << arborID << "\n";
       //Old way
       postWeightsp = ojaConn->getPostWeightsp(arborID,kLocal); // Pointer array full of addresses pointing to the weights for all of the preNeurons connected to the given postNeuron's receptive field
 
 #ifdef POSTW_CHECK
-      //New wqy
+      //New way
       ojaConn->convertPreSynapticWeights(timef);
       postWeights = ojaConn->getWPostData(arborID, kLocal);
 #endif
 
       float * startAdd = ojaConn->get_wDataStart(arborID);                    // Address of first preNeuron in pre layer
-      //std::cout << "Number of post patches: " << numPostPatch << "\n";
       for (int preNeuronID=0; preNeuronID<numPostPatch; preNeuronID++)
       {
-         //std::cout << "\tpreNeuronId: " << preNeuronID << "\n";
          //Old way
          float * kPreAdd = postWeightsp[preNeuronID];  // Address of first preNeuron in receptive field of postNeuron
          assert(kPreAdd != NULL);
          int kPre = (kPreAdd-startAdd) / num_weights_in_patch;
 
          assert(preTraceIdx < numArbors*numPostPatch);
-         //std::cout << "\t\tGetting postWeightsp\n";
          preWeightsOld[preTraceIdx] = *(postWeightsp[preNeuronID]); // One weight per arbor per preNeuron in postNeuron's receptive field
-         //std::cout << "\t\tGetting preStdpTr\n";
-         preStdpTrs[preTraceIdx] = ojaConn->getPreStdpTr(kPre); // Trace with STDP-related time scale (tauLTD)
-         //std::cout << "\t\tGetting preOjaTr\n";
-         preOjaTrs[preTraceIdx]  = ojaConn->getPreOjaTr(kPre);  // Trace with Oja-related time scale (tauOja)
+         preStdpTrs[preTraceIdx]    = ojaConn->getPreStdpTr(kPre); // Trace with STDP-related time scale (tauLTD)
+         preOjaTrs[preTraceIdx]     = ojaConn->getPreOjaTr(kPre);  // Trace with Oja-related time scale (tauOja)
 
 #ifdef POSTW_CHECK
          //New way
@@ -165,76 +158,42 @@ int OjaConnProbe::outputState(double timef)
             std::cout << "preTraceIdx: " << preTraceIdx << "   preWeightsOld: " << preWeightsOld[preTraceIdx] << "   preWeights: " << preWeights[preTraceIdx] << "\n";
          }
 #endif
-
          preTraceIdx++;
       }
    }
 
-   //std::cout << "Out of loop\n";
-   //std::cout << "One\n";
-   //std::cout.flush();
-   postStdpTr  = ojaConn->getPostStdpTr(kLocal);
-   //std::cout << "Two\n";
-   //std::cout.flush();
-   postOjaTr   = ojaConn->getPostOjaTr(kLocal);
-   //std::cout << "Three\n";
-   //std::cout.flush();
-   postIntTr   = ojaConn->getPostIntTr(kLocal);
-   //std::cout << "Four\n";
-   //std::cout.flush();
-   ampLTD      = ojaConn->getAmpLTD(kLocal);
-   //std::cout << "Getting file pointer\n";
-   //std::cout.flush();
+   postStdpTr = ojaConn->getPostStdpTr(kLocal);
+   postOjaTr  = ojaConn->getPostOjaTr(kLocal);
+   postIntTr  = ojaConn->getPostIntTr(kLocal);
+   ampLTD     = ojaConn->getAmpLTD(kLocal);
+
    // Write out to file
    FILE * fp = getFilePtr();
    assert(fp); // invalid pointer
 
-   //std::cout << "Getting name\n";
-   //std::cout.flush();
    const char * msg = getName(); // Message to precede the probe's output line
 
-   //std::cout << "Printing kLocal\n";
-   //std::cout.flush();
    fprintf(fp, "%s:      t=%.1f kLocal=%d", msg, timef, kLocal);
-   //std::cout << "Printing postStdpTr\n";
-   //std::cout.flush();
    fprintf(fp, " poStdpTr=%-6.3f",postStdpTr);
-   //std::cout << "Printing postOjaTr\n";
-   //std::cout.flush();
    fprintf(fp, " poOjaTr=%-6.3f",postOjaTr);
-   //std::cout << "Printing postIntTr\n";
-   //std::cout.flush();
    fprintf(fp, " poIntTr=%-6.3f",postIntTr);
-   //std::cout << "Printing ampLTD\n";
-   //std::cout.flush();
    fprintf(fp, " ampLTD=%-6.3f",ampLTD);
    int weightIdx = 0;
 
-   //std::cout << "Going through weightIdx\n";
-   //std::cout.flush();
    for (int arborID=0; arborID < numArbors; arborID++) {
       for (int patchID=0; patchID < numPostPatch; patchID++) {
-    //     std::cout << "\tweightIdx: " <<  weightIdx << "   arborID: " << arborID << "   patchID: " << patchID << "\n";
-    //     std::cout << "\tpreStdpTres\n";
-    //     std::cout.flush();
-         fprintf(fp, " prStdpTr%d_%d=%-6.3f",arborID,patchID,preStdpTrs[weightIdx]);
-    //     std::cout << "\tpreOjaTrs\n";
-    //     std::cout.flush();
-         fprintf(fp, " prOjaTr%d_%d=%-6.3f",arborID,patchID,preOjaTrs[weightIdx]);
-   //      std::cout << "\tpreWeights\n";
-   //      std::cout.flush();
+         fprintf(fp, " prStdpTr_%d_%d=%-6.3f",arborID,patchID,preStdpTrs[weightIdx]);
+         fprintf(fp, " prOjaTr_%d_%d=%-6.3f",arborID,patchID,preOjaTrs[weightIdx]);
 #ifdef POSTW_CHECK
-         fprintf(fp, " weight%d_%d=%-6.3f",arborID,patchID,preWeights[weightIdx]);
+         fprintf(fp, " weight_%d_%d=%-6.3f",arborID,patchID,preWeights[weightIdx]);
 #endif
 #ifndef POSTW_CHECK
-         fprintf(fp, " weight%d_%d=%-6.3f",arborID,patchID,preWeightsOld[weightIdx]);
+         fprintf(fp, " weight_%d_%d=%-6.3f",arborID,patchID,preWeightsOld[weightIdx]);
 #endif
 
          weightIdx++;
       }
    }
-  // std::cout << "Out of weightIdx\n";
-  // std::cout.flush();
    fprintf(fp, "\n");
    fflush(fp);
 
