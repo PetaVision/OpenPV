@@ -3,6 +3,76 @@
 %% clip_name stores the directories that contain the individual frames
 FLAVOR_ID = "Training"; %%   "Formative"; %%   "Challenge"; %% 
 disp(["FLAVOR_ID = ", FLAVOR_ID]);
+<<<<<<< HEAD
+clip_flag = true; %% false; %%   
+mask_flag = ~clip_flag; %% false; %% true; %% 
+target_mask_flag = true && mask_flag; %% false; %% 
+disp(["target_mask_flag = ", num2str(target_mask_flag)]);
+object_type = {"Car"}; %%_distractor"}; %% 
+disp(["object_type = ", object_type{1}]);
+pvp_num_ODD_kernels = 1; %%
+disp(["num_ODD_kernels = ", num2str(pvp_num_ODD_kernels)]);
+if clip_flag
+  clip_ids = [1:50]; %%  [26:26]; %%[1:25]; %% [7:17,21:22,30:31];
+  clip_name = cell(length(clip_ids),1);
+  for i_clip = 1 : length(clip_name)
+    clip_name{i_clip} = num2str(clip_ids(i_clip), "%3.3i");
+  endfor
+else
+  clip_name = cell(1);
+  clip_name{1} = "mask"; %% "026"; %% 
+endif
+disp(["clip_name{1} = ", clip_name{1}]);
+distractor_mask_flag = ~target_mask_flag && mask_flag;
+disp(["distractor_mask_flag = ", num2str(distractor_mask_flag)]);
+if clip_flag
+  version_ids = [1]; %%[1:16]; %%  
+else
+  version_ids = [1]; %% [1:16]; %% 
+endif
+disp(["version_ids = ", mat2str(version_ids)]);
+pvp_frame_size = [1080 1920]; %%  [256, 256]; %%
+disp(["frame_size = ", mat2str(pvp_frame_size)]);
+pvp_edge_type = "canny"; 
+pvp_clique_id = "3way"; %% ""; %% 
+%% end definition of the most volitile parameters
+
+%% version_str stores the training or testing run index 
+num_versions = length(version_ids);
+if num_versions > 0
+  version_str = cell(num_versions,1);
+  for i_version = 1 : num_versions
+    version_str{i_version} = num2str(version_ids(i_version), "%3.3i");   
+  endfor
+else
+  num_versions = 1;
+  version_str = cell(num_versions,1);
+  version_str{1}="";
+endif
+
+global PVP_VERBOSE_FLAG
+PVP_VERBOSE_FLAG = 0;
+
+global pvp_home_path
+global pvp_workspace_path
+global pvp_mlab_path
+global pvp_clique_path
+pvp_home_path = ...
+    [filesep, "home", filesep, "gkenyon", filesep];
+pvp_workspace_path = ...
+    [pvp_home_path, "workspace-sync-canto2", filesep];
+pvp_mlab_path = ...
+    [pvp_workspace_path, "PetaVision", filesep, "mlab", filesep];
+pvp_clique_path = ...
+    [pvp_workspace_path, "SynthCog3", filesep];
+
+
+DATASET_ID = "Heli"; %% "amoeba"; %%"Tower"; %% "Tailwind"; %% 
+dataset_id = tolower(DATASET_ID); %% 
+flavor_id = tolower(FLAVOR_ID); %% 
+pvp_repo_path = ...
+    [filesep, "nh", filesep, "compneuro", filesep, "Data", filesep, "repo", filesep];
+=======
 clip_flag = false; %% true; %%  
 mask_flag = ~clip_flag; %% false; %% true; %% 
 target_mask_flag = true && mask_flag; %% false; %% 
@@ -71,6 +141,7 @@ dataset_id = tolower(DATASET_ID); %%
 flavor_id = tolower(FLAVOR_ID); %% 
 pvp_repo_path = ...
     [filesep, "mnt", filesep, "data", filesep, "repo", filesep];
+>>>>>>> refs/remotes/eclipse_auto/master
 pvp_petavision_path = ...
     [pvp_repo_path, "neovision-programs-petavision", filesep]; %%, ...
 pvp_dataset_path = ...

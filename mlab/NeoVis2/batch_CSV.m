@@ -1,4 +1,31 @@
 %% begin definition of most variable input params
+<<<<<<< HEAD
+clip_ids = [1:50]; %% [7:17,21:22,30:31]; %%
+clip_name = cell(length(clip_ids),1);
+for i_clip = 1 : length(clip_name)                                                                                         
+  clip_name{i_clip} = num2str(clip_ids(i_clip), "%3.3i");
+endfor
+num_ODD_kernels = 0; %% 5; %% 
+pvp_layer = 3;  %% 8; %%  
+pvp_path_flag = true; %% false; %% 
+NEOVISION_DISTRIBUTION_ID = "Training"; %%"Challenge"; %% "Formative"; %%   
+ObjectType = "Car"; %% "Cyclist"; %%  
+global make_bootstrap_chips_flag 
+make_bootstrap_chips_flag = false; %% true; %% 
+global make_target_mask_flag 
+make_target_mask_flag = true; %% false; %%  
+global miss_list_flag;
+miss_list_flag = false;
+num_procs = 8; %% 24;  %% 
+%% end most variable portion of input params
+
+home_path = ...
+    [filesep, "home", filesep, "gkenyon", filesep];
+NEOVISION_DATASET_ID = "Heli"; %% "Tower"; %%  "Tail"; %% 
+neovision_dataset_id = tolower(NEOVISION_DATASET_ID); %% 
+neovision_distribution_id = tolower(NEOVISION_DISTRIBUTION_ID); %% 
+repo_path = [filesep, "nh", filesep, "compneuro", filesep, "Data", filesep, "repo", filesep];
+=======
 clip_ids = [26:26]; %% [7:17,21:22,30:31]; %%
 clip_name = cell(length(clip_ids),1);
 for i_clip = 1 : length(clip_name)                                                                                         
@@ -24,6 +51,7 @@ NEOVISION_DATASET_ID = "Heli"; %% "Tower"; %%  "Tail"; %%
 neovision_dataset_id = tolower(NEOVISION_DATASET_ID); %% 
 neovision_distribution_id = tolower(NEOVISION_DISTRIBUTION_ID); %% 
 repo_path = [filesep, "mnt", filesep, "data", filesep, "repo", filesep];
+>>>>>>> refs/remotes/eclipse_auto/master
 program_path = [repo_path, ...
 		"neovision-programs-petavision", filesep, ...
 		NEOVISION_DATASET_ID, filesep, ...
