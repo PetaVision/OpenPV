@@ -35,6 +35,19 @@ Movie::Movie(const char * name, HyPerCol * hc, const char * fileOfFileNames, flo
 
 int Movie::initialize_base() {
    movieOutputPath = NULL;
+   skipFrameIndex = 0;
+   echoFramePathnameFlag = false;
+   filename = NULL;
+   displayPeriod = DISPLAY_PERIOD;
+   jitterFlag = false;
+   jitterType = RANDOM_WALK;
+   stepSize = 1;
+   persistenceProb = 0.0;
+   recurrenceProb = 1.0;
+   biasChangeTime = LONG_MAX;
+   writePosition = 1;
+   biasX   = offsetX;
+   biasY   = offsetY;
    return PV_SUCCESS;
 }
 
@@ -90,11 +103,15 @@ int Movie::initialize(const char * name, HyPerCol * hc, const char * fileOfFileN
    writePosition = 0;
    jitterFlag = params->value(name,"jitterFlag", 0) != 0;
    if( jitterFlag ) {
-      stepSize          = (int) params->value(name, "stepSize", 0);
-      persistenceProb   = params->value(name,"persistenceProb", 1.0);
-      recurrenceProb    = params->value(name,"recurrenceProb", 1.0);
-      biasChangeTime    = (int) params->value(name,"biasChangeTime", 1000);
-      writePosition     = (int) params->value(name,"writePosition", 1);
+      jitterType = params->value(name,"jitterType", jitterType);
+      stepSize          = (int) params->value(name, "stepSize", stepSize);
+      persistenceProb   = params->value(name,"persistenceProb", persistenceProb);
+      recurrenceProb    = params->value(name,"recurrenceProb", recurrenceProb);
+      biasChangeTime    = (int) params->value(name,"biasChangeTime", biasChangeTime);
+      if (biasChangeTime < 0){
+         biasChangeTime = LONG_MAX;
+      }
+      writePosition     = (int) params->value(name,"writePosition", writePosition);
       biasX   = offsetX;
       biasY   = offsetY;
    }
@@ -398,13 +415,10 @@ const char * Movie::getNextFileName()
 void Movie::calcBias(int step, int sizeLength)
 {
    assert(jitterFlag);
-   const float dp = 1.0 / step;
    double p;
-   const int random_walk = 0;
-   const int random_jump = 1;
 
 
-   if (random_walk) {
+   if (jitterType == RANDOM_WALK) {
       p = pv_random_prob();
       if (p < 0.5) {
          biasX += step;
@@ -417,7 +431,8 @@ void Movie::calcBias(int step, int sizeLength)
       } else {
          biasY -= step;
       }
-   } else if (random_jump) {
+   } else if (jitterType == RANDOM_JUMP) {
+      const float dp = 1.0 / step;
       p = pv_random_prob();
       for (int i = 0; i < step; i++) {
          if ((i * dp < p) && (p < (i + 1) * dp)) {

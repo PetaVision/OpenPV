@@ -61,7 +61,11 @@ private:
    float persistenceProb; // If using jitter, probability that offset stays the same
 
    int writePosition;     // If using jitter, write positions to input/image-pos.txt
-   int biasChangeTime;    // If using jitter, time period for recalculating bias position
+   long biasChangeTime;    // If using jitter, time period for recalculating bias position
+
+   const static int RANDOM_WALK = 0;  // const denoting jitter is a random walk
+   const static int RANDOM_JUMP = 1;  // const denoting jitter is a random jump
+   int jitterType;       // If using jitter, specify type of jitter (random walk or random jump)
 
    int randomMovie;       // these are used for performing a reverse correlation analysis
    float randomMovieProb;
