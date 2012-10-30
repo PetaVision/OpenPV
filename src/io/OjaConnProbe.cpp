@@ -63,12 +63,12 @@ int OjaConnProbe::initialize(const char * probename, const char * filename,
       kfPost = featureIndex(kPost,nxGlobal,nyGlobal,nf);
    }
    else if(pidMethod == COORDINATE_METHOD) {
-      // assert(kfPost != 0); //TODO: Why does a single feature not have a kf of 0? // it doesn't?
+      assert(kfPost >= 0);
       kPost = kIndex(kxPost,kyPost,kfPost,nxGlobal,nyGlobal,nf); // nx, ny, nf NOT in extended space
    }
    else assert(false);
    assert(kPost != -1);
-   assert(kfPost <= nf);
+   assert(kfPost < nf);
 
    BaseConnectionProbe::initialize(probename, filename, conn,kxPost,kyPost,kfPost,isPostProbe);
 

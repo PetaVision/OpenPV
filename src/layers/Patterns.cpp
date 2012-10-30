@@ -12,9 +12,6 @@
 #define PATTERNS_MAXVAL  1.0f
 #define PATTERNS_MINVAL  0.0f
 
-//#undef DEBUG_CHK
-#define DEBUG_CHK
-
 namespace PV {
 
 // CER-new
@@ -617,7 +614,6 @@ int Patterns::drawDrops() {
    for(int i = 0; i < (int)vDrops.size(); i++){
       float delta_theta = fabs(atan((float)1./vDrops[i].radius));
       for (float theta = 0; theta < 2*PI; theta += delta_theta){
-        // std::cout << "\t" << theta << "\n";
          int ix = (int)(round(vDrops[i].centerX + vDrops[i].radius * cos(theta)));
          int iy = (int)(round(vDrops[i].centerY + vDrops[i].radius * sin(theta)));
 
@@ -860,66 +856,27 @@ int Patterns::checkpointWrite(const char * cpDir) {
 
    sprintf(filename, "%s/%s_PatternState.bin", cpDir, name);
    if( icComm->commRank() == 0 ) {
-#ifdef DEBUG_CHK
-      std::cout << "Opening " << filename << "\n";
-#endif
       FILE * fp = fopen(filename, "w");
       int size = vDrops.size();
       if( fp != NULL ) {
-#ifdef DEBUG_CHK
-         std::cout << "Rank " << parent->columnId() << " writing orientation of " << orientation << "\n";
-#endif
          status = fwrite(&orientation, sizeof(OrientationMode), 1, fp) == 1 ? status : PV_FAILURE;
-#ifdef DEBUG_CHK
-         std::cout << "Rank " << parent->columnId() << " writing position of " << position << "\n";
-#endif
          status = fwrite(&position, sizeof(float), 1, fp) ? status : PV_FAILURE;
-#ifdef DEBUG_CHK
-         std::cout << "Rank " << parent->columnId() << " writing nextDisplayTime of " << nextDisplayTime << "\n";
-#endif
          status = fwrite(&nextDisplayTime, sizeof(double), 1, fp) ? status : PV_FAILURE;
-#ifdef DEBUG_CHK
-         std::cout << "Rank " << parent->columnId() << " writing nextDropFrame of " << nextDropFrame << "\n";
-#endif
          status = fwrite(&nextDropFrame, sizeof(double), 1, fp) ? status : PV_FAILURE;
-#ifdef DEBUG_CHK
-         std::cout << "Rank " << parent->columnId() << " writing nextPosChangeFrame of " << nextPosChangeFrame << "\n";
-#endif
          status = fwrite(&nextPosChangeFrame, sizeof(double), 1, fp) ? status : PV_FAILURE;
-#ifdef DEBUG_CHK
-         std::cout << "Rank " << parent->columnId() << " writing initPatternCntr of " << initPatternCntr << "\n";
-#endif
          status = fwrite(&initPatternCntr, sizeof(int), 1, fp) ? status : PV_FAILURE;
-#ifdef DEBUG_CHK
-         std::cout << "Rank " << parent->columnId() << " writing xPos of " << xPos << "\n";
-#endif
          status = fwrite(&xPos, sizeof(int), 1, fp) ? status : PV_FAILURE;
-#ifdef DEBUG_CHK
-         std::cout << "Rank " << parent->columnId() << " writing yPos of " << yPos << "\n";
-#endif
          status = fwrite(&yPos, sizeof(int), 1, fp) ? status : PV_FAILURE;
-#ifdef DEBUG_CHK
-         std::cout << "Rank " << parent->columnId() << " writing size of " << size << "\n";
-#endif
          status = fwrite(&size, sizeof(int), 1, fp) ? status : PV_FAILURE;
-#ifdef DEBUG_CHK
-         std::cout << "Rank " << parent->columnId() << " writing drops\n";
-#endif
          for (int k=0; k<size; k++) {
             status = fwrite(&vDrops[k], sizeof(Drop), 1, fp) ? status : PV_FAILURE;
          }
-#ifdef DEBUG_CHK
-      std::cout << "Closing " << filename << "\n";
-#endif
          fclose(fp);
       }
       else {
          fprintf(stderr, "Unable to write to \"%s\"\n", filename);
       }
       sprintf(filename, "%s/%s_PatternState.txt", cpDir, name);
-#ifdef DEBUG_CHK
-      std::cout << "Opening " << filename << "\n";
-#endif
       fp = fopen(filename, "w");
       fprintf(fp, "Orientation = ");
       switch(orientation) {
