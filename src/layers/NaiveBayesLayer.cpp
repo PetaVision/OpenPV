@@ -91,7 +91,8 @@ int NaiveBayesLayer::updateState(double timef, double dt, const PVLayerLoc * loc
       int kExtended = kIndexExtended(kLocal, nx, ny, nf, nb);
       double log_prob = 0.0;
       if (inClassCount[kLocal]>0 && outClassCount[kLocal]>0){
-         double log_prob = log((inClassSum[kLocal]/inClassCount[kLocal])/(outClassSum[kLocal]/outClassCount[kLocal]));
+         log_prob = log((inClassSum[kLocal]/inClassCount[kLocal])/(outClassSum[kLocal]/outClassCount[kLocal]));
+         A[kExtended] = log_prob;
       }
       else if (inClassCount[kLocal]<0 && outClassCount[kLocal]==0){
          A[kExtended] = -FLT_MAX;
