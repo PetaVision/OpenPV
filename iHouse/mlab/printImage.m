@@ -33,7 +33,8 @@ function printImage(mat, time, arborId, outDir, scaleFlag, figTitle)
 
    title([figTitle, ' - time: ', num2str(time), ' arbor: ', num2str(arborId)]);
    if(WRITE_FIGS)
-      print_filename = [outDir, figTitle, '_', num2str(time), '_', num2str(arborId), '.jpg'];
+      timeStr = fprintf('%.0f', time);
+      print_filename = [outDir, figTitle, '_', timeStr, '_', num2str(arborId), '.jpg'];
       print(print_filename);
    end
 end
