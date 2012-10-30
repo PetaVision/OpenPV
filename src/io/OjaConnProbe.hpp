@@ -8,6 +8,7 @@
 #ifndef OJACONNPROBE_HPP_
 #define OJACONNPROBE_HPP_
 
+//#define POSTW_CHECK
 #undef POSTW_CHECK
 
 #include "BaseConnectionProbe.hpp"

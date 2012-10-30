@@ -399,6 +399,7 @@ int OjaSTDPConn::outputState(double timef, bool last)
 {
    int status;
 
+   //std::cout << "Oja output state\n";
    if (last) {
       printf("Writing last STDP weights..%f\n",timef);
       convertPreSynapticWeights(timef);
@@ -406,14 +407,20 @@ int OjaSTDPConn::outputState(double timef, bool last)
       assert(status == 0);
    }else if ( (timef >= writeTime) && (writeStep >= 0) ) {
       //writeTime += writeStep; Done in HyperConn
+      //std::cout << "Converting presynaptic weights\n";
       convertPreSynapticWeights(timef);
+      //std::cout << "Writing post synaptic weights\n";
       status = writePostSynapticWeights(timef, false);
       assert(status == 0);
 
       // append to output file after original open
       //ioAppend = true;
    }
+
+   //std::cout << "HyperConn output state\n";
    status = HyPerConn::outputState(timef, last);
+   //std::cout << "Done\n";
+
 
    if (status != PV_SUCCESS) return status;
 
