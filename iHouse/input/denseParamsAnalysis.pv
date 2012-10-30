@@ -547,7 +547,7 @@ OjaConnProbe "Oja_ON_Probe_Edge" = {
     isPostProbe      = true;
     kxPost           = 35; //About half way in
     kyPost           = 35; //About half way in
-    kfPost           = 1;  //About half way in (1 feature)
+    kfPost           = 0;  //About half way in (1 feature)
 };
 
 OjaConnProbe "Oja_ON_Probe_Center" = {
@@ -557,7 +557,7 @@ OjaConnProbe "Oja_ON_Probe_Center" = {
     isPostProbe      = true;
     kxPost           = 42; //About half way in
     kyPost           = 42; //About half way in
-    kfPost           = 1;  //About half way in (1 feature)
+    kfPost           = 0;  //About half way in (1 feature)
 };
 
 OjaConnProbe "Oja_OFF_Probe_Edge" = {
@@ -567,7 +567,7 @@ OjaConnProbe "Oja_OFF_Probe_Edge" = {
     isPostProbe      = true;
     kxPost           = 35; //About half way in
     kyPost           = 35; //About half way in
-    kfPost           = 1;  //About half way in (1 feature)
+    kfPost           = 0;  //About half way in (1 feature)
 };
 
 OjaConnProbe "Oja_OFF_Probe_Center" = {
@@ -577,5 +577,5 @@ OjaConnProbe "Oja_OFF_Probe_Center" = {
     isPostProbe      = true;
     kxPost           = 42; //About half way in
     kyPost           = 42; //About half way in
-    kfPost           = 1;  //About half way in (1 feature)
+    kfPost           = 0;  //About half way in (1 feature)
 };
