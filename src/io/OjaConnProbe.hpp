@@ -15,8 +15,6 @@
 #include "../connections/OjaSTDPConn.hpp"
 #include <assert.h>
 
-enum PatchIDMethod { INDEX_METHOD, COORDINATE_METHOD };
-
 namespace PV {
 
 class OjaConnProbe: public BaseConnectionProbe {

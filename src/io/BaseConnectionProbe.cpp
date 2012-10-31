@@ -42,20 +42,20 @@ int BaseConnectionProbe::initialize(const char * probename, const char * filenam
 int BaseConnectionProbe::initialize(const char * probename, const char * filename, HyPerConn * conn, int k, bool postProbeFlag) {
 
    int kx, ky, kf;
+   const PVLayerLoc * loc;
    if (isPostProbe) {
-      const PVLayerLoc * postLoc;
-      postLoc = conn->postSynapticLayer()->getLayerLoc();
-      int nxGlobal = postLoc->nxGlobal;
-      int nyGlobal = postLoc->nyGlobal;
-      int nf = postLoc->nf;
-      kx = kxPos(k,nxGlobal,nyGlobal,nf);
-      ky = kyPos(k,nxGlobal,nyGlobal,nf);
-      kf = featureIndex(k,nxGlobal,nyGlobal,nf);
+      loc = conn->postSynapticLayer()->getLayerLoc();
    }
    else
    {
-      assert(false);
+      loc = conn->preSynapticLayer()->getLayerLoc();
    }
+   int nxGlobal = loc->nxGlobal;
+   int nyGlobal = loc->nyGlobal;
+   int nf = loc->nf;
+   kx = kxPos(k,nxGlobal,nyGlobal,nf);
+   ky = kyPos(k,nxGlobal,nyGlobal,nf);
+   kf = featureIndex(k,nxGlobal,nyGlobal,nf);
 
    initialize(probename,filename,conn,kx,ky,kf,postProbeFlag);
 
@@ -66,19 +66,19 @@ int BaseConnectionProbe::initialize(const char * probename, const char * filenam
    isPostProbe = postProbeFlag;
 
    bool inBounds = false;
+   const PVLayerLoc * loc;
    if (isPostProbe) {
-      const PVLayerLoc * postLoc;
-      postLoc = conn->postSynapticLayer()->getLayerLoc();
-
-      int kxPostLocal = kx - postLoc->kx0;
-      int kyPostLocal = ky - postLoc->ky0;
-
-      inBounds = !(kxPostLocal < 0 || kxPostLocal >= postLoc->nx || kyPostLocal < 0 || kyPostLocal >= postLoc->ny);
+      loc = conn->postSynapticLayer()->getLayerLoc();
    }
    else
    {
-      assert(false); // someone else can figure out hot to check if in bounds for pre weights
+      loc = conn->preSynapticLayer()->getLayerLoc();
    }
+   int kxLocal = kx - loc->kx0;
+   int kyLocal = ky - loc->ky0;
+
+   //Restricted index only for both post and pre
+   inBounds = !(kxLocal < 0 || kxLocal >= loc->nx || kyLocal < 0 || kyLocal >= loc->ny);
 
    if( probename ) {
       name = strdup(probename);

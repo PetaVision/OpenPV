@@ -10,6 +10,8 @@
 
 #include "../connections/HyPerConn.hpp"
 
+enum PatchIDMethod { INDEX_METHOD, COORDINATE_METHOD };
+
 namespace PV {
 
 class BaseConnectionProbe {

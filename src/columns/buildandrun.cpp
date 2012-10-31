@@ -169,6 +169,7 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
            "_Start_BaseConnectionProbes_",
              "KernelProbe",
              "OjaConnProbe",
+             "LCALIFLateralProbe",
              "PatchProbe",
              "ReciprocalEnergyProbe",
            "_Stop_BaseConnectionProbes_",
@@ -1130,6 +1131,38 @@ BaseConnectionProbe * addBaseConnectionProbeToColumn(const char * classkeyword, 
          int kyPost = params->value(name, "kyPost");
          int kfPost = params->value(name, "kfPost");
          addedProbe = new OjaConnProbe(msg, filename, targetConn, kxPost, kyPost, kfPost, isPostProbe);
+      }
+      status = checknewobject((void *) addedProbe, classkeyword, name, hc);
+   }
+   if( !strcmp(classkeyword, "LCALIFLateralProbe")) {
+      keywordMatched = true;
+      const char * filename = params->stringValue(name, "probeOutputFile");
+      targetConn = hc->getConnFromName(params->stringValue(name, "targetConnection"));
+      if( targetConn == NULL ) {
+         fprintf(stderr, "Error: connection probe \"%s\" requires parameter \"targetConnection\".\n", name);
+         return NULL;
+      }
+      const char * msg = params->stringValue(name,"msg", name);
+      int indexmethod = params->present(name, "kPre");
+      int coordmethod = params->present(name, "kxPre") && params->present(name,"kyPre") && params->present(name,"kfPre");
+      if( indexmethod && coordmethod ) {
+         fprintf(stderr, "LCALIFLateralProbe \"%s\": Ambiguous definition with both kPre and (kxPre,kyPre,kfPre) defined\n", name);
+         return NULL;
+      }
+      if( !indexmethod && !coordmethod ) {
+         fprintf(stderr, "LCALIFLateralProbe \"%s\": Exactly one of kPre and (kxPre,kyPre,kfPre) must be defined\n", name);
+         return NULL;
+      }
+      if( indexmethod ) {
+         int kPre = params->value(name, "kPre");
+         addedProbe = new LCALIFLateralProbe(msg, filename, targetConn, kPre);
+      }
+      else {
+         assert(coordmethod);
+         int kxPre = params->value(name, "kxPre");
+         int kyPre = params->value(name, "kyPre");
+         int kfPre = params->value(name, "kfPre");
+         addedProbe = new LCALIFLateralProbe(msg, filename, targetConn, kxPre, kyPre, kfPre);
       }
       status = checknewobject((void *) addedProbe, classkeyword, name, hc);
    }
