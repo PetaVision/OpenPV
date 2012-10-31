@@ -27,12 +27,14 @@ OjaConnProbe::OjaConnProbe(const char * probename, const char * filename, HyPerC
 
 OjaConnProbe::~OjaConnProbe()
 {
-   free(preStdpTrs);
-   free(preOjaTrs);
-#ifdef POSTW_CHECK
-   free(preWeights);
-#endif
-   free(preWeightsOld);
+   if (inBounds){
+      free(preStdpTrs);
+      free(preOjaTrs);
+   #ifdef POSTW_CHECK
+      free(preWeights);
+   #endif
+      free(preWeightsOld);
+   }
 }
 
 int OjaConnProbe::initialize_base() {
@@ -82,28 +84,29 @@ int OjaConnProbe::initialize(const char * probename, const char * filename,
 
    inBounds = !(kxPostLocal < 0 || kxPostLocal >= postLoc->nx || kyPostLocal < 0 || kyPostLocal >= postLoc->ny);
 
+   if (inBounds){
+      // Get post layer sizes
+      int nxpPost = ojaConn->getNxpPost();
+      int nypPost = ojaConn->getNypPost();
+      int nfpPost = ojaConn->getNfpPost();
 
-   // Get post layer sizes
-   int nxpPost = ojaConn->getNxpPost();
-   int nypPost = ojaConn->getNypPost();
-   int nfpPost = ojaConn->getNfpPost();
+      int numArbors = ojaConn->numberOfAxonalArborLists(); //will loop through arbors
+      int numPostPatch = nxpPost * nypPost * nfpPost; // Post-synaptic weights are never shrunken
 
-   int numArbors = ojaConn->numberOfAxonalArborLists(); //will loop through arbors
-   int numPostPatch = nxpPost * nypPost * nfpPost; // Post-synaptic weights are never shrunken
-
-   // Allocate buffers for pre info
-   preStdpTrs    = (float *) calloc(numPostPatch*numArbors, sizeof(float));
-   preOjaTrs     = (float *) calloc(numPostPatch*numArbors, sizeof(float));
-   preWeightsOld = (float *) calloc(numPostPatch*numArbors, sizeof(float));
-#ifdef POSTW_CHECK
-   preWeights = (float *) calloc(numPostPatch*numArbors, sizeof(float));
-#endif
-   assert(preStdpTrs != NULL);
-   assert(preOjaTrs != NULL);
-   assert(preWeightsOld != NULL);
-#ifdef POSTW_CHECK
-   assert(preWeights != NULL);
-#endif
+      // Allocate buffers for pre info
+      preStdpTrs    = (float *) calloc(numPostPatch*numArbors, sizeof(float));
+      preOjaTrs     = (float *) calloc(numPostPatch*numArbors, sizeof(float));
+      preWeightsOld = (float *) calloc(numPostPatch*numArbors, sizeof(float));
+   #ifdef POSTW_CHECK
+      preWeights = (float *) calloc(numPostPatch*numArbors, sizeof(float));
+   #endif
+      assert(preStdpTrs != NULL);
+      assert(preOjaTrs != NULL);
+      assert(preWeightsOld != NULL);
+   #ifdef POSTW_CHECK
+      assert(preWeights != NULL);
+   #endif
+   }
 
    return PV_SUCCESS;
 }

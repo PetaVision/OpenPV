@@ -28,8 +28,10 @@ LCALIFLateralProbe::LCALIFLateralProbe(const char * probename, const char * file
 
 LCALIFLateralProbe::~LCALIFLateralProbe()
 {
-   free(preIntTrs);
-   free(preWeights);
+   if (inBounds){
+      free(preIntTrs);
+      free(preWeights);
+   }
 }
 
 int LCALIFLateralProbe::initialize_base() {
@@ -86,32 +88,33 @@ int LCALIFLateralProbe::initialize(const char * probename, const char * filename
 
    inBounds = !(kxPreLocal < 0 || kxPreLocal >= loc->nx || kyPreLocal < 0 || kyPreLocal >= loc->ny);
 
-   int numArbors = LCALIFConn->numberOfAxonalArborLists(); //will loop through arbors
-   //Grab patch information
-   //Weights of different arbors should be the same
-   PVPatch* prePatch = LCALIFConn->getWeights(kLocalExt,0);
-   // Get pre layer sizes
-   int nxp = prePatch->nx;
-   int nyp = prePatch->ny;
-   int nfp = LCALIFConn->fPatchSize();
+   if (inBounds){
+      int numArbors = LCALIFConn->numberOfAxonalArborLists(); //will loop through arbors
+      //Grab patch information
+      //Weights of different arbors should be the same
+      PVPatch* prePatch = LCALIFConn->getWeights(kLocalExt,0);
+      // Get pre layer sizes
+      int nxp = prePatch->nx;
+      int nyp = prePatch->ny;
+      int nfp = LCALIFConn->fPatchSize();
 
-   //Check for other arbors
-   //Should only be one arbor, so it should skip this loop
-   //Arbor id starts at 1 since id 0 was set to nxp and nyp
-   for (int arborID = 1; arborID < numArbors; arborID++){
-      prePatch = LCALIFConn->getWeights(kLocalExt,0);
-      assert(nxp == prePatch->nx);
-      assert(nyp == prePatch->ny);
+      //Check for other arbors
+      //Should only be one arbor, so it should skip this loop
+      //Arbor id starts at 1 since id 0 was set to nxp and nyp
+      for (int arborID = 1; arborID < numArbors; arborID++){
+         prePatch = LCALIFConn->getWeights(kLocalExt,0);
+         assert(nxp == prePatch->nx);
+         assert(nyp == prePatch->ny);
+      }
+
+      int numPrePatch = nxp * nyp * nfp;
+
+      // Allocate buffers for pre info
+      preWeights = (float *) calloc(numPrePatch*numArbors, sizeof(float));
+      assert(preWeights != NULL);
+      preIntTrs = (float*) calloc(numPrePatch*numArbors, sizeof(float));
+      assert(preIntTrs != NULL);
    }
-
-   int numPrePatch = nxp * nyp * nfp;
-
-   // Allocate buffers for pre info
-   preWeights = (float *) calloc(numPrePatch*numArbors, sizeof(float));
-   assert(preWeights != NULL);
-   preIntTrs = (float*) calloc(numPrePatch*numArbors, sizeof(float));
-   assert(preIntTrs != NULL);
-
    return PV_SUCCESS;
 }
 
