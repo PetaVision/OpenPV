@@ -10,7 +10,7 @@ HyPerCol "column" = {
                                            // 
    randomSeed                   = 1020304050.0;   
                                            //
-   numSteps                     = 3000000; // amount of time steps performed during run-time
+   numSteps                     = 5000000; // amount of time steps performed during run-time
    progressStep                 = 1500;    // write output to see progress
    writeProgressToErr           = 0;       // write progress steps to std err
                                            // 
