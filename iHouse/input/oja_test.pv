@@ -16,27 +16,31 @@ HyPerCol "column" = {
                                            // 
    //outputPath                 = "~/Documents/workspace/iHouse/output";
    //outputPath                   = "~/Documents/Work/LANL/workspace/iHouse/output"; //Dylan's Mac
-   outputPath                   = "~/workspace/iHouse/output"; //Dylan's remote
+   //outputPath                   = "~/workspace/iHouse/output"; //Dylan's Neuro
+   outputPath                   = "~/workspace-apoyo/iHouseApoyo/output"; //Dylan's Apoyo
                                            // 
    filenamesContainLayerNames   = 2;       // stores pvp files as: 0 = layer number/1 = layer number and layer name/2 = layer name
                                            // 
    checkpointRead               = false;
    //checkpointReadDir            = "~/Documents/workspace/iHouse/checkpoints";
    //checkpointReadDir            = "~/Documents/Work/LANL/workspace/iHouse/checkpoints"; //Dylan's Mac
-   checkpointReadDir            = "~/workspace/iHouse/checkpoints"; //Dylan's remote
+   //checkpointReadDir            = "~/workspace/iHouse/checkpoints"; //Dylan's Neuro
+   checkpointReadDir            = "~/workspace-apoyo/iHouseApoyo/checkpoints"; //Dylan's Apoyo
    checkpointReadDirIndex       = 5000000;
                                            //
    checkpointWrite              = true;
    deleteOlderCheckpoints       = false;
    //checkpointWriteDir           = "~/Documents/workspace/iHouse/output/checkpoints";
    //checkpointWriteDir           = "~/Documents/Work/LANL/workspace/iHouse/checkpoints"; //Dylan's Mac
-   checkpointWriteDir           = "~/workspace/iHouse/checkpoints"; //Dylan's remote 
+   //checkpointWriteDir           = "~/workspace/iHouse/checkpoints"; //Dylan's Neuro
+   checkpointWriteDir           = "~/workspace-apoyo/iHouseApoyo/checkpoints"; //Dylan's Apoyo
    checkpointWriteStepInterval  = 2000000;
    suppressLastOutput           = 0;
                                            //
    //printParamsFilename          = "~/Documents/workspace/iHouse/output/params_run.pv";
    //printParamsFilename          = "~/Documents/Work/LANL/workspace/iHouse/output/params_run.pv"; //Dylan's Mac
-   printParamsFilename          = "~/workspace/iHouse/output/params_run.pv"; //Dylan's remote 
+   //printParamsFilename          = "~/workspace/iHouse/output/params_run.pv"; //Dylan's remote 
+   printParamsFilename          = "~/workspace-apoyo/iHouseApoyo/output/params_run.pv"; //Dylan's remote 
 };
 
 
@@ -80,7 +84,8 @@ Patterns "input" = {
     							 // 
    //patternsOutputPath      = "~/Documents/workspace/iHouse/output/sourcefiles";
    //patternsOutputPath      = "~/Documents/Work/LANL/workspace/iHouse/output/sourcefiles"; // Dylan's Mac
-   //patternsOutputPath      = "~/workspace/iHouse/output/sourcefiles"; // Dylan's remote 
+   //patternsOutputPath      = "~/workspace/iHouse/output/sourcefiles"; // Dylan's Neuro
+   //patternsOutputPath      = "~/workspace-apoyo/iHouseApoyo/output/sourcefiles"; // Dylan's Apoyo
     							 // 
    displayPeriod           = 1;
    writeStep               = -1;
@@ -407,7 +412,7 @@ OjaSTDPConn "RetinaONtoLif" = {
    tauOja                 = 150;   // (ms)
    tauTHR                 = 5000;  // (ms) thresholdAdaptationTime
    tauO                   = 300;   // (ms)
-   targetRate             = 10;    // (Hz)
+   targetRate             = 5;    // (Hz)
    weightDecay            = 0;     // How quickly STDP decays if no firing occurs
    dWMax                  = 2;     // How quickly STDP happens (unstable if high)
    wMin                   = 0.001; // Min value for weights
@@ -463,7 +468,7 @@ OjaSTDPConn "RetinaOFFtoLif" = {
    tauOja                 = 150;   // (ms)
    tauTHR                 = 5000;  // (ms) thresholdAdaptationTime
    tauO                   = 300;   // (ms)
-   targetRate             = 10;    // (Hz)
+   targetRate             = 5;    // (Hz)
    weightDecay            = 0;     // How quickly STDP decays if no firing occurs
    dWMax                  = 2;     // How quickly STDP happens (unstable if high)
    wMin                   = 0.001; // Min value for weights
