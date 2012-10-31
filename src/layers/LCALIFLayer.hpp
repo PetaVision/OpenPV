@@ -28,6 +28,8 @@ public:
    inline float getTargetRate() {return targetRateHz;}
    const float * getVadpt() {return Vadpt;}
    const pvdata_t * getIntegratedSpikeCount() {return integratedSpikeCount;}
+   const pvdata_t * getVattained() {return Vattained;}
+   const pvdata_t * getVmeminf() {return Vmeminf;}
 protected:
 #ifdef PV_USE_OPENCL
    virtual int initializeThreadBuffers(const char * kernelName);

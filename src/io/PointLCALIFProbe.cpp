@@ -61,6 +61,8 @@ int PointLCALIFProbe::writeState(double timed, HyPerLayer * l, int k, int kex)
       fprintf(fp, " Vadpt=%6.3f", Vadpt[k]);
       fprintf(fp, " V=%6.3f", V[k]);
       fprintf(fp, " Vth=%6.3f", Vth[k]);
+      fprintf(fp, " Vattained=%6.3f", LCALIF_layer->getVattained()[k]);
+      fprintf(fp, " Vmeminf=%6.3f", LCALIF_layer->getVmeminf()[k]);
       fprintf(fp, " a=%.1f\n", activity[kex]);
       fflush(fp);
    }
