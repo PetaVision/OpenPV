@@ -1,6 +1,6 @@
 ///////////////////////////////////////////////////////////////////////////////////////////
 // Parameter file for iHouse - Oja STDPConn
-// DPaiton et SLundquist
+// DPaiton
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 HyPerCol "column" = {
@@ -10,33 +10,37 @@ HyPerCol "column" = {
                                            // 
    randomSeed                   = 1020304050.0;   
                                            //
-   numSteps                     = 5000000; // amount of time steps performed during run-time
-   progressStep                 = 1500;    // write output to see progress
+   numSteps                     = 6000000; // amount of time steps performed during run-time
+   progressStep                 = 5000;    // write output to see progress
    writeProgressToErr           = 0;       // write progress steps to std err
                                            // 
    //outputPath                 = "~/Documents/workspace/iHouse/output";
    //outputPath                   = "~/Documents/Work/LANL/workspace/iHouse/output"; //Dylan's Mac
-   outputPath                   = "~/workspace/iHouse/output"; //Dylan's Neuro
+   //outputPath                   = "~/workspace/iHouse/output"; //Dylan's Neuro
+   outputPath                   = "~/workspace/iHouse/output/apoyo"; //Dylan's Apoyo 
                                            // 
    filenamesContainLayerNames   = 2;       // stores pvp files as: 0 = layer number/1 = layer number and layer name/2 = layer name
                                            // 
    checkpointRead               = false;
    //checkpointReadDir            = "~/Documents/workspace/iHouse/checkpoints";
    //checkpointReadDir            = "~/Documents/Work/LANL/workspace/iHouse/checkpoints"; //Dylan's Mac
-   checkpointReadDir            = "~/workspace/iHouse/checkpoints"; //Dylan's Neuro
-   checkpointReadDirIndex       = 3000000;
+   //checkpointReadDir            = "~/workspace/iHouse/checkpoints"; //Dylan's Neuro
+   checkpointReadDir            = "~/workspace/iHouse/checkpoints/apoyo"; //Dylan's Apoyo 
+   checkpointReadDirIndex       = 5000000;
                                            //
    checkpointWrite              = true;
    deleteOlderCheckpoints       = false;
    //checkpointWriteDir           = "~/Documents/workspace/iHouse/output/checkpoints";
    //checkpointWriteDir           = "~/Documents/Work/LANL/workspace/iHouse/checkpoints"; //Dylan's Mac
-   checkpointWriteDir           = "~/workspace/iHouse/checkpoints"; //Dylan's Neuro
-   checkpointWriteStepInterval  = 1000000;
+   //checkpointWriteDir           = "~/workspace/iHouse/checkpoints"; //Dylan's Neuro
+   checkpointWriteDir           = "~/workspace/iHouse/checkpoints/apoyo"; //Dylan's Apoyo 
+   checkpointWriteStepInterval  = 2000000;
    suppressLastOutput           = 0;
                                            //
    //printParamsFilename          = "~/Documents/workspace/iHouse/output/params_run.pv";
    //printParamsFilename          = "~/Documents/Work/LANL/workspace/iHouse/output/params_run.pv"; //Dylan's Mac
-   printParamsFilename          = "~/workspace/iHouse/output/params_run.pv"; //Dylan's Neuro
+   //printParamsFilename          = "~/workspace/iHouse/output/params_run.pv"; //Dylan's Neuro
+   printParamsFilename          = "~/workspace/iHouse/output/apoyo/params_run.pv"; //Dylan's Apoyo 
 };
 
 
@@ -56,6 +60,8 @@ Patterns "input" = {
                                  // 
    patternType             = "DROP";
                                  //
+   inOut                   = 0   //-1 is all in, 0 is random, 1 is all out
+		                         //
    dropSpeed               = 1;  //(pixels/dt) Radius expands dropSpeed pixles per timestep
    //dropSpeedRandomMax      = 3;   // only applies if dropSpeed = -1
    //dropSpeedRandomMin      = 1;   // only applies of dropSpeed = -1
