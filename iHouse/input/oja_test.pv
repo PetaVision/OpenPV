@@ -56,7 +56,7 @@ Patterns "input" = {
                                  // 
    patternType             = "DROP";
                                  //
-   inOut                   = 0   //-1 is all in, 0 is random, 1 is all out
+   inOut                   = 0;  //-1 is all in, 0 is random, 1 is all out
 		                         //
    dropSpeed               = 1;  //(pixels/dt) Radius expands dropSpeed pixles per timestep
    //dropSpeedRandomMax      = 3;   // only applies if dropSpeed = -1
