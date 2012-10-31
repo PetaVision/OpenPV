@@ -16,21 +16,21 @@ HyPerCol "column" = {
                                            // 
    //outputPath                 = "~/Documents/workspace/iHouse/output";
    //outputPath                   = "~/Documents/Work/LANL/workspace/iHouse/output"; //Dylan's Mac
-   outputPath                   = "~/workspace/iHouse/output"; //Dylan's Neuro
+   outputPath                   = "~/workspace/iHouse/output"; //Dylan's Remote 
                                            // 
    filenamesContainLayerNames   = 2;       // stores pvp files as: 0 = layer number/1 = layer number and layer name/2 = layer name
                                            // 
    checkpointRead               = false;
    //checkpointReadDir            = "~/Documents/workspace/iHouse/checkpoints";
    //checkpointReadDir            = "~/Documents/Work/LANL/workspace/iHouse/checkpoints"; //Dylan's Mac
-   checkpointReadDir            = "~/workspace/iHouse/checkpoints"; //Dylan's Neuro
+   checkpointReadDir            = "~/workspace/iHouse/checkpoints"; //Dylan's Remote 
    checkpointReadDirIndex       = 6000000;
                                            //
    checkpointWrite              = true;
    deleteOlderCheckpoints       = false;
    //checkpointWriteDir           = "~/Documents/workspace/iHouse/output/checkpoints";
    //checkpointWriteDir           = "~/Documents/Work/LANL/workspace/iHouse/checkpoints"; //Dylan's Mac
-   checkpointWriteDir           = "~/workspace/iHouse/checkpoints"; //Dylan's Neuro
+   checkpointWriteDir           = "~/workspace/iHouse/checkpoints"; //Dylan's Remote 
    checkpointWriteStepInterval  = 2000000;
    suppressLastOutput           = 0;
                                            //
@@ -80,7 +80,7 @@ Patterns "input" = {
     							 // 
    //patternsOutputPath      = "~/Documents/workspace/iHouse/output/sourcefiles";
    //patternsOutputPath      = "~/Documents/Work/LANL/workspace/iHouse/output/sourcefiles"; // Dylan's Mac
-   //patternsOutputPath      = "~/workspace/iHouse/output/sourcefiles"; // Dylan's Neuro
+   //patternsOutputPath      = "~/workspace/iHouse/output/sourcefiles"; // Dylan's Remote 
     							 // 
    displayPeriod           = 1;
    writeStep               = -1;
