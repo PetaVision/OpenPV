@@ -13,16 +13,16 @@ HyPerCol "column" = {
    progressStep                = 5000;
    writeProgressToErr          = 0;        // write progress steps to std err
 
-   outputPath                  = "/home/slundquist/workspace/iHouse/denseOutput";
+   outputPath                  = "/home/slundquist/workspace/iHouse/denseOutput2";
 
    filenamesContainLayerNames  = 2; 			// stores pvp files as: 1 = layer number/2 = layer number and layer name/3 = layer name
 
    checkpointRead               = true;
-   checkpointReadDir            = "~/workspace/iHouse/denseOutput/checkpoints";
+   checkpointReadDir            = "~/workspace/iHouse/denseOutput2/checkpoints";
    checkpointReadDirIndex       = 2000000;
    checkpointWrite              = true;
    deleteOlderCheckpoints       = false;
-   checkpointWriteDir           = "~/workspace/iHouse/denseOutput/checkpoints";
+   checkpointWriteDir           = "~/workspace/iHouse/denseOutput2/checkpoints";
    checkpointWriteStepInterval  = 100000;
    suppressLastOutput           = 0;
    
@@ -573,9 +573,27 @@ OjaConnProbe "Oja_OFF_Probe_Edge" = {
 OjaConnProbe "Oja_OFF_Probe_Center" = {
     targetConnection = "RetinaOFFtoLif";
     probeOutputFile  = "retOFFtoLif_Center.txt";
-    msg              = "OjaOFF";
+    msg              = "OjaOFF_Center";
     isPostProbe      = true;
     kxPost           = 42; //About half way in
     kyPost           = 42; //About half way in
     kfPost           = 0;  //About half way in (1 feature)
+};
+
+LCALIFLateralProbe "Lif_Lat_Probe_Center" = {
+   targetConnection = "lcalif lateral inhibition";
+   probeOutputFile  = "lifLat_Center.txt";
+   msg              = "lifLat_Center";
+   kxPre            = 42;
+   kyPre            = 42;
+   kfPre            = 0;
+};
+
+LCALIFLateralProbe "Lif_Lat_Probe_Edge" = {
+   targetConnection = "lcalif lateral inhibition";
+   probeOutputFile  = "lifLat_Edge.txt";
+   msg              = "lifLat_Edge";
+   kxPre            = 42;
+   kyPre            = 42;
+   kfPre            = 0;
 };

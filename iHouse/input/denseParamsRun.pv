@@ -13,16 +13,16 @@ HyPerCol "column" = {
    progressStep                = 5000;
    writeProgressToErr          = 0;        // write progress steps to std err
 
-   outputPath                  = "/home/slundquist/workspace/iHouse/denseOutput";
+   outputPath                  = "/home/slundquist/workspace/iHouse/denseOutput2";
 
    filenamesContainLayerNames  = 2; 			// stores pvp files as: 1 = layer number/2 = layer number and layer name/3 = layer name
 
    checkpointRead               = false;
-   //checkpointReadDir          = "~/workspace/iHouse/denseOutput/checkpoints";
+   //checkpointReadDir          = "~/workspace/iHouse/denseOutput2/checkpoints";
    //checkpointReadDirIndex     = 300000;
    checkpointWrite              = true;
    deleteOlderCheckpoints       = false;
-   checkpointWriteDir           = "~/workspace/iHouse/denseOutput/checkpoints";
+   checkpointWriteDir           = "~/workspace/iHouse/denseOutput2/checkpoints";
    checkpointWriteStepInterval  = 100000;
    suppressLastOutput           = 0;
    
