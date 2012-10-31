@@ -35,7 +35,7 @@ LCALIFLateralProbe::~LCALIFLateralProbe()
 int LCALIFLateralProbe::initialize_base() {
    preIntTrs = NULL;
    preWeights = NULL;
-   kLocal      = -1;
+   kLocalExt      = -1;
    return PV_SUCCESS;
 }
 
@@ -76,7 +76,12 @@ int LCALIFLateralProbe::initialize(const char * probename, const char * filename
    int kyPreLocal = kyPre - loc->ky0;
    int nxLocal = loc->nx;
    int nyLocal = loc->ny;
-   kLocal = kIndex(kxPreLocal,kyPreLocal,kfPre,nxLocal,nyLocal,nf);
+   int nfLocal = loc->nf;
+   int nbLocal = loc->nb;
+   //Restricted Index
+   int kLocalRes = kIndex(kxPreLocal,kyPreLocal,kfPre,nxLocal,nyLocal,nf);
+   kLocalExt = kIndexExtended(kLocalRes, nxLocal, nyLocal, nfLocal, nbLocal);
+
    // assert(kLocal >=0 && kLocal < ojaConn->postSynapticLayer()->getNumExtended());
 
    inBounds = !(kxPreLocal < 0 || kxPreLocal >= loc->nx || kyPreLocal < 0 || kyPreLocal >= loc->ny);
@@ -84,7 +89,7 @@ int LCALIFLateralProbe::initialize(const char * probename, const char * filename
    int numArbors = LCALIFConn->numberOfAxonalArborLists(); //will loop through arbors
    //Grab patch information
    //Weights of different arbors should be the same
-   PVPatch* prePatch = LCALIFConn->getWeights(kLocal,0);
+   PVPatch* prePatch = LCALIFConn->getWeights(kLocalExt,0);
    // Get pre layer sizes
    int nxp = prePatch->nx;
    int nyp = prePatch->ny;
@@ -94,7 +99,7 @@ int LCALIFLateralProbe::initialize(const char * probename, const char * filename
    //Should only be one arbor, so it should skip this loop
    //Arbor id starts at 1 since id 0 was set to nxp and nyp
    for (int arborID = 1; arborID < numArbors; arborID++){
-      prePatch = LCALIFConn->getWeights(kLocal,0);
+      prePatch = LCALIFConn->getWeights(kLocalExt,0);
       assert(nxp == prePatch->nx);
       assert(nyp == prePatch->ny);
    }
@@ -116,7 +121,7 @@ int LCALIFLateralProbe::outputState(double timef)
       return PV_SUCCESS;
    }
 
-   PVPatch* prePatch = LCALIFConn->getWeights(kLocal, 0);
+   PVPatch* prePatch = LCALIFConn->getWeights(kLocalExt, 0);
 
    // Get post layer sizes
    int nxp = prePatch->nx;
@@ -133,8 +138,9 @@ int LCALIFLateralProbe::outputState(double timef)
    for (int arborID=0; arborID < numArbors; arborID++)
    {
 
-      float* preWeightsData = LCALIFConn->get_wData(arborID, kLocal);
-      int aPostOffset = LCALIFConn->getAPostOffset(kLocal, arborID);
+
+      float* preWeightsData = LCALIFConn->get_wData(arborID, kLocalExt);
+      int aPostOffset = LCALIFConn->getAPostOffset(kLocalExt, arborID);
 
       for (int postNeuronID=0; postNeuronID<numPrePatch; postNeuronID++)
       {
@@ -158,7 +164,7 @@ int LCALIFLateralProbe::outputState(double timef)
 
    const char * msg = getName(); // Message to precede the probe's output line
 
-   fprintf(fp, "%s:      t=%.1f kLocal=%d", msg, timef, kLocal);
+   fprintf(fp, "%s:      t=%.1f kLocalExt=%d", msg, timef, kLocalExt);
    int weightIdx = 0;
    for (int arborID=0; arborID < numArbors; arborID++) {
       for (int patchID=0; patchID < numPrePatch; patchID++) {

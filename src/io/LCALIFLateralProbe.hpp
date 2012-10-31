@@ -31,7 +31,7 @@ protected:
 private:
    int initialize_base();
    LCALIFLateralConn * LCALIFConn;
-   int kLocal;
+   int kLocalExt;
    int inBounds;
 
    //output variables

@@ -523,6 +523,7 @@ int OjaSTDPConn::checkpointRead(const char * cpDir, double * timef) {
    loc.nyGlobal = loc.ny * parent->icCommunicator()->numCommRows();
    loc.nb = 0;
 
+   //TODO: Only read if plasicity flag is on
    // pre_stdp_tr
    chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_pre_stdp_tr.pvp", cpDir, name);
    if (chars_needed >= PV_PATH_MAX) {

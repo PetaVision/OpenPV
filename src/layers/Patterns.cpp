@@ -114,6 +114,13 @@ int Patterns::initialize(const char * name, HyPerCol * hc, PatternType type) {
 
       maxVal = params->value(name,"maxValue", PATTERNS_MAXVAL);
       onOffFlag = params->value(name, "halfNeutral", 0);
+      inOutFlag = params->value(name, "inOut", 1);
+
+      //inOutFlag must be -1, 0, or 1
+      if (inOutFlag < -1 || inOutFlag > 1){
+         fprintf(stderr, "Patterns:: inOutFlag must be -1 for all in drops, 0 for random, or 1 for all out drops ");
+         abort();
+      }
 
       if(onOffFlag){
          minVal = params->value(name,"minValue", PATTERNS_MINVAL);
@@ -553,8 +560,8 @@ int Patterns::drawDrops() {
    for(std::vector<Drop>::iterator dropIt = vDrops.begin(); dropIt < vDrops.end(); dropIt++){
       //Update radius
       dropIt->radius += dropIt->speed;
-      //If no longer in the frame
-      if(dropIt->radius >= max_radius){
+      //If no longer in the frame either in or out
+      if(dropIt->radius >= max_radius || dropIt->radius < 0){
 
          //Erase from vector, erase returns next iterator object
          dropIt = vDrops.erase(dropIt);
@@ -602,7 +609,34 @@ int Patterns::drawDrops() {
       else{
          newDrop.on = false;
       }
-      newDrop.radius = 0;
+      //If out is true, out drop
+      bool out;
+      if(inOutFlag == 0){
+         if(pv_random_prob() < .5){
+            out = true;
+         }
+         else{
+            out = false;
+         }
+      }
+      else if(inOutFlag == -1){
+         out = false;
+      }
+      else if(inOutFlag == 1){
+         out = true;
+      }
+      //Should never get here, since a check is done to make sure inOutFlag is -1, 0, or 1
+      else{assert(false);}
+
+      if (out){
+         newDrop.radius = 0;
+      }
+      else{
+         //Start at max radius
+         newDrop.radius = max_radius;
+         //Reverse sign of speed
+         newDrop.speed = -newDrop.speed;
+      }
 
       //Communicate to rest of processors
       MPI_Bcast(&nextDropFrame, 1, MPI_DOUBLE, 0, parent->icCommunicator()->communicator());
