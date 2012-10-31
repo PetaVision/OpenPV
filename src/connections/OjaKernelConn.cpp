@@ -20,12 +20,24 @@ OjaKernelConn::OjaKernelConn()
 }
 
 OjaKernelConn::~OjaKernelConn() {
-   free(inputFiringRate[0]); inputFiringRate[0] = NULL;
+   free(inputFiringRate[0]);
+   for (int arbor=0; arbor<numberOfAxonalArborLists(); arbor++) {
+      inputFiringRate[arbor] = NULL;
+   }
+   for (int arbor=0; arbor<numberOfAxonalArborLists(); arbor++) {
+      pvcube_delete(inputFiringRateCubes[arbor]); inputFiringRateCubes[arbor] = NULL;
+   }
+   free(inputFiringRateCubes); inputFiringRate = NULL;
    free(inputFiringRate); inputFiringRate = NULL;
    free(outputFiringRate); outputFiringRate = NULL;
+   Communicator::freeDatatypes(mpi_datatype); mpi_datatype = NULL;
 }
 
 int OjaKernelConn::initialize_base() {
+   inputFiringRateCubes = NULL;
+   inputFiringRate = NULL;
+   mpi_datatype = NULL;
+   outputFiringRate = NULL;
    return PV_SUCCESS;
 }
 
@@ -37,27 +49,49 @@ int OjaKernelConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre
    outputTargetRate = 0.001*readOutputTargetRate();
    integrationTime = readIntegrationTime();
 
-   int numarbors = numberOfAxonalArborLists();
+   int numarbors = numberOfAxonalArborLists(); assert(numarbors>0);
    int n_pre_ext = getNumWeightPatches();
    int n_post = post->getNumNeurons();
+   inputFiringRateCubes = (PVLayerCube **) calloc(numarbors, sizeof(PVLayerCube *));
+   if (inputFiringRateCubes == NULL) {
+      fprintf(stderr, "OjaKernelConn \"%s\" error allocating inputFiringRateCubes", name);
+      abort();
+   }
+
+   // Don't allocate cube's data in place, so that the data can be written to/ read from a pvp file at once
    inputFiringRate = (pvdata_t **) calloc(numarbors, sizeof(pvdata_t *));
    if (inputFiringRate == NULL) {
       fprintf(stderr, "OjaKernelConn::initialize error for layer \"%s\": unable to allocate memory for input firing rates\n", name);
       abort();
    }
-   inputFiringRate[0] = (pvdata_t *) calloc(n_pre_ext*numarbors, sizeof(pvdata_t));
-   if (inputFiringRate[0] == NULL) {
+   for (int arbor = 0; arbor<numarbors; arbor++) {
+      inputFiringRateCubes[arbor] = pvcube_new(pre->getLayerLoc(), pre->getNumExtended());
+   }
+   inputFiringRate = (pvdata_t **) calloc(numarbors, sizeof(pvdata_t *));
+   if (inputFiringRate == NULL) {
+      fprintf(stderr, "OjaKernelConn::initialize error for layer \"%s\": unable to allocate memory for input firing rate pointers\n", name);
+      abort();
+   }
+   inputFiringRate[0] = (pvdata_t *) calloc(numarbors*n_pre_ext, sizeof(pvdata_t *));
+   if (inputFiringRate[0]==NULL) {
       fprintf(stderr, "OjaKernelConn::initialize error for layer \"%s\": unable to allocate memory for input firing rates\n", name);
       abort();
    }
-   for (int arbor=1; arbor<numarbors; arbor++) {
-      inputFiringRate[arbor] = inputFiringRate[0] + arbor*n_post;
+   for (int arbor = 1; arbor<numarbors; arbor++) {
+      inputFiringRate[arbor] = inputFiringRate[0]+arbor*n_pre_ext;
+      inputFiringRateCubes[arbor]->size = pvcube_size(n_pre_ext); // Should be okay even though cube's data is not in place, since the mirrorTo functions don't use the size field
+      inputFiringRateCubes[arbor]->numItems = pvcube_size(n_pre_ext);
+      memcpy(&(inputFiringRateCubes[arbor]->loc), pre->getLayerLoc(), sizeof(PVLayerLoc));
+      inputFiringRateCubes[arbor]->data = inputFiringRate[arbor];
    }
+
+   // Output firing rate doesn't need arbors since all arbors go to the same output, or a cube since we don't have to exchange borders.
    outputFiringRate = (pvdata_t *) calloc(n_post, sizeof(pvdata_t *));
    if (outputFiringRate == NULL) {
       fprintf(stderr, "OjaKernelConn::initialize error for layer \"%s\": unable to allocate memory for output firing rates\n", name);
       abort();
    }
+   mpi_datatype = Communicator::newDatatypes(pre->getLayerLoc());
    return status;
 }
 
@@ -155,21 +189,14 @@ int OjaKernelConn::checkpointRead(const char * cpDir, double * timef) {
    // Apply mirror boundary conditions
 
    // Exchange borders
-   MPI_Datatype * mpi_datatype = Communicator::newDatatypes(preloc);
-   PVLayerCube cube;
-   memcpy(&cube.loc, preloc, sizeof(PVLayerLoc));
-   cube.numItems = pre->getNumExtended();
-   cube.size = sizeof(pvdata_t)*cube.numItems + sizeof(PVLayerCube); // Should be okay even though cube's data is not in place, since the mirrorTo functions don't use the size field
    for (int arbor=0; arbor<numberOfAxonalArborLists(); arbor++) {
-      cube.data = inputFiringRate[0];
       if ( pre->useMirrorBCs() ) {
          for (int borderId = 1; borderId < NUM_NEIGHBORHOOD; borderId++){
-            pre->mirrorInteriorToBorder(borderId, &cube, &cube);
+            pre->mirrorInteriorToBorder(borderId, inputFiringRateCubes[arbor], inputFiringRateCubes[arbor]);
          }
       }
       parent->icCommunicator()->exchange(inputFiringRate[0], mpi_datatype, preloc);
    }
-   Communicator::freeDatatypes(mpi_datatype);
 
    return status;
 }

@@ -22,11 +22,14 @@ LCALIFLateralKernelConn::LCALIFLateralKernelConn(const char * name, HyPerCol * h
 
 LCALIFLateralKernelConn::~LCALIFLateralKernelConn()
 {
-   free(integratedSpikeCount); integratedSpikeCount = NULL;
+   pvcube_delete(integratedSpikeCountCube); integratedSpikeCountCube = NULL; integratedSpikeCount = NULL;
+   Communicator::freeDatatypes(mpi_datatype); mpi_datatype = NULL;
 }
 
 int LCALIFLateralKernelConn::initialize_base() {
+   integratedSpikeCountCube = NULL;
    integratedSpikeCount = NULL;
+   mpi_datatype = NULL;
    return PV_SUCCESS;
 }
 
@@ -47,9 +50,15 @@ int LCALIFLateralKernelConn::initialize(const char * name, HyPerCol * hc, HyPerL
       }
       abort();
    }
-   integratedSpikeCount = (float *) malloc(pre->getNumExtended() * sizeof(float));
+   integratedSpikeCountCube = pvcube_new(pre->getLayerLoc(), pre->getNumExtended());
+   integratedSpikeCount = integratedSpikeCountCube->data;
    for (int k=0; k<pre->getNumExtended(); k++) {
       integratedSpikeCount[k] = integrationTimeConstant*getTargetRateKHz(); // Spike counts initialized to equilibrium value
+   }
+   mpi_datatype = Communicator::newDatatypes(pre->getLayerLoc());
+   if (mpi_datatype==NULL) {
+      fprintf(stderr, "LCALIFLateralKernelConn \"%s\" error creating mpi_datatype\n", name);
+      abort();
    }
    return status;
 }
@@ -164,12 +173,17 @@ int LCALIFLateralKernelConn::checkpointRead(const char * cpDir, double * timef) 
       abort();
    }
    double timed;
-   PVLayerLoc loc;
-   memcpy(&loc, pre->getLayerLoc(), sizeof(PVLayerLoc));
-   read_pvdata(filename, parent->icCommunicator(), &timed, integratedSpikeCount, &loc, PV_FLOAT_TYPE, /*extended*/ false, /*contiguous*/ false);
+   read_pvdata(filename, parent->icCommunicator(), &timed, integratedSpikeCount, pre->getLayerLoc(), PV_FLOAT_TYPE, /*extended*/ false, /*contiguous*/ false);
    if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
       fprintf(stderr, "Warning: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
    }
+   // Exchange borders
+   if ( pre->useMirrorBCs() ) {
+      for (int borderId = 1; borderId < NUM_NEIGHBORHOOD; borderId++){
+         pre->mirrorInteriorToBorder(borderId, integratedSpikeCountCube, integratedSpikeCountCube);
+      }
+   }
+   parent->icCommunicator()->exchange(integratedSpikeCount, mpi_datatype, pre->getLayerLoc());
 
    return status;
 }

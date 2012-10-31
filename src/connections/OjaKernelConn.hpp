@@ -57,8 +57,10 @@ protected:
    float inputTargetRate;
    float outputTargetRate;
    float integrationTime; // \tau_{\hbox{\it Oja}}
+   PVLayerCube ** inputFiringRateCubes; // inputFiringRate[arbor]
    pvdata_t ** inputFiringRate; // inputFiringRate[arbor][patchIndex]
    pvdata_t * outputFiringRate; // outputFiringRate[output neuron (in restricted space)]
+   MPI_Datatype * mpi_datatype;   // Used to mirror the inputFiringRateCubes
 
 };
 
