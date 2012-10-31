@@ -26,7 +26,7 @@ HyPerCol "column" = {
    //checkpointReadDir            = "~/Documents/Work/LANL/workspace/iHouse/checkpoints"; //Dylan's Mac
    //checkpointReadDir            = "~/workspace/iHouse/checkpoints"; //Dylan's Neuro
    checkpointReadDir            = "~/workspace-apoyo/iHouseApoyo/checkpoints"; //Dylan's Apoyo
-   checkpointReadDirIndex       = 5000000;
+   checkpointReadDirIndex       = 6000000;
                                            //
    checkpointWrite              = true;
    deleteOlderCheckpoints       = false;
@@ -258,7 +258,7 @@ KernelConn "ImagetoRetinaONCenter" = {
    sigma                  = 1;
    rMax                   = 1;   
    rMin                   = 0;
-   strength               = 50;
+   strength               = 1;
    //combineWeightFiles     = false;
                                  //
    numAxonalArbors        = 1;
@@ -268,7 +268,7 @@ KernelConn "ImagetoRetinaONCenter" = {
    writeCompressedWeights = true;
    selfFlag               = false;
    shrinkPatches          = false;
-   normalizeTotalToPost   = false;
+   normalizeTotalToPost   = true;
    normalize_cutoff       = false;
                                  //
    normalize              = true;
@@ -293,8 +293,8 @@ KernelConn "ImagetoRetinaONSurround" = {
    aspect                 = 1;
    sigma                  = 1;
    rMax                   = 5;
-   rMin                   = 0;
-   strength               = 50;
+   rMin                   = 0.1;
+   strength               = 1;
    //combineWeightFiles     = false;
                                  //
    numAxonalArbors        = 1;
@@ -304,7 +304,7 @@ KernelConn "ImagetoRetinaONSurround" = {
    writeCompressedWeights = true;
    selfFlag               = false;
    shrinkPatches          = false;
-   normalizeTotalToPost   = false;
+   normalizeTotalToPost   = true;
    normalize_cutoff       = false;
                                  //
    normalize              = true;
@@ -331,7 +331,7 @@ KernelConn "ImagetoRetinaOFFCenter" = {
    sigma                  = 1;
    rMax                   = 1;   
    rMin                   = 0;
-   strength               = 50;
+   strength               = 1;
    //combineWeightFiles     = false;
                                  //
    numAxonalArbors        = 1;
@@ -341,7 +341,7 @@ KernelConn "ImagetoRetinaOFFCenter" = {
    writeCompressedWeights = true;
    selfFlag               = false;
    shrinkPatches          = false;
-   normalizeTotalToPost   = false;
+   normalizeTotalToPost   = true;
    normalize_cutoff       = false;
                                  //
    normalize              = true;
@@ -367,8 +367,8 @@ KernelConn "ImagetoRetinaOFFSurround" = {
    aspect                 = 1;
    sigma                  = 1;
    rMax                   = 5;
-   rMin                   = 0;
-   strength               = 50;
+   rMin                   = 0.1;
+   strength               = 1;
    //combineWeightFiles     = false;
                                  //
    numAxonalArbors        = 1;
@@ -378,7 +378,7 @@ KernelConn "ImagetoRetinaOFFSurround" = {
    writeCompressedWeights = true;
    selfFlag               = false;
    shrinkPatches          = false;
-   normalizeTotalToPost   = false;
+   normalizeTotalToPost   = true;
    normalize_cutoff       = false;
                                  //
    normalize              = true;
