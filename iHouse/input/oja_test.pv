@@ -53,35 +53,35 @@ Patterns "Input" = {
    nxScale                 = 1;
    nyScale                 = 1;
    nf                      = 1;
-                                 // 
+                                     // 
    patternType             = "DROP";
-                                 //
-   inOut                   = 0;  //-1 is all in, 0 is random, 1 is all out
-		                         //
-   dropSpeed               = 1;  //(pixels/dt) Radius expands dropSpeed pixles per timestep
-   //dropSpeedRandomMax      = 3;   // only applies if dropSpeed = -1
-   //dropSpeedRandomMin      = 1;   // only applies of dropSpeed = -1
-    							 // 
-   dropPeriod              = 50; //(dt) -1 for random period, otherwise, number of frames inbetween drops
+                                     //
+   inOut                   = 0;      //-1 is all in, 0 is random, 1 is all out
+		                             //
+   dropSpeed               = 1;      //(pixels/dt) Radius expands dropSpeed pixles per timestep
+   //dropSpeedRandomMax      = 3;      // only applies if dropSpeed = -1
+   //dropSpeedRandomMin      = 1;      // only applies of dropSpeed = -1
+    							     // 
+   dropPeriod              = 50;     //(dt) -1 for random period, otherwise, number of frames inbetween drops
    //dropPeriodRandomMax     = 50;
    //dropPeriodRandomMin     = 15;
-    							 // 
+    							     // 
    maxValue                = 0.75;
    minValue                = 0.25;
-    							 //
+    							     //
    halfNeutral             = true;
-    							 // 
-   dropPosition            = 0;  // -1 random period of drop positions, 0 is drop from center only, n>0 is number of frames (period) for drop positions
-    							 //
+    							     // 
+   dropPosition            = 0;      // -1 random period of drop positions, 0 is drop from center only, n>0 is number of frames (period) for drop positions
+    							     //
    startFrame              = 0; 
    endFrame                = -1;
-    							 // 
+    							     // 
    writeImages             = false;
-    							 // 
+    							     // 
    //patternsOutputPath      = "~/Documents/workspace/iHouse/output/sourcefiles";
    //patternsOutputPath      = "~/Documents/Work/LANL/workspace/iHouse/output/sourcefiles"; // Dylan's Mac
    //patternsOutputPath      = "~/workspace/iHouse/output/sourcefiles"; // Dylan's Remote 
-    							 // 
+    							     // 
    displayPeriod           = 1;
    writeStep               = -1;
    marginWidth             = 1;
@@ -89,7 +89,7 @@ Patterns "Input" = {
    useImageBCflag          = false;
    mirrorBCflag            = true;
    inverseFlag             = false;
-    							 // 
+    							     // 
    writeNonspikingActivity = true;
    restart                 = 0;
 };
@@ -205,7 +205,7 @@ KernelConn "ImagetoRetinaONCenter" = {
    sigma                  = 1;
    rMax                   = 1;   
    rMin                   = 0;
-   strength               = 2.66666666667;
+   strength               = 5.33333333333;
    //combineWeightFiles     = false;
                                  //
    numAxonalArbors        = 1;
@@ -241,7 +241,7 @@ KernelConn "ImagetoRetinaONSurround" = {
    sigma                  = 1;
    rMax                   = 5;
    rMin                   = 0.1;
-   strength               = 2.66666666667;
+   strength               = 5.33333333333;
    //combineWeightFiles     = false;
                                  //
    numAxonalArbors        = 1;
@@ -278,7 +278,7 @@ KernelConn "ImagetoRetinaOFFCenter" = {
    sigma                  = 1;
    rMax                   = 1;   
    rMin                   = 0;
-   strength               = 2.66666666667;
+   strength               = 5.33333333333;
    //combineWeightFiles     = false;
                                  //
    numAxonalArbors        = 1;
@@ -315,7 +315,7 @@ KernelConn "ImagetoRetinaOFFSurround" = {
    sigma                  = 1;
    rMax                   = 5;
    rMin                   = 0.1;
-   strength               = 2.66666666667;
+   strength               = 5.33333333333;
    //combineWeightFiles     = false;
                                  //
    numAxonalArbors        = 1;
