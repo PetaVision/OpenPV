@@ -1288,6 +1288,10 @@ int HyPerConn::checkpointRead(const char * cpDir, double * timef) {
             fprintf(stderr, "HyPerLayer::checkpointRead warning: unable to read from %s.  writeTime will be %f\n", path, write_time);
             writeTime = write_time;
          }
+         //Make sure write time is not before simulation time
+         if (writeTime < parent->simulationTime()){
+            writeTime = parent->simulationTime();
+         }
       }
       fclose(fpWriteTime);
    }

@@ -172,7 +172,7 @@ int LCALIFLateralProbe::outputState(double timef)
    for (int arborID=0; arborID < numArbors; arborID++) {
       for (int patchID=0; patchID < numPrePatch; patchID++) {
          fprintf(fp, " weight_%d_%d=%-6.3f",arborID,patchID,preWeights[weightIdx]);
-         fprintf(fp, " prOjaTr_%d_%d=%-6.3f",arborID,patchID,preIntTrs[weightIdx]);
+         fprintf(fp, " preIntTrs_%d_%d=%-6.3f",arborID,patchID,preIntTrs[weightIdx]);
          weightIdx++;
       }
    }
