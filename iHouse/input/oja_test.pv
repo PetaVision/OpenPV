@@ -10,7 +10,7 @@ HyPerCol "column" = {
                                            // 
    randomSeed                   = 1020304050.0;   
                                            //
-   numSteps                     = 6000000; // amount of time steps performed during run-time
+   numSteps                     = 4000000; // amount of time steps performed during run-time
    progressStep                 = 5000;    // write output to see progress
    writeProgressToErr           = 0;       // write progress steps to std err
                                            // 
@@ -24,7 +24,7 @@ HyPerCol "column" = {
    //checkpointReadDir            = "~/Documents/workspace/iHouse/checkpoints";
    //checkpointReadDir            = "~/Documents/Work/LANL/workspace/iHouse/checkpoints"; //Dylan's Mac
    checkpointReadDir            = "~/workspace/iHouse/checkpoints"; //Dylan's Remote 
-   checkpointReadDirIndex       = 6000000;
+   checkpointReadDirIndex       = 4000000;
                                            //
    checkpointWrite              = true;
    deleteOlderCheckpoints       = false;
@@ -411,6 +411,7 @@ OjaSTDPConn "RetinaONtoLif" = {
    targetPreRate          = 20;    // (Hz)
    weightDecay            = 0;     // How quickly STDP decays if no firing occurs
    dWMax                  = 2;     // How quickly STDP happens (unstable if high)
+   weightScale            = 0.25;  // Modifies strength range for STDP (we want strengths to be around 0.25)
    wMin                   = 0.001; // Min value for weights
    //wMax                   = 1;     // Does not matter if ojaFlag = true
    ojaFlag                = 1;     //Turns oja rule on or off. Standard STDP if off
@@ -464,9 +465,11 @@ OjaSTDPConn "RetinaOFFtoLif" = {
    tauOja                 = 150;   // (ms)
    tauTHR                 = 5000;  // (ms) thresholdAdaptationTime
    tauO                   = 300;   // (ms)
-   targetRate             = 5;    // (Hz)
+   targetPostRate         = 5;     // (Hz)
+   targetPreRate          = 20;    // (Hz)
    weightDecay            = 0;     // How quickly STDP decays if no firing occurs
    dWMax                  = 2;     // How quickly STDP happens (unstable if high)
+   weightScale            = 0.25;  // Modifies strength range for STDP (we want strengths to be around 0.25)
    wMin                   = 0.001; // Min value for weights
    //wMax                   = 1;     // Does not matter if ojaFlag = true
    ojaFlag                = 1;     //Turns oja rule on or off. Standard STDP if off
