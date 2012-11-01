@@ -150,7 +150,7 @@ Retina "RetinaOFF" = {
     mirrorBCflag        = 0;
     spikingFlag         = true;  // false (no quotes) is translated to 0
                                  //
-    noiseOnFreq         = 200;   // Hz // Max poisson spiking rate when input is 255
+    noiseOnFreq         = 400;   // Hz // Max poisson spiking rate when input is 255
     noiseOffFreq        = 20;    // Hz // Min poisson spiking rate when input is 0
                                  //
     burstFreq           = 50;    // Hz // Everything coming into the retina should be burstin burstFreq times per sec
@@ -159,8 +159,8 @@ Retina "RetinaOFF" = {
     beginStim           = 0;     // Restrict stimulus to a window of time
     endStim             = -1;
                                  // 
-    refractoryPeriod    = 5;
-    absRefractoryPeriod = 2;
+    refractoryPeriod    = 3;
+    absRefractoryPeriod = 1.5;
     restart             = 0;
 };
 
@@ -253,7 +253,7 @@ KernelConn "ImagetoRetinaONCenter" = {
    sigma                  = 1;
    rMax                   = 1;   
    rMin                   = 0;
-   strength               = 1;
+   strength               = 2.66666666667;
    //combineWeightFiles     = false;
                                  //
    numAxonalArbors        = 1;
@@ -289,7 +289,7 @@ KernelConn "ImagetoRetinaONSurround" = {
    sigma                  = 1;
    rMax                   = 5;
    rMin                   = 0.1;
-   strength               = 1;
+   strength               = 2.66666666667;
    //combineWeightFiles     = false;
                                  //
    numAxonalArbors        = 1;
@@ -326,7 +326,7 @@ KernelConn "ImagetoRetinaOFFCenter" = {
    sigma                  = 1;
    rMax                   = 1;   
    rMin                   = 0;
-   strength               = 1;
+   strength               = 2.66666666667;
    //combineWeightFiles     = false;
                                  //
    numAxonalArbors        = 1;
@@ -363,7 +363,7 @@ KernelConn "ImagetoRetinaOFFSurround" = {
    sigma                  = 1;
    rMax                   = 5;
    rMin                   = 0.1;
-   strength               = 1;
+   strength               = 2.66666666667;
    //combineWeightFiles     = false;
                                  //
    numAxonalArbors        = 1;
