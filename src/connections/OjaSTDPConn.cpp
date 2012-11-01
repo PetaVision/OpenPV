@@ -32,32 +32,34 @@ OjaSTDPConn::~OjaSTDPConn()
 
 int OjaSTDPConn::initialize_base() {
    // Default STDP parameters for modifying weights; defaults are overridden in setParams().
-   this->post_stdp_tr   = NULL;
-   this->post_oja_tr    = NULL;
-   this->post_int_tr    = NULL;
-   this->pre_stdp_tr    = NULL;
-   this->pre_oja_tr     = NULL;
+   this->post_stdp_tr     = NULL;
+   this->post_oja_tr      = NULL;
+   this->post_int_tr      = NULL;
+   this->pre_stdp_tr      = NULL;
+   this->pre_oja_tr       = NULL;
 
-   this->ampLTP         = 1;
-   this->ampLTD         = NULL; // Will allocate later
-   this->initAmpLTD     = 1;
-   this->targetRateHz   = 1;
-   this->LTDscale       = ampLTP;
-   this->weightDecay    = 0.01;
-   this->dWMax          = 1;
+   this->ampLTP           = 1;
+   this->ampLTD           = NULL; // Will allocate later
+   this->initAmpLTD       = 1;
+   this->targetPostRateHz = 1;
+   this->targetPreRateHz  = 20;
+   this->LTDscale         = ampLTP;
+   this->weightDecay      = 0.01;
+   this->dWMax            = 1;
+   this->weightScale      = 0.25
 
-   this->tauLTP         = 16.8;
-   this->tauLTD         = 33.7;
-   this->tauOja         = 337;
-   this->tauTHR         = 1000;
-   this->tauO           = 1/targetRateHz;
+   this->tauLTP           = 16.8;
+   this->tauLTD           = 33.7;
+   this->tauOja           = 337;
+   this->tauTHR           = 1000;
+   this->tauO             = 1/targetPostRateHz;
 
-   this->wMin           = 0.0001f;
-   this->wMax           = 1;
+   this->wMin             = 0.0001f;
+   this->wMax             = 1;
 
-   this->ojaFlag        = true;
-   this->synscalingFlag = false;
-   this->synscaling_v   = 1;
+   this->ojaFlag          = true;
+   this->synscalingFlag   = false;
+   this->synscaling_v     = 1;
 
    return PV_SUCCESS;
 }
@@ -112,27 +114,28 @@ int OjaSTDPConn::setParams(PVParams * params)
 {
    HyPerConn::setParams(params);
 
-   ampLTP         = params->value(getName(), "ampLTP", ampLTP);
-   initAmpLTD     = params->value(getName(), "initAmpLTD", initAmpLTD);
-   tauLTP         = params->value(getName(), "tauLTP", tauLTP);
-   tauLTD         = params->value(getName(), "tauLTD", tauLTD);
-   tauOja         = params->value(getName(), "tauOja", tauOja);
-   tauTHR         = params->value(getName(), "tauTHR", tauTHR);
-   tauO           = params->value(getName(), "tauO",tauO);
+   ampLTP           = params->value(getName(), "ampLTP", ampLTP);
+   initAmpLTD       = params->value(getName(), "initAmpLTD", initAmpLTD);
+   tauLTP           = params->value(getName(), "tauLTP", tauLTP);
+   tauLTD           = params->value(getName(), "tauLTD", tauLTD);
+   tauOja           = params->value(getName(), "tauOja", tauOja);
+   tauTHR           = params->value(getName(), "tauTHR", tauTHR);
+   tauO             = params->value(getName(), "tauO",tauO);
 
-   weightDecay    = params->value(getName(), "weightDecay", weightDecay);
-   targetRateHz   = params->value(getName(), "targetRate", targetRateHz);
+   weightDecay      = params->value(getName(), "weightDecay", weightDecay);
+   targetPreRateHz  = params->value(getName(), "targetPostRate", targetPostRateHz);
+   targetPostRateHz = params->value(getName(), "targetPreRate", targetPreRateHz);
 
-
-   ojaFlag        = params->value(getName(), "ojaFlag",ojaFlag);
-   synscalingFlag = params->value(getName(), "synscalingFlag", synscalingFlag);
-   synscaling_v   = params->value(getName(), "synscaling_v", synscaling_v);
+   ojaFlag          = params->value(getName(), "ojaFlag",ojaFlag);
+   synscalingFlag   = params->value(getName(), "synscalingFlag", synscalingFlag);
+   synscaling_v     = params->value(getName(), "synscaling_v", synscaling_v);
 
    if (!ojaFlag) { //Don't even look for the param if ojaFlag is set to 1
-      wMax           = params->value(getName(), "wMax", wMax);
+      wMax          = params->value(getName(), "wMax", wMax);
    }
-   wMin           = params->value(getName(), "wMin", wMin);
-   dWMax          = params->value(getName(), "dWMax", dWMax);
+   wMin             = params->value(getName(), "wMin", wMin);
+   dWMax            = params->value(getName(), "dWMax", dWMax);
+   weightScale      = params->value(getName(), "weightScale", weightScale);
 
    return 0;
 }
@@ -159,13 +162,13 @@ int OjaSTDPConn::initPlasticityPatches()
    int numPost = post_stdp_tr->numItems;
    int numPre  = pre_stdp_tr->numItems;
    for (int kPostRes = 0; kPostRes < numPost; kPostRes++) {
-      post_stdp_tr->data[kPostRes] = tauLTD * targetRateHz/1000;
-      post_oja_tr->data[kPostRes]  = tauOja * targetRateHz/1000;
-      post_int_tr->data[kPostRes]  = tauO   * targetRateHz/1000;
+      post_stdp_tr->data[kPostRes] = tauLTD * targetPostRateHz/1000;
+      post_oja_tr->data[kPostRes]  = tauOja * targetPostRateHz/1000;
+      post_int_tr->data[kPostRes]  = tauO   * targetPostRateHz/1000;
    }
    for (int kPreExt = 0; kPreExt < numPre; kPreExt++) {
-      pre_stdp_tr->data[kPreExt] = tauLTP * targetRateHz/1000;
-      pre_oja_tr->data[kPreExt]  = tauOja * targetRateHz/1000;
+      pre_stdp_tr->data[kPreExt] = tauLTP * targetPostRateHz/1000;
+      pre_oja_tr->data[kPreExt]  = tauOja * targetPostRateHz/1000;
    }
 
    return PV_SUCCESS;
@@ -219,12 +222,13 @@ int OjaSTDPConn::updateWeights(int arborID)
    // 2. Update pre_stdp_tr
    // 3. Update w_ij
 
-   const float dt            = parent->getDeltaTime();
-   const float decayLTP      = exp(-dt / tauLTP);
-   const float decayLTD      = exp(-dt / tauLTD);
-   const float decayOja      = exp(-dt / tauOja);
-   const float decayO        = exp(-dt / tauO);
-   const float targetRatekHz = targetRateHz/1000; // Convert Hz to kHz
+   const float dt                = parent->getDeltaTime();
+   const float decayLTP          = exp(-dt / tauLTP);
+   const float decayLTD          = exp(-dt / tauLTD);
+   const float decayOja          = exp(-dt / tauOja);
+   const float decayO            = exp(-dt / tauO);
+   const float targetPostRatekHz = targetPostRateHz/1000; // Convert Hz to kHz
+   const float targetPreRatekHz  = targetPreRateHz/1000; // Convert Hz to kHz
 
    //Restricted Post
    const int nkPost = post_stdp_tr->numItems;
@@ -267,7 +271,7 @@ int OjaSTDPConn::updateWeights(int arborID)
       post_oja_tr_m[kPostRes]  = decayOja * (post_oja_tr_m[kPostRes]  + aPost[kPostExt]);
       post_int_tr_m[kPostRes]  = decayO   * (post_int_tr_m[kPostRes]  + aPost[kPostExt]);
 
-      ampLTD[kPostRes] += (dt/tauTHR) * ((post_int_tr_m[kPostRes]/tauO) - targetRatekHz) * (LTDscale/targetRatekHz);
+      ampLTD[kPostRes] += (dt/tauTHR) * ((post_int_tr_m[kPostRes]/tauO) - targetPostRatekHz) * (LTDscale/targetPostRatekHz);
       ampLTD[kPostRes]  = ampLTD[kPostRes] < 0 ? 0 : ampLTD[kPostRes]; // ampLTD should not go below 0
       assert(ampLTD[kPostRes] == ampLTD[kPostRes]); // Make sure it is not NaN
    }
@@ -285,7 +289,7 @@ int OjaSTDPConn::updateWeights(int arborID)
    {
       scaleFactor = dWMax;
    }
-   assert(scaleFactor == scaleFactor); // Make sure it is not NaN (can only happen if tauOja or targetRatekHz = 0)
+   assert(scaleFactor == scaleFactor); // Make sure it is not NaN (can only happen if tauOja or targetPostRatekHz = 0)
 
    for (int kPreExt = 0; kPreExt < nkPre; kPreExt++)              // Loop over all presynaptic neurons
    {
@@ -324,7 +328,7 @@ int OjaSTDPConn::updateWeights(int arborID)
             // See LCA_Equations.pdf in documentation for description of Oja (feed-forward weight adaptation) equations.
             float ojaTerm;
             if (ojaFlag) {
-               ojaTerm = post_oja_tr_m[kPatchLoc] * ((*pre_oja_tr_m) - W[kPatchLoc] * post_oja_tr_m[kPatchLoc]);
+               ojaTerm = post_oja_tr_m[kPatchLoc] * ((*pre_oja_tr_m) - (targetPreRatekHz/targetPostRatekHz) * (W[kPatchLoc]/weightScale) * post_oja_tr_m[kPatchLoc]);
                assert(ojaTerm == ojaTerm); // Make sure it is not NaN (only happens if tauOja is 0)
             } else { //should just be standard STDP at this point
               ojaTerm = 1.0;

@@ -77,11 +77,13 @@ protected:
    float tauO;
    float weightDecay;
    float dWMax;
-   float targetRateHz;
+   float targetPostRateHz;
+   float targetPreRateHz;
+   float weightScale;
    float LTDscale;
 
-   bool  synscalingFlag;
    bool  ojaFlag;
+   bool  synscalingFlag;
    float synscaling_v;
 
 #ifdef OBSOLETE_STDP
