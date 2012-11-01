@@ -1332,7 +1332,7 @@ int HyPerConn::writeScalarFloat(const char * cp_dir, const char * val_name, doub
          fprintf(stderr, "HyPerLayer::checkpointWrite error: unable to open path %s for writing.\n", filename);
          abort();
       }
-      int num_written = fwrite(&val, sizeof(writeTime), 1, fpWriteTime);
+      int num_written = fwrite(&val, sizeof(val), 1, fpWriteTime);
       if (num_written != 1) {
          fprintf(stderr, "HyPerLayer::checkpointWrite error while writing to %s.\n", filename);
          abort();
