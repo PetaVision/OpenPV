@@ -363,7 +363,7 @@ OjaSTDPConn "RetinaONtoLif" = {
    targetPreRate          = 20;    // (Hz)
    weightDecay            = 0;     // How quickly STDP decays if no firing occurs
    dWMax                  = 2;     // How quickly STDP happens (unstable if high)
-   weightScale            = 0.25;  // Modifies strength range for STDP (we want strengths to be around 0.25)
+   weightScale            = 1;     // Modifies strength range for STDP (we want strengths to be around 0.25)
    wMin                   = 0.001; // Min value for weights
    //wMax                   = 1;     // Does not matter if ojaFlag = true
    ojaFlag                = 1;     //Turns oja rule on or off. Standard STDP if off
@@ -421,7 +421,7 @@ OjaSTDPConn "RetinaOFFtoLif" = {
    targetPreRate          = 20;    // (Hz)
    weightDecay            = 0;     // How quickly STDP decays if no firing occurs
    dWMax                  = 2;     // How quickly STDP happens (unstable if high)
-   weightScale            = 0.25;  // Modifies strength range for STDP (we want strengths to be around 0.25)
+   weightScale            = 1;     // Modifies strength range for STDP (we want strengths to be around 0.25)
    wMin                   = 0.001; // Min value for weights
    //wMax                   = 1;     // Does not matter if ojaFlag = true
    ojaFlag                = 1;     //Turns oja rule on or off. Standard STDP if off
