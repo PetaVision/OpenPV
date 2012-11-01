@@ -11,7 +11,7 @@ HyPerCol "column" = {
    randomSeed                   = 1020304050.0;   
                                            //
    numSteps                     = 4000000; // amount of time steps performed during run-time
-   progressStep                 = 5000;    // write output to see progress
+   progressStep                 = 10000;   // write output to see progress
    writeProgressToErr           = 0;       // write progress steps to std err
                                            // 
    //outputPath                 = "~/Documents/workspace/iHouse/output";
@@ -49,7 +49,7 @@ HyPerCol "column" = {
 ////////////////////////////////////////////////////////////////////////////////
 
 
-Patterns "input" = {
+Patterns "Input" = {
    nxScale                 = 1;
    nyScale                 = 1;
    nf                      = 1;
@@ -84,34 +84,14 @@ Patterns "input" = {
     							 // 
    displayPeriod           = 1;
    writeStep               = -1;
-   marginWidth             = 0;
+   marginWidth             = 1;
    spikingFlag             = 0;
    useImageBCflag          = false;
-   mirrorBCflag            = false;
+   mirrorBCflag            = true;
    inverseFlag             = false;
     							 // 
    writeNonspikingActivity = true;
    restart                 = 0;
-};
-
-
-ANNLayer "scaled_input" = {
-    nxScale                 = 1;
-    nyScale                 = 1;
-    nf                      = 1;
-    marginWidth             = 1;
-    mirrorBCflag            = 1;
-    spikingFlag             = false;
-    writeStep               = -1;
-    							 //
-    InitVType               = "ZeroV";
-    							 //
-    VThresh                 = -infinity;
-    VMax                    = infinity;
-    VMin                    = -infinity;
-    							 // 
-    writeNonspikingActivity = true;
-    restart                 = 0;
 };
 
 
@@ -125,7 +105,7 @@ Retina "RetinaON" = {
     mirrorBCflag        = 0;
     spikingFlag         = true;  // false (no quotes) is translated to 0
     							 //
-    noiseOnFreq         = 200;   // Hz // Max poisson spiking rate when input is 255
+    noiseOnFreq         = 400;   // Hz // Max poisson spiking rate when input is 255
     noiseOffFreq        = 20;    // Hz // Min poisson spiking rate when input is 0
                                  //
     burstFreq           = 50;    // Hz // Everything coming into the retina should be burstin burstFreq times per sec
@@ -134,8 +114,8 @@ Retina "RetinaON" = {
     beginStim           = 0;     // Restrict stimulus to a window of time
     endStim             = -1;
                                  //
-    refractoryPeriod    = 5;
-    absRefractoryPeriod = 2;
+    refractoryPeriod    = 3;
+    absRefractoryPeriod = 1.5;
     restart             = 0;
 };
 
@@ -208,36 +188,8 @@ LIF "lif" = {
 // Connections Connections Connections Connections Connections Connections
 ////////////////////////////////////////////////////////////////////////////////
 
-KernelConn "InputtoScaledInput" = {
-    preLayerName           = "input";
-    postLayerName          = "scaled_input";
-                                 //
-    channelCode            = 0;
-    nxp                    = 1;
-    nyp                    = 1;
-    nfp                    = 1;
-    delay                  = 0;
-                                 //
-    numAxonalArbors        = 1;
-    writeStep              = -1;
-    initFromLastFlag       = 0;
-                                 // 
-    weightInitType         = "OneToOneWeights";
-    weightInit             = 2.0;
-                                 // 
-    normalize              = false;
-    symmetrizeWeights      = false;
-    plasticityFlag         = false;
-    stochasticReleaseFlag  = false;
-    writeCompressedWeights = true;
-    selfFlag               = false;
-    shrinkPatches          = false;
-    preActivityIsNotRate   = false;
-    //combineWeightFiles     = false; // only needed if reading weights from file
-};
-
 KernelConn "ImagetoRetinaONCenter" = {
-   preLayerName           = "scaled_input";
+   preLayerName           = "Input";
    postLayerName          = "RetinaON";
    channelCode            = 0;
    nxp                    = 1; 
@@ -273,7 +225,7 @@ KernelConn "ImagetoRetinaONCenter" = {
 };
 
 KernelConn "ImagetoRetinaONSurround" = {
-   preLayerName           = "scaled_input";
+   preLayerName           = "Input";
    postLayerName          = "RetinaON";
    channelCode            = 1;
    nxp                    = 3;
@@ -310,7 +262,7 @@ KernelConn "ImagetoRetinaONSurround" = {
 
 
 KernelConn "ImagetoRetinaOFFCenter" = {
-   preLayerName           = "scaled_input";
+   preLayerName           = "Input";
    postLayerName          = "RetinaOFF";
    channelCode            = 1;
    nxp                    = 1; 
@@ -347,7 +299,7 @@ KernelConn "ImagetoRetinaOFFCenter" = {
 
 
 KernelConn "ImagetoRetinaOFFSurround" = {
-   preLayerName           = "scaled_input";
+   preLayerName           = "Input";
    postLayerName          = "RetinaOFF";
    channelCode            = 0;
    nxp                    = 3;
