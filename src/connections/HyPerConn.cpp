@@ -1290,6 +1290,7 @@ int HyPerConn::checkpointRead(const char * cpDir, double * timef) {
          }
          //Make sure write time is not before simulation time
          if (writeTime < parent->simulationTime()){
+            fprintf(stderr, "HyPerLayer::checkpointRead warning: Write time is set before simulation time. Setting next write time to simulation time\n");
             writeTime = parent->simulationTime();
          }
       }
