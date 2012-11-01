@@ -22,7 +22,7 @@ function weightHist(weightValues, time, numbins, outDir, figTitle)
    end
    title([figTitle, ' - time: ', num2str(time)]);
    if(WRITE_FIGS)
-      print_filename = [outDir, figTitle, '_', num2str(time), '.jpg'];
+      print_filename = [outDir, figTitle, '_', num2str(double(time), '%.0f), '.jpg'];
       print(print_filename);
    end
 end
