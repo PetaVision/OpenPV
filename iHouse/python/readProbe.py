@@ -7,327 +7,228 @@
 ##
 ##Dylan Paiton and Sheng Lundquist
 #####
-
+from numpy import *
 import matplotlib
-from numpy import array, dot, arange, mean, polyfit, ndarray, std, zeros, nonzero
-from collections import OrderedDict
 
-#*************************#
-#          PARAMS         #
-#*************************#
-#Paths
-workspaceDir = "/Users/dpaiton/Documents/Work/Lanl/workspace"
-#workspaceDir = "/home/dpaiton/workspace"
-#filename     = "/Users/slundquist/Desktop/ptLIF.txt"
-#filename     = "/Users/slundquist/Desktop/retONtoLif.txt"
-filename     = workspaceDir+"/iHouse/checkpoints/Checkpoint3010000/retONtoLifHor.txt"
-figOutDir    = workspaceDir+"/iHouse/checkpoints/Checkpoint3010000/analysis/probeFigs/"
-figRootName  = 'onVer_weights'
-
-#Values for range of frames
-all_lines = False    #All values if True
-startTime = 3000000
-endTime   = 3010000  #End must be under number of lines in file
-
-#Other flags
-numTCBins   = 3     #number of bins for time course plot
-numHistBins = 20    #number of bins for histogram of weights (-1 means no histogram)
-weightMap   = True  #if True, display a weight map
-doLegend    = False #if True, time graph will have a legend
-dispFigs    = False #if True, display figures. Otherwise, print them to file.
-
-#Flags for weightMap
-numWeights = 25 #number of weights in map
-
-#Data structure for scale, and data array to store all the data
-data = OrderedDict()
-#Made time for data
-#TIME MUST EXIST AND BE FIRST IN THIS LIST
-data['t']                     = []
-
-#data['V']                    = []
-#data['Vth']                  = []
-#data['a']                    = []
-
-data['weight0']               = []
-data['weight1']               = []
-data['weight2']               = []
-data['weight3']               = []
-data['weight4']               = []
-data['weight5']               = []
-data['weight6']               = []
-data['weight7']               = []
-data['weight8']               = []
-data['weight9']               = []
-data['weight10']              = []
-data['weight11']              = []
-data['weight12']              = []
-data['weight13']              = []
-data['weight14']              = []
-data['weight15']              = []
-data['weight16']              = []
-data['weight17']              = []
-data['weight18']              = []
-data['weight19']              = []
-data['weight20']              = []
-data['weight21']              = []
-data['weight22']              = []
-data['weight23']              = []
-data['weight24']              = []
-data['weight*']               = []
-#data['prOjaTr*']              = []
-#data['prStdpTr*']             = []
-#data['poOjaTr']               = []
-#data['poStdpTr']              = []
-#data['poIntTr']               = []
-#data['ampLTD']                = []
-
-#*************************#
-#        MAIN CODE        #
-#*************************#
-
-def splitLine(line):
-   #Split line by :
-   lineSp = line.split(":")
-   assert(len(lineSp) == 2) ##only one colon in params name
-   lineSp = lineSp[1]
-   #Split line by =
-   lineSp = lineSp.split("=")
-   #Split further by spaces
-   lineSp = [x.split() for x in lineSp]
-   #Combine into one list
-   lineSp = [a for x in lineSp for a in x]
-   #Group elements into tuples
-   lineSp = zip(*[lineSp[i::2] for i in range(2)])
-   return lineSp
+from readProbeFunc import *
+from readProbeParams import *
 
 #Must be done before importing pyplot (or anything from pyplot)
 if not dispFigs:
     matplotlib.use('Agg')
-from matplotlib.pyplot import plot, legend, show, bar, figure, xticks, tight_layout, gray
+    from os import path, makedirs
+from matplotlib.pyplot import *
 
-#Imports for weightMap
+#Error checking
+if len([i for i in scale.keys() if i not in data.keys()]) > 0:
+    print "readProbe: WARNING: Some of your key values for the scale dictionary do not match anything in the data dictionary. They will be ignored."
 if weightMap:
-    from numpy import mean, sqrt, reshape
-    from matplotlib.pyplot import imshow, grid
+    if 'weight*' not in data.keys():
+        print "readProbe: WARNING: weight* is not set in the data dictionary, but weightMap flag is true. Setting weightMap to false."
+        weightMap = False
 
-if numTCBins <= 0:
-    numTCBins = 1
-    print "readProbe: WARNING: numTCBins <= 0, which is not allowed. Setting numTCBins to 1."
-if numHistBins == 0:
-    numHistBins = -1
-    print "readProbe: WARNING: numHistBins == 0, which is not allowed. Setting numHistBins to -1."
+#Main loop
+for filenameTup in filenames:
+    filename = filenameTup[1]
 
-print "readProbe: Reading file..."
-f = open(filename, 'r')
-if (all_lines):
-    lines = f.readlines()
-else:
-    firstLine = f.readline()
-    firstLineSplit = splitLine(firstLine) #list of tuples. list[0] is always time. tuple is ('label','val')
-    fileStartTime = float(firstLineSplit[0][1])
-    assert endTime > fileStartTime, "readProbe: endTime ("+str(endTime)+") is <= fileStartTime ("+str(fileStartTime)+")"
-    if startTime < fileStartTime: #can't start from a time earlier than the first time
-        startTime = fileStartTime
-        print "readProbe: WARNING: startTime is less than the file's start time. Setting startTime = fileStartTime"
-    assert endTime > startTime, "readProbe: endTime must be greater than startTime."
-    timeOffset = startTime - fileStartTime #now we know how many lines forward we need to go
-    lineLength = len(firstLine)
-    f.seek(lineLength*timeOffset,0)
-    line = f.readline() #this possibly(probably?) does not start at the beginning of the line
-    line = f.readline() #is definitely a full line
-    currentTime = float(splitLine(line)[0][1])
-    while currentTime != startTime:
-        if currentTime > startTime: #shouldn't have to go very far back, assuming that the length of the first line approximately matches the average line length
-            tempTime = currentTime #to make sure we actually back up
-            numBack = 3 #should allow you to back up a single line.
-            while tempTime >= currentTime:
-                if (-len(line)*numBack < 0):
-                    f.seek(0,0)
-                    line = f.readline() #might not be full line
+    if not dispFigs:
+        figOutDir = rootFigOutDir+filenameTup[0]+"/"
+        if not path.exists(figOutDir):
+            makedirs(figOutDir)
+
+    print "\n---------------"
+    print "readProbe: Reading file "+filename
+    lines = readProbeFile(filename,startTime,endTime) #lines is [time][char]
+
+    print "readProbe: Formatting file into data structure..."
+    lines = [splitLine(line) for line in lines] #lines is now [time][variable][(key),(val)]
+
+    numTimeSteps  = len(lines) #Uniform for all keys
+    numArbors     = {}
+    numPreNeurons = {}
+    numPreConns   = {}
+    stds          = {}
+
+    print "readProbe: Parsing Keys..."
+    for key in data.keys():
+        specificKey = True 
+        if key[len(key)-1] == "*": #Get key value, without the * if it is there
+            tok = key[:len(key) - 1]
+            specificKey = False
+        else:
+            tok = key
+
+        if key not in scale: # Set scale for plot to 1 if not defined
+            scale[key] = 1
+
+        workingLines = lines[:] #Make a single copy of the lines, use this copy throughout the loop
+
+        numArbors[tok] = getNumArbors(tok,workingLines[0]) #Num arbors should be the same for each time step
+
+        if specificKey:
+            workingLines = [[float(part[1]) for part in line if part[0] == tok] for line in workingLines] # working lines is [time][preNeuron] and filtered for key of interest
+        else:
+            workingLines = [[float(part[1]) for part in line if part[0].split('_')[0] == tok] for line in workingLines] # working lines is [time][preNeuron] and filtered for key of interest
+
+        #Total number of pre 
+        numPreConns[tok] = len(workingLines[0])
+        numPreNeurons[tok] = numPreConns[tok] / numArbors[tok]
+
+        #workingLines is now a list of lists of lists- [arbor][preNeuron][time]
+        #  number of preNeuron vals in each time step should equal the pre patch size
+        workingLines = [[[workingLines[timeIndex][preIndex] for timeIndex in xrange(numTimeSteps)] for preIndex in range(numPreNeurons[tok]*arborID,numPreNeurons[tok]*arborID+numPreNeurons[tok])] for arborID in xrange(numArbors[tok])]
+
+        print "readProbe: -Formatting key: '" + key + "'"
+        if key[len(key)-1] == "*": #User has asked for all elements of a particular name
+            if weightMap and tok == 'weight':
+                print "readProbe: --Creating weight map..."
+                wMap = [[mean(workingLines[arborID][neuronID][:]) for neuronID in range(numPreNeurons[tok])] for arborID in range(numArbors[tok])] #List of maps, one for each arbor
+                if sqrt(numPreNeurons[tok])%1 > 0:
+                    print "readProbe: WARNING: numPreNeurons["+tok+"] is not a perfect square! Using ceil() to avoid overflow."
+                    squareVal = ceil(sqrt(numPreNeurons[tok]))
                 else:
-                    f.seek(-len(line)*numBack,1) #back up an extra line because you have to jump forward to be sure you have a whole line
-                    line = f.readline() #might not be full line
-                    line = f.readline()
-                tempTime = float(splitLine(line)[0][1])
-                numBack += 1
-            currentTime = tempTime
-        else: #currentTime < startTime
-            line = f.readline()
-            currentTime = float(splitLine(line)[0][1])
-    #Should be at the right spot in the file now
-    lines = []
-    lines.append(line) #put the first line where it belongs
-    while True:
-        if currentTime < endTime:
-            line = f.readline()
+                    squareVal = sqrt(numPreNeurons[tok])
+
+                wMap = [reshape(array(wMap[arborID]),(sqrt(numPreNeurons[tok]),sqrt(numPreNeurons[tok]))) for arborID in range(numArbors[tok])] #reshape(vect, (nRows,nCols)), writes cols first
+                
+            if timePlot:
+                print "readProbe: --Binning values for the time plot..."
+                stds[key] = []
+
+                #get min/max/step across all neurons of the same name and all time
+                minVals    = [min(min(workingLines[arborID][:][:])) for arborID in range(numArbors[tok])]
+                maxVals    = [max(max(workingLines[arborID][:][:])) for arborID in range(numArbors[tok])]
+                stepWidths = [(maxVals[arborID] - minVals[arborID]) / float(numTCBins) for arborID in range(numArbors[tok])]
+
+                boundList = [list(arange(minVals[arborID], maxVals[arborID], stepWidths[arborID])) for arborID in range(numArbors[tok])] # List of separators (edges) for bins
+                for arborID in range(numArbors[tok]): #TODO: make inline?
+                    boundList[arborID].append(maxVals[arborID]+1) #must be bigger so everything fits into the bin
+
+                #workingLines is now [arborID][time][preNeuron]
+                workingLines = [[[workingLines[arborID][preNeuron][timeStep]
+                    for preNeuron in range(numPreNeurons[tok])] 
+                    for timeStep in range(numTimeSteps)]
+                    for arborID in range(numArbors[tok])]
+                #workingLines is now [arborID][time][bin][preNeuron]
+                workingLines = [[[[preNeuronVal 
+                    for preNeuronVal in timeVals if preNeuronVal >= boundList[arborID][boundEdge] and preNeuronVal < boundList[arborID][boundEdge+1]]
+                    for boundEdge in range(len(boundList[arborID])-1)] 
+                    for timeVals in workingLines[arborID]] 
+                    for arborID in range(numArbors[tok])]
+
+                print "readProbe: --Computing line of best fit..."
+                for arborID in range(numArbors[tok]):
+                    #Find best line of fit
+                    xVals = {}
+                    yVals = {}
+                    #Allocate arrays for dictionaries
+                    for binKey in range(numTCBins):
+                        xVals[binKey] = []
+                        yVals[binKey] = []
+                    #Iterate through everything to get data points for line of best fit
+                    for time in range(numTimeSteps):
+                        for binNo, bins in enumerate(workingLines[arborID][time]):
+                            if len(bins) != 0:
+                                yVals[binNo].extend(bins)
+                                xVals[binNo].extend([data['t'][0][0][time] for binNo in range(len(bins))]) #Time always has 1 arbor (index 0) and 1 pre-neuron (index 0)
+                    data[key].append([polyfit(xVals[binNo], yVals[binNo], 1) if len(yVals[binNo]) != 0 else array([]) for binNo in range(numTCBins)])
+                    #Calculate standard deviation
+                    stds[key].append([std(yVals[binNo]) if len(yVals[binNo]) != 0 else array([]) for binNo in range(numTCBins)])
         else:
-            break
-        if len(line) == 0: #make sure endTime is not too far
-            if endTime > currentTime:
-                print "readProbe: WARNING: Your endTime is greater than the max time in the file. Stopping at time "+str(currentTime)
-            break
-        currentTime += 1
-        lines.append(line)
-f.close()
+            data[key] = workingLines
+        print "readProbe: -Done formatting key '"+key+"'"
 
-print "readProbe: Formatting file into data structure..."
-bounds = {}
-stds = {}
-lines = [splitLine(line) for line in lines]
+    time = array(data['t'][0][0]) #data[key][arbor][preNeuron]
 
-if weightMap:
-    #TODO: assert that the sqrt of numWeights exists
-    wMap = zeros(numWeights)
-    keyIndex = 0
-
-print "readProbe: Parsing Keys..."
-doHist = 0
-#Loop through all keys given by user
-for key in data.keys():
-    workingLines = lines[:]
-    print "readProbe: -Formatting key: '" + key + "'"
-    #Get key value, without the * if it is there
-    if key[len(key)-1] == "*":
-        tok = key[:len(key) - 1]
-    else:
-        tok = key
-    #Grab the value if element is the same as token
-    if key[len(key)-1] == "*":
-        if key == "weight*" and numHistBins is not -1:
-            doHist = 1
-        else:
-            doHist = 0
-        print "readProbe: --Key occurs in multiple instances per line, computing bin edge values..."
-        #Get all instance values in all time steps for given key
-        #workingLines is now a list of lists - [time][vals]
-        #  num vals in each time step should equal the pre patch size
-        workingLines = [[float(x[1]) for x in lineSp if x[0][:min(len(x[0]), len(tok))] == tok] for lineSp in workingLines]
-        if doHist:
-            allVals = [[float(x[1]) for x in lineSp if x[0][:min(len(x[0]), len(tok))] == tok] for lineSp in lines]
-        minVal = min(min(workingLines)) #max of all vals across all time
-        maxVal = max(max(workingLines)) #min of all vals across all time
-        if doHist:
-            maxWeight = maxVal
-        step = (maxVal - minVal) / float(numTCBins)
-        if doHist:
-            stepHist = (maxVal - minVal) / float(numHistBins)
-            print "readProbe: --Binning the values (may take some time because of Histogam computations)..."
-        else:
-            print "readProbe: --Binning the values..."
-        #Grab boundary points based on range and bins
-        if step == 0 or numTCBins==1: #TODO: This is kind of funky... can only hist if numTCBins > 1
-            #data refers to list of all values in time. mean() will reduce number of instances to 1
-            data[key] = [mean(x) for x in workingLines]
-            if step == 0:
-                print "readProbe: --" + key + " Min and Max equivelant, defaulting to one bin."
-        else:
-            boundList = list(arange(minVal, maxVal, step))
-            boundList.append(maxVal)
-            #Split data into another array based on bound list for each val in timestep
-            workingLines = [[[a for a in val if a > boundList[i] and a <= boundList[i+1]]for i in range(len(boundList) - 1)] for val in workingLines]
-            if doHist:
-                print "readProbe: ---Computing histogram information..."
-                boundListHist = list(arange(minVal, maxVal, stepHist))
-                boundListHist.append(maxVal)
-                tempValsHist = [[len([a for a in val if a > boundListHist[i] and a <= boundListHist[i+1]]) for i in range(len(boundListHist) - 1)] for val in allVals]
-                del allVals #will not free until garbage collection
-                counts = zeros(numHistBins)
-                ##TODO: make list comprehension and negate need for tempValsHist list
-                for time in range(len(tempValsHist)):
-                    for iBin in range(numHistBins):
-                        counts[iBin] += tempValsHist[time][iBin]
-                del tempValsHist #will not free until garbage collection
-
-            print "readProbe: --Computing line of best fit..."
-            #Find best line of fit
-            xVals = {}
-            yVals = {}
-            #Allocate arrays for dictionaries
-            for i in range(numTCBins):
-                xVals[i] = []
-                yVals[i] = []
-
-            #Iterate through everything to get data points for line of best fit
-            for time in range(len(workingLines)):
-                for i, bins in enumerate(workingLines[time]):
-                    if len(bins) != 0:
-                        yVals[i].extend(bins)
-                        xVals[i].extend([data['t'][time] for i in range(len(bins))])
-            #Find line of best fit, one for each bin
-            print "readProbe: --Formatting data and computing the standard deviation..."
-            #Output (data) is polynomial value, as such: (slope, yintercept)
-            data[key] = [polyfit(xVals[i], yVals[i], 1) if len(yVals[i]) != 0 else array([]) for i in range(numTCBins)]
-            #Calculate standard deviation
-            stds[key] = [std(yVals[i]) if len(yVals[i]) != 0 else array([]) for i in range(numTCBins)]
-            bounds[key] = boundList
-    else:
-        data[key] = [float(x[1]) for lineSp in workingLines for x in lineSp if len(x[0]) == len(tok) and x[0][:len(tok)] == tok]
-
-    #Calculate weight map if requested
     if weightMap:
-        if 'weight' in key and '*' not in key:
-            print "readProbe: --Computing weight map..."
-            wMap[keyIndex] = mean(data[key])
-            keyIndex += 1
-    print "readProbe: -Done formatting '"+key+"'"
+        tok = 'weight'
+        for arborID in range(numArbors[tok]):
+            figure()
+            imshow(wMap[arborID],aspect='auto',extent=[0,sqrt(numPreNeurons[tok]),0,sqrt(numPreNeurons[tok])])
+            grid(color='white')
+            colorbar()
+            if not dispFigs:
+                savefig(figOutDir+rootFigName+"_weightMap"+str(arborID)+".png")
+                clf()
 
-if weightMap:
-    #TODO: Make sure sqrt(numWeights) exists
-    wMap = reshape(wMap,(sqrt(numWeights),sqrt(numWeights))) #reshape(vect, (nRows,nCols)), writes cols first
+    if timePlot:
+        for key in data.keys():
+            if key == 't':
+                continue
 
-print "readProbe: Done parsing keys."
-print "readProbe: Creating time course plot..."
-fig0 = figure(0)
-time = array(data['t'])
-for key in data.keys():
-    if key == 't':
-        continue
-    if key == 'a':
-       print "Num activity: " + str(len(nonzero(data[key])[0]))
-    if key[len(key)-1] == "*":
-        if type(data[key][1]) is ndarray:
-            for i in range(numTCBins):
-                if(len(data[key][i]) != 0):
-                    plotMe = time * data[key][i][0] + data[key][i][1]
-                    plot(time, plotMe, label=key + ' bin:(' + str(bounds[key][i]) + ',' + str(bounds[key][i+1]) + ')' + 'std:' + str(stds[key][i]))
-        else:
-            plotMe = array(data[key])
-            plot(time, plotMe, label=key)
-    else:
-        plotMe = array(data[key])
-        if len(plotMe) != 0:
-            plot(time, plotMe, label=key)
-if doLegend:
-    legend()#bbox_to_anchor=(0., 1.02, 1., .102), ncol = 2, mode="expand", borderaxespad=0.,loc=3)
-tight_layout()
+            if key[len(key)-1] == "*": #Get key value, without the * if it is there
+                tok = key[:len(key) - 1]
+            else:
+                tok = key
 
-if doHist:
-    print "readProbe: Creating histogram plot..."
-    fig1 = figure(1)
-    xVals = arange(0,maxWeight,maxWeight/len(counts))
-    bar(range(len(counts)),counts)
-    xticks(arange(20),xVals,rotation='vertical')
-    tight_layout()
+            if key[len(key)-1] == "*":
+                for arborID in range(numArbors[tok]):
+                    figure()
+                    for TCBin in range(numTCBins):
+                        if(len(data[key][arborID][TCBin]) != 0):
+                            plotMe = time * data[key][arborID][TCBin][0] + data[key][arborID][TCBin][1]
+                            plot(time, scale[key]*plotMe, label=key+'_a'+str(arborID)+' std:'+str(stds[key][arborID][TCBin]))
+                    if doLegend:
+                        legend()#bbox_to_anchor=(0., 1.02, 1., .102), ncol = 2, mode="expand", borderaxespad=0.,loc=3)
+                    tight_layout()
+                    if not dispFigs:
+                        savefig(figOutDir+rootFigName+"_timeCourseAvg"+str(arborID)+".png")
+                        clf()
 
-if weightMap:
-    print "readProbe: Creating weight map..."
-    fig2 = figure(2)
-    imshow(wMap,aspect='auto',extent=[0,sqrt(numWeights),0,sqrt(numWeights)])
-    grid(color='white')
+        didPlot = False #Only true if plot is created below
+        figure()
+        for key in data.keys():
+            if key == 't':
+                continue
+
+            if key[len(key)-1] == "*": #Get key value, without the * if it is there
+                tok = key[:len(key) - 1]
+            else:
+                tok = key
+
+            if numArbors[tok] > 1:
+                continue
+            arborID = 0
+
+            if key == 'a':
+                countActivity(data,key)
+
+
+            for preNeuronID in range(numPreNeurons[tok]):
+                plotMe = array(data[key][arborID][preNeuronID])
+                if len(plotMe) != 0:
+                    #Special cases for legend labels on printing
+                    if "_" in key: #Specific pre-neuron and conn is given
+                        keySP       = key.split("_")
+                        keyLabel    = keySP[0]
+                        arborLabel  = keySP[1]
+                        neuronLabel = keySP[2]
+                        figLabel=keyLabel+"_n"+neuronLabel+"_a"+arborLabel
+                    else:
+                        keyLabel = key
+                        arborLabel = str(arborID)
+                        if key[len(key)-1] == "*": #preNeuron
+                            neuronLabel = 'Avg'
+                            figLabel=keyLabel+"_n"+neuronLabel+"_a"+arborLabel
+                        else:
+                            neuronLabel = 'Post'
+                            figLabel=keyLabel+"_n"+neuronLabel
+
+                    plot(time, scale[key]*plotMe, label=figLabel)
+                    didPlot = True
+
+        if didPlot:
+            if doLegend:
+                legend()#bbox_to_anchor=(0., 1.02, 1., .102), ncol = 2, mode="expand", borderaxespad=0.,loc=3)
+            tight_layout()
+            if not dispFigs:
+                savefig(figOutDir+rootFigName+"_timeCourse.png")
+                clf()
+
+    #Clear lines for this file
+    #del lines #Will not free until garabe collection
 
 if dispFigs:
-    print "readProbe: Displaying figures..."
     show()
-else:
-    print "readProbe: Saving figure(s)..."
-    from os import path, makedirs
-    if not path.exists(figOutDir):
-        makedirs(figOutDir)
-    fig0.savefig(figOutDir+figRootName+"_timeCourse.png")
-    if doHist:
-        fig1.savefig(figOutDir+figRootName+"_hist.png")
-    if weightMap:
-        fig2.savefig(figOutDir+figRootName+"_weightMap.png")
 
-print "readProbe: Script complete."
+print "\nreadProbe: Script Complete...\n"
