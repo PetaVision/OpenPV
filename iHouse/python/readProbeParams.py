@@ -8,7 +8,7 @@ from collections import OrderedDict
 #filenames     = [("sheng","/Users/slundquist/Desktop/retONtoLif.txt")]
 
 workspaceDir  = "/Users/dpaiton/Documents/Work/Lanl/workspace" #Dylan Mac
-checkpointDir = workspaceDir+"/iHouse/checkpoints/delay/short_time_scale/Checkpoint3100000"
+checkpointDir = workspaceDir+"/iHouse/checkpoints/delay/short_time_scale/Checkpoint7001000"
 
 #filenames = [("label","path")]
 filenames    = [
@@ -22,15 +22,15 @@ filenames    = [
 #        ("OnVer",checkpointDir+"/retONtoLifVer.txt")]
 
 rootFigOutDir = checkpointDir+"/analysis/probeFigs/"
-rootFigName   = 'indiWeights'
+rootFigName   = 'weights'
 
 #Values for range of frames
-startTime   = 3000000
-endTime     = 3010000  #End must be under number of lines in file
+startTime   = 7000000
+endTime     = 7001000  #End must be under number of lines in file
 
 #Which plots
 timePlot    = True 
-weightMap   = False 
+weightMap   = True 
 
 
 #Other flags
@@ -62,33 +62,33 @@ data['t']                     = []
 #data['weight_4_19'] = []
 #data['weight_4_24'] = []
 #######
-data['weight_0_0']  = []
-data['weight_0_1']  = []
-data['weight_0_2']  = []
-data['weight_0_3']  = []
-data['weight_0_4']  = []
-data['weight_0_5']  = []
-data['weight_0_6']  = []
-data['weight_0_7']  = []
-data['weight_0_8']  = []
-data['weight_0_9']  = []
-data['weight_0_10'] = []
-data['weight_0_11'] = []
-data['weight_0_12'] = []
-data['weight_0_13'] = []
-data['weight_0_14'] = []
-data['weight_0_15'] = []
-data['weight_0_16'] = []
-data['weight_0_17'] = []
-data['weight_0_18'] = []
-data['weight_0_19'] = []
-data['weight_0_20'] = []
-data['weight_0_21'] = []
-data['weight_0_22'] = []
-data['weight_0_23'] = []
-data['weight_0_24'] = []
+#data['weight_0_0']  = []
+#data['weight_0_1']  = []
+#data['weight_0_2']  = []
+#data['weight_0_3']  = []
+#data['weight_0_4']  = []
+#data['weight_0_5']  = []
+#data['weight_0_6']  = []
+#data['weight_0_7']  = []
+#data['weight_0_8']  = []
+#data['weight_0_9']  = []
+#data['weight_0_10'] = []
+#data['weight_0_11'] = []
+#data['weight_0_12'] = []
+#data['weight_0_13'] = []
+#data['weight_0_14'] = []
+#data['weight_0_15'] = []
+#data['weight_0_16'] = []
+#data['weight_0_17'] = []
+#data['weight_0_18'] = []
+#data['weight_0_19'] = []
+#data['weight_0_20'] = []
+#data['weight_0_21'] = []
+#data['weight_0_22'] = []
+#data['weight_0_23'] = []
+#data['weight_0_24'] = []
 #######
-#data['weight*']     = []
+data['weight*']     = []
 
 ####
 ####LIF LAYER
