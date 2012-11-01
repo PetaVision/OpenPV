@@ -46,7 +46,7 @@ int OjaSTDPConn::initialize_base() {
    this->LTDscale         = ampLTP;
    this->weightDecay      = 0.01;
    this->dWMax            = 1;
-   this->weightScale      = 0.25
+   this->weightScale      = 0.25;
 
    this->tauLTP           = 16.8;
    this->tauLTD           = 33.7;
