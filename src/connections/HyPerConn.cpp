@@ -1422,6 +1422,9 @@ int HyPerConn::outputState(double timef, bool last)
       // append to output file after original open
       ioAppend = true;
    }
+   else if (writeStep < 0) { // If writeStep is negative, we never call writeWeights, but someone might restart from a checkpoint with a different writeStep, so we should still maintain writeTime
+      writeTime = timef;
+   }
 
    return status;
 }
