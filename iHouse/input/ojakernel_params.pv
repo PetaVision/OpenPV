@@ -13,20 +13,20 @@ HyPerCol "column" = {
    
    randomSeed                   = 1020304050.0;   
 
-   numSteps                     = 2000;  // amount of time steps performed during run-time
-   progressStep                 = 25000;  // write output to see progress
+   numSteps                     = 1000000;  // amount of time steps performed during run-time
+   progressStep                 = 20000;  // write output to see progress
    writeProgressToErr           = 0;     // write progress steps to std err
    
    outputPath                   = "output";
    
    filenamesContainLayerNames   = 2;     // stores pvp files as: 0 = layer number/1 = layer number and layer name/2 = layer name
    
-   checkpointRead               = false;
-   // checkpointReadDir            = "checkpoints";
-   // checkpointReadDirIndex       = 500;
+   checkpointRead               = true;
+   checkpointReadDir            = "checkpoints2";
+   checkpointReadDirIndex       = 20000;
    checkpointWrite              = true;
    checkpointWriteDir           = "checkpoints";
-   checkpointWriteStepInterval  = 1;
+   checkpointWriteStepInterval  = 1000;
    deleteOlderCheckpoints       = false;
    // suppressLastOutput           = false;
 };
@@ -82,12 +82,35 @@ Patterns "input" = {
    writeNonspikingActivity       = true;
 };
 
+disable = true;
+Image "input" = {
+   nxScale                       = 1;
+   nyScale                       = 1;
+   nf                            = 1;
+   marginWidth                   = 0;
+   mirrorBCflag                  = false;
+   restart                       = false;
+   
+   imagePath                     = "./input/stimulus.png";
+   writeImages                   = false;
+   offsetX                       = 0;
+   offsetY                       = 0;
+   
+   writeStep                     = 1;
+   spikingFlag                   = false;
+   writeNonspikingActivity       = false;
+   useImageBCflag                = false;
+   inverseFlag                   = false;
+   normalizeLuminanceFlag        = false;
+};
+disable = false;
+
 
 ANNLayer "scaled input" = {
     nxScale                 = 1;
     nyScale                 = 1;
     nf                      = 1;
-    marginWidth             = 16;
+    marginWidth             = 1;
     mirrorBCflag            = 1;
     spikingFlag             = false;
     writeNonspikingActivity = false;
@@ -101,12 +124,11 @@ ANNLayer "scaled input" = {
     VMin                    = -infinity;
 };
 
-
 Retina "RetinaON" = {
     nxScale       = 1;
     nyScale       = 1;
     nf            = 1;
-    marginWidth   = 16;
+    marginWidth   = 2;
     restart       = false;
     
     writeStep     = -1;
@@ -130,7 +152,7 @@ Retina "RetinaOFF" = {
     nxScale       = 1;
     nyScale       = 1;
     nf            = 1;
-    marginWidth   = 16;
+    marginWidth   = 2;
     restart       = false;
     
     writeStep     = -1;
@@ -155,7 +177,7 @@ LCALIFLayer "lcalif" = {
     nyScale                 = 1;        
     nf                      = 16;           
 
-    tauTHR                  = 16000;       // Timescale for changing adaptive threshold, in milliseconds
+    tauTHR                  = 4000;       // Timescale for changing adaptive threshold, in milliseconds
     targetRate              = 5;           // Target rate of output spikes in Hertz
 
     spikingFlag             = 1;           
@@ -186,7 +208,25 @@ LCALIFLayer "lcalif" = {
     Vscale                  = 15.0;        // Scale for the change of dynVthRest. Must be positive; defaults to VthRest - Vrest
 };
 
-ANNLayer "lcalif input" = {
+ANNLayer "lcalif excitatory input" = {
+    nxScale                 = 1;
+    nyScale                 = 1;
+    nf                      = 16;
+    marginWidth             = 0;
+    mirrorBCflag            = false;
+    spikingFlag             = false;
+    writeNonspikingActivity = false;
+    writeStep               = -1;
+
+    restart                 = false;
+    InitVType               = "ZeroV";
+
+    VMax                    = infinity;
+    VThresh                 = -infinity;
+    VMin                    = -infinity;
+};
+
+ANNLayer "lcalif inhibitory input" = {
     nxScale                 = 1;
     nyScale                 = 1;
     nf                      = 16;
@@ -259,9 +299,13 @@ KernelConn "ImagetoRetinaONCenter" = {
    sigma                    = 1;
    rMin                     = 0;
    rMax                     = 1;   
-   strength                 = 50;
+   strength                 = 2.66666666667;
 
-   normalize                = false;
+   normalize                = true;
+   normalizeTotalToPost     = true;
+   normalize_max            = false;
+   normalize_zero_offset    = false;
+   normalize_cutoff         = false;
    symmetrizeWeights        = false;
    plasticityFlag           = false;
    stochasticReleaseFlag    = false;
@@ -288,11 +332,11 @@ KernelConn "ImagetoRetinaONSurround" = {
    aspect                   = 1;
    sigma                    = 1;
    rMax                     = 5;
-   rMin                     = 0;
-   strength                 = 50;
+   rMin                     = 0.1;
+   strength                 = 2.66666666667;
 
    normalize                = true;
-   normalizeTotalToPost     = false;
+   normalizeTotalToPost     = true;
    normalize_max            = false;
    normalize_zero_offset    = false;
    normalize_cutoff         = false;
@@ -323,9 +367,13 @@ KernelConn "ImagetoRetinaOFFCenter" = {
    sigma                    = 1;
    rMin                     = 0;
    rMax                     = 1;   
-   strength                 = 50;
+   strength                 = 2.66666666667;
 
-   normalize                = false;
+   normalize                = true;
+   normalizeTotalToPost     = true;
+   normalize_max            = false;
+   normalize_zero_offset    = false;
+   normalize_cutoff         = false;
    symmetrizeWeights        = false;
    plasticityFlag           = false;
    stochasticReleaseFlag    = false;
@@ -353,11 +401,11 @@ KernelConn "ImagetoRetinaOFFSurround" = {
    aspect                   = 1;
    sigma                    = 1;
    rMax                     = 5;
-   rMin                     = 0;
-   strength                 = 50;
+   rMin                     = 0.1;
+   strength                 = 2.66666666667;
 
    normalize                = true;
-   normalizeTotalToPost     = false;
+   normalizeTotalToPost     = true;
    normalize_max            = false;
    normalize_zero_offset    = false;
    normalize_cutoff         = false;
@@ -486,13 +534,13 @@ LCALIFLateralKernelConn "Lateral Inhibition" = {
    normalize                = false;
 
    integrationTimeConstant  = 200;
-   inhibitionTimeConstant   = 4000;
+   inhibitionTimeConstant   = 16000;
    targetRate               = 5;
 };
 
 CloneKernelConn "On clone" = {
     preLayerName            = "RetinaON";
-    postLayerName           = "lcalif input";
+    postLayerName           = "lcalif excitatory input";
     
     originalConnName        = "RetinaONtoS1";
 
@@ -510,7 +558,7 @@ CloneKernelConn "On clone" = {
 
 CloneKernelConn "Off clone" = {
     preLayerName            = "RetinaOFF";
-    postLayerName           = "lcalif input";
+    postLayerName           = "lcalif excitatory input";
     
     originalConnName        = "RetinaONtoS1";
 
@@ -526,38 +574,74 @@ CloneKernelConn "Off clone" = {
     selfFlag                = false;
 };
 
+CloneKernelConn "Lateral clone" = {
+    preLayerName            = "lcalif";
+    postLayerName           = "lcalif inhibitory input";
+    
+    originalConnName        = "Lateral Inhibition";
+
+    channelCode             = 0;
+
+    writeStep               = -1;
+    writeCompressedWeights  = false;
+
+    delay                   = 0;
+    
+    stochasticReleaseFlag   = false;
+    preActivityIsNotRate    = false;
+    selfFlag                = false;
+};
+
+PointProbe "Input Probe" = {
+   targetLayer = "scaled input";
+   probeOutputFile = "ScaledInput_08_17_00.txt";
+   message = "Scaled Input Probe              ";
+   xLoc = 8;
+   yLoc = 17;
+   fLoc = 0;
+};
+
 PointProbe "RetinaON Probe" = {
    targetLayer = "RetinaON";
-   probeOutputFile = "RetinaON_8_17.txt";
-   message = "RetinaON Probe ";
-   xLoc = 13;
-   yLoc = 29;
+   probeOutputFile = "RetinaON_08_17_00.txt";
+   message = "RetinaON Probe                  ";
+   xLoc = 8;
+   yLoc = 17;
    fLoc = 0;
 };
 
 PointProbe "RetinaOFF Probe" = {
    targetLayer = "RetinaOFF";
-   probeOutputFile = "RetinaOFF_13_29.txt";
-   message = "RetinaON Probe ";
-   xLoc = 13;
-   yLoc = 29;
+   probeOutputFile = "RetinaOFF_08_17_00.txt";
+   message = "RetinaON Probe                  ";
+   xLoc = 8;
+   yLoc = 17;
    fLoc = 0;
 };
 
 PointLCALIFProbe "LCALIF Probe" = {
    targetLayer = "lcalif";
-   probeOutputFile = "LCALIF_13_29_2.txt";
-   message = "LCALIF Probe   ";
+   probeOutputFile = "LCALIF_08_17_12.txt";
+   message = "LCALIF Probe                    ";
    xLoc = 8;
    yLoc = 17;
    fLoc = 12;
 };
 
-PointProbe "lcalif input probe" = {
-   targetLayer = "lcalif input";
-   probeOutputFile = "LCALIF_GSynExc";
-   message = "LCALIF GSynExc Probe   ";
-   xLoc = 14;
-   yLoc = 27;
-   fLoc = 4;
+PointProbe "LCALIF GSynExc Probe" = {
+   targetLayer = "lcalif excitatory input";
+   probeOutputFile = "LCALIF_exc_08_17_12.txt";
+   message = "LCALIF Excitatory Probe         ";
+   xLoc = 8;
+   yLoc = 17;
+   fLoc = 12;
+};
+
+PointProbe "LCALIF GSynInh Probe" = {
+   targetLayer = "lcalif inhibitory input";
+   probeOutputFile = "LCALIF_inh_08_17_12.txt";
+   message = "LCALIF Inhibitory Probe         ";
+   xLoc = 8;
+   yLoc = 17;
+   fLoc = 12;
 };
