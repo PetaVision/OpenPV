@@ -10,7 +10,7 @@ HyPerCol "column" = {
 
 //   randomSeed                  = 1020304050.0; // remove when running for real
 
-   numSteps                    = 2000000;			// amount of time steps performed during run-time
+   numSteps                    = 2010000;			// amount of time steps performed during run-time
    progressStep                = 5000;
    writeProgressToErr          = 0;        // write progress steps to std err
 
