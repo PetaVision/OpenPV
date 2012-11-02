@@ -4,14 +4,14 @@
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 HyPerCol "column" = {
-   nx                           = 64;      // pixel width of input image
-   ny                           = 64;      // pixel height of input image
+   nx                           = 32;      // pixel width of input image
+   ny                           = 32;      // pixel height of input image
    dt                           = 1.;      // ms
                                            // 
    randomSeed                   = 1020304050.0;   
                                            //
-   numSteps                     = 2000000; // amount of time steps performed during run-time
-   progressStep                 = 100000;   // write output to see progress
+   numSteps                     = 100000000; // amount of time steps performed during run-time
+   progressStep                 = 500000;   // write output to see progress
    writeProgressToErr           = 0;       // write progress steps to std err
                                            // 
    //outputPath                 = "~/Documents/workspace/iHouse/output";
@@ -31,7 +31,7 @@ HyPerCol "column" = {
    //checkpointWriteDir           = "~/Documents/workspace/iHouse/output/checkpoints";
    //checkpointWriteDir           = "~/Documents/Work/LANL/workspace/iHouse/checkpoints"; //Dylan's Mac
    checkpointWriteDir           = "~/workspace/iHouse/checkpoints"; //Dylan's Remote 
-   checkpointWriteStepInterval  = 2000000;
+   checkpointWriteStepInterval  = 1000000;
    suppressLastOutput           = 0;
                                            //
    //printParamsFilename          = "~/Documents/workspace/iHouse/output/params_run.pv";
@@ -106,7 +106,7 @@ Retina "RetinaON" = {
     spikingFlag         = true;  // false (no quotes) is translated to 0
     							 //
     noiseOnFreq         = 400;   // Hz // Max poisson spiking rate when input is 255
-    noiseOffFreq        = 20;    // Hz // Min poisson spiking rate when input is 0
+    noiseOffFreq        = 10;    // Hz // Min poisson spiking rate when input is 0
                                  //
     burstFreq           = 50;    // Hz // Everything coming into the retina should be burstin burstFreq times per sec
     burstDuration       = 20;    // ms // Bursts last burstDuration ms
@@ -131,7 +131,7 @@ Retina "RetinaOFF" = {
     spikingFlag         = true;  // false (no quotes) is translated to 0
                                  //
     noiseOnFreq         = 400;   // Hz // Max poisson spiking rate when input is 255
-    noiseOffFreq        = 20;    // Hz // Min poisson spiking rate when input is 0
+    noiseOffFreq        = 10;    // Hz // Min poisson spiking rate when input is 0
                                  //
     burstFreq           = 50;    // Hz // Everything coming into the retina should be burstin burstFreq times per sec
     burstDuration       = 20;    // ms // Bursts last burstDuration ms
@@ -350,7 +350,7 @@ OjaSTDPConn "RetinaONtoLif" = {
                                    //
    initFromLastFlag       = 0;      
                                    //
-   writeStep              = -1;    // Must be a multiple of postLayer's writeStep for analysis
+   writeStep              = -1;    // Must be a multiple of postLayer's write step for analysis
                                    //
    ampLTP                 = 1;     // (ms)
    initAmpLTD             = 1;     // (ms)
@@ -366,11 +366,11 @@ OjaSTDPConn "RetinaONtoLif" = {
    weightScale            = 1;     // Modifies strength range for STDP (we want strengths to be around 0.25)
    wMin                   = 0.001; // Min value for weights
    //wMax                   = 1;     // Does not matter if ojaFlag = true
-   ojaFlag                = 1;     //Turns oja rule on or off. Standard STDP if off
+   ojaFlag                = 1;     // Turns oja rule on or off. Standard STDP if off
    LTDscale               = 1;     // Scale for the change of ampLTD. Must be positive; defaults to postVthRest - posVrest. If 0, adaptive LTD is fixed to initAmpLTD
                                    //
-   numAxonalArbors        = 0;
-   //delay                  = [0,1,2,3,4];
+   numAxonalArbors        = 5;
+   delay                  = [0,1,2,3,4];
                                    //
    weightInitType         = "UniformRandomWeight";
    //weightInit             = 0.001;
@@ -408,7 +408,7 @@ OjaSTDPConn "RetinaOFFtoLif" = {
                                    //
    initFromLastFlag       = 0;      
                                    //
-   writeStep              = -1;    // Must be a multiple of postLayer's writeStep for analysis
+   writeStep              = -1;    // Must be a multiple of postLayer's write step for analysis
                                    //
    ampLTP                 = 1;     // (ms)
    initAmpLTD             = 1;     // (ms)
@@ -424,11 +424,11 @@ OjaSTDPConn "RetinaOFFtoLif" = {
    weightScale            = 1;     // Modifies strength range for STDP (we want strengths to be around 0.25)
    wMin                   = 0.001; // Min value for weights
    //wMax                   = 1;     // Does not matter if ojaFlag = true
-   ojaFlag                = 1;     //Turns oja rule on or off. Standard STDP if off
+   ojaFlag                = 1;     // Turns oja rule on or off. Standard STDP if off
    LTDscale               = 1;     // Scale for the change of ampLTD. Must be positive; defaults to postVthRest - posVrest. If 0, adaptive LTD is fixed to initAmpLTD
                                    //
-   numAxonalArbors        = 0;
-   //delay                  = [0,1,2,3,4];
+   numAxonalArbors        = 5;
+   delay                  = [0,1,2,3,4];
                                    //
    weightInitType         = "UniformRandomWeight";
    //weightInit             = 0.001;
@@ -467,8 +467,8 @@ OjaSTDPConn "RetinaOFFtoLif" = {
 //PointLIFProbe "LIF_Probe" = {
 //   targetLayer     = "lif";
 //   probeOutputFile = "ptLIF.txt";
-//   xLoc            = 48;
-//   yLoc            = 48;
+//   xLoc            = 23;
+//   yLoc            = 23;
 //   fLoc            = 0;
 //};
 //
@@ -477,8 +477,8 @@ OjaSTDPConn "RetinaOFFtoLif" = {
 //    probeOutputFile  = "retONtoLifVer.txt";
 //    msg              = "OjaON";
 //    isPostProbe      = true;
-//    kxPost           = 47; //About half of the radius out
-//    kyPost           = 31; //About the middle
+//    kxPost           = 23; //About half of the radius out
+//    kyPost           = 15; //About the middle
 //    kfPost           = 0;  //1 feature
 //};
 //
@@ -487,8 +487,8 @@ OjaSTDPConn "RetinaOFFtoLif" = {
 //    probeOutputFile  = "retONtoLifHor.txt";
 //    msg              = "OjaON";
 //    isPostProbe      = true;
-//    kxPost           = 31; //About the middle
-//    kyPost           = 47; //About half of the radius out
+//    kxPost           = 15; //About the middle
+//    kyPost           = 23; //About half of the radius out
 //    kfPost           = 0;  //1 feature
 //};
 //
@@ -497,8 +497,8 @@ OjaSTDPConn "RetinaOFFtoLif" = {
 //    probeOutputFile  = "retONtoLifDia.txt";
 //    msg              = "OjaON";
 //    isPostProbe      = true;
-//    kxPost           = 47; //About half of the radius out
-//    kyPost           = 47; //About half of the radius out
+//    kxPost           = 23; //About half of the radius out
+//    kyPost           = 23; //About half of the radius out
 //    kfPost           = 0;  //1 feature
 //};
 //
@@ -507,8 +507,8 @@ OjaSTDPConn "RetinaOFFtoLif" = {
 //    probeOutputFile  = "retOFFtoLifVer.txt";
 //    msg              = "OjaOFF";
 //    isPostProbe      = true;
-//    kxPost           = 47; //About half of the radius out
-//    kyPost           = 31; //About the middle
+//    kxPost           = 23; //About half of the radius out
+//    kyPost           = 15; //About the middle
 //    kfPost           = 0;  //1 feature
 //};
 //
@@ -517,8 +517,8 @@ OjaSTDPConn "RetinaOFFtoLif" = {
 //    probeOutputFile  = "retOFFtoLifHor.txt";
 //    msg              = "OjaOFF";
 //    isPostProbe      = true;
-//    kxPost           = 31; //About the middle
-//    kyPost           = 47; //About half of the radius out
+//    kxPost           = 15; //About the middle
+//    kyPost           = 23; //About half of the radius out
 //    kfPost           = 0;  //1 feature
 //};
 //
@@ -527,7 +527,7 @@ OjaSTDPConn "RetinaOFFtoLif" = {
 //    probeOutputFile  = "retOFFtoLifDia.txt";
 //    msg              = "OjaOFF";
 //    isPostProbe      = true;
-//    kxPost           = 47; //About half of the radius out
-//    kyPost           = 47; //About half of the radius out
+//    kxPost           = 23; //About half of the radius out
+//    kyPost           = 23; //About half of the radius out
 //    kfPost           = 0;  //1 feature
 //};
