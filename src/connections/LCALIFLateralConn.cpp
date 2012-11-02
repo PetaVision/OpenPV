@@ -192,6 +192,24 @@ int LCALIFLateralConn::checkpointRead(const char * cpDir, double* timef) {
       fprintf(stderr, "Warning: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
    }
 
+   //Loop through patches setting the self to self connection to 0
+   //TODO: Take this chunk of code out after testing
+   for (int axonId = 0; axonId < numberOfAxonalArborLists(); axonId++){
+      for (int kPre_extended=0; kPre_extended<getNumWeightPatches(); kPre_extended++) {
+         const PVPatch * p = getWeights(kPre_extended, axonId);
+         pvdata_t * w_data = get_wData(axonId,kPre_extended);
+         int nx_patch = p->nx;
+         int ny_patch = p->ny;
+         //Self index is always in the same place no matter if it's shrunken or not
+         int kx_patch_self = (nx_patch - 1) / 2;
+         int ky_patch_self = (ny_patch - 1) / 2;
+         for (int kf_patch=0; kf_patch<nfp; kf_patch++) {
+            int k_patch = sxp*kx_patch_self + syp*ky_patch_self + sfp*kf_patch;
+            w_data[k_patch] = 0;
+         }
+      }
+   }
+
    return status;
 }
 
