@@ -13,37 +13,36 @@ LCALIFLateralProbe::LCALIFLateralProbe() {
    initialize_base();
 }
 
-LCALIFLateralProbe::LCALIFLateralProbe(const char * probename, const char * filename, HyPerConn * conn, int preIndex)
+LCALIFLateralProbe::LCALIFLateralProbe(const char * probename, const char * filename, HyPerConn * conn, int postIndex)
 {
    initialize_base();
    //Since it's a lateral conn, postConn shouldn't matter
-   initialize(probename, filename, conn, INDEX_METHOD, preIndex, -1, -1, -1, false);
+   initialize(probename, filename, conn, INDEX_METHOD, postIndex, -1, -1, -1, true);
 }
 
-LCALIFLateralProbe::LCALIFLateralProbe(const char * probename, const char * filename, HyPerConn * conn, int kxPre, int kyPre, int kfPre)
+LCALIFLateralProbe::LCALIFLateralProbe(const char * probename, const char * filename, HyPerConn * conn, int kxPost, int kyPost, int kfPost)
 {
    initialize_base();
-   initialize(probename, filename, conn, COORDINATE_METHOD, -1, kxPre, kyPre, kfPre, false);
+   initialize(probename, filename, conn, COORDINATE_METHOD, -1, kxPost, kyPost, kfPost, true);
 }
 
 LCALIFLateralProbe::~LCALIFLateralProbe()
 {
    if (inBounds){
-      free(preIntTrs);
       free(preWeights);
    }
 }
 
 int LCALIFLateralProbe::initialize_base() {
-   preIntTrs = NULL;
+   postIntTr = -1;
    preWeights = NULL;
-   kLocalExt      = -1;
+   kLocalRes  = -1;
    return PV_SUCCESS;
 }
 
 int LCALIFLateralProbe::initialize(const char * probename, const char * filename,
-      HyPerConn * conn, PatchIDMethod pidMethod, int kPre,
-      int kxPre, int kyPre, int kfPre, bool isPostProbe)
+      HyPerConn * conn, PatchIDMethod pidMethod, int kPost,
+      int kxPost, int kyPost, int kfPost, bool isPostProbe)
 {
    LCALIFConn = dynamic_cast<LCALIFLateralConn *>(conn);
    assert(LCALIFConn != NULL);
@@ -55,65 +54,50 @@ int LCALIFLateralProbe::initialize(const char * probename, const char * filename
    int nxGlobal = loc->nxGlobal;
    int nyGlobal = loc->nyGlobal;
    int nf = loc->nf;
+   int nb = loc->nb;
 
    if (pidMethod == INDEX_METHOD) {
-      kxPre = kxPos(kPre,nxGlobal,nyGlobal,nf);
-      kyPre = kyPos(kPre,nxGlobal,nyGlobal,nf);
-      kfPre = featureIndex(kPre,nxGlobal,nyGlobal,nf);
+      kxPost = kxPos(kPost,nxGlobal,nyGlobal,nf);
+      kyPost = kyPos(kPost,nxGlobal,nyGlobal,nf);
+      kfPost = featureIndex(kPost,nxGlobal,nyGlobal,nf);
    }
    else if(pidMethod == COORDINATE_METHOD) {
       //kfPost can't be lower than 0
-      assert(kfPre >= 0);
-      kPre = kIndex(kxPre,kyPre,kfPre,nxGlobal,nyGlobal,nf); // nx, ny, nf NOT in extended space
+      assert(kfPost >= 0);
+      kPost = kIndex(kxPost,kyPost,kfPost,nxGlobal,nyGlobal,nf); // nx, ny, nf NOT in extended space
    }
    else assert(false);
-   assert(kPre != -1);
-   assert(kfPre < nf);
+   assert(kPost != -1);
+   assert(kfPost < nf);
 
-   BaseConnectionProbe::initialize(probename, filename, conn,kxPre,kyPre,kfPre,isPostProbe);
+   BaseConnectionProbe::initialize(probename, filename, conn,kxPost,kyPost,kfPost,isPostProbe);
 
 // Now convert from global coordinates to local coordinates
    //Restricted index
-   int kxPreLocal = kxPre - loc->kx0;
-   int kyPreLocal = kyPre - loc->ky0;
+   int kxPostLocal = kxPost - loc->kx0;
+   int kyPostLocal = kyPost - loc->ky0;
    int nxLocal = loc->nx;
    int nyLocal = loc->ny;
-   int nfLocal = loc->nf;
-   int nbLocal = loc->nb;
+
    //Restricted Index
-   int kLocalRes = kIndex(kxPreLocal,kyPreLocal,kfPre,nxLocal,nyLocal,nf);
-   kLocalExt = kIndexExtended(kLocalRes, nxLocal, nyLocal, nfLocal, nbLocal);
+   kLocalRes = kIndex(kxPostLocal,kyPostLocal,kfPost,nxLocal,nyLocal,nf);
+   kLocalExt = kIndexExtended(kLocalRes, nxLocal, nyLocal, nf, nb);
 
    // assert(kLocal >=0 && kLocal < ojaConn->postSynapticLayer()->getNumExtended());
 
-   inBounds = !(kxPreLocal < 0 || kxPreLocal >= loc->nx || kyPreLocal < 0 || kyPreLocal >= loc->ny);
+   inBounds = !(kxPostLocal < 0 || kxPostLocal >= loc->nx || kyPostLocal < 0 || kyPostLocal >= loc->ny);
 
    if (inBounds){
       int numArbors = LCALIFConn->numberOfAxonalArborLists(); //will loop through arbors
-      //Grab patch information
-      //Weights of different arbors should be the same
-      PVPatch* prePatch = LCALIFConn->getWeights(kLocalExt,0);
-      // Get pre layer sizes
-      int nxp = prePatch->nx;
-      int nyp = prePatch->ny;
-      int nfp = LCALIFConn->fPatchSize();
+      int nxpPost = LCALIFConn->xPatchSize();
+      int nypPost = LCALIFConn->yPatchSize();
+      int nfpPost = LCALIFConn->fPatchSize();
 
-      //Check for other arbors
-      //Should only be one arbor, so it should skip this loop
-      //Arbor id starts at 1 since id 0 was set to nxp and nyp
-      for (int arborID = 1; arborID < numArbors; arborID++){
-         prePatch = LCALIFConn->getWeights(kLocalExt,0);
-         assert(nxp == prePatch->nx);
-         assert(nyp == prePatch->ny);
-      }
-
-      int numPrePatch = nxp * nyp * nfp;
+      int numPrePatch = nxpPost * nypPost * nfpPost;
 
       // Allocate buffers for pre info
       preWeights = (float *) calloc(numPrePatch*numArbors, sizeof(float));
       assert(preWeights != NULL);
-      preIntTrs = (float*) calloc(numPrePatch*numArbors, sizeof(float));
-      assert(preIntTrs != NULL);
    }
    return PV_SUCCESS;
 }
@@ -124,39 +108,37 @@ int LCALIFLateralProbe::outputState(double timef)
       return PV_SUCCESS;
    }
 
-   PVPatch* prePatch = LCALIFConn->getWeights(kLocalExt, 0);
-
    // Get post layer sizes
-   int nxp = prePatch->nx;
-   int nyp = prePatch->ny;
+   int nxp = LCALIFConn->xPatchSize();
+   int nyp = LCALIFConn->yPatchSize();
    int nfp = LCALIFConn->fPatchSize();
-   int sxp = LCALIFConn->getPostExtStrides()->sx;
-   int syp = LCALIFConn->getPostExtStrides()->sy;
 
    int numArbors = LCALIFConn->numberOfAxonalArborLists(); //will loop through arbors
-   int numPrePatch = nxp* nyp* nfp;
+   int numPostPatch = nxp* nyp* nfp;
 
    int preTraceIdx = 0;
 
    for (int arborID=0; arborID < numArbors; arborID++)
    {
+      LCALIFConn->convertPreSynapticWeights(timef);
 
+      postWeights = LCALIFConn->getWPostData(arborID, kLocalRes);
+      postIntTr = LCALIFConn->getIntegratedSpikeCount(kLocalExt);
 
-      float* preWeightsData = LCALIFConn->get_wData(arborID, kLocalExt);
-      int aPostOffset = LCALIFConn->getAPostOffset(kLocalExt, arborID);
-
-      for (int postNeuronID=0; postNeuronID<numPrePatch; postNeuronID++)
+      for (int postKPatch=0; postKPatch<numPostPatch; postKPatch++)
       {
+
+         //Check kLocalRes to see if the
          //Weights
-         preWeights[preTraceIdx] = preWeightsData[postNeuronID];
+         preWeights[preTraceIdx] = postWeights[postKPatch];
 
-         //Int spike counts
-         int kxPost = kxPos(postNeuronID, nxp, nyp, nfp);
-         int kyPost = kyPos(postNeuronID, nxp, nyp, nfp);
-         int kPostExt = aPostOffset + kxPost*sxp + kyPost*syp;
-         preIntTrs[preTraceIdx] = LCALIFConn->getIntegratedSpikeCount(kPostExt);
+//         //Int spike counts
+//         int kxPost = kxPos(postKPatch, nxp, nyp, nfp);
+//         int kyPost = kyPos(postKPatch, nxp, nyp, nfp);
+//         int kPostExt = aPostOffset + kxPost*sxp + kyPost*syp;
+//         preIntTrs[preTraceIdx] = LCALIFConn->getIntegratedSpikeCount(kPostExt);
 
-         assert(preTraceIdx < numArbors*numPrePatch);
+         assert(preTraceIdx < numArbors*numPostPatch);
          preTraceIdx++;
       }
    }
@@ -170,9 +152,9 @@ int LCALIFLateralProbe::outputState(double timef)
    fprintf(fp, "%s:      t=%.1f kLocalExt=%d", msg, timef, kLocalExt);
    int weightIdx = 0;
    for (int arborID=0; arborID < numArbors; arborID++) {
-      for (int patchID=0; patchID < numPrePatch; patchID++) {
+      fprintf(fp, " postIntTr=%-6.3f",postIntTr);
+      for (int patchID=0; patchID < numPostPatch; patchID++) {
          fprintf(fp, " weight_%d_%d=%-6.3f",arborID,patchID,preWeights[weightIdx]);
-         fprintf(fp, " preIntTrs_%d_%d=%-6.3f",arborID,patchID,preIntTrs[weightIdx]);
          weightIdx++;
       }
    }
@@ -182,7 +164,4 @@ int LCALIFLateralProbe::outputState(double timef)
    return PV_SUCCESS;
 }
 } //end of namespacePV
-
-
-
 

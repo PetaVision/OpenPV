@@ -31,11 +31,13 @@ protected:
 private:
    int initialize_base();
    LCALIFLateralConn * LCALIFConn;
+   int kLocalRes;
    int kLocalExt;
    int inBounds;
+   pvdata_t* postWeights;
 
    //output variables
-   float * preIntTrs;
+   float postIntTr;
    float * preWeights;
 
 };

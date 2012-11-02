@@ -40,22 +40,25 @@ int BaseConnectionProbe::initialize(const char * probename, const char * filenam
    return PV_SUCCESS;
 }
 int BaseConnectionProbe::initialize(const char * probename, const char * filename, HyPerConn * conn, int k, bool postProbeFlag) {
+   isPostProbe = postProbeFlag;
 
    int kx, ky, kf;
    const PVLayerLoc * loc;
    if (isPostProbe) {
       loc = conn->postSynapticLayer()->getLayerLoc();
+      int nxGlobal = loc->nxGlobal;
+      int nyGlobal = loc->nyGlobal;
+      int nf = loc->nf;
+      kx = kxPos(k,nxGlobal,nyGlobal,nf);
+      ky = kyPos(k,nxGlobal,nyGlobal,nf);
+      kf = featureIndex(k,nxGlobal,nyGlobal,nf);
    }
    else
    {
-      loc = conn->preSynapticLayer()->getLayerLoc();
+      //TODO: Check in bounds for pre probes
+      assert(false);
+      //loc = conn->preSynapticLayer()->getLayerLoc();
    }
-   int nxGlobal = loc->nxGlobal;
-   int nyGlobal = loc->nyGlobal;
-   int nf = loc->nf;
-   kx = kxPos(k,nxGlobal,nyGlobal,nf);
-   ky = kyPos(k,nxGlobal,nyGlobal,nf);
-   kf = featureIndex(k,nxGlobal,nyGlobal,nf);
 
    initialize(probename,filename,conn,kx,ky,kf,postProbeFlag);
 
@@ -72,7 +75,8 @@ int BaseConnectionProbe::initialize(const char * probename, const char * filenam
    }
    else
    {
-      loc = conn->preSynapticLayer()->getLayerLoc();
+      assert(false);
+      //loc = conn->preSynapticLayer()->getLayerLoc();
    }
    int kxLocal = kx - loc->kx0;
    int kyLocal = ky - loc->ky0;

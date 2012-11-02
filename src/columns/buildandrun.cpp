@@ -1143,26 +1143,26 @@ BaseConnectionProbe * addBaseConnectionProbeToColumn(const char * classkeyword, 
          return NULL;
       }
       const char * msg = params->stringValue(name,"msg", name);
-      int indexmethod = params->present(name, "kPre");
-      int coordmethod = params->present(name, "kxPre") && params->present(name,"kyPre") && params->present(name,"kfPre");
+      int indexmethod = params->present(name, "kPost");
+      int coordmethod = params->present(name, "kxPost") && params->present(name,"kyPost") && params->present(name,"kfPost");
       if( indexmethod && coordmethod ) {
-         fprintf(stderr, "LCALIFLateralProbe \"%s\": Ambiguous definition with both kPre and (kxPre,kyPre,kfPre) defined\n", name);
+         fprintf(stderr, "LCALIFLateralProbe \"%s\": Ambiguous definition with both kPost and (kxPost,kyPost,kfPost) defined\n", name);
          return NULL;
       }
       if( !indexmethod && !coordmethod ) {
-         fprintf(stderr, "LCALIFLateralProbe \"%s\": Exactly one of kPre and (kxPre,kyPre,kfPre) must be defined\n", name);
+         fprintf(stderr, "LCALIFLateralProbe \"%s\": Exactly one of kPost and (kxPost,kyPost,kfPost) must be defined\n", name);
          return NULL;
       }
       if( indexmethod ) {
-         int kPre = params->value(name, "kPre");
-         addedProbe = new LCALIFLateralProbe(msg, filename, targetConn, kPre);
+         int kPost = params->value(name, "kPost");
+         addedProbe = new LCALIFLateralProbe(msg, filename, targetConn, kPost);
       }
       else {
          assert(coordmethod);
-         int kxPre = params->value(name, "kxPre");
-         int kyPre = params->value(name, "kyPre");
-         int kfPre = params->value(name, "kfPre");
-         addedProbe = new LCALIFLateralProbe(msg, filename, targetConn, kxPre, kyPre, kfPre);
+         int kxPost = params->value(name, "kxPost");
+         int kyPost = params->value(name, "kyPost");
+         int kfPost = params->value(name, "kfPost");
+         addedProbe = new LCALIFLateralProbe(msg, filename, targetConn, kxPost, kyPost, kfPost);
       }
       status = checknewobject((void *) addedProbe, classkeyword, name, hc);
    }
