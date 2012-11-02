@@ -28,6 +28,7 @@ public:
    float getInhibitionTimeConstant() {return inhibitionTimeConstant;}
    float getTargetRateKHz() {return targetRateKHz;}
 
+   virtual int outputState(double time, bool last=false);
    virtual int setParams(PVParams * params); // Really should be protected
 
    virtual int checkpointWrite(const char * cpDir);

@@ -195,4 +195,33 @@ int LCALIFLateralConn::checkpointRead(const char * cpDir, double* timef) {
    return status;
 }
 
+int LCALIFLateralConn::outputState(double timef, bool last)
+{
+   int status;
+
+   if (last) {
+      printf("Writing last LCALIFLateral weights..%f\n",timef);
+      convertPreSynapticWeights(timef);
+      status = writePostSynapticWeights(timef, last);
+      assert(status == 0);
+   }else if ( (timef >= writeTime) && (writeStep >= 0) ) {
+      //writeTime += writeStep; Done in HyperConn
+      convertPreSynapticWeights(timef);
+      status = writePostSynapticWeights(timef, false);
+      assert(status == 0);
+
+      // append to output file after original open
+      //ioAppend = true;
+   }
+
+   status = HyPerConn::outputState(timef, last);
+
+
+   if (status != PV_SUCCESS) return status;
+
+
+   return status;
+}
+
+
 } /* namespace PV */
