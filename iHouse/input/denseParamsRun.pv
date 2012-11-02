@@ -352,7 +352,7 @@ OjaSTDPConn "RetinaONtoLif" = {
    targetPreRate          = 20;  // (Hz)
    weightDecay            = 0;
    dWMax                  = 2;
-   weightScale            = .25  //Modifies strength range for STDP (we want strengths to be around 0.25)
+   weightScale            = 1;  //Modifies strength range for STDP (we want strengths to be around 0.25)
    wMin                   = 0.001;
    //wMax   	              = 1;
    ojaFlag                = 1;      //Turns oja rule on or off.
@@ -409,7 +409,7 @@ OjaSTDPConn "RetinaOFFtoLif" = {
    targetPreRate          = 20;
    weightDecay            = 0;
    dWMax                  = 2;
-   weightScale            = 0.25
+   weightScale            = 1;
    wMin                   = 0.001;
    //wMax  	              = 1;
    ojaFlag                = 1;      //Turns oja rule on or off.
@@ -456,7 +456,7 @@ LCALIFLateralConn "lcalif lateral inhibition" = {
     targetRate              = 2;
 
     numAxonalArbors = 1;
-    writeStep = 1999999;
+    writeStep = -1;
     initFromLastFlag = 0;
     
     weightInitType = "UniformWeight";
@@ -540,19 +540,19 @@ LCALIFLateralConn "lcalif lateral inhibition" = {
 //    kfPost           = 0;  //About half way in (1 feature)
 //};
 //
-//LCALIFLateralProbe "Lif_Lat_Probe_Center" = {
-//   targetConnection = "lcalif lateral inhibition";
-//   probeOutputFile  = "lifLat_Center.txt";
-//   msg              = "lifLat_Center";
-//   kxPre            = 42;
-//   kyPre            = 42;
-//   kfPre            = 0;
-//};
-//
 //LCALIFLateralProbe "Lif_Lat_Probe_Edge" = {
 //   targetConnection = "lcalif lateral inhibition";
 //   probeOutputFile  = "lifLat_Edge.txt";
 //   msg              = "lifLat_Edge";
+//   kxPre            = 35;
+//   kyPre            = 35;
+//   kfPre            = 0;
+//};
+//
+//LCALIFLateralProbe "Lif_Lat_Probe_Center" = {
+//   targetConnection = "lcalif lateral inhibition";
+//   probeOutputFile  = "lifLat_Center.txt";
+//   msg              = "lifLat_Center";
 //   kxPre            = 42;
 //   kyPre            = 42;
 //   kfPre            = 0;

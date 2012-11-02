@@ -13,7 +13,7 @@ OUT_FILE_EXT = 'jpg';             %either png or jpg for now
 global FNUM_ALL;
 global FNUM_SPEC;              %Can be -1 for all or specify multiple start:int:end frames
 
-if output_path ~= ''
+if ~strcmp(output_path, '')
    inst_movie_path = [output_path,'Instantaneous_Frames/'];
    if (exist(inst_movie_path, 'dir') ~= 7)
       mkdir(inst_movie_path);
