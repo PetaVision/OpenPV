@@ -45,7 +45,7 @@ int OjaKernelConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre
       const char * filename, InitWeights *weightInit) {
    int status = KernelConn::initialize(name, hc, pre, post, filename, weightInit);
    learningTime = readLearningTime();
-   inputTargetRate = 0.001*readInputTargetRate(); // params file specifies target rates
+   inputTargetRate = 0.001*readInputTargetRate(); // params file specifies target rates in hertz; convert to khz since times are in ms
    outputTargetRate = 0.001*readOutputTargetRate();
    integrationTime = readIntegrationTime();
 
@@ -64,21 +64,28 @@ int OjaKernelConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre
       fprintf(stderr, "OjaKernelConn::initialize error for layer \"%s\": unable to allocate memory for input firing rates\n", name);
       abort();
    }
-   for (int arbor = 0; arbor<numarbors; arbor++) {
-      inputFiringRateCubes[arbor] = pvcube_new(pre->getLayerLoc(), pre->getNumExtended());
-   }
    inputFiringRate = (pvdata_t **) calloc(numarbors, sizeof(pvdata_t *));
    if (inputFiringRate == NULL) {
       fprintf(stderr, "OjaKernelConn::initialize error for layer \"%s\": unable to allocate memory for input firing rate pointers\n", name);
       abort();
    }
-   inputFiringRate[0] = (pvdata_t *) calloc(numarbors*n_pre_ext, sizeof(pvdata_t *));
+   inputFiringRate[0] = (pvdata_t *) malloc(numarbors*n_pre_ext * sizeof(pvdata_t *));
    if (inputFiringRate[0]==NULL) {
       fprintf(stderr, "OjaKernelConn::initialize error for layer \"%s\": unable to allocate memory for input firing rates\n", name);
       abort();
    }
    for (int arbor = 1; arbor<numarbors; arbor++) {
       inputFiringRate[arbor] = inputFiringRate[0]+arbor*n_pre_ext;
+   }
+   for (int k=0; k<numarbors*n_pre_ext; k++) {
+      inputFiringRate[0][k] = getInputTargetRate();
+   }
+   for (int arbor = 0; arbor<numarbors; arbor++) {
+      inputFiringRateCubes[arbor] = (PVLayerCube *) calloc(1, sizeof(PVLayerCube));
+      if (inputFiringRateCubes[arbor]==NULL) {
+         fprintf(stderr, "inputFiringRateCubes[arbor]==NULL.  This computer fails.\n");
+         abort();
+      }
       inputFiringRateCubes[arbor]->size = pvcube_size(n_pre_ext); // Should be okay even though cube's data is not in place, since the mirrorTo functions don't use the size field
       inputFiringRateCubes[arbor]->numItems = pvcube_size(n_pre_ext);
       memcpy(&(inputFiringRateCubes[arbor]->loc), pre->getLayerLoc(), sizeof(PVLayerLoc));
@@ -86,7 +93,10 @@ int OjaKernelConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre
    }
 
    // Output firing rate doesn't need arbors since all arbors go to the same output, or a cube since we don't have to exchange borders.
-   outputFiringRate = (pvdata_t *) calloc(n_post, sizeof(pvdata_t *));
+   outputFiringRate = (pvdata_t *) malloc(n_post * sizeof(pvdata_t *));
+   for (int k=0; k<n_post; k++) {
+      outputFiringRate[k] = getOutputTargetRate();
+   }
    if (outputFiringRate == NULL) {
       fprintf(stderr, "OjaKernelConn::initialize error for layer \"%s\": unable to allocate memory for output firing rates\n", name);
       abort();
@@ -112,7 +122,6 @@ int OjaKernelConn::updateState(double timef, double dt) {
       }
    }
 
-
    // HyPerConn::updateState calls update_dW and updateWeights; we override update_dW but there is no need to override updateWeights
    int status = KernelConn::updateState(timef, dt);
 
@@ -126,6 +135,8 @@ int OjaKernelConn::update_dW(int axonId) {
 
    // Update weights
    int syg = post->getLayerLoc()->nf * post->getLayerLoc()->nx;
+
+   float alpha = getInputTargetRate()/getOutputTargetRate();
 
    for (int kex=0; kex<getNumWeightPatches(); kex++) {
       PVPatch * weights = getWeights(kex,axonId);
@@ -144,7 +155,7 @@ int OjaKernelConn::update_dW(int axonId) {
                abort();
             }
             pvdata_t outputFR = outputFiringRate[offset+lineoffsetg+k];
-            dwdata[lineoffsetw + k] += (inputFR - wdata[lineoffsetw+k]*outputFR)*outputFR;
+            dwdata[lineoffsetw + k] += (inputFR - alpha*wdata[lineoffsetw+k]*outputFR)*outputFR;
          }
          lineoffsetw += syp;
          lineoffsetg += syg;
