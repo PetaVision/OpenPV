@@ -33,8 +33,8 @@ function [num_frames, ...
   begin_time = time();
   
   home_path = ...
-      [filesep, "home", filesep, "garkenyon", filesep];
-  %% [filesep, "Users", filesep, "gkenyon", filesep, "NeoVision", filesep]; %%
+      [filesep, "Users", filesep, "garkenyon", filesep];
+  %%    [filesep, "home", filesep, "gkenyon", filesep];
   
   num_input_args = 0;
   num_input_args = num_input_args + 1;
@@ -44,17 +44,24 @@ function [num_frames, ...
   neovision_dataset_id = tolower(NEOVISION_DATASET_ID); %% 
   num_input_args = num_input_args + 1;
   if nargin < num_input_args || ~exist("NEOVISION_DISTRIBUTION_ID") || isempty(NEOVISION_DISTRIBUTION_ID)
-    NEOVISION_DISTRIBUTION_ID = "Challenge"; %% "Formative"; %% "Training"; %%  
+    NEOVISION_DISTRIBUTION_ID = "Training"; %%  "Challenge"; %% "Formative"; %% 
   endif
   neovision_distribution_id = tolower(NEOVISION_DISTRIBUTION_ID); %% 
   num_input_args = num_input_args + 1;
   if nargin < num_input_args || ~exist("repo_path") || isempty(repo_path)
-    repo_path = [filesep, "mnt", filesep, "data1", filesep, "repo", filesep];
+    repo_path = ...
+	[home_path, "NeoVision2", filesep];
+	%%[filesep, "mnt", filesep, "data1", filesep, "repo", filesep];
   endif
-  program_path = [repo_path, ...
-		  "neovision-programs-petavision", filesep, ...
-		  NEOVISION_DATASET_ID, filesep, ...
-		  NEOVISION_DISTRIBUTION_ID, filesep]; %% 		  
+  petavision_repo_path = [repo_path, ...
+			  "neovision-programs-petavision", filesep]; %%, ...
+  mkdir(petavision_repo_path);
+  dataset_repo_path = [petavision_repo_path, ...
+		       NEOVISION_DATASET_ID, filesep]; %%, ...
+  mkdir(dataset_repo_path);
+  distribution_repo_path = [dataset_repo_path, ...
+			    NEOVISION_DISTRIBUTION_ID, filesep]; %% 		  
+  mkdir(distribution_repo_path);
   num_input_args = num_input_args + 1;
   if nargin < num_input_args || ~exist("ObjectType") || isempty(ObjectType)
     ObjectType = "Car"; %% "Cyclist"; %%  
@@ -73,7 +80,7 @@ function [num_frames, ...
   endif
   num_input_args = num_input_args + 1;
   if nargin < num_input_args || ~exist("clip_name") || isempty(clip_name)
-    clip_name = "027";
+    clip_name = "049";
   endif
   num_input_args = num_input_args + 1;
   if nargin < num_input_args || ~exist("pvp_frame_skip") || isempty(pvp_frame_skip)
@@ -85,7 +92,7 @@ function [num_frames, ...
   endif
   num_input_args = num_input_args + 1;
   if nargin < num_input_args || ~exist("clip_path") || isempty(clip_path)
-    clip_path = [program_path, ...
+    clip_path = [distribution_repo_path, ...
 		 pvp_edge_filter, filesep, ...
 		 clip_name, filesep]; %% 
   endif
@@ -159,7 +166,7 @@ function [num_frames, ...
   endif
   num_input_args = num_input_args + 1;
   if nargin < num_input_args || ~exist("pvp_path") %% || isempty(pvp_path)
-    pvp_path = [program_path, "activity", filesep, ...
+    pvp_path = [distribution_repo_path, "activity", filesep, ...
 		clip_name, filesep, ObjectType, num2str(num_ODD_kernels), pvp_bootstrap_str, pvp_bootstrap_level_str, filesep, pvp_edge_filter, pvp_version_str, filesep];
   endif
   num_input_args = num_input_args + 1;
@@ -196,34 +203,41 @@ function [num_frames, ...
   
   global miss_list_flag;
 
+  global make_bootstrap_chips_flag 
+
+
   setenv('GNUTERM', 'x11');
-  image_type = ".png";
+  image_type = ".jpg";
   
   %% path to generic image processing routines
-  img_proc_dir = "~/workspace-indigo/PetaVision/mlab/imgProc/";
+  img_proc_dir = "~/workspace-sync-anterior/PetaVision/mlab/imgProc/";
   addpath(img_proc_dir);
   
   %% path to string manipulation kernels for use with parcellfun
-  str_kernel_dir = "~/workspace-indigo/PetaVision/mlab/stringKernels/";
+  str_kernel_dir = "~/workspace-sync-anterior/PetaVision/mlab/stringKernels/";
   addpath(str_kernel_dir);
   
   global ODD_subdir
+  global target_bootstrap_dir
+  global distractor_bootstrap_dir
+  global target_bootstrap_mask_dir
+  global distractor_bootstrap_mask_dir
   if ~isempty(pvp_path)
-    ODD_path = [program_path, "ODD", filesep]; 
+    ODD_path = [distribution_repo_path, "ODD", filesep]; 
     mkdir(ODD_path);
     ODD_clip_dir = [ODD_path, clip_name, filesep];
     mkdir(ODD_clip_dir);
     ODD_dir = [ODD_clip_dir, ObjectType, num2str(num_ODD_kernels), pvp_bootstrap_str, pvp_bootstrap_level_str, filesep];
     mkdir(ODD_dir);
     
-    ROC_path = [program_path, "ROC", filesep]; 
+    ROC_path = [distribution_repo_path, "ROC", filesep]; 
     mkdir(ROC_path);
     ROC_clip_dir = [ROC_path, clip_name, filesep];
     mkdir(ROC_clip_dir);
     ROC_dir = [ROC_clip_dir, ObjectType, num2str(num_ODD_kernels), pvp_bootstrap_str, pvp_bootstrap_level_str, filesep];
     mkdir(ROC_dir);
 
-    pvp_results_path = [program_path, "results", filesep];
+    pvp_results_path = [distribution_repo_path, "results", filesep];
     mkdir(pvp_results_path);
     pvp_results_dir = [pvp_results_path, clip_name, filesep];
     mkdir(pvp_results_dir);
@@ -252,111 +266,115 @@ function [num_frames, ...
 	  [pvp_results_subdir0, pvp_edge_filter, filesep];
       mkdir(pvp_results_subdir);
     endif
-  endif
 
-  global target_bootstrap_dir
-  global distractor_bootstrap_dir
-  global target_bootstrap_mask_dir
-  global distractor_bootstrap_mask_dir
-  if isempty(pvp_bootstrap_str)
-    target_bootstrap_dir1 = ...
-	[repo_path,  "neovision-chips-", neovision_dataset_id, filesep];
-    mkdir(target_bootstrap_dir1);
-    target_bootstrap_dir2 = ...
-	[target_bootstrap_dir1, NEOVISION_DATASET_ID, "-PNG-", NEOVISION_DISTRIBUTION_ID, filesep];
-    mkdir(target_bootstrap_dir2);
-    target_bootstrap_dir = ...
-	[target_bootstrap_dir2, ObjectType, filesep]; %% "_bootstrap0", filesep];
-    target_bootstrap_mask_dir = ...
-	[target_bootstrap_dir2, ObjectType, "_mask", filesep]; %% "_bootstrap0", "_mask", filesep];
+    if make_bootstrap_chips_flag
+      if isempty(pvp_bootstrap_str)
+	target_bootstrap_dir1 = ...
+	    [repo_path,  "neovision-chips-", neovision_dataset_id, filesep];
+	mkdir(target_bootstrap_dir1);
+	target_bootstrap_dir2 = ...
+	    [target_bootstrap_dir1, NEOVISION_DATASET_ID, "-PNG-", NEOVISION_DISTRIBUTION_ID, filesep];
+	mkdir(target_bootstrap_dir2);
+	target_bootstrap_dir = ...
+	    [target_bootstrap_dir2, ObjectType, filesep]; %% "_bootstrap0", filesep];
+	target_bootstrap_mask_dir = ...
+	    [target_bootstrap_dir2, ObjectType, "_mask", filesep]; %% "_bootstrap0", "_mask", filesep];
 
-    distractor_bootstrap_dir1 = ...
-	[repo_path,  "neovision-chips-", neovision_dataset_id, filesep];
-    mkdir(distractor_bootstrap_dir1);
-    distractor_bootstrap_dir2 = ...
-	[distractor_bootstrap_dir1, NEOVISION_DATASET_ID, "-PNG-", NEOVISION_DISTRIBUTION_ID, filesep];
-    mkdir(distractor_bootstrap_dir2);
-    distractor_bootstrap_dir = ...
-	[distractor_bootstrap_dir2, "distractor", filesep]; %% "_bootstrap0", filesep];
-    distractor_bootstrap_mask_dir = ...
-	[distractor_bootstrap_dir2, "distractor", "_mask", filesep]; %% "_bootstrap0", "_mask", filesep];
-  else
-    target_bootstrap_dir1 = ...
-	[repo_path,  "neovision-chips-", neovision_dataset_id, filesep];
-    mkdir(target_bootstrap_dir1);
-    target_bootstrap_dir2 = ...
-	[target_bootstrap_dir1, NEOVISION_DATASET_ID, "-PNG-", NEOVISION_DISTRIBUTION_ID, filesep];
-    mkdir(target_bootstrap_dir2);
-    target_bootstrap_dir = ...
-	[target_bootstrap_dir2, ObjectType, pvp_bootstrap_str, pvp_bootstrap_level_str, filesep];
-    target_bootstrap_mask_dir = ...
-	[target_bootstrap_dir2, ObjectType, pvp_bootstrap_str, pvp_bootstrap_level_str, "_mask", filesep];
+	distractor_bootstrap_dir1 = ...
+	    [repo_path,  "neovision-chips-", neovision_dataset_id, filesep];
+	mkdir(distractor_bootstrap_dir1);
+	distractor_bootstrap_dir2 = ...
+	    [distractor_bootstrap_dir1, NEOVISION_DATASET_ID, "-PNG-", NEOVISION_DISTRIBUTION_ID, filesep];
+	mkdir(distractor_bootstrap_dir2);
+	distractor_bootstrap_dir = ...
+	    [distractor_bootstrap_dir2, "distractor", filesep]; %% "_bootstrap0", filesep];
+	distractor_bootstrap_mask_dir = ...
+	    [distractor_bootstrap_dir2, "distractor", "_mask", filesep]; %% "_bootstrap0", "_mask", filesep];
+      else
+	target_bootstrap_dir1 = ...
+	    [repo_path,  "neovision-chips-", neovision_dataset_id, filesep];
+	mkdir(target_bootstrap_dir1);
+	target_bootstrap_dir2 = ...
+	    [target_bootstrap_dir1, NEOVISION_DATASET_ID, "-PNG-", NEOVISION_DISTRIBUTION_ID, filesep];
+	mkdir(target_bootstrap_dir2);
+	target_bootstrap_dir = ...
+	    [target_bootstrap_dir2, ObjectType, pvp_bootstrap_str, pvp_bootstrap_level_str, filesep];
+	target_bootstrap_mask_dir = ...
+	    [target_bootstrap_dir2, ObjectType, pvp_bootstrap_str, pvp_bootstrap_level_str, "_mask", filesep];
 
-    distractor_bootstrap_dir1 = ...
-	[repo_path,  "neovision-chips-", neovision_dataset_id, filesep];
-    mkdir(distractor_bootstrap_dir1);
-    distractor_bootstrap_dir2 = ...
-	[distractor_bootstrap_dir1, NEOVISION_DATASET_ID, "-PNG-", NEOVISION_DISTRIBUTION_ID, filesep];
-    mkdir(distractor_bootstrap_dir2);
-    distractor_bootstrap_dir = ...
-	[distractor_bootstrap_dir2, "distractor", pvp_bootstrap_str, pvp_bootstrap_level_str, filesep];
-    distractor_bootstrap_mask_dir = ...
-	[distractor_bootstrap_dir2, "distractor", pvp_bootstrap_str, pvp_bootstrap_level_str, "_mask", filesep];
-  endif
-  mkdir(target_bootstrap_dir);
-  mkdir(distractor_bootstrap_dir);
-  mkdir(target_bootstrap_mask_dir);
-  mkdir(distractor_bootstrap_mask_dir);
-  
-
-  global pvp_density_thresh
-  if exist("ROC_subdir", "dir")
-    hit_and_miss_stats_pathname = [ROC_subdir, "hit_and_miss_stats.txt"];
-    BB_stats_pathname = [ROC_subdir, "BB_stats.txt"];
-    if 0 %%~pvp_training_flag && exist(hit_and_miss_stats_pathname, "file")
-      hit_and_miss_stats_struct = struct;
-      hit_and_miss_stats_fid = fopen(hit_and_miss_stats_pathname, "r");
-      hit_and_miss_stats_struct.pvp_tot_hits = str2num(fgets(hit_and_miss_stats_fid));
-      hit_and_miss_stats_struct.pvp_tot_miss = str2num(fgets(hit_and_miss_stats_fid));
-      hit_and_miss_stats_struct.pvp_min_hit_density = str2num(fgets(hit_and_miss_stats_fid));
-      hit_and_miss_stats_struct.pvp_max_hit_density = str2num(fgets(hit_and_miss_stats_fid));
-      hit_and_miss_stats_struct.pvp_ave_hit_density = str2num(fgets(hit_and_miss_stats_fid));
-      hit_and_miss_stats_struct.pvp_std_hit_density = str2num(fgets(hit_and_miss_stats_fid));
-      hit_and_miss_stats_struct.pvp_median_hit_density = str2num(fgets(hit_and_miss_stats_fid));
-      hit_and_miss_stats_struct.pvp_min_miss_density = str2num(fgets(hit_and_miss_stats_fid));
-      hit_and_miss_stats_struct.pvp_max_miss_density = str2num(fgets(hit_and_miss_stats_fid));
-      hit_and_miss_stats_struct.pvp_ave_miss_density = str2num(fgets(hit_and_miss_stats_fid));
-      hit_and_miss_stats_struct.pvp_std_miss_density = str2num(fgets(hit_and_miss_stats_fid));
-      hit_and_miss_stats_struct.pvp_median_miss_density = str2num(fgets(hit_and_miss_stats_fid));
-      fclose(hit_and_miss_stats_fid);
-      pvp_density_thresh = ...
-	  (hit_and_miss_stats_struct.pvp_ave_hit_density); 
-    elseif 0 %% ~pvp_training_flag && exist(BB_stats_pathname, "file")
-      BB_stats_struct = struct;
-      BB_stats_fid = fopen(BB_stats_pathname, "r");
-      BB_stats_struct.pvp_min_BB_density = str2num(fgets(BB_stats_fid));
-      BB_stats_struct.pvp_max_BB_density = str2num(fgets(BB_stats_fid));
-      BB_stats_struct.pvp_ave_BB_density = str2num(fgets(BB_stats_fid));
-      BB_stats_struct.pvp_std_BB_density = str2num(fgets(BB_stats_fid));
-      if ~feof(BB_stats_fid)
-	BB_stats_struct.pvp_median_BB_density = str2num(fgets(BB_stats_fid));
+	distractor_bootstrap_dir1 = ...
+	    [repo_path,  "neovision-chips-", neovision_dataset_id, filesep];
+	mkdir(distractor_bootstrap_dir1);
+	distractor_bootstrap_dir2 = ...
+	    [distractor_bootstrap_dir1, NEOVISION_DATASET_ID, "-PNG-", NEOVISION_DISTRIBUTION_ID, filesep];
+	mkdir(distractor_bootstrap_dir2);
+	distractor_bootstrap_dir = ...
+	    [distractor_bootstrap_dir2, "distractor", pvp_bootstrap_str, pvp_bootstrap_level_str, filesep];
+	distractor_bootstrap_mask_dir = ...
+	    [distractor_bootstrap_dir2, "distractor", pvp_bootstrap_str, pvp_bootstrap_level_str, "_mask", filesep];
       endif
-      fclose(BB_stats_fid);
-      pvp_density_thresh = ...
-	  (BB_stats_struct.pvp_ave_BB_density(1)); %% + BB_stats_struct.pvp_std_BB_density(1)) / 2;
+      mkdir(target_bootstrap_dir);
+      mkdir(distractor_bootstrap_dir);
+      mkdir(target_bootstrap_mask_dir);
+      mkdir(distractor_bootstrap_mask_dir);
+    endif %% make_bootstrap_chips_flag  
+
+    global pvp_density_thresh
+    if exist("ROC_subdir", "dir")
+      hit_and_miss_stats_pathname = [ROC_subdir, "hit_and_miss_stats.txt"];
+      BB_stats_pathname = [ROC_subdir, "BB_stats.txt"];
+      if 0 %%~pvp_training_flag && exist(hit_and_miss_stats_pathname, "file")
+	hit_and_miss_stats_struct = struct;
+	hit_and_miss_stats_fid = fopen(hit_and_miss_stats_pathname, "r");
+	hit_and_miss_stats_struct.pvp_tot_hits = str2num(fgets(hit_and_miss_stats_fid));
+	hit_and_miss_stats_struct.pvp_tot_miss = str2num(fgets(hit_and_miss_stats_fid));
+	hit_and_miss_stats_struct.pvp_min_hit_density = str2num(fgets(hit_and_miss_stats_fid));
+	hit_and_miss_stats_struct.pvp_max_hit_density = str2num(fgets(hit_and_miss_stats_fid));
+	hit_and_miss_stats_struct.pvp_ave_hit_density = str2num(fgets(hit_and_miss_stats_fid));
+	hit_and_miss_stats_struct.pvp_std_hit_density = str2num(fgets(hit_and_miss_stats_fid));
+	hit_and_miss_stats_struct.pvp_median_hit_density = str2num(fgets(hit_and_miss_stats_fid));
+	hit_and_miss_stats_struct.pvp_min_miss_density = str2num(fgets(hit_and_miss_stats_fid));
+	hit_and_miss_stats_struct.pvp_max_miss_density = str2num(fgets(hit_and_miss_stats_fid));
+	hit_and_miss_stats_struct.pvp_ave_miss_density = str2num(fgets(hit_and_miss_stats_fid));
+	hit_and_miss_stats_struct.pvp_std_miss_density = str2num(fgets(hit_and_miss_stats_fid));
+	hit_and_miss_stats_struct.pvp_median_miss_density = str2num(fgets(hit_and_miss_stats_fid));
+	fclose(hit_and_miss_stats_fid);
+	pvp_density_thresh = ...
+	    (hit_and_miss_stats_struct.pvp_ave_hit_density); 
+      elseif 0 %% ~pvp_training_flag && exist(BB_stats_pathname, "file")
+	BB_stats_struct = struct;
+	BB_stats_fid = fopen(BB_stats_pathname, "r");
+	BB_stats_struct.pvp_min_BB_density = str2num(fgets(BB_stats_fid));
+	BB_stats_struct.pvp_max_BB_density = str2num(fgets(BB_stats_fid));
+	BB_stats_struct.pvp_ave_BB_density = str2num(fgets(BB_stats_fid));
+	BB_stats_struct.pvp_std_BB_density = str2num(fgets(BB_stats_fid));
+	if ~feof(BB_stats_fid)
+	  BB_stats_struct.pvp_median_BB_density = str2num(fgets(BB_stats_fid));
+	endif
+	fclose(BB_stats_fid);
+	pvp_density_thresh = ...
+	    (BB_stats_struct.pvp_ave_BB_density(1)); %% + BB_stats_struct.pvp_std_BB_density(1)) / 2;
+      endif
+    else
+      pvp_density_thresh = -1.0;  %% flag to use ave density across image
     endif
-  else
-    pvp_density_thresh = -1.0;  %% flag to use ave density across image
-  endif
-  disp(["pvp_density_thresh = ", num2str(pvp_density_thresh)]);
+    disp(["pvp_density_thresh = ", num2str(pvp_density_thresh)]);
   
+  endif  %% pvp_path
+
   %%keyboard;
   i_CSV = 0;
   if 1 %% ~strcmp(NEOVISION_DISTRIBUTION_ID,"Challenge")  
-    true_CSV_path = ...
-	[repo_path, ...
-	 "neovision-data-", neovision_distribution_id, "-", neovision_dataset_id, ...
-	 filesep, "CSV", filesep];
+    if 1
+      true_CSV_path = ...
+	  ["/Volumes/InnoHouseData/NeoVision2/Heli/Helicopter Training Annotations", ...
+	   filesep];
+    else
+      true_CSV_path = ...
+	  [repo_path, ...
+	   "neovision-data-", neovision_distribution_id, "-", neovision_dataset_id, ...
+	   filesep, "CSV", filesep];
+    endif
     true_CSV_filename = [clip_name, ".csv"];
     true_CSV_pathname = [true_CSV_path, true_CSV_filename];
     if ~exist(true_CSV_pathname, "file")
@@ -420,7 +438,7 @@ function [num_frames, ...
     NROWS = pvp_header(pvp_index.NY_GLOBAL);
     NFEATURES = pvp_header(pvp_index.NF);
     N = NFEATURES * NCOLS * NROWS;
-  endif
+  endif %% pvp_path
   
   pvp_time = zeros(tot_frames, 1);
   pvp_offset = zeros(tot_frames, 1);

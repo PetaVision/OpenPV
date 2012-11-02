@@ -14,11 +14,11 @@ function [] = ...
   endif
 
   %% path to generic image processing routines
-  img_proc_dir = "~/workspace-indigo/PetaVision/mlab/imgProc/";
+  img_proc_dir = "~/workspace-sync-anterior/PetaVision/mlab/imgProc/";
   addpath(img_proc_dir);
   
   %% path to string manipulation kernels for use with parcellfun
-  str_kernel_dir = "~/workspace-indigo/PetaVision/mlab/stringKernels/";
+  str_kernel_dir = "~/workspace-sync-anterior/PetaVision/mlab/stringKernels/";
   addpath(str_kernel_dir);
 
   %%keyboard;
@@ -155,6 +155,7 @@ function [] = ...
 
   target_mask_pathname = [target_mask_dir, "target_", mask_title];
   %%disp(target_mask_pathname);
+  %%keyboard;
   imwrite(target_mask, target_mask_pathname);
   
   distractor_mask = max(target_mask(:)) + min(target_mask(:)) - target_mask;
@@ -163,7 +164,7 @@ function [] = ...
   %%disp(distractor_mask_pathname);
   imwrite(distractor_mask, distractor_mask_pathname);
   
-  frame_mask_pathname = [frame_mask_dir, mask_title];
+  frame_mask_pathname = [frame_mask_dir, "original_", mask_title];
   %%disp(frame_mask_pathname);
   imwrite(pvp_image, frame_mask_pathname);
   

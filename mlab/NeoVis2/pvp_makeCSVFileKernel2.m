@@ -23,15 +23,17 @@ function [CSV_struct] = pvp_makeCSVFileKernel2(frame_pathname, pvp_time, pvp_act
     CSV_struct.sum_activity = sum(pvp_activity(:));
   else
     pvp_reconstruct_sparse = false;
-    frame_info = imfinfo(frame_pathname);
-    NCOLS = frame_info.Width;
-    NROWS = frame_info.Height;
-    if strcmp(frame_info.ColorType, "grayscale")
-      NFEATURES = 1;
-    else
-      NFEATURES = 3;
+    if 0  %% imfinfo broken...assume N has been defined previously
+      frame_info = imfinfo(frame_pathname);
+      NCOLS = frame_info.Width;
+      NROWS = frame_info.Height;
+      if strcmp(frame_info.ColorType, "grayscale")
+	NFEATURES = 1;
+      else
+	NFEATURES = 3;
+      endif
+      N = NFEATURES * NCOLS * NROWS;
     endif
-    N = NFEATURES * NCOLS * NROWS;
     pvp_activity = sparse(N, 1);
   endif
 
