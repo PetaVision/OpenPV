@@ -58,6 +58,12 @@ for filenameTup in filenames:
         else:
             tok = key
 
+        #Check to be sure that the tokens (keys) listed in data are actually in the probe's output
+        checkTok = [[[tok in string for string in tup] for tup in line] for line in lines]
+        if not any(checkTok[:]):
+            import sys
+            sys.exit("readProbe: ERROR: Token '"+tok+"' was not found in the input file. Exiting program.")
+
         if key not in scale: # Set scale for plot to 1 if not defined
             scale[key] = 1
 
@@ -65,10 +71,11 @@ for filenameTup in filenames:
 
         numArbors[tok] = getNumArbors(tok,workingLines[0]) #Num arbors should be the same for each time step
 
+        #Working lines is [time][preNeuron] and filtered for key of interest
         if specificKey:
-            workingLines = [[float(part[1]) for part in line if part[0] == tok] for line in workingLines] # working lines is [time][preNeuron] and filtered for key of interest
+            workingLines = [[float(part[1]) for part in line if part[0] == tok] for line in workingLines]
         else:
-            workingLines = [[float(part[1]) for part in line if part[0].split('_')[0] == tok] for line in workingLines] # working lines is [time][preNeuron] and filtered for key of interest
+            workingLines = [[float(part[1]) for part in line if part[0].split('_')[0] == tok] for line in workingLines]
 
         #Total number of pre 
         numPreConns[tok] = len(workingLines[0])
@@ -138,7 +145,7 @@ for filenameTup in filenames:
             data[key] = workingLines
         print "readProbe: -Done formatting key '"+key+"'"
 
-    time = array(data['t'][0][0]) #data[key][arbor][preNeuron]
+    time = array(data['t'][0][0][:]) #data[key][arbor][preNeuron]
 
     if weightMap:
         tok = 'weight'
@@ -177,12 +184,12 @@ for filenameTup in filenames:
 
         didPlot = False #Only true if plot is created below
         figure()
-        for key in data.keys():
+        for key in data.keys(): #must repeat loop because we want all of these plots to be on one figure
             if key == 't':
                 continue
 
             if key[len(key)-1] == "*": #Get key value, without the * if it is there
-                tok = key[:len(key) - 1]
+                continue
             else:
                 tok = key
 
@@ -193,9 +200,8 @@ for filenameTup in filenames:
             if key == 'a':
                 countActivity(data,key)
 
-
             for preNeuronID in range(numPreNeurons[tok]):
-                plotMe = array(data[key][arborID][preNeuronID])
+                plotMe = array(data[key][arborID][preNeuronID][:])
                 if len(plotMe) != 0:
                     #Special cases for legend labels on printing
                     if "_" in key: #Specific pre-neuron and conn is given
@@ -214,7 +220,7 @@ for filenameTup in filenames:
                             neuronLabel = 'Post'
                             figLabel=keyLabel+"_n"+neuronLabel
 
-                    plot(time, scale[key]*plotMe, label=figLabel)
+                    plot(time, plotMe, label=figLabel)
                     didPlot = True
 
         if didPlot:
