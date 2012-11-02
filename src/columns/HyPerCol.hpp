@@ -83,6 +83,7 @@ public:
    long int getCurrentStep()                   {return currentStep;}
 
    int includeLayerName()                 {return filenamesContainLayerNames;}
+   int includeConnectionName()            {return filenamesContainConnectionNames;}
 
    const char * inputFile()               {return image_file;}
 
@@ -186,6 +187,7 @@ private:
                                    // Value 0: layers have form a5.pvp
                                    // Value 1: layers have form a5_NameOfLayer.pvp
                                    // Value 2: layers have form NameOfLayer.pvp
+   int filenamesContainConnectionNames; // Similar to filenamesContainLayerNames, but for connections
 
    unsigned long random_seed;
 

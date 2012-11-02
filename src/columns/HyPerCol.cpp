@@ -292,6 +292,12 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * p
       abort();
    }
 
+   filenamesContainConnectionNames = (int)params->value(name, "filenamesContainConnectionNames", 0);
+   if(filenamesContainConnectionNames < 0 || filenamesContainConnectionNames > 2) {
+      fprintf(stderr,"HyPerCol %s: filenamesContainConnectionNames must have the value 0, 1, or 2.\n", name);
+      abort();
+   }
+
    const char * lcfilename = params->stringValue(name, "outputNamesOfLayersAndConns", false);
    if( lcfilename != NULL && lcfilename[0] != 0 && rank==0 ) {
       outputNamesOfLayersAndConns = (char *) malloc( (strlen(outputPath)+strlen(lcfilename)+2)*sizeof(char) );

@@ -876,19 +876,6 @@ int HyPerConn::writeWeights(const char * filename) {
    return writeWeights(wPatches, wDataStart, getNumWeightPatches(), filename, parent->simulationTime(), true);
 }
 
-#ifdef OBSOLETE_NBANDSFORARBORS
-int HyPerConn::writeWeights(double time, bool last)
-{
-   //const int arbor = 0;
-   const int numPatches = getNumWeightPatches();
-   for(int arborId=0;arborId<numberOfAxonalArborLists();arborId++) {
-      if(writeWeights(wPatches[arborId], numPatches, NULL, time, last, arborId))
-         return 1;
-   }
-   return 0;
-}
-#endif // OBSOLETE_NBANDSFORARBORS
-
 int HyPerConn::writeWeights(PVPatch *** patches, pvdata_t ** dataStart, int numPatches, const char * filename, double timef, bool last) {
    int status = PV_SUCCESS;
    char path[PV_PATH_MAX];
@@ -906,16 +893,32 @@ int HyPerConn::writeWeights(PVPatch *** patches, pvdata_t ** dataStart, int numP
 
    const PVLayerLoc * loc = pre->getLayerLoc();
 
+   // Is "_last" obsolete?  The data that used to be written to the _last files are now handled by checkpointing.
+   const char * laststr = last ? "_last" : "";
+   int chars_needed = 0;
    if (filename == NULL) {
-      if (last) {
-         snprintf(path, PV_PATH_MAX-1, "%s/w%d_last.pvp", parent->getOutputPath(), getConnectionId());
-      }
-      else {
-         snprintf(path, PV_PATH_MAX - 1, "%s/w%d.pvp", parent->getOutputPath(), getConnectionId());
+      assert(parent->includeConnectionName()<=2 && parent->includeConnectionName()>=0);
+      switch(parent->includeConnectionName()) {
+      case 0:
+         chars_needed = snprintf(path, PV_PATH_MAX, "%s/w%d%s.pvp", parent->getOutputPath(), getConnectionId(), laststr);
+         break;
+      case 1:
+         chars_needed = snprintf(path, PV_PATH_MAX, "%s/w%d_%s%s.pvp", parent->getOutputPath(), getConnectionId(), name, laststr);
+         break;
+      case 2:
+         chars_needed = snprintf(path, PV_PATH_MAX, "%s/%s%s.pvp", parent->getOutputPath(), name, laststr);
+         break;
+      default:
+         assert(0);
+         break;
       }
    }
    else {
-      snprintf(path, PV_PATH_MAX-1, "%s", filename);
+      chars_needed = snprintf(path, PV_PATH_MAX, "%s", filename);
+   }
+   if (chars_needed >= PV_PATH_MAX) {
+      fprintf(stderr, "HyPerConn::writeWeights in connection \"%s\": path is too long (it would be cut off as \"%s\")\n", name, path);
+      abort();
    }
 
    Communicator * comm = parent->icCommunicator();
@@ -929,67 +932,6 @@ int HyPerConn::writeWeights(PVPatch *** patches, pvdata_t ** dataStart, int numP
 
    return status;
 }
-
-#ifdef OBSOLETE_NBANDSFORARBORS
-int HyPerConn::writeWeights(PVPatch ** patches, int numPatches,
-                            const char * filename, double time, bool last, int arborId)
-{
-   int status = 0;
-   char path[PV_PATH_MAX];
-
-   if (patches == NULL) return 0;
-
-   const float minVal = minWeight(arborId);
-   const float maxVal = maxWeight(arborId);
-
-   const PVLayerLoc * loc = pre->getLayerLoc();
-
-   if (filename == NULL) {
-      if (last) {
-         if(numberOfAxonalArborLists()>1)
-            snprintf(path, PV_PATH_MAX-1, "%s/w%d_a%d_last.pvp", parent->getOutputPath(), getConnectionId(), arborId);
-         else
-            snprintf(path, PV_PATH_MAX-1, "%s/w%d_last.pvp", parent->getOutputPath(), getConnectionId());
-      }
-      else {
-         if(numberOfAxonalArborLists()>1)
-            snprintf(path, PV_PATH_MAX - 1, "%s/w%d_a%d.pvp", parent->getOutputPath(), getConnectionId(), arborId);
-         else
-            snprintf(path, PV_PATH_MAX - 1, "%s/w%d.pvp", parent->getOutputPath(), getConnectionId());
-      }
-   }
-   else {
-      snprintf(path, PV_PATH_MAX-1, "%s", filename);
-   }
-
-   Communicator * comm = parent->icCommunicator();
-
-   bool append = (last) ? false : ioAppend;
-
-   status = PV::writeWeights(path, comm, (double) time, append,
-                             loc, nxp, nyp, nfp, minVal, maxVal,
-                             patches, numPatches, writeCompressedWeights, fileType);
-   assert(status == 0);
-
-#ifdef DEBUG_WEIGHTS
-   char outfile[PV_PATH_MAX];
-
-   // only write first weight patch
-
-   sprintf(outfile, "%s/w%d.tif", parent->getOutputPath(), getConnectionId());
-   FILE * fd = fopen(outfile, "wb");
-   if (fd == NULL) {
-      fprintf(stderr, "writeWeights: ERROR opening file %s\n", outfile);
-      return 1;
-   }
-   int arbor = 0;
-   pv_tiff_write_patch(fd, patches);
-   fclose(fd);
-#endif // DEBUG_WEIGHTS
-
-   return status;
-}
-#endif // OBSOLETE_NBANDSFORARBORS
 
 int HyPerConn::writeTextWeights(const char * filename, int k)
 {
@@ -2282,57 +2224,6 @@ int HyPerConn::writePostSynapticWeights(double timef, bool last) {
 
    return PV_SUCCESS;
 }
-
-#ifdef OBSOLETE // Marked obsolete Nov 29, 2011.
-int HyPerConn::writePostSynapticWeights(double time, bool last) {
-   for(int axonID=0;axonID<numberOfAxonalArborLists();axonID++) {
-      writePostSynapticWeights(time, last, axonID);
-   }
-   return PV_SUCCESS;
-}
-
-int HyPerConn::writePostSynapticWeights(double time, bool last, int axonID)
-{
-   int status = 0;
-   char path[PV_PATH_MAX];
-
-   const PVLayer * lPre  = pre->getCLayer();
-   const PVLayer * lPost = post->getCLayer();
-
-   const float minVal = minWeight(axonID);
-   const float maxVal = maxWeight(axonID);
-
-   const int numPostPatches = lPost->numNeurons;
-
-   const int xScale = post->getXScale() - pre->getXScale();
-   const int yScale = post->getYScale() - pre->getYScale();
-   const float powXScale = powf(2, (float) xScale);
-   const float powYScale = powf(2, (float) yScale);
-
-   const int nxPostPatch = (int) (nxp * powXScale);
-   const int nyPostPatch = (int) (nyp * powYScale);
-   const int nfPostPatch = lPre->loc.nf;
-
-   const char * last_str = (last) ? "_last" : "";
-   if(numberOfAxonalArborLists()>1)
-      snprintf(path, PV_PATH_MAX-1, "%s/w%d_a%1.1d_post%s.pvp", parent->getOutputPath(), getConnectionId(), axonID, last_str);
-   else
-      snprintf(path, PV_PATH_MAX-1, "%s/w%d_post%s.pvp", parent->getOutputPath(), getConnectionId(), last_str);
-
-
-   const PVLayerLoc * loc  = post->getLayerLoc();
-   Communicator   * comm = parent->icCommunicator();
-
-   bool append = (last) ? false : ioAppend;
-
-   status = PV::writeWeights(path, comm, (double) time, append,
-                             loc, nxPostPatch, nyPostPatch, nfPostPatch, minVal, maxVal,
-                             wPostPatches[axonID], numPostPatches, writeCompressedWeights, PVP_WGT_FILE_TYPE);
-   assert(status == 0);
-
-   return 0;
-}
-#endif // OBSOLETE
 
 int HyPerConn::initNormalize() {
    PVParams * params = parent->parameters();
