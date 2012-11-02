@@ -72,17 +72,16 @@ int BaseConnectionProbe::initialize(const char * probename, const char * filenam
    const PVLayerLoc * loc;
    if (isPostProbe) {
       loc = conn->postSynapticLayer()->getLayerLoc();
+      int kxLocal = kx - loc->kx0;
+      int kyLocal = ky - loc->ky0;
+      //Restricted index only for both post and pre
+      inBounds = !(kxLocal < 0 || kxLocal >= loc->nx || kyLocal < 0 || kyLocal >= loc->ny);
    }
    else
    {
       assert(false);
       //loc = conn->preSynapticLayer()->getLayerLoc();
    }
-   int kxLocal = kx - loc->kx0;
-   int kyLocal = ky - loc->ky0;
-
-   //Restricted index only for both post and pre
-   inBounds = !(kxLocal < 0 || kxLocal >= loc->nx || kyLocal < 0 || kyLocal >= loc->ny);
 
    if( probename ) {
       name = strdup(probename);
