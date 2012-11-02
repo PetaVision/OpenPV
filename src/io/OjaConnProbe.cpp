@@ -30,17 +30,14 @@ OjaConnProbe::~OjaConnProbe()
    if (inBounds){
       free(preStdpTrs);
       free(preOjaTrs);
-   #ifdef POSTW_CHECK
       free(preWeights);
-   #endif
-      free(preWeightsOld);
    }
 }
 
 int OjaConnProbe::initialize_base() {
    preStdpTrs = NULL;
    preOjaTrs  = NULL;
-   preWeightsOld = NULL;
+   preWeights = NULL;
    kLocal      = -1;
    return PV_SUCCESS;
 }
@@ -96,16 +93,10 @@ int OjaConnProbe::initialize(const char * probename, const char * filename,
       // Allocate buffers for pre info
       preStdpTrs    = (float *) calloc(numPostPatch*numArbors, sizeof(float));
       preOjaTrs     = (float *) calloc(numPostPatch*numArbors, sizeof(float));
-      preWeightsOld = (float *) calloc(numPostPatch*numArbors, sizeof(float));
-   #ifdef POSTW_CHECK
       preWeights = (float *) calloc(numPostPatch*numArbors, sizeof(float));
-   #endif
       assert(preStdpTrs != NULL);
       assert(preOjaTrs != NULL);
-      assert(preWeightsOld != NULL);
-   #ifdef POSTW_CHECK
       assert(preWeights != NULL);
-   #endif
    }
 
    return PV_SUCCESS;
@@ -130,37 +121,20 @@ int OjaConnProbe::outputState(double timef)
 
    for (int arborID=0; arborID < numArbors; arborID++)
    {
-      //Old way
       postWeightsp = ojaConn->getPostWeightsp(arborID,kLocal); // Pointer array full of addresses pointing to the weights for all of the preNeurons connected to the given postNeuron's receptive field
-
-#ifdef POSTW_CHECK
-      //New way
-      ojaConn->convertPreSynapticWeights(timef);
-      postWeights = ojaConn->getWPostData(arborID, kLocal);
-#endif
 
       float * startAdd = ojaConn->get_wDataStart(arborID);                    // Address of first preNeuron in pre layer
       for (int preNeuronID=0; preNeuronID<numPostPatch; preNeuronID++)
       {
-         //Old way
          float * kPreAdd = postWeightsp[preNeuronID];  // Address of first preNeuron in receptive field of postNeuron
          assert(kPreAdd != NULL);
          int kPre = (kPreAdd-startAdd) / num_weights_in_patch;
 
          assert(preTraceIdx < numArbors*numPostPatch);
-         preWeightsOld[preTraceIdx] = *(postWeightsp[preNeuronID]); // One weight per arbor per preNeuron in postNeuron's receptive field
+         preWeights[preTraceIdx] = *(postWeightsp[preNeuronID]); // One weight per arbor per preNeuron in postNeuron's receptive field
          preStdpTrs[preTraceIdx]    = ojaConn->getPreStdpTr(kPre); // Trace with STDP-related time scale (tauLTD)
          preOjaTrs[preTraceIdx]     = ojaConn->getPreOjaTr(kPre);  // Trace with Oja-related time scale (tauOja)
 
-#ifdef POSTW_CHECK
-         //New way
-         preWeights[preTraceIdx] = postWeights[preNeuronID];
-
-         //Comparison
-         if(preWeightsOld[preTraceIdx] != preWeights[preTraceIdx]){
-            std::cout << "preTraceIdx: " << preTraceIdx << "   preWeightsOld: " << preWeightsOld[preTraceIdx] << "   preWeights: " << preWeights[preTraceIdx] << "\n";
-         }
-#endif
          preTraceIdx++;
       }
    }
@@ -187,12 +161,7 @@ int OjaConnProbe::outputState(double timef)
       for (int patchID=0; patchID < numPostPatch; patchID++) {
          fprintf(fp, " prStdpTr_%d_%d=%-6.3f",arborID,patchID,preStdpTrs[weightIdx]);
          fprintf(fp, " prOjaTr_%d_%d=%-6.3f",arborID,patchID,preOjaTrs[weightIdx]);
-#ifdef POSTW_CHECK
          fprintf(fp, " weight_%d_%d=%-6.3f",arborID,patchID,preWeights[weightIdx]);
-#endif
-#ifndef POSTW_CHECK
-         fprintf(fp, " weight_%d_%d=%-6.3f",arborID,patchID,preWeightsOld[weightIdx]);
-#endif
 
          weightIdx++;
       }
