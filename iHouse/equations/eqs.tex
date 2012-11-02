@@ -50,7 +50,7 @@ Q_{ij}(t+\Delta t) &= Q_{ij}(t) + \beta \left(\frac{\Delta t}{\tau_{oja}}\right)
 i.e.\\
 \begin{equation}\begin{split}
 Q_{ij}(t+\Delta t) &= Q_{ij}(t) + \beta \left(\frac{\Delta t}{\tau_{oja}}\right)^{2} \left\{\right.\\[2mm]
-                        &\nterm{Y_j}{oja}(t) \left[\nterm{X_i}{oja}(t) - Q_{ij}(t) \nterm{Y_j}{oja}(t)\right] \cdot \lambda_{P} A_{Y}(t) \nterm{X_{i}}{P}(t) -\\[2mm]
+                        &\nterm{Y_j}{oja}(t) \left[\nterm{X_i}{oja}(t) - \frac{f_{pre}}{f_{o}} \frac{Q_{ij}(t)}{W_{scale}} \nterm{Y_j}{oja}(t)\right] \cdot \lambda_{P} A_{Y}(t) \nterm{X_{i}}{P}(t) -\\[2mm]
                         &\lambda_{D}_{j} A_{X}_{i}(t) \nterm{Y_{j}}{D}(t) -\\[2mm]
                         &\alpha_{dec} Q_{ij}(t)\left\}\right.\\
 \end{split}\end{equation}
