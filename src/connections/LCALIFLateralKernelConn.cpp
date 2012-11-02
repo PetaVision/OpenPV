@@ -50,6 +50,14 @@ int LCALIFLateralKernelConn::initialize(const char * name, HyPerCol * hc, HyPerL
       }
       abort();
    }
+
+   // Neurons don't inhibit themselves, only their neighbors; set self-interaction weights to mmzero.
+   assert(nxp % 2 == 1 && nyp % 2 == 1 && getNumDataPatches()==nfp);
+   for (int k=0; k<getNumDataPatches(); k++) {
+      int n = kIndex((nxp-1)/2, (nyp-1)/2, k, nxp, nyp, nfp);
+      get_wDataHead(0, k)[n] = 0.0f;
+   }
+
    integratedSpikeCountCube = pvcube_new(pre->getLayerLoc(), pre->getNumExtended());
    integratedSpikeCount = integratedSpikeCountCube->data;
    for (int k=0; k<pre->getNumExtended(); k++) {
