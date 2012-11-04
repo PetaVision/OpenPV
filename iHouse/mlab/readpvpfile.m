@@ -133,6 +133,8 @@ if isempty(errorstring)
             movieFrame = 0;
             buffer = fread(fid, Inf, '*uint8');
             bufPos = 1;
+            totactive = 0;
+            firingRate = zeros([hdr.nyGlobal, hdr.nxGlobal]);
             for frame=1:numframes
                 data{frame} = struct('time',0,'values',[]);
                 data{frame}.time = typecast(buffer(bufPos:bufPos + 7), 'double');
@@ -141,6 +143,8 @@ if isempty(errorstring)
                 bufPos += 4;
                 data{frame}.values = typecast(buffer(bufPos:bufPos + (4 * numactive) - 1), 'uint32');
                 bufPos += 4 * numactive;
+                totactive += numactive;
+                
                % data{frame}.time = fread(fid,1,'float64');
                % numactive = fread(fid,1,'uint32');
                % data{frame}.values = fread(fid,numactive,'uint32');
@@ -160,6 +164,10 @@ if isempty(errorstring)
                    tempOutImg = outImg';
                    tempOutImg(data{frame}.values + 1) = 1;
                    outImg = tempOutImg';
+
+                   idxs = find(outImg);
+                   firingRate(idxs) += 1;
+
                    print_movie_filename = [inst_movie_path,rootname,'_',frame_str,'.',OUT_FILE_EXT];
                    try
                        imwrite(outImg,print_movie_filename,OUT_FILE_EXT)
@@ -169,6 +177,10 @@ if isempty(errorstring)
                    end%_try_catch
                  end%End frame_of_interest printing
             end%End num_frames
+            %Calculate firing rate
+            averageFiringRate = sum(firingRate(:)) ./ totFiringRate
+            firingRate = firingRate ./ numframes;
+            printImage(firingRate, 0, 0, output_path, -1, 'firing_rate');
             if eq(MOVIE_FLAG,1)
                 system(['ffmpeg -loglevel 0 -v 0 -r 20 -f image2 -i ',inst_movie_path,rootname,'_%03d.',OUT_FILE_EXT,' -sameq -y ',output_path,'pvp_instantaneous_movie.mp4 &']);
             end%if eq(MOVIE_FLAG,1)
