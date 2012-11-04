@@ -24,11 +24,7 @@ function latPrintImage(mat, time, arborId, outDir, scaleFlag, figTitle)
    end
    imagesc(mat, scale);
    %Find max/min of mat, and set scale equal to that
-   if(GRAY_SC)
-      colormap(gray);
-   else
-      colormap(cm());
-   end
+   colormap(gray);
    colorbar;
 
    title([figTitle, ' - time: ', num2str(time), ' arbor: ', num2str(arborId)]);
