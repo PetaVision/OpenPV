@@ -18,7 +18,8 @@ HyPerCol "column" = {
    //outputPath                   = "~/Documents/Work/LANL/workspace/iHouse/output"; //Dylan's Mac
    outputPath                   = "~/workspace/iHouse/output"; //Dylan's Remote 
                                            // 
-   filenamesContainLayerNames   = 2;       // stores pvp files as: 0 = layer number/1 = layer number and layer name/2 = layer name
+   filenamesContainLayerNames      = 2;    // stores pvp files as: 0 = layer number/1 = layer number and layer name/2 = layer name
+   filenamesContainConnectionNames = 2;
                                            // 
    checkpointRead               = false;
    //checkpointReadDir            = "~/Documents/workspace/iHouse/checkpoints";
