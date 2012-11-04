@@ -166,9 +166,9 @@ SigmoidLayer "ConeSigmoidOFF" = {   // 3
     marginWidth       = 4.0;        // for MPI running
     originalLayerName = "Cone";
     InitVType         = "ConstantV";
-    valueV            = -59.2; //-62.2;      // Vadj      = VgrayCone - (VthrestON+VrestON)/2
-    Vrest             = -59.2; //-62.2;      // Vrest     = VrestON + 2*Vadj
-    VthRest           = -40.2; //-43.2;      // Vthrest   = VthrestON + 2*Vadj
+    valueV            = -62.2;      // Vadj      = VgrayCone - (VthrestON+VrestON)/2
+    Vrest             = -62.2;      // Vrest     = VrestON + 2*Vadj
+    VthRest           = -43.2;      // Vthrest   = VthrestON + 2*Vadj
     mirrorBCflag      = 1.0;        //   
     InverseFlag       = 1.0;        //  
     restart           = 0.0;        // from graylast
@@ -225,27 +225,49 @@ GapLayer "HorizontalGap" = {                // 7
     mirrorBCflag      = 1.0;         // 
     restart           = 0.0;         // from graylast
     InitVType         = "ConstantV";
-    ampSpikelet      = 150.0;
-    valueV            = -55.;
+    ampSpikelet       = 150.0;
+    valueV            = -55.0;
     spikingFlag       = 0.0;
     writeStep         = -1;
     writeNonspikingActivity = true;
 };
 
 disable = false;
-SigmoidLayer "HorizontalSigmoid" = {        // 8
+SigmoidLayer "HorizontalSigmoidON" = {        // 8
     originalLayerName ="Horizontal";
     nxScale           = 0.25;         // 5/18 discussion with Garrett
     nyScale           = 0.25;         // three are fewer horizontal 
     marginWidth       = 1.0;         // for MPI running
     InitVType         = "ConstantV";
-    valueV            = -58.233;
+    valueV            = -55.0;
     Vrest             = -58.233;     //
     VthRest           = -34.233;     //                        <=============== disabled
     mirrorBCflag      = 1.0;         // 
     restart           = 0.0;         // from graylast
     nf                = 1;
     InverseFlag       = 0.0;
+    SigmoidFlag       = 1;
+    SigmoidAlpha      = 0.1;
+    spikingFlag       = 0.0;
+    writeStep         = -1;
+    writeNonspikingActivity = true;
+};
+
+
+disable = false;
+SigmoidLayer "HorizontalSigmoidOFF" = {        // 8
+    originalLayerName ="Horizontal";
+    nxScale           = 0.25;         // 5/18 discussion with Garrett
+    nyScale           = 0.25;         // three are fewer horizontal 
+    marginWidth       = 1.0;         // for MPI running
+    InitVType         = "ConstantV";
+    valueV            = -55.0;
+    Vrest             = -68.233; //-58.233;     //
+    VthRest           = -44.233; //-34.233;     //                        <=============== disabled
+    mirrorBCflag      = 1.0;         // 
+    restart           = 0.0;         // from graylast
+    nf                = 1;
+    InverseFlag       = 1.0;
     SigmoidFlag       = 1;
     SigmoidAlpha      = 0.1;
     spikingFlag       = 0.0;
@@ -297,7 +319,7 @@ SigmoidLayer "BipolarSigmoidON" = {     //5
     nyScale           = 1.;
     marginWidth       = 4.0;           // for MPI running
     InitVType         = "ConstantV";
-    valueV            = -66.0;
+    valueV            = -70.0;
     Vrest             = -66.0;         // BipolarSigmoidON
     VthRest           = -48; //-42.0;  
     mirrorBCflag      = 1.0;           // Margin boundaries are mirrored
@@ -352,7 +374,7 @@ SigmoidLayer "BipolarSigmoidOFF" = {    //19
     nf                = 1;
     marginWidth       = 4.0;           // for MPI running
     InitVType         = "ConstantV";
-    valueV            = -66.0;
+    valueV            = -70.0;
     Vrest             = -66.0;         // BipolarSigmoidOFF
     VthRest           = -48.0; //-42.0; 
     mirrorBCflag      = 1.0;           //
@@ -848,7 +870,7 @@ GapConn "ImageBufferToCone" = {          // 0
     symmetrizeWeights      = 0.0;
     selfFlag               = 0.0;
     stochasticReleaseFlag  = 0.0;
-    preActivityIsNotRate   = 0;
+    preActivityIsNotRate   = 0;  // gap junction connection, so already scaled correctly
     normalizeTotalToPost   = 1; // not used for UniformWeight init method
     plasticityFlag         = 0.0;
 
@@ -917,7 +939,7 @@ KernelConn "ConeSigmoidOFFToBipolarOFF" = {        // 1
     selfFlag               = 0.0;
     symmetrizeWeights      = 0.0;
     stochasticReleaseFlag  = 0;
-    preActivityIsNotRate   = 0;
+    preActivityIsNotRate   = 1;
     normalizeTotalToPost   = 1;
     plasticityFlag         = 0.0;
 
@@ -996,8 +1018,8 @@ GapConn "HorizontalGapToHorizontal" = {        // 3  gap junction, watch the str
 };
 
 disable = false;
-KernelConn "HorizontalSigmoidToCone" = {        // 4
-    preLayerName           = "HorizontalSigmoid";
+KernelConn "HorizontalSigmoidToConeON" = {        // 4
+    preLayerName           = "HorizontalSigmoidON";
     postLayerName          = "Cone";
     channelCode            = 1;               // inhibitory   feedback
     nxp                    = 12;               // odd times 2 because of scale factor
@@ -1031,7 +1053,7 @@ KernelConn "HorizontalSigmoidToCone" = {        // 4
 
 disable = false;
 KernelConn "HorizontalSigmoidToBipolarOFF" = {        // 4
-    preLayerName           = "HorizontalSigmoid";
+    preLayerName           = "HorizontalSigmoidOFF";
     postLayerName          = "BipolarOFF";
     channelCode            = 1;               // inhibitory   feedback
     nxp                    = 12;               // odd times 2 because of scale factor
@@ -1043,7 +1065,7 @@ KernelConn "HorizontalSigmoidToBipolarOFF" = {        // 4
 
     weightInitType         = "Gauss2DWeight";
     normalize              = 1.0;             //  
-    strength               = 1; 
+    strength               = 2; 
     normalize_max          = 0.0;             // all flags zero means it normalize total integrated output
     normalize_zero_offset  = 0.0;             //
     normalize_cutoff       = 0.0;             //
@@ -1491,7 +1513,7 @@ KernelConn "WFAmacrineSigmoidOFFToBipolarOFF" = {        // 4
 
     weightInitType         = "Gauss2DWeight";
     normalize              = 1;           //  
-    strength               = 0.1; 
+    strength               = 0.2; 
     normalize_max          = 0.0;         // all flags zero means it normalize total integrated output
     normalize_zero_offset  = 0.0;         //
     normalize_cutoff       = 0.0;         //
@@ -1525,7 +1547,7 @@ KernelConn "WFAmacrineSigmoidONToSFAmacrine" = {  // 4
 
     weightInitType         = "Gauss2DWeight";
     normalize              = 1;           //  
-    strength               = 4; 
+    strength               = 2; 
     normalize_max          = 0.0;         // all flags zero means it normalize total integrated output
     normalize_zero_offset  = 0.0;         //
     normalize_cutoff       = 0.0;         //
@@ -1558,7 +1580,7 @@ KernelConn "WFAmacrineSigmoidOFFToSFAmacrine" = {        // 4
 
     weightInitType         = "Gauss2DWeight";
     normalize              = 1;           //  
-    strength               = 4; 
+    strength               = 2; 
     normalize_max          = 0.0;         // all flags zero means it normalize total integrated output
     normalize_zero_offset  = 0.0;         //
     normalize_cutoff       = 0.0;         //
@@ -1865,7 +1887,7 @@ GapConn "PAAmacrineGapONToGanglionON" = {        // 8   gap junction
 
     weightInitType         = "Gauss2DWeight";
     normalize              = 1;           //  
-    strength               = 1.5; 
+    strength               = 0.5; 
     normalize_max          = 0.0;         // all flags zero means it normalize total integrated output
     normalize_zero_offset  = 0.0;         //
     normalize_cutoff       = 0.0;         //
@@ -1898,7 +1920,7 @@ GapConn "PAAmacrineGapOFFToGanglionOFF" = {          // 8   gap junction
 
     weightInitType         = "Gauss2DWeight";
     normalize              = 1;           //  
-    strength               = 1.5; 
+    strength               = 0.5; 
     normalize_max          = 0.0;         // all flags zero means it normalize total integrated output
     normalize_zero_offset  = 0.0;         //
     normalize_cutoff       = 0.0;         //
@@ -1932,7 +1954,7 @@ KernelConn "PAAmacrineONToGanglionON" = {        // 10 NOT CONNECTED
 
     weightInitType         = "Gauss2DWeight";
     normalize              = 1;           //  
-    strength               = 6; 
+    strength               = 24; 
     normalize_max          = 0.0;         // all flags zero means it normalize total integrated output
     normalize_zero_offset  = 0.0;         //
     normalize_cutoff       = 0.0;         //
@@ -1966,7 +1988,7 @@ KernelConn "PAAmacrineOFFToGanglionOFF" = {     // 10 NOT CONNECTED
 
     weightInitType         = "Gauss2DWeight";
     normalize              = 1;           //  
-    strength               = 6; 
+    strength               = 24; 
     normalize_max          = 0.0;         // all flags zero means it normalize total integrated output
     normalize_zero_offset  = 0.0;         //
     normalize_cutoff       = 0.0;         //
@@ -2104,8 +2126,8 @@ PointLIFProbe "Horizontal Probe" = {
    targetLayer = "Horizontal";
 //   msg = "Horizontal       ";
    probeOutputFile = "ptHorizontal.txt";
-   xLoc = 32; // 64; //
-   yLoc = 32; // 64; //
+   xLoc = 16; // 32; //
+   yLoc = 16; // 32; //
    fLoc = 0;
 };
 

@@ -72,7 +72,8 @@ BipolarSigmoidOFF    = BipolarSigmoidON
 #HORIZONTAL
 Horizontal           = 1
 HorizontalGap        = 1
-HorizontalSigmoid    = 1
+HorizontalSigmoidON  = 1
+HorizontalSigmoidOFF = 1
 
 #WFAMACRINE
 WFAmacrineON         = 1
@@ -107,8 +108,8 @@ ConeSigmoidBipolar           = ["%g" % x for x in frange(0.5,0,0)]   # ConeSigmo
 ConeSigmoidHorizontal        = ["%g" % x for x in frange(0.5,0,0)]   # ConeSigmoid to Horizontal
                                                                      
 HorizontalGapHorizontal      = ["%g" % x for x in frange(3,0,0)]     # HorizontalGap to Horizontal
-HorizontalSigmoidCone        = ["%g" % x for x in frange(1,0,0)]     # HorizontalSigmoid to Cone
-HorizontalSigmoidBipolarOFF  = ["%g" % x for x in frange(1,0,0)]     # HorizontalSigmoid to BipolarOFF
+HorizontalSigmoidConeON      = ["%g" % x for x in frange(1,0,0)]     # HorizontalSigmoidON to Cone
+HorizontalSigmoidBipolarOFF  = ["%g" % x for x in frange(2,0,0)]     # HorizontalSigmoidOFF to BipolarOFF
                                                                      
 BipolarSigmoidSFAmacrine     = ["%g" % x for x in frange(1,0,0)]     # BipolarSigmoid to SFAmacrine
 BipolarSigmoidWFAmacrine     = ["%g" % x for x in frange(1,0,0)]     # BipolarSigmoid to WFAmacrine
@@ -119,17 +120,17 @@ SFAmacrineGapSFAmacrine      = ["%g" % x for x in frange(1,0,0)]     # SFAmacrin
 SFAmacrineSigmoidPAAmacrine  = ["%g" % x for x in frange(2,0,0)]     #
                                                                      
 WFAmacrineSigmoidBipolarON   = ["%g" % x for x in frange(0.10,0,0)]  # WFAmacrineSigmoidON to Bipolar
-WFAmacrineSigmoidBipolarOFF  = ["%g" % x for x in frange(0.10,0,0)]   # WFAmacrineSigmoidOFF to Bipolar
-WFAmacrineONSFAmacrine       = ["%g" % x for x in frange(4,0,0)]     # WFAmacrineON to SFAmacrine
-WFAmacrineOFFSFAmacrine      = ["%g" % x for x in frange(4,0,0)]     # WFAmacrineOFF to SFAmacrine
+WFAmacrineSigmoidBipolarOFF  = ["%g" % x for x in frange(0.20,0,0)]   # WFAmacrineSigmoidOFF to Bipolar
+WFAmacrineONSFAmacrine       = ["%g" % x for x in frange(2,0,0)]     # WFAmacrineON to SFAmacrine
+WFAmacrineOFFSFAmacrine      = ["%g" % x for x in frange(2,0,0)]     # WFAmacrineOFF to SFAmacrine
 WFAmacrineSigmoidGanglionON  = ["%g" % x for x in frange(1,0,0)]     # WFAmacrineSigmoidON to GanglionON
 WFAmacrineSigmoidGanglionOFF = ["%g" % x for x in frange(1,0,0)]     # WFAmacrineSigmoidOFF to GanglionOFF
                                                                      
 PAAmacrineWFAmacrine         = ["%g" % x for x in frange(4,0,0)]     # PAAmacrine to WFAmacrine
 PAAmacrineGapPAAmacrine      = ["%g" % x for x in frange(1.5,0,0)]   # PAAmacrineGap to PAAmacrine
 PAAmacrinePAAmacrine         = ["%g" % x for x in frange(1.5,0,0)]     #
-PAAmacrineGapGanglion        = ["%g" % x for x in frange(1.5,0,0)]   # PAAmacrineGap to Ganglion
-PAAmacrineGanglion           = ["%g" % x for x in frange(6,0,0)]     #
+PAAmacrineGapGanglion        = ["%g" % x for x in frange(0.5,0,0)]   # PAAmacrineGap to Ganglion
+PAAmacrineGanglion           = ["%g" % x for x in frange(24,0,0)]     #
                                                                      
 GanglionGapPAAmacrine        = ["%g" % x for x in frange(1.5,0,0)]   # GanglionGap to PAAmacrine
 
@@ -140,7 +141,7 @@ conn_list = ["ImageImageBuffer",
             "ConeSigmoidBipolar",
             "ConeSigmoidHorizontal",
             "HorizontalGapHorizontal",
-            "HorizontalSigmoidCone",
+            "HorizontalSigmoidConeON",
             "HorizontalSigmoidBipolarOFF",
             "BipolarSigmoidSFAmacrine",
             "BipolarSigmoidWFAmacrine",
@@ -167,7 +168,7 @@ conn_lol = [ImageImageBuffer,
             ConeSigmoidBipolar,
             ConeSigmoidHorizontal,
             HorizontalGapHorizontal,
-            HorizontalSigmoidCone,
+            HorizontalSigmoidConeON,
             HorizontalSigmoidBipolarOFF,
             BipolarSigmoidSFAmacrine,
             BipolarSigmoidWFAmacrine,
@@ -248,7 +249,9 @@ for num_steps in num_steps_list:
                 enable = True 
             elif 'GapLayer "HorizontalGap"' in line and HorizontalGap==1:
                 enable = True
-            elif 'SigmoidLayer "HorizontalSigmoid"' in line and HorizontalSigmoid==1:
+            elif 'SigmoidLayer "HorizontalSigmoidON"' in line and HorizontalSigmoidON==1:
+                enable = True 
+            elif 'SigmoidLayer "HorizontalSigmoidOFF"' in line and HorizontalSigmoidOFF==1:
                 enable = True 
             elif 'LIF "WFAmacrineON"' in line and WFAmacrineON==1:
                 enable = True 
@@ -314,12 +317,12 @@ for num_steps in num_steps_list:
                 if len(zero_index)>0:
                     if nonZeroStrength[zero_index[0]]:
                         enable = True
-            elif 'KernelConn "HorizontalSigmoidToCone"' in line and HorizontalSigmoid==1 and Cone==1:
-                zero_index = [idx for idx, enum in enumerate([param in 'HorizontalSigmoidCone' for param in conn_list]) if enum==True]
+            elif 'KernelConn "HorizontalSigmoidToConeON"' in line and HorizontalSigmoidON==1 and Cone==1:
+                zero_index = [idx for idx, enum in enumerate([param in 'HorizontalSigmoidConeON' for param in conn_list]) if enum==True]
                 if len(zero_index)>0:
                     if nonZeroStrength[zero_index[0]]:
                         enable = True
-            elif 'KernelConn "HorizontalSigmoidToBipolarOFF"' in line and HorizontalSigmoid==1 and Cone==1:
+            elif 'KernelConn "HorizontalSigmoidToBipolarOFF"' in line and HorizontalSigmoidOFF==1 and Cone==1:
                 zero_index = [idx for idx, enum in enumerate([param in 'HorizontalSigmoidBipolarOFF' for param in conn_list]) if enum==True]
                 if len(zero_index)>0:
                     if nonZeroStrength[zero_index[0]]:
