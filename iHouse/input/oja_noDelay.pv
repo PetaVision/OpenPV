@@ -16,27 +16,27 @@ HyPerCol "column" = {
                                            // 
    //outputPath                 = "~/Documents/workspace/iHouse/output";
    //outputPath                   = "~/Documents/Work/LANL/workspace/iHouse/output"; //Dylan's Mac
-   outputPath                   = "~/workspace/iHouse/output"; //Dylan's Remote 
+   outputPath                   = "~/workspace/iHouse/output_noDelay"; //Dylan's Remote 
                                            // 
    filenamesContainLayerNames   = 2;       // stores pvp files as: 0 = layer number/1 = layer number and layer name/2 = layer name
                                            // 
    checkpointRead               = false;
    //checkpointReadDir            = "~/Documents/workspace/iHouse/checkpoints";
    //checkpointReadDir            = "~/Documents/Work/LANL/workspace/iHouse/checkpoints"; //Dylan's Mac
-   checkpointReadDir            = "~/workspace/iHouse/checkpoints"; //Dylan's Remote 
+   checkpointReadDir            = "~/workspace/iHouse/checkpoints_noDelay"; //Dylan's Remote 
    checkpointReadDirIndex       = 4000000;
                                            //
    checkpointWrite              = true;
    deleteOlderCheckpoints       = false;
    //checkpointWriteDir           = "~/Documents/workspace/iHouse/output/checkpoints";
    //checkpointWriteDir           = "~/Documents/Work/LANL/workspace/iHouse/checkpoints"; //Dylan's Mac
-   checkpointWriteDir           = "~/workspace/iHouse/checkpoints"; //Dylan's Remote 
+   checkpointWriteDir           = "~/workspace/iHouse/checkpoints_noDelay"; //Dylan's Remote 
    checkpointWriteStepInterval  = 1000000;
    suppressLastOutput           = 0;
                                            //
    //printParamsFilename          = "~/Documents/workspace/iHouse/output/params_run.pv";
    //printParamsFilename          = "~/Documents/Work/LANL/workspace/iHouse/output/params_run.pv"; //Dylan's Mac
-   printParamsFilename          = "~/workspace/iHouse/output/params_run.pv"; //Dylan's remote 
+   printParamsFilename          = "~/workspace/iHouse/output_noDelay/params_run.pv"; //Dylan's remote 
 };
 
 
@@ -80,7 +80,7 @@ Patterns "Input" = {
     							     // 
    //patternsOutputPath      = "~/Documents/workspace/iHouse/output/sourcefiles";
    //patternsOutputPath      = "~/Documents/Work/LANL/workspace/iHouse/output/sourcefiles"; // Dylan's Mac
-   //patternsOutputPath      = "~/workspace/iHouse/output/sourcefiles"; // Dylan's Remote 
+   //patternsOutputPath      = "~/workspace/iHouse/output_noDelay/sourcefiles"; // Dylan's Remote 
     							     // 
    displayPeriod           = 1;
    writeStep               = -1;
