@@ -146,8 +146,8 @@ int OjaSTDPConn::setParams(PVParams * params)
    tauO             = params->value(getName(), "tauO",tauO);
 
    weightDecay      = params->value(getName(), "weightDecay", weightDecay);
-   targetPreRateHz  = params->value(getName(), "targetPostRate", targetPostRateHz);
-   targetPostRateHz = params->value(getName(), "targetPreRate", targetPreRateHz);
+   targetPreRateHz  = params->value(getName(), "targetPreRate", targetPreRateHz);
+   targetPostRateHz = params->value(getName(), "targetPostRate", targetPostRateHz);
 
    ojaFlag          = params->value(getName(), "ojaFlag",ojaFlag);
    synscalingFlag   = params->value(getName(), "synscalingFlag", synscalingFlag);
