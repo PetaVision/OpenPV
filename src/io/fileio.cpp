@@ -814,7 +814,7 @@ int readNonspikingActFile(const char * filename, Communicator * comm, double * t
 }
 
 int write_pvdata(const char * filename, Communicator * comm, double time, const pvdata_t * data,
-          const PVLayerLoc * loc, int datatype, bool extended, bool contiguous)
+          const PVLayerLoc * loc, int datatype, bool extended, bool contiguous, bool append)
 {
    int status = PV_SUCCESS;
    FILE * fp = NULL;
@@ -830,7 +830,6 @@ int write_pvdata(const char * filename, Communicator * comm, double time, const 
       int numItems = loc->nx * loc->ny * loc->nf;
       const size_t localSize = numItems * pv_sizeof(datatype);
 
-      const bool append = false;
       fp = pvp_open_write_file(filename, comm, append);
 
       const int numParams = NUM_PAR_BYTE_PARAMS;
