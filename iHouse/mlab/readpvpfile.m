@@ -178,7 +178,7 @@ if isempty(errorstring)
                  end%End frame_of_interest printing
             end%End num_frames
             %Calculate firing rate
-            averageFiringRate = sum(firingRate(:)) ./ totactivet;
+            averageFiringRate = sum(firingRate(:)) ./ totactive;
             firingRate = firingRate ./ numframes;
             latPrintImage(firingRate, 0, 0, output_path, -1, ['firing_rate:',num2str(averageFiringRate)]);
             if eq(MOVIE_FLAG,1)
