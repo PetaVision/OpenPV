@@ -58,10 +58,8 @@ int OjaSTDPConn::initialize_base() {
    this->post_stdp_tr     = NULL;
    this->post_oja_tr      = NULL;
    this->post_int_tr      = NULL;
-   for(int arborID = 0; arborID<numberOfAxonalArborLists();arborID++) {
-      this->pre_stdp_tr[arborID] = NULL;
-      this->pre_oja_tr[arborID]  = NULL;
-   }
+   this->pre_stdp_tr      = NULL;
+   this->pre_oja_tr       = NULL;
 
    this->ampLTP           = 1;
    this->ampLTD           = NULL; // Will allocate later
