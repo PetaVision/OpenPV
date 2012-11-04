@@ -14,7 +14,6 @@
 
 
 namespace PV {
-
 class LCALIFLateralProbe: public BaseConnectionProbe {
    //Methods
 public:

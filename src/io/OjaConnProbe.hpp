@@ -12,6 +12,9 @@
 #include "../connections/OjaSTDPConn.hpp"
 #include <assert.h>
 
+//#define DEBUG_POST
+#undef DEBUG_POST
+
 namespace PV {
 
 class OjaConnProbe: public BaseConnectionProbe {
@@ -46,6 +49,10 @@ private:
    float * preOjaTrs;
    float * preWeights;
    pvdata_t ** postWeightsp;
+#ifdef DEBUG_POST
+   float * preWeightsDebug;
+   pvdata_t * postWeights;
+#endif
 
 };
 } // end namespace PV
