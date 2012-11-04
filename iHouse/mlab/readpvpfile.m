@@ -180,7 +180,7 @@ if isempty(errorstring)
             %Calculate firing rate
             averageFiringRate = sum(firingRate(:)) ./ double(totactive);
             firingRate = firingRate ./ numframes;
-            latPrintImage(firingRate, 0, 0, output_path, -1, ['firing_rate:',num2str(averageFiringRate, '%.0f')]);
+            latPrintImage(firingRate, 0, 0, output_path, -1, ['firing_rate:',num2str(averageFiringRate, '%f')]);
             if eq(MOVIE_FLAG,1)
                 system(['ffmpeg -loglevel 0 -v 0 -r 20 -f image2 -i ',inst_movie_path,rootname,'_%03d.',OUT_FILE_EXT,' -sameq -y ',output_path,'pvp_instantaneous_movie.mp4 &']);
             end%if eq(MOVIE_FLAG,1)
