@@ -178,9 +178,9 @@ if isempty(errorstring)
                  end%End frame_of_interest printing
             end%End num_frames
             %Calculate firing rate
-            averageFiringRate = sum(firingRate(:)) ./ totFiringRate
+            averageFiringRate = sum(firingRate(:)) ./ totactivet;
             firingRate = firingRate ./ numframes;
-            printImage(firingRate, 0, 0, output_path, -1, 'firing_rate');
+            latPrintImage(firingRate, 0, 0, output_path, -1, ['firing_rate:',num2str(averageFiringRate)]);
             if eq(MOVIE_FLAG,1)
                 system(['ffmpeg -loglevel 0 -v 0 -r 20 -f image2 -i ',inst_movie_path,rootname,'_%03d.',OUT_FILE_EXT,' -sameq -y ',output_path,'pvp_instantaneous_movie.mp4 &']);
             end%if eq(MOVIE_FLAG,1)
