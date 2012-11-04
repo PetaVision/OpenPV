@@ -91,8 +91,8 @@ int OjaConnProbe::initialize(const char * probename, const char * filename,
       int numPostPatch = nxpPost * nypPost * nfpPost; // Post-synaptic weights are never shrunken
 
       // Allocate buffers for pre info
-      preStdpTrs    = (float *) calloc(numPostPatch*numArbors, sizeof(float));
-      preOjaTrs     = (float *) calloc(numPostPatch*numArbors, sizeof(float));
+      preStdpTrs = (float *) calloc(numPostPatch*numArbors, sizeof(float));
+      preOjaTrs  = (float *) calloc(numPostPatch*numArbors, sizeof(float));
       preWeights = (float *) calloc(numPostPatch*numArbors, sizeof(float));
       assert(preStdpTrs != NULL);
       assert(preOjaTrs != NULL);
@@ -132,8 +132,8 @@ int OjaConnProbe::outputState(double timef)
 
          assert(preTraceIdx < numArbors*numPostPatch);
          preWeights[preTraceIdx] = *(postWeightsp[preNeuronID]); // One weight per arbor per preNeuron in postNeuron's receptive field
-         preStdpTrs[preTraceIdx]    = ojaConn->getPreStdpTr(kPre); // Trace with STDP-related time scale (tauLTD)
-         preOjaTrs[preTraceIdx]     = ojaConn->getPreOjaTr(kPre);  // Trace with Oja-related time scale (tauOja)
+         preStdpTrs[preTraceIdx] = ojaConn->getPreStdpTr(kPre,arborID); // Trace with STDP-related time scale (tauLTD)
+         preOjaTrs[preTraceIdx]  = ojaConn->getPreOjaTr(kPre,arborID);  // Trace with Oja-related time scale (tauOja)
 
          preTraceIdx++;
       }
