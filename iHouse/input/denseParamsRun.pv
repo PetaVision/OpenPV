@@ -96,7 +96,7 @@ Retina "RetinaON" = {
     spikingFlag         = true;  // false (no quotes) is translated to 0
     							 //
     noiseOnFreq         = 400;   // Hz // Max poisson spiking rate when input is 255
-    noiseOffFreq        = 20;    // Hz // Min poisson spiking rate when input is 0
+    noiseOffFreq        = 10;    // Hz // Min poisson spiking rate when input is 0
 
     burstFreq           = 50;    // Hz // Everything coming into the retina should be burstin burstFreq times per sec
     burstDuration       = 20;    // ms // Bursts last burstDuration ms
@@ -121,7 +121,7 @@ Retina "RetinaOFF" = {
     spikingFlag         = true;  // false (no quotes) is translated to 0
                                  //
     noiseOnFreq         = 400;   // Hz // Max poisson spiking rate when input is 255
-    noiseOffFreq        = 20;    // Hz // Min poisson spiking rate when input is 0
+    noiseOffFreq        = 10;    // Hz // Min poisson spiking rate when input is 0
                                  //
     burstFreq           = 50;    // Hz // Everything coming into the retina should be burstin burstFreq times per sec
     burstDuration       = 20;    // ms // Bursts last burstDuration ms
@@ -146,7 +146,7 @@ LIF "lif" = {
    mirrorBCflag     = 0;     	// mirroring boundary conditions
    InitVType        = "ConstantV";
    method           = "beginning";
-   valueV			= -70.0;
+   valueV           = -70.0;
    Vrest            = -70.0;    
    restart          = 0.0;       // from graylast
    Vexc             = 0.0;       // reversal potential 
@@ -349,7 +349,7 @@ OjaSTDPConn "RetinaONtoLif" = {
    tauTHR                 = 5000; // (ms) thresholdAdaptationTime
    tauO                   = 300;  // (ms)
    targetPostRate         = 2;   // (Hz)
-   targetPreRate          = 20;  // (Hz)
+   targetPreRate          = 10;  // (Hz)
    weightDecay            = 0;
    dWMax                  = 2;
    weightScale            = 1;  //Modifies strength range for STDP (we want strengths to be around 0.25)
@@ -406,7 +406,7 @@ OjaSTDPConn "RetinaOFFtoLif" = {
    tauTHR                 = 5000; // (ms) thresholdAdaptationTime
    tauO                   = 300;  // (ms)
    targetPostRate         = 2;   // (Hz)
-   targetPreRate          = 20;
+   targetPreRate          = 10;
    weightDecay            = 0;
    dWMax                  = 2;
    weightScale            = 1;
