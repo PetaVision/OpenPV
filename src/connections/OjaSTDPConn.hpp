@@ -31,7 +31,9 @@ public:
    virtual int writeTextWeightsExtra(FILE * fd, int k, int axonID);
 
    virtual int updateState(double time, double dt);
+   virtual int updateAmpLTD();
    virtual int updateWeights(int axonID);
+   virtual int scaleWeights();
    virtual int outputState(double time, bool last=false);
 
    virtual int checkpointRead(const char * cpDir, double * timef);
@@ -41,9 +43,9 @@ public:
    float getPostStdpTr(int k)  {return post_stdp_tr->data[k];}
    float getPostOjaTr(int k)   {return post_oja_tr->data[k];}
    float getPostIntTr(int k)   {return post_int_tr->data[k];}
-   float getPreStdpTr(int kex) {return pre_stdp_tr->data[kex];}
-   float getPreOjaTr(int kex)  {return pre_oja_tr->data[kex];}
    float getAmpLTD(int k)      {return ampLTD[k];}
+   float getPreStdpTr(int kex,int arborID) {return pre_stdp_tr[arborID]->data[kex];}
+   float getPreOjaTr(int kex,int arborID)  {return pre_oja_tr[arborID]->data[kex];}
 
    pvdata_t ** getPostWeightsp(int axonID, int kPost);
 
@@ -62,8 +64,10 @@ protected:
    PVLayerCube * post_stdp_tr; // plasticity decrement variable for postsynaptic layer
    PVLayerCube * post_oja_tr;  // plasticity decrement variable for longer time-constant
    PVLayerCube * post_int_tr;  // plasticity decrement variable for longer time-constant
-   PVLayerCube * pre_stdp_tr;  // plasticity increment variable for presynaptic layer
-   PVLayerCube * pre_oja_tr;   // plasticity increment variable for presynaptic layer with longer time-constant
+
+   //Need pre trace per arbor
+   PVLayerCube ** pre_stdp_tr;  // plasticity increment variable for presynaptic layer
+   PVLayerCube ** pre_oja_tr;   // plasticity increment variable for presynaptic layer with longer time-constant
 
    float * ampLTD;
 

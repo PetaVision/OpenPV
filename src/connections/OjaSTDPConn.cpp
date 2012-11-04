@@ -30,13 +30,38 @@ OjaSTDPConn::~OjaSTDPConn()
    deleteWeights();
 }
 
+int OjaSTDPConn::deleteWeights()
+{
+   if (!plasticityFlag) return PV_SUCCESS;
+
+   pvcube_delete(post_stdp_tr);
+   pvcube_delete(post_oja_tr);
+   pvcube_delete(post_int_tr);
+
+   post_stdp_tr = NULL;
+   post_oja_tr  = NULL;
+   post_int_tr  = NULL;
+
+   for(int arborID = 0; arborID<numberOfAxonalArborLists(); arborID++) {
+      pvcube_delete(pre_stdp_tr[arborID]);
+      pvcube_delete(pre_oja_tr[arborID]);
+      pre_stdp_tr[arborID]  = NULL;
+      pre_oja_tr[arborID]   = NULL;
+   }
+
+   return PV_SUCCESS; //HyPerConn destructor is automatically called
+}
+
+
 int OjaSTDPConn::initialize_base() {
    // Default STDP parameters for modifying weights; defaults are overridden in setParams().
    this->post_stdp_tr     = NULL;
    this->post_oja_tr      = NULL;
    this->post_int_tr      = NULL;
-   this->pre_stdp_tr      = NULL;
-   this->pre_oja_tr       = NULL;
+   for(int arborID = 0; arborID<numberOfAxonalArborLists();arborID++) {
+      this->pre_stdp_tr[arborID] = NULL;
+      this->pre_oja_tr[arborID]  = NULL;
+   }
 
    this->ampLTP           = 1;
    this->ampLTD           = NULL; // Will allocate later
@@ -150,25 +175,35 @@ int OjaSTDPConn::initPlasticityPatches()
    post_stdp_tr = pvcube_new(&post->getCLayer()->loc, post->getNumNeurons());
    post_oja_tr  = pvcube_new(&post->getCLayer()->loc, post->getNumNeurons());
    post_int_tr  = pvcube_new(&post->getCLayer()->loc, post->getNumNeurons());
-   pre_stdp_tr  = pvcube_new(&pre->getCLayer()->loc, pre->getNumExtended());
-   pre_oja_tr   = pvcube_new(&pre->getCLayer()->loc, pre->getNumExtended());
+
+   //Pre traces for each arbor delay
+   pre_stdp_tr = (PVLayerCube **) calloc(numberOfAxonalArborLists(), sizeof(PVLayerCube *));
+   pre_oja_tr  = (PVLayerCube **) calloc(numberOfAxonalArborLists(), sizeof(PVLayerCube *));
 
    assert(post_stdp_tr != NULL);
    assert(post_oja_tr  != NULL);
    assert(post_int_tr  != NULL);
-   assert(pre_stdp_tr  != NULL);
-   assert(pre_oja_tr   != NULL);
+
+   for(int arborID = 0; arborID<numberOfAxonalArborLists(); arborID++) {
+      pre_stdp_tr[arborID] = pvcube_new(&pre->getCLayer()->loc, pre->getNumExtended());
+      pre_oja_tr[arborID]  = pvcube_new(&pre->getCLayer()->loc, pre->getNumExtended());
+
+      assert(pre_stdp_tr[arborID] != NULL);
+      assert(pre_oja_tr[arborID]  != NULL);
+   }
 
    int numPost = post_stdp_tr->numItems;
-   int numPre  = pre_stdp_tr->numItems;
    for (int kPostRes = 0; kPostRes < numPost; kPostRes++) {
       post_stdp_tr->data[kPostRes] = tauLTD * targetPostRateHz/1000;
       post_oja_tr->data[kPostRes]  = tauOja * targetPostRateHz/1000;
       post_int_tr->data[kPostRes]  = tauO   * targetPostRateHz/1000;
    }
-   for (int kPreExt = 0; kPreExt < numPre; kPreExt++) {
-      pre_stdp_tr->data[kPreExt] = tauLTP * targetPostRateHz/1000;
-      pre_oja_tr->data[kPreExt]  = tauOja * targetPostRateHz/1000;
+   for(int arborID = 0; arborID<numberOfAxonalArborLists(); arborID++) {
+      int numPre  = pre_stdp_tr[arborID]->numItems;
+      for (int kPreExt = 0; kPreExt < numPre; kPreExt++) {
+         pre_stdp_tr[arborID]->data[kPreExt] = tauLTP * targetPostRateHz/1000;
+         pre_oja_tr[arborID]->data[kPreExt]  = tauOja * targetPostRateHz/1000;
+      }
    }
 
    return PV_SUCCESS;
@@ -176,24 +211,6 @@ int OjaSTDPConn::initPlasticityPatches()
 
 int OjaSTDPConn::initializeThreadBuffers() {return 0;}
 int OjaSTDPConn::initializeThreadKernels() {return 0;}
-
-int OjaSTDPConn::deleteWeights()
-{
-   if (!plasticityFlag) return PV_SUCCESS;
-
-   pvcube_delete(post_stdp_tr);
-   pvcube_delete(post_oja_tr);
-   pvcube_delete(post_int_tr);
-   pvcube_delete(pre_stdp_tr);
-   pvcube_delete(pre_oja_tr);
-   post_stdp_tr = NULL;
-   post_oja_tr  = NULL;
-   post_int_tr  = NULL;
-   pre_stdp_tr  = NULL;
-   pre_oja_tr   = NULL;
-
-   return PV_SUCCESS; //HyPerConn destructor is automatically called
-}
 
 /**
  * First function to be executed
@@ -205,9 +222,14 @@ int OjaSTDPConn::updateState(double time, double dt)
 
    int status=0;
    if (plasticityFlag) {
+      status=updateAmpLTD();
       for(int arborID = 0; arborID<numberOfAxonalArborLists(); arborID++) {
          status=updateWeights(arborID);
       }
+   }
+
+   if(synscalingFlag){
+      scaleWeights();
    }
 
    update_timer->stop();
@@ -215,43 +237,27 @@ int OjaSTDPConn::updateState(double time, double dt)
    return status;
 }
 
-int OjaSTDPConn::updateWeights(int arborID)
+int OjaSTDPConn::updateAmpLTD()
 {
    // Steps:
    // 1. Update post_stdp_tr
-   // 2. Update pre_stdp_tr
-   // 3. Update w_ij
 
    const float dt                = parent->getDeltaTime();
-   const float decayLTP          = exp(-dt / tauLTP);
    const float decayLTD          = exp(-dt / tauLTD);
    const float decayOja          = exp(-dt / tauOja);
    const float decayO            = exp(-dt / tauO);
    const float targetPostRatekHz = targetPostRateHz/1000; // Convert Hz to kHz
-   const float targetPreRatekHz  = targetPreRateHz/1000; // Convert Hz to kHz
 
    //Restricted Post
    const int nkPost = post_stdp_tr->numItems;
-   //Extended Pre
-   const int nkPre  = pre->getNumExtended();
-   assert(nkPre == getNumWeightPatches());
 
-   const pvdata_t * preLayerData = pre->getLayerData(getDelay(arborID));
    //Extended Post
    const pvdata_t * aPost        = post->getLayerData();
-   pvdata_t aPre;
 
    //Restricted Post
    pvdata_t * post_stdp_tr_m;   // Postsynaptic trace matrix; i.e. data of post_stdp_tr struct
    pvdata_t * post_oja_tr_m;    // Postsynaptic mean trace matrix
    pvdata_t * post_int_tr_m;    // Postsynaptic mean trace matrix
-   pvdata_t * ampLTD_m;         // local ampLTD
-   //Extended Pre
-   pvdata_t * pre_stdp_tr_m;    // Presynaptic trace matrix
-   pvdata_t * pre_oja_tr_m;
-   pvdata_t * W;                // Weight matrix pointer
-
-   int nk, ny;
 
    post_stdp_tr_m = post_stdp_tr->data;
    post_oja_tr_m  = post_oja_tr->data;
@@ -275,6 +281,50 @@ int OjaSTDPConn::updateWeights(int arborID)
       ampLTD[kPostRes]  = ampLTD[kPostRes] < 0 ? 0 : ampLTD[kPostRes]; // ampLTD should not go below 0
       assert(ampLTD[kPostRes] == ampLTD[kPostRes]); // Make sure it is not NaN
    }
+   return 0;
+}
+
+int OjaSTDPConn::updateWeights(int arborID)
+{
+   // Steps:
+   // 2. Update pre_stdp_tr[arborID]
+   // 3. Update w_ij
+
+   const float dt                = parent->getDeltaTime();
+   const float decayLTP          = exp(-dt / tauLTP);
+   const float decayOja          = exp(-dt / tauOja);
+   const float targetPostRatekHz = targetPostRateHz/1000; // Convert Hz to kHz
+   const float targetPreRatekHz  = targetPreRateHz/1000; // Convert Hz to kHz
+
+   //Extended Pre
+   const int nkPre  = pre->getNumExtended();
+   assert(nkPre == getNumWeightPatches());
+
+   const pvdata_t * preLayerData = pre->getLayerData(getDelay(arborID));
+   //Extended Post
+   const pvdata_t * aPost        = post->getLayerData();
+   pvdata_t aPre;
+
+   //Restricted Post
+   pvdata_t * post_stdp_tr_m;   // Postsynaptic trace matrix; i.e. data of post_stdp_tr struct
+   pvdata_t * post_oja_tr_m;    // Postsynaptic mean trace matrix
+   pvdata_t * post_int_tr_m;    // Postsynaptic mean trace matrix
+   pvdata_t * ampLTD_m;         // local ampLTD
+
+   post_stdp_tr_m = post_stdp_tr->data;
+   post_oja_tr_m  = post_oja_tr->data;
+   post_int_tr_m  = post_int_tr->data;
+
+   //Extended Pre
+   pvdata_t * pre_stdp_tr_m;    // Presynaptic trace matrix
+   pvdata_t * pre_oja_tr_m;
+   pvdata_t * W;                // Weight matrix pointer
+
+   //Restricted post vals
+   const int postNx = post->getLayerLoc()->nx;
+   const int postNy = post->getLayerLoc()->ny;
+   const int postNf = post->getLayerLoc()->nf;
+   const int postNb = post->getLayerLoc()->nb;
 
    // this stride is in extended space for post-synaptic activity and STDP decrement variable
    const int postStrideYExt = postNf * (postNx + 2 * postNb);
@@ -291,24 +341,26 @@ int OjaSTDPConn::updateWeights(int arborID)
    }
    assert(scaleFactor == scaleFactor); // Make sure it is not NaN (can only happen if tauOja or targetPostRatekHz = 0)
 
-   for (int kPreExt = 0; kPreExt < nkPre; kPreExt++)              // Loop over all presynaptic neurons
+   int nk, ny;
+
+   for (int kPreExt = 0; kPreExt < nkPre; kPreExt++)           // Loop over all presynaptic neurons
    {
-      size_t postOffsetExt = getAPostOffset(kPreExt, arborID);  // Gets start index for postsynaptic vectors for given presynaptic neuron and axon
+      size_t postOffsetExt = getAPostOffset(kPreExt, arborID); // Gets start index for postsynaptic vectors for given presynaptic neuron and axon
       size_t postOffsetRes = kIndexRestricted(postOffsetExt, postNx, postNy, postNf, postNb);
      // size_t postOffsetRes = postOffsetExt - (postNb * (postNx + 2*postNb) + postNb);
 
       //Post in extended space
-      aPost          = &post->getLayerData()[postOffsetExt]; // Gets address of postsynaptic activity
+      aPost          = &post->getLayerData()[postOffsetExt];   // Gets address of postsynaptic activity
       //Post in restricted space
-      post_stdp_tr_m = &(post_stdp_tr->data[postOffsetRes]); // Reference to STDP post trace (local)
+      post_stdp_tr_m = &(post_stdp_tr->data[postOffsetRes]);   // Reference to STDP post trace (local)
       post_oja_tr_m  = &(post_oja_tr->data[postOffsetRes]);
-      ampLTD_m       = &(ampLTD[postOffsetRes]);             // Points to local address
+      ampLTD_m       = &(ampLTD[postOffsetRes]);               // Points to local address
       //Pre in extended space
-      aPre           = preLayerData[kPreExt];                // Spiking activity
-      pre_stdp_tr_m  = &(pre_stdp_tr->data[kPreExt]);        // PreTrace for given presynaptic neuron kPre
-      pre_oja_tr_m   = &(pre_oja_tr->data[kPreExt]);
+      aPre           = preLayerData[kPreExt];                  // Spiking activity
+      pre_stdp_tr_m  = &(pre_stdp_tr[arborID]->data[kPreExt]); // PreTrace for given presynaptic neuron kPre
+      pre_oja_tr_m   = &(pre_oja_tr[arborID]->data[kPreExt]);
 
-      W = get_wData(arborID, kPreExt);                        // Pointer to data of given axon & presynaptic neuron
+      W = get_wData(arborID, kPreExt);                         // Pointer to data of given axon & presynaptic neuron
 
       // Get weights in form of a patch (nx,ny,nf)
       // nk and ny are the number of neurons connected to the given presynaptic neuron in the x*nfp and y
@@ -321,7 +373,7 @@ int OjaSTDPConn::updateWeights(int arborID)
       *pre_stdp_tr_m = decayLTP * ((*pre_stdp_tr_m) + aPre);        //If spiked, minimum is 1. If no spike, minimum is 0.
       *pre_oja_tr_m  = decayOja * ((*pre_oja_tr_m)  + aPre);
 
-      //3. Update weights
+      // 3. Update weights
       for (int y = 0; y < ny; y++) {
          for (int kPatchLoc = 0; kPatchLoc < nk; kPatchLoc++) {
 
@@ -354,42 +406,37 @@ int OjaSTDPConn::updateWeights(int arborID)
          ampLTD_m       += postStrideYRes;
       }
    }
+   return 0;
+}
 
-   if(synscalingFlag){
-      //int kxPre, kyPre, kPre;
+int OjaSTDPConn::scaleWeights() {
+   const int numPostPatch = nxpPost * nypPost * nfpPost; // Post-synaptic weights are never shrunken
 
-      const int numPostPatch = nxpPost * nypPost * nfpPost; // Post-synaptic weights are never shrunken
+   float sumW = 0;
+   const int xScale = post->getXScale() - pre->getXScale();
+   const int yScale = post->getYScale() - pre->getYScale();
+   const double powXScale = pow(2.0f, (double) xScale);
+   const double powYScale = pow(2.0f, (double) yScale);
 
-      float sumW = 0;
-      //int kxPost, kyPost, kfPost;
-      const int xScale = post->getXScale() - pre->getXScale();
-      const int yScale = post->getYScale() - pre->getYScale();
-      const double powXScale = pow(2.0f, (double) xScale);
-      const double powYScale = pow(2.0f, (double) yScale);
+   nxpPost = (int) (nxp * powXScale);
+   nypPost = (int) (nyp * powYScale);
+   nfpPost = pre->clayer->loc.nf;
 
-      nxpPost = (int) (nxp * powXScale);
-      nypPost = (int) (nyp * powYScale);
-      nfpPost = pre->clayer->loc.nf;
+   for(int arborID=0;arborID<numberOfAxonalArborLists();arborID++) {
+      //Loop through post-synaptic neurons (non-extended indices)
+      for (int kPost = 0; kPost < post_stdp_tr->numItems; kPost++) {
 
-      for(int arborID=0;arborID<numberOfAxonalArborLists();arborID++) {
-         //Loop through post-synaptic neurons (non-extended indices)
-         for (int kPost = 0; kPost < post_stdp_tr->numItems; kPost++) {
-
-            pvdata_t ** postData = wPostDataStartp[arborID] + numPostPatch*kPost + 0;
-            for (int kp = 0; kp < numPostPatch; kp++) { //TODO: Scale only the weights non-extended space
-               sumW += *(postData[kp]);
-            }
-            for (int kp = 0; kp < numPostPatch; kp++) {
-               *(postData[kp]) = ((*postData[kp])/sumW)*synscaling_v;
-            }
-            //printf("%f ",sumW);
-            sumW = 0;
+         pvdata_t ** postData = wPostDataStartp[arborID] + numPostPatch*kPost + 0;
+         for (int kp = 0; kp < numPostPatch; kp++) { //TODO: Scale only the weights non-extended space
+            sumW += *(postData[kp]);
          }
-         //printf("\n");
+         for (int kp = 0; kp < numPostPatch; kp++) {
+            *(postData[kp]) = ((*postData[kp])/sumW)*synscaling_v;
+         }
+         sumW = 0;
       }
    }
-
-   return 0;
+   return PV_SUCCESS;
 }
 
 pvdata_t ** OjaSTDPConn::getPostWeightsp(int arborID, int kPost) {
@@ -464,7 +511,11 @@ int OjaSTDPConn::checkpointWrite(const char * cpDir) {
       fprintf(stderr, "OjaSTDPConn::checkpointWrite error.  Path \"%s/%s_pre_stdp_tr.pvp\" is too long.\n", cpDir, name);
       abort();
    }
-   write_pvdata(filename, parent->icCommunicator(), (double) parent->simulationTime(), pre_stdp_tr->data, &loc, PV_FLOAT_TYPE, /*extended*/ false, /*contiguous*/ false);
+   for(int arborID = 0; arborID<numberOfAxonalArborLists(); arborID++) {
+      bool append;
+      append = (arborID == 0) ? false : true; // Don't append on first open
+      write_pvdata(filename, parent->icCommunicator(), (double) parent->simulationTime(), pre_stdp_tr[arborID]->data, &loc, PV_FLOAT_TYPE, /*extended*/ false, /*contiguous*/ false, append);
+   }
 
    // pre_oja_tr
    chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_pre_oja_tr.pvp", cpDir, name);
@@ -472,7 +523,11 @@ int OjaSTDPConn::checkpointWrite(const char * cpDir) {
       fprintf(stderr, "OjaSTDPConn::checkpointWrite error.  Path \"%s/%s_pre_oja_tr.pvp\" is too long.\n", cpDir, name);
       abort();
    }
-   write_pvdata(filename, parent->icCommunicator(), (double) parent->simulationTime(), pre_oja_tr->data, &loc, PV_FLOAT_TYPE, /*extended*/ false, /*contiguous*/ false);
+   for(int arborID = 0; arborID<numberOfAxonalArborLists(); arborID++) {
+      bool append;
+      append = (arborID == 0) ? false : true; // Don't append on first open
+      write_pvdata(filename, parent->icCommunicator(), (double) parent->simulationTime(), pre_oja_tr[arborID]->data, &loc, PV_FLOAT_TYPE, /*extended*/ false, /*contiguous*/ false, /*append*/ true);
+   }
 
    // **** POST LAYER INFO *** //
    memcpy(&loc, post->getLayerLoc(), sizeof(PVLayerLoc));
@@ -483,7 +538,7 @@ int OjaSTDPConn::checkpointWrite(const char * cpDir) {
       fprintf(stderr, "OjaSTDPConn::checkpointWrite error.  Path \"%s/%s_post_stdp_tr.pvp\" is too long.\n", cpDir, name);
       abort();
    }
-   write_pvdata(filename, parent->icCommunicator(), (double) parent->simulationTime(), post_stdp_tr->data, &loc, PV_FLOAT_TYPE, /*extended*/ false, /*contiguous*/ false);
+   write_pvdata(filename, parent->icCommunicator(), (double) parent->simulationTime(), post_stdp_tr->data, &loc, PV_FLOAT_TYPE, /*extended*/ false, /*contiguous*/ false, /*append*/ false);
 
    // post_oja_tr
    chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_post_oja_tr.pvp", cpDir, name);
@@ -491,7 +546,7 @@ int OjaSTDPConn::checkpointWrite(const char * cpDir) {
       fprintf(stderr, "OjaSTDPConn::checkpointWrite error.  Path \"%s/%s_post_oja_tr.pvp\" is too long.\n", cpDir, name);
       abort();
    }
-   write_pvdata(filename, parent->icCommunicator(), (double) parent->simulationTime(), post_oja_tr->data, &loc, PV_FLOAT_TYPE, /*extended*/ false, /*contiguous*/ false);
+   write_pvdata(filename, parent->icCommunicator(), (double) parent->simulationTime(), post_oja_tr->data, &loc, PV_FLOAT_TYPE, /*extended*/ false, /*contiguous*/ false, /*append*/ false);
 
    // post_int_tr
    chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_post_int_tr.pvp", cpDir, name);
@@ -499,7 +554,7 @@ int OjaSTDPConn::checkpointWrite(const char * cpDir) {
       fprintf(stderr, "OjaSTDPConn::checkpointWrite error.  Path \"%s/%s_post_int_tr.pvp\" is too long.\n", cpDir, name);
       abort();
    }
-   write_pvdata(filename, parent->icCommunicator(), (double) parent->simulationTime(), post_int_tr->data, &loc, PV_FLOAT_TYPE, /*extended*/ false, /*contiguous*/ false);
+   write_pvdata(filename, parent->icCommunicator(), (double) parent->simulationTime(), post_int_tr->data, &loc, PV_FLOAT_TYPE, /*extended*/ false, /*contiguous*/ false, /*append*/ false);
 
    // ampLTD
    chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_ampLTD.pvp", cpDir, name);
@@ -507,7 +562,7 @@ int OjaSTDPConn::checkpointWrite(const char * cpDir) {
       fprintf(stderr, "OjaSTDPConn::checkpointWrite error.  Path \"%s/%sampLTD.pvp\" is too long.\n", cpDir, name);
       abort();
    }
-   write_pvdata(filename, parent->icCommunicator(), (double) parent->simulationTime(), ampLTD, &loc, PV_FLOAT_TYPE, /*extended*/ false, /*contiguous*/ false);
+   write_pvdata(filename, parent->icCommunicator(), (double) parent->simulationTime(), ampLTD, &loc, PV_FLOAT_TYPE, /*extended*/ false, /*contiguous*/ false, /*append*/ false);
 
    return status;
 }
@@ -534,9 +589,12 @@ int OjaSTDPConn::checkpointRead(const char * cpDir, double * timef) {
       fprintf(stderr, "OjaSTDPConn::checkpointRead error.  Path \"%s/%s_pre_stdp_tr.pvp\" is too long.\n", cpDir, name);
       abort();
    }
-   read_pvdata(filename, parent->icCommunicator(), &timed, pre_stdp_tr->data, &loc, PV_FLOAT_TYPE, /*extended*/ false, /*contiguous*/ false);
-   if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
-      fprintf(stderr, "Warning in OjaSTDPConn: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
+
+   for(int arborID = 0; arborID<numberOfAxonalArborLists(); arborID++) {
+      read_pvdata(filename, parent->icCommunicator(), &timed, pre_stdp_tr[arborID]->data, &loc, PV_FLOAT_TYPE, /*extended*/ false, /*contiguous*/ false);
+      if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
+         fprintf(stderr, "Warning in OjaSTDPConn: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
+      }
    }
 
    // pre_oja_tr
@@ -545,9 +603,11 @@ int OjaSTDPConn::checkpointRead(const char * cpDir, double * timef) {
       fprintf(stderr, "OjaSTDPConn::checkpointRead error.  Path \"%s/%s_pre_oja_tr.pvp\" is too long.\n", cpDir, name);
       abort();
    }
-   read_pvdata(filename, parent->icCommunicator(), &timed, pre_oja_tr->data, &loc, PV_FLOAT_TYPE, /*extended*/ false, /*contiguous*/ false);
-   if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
-      fprintf(stderr, "Warning in OjaSTDPConn: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
+   for(int arborID = 0; arborID<numberOfAxonalArborLists(); arborID++) {
+      read_pvdata(filename, parent->icCommunicator(), &timed, pre_oja_tr[arborID]->data, &loc, PV_FLOAT_TYPE, /*extended*/ false, /*contiguous*/ false);
+      if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
+         fprintf(stderr, "Warning in OjaSTDPConn: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
+      }
    }
 
    // **** POST LAYER INFO *** //
@@ -563,6 +623,7 @@ int OjaSTDPConn::checkpointRead(const char * cpDir, double * timef) {
    if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
       fprintf(stderr, "Warning in OjaSTDPConn: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
    }
+
 
    // post_oja_tr
    chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_post_oja_tr.pvp", cpDir, name);
