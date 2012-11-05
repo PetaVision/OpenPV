@@ -254,7 +254,6 @@ if (WEIGHTS_CELL_FLAG)
       assert(CELL{cellIndex}(2) > marginY);
    end
 end
-
 disp('stdpAnalysis: Creating Images');
 fflush(1);
 

@@ -25,7 +25,7 @@ global WEIGHTS_MAP_FLAG;       WEIGHTS_MAP_FLAG    = 1; %Create weight maps
 global WEIGHT_HIST_FLAG;  WEIGHT_HIST_FLAG  = 1;
 global NUM_BINS;          NUM_BINS          = 20;
 
-global VIEW_FIGS;  VIEW_FIGS  = 1;
+global VIEW_FIGS;  VIEW_FIGS  = 0;
 global WRITE_FIGS; WRITE_FIGS = 1;
 global GRAY_SC;    GRAY_SC    = 1;              %Image in grayscale
 
