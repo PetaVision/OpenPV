@@ -452,7 +452,7 @@ LCALIFLateralConn "lcalif lateral inhibition" = {
     nfp = 1;
     
     integrationTimeConstant = 300;
-    inhibitionTimeConstant  = 200000;
+    inhibitionTimeConstant  = 50000;
     targetRate              = 2;
 
     numAxonalArbors = 1;
