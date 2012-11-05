@@ -24,7 +24,8 @@
 #include <float.h>
 
 #define PV_MAX_NUMSTEPS (pow(2,DBL_MANT_DIG))
-#define HYPERCOL_DIRINDEX_MAX 99999999
+// Commented out Nov 4, 2012.  With times declared as double instead of float, the x+1==x barrier shouldn't happen until x is somewhere in the quadrillions.
+// #define HYPERCOL_DIRINDEX_MAX 99999999
 
 namespace PV {
 
@@ -328,11 +329,17 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * p
          exit(EXIT_FAILURE);
       }
       cpReadDirIndex = (int) params->value(name, "checkpointReadDirIndex", -1, true);
-      if( cpReadDirIndex < 0 || cpReadDirIndex > HYPERCOL_DIRINDEX_MAX ) {
-            fflush(stdout);
-            fprintf(stderr, "Rank %d: Column \"%s\": checkpointReadDirIndex must be between 0 and %d, inclusive.  Exiting.\n", rank, name, HYPERCOL_DIRINDEX_MAX);
-         exit(EXIT_FAILURE);
+
+      if (cpReadDirIndex < 0) {
+         fflush(stdout);
+         fprintf(stderr, "Rank %d: Column \"%s\": checkpointReadDirIndex must be nonnegative", rank, name);
       }
+// Commented out Nov 4, 2012
+//      if (cpReadDirIndex < 0 || cpReadDirIndex > HYPERCOL_DIRINDEX_MAX ) {
+//            fflush(stdout);
+//            fprintf(stderr, "Rank %d: Column \"%s\": checkpointReadDirIndex must be between 0 and %d, inclusive.  Exiting.\n", rank, name, HYPERCOL_DIRINDEX_MAX);
+//         exit(EXIT_FAILURE);
+//      }
    }
 
    checkpointWriteFlag = params->value(name, "checkpointWrite", false) != 0;
@@ -650,13 +657,15 @@ int HyPerCol::run(long int nTimeSteps)
             if (icComm->commRank()==0) {
                printf("Checkpointing, simTime = %f\n", simulationTime());
             }
-            if( currentStep >= HYPERCOL_DIRINDEX_MAX+1 ) {
-               if( icComm->commRank() == 0 ) {
-                  fflush(stdout);
-                  fprintf(stderr, "Column \"%s\": step number exceeds maximum value %d.  Exiting\n", name, HYPERCOL_DIRINDEX_MAX);
-               }
-               exit(EXIT_FAILURE);
-            }
+
+            // Commented out Nov 4, 2012
+            // if( currentStep >= HYPERCOL_DIRINDEX_MAX+1 ) {
+            //    if( icComm->commRank() == 0 ) {
+            //       fflush(stdout);
+            //       fprintf(stderr, "Column \"%s\": step number exceeds maximum value %d.  Exiting\n", name, HYPERCOL_DIRINDEX_MAX);
+            //    }
+            //    exit(EXIT_FAILURE);
+            // }
             char cpDir[PV_PATH_MAX];
             int chars_printed = snprintf(cpDir, PV_PATH_MAX, "%s/Checkpoint%ld", checkpointWriteDir, currentStep);
             if(chars_printed >= PV_PATH_MAX) {
@@ -882,13 +891,15 @@ int HyPerCol::checkpointWrite(const char * cpDir) {
    if (icCommunicator()->commRank()==0) {
       printf("Checkpointing to directory \"%s\" at simTime = %f\n", cpDir, simTime);
    }
-   if( currentStep >= HYPERCOL_DIRINDEX_MAX+1 ) {
-      if( icComm->commRank() == 0 ) {
-         fflush(stdout);
-         fprintf(stderr, "Column \"%s\": step number exceeds maximum value %d.  Exiting\n", name, HYPERCOL_DIRINDEX_MAX);
-      }
-      exit(EXIT_FAILURE);
-   }
+
+   // Commented out Nov 4, 2012.
+   // if( currentStep >= HYPERCOL_DIRINDEX_MAX+1 ) {
+   //    if( icComm->commRank() == 0 ) {
+   //       fflush(stdout);
+   //       fprintf(stderr, "Column \"%s\": step number exceeds maximum value %d.  Exiting\n", name, HYPERCOL_DIRINDEX_MAX);
+   //   }
+   //    exit(EXIT_FAILURE);
+   // }
 
    if (columnId()==0) {
       struct stat timeinfostat;
