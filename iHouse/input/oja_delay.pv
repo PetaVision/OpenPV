@@ -101,7 +101,7 @@ Retina "RetinaON" = {
     nyScale             = 1;
     nf                  = 1;
     							 // 
-    marginWidth         = 3;
+    marginWidth         = 4;
     writeStep           = -1;
     mirrorBCflag        = 0;
     spikingFlag         = true;  // false (no quotes) is translated to 0
@@ -126,7 +126,7 @@ Retina "RetinaOFF" = {
     nyScale             = 1;
     nf                  = 1;
                                  //    
-    marginWidth         = 3;
+    marginWidth         = 4;
     writeStep           = -1;
     mirrorBCflag        = 0;
     spikingFlag         = true;  // false (no quotes) is translated to 0
