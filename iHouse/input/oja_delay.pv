@@ -375,8 +375,8 @@ OjaSTDPConn "RetinaONtoLif" = {
                                    //
    weightInitType         = "UniformRandomWeight";
    //weightInit             = 0.001;
-   wMaxInit               = 0.0011;
-   wMinInit               = 0.0011;
+   wMaxInit               = 0.05;
+   wMinInit               = 0.001;
    normalize              = false;
    //normalize_max          = false;
    //normalize_zero_offset  = 0.0;
@@ -433,8 +433,8 @@ OjaSTDPConn "RetinaOFFtoLif" = {
                                    //
    weightInitType         = "UniformRandomWeight";
    //weightInit             = 0.001;
-   wMaxInit               = 0.0011;
-   wMinInit               = 0.0011;
+   wMaxInit               = 0.05;
+   wMinInit               = 0.001;
    normalize              = false;
    //normalize_max          = false;
    //normalize_zero_offset  = 0.0;
