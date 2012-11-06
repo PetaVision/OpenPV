@@ -56,7 +56,7 @@ Movie "Movie" = {
     echoFramePathnameFlag   = true;
     useImageBCflag          = false;
     inverseFlag             = false;
-    normalizeLuminanceFlag  = true;
+    normalizeLuminanceFlag  = false; //true;
     spikingFlag             = false;
     writeStep               = -1;
     writeNonspikingActivity = false;
@@ -144,9 +144,9 @@ SigmoidLayer "ConeSigmoidON" = {  // 2
     marginWidth       = 4.0;      // for MPI running
     originalLayerName = "Cone";
     InitVType         = "ConstantV";
-    valueV            = -49.0;
-    Vrest             = -49.0;    // 
-    VthRest           = -41.0;    // was -40. before moving the threshold in the middle                  
+    valueV            = -49.0; //-55.0;
+    Vrest             = -49.0; //-55.0;    // 
+    VthRest           = -41.0; //-36.0;    // was -40. before moving the threshold in the middle                  
     mirrorBCflag      = 1.0; 
     InverseFlag       = 0.0;
     restart           = 0.0;      // from graylast
@@ -166,9 +166,9 @@ SigmoidLayer "ConeSigmoidOFF" = {   // 3
     marginWidth       = 4.0;        // for MPI running
     originalLayerName = "Cone";
     InitVType         = "ConstantV";
-    valueV            = -54.0;      // Vadj      = VgrayCone - (VthrestON+VrestON)/2
-    Vrest             = -54.0;      // Vrest     = VrestON + 2*Vadj
-    VthRest           = -41.0;      // Vthrest   = VthrestON + 2*Vadj
+    valueV            = -54.0; //-62.2;      // Vadj      = VgrayCone - (VthrestON+VrestON)/2
+    Vrest             = -54.0; //-62.2;      // Vrest     = VrestON + 2*Vadj
+    VthRest           = -41.0; //-43.2;      // Vthrest   = VthrestON + 2*Vadj
     mirrorBCflag      = 1.0;        //   
     InverseFlag       = 1.0;        //  
     restart           = 0.0;        // from graylast
@@ -225,8 +225,8 @@ GapLayer "HorizontalGap" = {                // 7
     mirrorBCflag      = 1.0;         // 
     restart           = 0.0;         // from graylast
     InitVType         = "ConstantV";
-    ampSpikelet      = 150.0;
-    valueV            = -55.;
+    ampSpikelet       = 150.0;
+    valueV            = -55.0;
     spikingFlag       = 0.0;
     writeStep         = -1;
     writeNonspikingActivity = true;
@@ -239,9 +239,9 @@ SigmoidLayer "HorizontalSigmoidON" = {        // 8
     nyScale           = 0.25;         // three are fewer horizontal 
     marginWidth       = 1.0;         // for MPI running
     InitVType         = "ConstantV";
-    valueV            = -52.0;
-    Vrest             = -52.0;     //
-    VthRest           = -36.0;     //                        <=============== disabled
+    valueV            = -52.0; //-55.0;
+    Vrest             = -52.0; //-58.233;     //
+    VthRest           = -36.0; //-34.233;     //                        <=============== disabled
     mirrorBCflag      = 1.0;         // 
     restart           = 0.0;         // from graylast
     nf                = 1;
@@ -261,9 +261,9 @@ SigmoidLayer "HorizontalSigmoidOFF" = {        // 8
     nyScale           = 0.25;         // three are fewer horizontal 
     marginWidth       = 1.0;         // for MPI running
     InitVType         = "ConstantV";
-    valueV            = -52.0;
-    Vrest             = -52.0;     //
-    VthRest           = -36.0;     //                        <=============== disabled
+    valueV            = -52.0; //-55.0;
+    Vrest             = -52.0; //-68.233; //-58.233;     //
+    VthRest           = -36.0; //-44.233; //-34.233;     //                        <=============== disabled
     mirrorBCflag      = 1.0;         // 
     restart           = 0.0;         // from graylast
     nf                = 1;
@@ -320,8 +320,8 @@ SigmoidLayer "BipolarSigmoidON" = {     //5
     marginWidth       = 4.0;           // for MPI running
     InitVType         = "ConstantV";
     valueV            = -70.0;
-    Vrest             = -70.0;         // BipolarSigmoidON
-    VthRest           = -40; //-42.0;  
+    Vrest             = -70.0; //-66.0;         // BipolarSigmoidON
+    VthRest           = -40.0; //-48; //-42.0;  
     mirrorBCflag      = 1.0;           // Margin boundaries are mirrored
     restart           = 0.0;           // from graylast
     nf                = 1;
@@ -374,9 +374,9 @@ SigmoidLayer "BipolarSigmoidOFF" = {    //19
     nf                = 1;
     marginWidth       = 4.0;           // for MPI running
     InitVType         = "ConstantV";
-    valueV            = -63.0;
-    Vrest             = -63.0;         // BipolarSigmoidOFF
-    VthRest           = -41.0; //-42.0; 
+    valueV            = -63.0; //-70.0;
+    Vrest             = -63.0; //-66.0;         // BipolarSigmoidOFF
+    VthRest           = -41.0; //-48.0; //-42.0; 
     mirrorBCflag      = 1.0;           //
     restart           = 0.0;           // from graylast
     InverseFlag       = 0.0;
@@ -698,7 +698,7 @@ LIFGap "GanglionON" = {         // 12
     VinhB            = -90.0;   // potassium reversal
     tau              = 10.0;    // intrinsic leak membrane time constant (max)
     tauE             = 1.0; //2.5;     // how long glutamine stays bound
-    tauI             = 1.25; //2.5;//5.0;     // how long GABA stays bound
+    tauI             = 3.0; //1.25; //2.5;//5.0;     // how long GABA stays bound
     tauIB            = 10.0;    // inhibitory potassium channel 
     VthRest          = -55.0;   // firing threshold 15 mV above rest
 //    VthRest          = 100;     // Large threshold turns off spiking
@@ -748,7 +748,7 @@ LIFGap "GanglionOFF" = {        // 23
     VinhB            = -90.0;   // potassium reversal
     tau              = 10.0;    // intrinsic leak membrane time constant (max)
     tauE             = 1.0; //2.5;     // how long glutamine stays bound
-    tauI             = 1.25; //2.5;//5.0;     // how long GABA stays bound
+    tauI             = 3.0; //1.25; //2.5;//5.0;     // how long GABA stays bound
     tauIB            = 10.0;    // inhibitory potassium channel 
     VthRest          = -55.0;   // firing threshold 15 mV above rest
 //    VthRest          = 100.0;   // Large threshold turns off spiking
@@ -870,7 +870,7 @@ GapConn "ImageBufferToCone" = {          // 0
     symmetrizeWeights      = 0.0;
     selfFlag               = 0.0;
     stochasticReleaseFlag  = 0.0;
-    preActivityIsNotRate   = 0;  // input here is via gap junction
+    preActivityIsNotRate   = 0;  // gap junction connection, so already scaled correctly
     normalizeTotalToPost   = 1; // not used for UniformWeight init method
     plasticityFlag         = 0.0;
 
@@ -1682,7 +1682,7 @@ KernelConn "PAAmacrineONToWFAmacrineON" = {     // 4
     nfp                    = 1;
     numAxonalArbors        = 1;
     shrinkPatches          = 0.0;
-    delay                  = 1.0;         // in time steps, additional to the one you always get
+    delay                  = PADelay;         // in time steps, additional to the one you always get
 
     weightInitType         = "Gauss2DWeight";
     normalize              = 1;           //  
@@ -1716,7 +1716,7 @@ KernelConn "PAAmacrineOFFToWFAmacrineOFF" = {   // 4
     nfp                    = 1;
     numAxonalArbors        = 1;
     shrinkPatches          = 0.0;
-    delay                  = 1.0;         // in time steps, additional to the one you always get
+    delay                  = PADelay;         // in time steps, additional to the one you always get
 
     weightInitType         = "Gauss2DWeight";
     normalize              = 1;           //  
@@ -1816,7 +1816,7 @@ KernelConn "PAAmacrineONToPAAmacrineON" = {        // 10
     nfp                    = 1;
     numAxonalArbors        = 1;
     shrinkPatches          = 0.0;
-    delay                  = 1.0;         // in time steps, additional to the one you always get
+    delay                  = PADelay;         // in time steps, additional to the one you always get
 
     weightInitType         = "Gauss2DWeight";
     normalize              = 1;           //  
@@ -1850,7 +1850,7 @@ KernelConn "PAAmacrineOFFToPAAmacrineOFF" = {   // 10 self shut down
     nfp                    = 1;
     numAxonalArbors        = 1;
     shrinkPatches          = 0.0;
-    delay                  = 1.0;         // in time steps, additional to the one you always get
+    delay                  = PADelay;         // in time steps, additional to the one you always get
 
     weightInitType         = "Gauss2DWeight";
     normalize              = 1;           //  
@@ -1950,7 +1950,7 @@ KernelConn "PAAmacrineONToGanglionON" = {        // 10 NOT CONNECTED
     nfp                    = 1;
     numAxonalArbors        = 1;
     shrinkPatches          = 0.0;
-    delay                  = 1.0;         // in time steps, additional to the one you always get
+    delay                  = PADelay;         // in time steps, additional to the one you always get
 
     weightInitType         = "Gauss2DWeight";
     normalize              = 1;           //  
@@ -1984,7 +1984,7 @@ KernelConn "PAAmacrineOFFToGanglionOFF" = {     // 10 NOT CONNECTED
     nfp                    = 1;
     numAxonalArbors        = 1;
     shrinkPatches          = 0.0;
-    delay                  = 1.0;         // in time steps, additional to the one you always get
+    delay                  = PADelay;         // in time steps, additional to the one you always get
 
     weightInitType         = "Gauss2DWeight";
     normalize              = 1;           //  
@@ -2126,8 +2126,8 @@ PointLIFProbe "Horizontal Probe" = {
    targetLayer = "Horizontal";
 //   msg = "Horizontal       ";
    probeOutputFile = "ptHorizontal.txt";
-   xLoc = 16; // 64; //
-   yLoc = 16; // 64; //
+   xLoc = 16; // 32; //
+   yLoc = 16; // 32; //
    fLoc = 0;
 };
 

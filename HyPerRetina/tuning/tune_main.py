@@ -17,8 +17,9 @@ mpi_np              = '4'
 mpi_rows            = '2'
 mpi_columns         = '2'
 
-num_steps_list      = ['3000'] #[str(450*33)]#
+num_steps_list      = ['2000'] #[str(450*33)]#
 stochastic_flag     = '1' #preActivityNotRate = !stochastic_flag
+PA_delay            = '2.0'
 
 param_template_name = 'retina_params.template'
 run_name            = 'biggraywhiteblackspots' #'Heli_Challenge_026'#
@@ -26,16 +27,16 @@ run_name            = 'biggraywhiteblackspots' #'Heli_Challenge_026'#
 #######################################################################################
 ## PATH PARAMS
 #######################################################################################
-#Gar
-wrkspc_path         = '/Users/gerdjkunde/Documents/workspace/'
-remote_wrkspc_path  = wrkspc_path  
-data_path           = wrkspc_path 
+#Gerd
+#wrkspc_path         = '/Users/gerdjkunde/Documents/workspace/'
+#remote_wrkspc_path  = wrkspc_path  
+#data_path           = wrkspc_path 
 
 
 #Gar
-#wrkspc_path         = '/Users/garkenyon/workspace-sync-anterior'
-#remote_wrkspc_path  = wrkspc_path #'/home/gkenyon/workspace-sync-anterior'#
-#data_path           = wrkspc_path #remote_wrkspc_path #'/nh/compneuro/Data'
+wrkspc_path         = '/Users/garkenyon/workspace-sync-anterior'
+remote_wrkspc_path  = wrkspc_path #'/home/gkenyon/workspace-sync-anterior'#
+data_path           = wrkspc_path #remote_wrkspc_path #'/nh/compneuro/Data'
 
 #Dylan
 #wrkspc_path         = '/Users/dpaiton/Documents/Work/LANL/workspace'
@@ -114,13 +115,15 @@ ConeSigmoidBipolar           = ["%g" % x for x in frange(0.5,0,0)]   # ConeSigmo
 ConeSigmoidHorizontal        = ["%g" % x for x in frange(0.5,0,0)]   # ConeSigmoid to Horizontal
                                                                      
 HorizontalGapHorizontal      = ["%g" % x for x in frange(3,0,0)]     # HorizontalGap to Horizontal
+#HorizontalSigmoidConeON      = ["%g" % x for x in frange(1,0,0)]     # HorizontalSigmoidON to Cone
+#HorizontalSigmoidBipolarOFF  = ["%g" % x for x in frange(2.5,0,0)]     # HorizontalSigmoidOFF to BipolarOFF
 HorizontalSigmoidConeON      = ["%g" % x for x in frange(0.5,0,0)]   # HorizontalSigmoidON to Cone
 HorizontalSigmoidBipolarOFF  = ["%g" % x for x in frange(0.0,0,0)]   # HorizontalSigmoidOFF to BipolarOFF
                                                                      
 BipolarSigmoidSFAmacrine     = ["%g" % x for x in frange(1,0,0)]     # BipolarSigmoid to SFAmacrine
 BipolarSigmoidWFAmacrine     = ["%g" % x for x in frange(1,0,0)]     # BipolarSigmoid to WFAmacrine
 BipolarSigmoidPAAmacrine     = ["%g" % x for x in frange(0.1,0,0)]   # BipolarSigmoid to WFAmacrine
-BipolarSigmoidGanglion       = ["%g" % x for x in frange(3.0,0,0)]   # BipolarSigmoid to Ganglion was 6
+BipolarSigmoidGanglion       = ["%g" % x for x in frange(3.0,0,0)]   # BipolarSigmoid to Ganglion
                                                                      
 SFAmacrineGapSFAmacrine      = ["%g" % x for x in frange(1,0,0)]     # SFAmacrineGAP to SFAmacrine
 SFAmacrineSigmoidPAAmacrine  = ["%g" % x for x in frange(1,0,0)]     #
@@ -132,13 +135,13 @@ WFAmacrineOFFSFAmacrine      = ["%g" % x for x in frange(1,0,0)]     # WFAmacrin
 WFAmacrineSigmoidGanglionON  = ["%g" % x for x in frange(1,0,0)]     # WFAmacrineSigmoidON to GanglionON
 WFAmacrineSigmoidGanglionOFF = ["%g" % x for x in frange(1,0,0)]     # WFAmacrineSigmoidOFF to GanglionOFF
                                                                      
-PAAmacrineWFAmacrine         = ["%g" % x for x in frange(4,0,0)]     # PAAmacrine to WFAmacrine
+PAAmacrineWFAmacrine         = ["%g" % x for x in frange(2.0,0,0)]     # PAAmacrine to WFAmacrine
 PAAmacrineGapPAAmacrine      = ["%g" % x for x in frange(1.5,0,0)]   # PAAmacrineGap to PAAmacrine
-PAAmacrinePAAmacrine         = ["%g" % x for x in frange(1.5,0,0)]     #
+PAAmacrinePAAmacrine         = ["%g" % x for x in frange(3.0,0,0)]     #
 PAAmacrineGapGanglion        = ["%g" % x for x in frange(0.5,0,0)]   # PAAmacrineGap to Ganglion
 PAAmacrineGanglion           = ["%g" % x for x in frange(24,0,0)]     #
                                                                      
-GanglionGapPAAmacrine        = ["%g" % x for x in frange(1.5,0,0)]   # GanglionGap to PAAmacrine
+GanglionGapPAAmacrine        = ["%g" % x for x in frange(3.0,0,0)]   # GanglionGap to PAAmacrine
 
 #List possible connections
 conn_list = ["ImageImageBuffer",
@@ -526,6 +529,10 @@ for num_steps in num_steps_list:
                 line = new_line
             if 'STOCHASTICRELFLAG' in line:
                 new_line = re.sub('STOCHASTICRELFLAG',stochastic_flag,line,count=0)
+                out_lines[line_num] = new_line
+                line = new_line
+            if 'PADelay' in line:
+                new_line = re.sub('PADelay',PA_delay,line,count=0)
                 out_lines[line_num] = new_line
                 line = new_line
             if 'PREACTNOTRATE' in line:
