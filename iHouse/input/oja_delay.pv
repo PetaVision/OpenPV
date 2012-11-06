@@ -101,7 +101,7 @@ Retina "RetinaON" = {
     nyScale             = 1;
     nf                  = 1;
     							 // 
-    marginWidth         = 4;
+    marginWidth         = 3;
     writeStep           = -1;
     mirrorBCflag        = 0;
     spikingFlag         = true;  // false (no quotes) is translated to 0
@@ -126,7 +126,7 @@ Retina "RetinaOFF" = {
     nyScale             = 1;
     nf                  = 1;
                                  //    
-    marginWidth         = 4;
+    marginWidth         = 3;
     writeStep           = -1;
     mirrorBCflag        = 0;
     spikingFlag         = true;  // false (no quotes) is translated to 0
@@ -344,8 +344,8 @@ KernelConn "ImagetoRetinaOFFSurround" = {
 OjaSTDPConn "RetinaONtoLif" = {
    preLayerName           = "RetinaON";
    postLayerName          = "lif";
-   nxp                    = 9;
-   nyp                    = 9;
+   nxp                    = 7;
+   nyp                    = 7;
    nfp                    = 1;
    channelCode            = 0;
                                    //
@@ -402,8 +402,8 @@ OjaSTDPConn "RetinaONtoLif" = {
 OjaSTDPConn "RetinaOFFtoLif" = {
    preLayerName           = "RetinaOFF";
    postLayerName          = "lif";
-   nxp                    = 9;
-   nyp                    = 9;
+   nxp                    = 7;
+   nyp                    = 7;
    nfp                    = 1;
    channelCode            = 0;
                                    //
