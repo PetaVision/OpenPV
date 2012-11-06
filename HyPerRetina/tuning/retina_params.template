@@ -144,9 +144,9 @@ SigmoidLayer "ConeSigmoidON" = {  // 2
     marginWidth       = 4.0;      // for MPI running
     originalLayerName = "Cone";
     InitVType         = "ConstantV";
-    valueV            = -55.0;
-    Vrest             = -55.0;    // 
-    VthRest           = -36.0;    // was -40. before moving the threshold in the middle                  
+    valueV            = -49.0;
+    Vrest             = -49.0;    // 
+    VthRest           = -41.0;    // was -40. before moving the threshold in the middle                  
     mirrorBCflag      = 1.0; 
     InverseFlag       = 0.0;
     restart           = 0.0;      // from graylast
@@ -166,9 +166,9 @@ SigmoidLayer "ConeSigmoidOFF" = {   // 3
     marginWidth       = 4.0;        // for MPI running
     originalLayerName = "Cone";
     InitVType         = "ConstantV";
-    valueV            = -62.2;      // Vadj      = VgrayCone - (VthrestON+VrestON)/2
-    Vrest             = -62.2;      // Vrest     = VrestON + 2*Vadj
-    VthRest           = -43.2;      // Vthrest   = VthrestON + 2*Vadj
+    valueV            = -54.0;      // Vadj      = VgrayCone - (VthrestON+VrestON)/2
+    Vrest             = -54.0;      // Vrest     = VrestON + 2*Vadj
+    VthRest           = -41.0;      // Vthrest   = VthrestON + 2*Vadj
     mirrorBCflag      = 1.0;        //   
     InverseFlag       = 1.0;        //  
     restart           = 0.0;        // from graylast
@@ -225,8 +225,8 @@ GapLayer "HorizontalGap" = {                // 7
     mirrorBCflag      = 1.0;         // 
     restart           = 0.0;         // from graylast
     InitVType         = "ConstantV";
-    ampSpikelet       = 150.0;
-    valueV            = -55.0;
+    ampSpikelet      = 150.0;
+    valueV            = -55.;
     spikingFlag       = 0.0;
     writeStep         = -1;
     writeNonspikingActivity = true;
@@ -239,9 +239,9 @@ SigmoidLayer "HorizontalSigmoidON" = {        // 8
     nyScale           = 0.25;         // three are fewer horizontal 
     marginWidth       = 1.0;         // for MPI running
     InitVType         = "ConstantV";
-    valueV            = -55.0;
-    Vrest             = -58.233;     //
-    VthRest           = -34.233;     //                        <=============== disabled
+    valueV            = -52.0;
+    Vrest             = -52.0;     //
+    VthRest           = -36.0;     //                        <=============== disabled
     mirrorBCflag      = 1.0;         // 
     restart           = 0.0;         // from graylast
     nf                = 1;
@@ -261,9 +261,9 @@ SigmoidLayer "HorizontalSigmoidOFF" = {        // 8
     nyScale           = 0.25;         // three are fewer horizontal 
     marginWidth       = 1.0;         // for MPI running
     InitVType         = "ConstantV";
-    valueV            = -55.0;
-    Vrest             = -68.233; //-58.233;     //
-    VthRest           = -44.233; //-34.233;     //                        <=============== disabled
+    valueV            = -52.0;
+    Vrest             = -52.0;     //
+    VthRest           = -36.0;     //                        <=============== disabled
     mirrorBCflag      = 1.0;         // 
     restart           = 0.0;         // from graylast
     nf                = 1;
@@ -320,8 +320,8 @@ SigmoidLayer "BipolarSigmoidON" = {     //5
     marginWidth       = 4.0;           // for MPI running
     InitVType         = "ConstantV";
     valueV            = -70.0;
-    Vrest             = -66.0;         // BipolarSigmoidON
-    VthRest           = -48; //-42.0;  
+    Vrest             = -70.0;         // BipolarSigmoidON
+    VthRest           = -40; //-42.0;  
     mirrorBCflag      = 1.0;           // Margin boundaries are mirrored
     restart           = 0.0;           // from graylast
     nf                = 1;
@@ -374,9 +374,9 @@ SigmoidLayer "BipolarSigmoidOFF" = {    //19
     nf                = 1;
     marginWidth       = 4.0;           // for MPI running
     InitVType         = "ConstantV";
-    valueV            = -70.0;
-    Vrest             = -66.0;         // BipolarSigmoidOFF
-    VthRest           = -48.0; //-42.0; 
+    valueV            = -63.0;
+    Vrest             = -63.0;         // BipolarSigmoidOFF
+    VthRest           = -41.0; //-42.0; 
     mirrorBCflag      = 1.0;           //
     restart           = 0.0;           // from graylast
     InverseFlag       = 0.0;
@@ -870,7 +870,7 @@ GapConn "ImageBufferToCone" = {          // 0
     symmetrizeWeights      = 0.0;
     selfFlag               = 0.0;
     stochasticReleaseFlag  = 0.0;
-    preActivityIsNotRate   = 0;  // gap junction connection, so already scaled correctly
+    preActivityIsNotRate   = 0;  // input here is via gap junction
     normalizeTotalToPost   = 1; // not used for UniformWeight init method
     plasticityFlag         = 0.0;
 
@@ -1010,7 +1010,7 @@ GapConn "HorizontalGapToHorizontal" = {        // 3  gap junction, watch the str
     selfFlag               = 0.0;
     normalizeTotalToPost   = 1;
     stochasticReleaseFlag  = 0;
-    preActivityIsNotRate   = 0;
+    preActivityIsNotRate   = 0; // input via gap
     plasticityFlag         = 0.0;
 
     writeStep              = -1.0;        // do not write these out
@@ -1385,7 +1385,7 @@ GapConn "SFAmacrineGapToSFAmacrine" = {        // 3  gap junction, watch the str
     symmetrizeWeights      = 0.0;
     selfFlag               = 0.0;
     stochasticReleaseFlag  = 0;
-    preActivityIsNotRate   = 0;
+    preActivityIsNotRate   = 0;   // input via gap
     normalizeTotalToPost   = 1;
     plasticityFlag         = 0.0;
 
@@ -2126,8 +2126,8 @@ PointLIFProbe "Horizontal Probe" = {
    targetLayer = "Horizontal";
 //   msg = "Horizontal       ";
    probeOutputFile = "ptHorizontal.txt";
-   xLoc = 16; // 32; //
-   yLoc = 16; // 32; //
+   xLoc = 16; // 64; //
+   yLoc = 16; // 64; //
    fLoc = 0;
 };
 
