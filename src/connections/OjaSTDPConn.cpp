@@ -190,14 +190,15 @@ int OjaSTDPConn::initPlasticityPatches()
       assert(pre_oja_tr[arborID]  != NULL);
    }
 
-   int numPost = post_stdp_tr->numItems;
-   for (int kPostRes = 0; kPostRes < numPost; kPostRes++) {
+   int nkPost = post_stdp_tr->numItems;
+   assert(nkPost == post->getNumNeurons());
+   for (int kPostRes = 0; kPostRes < nkPost; kPostRes++) {
       post_stdp_tr->data[kPostRes] = tauLTD * targetPostRateHz/1000;
       post_oja_tr->data[kPostRes]  = tauOja * targetPostRateHz/1000;
       post_int_tr->data[kPostRes]  = tauO   * targetPostRateHz/1000;
    }
    for(int arborID = 0; arborID<numberOfAxonalArborLists(); arborID++) {
-      int numPre  = pre_stdp_tr[arborID]->numItems;
+      int numPre  = pre_stdp_tr[arborID]->numItems; //should be extended
       for (int kPreExt = 0; kPreExt < numPre; kPreExt++) {
          pre_stdp_tr[arborID]->data[kPreExt] = tauLTP * targetPostRateHz/1000;
          pre_oja_tr[arborID]->data[kPreExt]  = tauOja * targetPostRateHz/1000;
@@ -248,6 +249,7 @@ int OjaSTDPConn::updateAmpLTD()
 
    //Restricted Post
    const int nkPost = post_stdp_tr->numItems;
+   assert(nkPost == post->getNumNeurons());
 
    //Extended Post
    const pvdata_t * aPost        = post->getLayerData();
@@ -422,7 +424,7 @@ int OjaSTDPConn::scaleWeights() {
 
    for(int arborID=0;arborID<numberOfAxonalArborLists();arborID++) {
       //Loop through post-synaptic neurons (non-extended indices)
-      for (int kPost = 0; kPost < post_stdp_tr->numItems; kPost++) {
+      for (int kPost = 0; kPost < post->getNumNeurons(); kPost++) {
 
          pvdata_t ** postData = wPostDataStartp[arborID] + numPostPatch*kPost + 0;
          for (int kp = 0; kp < numPostPatch; kp++) { //TODO: Scale only the weights non-extended space
