@@ -8,6 +8,7 @@
 ##Dylan Paiton and Sheng Lundquist
 #####
 from numpy import *
+import sys
 import matplotlib
 
 from readProbeFunc import *
@@ -26,13 +27,15 @@ if weightMap:
     if 'weight*' not in data.keys():
         print "readProbe: WARNING: weight* is not set in the data dictionary, but weightMap flag is true. Setting weightMap to false."
         weightMap = False
+if not path.exist(probeFileDir):
+    sys.exit("readProbe: ERROR: probeFileDir ("+probeFileDir+") does not exist!")
 
 #Main loop
 for filenameTup in filenames:
     filename = filenameTup[1]
 
     if not dispFigs:
-        figOutDir = rootFigOutDir+filenameTup[0]+"/"
+        figOutDir = rootFigOutDir+"/"+filenameTup[0]+"/"
         if not path.exists(figOutDir):
             makedirs(figOutDir)
 
@@ -61,7 +64,6 @@ for filenameTup in filenames:
         #Check to be sure that the tokens (keys) listed in data are actually in the probe's output
         checkTok = [[[tok in string for string in tup] for tup in line] for line in lines]
         if not any(checkTok[:]):
-            import sys
             sys.exit("readProbe: ERROR: Token '"+tok+"' was not found in the input file. Exiting program.")
 
         if key not in scale: # Set scale for plot to 1 if not defined
@@ -107,7 +109,7 @@ for filenameTup in filenames:
                 maxVals    = [max(max(workingLines[arborID][:][:])) for arborID in range(numArbors[tok])]
                 stepWidths = [(maxVals[arborID] - minVals[arborID]) / float(numTCBins) for arborID in range(numArbors[tok])]
 
-                boundList = [list(arange(minVals[arborID], maxVals[arborID], stepWidths[arborID])) for arborID in range(numArbors[tok])] # List of separators (edges) for bins
+                boundList = [list(arange(minVals[arborID], maxVals[arborID], stepWidths[arborID])) if stepWidths[arborID] != 0.0 else [0] for arborID in range(numArbors[tok])] # List of separators (edges) for bins
                 for arborID in range(numArbors[tok]): #TODO: make inline?
                     boundList[arborID].append(maxVals[arborID]+1) #must be bigger so everything fits into the bin
 
@@ -155,7 +157,7 @@ for filenameTup in filenames:
             grid(color='white')
             colorbar()
             if not dispFigs:
-                savefig(figOutDir+rootFigName+"_weightMap"+str(arborID)+".png")
+                savefig(figOutDir+rootFigName+"_"+filenameTup[0]+"_weightMap"+str(arborID)+".png")
                 clf()
 
     if timePlot:
@@ -179,7 +181,7 @@ for filenameTup in filenames:
                         legend()#bbox_to_anchor=(0., 1.02, 1., .102), ncol = 2, mode="expand", borderaxespad=0.,loc=3)
                     tight_layout()
                     if not dispFigs:
-                        savefig(figOutDir+rootFigName+"_timeCourseAvg"+str(arborID)+".png")
+                        savefig(figOutDir+rootFigName+"_"+filenameTup[0]+"_timeCourseAvg"+str(arborID)+".png")
                         clf()
 
         didPlot = False #Only true if plot is created below

@@ -8,25 +8,25 @@ from collections import OrderedDict
 #filenames     = [("sheng","/Users/slundquist/Desktop/retONtoLif.txt")]
 
 workspaceDir  = "/Users/dpaiton/Documents/Work/Lanl/workspace" #Dylan Mac
-checkpointDir = workspaceDir+"/iHouse/checkpoints/Checkpoint2001000"
+probeFileDir  = workspaceDir+"/iHouse/checkpoints/lowInit/Checkpoint10010000"
 
 #filenames = [("label","path")]
 filenames    = [
-        ("OnVer",checkpointDir+"/retONtoLifVer.txt"),
-        ("OnHor",checkpointDir+"/retONtoLifHor.txt"),
-        ("OnDia",checkpointDir+"/retONtoLifDia.txt"),
-        ("OffVer",checkpointDir+"/retOFFtoLifVer.txt"),
-        ("OffHor",checkpointDir+"/retOFFtoLifHor.txt"),
-        ("OffDia",checkpointDir+"/retOFFtoLifDia.txt")]
+        ("OnVer",probeFileDir+"/retONtoLifVer.txt"),
+        ("OnHor",probeFileDir+"/retONtoLifHor.txt"),
+        ("OnDia",probeFileDir+"/retONtoLifDia.txt"),
+        ("OffVer",probeFileDir+"/retOFFtoLifVer.txt"),
+        ("OffHor",probeFileDir+"/retOFFtoLifHor.txt"),
+        ("OffDia",probeFileDir+"/retOFFtoLifDia.txt")]
 #filenames     = [
-#        ("OnVer",checkpointDir+"/retONtoLifVer.txt")]
+#        ("OnVer",probeFileDir+"/retONtoLifVer.txt")]
 
-rootFigOutDir = checkpointDir+"/analysis/probeFigs/"
+rootFigOutDir = probeFileDir+"/analysis/probeFigs"
 rootFigName   = 'weights'
 
 #Values for range of frames
-startTime   = 2000000
-endTime     = 2001000  #End must be under number of lines in file
+startTime   = 10000000 
+endTime     = 10010000 #End must be under number of lines in file
 
 #Which plots
 timePlot    = True 
@@ -35,7 +35,7 @@ weightMap   = True
 
 #Other flags
 numTCBins   = 2     #number of bins for time course plot
-doLegend    = False #if True, time graph will have a legend
+doLegend    = True  #if True, time graph will have a legend
 dispFigs    = False #if True, display figures. Otherwise, print them to file.
 
 #Data structure for scale, and data array to store all the data
@@ -76,9 +76,9 @@ data['t']                     = []
 #data['prOjaTr_0_23']    = []
 #data['prOjaTr_0_24']    = []
 #######
-#data['poOjaTr']     = []
-#data['poStdpTr']    = []
 #data['poIntTr']     = []
+#data['poStdpTr']    = []
+#data['poOjaTr']     = []
 #######
 #data['ampLTD']      = []
 #######
