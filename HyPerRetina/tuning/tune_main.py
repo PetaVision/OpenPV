@@ -17,7 +17,7 @@ mpi_np              = '4'
 mpi_rows            = '2'
 mpi_columns         = '2'
 
-num_steps_list      = ['2000'] #[str(450*33)]#
+num_steps_list      = ['3000'] #[str(450*33)]#
 stochastic_flag     = '1' #preActivityNotRate = !stochastic_flag
 
 param_template_name = 'retina_params.template'
@@ -27,9 +27,15 @@ run_name            = 'biggraywhiteblackspots' #'Heli_Challenge_026'#
 ## PATH PARAMS
 #######################################################################################
 #Gar
-wrkspc_path         = '/Users/garkenyon/workspace-sync-anterior'
-remote_wrkspc_path  = wrkspc_path #'/home/gkenyon/workspace-sync-anterior'#
-data_path           = wrkspc_path #remote_wrkspc_path #'/nh/compneuro/Data'
+wrkspc_path         = '/Users/gerdjkunde/Documents/workspace/'
+remote_wrkspc_path  = wrkspc_path  
+data_path           = wrkspc_path 
+
+
+#Gar
+#wrkspc_path         = '/Users/garkenyon/workspace-sync-anterior'
+#remote_wrkspc_path  = wrkspc_path #'/home/gkenyon/workspace-sync-anterior'#
+#data_path           = wrkspc_path #remote_wrkspc_path #'/nh/compneuro/Data'
 
 #Dylan
 #wrkspc_path         = '/Users/dpaiton/Documents/Work/LANL/workspace'
@@ -108,21 +114,21 @@ ConeSigmoidBipolar           = ["%g" % x for x in frange(0.5,0,0)]   # ConeSigmo
 ConeSigmoidHorizontal        = ["%g" % x for x in frange(0.5,0,0)]   # ConeSigmoid to Horizontal
                                                                      
 HorizontalGapHorizontal      = ["%g" % x for x in frange(3,0,0)]     # HorizontalGap to Horizontal
-HorizontalSigmoidConeON      = ["%g" % x for x in frange(1,0,0)]     # HorizontalSigmoidON to Cone
-HorizontalSigmoidBipolarOFF  = ["%g" % x for x in frange(2,0,0)]     # HorizontalSigmoidOFF to BipolarOFF
+HorizontalSigmoidConeON      = ["%g" % x for x in frange(0.5,0,0)]   # HorizontalSigmoidON to Cone
+HorizontalSigmoidBipolarOFF  = ["%g" % x for x in frange(0.0,0,0)]   # HorizontalSigmoidOFF to BipolarOFF
                                                                      
 BipolarSigmoidSFAmacrine     = ["%g" % x for x in frange(1,0,0)]     # BipolarSigmoid to SFAmacrine
 BipolarSigmoidWFAmacrine     = ["%g" % x for x in frange(1,0,0)]     # BipolarSigmoid to WFAmacrine
 BipolarSigmoidPAAmacrine     = ["%g" % x for x in frange(0.1,0,0)]   # BipolarSigmoid to WFAmacrine
-BipolarSigmoidGanglion       = ["%g" % x for x in frange(6.0,0,0)]   # BipolarSigmoid to Ganglion
+BipolarSigmoidGanglion       = ["%g" % x for x in frange(3.0,0,0)]   # BipolarSigmoid to Ganglion was 6
                                                                      
 SFAmacrineGapSFAmacrine      = ["%g" % x for x in frange(1,0,0)]     # SFAmacrineGAP to SFAmacrine
-SFAmacrineSigmoidPAAmacrine  = ["%g" % x for x in frange(2,0,0)]     #
+SFAmacrineSigmoidPAAmacrine  = ["%g" % x for x in frange(1,0,0)]     #
                                                                      
 WFAmacrineSigmoidBipolarON   = ["%g" % x for x in frange(0.10,0,0)]  # WFAmacrineSigmoidON to Bipolar
-WFAmacrineSigmoidBipolarOFF  = ["%g" % x for x in frange(0.20,0,0)]   # WFAmacrineSigmoidOFF to Bipolar
-WFAmacrineONSFAmacrine       = ["%g" % x for x in frange(2,0,0)]     # WFAmacrineON to SFAmacrine
-WFAmacrineOFFSFAmacrine      = ["%g" % x for x in frange(2,0,0)]     # WFAmacrineOFF to SFAmacrine
+WFAmacrineSigmoidBipolarOFF  = ["%g" % x for x in frange(0.10,0,0)]  # WFAmacrineSigmoidOFF to Bipolar
+WFAmacrineONSFAmacrine       = ["%g" % x for x in frange(1,0,0)]     # WFAmacrineON to SFAmacrine
+WFAmacrineOFFSFAmacrine      = ["%g" % x for x in frange(1,0,0)]     # WFAmacrineOFF to SFAmacrine
 WFAmacrineSigmoidGanglionON  = ["%g" % x for x in frange(1,0,0)]     # WFAmacrineSigmoidON to GanglionON
 WFAmacrineSigmoidGanglionOFF = ["%g" % x for x in frange(1,0,0)]     # WFAmacrineSigmoidOFF to GanglionOFF
                                                                      
