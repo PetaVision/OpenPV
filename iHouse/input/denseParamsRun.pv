@@ -4,13 +4,13 @@
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 HyPerCol "column" = {
-   nx                          = 33; 			// pixel width of input image
-   ny                          = 33; 			// pixel height of input image
+   nx                          = 44; 			// pixel width of input image
+   ny                          = 44; 			// pixel height of input image
    dt                          = 1.;           // according GK
 
 //   randomSeed                  = 1020304050.0; // remove when running for real
 
-   numSteps                    = 2000000;			// amount of time steps performed during run-time
+   numSteps                    = 10000000;			// amount of time steps performed during run-time
    progressStep                = 5000;
    writeProgressToErr          = 0;        // write progress steps to std err
 
@@ -90,7 +90,7 @@ Retina "RetinaON" = {
     nyScale             = 1;
     nf                  = 1;
     
-    marginWidth         = 2;
+    marginWidth         = 3;
     writeStep           = -1;
     mirrorBCflag        = 0;
     spikingFlag         = true;  // false (no quotes) is translated to 0
@@ -115,7 +115,7 @@ Retina "RetinaOFF" = {
     nyScale             = 1;
     nf                  = 1;
                                  //    
-    marginWidth         = 2;
+    marginWidth         = 3;
     writeStep           = -1;
     mirrorBCflag        = 0;
     spikingFlag         = true;  // false (no quotes) is translated to 0
@@ -135,14 +135,14 @@ Retina "RetinaOFF" = {
 };
 
 LIF "lif" = {
-   nxScale          = 4;		
-   nyScale          = 4;		
+   nxScale          = 2;		
+   nyScale          = 2;		
    nf               = 1;       	// one feature for now
    
    writeStep        = -1.0;
    
    spikingFlag      = 1;       	// the whole idea 
-   marginWidth      = 10;	
+   marginWidth      = 7;	
    mirrorBCflag     = 0;     	// mirroring boundary conditions
    InitVType        = "ConstantV";
    method           = "beginning";
@@ -154,13 +154,13 @@ LIF "lif" = {
    VinhB            = -90.0;     // potassium reversal
    tau              = 10.0;      // intrinsic leak membrane time constant (max)
    tauE             = 1.0;       // how long glutamine stays bound
-   tauI             = 5.0;       // how long GABA stays bound
+   tauI             = 25.0;       // how long GABA stays bound
    tauIB            = 10.0;      // inhibitory potassium channel 
    VthRest          = -55.0;     // firing threshold 15 mV above rest
    tauVth           = 10.0;      // 10.0 relative refractory period
    deltaVth         = 5.0;       // jump of threshold when firing
-   noiseAmpE        = 1;         // 0.5 1 means conductance is equal to lead conductance  gjk
-   noiseAmpI        = 1;         // 0,5 "twice as easy for the membrane capacitance to discharge" gjk
+   noiseAmpE        = .5;         // 0.5 1 means conductance is equal to lead conductance  gjk
+   noiseAmpI        = .5;         // 0,5 "twice as easy for the membrane capacitance to discharge" gjk
    noiseAmpIB       = 0.0;       // no noise here 
    noiseFreqE       = 250.;      // spontaneous transmitter release/channel openings
    noiseFreqI       = 250.;      // correlation to time step size !!!
@@ -331,8 +331,8 @@ KernelConn "ImagetoRetinaOFFSurround" = {
 OjaSTDPConn "RetinaONtoLif" = {
    preLayerName           = "RetinaON";
    postLayerName          = "lif";
-   nxp                    = 20;
-   nyp                    = 20;
+   nxp                    = 14;
+   nyp                    = 14;
    nfp                    = 1;
    channelCode            = 0;
    delay                  = 0.0;
@@ -361,7 +361,7 @@ OjaSTDPConn "RetinaONtoLif" = {
    numAxonalArbors        = 1;
    weightInitType         = "UniformRandomWeight";
    //weightInit             = 0.001;
-   wMaxInit               = 0.0011;
+   wMaxInit               = 0.1;
    wMinInit               = 0.0011;
    normalize              = false;
    //normalize_max          = false;
@@ -388,8 +388,8 @@ OjaSTDPConn "RetinaONtoLif" = {
 OjaSTDPConn "RetinaOFFtoLif" = {
    preLayerName           = "RetinaOFF";
    postLayerName          = "lif";
-   nxp                    = 20;
-   nyp                    = 20;
+   nxp                    = 14;
+   nyp                    = 14;
    nfp                    = 1;
    channelCode            = 0;
    delay                  = 0.0;
@@ -418,7 +418,7 @@ OjaSTDPConn "RetinaOFFtoLif" = {
    numAxonalArbors        = 1;
    weightInitType         = "UniformRandomWeight";
    //weightInit             = 0.001;
-   wMaxInit               = 0.0011;
+   wMaxInit               = 0.1;
    wMinInit               = 0.0011;
    normalize              = false;
    //normalize_max          = false;
@@ -447,8 +447,8 @@ LCALIFLateralConn "lcalif lateral inhibition" = {
     preLayerName = "lif";
     postLayerName = "lif";
     channelCode = 1;
-    nxp = 21;
-    nyp = 21;
+    nxp = 15;
+    nyp = 15;
     nfp = 1;
     
     integrationTimeConstant = 300;
