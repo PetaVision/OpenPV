@@ -27,7 +27,7 @@ if weightMap:
     if 'weight*' not in data.keys():
         print "readProbe: WARNING: weight* is not set in the data dictionary, but weightMap flag is true. Setting weightMap to false."
         weightMap = False
-if not path.exist(probeFileDir):
+if not path.exists(probeFileDir):
     sys.exit("readProbe: ERROR: probeFileDir ("+probeFileDir+") does not exist!")
 
 #Main loop
