@@ -100,21 +100,21 @@ Retina "RetinaON" = {
     nxScale             = 1;
     nyScale             = 1;
     nf                  = 1;
-    							 // 
+    							  // 
     marginWidth         = 3;
     writeStep           = -1;
     mirrorBCflag        = 0;
-    spikingFlag         = true;  // false (no quotes) is translated to 0
-    							 //
-    noiseOnFreq         = 400;   // Hz // Max poisson spiking rate when input is 255
-    noiseOffFreq        = 10;    // Hz // Min poisson spiking rate when input is 0
-                                 //
-    burstFreq           = 0.001; // Hz // Everything coming into the retina should be burstin burstFreq times per sec
-    burstDuration       = 100000;// ms // Bursts last burstDuration ms
-                                 //
-    beginStim           = 0;     // Restrict stimulus to a window of time
+    spikingFlag         = true;   // false (no quotes) is translated to 0
+    							  //
+    noiseOnFreq         = 400;    // Hz // Max poisson spiking rate when input is 255
+    noiseOffFreq        = 10;     // Hz // Min poisson spiking rate when input is 0
+                                  //
+    burstFreq           = 0.001;  // Hz // Everything coming into the retina should be burstin burstFreq times per sec
+    burstDuration       = 1000000;// ms // Bursts last burstDuration ms
+                                  //
+    beginStim           = 0;      // Restrict stimulus to a window of time
     endStim             = -1;
-                                 //
+                                  //
     refractoryPeriod    = 3;
     absRefractoryPeriod = 1.5;
     restart             = 0;
@@ -125,21 +125,21 @@ Retina "RetinaOFF" = {
     nxScale             = 1;
     nyScale             = 1;
     nf                  = 1;
-                                 //    
+                                  //    
     marginWidth         = 3;
     writeStep           = -1;
     mirrorBCflag        = 0;
-    spikingFlag         = true;  // false (no quotes) is translated to 0
-                                 //
-    noiseOnFreq         = 400;   // Hz // Max poisson spiking rate when input is 255
-    noiseOffFreq        = 10;    // Hz // Min poisson spiking rate when input is 0
-                                 //
-    burstFreq           = 0.001; // Hz // Everything coming into the retina should be burstin burstFreq times per sec
-    burstDuration       = 100000;// ms // Bursts last burstDuration ms
-                                 //
-    beginStim           = 0;     // Restrict stimulus to a window of time
+    spikingFlag         = true;   // false (no quotes) is translated to 0
+                                  //
+    noiseOnFreq         = 400;    // Hz // Max poisson spiking rate when input is 255
+    noiseOffFreq        = 10;     // Hz // Min poisson spiking rate when input is 0
+                                  //
+    burstFreq           = 0.001;  // Hz // Everything coming into the retina should be burstin burstFreq times per sec
+    burstDuration       = 1000000;// ms // Bursts last burstDuration ms
+                                  //
+    beginStim           = 0;      // Restrict stimulus to a window of time
     endStim             = -1;
-                                 // 
+                                  // 
     refractoryPeriod    = 3;
     absRefractoryPeriod = 1.5;
     restart             = 0;
