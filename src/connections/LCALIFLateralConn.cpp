@@ -27,6 +27,7 @@ LCALIFLateralConn::~LCALIFLateralConn()
 
 int LCALIFLateralConn::initialize_base() {
    integratedSpikeCount = NULL;
+   coorThresh = 1;
    return PV_SUCCESS;
 }
 
@@ -92,6 +93,7 @@ int LCALIFLateralConn::setParams(PVParams * params) {
    integrationTimeConstant = readIntegrationTimeConstant();
    inhibitionTimeConstant = readInhibitionTimeConstant();
    targetRateKHz = 0.001 * readTargetRate();
+   coorThresh = readCoorThresh();
    return status;
 }
 
@@ -128,7 +130,16 @@ int LCALIFLateralConn::calc_dW(int axonId) {
                int kPost_restricted = start_index_restricted + sy_restricted*ky_patch + sx_restricted*kx_patch + sf*kf_patch;
                int kPost_extended = kIndexExtended(kPost_restricted, nxpost, nypost, nfpost, nbpost);
                if (kPost_extended != kPre_extended) {
-                  pvdata_t delta_weight = (dt_inh/target_rate_sq) * ((integratedSpikeCount[kPre_extended]/integrationTimeConstant) * (integratedSpikeCount[kPost_extended]/integrationTimeConstant) - target_rate_sq);
+                  pvdata_t delta_weight;
+                  float pre_scale_dt_weight = (1/target_rate_sq) * ((integratedSpikeCount[kPre_extended]/integrationTimeConstant)
+                        * (integratedSpikeCount[kPost_extended]/integrationTimeConstant) - target_rate_sq);
+                  //Check to see if decoor is low enough to stop changing delta_weight
+                  if (pre_scale_dt_weight > 0 && pre_scale_dt_weight < coorThresh){
+                     delta_weight = 0;
+                  }
+                  else{
+                     delta_weight = dt_inh * pre_scale_dt_weight;
+                  }
                   dw_data[sxp*kx_patch + syp*ky_patch + sfp*kf_patch] = delta_weight;
                }
             }

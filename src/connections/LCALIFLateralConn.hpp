@@ -42,6 +42,7 @@ protected:
    virtual float readIntegrationTimeConstant() {return getParent()->parameters()->value(name, "integrationTimeConstant", 1.0);}
    virtual float readInhibitionTimeConstant() {return getParent()->parameters()->value(name, "inhibitionTimeConstant", 1.0);}
    virtual float readTargetRate() {return getParent()->parameters()->value(name, "targetRate", 1.0);}
+   virtual float readCoorThresh() {return getParent()->parameters()->value(name, "coorThresh", coorThresh);}
 
    virtual int updateIntegratedSpikeCount();
 
@@ -54,6 +55,7 @@ protected:
    float integrationTimeConstant; // Time constant for the integrated spike counts, often the same as the the LCALIFLayer's tau_LCA
    float inhibitionTimeConstant; // Time constant tau_{inh}, the timescale for updating he weights in this connection
    float targetRateKHz;          // Target rate in kilohertz; note that params file is understood to give value in hertz
+   float coorThresh;
 };
 
 } /* namespace PV */
