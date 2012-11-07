@@ -114,11 +114,11 @@ int Patterns::initialize(const char * name, HyPerCol * hc, PatternType type) {
 
       maxVal = params->value(name,"maxValue", PATTERNS_MAXVAL);
       onOffFlag = params->value(name, "halfNeutral", 0);
-      inOutFlag = params->value(name, "inOut", 1);
+      inOut = params->value(name, "inOut", 1);
 
-      //inOutFlag must be -1, 0, or 1
-      if (inOutFlag < -1 || inOutFlag > 1){
-         fprintf(stderr, "Patterns:: inOutFlag must be -1 for all in drops, 0 for random, or 1 for all out drops ");
+      //inOut must be between -1 and 1
+      if (inOut < -1 || inOut > 1){
+         fprintf(stderr, "Patterns:: inOut must be -1 for all in drops, 0 for random, or 1 for all out drops, or anything in between ");
          abort();
       }
 
@@ -611,22 +611,14 @@ int Patterns::drawDrops() {
       }
       //If out is true, out drop
       bool out;
-      if(inOutFlag == 0){
-         if(pv_random_prob() < .5){
-            out = true;
-         }
-         else{
-            out = false;
-         }
-      }
-      else if(inOutFlag == -1){
-         out = false;
-      }
-      else if(inOutFlag == 1){
+      //Convert inOut into a scale between 0 and 1, where 0 maps to in and 1 maps to out
+      float inOutChance = (inOut + 1)/2;
+      if(pv_random_prob() < inOutChance){
          out = true;
       }
-      //Should never get here, since a check is done to make sure inOutFlag is -1, 0, or 1
-      else{assert(false);}
+      else{
+         out = false;
+      }
 
       if (out){
          newDrop.radius = 0;

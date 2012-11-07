@@ -108,7 +108,7 @@ protected:
    int xPos;
    int yPos;
    int onOffFlag;
-   int inOutFlag; //0 for random, -1 for all in drops, 1 for all out drops
+   float inOut; //0 for random, -1 for all in drops, 1 for all out drops, and everything in between
    int dropPosition;
    int dropPositionRandomMax;
    int dropPositionRandomMin;
