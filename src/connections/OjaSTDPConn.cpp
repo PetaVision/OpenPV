@@ -182,6 +182,8 @@ int OjaSTDPConn::initPlasticityPatches()
    assert(post_oja_tr  != NULL);
    assert(post_int_tr  != NULL);
 
+   const float targetPostRatekHz = targetPostRateHz/1000; // Convert Hz to kHz
+
    for(int arborID = 0; arborID<numberOfAxonalArborLists(); arborID++) {
       pre_stdp_tr[arborID] = pvcube_new(&pre->getCLayer()->loc, pre->getNumExtended());
       pre_oja_tr[arborID]  = pvcube_new(&pre->getCLayer()->loc, pre->getNumExtended());
@@ -193,15 +195,15 @@ int OjaSTDPConn::initPlasticityPatches()
    int nkPost = post_stdp_tr->numItems;
    assert(nkPost == post->getNumNeurons());
    for (int kPostRes = 0; kPostRes < nkPost; kPostRes++) {
-      post_stdp_tr->data[kPostRes] = tauLTD * targetPostRateHz/1000;
-      post_oja_tr->data[kPostRes]  = tauOja * targetPostRateHz/1000;
-      post_int_tr->data[kPostRes]  = tauO   * targetPostRateHz/1000;
+      post_stdp_tr->data[kPostRes] = tauLTD * targetPostRatekHz;
+      post_oja_tr->data[kPostRes]  = tauOja * targetPostRatekHz;
+      post_int_tr->data[kPostRes]  = tauO   * targetPostRatekHz;
    }
    for(int arborID = 0; arborID<numberOfAxonalArborLists(); arborID++) {
       int numPre  = pre_stdp_tr[arborID]->numItems; //should be extended
       for (int kPreExt = 0; kPreExt < numPre; kPreExt++) {
-         pre_stdp_tr[arborID]->data[kPreExt] = tauLTP * targetPostRateHz/1000;
-         pre_oja_tr[arborID]->data[kPreExt]  = tauOja * targetPostRateHz/1000;
+         pre_stdp_tr[arborID]->data[kPreExt] = tauLTP * targetPostRatekHz;
+         pre_oja_tr[arborID]->data[kPreExt]  = tauOja * targetPostRatekHz;
       }
    }
 
@@ -217,6 +219,7 @@ int OjaSTDPConn::initializeThreadKernels() {return 0;}
  */
 int OjaSTDPConn::updateState(double time, double dt)
 {
+   //HyPerConn updateState() does not need to be called because it does not do anything.
    update_timer->start();
 
    int status=0;
