@@ -106,8 +106,8 @@ Retina "RetinaON" = {
     mirrorBCflag        = 0;
     spikingFlag         = true;   // false (no quotes) is translated to 0
     							  //
-    noiseOnFreq         = 400;    // Hz // Max poisson spiking rate when input is 255
-    noiseOffFreq        = 20;     // Hz // Min poisson spiking rate when input is 0
+    noiseOnFreq         = 1000;    // Hz // Max poisson spiking rate when input is 255
+    noiseOffFreq        = 0.001;     // Hz // Min poisson spiking rate when input is 0
                                   //
     burstFreq           = 0.001;  // Hz // Everything coming into the retina should be burstin burstFreq times per sec
     burstDuration       = 1000000;// ms // Bursts last burstDuration ms
@@ -115,8 +115,8 @@ Retina "RetinaON" = {
     beginStim           = 0;      // Restrict stimulus to a window of time
     endStim             = -1;
                                   //
-    refractoryPeriod    = 3;
-    absRefractoryPeriod = 1.5;
+    refractoryPeriod    = 0;
+    absRefractoryPeriod = 0;
     restart             = 0;
 };
 
@@ -131,8 +131,8 @@ Retina "RetinaOFF" = {
     mirrorBCflag        = 0;
     spikingFlag         = true;   // false (no quotes) is translated to 0
                                   //
-    noiseOnFreq         = 400;    // Hz // Max poisson spiking rate when input is 255
-    noiseOffFreq        = 20;     // Hz // Min poisson spiking rate when input is 0
+    noiseOnFreq         = 1000;    // Hz // Max poisson spiking rate when input is 255
+    noiseOffFreq        = 0.001;     // Hz // Min poisson spiking rate when input is 0
                                   //
     burstFreq           = 0.001;  // Hz // Everything coming into the retina should be burstin burstFreq times per sec
     burstDuration       = 1000000;// ms // Bursts last burstDuration ms
@@ -140,8 +140,8 @@ Retina "RetinaOFF" = {
     beginStim           = 0;      // Restrict stimulus to a window of time
     endStim             = -1;
                                   // 
-    refractoryPeriod    = 3;
-    absRefractoryPeriod = 1.5;
+    refractoryPeriod    = 0;
+    absRefractoryPeriod = 0;
     restart             = 0;
 };
 
