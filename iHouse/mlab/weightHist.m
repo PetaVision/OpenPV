@@ -8,8 +8,9 @@ function weightHist(weightValues, time, numbins, outDir, figTitle)
       outVec = [outVec; weightValues{i}(:)];
    end
 
-   inc = 1/numbins;
-   scVec = [0:inc:1];
+   maxval = max(outVec(:));
+   inc = maxval/numbins;
+   scVec = [0:inc:maxval];
 
    if(VIEW_FIGS)
       figure;
