@@ -21,7 +21,7 @@ HyPerCol "column" = {
    filenamesContainLayerNames      = 2;    // stores pvp files as: 0 = layer number/1 = layer number and layer name/2 = layer name
    filenamesContainConnectionNames = 2;
                                            // 
-   checkpointRead               = false;
+   checkpointRead               = true;
    //checkpointReadDir            = "~/Documents/workspace/iHouse/checkpoints";
    //checkpointReadDir            = "~/Documents/Work/LANL/workspace/iHouse/checkpoints"; //Dylan's Mac
    checkpointReadDir            = "~/workspace/iHouse/checkpoints"; //Dylan's Remote 
@@ -113,7 +113,7 @@ Retina "RetinaON" = {
     burstDuration       = 1000000;// ms // Bursts last burstDuration ms
                                   //
     beginStim           = 0;      // Restrict stimulus to a window of time
-    endStim             = -1;
+    endStim             = -1;     // Run forever
                                   //
     refractoryPeriod    = 3;
     absRefractoryPeriod = 1.5;
@@ -138,7 +138,7 @@ Retina "RetinaOFF" = {
     burstDuration       = 1000000;// ms // Bursts last burstDuration ms
                                   //
     beginStim           = 0;      // Restrict stimulus to a window of time
-    endStim             = -1;
+    endStim             = -1;     // Run forever
                                   // 
     refractoryPeriod    = 3;
     absRefractoryPeriod = 1.5;
@@ -361,7 +361,7 @@ OjaSTDPConn "RetinaONtoLif" = {
    tauTHR                 = 5000;  // (ms) thresholdAdaptationTime
    tauO                   = 300;   // (ms)
    targetPostRate         = 5;     // (Hz)
-   targetPreRate          = 20;    // (Hz)
+   targetPreRate          = 10;    // (Hz)
    weightDecay            = 0;     // How quickly STDP decays if no firing occurs
    dWMax                  = 2;     // How quickly STDP happens (unstable if high)
    weightScale            = 1;     // Modifies strength range for STDP (we want strengths to be around 0.25)
@@ -419,7 +419,7 @@ OjaSTDPConn "RetinaOFFtoLif" = {
    tauTHR                 = 5000;  // (ms) thresholdAdaptationTime
    tauO                   = 300;   // (ms)
    targetPostRate         = 5;     // (Hz)
-   targetPreRate          = 20;    // (Hz)
+   targetPreRate          = 10;    // (Hz)
    weightDecay            = 0;     // How quickly STDP decays if no firing occurs
    dWMax                  = 2;     // How quickly STDP happens (unstable if high)
    weightScale            = 1;     // Modifies strength range for STDP (we want strengths to be around 0.25)
