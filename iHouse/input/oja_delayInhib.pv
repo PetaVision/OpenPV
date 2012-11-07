@@ -16,7 +16,7 @@ HyPerCol "column" = {
                                            // 
    //outputPath                 = "~/Documents/workspace/iHouse/output";
    //outputPath                   = "~/Documents/Work/LANL/workspace/iHouse/output"; //Dylan's Mac
-   outputPath                   = "~/workspace/iHouse/outputInhib"; //Dylan's Remote 
+   outputPath                   = "~/workspace/iHouse/output"; //Dylan's Remote 
                                            // 
    filenamesContainLayerNames      = 2;    // stores pvp files as: 0 = layer number/1 = layer number and layer name/2 = layer name
    filenamesContainConnectionNames = 2;
@@ -24,20 +24,20 @@ HyPerCol "column" = {
    checkpointRead               = false;
    //checkpointReadDir            = "~/Documents/workspace/iHouse/checkpoints";
    //checkpointReadDir            = "~/Documents/Work/LANL/workspace/iHouse/checkpoints"; //Dylan's Mac
-   checkpointReadDir            = "~/workspace/iHouse/checkpointsInhib"; //Dylan's Remote 
+   checkpointReadDir            = "~/workspace/iHouse/checkpointsNoInhib"; //Dylan's Remote 
    checkpointReadDirIndex       = 10000000;
                                            //
    checkpointWrite              = true;
    deleteOlderCheckpoints       = false;
    //checkpointWriteDir           = "~/Documents/workspace/iHouse/output/checkpoints";
    //checkpointWriteDir           = "~/Documents/Work/LANL/workspace/iHouse/checkpoints"; //Dylan's Mac
-   checkpointWriteDir           = "~/workspace/iHouse/checkpointsInhib"; //Dylan's Remote 
-   checkpointWriteStepInterval  = 5000000;
+   checkpointWriteDir           = "~/workspace/iHouse/checkpoints"; //Dylan's Remote 
+   checkpointWriteStepInterval  = 10000000;
    suppressLastOutput           = 0;
                                            //
    //printParamsFilename          = "~/Documents/workspace/iHouse/output/params_run.pv";
    //printParamsFilename          = "~/Documents/Work/LANL/workspace/iHouse/output/params_run.pv"; //Dylan's Mac
-   printParamsFilename          = "~/workspace/iHouse/outputInhib/params_run.pv"; //Dylan's remote 
+   printParamsFilename          = "~/workspace/iHouse/output/params_run.pv"; //Dylan's remote 
 };
 
 
@@ -57,7 +57,7 @@ Patterns "Input" = {
                                      // 
    patternType             = "DROP";
                                      //
-   inOut                   = 0;      //-1 is all in, 0 is random, 1 is all out
+   inOut                   = 0;      //-1 is all in, 0 is random, 1 is all out. Values between represent how much in given direction
 		                             //
    dropSpeed               = 1;      //(pixels/dt) Radius expands dropSpeed pixles per timestep
    //dropSpeedRandomMax      = 3;      // only applies if dropSpeed = -1
@@ -107,13 +107,13 @@ Retina "RetinaON" = {
     spikingFlag         = true;   // false (no quotes) is translated to 0
     							  //
     noiseOnFreq         = 400;    // Hz // Max poisson spiking rate when input is 255
-    noiseOffFreq        = 20;     // Hz // Min poisson spiking rate when input is 0
+    noiseOffFreq        = 10;     // Hz // Min poisson spiking rate when input is 0
                                   //
     burstFreq           = 0.001;  // Hz // Everything coming into the retina should be burstin burstFreq times per sec
     burstDuration       = 1000000;// ms // Bursts last burstDuration ms
                                   //
     beginStim           = 0;      // Restrict stimulus to a window of time
-    endStim             = -1;
+    endStim             = -1;     // Run forever
                                   //
     refractoryPeriod    = 3;
     absRefractoryPeriod = 1.5;
@@ -132,13 +132,13 @@ Retina "RetinaOFF" = {
     spikingFlag         = true;   // false (no quotes) is translated to 0
                                   //
     noiseOnFreq         = 400;    // Hz // Max poisson spiking rate when input is 255
-    noiseOffFreq        = 20;     // Hz // Min poisson spiking rate when input is 0
+    noiseOffFreq        = 10;     // Hz // Min poisson spiking rate when input is 0
                                   //
     burstFreq           = 0.001;  // Hz // Everything coming into the retina should be burstin burstFreq times per sec
     burstDuration       = 1000000;// ms // Bursts last burstDuration ms
                                   //
     beginStim           = 0;      // Restrict stimulus to a window of time
-    endStim             = -1;
+    endStim             = -1;     // Run forever
                                   // 
     refractoryPeriod    = 3;
     absRefractoryPeriod = 1.5;
@@ -154,7 +154,7 @@ LIF "lif" = {
    writeStep        = -1; 		 // Set to 1 to make movie
                                  //
    spikingFlag      = 1;
-   marginWidth      = 4;
+   marginWidth      = 0;
    mirrorBCflag     = 0;         // mirroring boundary conditions
    InitVType        = "ConstantV";
    method           = "beginning";
@@ -166,13 +166,13 @@ LIF "lif" = {
    VinhB            = -90.0;     // potassium reversal
    tau              = 10.0;      // intrinsic leak membrane time constant (max)
    tauE             = 1.0;       // how long glutamine stays bound
-   tauI             = 25.0;       // how long GABA stays bound
+   tauI             = 5.0;       // how long GABA stays bound
    tauIB            = 10.0;      // inhibitory potassium channel 
    VthRest          = -55.0;     // firing threshold 15 mV above rest
    tauVth           = 10.0;      // 10.0 relative refractory period
    deltaVth         = 5.0;       // jump of threshold when firing
-   noiseAmpE        = 0.1;         // 0 to 1 means conductance is equal to lead conductance -gjk
-   noiseAmpI        = 0.1;         // 0 to 1 twice as easy for the membrane capacitance to discharge -gjk
+   noiseAmpE        = 0.25;      // 0 to 1 means conductance is equal to lead conductance -gjk
+   noiseAmpI        = 0.25;      // 0 to 1 twice as easy for the membrane capacitance to discharge -gjk
    noiseAmpIB       = 0.0;       // no noise here 
    noiseFreqE       = 250.;      // spontaneous transmitter release/channel openings
    noiseFreqI       = 250.;      // correlation to time step size
@@ -358,10 +358,10 @@ OjaSTDPConn "RetinaONtoLif" = {
    tauLTP                 = 4;     // (ms)
    tauLTD                 = 8;     // (ms)
    tauOja                 = 150;   // (ms)
-   tauTHR                 = 5000;  // (ms) thresholdAdaptationTime
+   tauTHR                 = 1000;  // (ms) thresholdAdaptationTime
    tauO                   = 300;   // (ms)
    targetPostRate         = 5;     // (Hz)
-   targetPreRate          = 20;    // (Hz)
+   targetPreRate          = 10;    // (Hz)
    weightDecay            = 0;     // How quickly STDP decays if no firing occurs
    dWMax                  = 2;     // How quickly STDP happens (unstable if high)
    weightScale            = 1;     // Modifies strength range for STDP (we want strengths to be around 0.25)
@@ -375,7 +375,7 @@ OjaSTDPConn "RetinaONtoLif" = {
                                    //
    weightInitType         = "UniformRandomWeight";
    //weightInit             = 0.001;
-   wMaxInit               = 0.05;
+   wMaxInit               = 0.1;
    wMinInit               = 0.001;
    normalize              = false;
    //normalize_max          = false;
@@ -419,7 +419,7 @@ OjaSTDPConn "RetinaOFFtoLif" = {
    tauTHR                 = 5000;  // (ms) thresholdAdaptationTime
    tauO                   = 300;   // (ms)
    targetPostRate         = 5;     // (Hz)
-   targetPreRate          = 20;    // (Hz)
+   targetPreRate          = 10;    // (Hz)
    weightDecay            = 0;     // How quickly STDP decays if no firing occurs
    dWMax                  = 2;     // How quickly STDP happens (unstable if high)
    weightScale            = 1;     // Modifies strength range for STDP (we want strengths to be around 0.25)
@@ -433,7 +433,7 @@ OjaSTDPConn "RetinaOFFtoLif" = {
                                    //
    weightInitType         = "UniformRandomWeight";
    //weightInit             = 0.001;
-   wMaxInit               = 0.05;
+   wMaxInit               = 0.1;
    wMinInit               = 0.001;
    normalize              = false;
    //normalize_max          = false;
@@ -463,20 +463,20 @@ OjaSTDPConn "RetinaOFFtoLif" = {
 // Inhib connections      Inhib connections      Inhib connections      Inhib connections      Inhib connections      Inhib connections      
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-LCALIFLateralConn "lcalif lateral inhibition" = {
+LCALIFLateralConn "lif lateral inhibition" = {
     preLayerName            = "lif";
     postLayerName           = "lif";
     channelCode             = 1;
-    nxp                     = 9;
-    nyp                     = 9;
+    nxp                     = 15;
+    nyp                     = 15;
     nfp                     = 1;
                                      //
     integrationTimeConstant = 300;
     inhibitionTimeConstant  = 50000;
-    targetRate              = 5;
+    targetRate              = 2;
+    coorThresh              = 1;
                                      //
     numAxonalArbors         = 1;
-    delay                   = 0;
     writeStep               = -1;
     initFromLastFlag        = 0;
                                      //
@@ -490,11 +490,11 @@ LCALIFLateralConn "lcalif lateral inhibition" = {
     plasticityFlag          = true;
     selfFlag                = false;
                                      //
+    delay                   = 0;
+                                     //
     stochasticReleaseFlag   = false;
     shrinkPatches           = false;
-    combine_dW_with_W_flag  = false;
 };
-
 
 ////////////////////////////////////////////////////////////////////////////////
 // Probes Probes Probes Probes Probes Probes Probes Probes Probes Probes Probes
