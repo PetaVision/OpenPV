@@ -137,6 +137,27 @@ LIFGap "Cone" = {       // 1 //
 };
 
 disable = true;
+SigmoidLayer "ConeSigmoid" = {  // 2 introduced to have a more symmetric connection to the Horizontal than to the Bipolar cells
+    nxScale           = 1.;
+    nyScale           = 1.;
+    nf                = 1;
+    marginWidth       = 4.0;      // for MPI running
+    originalLayerName = "Cone";
+    InitVType         = "ConstantV";
+    valueV            = -58.0; 
+    Vrest             = -58.0; 
+    VthRest           = -42.0;                     
+    mirrorBCflag      = 1.0; 
+    InverseFlag       = 0.0;
+    restart           = 0.0;      // from graylast
+    SigmoidFlag       = 1;
+    SigmoidAlpha      = 0.10;
+    spikingFlag       = 0.0;
+    writeStep         = -1;
+    writeNonspikingActivity = true;
+};
+
+disable = true;
 SigmoidLayer "ConeSigmoidON" = {  // 2
     nxScale           = 1.;
     nyScale           = 1.;
@@ -144,9 +165,9 @@ SigmoidLayer "ConeSigmoidON" = {  // 2
     marginWidth       = 4.0;      // for MPI running
     originalLayerName = "Cone";
     InitVType         = "ConstantV";
-    valueV            = -49.0; //-55.0;
-    Vrest             = -49.0; //-55.0;    // 
-    VthRest           = -41.0; //-36.0;    // was -40. before moving the threshold in the middle                  
+    valueV            = -53.0;
+    Vrest             = -53.0;  
+    VthRest           = -45.0; // was -40. before moving the threshold in the middle                  
     mirrorBCflag      = 1.0; 
     InverseFlag       = 0.0;
     restart           = 0.0;      // from graylast
@@ -166,9 +187,9 @@ SigmoidLayer "ConeSigmoidOFF" = {   // 3
     marginWidth       = 4.0;        // for MPI running
     originalLayerName = "Cone";
     InitVType         = "ConstantV";
-    valueV            = -54.0; //-62.2;      // Vadj      = VgrayCone - (VthrestON+VrestON)/2
-    Vrest             = -54.0; //-62.2;      // Vrest     = VrestON + 2*Vadj
-    VthRest           = -41.0; //-43.2;      // Vthrest   = VthrestON + 2*Vadj
+    valueV            = -57.0;    // Vadj      = VgrayCone - (VthrestON+VrestON)/2
+    Vrest             = -57.0;    // Vrest     = VrestON + 2*Vadj
+    VthRest           = -48.0;      // Vthrest   = VthrestON + 2*Vadj
     mirrorBCflag      = 1.0;        //   
     InverseFlag       = 1.0;        //  
     restart           = 0.0;        // from graylast
@@ -241,7 +262,7 @@ SigmoidLayer "HorizontalSigmoidON" = {        // 8
     InitVType         = "ConstantV";
     valueV            = -52.0; //-55.0;
     Vrest             = -52.0; //-58.233;     //
-    VthRest           = -36.0; //-34.233;     //                        <=============== disabled
+    VthRest           = -30.0; //-34.233;     //                        <=============== disabled
     mirrorBCflag      = 1.0;         // 
     restart           = 0.0;         // from graylast
     nf                = 1;
@@ -263,7 +284,7 @@ SigmoidLayer "HorizontalSigmoidOFF" = {        // 8
     InitVType         = "ConstantV";
     valueV            = -52.0; //-55.0;
     Vrest             = -52.0; //-68.233; //-58.233;     //
-    VthRest           = -36.0; //-44.233; //-34.233;     //                        <=============== disabled
+    VthRest           = -30.0; //-44.233; //-34.233;     //                        <=============== disabled
     mirrorBCflag      = 1.0;         // 
     restart           = 0.0;         // from graylast
     nf                = 1;
@@ -374,9 +395,9 @@ SigmoidLayer "BipolarSigmoidOFF" = {    //19
     nf                = 1;
     marginWidth       = 4.0;           // for MPI running
     InitVType         = "ConstantV";
-    valueV            = -63.0; //-70.0;
-    Vrest             = -63.0; //-66.0;         // BipolarSigmoidOFF
-    VthRest           = -41.0; //-48.0; //-42.0; 
+    valueV            = -70.0; //-70.0;
+    Vrest             = -70.0; //-66.0;         // BipolarSigmoidOFF
+    VthRest           = -40.0; //-48.0; //-42.0; 
     mirrorBCflag      = 1.0;           //
     restart           = 0.0;           // from graylast
     InverseFlag       = 0.0;
@@ -449,8 +470,8 @@ SigmoidLayer "SFAmacrineSigmoid" = {         // 30
     nf                = 1;
     marginWidth       = 2.0;        // for MPI running
     InitVType         = "ConstantV";
-    valueV            = -52.0;
-    Vrest             = -52.0;      // SFAmacrineSigmoid
+    valueV            = -70.0;
+    Vrest             = -70.0;      // SFAmacrineSigmoid
     VthRest           = -48.0;      //                            <=============== disabled
     mirrorBCflag      = 1.0;        // 
     restart           = 0.0;        // from graylast
@@ -507,9 +528,9 @@ SigmoidLayer "WFAmacrineSigmoidON" = {  // 11
     nf                = 1;
     marginWidth       = 1.0;            // for MPI running
     InitVType         = "ConstantV";
-    valueV            = -63.0;
-    Vrest             = -63.0;          // WFAmacrineSigmoidON
-    VthRest           = -33.0;          //                            <=============== disabled
+    valueV            = -70.0;
+    Vrest             = -70.0;          // WFAmacrineSigmoidON
+    VthRest           = -40.0;          //                            <=============== disabled
     mirrorBCflag      = 1.0;            // 
     restart           = 0.0;            // from graylast
     InverseFlag       = 0.0;
@@ -561,9 +582,9 @@ SigmoidLayer "WFAmacrineSigmoidOFF" = {   // 22
     nf                = 1;
     marginWidth       = 1.0;              // for MPI running
     InitVType         = "ConstantV";
-    valueV            = -63.0;
-    Vrest             = -63.0;            // WFAmacrineSigmoidOFF
-    VthRest           = -33.0;            //                            <=============== disabled
+    valueV            = -70.0;
+    Vrest             = -70.0;            // WFAmacrineSigmoidOFF
+    VthRest           = -40.0;            //                            <=============== disabled
     mirrorBCflag      = 1.0;              // 
     restart           = 0.0;              // from graylast
     InverseFlag       = 0.0;
@@ -949,8 +970,8 @@ KernelConn "ConeSigmoidOFFToBipolarOFF" = {        // 1
 
 
 disable = true;
-KernelConn "ConeSigmoidONToHorizontal" = {      // 2
-    preLayerName           = "ConeSigmoidON";
+KernelConn "ConeSigmoidToHorizontal" = {      // 2
+    preLayerName           = "ConeSigmoid";
     postLayerName          = "Horizontal";
     channelCode            = 0;                   // forward
     nxp                    = 3;                   // odd times 1 because of scale factor
