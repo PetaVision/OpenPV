@@ -10,34 +10,34 @@ HyPerCol "column" = {
                                            // 
    randomSeed                   = 1020304050.0;   
                                            //
-   numSteps                     = 90020000;// amount of time steps performed during run-time
+   numSteps                     = 20000000;// amount of time steps performed during run-time
    progressStep                 = 500000;  // write output to see progress
    writeProgressToErr           = 0;       // write progress steps to std err
                                            // 
    //outputPath                 = "~/Documents/workspace/iHouse/output";
    //outputPath                   = "~/Documents/Work/LANL/workspace/iHouse/output"; //Dylan's Mac
-   outputPath                   = "~/workspace/iHouse/outputNoInhib"; //Dylan's Remote 
+   outputPath                   = "~/workspace/iHouse/output"; //Dylan's Remote 
                                            // 
    filenamesContainLayerNames      = 2;    // stores pvp files as: 0 = layer number/1 = layer number and layer name/2 = layer name
    filenamesContainConnectionNames = 2;
                                            // 
-   checkpointRead               = true;
+   checkpointRead               = false;
    //checkpointReadDir            = "~/Documents/workspace/iHouse/checkpoints";
    //checkpointReadDir            = "~/Documents/Work/LANL/workspace/iHouse/checkpoints"; //Dylan's Mac
-   checkpointReadDir            = "~/workspace/iHouse/checkpointsNoInhib"; //Dylan's Remote 
-   checkpointReadDirIndex       = 90010000;
+   checkpointReadDir            = "~/workspace/iHouse/checkpoints"; //Dylan's Remote 
+   checkpointReadDirIndex       = 10000000;
                                            //
    checkpointWrite              = true;
    deleteOlderCheckpoints       = false;
    //checkpointWriteDir           = "~/Documents/workspace/iHouse/output/checkpoints";
    //checkpointWriteDir           = "~/Documents/Work/LANL/workspace/iHouse/checkpoints"; //Dylan's Mac
-   checkpointWriteDir           = "~/workspace/iHouse/checkpointsNoInhib"; //Dylan's Remote 
-   checkpointWriteStepInterval  = 10000;
+   checkpointWriteDir           = "~/workspace/iHouse/checkpoints"; //Dylan's Remote 
+   checkpointWriteStepInterval  = 10000000;
    suppressLastOutput           = 0;
                                            //
    //printParamsFilename          = "~/Documents/workspace/iHouse/output/params_run.pv";
    //printParamsFilename          = "~/Documents/Work/LANL/workspace/iHouse/output/params_run.pv"; //Dylan's Mac
-   printParamsFilename          = "~/workspace/iHouse/outputNoInhib/params_run.pv"; //Dylan's remote 
+   printParamsFilename          = "~/workspace/iHouse/output/params_run.pv"; //Dylan's remote 
 };
 
 
@@ -371,7 +371,7 @@ OjaSTDPConn "RetinaONtoLif" = {
    LTDscale               = 1;     // Scale for the change of ampLTD. Must be positive; defaults to postVthRest - posVrest. If 0, adaptive LTD is fixed to initAmpLTD
                                    //
    numAxonalArbors        = 2;
-   delay                  = [2,0];
+   delay                  = [0,2];
                                    //
    weightInitType         = "UniformRandomWeight";
    //weightInit             = 0.001;
@@ -429,7 +429,7 @@ OjaSTDPConn "RetinaOFFtoLif" = {
    LTDscale               = 1;     // Scale for the change of ampLTD. Must be positive; defaults to postVthRest - posVrest. If 0, adaptive LTD is fixed to initAmpLTD
                                    //
    numAxonalArbors        = 2;
-   delay                  = [2,0];
+   delay                  = [0,2];
                                    //
    weightInitType         = "UniformRandomWeight";
    //weightInit             = 0.001;
