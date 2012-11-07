@@ -10,7 +10,7 @@ HyPerCol "column" = {
                                            // 
    randomSeed                   = 1020304050.0;   
                                            //
-   numSteps                     = 10000000;// amount of time steps performed during run-time
+   numSteps                     = 90020000;// amount of time steps performed during run-time
    progressStep                 = 500000;  // write output to see progress
    writeProgressToErr           = 0;       // write progress steps to std err
                                            // 
@@ -21,18 +21,18 @@ HyPerCol "column" = {
    filenamesContainLayerNames      = 2;    // stores pvp files as: 0 = layer number/1 = layer number and layer name/2 = layer name
    filenamesContainConnectionNames = 2;
                                            // 
-   checkpointRead               = false;
+   checkpointRead               = true;
    //checkpointReadDir            = "~/Documents/workspace/iHouse/checkpoints";
    //checkpointReadDir            = "~/Documents/Work/LANL/workspace/iHouse/checkpoints"; //Dylan's Mac
    checkpointReadDir            = "~/workspace/iHouse/checkpointsNoInhib"; //Dylan's Remote 
-   checkpointReadDirIndex       = 10000000;
+   checkpointReadDirIndex       = 90010000;
                                            //
    checkpointWrite              = true;
    deleteOlderCheckpoints       = false;
    //checkpointWriteDir           = "~/Documents/workspace/iHouse/output/checkpoints";
    //checkpointWriteDir           = "~/Documents/Work/LANL/workspace/iHouse/checkpoints"; //Dylan's Mac
    checkpointWriteDir           = "~/workspace/iHouse/checkpointsNoInhib"; //Dylan's Remote 
-   checkpointWriteStepInterval  = 5000000;
+   checkpointWriteStepInterval  = 10000;
    suppressLastOutput           = 0;
                                            //
    //printParamsFilename          = "~/Documents/workspace/iHouse/output/params_run.pv";
