@@ -171,8 +171,8 @@ LIF "lif" = {
    VthRest          = -55.0;     // firing threshold 15 mV above rest
    tauVth           = 10.0;      // 10.0 relative refractory period
    deltaVth         = 5.0;       // jump of threshold when firing
-   noiseAmpE        = 1;         // 0 to 1 means conductance is equal to lead conductance -gjk
-   noiseAmpI        = 1;         // 0 to 1 twice as easy for the membrane capacitance to discharge -gjk
+   noiseAmpE        = 0.25;      // 0 to 1 means conductance is equal to lead conductance -gjk
+   noiseAmpI        = 0.25;      // 0 to 1 twice as easy for the membrane capacitance to discharge -gjk
    noiseAmpIB       = 0.0;       // no noise here 
    noiseFreqE       = 250.;      // spontaneous transmitter release/channel openings
    noiseFreqI       = 250.;      // correlation to time step size
@@ -371,7 +371,7 @@ OjaSTDPConn "RetinaONtoLif" = {
    LTDscale               = 1;     // Scale for the change of ampLTD. Must be positive; defaults to postVthRest - posVrest. If 0, adaptive LTD is fixed to initAmpLTD
                                    //
    numAxonalArbors        = 2;
-   delay                  = [0,2];
+   delay                  = [2,0];
                                    //
    weightInitType         = "UniformRandomWeight";
    //weightInit             = 0.001;
@@ -429,7 +429,7 @@ OjaSTDPConn "RetinaOFFtoLif" = {
    LTDscale               = 1;     // Scale for the change of ampLTD. Must be positive; defaults to postVthRest - posVrest. If 0, adaptive LTD is fixed to initAmpLTD
                                    //
    numAxonalArbors        = 2;
-   delay                  = [0,2];
+   delay                  = [2,0];
                                    //
    weightInitType         = "UniformRandomWeight";
    //weightInit             = 0.001;
