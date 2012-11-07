@@ -17,7 +17,7 @@ mpi_np              = '4'
 mpi_rows            = '2'
 mpi_columns         = '2'
 
-num_steps_list      = ['2000'] #[str(450*33)]#
+num_steps_list      = ['3000'] #[str(450*33)]#
 stochastic_flag     = '1' #preActivityNotRate = !stochastic_flag
 PA_delay            = '2.0'
 
@@ -28,15 +28,15 @@ run_name            = 'biggraywhiteblackspots' #'Heli_Challenge_026'#
 ## PATH PARAMS
 #######################################################################################
 #Gerd
-#wrkspc_path         = '/Users/gerdjkunde/Documents/workspace/'
-#remote_wrkspc_path  = wrkspc_path  
-#data_path           = wrkspc_path 
+wrkspc_path         = '/Users/gerdjkunde/Documents/workspace/'
+remote_wrkspc_path  = wrkspc_path  
+data_path           = wrkspc_path 
 
 
 #Gar
-wrkspc_path         = '/Users/garkenyon/workspace-sync-anterior'
-remote_wrkspc_path  = wrkspc_path #'/home/gkenyon/workspace-sync-anterior'#
-data_path           = wrkspc_path #remote_wrkspc_path #'/nh/compneuro/Data'
+#wrkspc_path         = '/Users/garkenyon/workspace-sync-anterior'
+#remote_wrkspc_path  = wrkspc_path #'/home/gkenyon/workspace-sync-anterior'#
+#data_path           = wrkspc_path #remote_wrkspc_path #'/nh/compneuro/Data'
 
 #Dylan
 #wrkspc_path         = '/Users/dpaiton/Documents/Work/LANL/workspace'
@@ -67,6 +67,7 @@ ConstantVrest        = 1
 
 #CONE
 Cone                 = 1
+ConeSigmoid          = 1
 ConeSigmoidON        = 1
 ConeSigmoidOFF       = ConeSigmoidON
 
@@ -117,7 +118,7 @@ ConeSigmoidHorizontal        = ["%g" % x for x in frange(0.5,0,0)]   # ConeSigmo
 HorizontalGapHorizontal      = ["%g" % x for x in frange(3,0,0)]     # HorizontalGap to Horizontal
 #HorizontalSigmoidConeON      = ["%g" % x for x in frange(1,0,0)]     # HorizontalSigmoidON to Cone
 #HorizontalSigmoidBipolarOFF  = ["%g" % x for x in frange(2.5,0,0)]     # HorizontalSigmoidOFF to BipolarOFF
-HorizontalSigmoidConeON      = ["%g" % x for x in frange(0.5,0,0)]   # HorizontalSigmoidON to Cone
+HorizontalSigmoidConeON      = ["%g" % x for x in frange(1.0,0,0)]   # HorizontalSigmoidON to Cone
 HorizontalSigmoidBipolarOFF  = ["%g" % x for x in frange(0.0,0,0)]   # HorizontalSigmoidOFF to BipolarOFF
                                                                      
 BipolarSigmoidSFAmacrine     = ["%g" % x for x in frange(1,0,0)]     # BipolarSigmoid to SFAmacrine
@@ -246,6 +247,8 @@ for num_steps in num_steps_list:
                 enable = True
             elif 'LIFGap "Cone"' in line and Cone==1:
                 enable = True 
+            elif 'SigmoidLayer "ConeSigmoid"' in line and ConeSigmoid==1:
+                enable = True 
             elif 'SigmoidLayer "ConeSigmoidON"' in line and ConeSigmoidON==1:
                 enable = True 
             elif 'SigmoidLayer "ConeSigmoidOFF"' in line and ConeSigmoidOFF==1:
@@ -316,7 +319,7 @@ for num_steps in num_steps_list:
                 if len(zero_index)>0:
                     if nonZeroStrength[zero_index[0]]:
                         enable = True
-            elif 'KernelConn "ConeSigmoidONToHorizontal"' in line and ConeSigmoidON==1 and Horizontal==1:
+            elif 'KernelConn "ConeSigmoidToHorizontal"' in line and ConeSigmoid==1 and Horizontal==1:
                 zero_index = [idx for idx, enum in enumerate([param in 'ConeSigmoidHorizontal' for param in conn_list]) if enum==True]
                 if len(zero_index)>0:
                     if nonZeroStrength[zero_index[0]]:
