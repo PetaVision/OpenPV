@@ -137,6 +137,9 @@ int LCALIFLateralConn::calc_dW(int axonId) {
                   if (pre_scale_dt_weight > 0 && pre_scale_dt_weight < coorThresh){
                      delta_weight = 0;
                   }
+                  else if(pre_scale_dt_weight >= coorThresh){
+                     delta_weight = dt_inh * (pre_scale_dt_weight - coorThresh);
+                  }
                   else{
                      delta_weight = dt_inh * pre_scale_dt_weight;
                   }
