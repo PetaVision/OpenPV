@@ -24,7 +24,7 @@ HyPerCol "column" = {
    checkpointRead               = true;
    //checkpointReadDir            = "~/Documents/workspace/iHouse/checkpoints";
    //checkpointReadDir            = "~/Documents/Work/LANL/workspace/iHouse/checkpoints"; //Dylan's Mac
-   checkpointReadDir            = "~/workspace/iHouse/checkpoints"; //Dylan's Remote 
+   checkpointReadDir            = "~/workspace/iHouse/checkpointsNoInhib"; //Dylan's Remote 
    checkpointReadDirIndex       = 10000000;
                                            //
    checkpointWrite              = true;
