@@ -10,7 +10,23 @@ function latPrintImage(mat, time, arborId, outDir, scaleFlag, figTitle)
       scaleFlag = 1;
    end
    assert(isempty(find(isnan(mat))), 'printImage: NaN in Matrix');
+
+   %%HISTOGRAM
+   if(VIEW_FIGS)
+      figure;
+   else
+      figure('Visible', 'off');
+   end
+   nBins = length(mat(:))/10;
+   hist(mat(:),nBins)
    
+   title([figTitle, ' Histogram - time: ', num2str(time), ' arbor: ', num2str(arborId)]);
+   if(WRITE_FIGS)
+      print_filename = [outDir, figTitle, '_Histogram_', num2str(double(time), '%.0f'), '_', num2str(arborId), '.jpg'];
+      print(print_filename);
+   end
+   
+   %%IMAGE MAP
    if(VIEW_FIGS)
       figure;
    else
@@ -24,7 +40,7 @@ function latPrintImage(mat, time, arborId, outDir, scaleFlag, figTitle)
    end
    imagesc(mat, scale);
    %Find max/min of mat, and set scale equal to that
-   colormap(gray);
+   %colormap(gray);
    colorbar;
 
    title([figTitle, ' - time: ', num2str(time), ' arbor: ', num2str(arborId)]);
