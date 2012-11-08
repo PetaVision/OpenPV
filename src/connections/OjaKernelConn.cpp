@@ -24,11 +24,11 @@ OjaKernelConn::~OjaKernelConn() {
    for (int arbor=0; arbor<numberOfAxonalArborLists(); arbor++) {
       inputFiringRate[arbor] = NULL;
    }
+   free(inputFiringRate); inputFiringRate = NULL;
    for (int arbor=0; arbor<numberOfAxonalArborLists(); arbor++) {
       pvcube_delete(inputFiringRateCubes[arbor]); inputFiringRateCubes[arbor] = NULL;
    }
-   free(inputFiringRateCubes); inputFiringRate = NULL;
-   free(inputFiringRate); inputFiringRate = NULL;
+   free(inputFiringRateCubes); inputFiringRateCubes = NULL;
    free(outputFiringRate); outputFiringRate = NULL;
    Communicator::freeDatatypes(mpi_datatype); mpi_datatype = NULL;
 }
