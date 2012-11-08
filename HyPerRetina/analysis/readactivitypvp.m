@@ -118,6 +118,7 @@ if isempty(errorstring)
             for frame=1:numframes
                 fread(fid,1,'float64');
                 numactive = fread(fid,1,'uint32');
+	        disp(["numactive = ", num2str(numactive)]);
                 values = fread(fid,numactive,'uint32');
                 for c = 1:length(FNUM_SPEC)
                    if (~isempty(find(FNUM_SPEC{c} == frame)))

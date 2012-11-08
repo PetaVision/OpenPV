@@ -12,8 +12,8 @@
 %%%%%%%%
 clear all; close all; more off;
 
-global wrkspc_path;  wrkspc_path  = '~/workspace-sync-anterior';
-global output_path;  output_path  = [wrkspc_path,'/HyPerRetina/output/Heli_Challenge_026/p0/ns14850'];
+global wrkspc_path;  wrkspc_path  = '~/NeoVision2';
+global output_path;  output_path  = [wrkspc_path,'/neovision-programs-petavision/Heli/Challenge/026/p0/ns14850'];
 global filename;     filename     = [output_path,'/GanglionON.pvp'];
 global rootname;     rootname     = '00';
 
@@ -22,7 +22,7 @@ global IN_FILE_EXT; IN_FILE_EXT = 'png';
 %%%%%%%%
 
 global recon_output_path;  recon_output_path  = [output_path,'/movON'];
-global sourceDir;    sourceDir    = ['~/Pictures/neovision-data-challenge-heli/026'];
+global sourceDir;    sourceDir    = ['~/NeoVision2/neovision-data-challenge-heli/026'];
 gray2rgb = @(Image) double(cat(3,Image,Image,Image))./255;
 fps = 33;
 

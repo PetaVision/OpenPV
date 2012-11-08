@@ -7,7 +7,7 @@ close all;
 
 run_name       = "biggraywhiteblackspots";
 run_numbers    = 1;%[1:1:4];
-num_time_steps = 2000;
+num_time_steps = 3000;
 
 num_x_steps    = num_time_steps;
 begin_x_step   = 100;
@@ -228,6 +228,6 @@ for i = 1:length(run_numbers)
         titlestring = ['GanglionOFF\_p',num2str(run_num)];
         title(titlestring,"fontsize",15);
         print([out_path,'GanglionOFFResponse.pdf'],"-dpdf");
-        print([out_path,'GanglionOFFResponse.jpg'],"-djpg");
+        print([out_path,'GanglionOFFResponse.jpg'],"-djpg");	
     end
 end

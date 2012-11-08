@@ -2,7 +2,7 @@ clear all;
 global lifInhPatchX; lifInhPatchX = 21;
 global lifInhPatchY; lifInhPatchY = 21;
 global deltaT; deltaT = 1;
-global tLCA; tLCA = 20; %% use  fraction of framerate = 33
+global tLCA; tLCA = 33; %% use  fraction of framerate = 33
 global columnSizeY; columnSizeY = 1080/2; %%256;
 global columnSizeX; columnSizeX = 1920/2; %%256;
 
@@ -10,22 +10,33 @@ global PRINT_N; PRINT_N = 1;
 global CALC_COOR; CALC_COOR = 0;
 
 global FNUM_ALL; FNUM_ALL = 0;           %All farmes
-global FNUM_SPEC; FNUM_SPEC    = {...    %start:int:end frames
-   [34:33*4]...
-   [33*4+1:33*8]...
-   [33*8+1:33*12]...
-   [33*12+1:33*16]...
-   [33*16+1:33*20]...
-};
+num_frames = tLCA * 450;
+num_frames_per_block = floor(tLCA * 5);
+num_blocks = floor(num_frames / num_frames_per_block);
+num_frames = num_frames_per_block * num_blocks;
+global FNUM_SPEC; 
+FNUM_SPEC    = cell(1, num_blocks);
+for i_block = 1 : num_blocks
+  FNUM_SPEC{1,i_block} = ...
+      [(i_block-1)*num_frames + 1 : i_block*num_frames]; 
+endfor
+%%FNUM_SPEC = ...
+%%{...    %start:int:end frames
+%%   [34:33*4]...
+%%   [33*4+1:33*8]...
+%%   [33*8+1:33*12]...
+%%   [33*12+1:33*16]...
+%%   [33*16+1:33*20]...
+%%};
 
 global NUM_PROCS; NUM_PROCS = 1;%% nproc();
 
 rootDir                                    = '/Users/garkenyon';
 workspaceDir                               = [rootDir,'/workspace-sync-anterior/HyPerRetina'];
-pvpDir                                     = [workspaceDir,'/output/Heli_Challenge_026/p0/ns14850/'];
+pvpDir                                     = [rootDir, '/NeoVision2/neovision-programs-petavision/Heli/Challenge/026/p0/ns14850/'];
 outDir                                     = pvpDir;
 global outputDir; outputDir                = [outDir, 'coor/'];
-global outputMovieDir; outputMovieDir      = [outputDir, 'nMovie/'];
+global outputMovieDir; outputMovieDir      = [outputDir, 'nMovieGanglionOFF/'];
 postActivityFile                           = [pvpDir,'GanglionOFF.pvp'];
 
 if (exist(outDir, 'dir') ~= 7)

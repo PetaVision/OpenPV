@@ -28,15 +28,15 @@ run_name            = 'biggraywhiteblackspots' #'Heli_Challenge_026'#
 ## PATH PARAMS
 #######################################################################################
 #Gerd
-wrkspc_path         = '/Users/gerdjkunde/Documents/workspace/'
-remote_wrkspc_path  = wrkspc_path  
-data_path           = wrkspc_path 
+#wrkspc_path         = '/Users/gerdjkunde/Documents/workspace/'
+#remote_wrkspc_path  = wrkspc_path  
+#data_path           = wrkspc_path 
 
 
 #Gar
-#wrkspc_path         = '/Users/garkenyon/workspace-sync-anterior'
-#remote_wrkspc_path  = wrkspc_path #'/home/gkenyon/workspace-sync-anterior'#
-#data_path           = wrkspc_path #remote_wrkspc_path #'/nh/compneuro/Data'
+wrkspc_path         = '/Users/garkenyon/workspace-sync-anterior'
+remote_wrkspc_path  = wrkspc_path #'/home/gkenyon/workspace-sync-anterior'#
+data_path           = wrkspc_path #remote_wrkspc_path #'/nh/compneuro/Data'
 
 #Dylan
 #wrkspc_path         = '/Users/dpaiton/Documents/Work/LANL/workspace'
