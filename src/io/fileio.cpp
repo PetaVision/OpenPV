@@ -1451,9 +1451,9 @@ int writeWeights(const char * filename, Communicator * comm, double timed, bool 
          }
 #endif // PV_USE_MPI
       } // end loop over arbors
-      free(cbuf);
       pvp_close_file(fp, comm);
    } // icRank == 0
+   free(cbuf); cbuf = NULL;
 
    return PV_SUCCESS; // TODO error handling
 }  // end writeWeights (all arbors)
