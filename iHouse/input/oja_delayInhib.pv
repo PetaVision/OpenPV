@@ -10,7 +10,7 @@ HyPerCol "column" = {
                                            // 
    randomSeed                   = 1020304050.0;   
                                            //
-   numSteps                     = 40000000;// amount of time steps performed during run-time
+   numSteps                     = 20000000;// amount of time steps performed during run-time
    progressStep                 = 500000;  // write output to see progress
    writeProgressToErr           = 0;       // write progress steps to std err
                                            // 
@@ -147,8 +147,8 @@ Retina "RetinaOFF" = {
 
 
 LIF "lif" = {
-   nxScale          = 2;
-   nyScale          = 2;
+   nxScale          = 1;
+   nyScale          = 1;
    nf               = 1;
                                  // 
    writeStep        = -1; 		 // Set to 1 to make movie
@@ -344,8 +344,8 @@ KernelConn "ImagetoRetinaOFFSurround" = {
 OjaSTDPConn "RetinaONtoLif" = {
    preLayerName           = "RetinaON";
    postLayerName          = "lif";
-   nxp                    = 10;
-   nyp                    = 10;
+   nxp                    = 9;
+   nyp                    = 9;
    nfp                    = 1;
    channelCode            = 0;
                                    //
@@ -402,8 +402,8 @@ OjaSTDPConn "RetinaONtoLif" = {
 OjaSTDPConn "RetinaOFFtoLif" = {
    preLayerName           = "RetinaOFF";
    postLayerName          = "lif";
-   nxp                    = 10;
-   nyp                    = 10;
+   nxp                    = 9;
+   nyp                    = 9;
    nfp                    = 1;
    channelCode            = 0;
                                    //
@@ -467,8 +467,8 @@ LCALIFLateralConn "lif lateral inhibition" = {
     preLayerName            = "lif";
     postLayerName           = "lif";
     channelCode             = 1;
-    nxp                     = 15;
-    nyp                     = 15;
+    nxp                     = 17;    // Patch size * 2 - 1
+    nyp                     = 17;    // Patch size * 2 - 1
     nfp                     = 1;
                                      //
     integrationTimeConstant = 300;
