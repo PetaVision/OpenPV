@@ -933,6 +933,7 @@ int Patterns::checkpointWrite(const char * cpDir) {
       }
       fclose(fp);
    }
+   free(filename); filename=NULL;
    return PV_SUCCESS;
 }
 
