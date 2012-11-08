@@ -54,6 +54,7 @@ class LCALIFLateralKernelConn: public KernelConn {
       float inhibitionTimeConstant; // Time constant tau_{inh}, the timescale for updating he weights in this connection
       float targetRateKHz;          // Target rate in kilohertz; note that params file is understood to give value in hertz
       MPI_Datatype * mpi_datatype;  // Used to mirror the integrated spike count
+      float ** interiorCounts;         // We should average only over the patches where the presynaptic neuron is in the restricted patch, to eliminate correlations caused by mirroring.  This buffer maintains the count to divide by in obtaining the average.
 };
 
 } /* namespace PV */

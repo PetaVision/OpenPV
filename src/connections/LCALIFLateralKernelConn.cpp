@@ -24,12 +24,15 @@ LCALIFLateralKernelConn::~LCALIFLateralKernelConn()
 {
    pvcube_delete(integratedSpikeCountCube); integratedSpikeCountCube = NULL; integratedSpikeCount = NULL;
    Communicator::freeDatatypes(mpi_datatype); mpi_datatype = NULL;
+   free(interiorCounts[0]);
+   free(interiorCounts); interiorCounts = NULL;
 }
 
 int LCALIFLateralKernelConn::initialize_base() {
    integratedSpikeCountCube = NULL;
    integratedSpikeCount = NULL;
    mpi_datatype = NULL;
+   interiorCounts = NULL;
    return PV_SUCCESS;
 }
 
@@ -68,6 +71,55 @@ int LCALIFLateralKernelConn::initialize(const char * name, HyPerCol * hc, HyPerL
       fprintf(stderr, "LCALIFLateralKernelConn \"%s\" error creating mpi_datatype\n", name);
       abort();
    }
+
+   // Compute the number of times each patch contributes to dw, for proper averaging.
+   int num_arbors = numberOfAxonalArborLists();
+   interiorCounts = (float **) calloc(num_arbors, sizeof(float *));
+   if (interiorCounts==NULL) {
+      fprintf(stderr, "LCALIFLateralKernelConn::initialize \"%s\" error: unable to allocate memory for interiorCounts pointer\n", name);
+   }
+   interiorCounts[0] = (float *) calloc(getNumDataPatches()*nxp*nyp*nfp, sizeof(float));
+   if (interiorCounts[0]==NULL) {
+      fprintf(stderr, "LCALIFLateralKernelConn::initialize \"%s\" error: unable to allocate memory for interiorCounts\n", name);
+   }
+   for (int arbor=1; arbor<num_arbors; arbor++) {
+      interiorCounts[arbor] = interiorCounts[0]+arbor*getNumDataPatches()*nxp*nyp*nfp;
+   }
+   int nExt = pre->getNumExtended();
+   int sya = getPostExtStrides()->sy;
+   int nxglob = preloc->nxGlobal;
+   int nyglob = preloc->nyGlobal;
+   int kx0 = preloc->kx0;
+   int ky0 = preloc->ky0;
+   for (int arbor=0; arbor<numberOfAxonalArborLists(); arbor++) {
+      for(int kExt=0; kExt<nExt;kExt++) {
+         int xglob = kxPos(kExt, nxpre + 2*nbpre, nypre + 2*nbpre, nfpre) + kx0 - nbpre;
+         int yglob = kyPos(kExt, nypre + 2*nbpre, nypre + 2*nbpre, nfpre) + ky0 - nbpre;
+         if (xglob < 0 || xglob >= nxglob || yglob < 0 || yglob >= nyglob) {
+            continue;
+         }
+         PVPatch * weights = getWeights(kExt,arbor);
+         int offset = (int) getAPostOffset(kExt, arbor);
+         int ny = weights->ny;
+         int nk = weights->nx * nfp;
+         int interiorCountOffset = get_wData(arbor, kExt)-get_wDataStart(arbor);
+         int lineoffsetw = 0;
+         int lineoffseta = 0;
+         for( int y=0; y<ny; y++ ) {
+            for( int k=0; k<nk; k++ ) {
+               int postactindex = offset+lineoffseta+k;
+               if (postactindex != kExt) { // Neurons don't inhibit themselves
+                  interiorCounts[arbor][interiorCountOffset + lineoffsetw + k]++;
+               }
+            }
+            lineoffsetw += syp;
+            lineoffseta += sya;
+         }
+      }
+   }
+   int bufsize = numberOfAxonalArborLists() * getNumDataPatches() * nxp * nyp * nfp;
+   MPI_Allreduce(MPI_IN_PLACE, interiorCounts[0], bufsize, MPI_INT, MPI_SUM, parent->icCommunicator()->communicator());
+
    return status;
 }
 
@@ -91,7 +143,21 @@ int LCALIFLateralKernelConn::update_dW(int axonId) {
 
    int sya = (post->getLayerLoc()->nf * (post->getLayerLoc()->nx + 2*post->getLayerLoc()->nb));
 
+   const PVLayerLoc * preloc = pre->getLayerLoc();
+   int nxpre = preloc->nx;
+   int nypre = preloc->ny;
+   int nfpre = preloc->nf;
+   int nbpre = preloc->nb;
+   int nxglob = preloc->nxGlobal;
+   int nyglob = preloc->nyGlobal;
+   int kx0 = preloc->kx0;
+   int ky0 = preloc->ky0;
    for(int kExt=0; kExt<nExt;kExt++) {
+      int xglob = kxPos(kExt, nxpre + 2*nbpre, nypre + 2*nbpre, nfpre) + kx0 - nbpre;
+      int yglob = kyPos(kExt, nypre + 2*nbpre, nypre + 2*nbpre, nfpre) + ky0 - nbpre;
+      if (xglob < 0 || xglob >= nxglob || yglob < 0 || yglob >= nyglob) {
+         continue;
+      }
       PVPatch * weights = getWeights(kExt,axonId);
       size_t offset = getAPostOffset(kExt, axonId);
       pvdata_t preactrate = preactbuf[kExt]/integrationTimeConstant;
@@ -113,16 +179,15 @@ int LCALIFLateralKernelConn::update_dW(int axonId) {
          lineoffseta += sya;
       }
    }
-
    // Normalize by dt/tauINH/(targetrate^2) and divide by (numNeurons/numKernels)
-   int divisor = pre->getNumNeurons()/numKernelIndices;
-   float normalizer = dt/tauINH/target_rate_sq/divisor;
-   assert( divisor*numKernelIndices == pre->getNumNeurons() );
+   float normalizer = dt/tauINH/target_rate_sq;
+   int patch_size = nxp*nyp*nfp;
    for( int kernelindex=0; kernelindex<numKernelIndices; kernelindex++ ) {
-      int numpatchitems = nxp*nyp*nfp;
       pvdata_t * dwpatchdata = get_dwDataHead(axonId,kernelindex);
-      for( int n=0; n<numpatchitems; n++ ) {
-         dwpatchdata[n] *= normalizer;
+      float * divisorptr = &interiorCounts[axonId][kernelindex*patch_size];
+      for( int n=0; n<patch_size; n++ ) {
+         assert(divisorptr[n]>0 || dwpatchdata[n]==0);
+         if (divisorptr[n]>0) dwpatchdata[n] *= normalizer/divisorptr[n];
       }
    }
 
@@ -169,6 +234,10 @@ int LCALIFLateralKernelConn::checkpointWrite(const char * cpDir) {
       abort();
    }
    write_pvdata(filename, parent->icCommunicator(), (double) parent->simulationTime(), integratedSpikeCount, pre->getLayerLoc(), PV_FLOAT_TYPE, /*extended*/ true, /*contiguous*/ false);
+
+   chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_dW.pvp", cpDir, name);
+   assert(chars_needed < PV_PATH_MAX);
+   HyPerConn::writeWeights(NULL, get_dwDataStart(), getNumDataPatches(), filename, parent->simulationTime(), true);
    return status;
 }
 
@@ -181,7 +250,7 @@ int LCALIFLateralKernelConn::checkpointRead(const char * cpDir, double * timef) 
       abort();
    }
    double timed;
-   read_pvdata(filename, parent->icCommunicator(), &timed, integratedSpikeCount, pre->getLayerLoc(), PV_FLOAT_TYPE, /*extended*/ false, /*contiguous*/ false);
+   read_pvdata(filename, parent->icCommunicator(), &timed, integratedSpikeCount, pre->getLayerLoc(), PV_FLOAT_TYPE, /*extended*/ true, /*contiguous*/ false);
    if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
       fprintf(stderr, "Warning: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
    }
