@@ -35,7 +35,7 @@ private:
    int initialize_base();
 
 // Member variables
-private:
+protected:
    char * name; // Name of the probe; corresponds to the group name in the params file
    char * filename; // Name of the output file.  Can be NULL if output goes to stdout
    FILE * fp; // pointer to output file; NULL except for root process.  If filename is NULL, fp will be stdout.
