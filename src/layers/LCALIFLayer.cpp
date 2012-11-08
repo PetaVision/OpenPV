@@ -113,6 +113,8 @@ int LCALIFLayer::initialize(const char * name, HyPerCol * hc, int num_channels, 
    for (int k=0; k<numNeurons; k++) { 
       integratedSpikeCount[k] = targetRateHz/1000; // Initialize integrated spikes to non-zero value
       Vadpt[k]                = lParams.VthRest;   // Initialize integrated spikes to non-zero value
+      Vattained[k]            = lParams.Vrest;
+      Vmeminf[k]              = lParams.Vrest;
    }
 
    return PV_SUCCESS;
