@@ -169,6 +169,7 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
            "_Start_BaseConnectionProbes_",
              "KernelProbe",
              "OjaConnProbe",
+             "OjaKernelSpikeRateProbe",
              "LCALIFLateralProbe",
              "PatchProbe",
              "ReciprocalEnergyProbe",
@@ -1132,6 +1133,17 @@ BaseConnectionProbe * addBaseConnectionProbeToColumn(const char * classkeyword, 
          int kfPost = params->value(name, "kfPost");
          addedProbe = new OjaConnProbe(msg, filename, targetConn, kxPost, kyPost, kfPost, isPostProbe);
       }
+      status = checknewobject((void *) addedProbe, classkeyword, name, hc);
+   }
+   if( !strcmp(classkeyword, "OjaKernelSpikeRateProbe")) {
+      keywordMatched = true;
+      const char * filename = params->stringValue(name, "probeOutputFile");
+      targetConn = hc->getConnFromName(params->stringValue(name, "targetConnection"));
+      if( targetConn == NULL ) {
+         fprintf(stderr, "Error: connection probe \"%s\" requires parameter \"targetConnection\".\n", name);
+         return NULL;
+      }
+      addedProbe = new OjaKernelSpikeRateProbe(name, filename, targetConn);
       status = checknewobject((void *) addedProbe, classkeyword, name, hc);
    }
    if( !strcmp(classkeyword, "LCALIFLateralProbe")) {
