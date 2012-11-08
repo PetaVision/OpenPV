@@ -122,8 +122,10 @@ int LCALIFLayer::initialize(const char * name, HyPerCol * hc, int num_channels, 
 
 LCALIFLayer::~LCALIFLayer()
 {
-   free(integratedSpikeCount);
-   free(Vadpt);
+   free(integratedSpikeCount); integratedSpikeCount = NULL;
+   free(Vadpt); Vadpt = NULL;
+   free(Vattained); Vattained = NULL;
+   free(Vmeminf); Vmeminf = NULL;
 }
 
 int LCALIFLayer::allocateBuffers() {
