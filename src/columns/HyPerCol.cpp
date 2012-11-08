@@ -80,6 +80,9 @@ HyPerCol::~HyPerCol()
    free(path);
    free(outputPath);
    free(outputNamesOfLayersAndConns);
+   if (checkpointWriteFlag) {
+      free(checkpointWriteDir); checkpointWriteDir = NULL;
+   }
 }
 
 int HyPerCol::initFinish(void)
@@ -398,6 +401,7 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * p
       }
    }
    else {
+      checkpointWriteDir = NULL;
       suppressLastOutput = params->value(name, "suppressLastOutput", false) != 0;
    }
 
