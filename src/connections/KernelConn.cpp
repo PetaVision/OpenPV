@@ -126,6 +126,9 @@ int KernelConn::initializeUpdateTime(PVParams * params) {
       weightUpdatePeriod = params->value(name, "weightUpdatePeriod", defaultUpdatePeriod);
       weightUpdateTime = params->value(name, "initialWeightUpdateTime", 0.0f);
    }
+   else {
+      weightUpdateTime = 0.0f;
+   }
    return PV_SUCCESS;
 }
 
