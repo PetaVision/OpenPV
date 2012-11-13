@@ -52,6 +52,7 @@ public:
    int pushValue(double value);
    bool hasBeenRead() { return hasBeenReadFlag; }
    void clearHasBeenRead() { hasBeenReadFlag = false; }
+   int outputString(FILE * fp, int indentation);
 
 private:
    bool paramNameSet;
@@ -103,6 +104,7 @@ public:
    ParameterArrayStack(int initialCount);
    virtual ~ParameterArrayStack();
    int push(ParameterArray * array);
+   int outputStack(FILE * fp, int indentation);
    int size() {return count;}
    ParameterArray * peek(int index) {return index>=0 && index<count ? parameterArrays[index] : NULL; }
 

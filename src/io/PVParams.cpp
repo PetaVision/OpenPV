@@ -143,6 +143,19 @@ int ParameterArray::pushValue(double value) {
    return arraySize;
 }
 
+int ParameterArray::outputString(FILE * fp, int indentation) {
+   int status = PV_SUCCESS;
+   for( int i=indentation; i>0; i--) fputc(' ', fp);
+   fprintf(fp, "%s : Values:\n", paramName);
+   int sz = 0;
+   const double * vals = getValuesDbl(&sz);
+   for (int j=0; j<sz; j++) {
+      for (int i=indentation; i>0; i--) fputc(' ', fp);
+      fprintf(fp, "    value %d = %f\n", j, vals[j]);
+   }
+   return status;
+}
+
 
 /**
  * @name
@@ -253,6 +266,18 @@ int ParameterArrayStack::push(ParameterArray * array) {
    return PV_SUCCESS;
 }
 
+int ParameterArrayStack::outputStack(FILE * fp, int indentation) {
+   int status = PV_SUCCESS;
+   for( int i=indentation; i>0; i-- ) {
+      fputc(' ', fp);
+   }
+   fprintf(fp, "// array parameters\n");
+   for( int s=0; s<count; s++ ) {
+      if( parameterArrays[s]->outputString(fp, indentation) != PV_SUCCESS ) status = PV_FAILURE;
+   }
+   return status;
+}
+
 
 /*
  * initialCount
@@ -359,10 +384,11 @@ ParameterGroup::ParameterGroup(char * name, ParameterStack * stack, ParameterArr
 
 ParameterGroup::~ParameterGroup()
 {
-   free(groupName);
-   free(groupKeyword);
-   delete stack;
-   delete stringStack;
+   free(groupName); groupName = NULL;
+   free(groupKeyword); groupKeyword = NULL;
+   delete stack; stack = NULL;
+   delete arrayStack; arrayStack = NULL;
+   delete stringStack; stringStack = NULL;
 }
 
 int ParameterGroup::setGroupKeyword(const char * keyword) {
@@ -570,6 +596,7 @@ int ParameterGroup::outputGroup(FILE * fp) {
    fprintf(fp, "%s \"%s\":\n", groupKeyword, groupName);
    int indentation = 4;
    if( stack->outputStack(fp, indentation) != PV_SUCCESS ) status = PV_FAILURE;
+   if (arrayStack->outputStack(fp, indentation) != PV_SUCCESS) status = PV_FAILURE;
    if( stringStack->outputStack(fp, indentation) != PV_SUCCESS ) status = PV_FAILURE;
    return status;
 }
@@ -828,7 +855,9 @@ PVParams::~PVParams()
       delete groups[i];
    }
    free(groups);
+   delete currentParamArray; currentParamArray = NULL;
    delete stack;
+   delete arrayStack;
    delete stringStack;
    delete this->activeParamSweep;
    for (int i=0; i<numParamSweeps; i++) {
@@ -853,7 +882,7 @@ int PVParams::initialize(size_t initialSize, InterColComm * icComm) {
    arrayStack = new ParameterArrayStack(PARAMETERARRAYSTACK_INITIALCOUNT);
    stringStack = new ParameterStringStack(PARAMETERSTRINGSTACK_INITIALCOUNT);
 
-   currentParamArray = new ParameterArray(8);
+   currentParamArray = new ParameterArray(PARAMETERARRAYSTACK_INITIALCOUNT);
 
    numParamSweeps = 0;
    paramSweeps = NULL;
