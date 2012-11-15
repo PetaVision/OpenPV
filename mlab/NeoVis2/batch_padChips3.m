@@ -3,7 +3,7 @@ more off
 
 %% clip_name gives the folder storing input images or chips
 ObjectType = "Car";
-clips_flag = true; %% false; %% 
+clips_flag = false; %% true; %% 
 if clips_flag 
   clip_ids = [1:50]; %% [26:50]; %% 
   clip_name = cell(length(clip_ids),1);
@@ -12,15 +12,16 @@ if clips_flag
   endfor
 else
   clip_name = cell(1);
-  clip_name{1} = "mask"; %% "Car_bootstrap0"; %% "Plane"; %% "distractor"; %% 
+  clip_name{1} = "Car_original"; %% "Car_bootstrap0"; %% "Plane"; %% "distractor"; %% 
 endif
 %% chip_path is the path to the folders referenced by clip_name 
 chip_path = ...
-    "/Volumes/InnoHouseData/NeoVision2/Heli/Helicopter Training Images/";
+    "/Users/garkenyon/NeoVision2/neovision-programs-petavision/Heli/Training/mask/";
+%%    "/Volumes/InnoHouseData/NeoVision2/Heli/Helicopter Training Images/";
 %%    "/nh/compneuro/Data/repo/neovision-programs-petavision/Heli/Training/canny/";
 chip_path_append = ""; %% "8FC";
 petavision_dir = ...
-    ["/Users/garkenyon/NeoVision2", filesep];
+    ["/Users/garkenyon/NeoVision2/neovision-programs-petavision", filesep];
 %%    ["/nh/compneuro/Data/repo/neovision-programs-petavision", filesep];
 dataset_dir = [petavision_dir, "Heli", filesep]; %% "noamoeba3", filesep];
 mkdir(dataset_dir);
@@ -30,7 +31,7 @@ mask_dir = [flavor_dir, "mask", filesep];
 mkdir(mask_dir);
 global pad_size
 pad_size = [1080 1920]; %% [256 256]; %%   
-num_procs = 8;
+num_procs = 4;
 
 global DoG_flag
 global canny_flag

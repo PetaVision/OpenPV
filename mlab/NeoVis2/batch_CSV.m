@@ -1,5 +1,5 @@
 %% begin definition of most variable input params
-clip_ids = [2:50]; %% [7:17,21:22,30:31]; %%
+clip_ids = [1:50]; %% [7:17,21:22,30:31]; %%
 clip_name = cell(length(clip_ids),1);
 for i_clip = 1 : length(clip_name)
   clip_name{i_clip} = num2str(clip_ids(i_clip), "%3.3i");
@@ -102,21 +102,24 @@ target_mask_dir = "";
 distractor_mask_dir = "";
 frame_mask_dir = "";
 if make_target_mask_flag
-  mask_dir = ...
+  mask_parent_dir = ...
       [distribution_repo_path, "mask", filesep]; 
+  mkdir(mask_parent_dir);
+  mask_dir = ...
+      [mask_parent_dir, ObjectType, filesep];
   mkdir(mask_dir);
   target_mask_dir = ...
-      [mask_dir, ObjectType, filesep];
+      [mask_dir, "target", filesep];
   mkdir(target_mask_dir);
   distractor_mask_dir = ...
-      [mask_dir, ObjectType, "_", "distractor", filesep];
+      [mask_dir, "distractor", filesep];
   mkdir(distractor_mask_dir);
   if isempty(pvp_edge_filter)
     frame_mask_dir = ...
-	[mask_dir, ObjectType, "_", "original", filesep];
+	[mask_dir, "original", filesep];
   else
     frame_mask_dir = ...
-	[mask_dir, pvp_edge_filter, filesep, ObjectType, "_", "original", filesep];
+	[mask_dir, pvp_edge_filter, filesep, "original", filesep];
   endif
   mkdir(frame_mask_dir);
 endif
