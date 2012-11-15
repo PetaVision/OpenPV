@@ -55,11 +55,7 @@ function [tot_chips, ...
   num_argin = 0;
   num_argin = num_argin + 1;
   if nargin < num_argin || ~exist("chip_path") || isempty(chip_path)
-    chip_path = "/mnt/data/repo/neovision-chips-heli/Heli-PNG-Training/"
-%%    chip_path = "/mnt/data1/repo/neovision-chips-heli/Heli-PNG-Formative/"
-%%    chip_path = "/mnt/data1/repo/neovision-programs-petavision/Heli/Training/canny/";
-%%    chip_path = ["/NeoVision2/neovision-data-training-heli/"]; 
-%%    chip_path = ["/mnt/data1/repo/neovision-data-training-heli/"]; 
+    chip_path = "~/NeoVision2/neovision-programs-petavision/Heli/Training/mask/Car_original/"
   endif
   num_argin = num_argin + 1;
   if nargin < num_argin || ~exist("clip_name_param") || isempty(clip_name_param)
@@ -77,7 +73,10 @@ function [tot_chips, ...
   disp(["clip_name = ", clip_name]);
   num_argin = num_argin + 1;
   if nargin < num_argin || ~exist("PetaVision_path") || isempty(PetaVision_path)
-    PetaVision_path = "/mnt/data/repo/neovision-programs-petavision/Heli/Training/";  %% 
+    PetaVision_path = "~/NeoVision/neovision-programs-petavision/Heli/Training/";  %% 
+  endif
+  if ~exist(PetaVision_path,"dir")
+    error(["does not exist: PetaVision_path = ", PetaVision_path]);
   endif
   num_argin = num_argin + 1;
   if nargin < num_argin || ~exist("DoG_flag_param") || isempty(DoG_flag_param)
@@ -172,6 +171,7 @@ function [tot_chips, ...
     error(["~exist(target_dir): ", target_dir]);
   endif
 
+  %%keyboard;
   cropped_path = [PetaVision_path, "cropped", filesep];
   mkdir(cropped_path);
   cropped_dir = [cropped_path, clip_name, filesep];
