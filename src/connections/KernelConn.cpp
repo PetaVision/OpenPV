@@ -395,13 +395,13 @@ int KernelConn::updateWeights(int axonId){
       }
 #endif
    for(int kAxon = 0; kAxon < this->numberOfAxonalArborLists(); kAxon++){
-      for( int k=0; k<nxp*nyp*nfp*getNumDataPatches(); k++ ) {
 #ifdef USE_SHMGET
-               volatile pvdata_t * w_data_start = get_wDataStart(kAxon);
+      volatile pvdata_t * w_data_start = get_wDataStart(kAxon);
 #else
-               pvdata_t * w_data_start = get_wDataStart(kAxon);
+      pvdata_t * w_data_start = get_wDataStart(kAxon);
 #endif
-               w_data_start[k] += get_dwDataStart(kAxon)[k];
+      for( int k=0; k<nxp*nyp*nfp*getNumDataPatches(); k++ ) {
+         w_data_start[k] += get_dwDataStart(kAxon)[k];
       }
    }
    return PV_BREAK;
