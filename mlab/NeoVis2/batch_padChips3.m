@@ -12,7 +12,7 @@ if clips_flag
   endfor
 else
   clip_name = cell(1);
-  clip_name{1} = "Car_original"; %% "Car_bootstrap0"; %% "Plane"; %% "distractor"; %% 
+  clip_name{1} = "Car"; %% "Car_bootstrap0"; %% "Plane"; %% "distractor"; %% 
 endif
 %% chip_path is the path to the folders referenced by clip_name 
 chip_path = ...
@@ -103,7 +103,7 @@ skip_train_images = num_versions;
 begin_train_images = 1;
 shuffle_flag = 0;
 for i_clip = 1 : length(clip_name)
-  train_path = [petavision_path, "canny", filesep, clip_name{i_clip}, filesep];
+  train_path = [mask_dir, ObjectType, filesep, "canny", filesep];
   list_dir2 = [petavision_path, "list_canny", filesep];
   mkdir(list_dir2);
   if ~isempty(chip_path_append)
@@ -112,10 +112,10 @@ for i_clip = 1 : length(clip_name)
   else
     list_dir3 = list_dir2;
   endif
-  list_dir = [list_dir3, clip_name{i_clip}, filesep]; 
+  list_dir = list_dir3; %% [list_dir3, clip_name{i_clip}, filesep]; 
   mkdir(list_dir);
-  target_mask_dir = [mask_dir, ObjectType, filesep];
-  distractor_mask_dir = [mask_dir, ObjectType, "_distractor", filesep];
+  target_mask_dir = [mask_dir, ObjectType, filesep, "target", filesep];
+  distractor_mask_dir = [mask_dir, ObjectType, filesep, "distractor", filesep];
   chipFileOfFilenames3(train_path, ...
 		       chip_path_append, ...
 		       num_train, ...

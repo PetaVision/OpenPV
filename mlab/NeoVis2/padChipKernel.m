@@ -153,7 +153,7 @@ function [status_info] = padChipKernel(target_pathname)
 			     image_margin+1:size(extended_image_canny,2)-image_margin);
     pad_canny = padGray(image_canny, pad_size, canny_gray_val);
 
-    %% blend edge artifacts
+    %% Blend edge artifacts
     num_blend = 4;
     image_canny_mirrorBC = image_canny;
     pad_canny_blend = pad_canny;

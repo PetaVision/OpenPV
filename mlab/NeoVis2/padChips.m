@@ -55,7 +55,7 @@ function [tot_chips, ...
   num_argin = 0;
   num_argin = num_argin + 1;
   if nargin < num_argin || ~exist("chip_path") || isempty(chip_path)
-    chip_path = "~/NeoVision2/neovision-programs-petavision/Heli/Training/mask/Car_original/"
+    chip_path = "~/NeoVision2/neovision-programs-petavision/Heli/Training/mask/Car/original/"
   endif
   num_argin = num_argin + 1;
   if nargin < num_argin || ~exist("clip_name_param") || isempty(clip_name_param)
@@ -193,15 +193,11 @@ function [tot_chips, ...
   mkdir(list_dir);
 
   if DoG_flag
-    DoG_folder = [PetaVision_path, "DoG", filesep];
-    mkdir(DoG_folder);
-    DoG_dir = [DoG_folder, clip_name, filesep];
+    DoG_dir = [chip_path, clip_name, filesep, "DoG", filesep];
     mkdir(DoG_dir);
   endif %% DoG_flag
   if canny_flag
-    canny_folder = [PetaVision_path, "canny", filesep];
-    mkdir(canny_folder);
-    canny_dir = [canny_folder, clip_name, filesep];
+    canny_dir = [chip_path, clip_name, filesep, "canny", filesep];
     mkdir(canny_dir);
   endif %% canny_flag
   hist_folder = [PetaVision_path, "hist", filesep];
