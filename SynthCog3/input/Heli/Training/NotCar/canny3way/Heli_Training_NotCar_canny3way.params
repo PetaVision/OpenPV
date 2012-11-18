@@ -9,15 +9,15 @@ HyPerCol "column" = {
    dt = 1.0;
    randomSeed = 1;  // if not set here,  clock time is used to generate seed
    numSteps = 2919;
-   outputPath = "/Users/garkenyon/NeoVision2/neovision-programs-petavision/Heli/Training/activity/NotCar/canny3way/";
+   outputPath = "/nh/compneuro/Data/repo/neovision-programs-petavision/Heli/Training/activity/NotCar/canny3way/";
    progressStep = 20;
    filenamesContainLayerNames = false;
    checkpointRead = false;
    checkpointWrite = true;
-   checkpointWriteDir = "/Users/garkenyon/NeoVision2/neovision-programs-petavision/Heli/Training/checkpoints/NotCar/canny3way/";
+   checkpointWriteDir = "/nh/compneuro/Data/repo/neovision-programs-petavision/Heli/Training/checkpoints/NotCar/canny3way/";
    checkpointWriteStepInterval = 5;
    deleteOlderCheckpoints = true;
-   printParamsFilename = "/Users/garkenyon/NeoVision2/neovision-programs-petavision/Heli/Training/activity/NotCar/canny3way/Heli_Training_NotCar_canny3way.params";
+   printParamsFilename = "/nh/compneuro/Data/repo/neovision-programs-petavision/Heli/Training/activity/NotCar/canny3way/Heli_Training_NotCar_canny3way.params";
 };
 
 //
@@ -25,7 +25,7 @@ HyPerCol "column" = {
 //
 
 Movie "Image" = {
-    imageListPath = "/Users/garkenyon/NeoVision2/neovision-programs-petavision/Heli/Training/list_canny/Car/Car_fileOfFilenames.txt";
+    imageListPath = "/nh/compneuro/Data/repo/neovision-programs-petavision/Heli/Training/list_canny/Car/Car_fileOfFilenames.txt";
     restart = 0;
     nxScale = 1;
     nyScale = 1;
@@ -48,7 +48,7 @@ Movie "Image" = {
 
 
 Movie "Mask" = {
-    imageListPath = "/Users/garkenyon/NeoVision2/neovision-programs-petavision/Heli/Training/list_canny/Car/Car_fileOfDistractorMasknames.txt";
+    imageListPath = "/nh/compneuro/Data/repo/neovision-programs-petavision/Heli/Training/list_canny/Car/Car_fileOfDistractorMasknames.txt";
     restart = 0;
     nxScale = 1;
     nyScale = 1;
@@ -378,7 +378,7 @@ CliqueConn "L1Pool1X1toL1Post" = {
    weightInitType = "FileWeight";  
    combineWeightFiles = true; //false; // 
    numWeightFiles = 0;
-   initWeightsFile = "/Users/garkenyon/workspace-sync-anterior/SynthCog3/weights/Heli/Training/Heli_Training_Car_canny3way.weights" ;
+   initWeightsFile = "/home/gkenyon/workspace-remote/SynthCog3/weights/Heli/Training/Heli_Training_Car_canny3way.weights" ;
    useListOfArborFiles = false;
 
    normalize = 0.0;

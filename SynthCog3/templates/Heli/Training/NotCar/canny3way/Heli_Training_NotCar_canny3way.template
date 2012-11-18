@@ -7,7 +7,7 @@ HyPerCol "column" = {
    nx = 1920;   // until we get going with images
    ny = 1080;
    dt = 1.0;
-   randomSeed = 1;  // if not set here,  clock time is used to generate seed
+   randomSeed = 11111111;  // if not set here,  clock time is used to generate seed
    $$$_numSteps_$$$
    $$$_outputPath_$$$
    progressStep = 20;
