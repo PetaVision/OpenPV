@@ -150,14 +150,17 @@ for (int k = 0; k < nx*ny*nf; k++) {
    float l_G_IB = G_IB[k];
    float l_G_Gap = G_Gap[k];
 
+#define CHANNEL_NORM (CHANNEL_GAP+1)
    CL_MEM_GLOBAL float * GSynExc = &GSynHead[CHANNEL_EXC*numNeurons];
    CL_MEM_GLOBAL float * GSynInh = &GSynHead[CHANNEL_INH*numNeurons];
    CL_MEM_GLOBAL float * GSynInhB = &GSynHead[CHANNEL_INHB*numNeurons];
    CL_MEM_GLOBAL float * GSynGap = &GSynHead[CHANNEL_GAP*numNeurons];
+   CL_MEM_GLOBAL float * GSynNorm = &GSynHead[CHANNEL_NORM*numNeurons];
    float l_GSynExc  = GSynExc[k];
    float l_GSynInh  = GSynInh[k];
    float l_GSynInhB = GSynInhB[k];
    float l_GSynGap  = GSynGap[k];
+   float l_GSynNorm = GSynNorm[k];
    
    // define local param variables
    //
@@ -170,9 +173,15 @@ for (int k = 0; k < nx*ny*nf; k++) {
    VthRest  = params->VthRest;
    deltaVth = params->deltaVth;
 
+   // assert(l_GSynNorm>=0 && l_GSynExc>=0 && (l_GSynNorm!=0 || l_GSynExc==0));
+   if (!(l_GSynNorm>=0 && l_GSynExc>=0 && (l_GSynNorm!=0 || l_GSynExc==0))) {
+      fprintf(stderr, "time = %f, k = %d, l_GSynNorm = %f, l_GSynExc = %f\n", timed, k, l_GSynNorm, l_GSynExc);
+      abort();
+   };
+   l_GSynExc /= (l_GSynNorm + (l_GSynNorm==0 ? 1 : 0));
+
    // add noise
    //
-
 #ifdef USE_CLRANDOM
    l_rnd = cl_random_get(l_rnd);
    if (cl_random_prob(l_rnd) < dt_sec*params->noiseFreqE) {
@@ -285,6 +294,7 @@ for (int k = 0; k < nx*ny*nf; k++) {
    GSynInh[k]  = 0.0f;
    GSynInhB[k] = 0.0f;
    GSynGap[k]  = 0.0f;
+   GSynNorm[k] = 0.0f;
 
 #ifndef PV_USE_OPENCL
    } // loop over k
