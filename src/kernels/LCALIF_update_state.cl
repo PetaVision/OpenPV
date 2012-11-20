@@ -67,8 +67,8 @@ float LIFGap_Vmem_derivative(
 CL_KERNEL
 void LCALIF_update_state(
     const int numNeurons,
-    const float time, 
-    const float dt,
+    const double timed,
+    const double dt,
 
     const int nx,
     const int ny,
