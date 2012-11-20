@@ -39,6 +39,9 @@ int LCALIFLateralKernelConn::initialize_base() {
 int LCALIFLateralKernelConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
       const char * filename, InitWeights * weightInit) {
    int status = KernelConn::initialize(name, hc, pre, post, filename, weightInit);
+
+   corrThresh = hc->parameters()->value(name, "correlationThreshold", 1.0);
+
    const PVLayerLoc * preloc = pre->getLayerLoc();
    const PVLayerLoc * postloc = post->getLayerLoc();
    int nxpre = preloc->nx; int nxpost = postloc->nx;
@@ -118,7 +121,7 @@ int LCALIFLateralKernelConn::initialize(const char * name, HyPerCol * hc, HyPerL
       }
    }
    int bufsize = numberOfAxonalArborLists() * getNumDataPatches() * nxp * nyp * nfp;
-   MPI_Allreduce(MPI_IN_PLACE, interiorCounts[0], bufsize, MPI_INT, MPI_SUM, parent->icCommunicator()->communicator());
+   MPI_Allreduce(MPI_IN_PLACE, interiorCounts[0], bufsize, MPI_FLOAT, MPI_SUM, parent->icCommunicator()->communicator());
 
    return status;
 }
@@ -128,6 +131,7 @@ int LCALIFLateralKernelConn::setParams(PVParams * params) {
    integrationTimeConstant = readIntegrationTimeConstant();
    inhibitionTimeConstant = readInhibitionTimeConstant();
    targetRateKHz = 0.001 * readTargetRate();
+   corrThresh = readCorrelationThreshold();
    return status;
 }
 
@@ -136,8 +140,6 @@ int LCALIFLateralKernelConn::update_dW(int axonId) {
    int numKernelIndices = getNumDataPatches();
    updateIntegratedSpikeCount();
    float target_rate_sq = getTargetRateKHz()*getTargetRateKHz();
-   float dt = (float) parent->getDeltaTime();
-   float tauINH = getInhibitionTimeConstant();
    const pvdata_t * preactbuf = integratedSpikeCount;
    const pvdata_t * postactbuf = integratedSpikeCount;
 
@@ -179,15 +181,17 @@ int LCALIFLateralKernelConn::update_dW(int axonId) {
          lineoffseta += sya;
       }
    }
-   // Normalize by dt/tauINH/(targetrate^2) and divide by (numNeurons/numKernels)
-   float normalizer = dt/tauINH/target_rate_sq;
+   // Divide each dw by the number of correlations that contributed to that dw (divisorptr was summed over all MPI processes in initialization).
+   // Also divide by target_rate_sq to normalize to a dimensionless quantity.
+   // The nonlinear filter and the multiplication by dt/tauINH takes place in updateWeights, because the filter has to be applied after reduceKernels
+   // and the multiplication by dt/tauINH needs to take place after the filter.
    int patch_size = nxp*nyp*nfp;
    for( int kernelindex=0; kernelindex<numKernelIndices; kernelindex++ ) {
       pvdata_t * dwpatchdata = get_dwDataHead(axonId,kernelindex);
       float * divisorptr = &interiorCounts[axonId][kernelindex*patch_size];
       for( int n=0; n<patch_size; n++ ) {
          assert(divisorptr[n]>0 || dwpatchdata[n]==0);
-         if (divisorptr[n]>0) dwpatchdata[n] *= normalizer/divisorptr[n];
+         if (divisorptr[n]>0) dwpatchdata[n] /= target_rate_sq * divisorptr[n];
       }
    }
 
@@ -198,6 +202,7 @@ int LCALIFLateralKernelConn::update_dW(int axonId) {
 
 int LCALIFLateralKernelConn::updateWeights(int axonId) {
    if (plasticityFlag) {
+      float normalizer = parent->getDeltaTime()/getInhibitionTimeConstant();
       for (int kernel=0; kernel<getNumDataPatches(); kernel++) {
          pvdata_t * dw_data = get_dwDataHead(axonId,kernel);
          pvdata_t * w_data = get_wDataHead(axonId,kernel);
@@ -205,7 +210,10 @@ int LCALIFLateralKernelConn::updateWeights(int axonId) {
             for (int x=0; x<nxp; x++) {
                for (int f=0; f<nfp; f++) {
                   int idx = sxp*x + syp*y + sfp*f;
-                  pvdata_t w = w_data[idx] + dw_data[idx];
+                  pvdata_t dw = dw_data[idx];
+                  dw = (dw<0 ? dw : 0.0f) + (dw>corrThresh ? dw-corrThresh : 0.0f);
+                  dw *= normalizer;
+                  pvdata_t w = w_data[idx] + dw;
                   if (w<0) w=0;
                   w_data[idx] = w;
                }
