@@ -347,9 +347,31 @@ int HyPerLayer::setLayerLoc(PVLayerLoc * layerLoc, float nxScale, float nyScale,
    // columns and rows
    //
 
+   int status = PV_SUCCESS;
+   if (layerLoc->nxGlobal % icComm->numCommColumns() != 0) {
+      if (parent->columnId()==0) {
+         fprintf(stderr, "Size of HyPerLayer \"%s\" is not  compatible with the mpi configuration.\n", name);
+         fprintf(stderr, "The layer has %d pixels horizontally, and there are %d mpi processes in a row, but %d does not divide %d.\n",
+               layerLoc->nxGlobal, icComm->numCommColumns(), icComm->numCommColumns(), layerLoc->nxGlobal);
+      }
+      status = PV_FAILURE;
+   }
+   if (layerLoc->nyGlobal % icComm->numCommRows() != 0) {
+      if (parent->columnId()==0) {
+         fprintf(stderr, "Size of HyPerLayer \"%s\" is not  compatible with the mpi configuration.\n", name);
+         fprintf(stderr, "The layer has %d pixels vertically, and there are %d mpi processes in a column, but %d does not divide %d.\n",
+               layerLoc->nyGlobal, icComm->numCommRows(), icComm->numCommRows(), layerLoc->nyGlobal);
+      }
+      status = PV_FAILURE;
+   }
+   if (status != PV_SUCCESS) {
+      if (parent->columnId()==0) {
+         fprintf(stderr, "Exiting.\n");
+      }
+      exit(EXIT_FAILURE);
+   }
    layerLoc->nx = layerLoc->nxGlobal / icComm->numCommColumns();
    layerLoc->ny = layerLoc->nyGlobal / icComm->numCommRows();
-
    assert(layerLoc->nxGlobal == layerLoc->nx * icComm->numCommColumns());
    assert(layerLoc->nyGlobal == layerLoc->ny * icComm->numCommRows());
 
