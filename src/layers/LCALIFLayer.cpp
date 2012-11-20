@@ -1,5 +1,5 @@
 /*
- * LCALifLayer.cpp
+ * LCALIFLayer.cpp
  *
  *  Created on: Jun 26, 2012
  *      Author: slundquist & dpaiton
@@ -38,8 +38,8 @@ extern "C" {
 #endif
 void LCALIF_update_state(
    const int numNeurons,
-   const float time,
-   const float dt,
+   const double timed,
+   const double dt,
 
    const int nx,
    const int ny,
@@ -80,7 +80,7 @@ LCALIFLayer::LCALIFLayer() {
 
 LCALIFLayer::LCALIFLayer(const char * name, HyPerCol * hc) {
    initialize_base();
-   initialize(name, hc, MAX_CHANNELS + 1, "LCALIF_update_state");
+   initialize(name, hc, MAX_CHANNELS + 2, "LCALIF_update_state");
 }
 
 int LCALIFLayer::initialize_base(){
@@ -145,7 +145,7 @@ int LCALIFLayer::allocateBuffers() {
 int LCALIFLayer::updateState(double time, double dt)
 {
    //Calculate_state kernel
-   LCALIF_update_state(getNumNeurons(), time, dt, clayer->loc.nx, clayer->loc.ny, clayer->loc.nf,
+   LCALIF_update_state(getNumNeurons(), timed, dt, clayer->loc.nx, clayer->loc.ny, clayer->loc.nf,
          clayer->loc.nb, Vscale, Vadpt, tauTHR, targetRateHz, integratedSpikeCount, &lParams,
          rand_state, clayer->V, Vth, G_E, G_I, G_IB, GSyn[0], clayer->activity->data, sumGap, G_Gap, Vattained, Vmeminf);
    updateActiveIndices();
