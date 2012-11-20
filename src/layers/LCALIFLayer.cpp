@@ -142,7 +142,7 @@ int LCALIFLayer::allocateBuffers() {
    return LIFGap::allocateBuffers();
 }
 
-int LCALIFLayer::updateState(double time, double dt)
+int LCALIFLayer::updateState(double timed, double dt)
 {
    //Calculate_state kernel
    LCALIF_update_state(getNumNeurons(), timed, dt, clayer->loc.nx, clayer->loc.ny, clayer->loc.nf,
