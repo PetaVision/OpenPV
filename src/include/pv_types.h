@@ -39,6 +39,7 @@ enum ChannelType {
   CHANNEL_INH  = 1,
   CHANNEL_INHB = 2,
   CHANNEL_GAP  = 3,
+  CHANNEL_NORM = 4,
   CHANNEL_INVALID  = -1
 };
 
