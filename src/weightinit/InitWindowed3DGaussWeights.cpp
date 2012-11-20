@@ -42,9 +42,6 @@ int InitWindowed3DGaussWeights::calcWeights(/* PVPatch * patch */ pvdata_t * dat
    gauss3DWeights(dataStart, (Init3DGaussWeightsParams*)weightParamPtr);
    windowWeights(dataStart, weightParamPtr);
 
-   //Overwriting init delays
-   weightParamPtr->getParentConn()->setDelay(arborId, weightParamPtr->getTime());
-
    return PV_SUCCESS;
 
 }

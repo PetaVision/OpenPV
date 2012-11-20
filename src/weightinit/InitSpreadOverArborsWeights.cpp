@@ -42,8 +42,6 @@ int InitSpreadOverArborsWeights::calcWeights(/* PVPatch * patch */ pvdata_t * da
 
    spreadOverArborsWeights(/* patch */ dataStart, arborId, weightParamPtr);
 
-   //Overwriting setting delays
-   weightParamPtr->getParentConn()->setDelay(arborId, arborId);
    return PV_SUCCESS; // return 1;
 }
 
