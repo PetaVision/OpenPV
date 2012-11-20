@@ -15,9 +15,11 @@ HyPerCol "column" = {
    dt = 1.0;
    randomSeed = 17406293508;  // if not set here,  clock time is used to generate seed
    numSteps = 10;  // num images plus (num layers + 1) * delay
+   writeProgressToErr = false;
    progressStep = 10;
    outputPath = "output/";
-   filenamesContainLayerNames = false;
+   filenamesContainLayerNames = true;
+   filenamesContainConnectionNames = true;
    checkpointRead = false;
    checkpointWrite = false;
    // checkpointWriteDir = "Checkpoints";
@@ -209,11 +211,12 @@ KernelConn "Retina to L0" = {
     // combine_dW_with_W_flag = false;
       
     strength = 4.0;  // 1.0 x post->num_neurons / pre->num_neurons
-    normalize = 1.0;
+    normalize = true;
+    normalizeTotalToPost = false;
     normalize_zero_offset = 0.0;
     normalize_max = 0.0;
     normalize_cutoff = 0;
-    normalize_arbors_individually = false;
+    // normalize_arbors_individually = false;
     symmetrizeWeights = 0;
 
     stochasticReleaseFlag = false;
@@ -262,7 +265,8 @@ KernelConn "L0 to Lx1" = {
     // combine_dW_with_W_flag = false;
 
     strength = 1; //0.25; //was 1, now 1/4 // 1.0 x post->num_neurons / pre->num_neurons
-    normalize = 1.0;
+    normalize = true;
+    normalizeTotalToPost = false;
     normalize_zero_offset = 0.0;
     normalize_max = 0.0;
     normalize_cutoff = 0;
@@ -313,7 +317,8 @@ KernelConn "L0 to Lx2" = {
     // combine_dW_with_W_flag = false;
       
     strength = 8; //2.0; //was 8, now 2 // 1.0 x post->num_neurons / pre->num_neurons
-    normalize = 1.0;
+    normalize = true;
+    normalizeTotalToPost = false;
     normalize_zero_offset = 0.0;
     normalize_max = 0.0;
     normalize_cutoff = 0;
@@ -364,7 +369,8 @@ KernelConn "L0 to Lx4" = {
     // combine_dW_with_W_flag = false;
       
     strength = 64; //16.0; //was 64.0, now 64/4 // 1.0 x post->num_neurons / pre->num_neurons
-    normalize = 1.0;
+    normalize = true;
+    normalizeTotalToPost = false;
     normalize_zero_offset = 0.0;
     normalize_max = 0.0;
     normalize_cutoff = 0;
@@ -415,7 +421,8 @@ KernelConn "L0 to Lx1_2" = {
     // combine_dW_with_W_flag = false;
       
     strength = 0.125; //0.03125; //was 0.125, now 0.125/4 1.0 x post->num_neurons / pre->num_neurons
-    normalize = 1.0;
+    normalize = true;
+    normalizeTotalToPost = false;
     normalize_zero_offset = 0.0;
     normalize_max = 0.0;
     normalize_cutoff = 0;
@@ -466,7 +473,8 @@ KernelConn "L0 to Lx1_4" = {
     // combine_dW_with_W_flag = false;
       
     strength = 0.015625; // 1.0 x post->num_neurons / pre->num_neurons
-    normalize = 1.0;
+    normalize = true;
+    normalizeTotalToPost = false;
     normalize_zero_offset = 0.0;
     normalize_max = 0.0;
     normalize_cutoff = 0;
