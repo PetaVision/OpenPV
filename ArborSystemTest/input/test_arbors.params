@@ -283,7 +283,7 @@ KernelConn "L0 to Lx1" = {
     plasticityFlag = false;
     // weightUpdatePeriod = -1.0;
 
-    delay = 0;     
+    delay = [0, 1, 2, 3];     
 };
 
 
@@ -335,7 +335,7 @@ KernelConn "L0 to Lx2" = {
     plasticityFlag = false;
     // weightUpdatePeriod = -1.0;
 
-    delay = 0;     
+    delay = [0, 1, 2, 3];     
 };
 
 
@@ -387,7 +387,7 @@ KernelConn "L0 to Lx4" = {
     plasticityFlag = false;
     // weightUpdatePeriod = -1.0;
 
-    delay = 0;     
+    delay = [0, 1, 2, 3];     
 };
 
 
@@ -439,7 +439,7 @@ KernelConn "L0 to Lx1_2" = {
     plasticityFlag = false;
     // weightUpdatePeriod = -1.0;
 
-    delay = 0;     
+    delay = [0, 1, 2, 3];     
 };
 
 
@@ -491,7 +491,7 @@ KernelConn "L0 to Lx1_4" = {
     plasticityFlag = false;
     // weightUpdatePeriod = -1.0;
 
-    delay = 0;     
+    delay = [0, 1, 2, 3];     
 };
 
 
