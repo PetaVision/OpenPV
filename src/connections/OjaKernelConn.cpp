@@ -122,11 +122,26 @@ int OjaKernelConn::updateState(double timef, double dt) {
       }
    }
 
-   // HyPerConn::updateState calls update_dW and updateWeights; we override update_dW but there is no need to override updateWeights
+   // HyPerConn::updateState calls update_dW and updateWeights
    int status = KernelConn::updateState(timef, dt);
 
    return status;
 }
+
+int OjaKernelConn::updateWeights(int axonId) {
+   lastUpdateTime = parent->simulationTime();
+   for(int kAxon = 0; kAxon < this->numberOfAxonalArborLists(); kAxon++){
+      pvdata_t * w_data_start = get_wDataStart(kAxon);
+      for( int k=0; k<nxp*nyp*nfp*getNumDataPatches(); k++ ) {
+         pvdata_t w = w_data_start[k];
+         w += get_dwDataStart(kAxon)[k];
+         if (w < 0.0f) w = 0.0f;
+         w_data_start[k] = w;
+      }
+   }
+   return PV_BREAK;
+}
+
 
 int OjaKernelConn::update_dW(int axonId) {
    int status = PV_SUCCESS;

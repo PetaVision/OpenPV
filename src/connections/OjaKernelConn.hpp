@@ -41,6 +41,7 @@ protected:
    int initialize(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
                   const char * filename, InitWeights *weightInit);
    virtual int update_dW(int axonId);
+   virtual int updateWeights(int axonId);
 
    // Load member variables from params.  Virtual so that derived classes can deactivate a param if it isn't needed.
    virtual float readLearningTime() {return getParent()->parameters()->value(name, "learningTime", 1.0);}
