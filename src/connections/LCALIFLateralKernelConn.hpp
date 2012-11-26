@@ -26,7 +26,6 @@ class LCALIFLateralKernelConn: public KernelConn {
       float getIntegrationTimeConstant() {return integrationTimeConstant;}
       float getInhibitionTimeConstant() {return inhibitionTimeConstant;}
       float getTargetRateKHz() {return targetRateKHz;}
-      float getCorrelationThreshold() {return corrThresh;}
 
       virtual int setParams(PVParams * params); // Really should be protected
 
@@ -57,7 +56,6 @@ class LCALIFLateralKernelConn: public KernelConn {
       float targetRateKHz;          // Target rate in kilohertz; note that params file is understood to give value in hertz
       MPI_Datatype * mpi_datatype;  // Used to mirror the integrated spike count
       float ** interiorCounts;         // We should average only over the patches where the presynaptic neuron is in the restricted patch, to eliminate correlations caused by mirroring.  This buffer maintains the count to divide by in obtaining the average.
-      float corrThresh;             // Threshold for increasing the weights if the correlations are too high.
 };
 
 } /* namespace PV */

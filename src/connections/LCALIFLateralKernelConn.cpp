@@ -40,8 +40,6 @@ int LCALIFLateralKernelConn::initialize(const char * name, HyPerCol * hc, HyPerL
       const char * filename, InitWeights * weightInit) {
    int status = KernelConn::initialize(name, hc, pre, post, filename, weightInit);
 
-   corrThresh = hc->parameters()->value(name, "correlationThreshold", 1.0);
-
    const PVLayerLoc * preloc = pre->getLayerLoc();
    const PVLayerLoc * postloc = post->getLayerLoc();
    int nxpre = preloc->nx; int nxpost = postloc->nx;
@@ -131,7 +129,6 @@ int LCALIFLateralKernelConn::setParams(PVParams * params) {
    integrationTimeConstant = readIntegrationTimeConstant();
    inhibitionTimeConstant = readInhibitionTimeConstant();
    targetRateKHz = 0.001 * readTargetRate();
-   corrThresh = readCorrelationThreshold();
    return status;
 }
 
@@ -210,9 +207,7 @@ int LCALIFLateralKernelConn::updateWeights(int axonId) {
             for (int x=0; x<nxp; x++) {
                for (int f=0; f<nfp; f++) {
                   int idx = sxp*x + syp*y + sfp*f;
-                  pvdata_t dw = dw_data[idx];
-                  dw = (dw<0 ? dw : 0.0f) + (dw>corrThresh ? dw-corrThresh : 0.0f);
-                  dw *= normalizer;
+                  pvdata_t dw = dw_data[idx] * normalizer;
                   pvdata_t w = w_data[idx] + dw;
                   if (w<0) w=0;
                   w_data[idx] = w;
