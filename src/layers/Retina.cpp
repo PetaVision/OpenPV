@@ -91,6 +91,16 @@ Retina::~Retina()
 
 int Retina::initialize_base() {
    rand_state = NULL;
+   rand_state = NULL;
+   spikingFlag = true;
+   rParams.abs_refractory_period = 0.0f;
+   rParams.refractory_period = 0.0f;
+   rParams.beginStim = 0.0f;
+   rParams.endStim = -1.0f;
+   rParams.burstDuration = 1000.0f;
+   rParams.burstFreq = 1.0f;
+   rParams.probBase = 0.0f;
+   rParams.probStim = 1.0f;
    return PV_SUCCESS;
 }
 
@@ -284,8 +294,11 @@ int Retina::setParams(PVParams * p)
    if (rParams.endStim < 0) rParams.endStim = FLT_MAX;
    rParams.burstFreq = p->value(name, "burstFreq", 1);         // frequency of bursts
    rParams.burstDuration = p->value(name, "burstDuration", 1000); // duration of each burst, <=0 -> sinusoidal
-   rParams.refractory_period = p->value(name, "refractoryPeriod", REFRACTORY_PERIOD);
-   rParams.abs_refractory_period = p->value(name, "absRefractoryPeriod", ABS_REFRACTORY_PERIOD);
+   if (spikingFlag){
+      rParams.refractory_period = p->value(name, "refractoryPeriod", REFRACTORY_PERIOD);
+      rParams.abs_refractory_period = p->value(name, "absRefractoryPeriod",
+            ABS_REFRACTORY_PERIOD);
+   }
 
    return 0;
 }
