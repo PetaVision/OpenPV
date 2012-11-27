@@ -45,7 +45,8 @@ int KernelConn::initialize_base()
    fileType = PVP_KERNEL_FILE_TYPE;
    lastUpdateTime = 0.f;
    plasticityFlag = false;
-   this->normalizeArborsIndividually = false;
+   normalizeArborsIndividually = false;
+   symmetrizeWeightsFlag = false;
    // nxKernel = 0;
    // nyKernel = 0;
    // nfKernel = 0;
@@ -63,7 +64,10 @@ int KernelConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
       InitWeights *weightInit)
 {
    PVParams * params = hc->parameters();
-   symmetrizeWeightsFlag = params->value(name, "symmetrizeWeights",0);
+   bool normalize_flag = params->value(name, "normalize",0,false);
+   if (normalize_flag){
+      symmetrizeWeightsFlag = params->value(name, "symmetrizeWeights",0);
+   }
 #ifdef USE_SHMGET
    shmget_flag = params->value(name, "shmget_flag",0);
 #endif
