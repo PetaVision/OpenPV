@@ -1006,6 +1006,7 @@ int HyPerCol::outputParams(const char * filename) {
             if( status != PV_SUCCESS ) {
                fprintf(stderr, "outputParams: Error copying params to \"%s\"\n", printParamsPath);
             }
+            fclose(fp); fp = NULL;
          }
          else {
             status = errno;
