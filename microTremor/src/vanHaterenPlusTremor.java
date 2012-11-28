@@ -15,6 +15,7 @@ import cern.colt.matrix.tdouble.DoubleMatrix2D;
 import cern.colt.matrix.tdouble.impl.DenseDoubleMatrix3D;
 import cern.jet.math.Functions;
 import flanagan.integration.RungeKutta;
+import flanagan.plot.PlotGraph;
 
 import java.awt.FlowLayout;
 import java.awt.image.BufferedImage;
@@ -37,7 +38,6 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-
 // class for managing input to van Hateren retina with ocular tremor added
 public class vanHaterenPlusTremor {
 
@@ -50,9 +50,11 @@ public class vanHaterenPlusTremor {
 		CommandLine commandLine;
 		Options options = new Options();
 		CommandLineParser parser = new GnuParser();
-		String[] testArgs = { "--num_cones=128", "--image_type_id=0", "--grating_orientation=0",
-				"--image_file=''", "--num_steps=128", "--delta_t=1.0", "--background_luminance=1.0",
-				"--num_pixels=1024", "--ran_seed=1234987" };
+		String[] testArgs = { "--num_cones=128", "--image_type_id=0",
+				"--grating_orientation=0", "--image_file=''",
+				"--num_steps=128", "--delta_t=1.0",
+				"--background_luminance=1.0", "--num_pixels=1024",
+				"--ran_seed=1234987" };
 
 		OptionBuilder.withArgName("ran_seed");
 		OptionBuilder.hasArg();
@@ -83,7 +85,7 @@ public class vanHaterenPlusTremor {
 				.withDescription("image_type_id type [0=vertical_grating|1=disk_file|2=movie_file]");
 		Option option_image_type_id = OptionBuilder.create("image_type_id");
 		options.addOption(option_image_type_id);
-		//ImageType image_type = ImageType.ORIENTED_GRATING;
+		// ImageType image_type = ImageType.ORIENTED_GRATING;
 
 		OptionBuilder.withArgName("grating_orientation");
 		OptionBuilder.hasArg();
@@ -190,13 +192,15 @@ public class vanHaterenPlusTremor {
 						.getOptionValue("num_steps"));
 				System.out.println("num_steps = " + Long.toString(num_steps));
 				double log_num_steps = Math.log(num_steps);
-				System.out.println("log_num_steps = " + Double.toString(log_num_steps));
+				System.out.println("log_num_steps = "
+						+ Double.toString(log_num_steps));
 				double log2_num_steps = log_num_steps / Math.log(2);
-				System.out.println("log2_num_steps = " + Double.toString(log2_num_steps));
+				System.out.println("log2_num_steps = "
+						+ Double.toString(log2_num_steps));
 				num_steps = (long) Math.pow(2, Math.floor(log2_num_steps));
 				System.out.println("num_steps = " + Long.toString(num_steps));
-//				num_steps = (int) Math.pow(
-//						Math.floor(Math.log(num_steps) / Math.log(2)), 2);
+				// num_steps = (int) Math.pow(
+				// Math.floor(Math.log(num_steps) / Math.log(2)), 2);
 			}
 
 			if (commandLine.hasOption("delta_t")) {
@@ -219,7 +223,10 @@ public class vanHaterenPlusTremor {
 
 		} catch (ParseException exception) {
 			System.out.print("Parse error: ");
-			System.out.println(exception.getMessage());  // if no command line, error message if no default value provided
+			System.out.println(exception.getMessage()); // if no command line,
+														// error message if no
+														// default value
+														// provided
 		} // end parse input args
 
 		// see: J. Hirsch and C. A. Curcio, The spatial resolution capacity of
@@ -239,8 +246,11 @@ public class vanHaterenPlusTremor {
 		// double random_contrast = 0.1 * background_luminance;
 
 		OcularTremor ocularTremor = new OcularTremor(generator);
-		DenseDComplexMatrix1D tremor_time_series = ocularTremor.getTimeSeries(delta_t, num_steps);
-		
+		DenseDComplexMatrix1D tremor_time_series = ocularTremor.getTimeSeries(
+				delta_t, num_steps);
+		PlotGraph tremorPlot2D = new PlotGraph(tremor_time_series.getRealPart().toArray(), tremor_time_series.getImaginaryPart().toArray());
+		tremorPlot2D.plot();
+
 		PlanarImage input_planar_image = null;
 		// get movie + jitter
 		if (image_type_id == ImageType.ORIENTED_GRATING.ordinal()) {
@@ -250,39 +260,54 @@ public class vanHaterenPlusTremor {
 			DoubleMatrix2D bckgrnd_1_over_f = OneOverSpatialFreqBackgroundImage
 					.getBackgroundImage(num_cones, num_pixels);
 			DoubleMatrix2D oriented_grating = GratingImage.getGratingImage(
-					num_cones, num_pixels, Math.PI / 2, 20.0, 1.0, 2.0, grating_orientation);
+					num_cones, num_pixels, Math.PI / 2, 20.0, 1.0, 2.0,
+					grating_orientation);
 			input_matrix2D = bckgrnd_1_over_f.copy();
 			input_matrix2D.assign(oriented_grating, new DoubleDoubleFunction() {
-				
+
 				@Override
 				public double apply(double bckgrnd_val, double grating_val) {
 					return (bckgrnd_val + grating_val);
 				}
 			});
-//			input_matrix2D.assign(oriented_grating, (DoubleDoubleFunction) Functions.plus);
-			DataBuffer input_data_buffer = new DataBufferDouble((int) input_matrix2D.size(), 1);
-			for (int i_input = 0; i_input < input_matrix2D.size(); i_input++){
+			// input_matrix2D.assign(oriented_grating, (DoubleDoubleFunction)
+			// Functions.plus);
+			DataBuffer input_data_buffer = new DataBufferDouble(
+					(int) input_matrix2D.size(), 1);
+			for (int i_input = 0; i_input < input_matrix2D.size(); i_input++) {
 				int input_row = i_input / input_matrix2D.columns();
-				int input_col = i_input - (input_row * input_matrix2D.rowStride());
-				input_data_buffer.setElemDouble(i_input, input_matrix2D.get(input_row, input_col));
+				int input_col = i_input
+						- (input_row * input_matrix2D.rowStride());
+				input_data_buffer.setElemDouble(i_input,
+						input_matrix2D.get(input_row, input_col));
 			}
-			int[] band_offsets = {0};
-			ComponentSampleModelJAI input_sample_model = new ComponentSampleModelJAI(DataBuffer.TYPE_DOUBLE, input_matrix2D.columns(), input_matrix2D.rows(), 0, input_matrix2D.columns(), band_offsets);
-			//input_sample_model.createCompatibleSampleModel(0, 0);
-			Raster input_raster = Raster.createWritableRaster(input_sample_model, input_data_buffer, null);
-			ColorModel input_color_model = PlanarImage.createColorModel(input_sample_model);
-			TiledImage input_tiled_image = new TiledImage(0,0,input_matrix2D.columns(),input_matrix2D.rows(),0,0,input_sample_model,input_color_model);
+			int[] band_offsets = { 0 };
+			ComponentSampleModelJAI input_sample_model = new ComponentSampleModelJAI(
+					DataBuffer.TYPE_DOUBLE, input_matrix2D.columns(),
+					input_matrix2D.rows(), 0, input_matrix2D.columns(),
+					band_offsets);
+			// input_sample_model.createCompatibleSampleModel(0, 0);
+			Raster input_raster = Raster.createWritableRaster(
+					input_sample_model, input_data_buffer, null);
+			ColorModel input_color_model = PlanarImage
+					.createColorModel(input_sample_model);
+			TiledImage input_tiled_image = new TiledImage(0, 0,
+					input_matrix2D.columns(), input_matrix2D.rows(), 0, 0,
+					input_sample_model, input_color_model);
 			input_tiled_image.setData(input_raster);
 			input_planar_image = input_tiled_image.createSnapshot();
 		} else if (image_type_id == ImageType.DISK_FILE.ordinal()) {
-			input_planar_image = JAI.create("fileload", image_file).createSnapshot();
+			input_planar_image = JAI.create("fileload", image_file)
+					.createSnapshot();
 		} else if (image_type_id == ImageType.MOVIE_FILE.ordinal()) {
-			input_planar_image = JAI.create("fileload", image_file).createSnapshot();
+			input_planar_image = JAI.create("fileload", image_file)
+					.createSnapshot();
 		}
 		JFrame input_frame = new JFrame(image_file);
-		//JPanel input_panel = new JPanel(new FlowLayout());
-		//input_frame.add(input_panel);
-		JLabel input_label = new JLabel(new ImageIcon(input_planar_image.getAsBufferedImage()));
+		// JPanel input_panel = new JPanel(new FlowLayout());
+		// input_frame.add(input_panel);
+		JLabel input_label = new JLabel(new ImageIcon(
+				input_planar_image.getAsBufferedImage()));
 		input_frame.add(input_label);
 		input_frame.pack();
 

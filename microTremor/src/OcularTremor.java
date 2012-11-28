@@ -21,9 +21,11 @@ import cern.colt.matrix.tdcomplex.impl.DenseDComplexMatrix1D;
 import cern.colt.matrix.tdcomplex.impl.DenseDComplexMatrix2D;
 import cern.colt.matrix.tdcomplex.impl.DenseDComplexMatrix3D;
 import cern.colt.matrix.tdouble.DoubleMatrix2D;
+import cern.colt.matrix.tdouble.impl.DenseDoubleMatrix1D;
 import cern.colt.matrix.tdouble.impl.DenseDoubleMatrix2D;
 import cern.colt.matrix.tdouble.impl.DenseDoubleMatrix3D;
 import cern.jet.math.Functions;
+import cern.jet.math.tdcomplex.DComplexFunctions;
 
 import edu.emory.mathcs.*;
 
@@ -68,53 +70,43 @@ public class OcularTremor {
 			freq_vals[i_step] = i_step / (deltaT * numSteps);
 		}
 		double freq_drift = 1.0; // Hz
-		double[] amp_low = new double[(int) numSteps]; // peak_drift ./ ( 1 + (
+		DenseDoubleMatrix1D amp_low = new DenseDoubleMatrix1D((int) numSteps); // peak_drift ./ ( 1 + (
 		// freq_vals ./ freq_drift )
 		// );
 		for (int i_step = 0; i_step < numSteps; i_step++) {
-			amp_low[i_step] = peakDrift
+			double amp_low_val = peakDrift
 					/ (1 + (freq_vals[i_step] / freq_drift));
+			amp_low.set(i_step, amp_low_val);
 		}
-		double[] amp_high = new double[(int) numSteps]; // peak_tremor .* exp( -(1/2)
+		DenseDoubleMatrix1D amp_high = new DenseDoubleMatrix1D((int) numSteps); // peak_tremor .* exp( -(1/2)
 		// .* ( ( freq_vals -
 		// freq_tremor ).^2 ) ./ (
 		// sigma_tremor^2 ) );
 		for (int i_step = 0; i_step < numSteps; i_step++) {
-			amp_high[i_step] = peakTremor
+			double amp_high_val = peakTremor
 					* Math.exp(-0.5
 							*Math.pow((freq_vals[i_step] - freqTremor) / sigmaTremor, 2.0));
+			amp_high.set(i_step, amp_high_val);
 		}
 		DenseDComplexMatrix1D tremor_phase = new DenseDComplexMatrix1D((int) numSteps);
 		for (int i_step = 0; i_step < numSteps; i_step++) {
-			tremor_phase.set(i_step, Math.cos(2*Math.PI*tremorGenerator.nextDouble()), Math.sin(2*Math.PI*tremorGenerator.nextDouble()));
+			double ran_phase = 2.0*Math.PI*tremorGenerator.nextDouble();
+			tremor_phase.set(i_step, Math.cos(ran_phase), Math.sin(ran_phase));
 		}
 
 		//double[] tremor_amp = new double[(int) numSteps]; // x_amp * ( amp_low + amp_high ) .* tremor_phase(1,:);
 		//for (int i_step = 0; i_step < numSteps; i_step++) {
 			//tremor_amp[i_step] = (amp_low[i_step] + amp_high[i_step]) * tremor_phase[i_step];
 		//}
-		DenseDComplexMatrix1D fft_tremor = new DenseDComplexMatrix1D(amp_low);  // initialize with low frequency "drift" amp
-		fft_tremor.assign(new DenseDComplexMatrix1D(amp_high), new DComplexDComplexDComplexFunction() {
-			
-			@Override
-			public double[] apply(double[] amp_low_val, double[] amp_high_val) {
-				double[] fft_tremor_val = new double[2];
-				fft_tremor_val[1] = 0;
-				fft_tremor_val[0] = (amp_low_val[0] + amp_high_val[0]);
-				return fft_tremor_val;
-			}
-			
-		});
-		fft_tremor.assign(tremor_phase, new DComplexDComplexDComplexFunction() {
-			
-			@Override
-			public double[] apply(double[] fft_tremor_val, double[] tremor_phase_val) {
-				fft_tremor_val[0] *= tremor_phase_val[0];
-				fft_tremor_val[1] *= tremor_phase_val[1];
-				return fft_tremor_val;
-			}
-			
-		});
+		DenseDComplexMatrix1D amp_low_dcomplex = new DenseDComplexMatrix1D((int) numSteps);  // initialize with low frequency "drift" amp
+		amp_low_dcomplex.assignReal(amp_low);
+		amp_low_dcomplex.assignImaginary(new DenseDoubleMatrix1D((int) numSteps));
+		DenseDComplexMatrix1D amp_high_dcomplex = new DenseDComplexMatrix1D((int) numSteps);  // initialize with low frequency "drift" amp
+		amp_high_dcomplex.assignReal(amp_high);
+		amp_high_dcomplex.assignImaginary(new DenseDoubleMatrix1D((int) numSteps));
+		DenseDComplexMatrix1D fft_tremor = new DenseDComplexMatrix1D(amp_low_dcomplex.toArray());
+		fft_tremor.assign(amp_high_dcomplex, DComplexFunctions.plus );		
+		fft_tremor.assign(amp_high_dcomplex, DComplexFunctions.mult );		
 		fft_tremor.ifft(true); // 2D Fourier Transform in place,
 											// arg=true specifies scaling is to
 											// be performed (see Parallel Colt
