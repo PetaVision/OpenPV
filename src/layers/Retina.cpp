@@ -91,7 +91,6 @@ Retina::~Retina()
 
 int Retina::initialize_base() {
    rand_state = NULL;
-   rand_state = NULL;
    spikingFlag = true;
    rParams.abs_refractory_period = 0.0f;
    rParams.refractory_period = 0.0f;
