@@ -3,6 +3,7 @@
 	<name>microTremor</name>
 	<comment></comment>
 	<projects>
+		<project>parallelcolt</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

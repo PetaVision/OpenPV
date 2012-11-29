@@ -1,4 +1,16 @@
+import java.awt.image.ColorModel;
+import java.awt.image.DataBuffer;
+import java.awt.image.DataBufferDouble;
+import java.awt.image.Raster;
 import java.util.Random;
+
+import javax.media.jai.ComponentSampleModelJAI;
+import javax.media.jai.JAI;
+import javax.media.jai.PlanarImage;
+import javax.media.jai.TiledImage;
+import javax.swing.ImageIcon;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -10,33 +22,11 @@ import org.apache.commons.cli.ParseException;
 
 import cern.colt.function.tdouble.DoubleDoubleFunction;
 import cern.colt.matrix.tdcomplex.impl.DenseDComplexMatrix1D;
-import cern.colt.matrix.tdouble.DoubleMatrix1D;
 import cern.colt.matrix.tdouble.DoubleMatrix2D;
 import cern.colt.matrix.tdouble.impl.DenseDoubleMatrix3D;
-import cern.jet.math.Functions;
 import flanagan.integration.RungeKutta;
 import flanagan.plot.PlotGraph;
-
-import java.awt.FlowLayout;
-import java.awt.image.BufferedImage;
-import java.awt.image.ColorModel;
-import java.awt.image.DataBuffer;
-import java.awt.image.DataBufferDouble;
-import java.awt.image.Raster;
-import java.awt.image.SampleModel;
-import java.awt.image.renderable.ParameterBlock;
-import java.io.File;
-import javax.media.jai.JAI;
-import javax.media.jai.PlanarImage;
-import javax.media.jai.RenderedOp;
 //import javax.media.jai.widget.ScrollingImagePanel;
-import com.sun.media.jai.widget.DisplayJAI;
-import javax.media.jai.ComponentSampleModelJAI;
-import javax.media.jai.TiledImage;
-import javax.swing.ImageIcon;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
 
 // class for managing input to van Hateren retina with ocular tremor added
 public class vanHaterenPlusTremor {

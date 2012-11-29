@@ -1,11 +1,9 @@
-import cern.colt.function.tdouble.DoubleDoubleFunction;
 import cern.colt.function.tdouble.DoubleFunction;
 import cern.colt.matrix.tdcomplex.DComplexFactory2D;
 import cern.colt.matrix.tdcomplex.DComplexMatrix2D;
 import cern.colt.matrix.tdcomplex.impl.DenseDComplexMatrix2D;
 import cern.colt.matrix.tdouble.DoubleMatrix2D;
 import cern.colt.matrix.tdouble.impl.DenseDoubleMatrix2D;
-import cern.jet.math.Functions;
 
 public class OneOverSpatialFreqBackgroundImage {
 
@@ -27,7 +25,7 @@ public class OneOverSpatialFreqBackgroundImage {
 	}
 	
 	public final static DoubleMatrix2D getBackgroundImage(int num_cones, int num_pixels) {
-		cern.jet.math.Functions F = cern.jet.math.Functions.functions; // naming shortcut (alias) saves some keystrokes:
+		//cern.jet.math.Functions F = cern.jet.math.Functions.functions; // naming shortcut (alias) saves some keystrokes:
 		final double background_luminance = RetinalConstants.backgroundLuminance;
 		double microns_per_degree = RetinalConstants.micronsPerDegree;
 		double cone_diameter = RetinalConstants.coneDiameter;

@@ -3,9 +3,10 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
 	<classpathentry kind="lib" path="/Users/garkenyon/Java/commons-cli-1.2/commons-cli-1.2.jar"/>
-	<classpathentry kind="lib" path="/Users/garkenyon/Java/ParallelColt 2/parallelcolt-0.9.4.jar"/>
-	<classpathentry kind="lib" path="/Users/garkenyon/Java/ParallelColt 2/lib/jtransforms.jar"/>
-	<classpathentry kind="lib" path="/Users/garkenyon/Java/colt/lib/colt.jar"/>
 	<classpathentry kind="lib" path="/Users/garkenyon/Java/flanagan.jar"/>
+	<classpathentry kind="lib" path="/Users/garkenyon/Java/ParallelColt/parallelcolt-0.9.4.jar" sourcepath="/parallelcolt/trunk/src"/>
+	<classpathentry kind="lib" path="/Users/garkenyon/Java/ParallelColt/lib/csparsej.jar"/>
+	<classpathentry kind="lib" path="/Users/garkenyon/Java/ParallelColt/lib/jtransforms.jar"/>
+	<classpathentry kind="lib" path="/Users/garkenyon/Java/ParallelColt/lib/optimization.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

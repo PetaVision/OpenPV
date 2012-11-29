@@ -1,11 +1,9 @@
-import java.awt.image.Kernel;
-
 import cern.colt.function.tdouble.DoubleDoubleFunction;
 import cern.colt.function.tdouble.DoubleFunction;
 import cern.colt.matrix.tdouble.DoubleMatrix2D;
 import cern.colt.matrix.tdouble.impl.DenseDoubleMatrix2D;
 import cern.colt.matrix.tdouble.impl.DenseDoubleMatrix3D;
-import cern.jet.math.Functions;
+import cern.jet.math.tdouble.DoubleFunctions;
 import flanagan.integration.DerivnFunction;
 
 
@@ -187,10 +185,10 @@ public
 		});
 		
 		//DoubleMatrix2D tau_X   = 1 ./ beta;
-		DoubleMatrix2D tau_X   = beta.copy().assign((DoubleFunction) Functions.inv);
+		DoubleMatrix2D tau_X   = beta.copy().assign( DoubleFunctions.inv);
 		
 		//DoubleMatrix2D I_os    = X.^n_X;
-		DoubleMatrix2D I_os    = X.copy().assign((DoubleFunction) Functions.pow(n_X));
+		DoubleMatrix2D I_os    = X.copy().assign(DoubleFunctions.pow(n_X));
 		
 		//DoubleMatrix2D g_is    = a_is * ( V_is.^gamma );
 		DoubleMatrix2D g_is    = V_is.copy().assign(new DoubleFunction() {
@@ -211,7 +209,7 @@ public
 		});
 		
 		//DoubleMatrix2D V_s     = V_is - V_h;
-		DoubleMatrix2D V_s     = V_is.copy().assign(V_h, (DoubleDoubleFunction) Functions.minus);
+		DoubleMatrix2D V_s     = V_is.copy().assign(V_h, DoubleFunctions.minus);
 		
 		//DoubleMatrix2D I_t     = ( g_t ./ ( a_I .* ( 1 + exp( -( V_s - V_k ) / V_n) ) ) );
 		DoubleMatrix2D I_t     = V_s.copy().assign(a_I, new DoubleDoubleFunction() {
@@ -256,9 +254,9 @@ public
 		
 		
 		//ydot_X = ( alpha ./ beta - X ) ./ tau_X;
-		DoubleMatrix2D alpha_over_beta    = alpha.copy().assign(beta, (DoubleDoubleFunction) Functions.div);		
-		DoubleMatrix2D alpha_over_beta_minus_X    = alpha_over_beta.copy().assign(X, (DoubleDoubleFunction) Functions.minus);		
-		DoubleMatrix2D ydot_X = alpha_over_beta_minus_X.copy().assign(tau_X, (DoubleDoubleFunction) Functions.div); 
+		DoubleMatrix2D alpha_over_beta    = alpha.copy().assign(beta, DoubleFunctions.div);		
+		DoubleMatrix2D alpha_over_beta_minus_X    = alpha_over_beta.copy().assign(X, DoubleFunctions.minus);		
+		DoubleMatrix2D ydot_X = alpha_over_beta_minus_X.copy().assign(tau_X, DoubleFunctions.div); 
 		ydot_3D.viewSlice(2).assign(ydot_X);
 		
 		//ydot_C = eta * I_os - C / tau_C;
@@ -272,7 +270,7 @@ public
 		ydot_3D.viewSlice(3).assign(ydot_C);
 		
 		//ydot_V_is = ( I_os ./ g_i - V_is ) / tau_m;
-		DoubleMatrix2D I_os_over_g_i    = I_os.copy().assign(g_i, (DoubleDoubleFunction) Functions.div);
+		DoubleMatrix2D I_os_over_g_i    = I_os.copy().assign(g_i, DoubleFunctions.div);
 		DoubleMatrix2D ydot_V_is = V_is.copy().assign(I_os_over_g_i, new DoubleDoubleFunction() {
 			
 			@Override
