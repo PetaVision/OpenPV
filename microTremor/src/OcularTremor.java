@@ -1,7 +1,10 @@
 import java.util.Random;
 
+import cern.colt.function.tdcomplex.DComplexDComplexFunction;
 import cern.colt.matrix.tdcomplex.impl.DenseDComplexMatrix1D;
+import cern.colt.matrix.tdouble.impl.DenseDoubleMatrix1D;
 import cern.jet.math.tdcomplex.DComplexFunctions;
+import flanagan.plot.PlotGraph;
 
 /**
  * @author garkenyon
@@ -9,7 +12,7 @@ import cern.jet.math.tdcomplex.DComplexFunctions;
  */
 public class OcularTremor {
 
-	long numSteps;
+	int numSteps;
 	double deltaT;
 	Random tremorGenerator;
 
@@ -21,11 +24,12 @@ public class OcularTremor {
 	}
 
 	// we compute the random tremor time series only once per image so we don't pre-allocate temporary arrays
-	DenseDComplexMatrix1D getTimeSeries(double delta_t, long num_steps){
+	DenseDComplexMatrix1D getTimeSeries(double delta_t, int num_steps){
 		numSteps = num_steps;
 		deltaT = delta_t;
-		double peakDrift = RetinalConstants.peakDrift;
-		double peakTremor = RetinalConstants.peakTremor;
+		double degrees_per_cone = RetinalConstants.coneDiameter	/ RetinalConstants.micronsPerDegree;
+		double peakDrift = RetinalConstants.peakDrift / degrees_per_cone;
+		double peakTremor = RetinalConstants.peakTremor / degrees_per_cone;
 		double freqTremor = RetinalConstants.freqTremor;
 		double sigmaTremor = RetinalConstants.sigmaTremor;
 
@@ -72,14 +76,36 @@ public class OcularTremor {
 		//for (int i_step = 0; i_step < numSteps; i_step++) {
 			//tremor_amp[i_step] = (amp_low[i_step] + amp_high[i_step]) * tremor_phase[i_step];
 		//}
-		DenseDComplexMatrix1D fft_tremor = new DenseDComplexMatrix1D(amp_low.toArray());
-		fft_tremor.assign(amp_high, DComplexFunctions.plus );		
-		fft_tremor.assign(tremor_phase, DComplexFunctions.mult );		
-		fft_tremor.ifft(true); // 2D Fourier Transform in place,
-											// arg=true specifies scaling is to
-											// be performed (see Parallel Colt
-											// API)
-		return fft_tremor;
+		DenseDComplexMatrix1D micro_tremor = new DenseDComplexMatrix1D(amp_low.toArray());
+		micro_tremor.assign(amp_high, DComplexFunctions.plus );		
+		 
+		// plot Power spectrum
+		DenseDoubleMatrix1D tremor_power = (DenseDoubleMatrix1D) micro_tremor.getRealPart().copy();		
+		PlotGraph tremorPowerPlot2D = new PlotGraph(freq_vals, tremor_power.toArray());
+		tremorPowerPlot2D.setGraphTitle("Tremor Power Spectrum");
+		tremorPowerPlot2D.setLine(1);
+		tremorPowerPlot2D.plot();
+		
+		micro_tremor.assign(tremor_phase, DComplexFunctions.mult );		
+		micro_tremor.ifft(false); // 1D Fourier Transform in place, arg=true specifies scaling is to be performed (see Parallel Colt API)
+		double[] micro_tremor_sum = micro_tremor.zSum(); // 
+		DenseDComplexMatrix1D mean_tremor = new DenseDComplexMatrix1D( (int) num_steps);
+		mean_tremor.assign(micro_tremor_sum[0]/num_steps, micro_tremor_sum[1]/num_steps);
+		micro_tremor.assign(mean_tremor, DComplexFunctions.minus);
+
+		// plot vertical tremor motion vs time step: amplitude in dimensionless units (cone diameters)
+		PlotGraph tremorVerticalPlot2D = new PlotGraph(time_steps, micro_tremor.getImaginaryPart().toArray());
+		tremorVerticalPlot2D.setLine(3);
+		tremorVerticalPlot2D.setGraphTitle("Vertical Tremor (cone diameters)");
+		tremorVerticalPlot2D.plot();
+
+		// plot horizontal tremor motion vs time step: amplitude in dimensionless units (cone diameters)
+		PlotGraph tremorHorizontalPlot2D = new PlotGraph(time_steps, micro_tremor.getRealPart().toArray());
+		tremorHorizontalPlot2D.setLine(3);
+		tremorHorizontalPlot2D.setGraphTitle("Horizontal Tremor (cone diameters)");
+		tremorHorizontalPlot2D.plot();
+
+		return micro_tremor;  // in cone diameters
 	}
 	/**
 	 * @param args

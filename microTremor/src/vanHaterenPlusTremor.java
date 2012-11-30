@@ -100,7 +100,7 @@ public class vanHaterenPlusTremor {
 				.withDescription("number of time steps: rounded to power of 2");
 		Option option_num_steps = OptionBuilder.create("num_steps");
 		options.addOption(option_num_steps);
-		long num_steps = 128;
+		int num_steps = 128;
 
 		OptionBuilder.withArgName("delta_t");
 		OptionBuilder.hasArg();
@@ -187,7 +187,7 @@ public class vanHaterenPlusTremor {
 				double log2_num_steps = log_num_steps / Math.log(2);
 				System.out.println("log2_num_steps = "
 						+ Double.toString(log2_num_steps));
-				num_steps = (long) Math.pow(2, Math.floor(log2_num_steps));
+				num_steps = (int) Math.pow(2, Math.floor(log2_num_steps));
 				System.out.println("num_steps = " + Long.toString(num_steps));
 				// num_steps = (int) Math.pow(
 				// Math.floor(Math.log(num_steps) / Math.log(2)), 2);
@@ -238,8 +238,6 @@ public class vanHaterenPlusTremor {
 		OcularTremor ocularTremor = new OcularTremor(generator);
 		DenseDComplexMatrix1D tremor_time_series = ocularTremor.getTimeSeries(
 				delta_t, num_steps);
-		PlotGraph tremorPlot2D = new PlotGraph(tremor_time_series.getRealPart().toArray(), tremor_time_series.getImaginaryPart().toArray());
-		tremorPlot2D.plot();
 
 		PlanarImage input_planar_image = null;
 		// get movie + jitter
