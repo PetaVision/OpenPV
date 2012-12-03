@@ -40,11 +40,6 @@ public class GratingImage {
 		gratingPhase = grating_phase;
 	}
 
-	public DoubleMatrix2D getBackgroundImage() {
-		return getGratingImage(numCones, numPixels, gratingOrientation,
-				gratingSpatialFreq, gratingContrast, gratingSigma, gratingPhase);
-	}
-
 	public final static DoubleMatrix2D getGratingImage(int num_cones,
 			int num_pixels, final double grating_orientation,
 			final double grating_spatial_freq, final double grating_contrast,
@@ -56,16 +51,6 @@ public class GratingImage {
 		double pixel_cone_ratio = num_pixels / num_cones;
 		double pixel_diameter = cone_diameter / pixel_cone_ratio;
 		double half_pixel_diameter = pixel_diameter / 2.0;
-
-		// cone_freqs = (0:(num_cones-1)) * microns_per_degree / ( num_cones *
-		// cone_diameter ); //cycles per degree
-		// [cone_freq_x, cone_freq_y] = meshgrid( cone_freqs );
-		// max_cone_freq_ndx = find( sp_freq_grating < cone_freqs, 1, 'first' );
-		// sp_freq_grating = cone_freqs(max_cone_freq_ndx);
-		// sp_sigma_grating = 2.0 / sp_freq_grating; //degrees
-		// sp_peak_grating = sp_contrast_grating * background_luminance;
-		// //trolands
-
 		double[] pixel_vals = new double[num_pixels];
 		for (int i_pixel = 0; i_pixel < num_pixels; i_pixel++) {
 			pixel_vals[i_pixel] = half_pixel_diameter + i_pixel
@@ -88,9 +73,6 @@ public class GratingImage {
 
 			@Override
 			public double apply(double pixel_x_val, double pixel_y_val) {
-				// double x_prime = Math.cos(grating_orientation) * (pixel_x_val
-				// - x_center) + Math.sin(grating_orientation) * (pixel_y_val -
-				// y_center);
 				double y_prime = Math.cos(grating_orientation)
 						* (pixel_y_val - y_center)
 						- Math.sin(grating_orientation)

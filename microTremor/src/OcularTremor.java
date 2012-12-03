@@ -39,15 +39,12 @@ public class OcularTremor {
 		for (int i_step = 0; i_step < numSteps; i_step++) {
 			time_steps[i_step] = i_step * deltaT;
 		}
-		double[] freq_vals = new double[(int) num_steps]; // freq_vals = (
-		// 0:(num_steps-1) ) ./ (
-		// delta_t * num_steps );
+		double[] freq_vals = new double[(int) num_steps]; 
 		for (int i_step = 0; i_step < numSteps; i_step++) {
 			freq_vals[i_step] = 1000.0 * i_step / (deltaT * numSteps);
 		}
 		double freq_drift = 1.0; // Hz
-		DenseDComplexMatrix1D amp_low = new DenseDComplexMatrix1D((int) numSteps); // peak_drift ./ ( 1 + (
-		// freq_vals ./ freq_drift )
+		DenseDComplexMatrix1D amp_low = new DenseDComplexMatrix1D((int) numSteps); 
 		// );
 		for (int i_step = 0; i_step < numSteps; i_step++) {
 			double[] amp_low_val = new double[2];
@@ -55,10 +52,7 @@ public class OcularTremor {
 					/ (1 + (freq_vals[i_step] / freq_drift));
 			amp_low.set(i_step, amp_low_val);
 		}
-		DenseDComplexMatrix1D amp_high = new DenseDComplexMatrix1D((int) numSteps); // peak_tremor .* exp( -(1/2)
-		// .* ( ( freq_vals -
-		// freq_tremor ).^2 ) ./ (
-		// sigma_tremor^2 ) );
+		DenseDComplexMatrix1D amp_high = new DenseDComplexMatrix1D((int) numSteps); 
 		for (int i_step = 0; i_step < numSteps; i_step++) {
 			double[] amp_high_val = new double[2];
 			amp_high_val[0] = peakTremor
@@ -71,11 +65,6 @@ public class OcularTremor {
 			double ran_phase = 2.0*Math.PI*tremorGenerator.nextDouble();
 			tremor_phase.set(i_step, Math.cos(ran_phase), Math.sin(ran_phase));
 		}
-
-		//double[] tremor_amp = new double[(int) numSteps]; // x_amp * ( amp_low + amp_high ) .* tremor_phase(1,:);
-		//for (int i_step = 0; i_step < numSteps; i_step++) {
-			//tremor_amp[i_step] = (amp_low[i_step] + amp_high[i_step]) * tremor_phase[i_step];
-		//}
 		DenseDComplexMatrix1D micro_tremor = new DenseDComplexMatrix1D(amp_low.toArray());
 		micro_tremor.assign(amp_high, DComplexFunctions.plus );		
 		 

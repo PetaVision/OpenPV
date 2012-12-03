@@ -1,10 +1,29 @@
+import java.awt.BorderLayout;
+import java.awt.Container;
+import java.awt.image.BandedSampleModel;
+import java.awt.image.ColorModel;
+import java.awt.image.ComponentSampleModel;
+import java.awt.image.DataBuffer;
+import java.awt.image.DataBufferByte;
+import java.awt.image.Raster;
+import java.awt.image.SampleModel;
+import javax.media.jai.TiledImage;
+import javax.media.jai.PlanarImage;
+import javax.swing.JFrame;
+import javax.swing.JScrollPane;
+
+import com.sun.media.jai.widget.DisplayJAI;
+
 import cern.colt.function.tdouble.DoubleFunction;
 import cern.colt.matrix.tdcomplex.DComplexFactory2D;
 import cern.colt.matrix.tdcomplex.DComplexMatrix2D;
 import cern.colt.matrix.tdcomplex.impl.DenseDComplexMatrix2D;
 import cern.colt.matrix.tdouble.DoubleMatrix2D;
 import cern.colt.matrix.tdouble.impl.DenseDoubleMatrix2D;
+import cern.jet.math.tdcomplex.DComplexFunctions;
+import cern.jet.math.tdouble.DoubleFunctions;
 
+@SuppressWarnings("restriction")
 public class OneOverSpatialFreqBackgroundImage {
 
 	int numCones;
@@ -32,34 +51,37 @@ public class OneOverSpatialFreqBackgroundImage {
 		double pixel_cone_ratio = (double) num_pixels / (double) num_cones;
 		double pixel_diameter = cone_diameter / pixel_cone_ratio;
 		double sp_peak_bkgrnd = 0.75 * 1.0 * background_luminance; // trolands
-		double[] sp_freqs = new double[num_pixels]; // = (0:(num_pixels-1)) / (
-													// num_cones * cone_diameter
-													// ); //cycles per micron
+		double[] sp_freqs = new double[num_pixels]; 
+		// cycles per micron -> cycles per degree
 		for (int i_freq = 0; i_freq < num_pixels; i_freq++) {
 			sp_freqs[i_freq] = i_freq * microns_per_degree
-					/ (num_cones * pixel_diameter);
+					/ (num_pixels * pixel_diameter);
 		}
-		// cycles per micron -> cycles per degree
-		double[][] sp_freq_x = new double[num_pixels][num_pixels];
-		double[][] sp_freq_y = new double[num_pixels][num_pixels];
+		double sp_freq_bkgrnd = 2.0; // cycles per degree
+		DenseDoubleMatrix2D sp_freq_2D = new DenseDoubleMatrix2D(num_pixels, num_pixels);
+		DenseDoubleMatrix2D sp_freq_y = new DenseDoubleMatrix2D(num_pixels, num_pixels);
 		for (int i_row = 0; i_row < num_pixels; i_row++) {
 			for (int j_col = 0; j_col < num_pixels; j_col++) {
-				sp_freq_x[i_row][j_col] = sp_freqs[j_col];
-				sp_freq_y[i_row][j_col] = sp_freqs[i_row];
+				sp_freq_2D.set(i_row, j_col, sp_freqs[j_col]);
+				sp_freq_y.set(i_row, j_col, sp_freqs[i_row]);
 			}
-		}
-		double sp_freq_bkgrnd;
-		sp_freq_bkgrnd = 2.0; // cycles per degree
-		double[][] sp_amp_bkgrnd = new double[num_pixels][num_pixels];
-		for (int i_row = 0; i_row < num_pixels; i_row++) {
-			for (int j_col = 0; j_col < num_pixels; j_col++) {
-				sp_amp_bkgrnd[i_row][j_col] = sp_peak_bkgrnd
-						/ (1 + Math.sqrt(Math.pow(sp_freq_x[i_row][j_col], 2)
-								+ Math.pow(sp_freq_y[i_row][j_col], 2))
-								/ sp_freq_bkgrnd);
-			}
-		}
-		sp_amp_bkgrnd[0][0] = 0.0; // use background_luminance;
+		}		
+		sp_freq_2D.assign(DoubleFunctions.square);
+		sp_freq_y.assign(DoubleFunctions.square);
+		//DenseDoubleMatrix2D sp_freq_2D = (DenseDoubleMatrix2D) sp_freq_x.copy();
+		sp_freq_2D.assign(sp_freq_y, DoubleFunctions.plus);
+		sp_freq_2D.assign(DoubleFunctions.sqrt);		
+		DenseDoubleMatrix2D sp_freq_scale2D = new DenseDoubleMatrix2D(num_pixels, num_pixels);
+		sp_freq_scale2D.assign(sp_freq_bkgrnd);		
+		sp_freq_2D.assign(sp_freq_scale2D, DoubleFunctions.div);		
+		DenseDoubleMatrix2D sp_amp_bkgrnd_scale = new DenseDoubleMatrix2D(num_pixels, num_pixels);
+		sp_amp_bkgrnd_scale.assign(sp_peak_bkgrnd);
+		DenseDoubleMatrix2D sp_amp_bkgrnd2D = new DenseDoubleMatrix2D(num_pixels, num_pixels);
+		sp_amp_bkgrnd2D.assign(1.0);
+		sp_amp_bkgrnd2D.assign(sp_freq_2D, DoubleFunctions.plus);
+		sp_amp_bkgrnd2D.assign(DoubleFunctions.inv);
+		sp_amp_bkgrnd2D.assign(sp_amp_bkgrnd_scale, DoubleFunctions.mult);
+		sp_amp_bkgrnd2D.set(0, 0, 0.0);  // use background_luminance for zero frequency amp;
 		DComplexMatrix2D sp_phase_bkgrnd = DComplexFactory2D.dense.make(
 				num_pixels, num_pixels);
 		for (int i_row = 0; i_row < num_pixels; i_row++) {
@@ -69,28 +91,16 @@ public class OneOverSpatialFreqBackgroundImage {
 						Math.sin(ran_phase));
 			}
 		}
-		DComplexMatrix2D sp_bkgrnd = DComplexFactory2D.dense.make(num_pixels,
-				num_pixels);
-		for (int i_row = 0; i_row < num_pixels; i_row++) {
-			for (int j_col = 0; j_col < num_pixels; j_col++) {
-				sp_bkgrnd.set(i_row, j_col,
-						sp_phase_bkgrnd.getRealPart().get(i_row, j_col)
-								* sp_amp_bkgrnd[i_row][j_col], sp_phase_bkgrnd
-								.getImaginaryPart().get(i_row, j_col)
-								* sp_amp_bkgrnd[i_row][j_col]);
-			}
-		}
-		DenseDComplexMatrix2D ifft2_bckgrnd_1_over_f = new DenseDComplexMatrix2D(
-				num_pixels, num_pixels);
-		ifft2_bckgrnd_1_over_f.assignReal(sp_bkgrnd.getRealPart());
-		ifft2_bckgrnd_1_over_f.assignImaginary(sp_bkgrnd.getImaginaryPart());
-		ifft2_bckgrnd_1_over_f.ifft2(true); // 2D Fourier Transform in place,
-											// arg=true specifies scaling is to
-											// be performed (see Parallel Colt
-											// API)
-		DenseDoubleMatrix2D bckgrnd_1_over_f = (DenseDoubleMatrix2D) ifft2_bckgrnd_1_over_f.getRealPart();
-		final double mean_bckgrnd = bckgrnd_1_over_f.zSum();
-		bckgrnd_1_over_f.assign(new DoubleFunction() {
+		DenseDComplexMatrix2D sp_bkgrnd2D = (DenseDComplexMatrix2D) DComplexFactory2D.dense.make(num_pixels,
+				num_pixels); // should initialize to zeros
+		sp_bkgrnd2D.assignReal(sp_amp_bkgrnd2D);
+		sp_bkgrnd2D.assign(sp_phase_bkgrnd, DComplexFunctions.mult);
+		sp_bkgrnd2D.ifft2(false); // 2D Fourier Transform in place,
+		sp_amp_bkgrnd_scale.assign(num_pixels * num_pixels);
+		DenseDoubleMatrix2D one_over_f_bkgrnd = (DenseDoubleMatrix2D) sp_bkgrnd2D.getRealPart();
+		//one_over_f_bkgrnd.assign(sp_amp_bkgrnd_scale, DoubleFunctions.mult);
+		final double mean_bckgrnd = one_over_f_bkgrnd.zSum();  // should be zero
+		one_over_f_bkgrnd.assign(new DoubleFunction() {
 			
 			@Override
 			public double apply(double bckgrnd_val) {
@@ -99,12 +109,40 @@ public class OneOverSpatialFreqBackgroundImage {
 			}
 		});
 		
-//		bckgrnd_1_over_f.assign((DoubleFunction) Functions.minus(mean_bckgrnd));
-//		bckgrnd_1_over_f.assign((DoubleFunction) Functions.plus(background_luminance));
-//		bckgrnd_1_over_f.assign(
-//				bckgrnd_1_over_f.copy().assign((DoubleFunction) Functions.greater(0)),
-//				(DoubleDoubleFunction) Functions.mult);
-		return bckgrnd_1_over_f;
+		// draw 1/f random background image
+		DenseDoubleMatrix2D one_over_f_bkgrnd_byte = (DenseDoubleMatrix2D) one_over_f_bkgrnd.copy();
+		final double[] max_one_over_f_bkgrnd = one_over_f_bkgrnd.getMaxLocation();
+		final double[] min_one_over_f_bkgrnd = one_over_f_bkgrnd.getMinLocation();
+		final double range_one_over_f_bkgrnd = max_one_over_f_bkgrnd[0] - min_one_over_f_bkgrnd[0] > 0 ? max_one_over_f_bkgrnd[0] - min_one_over_f_bkgrnd[0] : 255;
+		one_over_f_bkgrnd_byte.assign(new DoubleFunction() {
+			
+			@Override
+			public double apply(double one_over_f_val) {
+				return Math.round(255 * (one_over_f_val - min_one_over_f_bkgrnd[0]) / range_one_over_f_bkgrnd);
+			}
+		});
+		byte[] image_data = new byte[num_pixels*num_pixels]; // Image data array.
+		double[] image_double = one_over_f_bkgrnd_byte.elements();
+		for(int i_pixel = 0; i_pixel< num_pixels*num_pixels; i_pixel++){
+			image_data[i_pixel] = (byte) image_double[i_pixel];
+		}
+		DataBufferByte dbuffer = new DataBufferByte(image_data, num_pixels*num_pixels);
+		SampleModel sampleModel = new BandedSampleModel(DataBuffer.TYPE_BYTE, num_pixels, num_pixels, 1);
+		ColorModel colorModel = PlanarImage.createColorModel(sampleModel);
+		Raster raster = java.awt.image.Raster.createWritableRaster(sampleModel,dbuffer, null);
+		TiledImage tiledImage = new TiledImage(0,0,num_pixels,num_pixels,0,0,sampleModel,colorModel);
+		tiledImage.setData(raster);
+		PlanarImage one_over_f_bckgrnd_snap = tiledImage.createSnapshot();
+		JFrame frame = new JFrame();
+		frame.setTitle("1/f background");
+		Container contentPane = frame.getContentPane();
+		contentPane.setLayout(new BorderLayout());
+		DisplayJAI one_over_f_display = new DisplayJAI(one_over_f_bckgrnd_snap);
+		contentPane.add(new JScrollPane(one_over_f_display),BorderLayout.CENTER);
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.setSize(num_pixels/2,num_pixels/2);
+		frame.setVisible(true);
+		return one_over_f_bkgrnd;
 
 	}
 

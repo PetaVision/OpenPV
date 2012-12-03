@@ -20,15 +20,14 @@ import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
-import cern.colt.function.tdouble.DoubleDoubleFunction;
 import cern.colt.matrix.tdcomplex.impl.DenseDComplexMatrix1D;
 import cern.colt.matrix.tdouble.DoubleMatrix2D;
 import cern.colt.matrix.tdouble.impl.DenseDoubleMatrix3D;
+import cern.jet.math.tdouble.DoubleFunctions;
 import flanagan.integration.RungeKutta;
-import flanagan.plot.PlotGraph;
-//import javax.media.jai.widget.ScrollingImagePanel;
 
 // class for managing input to van Hateren retina with ocular tremor added
+@SuppressWarnings("restriction")
 public class vanHaterenPlusTremor {
 
 	/**
@@ -40,10 +39,10 @@ public class vanHaterenPlusTremor {
 		CommandLine commandLine;
 		Options options = new Options();
 		CommandLineParser parser = new GnuParser();
-		String[] testArgs = { "--num_cones=128", "--image_type_id=0",
+		String[] testArgs = { "--num_cones=32", "--image_type_id=0",
 				"--grating_orientation=0", "--image_file=''",
-				"--num_steps=128", "--delta_t=1.0",
-				"--background_luminance=1.0", "--num_pixels=1024",
+				"--num_steps=32", "--delta_t=1.0",
+				"--background_luminance=1.0", "--num_pixels=256",
 				"--ran_seed=1234987" };
 
 		OptionBuilder.withArgName("ran_seed");
@@ -58,7 +57,7 @@ public class vanHaterenPlusTremor {
 				.withDescription("number of cones in (square) retina along each side: rounded to power of 2");
 		Option option_num_cones = OptionBuilder.create("num_cones");
 		options.addOption(option_num_cones);
-		int num_cones = 128;
+		int num_cones = 32;
 
 		OptionBuilder.withArgName("num_pixels");
 		OptionBuilder.hasArg();
@@ -100,7 +99,7 @@ public class vanHaterenPlusTremor {
 				.withDescription("number of time steps: rounded to power of 2");
 		Option option_num_steps = OptionBuilder.create("num_steps");
 		options.addOption(option_num_steps);
-		int num_steps = 128;
+		int num_steps = 32;
 
 		OptionBuilder.withArgName("delta_t");
 		OptionBuilder.hasArg();
@@ -242,24 +241,16 @@ public class vanHaterenPlusTremor {
 		PlanarImage input_planar_image = null;
 		// get movie + jitter
 		if (image_type_id == ImageType.ORIENTED_GRATING.ordinal()) {
-			DoubleMatrix2D input_matrix2D;
-			// OneOverSpatialFreqBackgroundImage one_over_f_background =
-			// OneOverSpatialFreqBackgroundImage(num_cones, num_pixels);
 			DoubleMatrix2D bckgrnd_1_over_f = OneOverSpatialFreqBackgroundImage
 					.getBackgroundImage(num_cones, num_pixels);
 			DoubleMatrix2D oriented_grating = GratingImage.getGratingImage(
 					num_cones, num_pixels, Math.PI / 2, 20.0, 1.0, 2.0,
 					grating_orientation);
+			
+			// draw input image
+			DoubleMatrix2D input_matrix2D;
 			input_matrix2D = bckgrnd_1_over_f.copy();
-			input_matrix2D.assign(oriented_grating, new DoubleDoubleFunction() {
-
-				@Override
-				public double apply(double bckgrnd_val, double grating_val) {
-					return (bckgrnd_val + grating_val);
-				}
-			});
-			// input_matrix2D.assign(oriented_grating, (DoubleDoubleFunction)
-			// Functions.plus);
+			input_matrix2D.assign(oriented_grating, DoubleFunctions.plus);
 			DataBuffer input_data_buffer = new DataBufferDouble(
 					(int) input_matrix2D.size(), 1);
 			for (int i_input = 0; i_input < input_matrix2D.size(); i_input++) {
