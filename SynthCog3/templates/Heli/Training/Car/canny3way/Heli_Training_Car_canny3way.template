@@ -15,9 +15,11 @@ HyPerCol "column" = {
    checkpointRead = false;
    checkpointWrite = true;
    $$$_checkpointWriteDir_$$$
-   checkpointWriteStepInterval = 5;
+   checkpointWriteStepInterval = 50;
    deleteOlderCheckpoints = true;
    $$$_printParamsFilename_$$$
+   writeProgressToErr = true;
+   filenamesContainConnectionNames = false;
 };
 
 //
@@ -44,6 +46,9 @@ Movie "Image" = {
     randomMovie = 0;
     offsetX = 0;
     offsetY = 0;
+    useImageBCflag = false;
+    inverseFlag = false;
+    normalizeLuminanceFlag = false;
 };
 
 
@@ -67,6 +72,9 @@ Movie "Mask" = {
     randomMovie = 0;
     offsetX = 0;
     offsetY = 0;
+    useImageBCflag = false;
+    inverseFlag = false;
+    normalizeLuminanceFlag = false;
 };
 
 
@@ -85,7 +93,9 @@ Retina "Retina" = {
     poissonBlankProb = 0;
     burstFreq = 1;
     burstDuration = 1;
-
+    //refractoryPeriod = 0;
+    //absRefractoryPeriod = 0;
+    
     beginStim = 1;
     $$$_endStim_$$$
 };
@@ -182,6 +192,11 @@ KernelConn "MovieToRetina" = {
     stochasticReleaseFlag = false;
     weightUpdatePeriod = -1.0;
 
+    symmetrizeWeights = false;
+    preActivityIsNotRate = true;
+    selfFlag = false;
+    shrinkPatches = false;
+    
     delay = 0;     
 };
 
