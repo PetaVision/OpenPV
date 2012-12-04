@@ -25,7 +25,7 @@ taus_state_t;
 
 int cl_random_init(uint4 * state, size_t count, unsigned int seed);
 uint4 cl_random_get(uint4 state);
-static inline double cl_random_prob(uint4 * state){*state = cl_random_get(*state);return (double) state->s0/(((double) UINT_MAX)+1);} // Why can't the statements be in cl_random.c?
+inline double cl_random_prob(uint4 * state);
 
 #ifdef __cplusplus
 }

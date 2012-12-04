@@ -111,3 +111,8 @@ taus_get (void * vstate)
 
   return (state->s1 ^ state->s2 ^ state->s3);
 }
+
+inline double cl_random_prob(uint4 * state) {
+   *state = cl_random_get(*state);
+   return (double) state->s0/(((double) UINT_MAX)+1);
+}
