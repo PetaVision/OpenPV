@@ -256,28 +256,35 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * p
 #endif
 
    // set random seed if it wasn't set in the command line
-   bool seedfromclock = false;
+   // bool seedfromclock = false;
    if( !random_seed ) {
       if( params->present(name, "randomSeed") ) {
          random_seed = (unsigned long) params->value(name, "randomSeed");
       }
       else {
          random_seed = getRandomSeed();
-         seedfromclock = true;
+         // seedfromclock = true; // Commented out Nov. 28, 2012.  getRandomSeed prints the seed so seedfromclock isn't needed
       }
    }
    if (random_seed < 10000000) {
       fprintf(stderr, "Error: random seed %lu is too small. Use a seed of at least 10000000.\n", random_seed);
       abort();
    }
-   random_seed /= (unsigned long) (1+columnId());
-   if (seedfromclock) {
-      if (icComm->commRank()==0) {
-         printf("Using time to get random seed.\n");
-      }
-      printf("Rank %d process seed set to %lu\n", icComm->commRank(), random_seed);
-   }
-   pv_srandom(random_seed); // initialize random seed
+   // random_seed /= (unsigned long) (1+columnId()); // Commented out Nov. 28, 2012.  For reproducibility across MPI configurations, need all processes to use the same seed
+
+   // Commented out Nov. 28, 2012.  getRandomSeed prints the seed so we don't have to do it here.
+   // if (seedfromclock) {
+   //    if (icComm->commRank()==0) {
+   //       printf("Using time to get random seed.\n");
+   //    }
+   //    printf("Rank %d process seed set to %lu\n", icComm->commRank(), random_seed);
+   // }
+
+   // Commented out Nov. 28, 2012.  Individual neurons have a Tausworthe pseudo-rng so that their state can be
+   // recovered in checkpointing, and so that MPI runs are reproducible even though MPI processes call the
+   // random() system call a nondeterministic number of times.
+   // pv_srandom(random_seed); // initialize random seed
+   random_seed_obj = random_seed;
 
    nxGlobal = (int) params->value(name, "nx");
    nyGlobal = (int) params->value(name, "ny");
@@ -1148,6 +1155,16 @@ HyPerConn * HyPerCol::getConnFromName(const char * connName) {
    return NULL;
 }
 
+unsigned long HyPerCol::getRandomSeed() {
+   unsigned long t = 0UL;
+   int rootproc = 0;
+   if (columnId()==rootproc) {
+       t = time((time_t *) NULL);
+       printf("");
+   }
+   MPI_Bcast(&t, 1, MPI_UNSIGNED_LONG, rootproc, icComm->communicator());
+   return t;
+}
 
 int HyPerCol::checkMarginWidths() {
    // For each connection, make sure that the pre-synaptic margin width is

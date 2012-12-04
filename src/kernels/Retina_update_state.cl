@@ -124,10 +124,10 @@ int spike(float time, float dt,
 
    probSpike *= dt; // convert rate from number of spikes per millisecond to number of spikes in dt.
 
-   // !!!TODO!!! cl_random_prob does not currently produce independent sequences for each cell
-   //*rnd_state = cl_random_get(*rnd_state);
-   //int spike_flag = (cl_random_prob(*rnd_state) < probSpike);
-   int spike_flag = (pv_random_prob() < probSpike);
+   // !!!TODO!!! cl_random_prob does not currently produce independent sequences for each cell // Is it fixed now?
+   *rnd_state = cl_random_get(*rnd_state);
+   int spike_flag = (cl_random_prob(*rnd_state) < probSpike);
+   // int spike_flag = (pv_random_prob() < probSpike);
    return spike_flag;
 }
 

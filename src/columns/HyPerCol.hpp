@@ -105,9 +105,11 @@ public:
 
    // a random seed based on column id
    unsigned long getSeed() { return random_seed; }
+   unsigned long getObjectSeed(int count) { unsigned long seed = random_seed_obj; random_seed_obj += count; return seed;}
 
-   unsigned long getRandomSeed()
-      {return (unsigned long) time((time_t *) NULL); } // Aug 21, 2012: Division by 1+columnId() moved to calling routine}
+   unsigned long getRandomSeed();
+      // Nov. 28, 2012.  All MPI processes get the same base seed, and should use global information to seed individual neurons.
+      // {return (unsigned long) time((time_t *) NULL); } // Aug 21, 2012: Division by 1+columnId() moved to calling routine}
 
    void setDelegate(HyPerColRunDelegate * delegate)  {runDelegate = delegate;}
 
@@ -190,6 +192,10 @@ private:
    int filenamesContainConnectionNames; // Similar to filenamesContainLayerNames, but for connections
 
    unsigned long random_seed;
+   unsigned long random_seed_obj;  // Objects that need to generate random numbers should request a seed from
+                                   // the HyPerCol, saying how many they need (across all processes in an MPI run).
+                                   // random_seed_obj is incremented by the number requested, so that everything
+                                   // that needs a random seed gets a unique seed, and things are reproducible.
 
 }; // class HyPerCol
 

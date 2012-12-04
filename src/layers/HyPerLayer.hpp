@@ -191,6 +191,7 @@ public:
    int getNumExtended()              {return clayer->numExtended;}
    int getNumGlobalNeurons()         {const PVLayerLoc * loc = getLayerLoc(); return loc->nxGlobal*loc->nyGlobal*loc->nf;}
    int getNumGlobalExtended()        {const PVLayerLoc * loc = getLayerLoc(); return (loc->nxGlobal+2*loc->nb)*(loc->nyGlobal+2*loc->nb)*loc->nf;}
+   int getNumGlobalRNGs()            {return numGlobalRNGs;}
 
    int  getLayerId()                 {return clayer->layerId;}
    PVLayerType getLayerType()        {return clayer->layerType;}
@@ -256,6 +257,8 @@ protected:
 
    int * marginIndices;   // indices of neurons in margin
    int numMargin;         // number of neurons in margin
+   int numGlobalRNGs;     // The number of separate random number streams a layer needs.  E.g. stochastically spiking layers need one RNG for each neuron.
+                          // numGlobalRNGs should take into account the global layer, so that random number generation is reproducible in different MPI configurations.
 
    // OpenCL variables
    //
