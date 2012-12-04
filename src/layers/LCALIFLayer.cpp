@@ -66,7 +66,9 @@ void LCALIF_update_state(
    const float sum_gap,
    CL_MEM_GLOBAL float * G_Gap,
    CL_MEM_GLOBAL float * Vattained,
-   CL_MEM_GLOBAL float * Vmeminf
+   CL_MEM_GLOBAL float * Vmeminf,
+   const int normalizeInputFlag,
+   CL_MEM_GLOBAL float * GSynExcEffective
 );
 #ifdef __cplusplus
 }
@@ -89,6 +91,9 @@ int LCALIFLayer::initialize_base(){
    Vscale = DEFAULT_DYNVTHSCALE;
    Vadpt = NULL;
    integratedSpikeCount = NULL;
+   G_Norm = NULL;
+   GSynExcEffective = NULL;
+   normalizeInputFlag = false;
    return PV_SUCCESS;
 }
 
@@ -98,6 +103,7 @@ int LCALIFLayer::initialize(const char * name, HyPerCol * hc, int num_channels, 
 
    tauTHR     = params->value(name, "tauTHR", tauTHR);
    targetRateHz = params->value(name, "targetRate", targetRateHz);
+   normalizeInputFlag = params->value(name, "normalizeInput", (double) normalizeInputFlag);
 
    float defaultDynVthScale = lParams.VthRest-lParams.Vrest;
    Vscale = defaultDynVthScale > 0 ? defaultDynVthScale : DEFAULT_DYNVTHSCALE;
@@ -139,15 +145,22 @@ int LCALIFLayer::allocateBuffers() {
    assert(Vattained != NULL);
    Vmeminf = (pvdata_t *) calloc(numNeurons, sizeof(pvdata_t));
    assert(Vattained != NULL);
+   G_Norm = (pvdata_t *) calloc(numNeurons, sizeof(pvdata_t));
+   assert(G_Norm != NULL);
+   GSynExcEffective = (pvdata_t *) calloc(numNeurons, sizeof(pvdata_t));
+   assert(GSynExcEffective != NULL);
    return LIFGap::allocateBuffers();
 }
 
 int LCALIFLayer::updateState(double timed, double dt)
 {
    //Calculate_state kernel
+   for (int k=0; k<getNumNeurons(); k++) {
+      G_Norm[k] = GSyn[CHANNEL_NORM][k]; // Copy GSyn buffer on normalizing channel for checkpointing, since LCALIF_update_state will blank the GSyn's
+   }
    LCALIF_update_state(getNumNeurons(), timed, dt, clayer->loc.nx, clayer->loc.ny, clayer->loc.nf,
          clayer->loc.nb, Vscale, Vadpt, tauTHR, targetRateHz, integratedSpikeCount, &lParams,
-         rand_state, clayer->V, Vth, G_E, G_I, G_IB, GSyn[0], clayer->activity->data, sumGap, G_Gap, Vattained, Vmeminf);
+         rand_state, clayer->V, Vth, G_E, G_I, G_IB, GSyn[0], clayer->activity->data, sumGap, G_Gap, Vattained, Vmeminf, (int) normalizeInputFlag, GSynExcEffective);
    updateActiveIndices();
    return PV_SUCCESS;
 }
@@ -211,6 +224,14 @@ int LCALIFLayer::checkpointWrite(const char * cpDir) {
    chars_needed = snprintf(filename, PV_PATH_MAX, "%s_Vmeminf.pvp", basepath);
    assert(chars_needed < PV_PATH_MAX);
    writeBufferFile(filename, icComm, timed, Vmeminf, 1, /*extended*/false, /*contiguous*/false, getLayerLoc());
+
+   chars_needed = snprintf(filename, PV_PATH_MAX, "%s_G_Norm.pvp", basepath);
+   assert(chars_needed < PV_PATH_MAX);
+   writeBufferFile(filename, icComm, timed, G_Norm, 1, /*extended*/false, /*contiguous*/false, getLayerLoc());
+
+   chars_needed = snprintf(filename, PV_PATH_MAX, "%s_GSynExcEffective.pvp", basepath);
+   assert(chars_needed < PV_PATH_MAX);
+   writeBufferFile(filename, icComm, timed, GSynExcEffective, 1, /*extended*/false, /*contiguous*/false, getLayerLoc());
 
    return status;
 }

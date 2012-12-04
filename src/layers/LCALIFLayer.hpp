@@ -53,12 +53,15 @@ protected:
 
    int allocateBuffers();
    pvdata_t * integratedSpikeCount;      // plasticity decrement variable for postsynaptic layer
+   pvdata_t * G_Norm;                    // Copy of GSyn[CHANNEL_NORM] to be written out during checkpointing
+   pvdata_t * GSynExcEffective;         // What is used as GSynExc, after normalizing, stored for checkpointing
    float tauTHR;
    float targetRateHz;
    float Vscale;
    float * Vadpt;
    float * Vattained; // Membrane potential before testing to see if a spike resets it to resting potential.  Output in checkpoints for diagnostic purposes but not otherwise used.
    float * Vmeminf;  // Asymptotic value of the membrane potential.  Output in checkpoints for diagnostic purposes but not otherwise used.
+   bool normalizeInputFlag;
    LCALIFLayer();
    int initialize(const char * name, HyPerCol * hc, int num_channels, const char * kernel_name);
    int initialize_base();

@@ -99,7 +99,9 @@ void LCALIF_update_state(
     const float sum_gap,
     CL_MEM_GLOBAL float * G_Gap,
     CL_MEM_GLOBAL float * Vattained,
-    CL_MEM_GLOBAL float * Vmeminf)
+    CL_MEM_GLOBAL float * Vmeminf,
+    const int normalizeInputFlag,
+    CL_MEM_GLOBAL float * GSynExcEffective)
 {
 
    // convert target rate from Hz to kHz
@@ -160,7 +162,7 @@ for (int k = 0; k < nx*ny*nf; k++) {
    float l_GSynInh  = GSynInh[k];
    float l_GSynInhB = GSynInhB[k];
    float l_GSynGap  = GSynGap[k];
-   float l_GSynNorm = GSynNorm[k];
+   float l_GSynNorm = normalizeInputFlag ? GSynNorm[k] : 1.0f;
    
    // define local param variables
    //
@@ -173,12 +175,12 @@ for (int k = 0; k < nx*ny*nf; k++) {
    VthRest  = params->VthRest;
    deltaVth = params->deltaVth;
 
-   // assert(l_GSynNorm>=0 && l_GSynExc>=0 && (l_GSynNorm!=0 || l_GSynExc==0));
    if (!(l_GSynNorm>=0 && l_GSynExc>=0 && (l_GSynNorm!=0 || l_GSynExc==0))) {
       fprintf(stderr, "time = %f, k = %d, l_GSynNorm = %f, l_GSynExc = %f\n", timed, k, l_GSynNorm, l_GSynExc);
       abort();
    };
    l_GSynExc /= (l_GSynNorm + (l_GSynNorm==0 ? 1 : 0));
+   GSynExcEffective[k] = l_GSynExc;
 
    // add noise
    //
