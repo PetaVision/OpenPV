@@ -32,6 +32,7 @@
 #include "../arch/opencl/pv_uint4.h"
 #include "cl_random.h"
 #include <assert.h>
+#include <limits.h>
 
 static inline unsigned int taus_get (void *vstate);
 static void taus_set (void *state, unsigned int s);
@@ -42,12 +43,18 @@ uint4 cl_random_get(uint4 state)
    return state;
 }
 
-uint4 * cl_random_init(size_t count, unsigned int seed)
+// double cl_random_prob(uint4 * state) {
+//    *state = cl_random_get(*state);
+//    return (double) state->s0/(((double) UINT_MAX)+1);
+// }
+
+int cl_random_init(uint4 * state, size_t count, unsigned int seed)
 {
    int i;
 
-   uint4 * state = (uint4 *) malloc(count * sizeof(uint4));
-   assert(state != NULL);
+   // Commented out Nov 29, 2012
+   // uint4 * state = (uint4 *) malloc(count * sizeof(uint4));
+   // assert(state != NULL);
 
    // a zero seed can cause problems (see taus_set)
    seed = (seed == 0) ? 1 : seed;
@@ -59,7 +66,7 @@ uint4 * cl_random_init(size_t count, unsigned int seed)
       state[i].s0 = (state[i].s1 ^ state[i].s2 ^ state[i].s3);
    }
 
-   return state;
+   return 0;
 }
 
 static void
