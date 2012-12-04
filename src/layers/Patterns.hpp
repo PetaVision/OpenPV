@@ -79,6 +79,8 @@ protected:
    int drawDrops();
    int updatePattern(double timef);
    float calcPosition(float pos, int step);
+   virtual bool constrainBiases() {return false;}
+   virtual bool constrainOffsets() {return false;}
 
    PatternType type;
    OrientationMode orientation;

@@ -27,11 +27,6 @@ public:
    bool        updateImage(double time, double dt);
 
    int  randomFrame();
-   void calcBias(int step, int sizeLength);
-   void calcBiasedOffset(int step, int sizeLength);
-   int  calcPosition(int pos, int step, int sizeLength);
-
-   int resetPositionInBounds();
 
 protected:
    Movie();
@@ -44,28 +39,8 @@ private:
    const char * getNextFileName();
    const char * getNextFileName(int n_skip);
 
-   float displayPeriod;   // length of time a frame is displayed
-   float nextDisplayTime; // time of next frame
-
-   int stepSize;
-
-   // int offsetX; // moved to Image
-   // int offsetY;
-
-   int jitterFlag;        // If true, use jitter
-
-   int biasX;             // offsetX/Y jitter around biasX/Y location
-   int biasY;
-
-   float recurrenceProb;  // If using jitter, probability that offset returns to bias position
-   float persistenceProb; // If using jitter, probability that offset stays the same
-
-   int writePosition;     // If using jitter, write positions to input/image-pos.txt
-   long biasChangeTime;    // If using jitter, time period for recalculating bias position
-
-   const static int RANDOM_WALK = 0;  // const denoting jitter is a random walk
-   const static int RANDOM_JUMP = 1;  // const denoting jitter is a random jump
-   int jitterType;       // If using jitter, specify type of jitter (random walk or random jump)
+   double displayPeriod;   // length of time a frame is displayed
+   double nextDisplayTime; // time of next frame
 
    int randomMovie;       // these are used for performing a reverse correlation analysis
    float randomMovieProb;
@@ -78,7 +53,6 @@ private:
    char * movieOutputPath;  // path to output file directory for movie frames
 
    FILE * fp;
-   FILE * fp_pos;
 };
 
 }

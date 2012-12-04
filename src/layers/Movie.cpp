@@ -7,7 +7,6 @@
 
 #include "Movie.hpp"
 #include "../io/imageio.hpp"
-#include "../utils/pv_random.h"
 #include "../include/default_params.h"
 
 #include <assert.h>
@@ -39,15 +38,6 @@ int Movie::initialize_base() {
    echoFramePathnameFlag = false;
    filename = NULL;
    displayPeriod = DISPLAY_PERIOD;
-   jitterFlag = false;
-   jitterType = RANDOM_WALK;
-   stepSize = 1;
-   persistenceProb = 0.0;
-   recurrenceProb = 1.0;
-   biasChangeTime = LONG_MAX;
-   writePosition = 1;
-   biasX   = offsetX;
-   biasY   = offsetY;
    return PV_SUCCESS;
 }
 
@@ -95,26 +85,11 @@ int Movie::initialize(const char * name, HyPerCol * hc, const char * fileOfFileN
       abort();
    }
 
-   this->displayPeriod = params->value(name,"displayPeriod", defaultDisplayPeriod);
-   nextDisplayTime = hc->simulationTime() + this->displayPeriod;
+   displayPeriod = params->value(name,"displayPeriod", defaultDisplayPeriod);
+   nextDisplayTime = hc->simulationTime() + displayPeriod;
 
-   resetPositionInBounds();  // ensure that offsets keep loc within image bounds
+   constrainOffsets();  // ensure that offsets keep loc within image bounds
 
-   writePosition = 0;
-   jitterFlag = params->value(name,"jitterFlag", 0) != 0;
-   if( jitterFlag ) {
-      jitterType = params->value(name,"jitterType", jitterType);
-      stepSize          = (int) params->value(name, "stepSize", stepSize);
-      persistenceProb   = params->value(name,"persistenceProb", persistenceProb);
-      recurrenceProb    = params->value(name,"recurrenceProb", recurrenceProb);
-      biasChangeTime    = (int) params->value(name,"biasChangeTime", biasChangeTime);
-      if (biasChangeTime < 0){
-         biasChangeTime = LONG_MAX;
-      }
-      writePosition     = (int) params->value(name,"writePosition", writePosition);
-      biasX   = offsetX;
-      biasY   = offsetY;
-   }
    randomMovie       = (int) params->value(name,"randomMovie",0);
    if( randomMovie ) {
       randomMovieProb   = params->value(name,"randomMovieProb", 0.05);  // 100 Hz
@@ -122,7 +97,7 @@ int Movie::initialize(const char * name, HyPerCol * hc, const char * fileOfFileN
       // random number generator initialized by HyPerCol::initialize
       randomFrame();
    }else{
-      status = readImage(filename, offsetX, offsetY, colorbandtypes);
+      status = readImage(filename, getOffsetX(), getOffsetY(), colorbandtypes);
       assert(status == PV_SUCCESS);
    }
    free(colorbandtypes); colorbandtypes = NULL;
@@ -141,31 +116,6 @@ int Movie::initialize(const char * name, HyPerCol * hc, const char * fileOfFileN
       }
    }
 
-   if(writePosition){
-      assert(jitterFlag);
-      char file_name[PV_PATH_MAX];
-
-      //Return value of snprintf commented out because it was generating an
-      //unused-variable compiler warning.
-      //
-      //int nchars = snprintf(file_name, PV_PATH_MAX-1, "%s/image-pos.txt", movieOutputPath);
-      snprintf(file_name, PV_PATH_MAX-1, "%s/image-pos.txt", movieOutputPath);
-      printf("write position to %s\n",file_name);
-      // TODO (Done 2012-06-21 --pete) In MPI, fp_pos should only be opened and written to by root process
-      // Note: biasX and biasY are used only to calculate offsetX and offsetY;
-      //       offsetX and offsetY are used only by readImage;
-      //       readImage only uses the offsets in the zero-rank process
-      // Therefore, the other ranks do not need to have their offsets stored.
-      // In fact, it would be reasonable for the nonzero ranks not to compute biases and offsets at all,
-      // but I chose not to fill the code with even more if(rank==0) statements.
-      if( parent->icCommunicator()->commRank()==0 ) {
-         fp_pos = fopen(file_name,"a");
-         assert(fp_pos != NULL);
-         fprintf(fp_pos,"%f %s: \n%d %d\t\t%f %d %d\n",hc->simulationTime(),filename,biasX,biasY,
-               hc->simulationTime(),offsetX,offsetY);
-      }
-   }
-
    // exchange border information
    exchange();
 
@@ -180,12 +130,6 @@ Movie::~Movie()
    }
    if (getParent()->icCommunicator()->commRank()==0 && fp != NULL && fp != stdout) {
       fclose(fp);
-   }
-
-   if(writePosition){
-      if (getParent()->icCommunicator()->commRank()==0 && fp_pos != NULL && fp_pos != stdout) {
-            fclose(fp_pos);
-         }
    }
 }
 
@@ -225,8 +169,6 @@ int Movie::updateState(double time, double dt)
  */
 bool Movie::updateImage(double time, double dt)
 {
-   PVLayerLoc * loc = &clayer->loc;
-
    if(randomMovie){
       randomFrame();
       lastUpdateTime = time;
@@ -246,26 +188,8 @@ bool Movie::updateImage(double time, double dt)
       } // time >= nextDisplayTime
 
       if( jitterFlag ) {
-         // move bias
-         if( time > 0 && !(((int)time) % biasChangeTime) ){
-            calcBias(stepSize, imageLoc.nx - loc->nx - stepSize);
-         }
-
-         // move offset
-         double p = pv_random_prob();
-         if (p > persistenceProb){
-            needNewImage = true;
-            calcBiasedOffset(stepSize, imageLoc.nx - loc->nx - stepSize);
-            if(writePosition && parent->icCommunicator()->commRank()==0){
-               fprintf(fp_pos,"%d %d ",biasX,biasY);
-            }
-         }
-         // ensure that offsets keep loc within image bounds
-         resetPositionInBounds();
-         if(writePosition && parent->icCommunicator()->commRank()==0){
-            fprintf(fp_pos,"\t\t%f %d %d\n",time,offsetX,offsetY);
-         }
-         lastUpdateTime = time;
+         bool jittered = jitter();
+         needNewImage |= jittered;
       } // jitterFlag
 
       if( needNewImage ){
@@ -275,7 +199,7 @@ bool Movie::updateImage(double time, double dt)
             fprintf(stderr, "Movie %s: Error getting image info \"%s\"\n", name, filename);
             abort();
          }
-         if( status == PV_SUCCESS ) status = readImage(filename, offsetX, offsetY, colorbandtypes);
+         if( status == PV_SUCCESS ) status = readImage(filename, getOffsetX(), getOffsetY(), colorbandtypes);
          free(colorbandtypes); colorbandtypes = NULL;
          if( status != PV_SUCCESS ) {
             fprintf(stderr, "Movie %s: Error reading file \"%s\"\n", name, filename);
@@ -349,7 +273,7 @@ int Movie::randomFrame()
 {
    assert(randomMovie); // randomMovieProb was set only if randomMovie is true
    for (int kex = 0; kex < clayer->numExtended; kex++) {
-      data[kex] = (pv_random_prob() < randomMovieProb) ? 1: 0;
+      data[kex] = (cl_random_prob(&rand_state) < randomMovieProb) ? 1: 0;
    }
    return 0;
 }
@@ -404,151 +328,6 @@ const char * Movie::getNextFileName()
    MPI_Bcast(inputfile, PV_PATH_MAX, MPI_CHAR, 0, icComm->communicator());
 #endif // PV_USE_MPI
    return inputfile;
-}
-
-
-/**
- * The bias position (biasX, biasY) changes here.
- * It can perform a random walk of step 1 or it can perform a random jump up to a maximum length
- * equal to step.
- */
-void Movie::calcBias(int step, int sizeLength)
-{
-   assert(jitterFlag);
-   double p;
-
-
-   if (jitterType == RANDOM_WALK) {
-      p = pv_random_prob();
-      if (p < 0.5) {
-         biasX += step;
-      } else {
-         biasX -= step;
-      }
-      p = pv_random_prob();
-      if (p < 0.5) {
-         biasY += step;
-      } else {
-         biasY -= step;
-      }
-   } else if (jitterType == RANDOM_JUMP) {
-      const float dp = 1.0 / step;
-      p = pv_random_prob();
-      for (int i = 0; i < step; i++) {
-         if ((i * dp < p) && (p < (i + 1) * dp)) {
-            biasX = (pv_random_prob() < 0.5) ? biasX - i : biasX + i;
-         }
-      }
-      p = pv_random_prob();
-      for (int i = 0; i < step; i++) {
-         if ((i * dp < p) && (p < (i + 1) * dp)) {
-            biasY = (pv_random_prob() < 0.5) ? biasY - i : biasY + i;
-         }
-      }
-   }
-
-   biasX = (biasX < 0) ? -biasX : biasX;
-   biasX = (biasX > sizeLength) ? sizeLength - (biasX-sizeLength) : biasX;
-
-   biasY = (biasY < 0) ? -biasY : biasY;
-   biasY = (biasY > sizeLength) ? sizeLength - (biasY-sizeLength) : biasY;
-
-   return;
-}
-
-/**
- * Return an offset that moves randomly around position (biasX, biasY)
- * With probability recurenceProb the offset returns to its bias position
- * (biasX,biasY). Otherwise, with probability (1-recurrenceProb) perform a
- * random jump of maximum length equal to step.
- */
-void Movie::calcBiasedOffset(int step, int sizeLength)
-{
-   assert(jitterFlag); // calcBiasedOffset should only be called when jitterFlag is true
-   const float dp = 1.0 / step;
-   double p = pv_random_prob();
-
-   if (p > recurrenceProb){
-      p = pv_random_prob();
-      for (int i = 0; i < step; i++) {
-         if ((i * dp < p) && (p < (i + 1) * dp)) {
-            offsetX = (pv_random_prob() < 0.5) ? offsetX - i : offsetX + i;
-         }
-      }
-      p = pv_random_prob();
-      for (int i = 0; i < step; i++) {
-         if ((i * dp < p) && (p < (i + 1) * dp)) {
-            offsetY = (pv_random_prob() < 0.5) ? offsetY - i : offsetY + i;
-         }
-      }
-      offsetX = (offsetX < 0) ? -offsetX : offsetX;
-      offsetX = (offsetX > sizeLength) ? sizeLength - (offsetX-sizeLength) : offsetX;
-
-      offsetY = (offsetY < 0) ? -offsetY : offsetY;
-      offsetY = (offsetY > sizeLength) ? sizeLength - (offsetY-sizeLength) : offsetY;
-   } else {
-      offsetX = biasX;
-      offsetY = biasY;
-   }
-
-   return;
-}
-
-
-/**
- * Return an integer between 0 and (step-1)
- */
-int Movie::calcPosition(int pos, int step, int sizeLength)
-{
-   const float dp = 1.0 / step;
-   const double p = pv_random_prob();
-   const int random_walk = 0;
-   const int move_forward = 0;
-   const int move_backward = 0;
-   const int random_jump = 1;
-
-   if (random_walk) {
-      if (p < 0.5) {
-         pos += step;
-      } else {
-         pos -= step;
-      }
-   } else if (move_forward) {
-      pos += step;
-   } else if (move_backward) {
-      pos -= step;
-   } else if (random_jump) {
-      for (int i = 0; i < step; i++) {
-         if ((i * dp < p) && (p < (i + 1) * dp)) {
-            pos = (pv_random_prob() < 0.5) ? pos - i : pos + i;
-         }
-      }
-   }
-
-   pos = (pos < 0) ? -pos : pos;
-   pos = (pos > sizeLength) ? sizeLength - (pos-sizeLength) : pos;
-
-   return pos;
-}
-
-
-int Movie::resetPositionInBounds()
-{
-   PVLayerLoc * loc = &clayer->loc;
-
-   // apply circular boundary conditions
-   //
-   if (offsetX < 0) offsetX += imageLoc.nx;
-   if (offsetY < 0) offsetY += imageLoc.ny;
-   offsetX = (imageLoc.nx < offsetX + loc->nx) ? imageLoc.nx - offsetX : offsetX;
-   offsetY = (imageLoc.ny < offsetY + loc->ny) ? imageLoc.ny - offsetY : offsetY;
-
-   // could still be out of bounds
-   //
-   offsetX = (offsetX < 0 || imageLoc.nx < offsetX + loc->nx) ? 0 : offsetX;
-   offsetY = (offsetY < 0 || imageLoc.ny < offsetY + loc->ny) ? 0 : offsetY;
-
-   return 0;
 }
 
 }

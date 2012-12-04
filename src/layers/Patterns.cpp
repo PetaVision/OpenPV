@@ -553,6 +553,16 @@ int Patterns::drawDrops() {
    const int nxgl = loc->nxGlobal;
    const int nygl = loc->nyGlobal;
 
+   // For Drops, jittering moves the centers of the drops by offsetX,offsetY.
+   // Since we always redraw the pattern, we don't need jitter's return value.
+   // jitter should be added to other pattern types, in which case the call
+   // to jitter() should be moved to updatePattern.
+   if (jitterFlag) {
+      jitter();
+      printf("Time %f, Rank %d, offset x=%d, y=%d\n", parent->simulationTime(), parent->columnId(), getOffsetX(), getOffsetY());
+      MPI_Bcast(offsets,2,MPI_INT,0,parent->icCommunicator()->communicator());
+   }
+
    //Max radius at corner of screen
    float max_radius = sqrt(nxgl * nxgl + nygl * nygl);
 
@@ -640,8 +650,8 @@ int Patterns::drawDrops() {
    for(int i = 0; i < (int)vDrops.size(); i++){
       float delta_theta = fabs(atan((float)1./vDrops[i].radius));
       for (float theta = 0; theta < 2*PI; theta += delta_theta){
-         int ix = (int)(round(vDrops[i].centerX + vDrops[i].radius * cos(theta)));
-         int iy = (int)(round(vDrops[i].centerY + vDrops[i].radius * sin(theta)));
+         int ix = (int)(round(getOffsetX() + vDrops[i].centerX + vDrops[i].radius * cos(theta)));
+         int iy = (int)(round(getOffsetY() + vDrops[i].centerY + vDrops[i].radius * sin(theta)));
 
          //Check edge bounds based on nx/ny size
          if(ix < nx + kx0 && iy < ny + ky0 && ix >= kx0 && iy >= ky0){
@@ -780,7 +790,6 @@ float Patterns::calcPosition(float pos, int step)
 
    return pos;
 }
-
 
 int Patterns::checkpointRead(const char * cpDir, double * timef) {
    int status = HyPerLayer::checkpointRead(cpDir, timef);

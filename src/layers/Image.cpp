@@ -6,7 +6,6 @@
  */
 
 #include "Image.hpp"
-#include "../io/imageio.hpp"
 
 #ifdef PV_USE_MPI
    #include <mpi.h>
@@ -29,6 +28,12 @@ Image::~Image() {
    free(filename);
    filename = NULL;
    Communicator::freeDatatypes(mpi_datatypes); mpi_datatypes = NULL;
+
+   if(writePosition){
+      if (getParent()->icCommunicator()->commRank()==0 && fp_pos != NULL && fp_pos != stdout) {
+            fclose(fp_pos);
+         }
+   }
 }
 
 int Image::initialize_base() {
@@ -40,8 +45,18 @@ int Image::initialize_base() {
    writeImages = false;
    inverseFlag = false;
    normalizeLuminanceFlag = false;
-   offsetX = 0;
-   offsetY = 0;
+   offsets[0] = 0;
+   offsets[1] = 1;
+   jitterFlag = false;
+   jitterType = RANDOM_WALK;
+   stepSize = 0;
+   persistenceProb = 0.0;
+   recurrenceProb = 1.0;
+   biasChangeTime = LONG_MAX;
+   writePosition = 0;
+   fp_pos = NULL;
+   biases[0]   = getOffsetX();
+   biases[1]   = getOffsetY();
    return PV_SUCCESS;
 }
 
@@ -86,10 +101,70 @@ int Image::initialize(const char * name, HyPerCol * hc, const char * filename) {
    mpi_datatypes = Communicator::newDatatypes(getLayerLoc());
 
    if (filename != NULL) {
-      status = readImage(filename, offsetX, offsetY, colorbandtypes);
+      status = readImage(filename, getOffsetX(), getOffsetY(), colorbandtypes);
       assert(status == PV_SUCCESS);
    }
    free(colorbandtypes); colorbandtypes = NULL;
+
+   jitterFlag = params->value(name,"jitterFlag", 0) != 0;
+   if( jitterFlag ) {
+      jitterType        = params->value(name,"jitterType", jitterType);
+      stepSize          = (int) params->value(name, "stepSize", stepSize);
+      persistenceProb   = params->value(name,"persistenceProb", persistenceProb);
+      recurrenceProb    = params->value(name,"recurrenceProb", recurrenceProb);
+      double biasChangeTimeParam = params->value(name, "biasChangeTime", biasChangeTime);
+      if (biasChangeTimeParam==FLT_MAX || biasChangeTimeParam < 0) {
+         biasChangeTime = LONG_MAX;
+      }
+      else {
+         biasChangeTime = (long) biasChangeTimeParam;
+      }
+      biases[0] = getOffsetX();
+      biases[1]   = getOffsetY();
+
+      biasConstraintMethod = params->value(name, "biasConstraintMethod",0);
+      if (biasConstraintMethod <0 || biasConstraintMethod >3) {
+         fprintf(stderr, "Image layer \"%s\": biasConstraintMethod allowed values are 0 (ignore), 1 (mirror BC), 2 (threshold), 3 (circular BC)\n", getName());
+         exit(EXIT_FAILURE);
+      }
+
+      offsetConstraintMethod = params->value(name, "offsetConstraintMethod",0);
+      if (offsetConstraintMethod <0 || offsetConstraintMethod >3) {
+         fprintf(stderr, "Image layer \"%s\": offsetConstraintMethod allowed values are 0 (ignore), 1 (mirror BC), 2 (threshold), 3 (circular BC)\n", getName());
+         exit(EXIT_FAILURE);
+      }
+
+      writePosition     = (int) params->value(name,"writePosition", writePosition);
+      if(writePosition){
+         assert(jitterFlag);
+         // Note: biasX and biasY are used only to calculate offsetX and offsetY;
+         //       offsetX and offsetY are used only by readImage;
+         //       readImage only uses the offsets in the zero-rank process
+         // Therefore, the other ranks do not need to have their offsets stored.
+         // In fact, it would be reasonable for the nonzero ranks not to compute biases and offsets at all,
+         // but I chose not to fill the code with even more if(rank==0) statements.
+         if( parent->icCommunicator()->commRank()==0 ) {
+            char file_name[PV_PATH_MAX];
+
+            int nchars = snprintf(file_name, PV_PATH_MAX, "%s/%s_jitter.txt", parent->getOutputPath(), getName());
+            if (nchars >= PV_PATH_MAX) {
+               fprintf(stderr, "Path for jitter positions \"%s/%s_jitter.txt is too long.\n", parent->getOutputPath(), getName());
+               abort();
+            }
+            printf("Image layer \"%s\" will write jitter positions to %s\n",getName(), file_name);
+            fp_pos = fopen(file_name,"w");
+            if(fp_pos == NULL) {
+               fprintf(stderr, "Image \"%s\" unable to open file \"%s\" for writing jitter positions.\n", getName(), file_name);
+               abort();
+            }
+            fprintf(fp_pos,"Layer \"%s\", t=%f, bias x=%d y=%d, offset x=%d y=%d\n",getName(),hc->simulationTime(),biases[0],biases[1],
+                  getOffsetX(),getOffsetY());
+         }
+      }
+      numGlobalRNGs = 1;
+      unsigned int seed = parent->getObjectSeed(getNumGlobalRNGs());
+      cl_random_init(&rand_state, 1UL, seed);
+   }
 
    // exchange border information
    exchange();
@@ -100,8 +175,8 @@ int Image::initialize(const char * name, HyPerCol * hc, const char * filename) {
 int Image::readOffsets() {
    PVParams * params = parent->parameters();
 
-   this->offsetX      = (int) params->value(name,"offsetX", offsetX);
-   this->offsetY      = (int) params->value(name,"offsetY", offsetY);
+   offsets[0]      = (int) params->value(name,"offsetX", offsets[0]);
+   offsets[1]      = (int) params->value(name,"offsetY", offsets[1]);
 
    return PV_SUCCESS;
 }
@@ -418,61 +493,215 @@ void Image::equalBandWeights(int numBands, float * bandweight) {
    for( int b=0; b<numBands; b++ ) bandweight[b] = w;
 }
 
-int Image::convolve(int width)
-{
-   const PVLayerLoc * loc = getLayerLoc();
-   const int nx_ex = loc->nx + 2*loc->nb;
-   const int ny_ex = loc->ny + 2*loc->nb;
-   //const int nb = loc->nf;
-
-   const int size_ex = nx_ex * ny_ex;
-
-   // an image is different from normal layers as features (bands) vary last
-   const size_t sx = 1;
-   const size_t sy = loc->nx + loc->halo.lt + loc->halo.rt;
-
-   const int npx = width;
-   const int npy = width;
-   const int npx_2 = width/2;
-   const int npy_2 = width/2;
-
-   assert(npx <= loc->nb);
-   assert(npy <= loc->nb);
-
-   float * buf = new float[size_ex];
-   //for (int i = 0; i < size_ex; i++) buf[i] = 0;
-
-   float max = -1.0e9;
-   float min = -max;
-
-   // ignore image bands for now
-   for (int jex = npy_2; jex < ny_ex - npy_2; jex++) {
-      for (int iex = npx_2; iex < nx_ex - npx_2; iex++) {
-         float av = 0;
-         float sq = 0;
-         for (int jp = 0; jp < npy; jp++) {
-            for (int ip = 0; ip < npx; ip++) {
-   //            int ix = i + ip - npx_2;
-   //            int iy = j + jp - npy_2;
-   //            float val = data[ix*sx + iy*sy];
-   //            av += val;
-   //            sq += val * val;
-            }
-         }
-         av = av / (npx*npy);
-         min = (av < min) ? av : min;
-         max = (av > max) ? av : max;
-//         sq  = sqrt( sq/(nPad*nPad) - av*av ) + tau;
-//         buf[i*sx + j*sy] = data[i*sx + j*sy] + mid - av;
-         buf[iex*sx + jex*sy] = .95f * 255.0f * (data[iex*sx + jex*sy] - .95f * av) / sq;
-      }
+/*
+ * jitter() is not called by Image directly, but it is called by
+ * its derived classes Patterns and Movie, so it's placed in Image.
+ * It returns true if the offsets changed so that a new image needs
+ * to be loaded/drawn.
+ */
+bool Image::jitter() {
+   // move bias
+   double timed = parent->simulationTime();
+   if( timed > 0 && !( ((long)timed) % biasChangeTime ) ){  // Needs to be changed: dt is not always 1.
+      calcNewBiases(stepSize);
+      constrainBiases();
    }
 
-   printf("min==%f max==%f\n", min, max);
+   // move offset
+   bool needNewImage = calcNewOffsets(stepSize);
+   constrainOffsets();
 
-   for (int k = 0; k < size_ex; k++) data[k] = buf[k];
+   if(writePosition && parent->icCommunicator()->commRank()==0){
+      fprintf(fp_pos,"t=%f, bias x=%d, y=%d, offset x=%d y=%d\n",timed,biases[0],biases[1],offsets[0],offsets[1]);
+   }
+   lastUpdateTime = timed;
+   return needNewImage;
+}
 
-   return 0;
+/**
+ * Calculate a bias in x or y here.  Input argument is the step size and the size of the interval of possible values
+ * Output is the value of the bias.
+ * It can perform a random walk of a fixed stepsize or it can perform a random jump up to a maximum length
+ * equal to step.
+ */
+int Image::calcBias(int current_bias, int step, int sizeLength)
+{
+   assert(jitterFlag);
+   double p;
+   int dbias = 0;
+   if (jitterType == RANDOM_WALK) {
+      p = cl_random_prob(&rand_state);
+      dbias = p < 0.5 ? step : -step;
+   } else if (jitterType == RANDOM_JUMP) {
+      p = cl_random_prob(&rand_state);
+      dbias = (int) floor(p*(double) step) + 1;
+      p = cl_random_prob(&rand_state);
+      if (p < 0.5) dbias = -dbias;
+   }
+   else {
+      assert(0); // Only allowable values of jitterType are RANDOM_WALK and RANDOM_JUMP
+   }
+
+   int new_bias = current_bias + dbias;
+   new_bias = (new_bias < 0) ? -new_bias : new_bias;
+   new_bias = (new_bias > sizeLength) ? sizeLength - (new_bias-sizeLength) : new_bias;
+   return new_bias;
+}
+
+int Image::calcNewBiases(int stepSize) {
+   int step_radius = 0; // distance to step
+   switch (jitterType) {
+   case RANDOM_WALK:
+      step_radius = stepSize;
+      break;
+   case RANDOM_JUMP:
+      step_radius = 1 + (int) floor(cl_random_prob(&rand_state) * stepSize);
+      break;
+   default:
+      assert(0); // Only allowable values of jitterType are RANDOM_WALK and RANDOM_JUMP
+      break;
+   }
+   double p = cl_random_prob(&rand_state) * 2 * PI; // direction to step
+   int dx = (int) floor( step_radius * cos(p));
+   int dy = (int) floor( step_radius * sin(p));
+   assert(dx != 0 || dy != 0);
+   biases[0] += dx;
+   biases[1] += dy;
+   return PV_SUCCESS;
+}
+
+/**
+ * Return an offset that moves randomly around position bias
+ * Perform a
+ * random jump of maximum length equal to step.
+ * The routine returns the resulting offset.
+ * (The recurenceProb test has been moved to the calling routine jitter() )
+ */
+int Image::calcBiasedOffset(int bias, int current_offset, int step, int sizeLength)
+{
+   assert(jitterFlag); // calcBiasedOffset should only be called when jitterFlag is true
+   int new_offset;
+   double p = cl_random_prob(&rand_state);
+   int d_offset = (int) floor(p*(double) step) + 1;
+   p = cl_random_prob(&rand_state);
+   if (p<0.5) d_offset = -d_offset;
+   new_offset = current_offset + d_offset;
+   new_offset = (new_offset < 0) ? -new_offset : new_offset;
+   new_offset = (new_offset > sizeLength) ? sizeLength - (new_offset-sizeLength) : new_offset;
+
+   return new_offset;
+}
+
+bool Image::calcNewOffsets(int stepSize)
+{
+   assert(jitterFlag);
+
+   bool needNewImage = false;
+   double p = cl_random_prob(&rand_state);
+
+   if (p > recurrenceProb) {
+      p = cl_random_prob(&rand_state);
+      if (p > persistenceProb) {
+         needNewImage = true;
+         int step_radius = 1 + (int) floor(cl_random_prob(&rand_state) * stepSize);
+         double p = cl_random_prob(&rand_state) * 2 * PI; // direction to step
+         int dx = (int) round( step_radius * cos(p));
+         int dy = (int) round( step_radius * sin(p));
+         assert(dx != 0 || dy != 0);
+         offsets[0] += dx;
+         offsets[1] += dy;
+      }
+   }
+   else {
+      assert(sizeof(*offsets) == sizeof(*biases));
+      memcpy(offsets, biases, 2*sizeof(offsets));
+   }
+
+   return needNewImage;
+}
+
+bool Image::constrainPoint(int * point, int min_x, int max_x, int min_y, int max_y, int method) {
+   bool moved_x = point[0] < min_x || point[0] >= max_x;
+   bool moved_y = point[1] < min_y || point[1] >= max_y;
+   if (moved_x) {
+      if (min_x >= max_x) {
+         fprintf(stderr, "Image::constrainPoint error.  min_x=%d and max_x= %d\n", min_x, max_x);
+         abort();
+      }
+      int size_x = max_x-min_x;
+      int new_x = point[0];
+      switch (method) {
+      case 0: // Ignore
+         break;
+      case 1: // Mirror
+         new_x -= min_x;
+         new_x %= (2*size_x);
+         if (new_x<0) new_x++;
+         new_x = abs(new_x);
+         if (new_x>=size_x) new_x = 2*size_x-1-new_x;
+         new_x += min_x;
+         break;
+      case 2: // Stick to wall
+         if (new_x<min_x) new_x = min_x;
+         if (new_x>=max_x) new_x = max_x;
+         break;
+      case 3: // Circular
+         new_x -= min_x;
+         new_x %= size_x;
+         if (new_x<0) new_x += size_x;
+         new_x += min_x;
+         break;
+      default:
+         assert(0);
+         break;
+      }
+      assert(new_x >= min_x && new_x < max_x);
+      point[0] = new_x;
+   }
+   if (moved_y) {
+      if (min_y >= max_y) {
+         fprintf(stderr, "Image::constrainPoint error.  min_y=%d and max_y=%d\n", min_y, max_y);
+         abort();
+      }
+      int size_y = max_y-min_y;
+      int new_y = point[1];
+      switch (method) {
+      case 0: // Ignore
+         break;
+      case 1: // Mirror
+         new_y -= min_y;
+         new_y %= (2*size_y);
+         if (new_y<0) new_y++;
+         new_y = abs(new_y);
+         if (new_y>=size_y) new_y = 2*size_y-1-new_y;
+         new_y += min_y;
+         break;
+      case 2: // Stick to wall
+         if (new_y<min_y) new_y = min_y;
+         if (new_y>=max_y) new_y = max_y;
+         break;
+      case 3: // Circular
+         new_y -= min_y;
+         new_y %= size_y;
+         if (new_y<0) new_y += size_y;
+         new_y += min_y;
+         break;
+      default:
+         assert(0);
+         break;
+      }
+      assert(new_y >= min_y && new_y < max_y);
+      point[1] = new_y;
+   }
+   return moved_x || moved_y;
+}
+
+bool Image::constrainBiases() {
+   return constrainPoint(biases, 0, imageLoc.nxGlobal - getLayerLoc()->nxGlobal - stepSize, 0, imageLoc.nyGlobal - getLayerLoc()->nyGlobal - stepSize, biasConstraintMethod);
+}
+
+bool Image::constrainOffsets() {
+   return constrainPoint(offsets, 0, imageLoc.nxGlobal - getLayerLoc()->nxGlobal - stepSize, 0, imageLoc.nyGlobal - getLayerLoc()->nyGlobal - stepSize, biasConstraintMethod);
 }
 
 } // namespace PV
