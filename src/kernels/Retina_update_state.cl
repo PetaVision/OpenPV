@@ -10,7 +10,7 @@
 #  include <math.h>
 #  define EXP  expf
 #  define COS  cosf
-#  define FMOD fmodf
+#  define MOD fmod
 #  define CL_KERNEL
 #  define CL_MEM_GLOBAL
 #  define CL_MEM_CONST
@@ -64,22 +64,22 @@
  */
 
 static inline
-float calcBurstStatus(float timef, CL_MEM_CONST Retina_params * params) {
+float calcBurstStatus(double timed, CL_MEM_CONST Retina_params * params) {
    float burstStatus;
    if (params->burstDuration <= 0 || params->burstFreq == 0) {
       // sinAmp = COS( 2*PI*time * params->burstFreq / 1000. );
-      burstStatus = COS( 2*PI*timef * params->burstFreq / 1000. );
+      burstStatus = COS( 2*PI*timed * params->burstFreq / 1000. );
    }
    else {
-      burstStatus = FMOD(timef, 1000. / params->burstFreq);
+      burstStatus = MOD(timed, 1000. / params->burstFreq);
       burstStatus = burstStatus < params->burstDuration;
    }
-   burstStatus *= (int) ( (timef >= params->beginStim) && (timef < params->endStim) );
+   burstStatus *= (int) ( (timed >= params->beginStim) && (timed < params->endStim) );
    return burstStatus;
 }
 
 static inline
-int spike(float time, float dt,
+int spike(float timed, float dt,
           float prev, float stimFactor, uint4 * rnd_state, float burst_status, CL_MEM_CONST Retina_params * params)
 {
    float probSpike;
@@ -93,15 +93,15 @@ int spike(float time, float dt,
 
    // see if neuron is in a refractory period
    //
-   if ((time - prev) < params->abs_refractory_period) {
+   if ((timed - prev) < params->abs_refractory_period) {
       return 0;
    }
    else {
-      float delta = time - prev - params->abs_refractory_period;
-      float refact = 1.0f - EXP(-delta/params->refractory_period);
-      refact = (refact < 0) ? 0 : refact;
-      probBase *= refact;
-      probStim *= refact;
+      float delta = timed - prev - params->abs_refractory_period;
+      float refract = 1.0f - EXP(-delta/params->refractory_period);
+      refract = (refract < 0) ? 0 : refract;
+      probBase *= refract;
+      probStim *= refract;
    }
 
    // burstStatus = calcBurstStatus(time, params);
@@ -139,8 +139,8 @@ int spike(float time, float dt,
 CL_KERNEL
 void Retina_spiking_update_state (
     const int numNeurons,
-    const float time,
-    const float dt,
+    const double timed,
+    const double dt,
 
     const int nx,
     const int ny,
@@ -156,7 +156,7 @@ void Retina_spiking_update_state (
     CL_MEM_GLOBAL float * prevTime)
 {
    int k;
-   float burst_status = calcBurstStatus(time, params);
+   float burst_status = calcBurstStatus(timed, params);
 #ifndef PV_USE_OPENCL
 for (k = 0; k < nx*ny*nf; k++) {
 #else
@@ -179,8 +179,8 @@ for (k = 0; k < nx*ny*nf; k++) {
    float l_prev   = prevTime[kex];
    float l_activ;
 
-   l_activ = (float) spike(time, dt, l_prev, (l_phiExc - l_phiInh), &l_rnd, burst_status, params);
-   l_prev  = (l_activ > 0.0f) ? time : l_prev;
+   l_activ = (float) spike(timed, dt, l_prev, (l_phiExc - l_phiInh), &l_rnd, burst_status, params);
+   l_prev  = (l_activ > 0.0f) ? timed : l_prev;
 
    l_phiExc = 0.0f;
    l_phiInh = 0.0f;
@@ -207,8 +207,8 @@ for (k = 0; k < nx*ny*nf; k++) {
 CL_KERNEL
 void Retina_nonspiking_update_state (
     const int numNeurons,
-    const float time,
-    const float dt,
+    const double timed,
+    const double dt,
 
     const int nx,
     const int ny,
@@ -222,7 +222,7 @@ void Retina_nonspiking_update_state (
     CL_MEM_GLOBAL float * activity)
 {
    int k;
-   float burstStatus = calcBurstStatus(time, params);
+   float burstStatus = calcBurstStatus(timed, params);
 #ifndef PV_USE_OPENCL
 for (k = 0; k < nx*ny*nf; k++) {
 #else

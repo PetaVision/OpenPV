@@ -23,8 +23,8 @@ extern "C" {
 
 void Retina_spiking_update_state (
     const int numNeurons,
-    const float time,
-    const float dt,
+    const double timed,
+    const double dt,
     const int nx,
     const int ny,
     const int nf,
@@ -39,8 +39,8 @@ void Retina_spiking_update_state (
 
 void Retina_nonspiking_update_state (
     const int numNeurons,
-    const float time,
-    const float dt,
+    const double timed,
+    const double dt,
     const int nx,
     const int ny,
     const int nf,
@@ -95,8 +95,8 @@ int Retina::initialize_base() {
    rParams.abs_refractory_period = 0.0f;
    rParams.refractory_period = 0.0f;
    rParams.beginStim = 0.0f;
-   rParams.endStim = -1.0f;
-   rParams.burstDuration = 1000.0f;
+   rParams.endStim = -1.0;
+   rParams.burstDuration = 1000.0;
    rParams.burstFreq = 1.0f;
    rParams.probBase = 0.0f;
    rParams.probStim = 1.0f;

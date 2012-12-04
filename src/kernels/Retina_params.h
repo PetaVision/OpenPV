@@ -4,8 +4,8 @@
 typedef struct Retina_params_ {
    float probStim;
    float probBase;
-   float beginStim;
-   float endStim;
+   double beginStim;
+   double endStim;
    float burstFreq;          // frequency of bursts
    float burstDuration;      // duration of each burst, <=0 -> sinusoidal
 
