@@ -559,8 +559,8 @@ int Patterns::drawDrops() {
    // to jitter() should be moved to updatePattern.
    if (jitterFlag) {
       jitter();
-      printf("Time %f, Rank %d, offset x=%d, y=%d\n", parent->simulationTime(), parent->columnId(), getOffsetX(), getOffsetY());
-      MPI_Bcast(offsets,2,MPI_INT,0,parent->icCommunicator()->communicator());
+      // Because the Patterns layer has its own uint4 random state, and all MPI processes seeded it the same way,
+      // all MPI processes have the same offset and bias, without needing to do an MPI call.
    }
 
    //Max radius at corner of screen
