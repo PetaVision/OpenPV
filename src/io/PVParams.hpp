@@ -310,6 +310,7 @@ private:
    int newActiveParamSweep();
    int clearHasBeenReadFlags();
    static char * stripQuotationMarks(const char *s);
+   static char * expandLeadingTilde(char *path);
 };
 
 }

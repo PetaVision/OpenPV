@@ -1484,21 +1484,8 @@ void PVParams::action_parameter_filename_def(const char * id, const char * strin
    assert(param_value);
    ParameterString * pstr = NULL;
    char * filename = NULL;
-   int len = strlen(param_value);
-   if (len>1 && param_value[0]=='~' && param_value[1]=='/') { // If filename starts with ~/ replace ~ with $HOME
-      char * homedir = getenv("HOME");
-      if (homedir==NULL) {
-         fprintf(stderr, "Error expanding \"%s\": home directory not defined\n", param_value);
-      }
-      char dummy;
-      int chars_needed = snprintf(&dummy, 0, "%s/%s", homedir, &param_value[1]);
-      filename = (char *) malloc(chars_needed+1);
-      if (filename==NULL) {
-         fprintf(stderr, "Unable to allocate memory for filename \"%s/%s\"\n", homedir, &param_value[1]);
-         exit(EXIT_FAILURE);
-      }
-      int chars_used = snprintf(filename, chars_needed+1, "%s/%s", homedir, &param_value[1]);
-      assert(chars_used <= chars_needed);
+   if (param_value && param_value[0]=='~') {
+      filename = expandLeadingTilde(param_value);
       pstr = new ParameterString(id, filename);
       free(filename);
    }
@@ -1575,6 +1562,11 @@ void PVParams::action_sweep_values_filename(const char * stringval)
    }
    char * filename = stripQuotationMarks(stringval);
    assert(filename);
+   if (filename && filename[0]=='~') {
+      char * newfilename = expandLeadingTilde(filename);
+      free(filename);
+      filename = newfilename;
+   }
    activeParamSweep->pushStringValue(filename);
    free(filename);
 }
@@ -1663,6 +1655,47 @@ char * PVParams::stripQuotationMarks(const char * s) {
       noquotes[len-2] = '\0'; // Not strictly necessary since noquotes was calloc'ed
    }
    return noquotes;
+}
+
+// If a filename begins with "~/" or is "~", presume the user means the home directory.
+// The return value is the expanded path; e.g. if the home directory is /home/user1,
+// calling with the path "~/directory/file.name" returns "/home/user1/directory/file.name"
+// If the input filename is longer than "~" and doesn't start with "~/", the return value
+// has the same contents as input (but is a different block of memory).
+// The calling routine has the responsibility for freeing the return value, and
+// if the input string needs to be free()'ed, the calling routine has that responsibility
+// as well.
+char * PVParams::expandLeadingTilde(char * path) {
+   char * newpath = NULL;
+   if (path != NULL) {
+      int len = strlen(path);
+      if (len==1 && path[0]=='~') {
+         newpath = strdup(getenv("HOME"));
+         if (newpath==NULL) {
+            fprintf(stderr, "Error expanding \"%s\": home directory not defined\n", path);
+            exit(EXIT_FAILURE);
+         }
+      }
+      else if (len>1 && path[0]=='~' && path[1]=='/') {
+         char * homedir = getenv("HOME");
+         if (homedir==NULL) {
+            fprintf(stderr, "Error expanding \"%s\": home directory not defined\n", path);
+         }
+         char dummy;
+         int chars_needed = snprintf(&dummy, 0, "%s/%s", homedir, &path[2]);
+         newpath = (char *) malloc(chars_needed+1);
+         if (newpath==NULL) {
+            fprintf(stderr, "Unable to allocate memory for path \"%s/%s\"\n", homedir, &path[2]);
+            exit(EXIT_FAILURE);
+         }
+         int chars_used = snprintf(newpath, chars_needed+1, "%s/%s", homedir, &path[2]);
+         assert(chars_used == chars_needed);
+      }
+      else {
+         newpath = strdup(path);
+      }
+   }
+   return newpath;
 }
 
 }  // close namespace PV block
