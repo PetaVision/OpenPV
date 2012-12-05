@@ -25,7 +25,6 @@ taus_state_t;
 
 int cl_random_init(uint4 * state, size_t count, unsigned int seed);
 uint4 cl_random_get(uint4 state);
-inline double cl_random_prob(uint4 * state);
 
 #ifdef __cplusplus
 }

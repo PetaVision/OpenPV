@@ -173,11 +173,25 @@ int LIF::initialize(const char * name, HyPerCol * hc, PVLayerType type, int num_
       Vth[k] = lParams.VthRest; // lParams.VthRest is set in setParams
    }
 
-   // random seed should be different for different layers
-   unsigned int seed = (unsigned int) (parent->getRandomSeed() + getLayerId());
+   // Commented out Nov. 28, 2012
+   // // random seed should be different for different layers
+   // unsigned int seed = (unsigned int) (parent->getRandomSeed() + getLayerId());
 
-   // a random state variable is needed for every neuron/clthread
-   rand_state = cl_random_init(numNeurons, seed);
+   // // a random state variable is needed for every neuron/clthread
+   // rand_state = cl_random_init(numNeurons, seed);
+   numGlobalRNGs = getNumGlobalNeurons();
+   rand_state = (uint4 *) malloc(getNumNeurons() * sizeof(uint4));
+   if (rand_state == NULL) {
+      fprintf(stderr, "LIF::initialize error.  Layer \"%s\" unable to allocate memory for random states.\n", getName());
+      exit(EXIT_FAILURE);
+   }
+   unsigned int seed = parent->getObjectSeed(getNumGlobalRNGs());
+   const PVLayerLoc * loc = getLayerLoc();
+   for (int y = 0; y<loc->ny; y++) {
+      int k_local = kIndex(0, y, 0, loc->nx, loc->ny, loc->nf);
+      int k_global = kIndex(loc->kx0, y+loc->ky0, 0, loc->nxGlobal, loc->nyGlobal, loc->nf);
+      cl_random_init(&rand_state[k_local], loc->nx * loc->nf, seed + k_global);
+   }
 
    // initialize OpenCL parameters
    //
@@ -667,7 +681,6 @@ extern "C" {
 #  include "../kernels/LIF_update_state.cl"
 #else
 #  undef PV_USE_OPENCL
-#  undef USE_CLRANDOM
 #  include "../kernels/LIF_update_state.cl"
 #  define PV_USE_OPENCL
 #endif

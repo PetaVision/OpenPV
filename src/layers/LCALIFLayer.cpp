@@ -23,7 +23,6 @@ extern "C" {
 #  include "../kernels/LCALIF_update_state.cl"
 #else
 #  undef PV_USE_OPENCL
-#  undef USE_CLRANDOM
 #  include "../kernels/LCALIF_update_state.cl"
 #  define PV_USE_OPENCL
 #endif

@@ -530,12 +530,12 @@ int Image::calcBias(int current_bias, int step, int sizeLength)
    double p;
    int dbias = 0;
    if (jitterType == RANDOM_WALK) {
-      p = cl_random_prob(&rand_state);
+      p = randomProb(&rand_state);
       dbias = p < 0.5 ? step : -step;
    } else if (jitterType == RANDOM_JUMP) {
-      p = cl_random_prob(&rand_state);
+      p = randomProb(&rand_state);
       dbias = (int) floor(p*(double) step) + 1;
-      p = cl_random_prob(&rand_state);
+      p = randomProb(&rand_state);
       if (p < 0.5) dbias = -dbias;
    }
    else {
@@ -555,13 +555,13 @@ int Image::calcNewBiases(int stepSize) {
       step_radius = stepSize;
       break;
    case RANDOM_JUMP:
-      step_radius = 1 + (int) floor(cl_random_prob(&rand_state) * stepSize);
+      step_radius = 1 + (int) floor(randomProb(&rand_state) * stepSize);
       break;
    default:
       assert(0); // Only allowable values of jitterType are RANDOM_WALK and RANDOM_JUMP
       break;
    }
-   double p = cl_random_prob(&rand_state) * 2 * PI; // direction to step
+   double p = randomProb(&rand_state) * 2 * PI; // direction to step
    int dx = (int) floor( step_radius * cos(p));
    int dy = (int) floor( step_radius * sin(p));
    assert(dx != 0 || dy != 0);
@@ -581,9 +581,9 @@ int Image::calcBiasedOffset(int bias, int current_offset, int step, int sizeLeng
 {
    assert(jitterFlag); // calcBiasedOffset should only be called when jitterFlag is true
    int new_offset;
-   double p = cl_random_prob(&rand_state);
+   double p = randomProb(&rand_state);
    int d_offset = (int) floor(p*(double) step) + 1;
-   p = cl_random_prob(&rand_state);
+   p = randomProb(&rand_state);
    if (p<0.5) d_offset = -d_offset;
    new_offset = current_offset + d_offset;
    new_offset = (new_offset < 0) ? -new_offset : new_offset;
@@ -597,14 +597,14 @@ bool Image::calcNewOffsets(int stepSize)
    assert(jitterFlag);
 
    bool needNewImage = false;
-   double p = cl_random_prob(&rand_state);
+   double p = randomProb(&rand_state);
 
    if (p > recurrenceProb) {
-      p = cl_random_prob(&rand_state);
+      p = randomProb(&rand_state);
       if (p > persistenceProb) {
          needNewImage = true;
-         int step_radius = 1 + (int) floor(cl_random_prob(&rand_state) * stepSize);
-         double p = cl_random_prob(&rand_state) * 2 * PI; // direction to step
+         int step_radius = 1 + (int) floor(randomProb(&rand_state) * stepSize);
+         double p = randomProb(&rand_state) * 2 * PI; // direction to step
          int dx = (int) round( step_radius * cos(p));
          int dy = (int) round( step_radius * sin(p));
          assert(dx != 0 || dy != 0);
@@ -702,6 +702,11 @@ bool Image::constrainBiases() {
 
 bool Image::constrainOffsets() {
    return constrainPoint(offsets, 0, imageLoc.nxGlobal - getLayerLoc()->nxGlobal - stepSize, 0, imageLoc.nyGlobal - getLayerLoc()->nyGlobal - stepSize, biasConstraintMethod);
+}
+
+double Image::randomProb(uint4 * state) {
+   *state = cl_random_get(*state);
+   return ((double) state->s0)/(1.0+(double) UINT_MAX);
 }
 
 } // namespace PV

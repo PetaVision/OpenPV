@@ -21,11 +21,6 @@
 #  define CHANNEL_GAP   3
 #endif
 
-//#undef USE_CLRANDOM
-#ifndef USE_CLRANDOM
-#  include "../utils/pv_random.h"
-#endif
-
 inline
 float LCALIF_tauInf(const float tau, const float G_E, const float G_I, const float G_IB, const float sum_gap) {
    return tau/(1+G_E+G_I+G_IB+sum_gap);
@@ -184,7 +179,6 @@ for (int k = 0; k < nx*ny*nf; k++) {
 
    // add noise
    //
-#ifdef USE_CLRANDOM
    l_rnd = cl_random_get(l_rnd);
    if (cl_random_prob(l_rnd) < dt_sec*params->noiseFreqE) {
       l_rnd = cl_random_get(l_rnd);
@@ -202,19 +196,6 @@ for (int k = 0; k < nx*ny*nf; k++) {
       l_rnd = cl_random_get(l_rnd);
       l_GSynInhB = l_GSynInhB + params->noiseAmpIB*cl_random_prob(l_rnd);
    }
-#else
-   if (pv_random_prob() < dt_sec*params->noiseFreqE) {
-      l_GSynExc = l_GSynExc + params->noiseAmpE*pv_random_prob();
-   }
-
-   if (pv_random_prob() < dt_sec*params->noiseFreqI) {
-      l_GSynInh = l_GSynInh + params->noiseAmpI*pv_random_prob();
-   }
-
-   if (pv_random_prob() < dt_sec*params->noiseFreqIB) {
-      l_GSynInhB = l_GSynInhB + params->noiseAmpIB*pv_random_prob();
-   }
-#endif
 
    const float GMAX = FLT_MAX;
 

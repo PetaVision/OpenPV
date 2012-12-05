@@ -419,7 +419,6 @@ extern "C" {
 #  include "../kernels/LIFGap_update_state.cl"
 #else
 #  undef PV_USE_OPENCL
-#  undef USE_CLRANDOM
 #  include "../kernels/LIFGap_update_state.cl"
 #  define PV_USE_OPENCL
 #endif
