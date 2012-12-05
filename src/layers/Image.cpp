@@ -621,8 +621,8 @@ bool Image::calcNewOffsets(int stepSize)
 }
 
 bool Image::constrainPoint(int * point, int min_x, int max_x, int min_y, int max_y, int method) {
-   bool moved_x = point[0] < min_x || point[0] >= max_x;
-   bool moved_y = point[1] < min_y || point[1] >= max_y;
+   bool moved_x = point[0] < min_x || point[0] > max_x;
+   bool moved_y = point[1] < min_y || point[1] > max_y;
    if (moved_x) {
       if (min_x >= max_x) {
          fprintf(stderr, "Image::constrainPoint error.  min_x=%d and max_x= %d\n", min_x, max_x);
@@ -635,27 +635,27 @@ bool Image::constrainPoint(int * point, int min_x, int max_x, int min_y, int max
          break;
       case 1: // Mirror
          new_x -= min_x;
-         new_x %= (2*size_x);
+         new_x %= (2*(size_x+1));
          if (new_x<0) new_x++;
          new_x = abs(new_x);
-         if (new_x>=size_x) new_x = 2*size_x-1-new_x;
+         if (new_x>size_x) new_x = 2*size_x+1-new_x;
          new_x += min_x;
          break;
       case 2: // Stick to wall
          if (new_x<min_x) new_x = min_x;
-         if (new_x>=max_x) new_x = max_x;
+         if (new_x>max_x) new_x = max_x;
          break;
       case 3: // Circular
          new_x -= min_x;
-         new_x %= size_x;
-         if (new_x<0) new_x += size_x;
+         new_x %= size_x+1;
+         if (new_x<0) new_x += size_x+1;
          new_x += min_x;
          break;
       default:
          assert(0);
          break;
       }
-      assert(new_x >= min_x && new_x < max_x);
+      assert(new_x >= min_x && new_x <= max_x);
       point[0] = new_x;
    }
    if (moved_y) {
@@ -670,38 +670,38 @@ bool Image::constrainPoint(int * point, int min_x, int max_x, int min_y, int max
          break;
       case 1: // Mirror
          new_y -= min_y;
-         new_y %= (2*size_y);
+         new_y %= (2*(size_y+1));
          if (new_y<0) new_y++;
          new_y = abs(new_y);
-         if (new_y>=size_y) new_y = 2*size_y-1-new_y;
+         if (new_y>=size_y) new_y = 2*size_y+1-new_y;
          new_y += min_y;
          break;
       case 2: // Stick to wall
          if (new_y<min_y) new_y = min_y;
-         if (new_y>=max_y) new_y = max_y;
+         if (new_y>max_y) new_y = max_y;
          break;
       case 3: // Circular
          new_y -= min_y;
-         new_y %= size_y;
-         if (new_y<0) new_y += size_y;
+         new_y %= size_y+1;
+         if (new_y<0) new_y += size_y+1;
          new_y += min_y;
          break;
       default:
          assert(0);
          break;
       }
-      assert(new_y >= min_y && new_y < max_y);
+      assert(new_y >= min_y && new_y <= max_y);
       point[1] = new_y;
    }
    return moved_x || moved_y;
 }
 
 bool Image::constrainBiases() {
-   return constrainPoint(biases, 0, imageLoc.nxGlobal - getLayerLoc()->nxGlobal - stepSize, 0, imageLoc.nyGlobal - getLayerLoc()->nyGlobal - stepSize, biasConstraintMethod);
+   return constrainPoint(biases, 0, imageLoc.nxGlobal - getLayerLoc()->nxGlobal, 0, imageLoc.nyGlobal - getLayerLoc()->nyGlobal - stepSize, biasConstraintMethod);
 }
 
 bool Image::constrainOffsets() {
-   return constrainPoint(offsets, 0, imageLoc.nxGlobal - getLayerLoc()->nxGlobal - stepSize, 0, imageLoc.nyGlobal - getLayerLoc()->nyGlobal - stepSize, biasConstraintMethod);
+   return constrainPoint(offsets, 0, imageLoc.nxGlobal - getLayerLoc()->nxGlobal, 0, imageLoc.nyGlobal - getLayerLoc()->nyGlobal - stepSize, biasConstraintMethod);
 }
 
 double Image::randomProb(uint4 * state) {
