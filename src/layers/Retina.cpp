@@ -316,151 +316,34 @@ int Retina::setParams(PVParams * p)
 int Retina::checkpointRead(const char * cpDir, double * timef) {
    int status = HyPerLayer::checkpointRead(cpDir, timef);
 
-   // Restore rand_state from checkpoint.
+   // Restore rand_state
    char filename[PV_PATH_MAX];
-   int chars_needed;
-   int rootproc = 0;
-   InterColComm * ic_comm = parent->icCommunicator();
-   int rank = ic_comm->commRank();
-   if (rank==rootproc) {
-      int comm_size = ic_comm->commSize();
-
-      chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_rand_state.bin", cpDir, name);
-      if(chars_needed >= PV_PATH_MAX) {
-         if (parent->icCommunicator()->commRank()==0) {
-            fprintf(stderr, "HyPerLayer::checkpointRead error in layer \"%s\".  Base pathname \"%s/%s_rand_state.bin\" too long.\n", name, cpDir, name);
-         }
-         abort();
+   int chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_rand_state.bin", cpDir, name);
+   if(chars_needed >= PV_PATH_MAX) {
+      if (parent->icCommunicator()->commRank()==0) {
+         fprintf(stderr, "HyPerLayer::checkpointRead error in layer \"%s\".  Base pathname \"%s/%s_rand_state.bin\" too long.\n", name, cpDir, name);
       }
-      FILE * fp_rand_state = fopen(filename, "r");
-      if (fp_rand_state==NULL) {
-         fprintf(stderr, "Retina::checkpointReading error: unable to open path %s for reading.\n", filename);
-         abort();
-      }
-#ifdef PV_USE_MPI
-      uint4 * mpi_rand_state = (uint4 *) calloc(getNumNeurons(), sizeof(uint4));
-      if (mpi_rand_state==NULL) {
-         fprintf(stderr, "Retina \"%s\" error: checkpointRead unable to allocate memory for mpi_rand_state.\n", getName());
-         abort();
-      }
-      for (int r=0; r<comm_size; r++) {
-         for (int y=0; y<getLayerLoc()->ny; y++) {
-            int ky0 = getLayerLoc()->ny*rowFromRank(r, ic_comm->numCommRows(), ic_comm->numCommColumns());
-            int kx0 = getLayerLoc()->nx*columnFromRank(r, ic_comm->numCommRows(), ic_comm->numCommColumns());
-            int k_local = kIndex(0, y, 0, getLayerLoc()->nx, getLayerLoc()->ny, getLayerLoc()->nf);
-            int k_global = kIndex(kx0, ky0+y, 0, getLayerLoc()->nxGlobal, getLayerLoc()->nyGlobal, getLayerLoc()->nf);
-            fseek(fp_rand_state, k_global*sizeof(uint4), SEEK_SET);
-            int linesize = getLayerLoc()->nx * getLayerLoc()->nf;
-            int numread = fread(&mpi_rand_state[k_local], sizeof(uint4), linesize, fp_rand_state);
-            if (numread != linesize) {
-               fprintf(stderr, "Error reading rand_state.bin for layer \"%s\"\n", getName());
-               abort();
-            }
-         }
-         if (r==rootproc) {
-            memcpy(rand_state, mpi_rand_state, getNumNeurons()*sizeof(uint4));
-         }
-         else {
-            MPI_Send(mpi_rand_state, sizeof(uint4)*getNumNeurons(), MPI_BYTE, r, 171+r/*tag*/, ic_comm->communicator());
-         }
-      }
-      free(mpi_rand_state); mpi_rand_state = NULL;
-#else // PV_USE_MPI
-      int numread = fread(&rand_state, sizeof(uint4), getNumNeurons(), fp_rand_state);
-      if (numread != getNumNeurons()) {
-         fprintf(stderr, "Error reading rand_state.bin for layer \"%s\"\n", getName());
-         abort();
-      }
-#endif // PV_USE_MPI
+      abort();
    }
-   else {
-#ifdef PV_USE_MPI
-      MPI_Recv(rand_state, sizeof(uint4)*getNumNeurons(), MPI_BYTE, rootproc, 171+rank/*tag*/, ic_comm->communicator(), MPI_STATUS_IGNORE);
-#endif // PV_USE_MPI
-   }
+   int rand_state_status = readRandState(filename, parent->icCommunicator(), rand_state, getLayerLoc());
+   if (rand_state_status != PV_SUCCESS) status = rand_state_status;
    return status;
 }
 
 int Retina::checkpointWrite(const char * cpDir) {
    int status = HyPerLayer::checkpointWrite(cpDir);
 
-   // Save rand_state to checkpoint.
-   // The *_rand_state.bin file has length numGlobalNeurons * sizeof(uint4).
-   // Bytes 0 through sizeof(uint4)-1 is the rand_state of the neuron with global index 0.
-   // Bytes sizeof(uint4) through 2*sizeof(uint4)-1 is the rand_state of the neuron with global index 1,
-   // and so forth.
+   // Save rand_state
    char filename[PV_PATH_MAX];
-   int chars_needed;
-   int rootproc = 0;
-   InterColComm * ic_comm = parent->icCommunicator();
-   int rank = ic_comm->commRank();
-   if (rank==rootproc) {
-      int comm_size = ic_comm->commSize();
-
-      uint4 * mpi_rand_state = (uint4 *) calloc(getNumNeurons(), sizeof(uint4));
-      if (mpi_rand_state==NULL) {
-         fprintf(stderr, "Retina::checkpointWrite unable to allocate memory for mpi_rand_state.\n");
-         abort();
+   int chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_rand_state.bin", cpDir, name);
+   if(chars_needed >= PV_PATH_MAX) {
+      if (parent->icCommunicator()->commRank()==0) {
+         fprintf(stderr, "HyPerLayer::checkpointWrite error in layer \"%s\".  Base pathname \"%s/%s_rand_state.bin\" too long.\n", name, cpDir, name);
       }
-      chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_rand_state.bin", cpDir, name);
-      if(chars_needed >= PV_PATH_MAX) {
-         if (parent->icCommunicator()->commRank()==0) {
-            fprintf(stderr, "HyPerLayer::checkpointWrite error in layer \"%s\".  Base pathname \"%s/%s_rand_state.bin\" too long.\n", name, cpDir, name);
-         }
-         abort();
-      }
-      FILE * fp_rand_state = fopen(filename, "w");
-      if (fp_rand_state==NULL) {
-         fprintf(stderr, "Retina::checkpointWrite error: unable to open path %s for writing.\n", filename);
-         abort();
-      }
-
-      // Make sure the file is big enough since we'll write nonsequentially under MPI.  This may not be necessary.
-      for (int r=0; r<comm_size; r++) {
-         int numwritten = fwrite(mpi_rand_state, sizeof(uint4), getNumNeurons(), fp_rand_state);
-         if (numwritten != getNumNeurons()) {
-            fprintf(stderr, "Error creating rand_state.bin for layer \"%s\"\n", getName());
-            abort();
-         }
-      }
-      rewind(fp_rand_state);
-#ifdef PV_USE_MPI
-      for (int r=0; r<comm_size; r++) {
-         if (r==rootproc) {
-            memcpy(mpi_rand_state, rand_state, getNumNeurons()*sizeof(uint4));
-         }
-         else {
-            MPI_Recv(mpi_rand_state, sizeof(uint4)*getNumNeurons(), MPI_BYTE, r, 171+r/*tag*/, ic_comm->communicator(), MPI_STATUS_IGNORE);
-         }
-         int ky0 = getLayerLoc()->ny*rowFromRank(r, ic_comm->numCommRows(), ic_comm->numCommColumns());
-         int kx0 = getLayerLoc()->nx*columnFromRank(r, ic_comm->numCommRows(), ic_comm->numCommColumns());
-         for (int y=0; y<getLayerLoc()->ny; y++) {
-            int k_local = kIndex(0, y, 0, getLayerLoc()->nx, getLayerLoc()->ny, getLayerLoc()->nf);
-            int k_global = kIndex(kx0, y+ky0, 0, getLayerLoc()->nxGlobal, getLayerLoc()->nyGlobal, getLayerLoc()->nf);
-            fseek(fp_rand_state, k_global*sizeof(uint4), SEEK_SET);
-            int numwritten = fwrite(&mpi_rand_state[k_local], sizeof(uint4), getLayerLoc()->nx*getLayerLoc()->nf, fp_rand_state);
-            if (numwritten != getLayerLoc()->nx*getLayerLoc()->nf) {
-               fprintf(stderr, "Error writing rand_state.bin for layer \"%s\"\n", getName());
-               abort();
-            }
-         }
-
-      }
-#else // PV_USE_MPI
-      int numwritten = fwrite(rand_state, sizeof(uint4), getNumNeurons(), fp_rand_state);
-      if (numwritten != getNumNeurons()) {
-         fprintf(stderr, "Error writing rand_state.bin for layer \"%s\"\n");
-         abort();
-      }
-#endif // PV_USE_MPI
-      fclose(fp_rand_state);
-      free(mpi_rand_state); mpi_rand_state = NULL;
+      abort();
    }
-   else {
-#ifdef PV_USE_MPI
-      MPI_Send(rand_state, sizeof(uint4)*getNumNeurons(), MPI_BYTE, rootproc, 171+rank/*tag*/, ic_comm->communicator());
-#endif // PV_USE_MPI
-   }
+   int rand_state_status = writeRandState(filename, parent->icCommunicator(), rand_state, getLayerLoc());
+   if (rand_state_status != PV_SUCCESS) status = rand_state_status;
    return status;
 }
 

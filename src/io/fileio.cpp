@@ -1458,4 +1458,132 @@ int writeWeights(const char * filename, Communicator * comm, double timed, bool 
    return PV_SUCCESS; // TODO error handling
 }  // end writeWeights (all arbors)
 
+int writeRandState(const char * filename, Communicator * comm, uint4 * randState, const PVLayerLoc * loc) {
+   int status = PV_SUCCESS;
+   int rootproc = 0;
+   int rank = comm->commRank();
+   int numLocalNeurons = loc->nx * loc->ny * loc->nf;
+
+   if (rank == rootproc) {
+      int comm_size = comm->commSize();
+      FILE * fp_rand_state = fopen(filename, "w");
+      if (fp_rand_state==NULL) {
+         fprintf(stderr, "writeRandState error: unable to open path %s for writing.\n", filename);
+         abort();
+      }
+      // Make sure the file is big enough since we'll write nonsequentially under MPI.  This may not be necessary.
+      uint4 * mpi_rand_state = (uint4 *) calloc(numLocalNeurons, sizeof(uint4));
+      if (mpi_rand_state==NULL) {
+         fprintf(stderr, "writeRandState unable to allocate memory for mpi_rand_state for file \"%s\".\n", filename);
+         abort();
+      }
+      for (int r=0; r<comm_size; r++) {
+         int numwritten = fwrite(mpi_rand_state, sizeof(uint4), numLocalNeurons, fp_rand_state);
+         if (numwritten != numLocalNeurons) {
+            fprintf(stderr, "Error writing to file \"%s\"\n", filename);
+            abort();
+         }
+      }
+      rewind(fp_rand_state);
+
+#ifdef PV_USE_MPI
+      for (int r=0; r<comm_size; r++) {
+         if (r==rootproc) {
+            memcpy(mpi_rand_state, randState, numLocalNeurons*sizeof(uint4));
+         }
+         else {
+            MPI_Recv(mpi_rand_state, sizeof(uint4)*numLocalNeurons, MPI_BYTE, r, 171+r/*tag*/, comm->communicator(), MPI_STATUS_IGNORE);
+         }
+         int ky0 = loc->ny*rowFromRank(r, comm->numCommRows(), comm->numCommColumns());
+         int kx0 = loc->nx*columnFromRank(r, comm->numCommRows(), comm->numCommColumns());
+         int linesize = loc->nx*loc->nf; // All values across x and f for a specific y are contiguous; do a single fwrite for each y.
+         for (int y=0; y<loc->ny; y++) {
+            int k_local = kIndex(0, y, 0, loc->nx, loc->ny, loc->nf);
+            int k_global = kIndex(kx0, y+ky0, 0, loc->nxGlobal, loc->nyGlobal, loc->nf);
+            fseek(fp_rand_state, k_global*sizeof(uint4), SEEK_SET);
+            int numwritten = fwrite(&mpi_rand_state[k_local], sizeof(uint4), linesize, fp_rand_state);
+            if (numwritten != linesize) {
+               fprintf(stderr, "writeRandState error writing \"%s\"\n", filename);
+               abort();
+            }
+         }
+      }
+#else // PV_USE_MPI
+      int numwritten = fwrite(randState, sizeof(uint4), numLocalNeurons, fp_rand_state);
+      if (numwritten != numLocalNeurons) {
+         fprintf(stderr, "writeRandState error writing \"%s\"\n", filename);
+         abort();
+      }
+#endif // PV_USE_MPI
+
+      fclose(fp_rand_state); fp_rand_state = NULL;
+   }
+   else {
+#ifdef PV_USE_MPI
+      MPI_Send(randState, sizeof(uint4)*numLocalNeurons, MPI_BYTE, rootproc, 171+rank/*tag*/, comm->communicator());
+#endif // PV_USE_MPI
+   }
+   return status;
+}
+
+int readRandState(const char * filename, Communicator * comm, uint4 * randState, const PVLayerLoc * loc) {
+   int status = PV_SUCCESS;
+   int rootproc = 0;
+   int rank = comm->commRank();
+   int numLocalNeurons = loc->nx * loc->ny * loc->nf;
+
+   if (rank==rootproc) {
+      int comm_size = comm->commSize();
+      FILE * fp_rand_state = fopen(filename ,"r");
+      if (fp_rand_state==NULL) {
+         fprintf(stderr, "readRandState error: unable to open path %s for reading.\n", filename);
+         abort();
+      }
+#ifdef PV_USE_MPI
+      uint4 * mpi_rand_state = (uint4 *) calloc(numLocalNeurons, sizeof(uint4));
+      if (mpi_rand_state==NULL) {
+         fprintf(stderr, "readRandState unable to allocate memory for mpi_rand_state for file \"%s\".\n", filename);
+         abort();
+      }
+      for (int r=0; r<comm_size; r++) {
+         for (int y=0; y<loc->ny; y++) {
+            int ky0 = loc->ny*rowFromRank(r, comm->numCommRows(), comm->numCommColumns());
+            int kx0 = loc->nx*columnFromRank(r, comm->numCommRows(), comm->numCommColumns());
+            int k_local = kIndex(0, y, 0, loc->nx, loc->ny, loc->nf);
+            int k_global = kIndex(kx0, ky0+y, 0, loc->nxGlobal, loc->nyGlobal, loc->nf);
+            fseek(fp_rand_state, k_global*sizeof(uint4), SEEK_SET);
+            int linesize = loc->nx * loc->nf;
+            int numread = fread(&mpi_rand_state[k_local], sizeof(uint4), linesize, fp_rand_state);
+            if (numread != linesize) {
+               fprintf(stderr, "readRandState error writing \"%s\"\n", filename);
+               abort();
+            }
+         }
+         if (r==rootproc) {
+            memcpy(randState, mpi_rand_state, numLocalNeurons*sizeof(uint4));
+         }
+         else {
+            MPI_Send(mpi_rand_state, sizeof(uint4)*numLocalNeurons, MPI_BYTE, r, 171+r/*tag*/, comm->communicator());
+         }
+      }
+      free(mpi_rand_state); mpi_rand_state = NULL;
+#else // PV_USE_MPI
+      int numread = fread(&randState, sizeof(uint4), numLocalNeurons, fp_rand_state);
+      if (numread != numLocalNeurons) {
+         fprintf(stderr, "writeRandState error writing \"%s\"\n", filename);
+         abort();
+      }
+#endif // PV_USE_MPI
+      fclose(fp_rand_state); fp_rand_state = NULL;
+   }
+   else {
+#ifdef PV_USE_MPI
+      MPI_Recv(randState, sizeof(uint4)*numLocalNeurons, MPI_BYTE, rootproc, 171+rank/*tag*/, comm->communicator(), MPI_STATUS_IGNORE);
+#endif // PV_USE_MPI
+   }
+
+   return status;
+}
+
+
 } // namespace PV

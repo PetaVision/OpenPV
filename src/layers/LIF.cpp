@@ -381,8 +381,8 @@ int LIF::checkpointRead(const char * cpDir, double * timef) {
    HyPerLayer::checkpointRead(cpDir, timef);
    InterColComm * icComm = parent->icCommunicator();
    double timed;
-   int filenamesize = strlen(name) + strlen(cpDir) + 13;
-   // The +12 needs to be large enough to hold the suffix (e.g. _G_IB.pvp) plus the null terminator
+   int filenamesize = strlen(name) + strlen(cpDir) + 17;
+   // The +17 needs to be large enough to hold the slash between cpDir and name plus the suffix (e.g. _rand_state.bin) plus the null terminator
    char * filename = (char *) malloc( filenamesize*sizeof(char) );
    assert(filename != NULL);
 
@@ -414,6 +414,10 @@ int LIF::checkpointRead(const char * cpDir, double * timef) {
       fprintf(stderr, "Warning: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
    }
 
+   chars_needed = snprintf(filename, filenamesize, "%s/%s_rand_state.bin", cpDir, name);
+   assert(chars_needed < filenamesize);
+   readRandState(filename, parent->icCommunicator(), rand_state, getLayerLoc());
+
    free(filename);
    return PV_SUCCESS;
 }
@@ -422,22 +426,32 @@ int LIF::checkpointWrite(const char * cpDir) {
    HyPerLayer::checkpointWrite(cpDir);
    InterColComm * icComm = parent->icCommunicator();
    double timed = (double) parent->simulationTime();
-   int filenamesize = strlen(cpDir)+1+strlen(name)+12;
-   // The +1 is for the slash between cpDir and name; the +12 needs to be large enough to hold the suffix (e.g. _G_Gap.pvp) plus the null terminator
+   int filenamesize = strlen(cpDir)+1+strlen(name)+16;
+   // The +1 is for the slash between cpDir and name; the +16 needs to be large enough to hold the suffix (e.g. _rand_state.bin) plus the null terminator
    char * filename = (char *) malloc( filenamesize*sizeof(char) );
    assert(filename != NULL);
-   int chars_needed = snprintf(filename, filenamesize, "%s/%s_Vth.pvp", cpDir, name);
+   int chars_needed;
+
+   chars_needed = snprintf(filename, filenamesize, "%s/%s_Vth.pvp", cpDir, name);
    assert(chars_needed < filenamesize);
    writeBufferFile(filename, icComm, timed, Vth, 1, /*extended*/false, /*contiguous*/false, getLayerLoc()); // TODO contiguous=true
+
    chars_needed = snprintf(filename, filenamesize, "%s/%s_G_E.pvp", cpDir, name);
    assert(chars_needed < filenamesize);
    writeBufferFile(filename, icComm, timed, G_E, 1, /*extended*/false, /*contiguous*/false, getLayerLoc()); // TODO contiguous=true
+
    chars_needed = snprintf(filename, filenamesize, "%s/%s_G_I.pvp", cpDir, name);
    assert(chars_needed < filenamesize);
    writeBufferFile(filename, icComm, timed, G_I, 1, /*extended*/false, /*contiguous*/false, getLayerLoc()); // TODO contiguous=true
+
    chars_needed = snprintf(filename, filenamesize, "%s/%s_G_IB.pvp", cpDir, name);
    assert(chars_needed < filenamesize);
    writeBufferFile(filename, icComm, timed, G_IB, 1, /*extended*/false, /*contiguous*/false, getLayerLoc()); // TODO contiguous=true
+
+   chars_needed = snprintf(filename, filenamesize, "%s/%s_rand_state.bin", cpDir, name);
+   assert(chars_needed < filenamesize);
+   writeRandState(filename, parent->icCommunicator(), rand_state, getLayerLoc());
+
    free(filename);
    return PV_SUCCESS;
 }

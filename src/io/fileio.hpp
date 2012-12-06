@@ -16,6 +16,7 @@
 #endif // PV_USE_MPI
 #include "../include/PVLayerLoc.h"
 #include "../columns/Communicator.hpp"
+#include "../arch/opencl/pv_uint4.h"
 
 namespace PV {
 
@@ -56,11 +57,11 @@ int writeWeights(const char * filename, Communicator * comm, double timed, bool 
                  const PVLayerLoc * loc, int nxp, int nyp, int nfp, float minVal, float maxVal,
                  PVPatch *** patches, pvdata_t ** dataStart, int numPatches, int numArbors, bool compress=true, int file_type=PVP_WGT_FILE_TYPE);
 
-int writeWeights(const char * filename, Communicator * comm, double time, bool append,
-                 const PVLayerLoc * loc, int nxp, int nyp, int nfp, float minVal, float maxVal,
-                 PVPatch ** patches, int numPatches, bool compressed=true, int fileType=PVP_WGT_FILE_TYPE);
-
 int pvp_check_file_header(Communicator * comm, const PVLayerLoc * loc, int params[], int numParams);
+
+int writeRandState(const char * filename, Communicator * comm, uint4 * randState, const PVLayerLoc * loc);
+
+int readRandState(const char * filename, Communicator * comm, uint4 * randState, const PVLayerLoc * loc);
 
 } // namespace PV
 

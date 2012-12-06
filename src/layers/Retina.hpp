@@ -10,9 +10,9 @@
 
 #include "HyPerLayer.hpp"
 #include "../kernels/Retina_params.h"
+#include "../io/fileio.hpp"
 #include "../arch/opencl/pv_opencl.h"
 #include "../arch/opencl/pv_uint4.h"
-#include "Image.hpp"
 
 #ifdef PV_USE_OPENCL
 #include "../arch/opencl/CLBuffer.hpp"
