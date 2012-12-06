@@ -42,24 +42,50 @@ int test_main(int argc, char * argv[])
 
 uint16_t tiff_convert_short(unsigned char * buf, int convert)
 {
-   unsigned char s[2];
+   union short_char2 {
+      unsigned char c[2];
+      uint16_t s;
+   };
+   union short_char2 u;
    if (convert) {
-      s[0] = buf[1];  s[1] = buf[0];
-   } else {
-      s[0] = buf[0];  s[1] = buf[1];
+      u.c[0] = buf[1]; u.c[1] = buf[0];
    }
-   return * (uint16_t *) s;
+   else {
+      u.c[0] = buf[0]; u.c[1] = buf[0];
+   }
+   return u.s;
+// Code below generated type-punning compiler warning.  Rewritten above using unions to eliminate the warning.
+//   unsigned char s[2];
+//   if (convert) {
+//      s[0] = buf[1];  s[1] = buf[0];
+//   } else {
+//      s[0] = buf[0];  s[1] = buf[1];
+//   }
+//   return * (uint16_t *) s;
 }
 
 uint32_t tiff_convert_long(unsigned char * buf, int convert)
 {
-   unsigned char s[4];
+   union long_char4 {
+      unsigned char c[4];
+      uint32_t L;
+   };
+   union long_char4 u;
    if (convert) {
-      s[0] = buf[3];  s[1] = buf[2];  s[2] = buf[1];  s[3] = buf[0];
-   } else {
-      s[0] = buf[0];  s[1] = buf[1];  s[2] = buf[2];  s[3] = buf[3];
+      u.c[0] = buf[3]; u.c[1] = buf[2]; u.c[2] = buf[1]; u.c[3] = buf[0];
    }
-   return * (uint32_t *) s;
+   else {
+      u.c[0] = buf[0]; u.c[1] = buf[1]; u.c[1] = buf[2]; u.c[3] = buf[3];
+   }
+   return u.L;
+// Code below generated type-punning compiler warning.  Rewritten above using unionized labor to eliminate the warning.
+//   unsigned char s[4];
+//   if (convert) {
+//      s[0] = buf[3];  s[1] = buf[2];  s[2] = buf[1];  s[3] = buf[0];
+//   } else {
+//      s[0] = buf[0];  s[1] = buf[1];  s[2] = buf[2];  s[3] = buf[3];
+//   }
+//   return * (uint32_t *) s;
 }
 
 uint16_t tiff_read_short(FILE * fd, int convert)
