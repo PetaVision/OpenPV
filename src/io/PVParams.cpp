@@ -1279,7 +1279,7 @@ const char * PVParams::getFilename(const char * id)
  */
 void PVParams::addGroup(char * keyword, char * name)
 {
-   assert(numGroups <= groupArraySize);
+   assert((size_t) numGroups <= groupArraySize);
 
    // Verify that the new group's name is not an existing group's name
    for( int k=0; k<numGroups; k++ ) {

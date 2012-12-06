@@ -40,11 +40,11 @@ cl_taus_get(uint4 state)
 
 #define TAUSWORTHE(s,a,b,c,d) (((s &c) <<d)) ^ ((((s <<a))^s) >>b)
 
-  result.s1 = TAUSWORTHE (state.s1, 13, 19, 4294967294UL, 12);
-  result.s2 = TAUSWORTHE (state.s2,  2, 25, 4294967288UL, 4);
-  result.s3 = TAUSWORTHE (state.s3,  3, 11, 4294967280UL, 17);
+  result.state.s1 = TAUSWORTHE (state.state.s1, 13, 19, 4294967294UL, 12);
+  result.state.s2 = TAUSWORTHE (state.state.s2,  2, 25, 4294967288UL, 4);
+  result.state.s3 = TAUSWORTHE (state.state.s3,  3, 11, 4294967280UL, 17);
 
-  result.s0 = (result.s1 ^ result.s2 ^ result.s3);
+  result.s0 = (result.state.s1 ^ result.state.s2 ^ result.state.s3);
 
   return result;
 }

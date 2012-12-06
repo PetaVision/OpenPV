@@ -1160,7 +1160,6 @@ unsigned long HyPerCol::getRandomSeed() {
    int rootproc = 0;
    if (columnId()==rootproc) {
        t = time((time_t *) NULL);
-       printf("");
    }
    MPI_Bcast(&t, 1, MPI_UNSIGNED_LONG, rootproc, icComm->communicator());
    return t;

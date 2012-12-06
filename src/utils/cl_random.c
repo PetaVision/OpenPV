@@ -34,12 +34,12 @@
 #include <assert.h>
 #include <limits.h>
 
-static inline unsigned int taus_get (void *vstate);
-static void taus_set (void *state, unsigned int s);
+static inline unsigned int taus_get (taus_state_t *vstate);
+static void taus_set (taus_state_t *state, unsigned int s);
 
 uint4 cl_random_get(uint4 state)
 {
-   state.s0 = taus_get(&state.s1);
+   state.s0 = taus_get(&state.state);
    return state;
 }
 
@@ -62,18 +62,16 @@ int cl_random_init(uint4 * state, size_t count, unsigned int seed)
    // initialize state array using a separate seed for each element
    //
    for (i = 0; i < count; i++) {
-      taus_set(&state[i].s1, i+seed);
-      state[i].s0 = (state[i].s1 ^ state[i].s2 ^ state[i].s3);
+      taus_set(&state[i].state, i+seed);
+      state[i].s0 = (state[i].state.s1 ^ state[i].state.s2 ^ state[i].state.s3);
    }
 
    return 0;
 }
 
 static void
-taus_set (void * vstate, unsigned int s)
+taus_set (taus_state_t * state, unsigned int s)
 {
-   taus_state_t *state = (taus_state_t *) vstate;
-
   if (s == 0) {
     s = 1;      /* default seed is 1 */
   }
@@ -97,9 +95,8 @@ taus_set (void * vstate, unsigned int s)
 }
 
 static inline unsigned int
-taus_get (void * vstate)
+taus_get (taus_state_t * state)
 {
-   taus_state_t *state = (taus_state_t *) vstate;
 
 //#define MASK 0xffffffffUL
 //#define TAUSWORTHE(s,a,b,c,d) (((s &c) <<d) &MASK) ^ ((((s <<a) &MASK)^s) >>b)
