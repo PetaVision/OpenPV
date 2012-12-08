@@ -3,6 +3,7 @@ import java.util.Random;
 import cern.colt.function.tdcomplex.DComplexDComplexFunction;
 import cern.colt.matrix.tdcomplex.impl.DenseDComplexMatrix1D;
 import cern.colt.matrix.tdouble.impl.DenseDoubleMatrix1D;
+import cern.colt.matrix.tdouble.impl.DenseDoubleMatrix2D;
 import cern.jet.math.tdcomplex.DComplexFunctions;
 import flanagan.plot.PlotGraph;
 
@@ -96,6 +97,28 @@ public class OcularTremor {
 
 		return micro_tremor;  // in cone diameters
 	}
+	
+	
+	public static DenseDoubleMatrix2D jitterImageUsingTremor(DenseDoubleMatrix2D input_matrix2D, DenseDComplexMatrix1D micro_tremor, int time_step){
+		DenseDoubleMatrix2D jittered_matrix2D = (DenseDoubleMatrix2D) input_matrix2D.copy();
+		double[] tremor_val = micro_tremor.get(time_step);
+		int[] row_permute = new int[jittered_matrix2D.rows()];
+		int row_shift = (int) (tremor_val[0] >= 0 ? jittered_matrix2D.rows() - tremor_val[0] : -tremor_val[0]);
+		for (int i_row = 0; i_row < jittered_matrix2D.rows(); i_row++){
+			int i_shift_row = (i_row + row_shift ) % jittered_matrix2D.rows();
+			row_permute[i_row] = i_shift_row;
+		}
+		int[] col_permute = new int[jittered_matrix2D.columns()];
+		int col_shift = (int) (tremor_val[1] >= 0 ? jittered_matrix2D.columns() - tremor_val[1] : -tremor_val[1]);
+		for (int i_col = 0; i_col < jittered_matrix2D.columns(); i_col++){
+			int i_shift_col = (i_col + col_shift ) % jittered_matrix2D.columns();
+			col_permute[i_col] = i_shift_col;
+		}
+		jittered_matrix2D.viewSelection(row_permute, col_permute);
+		return jittered_matrix2D;
+	}
+	
+	
 	/**
 	 * @param args
 	 */

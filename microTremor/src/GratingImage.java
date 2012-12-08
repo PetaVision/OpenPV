@@ -1,4 +1,21 @@
+import java.awt.BorderLayout;
+import java.awt.Container;
+import java.awt.image.BandedSampleModel;
+import java.awt.image.ColorModel;
+import java.awt.image.DataBuffer;
+import java.awt.image.DataBufferByte;
+import java.awt.image.Raster;
+import java.awt.image.SampleModel;
+
+import javax.media.jai.PlanarImage;
+import javax.media.jai.TiledImage;
+import javax.swing.JFrame;
+import javax.swing.JScrollPane;
+
+import com.sun.media.jai.widget.DisplayJAI;
+
 import cern.colt.function.tdouble.DoubleDoubleFunction;
+import cern.colt.function.tdouble.DoubleFunction;
 import cern.colt.matrix.tdouble.DoubleMatrix2D;
 import cern.colt.matrix.tdouble.impl.DenseDoubleMatrix2D;
 
@@ -40,24 +57,28 @@ public class GratingImage {
 		gratingPhase = grating_phase;
 	}
 
-	public final static DoubleMatrix2D getGratingImage(int num_cones,
+	@SuppressWarnings("restriction")
+	public final static DenseDoubleMatrix2D getGratingImage(int num_cones,
 			int num_pixels, final double grating_orientation,
 			final double grating_spatial_freq, final double grating_contrast,
-			final double grating_sigma,
+			final double grating_sigma_units_of_spatial_freq,
 			final double grating_phase) {
-		final double background_luminance = RetinalConstants.backgroundLuminance;
+		//final double background_luminance = RetinalConstants.backgroundLuminance;
 		double microns_per_degree = RetinalConstants.micronsPerDegree;
 		double cone_diameter = RetinalConstants.coneDiameter;
 		double pixel_cone_ratio = num_pixels / num_cones;
 		double pixel_diameter = cone_diameter / pixel_cone_ratio;
 		double half_pixel_diameter = pixel_diameter / 2.0;
+		final double grating_sigma = grating_sigma_units_of_spatial_freq
+				/ grating_spatial_freq;
 		double[] pixel_vals = new double[num_pixels];
 		for (int i_pixel = 0; i_pixel < num_pixels; i_pixel++) {
-			pixel_vals[i_pixel] = half_pixel_diameter + i_pixel
-					* pixel_diameter / microns_per_degree; // in degrees
+			pixel_vals[i_pixel] = (half_pixel_diameter + i_pixel
+					* pixel_diameter)
+					/ microns_per_degree; // in degrees
 		}
-		DoubleMatrix2D pixel_x = new DenseDoubleMatrix2D(num_pixels, num_pixels);
-		DoubleMatrix2D pixel_y = new DenseDoubleMatrix2D(num_pixels, num_pixels);
+		DenseDoubleMatrix2D pixel_x = new DenseDoubleMatrix2D(num_pixels, num_pixels);
+		DenseDoubleMatrix2D pixel_y = new DenseDoubleMatrix2D(num_pixels, num_pixels);
 		for (int i_row = 0; i_row < num_pixels; i_row++) {
 			for (int j_col = 0; j_col < num_pixels; j_col++) {
 				pixel_x.set(j_col, i_row, pixel_vals[j_col]);
@@ -68,9 +89,8 @@ public class GratingImage {
 				/ (microns_per_degree * 2);
 		final double y_center = num_pixels * pixel_diameter
 				/ (microns_per_degree * 2);
-		DoubleMatrix2D dist_perpendicular = pixel_x.copy();
+		DenseDoubleMatrix2D dist_perpendicular = (DenseDoubleMatrix2D) pixel_x.copy();
 		dist_perpendicular.assign(pixel_y, new DoubleDoubleFunction() {
-
 			@Override
 			public double apply(double pixel_x_val, double pixel_y_val) {
 				double y_prime = Math.cos(grating_orientation)
@@ -80,28 +100,34 @@ public class GratingImage {
 				return y_prime;
 			}
 		});
-		DoubleMatrix2D dist_2D = pixel_x.copy();
+		DenseDoubleMatrix2D dist_2D = (DenseDoubleMatrix2D) pixel_x.copy();
 		dist_2D.assign(pixel_y, new DoubleDoubleFunction() {
-
 			@Override
 			public double apply(double pixel_x_val, double pixel_y_val) {
 				return (pixel_x_val - x_center) * (pixel_x_val - x_center)
 						+ (pixel_y_val - y_center) * (pixel_y_val - y_center);
 			}
 		});
-		DoubleMatrix2D grating_vals = dist_2D.copy();
+		DenseDoubleMatrix2D grating_vals = (DenseDoubleMatrix2D) dist_2D.copy();
 		grating_vals.assign(dist_perpendicular, new DoubleDoubleFunction() {
-
 			@Override
 			public double apply(double dist_2D_val,
 					double dist_perpendicular_val) {
 				return (grating_contrast
-						* background_luminance
 						* Math.cos(2 * Math.PI * grating_spatial_freq
-								* dist_perpendicular_val + grating_phase) * Math.exp((-0.5)
-						* (grating_spatial_freq * dist_2D_val / grating_sigma)));
+								* dist_perpendicular_val + grating_phase) * Math
+						.exp((-0.5)
+								* (grating_spatial_freq * dist_2D_val / grating_sigma)));
 			}
 		});
+
+		
+		// scale grating between 0 : 255
+		grating_vals.assign(ByteArray.convertDoubleToByte(grating_vals.elements()));
+
+		// draw gabor grating image
+		ByteArray.draw(grating_vals, num_pixels, num_pixels, "gabor grating", null);
+
 		return grating_vals;
 	}
 

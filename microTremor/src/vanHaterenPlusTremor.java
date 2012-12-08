@@ -1,16 +1,10 @@
-import java.awt.image.ColorModel;
 import java.awt.image.DataBuffer;
-import java.awt.image.DataBufferDouble;
-import java.awt.image.Raster;
 import java.util.Random;
+import java.util.Vector;
 
-import javax.media.jai.ComponentSampleModelJAI;
 import javax.media.jai.JAI;
 import javax.media.jai.PlanarImage;
-import javax.media.jai.TiledImage;
-import javax.swing.ImageIcon;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -21,7 +15,7 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
 import cern.colt.matrix.tdcomplex.impl.DenseDComplexMatrix1D;
-import cern.colt.matrix.tdouble.DoubleMatrix2D;
+import cern.colt.matrix.tdouble.impl.DenseDoubleMatrix2D;
 import cern.colt.matrix.tdouble.impl.DenseDoubleMatrix3D;
 import cern.jet.math.tdouble.DoubleFunctions;
 import flanagan.integration.RungeKutta;
@@ -40,10 +34,9 @@ public class vanHaterenPlusTremor {
 		Options options = new Options();
 		CommandLineParser parser = new GnuParser();
 		String[] testArgs = { "--num_cones=32", "--image_type_id=0",
-				"--grating_orientation=0", "--image_file=''",
-				"--num_steps=32", "--delta_t=1.0",
-				"--background_luminance=1.0", "--num_pixels=256",
-				"--ran_seed=1234987" };
+				"--grating_orientation=0", "--image_file=''", "--num_steps=32",
+				"--delta_t=1.0", "--background_luminance=100.0",
+				"--num_pixels=256", "--ran_seed=1234987" };
 
 		OptionBuilder.withArgName("ran_seed");
 		OptionBuilder.hasArg();
@@ -114,6 +107,7 @@ public class vanHaterenPlusTremor {
 		Option option_background_luminance = OptionBuilder
 				.create("background_luminance");
 		options.addOption(option_background_luminance);
+		double background_luminance = 100.0;
 
 		Random generator = null;
 		try {
@@ -234,64 +228,52 @@ public class vanHaterenPlusTremor {
 		// http://www.pubmedcentral.nih.gov/pagerender.fcgi?artid=1197398&pageindex=1#page
 		// double random_contrast = 0.1 * background_luminance;
 
-		OcularTremor ocularTremor = new OcularTremor(generator);
-		DenseDComplexMatrix1D tremor_time_series = ocularTremor.getTimeSeries(
-				delta_t, num_steps);
-
+		// !!!TODO!!! what we need to do here is initialize a 3D matrix that
+		// stores a movie, which could consist of a computer generated
+		// pattern (i.e. gabor + 1/f noise) or a single image or an actual
+		// movie. Jitter would then be added to this 3D matrix.
 		PlanarImage input_planar_image = null;
-		// get movie + jitter
+		DenseDoubleMatrix2D input_matrix2D = null;
 		if (image_type_id == ImageType.ORIENTED_GRATING.ordinal()) {
-			DoubleMatrix2D bckgrnd_1_over_f = OneOverSpatialFreqBackgroundImage
+			// get 1/f background and gabor forgeround and then combine
+			DenseDoubleMatrix2D bckgrnd_1_over_f = OneOverSpatialFreqBackgroundImage
 					.getBackgroundImage(num_cones, num_pixels);
-			DoubleMatrix2D oriented_grating = GratingImage.getGratingImage(
-					num_cones, num_pixels, Math.PI / 2, 20.0, 1.0, 2.0,
-					grating_orientation);
-			
-			// draw input image
-			DoubleMatrix2D input_matrix2D;
-			input_matrix2D = bckgrnd_1_over_f.copy();
+			DenseDoubleMatrix2D oriented_grating = GratingImage
+					.getGratingImage(num_cones, num_pixels, Math.PI / 2, 20.0,
+							1.0, 2.0, 0.0);
+			input_matrix2D = (DenseDoubleMatrix2D) bckgrnd_1_over_f.copy();
 			input_matrix2D.assign(oriented_grating, DoubleFunctions.plus);
-			DataBuffer input_data_buffer = new DataBufferDouble(
-					(int) input_matrix2D.size(), 1);
-			for (int i_input = 0; i_input < input_matrix2D.size(); i_input++) {
-				int input_row = i_input / input_matrix2D.columns();
-				int input_col = i_input
-						- (input_row * input_matrix2D.rowStride());
-				input_data_buffer.setElemDouble(i_input,
-						input_matrix2D.get(input_row, input_col));
-			}
-			int[] band_offsets = { 0 };
-			ComponentSampleModelJAI input_sample_model = new ComponentSampleModelJAI(
-					DataBuffer.TYPE_DOUBLE, input_matrix2D.columns(),
-					input_matrix2D.rows(), 0, input_matrix2D.columns(),
-					band_offsets);
-			// input_sample_model.createCompatibleSampleModel(0, 0);
-			Raster input_raster = Raster.createWritableRaster(
-					input_sample_model, input_data_buffer, null);
-			ColorModel input_color_model = PlanarImage
-					.createColorModel(input_sample_model);
-			TiledImage input_tiled_image = new TiledImage(0, 0,
-					input_matrix2D.columns(), input_matrix2D.rows(), 0, 0,
-					input_sample_model, input_color_model);
-			input_tiled_image.setData(input_raster);
-			input_planar_image = input_tiled_image.createSnapshot();
+			input_matrix2D.assign(ByteArray.convertDoubleToByte(input_matrix2D
+					.elements()));
+			input_planar_image = ByteArray.draw(input_matrix2D, num_pixels,
+					num_pixels, "input image", null);
 		} else if (image_type_id == ImageType.DISK_FILE.ordinal()) {
 			input_planar_image = JAI.create("fileload", image_file)
 					.createSnapshot();
+			int num_rows = input_planar_image.getHeight();
+			int num_cols = input_planar_image.getWidth();
+			num_pixels = num_rows * num_cols;
+			input_matrix2D = new DenseDoubleMatrix2D(num_rows, num_cols);
+			DataBuffer input_data_buffer = input_planar_image.getData()
+					.getDataBuffer();
+			int i_pixel = 0;
+			for (int i_row = 0; i_row < num_pixels; i_row++) {
+				for (int j_col = 0; j_col < num_cols; j_col++) {
+					input_matrix2D.set(i_row, j_col,
+							input_data_buffer.getElemDouble(i_pixel++));
+				}
+			}
+			ByteArray.display(input_planar_image, image_file, null);
 		} else if (image_type_id == ImageType.MOVIE_FILE.ordinal()) {
+			//!!!TODO!!! Impliment this option
 			input_planar_image = JAI.create("fileload", image_file)
 					.createSnapshot();
+			ByteArray.display(input_planar_image, image_file, null);
 		}
-		JFrame input_frame = new JFrame(image_file);
-		// JPanel input_panel = new JPanel(new FlowLayout());
-		// input_frame.add(input_panel);
-		JLabel input_label = new JLabel(new ImageIcon(
-				input_planar_image.getAsBufferedImage()));
-		input_frame.add(input_label);
-		input_frame.pack();
 
-		vanHaterenCoupled vanHateren = new vanHaterenCoupled();
-		double background_luminance = RetinalConstants.backgroundLuminance;
+		// init numerical integration
+		vanHaterenCoupled vanHateren = new vanHaterenCoupled(num_cones, background_luminance);
+		//double background_luminance = RetinalConstants.backgroundLuminance;
 		double[] yInit;
 		// set initial conditions
 		// initial values used by Furusawa and Kamiyama
@@ -304,17 +286,31 @@ public class vanHaterenPlusTremor {
 		} else {
 			yInit = vanHaterenCoupled.y_init_default;
 		}
-		DenseDoubleMatrix3D y_step3D;
-		;
-		y_step3D = (DenseDoubleMatrix3D) vanHateren.getYInit3D().copy();
+		DenseDoubleMatrix3D y_step3D = (DenseDoubleMatrix3D) vanHateren.getYInit3D().copy();
+
+		OcularTremor ocularTremor = new OcularTremor(generator);
+		DenseDComplexMatrix1D tremor_time_series = ocularTremor.getTimeSeries(
+				delta_t, num_steps);
 
 		vanHateren.setHCKernel();
-		RungeKutta rk = new RungeKutta();
-		rk.setInitialValueOfX(0.0D);
-		rk.setFinalValueOfX(num_steps * delta_t);
-		rk.setInitialValuesOfY(y_step3D.elements());
-		rk.setStepSize(delta_t);
-		y_step3D.assign(rk.fourthOrder(vanHateren));
+		RungeKutta runge_kutta = new RungeKutta();
+		Vector<DenseDoubleMatrix3D> y_store = new Vector<DenseDoubleMatrix3D>(
+				num_steps);
+		JFrame tremor_frame = null;
+		for (int i_step = 1; i_step <= num_steps; i_step++) {
+			// add tremor to image
+			DenseDoubleMatrix2D jittered_input2D = OcularTremor
+					.jitterImageUsingTremor(input_matrix2D, tremor_time_series,
+							i_step);
+			tremor_frame = ByteArray.display(ByteArray.mat2image(jittered_input2D), "tremor movie", tremor_frame);
+			vanHateren.setIexp(jittered_input2D);
+			runge_kutta.setInitialValueOfX((i_step - 1) * delta_t);
+			runge_kutta.setFinalValueOfX(i_step * delta_t);
+			runge_kutta.setInitialValuesOfY(y_step3D.elements());
+			runge_kutta.setStepSize(delta_t);
+			y_step3D.assign(runge_kutta.fourthOrder(vanHateren));
+			y_store.addElement(y_step3D);
+		}
 
 	} // end main()
 

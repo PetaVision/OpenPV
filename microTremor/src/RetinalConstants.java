@@ -8,6 +8,6 @@ public final class RetinalConstants {
 	final static double freqTremor = 70.0; // Hz
 	final static double peakTremor = 1 * (6.66 / 1) / 3600.0; // degrees of arc
 	final static double sigmaTremor = 15.0;  // Hz
-	final static double backgroundLuminance = 100.0;
+	//final static double backgroundLuminance = 100.0;
 
 }
