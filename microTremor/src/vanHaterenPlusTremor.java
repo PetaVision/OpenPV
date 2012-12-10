@@ -250,19 +250,7 @@ public class vanHaterenPlusTremor {
 		} else if (image_type_id == ImageType.DISK_FILE.ordinal()) {
 			input_planar_image = JAI.create("fileload", image_file)
 					.createSnapshot();
-			int num_rows = input_planar_image.getHeight();
-			int num_cols = input_planar_image.getWidth();
-			num_pixels = num_rows * num_cols;
-			input_matrix2D = new DenseDoubleMatrix2D(num_rows, num_cols);
-			DataBuffer input_data_buffer = input_planar_image.getData()
-					.getDataBuffer();
-			int i_pixel = 0;
-			for (int i_row = 0; i_row < num_pixels; i_row++) {
-				for (int j_col = 0; j_col < num_cols; j_col++) {
-					input_matrix2D.set(i_row, j_col,
-							input_data_buffer.getElemDouble(i_pixel++));
-				}
-			}
+			input_matrix2D = ByteArray.image2mat(input_planar_image);
 			ByteArray.display(input_planar_image, image_file, null);
 		} else if (image_type_id == ImageType.MOVIE_FILE.ordinal()) {
 			//!!!TODO!!! Impliment this option
@@ -274,7 +262,7 @@ public class vanHaterenPlusTremor {
 		// init numerical integration
 		vanHaterenCoupled vanHateren = new vanHaterenCoupled(num_cones, background_luminance);
 		//double background_luminance = RetinalConstants.backgroundLuminance;
-		double[] yInit;
+/*		double[] yInit;
 		// set initial conditions
 		// initial values used by Furusawa and Kamiyama
 		if (background_luminance == 100.0) {
@@ -286,11 +274,14 @@ public class vanHaterenPlusTremor {
 		} else {
 			yInit = vanHaterenCoupled.y_init_default;
 		}
+*/		
 		DenseDoubleMatrix3D y_step3D = (DenseDoubleMatrix3D) vanHateren.getYInit3D().copy();
 
 		OcularTremor ocularTremor = new OcularTremor(generator);
 		DenseDComplexMatrix1D tremor_time_series = ocularTremor.getTimeSeries(
 				delta_t, num_steps);
+		
+		DenseDoubleMatrix2D pixels_to_cones_kernel = ByteArray.getDownsampleKernel(num_pixels, num_cones);
 
 		vanHateren.setHCKernel();
 		RungeKutta runge_kutta = new RungeKutta();
@@ -302,8 +293,9 @@ public class vanHaterenPlusTremor {
 			DenseDoubleMatrix2D jittered_input2D = OcularTremor
 					.jitterImageUsingTremor(input_matrix2D, tremor_time_series,
 							i_step);
-			tremor_frame = ByteArray.display(ByteArray.mat2image(jittered_input2D), "tremor movie", tremor_frame);
-			vanHateren.setIexp(jittered_input2D);
+			DenseDoubleMatrix2D downsampled_input2D = ByteArray.downsample(jittered_input2D, pixels_to_cones_kernel);
+			tremor_frame = ByteArray.display(ByteArray.mat2image(downsampled_input2D), "tremor movie", tremor_frame);
+			vanHateren.setIexp(downsampled_input2D);
 			runge_kutta.setInitialValueOfX((i_step - 1) * delta_t);
 			runge_kutta.setFinalValueOfX(i_step * delta_t);
 			runge_kutta.setInitialValuesOfY(y_step3D.elements());

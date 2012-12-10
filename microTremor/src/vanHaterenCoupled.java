@@ -54,6 +54,7 @@ public class vanHaterenCoupled implements DerivnFunction {
 	DoubleMatrix2D hcKernel; //
 	double[] yInit;
 	DenseDoubleMatrix3D yInit3D;
+	double backgroundLuminance;
 
 	static double[] y_init_default = { 34.0000, // R
 			100.4242, // E
@@ -76,7 +77,7 @@ public class vanHaterenCoupled implements DerivnFunction {
 	public vanHaterenCoupled(int num_cones, double background_luminance) {
 		super();
 		numCones = num_cones;
-		//double background_luminance = RetinalConstants.backgroundLuminance;
+		setBackgroundLuminance(background_luminance);
 		// set initial conditions
 		// initial values used by Furusawa and Kamiyama
 		if (background_luminance == 100.0) {
@@ -317,61 +318,27 @@ public class vanHaterenCoupled implements DerivnFunction {
 		this.Iexp = I_exp;
 	}
 
+	// assume Gaussian fall off of gap junction strength
+	// should actually be sum of two Gaussians to better match physiological data
 	public void setHCKernel() {
-		DoubleMatrix2D hc_kernel = new DenseDoubleMatrix2D(numCones, numCones);
-		double[][] row_dist = new double[numCones][numCones];
+		DenseDoubleMatrix2D hc_kernel = new DenseDoubleMatrix2D(numCones, numCones);
+		double[][] kernel_vals = new double[numCones][numCones];
 		for (int i_pre = 0; i_pre < numCones; i_pre++) {
 			for (int i_post = 0; i_post < numCones; i_post++) {
-				row_dist[i_pre][i_post] = i_post - i_pre;
+				int dist_abs = Math.abs(i_post - i_pre);
+				dist_abs = (dist_abs < numCones/2) ? dist_abs : numCones - dist_abs;
+				kernel_vals[i_pre][i_post] = (Math.exp(-Math.pow(dist_abs, 2)
+						/ (2 * Math.pow(hc_lamda, 2))));
 			}
 		}
-
-		hc_kernel.assign(row_dist);
-		hc_kernel.assign(new DoubleFunction() {
-
-			@Override
-			public double apply(double row_dist) {
-				if (row_dist > 0) {
-					return (Math.exp(-Math.pow(row_dist, 2)
-							/ (2 * Math.pow(hc_lamda, 2))));
-				} else {
-					return 0.0;
-				}
-			}
-		});
-		double hc_kernel_norm = hc_kernel.aggregate(new DoubleDoubleFunction() {
-
-			@Override
-			public double apply(double cum_sum, double kernel_val) {
-				return (cum_sum + kernel_val);
-			}
-		}, new DoubleFunction() {
-
-			@Override
-			public double apply(double kernel_val) {
-				return kernel_val;
-			}
-		});
-		// double hc_kernel_norm = hc_kernel.aggregate((DoubleDoubleFunction)
-		// Functions.plus, (DoubleFunction)Functions.identity);
-		// hc_kernel_norm = Math.pow(hc_kernel_norm, 2);
-		// hc_kernel_norm = Math.sqrt(hc_kernel_norm);
-
-		hc_kernel.assign(hc_kernel.copy().assign(hc_kernel_norm),
-				new DoubleDoubleFunction() {
-
-					@Override
-					public double apply(double hc_kernel_val, double norm_val) {
-						return norm_val > 0 ? (hc_kernel_val / norm_val)
-								: hc_kernel_val;
-					}
-				});
-		// hc_kernel.assign((DoubleFunction) Functions.div(hc_kernel_norm));
+		hc_kernel.assign(kernel_vals);
+		double hc_kernel_norm = hc_kernel.zSum() / numCones; // normalizes total gap junction input to one
+		hc_kernel.assign(hc_kernel.copy().assign(hc_kernel_norm), DoubleFunctions.div);
 		hcKernel = hc_kernel;
 	}
 
-	public void setBackgroundLuminance() {
-
+	public void setBackgroundLuminance(double background_luminance) {
+		backgroundLuminance = background_luminance;
 	}
 
 	public DoubleMatrix2D getHCKernel() {
