@@ -170,8 +170,8 @@ for (int k = 0; k < nx*ny*nf; k++) {
    VthRest  = params->VthRest;
    deltaVth = params->deltaVth;
 
-   if (!(l_GSynNorm>=0 && l_GSynExc>=0 && (l_GSynNorm!=0 || l_GSynExc==0))) {
-      fprintf(stderr, "time = %f, k = %d, l_GSynNorm = %f, l_GSynExc = %f\n", timed, k, l_GSynNorm, l_GSynExc);
+   if (normalizeInputFlag && l_GSynNorm==0 && l_GSynExc != 0) {
+      fprintf(stderr, "time = %f, k = %d, normalizeInputFlag is true but GSynNorm is zero and l_GSynExc = %f\n", timed, k, l_GSynExc);
       abort();
    };
    l_GSynExc /= (l_GSynNorm + (l_GSynNorm==0 ? 1 : 0));
