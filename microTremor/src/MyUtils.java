@@ -20,24 +20,25 @@ import cern.colt.matrix.tdouble.impl.DenseDoubleMatrix2D;
 import com.sun.media.jai.widget.DisplayJAI;
 
 @SuppressWarnings("restriction")
-public class ByteArray {
+public class MyUtils {
 
 	@SuppressWarnings("restriction")
 	public static PlanarImage draw(DenseDoubleMatrix2D matrix_2D, int num_rows,
 			int num_cols, String title_string, JFrame frame) {
 
-		PlanarImage image_snap = ByteArray.mat2image(matrix_2D);
-		ByteArray.display(image_snap, title_string, frame);
+		PlanarImage image_snap = MyUtils.mat2image(matrix_2D);
+		MyUtils.display(image_snap, title_string, frame);
 		return image_snap;
 	}
 
-	public static JFrame display(PlanarImage image_snap, String title_string, JFrame frame) {
-		if (frame == null){
+	public static JFrame display(PlanarImage image_snap, String title_string,
+			JFrame frame) {
+		if (frame == null) {
 			frame = new JFrame();
 		}
 		frame.setTitle(title_string);
 		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-		frame.setSize(image_snap.getHeight() / 2, image_snap.getWidth() / 2);
+		frame.setSize(image_snap.getHeight(), image_snap.getWidth());
 		frame.setVisible(true);
 		return display(image_snap, frame);
 	}
@@ -72,8 +73,7 @@ public class ByteArray {
 	}
 
 	public static PlanarImage mat2image(DenseDoubleMatrix2D matrix_2D) {
-		matrix_2D.assign(ByteArray.convertDoubleToByte(matrix_2D
-				.elements()));
+		matrix_2D.assign(MyUtils.convertDoubleToByte(matrix_2D.elements()));
 		int num_rows = matrix_2D.rows();
 		int num_cols = matrix_2D.columns();
 		int num_pixels = num_rows * num_cols;
@@ -96,37 +96,42 @@ public class ByteArray {
 		return image_snap;
 	}
 
-	public static DenseDoubleMatrix2D downsample(
-			DenseDoubleMatrix2D matrix_2D, DenseDoubleMatrix2D downsample_kernel) {
+	public static DenseDoubleMatrix2D downsample(DenseDoubleMatrix2D matrix_2D,
+			DenseDoubleMatrix2D downsample_kernel) {
 		DenseDoubleAlgebra dbl_algebra = new DenseDoubleAlgebra();
-		return (DenseDoubleMatrix2D) dbl_algebra.mult(downsample_kernel, dbl_algebra.mult(matrix_2D, downsample_kernel.viewDice()));
+		DenseDoubleMatrix2D downsampled_matrix2D = (DenseDoubleMatrix2D) dbl_algebra.mult(downsample_kernel,
+				dbl_algebra.mult(matrix_2D, downsample_kernel.viewDice().copy())).copy();
+		return downsampled_matrix2D;
 	}
-	
-	public static DenseDoubleMatrix2D getDownsampleKernel(int size_pre, int size_post){
-		DenseDoubleMatrix2D downsample_kernel = new DenseDoubleMatrix2D(size_post, size_pre);
+
+	// kernel for downsampling 2D matrix by taking a non-overlapping local
+	// average around each destination element
+	public static DenseDoubleMatrix2D getDownsampleKernel(int size_pre,
+			int size_post) {
+		DenseDoubleMatrix2D downsample_kernel = new DenseDoubleMatrix2D(
+				size_post, size_pre);
 		double[][] kernel_vals = new double[size_post][size_pre];
 		double ratio_pre_to_post = (double) size_pre / (double) size_post;
-		for (int i_post = 0; i_post < size_pre; i_post++) {
+		for (int i_post = 0; i_post < size_post; i_post++) {
 			double scaled_post = ratio_pre_to_post * (i_post + 0.5) - 0.5;
-			for (int i_pre = 0; i_pre < size_post; i_pre++) {
+			for (int i_pre = 0; i_pre < size_pre; i_pre++) {
 				double dist_abs = Math.abs(scaled_post - i_pre);
-				kernel_vals[i_post][i_pre] = (dist_abs <= ratio_pre_to_post) ? (1/ratio_pre_to_post) : 0.0;
+				kernel_vals[i_post][i_pre] = (dist_abs <= 0.5 * ratio_pre_to_post) ? (1 / ratio_pre_to_post)
+						: 0.0;
 			}
 		}
 		downsample_kernel.assign(kernel_vals);
-		// should be normalized correctly by construction
-//		double hc_kernel_norm = downsample_kernel.zSum() / size_post; 
-//		downsample_kernel.assign(downsample_kernel.copy().assign(hc_kernel_norm), DoubleFunctions.div);
 		return downsample_kernel;
 	}
 
+	// converts a PlanerImage into a DoubleMatrix2D
 	public static DenseDoubleMatrix2D image2mat(PlanarImage planar_image) {
 		int num_rows = planar_image.getHeight();
 		int num_cols = planar_image.getWidth();
 		int num_pixels = num_rows * num_cols;
-		DenseDoubleMatrix2D matrix_2D = new DenseDoubleMatrix2D(num_rows, num_cols);
-		DataBuffer data_buffer = planar_image.getData()
-				.getDataBuffer();
+		DenseDoubleMatrix2D matrix_2D = new DenseDoubleMatrix2D(num_rows,
+				num_cols);
+		DataBuffer data_buffer = planar_image.getData().getDataBuffer();
 		int i_pixel = 0;
 		for (int i_row = 0; i_row < num_pixels; i_row++) {
 			for (int j_col = 0; j_col < num_cols; j_col++) {

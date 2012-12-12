@@ -123,10 +123,10 @@ public class GratingImage {
 
 		
 		// scale grating between 0 : 255
-		grating_vals.assign(ByteArray.convertDoubleToByte(grating_vals.elements()));
+		grating_vals.assign(MyUtils.convertDoubleToByte(grating_vals.elements()));
 
 		// draw gabor grating image
-		ByteArray.draw(grating_vals, num_pixels, num_pixels, "gabor grating", null);
+		MyUtils.draw(grating_vals, num_pixels, num_pixels, "gabor grating", null);
 
 		return grating_vals;
 	}

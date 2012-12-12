@@ -110,10 +110,10 @@ public class OneOverSpatialFreqBackgroundImage {
 				.getRealPart();
 
 		// scale 1/f background between 0 : 255
-		one_over_f_bkgrnd.assign(ByteArray.convertDoubleToByte(one_over_f_bkgrnd.elements()));
+		one_over_f_bkgrnd.assign(MyUtils.convertDoubleToByte(one_over_f_bkgrnd.elements()));
 		
 		// draw 1/f random background image
-		ByteArray.draw(one_over_f_bkgrnd, num_pixels, num_pixels, "1/f background", null);
+		MyUtils.draw(one_over_f_bkgrnd, num_pixels, num_pixels, "1/f background", null);
 		return one_over_f_bkgrnd;
 
 	}

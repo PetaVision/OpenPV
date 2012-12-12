@@ -1,3 +1,5 @@
+import java.util.Vector;
+
 import cern.colt.function.tdouble.DoubleDoubleFunction;
 import cern.colt.function.tdouble.DoubleFunction;
 import cern.colt.matrix.tdouble.DoubleMatrix2D;
@@ -114,6 +116,21 @@ public class vanHaterenCoupled implements DerivnFunction {
 
 	public DenseDoubleMatrix3D getYInit3D() {
 		return yInit3D;
+	}
+
+	public static Vector<String> getTitles(int num_slices) {
+		Vector<String> van_Hattern_titles = new Vector<String>();
+		van_Hattern_titles.add("R");
+		van_Hattern_titles.add("E");
+		van_Hattern_titles.add("X");
+		van_Hattern_titles.add("C");
+		van_Hattern_titles.add("V_is");
+		van_Hattern_titles.add("g_i");
+		van_Hattern_titles.add("V_is_2");
+		van_Hattern_titles.add("V_1");
+		van_Hattern_titles.add("V_b");
+		van_Hattern_titles.add("V_h");
+		return van_Hattern_titles;
 	}
 
 	@Override
@@ -344,4 +361,5 @@ public class vanHaterenCoupled implements DerivnFunction {
 	public DoubleMatrix2D getHCKernel() {
 		return hcKernel;
 	}
+
 }
