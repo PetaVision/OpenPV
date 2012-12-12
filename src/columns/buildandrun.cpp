@@ -105,6 +105,7 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
                  "LogLatWTAGenLayer",
                  "PursuitLayer",
                "IncrementLayer",
+               "LeakyIntegratedCountLayer",
                "PoolingANNLayer",
                "PtwiseProductLayer",
                "TrainingLayer",
@@ -359,6 +360,11 @@ HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPe
    if( !strcmp(classkeyword, "IncrementLayer") ) {
       keywordMatched = true;
       addedLayer = (HyPerLayer *) new IncrementLayer(name, hc);
+      status = checknewobject((void *) addedLayer, classkeyword, name, hc);
+   }
+   if( !strcmp(classkeyword, "LeakyIntegratedCountLayer") ) {
+      keywordMatched = true;
+      addedLayer = (HyPerLayer *) new LeakyIntegratedCountLayer(name, hc);
       status = checknewobject((void *) addedLayer, classkeyword, name, hc);
    }
    if( !strcmp(classkeyword, "PoolingANNLayer") ) {
