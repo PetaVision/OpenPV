@@ -465,7 +465,7 @@ protected:
          int numPatches, const char* filename);
    virtual InitWeights* getDefaultInitWeightsMethod(const char* keyword);
    virtual InitWeights* handleMissingInitWeights(PVParams* params);
-   virtual float* createWeights(PVPatch*** patches, int nPatches, int nxPatch,
+   virtual float* createWeights(PVPatch*** patches, int nWeightPatches, int nDataPatches, int nxPatch,
          int nyPatch, int nfPatch, int axonId);
    float* createWeights(PVPatch*** patches, int axonId);
    virtual float* allocWeights(PVPatch*** patches, int nPatches, int nxPatch,

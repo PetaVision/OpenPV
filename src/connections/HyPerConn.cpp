@@ -1431,7 +1431,7 @@ PVPatch * HyPerConn::getWeights(int k, int arbor)
    return wPatches[arbor][k];
 }
 
-pvdata_t * HyPerConn::createWeights(PVPatch *** patches, int nPatches, int nxPatch,
+pvdata_t * HyPerConn::createWeights(PVPatch *** patches, int nWeightPatches, int nDataPatches, int nxPatch,
       int nyPatch, int nfPatch, int axonId)
 {
    // could create only a single patch with following call
@@ -1443,7 +1443,7 @@ pvdata_t * HyPerConn::createWeights(PVPatch *** patches, int nPatches, int nxPat
    //patches = (PVPatch**) calloc(sizeof(PVPatch*), nPatches);
    //patches[axonId] = (PVPatch**) calloc(nPatches, sizeof(PVPatch*));
    if (shrinkPatches_flag || axonId == 0){
-      patches[axonId] = createPatches(nPatches, nxPatch, nyPatch);
+      patches[axonId] = createPatches(nWeightPatches, nxPatch, nyPatch);
       assert(patches[axonId] != NULL);
    }
    else{
@@ -1451,7 +1451,7 @@ pvdata_t * HyPerConn::createWeights(PVPatch *** patches, int nPatches, int nxPat
    }
 
    // allocate space for all weights at once (inplace), return pointer to beginning of weight array
-   pvdata_t * data_patches = allocWeights(patches, nPatches, nxPatch, nyPatch, nfPatch, axonId);
+   pvdata_t * data_patches = allocWeights(patches, nDataPatches, nxPatch, nyPatch, nfPatch, axonId);
    return data_patches;
 }
 
@@ -1460,12 +1460,13 @@ pvdata_t * HyPerConn::createWeights(PVPatch *** patches, int nPatches, int nxPat
  */
 pvdata_t * HyPerConn::createWeights(PVPatch *** patches, int axonId)
 {
-   int nPatches = getNumWeightPatches();
+   int nWeightPatches = getNumWeightPatches();
+   int nDataPatches = getNumDataPatches();
    int nxPatch = nxp;
    int nyPatch = nyp;
    int nfPatch = nfp;
 
-   pvdata_t * data_patches = createWeights(patches, nPatches, nxPatch, nyPatch, nfPatch, axonId);
+   pvdata_t * data_patches = createWeights(patches, nWeightPatches, nDataPatches, nxPatch, nyPatch, nfPatch, axonId);
    return data_patches;
 }
 
@@ -1682,7 +1683,7 @@ PVPatch *** HyPerConn::convertPreSynapticWeights(double time)
       wPostDataStart = (pvdata_t **) calloc(numAxonalArborLists, sizeof(pvdata_t *));
       assert(wPostDataStart!=NULL);
       for(int axonID=0;axonID<numberOfAxonalArborLists();axonID++) {
-         wPostDataStart[axonID] = createWeights(wPostPatches, numPost, nxpPost, nypPost, nfpPost, axonID);
+         wPostDataStart[axonID] = createWeights(wPostPatches, numPost, numPost, nxpPost, nypPost, nfpPost, axonID);
       }
    }
 
