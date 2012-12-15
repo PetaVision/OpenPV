@@ -260,6 +260,10 @@ public class vanHaterenPlusTremor {
 					.createSnapshot();
 			MyUtils.display(input_planar_image, image_file, null);
 		}
+		
+		// add point spread function
+		
+		// add luminance background
 
 		// init van Hatteren cone model
 		vanHaterenCoupled vanHateren = new vanHaterenCoupled(num_cones,

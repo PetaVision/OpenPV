@@ -3,6 +3,7 @@ import java.util.Vector;
 import cern.colt.function.tdouble.DoubleDoubleFunction;
 import cern.colt.function.tdouble.DoubleFunction;
 import cern.colt.matrix.tdouble.DoubleMatrix2D;
+import cern.colt.matrix.tdouble.algo.DenseDoubleAlgebra;
 import cern.colt.matrix.tdouble.impl.DenseDoubleMatrix2D;
 import cern.colt.matrix.tdouble.impl.DenseDoubleMatrix3D;
 import cern.jet.math.tdouble.DoubleFunctions;
@@ -217,12 +218,6 @@ public class vanHaterenCoupled implements DerivnFunction {
 			}
 		});
 
-		// convolution of V_h
-		// V_h_2D = reshape( V_h, [num_cones, num_cones] );
-		// V_h_2D = hc_kernel * V_h_2D * hc_kernel;
-		// V_h2 = reshape( V_h_2D, [num_cones2, 1] );
-		// V_h2 = mean( V_h );
-
 		// ydot
 		DenseDoubleMatrix3D ydot_3D = new DenseDoubleMatrix3D(numStateVars, numCones,
 				numCones);
@@ -316,16 +311,43 @@ public class vanHaterenCoupled implements DerivnFunction {
 		ydot_3D.viewSlice(7).assign(ydot_V_1);
 
 		// ydot_V_b = ( V_1 - V_b ) ./ (a_I*tau_2);
-		// ydot_V_h = ...
-		// ( V_b + V_h_coupling_const * ( V_h2 - V_h ) - V_h ) ./ ...
-		// (a_I*tau_h);
-		// ydot_3D.viewSlice(8).assign(ydot_V_b);
+		DoubleMatrix2D ydot_V_b = V_1.assign(V_b, DoubleFunctions.minus).assign(a_I, 
+				new DoubleDoubleFunction() {
+
+					@Override
+					public double apply(double V_diff_val, double a_I_val) {
+						return (V_diff_val / (a_I_val*tau_2));
+					}
+				});
+		ydot_3D.viewSlice(8).assign(ydot_V_b);
+
+		// convolution of V_h
+		// V_h_2D = reshape( V_h, [num_cones, num_cones] );
+		// V_h_2D = hc_kernel * V_h_2D * hc_kernel;
+		DenseDoubleAlgebra dbl_algebra = new DenseDoubleAlgebra();
+		DenseDoubleMatrix2D V_h_gap2D = (DenseDoubleMatrix2D) dbl_algebra.mult(hcKernel,
+					dbl_algebra.mult(V_h, hcKernel.viewDice().copy())).copy();
+//		double V_h_gap_mean = V_h_gap2D.zSum() / (numCones * numCones);
+		// V_h2 = reshape( V_h_2D, [num_cones2, 1] );
+		// V_h2 = mean( V_h );
 
 		// added HC coupling so that if V_h2 == V_h (i.e. for a uniform input),
 		// then should get identical behavior to the original van Hatteren model
 		// implicitly assumes that tau_h has been renormalized so that it
-		// remains invariant wrt
-		// V_h_coupling_const
+		// remains invariant wrt V_h_coupling_const
+		
+		// ydot_V_h = ...
+		// ( V_b + V_h_coupling_const * ( V_h2 - V_h ) - V_h ) ./ ...
+		// (a_I*tau_h);
+		DoubleMatrix2D ydot_V_h = V_h.assign(V_h_gap2D, new DoubleDoubleFunction() {
+			
+			@Override
+			public double apply(double V_h_val, double V_h_gap2D_val) {
+				return (V_h_coupling_const * ( V_h_gap2D_val - V_h_val ) - V_h_val);
+			}
+		});
+		ydot_V_h = ydot_V_h.assign(V_b, DoubleFunctions.plus);
+		ydot_3D.viewSlice(9).assign(ydot_V_h);
 
 		dydt = ydot_3D.elements();
 		return dydt;
