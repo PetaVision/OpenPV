@@ -17,7 +17,6 @@ InitSpreadOverArborsWeights::InitSpreadOverArborsWeights()
 
 InitSpreadOverArborsWeights::~InitSpreadOverArborsWeights()
 {
-   // TODO Auto-generated destructor stub
 }
 
 int InitSpreadOverArborsWeights::initialize_base() {
@@ -85,15 +84,23 @@ int InitSpreadOverArborsWeights::spreadOverArborsWeights(/* PVPatch * patch */ p
 
             float weight = 0;
             if (xp*xp+yp*yp<1e-4) {
-               weight = iWeight/nArbors; // arborId ? 0 : iWeight;
+               weight = iWeight/nArbors;
             }
             else {
-               float theta = atan2f(yp, xp);
-               if(theta<0) theta+=2.0f*PI;
-               float zone = theta/(2*PI)*nArbors;
+               float theta2pi = atan2f(yp, xp)/(2*PI);
+               unsigned int xpraw, ypraw, atanraw;
+               union u { float f; unsigned int i;};
+               union u f2u;
+               f2u.f = xp; xpraw = f2u.i;
+               f2u.f = yp; ypraw = f2u.i;
+               f2u.f = theta2pi; atanraw = f2u.i;
+               if(theta2pi<0) theta2pi+=1;
+               if(theta2pi>=1) theta2pi-=1; // theta2pi should be in the range [0,1) but roundoff could make it exactly 1
+               float zone = theta2pi*nArbors;
 
                float intpart;
                float fracpart = modff(zone, &intpart);
+               assert(intpart>=0 && intpart<nArbors && fracpart>=0 && fracpart<1);
 
                if (intpart==arborId) {
                   weight = iWeight*(1-fracpart);
