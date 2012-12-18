@@ -1,7 +1,5 @@
 SRCDIR = ../src
 BUILDDIR = build
-GDALDIR = /opt/local
-#GDALDIR = /usr/local
 LIBPV = ../lib/libpv.a
 
 INPARAMS = input/params.test
@@ -24,7 +22,7 @@ OSARCH= $(shell uname -m)
 
 INCDIR  ?= .
 
-ifeq ($(DARWIN),)
+ifeq ($(DARWIN),1)
    SDKROOTDIR   := /opt/NVIDIA_GPU_Computing_SDK
    LIBDIR       := $(SDKROOTDIR)/shared/lib/
    SHAREDDIR    := $(SDKROOTDIR)/shared/
@@ -32,12 +30,23 @@ ifeq ($(DARWIN),)
    OCLROOTDIR   := $(SDKROOTDIR)/OpenCL/
    OCLCOMMONDIR := $(OCLROOTDIR)/common/
    OCLLIBDIR    := $(OCLCOMMONDIR)/lib
+   GDALINCLDIR  := /opt/local/include
+   GDALLIBDIR   := /opt/local/lib
+   MPICC        := openmpicc
+   MPICPP       := openmpic++
+   MPIRUN       := openmpirun
+else
+   GDALINCLDIR  := /usr/include/gdal
+   GDALLIBDIR   := /usr/lib64
+   MPICC        := mpicc
+   MPICPP       := mpic++
+   MPIRUN       := mpirun
 endif
 
 # Compilers
 ifeq ($(mpi),1)
-   CC  := openmpicc
-   CPP := openmpic++
+   CC  := $(MPICC)
+   CPP := $(MPICPP)
 else
    CC  := cc
    CPP := c++
@@ -51,7 +60,7 @@ else
    INCLUDES += -I$(INCDIR) -I$(OCLCOMMONDIR)/inc -I$(SHAREDDIR)/inc
 endif
 ifeq ($(gdal),1)
-  INCLUDES += -I$(GDALDIR)/include
+  INCLUDES += -I$(GDALINCLDIR)
 endif
 
 # Warning flags
@@ -95,7 +104,7 @@ else
    endif
 endif
 ifeq ($(gdal),1)
-   LIBS += -L$(GDALDIR)/lib -lgdal
+   LIBS += -L$(GDALLIBDIR) -lgdal
 endif
 
 # Add common flags
@@ -233,7 +242,7 @@ test_mpi_specifyrowscolumns: $(BUILDDIR)/test_mpi_specifyrowscolumns.o $(PVLIB)
 runMPItests: make-in-subdirs $(MPI_TESTS)
 	@rm -rf output/*.pvp
 	@echo "Running test_mpi_specifyrowscolumns with 6 nodes ..."
-	@if openmpirun -np 6 ./test_mpi_specifyrowscolumns -p input/test_mpi_specifyrowscolumns.params; then echo "test_mpi_specifyrowscolumns passed."; else echo "test_mpi_specifyrowscolumns FAILED."; fi
+	@if $(MPIRUN) -np 6 ./test_mpi_specifyrowscolumns -p input/test_mpi_specifyrowscolumns.params; then echo "test_mpi_specifyrowscolumns passed."; else echo "test_mpi_specifyrowscolumns FAILED."; fi
 #	@echo "Running test_read_header with 1 node ..."
 #	@./test_read_header -n 1 -p $(INPARAMS)
 #	@echo "Running test_read_header with 2 nodes ..."
