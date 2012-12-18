@@ -22,7 +22,13 @@ OSARCH= $(shell uname -m)
 
 INCDIR  ?= .
 
-ifeq ($(DARWIN),1)
+ifeq "$(DARWIN)" "DARWIN"
+   GDALINCLDIR  := /opt/local/include
+   GDALLIBDIR   := /opt/local/lib
+   MPICC        := openmpicc
+   MPICPP       := openmpic++
+   MPIRUN       := openmpirun
+else
    SDKROOTDIR   := /opt/NVIDIA_GPU_Computing_SDK
    LIBDIR       := $(SDKROOTDIR)/shared/lib/
    SHAREDDIR    := $(SDKROOTDIR)/shared/
@@ -30,12 +36,6 @@ ifeq ($(DARWIN),1)
    OCLROOTDIR   := $(SDKROOTDIR)/OpenCL/
    OCLCOMMONDIR := $(OCLROOTDIR)/common/
    OCLLIBDIR    := $(OCLCOMMONDIR)/lib
-   GDALINCLDIR  := /opt/local/include
-   GDALLIBDIR   := /opt/local/lib
-   MPICC        := openmpicc
-   MPICPP       := openmpic++
-   MPIRUN       := openmpirun
-else
    GDALINCLDIR  := /usr/include/gdal
    GDALLIBDIR   := /usr/lib64
    MPICC        := mpicc
@@ -54,7 +54,7 @@ endif
 LINK   := $(CPP) -fPIC
 
 # Includes
-ifeq ($(DARWIN),1)
+ifeq "$(DARWIN)" "DARWIN"
    INCLUDES += -I$(INCDIR)
 else
    INCLUDES += -I$(INCDIR) -I$(OCLCOMMONDIR)/inc -I$(SHAREDDIR)/inc
@@ -69,7 +69,7 @@ CWARN_FLAGS := -Wall
 # architecture flag for nvcc and gcc compilers build
 LIB_ARCH := $(OSARCH)
 
-ifeq ($(DARWIN),)
+ifeq "$(DARWIN)" ""
    ARCH_FLAGS += -m64
 else
    ARCH_FLAGS += -m64
@@ -80,7 +80,7 @@ CFLAGS   := $(CWARN_FLAGS) $(ARCH_FLAGS)
 LINK     += $(ARCH_FLAGS)
 
 # Common flags
-ifeq ($(DARWIN),0)
+ifeq "$(DARWIN)" "DARWIN"
    COMMONFLAGS += -DMAC
 else
    COMMONFLAGS += -DUNIX
@@ -95,7 +95,7 @@ else
 endif
 
 # Libs
-ifneq ($(DARWIN),)
+ifneq "$(DARWIN)" ""
    LIBS := $(LIBPV) -framework OpenCL
 else
    LIBS := $(LIBPV) -L${OCLLIBDIR} -L$(LIBDIR) -L$(SHAREDDIR)/lib/$(OSLOWER) 
