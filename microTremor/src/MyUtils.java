@@ -12,10 +12,12 @@ import javax.media.jai.TiledImage;
 import javax.swing.JFrame;
 import javax.swing.JScrollPane;
 
+import cern.colt.function.tdouble.DoubleDoubleFunction;
 import cern.colt.function.tdouble.DoubleFunction;
 import cern.colt.matrix.tdouble.algo.DenseDoubleAlgebra;
 import cern.colt.matrix.tdouble.impl.DenseDoubleMatrix1D;
 import cern.colt.matrix.tdouble.impl.DenseDoubleMatrix2D;
+import cern.jet.math.tdouble.DoubleFunctions;
 
 import com.sun.media.jai.widget.DisplayJAI;
 
@@ -140,6 +142,34 @@ public class MyUtils {
 			}
 		}
 		return matrix_2D;
+	}
+
+	// returns matrix with same dimensions as pattern_2D that equals baseline_val at center of pattern_2D range and varies by an amount
+	// set by contrast_val
+	public static DenseDoubleMatrix2D addScaled(
+			DenseDoubleMatrix2D pattern_2D,
+			final double baseline_val,
+			final double contrast_val) {
+		DenseDoubleMatrix2D baseline_2D = new DenseDoubleMatrix2D(pattern_2D.rows(), pattern_2D.columns());
+		baseline_2D.assign(baseline_val);
+		DenseDoubleMatrix2D contrast_2D = new DenseDoubleMatrix2D(pattern_2D.rows(), pattern_2D.columns());
+		contrast_2D.assign(contrast_val);
+		final double[] max_pattern = pattern_2D.getMaxLocation();
+		final double[] min_pattern = pattern_2D.getMinLocation();
+		final double range_pattern = max_pattern[0] - min_pattern[0];
+		if (range_pattern == 0){
+			return baseline_2D;
+		}
+		DenseDoubleMatrix2D scaled_2D = (DenseDoubleMatrix2D) pattern_2D.copy();
+		scaled_2D.assign(contrast_2D, new DoubleDoubleFunction() {
+			@Override
+			public double apply(double pattern_val, double constrast_val) {
+				double scaled_val =  (pattern_val - min_pattern[0]) / range_pattern;
+				scaled_val = 2.0 * (scaled_val - 0.5);
+				return (baseline_val * (1.0 + contrast_val * scaled_val));
+			}
+		});
+		return scaled_2D;
 	}
 
 }

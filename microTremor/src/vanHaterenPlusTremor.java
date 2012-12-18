@@ -37,7 +37,7 @@ public class vanHaterenPlusTremor {
 		CommandLineParser parser = new GnuParser();
 		String[] testArgs = { "--num_cones=32", "--image_type_id=0",
 				"--grating_orientation=0", "--image_file=''", "--num_steps=64",
-				"--delta_t=1.0", "--background_luminance=100.0",
+				"--delta_t=1.0", "--background_luminance=100.0", "--luminance_contrast=1.0",
 				"--num_pixels=256", "--ran_seed=1234987" };
 
 		OptionBuilder.withArgName("ran_seed");
@@ -110,6 +110,14 @@ public class vanHaterenPlusTremor {
 				.create("background_luminance");
 		options.addOption(option_background_luminance);
 		double background_luminance = 100.0;
+
+		OptionBuilder.withArgName("luminance_contrast");
+		OptionBuilder.hasArg();
+		OptionBuilder.withDescription("luminance contrast (relative to background luminance)");
+		Option option_luminance_contrast = OptionBuilder
+				.create("luminance_contrast");
+		options.addOption(option_luminance_contrast);
+		double luminance_contrast = 1.0;
 
 		Random generator = null;
 		try {
@@ -263,9 +271,7 @@ public class vanHaterenPlusTremor {
 		
 		// add point spread function
 		
-		// add luminance background
-
-		// init van Hatteren cone model
+		// init van Hateren cone model
 		vanHaterenCoupled vanHateren = new vanHaterenCoupled(num_cones,
 				background_luminance);
 		vanHateren.setHCKernel();
@@ -300,6 +306,7 @@ public class vanHaterenPlusTremor {
 							i_step, pixel_cone_ratio);
 			downsampled_input2D = MyUtils.downsample(
 					jittered_input2D, pixels_to_cones_kernel);
+			downsampled_input2D = MyUtils.addScaled(downsampled_input2D, background_luminance, luminance_contrast);
 			tremor_frame = MyUtils.display(
 					MyUtils.mat2image(downsampled_input2D), "tremor movie",
 					tremor_frame);
