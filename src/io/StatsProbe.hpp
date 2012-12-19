@@ -32,6 +32,7 @@ protected:
    float avg;
 
 private:
+   int initStatsProbe_base();
    int initMessage(const char * msg);
 };
 

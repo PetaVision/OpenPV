@@ -41,6 +41,7 @@ StatsProbe::StatsProbe(HyPerLayer * layer, const char * msg)
 StatsProbe::StatsProbe(const char * filename, HyPerLayer * layer, PVBufType type, const char * msg)
    : LayerProbe()
 {
+   initStatsProbe_base();
    initStatsProbe(filename, layer, type, msg);
 }
 
@@ -51,18 +52,30 @@ StatsProbe::StatsProbe(const char * filename, HyPerLayer * layer, PVBufType type
 StatsProbe::StatsProbe(HyPerLayer * layer, PVBufType type, const char * msg)
    : LayerProbe()
 {
+   initStatsProbe_base();
    initStatsProbe(NULL, layer, type, msg);
 }
 
 StatsProbe::StatsProbe()
    : LayerProbe()
 {
+   initStatsProbe_base();
    // Derived classes should call initStatsProbe
 }
 
 StatsProbe::~StatsProbe()
 {
    free(msg);
+}
+
+int StatsProbe::initStatsProbe_base() {
+   fMin = FLT_MAX;
+   fMax = -FLT_MAX;
+   sum = 0.0f;
+   avg = 0.0f;
+   type = BufV;
+   msg = NULL;
+   return PV_SUCCESS;
 }
 
 int StatsProbe::initStatsProbe(const char * filename, HyPerLayer * layer, PVBufType type, const char * msg) {
