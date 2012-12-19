@@ -114,7 +114,7 @@ public class GratingImage {
 			public double apply(double dist_2D_val,
 					double dist_perpendicular_val) {
 				return (grating_contrast
-						* Math.cos(2 * Math.PI * grating_spatial_freq
+						* Math.sin(2 * Math.PI * grating_spatial_freq
 								* dist_perpendicular_val + grating_phase) * Math
 						.exp((-0.5)
 								* (grating_spatial_freq * dist_2D_val / grating_sigma)));

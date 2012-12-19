@@ -19,12 +19,12 @@ public class vanHaterenCoupled implements DerivnFunction {
 	int numStateVars = 10;
 
 	// Outer segment: Phototransduction cascade
-	double tau_R = 3.4;
+	double tau_R = 3.4; // ms, range 0.5 - 6.5
 	double A_R = 0.1;
-	double tau_E = 8.7;
+	double tau_E = 8.7; // ms, range 3.0 - 16.8
 	double A_E = 0.3395;
-	double c_beta = 0.0028;
-	double k_beta = 0.00016;
+	double c_beta = 0.0028;  // (ms)^-1, range 2.0 - 4.0 * 10^-3
+	double k_beta = 0.00016; // (ms)^-1, range 4.9 - 39.0 * 10^-5
 
 	// Outer segment: Calcium feedback
 	double eta = 0.38;

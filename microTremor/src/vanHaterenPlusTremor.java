@@ -36,7 +36,7 @@ public class vanHaterenPlusTremor {
 		Options options = new Options();
 		CommandLineParser parser = new GnuParser();
 		String[] testArgs = { "--num_cones=32", "--image_type_id=0",
-				"--grating_orientation=0", "--image_file=''", "--num_steps=64",
+				"--grating_orientation=0", "--image_file=''", "--num_steps=256",
 				"--delta_t=1.0", "--background_luminance=100.0", "--luminance_contrast=1.0",
 				"--num_pixels=256", "--ran_seed=1234987" };
 
@@ -94,7 +94,7 @@ public class vanHaterenPlusTremor {
 				.withDescription("number of time steps: rounded to power of 2");
 		Option option_num_steps = OptionBuilder.create("num_steps");
 		options.addOption(option_num_steps);
-		int num_steps = 64;
+		int num_steps = 256;
 
 		OptionBuilder.withArgName("delta_t");
 		OptionBuilder.hasArg();
@@ -226,11 +226,6 @@ public class vanHaterenPlusTremor {
 		// human foveal retina, Vision Res. 29, 1989, 1095-I 101.
 		// int num_cones = 32;
 		double pixel_cone_ratio = num_pixels / num_cones;
-		double pixel_diameter = RetinalConstants.coneDiameter
-				/ pixel_cone_ratio;
-		double minutes_per_cone = 60 * RetinalConstants.coneDiameter
-				/ RetinalConstants.micronsPerDegree;
-		double minutes_per_pixel = minutes_per_cone / pixel_cone_ratio;
 
 		// random fluctuations
 		// from An analysis of voltage noise in rod bipolar cells of the dogfish
@@ -269,6 +264,15 @@ public class vanHaterenPlusTremor {
 			MyUtils.display(input_planar_image, image_file, null);
 		}
 		
+		
+		// set values for turning pattern on and off
+		double begin_stim_timestep = Math.floor(20.0 / delta_t);
+		double end_stim_timestep = Math.floor(120.0 / delta_t);
+		
+		// construct background stimulus for constant full-field adapting illumination
+		DenseDoubleMatrix2D background_input2D = new DenseDoubleMatrix2D(num_cones, num_cones);
+		background_input2D.assign(background_luminance);
+		
 		// add point spread function
 		
 		// init van Hateren cone model
@@ -298,19 +302,23 @@ public class vanHaterenPlusTremor {
 		y_store.addElement(y_step3D);
 		DenseDoubleMatrix2D jittered_input2D = (DenseDoubleMatrix2D) input_matrix2D.copy();
 		DenseDoubleMatrix2D downsampled_input2D= MyUtils.downsample(
-				jittered_input2D, pixels_to_cones_kernel);;
+				jittered_input2D, pixels_to_cones_kernel);
 		for (int i_step = 1; i_step < num_steps; i_step++) {
-			// add tremor to image
-			jittered_input2D = OcularTremor
-					.jitterImageUsingTremor(input_matrix2D, tremor_time_series,
-							i_step, pixel_cone_ratio);
-			downsampled_input2D = MyUtils.downsample(
-					jittered_input2D, pixels_to_cones_kernel);
-			downsampled_input2D = MyUtils.addScaled(downsampled_input2D, background_luminance, luminance_contrast);
-			tremor_frame = MyUtils.display(
-					MyUtils.mat2image(downsampled_input2D), "tremor movie",
-					tremor_frame);
-			jittered_movie.addElement(jittered_input2D);
+			downsampled_input2D = background_input2D;
+			if ((i_step > begin_stim_timestep) && (i_step < end_stim_timestep)) {
+				// add tremor to image
+				jittered_input2D = OcularTremor.jitterImageUsingTremor(
+						input_matrix2D, tremor_time_series, i_step,
+						pixel_cone_ratio);
+				downsampled_input2D = MyUtils.downsample(jittered_input2D,
+						pixels_to_cones_kernel);
+				downsampled_input2D = MyUtils.addScaled(downsampled_input2D,
+						background_luminance, luminance_contrast);
+				tremor_frame = MyUtils.display(
+						MyUtils.mat2image(downsampled_input2D), "tremor movie",
+						tremor_frame);
+				jittered_movie.addElement(jittered_input2D);
+			}
 			vanHateren.setIexp(downsampled_input2D);
 			runge_kutta.setInitialValueOfX((i_step - 1) * delta_t);
 			runge_kutta.setFinalValueOfX(i_step * delta_t);
