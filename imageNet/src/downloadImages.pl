@@ -16,8 +16,6 @@
 ##          *Note: There is no need to escape spaces for $destDir.
 ############
 
-require 'globalVars.pl';
-
 #####
 ##Uncomment below to run from command line
 ##This must stay commented in order to call this function from another program
@@ -36,13 +34,23 @@ sub diPostUsage () {
 sub downloadImages ($$) {
     use warnings;
 
+    use globalvars;
+    my $useproxy = getuseproxy globalvars();
+    my $proxy_url = "";
+    if ($useproxy) {
+        $proxy_url = getproxyurl globalvars();
+    }
+
     require 'listChildren.pl';
     require 'findFiles.pl';
     require 'makeTempDir.pl';
     require 'checkInputType.pl';
 
-    my $USER_NAME="dpaiton";
-    my $ACCESS_KEY="46da9d2dce3c1e7c78341eed46993fac47597b3f";
+    #REPLACE THESE WITH THE APPROPRIATE USER AND KEY
+    #####
+    my $USER_NAME  = "user";
+    my $ACCESS_KEY = "key";
+    #####
     my $USER_AGENT = "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)";
     my $IMG_URL    = "http://www.image-net.org/download/synset?wnid=[wnid]&username=[username]&accesskey=[accesskey]&release=latest";
 

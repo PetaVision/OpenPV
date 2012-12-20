@@ -100,7 +100,7 @@ sub collectDistractorImgs ($$$$) {
         $numToCpy = $numImagesFound;
     }
 
-    #If exclude WNID is listed, make a list of it and all of its children
+    #If exclude WNID is listed, make a list of it, all of its parents and all of its children
     my @excludeSet;
     unless ($excludeWNID =~ "NULL") { #If user has given an exclude ID
         foreach $WNID (@excludeArray) {

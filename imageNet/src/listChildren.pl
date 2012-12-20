@@ -13,10 +13,9 @@
 ## Return all children of $input, along all trees
 ##
 ## TODO:
+##   Have flag for each output type. One for downloadImages.pl and one for collectTargetImages.pl
 ##
 ############
-
-require "globalVars.pl";
 
 #####
 ##Uncomment _below_ to run from command line
@@ -92,6 +91,13 @@ sub listChildren ($) {
     use XML::XPath;
     use XML::XPath::XMLParser;
 
+    use globalVars;
+    my $useProxy = getUseProxy globalVars();
+    my $PROXY_URL = "";
+    if ($useProxy) {
+        $PROXY_URL = getProxyURL globalVars();
+    }
+
     require 'makeTempDir.pl';
 
     $USER_AGENT= "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)";
@@ -165,28 +171,26 @@ sub listChildren ($) {
         die "\n\nERROR: Couldn't find $input in $TMP_DIR/structure.xml!\n\tSearch Path: $path\n\n";
     }
 
-    my $nodeset = $xp->find($path);
+    my $nodeSet  = $xp->find($path);
+    my @nodeList = $nodeSet->get_nodelist;
 
-    my @nodelist = $nodeset->get_nodelist;
+    my $rootName = @nodeList[0]->getAttribute(words);
+    my $rootWNID = @nodeList[0]->getAttribute(wnid);
 
     my @childTreeNames;
     my @childTreeWNIDs;
 
-    $rootName = @nodelist[0]->getAttribute(words);
-    $rootWNID = @nodelist[0]->getAttribute(wnid);
-
     my %seen = ();
     $seen{$rootWNID}++;
 
-    foreach my $node (@nodelist) {
-
+    foreach my $node (@nodeList) {
         next if $seen{$node->getAttribute(wnid)}++;
 
         #push child
         push(@childTreeNames,$node->getAttribute(words));
         push(@childTreeWNIDs,$node->getAttribute(wnid));
 
-        #push all parents
+        #push all children 
         my $parent = $node->getParentNode();
         while (lc($parent->getAttribute(wnid)) ne lc($rootWNID) and $parent->getAttribute(wnid)) {
             push(@childTreeNames,$parent->getAttribute(words));

@@ -16,7 +16,6 @@
 ##          *Note: There is no need to escape spaces for $destDir.
 ############
 
-require 'globalVars.pl';
 require 'listChildren.pl';
 require 'listParents.pl';
 require 'findFiles.pl';
@@ -40,6 +39,13 @@ sub eiPostUsage () {
 
 sub extractAnnotations ($$$) {
     use warnings;
+
+    use globalvars;
+    my $useproxy = getuseproxy globalvars();
+    my $proxy_url = "";
+    if ($useproxy) {
+        $proxy_url = getproxyurl globalvars();
+    }
 
     my $inputCategory = $_[0];
     chomp($inputCategory);

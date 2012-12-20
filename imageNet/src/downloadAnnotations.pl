@@ -16,8 +16,6 @@
 ##          *Note: There is no need to escape spaces for $destDir.
 ############
 
-require 'globalVars.pl';
-
 #####
 ##Uncomment below to run from command line
 ##This must stay commented in order to call this function from another program
@@ -35,6 +33,13 @@ sub daPostUsage () {
 
 sub downloadAnnotations ($$) {
     use warnings;
+
+    use globalvars;
+    my $useproxy = getuseproxy globalvars();
+    my $proxy_url = "";
+    if ($useproxy) {
+        $proxy_url = getproxyurl globalvars();
+    }
 
     require 'listChildren.pl';
     require 'findFiles.pl';

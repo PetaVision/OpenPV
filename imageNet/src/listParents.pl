@@ -17,7 +17,6 @@
 ##
 ############
 
-require 'globalVars.pl';
 require 'findFiles.pl';
 require 'makeTempDir.pl';
 require 'checkInputType.pl';
@@ -98,6 +97,13 @@ sub lpPostUsage() {
 sub listParents ($) {
     use XML::XPath;
     use XML::XPath::XMLParser;
+
+    use globalvars;
+    my $useproxy = getuseproxy globalvars();
+    my $proxy_url = "";
+    if ($useproxy) {
+        $proxy_url = getproxyurl globalvars();
+    }
 
     $USER_AGENT= "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)";
     $STRUCTURE_URL = "http://www.image-net.org/api/xml/structure_released.xml";

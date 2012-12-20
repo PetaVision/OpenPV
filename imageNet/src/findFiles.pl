@@ -14,11 +14,11 @@ sub findFiles($$) {
 
     my $path = $_[0];
     my $ext  = $_[1];
-    my (@allFiles, @subFiles);
+    my @allFiles;
 
     my $escPath = quotemeta($path);
 
-    foreach $item (glob "$escPath/*") {
+    foreach my $item (glob "$escPath/*") {
         if (-d $item) { #if it is a directory
             push(@allFiles,&findFiles($item,$ext));
         } else { #Item is not a directory
