@@ -15,7 +15,7 @@ sub ctiPostUsage () {
 sub collectTargetImgs ($$$$) {
     use warnings;
     use List::Util 'shuffle';
-    use List::MoreUtils 'any';
+    #use List::MoreUtils 'any';
     use POSIX;
 
     require 'findFiles.pl';
@@ -85,22 +85,22 @@ sub collectTargetImgs ($$$$) {
 
 #Ask user if the program should get the child nodes
     print "\ncollectTargetImgs: Would you like to extract the children of the input? [y/n] ";
-    my $userChoice = <STDIN>;
-    chomp($userChoice);
+    my $childChoice = <STDIN>;
+    chomp($childChoice);
     my $correctAnswer = 0;
     while ($correctAnswer == 0) {
-        if (($userChoice =~ m/^y$/) || ($userChoice =~ m/^n$/)) {
+        if (($childChoice =~ m/^y$/) || ($childChoice =~ m/^n$/)) {
             $correctAnswer = 1;
             last;
         }
         print "collectTargetImgs: Please respond with 'y' or 'n': ";
-        $userChoice = <STDIN>;
-        chomp($userChoice);
+        $childChoice = <STDIN>;
+        chomp($childChoice);
     }
     print "\n";
     
 #If getting child nodes, push nodes to list of WNIDs
-    if ($userChoice =~ /^y$/) { #Grab children
+    if ($childChoice =~ /^y$/) { #Grab children
         my @childArray;
         foreach my $parentWNID (@inArray) {
             my $HYPONYM_URL="http://www.image-net.org/api/text/wordnet.structure.hyponym?wnid=[wnid]&full=1";
@@ -130,7 +130,30 @@ sub collectTargetImgs ($$$$) {
         undef @childArray;
     }
 
-    my $ext = 'JPEG';
+#Ask user if the input folder has tar files or jpg files.
+    print "\ncollectTargetImgs: Does the input folder contain [e]xtracted images or [t]ar files? [e/t] ";
+    my $fileChoice = <STDIN>; #'e' should be .jpeg, 't' should be .tar
+    chomp($fildChoice);
+    my $correctAnswer = 0;
+    while ($correctAnswer == 0) {
+        if (($fileChoice =~ m/^e$/) || ($fileChoice =~ m/^t$/)) {
+            $correctAnswer = 1;
+            last;
+        }
+        print "collectTargetImgs: Please respond with 'e' for jpegs or 't' tars: ";
+        $fileChoice = <STDIN>;
+        chomp($fileChoice);
+    }
+    print "\n";
+
+    my $ext;
+    if ($fileChoice =~ /^e$/) { #Grab jpeg files 
+        $ext = 'JPEG';
+    } else { #Grab contents from tar files
+        $ext = 'tar';
+        use Archive::Tar;
+    }
+
     my @totFileList = findFiles($inPath,$ext);
     my @wnidFileList;
     foreach my $WNID (@inArray) {
@@ -141,31 +164,41 @@ sub collectTargetImgs ($$$$) {
         }
     }
 
-#Check num images found
-    $numImagesFound = scalar(@wnidFileList);
-    print "collectTargetImgs: Found $numImagesFound images!\n";
-    if ($numImagesFound < $numToCpy) {
-        print "\ncollectTargetImgs: WARNING: Number of files found is less than the number requested. Copying the number found.\n";
-        $numToCpy = $numImagesFound;
-    }
+#Check num files found
+    if ($fileChoice =~ /^e$/) {
+        $numImagesFound = scalar(@wnidFileList);
+        print "collectTargetImgs: Found $numImagesFound images!\n";
+        if ($numImagesFound < $numToCpy) {
+            if ($numImagesFound > 0) {
+                print "\ncollectTargetImgs: WARNING: Number of images found is less than the number requested. Copying the number found.\n";
+                $numToCpy = $numImagesFound;
+            } else {
+                print "\ncollectTargetImgs: ERROR: Number of images found is 0.\n";
+                die;
+            }
+        }
+    } else {
+
+
 
 #Find the number of categories & make a list of them
     my @categories;
     foreach my $wnidFile (@wnidFileList) { #look at each file in the file list
         if ($wnidFile =~ m/\/(n\d+)\_/) { #look for the synset id in the file name
-            unless (any {/$1/} @categories) { #add category to @categories if it is not in there already
+#unless (any {/$1/} @categories) { #add category to @categories if it is not in there already
+            unless (grep {$1 eq $_} @categories) { #add category to @categories if it is not in there already
                 push(@categories,$1);
             }
         }
     }
     my $numCategories = scalar(@categories);
-    if ($userChoice =~ /^y$/) {
+    if ($childChoice =~ /^y$/) {
         print "collectTargetImgs: Found $numCategories categories!\n";
     }
     
     my $numExtraImgs = 0;
     my $numImgsPerCat = floor($numToCpy/$numCategories);
-    if ($userChoice =~ /^y$/) {
+    if ($childChoice =~ /^y$/) {
         print "collectTargetImgs: Transfering about $numImgsPerCat images from each category.\n";
     }
     if (($numImgsPerCat*$numCategories) < $numToCpy) {
