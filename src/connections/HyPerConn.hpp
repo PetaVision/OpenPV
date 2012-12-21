@@ -117,9 +117,12 @@ public:
 
    inline bool getSelfFlag() {
       return selfFlag;
-   }
+   };
 
-   ;
+   inline bool getPlasticityFlag() {
+      return plasticityFlag;
+   };
+
    virtual float minWeight(int arborId = 0);
    virtual float maxWeight(int arborId = 0);
 

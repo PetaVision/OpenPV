@@ -54,6 +54,10 @@ int CliqueLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activit
       int axonId)
 {
    recvsyn_timer->start();
+   // do not receive synaptic input from conn if plasticity flag is true
+   if (conn->getPlasticityFlag()){
+      return PV_BREAK;
+   }
    enum ChannelType channel_type = conn->getChannel();
    if (channel_type == CHANNEL_EXC) {
       return HyPerLayer::recvSynapticInput(conn, activity, axonId);
