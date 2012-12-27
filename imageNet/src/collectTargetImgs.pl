@@ -1,5 +1,20 @@
 #!/usr/bin/env perl
 
+############
+## collectTargetImgs.pl
+##
+## Written by:
+##      Dylan Paiton
+##      Los Alamos National Laboratory, Group ISR-2 
+##      paiton@lanl.gov
+##
+## Collect random target images from input folder
+##
+## TODO:
+##
+##
+############
+
 if ($ARGV[0] && $ARGV[1] && $ARGV[2] && $ARGV[3]) {
     $output = &collectTargetImgs($ARGV[0], $ARGV[1], $ARGV[2], $ARGV[3]);
 } else {
@@ -23,10 +38,11 @@ sub collectTargetImgs ($$$$) {
 
     use List::Util 'shuffle';
     use POSIX;
+    use Archive::Tar;
 
     require 'findFiles.pl';
     require 'getFileExts.pl';
-    #require 'listChildren.pl'; Not using currently
+    #require 'listChildren.pl'; #This code is not implemented such that it works with listChildren.pl
     require 'makeTempDir.pl';
     require 'checkInputType.pl';
 
@@ -35,6 +51,8 @@ sub collectTargetImgs ($$$$) {
     my $inPath   = $_[1];
     my $outPath  = $_[2];
     my $numToCpy = $_[3];
+
+    $outPath =~ s/\/$//g;
 
 #Set up temp dir
     my $TMP_DIR = makeTempDir();
@@ -46,11 +64,12 @@ sub collectTargetImgs ($$$$) {
     $inPath =~ s/\/$//g;
 
 #Set up output path
-    system("mkdir -p $outPath") unless (-d $outPath);
-    unless (-d $outPath) {
-        die "\n\nERROR: Couldn't find or make output director $outPath.\n";
+    my $outImgPath = $outPath."/Images";
+    system("mkdir -p $outImgPath") unless (-d $outImgPath);
+    unless (-d $outImgPath) {
+        die "\n\nERROR: Couldn't find or make output director $outImgPath.\n";
     }
-    $outPath =~ s/\/$//g;
+    $outImgPath =~ s/\/$//g;
 
 #Check to see if the user has input a WNID, a folder, or a text file listing WNIDs
     my $inputType = checkInputType($inWNID);
@@ -98,26 +117,70 @@ sub collectTargetImgs ($$$$) {
 
     my $tar;
     if ($ext =~ /^tar$/) { #Set up for extracting tar files
-        use Archive::Tar;
         $tar = Archive::Tar->new;
         if ($numToCpy == -1) {
-            print "collectTargetImgs: Extracting all of the images from tar files in $inPath to $outPath\n";
+            print "collectTargetImgs: Extracting all of the images from tar files in $inPath to $outImgPath\n";
         } else {
-            print "collectTargetImgs: Extracting $numToCpy images from tar files in $inPath to $outPath\n";
+            print "collectTargetImgs: Extracting $numToCpy images from tar files in $inPath to $outImgPath\n";
         }
     } else {
         if ($numToCpy == -1) {
-            print "collectTargetImgs: Copying all of the target images from $inPath to $outPath\n";
+            print "collectTargetImgs: Copying all of the target images from $inPath to $outImgPath\n";
         } else {
-            print "collectTargetImgs: Copying $numToCpy target images from $inPath to $outPath\n";
+            print "collectTargetImgs: Copying $numToCpy target images from $inPath to $outImgPath\n";
         }
+    }
+
+#Ask user if the program should only transfer images with(out) bounding boxes
+    print "\ncollectTargetImgs: Would you like to extract [1] only images with BBs [2] only images without BBs or [3] images with and without BBs? [1/2/3] ";
+    my $bbChoice = <STDIN>;
+    chomp($bbChoice);
+    my $correctAnswer = 0;
+    while ($correctAnswer == 0) {
+        if (($bbChoice =~ m/^1$/) || ($bbChoice =~ m/^2$/) || ($bbChoice =~ m/^3$/)) {
+            $correctAnswer = 1;
+            last;
+        }
+        print "collectTargetImgs: Please respond with '1'(BBs), '2'(no BBs), or '3'(mixed): ";
+        $bbChoice = <STDIN>;
+        chomp($bbChoice);
+    }
+    print "\n";
+
+#Get BB list if user specified a BB preference
+    my $bbExt;
+    my $bbPath;
+    my $outBBPath;
+    if (($bbChoice =~ m/^1$/) || ($bbChoice =~ m/^2$/)) {
+        $outBBPath = $outPath."/Annotations";
+        system("mkdir -p $outBBPath") unless (-d $outBBPath);
+        unless (-d $outBBPath) {
+            die "\n\nERROR: Couldn't find or make output director $outBBPath.\n";
+        }
+        $outBBPath =~ s/\/$//g;
+
+        print "\ncollectTargetImgs: Please enter the path to the Bounding Boxes: ";
+        $bbPath = <STDIN>;
+        chomp($bbPath);
+        print "\n";
+
+        unless (-d $bbPath) {
+            die "collectTargetImgs: ERROR: Couldn't find bounding box directory $bbPath.\n";
+        }
+
+        my @bbFileExts = getFileExts($bbPath);
+        my $bbNumFileExts = scalar(@bbFileExts);
+        unless ($bbNumFileExts == 1) {
+            die "collectTargetImgs: ERROR: Found more than one file extension in $bbPath.\n";
+        }
+        $bbExt = $fileExts[0];
     }
 
 #Ask user if the program should get the child nodes
     print "\ncollectTargetImgs: Would you like to extract the children of the input? [y/n] ";
     my $childChoice = <STDIN>;
     chomp($childChoice);
-    my $correctAnswer = 0;
+    $correctAnswer = 0;
     while ($correctAnswer == 0) {
         if (($childChoice =~ m/^y$/) || ($childChoice =~ m/^n$/)) {
             $correctAnswer = 1;
@@ -134,20 +197,21 @@ sub collectTargetImgs ($$$$) {
         my @childArray;
         foreach my $parentWNID (@inArray) {
             #Download Image-Net children list if it does not already exist in the temp folder
-            unless (-e "$TMP_DIR/child_synsets.txt") {
+            my $synsetOutFile = $TMP_DIR."/".$parentWNID."_child_synsets.txt";
+            unless (-e $synsetOutFile) {
                 my $HYPONYM_URL="http://www.image-net.org/api/text/wordnet.structure.hyponym?wnid=[wnid]&full=1";
                 print "collectTargetImgs: Downloading list of child synsets for $parentWNID...\n";
                 $HYPONYM_URL =~ s/\[wnid\]/$parentWNID/;
                 if ($useProxy) {
-                    system("curl -x \"$PROXY_URL\" \"$HYPONYM_URL\" -# --cookie $TMP_DIR/cookies > $TMP_DIR/child_synsets.txt");  
+                    system("curl -x \"$PROXY_URL\" \"$HYPONYM_URL\" -# --cookie $TMP_DIR/cookies > $synsetOutFile");  
                 } else {
-                    system("curl \"$HYPONYM_URL\" -# --cookie $TMP_DIR/cookies > $TMP_DIR/child_synsets.txt");  
+                    system("curl \"$HYPONYM_URL\" -# --cookie $TMP_DIR/cookies > $synsetOutFile");  
                 }
                 $HYPONYM_URL =~ s/$parentWNID/\[wnid\]/;
                 print "collectTargetImgs: Done.\n\n";
             }
 
-            open(SYNSETS,"<","$TMP_DIR/child_synsets.txt") or die "Could not open $TMP_DIR/child_synsets.txt.\nERROR: $!\n";
+            open(SYNSETS,"<",$synsetOutFile) or die "Could not open $synsetOutFile.\nERROR: $!\n";
             my @synsets= <SYNSETS>;
             close(SYNSETS);
 
@@ -167,12 +231,56 @@ sub collectTargetImgs ($$$$) {
 #Get list of files for the desired WNIDs.
     my @totFileList = findFiles($inPath,$ext);
     my @wnidFileList;
+    my @categories;
     foreach my $WNID (@inArray) {
         foreach my $totFile (@totFileList) {
             if ($totFile =~ /$WNID/) {
                 push(@wnidFileList,$totFile);
+                if ($totFile=~ m/\/(n\d+)/) { #look for the synset id in the file name
+                    unless (grep {$1 eq $_} @categories) { #add category to @categories if it is not in there already
+                        push(@categories,$1);
+                    }
+                }
             }
         }
+    }
+
+#Get list of files for the desired BBs.
+    my @BBFileList;
+    if ($bbChoice =~ m/^1$/) {
+        my @BBCats;
+        my @totBBFileList = findFiles($bbPath,$bbExt);
+        foreach my $WNID (@categories) {
+            foreach my $totBBFile (@totBBFileList) {
+                if ($totBBFile =~ /$WNID/) {
+                    push(@BBCats,$WNID);
+                    push(@BBFileList,$totBBFile);
+                }
+            }
+        }
+        ##Need to modify @categories and $wnidFileList to only include categorys and files with BBs
+        my @newCats;
+        foreach my $BBCat (@BBCats) {
+            foreach my $realCat (@categories) {
+                if ($BBCat =~ /^$realCat$/) {
+                    push(@newCats,$BBCat);
+                }
+            }
+        }
+        @categories = @newCats;
+        undef @newCats;
+
+        my @newWNIDFileList;
+        foreach my $BBFile (@BBFileList) {
+            foreach my $WNIDFile (@wnidFileList) {
+                $BBFile =~ m/(n\d+)/;
+                if ($WNIDFile =~ /$1/) {
+                    push(@newWNIDFileList,$WNIDFile);
+                }
+            }
+        }
+        @wnidFileList = @newWNIDFileList;
+        undef @newWNIDFileList;
     }
 
 #Check num files found
@@ -200,15 +308,6 @@ sub collectTargetImgs ($$$$) {
         }
     }
 
-#Find the number of categories & make a list of them
-    my @categories;
-    foreach my $wnidFile (@wnidFileList) { #look at each file in the file list
-        if ($wnidFile =~ m/\/(n\d+)/) { #look for the synset id in the file name
-            unless (grep {$1 eq $_} @categories) { #add category to @categories if it is not in there already
-                push(@categories,$1);
-            }
-        }
-    }
     my $numCategories = scalar(@categories);
     if ($numCategories < 1) {
         die "collectTargetImgs: ERROR: number of categories is less than 1!\n";
@@ -242,7 +341,7 @@ sub collectTargetImgs ($$$$) {
 
 #Sanity check
     unless ($#fileLoL+1 == $numCategories) {
-        die "\n\nERROR: Number of categories does not match LoL size.\n\n";
+        die "\n\ncollectTargetImgs: ERROR: Number of categories does not match LoL size.\n\n";
     }
 
 #Shuffle images categories and copy
@@ -263,43 +362,92 @@ sub collectTargetImgs ($$$$) {
                 "\tThe target group will be unevenly weighted!\n";
         }
     
-        my $count = 0;
-        my @fileAry = 0 .. $numCatFiles-1;
+        my $successCount = 0;
+        my $attemptCount = 0;
+        my @fileAry      = 0 .. $numCatFiles-1;
 
         if ($numExtraImgs > 0) { #if we need to get an uneven amount of images from the categories
             if ($numCatFiles >= $numImgsPerCat+1) { #if this category has enough images to grab one extra
-                while ($count < $numImgsPerCat+1) { #grab one more image than usual
-                    my $file = $fileLoL[$catAry[$catNum]][$fileAry[$count]];
-                    if ($ext =~ /^JPEG$/) {
-                        system("cp \"$file\" \"$outPath\"");
-                    } else {
-                        my $outFile = $outPath."/".$file;
-                        $tar->read($wnidFileList[$catAry[$catNum]]);
-                        $tar->extract_file($file,$outFile);
+                while ($successCount+$attemptCount < $numImgsPerCat+1) { #grab one more image than usual
+                    my $file = $fileLoL[$catAry[$catNum]][$fileAry[$successCount+$attemptCount]];
+
+                    my $bbSuccess = 1;
+                    if ($bbChoice =~ m/^1$/) {
+                        my $bbWNID = $file;
+                        my $bbFileName = $file;
+
+                        $bbWNID =~ s/([\w\d]+)_[\.\w]+/$1/; #Pulls out just the WNID, before the underscore
+                        $bbFileName =~ s/([\w\d]+_[\d]+)[\.\w]+/$1/; #Pulls out the full file-name, including the underscore
+
+                        my $tarFile = "Annotation/".$bbWNID."/".$bbFileName.".xml";
+                        my $outFile = $outBBPath."/".$bbFileName.".xml";
+
+                        $tar->read($BBFileList[$catAry[$catNum]],'tgz');
+                        $bbSuccess = $tar->contains_file($tarFile);
+                        if ($bbSuccess) {
+                            $tar->extract_file($tarFile,$outFile);
+                        }
                     }
-                    $count += 1;
-                    $percComp = 100*(($totCount+$count)/$numToCpy);
-                    print "collectTargetImgs: Percent Complete: $percComp %    \r";
+
+                    if ($bbSuccess) {
+                        if ($ext =~ /^JPEG$/) {
+                            system("cp \"$file\" \"$outImgPath\"");
+                        } else {
+                            my $outFile = $outImgPath."/".$file;
+                            $tar->read($wnidFileList[$catAry[$catNum]]);
+                            $tar->extract_file($file,$outFile);
+                        }
+
+                        $successCount += 1;
+                        $percComp = 100*(($totCount+$successCount)/$numToCpy);
+                        print "collectTargetImgs: Percent Complete: $percComp %                        \r";
+                    } else {
+                        $attemptCount += 1;
+                    }
                 }
                 $numExtraImgs -= 1;
             }
         } else {
-            while ($count < $numImgsPerCat && $count < $numCatFiles) {
-                my $file = $fileLoL[$catAry[$catNum]][$fileAry[$count]];
-                if ($ext =~ /^JPEG$/) {
-                    system("cp \"$file\" \"$outPath\"");
-                } else {
-                    my $outFile = $outPath."/".$file;
-                    $tar->read($wnidFileList[$catAry[$catNum]]);
-                    $tar->extract_file($file,$outFile);
+            while ($successCount < $numImgsPerCat && $successCount+$attemptCount < $numCatFiles) {
+                my $file = $fileLoL[$catAry[$catNum]][$fileAry[$successCount+$attemptCount]];
+
+                my $bbSuccess = 1;
+                if ($bbChoice =~ m/^1$/) {
+                    my $bbWNID = $file;
+                    my $bbFileName = $file;
+
+                    $bbWNID =~ s/([\w\d]+)_[\.\w]+/$1/; #Pulls out just the WNID, before the underscore
+                    $bbFileName =~ s/([\w\d]+_[\d]+)[\.\w]+/$1/; #Pulls out the full file-name, including the underscore
+
+                    my $tarFile = "Annotation/".$bbWNID."/".$bbFileName.".xml";
+                    my $outFile = $outBBPath."/".$bbFileName.".xml";
+
+                    $tar->read($BBFileList[$catAry[$catNum]],'tgz');
+                    $bbSuccess = $tar->contains_file($tarFile);
+                    if ($bbSuccess) {
+                        $tar->extract_file($tarFile,$outFile);
+                    }
                 }
-                $count += 1;
-                $percComp = 100*(($totCount+$count)/$numToCpy);
-                print "collectTargetImgs: Percent Complete: $percComp %    \r";
+
+                if ($bbSuccess) {
+                    if ($ext =~ /^JPEG$/) {
+                        system("cp \"$file\" \"$outImgPath\"");
+                    } else {
+                        my $outFile = $outImgPath."/".$file;
+                        $tar->read($wnidFileList[$catAry[$catNum]]);
+                        $tar->extract_file($file,$outFile);
+                    }
+
+                    $successCount += 1;
+                    $percComp = 100*(($totCount+$successCount)/$numToCpy);
+                    print "collectTargetImgs: Percent Complete: $percComp %                        \r";
+                } else {
+                    $attemptCount += 1;
+                }
             }
         }
-        push(@numImgsPerCat,$count);
-        $totCount += $count;
+        push(@numImgsPerCat,$successCount);
+        $totCount += $successCount;
     }
     print "collectTargetImgs: Percent Complete: 100 %\n";
     print "-------\ncollectTargetImgs: Images per category:\n";
