@@ -98,11 +98,11 @@ sub listParents ($) {
     use XML::XPath;
     use XML::XPath::XMLParser;
 
-    use globalvars;
-    my $useproxy = getuseproxy globalvars();
-    my $proxy_url = "";
-    if ($useproxy) {
-        $proxy_url = getproxyurl globalvars();
+    use globalVars;
+    my $useProxy  = getUseProxy globalVars();
+    my $PROXY_URL = "";
+    if ($useProxy) {
+        $PROXY_URL = getProxyURL globalVars();
     }
 
     $USER_AGENT= "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)";

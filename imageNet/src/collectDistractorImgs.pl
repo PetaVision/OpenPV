@@ -1,5 +1,20 @@
 #!/usr/bin/env perl
 
+############
+## collectDistractorImgs.pl
+##
+## Written by:
+##      Dylan Paiton
+##      Los Alamos National Laboratory, Group ISR-2 
+##      paiton@lanl.gov
+##
+## Collect random distractor images from input folder
+##
+## TODO:
+##
+##
+############
+
 require 'findFiles.pl';
 require 'listChildren.pl';
 require 'listParents.pl';

@@ -40,11 +40,11 @@ sub eiPostUsage () {
 sub extractImages ($$$) {
     use warnings;
 
-    use globalvars;
-    my $useproxy = getuseproxy globalvars();
-    my $proxy_url = "";
-    if ($useproxy) {
-        $proxy_url = getproxyurl globalvars();
+    use globalVars;
+    my $useProxy  = getUseProxy globalVars();
+    my $PROXY_URL = "";
+    if ($useProxy) {
+        $PROXY_URL = getProxyURL globalVars();
     }
 
     my $inputCategory = $_[0];

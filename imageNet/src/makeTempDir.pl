@@ -2,10 +2,8 @@
 
 #Set up output dir
 sub makeTempDir {
-    my $currDir = `pwd`;
-    chomp($currDir);
-    $currDir =~ s/\s/\\ /g;
-    my $TMP_DIR = "$currDir/temp";
+    use globalVars;
+    my $TMP_DIR = getTempDir globalVars();
 
     unless (-d $TMP_DIR) {
         system("mkdir -p $TMP_DIR") and die "makeTempDir: Couldn't make temp directory: $TMP_DIR\n\tError: $!\n";
