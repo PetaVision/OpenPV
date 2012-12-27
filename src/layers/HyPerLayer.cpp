@@ -82,7 +82,7 @@ int HyPerLayer::initialize_base() {
    this->name = NULL;
    this->probes = NULL;
    this->numProbes = 0;
-   this->ioAppend = 0;
+   //this->ioAppend = 0;
    this->numChannels = 0;
    this->clayer = NULL;
    this->GSyn = NULL;
