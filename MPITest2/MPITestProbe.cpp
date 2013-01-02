@@ -22,7 +22,6 @@ MPITestProbe::MPITestProbe(const char * filename, HyPerLayer * layer, const char
    : StatsProbe()
 {
    initStatsProbe(filename, layer, BufActivity, msg);
-   cumAvg = 0.0f;
 }
 
 /**
@@ -33,7 +32,6 @@ MPITestProbe::MPITestProbe(HyPerLayer * layer, const char * msg)
    : StatsProbe()
 {
    initStatsProbe(NULL, layer, BufActivity, msg);
-	//cumAvg = 0.0f;
 }
 
 
@@ -50,9 +48,7 @@ int MPITestProbe::outputState(double timed) {
 		return status;
 	}
 #endif // PV_USE_MPI
-	//cumAvg += avg;
-	//double cum_time = time - 2.0f;
-	double tol = 1e-5f;
+	double tol = 1e-4f;
 
 	// if many to one connection, each neuron should receive its global x/y/f position
 	// if one to many connection, the position of the nearest sending cell is received
@@ -75,15 +71,13 @@ int MPITestProbe::outputState(double timed) {
 	}
 	float ave_global_xpos = (min_global_xpos + max_global_xpos) / 2.0f;
 
-	//fprintf(fp, "%s cum_time==%9.3f cumAvg==%f min_global_xpos==%f ave_global_xpos==%f max_global_xpos==%f \n",
 	fprintf(fp, "%s min_global_xpos==%f ave_global_xpos==%f max_global_xpos==%f \n",
 			msg, min_global_xpos, ave_global_xpos, max_global_xpos);
 	fflush(fp);
 	if (timed > 3.0f) {
-		assert((fMin > (min_global_xpos - tol)) && (fMin < (min_global_xpos + tol)));
-		assert((fMax > (max_global_xpos - tol)) && (fMax < (max_global_xpos + tol)));
-		assert((avg > (ave_global_xpos - tol)) && (avg < (ave_global_xpos + tol)));
-//		assert((cumAvg > cum_time*(ave_global_xpos - tol)) && (cumAvg < cum_time*(ave_global_xpos + tol)));
+		assert((fMin/min_global_xpos > (1 - tol)) && (fMin/min_global_xpos < (1 + tol)));
+		assert((fMax/max_global_xpos > (1 - tol)) && (fMax/max_global_xpos < (1 + tol)));
+		assert((avg/ave_global_xpos > (1 - tol)) && (avg/ave_global_xpos < (1 + tol)));
 	}
 
 	return status;

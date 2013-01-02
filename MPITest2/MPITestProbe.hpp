@@ -18,9 +18,6 @@ public:
    MPITestProbe(HyPerLayer * layer, const char * msg);
 
    virtual int outputState(double timed);
-
-protected:
-   double cumAvg;
 };
 
 }
