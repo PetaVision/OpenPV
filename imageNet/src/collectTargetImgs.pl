@@ -132,6 +132,7 @@ sub collectTargetImgs ($$$$) {
     }
 
 #Ask user if the program should only transfer images with(out) bounding boxes
+##TODO: have default path releative to input image path
     print "\ncollectTargetImgs: Would you like to extract [1] only images with BBs [2] only images without BBs or [3] images with and without BBs? [1/2/3] ";
     my $bbChoice = <STDIN>;
     chomp($bbChoice);
@@ -247,7 +248,7 @@ sub collectTargetImgs ($$$$) {
 
 #Get list of files for the desired BBs.
     my @BBFileList;
-    if ($bbChoice =~ m/^1$/) {
+    if (($bbChoice =~ m/^1$/) || ($bbChoice =~ m/^2$/)) { #Not sure if I need $bbChoice=~2 here
         my @BBCats;
         my @totBBFileList = findFiles($bbPath,$bbExt);
         foreach my $WNID (@categories) {
@@ -258,7 +259,8 @@ sub collectTargetImgs ($$$$) {
                 }
             }
         }
-        ##Need to modify @categories and $wnidFileList to only include categorys and files with BBs
+
+        ##List of cats that have BBs with them
         my @newCats;
         foreach my $BBCat (@BBCats) {
             foreach my $realCat (@categories) {
@@ -267,9 +269,8 @@ sub collectTargetImgs ($$$$) {
                 }
             }
         }
-        @categories = @newCats;
-        undef @newCats;
 
+        ##List of WNIDS with BBs with them
         my @newWNIDFileList;
         foreach my $BBFile (@BBFileList) {
             foreach my $WNIDFile (@wnidFileList) {
@@ -279,8 +280,12 @@ sub collectTargetImgs ($$$$) {
                 }
             }
         }
-        @wnidFileList = @newWNIDFileList;
-        undef @newWNIDFileList;
+
+        if ($bbChoice =~ m/^1$/) {
+            ##Need to modify @categories and $wnidFileList to only include categorys and files with BBs
+            @categories = @newCats;
+            @wnidFileList = @newWNIDFileList;
+        }
     }
 
 #Check num files found
@@ -372,7 +377,7 @@ sub collectTargetImgs ($$$$) {
                     my $file = $fileLoL[$catAry[$catNum]][$fileAry[$successCount+$attemptCount]];
 
                     my $bbSuccess = 1;
-                    if ($bbChoice =~ m/^1$/) {
+                    if (($bbChoice =~ m/^1$/) || ($bbChoice =~ m/^2$/)) {
                         my $bbWNID = $file;
                         my $bbFileName = $file;
 
@@ -382,14 +387,23 @@ sub collectTargetImgs ($$$$) {
                         my $tarFile = "Annotation/".$bbWNID."/".$bbFileName.".xml";
                         my $outFile = $outBBPath."/".$bbFileName.".xml";
 
-                        $tar->read($BBFileList[$catAry[$catNum]],'tgz');
-                        $bbSuccess = $tar->contains_file($tarFile);
-                        if ($bbSuccess) {
-                            $tar->extract_file($tarFile,$outFile);
+                        ##Get Bounding Box
+                        if ($catAry[$catNum] < scalar(@BBFileList)) {
+                            $tar->read($BBFileList[$catAry[$catNum]],'tgz');
+                            $bbSuccess = $tar->contains_file($tarFile);
+                            if ($bbChoice =~ m/^1$/) {
+                                if ($bbSuccess) {
+                                    $tar->extract_file($tarFile,$outFile);
+                                }
+                            } 
+                        } else {
+                            $bbSuccess = 0;
                         }
                     }
 
-                    if ($bbSuccess) {
+                    ##If we got the box and we wanted the box, or we didn't get the box and we didn't want the box
+                    if ((($bbSuccess) && ($bbChoice =~ m/^1$/)) || ((!$bbSuccess) && ($bbChoice =~ m/^2$/)) || ($bbChoice =~ m/^3$/)) {
+                        ##Get actual image
                         if ($ext =~ /^JPEG$/) {
                             system("cp \"$file\" \"$outImgPath\"");
                         } else {
@@ -408,11 +422,11 @@ sub collectTargetImgs ($$$$) {
                 $numExtraImgs -= 1;
             }
         } else {
-            while ($successCount < $numImgsPerCat && $successCount+$attemptCount < $numCatFiles) {
+            while (($successCount < $numImgsPerCat) && ($successCount+$attemptCount < $numCatFiles)) {
                 my $file = $fileLoL[$catAry[$catNum]][$fileAry[$successCount+$attemptCount]];
 
                 my $bbSuccess = 1;
-                if ($bbChoice =~ m/^1$/) {
+                if (($bbChoice =~ m/^1$/) || ($bbChoice =~ m/^2$/)) {
                     my $bbWNID = $file;
                     my $bbFileName = $file;
 
@@ -422,14 +436,23 @@ sub collectTargetImgs ($$$$) {
                     my $tarFile = "Annotation/".$bbWNID."/".$bbFileName.".xml";
                     my $outFile = $outBBPath."/".$bbFileName.".xml";
 
-                    $tar->read($BBFileList[$catAry[$catNum]],'tgz');
-                    $bbSuccess = $tar->contains_file($tarFile);
-                    if ($bbSuccess) {
-                        $tar->extract_file($tarFile,$outFile);
+                    ##Get Bounding Box
+                    if ($catAry[$catNum] < scalar(@BBFileList)) {
+                        $tar->read($BBFileList[$catAry[$catNum]],'tgz');
+                        $bbSuccess = $tar->contains_file($tarFile);
+                        if ($bbChoice =~ m/^1$/) {
+                            if ($bbSuccess) {
+                                $tar->extract_file($tarFile,$outFile);
+                            }
+                        } 
+                    } else {
+                        $bbSuccess = 0;
                     }
                 }
 
-                if ($bbSuccess) {
+                ##If we got the box and we wanted the box, or we didn't get the box and we didn't want the box
+                if ((($bbSuccess) && ($bbChoice =~ m/^1$/)) || ((!$bbSuccess) && ($bbChoice =~ m/^2$/)) || ($bbChoice =~ m/^3$/)) {
+                    ##Get actual image
                     if ($ext =~ /^JPEG$/) {
                         system("cp \"$file\" \"$outImgPath\"");
                     } else {
