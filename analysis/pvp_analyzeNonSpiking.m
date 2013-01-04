@@ -1,3 +1,4 @@
+%%keyboard;
 more off
 %%
 close all
@@ -10,12 +11,13 @@ plot_2AFC_flag = 1;
 plot_weights_flag = 0;
 noplot_flag = false; %% true; %% 
 
-try
-  setenv('GNUTERM', 'x11');
-catch
-  noplot_flag = true;
-end %% try
-
+if ~noplot_flag
+  try
+    setenv('GNUTERM', 'x11');
+  catch
+    noplot_flag = true;
+  end %% try
+endif
 				% Make the following global parameters available to all functions for convenience.
 global N_image NROWS_image NCOLS_image
 global N NROWS NCOLS % for the current layer
@@ -48,7 +50,7 @@ TRAINING_FLAG = -2;
 
 global G2_FLAG G4_FLAG G6_FLAG
 G2_FLAG = 1;
-G4_FLAG = 1;
+G4_FLAG = 0;
 G6_FLAG = 0;
 
 global DIRTY_FLAG
@@ -70,8 +72,8 @@ global FC_STR
 				%FC_STR = ['_', num2str(4), 'fc'];
 FC_STR = [num2str(NFC), 'fc'];
 
-num_trials = 625; %%  %% cannot exceed ~1024 for 256x256 image because
-num_single_trials = 20 + num_trials * noplot_flag;
+num_trials = 90; %%  %% cannot exceed ~1024 for 256x256 image because
+num_single_trials = 1; %%20 + num_trials * noplot_flag;
 %%octave 3.2.3 can't compute offsets greater than 32 bits
 if ~TOPDOWN_FLAG
   first_trial = 1;
@@ -105,12 +107,13 @@ elseif ((bowtie_flag == 1) || (animal_flag == 1) || (dogcat_flag == 1))
   G_STR = '/';
 endif
 machine_path = ...
-    "/mnt/data3/repo/neovision-programs-petavision/";
+    "/nh/compneuro/Data/";
 
 global target_path
 target_path = [];
 target_path = ...
-    [machine_path, "amoeba2/X2/activity/6FC/target/001"];
+    [machine_path, "ImageNet/PetaVision/CatVsNoCatDog/Test/activity/cat2/canny3way"];
+%%    [machine_path, "repo/neovision-programs-petavision/Heli/Challenge/activity/Car/canny3way"];
 if ~isempty(target_path)
   target_path = [target_path, G_STR];
   if ((MNIST_flag == 0) &&  (animal_flag == 0) && (dogcat_flag == 0))
@@ -120,7 +123,8 @@ endif % ~isempty(target_path)
 
 %%if num_trials > num_single_trials || RAW_HIST_FLAG
   distractor_path = ...
-    [machine_path, "noamoeba2/X2/activity/6FC/distractor/001"];
+    [machine_path, "ImageNet/PetaVision/CatVsNoCatDog/Test/activity/nocatdog2/canny3way"];
+%%      [];
 %%else
 %%  distractor_path = [];
 %%endif
@@ -170,7 +174,7 @@ global pvp_index
 SPIKING_FLAG = 0;
 [layerID, layerIndex] = pvp_layerID;
 
-read_activity = [[2:3],[5:N_LAYERS]];  % list of nonspiking layers whose activity is to be analyzed
+read_activity = [[2],[4:5], [7], [9]];  % list of nonspiking layers whose activity is to be analyzed
 num_layers = N_LAYERS;
 
 if RECONSTRUCT_FLAG
@@ -347,14 +351,19 @@ for j_trial = first_trial : skip_trial : last_trial
 	    ['recon ', layer_label, num2str(layer), '_', ...
 	     num2str(j_trial, NUM2STR_FORMAT), '_', ...
 	     num2str(target_flag)];
-	fig_tmp = figure;
-	set(fig_tmp, 'Name', recon_filename);
+	if ~noplot_flag
+	  fig_tmp = figure;
+	  set(fig_tmp, 'Name', recon_filename);
+	else
+	  fig_tmp = [];
+	endif
         fig_tmp = ...
 	    pvp_reconstruct(activity{target_flag}, ...
 			    recon_filename, fig_tmp * ~noplot_flag, ...
 			    size_activity, ...
 			    ~noplot_flag);
         fig_list = [fig_list; fig_tmp];
+	drawnow("expose");
 	
       endif
       
@@ -504,7 +513,7 @@ if max_target_flag > min_target_flag
     twoAFC_correct = zeros(num_layers, size(twoAFC,4));
     twoAFC_errorbar = zeros(num_layers, size(twoAFC,4));
 
-    baseline_layer = 3; %% 0;
+    baseline_layer = 4; %% 0;
     percent_change_flag = 1; %%0;
     cum_change_flag = 1; %%0;
 
@@ -615,11 +624,11 @@ if max_target_flag > min_target_flag
   
 endif
 
-
+%%keyboard;
 fig_list = [];
 
 %% plot connections
-if plot_weights_flag == 1
+if plot_weights_flag == 1 && ~noplot_flag
   global N_CONNECTIONS
   global NXP NYP NFP
   global NUM_ARBORS

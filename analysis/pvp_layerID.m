@@ -91,54 +91,54 @@ else  % NON_SPIKING
     
     i_layer = i_layer + 1;
     layerIndex.l1Pooling2X2 = i_layer;
-    layerID{ 1, i_layer } =  'L1Pooling2X2';
+    layerID{ 1, i_layer } =  'L1Pooling1X1';
     
     N_LAYERS = N_LAYERS + 1;
     layerID = [layerID, cell(1, 1)];
         
     i_layer = i_layer + 1;
-    layerIndex.l1_ODD = i_layer;
-    layerID{ 1, i_layer } =  'L1_ODD';
+    layerIndex.l1Clique = i_layer;
+    layerID{ 1, i_layer } =  'L1Clique';
     
     if G2_FLAG
       N_LAYERS = N_LAYERS + 1;
       layerID = [layerID, cell(1, 1)];
         
       i_layer = i_layer + 1;
-      layerIndex.l2_ODD = i_layer;
-      layerID{ 1, i_layer } =  'L2_ODD';
+      layerIndex.l2Pooling2X2 = i_layer;
+      layerID{ 1, i_layer } =  'L2Pooling2X2';
+    endif
+    
+    N_LAYERS = N_LAYERS + 1;
+    layerID = [layerID, cell(1, 1)];
+    
+    i_layer = i_layer + 1;
+    layerIndex.l2Clique = i_layer;
+    layerID{ 1, i_layer } =  'L2Clique';
       
+    if G4_FLAG
       N_LAYERS = N_LAYERS + 1;
       layerID = [layerID, cell(1, 1)];
-      
-      i_layer = i_layer + 1;
-      layerIndex.l3_ODD = i_layer;
-      layerID{ 1, i_layer } =  'L3_ODD';
-      
-      if G4_FLAG 
-	N_LAYERS = N_LAYERS + 1;
-	layerID = [layerID, cell(1, 1)];
         
-	i_layer = i_layer + 1;
-	layerIndex.l4_ODD = i_layer;
-	layerID{ 1, i_layer } =  'L4_ODD';
-	if G6_FLAG 
-	  N_LAYERS = N_LAYERS + 1;
-	  layerID = [layerID, cell(1, 1)];
-            
-	  i_layer = i_layer + 1;
-	  layerIndex.l5_ODD = i_layer;
-	  layerID{ 1, i_layer } =  'L5_ODD';
-	  
-	  N_LAYERS = N_LAYERS + 1;
-	  layerID = [layerID, cell(1, 1)];
-          
-	  i_layer = i_layer + 1;
-	  layerIndex.l6_ODD = i_layer;
-	  layerID{ 1, i_layer } =  'L6_ODD';
-	endif
-      endif
+      i_layer = i_layer + 1;
+      layerIndex.l3Pooling4X4 = i_layer;
+      layerID{ 1, i_layer } =  'L3Pooling4X4';
     endif
+    
+    N_LAYERS = N_LAYERS + 1;
+    layerID = [layerID, cell(1, 1)];
+      
+    i_layer = i_layer + 1;
+    layerIndex.l3Clique = i_layer;
+    layerID{ 1, i_layer } =  'L3Clique';
+      
+    N_LAYERS = N_LAYERS + 1;
+    layerID = [layerID, cell(1, 1)];
+      
+    i_layer = i_layer + 1;
+    layerIndex.l3Clique = i_layer;
+    layerID{ 1, i_layer } =  'L4Clique';
+      
     
     if TOPDOWN_FLAG
       

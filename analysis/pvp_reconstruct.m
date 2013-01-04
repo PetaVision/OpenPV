@@ -295,7 +295,7 @@ function [fh, recon_colormap, recon_image] = ...
       axis "off"
       tmp = squeeze( max(recon_image,[],3) );
 				%imagesc( gca, tmp' );  % plots recod2D as an image
-      imagesc( tmp' );  % plots recod2D as an image
+      imagesc( tmp );  % plots recod2D as an image
       colormap('gray');
     endif
 %%    plot_title_tmp = ...
@@ -307,7 +307,7 @@ function [fh, recon_colormap, recon_image] = ...
       plot_title_tmp = ...
 	  [OUTPUT_PATH, plot_title, '_', num2str(i_feature, NUM2STR_FORMAT), '.tiff'];
       imwrite( squeeze( recon_image(:,:,i_feature) )', ...
-	      plot_title_tmp, 'tiff');
+	      plot_title_tmp, 'png');
     endfor
   endif
  

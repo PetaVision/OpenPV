@@ -83,6 +83,18 @@ function [act_time, ...
   pvp_status = fseek(fid, i_trial_offset, 'cof');
   if ( pvp_status == -1 )
     disp(['fseek(fid, i_trial_offset, ''cof'') == -1 in pvp file: ', filename]);
+    disp(["i_trial = ", num2str(i_trial)]);
+    disp(["i_trial_offset = ", num2str(i_trial_offset)]);
+    disp(["pvp_header = "]);
+    pvp_header
+    disp(["pvp_time = ", num2str(pvp_time)]);
+    disp(["NCOLS = ", num2str(NCOLS)]);
+    disp(["NROWS = ", num2str(NROWS)]);
+    disp(["NFEATURES = ", num2str(NFEATURES)]);
+    disp(["NX_PROCS = ", num2str(NX_PROCS)]);
+    disp(["NY_PROCS = ", num2str(NY_PROCS)]);
+    disp(["NX_GLOBAL = ", num2str(NX_GLOBAL)]);
+    disp(["NY_GLOBAL = ", num2str(NY_GLOBAL)]);
     return;
   endif
 
@@ -90,8 +102,8 @@ function [act_time, ...
   act_time = fread(fid,1,'float64');
   disp(['act_time = ', num2str(act_time)]);
   %%keyboard;
-  for y_proc = 1 : NX_PROCS
-    for x_proc = 1 : NY_PROCS
+  for y_proc = 1 : NY_PROCS
+    for x_proc = 1 : NX_PROCS
       [activity_local, countF] = fread(fid, N_LOCAL, 'float32');
       if countF ~= N_LOCAL
 	disp(['countF ~= N_LOCAL:', 'countF = ', num2str(countF), '; N_LOCAL = ', num2str(N_LOCAL)]);
