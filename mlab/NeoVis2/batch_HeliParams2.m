@@ -1,10 +1,21 @@
 
 %% begin definition of the most volitile parameters
-FLAVOR_ID = "Training"; %% "Test"; %% 
+FLAVOR_ID = "Challenge"; %% "Training"; %% 
 disp(["FLAVOR_ID = ", FLAVOR_ID]);
 target_id = cell(1,2);
 target_id{1,1} = "Car"; target_id{1,2} = "NotCar"; %% 
-disp(["target_id = ", target_id{1,1}, ", ", target_id{1,2}]);
+target_id
+clips_flag = true; %% false; %% 
+if clips_flag 
+  clip_ids = [26:26]; %% [1:50]; %% 
+  clip_name = cell(length(clip_ids),1);
+  for i_clip = 1 : length(clip_name)
+    clip_name{i_clip} = num2str(clip_ids(i_clip), "%3.3i");   
+  endfor
+else
+  clip_name = [];
+endif
+clip_name
 pvp_num_ODD_kernels = 1; %%
 disp(["num_ODD_kernels = ", num2str(pvp_num_ODD_kernels)]);
 %% end definition of the most volitile parameters
@@ -43,7 +54,7 @@ if ismac
       [pvp_home_path, "workspace-sync-anterior", filesep];
 else
   pvp_workspace_path = ...
-      [pvp_home_path, "workspace-remote", filesep];
+      [pvp_home_path, "workspace", filesep];
 endif
 pvp_mlab_path = ...
     [pvp_workspace_path, "PetaVision", filesep, "mlab", filesep];
@@ -194,9 +205,14 @@ for i_object = 1 : size(target_id,1)
     endif
     num_weight_files(target_flag) = 0;
     for i_version = 1 : num_versions
-      checkpoint_read_version_path = ...
-	  [checkpoint_read_object_path, ...
-	   version_str{i_version}, filesep];
+      if num_versions > 1
+	checkpoint_read_version_path = ...
+	    [checkpoint_read_object_path, ...
+	     version_str{i_version}, filesep];
+      else
+	checkpoint_read_version_path = ...
+	    checkpoint_read_object_path;
+      endif
       checkpoint_dirs = glob([checkpoint_read_version_path, "Checkpoint*"]);
       num_checkpoints = length(checkpoint_dirs);
       max_checkpoint_ndx = 0;
@@ -214,7 +230,7 @@ for i_object = 1 : size(target_id,1)
 	if ~exist(time_info_pathname, "file")
 	  continue;
 	endif
-	if target_flag == 1
+	if target_flag >= 1
 	  if pvp_num_ODD_kernels == 1
 	    weight_filename = ...
 		"L1Pool1X1toL1Post_W.pvp";
@@ -249,6 +265,11 @@ for i_object = 1 : size(target_id,1)
 	  %%keyboard;
 	  continue;
 	endif
+	if ~exist([weight_file_path, "timeinfo.bin"], "file")
+	  disp(["~exist(timeinfo.bin): ", weight_file_path, "timeinfo.bin"]);
+	  %%keyboard;
+	  continue;
+	endif
 	[INFO, ERR, MSG] = stat(weight_pathname);
 	if INFO.size < 10^6
 	  disp(["file size < 1,000,000: ", weight_pathname]);
@@ -269,7 +290,7 @@ for i_object = 1 : size(target_id,1)
     fclose(pvp_file_of_weights_fid);
   endfor %% target_flag
   
-  for target_flag = 1:2   
+  for target_flag = 1:(2-clips_flag)   
     pvp_params_template = ...
 	[pvp_clique_path, ...
 	 "templates", filesep, ...
@@ -298,22 +319,33 @@ for i_object = 1 : size(target_id,1)
 	 pvp_edge_type, pvp_clique_id, filesep];
     mkdir(input_object_path);
     
-    list_object_path = ...
-	[pvp_list_path, ...
-	 target_id{i_object, 1}, filesep];
-    list_path = list_object_path;
+    if ~clips_flag
+      list_object_path = ...
+	  [pvp_list_path, ...
+	   target_id{i_object, 1}, filesep];
+      list_path = list_object_path;
+    else
+      list_object_path = ...
+	  [pvp_list_path];
+      list_path = list_object_path;
+    endif
     
     pvp_fileOfFrames_path = ...
 	[list_object_path];
-    pvp_fileOfFrames_file = ...
-	[target_id{i_object, 1}, "_", "fileOfFilenames.txt"];
+    if ~clips_flag
+      pvp_fileOfFrames_file = ...
+	  [target_id{i_object, 1}, "_", "fileOfFilenames.txt"];
+    else
+      pvp_fileOfFrames_file = ...
+	  [clip_name{i_object, 1}, "_", "fileOfFilenames.txt"];
+    endif
     pvp_fileOfFrames = ...
 	[pvp_fileOfFrames_path, pvp_fileOfFrames_file];
     pvp_num_frames = linecount(pvp_fileOfFrames);
     if pvp_num_frames == 0
       error(["linecount = 0:", "pvp_fileOfFrames = ", pvp_fileOfFrames]);
     endif
-    pvp_num_frames = ceil(pvp_num_frames / num_versions);
+
     if target_flag == 1
       pvp_fileOfMasks_file = ...
 	  [target_id{i_object, 1}, "_", "fileOfTargetMasknames.txt"];

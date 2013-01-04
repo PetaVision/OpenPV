@@ -1,13 +1,13 @@
 %% begin definition of most variable input params
-clip_ids = [1:50]; %% [7:17,21:22,30:31]; %%
+clip_ids = [26]; %% [1:50]; %% [7:17,21:22,30:31]; %%
 clip_name = cell(length(clip_ids),1);
 for i_clip = 1 : length(clip_name)
   clip_name{i_clip} = num2str(clip_ids(i_clip), "%3.3i");
 endfor
-num_ODD_kernels = 0; %% 5; %% 
-pvp_layer = 3;  %% 8; %%  
-pvp_path_flag = false; %% true; %% 
-NEOVISION_DISTRIBUTION_ID = "Training"; %%"Challenge"; %% "Formative"; %%   
+num_ODD_kernels = 1; %% 5; %% 
+pvp_layer = 5;  %% 8; %%  
+pvp_path_flag = true; %% false; %% 
+NEOVISION_DISTRIBUTION_ID = "Challenge"; %% "Training"; %%"Formative"; %%   
 ObjectType = "Car"; %% "Cyclist"; %%  
 global make_bootstrap_chips_flag 
 make_bootstrap_chips_flag = false; %% true; %% 
@@ -19,15 +19,15 @@ num_procs = 1; %% 24;  %%
 %% end most variable portion of input params
 
 home_path = ...
-    [filesep, "Users", filesep, "garkenyon", filesep];
-%%    [filesep, "home", filesep, "gkenyon", filesep];
+    [filesep, "home", filesep, "gkenyon", filesep];
+%%    [filesep, "Users", filesep, "garkenyon", filesep];
 NEOVISION_DATASET_ID = "Heli"; %% "Tower"; %%  "Tail"; %% 
 neovision_dataset_id = tolower(NEOVISION_DATASET_ID); %% 
 neovision_distribution_id = tolower(NEOVISION_DISTRIBUTION_ID); %% 
 repo_path = ...
-    [home_path, "NeoVision2", filesep];
+    [filesep, "nh", filesep, "compneuro", filesep, "Data", filesep, "repo", filesep];
+%%    [home_path, "NeoVision2", filesep];
 mkdir(repo_path);
-%%    [filesep, "nh", filesep, "compneuro", filesep, "Data", filesep, "repo", filesep];
 petavision_repo_path = [repo_path, ...
 		"neovision-programs-petavision", filesep]; %%, ...
 mkdir(petavision_repo_path);
