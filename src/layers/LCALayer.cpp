@@ -62,7 +62,7 @@ int LCALayer::updateState(double timed, double dt) {
       int kex = kIndexExtended(k, nx, ny, nf, nb);
       pvdata_t Vk = V[k];
       // Corresponds to Eq 3.1 in Rozell et. al
-      // A[k] term is due to gSynInb including n=m term
+      // A[k] term is due to gSynInh including n=m term
       Vk = Vk + dt_tau*(stimulus[k] - V[k] + A[kex]);
       A[kex] = Vk >= threshold ? Vk - threshdrop : 0.0;
       V[k] = Vk;

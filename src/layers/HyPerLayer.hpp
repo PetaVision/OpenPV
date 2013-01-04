@@ -226,6 +226,7 @@ public:
 
    virtual int * getMarginIndices();
    virtual int getNumMargin();
+   float getConvertToRateDeltaTimeFactor(HyPerConn* conn);
 
 protected:
 

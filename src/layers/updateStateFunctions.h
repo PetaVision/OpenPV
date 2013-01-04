@@ -39,6 +39,7 @@
 #endif
 
 // Prototypes
+static inline int updateV_HyPerLayer1Channel(int numNeurons, CL_MEM_GLOBAL pvdata_t * V, CL_MEM_GLOBAL pvdata_t * GSynHead);
 static inline int updateV_HyPerLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * V, CL_MEM_GLOBAL pvdata_t * GSynHead);
 static inline int updateV_ANNLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * V, CL_MEM_GLOBAL pvdata_t * GSynHead, pvdata_t VMax, pvdata_t VMin, pvdata_t VThresh);
 static inline int updateV_ANNDivInh(int numNeurons, CL_MEM_GLOBAL pvdata_t * V, CL_MEM_GLOBAL pvdata_t * GSynHead);
@@ -71,6 +72,21 @@ static inline int resetGSynBuffers_HyPerLayer(int numNeurons, int num_channels, 
 static inline int resetGSynBuffers_SigmoidLayer();
 
 // Definitions
+static inline int updateV_HyPerLayer1Channel(int numNeurons, CL_MEM_GLOBAL pvdata_t * V, CL_MEM_GLOBAL pvdata_t * GSynHead) {
+   int k;
+   CL_MEM_GLOBAL pvdata_t * GSynExc = &GSynHead[CHANNEL_EXC*numNeurons];
+//   CL_MEM_GLOBAL pvdata_t * GSynInh = &GSynHead[CHANNEL_INH*numNeurons];
+#ifndef PV_USE_OPENCL
+   for( k=0; k<numNeurons; k++ )
+#else
+      k = get_global_id(0);
+#endif // PV_USE_OPENCL
+   {
+      V[k] = GSynExc[k]; // - GSynInh[k];
+   }
+   return PV_SUCCESS;
+}
+
 static inline int updateV_HyPerLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * V, CL_MEM_GLOBAL pvdata_t * GSynHead) {
    int k;
    CL_MEM_GLOBAL pvdata_t * GSynExc = &GSynHead[CHANNEL_EXC*numNeurons];

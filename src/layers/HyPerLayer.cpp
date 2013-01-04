@@ -788,11 +788,13 @@ int HyPerLayer::updateState(double timef, double dt, const PVLayerLoc * loc, pvd
    int ny = loc->ny;
    int nf = loc->nf;
    int num_neurons = nx*ny*nf;
-   //pvdata_t * gSynExc = getChannelStart(gSynHead, CHANNEL_EXC, num_neurons);
-   //pvdata_t * gSynInh = getChannelStart(gSynHead, CHANNEL_INH, num_neurons);
-   updateV_HyPerLayer(num_neurons, V, gSynHead);
+   if (num_channels == 1){
+      updateV_HyPerLayer1Channel(num_neurons, V, gSynHead);
+   }
+   else{
+      updateV_HyPerLayer(num_neurons, V, gSynHead);
+   }
    setActivity_HyPerLayer(num_neurons, A, V, nx, ny, nf, loc->nb);
-   // setActivity();
    resetGSynBuffers_HyPerLayer(num_neurons, getNumChannels(), gSynHead); // resetGSynBuffers();
 
    return PV_SUCCESS;
@@ -853,7 +855,27 @@ int HyPerLayer::calcActiveIndices() {
    return PV_SUCCESS;
 }
 
-
+float HyPerLayer::getConvertToRateDeltaTimeFactor(HyPerConn* conn)
+{
+   //printf("[%d]: HyPerLayr::recvSyn: neighbor=%d num=%d actv=%p this=%p conn=%p\n", rank, neighbor, numExtended, activity, this, conn);
+   float dt_factor = 1.0f;
+   bool preActivityIsNotRate = conn->preSynapticActivityIsNotRate();
+   if (preActivityIsNotRate) {
+      enum ChannelType channel_type = conn->getChannel();
+      float dt = getParent()->getDeltaTime();
+      float tau = this->getChannelTimeConst(channel_type);
+      if (tau > 0) {
+         double exp_dt_tau = exp(-dt / tau);
+         dt_factor = (1 - exp_dt_tau) / exp_dt_tau;
+         // the above factor ensures that for a constant input of G_SYN to an excitatory conductance G_EXC,
+         // then G_EXC -> G_SYN as t -> inf
+      }
+      else {
+         dt_factor = dt;
+      }
+   }
+   return dt_factor;
+}
 
 //int HyPerLayer::setActivity() {
 //   const int nx = getLayerLoc()->nx;
@@ -888,6 +910,7 @@ int HyPerLayer::calcActiveIndices() {
 //   return PV_SUCCESS;
 //}
 
+
 int HyPerLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activity, int arborID)
 {
    recvsyn_timer->start();
@@ -904,22 +927,7 @@ int HyPerLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activity
 #endif // DEBUG_OUTPUT
 
 
-   float dt_factor = 1.0f;
-   bool preActivityIsNotRate = conn->preSynapticActivityIsNotRate();
-   if (preActivityIsNotRate) {
-      enum ChannelType channel_type = conn->getChannel();
-      float dt = getParent()->getDeltaTime();
-      float tau = this->getChannelTimeConst(channel_type);
-      if (tau > 0){
-         double exp_dt_tau = exp(-dt/tau);
-         dt_factor = (1-exp_dt_tau)/exp_dt_tau;
-// the above factor ensures that for a constant input of G_SYN to an excitatory conductance G_EXC,
-// then G_EXC -> G_SYN as t -> inf
-      }
-      else {
-         dt_factor = dt;
-      }
-   }
+   float dt_factor = getConvertToRateDeltaTimeFactor(conn);
    for (int kPre = 0; kPre < numExtended; kPre++) {
       float a = activity->data[kPre] * dt_factor;
       // Activity < 0 is used by generative models --pete
@@ -945,7 +953,7 @@ int HyPerLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activity
 
    recvsyn_timer->stop();
 
-   return 0;
+   return PV_SUCCESS;
 }
 
 int HyPerLayer::reconstruct(HyPerConn * conn, PVLayerCube * cube)

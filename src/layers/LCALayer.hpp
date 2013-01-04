@@ -27,6 +27,13 @@ public:
    virtual int updateState(double timef, double dt);
    virtual int checkpointWrite(const char * cpDir);
 
+   // might not be exactly right as converting a constant input to an equivalent rate was calibrated for LIF
+   // however, including the virtual function below
+   // should help make response of LCA neuron approximately independent of time step size and allows
+   // constant input to be interpreted as desired asymptotic value
+   //
+   //virtual float LCALayer::getChannelTimeConst(enum ChannelType channel_type){return timeConstantTau;};
+
 protected:
    LCALayer();
    int initialize(const char * name, HyPerCol * hc, int num_channels);
