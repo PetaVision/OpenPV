@@ -382,9 +382,9 @@ HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPe
       addedLayer = (HyPerLayer *) addTrainingLayer(name, hc);
       status = checknewobject((void *) addedLayer, classkeyword, name, hc);
    }
-   if( !strcmp(classkeyword, "HMaxSimple") ) {
+   if( !strcmp(classkeyword, "MaxPooling") ) {
       keywordMatched = true;
-      addedLayer = (HyPerLayer *) new HMaxSimple(name, hc);
+      addedLayer = (HyPerLayer *) new MaxPooling(name, hc);
       status = checknewobject((void *) addedLayer, classkeyword, name, hc);
    }
    if( !strcmp(classkeyword, "Image") ) {

@@ -68,6 +68,7 @@ public:
       return conductance;
    }
 */
+   virtual float getChannelTimeConst(enum ChannelType channel_type);
 
    virtual LIF_params * getLIFParams() {return &lParams;};
 

@@ -577,6 +577,28 @@ int LIF::updateState(double time, double dt)
    return status;
 }
 
+float LIF::getChannelTimeConst(enum ChannelType channel_type)
+{
+   clayer->params = &lParams;
+   float channel_time_const = 0.0f;
+   switch (channel_type) {
+   case CHANNEL_EXC:
+      channel_time_const = lParams.tauE;
+      break;
+   case CHANNEL_INH:
+      channel_time_const = lParams.tauI;
+      break;
+   case CHANNEL_INHB:
+      channel_time_const = lParams.tauIB;
+      break;
+   default:
+      channel_time_const = 0.0f;
+      break;
+   }
+   return channel_time_const;
+}
+
+
 #ifdef OBSOLETE // Marked obsolete July 13, 2012.  Restarting from last now handled by a call to checkpointRead from within HyPerLayer::initializeState
 int LIF::readState(float * time)
 {

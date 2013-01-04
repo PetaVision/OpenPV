@@ -82,7 +82,7 @@ int HyPerLayer::initialize_base() {
    this->name = NULL;
    this->probes = NULL;
    this->numProbes = 0;
-   //this->ioAppend = 0;
+   this->ioAppend = 0;
    this->numChannels = 0;
    this->clayer = NULL;
    this->GSyn = NULL;
@@ -316,7 +316,7 @@ void HyPerLayer::freeChannels()
 int HyPerLayer::initializeLayerId(int layerId)
 {
    char filename[PV_PATH_MAX];
-   bool append = false;
+   bool append = false; 
 
    setLayerId(layerId);
    switch( parent->includeLayerName() ) {
@@ -905,27 +905,14 @@ int HyPerLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activity
    float dt_factor = 1.0f;
    bool preActivityIsNotRate = conn->preSynapticActivityIsNotRate();
    if (preActivityIsNotRate) {
+      enum ChannelType channel_type = conn->getChannel();
       float dt = getParent()->getDeltaTime();
-      LIF * liflayer = dynamic_cast<LIF *>(this); // Should override recvSynapticInput in LIF instead of dynamic_cast(this)
-      if (liflayer != NULL) {
-         const LIF_params * lif_params = liflayer->getLIFParams();
-         float tau;
-         switch(conn->getChannel()) {
-         case CHANNEL_EXC:
-            tau = lif_params->tauE;
-            break;
-         case CHANNEL_INH:
-            tau = lif_params->tauI;
-            break;
-         case CHANNEL_INHB:
-            tau = lif_params->tauIB;
-            break;
-         default:
-            assert(0);
-            break;
-         }
+      float tau = this->getChannelTimeConst(channel_type);
+      if (tau > 0){
          double exp_dt_tau = exp(-dt/tau);
          dt_factor = (1-exp_dt_tau)/exp_dt_tau;
+// the above factor ensures that for a constant input of G_SYN to an excitatory conductance G_EXC,
+// then G_EXC -> G_SYN as t -> inf
       }
       else {
          dt_factor = dt;

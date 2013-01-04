@@ -29,7 +29,7 @@
 #include "../layers/PtwiseProductLayer.hpp"
 #include "../layers/TrainingLayer.hpp"
 #include "../layers/GapLayer.hpp"
-#include "../layers/HMaxSimple.hpp"
+#include "../layers/MaxPooling.hpp"
 #include "../layers/Image.hpp"
 #include "../layers/CreateMovies.hpp"
 #include "../layers/ImageCreator.hpp"
