@@ -247,7 +247,7 @@ protected:
 
    bool mirrorBCflag;           // true when mirror BC are to be applied
 
-   int ioAppend;                // controls opening of binary files
+   int ioAppend;                // controls opening of binary files, if 0, then clobber, if 1, append
    double writeTime;             // time of next output
    float writeStep;             // output time interval
 

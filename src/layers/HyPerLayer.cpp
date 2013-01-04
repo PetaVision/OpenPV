@@ -166,6 +166,8 @@ int HyPerLayer::initialize(const char * name, HyPerCol * hc, int numChannels) {
    setLayerLoc(&layerLoc, nxScale, nyScale, margin, numFeatures);
    clayer = pvlayer_new(layerLoc, xScale, yScale, numChannels);
    clayer->layerType = TypeGeneric;
+   // must set ioAppend before addLayer is called (addLayer causes activity file to be opened using layerid)
+   ioAppend = parent->getCheckpointReadFlag() ? 1 : 0;
    // layerId stored as clayer->layerId
    int layerID = parent->addLayer(this); // Could this line and the setParent line be combined in a HyPerLayer method?
    assert(layerID == clayer->layerId);
@@ -316,7 +318,7 @@ void HyPerLayer::freeChannels()
 int HyPerLayer::initializeLayerId(int layerId)
 {
    char filename[PV_PATH_MAX];
-   bool append = false; 
+   bool append = ioAppend == 1 ? true : false;
 
    setLayerId(layerId);
    switch( parent->includeLayerName() ) {

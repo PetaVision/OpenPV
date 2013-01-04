@@ -81,6 +81,7 @@ public:
    double simulationTime()                 {return simTime;}
    double getStopTime()                    {return stopTime;}
    long int getCurrentStep()                   {return currentStep;}
+   bool getCheckpointReadFlag()           {return checkpointReadFlag;}
 
    int includeLayerName()                 {return filenamesContainLayerNames;}
    int includeConnectionName()            {return filenamesContainConnectionNames;}
