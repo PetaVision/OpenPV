@@ -36,7 +36,7 @@ int MaxPooling::initialize_base(){
 
 int MaxPooling::initialize(const char * name, HyPerCol * hc, int numChannels)
 {
-   return ANNLayer::initialize(name, hc, numChannels);
+   return HyPerLayer::initialize(name, hc, numChannels);
 }
 
 int MaxPooling::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activity,

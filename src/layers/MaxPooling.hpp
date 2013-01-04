@@ -12,7 +12,7 @@
 
 namespace PV {
 
-class MaxPooling: public PV::ANNLayer {
+class MaxPooling: public PV::HyPerLayer {
 public:
    MaxPooling(const char * name, HyPerCol * hc, int numChannels);
    MaxPooling(const char * name, HyPerCol * hc);
