@@ -180,14 +180,14 @@ int LCALIFLayer::checkpointRead(const char * cpDir, double * timef) {
    assert(filename != NULL);
    int chars_needed = snprintf(filename, PV_PATH_MAX, "%s_integratedSpikeCount.pvp", basepath);
    assert(chars_needed < PV_PATH_MAX);
-   readBufferFile(filename, icComm, &timed, integratedSpikeCount, 1, /*extended*/ false, /*contiguous*/false, getLayerLoc());
+   readBufferFile(filename, icComm, &timed, &integratedSpikeCount, 1, /*extended*/ false, getLayerLoc());
    if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
       fprintf(stderr, "Warning: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
    }
 
    chars_needed = snprintf(filename, PV_PATH_MAX, "%s_Vadpt.pvp", basepath);
       assert(chars_needed < PV_PATH_MAX);
-      readBufferFile(filename, icComm, &timed, Vadpt, 1, /*extended*/ false, /*contiguous*/false, getLayerLoc());
+      readBufferFile(filename, icComm, &timed, &Vadpt, 1, /*extended*/ false, getLayerLoc());
       if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
          fprintf(stderr, "Warning: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
       }
@@ -210,27 +210,27 @@ int LCALIFLayer::checkpointWrite(const char * cpDir) {
    double timed = (double) parent->simulationTime();
    int chars_needed = snprintf(filename, PV_PATH_MAX, "%s_integratedSpikeCount.pvp", basepath);
    assert(chars_needed < PV_PATH_MAX);
-   writeBufferFile(filename, icComm, timed, integratedSpikeCount, 1, /*extended*/false, /*contiguous*/false, getLayerLoc());
+   writeBufferFile(filename, icComm, timed, &integratedSpikeCount, 1, /*extended*/false, getLayerLoc());
 
    chars_needed = snprintf(filename, PV_PATH_MAX, "%s_Vadpt.pvp", basepath);
    assert(chars_needed < PV_PATH_MAX);
-   writeBufferFile(filename, icComm, timed, Vadpt, 1, /*extended*/false, /*contiguous*/false, getLayerLoc());
+   writeBufferFile(filename, icComm, timed, &Vadpt, 1, /*extended*/false, getLayerLoc());
 
    chars_needed = snprintf(filename, PV_PATH_MAX, "%s_Vattained.pvp", basepath);
    assert(chars_needed < PV_PATH_MAX);
-   writeBufferFile(filename, icComm, timed, Vattained, 1, /*extended*/false, /*contiguous*/false, getLayerLoc());
+   writeBufferFile(filename, icComm, timed, &Vattained, 1, /*extended*/false, getLayerLoc());
 
    chars_needed = snprintf(filename, PV_PATH_MAX, "%s_Vmeminf.pvp", basepath);
    assert(chars_needed < PV_PATH_MAX);
-   writeBufferFile(filename, icComm, timed, Vmeminf, 1, /*extended*/false, /*contiguous*/false, getLayerLoc());
+   writeBufferFile(filename, icComm, timed, &Vmeminf, 1, /*extended*/false, getLayerLoc());
 
    chars_needed = snprintf(filename, PV_PATH_MAX, "%s_G_Norm.pvp", basepath);
    assert(chars_needed < PV_PATH_MAX);
-   writeBufferFile(filename, icComm, timed, G_Norm, 1, /*extended*/false, /*contiguous*/false, getLayerLoc());
+   writeBufferFile(filename, icComm, timed, &G_Norm, 1, /*extended*/false, getLayerLoc());
 
    chars_needed = snprintf(filename, PV_PATH_MAX, "%s_GSynExcEffective.pvp", basepath);
    assert(chars_needed < PV_PATH_MAX);
-   writeBufferFile(filename, icComm, timed, GSynExcEffective, 1, /*extended*/false, /*contiguous*/false, getLayerLoc());
+   writeBufferFile(filename, icComm, timed, &GSynExcEffective, 1, /*extended*/false, getLayerLoc());
 
    return status;
 }

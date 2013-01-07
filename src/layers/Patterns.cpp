@@ -56,6 +56,15 @@ int Patterns::initialize(const char * name, HyPerCol * hc, PatternType type) {
    PVParams * params = hc->parameters();
    const PVLayerLoc * loc = getLayerLoc();
 
+   unsigned int seed = parent->getObjectSeed(1);
+   cl_random_init(&patternRandState, 1, seed);
+   // This should put the RNG into the same state across MPI, but let's check.
+#ifndef NDEBUG
+   unsigned int check_seed = seed;
+   MPI_Bcast(&check_seed, 1, MPI_UNSIGNED, 0, parent->icCommunicator()->communicator());
+   assert(check_seed == seed);
+#endif // NDEBUG
+
    if (type==BARS) {
       orientation = readOrientation();
       setOrientation(orientation);
@@ -143,9 +152,9 @@ int Patterns::initialize(const char * name, HyPerCol * hc, PatternType type) {
       }
 
       if(dropPosition == -1){
-         nextPosChangeFrame = nextDropFrame + dropPositionRandomMin + floor((dropPositionRandomMax - dropPositionRandomMin) * pv_random_prob());
-         xPos = (int)floor(loc->nxGlobal * pv_random_prob());
-         yPos = (int)floor(loc->nyGlobal * pv_random_prob());
+         nextPosChangeFrame = nextDropFrame + dropPositionRandomMin + floor((dropPositionRandomMax - dropPositionRandomMin) * patternRand());
+         xPos = (int)floor(loc->nxGlobal * patternRand());
+         yPos = (int)floor(loc->nyGlobal * patternRand());
       }
       else if(dropPosition == 0){
          xPos = (int)floor((loc->nxGlobal - 1) / 2);
@@ -153,8 +162,8 @@ int Patterns::initialize(const char * name, HyPerCol * hc, PatternType type) {
       }
       else{
          nextPosChangeFrame = nextDropFrame + dropPosition;
-         xPos = (int)floor(loc->nxGlobal * pv_random_prob());
-         yPos = (int)floor(loc->nyGlobal * pv_random_prob());
+         xPos = (int)floor(loc->nxGlobal * patternRand());
+         yPos = (int)floor(loc->nyGlobal * patternRand());
       }
       MPI_Bcast(&nextDropFrame, 1, MPI_DOUBLE, 0, parent->icCommunicator()->communicator());
    }
@@ -430,8 +439,8 @@ int Patterns::drawBars(OrientationMode ormode, pvdata_t * buf, int nx, int ny, f
 
 int Patterns::drawRectangles(float val) {
    int status = PV_SUCCESS;
-   int width  = (int)(minWidth  + (maxWidth  - minWidth)  * pv_random_prob());
-   int height = (int)(minHeight + (maxHeight - minHeight) * pv_random_prob());
+   int width  = (int)(minWidth  + (maxWidth  - minWidth)  * patternRand());
+   int height = (int)(minHeight + (maxHeight - minHeight) * patternRand());
    const PVLayerLoc * loc = getLayerLoc();
    const int nx = loc->nx + 2 * loc->nb;
    const int ny = loc->ny + 2 * loc->nb;
@@ -442,8 +451,8 @@ int Patterns::drawRectangles(float val) {
    const int half_h = height/2;
 
    // random center location
-   const int xc = (int)((nx-1) * pv_random_prob());
-   const int yc = (int)((ny-1) * pv_random_prob());
+   const int xc = (int)((nx-1) * patternRand());
+   const int yc = (int)((ny-1) * patternRand());
 
    const int x0 = (xc - half_w < 0) ? 0 : xc - half_w;
    const int y0 = (yc - half_h < 0) ? 0 : yc - half_h;
@@ -581,14 +590,14 @@ int Patterns::drawDrops() {
    //Change x and y position if needed
    if(framenumber >= nextPosChangeFrame && dropPosition != 0){
       if(dropPosition == -1){
-         nextPosChangeFrame += dropPositionRandomMin + floor((dropPositionRandomMax - dropPositionRandomMin) * pv_random_prob());
-         xPos = (int)(floor(loc->nxGlobal * pv_random_prob()));
-         yPos = (int)(floor(loc->nyGlobal * pv_random_prob()));
+         nextPosChangeFrame += dropPositionRandomMin + floor((dropPositionRandomMax - dropPositionRandomMin) * patternRand());
+         xPos = (int)(floor(loc->nxGlobal * patternRand()));
+         yPos = (int)(floor(loc->nyGlobal * patternRand()));
       }
       else{
          nextPosChangeFrame += dropPosition;
-         xPos = (int)(floor(loc->nxGlobal * pv_random_prob()));
-         yPos = (int)(floor(loc->nyGlobal * pv_random_prob()));
+         xPos = (int)(floor(loc->nxGlobal * patternRand()));
+         yPos = (int)(floor(loc->nyGlobal * patternRand()));
       }
       //No need to communicate it since drop creator will decide where to drop
    }
@@ -596,7 +605,7 @@ int Patterns::drawDrops() {
    //Add new circles
    if(framenumber >= nextDropFrame && framenumber <= endFrame){
       if(dropPeriod == -1){
-         nextDropFrame = framenumber + dropPeriodRandomMin + floor((dropPeriodRandomMax - dropPeriodRandomMin) * pv_random_prob());
+         nextDropFrame = framenumber + dropPeriodRandomMin + floor((dropPeriodRandomMax - dropPeriodRandomMin) * patternRand());
       }
       else{
          nextDropFrame = framenumber + dropPeriod;
@@ -605,7 +614,7 @@ int Patterns::drawDrops() {
       Drop newDrop;
       //Random drop speed
       if(dropSpeed == -1){
-         newDrop.speed = dropSpeedRandomMin + (dropSpeedRandomMax - dropSpeedRandomMin) * pv_random_prob();
+         newDrop.speed = dropSpeedRandomMin + (dropSpeedRandomMax - dropSpeedRandomMin) * patternRand();
       }
       else{
          newDrop.speed = dropSpeed;
@@ -613,17 +622,18 @@ int Patterns::drawDrops() {
       newDrop.centerX = xPos;
       newDrop.centerY = yPos;
       //Random on/off input
-      if(pv_random_prob() < .5){
+      if(patternRand() < .5){
          newDrop.on = true;
       }
       else{
          newDrop.on = false;
       }
+      memset(&newDrop.padding, 0, 3);
       //If out is true, out drop
       bool out;
       //Convert inOut into a scale between 0 and 1, where 0 maps to in and 1 maps to out
       float inOutChance = (inOut + 1)/2;
-      if(pv_random_prob() < inOutChance){
+      if(patternRand() < inOutChance){
          out = true;
       }
       else{
@@ -687,7 +697,7 @@ int Patterns::updatePattern(double timef) {
    update_timer->start();
 
    // alternate between vertical and horizontal bars
-   double p = pv_random_prob();
+   double p = patternRand();
    bool newPattern = false;
 
 
@@ -737,7 +747,7 @@ int Patterns::updatePattern(double timef) {
             snprintf(basicfilename, PV_PATH_MAX, "%s/Impulse%.2f.tif", patternsOutputPath, timef);
          }
          else if (type == DROP){
-            snprintf(basicfilename, PV_PATH_MAX, "%s/Drop%.3d.tif", patternsOutputPath, (int)timef);
+            snprintf(basicfilename, PV_PATH_MAX, "%s/Drop%.3d.pvp", patternsOutputPath, (int)timef);
          }
          write(basicfilename);
       }
@@ -756,7 +766,7 @@ int Patterns::updatePattern(double timef) {
  */
 float Patterns::calcPosition(float pos, int step)
 {
-   double p = pv_random_prob();
+   double p = patternRand();
 
    switch (movementType) {
    case MOVEFORWARD:
@@ -804,6 +814,8 @@ int Patterns::checkpointRead(const char * cpDir, double * timef) {
    if( icComm->commRank() == 0 ) {
       FILE * fp = fopen(filename, "r");
       if( fp != NULL ) {
+         status = fread(&type, sizeof(PatternType), 1, fp) == 1 ? status : PV_FAILURE;
+         status = fread(&patternRandState, sizeof(uint4), 1, fp) == 1 ? status : PV_FAILURE;
          status = fread(&orientation, sizeof(OrientationMode), 1, fp) == 1 ? status : PV_FAILURE;
          status = fread(&position, sizeof(float), 1, fp) ? status : PV_FAILURE;
          status = fread(&nextDisplayTime, sizeof(double), 1, fp) ? status : PV_FAILURE;
@@ -832,17 +844,21 @@ int Patterns::checkpointRead(const char * cpDir, double * timef) {
    // This will get bad if the number of member variables that need to be saved keeps increasing.
 #ifdef PV_USE_MPI
    if (parent->icCommunicator()->commSize()>1) {
-      int bufsize = sizeof(OrientationMode) + sizeof(float) + 3*sizeof(double) + 4*sizeof(int) + vDrops.size()*sizeof(Drop);
+      int bufsize = (int) (sizeof(PatternType) + sizeof(uint4) + sizeof(OrientationMode) + 1*sizeof(float) + 3*sizeof(double) + 4*sizeof(int) + vDrops.size()*sizeof(Drop));
       //Communicate buffer size to rest of processes
       MPI_Bcast(&bufsize, 1, MPI_INT, 0, parent->icCommunicator()->communicator());
       char tempbuf[bufsize];
-      OrientationMode * om = (OrientationMode *) (tempbuf+0);
-      float * floats = (float *) (tempbuf+sizeof(OrientationMode));
-      double * doubles = (double *) (tempbuf+sizeof(OrientationMode)+sizeof(float));
-      int * ints = (int *) (tempbuf+sizeof(OrientationMode)+sizeof(float)+3*sizeof(double));
-      Drop * drops = (Drop *) (tempbuf+sizeof(OrientationMode)+sizeof(float)+3*sizeof(double)+4*sizeof(int));
+      PatternType * savedtype = (PatternType *) (tempbuf+0);
+      uint4 * rstate = (uint4 *) (tempbuf+sizeof(PatternType));
+      OrientationMode * om = (OrientationMode *) (tempbuf+sizeof(PatternType)+sizeof(uint4));
+      float * floats = (float *) (tempbuf+sizeof(PatternType)+sizeof(uint4)+sizeof(OrientationMode));
+      double * doubles = (double *) (tempbuf+sizeof(PatternType)+sizeof(uint4)+sizeof(OrientationMode)+sizeof(float));
+      int * ints = (int *) (tempbuf+sizeof(PatternType)+sizeof(uint4)+sizeof(OrientationMode)+sizeof(float)+3*sizeof(double));
+      Drop * drops = (Drop *) (tempbuf+sizeof(PatternType)+sizeof(uint4)+sizeof(OrientationMode)+sizeof(float)+3*sizeof(double)+4*sizeof(int));
       int numdrops;
       if (parent->columnId()==0) {
+         *savedtype = type;
+         *rstate = patternRandState;
          *om = orientation;
          floats[0] = position;
          doubles[0] = nextDisplayTime;
@@ -860,6 +876,8 @@ int Patterns::checkpointRead(const char * cpDir, double * timef) {
       }
       else {
          MPI_Bcast(tempbuf, bufsize, MPI_CHAR, 0, parent->icCommunicator()->communicator());
+         type = *savedtype;
+         patternRandState = *rstate;
          orientation = *om;
          position = floats[0];
          nextDisplayTime = doubles[0];
@@ -894,17 +912,21 @@ int Patterns::checkpointWrite(const char * cpDir) {
       FILE * fp = fopen(filename, "w");
       int size = vDrops.size();
       if( fp != NULL ) {
+         status = fwrite(&type, sizeof(PatternType), 1, fp) == 1 ? status : PV_FAILURE;
+         status = fwrite(&patternRandState, sizeof(uint4), 1, fp) == 1 ? status : PV_FAILURE;
+         // This should only write the variables used by PatternType type.
+         // For example, DROP doesn't use orientation and BARS doesn't use nextDropFrame
          status = fwrite(&orientation, sizeof(OrientationMode), 1, fp) == 1 ? status : PV_FAILURE;
-         status = fwrite(&position, sizeof(float), 1, fp) ? status : PV_FAILURE;
-         status = fwrite(&nextDisplayTime, sizeof(double), 1, fp) ? status : PV_FAILURE;
-         status = fwrite(&nextDropFrame, sizeof(double), 1, fp) ? status : PV_FAILURE;
-         status = fwrite(&nextPosChangeFrame, sizeof(double), 1, fp) ? status : PV_FAILURE;
-         status = fwrite(&initPatternCntr, sizeof(int), 1, fp) ? status : PV_FAILURE;
-         status = fwrite(&xPos, sizeof(int), 1, fp) ? status : PV_FAILURE;
-         status = fwrite(&yPos, sizeof(int), 1, fp) ? status : PV_FAILURE;
-         status = fwrite(&size, sizeof(int), 1, fp) ? status : PV_FAILURE;
+         status = fwrite(&position, sizeof(float), 1, fp) == 1 ? status : PV_FAILURE;
+         status = fwrite(&nextDisplayTime, sizeof(double), 1, fp) == 1 ? status : PV_FAILURE;
+         status = fwrite(&nextDropFrame, sizeof(double), 1, fp) == 1 ? status : PV_FAILURE;
+         status = fwrite(&nextPosChangeFrame, sizeof(double), 1, fp) == 1 ? status : PV_FAILURE;
+         status = fwrite(&initPatternCntr, sizeof(int), 1, fp) == 1 ? status : PV_FAILURE;
+         status = fwrite(&xPos, sizeof(int), 1, fp) == 1 ? status : PV_FAILURE;
+         status = fwrite(&yPos, sizeof(int), 1, fp) == 1 ? status : PV_FAILURE;
+         status = fwrite(&size, sizeof(int), 1, fp) == 1 ? status : PV_FAILURE;
          for (int k=0; k<size; k++) {
-            status = fwrite(&vDrops[k], sizeof(Drop), 1, fp) ? status : PV_FAILURE;
+            status = fwrite(&vDrops[k], sizeof(Drop), 1, fp) == 1 ? status : PV_FAILURE;
          }
          fclose(fp);
       }
@@ -928,6 +950,33 @@ int Patterns::checkpointWrite(const char * cpDir) {
          assert(0);
          break;
       }
+      switch(type) {
+      case BARS:
+         fprintf(fp, "Type = %d (BARS)\n", type);
+         break;
+      case RECTANGLES:
+         fprintf(fp, "Type = %d (RECTANGLES)\n", type);
+         break;
+      case SINEWAVE:
+         fprintf(fp, "Type = %d (SINEWAVE)\n", type);
+         break;
+      case COSWAVE:
+         fprintf(fp, "Type = %d (COSWAVE)\n", type);
+         break;
+      case IMPULSE:
+         fprintf(fp, "Type = %d (IMPULSE)\n", type);
+         break;
+      case SINEV:
+         fprintf(fp, "Type = %d (SINEV)\n", type);
+         break;
+      case COSV:
+         fprintf(fp, "Type = %d (COSV)\n", type);
+         break;
+      case DROP:
+         fprintf(fp, "Type = %d (DROP)\n", type);
+         break;
+      }
+      fprintf(fp, "Random state = %u, %u, %u, %u\n", patternRandState.s0, patternRandState.state.s1, patternRandState.state.s2, patternRandState.state.s3);
       fprintf(fp, "Position = %f\n", position);
       fprintf(fp, "nextDisplayTime = %f\n", nextDisplayTime);
       fprintf(fp, "initPatternCntr = %d\n", initPatternCntr);

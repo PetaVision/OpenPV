@@ -508,18 +508,17 @@ int OjaSTDPConn::checkpointWrite(const char * cpDir) {
    loc.nyGlobal = loc.ny * parent->icCommunicator()->numCommRows();
    loc.nb = 0;
 
+   pvdata_t ** traces = (pvdata_t **) calloc(numberOfAxonalArborLists(), sizeof(pvdata_t *));
    // pre_stdp_tr
    chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_pre_stdp_tr.pvp", cpDir, name);
    if (chars_needed >= PV_PATH_MAX) {
       fprintf(stderr, "OjaSTDPConn::checkpointWrite error.  Path \"%s/%s_pre_stdp_tr.pvp\" is too long.\n", cpDir, name);
       abort();
    }
-   for(int arborID = 0; arborID<numberOfAxonalArborLists(); arborID++) {
-      bool append;
-      append = (arborID == 0) ? false : true; // Don't append on first open
-      write_pvdata(filename, parent->icCommunicator(), (double) parent->simulationTime(), pre_stdp_tr[arborID]->data, &loc, PV_FLOAT_TYPE, /*extended*/ false, /*contiguous*/ false, append);
+   for (int arborID=0; arborID<numberOfAxonalArborLists(); arborID++) {
+      traces[arborID] = pre_stdp_tr[arborID]->data;
    }
-
+   HyPerLayer::writeBufferFile(filename, parent->icCommunicator(), (double) parent->simulationTime(), traces, numberOfAxonalArborLists(), /*extended*/ false, &loc);
    // pre_oja_tr
    chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_pre_oja_tr.pvp", cpDir, name);
    if (chars_needed >= PV_PATH_MAX) {
@@ -527,10 +526,11 @@ int OjaSTDPConn::checkpointWrite(const char * cpDir) {
       abort();
    }
    for(int arborID = 0; arborID<numberOfAxonalArborLists(); arborID++) {
-      bool append;
-      append = (arborID == 0) ? false : true; // Don't append on first open
-      write_pvdata(filename, parent->icCommunicator(), (double) parent->simulationTime(), pre_oja_tr[arborID]->data, &loc, PV_FLOAT_TYPE, /*extended*/ false, /*contiguous*/ false, /*append*/ true);
+      traces[arborID] = pre_oja_tr[arborID]->data;
    }
+   HyPerLayer::writeBufferFile(filename, parent->icCommunicator(), (double) parent->simulationTime(), traces, numberOfAxonalArborLists(), /*extended*/ false, &loc);
+
+   free(traces); traces = NULL;
 
    // **** POST LAYER INFO *** //
    memcpy(&loc, post->getLayerLoc(), sizeof(PVLayerLoc));
@@ -541,7 +541,7 @@ int OjaSTDPConn::checkpointWrite(const char * cpDir) {
       fprintf(stderr, "OjaSTDPConn::checkpointWrite error.  Path \"%s/%s_post_stdp_tr.pvp\" is too long.\n", cpDir, name);
       abort();
    }
-   write_pvdata(filename, parent->icCommunicator(), (double) parent->simulationTime(), post_stdp_tr->data, &loc, PV_FLOAT_TYPE, /*extended*/ false, /*contiguous*/ false, /*append*/ false);
+   HyPerLayer::writeBufferFile(filename, parent->icCommunicator(), (double) parent->simulationTime(), &post_stdp_tr->data, /*numbands*/ 1, /*extended*/ false, &loc);
 
    // post_oja_tr
    chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_post_oja_tr.pvp", cpDir, name);
@@ -549,7 +549,7 @@ int OjaSTDPConn::checkpointWrite(const char * cpDir) {
       fprintf(stderr, "OjaSTDPConn::checkpointWrite error.  Path \"%s/%s_post_oja_tr.pvp\" is too long.\n", cpDir, name);
       abort();
    }
-   write_pvdata(filename, parent->icCommunicator(), (double) parent->simulationTime(), post_oja_tr->data, &loc, PV_FLOAT_TYPE, /*extended*/ false, /*contiguous*/ false, /*append*/ false);
+   HyPerLayer::writeBufferFile(filename, parent->icCommunicator(), (double) parent->simulationTime(), &post_oja_tr->data, /*numbands*/ 1, /*extended*/ false, &loc);
 
    // post_int_tr
    chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_post_int_tr.pvp", cpDir, name);
@@ -557,7 +557,7 @@ int OjaSTDPConn::checkpointWrite(const char * cpDir) {
       fprintf(stderr, "OjaSTDPConn::checkpointWrite error.  Path \"%s/%s_post_int_tr.pvp\" is too long.\n", cpDir, name);
       abort();
    }
-   write_pvdata(filename, parent->icCommunicator(), (double) parent->simulationTime(), post_int_tr->data, &loc, PV_FLOAT_TYPE, /*extended*/ false, /*contiguous*/ false, /*append*/ false);
+   HyPerLayer::writeBufferFile(filename, parent->icCommunicator(), (double) parent->simulationTime(), &post_int_tr->data, /*numbands*/ 1, /*extended*/ false, &loc);
 
    // ampLTD
    chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_ampLTD.pvp", cpDir, name);
@@ -565,7 +565,7 @@ int OjaSTDPConn::checkpointWrite(const char * cpDir) {
       fprintf(stderr, "OjaSTDPConn::checkpointWrite error.  Path \"%s/%sampLTD.pvp\" is too long.\n", cpDir, name);
       abort();
    }
-   write_pvdata(filename, parent->icCommunicator(), (double) parent->simulationTime(), ampLTD, &loc, PV_FLOAT_TYPE, /*extended*/ false, /*contiguous*/ false, /*append*/ false);
+   HyPerLayer::writeBufferFile(filename, parent->icCommunicator(), (double) parent->simulationTime(), &ampLTD, /*numbands*/ 1, /*extended*/ false, &loc);
 
    return status;
 }
@@ -585,7 +585,9 @@ int OjaSTDPConn::checkpointRead(const char * cpDir, double * timef) {
    loc.nyGlobal = loc.ny * parent->icCommunicator()->numCommRows();
    loc.nb = 0;
 
-   //TODO: Only read if plasicity flag is on
+
+   //TODO: Only read if plasticity flag is on (How much of the code below does this todo apply to?)
+   pvdata_t ** traces = (pvdata_t **) calloc(numberOfAxonalArborLists(), sizeof(pvdata_t *));
    // pre_stdp_tr
    chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_pre_stdp_tr.pvp", cpDir, name);
    if (chars_needed >= PV_PATH_MAX) {
@@ -594,10 +596,11 @@ int OjaSTDPConn::checkpointRead(const char * cpDir, double * timef) {
    }
 
    for(int arborID = 0; arborID<numberOfAxonalArborLists(); arborID++) {
-      read_pvdata(filename, parent->icCommunicator(), &timed, pre_stdp_tr[arborID]->data, &loc, PV_FLOAT_TYPE, /*extended*/ false, /*contiguous*/ false);
-      if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
-         fprintf(stderr, "Warning in OjaSTDPConn: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
-      }
+      traces[arborID] = pre_stdp_tr[arborID]->data;
+   }
+   HyPerLayer::readBufferFile(filename, parent->icCommunicator(), &timed, traces, numberOfAxonalArborLists(), /*extended*/ false, &loc);
+   if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
+      fprintf(stderr, "Warning in OjaSTDPConn: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
    }
 
    // pre_oja_tr
@@ -607,11 +610,14 @@ int OjaSTDPConn::checkpointRead(const char * cpDir, double * timef) {
       abort();
    }
    for(int arborID = 0; arborID<numberOfAxonalArborLists(); arborID++) {
-      read_pvdata(filename, parent->icCommunicator(), &timed, pre_oja_tr[arborID]->data, &loc, PV_FLOAT_TYPE, /*extended*/ false, /*contiguous*/ false);
-      if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
-         fprintf(stderr, "Warning in OjaSTDPConn: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
-      }
+      traces[arborID] = pre_oja_tr[arborID]->data;
    }
+   HyPerLayer::readBufferFile(filename, parent->icCommunicator(), &timed, traces, numberOfAxonalArborLists(), /*extended*/ false, &loc);
+   if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
+      fprintf(stderr, "Warning in OjaSTDPConn: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
+   }
+
+   free(traces); traces=NULL;
 
    // **** POST LAYER INFO *** //
    memcpy(&loc, post->getLayerLoc(), sizeof(PVLayerLoc));
@@ -622,7 +628,7 @@ int OjaSTDPConn::checkpointRead(const char * cpDir, double * timef) {
       fprintf(stderr, "OjaSTDPConn::checkpointRead error.  Path \"%s/%s_post_stdp_tr.pvp\" is too long.\n", cpDir, name);
       abort();
    }
-   read_pvdata(filename, parent->icCommunicator(), &timed, post_stdp_tr->data, &loc, PV_FLOAT_TYPE, /*extended*/ false, /*contiguous*/ false);
+   HyPerLayer::readBufferFile(filename, parent->icCommunicator(), &timed, &post_stdp_tr->data, /*numbands*/1, /*extended*/ false, &loc);
    if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
       fprintf(stderr, "Warning in OjaSTDPConn: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
    }
@@ -634,7 +640,7 @@ int OjaSTDPConn::checkpointRead(const char * cpDir, double * timef) {
       fprintf(stderr, "OjaSTDPConn::checkpointRead error.  Path \"%s/%s_post_oja_tr.pvp\" is too long.\n", cpDir, name);
       abort();
    }
-   read_pvdata(filename, parent->icCommunicator(), &timed, post_oja_tr->data, &loc, PV_FLOAT_TYPE, /*extended*/ false, /*contiguous*/ false);
+   HyPerLayer::readBufferFile(filename, parent->icCommunicator(), &timed, &post_oja_tr->data, /*numbands*/1, /*extended*/ false, &loc);
    if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
       fprintf(stderr, "Warning in OjaSTDPConn: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
    }
@@ -645,7 +651,7 @@ int OjaSTDPConn::checkpointRead(const char * cpDir, double * timef) {
       fprintf(stderr, "OjaSTDPConn::checkpointRead error.  Path \"%s/%s_post_int_tr.pvp\" is too long.\n", cpDir, name);
       abort();
    }
-   read_pvdata(filename, parent->icCommunicator(), &timed, post_int_tr->data, &loc, PV_FLOAT_TYPE, /*extended*/ false, /*contiguous*/ false);
+   HyPerLayer::readBufferFile(filename, parent->icCommunicator(), &timed, &post_int_tr->data, /*numbands*/1, /*extended*/ false, &loc);
    if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
       fprintf(stderr, "Warning in OjaSTDPConn: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
    }
@@ -656,7 +662,7 @@ int OjaSTDPConn::checkpointRead(const char * cpDir, double * timef) {
       fprintf(stderr, "OjaSTDPConn::checkpointRead error.  Path \"%s/%sampLTD.pvp\" is too long.\n", cpDir, name);
       abort();
    }
-   read_pvdata(filename, parent->icCommunicator(), &timed, ampLTD, &loc, PV_FLOAT_TYPE, /*extended*/ false, /*contiguous*/ false);
+   HyPerLayer::readBufferFile(filename, parent->icCommunicator(), &timed, &ampLTD, /*numbands*/1, /*extended*/ false, &loc);
    if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
       fprintf(stderr, "Warning: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
    }

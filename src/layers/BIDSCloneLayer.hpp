@@ -29,7 +29,6 @@ public:
    // virtual int resetGSynBuffers();
    LIF * sourceLayer;
    virtual int setActivity();
-   int outputState(double timef, bool last);
    int mapCoords();
 protected:
    BIDSCloneLayer();

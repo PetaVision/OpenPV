@@ -46,7 +46,7 @@ int SigmoidLayer::initialize(const char * name, HyPerCol * hc, LIF * clone) {
       if(SigmoidFlag)   fprintf(stdout,"SigmoidLayer: True Sigmoid flag is set\n");
    }
 
-   this->spikingFlag = false;
+   this->writeSparseActivity = false;
    sourceLayer = clone;
    free(clayer->V);
    clayer->V = sourceLayer->getV();

@@ -59,6 +59,7 @@ DerivedLayer::initialize(arguments) {
 #include "../columns/HyPerCol.hpp"
 #include "../columns/InterColComm.hpp"
 #include "../io/LayerProbe.hpp"
+#include "../io/fileio.hpp"
 #include "../include/pv_common.h"
 #include "../include/pv_types.h"
 #include "../utils/Timer.hpp"
@@ -98,8 +99,12 @@ protected:
    int setLayerLoc(PVLayerLoc * layerLoc, float nxScale, float nyScale, int margin, int nf);
    virtual int allocateBuffers();
    int readDataStoreFromFile(const char * filename, InterColComm * comm, double * timed);
+#ifdef OBSOLETE // Marked obsolete Dec 18, 2012.  Calling functions call pvp_open_read_file and then pvp_read_header with the resulting file pointer.
    static int readHeader(const char * filename, InterColComm * comm, double * timed, int * params, const PVLayerLoc * loc);
+#endif // OBSOLETE
+   #ifdef OBSOLETE // Marked obsolete Dec 13, 2012.  Writing is done via gatherActivity in fileio.cpp
    static int writeBuffer(FILE * fp, InterColComm * comm, double dtime, pvdata_t * buffer, int numbands, bool extended, bool contiguous, const PVLayerLoc * loc);
+#endif // OBSOLETE
    int incrementNBands(int * numCalls);
    int writeDataStoreToFile(const char * filename, InterColComm * comm, double dtime);
    virtual int calcActiveIndices();
@@ -154,18 +159,18 @@ public:
 
    virtual int columnWillAddLayer(InterColComm * comm, int id);
 
-   virtual int checkpointRead(const char * cpDir, double * timef);
+   virtual int checkpointRead(const char * cpDir, double * timed);
    virtual int checkpointWrite(const char * cpDir);
-   static int readBufferFile(const char * filename, InterColComm * comm, double * timed, pvdata_t * buffer, int numbands, bool extended, bool contiguous, const PVLayerLoc * loc);
-   static int writeBufferFile(const char * filename, InterColComm * comm, double dtime, pvdata_t * buffer, int numbands, bool extended, bool contiguous, const PVLayerLoc * loc);
+   static int readBufferFile(const char * filename, InterColComm * comm, double * timed, pvdata_t ** buffers, int numbands, bool extended, const PVLayerLoc * loc);
+   static int writeBufferFile(const char * filename, InterColComm * comm, double dtime, pvdata_t ** buffers, int numbands, bool extended, const PVLayerLoc * loc);
 
    virtual int readState (double * timef);
 #ifdef OBSOLETE // Marked obsolete July 13, 2012.  Dumping the state is now done by checkpointWrite.
    virtual int writeState(double timef, bool last=false);
 #endif // OBSOLETE
    virtual int outputState(double timef, bool last=false);
-   virtual int writeActivity(double timef);
-   virtual int writeActivitySparse(double timef);
+   virtual int writeActivity(double timed);
+   virtual int writeActivitySparse(double timed);
 
    virtual int insertProbe(LayerProbe * probe);
 
@@ -212,7 +217,7 @@ public:
    void setParent(HyPerCol* parent)  {this->parent = parent;}
 
    bool useMirrorBCs()               {return this->mirrorBCflag;}
-   bool getSpikingFlag()             {return this->spikingFlag;}
+   bool getSpikingFlag()             {return this->writeSparseActivity;}
 
    // implementation of LayerDataInterface interface
    //
@@ -248,12 +253,11 @@ protected:
 
    bool mirrorBCflag;           // true when mirror BC are to be applied
 
-   int ioAppend;                // controls opening of binary files, if 0, then clobber, if 1, append
+   int ioAppend;                // controls opening of binary files
    double writeTime;             // time of next output
    float writeStep;             // output time interval
 
-   bool spikingFlag;
-   bool writeNonspikingActivity;
+   bool writeSparseActivity;
    int writeActivityCalls;      // Number of calls to writeActivity (written to nbands in the header of the a%d.pvp file)
    int writeActivitySparseCalls; // Number of calls to writeActivitySparse (written to nbands in the header of the a%d.pvp file)
 

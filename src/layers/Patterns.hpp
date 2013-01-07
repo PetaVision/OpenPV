@@ -36,12 +36,15 @@ enum MovementType {
    RANDOMJUMP = 3,
 };
 
+#define DROPPADDINGSIZE (sizeof(int)-sizeof(bool))
+
 typedef struct _Drop{
    int centerX;
    int centerY;
    float speed;
    float radius;
    bool on;
+   char padding[DROPPADDINGSIZE];
 } Drop;
 
 class Patterns : public PV::Image {
@@ -81,6 +84,7 @@ protected:
    float calcPosition(float pos, int step);
    virtual bool constrainBiases() {return false;}
    virtual bool constrainOffsets() {return false;}
+   double patternRand() {return uniformRand01(&patternRandState);}
 
    PatternType type;
    OrientationMode orientation;
@@ -128,6 +132,8 @@ protected:
    double displayPeriod;   // length of time a frame is displayed
    double nextDisplayTime; // time of next frame
    FILE * patternsFile;
+
+   uint4 patternRandState; // RNG state for Patterns class.  Everything is done sequentially, so a single RNG should be reproducible
 
 private:
    float rotation;

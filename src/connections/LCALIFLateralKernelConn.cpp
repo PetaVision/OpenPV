@@ -236,11 +236,13 @@ int LCALIFLateralKernelConn::checkpointWrite(const char * cpDir) {
       fprintf(stderr, "LCALIFLateralKernelConn::checkpointWrite error.  Path \"%s/%s_integratedSpikeCount.pvp\" is too long.\n", cpDir, name);
       abort();
    }
-   write_pvdata(filename, parent->icCommunicator(), (double) parent->simulationTime(), integratedSpikeCount, pre->getLayerLoc(), PV_FLOAT_TYPE, /*extended*/ true, /*contiguous*/ false);
+   int status2 = HyPerLayer::writeBufferFile(filename, parent->icCommunicator(), parent->simulationTime(), &integratedSpikeCount, 1/*numbands*/, false/*extended*/, pre->getLayerLoc());
+   if (status2!=PV_SUCCESS) status = status2;
 
    chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_dW.pvp", cpDir, name);
    assert(chars_needed < PV_PATH_MAX);
-   HyPerConn::writeWeights(NULL, get_dwDataStart(), getNumDataPatches(), filename, parent->simulationTime(), true);
+   status2 = HyPerConn::writeWeights(NULL, get_dwDataStart(), getNumDataPatches(), filename, parent->simulationTime(), true);
+   if (status2!=PV_SUCCESS) status = status2;
    return status;
 }
 
@@ -253,7 +255,8 @@ int LCALIFLateralKernelConn::checkpointRead(const char * cpDir, double * timef) 
       abort();
    }
    double timed;
-   read_pvdata(filename, parent->icCommunicator(), &timed, integratedSpikeCount, pre->getLayerLoc(), PV_FLOAT_TYPE, /*extended*/ true, /*contiguous*/ false);
+   HyPerLayer::readBufferFile(filename, parent->icCommunicator(), &timed, &integratedSpikeCount, 1/*numbands*/, /*extended*/ true, pre->getLayerLoc());
+   // read_pvdata(filename, parent->icCommunicator(), &timed, integratedSpikeCount, pre->getLayerLoc(), PV_FLOAT_TYPE, /*extended*/ true, /*contiguous*/ false);
    if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
       fprintf(stderr, "Warning: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
    }

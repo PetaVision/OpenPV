@@ -310,7 +310,7 @@ int LIF::setParams(PVParams * p)
 
    clayer->params = &lParams;
 
-   spikingFlag = (int) p->value(name, "spikingFlag", 1);
+   writeSparseActivity = (int) p->value(name, "spikingFlag", 1);
    //assert(spikingFlag == 1);  // spikingFlag only controls whether sparse or non-sparse activity is output to file
 
    lParams.Vrest     = p->value(name, "Vrest", V_REST);
@@ -388,28 +388,28 @@ int LIF::checkpointRead(const char * cpDir, double * timef) {
 
    int chars_needed = snprintf(filename, filenamesize, "%s/%s_Vth.pvp", cpDir, name);
    assert(chars_needed < filenamesize);
-   readBufferFile(filename, icComm, &timed, Vth, 1, /*extended*/false, /*contiguous*/false, getLayerLoc());
+   readBufferFile(filename, icComm, &timed, &Vth, 1, /*extended*/false, getLayerLoc());
    if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
       fprintf(stderr, "Warning: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
    }
 
    chars_needed = snprintf(filename, filenamesize, "%s/%s_G_E.pvp", cpDir, name);
    assert(chars_needed < filenamesize);
-   readBufferFile(filename, icComm, &timed, G_E, 1, /*extended*/false, /*contiguous*/false, getLayerLoc());
+   readBufferFile(filename, icComm, &timed, &G_E, 1, /*extended*/false, getLayerLoc());
    if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
       fprintf(stderr, "Warning: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
    }
 
    chars_needed = snprintf(filename, filenamesize, "%s/%s_G_I.pvp", cpDir, name);
    assert(chars_needed < filenamesize);
-   readBufferFile(filename, icComm, &timed, G_I, 1, /*extended*/false, /*contiguous*/false, getLayerLoc());
+   readBufferFile(filename, icComm, &timed, &G_I, 1, /*extended*/false, getLayerLoc());
    if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
       fprintf(stderr, "Warning: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
    }
 
    chars_needed = snprintf(filename, filenamesize, "%s/%s_G_IB.pvp", cpDir, name);
    assert(chars_needed < filenamesize);
-   readBufferFile(filename, icComm, &timed, G_IB, 1, /*extended*/false, /*contiguous*/false, getLayerLoc());
+   readBufferFile(filename, icComm, &timed, &G_IB, 1, /*extended*/false, getLayerLoc());
    if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
       fprintf(stderr, "Warning: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
    }
@@ -434,19 +434,19 @@ int LIF::checkpointWrite(const char * cpDir) {
 
    chars_needed = snprintf(filename, filenamesize, "%s/%s_Vth.pvp", cpDir, name);
    assert(chars_needed < filenamesize);
-   writeBufferFile(filename, icComm, timed, Vth, 1, /*extended*/false, /*contiguous*/false, getLayerLoc()); // TODO contiguous=true
+   writeBufferFile(filename, icComm, timed, &Vth, 1, /*extended*/false, getLayerLoc()); // TODO contiguous=true
 
    chars_needed = snprintf(filename, filenamesize, "%s/%s_G_E.pvp", cpDir, name);
    assert(chars_needed < filenamesize);
-   writeBufferFile(filename, icComm, timed, G_E, 1, /*extended*/false, /*contiguous*/false, getLayerLoc()); // TODO contiguous=true
+   writeBufferFile(filename, icComm, timed, &G_E, 1, /*extended*/false, getLayerLoc()); // TODO contiguous=true
 
    chars_needed = snprintf(filename, filenamesize, "%s/%s_G_I.pvp", cpDir, name);
    assert(chars_needed < filenamesize);
-   writeBufferFile(filename, icComm, timed, G_I, 1, /*extended*/false, /*contiguous*/false, getLayerLoc()); // TODO contiguous=true
+   writeBufferFile(filename, icComm, timed, &G_I, 1, /*extended*/false, getLayerLoc()); // TODO contiguous=true
 
    chars_needed = snprintf(filename, filenamesize, "%s/%s_G_IB.pvp", cpDir, name);
    assert(chars_needed < filenamesize);
-   writeBufferFile(filename, icComm, timed, G_IB, 1, /*extended*/false, /*contiguous*/false, getLayerLoc()); // TODO contiguous=true
+   writeBufferFile(filename, icComm, timed, &G_IB, 1, /*extended*/false, getLayerLoc()); // TODO contiguous=true
 
    chars_needed = snprintf(filename, filenamesize, "%s/%s_rand_state.bin", cpDir, name);
    assert(chars_needed < filenamesize);

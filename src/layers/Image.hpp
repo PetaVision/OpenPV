@@ -33,7 +33,7 @@ protected:
    static bool constrainPoint(int * point, int min_x, int max_x, int min_y, int max_y, int method);
    virtual bool constrainBiases();
    virtual bool constrainOffsets();
-   static double randomProb(uint4 * state);
+   static double uniformRand01(uint4 * state);
 
 public:
    Image(const char * name, HyPerCol * hc, const char * filename);

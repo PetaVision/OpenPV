@@ -117,7 +117,7 @@ public:
 
    inline bool getSelfFlag() {
       return selfFlag;
-   };
+   }
 
    inline bool getPlasticityFlag() {
       return plasticityFlag;

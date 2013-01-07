@@ -155,11 +155,11 @@ int PursuitLayer::checkpointRead(const char * cpDir, double * timef) {
 
    int chars_needed = snprintf(filename, filenamesize, "%s/%s_gSynSparse.pvp", cpDir, name);
    assert(chars_needed < filenamesize);
-   readBufferFileVariantLoc(filename, parent->icCommunicator(), &timed, gSynSparse, &flat_loc);
-
+   readBufferFile(filename, parent->icCommunicator(), &timed, &gSynSparse, 1/*numbands*/, false/*extended*/, &flat_loc);
    chars_needed = snprintf(filename, filenamesize, "%s/%s_foundFeatures.pvp", cpDir, name);
    assert(chars_needed < filenamesize);
-   readBufferFileVariantLoc(filename, parent->icCommunicator(), &timed, buffer1feature, &flat_loc);
+   pvdata_t * buffer1ptr = buffer1feature;
+   readBufferFile(filename, parent->icCommunicator(), &timed, &buffer1ptr, 1/*numbands*/, false/*extended*/, &flat_loc);
    for (int k=0; k<flat_loc.nx*flat_loc.ny; k++) {
       foundFeatures[k] = (int) buffer1feature[k];
    }
@@ -167,18 +167,6 @@ int PursuitLayer::checkpointRead(const char * cpDir, double * timef) {
    readScalarFloat(cpDir, "nextUpdate", &nextUpdate, firstUpdate);
    return status;
 }
-
-int PursuitLayer::readBufferFileVariantLoc(const char * filename, InterColComm * comm, double * timed, pvdata_t * buffer, const PVLayerLoc * variant_loc) {
-   int filetype = 0;
-   int datatype = 0;
-   int params[NUM_BIN_PARAMS];
-   int num_params = 20;
-   double filetime;
-   pvp_read_header(filename, comm, &filetime, &filetype, &datatype, params, &num_params);
-   readNonspikingActFile(filename, comm, &filetime, buffer, /*level*/0, variant_loc, datatype, /*extended*/false, /*contiguous*/false);
-   return PV_SUCCESS;
-}
-
 
 int PursuitLayer::checkpointWrite(const char * cpDir) {
    int status = HyPerLayer::checkpointWrite(cpDir);
@@ -197,8 +185,7 @@ int PursuitLayer::checkpointWrite(const char * cpDir) {
 
    chars_needed = snprintf(filename, filenamesize, "%s/%s_gSynSparse.pvp", cpDir, name);
    assert(chars_needed < filenamesize);
-   writeBufferFileVariantLoc(filename, icComm, timed, gSynSparse, &flat_loc);
-
+   writeBufferFile(filename, icComm, timed, &gSynSparse, 1/*numbands*/, false/*extended*/, &flat_loc);
    pvdata_t buffer1feature[flat_loc.nx*flat_loc.ny];
 
    chars_needed = snprintf(filename, filenamesize, "%s/%s_foundFeatures.pvp", cpDir, name);
@@ -206,38 +193,12 @@ int PursuitLayer::checkpointWrite(const char * cpDir) {
    for (int k=0; k<flat_loc.nx*flat_loc.ny; k++) {
       buffer1feature[k] = (pvdata_t) foundFeatures[k];
    }
-   writeBufferFileVariantLoc(filename, icComm, timed, buffer1feature, &flat_loc);
+   pvdata_t * buffer1ptr = buffer1feature;
+   writeBufferFile(filename, icComm, timed, &buffer1ptr, 1/*numbands*/, false/*extended*/, &flat_loc);
 
    writeScalarFloat(cpDir, "nextUpdate", nextUpdate);
 
    free(filename);
-   return status;
-}
-
-int PursuitLayer::writeBufferFileVariantLoc(const char * filename, InterColComm * comm, double timed, pvdata_t * buffer, const PVLayerLoc * variant_loc) {
-   FILE * writeFile = pvp_open_write_file(filename, comm, /*append*/false);
-   int rank = comm->commRank();
-   if (writeFile == 0 && rank==0 ) {
-      fprintf(stderr, "PursuitLayer::writeBufferFileVariantLoc error opening \"%s\" for writing.\n", filename);
-      abort();
-   }
-   if( rank == 0 ) {
-      long fpos = ftell(writeFile);
-      if (fpos == 0L) {
-         int status = pvp_write_header(writeFile, comm, timed, variant_loc, PVP_NONSPIKING_ACT_FILE_TYPE,
-                                       PV_FLOAT_TYPE, /*numbands*/ 1, /*extended*/false, /*contiguous*/false, NUM_BIN_PARAMS, (size_t) variant_loc->nx*variant_loc->ny);
-         if (status != PV_SUCCESS) return status;
-      }
-   }
-
-   int status = PV_SUCCESS;
-   if ( rank==0 && fwrite(&timed, sizeof(double), 1, writeFile) != 1 ) return -1;
-   int status1 =  write_pvdata(writeFile, comm, timed, buffer, variant_loc, PV_FLOAT_TYPE,
-         /*extended*/ false, /*contiguous*/ false, PVP_NONSPIKING_ACT_FILE_TYPE);
-   status = status1 != PV_SUCCESS ? status1 : status;
-   pvp_close_file(writeFile, comm);
-   writeFile = NULL;
-
    return status;
 }
 

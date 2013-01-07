@@ -205,12 +205,12 @@ int OjaKernelConn::checkpointRead(const char * cpDir, double * timef) {
       }
    }
    double timed;
-   HyPerLayer::readBufferFile(filename, parent->icCommunicator(), &timed, outputFiringRate, 1, /*extended*/false, /*contiguous*/false, post->getLayerLoc());
+   HyPerLayer::readBufferFile(filename, parent->icCommunicator(), &timed, &outputFiringRate, 1, /*extended*/false, post->getLayerLoc());
 
    const PVLayerLoc * preloc = pre->getLayerLoc();
    chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_inputFiringRate.pvp", cpDir, name);
    assert(chars_needed<PV_PATH_MAX);
-   HyPerLayer::readBufferFile(filename, parent->icCommunicator(), &timed, inputFiringRate[0], numberOfAxonalArborLists(), /*extended*/true, /*contiguous*/false, preloc);
+   HyPerLayer::readBufferFile(filename, parent->icCommunicator(), &timed, inputFiringRate, numberOfAxonalArborLists(), /*extended*/true, preloc);
 
    // Apply mirror boundary conditions
 
@@ -237,10 +237,10 @@ int OjaKernelConn::checkpointWrite(const char * cpDir) {
          abort();
       }
    }
-   HyPerLayer::writeBufferFile(filename, parent->icCommunicator(), (double) parent->simulationTime(), outputFiringRate, 1, /*extended*/ false, /*contiguous*/ false, post->getLayerLoc());
+   HyPerLayer::writeBufferFile(filename, parent->icCommunicator(), (double) parent->simulationTime(), &outputFiringRate, 1, /*extended*/ false, post->getLayerLoc());
    chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_inputFiringRate.pvp", cpDir, name);
    assert(chars_needed<PV_PATH_MAX);
-   HyPerLayer::writeBufferFile(filename, parent->icCommunicator(), (double) parent->simulationTime(), inputFiringRate[0], numberOfAxonalArborLists(), /*extended*/ true, /*contiguous*/ false, pre->getLayerLoc());
+   HyPerLayer::writeBufferFile(filename, parent->icCommunicator(), (double) parent->simulationTime(), inputFiringRate, numberOfAxonalArborLists(), /*extended*/ true, pre->getLayerLoc());
    return status;
 }
 

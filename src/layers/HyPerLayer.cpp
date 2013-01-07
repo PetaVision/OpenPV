@@ -143,19 +143,36 @@ int HyPerLayer::initialize(const char * name, HyPerCol * hc, int numChannels) {
    writeTime = parent->simulationTime();
    writeStep = params->value(name, "writeStep", parent->getDeltaTime());
 
-#undef WRITE_NONSPIKING_ACTIVITY
-#ifdef WRITE_NONSPIKING_ACTIVITY
-   float defaultWriteNonspikingActivity = 1.0;
-#else
-   float defaultWriteNonspikingActivity = 0.0;
-#endif
-
-   // TODO change the name of spikingFlag to something like "writeSparseActivity"
-   // and get rid of writeNonspikingActivity, since we can set writeStep to a negative value
-   spikingFlag = (bool) params->value(name, "spikingFlag", 0);
-   if( !spikingFlag )
-      writeNonspikingActivity = (bool) params->value(name,
-         "writeNonspikingActivity", defaultWriteNonspikingActivity);
+   // TODO: when satisfied that everyone has had the chance to change spikingFlag to writeSparseActivity
+   // and remove writeNonspikingActivity, remove the checks below and replace with
+   // writeSparseActivity = (bool) params->value(name, "writeSparseActivity", 0);
+   bool writeSparseActivityPresent = params->present(name, "writeSparseActivity");
+   if (!writeSparseActivityPresent) {
+      bool spikingFlagPresent = params->present(name, "spikingFlag");
+      if (spikingFlagPresent) {
+         if (parent->icCommunicator()->commRank()==0) {
+            fprintf(stderr, "Warning in parameters for layer \"%s\": spikingFlag has been renamed to writeSparseActivity\n", name);
+         }
+         writeSparseActivity = (bool) params->value(name, "spikingFlag", 0);
+      }
+   }
+   else {
+       writeSparseActivity = (bool) params->value(name, "writeSparseActivity", 0);
+   }
+   bool writeNonspikingActivityPresent = params->present(name, "writeNonspikingActivity");
+   if (writeNonspikingActivityPresent) {
+      if (parent->icCommunicator()->commRank()==0) {
+         fprintf(stderr, "Warning in parameters for layer \"%s\": parameter writeNonspikingActivity has been deprecated.\n", name);
+         fprintf(stderr, "Instead, set writeStep<0 to prevent writing activity.\n");
+      }
+      if (params->value(name, "writeNonspikingActivity")==0 && writeStep>=0) {
+         writeStep=-1;
+         if (parent->icCommunicator()->commRank()==0) {
+            fprintf(stderr, "Since writeNonspikingActivity is false, writeStep has been changed to -1.  This behavior will change in the future.\n");
+         }
+      }
+   }
+   // end of checks for obsolete parameter calls.
 
    writeActivityCalls = 0;
    writeActivitySparseCalls = 0;
@@ -837,7 +854,7 @@ int HyPerLayer::updateBorder(double time, double dt)
 //}
 
 int HyPerLayer::updateActiveIndices() {
-   if( spikingFlag ) return calcActiveIndices(); else return PV_SUCCESS;
+   if( writeSparseActivity ) return calcActiveIndices(); else return PV_SUCCESS;
 }
 
 int HyPerLayer::calcActiveIndices() {
@@ -877,6 +894,7 @@ float HyPerLayer::getConvertToRateDeltaTimeFactor(HyPerConn* conn)
    return dt_factor;
 }
 
+
 //int HyPerLayer::setActivity() {
 //   const int nx = getLayerLoc()->nx;
 //   const int ny = getLayerLoc()->ny;
@@ -909,7 +927,6 @@ float HyPerLayer::getConvertToRateDeltaTimeFactor(HyPerConn* conn)
 //   for( int k=0; k<numItems; k++ ) buf[k] = 0.0;
 //   return PV_SUCCESS;
 //}
-
 
 int HyPerLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activity, int arborID)
 {
@@ -1052,19 +1069,18 @@ int HyPerLayer::outputState(double timef, bool last)
 
    if (timef >= writeTime && writeStep >= 0) {
       writeTime += writeStep;
-      if (spikingFlag != 0) {
+      if (writeSparseActivity) {
          status = writeActivitySparse(timef);
       }
       else {
-         if (writeNonspikingActivity) {
-            status = writeActivity(timef);
-         }
+         status = writeActivity(timef);
       }
    }
 
    return status;
 }
 
+#ifdef OBSOLETE // Marked obsolete Dec 18, 2012.  Nothing calls this function (probably obsoleted by move to checkpointRead/Write
 /**
  * Return a file name to be used for output file for layer data
  *
@@ -1075,8 +1091,9 @@ const char * HyPerLayer::getOutputFilename(char * buf, const char * dataName, co
    snprintf(buf, PV_PATH_MAX-1, "%s/%s_%s%s.pvp", parent->getOutputPath(), getName(), dataName, term);
    return buf;
 }
+#endif // OBSOLETE
 
-int HyPerLayer::checkpointRead(const char * cpDir, double * timef) {
+int HyPerLayer::checkpointRead(const char * cpDir, double * timed) {
    InterColComm * icComm = parent->icCommunicator();
    char basepath[PV_PATH_MAX];
    char filename[PV_PATH_MAX];
@@ -1087,29 +1104,30 @@ int HyPerLayer::checkpointRead(const char * cpDir, double * timef) {
       }
       abort();
    }
-   double timed;
+   double filetime;
    assert(filename != NULL);
    int chars_needed = snprintf(filename, PV_PATH_MAX, "%s_A.pvp", basepath);
    assert(chars_needed < PV_PATH_MAX);
-   int status = readBufferFile(filename, icComm, &timed, clayer->activity->data, 1, /*extended*/true, /*contiguous*/false, getLayerLoc());
+   int status = readBufferFile(filename, icComm, &filetime, &clayer->activity->data, 1, /*extended*/true, getLayerLoc());
    assert(status == PV_SUCCESS);
-   *timef = timed;
+   *timed = filetime;
    // TODO contiguous should be true in the writeBufferFile calls (needs to be added to writeBuffer method)
    if( getV() != NULL ) {
       chars_needed = snprintf(filename, PV_PATH_MAX, "%s_V.pvp", basepath);
       assert(chars_needed < PV_PATH_MAX);
-      status = readBufferFile(filename, icComm, &timed, getV(), 1, /*extended*/false, /*contiguous*/false, getLayerLoc());
+      pvdata_t * V = getV();
+      status = readBufferFile(filename, icComm, &filetime, &V, 1, /*extended*/false, getLayerLoc());
       assert(status == PV_SUCCESS);
-      if( timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
-         fprintf(stderr, "Warning: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, timed, *timef);
+      if( filetime != *timed && parent->icCommunicator()->commRank() == 0 ) {
+         fprintf(stderr, "Warning: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, filetime, *timed);
       }
    }
    chars_needed = snprintf(filename, PV_PATH_MAX, "%s_Delays.pvp", basepath);
    assert(chars_needed < PV_PATH_MAX);
-   status = readDataStoreFromFile(filename, icComm, &timed);
+   status = readDataStoreFromFile(filename, icComm, &filetime);
    assert(status == PV_SUCCESS);
-   if( timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
-      fprintf(stderr, "Warning: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, timed, *timef);
+   if( filetime != *timed && parent->icCommunicator()->commRank() == 0 ) {
+      fprintf(stderr, "Warning: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, filetime, *timed);
    }
 
    chars_needed = snprintf(filename, PV_PATH_MAX, "%s_nextWrite.bin", basepath);
@@ -1136,77 +1154,116 @@ int HyPerLayer::checkpointRead(const char * cpDir, double * timef) {
    return PV_SUCCESS;
 }
 
-int HyPerLayer::readBufferFile(const char * filename, InterColComm * comm, double * timed, pvdata_t * buffer, int numbands, bool extended, bool contiguous, const PVLayerLoc * loc) {
+int HyPerLayer::readBufferFile(const char * filename, InterColComm * comm, double * timed, pvdata_t ** buffers, int numbands, bool extended, const PVLayerLoc * loc) {
+   FILE * readFile = pvp_open_read_file(filename, comm);
+   int rank = comm->commRank();
+   assert( (readFile != NULL && rank == 0) || (readFile == NULL && rank != 0) );
+   int numParams = NUM_BIN_PARAMS;
    int params[NUM_BIN_PARAMS];
-   int status = readHeader(filename, comm, timed, params, loc);
-   assert(status == PV_SUCCESS);
-   int buffersize;
-   if(extended) {
-      buffersize = (loc->nx+2*loc->nb)*(loc->ny+2*loc->nb)*loc->nf;
-   }
-   else {
-      buffersize = loc->nx*loc->ny*loc->nf;
-   }
-   for( int band=0; band<numbands; band++ ) {
-      int status1;
-      status1 = readNonspikingActFile(filename, comm, timed, buffer+band*buffersize,
-                            band, loc, params[INDEX_DATA_TYPE], extended, contiguous);
-      if( status1 != PV_SUCCESS ) {
-         status = PV_FAILURE;
-      }
+   int status = pvp_read_header(readFile, comm, params, &numParams);
+   if (status != PV_SUCCESS) {
+      read_header_err(filename, comm, numParams, params);
    }
 
+   switch(params[INDEX_FILE_TYPE]) {
+   case PVP_FILE_TYPE:
+      *timed = timeFromParams(params);
+      break;
+   case PVP_ACT_FILE_TYPE:
+      status = pvp_read_time(readFile, comm, 0/*root process*/, timed);
+      if (status!=PV_SUCCESS) {
+         fprintf(stderr, "HyPerLayer::readBufferFile error reading timestamp in file \"%s\"\n", filename);
+         abort();
+      }
+      if (rank==0) {
+         fprintf(stderr,"HyPerLayer::readBufferFile error: filename \"%s\" is compressed spiking file, but this filetype has not yet been implemented in this case.\n", filename);
+      }
+      status = PV_FAILURE;
+      break;
+   case PVP_NONSPIKING_ACT_FILE_TYPE:
+      status = pvp_read_time(readFile, comm, 0/*root process*/, timed);
+      if (status!=PV_SUCCESS) {
+         fprintf(stderr, "HyPerLayer::readBufferFile error reading timestamp in file \"%s\"\n", filename);
+         abort();
+      }
+      break;
+   case PVP_WGT_FILE_TYPE:
+   case PVP_KERNEL_FILE_TYPE:
+      if (rank==0) {
+         fprintf(stderr,"HyPerLayer::readBufferFile error: filename \"%s\" is a weight file (type %d) but a layer file is expected.\n", filename, params[INDEX_FILE_TYPE]);
+      }
+      status = PV_FAILURE;
+      break;
+   default:
+      if (rank==0) {
+         fprintf(stderr,"HyPerLayer::readBufferFile error: filename \"%s\" has unrecognized pvp file type %d\n", filename, params[INDEX_FILE_TYPE]);
+      }
+      status = PV_FAILURE;
+      break;
+   }
+   if (params[INDEX_NX_PROCS] != 1 || params[INDEX_NY_PROCS] != 1) {
+      if (rank==0) {
+         fprintf(stderr, "HyPerLayer::readBufferFile error: file \"%s\" appears to be in an obsolete version of the .pvp format.\n", filename);
+      }
+      abort();
+   }
+   if (status==PV_SUCCESS) {
+      for (int band=0; band<numbands; band++) {
+         status = scatterActivity(readFile, comm, 0/*root process*/, buffers[band], loc, extended);
+      }
+   }
+   assert(status==PV_SUCCESS);
+   pvp_close_file(readFile, comm);
+   readFile = NULL;
    return status;
 }
 
 int HyPerLayer::readDataStoreFromFile(const char * filename, InterColComm * comm, double * timeptr) {
-   assert(timeptr != NULL);
+   FILE * readFile = pvp_open_read_file(filename, comm);
+   assert( (readFile != NULL && comm->commRank() == 0) || (readFile == NULL && comm->commRank() != 0) );
+   int numParams = NUM_BIN_PARAMS;
    int params[NUM_BIN_PARAMS];
-   readHeader(filename, comm, timeptr, params, getLayerLoc());
-   assert(params[INDEX_NBANDS] == comm->publisherStore(getCLayer()->layerId)->numberOfLevels());
-   assert(params[INDEX_NBANDS] == getCLayer()->numDelayLevels);
-
-   bool contiguous;
-   if( params[INDEX_NUM_RECORDS] == comm->numCommColumns()*comm->numCommRows() ) {
-      contiguous = false;
+   int status = pvp_read_header(readFile, comm, params, &numParams);
+   if (status != PV_SUCCESS) {
+      read_header_err(filename, comm, numParams, params);
    }
-   else if( params[INDEX_NUM_RECORDS] == 1 ) {
-      contiguous = true;
+   if (params[INDEX_NX_PROCS] != 1 || params[INDEX_NY_PROCS] != 1) {
+      if (comm->commRank()==0) {
+         fprintf(stderr, "HyPerLayer::readBufferFile error: file \"%s\" appears to be in an obsolete version of the .pvp format.\n", filename);
+      }
+      abort();
    }
-   else assert(false);
-   if( contiguous ) {
-      assert(params[INDEX_NX] == getLayerLoc()->nxGlobal);
-      assert(params[INDEX_NY] == getLayerLoc()->nyGlobal);
-      assert(params[INDEX_RECORD_SIZE] == getNumGlobalNeurons());
-      assert(params[INDEX_NX_PROCS] == 1);
-      assert(params[INDEX_NY_PROCS] == 1);
+   int numlevels = comm->publisherStore(getCLayer()->layerId)->numberOfLevels();
+   if (params[INDEX_NBANDS] != numlevels) {
+      fprintf(stderr, "readDataStoreFromFile error reading \"%s\": number of delays in file is %d, but number of delays in layer is %d\n", filename, params[INDEX_NBANDS], numlevels);
+      abort();
    }
-   else {
-      assert(params[INDEX_NUM_RECORDS] == comm->numCommColumns()*comm->numCommRows());
-      assert(params[INDEX_NX] == getLayerLoc()->nx);
-      assert(params[INDEX_NY] == getLayerLoc()->ny);
-      assert(params[INDEX_RECORD_SIZE] == getNumNeurons());
-      assert(params[INDEX_NX_PROCS] == comm->numCommColumns());
-      assert(params[INDEX_NY_PROCS] == comm->numCommRows());
-   }
-   assert(contiguous==false); // TODO contiguous==true case
-
    DataStore * datastore = comm->publisherStore(getCLayer()->layerId);
-   bool extended = true;
-   int status = PV_SUCCESS;
-   for( int level=0; level<getCLayer()->numDelayLevels; level++ ) {
-      pvdata_t * buffer = (pvdata_t *) datastore->buffer(0, level);
-      double dummytime;
-      int status1;
-      status1 = readNonspikingActFile(filename, comm, &dummytime, buffer, level,
-                     getLayerLoc(), params[INDEX_DATA_TYPE], extended, contiguous);
-      if( status1 != PV_SUCCESS ) status = PV_FAILURE;
-      status1 = comm->exchangeBorders(getCLayer()->layerId, getLayerLoc(), level);
+   for (int l=0; l<numlevels; l++) {
+      double tlevel;
+      pvp_read_time(readFile, comm, 0/*root process*/, &tlevel);
+      if (timeptr != NULL) {
+         if (l==0) {
+            *timeptr = tlevel;
+         }
+         else {
+            if (tlevel != *timeptr && comm->commRank()==0) {
+               fprintf(stderr, "Warning: timestamp on delay level %d does not agree with that of delay level 0 (%g versus %g).\n", l, tlevel, *timeptr);
+            }
+         }
+      }
+      pvdata_t * buffer = (pvdata_t *) datastore->buffer(0, l);
+      int status1 = scatterActivity(readFile, comm, 0/*root process*/, buffer, getLayerLoc(), true);
+      if (comm->commRank()==0) {
+         printf("File %s, level %d, file position %ld\n", filename, l, ftell(readFile));
+      }
+      if (status1 != PV_SUCCESS) status = PV_FAILURE;
    }
    assert(status == PV_SUCCESS);
    return status;
 }
 
+#ifdef OBSOLETE // Marked obsolete Dec 18, 2012.  Calling functions call pvp_open_read_file and then pvp_read_header with the resulting file pointer.
 int HyPerLayer::readHeader(const char * filename, InterColComm * comm, double * timed, int * params, const PVLayerLoc * loc) {
    int filetype, datatype;
    int numParams = NUM_BIN_PARAMS;
@@ -1228,6 +1285,7 @@ int HyPerLayer::readHeader(const char * filename, InterColComm * comm, double * 
    assert(params[INDEX_NB] == loc->nb);
    return PV_SUCCESS;
 }
+#endif // OBSOLETE
 
 int HyPerLayer::readScalarFloat(const char * cp_dir, const char * val_name, double * val_ptr, double default_value) {
    int status = PV_SUCCESS;
@@ -1260,8 +1318,7 @@ int HyPerLayer::readScalarFloat(const char * cp_dir, const char * val_name, doub
 }
 
 int HyPerLayer::checkpointWrite(const char * cpDir) {
-   // Writes checkpoint files for V, A, GSyn(?) and datastore to files in working directory
-   // (HyPerCol::checkpointWrite() calls chdir before and after calling this routine)
+   // Writes checkpoint files for V, A, and datastore to files in working directory
    InterColComm * icComm = parent->icCommunicator();
    char basepath[PV_PATH_MAX];
    char filename[PV_PATH_MAX];
@@ -1275,12 +1332,13 @@ int HyPerLayer::checkpointWrite(const char * cpDir) {
    double timed = (double) parent->simulationTime();
    int chars_needed = snprintf(filename, PV_PATH_MAX, "%s_A.pvp", basepath);
    assert(chars_needed < PV_PATH_MAX);
-   writeBufferFile(filename, icComm, timed, getActivity(), 1, /*extended*/true, /*contiguous*/false, getLayerLoc());
-   // TODO contiguous should be true in the writeBufferFile calls (needs to be added to writeBuffer method)
+   pvdata_t * A = getActivity();
+   writeBufferFile(filename, icComm, timed, &A, 1, /*extended*/true, getLayerLoc());
    if( getV() != NULL ) {
       chars_needed = snprintf(filename, PV_PATH_MAX, "%s_V.pvp", basepath);
       assert(chars_needed < PV_PATH_MAX);
-      writeBufferFile(filename, icComm, timed, getV(), 1, /*extended*/false, /*contiguous*/false, getLayerLoc());
+      pvdata_t * V = getV();
+      writeBufferFile(filename, icComm, timed, &V, /*numbands*/1, /*extended*/false, getLayerLoc());
    }
    chars_needed = snprintf(filename, PV_PATH_MAX, "%s_Delays.pvp", basepath);
    assert(chars_needed < PV_PATH_MAX);
@@ -1291,15 +1349,34 @@ int HyPerLayer::checkpointWrite(const char * cpDir) {
    return PV_SUCCESS;
 }
 
-int HyPerLayer::writeBufferFile(const char * filename, InterColComm * comm, double timed, pvdata_t * buffer, int numbands, bool extended, bool contiguous, const PVLayerLoc * loc) {
+int HyPerLayer::writeBufferFile(const char * filename, InterColComm * comm, double timed, pvdata_t ** buffers, int numbands, bool extended, const PVLayerLoc * loc) {
    FILE * writeFile = pvp_open_write_file(filename, comm, /*append*/false);
-   assert( writeFile != NULL || comm->commRank() != 0 );
-   int status = writeBuffer(writeFile, comm, timed, buffer, numbands, extended, contiguous, loc);
+   assert( (writeFile != NULL && comm->commRank() == 0) || (writeFile == NULL && comm->commRank() != 0) );
+
+   int * params = pvp_set_nonspiking_act_params(comm, timed, loc, PV_FLOAT_TYPE, numbands);
+   assert(params && params[1]==NUM_BIN_PARAMS);
+   int status = pvp_write_header(writeFile, comm, params, NUM_BIN_PARAMS);
+   if (status != PV_SUCCESS) {
+      fprintf(stderr, "HyPerLayer::writeBufferFile error writing \"%s\"\n", filename);
+      abort();
+   }
+   if (writeFile != NULL) { // Root process has writeFile set to non-null; other processes to NULL.
+      int numwritten = fwrite(&timed, sizeof(double), 1, writeFile);
+      if (numwritten != 1) {
+         fprintf(stderr, "HyPerLayer::writeBufferFile error writing timestamp to \"%s\"\n", filename);
+         abort();
+      }
+   }
+   for (int band=0; band<numbands; band++) {
+      status = gatherActivity(writeFile, comm, 0, buffers[band], loc, extended);
+   }
+   free(params);
    pvp_close_file(writeFile, comm);
    writeFile = NULL;
    return status;
 }
 
+#ifdef OBSOLETE // Marked obsolete Dec 13, 2012.  Writing is done via gatherActivity in fileio.cpp
 int HyPerLayer::writeBuffer(FILE * fp, InterColComm * comm, double timed, pvdata_t * buffer, int numbands, bool extended, bool contiguous, const PVLayerLoc * loc) {
    assert(contiguous == false); // TODO contiguous == true case
 
@@ -1335,34 +1412,36 @@ int HyPerLayer::writeBuffer(FILE * fp, InterColComm * comm, double timed, pvdata
    }
    return status;
 }
+#endif // OBSOLETE
 
 int HyPerLayer::writeDataStoreToFile(const char * filename, InterColComm * comm, double timed) {
-   bool extended = true;
-   bool contiguous = false;
-   int filetype = PVP_NONSPIKING_ACT_FILE_TYPE;
-   int datatype = PV_FLOAT_TYPE;
    FILE * writeFile = pvp_open_write_file(filename, comm, /*append*/false);
-   assert( writeFile != NULL || comm->commRank() != 0 );
-   DataStore * datastore = comm->publisherStore(getCLayer()->layerId);
-   int status = PV_SUCCESS;
-   int status1;
-   status1 = pvp_write_header(writeFile, comm, timed, getLayerLoc(), filetype, datatype,
-                              datastore->numberOfLevels(), extended, contiguous,
-                              NUM_BIN_PARAMS, (size_t) getNumNeurons());
-   if( status1 != PV_SUCCESS ) status = PV_FAILURE;
-   for( int level=0; level<clayer->numDelayLevels; level++ ) {
-      double leveltime = timed-level*parent->getDeltaTime();
-      if ( comm->commRank()==0 ) {
-         status1 = fwrite(&leveltime, sizeof(double), 1, writeFile) != 1;
-         if( status1 != PV_SUCCESS ) status = PV_FAILURE;
-      }
-      status1 = write_pvdata(writeFile, comm, leveltime, (pvdata_t *) datastore->buffer(0, level),
-                             getLayerLoc(), datatype, extended, contiguous, filetype);
-      if( status1 != PV_SUCCESS ) status = PV_FAILURE;
+   assert( (writeFile != NULL && comm->commRank() == 0) || (writeFile == NULL && comm->commRank() != 0) );
+   int numlevels = comm->publisherStore(getCLayer()->layerId)->numberOfLevels();
+   assert(numlevels == getCLayer()->numDelayLevels);
+   int * params = pvp_set_nonspiking_act_params(comm, timed, getLayerLoc(), PV_FLOAT_TYPE, numlevels);
+   assert(params && params[1]==NUM_BIN_PARAMS);
+   int status = pvp_write_header(writeFile, comm, params, NUM_BIN_PARAMS);
+   if (status != PV_SUCCESS) {
+      fprintf(stderr, "HyPerLayer::writeBufferFile error writing \"%s\"\n", filename);
+      abort();
    }
+   DataStore * datastore = comm->publisherStore(getCLayer()->layerId);
+   for (int l=0; l<numlevels; l++) {
+      if (writeFile != NULL) { // Root process has writeFile set to non-null; other processes to NULL.
+         int numwritten = fwrite(&timed, sizeof(double), 1, writeFile);
+         if (numwritten != 1) {
+            fprintf(stderr, "HyPerLayer::writeBufferFile error writing timestamp to \"%s\"\n", filename);
+            abort();
+         }
+      }
+      pvdata_t * buffer = (pvdata_t *) datastore->buffer(0, l);
+      int status1 = gatherActivity(writeFile, comm, 0, buffer, getLayerLoc(), true/*extended*/);
+      if (status1 != PV_SUCCESS) status = PV_FAILURE;
+   }
+   assert(status == PV_SUCCESS);
    pvp_close_file(writeFile, comm);
    writeFile = NULL;
-
    return status;
 }
 
@@ -1439,21 +1518,21 @@ int HyPerLayer::writeState(float timef, bool last)
 }
 #endif // OBSOLETE
 
-int HyPerLayer::writeActivitySparse(double timef)
+int HyPerLayer::writeActivitySparse(double timed)
 {
-   int status = PV::writeActivitySparse(clayer->activeFP, parent->icCommunicator(), timef, clayer);
+   int status = PV::writeActivitySparse(clayer->activeFP, parent->icCommunicator(), timed, clayer);
    incrementNBands(&writeActivitySparseCalls);
    return status;
 }
 
 // write non-spiking activity
-int HyPerLayer::writeActivity(double timef)
+int HyPerLayer::writeActivity(double timed)
 {
    // currently numActive only used by writeActivitySparse
    //
    clayer->numActive = 0;
 
-   int status = PV::writeActivity(clayer->activeFP, parent->icCommunicator(), timef, clayer);
+   int status = PV::writeActivity(clayer->activeFP, parent->icCommunicator(), timed, clayer);
    incrementNBands(&writeActivityCalls);
    return status;
 }

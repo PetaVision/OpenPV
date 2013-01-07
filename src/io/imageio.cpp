@@ -137,17 +137,39 @@ int getImageInfoPVP(const char * filename, PV::Communicator * comm, PVLayerLoc *
    return status;
 }
 
+GDALDataset * PV_GDALOpen(const char * filename)
+{
+   int gdalopencounts = 0;
+   GDALDataset * dataset = NULL;
+   while (dataset == NULL) {
+      dataset = (GDALDataset *) GDALOpen(filename, GA_ReadOnly);
+      if (dataset != NULL) break;
+      gdalopencounts++;
+      if (gdalopencounts < MAX_GDALOPEN_TRIES) {
+         sleep(1);
+      }
+      else {
+         break;
+      }
+   }
+   if (dataset == NULL) {
+      fprintf(stderr, "getImageInfoGDAL error opening \"%s\": %s\n", filename,
+            strerror(errno));
+   }
+   return dataset;
+}
+
 int getImageInfoGDAL(const char * filename, PV::Communicator * comm, PVLayerLoc * loc, GDALColorInterp ** colorbandtypes)
 {
-   int status = 0;
+   int status = PV_SUCCESS;
    int rank = comm->commRank();
 
 #ifdef PV_USE_GDAL
-   const int locSize = sizeof(PVLayerLoc) / sizeof(int);
-   int locBuf[locSize];
+   const int locSize = sizeof(PVLayerLoc) / sizeof(int) + 1; // The extra 1 is for the status of the OpenGDAL call
+   // LayerLoc should contain 12 ints, so locSize should be 13.
+   assert(locSize == 13);
 
-   // LayerLoc should contain 12 ints
-   assert(locSize == 12);
+   int locBuf[locSize];
 
    const int nxProcs = comm->numCommColumns();
    const int nyProcs = comm->numCommRows();
@@ -163,47 +185,56 @@ int getImageInfoGDAL(const char * filename, PV::Communicator * comm, PVLayerLoc 
    if (rank == 0) {
       GDALAllRegister();
 
-      GDALDataset * dataset = (GDALDataset *) GDALOpen(filename, GA_ReadOnly);
-      if (dataset == NULL) return 1;
+      GDALDataset* dataset = PV_GDALOpen(filename);
+      if (dataset==NULL) status = PV_FAILURE; // PV_GDALOpen prints an error message
 
-      int xImageSize = dataset->GetRasterXSize();
-      int yImageSize = dataset->GetRasterYSize();
+      if (status==PV_SUCCESS) {
+         int xImageSize = dataset->GetRasterXSize();
+         int yImageSize = dataset->GetRasterYSize();
 
-      loc->nf = dataset->GetRasterCount();
-      if( colorbandtypes ) {
-         *colorbandtypes = (GDALColorInterp *) malloc(loc->nf*sizeof(GDALColorInterp));
-         if( *colorbandtypes == NULL ) {
-            fprintf(stderr, "getImageInfoGDAL: Rank 0 process unable to allocate memory for colorbandtypes\n");
-            abort();
+         loc->nf = dataset->GetRasterCount();
+         if( colorbandtypes ) {
+            *colorbandtypes = (GDALColorInterp *) malloc(loc->nf*sizeof(GDALColorInterp));
+            if( *colorbandtypes == NULL ) {
+               fprintf(stderr, "getImageInfoGDAL: Rank 0 process unable to allocate memory for colorbandtypes\n");
+               abort();
+            }
+            for( int b=0; b<loc->nf; b++) {
+               GDALRasterBand * band = dataset->GetRasterBand(b+1);
+               (*colorbandtypes)[b] = band->GetColorInterpretation();
+            }
          }
-         for( int b=0; b<loc->nf; b++) {
-            GDALRasterBand * band = dataset->GetRasterBand(b+1);
-            (*colorbandtypes)[b] = band->GetColorInterpretation();
-         }
+
+         // calculate local layer size
+
+         int nx = xImageSize / nxProcs;
+         int ny = yImageSize / nyProcs;
+
+         loc->nx = nx;
+         loc->ny = ny;
+
+         loc->nxGlobal = nxProcs * nx;
+         loc->nyGlobal = nyProcs * ny;
+
+         locBuf[0] = PV_SUCCESS;
+         copyToLocBuffer(&locBuf[1], loc);
+
+         GDALClose(dataset);
       }
-
-      // calculate local layer size
-
-      int nx = xImageSize / nxProcs;
-      int ny = yImageSize / nyProcs;
-
-      loc->nx = nx;
-      loc->ny = ny;
-
-      loc->nxGlobal = nxProcs * nx;
-      loc->nyGlobal = nyProcs * ny;
-
-      copyToLocBuffer(locBuf, loc);
-
-      GDALClose(dataset);
+      else {
+         locBuf[0] = PV_FAILURE;
+         memset(&locBuf[1], 0, locSize*sizeof(int));
+         if (colorbandtypes) *colorbandtypes = NULL;
+      }
    }
 
 #ifdef PV_USE_MPI
    // broadcast location information
    MPI_Bcast(locBuf, locSize, MPI_INT, 0, comm->communicator());
+   copyFromLocBuffer(&locBuf[1], loc);
 #endif // PV_USE_MPI
 
-   copyFromLocBuffer(locBuf, loc);
+   status = locBuf[0];
 
    // fix up layer indices
    loc->kx0 = loc->nx * icCol;
@@ -212,15 +243,26 @@ int getImageInfoGDAL(const char * filename, PV::Communicator * comm, PVLayerLoc 
 #ifdef PV_USE_MPI
    // broadcast colorband type info.  This needs to follow copyFromLocBuffer because
    // it depends on the loc->nf which is set in copyFromLocBuffer.
+   // status was MPI_Bcast along with locBuf, there is no danger of some processes calling MPI_Bcast and others not.
    if( colorbandtypes ) {
-      if (rank!=0) {
-         *colorbandtypes = (GDALColorInterp *) malloc(loc->nf*sizeof(GDALColorInterp));
-         if( *colorbandtypes == NULL ) {
-            fprintf(stderr, "getImageInfoGDAL: Rank %d process unable to allocate memory for colorbandtypes\n", rank);
-            abort();
+      if (rank==0) {
+         if (status==PV_SUCCESS) {
+            MPI_Bcast(*colorbandtypes, loc->nf*sizeof(GDALColorInterp), MPI_BYTE, 0, comm->communicator());
          }
       }
-      MPI_Bcast(*colorbandtypes, loc->nf*sizeof(GDALColorInterp), MPI_BYTE, 0, comm->communicator());
+      else {
+         if (status==PV_SUCCESS) {
+            *colorbandtypes = (GDALColorInterp *) malloc(loc->nf*sizeof(GDALColorInterp));
+            if( *colorbandtypes == NULL ) {
+               fprintf(stderr, "getImageInfoGDAL: Rank %d process unable to allocate memory for colorbandtypes\n", rank);
+               abort();
+            }
+            MPI_Bcast(*colorbandtypes, loc->nf*sizeof(GDALColorInterp), MPI_BYTE, 0, comm->communicator());
+         }
+         else {
+            *colorbandtypes = NULL;
+         }
+      }
    }
 #endif // PV_USE_MPI
 
@@ -270,101 +312,52 @@ int gatherImageFile(const char * filename,
 int gatherImageFilePVP(const char * filename,
                        PV::Communicator * comm, const PVLayerLoc * loc, unsigned char * buf)
 {
-   int status = 0;
-   // const int maxBands = 3;
+   int status = PV_SUCCESS;
+   int rootproc = 0;
+   int rank = comm->commRank();
 
-   const int nxProcs = comm->numCommColumns();
-   const int nyProcs = comm->numCommRows();
-
-   const int icRank = comm->commRank();
-
-   const int nx = loc->nx;
-   const int ny = loc->ny;
-
-   const int numBands = loc->nf;
-   // assert(numBands <= maxBands);
-
-   // const int nxny     = nx * ny;
-   const int numItems = nx * ny * numBands;
-
-#ifdef PV_USE_MPI
-   const int tag = PVP_FILE_TYPE;
-   const MPI_Comm mpi_comm = comm->communicator();
-#endif // PV_USE_MPI
-
-   if (icRank > 0) {
-#ifdef PV_USE_MPI
-      const int dest = 0;
-      MPI_Send(buf, numItems, MPI_BYTE, dest, tag, mpi_comm);
-#ifdef DEBUG_OUTPUT
-      fprintf(stderr, "[%2d]: gather: sent to 0, nx==%d ny==%d size==%d\n",
-              comm->commRank(), nx, ny, nx*ny);
-#endif // DEBUG_OUTPUT
-#endif // PV_USE_MPI
-   }
-   else {
+   FILE * fp = NULL;
+   if (rank==rootproc) {
+      fp = fopen(filename, "wb");
+      if (fp==NULL) {
+         fprintf(stderr, "gatherImageFilePVP error opening \"%s\" for writing.\n", filename);
+         abort();
+      }
       int params[NUM_PAR_BYTE_PARAMS];
-
       const int numParams  = NUM_PAR_BYTE_PARAMS;
       const int headerSize = numParams * sizeof(int);
-      const int recordSize = numItems * sizeof(unsigned char);
-
-      FILE * fp = fopen(filename, "wb");
+      const int recordSize = loc->nxGlobal * loc->nyGlobal * loc->nf;
 
       params[INDEX_HEADER_SIZE] = headerSize;
       params[INDEX_NUM_PARAMS]  = numParams;
       params[INDEX_FILE_TYPE]   = PVP_FILE_TYPE;
-      params[INDEX_NX]          = loc->nx;
-      params[INDEX_NY]          = loc->ny;
+      params[INDEX_NX]          = loc->nxGlobal;
+      params[INDEX_NY]          = loc->nyGlobal;
       params[INDEX_NF]          = loc->nf;
-      params[INDEX_NUM_RECORDS] = nxProcs * nyProcs;
+      params[INDEX_NUM_RECORDS] = 1;
       params[INDEX_RECORD_SIZE] = recordSize;
-      params[INDEX_DATA_SIZE]   = sizeof(unsigned char);
+      params[INDEX_DATA_SIZE]   = 1; // sizeof(unsigned char);
       params[INDEX_DATA_TYPE]   = PV_BYTE_TYPE;
-      params[INDEX_NX_PROCS]    = nxProcs;
-      params[INDEX_NY_PROCS]    = nyProcs;
+      params[INDEX_NX_PROCS]    = 1;
+      params[INDEX_NY_PROCS]    = 1;
       params[INDEX_NX_GLOBAL]   = loc->nxGlobal;
       params[INDEX_NY_GLOBAL]   = loc->nyGlobal;
-      params[INDEX_KX0]         = loc->kx0;
-      params[INDEX_KY0]         = loc->ky0;
+      params[INDEX_KX0]         = 0;
+      params[INDEX_KY0]         = 0;
       params[INDEX_NB]          = loc->nb;
       params[INDEX_NBANDS]      = 1;
 
       int numWrite = fwrite(params, sizeof(int), numParams, fp);
-      assert(numWrite == numParams);
-
-      // write local image portion
-      fseek(fp, (long) headerSize, SEEK_SET);
-      numWrite = fwrite(buf, sizeof(unsigned char), numItems, fp);
-      assert(numWrite == numItems);
-
-#ifdef PV_USE_MPI
-      int src = -1;
-      unsigned char * icBuf = (unsigned char *) malloc(numItems * sizeof(unsigned char));
-      assert(icBuf != NULL);
-      for (int py = 0; py < nyProcs; py++) {
-         for (int px = 0; px < nxProcs; px++) {
-            if (++src == 0) continue;
-#ifdef DEBUG_OUTPUT
-            fprintf(stderr, "[%2d]: gather: receiving from %d nx==%d ny==%d nf==%d, numItems==%d\n",
-                    comm->commRank(), src, nx, ny, numBands, numItems);
-#endif // DEBUG_OUTPUT
-            MPI_Recv(icBuf, numItems, MPI_BYTE, src, tag, mpi_comm, MPI_STATUS_IGNORE);
-
-            long offset = headerSize + src * recordSize;
-            fseek(fp, offset, SEEK_SET);
-            numWrite = fwrite(icBuf, sizeof(unsigned char), numItems, fp);
-            assert(numWrite == numItems);
-         }
+      if (numWrite != numParams) {
+         fprintf(stderr, "gatherImageFilePVP error writing the header.  fwrite called with %d parameters; %d were written.\n", numParams, numWrite);
+         abort();
       }
-      free(icBuf);
-      // TODO write to a file with params[INDEX_NX_PROCS] = params[INDEX_NY_PROCS] = 1
-      // so that reading the file doesn't depend on having the same number of processes.
-#endif // PV_USE_MPI
-
-      status = fclose(fp);
    }
-
+   status = gatherActivity(fp, comm, rootproc, buf, loc, false/*extended*/);
+   // buf is a nonextended buffer.  Image layers copy buf into the extended data buffer by calling Image::copyFromInteriorBuffer
+   if (rank==rootproc) {
+      fclose(fp); fp=NULL;
+   }
    return status;
 }
 
@@ -481,99 +474,87 @@ int scatterImageFile(const char * filename, int xOffset, int yOffset,
 int scatterImageFilePVP(const char * filename, int xOffset, int yOffset,
                         PV::Communicator * comm, const PVLayerLoc * loc, float * buf)
 {
-   // Read a PVP file and scatter it to the multiple processes.  Because of offsets and windowing,
-   // we cannot assume the pixels on process k in memory appear in process k in the file.
-   int status = 0;
+   // Read a PVP file and scatter it to the multiple processes.
+   int status = PV_SUCCESS;
 
-   const int icRank = comm->commRank();
+   int rootproc = 0;
+   int rank = comm->commRank();
 
-   const int nx = loc->nx;
-   const int ny = loc->ny;
-
-
-#ifdef PV_USE_MPI
-   const int numBands = loc->nf;
-   const int numItems = nx * ny * numBands;
-   const MPI_Comm mpi_comm = comm->communicator();
-#endif // PV_USE_MPI
-
-   if (icRank > 0) {
-#ifdef PV_USE_MPI
-      const int src = 0;
-      const int tag = PVP_FILE_TYPE;
-
-      MPI_Recv(buf, numItems, MPI_FLOAT, src, tag, mpi_comm, MPI_STATUS_IGNORE);
-
-#ifdef DEBUG_OUTPUT
-      fprintf(stderr, "[%2d]: scatter: received from 0, nx==%d ny==%d nf==%d numItems==%d\n",
-              comm->commRank(), nx, ny, numBands, numItems);
-#endif // DEBUG_OUTPUT
-#endif // PV_USE_MPI
+   FILE * fp = NULL;
+   if (rank==rootproc) {
+      int numParams = 0;
+      int filetype = 0;
+      int nx = 0;
+      int ny = 0;
+      int nf = 0;
+      fp = pv_open_binary(filename, &numParams, &filetype, &nx, &ny, &nf);
+      if (fp==NULL) {
+         fprintf(stderr, "scatterImageFilePVP error opening \"%s\" for reading.\n", filename);
+         abort();
+      }
+      if (numParams < MIN_BIN_PARAMS) {
+         fprintf(stderr, "scatterImageFilePVP error in header of \"%s\": number of parameters is too small.\n", filename);
+         abort();
+      }
+      rewind(fp);
+      int params[numParams];
+      int paramsread = fread(params, sizeof(int), numParams, fp);
+      if (paramsread != numParams) {
+         fprintf(stderr, "scatterImageFilePVP error reading header of \"%s\".\n", filename);
+         abort();
+      }
+      PVLayerLoc fileloc;
+      fileloc.nx = params[INDEX_NX];
+      fileloc.ny = params[INDEX_NY];
+      fileloc.nf = params[INDEX_NF];
+      fileloc.nb = params[INDEX_NB];
+      fileloc.nxGlobal = params[INDEX_NX_GLOBAL];
+      fileloc.nyGlobal = params[INDEX_NY_GLOBAL];
+      fileloc.kx0 = params[INDEX_KX0];
+      fileloc.ky0 = params[INDEX_KY0];
+      int nxProcs = params[INDEX_NX_PROCS];
+      int nyProcs = params[INDEX_NY_PROCS];
+      if (fileloc.nx != fileloc.nxGlobal || fileloc.ny != fileloc.nyGlobal ||
+          nxProcs != 1 || nyProcs != 1 ||
+          fileloc.kx0 != 0 || fileloc.ky0 != 0) {
+          fprintf(stderr, "File \"%s\" appears to be in an obsolete version of the .pvp format.\n", filename);
+          abort();
+      }
+      bool spiking = false;
+      double timed = 0.0;
+      switch (filetype) {
+      case PVP_FILE_TYPE:
+         break;
+      case PVP_ACT_FILE_TYPE:
+         spiking = true;
+         fread(&timed, sizeof(double), 1, fp);
+         fprintf(stderr, "scatterImageFilePVP error opening \"%s\": Reading spiking PVP files into an Image layer hasn't been implemented yet.\n", filename);
+         abort();
+         break;
+      case PVP_NONSPIKING_ACT_FILE_TYPE:
+         fread(&timed, sizeof(double), 1, fp);
+         status = PV_SUCCESS;
+         break;
+      case PVP_WGT_FILE_TYPE:
+      case PVP_KERNEL_FILE_TYPE:
+         fprintf(stderr, "scatterImageFilePVP error opening \"%s\": file is a weight file, not an image file.\n", filename);
+         break;
+      default:
+         fprintf(stderr, "scatterImageFilePVP error opening \"%s\": filetype %d is unrecognized.\n", filename ,filetype);
+         status = PV_FAILURE;
+         break;
+      }
+      scatterActivity(fp, comm, rootproc, buf, loc, false/*extended*/, &fileloc, xOffset, yOffset);
+      // buf is a nonextended layer.  Image layers copy the extended buffer data into buf by calling Image::copyToInteriorBuffer
+      fclose(fp); fp = NULL;
    }
    else {
-      int params[NUM_PAR_BYTE_PARAMS];
-      int numParams, type, nxIn, nyIn, nfIn;
-
-      FILE * fp = pv_open_binary(filename, &numParams, &type, &nxIn, &nyIn, &nfIn);
-      assert(fp != NULL);
-      assert(numParams == NUM_PAR_BYTE_PARAMS);
-      assert(type      == PVP_FILE_TYPE);
-
-      status = pv_read_binary_params(fp, numParams, params);
-      assert(status == numParams);
-
-      const size_t headerSize = (size_t) params[INDEX_HEADER_SIZE];
-
-      const int numRecords = params[INDEX_NUM_RECORDS];
-      const size_t recordSize = params[INDEX_RECORD_SIZE];
-      const int dataSize = params[INDEX_DATA_SIZE];
-      const int dataType = params[INDEX_DATA_TYPE];
-
-      assert( (dataSize == 1 && dataType == PV_BYTE_TYPE) || (dataSize == sizeof(float) && dataType == PV_FLOAT_TYPE) );
-
-      char * filebuf = (char *) malloc(recordSize*numRecords);
-      if(filebuf==NULL) abort();
-      fseek(fp, (long) headerSize, SEEK_SET);
-      size_t numRead = fread(filebuf, 1, recordSize*numRecords, fp);
-      if( numRead != recordSize*numRecords ) abort();
-
-      int dest, destrow, destcol, startx, starty;
-#ifdef PV_USE_MPI
-      const int tag = PVP_FILE_TYPE;
-
-      for( dest = 1; dest < comm->commSize(); dest++ ) {
-         // Do dest=0 after the others so that we can use buf to hold nonlocal portions
-         destrow = rowFromRank(dest, comm->numCommRows(), comm->numCommColumns());
-         destcol = columnFromRank(dest, comm->numCommRows(), comm->numCommColumns());
-         starty = yOffset + ny * destrow;
-         startx = xOffset + nx * destcol;
-         windowFromPVPBuffer(startx, starty, nx, ny, params, buf, filebuf, filename);
-
-#ifdef DEBUG_OUTPUT
-            fprintf(stderr, "[%2d]: scatter: sending to %d xSize==%d"
-                    " ySize==%d size==%d total==%d\n",
-                    comm->commRank(), dest, nx, ny, nx*ny,
-                    nx*ny*comm->commSize());
-#endif // DEBUG_OUTPUT
-         MPI_Send(buf, numItems, MPI_FLOAT, dest, tag, mpi_comm);
-      }
-#endif // PV_USE_MPI
-
-      // get local image portion
-      dest = 0;
-      destrow = rowFromRank(dest, comm->numCommRows(), comm->numCommColumns());
-      destcol = columnFromRank(dest, comm->numCommRows(), comm->numCommColumns());
-      starty = yOffset + ny * destrow;
-      startx = xOffset + nx * destcol;
-      windowFromPVPBuffer(startx, starty, nx, ny, params, buf, filebuf, filename);
-
-      free(filebuf);
-      status = pv_close_binary(fp);
+      scatterActivity(fp, comm, rootproc, buf, loc, false/*extended*/, NULL, xOffset, yOffset);
    }
-
    return status;
 }
 
+#ifdef OBSOLETE // Marked obsolete Dec 10, 2012, during reworking of PVP files to be MPI-independent.
 int windowFromPVPBuffer(int startx, int starty, int nx, int ny, int * params, float * destbuf, char * pvpbuffer, const char * filename) {
    // Extracts a window from the data portion of a PVP file.
    // The params from the PVP file should be in params[].  The data should already be loaded into pvpbuffer,
@@ -617,6 +598,7 @@ int windowFromPVPBuffer(int startx, int starty, int nx, int ny, int * params, fl
    }
    return PV_SUCCESS;
 }
+#endif // OBSOLETE
 
 int scatterImageFileGDAL(const char * filename, int xOffset, int yOffset,
                          PV::Communicator * comm, const PVLayerLoc * loc, float * buf)
@@ -662,8 +644,8 @@ int scatterImageFileGDAL(const char * filename, int xOffset, int yOffset,
    else {
       GDALAllRegister();
 
-      GDALDataset * dataset = (GDALDataset *) GDALOpen(filename, GA_ReadOnly);
-
+      GDALDataset * dataset = PV_GDALOpen(filename); // (GDALDataset *) GDALOpen(filename, GA_ReadOnly);
+      if (dataset==NULL) return 1; // PV_GDALOpen prints an error message.
       int xImageSize = dataset->GetRasterXSize();
       int yImageSize = dataset->GetRasterYSize();
       const int bandsInFile = dataset->GetRasterCount();
@@ -740,6 +722,8 @@ fprintf(stderr, "[%2d]: scatterImageFileGDAL: sending to %d xSize==%d"
    }
    return status;
 }
+
+#ifdef OBSOLETE // Marked obsolete Dec 10, 2012.  No one calls either gather or writeWithBorders and they have TODO's that indicate that they're broken.
 
 /**
  * gather relevant portions of srcBuf on root process from all others
@@ -851,5 +835,6 @@ int writeWithBorders(const char * filename, const PVLayerLoc * loc, float * buf)
 }
 #endif // PV_USE_GDAL
 
+#endif // OBSOLETE
 
 

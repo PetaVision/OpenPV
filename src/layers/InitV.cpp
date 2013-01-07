@@ -150,13 +150,15 @@ int InitV::calcVFromFile(PVLayer * clayer, InterColComm * icComm) {
    PVLayerLoc fileLoc;
    int filetype = getFileType(filename);
    if( filetype == PVP_FILE_TYPE) {
-      int params[NUM_BIN_PARAMS];
-      double timed;
-      int pvpfiletype, datatype;
+      FILE * readFile = pvp_open_read_file(filename, icComm);
+      assert( (readFile != NULL && icComm->commRank() == 0) || (readFile == NULL && icComm->commRank() != 0) );
       int numParams = NUM_BIN_PARAMS;
-      status = pvp_read_header(this->filename, icComm, &timed,
-                          &pvpfiletype, &datatype, params, &numParams);
-      assert(status == PV_SUCCESS);
+      int params[NUM_BIN_PARAMS];
+      int status = pvp_read_header(readFile, icComm, params, &numParams);
+      if (status != PV_SUCCESS) {
+         read_header_err(filename, icComm, numParams, params);
+      }
+      int filetype = params[INDEX_FILE_TYPE];
       status = checkLoc(loc, params[INDEX_NX], params[INDEX_NY], params[INDEX_NF], params[INDEX_NX_GLOBAL], params[INDEX_NY_GLOBAL]);
       assert(status == PV_SUCCESS);
       fileLoc.nx = params[INDEX_NX];
@@ -165,24 +167,35 @@ int InitV::calcVFromFile(PVLayer * clayer, InterColComm * icComm) {
       fileLoc.nb = params[INDEX_NB];
       fileLoc.nxGlobal = params[INDEX_NX_GLOBAL];
       fileLoc.nyGlobal = params[INDEX_NY_GLOBAL];
-      switch(pvpfiletype) {
+      fileLoc.kx0 = 0;
+      fileLoc.ky0 = 0;
+      if (params[INDEX_NX_PROCS] != 1 || params[INDEX_NY_PROCS] != 1) {
+         if (icComm->commRank()==0) {
+            fprintf(stderr, "HyPerLayer::readBufferFile error: file \"%s\" appears to be in an obsolete version of the .pvp format.\n", filename);
+         }
+         abort();
+      }
+
+      switch(filetype) {
       case PVP_FILE_TYPE:
-         status = read_pvdata(this->filename, icComm, &timed, V,
-                              loc, PV_FLOAT_TYPE, false, false);
+         status = scatterActivity(readFile, icComm, 0/*root process*/, V, loc, false/*extended*/, &fileLoc);
          break;
       case PVP_ACT_FILE_TYPE:
-         printerr("calcVFromFile for file \"%s\": sparse activity files are not yet implemented.\n", this->filename);
+         printerr("calcVFromFile for file \"%s\": sparse activity files are not yet implemented for initializing V buffers.\n", this->filename);
          abort();
          break;
       case PVP_NONSPIKING_ACT_FILE_TYPE:
-         status = readNonspikingActFile(this->filename, icComm, &timed, V, params[INDEX_NBANDS]-1, &clayer->loc, datatype, false, false);
+         double dummytime;
+         pvp_read_time(readFile, icComm, 0/*root process*/, &dummytime);
+         status = scatterActivity(readFile, icComm, 0/*root process*/, V, loc, false/*extended*/, &fileLoc);
          break;
       default:
          printerr("calcVFromFile: file \"%s\" is not an activity pvp file.\n", this->filename);
          abort();
          break;
       }
-
+      pvp_close_file(readFile, icComm);
+      readFile = NULL;
    }
    else { // Treat as an image file
       status = getImageInfoGDAL(filename, icComm, &fileLoc, NULL);
@@ -191,12 +204,8 @@ int InitV::calcVFromFile(PVLayer * clayer, InterColComm * icComm) {
          // error message produced by checkLoc
          abort();
       }
-      int n=clayer->numNeurons;
-      float * buf = new float[n];
-      status = scatterImageFileGDAL(this->filename, 0, 0, icComm, &fileLoc, buf);
+      status = scatterImageFileGDAL(this->filename, 0, 0, icComm, loc, V);
       // scatterImageFileGDAL handles the scaling by 1/255.0
-
-      delete buf;
    }
    return status;
 }

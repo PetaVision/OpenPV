@@ -115,7 +115,7 @@ int IncrementLayer::checkpointRead(const char * cpDir, double * timef) {
       }
       abort();
    }
-   readBufferFile(filename, icComm, &timed, Vprev, 1, /*extended*/false, /*contiguous*/false, getLayerLoc());
+   readBufferFile(filename, icComm, &timed, &Vprev, 1, /*extended*/false, getLayerLoc());
    if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
       fprintf(stderr, "Warning: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
    }
@@ -134,7 +134,7 @@ int IncrementLayer::checkpointWrite(const char * cpDir) {
    assert(filename != NULL);
    int chars_needed = snprintf(filename, filenamesize, "%s/%s_Vprev.pvp", cpDir, name);
    assert(chars_needed < filenamesize);
-   writeBufferFile(filename, icComm, timed, Vprev, 1, /*extended*/false, /*contiguous*/false, getLayerLoc()); // TODO contiguous=true
+   writeBufferFile(filename, icComm, timed, &Vprev, 1, /*extended*/false, getLayerLoc()); // TODO contiguous=true
    free(filename);
    return PV_SUCCESS;
 }

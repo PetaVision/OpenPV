@@ -16,12 +16,12 @@ namespace PV {
 
 // timeToParams and timeFromParams use memcpy instead of casting pointers
 // because casting pointers violates strict aliasing.
-static void timeToParams(double time, void * params)
+void timeToParams(double time, void * params)
 {
    memcpy(params, &time, sizeof(double));
 }
 
-static double timeFromParams(void * params)
+double timeFromParams(void * params)
 {
    double x;
    memcpy(&x, params, sizeof(double));
@@ -335,6 +335,98 @@ int pvp_check_file_header(Communicator * comm, const PVLayerLoc * loc, int param
    return status;
 } // pvp_check_file_header
 
+int pvp_read_header(FILE * fp, Communicator * comm, int * params, int * numParams) {
+   // Under MPI, called by all processes; nonroot processes should have fp==NULL
+   // On entry, numParams is the size of the params buffer.
+   // All process should have the same numParams on entry.
+   // On exit, numParams is the number of params actually read, they're read into params[0] through params[(*numParams)-1]
+   // All processes receive the same params, the same numParams, and the same return value (PV_SUCCESS or PV_FAILURE).
+   // If the return value is PV_FAILURE, *numParams has information on the type of failure.
+   int status = PV_SUCCESS;
+   int numParamsRead = 0;
+   int mpi_buffer[*numParams+2]; // space for params to be MPI_Bcast, along with space for status and number of params read
+   if (fp!=NULL) {
+      if (*numParams < 2) {
+         numParamsRead = 0;
+         status = PV_FAILURE;
+      }
+
+      // find out how many parameters there are
+      //
+      if (status == PV_SUCCESS) {
+         int numread = fread(params, sizeof(int), 2, fp);
+         if (numread != 2) {
+            numParamsRead = -1;
+            status = PV_FAILURE;
+         }
+      }
+      int nParams = 0;
+      if (status == PV_SUCCESS) {
+         nParams = params[INDEX_NUM_PARAMS];
+         if (params[INDEX_HEADER_SIZE] != nParams * (int)sizeof(int)) {
+            numParamsRead = -2;
+            status = PV_FAILURE;
+         }
+      }
+      if (status == PV_SUCCESS) {
+         if (nParams > *numParams) {
+            numParamsRead = nParams;
+            status = PV_FAILURE;
+         }
+      }
+
+      // read the rest
+      //
+      if (status == PV_SUCCESS && *numParams > 2) {
+         int numRead = fread(&params[2], sizeof(int), nParams - 2, fp);
+         if (numRead != (size_t) nParams - 2) {
+            status = PV_FAILURE;
+            *numParams = numRead;
+         }
+      }
+      if (status == PV_SUCCESS) {
+         numParamsRead  = params[INDEX_NUM_PARAMS];
+      }
+      mpi_buffer[0] = status;
+      mpi_buffer[1] = numParamsRead;
+      memcpy(&mpi_buffer[2], params, sizeof(int)*(*numParams));
+      MPI_Bcast(mpi_buffer, *numParams+2, MPI_INT, 0/*root process*/, comm->communicator());
+   } // fp!=NULL
+   else {
+      MPI_Bcast(mpi_buffer, *numParams+2, MPI_INT, 0/*root process*/, comm->communicator());
+      status = mpi_buffer[0];
+      memcpy(params, &mpi_buffer[2], sizeof(int)*(*numParams));
+   }
+   *numParams = mpi_buffer[1];
+   return status;
+}
+
+void read_header_err(const char * filename, Communicator * comm, int returned_num_params, int * params) {
+   if (comm->commRank() != 0) {
+      fprintf(stderr, "readBufferFile error while reading \"%s\"\n", filename);
+      switch(returned_num_params) {
+      case 0:
+         fprintf(stderr, "   Called with fewer than 2 params (%d); at least two are required.\n", returned_num_params);
+         break;
+      case -1:
+         fprintf(stderr, "   Error reading first two params from file");
+         break;
+      case -2:
+         fprintf(stderr, "   Header size %d and number of params %d in file are not compatible.\n", params[INDEX_HEADER_SIZE], params[INDEX_NUM_PARAMS]);
+         break;
+      default:
+         if (returned_num_params < NUM_BIN_PARAMS) {
+            fprintf(stderr, "   Called with %d params but only %d params could be read from file.\n", (int) NUM_BIN_PARAMS, returned_num_params);
+         }
+         else {
+            fprintf(stderr, "   Called with %d params but file contains %d params.\n", (int) NUM_BIN_PARAMS, returned_num_params);
+         }
+         break;
+      }
+   }
+   abort();
+}
+
 static
 int pvp_read_header(FILE * fp, double * time, int * filetype,
                     int * datatype, int params[], int * numParams)
@@ -416,6 +508,21 @@ int pvp_read_header(const char * filename, Communicator * comm, double * time,
    return status;
 }
 
+int pvp_write_header(FILE * fp, Communicator * comm, int * params, int numParams) {
+   int status = PV_SUCCESS;
+   int rootproc = 0;
+   int rank = comm->commRank();
+   if (rank == rootproc) {
+      if ( fwrite(params, sizeof(int), numParams, fp) != numParams ) {
+         status = -1;
+      }
+   }
+
+   return status;
+}
+
+
+
 int pvp_write_header(FILE * fp, Communicator * comm, double time, const PVLayerLoc * loc, int filetype,
                      int datatype, int numbands, bool extended, bool contiguous, unsigned int numParams, size_t localSize)
 {
@@ -492,6 +599,197 @@ int pvp_write_header(FILE * fp, Communicator * comm, double time, const PVLayerL
    return status;
 }
 
+int * pvp_set_file_params(Communicator * comm, double timed, const PVLayerLoc * loc, int datatype, int numbands) {
+   int numParams = NUM_BIN_PARAMS;
+   int * params = alloc_params(numParams);
+   assert(params!=NULL);
+   params[INDEX_FILE_TYPE]   = PVP_FILE_TYPE;
+   params[INDEX_NX]          = loc->nxGlobal;
+   params[INDEX_NY]          = loc->nyGlobal;
+   params[INDEX_NF]          = loc->nf;
+   params[INDEX_NUM_RECORDS] = 1;
+   int datasize = pv_sizeof(datatype);
+   params[INDEX_RECORD_SIZE] = loc->nxGlobal * loc->nyGlobal * loc->nf * datasize;
+   params[INDEX_DATA_SIZE]   = datasize;
+   params[INDEX_DATA_TYPE]   = datatype;
+   params[INDEX_NX_PROCS]    = 1;
+   params[INDEX_NY_PROCS]    = 1;
+   params[INDEX_NX_GLOBAL]   = loc->nxGlobal;
+   params[INDEX_NY_GLOBAL]   = loc->nyGlobal;
+   params[INDEX_KX0]         = 0;
+   params[INDEX_KY0]         = 0;
+   params[INDEX_NB]          = loc->nb;
+   params[INDEX_NBANDS]      = numbands;
+   timeToParams(timed, &params[INDEX_TIME]);
+   return params;
+}
+
+int * pvp_set_activity_params(Communicator * comm, double timed, const PVLayerLoc * loc, int datatype, int numbands) {
+   int numParams = NUM_BIN_PARAMS;
+   int * params              = alloc_params(numParams);
+   assert(params!=NULL);
+   params[INDEX_FILE_TYPE]   = PVP_ACT_FILE_TYPE;
+   params[INDEX_NX]          = loc->nxGlobal;
+   params[INDEX_NY]          = loc->nyGlobal;
+   params[INDEX_NF]          = loc->nf;
+   params[INDEX_NUM_RECORDS] = 1;
+   int datasize = pv_sizeof(datatype);
+   params[INDEX_RECORD_SIZE] = loc->nxGlobal * loc->nyGlobal * loc->nf * datasize; // does not represent the size of the record in the file, but the size of the buffer
+   params[INDEX_DATA_SIZE]   = datasize;
+   params[INDEX_DATA_TYPE]   = datatype;
+   params[INDEX_NX_PROCS]    = 1;
+   params[INDEX_NY_PROCS]    = 1;
+   params[INDEX_NX_GLOBAL]   = loc->nxGlobal;
+   params[INDEX_NY_GLOBAL]   = loc->nyGlobal;
+   params[INDEX_KX0]         = 0;
+   params[INDEX_KY0]         = 0;
+   params[INDEX_NBANDS]      = numbands;
+   params[INDEX_NB]          = loc->nb;
+   timeToParams(timed, &params[INDEX_TIME]);
+   return params;
+}
+
+int * pvp_set_weight_params(Communicator * comm, double timed, const PVLayerLoc * loc, int datatype, int numbands, int nxp, int nyp, int nfp, float min, float max, int numPatches) {
+   // numPatches in argument list is the number of patches per process, but what's saved in numPatches to the file is number of patches across all processes.
+   int numParams = NUM_BIN_PARAMS + NUM_WGT_EXTRA_PARAMS;
+   int * params = alloc_params(numParams);
+   assert(params!=NULL);
+   params[INDEX_FILE_TYPE]   = PVP_WGT_FILE_TYPE;
+   params[INDEX_NX]          = loc->nx; // not yet contiguous
+   params[INDEX_NY]          = loc->ny;
+   params[INDEX_NF]          = loc->nf;
+   int nxProcs               = comm->numCommColumns();
+   int nyProcs               = comm->numCommRows();
+   int datasize              = pv_sizeof(datatype);
+   params[INDEX_NUM_RECORDS] = numbands * nxProcs * nyProcs;
+   params[INDEX_RECORD_SIZE] = numPatches * (8 + datasize*nxp*nyp*nfp);
+   params[INDEX_DATA_SIZE]   = datasize;
+   params[INDEX_DATA_TYPE]   = datatype;
+   params[INDEX_NX_PROCS]    = nxProcs;
+   params[INDEX_NY_PROCS]    = nyProcs;
+   params[INDEX_NX_GLOBAL]   = loc->nxGlobal;
+   params[INDEX_NY_GLOBAL]   = loc->nyGlobal;
+   params[INDEX_KX0]         = 0;
+   params[INDEX_KY0]         = 0;
+   params[INDEX_NB]          = loc->nb;
+   params[INDEX_NBANDS]      = numbands;
+   set_weight_params(params, nxp, nyp, nfp, min, max, numPatches);
+   return params;
+}
+
+int * pvp_set_nonspiking_act_params(Communicator * comm, double timed, const PVLayerLoc * loc, int datatype, int numbands) {
+   int numParams = NUM_BIN_PARAMS;
+   int * params = alloc_params(numParams);
+   assert(params!=NULL);
+   params[INDEX_FILE_TYPE]   = PVP_NONSPIKING_ACT_FILE_TYPE;
+   params[INDEX_NX]          = loc->nxGlobal;
+   params[INDEX_NY]          = loc->nyGlobal;
+   params[INDEX_NF]          = loc->nf;
+   params[INDEX_NUM_RECORDS] = 1;
+   int datasize = pv_sizeof(datatype);
+   params[INDEX_RECORD_SIZE] = loc->nxGlobal * loc->nyGlobal * loc->nf;
+   params[INDEX_DATA_SIZE]   = datasize;
+   params[INDEX_DATA_TYPE]   = datatype;
+   params[INDEX_NX_PROCS]    = 1;
+   params[INDEX_NY_PROCS]    = 1;
+   params[INDEX_NX_GLOBAL]   = loc->nxGlobal;
+   params[INDEX_NY_GLOBAL]   = loc->nyGlobal;
+   params[INDEX_KX0]         = 0;
+   params[INDEX_KY0]         = 0;
+   params[INDEX_NB]          = loc->nb;
+   params[INDEX_NBANDS]      = numbands;
+   timeToParams(timed, &params[INDEX_TIME]);
+   return params;
+}
+
+int * pvp_set_kernel_params(Communicator * comm, double timed, const PVLayerLoc * loc, int datatype, int numbands, int nxp, int nyp, int nfp, float min, float max, int numPatches) {
+   int numParams = NUM_BIN_PARAMS;
+   int * params = alloc_params(numParams);
+   assert(params!=NULL);
+   params[INDEX_FILE_TYPE]   = PVP_KERNEL_FILE_TYPE;
+   params[INDEX_NX]          = loc->nxGlobal;
+   params[INDEX_NY]          = loc->nyGlobal;
+   params[INDEX_NF]          = loc->nf;
+   // int nxProcs               = 1;
+   // int nyProcs               = 1;
+   int datasize              = pv_sizeof(datatype);
+   params[INDEX_NUM_RECORDS] = numbands;
+   params[INDEX_RECORD_SIZE] = numPatches * (8 + datasize*nxp*nyp*nfp);
+   params[INDEX_DATA_SIZE]   = datasize;
+   params[INDEX_DATA_TYPE]   = datatype;
+   params[INDEX_NX_PROCS]    = 1;
+   params[INDEX_NY_PROCS]    = 1;
+   params[INDEX_NX_GLOBAL]   = loc->nxGlobal;
+   params[INDEX_NY_GLOBAL]   = loc->nyGlobal;
+   params[INDEX_KX0]         = 0;
+   params[INDEX_KY0]         = 0;
+   params[INDEX_NB]          = loc->nb;
+   set_weight_params(params, nxp, nyp, nfp, min, max, numPatches);
+   return params;
+}
+
+int * alloc_params(int numParams) {
+   int * params = NULL;
+   if (numParams<2) {
+      fprintf(stderr, "alloc_params must be called with at least two params (called with %d).\n", numParams);
+      abort();
+   }
+   params = (int *) calloc((size_t) numParams, sizeof(int));
+   if (params == NULL) {
+      fprintf(stderr, "alloc_params unable to allocate %d params: %s\n", numParams, strerror(errno));
+      abort();
+   }
+   params[INDEX_HEADER_SIZE] = sizeof(int)*numParams;
+   params[INDEX_NUM_PARAMS] = numParams;
+   return params;
+}
+
+int set_weight_params(int * params, int nxp, int nyp, int nfp, float min, float max, int numPatches) {
+   int * wgtParams = &params[NUM_BIN_PARAMS];
+   wgtParams[INDEX_WGT_NXP]  = nxp;
+   wgtParams[INDEX_WGT_NYP]  = nyp;
+   wgtParams[INDEX_WGT_NFP]  = nfp;
+   assert(sizeof(int)==sizeof(float));
+   union float_as_int {
+      float f;
+      int   i;
+   };
+   union float_as_int p;
+   p.f = min;
+   wgtParams[INDEX_WGT_MIN] = p.i;
+   p.f = max;
+   wgtParams[INDEX_WGT_MAX] = p.i;
+   wgtParams[INDEX_WGT_NUMPATCHES]  = numPatches;
+   return PV_SUCCESS;
+}
+
+int pvp_read_time(FILE * fp, Communicator * comm, int root_process, double * timed) {
+   // All processes call this routine simultaneously.
+   // from the file at the current location, loaded into the variable timed, and
+   // broadcast to all processes.  All processes have the same return value:
+   // PV_SUCCESS if the read was successful, PV_FAILURE if not.
+   int status = PV_SUCCESS;
+   struct timeandstatus {
+      int status;
+      double time;
+   };
+   struct timeandstatus mpi_data;
+   if (comm->commRank()==root_process) {
+      if (fp==NULL) {
+         fprintf(stderr, "pvp_read_time error: root process called with null file pointer.\n");
+         abort();
+      }
+      int numread = fread(timed, sizeof(*timed), 1, fp);
+      mpi_data.status = (numread == 1) ? PV_SUCCESS : PV_FAILURE;
+      mpi_data.time = *timed;
+   }
+   MPI_Bcast(&mpi_data, (int) sizeof(timeandstatus), MPI_CHAR, root_process, comm->communicator());
+   status = mpi_data.status;
+   *timed = mpi_data.time;
+   return status;
+}
+
+#ifdef OBSOLETE // Marked obsolete Jan 3, 2013.  Use HyPerLayer::readBufferFile instead
 int read_pvdata(const char * filename, Communicator * comm, double * timed, void * data,
          const PVLayerLoc * loc, int datatype, bool extended, bool contiguous)
 {
@@ -663,7 +961,9 @@ size_t read_pvdata_oneproc(FILE * fp, int px, int py, const PVLayerLoc * loc, un
    numread += fread(ptrintocbuf, 1, blockstop-blockstart, fp);
    return numread;
 }
+#endif // OBSOLETE
 
+#ifdef OBSOLETE // Marked Obsolete Dec 18, 2012.  Files use pvp_open_read_file, pvp_read_header, pvp_read_time, and then gatherActivity
 int readNonspikingActFile(const char * filename, Communicator * comm, double * time, void * data,
          int level, const PVLayerLoc * loc, int datatype, bool extended, bool contiguous)
 {
@@ -812,7 +1112,9 @@ int readNonspikingActFile(const char * filename, Communicator * comm, double * t
    free(cbuf);
    return status;
 }
+#endif // OBSOLETE
 
+#ifdef OBSOLETE // Marked obsolete Jan 3, 2013.  Use HyPerLayer::writeBufferFile instead
 int write_pvdata(const char * filename, Communicator * comm, double time, const pvdata_t * data,
           const PVLayerLoc * loc, int datatype, bool extended, bool contiguous, bool append)
 {
@@ -947,13 +1249,11 @@ int write_pvdata(FILE *fp, Communicator * comm, double time, const pvdata_t * da
 
    return status;
 }
+#endif // OBSOLETE
 
-int writeActivity(FILE * fp, Communicator * comm, double time, PVLayer * l)
+int writeActivity(FILE * fp, Communicator * comm, double timed, PVLayer * l)
 {
-   int status;
-   bool extended = true; // activity is an extended layer
-   bool contiguous = false; // TODO implement contiguous=true case
-
+   int status = PV_SUCCESS;
    // write header, but only at the beginning
 #ifdef PV_USE_MPI
    int rank = comm->commRank();
@@ -963,20 +1263,22 @@ int writeActivity(FILE * fp, Communicator * comm, double time, PVLayer * l)
    if( rank == 0 ) {
       long fpos = ftell(fp);
       if (fpos == 0L) {
-         int numParams = NUM_BIN_PARAMS;
-         status = pvp_write_header(fp, comm, time, &l->loc, PVP_NONSPIKING_ACT_FILE_TYPE,
-                                   PV_FLOAT_TYPE, 1/*numbands*/, extended, contiguous, numParams, (size_t) l->numNeurons);
-         if (status != PV_SUCCESS) return status;
+         int * params = pvp_set_activity_params(comm, timed, &l->loc, PV_FLOAT_TYPE, 1/*numbands*/);
+         assert(params && params[1]==NUM_BIN_PARAMS);
+         int numParams = params[1];
+         status = pvp_write_header(fp, comm, params, numParams);
       }
       // HyPerLayer::writeActivity calls HyPerLayer::incrementNBands, which maintains the value of numbands in the header.
 
-      // write time and V-buffer
+      // write time
       //
-      if ( fwrite(&time, sizeof(double), 1, fp) != 1 )              return -1;
+      if ( fwrite(&timed, sizeof(double), 1, fp) != 1 )              return -1;
    }
 
-   return write_pvdata(fp, comm, time, l->activity->data, &(l->loc), PV_FLOAT_TYPE,
-                       extended, contiguous, PVP_NONSPIKING_ACT_FILE_TYPE);
+   if (gatherActivity(fp, comm, 0/*root process*/, l->activity->data, &l->loc, true/*extended*/)!=PV_SUCCESS) {
+      status = PV_FAILURE;
+   }
+   return status;
 }
 
 int writeActivitySparse(FILE * fp, Communicator * comm, double time, PVLayer * l)
@@ -1124,7 +1426,7 @@ int readWeights(PVPatch *** patches, pvdata_t ** dataStart, int numArbors, int n
 
    status = pvp_read_header(filename, comm, timed, &header_file_type, &header_data_type, params, &numParams);
    if( status != PV_SUCCESS ) {
-      fprintf(stderr, "[%2d]: readWeights: failed in pvp_read_head, numParams==%d\n",
+      fprintf(stderr, "[%2d]: readWeights: failed in pvp_read_header, numParams==%d\n",
               comm->commRank(), numParams);
       return status;
    }
@@ -1139,15 +1441,13 @@ int readWeights(PVPatch *** patches, pvdata_t ** dataStart, int numArbors, int n
    const int nxFileBlocks = params[INDEX_NX_PROCS];
    const int nyFileBlocks = params[INDEX_NY_PROCS];
 
-   // extra weight parameters, done as a void pointer, since some are int and some are float
-   //
    int * wgtParams = &params[NUM_BIN_PARAMS];
 
    const int nxp = wgtParams[INDEX_WGT_NXP];
    const int nyp = wgtParams[INDEX_WGT_NYP];
    const int nfp = wgtParams[INDEX_WGT_NFP];
 
-   // Have to use memcpy instead of casting floats because of strict aliasing rules
+   // Have to use memcpy instead of casting floats because of strict aliasing rules, since some are int and some are float
    float minVal = 0.0f;
    memcpy(&minVal, &wgtParams[INDEX_WGT_MIN], sizeof(float));
    float maxVal = 0.0f;
@@ -1462,66 +1762,18 @@ int writeRandState(const char * filename, Communicator * comm, uint4 * randState
    int status = PV_SUCCESS;
    int rootproc = 0;
    int rank = comm->commRank();
-   int numLocalNeurons = loc->nx * loc->ny * loc->nf;
 
+   FILE * fp = NULL;
    if (rank == rootproc) {
-      int comm_size = comm->commSize();
-      FILE * fp_rand_state = fopen(filename, "w");
-      if (fp_rand_state==NULL) {
+      fp = fopen(filename, "w");
+      if (fp==NULL) {
          fprintf(stderr, "writeRandState error: unable to open path %s for writing.\n", filename);
          abort();
       }
-      // Make sure the file is big enough since we'll write nonsequentially under MPI.  This may not be necessary.
-      uint4 * mpi_rand_state = (uint4 *) calloc(numLocalNeurons, sizeof(uint4));
-      if (mpi_rand_state==NULL) {
-         fprintf(stderr, "writeRandState unable to allocate memory for mpi_rand_state for file \"%s\".\n", filename);
-         abort();
-      }
-      for (int r=0; r<comm_size; r++) {
-         int numwritten = fwrite(mpi_rand_state, sizeof(uint4), numLocalNeurons, fp_rand_state);
-         if (numwritten != numLocalNeurons) {
-            fprintf(stderr, "Error writing to file \"%s\"\n", filename);
-            abort();
-         }
-      }
-      rewind(fp_rand_state);
-
-#ifdef PV_USE_MPI
-      for (int r=0; r<comm_size; r++) {
-         if (r==rootproc) {
-            memcpy(mpi_rand_state, randState, numLocalNeurons*sizeof(uint4));
-         }
-         else {
-            MPI_Recv(mpi_rand_state, sizeof(uint4)*numLocalNeurons, MPI_BYTE, r, 171+r/*tag*/, comm->communicator(), MPI_STATUS_IGNORE);
-         }
-         int ky0 = loc->ny*rowFromRank(r, comm->numCommRows(), comm->numCommColumns());
-         int kx0 = loc->nx*columnFromRank(r, comm->numCommRows(), comm->numCommColumns());
-         int linesize = loc->nx*loc->nf; // All values across x and f for a specific y are contiguous; do a single fwrite for each y.
-         for (int y=0; y<loc->ny; y++) {
-            int k_local = kIndex(0, y, 0, loc->nx, loc->ny, loc->nf);
-            int k_global = kIndex(kx0, y+ky0, 0, loc->nxGlobal, loc->nyGlobal, loc->nf);
-            fseek(fp_rand_state, k_global*sizeof(uint4), SEEK_SET);
-            int numwritten = fwrite(&mpi_rand_state[k_local], sizeof(uint4), linesize, fp_rand_state);
-            if (numwritten != linesize) {
-               fprintf(stderr, "writeRandState error writing \"%s\"\n", filename);
-               abort();
-            }
-         }
-      }
-#else // PV_USE_MPI
-      int numwritten = fwrite(randState, sizeof(uint4), numLocalNeurons, fp_rand_state);
-      if (numwritten != numLocalNeurons) {
-         fprintf(stderr, "writeRandState error writing \"%s\"\n", filename);
-         abort();
-      }
-#endif // PV_USE_MPI
-
-      fclose(fp_rand_state); fp_rand_state = NULL;
    }
-   else {
-#ifdef PV_USE_MPI
-      MPI_Send(randState, sizeof(uint4)*numLocalNeurons, MPI_BYTE, rootproc, 171+rank/*tag*/, comm->communicator());
-#endif // PV_USE_MPI
+   status = gatherActivity(fp, comm, rootproc, randState, loc, false/*extended*/);
+   if (rank==rootproc) {
+      fclose(fp); fp = NULL;
    }
    return status;
 }
@@ -1530,60 +1782,20 @@ int readRandState(const char * filename, Communicator * comm, uint4 * randState,
    int status = PV_SUCCESS;
    int rootproc = 0;
    int rank = comm->commRank();
-   int numLocalNeurons = loc->nx * loc->ny * loc->nf;
 
-   if (rank==rootproc) {
-      int comm_size = comm->commSize();
-      FILE * fp_rand_state = fopen(filename ,"r");
-      if (fp_rand_state==NULL) {
+   FILE * fp = NULL;
+   if (rank == rootproc) {
+      fp = fopen(filename, "r");
+      if (fp==NULL) {
          fprintf(stderr, "readRandState error: unable to open path %s for reading.\n", filename);
          abort();
       }
-#ifdef PV_USE_MPI
-      uint4 * mpi_rand_state = (uint4 *) calloc(numLocalNeurons, sizeof(uint4));
-      if (mpi_rand_state==NULL) {
-         fprintf(stderr, "readRandState unable to allocate memory for mpi_rand_state for file \"%s\".\n", filename);
-         abort();
-      }
-      for (int r=0; r<comm_size; r++) {
-         for (int y=0; y<loc->ny; y++) {
-            int ky0 = loc->ny*rowFromRank(r, comm->numCommRows(), comm->numCommColumns());
-            int kx0 = loc->nx*columnFromRank(r, comm->numCommRows(), comm->numCommColumns());
-            int k_local = kIndex(0, y, 0, loc->nx, loc->ny, loc->nf);
-            int k_global = kIndex(kx0, ky0+y, 0, loc->nxGlobal, loc->nyGlobal, loc->nf);
-            fseek(fp_rand_state, k_global*sizeof(uint4), SEEK_SET);
-            int linesize = loc->nx * loc->nf;
-            int numread = fread(&mpi_rand_state[k_local], sizeof(uint4), linesize, fp_rand_state);
-            if (numread != linesize) {
-               fprintf(stderr, "readRandState error writing \"%s\"\n", filename);
-               abort();
-            }
-         }
-         if (r==rootproc) {
-            memcpy(randState, mpi_rand_state, numLocalNeurons*sizeof(uint4));
-         }
-         else {
-            MPI_Send(mpi_rand_state, sizeof(uint4)*numLocalNeurons, MPI_BYTE, r, 171+r/*tag*/, comm->communicator());
-         }
-      }
-      free(mpi_rand_state); mpi_rand_state = NULL;
-#else // PV_USE_MPI
-      int numread = fread(&randState, sizeof(uint4), numLocalNeurons, fp_rand_state);
-      if (numread != numLocalNeurons) {
-         fprintf(stderr, "writeRandState error writing \"%s\"\n", filename);
-         abort();
-      }
-#endif // PV_USE_MPI
-      fclose(fp_rand_state); fp_rand_state = NULL;
    }
-   else {
-#ifdef PV_USE_MPI
-      MPI_Recv(randState, sizeof(uint4)*numLocalNeurons, MPI_BYTE, rootproc, 171+rank/*tag*/, comm->communicator(), MPI_STATUS_IGNORE);
-#endif // PV_USE_MPI
+   status = scatterActivity(fp, comm, rootproc, randState, loc, false/*extended*/);
+   if (rank==rootproc) {
+      fclose(fp); fp = NULL;
    }
-
    return status;
 }
-
 
 } // namespace PV

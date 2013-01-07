@@ -44,7 +44,7 @@ int GapLayer::initialize(const char * name, HyPerCol * hc, LIFGap * originalLaye
       abort();
    }
    this->clayer->layerType = TypeNonspiking;
-   this->spikingFlag = false;
+   this->writeSparseActivity = false;
    sourceLayer = originalLayer;
    free(clayer->V);
    clayer->V = sourceLayer->getV();

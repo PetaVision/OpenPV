@@ -46,7 +46,7 @@ int BIDSCloneLayer::initialize(const char * name, HyPerCol * hc, LIF * clone) {
    if(InverseFlag)   fprintf(stdout,"SigmoidLayer: Inverse flag is set");
    if(SigmoidFlag)   fprintf(stdout,"SigmoidLayer: True Sigmoid flag is set");
 
-   this->spikingFlag = true;
+   this->writeSparseActivity = true;
    sourceLayer = clone;
    //free(clayer->V);
    //clayer->V = sourceLayer->getV();
@@ -92,26 +92,7 @@ int BIDSCloneLayer::setActivity() {
    return 0;
 }
 
-int BIDSCloneLayer::outputState(double timef, bool last){
-   int status = PV_SUCCESS;
-
-   for (int i = 0; i < numProbes; i++) {
-      probes[i]->outputState(timef);
-   }
-
-   if (timef >= writeTime && writeStep >= 0) {
-      writeTime += writeStep;
-      if (spikingFlag != 0) {
-         status = writeActivitySparse(timef);
-      }
-      else {
-         if (writeNonspikingActivity) {
-            status = writeActivity(timef);
-         }
-      }
-   }
-   return status;
-}
+// outputState removed since it was identical to HyPerLayer's outputState
 
 int BIDSCloneLayer::updateState(double timef, double dt) {
    int status = PV_SUCCESS;

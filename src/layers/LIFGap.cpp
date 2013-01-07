@@ -225,7 +225,7 @@ int LIFGap::checkpointRead(const char * cpDir, double * timef) {
 
    int chars_needed = snprintf(filename, filenamesize, "%s/%s_G_Gap.pvp", cpDir, name);
    assert(chars_needed < filenamesize);
-   readBufferFile(filename, icComm, &timed, G_Gap, 1, /*extended*/false, /*contiguous*/false, getLayerLoc());
+   readBufferFile(filename, icComm, &timed, &G_Gap, /*numbands*/1, /*extended*/false, getLayerLoc());
    if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
       fprintf(stderr, "Warning: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
    }
@@ -243,7 +243,7 @@ int LIFGap::checkpointWrite(const char * cpDir) {
    char * filename = (char *) malloc( filenamesize*sizeof(char) );
    assert(filename != NULL);
    sprintf(filename, "%s/%s_G_Gap.pvp", cpDir, name);
-   writeBufferFile(filename, icComm, timed, G_Gap, 1, /*extended*/false, /*contiguous*/false, getLayerLoc()); // TODO contiguous=true
+   writeBufferFile(filename, icComm, timed, &G_Gap, /*numbands*/1, /*extended*/false, getLayerLoc());
    free(filename);
    return PV_SUCCESS;
 }

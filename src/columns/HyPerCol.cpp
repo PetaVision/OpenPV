@@ -848,9 +848,13 @@ bool HyPerCol::advanceCPWriteTime() {
 }
 
 int HyPerCol::checkpointRead(const char * cpDir) {
-   size_t bufsize = sizeof(long int) + sizeof(double);
-   unsigned char * buf = (unsigned char *) malloc(bufsize);
-   assert(buf);
+   struct timestamp_struct {
+      double time; // time measured in units of dt
+      long int step; // step number, usually time/dt
+   };
+   struct timestamp_struct timestamp;
+   size_t timestamp_size = sizeof(struct timestamp_struct);
+   assert(sizeof(struct timestamp_struct) == sizeof(long int) + sizeof(double));
    if( icCommunicator()->commRank()==0 ) {
       char timestamppath[PV_PATH_MAX];
       int chars_needed = snprintf(timestamppath, PV_PATH_MAX, "%s/timeinfo.bin", cpDir);
@@ -863,15 +867,17 @@ int HyPerCol::checkpointRead(const char * cpDir) {
          fprintf(stderr, "HyPerCol::checkpointRead error: unable to open \"%s\" for reading.\n", timestamppath);
          abort();
       }
-      fread(buf,1,bufsize,timestampfile);
+      long int startpos = ftell(timestampfile);
+      fread(&timestamp,1,timestamp_size,timestampfile);
+      long int endpos = ftell(timestampfile);
+      assert(endpos-startpos==(int)timestamp_size);
       fclose(timestampfile);
    }
 #ifdef PV_USE_MPI
-   MPI_Bcast(buf,(int) bufsize,MPI_CHAR,0,icCommunicator()->communicator());
+   MPI_Bcast(&timestamp,(int) timestamp_size,MPI_CHAR,0,icCommunicator()->communicator());
 #endif // PV_USE_MPI
-   simTime = *((double *) buf);
-   currentStep = *((long int *) (buf+sizeof(double)));
-   free(buf);
+   simTime = timestamp.time;
+   currentStep = timestamp.step;
    double checkTime;
    for( int l=0; l<numLayers; l++ ) {
       layers[l]->checkpointRead(cpDir, &checkTime);
