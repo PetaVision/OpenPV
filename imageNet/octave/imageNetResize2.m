@@ -40,10 +40,10 @@ function [tot_images ...
     image_type = ".png";  %% 
   endif
   if nargin < 5 || ~exist(grabcut_flag) || isempty(grabcut_flag)
-    grabcut_flag = 1;  %% uses openCV segmentation algorithm to focus bounding boxes
+    grabcut_flag = 0;  %% uses openCV segmentation algorithm to focus bounding boxes
   endif
   if nargin < 6 || ~exist(num_procs) || isempty(num_procs)
-    num_procs = 2;  %% number of processors to use
+    num_procs = 1;  %% number of processors to use
   endif
   if nargin < 7 || ~exist(BB_only_flag) || isempty(BB_only_flag)
     BB_only_flag = 1;  %% (-)1 -> only process images with(without) bounding boxes
