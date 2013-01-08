@@ -111,7 +111,7 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
                "TrainingLayer",
              "GapLayer",
 	     "LCALayer",
-             "HMaxSimple",
+             "MaxPooling",
              "Image",
                "CreateMovies",
                "ImageCreator",
