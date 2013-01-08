@@ -149,6 +149,22 @@ sub collectTargetImgs ($$$$) {
     }
     print "\n";
 
+#Ask user if the program should get the child nodes
+    print "\ncollectTargetImgs: Would you like to extract the children of the input? [y/n] ";
+    my $childChoice = <STDIN>;
+    chomp($childChoice);
+    $correctAnswer = 0;
+    while ($correctAnswer == 0) {
+        if (($childChoice =~ m/^y$/) || ($childChoice =~ m/^n$/)) {
+            $correctAnswer = 1;
+            last;
+        }
+        print "collectTargetImgs: Please respond with 'y' or 'n': ";
+        $childChoice = <STDIN>;
+        chomp($childChoice);
+    }
+    print "\n";
+    
 #Get BB list if user specified a BB preference
     my $bbExt;
     my $bbPath;
@@ -180,22 +196,6 @@ sub collectTargetImgs ($$$$) {
         $bbExt = $bbFileExts[0];
     }
 
-#Ask user if the program should get the child nodes
-    print "\ncollectTargetImgs: Would you like to extract the children of the input? [y/n] ";
-    my $childChoice = <STDIN>;
-    chomp($childChoice);
-    $correctAnswer = 0;
-    while ($correctAnswer == 0) {
-        if (($childChoice =~ m/^y$/) || ($childChoice =~ m/^n$/)) {
-            $correctAnswer = 1;
-            last;
-        }
-        print "collectTargetImgs: Please respond with 'y' or 'n': ";
-        $childChoice = <STDIN>;
-        chomp($childChoice);
-    }
-    print "\n";
-    
 #If getting child nodes, push nodes to list of WNIDs (Requires different output than listChildren.pl provides)
     if ($childChoice =~ /^y$/) { #Grab children
         my @childArray;
