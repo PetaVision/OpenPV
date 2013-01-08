@@ -41,6 +41,7 @@ sub collectTargetImgs ($$$$) {
     use Archive::Tar;
 
     require 'findFiles.pl';
+    require 'findFolders.pl';
     require 'getFileExts.pl';
     #require 'listChildren.pl'; #This code is not implemented such that it works with listChildren.pl
     require 'makeTempDir.pl';
@@ -160,7 +161,7 @@ sub collectTargetImgs ($$$$) {
         }
         $outBBPath =~ s/\/$//g;
 
-        print "\ncollectTargetImgs: Please enter the path to the Bounding Boxes: ";
+        print "collectTargetImgs: Please enter the path to the Bounding Boxes: ";
         $bbPath = <STDIN>;
         chomp($bbPath);
         print "\n";
@@ -169,12 +170,14 @@ sub collectTargetImgs ($$$$) {
             die "collectTargetImgs: ERROR: Couldn't find bounding box directory $bbPath.\n";
         }
 
+        print "collectTargetImgs: Searching $bbPath for annotation file extensions.\n";
         my @bbFileExts = getFileExts($bbPath);
         my $bbNumFileExts = scalar(@bbFileExts);
         unless ($bbNumFileExts == 1) {
-            die "collectTargetImgs: ERROR: Found more than one file extension in $bbPath.\n";
+            die "collectTargetImgs: ERROR: Found more than one ($bbNumFileExts) file extension in $bbPath.\nExtensions found: \n".join("\n\t",@bbFileExts)."\n";
+            #die "collectTargetImgs: ERROR: Found more than one ($bbNumFileExts) file extension in $bbPath.";
         }
-        $bbExt = $fileExts[0];
+        $bbExt = $bbFileExts[0];
     }
 
 #Ask user if the program should get the child nodes
@@ -248,9 +251,19 @@ sub collectTargetImgs ($$$$) {
 
 #Get list of files for the desired BBs.
     my @BBFileList;
-    if (($bbChoice =~ m/^1$/) || ($bbChoice =~ m/^2$/)) { #Not sure if I need $bbChoice=~2 here
+    if (($bbChoice =~ m/^1$/) || ($bbChoice =~ m/^2$/)) { 
+        print "collectTargetImgs: Correlating images with respective bounding boxes.\n";
         my @BBCats;
-        my @totBBFileList = findFiles($bbPath,$bbExt);
+        my @totBBFileList;
+        if ($bbExt =~ m/xml/) {
+            @totBBFileList = findFolders($bbPath,$bbExt);
+        } else {
+            @totBBFileList = findFiles($bbPath,$bbExt);
+        }
+
+        if (scalar(@totBBFileList) == 0) {
+            die "collectTargetImgs: ERROR: Did not find any bounding boxes for input path $bbPath and extension $bbExt.\n";
+        }
         foreach my $WNID (@categories) {
             foreach my $totBBFile (@totBBFileList) {
                 if ($totBBFile =~ /$WNID/) {
@@ -260,31 +273,34 @@ sub collectTargetImgs ($$$$) {
             }
         }
 
-        ##List of cats that have BBs with them
-        my @newCats;
-        foreach my $BBCat (@BBCats) {
-            foreach my $realCat (@categories) {
-                if ($BBCat =~ /^$realCat$/) {
-                    push(@newCats,$BBCat);
-                }
-            }
-        }
-
-        ##List of WNIDS with BBs with them
-        my @newWNIDFileList;
-        foreach my $BBFile (@BBFileList) {
-            foreach my $WNIDFile (@wnidFileList) {
-                $BBFile =~ m/(n\d+)/;
-                if ($WNIDFile =~ /$1/) {
-                    push(@newWNIDFileList,$WNIDFile);
-                }
-            }
-        }
-
         if ($bbChoice =~ m/^1$/) {
+            ##List of cats that have BBs with them
+            my @newCats;
+            foreach my $BBCat (@BBCats) {
+                foreach my $realCat (@categories) {
+                    if ($BBCat =~ /^$realCat$/) {
+                        push(@newCats,$BBCat);
+                    }
+                }
+            }
+
+            ##List of WNIDS with BBs with them
+            my @newWNIDFileList;
+            foreach my $BBFile (@BBFileList) {
+                foreach my $WNIDFile (@wnidFileList) {
+                    $BBFile =~ m/(n\d+)/;
+                    if ($WNIDFile =~ /$1/) {
+                        push(@newWNIDFileList,$WNIDFile);
+                    }
+                }
+            }
+
             ##Need to modify @categories and $wnidFileList to only include categorys and files with BBs
             @categories = @newCats;
             @wnidFileList = @newWNIDFileList;
+
+            undef @newCats;
+            undef @newWNIDFileList;
         }
     }
 
@@ -309,16 +325,18 @@ sub collectTargetImgs ($$$$) {
             print "\ncollectTargetImgs: WARNING: Number of images found is less than the number requested. Copying the number found.\n";
             $numToCpy = $numImagesFound;
         } else {
-            die "\ncollectTargetImgs: ERROR: Number of images found is 0.\n";
+            die "\ncollectTargetImgs: ERROR: Number of images found is $numImagesFound.\n";
         }
     }
 
+#Check number of categories
     my $numCategories = scalar(@categories);
     if ($numCategories < 1) {
         die "collectTargetImgs: ERROR: number of categories is less than 1!\n";
     }
     print "collectTargetImgs: Found $numCategories categories.\n";
     
+#Compute number of extra images needed
     my $numExtraImgs = 0;
     my $numImgsPerCat = floor($numToCpy/$numCategories);
     if ($childChoice =~ /^y$/) {
@@ -384,18 +402,29 @@ sub collectTargetImgs ($$$$) {
                         $bbWNID =~ s/([\w\d]+)_[\.\w]+/$1/; #Pulls out just the WNID, before the underscore
                         $bbFileName =~ s/([\w\d]+_[\d]+)[\.\w]+/$1/; #Pulls out the full file-name, including the underscore
 
-                        my $tarFile = "Annotation/".$bbWNID."/".$bbFileName.".xml";
+                        my $bbFile;
                         my $outFile = $outBBPath."/".$bbFileName.".xml";
 
                         ##Get Bounding Box
                         if ($catAry[$catNum] < scalar(@BBFileList)) {
-                            $tar->read($BBFileList[$catAry[$catNum]],'tgz');
-                            $bbSuccess = $tar->contains_file($tarFile);
-                            if ($bbChoice =~ m/^1$/) {
-                                if ($bbSuccess) {
-                                    $tar->extract_file($tarFile,$outFile);
+                            $bbFile = "Annotation/".$bbWNID."/".$bbFileName.".xml";
+                            if ($bbExt =~ m/\.tar\.gz/) {
+                                $tar->read($BBFileList[$catAry[$catNum]],'tgz');
+                                $bbSuccess = $tar->contains_file($bbFile);
+                                if ($bbChoice =~ m/^1$/) {
+                                    if ($bbSuccess) {
+                                        $tar->extract_file($bbFile,$outFile);
+                                    }
+                                } 
+                            } elsif ($bbExt =~ m/^xml$/) {
+                                $bbFile = $bbPath."/".$bbWNID."/".$bbFileName.".xml";
+                                $bbSuccess = -e $bbFile;
+                                if ($bbChoice =~ m/^1$/) {
+                                    if ($bbSuccess) {
+                                        system("cp \"$bbFile\" \"$outFile\"");
+                                    }
                                 }
-                            } 
+                            }
                         } else {
                             $bbSuccess = 0;
                         }
@@ -433,18 +462,29 @@ sub collectTargetImgs ($$$$) {
                     $bbWNID =~ s/([\w\d]+)_[\.\w]+/$1/; #Pulls out just the WNID, before the underscore
                     $bbFileName =~ s/([\w\d]+_[\d]+)[\.\w]+/$1/; #Pulls out the full file-name, including the underscore
 
-                    my $tarFile = "Annotation/".$bbWNID."/".$bbFileName.".xml";
+                    my $bbFile;
                     my $outFile = $outBBPath."/".$bbFileName.".xml";
 
                     ##Get Bounding Box
                     if ($catAry[$catNum] < scalar(@BBFileList)) {
-                        $tar->read($BBFileList[$catAry[$catNum]],'tgz');
-                        $bbSuccess = $tar->contains_file($tarFile);
-                        if ($bbChoice =~ m/^1$/) {
-                            if ($bbSuccess) {
-                                $tar->extract_file($tarFile,$outFile);
+                        $bbFile = "Annotation/".$bbWNID."/".$bbFileName.".xml";
+                        if ($bbExt =~ m/\.tar\.gz/) {
+                            $tar->read($BBFileList[$catAry[$catNum]],'tgz');
+                            $bbSuccess = $tar->contains_file($bbFile);
+                            if ($bbChoice =~ m/^1$/) {
+                                if ($bbSuccess) {
+                                    $tar->extract_file($bbFile,$outFile);
+                                }
+                            } 
+                        } elsif ($bbExt =~ m/^xml$/) {
+                            $bbFile = $bbPath."/".$bbWNID."/".$bbFileName.".xml";
+                            $bbSuccess = -e $bbFile;
+                            if ($bbChoice =~ m/^1$/) {
+                                if ($bbSuccess) {
+                                    system("cp \"$bbFile\" \"$outFile\"");
+                                }
                             }
-                        } 
+                        }
                     } else {
                         $bbSuccess = 0;
                     }

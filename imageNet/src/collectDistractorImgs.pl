@@ -15,12 +15,6 @@
 ##
 ############
 
-require 'findFiles.pl';
-require 'listChildren.pl';
-require 'listParents.pl';
-require 'makeTempDir.pl';
-require 'checkInputType.pl';
-
 if ($ARGV[0] && $ARGV[1] && $ARGV[2]) {
     if ($ARGV[3]) {
         $output = &collectDistractorImgs($ARGV[0], $ARGV[1], $ARGV[2], $ARGV[3]);
@@ -37,9 +31,23 @@ sub cdiPostUsage () {
 
 sub collectDistractorImgs ($$$$) {
     #use warnings; ##Currently warns about two unused vars. This is not a problem.
+
+    use globalVars;
+    my $useProxy = getUseProxy globalVars();
+    my $PROXY_URL = "";
+    if ($useProxy) {
+        $PROXY_URL = getProxyURL globalVars();
+    }
+
     use List::Util 'shuffle';
     use List::MoreUtils 'any';
     use POSIX;
+
+    require 'findFiles.pl';
+    require 'listChildren.pl';
+    require 'listParents.pl';
+    require 'makeTempDir.pl';
+    require 'checkInputType.pl';
 
 #Set up temp dir
     my $TMP_DIR = makeTempDir();

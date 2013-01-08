@@ -11,19 +11,23 @@
 ## Returns a list of extensions in given path
 ############
 
-sub getFileExts($) {
+sub getFileExts ($) {
 
     my $path = $_[0];
-    my @allExts;
 
+    my @allExts;
+    my %seen = ();
     my $escPath = quotemeta($path);
 
-    my %seen = ();
     foreach my $item (glob "$escPath/*") {
         if (-d $item) { #if it is a directory
-            push(@allExts,&findFiles($item));
+            my @subExts = &getFileExts($item);
+            foreach my $ext (@subExts) {
+                next if (grep {$_ eq $ext} @allExts);
+                push(@allExts,$ext);
+            }
         } else { #Item is not a directory
-            if ($item =~ /\.([\d\w]+)$/i) { #Get file extension
+            if ($item =~ /\.([\w\.]+)$/i) { #Get file extension
                 next if $seen{$1}++;
                 push(@allExts,$1);
             }

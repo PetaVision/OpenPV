@@ -20,7 +20,11 @@ sub findFiles($$) {
 
     foreach my $item (glob "$escPath/*") {
         if (-d $item) { #if it is a directory
-            push(@allFiles,&findFiles($item,$ext));
+            my @subFiles = &findFiles($item,$ext);
+            foreach my $fil (@subFiles) {
+                next if (grep {$_ eq $fil} @allFiles);
+                push(@allFiles,$fil);
+            }
         } else { #Item is not a directory
             if ($item =~ /\.$ext/i) { #Item is has requested file extension
                 push(@allFiles,$item);
