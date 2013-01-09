@@ -20,8 +20,8 @@
 
 namespace PV {
 
-inline void timeToParams(double time, void * params);
-inline double timeFromParams(void * params);
+void timeToParams(double time, void * params);
+double timeFromParams(void * params);
 
 size_t pv_sizeof(int datatype);
 

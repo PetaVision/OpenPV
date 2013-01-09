@@ -378,7 +378,7 @@ int pvp_read_header(FILE * fp, Communicator * comm, int * params, int * numParam
       // read the rest
       //
       if (status == PV_SUCCESS && *numParams > 2) {
-         int numRead = fread(&params[2], sizeof(int), nParams - 2, fp);
+         size_t numRead = fread(&params[2], sizeof(int), nParams - 2, fp);
          if (numRead != (size_t) nParams - 2) {
             status = PV_FAILURE;
             *numParams = numRead;
@@ -415,7 +415,7 @@ void read_header_err(const char * filename, Communicator * comm, int returned_nu
          fprintf(stderr, "   Header size %d and number of params %d in file are not compatible.\n", params[INDEX_HEADER_SIZE], params[INDEX_NUM_PARAMS]);
          break;
       default:
-         if (returned_num_params < NUM_BIN_PARAMS) {
+         if (returned_num_params < (int) NUM_BIN_PARAMS) {
             fprintf(stderr, "   Called with %d params but only %d params could be read from file.\n", (int) NUM_BIN_PARAMS, returned_num_params);
          }
          else {
@@ -513,7 +513,7 @@ int pvp_write_header(FILE * fp, Communicator * comm, int * params, int numParams
    int rootproc = 0;
    int rank = comm->commRank();
    if (rank == rootproc) {
-      if ( fwrite(params, sizeof(int), numParams, fp) != numParams ) {
+      if ( (int) fwrite(params, sizeof(int), numParams, fp) != numParams ) {
          status = -1;
       }
    }
