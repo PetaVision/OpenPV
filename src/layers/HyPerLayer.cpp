@@ -151,7 +151,16 @@ int HyPerLayer::initialize(const char * name, HyPerCol * hc, int numChannels) {
       bool spikingFlagPresent = params->present(name, "spikingFlag");
       if (spikingFlagPresent) {
          if (parent->icCommunicator()->commRank()==0) {
-            fprintf(stderr, "Warning in parameters for layer \"%s\": spikingFlag has been renamed to writeSparseActivity\n", name);
+            Retina * retina = dynamic_cast<Retina *>(this);
+            if(retina) {
+               fprintf(stderr, "Warning in parameters for retina \"%s\"\n", name);
+               fprintf(stderr, "spikingFlag controls whether the dynamics of the retina is spiking, but\n");
+               fprintf(stderr, "no longer controls whether the activity file is sparse or not.\n");
+               fprintf(stderr, "Set writeSparseActivity to true or false to control the type of file created by outputState.\n");
+            }
+            else {
+               fprintf(stderr, "Warning in parameters for layer \"%s\": spikingFlag has been renamed to writeSparseActivity\n", name);
+            }
          }
          writeSparseActivity = (bool) params->value(name, "spikingFlag", 0);
       }
