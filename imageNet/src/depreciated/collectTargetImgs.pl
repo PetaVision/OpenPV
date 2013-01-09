@@ -173,7 +173,7 @@ sub collectTargetImgs ($$$$) {
         $outBBPath = $outPath."/Annotations";
         system("mkdir -p $outBBPath") unless (-d $outBBPath);
         unless (-d $outBBPath) {
-            die "\n\nERROR: Couldn't find or make output director $outBBPath.\n";
+            die "\n\nERROR: Couldn't find or make output directory $outBBPath.\n";
         }
         $outBBPath =~ s/\/$//g;
 

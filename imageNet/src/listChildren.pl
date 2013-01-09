@@ -122,7 +122,6 @@ sub listChildren ($) {
         } else {
             system("curl -# \"$STRUCTURE_URL\" -A \"$USER_AGENT\" -o $TMP_DIR/structure.xml");
         }
-        print "listChildren: Done.\n";
     }
 
 ######################################
@@ -147,7 +146,7 @@ sub listChildren ($) {
 ###Decide if input was a WNID or a synset name
 ##    my ($wnid, $path) = 0;
 ##    if ($input =~ /^n[\d]+$/) { #WNID
-##        print "listChildren: Finding the children of WNID: \"$input\" in the Image-Net hierarchy...\n";
+##        print "listChildren: Finding the children of WNID \"$input\" in the Image-Net hierarchy...\n";
 ##        $path = "//synset[\@wnid=\'${input}\']";
 ##        $wnid = 1;
 ##    } else { #NAME
@@ -160,7 +159,7 @@ sub listChildren ($) {
 ##        $wnid = 0;
 ##    }
 ######################################
-    print "listChildren: Finding the children of WNID: \"$input\" in the Image-Net hierarchy.\n";
+    print "listChildren: Finding the children of WNID \"$input\" in the Image-Net hierarchy.\n";
     my $path = "//synset[\@wnid=\'${input}\']/descendant-or-self::node()";
 ######################################
 
