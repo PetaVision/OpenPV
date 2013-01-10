@@ -658,11 +658,10 @@ int Patterns::drawDrops() {
 
    //Draw circle
    for(int i = 0; i < (int)vDrops.size(); i++){
-      float delta_theta = fabs(atan((float)1./vDrops[i].radius));
-      for (float theta = 0; theta < 2*PI; theta += delta_theta){
+      double delta_theta = fabs(atan(0.1/(double) vDrops[i].radius));
+      for (double theta = 0; theta < 2*PI; theta += delta_theta){
          int ix = (int)(round(getOffsetX() + vDrops[i].centerX + vDrops[i].radius * cos(theta)));
          int iy = (int)(round(getOffsetY() + vDrops[i].centerY + vDrops[i].radius * sin(theta)));
-
          //Check edge bounds based on nx/ny size
          if(ix < nx + kx0 && iy < ny + ky0 && ix >= kx0 && iy >= ky0){
             //Random either on circle or off circle
