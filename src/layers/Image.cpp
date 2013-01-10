@@ -46,7 +46,7 @@ int Image::initialize_base() {
    inverseFlag = false;
    normalizeLuminanceFlag = false;
    offsets[0] = 0;
-   offsets[1] = 1;
+   offsets[1] = 0;
    jitterFlag = false;
    jitterType = RANDOM_WALK;
    stepSize = 0;
