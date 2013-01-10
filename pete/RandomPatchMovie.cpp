@@ -152,7 +152,7 @@ int RandomPatchMovie::initialize(const char * name, HyPerCol * hc, const char * 
    nextDisplayTime = hc->simulationTime() + this->displayPeriod;
 
    retrieveRandomPatch();
-   readImage(filename,offsetX,offsetY, colorbandtypes);
+   readImage(filename,getOffsetX(),getOffsetY(), colorbandtypes);
 
    // exchange border information
    exchange();
@@ -172,8 +172,8 @@ RandomPatchMovie::~RandomPatchMovie() {
 
 int RandomPatchMovie::readOffsets() {
    // offsets are generated randomly each time an image is produced.
-   offsetX = -1;
-   offsetY = -1;
+   offsets[0] = -1;
+   offsets[1] = -1;
    return PV_SUCCESS;
 }
 
@@ -184,8 +184,8 @@ int RandomPatchMovie::retrieveRandomPatch() {
       free(filename);
       filename = strdup(getRandomFilename());
       getImageInfo(filename, parent->icCommunicator(), &imageLoc, &colorbandtypes);
-      getRandomOffsets(&imageLoc, &offsetX, &offsetY);
-      readImage(filename, offsetX, offsetY, colorbandtypes);
+      getRandomOffsets(&imageLoc, &offsets[0], &offsets[1]);
+      readImage(filename, getOffsetX(), getOffsetY(), colorbandtypes);
       if( skipLowContrastPatchProb > 0 ) {
          for( int k=0; k<getNumNeurons(); k++ ) {
             const PVLayerLoc * loc = getLayerLoc();
@@ -208,7 +208,7 @@ int RandomPatchMovie::retrieveRandomPatch() {
    }
 
    if( patchposfile != NULL) {
-      fprintf(patchposfile, "time = %f, offsetX = %d, offsetY = %d, filename = \"%s\"\n", parent->simulationTime(), offsetX, offsetY, filename);
+      fprintf(patchposfile, "time = %f, offsetX = %d, offsetY = %d, filename = \"%s\"\n", parent->simulationTime(), getOffsetX(), getOffsetY(), filename);
    }
 
    return PV_SUCCESS;
