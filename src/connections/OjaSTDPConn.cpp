@@ -27,6 +27,7 @@ OjaSTDPConn::OjaSTDPConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
 OjaSTDPConn::~OjaSTDPConn()
 {
    free(ampLTD); ampLTD = NULL;
+   Communicator::freeDatatypes(mpi_datatype); mpi_datatype = NULL;
    deleteWeights();
 }
 
@@ -60,6 +61,7 @@ int OjaSTDPConn::initialize_base() {
    this->post_int_tr      = NULL;
    this->pre_stdp_tr      = NULL;
    this->pre_oja_tr       = NULL;
+   this->mpi_datatype     = NULL;
 
    this->ampLTP           = 1;
    this->ampLTD           = NULL; // Will allocate later
@@ -121,6 +123,12 @@ int OjaSTDPConn::initialize(const char * name, HyPerCol * hc,
       if (hc->columnId()==0) {
          fprintf(stderr,"OjaSTDPConn \"%s\": LTDscale must be positive (value in params is %f).\n", name, LTDscale);
       }
+      abort();
+   }
+
+   mpi_datatype = Communicator::newDatatypes(pre->getLayerLoc());
+   if (mpi_datatype==NULL) {
+      fprintf(stderr, "LCALIFLateralKernelConn \"%s\" error creating mpi_datatype\n", name);
       abort();
    }
 
@@ -492,21 +500,34 @@ int OjaSTDPConn::writeTextWeightsExtra(FILE * fd, int k, int arborID)
    return 0;
 }
 
+// Change to checkpointWrite and checkpointRead, Jan 10, 2013.
+// The presynaptic traces have size nx-by-ny with border of width nb.
+// Before the change, the presynaptic traces were checkpointed as if the
+// local layer had size (nx+2*nb)-by-(ny+2*nb) with border region zero.
+// This has the drawback that the file depends on the MPI configuration.
+//
+// As of this update, the layer is treated as nx-by-ny with border nb.
+// On reading from a checkpoint, the border region is filled by calling
+// Communicator::exchange and (if mirrorBCFlag is set), mirroring to the
+// exterior boundary.  This should make the trace files independent of
+// the MPI configuration, and should recover the border regions correctly.
 int OjaSTDPConn::checkpointWrite(const char * cpDir) {
    int status = HyPerConn::checkpointWrite(cpDir);
    char filename[PV_PATH_MAX];
    int chars_needed;
-   PVLayerLoc loc;
+   const PVLayerLoc * loc;
 
    // **** PRE LAYER INFO *** //
-   memcpy(&loc, pre->getLayerLoc(), sizeof(PVLayerLoc));
-   // This is kind of hacky, but we save the extended buffers pre_stdp_tr as if they were nonextended buffers of size (nx+2*nb)-by-(ny+2*nb)-by-nf
-   // post_stdp_tr is buffer of size nx-by-ny-by-nf
-   loc.nx += 2*loc.nb;
-   loc.ny += 2*loc.nb;
-   loc.nxGlobal = loc.nx * parent->icCommunicator()->numCommColumns();
-   loc.nyGlobal = loc.ny * parent->icCommunicator()->numCommRows();
-   loc.nb = 0;
+   loc = pre->getLayerLoc();
+// Commented out Jan 10, 2013
+//    memcpy(&loc, pre->getLayerLoc(), sizeof(PVLayerLoc));
+//   // This is kind of hacky, but we save the extended buffers pre_stdp_tr as if they were nonextended buffers of size (nx+2*nb)-by-(ny+2*nb)-by-nf
+//   // post_stdp_tr is buffer of size nx-by-ny-by-nf
+//   loc.nx += 2*loc.nb;
+//   loc.ny += 2*loc.nb;
+//   loc.nxGlobal = loc.nx * parent->icCommunicator()->numCommColumns();
+//   loc.nyGlobal = loc.ny * parent->icCommunicator()->numCommRows();
+//   loc.nb = 0;
 
    pvdata_t ** traces = (pvdata_t **) calloc(numberOfAxonalArborLists(), sizeof(pvdata_t *));
    // pre_stdp_tr
@@ -518,7 +539,7 @@ int OjaSTDPConn::checkpointWrite(const char * cpDir) {
    for (int arborID=0; arborID<numberOfAxonalArborLists(); arborID++) {
       traces[arborID] = pre_stdp_tr[arborID]->data;
    }
-   HyPerLayer::writeBufferFile(filename, parent->icCommunicator(), (double) parent->simulationTime(), traces, numberOfAxonalArborLists(), /*extended*/ false, &loc);
+   HyPerLayer::writeBufferFile(filename, parent->icCommunicator(), (double) parent->simulationTime(), traces, numberOfAxonalArborLists(), /*extended*/ false, loc);
    // pre_oja_tr
    chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_pre_oja_tr.pvp", cpDir, name);
    if (chars_needed >= PV_PATH_MAX) {
@@ -528,12 +549,13 @@ int OjaSTDPConn::checkpointWrite(const char * cpDir) {
    for(int arborID = 0; arborID<numberOfAxonalArborLists(); arborID++) {
       traces[arborID] = pre_oja_tr[arborID]->data;
    }
-   HyPerLayer::writeBufferFile(filename, parent->icCommunicator(), (double) parent->simulationTime(), traces, numberOfAxonalArborLists(), /*extended*/ false, &loc);
+   HyPerLayer::writeBufferFile(filename, parent->icCommunicator(), (double) parent->simulationTime(), traces, numberOfAxonalArborLists(), /*extended*/ false, loc);
 
    free(traces); traces = NULL;
 
    // **** POST LAYER INFO *** //
-   memcpy(&loc, post->getLayerLoc(), sizeof(PVLayerLoc));
+   loc = post->getLayerLoc();
+//   memcpy(&loc, post->getLayerLoc(), sizeof(PVLayerLoc));
 
    // post_stdp_tr
    chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_post_stdp_tr.pvp", cpDir, name);
@@ -541,7 +563,7 @@ int OjaSTDPConn::checkpointWrite(const char * cpDir) {
       fprintf(stderr, "OjaSTDPConn::checkpointWrite error.  Path \"%s/%s_post_stdp_tr.pvp\" is too long.\n", cpDir, name);
       abort();
    }
-   HyPerLayer::writeBufferFile(filename, parent->icCommunicator(), (double) parent->simulationTime(), &post_stdp_tr->data, /*numbands*/ 1, /*extended*/ false, &loc);
+   HyPerLayer::writeBufferFile(filename, parent->icCommunicator(), (double) parent->simulationTime(), &post_stdp_tr->data, /*numbands*/ 1, /*extended*/ false, loc);
 
    // post_oja_tr
    chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_post_oja_tr.pvp", cpDir, name);
@@ -549,7 +571,7 @@ int OjaSTDPConn::checkpointWrite(const char * cpDir) {
       fprintf(stderr, "OjaSTDPConn::checkpointWrite error.  Path \"%s/%s_post_oja_tr.pvp\" is too long.\n", cpDir, name);
       abort();
    }
-   HyPerLayer::writeBufferFile(filename, parent->icCommunicator(), (double) parent->simulationTime(), &post_oja_tr->data, /*numbands*/ 1, /*extended*/ false, &loc);
+   HyPerLayer::writeBufferFile(filename, parent->icCommunicator(), (double) parent->simulationTime(), &post_oja_tr->data, /*numbands*/ 1, /*extended*/ false, loc);
 
    // post_int_tr
    chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_post_int_tr.pvp", cpDir, name);
@@ -557,7 +579,7 @@ int OjaSTDPConn::checkpointWrite(const char * cpDir) {
       fprintf(stderr, "OjaSTDPConn::checkpointWrite error.  Path \"%s/%s_post_int_tr.pvp\" is too long.\n", cpDir, name);
       abort();
    }
-   HyPerLayer::writeBufferFile(filename, parent->icCommunicator(), (double) parent->simulationTime(), &post_int_tr->data, /*numbands*/ 1, /*extended*/ false, &loc);
+   HyPerLayer::writeBufferFile(filename, parent->icCommunicator(), (double) parent->simulationTime(), &post_int_tr->data, /*numbands*/ 1, /*extended*/ false, loc);
 
    // ampLTD
    chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_ampLTD.pvp", cpDir, name);
@@ -565,7 +587,7 @@ int OjaSTDPConn::checkpointWrite(const char * cpDir) {
       fprintf(stderr, "OjaSTDPConn::checkpointWrite error.  Path \"%s/%sampLTD.pvp\" is too long.\n", cpDir, name);
       abort();
    }
-   HyPerLayer::writeBufferFile(filename, parent->icCommunicator(), (double) parent->simulationTime(), &ampLTD, /*numbands*/ 1, /*extended*/ false, &loc);
+   HyPerLayer::writeBufferFile(filename, parent->icCommunicator(), (double) parent->simulationTime(), &ampLTD, /*numbands*/ 1, /*extended*/ false, loc);
 
    return status;
 }
@@ -575,15 +597,17 @@ int OjaSTDPConn::checkpointRead(const char * cpDir, double * timef) {
    char filename[PV_PATH_MAX];
    int chars_needed;
    double timed;
-   PVLayerLoc loc;
+   const PVLayerLoc * loc;
 
    // **** PRE LAYER INFO *** //
-   memcpy(&loc, pre->getLayerLoc(), sizeof(PVLayerLoc));
-   loc.nx += 2*loc.nb;
-   loc.ny += 2*loc.nb;
-   loc.nxGlobal = loc.nx * parent->icCommunicator()->numCommColumns();
-   loc.nyGlobal = loc.ny * parent->icCommunicator()->numCommRows();
-   loc.nb = 0;
+   loc = pre->getLayerLoc();
+// Commented out Jan 10, 2013
+//   memcpy(&loc, pre->getLayerLoc(), sizeof(PVLayerLoc));
+//   loc.nx += 2*loc.nb;
+//   loc.ny += 2*loc.nb;
+//   loc.nxGlobal = loc.nx * parent->icCommunicator()->numCommColumns();
+//   loc.nyGlobal = loc.ny * parent->icCommunicator()->numCommRows();
+//   loc.nb = 0;
 
 
    //TODO: Only read if plasticity flag is on (How much of the code below does this todo apply to?)
@@ -598,9 +622,18 @@ int OjaSTDPConn::checkpointRead(const char * cpDir, double * timef) {
    for(int arborID = 0; arborID<numberOfAxonalArborLists(); arborID++) {
       traces[arborID] = pre_stdp_tr[arborID]->data;
    }
-   HyPerLayer::readBufferFile(filename, parent->icCommunicator(), &timed, traces, numberOfAxonalArborLists(), /*extended*/ false, &loc);
+   HyPerLayer::readBufferFile(filename, parent->icCommunicator(), &timed, traces, numberOfAxonalArborLists(), /*extended*/ true, loc);
    if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
       fprintf(stderr, "Warning in OjaSTDPConn: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
+   }
+   // Exchange borders
+   for (int arborID=0; arborID<numberOfAxonalArborLists(); arborID++) {
+      if ( pre->useMirrorBCs() ) {
+         for (int borderId = 1; borderId < NUM_NEIGHBORHOOD; borderId++){
+            pre->mirrorInteriorToBorder(borderId, pre_stdp_tr[arborID], pre_stdp_tr[arborID]);
+         }
+      }
+      parent->icCommunicator()->exchange(pre_stdp_tr[arborID]->data, mpi_datatype, loc);
    }
 
    // pre_oja_tr
@@ -612,15 +645,25 @@ int OjaSTDPConn::checkpointRead(const char * cpDir, double * timef) {
    for(int arborID = 0; arborID<numberOfAxonalArborLists(); arborID++) {
       traces[arborID] = pre_oja_tr[arborID]->data;
    }
-   HyPerLayer::readBufferFile(filename, parent->icCommunicator(), &timed, traces, numberOfAxonalArborLists(), /*extended*/ false, &loc);
+   HyPerLayer::readBufferFile(filename, parent->icCommunicator(), &timed, traces, numberOfAxonalArborLists(), /*extended*/ false, loc);
    if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
       fprintf(stderr, "Warning in OjaSTDPConn: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
+   }
+   // Exchange borders
+   for (int arborID=0; arborID<numberOfAxonalArborLists(); arborID++) {
+      if ( pre->useMirrorBCs() ) {
+         for (int borderId = 1; borderId < NUM_NEIGHBORHOOD; borderId++){
+            pre->mirrorInteriorToBorder(borderId, pre_oja_tr[arborID], pre_oja_tr[arborID]);
+         }
+      }
+      parent->icCommunicator()->exchange(pre_oja_tr[arborID]->data, mpi_datatype, loc);
    }
 
    free(traces); traces=NULL;
 
    // **** POST LAYER INFO *** //
-   memcpy(&loc, post->getLayerLoc(), sizeof(PVLayerLoc));
+   loc = post->getLayerLoc();
+//   memcpy(&loc, post->getLayerLoc(), sizeof(PVLayerLoc));
 
    // post_stdp_tr
    chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_post_stdp_tr.pvp", cpDir, name);
@@ -628,7 +671,7 @@ int OjaSTDPConn::checkpointRead(const char * cpDir, double * timef) {
       fprintf(stderr, "OjaSTDPConn::checkpointRead error.  Path \"%s/%s_post_stdp_tr.pvp\" is too long.\n", cpDir, name);
       abort();
    }
-   HyPerLayer::readBufferFile(filename, parent->icCommunicator(), &timed, &post_stdp_tr->data, /*numbands*/1, /*extended*/ false, &loc);
+   HyPerLayer::readBufferFile(filename, parent->icCommunicator(), &timed, &post_stdp_tr->data, /*numbands*/1, /*extended*/ false, loc);
    if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
       fprintf(stderr, "Warning in OjaSTDPConn: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
    }
@@ -640,7 +683,7 @@ int OjaSTDPConn::checkpointRead(const char * cpDir, double * timef) {
       fprintf(stderr, "OjaSTDPConn::checkpointRead error.  Path \"%s/%s_post_oja_tr.pvp\" is too long.\n", cpDir, name);
       abort();
    }
-   HyPerLayer::readBufferFile(filename, parent->icCommunicator(), &timed, &post_oja_tr->data, /*numbands*/1, /*extended*/ false, &loc);
+   HyPerLayer::readBufferFile(filename, parent->icCommunicator(), &timed, &post_oja_tr->data, /*numbands*/1, /*extended*/ false, loc);
    if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
       fprintf(stderr, "Warning in OjaSTDPConn: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
    }
@@ -651,7 +694,7 @@ int OjaSTDPConn::checkpointRead(const char * cpDir, double * timef) {
       fprintf(stderr, "OjaSTDPConn::checkpointRead error.  Path \"%s/%s_post_int_tr.pvp\" is too long.\n", cpDir, name);
       abort();
    }
-   HyPerLayer::readBufferFile(filename, parent->icCommunicator(), &timed, &post_int_tr->data, /*numbands*/1, /*extended*/ false, &loc);
+   HyPerLayer::readBufferFile(filename, parent->icCommunicator(), &timed, &post_int_tr->data, /*numbands*/1, /*extended*/ false, loc);
    if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
       fprintf(stderr, "Warning in OjaSTDPConn: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
    }
@@ -662,7 +705,7 @@ int OjaSTDPConn::checkpointRead(const char * cpDir, double * timef) {
       fprintf(stderr, "OjaSTDPConn::checkpointRead error.  Path \"%s/%sampLTD.pvp\" is too long.\n", cpDir, name);
       abort();
    }
-   HyPerLayer::readBufferFile(filename, parent->icCommunicator(), &timed, &ampLTD, /*numbands*/1, /*extended*/ false, &loc);
+   HyPerLayer::readBufferFile(filename, parent->icCommunicator(), &timed, &ampLTD, /*numbands*/1, /*extended*/ false, loc);
    if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
       fprintf(stderr, "Warning: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
    }

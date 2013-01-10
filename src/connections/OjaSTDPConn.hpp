@@ -68,6 +68,7 @@ protected:
    //Need pre trace per arbor
    PVLayerCube ** pre_stdp_tr;  // plasticity increment variable for presynaptic layer
    PVLayerCube ** pre_oja_tr;   // plasticity increment variable for presynaptic layer with longer time-constant
+   MPI_Datatype * mpi_datatype;  // Used to mirror the presynaptic traces
 
    float * ampLTD;
 
