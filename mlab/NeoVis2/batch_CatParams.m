@@ -1,11 +1,11 @@
 
 %% begin definition of the most volitile parameters
-FLAVOR_ID = "Test"; %% "Training"; %% 
+FLAVOR_ID = "Training"; %% "Test"; %% 
 disp(["FLAVOR_ID = ", FLAVOR_ID]);
 target_id = cell(1,2);
 target_id{1,1} = "cat"; target_id{1,2} = "nocatdog"; %% 
 disp(["target_id = ", target_id{1,1}, ", ", target_id{1,2}]);
-pvp_num_ODD_kernels = 2; %%
+pvp_num_ODD_kernels = 3; %%
 disp(["num_ODD_kernels = ", num2str(pvp_num_ODD_kernels)]);
 %% end definition of the most volitile parameters
 
