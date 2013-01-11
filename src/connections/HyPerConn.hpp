@@ -66,7 +66,7 @@ public:
    virtual int writeWeights(double time, bool last = false);
    virtual int writeWeights(const char* filename);
    virtual int writeWeights(PVPatch*** patches, float** dataStart,
-         int numPatches, const char* filename, double timef, bool last);
+         int numPatches, const char* filename, double timef, bool compressWeights, bool last);
    virtual int writeTextWeights(const char* filename, int k);
 
    virtual int writeTextWeightsExtra(FILE* fd, int k, int arborID) {
@@ -363,8 +363,8 @@ protected:
    double wPostTime; // time of last conversion to wPostPatches
    double writeTime; // time of next output, initialized in params file parameter initialWriteTime
    double writeStep; // output time interval
-   bool writeCompressedWeights; // true=write weights with 8-bit precision;
-   // false=write weights with float precision
+   bool writeCompressedWeights; // if true, outputState writes weights with 8-bit precision; if false, write weights with float precision
+   bool writeCompressedCheckpoints; // similar to writeCompressedWeights, but for checkpointWrite instead of outputState
    int fileType; // type ID for file written by PV::writeWeights
    Timer* update_timer;
    bool plasticityFlag;

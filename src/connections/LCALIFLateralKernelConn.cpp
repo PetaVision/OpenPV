@@ -241,7 +241,7 @@ int LCALIFLateralKernelConn::checkpointWrite(const char * cpDir) {
 
    chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_dW.pvp", cpDir, name);
    assert(chars_needed < PV_PATH_MAX);
-   status2 = HyPerConn::writeWeights(NULL, get_dwDataStart(), getNumDataPatches(), filename, parent->simulationTime(), true);
+   status2 = HyPerConn::writeWeights(NULL, get_dwDataStart(), getNumDataPatches(), filename, parent->simulationTime(), writeCompressedCheckpoints, true);
    if (status2!=PV_SUCCESS) status = status2;
    return status;
 }

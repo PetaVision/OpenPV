@@ -77,11 +77,12 @@ public:
 
    bool  warmStartup()                    {return warmStart;}
 
-   double getDeltaTime()                   {return deltaTime;}
-   double simulationTime()                 {return simTime;}
-   double getStopTime()                    {return stopTime;}
-   long int getCurrentStep()                   {return currentStep;}
+   double getDeltaTime()                  {return deltaTime;}
+   double simulationTime()                {return simTime;}
+   double getStopTime()                   {return stopTime;}
+   long int getCurrentStep()              {return currentStep;}
    bool getCheckpointReadFlag()           {return checkpointReadFlag;}
+   bool getCheckpointWriteFlag()          {return checkpointWriteFlag;}
 
    int includeLayerName()                 {return filenamesContainLayerNames;}
    int includeConnectionName()            {return filenamesContainConnectionNames;}

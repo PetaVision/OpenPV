@@ -202,6 +202,7 @@ int HyPerConn::initialize_base()
    this->nypPost = 0;
    this->nfpPost = 0;
    this->writeCompressedWeights = true;
+   this->writeCompressedCheckpoints = false;
    this->fileType = PVP_WGT_FILE_TYPE; // Subclass's initialize_base() gets called after HyPerConn's initialize_base(), so this can be changed in subclasses.
 
    wPatches=NULL;
@@ -587,6 +588,9 @@ int HyPerConn::setParams(PVParams * inputParams /*, PVConnParams * p*/)
    preActivityIsNotRate = inputParams->value(name, "preActivityIsNotRate", false, true) != 0;
 
    writeCompressedWeights = inputParams->value(name, "writeCompressedWeights", true) != 0;
+   if (parent->getCheckpointWriteFlag()) {
+      writeCompressedCheckpoints = inputParams->value(name, "writeCompressedCheckpoints", true) != 0;
+   }
    selfFlag = inputParams->value(name, "selfFlag", selfFlag, true) != 0;
    if (plasticityFlag){
       combine_dW_with_W_flag = inputParams->value(name, "combine_dW_with_W_flag", combine_dW_with_W_flag, true) != 0;
@@ -872,14 +876,14 @@ int HyPerConn::checkWeightsHeader(const char * filename, int * wgtParams)
 int HyPerConn::writeWeights(double time, bool last)
 {
    const int numPatches = getNumWeightPatches();
-   return writeWeights(wPatches, wDataStart, numPatches, NULL, time, last);
+   return writeWeights(wPatches, wDataStart, numPatches, NULL, time, writeCompressedWeights, last);
 }
 
 int HyPerConn::writeWeights(const char * filename) {
-   return writeWeights(wPatches, wDataStart, getNumWeightPatches(), filename, parent->simulationTime(), true);
+   return writeWeights(wPatches, wDataStart, getNumWeightPatches(), filename, parent->simulationTime(), writeCompressedWeights, true);
 }
 
-int HyPerConn::writeWeights(PVPatch *** patches, pvdata_t ** dataStart, int numPatches, const char * filename, double timef, bool last) {
+int HyPerConn::writeWeights(PVPatch *** patches, pvdata_t ** dataStart, int numPatches, const char * filename, double timef, bool compressWeights, bool last) {
    int status = PV_SUCCESS;
    char path[PV_PATH_MAX];
 
@@ -930,7 +934,7 @@ int HyPerConn::writeWeights(PVPatch *** patches, pvdata_t ** dataStart, int numP
 
    status = PV::writeWeights(path, comm, (double) timef, append,
                              loc, nxp, nyp, nfp, minVal, maxVal,
-                             patches, dataStart, numPatches, numberOfAxonalArborLists(), writeCompressedWeights, fileType);
+                             patches, dataStart, numPatches, numberOfAxonalArborLists(), compressWeights, fileType);
    assert(status == 0);
 
    return status;
@@ -1253,7 +1257,7 @@ int HyPerConn::checkpointWrite(const char * cpDir) {
    char filename[PV_PATH_MAX];
    int status = checkpointFilename(filename, PV_PATH_MAX, cpDir);
    assert(status==PV_SUCCESS);
-   status = writeWeights(wPatches, wDataStart, getNumWeightPatches(), filename, parent->simulationTime(), true);
+   status = writeWeights(wPatches, wDataStart, getNumWeightPatches(), filename, parent->simulationTime(), writeCompressedCheckpoints, true);
    assert(status==PV_SUCCESS);
    status = writeScalarFloat(cpDir, "nextWrite", writeTime);
    assert(status==PV_SUCCESS);
