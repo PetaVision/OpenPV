@@ -1,4 +1,4 @@
-Here is the procedure for installing and compiling the PetaVision repository on retozo/rebor.  Thanks to Andree for all his assistance.
+Here is the procedure for installing and compiling the PetaVision repository on Mac OS X.  Thanks to Andree for all his assistance.
 
 0. TODO: instructions for installing eclipse on macs should go here
 
@@ -69,4 +69,4 @@ It should be possible to run and debug from within the Eclipse environment the s
 
 Please take care when committing, not to commit the .cproject and .project files or the .settings directory.
 
-8. To read *.cl files in the C editor, go to Window menu -> Preferences, open C/C++ and select File Types.  Click New... and enter Pattern: "*.cl" (no quotes) and Type: C Source File.
+8. To read *.cl files in the C editor, go to Eclipse menu -> Preferences, open C/C++ and select File Types.  Click New... and enter Pattern: "*.cl" (no quotes) and Type: C Source File.
