@@ -165,10 +165,6 @@ int OjaKernelConn::update_dW(int axonId) {
       pvdata_t inputFR = input_rate[kex];
       for( int y=0; y<ny; y++ ) {
          for( int k=0; k<nk; k++ ) {
-            if(offset+lineoffsetg+k<0 || offset+lineoffsetg+k>=post->getNumNeurons()) {
-               fprintf(stderr, "%s offset=%d, lineoffseta=%d, k=%d, numNeurons=%d\n", name, offset, lineoffsetg, k, post->getNumNeurons());
-               abort();
-            }
             pvdata_t outputFR = outputFiringRate[offset+lineoffsetg+k];
             dwdata[lineoffsetw + k] += (inputFR - alpha*wdata[lineoffsetw+k]*outputFR)*outputFR;
          }
