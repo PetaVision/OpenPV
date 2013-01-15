@@ -608,11 +608,11 @@ int KernelConn::symmetrizeWeights(pvdata_t * dataStart, int numPatches, int arbo
 
 int KernelConn::writeWeights(double timef, bool last) {
    const int numPatches = getNumDataPatches();
-   return HyPerConn::writeWeights(NULL, get_wDataStart(), numPatches, NULL, timef, last);
+   return HyPerConn::writeWeights(NULL, get_wDataStart(), numPatches, NULL, timef, writeCompressedWeights, last);
 }
 
 int KernelConn::writeWeights(const char * filename) {
-   return HyPerConn::writeWeights(NULL, get_wDataStart(), getNumDataPatches(), filename, parent->simulationTime(), true);
+   return HyPerConn::writeWeights(NULL, get_wDataStart(), getNumDataPatches(), filename, parent->simulationTime(), writeCompressedWeights, true);
 }
 
 int KernelConn::checkpointRead(const char * cpDir, double * timef) {
@@ -639,7 +639,7 @@ int KernelConn::checkpointWrite(const char * cpDir) {
       }
    }
 #endif // PV_USE_MPI
-   return HyPerConn::writeWeights(NULL, get_wDataStart(), getNumDataPatches(), filename, parent->simulationTime(), true);
+   return HyPerConn::writeWeights(NULL, get_wDataStart(), getNumDataPatches(), filename, parent->simulationTime(), writeCompressedCheckpoints, true);
 }
 
 int KernelConn::patchIndexToDataIndex(int patchIndex, int * kx/*default=NULL*/, int * ky/*default=NULL*/, int * kf/*default=NULL*/) {
