@@ -178,7 +178,6 @@ int TransposeConn::transposeKernels() {
                     int precelloffsetx = kxFB % xscaleq;
                     for( int kfFB = 0; kfFB < nfFB; kfFB++ ) {
                         int kernelnumberFF = (precelloffsety*xscaleq + precelloffsetx)*nfFB + kfFB;
-                        // PVPatch * kpFF = originalConn->getKernelPatch(0, kernelnumberFF);
                         pvdata_t * dataStartFF = originalConn->get_wDataHead(0, kernelnumberFF);
                         int nxpFF = originalConn->xPatchSize();
                         int nypFF = originalConn->yPatchSize();
@@ -191,7 +190,6 @@ int TransposeConn::transposeKernels() {
                         int kIndexFF = kIndex(kxFF, kyFF, kfFF, nxpFF, nypFF, originalConn->fPatchSize());
                         int kIndexFB = kIndex(kxFB, kyFB, kfFB, nxFB, nyFB, nfFB);
                         dataStartFB[kIndexFB] = dataStartFF[kIndexFF];
-                        // kpFB->data[kIndexFB] = kpFF->data[kIndexFF];
                     }
                 }
             }
