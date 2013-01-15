@@ -22,10 +22,12 @@ LCALIFLateralConn::LCALIFLateralConn(const char * name, HyPerCol * hc, HyPerLaye
 
 LCALIFLateralConn::~LCALIFLateralConn()
 {
-   free(integratedSpikeCount); integratedSpikeCount = NULL;
+   pvcube_delete(integratedSpikeCountCube); integratedSpikeCountCube = NULL; integratedSpikeCount = NULL;
+   Communicator::freeDatatypes(mpi_datatype); mpi_datatype = NULL;
 }
 
 int LCALIFLateralConn::initialize_base() {
+   integratedSpikeCountCube = NULL;
    integratedSpikeCount = NULL;
    coorThresh = 1;
    return PV_SUCCESS;
@@ -48,7 +50,9 @@ int LCALIFLateralConn::initialize(const char * name, HyPerCol * hc, HyPerLayer *
       }
       abort();
    }
-   integratedSpikeCount = (float *) calloc(pre->getNumExtended(), sizeof(float)); // Spike counts initialized to 0
+   integratedSpikeCountCube = pvcube_new(pre->getLayerLoc(), pre->getNumExtended());
+   integratedSpikeCount = integratedSpikeCountCube->data;
+   memset(integratedSpikeCount, 0, pre->getNumExtended()*sizeof(*integratedSpikeCount)); // Spike counts initialized to 0
 
    //Loop through patches setting the self to self connection to 0
    pvdata_t * gSyn_buffer_start = post->getChannel(channel);
@@ -85,7 +89,14 @@ int LCALIFLateralConn::initialize(const char * name, HyPerCol * hc, HyPerLayer *
          }
       }
    }
-   return status;
+
+   // If reading from a checkpoint, loading the integratedSpikeCount requires exchanging border regions
+   mpi_datatype = Communicator::newDatatypes(pre->getLayerLoc());
+   if (mpi_datatype==NULL) {
+      fprintf(stderr, "LCALIFLateralKernelConn \"%s\" error creating mpi_datatype\n", name);
+      abort();
+   }
+return status;
 }
 
 int LCALIFLateralConn::setParams(PVParams * params) {
@@ -186,21 +197,23 @@ int LCALIFLateralConn::updateIntegratedSpikeCount() {
 
 int LCALIFLateralConn::checkpointWrite(const char * cpDir) {
    int status = HyPerConn::checkpointWrite(cpDir);
-   // This is kind of hacky, but we save the extended buffer integratedSpikeCount as if it were a nonextended buffer of size (nx+2*nb)-by-(ny+2*nb)
+   // The following comment is obsolete as of Jan 10, 2013.  // This is kind of hacky, but we save the extended buffer integratedSpikeCount as if it were a nonextended buffer of size (nx+2*nb)-by-(ny+2*nb)
    char filename[PV_PATH_MAX];
    int chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_integratedSpikeCount.pvp", cpDir, name);
    if (chars_needed >= PV_PATH_MAX) {
       fprintf(stderr, "LCALIFLateralConn::checkpointWrite error.  Path \"%s/%s_integratedSpikeCount.pvp\" is too long.\n", cpDir, name);
       abort();
    }
-   PVLayerLoc loc;
-   memcpy(&loc, pre->getLayerLoc(), sizeof(PVLayerLoc));
-   loc.nx += 2*loc.nb;
-   loc.ny += 2*loc.nb;
-   loc.nxGlobal = loc.nx * parent->icCommunicator()->numCommColumns();
-   loc.nyGlobal = loc.ny * parent->icCommunicator()->numCommRows();
-   loc.nb = 0;
-   int status2 = HyPerLayer::writeBufferFile(filename, parent->icCommunicator(), parent->simulationTime(), &integratedSpikeCount, 1/*numbands*/, false/*extended*/, &loc);
+   const PVLayerLoc * loc;
+   loc = pre->getLayerLoc();
+// Commented out Jan 10, 2013
+   // memcpy(&loc, pre->getLayerLoc(), sizeof(PVLayerLoc));
+   // loc.nx += 2*loc.nb;
+   // loc.ny += 2*loc.nb;
+   // loc.nxGlobal = loc.nx * parent->icCommunicator()->numCommColumns();
+   // loc.nyGlobal = loc.ny * parent->icCommunicator()->numCommRows();
+   // loc.nb = 0;
+   int status2 = HyPerLayer::writeBufferFile(filename, parent->icCommunicator(), parent->simulationTime(), &integratedSpikeCount, 1/*numbands*/, true/*extended*/, loc);
    if (status2!=PV_SUCCESS) status = status2;
    return status;
 }
@@ -214,18 +227,27 @@ int LCALIFLateralConn::checkpointRead(const char * cpDir, double* timef) {
       abort();
    }
    double timed;
-   PVLayerLoc loc;
-   memcpy(&loc, pre->getLayerLoc(), sizeof(PVLayerLoc));
-   loc.nx += 2*loc.nb;
-   loc.ny += 2*loc.nb;
-   loc.nxGlobal = loc.nx * parent->icCommunicator()->numCommColumns();
-   loc.nyGlobal = loc.ny * parent->icCommunicator()->numCommRows();
-   loc.nb = 0;
-   HyPerLayer::readBufferFile(filename, parent->icCommunicator(), &timed, &integratedSpikeCount, 1/*numbands*/, /*extended*/ true, pre->getLayerLoc());
+   const PVLayerLoc * loc;
+   loc = pre->getLayerLoc();
+// Commented out Jan 10, 2013
+   // memcpy(&loc, pre->getLayerLoc(), sizeof(PVLayerLoc));
+   // loc.nx += 2*loc.nb;
+   // loc.ny += 2*loc.nb;
+   // loc.nxGlobal = loc.nx * parent->icCommunicator()->numCommColumns();
+   // loc.nyGlobal = loc.ny * parent->icCommunicator()->numCommRows();
+   // loc.nb = 0;
+   HyPerLayer::readBufferFile(filename, parent->icCommunicator(), &timed, &integratedSpikeCount, 1/*numbands*/, /*extended*/ true, loc);
    // read_pvdata(filename, parent->icCommunicator(), &timed, integratedSpikeCount, &loc, PV_FLOAT_TYPE, /*extended*/ false, /*contiguous*/ false);
    if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
       fprintf(stderr, "Warning: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
    }
+   // Exchange borders
+   if ( pre->useMirrorBCs() ) {
+      for (int borderId = 1; borderId < NUM_NEIGHBORHOOD; borderId++){
+         pre->mirrorInteriorToBorder(borderId, integratedSpikeCountCube, integratedSpikeCountCube);
+      }
+   }
+   parent->icCommunicator()->exchange(integratedSpikeCount, mpi_datatype, loc);
 
    return status;
 }
