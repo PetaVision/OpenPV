@@ -40,11 +40,11 @@ Retina "Retina" = {
     writeStep = 1.0;
     mirrorBCflag = 1;
     spikingFlag = 0;
-    writeNonspikingActivity = 1;
+    writeSparseActivity = 0;
     // GPUAccelerate = false;
 
-    refractoryPeriod = 5.0;
-    absRefractoryPeriod = 3.0;
+    // refractoryPeriod
+    // absRefractoryPeriod
     poissonEdgeProb = 1;
     poissonBlankProb = 1;
     burstFreq = 1;
@@ -65,8 +65,7 @@ ANNLayer "L0" = {
     marginWidth = 4;
     writeStep = 1.0;
     mirrorBCflag = 1;
-    spikingFlag = 0;
-    writeNonspikingActivity = 1;
+    writeSparseActivity = 0;
     // GPUAccelerate = false;
 
     InitVType = "ZeroV";
@@ -85,8 +84,7 @@ ANNLayer "Lx1" = {
     marginWidth = 0;
     writeStep = 1.0;
     mirrorBCflag = 1;
-    spikingFlag = 0;
-    writeNonspikingActivity = 1;
+    writeSparseActivity = 0;
     // GPUAccelerate = false;
 
     InitVType = "ZeroV";
@@ -105,8 +103,7 @@ ANNLayer "Lx2" = {
     marginWidth = 0;
     writeStep = 1.0;
     mirrorBCflag = 1;
-    spikingFlag = 0;
-    writeNonspikingActivity = 1;
+    writeSparseActivity = 0;
     // GPUAccelerate = false;
 
     InitVType = "ZeroV";
@@ -125,8 +122,7 @@ ANNLayer "Lx4" = {
     marginWidth = 0;
     writeStep = 1.0;
     mirrorBCflag = 0;
-    spikingFlag = 0;
-    writeNonspikingActivity = 1;
+    writeSparseActivity = 0;
     // GPUAccelerate = false;
 
     InitVType = "ZeroV";
@@ -146,8 +142,7 @@ ANNLayer "Lx1_2" = {
     marginWidth = 0;
     writeStep = 1.0;
     mirrorBCflag = 0;
-    spikingFlag = 0;
-    writeNonspikingActivity = 1;
+    writeSparseActivity = 0;
     // GPUAccelerate = false;
 
     InitVType = "ZeroV";
@@ -167,8 +162,7 @@ ANNLayer "Lx1_4" = {
     marginWidth = 0;
     writeStep = 1.0;
     mirrorBCflag = 0;
-    spikingFlag = 0;
-    writeNonspikingActivity = 1;
+    writeSparseActivity = 0;
     // GPUAccelerate = false;
 
     InitVType = "ZeroV";
