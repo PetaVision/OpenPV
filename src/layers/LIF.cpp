@@ -310,8 +310,7 @@ int LIF::setParams(PVParams * p)
 
    clayer->params = &lParams;
 
-   writeSparseActivity = (int) p->value(name, "spikingFlag", 1);
-   //assert(spikingFlag == 1);  // spikingFlag only controls whether sparse or non-sparse activity is output to file
+   // writeSparseActivity is already set in HyPerLayer::initialize // writeSparseActivity = (int) p->value(name, "spikingFlag", 1);
 
    lParams.Vrest     = p->value(name, "Vrest", V_REST);
    lParams.Vexc      = p->value(name, "Vexc" , V_EXC);
