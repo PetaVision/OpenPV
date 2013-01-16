@@ -27,8 +27,8 @@ public:
    KernelConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
               const char * filename = NULL, InitWeights *weightInit = NULL);
 
-   virtual float minWeight(int axonId = 0);
-   virtual float maxWeight(int axonId = 0);
+   virtual float minWeight(int arborId = 0);
+   virtual float maxWeight(int arborId = 0);
 
    //virtual int checkNormalizeArbor(PVPatch ** patches, pvdata_t ** dataStart, int numPatches, int arborId);
    virtual int normalizeWeights(PVPatch ** patches, pvdata_t ** dataStart, int numPatches, int arborId);
@@ -55,8 +55,11 @@ public:
    virtual int dataIndexToUnitCellIndex(int dataIndex, int * kx=NULL, int * ny=NULL, int * nf=NULL);
 
 #ifdef USE_SHMGET
-    virtual bool getShmgetOwner(){
-      return shmget_owner;
+    virtual bool getShmgetFlag(){
+      return shmget_flag;
+   };
+    virtual bool getShmgetOwner(int arbor_ID = 0){
+      return shmget_owner[arbor_ID];
    };
 #endif
 
@@ -90,23 +93,23 @@ protected:
    virtual int createArbors();
    virtual int initPlasticityPatches();
    virtual pvdata_t * allocWeights(PVPatch *** patches, int nPatches, int nxPatch,
-         int nyPatch, int nfPatch, int axonId);
+         int nyPatch, int nfPatch, int arborId);
    int initNumDataPatches();
    virtual int initializeUpdateTime(PVParams * params);
    virtual PVPatch *** initializeWeights(PVPatch *** arbors, pvdata_t ** dataStart,
          int numPatches, const char * filename);
 
-   virtual int calc_dW(int axonId);
-   virtual int clear_dW(int axonId);
-   virtual int update_dW(int axonId);
-   virtual int defaultUpdate_dW(int axonId);
+   virtual int calc_dW(int arborId);
+   virtual int clear_dW(int arborId);
+   virtual int update_dW(int arborId);
+   virtual int defaultUpdate_dW(int arborId);
    virtual pvdata_t updateRule_dW(pvdata_t pre, pvdata_t post);
 
    virtual int updateState(double time, double dt);
-   virtual int updateWeights(int axonId);
+   virtual int updateWeights(int arborId);
    virtual float computeNewWeightUpdateTime(double time, double currentUpdateTime);
 #ifdef PV_USE_MPI
-   virtual int reduceKernels(int axonID);
+   virtual int reduceKernels(int arborID);
 #endif // PV_USE_MPI
 //   virtual PVPatch ** readWeights(PVPatch ** patches, int numPatches,
 //                                     const char * filename);

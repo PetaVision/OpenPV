@@ -83,7 +83,7 @@ int KernelConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
 
 #ifdef PV_USE_MPI
    // preallocate buffer for MPI_Allreduce call in reduceKernels
-   //int axonID = 0; // for now, only one axonal arbor
+   //int arborID = 0; // for now, only one axonal arbor
    const int numPatches = getNumDataPatches();
    const size_t patchSize = nxp*nyp*nfp*sizeof(pvdata_t);
    const size_t localSize = numPatches * patchSize;
@@ -109,6 +109,8 @@ int KernelConn::createArbors() {
 #ifdef USE_SHMGET
    shmget_id = (int *) calloc(this->numberOfAxonalArborLists(), sizeof(int));
    assert(shmget_id != NULL);
+   shmget_owner = (bool *) calloc(this->numberOfAxonalArborLists(), sizeof(bool));
+   assert(shmget_owner != NULL);
 #endif
    HyPerConn::createArbors();
    return PV_SUCCESS; //should we check if allocation was successful?
@@ -138,9 +140,8 @@ int KernelConn::initializeUpdateTime(PVParams * params) {
 
 // use shmget() to save memory on shared memory architectures
 pvdata_t * KernelConn::allocWeights(PVPatch *** patches, int nPatches, int nxPatch,
-      int nyPatch, int nfPatch, int axonId)
+      int nyPatch, int nfPatch, int arbor_ID)
 {
-   // pvdata_t * dataPatches = pvpatches_new(patches[axonId], nxPatch, nyPatch, nfPatch, nPatches);
    int sx = nfPatch;
    int sy = sx * nxPatch;
    int sp = sy * nyPatch;
@@ -151,41 +152,59 @@ pvdata_t * KernelConn::allocWeights(PVPatch *** patches, int nPatches, int nxPat
    pvdata_t * dataPatches = NULL; // (pvdata_t *) calloc(dataSize, sizeof(char));
 #ifdef USE_SHMGET
 
-
    if (!getShmgetFlag()) {
       dataPatches = (pvdata_t *) calloc(dataSize, sizeof(char));
       shmget_flag = false;
-      shmget_owner = true;
+      shmget_owner[arbor_ID] = true;
    }
    else {
-      shmget_owner = true;
-      size_t shmget_dataSize = ceil(dataSize / PAGE_SIZE) * PAGE_SIZE;
+      shmget_owner[arbor_ID] = true;
+      // shmget diagnostics
+#define SHMGET_DEBUG
+#ifdef SHMGET_DEBUG
+      int rank_tmp = parent->icCommunicator()->commRank();
+      if (arbor_ID % 100 == 0){
+         std::cout << "rank = " << rank_tmp;
+         std::cout << ", arbor_ID = " << arbor_ID;
+         //std::cout << ", shmget_owner = " << shmget_owner[arbor_ID];
+      }
+#endif // SHMGET_DEBUG
+      size_t shmget_dataSize = (floor(dataSize / PAGE_SIZE) + 1)* PAGE_SIZE;
       shmget_flag = true;
       key_t key;
-      key = 11 + this->getConnectionId() + 1024 * axonId; //hopefully unique key identifier for all shared memory associated with this connection arbor
-      int shmget_flag = (IPC_CREAT | IPC_EXCL | 0666);
+      int max_arbors = 8712;
+      key = 11 + this->getConnectionId() * max_arbors  + arbor_ID; //hopefully unique key identifier for all shared memory associated with this connection arbor
+      int shmget_flag2 = (IPC_CREAT | IPC_EXCL | 0666);
       char *segptr;
 
       /* Open the shared memory segment - create if necessary */
       // dataSize must be a multiple of PAGE_SIZE
       // note: shm_open may be a better option
-      if ((shmget_id[axonId] = shmget(key, shmget_dataSize, shmget_flag)) == -1){
-         if (errno != EEXIST){
-            perror("shmget");
-            exit(1);
-         }
-         /* Segment already exists - try as a client */
-         shmget_owner = false;
-         int shmget_flag2 = (IPC_CREAT | 0666);
-         if ((shmget_id[axonId] = shmget(key, shmget_dataSize, shmget_flag2)) == -1){
-            perror("shmget");
-            exit(1);
-         }
+      if ((shmget_id[arbor_ID] = shmget(key, shmget_dataSize, shmget_flag2)) == -1){
+	if (errno != EEXIST){
+            std::cout << std::endl;
+            std::cout << "key = " << key << ", shmget_dataSize = " << shmget_dataSize
+                  << ", shmget_flag2 = " << shmget_flag2 << std::endl;
+	  perror("shmget: unable to create shared memory segment");
+	  exit(1);
+	}
+	/* Segment already exists - try as a client */
+	shmget_owner[arbor_ID] = false;
+	int shmget_flag2 = (IPC_CREAT | 0666);
+	if ((shmget_id[arbor_ID] = shmget(key, shmget_dataSize, shmget_flag2)) == -1){
+	  perror("shmget: unable to obtain id of existing shared memory segment");
+	  exit(1);
+	}
       }
+#ifdef SHMGET_DEBUG
+      if (arbor_ID % 100 == 0){
+         std::cout << ", shmget_owner = " << shmget_owner[arbor_ID] << std::endl;
+      }
+#endif // SHMGET_DEBUG
 
       /* Attach (map) the shared memory segment into the current process */
-      if ((segptr = (char *) shmat(shmget_id[axonId], 0, 0)) == (char *) -1) {
-         perror("shmat");
+      if ((segptr = (char *) shmat(shmget_id[arbor_ID], 0, 0)) == (char *) -1) {
+         perror("shmat: unable to map shared memory segment");
          exit(1);
       }
       dataPatches = (pvdata_t *) segptr;
@@ -265,19 +284,19 @@ float KernelConn::maxWeight(int arborId)
    return max_weight;
 }
 
-int KernelConn::calc_dW(int axonId){
-   clear_dW(axonId);
-   update_dW(axonId);
+int KernelConn::calc_dW(int arbor_ID){
+   clear_dW(arbor_ID);
+   update_dW(arbor_ID);
    return PV_BREAK;
 }
 
-int KernelConn::clear_dW(int axonId) {
+int KernelConn::clear_dW(int arbor_ID) {
    // zero dwDataStart
-   for(int kAxon = 0; kAxon < numberOfAxonalArborLists(); kAxon++){
+   for(int kArbor = 0; kArbor < numberOfAxonalArborLists(); kArbor++){
       for(int kKernel = 0; kKernel < getNumDataPatches(); kKernel++){
          int syPatch = syp;
          int nkPatch = nfp * nxp;
-         float * dWeights = get_dwDataHead(axonId,kKernel);
+         float * dWeights = get_dwDataHead(arbor_ID,kKernel);
          for(int kyPatch = 0; kyPatch < nyp; kyPatch++){
             for(int kPatch = 0; kPatch < nkPatch; kPatch++){
                dWeights[kPatch] = 0.0f;
@@ -289,31 +308,31 @@ int KernelConn::clear_dW(int axonId) {
    return PV_BREAK;
    //return PV_SUCCESS;
 }
-int KernelConn::update_dW(int axonId) {
-   // Typically override this method with a call to defaultUpdate_dW(axonId)
+int KernelConn::update_dW(int arbor_ID) {
+   // Typically override this method with a call to defaultUpdate_dW(arbor_ID)
    return PV_BREAK;
    //return PV_SUCCESS;
 }
 
-int KernelConn::defaultUpdate_dW(int axonId) {
+int KernelConn::defaultUpdate_dW(int arbor_ID) {
    // compute dW but don't add them to the weights yet.
    // That takes place in reduceKernels, so that the output is
    // independent of the number of processors.
    int nExt = preSynapticLayer()->getNumExtended();
    int numKernelIndices = getNumDataPatches();
-   const pvdata_t * preactbuf = preSynapticLayer()->getLayerData(getDelay(axonId));
-   const pvdata_t * postactbuf = postSynapticLayer()->getLayerData(getDelay(axonId));
+   const pvdata_t * preactbuf = preSynapticLayer()->getLayerData(getDelay(arbor_ID));
+   const pvdata_t * postactbuf = postSynapticLayer()->getLayerData(getDelay(arbor_ID));
 
    int sya = (post->getLayerLoc()->nf * (post->getLayerLoc()->nx + 2*post->getLayerLoc()->nb));
 
    for(int kExt=0; kExt<nExt;kExt++) {
-      PVPatch * weights = getWeights(kExt,axonId);
-      size_t offset = getAPostOffset(kExt, axonId);
+      PVPatch * weights = getWeights(kExt,arbor_ID);
+      size_t offset = getAPostOffset(kExt, arbor_ID);
       pvdata_t preact = preactbuf[kExt];
       int ny = weights->ny;
       int nk = weights->nx * nfp;
       const pvdata_t * postactRef = &postactbuf[offset];
-      pvdata_t * dwdata = get_dwData(axonId, kExt);
+      pvdata_t * dwdata = get_dwData(arbor_ID, kExt);
       int lineoffsetw = 0;
       int lineoffseta = 0;
       for( int y=0; y<ny; y++ ) {
@@ -330,7 +349,7 @@ int KernelConn::defaultUpdate_dW(int axonId) {
    assert( divisor*numKernelIndices == pre->getNumNeurons() );
    for( int kernelindex=0; kernelindex<numKernelIndices; kernelindex++ ) {
       int numpatchitems = nxp*nyp*nfp;
-      pvdata_t * dwpatchdata = get_dwDataHead(axonId,kernelindex);
+      pvdata_t * dwpatchdata = get_dwDataHead(arbor_ID,kernelindex);
       for( int n=0; n<numpatchitems; n++ ) {
          dwpatchdata[n] /= divisor;
       }
@@ -353,8 +372,8 @@ int KernelConn::updateState(double timef, double dt) {
    update_timer->start();
    if( timef >= weightUpdateTime) {
       computeNewWeightUpdateTime(timef, weightUpdateTime);
-      for(int axonID=0;axonID<numberOfAxonalArborLists();axonID++) {
-         status = calc_dW(axonID);  // calculate changes in weights
+      for(int arborID=0;arborID<numberOfAxonalArborLists();arborID++) {
+         status = calc_dW(arborID);  // calculate changes in weights
          if (status == PV_BREAK) {break;}
          assert(status == PV_SUCCESS);
       }
@@ -362,8 +381,8 @@ int KernelConn::updateState(double timef, double dt) {
 #ifdef PV_USE_MPI
       if (keepKernelsSynchronized_flag
             || parent->simulationTime() >= parent->getStopTime()-parent->getDeltaTime()) {
-         for (int axonID = 0; axonID < numberOfAxonalArborLists(); axonID++) {
-            status = reduceKernels(axonID); // combine partial changes in each column
+         for (int arborID = 0; arborID < numberOfAxonalArborLists(); arborID++) {
+            status = reduceKernels(arborID); // combine partial changes in each column
             if (status == PV_BREAK) {
                break;
             }
@@ -372,14 +391,14 @@ int KernelConn::updateState(double timef, double dt) {
       }
 #endif // PV_USE_MPI
 
-      for(int axonID=0;axonID<numberOfAxonalArborLists();axonID++) {
-         status = updateWeights(axonID);  // calculate new weights from changes
+      for(int arborID=0;arborID<numberOfAxonalArborLists();arborID++) {
+         status = updateWeights(arborID);  // calculate new weights from changes
          if (status == PV_BREAK) {break;}
          assert(status == PV_SUCCESS);
       }
       if( normalize_flag ) {
-         for(int axonID=0;axonID<numberOfAxonalArborLists();axonID++) {
-            status = normalizeWeights(NULL, this->get_wDataStart(), getNumDataPatches(), axonID);
+         for(int arborID=0;arborID<numberOfAxonalArborLists();arborID++) {
+            status = normalizeWeights(NULL, this->get_wDataStart(), getNumDataPatches(), arborID);
             if (status == PV_BREAK) {break;}
             assert(status == PV_SUCCESS);
          }
@@ -390,22 +409,22 @@ update_timer->stop();
 return PV_SUCCESS;
 } // updateState
 
-int KernelConn::updateWeights(int axonId){
+int KernelConn::updateWeights(int arbor_ID){
    lastUpdateTime = parent->simulationTime();
    // add dw to w
 #ifdef USE_SHMGET
-   if (shmget_flag && !shmget_owner){
+   if (shmget_flag && !shmget_owner[arbor_ID]){
          return PV_BREAK;
       }
 #endif
-   for(int kAxon = 0; kAxon < this->numberOfAxonalArborLists(); kAxon++){
+   for(int kArbor = 0; kArbor < this->numberOfAxonalArborLists(); kArbor++){
 #ifdef USE_SHMGET
-      volatile pvdata_t * w_data_start = get_wDataStart(kAxon);
+      volatile pvdata_t * w_data_start = get_wDataStart(kArbor);
 #else
-      pvdata_t * w_data_start = get_wDataStart(kAxon);
+      pvdata_t * w_data_start = get_wDataStart(kArbor);
 #endif
       for( int k=0; k<nxp*nyp*nfp*getNumDataPatches(); k++ ) {
-         w_data_start[k] += get_dwDataStart(kAxon)[k];
+         w_data_start[k] += get_dwDataStart(kArbor)[k];
       }
    }
    return PV_BREAK;
@@ -418,7 +437,7 @@ float KernelConn::computeNewWeightUpdateTime(double time, double currentUpdateTi
 }
 
 #ifdef PV_USE_MPI
-int KernelConn::reduceKernels(const int axonID) {
+int KernelConn::reduceKernels(const int arborID) {
    Communicator * comm = parent->icCommunicator();
    const MPI_Comm mpi_comm = comm->communicator();
    int ierr;
@@ -435,7 +454,7 @@ int KernelConn::reduceKernels(const int axonID) {
    // Copy this column's weights into mpiReductionBuffer
    int idx = 0;
    for (int k = 0; k < numPatches; k++) {
-      const pvdata_t * data = get_dwDataHead(axonID,k);
+      const pvdata_t * data = get_dwDataHead(arborID,k);
 
       for (int y = 0; y < nyp; y++) {
          for (int x = 0; x < nxp; x++) {
@@ -456,7 +475,7 @@ int KernelConn::reduceKernels(const int axonID) {
    // Divide by number of processes to get average and copy back to patches
    idx = 0;
    for (int k = 0; k < numPatches; k++) {
-      pvdata_t * data = get_dwDataHead(axonID,k); // p->data;
+      pvdata_t * data = get_dwDataHead(arborID,k); // p->data;
 
       for (int y = 0; y < nyp; y++) {
          for (int x = 0; x < nxp; x++) {
@@ -634,8 +653,8 @@ int KernelConn::checkpointWrite(const char * cpDir) {
    assert(status==PV_SUCCESS);
 #ifdef PV_USE_MPI
    if (!keepKernelsSynchronized_flag) {
-      for (int axon_id = 0; axon_id < this->numberOfAxonalArborLists(); axon_id++) {
-         reduceKernels(axon_id);
+      for (int arbor_id = 0; arbor_id < this->numberOfAxonalArborLists(); arbor_id++) {
+         reduceKernels(arbor_id);
       }
    }
 #endif // PV_USE_MPI

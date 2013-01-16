@@ -62,7 +62,7 @@ public:
    virtual int insertProbe(BaseConnectionProbe* p);
    virtual int outputState(double time, bool last = false);
    virtual int updateState(double time, double dt);
-   virtual int updateWeights(int axonId = 0);
+   virtual int updateWeights(int arborId = 0);
    virtual int writeWeights(double time, bool last = false);
    virtual int writeWeights(const char* filename);
    virtual int writeWeights(PVPatch*** patches, float** dataStart,
@@ -108,7 +108,7 @@ public:
       return weightInitializer;
    }
 
-   void setDelay(int axonId, float delay);
+   void setDelay(int arborId, float delay);
 
    inline int getDelay(int arborId = 0) {
       assert(arborId >= 0 && arborId < numAxonalArborLists);
@@ -301,7 +301,7 @@ public:
    static int decodeChannel(int channel_code, ChannelType * channel_type);
 
 #ifdef USE_SHMGET
-    virtual bool getShmgetOwner(){
+    virtual bool getShmgetOwner(int arbor_ID = 0){
       return true;
    };
     virtual bool getShmgetFlag(){
@@ -319,7 +319,7 @@ protected:
    //these were moved to private to ensure use of get/set methods and made in 3D pointers:
    //PVPatch       ** wPatches[MAX_ARBOR_LIST]; // list of weight patches, one set per neighbor
 #ifdef USE_SHMGET
-   bool shmget_owner;
+   bool *shmget_owner;
    int *shmget_id;
    bool shmget_flag;
 #endif
@@ -469,10 +469,10 @@ protected:
    virtual InitWeights* getDefaultInitWeightsMethod(const char* keyword);
    virtual InitWeights* handleMissingInitWeights(PVParams* params);
    virtual float* createWeights(PVPatch*** patches, int nWeightPatches, int nDataPatches, int nxPatch,
-         int nyPatch, int nfPatch, int axonId);
-   float* createWeights(PVPatch*** patches, int axonId);
-   virtual float* allocWeights(PVPatch*** patches, int nPatches, int nxPatch,
-         int nyPatch, int nfPatch, int axonId);
+         int nyPatch, int nfPatch, int arborId);
+   float* createWeights(PVPatch*** patches, int arborId);
+   virtual pvdata_t * allocWeights(PVPatch *** patches, int nPatches, int nxPatch,
+         int nyPatch, int nfPatch, int arborId);
    //PVPatch ** allocWeights(PVPatch ** patches);
    int clearWeights(float** dataStart, int numPatches, int nx, int ny, int nf);
    virtual int initNormalize();
@@ -484,7 +484,7 @@ protected:
    int checkpointFilename(char * cpFilename, int size, const char * cpDir);
    int writeScalarFloat(const char * cp_dir, const char * val_name, double val);
 
-   virtual int calc_dW(int axonId = 0);
+   virtual int calc_dW(int arborId = 0);
    void connOutOfMemory(const char* funcname);
 
    //this method setups up GPU stuff...

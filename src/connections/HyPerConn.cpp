@@ -1390,17 +1390,17 @@ int HyPerConn::updateState(double time, double dt)
    }
    update_timer->start();
 
-   //const int axonId = 0;       // assume only one for now
-   for(int axonId=0;axonId<numberOfAxonalArborLists();axonId++) {
-      status = calc_dW(axonId);        // Calculate changes in weights
+   //const int arborId = 0;       // assume only one for now
+   for(int arborId=0;arborId<numberOfAxonalArborLists();arborId++) {
+      status = calc_dW(arborId);        // Calculate changes in weights
       // TODO error handling
-      status = updateWeights(axonId);  // Apply changes in weights
+      status = updateWeights(arborId);  // Apply changes in weights
    }
    update_timer->stop();
    return status;
 }
 
-int HyPerConn::calc_dW(int axonId) {
+int HyPerConn::calc_dW(int arborId) {
    return PV_SUCCESS;
 }
 
@@ -1408,7 +1408,7 @@ int HyPerConn::calc_dW(int axonId) {
 /* M (m or pDecr->data) is an extended post-layer variable
  *
  */
-int HyPerConn::updateWeights(int axonId)
+int HyPerConn::updateWeights(int arborId)
 {
    return 0;
 }
@@ -1436,33 +1436,33 @@ PVPatch * HyPerConn::getWeights(int k, int arbor)
 }
 
 pvdata_t * HyPerConn::createWeights(PVPatch *** patches, int nWeightPatches, int nDataPatches, int nxPatch,
-      int nyPatch, int nfPatch, int axonId)
+      int nyPatch, int nfPatch, int arborId)
 {
    // could create only a single patch with following call
    //   return createPatches(numAxonalArborLists, nxp, nyp, nfp);
 
    //assert(numAxonalArborLists == 1);
-   assert(patches[axonId] == NULL);
+   assert(patches[arborId] == NULL);
 
    //patches = (PVPatch**) calloc(sizeof(PVPatch*), nPatches);
-   //patches[axonId] = (PVPatch**) calloc(nPatches, sizeof(PVPatch*));
-   if (shrinkPatches_flag || axonId == 0){
-      patches[axonId] = createPatches(nWeightPatches, nxPatch, nyPatch);
-      assert(patches[axonId] != NULL);
+   //patches[arborId] = (PVPatch**) calloc(nPatches, sizeof(PVPatch*));
+   if (shrinkPatches_flag || arborId == 0){
+      patches[arborId] = createPatches(nWeightPatches, nxPatch, nyPatch);
+      assert(patches[arborId] != NULL);
    }
    else{
-      patches[axonId] = patches[0];
+      patches[arborId] = patches[0];
    }
 
    // allocate space for all weights at once (inplace), return pointer to beginning of weight array
-   pvdata_t * data_patches = allocWeights(patches, nDataPatches, nxPatch, nyPatch, nfPatch, axonId);
+   pvdata_t * data_patches = allocWeights(patches, nDataPatches, nxPatch, nyPatch, nfPatch, arborId);
    return data_patches;
 }
 
 /**
  * Create a separate patch of weights for every neuron
  */
-pvdata_t * HyPerConn::createWeights(PVPatch *** patches, int axonId)
+pvdata_t * HyPerConn::createWeights(PVPatch *** patches, int arborId)
 {
    int nWeightPatches = getNumWeightPatches();
    int nDataPatches = getNumDataPatches();
@@ -1470,7 +1470,7 @@ pvdata_t * HyPerConn::createWeights(PVPatch *** patches, int axonId)
    int nyPatch = nyp;
    int nfPatch = nfp;
 
-   pvdata_t * data_patches = createWeights(patches, nWeightPatches, nDataPatches, nxPatch, nyPatch, nfPatch, axonId);
+   pvdata_t * data_patches = createWeights(patches, nWeightPatches, nDataPatches, nxPatch, nyPatch, nfPatch, arborId);
    return data_patches;
 }
 
@@ -1516,7 +1516,7 @@ int HyPerConn::deleteWeights()
       }
       else {
          int shmget_status = shmdt(this->get_wDataStart(arbor));
-         if (shmget_owner) {
+         if (shmget_owner[arbor]) {
             shmid_ds * shmget_ds = NULL;
             shmget_status = shmctl(shmget_id[arbor], IPC_RMID, shmget_ds);
          }
@@ -1548,6 +1548,7 @@ int HyPerConn::deleteWeights()
 #ifdef USE_SHMGET
    if (shmget_flag) {
       free(shmget_id);
+      free(shmget_owner);
    }
 #endif
    free(wPatches);
@@ -1562,18 +1563,18 @@ int HyPerConn::deleteWeights()
    dwDataStart = NULL;
 
    if (wPostPatches != NULL) {
-      for(int axonID=0;axonID<numberOfAxonalArborLists();axonID++) {
-         if (wPostPatches[axonID] != NULL) {
-            if (shrinkPatches_flag || axonID == 0){
-               deletePatches(wPostPatches[axonID]);
+      for(int arborID=0;arborID<numberOfAxonalArborLists();arborID++) {
+         if (wPostPatches[arborID] != NULL) {
+            if (shrinkPatches_flag || arborID == 0){
+               deletePatches(wPostPatches[arborID]);
             }
-            //pvpatch_inplace_delete(wPostPatches[axonID][k]); Not used anymore
-            wPostPatches[axonID] = NULL;
+            //pvpatch_inplace_delete(wPostPatches[arborID][k]); Not used anymore
+            wPostPatches[arborID] = NULL;
          }
 
          if (wPostDataStart != NULL) {
-            free(this->wPostDataStart[axonID]);
-            this->wPostDataStart[axonID] = NULL;
+            free(this->wPostDataStart[arborID]);
+            this->wPostDataStart[arborID] = NULL;
          }
       }
       free(wPostPatches);
@@ -1603,7 +1604,7 @@ int HyPerConn::deleteWeights()
  *
  * REMARKS:
  *      - numArbors = (nxPre + 2*prePad)*(nyPre+2*prePad) = nxexPre * nyexPre
- *      This is the total number of weight patches for a given axon.
+ *      This is the total number of weight patches for a given arbor.
  *      Is the number of pre-synaptic neurons including margins.
  *      - activity and STDP M variable are extended into margins
  *      .
@@ -1686,13 +1687,13 @@ PVPatch *** HyPerConn::convertPreSynapticWeights(double time)
       assert(wPostDataStart == NULL);
       wPostDataStart = (pvdata_t **) calloc(numAxonalArborLists, sizeof(pvdata_t *));
       assert(wPostDataStart!=NULL);
-      for(int axonID=0;axonID<numberOfAxonalArborLists();axonID++) {
-         wPostDataStart[axonID] = createWeights(wPostPatches, numPost, numPost, nxpPost, nypPost, nfpPost, axonID);
+      for(int arborID=0;arborID<numberOfAxonalArborLists();arborID++) {
+         wPostDataStart[arborID] = createWeights(wPostPatches, numPost, numPost, nxpPost, nypPost, nfpPost, arborID);
       }
    }
 
    //loop through all axons:
-   for(int axonID=0;axonID<numberOfAxonalArborLists();axonID++) {
+   for(int arborID=0;arborID<numberOfAxonalArborLists();arborID++) {
 
       // loop through post-synaptic neurons (non-extended indices)
 
@@ -1714,7 +1715,7 @@ PVPatch *** HyPerConn::convertPreSynapticWeights(double time)
    //      int xShift = (ax - 1) - (kxPost + (int) (0.5f * ax)) % ax;
    //      int yShift = (ay - 1) - (kyPost + (int) (0.5f * ay)) % ay;
 
-         pvdata_t * postData = wPostDataStart[axonID] + nxpPost*nypPost*nfpPost*kPost + wPostPatches[axonID][kPost]->offset;
+         pvdata_t * postData = wPostDataStart[arborID] + nxpPost*nypPost*nfpPost*kPost + wPostPatches[arborID][kPost]->offset;
          for (int kp = 0; kp < numPostPatch; kp++) {
 
             // calculate extended indices of presynaptic neuron {kPre, kzPre}
@@ -1730,11 +1731,11 @@ PVPatch *** HyPerConn::convertPreSynapticWeights(double time)
             // if {kPre, kzPre} out of bounds, set post weight to zero
             if (kxPre < 0 || kyPre < 0 || kxPre >= nxPre || kyPre >= nyPre) {
                assert(kxPre < 0 || kyPre < 0 || kxPre >= nxPre || kyPre >= nyPre);
-               postData[kp] = 0.0; // wPostPatches[axonID][kPost]->data[kp] = 0.0;
+               postData[kp] = 0.0; // wPostPatches[arborID][kPost]->data[kp] = 0.0;
             }
             else {
                //int arbor = 0;
-               //PVPatch * p = wPatches[axonID][kPre];
+               //PVPatch * p = wPatches[arborID][kPre];
                //PVPatch * p = c->getWeights(kPre, arbor);
 
                //const int nfp = p->nf;
@@ -1779,9 +1780,9 @@ PVPatch *** HyPerConn::convertPreSynapticWeights(double time)
                kxPrePatch = kxPost - kxPostHead;
                kyPrePatch = kyPost - kyPostHead;
                int kPrePatch = kfPost * sfp + kxPrePatch * sxp + kyPrePatch * syp;
-               pvdata_t * preData = get_wDataStart(axonID) + nxp*nyp*nfp*kPre + getWeights(kPre,axonID)->offset;
+               pvdata_t * preData = get_wDataStart(arborID) + nxp*nyp*nfp*kPre + getWeights(kPre,arborID)->offset;
                postData[kp] = preData[kPrePatch];
-               // wPostPatches[axonID][kPost]->data[kp] = preData[kPrePatch];
+               // wPostPatches[arborID][kPost]->data[kp] = preData[kPrePatch];
 
             }
          }
@@ -1836,9 +1837,9 @@ PVPatch *** HyPerConn::convertPreSynapticWeights(double time)
 //      wPostDataStartp = (pvdata_t ***) calloc(numAxonalArborLists, sizeof(pvdata_t **));
 //      assert(wPostDataStartp!=NULL);
 //
-//      for(int axonID=0;axonID<numberOfAxonalArborLists();axonID++) {
+//      for(int arborID=0;arborID<numberOfAxonalArborLists();arborID++) {
 //
-//         wPostPatchesp[axonID] = (PVPatch***) calloc(numPost, sizeof(PVPatch**));
+//         wPostPatchesp[arborID] = (PVPatch***) calloc(numPost, sizeof(PVPatch**));
 //
 //         int sx = nfpPost;
 //         int sy = sx * nxpPost;
@@ -1847,16 +1848,16 @@ PVPatch *** HyPerConn::convertPreSynapticWeights(double time)
 //         size_t patchSize = sp * sizeof(pvdata_t);
 //         size_t dataSize = numPost * patchSize;
 //
-//         wPostDataStartp[axonID] = (pvdata_t **) calloc(dataSize, sizeof(char*));
+//         wPostDataStartp[arborID] = (pvdata_t **) calloc(dataSize, sizeof(char*));
 //
 //
 //         PVPatch** patcharray = (PVPatch**) (calloc(numPost, sizeof(PVPatch*)));
 //         PVPatch ** curpatch = patcharray;
 //         for (int i = 0; i < numPost; i++) {
-//            wPostPatchesp[axonID][i] = curpatch;
+//            wPostPatchesp[arborID][i] = curpatch;
 //            curpatch++;
 //         }
-//        //createWeights(wPostPatches, numPost, nxpPost, nypPost, nfpPost, axonID);
+//        //createWeights(wPostPatches, numPost, nxpPost, nypPost, nfpPost, arborID);
 //      }
 //   }
 //
@@ -1908,9 +1909,9 @@ PVPatch **** HyPerConn::point2PreSynapticWeights()
       wPostDataStartp = (pvdata_t ***) calloc(numAxonalArborLists, sizeof(pvdata_t **));
       assert(wPostDataStartp!=NULL);
 
-      for(int axonID=0;axonID<numberOfAxonalArborLists();axonID++) {
+      for(int arborID=0;arborID<numberOfAxonalArborLists();arborID++) {
 
-         wPostPatchesp[axonID] = (PVPatch***) calloc(numPost, sizeof(PVPatch**));
+         wPostPatchesp[arborID] = (PVPatch***) calloc(numPost, sizeof(PVPatch**));
 
          int sx = nfpPost;
          int sy = sx * nxpPost;
@@ -1919,21 +1920,21 @@ PVPatch **** HyPerConn::point2PreSynapticWeights()
          size_t patchSize = sp * sizeof(pvdata_t);
          size_t dataSize = numPost * patchSize;
 
-         wPostDataStartp[axonID] = (pvdata_t **) calloc(dataSize, sizeof(char*));
+         wPostDataStartp[arborID] = (pvdata_t **) calloc(dataSize, sizeof(char*));
 
 
          PVPatch** patcharray = (PVPatch**) (calloc(numPost, sizeof(PVPatch*)));
          PVPatch ** curpatch = patcharray;
          for (int i = 0; i < numPost; i++) {
-            wPostPatchesp[axonID][i] = curpatch;
+            wPostPatchesp[arborID][i] = curpatch;
             curpatch++;
          }
-        //createWeights(wPostPatches, numPost, nxpPost, nypPost, nfpPost, axonID);
+        //createWeights(wPostPatches, numPost, nxpPost, nypPost, nfpPost, arborID);
       }
    }
 
-   //loop through all axons:
-   for(int axonID=0;axonID<numberOfAxonalArborLists();axonID++) {
+   //loop through all arbors:
+   for(int arborID=0;arborID<numberOfAxonalArborLists();arborID++) {
 
       // loop through post-synaptic neurons (non-extended indices)
       for (int kPost = 0; kPost < numPost; kPost++) {
@@ -1955,7 +1956,7 @@ PVPatch **** HyPerConn::point2PreSynapticWeights()
    //      int yShift = (ay - 1) - (kyPost + (int) (0.5f * ay)) % ay;
 
          //Accessing by patch offset through wPostDataStart by x,y,and feature of a patch
-         pvdata_t ** postData = wPostDataStartp[axonID] + nxpPost*nypPost*nfpPost*kPost + 0;
+         pvdata_t ** postData = wPostDataStartp[arborID] + nxpPost*nypPost*nfpPost*kPost + 0;
          for (int kp = 0; kp < numPostPatch; kp++) {
 
             // calculate extended indices of presynaptic neuron {kPre, kzPre}
@@ -1971,11 +1972,11 @@ PVPatch **** HyPerConn::point2PreSynapticWeights()
             // if {kPre, kzPre} out of bounds, set post weight to zero
             if (kxPre < 0 || kyPre < 0 || kxPre >= nxPre || kyPre >= nyPre) {
                assert(kxPre < 0 || kyPre < 0 || kxPre >= nxPre || kyPre >= nyPre);
-               postData[kp] = &z; // wPostPatches[axonID][kPost]->data[kp] = 0.0;
+               postData[kp] = &z; // wPostPatches[arborID][kPost]->data[kp] = 0.0;
             }
             else {
                //int arbor = 0;
-               //PVPatch * p = wPatches[axonID][kPre];
+               //PVPatch * p = wPatches[arborID][kPre];
                //PVPatch * p = c->getWeights(kPre, arbor);
 
                //const int nfp = p->nf;
@@ -2020,9 +2021,9 @@ PVPatch **** HyPerConn::point2PreSynapticWeights()
                kxPrePatch = kxPost - kxPostHead;
                kyPrePatch = kyPost - kyPostHead;
                int kPrePatch = kfPost * sfp + kxPrePatch * sxp + kyPrePatch * syp;
-               pvdata_t * preData = get_wDataStart(axonID) + nxp*nyp*nfp*kPre + getWeights(kPre,axonID)->offset;
+               pvdata_t * preData = get_wDataStart(arborID) + nxp*nyp*nfp*kPre + getWeights(kPre,arborID)->offset;
                postData[kp] = &(preData[kPrePatch]);
-               // wPostPatches[axonID][kPost]->data[kp] = preData[kPrePatch];
+               // wPostPatches[arborID][kPost]->data[kp] = preData[kPrePatch];
 
             }
          }
@@ -2487,7 +2488,7 @@ int HyPerConn::normalizeWeights(PVPatch ** patches, pvdata_t ** dataStart, int n
 } // normalizeWeights
 
 
-int HyPerConn::calcPatchSize(int axon_index, int kex,
+int HyPerConn::calcPatchSize(int arbor_index, int kex,
                              int * kl_out, int * offset_out,
                              int * nxPatch_out, int * nyPatch_out,
                              int * dx_out, int * dy_out)
@@ -2732,75 +2733,20 @@ int HyPerConn::setPatchStrides() {
 }
 
 pvdata_t * HyPerConn::allocWeights(PVPatch *** patches, int nPatches, int nxPatch,
-      int nyPatch, int nfPatch, int axonId)
+      int nyPatch, int nfPatch, int arborId)
 {
-   // pvdata_t * dataPatches = pvpatches_new(patches[axonId], nxPatch, nyPatch, nfPatch, nPatches);
    int sx = nfPatch;
    int sy = sx * nxPatch;
    int sp = sy * nyPatch;
 
    size_t patchSize = sp * sizeof(pvdata_t);
    size_t dataSize = nPatches * patchSize;
-/*
-   if ((dataSize > PAGE_SIZE) && use_shmget_flag){
-      use_shmget_flag = true;
-   }
-   else{
-      use_shmget_flag = false;
-   }
-*/
    pvdata_t * dataPatches = NULL;
-#ifndef USE_SHMGET
    dataPatches = (pvdata_t *) calloc(dataSize, sizeof(char));
-   //use_shmget_flag = false;
-#else
-   if (!shmget_flag) {
-      dataPatches = (pvdata_t *) calloc(dataSize, sizeof(char));
-   }
-   else {
-      size_t shmget_dataSize = ceil(dataSize / PAGE_SIZE) * PAGE_SIZE;
-      dataPatches = NULL; // (pvdata_t *) calloc(dataSize, sizeof(char));
-      key_t key;
-      char *segptr;
-
-      key = this->getConnectionId(); //unique key identifier for this connection
-
-      /* Open the shared memory segment - HyPerConn always creates private copy  */
-      if ((shmget_id[axonId] = shmget(key, shmget_dataSize, IPC_PRIVATE)) == -1) {
-         perror("shmget");
-         exit(1);
-      }
-      shmget_owner = true;
-
-      /* Attach (map) the shared memory segment into the current process */
-      if ((segptr = (char *) shmat(shmget_id[axonId], 0, 0)) == (char *) -1) {
-         perror("shmat");
-         exit(1);
-      }
-      dataPatches = (pvdata_t *) segptr;
-      shmget_flag = false;
-   }
-#endif // USE_SHMGET
    assert(dataPatches != NULL);
-
-   //Assignment to patches[k] is now done in createPatches
-   // for (int k = 0; k < nPatches; k++) {
-   //    patches[k] = pvpatch_new(nx, ny); // patches[k] = pvpatch_inplace_new_sepdata(nx, ny, nf, &dataPatches[k*sp]);
-   // }
-
    return dataPatches;
 }
 
-//PVPatch ** HyPerConn::allocWeights(PVPatch ** patches)
-//{
-//   int arbor = 0;
-//   int nPatches = numWeightPatches();
-//   int nxPatch = nxp;
-//   int nyPatch = nyp;
-//   int nfPatch = nfp;
-//
-//   return allocWeights(patches, nPatches, nxPatch, nyPatch, nfPatch);
-//}
 
 #ifdef OBSOLETE // Marked obsolete Feb. 29, 2012.  There is no kernelIndexToPatchIndex().  There has never been a kernelIndexToPatchIndex().
 // one to many mapping, chose first patch index in restricted space
@@ -2816,21 +2762,6 @@ int HyPerConn::kernelIndexToPatchIndex(int kernelIndex, int * kxPatchIndex,
 int HyPerConn::patchToDataLUT(int patchIndex) {
    return patchIndex;
 }
-// patchIndexToKernelIndex() is deprecated.  Use patchIndexToDataIndex() or dataIndexToUnitCellIndex() instead
-// many to one mapping from weight patches to kernels
-// patchIndex always in extended space
-// kernelIndex always for unit cell
-/*
-int HyPerConn::patchIndexToKernelIndex(int patchIndex, int * kxKernelIndex,
-      int * kyKernelIndex, int * kfKernelIndex)
-{
-   const PVLayerLoc * loc = preSynapticLayer()->getLayerLoc();
-   if(kxKernelIndex) *kxKernelIndex = kxPos(patchIndex,loc->nx+2*loc->nb,loc->ny+2*loc->nb,loc->nf);
-   if(kyKernelIndex) *kyKernelIndex = kyPos(patchIndex,loc->nx+2*loc->nb,loc->ny+2*loc->nb,loc->nf);
-   if(kfKernelIndex) *kfKernelIndex = featureIndex(patchIndex,loc->nx+2*loc->nb,loc->ny+2*loc->nb,loc->nf);
-   return patchIndex;
-}
-*/
 
 int HyPerConn::patchIndexToDataIndex(int patchIndex, int * kx/*default=NULL*/, int * ky/*default=NULL*/, int * kf/*default=NULL*/) {
    const PVLayerLoc * preLoc = pre->getLayerLoc();
