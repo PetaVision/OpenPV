@@ -270,7 +270,7 @@ protected:
    //
 #ifdef PV_USE_OPENCL
 public:
-   int initializeGPU(); //this method setups up GPU stuff...
+   int initializeGPU(); //this method sets up GPU stuff...
    //virtual int getNumCLEvents() {return 0;}
    virtual const char * getKernelName() {return NULL;}
    virtual int getNumKernelArgs() {return numKernelArgs;}
