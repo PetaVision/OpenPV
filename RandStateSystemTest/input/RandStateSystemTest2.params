@@ -1,0 +1,328 @@
+//
+// RandStateSystemTest.params
+//
+// created by peteschultz: Nov 10, 2011
+//
+
+//  A params file for a testing checkpointing the random states for retina and lif layers
+//
+
+debugParsing = false;
+
+HyPerCol "column" = {
+   nx                           = 256;   
+   ny                           = 256;
+   dt                           = 1.0;
+   randomSeed                   = 1020304050;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
+   numSteps                     = 10;
+   progressStep                 = 10;
+   writeProgressToErr           = false;
+   outputPath                   = "output2";
+   filenamesContainLayerNames   = 2;
+   filenamesContainConnectionNames = 2;
+   checkpointRead               = true;
+   checkpointReadDir            = "checkpoints1";
+   checkpointReadDirIndex       = 5;
+   checkpointWrite              = true;
+   checkpointWriteDir           = "checkpoints2";
+   checkpointWriteStepInterval  = 1;
+   deleteOlderCheckpoints       = false;
+   // suppressLastOutput           = false;
+};
+
+//
+// layers
+//
+
+Image "input" = {
+    restart                     = 0;
+    nxScale                     = 1;
+    nyScale                     = 1;
+    imagePath                   = "input/sampleimage.png";
+    nf                          = 1;
+    marginWidth                 = 3;
+    writeStep                   = -1;
+    writeSparseActivity         = false;
+    mirrorBCflag                = false;
+    useImageBCflag              = false;
+    inverseFlag                 = false;
+    normalizeLuminanceFlag      = false;
+    jitterFlag                  = false;
+    writeImages                 = false;
+    offsetX                     = 0;
+    offsetY                     = 0;
+};
+
+Retina "retina on" = {
+    nxScale                     = 1;
+    nyScale                     = 1;
+    nf                          = 1;
+    marginWidth                 = 4;
+    restart                     = false;
+    
+    writeSparseActivity         = true;
+    writeStep                   = -1;
+    mirrorBCflag                = true;
+    spikingFlag                 = true;  // false (no quotes) is translated to 0
+
+    noiseOnFreq                 = 200;   // Hz // Max poisson spiking rate when input is 255
+    noiseOffFreq                = 10;    // Hz // Min poisson spiking rate when input is 0
+
+    burstFreq                   = 50;    // Hz // Everything coming into the retina should be burstin burstFreq times per sec
+    burstDuration               = 20;    // ms // Bursts last burstDuration ms
+
+    beginStim                   = 0;
+    endStim                     = -1;
+    
+    refractoryPeriod            = 0;
+    absRefractoryPeriod         = 0;
+};
+
+Retina "retina off" = {
+    nxScale                     = 1;
+    nyScale                     = 1;
+    nf                          = 1;
+    marginWidth                 = 4;
+    restart                     = false;
+    
+    writeSparseActivity         = true;
+    writeStep                   = -1;
+    mirrorBCflag                = true;
+    spikingFlag                 = true;  // false (no quotes) is translated to 0
+
+    noiseOnFreq                 = 200;   // Hz // Max poisson spiking rate when input is 255
+    noiseOffFreq                = 10;    // Hz // Min poisson spiking rate when input is 0
+
+    burstFreq                   = 50;    // Hz // Everything coming into the retina should be burstin burstFreq times per sec
+    burstDuration               = 20;    // ms // Bursts last burstDuration ms
+
+    beginStim                   = 0;
+    endStim                     = -1;
+    
+    refractoryPeriod            = 0;
+    absRefractoryPeriod         = 0;
+};
+
+LIFGap "lif layer" = {
+    restart                     = 0;
+    nxScale                     = 1;
+    nyScale                     = 1;
+    nf                          = 1;
+    marginWidth                 = 1;
+    writeSparseActivity         = true;
+    writeStep                   = -1.0;
+    mirrorBCflag                = false;
+    
+    InitVType                   = "ConstantV";
+    valueV                      = -70.0;
+    Vrest                       = -70.0;    // adjusted for gap of 0.025   
+    Vexc                        = 0.0;     // reversal potential 
+    Vinh                        = -75.0;   // chloride channel
+    VinhB                       = -90.0;   // potassium reversal
+    tau                         = 15.0;    // intrinsic leak membrane time constant (max)
+    tauE                        = 1.0;     // how long glutamine stays bound
+    tauI                        = 5.0;     // how long GABA stays bound
+    tauIB                       = 10.0;    // inhibitory potassium channel 
+    VthRest                     = -55.0;   // firing threshold
+    tauVth                      = 10.0;    // relative refractory period
+    deltaVth                    = 5.0;     // jump of threshold when firing
+    noiseAmpE                   = 0.5;     // 1 means conductance is equal to lead conductance               <======== no noise  
+    noiseAmpI                   = 0.5;     // "twice as easy for the membrane capacitance to discharge"
+    noiseAmpIB                  = 0.0;     // no noise here 
+    noiseFreqE                  =  0.;     // spontaneous transmitter release/channel openings
+    noiseFreqI                  =  0.;     // correlation to time step size !!!
+    noiseFreqIB                 =   0.;    // should be scaled by the time constant - look at LIF model
+    
+    method                      = "b";
+};
+
+
+KernelConn "center on" = {
+   preLayerName                 = "input";
+   postLayerName                = "retina on";
+   channelCode                  = 0;
+   nxp                          = 1; 
+   nyp                          = 1; 
+   nfp                          = 1;
+   numAxonalArbors              = 1;
+   delay                        = 0;
+   
+   initFromLastFlag             = 0;  
+   writeStep                    = -1;
+   // initialWriteTime             = 1;
+
+   weightInitType               = "Gauss2DWeight";
+   aspect                       = 1;
+   sigma                        = 1;
+   rMin                         = 0;
+   rMax                         = 1;   
+   strength                     = 2.66666666667;
+
+   normalize                    = true;
+   normalizeTotalToPost         = true;
+   normalize_max                = false;
+   normalize_zero_offset        = false;
+   normalize_cutoff             = false;
+   symmetrizeWeights            = false;
+   plasticityFlag               = false;
+   stochasticReleaseFlag        = false;
+   writeCompressedWeights       = true;
+   writeCompressedCheckpoints   = false;
+   selfFlag                     = false;
+   shrinkPatches                = false;
+   preActivityIsNotRate         = false;
+};
+
+KernelConn "surround on" = {
+   preLayerName                 = "input";
+   postLayerName                = "retina on";
+   channelCode                  = 1;
+   nxp                          = 3;
+   nyp                          = 3;
+   nfp                          = 1;
+   numAxonalArbors              = 1;
+   delay                        = 0;
+
+   initFromLastFlag             = 0;
+   writeStep                    = -1;
+
+   weightInitType               = "Gauss2DWeight";
+   aspect                       = 1;
+   sigma                        = 1;
+   rMax                         = 5;
+   rMin                         = 0.1;
+   strength                     = 2.66666666667;
+
+   normalize                    = true;
+   normalizeTotalToPost         = true;
+   normalize_max                = false;
+   normalize_zero_offset        = false;
+   normalize_cutoff             = false;
+   symmetrizeWeights            = false;
+   plasticityFlag               = false;
+   stochasticReleaseFlag        = false;
+   writeCompressedWeights       = true;
+   writeCompressedCheckpoints   = false;
+   selfFlag                     = false;
+   shrinkPatches                = false;
+   preActivityIsNotRate         = false;
+};
+
+KernelConn "center off" = {
+   preLayerName                 = "input";
+   postLayerName                = "retina off";
+   channelCode                  = 1;
+   nxp                          = 1; 
+   nyp                          = 1; 
+   nfp                          = 1;
+   numAxonalArbors              = 1;
+   delay                        = 0;
+   
+   initFromLastFlag             = 0;  
+   writeStep                    = -1;
+   // initialWriteTime             = 1;
+
+   weightInitType               = "Gauss2DWeight";
+   aspect                       = 1;
+   sigma                        = 1;
+   rMin                         = 0;
+   rMax                         = 1;   
+   strength                     = 2.66666666667;
+
+   normalize                    = true;
+   normalizeTotalToPost         = true;
+   normalize_max                = false;
+   normalize_zero_offset        = false;
+   normalize_cutoff             = false;
+   symmetrizeWeights            = false;
+   plasticityFlag               = false;
+   stochasticReleaseFlag        = false;
+   writeCompressedWeights       = true;
+   writeCompressedCheckpoints   = false;
+   selfFlag                     = false;
+   shrinkPatches                = false;
+   preActivityIsNotRate         = false;
+};
+
+KernelConn "surround off" = {
+   preLayerName                 = "input";
+   postLayerName                = "retina off";
+   channelCode                  = 0;
+   nxp                          = 3;
+   nyp                          = 3;
+   nfp                          = 1;
+   numAxonalArbors              = 1;
+   delay                        = 0;
+
+   initFromLastFlag             = 0;
+   writeStep                    = -1;
+
+   weightInitType               = "Gauss2DWeight";
+   aspect                       = 1;
+   sigma                        = 1;
+   rMax                         = 5;
+   rMin                         = 0.1;
+   strength                     = 2.66666666667;
+
+   normalize                    = true;
+   normalizeTotalToPost         = true;
+   normalize_max                = false;
+   normalize_zero_offset        = false;
+   normalize_cutoff             = false;
+   symmetrizeWeights            = false;
+   plasticityFlag               = false;
+   stochasticReleaseFlag        = false;
+   writeCompressedWeights       = true;
+   writeCompressedCheckpoints   = false;
+   selfFlag                     = false;
+   shrinkPatches                = false;
+   preActivityIsNotRate         = false;
+};
+
+KernelConn "retina on to lif layer" = {
+   channelCode                 = 0;
+   nxp                         = 1;
+   nyp                         = 1;
+   nfp                         = 1;
+   numAxonalArbors             = 1;
+   delay                       = 0;
+
+   writeStep                   = -1;
+   initFromLastFlag            = 0;
+
+   weightInitType              = "OneToOneWeights";
+   weightInit                  = 1.0;
+      
+   normalize                   = false;
+   plasticityFlag              = false;
+   stochasticReleaseFlag       = false;
+   writeCompressedWeights      = true;
+   writeCompressedCheckpoints  = false;
+   selfFlag                    = false;
+   shrinkPatches               = false;
+   preActivityIsNotRate        = false;
+};
+
+KernelConn "retina off to lif layer" = {
+   channelCode                 = 0;
+   nxp                         = 1;
+   nyp                         = 1;
+   nfp                         = 1;
+   numAxonalArbors             = 1;
+   delay                       = 0;
+
+   writeStep                   = -1;
+   initFromLastFlag            = 0;
+    
+   weightInitType              = "OneToOneWeights";
+   weightInit                  = 1.0;
+      
+   normalize                   = false;
+   plasticityFlag              = false;
+   stochasticReleaseFlag       = false;
+   writeCompressedWeights      = true;
+   writeCompressedCheckpoints   = false;
+   selfFlag                    = false;
+   shrinkPatches               = false;
+   preActivityIsNotRate        = false;
+};
