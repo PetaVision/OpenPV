@@ -24,7 +24,7 @@ namespace PV
 DataStore::DataStore(HyPerCol * hc, int numBuffers, size_t bufSize, int numLevels, bool copydstoreflag)
 #else
 DataStore::DataStore(HyPerCol * hc, int numBuffers, size_t bufSize, int numLevels)
-#endif
+#endif // PV_USE_OPENCL
 {
    this->curLevel = numLevels - 1;  // start at bottom, work up
    this->bufSize = bufSize;
@@ -36,7 +36,7 @@ DataStore::DataStore(HyPerCol * hc, int numBuffers, size_t bufSize, int numLevel
 #ifdef PV_USE_OPENCL
    if(copydstoreflag) initializeThreadBuffers(hc);
    else clRecvBuffers=NULL;
-#endif
+#endif // PV_USE_OPENCL
 }
 
 DataStore::~DataStore()
@@ -44,7 +44,7 @@ DataStore::~DataStore()
 #ifdef PV_USE_OPENCL
    if (clRecvBuffers != NULL) delete clRecvBuffers;
    clRecvBuffers=NULL;
-#endif
+#endif // PV_USE_OPENCL
 
    free(recvBuffers);
 }
@@ -70,6 +70,6 @@ int DataStore::waitForCopy() {
    }
    return status;
 }
-#endif
+#endif // PV_USE_OPENCL
 
 }
