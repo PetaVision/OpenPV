@@ -179,6 +179,13 @@ runandecho $testname Debug/$testname $arglist
 mpirunandecho $testname Debug/$testname $arglist
 cd "$wd"
 
+testname=RandStateSystemTest
+cd "$testname"
+arglist="-p input/RandStateSystemTest.params"
+runandecho $testname Debug/$testname $arglist
+mpirunandecho $testname Debug/$testname $arglist
+cd "$wd"
+
 testname=ReadArborFileTest
 cd "$testname"
 arglist="-p input/ReadArborFileTest.params"
