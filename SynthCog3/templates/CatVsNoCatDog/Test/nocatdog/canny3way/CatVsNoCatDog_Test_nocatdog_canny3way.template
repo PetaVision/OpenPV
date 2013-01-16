@@ -7,17 +7,16 @@ HyPerCol "column" = {
    nx = 360;   // until we get going with images
    ny = 256;
    dt = 1.0;
-   randomSeed = 1;  // if not set here,  clock time is used to generate seed
-   numSteps = 28;
+   randomSeed = 111111111;  // if not set here,  clock time is used to generate seed
+   numSteps = 100;
    $$$_outputPath_$$$
    progressStep = 20;
    filenamesContainLayerNames = false;
    checkpointRead = false;
    checkpointWrite = false;
-   $$$_checkpointWriteDir_$$$
-   checkpointWriteStepInterval = 5;
-   deleteOlderCheckpoints = true;
    $$$_printParamsFilename_$$$
+   writeProgressToErr = true;
+   filenamesContainConnectionNames = false;
 };
 
 //
@@ -33,17 +32,19 @@ Movie "Image" = {
     marginWidth = 0;
     writeStep = 0;
     mirrorBCflag = 0;
-    spikingFlag = 0;
-    writeNonspikingActivity = 0;
+    writeSparseActivity = 0;
     writeImages = 0;
     displayPeriod = 1;
-    $$$_image_start_frame_index_$$$
-    $$$_image_skip_frame_index_$$$
+    start_frame_index = 1;
+    skip_frame_index = 1;
     echoFramePathnameFlag = true;
     jitterFlag = 0;
     randomMovie = 0;
     offsetX = 0;
     offsetY = 0;
+    useImageBCflag = false;
+    inverseFlag = false;
+    normalizeLuminanceFlag = false;
 };
 
 
@@ -53,18 +54,18 @@ Retina "Retina" = {
     nyScale = 1;
     nf = 1;
     marginWidth = 3;
-    writeStep = -1.0;
+    writeStep = 1.0;
     mirrorBCflag = 1;
     spikingFlag = 0;
-    writeNonspikingActivity = 0;
+    writeSparseActivity = 0;
 
     poissonEdgeProb = 1;
     poissonBlankProb = 0;
-    burstFreq = 1;
-    burstDuration = 1;
+    burstFreq = 1;  // in Hz
+    burstDuration = 1000;  // in msec, set to 1/burstFreq for always on 
 
     beginStim = 1;
-    endStim = 20;
+    $$$_endStim_$$$
 };
 
 
@@ -76,10 +77,9 @@ ANNLayer "L1" = {
     nyScale = 1;
     nf = 8;
     marginWidth = 0;
-    writeStep = -1.0;
+    writeStep = 1.0;
     mirrorBCflag = 1;
-    spikingFlag = 0;
-    writeNonspikingActivity = 0;
+    writeSparseActivity = 0;
 
     VThresh = 0.5;
     VMax = 1.0;
@@ -95,10 +95,9 @@ ANNLayer "L1Pool1X1" = {
     nyScale = 1.0;
     nf = 8;
     marginWidth = 16;
-    writeStep = -1.0;
+    writeStep = 1.0;
     mirrorBCflag = 1;
-    spikingFlag = 0;
-    writeNonspikingActivity = 0;
+    writeSparseActivity = 0;
 
     VThresh = 0.5;
     VMax = 1.0;
@@ -116,11 +115,10 @@ CliqueLayer "L1Clique" = {
     nxScale = 1;
     nyScale = 1;
     nf = 8;
-    marginWidth = 32;
+    marginWidth = 16;
     writeStep = 1.0;
     mirrorBCflag = 1;
-    spikingFlag = 0;
-    writeNonspikingActivity = 1;
+    writeSparseActivity = 0;
 
     VThresh = 0.5;
     VMax = 1.0;
@@ -137,11 +135,10 @@ CliqueLayer "L2Clique" = {
     nxScale = 1;
     nyScale = 1;
     nf = 8;
-    marginWidth = 32;
+    marginWidth = 16;
     writeStep = 1.0;
     mirrorBCflag = 1;
-    spikingFlag = 0;
-    writeNonspikingActivity = 1;
+    writeSparseActivity = 0;
 
     VThresh = 0.5;
     VMax = 1.0;
@@ -158,11 +155,10 @@ CliqueLayer "L3Clique" = {
     nxScale = 1;
     nyScale = 1;
     nf = 8;
-    marginWidth = 32;
+    marginWidth = 16;
     writeStep = 1.0;
     mirrorBCflag = 1;
-    spikingFlag = 0;
-    writeNonspikingActivity = 1;
+    writeSparseActivity = 0;
 
     VThresh = 0.5;
     VMax = 1.0;
@@ -179,11 +175,10 @@ CliqueLayer "L4Clique" = {
     nxScale = 1;
     nyScale = 1;
     nf = 8;
-    marginWidth = 32;
+    marginWidth = 16;
     writeStep = 1.0;
     mirrorBCflag = 1;
-    spikingFlag = 0;
-    writeNonspikingActivity = 1;
+    writeSparseActivity = 0;
 
     VThresh = 0.5;
     VMax = 1.0;
@@ -214,12 +209,17 @@ KernelConn "MovieToRetina" = {
     
     weightInitType = "UniformWeight";
     weightInit = 4.0;
-   
+
+    normalize = 0;
+       
     writeCompressedWeights = 0.0;
     plasticityFlag = 0;
     stochasticReleaseFlag = false;
-    weightUpdatePeriod = -1.0;
 
+    preActivityIsNotRate = true;
+    selfFlag = false;
+    shrinkPatches = false;
+    
     delay = 0;     
 };
 
@@ -263,6 +263,10 @@ KernelConn "RetinaToL1" = {
    stochasticReleaseFlag = false;
     
    delay = 0;
+    
+   preActivityIsNotRate = false;
+   selfFlag = false;
+   normalizeTotalToPost = false;
 };
 
 
@@ -303,50 +307,24 @@ KernelConn "RetinaToL1Inh" = {
    stochasticReleaseFlag = false;
 
    delay = 0;
+    
+   preActivityIsNotRate = false;
+   selfFlag = false;
+   normalizeTotalToPost = false;
 };
 
 
 // downsample/pooling 
-KernelConn "L1ToL1Pool1X1" = {
+IdentConn "L1ToL1Pool1X1" = {
    preLayerName = "L1";
    postLayerName = "L1Pool1X1";
    channelCode = 0;
-   nxp = 1; 
-   nyp = 1; 
-   nfp = 8;
-   numAxonalArbors = 1;
-   initFromLastFlag = 0;  // 1;  // restart
    writeStep = -1;
-   
-   weightInitType = "Gauss2DWeight";
-   aspect = 1.1;
-   sigma = 1;
-   rMax  = 1;
-   rMin = 0;
-   deltaThetaMax = 0.19635; // 3.14 / 16
-   thetaMax = 1;
-   bowtieFlag = 0;
-   numFlanks = 1;
-   flankShift = 0;
-   rotate = 1;
-       
-   strength = 1.0; 
-   normalize = 1.0;
-   normalize_zero_offset = 0.0;
-   normalize_max = 0.0;
-   normalize_cutoff = 0;
-   symmetrizeWeights = 0;
+   initFromLastFlag = 0;
+   weightInitType = "IdentWeight";
 
-   shrinkPatches = false;
-   writeCompressedWeights = 0.0;
-   plasticityFlag = 0;
-   stochasticReleaseFlag = false;
-    
    delay = 0;
 };
-
-
-
 
 
 
@@ -383,7 +361,7 @@ SiblingConn "L1Pool1X1toL1CliqueTarget" = {
 
    weightInitType = "FileWeight";  
    combineWeightFiles = true; //false; // 
-   numWeightFiles = 16;
+   $$$_numWeightFilesTarget_$$$
    $$$_initWeightsFileL1Pool1X1toL1CliqueTarget_$$$ 
    siblingConnName = "L1Pool1X1toL1CliqueDistractor";
    useListOfArborFiles = false;
@@ -405,6 +383,8 @@ SiblingConn "L1Pool1X1toL1CliqueTarget" = {
    stochasticReleaseFlag = false;
 
    delay = 0; 
+
+   preActivityIsNotRate = false;
 };
 
 
@@ -422,7 +402,7 @@ SiblingConn "L1Pool1X1toL1CliqueDistractor" = {
 
    weightInitType = "FileWeight";  
    combineWeightFiles = true; //false; // 
-   numWeightFiles = 16;
+   $$$_numWeightFilesDistractor_$$$
    $$$_initWeightsFileL1Pool1X1toL1CliqueDistractor_$$$ 
    siblingConnName = "L1Pool1X1toL1CliqueTarget";
    useListOfArborFiles = false;
@@ -444,6 +424,8 @@ SiblingConn "L1Pool1X1toL1CliqueDistractor" = {
    stochasticReleaseFlag = false;
 
    delay = 0; 
+
+   preActivityIsNotRate = false;
 };
 
 
@@ -568,7 +550,7 @@ CloneKernelConn "L3toL4CliqueDistractor" = {
    writeCompressedWeights = 0.0;
    selfFlag = true;
    stochasticReleaseFlag = false;
-   delay = 0;
+    delay = 0;
 };
 
 

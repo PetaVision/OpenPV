@@ -33,10 +33,9 @@ Movie "Image" = {
     nyScale = 1;
     nf = 1;
     marginWidth = 0;
-    writeStep = 0;
+    writeStep = -1;
     mirrorBCflag = 0;
-    spikingFlag = 0;
-    writeNonspikingActivity = 0;
+    writeSparseActivity = 0;
     writeImages = 0;
     displayPeriod = 1;
     $$$_image_start_frame_index_$$$
@@ -59,10 +58,9 @@ Movie "Mask" = {
     nyScale = 1;
     nf = 1;
     marginWidth = 0;
-    writeStep = 0;
+    writeStep = -1;
     mirrorBCflag = 0;
-    spikingFlag = 0;
-    writeNonspikingActivity = 0;
+    writeSparseActivity = 0;
     writeImages = 0;
     displayPeriod = 1;
     $$$_mask_start_frame_index_$$$
@@ -86,9 +84,8 @@ Retina "Retina" = {
     marginWidth = 3;
     writeStep = -1.0;
     mirrorBCflag = 1;
+    writeSparseActivity = 0;
     spikingFlag = 0;
-    writeNonspikingActivity = 0;
-
     poissonEdgeProb = 1;
     poissonBlankProb = 0;
     burstFreq = 1;  // in Hz
@@ -109,8 +106,7 @@ ANNLayer "L1" = {
     marginWidth = 0;
     writeStep = -1.0;
     mirrorBCflag = 1;
-    spikingFlag = 0;
-    writeNonspikingActivity = 0;
+    writeSparseActivity = 0;
 
     VThresh = 0.5;
     VMax = 1.0;
@@ -128,8 +124,7 @@ ANNLayer "L1Pool1X1" = {
     marginWidth = 16;
     writeStep = -1.0;
     mirrorBCflag = 1;
-    spikingFlag = 0;
-    writeNonspikingActivity = 0;
+    writeSparseActivity = 0;
 
     VThresh = 0.5;
     VMax = 1.0;
@@ -150,8 +145,7 @@ CliqueLayer "L1Clique" = {
     marginWidth = 16;
     writeStep = -1.0;
     mirrorBCflag = 1;
-    spikingFlag = 0;
-    writeNonspikingActivity = 0;
+    writeSparseActivity = 0;
 
     VThresh = 0.5;
     VMax = 1.0;
@@ -172,8 +166,7 @@ MaxPooling "L2Pool2X2" = {
     marginWidth = 16;
     writeStep = -1.0;
     mirrorBCflag = 1;
-    spikingFlag = 0;
-    writeNonspikingActivity = 0;
+    writeSparseActivity = 0;
 
     InitVType = "ConstantV";
     valueV = 0;
@@ -190,8 +183,7 @@ CliqueLayer "L2Post" = {
     marginWidth = 16;
     writeStep = -1.0;
     mirrorBCflag = 1;
-    spikingFlag = 0;
-    writeNonspikingActivity = 0;
+    writeSparseActivity = 0;
 
     VThresh = 0.5;
     VMax = 1.0;
@@ -518,6 +510,7 @@ KernelConn "MasktoL2Post" = {
    weightInitType = "UniformWeight";
    weightInit = 1;
        
+   strength = 1.0;       
    normalize = 1.0;
    normalize_zero_offset = 0.0;
    normalize_max = 0.0;
@@ -572,7 +565,8 @@ CliqueConn "L2Pool2X2toL2Post" = {
    delay = 1;    
     
    preActivityIsNotRate = false;
-   selfFlag = false;
+   shmget_flag = false;
+   selfFlag = true;
    initialWeightUpdateTime = 0.0;
 };
 

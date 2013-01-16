@@ -137,7 +137,7 @@ MaxPooling "L2Pool2X2" = {
     nyScale = 0.5;
     nf = 8;
     marginWidth = 16;
-    writeStep = 1.0;
+    writeStep = -1.0;
     mirrorBCflag = 1;
     writeSparseActivity = 0;
 
@@ -167,12 +167,29 @@ CliqueLayer "L2Clique" = {
 };
 
 
+// downsample edges
+MaxPooling "L3Pool4X4" = {
+    restart = 0;
+    nxScale = 0.25;
+    nyScale = 0.25;
+    nf = 8;
+    marginWidth = 15;
+    writeStep = -1.0;
+    mirrorBCflag = 1;
+    writeSparseActivity = 0;
+
+    InitVType = "ConstantV";
+    valueV = 0;
+};
+
+
+
 CliqueLayer "L3Clique" = {
     restart = 0;
-    nxScale = 0.5;
-    nyScale = 0.5;
+    nxScale = 0.25;
+    nyScale = 0.25;
     nf = 8;
-    marginWidth = 16;
+    marginWidth = 15;
     writeStep = 1.0;
     mirrorBCflag = 1;
     writeSparseActivity = 0;
@@ -189,10 +206,10 @@ CliqueLayer "L3Clique" = {
 
 CliqueLayer "L4Clique" = {
     restart = 0;
-    nxScale = 0.5;
-    nyScale = 0.5;
+    nxScale = 0.25;
+    nyScale = 0.25;
     nf = 8;
-    marginWidth = 16;
+    marginWidth = 15;
     writeStep = 1.0;
     mirrorBCflag = 1;
     writeSparseActivity = 0;
@@ -345,6 +362,7 @@ IdentConn "L1ToL1Pool1X1" = {
 
 
 
+
 // Clique connections
 
 
@@ -401,6 +419,7 @@ SiblingConn "L1Pool1X1toL1CliqueTarget" = {
    delay = 0; 
 
    preActivityIsNotRate = false;
+   normalizeTotalToPost = false;
 };
 
 
@@ -442,6 +461,7 @@ SiblingConn "L1Pool1X1toL1CliqueDistractor" = {
    delay = 0; 
 
    preActivityIsNotRate = false;
+   normalizeTotalToPost = false;
 };
 
 
@@ -523,8 +543,8 @@ SiblingConn "L2Pool2X2toL2CliqueTarget" = {
 
    weightInitType = "FileWeight";  
    combineWeightFiles = true; //false; // 
-   $$$_numWeightFilesTarget_$$$
-   $$$_initWeightsFileL2Pool2X2toL2CliqueTarget_$$$ 
+   numWeightFiles = 1;
+   initWeightsFile = "/home/gkenyon/workspace/SynthCog3/weights/CatVsNoCatDog/Test/CatVsNoCatDog_Test_cat2_canny3way.weights" ;
    siblingConnName = "L2Pool2X2toL2CliqueDistractor";
    useListOfArborFiles = false;
    shrinkPatches = false;
@@ -541,12 +561,13 @@ SiblingConn "L2Pool2X2toL2CliqueTarget" = {
    plasticityFlag = 0;
    //combine_dW_with_W_flag = false;
    selfFlag = true;
-   shmget_flag = true;
+   shmget_flag = false;
    stochasticReleaseFlag = false;
 
    delay = 0; 
 
    preActivityIsNotRate = false;
+   normalizeTotalToPost = false;
 };
 
 
@@ -564,9 +585,154 @@ SiblingConn "L2Pool2X2toL2CliqueDistractor" = {
 
    weightInitType = "FileWeight";  
    combineWeightFiles = true; //false; // 
-   $$$_numWeightFilesDistractor_$$$
-   $$$_initWeightsFileL2Pool2X2toL2CliqueDistractor_$$$ 
+   numWeightFiles = 1;
+   initWeightsFile = "/home/gkenyon/workspace/SynthCog3/weights/CatVsNoCatDog/Test/CatVsNoCatDog_Test_nocatdog2_canny3way.weights" ;
    siblingConnName = "L2Pool2X2toL2CliqueTarget";
+   useListOfArborFiles = false;
+   shrinkPatches = false;
+   
+   strength = -1.0;
+   normalize = 1.0; //0.0; // 
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   normalize_cutoff = 0;
+   symmetrizeWeights = 0;
+   normalize_arbors_individually = false;   
+   
+   writeCompressedWeights = 0.0;
+   plasticityFlag = 0;
+   //combine_dW_with_W_flag = false;
+   selfFlag = true;
+   shmget_flag = true;
+   stochasticReleaseFlag = false;
+
+   delay = 0; 
+
+   preActivityIsNotRate = false;
+   normalizeTotalToPost = false;
+};
+
+
+
+
+// downsample/pooling 
+KernelConn "L2CliqueToL3Pool4X4" = {
+   preLayerName = "L2Clique";
+   postLayerName = "L3Pool4X4";
+   channelCode = 0;
+   nxp = 1; 
+   nyp = 1; 
+   nfp = 8;
+   numAxonalArbors = 1;
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+   
+   weightInitType = "Gauss2DWeight";
+   aspect = 1.1;
+   sigma = 1;
+   rMax  = 1;
+   rMin = 0;
+   deltaThetaMax = 0.19635; // 3.14 / 16
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   flankShift = 0;
+   rotate = 1;
+       
+   strength = 1.0; 
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   normalize_cutoff = 0;
+   symmetrizeWeights = 0;
+
+   shrinkPatches = false;
+   writeCompressedWeights = 0.0;
+   plasticityFlag = 0;
+   stochasticReleaseFlag = false;
+    
+   delay = 0;
+    
+   preActivityIsNotRate = false;
+   selfFlag = false;
+   normalizeTotalToPost = false;
+};
+
+
+
+// L3 Clique
+
+IdentConn "L3Pool4X4toL3CliqueVertical" = {
+    preLayerName = "L3Pool4X4";
+    postLayerName = "L3Clique";
+    channelCode = 0;
+    writeStep = -1;
+    initFromLastFlag = 0;
+    weightInitType = "IdentWeight";
+
+    delay = 0;
+};
+
+
+
+//KernelConn "L3Pool4X4toL3CliqueTarget" = {
+SiblingConn "L3Pool4X4toL3CliqueTarget" = {
+   preLayerName = "L3Pool4X4";
+   postLayerName = "L3Clique";
+   channelCode = 1;
+   nxp = 27;
+   nyp = 27;
+   nfp = 8;
+   numAxonalArbors = 5832; //8712;
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   weightInitType = "FileWeight";  
+   combineWeightFiles = true; //false; // 
+   $$$_numWeightFilesTarget_$$$
+   $$$_initWeightsFileL3Pool4X4toL3CliqueTarget_$$$ 
+   siblingConnName = "L3Pool4X4toL3CliqueDistractor";
+   useListOfArborFiles = false;
+   shrinkPatches = false;
+   
+   strength = 1.0;
+   normalize = 1.0; //0.0; // 
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   normalize_cutoff = 0;
+   symmetrizeWeights = 0;
+   normalize_arbors_individually = false;   
+   
+   writeCompressedWeights = 0.0;
+   plasticityFlag = 0;
+   //combine_dW_with_W_flag = false;
+   selfFlag = true;
+   shmget_flag = false;
+   stochasticReleaseFlag = false;
+
+   delay = 0; 
+
+   preActivityIsNotRate = false;
+};
+
+
+//KernelConn "L3Pool4X4toL3CliqueDistractor" = {
+SiblingConn "L3Pool4X4toL3CliqueDistractor" = {
+   preLayerName = "L3Pool4X4";
+   postLayerName = "L3Clique";
+   channelCode = 1;
+   nxp = 27;
+   nyp = 27;
+   nfp = 8;
+   numAxonalArbors = 5832; //8712;
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+
+   weightInitType = "FileWeight";  
+   combineWeightFiles = true; //false; // 
+   $$$_numWeightFilesDistractor_$$$
+   $$$_initWeightsFileL3Pool4X4toL3CliqueDistractor_$$$ 
+   siblingConnName = "L3Pool4X4toL3CliqueTarget";
    useListOfArborFiles = false;
    shrinkPatches = false;
    
@@ -593,48 +759,6 @@ SiblingConn "L2Pool2X2toL2CliqueDistractor" = {
 
 
 
-// L3Clique
-
-IdentConn "L2toL3CliqueVertical" = {
-    preLayerName = "L2Clique";
-    postLayerName = "L3Clique";
-    channelCode = 0;
-    writeStep = -1;
-    initFromLastFlag = 0;
-    weightInitType = "IdentWeight";
-
-    delay = 0;
-};
-
-
-
-CloneKernelConn "L2toL3CliqueTarget" = {
-   preLayerName = "L2Clique";
-   postLayerName = "L3Clique";
-   channelCode = 1;
-   writeStep = -1;
-   originalConnName = "L2Pool2X2toL2CliqueTarget";
-   writeCompressedWeights = 0.0;
-   selfFlag = true;
-   stochasticReleaseFlag = false;
-   delay = 0;
-};
-
-CloneKernelConn "L2toL3CliqueDistractor" = {
-   preLayerName = "L2Clique";
-   postLayerName = "L3Clique";
-   channelCode = 1;
-   writeStep = -1;
-   originalConnName = "L2Pool2X2toL2CliqueDistractor";
-   writeCompressedWeights = 0.0;
-   selfFlag = true;
-   stochasticReleaseFlag = false;
-   delay = 0;
-};
-
-
-
-
 // L4Clique
 
 IdentConn "L3toL4CliqueVertical" = {
@@ -655,7 +779,7 @@ CloneKernelConn "L3toL4CliqueTarget" = {
    postLayerName = "L4Clique";
    channelCode = 1;
    writeStep = -1;
-   originalConnName = "L2Pool2X2toL2CliqueTarget";
+   originalConnName = "L3Pool4X4toL3CliqueTarget";
    writeCompressedWeights = 0.0;
    selfFlag = true;
    stochasticReleaseFlag = false;
@@ -667,7 +791,7 @@ CloneKernelConn "L3toL4CliqueDistractor" = {
    postLayerName = "L4Clique";
    channelCode = 1;
    writeStep = -1;
-   originalConnName = "L2Pool2X2toL2CliqueDistractor";
+   originalConnName = "L3Pool4X4toL3CliqueDistractor";
    writeCompressedWeights = 0.0;
    selfFlag = true;
    stochasticReleaseFlag = false;
@@ -716,6 +840,11 @@ StatsProbe "L2Pool2X2StatsFile" = {
 StatsProbe "L2CliqueStatsFile" = {
     targetLayer = "L2Clique";
     probeOutputFile = "L2Clique_Stats.txt";
+};
+
+StatsProbe "L3Pool4X4StatsFile" = {
+    targetLayer = "L3Pool4X4";
+    probeOutputFile = "L3Pool4X4_Stats.txt";
 };
 
 StatsProbe "L3CliqueStatsFile" = {
