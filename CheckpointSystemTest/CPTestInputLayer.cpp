@@ -90,7 +90,7 @@ int CPTestInputLayer::updateState(double timed, double dt) {
    update_timer->start();
 #ifdef PV_USE_OPENCL
    if(gpuAccelerateFlag) {
-      updateStateOpenCL(timef, dt);
+      updateStateOpenCL(timed, dt);
       //HyPerLayer::updateState(time, dt);
    }
    else {
