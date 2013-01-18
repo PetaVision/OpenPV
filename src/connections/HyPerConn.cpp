@@ -589,7 +589,7 @@ int HyPerConn::setParams(PVParams * inputParams /*, PVConnParams * p*/)
 
    writeCompressedWeights = inputParams->value(name, "writeCompressedWeights", true) != 0;
    if (parent->getCheckpointWriteFlag()) {
-      writeCompressedCheckpoints = inputParams->value(name, "writeCompressedCheckpoints", true) != 0;
+      writeCompressedCheckpoints = inputParams->value(name, "writeCompressedCheckpoints", writeCompressedCheckpoints, /*warnifabsent*/true) != 0;
    }
    selfFlag = inputParams->value(name, "selfFlag", selfFlag, true) != 0;
    if (plasticityFlag){
