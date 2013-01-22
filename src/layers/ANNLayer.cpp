@@ -190,7 +190,9 @@ int ANNLayer::updateState(double time, double dt)
       pvdata_t * activity = clayer->activity->data;
 
       ANNLayer_update_state(numNeurons, nx, ny, nf, nb, V, VThresh, VMax, VMin, GSynHead, activity);
-      updateActiveIndices();  // added by GTK to allow for sparse output, can this be made an inline function???
+      if (this->writeSparseActivity){
+         updateActiveIndices();  // added by GTK to allow for sparse output, can this be made an inline function???
+      }
 #ifdef PV_USE_OPENCL
    }
 #endif

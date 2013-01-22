@@ -383,6 +383,7 @@ protected:
    InitWeights* weightInitializer;
    bool preActivityIsNotRate; // TODO Rename this member variable
    bool normalizeTotalToPost; // if false, normalize the sum of weights from each presynaptic neuron.  If true, normalize the sum of weights into a postsynaptic neuron.
+   float dWMax;  // dW scale factor
 
 protected:
    virtual int initNumWeightPatches();

@@ -312,6 +312,7 @@ int Image::readImage(const char * filename, int offsetX, int offsetY, GDALColorI
    }
    // now buf is loc->nf by loc->nx by loc->ny
 
+   // if normalizeLuminanceFlag == true then force average luminance to be 0.5
    if(normalizeLuminanceFlag){
       double image_sum = 0.0f;
       for (int k=0; k<n; k++) {

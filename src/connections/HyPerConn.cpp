@@ -220,6 +220,7 @@ int HyPerConn::initialize_base()
    this->normalize_max = false;
    this->normalize_zero_offset = false;
    this->normalize_cutoff = 0.0f;
+   this->dWMax            = 1;
 
    return PV_SUCCESS;
 }
@@ -461,9 +462,6 @@ int HyPerConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
    }
    // assert(this->weightInitializer != NULL); // TransposeConn doesn't use weightInitializer so it overrides handleMissingInitWeights to return NULL.
 
-   selfFlag = (pre == post);
-
-//   stochasticReleaseFlag = inputParams->value(name, "stochasticReleaseFlag", 0, true) != 0;
    accumulateFunctionPointer = stochasticReleaseFlag ? &pvpatch_accumulate_stochastic : &pvpatch_accumulate;
 
    this->connId = parent->addConnection(this);
@@ -587,13 +585,17 @@ int HyPerConn::setParams(PVParams * inputParams /*, PVConnParams * p*/)
    stochasticReleaseFlag = inputParams->value(name, "stochasticReleaseFlag", false, true) != 0;
    preActivityIsNotRate = inputParams->value(name, "preActivityIsNotRate", false, true) != 0;
 
-   writeCompressedWeights = inputParams->value(name, "writeCompressedWeights", true) != 0;
+   writeCompressedWeights = inputParams->value(name, "writeCompressedWeights", writeCompressedWeights, /*warnifabsent*/true) != 0;
    if (parent->getCheckpointWriteFlag()) {
       writeCompressedCheckpoints = inputParams->value(name, "writeCompressedCheckpoints", writeCompressedCheckpoints, /*warnifabsent*/true) != 0;
    }
+   selfFlag = (pre == post);  // if true, this is a valid assignment, but there are cases where
+   //   selfFlag must be set to true even though the pre and post layers are instantiated separately.
+   //   For example, when learning unde the control of a mask.
    selfFlag = inputParams->value(name, "selfFlag", selfFlag, true) != 0;
    if (plasticityFlag){
       combine_dW_with_W_flag = inputParams->value(name, "combine_dW_with_W_flag", combine_dW_with_W_flag, true) != 0;
+      dWMax            = inputParams->value(getName(), "dWMax", dWMax, true);
    }
 
    return 0;
