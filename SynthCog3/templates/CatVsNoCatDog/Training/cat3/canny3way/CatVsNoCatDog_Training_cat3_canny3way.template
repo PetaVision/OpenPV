@@ -20,6 +20,7 @@ HyPerCol "column" = {
    $$$_printParamsFilename_$$$
    writeProgressToErr = true;
    filenamesContainConnectionNames = false;
+   suppressLastOutput = true;
 };
 
 //
@@ -255,6 +256,7 @@ KernelConn "MovieToRetina" = {
     normalize = 0;
        
     writeCompressedWeights = 0.0;
+    writeCompressedCheckpoints = 0.0;
     plasticityFlag = 0;
     stochasticReleaseFlag = false;
 
@@ -301,6 +303,7 @@ KernelConn "RetinaToL1" = {
 
    shrinkPatches = false;
    writeCompressedWeights = 0.0;
+   writeCompressedCheckpoints = 0.0;
    plasticityFlag = 0;
    stochasticReleaseFlag = false;
     
@@ -345,6 +348,7 @@ KernelConn "RetinaToL1Inh" = {
    
    shrinkPatches = false;
    writeCompressedWeights = 0.0;
+   writeCompressedCheckpoints = 0.0;
    plasticityFlag = 0;
    stochasticReleaseFlag = false;
 
@@ -417,6 +421,7 @@ SiblingConn "L1Pool1X1toL1CliqueTarget" = {
    normalize_arbors_individually = false;   
    
    writeCompressedWeights = 0.0;
+   writeCompressedCheckpoints = 0.0;
    plasticityFlag = 0;
    //combine_dW_with_W_flag = false;
    selfFlag = true;
@@ -459,6 +464,7 @@ SiblingConn "L1Pool1X1toL1CliqueDistractor" = {
    normalize_arbors_individually = false;   
    
    writeCompressedWeights = 0.0;
+   writeCompressedCheckpoints = 0.0;
    plasticityFlag = 0;
    //combine_dW_with_W_flag = false;
    selfFlag = true;
@@ -507,6 +513,7 @@ KernelConn "L1CliqueToL2Pool2X2" = {
    
    shrinkPatches = false;
    writeCompressedWeights = 0.0;
+   writeCompressedCheckpoints = 0.0;
    plasticityFlag = 0;
    stochasticReleaseFlag = false;
     
@@ -566,6 +573,7 @@ SiblingConn "L2Pool2X2toL2CliqueTarget" = {
    normalize_arbors_individually = false;   
    
    writeCompressedWeights = 0.0;
+   writeCompressedCheckpoints = 0.0;
    plasticityFlag = 0;
    //combine_dW_with_W_flag = false;
    selfFlag = true;
@@ -608,6 +616,7 @@ SiblingConn "L2Pool2X2toL2CliqueDistractor" = {
    normalize_arbors_individually = false;   
    
    writeCompressedWeights = 0.0;
+   writeCompressedCheckpoints = 0.0;
    plasticityFlag = 0;
    //combine_dW_with_W_flag = false;
    selfFlag = true;
@@ -656,6 +665,7 @@ KernelConn "L2CliqueToL3Pool4X4" = {
    
    shrinkPatches = false;
    writeCompressedWeights = 0.0;
+   writeCompressedCheckpoints = 0.0;
    plasticityFlag = 0;
    stochasticReleaseFlag = false;
     
@@ -707,6 +717,7 @@ KernelConn "MasktoL3Post" = {
 
    shrinkPatches = false;
    writeCompressedWeights = 0.0;
+   writeCompressedCheckpoints = 0.0;
    selfFlag = false;
    plasticityFlag = 0;
    stochasticReleaseFlag = false;
@@ -747,7 +758,8 @@ CliqueConn "L3Pool4X4toL3Post" = {
    combine_dW_with_W_flag = true; //false; // 
    shrinkPatches = false;
    writeCompressedWeights = 0.0;
-   stochasticReleaseFlag = false;
+   writeCompressedCheckpoints = 0.0;
+g   stochasticReleaseFlag = false;
    weightUpdatePeriod = 1.0;
 
    delay = 1;    

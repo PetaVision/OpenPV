@@ -15,9 +15,12 @@ HyPerCol "column" = {
    checkpointRead = false;
    checkpointWrite = true;
    $$$_checkpointWriteDir_$$$
-   checkpointWriteStepInterval = 5;
+   checkpointWriteStepInterval = 50;
    deleteOlderCheckpoints = true;
    $$$_printParamsFilename_$$$
+   writeProgressToErr = true;
+   filenamesContainConnectionNames = false;
+   suppressLastOutput = false;
 };
 
 //
@@ -31,10 +34,9 @@ Movie "Image" = {
     nyScale = 1;
     nf = 1;
     marginWidth = 0;
-    writeStep = 0;
+    writeStep = -1;
     mirrorBCflag = 0;
-    spikingFlag = 0;
-    writeNonspikingActivity = 0;
+    writeSparseActivity = 0;
     writeImages = 0;
     displayPeriod = 1;
     $$$_image_start_frame_index_$$$
@@ -44,6 +46,9 @@ Movie "Image" = {
     randomMovie = 0;
     offsetX = 0;
     offsetY = 0;
+    useImageBCflag = false;
+    inverseFlag = false;
+    normalizeLuminanceFlag = false;
 };
 
 
@@ -54,10 +59,9 @@ Movie "Mask" = {
     nyScale = 1;
     nf = 1;
     marginWidth = 0;
-    writeStep = 0;
+    writeStep = -1;
     mirrorBCflag = 0;
-    spikingFlag = 0;
-    writeNonspikingActivity = 0;
+    writeSparseActivity = 0;
     writeImages = 0;
     displayPeriod = 1;
     $$$_mask_start_frame_index_$$$
@@ -67,6 +71,9 @@ Movie "Mask" = {
     randomMovie = 0;
     offsetX = 0;
     offsetY = 0;
+    useImageBCflag = false;
+    inverseFlag = false;
+    normalizeLuminanceFlag = false;
 };
 
 
@@ -78,14 +85,14 @@ Retina "Retina" = {
     marginWidth = 3;
     writeStep = -1.0;
     mirrorBCflag = 1;
+    writeSparseActivity = 0;
     spikingFlag = 0;
-    writeNonspikingActivity = 0;
 
     poissonEdgeProb = 1;
     poissonBlankProb = 0;
-    burstFreq = 1;
-    burstDuration = 1;
-
+    burstFreq = 1;   // in Hz
+    burstDuration = 1000;  // in msec, set to 1/burstFreq for always on 
+    
     beginStim = 1;
     $$$_endStim_$$$
 };
@@ -101,8 +108,7 @@ ANNLayer "L1" = {
     marginWidth = 0;
     writeStep = -1.0;
     mirrorBCflag = 1;
-    spikingFlag = 0;
-    writeNonspikingActivity = 0;
+    writeSparseActivity = 0;
 
     VThresh = 0.5;
     VMax = 1.0;
@@ -120,8 +126,7 @@ ANNLayer "L1Pool1X1" = {
     marginWidth = 16;
     writeStep = -1.0;
     mirrorBCflag = 1;
-    spikingFlag = 0;
-    writeNonspikingActivity = 0;
+    writeSparseActivity = 0;
 
     VThresh = 0.5;
     VMax = 1.0;
@@ -143,13 +148,12 @@ CliqueLayer "L1Post" = {
     marginWidth = 16;
     writeStep = -1.0;
     mirrorBCflag = 1;
-    spikingFlag = 0;
-    writeNonspikingActivity = 0;
+    writeSparseActivity = 0;
 
     VThresh = 0.5;
     VMax = 1.0;
     VMin = 0.0;
-    Vgain = 1.0;
+    $$$_VgainL1Clique_$$$
     Voffset = 0.0;
     InitVType = "ConstantV";
     valueV = 0;
@@ -178,10 +182,14 @@ KernelConn "MovieToRetina" = {
     normalize = 0;
        
     writeCompressedWeights = 0.0;
+    writeCompressedCheckpoints = 0.0;
     plasticityFlag = 0;
     stochasticReleaseFlag = false;
-    weightUpdatePeriod = -1.0;
 
+    preActivityIsNotRate = true;
+    selfFlag = false;
+    shrinkPatches = false;
+    
     delay = 0;     
 };
 
@@ -221,10 +229,15 @@ KernelConn "RetinaToL1" = {
 
    shrinkPatches = false;
    writeCompressedWeights = 0.0;
+   writeCompressedCheckpoints = 0.0;
    plasticityFlag = 0;
    stochasticReleaseFlag = false;
     
    delay = 0;
+    
+   preActivityIsNotRate = false;
+   selfFlag = false;
+   normalizeTotalToPost = false;
 };
 
 
@@ -261,52 +274,29 @@ KernelConn "RetinaToL1Inh" = {
    
    shrinkPatches = false;
    writeCompressedWeights = 0.0;
+   writeCompressedCheckpoints = 0.0;
    plasticityFlag = 0;
    stochasticReleaseFlag = false;
 
    delay = 0;
+    
+   preActivityIsNotRate = false;
+   selfFlag = false;
+   normalizeTotalToPost = false;
 };
 
 
 // downsample/pooling 
-KernelConn "L1ToL1Pool1X1" = {
-   preLayerName = "L1";
-   postLayerName = "L1Pool1X1";
-   channelCode = 0;
-   nxp = 1; 
-   nyp = 1; 
-   nfp = 8;
-   numAxonalArbors = 1;
-   initFromLastFlag = 0;  // 1;  // restart
-   writeStep = -1;
-   
-   weightInitType = "Gauss2DWeight";
-   aspect = 1.1;
-   sigma = 1;
-   rMax  = 1;
-   rMin = 0;
-   deltaThetaMax = 0.19635; // 3.14 / 16
-   thetaMax = 1;
-   bowtieFlag = 0;
-   numFlanks = 1;
-   flankShift = 0;
-   rotate = 1;
-       
-   strength = 1.0; 
-   normalize = 1.0;
-   normalize_zero_offset = 0.0;
-   normalize_max = 0.0;
-   normalize_cutoff = 0;
-   symmetrizeWeights = 0;
+IdentConn "L1ToL1Pool1X1" = {
+    preLayerName = "L1";
+    postLayerName = "L1Pool1X1";
+    channelCode = 0;
+    writeStep = -1;
+    initFromLastFlag = 0;
+    weightInitType = "IdentWeight";
 
-   shrinkPatches = false;
-   writeCompressedWeights = 0.0;
-   plasticityFlag = 0;
-   stochasticReleaseFlag = false;
-    
-   delay = 0;
+    delay = 0;
 };
-
 
 
 // Mask connections
@@ -335,26 +325,25 @@ KernelConn "MasktoL1Post" = {
    initFromLastFlag = 0;  // 1;  // restart
    writeStep = -1;
    
-   weightInitType = "Gauss2DWeight";
-   aspect = 1;
-   sigma = 1;
-   rMax  = 1;
-   rMin = 0;
+   weightInitType = "UniformWeight";
+   weightInit = 1;
        
-   strength = 2040.0; // 8 * 255 // require all pixels surrounding L1Post neuron to be active 
    normalize = 1.0;
    normalize_zero_offset = 0.0;
    normalize_max = 0.0;
    normalize_cutoff = 0;
-   symmetrizeWeights = 0;
 
    shrinkPatches = false;
    writeCompressedWeights = 0.0;
+   writeCompressedCheckpoints = 0.0;
    selfFlag = false;
    plasticityFlag = 0;
    stochasticReleaseFlag = false;
     
    delay = 3;
+    
+   preActivityIsNotRate = false;
+   normalizeTotalToPost = true;
 };
 
 
@@ -366,7 +355,7 @@ KernelConn "MasktoL1Post" = {
 CliqueConn "L1Pool1X1toL1Post" = {
    preLayerName = "L1Pool1X1";
    postLayerName = "L1Post";
-   channelCode = 2;
+   channelCode = 2;  // not received if plasticityFlag == true
    nxp = 33;
    nyp = 33;
    nfp = 8;
@@ -382,50 +371,23 @@ CliqueConn "L1Pool1X1toL1Post" = {
    useListOfArborFiles = false;
 
    normalize = 0.0;
-   symmetrizeWeights = 0;
    
    plasticityFlag = 1;
    keepKernelsSynchronized = false; // true; 
    combine_dW_with_W_flag = true; //false; // 
    shrinkPatches = false;
    writeCompressedWeights = 0.0;
+   writeCompressedCheckpoints = 0.0;
    stochasticReleaseFlag = false;
    weightUpdatePeriod = 1.0;
 
    delay = 1;    
+    
+   preActivityIsNotRate = false;
+   selfFlag = true;
+   shmget_flag = false;
+   initialWeightUpdateTime = 0.0;
 };
-
-//CliqueConn "L1Pool1X1toL1Post" = {
-//   preLayerName = "L1Pool1X1";
-//   postLayerName = "L1Post";
-//   channelCode = 2;
-//   nxp = 33;
-//   nyp = 33;
-//   nfp = 8;
-//   numAxonalArbors = 8712; //484; // pow(cliquePatchSize, cliqueSize-1),
-//   cliqueSize = 2;
-//   initFromLastFlag = 0;  // 1;  // restart
-//   keepKernelsSynchronized = false; // true; 
-//   combine_dW_with_W_flag = true; //false; // 
-//   selfFlag = true;
-//   writeStep = -1;
-//
-//   weightInitType = "UniformWeight";
-//   weightInit = 0;
-//   
-//   normalize = 0.0;
-//   symmetrizeWeights = 0;
-//   
-//   plasticityFlag = 1;
-//   shrinkPatches = false;
-//   writeCompressedWeights = 0.0;
-//   stochasticReleaseFlag = false;
-//   weightUpdatePeriod = 1.0;
-//
-//   delay = 1; 
-//};
-
-
 
 //StatsProbe "Retina Stats" = {
 //    targetLayer = "Retina";

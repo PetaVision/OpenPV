@@ -20,6 +20,7 @@ HyPerCol "column" = {
    $$$_printParamsFilename_$$$
    writeProgressToErr = true;
    filenamesContainConnectionNames = false;
+   suppressLastOutput = false;
 };
 
 //
@@ -201,30 +202,31 @@ CliqueLayer "L2Post" = {
 //  connections: 
 
 KernelConn "MovieToRetina" = {
-    preLayerName = "Image";
-    postLayerName = "Retina";
-    channelCode = 0;
-    nxp = 1;
-    nyp = 1;
-    nfp = 1;
-    numAxonalArbors = 1;
-    writeStep = -1;
-    initFromLastFlag = 0;
-    
-    weightInitType = "UniformWeight";
-    weightInit = 4.0;
+   preLayerName = "Image";
+   postLayerName = "Retina";
+   channelCode = 0;
+   nxp = 1;
+   nyp = 1;
+   nfp = 1;
+   numAxonalArbors = 1;
+   writeStep = -1;
+   initFromLastFlag = 0;
+   
+   weightInitType = "UniformWeight";
+   weightInit = 4.0;
 
-    normalize = 0;
-       
-    writeCompressedWeights = 0.0;
-    plasticityFlag = 0;
-    stochasticReleaseFlag = false;
+   normalize = 0;
+      
+   writeCompressedWeights = 0.0;
+   writeCompressedCheckpoints = 0.0;
+   plasticityFlag = 0;
+   stochasticReleaseFlag = false;
 
-    preActivityIsNotRate = true;
-    selfFlag = false;
-    shrinkPatches = false;
-    
-    delay = 0;     
+   preActivityIsNotRate = true;
+   selfFlag = false;
+   shrinkPatches = false;
+   
+   delay = 0;     
 };
 
 
@@ -263,6 +265,7 @@ KernelConn "RetinaToL1" = {
 
    shrinkPatches = false;
    writeCompressedWeights = 0.0;
+   writeCompressedCheckpoints = 0.0;
    plasticityFlag = 0;
    stochasticReleaseFlag = false;
     
@@ -307,6 +310,7 @@ KernelConn "RetinaToL1Inh" = {
    
    shrinkPatches = false;
    writeCompressedWeights = 0.0;
+   writeCompressedCheckpoints = 0.0;
    plasticityFlag = 0;
    stochasticReleaseFlag = false;
 
@@ -379,6 +383,7 @@ SiblingConn "L1Pool1X1toL1CliqueTarget" = {
    normalize_arbors_individually = false;   
    
    writeCompressedWeights = 0.0;
+   writeCompressedCheckpoints = 0.0;
    plasticityFlag = 0;
    //combine_dW_with_W_flag = false;
    selfFlag = true;
@@ -420,6 +425,7 @@ SiblingConn "L1Pool1X1toL1CliqueDistractor" = {
    normalize_arbors_individually = false;   
    
    writeCompressedWeights = 0.0;
+   writeCompressedCheckpoints = 0.0;
    plasticityFlag = 0;
    //combine_dW_with_W_flag = false;
    selfFlag = true;
@@ -469,6 +475,7 @@ KernelConn "L1CliqueToL2Pool2X2" = {
    
    shrinkPatches = false;
    writeCompressedWeights = 0.0;
+   writeCompressedCheckpoints = 0.0;
    plasticityFlag = 0;
    stochasticReleaseFlag = false;
     
@@ -518,6 +525,7 @@ KernelConn "MasktoL2Post" = {
 
    shrinkPatches = false;
    writeCompressedWeights = 0.0;
+   writeCompressedCheckpoints = 0.0;
    selfFlag = false;
    plasticityFlag = 0;
    stochasticReleaseFlag = false;
@@ -559,6 +567,7 @@ CliqueConn "L2Pool2X2toL2Post" = {
    combine_dW_with_W_flag = true; //false; // 
    shrinkPatches = false;
    writeCompressedWeights = 0.0;
+   writeCompressedCheckpoints = 0.0;
    stochasticReleaseFlag = false;
    weightUpdatePeriod = 1.0;
 

@@ -17,6 +17,8 @@ HyPerCol "column" = {
    $$$_printParamsFilename_$$$
    writeProgressToErr = true;
    filenamesContainConnectionNames = false;
+   normalizeTotalToPost = false;
+   suppressLastOutput = true;
 };
 
 //
@@ -390,6 +392,7 @@ SiblingConn "L1Pool1X1toL1CliqueTarget" = {
    normalize_cutoff = 0;
    symmetrizeWeights = 0;
    normalize_arbors_individually = false;   
+   normalizeTotalToPost = false;
    
    writeCompressedWeights = 0.0;
    plasticityFlag = 0;
@@ -431,6 +434,7 @@ SiblingConn "L1Pool1X1toL1CliqueDistractor" = {
    normalize_cutoff = 0;
    symmetrizeWeights = 0;
    normalize_arbors_individually = false;   
+   normalizeTotalToPost = false;
    
    writeCompressedWeights = 0.0;
    plasticityFlag = 0;
@@ -479,6 +483,7 @@ KernelConn "L1CliqueToL2Pool2X2" = {
    normalize_max = 0.0;
    normalize_cutoff = 0;
    symmetrizeWeights = 0;
+   normalizeTotalToPost = false;
 
    shrinkPatches = false;
    writeCompressedWeights = 0.0;
@@ -489,7 +494,6 @@ KernelConn "L1CliqueToL2Pool2X2" = {
     
    preActivityIsNotRate = false;
    selfFlag = false;
-   normalizeTotalToPost = false;
 };
 
 
@@ -536,6 +540,7 @@ SiblingConn "L2Pool2X2toL2CliqueTarget" = {
    normalize_cutoff = 0;
    symmetrizeWeights = 0;
    normalize_arbors_individually = false;   
+   normalizeTotalToPost = false;
    
    writeCompressedWeights = 0.0;
    plasticityFlag = 0;
@@ -577,6 +582,7 @@ SiblingConn "L2Pool2X2toL2CliqueDistractor" = {
    normalize_cutoff = 0;
    symmetrizeWeights = 0;
    normalize_arbors_individually = false;   
+   normalizeTotalToPost = false;
    
    writeCompressedWeights = 0.0;
    plasticityFlag = 0;
@@ -618,6 +624,7 @@ CloneKernelConn "L2toL3CliqueTarget" = {
    selfFlag = true;
    stochasticReleaseFlag = false;
    delay = 0;
+   preActivityIsNotRate = true;
 };
 
 CloneKernelConn "L2toL3CliqueDistractor" = {
@@ -630,6 +637,7 @@ CloneKernelConn "L2toL3CliqueDistractor" = {
    selfFlag = true;
    stochasticReleaseFlag = false;
    delay = 0;
+   preActivityIsNotRate = true;
 };
 
 
@@ -660,6 +668,7 @@ CloneKernelConn "L3toL4CliqueTarget" = {
    selfFlag = true;
    stochasticReleaseFlag = false;
    delay = 0;
+   preActivityIsNotRate = true;
 };
 
 CloneKernelConn "L3toL4CliqueDistractor" = {
@@ -671,7 +680,8 @@ CloneKernelConn "L3toL4CliqueDistractor" = {
    writeCompressedWeights = 0.0;
    selfFlag = true;
    stochasticReleaseFlag = false;
-    delay = 0;
+   delay = 0;
+   preActivityIsNotRate = true;
 };
 
 

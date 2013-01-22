@@ -10,7 +10,7 @@ HyPerCol "column" = {
    randomSeed = 111111111;  // if not set here,  clock time is used to generate seed
    $$$_numSteps_$$$
    $$$_outputPath_$$$
-   progressStep = 10;
+   progressStep = 20;
    filenamesContainLayerNames = false;
    checkpointRead = false;
    checkpointWrite = true;
@@ -20,6 +20,7 @@ HyPerCol "column" = {
    $$$_printParamsFilename_$$$
    writeProgressToErr = true;
    filenamesContainConnectionNames = false;
+   suppressLastOutput = false;
 };
 
 //
@@ -33,7 +34,7 @@ Movie "Image" = {
     nyScale = 1;
     nf = 1;
     marginWidth = 0;
-    writeStep = 0;
+    writeStep = -1;
     mirrorBCflag = 0;
     writeSparseActivity = 0;
     writeImages = 0;
@@ -58,7 +59,7 @@ Movie "Mask" = {
     nyScale = 1;
     nf = 1;
     marginWidth = 0;
-    writeStep = 0;
+    writeStep = -1;
     mirrorBCflag = 0;
     writeSparseActivity = 0;
     writeImages = 0;
@@ -181,6 +182,7 @@ KernelConn "MovieToRetina" = {
     normalize = 0;
        
     writeCompressedWeights = 0.0;
+    writeCompressedCheckpoints = 0.0;
     plasticityFlag = 0;
     stochasticReleaseFlag = false;
 
@@ -227,6 +229,7 @@ KernelConn "RetinaToL1" = {
 
    shrinkPatches = false;
    writeCompressedWeights = 0.0;
+   writeCompressedCheckpoints = 0.0;
    plasticityFlag = 0;
    stochasticReleaseFlag = false;
     
@@ -271,6 +274,7 @@ KernelConn "RetinaToL1Inh" = {
    
    shrinkPatches = false;
    writeCompressedWeights = 0.0;
+   writeCompressedCheckpoints = 0.0;
    plasticityFlag = 0;
    stochasticReleaseFlag = false;
 
@@ -324,6 +328,7 @@ KernelConn "MasktoL1Post" = {
    weightInitType = "UniformWeight";
    weightInit = 1;
        
+   strength = 1.0;
    normalize = 1.0;
    normalize_zero_offset = 0.0;
    normalize_max = 0.0;
@@ -331,6 +336,7 @@ KernelConn "MasktoL1Post" = {
 
    shrinkPatches = false;
    writeCompressedWeights = 0.0;
+   writeCompressedCheckpoints = 0.0;
    selfFlag = false;
    plasticityFlag = 0;
    stochasticReleaseFlag = false;
@@ -372,6 +378,7 @@ CliqueConn "L1Pool1X1toL1Post" = {
    combine_dW_with_W_flag = true; //false; // 
    shrinkPatches = false;
    writeCompressedWeights = 0.0;
+   writeCompressedCheckpoints = 0.0;
    stochasticReleaseFlag = false;
    weightUpdatePeriod = 1.0;
 

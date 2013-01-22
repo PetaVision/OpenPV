@@ -17,7 +17,6 @@ HyPerCol "column" = {
    $$$_printParamsFilename_$$$
    writeProgressToErr = true;
    filenamesContainConnectionNames = false;
-   suppressLastOutput = true;
 };
 
 //
@@ -131,27 +130,10 @@ CliqueLayer "L1Clique" = {
 };
 
 
-// downsample edges
-MaxPooling "L2Pool2X2" = {
-    restart = 0;
-    nxScale = 0.5;
-    nyScale = 0.5;
-    nf = 8;
-    marginWidth = 16;
-    writeStep = 1.0;
-    mirrorBCflag = 1;
-    writeSparseActivity = 0;
-
-    InitVType = "ConstantV";
-    valueV = 0;
-};
-
-
-
 CliqueLayer "L2Clique" = {
     restart = 0;
-    nxScale = 0.5;
-    nyScale = 0.5;
+    nxScale = 1;
+    nyScale = 1;
     nf = 8;
     marginWidth = 16;
     writeStep = 1.0;
@@ -170,8 +152,8 @@ CliqueLayer "L2Clique" = {
 
 CliqueLayer "L3Clique" = {
     restart = 0;
-    nxScale = 0.5;
-    nyScale = 0.5;
+    nxScale = 1;
+    nyScale = 1;
     nf = 8;
     marginWidth = 16;
     writeStep = 1.0;
@@ -190,8 +172,8 @@ CliqueLayer "L3Clique" = {
 
 CliqueLayer "L4Clique" = {
     restart = 0;
-    nxScale = 0.5;
-    nyScale = 0.5;
+    nxScale = 1;
+    nyScale = 1;
     nf = 8;
     marginWidth = 16;
     writeStep = 1.0;
@@ -349,6 +331,7 @@ IdentConn "L1ToL1Pool1X1" = {
 // Clique connections
 
 
+
 // L1 Clique
 
 IdentConn "L1Pool1X1toL1CliqueVertical" = {
@@ -378,8 +361,8 @@ SiblingConn "L1Pool1X1toL1CliqueTarget" = {
 
    weightInitType = "FileWeight";  
    combineWeightFiles = true; //false; // 
-   numWeightFiles = 1;
-   initWeightsFile = "/home/gkenyon/workspace/SynthCog3/weights/CatVsNoCatDog/Test/CatVsNoCatDog_Test_cat_canny3way.weights" ;
+   $$$_numWeightFilesTarget_$$$
+   $$$_initWeightsFileL1Pool1X1toL1CliqueTarget_$$$ 
    siblingConnName = "L1Pool1X1toL1CliqueDistractor";
    useListOfArborFiles = false;
    shrinkPatches = false;
@@ -391,7 +374,6 @@ SiblingConn "L1Pool1X1toL1CliqueTarget" = {
    normalize_cutoff = 0;
    symmetrizeWeights = 0;
    normalize_arbors_individually = false;   
-   normalizeTotalToPost = false;
    
    writeCompressedWeights = 0.0;
    plasticityFlag = 0;
@@ -420,8 +402,8 @@ SiblingConn "L1Pool1X1toL1CliqueDistractor" = {
 
    weightInitType = "FileWeight";  
    combineWeightFiles = true; //false; // 
-   numWeightFiles = 1;
-   initWeightsFile = "/home/gkenyon/workspace/SynthCog3/weights/CatVsNoCatDog/Test/CatVsNoCatDog_Test_nocatdog_canny3way.weights" ;
+   $$$_numWeightFilesDistractor_$$$
+   $$$_initWeightsFileL1Pool1X1toL1CliqueDistractor_$$$ 
    siblingConnName = "L1Pool1X1toL1CliqueTarget";
    useListOfArborFiles = false;
    shrinkPatches = false;
@@ -433,7 +415,6 @@ SiblingConn "L1Pool1X1toL1CliqueDistractor" = {
    normalize_cutoff = 0;
    symmetrizeWeights = 0;
    normalize_arbors_individually = false;   
-   normalizeTotalToPost = false;
    
    writeCompressedWeights = 0.0;
    plasticityFlag = 0;
@@ -450,57 +431,10 @@ SiblingConn "L1Pool1X1toL1CliqueDistractor" = {
 
 
 
+// L2Clique
 
-
-// downsample/pooling 
-KernelConn "L1CliqueToL2Pool2X2" = {
-   preLayerName = "L1Clique";
-   postLayerName = "L2Pool2X2";
-   channelCode = 0;
-   nxp = 1; 
-   nyp = 1; 
-   nfp = 8;
-   numAxonalArbors = 1;
-   initFromLastFlag = 0;  // 1;  // restart
-   writeStep = -1;
-   
-   weightInitType = "Gauss2DWeight";
-   aspect = 1.1;
-   sigma = 1;
-   rMax  = 1;
-   rMin = 0;
-   deltaThetaMax = 0.19635; // 3.14 / 16
-   thetaMax = 1;
-   bowtieFlag = 0;
-   numFlanks = 1;
-   flankShift = 0;
-   rotate = 1;
-       
-   strength = 1.0; 
-   normalize = 1.0;
-   normalize_zero_offset = 0.0;
-   normalize_max = 0.0;
-   normalize_cutoff = 0;
-   symmetrizeWeights = 0;
-   normalizeTotalToPost = false;
-
-   shrinkPatches = false;
-   writeCompressedWeights = 0.0;
-   plasticityFlag = 0;
-   stochasticReleaseFlag = false;
-    
-   delay = 0;
-    
-   preActivityIsNotRate = false;
-   selfFlag = false;
-};
-
-
-
-// L2 Clique
-
-IdentConn "L2Pool2X2toL2CliqueVertical" = {
-    preLayerName = "L2Pool2X2";
+IdentConn "L1toL2CliqueVertical" = {
+    preLayerName = "L1Clique";
     postLayerName = "L2Clique";
     channelCode = 0;
     writeStep = -1;
@@ -512,89 +446,29 @@ IdentConn "L2Pool2X2toL2CliqueVertical" = {
 
 
 
-//KernelConn "L2Pool2X2toL2CliqueTarget" = {
-SiblingConn "L2Pool2X2toL2CliqueTarget" = {
-   preLayerName = "L2Pool2X2";
+CloneKernelConn "L1toL2CliqueTarget" = {
+   preLayerName = "L1Clique";
    postLayerName = "L2Clique";
    channelCode = 1;
-   nxp = 33;
-   nyp = 33;
-   nfp = 8;
-   numAxonalArbors = 8712;
-   initFromLastFlag = 0;  // 1;  // restart
    writeStep = -1;
-
-   weightInitType = "FileWeight";  
-   combineWeightFiles = true; //false; // 
-   $$$_numWeightFilesTarget_$$$
-   $$$_initWeightsFileL2Pool2X2toL2CliqueTarget_$$$ 
-   siblingConnName = "L2Pool2X2toL2CliqueDistractor";
-   useListOfArborFiles = false;
-   shrinkPatches = false;
-   
-   strength = 1.0;
-   normalize = 1.0; //0.0; // 
-   normalize_zero_offset = 0.0;
-   normalize_max = 0.0;
-   normalize_cutoff = 0;
-   symmetrizeWeights = 0;
-   normalize_arbors_individually = false;   
-   normalizeTotalToPost = false;
-   
+   originalConnName = "L1Pool1X1toL1CliqueTarget";
    writeCompressedWeights = 0.0;
-   plasticityFlag = 0;
-   //combine_dW_with_W_flag = false;
    selfFlag = true;
-   shmget_flag = true;
    stochasticReleaseFlag = false;
-
-   delay = 0; 
-
-   preActivityIsNotRate = false;
+   delay = 0;
 };
 
-
-//KernelConn "L2Pool2X2toL2CliqueDistractor" = {
-SiblingConn "L2Pool2X2toL2CliqueDistractor" = {
-   preLayerName = "L2Pool2X2";
+CloneKernelConn "L1toL2CliqueDistractor" = {
+   preLayerName = "L1Clique";
    postLayerName = "L2Clique";
    channelCode = 1;
-   nxp = 33;
-   nyp = 33;
-   nfp = 8;
-   numAxonalArbors = 8712;
-   initFromLastFlag = 0;  // 1;  // restart
    writeStep = -1;
-
-   weightInitType = "FileWeight";  
-   combineWeightFiles = true; //false; // 
-   $$$_numWeightFilesDistractor_$$$
-   $$$_initWeightsFileL2Pool2X2toL2CliqueDistractor_$$$ 
-   siblingConnName = "L2Pool2X2toL2CliqueTarget";
-   useListOfArborFiles = false;
-   shrinkPatches = false;
-   
-   strength = -1.0;
-   normalize = 1.0; //0.0; // 
-   normalize_zero_offset = 0.0;
-   normalize_max = 0.0;
-   normalize_cutoff = 0;
-   symmetrizeWeights = 0;
-   normalize_arbors_individually = false;   
-   normalizeTotalToPost = false;
-   
+   originalConnName = "L1Pool1X1toL1CliqueDistractor";
    writeCompressedWeights = 0.0;
-   plasticityFlag = 0;
-   //combine_dW_with_W_flag = false;
    selfFlag = true;
-   shmget_flag = true;
    stochasticReleaseFlag = false;
-
-   delay = 0; 
-
-   preActivityIsNotRate = false;
+   delay = 0;
 };
-
 
 
 
@@ -618,12 +492,11 @@ CloneKernelConn "L2toL3CliqueTarget" = {
    postLayerName = "L3Clique";
    channelCode = 1;
    writeStep = -1;
-   originalConnName = "L2Pool2X2toL2CliqueTarget";
+   originalConnName = "L1Pool1X1toL1CliqueTarget";
    writeCompressedWeights = 0.0;
    selfFlag = true;
    stochasticReleaseFlag = false;
    delay = 0;
-   preActivityIsNotRate = true;
 };
 
 CloneKernelConn "L2toL3CliqueDistractor" = {
@@ -631,12 +504,11 @@ CloneKernelConn "L2toL3CliqueDistractor" = {
    postLayerName = "L3Clique";
    channelCode = 1;
    writeStep = -1;
-   originalConnName = "L2Pool2X2toL2CliqueDistractor";
+   originalConnName = "L1Pool1X1toL1CliqueDistractor";
    writeCompressedWeights = 0.0;
    selfFlag = true;
    stochasticReleaseFlag = false;
    delay = 0;
-   preActivityIsNotRate = true;
 };
 
 
@@ -662,12 +534,11 @@ CloneKernelConn "L3toL4CliqueTarget" = {
    postLayerName = "L4Clique";
    channelCode = 1;
    writeStep = -1;
-   originalConnName = "L2Pool2X2toL2CliqueTarget";
+   originalConnName = "L1Pool1X1toL1CliqueTarget";
    writeCompressedWeights = 0.0;
    selfFlag = true;
    stochasticReleaseFlag = false;
    delay = 0;
-   preActivityIsNotRate = true;
 };
 
 CloneKernelConn "L3toL4CliqueDistractor" = {
@@ -675,12 +546,11 @@ CloneKernelConn "L3toL4CliqueDistractor" = {
    postLayerName = "L4Clique";
    channelCode = 1;
    writeStep = -1;
-   originalConnName = "L2Pool2X2toL2CliqueDistractor";
+   originalConnName = "L1Pool1X1toL1CliqueDistractor";
    writeCompressedWeights = 0.0;
    selfFlag = true;
    stochasticReleaseFlag = false;
-   delay = 0;
-   preActivityIsNotRate = true;
+    delay = 0;
 };
 
 
@@ -715,11 +585,6 @@ StatsProbe "L1Pool1X1StatsFile" = {
 StatsProbe "L1CliqueStatsFile" = {
     targetLayer = "L1Clique";
     probeOutputFile = "L1Clique_Stats.txt";
-};
-
-StatsProbe "L2Pool2X2StatsFile" = {
-    targetLayer = "L2Pool2X2";
-    probeOutputFile = "L2Pool2X2_Stats.txt";
 };
 
 StatsProbe "L2CliqueStatsFile" = {
