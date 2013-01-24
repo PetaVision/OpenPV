@@ -76,8 +76,8 @@ Retina "Retina" = {
     refractoryPeriod = 5;
     absRefractoryPeriod = 3;
 
-    poissonEdgeProb = 1;
-    poissonBlankProb = 0;
+    foregroundRate = 1000;
+    backgroundRate = 0;
     burstFreq = 1;
     burstDuration = 40000;
 
