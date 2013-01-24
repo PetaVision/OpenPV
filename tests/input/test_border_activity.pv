@@ -40,8 +40,8 @@ Retina "test_border_activity retina" = {
    writeNonspikingActivity = 1;
    restart = false;
 
-   poissonBlankProb = 0;
-   poissonEdgeProb = 1;
+   foregroundRate = 1000;
+   backgroundRate = 0;
    beginStim = 0.0;
    endStim = 1e8;
    burstFreq = 40;
