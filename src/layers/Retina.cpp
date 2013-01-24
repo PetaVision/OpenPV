@@ -281,19 +281,40 @@ int Retina::setParams(PVParams * p)
    float probStim = 1.0f;
    float probBase = 0.0f;
    if (p->present(name, "noiseOnFreq")) {
-      probStim = p->value(name, "noiseOnFreq") * dt_sec;
+      fprintf(stderr, "Warning for retina layer \"%s\": parameter noiseOnFreq has been replaced by foregroundRate.\n", name);
+      probStim = p->value(name, "noiseOnFreq");
+   }
+   else if (p->present(name, "poissonEdgeProb")) {
+      fprintf(stderr, "Error in retina layer \"%s\": parameter poissonEdgeProb has been replaced by foregroundRate.\n", name);
+      exit(EXIT_FAILURE);
+      probStim = p->value(name, "poissonEdgeProb");
    }
    else {
-      probStim = p->value(name, "poissonEdgeProb" , 1.0f);
+      probStim = p->value(name, "foregroundRate", probStim);
    }
-   if (probStim > 1.0) probStim = 1.0f;
    if (p->present(name, "noiseOffFreq")) {
-      probBase = p->value(name, "noiseOffFreq") * dt_sec;
+      fprintf(stderr, "Warning for retina layer \"%s\": parameter noiseOffFreq has been replaced by backgroundRate.\n", name);
+      probBase = p->value(name, "noiseOffFreq");
+   }
+   else if (p->present(name, "poissonBlankProb")) {
+      fprintf(stderr, "Error in retina layer \"%s\": parameter poissonBlankProb has been replaced by backgroundRate.\n", name);
+      exit(EXIT_FAILURE);
+      probBase = p->value(name, "poissonBlankProb");
    }
    else {
-      probBase = p->value(name, "poissonBlankProb", 0.0f);
+      probBase = p->value(name, "backgroundRate", probBase);
    }
+
+   if (probBase > probStim) {
+      fprintf(stderr, "Error in retina layer \"%s\": background rate should not be greater than foreground rate.\n", name);
+      exit(EXIT_FAILURE);
+   }
+   probStim *= dt_sec;
+   if (probStim > 1.0) probStim = 1.0f;
+   probBase *= dt_sec;
    if (probBase > 1.0) probBase = 1.0f;
+
+   maxRate = probStim/dt_sec;
 
    // default parameters
    //
