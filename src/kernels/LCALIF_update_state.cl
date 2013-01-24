@@ -96,7 +96,11 @@ void LCALIF_update_state(
     CL_MEM_GLOBAL float * Vattained,
     CL_MEM_GLOBAL float * Vmeminf,
     const int normalizeInputFlag,
-    CL_MEM_GLOBAL float * GSynExcEffective)
+    CL_MEM_GLOBAL float * GSynExcEffective,
+    CL_MEM_GLOBAL float * GSynInhEffective,
+    CL_MEM_GLOBAL float * excitatoryNoise,
+    CL_MEM_GLOBAL float * inhibitoryNoise,
+    CL_MEM_GLOBAL float * inhibNoiseB)
 {
 
    // convert target rate from Hz to kHz
@@ -176,25 +180,34 @@ for (int k = 0; k < nx*ny*nf; k++) {
    };
    l_GSynExc /= (l_GSynNorm + (l_GSynNorm==0 ? 1 : 0));
    GSynExcEffective[k] = l_GSynExc;
+   GSynInhEffective[k] = l_GSynInh;
 
    // add noise
    //
+   excitatoryNoise[k] = 0.0f;
    l_rnd = cl_random_get(l_rnd);
    if (cl_random_prob(l_rnd) < dt_sec*params->noiseFreqE) {
       l_rnd = cl_random_get(l_rnd);
-      l_GSynExc = l_GSynExc + params->noiseAmpE*cl_random_prob(l_rnd);
+      excitatoryNoise[k] = params->noiseAmpE*cl_random_prob(l_rnd);
+      l_GSynExc = l_GSynExc + excitatoryNoise[k];
    }
 
+   inhibitoryNoise[k] = 0.0f;
    l_rnd = cl_random_get(l_rnd);
-   if (cl_random_prob(l_rnd) < dt_sec*params->noiseFreqI) {
+   float r = cl_random_prob(l_rnd);
+   if (r < dt_sec*params->noiseFreqI) {
       l_rnd = cl_random_get(l_rnd);
-      l_GSynInh = l_GSynInh + params->noiseAmpI*cl_random_prob(l_rnd);
+      r = cl_random_prob(l_rnd);
+      inhibitoryNoise[k] = params->noiseAmpI*r;
+      l_GSynInh = l_GSynInh + inhibitoryNoise[k];
    }
 
+   inhibNoiseB[k] = 0.0f;
    l_rnd = cl_random_get(l_rnd);
    if (cl_random_prob(l_rnd) < dt_sec*params->noiseFreqIB) {
       l_rnd = cl_random_get(l_rnd);
-      l_GSynInhB = l_GSynInhB + params->noiseAmpIB*cl_random_prob(l_rnd);
+      inhibNoiseB[k] = params->noiseAmpIB*cl_random_prob(l_rnd);
+      l_GSynInhB = l_GSynInhB + inhibNoiseB[k];
    }
 
    const float GMAX = FLT_MAX;
@@ -237,7 +250,10 @@ for (int k = 0; k < nx*ny*nf; k++) {
    //l_Vth updates according to traditional LIF rule in addition to the slow threshold adaptation
    //      See LCA_Equations.pdf in the documentation for a full description of the neuron adaptive firing threshold.
    
-   Vadpt[k] += (dt/tauTHR) * ((integratedSpikeCount[k]/tauO) - targetRatekHz) * (Vscale/targetRatekHz);
+   Vadpt[k] = -60.0f;
+   // Vadpt[k] += (dt/tauTHR) * ((integratedSpikeCount[k]/tauO) - targetRatekHz) * (Vscale/targetRatekHz);
+   // float Vadpt_floor = params->Vrest + 5.0f;
+   // Vadpt[k] = Vadpt[k] < Vadpt_floor ? Vadpt_floor : Vadpt[k];
 
    l_Vth = Vadpt[k] + decayVth * (l_Vth - Vadpt[k]);
    
