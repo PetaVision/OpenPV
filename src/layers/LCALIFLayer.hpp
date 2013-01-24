@@ -55,6 +55,10 @@ protected:
    pvdata_t * integratedSpikeCount;      // plasticity decrement variable for postsynaptic layer
    pvdata_t * G_Norm;                    // Copy of GSyn[CHANNEL_NORM] to be written out during checkpointing
    pvdata_t * GSynExcEffective;         // What is used as GSynExc, after normalizing, stored for checkpointing
+   pvdata_t * GSynInhEffective;         // What is used as GSynInh
+   pvdata_t * excitatoryNoise;
+   pvdata_t * inhibitoryNoise;
+   pvdata_t * inhibNoiseB;
    float tauTHR;
    float targetRateHz;
    float Vscale;

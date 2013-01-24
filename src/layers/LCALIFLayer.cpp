@@ -67,7 +67,11 @@ void LCALIF_update_state(
    CL_MEM_GLOBAL float * Vattained,
    CL_MEM_GLOBAL float * Vmeminf,
    const int normalizeInputFlag,
-   CL_MEM_GLOBAL float * GSynExcEffective
+   CL_MEM_GLOBAL float * GSynExcEffective,
+   CL_MEM_GLOBAL float * GSynInhEffective,
+   CL_MEM_GLOBAL float * excitatoryNoise,
+   CL_MEM_GLOBAL float * inhibitoryNoise,
+   CL_MEM_GLOBAL float * inhibNoiseB
 );
 #ifdef __cplusplus
 }
@@ -148,6 +152,14 @@ int LCALIFLayer::allocateBuffers() {
    assert(G_Norm != NULL);
    GSynExcEffective = (pvdata_t *) calloc(numNeurons, sizeof(pvdata_t));
    assert(GSynExcEffective != NULL);
+   GSynInhEffective = (pvdata_t *) calloc(numNeurons, sizeof(pvdata_t));
+   assert(GSynInhEffective != NULL);
+   excitatoryNoise = (pvdata_t *) calloc(numNeurons, sizeof(pvdata_t));
+   assert(excitatoryNoise != NULL);
+   inhibitoryNoise = (pvdata_t *) calloc(numNeurons, sizeof(pvdata_t));
+   assert(inhibitoryNoise != NULL);
+   inhibNoiseB = (pvdata_t *) calloc(numNeurons, sizeof(pvdata_t));
+   assert(inhibNoiseB != NULL);
    return LIFGap::allocateBuffers();
 }
 
@@ -159,7 +171,8 @@ int LCALIFLayer::updateState(double timed, double dt)
    }
    LCALIF_update_state(getNumNeurons(), timed, dt, clayer->loc.nx, clayer->loc.ny, clayer->loc.nf,
          clayer->loc.nb, Vscale, Vadpt, tauTHR, targetRateHz, integratedSpikeCount, &lParams,
-         rand_state, clayer->V, Vth, G_E, G_I, G_IB, GSyn[0], clayer->activity->data, sumGap, G_Gap, Vattained, Vmeminf, (int) normalizeInputFlag, GSynExcEffective);
+         rand_state, clayer->V, Vth, G_E, G_I, G_IB, GSyn[0], clayer->activity->data, sumGap, G_Gap, Vattained, Vmeminf, (int) normalizeInputFlag,
+         GSynExcEffective, GSynInhEffective, excitatoryNoise, inhibitoryNoise, inhibNoiseB);
    updateActiveIndices();
    return PV_SUCCESS;
 }
@@ -231,6 +244,22 @@ int LCALIFLayer::checkpointWrite(const char * cpDir) {
    chars_needed = snprintf(filename, PV_PATH_MAX, "%s_GSynExcEffective.pvp", basepath);
    assert(chars_needed < PV_PATH_MAX);
    writeBufferFile(filename, icComm, timed, &GSynExcEffective, 1, /*extended*/false, getLayerLoc());
+
+   chars_needed = snprintf(filename, PV_PATH_MAX, "%s_GSynInhEffective.pvp", basepath);
+   assert(chars_needed < PV_PATH_MAX);
+   writeBufferFile(filename, icComm, timed, &GSynInhEffective, 1, /*extended*/false, getLayerLoc());
+
+   chars_needed = snprintf(filename, PV_PATH_MAX, "%s_excitatoryNoise.pvp", basepath);
+   assert(chars_needed < PV_PATH_MAX);
+   writeBufferFile(filename, icComm, timed, &excitatoryNoise, 1, /*extended*/false, getLayerLoc());
+
+   chars_needed = snprintf(filename, PV_PATH_MAX, "%s_inhibitoryNoise.pvp", basepath);
+   assert(chars_needed < PV_PATH_MAX);
+   writeBufferFile(filename, icComm, timed, &inhibitoryNoise, 1, /*extended*/false, getLayerLoc());
+
+   chars_needed = snprintf(filename, PV_PATH_MAX, "%s_inhibNoiseB.pvp", basepath);
+   assert(chars_needed < PV_PATH_MAX);
+   writeBufferFile(filename, icComm, timed, &inhibNoiseB, 1, /*extended*/false, getLayerLoc());
 
    return status;
 }
