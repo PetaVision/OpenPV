@@ -38,15 +38,15 @@ Retina "Retina" = {
     nf = 1;
     marginWidth = 1;
     writeStep = 1.0;
-    mirrorBCflag = 1;
-    spikingFlag = 0;
-    writeSparseActivity = 0;
+    mirrorBCflag = true;
+    spikingFlag = false;
+    writeSparseActivity = false;
     // GPUAccelerate = false;
 
     // refractoryPeriod
     // absRefractoryPeriod
-    poissonEdgeProb = 1;
-    poissonBlankProb = 1;
+    foregroundRate = 1000;
+    backgroundRate = 1000;
     burstFreq = 1;
     burstDuration = 1000;
 
@@ -64,8 +64,8 @@ ANNLayer "L0" = {
     nf = 4;
     marginWidth = 4;
     writeStep = 1.0;
-    mirrorBCflag = 1;
-    writeSparseActivity = 0;
+    mirrorBCflag = true;
+    writeSparseActivity = false;
     // GPUAccelerate = false;
 
     InitVType = "ZeroV";
@@ -83,8 +83,8 @@ ANNLayer "Lx1" = {
     nf = 4;
     marginWidth = 0;
     writeStep = 1.0;
-    mirrorBCflag = 1;
-    writeSparseActivity = 0;
+    mirrorBCflag = true;
+    writeSparseActivity = false;
     // GPUAccelerate = false;
 
     InitVType = "ZeroV";
@@ -102,8 +102,8 @@ ANNLayer "Lx2" = {
     nf = 8;
     marginWidth = 0;
     writeStep = 1.0;
-    mirrorBCflag = 1;
-    writeSparseActivity = 0;
+    mirrorBCflag = true;
+    writeSparseActivity = false;
     // GPUAccelerate = false;
 
     InitVType = "ZeroV";
@@ -121,8 +121,8 @@ ANNLayer "Lx4" = {
     nf = 16;
     marginWidth = 0;
     writeStep = 1.0;
-    mirrorBCflag = 0;
-    writeSparseActivity = 0;
+    mirrorBCflag = false;
+    writeSparseActivity = false;
     // GPUAccelerate = false;
 
     InitVType = "ZeroV";
@@ -141,8 +141,8 @@ ANNLayer "Lx1_2" = {
     nf = 2;
     marginWidth = 0;
     writeStep = 1.0;
-    mirrorBCflag = 0;
-    writeSparseActivity = 0;
+    mirrorBCflag = false;
+    writeSparseActivity = false;
     // GPUAccelerate = false;
 
     InitVType = "ZeroV";
@@ -161,8 +161,8 @@ ANNLayer "Lx1_4" = {
     nf = 1;
     marginWidth = 0;
     writeStep = 1.0;
-    mirrorBCflag = 0;
-    writeSparseActivity = 0;
+    mirrorBCflag = false;
+    writeSparseActivity = false;
     // GPUAccelerate = false;
 
     InitVType = "ZeroV";
