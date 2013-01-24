@@ -38,8 +38,7 @@ Image "input" = {
     nf = 1;
     marginWidth = 3;
     writeStep = -1;
-    spikingFlag = false;
-    writeNonspikingActivity = true;
+    writeSparseActivity = false;
     mirrorBCflag = false;
     useImageBCflag = false;
     inverseFlag = false;
@@ -56,8 +55,7 @@ ANNLayer "output" = {
     marginWidth = 0;
     writeStep = 1.0;
     mirrorBCflag = 1;
-    spikingFlag = 0;
-    writeNonspikingActivity = 1;
+    writeSparseActivity = false;
 
     InitVType = "ZeroV";
 
