@@ -37,8 +37,8 @@ Retina "Retina" = {
 
     Vrest = 1.0;
     invert = 0;
-    poissonEdgeProb = 1;
-    poissonBlankProb = 1;
+    foregroundRate = 1000;
+    backgroundRate = 1000;
     burstFreq = 1;
     burstDuration = 1000;
 
