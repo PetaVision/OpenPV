@@ -1263,7 +1263,7 @@ int writeActivity(FILE * fp, Communicator * comm, double timed, PVLayer * l)
    if( rank == 0 ) {
       long fpos = ftell(fp);
       if (fpos == 0L) {
-         int * params = pvp_set_activity_params(comm, timed, &l->loc, PV_FLOAT_TYPE, 1/*numbands*/);
+         int * params = pvp_set_nonspiking_act_params(comm, timed, &l->loc, PV_FLOAT_TYPE, 1/*numbands*/);
          assert(params && params[1]==NUM_BIN_PARAMS);
          int numParams = params[1];
          status = pvp_write_header(fp, comm, params, numParams);
