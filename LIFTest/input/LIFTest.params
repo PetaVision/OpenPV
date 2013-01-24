@@ -19,6 +19,7 @@ HyPerCol "column" = {
    writeProgressToErr = false;
    outputPath = "output";
    filenamesContainLayerNames = false;
+   filenamesContainConnectionNames = false;
    checkpointRead = false;
    // checkpointReadDir = "Checkpoints";
    // checkpointReadDirIndex = 2000;
@@ -40,13 +41,14 @@ Image "input" = {
     imagePath = "input/inputimage.pvp";
     nf = 1;
     marginWidth = 0;
-    spikingFlag = false;
     writeStep = -1;
-    writeNonspikingActivity = true;
+    writeSparseActivity = false;
     useImageBCflag = false;
     mirrorBCflag = false;
     inverseFlag = false;
+    normalizeLuminanceFlag = false;
     writeImages = false;
+    jitterFlag = false;
     offsetX = 96;
     offsetY = 96;
 };
@@ -58,9 +60,8 @@ ANNLayer "scaled input" = {
     nf = 1;
     marginWidth = 0;
     mirrorBCflag = false;
-    spikingFlag = false;
     writeStep = -1.0;
-    writeNonspikingActivity = 1;
+    writeSparseActivity = false;
 
     InitVType = "ZeroV";
 
@@ -76,11 +77,11 @@ Retina "retina" = {
 	nf               = 1;
 	marginWidth      = 0;
 	mirrorBCflag     = false;
-	spikingFlag      = true;
 	writeStep        = -1.0;
-	// writeNonspikingActivity = true;
-	noiseOnFreq  = 200.0;
-	noiseOffFreq = 0.0;
+	writeSparseActivity = false;
+	spikingFlag      = true;
+	foregroundRate   = 200.0;
+	backgroundRate   = 0.0;
 	refractoryPeriod = 0.0;
 	absRefractoryPeriod = 0.0;
 	beginStim        = 0.0;
@@ -96,13 +97,12 @@ GenerativeLayer "Retina Spike Counter" = {
     nf = 1;
     marginWidth = 0;
     mirrorBCflag = false;
-    spikingFlag = false;
     
     InitVType = "ConstantV";
     valueV = 0;
 
     writeStep = -1.0;
-    writeNonspikingActivity = false;
+    writeSparseActivity = false;
     VMax = infinity;
     VMin = -infinity;
     VThresh = -infinity;
@@ -121,7 +121,7 @@ LIFGap "LIFTest" = {
     marginWidth = 1;
     writeStep = -1.0;
     mirrorBCflag = false;
-    spikingFlag = true;
+    writeSparseActivity = true;
     
     InitVType        = "ConstantV";
     valueV           = -70.0;
@@ -153,13 +153,12 @@ GenerativeLayer "LIFTest Spike Counter" = {
     nf = 1;
     marginWidth = 0;
     mirrorBCflag = false;
-    spikingFlag = false;
+    writeSparseActivity = false;
     
     InitVType = "ConstantV";
     valueV = 0;
 
     writeStep = -1.0;
-    writeNonspikingActivity = false;
     VMax = infinity;
     VMin = -infinity;
     VThresh = -infinity;
@@ -178,13 +177,12 @@ GapLayer "GapTest" = {
     nf = 1;
     marginWidth  = 1;
     mirrorBCflag = true;
-    spikingFlag = false;
 
     InitVType    = "ConstantV";
     valueV = -70.0;
 
     writeStep = -1;
-    writeNonspikingActivity = true;
+    writeSparseActivity = false;
 
     ampSpikelet = 50;
 };
@@ -197,7 +195,7 @@ LIFGap "LIFGapTest" = {
     marginWidth = 0;
     writeStep = -1; // Value 0 means write every timestep, no matter what dt is
     mirrorBCflag = false;
-    spikingFlag = true;
+    writeSparseActivity = true;
     
     InitVType        = "ConstantV";
     valueV           = -70.0;
@@ -229,13 +227,12 @@ GenerativeLayer "LIFGapTest Spike Counter" = {
     nf = 1;
     marginWidth = 0;
     mirrorBCflag = false;
-    spikingFlag = false;
     
     InitVType = "ConstantV";
     valueV = 0;
 
     writeStep = -1;
-    writeNonspikingActivity = true;
+    writeSparseActivity = false;
     VMax = infinity;
     VMin = -infinity;
     VThresh = -infinity;
@@ -263,10 +260,10 @@ KernelConn "input to scaled input" = {
     weightInit = 2.0;
       
     normalize = false;
-    symmetrizeWeights = false;
     plasticityFlag = false;
     stochasticReleaseFlag = false;
     writeCompressedWeights = true;
+    writeCompressedCheckpoints = true;
     selfFlag = false;
     shrinkPatches = false;
     preActivityIsNotRate = false;
@@ -299,10 +296,10 @@ KernelConn "retina to LIFTest" = {
     weightInit = 1.0;
       
     normalize = false;
-    symmetrizeWeights = false;
     plasticityFlag = false;
     stochasticReleaseFlag = false;
     writeCompressedWeights = true;
+    writeCompressedCheckpoints = true;
     selfFlag = false;
     shrinkPatches = false;
     preActivityIsNotRate = false;
@@ -345,6 +342,7 @@ GapConn "GapTest to LIFGapTest" = {
     preActivityIsNotRate = false;
     
     writeCompressedWeights = false;
+    writeCompressedCheckpoints = false;
     writeStep = -1;
     // initialWriteTime = 0;
 };
