@@ -56,7 +56,6 @@ int main(int argc, char * argv[]) {
    status = buildandrun(3, cl_args, NULL, &customexit, &customgroup);
    if( status != PV_SUCCESS ) {
       fprintf(stderr, "%s: running with params file %s returned error %d.\n", cl_args[0], cl_args[2], status);
-      exit(status);
    }
 
 #ifdef PV_USE_MPI
@@ -104,7 +103,7 @@ void * customgroup(const char * keyword, const char * name, HyPerCol * hc) {
 }
 
 int customexit(HyPerCol * hc, int argc, char * argv[]) {
-   int status;
+   int status = PV_SUCCESS;
    int rank = hc->icCommunicator()->commRank();
    int rootproc = 0;
    if( rank == rootproc ) {
@@ -122,7 +121,7 @@ int customexit(HyPerCol * hc, int argc, char * argv[]) {
       shellcommand = (char *) malloc(len+1);
       if( shellcommand == NULL) {
          fprintf(stderr, "%s: unable to allocate memory for shell diff command.\n", argv[0]);
-         exit(EXIT_FAILURE);
+         status = PV_FAILURE;
       }
       assert( snprintf(shellcommand, len+1, fmtstr, cpdir1, index, cpdir2, index) == len );
       status = system(shellcommand);
@@ -133,7 +132,7 @@ int customexit(HyPerCol * hc, int argc, char * argv[]) {
          // simply returning the result of the system call doesn't work.
          // I haven't found the mult-by-256 behavior in the documentation, so I'm not sure what's
          // going on.
-         return EXIT_FAILURE;
+         status = PV_FAILURE;
       }
    }
 #ifdef PV_USE_MPI
