@@ -48,6 +48,7 @@ int OjaKernelConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre
    inputTargetRate = 0.001*readInputTargetRate(); // params file specifies target rates in hertz; convert to khz since times are in ms
    outputTargetRate = 0.001*readOutputTargetRate();
    integrationTime = readIntegrationTime();
+   alphaMultiplier = readAlphaMultiplier();
 
    int numarbors = numberOfAxonalArborLists(); assert(numarbors>0);
    int n_pre_ext = getNumWeightPatches();
@@ -151,7 +152,9 @@ int OjaKernelConn::update_dW(int axonId) {
    // Update weights
    int syg = post->getLayerLoc()->nf * post->getLayerLoc()->nx;
 
-   float alpha = getInputTargetRate()/getOutputTargetRate();
+   float inputBurstRate = pre->getMaxRate();
+   float outputBurstRate = 1000.0f/getIntegrationTime();
+   float alpha = alphaMultiplier*inputBurstRate/outputBurstRate;
 
    for (int kex=0; kex<getNumWeightPatches(); kex++) {
       PVPatch * weights = getWeights(kex,axonId);

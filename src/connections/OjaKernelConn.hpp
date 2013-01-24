@@ -48,6 +48,7 @@ protected:
    virtual float readInputTargetRate() {return getParent()->parameters()->value(name, "inputTargetRate", 1.0);}
    virtual float readOutputTargetRate() {return getParent()->parameters()->value(name, "outputTargetRate", 1.0);}
    virtual float readIntegrationTime() {return getParent()->parameters()->value(name, "integrationTime", 1.0);}
+   virtual float readAlphaMultiplier() {return getParent()->parameters()->value(name, "alphaMultiplier", 1.0);}
 
 private:
    int initialize_base();
@@ -62,6 +63,7 @@ protected:
    pvdata_t ** inputFiringRate; // inputFiringRate[arbor][patchIndex]
    pvdata_t * outputFiringRate; // outputFiringRate[output neuron (in restricted space)]
    MPI_Datatype * mpi_datatype;   // Used to mirror the inputFiringRateCubes
+   float alphaMultiplier;
 
 };
 
