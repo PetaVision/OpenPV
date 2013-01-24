@@ -199,6 +199,8 @@ int HyPerLayer::initialize(const char * name, HyPerCol * hc, int numChannels) {
    int layerID = parent->addLayer(this); // Could this line and the setParent line be combined in a HyPerLayer method?
    assert(layerID == clayer->layerId);
 
+   maxRate = 1000.0f/parent->getDeltaTime();
+
    // allocate storage for the input conductance arrays
    //
    int status = allocateBuffers();

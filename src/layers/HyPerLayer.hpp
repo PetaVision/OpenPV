@@ -232,6 +232,7 @@ public:
    virtual int * getMarginIndices();
    virtual int getNumMargin();
    float getConvertToRateDeltaTimeFactor(HyPerConn* conn);
+   float getMaxRate() {return maxRate;}
 
 protected:
 
@@ -265,6 +266,7 @@ protected:
    int numMargin;         // number of neurons in margin
    int numGlobalRNGs;     // The number of separate random number streams a layer needs.  E.g. stochastically spiking layers need one RNG for each neuron.
                           // numGlobalRNGs should take into account the global layer, so that random number generation is reproducible in different MPI configurations.
+   float maxRate;         // Maximum rate of activity.  HyPerLayer sets to 1/dt during initialize(); derived classes should override in their own initialize method after calling HyPerLayer's, if needed.
 
    // OpenCL variables
    //
