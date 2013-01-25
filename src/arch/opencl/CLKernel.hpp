@@ -52,12 +52,13 @@ public:
 #endif
 
 protected:
-   cl_kernel kernel;                     // compute kernel
    cl_command_queue commands;            // default command queue
    cl_device_id device;                  // device we are using
+#ifdef PV_USE_OPENCL
    cl_program program;                   // compute program
+   cl_kernel kernel;                     // compute kernel
    cl_event event;                       // event identifying the kernel execution instance
-
+#endif // PV_USE_OPENCL
    bool profiling;                       // flag to enable profiling
    unsigned int elapsed;                 // elapsed time in microseconds
 };
