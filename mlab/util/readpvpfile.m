@@ -99,7 +99,7 @@ if isempty(errorstring)
                     end
                 end
             end
-        case 2 % PVP_ACT_FILE_TYPE % Compressed for spiking; I'm not using yet
+        case 2 % PVP_ACT_FILE_TYPE % Compressed for spiking
             for f=1:numframes
                 data{f} = struct('time',0,'values',[]);
                 data{f}.time = fread(fid,1,'float64');
