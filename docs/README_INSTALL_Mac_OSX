@@ -20,6 +20,11 @@ Here is the procedure for installing and compiling the PetaVision repository on 
   g. If the "Subversion Native Library Not Available" error appears, click OK.  If the "Unsupported Password Stores" error appears, click OK.
 
   h. Window menu -> Open Perspective, then click "Other" and select SVNKit 3.2.5.
+  
+  i. Ignore the .settings folder when synchronizing projects.  Open the Eclipse menu bar and select preferences.
+     Then open Team from the left pane, and select Ignored Resources.  Click the Add Pattern... button,
+     enter ".settings" (no quotes), and then click OK to close the Add Ignore Pattern window, and then click OK to
+     close the preferences window.
 
 3. Check out PetaVision.
   a. Window menu -> Open Perspective -> Other ..., and select SVN Repository Exploring.
@@ -28,9 +33,11 @@ Here is the procedure for installing and compiling the PetaVision repository on 
 
   c. Right-click "trunk" and choose Checkout... from the pop-up menu.  In the "Checkout from SVN" window, click Finish.  This step downloads the PetaVision library project.
   
-  d. From a terminal, navigate to the PetaVision directory in your eclipse workspace, and copy "mac.cproject" to ".cproject".
+  d. Repeat step [c] for any desired projects in the PVSystemsTests and sandbox directories.
 
-  e. Repeat steps [c] and [d] for any desired projects in the PVSystemsTests and sandbox directories.
+  e. From a terminal, navigate to the PetaVision directory in your eclipse workspace, and copy "mac.cproject" to ".cproject".
+     Repeat for any system tests and sandboxes checked out in step [d].
+     You can also use the script PetaVision/scripts/copycprojects.bash to copy all projects' mac.cproject to .cproject in a batch.
   
   f. Install the template for PV code style, to use uniform conventions for indenting, etc.  To do this,
      Open Window menu -> Open Perspective -> Other ..., and select C/C++
