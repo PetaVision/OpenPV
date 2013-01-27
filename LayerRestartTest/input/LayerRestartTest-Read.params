@@ -29,8 +29,7 @@ Image "Image" = {
     nf = 3;
     marginWidth = 0;
     writeStep = -1;
-    spikingFlag = false;
-    writeNonspikingActivity = true;
+    writeSparseActivity = false;
     mirrorBCflag = false;
     writeImages = false;
     offsetX = 0;
@@ -45,8 +44,8 @@ ANNLayer "Copy" = {
     marginWidth = 0;
     writeStep = 1;
     mirrorBCflag = 0;
-    spikingFlag = 0;
-    writeNonspikingActivity = 1;
+    writeSparseActivity = 0;
+
 
 //    InitVType = "ConstantV";
 //    valueV = 0;
@@ -64,8 +63,8 @@ ANNLayer "Comparison" = {
     marginWidth = 0;
     writeStep = 1;
     mirrorBCflag = 0;
-    spikingFlag = 0;
-    writeNonspikingActivity = 1;
+    writeSparseActivity = 0;
+
 
 //    InitVType = "ConstantV";
 //    valueV = 0;

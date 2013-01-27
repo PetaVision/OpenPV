@@ -26,8 +26,8 @@ ANNLayer "Comparison" = {
     marginWidth = 0;
     writeStep = 1;
     mirrorBCflag = 0;
-    spikingFlag = 0;
-    writeNonspikingActivity = 1;
+    writeSparseActivity = 0;
+
 
 //    InitVType = "ConstantV";
 //    valueV = 0;
