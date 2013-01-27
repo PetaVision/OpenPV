@@ -16,14 +16,14 @@
 
 
 //
-// update the state of an ANN layer
+// update the state of an HyPerLCA layer
 //
 // To allow porting to GPUs, functions called from this function must be
 // static inline functions.  If a subclass needs new behavior, it needs to
 // have its own static inline function.
 //
 CL_KERNEL
-void ANNLayer_update_state(
+void HyPerLCALayer_update_state(
     const int numNeurons,
     const int nx,
     const int ny,
@@ -35,12 +35,11 @@ void ANNLayer_update_state(
     const float VMax,
     const float VMin,
     const float VShift,
+    const float dt_tau,
     CL_MEM_GLOBAL float * GSynHead,
-//    CL_MEM_GLOBAL float * GSynExc,
-//    CL_MEM_GLOBAL float * GSynInh,
     CL_MEM_GLOBAL float * activity)
 {
-   updateV_ANNLayer(numNeurons, V, GSynHead, VMax, VMin, Vth, VShift);
+   updateV_HyPerLCALayer(numNeurons, V, GSynHead, activity, VMax, VMin, Vth, VShift, dt_tau, nx, ny, nf, nb);
    setActivity_HyPerLayer(numNeurons, activity, V, nx, ny, nf, nb);
    resetGSynBuffers_HyPerLayer(numNeurons, 2, GSynHead);
 }

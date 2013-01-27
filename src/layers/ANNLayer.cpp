@@ -22,9 +22,8 @@ void ANNLayer_update_state(
     const float Vth,
     const float VMax,
     const float VMin,
+    const float VShift,
     float * GSynHead,
-/*    float * GSynExc,
-    float * GSynInh,*/
     float * activity);
 
 #ifdef __cplusplus
@@ -113,6 +112,7 @@ int ANNLayer::initializeThreadKernels(const char * kernel_name)
    status |= krUpdate->setKernelArg(argid++, VThresh);
    status |= krUpdate->setKernelArg(argid++, VMax);
    status |= krUpdate->setKernelArg(argid++, VMin);
+   status |= krUpdate->setKernelArg(argid++, VShift);
    status |= krUpdate->setKernelArg(argid++, getChannelCLBuffer());
 //   status |= krUpdate->setKernelArg(argid++, getChannelCLBuffer(CHANNEL_EXC));
 //   status |= krUpdate->setKernelArg(argid++, getChannelCLBuffer(CHANNEL_INH));
@@ -137,8 +137,6 @@ int ANNLayer::updateStateOpenCL(double time, double dt)
    krUpdate->finish();
 
    status |= getChannelCLBuffer()->copyFromDevice(1, &evUpdate, &evList[getEVGSyn()]);
-//   status |= getChannelCLBuffer(CHANNEL_EXC)->copyFromDevice(1, &evUpdate, &evList[getEVGSynE()]);
-//   status |= getChannelCLBuffer(CHANNEL_INH)->copyFromDevice(1, &evUpdate, &evList[getEVGSynI()]);
    status |= clActivity->copyFromDevice(1, &evUpdate, &evList[getEVActivity()]);
    numWait += 2; //3;
 
@@ -151,6 +149,7 @@ int ANNLayer::readVThreshParams(PVParams * params) {
    VMax = params->value(name, "VMax", max_pvdata_t);
    VThresh = params->value(name, "VThresh", -max_pvdata_t);
    VMin = params->value(name, "VMin", VThresh);
+   VShift = params->value(name, "VShift", 0.0);
    return PV_SUCCESS;
 }
 
@@ -158,16 +157,19 @@ int ANNLayer::readVThreshParams(PVParams * params) {
 //
 /*!
  * REMARKS:
- *      - This basically will replace the old version of update state
- *        as defined in HyperLayer
  *      - The kernel does the following:
+//   HyPerLayer::updateV();
  *      - V = GSynExc - GSynInh
+//   applyVMax(); (see below)
+//   applyVThresh(); (see below)
  *      - Activity = V
  *      - GSynExc = GSynInh = 0
  *
  *
  */
-int ANNLayer::updateState(double time, double dt)
+int ANNLayer::doUpdateState(double time, double dt, const PVLayerLoc * loc, pvdata_t * A,
+      pvdata_t * V, int num_channels, pvdata_t * gSynHead, bool spiking,
+      unsigned int * active_indices, unsigned int * num_active)
 {
    update_timer->start();
 #ifdef PV_USE_OPENCL
@@ -177,19 +179,11 @@ int ANNLayer::updateState(double time, double dt)
    }
    else {
 #endif
-      const int nx = clayer->loc.nx;
-      const int ny = clayer->loc.ny;
-      const int nf = clayer->loc.nf;
-      const int nb = clayer->loc.nb;
-      const int numNeurons = getNumNeurons();
-
-      //pvdata_t * GSynExc   = getChannel(CHANNEL_EXC);
-      //pvdata_t * GSynInh   = getChannel(CHANNEL_INH);
-      pvdata_t * GSynHead   = GSyn[0];
-      pvdata_t * V = getV();
-      pvdata_t * activity = clayer->activity->data;
-
-      ANNLayer_update_state(numNeurons, nx, ny, nf, nb, V, VThresh, VMax, VMin, GSynHead, activity);
+      int nx = loc->nx;
+      int ny = loc->ny;
+      int nf = loc->nf;
+      int num_neurons = nx*ny*nf;
+      ANNLayer_update_state(num_neurons, nx, ny, nf, loc->nb, V, VThresh, VMax, VMin, VShift, gSynHead, A);
       if (this->writeSparseActivity){
          updateActiveIndices();  // added by GTK to allow for sparse output, can this be made an inline function???
       }

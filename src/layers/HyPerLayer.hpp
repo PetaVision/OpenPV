@@ -83,6 +83,11 @@ DerivedLayer::initialize(arguments) {
 #define EV_HPL_PHI_I 1
 #endif
 
+// default constants
+#define HYPERLAYER_FEEDBACK_DELAY 1
+#define HYPERLAYER_FEEDFORWARD_DELAY 0
+
+
 namespace PV {
 
 class InitV;
@@ -141,12 +146,22 @@ public:
    // TODO - make protected
    PVLayer  * clayer;
 
-   virtual int triggerReceive(InterColComm * comm);
+   // ************************************************************************************//
+   // interface for public methods for controlling HyPerLayer cellular and synaptic dynamics
+   // (i.e. methods for receiving synaptic input, updating internal state, publishing output)
+   // ************************************************************************************//
    virtual int recvSynapticInput(HyPerConn * conn, const PVLayerCube * cube, int arborID);
    virtual int updateState (double time, double dt);
-   virtual int updateBorder(double time, double dt);
    virtual int publish(InterColComm * comm, double time);
+   // ************************************************************************************//
+
+   // public method for invoking synaptic communication network, cause all layers to send to all targets
+   virtual int triggerReceive(InterColComm * comm);
+
+   // mpi public wait method to ensure all targets have received synaptic input before proceeding to next time step
    virtual int waitOnPublish(InterColComm * comm);
+
+   virtual int updateBorder(double time, double dt);
 
    virtual int updateActiveIndices();
    int resetBuffer(pvdata_t * buf, int numItems);
@@ -234,9 +249,15 @@ public:
    float getConvertToRateDeltaTimeFactor(HyPerConn* conn);
    float getMaxRate() {return maxRate;}
 
+   int getFeedbackDelay(){return feedbackDelay;};
+   int getFeedforwardDelay(){return feedforwardDelay;};
+
 protected:
 
-   /* static */ int updateState(double timef, double dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels, pvdata_t * GSynHead, bool spiking, unsigned int * active_indices, unsigned int * num_active);
+   /* static methods called by updateState({long_argument_list})*/
+   virtual int doUpdateState(double timef, double dt, const PVLayerLoc * loc, pvdata_t * A,
+         pvdata_t * V, int num_channels, pvdata_t * GSynHead, bool spiking,
+         unsigned int * active_indices, unsigned int * num_active);
    virtual int setActivity();
    void freeChannels();
 
@@ -267,6 +288,9 @@ protected:
    int numGlobalRNGs;     // The number of separate random number streams a layer needs.  E.g. stochastically spiking layers need one RNG for each neuron.
                           // numGlobalRNGs should take into account the global layer, so that random number generation is reproducible in different MPI configurations.
    float maxRate;         // Maximum rate of activity.  HyPerLayer sets to 1/dt during initialize(); derived classes should override in their own initialize method after calling HyPerLayer's, if needed.
+
+   int feedforwardDelay;  // minimum delay required for a change in the input to potentially influence this layer
+   int feedbackDelay;     // minimum delay required for a change in this layer to potentially influence itself via feedback loop
 
    // OpenCL variables
    //

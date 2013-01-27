@@ -19,7 +19,7 @@ public:
    LCALIFLayer(const char* name, HyPerCol * hc); // The constructor called by other methods
    virtual ~LCALIFLayer();
    int updateState(double timef, double dt);
-   int updateState(double timef, double dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels, pvdata_t * gSynHead, bool spiking, unsigned int * active_indices, unsigned int * num_active);
+//   int updateState(double timef, double dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels, pvdata_t * gSynHead, bool spiking, unsigned int * active_indices, unsigned int * num_active);
    int findFlag(int numMatrixCol, int numMatrixRow);
 
    virtual int checkpointRead(const char * cpDir, double * timef);

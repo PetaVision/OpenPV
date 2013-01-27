@@ -19,7 +19,6 @@ class ANNLayer : public HyPerLayer {
 public:
    ANNLayer(const char* name, HyPerCol * hc, int numChannels=MAX_CHANNELS);
    virtual ~ANNLayer();
-   virtual int updateState(double time, double dt);
    // virtual int updateV();
    // virtual int applyVMax();
    // virtual int applyVThresh();
@@ -29,10 +28,16 @@ public:
 protected:
    ANNLayer();
    int initialize(const char * name, HyPerCol * hc, int numChannels);
+   virtual int doUpdateState(double time, double dt, const PVLayerLoc * loc, pvdata_t * A,
+         pvdata_t * V, int num_channels, pvdata_t * gSynHead, bool spiking,
+         unsigned int * active_indices, unsigned int * num_active);
    virtual int readVThreshParams(PVParams * params);
-   pvdata_t VMax;
-   pvdata_t VThresh;
-   pvdata_t VMin;
+   pvdata_t VMax;  // maximum membrane potential, larger values are set to VMax
+   pvdata_t VMin;  // minimum membrane potential, smaller values are set to VMin
+   pvdata_t VThresh;  // threshold potential, values smaller than VThresh are set to VMin
+   pvdata_t VShift;  // shift potential, values above VThresh are shifted downward by this amount
+                     // VShift == 0, hard threshold condition
+                     // VShift == VThresh, soft threshold condition
 #ifdef PV_USE_OPENCL
    virtual int getNumCLEvents() {return numEvents;}
    virtual const char * getKernelName() { return "ANNLayer_update_state"; }

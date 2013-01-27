@@ -82,13 +82,13 @@ int IncrementLayer::updateState(double timef, double dt, bool * inited, double *
             *(Vprev1++) = *(V++);
          }
       }
-      status = updateV_HyPerLayer(num_neurons, V, gSynHead);
+      status = applyGSyn_HyPerLayer(num_neurons, V, gSynHead);
       if( status == PV_SUCCESS ) status = setActivity_IncrementLayer(num_neurons, A, V, Vprev, nx, ny, nf, loc->nb); // setActivity();
       if( status == PV_SUCCESS ) status = resetGSynBuffers_HyPerLayer(num_neurons, num_channels, gSynHead); // resetGSynBuffers();
    }
    else {
       if( timef >= first_update_time ) {
-         status = updateV_ANNLayer(num_neurons, V, gSynHead, max_pvdata_t, -max_pvdata_t, -max_pvdata_t); // updateV();
+         status = updateV_ANNLayer(num_neurons, V, gSynHead, max_pvdata_t, -max_pvdata_t, -max_pvdata_t, 0.0f); // updateV();
          resetGSynBuffers_HyPerLayer(num_neurons, num_channels, gSynHead); // resetGSynBuffers();
          *inited = true;
       }

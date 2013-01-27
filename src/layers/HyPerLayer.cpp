@@ -91,6 +91,8 @@ int HyPerLayer::initialize_base() {
    this->marginIndices = NULL;
    this->numMargin = 0;
    this->numGlobalRNGs = 0;
+   this->feedbackDelay = HYPERLAYER_FEEDBACK_DELAY;
+   this->feedforwardDelay = HYPERLAYER_FEEDFORWARD_DELAY;
 #ifdef PV_USE_OPENCL
    this->krUpdate = NULL;
    this->clV = NULL;
@@ -143,6 +145,11 @@ int HyPerLayer::initialize(const char * name, HyPerCol * hc, int numChannels) {
 
    writeTime = parent->simulationTime();
    writeStep = params->value(name, "writeStep", parent->getDeltaTime());
+
+   feedforwardDelay = params->value(name, "feedforwardDelay", feedforwardDelay, true);
+   feedbackDelay = params->value(name, "feedbackDelay", feedbackDelay, true);
+   assert(feedbackDelay > 0);
+
 
    // TODO: when satisfied that everyone has had the chance to change spikingFlag to writeSparseActivity
    // and remove writeNonspikingActivity, remove the checks below and replace with
@@ -801,14 +808,24 @@ int HyPerLayer::copyFromBuffer(const unsigned char * buf, pvdata_t * data,
    return 0;
 }
 
+// to allow sufficient time for information to propagate around feedback loops before each update step,
+// updateState checks the current time step against the feedbackLength and startStep
 int HyPerLayer::updateState(double timef, double dt) {
    int status;
-   status = updateState(timef, dt, getLayerLoc(), getCLayer()->activity->data, getV(), getNumChannels(), GSyn[0], getSpikingFlag(), getCLayer()->activeIndices, &getCLayer()->numActive);
+   int step = parent->getCurrentStep();
+   if (step < feedforwardDelay || (step - feedforwardDelay) % feedbackDelay != 0) return PV_SUCCESS;
+//   if (step <= LCALAYER_START_STEP || step % LCALAYER_FEEDBACK_LENGTH != 0) return PV_SUCCESS;
+   status = doUpdateState(timef, dt, getLayerLoc(), getCLayer()->activity->data, getV(),
+         getNumChannels(), GSyn[0], getSpikingFlag(), getCLayer()->activeIndices,
+         &getCLayer()->numActive);
    if(status == PV_SUCCESS) status = updateActiveIndices();
    return status;
 }
 
-int HyPerLayer::updateState(double timef, double dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels, pvdata_t * gSynHead, bool spiking, unsigned int * active_indices, unsigned int * num_active)
+
+int HyPerLayer::doUpdateState(double timef, double dt, const PVLayerLoc * loc, pvdata_t * A,
+      pvdata_t * V, int num_channels, pvdata_t * gSynHead, bool spiking,
+      unsigned int * active_indices, unsigned int * num_active)
 {
    // just copy accumulation buffer to membrane potential
    // and activity buffer (nonspiking)
@@ -818,10 +835,10 @@ int HyPerLayer::updateState(double timef, double dt, const PVLayerLoc * loc, pvd
    int nf = loc->nf;
    int num_neurons = nx*ny*nf;
    if (num_channels == 1){
-      updateV_HyPerLayer1Channel(num_neurons, V, gSynHead);
+      applyGSyn_HyPerLayer1Channel(num_neurons, V, gSynHead);
    }
    else{
-      updateV_HyPerLayer(num_neurons, V, gSynHead);
+      applyGSyn_HyPerLayer(num_neurons, V, gSynHead);
    }
    setActivity_HyPerLayer(num_neurons, A, V, nx, ny, nf, loc->nb);
    resetGSynBuffers_HyPerLayer(num_neurons, getNumChannels(), gSynHead); // resetGSynBuffers();
@@ -995,7 +1012,7 @@ int HyPerLayer::reconstruct(HyPerConn * conn, PVLayerCube * cube)
 
 int HyPerLayer::triggerReceive(InterColComm* comm)
 {
-   // deliver calls recvSynapticInput for all presynaptic connections
+   // deliver calls recvSynapticInput for all connections for which this layer is presynaptic (i.e. all connections made by this layer)
    //
    int status = comm->deliver(parent, getLayerId());
 //#ifdef PV_USE_OPENCL

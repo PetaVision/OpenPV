@@ -272,16 +272,26 @@ int CliqueLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activit
    return PV_BREAK;
 }
 
-// TODO: direct clique input to separate GSyn: CHANNEL_CLIQUE
-// the following is copied directly from ODDLayer::updateState()
-int CliqueLayer::updateState(double timef, double dt)
+int CliqueLayer::doUpdateState(double timef, double dt, const PVLayerLoc * loc, pvdata_t * A,
+      pvdata_t * V, int num_channels, pvdata_t * gSynHead, bool spiking,
+      unsigned int * active_indices, unsigned int * num_active)
 {
-   return updateState(timef, dt, getLayerLoc(), getCLayer()->activity->data, getV(),
-         getNumChannels(), GSyn[0], this->Voffset, this->Vgain, this->VMax, this->VMin,
+   return updateStateClique(timef, dt,loc, A, getV(),
+         num_channels, gSynHead, this->Voffset, this->Vgain, this->VMax, this->VMin,
          this->VThresh, clayer->columnId);
 }
 
-int CliqueLayer::updateState(double timef, double dt, const PVLayerLoc * loc,
+// TODO: direct clique input to separate GSyn: CHANNEL_CLIQUE
+/*
+int CliqueLayer::updateState(double timef, double dt)
+{
+   return updateStateClique(timef, dt, getLayerLoc(), getCLayer()->activity->data, getV(),
+         getNumChannels(), GSyn[0], this->Voffset, this->Vgain, this->VMax, this->VMin,
+         this->VThresh, clayer->columnId);
+}
+*/
+
+int CliqueLayer::updateStateClique(double timef, double dt, const PVLayerLoc * loc,
       pvdata_t * A, pvdata_t * V, int num_channels, pvdata_t * gSynHead, pvdata_t Voffset,
       pvdata_t Vgain, pvdata_t VMax, pvdata_t VMin, pvdata_t VThresh, int columnID)
 {
@@ -314,7 +324,7 @@ int CliqueLayer::updateState(double timef, double dt, const PVLayerLoc * loc,
    resetGSynBuffers_HyPerLayer(num_neurons, getNumChannels(), gSynHead);
    // resetGSynBuffers();
    applyVMax_ANNLayer(num_neurons, V, VMax); // applyVMax();
-   applyVThresh_ANNLayer(num_neurons, V, VMin, VThresh); // applyVThresh();
+   applyVThresh_ANNLayer(num_neurons, V, VMin, VThresh, 0.0f); // applyVThresh();
    setActivity_HyPerLayer(num_neurons, A, V, nx, ny, nf, loc->nb); // setActivity();
    updateActiveIndices();
 
