@@ -29,7 +29,8 @@ ANNLayer "Comparison" = {
     spikingFlag = 0;
     writeNonspikingActivity = 1;
 
-    Vrest = 0;
+//    InitVType = "ConstantV";
+//    valueV = 0;
 
     VThresh = -infinity;
     VMax = infinity;
