@@ -26,6 +26,11 @@ Rubor and Retozo have separate filesystems and password databases; anything you 
 
   h. Window menu -> Preferences, then click the triangle next to Team and select SVN.  In the pop-up menu labeled "SVN interface", change the setting to SVNKit (Pure Java).  Click Apply and then OK.  This step eliminates the "Subversion Native Library Not Available" error.
 
+  i. The .settings folder should be ignored when synchronizing projects.  Open the Window menu from the menu bar and select preferences.
+     Then open Team from the left pane, and select Ignored Resources.  Click the Add Pattern... button,
+     enter ".settings" (no quotes), and then click OK to close the Add Ignore Pattern window, and then click OK to
+     close the preferences window.
+
 3. Check out PetaVision.
   a. Window menu -> Open Perspective -> Other ..., and select SVN Repository Exploring.
 
