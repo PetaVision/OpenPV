@@ -153,6 +153,7 @@ public:
    virtual int recvSynapticInput(HyPerConn * conn, const PVLayerCube * cube, int arborID);
    virtual int updateState (double time, double dt);
    virtual int publish(InterColComm * comm, double time);
+   virtual int resetGSynBuffers(double timef, double dt);
    // ************************************************************************************//
 
    // public method for invoking synaptic communication network, cause all layers to send to all targets

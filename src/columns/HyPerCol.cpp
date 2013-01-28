@@ -650,6 +650,14 @@ int HyPerCol::run(long int nTimeSteps)
       icComm->wait(layers[l]->getLayerId());
    }
 
+   // output initial conditions
+   for (int c = 0; c < numConnections; c++) {
+      connections[c]->outputState(simTime);
+   }
+   for (int l = 0; l < numLayers; l++) {
+      layers[l]->outputState(simTime);
+   }
+
    if (runDelegate) {
       // let delegate advance the time
       //
@@ -752,12 +760,16 @@ double HyPerCol::advanceTime(double sim_time)
    // update the connections (weights)
    //
    for (int c = 0; c < numConnections; c++) {
-      connections[c]->outputState(sim_time);
-   }
-   for (int c = 0; c < numConnections; c++) {
       connections[c]->updateState(sim_time, deltaTime);
    }
+   for (int c = 0; c < numConnections; c++) {
+      connections[c]->outputState(sim_time);
+   }
 
+   // clear GSyn buffers
+   for(int l = 0; l < numLayers; l++) {
+      layers[l]->resetGSynBuffers(sim_time, deltaTime);
+   }
    for (int l = 0; l < numLayers; l++) {
       // deliver new synaptic activity to any
       // postsynaptic layers for which this
@@ -766,17 +778,6 @@ double HyPerCol::advanceTime(double sim_time)
    }
 
    // Update the layers (activity)
-   // In order for probing the GSyn channels to work,
-   // this needs to be after all the triggerReceive
-   // calls and before any of the updateState calls.
-   // This is because triggerReceive updates the GSyn
-   // buffers but updateState clears them.
-   // However, this means that probes of V and A are
-   // one step behind probes of GSyn.
-   for (int l = 0; l < numLayers; l++) {
-      layers[l]->outputState(sim_time);
-   }
-   
    for(int l = 0; l < numLayers; l++) {
       layers[l]->updateState(sim_time, deltaTime);
    }
@@ -806,6 +807,11 @@ double HyPerCol::advanceTime(double sim_time)
    //
    for (int l = 0; l < numLayers; l++) {
       layers[l]->waitOnPublish(icComm);
+   }
+
+   // also calls layer probes
+   for (int l = 0; l < numLayers; l++) {
+      layers[l]->outputState(sim_time);
    }
 
    // make sure simTime is updated even if HyPerCol isn't running time loop
