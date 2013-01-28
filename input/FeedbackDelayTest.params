@@ -1,0 +1,175 @@
+//
+// CloneKernelConnTest.params
+//
+// created by garkenyon: Feb 24, 2012
+//
+
+//  A params file for testing feedForward and feedbackDelay.
+//  A "cortical" V1 ANN layer with nf==1 feature receives IdentConn input from an Error ANN layer.
+//  The Error layer outputs the difference between its two inputs, one from the Retina layer the other from 
+//  the Reconstruction layer.
+//  On the zeroth time step (feedforwardDelay = 0), the Retina layer generates a uniform output equal to 1
+//  On the first time step (feedforwardDelay== 1), the Error layer receives 1 from the Retina and 0 from V1
+//  On the second time step (feedforwardDelay==2), the Error layer outputs 1 and the V1 layer receives 1
+//  On the third time step (feedforwardDelay==3),  V1 outputs 1 to the Reconstruction layer.  
+//  On the fourth time step (feedbackDelay==3), the Reconstruction layer outputs V1 feedback of 1 to the Error layer, 
+//  which receives an equal and opposite input from the Retina.
+//  Finally, on the fifth time step (feedbackDelay==3), the V1 layer receives zero input from the Error layer.
+//  The above sequence repeats every 2 * feedbackDelay==3 = 6 time steps, 
+//  with the output of the Error, V1 and Reconstruction layers alternating between 1 and 0. 
+//  The FeedbackDelayTest asserts that all ANN layer outputs alternate between zero and one.
+//  Note that in generative models, the V1 layer would receive a self input that would maintain it's output at 1
+//  and thus maintain the output of the Error layer at 0.
+
+debugParsing = false;
+
+HyPerCol "column" = {
+   nx = 32;   
+   ny = 32;
+   dt = 1.0;
+   randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
+   numSteps = 25;
+   progressStep = 1;
+   outputPath = "output/";
+   filenamesContainLayerNames = false;
+   checkpointRead = false;
+   checkpointWrite = false;
+   suppressLastOutput = false;
+   writeProgressToErr = true;
+   outputNamesOfLayersAndConns = "LayerAndConnNames.txt";
+};
+
+//
+// layers
+//
+
+Retina "Retina" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 0;
+    writeStep = -1.0;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeSparseActivity = 0;
+
+    foregroundRate = 1000;
+    backgroundRate = 1000;
+    burstFreq = 1;
+    burstDuration = 1000;
+
+    beginStim = 0;
+    endStim = 1000;
+};
+
+
+
+
+ANNLayer "Error" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 0;
+    writeStep = -1;
+    mirrorBCflag = 1;
+    writeSparseActivity = 0;
+
+    InitVType = "ZeroV";
+
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+    VShift = 0;
+    feedforwardDelay = 1;
+    feedbackDelay = 3;
+};
+
+ANNLayer "V1" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 0;
+    writeStep = -1;
+    mirrorBCflag = 1;
+    writeSparseActivity = 0;
+
+    InitVType = "ZeroV";
+
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+    VShift = 0;
+    feedforwardDelay = 2;
+    feedbackDelay = 3;
+};
+
+
+ANNLayer "Recon" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 0;
+    writeStep = -1;
+    mirrorBCflag = 1;
+    writeSparseActivity = 0;
+
+    InitVType = "ZeroV";
+
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+    VShift = 0;
+    feedforwardDelay = 3;
+    feedbackDelay = 3;
+};
+
+// Connections
+
+
+IdentConn "Retina to Error" = {
+    channelCode = 0;
+    writeStep = -1;    
+    delay = 0;
+};
+
+
+IdentConn "Error to V1" = {
+    channelCode = 0;
+    writeStep = -1;    
+    delay = 0;
+};
+
+
+IdentConn "V1 to Recon" = {
+    channelCode = 0;
+    writeStep = -1;    
+    delay = 0;
+};
+
+
+IdentConn "Recon to Error" = {
+    channelCode = 1;
+    writeStep = -1;    
+    delay = 0;
+};
+
+
+FeedbackDelayTestProbe "Error probe" = {
+    targetLayer = "Error";
+    probeOutputFile = "Error_stats.txt";
+};
+
+FeedbackDelayTestProbe "V1 probe" = {
+    targetLayer = "V1";
+    probeOutputFile = "V1_stats.txt";
+};
+
+FeedbackDelayTestProbe "Recon probe" = {
+    targetLayer = "Recon";
+    probeOutputFile = "Recon_stats.txt";
+};
+
