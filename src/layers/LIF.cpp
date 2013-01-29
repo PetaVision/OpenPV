@@ -708,10 +708,6 @@ int LIF::findPostSynaptic(int dim, int maxSize, int col,
 extern "C" {
 #endif
 
-//#ifndef PV_USE_OPENCL
-//#  include "../kernels/LIF_update_state.cl"
-//#endif
-//#include "../kernels/LIF_update_state.c"
 #ifndef PV_USE_OPENCL
 #  include "../kernels/LIF_update_state.cl"
 #else

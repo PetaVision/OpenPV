@@ -78,22 +78,3 @@ int BIDSConn::setPatchSize(const char * filename)
 }
 
 } // namespace PV
-
-#ifdef DEBUG_OPENCL
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#ifndef PV_USE_OPENCL
-#  include "../kernels/HyPerLayer_recv_synaptic_input.cl"
-#else
-#  undef PV_USE_OPENCL
-#  include "../kernels/HyPerLayer_recv_synaptic_input.cl"
-#  define PV_USE_OPENCL
-#endif
-
-#ifdef __cplusplus
-}
-#endif
-#endif

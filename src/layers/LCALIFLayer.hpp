@@ -32,8 +32,6 @@ public:
    const pvdata_t * getVmeminf() {return Vmeminf;}
 protected:
 #ifdef PV_USE_OPENCL
-   virtual int initializeThreadBuffers(const char * kernelName);
-   virtual int initializeThreadKernels(const char * kernelName);
 
    // OpenCL buffers
    //

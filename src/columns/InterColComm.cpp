@@ -41,7 +41,7 @@ int InterColComm::addPublisher(HyPerLayer* pub, int numItems, int numLevels)
 
 #ifdef PV_USE_OPENCL
    bool copydstoreflag=pub->getCopyDataStoreFlag();
-   publishers[pubId] = new Publisher(pubId, pub->parent, numItems, pub->clayer->loc, numLevels, copydstoreflag);
+   publishers[pubId] = new Publisher(pubId, pub->getParent(), numItems, pub->getCLayer()->loc, numLevels, copydstoreflag);
 #else
    publishers[pubId] = new Publisher(pubId, pub->getParent(), numItems, pub->clayer->loc, numLevels);
 #endif

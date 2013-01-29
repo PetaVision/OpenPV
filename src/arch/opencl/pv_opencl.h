@@ -16,12 +16,12 @@
 //#  include <opencl.h>
 #else
 #  include <CL/opencl.h>
-#endif
+#endif // __APPLE__
 
 #ifdef PV_USE_TAU
 #  include <TAU.h>
 #  include <Profile/TauGpuAdapterOpenCLExp.h>
-#endif
+#endif // PV_USE_TAU
 
 #else
 
@@ -41,7 +41,7 @@
 #  define CL_MEM_USE_HOST_PTR   0
 #  define CL_MEM_COPY_HOST_PTR  0
 
-#endif
+#endif // PV_USE_OPENCL
 
 ////////////////////////////////////////////////////////////////////////////////
 

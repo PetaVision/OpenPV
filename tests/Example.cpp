@@ -16,12 +16,12 @@ Example::Example(const char * name, HyPerCol * hc)
 }
 
 #ifdef PV_USE_OPENCL
-int Example::initializeThreadBuffers()
+int Example::initializeThreadBuffers(const char * kernelName)
 {
    return 0;
 }
 
-int Example::initializeThreadKernels()
+int Example::initializeThreadKernels(const char * kernelName)
 {
    return 0;
 }

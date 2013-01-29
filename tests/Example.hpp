@@ -19,8 +19,8 @@ public:
    Example(const char* name, HyPerCol * hc);
 
 #ifdef PV_USE_OPENCL
-   virtual int initializeThreadBuffers();
-   virtual int initializeThreadKernels();
+   virtual int initializeThreadBuffers(const char * kernelName);
+   virtual int initializeThreadKernels(const char * kernelName);
 #endif
 
    virtual int recvSynapticInput(HyPerConn* conn, const PVLayerCube* activity, int neighbor);

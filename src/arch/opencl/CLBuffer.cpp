@@ -26,6 +26,7 @@ CLBuffer::CLBuffer(cl_context context, cl_command_queue commands,
    int status = 0;
 
    this->commands = commands;
+   this->event = NULL;
    this->size = size;
    this->h_ptr = host_ptr;
 

@@ -27,14 +27,12 @@
    #include <sys/shm.h>
 #endif
 
-#ifdef DEBUG_OPENCL
 #ifdef __cplusplus
 extern "C" {
-#endif
+#endif // __cplusplus
 
 void HyPerLayer_recv_synaptic_input (
       int kx, int ky, int lidx, int lidy, int nxl, int nyl,
-      //float *gtemp,
           int nxPre,
           int nyPre,
           int nfPre,
@@ -55,8 +53,7 @@ void HyPerLayer_recv_synaptic_input (
 
 #ifdef __cplusplus
 }
-#endif
-#endif
+#endif // __cplusplus
 
 namespace PV {
 
@@ -71,6 +68,7 @@ HyPerConn::HyPerConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
    initialize_base();
    initialize(name, hc, pre, post, NULL, NULL);
 #ifdef PV_USE_OPENCL
+   gpuAccelerateFlag=post->getUseGPUFlag();
    if(gpuAccelerateFlag)
       initializeGPU();
 #endif
@@ -82,6 +80,7 @@ HyPerConn::HyPerConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
    initialize_base();
    initialize(name, hc, pre, post, NULL, weightInit);
 #ifdef PV_USE_OPENCL
+   gpuAccelerateFlag=post->getUseGPUFlag();
    if(gpuAccelerateFlag)
       initializeGPU();
 #endif
@@ -94,6 +93,7 @@ HyPerConn::HyPerConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
    initialize_base();
    initialize(name, hc, pre, post, filename, NULL);
 #ifdef PV_USE_OPENCL
+   gpuAccelerateFlag=post->getUseGPUFlag();
    if(gpuAccelerateFlag)
       initializeGPU();
 #endif
@@ -105,6 +105,7 @@ HyPerConn::HyPerConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
    initialize_base();
    initialize(name, hc, pre, post, filename, weightInit);
 #ifdef PV_USE_OPENCL
+   gpuAccelerateFlag=post->getUseGPUFlag();
    if(gpuAccelerateFlag)
       initializeGPU();
 #endif
@@ -712,7 +713,7 @@ InitWeights * HyPerConn::handleMissingInitWeights(PVParams * params) {
 }
 
 #ifdef PV_USE_OPENCL
-void HyPerConn::initUseGPUFlag() {
+void HyPerConn::initIgnoreGPUFlag() {
    PVParams * params = parent->parameters();
    ignoreGPUflag=false;
    ignoreGPUflag = params->value(name, "ignoreGPU", ignoreGPUflag);
@@ -720,7 +721,7 @@ void HyPerConn::initUseGPUFlag() {
 //this method sets up GPU related variables and calls the
 //initializeThreadBuffers and initializeThreadKernels
 int HyPerConn::initializeGPU() {
-   initUseGPUFlag();
+   initIgnoreGPUFlag();
    //if((gpuAccelerateFlag)&&(ignoreGPUflag)) post->copyChannelToDevice();
    int totwait = numberOfAxonalArborLists();
    evRecvSynWaitList = (cl_event *) malloc(totwait*sizeof(cl_event));
@@ -729,7 +730,6 @@ int HyPerConn::initializeGPU() {
    nxl = 16;
    nyl = 8;
 
-   //TODO - define kernel name somewhere else...
    const char* kernel_name = "HyPerLayer_recv_synaptic_input";
    initializeThreadBuffers(kernel_name);
    initializeThreadKernels(kernel_name);
@@ -1000,14 +1000,8 @@ void HyPerConn::setDelay(int arborId, float delay) {
    delays[arborId] = (int)(round(delay / parent->getDeltaTime()));
 }
 
-// NOTE: this should be temporary until delivery interface is straightened out
-//
 #ifdef PV_USE_OPENCL
-#   ifdef DEBUG_OPENCL
 int HyPerConn::deliverOpenCL(Publisher * pub, const PVLayerCube * cube)
-#   else
-int HyPerConn::deliverOpenCL(Publisher * pub)
-#   endif
 {
    int status = PV_SUCCESS;
 
@@ -1047,9 +1041,6 @@ int HyPerConn::deliverOpenCL(Publisher * pub)
 
    post->stopTimer();
 
-#ifdef DEBUG_OPENCL
-   /* debug OpenCL stuff: */
-
    int arborId=0;
    int delay = getDelay(arborId);
    pub->readData(delay);
@@ -1067,18 +1058,17 @@ int HyPerConn::deliverOpenCL(Publisher * pub)
       freelutpointer=true;
       lutpointer[0]=-1;
    }
-   printf("nxex %d\n",nxex);
-   printf("nyex %d\n",nyex);
-   printf("nxl %d\n",nxl);
-   printf("nyl %d\n",nyl);
-   printf("nxex/nxl %d\n",nxex/nxl);
-   printf("nyex/nyl %d\n",nyex/nyl);
+   printf("nxex %lu\n",nxex);
+   printf("nyex %lu\n",nyex);
+   printf("nxl %lu\n",nxl);
+   printf("nyl %lu\n",nyl);
+   printf("nxex/nxl %lu\n",nxex/nxl);
+   printf("nyex/nyl %lu\n",nyex/nyl);
    for(kx=0;kx<(int)(nxex/nxl);kx++) {
       for(ky=0;ky<(int)(nyex/nyl);ky++) {
 
          for(int lidx=0;lidx<(int)nxl;lidx++) {
             for(int lidy=0;lidy<(int)nyl;lidy++) {
-               //float *tempBuf = (float*) calloc(sizeof(float),(nxl+nxp*nfp)*(nyl+nyp));
                HyPerLayer_recv_synaptic_input(kx*nxl+nxl/2, ky*nyl+nyl/2, lidx, lidy, nxl, nyl,
                      preLoc->nx, preLoc->ny, preLoc->nf, preLoc->nb, nxp, nyp, nfp,
                      (float)postLoc->nf/(float)preLoc->nf,(float)postLoc->nx/(float)preLoc->nx,(float)postLoc->ny/(float)preLoc->ny,
@@ -1162,9 +1152,6 @@ int HyPerConn::deliverOpenCL(Publisher * pub)
       }
    }
    free(gTempBuf);
-#else
-   //post->copyChannelFromDevice(getChannel());
-#endif
 
    return status;
 }
@@ -1181,13 +1168,7 @@ int HyPerConn::deliver(Publisher * pub, const PVLayerCube * cube, int neighbor)
 
 #ifdef PV_USE_OPENCL
    if((gpuAccelerateFlag)&&(!ignoreGPUflag)) {
-#   ifdef DEBUG_OPENCL
       deliverOpenCL(pub, cube);
-#   else
-      deliverOpenCL(pub);
-#   endif
-
-
    }
    else {
       //if((gpuAccelerateFlag)&&(ignoreGPUflag)) post->copyChannelFromDevice(getChannel());
@@ -1259,7 +1240,7 @@ int HyPerConn::checkpointWrite(const char * cpDir) {
    char filename[PV_PATH_MAX];
    int status = checkpointFilename(filename, PV_PATH_MAX, cpDir);
    assert(status==PV_SUCCESS);
-   status = writeWeights(wPatches, wDataStart, getNumWeightPatches(), filename, parent->simulationTime(), writeCompressedCheckpoints, true);
+   status = writeWeights(wPatches, wDataStart, getNumWeightPatches(), filename, parent->simulationTime(), writeCompressedCheckpoints, /*last*/true);
    assert(status==PV_SUCCESS);
    status = writeScalarFloat(cpDir, "nextWrite", writeTime);
    assert(status==PV_SUCCESS);
@@ -1497,13 +1478,8 @@ int HyPerConn::deleteWeights()
    // HyPerConn::deletePatches(numAxonalArborLists, wPatches);
 
    for (int arbor = 0; arbor < numAxonalArborLists; arbor++) {
-      // int numPatches = numWeightPatches();
       if (wPatches != NULL) {
          if (wPatches[arbor] != NULL) {
-            //for (int k = 0; k < numPatches; k++) {
-            //   pvpatch_inplace_delete(wPatches[arbor][k]);
-            //}
-            //free(wPatches[arbor]);
             if (shrinkPatches_flag || arbor == 0){
                deletePatches(wPatches[arbor]);
             }
@@ -1527,7 +1503,7 @@ int HyPerConn::deleteWeights()
       if (wDataStart != NULL && wDataStart[arbor] != NULL) {
          free(this->wDataStart[arbor]);
       }
-#endif
+#endif // USE_SHMGET
    this->wDataStart[arbor] = NULL;
 /*
       if (dwPatches != NULL) {
@@ -2793,11 +2769,9 @@ void HyPerConn::connOutOfMemory(const char * funcname) {
 
 } // namespace PV
 
-#ifdef DEBUG_OPENCL
-
 #ifdef __cplusplus
 extern "C" {
-#endif
+#endif // __cplusplus
 
 #ifndef PV_USE_OPENCL
 #  include "../kernels/HyPerLayer_recv_synaptic_input.cl"
@@ -2809,5 +2783,4 @@ extern "C" {
 
 #ifdef __cplusplus
 }
-#endif
-#endif
+#endif // __cplusplus

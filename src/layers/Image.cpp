@@ -196,14 +196,14 @@ int Image::initializeState() {
 #ifdef PV_USE_OPENCL
 // no need for threads for now for image
 //
-int Image::initializeThreadBuffers()
+int Image::initializeThreadBuffers(const char * kernelName)
 {
    return CL_SUCCESS;
 }
 
 // no need for threads for now for image
 //
-int Image::initializeThreadKernels()
+int Image::initializeThreadKernels(const char * kernelName)
 {
    return CL_SUCCESS;
 }

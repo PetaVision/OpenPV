@@ -131,7 +131,7 @@ CLBuffer * CLDevice::createBuffer(cl_mem_flags flags, size_t size, void * host_p
    return new CLBuffer(context, commands, flags, size, host_ptr);
 #else
    return new CLBuffer();
-#endif
+#endif // PV_USE_OPENCL
 }
 
 #ifdef PV_USE_OPENCL

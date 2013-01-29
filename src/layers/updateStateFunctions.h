@@ -31,7 +31,7 @@
 #  define CL_MEM_GLOBAL   __global
 #  define CL_MEM_CONST    __constant
 #  define CL_MEM_LOCAL    __local
-#  include "conversions.hcl"
+#  include "../kernels/conversions.hcl"
 #  define CHANNEL_EXC   0
 #  define CHANNEL_INH   1
 #  define CHANNEL_INHB  2

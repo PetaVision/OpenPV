@@ -19,7 +19,6 @@
 #include <stdlib.h>
 
 #ifdef PV_USE_OPENCL
-#undef DEBUG_OPENCL  //this is used with some debug code
 #include "../arch/opencl/CLKernel.hpp"
 #include "../arch/opencl/CLBuffer.hpp"
 #endif
@@ -55,6 +54,9 @@ public:
    HyPerConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
              InitWeights *weightInit);
    virtual ~HyPerConn();
+#ifdef PV_USE_OPENCL
+   virtual int deliverOpenCL(Publisher * pub, const PVLayerCube * cube);
+#endif
 
    virtual int deliver(Publisher * pub, const PVLayerCube * cube, int neighbor);
    virtual int checkpointRead(const char * cpDir, double* timef);
@@ -190,7 +192,6 @@ public:
       return wDataStart[arborId];
    }
 
-   // inline void set_wDataStart(int arborId, pvdata_t * pDataStart) {wDataStart[arborId]=pDataStart;} // Should be protected
    inline float* get_wDataHead(int arborId, int dataIndex) {
       return &wDataStart[arborId][dataIndex * nxp * nyp * nfp];
    }
@@ -204,7 +205,6 @@ public:
       return dwDataStart[arborId];
    }
 
-   // inline void set_dwDataStart(int arborId, pvdata_t * pIncrStart) {dwDataStart[arborId]=pIncrStart;} // Should be protected
    inline float* get_dwDataHead(int arborId, int dataIndex) {
       return &dwDataStart[arborId][dataIndex * nxp * nyp * nfp];
    }
@@ -288,11 +288,10 @@ public:
          int numPatches, int arborId);
    virtual int normalizeWeights(PVPatch** patches, float** dataStart,
          int numPatches, int arborId);
-   // patchIndexToKernelIndex() is deprecated.  Use patchIndexToDataIndex() or dataIndexToUnitCellIndex() instead
-   /*
-    virtual int patchIndexToKernelIndex(int patchIndex, int * kxKernelIndex = NULL,
-    int * kyKernelIndex = NULL, int * kfKernelIndex = NULL);
-    */
+
+#ifdef PV_USE_OPENCL
+   virtual int * getLUTpointer() {return NULL;}
+#endif // PV_USE_OPENCL
    virtual int patchToDataLUT(int patchIndex);
    virtual int patchIndexToDataIndex(int patchIndex, int* kx = NULL, int* ky =
          NULL, int* kf = NULL);
@@ -384,7 +383,10 @@ protected:
    bool preActivityIsNotRate; // TODO Rename this member variable
    bool normalizeTotalToPost; // if false, normalize the sum of weights from each presynaptic neuron.  If true, normalize the sum of weights into a postsynaptic neuron.
    float dWMax;  // dW scale factor
-
+#ifdef PV_USE_OPENCL
+   bool gpuAccelerateFlag; // Whether to accelerate the connection on a GPU
+   bool ignoreGPUflag;     // Don't use GPU (overrides gpuAccelerateFlag)
+#endif // PV_USE_OPENCL
 protected:
    virtual int initNumWeightPatches();
    virtual int initNumDataPatches();
@@ -488,13 +490,33 @@ protected:
    virtual int calc_dW(int arborId = 0);
    void connOutOfMemory(const char* funcname);
 
-   //this method setups up GPU stuff...
-   // CL kernel for layer recvSynapticInput call
-   //number of receive synaptic runs to wait for (=numarbors)
+#ifdef PV_USE_OPENCL
+   virtual void initIgnoreGPUFlag(); // sets the ignoreGPUFlag parameter.  virtual so that a class can make it always false or always true
+   int initializeGPU(); //this method sets up GPU stuff...
+   virtual int initializeThreadBuffers(const char * kernelName);
+   virtual int initializeThreadKernels(const char * kernelName);
+
+   CLKernel * krRecvSyn;        // CL kernel for layer recvSynapticInput call
+   cl_event   evRecvSyn;
+   cl_event * evRecvSynWaitList;
+   int numWait;  //number of receive synaptic runs to wait for (=numarbors)
    //cl_event   evCopyDataStore;
+
+   size_t nxl;
+   size_t nyl;
+
    // OpenCL buffers
+   CLBuffer *  clGSyn;
+   CLBuffer *  clPatch2DataLookUpTable;
+   CLBuffer *  clActivity;
+   CLBuffer ** clWeights;
+
    // ids of OpenCL arguments that change
    //
+   int clArgIdOffset;
+   int clArgIdWeights;
+   int clArgIdDataStore;
+#endif // PV_USE_OPENCL
 
 private:
    int clearWeights(float* arborDataStart, int numPatches, int nx, int ny,

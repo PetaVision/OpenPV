@@ -24,9 +24,6 @@ public:
 
    int setParams(PVParams * params);
 
-   virtual int initializeThreadBuffers();
-   virtual int initializeThreadKernels();
-
    virtual float maxWeight(int axonID);
    virtual int writeTextWeightsExtra(FILE * fd, int k, int axonID);
 
@@ -60,6 +57,10 @@ protected:
                   HyPerLayer * pre, HyPerLayer * post,
                   const char * filename, InitWeights *weightInit);
    virtual int initPlasticityPatches();
+#ifdef PV_USE_OPENCL
+   virtual int initializeThreadBuffers(const char * kernelName);
+   virtual int initializeThreadKernels(const char * kernelName);
+#endif // PV_USE_OPENCL
 
    PVLayerCube * post_stdp_tr; // plasticity decrement variable for postsynaptic layer
    PVLayerCube * post_oja_tr;  // plasticity decrement variable for longer time-constant

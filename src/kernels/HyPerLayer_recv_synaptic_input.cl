@@ -120,7 +120,6 @@ CL_KERNEL void HyPerLayer_recv_synaptic_input (
       lidy=KYL;
       nxl=NXL;
       nyl=NYL;
-//      CL_MEM_LOCAL int *gtemp;
 #endif
    // This kernel is to be run over the extended pre-synaptic layer
    // The easiest way to connect to post-synaptic layer is to shift to

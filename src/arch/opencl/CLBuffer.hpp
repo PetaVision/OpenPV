@@ -53,7 +53,6 @@ protected:
    cl_command_queue commands;          // compute command queue
    cl_event event;                     // event identifying the kernel execution instance
 
-   bool mapped;                        // true when buffer is mapped
    bool profiling;                     // flag to enable profiling
 
    size_t size;                        // size of buffer object

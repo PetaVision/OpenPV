@@ -8,13 +8,67 @@
 #include "HyPerLayer.hpp"
 #include "BIDSLayer.hpp"
 #include "LIF.hpp"
-#include "../kernels/LIF_update_state.cl"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
 #include <math.h>
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+void LIF_update_state_beginning(
+    const int numNeurons,
+    const float time,
+    const float dt,
+
+    const int nx,
+    const int ny,
+    const int nf,
+    const int nb,
+
+    LIF_params * params,
+    uint4 * rnd,
+
+    float * V,
+    float * Vth,
+    float * G_E,
+    float * G_I,
+    float * G_IB,
+    float * GSynHead,
+//    float * GSynExc,
+//    float * GSynInh,
+//    float * GSynInhB,
+    float * activity);
+
+void LIF_update_state_original(
+    const int numNeurons,
+    const float time,
+    const float dt,
+
+    const int nx,
+    const int ny,
+    const int nf,
+    const int nb,
+
+    LIF_params * params,
+    uint4 * rnd,
+
+    float * V,
+    float * Vth,
+    float * G_E,
+    float * G_I,
+    float * G_IB,
+    float * GSynHead,
+//    float * GSynExc,
+//    float * GSynInh,
+//    float * GSynInhB,
+    float * activity);
+
+#ifdef __cplusplus
+}
+#endif
 
 namespace PV {
 BIDSLayer::BIDSLayer() {
@@ -75,4 +129,10 @@ int BIDSLayer::updateState(double time, double dt)
 }
 
 
-}
+} // namespace PV
+
+///////////////////////////////////////////////////////
+//
+// implementation of LIF kernels
+//
+

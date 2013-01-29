@@ -24,8 +24,10 @@ public:
 
    int setParams(PVParams * params);
 
-   virtual int initializeThreadBuffers();
-   virtual int initializeThreadKernels();
+#ifdef PV_USE_OPENCL
+   virtual int initializeThreadBuffers(const char * kernelName);
+   virtual int initializeThreadKernels(const char * kernelName);
+#endif // PV_USE_OPENCL
 
    // virtual int deleteWeights(); // Changed to a private method.  Should not be virtual since it's called from the destructor.
 

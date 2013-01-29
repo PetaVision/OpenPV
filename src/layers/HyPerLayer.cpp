@@ -242,7 +242,6 @@ void HyPerLayer::initUseGPUFlag() {
    PVParams * params = parent->parameters();
    gpuAccelerateFlag = params->value(name, "GPUAccelerate", gpuAccelerateFlag);
    copyDataStoreFlag=false;
-   //buffersInitialized=false;
 }
 
 //this method sets up GPU related variables and calls the
@@ -582,16 +581,6 @@ int HyPerLayer::waitForDataStoreCopy() {
 
 CLBuffer * HyPerLayer::getLayerDataStoreCLBuffer()
 {
-//   if(!buffersInitialized) {
-//      //this may seem like a strange place to do this, but when the
-//      //layer is being created, the publishers don't exist yet!
-//      if(initializeDataStoreThreadBuffers()) {
-//         buffersInitialized=true;
-//      }
-//      //else
-//        // return NULL;
-//   }
-
    DataStore * store = parent->icCommunicator()->publisherStore(getLayerId());
    return store->getCLBuffer();
 }

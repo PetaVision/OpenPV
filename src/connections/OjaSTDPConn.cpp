@@ -218,8 +218,10 @@ int OjaSTDPConn::initPlasticityPatches()
    return PV_SUCCESS;
 }
 
-int OjaSTDPConn::initializeThreadBuffers() {return 0;}
-int OjaSTDPConn::initializeThreadKernels() {return 0;}
+#ifdef PV_USE_OPENCL
+int OjaSTDPConn::initializeThreadBuffers(const char * kernelName) {return 0;}
+int OjaSTDPConn::initializeThreadKernels(const char * kernelName) {return 0;}
+#endif // PV_USE_OPENCL
 
 /**
  * First function to be executed

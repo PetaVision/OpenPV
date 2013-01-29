@@ -87,8 +87,8 @@ private:
 protected:
 
 #ifdef PV_USE_OPENCL
-   virtual int initializeThreadBuffers();
-   virtual int initializeThreadKernels();
+   virtual int initializeThreadBuffers(const char * kernelName);
+   virtual int initializeThreadKernels(const char * kernelName);
 #endif
 
    //int initializeImage(const char * filename);

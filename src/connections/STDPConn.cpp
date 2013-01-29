@@ -103,15 +103,17 @@ int STDPConn::deleteWeights()
    return 0;
 }
 
-int STDPConn::initializeThreadBuffers()
+#ifdef PV_USE_OPENCL
+int STDPConn::initializeThreadBuffers(const char * kernelName)
 {
    return 0;
 }
 
-int STDPConn::initializeThreadKernels()
+int STDPConn::initializeThreadKernels(const char * kernelName)
 {
    return 0;
 }
+#endif // PV_USE_OPENCL
 
 PVLayerCube * STDPConn::getPlasticityDecrement()
 {
