@@ -409,7 +409,7 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * p
    }
    else {
       checkpointWriteDir = NULL;
-      suppressLastOutput = params->value(name, "suppressLastOutput", false) != 0;
+      suppressLastOutput = params->value(name, "suppressLastOutput", false, true) != 0;
    }
 
    return PV_SUCCESS;

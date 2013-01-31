@@ -202,7 +202,7 @@ int HyPerConn::initialize_base()
    this->nxpPost = 0;
    this->nypPost = 0;
    this->nfpPost = 0;
-   this->writeCompressedWeights = true;
+   this->writeCompressedWeights = false;
    this->writeCompressedCheckpoints = false;
    this->fileType = PVP_WGT_FILE_TYPE; // Subclass's initialize_base() gets called after HyPerConn's initialize_base(), so this can be changed in subclasses.
 
