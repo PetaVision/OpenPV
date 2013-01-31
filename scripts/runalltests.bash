@@ -102,6 +102,13 @@ runandecho $testname Debug/$testname $arglist
 mpirunandecho $testname Debug/$testname $arglist
 cd $wd
 
+testname=FeedbackDelayTest
+arglist="-p input/FeedbackDelayTest.params"
+cd "$testname"
+runandecho $testname Debug/$testname $arglist
+mpirunandecho $testname Debug/$testname $arglist
+cd $wd
+
 testname=FourByFourGenerativeTest
 arglist=""
 cd "$testname"
