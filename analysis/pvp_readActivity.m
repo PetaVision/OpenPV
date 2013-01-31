@@ -49,7 +49,7 @@ function [act_time, ...
 
   file_type = pvp_header(pvp_index.FILE_TYPE);
   if ( file_type ~= PVP_NONSPIKING_ACT_FILE_TYPE )
-    disp(['file_type ~= PVP_NONSPIKING_ACT_FILE_TYPE in pvp file: ', filename]);
+%%    disp(['file_type ~= PVP_NONSPIKING_ACT_FILE_TYPE in pvp file: ', filename]);
   endif
 
   num_pvp_params = pvp_header(pvp_index.NUM_PARAMS);
@@ -121,8 +121,8 @@ function [act_time, ...
 
   min_activity = min(activity_global(:));
   max_activity = max(activity_global(:));
-  disp(['min activity = ', num2str(min_activity)]);
-  disp(['max activity = ', num2str(max_activity)]);
+%%  disp(['min activity = ', num2str(min_activity)]);
+%%  disp(['max activity = ', num2str(max_activity)]);
   nz_activity = sum(activity_global(:) ~= 0);
   disp(['nz_activity = ', num2str(nz_activity)]);
 

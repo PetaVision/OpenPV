@@ -90,7 +90,7 @@ else  % NON_SPIKING
     layerID{ 1, i_layer } =  'L1';
     
     i_layer = i_layer + 1;
-    layerIndex.l1Pooling2X2 = i_layer;
+    layerIndex.l1Pooling1X1 = i_layer;
     layerID{ 1, i_layer } =  'L1Pooling1X1';
     
     N_LAYERS = N_LAYERS + 1;
@@ -136,33 +136,9 @@ else  % NON_SPIKING
     layerID = [layerID, cell(1, 1)];
       
     i_layer = i_layer + 1;
-    layerIndex.l3Clique = i_layer;
+    layerIndex.l4Clique = i_layer;
     layerID{ 1, i_layer } =  'L4Clique';
       
     
-    if TOPDOWN_FLAG
-      
-      N_LAYERS = N_LAYERS + 3 + G4_FLAG;
-      layerID = [layerID, cell(1, 3 + G4_FLAG)];
         
-      i_layer = i_layer + 1;
-      layerIndex.l1_topdown = i_layer;
-      layerID{ 1, i_layer } =  'L1TD';
-        
-      i_layer = i_layer + 1;
-      layerIndex.l2_topdpwn = i_layer;
-      layerID{ 1, i_layer } =  'L2TD';
-        
-      i_layer = i_layer + 1;
-      layerIndex.l3_topdpwn = i_layer;
-      layerID{ 1, i_layer } =  'L3TD';
-
-      if G4_FLAG 
-      i_layer = i_layer + 1;
-      layerIndex.l4_topdpwn = i_layer;
-      layerID{ 1, i_layer } =  'L4TD';
-      end%%if
-        
-    end%%if  % TOPDOWN_FlAG
-            
 end%%if % SPIKING_FLAG

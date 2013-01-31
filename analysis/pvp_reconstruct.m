@@ -90,8 +90,8 @@ function [fh, recon_colormap, recon_image] = ...
     recon_array(blue_flag) = 0;
     recon_array(green_flag) = zero_recon_val;
   endif
-  disp(['min_recon_val = ', num2str(min_recon_val)]);
-  disp(['max_recon_val = ', num2str(max_recon_val)]);
+  %%disp(['min_recon_val = ', num2str(min_recon_val)]);
+  %%disp(['max_recon_val = ', num2str(max_recon_val)]);
 
   edge_len = 3.5 * sqrt(2)/2;
   if (NO==1)
