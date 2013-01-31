@@ -1,0 +1,360 @@
+//
+// HyPerHLCA.params
+//
+// created by peteschultz: Sept 27, 2012, modified garkenyon, 1/20/13
+//
+
+// Implements the locally competitive algorithm described in
+// Rozell et al., "Sparse Coding via Thresholding and Local Cometition
+// in Neural Circuits," Neural Computation 20, 2526-2563 (2008).
+
+debugParsing = false;
+
+HyPerCol "column" = {
+   nx = 256;   
+   ny = 256;
+   dt = 1.0;
+   randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
+   numSteps = 10000;
+   progressStep = 1;
+   outputPath = "output/";
+   filenamesContainLayerNames = false;
+   checkpointRead = false;
+   checkpointWrite = true;
+   checkpointWriteDir = "Checkpoints";
+   checkpointWriteStepInterval = 1;
+   deleteOlderCheckpoints = false;
+   suppressLastOutput = false;
+   writeProgressToErr = true;
+};
+
+//
+// layers
+//
+
+Movie "Image" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    imageListPath = "/Users/garkenyon/Pictures/AnimalDB/target_body.txt";
+    nf = 1;
+    marginWidth = 1;
+    writeStep = -1;
+    writeSparseActivity = false;
+    displayPeriod = 100;
+    start_frame_index = 1;
+    skip_frame_index = 1;
+    echoFramePathnameFlag = true;
+    mirrorBCflag = true;
+    jitterFlag = 0;
+    useImageBCflag = false;
+    inverseFlag = false;
+    normalizeLuminanceFlag = false;
+    writeImages = false;
+    offsetX = 0;
+    offsetY = 0;
+};
+
+
+
+Retina "Retina" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 3;
+    writeStep = -1.0;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeSparseActivity = 0;
+
+    foregroundRate = 1000;
+    backgroundRate = 0;
+    burstFreq = 1;
+    burstDuration = 1000;
+
+    beginStim = 1;
+    endStim = 100;
+};
+
+
+ANNLayer "Ganglion" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 8;
+    writeStep = -1.0;
+    mirrorBCflag = 1;
+    writeSparseActivity = 0;
+
+    InitVType = "ZeroV";
+
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+    VShift = 0;
+    
+    feedforwardDelay = 2;
+    feedbackDelay = 3;
+};
+
+
+ANNLayer "Error" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 8;
+    writeStep = -1;
+    mirrorBCflag = 1;
+    writeSparseActivity = 0;
+
+    InitVType = "ZeroV";
+
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+    VShift = 0;
+    
+    feedforwardDelay = 3;
+    feedbackDelay = 3;
+};
+
+
+HyPerLCALayer "V1" = {
+    restart = 0;
+    nxScale = 0.25;
+    nyScale = 0.25;
+    nf = 1024;
+    marginWidth = 1;
+    writeStep = -1;
+    mirrorBCflag = 1;
+    writeSparseActivity = 0;
+
+    InitVType = "ZeroV";
+    
+    threshold = 1.0;
+    thresholdSoftness = 0.0;
+    timeConstantTau = 10.0;
+    
+    VThresh = 1.0;
+    VMax = infinity;
+    VMin = 0;
+    VShift = 0;  // 0 -> hard threshold, 1 -> soft threshold
+
+    feedforwardDelay = 4;
+    feedbackDelay = 3;
+};
+
+
+ANNLayer "Reconstruction" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 0;
+    writeStep = -1;
+    mirrorBCflag = 1;
+    writeSparseActivity = 0;
+
+    InitVType = "ZeroV";
+
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+    VShift = 0;
+    
+    feedforwardDelay = 5;
+    feedbackDelay = 3;
+};
+
+
+
+
+// connections
+
+
+KernelConn "MovieToRetina" = {
+    preLayerName = "Image";
+    postLayerName = "Retina";
+    channelCode = 0;
+    nxp = 1;
+    nyp = 1;
+    nfp = 1;
+    numAxonalArbors = 1;
+    writeStep = -1;
+    initFromLastFlag = 0;
+    
+    weightInitType = "UniformWeight";
+    weightInit = 4.0;
+
+    normalize = 0;
+       
+    writeCompressedWeights = 0.0;
+    plasticityFlag = 0;
+    stochasticReleaseFlag = false;
+
+    preActivityIsNotRate = true;
+    selfFlag = false;
+    shrinkPatches = false;
+    
+    delay = 0;     
+};
+
+
+KernelConn "RetinaToGanglionCenter" = {
+   preLayerName = "Retina";
+   postLayerName = "Ganglion";
+   channelCode = 0;
+   nxp = 3; 
+   nyp = 3; 
+   nfp = 1;
+   numAxonalArbors = 1;
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+   
+   weightInitType = "Gauss2DWeight";
+   aspect = 1;
+   sigma = 1;
+   rMax  = 1;
+   rMin = 0;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   flankShift = 0;
+   rotate = 1;
+       
+   strength = 1.0;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   normalize_cutoff = 0;
+   symmetrizeWeights = 0;
+
+   shrinkPatches = false;
+   writeCompressedWeights = 0.0;
+   plasticityFlag = 0;
+   stochasticReleaseFlag = false;
+    
+   delay = 0;
+    
+   preActivityIsNotRate = false;
+   selfFlag = false;
+   normalizeTotalToPost = false;
+};
+
+
+
+
+
+KernelConn "RetinaToGanglionSurround" = {
+   preLayerName = "Retina";
+   postLayerName = "Ganglion";
+   channelCode = 1;
+   nxp = 15; 
+   nyp = 15; 
+   nfp = 1;
+   numAxonalArbors = 1;
+   initFromLastFlag = 0;  // 1;  // restart
+   writeStep = -1;
+   
+   weightInitType = "Gauss2DWeight";
+   aspect = 1;
+   sigma = 3.5;
+   rMax  = 7.5;
+   rMin = 0.5;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 1;
+   flankShift = 0;
+   rotate = 1;
+       
+   strength = 1.0;  
+   normalize = 1.0;
+   normalize_zero_offset = 0.0;
+   normalize_max = 0.0;
+   normalize_cutoff = 0;
+   symmetrizeWeights = 0;
+
+   shrinkPatches = false;
+   writeCompressedWeights = 0.0;
+   plasticityFlag = 0;
+   stochasticReleaseFlag = false;
+    
+   delay = 0;
+    
+   preActivityIsNotRate = false;
+   selfFlag = false;
+   normalizeTotalToPost = true;
+};
+
+
+
+
+IdentConn "GanglionToError" = {
+    preLayerName = "Ganglion";
+    postLayerName = "Error";
+    channelCode = 0;
+    delay = 0;
+    writeStep = -1;
+};
+
+
+IdentConn "ReconstructionToError" = {
+    preLayerName = "Reconstruction";
+    postLayerName = "Error";
+    channelCode = 1;
+    delay = 0;
+    writeStep = -1;
+};
+
+KernelConn "ErrorToV1" = {
+    preLayerName = "Error";
+    postLayerName = "V1";
+    channelCode = 0;
+    nxp = 3;
+    nyp = 3;
+    nfp = 1024;
+    numAxonalArbors = 1;
+    initFromLastFlag = 0;
+    
+    weightInitType = "UniformRandomWeight";
+    useListOfArborFiles = false;
+    combineWeightFiles = false;
+
+    normalize = false;
+    preActivityIsNotRate = false;
+    keepKernelsSynchronized = true; // true; 
+    combine_dW_with_W_flag = false; //false; // 
+
+    writeStep = 1;
+    writeCompressedWeights = false;
+    plasticityFlag = true;
+    weightUpdatePeriod = 1.0;
+    selfFlag = false;
+
+    delay = 0;
+
+    stochasticReleaseFlag = false;
+    shrinkPatches = false;
+};
+
+TransposeConn "V1ToReconstruction" = {
+    preLayerName = "V1";
+    postLayerName = "Reconstruction";
+    channelCode = 0;
+
+    originalConnName = "ErrorToV1";
+
+    preActivityIsNotRate = false;
+
+    writeStep = -1;
+    writeCompressedWeights = false;
+
+    delay = 0;
+    
+    stochasticReleaseFlag = false;
+};
