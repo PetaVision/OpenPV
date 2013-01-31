@@ -12,7 +12,7 @@ ObjectType = "Car"; %% "Cyclist"; %%
 global make_bootstrap_chips_flag 
 make_bootstrap_chips_flag = false; %% true; %% 
 global make_target_mask_flag 
-make_target_mask_flag = true; %% false; %%  
+make_target_mask_flag = false; %%  true; %% 
 global miss_list_flag;
 miss_list_flag = false;
 num_procs = 1; %% 24;  %% 
@@ -21,7 +21,7 @@ num_procs = 1; %% 24;  %%
 home_path = ...
     [filesep, "home", filesep, "gkenyon", filesep];
 %%    [filesep, "Users", filesep, "garkenyon", filesep];
-NEOVISION_DATASET_ID = "Heli"; %% "Tower"; %%  "Tail"; %% 
+NEOVISION_DATASET_ID = "Heli"; %% "Towr"; %%  "Tail"; %% 
 neovision_dataset_id = tolower(NEOVISION_DATASET_ID); %% 
 neovision_distribution_id = tolower(NEOVISION_DISTRIBUTION_ID); %% 
 repo_path = ...
@@ -37,7 +37,7 @@ mkdir(dataset_repo_path);
 distribution_repo_path = [dataset_repo_path, ...
 		NEOVISION_DISTRIBUTION_ID, filesep]; %% 		  
 mkdir(distribution_repo_path);
-pvp_edge_filter = ""; %%"canny";
+pvp_edge_filter = "canny3way"; %%""; %%
 pvp_frame_skip = 1; %% 1000;
 pvp_frame_offset = 1; %% 160;
 num_ODD_kernels_str = "";
@@ -147,7 +147,7 @@ for i_clip = 1 : length(clip_name)
   if canny_flag == false
     if 1
       clip_path = ...
-	  ["/Volumes/InnoHouseData/NeoVision2/Heli/Helicopter Training Images/", ...
+	  ["/nh/compneuro/Data/repo/neovision-data-challenge-heli/", ...
 	   clip_name{i_clip}, filesep];	  
     else
       clip_path = ...
@@ -162,6 +162,7 @@ for i_clip = 1 : length(clip_name)
 		 clip_name{i_clip}, filesep]; %% 
   endif
 
+  %%keyboard;
   [num_frames, ...
    tot_frames, ...
    nnz_frames, ...

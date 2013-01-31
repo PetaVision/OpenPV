@@ -207,14 +207,14 @@ function [num_frames, ...
 
 
   setenv('GNUTERM', 'x11');
-  image_type = ".jpg";
+  image_type = ".png"; %%".jpg";
   
   %% path to generic image processing routines
-  img_proc_dir = "~/workspace-sync-anterior/PetaVision/mlab/imgProc/";
+  img_proc_dir = "~/workspace/PetaVision/mlab/imgProc/";
   addpath(img_proc_dir);
   
   %% path to string manipulation kernels for use with parcellfun
-  str_kernel_dir = "~/workspace-sync-anterior/PetaVision/mlab/stringKernels/";
+  str_kernel_dir = "~/workspace/PetaVision/mlab/stringKernels/";
   addpath(str_kernel_dir);
   
   global ODD_subdir
@@ -367,8 +367,8 @@ function [num_frames, ...
   if 1 %% ~strcmp(NEOVISION_DISTRIBUTION_ID,"Challenge")  
     if 1
       true_CSV_path = ...
-	  ["/Volumes/InnoHouseData/NeoVision2/Heli/Helicopter Training Annotations", ...
-	   filesep];
+	  ["/nh/compneuro/Data/repo/neovision-data-challenge-heli/CSV/"];
+	  %%["/Volumes/InnoHouseData/NeoVision2/Heli/Helicopter Training Annotations",filesep];
     else
       true_CSV_path = ...
 	  [repo_path, ...

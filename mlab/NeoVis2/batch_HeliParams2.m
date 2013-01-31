@@ -2,7 +2,7 @@
 %% begin definition of the most volitile parameters
 FLAVOR_ID = "Challenge"; %% "Training"; %% 
 disp(["FLAVOR_ID = ", FLAVOR_ID]);
-target_id = cell(1,2);
+target_id = cell(1,2); %%cell(1,1); %% 
 target_id{1,1} = "Car"; target_id{1,2} = "NotCar"; %% 
 target_id
 clips_flag = true; %% false; %% 
