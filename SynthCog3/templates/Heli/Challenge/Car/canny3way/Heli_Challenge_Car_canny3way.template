@@ -4,11 +4,11 @@
 //
 
 HyPerCol "column" = {
-   nx = 360;   // until we get going with images
-   ny = 256;
+   nx = 1920;   // until we get going with images
+   ny = 1080;
    dt = 1.0;
-   randomSeed = 111111111;  // if not set here,  clock time is used to generate seed
-   numSteps = 100;
+   randomSeed = 11111111;  // if not set here,  clock time is used to generate seed
+   $$$_numSteps_$$$
    $$$_outputPath_$$$
    progressStep = 20;
    filenamesContainLayerNames = false;
@@ -17,7 +17,6 @@ HyPerCol "column" = {
    $$$_printParamsFilename_$$$
    writeProgressToErr = true;
    filenamesContainConnectionNames = false;
-   suppressLastOutput = true;
 };
 
 //
@@ -37,7 +36,7 @@ Movie "Image" = {
     writeImages = 0;
     displayPeriod = 1;
     start_frame_index = 1;
-    skip_frame_index = 1;
+    image_skip_frame_index = 1;
     echoFramePathnameFlag = true;
     jitterFlag = 0;
     randomMovie = 0;
@@ -55,16 +54,16 @@ Retina "Retina" = {
     nyScale = 1;
     nf = 1;
     marginWidth = 3;
-    writeStep = 1.0;
+    writeStep = -1.0;
     mirrorBCflag = 1;
     spikingFlag = 0;
     writeSparseActivity = 0;
 
     poissonEdgeProb = 1;
     poissonBlankProb = 0;
-    burstFreq = 1;  // in Hz
+    burstFreq = 1;   // in Hz
     burstDuration = 1000;  // in msec, set to 1/burstFreq for always on 
-
+    
     beginStim = 1;
     $$$_endStim_$$$
 };
@@ -78,7 +77,7 @@ ANNLayer "L1" = {
     nyScale = 1;
     nf = 8;
     marginWidth = 0;
-    writeStep = 1.0;
+    writeStep = -1.0;
     mirrorBCflag = 1;
     writeSparseActivity = 0;
 
@@ -96,7 +95,7 @@ ANNLayer "L1Pool1X1" = {
     nyScale = 1.0;
     nf = 8;
     marginWidth = 16;
-    writeStep = 1.0;
+    writeStep = -1.0;
     mirrorBCflag = 1;
     writeSparseActivity = 0;
 
@@ -110,7 +109,6 @@ ANNLayer "L1Pool1X1" = {
 };
 
 
-
 CliqueLayer "L1Clique" = {
     restart = 0;
     nxScale = 1;
@@ -119,7 +117,7 @@ CliqueLayer "L1Clique" = {
     marginWidth = 16;
     writeStep = 1.0;
     mirrorBCflag = 1;
-    writeSparseActivity = 0;
+    writeSparseActivity = 1;
 
     VThresh = 0.5;
     VMax = 1.0;
@@ -139,7 +137,7 @@ CliqueLayer "L2Clique" = {
     marginWidth = 16;
     writeStep = 1.0;
     mirrorBCflag = 1;
-    writeSparseActivity = 0;
+    writeSparseActivity = 1;
 
     VThresh = 0.5;
     VMax = 1.0;
@@ -159,7 +157,7 @@ CliqueLayer "L3Clique" = {
     marginWidth = 16;
     writeStep = 1.0;
     mirrorBCflag = 1;
-    writeSparseActivity = 0;
+    writeSparseActivity = 1;
 
     VThresh = 0.5;
     VMax = 1.0;
@@ -179,7 +177,7 @@ CliqueLayer "L4Clique" = {
     marginWidth = 16;
     writeStep = 1.0;
     mirrorBCflag = 1;
-    writeSparseActivity = 0;
+    writeSparseActivity = 1;
 
     VThresh = 0.5;
     VMax = 1.0;
@@ -217,7 +215,7 @@ KernelConn "MovieToRetina" = {
     plasticityFlag = 0;
     stochasticReleaseFlag = false;
 
-    preActivityIsNotRate = false;
+    preActivityIsNotRate = true;
     selfFlag = false;
     shrinkPatches = false;
     
@@ -317,16 +315,15 @@ KernelConn "RetinaToL1Inh" = {
 
 // downsample/pooling 
 IdentConn "L1ToL1Pool1X1" = {
-   preLayerName = "L1";
-   postLayerName = "L1Pool1X1";
-   channelCode = 0;
-   writeStep = -1;
-   initFromLastFlag = 0;
-   weightInitType = "IdentWeight";
+    preLayerName = "L1";
+    postLayerName = "L1Pool1X1";
+    channelCode = 0;
+    writeStep = -1;
+    initFromLastFlag = 0;
+    weightInitType = "IdentWeight";
 
-   delay = 0;
+    delay = 0;
 };
-
 
 
 // Clique connections
@@ -380,7 +377,7 @@ SiblingConn "L1Pool1X1toL1CliqueTarget" = {
    plasticityFlag = 0;
    //combine_dW_with_W_flag = false;
    selfFlag = true;
-   shmget_flag = true;
+   shmget_flag = false;
    stochasticReleaseFlag = false;
 
    delay = 0; 
@@ -558,16 +555,6 @@ CloneKernelConn "L3toL4CliqueDistractor" = {
 
 
 
-//StatsProbe "Retina Stats" = {
-//    targetLayer = "Retina";
-//};
-//
-//StatsProbe "L1Stats" = {
-//    targetLayer = "L1";
-//};
-//
-
-
 StatsProbe "RetinaStatsFile" = {
     targetLayer = "Retina";
     probeOutputFile = "Retina_Stats.txt";
@@ -602,8 +589,3 @@ StatsProbe "L4CliqueStatsFile" = {
     targetLayer = "L4Clique";
     probeOutputFile = "L4Clique_Stats.txt";
 };
-
-
-
-
-

@@ -15,12 +15,11 @@ HyPerCol "column" = {
    checkpointRead = false;
    checkpointWrite = true;
    $$$_checkpointWriteDir_$$$
-   checkpointWriteStepInterval = 50;
+   checkpointWriteStepInterval = 20;
    deleteOlderCheckpoints = true;
    $$$_printParamsFilename_$$$
    writeProgressToErr = true;
    filenamesContainConnectionNames = false;
-   suppressLastOutput = false;
 };
 
 //
@@ -34,9 +33,10 @@ Movie "Image" = {
     nyScale = 1;
     nf = 1;
     marginWidth = 0;
-    writeStep = -1;
+    writeStep = 0;
     mirrorBCflag = 0;
-    writeSparseActivity = 0;
+    spikingFlag = 0;
+    writeNonspikingActivity = 0;
     writeImages = 0;
     displayPeriod = 1;
     $$$_image_start_frame_index_$$$
@@ -59,13 +59,14 @@ Movie "Mask" = {
     nyScale = 1;
     nf = 1;
     marginWidth = 0;
-    writeStep = -1;
+    writeStep = 0;
     mirrorBCflag = 0;
-    writeSparseActivity = 0;
+    spikingFlag = 0;
+    writeNonspikingActivity = 0;
     writeImages = 0;
-    %%%_displayPeriod_$$$
-    start_frame_index = 1;
-    skip_frame_index = 1;
+    displayPeriod = 1;
+    $$$_mask_start_frame_index_$$$
+    $$$_mask_skip_frame_index_$$$
     echoFramePathnameFlag = true;
     jitterFlag = 0;
     randomMovie = 0;
@@ -85,8 +86,8 @@ Retina "Retina" = {
     marginWidth = 3;
     writeStep = -1.0;
     mirrorBCflag = 1;
-    writeSparseActivity = 0;
     spikingFlag = 0;
+    writeNonspikingActivity = 0;
 
     poissonEdgeProb = 1;
     poissonBlankProb = 0;
@@ -108,7 +109,8 @@ ANNLayer "L1" = {
     marginWidth = 0;
     writeStep = -1.0;
     mirrorBCflag = 1;
-    writeSparseActivity = 0;
+    spikingFlag = 0;
+    writeNonspikingActivity = 0;
 
     VThresh = 0.5;
     VMax = 1.0;
@@ -126,7 +128,8 @@ ANNLayer "L1Pool1X1" = {
     marginWidth = 16;
     writeStep = -1.0;
     mirrorBCflag = 1;
-    writeSparseActivity = 0;
+    spikingFlag = 0;
+    writeNonspikingActivity = 0;
 
     VThresh = 0.5;
     VMax = 1.0;
@@ -148,7 +151,8 @@ CliqueLayer "L1Post" = {
     marginWidth = 16;
     writeStep = -1.0;
     mirrorBCflag = 1;
-    writeSparseActivity = 0;
+    spikingFlag = 0;
+    writeNonspikingActivity = 0;
 
     VThresh = 0.5;
     VMax = 1.0;
@@ -182,7 +186,6 @@ KernelConn "MovieToRetina" = {
     normalize = 0;
        
     writeCompressedWeights = 0.0;
-    writeCompressedCheckpoints = 0.0;
     plasticityFlag = 0;
     stochasticReleaseFlag = false;
 
@@ -229,7 +232,6 @@ KernelConn "RetinaToL1" = {
 
    shrinkPatches = false;
    writeCompressedWeights = 0.0;
-   writeCompressedCheckpoints = 0.0;
    plasticityFlag = 0;
    stochasticReleaseFlag = false;
     
@@ -274,7 +276,6 @@ KernelConn "RetinaToL1Inh" = {
    
    shrinkPatches = false;
    writeCompressedWeights = 0.0;
-   writeCompressedCheckpoints = 0.0;
    plasticityFlag = 0;
    stochasticReleaseFlag = false;
 
@@ -328,7 +329,6 @@ KernelConn "MasktoL1Post" = {
    weightInitType = "UniformWeight";
    weightInit = 1;
        
-   strength = 1.0;
    normalize = 1.0;
    normalize_zero_offset = 0.0;
    normalize_max = 0.0;
@@ -336,7 +336,6 @@ KernelConn "MasktoL1Post" = {
 
    shrinkPatches = false;
    writeCompressedWeights = 0.0;
-   writeCompressedCheckpoints = 0.0;
    selfFlag = false;
    plasticityFlag = 0;
    stochasticReleaseFlag = false;
@@ -367,26 +366,25 @@ CliqueConn "L1Pool1X1toL1Post" = {
 
    weightInitType = "FileWeight";  
    combineWeightFiles = true; //false; // 
-   $$$_numWeightFilesDistractor_$$$
-   $$$_initWeightsFileL1Pool1X1toL1PostDistractor_$$$ 
+   $$$_numWeightFilesTarget_$$$
+   $$$_initWeightsFileL1Pool1X1toL1PostTarget_$$$ 
    useListOfArborFiles = false;
 
    normalize = 0.0;
+   symmetrizeWeights = 0;
    
    plasticityFlag = 1;
    keepKernelsSynchronized = false; // true; 
    combine_dW_with_W_flag = true; //false; // 
    shrinkPatches = false;
    writeCompressedWeights = 0.0;
-   writeCompressedCheckpoints = 0.0;
    stochasticReleaseFlag = false;
    weightUpdatePeriod = 1.0;
 
    delay = 1;    
     
    preActivityIsNotRate = false;
-   selfFlag = true;
-   shmget_flag = false;
+   selfFlag = false;
    initialWeightUpdateTime = 0.0;
 };
 
