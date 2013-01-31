@@ -46,16 +46,16 @@ void SiblingConn::setSiblingConn(SiblingConn *sibling_conn){
 
 int SiblingConn::normalizeFamily()
 {
-#ifdef USE_SHMGET
-   if (shmget_flag && !shmget_owner){
-         return PV_BREAK;
-      }
-#endif
    // normalize all arbors individuqlly relative to siblings
    const int num_kernels = getNumDataPatches();
    double sum_local = 0.0;
    double sum_sibling = 0.0;
    for (int kArbor = 0; kArbor < this->numberOfAxonalArborLists(); kArbor++) {
+#ifdef USE_SHMGET
+   if (shmget_flag && !shmget_owner[kArbor]){
+         continue;
+      }
+#endif
       for (int kPatch = 0; kPatch < num_kernels; kPatch++) {
          // PVPatch * localWPatch = getWeights(kPatch,kArbor); // this->getKernelPatch(kArbor, kPatch);
          // pvdata_t * myWeights = myWpatch->data;

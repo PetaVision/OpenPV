@@ -223,6 +223,10 @@ int HyPerConn::initialize_base()
    this->normalize_cutoff = 0.0f;
    this->dWMax            = 1;
 
+#ifdef USE_SHMGET
+   shmget_flag = false;
+   shmget_owner = NULL;
+#endif
    return PV_SUCCESS;
 }
 
@@ -934,9 +938,9 @@ int HyPerConn::writeWeights(PVPatch *** patches, pvdata_t ** dataStart, int numP
 
    bool append = last ? false : ioAppend;
 
-   status = PV::writeWeights(path, comm, (double) timef, append,
-                             loc, nxp, nyp, nfp, minVal, maxVal,
-                             patches, dataStart, numPatches, numberOfAxonalArborLists(), compressWeights, fileType);
+	status = PV::writeWeights(path, comm, (double) timef, append, loc, nxp, nyp,
+			nfp, minVal, maxVal, patches, dataStart, numPatches,
+			numberOfAxonalArborLists(), compressWeights, fileType);
    assert(status == 0);
 
    return status;
@@ -1487,7 +1491,7 @@ int HyPerConn::deleteWeights()
          }
       }
 #ifdef USE_SHMGET
-      if (!shmget_flag) {
+      if (!getShmgetFlag()) {
          if (wDataStart != NULL && wDataStart[arbor] != NULL) {
             free(this->wDataStart[arbor]);
          }
@@ -2199,9 +2203,10 @@ int HyPerConn::writePostSynapticWeights(double timef, bool last) {
 
    bool append = (last) ? false : ioAppend;
 
-   status = PV::writeWeights(path, comm, (double) timef, append,
-                             loc, nxPostPatch, nyPostPatch, nfPostPatch, minVal, maxVal,
-                             wPostPatches, wPostDataStart, numPostPatches, numberOfAxonalArborLists(), writeCompressedWeights, fileType);
+	status = PV::writeWeights(path, comm, (double) timef, append, loc,
+			nxPostPatch, nyPostPatch, nfPostPatch, minVal, maxVal, wPostPatches,
+			wPostDataStart, numPostPatches, numberOfAxonalArborLists(),
+			writeCompressedWeights, fileType);
 
    if(status != PV_SUCCESS) {
       fflush(stdout);

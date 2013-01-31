@@ -1406,7 +1406,7 @@ int writeActivitySparse(FILE * fp, Communicator * comm, double time, PVLayer * l
 
 int readWeights(PVPatch *** patches, pvdata_t ** dataStart, int numArbors, int numPatches,
       const char * filename, Communicator * comm, double * timed, const PVLayerLoc * loc,
-      bool shmget_owner, bool shmget_flag)
+      bool * shmget_owner, bool shmget_flag)
 {
    int status = PV_SUCCESS;
    int header_data_type;
@@ -1596,9 +1596,13 @@ int readWeights(PVPatch *** patches, pvdata_t ** dataStart, int numArbors, int n
       // set the contents of the weights patches from the unsigned character buffer, cbuf
       //
 #ifdef USE_SHMGET
-   if (shmget_flag && !shmget_owner){
-      continue;
-   }
+      //only owner should write if connection uses shared memeory
+      if (shmget_flag){
+    	  assert(shmget_owner != NULL);
+    	  if(!shmget_owner[arborId]){
+    		  continue;
+    	  }
+      }
 #endif
       bool compress = header_data_type == PV_BYTE_TYPE;
       status = pvp_set_patches(cbuf, patches ? patches[arborId] : NULL, dataStart[arborId], numPatches, nxp, nyp, nfp, minVal, maxVal, compress);

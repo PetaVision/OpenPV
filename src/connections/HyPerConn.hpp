@@ -306,6 +306,9 @@ public:
     virtual bool getShmgetFlag(){
       return false;
    };
+    virtual bool * getShmgetOwnerHead(){
+    	return  shmget_owner;
+    }
 #endif
 
 protected:

@@ -64,12 +64,12 @@ int KernelConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
       InitWeights *weightInit)
 {
    PVParams * params = hc->parameters();
-   bool normalize_flag = params->value(name, "normalize",0,false);
+   bool normalize_flag = params->value(name, "normalize",0,true);
    if (normalize_flag){
       symmetrizeWeightsFlag = params->value(name, "symmetrizeWeights",0);
    }
 #ifdef USE_SHMGET
-   shmget_flag = params->value(name, "shmget_flag",0);
+   shmget_flag = params->value(name, "shmget_flag",shmget_flag, true);
 #endif
    HyPerConn::initialize(name, hc, pre, post, filename, weightInit);
    initializeUpdateTime(params); // sets weightUpdatePeriod and initial value of weightUpdateTime
