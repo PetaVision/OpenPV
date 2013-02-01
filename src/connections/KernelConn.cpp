@@ -69,7 +69,7 @@ int KernelConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
       symmetrizeWeightsFlag = params->value(name, "symmetrizeWeights",0);
    }
 #ifdef USE_SHMGET
-   shmget_flag = params->value(name, "shmget_flag",shmget_flag, true);
+   shmget_flag = params->value(name, "shmget_flag", shmget_flag, true);
 #endif
    HyPerConn::initialize(name, hc, pre, post, filename, weightInit);
    initializeUpdateTime(params); // sets weightUpdatePeriod and initial value of weightUpdateTime
@@ -506,52 +506,22 @@ int KernelConn::patchToDataLUT(int patchIndex) {
    return patch2datalookuptable[patchIndex];
 }
 
-int KernelConn::normalizeWeights(PVPatch ** patches, pvdata_t ** dataStart, int numPatches, int arborId)
-{
-   int status = PV_SUCCESS;
-   const int num_kernels = getNumDataPatches();
+int KernelConn::normalizeWeights(PVPatch ** patches, pvdata_t ** dataStart,
+		int numPatches, int arborId) {
+	int status = PV_SUCCESS;
+	const int num_kernels = getNumDataPatches();
 
-   // symmetrize before normalization
-   if ( symmetrizeWeightsFlag ){
-      for(int kArbor = 0; kArbor < this->numberOfAxonalArborLists(); kArbor++){
-         status = symmetrizeWeights(dataStart[arborId], num_kernels, kArbor);
-         assert( (status == PV_SUCCESS) || (status == PV_BREAK) );
-      }
-   }
-
-   // normalize after symmetrization
-//   if (this->normalizeArborsIndividually) {
-//      for(int kArbor = 0; kArbor < this->numberOfAxonalArborLists(); kArbor++){
-         status = HyPerConn::normalizeWeights(NULL, dataStart, num_kernels, arborId);
-         assert( (status == PV_SUCCESS) || (status == PV_BREAK) );
-//      }
-//      status = PV_BREAK;
-//   }
-//   else {  // default behavior
-//      for (int kPatch = 0; kPatch < num_kernels; kPatch++) {
-//         double sumAll = 0.0f;
-//         double sum2All = 0.0f;
-//         float maxAll = 0.0f;
-//         for(int kArbor = 0; kArbor < this->numberOfAxonalArborLists(); kArbor++){
-//            double sum, sum2;
-//            float maxVal;
-//            status = sumWeights(nxp, nyp, 0, dataStart[kArbor]+kPatch*nxp*nyp*nfp, &sum, &sum2, &maxVal);
-//            assert( (status == PV_SUCCESS) || (status == PV_BREAK) );
-//            sumAll += sum;
-//            sum2All += sum2;
-//            maxAll = maxVal > maxAll ? maxVal : maxAll;
-//         } // kArbor
-//         for(int kArbor = 0; kArbor < this->numberOfAxonalArborLists(); kArbor++){
-//            status = scaleWeights(nxp, nyp, 0, dataStart[kArbor]+kPatch*nxp*nyp*nfp, sumAll, sum2All, maxAll);
-//            assert( (status == PV_SUCCESS) || (status == PV_BREAK) );
-//         }
-//      } // kPatch < numPatches
-//
-//      status = checkNormalizeArbor(patches, dataStart, numPatches, arborId);
-//      assert( (status == PV_SUCCESS) || (status == PV_BREAK) );
-//      status = PV_BREAK;
-//   } // this->normalize_arbors_individually
-   return status;
+	// symmetrize before normalization
+	if (symmetrizeWeightsFlag) {
+		for (int kArbor = 0; kArbor < this->numberOfAxonalArborLists();
+				kArbor++) {
+			status = symmetrizeWeights(dataStart[arborId], num_kernels, kArbor);
+			assert( (status == PV_SUCCESS) || (status == PV_BREAK));
+		}
+	}
+	status = HyPerConn::normalizeWeights(NULL, dataStart, num_kernels, arborId);
+	assert( (status == PV_SUCCESS) || (status == PV_BREAK));
+	return status;
 }
 
 int KernelConn::symmetrizeWeights(pvdata_t * dataStart, int numPatches, int arborId)

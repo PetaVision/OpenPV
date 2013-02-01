@@ -641,6 +641,16 @@ int HyPerConn::initializeDelays(int size){
 PVPatch *** HyPerConn::initializeWeights(PVPatch *** arbors, pvdata_t ** dataStart, int numPatches, const char * filename)
 {
    weightInitializer->initializeWeights(arbors, dataStart, numPatches, filename, this);
+#ifdef USE_SHMGET
+   // insert synchronization barrier to ensure that all processes have finished loading portions of shared memory for which they
+   // might be responsible
+#ifdef PV_USE_MPI
+   InterColComm *icComm = getParent()->icCommunicator();
+   const MPI_Comm mpi_comm = icComm->communicator();
+   MPI_Barrier(mpi_comm);
+#endif // PV_USE_MPI
+
+#endif
    initNormalize(); // Sets normalize_flag; derived-class methods that override initNormalize must also set normalize_flag
    if (normalize_flag) {
       for(int arborId=0; arborId<numberOfAxonalArborLists(); arborId++) {
@@ -2340,6 +2350,9 @@ int HyPerConn::checkNormalizeArbor(PVPatch ** patches, pvdata_t ** dataStart, in
    int ny = nyp;
    int offset = 0;
    if (this->normalizeArborsIndividually) {
+#ifdef USE_SHMGET
+        	 if (shmget_flag && !shmget_owner[arborId]) return PV_SUCCESS;
+#endif
       for (int k = 0; k < numPatches; k++) {
          if (patches != NULL) {
             PVPatch * wp = patches[k];
@@ -2394,12 +2407,17 @@ int HyPerConn::checkNormalizeArbor(PVPatch ** patches, pvdata_t ** dataStart, in
          int num_weights = nx * ny * nfp * numberOfAxonalArborLists();
          float sigma2 = ( sumAll / num_weights ) - ( sumAll / num_weights ) * ( sumAll / num_weights );
          for(int kArbor = 0; kArbor < this->numberOfAxonalArborLists(); kArbor++){
+#ifdef USE_SHMGET
+        	 if (shmget_flag && !shmget_owner[kArbor]) continue;
+#endif
             if( sumAll != 0 || sigma2 != 0 ) {
                status = checkNormalizeWeights(sumAll, sigma2, maxAll);
                assert(status == PV_SUCCESS );
             }
             else {
-               fprintf(stderr, "checkNormalizeArbor: connection \"%s\", arbor %d, kernel %d has all zero weights.\n", name, kArbor, kPatch);
+					fprintf(stderr,
+							"checkNormalizeArbor: connection \"%s\", arbor %d, kernel %d has all zero weights.\n",
+							name, kArbor, kPatch);
             }
          }
       }
@@ -2418,6 +2436,9 @@ int HyPerConn::normalizeWeights(PVPatch ** patches, pvdata_t ** dataStart, int n
    int ny = nyp;
    int offset = 0;
    if (this->normalizeArborsIndividually) {
+#ifdef USE_SHMGET
+        	 if (shmget_flag && !shmget_owner[arborId]) return PV_SUCCESS;
+#endif
       for (int k = 0; k < numPatches; k++) {
          if (patches != NULL) {
             PVPatch * wp = patches[k];
@@ -2459,6 +2480,9 @@ int HyPerConn::normalizeWeights(PVPatch ** patches, pvdata_t ** dataStart, int n
             maxAll = maxVal > maxAll ? maxVal : maxAll;
          } // kArbor
          for(int kArbor = 0; kArbor < this->numberOfAxonalArborLists(); kArbor++){
+#ifdef USE_SHMGET
+        	 if (shmget_flag && !shmget_owner[kArbor]) continue;
+#endif
             status = scaleWeights(nx, ny, offset, dataStart[kArbor]+kPatch*nxp*nyp*nfp, sumAll, sum2All, maxAll);
             assert( (status == PV_SUCCESS) || (status == PV_BREAK) );
          }
