@@ -1034,10 +1034,10 @@ int HyPerLayer::triggerReceive(InterColComm* comm)
 int HyPerLayer::publish(InterColComm* comm, double time)
 {
 	// only publish on "allowed" time steps, which may be spaced to account for feedback delays
-	int step = parent->getCurrentStep();
-	if (step < feedforwardDelay
-			|| (step - feedforwardDelay) % feedbackDelay != 0)
-		return PV_SUCCESS;
+//  int step = parent->getCurrentStep();
+//  if (step < feedforwardDelay
+//     || (step - feedforwardDelay) % feedbackDelay != 0)
+//     return PV_SUCCESS;
 
 	if ( useMirrorBCs() ) {
       for (int borderId = 1; borderId < NUM_NEIGHBORHOOD; borderId++){
