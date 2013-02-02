@@ -263,6 +263,9 @@ int Retina::initializeState() {
       double timef;
       readState(&timef);
    }
+   else {
+      updateState(parent->simulationTime(), parent->getDeltaTime());
+   }
 
    return PV_SUCCESS;
 }
@@ -458,47 +461,42 @@ int Retina::waitOnPublish(InterColComm* comm)
  *
  *
  */
-int Retina::updateState(double time, double dt)
+int Retina::updateState(double timed, double dt)
 {
    update_timer->start();
 #ifdef PV_USE_OPENCL
    if((gpuAccelerateFlag)&&(true)) {
-      updateStateOpenCL(time, dt);
+      updateStateOpenCL(timed, dt);
    }
    else {
-#endif
+#endif // PV_USE_OPENCL
       const int nx = clayer->loc.nx;
       const int ny = clayer->loc.ny;
       const int nf = clayer->loc.nf;
       const int nb = clayer->loc.nb;
 
       pvdata_t * GSynHead   = GSyn[0];
-//      pvdata_t * phiExc   = getChannel(CHANNEL_EXC);
-//      pvdata_t * phiInh   = getChannel(CHANNEL_INH);
       pvdata_t * activity = clayer->activity->data;
 
       if (spikingFlag == 1) {
-         Retina_spiking_update_state(getNumNeurons(), time, dt, nx, ny, nf, nb,
+         Retina_spiking_update_state(getNumNeurons(), timed, dt, nx, ny, nf, nb,
                                      &rParams, rand_state,
                                      GSynHead, activity, clayer->prevActivity);
       }
       else {
-         Retina_nonspiking_update_state(getNumNeurons(), time, dt, nx, ny, nf, nb,
+         Retina_nonspiking_update_state(getNumNeurons(), timed, dt, nx, ny, nf, nb,
                                         &rParams, GSynHead, activity);
       }
 #ifdef PV_USE_OPENCL
    }
-#endif
-//#else
+#endif // PV_USE_OPENCL
 
 
-
-//#endif
 
 #ifdef DEBUG_PRINT
    char filename[132];
-   sprintf(filename, "r_%d.tiff", (int)(2*time));
-   this->writeActivity(filename, time);
+   sprintf(filename, "r_%d.tiff", (int)(2*timed));
+   this->writeActivity(filename, timed);
 
    printf("----------------\n");
    for (int k = 0; k < 6; k++) {
@@ -506,7 +504,7 @@ int Retina::updateState(double time, double dt)
    }
    printf("----------------\n");
 
-#endif
+#endif // DEBUG_PRINT
    update_timer->stop();
    updateActiveIndices();
    return 0;
