@@ -150,6 +150,7 @@ public:
    // interface for public methods for controlling HyPerLayer cellular and synaptic dynamics
    // (i.e. methods for receiving synaptic input, updating internal state, publishing output)
    // ************************************************************************************//
+   int recvAllSynapticInput(); // Calls recvSynapticInput for each conn and each arborID
    virtual int recvSynapticInput(HyPerConn * conn, const PVLayerCube * cube, int arborID);
    virtual int updateState (double time, double dt);
    virtual int publish(InterColComm * comm, double time);
@@ -235,6 +236,8 @@ public:
    bool useMirrorBCs()               {return this->mirrorBCflag;}
    bool getSpikingFlag()             {return this->writeSparseActivity;}
 
+   int getPhase()                    {return this->phase;}
+
    // implementation of LayerDataInterface interface
    //
    const pvdata_t   * getLayerData(int delay=0);
@@ -271,6 +274,8 @@ protected:
 
    int numProbes;
    LayerProbe ** probes;
+
+   int phase;                   // All layers with phase 0 get updated before any with phase 1, etc.
 
    int * labels;                // label for the feature a neuron is tuned to
 

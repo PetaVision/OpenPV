@@ -135,6 +135,7 @@ private:
    long int currentStep;
    size_t layerArraySize;
    int numLayers;
+   int numPhases;
    size_t connectionArraySize;
    int numConnections;
 

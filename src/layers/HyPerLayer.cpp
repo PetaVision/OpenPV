@@ -92,6 +92,7 @@ int HyPerLayer::initialize_base() {
    this->numGlobalRNGs = 0;
    this->feedbackDelay = HYPERLAYER_FEEDBACK_DELAY;
    this->feedforwardDelay = HYPERLAYER_FEEDFORWARD_DELAY;
+   this->phase = 0;
 #ifdef PV_USE_OPENCL
    this->krUpdate = NULL;
    this->clV = NULL;
@@ -149,6 +150,11 @@ int HyPerLayer::initialize(const char * name, HyPerCol * hc, int numChannels) {
    feedbackDelay = params->value(name, "feedbackDelay", feedbackDelay, true);
    assert(feedbackDelay > 0);
 
+   phase = params->value(name, "phase", phase, true);
+   if (phase<0) {
+      if (parent->columnId()==0) fprintf(stderr, "Error in layer \"%s\": phase must be >= 0 (given value was %d).\n", name, phase);
+      abort();
+   }
 
    // TODO: when satisfied that everyone has had the chance to change spikingFlag to writeSparseActivity
    // and remove writeNonspikingActivity, remove the checks below and replace with
@@ -954,6 +960,29 @@ float HyPerLayer::getConvertToRateDeltaTimeFactor(HyPerConn* conn)
 //   for( int k=0; k<numItems; k++ ) buf[k] = 0.0;
 //   return PV_SUCCESS;
 //}
+
+int HyPerLayer::recvAllSynapticInput() {
+   int status = PV_SUCCESS;
+   int numConnections = parent->numberOfConnections();
+   for (int c=0; c<numConnections; c++) {
+      HyPerConn * conn = parent->getConnection(c);
+      if (conn->postSynapticLayer()!=this) continue;
+      HyPerLayer * pre = conn->preSynapticLayer();
+      PVLayerCube cube;
+      memcpy(&cube.loc, pre->getLayerLoc(), sizeof(PVLayerLoc));
+      cube.numItems = pre->getNumExtended();
+      cube.size = sizeof(PVLayerCube);
+      DataStore * store = parent->icCommunicator()->publisherStore(pre->getLayerId());
+      int numArbors = conn->numberOfAxonalArborLists();
+      for (int arbor=0; arbor<numArbors; arbor++) {
+         int delay = conn->getDelay(arbor);
+         cube.data = (pvdata_t *) store->buffer(LOCAL, delay);
+         status = recvSynapticInput(conn, &cube, arbor);
+         assert(status == PV_SUCCESS);
+      }
+   }
+   return status;
+}
 
 int HyPerLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activity, int arborID)
 {

@@ -153,6 +153,7 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * p
    simTime = 0;
    currentStep = 0;
    numLayers = 0;
+   numPhases = 0;
    numConnections = 0;
    layers = (HyPerLayer **) malloc(layerArraySize * sizeof(HyPerLayer *));
    connections = (HyPerConn **) malloc(connectionArraySize * sizeof(HyPerConn *));
@@ -528,6 +529,7 @@ int HyPerCol::addLayer(HyPerLayer * l)
    }
    l->columnWillAddLayer(icComm, numLayers);
    layers[numLayers++] = l;
+   if (l->getPhase() >= numPhases) numPhases = l->getPhase()+1;
    return (numLayers - 1);
 }
 
@@ -766,52 +768,64 @@ double HyPerCol::advanceTime(double sim_time)
       connections[c]->outputState(sim_time);
    }
 
-   // clear GSyn buffers
-   for(int l = 0; l < numLayers; l++) {
-      layers[l]->resetGSynBuffers(sim_time, deltaTime);
-   }
-   for (int l = 0; l < numLayers; l++) {
-      // deliver new synaptic activity to any
-      // postsynaptic layers for which this
-      // layer is presynaptic.
-      layers[l]->triggerReceive(icComm);
-   }
+   // Each layer's phase establishes a priority for updating
+   for (int phase=0; phase<numPhases; phase++) {
 
-   // Update the layers (activity)
-   for(int l = 0; l < numLayers; l++) {
-      layers[l]->updateState(sim_time, deltaTime);
-   }
+      // clear GSyn buffers
+      for(int l = 0; l < numLayers; l++) {
+         if (layers[l]->getPhase() != phase) continue;
+         layers[l]->resetGSynBuffers(sim_time, deltaTime);
+         layers[l]->recvAllSynapticInput();
+      }
+      //    for (int l = 0; l < numLayers; l++) {
+      //       // deliver new synaptic activity to any
+      //       // postsynaptic layers for which this
+      //       // layer is presynaptic.
+      //       layers[l]->triggerReceive(icComm);
+      //    }
 
-   // This loop separate from the update layer loop above
-   // to provide time for layer data to be copied from
-   // the OpenCL device.
-   //
-   for (int l = 0; l < numLayers; l++) {
-      // after updateBorder completes all necessary data has been
-      // copied from the device (GPU) to the host (CPU)
-      layers[l]->updateBorder(sim_time, deltaTime);
+      // Update the layers (activity)
+      // We don't put updateState in the same loop over layers as recvAllSynapticInput
+      // because we plan to have updateState update the datastore directly, and
+      // recvSynapticInput uses the datastore to compute GSyn.
+      for(int l = 0; l < numLayers; l++) {
+         if (layers[l]->getPhase() != phase) continue;
+         layers[l]->updateState(sim_time, deltaTime);
+      }
 
-      // TODO - move this to layer
-      // Advance time level so we have a new place in data store
-      // to copy the data.  This should be done immediately before
-      // publish so there is a place to publish and deliver the data to.
-      // No one can access the data store (except to publish) until
-      // wait has been called.  This should be fixed so that publish goes
-      // to last time level and level is advanced only after wait.
-      icComm->increaseTimeLevel(layers[l]->getLayerId());
+      // This loop separate from the update layer loop above
+      // to provide time for layer data to be copied from
+      // the OpenCL device.
+      //
+      for (int l = 0; l < numLayers; l++) {
+         if (layers[l]->getPhase() != phase) continue;
+         // after updateBorder completes all necessary data has been
+         // copied from the device (GPU) to the host (CPU)
+         layers[l]->updateBorder(sim_time, deltaTime); // TODO rename updateBorder?
 
-      layers[l]->publish(icComm, sim_time);
-   }
+         // TODO - move this to layer
+         // Advance time level so we have a new place in data store
+         // to copy the data.  This should be done immediately before
+         // publish so there is a place to publish and deliver the data to.
+         // No one can access the data store (except to publish) until
+         // wait has been called.  This should be fixed so that publish goes
+         // to last time level and level is advanced only after wait.
+         icComm->increaseTimeLevel(layers[l]->getLayerId());
 
-   // wait for all published data to arrive
-   //
-   for (int l = 0; l < numLayers; l++) {
-      layers[l]->waitOnPublish(icComm);
-   }
+         layers[l]->publish(icComm, sim_time);
+         //    }
+         //
+         //    // wait for all published data to arrive
+         //    //
+         //    for (int l = 0; l < numLayers; l++) {
+         layers[l]->waitOnPublish(icComm);
+         //    }
+         //
+         //    // also calls layer probes
+         //    for (int l = 0; l < numLayers; l++) {
+         layers[l]->outputState(sim_time);
+      }
 
-   // also calls layer probes
-   for (int l = 0; l < numLayers; l++) {
-      layers[l]->outputState(sim_time);
    }
 
    // make sure simTime is updated even if HyPerCol isn't running time loop
