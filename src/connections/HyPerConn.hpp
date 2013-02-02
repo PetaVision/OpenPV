@@ -300,12 +300,12 @@ public:
    static int decodeChannel(int channel_code, ChannelType * channel_type);
 
 #ifdef USE_SHMGET
-    virtual bool getShmgetOwner(int arbor_ID = 0){
-      return true;
-   };
-    virtual bool getShmgetFlag(){
-      return false;
-   };
+   virtual bool getShmgetFlag(){
+     return shmget_flag;
+  };
+   virtual bool getShmgetOwner(int arbor_ID = 0){
+     return (shmget_owner == NULL) ? false : shmget_owner[arbor_ID];
+  };
     virtual bool * getShmgetOwnerHead(){
     	return  shmget_owner;
     }

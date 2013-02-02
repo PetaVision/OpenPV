@@ -54,15 +54,6 @@ public:
    virtual int patchIndexToDataIndex(int patchIndex, int * kx=NULL, int * ny=NULL, int * nf=NULL);
    virtual int dataIndexToUnitCellIndex(int dataIndex, int * kx=NULL, int * ny=NULL, int * nf=NULL);
 
-#ifdef USE_SHMGET
-    virtual bool getShmgetFlag(){
-      return shmget_flag;
-   };
-    virtual bool getShmgetOwner(int arbor_ID = 0){
-      return shmget_owner[arbor_ID];
-   };
-#endif
-
 
 protected:
    float weightUpdatePeriod;

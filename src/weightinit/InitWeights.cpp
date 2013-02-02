@@ -35,62 +35,76 @@ InitWeights::~InitWeights()
  *
  * This method initializes the full unshrunken patch.  The input argument numPatches is ignored.  Instead, method uses getNumDataPatches to determine number of
  * data patches.
+ * For KernelConns, patches should be NULL.
+ *
  */
-int InitWeights::initializeWeights(PVPatch *** patches, pvdata_t ** dataStart, int numPatches, const char * filename, HyPerConn * callingConn, double * timef /*default NULL*/) {
-   PVParams * inputParams = callingConn->getParent()->parameters();
-   int initFromLastFlag = inputParams->value(callingConn->getName(), "initFromLastFlag", 0.0f, false) != 0;
-   InitWeightsParams *weightParams = NULL;
-   int numArbors = callingConn->numberOfAxonalArborLists();
+int InitWeights::initializeWeights(PVPatch *** patches, pvdata_t ** dataStart,
+		int numPatches, const char * filename, HyPerConn * callingConn,
+		double * timef /*default NULL*/) {
+	PVParams * inputParams = callingConn->getParent()->parameters();
+	int initFromLastFlag = inputParams->value(callingConn->getName(),
+			"initFromLastFlag", 0.0f, false) != 0;
+	InitWeightsParams *weightParams = NULL;
+	int numArbors = callingConn->numberOfAxonalArborLists();
+	if (initFromLastFlag) {
+		char nametmp[PV_PATH_MAX];
+		int chars_needed = snprintf(nametmp, PV_PATH_MAX, "%s/Last/%s_W.pvp",
+				callingConn->getParent()->getOutputPath(),
+				callingConn->getName());
+		if (chars_needed >= PV_PATH_MAX) {
+			fprintf(stderr,
+					"InitWeights::initializeWeights error: filename \"%s/Last/%s_W.pvp\" is too long.\n",
+					callingConn->getParent()->getOutputPath(),
+					callingConn->getName());
+			abort();
+		}
+		readWeights(patches, dataStart, callingConn->getNumDataPatches(),
+				nametmp, callingConn);
+	} else if (filename != NULL) {
+		readWeights(patches, dataStart, callingConn->getNumDataPatches(),
+				filename, callingConn, timef);
+	} else {  // calculate weights
+		// modified 2/1/13 by garkenyon: no reason for each process not to calculate weights, which helps in implementing shmget
+//		HyPerCol * hc = callingConn->getParent();
+//		int root_proc = 0;
+//		bool callCalcWeights = patches != NULL || hc->columnId() == root_proc;
+//		if (callCalcWeights) {
+		weightParams = createNewWeightParams(callingConn);
+		for (int arbor = 0; arbor < numArbors; arbor++) {
 #ifdef USE_SHMGET
-   bool shmget_owner = callingConn->getShmgetOwner();
-   bool shmget_flag = callingConn->getShmgetFlag();
+			bool * shmget_owner = callingConn->getShmgetOwnerHead();
+			bool shmget_flag = callingConn->getShmgetFlag();
+			if (shmget_flag && !shmget_owner[arbor]) continue;
 #endif
-   if( initFromLastFlag ) {
-      char nametmp[PV_PATH_MAX];
-      int chars_needed = snprintf(nametmp, PV_PATH_MAX, "%s/Last/%s_W.pvp", callingConn->getParent()->getOutputPath(), callingConn->getName());
-      if (chars_needed >= PV_PATH_MAX) {
-         fprintf(stderr, "InitWeights::initializeWeights error: filename \"%s/Last/%s_W.pvp\" is too long.\n", callingConn->getParent()->getOutputPath(), callingConn->getName());
-         abort();
-      }
-      readWeights(patches, dataStart, callingConn->getNumDataPatches(), nametmp, callingConn);
-   }
-   else if( filename != NULL ) {
-      readWeights(patches, dataStart, callingConn->getNumDataPatches(), filename, callingConn, timef);
-   }
-   else {
-#ifdef USE_SHMGET
-      if (shmget_flag && !shmget_owner){
-         return PV_SUCCESS;
-      }
-#endif
-      // For KernelConns, all processes use the same weights, so only the root process should call calcWeights,
-      // and then all processes call MPI_Bcast.  For KernelConns, patches should be NULL.
-      HyPerCol * hc = callingConn->getParent();
-      int root_proc = 0;
-      bool callCalcWeights = patches!=NULL || hc->columnId()==root_proc;
-      if (callCalcWeights ) {
-         weightParams = createNewWeightParams(callingConn);
-         for( int arbor=0; arbor<numArbors; arbor++ ) {
-            for (int dataPatchIndex = 0; dataPatchIndex < callingConn->getNumDataPatches(); dataPatchIndex++) {
-               int successFlag = calcWeights(callingConn->get_wDataHead(arbor, dataPatchIndex), dataPatchIndex, arbor, weightParams);
-               if (successFlag != PV_SUCCESS) {
-                  fprintf(stderr, "Failed to create weights for %s! Exiting...\n", callingConn->getName());
-                  exit(PV_FAILURE);
-               }
-            }
-         }
-         delete(weightParams);
-      }
-      if (patches==NULL) {
-
-         int buf_size = callingConn->xPatchSize()*callingConn->yPatchSize()*callingConn->fPatchSize()*callingConn->getNumDataPatches();
-         MPI_Comm mpi_comm = hc->icCommunicator()->communicator();
-         for (int arbor=0; arbor<numArbors; arbor++) {
-            MPI_Bcast(callingConn->get_wDataStart(arbor), buf_size, MPI_FLOAT, root_proc, mpi_comm);
-         }
-      }
-   }
-   return PV_SUCCESS;
+			for (int dataPatchIndex = 0;
+					dataPatchIndex < callingConn->getNumDataPatches();
+					dataPatchIndex++) {
+				int successFlag = calcWeights(
+						callingConn->get_wDataHead(arbor, dataPatchIndex),
+						dataPatchIndex, arbor, weightParams);
+				if (successFlag != PV_SUCCESS) {
+					fprintf(stderr,
+							"Failed to create weights for %s! Exiting...\n",
+							callingConn->getName());
+					exit(PV_FAILURE);
+				}
+			}
+		}
+		delete (weightParams);
+//		} // callCalcWeights
+//		if (patches == NULL) {
+//
+//			int buf_size = callingConn->xPatchSize() * callingConn->yPatchSize()
+//					* callingConn->fPatchSize()
+//					* callingConn->getNumDataPatches();
+//			MPI_Comm mpi_comm = hc->icCommunicator()->communicator();
+//			for (int arbor = 0; arbor < numArbors; arbor++) {
+//				MPI_Bcast(callingConn->get_wDataStart(arbor), buf_size,
+//						MPI_FLOAT, root_proc, mpi_comm);
+//			}
+//		}
+	}
+	return PV_SUCCESS;
 }
 
 InitWeightsParams * InitWeights::createNewWeightParams(HyPerConn * callingConn) {

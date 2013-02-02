@@ -226,6 +226,7 @@ int HyPerConn::initialize_base()
 #ifdef USE_SHMGET
    shmget_flag = false;
    shmget_owner = NULL;
+   shmget_id = NULL;
 #endif
    return PV_SUCCESS;
 }
@@ -638,27 +639,26 @@ int HyPerConn::initializeDelays(int size){
 }
 
 // returns handle to initialized weight patches
-PVPatch *** HyPerConn::initializeWeights(PVPatch *** arbors, pvdata_t ** dataStart, int numPatches, const char * filename)
+PVPatch *** HyPerConn::initializeWeights(PVPatch *** patches, pvdata_t ** dataStart, int numPatches, const char * filename)
 {
-   weightInitializer->initializeWeights(arbors, dataStart, numPatches, filename, this);
-#ifdef USE_SHMGET
+   weightInitializer->initializeWeights(patches, dataStart, numPatches, filename, this);
    // insert synchronization barrier to ensure that all processes have finished loading portions of shared memory for which they
    // might be responsible
+#ifdef USE_SHMGET
 #ifdef PV_USE_MPI
-   InterColComm *icComm = getParent()->icCommunicator();
-   const MPI_Comm mpi_comm = icComm->communicator();
-   MPI_Barrier(mpi_comm);
+   std::cout << "starting MPI_Barrier in HyPerConn::initializeWeights: " << this->name << ", rank = " << getParent()->icCommunicator()->commRank() << std::endl;
+   MPI_Barrier(getParent()->icCommunicator()->communicator());
+   std::cout << "leaving MPI_Barrier in HyPerConn::initializeWeights: " << this->name << ", rank = " << getParent()->icCommunicator()->commRank() << std::endl;
 #endif // PV_USE_MPI
-
-#endif
+#endif // USE_SHMGET
    initNormalize(); // Sets normalize_flag; derived-class methods that override initNormalize must also set normalize_flag
    if (normalize_flag) {
       for(int arborId=0; arborId<numberOfAxonalArborLists(); arborId++) {
-         int status = normalizeWeights(arbors ? arbors[arborId] : NULL, dataStart, numPatches, arborId);
+         int status = normalizeWeights(patches ? patches[arborId] : NULL, dataStart, numPatches, arborId);
          if (status == PV_BREAK) break;
       } // arborId
    } // normalize_flag
-   return arbors;
+   return patches;
 }
 
 InitWeights * HyPerConn::getDefaultInitWeightsMethod(const char * keyword) {
@@ -1501,22 +1501,26 @@ int HyPerConn::deleteWeights()
          }
       }
 #ifdef USE_SHMGET
-      if (!getShmgetFlag()) {
-         if (wDataStart != NULL && wDataStart[arbor] != NULL) {
-            free(this->wDataStart[arbor]);
-         }
-      }
-      else {
-         int shmget_status = shmdt(this->get_wDataStart(arbor));
-         if (shmget_owner[arbor]) {
-            shmid_ds * shmget_ds = NULL;
-            shmget_status = shmctl(shmget_id[arbor], IPC_RMID, shmget_ds);
-         }
-      }
+		if (!shmget_flag) {
+			if (wDataStart != NULL && wDataStart[arbor] != NULL) {
+				free(this->wDataStart[arbor]);
+			}
+		} else {
+			if (wDataStart != NULL && wDataStart[arbor] != NULL) {
+				int shmget_status = shmdt(this->get_wDataStart(arbor));
+				assert(shmget_status==0);
+				if (shmget_owner[arbor]) {
+					shmid_ds * shmget_ds = NULL;
+					shmget_status = shmctl(shmget_id[arbor], IPC_RMID,
+							shmget_ds);
+					assert(shmget_status==0);
+				}
+			}
+		}
 #else
-      if (wDataStart != NULL && wDataStart[arbor] != NULL) {
-         free(this->wDataStart[arbor]);
-      }
+		if (wDataStart != NULL && wDataStart[arbor] != NULL) {
+			free(this->wDataStart[arbor]);
+		}
 #endif // USE_SHMGET
    this->wDataStart[arbor] = NULL;
 /*
@@ -2350,9 +2354,6 @@ int HyPerConn::checkNormalizeArbor(PVPatch ** patches, pvdata_t ** dataStart, in
    int ny = nyp;
    int offset = 0;
    if (this->normalizeArborsIndividually) {
-#ifdef USE_SHMGET
-        	 if (shmget_flag && !shmget_owner[arborId]) return PV_SUCCESS;
-#endif
       for (int k = 0; k < numPatches; k++) {
          if (patches != NULL) {
             PVPatch * wp = patches[k];
@@ -2407,9 +2408,6 @@ int HyPerConn::checkNormalizeArbor(PVPatch ** patches, pvdata_t ** dataStart, in
          int num_weights = nx * ny * nfp * numberOfAxonalArborLists();
          float sigma2 = ( sumAll / num_weights ) - ( sumAll / num_weights ) * ( sumAll / num_weights );
          for(int kArbor = 0; kArbor < this->numberOfAxonalArborLists(); kArbor++){
-#ifdef USE_SHMGET
-        	 if (shmget_flag && !shmget_owner[kArbor]) continue;
-#endif
             if( sumAll != 0 || sigma2 != 0 ) {
                status = checkNormalizeWeights(sumAll, sigma2, maxAll);
                assert(status == PV_SUCCESS );
@@ -2452,6 +2450,7 @@ int HyPerConn::normalizeWeights(PVPatch ** patches, pvdata_t ** dataStart, int n
          pvdata_t * dataStartPatch = dataStart[arborId] + k * nxp * nyp * nfp;
          status = sumWeights(nx, ny, offset, dataStartPatch, &sum, &sum2, &maxVal);
          assert( (status == PV_SUCCESS) || (status == PV_BREAK));
+         // don't need synchronization barrier here because only this process writes to patches in this arbor
          status = scaleWeights(nx, ny, offset, dataStartPatch, sum, sum2, maxVal);
          assert( (status == PV_SUCCESS) || (status == PV_BREAK));
       } // k < numPatches
@@ -2479,6 +2478,15 @@ int HyPerConn::normalizeWeights(PVPatch ** patches, pvdata_t ** dataStart, int n
             sum2All += sum2;
             maxAll = maxVal > maxAll ? maxVal : maxAll;
          } // kArbor
+         // insert synchronization barrier to ensure that all processes have finished computing sums over shared memory before any
+         // process begins writing to shared memory
+#ifdef USE_SHMGET
+#ifdef PV_USE_MPI
+         std::cout << "starting MPI_Barrier in HyPerConn::normalizeWeights: " << this->name << ", rank = " << getParent()->icCommunicator()->commRank() << std::endl;
+         MPI_Barrier(getParent()->icCommunicator()->communicator());
+         std::cout << "leaving MPI_Barrier in HyPerConn::normalizeWeights: " << this->name << ", rank = " << getParent()->icCommunicator()->commRank() << std::endl;
+#endif // PV_USE_MPI
+#endif // USE_SHMGET
          for(int kArbor = 0; kArbor < this->numberOfAxonalArborLists(); kArbor++){
 #ifdef USE_SHMGET
         	 if (shmget_flag && !shmget_owner[kArbor]) continue;
@@ -2488,6 +2496,15 @@ int HyPerConn::normalizeWeights(PVPatch ** patches, pvdata_t ** dataStart, int n
          }
       } // kPatch < numPatches
 
+      // insert synchronization barrier to ensure that all processes have finished writing to shared memory before checking
+      // normalization
+#ifdef USE_SHMGET
+#ifdef PV_USE_MPI
+      std::cout << "starting MPI_Barrier in HyPerConn::normalizeWeights: " << this->name << ", rank = " << getParent()->icCommunicator()->commRank() << std::endl;
+      MPI_Barrier(getParent()->icCommunicator()->communicator());
+      std::cout << "leaving MPI_Barrier in HyPerConn::normalizeWeights: " << this->name << ", rank = " << getParent()->icCommunicator()->commRank() << std::endl;
+#endif // PV_USE_MPI
+#endif // USE_SHMGET
       status = checkNormalizeArbor(patches, dataStart, numPatches, arborId);
       assert( (status == PV_SUCCESS) || (status == PV_BREAK) );
       return PV_BREAK;

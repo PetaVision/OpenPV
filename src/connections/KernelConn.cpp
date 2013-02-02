@@ -107,10 +107,14 @@ int KernelConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
 
 int KernelConn::createArbors() {
 #ifdef USE_SHMGET
-   shmget_id = (int *) calloc(this->numberOfAxonalArborLists(), sizeof(int));
-   assert(shmget_id != NULL);
-   shmget_owner = (bool *) calloc(this->numberOfAxonalArborLists(), sizeof(bool));
-   assert(shmget_owner != NULL);
+	if (shmget_flag){
+		shmget_id = (int *) calloc(this->numberOfAxonalArborLists(),
+				sizeof(int));
+		assert(shmget_id != NULL);
+		shmget_owner = (bool *) calloc(this->numberOfAxonalArborLists(),
+				sizeof(bool));
+		assert(shmget_owner != NULL);
+	}
 #endif
    HyPerConn::createArbors();
    return PV_SUCCESS; //should we check if allocation was successful?
@@ -139,83 +143,96 @@ int KernelConn::initializeUpdateTime(PVParams * params) {
 }
 
 // use shmget() to save memory on shared memory architectures
-pvdata_t * KernelConn::allocWeights(PVPatch *** patches, int nPatches, int nxPatch,
-      int nyPatch, int nfPatch, int arbor_ID)
-{
-   int sx = nfPatch;
-   int sy = sx * nxPatch;
-   int sp = sy * nyPatch;
+pvdata_t * KernelConn::allocWeights(PVPatch *** patches, int nPatches,
+		int nxPatch, int nyPatch, int nfPatch, int arbor_ID) {
+	int sx = nfPatch;
+	int sy = sx * nxPatch;
+	int sp = sy * nyPatch;
 
-   size_t patchSize = sp * sizeof(pvdata_t);
-   size_t dataSize = nPatches * patchSize;
+	size_t patchSize = sp * sizeof(pvdata_t);
+	size_t dataSize = nPatches * patchSize;
 
-   pvdata_t * dataPatches = NULL; // (pvdata_t *) calloc(dataSize, sizeof(char));
+	pvdata_t * dataPatches = NULL; // (pvdata_t *) calloc(dataSize, sizeof(char));
 #ifdef USE_SHMGET
 
-   if (!getShmgetFlag()) {
-      dataPatches = (pvdata_t *) calloc(dataSize, sizeof(char));
-      shmget_flag = false;
-      shmget_owner[arbor_ID] = true;
-   }
-   else {
-      shmget_owner[arbor_ID] = true;
-      // shmget diagnostics
+	if (!shmget_flag) {
+		dataPatches = (pvdata_t *) calloc(dataSize, sizeof(char));
+//      shmget_flag = false;
+//      shmget_owner[arbor_ID] = true;
+	} else {
+		shmget_owner[arbor_ID] = true;
+		// shmget diagnostics
 #define SHMGET_DEBUG
 #ifdef SHMGET_DEBUG
-      int rank_tmp = parent->icCommunicator()->commRank();
-      if (arbor_ID % 100 == 0){
-         std::cout << "rank = " << rank_tmp;
-         std::cout << ", arbor_ID = " << arbor_ID;
-         //std::cout << ", shmget_owner = " << shmget_owner[arbor_ID];
-      }
+		int rank_tmp = parent->icCommunicator()->commRank();
+		if (arbor_ID % 100 == 0) {
+			std::cout << "rank = " << rank_tmp;
+			std::cout << ", arbor_ID = " << arbor_ID;
+		}
 #endif // SHMGET_DEBUG
-      size_t shmget_dataSize = (floor(dataSize / PAGE_SIZE) + 1)* PAGE_SIZE;
-      shmget_flag = true;
-      key_t key;
-      int max_arbors = 8712;
-      key = 11 + this->getConnectionId() * max_arbors  + arbor_ID; //hopefully unique key identifier for all shared memory associated with this connection arbor
-      int shmget_flag2 = (IPC_CREAT | IPC_EXCL | 0666);
-      char *segptr;
+		// dataSize must be a multiple of PAGE_SIZE
+		size_t shmget_dataSize = (floor(dataSize / PAGE_SIZE) + 1) * PAGE_SIZE;
+		key_t key = IPC_PRIVATE;
+		const int max_arbors = 8712;
+		key = 11 + (this->getConnectionId() + 1) * max_arbors + arbor_ID; //hopefully unique key identifier for all shared memory associated with this connection arbor
+		int shmflg = (IPC_CREAT | IPC_EXCL | 0666);
+		char *segptr;
 
-      /* Open the shared memory segment - create if necessary */
-      // dataSize must be a multiple of PAGE_SIZE
-      // note: shm_open may be a better option
-      if ((shmget_id[arbor_ID] = shmget(key, shmget_dataSize, shmget_flag2)) == -1){
-	if (errno != EEXIST){
-            std::cout << std::endl;
-            std::cout << "key = " << key << ", shmget_dataSize = " << shmget_dataSize
-                  << ", shmget_flag2 = " << shmget_flag2 << std::endl;
-	  perror("shmget: unable to create shared memory segment");
-	  exit(1);
-	}
-	/* Segment already exists - try as a client */
-	shmget_owner[arbor_ID] = false;
-	int shmget_flag2 = (IPC_CREAT | 0666);
-	if ((shmget_id[arbor_ID] = shmget(key, shmget_dataSize, shmget_flag2)) == -1){
-	  perror("shmget: unable to obtain id of existing shared memory segment");
-	  exit(1);
-	}
-      }
+		// check for existing segment associated with this key, delete existing segment if present, then insert barrier to ensure
+		// all processes have completed this check before attempting to create new shared memory segment
+		int shmget_existing_ID = shmget(key, shmget_dataSize, 0666);
+		if (shmget_existing_ID != -1){
+			shmid_ds * shmget_ds = NULL;
+			int shmget_status = shmctl(shmget_existing_ID, IPC_RMID,
+					shmget_ds);
+			assert(shmget_status==0);
+		}
+#ifdef PV_USE_MPI
+         MPI_Barrier(getParent()->icCommunicator()->communicator());
+#endif // PV_USE_MPI
+
+
+ 		/* Open the shared memory segment - create if necessary */
+		if ((shmget_id[arbor_ID] = shmget(key, shmget_dataSize, shmflg))
+				== -1) {
+			if (errno != EEXIST) {
+				std::cout << std::endl;
+				std::cout << "key = " << key << ", shmget_dataSize = "
+						<< shmget_dataSize << ", shmflg = "
+						<< shmflg << std::endl;
+				perror("shmget: unable to create shared memory segment");
+				exit(1);
+			}
+			/* Segment already exists - try as a client */
+			shmget_owner[arbor_ID] = false;
+			int shmget_flag2 = (IPC_CREAT | 0666);
+			if ((shmget_id[arbor_ID] = shmget(key, shmget_dataSize,
+					shmget_flag2)) == -1) {
+				perror(
+						"shmget: unable to obtain id of existing shared memory segment");
+				exit(1);
+			}
+		}
 #ifdef SHMGET_DEBUG
-      if (arbor_ID % 100 == 0){
-         std::cout << ", shmget_owner = " << shmget_owner[arbor_ID] << std::endl;
-      }
+		if (arbor_ID % 100 == 0) {
+			std::cout << ", shmget_owner = " << shmget_owner[arbor_ID]
+					<< std::endl;
+		}
 #endif // SHMGET_DEBUG
-
-      /* Attach (map) the shared memory segment into the current process */
-      if ((segptr = (char *) shmat(shmget_id[arbor_ID], 0, 0)) == (char *) -1) {
-         perror("shmat: unable to map shared memory segment");
-         exit(1);
-      }
-      dataPatches = (pvdata_t *) segptr;
-   }
+		/* Attach (map) the shared memory segment into the current process */
+		if ((segptr = (char *) shmat(shmget_id[arbor_ID], 0, 0))
+				== (char *) -1) {
+			perror("shmat: unable to map shared memory segment");
+			exit(1);
+		}
+		dataPatches = (pvdata_t *) segptr;
+	}
 #else
-   dataPatches = (pvdata_t *) calloc(dataSize, sizeof(char));
+	dataPatches = (pvdata_t *) calloc(dataSize, sizeof(char));
 #endif // USE_SHMGET
+	assert(dataPatches != NULL);
 
-   assert(dataPatches != NULL);
-
-   return dataPatches;
+	return dataPatches;
 }
 
 
@@ -227,13 +244,13 @@ int KernelConn::deleteWeights()
 
 }
 
-PVPatch ***  KernelConn::initializeWeights(PVPatch *** arbors, pvdata_t ** dataStart, int numPatches,
+PVPatch ***  KernelConn::initializeWeights(PVPatch *** patches, pvdata_t ** dataStart, int numPatches,
       const char * filename)
 {
    //int arbor = 0;
    int numKernelPatches = getNumDataPatches();
    HyPerConn::initializeWeights(NULL, dataStart, numKernelPatches, filename);
-   return arbors;
+   return patches;
 }
 
 //PVPatch ** KernelConn::readWeights(PVPatch ** patches, int numPatches,
