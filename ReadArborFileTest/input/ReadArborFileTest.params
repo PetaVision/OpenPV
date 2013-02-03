@@ -114,6 +114,7 @@ KernelConn "all arbors at once" = {
 
     writeCompressedWeights = false;
     plasticityFlag = false;
+    shmget_flag = 1;
 
     delay = 0;
 
@@ -141,6 +142,7 @@ KernelConn "arbors split into files" = {
 
     writeCompressedWeights = false;
     plasticityFlag = false;
+    shmget_flag = 1;
 
     delay = 0;
 

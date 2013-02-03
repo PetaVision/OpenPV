@@ -224,6 +224,7 @@ KernelConn "input to output" = {
 
     writeCompressedWeights = 0.0;
     plasticityFlag = false;
+    shmget_flag = 1;
     selfFlag = false;
 
     delay = 0;
@@ -251,6 +252,7 @@ KernelConn "input to output1x1" = {
 
     writeCompressedWeights = 0.0;
     plasticityFlag = false;
+    shmget_flag = 1;
     selfFlag = false;
 
     delay = 0;
@@ -278,6 +280,7 @@ KernelConn "input to output3x3" = {
 
     writeCompressedWeights = 0.0;
     plasticityFlag = false;
+    shmget_flag = 1;
     selfFlag = false;
 
     delay = 0;
@@ -305,6 +308,7 @@ KernelConn "input to output5x5" = {
 
     writeCompressedWeights = 0.0;
     plasticityFlag = false;
+    shmget_flag = 1;
     selfFlag = false;
 
     delay = 0;
@@ -332,6 +336,7 @@ KernelConn "input to output7x7" = {
 
     writeCompressedWeights = 0.0;
     plasticityFlag = false;
+    shmget_flag = 1;
     selfFlag = false;
 
     delay = 0;

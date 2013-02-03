@@ -190,6 +190,7 @@ KernelConn "Retina to L0" = {
 
     writeCompressedWeights = 0.0;
     plasticityFlag = 0;
+    shmget_flag = 1;
 
     delay = 0;
 
@@ -227,6 +228,7 @@ KernelConn "L0 to Lx1" = {
 
     writeCompressedWeights = 0.0;
     plasticityFlag = 0;
+    shmget_flag = 1;
 
     delay = 0;     
 
@@ -268,6 +270,7 @@ KernelConn "L0 to Lx2" = {
 
     writeCompressedWeights = 0.0;
     plasticityFlag = 0;
+    shmget_flag = 1;
 
     delay = 0;     
 
@@ -309,6 +312,7 @@ KernelConn "L0 to Lx4" = {
 
     writeCompressedWeights = 0.0;
     plasticityFlag = 0;
+    shmget_flag = 1;
 
     delay = 0;     
 
@@ -350,6 +354,7 @@ KernelConn "L0 to Lx1_2" = {
 
     writeCompressedWeights = 0.0;
     plasticityFlag = 0;
+    shmget_flag = 1;
 
     delay = 0;     
 
@@ -391,6 +396,7 @@ KernelConn "L0 to Lx1_4" = {
 
     writeCompressedWeights = 0.0;
     plasticityFlag = 0;
+    shmget_flag = 1;
 
     delay = 0;     
 

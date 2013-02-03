@@ -179,6 +179,7 @@ KernelConn "L0 to Lx1" = {
     wMin = 0;
     writeCompressedWeights = 0.0;
     plasticityFlag = 0;
+    shmget_flag = 1;
     weightUpdatePeriod = -1.0;
 
     delay = 0;     
@@ -222,6 +223,7 @@ KernelConn "L0 to Lx2" = {
     wMin = 0;
     writeCompressedWeights = 0.0;
     plasticityFlag = 0;
+    shmget_flag = 1;
     weightUpdatePeriod = -1.0;
 
     delay = 0;     
@@ -265,6 +267,7 @@ KernelConn "L0 to Lx4" = {
     wMin = 0;
     writeCompressedWeights = 0.0;
     plasticityFlag = 0;
+    shmget_flag = 1;
     weightUpdatePeriod = -1.0;
 
     delay = 0;     
@@ -308,6 +311,7 @@ KernelConn "L0 to Lx1_2" = {
     wMin = 0;
     writeCompressedWeights = 0.0;
     plasticityFlag = 0;
+    shmget_flag = 1;
     weightUpdatePeriod = -1.0;
 
     delay = 0;     
@@ -351,6 +355,7 @@ KernelConn "L0 to Lx1_4" = {
     wMin = 0;
     writeCompressedWeights = 0.0;
     plasticityFlag = 0;
+    shmget_flag = 1;
     weightUpdatePeriod = -1.0;
 
     delay = 0;     

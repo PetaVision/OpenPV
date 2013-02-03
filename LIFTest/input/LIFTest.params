@@ -261,6 +261,7 @@ KernelConn "input to scaled input" = {
       
     normalize = false;
     plasticityFlag = false;
+    shmget_flag = true;
     stochasticReleaseFlag = false;
     writeCompressedWeights = true;
     writeCompressedCheckpoints = true;
@@ -297,6 +298,7 @@ KernelConn "retina to LIFTest" = {
       
     normalize = false;
     plasticityFlag = false;
+    shmget_flag = true;
     stochasticReleaseFlag = false;
     writeCompressedWeights = true;
     writeCompressedCheckpoints = true;
@@ -336,6 +338,7 @@ GapConn "GapTest to LIFGapTest" = {
     
     symmetrizeWeights = false;
     plasticityFlag = false;
+    shmget_flag = true;
     stochasticReleaseFlag = false;
     selfFlag = false;
     shrinkPatches = false;
