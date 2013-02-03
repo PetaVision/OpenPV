@@ -646,9 +646,9 @@ PVPatch *** HyPerConn::initializeWeights(PVPatch *** patches, pvdata_t ** dataSt
    // might be responsible
 #ifdef USE_SHMGET
 #ifdef PV_USE_MPI
-   std::cout << "starting MPI_Barrier in HyPerConn::initializeWeights: " << this->name << ", rank = " << getParent()->icCommunicator()->commRank() << std::endl;
+   //std::cout << "starting MPI_Barrier in HyPerConn::initializeWeights: " << this->name << ", rank = " << getParent()->icCommunicator()->commRank() << std::endl;
    MPI_Barrier(getParent()->icCommunicator()->communicator());
-   std::cout << "leaving MPI_Barrier in HyPerConn::initializeWeights: " << this->name << ", rank = " << getParent()->icCommunicator()->commRank() << std::endl;
+   //std::cout << "leaving MPI_Barrier in HyPerConn::initializeWeights: " << this->name << ", rank = " << getParent()->icCommunicator()->commRank() << std::endl;
 #endif // PV_USE_MPI
 #endif // USE_SHMGET
    initNormalize(); // Sets normalize_flag; derived-class methods that override initNormalize must also set normalize_flag
@@ -2482,9 +2482,9 @@ int HyPerConn::normalizeWeights(PVPatch ** patches, pvdata_t ** dataStart, int n
          // process begins writing to shared memory
 #ifdef USE_SHMGET
 #ifdef PV_USE_MPI
-         std::cout << "starting MPI_Barrier in HyPerConn::normalizeWeights: " << this->name << ", rank = " << getParent()->icCommunicator()->commRank() << std::endl;
+         //std::cout << "starting MPI_Barrier in HyPerConn::normalizeWeights: " << this->name << ", rank = " << getParent()->icCommunicator()->commRank() << std::endl;
          MPI_Barrier(getParent()->icCommunicator()->communicator());
-         std::cout << "leaving MPI_Barrier in HyPerConn::normalizeWeights: " << this->name << ", rank = " << getParent()->icCommunicator()->commRank() << std::endl;
+         //std::cout << "leaving MPI_Barrier in HyPerConn::normalizeWeights: " << this->name << ", rank = " << getParent()->icCommunicator()->commRank() << std::endl;
 #endif // PV_USE_MPI
 #endif // USE_SHMGET
          for(int kArbor = 0; kArbor < this->numberOfAxonalArborLists(); kArbor++){
@@ -2500,9 +2500,9 @@ int HyPerConn::normalizeWeights(PVPatch ** patches, pvdata_t ** dataStart, int n
       // normalization
 #ifdef USE_SHMGET
 #ifdef PV_USE_MPI
-      std::cout << "starting MPI_Barrier in HyPerConn::normalizeWeights: " << this->name << ", rank = " << getParent()->icCommunicator()->commRank() << std::endl;
+      //std::cout << "starting MPI_Barrier in HyPerConn::normalizeWeights: " << this->name << ", rank = " << getParent()->icCommunicator()->commRank() << std::endl;
       MPI_Barrier(getParent()->icCommunicator()->communicator());
-      std::cout << "leaving MPI_Barrier in HyPerConn::normalizeWeights: " << this->name << ", rank = " << getParent()->icCommunicator()->commRank() << std::endl;
+      //std::cout << "leaving MPI_Barrier in HyPerConn::normalizeWeights: " << this->name << ", rank = " << getParent()->icCommunicator()->commRank() << std::endl;
 #endif // PV_USE_MPI
 #endif // USE_SHMGET
       status = checkNormalizeArbor(patches, dataStart, numPatches, arborId);
