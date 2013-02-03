@@ -202,6 +202,8 @@ KernelConn "Retina to L0" = {
     // no = 4;
     
     selfFlag = false;
+    shmget_flag = true;
+    
     // combine_dW_with_W_flag = false;
       
     strength = 4.0;  // 1.0 x post->num_neurons / pre->num_neurons
@@ -256,6 +258,7 @@ KernelConn "L0 to Lx1" = {
     // no = 4;
       
     selfFlag = false;
+    shmget_flag = true;
     // combine_dW_with_W_flag = false;
 
     strength = 1; //0.25; //was 1, now 1/4 // 1.0 x post->num_neurons / pre->num_neurons
@@ -308,6 +311,7 @@ KernelConn "L0 to Lx2" = {
     // no = 8;
       
     selfFlag = false;
+    shmget_flag = true;
     // combine_dW_with_W_flag = false;
       
     strength = 8; //2.0; //was 8, now 2 // 1.0 x post->num_neurons / pre->num_neurons
@@ -360,6 +364,7 @@ KernelConn "L0 to Lx4" = {
     // no = 16;
       
     selfFlag = false;
+    shmget_flag = true;
     // combine_dW_with_W_flag = false;
       
     strength = 64; //16.0; //was 64.0, now 64/4 // 1.0 x post->num_neurons / pre->num_neurons
@@ -412,6 +417,7 @@ KernelConn "L0 to Lx1_2" = {
     // no = 2;
       
     selfFlag = false;
+    shmget_flag = true;
     // combine_dW_with_W_flag = false;
       
     strength = 0.125; //0.03125; //was 0.125, now 0.125/4 1.0 x post->num_neurons / pre->num_neurons
@@ -464,6 +470,7 @@ KernelConn "L0 to Lx1_4" = {
     // no = 1;
       
     selfFlag = false;
+    shmget_flag = true;
     // combine_dW_with_W_flag = false;
       
     strength = 0.015625; // 1.0 x post->num_neurons / pre->num_neurons

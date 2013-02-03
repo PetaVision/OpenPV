@@ -149,7 +149,9 @@ VaryingKernelConn "conn no delay" = {
     symmetrizeWeights = false;
 
     writeCompressedWeights = false;
-    // plasticityFlag = true;
+    plasticityFlag = true;
+    selfFlag = false;
+    shmget_flag = false;
     weightUpdatePeriod = 1;
 
     delay = 0;
@@ -186,7 +188,9 @@ VaryingKernelConn "conn with delay" = {
     symmetrizeWeights = false;
 
     writeCompressedWeights = false;
-    // plasticityFlag = true;
+    plasticityFlag = true;
+    selfFlag = false;
+    shmget_flag = false;
     weightUpdatePeriod = 1;
 
     delay = 2;
@@ -222,7 +226,9 @@ KernelConn "input to output arbor" = {
     shrinkPatches = false;
 
     writeCompressedWeights = false;
-    plasticityFlag = 0;
+    plasticityFlag = false;
+    selfFlag = false;
+    shmget_flag = true;
 
     delay = 0;     
 };
@@ -246,6 +252,9 @@ VaryingHyPerConn "full hyperconn" = {
     shrinkPatches = false;
 
     writeCompressedWeights = false;
+    plasticityFlag = false;
+    selfFlag = false;
+    shmget_flag = false;
 
     delay = 0;     
 };

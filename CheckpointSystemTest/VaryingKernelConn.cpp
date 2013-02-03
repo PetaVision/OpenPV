@@ -46,12 +46,15 @@ int VaryingKernelConn::calc_dW(int axonId) {
 
 int VaryingKernelConn::setParams(PVParams * inputParams /*, PVConnParams * p*/)
 {
+	KernelConn::setParams(inputParams);
    const char * name = getName();
 
    numAxonalArborLists=(int) inputParams->value(name, "numAxonalArbors", 1, true);
    plasticityFlag = true;
+   shmget_flag = false;
    stochasticReleaseFlag = inputParams->value(name, "stochasticReleaseFlag", false, true) != 0;
-
+   combine_dW_with_W_flag = inputParams->value(name, "combine_dW_with_W_flag", combine_dW_with_W_flag, true) != 0;
+   dWMax            = inputParams->value(getName(), "dWMax", dWMax, true);
    writeCompressedWeights = inputParams->value(name, "writeCompressedWeights", true);
 
    return 0;
