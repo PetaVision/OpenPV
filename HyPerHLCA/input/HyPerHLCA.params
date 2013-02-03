@@ -63,7 +63,7 @@ Retina "Retina" = {
     nyScale = 1;
     nf = 1;
     marginWidth = 3;
-    writeStep = -1.0;
+    writeStep = 1.0;
     mirrorBCflag = 1;
     spikingFlag = 0;
     writeSparseActivity = 0;
@@ -84,7 +84,7 @@ ANNLayer "Ganglion" = {
     nyScale = 1;
     nf = 1;
     marginWidth = 8;
-    writeStep = -1.0;
+    writeStep = 1.0;
     mirrorBCflag = 1;
     writeSparseActivity = 0;
 
@@ -106,7 +106,7 @@ ANNLayer "Error" = {
     nyScale = 1;
     nf = 1;
     marginWidth = 8;
-    writeStep = -1;
+    writeStep = 1;
     mirrorBCflag = 1;
     writeSparseActivity = 0;
 
@@ -128,7 +128,7 @@ HyPerLCALayer "V1" = {
     nyScale = 0.25;
     nf = 1024;
     marginWidth = 1;
-    writeStep = -1;
+    writeStep = 1;
     mirrorBCflag = 1;
     writeSparseActivity = 0;
 
@@ -154,7 +154,7 @@ ANNLayer "Reconstruction" = {
     nyScale = 1;
     nf = 1;
     marginWidth = 0;
-    writeStep = -1;
+    writeStep = 1;
     mirrorBCflag = 1;
     writeSparseActivity = 0;
 
@@ -358,3 +358,11 @@ TransposeConn "V1ToReconstruction" = {
     
     stochasticReleaseFlag = false;
 };
+
+
+StatsProbe "L1StatsFile" = {
+    targetLayer = "L1";
+    probeOutputFile = "L1_Stats.txt";
+};
+
+
