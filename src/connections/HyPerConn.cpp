@@ -1535,9 +1535,9 @@ int HyPerConn::deleteWeights()
       }
 */
       if (!this->combine_dW_with_W_flag) {
-         if (dwDataStart != NULL) {
-            free(this->dwDataStart[arbor]);
-            this->dwDataStart[arbor] = NULL;
+         if (dwDataStart != NULL && dwDataStart[arbor] != NULL) {
+            free(dwDataStart[arbor]);
+            dwDataStart[arbor] = NULL;
          }
       }
    }

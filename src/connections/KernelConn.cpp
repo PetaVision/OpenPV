@@ -69,7 +69,25 @@ int KernelConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
       symmetrizeWeightsFlag = params->value(name, "symmetrizeWeights",0);
    }
 #ifdef USE_SHMGET
-   shmget_flag = params->value(name, "shmget_flag", shmget_flag, true);
+	bool plasticity_flag = params->value(name, "plasticityFlag", plasticityFlag,
+			true) != 0;
+	shmget_flag = params->value(name, "shmget_flag", shmget_flag, true);
+//#ifdef PV_USE_MPI
+//	if (parent->icCommunicator() != NULL
+//			&& parent->icCommunicator()->numCommColumns()
+//					* parent->icCommunicator()->numCommRows() > 1
+//			&& shmget_flag) {
+//		std::cout << "warning: in KernelConn::initialize: " << this->name
+//				<< ", shmget_flag parameter specified as true but only 1 process"
+//				<< std::endl;
+//	}
+//#endif
+	if (plasticity_flag && shmget_flag) {
+		shmget_flag = false;
+		std::cout << "in KernelConn::initialize: " << this->name
+				<< ", shmget_flag parameter specified as true, reset to false because plasticity_flag is true"
+				<< std::endl;
+	}
 #endif
    HyPerConn::initialize(name, hc, pre, post, filename, weightInit);
    initializeUpdateTime(params); // sets weightUpdatePeriod and initial value of weightUpdateTime

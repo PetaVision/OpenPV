@@ -336,7 +336,6 @@ private:
    PVPatchStrides postNonextStrides; // sx,sy,sf for a patch mapping into a non-extended post-synaptic layer
    float** wDataStart; //now that data for all patches are allocated to one continuous block of memory, this pointer saves the starting address of that array
    float** dwDataStart; //now that data for all patches are allocated to one continuous block of memory, this pointer saves the starting address of that array
-   bool combine_dW_with_W_flag; // indicates that dwDataStart should be set equal to wDataStart, useful for saving memory when weights are not being learned but not used
    int defaultDelay; //added to save params file defined delay...
    const float* fDelayArray;
 
@@ -370,6 +369,7 @@ protected:
    int fileType; // type ID for file written by PV::writeWeights
    Timer* update_timer;
    bool plasticityFlag;
+   bool combine_dW_with_W_flag; // indicates that dwDataStart should be set equal to wDataStart, useful for saving memory when weights are not being learned but not used
    bool selfFlag; // indicates that connection is from a layer to itself (even though pre and post may be separately instantiated)
    bool normalize_flag;
    float normalize_strength;
