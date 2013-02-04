@@ -198,8 +198,9 @@ pvdata_t * KernelConn::allocWeights(PVPatch *** patches, int nPatches,
 		int shmget_existing_ID = shmget(key, shmget_dataSize, 0666);
 		if (shmget_existing_ID != -1){
 			shmid_ds * shmget_ds = NULL;
-			int shmget_status = shmctl(shmget_existing_ID, IPC_RMID,
+			int shmctl_status = shmctl(shmget_existing_ID, IPC_RMID,
 					shmget_ds);
+			std::cout << "shmctl_status = " << shmctl_status << std::endl;
 			//			assert(shmget_status==0);
 		}
 #ifdef PV_USE_MPI

@@ -48,10 +48,6 @@ int SiblingConn::normalizeFamily() {
 	// normalize all arbors individuqlly relative to siblings
 	// insert MPI_Barrier before callng SiblingConn::normalizeFamily to ensure all processors have finished self normalization
 	const int num_kernels = getNumDataPatches();
-	const int nx = nxp; // use unshrunken patches to normalize kernels
-	const int ny = nyp; //
-	const int nf = nfp;
-	const int sy = syp;
 
 	// first scale each weight by sum of the absolute values of the local weight plus the sibling weight
 	// if using shared memory (shmget) then the
