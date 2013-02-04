@@ -183,7 +183,7 @@ pvdata_t * KernelConn::allocWeights(PVPatch *** patches, int nPatches,
 #define SHMGET_DEBUG
 #ifdef SHMGET_DEBUG
 		int rank_tmp = parent->icCommunicator()->commRank();
-		if (arbor_ID % 100 == 0) {
+		if (arbor_ID == 0 || arbor_ID == this->numberOfAxonalArborLists()) {
 			std::cout << "rank = " << rank_tmp;
 			std::cout << ", arbor_ID = " << arbor_ID;
 		}
