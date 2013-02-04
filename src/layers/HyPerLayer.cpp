@@ -978,7 +978,10 @@ int HyPerLayer::recvAllSynapticInput() {
          int delay = conn->getDelay(arbor);
          cube.data = (pvdata_t *) store->buffer(LOCAL, delay);
          status = recvSynapticInput(conn, &cube, arbor);
-         assert(status == PV_SUCCESS);
+         assert(status == PV_SUCCESS || status == PV_BREAK);
+         if (status == PV_BREAK){
+        	 break;
+         }
       }
    }
    return status;
