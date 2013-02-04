@@ -88,8 +88,8 @@ Retina "Retina" = {
     writeSparseActivity = 0;
     spikingFlag = 0;
 
-    poissonEdgeProb = 1;
-    poissonBlankProb = 0;
+    foregroundRate = 1000;
+    backgroundRate = 0;
     burstFreq = 1;   // in Hz
     burstDuration = 1000;  // in msec, set to 1/burstFreq for always on 
     

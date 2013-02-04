@@ -1,7 +1,9 @@
-x//
+//
 // clique_template.params
 //  - template input parameters for learning Cat 3way clique kernels 
 //
+
+debugParsing = true;
 
 HyPerCol "column" = {
    nx = 1920;   // until we get going with images
@@ -20,6 +22,7 @@ HyPerCol "column" = {
    $$$_printParamsFilename_$$$
    writeProgressToErr = true;
    filenamesContainConnectionNames = false;
+   suppressLastOutput = false;
 };
 
 //
@@ -34,9 +37,8 @@ Movie "Image" = {
     nf = 1;
     marginWidth = 0;
     writeStep = 0;
-    mirrorBCflag = 0;
-    spikingFlag = 0;
-    writeNonspikingActivity = 0;
+    mirrorBCflag = -1;
+    writeSparseActivity = 0;
     writeImages = 0;
     displayPeriod = 1;
     $$$_image_start_frame_index_$$$
@@ -59,10 +61,9 @@ Movie "Mask" = {
     nyScale = 1;
     nf = 1;
     marginWidth = 0;
-    writeStep = 0;
+    writeStep = -1;
     mirrorBCflag = 0;
-    spikingFlag = 0;
-    writeNonspikingActivity = 0;
+    writeSparseActivity = 0;
     writeImages = 0;
     displayPeriod = 1;
     $$$_mask_start_frame_index_$$$
@@ -87,10 +88,10 @@ Retina "Retina" = {
     writeStep = -1.0;
     mirrorBCflag = 1;
     spikingFlag = 0;
-    writeNonspikingActivity = 0;
+    writeSparseActivity = 0;
 
-    poissonEdgeProb = 1;
-    poissonBlankProb = 0;
+    foregroundRate = 1000;
+    backgroundRate = 0;
     burstFreq = 1;   // in Hz
     burstDuration = 1000;  // in msec, set to 1/burstFreq for always on 
     
@@ -109,8 +110,7 @@ ANNLayer "L1" = {
     marginWidth = 0;
     writeStep = -1.0;
     mirrorBCflag = 1;
-    spikingFlag = 0;
-    writeNonspikingActivity = 0;
+    writeSparseActivity = 0;
 
     VThresh = 0.5;
     VMax = 1.0;
@@ -128,8 +128,7 @@ ANNLayer "L1Pool1X1" = {
     marginWidth = 16;
     writeStep = -1.0;
     mirrorBCflag = 1;
-    spikingFlag = 0;
-    writeNonspikingActivity = 0;
+    writeSparseActivity = 0;
 
     VThresh = 0.5;
     VMax = 1.0;
@@ -151,8 +150,7 @@ CliqueLayer "L1Clique" = {
     marginWidth = 16;
     writeStep = -1.0;
     mirrorBCflag = 1;
-    spikingFlag = 0;
-    writeNonspikingActivity = 0;
+    writeSparseActivity = 0;
 
     VThresh = 0.5;
     VMax = 1.0;
@@ -170,14 +168,13 @@ CliqueLayer "L1Clique" = {
 // downsample edges
 ANNLayer "L2Pool2X2" = {
     restart = 0;
-    nxScale = 0.5;
-    nyScale = 0.5;
+    nxScale = 1.0;
+    nyScale = 1.0;
     nf = 8;
     marginWidth = 16;
     writeStep = -1.0;
     mirrorBCflag = 1;
-    spikingFlag = 0;
-    writeNonspikingActivity = 0;
+    writeSparseActivity = 0;
 
     VThresh = 0.5;
     VMax = 1.0;
@@ -191,16 +188,15 @@ ANNLayer "L2Pool2X2" = {
 
 
 // masked edges
-CliqueLayer "L2Clique" = {
+CliqueLayer "L2Post" = {
     restart = 0;
-    nxScale = 0.5;
-    nyScale = 0.5;
+    nxScale = 1.0;
+    nyScale = 1.0;
     nf = 8;
     marginWidth = 16;
     writeStep = -1.0;
     mirrorBCflag = 1;
-    spikingFlag = 0;
-    writeNonspikingActivity = 0;
+    writeSparseActivity = 0;
 
     VThresh = 0.5;
     VMax = 1.0;
@@ -336,98 +332,20 @@ KernelConn "RetinaToL1Inh" = {
 
 
 // downsample/pooling 
-KernelConn "L1ToL1Pool1X1" = {
-   preLayerName = "L1";
-   postLayerName = "L1Pool1X1";
-   channelCode = 0;
-   nxp = 1; 
-   nyp = 1; 
-   nfp = 8;
-   numAxonalArbors = 1;
-   initFromLastFlag = 0;  // 1;  // restart
-   writeStep = -1;
-   
-   weightInitType = "Gauss2DWeight";
-   aspect = 1.1;
-   sigma = 1;
-   rMax  = 1;
-   rMin = 0;
-   deltaThetaMax = 0.19635; // 3.14 / 16
-   thetaMax = 1;
-   bowtieFlag = 0;
-   numFlanks = 1;
-   flankShift = 0;
-   rotate = 1;
-       
-   strength = 1.0; 
-   normalize = 1.0;
-   normalize_zero_offset = 0.0;
-   normalize_max = 0.0;
-   normalize_cutoff = 0;
-   symmetrizeWeights = 0;
+IdentConn "L1ToL1Pool1X1" = {
+    preLayerName = "L1";
+    postLayerName = "L1Pool1X1";
+    channelCode = 0;
+    writeStep = -1;
+    initFromLastFlag = 0;
+    weightInitType = "IdentWeight";
 
-   shrinkPatches = false;
-   writeCompressedWeights = 0.0;
-   plasticityFlag = 0;
-   stochasticReleaseFlag = false;
-    
-   delay = 0;
-    
-   preActivityIsNotRate = false;
-   selfFlag = false;
-   normalizeTotalToPost = false;
-};
-
-
-
-// downsample/pooling 
-KernelConn "L1ToL1Pool1X1" = {
-   preLayerName = "L1";
-   postLayerName = "L1Pool1X1";
-   channelCode = 0;
-   nxp = 1; 
-   nyp = 1; 
-   nfp = 8;
-   numAxonalArbors = 1;
-   initFromLastFlag = 0;  // 1;  // restart
-   writeStep = -1;
-   
-   weightInitType = "Gauss2DWeight";
-   aspect = 1.1;
-   sigma = 1;
-   rMax  = 1;
-   rMin = 0;
-   deltaThetaMax = 0.19635; // 3.14 / 16
-   thetaMax = 1;
-   bowtieFlag = 0;
-   numFlanks = 1;
-   flankShift = 0;
-   rotate = 1;
-       
-   strength = 1.0; 
-   normalize = 1.0;
-   normalize_zero_offset = 0.0;
-   normalize_max = 0.0;
-   normalize_cutoff = 0;
-   symmetrizeWeights = 0;
-
-   shrinkPatches = false;
-   writeCompressedWeights = 0.0;
-   plasticityFlag = 0;
-   stochasticReleaseFlag = false;
-    
-   delay = 0;
-    
-   preActivityIsNotRate = false;
-   selfFlag = false;
-   normalizeTotalToPost = false;
+    delay = 0;
 };
 
 
 
 // Clique connections
-
-
 
 // L1 Clique
 
@@ -476,7 +394,7 @@ SiblingConn "L1Pool1X1toL1CliqueTarget" = {
    plasticityFlag = 0;
    //combine_dW_with_W_flag = false;
    selfFlag = true;
-   shmget_flag = false;
+   shmget_flag = true;
    stochasticReleaseFlag = false;
 
    delay = 0; 
@@ -527,48 +445,16 @@ SiblingConn "L1Pool1X1toL1CliqueDistractor" = {
 
 
 
-
 // downsample/pooling 
-KernelConn "L1CliqueToL2Pool2X2" = {
-   preLayerName = "L1Clique";
-   postLayerName = "L2Pool2X2";
-   channelCode = 0;
-   nxp = 1; 
-   nyp = 1; 
-   nfp = 8;
-   numAxonalArbors = 1;
-   initFromLastFlag = 0;  // 1;  // restart
-   writeStep = -1;
-   
-   weightInitType = "Gauss2DWeight";
-   aspect = 1.1;
-   sigma = 1;
-   rMax  = 1;
-   rMin = 0;
-   deltaThetaMax = 0.19635; // 3.14 / 16
-   thetaMax = 1;
-   bowtieFlag = 0;
-   numFlanks = 1;
-   flankShift = 0;
-   rotate = 1;
-       
-   strength = 1.0; 
-   normalize = 1.0;
-   normalize_zero_offset = 0.0;
-   normalize_max = 0.0;
-   normalize_cutoff = 0;
-   symmetrizeWeights = 0;
+IdentConn "L1CliqueToL2Pool2X2" = {
+    preLayerName = "L1Clique";
+    postLayerName = "L2Pool2X2";
+    channelCode = 0;
+    writeStep = -1;
+    initFromLastFlag = 0;
+    weightInitType = "IdentWeight";
 
-   shrinkPatches = false;
-   writeCompressedWeights = 0.0;
-   plasticityFlag = 0;
-   stochasticReleaseFlag = false;
-    
-   delay = 0;
-    
-   preActivityIsNotRate = false;
-   selfFlag = false;
-   normalizeTotalToPost = false;
+    delay = 0;
 };
 
 
@@ -639,11 +525,10 @@ CliqueConn "L2Pool2X2toL2Post" = {
    weightInitType = "FileWeight";  
    combineWeightFiles = true; //false; // 
    $$$_numWeightFilesTarget_$$$
-   $$$_initWeightsFileL1Pool1X1toL1PostTarget_$$$ 
+   $$$_initWeightsFileL2Pool2X2toL2PostTarget_$$$ 
    useListOfArborFiles = false;
 
    normalize = 0.0;
-   symmetrizeWeights = 0;
    
    plasticityFlag = true;
    keepKernelsSynchronized = false; // true; 
@@ -656,53 +541,13 @@ CliqueConn "L2Pool2X2toL2Post" = {
    delay = 1;    
     
    preActivityIsNotRate = false;
-   selfFlag = false;
+   selfFlag = true;
+   shmget_flag = false;
    initialWeightUpdateTime = 0.0;
 };
 
-//CliqueConn "L1Pool1X1toL1Post" = {
-//   preLayerName = "L1Pool1X1";
-//   postLayerName = "L1Post";
-//   channelCode = 2;
-//   nxp = 33;
-//   nyp = 33;
-//   nfp = 8;
-//   numAxonalArbors = 8712; //484; // pow(cliquePatchSize, cliqueSize-1),
-//   cliqueSize = 2;
-//   initFromLastFlag = 0;  // 1;  // restart
-//   keepKernelsSynchronized = false; // true; 
-//   combine_dW_with_W_flag = true; //false; // 
-//   selfFlag = true;
-//   writeStep = -1;
-//
-//   weightInitType = "UniformWeight";
-//   weightInit = 0;
-//   
-//   normalize = 0.0;
-//   symmetrizeWeights = 0;
-//   
-//   plasticityFlag = 1;
-//   shrinkPatches = false;
-//   writeCompressedWeights = 0.0;
-//   stochasticReleaseFlag = false;
-//   weightUpdatePeriod = 1.0;
-//
-//   delay = 1; 
-//};
 
 
-
-//StatsProbe "Retina Stats" = {
-//    targetLayer = "Retina";
-//};
-//
-//StatsProbe "L1Stats" = {
-//    targetLayer = "L1";
-//};
-//
-//StatsProbe "L1PostStats" = {
-//    targetLayer = "L1Post";
-//};
 
 
 StatsProbe "RetinaStatsFile" = {
@@ -720,11 +565,19 @@ StatsProbe "L1Pool1X1StatsFile" = {
     probeOutputFile = "L1Pool1X1_Stats.txt";
 };
 
-StatsProbe "L1PostStatsFile" = {
-    targetLayer = "L1Post";
-    probeOutputFile = "L1Post_Stats.txt";
+StatsProbe "L1CliqueStatsFile" = {
+    targetLayer = "L1Clique";
+    probeOutputFile = "L1Clique_Stats.txt";
+};
+
+StatsProbe "L2Pool2X2StatsFile" = {
+    targetLayer = "L2Pool2X2";
+    probeOutputFile = "L2Pool2X2_Stats.txt";
 };
 
 
-
+StatsProbe "L2PostStatsFile" = {
+    targetLayer = "L2Post";
+    probeOutputFile = "L2Post_Stats.txt";
+};
 
