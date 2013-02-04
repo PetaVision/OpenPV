@@ -175,16 +175,13 @@ pvdata_t * KernelConn::allocWeights(PVPatch *** patches, int nPatches,
 
 	if (!shmget_flag) {
 		dataPatches = (pvdata_t *) calloc(dataSize, sizeof(char));
-//      shmget_flag = false;
-//      shmget_owner[arbor_ID] = true;
 	} else {
 		shmget_owner[arbor_ID] = true;
 		// shmget diagnostics
 #define SHMGET_DEBUG
 #ifdef SHMGET_DEBUG
-		int rank_tmp = parent->icCommunicator()->commRank();
-		if (arbor_ID == 0 || arbor_ID == this->numberOfAxonalArborLists()) {
-			std::cout << "rank = " << rank_tmp;
+		if (arbor_ID == 0 || arbor_ID == (this->numberOfAxonalArborLists()-1)) {
+			std::cout << "rank = " << parent->icCommunicator()->commRank();
 			std::cout << ", arbor_ID = " << arbor_ID;
 		}
 #endif // SHMGET_DEBUG
@@ -232,7 +229,7 @@ pvdata_t * KernelConn::allocWeights(PVPatch *** patches, int nPatches,
 			}
 		}
 #ifdef SHMGET_DEBUG
-		if (arbor_ID % 100 == 0) {
+		if (arbor_ID == 0 || arbor_ID == (this->numberOfAxonalArborLists()-1)) {
 			std::cout << ", shmget_owner = " << shmget_owner[arbor_ID]
 					<< std::endl;
 		}
