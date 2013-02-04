@@ -203,7 +203,7 @@ pvdata_t * KernelConn::allocWeights(PVPatch *** patches, int nPatches,
 			shmid_ds * shmget_ds = NULL;
 			int shmget_status = shmctl(shmget_existing_ID, IPC_RMID,
 					shmget_ds);
-			assert(shmget_status==0);
+			//			assert(shmget_status==0);
 		}
 #ifdef PV_USE_MPI
          MPI_Barrier(getParent()->icCommunicator()->communicator());
