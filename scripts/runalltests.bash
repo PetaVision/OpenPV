@@ -150,6 +150,13 @@ runandecho $testname Debug/$testname $arglist
 mpirunandecho $testname Debug/$testname $arglist
 cd $wd
 
+testname=LayerPhaseTest
+arglist="-p input/LayerPhaseTest.params"
+cd "$testname"
+runandecho $testname Debug/$testname $arglist
+mpirunandecho $testname Debug/$testname $arglist
+cd $wd
+
 testname=LayerRestartTest
 arglist=""
 cd "$testname"
