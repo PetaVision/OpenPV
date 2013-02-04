@@ -51,7 +51,9 @@ int VaryingKernelConn::setParams(PVParams * inputParams /*, PVConnParams * p*/)
 
    numAxonalArborLists=(int) inputParams->value(name, "numAxonalArbors", 1, true);
    plasticityFlag = true;
+#ifdef USE_SHMGET
    shmget_flag = false;
+#endif // USE_SHMGET
    stochasticReleaseFlag = inputParams->value(name, "stochasticReleaseFlag", false, true) != 0;
    combine_dW_with_W_flag = inputParams->value(name, "combine_dW_with_W_flag", combine_dW_with_W_flag, true) != 0;
    dWMax            = inputParams->value(getName(), "dWMax", dWMax, true);
