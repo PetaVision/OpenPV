@@ -31,7 +31,7 @@ protected:
 //                  ChannelType channel);
 
 private:
-   int uniformWeights(/* PVPatch * wp */ pvdata_t * dataStart, float minwgt, float maxwgt, InitUniformRandomWeightsParams *weightParamPtr);
+   int uniformWeights(/* PVPatch * wp */ pvdata_t * dataStart, float minwgt, float maxwgt, float sparseFraction, InitUniformRandomWeightsParams *weightParamPtr);
 };
 
 } /* namespace PV */

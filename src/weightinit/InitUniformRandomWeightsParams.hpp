@@ -21,6 +21,7 @@ public:
    //get-set methods:
    inline float getWMin()        {return wMin;}
    inline float getWMax()        {return wMax;}
+   inline float getSparseFraction()        {return sparseFraction;}
 
 protected:
    virtual int initialize_base();
@@ -30,6 +31,7 @@ protected:
 private:
    float wMin;
    float wMax;
+   float sparseFraction;  // fraction of weights identically zero:  0 (default) -> no sparseness, 1 -> all weights == 0
 };
 
 } /* namespace PV */

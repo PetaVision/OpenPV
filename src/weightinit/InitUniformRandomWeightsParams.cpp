@@ -29,6 +29,7 @@ int InitUniformRandomWeightsParams::initialize_base() {
 
    wMin = 0;
    wMax = 1;
+   sparseFraction = 0;
    return 1;
 }
 
@@ -43,6 +44,7 @@ int InitUniformRandomWeightsParams::initialize(HyPerConn * parentConn) {
    //wMax = (float) parentConn->maxWeight();
    wMin = params->value(getName(), "wMinInit", wMin);
    wMax = params->value(getName(), "wMaxInit", wMax);
+   sparseFraction = params->value(getName(), "sparseFraction", sparseFraction);
 
 
    return status;

@@ -253,8 +253,8 @@ public:
    float getConvertToRateDeltaTimeFactor(HyPerConn* conn);
    float getMaxRate() {return maxRate;}
 
-   int getFeedbackDelay(){return feedbackDelay;};
-   int getFeedforwardDelay(){return feedforwardDelay;};
+//   int getFeedbackDelay(){return feedbackDelay;};
+//   int getFeedforwardDelay(){return feedforwardDelay;};
 
 protected:
 
@@ -295,8 +295,8 @@ protected:
                           // numGlobalRNGs should take into account the global layer, so that random number generation is reproducible in different MPI configurations.
    float maxRate;         // Maximum rate of activity.  HyPerLayer sets to 1/dt during initialize(); derived classes should override in their own initialize method after calling HyPerLayer's, if needed.
 
-   int feedforwardDelay;  // minimum delay required for a change in the input to potentially influence this layer
-   int feedbackDelay;     // minimum delay required for a change in this layer to potentially influence itself via feedback loop
+//   int feedforwardDelay;  // minimum delay required for a change in the input to potentially influence this layer
+//   int feedbackDelay;     // minimum delay required for a change in this layer to potentially influence itself via feedback loop
 
    // OpenCL variables
    //

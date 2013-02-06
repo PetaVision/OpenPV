@@ -42,7 +42,7 @@ int LogLatWTAGenLayer::updateState(double timef, double dt, const PVLayerLoc * l
       updateSparsityTermDeriv_LogLatWTAGenLayer(num_neurons, getLayerLoc()->nf, V, sparsitytermderivative);
       update_dV_GenerativeLayer(num_neurons, V, gSynHead, sparsitytermderivative, dAold, VMax, VMin, VThresh, relaxation, auxChannelCoeff, sparsityTermCoeff, persistence);
       trunc_rel = reduce_relaxation(num_neurons, V, dV, relax_remaining);
-      updateV_GenerativeLayer(num_neurons, V, dV, VMax, VMin, VThresh, trunc_rel);
+      updateV_GenerativeLayer(num_neurons, V, dV, A, VMax, VMin, VThresh, trunc_rel, nx, ny, nf, loc->nb);
       relax_remaining -=trunc_rel;
    }
    setActivity_GenerativeLayer(num_neurons, A, V, nx, ny, nf, loc->nb, activity_threshold); // setActivity();

@@ -53,8 +53,9 @@ int InitUniformRandomWeights::calcWeights(/* PVPatch * wp */ pvdata_t * dataStar
 
    const float wMinInit = weightParamPtr->getWMin();
    const float wMaxInit = weightParamPtr->getWMax();
+   const float sparseFraction = weightParamPtr->getSparseFraction();
 
-   uniformWeights(dataStart, wMinInit, wMaxInit, weightParamPtr);
+   uniformWeights(dataStart, wMinInit, wMaxInit, sparseFraction, weightParamPtr);
 
    //No longer setting delays in initWeights
    //weightParamPtr->getParentConn()->setDelay(arborId, arborId);
@@ -76,7 +77,9 @@ int InitUniformRandomWeights::calcWeights(/* PVPatch * wp */ pvdata_t * dataStar
  *    for a 4x4 connection it sets the weights to the o neurons only.
  *    .
  */
-int InitUniformRandomWeights::uniformWeights(/* PVPatch * wp */ pvdata_t * dataStart, float minwgt, float maxwgt, InitUniformRandomWeightsParams *weightParamPtr) {
+int InitUniformRandomWeights::uniformWeights(
+		/* PVPatch * wp */pvdata_t * dataStart, float minwgt, float maxwgt,
+		float sparseFraction, InitUniformRandomWeightsParams *weightParamPtr) {
       // changed variable names to avoid confusion with data members this->wMin and this->wMax
    // pvdata_t * w = wp->data;
 
@@ -105,6 +108,7 @@ int InitUniformRandomWeights::uniformWeights(/* PVPatch * wp */ pvdata_t * dataS
       for (int x = 0; x < nxp; x++) {
          for (int f = 0; f < nfp; f++) {
             dataStart[x * sxp + y * syp + f * sfp] = minwgt + p * pv_random();
+            dataStart[x * sxp + y * syp + f * sfp] *= pv_random() > sparseFraction;
          }
       }
    }

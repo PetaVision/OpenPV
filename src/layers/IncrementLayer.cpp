@@ -88,7 +88,7 @@ int IncrementLayer::updateState(double timef, double dt, bool * inited, double *
    }
    else {
       if( timef >= first_update_time ) {
-         status = updateV_ANNLayer(num_neurons, V, gSynHead, max_pvdata_t, -max_pvdata_t, -max_pvdata_t, 0.0f); // updateV();
+         status = updateV_ANNLayer(num_neurons, V, gSynHead, A, max_pvdata_t, -max_pvdata_t, -max_pvdata_t, 0.0f, nx, ny, nf, loc->nb); // updateV();
          resetGSynBuffers_HyPerLayer(num_neurons, num_channels, gSynHead); // resetGSynBuffers();
          *inited = true;
       }

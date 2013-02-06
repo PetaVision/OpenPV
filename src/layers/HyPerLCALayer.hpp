@@ -23,8 +23,9 @@ protected:
    virtual int doUpdateState(double time, double dt, const PVLayerLoc * loc, pvdata_t * A,
          pvdata_t * V, int num_channels, pvdata_t * gSynHead, bool spiking,
          unsigned int * active_indices, unsigned int * num_active);
-   pvdata_t timeConstantTau;
+   virtual float getChannelTimeConst(enum ChannelType channel_type){return timeConstantTau;};
 private:
+   pvdata_t timeConstantTau;
    int initialize_base();
 };
 

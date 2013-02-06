@@ -47,6 +47,7 @@
 #include "../layers/BIDSSensorLayer.hpp"
 #include "../layers/LCALIFLayer.hpp"
 #include "../layers/LCALayer.hpp"
+#include "../layers/HyPerLCALayer.hpp"
 
 
 #include "../connections/HyPerConn.hpp"

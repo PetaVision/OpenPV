@@ -109,9 +109,10 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
                "PoolingANNLayer",
                "PtwiseProductLayer",
                "TrainingLayer",
+               "MaxPooling",
+               "HyPerLCALayer",
              "GapLayer",
-	     "LCALayer",
-             "MaxPooling",
+             "LCALayer",
              "Image",
                "CreateMovies",
                "ImageCreator",
@@ -431,6 +432,11 @@ HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPe
       keywordMatched = true;
       addedLayer = (HyPerLayer *) addGapLayer(name, hc);
       status = checknewobject((void *) addedLayer, classkeyword, name, hc);
+   }
+   if( !strcmp(classkeyword, "HyPerLCALayer") ) {
+     keywordMatched = true;
+     addedLayer = (HyPerLayer *) new HyPerLCALayer(name, hc);
+     status = checknewobject((void *) addedLayer, classkeyword, name, hc);
    }
    if( !strcmp(classkeyword, "LCALayer") ) {
      keywordMatched = true;

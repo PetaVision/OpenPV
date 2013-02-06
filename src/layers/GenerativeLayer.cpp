@@ -63,7 +63,13 @@ int GenerativeLayer::updateState(double timef, double dt) {
    return status;
 }
 
-int GenerativeLayer::updateState(double timef, double dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels, pvdata_t * gSynHead, pvdata_t * sparsitytermderivative, pvdata_t * dV, pvdata_t VMax, pvdata_t VMin, pvdata_t VThresh, pvdata_t relaxation, pvdata_t auxChannelCoeff, pvdata_t sparsityTermCoeff, pvdata_t persistence, pvdata_t activity_threshold, bool spiking, unsigned int * active_indices, unsigned int * num_active) {
+int GenerativeLayer::updateState(double timef, double dt,
+		const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels,
+		pvdata_t * gSynHead, pvdata_t * sparsitytermderivative, pvdata_t * dV,
+		pvdata_t VMax, pvdata_t VMin, pvdata_t VThresh, pvdata_t relaxation,
+		pvdata_t auxChannelCoeff, pvdata_t sparsityTermCoeff,
+		pvdata_t persistence, pvdata_t activity_threshold, bool spiking,
+		unsigned int * active_indices, unsigned int * num_active) {
    int nx = loc->nx;
    int ny = loc->ny;
    int nf = loc->nf;
@@ -71,9 +77,12 @@ int GenerativeLayer::updateState(double timef, double dt, const PVLayerLoc * loc
    pvdata_t relax_remaining = relaxation;
    while(relax_remaining > 0) {
       updateSparsityTermDeriv_GenerativeLayer(num_neurons, V, sparsitytermderivative);
-      update_dV_GenerativeLayer(num_neurons, V, gSynHead, sparsitytermderivative, dV, VMax, VMin, VThresh, relax_remaining, auxChannelCoeff, sparsityTermCoeff, persistence);
+		update_dV_GenerativeLayer(num_neurons, V, gSynHead,
+				sparsitytermderivative, dV, VMax, VMin, VThresh,
+				relax_remaining, auxChannelCoeff, sparsityTermCoeff,
+				persistence);
       pvdata_t trunc_rel = reduce_relaxation(num_neurons, V, dV, relax_remaining);
-      updateV_GenerativeLayer(num_neurons, V, dV, VMax, VMin, VThresh, trunc_rel);
+      updateV_GenerativeLayer(num_neurons, V, dV, clayer->activity->data, VMax, VMin, VThresh, trunc_rel, nx, ny, nf, loc->nb);
       relax_remaining -=trunc_rel;
    }
    setActivity_GenerativeLayer(num_neurons, A, V, nx, ny, nf, loc->nb, activity_threshold);

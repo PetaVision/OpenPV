@@ -139,7 +139,7 @@ int InitV::calcUniformRandomV(pvdata_t * V, int numNeurons) {
 }
 
 pvdata_t InitV::generateUnifRand() {
-   pvdata_t V = ( (pvdata_t) (pv_random()*uniformMultiplier) ) + minV;
+   pvdata_t V = (pvdata_t) (pv_random_prob() * (maxV - minV) + minV);
    return V;
 }
 

@@ -90,8 +90,8 @@ int HyPerLayer::initialize_base() {
    this->marginIndices = NULL;
    this->numMargin = 0;
    this->numGlobalRNGs = 0;
-   this->feedbackDelay = HYPERLAYER_FEEDBACK_DELAY;
-   this->feedforwardDelay = HYPERLAYER_FEEDFORWARD_DELAY;
+   //this->feedbackDelay = HYPERLAYER_FEEDBACK_DELAY;
+   //this->feedforwardDelay = HYPERLAYER_FEEDFORWARD_DELAY;
    this->phase = 0;
 #ifdef PV_USE_OPENCL
    this->krUpdate = NULL;
@@ -146,9 +146,9 @@ int HyPerLayer::initialize(const char * name, HyPerCol * hc, int numChannels) {
    writeTime = parent->simulationTime();
    writeStep = params->value(name, "writeStep", parent->getDeltaTime());
 
-   feedforwardDelay = params->value(name, "feedforwardDelay", feedforwardDelay, true);
-   feedbackDelay = params->value(name, "feedbackDelay", feedbackDelay, true);
-   assert(feedbackDelay > 0);
+   //feedforwardDelay = params->value(name, "feedforwardDelay", feedforwardDelay, true);
+   //feedbackDelay = params->value(name, "feedbackDelay", feedbackDelay, true);
+   //assert(feedbackDelay > 0);
 
    phase = params->value(name, "phase", phase, true);
    if (phase<0) {
@@ -806,8 +806,8 @@ int HyPerLayer::copyFromBuffer(const unsigned char * buf, pvdata_t * data,
 // updateState checks the current time step against the feedbackLength and startStep
 int HyPerLayer::updateState(double timef, double dt) {
    int status;
-   int step = parent->getCurrentStep();
-   if (step < feedforwardDelay || (step - feedforwardDelay) % feedbackDelay != 0) return PV_SUCCESS;
+   //int step = parent->getCurrentStep();
+   //if (step < feedforwardDelay || (step - feedforwardDelay) % feedbackDelay != 0) return PV_SUCCESS;
    status = doUpdateState(timef, dt, getLayerLoc(), getCLayer()->activity->data, getV(),
          getNumChannels(), GSyn[0], getSpikingFlag(), getCLayer()->activeIndices,
          &getCLayer()->numActive);
@@ -818,8 +818,8 @@ int HyPerLayer::updateState(double timef, double dt) {
 
 int HyPerLayer::resetGSynBuffers(double timef, double dt) {
    int status = PV_SUCCESS;
-   int step = parent->getCurrentStep();
-   if (step < feedforwardDelay || (step - feedforwardDelay) % feedbackDelay != 0) return PV_SUCCESS;
+   //int step = parent->getCurrentStep();
+   //if (step < feedforwardDelay || (step - feedforwardDelay) % feedbackDelay != 0) return PV_SUCCESS;
    if (GSyn == NULL) return PV_SUCCESS;
    resetGSynBuffers_HyPerLayer(this->getNumNeurons(), getNumChannels(), GSyn[0]); // resetGSynBuffers();
    return status;
@@ -907,24 +907,24 @@ int HyPerLayer::calcActiveIndices() {
 
 float HyPerLayer::getConvertToRateDeltaTimeFactor(HyPerConn* conn)
 {
-   //printf("[%d]: HyPerLayr::recvSyn: neighbor=%d num=%d actv=%p this=%p conn=%p\n", rank, neighbor, numExtended, activity, this, conn);
-   float dt_factor = 1.0f;
-   bool preActivityIsNotRate = conn->preSynapticActivityIsNotRate();
-   if (preActivityIsNotRate) {
-      enum ChannelType channel_type = conn->getChannel();
-      float dt = getParent()->getDeltaTime();
-      float tau = this->getChannelTimeConst(channel_type);
-      if (tau > 0) {
-         double exp_dt_tau = exp(-dt / tau);
-         dt_factor = (1 - exp_dt_tau) / exp_dt_tau;
-         // the above factor ensures that for a constant input of G_SYN to an excitatory conductance G_EXC,
-         // then G_EXC -> G_SYN as t -> inf
-      }
-      else {
-         dt_factor = dt;
-      }
-   }
-   return dt_factor;
+	//printf("[%d]: HyPerLayr::recvSyn: neighbor=%d num=%d actv=%p this=%p conn=%p\n", rank, neighbor, numExtended, activity, this, conn);
+	float dt_factor = 1.0f;
+	bool preActivityIsNotRate = conn->preSynapticActivityIsNotRate();
+	if (preActivityIsNotRate) {
+		enum ChannelType channel_type = conn->getChannel();
+		float dt = getParent()->getDeltaTime();
+		float tau = this->getChannelTimeConst(channel_type);
+		if (tau > 0) {
+			double exp_dt_tau = exp(-dt / tau);
+			dt_factor = (1 - exp_dt_tau) / exp_dt_tau;
+			// the above factor ensures that for a constant input of G_SYN to an excitatory conductance G_EXC,
+			// then G_EXC -> G_SYN as t -> inf
+		}
+		else {
+			dt_factor = dt;
+		}
+	}
+	return dt_factor;
 }
 
 
@@ -990,10 +990,10 @@ int HyPerLayer::recvAllSynapticInput() {
 int HyPerLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activity, int arborID)
 {
 	// only receive synaptic input on "allowed" time steps, which may be spaced to account for feedback delays
-	int step = parent->getCurrentStep();
-	if (step < feedforwardDelay
-			|| (step - feedforwardDelay) % feedbackDelay != 0)
-		return PV_SUCCESS;
+//	int step = parent->getCurrentStep();
+//	if (step < feedforwardDelay
+//			|| (step - feedforwardDelay) % feedbackDelay != 0)
+//		return PV_SUCCESS;
 
    recvsyn_timer->start();
 
@@ -1091,10 +1091,10 @@ int HyPerLayer::publish(InterColComm* comm, double time)
 int HyPerLayer::waitOnPublish(InterColComm* comm)
 {
 	// only publish on "allowed" time steps, which may be spaced to account for feedback delays
-	int step = parent->getCurrentStep();
-	if (step < feedforwardDelay
-			|| (step - feedforwardDelay) % feedbackDelay != 0)
-		return PV_SUCCESS;
+//	int step = parent->getCurrentStep();
+//	if (step < feedforwardDelay
+//			|| (step - feedforwardDelay) % feedbackDelay != 0)
+//		return PV_SUCCESS;
 
    // wait for MPI border transfers to complete
    //
@@ -1139,10 +1139,10 @@ int HyPerLayer::outputState(double timef, bool last)
 {
    int status = PV_SUCCESS;
 	// only output on "allowed" time steps, which may be spaced to account for feedback delays
-	int step = parent->getCurrentStep();
-	if (step < feedforwardDelay
-			|| (step - feedforwardDelay) % feedbackDelay != 0)
-		return PV_SUCCESS;
+//	int step = parent->getCurrentStep();
+//	if (step < feedforwardDelay
+//			|| (step - feedforwardDelay) % feedbackDelay != 0)
+//		return PV_SUCCESS;
 
 
    for (int i = 0; i < numProbes; i++) {
