@@ -8,7 +8,7 @@
 // Rozell et al., "Sparse Coding via Thresholding and Local Cometition
 // in Neural Circuits," Neural Computation 20, 2526-2563 (2008).
 
-debugParsing = false;
+debugParsing = true;
 
 HyPerCol "column" = {
    nx = 256;   
@@ -19,13 +19,15 @@ HyPerCol "column" = {
    progressStep = 1;
    outputPath = "output/";
    filenamesContainLayerNames = false;
+   filenamesContainConnectionNames = false;
    checkpointRead = false;
    checkpointWrite = true;
    checkpointWriteDir = "Checkpoints";
-   checkpointWriteStepInterval = 1;
-   deleteOlderCheckpoints = false;
+   checkpointWriteStepInterval = 100;
+   deleteOlderCheckpoints = true;
    suppressLastOutput = false;
    writeProgressToErr = true;
+   outputNamesOfLayersAndConns = "LayerAndConnNames.txt";
 };
 
 //
@@ -42,7 +44,7 @@ Movie "Image" = {
     writeStep = -1;
     writeSparseActivity = false;
     displayPeriod = 100;
-    start_frame_index = 1;
+    start_frame_index = 0;
     skip_frame_index = 1;
     echoFramePathnameFlag = true;
     mirrorBCflag = true;
@@ -53,6 +55,8 @@ Movie "Image" = {
     writeImages = false;
     offsetX = 0;
     offsetY = 0;
+    randomMovie = 0;
+    phase = 0;
 };
 
 
@@ -62,7 +66,7 @@ Retina "Retina" = {
     nxScale = 1;
     nyScale = 1;
     nf = 1;
-    marginWidth = 3;
+    marginWidth = 7;
     writeStep = 1.0;
     mirrorBCflag = 1;
     spikingFlag = 0;
@@ -73,8 +77,10 @@ Retina "Retina" = {
     burstFreq = 1;
     burstDuration = 1000;
 
-    beginStim = 1;
-    endStim = 100;
+    beginStim = 0;
+    endStim = 100000;
+    
+    phase = 1;
 };
 
 
@@ -90,14 +96,35 @@ ANNLayer "Ganglion" = {
 
     InitVType = "ZeroV";
 
-    VThresh = -infinity;
+    VThresh = 0.0;
     VMax = infinity;
-    VMin = -infinity;
+    VMin = 0.0;
     VShift = 0;
     
-    feedforwardDelay = 2;
-    feedbackDelay = 3;
+    phase = 2;
 };
+
+
+ANNLayer "Recon" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 0;
+    writeStep = 1;
+    mirrorBCflag = 1;
+    writeSparseActivity = 0;
+
+    InitVType = "ZeroV";
+
+    VThresh = -infinity;
+    VMax = 2.0;  // prevent reconstruction from exceeding reasonable bounds
+    VMin = 0;
+    VShift = 0;
+    
+    phase = 2;
+};
+
 
 
 ANNLayer "Error" = {
@@ -113,12 +140,11 @@ ANNLayer "Error" = {
     InitVType = "ZeroV";
 
     VThresh = -infinity;
-    VMax = infinity;
-    VMin = -infinity;
+    VMax = 2.0;
+    VMin = -2.0;
     VShift = 0;
     
-    feedforwardDelay = 3;
-    feedbackDelay = 3;
+    phase = 3;
 };
 
 
@@ -132,43 +158,19 @@ HyPerLCALayer "V1" = {
     mirrorBCflag = 1;
     writeSparseActivity = 0;
 
-    InitVType = "ZeroV";
+    InitVType = "UniformRandomV";
+    minV = 0.0;
+    maxV = 0.5;
     
-    threshold = 1.0;
-    thresholdSoftness = 0.0;
     timeConstantTau = 10.0;
     
     VThresh = 1.0;
-    VMax = infinity;
+    VMax = 2.0;
     VMin = 0;
     VShift = 0;  // 0 -> hard threshold, 1 -> soft threshold
 
-    feedforwardDelay = 4;
-    feedbackDelay = 3;
+    phase = 4;
 };
-
-
-ANNLayer "Reconstruction" = {
-    restart = 0;
-    nxScale = 1;
-    nyScale = 1;
-    nf = 1;
-    marginWidth = 0;
-    writeStep = 1;
-    mirrorBCflag = 1;
-    writeSparseActivity = 0;
-
-    InitVType = "ZeroV";
-
-    VThresh = -infinity;
-    VMax = infinity;
-    VMin = -infinity;
-    VShift = 0;
-    
-    feedforwardDelay = 5;
-    feedbackDelay = 3;
-};
-
 
 
 
@@ -187,16 +189,18 @@ KernelConn "MovieToRetina" = {
     initFromLastFlag = 0;
     
     weightInitType = "UniformWeight";
-    weightInit = 4.0;
+    weightInit = 1.0;
 
     normalize = 0;
        
-    writeCompressedWeights = 0.0;
+    writeCompressedWeights = false;
+    writeCompressedCheckpoints = false;
     plasticityFlag = 0;
     stochasticReleaseFlag = false;
 
-    preActivityIsNotRate = true;
+    preActivityIsNotRate = false;
     selfFlag = false;
+    shmget_flag = false;
     shrinkPatches = false;
     
     delay = 0;     
@@ -219,12 +223,6 @@ KernelConn "RetinaToGanglionCenter" = {
    sigma = 1;
    rMax  = 1;
    rMin = 0;
-   deltaThetaMax = 6.2832;
-   thetaMax = 1;
-   bowtieFlag = 0;
-   numFlanks = 1;
-   flankShift = 0;
-   rotate = 1;
        
    strength = 1.0;  
    normalize = 1.0;
@@ -235,6 +233,7 @@ KernelConn "RetinaToGanglionCenter" = {
 
    shrinkPatches = false;
    writeCompressedWeights = 0.0;
+   writeCompressedCheckpoints = false;
    plasticityFlag = 0;
    stochasticReleaseFlag = false;
     
@@ -242,7 +241,8 @@ KernelConn "RetinaToGanglionCenter" = {
     
    preActivityIsNotRate = false;
    selfFlag = false;
-   normalizeTotalToPost = false;
+   shmget_flag = false;
+   normalizeTotalToPost = true;
 };
 
 
@@ -265,12 +265,6 @@ KernelConn "RetinaToGanglionSurround" = {
    sigma = 3.5;
    rMax  = 7.5;
    rMin = 0.5;
-   deltaThetaMax = 6.2832;
-   thetaMax = 1;
-   bowtieFlag = 0;
-   numFlanks = 1;
-   flankShift = 0;
-   rotate = 1;
        
    strength = 1.0;  
    normalize = 1.0;
@@ -281,6 +275,7 @@ KernelConn "RetinaToGanglionSurround" = {
 
    shrinkPatches = false;
    writeCompressedWeights = 0.0;
+   writeCompressedCheckpoints = false;
    plasticityFlag = 0;
    stochasticReleaseFlag = false;
     
@@ -288,6 +283,7 @@ KernelConn "RetinaToGanglionSurround" = {
     
    preActivityIsNotRate = false;
    selfFlag = false;
+   shmget_flag = false;
    normalizeTotalToPost = true;
 };
 
@@ -303,8 +299,8 @@ IdentConn "GanglionToError" = {
 };
 
 
-IdentConn "ReconstructionToError" = {
-    preLayerName = "Reconstruction";
+IdentConn "ReconToError" = {
+    preLayerName = "Recon";
     postLayerName = "Error";
     channelCode = 1;
     delay = 0;
@@ -322,19 +318,25 @@ KernelConn "ErrorToV1" = {
     initFromLastFlag = 0;
     
     weightInitType = "UniformRandomWeight";
-    useListOfArborFiles = false;
-    combineWeightFiles = false;
 
     normalize = false;
-    preActivityIsNotRate = false;
-    keepKernelsSynchronized = true; // true; 
-    combine_dW_with_W_flag = false; //false; // 
+    preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
+    keepKernelsSynchronized = true; 
+    combine_dW_with_W_flag = false; 
 
     writeStep = 1;
     writeCompressedWeights = false;
+    writeCompressedCheckpoints = false;
     plasticityFlag = true;
-    weightUpdatePeriod = 1.0;
+    weightUpdatePeriod = 100.0;
+    initialWeightUpdateTime = 99.0;
+    initialWriteTime = 0.0;
+    dWMax = 0.1;
+    wMinInit = 0.0;
+    wMaxInit = 4.0;
+    sparseFraction = .95;
     selfFlag = false;
+    shmget_flag = false;
 
     delay = 0;
 
@@ -342,9 +344,9 @@ KernelConn "ErrorToV1" = {
     shrinkPatches = false;
 };
 
-TransposeConn "V1ToReconstruction" = {
+TransposeConn "V1ToRecon" = {
     preLayerName = "V1";
-    postLayerName = "Reconstruction";
+    postLayerName = "Recon";
     channelCode = 0;
 
     originalConnName = "ErrorToV1";
@@ -360,9 +362,54 @@ TransposeConn "V1ToReconstruction" = {
 };
 
 
-StatsProbe "L1StatsFile" = {
-    targetLayer = "L1";
-    probeOutputFile = "L1_Stats.txt";
+// Probes
+
+
+StatsProbe "RetinaStats" = {
+    targetLayer = "Retina";
+};
+
+StatsProbe "GanglionStats" = {
+    targetLayer = "Ganglion";
+};
+
+StatsProbe "ReconStats" = {
+    targetLayer = "Recon";
+};
+
+StatsProbe "ErrorStats" = {
+    targetLayer = "Error";
+};
+
+StatsProbe "V1Stats" = {
+    targetLayer = "V1";
+};
+
+
+
+StatsProbe "RetinaStatsFile" = {
+    targetLayer = "Retina";
+    probeOutputFile = "Retina_Stats.txt";
+};
+
+StatsProbe "GanglionStatsFile" = {
+    targetLayer = "Ganglion";
+    probeOutputFile = "Ganglion_Stats.txt";
+};
+
+StatsProbe "ReconStatsFile" = {
+    targetLayer = "Recon";
+    probeOutputFile = "Recon_Stats.txt";
+};
+
+StatsProbe "ErrorStatsFile" = {
+    targetLayer = "Error";
+    probeOutputFile = "Error_Stats.txt";
+};
+
+StatsProbe "V1StatsFile" = {
+    targetLayer = "V1";
+    probeOutputFile = "V1_Stats.txt";
 };
 
 
