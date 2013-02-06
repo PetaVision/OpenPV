@@ -14,7 +14,7 @@
 //  However, an iterative scheme may not achieve the steady state.
 //
 //  If all phases are equal to zero, each update must use the values of its
-//  retina at the last timestep.  Accordingly the evolution is as follows.
+//  inputs at the last timestep.  Accordingly the evolution is as follows.
 //  t   retina  recons. error   V1
 //  0    1       0       0       0
 //  1    1       0       1       0
