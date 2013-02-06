@@ -204,7 +204,7 @@ int ANNLayer::setActivity() {
    int nb = loc->nb;
    int num_neurons = nx*ny*nf;
    int status;
-   if(status == PV_SUCCESS) status = setActivity_HyPerLayer(num_neurons, getCLayer()->activity->data, getV(), nx, ny, nf, nb);
+   status = setActivity_HyPerLayer(num_neurons, getCLayer()->activity->data, getV(), nx, ny, nf, nb);
    if( status == PV_SUCCESS ) status = applyVThresh_ANNLayer(num_neurons, getV(), VMin, VThresh, VShift, getCLayer()->activity->data, nx, ny, nf, nb);
    if( status == PV_SUCCESS ) status = applyVMax_ANNLayer(num_neurons, getV(), VMax, getCLayer()->activity->data, nx, ny, nf, nb);
    return status;
