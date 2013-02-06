@@ -321,11 +321,11 @@ int CliqueLayer::updateStateClique(double timef, double dt, const PVLayerLoc * l
       V[k] = bottomUp_input * (Voffset + Vgain * (lateral_exc)); // - fabs(lateral_inh))); // / lateral_denom);
    } // k
 
+   // resetGSynBuffers called by HyPerCol
    resetGSynBuffers_HyPerLayer(num_neurons, getNumChannels(), gSynHead);
-   // resetGSynBuffers();
-   applyVMax_ANNLayer(num_neurons, V, VMax, A, nx, ny, nf, loc->nb); // applyVMax();
-   applyVThresh_ANNLayer(num_neurons, V, VMin, VThresh, 0.0f, A, nx, ny, nf, loc->nb); // applyVThresh();
    setActivity_HyPerLayer(num_neurons, A, V, nx, ny, nf, loc->nb); // setActivity();
+   applyVThresh_ANNLayer(num_neurons, V, VMin, VThresh, 0.0f, A, nx, ny, nf, loc->nb); // applyVThresh();
+   applyVMax_ANNLayer(num_neurons, V, VMax, A, nx, ny, nf, loc->nb); // applyVMax();
    updateActiveIndices();
 
    return 0;

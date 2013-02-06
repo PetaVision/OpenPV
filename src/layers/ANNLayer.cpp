@@ -6,6 +6,7 @@
  */
 
 #include "ANNLayer.hpp"
+#include "../layers/updateStateFunctions.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -193,6 +194,20 @@ int ANNLayer::doUpdateState(double time, double dt, const PVLayerLoc * loc, pvda
 
    update_timer->stop();
    return PV_SUCCESS;
+}
+
+int ANNLayer::setActivity() {
+   const PVLayerLoc * loc = getLayerLoc();
+   int nx = loc->nx;
+   int ny = loc->ny;
+   int nf = loc->nf;
+   int nb = loc->nb;
+   int num_neurons = nx*ny*nf;
+   int status;
+   if(status == PV_SUCCESS) status = setActivity_HyPerLayer(num_neurons, getCLayer()->activity->data, getV(), nx, ny, nf, nb);
+   if( status == PV_SUCCESS ) status = applyVThresh_ANNLayer(num_neurons, getV(), VMin, VThresh, VShift, getCLayer()->activity->data, nx, ny, nf, nb);
+   if( status == PV_SUCCESS ) status = applyVMax_ANNLayer(num_neurons, getV(), VMax, getCLayer()->activity->data, nx, ny, nf, nb);
+   return status;
 }
 
 

@@ -85,7 +85,7 @@ void ANNSquaredLayer_update_state(
 //#endif
 
    //updateV():
-   updateV_ANNSquaredLayer(numNeurons, V, GSynHead, VMax, VMin, Vth);
+   updateV_ANNSquaredLayer(numNeurons, V, GSynHead, activity, VMax, VMin, Vth, nx, ny, nf, nb);
    //setActivity():
    setActivity_HyPerLayer(numNeurons, activity, V, nx, ny, nf, nb);
    //resetGSynBuffers():
