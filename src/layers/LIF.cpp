@@ -571,6 +571,7 @@ int LIF::updateState(double time, double dt)
          LIF_update_state_arma(getNumNeurons(), time, dt, nx, ny, nf, nb, &lParams, rand_state, clayer->V, Vth,
                G_E, G_I, G_IB, GSynHead, activity);
          break;
+      case 'b':
          LIF_update_state_beginning(getNumNeurons(), time, dt, nx, ny, nf, nb, &lParams, rand_state, clayer->V, Vth,
                G_E, G_I, G_IB, GSynHead, activity);
          break;
