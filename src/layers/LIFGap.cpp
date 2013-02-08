@@ -42,10 +42,6 @@ void LIFGap_update_state_original(
     float * G_I,
     float * G_IB,
     float * GSynHead,
-//    float * GSynExc,
-//    float * GSynInh,
-//    float * GSynInhB,
-//    float * GSynGap,
     float * activity,
 
     const float sum_gap,
@@ -71,10 +67,31 @@ void LIFGap_update_state_beginning(
     float * G_I,
     float * G_IB,
     float * GSynHead,
-//    float * GSynExc,
-//    float * GSynInh,
-//    float * GSynInhB,
-//    float * GSynGap,
+    float * activity,
+
+    const float sum_gap,
+    float * G_Gap
+);
+
+void LIFGap_update_state_arma(
+    const int numNeurons,
+    const float time,
+    const float dt,
+
+    const int nx,
+    const int ny,
+    const int nf,
+    const int nb,
+
+    LIF_params * params,
+    uint4 * rnd,
+
+    float * V,
+    float * Vth,
+    float * G_E,
+    float * G_I,
+    float * G_IB,
+    float * GSynHead,
     float * activity,
 
     const float sum_gap,
@@ -309,13 +326,13 @@ int LIFGap::updateState(double time, double dt)
    const int nb = clayer->loc.nb;
 
    pvdata_t * GSynHead   = GSyn[0];
-//   pvdata_t * GSynExc   = getChannel(CHANNEL_EXC);
-//   pvdata_t * GSynInh   = getChannel(CHANNEL_INH);
-//   pvdata_t * GSynInhB  = getChannel(CHANNEL_INHB);
-//   pvdata_t * GSynGap  = getChannel(CHANNEL_GAP);
    pvdata_t * activity = clayer->activity->data;
 
    switch (method) {
+   case 'a':
+      LIFGap_update_state_arma(getNumNeurons(), time, dt, nx, ny, nf, nb, &lParams, rand_state, clayer->V, Vth, G_E,
+            G_I, G_IB, GSynHead, activity, sumGap, G_Gap);
+   break;
    case 'b':
       LIFGap_update_state_beginning(getNumNeurons(), time, dt, nx, ny, nf, nb, &lParams, rand_state, clayer->V, Vth, G_E,
             G_I, G_IB, GSynHead, activity, sumGap, G_Gap);

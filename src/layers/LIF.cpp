@@ -24,6 +24,27 @@
 extern "C" {
 #endif
 
+void LIF_update_state_arma(
+    const int numNeurons,
+    const float time,
+    const float dt,
+
+    const int nx,
+    const int ny,
+    const int nf,
+    const int nb,
+
+    LIF_params * params,
+    uint4 * rnd,
+
+    float * V,
+    float * Vth,
+    float * G_E,
+    float * G_I,
+    float * G_IB,
+    float * GSynHead,
+    float * activity);
+
 void LIF_update_state_beginning(
     const int numNeurons,
     const float time,
@@ -43,9 +64,6 @@ void LIF_update_state_beginning(
     float * G_I,
     float * G_IB,
     float * GSynHead,
-//    float * GSynExc,
-//    float * GSynInh,
-//    float * GSynInhB,
     float * activity);
 
 void LIF_update_state_original(
@@ -67,9 +85,6 @@ void LIF_update_state_original(
     float * G_I,
     float * G_IB,
     float * GSynHead,
-//    float * GSynExc,
-//    float * GSynInh,
-//    float * GSynInhB,
     float * activity);
 
 #ifdef __cplusplus
@@ -345,9 +360,9 @@ int LIF::setParams(PVParams * p)
 
    const char * methodstring = p->stringValue(name, "method", true);
    method = methodstring ? methodstring[0] : 'o'; // Default is original but could change to 'beginning' if 'original' is deprecated.
-   if (method != 'o' && method != 'b') {
+   if (method != 'o' && method != 'b' && method != 'a') {
       if (getParent()->columnId()==0) {
-         fprintf(stderr, "LIFGap::initialize error.  Layer \"%s\" has method \"%s\".  Allowable values are \"beginning\" and \"original\".", name, methodstring);
+         fprintf(stderr, "LIF::initialize error.  Layer \"%s\" has method \"%s\".  Allowable values are \"arma\", \"beginning\" and \"original\".", name, methodstring);
       }
       abort();
    }
@@ -549,13 +564,13 @@ int LIF::updateState(double time, double dt)
       const int nb = clayer->loc.nb;
 
       pvdata_t * GSynHead   = GSyn[0];
-//      pvdata_t * GSynExc   = getChannel(CHANNEL_EXC);
-//      pvdata_t * GSynInh   = getChannel(CHANNEL_INH);
-//      pvdata_t * GSynInhB  = getChannel(CHANNEL_INHB);
       pvdata_t * activity = clayer->activity->data;
 
       switch (method) {
-      case 'b':
+      case 'a':
+         LIF_update_state_arma(getNumNeurons(), time, dt, nx, ny, nf, nb, &lParams, rand_state, clayer->V, Vth,
+               G_E, G_I, G_IB, GSynHead, activity);
+         break;
          LIF_update_state_beginning(getNumNeurons(), time, dt, nx, ny, nf, nb, &lParams, rand_state, clayer->V, Vth,
                G_E, G_I, G_IB, GSynHead, activity);
          break;
