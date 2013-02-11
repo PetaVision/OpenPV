@@ -16,7 +16,7 @@ HyPerCol "column" = {
                                            // 
    //outputPath                 = "~/Documents/workspace/iHouse/output";
    //outputPath                   = "~/Documents/Work/LANL/workspace/iHouse/output"; //Dylan's Mac
-   outputPath                   = "~/workspace/iHouse/outputInhib"; //Dylan's Remote 
+   outputPath                   = "~/workspace/iHouse/output"; //Dylan's Remote 
                                            // 
    filenamesContainLayerNames      = 2;    // stores pvp files as: 0 = layer number/1 = layer number and layer name/2 = layer name
    filenamesContainConnectionNames = 2;
@@ -37,7 +37,7 @@ HyPerCol "column" = {
                                            //
    //printParamsFilename          = "~/Documents/workspace/iHouse/output/params_run.pv";
    //printParamsFilename          = "~/Documents/Work/LANL/workspace/iHouse/output/params_run.pv"; //Dylan's Mac
-   printParamsFilename          = "~/workspace/iHouse/outputInhib/params_run.pv"; //Dylan's remote 
+   printParamsFilename          = "~/workspace/iHouse/output/params_run.pv"; //Dylan's remote 
 };
 
 
