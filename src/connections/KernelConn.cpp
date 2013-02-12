@@ -66,7 +66,7 @@ int KernelConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
    PVParams * params = hc->parameters();
    bool normalize_flag = params->value(name, "normalize",0,true);
    if (normalize_flag){
-      symmetrizeWeightsFlag = params->value(name, "symmetrizeWeights",0);
+      symmetrizeWeightsFlag = params->value(name, "symmetrizeWeights", false);
    }
 #ifdef USE_SHMGET
 	bool plasticity_flag = params->value(name, "plasticityFlag", plasticityFlag,
@@ -341,9 +341,15 @@ int KernelConn::clear_dW(int arbor_ID) {
    return PV_BREAK;
    //return PV_SUCCESS;
 }
+
 int KernelConn::update_dW(int arbor_ID) {
    // Typically override this method with a call to defaultUpdate_dW(arbor_ID)
-   return PV_BREAK;
+//	for(int arborID=0;arborID<numberOfAxonalArborLists();arborID++) {
+       int status = defaultUpdate_dW(arbor_ID);  // calculate new weights from changes
+//       if (status == PV_BREAK) {break;}
+//       assert(status == PV_SUCCESS);
+//    }
+   return status;
    //return PV_SUCCESS;
 }
 
@@ -354,14 +360,15 @@ int KernelConn::defaultUpdate_dW(int arbor_ID) {
    int nExt = preSynapticLayer()->getNumExtended();
    int numKernelIndices = getNumDataPatches();
    const pvdata_t * preactbuf = preSynapticLayer()->getLayerData(getDelay(arbor_ID));
-   const pvdata_t * postactbuf = postSynapticLayer()->getLayerData(getDelay(arbor_ID));
+   const pvdata_t * postactbuf = postSynapticLayer()->getLayerData(); //getDelay(arbor_ID));  //delay is from pre to post, so use current post activity
 
    int sya = (post->getLayerLoc()->nf * (post->getLayerLoc()->nx + 2*post->getLayerLoc()->nb));
 
    for(int kExt=0; kExt<nExt;kExt++) {
+      pvdata_t preact = preactbuf[kExt];
+      // if (preact == 0.0f) continue;
       PVPatch * weights = getWeights(kExt,arbor_ID);
       size_t offset = getAPostOffset(kExt, arbor_ID);
-      pvdata_t preact = preactbuf[kExt];
       int ny = weights->ny;
       int nk = weights->nx * nfp;
       const pvdata_t * postactRef = &postactbuf[offset];
@@ -370,7 +377,10 @@ int KernelConn::defaultUpdate_dW(int arbor_ID) {
       int lineoffseta = 0;
       for( int y=0; y<ny; y++ ) {
          for( int k=0; k<nk; k++ ) {
-            dwdata[lineoffsetw + k] += updateRule_dW(preact, postactRef[lineoffseta+k]);
+        	 pvdata_t aPost = postactRef[lineoffseta+k];
+//        	 if (aPost > 0){
+        		 dwdata[lineoffsetw + k] += updateRule_dW(preact, aPost);
+//        	 }
          }
          lineoffsetw += syp;
          lineoffseta += sya;
@@ -445,17 +455,18 @@ return PV_SUCCESS;
 int KernelConn::updateWeights(int arbor_ID){
    lastUpdateTime = parent->simulationTime();
    // add dw to w
-#ifdef USE_SHMGET
-   if (shmget_flag && !shmget_owner[arbor_ID]){
-         return PV_BREAK;
-      }
-#endif
+   // never use shmget if plasticity flag == true
+//#ifdef USE_SHMGET
+//   if (shmget_flag && !shmget_owner[arbor_ID]){
+//         return PV_BREAK;
+//      }
+//#endif
    for(int kArbor = 0; kArbor < this->numberOfAxonalArborLists(); kArbor++){
-#ifdef USE_SHMGET
-      volatile pvdata_t * w_data_start = get_wDataStart(kArbor);
-#else
+//#ifdef USE_SHMGET
+//      volatile pvdata_t * w_data_start = get_wDataStart(kArbor);
+//#else
       pvdata_t * w_data_start = get_wDataStart(kArbor);
-#endif
+//#endif
       for( int k=0; k<nxp*nyp*nfp*getNumDataPatches(); k++ ) {
          w_data_start[k] += get_dwDataStart(kArbor)[k];
       }
