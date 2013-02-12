@@ -358,7 +358,6 @@ void HyPerLayer::freeChannels()
 int HyPerLayer::initializeLayerId(int layerId)
 {
    char filename[PV_PATH_MAX];
-   bool append = ioAppend == 1 ? true : false;
 
    setLayerId(layerId);
    switch( parent->includeLayerName() ) {
@@ -375,7 +374,27 @@ int HyPerLayer::initializeLayerId(int layerId)
       assert(0);
       break;
    }
-   clayer->activeFP = pvp_open_write_file(filename, parent->icCommunicator(), append);
+
+   // initialize writeActivityCalls and writeSparseActivityCalls
+   // only the root process needs these member variables so we don't need to do any MPI.
+   int rootproc = 0;
+   if (ioAppend && parent->columnId()==rootproc) {
+      FILE * fp = fopen(filename,"r");
+      if (fp) {
+         int params[NUM_BIN_PARAMS];
+         int numread = fread(params, sizeof(int), NUM_BIN_PARAMS, fp);
+         if (numread==NUM_BIN_PARAMS) {
+            if (writeSparseActivity) {
+               writeActivitySparseCalls = params[INDEX_NBANDS];
+            }
+            else {
+               writeActivityCalls = params[INDEX_NBANDS];
+            }
+         }
+         fclose(fp);
+      }
+   }
+   clayer->activeFP = pvp_open_write_file(filename, parent->icCommunicator(), ioAppend);
 
    return 0;
 }
@@ -1621,9 +1640,11 @@ int HyPerLayer::writeActivity(double timed)
 }
 
 int HyPerLayer::incrementNBands(int * numCalls) {
-   ++*numCalls;
+   // Only the root process needs to maintain INDEX_NBANDS, so only the root process modifies numCalls
+   // This way, writeActivityCalls does not need to be coordinated across MPI
    int status;
    if( parent->icCommunicator()->commRank() == 0 ) {
+      ++*numCalls;
       long int fpos = ftell(clayer->activeFP);
       fseek(clayer->activeFP, sizeof(int)*INDEX_NBANDS, SEEK_SET);
       int intswritten = fwrite(numCalls, sizeof(int), 1, clayer->activeFP);
