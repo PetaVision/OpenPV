@@ -80,8 +80,6 @@ int InitUniformRandomWeights::calcWeights(/* PVPatch * wp */ pvdata_t * dataStar
 int InitUniformRandomWeights::uniformWeights(
 		/* PVPatch * wp */pvdata_t * dataStart, float minwgt, float maxwgt,
 		float sparseFraction, InitUniformRandomWeightsParams *weightParamPtr) {
-      // changed variable names to avoid confusion with data members this->wMin and this->wMax
-   // pvdata_t * w = wp->data;
 
    const int nxp = weightParamPtr->getnxPatch_tmp(); // wp->nx;
    const int nyp = weightParamPtr->getnyPatch_tmp(); // wp->ny;
@@ -102,13 +100,13 @@ int InitUniformRandomWeights::uniformWeights(
    else {
        p = (maxwgt - minwgt) / pv_random_max();
    }
+   sparseFraction *= pv_random_max();
 
    // loop over all post-synaptic cells in patch
    for (int y = 0; y < nyp; y++) {
       for (int x = 0; x < nxp; x++) {
          for (int f = 0; f < nfp; f++) {
-            dataStart[x * sxp + y * syp + f * sfp] = minwgt + p * pv_random();
-            dataStart[x * sxp + y * syp + f * sfp] *= pv_random() > sparseFraction;
+            dataStart[x * sxp + y * syp + f * sfp] = (minwgt + p * pv_random())*(pv_random() > sparseFraction);
          }
       }
    }
