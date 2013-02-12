@@ -2463,8 +2463,10 @@ int HyPerConn::normalizeWeights(PVPatch ** patches, pvdata_t ** dataStart, int n
          status = sumWeights(nx, ny, offset, dataStartPatch, &sum, &sum2, &maxVal);
          assert( (status == PV_SUCCESS) || (status == PV_BREAK));
          // don't need synchronization barrier here because only this process writes to patches in this arbor
-         status = scaleWeights(nx, ny, offset, dataStartPatch, sum, sum2, maxVal);
-         assert( (status == PV_SUCCESS) || (status == PV_BREAK));
+         if (sum2 != 0) {
+            status = scaleWeights(nx, ny, offset, dataStartPatch, sum, sum2, maxVal);
+            assert( (status == PV_SUCCESS) || (status == PV_BREAK));
+         }
       } // k < numPatches
       status = HyPerConn::checkNormalizeArbor(patches, dataStart, numPatches, arborId); // no polymorphism here until HyPerConn generalized to normalize_arbor_individually == false
       assert( (status == PV_SUCCESS) || (status == PV_BREAK));
@@ -2503,8 +2505,10 @@ int HyPerConn::normalizeWeights(PVPatch ** patches, pvdata_t ** dataStart, int n
 #ifdef USE_SHMGET
         	 if (shmget_flag && !shmget_owner[kArbor]) continue;
 #endif
-            status = scaleWeights(nx, ny, offset, dataStart[kArbor]+kPatch*nxp*nyp*nfp, sumAll, sum2All, maxAll);
-            assert( (status == PV_SUCCESS) || (status == PV_BREAK) );
+        	if (sum2All != 0) {
+               status = scaleWeights(nx, ny, offset, dataStart[kArbor]+kPatch*nxp*nyp*nfp, sumAll, sum2All, maxAll);
+               assert( (status == PV_SUCCESS) || (status == PV_BREAK) );
+        	}
          }
       } // kPatch < numPatches
 
