@@ -15,14 +15,14 @@ HyPerCol "column" = {
    ny = 256;
    dt = 1.0;
    randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
-   numSteps = 100000;
+   numSteps = 200000;
    progressStep = 1;
    outputPath = "output/";
    filenamesContainLayerNames = true;
    filenamesContainConnectionNames = true;
-   checkpointRead = false;
+   checkpointRead = true;
    checkpointReadDir = "Checkpoints";
-   checkpointReadDirIndex = 60000;
+   checkpointReadDirIndex = 100000;
    checkpointWrite = true;
    checkpointWriteDir = "Checkpoints";
    checkpointWriteStepInterval = 10000;
@@ -45,7 +45,7 @@ Movie "Image" = {
     marginWidth = 1;
     writeStep = -1;
     writeSparseActivity = false;
-    displayPeriod = 1000;
+    displayPeriod = 200;
     start_frame_index = 0;
     skip_frame_index = 1;
     echoFramePathnameFlag = true;
@@ -70,7 +70,7 @@ Retina "Retina" = {
     nyScale = 1;
     nf = 1;
     marginWidth = 7;
-    writeStep = 1000.0;
+    writeStep = 100.0;
     mirrorBCflag = 1;
     spikingFlag = 0;
     writeSparseActivity = 0;
@@ -93,7 +93,7 @@ ANNLayer "Ganglion" = {
     nyScale = 1;
     nf = 1;
     marginWidth = 3;
-    writeStep = 1000.0;
+    writeStep = 100.0;
     mirrorBCflag = 1;
     writeSparseActivity = 0;
 
@@ -108,35 +108,13 @@ ANNLayer "Ganglion" = {
 };
 
 
-ANNLayer "Recon" = {
-    restart = 0;
-    nxScale = 1;
-    nyScale = 1;
-    nf = 1;
-    marginWidth = 0;
-    writeStep = 1000;
-    mirrorBCflag = 1;
-    writeSparseActivity = 0;
-
-    InitVType = "ZeroV";
-
-    VThresh = -infinity; //-infinity;
-    VMax = infinity; //infinity;  // prevent reconstruction from exceeding reasonable bounds
-    VMin = -infinity; //-infinity;
-    VShift = 0;
-    
-    phase = 2;
-};
-
-
-
 ANNLayer "Error" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
     nf = 1;
     marginWidth = 6;
-    writeStep = 1000;
+    writeStep = 100;
     mirrorBCflag = 1;
     writeSparseActivity = 0;
 
@@ -165,7 +143,7 @@ HyPerLCALayer "V1" = {
     minV = 0.0;
     maxV = 1.05;
     
-    timeConstantTau = 100000.0;
+    timeConstantTau = 100.0;
     
     VThresh = 1.0;
     VMax = infinity; //infinity;
@@ -173,6 +151,28 @@ HyPerLCALayer "V1" = {
     VShift = 0.0;  // 0 -> hard threshold, 1 -> soft threshold
 
     phase = 4;
+};
+
+
+
+ANNLayer "Recon" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 0;
+    writeStep = 100;
+    mirrorBCflag = 1;
+    writeSparseActivity = 0;
+
+    InitVType = "ZeroV";
+
+    VThresh = -infinity; //-infinity;
+    VMax = infinity; //infinity;  // prevent reconstruction from exceeding reasonable bounds
+    VMin = -infinity; //-infinity;
+    VShift = 0;
+    
+    phase = 2; // could be 5..., but that should produce the same delays
 };
 
 
@@ -229,10 +229,11 @@ KernelConn "RetinaToGanglionCenter" = {
        
    strength = 1.0;  
    normalize = 1.0;
-   normalize_zero_offset = 0.0;
-   normalize_max = 0.0;
+   normalize_zero_offset = false;
+   normalize_max = false;
    normalize_cutoff = 0;
-   symmetrizeWeights = 0;
+   normalize_RMS_amp = false;
+   symmetrizeWeights = false;
 
    shrinkPatches = false;
    writeCompressedWeights = 0.0;
@@ -271,10 +272,11 @@ KernelConn "RetinaToGanglionSurround" = {
        
    strength = 1.0;  
    normalize = 1.0;
-   normalize_zero_offset = 0.0;
-   normalize_max = 0.0;
-   normalize_cutoff = 0;
-   symmetrizeWeights = 0;
+   normalize_zero_offset = false;
+   normalize_max = false;
+   normalize_cutoff = 0.0;
+   normalize_RMS_amp = false;
+   symmetrizeWeights = false;
 
    shrinkPatches = false;
    writeCompressedWeights = 0.0;
@@ -310,33 +312,40 @@ IdentConn "ReconToError" = {
     writeStep = -1;
 };
 
-KernelConn "ErrorToV1" = {
-    preLayerName = "Error";
-    postLayerName = "V1";
+KernelConn "V1ToRecon" = {
+    preLayerName = "V1";
+    postLayerName = "Recon";
     channelCode = 0;
-    nxp = 3;
-    nyp = 3;
-    nfp = 512;
+    nxp = 12;
+    nyp = 12;
+    nfp = 1;
     numAxonalArbors = 1;
     initFromLastFlag = 0;
     
     //weightInitType = "FileWeight";
-    //initWeightsFile = "/Users/garkenyon/workspace/HyPerHLCA2/Checkpoints/Checkpoint148000/ErrorToV1_W.pvp";
+    //initWeightsFile = "/Users/garkenyon/workspace/HyPerHLCA2/Checkpoints/Checkpoint100000/V1ToRecon_W.pvp";
     weightInitType = "UniformRandomWeight";
     
-    normalize = false;
+    strength = 1.0;  
+    normalize = 1.0;
+    normalize_zero_offset = false;
+    normalize_max = false;
+    normalize_cutoff = 0.0;
+    normalize_RMS_amp = true;
+    symmetrizeWeights = false;
+
     preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
     keepKernelsSynchronized = true; 
     combine_dW_with_W_flag = false; 
 
-    writeStep = -1;
+    writeStep = 100;
     writeCompressedWeights = false;
     writeCompressedCheckpoints = false;
     plasticityFlag = true;
-    weightUpdatePeriod = 1000.0;
-    initialWeightUpdateTime = 499.0;
+    weightUpdatePeriod = 100.0;
+    initialWeightUpdateTime = 99.0;
     initialWriteTime = 0.0;
-    dWMax = 0.5; //
+    dWMax = 1.0; //
     wMinInit = -1.0;
     wMaxInit = 1.0;
     sparseFraction = .90;
@@ -349,23 +358,23 @@ KernelConn "ErrorToV1" = {
     shrinkPatches = false;
 };
 
-TransposeConn "V1ToRecon" = {
-    preLayerName = "V1";
-    postLayerName = "Recon";
+TransposeConn "ErrorToV1" = {
+	preLayerName = "Error";
+    postLayerName = "V1";
     channelCode = 0;
 
-    originalConnName = "ErrorToV1";
+    originalConnName = "V1ToRecon";
     
     normalize = false;  
     preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
     keepKernelsSynchronized = false; 
     combine_dW_with_W_flag = false; 
 
-    writeStep = 1000;
+    writeStep = -1;
     writeCompressedWeights = false;
     writeCompressedCheckpoints = false;
     plasticityFlag = true;
-    initialWeightUpdateTime = 499.0;
+    initialWeightUpdateTime = 99.0;
     initialWriteTime = 0.0;
     shmget_flag = false;
 
