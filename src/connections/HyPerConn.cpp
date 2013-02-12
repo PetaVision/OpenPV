@@ -218,9 +218,9 @@ int HyPerConn::initialize_base()
    this->shrinkPatches_flag = false; // default value, overridden by params file parameter "normalize" in initNormalize()
    this->normalizeArborsIndividually = true;
    this->normalize_max = false;
-   this->normalize_max = false;
    this->normalize_zero_offset = false;
    this->normalize_cutoff = 0.0f;
+   this->normalize_RMS_amp = false;
    this->dWMax            = 1;
 
 #ifdef USE_SHMGET
@@ -2244,6 +2244,7 @@ int HyPerConn::initNormalize() {
       normalize_max = params->value(name, "normalize_max", normalize_max) != 0.0f;
       normalize_zero_offset = params->value(name, "normalize_zero_offset", normalize_zero_offset) != 0.0f;
       normalize_cutoff = params->value(name, "normalize_cutoff", normalize_cutoff) * normalize_strength;
+      normalize_RMS_amp = params->value(name, "normalize_RMS_amp", normalize_RMS_amp) != 0.0f;
       if (this->numberOfAxonalArborLists() > 1) {
          normalizeArborsIndividually = params->value(name, "normalize_arbors_individually", normalizeArborsIndividually) != 0.0f;
       }
@@ -2297,12 +2298,20 @@ int HyPerConn::scaleWeights(int nx, int ny, int offset, pvdata_t * dataStart, pv
       // set maximum weight to normalize_strength
       scale_factor = normalize_strength / ( fabs(maxVal) + (maxVal == 0.0f) );
    }
-   else if (sum != 0.0f) {
+   else if (sum != 0.0f && !normalize_RMS_amp) {
       scale_factor = normalize_strength / sum;
    }
-   else if (sum == 0.0f && sigma2 > 0.0f) {
-      scale_factor = normalize_strength / sqrt(sigma2);
+   else if (!normalize_RMS_amp && (sum == 0.0f) && (sigma2 > 0.0f)) {
+      scale_factor = normalize_strength / sqrt(sigma2) ;
    }
+   else if (normalize_RMS_amp && (sum2 > 0.0f)) {
+      scale_factor = normalize_strength / sqrt(sum2) ;
+   }
+   else{
+	  std::cout << "can't normalize HyPerConn:" << this->name << std::endl;
+	  return PV_FAILURE;
+   }
+
    pvdata_t * w = dataStart + offset;
    assert(w != NULL);
    for (int ky = 0; ky < ny; ky++) {
@@ -2327,7 +2336,7 @@ int HyPerConn::scaleWeights(int nx, int ny, int offset, pvdata_t * dataStart, pv
 } // scaleWeights
 
 // only checks for certain combinations of normalize parameter settings
-int HyPerConn::checkNormalizeWeights(float sum, float sigma2, float maxVal)
+int HyPerConn::checkNormalizeWeights(float sum, float sum2, float sigma2, float maxVal)
 {
    assert( sum != 0 || sigma2 != 0 ); // Calling routine should make sure this condition is met.
    float tol = 0.01f;
@@ -2340,8 +2349,11 @@ int HyPerConn::checkNormalizeWeights(float sum, float sigma2, float maxVal)
       // set maximum weight to normalize_strength
       assert((maxVal > (1-tol)*normalize_strength) && ((maxVal < (1+tol)*normalize_strength)));
     }
-   else if (normalize_cutoff == 0.0f){  // condition may be violated is normalize_cutoff != 0.0f
+   else if (normalize_cutoff == 0.0f && !normalize_RMS_amp){  // condition may be violated if normalize_cutoff != 0.0f
       assert((sum > (1-sign(normalize_strength)*tol)*normalize_strength) && ((sum < (1+sign(normalize_strength)*tol)*normalize_strength)));
+   }
+   else if (normalize_RMS_amp){
+	      assert((sqrt(sum2) > (1-tol)*normalize_strength) && (sqrt(sum2) < (1+tol)*normalize_strength));
    }
    return PV_SUCCESS;
 
@@ -2373,7 +2385,7 @@ int HyPerConn::checkNormalizeArbor(PVPatch ** patches, pvdata_t ** dataStart, in
          int num_weights = nx * ny * nfp; //wp->nf;
          float sigma2 = (sum2 / num_weights) - (sum / num_weights) * (sum / num_weights);
          if (sum != 0 || sigma2 != 0) {
-            status = checkNormalizeWeights(sum, sigma2, maxVal);
+            status = checkNormalizeWeights(sum, sum2, sigma2, maxVal);
             assert( status == PV_SUCCESS);
          }
          else {
@@ -2409,7 +2421,7 @@ int HyPerConn::checkNormalizeArbor(PVPatch ** patches, pvdata_t ** dataStart, in
          float sigma2 = ( sumAll / num_weights ) - ( sumAll / num_weights ) * ( sumAll / num_weights );
          for(int kArbor = 0; kArbor < this->numberOfAxonalArborLists(); kArbor++){
             if( sumAll != 0 || sigma2 != 0 ) {
-               status = checkNormalizeWeights(sumAll, sigma2, maxAll);
+               status = checkNormalizeWeights(sumAll, sum2All, sigma2, maxAll);
                assert(status == PV_SUCCESS );
             }
             else {

@@ -283,7 +283,7 @@ public:
          double* sum2, float* maxVal);
    int scaleWeights(int nx, int ny, int offset, float* dataStart, float sum,
          float sum2, float maxVal);
-   virtual int checkNormalizeWeights(float sum, float sigma2, float maxVal);
+   virtual int checkNormalizeWeights(float sum, float sum2, float sigma2, float maxVal);
    virtual int checkNormalizeArbor(PVPatch** patches, float** dataStart,
          int numPatches, int arborId);
    virtual int normalizeWeights(PVPatch** patches, float** dataStart,
@@ -376,6 +376,7 @@ protected:
    bool normalizeArborsIndividually; // if true, each arbor is normalized individually, otherwise, arbors normalized together
    bool normalize_max;
    bool normalize_zero_offset;
+   bool normalize_RMS_amp;
    float normalize_cutoff;
    bool shrinkPatches_flag;
    //This object handles calculating weights.  All the initialize weights methods for all connection classes
