@@ -28,6 +28,7 @@ protected:
     virtual InitWeights * handleMissingInitWeights(PVParams * params);
     int setPatchSize(const char * filename);
     int transposeKernels();
+    virtual int calc_dW(int arborId){return PV_BREAK;};
     KernelConn * originalConn;
 };
 

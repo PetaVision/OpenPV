@@ -105,7 +105,8 @@ int TransposeConn::setPatchSize(const char * filename) {
 
 int TransposeConn::updateWeights(int axonID) {
    int status;
-   if(originalConn->getLastUpdateTime() > lastUpdateTime ) {
+   float original_update_time = originalConn->getLastUpdateTime();
+   if(original_update_time > lastUpdateTime ) {
       status = transposeKernels();
       lastUpdateTime = parent->simulationTime();
    }
