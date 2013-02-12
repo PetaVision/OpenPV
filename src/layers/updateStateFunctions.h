@@ -230,9 +230,8 @@ static inline int updateV_GenerativeLayer(int numNeurons,
 			{
 		V[k] += relaxation * dV[k];
 	}
-	setActivity_HyPerLayer(numNeurons, activity, V, nx, ny, nf, nb);
-	applyVMax_ANNLayer(numNeurons, V, VMax, activity, nx, ny, nf, nb);
-	applyVThresh_ANNLayer(numNeurons, V, VMin, VThresh, 0.0f, activity, nx, ny, nf, nb);
+	applyVMax_ANNLayer(numNeurons, V, VMax, V, nx, ny, nf, nb);
+	applyVThresh_ANNLayer(numNeurons, V, VMin, VThresh, 0.0f, V, nx, ny, nf, nb);
 	return PV_SUCCESS;
 }
 
