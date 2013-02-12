@@ -79,12 +79,18 @@ int SiblingConn::normalizeFamily() {
 				localWeights[iWeight] /= norm_denom;
 #endif
 #ifdef USE_SHMGET
-				if (shmget_flag) {
-					//if (siblingConn->getShmgetOwner(kArbor)) {  // won't work! owner of siblingConn may be different process
-					if (shmget_owner[kArbor]) {
+				if (siblingConn->getShmgetFlag()) {  // sibling is using shared memory, only one process should adjust sibling weights
+					if (shmget_flag){  // local conn is using shared memory, use it's owner flag
+						//if (siblingConn->getShmgetOwner(kArbor)) {  // won't work! owner of siblingConn may be different process
+						if (shmget_owner[kArbor]) {
+							siblingWeights[iWeight] /= norm_denom;
+						}
+					}  // local conn is not using shared memory, use sibling's owner flag, ok because no other process can write to this conn
+					else if (siblingConn->getShmgetOwner(kArbor)) {
 						siblingWeights[iWeight] /= norm_denom;
 					}
-				} else {
+				} else {  //sibling is not using shared memory, so each process adjusts sibling weights
+					assert(!shmget_flag); // if local conn is shared, then local weight may have already been adjusted by another process and denom may not be correct
 					siblingWeights[iWeight] /= norm_denom;
 				}
 #else
