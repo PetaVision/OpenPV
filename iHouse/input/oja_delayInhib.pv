@@ -60,12 +60,12 @@ Patterns "Input" = {
    inOut                   = 0;      //-1 is all in, 0 is random, 1 is all out. Values between represent how much in given direction
 		                             //
    dropSpeed               = -1;      //(pixels/dt) Radius expands dropSpeed pixles per timestep
-   dropSpeedRandomMax      = 2;      // only applies if dropSpeed = -1
    dropSpeedRandomMin      = 1;      // only applies of dropSpeed = -1
+   dropSpeedRandomMax      = 2;      // only applies if dropSpeed = -1
     							     // 
    dropPeriod              = -1;     //(dt) -1 for random period, otherwise, number of frames inbetween drops
-   dropPeriodRandomMax     = 25;     // avg of 50
-   dropPeriodRandomMin     = 75;
+   dropPeriodRandomMin     = 25;
+   dropPeriodRandomMax     = 75;     // avg of 50
     							     // 
    maxValue                = 0.75;
    minValue                = 0.25;
@@ -73,7 +73,7 @@ Patterns "Input" = {
    halfNeutral             = true;
     							     // 
    dropPosition            = 0;      // -1 random period of drop positions, 0 is drop from center only, n>0 is number of frames (period) for drop positions
-    							     //
+    							     //TODO: Sets dropPosition random min and max, shouldn't do that.
    startFrame              = 0; 
    endFrame                = -1;     // -1 means all frames
     							     // 
@@ -86,13 +86,15 @@ Patterns "Input" = {
    displayPeriod           = 1;
    writeStep               = -1;
    marginWidth             = 1;
-   spikingFlag             = 0;
+   writeSparseActivity     = false;
    useImageBCflag          = false;
    mirrorBCflag            = true;
    inverseFlag             = false;
+   normalizeLuminanceFlag  = false;
+   jitterFlag              = false;
     							     // 
-   writeNonspikingActivity = true;
    restart                 = 0;
+   phase                   = 0;
 };
 
 
@@ -106,8 +108,8 @@ Retina "RetinaON" = {
     mirrorBCflag        = 0;
     spikingFlag         = true;   // false (no quotes) is translated to 0
     							  //
-    noiseOnFreq         = 400;    // Hz // Max poisson spiking rate when input is 255
-    noiseOffFreq        = 10;     // Hz // Min poisson spiking rate when input is 0
+    foregroudRate       = 400;    // Hz // Max poisson spiking rate when input is 255
+    backgroundRate      = 10;     // Hz // Min poisson spiking rate when input is 0
                                   //
     burstFreq           = 0.001;  // Hz // Everything coming into the retina should be burstin burstFreq times per sec
     burstDuration       = 1000000;// ms // Bursts last burstDuration ms
@@ -118,6 +120,7 @@ Retina "RetinaON" = {
     refractoryPeriod    = 3;
     absRefractoryPeriod = 1.5;
     restart             = 0;
+    phase               = 0;
 };
 
 
@@ -131,8 +134,8 @@ Retina "RetinaOFF" = {
     mirrorBCflag        = 0;
     spikingFlag         = true;   // false (no quotes) is translated to 0
                                   //
-    noiseOnFreq         = 400;    // Hz // Max poisson spiking rate when input is 255
-    noiseOffFreq        = 10;     // Hz // Min poisson spiking rate when input is 0
+    foregroundRate      = 400;    // Hz // Max poisson spiking rate when input is 255
+    backgroundRate      = 10;     // Hz // Min poisson spiking rate when input is 0
                                   //
     burstFreq           = 0.001;  // Hz // Everything coming into the retina should be burstin burstFreq times per sec
     burstDuration       = 1000000;// ms // Bursts last burstDuration ms
@@ -143,6 +146,7 @@ Retina "RetinaOFF" = {
     refractoryPeriod    = 3;
     absRefractoryPeriod = 1.5;
     restart             = 0;
+    phase               = 0;
 };
 
 
@@ -176,7 +180,8 @@ LIF "lif" = {
    noiseAmpIB       = 0.0;       // no noise here 
    noiseFreqE       = 250.;      // spontaneous transmitter release/channel openings
    noiseFreqI       = 250.;      // correlation to time step size
-   noiseFreqIB      =   0.;      // should be scaled by the time constant - look at LIF model
+   noiseFreqIB      = 0.;        // should be scaled by the time constant - look at LIF model
+   phase            = 0;
 };
 
 
@@ -190,149 +195,156 @@ LIF "lif" = {
 ////////////////////////////////////////////////////////////////////////////////
 
 KernelConn "ImagetoRetinaONCenter" = {
-   preLayerName           = "Input";
-   postLayerName          = "RetinaON";
-   channelCode            = 0;
-   nxp                    = 1; 
-   nyp                    = 1; 
-   nfp                    = 1;
-   delay                  = 0;
+   preLayerName               = "Input";
+   postLayerName              = "RetinaON";
+   channelCode                = 0;
+   nxp                        = 1; 
+   nyp                        = 1; 
+   nfp                        = 1;
+   delay                      = 0;
                                  //
-   initFromLastFlag       = 0;  
-   writeStep              = -1;
+   initFromLastFlag           = 0;  
+   writeStep                  = -1;
                                  //
-   weightInitType         = "Gauss2DWeight";
-   aspect                 = 1;
-   sigma                  = 1;
-   rMax                   = 1;   
-   rMin                   = 0;
-   strength               = 5.33333333333;
-   //combineWeightFiles     = false;
+   weightInitType             = "Gauss2DWeight";
+   aspect                     = 1;
+   sigma                      = 1;
+   rMax                       = 1;   
+   rMin                       = 0;
+   strength                   = 5.33333333333;
+   //combineWeightFiles         = false;
                                  //
-   numAxonalArbors        = 1;
-   plasticityFlag         = false;
-   stochasticReleaseFlag  = false;
-   preActivityIsNotRate   = false;
-   writeCompressedWeights = true;
-   selfFlag               = false;
-   shrinkPatches          = false;
-   normalizeTotalToPost   = true;
-   normalize_cutoff       = false;
+   numAxonalArbors            = 1;
+   plasticityFlag             = false;
+   stochasticReleaseFlag      = false;
+   preActivityIsNotRate       = false;
+   writeCompressedWeights     = true;
+   selfFlag                   = false;
+   shrinkPatches              = false;
+   normalizeTotalToPost       = true;
+   normalize_cutoff           = false;
                                  //
-   normalize              = true;
-   normalize_zero_offset  = 0.0;
-   normalize_max          = 0.0;
-   symmetrizeWeights      = 0;
+   normalize                  = true;
+   normalize_zero_offset      = 0.0;
+   normalize_max              = 0.0;
+   normalize_RMS_amp          = false;
+   symmetrizeWeights          = 0;
+   writeCompressedCheckpoints = false;
 };
 
 KernelConn "ImagetoRetinaONSurround" = {
-   preLayerName           = "Input";
-   postLayerName          = "RetinaON";
-   channelCode            = 1;
-   nxp                    = 3;
-   nyp                    = 3;
-   nfp                    = 1;
-   delay                  = 0;
+   preLayerName               = "Input";
+   postLayerName              = "RetinaON";
+   channelCode                = 1;
+   nxp                        = 3;
+   nyp                        = 3;
+   nfp                        = 1;
+   delay                      = 0;
                                  //
-   initFromLastFlag       = 0;
-   writeStep              = -1;
+   initFromLastFlag           = 0;
+   writeStep                  = -1;
                                  //
-   weightInitType         = "Gauss2DWeight";
-   aspect                 = 1;
-   sigma                  = 1;
-   rMax                   = 5;
-   rMin                   = 0.1;
-   strength               = 5.33333333333;
-   //combineWeightFiles     = false;
+   weightInitType             = "Gauss2DWeight";
+   aspect                     = 1;
+   sigma                      = 1;
+   rMax                       = 5;
+   rMin                       = 0.1;
+   strength                   = 5.33333333333;
+   //combineWeightFiles         = false;
                                  //
-   numAxonalArbors        = 1;
-   plasticityFlag         = false;
-   stochasticReleaseFlag  = false;
-   preActivityIsNotRate   = false;
-   writeCompressedWeights = true;
-   selfFlag               = false;
-   shrinkPatches          = false;
-   normalizeTotalToPost   = true;
-   normalize_cutoff       = false;
+   numAxonalArbors            = 1;
+   plasticityFlag             = false;
+   stochasticReleaseFlag      = false;
+   preActivityIsNotRate       = false;
+   writeCompressedWeights     = true;
+   selfFlag                   = false;
+   shrinkPatches              = false;
+   normalizeTotalToPost       = true;
+   normalize_cutoff           = false;
                                  //
-   normalize              = true;
-   normalize_zero_offset  = 0.0;
-   normalize_max          = 0.0;
-   symmetrizeWeights      = 0;
+   normalize                  = true;
+   normalize_zero_offset      = 0.0;
+   normalize_max              = 0.0;
+   normalize_RMS_amp          = false;
+   symmetrizeWeights          = 0;
+   writeCompressedCheckpoints = false;
 };
 
 
 KernelConn "ImagetoRetinaOFFCenter" = {
-   preLayerName           = "Input";
-   postLayerName          = "RetinaOFF";
-   channelCode            = 1;
-   nxp                    = 1; 
-   nyp                    = 1; 
-   nfp                    = 1;
-   delay                  = 0;
+   preLayerName               = "Input";
+   postLayerName              = "RetinaOFF";
+   channelCode                = 1;
+   nxp                        = 1; 
+   nyp                        = 1; 
+   nfp                        = 1;
+   delay                      = 0;
                                  //
-   initFromLastFlag       = 0;  
-   writeStep              = -1;
+   initFromLastFlag           = 0;  
+   writeStep                  = -1;
                                  //
-   weightInitType         = "Gauss2DWeight";
-   aspect                 = 1;
-   sigma                  = 1;
-   rMax                   = 1;   
-   rMin                   = 0;
-   strength               = 5.33333333333;
-   //combineWeightFiles     = false;
+   weightInitType             = "Gauss2DWeight";
+   aspect                     = 1;
+   sigma                      = 1;
+   rMax                       = 1;   
+   rMin                       = 0;
+   strength                   = 5.33333333333;
+   //combineWeightFiles         = false;
                                  //
-   numAxonalArbors        = 1;
-   plasticityFlag         = false;
-   stochasticReleaseFlag  = false;
-   preActivityIsNotRate   = false;
-   writeCompressedWeights = true;
-   selfFlag               = false;
-   shrinkPatches          = false;
-   normalizeTotalToPost   = true;
-   normalize_cutoff       = false;
+   numAxonalArbors            = 1;
+   plasticityFlag             = false;
+   stochasticReleaseFlag      = false;
+   preActivityIsNotRate       = false;
+   writeCompressedWeights     = true;
+   selfFlag                   = false;
+   shrinkPatches              = false;
+   normalizeTotalToPost       = true;
+   normalize_cutoff           = false;
                                  //
-   normalize              = true;
-   normalize_zero_offset  = 0.0;
-   normalize_max          = 0.0;
-   symmetrizeWeights      = 0;
+   normalize                  = true;
+   normalize_zero_offset      = 0.0;
+   normalize_max              = 0.0;
+   normalize_RMS_amp          = false;
+   symmetrizeWeights          = 0;
+   writeCompressedCheckpoints = false;
 };
 
 
 KernelConn "ImagetoRetinaOFFSurround" = {
-   preLayerName           = "Input";
-   postLayerName          = "RetinaOFF";
-   channelCode            = 0;
-   nxp                    = 3;
-   nyp                    = 3;
-   nfp                    = 1;
-   delay                  = 0;
+   preLayerName               = "Input";
+   postLayerName              = "RetinaOFF";
+   channelCode                = 0;
+   nxp                        = 3;
+   nyp                        = 3;
+   nfp                        = 1;
+   delay                      = 0;
                                  //
-   initFromLastFlag       = 0;
-   writeStep              = -1;
+   initFromLastFlag           = 0;
+   writeStep                  = -1;
                                  //
-   weightInitType         = "Gauss2DWeight";
-   aspect                 = 1;
-   sigma                  = 1;
-   rMax                   = 5;
-   rMin                   = 0.1;
-   strength               = 5.33333333333;
-   //combineWeightFiles     = false;
+   weightInitType             = "Gauss2DWeight";
+   aspect                     = 1;
+   sigma                      = 1;
+   rMax                       = 5;
+   rMin                       = 0.1;
+   strength                   = 5.33333333333;
+   //combineWeightFiles         = false;
                                  //
-   numAxonalArbors        = 1;
-   plasticityFlag         = false;
-   stochasticReleaseFlag  = false;
-   preActivityIsNotRate   = false;
-   writeCompressedWeights = true;
-   selfFlag               = false;
-   shrinkPatches          = false;
-   normalizeTotalToPost   = true;
-   normalize_cutoff       = false;
+   numAxonalArbors            = 1;
+   plasticityFlag             = false;
+   stochasticReleaseFlag      = false;
+   preActivityIsNotRate       = false;
+   writeCompressedWeights     = true;
+   selfFlag                   = false;
+   shrinkPatches              = false;
+   normalizeTotalToPost       = true;
+   normalize_cutoff           = false;
                                  //
-   normalize              = true;
-   normalize_zero_offset  = 0.0;
-   normalize_max          = 0.0;
-   symmetrizeWeights      = 0;
+   normalize                  = true;
+   normalize_zero_offset      = 0.0;
+   normalize_max              = 0.0;
+   symmetrizeWeights          = 0;
+   writeCompressedCheckpoints = false;
 };
 
 
@@ -342,118 +354,122 @@ KernelConn "ImagetoRetinaOFFSurround" = {
 // STDP connections      STDP connections      STDP connections      STDP connections      STDP connections      STDP connections      
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 OjaSTDPConn "RetinaONtoLif" = {
-   preLayerName           = "RetinaON";
-   postLayerName          = "lif";
-   nxp                    = 10;
-   nyp                    = 10;
-   nfp                    = 1;
-   channelCode            = 0;
+   preLayerName               = "RetinaON";
+   postLayerName              = "lif";
+   nxp                        = 10;
+   nyp                        = 10;
+   nfp                        = 1;
+   channelCode                = 0;
                                    //
-   initFromLastFlag       = 0;      
+   initFromLastFlag           = 0;      
                                    //
-   writeStep              = -1;    // Must be a multiple of postLayer's write step for analysis
+   writeStep                  = -1;    // Must be a multiple of postLayer's write step for analysis
                                    //
-   ampLTP                 = 1;     // (ms)
-   initAmpLTD             = 1;     // (ms)
-   tauLTP                 = 4;     // (ms)
-   tauLTD                 = 8;     // (ms)
-   tauOja                 = 150;   // (ms)
-   tauTHR                 = 5000;  // (ms) thresholdAdaptationTime
-   tauO                   = 300;   // (ms)
-   targetPostRate         = 5;     // (Hz)
-   targetPreRate          = 10;    // (Hz)
-   weightDecay            = 0;     // How quickly STDP decays if no firing occurs
-   dWMax                  = 2;     // How quickly STDP happens (unstable if high)
-   weightScale            = 1;     // Modifies strength range for STDP (we want strengths to be around 0.25)
-   wMin                   = 0.001; // Min value for weights
-   //wMax                   = 1;     // Does not matter if ojaFlag = true
-   ojaFlag                = 1;     // Turns oja rule on or off. Standard STDP if off
-   LTDscale               = 1;     // Scale for the change of ampLTD. Must be positive; defaults to postVthRest - posVrest. If 0, adaptive LTD is fixed to initAmpLTD
+   ampLTP                     = 1;     // (ms)
+   initAmpLTD                 = 1;     // (ms)
+   tauLTP                     = 4;     // (ms)
+   tauLTD                     = 8;     // (ms)
+   tauOja                     = 150;   // (ms)
+   tauTHR                     = 5000;  // (ms) thresholdAdaptationTime
+   tauO                       = 300;   // (ms)
+   targetPostRate             = 5;     // (Hz)
+   targetPreRate              = 10;    // (Hz)
+   weightDecay                = 0;     // How quickly STDP decays if no firing occurs
+   dWMax                      = 2;     // How quickly STDP happens (unstable if high)
+   weightScale                = 1;     // Modifies strength range for STDP (we want strengths to be around 0.25)
+   wMin                       = 0.001; // Min value for weights
+   //wMax                       = 1;     // Does not matter if ojaFlag = true
+   ojaFlag                    = 1;     // Turns oja rule on or off. Standard STDP if off
+   LTDscale                   = 1;     // Scale for the change of ampLTD. Must be positive; defaults to postVthRest - posVrest. If 0, adaptive LTD is fixed to initAmpLTD
                                    //
-   numAxonalArbors        = 5;
-   delay                  = [0,1,2,3,4];
+   numAxonalArbors            = 5;
+   delay                      = [0,1,2,3,4];
                                    //
-   weightInitType         = "UniformRandomWeight";
-   //weightInit             = 0.001;
-   wMaxInit               = 0.1;
-   wMinInit               = 0.001;
-   normalize              = false;
-   //normalize_max          = false;
-   //normalize_zero_offset  = 0.0;
-   //strength               = 0;     // Strength doesn't matter when weightInitType is UniformRandomWeight
-   //combineWeightFiles     = false;
-   //symmetrizeWeights      = 0;
+   weightInitType             = "UniformRandomWeight";
+   //weightInit                 = 0.001;
+   wMaxInit                   = 0.1;
+   wMinInit                   = 0.001;
+   normalize                  = false;
+   //normalize_max              = false;
+   //normalize_zero_offset      = 0.0;
+   //strength                   = 0;     // Strength doesn't matter when weightInitType is UniformRandomWeight
+   //combineWeightFiles         = false;
+   //symmetrizeWeights          = 0;
                                    //
-   combine_dW_with_W_flag = false;
-   selfFlag               = false;
-   plasticityFlag         = true;
-   shrinkPatches          = false;
-   writeCompressedWeights = 0.0;
-   stochasticReleaseFlag  = false;
-   //weightUpdatePeriod     = 1.0;
+   combine_dW_with_W_flag     = false;
+   selfFlag                   = false;
+   plasticityFlag             = true;
+   shrinkPatches              = false;
+   writeCompressedWeights     = 0.0;
+   stochasticReleaseFlag      = false;
+   //weightUpdatePeriod         = 1.0;
                                    //
-   synscalingFlag         = 0;
-   synscaling_v           = 1;
-   preActivityIsNotRate   = 0;
-   //initialWriteTime       = 0;
+   synscalingFlag             = 0;
+   synscaling_v               = 1;
+   preActivityIsNotRate       = 0;
+   writeCompressedCheckpoints = 0;
+   sparseFraction             = 0
+   //initialWriteTime           = 0;
 };
 
 
 OjaSTDPConn "RetinaOFFtoLif" = {
-   preLayerName           = "RetinaOFF";
-   postLayerName          = "lif";
-   nxp                    = 10;
-   nyp                    = 10;
-   nfp                    = 1;
-   channelCode            = 0;
+   preLayerName               = "RetinaOFF";
+   postLayerName              = "lif";
+   nxp                        = 10;
+   nyp                        = 10;
+   nfp                        = 1;
+   channelCode                = 0;
                                    //
-   initFromLastFlag       = 0;      
+   initFromLastFlag           = 0;      
                                    //
-   writeStep              = -1;    // Must be a multiple of postLayer's write step for analysis
+   writeStep                  = -1;    // Must be a multiple of postLayer's write step for analysis
                                    //
-   ampLTP                 = 1;     // (ms)
-   initAmpLTD             = 1;     // (ms)
-   tauLTP                 = 4;     // (ms)
-   tauLTD                 = 8;     // (ms)
-   tauOja                 = 150;   // (ms)
-   tauTHR                 = 5000;  // (ms) thresholdAdaptationTime
-   tauO                   = 300;   // (ms)
-   targetPostRate         = 5;     // (Hz)
-   targetPreRate          = 10;    // (Hz)
-   weightDecay            = 0;     // How quickly STDP decays if no firing occurs
-   dWMax                  = 2;     // How quickly STDP happens (unstable if high)
-   weightScale            = 1;     // Modifies strength range for STDP (we want strengths to be around 0.25)
-   wMin                   = 0.001; // Min value for weights
-   //wMax                   = 1;     // Does not matter if ojaFlag = true
-   ojaFlag                = 1;     // Turns oja rule on or off. Standard STDP if off
-   LTDscale               = 1;     // Scale for the change of ampLTD. Must be positive; defaults to postVthRest - posVrest. If 0, adaptive LTD is fixed to initAmpLTD
+   ampLTP                     = 1;     // (ms)
+   initAmpLTD                 = 1;     // (ms)
+   tauLTP                     = 4;     // (ms)
+   tauLTD                     = 8;     // (ms)
+   tauOja                     = 150;   // (ms)
+   tauTHR                     = 5000;  // (ms) thresholdAdaptationTime
+   tauO                       = 300;   // (ms)
+   targetPostRate             = 5;     // (Hz)
+   targetPreRate              = 10;    // (Hz)
+   weightDecay                = 0;     // How quickly STDP decays if no firing occurs
+   dWMax                      = 2;     // How quickly STDP happens (unstable if high)
+   weightScale                = 1;     // Modifies strength range for STDP (we want strengths to be around 0.25)
+   wMin                       = 0.001; // Min value for weights
+   //wMax                       = 1;     // Does not matter if ojaFlag = true
+   ojaFlag                    = 1;     // Turns oja rule on or off. Standard STDP if off
+   LTDscale                   = 1;     // Scale for the change of ampLTD. Must be positive; defaults to postVthRest - posVrest. If 0, adaptive LTD is fixed to initAmpLTD
                                    //
-   numAxonalArbors        = 5;
-   delay                  = [0,1,2,3,4];
+   numAxonalArbors            = 5;
+   delay                      = [0,1,2,3,4];
                                    //
-   weightInitType         = "UniformRandomWeight";
-   //weightInit             = 0.001;
-   wMaxInit               = 0.1;
-   wMinInit               = 0.001;
-   normalize              = false;
-   //normalize_max          = false;
-   //normalize_zero_offset  = 0.0;
-   //strength               = 0;     // Strength doesn't matter when weightInitType is UniformRandomWeight
-   //combineWeightFiles     = false;
-   //symmetrizeWeights      = 0;
+   weightInitType             = "UniformRandomWeight";
+   //weightInit                 = 0.001;
+   wMaxInit                   = 0.1;
+   wMinInit                   = 0.001;
+   normalize                  = false;
+   //normalize_max              = false;
+   //normalize_zero_offset      = 0.0;
+   //strength                   = 0;     // Strength doesn't matter when weightInitType is UniformRandomWeight
+   //combineWeightFiles         = false;
+   //symmetrizeWeights          = 0;
                                    //
-   combine_dW_with_W_flag = false;
-   selfFlag               = false;
-   plasticityFlag         = true;
-   shrinkPatches          = false;
-   writeCompressedWeights = 0.0;
-   stochasticReleaseFlag  = false;
-   //weightUpdatePeriod     = 1.0;
+   combine_dW_with_W_flag     = false;
+   selfFlag                   = false;
+   plasticityFlag             = true;
+   shrinkPatches              = false;
+   writeCompressedWeights     = 0.0;
+   stochasticReleaseFlag      = false;
+   //weightUpdatePeriod         = 1.0;
                                    //
-   synscalingFlag         = 0;
-   synscaling_v           = 1;
-   preActivityIsNotRate   = 0;
-   //initialWriteTime       = 0;
+   synscalingFlag             = 0;
+   synscaling_v               = 1;
+   preActivityIsNotRate       = 0;
+   writeCompressedCheckpoints = 0;
+   sparseFraction             = 0
+   //initialWriteTime           = 0;
 };
 
 
@@ -464,37 +480,39 @@ OjaSTDPConn "RetinaOFFtoLif" = {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 LCALIFLateralConn "lif lateral inhibition" = {
-    preLayerName            = "lif";
-    postLayerName           = "lif";
-    channelCode             = 1;
-    nxp                     = 3;    // Patch size * 2 - 1
-    nyp                     = 3;    // Patch size * 2 - 1
-    nfp                     = 1;
+    preLayerName               = "lif";
+    postLayerName              = "lif";
+    channelCode                = 1;
+    nxp                        = 3;    // Patch size * 2 - 1
+    nyp                        = 3;    // Patch size * 2 - 1
+    nfp                        = 1;
                                      //
-    integrationTimeConstant = 300;
-    inhibitionTimeConstant  = 50000;
-    targetRate              = 5;
-    coorThresh              = 1;
+    integrationTimeConstant    = 300;
+    inhibitionTimeConstant     = 50000;
+    targetRate                 = 5;
+    coorThresh                 = 1;
                                      //
-    numAxonalArbors         = 1;
-    writeStep               = -1;
-    initFromLastFlag        = 0;
+    numAxonalArbors            = 1;
+    writeStep                  = -1;
+    initFromLastFlag           = 0;
                                      //
-    weightInitType          = "UniformWeight";
-    weightInit              = 1.0;
+    weightInitType             = "UniformWeight";
+    weightInit                 = 1.0;
+    dWMax                      = 1.0;
                                      //
-    normalize               = false;
-    preActivityIsNotRate    = false;
+    normalize                  = false;
+    preActivityIsNotRate       = false;
                                      //
-    writeCompressedWeights  = false;
-    plasticityFlag          = true;
-    selfFlag                = false;
+    writeCompressedWeights     = false;
+    plasticityFlag             = true;
+    selfFlag                   = false;
                                      //
-    delay                   = 0;
+    delay                      = 0;
                                      //
-    stochasticReleaseFlag   = false;
-    shrinkPatches           = false;
-    combine_dW_with_W_flag  = false;
+    stochasticReleaseFlag      = false;
+    shrinkPatches              = false;
+    combine_dW_with_W_flag     = false;
+    writeCompressedCheckpoints = 0;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
