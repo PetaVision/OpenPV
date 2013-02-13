@@ -108,7 +108,7 @@ Retina "RetinaON" = {
     mirrorBCflag        = 0;
     spikingFlag         = true;   // false (no quotes) is translated to 0
     							  //
-    foregroudRate       = 400;    // Hz // Max poisson spiking rate when input is 255
+    foregroundRate       = 400;    // Hz // Max poisson spiking rate when input is 255
     backgroundRate      = 10;     // Hz // Min poisson spiking rate when input is 0
                                   //
     burstFreq           = 0.001;  // Hz // Everything coming into the retina should be burstin burstFreq times per sec
