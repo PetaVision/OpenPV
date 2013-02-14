@@ -7,18 +7,17 @@ from collections import OrderedDict
 #filenames     = [("sheng","/Users/slundquist/Desktop/ptLIF.txt")]
 #filenames     = [("sheng","/Users/slundquist/Desktop/retONtoLif.txt")]
 
-#workspaceDir  = "/Users/dpaiton/Documents/Work/Lanl/workspace" #Dylan Mac
-workspaceDir  = "/home/dpaiton/workspace" #Dylan Neuro
+workspaceDir  = "/Users/dpaiton/Documents/Work/LANL/workspace" #Dylan Mac
 probeFileDir  = workspaceDir+"/iHouse/output"
 
 #filenames = [("label","path")]
 filenames    = [
-        ("OnVer",probeFileDir+"/retONtoLifVer.txt"),
-        ("OnHor",probeFileDir+"/retONtoLifHor.txt"),
-        ("OnDia",probeFileDir+"/retONtoLifDia.txt"),
-        ("OffVer",probeFileDir+"/retOFFtoLifVer.txt"),
-        ("OffHor",probeFileDir+"/retOFFtoLifHor.txt"),
-        ("OffDia",probeFileDir+"/retOFFtoLifDia.txt")]
+            ("onVer",probeFileDir+"/retONtoLifVer.txt"),
+            ("onHor",probeFileDir+"/retONtoLifHor.txt")]
+            #("onDia",probeFileDir+"/retONtoLifDia.txt"),
+            #("offVer",probeFileDir+"/retOFFtoLifVer.txt"),
+            #("offHor",probeFileDir+"/retOFFtoLifHor.txt"),
+            #("offDia",probeFileDir+"/retOFFtoLifDia.txt")]
 #filenames     = [
 #        ("OnVer",probeFileDir+"/retONtoLifVer.txt")]
 
@@ -31,7 +30,7 @@ endTime     = 100000 #End must be under number of lines in file
 
 #Which plots
 timePlot    = True 
-weightMap   = True 
+weightMap   = True #Needs 'weight*' in data dictionary
 
 
 #Other flags
@@ -61,53 +60,27 @@ data['t']                     = []
 #data['prOjaTr_0_7']    = []
 #data['prOjaTr_0_8']    = []
 #data['prOjaTr_0_9']    = []
-#data['prOjaTr_0_10']    = []
-#data['prOjaTr_0_11']    = []
-#data['prOjaTr_0_12']    = []
-#data['prOjaTr_0_13']    = []
-#data['prOjaTr_0_14']    = []
-#data['prOjaTr_0_15']    = []
-#data['prOjaTr_0_16']    = []
-#data['prOjaTr_0_17']    = []
-#data['prOjaTr_0_18']    = []
-#data['prOjaTr_0_19']    = []
-#data['prOjaTr_0_20']    = []
-#data['prOjaTr_0_21']    = []
-#data['prOjaTr_0_22']    = []
-#data['prOjaTr_0_23']    = []
-#data['prOjaTr_0_24']    = []
+#data['prOjaTr_1_0']    = []
+#data['prOjaTr_1_1']    = []
+#data['prOjaTr_1_2']    = []
+#data['prOjaTr_1_3']    = []
+#data['prOjaTr_1_4']    = []
+#data['prOjaTr_1_5']    = []
+#data['prOjaTr_1_6']    = []
+#data['prOjaTr_1_18']    = []
+#data['prOjaTr_1_19']    = []
+#data['prOjaTr_1_20']    = []
+#data['prOjaTr_1_21']    = []
+#data['prOjaTr_1_22']    = []
+#data['prOjaTr_1_23']    = []
+#data['prOjaTr_1_24']    = []
+#data['prOjaTr_1_25']    = []
 #######
 #data['poIntTr']     = []
 #data['poStdpTr']    = []
 #data['poOjaTr']     = []
 #######
 #data['ampLTD']      = []
-#######
-#data['weight_0_0']  = []
-#data['weight_0_1']  = []
-#data['weight_0_2']  = []
-#data['weight_0_3']  = []
-#data['weight_0_4']  = []
-#data['weight_0_5']  = []
-#data['weight_0_6']  = []
-#data['weight_0_7']  = []
-#data['weight_0_8']  = []
-#data['weight_0_9']  = []
-#data['weight_0_10'] = []
-#data['weight_0_11'] = []
-#data['weight_0_12'] = []
-#data['weight_0_13'] = []
-#data['weight_0_14'] = []
-#data['weight_0_15'] = []
-#data['weight_0_16'] = []
-#data['weight_0_17'] = []
-#data['weight_0_18'] = []
-#data['weight_0_19'] = []
-#data['weight_0_20'] = []
-#data['weight_0_21'] = []
-#data['weight_0_22'] = []
-#data['weight_0_23'] = []
-#data['weight_0_24'] = []
 #######
 data['weight*']     = []
 
