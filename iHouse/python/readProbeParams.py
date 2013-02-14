@@ -7,8 +7,9 @@ from collections import OrderedDict
 #filenames     = [("sheng","/Users/slundquist/Desktop/ptLIF.txt")]
 #filenames     = [("sheng","/Users/slundquist/Desktop/retONtoLif.txt")]
 
-workspaceDir  = "/Users/dpaiton/Documents/Work/Lanl/workspace" #Dylan Mac
-probeFileDir  = workspaceDir+"/iHouse/checkpoints/lowInit/Checkpoint10010000"
+#workspaceDir  = "/Users/dpaiton/Documents/Work/Lanl/workspace" #Dylan Mac
+workspaceDir  = "/home/dpaiton/workspace" #Dylan Neuro
+probeFileDir  = workspaceDir+"/iHouse/output"
 
 #filenames = [("label","path")]
 filenames    = [
@@ -25,8 +26,8 @@ rootFigOutDir = probeFileDir+"/analysis/probeFigs"
 rootFigName   = 'weights'
 
 #Values for range of frames
-startTime   = 10000000 
-endTime     = 10010000 #End must be under number of lines in file
+startTime   = 0
+endTime     = 100000 #End must be under number of lines in file
 
 #Which plots
 timePlot    = True 
