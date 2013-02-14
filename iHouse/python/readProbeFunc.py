@@ -53,7 +53,7 @@ def readProbeFile(filename,startTime,endTime):
 def splitLine(line):
    #Split line by :
    lineSp = line.split(":")
-   assert(len(lineSp) == 2) ##only one colon in params name
+   assert(len(lineSp) == 2) ##only one colon in params name TODO: this error is thrown if start & end times are way above probe times - why?
    lineSp = lineSp[1]
    #Split line by =
    lineSp = lineSp.split("=")

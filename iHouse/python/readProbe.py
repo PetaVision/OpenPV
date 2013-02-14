@@ -17,7 +17,7 @@ from readProbeParams import *
 #Must be done before importing pyplot (or anything from pyplot)
 if not dispFigs:
     matplotlib.use('Agg')
-    from os import path, makedirs
+from os import path, makedirs
 from matplotlib.pyplot import *
 
 #Error checking
@@ -211,18 +211,22 @@ for filenameTup in filenames:
                         keyLabel    = keySP[0]
                         arborLabel  = keySP[1]
                         neuronLabel = keySP[2]
-                        figLabel=keyLabel+"_n"+neuronLabel+"_a"+arborLabel
+                        figLabel=keyLabel+"_"+filenameTup[0]+"_n"+neuronLabel+"_a"+arborLabel
                     else:
                         keyLabel = key
                         arborLabel = str(arborID)
                         if key[len(key)-1] == "*": #preNeuron
                             neuronLabel = 'Avg'
-                            figLabel=keyLabel+"_n"+neuronLabel+"_a"+arborLabel
+                            figLabel=keyLabel+"_"+filenameTup[0]+"_n"+neuronLabel+"_a"+arborLabel
                         else:
                             neuronLabel = 'Post'
-                            figLabel=keyLabel+"_n"+neuronLabel
+                            figLabel=keyLabel+"_"+filenameTup[0]+"_n"+neuronLabel
 
-                    plot(time, plotMe, label=figLabel)
+                    if '_1_' in key:
+                        plot(time, plotMe, ':',label=figLabel)
+                    else:
+                        plot(time, plotMe,label=figLabel)
+                    grid(True)
                     didPlot = True
 
         if didPlot:
@@ -230,7 +234,7 @@ for filenameTup in filenames:
                 legend()#bbox_to_anchor=(0., 1.02, 1., .102), ncol = 2, mode="expand", borderaxespad=0.,loc=3)
             tight_layout()
             if not dispFigs:
-                savefig(figOutDir+rootFigName+"_timeCourse.png")
+                savefig(figOutDir+rootFigName+"_"+filenameTup[0]+"_timeCourse.png")
                 clf()
 
     #Clear lines for this file
