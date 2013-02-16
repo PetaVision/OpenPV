@@ -40,6 +40,7 @@
 #include "../layers/Retina.hpp"
 #include "../layers/SigmoidLayer.hpp"
 #include "../layers/ANNSquaredLayer.hpp"
+#include "../layers/ANNWhitenedLayer.hpp"
 #include "../layers/ANNDivInh.hpp"
 #include "../layers/BIDSLayer.hpp"
 #include "../layers/BIDSCloneLayer.hpp"

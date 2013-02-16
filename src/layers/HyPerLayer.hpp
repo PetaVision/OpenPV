@@ -282,6 +282,7 @@ protected:
    bool mirrorBCflag;           // true when mirror BC are to be applied
 
    int ioAppend;                // controls opening of binary files
+   double initialWriteTime;             // time of next output
    double writeTime;             // time of next output
    float writeStep;             // output time interval
 

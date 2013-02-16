@@ -51,16 +51,22 @@ static inline int applyGSyn_HyPerLCALayer(int numNeurons,
 		CL_MEM_GLOBAL pvdata_t * V, CL_MEM_GLOBAL pvdata_t * GSynHead,
 		CL_MEM_GLOBAL pvdata_t * activity, pvdata_t dt_tau, int nx, int ny,
 		int nf, int nb);
+static inline int applyGSyn_ANNWhitenedLayer(int numNeurons,
+		CL_MEM_GLOBAL pvdata_t * V, CL_MEM_GLOBAL pvdata_t * GSynHead);
 static inline int updateV_HyPerLCALayer(int numNeurons,
 		CL_MEM_GLOBAL pvdata_t * V, CL_MEM_GLOBAL pvdata_t * GSynHead,
 		CL_MEM_GLOBAL pvdata_t * activity, pvdata_t VMax, pvdata_t VMin,
 		pvdata_t VThresh, pvdata_t VShift, pvdata_t dt_tau, int nx, int ny,
 		int nf, int nb);
+static inline int updateV_ANNWhitenedLayer(int numNeurons,
+		CL_MEM_GLOBAL pvdata_t * V, CL_MEM_GLOBAL pvdata_t * GSynHead,
+		CL_MEM_GLOBAL pvdata_t * activity, pvdata_t VMax, pvdata_t VMin,
+		pvdata_t VThresh, pvdata_t VShift, int nx, int ny,
+		int nf, int nb);
 static inline int updateV_ANNDivInh(int numNeurons, CL_MEM_GLOBAL pvdata_t * V,
 		CL_MEM_GLOBAL pvdata_t * GSynHead);
 static inline int updateV_ANNSquaredLayer(int numNeurons,
-		CL_MEM_GLOBAL pvdata_t * V, CL_MEM_GLOBAL pvdata_t * GSynHead, CL_MEM_GLOBAL float * activity,
-		pvdata_t VMax, pvdata_t VMin, pvdata_t VThresh, int nx, int ny, int nf, int nb);
+		CL_MEM_GLOBAL pvdata_t * V, CL_MEM_GLOBAL pvdata_t * GSynHead);
 static inline int updateV_GenerativeLayer(int numNeurons,
 		CL_MEM_GLOBAL pvdata_t * V, CL_MEM_GLOBAL pvdata_t * dV, CL_MEM_GLOBAL float * activity, pvdata_t VMax,
 		pvdata_t VMin, pvdata_t VThresh, pvdata_t relaxation, int nx, int ny, int nf, int nb);
@@ -149,20 +155,39 @@ static inline int applyGSyn_HyPerLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * 
    return PV_SUCCESS;
 }
 
-static inline int applyGSyn_HyPerLCALayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * V,
-      CL_MEM_GLOBAL pvdata_t * GSynHead, CL_MEM_GLOBAL pvdata_t * activity, pvdata_t dt_tau, int nx, int ny, int nf, int nb)
+static inline int applyGSyn_HyPerLCALayer(int numNeurons,
+		CL_MEM_GLOBAL pvdata_t * V, CL_MEM_GLOBAL pvdata_t * GSynHead,
+		CL_MEM_GLOBAL pvdata_t * activity, pvdata_t dt_tau, int nx, int ny,
+		int nf, int nb) {
+	int k;
+	CL_MEM_GLOBAL pvdata_t * GSynError = &GSynHead[0 * numNeurons]; // weighted input
+#ifndef PV_USE_OPENCL
+	for (k = 0; k < numNeurons; k++)
+#else
+			k = get_global_id(0);
+#endif // PV_USE_OPENCL
+	{
+		int kex = kIndexExtended(k, nx, ny, nf, nb);
+		V[k] = V[k] + dt_tau * (GSynError[k] - V[k] + activity[kex]);
+	}
+	return PV_SUCCESS;
+}
+
+static inline int applyGSyn_ANNWhitenedLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * V,
+      CL_MEM_GLOBAL pvdata_t * GSynHead)
 {
    int k;
-   CL_MEM_GLOBAL pvdata_t * GSynExc = &GSynHead[CHANNEL_EXC*numNeurons];
-//   CL_MEM_GLOBAL pvdata_t * GSynInh = &GSynHead[CHANNEL_INH*numNeurons];
+   CL_MEM_GLOBAL pvdata_t * GSynInput = &GSynHead[0*numNeurons]; // un-whitened input
+   CL_MEM_GLOBAL pvdata_t * GSynAveInput = &GSynHead[1*numNeurons]; // un-whitened input
+   CL_MEM_GLOBAL pvdata_t * GSynAveSquaredInput = &GSynHead[2*numNeurons]; // un-whitened input
 #ifndef PV_USE_OPENCL
    for( k=0; k<numNeurons; k++ )
 #else
       k = get_global_id(0);
 #endif // PV_USE_OPENCL
    {
-      int kex = kIndexExtended(k, nx, ny, nf, nb);
-      V[k] = V[k] + dt_tau*(GSynExc[k] - V[k] + activity[kex]);
+	   // set mean to zero and standard deviation to one over patch window
+      V[k] = (GSynInput[k] - GSynAveInput[k]) / (sqrt(GSynAveSquaredInput[k] - GSynAveInput[k]*GSynAveInput[k]) + FLT_MIN);
    }
    return PV_SUCCESS;
 }
@@ -174,7 +199,8 @@ static inline int updateV_ANNLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * V,
    int status;
    status = applyGSyn_HyPerLayer(numNeurons, V, GSynHead);
    if(status == PV_SUCCESS) status = setActivity_HyPerLayer(numNeurons, activity, V, nx, ny, nf, nb);
-   if( status == PV_SUCCESS ) status = applyVThresh_ANNLayer(numNeurons, V, VMin, VThresh, VShift, activity, nx, ny, nf, nb);
+   if( status == PV_SUCCESS ) status =
+		   applyVThresh_ANNLayer(numNeurons, V, VMin, VThresh, VShift, activity, nx, ny, nf, nb);
    if( status == PV_SUCCESS ) status = applyVMax_ANNLayer(numNeurons, V, VMax, activity, nx, ny, nf, nb);
    return status;
 }
@@ -186,7 +212,21 @@ static inline int updateV_HyPerLCALayer(int numNeurons, CL_MEM_GLOBAL pvdata_t *
    int status;
    status = applyGSyn_HyPerLCALayer(numNeurons, V, GSynHead, activity, dt_tau, nx, ny, nf, nb);
    if(status == PV_SUCCESS) status = setActivity_HyPerLayer(numNeurons, activity, V, nx, ny, nf, nb);
-   if( status == PV_SUCCESS ) status = applyVThresh_ANNLayer(numNeurons, V, VMin, VThresh, VShift, activity, nx, ny, nf, nb);
+   if( status == PV_SUCCESS ) status =
+		   applyVThresh_ANNLayer(numNeurons, V, VMin, VThresh, VShift, activity, nx, ny, nf, nb);
+   if( status == PV_SUCCESS ) status = applyVMax_ANNLayer(numNeurons, V, VMax, activity, nx, ny, nf, nb);
+   return status;
+}
+
+static inline int updateV_ANNWhitenedLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * V,
+      CL_MEM_GLOBAL pvdata_t * GSynHead, CL_MEM_GLOBAL float * activity, pvdata_t VMax,
+      pvdata_t VMin, pvdata_t VThresh, pvdata_t VShift, int nx, int ny, int nf, int nb)
+{
+   int status;
+   status = applyGSyn_ANNWhitenedLayer(numNeurons, V, GSynHead);
+   if(status == PV_SUCCESS) status = setActivity_HyPerLayer(numNeurons, activity, V, nx, ny, nf, nb);
+   if( status == PV_SUCCESS ) status =
+		   applyVThresh_ANNLayer(numNeurons, V, VMin, VThresh, VShift, activity, nx, ny, nf, nb);
    if( status == PV_SUCCESS ) status = applyVMax_ANNLayer(numNeurons, V, VMax, activity, nx, ny, nf, nb);
    return status;
 }
@@ -208,11 +248,11 @@ static inline int updateV_ANNDivInh(int numNeurons, CL_MEM_GLOBAL pvdata_t * V, 
 }
 
 static inline int updateV_ANNSquaredLayer(int numNeurons,
-		CL_MEM_GLOBAL pvdata_t * V, CL_MEM_GLOBAL pvdata_t * GSynHead, CL_MEM_GLOBAL float * activity,
-		pvdata_t VMax, pvdata_t VMin, pvdata_t VThresh, int nx, int ny, int nf, int nb) {
+		CL_MEM_GLOBAL pvdata_t * V, CL_MEM_GLOBAL pvdata_t * GSynHead) {
 	int status;
-	status = updateV_ANNLayer(numNeurons, V, GSynHead, activity, VMax, VMin, VThresh,
-			0.0f, nx, ny, nf, nb);
+	status = applyGSyn_HyPerLayer1Channel(numNeurons, V, GSynHead);
+//	status = updateV_ANNLayer(numNeurons, V, GSynHead, activity, VMax, VMin, VThresh,
+//			0.0f, nx, ny, nf, nb);
 	if (status == PV_SUCCESS)
 		status = squareV_ANNSquaredLayer(numNeurons, V);
 	return status;

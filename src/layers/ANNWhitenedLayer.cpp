@@ -1,17 +1,17 @@
 /*
- * HyPerLCALayer.cpp
+ * ANNWhitenedLayer.cpp
  *
- *  Created on: Jan 24, 2013
+ *  Created on: Feb 15, 2013
  *      Author: garkenyon
  */
 
-#include "HyPerLCALayer.hpp"
+#include "ANNWhitenedLayer.hpp"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-void HyPerLCALayer_update_state(
+void ANNWhitenedLayer_update_state(
     const int numNeurons,
     const int nx,
     const int ny,
@@ -23,7 +23,6 @@ void HyPerLCALayer_update_state(
     const float VMax,
     const float VMin,
     const float VShift,
-    const float dt_tau,
     float * GSynHead,
     float * activity);
 
@@ -33,42 +32,39 @@ void HyPerLCALayer_update_state(
 
 namespace PV {
 
-HyPerLCALayer::HyPerLCALayer()
+ANNWhitenedLayer::ANNWhitenedLayer()
 {
    initialize_base();
 }
 
-HyPerLCALayer::HyPerLCALayer(const char * name, HyPerCol * hc, int numChannels)
+ANNWhitenedLayer::ANNWhitenedLayer(const char * name, HyPerCol * hc, int numChannels)
 {
    initialize_base();
-   initialize(name, hc, 1);
+   initialize(name, hc, 3);
 }
 
-HyPerLCALayer::HyPerLCALayer(const char * name, HyPerCol * hc)
+ANNWhitenedLayer::ANNWhitenedLayer(const char * name, HyPerCol * hc)
 {
    initialize_base();
-   initialize(name, hc, 1);
+   initialize(name, hc, 3);
 }
 
-HyPerLCALayer::~HyPerLCALayer()
+ANNWhitenedLayer::~ANNWhitenedLayer()
 {
 }
 
-int HyPerLCALayer::initialize_base()
+int ANNWhitenedLayer::initialize_base()
 {
-   timeConstantTau = 1.0;
    return PV_SUCCESS;
 }
 
-int HyPerLCALayer::initialize(const char * name, HyPerCol * hc, int numChannels)
+int ANNWhitenedLayer::initialize(const char * name, HyPerCol * hc, int numChannels)
 {
-   ANNLayer::initialize(name, hc, 1);
-   PVParams * params = parent->parameters();
-   timeConstantTau = params->value(name, "timeConstantTau", timeConstantTau, true);
+   ANNLayer::initialize(name, hc, 3);
    return PV_SUCCESS;
 }
 
-int HyPerLCALayer::doUpdateState(double time, double dt, const PVLayerLoc * loc, pvdata_t * A,
+int ANNWhitenedLayer::doUpdateState(double time, double dt, const PVLayerLoc * loc, pvdata_t * A,
       pvdata_t * V, int num_channels, pvdata_t * gSynHead, bool spiking,
       unsigned int * active_indices, unsigned int * num_active)
 {
@@ -84,8 +80,7 @@ int HyPerLCALayer::doUpdateState(double time, double dt, const PVLayerLoc * loc,
       int ny = loc->ny;
       int nf = loc->nf;
       int num_neurons = nx*ny*nf;
-      pvdata_t dt_tau = dt / timeConstantTau;
-      HyPerLCALayer_update_state(num_neurons, nx, ny, nf, loc->nb, V, VThresh, VMax, VMin, VShift, dt_tau, gSynHead, A);
+      ANNWhitenedLayer_update_state(num_neurons, nx, ny, nf, loc->nb, V, VThresh, VMax, VMin, VShift, gSynHead, A);
       if (this->writeSparseActivity){
          updateActiveIndices();  // added by GTK to allow for sparse output, can this be made an inline function???
       }
@@ -105,15 +100,14 @@ extern "C" {
 #endif
 
 #ifndef PV_USE_OPENCL
-#  include "../kernels/HyPerLCALayer_update_state.cl"
+#  include "../kernels/ANNWhitenedLayer_update_state.cl"
 #else
 #  undef PV_USE_OPENCL
-#  include "../kernels/HyPerLCALayer_update_state.cl"
+#  include "../kernels/ANNWhitenedLayer_update_state.cl"
 #  define PV_USE_OPENCL
 #endif
 
 #ifdef __cplusplus
 }
 #endif
-
 

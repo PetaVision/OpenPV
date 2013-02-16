@@ -2286,7 +2286,7 @@ int HyPerConn::scaleWeights(int nx, int ny, int offset, pvdata_t * dataStart, pv
       num_weights *= numberOfAxonalArborLists(); // assumes all arbors shrunken equally at this point (shrink patches should occur after normalize)
    }
    float sigma2 = ( sum2 / num_weights ) - ( sum / num_weights ) * ( sum / num_weights );
-   float zero_offset = 0.0f;
+   double zero_offset = 0.0f;
    if (normalize_zero_offset){
       // set sum to zero and normalize std of weights to sigma
       zero_offset = sum / num_weights;
@@ -2418,7 +2418,7 @@ int HyPerConn::checkNormalizeArbor(PVPatch ** patches, pvdata_t ** dataStart, in
             maxAll = maxVal > maxAll ? maxVal : maxAll;
          } // kArbor
          int num_weights = nx * ny * nfp * numberOfAxonalArborLists();
-         float sigma2 = ( sumAll / num_weights ) - ( sumAll / num_weights ) * ( sumAll / num_weights );
+         float sigma2 = ( sum2All / num_weights ) - ( sumAll / num_weights ) * ( sumAll / num_weights );
          for(int kArbor = 0; kArbor < this->numberOfAxonalArborLists(); kArbor++){
             if( sumAll != 0 || sigma2 != 0 ) {
                status = checkNormalizeWeights(sumAll, sum2All, sigma2, maxAll);

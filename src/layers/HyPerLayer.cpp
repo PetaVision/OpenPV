@@ -90,8 +90,8 @@ int HyPerLayer::initialize_base() {
    this->marginIndices = NULL;
    this->numMargin = 0;
    this->numGlobalRNGs = 0;
-   //this->feedbackDelay = HYPERLAYER_FEEDBACK_DELAY;
-   //this->feedforwardDelay = HYPERLAYER_FEEDFORWARD_DELAY;
+   this->writeTime = 0;
+   this->initialWriteTime = 0;
    this->phase = 0;
 #ifdef PV_USE_OPENCL
    this->krUpdate = NULL;
@@ -143,7 +143,8 @@ int HyPerLayer::initialize(const char * name, HyPerCol * hc, int numChannels) {
    int xScale = (int) nearbyint(xScaled);
    int yScale = (int) nearbyint(yScaled);
 
-   writeTime = parent->simulationTime();
+   initialWriteTime = params->value(name, "initialWriteTime", parent->simulationTime());
+   writeTime = initialWriteTime;
    writeStep = params->value(name, "writeStep", parent->getDeltaTime());
 
    //feedforwardDelay = params->value(name, "feedforwardDelay", feedforwardDelay, true);

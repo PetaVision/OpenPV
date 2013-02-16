@@ -99,6 +99,7 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
              "HyPerLayer",
              "ANNLayer",
                "ANNSquaredLayer",
+               "ANNWhitenedLayer",
                "ANNDivInhLayer",
                "CliqueLayer",
                "GenerativeLayer",
@@ -331,6 +332,11 @@ HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPe
    if( !strcmp(classkeyword, "ANNSquaredLayer") ) {
       keywordMatched = true;
       addedLayer = (HyPerLayer *) new ANNSquaredLayer(name, hc);
+      status = checknewobject((void *) addedLayer, classkeyword, name, hc); // checknewobject tests addedObject against null, and either prints error message to stderr or success message to stdout.
+   }
+   if( !strcmp(classkeyword, "ANNWhitenedLayer") ) {
+      keywordMatched = true;
+      addedLayer = (HyPerLayer *) new ANNWhitenedLayer(name, hc);
       status = checknewobject((void *) addedLayer, classkeyword, name, hc); // checknewobject tests addedObject against null, and either prints error message to stderr or success message to stdout.
    }
    if( !strcmp(classkeyword, "ANNDivInhLayer") ) {

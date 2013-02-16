@@ -27,9 +27,9 @@ protected:
    int initStatsProbe(const char * filename, HyPerLayer * layer, PVBufType type, const char * msg);
    PV::PVBufType type;
    char * msg;
-   double sum;
+   double sum, sum2;
    float fMin, fMax;
-   float avg;
+   float avg, sigma;
 
 private:
    int initStatsProbe_base();
