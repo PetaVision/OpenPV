@@ -109,92 +109,92 @@ ANNLayer "Ganglion" = {
     phase = 2;
 };
 
-//ANNSquaredLayer "GanglionSquared" = {
-//    restart = 0;
-//    nxScale = 1;
-//    nyScale = 1;
-//    nf = 1;
-//    marginWidth = 6;
-//    writeStep = 500.0;
-//    initialWriteTime = 499.0;
-//    mirrorBCflag = 1;
-//    writeSparseActivity = 0;
-//
-//    InitVType = "ZeroV";
-//
-//    VThresh = -infinity;
-//    VMax =  infinity;
-//    VMin = -infinity;
-//    VShift = 0;
-//    
-//    phase = 3;
-//};
-//
-//
-//ANNLayer "V1AveInput" = {
-//    restart = 0;
-//    nxScale = 0.25;
-//    nyScale = 0.25;
-//    nf = 1;
-//    marginWidth = 1;
-//    writeStep = 500.0;
-//    initialWriteTime = 499.0;
-//    mirrorBCflag = 1;
-//    writeSparseActivity = 0;
-//
-//    InitVType = "ZeroV";
-//
-//    VThresh = -infinity;
-//    VMax = infinity;
-//    VMin = -infinity;
-//    VShift = 0;
-//    
-//    phase = 4;
-//};
-//
-//
-//ANNLayer "V1AveSquaredInput" = {
-//    restart = 0;
-//    nxScale = 0.25;
-//    nyScale = 0.25;
-//    nf = 1;
-//    marginWidth = 1;
-//    writeStep = 500.0;
-//    initialWriteTime = 499.0;
-//    mirrorBCflag = 1;
-//    writeSparseActivity = 0;
-//
-//    InitVType = "ZeroV";
-//
-//    VThresh = -infinity;
-//    VMax = infinity;
-//    VMin = -infinity;
-//    VShift = 0;
-//    
-//    phase = 4;
-//};
-//
-//
-//ANNWhitenedLayer "GanglionWhitened" = {
-//    restart = 0;
-//    nxScale = 1;
-//    nyScale = 1;
-//    nf = 1;
-//    marginWidth = 0;
-//    initialWriteTime = 499.0;
-//    writeStep = 500.0;
-//    mirrorBCflag = 1;
-//    writeSparseActivity = 0;
-//
-//    InitVType = "ZeroV";
-//
-//    VThresh = -infinity;
-//    VMax = infinity;
-//    VMin = -infinity;
-//    VShift = 0;
-//    
-//    phase = 5;
-//};
+ANNSquaredLayer "GanglionSquared" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 6;
+    writeStep = 500.0;
+    initialWriteTime = 499.0;
+    mirrorBCflag = 1;
+    writeSparseActivity = 0;
+
+    InitVType = "ZeroV";
+
+    VThresh = -infinity;
+    VMax =  infinity;
+    VMin = -infinity;
+    VShift = 0;
+    
+    phase = 3;
+};
+
+
+ANNLayer "V1AveInput" = {
+    restart = 0;
+    nxScale = 0.25;
+    nyScale = 0.25;
+    nf = 1;
+    marginWidth = 1;
+    writeStep = 500.0;
+    initialWriteTime = 499.0;
+    mirrorBCflag = 1;
+    writeSparseActivity = 0;
+
+    InitVType = "ZeroV";
+
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+    VShift = 0;
+    
+    phase = 4;
+};
+
+
+ANNLayer "V1AveSquaredInput" = {
+    restart = 0;
+    nxScale = 0.25;
+    nyScale = 0.25;
+    nf = 1;
+    marginWidth = 1;
+    writeStep = 500.0;
+    initialWriteTime = 499.0;
+    mirrorBCflag = 1;
+    writeSparseActivity = 0;
+
+    InitVType = "ZeroV";
+
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+    VShift = 0;
+    
+    phase = 4;
+};
+
+
+ANNWhitenedLayer "GanglionWhitened" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 0;
+    initialWriteTime = 499.0;
+    writeStep = 500.0;
+    mirrorBCflag = 1;
+    writeSparseActivity = 0;
+
+    InitVType = "ZeroV";
+
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+    VShift = 0;
+    
+    phase = 5;
+};
 
 
 ANNLayer "Recon" = {
@@ -215,7 +215,7 @@ ANNLayer "Recon" = {
     VMin = -infinity; //-infinity;
     VShift = 0;
     
-    phase = 5; // 5; // use 5 if whitening loops inserted
+    phase = 5; // could be 8..., but that should produce the same delays
 };
 
 
@@ -226,7 +226,7 @@ ANNLayer "Error" = {
     nf = 1;
     marginWidth = 6;
     initialWriteTime = 499.0;
-    writeStep = 500;
+    writeStep = 100;
     mirrorBCflag = 1;
     writeSparseActivity = 0;
 
@@ -237,7 +237,7 @@ ANNLayer "Error" = {
     VMin = -infinity;
     VShift = 0;
     
-    phase = 3;  // use 6 is whitening loops inserted
+    phase = 6;
 };
 
 
@@ -248,7 +248,7 @@ HyPerLCALayer "V1" = {
     nf = 512;
     marginWidth = 1;
     initialWriteTime = 499.0;
-    writeStep = -1.0;
+    writeStep = 1000;
     mirrorBCflag = 1;
     writeSparseActivity = 0;
 
@@ -258,12 +258,12 @@ HyPerLCALayer "V1" = {
     
     timeConstantTau = 100.0;
     
-    VThresh = 0.25; // 1.0;
+    VThresh = 1.0;
     VMax = infinity; //infinity;
     VMin = 0;
     VShift = 0.0;  // 0 -> hard threshold, 1 -> soft threshold
 
-    phase = 4;
+    phase = 7;
 };
 
 
@@ -385,192 +385,192 @@ KernelConn "RetinaToGanglionSurround" = {
 };
 
 
+IdentConn "GanglionToGanglionSquared" = {
+    preLayerName = "Ganglion";
+    postLayerName = "GanglionSquared";
+    channelCode = 0;
+    writeStep = -1;
+    initFromLastFlag = 0;
+    weightInitType = "IdentWeight";
 
-//IdentConn "GanglionToGanglionSquared" = {
-//    preLayerName = "Ganglion";
-//    postLayerName = "GanglionSquared";
-//    channelCode = 0;
-//    writeStep = -1;
-//    initFromLastFlag = 0;
-//    weightInitType = "IdentWeight";
-//
-//    delay = 0;
-//};
-//
-//
-//IdentConn "GanglionToGanglionWhitened" = {
-//    preLayerName = "Ganglion";
-//    postLayerName = "GanglionWhitened";
-//    channelCode = 0;
-//    writeStep = -1;
-//    initFromLastFlag = 0;
-//    weightInitType = "IdentWeight";
-//
-//    delay = 0;
-//};
-//
-//
-//KernelConn "GanglionToV1AveInput" = { // for normalization
-//	preLayerName = "Ganglion";
-//	postLayerName = "V1AveInput";
-//	channelCode = 0;
-//	nxp = 1; 
-//	nyp = 1; 
-//	nfp = 1;
-//	numAxonalArbors = 1;
-//	initFromLastFlag = 0;  // 1;  // restart
-//	writeStep = -1;
-//	   
-//	weightInitType = "UniformWeight";
-//	weightInit = 1.0;	       
-//	strength = 1.0;  
-//	normalize = 1.0;
-//	normalize_zero_offset = false;
-//	normalize_max = false;
-//	normalize_cutoff = 0.0;
-//	normalize_RMS_amp = false;
-//	symmetrizeWeights = false;
-//	normalizeTotalToPost = true;
-//	selfFlag = false;
-//
-//	shrinkPatches = false;
-//	writeCompressedWeights = 0.0;
-//	writeCompressedCheckpoints = false;
-//	plasticityFlag = 0;
-//	stochasticReleaseFlag = false;
-//	    
-//	delay = 0;
-//	    
-//	preActivityIsNotRate = false;
-//	shmget_flag = false;
-//};
-//
-//
-//
-//
-//KernelConn "GanglionSquaredToV1AveSquaredInput" = { // for normalization
-//	preLayerName = "GanglionSquared";
-//	postLayerName = "V1AveSquaredInput";
-//	channelCode = 0;
-//	nxp = 1; 
-//	nyp = 1; 
-//	nfp = 1;
-//	numAxonalArbors = 1;
-//	initFromLastFlag = 0;  // 1;  // restart
-//	writeStep = -1;
-//	   
-//	weightInitType = "UniformWeight";
-//	weightInit = 1.0;	       
-//	strength = 1.0;  
-//	normalize = 1.0;
-//	normalize_zero_offset = false;
-//	normalize_max = false;
-//	normalize_cutoff = 0.0;
-//	normalize_RMS_amp = false;
-//	symmetrizeWeights = false;
-//	normalizeTotalToPost = true;
-//	selfFlag = false;
-//
-//	shrinkPatches = false;
-//	writeCompressedWeights = 0.0;
-//	writeCompressedCheckpoints = false;
-//	plasticityFlag = 0;
-//	stochasticReleaseFlag = false;
-//	    
-//	delay = 0;
-//	    
-//	preActivityIsNotRate = false;
-//	shmget_flag = false;
-//};
-//
-//
-//KernelConn "V1AveInputToGanglionWhitened" = {
-//    preLayerName = "V1AveInput";
-//    postLayerName = "GanglionWhitened";
-//    channelCode = 1;
-//    nxp = 4;
-//    nyp = 4;
-//    nfp = 1;
-//    numAxonalArbors = 1;
-//    initFromLastFlag = 0;
-//    
-//	weightInitType = "UniformWeight";
-//	weightInit = 1.0;	       
-//	strength = 1.0;  
-//	normalize = 1.0;
-//	normalize_zero_offset = false;
-//	normalize_max = false;
-//	normalize_cutoff = 0.0;
-//	normalize_RMS_amp = false;
-//	symmetrizeWeights = false;
-//	normalizeTotalToPost = true;
-//	selfFlag = false;
-//
-//    preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
-//    keepKernelsSynchronized = true; 
-//    combine_dW_with_W_flag = false; 
-//
-//    writeStep = -1;
-//    writeCompressedWeights = false;
-//    writeCompressedCheckpoints = false;
-//    plasticityFlag = false;
-//    shmget_flag = false;
-//
-//    delay = 0;
-//
-//    stochasticReleaseFlag = false;
-//    shrinkPatches = false;
-//};
-//
-//
-//KernelConn "V1AveSquaredInputToGanglionWhitened" = {
-//    preLayerName = "V1AveSquaredInput";
-//    postLayerName = "GanglionWhitened";
-//    channelCode = 2;
-//    nxp = 4;
-//    nyp = 4;
-//    nfp = 1;
-//    numAxonalArbors = 1;
-//    initFromLastFlag = 0;
-//    
-//	weightInitType = "UniformWeight";
-//	weightInit = 1.0;	       
-//	strength = 1.0;  
-//	normalize = 1.0;
-//	normalize_zero_offset = false;
-//	normalize_max = false;
-//	normalize_cutoff = 0.0;
-//	normalize_RMS_amp = false;
-//	symmetrizeWeights = false;
-//	normalizeTotalToPost = true;
-//	selfFlag = false;
-//
-//    preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
-//    keepKernelsSynchronized = true; 
-//    combine_dW_with_W_flag = false; 
-//
-//    writeStep = -1;
-//    writeCompressedWeights = false;
-//    writeCompressedCheckpoints = false;
-//    plasticityFlag = false;
-//    shmget_flag = false;
-//
-//    delay = 0;
-//
-//    stochasticReleaseFlag = false;
-//    shrinkPatches = false;
-//};
-// 
-// 
-// 
-//IdentConn "GanglionWhitenedToError" = {
-//    preLayerName = "GanglionWhitened";
-//    postLayerName = "Error";
-//    channelCode = 0;
-//    delay = 0;
-//    writeStep = -1;
-//};
+    delay = 0;
+};
 
+
+IdentConn "GanglionToGanglionWhitened" = {
+    preLayerName = "Ganglion";
+    postLayerName = "GanglionWhitened";
+    channelCode = 0;
+    writeStep = -1;
+    initFromLastFlag = 0;
+    weightInitType = "IdentWeight";
+
+    delay = 0;
+};
+
+
+KernelConn "GanglionToV1AveInput" = { // for normalization
+	preLayerName = "Ganglion";
+	postLayerName = "V1AveInput";
+	channelCode = 0;
+	nxp = 1; 
+	nyp = 1; 
+	nfp = 1;
+	numAxonalArbors = 1;
+	initFromLastFlag = 0;  // 1;  // restart
+	writeStep = -1;
+	   
+	weightInitType = "UniformWeight";
+	weightInit = 1.0;	       
+	strength = 1.0;  
+	normalize = 1.0;
+	normalize_zero_offset = false;
+	normalize_max = false;
+	normalize_cutoff = 0.0;
+	normalize_RMS_amp = false;
+	symmetrizeWeights = false;
+	normalizeTotalToPost = true;
+	selfFlag = false;
+
+	shrinkPatches = false;
+	writeCompressedWeights = 0.0;
+	writeCompressedCheckpoints = false;
+	plasticityFlag = 0;
+	stochasticReleaseFlag = false;
+	    
+	delay = 0;
+	    
+	preActivityIsNotRate = false;
+	shmget_flag = false;
+};
+
+
+
+
+KernelConn "GanglionSquaredToV1AveSquaredInput" = { // for normalization
+	preLayerName = "GanglionSquared";
+	postLayerName = "V1AveSquaredInput";
+	channelCode = 0;
+	nxp = 1; 
+	nyp = 1; 
+	nfp = 1;
+	numAxonalArbors = 1;
+	initFromLastFlag = 0;  // 1;  // restart
+	writeStep = -1;
+	   
+	weightInitType = "UniformWeight";
+	weightInit = 1.0;	       
+	strength = 1.0;  
+	normalize = 1.0;
+	normalize_zero_offset = false;
+	normalize_max = false;
+	normalize_cutoff = 0.0;
+	normalize_RMS_amp = false;
+	symmetrizeWeights = false;
+	normalizeTotalToPost = true;
+	selfFlag = false;
+
+	shrinkPatches = false;
+	writeCompressedWeights = 0.0;
+	writeCompressedCheckpoints = false;
+	plasticityFlag = 0;
+	stochasticReleaseFlag = false;
+	    
+	delay = 0;
+	    
+	preActivityIsNotRate = false;
+	shmget_flag = false;
+};
+
+
+KernelConn "V1AveInputToGanglionWhitened" = {
+    preLayerName = "V1AveInput";
+    postLayerName = "GanglionWhitened";
+    channelCode = 1;
+    nxp = 4;
+    nyp = 4;
+    nfp = 1;
+    numAxonalArbors = 1;
+    initFromLastFlag = 0;
+    
+	weightInitType = "UniformWeight";
+	weightInit = 1.0;	       
+	strength = 1.0;  
+	normalize = 1.0;
+	normalize_zero_offset = false;
+	normalize_max = false;
+	normalize_cutoff = 0.0;
+	normalize_RMS_amp = false;
+	symmetrizeWeights = false;
+	normalizeTotalToPost = true;
+	selfFlag = false;
+
+    preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
+    keepKernelsSynchronized = true; 
+    combine_dW_with_W_flag = false; 
+
+    writeStep = -1;
+    writeCompressedWeights = false;
+    writeCompressedCheckpoints = false;
+    plasticityFlag = false;
+    shmget_flag = false;
+
+    delay = 0;
+
+    stochasticReleaseFlag = false;
+    shrinkPatches = false;
+};
+
+
+KernelConn "V1AveSquaredInputToGanglionWhitened" = {
+    preLayerName = "V1AveSquaredInput";
+    postLayerName = "GanglionWhitened";
+    channelCode = 2;
+    nxp = 4;
+    nyp = 4;
+    nfp = 1;
+    numAxonalArbors = 1;
+    initFromLastFlag = 0;
+    
+	weightInitType = "UniformWeight";
+	weightInit = 1.0;	       
+	strength = 1.0;  
+	normalize = 1.0;
+	normalize_zero_offset = false;
+	normalize_max = false;
+	normalize_cutoff = 0.0;
+	normalize_RMS_amp = false;
+	symmetrizeWeights = false;
+	normalizeTotalToPost = true;
+	selfFlag = false;
+
+    preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
+    keepKernelsSynchronized = true; 
+    combine_dW_with_W_flag = false; 
+
+    writeStep = -1;
+    writeCompressedWeights = false;
+    writeCompressedCheckpoints = false;
+    plasticityFlag = false;
+    shmget_flag = false;
+
+    delay = 0;
+
+    stochasticReleaseFlag = false;
+    shrinkPatches = false;
+};
+
+
+
+/*
+IdentConn "GanglionWhitenedToError" = {
+    preLayerName = "GanglionWhitened";
+    postLayerName = "Error";
+    channelCode = 0;
+    delay = 0;
+    writeStep = -1;
+};
+*/
 
 IdentConn "GanglionToError" = {
     preLayerName = "Ganglion";
@@ -592,12 +592,12 @@ KernelConn "V1ToError" = {
     numAxonalArbors = 1;
     initFromLastFlag = 0;
     
-    weightInitType = "FileWeight";
-    initWeightsFile = "/Users/garkenyon/workspace/HyPerHLCA2/Checkpoints/Checkpoint20000/V1ToError_W.pvp";
-//    weightInitType = "UniformRandomWeight";
-//    wMinInit = -1.0;
-//    wMaxInit = 1.0;
-//    sparseFraction = .90;
+    //weightInitType = "FileWeight";
+    //initWeightsFile = "/Users/garkenyon/workspace/HyPerHLCA2/Checkpoints/Checkpoint100000/V1ToError_W.pvp";
+    weightInitType = "UniformRandomWeight";
+    wMinInit = -1.0;
+    wMaxInit = 1.0;
+    sparseFraction = .90;
    
     strength = 1.0;  
     normalize = 1.0;
@@ -616,10 +616,10 @@ KernelConn "V1ToError" = {
     writeCompressedWeights = false;
     writeCompressedCheckpoints = false;
     plasticityFlag = true;
-    weightUpdatePeriod = 20.0;
+    weightUpdatePeriod = 100.0;
     initialWeightUpdateTime = 499.0;
     initialWriteTime = 0.0;
-    dWMax = 0.10; //
+    dWMax = 1.0; //
     selfFlag = false;
     shmget_flag = false;
 
@@ -649,7 +649,7 @@ TransposeConn "ErrorToV1" = {
 	writeCompressedCheckpoints = false;
 	plasticityFlag = true;
 	dWMax = 1.0; // not used
-	initialWeightUpdateTime = 499.0;
+	initialWeightUpdateTime = 99.0;
 	initialWriteTime = 0.0;
 	shmget_flag = false;
 	
@@ -687,21 +687,13 @@ StatsProbe "GanglionStats" = {
     targetLayer = "Ganglion";
 };
 
-//StatsProbe "GanglionSquaredStats" = {
-//    targetLayer = "GanglionSquared";
-//};
-//
-//StatsProbe "GanglionWhitenedStats" = {
-//    targetLayer = "GanglionWhitened";
-//};
-//
-//StatsProbe "V1AveInputStats" = {
-//    targetLayer = "V1AveInput";
-//};
-//
-//StatsProbe "V1AveSquaredInputStats" = {
-//    targetLayer = "V1AveSquaredInput";
-//};
+StatsProbe "GanglionSquaredStats" = {
+    targetLayer = "GanglionSquared";
+};
+
+StatsProbe "GanglionWhitenedStats" = {
+    targetLayer = "GanglionWhitened";
+};
 
 StatsProbe "ReconStats" = {
     targetLayer = "Recon";
@@ -709,6 +701,14 @@ StatsProbe "ReconStats" = {
 
 StatsProbe "ErrorStats" = {
     targetLayer = "Error";
+};
+
+StatsProbe "V1AveInputStats" = {
+    targetLayer = "V1AveInput";
+};
+
+StatsProbe "V1AveSquaredInputStats" = {
+    targetLayer = "V1AveSquaredInput";
 };
 
 StatsProbe "V1Stats" = {
@@ -727,25 +727,15 @@ StatsProbe "GanglionStatsFile" = {
     probeOutputFile = "Ganglion_Stats.txt";
 };
 
-//StatsProbe "GanglionSquaredStatsFile" = {
-//    targetLayer = "GanglionSquared";
-//    probeOutputFile = "GanglionSquared_Stats.txt";
-//};
-//
-//StatsProbe "GanglionWhitenedStatsFile" = {
-//    targetLayer = "GanglionWhitened";
-//    probeOutputFile = "GanglionWhitened_Stats.txt";
-//};
-//
-//StatsProbe "V1AveInputStatsFile" = {
-//    targetLayer = "V1AveInput";
-//    probeOutputFile = "V1AveInput_Stats.txt";
-//};
-//
-//StatsProbe "V1AveSquaredInputStatsFile" = {
-//    targetLayer = "V1AveSquaredInput";
-//    probeOutputFile = "V1AveSquaredInput_Stats.txt";
-//};
+StatsProbe "GanglionSquaredStatsFile" = {
+    targetLayer = "GanglionSquared";
+    probeOutputFile = "GanglionSquared_Stats.txt";
+};
+
+StatsProbe "GanglionWhitenedStatsFile" = {
+    targetLayer = "GanglionWhitened";
+    probeOutputFile = "GanglionWhitened_Stats.txt";
+};
 
 StatsProbe "ReconStatsFile" = {
     targetLayer = "Recon";
@@ -755,6 +745,16 @@ StatsProbe "ReconStatsFile" = {
 StatsProbe "ErrorStatsFile" = {
     targetLayer = "Error";
     probeOutputFile = "Error_Stats.txt";
+};
+
+StatsProbe "V1AveInputStatsFile" = {
+    targetLayer = "V1AveInput";
+    probeOutputFile = "V1AveInput_Stats.txt";
+};
+
+StatsProbe "V1AveSquaredInputStatsFile" = {
+    targetLayer = "V1AveSquaredInput";
+    probeOutputFile = "V1AveSquaredInput_Stats.txt";
 };
 
 StatsProbe "V1StatsFile" = {
