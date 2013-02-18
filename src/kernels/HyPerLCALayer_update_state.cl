@@ -40,6 +40,4 @@ void HyPerLCALayer_update_state(
     CL_MEM_GLOBAL float * activity)
 {
    updateV_HyPerLCALayer(numNeurons, V, GSynHead, activity, VMax, VMin, Vth, VShift, dt_tau, nx, ny, nf, nb);
-//   setActivity_HyPerLayer(numNeurons, activity, V, nx, ny, nf, nb);
-   resetGSynBuffers_HyPerLayer(numNeurons, 2, GSynHead);
 }

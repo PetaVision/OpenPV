@@ -1,5 +1,6 @@
 #include "../layers/updateStateFunctions.h"
 
+
 #ifndef PV_USE_OPENCL
 #  define CL_KERNEL
 #  define CL_MEM_GLOBAL
@@ -15,8 +16,14 @@
 
 
 //
+// update the state of an ANNWhitened layer
+//
+// To allow porting to GPUs, functions called from this function must be
+// static inline functions.  If a subclass needs new behavior, it needs to
+// have its own static inline function.
+//
 CL_KERNEL
-void ANNSquaredLayer_update_state(
+void ANNWhitenedLayer_update_state(
     const int numNeurons,
     const int nx,
     const int ny,
@@ -24,11 +31,12 @@ void ANNSquaredLayer_update_state(
     const int nb,
 
     CL_MEM_GLOBAL float * V,
+    const float Vth,
+    const float VMax,
+    const float VMin,
+    const float VShift,
     CL_MEM_GLOBAL float * GSynHead,
     CL_MEM_GLOBAL float * activity)
 {
-
-   updateV_ANNSquaredLayer(numNeurons, V, GSynHead);
-   setActivity_HyPerLayer(numNeurons, activity, V, nx, ny, nf, nb);
-
+   updateV_ANNWhitenedLayer(numNeurons, V, GSynHead, activity, VMax, VMin, Vth, VShift, nx, ny, nf, nb);
 }
