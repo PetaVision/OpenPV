@@ -10,8 +10,8 @@ HyPerCol "column" = {
                                            // 
    randomSeed                   = 1020304050.0;   
                                            //
-   numSteps                     = 1100000;  // amount of time steps performed during run-time
-   progressStep                 = 10000;   // write output to see progress
+   numSteps                     = 1000000;  // amount of time steps performed during run-time
+   progressStep                 = 100000;   // write output to see progress
    writeProgressToErr           = 0;       // write progress steps to std err
                                            // 
    //outputPath                 = "~/Documents/workspace/iHouse/output";
@@ -21,7 +21,7 @@ HyPerCol "column" = {
    filenamesContainLayerNames      = 2;    // stores pvp files as: 0 = layer number/1 = layer number and layer name/2 = layer name
    filenamesContainConnectionNames = 2;
                                            // 
-   checkpointRead               = true;
+   checkpointRead               = false;
    //checkpointReadDir            = "~/Documents/workspace/iHouse/checkpoints";
    //checkpointReadDir            = "~/Documents/Work/LANL/workspace/iHouse/checkpoints"; //Dylan's Mac
    checkpointReadDir            = "/home/dpaiton/workspace/iHouse/checkpoints"; //Dylan's Remote 
@@ -32,7 +32,7 @@ HyPerCol "column" = {
    //checkpointWriteDir           = "~/Documents/workspace/iHouse/output/checkpoints";
    //checkpointWriteDir           = "~/Documents/Work/LANL/workspace/iHouse/checkpoints"; //Dylan's Mac
    checkpointWriteDir           = "/home/dpaiton/workspace/iHouse/checkpoints"; //Dylan's Remote 
-   checkpointWriteStepInterval  = 100000;
+   checkpointWriteStepInterval  = 1000000;
    suppressLastOutput           = 0;
                                            //
    //printParamsFilename          = "~/Documents/workspace/iHouse/output/params_run.pv";
@@ -360,8 +360,8 @@ KernelConn "ImagetoRetinaOFFSurround" = {
 OjaSTDPConn "RetinaONtoLif" = {
    preLayerName               = "RetinaON";
    postLayerName              = "lif";
-   nxp                        = 10;
-   nyp                        = 10;
+   nxp                        = 6;
+   nyp                        = 6;
    nfp                        = 1;
    channelCode                = 0;
                                    //
@@ -421,8 +421,8 @@ OjaSTDPConn "RetinaONtoLif" = {
 OjaSTDPConn "RetinaOFFtoLif" = {
    preLayerName               = "RetinaOFF";
    postLayerName              = "lif";
-   nxp                        = 10;
-   nyp                        = 10;
+   nxp                        = 6;
+   nyp                        = 6;
    nfp                        = 1;
    channelCode                = 0;
                                    //
@@ -485,42 +485,42 @@ OjaSTDPConn "RetinaOFFtoLif" = {
 // Inhib connections      Inhib connections      Inhib connections      Inhib connections      Inhib connections      Inhib connections      
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-//LCALIFLateralConn "lif lateral inhibition" = {
-//    preLayerName               = "lif";
-//    postLayerName              = "lif";
-//    channelCode                = 1;
-//    nxp                        = 3;    // Patch size * 2 - 1
-//    nyp                        = 3;    // Patch size * 2 - 1
-//    nfp                        = 1;
-//                                     //
-//    integrationTimeConstant    = 300;
-//    inhibitionTimeConstant     = 50000;
-//    targetRate                 = 5;
-//    coorThresh                 = 1;
-//                                     //
-//    numAxonalArbors            = 1;
-//    writeStep                  = -1;
-//    initFromLastFlag           = 0;
-//                                     //
-//    weightInitType             = "UniformWeight";
-//    weightInit                 = 1.0;
-//    dWMax                      = 1.0;
-//                                     //
-//    normalize                  = false;
-//    preActivityIsNotRate       = false;
-//                                     //
-//    writeCompressedWeights     = false;
-//    plasticityFlag             = true;
-//    selfFlag                   = false;
-//                                     //
-//    delay                      = 0;
-//                                     //
-//    stochasticReleaseFlag      = false;
-//    shrinkPatches              = false;
-//    combine_dW_with_W_flag     = false;
-//    writeCompressedCheckpoints = 0;
-//    combineWeightFiles         = false;
-//};
+LCALIFLateralConn "lif lateral inhibition" = {
+    preLayerName               = "lif";
+    postLayerName              = "lif";
+    channelCode                = 1;
+    nxp                        = 11;    // Patch size * 2 - 1
+    nyp                        = 11;    // Patch size * 2 - 1
+    nfp                        = 1;
+                                     //
+    integrationTimeConstant    = 300;
+    inhibitionTimeConstant     = 50000;
+    targetRate                 = 5;
+    coorThresh                 = 1;
+                                     //
+    numAxonalArbors            = 1;
+    writeStep                  = -1;
+    initFromLastFlag           = 0;
+                                     //
+    weightInitType             = "UniformWeight";
+    weightInit                 = 1.0;
+    dWMax                      = 1.0;
+                                     //
+    normalize                  = false;
+    preActivityIsNotRate       = false;
+                                     //
+    writeCompressedWeights     = false;
+    plasticityFlag             = true;
+    selfFlag                   = false;
+                                     //
+    delay                      = 0;
+                                     //
+    stochasticReleaseFlag      = false;
+    shrinkPatches              = false;
+    combine_dW_with_W_flag     = false;
+    writeCompressedCheckpoints = 0;
+    combineWeightFiles         = false;
+}1;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Probes Probes Probes Probes Probes Probes Probes Probes Probes Probes Probes
