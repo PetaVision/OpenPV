@@ -8,20 +8,20 @@ HyPerCol "column" = {
    ny                           = 32;      // pixel height of input image
    dt                           = 1.;      // ms
                                            // 
-   randomSeed                   = 1020304050.0;   
+   randomSeed                   = 1234567890;   
                                            //
-   numSteps                     = 1100000;  // amount of time steps performed during run-time
-   progressStep                 = 100000;   // write output to see progress
+   numSteps                     = 1000000; // amount of time steps performed during run-time
+   progressStep                 = 100000;  // write output to see progress
    writeProgressToErr           = 0;       // write progress steps to std err
                                            // 
-   //outputPath                 = "~/Documents/workspace/iHouse/output";
+   //outputPath                   = "~/Documents/workspace/iHouse/output";
    //outputPath                   = "~/Documents/Work/LANL/workspace/iHouse/output"; //Dylan's Mac
    outputPath                   = "/home/dpaiton/workspace/iHouse/output"; //Dylan's Remote 
                                            // 
    filenamesContainLayerNames      = 2;    // stores pvp files as: 0 = layer number/1 = layer number and layer name/2 = layer name
    filenamesContainConnectionNames = 2;
                                            // 
-   checkpointRead               = true;
+   checkpointRead               = false;
    //checkpointReadDir            = "~/Documents/workspace/iHouse/checkpoints";
    //checkpointReadDir            = "~/Documents/Work/LANL/workspace/iHouse/checkpoints"; //Dylan's Mac
    checkpointReadDir            = "/home/dpaiton/workspace/iHouse/checkpoints"; //Dylan's Remote 
@@ -387,8 +387,8 @@ OjaSTDPConn "RetinaONtoLif" = {
    //wMax                       = 1;     // Does not matter if ojaFlag = true
    ojaFlag                    = 1;     // Turns oja rule on or off. Standard STDP if off
    LTDscale                   = 1;     // Scale for the change of ampLTD. Must be positive; defaults to postVthRest - posVrest. If 0, adaptive LTD is fixed to initAmpLTD
-                                   //
-   numAxonalArbors            = 0;
+                                       //
+   numAxonalArbors            = 1;     // Needs to be 1 to have connections.
    //delay                      = [0,1,2,3,4];
    useListOfArborFiles        = false;
                                    //
@@ -448,8 +448,8 @@ OjaSTDPConn "RetinaOFFtoLif" = {
    //wMax                       = 1;     // Does not matter if ojaFlag = true
    ojaFlag                    = 1;     // Turns oja rule on or off. Standard STDP if off
    LTDscale                   = 1;     // Scale for the change of ampLTD. Must be positive; defaults to postVthRest - posVrest. If 0, adaptive LTD is fixed to initAmpLTD
-                                   //
-   numAxonalArbors            = 0;
+                                       //
+   numAxonalArbors            = 1;     // Needs to be 1 to have connections.
    //delay                      = [0,1,2,3,4];
    useListOfArborFiles        = false;
                                    //
