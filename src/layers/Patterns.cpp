@@ -107,19 +107,28 @@ int Patterns::initialize(const char * name, HyPerCol * hc, PatternType type) {
       initPatternCntr = 0;
    }
    if (type==DROP) {
+      //(pixels/dt) Radius expands dropSpeed pixles per timestep; 0 for rand
       dropSpeed = params->value(name, "dropSpeed", 1);
-      dropSpeedRandomMax = params->value(name, "dropSpeedRandomMax", 3);
-      dropSpeedRandomMin = params->value(name, "dropSpeedRandomMin", 1);
+      if (dropSpeed==0) {
+		  dropSpeedRandomMax = params->value(name, "dropSpeedRandomMax", 3);
+		  dropSpeedRandomMin = params->value(name, "dropSpeedRandomMin", 1);
+      }
 
+      //(dt) -1 for random period, otherwise, number of frames in between drops
+      //TODO: What does dropPeriod of 0 represent? If nothing - why not have 0 be random?
       dropPeriod = params->value(name, "dropPeriod", 10);
-      dropPeriodRandomMax = params->value(name, "dropPeriodRandomMax", 20);
-      dropPeriodRandomMin = params->value(name, "dropPeriodRandomMin", 5);
+      if (dropPeriod==-1) {
+		  dropPeriodRandomMax = params->value(name, "dropPeriodRandomMax", 20);
+		  dropPeriodRandomMin = params->value(name, "dropPeriodRandomMin", 5);
+      }
 
       //Random position is -1 for random number of drops from pos, 0 for drop from center, otherwise
       //number of timesteps in which the drop stays at the position
       dropPosition = params->value(name, "dropPosition", 0);
-      dropPositionRandomMax = params->value(name, "dropPositionRandomMax", 20);
-      dropPositionRandomMin = params->value(name, "dropPositionRandomMin", 5);
+      if (dropPosition==-1) {
+		  dropPositionRandomMax = params->value(name, "dropPositionRandomMax", 20);
+		  dropPositionRandomMin = params->value(name, "dropPositionRandomMin", 5);
+      }
 
       maxVal = params->value(name,"maxValue", PATTERNS_MAXVAL);
       onOffFlag = params->value(name, "halfNeutral", 0);
