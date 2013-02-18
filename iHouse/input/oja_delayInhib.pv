@@ -57,15 +57,15 @@ Patterns "Input" = {
                                      // 
    patternType             = "DROP";
                                      //
-   inOut                   = 0;      //-1 is all in, 0 is random, 1 is all out. Values between represent how much in given direction
+   inOut                   = 1;      //-1 is all in, 0 is random, 1 is all out. Values between represent how much in given direction
 		                             //
-   dropSpeed               = -1;      //(pixels/dt) Radius expands dropSpeed pixles per timestep
-   dropSpeedRandomMin      = 1;      // only applies of dropSpeed = -1
-   dropSpeedRandomMax      = 2;      // only applies if dropSpeed = -1
+   dropSpeed               = 1;      //(pixels/dt) Radius expands dropSpeed pixles per timestep
+   //dropSpeedRandomMin      = 1;      // only applies of dropSpeed = -1
+   //dropSpeedRandomMax      = 2;      // only applies if dropSpeed = -1
     							     // 
-   dropPeriod              = -1;     //(dt) -1 for random period, otherwise, number of frames inbetween drops
-   dropPeriodRandomMin     = 25;
-   dropPeriodRandomMax     = 75;     // avg of 50
+   dropPeriod              = 50;     //(dt) -1 for random period, otherwise, number of frames inbetween drops
+   //dropPeriodRandomMin     = 25;
+   //dropPeriodRandomMax     = 75;     // avg of 50
     							     // 
    maxValue                = 0.75;
    minValue                = 0.25;
@@ -230,6 +230,7 @@ KernelConn "ImagetoRetinaONCenter" = {
    normalize_RMS_amp          = false;
    symmetrizeWeights          = 0;
    writeCompressedCheckpoints = false;
+   combineWeightFiles         = false;
 };
 
 KernelConn "ImagetoRetinaONSurround" = {
@@ -268,6 +269,7 @@ KernelConn "ImagetoRetinaONSurround" = {
    normalize_RMS_amp          = false;
    symmetrizeWeights          = 0;
    writeCompressedCheckpoints = false;
+   combineWeightFiles         = false;
 };
 
 
@@ -307,6 +309,7 @@ KernelConn "ImagetoRetinaOFFCenter" = {
    normalize_RMS_amp          = false;
    symmetrizeWeights          = 0;
    writeCompressedCheckpoints = false;
+   combineWeightFiles         = false;
 };
 
 
@@ -345,6 +348,7 @@ KernelConn "ImagetoRetinaOFFSurround" = {
    normalize_max              = 0.0;
    symmetrizeWeights          = 0;
    writeCompressedCheckpoints = false;
+   combineWeightFiles         = false;
 };
 
 
@@ -382,8 +386,9 @@ OjaSTDPConn "RetinaONtoLif" = {
    ojaFlag                    = 1;     // Turns oja rule on or off. Standard STDP if off
    LTDscale                   = 1;     // Scale for the change of ampLTD. Must be positive; defaults to postVthRest - posVrest. If 0, adaptive LTD is fixed to initAmpLTD
                                    //
-   numAxonalArbors            = 5;
-   delay                      = [0,1,2,3,4];
+   numAxonalArbors            = 0;
+   //delay                      = [0,1,2,3,4];
+   useListOfArborFiles        = false;
                                    //
    weightInitType             = "UniformRandomWeight";
    //weightInit                 = 0.001;
@@ -393,8 +398,8 @@ OjaSTDPConn "RetinaONtoLif" = {
    //normalize_max              = false;
    //normalize_zero_offset      = 0.0;
    //strength                   = 0;     // Strength doesn't matter when weightInitType is UniformRandomWeight
-   //combineWeightFiles         = false;
    //symmetrizeWeights          = 0;
+   combineWeightFiles         = false;
                                    //
    combine_dW_with_W_flag     = false;
    selfFlag                   = false;
@@ -435,15 +440,16 @@ OjaSTDPConn "RetinaOFFtoLif" = {
    targetPostRate             = 5;     // (Hz)
    targetPreRate              = 10;    // (Hz)
    weightDecay                = 0;     // How quickly STDP decays if no firing occurs
-   dWMax                      = 2;     // How quickly STDP happens (unstable if high)
+   dWMax                      = 1;     // How quickly STDP happens (unstable if high)
    weightScale                = 1;     // Modifies strength range for STDP (we want strengths to be around 0.25)
    wMin                       = 0.001; // Min value for weights
    //wMax                       = 1;     // Does not matter if ojaFlag = true
    ojaFlag                    = 1;     // Turns oja rule on or off. Standard STDP if off
    LTDscale                   = 1;     // Scale for the change of ampLTD. Must be positive; defaults to postVthRest - posVrest. If 0, adaptive LTD is fixed to initAmpLTD
                                    //
-   numAxonalArbors            = 5;
-   delay                      = [0,1,2,3,4];
+   numAxonalArbors            = 0;
+   //delay                      = [0,1,2,3,4];
+   useListOfArborFiles        = false;
                                    //
    weightInitType             = "UniformRandomWeight";
    //weightInit                 = 0.001;
@@ -453,8 +459,8 @@ OjaSTDPConn "RetinaOFFtoLif" = {
    //normalize_max              = false;
    //normalize_zero_offset      = 0.0;
    //strength                   = 0;     // Strength doesn't matter when weightInitType is UniformRandomWeight
-   //combineWeightFiles         = false;
    //symmetrizeWeights          = 0;
+   combineWeightFiles         = false;
                                    //
    combine_dW_with_W_flag     = false;
    selfFlag                   = false;
@@ -479,41 +485,42 @@ OjaSTDPConn "RetinaOFFtoLif" = {
 // Inhib connections      Inhib connections      Inhib connections      Inhib connections      Inhib connections      Inhib connections      
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-LCALIFLateralConn "lif lateral inhibition" = {
-    preLayerName               = "lif";
-    postLayerName              = "lif";
-    channelCode                = 1;
-    nxp                        = 3;    // Patch size * 2 - 1
-    nyp                        = 3;    // Patch size * 2 - 1
-    nfp                        = 1;
-                                     //
-    integrationTimeConstant    = 300;
-    inhibitionTimeConstant     = 50000;
-    targetRate                 = 5;
-    coorThresh                 = 1;
-                                     //
-    numAxonalArbors            = 1;
-    writeStep                  = -1;
-    initFromLastFlag           = 0;
-                                     //
-    weightInitType             = "UniformWeight";
-    weightInit                 = 1.0;
-    dWMax                      = 1.0;
-                                     //
-    normalize                  = false;
-    preActivityIsNotRate       = false;
-                                     //
-    writeCompressedWeights     = false;
-    plasticityFlag             = true;
-    selfFlag                   = false;
-                                     //
-    delay                      = 0;
-                                     //
-    stochasticReleaseFlag      = false;
-    shrinkPatches              = false;
-    combine_dW_with_W_flag     = false;
-    writeCompressedCheckpoints = 0;
-};
+//LCALIFLateralConn "lif lateral inhibition" = {
+//    preLayerName               = "lif";
+//    postLayerName              = "lif";
+//    channelCode                = 1;
+//    nxp                        = 3;    // Patch size * 2 - 1
+//    nyp                        = 3;    // Patch size * 2 - 1
+//    nfp                        = 1;
+//                                     //
+//    integrationTimeConstant    = 300;
+//    inhibitionTimeConstant     = 50000;
+//    targetRate                 = 5;
+//    coorThresh                 = 1;
+//                                     //
+//    numAxonalArbors            = 1;
+//    writeStep                  = -1;
+//    initFromLastFlag           = 0;
+//                                     //
+//    weightInitType             = "UniformWeight";
+//    weightInit                 = 1.0;
+//    dWMax                      = 1.0;
+//                                     //
+//    normalize                  = false;
+//    preActivityIsNotRate       = false;
+//                                     //
+//    writeCompressedWeights     = false;
+//    plasticityFlag             = true;
+//    selfFlag                   = false;
+//                                     //
+//    delay                      = 0;
+//                                     //
+//    stochasticReleaseFlag      = false;
+//    shrinkPatches              = false;
+//    combine_dW_with_W_flag     = false;
+//    writeCompressedCheckpoints = 0;
+//    combineWeightFiles         = false;
+//};
 
 ////////////////////////////////////////////////////////////////////////////////
 // Probes Probes Probes Probes Probes Probes Probes Probes Probes Probes Probes
