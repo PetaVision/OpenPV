@@ -151,37 +151,37 @@ Retina "RetinaOFF" = {
 
 
 LIF "lif" = {
-   nxScale          = 2;
-   nyScale          = 2;
-   nf               = 1;
+   nxScale             = 2;
+   nyScale             = 2;
+   nf                  = 1;
                                  // 
-   writeStep        = -1; 		 // Set to 1 to make movie
+   writeStep           = -1; 		 // Set to 1 to make movie
                                  //
-   spikingFlag      = 1;
-   marginWidth      = 8;
-   mirrorBCflag     = 0;         // mirroring boundary conditions
-   InitVType        = "ConstantV";
-   method           = "beginning";
-   valueV           = -70.0;
-   Vrest            = -70.0;    
-   restart          = 0.0;       // from graylast
-   Vexc             = 0.0;       // reversal potential 
-   Vinh             = -75.0;     // chloride channel
-   VinhB            = -90.0;     // potassium reversal
-   tau              = 10.0;      // intrinsic leak membrane time constant (max)
-   tauE             = 1.0;       // how long glutamine stays bound
-   tauI             = 5.0;       // how long GABA stays bound
-   tauIB            = 10.0;      // inhibitory potassium channel 
-   VthRest          = -55.0;     // firing threshold 15 mV above rest
-   tauVth           = 10.0;      // 10.0 relative refractory period
-   deltaVth         = 5.0;       // jump of threshold when firing
-   noiseAmpE        = 0.25;      // 0 to 1 means conductance is equal to lead conductance -gjk
-   noiseAmpI        = 0.25;      // 0 to 1 twice as easy for the membrane capacitance to discharge -gjk
-   noiseAmpIB       = 0.0;       // no noise here 
-   noiseFreqE       = 250.;      // spontaneous transmitter release/channel openings
-   noiseFreqI       = 250.;      // correlation to time step size
-   noiseFreqIB      = 0;         // should be scaled by the time constant - look at LIF model
-   phase            = 0;
+   marginWidth         = 8;
+   mirrorBCflag        = 0;         // mirroring boundary conditions
+   InitVType           = "ConstantV";
+   method              = "beginning";
+   valueV              = -70.0;
+   Vrest               = -70.0;    
+   restart             = 0.0;       // from graylast
+   Vexc                = 0.0;       // reversal potential 
+   Vinh                = -75.0;     // chloride channel
+   VinhB               = -90.0;     // potassium reversal
+   tau                 = 10.0;      // intrinsic leak membrane time constant (max)
+   tauE                = 1.0;       // how long glutamine stays bound
+   tauI                = 5.0;       // how long GABA stays bound
+   tauIB               = 10.0;      // inhibitory potassium channel 
+   VthRest             = -55.0;     // firing threshold 15 mV above rest
+   tauVth              = 10.0;      // 10.0 relative refractory period
+   deltaVth            = 5.0;       // jump of threshold when firing
+   noiseAmpE           = 0.25;      // 0 to 1 means conductance is equal to lead conductance -gjk
+   noiseAmpI           = 0.25;      // 0 to 1 twice as easy for the membrane capacitance to discharge -gjk
+   noiseAmpIB          = 0.0;       // no noise here 
+   noiseFreqE          = 250.;      // spontaneous transmitter release/channel openings
+   noiseFreqI          = 250.;      // correlation to time step size
+   noiseFreqIB         = 0;         // should be scaled by the time constant - look at LIF model
+   phase               = 0;
+   writeSparseActivity = 1;
 };
 
 
@@ -346,6 +346,7 @@ KernelConn "ImagetoRetinaOFFSurround" = {
    normalize                  = true;
    normalize_zero_offset      = 0.0;
    normalize_max              = 0.0;
+   normalize_RMS_amp          = false;
    symmetrizeWeights          = 0;
    writeCompressedCheckpoints = false;
    combineWeightFiles         = false;
@@ -392,7 +393,7 @@ OjaSTDPConn "RetinaONtoLif" = {
                                    //
    weightInitType             = "UniformRandomWeight";
    //weightInit                 = 0.001;
-   wMaxInit                   = 0.1;
+   wMaxInit                   = 0.01;
    wMinInit                   = 0.001;
    normalize                  = false;
    //normalize_max              = false;
@@ -453,7 +454,7 @@ OjaSTDPConn "RetinaOFFtoLif" = {
                                    //
    weightInitType             = "UniformRandomWeight";
    //weightInit                 = 0.001;
-   wMaxInit                   = 0.1;
+   wMaxInit                   = 0.01;
    wMinInit                   = 0.001;
    normalize                  = false;
    //normalize_max              = false;
@@ -484,7 +485,6 @@ OjaSTDPConn "RetinaOFFtoLif" = {
 // Inhib connections      Inhib connections      Inhib connections      Inhib connections      Inhib connections      Inhib connections      
 // Inhib connections      Inhib connections      Inhib connections      Inhib connections      Inhib connections      Inhib connections      
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 LCALIFLateralConn "lif lateral inhibition" = {
     preLayerName               = "lif";
     postLayerName              = "lif";
@@ -520,7 +520,7 @@ LCALIFLateralConn "lif lateral inhibition" = {
     combine_dW_with_W_flag     = false;
     writeCompressedCheckpoints = 0;
     combineWeightFiles         = false;
-}1;
+};
 
 ////////////////////////////////////////////////////////////////////////////////
 // Probes Probes Probes Probes Probes Probes Probes Probes Probes Probes Probes
@@ -531,70 +531,70 @@ LCALIFLateralConn "lif lateral inhibition" = {
 // Probes Probes Probes Probes Probes Probes Probes Probes Probes Probes Probes
 ////////////////////////////////////////////////////////////////////////////////
 
-PointLIFProbe "LIF_Probe" = {
-   targetLayer     = "lif";
-   probeOutputFile = "ptLIF.txt";
-   xLoc            = 23;
-   yLoc            = 23;
-   fLoc            = 0;
-};
-
-OjaConnProbe "Oja_ON_Probe_Ver" = {
-    targetConnection = "RetinaONtoLif";
-    probeOutputFile  = "retONtoLifVer.txt";
-    msg              = "OjaON";
-    isPostProbe      = true;
-    kxPost           = 23; //About half of the radius out
-    kyPost           = 15; //About the middle
-    kfPost           = 0;  //1 feature
-};
-
-OjaConnProbe "Oja_ON_Probe_Hor" = {
-    targetConnection = "RetinaONtoLif";
-    probeOutputFile  = "retONtoLifHor.txt";
-    msg              = "OjaON";
-    isPostProbe      = true;
-    kxPost           = 15; //About the middle
-    kyPost           = 23; //About half of the radius out
-    kfPost           = 0;  //1 feature
-};
-
-OjaConnProbe "Oja_ON_Probe_Dia" = {
-    targetConnection = "RetinaONtoLif";
-    probeOutputFile  = "retONtoLifDia.txt";
-    msg              = "OjaON";
-    isPostProbe      = true;
-    kxPost           = 23; //About half of the radius out
-    kyPost           = 23; //About half of the radius out
-    kfPost           = 0;  //1 feature
-};
-
-OjaConnProbe "Oja_OFF_Probe_Ver" = {
-    targetConnection = "RetinaOFFtoLif";
-    probeOutputFile  = "retOFFtoLifVer.txt";
-    msg              = "OjaOFF";
-    isPostProbe      = true;
-    kxPost           = 23; //About half of the radius out
-    kyPost           = 15; //About the middle
-    kfPost           = 0;  //1 feature
-};
-
-OjaConnProbe "Oja_OFF_Probe_Hor" = {
-    targetConnection = "RetinaOFFtoLif";
-    probeOutputFile  = "retOFFtoLifHor.txt";
-    msg              = "OjaOFF";
-    isPostProbe      = true;
-    kxPost           = 15; //About the middle
-    kyPost           = 23; //About half of the radius out
-    kfPost           = 0;  //1 feature
-};
-
-OjaConnProbe "Oja_OFF_Probe_Dia" = {
-    targetConnection = "RetinaOFFtoLif";
-    probeOutputFile  = "retOFFtoLifDia.txt";
-    msg              = "OjaOFF";
-    isPostProbe      = true;
-    kxPost           = 23; //About half of the radius out
-    kyPost           = 23; //About half of the radius out
-    kfPost           = 0;  //1 feature
-};
+//PointLIFProbe "LIF_Probe" = {
+//   targetLayer     = "lif";
+//   probeOutputFile = "ptLIF.txt";
+//   xLoc            = 23;
+//   yLoc            = 23;
+//   fLoc            = 0;
+//};
+//
+//OjaConnProbe "Oja_ON_Probe_Ver" = {
+//    targetConnection = "RetinaONtoLif";
+//    probeOutputFile  = "retONtoLifVer.txt";
+//    msg              = "OjaON";
+//    isPostProbe      = true;
+//    kxPost           = 23; //About half of the radius out
+//    kyPost           = 15; //About the middle
+//    kfPost           = 0;  //1 feature
+//};
+//
+//OjaConnProbe "Oja_ON_Probe_Hor" = {
+//    targetConnection = "RetinaONtoLif";
+//    probeOutputFile  = "retONtoLifHor.txt";
+//    msg              = "OjaON";
+//    isPostProbe      = true;
+//    kxPost           = 15; //About the middle
+//    kyPost           = 23; //About half of the radius out
+//    kfPost           = 0;  //1 feature
+//};
+//
+//OjaConnProbe "Oja_ON_Probe_Dia" = {
+//    targetConnection = "RetinaONtoLif";
+//    probeOutputFile  = "retONtoLifDia.txt";
+//    msg              = "OjaON";
+//    isPostProbe      = true;
+//    kxPost           = 23; //About half of the radius out
+//    kyPost           = 23; //About half of the radius out
+//    kfPost           = 0;  //1 feature
+//};
+//
+//OjaConnProbe "Oja_OFF_Probe_Ver" = {
+//    targetConnection = "RetinaOFFtoLif";
+//    probeOutputFile  = "retOFFtoLifVer.txt";
+//    msg              = "OjaOFF";
+//    isPostProbe      = true;
+//    kxPost           = 23; //About half of the radius out
+//    kyPost           = 15; //About the middle
+//    kfPost           = 0;  //1 feature
+//};
+//
+//OjaConnProbe "Oja_OFF_Probe_Hor" = {
+//    targetConnection = "RetinaOFFtoLif";
+//    probeOutputFile  = "retOFFtoLifHor.txt";
+//    msg              = "OjaOFF";
+//    isPostProbe      = true;
+//    kxPost           = 15; //About the middle
+//    kyPost           = 23; //About half of the radius out
+//    kfPost           = 0;  //1 feature
+//};
+//
+//OjaConnProbe "Oja_OFF_Probe_Dia" = {
+//    targetConnection = "RetinaOFFtoLif";
+//    probeOutputFile  = "retOFFtoLifDia.txt";
+//    msg              = "OjaOFF";
+//    isPostProbe      = true;
+//    kxPost           = 23; //About half of the radius out
+//    kyPost           = 23; //About half of the radius out
+//    kfPost           = 0;  //1 feature
+//};
