@@ -502,12 +502,13 @@ void LIF_update_state_arma(
       G_E_initial  = (G_E_initial  > GMAX) ? GMAX : G_E_initial;
       G_I_initial  = (G_I_initial  > GMAX) ? GMAX : G_I_initial;
       G_IB_initial = (G_IB_initial > GMAX) ? GMAX : G_IB_initial;
-      tau_inf_final = tau/(1+G_E_final+G_I_final+G_IB_initial);
-      V_inf_final = (Vrest+Vexc*G_E_final+Vinh*G_I_final+VinhB*G_IB_final)/(1+G_E_final+G_I_final+G_IB_final);
 
       G_E_final = G_E_initial*exp_tauE;
       G_I_final = G_I_initial*exp_tauI;
       G_IB_final = G_IB_initial*exp_tauIB;
+
+      tau_inf_final = tau/(1+G_E_final+G_I_final+G_IB_initial);
+      V_inf_final = (Vrest+Vexc*G_E_final+Vinh*G_I_final+VinhB*G_IB_final)/(1+G_E_final+G_I_final+G_IB_final);
 
       float tau_slope = (tau_inf_final-tau_inf_initial)/dt;
       float f1 = tau_slope==0.0f ? EXP(-dt/tau_inf_initial) : powf(tau_inf_final/tau_inf_initial, -1/tau_slope);
