@@ -489,8 +489,8 @@ LCALIFLateralConn "lif lateral inhibition" = {
     preLayerName               = "lif";
     postLayerName              = "lif";
     channelCode                = 1;
-    nxp                        = 11;    // Patch size * 2 - 1
-    nyp                        = 11;    // Patch size * 2 - 1
+    nxp                        = 3;    // LIF Patch size * 2 - 1
+    nyp                        = 3;    // LIF Patch size * 2 - 1
     nfp                        = 1;
                                      //
     integrationTimeConstant    = 300;
