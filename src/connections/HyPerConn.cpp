@@ -587,6 +587,9 @@ int HyPerConn::setParams(PVParams * inputParams /*, PVConnParams * p*/)
    const char * name = getName();
 
    numAxonalArborLists=(int) inputParams->value(name, "numAxonalArbors", 1, true);
+   if (numAxonalArborLists==0) {
+         fprintf(stdout, "HyPerConn:: Warning: Connection %s: Variable numAxonalArbors is set to 0. No connections will be made.\n",name);
+   }
    plasticityFlag = inputParams->value(name, "plasticityFlag", plasticityFlag, true) != 0;
    stochasticReleaseFlag = inputParams->value(name, "stochasticReleaseFlag", false, true) != 0;
    preActivityIsNotRate = inputParams->value(name, "preActivityIsNotRate", false, true) != 0;
@@ -1226,12 +1229,12 @@ int HyPerConn::checkpointRead(const char * cpDir, double * timef) {
       FILE * fpWriteTime = fopen(path, "r");
       double write_time = writeTime;
       if (fpWriteTime==NULL) {
-         fprintf(stderr, "HyPerLayer::checkpointRead warning: unable to open path %s for reading.  writeTime will be %f\n", path, write_time);
+         fprintf(stderr, "HyPerConn::checkpointRead warning: unable to open path %s for reading.  writeTime will be %f\n", path, write_time);
       }
       else {
          int num_read = fread(&writeTime, sizeof(writeTime), 1, fpWriteTime);
          if (num_read != 1) {
-            fprintf(stderr, "HyPerLayer::checkpointRead warning: unable to read from %s.  writeTime will be %f\n", path, write_time);
+            fprintf(stderr, "HyPerConn::checkpointRead warning: unable to read from %s.  writeTime will be %f\n", path, write_time);
             writeTime = write_time;
          }
          //Check that writeTime is set properly based on new writeStep
