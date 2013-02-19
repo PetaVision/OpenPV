@@ -193,11 +193,15 @@ function [tot_chips, ...
   mkdir(list_dir);
 
   if DoG_flag
-    DoG_dir = [chip_path, clip_name, filesep, "DoG", filesep];
+    DoG_dir2 = [PetaVision_path, "DoG", filesep];
+    mkdir(DoG_dir2);
+    DoG_dir = [DoG_dir2, clip_name, filesep];
     mkdir(DoG_dir);
   endif %% DoG_flag
   if canny_flag
-    canny_dir = [chip_path, clip_name, filesep, "canny", filesep];
+    canny_dir2 = [PetaVision_path, "canny", filesep];
+    mkdir(canny_dir2);
+    canny_dir = [canny_dir2, clip_name, filesep];
     mkdir(canny_dir);
   endif %% canny_flag
   hist_folder = [PetaVision_path, "hist", filesep];

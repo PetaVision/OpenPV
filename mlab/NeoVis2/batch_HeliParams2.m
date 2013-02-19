@@ -1,11 +1,11 @@
 
 %% begin definition of the most volitile parameters
-FLAVOR_ID = "Challenge"; %% "Training"; %% 
+FLAVOR_ID = "Training"; %% "Challenge"; %% 
 disp(["FLAVOR_ID = ", FLAVOR_ID]);
-target_id = cell(1,2); %%cell(1,1); %% 
+target_id = cell(1,2); 
 target_id{1,1} = "Car"; target_id{1,2} = "NotCar"; %% 
 target_id
-clips_flag = true; %% false; %% 
+clips_flag = false; %% true; %% 
 if clips_flag 
   clip_ids = [26:26]; %% [1:50]; %% 
   clip_name = cell(length(clip_ids),1);
@@ -26,7 +26,7 @@ disp(["version_ids = ", mat2str(version_ids)]);
 pvp_frame_size = [1080 1920]; %%
 disp(["frame_size = ", mat2str(pvp_frame_size)]);
 pvp_edge_type = "canny"; 
-pvp_clique_id = "3way"; %% ""; %% 
+pvp_clique_id = "3way2X2"; %% ""; %% 
 num_versions = length(version_ids);
 if num_versions > 0
   version_str = cell(num_versions,1);
@@ -51,7 +51,7 @@ pvp_home_path = ...
 %%    [filesep, "Users", filesep, "garkenyon", filesep];
 if ismac
   pvp_workspace_path = ...
-      [pvp_home_path, "workspace-sync-anterior", filesep];
+      [pvp_home_path, "workspace", filesep];
 else
   pvp_workspace_path = ...
       [pvp_home_path, "workspace", filesep];
@@ -157,6 +157,7 @@ checkpoint_read_path = ...
      "Training", filesep, ...
      "checkpoints", filesep];
 
+i_clip = 1;  %% should loop over clips here
 for i_object = 1 : size(target_id,1)
 
   %% get checkpoint read dir and list of weights
@@ -233,13 +234,13 @@ for i_object = 1 : size(target_id,1)
 	if target_flag >= 1
 	  if pvp_num_ODD_kernels == 1
 	    weight_filename = ...
-		"L1Pool1X1toL1Post_W.pvp";
+		"L1ToL1Post_W.pvp";
 	  elseif pvp_num_ODD_kernels == 2
 	    weight_filename = ...
-		"L2Pool2X2toL2Post_W.pvp";
+		"L2ToL2Post_W.pvp";
 	  elseif pvp_num_ODD_kernels == 3
 	    weight_filename = ...
-		"L3Pool4X4toL3Post_W.pvp";
+		"L3ToL3Post_W.pvp";
 	  else
 	    error(["weight_filename unspecified for pvp_num_ODD_kernels = ", ...
 		   num2str(pvp_num_ODD_kernels)]);
@@ -247,13 +248,13 @@ for i_object = 1 : size(target_id,1)
 	else
 	  if pvp_num_ODD_kernels == 1
 	    weight_filename = ...
-		"L1Pool1X1toL1Pool1X1_W.pvp";
+		"L1ToL1_W.pvp";
 	  elseif pvp_num_ODD_kernels == 2
 	    weight_filename = ...
-		"L2Pool2X2toL2Pool2X2_W.pvp";
+		"L2ToL2_W.pvp";
 	  elseif pvp_num_ODD_kernels == 3
 	    weight_filename = ...
-		"L3Pool4X4toL3Pool4X4_W.pvp";
+		"L3ToL3_W.pvp";
 	  else
 	    error(["weight_filename unspecified for pvp_num_ODD_kernels = ", ...
 		   num2str(pvp_num_ODD_kernels)]);
@@ -337,7 +338,7 @@ for i_object = 1 : size(target_id,1)
 	  [target_id{i_object, 1}, "_", "fileOfFilenames.txt"];
     else
       pvp_fileOfFrames_file = ...
-	  [clip_name{i_object, 1}, "_", "fileOfFilenames.txt"];
+	  [clip_name{i_clip, 1}, "_", "fileOfFilenames.txt"];
     endif
     pvp_fileOfFrames = ...
 	[pvp_fileOfFrames_path, pvp_fileOfFrames_file];
@@ -378,7 +379,11 @@ for i_object = 1 : size(target_id,1)
 	    [output_object_path, ...
 	     version_str{i_version}, filesep];
 	mkdir(output_version_path);
-	output_path = output_version_path;
+	if ~clips_flag
+	  output_path = [output_version_path];
+	else
+	  output_path = [output_version_path, clip_name{i_clip}, filesep];
+	endif
 
 	checkpoint_read_path = max_checkpoint_dir{i_version, target_flag};
 	
@@ -393,7 +398,12 @@ for i_object = 1 : size(target_id,1)
 	    [input_object_path, ...
 	     version_str{i_version}, filesep];
 	mkdir(input_version_path);
-	input_path = input_version_path;
+	if ~clips_flag
+	  input_path = input_version_path;
+	else
+	  input_path = [input_version_path, clip_name{i_clip}, filesep];
+	endif
+	mkdir(input_path);
 	
 	params_filename = ...
 	    [DATASET_ID, ...
@@ -410,15 +420,23 @@ for i_object = 1 : size(target_id,1)
 	
       
       else
-	output_path = [output_object_path];
-	
+	if ~clips_flag
+	  output_path = [output_object_path];
+	else
+	  output_path = [output_object_path, clip_name{i_clip}, filesep];
+	endif
 	checkpoint_read_path = max_checkpoint_dir{1, target_flag};
 	
 	checkpoint_write_path = [checkpoint_object_path];
 	
 	input_version_path = input_object_path;
-	input_path = input_version_path;
-	
+	if ~clips_flag
+	  input_path = input_version_path;
+	else
+	  input_path = [input_version_path, clip_name{i_clip}, filesep];
+	endif
+	mkdir(input_path);
+
 	params_filename = ...
 	    [DATASET_ID, ...
 	     "_", ...
@@ -431,6 +449,8 @@ for i_object = 1 : size(target_id,1)
  	     ".params"];
       endif  %% num_versions > 0
         
+      disp(["input_path = ", input_path]);
+      disp(["ouput_path = ", output_path]);
       [pvp_params_file] = ...
 	  pvp_makeCatParams(DATASET_ID, ...
 			    FLAVOR_ID, ...

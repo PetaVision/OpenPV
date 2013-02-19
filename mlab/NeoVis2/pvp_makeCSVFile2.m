@@ -427,6 +427,7 @@ function [num_frames, ...
   
   global NFEATURES NCOLS NROWS N
   if ~isempty(pvp_path)
+    %%keyboard;
     %% read pvp activity into cell array
     [pvp_fid, ...
      pvp_header, ...
@@ -452,9 +453,9 @@ function [num_frames, ...
   for j_frame = pvp_frame_offset : pvp_frame_skip : num_frames
     i_frame = i_frame + 1;
     if pvp_num_versions == 1
-      pvp_frame = j_frame + pvp_layer - 1;
+      pvp_frame = j_frame + pvp_layer - 1; %% 2; %%
     else
-      pvp_frame = i_frame + pvp_layer - 1;
+      pvp_frame = i_frame + pvp_layer - 1; %% 2;  %%
     endif
     if ~isempty(pvp_path)
       [pvp_time{i_frame},...
