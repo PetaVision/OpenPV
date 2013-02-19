@@ -10,7 +10,7 @@ HyPerCol "column" = {
                                            // 
    randomSeed                   = 1234567890;   
                                            //
-   numSteps                     = 2500000; // amount of time steps performed during run-time
+   numSteps                     = 2000000; // amount of time steps performed during run-time
    progressStep                 = 100000;   // write output to see progress
    writeProgressToErr           = 0;       // write progress steps to std err
                                            // 
@@ -148,13 +148,13 @@ Retina "RetinaOFF" = {
 
 
 LIF "lif" = {
-   nxScale             = 2;
-   nyScale             = 2;
+   nxScale             = 1;//2;
+   nyScale             = 1;//2;
    nf                  = 1;
                                     // 
    writeStep           = -1; 		// Set to 1 to make movie
                                     //
-   marginWidth         = 8;
+   marginWidth         = 0;//8;
    mirrorBCflag        = 0;         // mirroring boundary conditions
    InitVType           = "ConstantV";
    method              = "beginning";
@@ -359,8 +359,8 @@ KernelConn "ImagetoRetinaOFFSurround" = {
 OjaSTDPConn "RetinaONtoLif" = {
    preLayerName               = "RetinaON";
    postLayerName              = "lif";
-   nxp                        = 6;
-   nyp                        = 6;
+   nxp                        = 9;
+   nyp                        = 9;
    nfp                        = 1;
    channelCode                = 0;
                                    //
@@ -373,7 +373,7 @@ OjaSTDPConn "RetinaONtoLif" = {
    tauLTP                     = 4;     // (ms)
    tauLTD                     = 8;     // (ms)
    tauOja                     = 150;   // (ms)
-   tauTHR                     = 5000;  // (ms) thresholdAdaptationTime
+   tauTHR                     = 1000;  // (ms) thresholdAdaptationTime
    tauO                       = 300;   // (ms)
    targetPostRate             = 5;     // (Hz)
    targetPreRate              = 10;    // (Hz)
@@ -391,7 +391,7 @@ OjaSTDPConn "RetinaONtoLif" = {
                                    //
    weightInitType             = "UniformRandomWeight";
    //weightInit                 = 0.001;
-   wMaxInit                   = 0.01;
+   wMaxInit                   = 0.05;
    wMinInit                   = 0.001;
    normalize                  = false;
    //normalize_max              = false;
@@ -420,8 +420,8 @@ OjaSTDPConn "RetinaONtoLif" = {
 OjaSTDPConn "RetinaOFFtoLif" = {
    preLayerName               = "RetinaOFF";
    postLayerName              = "lif";
-   nxp                        = 6;
-   nyp                        = 6;
+   nxp                        = 9;
+   nyp                        = 9;
    nfp                        = 1;
    channelCode                = 0;
                                        //
@@ -434,7 +434,7 @@ OjaSTDPConn "RetinaOFFtoLif" = {
    tauLTP                     = 4;     // (ms)
    tauLTD                     = 8;     // (ms)
    tauOja                     = 150;   // (ms)
-   tauTHR                     = 5000;  // (ms) thresholdAdaptationTime
+   tauTHR                     = 1000;  // (ms) thresholdAdaptationTime
    tauO                       = 300;   // (ms)
    targetPostRate             = 5;     // (Hz)
    targetPreRate              = 10;    // (Hz)
@@ -452,7 +452,7 @@ OjaSTDPConn "RetinaOFFtoLif" = {
                                    //
    weightInitType             = "UniformRandomWeight";
    //weightInit                 = 0.001;
-   wMaxInit                   = 0.01;
+   wMaxInit                   = 0.05;
    wMinInit                   = 0.001;
    normalize                  = false;
    //normalize_max              = false;
