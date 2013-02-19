@@ -10,7 +10,7 @@ HyPerCol "column" = {
                                            // 
    randomSeed                   = 1234567890;   
                                            //
-   numSteps                     = 1100000; // amount of time steps performed during run-time
+   numSteps                     = 2000000; // amount of time steps performed during run-time
    progressStep                 = 10000;   // write output to see progress
    writeProgressToErr           = 0;       // write progress steps to std err
                                            // 
@@ -25,7 +25,7 @@ HyPerCol "column" = {
    //checkpointReadDir            = "~/Documents/workspace/iHouse/checkpoints";
    //checkpointReadDir            = "~/Documents/Work/LANL/workspace/iHouse/checkpoints"; //Dylan's Mac
    checkpointReadDir            = "/home/dpaiton/workspace/iHouse/checkpoints"; //Dylan's Remote 
-   checkpointReadDirIndex       = 1000000;
+   checkpointReadDirIndex       = 1100000;
                                            //
    checkpointWrite              = true;
    deleteOlderCheckpoints       = false;
@@ -40,7 +40,6 @@ HyPerCol "column" = {
    printParamsFilename          = "/home/dpaiton/workspace/iHouse/output/params_run.pv"; //Dylan's remote 
 };
 
-
 ////////////////////////////////////////////////////////////////////////////////
 // Layers Layers Layers Layers Layers Layers Layers Layers Layers Layers Layers
 // Layers Layers Layers Layers Layers Layers Layers Layers Layers Layers Layers
@@ -48,8 +47,6 @@ HyPerCol "column" = {
 // Layers Layers Layers Layers Layers Layers Layers Layers Layers Layers Layers
 // Layers Layers Layers Layers Layers Layers Layers Layers Layers Layers Layers
 ////////////////////////////////////////////////////////////////////////////////
-
-
 Patterns "Input" = {
    nxScale                 = 1;
    nyScale                 = 1;
@@ -532,70 +529,70 @@ LCALIFLateralConn "lif lateral inhibition" = {
 // Probes Probes Probes Probes Probes Probes Probes Probes Probes Probes Probes
 ////////////////////////////////////////////////////////////////////////////////
 
-PointLIFProbe "LIF_Probe" = {
-   targetLayer     = "lif";
-   probeOutputFile = "ptLIF.txt";
-   xLoc            = 23;
-   yLoc            = 23;
-   fLoc            = 0;
-};
-
-OjaConnProbe "Oja_ON_Probe_Ver" = {
-    targetConnection = "RetinaONtoLif";
-    probeOutputFile  = "retONtoLifVer.txt";
-    msg              = "OjaON";
-    isPostProbe      = true;
-    kxPost           = 23; //About half of the radius out
-    kyPost           = 15; //About the middle
-    kfPost           = 0;  //1 feature
-};
-
-OjaConnProbe "Oja_ON_Probe_Hor" = {
-    targetConnection = "RetinaONtoLif";
-    probeOutputFile  = "retONtoLifHor.txt";
-    msg              = "OjaON";
-    isPostProbe      = true;
-    kxPost           = 15; //About the middle
-    kyPost           = 23; //About half of the radius out
-    kfPost           = 0;  //1 feature
-};
-
-OjaConnProbe "Oja_ON_Probe_Dia" = {
-    targetConnection = "RetinaONtoLif";
-    probeOutputFile  = "retONtoLifDia.txt";
-    msg              = "OjaON";
-    isPostProbe      = true;
-    kxPost           = 23; //About half of the radius out
-    kyPost           = 23; //About half of the radius out
-    kfPost           = 0;  //1 feature
-};
-
-OjaConnProbe "Oja_OFF_Probe_Ver" = {
-    targetConnection = "RetinaOFFtoLif";
-    probeOutputFile  = "retOFFtoLifVer.txt";
-    msg              = "OjaOFF";
-    isPostProbe      = true;
-    kxPost           = 23; //About half of the radius out
-    kyPost           = 15; //About the middle
-    kfPost           = 0;  //1 feature
-};
-
-OjaConnProbe "Oja_OFF_Probe_Hor" = {
-    targetConnection = "RetinaOFFtoLif";
-    probeOutputFile  = "retOFFtoLifHor.txt";
-    msg              = "OjaOFF";
-    isPostProbe      = true;
-    kxPost           = 15; //About the middle
-    kyPost           = 23; //About half of the radius out
-    kfPost           = 0;  //1 feature
-};
-
-OjaConnProbe "Oja_OFF_Probe_Dia" = {
-    targetConnection = "RetinaOFFtoLif";
-    probeOutputFile  = "retOFFtoLifDia.txt";
-    msg              = "OjaOFF";
-    isPostProbe      = true;
-    kxPost           = 23; //About half of the radius out
-    kyPost           = 23; //About half of the radius out
-    kfPost           = 0;  //1 feature
-};
+//PointLIFProbe "LIF_Probe" = {
+//   targetLayer     = "lif";
+//   probeOutputFile = "ptLIF.txt";
+//   xLoc            = 23;
+//   yLoc            = 23;
+//   fLoc            = 0;
+//};
+//
+//OjaConnProbe "Oja_ON_Probe_Ver" = {
+//    targetConnection = "RetinaONtoLif";
+//    probeOutputFile  = "retONtoLifVer.txt";
+//    msg              = "OjaON";
+//    isPostProbe      = true;
+//    kxPost           = 23; //About half of the radius out
+//    kyPost           = 15; //About the middle
+//    kfPost           = 0;  //1 feature
+//};
+//
+//OjaConnProbe "Oja_ON_Probe_Hor" = {
+//    targetConnection = "RetinaONtoLif";
+//    probeOutputFile  = "retONtoLifHor.txt";
+//    msg              = "OjaON";
+//    isPostProbe      = true;
+//    kxPost           = 15; //About the middle
+//    kyPost           = 23; //About half of the radius out
+//    kfPost           = 0;  //1 feature
+//};
+//
+//OjaConnProbe "Oja_ON_Probe_Dia" = {
+//    targetConnection = "RetinaONtoLif";
+//    probeOutputFile  = "retONtoLifDia.txt";
+//    msg              = "OjaON";
+//    isPostProbe      = true;
+//    kxPost           = 23; //About half of the radius out
+//    kyPost           = 23; //About half of the radius out
+//    kfPost           = 0;  //1 feature
+//};
+//
+//OjaConnProbe "Oja_OFF_Probe_Ver" = {
+//    targetConnection = "RetinaOFFtoLif";
+//    probeOutputFile  = "retOFFtoLifVer.txt";
+//    msg              = "OjaOFF";
+//    isPostProbe      = true;
+//    kxPost           = 23; //About half of the radius out
+//    kyPost           = 15; //About the middle
+//    kfPost           = 0;  //1 feature
+//};
+//
+//OjaConnProbe "Oja_OFF_Probe_Hor" = {
+//    targetConnection = "RetinaOFFtoLif";
+//    probeOutputFile  = "retOFFtoLifHor.txt";
+//    msg              = "OjaOFF";
+//    isPostProbe      = true;
+//    kxPost           = 15; //About the middle
+//    kyPost           = 23; //About half of the radius out
+//    kfPost           = 0;  //1 feature
+//};
+//
+//OjaConnProbe "Oja_OFF_Probe_Dia" = {
+//    targetConnection = "RetinaOFFtoLif";
+//    probeOutputFile  = "retOFFtoLifDia.txt";
+//    msg              = "OjaOFF";
+//    isPostProbe      = true;
+//    kxPost           = 23; //About half of the radius out
+//    kyPost           = 23; //About half of the radius out
+//    kfPost           = 0;  //1 feature
+//};
