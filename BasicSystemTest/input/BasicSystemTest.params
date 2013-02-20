@@ -21,6 +21,7 @@ HyPerCol "column" = {
    writeProgressToErr = false;
    outputPath = "output/";
    filenamesContainLayerNames = false;
+   filenamesContainConnectionNames = false;
    checkpointRead = false;
    checkpointWrite = false;
    suppressLastOutput = false;
@@ -36,15 +37,18 @@ Image "input" = {
     nyScale = 1;
     imagePath = "input/sampleimage.png";
     nf = 1;
+    phase = 0;
     marginWidth = 3;
     writeStep = -1;
     writeSparseActivity = false;
     mirrorBCflag = false;
     useImageBCflag = false;
     inverseFlag = false;
+    normalizeLuminanceFlag = false;
     writeImages = false;
     offsetX = 0;
     offsetY = 0;
+    jitterFlag = false;
 };
 
 ANNLayer "output" = {
@@ -52,8 +56,10 @@ ANNLayer "output" = {
     nxScale = 1;
     nyScale = 1;
     nf = 8;
+    phase = 1;
     marginWidth = 0;
     writeStep = 1.0;
+    initialWriteTime = 0.0;
     mirrorBCflag = 1;
     writeSparseActivity = false;
 
@@ -62,6 +68,7 @@ ANNLayer "output" = {
     VThresh = -infinity;
     VMax = infinity;
     VMin = -infinity;
+    VShift = 0.0;
 };
 
 KernelConn "input to output" = {
@@ -94,6 +101,7 @@ KernelConn "input to output" = {
     normalize_max = 0.0;
     normalize_cutoff = 0;
     normalizeTotalToPost = false;
+    normalize_RMS_amp = false;
     symmetrizeWeights = 0;
     preActivityIsNotRate = false;
 
