@@ -228,7 +228,6 @@ KernelConn "ImagetoRetinaONCenter" = {
    normalize_RMS_amp          = false;
    symmetrizeWeights          = 0;
    writeCompressedCheckpoints = false;
-   combineWeightFiles         = false;
 };
 
 KernelConn "ImagetoRetinaONSurround" = {
@@ -267,7 +266,6 @@ KernelConn "ImagetoRetinaONSurround" = {
    normalize_RMS_amp          = false;
    symmetrizeWeights          = 0;
    writeCompressedCheckpoints = false;
-   combineWeightFiles         = false;
 };
 
 
@@ -307,7 +305,6 @@ KernelConn "ImagetoRetinaOFFCenter" = {
    normalize_RMS_amp          = false;
    symmetrizeWeights          = 0;
    writeCompressedCheckpoints = false;
-   combineWeightFiles         = false;
 };
 
 
@@ -347,7 +344,6 @@ KernelConn "ImagetoRetinaOFFSurround" = {
    normalize_RMS_amp          = false;
    symmetrizeWeights          = 0;
    writeCompressedCheckpoints = false;
-   combineWeightFiles         = false;
 };
 
 
@@ -387,7 +383,7 @@ OjaSTDPConn "RetinaONtoLif" = {
                                        //
    numAxonalArbors            = 1;     // Needs to be 1 to have connections.
    //delay                      = [0,1,2,3,4];
-   useListOfArborFiles        = false;
+   //useListOfArborFiles        = false;
                                    //
    weightInitType             = "UniformRandomWeight";
    //weightInit                 = 0.001;
@@ -398,7 +394,7 @@ OjaSTDPConn "RetinaONtoLif" = {
    //normalize_zero_offset      = 0.0;
    //strength                   = 0;     // Strength doesn't matter when weightInitType is UniformRandomWeight
    //symmetrizeWeights          = 0;
-   combineWeightFiles         = false;
+   //combineWeightFiles         = false;
                                    //
    combine_dW_with_W_flag     = false;
    selfFlag                   = false;
@@ -448,7 +444,7 @@ OjaSTDPConn "RetinaOFFtoLif" = {
                                        //
    numAxonalArbors            = 1;     // Needs to be 1 to have connections.
    //delay                      = [0,1,2,3,4];
-   useListOfArborFiles        = false;
+   //useListOfArborFiles        = false;
                                    //
    weightInitType             = "UniformRandomWeight";
    //weightInit                 = 0.001;
@@ -459,7 +455,7 @@ OjaSTDPConn "RetinaOFFtoLif" = {
    //normalize_zero_offset      = 0.0;
    //strength                   = 0;     // Strength doesn't matter when weightInitType is UniformRandomWeight
    //symmetrizeWeights          = 0;
-   combineWeightFiles         = false;
+   //combineWeightFiles         = false;
                                    //
    combine_dW_with_W_flag     = false;
    selfFlag                   = false;
@@ -517,7 +513,7 @@ OjaSTDPConn "RetinaOFFtoLif" = {
 //    shrinkPatches              = false;
 //    combine_dW_with_W_flag     = false;
 //    writeCompressedCheckpoints = 0;
-//    combineWeightFiles         = false;
+//    //combineWeightFiles         = false;
 //};
 
 ////////////////////////////////////////////////////////////////////////////////
