@@ -427,6 +427,7 @@ int HyPerLayer::setLayerLoc(PVLayerLoc * layerLoc, float nxScale, float nyScale,
       }
       status = PV_FAILURE;
    }
+   MPI_Barrier(icComm->communicator()); // If there is an error, make sure that MPI doesn't kill the run before process 0 reports the error.
    if (status != PV_SUCCESS) {
       if (parent->columnId()==0) {
          fprintf(stderr, "Exiting.\n");
