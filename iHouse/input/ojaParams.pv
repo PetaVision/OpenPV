@@ -36,8 +36,8 @@ HyPerCol "column" = {
    suppressLastOutput           = 0;
                                            //
    //printParamsFilename          = "~/Documents/workspace/iHouse/output/params_run.pv";
-   printParamsFilename          = "~/Documents/Work/LANL/workspace/iHouse/output/params_run.pv"; //Dylan's Mac
-   //printParamsFilename          = "/home/dpaiton/workspace/iHouse/output/params_run.pv"; //Dylan's remote 
+   //printParamsFilename          = "~/Documents/Work/LANL/workspace/iHouse/output/params_run.pv"; //Dylan's Mac
+   printParamsFilename          = "/home/dpaiton/workspace/iHouse/output/params_run.pv"; //Dylan's remote 
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -581,13 +581,13 @@ OjaSTDPConn "RetinaOFFtoLif" = {
 //    kyPost           = 23; //About half of the radius out
 //    kfPost           = 0;  //1 feature
 //};
-
-OjaConnProbe "Oja_OFF_Probe_Dia" = {
-    targetConnection = "RetinaOFFtoLif";
-    probeOutputFile  = "retOFFtoLifDia.txt";
-    msg              = "OjaOFF";
-    isPostProbe      = true;
-    kxPost           = 23; //About half of the radius out
-    kyPost           = 23; //About half of the radius out
-    kfPost           = 0;  //1 feature
-};
+//
+//OjaConnProbe "Oja_OFF_Probe_Dia" = {
+//    targetConnection = "RetinaOFFtoLif";
+//    probeOutputFile  = "retOFFtoLifDia.txt";
+//    msg              = "OjaOFF";
+//    isPostProbe      = true;
+//    kxPost           = 23; //About half of the radius out
+//    kyPost           = 23; //About half of the radius out
+//    kfPost           = 0;  //1 feature
+//};
