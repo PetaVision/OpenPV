@@ -310,7 +310,7 @@ int OjaSTDPConn::updateWeights(int arborID)
    const float targetPreRatekHz  = targetPreRateHz/1000; // Convert Hz to kHz
 
    //Extended Pre
-   const int nkPre  = pre->getNumExtended();
+   const int nkPre = pre->getNumExtended();
    assert(nkPre == getNumWeightPatches());
 
    const pvdata_t * preLayerData = pre->getLayerData(getDelay(arborID));

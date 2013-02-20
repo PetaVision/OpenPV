@@ -755,7 +755,7 @@ int Patterns::updatePattern(double timef) {
             snprintf(basicfilename, PV_PATH_MAX, "%s/Impulse%.2f.tif", patternsOutputPath, timef);
          }
          else if (type == DROP){
-            snprintf(basicfilename, PV_PATH_MAX, "%s/Drop%.3d.pvp", patternsOutputPath, (int)timef);
+            snprintf(basicfilename, PV_PATH_MAX, "%s/Drop%.3d.tif", patternsOutputPath, (int)timef);
          }
          write(basicfilename);
       }
