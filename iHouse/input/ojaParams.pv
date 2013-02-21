@@ -215,7 +215,7 @@ KernelConn "ImagetoRetinaONCenter" = {
    rMax                       = 1;   
    rMin                       = 0;
    strength                   = 5.33333333333;
-   combineWeightFiles         = false;
+   //combineWeightFiles         = false;
                                  //
    numAxonalArbors            = 1;
    plasticityFlag             = false;
@@ -253,7 +253,7 @@ KernelConn "ImagetoRetinaOFFCenter" = {
    rMax                       = 1;   
    rMin                       = 0;
    strength                   = 5.33333333333;
-   combineWeightFiles         = false;
+   //combineWeightFiles         = false;
                                  //
    numAxonalArbors            = 1;
    plasticityFlag             = false;
@@ -291,7 +291,7 @@ KernelConn "ImagetoRetinaONSurround" = {
    rMax                       = 5;
    rMin                       = 0.1;
    strength                   = 5.33333333333;
-   combineWeightFiles         = false;
+   //combineWeightFiles         = false;
                                  //
    numAxonalArbors            = 1;
    plasticityFlag             = false;
@@ -329,7 +329,7 @@ KernelConn "ImagetoRetinaOFFSurround" = {
    rMax                       = 5;
    rMin                       = 0.1;
    strength                   = 5.33333333333;
-   combineWeightFiles         = false;
+   //combineWeightFiles         = false;
                                  //
    numAxonalArbors            = 1;
    plasticityFlag             = false;
@@ -397,7 +397,7 @@ OjaSTDPConn "RetinaONtoLif" = {
    //normalize_zero_offset      = 0.0;
    //strength                   = 0;     // Strength doesn't matter when weightInitType is UniformRandomWeight
    //symmetrizeWeights          = 0;
-   combineWeightFiles         = false;
+   //combineWeightFiles         = false;
                                    //
    combine_dW_with_W_flag     = false;
    selfFlag                   = false;
@@ -458,7 +458,7 @@ OjaSTDPConn "RetinaOFFtoLif" = {
    //normalize_zero_offset      = 0.0;
    //strength                   = 0;     // Strength doesn't matter when weightInitType is UniformRandomWeight
    //symmetrizeWeights          = 0;
-   combineWeightFiles         = false;
+   //combineWeightFiles         = false;
                                    //
    combine_dW_with_W_flag     = false;
    selfFlag                   = false;
