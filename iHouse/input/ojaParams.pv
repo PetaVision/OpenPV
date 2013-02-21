@@ -11,7 +11,7 @@ HyPerCol "column" = {
    randomSeed                   = 1234567890;   
                                            //
    numSteps                     = 2000000; // amount of time steps performed during run-time
-   progressStep                 = 100000;   // write output to see progress
+   progressStep                 = 5000;    // write output to see progress
    writeProgressToErr           = 0;       // write progress steps to std err
                                            // 
    //outputPath                   = "~/Documents/workspace/iHouse/output";
