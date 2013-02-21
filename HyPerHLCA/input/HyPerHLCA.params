@@ -46,7 +46,7 @@ Movie "Image" = {
     writeStep = -1;
     writeSparseActivity = false;
     displayPeriod = 500;
-    start_frame_index = 0;
+    start_frame_index = 150;
     skip_frame_index = 1;
     echoFramePathnameFlag = true;
     mirrorBCflag = true;
@@ -625,7 +625,7 @@ KernelConn "V1ToError" = {
     weightUpdatePeriod = 20.0;
     initialWeightUpdateTime = 499.0;
     initialWriteTime = 0.0;
-    dWMax = 100.0; //10.00; //
+    dWMax = 200.0; //10.00; //
     selfFlag = false;
     shmget_flag = false;
 
