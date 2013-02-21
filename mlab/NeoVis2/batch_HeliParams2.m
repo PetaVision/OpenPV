@@ -330,7 +330,7 @@ for i_object = 1 : size(target_id,1)
 	  [pvp_list_path];
       list_path = list_object_path;
     endif
-    
+
     pvp_fileOfFrames_path = ...
 	[list_object_path];
     if ~clips_flag
@@ -384,6 +384,7 @@ for i_object = 1 : size(target_id,1)
 	else
 	  output_path = [output_version_path, clip_name{i_clip}, filesep];
 	endif
+	mkdir(output_path);
 
 	checkpoint_read_path = max_checkpoint_dir{i_version, target_flag};
 	
@@ -425,6 +426,8 @@ for i_object = 1 : size(target_id,1)
 	else
 	  output_path = [output_object_path, clip_name{i_clip}, filesep];
 	endif
+	mkdir(output_path);
+
 	checkpoint_read_path = max_checkpoint_dir{1, target_flag};
 	
 	checkpoint_write_path = [checkpoint_object_path];

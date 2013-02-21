@@ -450,12 +450,12 @@ function [num_frames, ...
   %%keyboard;
   pvp_offset_tmp = 0;
   i_frame = 0;
-  for j_frame = pvp_frame_offset : pvp_frame_skip : num_frames
+  for j_frame = pvp_frame_offset+1 : pvp_frame_skip : num_frames
     i_frame = i_frame + 1;
     if pvp_num_versions == 1
-      pvp_frame = j_frame + pvp_layer - 1; %% 2; %%
+      pvp_frame = j_frame - 1; %% + pvp_layer - 1; %% 2; %%
     else
-      pvp_frame = i_frame + pvp_layer - 1; %% 2;  %%
+      pvp_frame = i_frame - 1; %% + pvp_layer - 1; %% 2;  %%
     endif
     if ~isempty(pvp_path)
       [pvp_time{i_frame},...
