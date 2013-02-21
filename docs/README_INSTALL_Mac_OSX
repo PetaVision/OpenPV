@@ -42,7 +42,7 @@ Here is the procedure for installing and compiling the PetaVision repository on 
   f. Install the template for PV code style, to use uniform conventions for indenting, etc.  To do this,
      Open Window menu -> Open Perspective -> Other ..., and select C/C++
      Right click on PetaVision in the Project Explorer and select Properties from the bottom of the pop-up menu.
-     Open the C/C++ General menu and select Code Style (eclipse version Indigo) or Formatting (version Juno).
+     Open the C/C++ General menu and select Code Style (eclipse version Indigo) or Formatter (version Juno).
      Uncheck "Enable project specific settings" and click "Configure Workspace Settings..."
      Click "Import..." and navigate to PVCodeStyle.xml in the PetaVision directory of your workspace.
      Click Open and then OK
@@ -52,7 +52,7 @@ Here is the procedure for installing and compiling the PetaVision repository on 
 
   b. Right-click PetaVision in the left-hand pane, select Properties.
 
-  c. Under C/C++ Build -> Settings, select GCC C++ Compiler.  Add "/opt/local/bin", "/opt/local/include" and "/opt/local/include/openmpi" (without quotation marks) to the Include paths.  Do the same for GCC C Compiler.
+  c. Under C/C++ Build -> Settings, select GCC C++ Compiler.  Verify that "/opt/local/include" and "/opt/local/include/openmpi" are in the Include paths.  Do the same for GCC C Compiler.
 
   d. To change the number of processors used during compile, select C/C++ Build,  and click the Behavior tab. Select "Use parallel jobs" and enter the number of processers you want to use.
 

@@ -45,7 +45,7 @@ Rubor and Retozo have separate filesystems and password databases; anything you 
   f. Install the template for PV code style, to use uniform conventions for indenting, etc.  To do this,
      Open Window menu -> Open Perspective -> Other ..., and select C/C++
      Right click on PetaVision in the Project Explorer and select Properties from the bottom of the pop-up menu.
-     Open the C/C++ General menu and select Code Style (eclipse version Indigo) or Formatting (version Juno).
+     Open the C/C++ General menu and select Code Style (eclipse version Indigo) or Formatter (version Juno).
      Uncheck "Enable project specific settings" and click "Configure Workspace Settings..."
      Click "Import..." and navigate to PVCodeStyle.xml in the PetaVision directory of your workspace.
      Click Open and then OK
@@ -55,7 +55,7 @@ Rubor and Retozo have separate filesystems and password databases; anything you 
 
   b. Right-click PetaVision in the left-hand pane, select Properties.
 
-  c. Under C/C++ Build -> Settings, select GCC C++ Compiler ->  Directories.  Add /usr/include/gdal to the Include paths. It's safe to remove /usr/local/openmpi-1.4.3/include; openmpi is in a standard location on these machines.  Do the same for GCC C Compiler -> Directories
+  c. Under C/C++ Build -> Settings, select GCC C++ Compiler ->  Directories.  Verify that /usr/include/gdal is in the Include paths.  Do the same for GCC C Compiler -> Directories
 
   d. To change the number of processors used during compile, select C/C++ Build,  and click the Behavior tab.
 
