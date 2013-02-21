@@ -143,9 +143,11 @@ int HyPerLayer::initialize(const char * name, HyPerCol * hc, int numChannels) {
    int xScale = (int) nearbyint(xScaled);
    int yScale = (int) nearbyint(yScaled);
 
-   initialWriteTime = params->value(name, "initialWriteTime", parent->simulationTime());
-   writeTime = initialWriteTime;
    writeStep = params->value(name, "writeStep", parent->getDeltaTime());
+   if (writeStep>=0.0f) {
+      initialWriteTime = params->value(name, "initialWriteTime", parent->simulationTime());
+      writeTime = initialWriteTime;
+   }
 
    //feedforwardDelay = params->value(name, "feedforwardDelay", feedforwardDelay, true);
    //feedbackDelay = params->value(name, "feedbackDelay", feedbackDelay, true);
@@ -1401,18 +1403,18 @@ int HyPerLayer::readScalarFloat(const char * cp_dir, const char * val_name, doub
          fprintf(stderr, "HyPerLayer::readScalarFloat error: path %s/%s_%s.bin is too long.\n", cp_dir, getName(), val_name);
          abort();
       }
-      FILE * fpWriteTime = fopen(filename, "r");
+      FILE * fp = fopen(filename, "r");
       *val_ptr = default_value;
-      if (fpWriteTime==NULL  && parent->icCommunicator()->commRank() == 0 ) {
+      if (fp==NULL  && parent->icCommunicator()->commRank() == 0 ) {
          fprintf(stderr, "HyPerLayer::readScalarFloat warning: unable to open path %s for reading.  writeTime will be %f\n", filename, default_value);
       }
       else {
-         int num_read = fread(val_ptr, sizeof(*val_ptr), 1, fpWriteTime);
+         int num_read = fread(val_ptr, sizeof(*val_ptr), 1, fp);
          if (num_read != 1 && parent->icCommunicator()->commRank() == 0 ) {
             fprintf(stderr, "HyPerLayer::readScalarFloat warning: unable to read from %s.  writeTime will be %f\n", filename, default_value);
          }
       }
-      fclose(fpWriteTime);
+      fclose(fp);
    }
 #ifdef PV_USE_MPI
    MPI_Bcast(val_ptr, 1, MPI_DOUBLE, 0, getParent()->icCommunicator()->communicator());
@@ -1558,26 +1560,26 @@ int HyPerLayer::writeScalarFloat(const char * cp_dir, const char * val_name, dou
          fprintf(stderr, "writeScalarFloat error: path %s/%s_%s.bin is too long.\n", cp_dir, name, val_name);
          abort();
       }
-      FILE * fpWriteTime = fopen(filename, "w");
-      if (fpWriteTime==NULL) {
+      FILE * fp = fopen(filename, "w");
+      if (fp==NULL) {
          fprintf(stderr, "HyPerLayer::checkpointWrite error: unable to open path %s for writing.\n", filename);
          abort();
       }
-      int num_written = fwrite(&val, sizeof(writeTime), 1, fpWriteTime);
+      int num_written = fwrite(&val, sizeof(val), 1, fp);
       if (num_written != 1) {
          fprintf(stderr, "HyPerLayer::checkpointWrite error while writing to %s.\n", filename);
          abort();
       }
-      fclose(fpWriteTime);
+      fclose(fp);
       chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_%s.txt", cp_dir, name, val_name);
       assert(chars_needed < PV_PATH_MAX);
-      fpWriteTime = fopen(filename, "w");
-      if (fpWriteTime==NULL) {
+      fp = fopen(filename, "w");
+      if (fp==NULL) {
          fprintf(stderr, "HyPerLayer::checkpointWrite error: unable to open path %s for writing.\n", filename);
          abort();
       }
-      fprintf(fpWriteTime, "%f\n", val);
-      fclose(fpWriteTime);
+      fprintf(fp, "%f\n", val);
+      fclose(fp);
    }
    return status;
 }
