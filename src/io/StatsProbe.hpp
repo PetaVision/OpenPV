@@ -28,6 +28,7 @@ protected:
    PV::PVBufType type;
    char * msg;
    double sum, sum2;
+   int nnz;
    float fMin, fMax;
    float avg, sigma;
 

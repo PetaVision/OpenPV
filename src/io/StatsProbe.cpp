@@ -73,6 +73,7 @@ int StatsProbe::initStatsProbe_base() {
    fMax = -FLT_MAX;
    sum = 0.0f;
    sum2 = 0.0f;
+   nnz = 0;
    avg = 0.0f;
    sigma = 0.0f;
    type = BufV;
@@ -89,6 +90,7 @@ int StatsProbe::initStatsProbe(const char * filename, HyPerLayer * layer, PVBufT
       sum2 = 0.0f;
       avg = 0.0f;
       sigma = 0.0f;
+      nnz = 0;
       this->type = type;
       status = initMessage(msg);
    }
@@ -142,6 +144,7 @@ int StatsProbe::outputState(double timef)
    sum2 = 0.0f;
    avg = 0.0f;
    sigma = 0.0f;
+   nnz = 0;
 
    nk = getTargetLayer()->getNumNeurons();
    switch (type) {
@@ -158,6 +161,7 @@ int StatsProbe::outputState(double timef)
          pvdata_t a = buf[k];
          sum += a;
          sum2 += a*a;
+         nnz += (int) (a>0);
          if (a < fMin) fMin = a;
          if (a > fMax) fMax = a;
       }
@@ -171,6 +175,7 @@ int StatsProbe::outputState(double timef)
          pvdata_t a = buf[kex];
          sum += a;
          sum2 += a*a;
+         nnz += (int) (a>0);
          if( a < fMin ) fMin = a;
          if( a > fMax ) fMax = a;
       }
@@ -183,10 +188,12 @@ int StatsProbe::outputState(double timef)
 #ifdef PV_USE_MPI
    int ierr;
    double reducedsum, reducedsum2;
+   int reducednnz;
    float reducedmin, reducedmax;
    int totalNeurons;
    ierr = MPI_Reduce(&sum, &reducedsum, 1, MPI_DOUBLE, MPI_SUM, rcvProc, comm);
    ierr = MPI_Reduce(&sum2, &reducedsum2, 1, MPI_DOUBLE, MPI_SUM, rcvProc, comm);
+   ierr = MPI_Reduce(&nnz, &reducednnz, 1, MPI_INT, MPI_SUM, rcvProc, comm);
    ierr = MPI_Reduce(&fMin, &reducedmin, 1, MPI_FLOAT, MPI_MIN, rcvProc, comm);
    ierr = MPI_Reduce(&fMax, &reducedmax, 1, MPI_FLOAT, MPI_MAX, rcvProc, comm);
    ierr = MPI_Reduce(&nk, &totalNeurons, 1, MPI_INT, MPI_SUM, rcvProc, comm);
@@ -195,6 +202,7 @@ int StatsProbe::outputState(double timef)
    }
    sum = reducedsum;
    sum2 = reducedsum2;
+   nnz = reducednnz;
    fMin = reducedmin;
    fMax = reducedmax;
    nk = totalNeurons;
@@ -203,12 +211,12 @@ int StatsProbe::outputState(double timef)
    sigma = sqrt(sum2/nk - avg*avg);
    if ( type == BufActivity  && getTargetLayer()->getSpikingFlag() ) {
       float freq = 1000.0 * avg;
-      fprintf(fp, "%st==%6.1f N==%d Total==%f Min==%f Avg==%f Hz (/dt ms) Max==%f sigma==%f\n", msg, timef,
-              nk, (float)sum, fMin, freq, fMax, (float)sigma);
+      fprintf(fp, "%st==%6.1f N==%d Total==%f Min==%f Avg==%f Hz (/dt ms) Max==%f sigma==%f nnz==%i\n", msg, timef,
+              nk, (float)sum, fMin, freq, fMax, (float)sigma, nnz);
    }
    else {
-      fprintf(fp, "%st==%6.1f N==%d Total==%f Min==%f Avg==%f Max==%f sigma==%f\n", msg, timef,
-              nk, (float)sum, fMin, (float) avg, fMax, (float) sigma);
+      fprintf(fp, "%st==%6.1f N==%d Total==%f Min==%f Avg==%f Max==%f sigma==%f nnz==%i\n", msg, timef,
+              nk, (float)sum, fMin, (float) avg, fMax, (float) sigma, nnz);
    }
 
    fflush(fp);
