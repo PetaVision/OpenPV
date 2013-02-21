@@ -15,7 +15,7 @@ HyPerCol "column" = {
    ny = 256;
    dt = 1.0;
    randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
-   numSteps = 100000;
+   numSteps = 300000;
    progressStep = 1;
    outputPath = "output/";
    filenamesContainLayerNames = true;
@@ -40,7 +40,7 @@ Movie "Image" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
-    imageListPath = "/Users/garkenyon/Pictures/AnimalDB/target_body.txt";
+    imageListPath = "/Users/garkenyon/Pictures/AnimalDB/target.txt";
     nf = 1;
     marginWidth = 1;
     writeStep = -1;
@@ -208,7 +208,9 @@ ANNLayer "Recon" = {
     mirrorBCflag = 1;
     writeSparseActivity = 0;
 
-    InitVType = "ZeroV";
+    //InitVType = "ZeroV";
+    InitVType = "InitVFromFile";
+    Vfilename = "/Users/garkenyon/workspace/HyPerHLCA2/Checkpoints/Checkpoint200000/Recon_V.pvp";
 
     VThresh = -infinity; //-infinity;
     VMax = infinity; //infinity;  // prevent reconstruction from exceeding reasonable bounds
@@ -230,7 +232,9 @@ ANNLayer "Error" = {
     mirrorBCflag = 1;
     writeSparseActivity = 0;
 
-    InitVType = "ZeroV";
+    //InitVType = "ZeroV";
+    InitVType = "InitVFromFile";
+    Vfilename = "/Users/garkenyon/workspace/HyPerHLCA2/Checkpoints/Checkpoint300000/Error_V.pvp";
 
     VThresh = -infinity;
     VMax =  infinity;
@@ -248,17 +252,19 @@ HyPerLCALayer "V1" = {
     nf = 512;
     marginWidth = 1;
     initialWriteTime = 499.0;
-    writeStep = -1.0;
+    writeStep = 500.0;
     mirrorBCflag = 1;
-    writeSparseActivity = 0;
+    writeSparseActivity = 1;
 
-    InitVType = "UniformRandomV";
+    //InitVType = "UniformRandomV";
+    InitVType = "InitVFromFile";
+    Vfilename = "/Users/garkenyon/workspace/HyPerHLCA2/Checkpoints/Checkpoint300000/V1_V.pvp";
     minV = -1.0;
     maxV = 1.05;
     
     timeConstantTau = 100.0;
     
-    VThresh = 0.25; // 1.0;
+    VThresh = 0.05; //0.125; // 1.0;
     VMax = infinity; //infinity;
     VMin = 0;
     VShift = 0.0;  // 0 -> hard threshold, 1 -> soft threshold
@@ -593,7 +599,7 @@ KernelConn "V1ToError" = {
     initFromLastFlag = 0;
     
     weightInitType = "FileWeight";
-    initWeightsFile = "/Users/garkenyon/workspace/HyPerHLCA2/Checkpoints/Checkpoint20000/V1ToError_W.pvp";
+    initWeightsFile = "/Users/garkenyon/workspace/HyPerHLCA2/Checkpoints/Checkpoint300000/V1ToError_W.pvp";
 //    weightInitType = "UniformRandomWeight";
 //    wMinInit = -1.0;
 //    wMaxInit = 1.0;
@@ -619,7 +625,7 @@ KernelConn "V1ToError" = {
     weightUpdatePeriod = 20.0;
     initialWeightUpdateTime = 499.0;
     initialWriteTime = 0.0;
-    dWMax = 0.10; //
+    dWMax = 100.0; //10.00; //
     selfFlag = false;
     shmget_flag = false;
 
