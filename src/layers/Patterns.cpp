@@ -735,27 +735,27 @@ int Patterns::updatePattern(double timef) {
       if (writeImages) {
          char basicfilename[PV_PATH_MAX];
          if (type == BARS)
-            snprintf(basicfilename, PV_PATH_MAX, "%s/Bars_%.2f.tif", patternsOutputPath, timef);
+            snprintf(basicfilename, PV_PATH_MAX, "%s/Bars_%.2f.%s", patternsOutputPath, timef, writeImagesExtension);
          else if (type == RECTANGLES){
-            snprintf(basicfilename, PV_PATH_MAX, "%s/Rectangles_%.2f.tif", patternsOutputPath, timef);
+            snprintf(basicfilename, PV_PATH_MAX, "%s/Rectangles_%.2f.%s", patternsOutputPath, timef, writeImagesExtension);
          }
          else if (type == SINEWAVE){
-            snprintf(basicfilename, PV_PATH_MAX, "%s/Sinewave%.2f.tif", patternsOutputPath, timef);
+            snprintf(basicfilename, PV_PATH_MAX, "%s/Sinewave%.2f.%s", patternsOutputPath, timef, writeImagesExtension);
          }
          else if (type == COSWAVE){
-            snprintf(basicfilename, PV_PATH_MAX, "%s/Coswave%.2f.tif", patternsOutputPath, timef);
+            snprintf(basicfilename, PV_PATH_MAX, "%s/Coswave%.2f.%s", patternsOutputPath, timef, writeImagesExtension);
          }
          else if (type == SINEV){
-            snprintf(basicfilename, PV_PATH_MAX, "%s/SineV%.2f.tif", patternsOutputPath, timef);
+            snprintf(basicfilename, PV_PATH_MAX, "%s/SineV%.2f.%s", patternsOutputPath, timef, writeImagesExtension);
          }
          else if (type == COSV){
-            snprintf(basicfilename, PV_PATH_MAX, "%s/CosV%.2f.tif", patternsOutputPath, timef);
+            snprintf(basicfilename, PV_PATH_MAX, "%s/CosV%.2f.%s", patternsOutputPath, timef, writeImagesExtension);
          }
          else if (type == IMPULSE){
-            snprintf(basicfilename, PV_PATH_MAX, "%s/Impulse%.2f.tif", patternsOutputPath, timef);
+            snprintf(basicfilename, PV_PATH_MAX, "%s/Impulse%.2f.%s", patternsOutputPath, timef, writeImagesExtension);
          }
          else if (type == DROP){
-            snprintf(basicfilename, PV_PATH_MAX, "%s/Drop%.3d.tif", patternsOutputPath, (int)timef);
+            snprintf(basicfilename, PV_PATH_MAX, "%s/Drop%.3d.%s", patternsOutputPath, (int)timef, writeImagesExtension);
          }
          write(basicfilename);
       }

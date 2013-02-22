@@ -102,6 +102,7 @@ protected:
    pvdata_t * imageData;  // buffer containing image
 
    int writeImages;      // controls writing of image file during outputState
+   char * writeImagesExtension; // ".pvp", ".tif", ".png", etc.; the extension to use when writing images
    // bool useGrayScale;    // whether to convert image to grayscale
    // useGrayScale no longer used; instead setting nf=1 in params with color input images calls toGrayScale()
    int offsets[2];        // offsets array points to [offsetX, offsetY]

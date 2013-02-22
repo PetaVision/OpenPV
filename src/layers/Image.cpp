@@ -43,6 +43,7 @@ int Image::initialize_base() {
    imageData = NULL;
    useImageBCflag = false;
    writeImages = false;
+   writeImagesExtension = NULL;
    inverseFlag = false;
    normalizeLuminanceFlag = false;
    offsets[0] = 0;
@@ -70,6 +71,17 @@ int Image::initialize(const char * name, HyPerCol * hc, const char * filename) {
 
    PVParams * params = parent->parameters();
    this->writeImages = params->value(name, "writeImages", writeImages) != 0;
+   if (this->writeImages) {
+      if (params->stringPresent(name, "writeImagesExtension")) {
+         writeImagesExtension = strdup(params->stringValue(name, "writeImagesExtension", false));
+      }
+      else {
+         writeImagesExtension = strdup("tif");
+         if (hc->columnId()==0) {
+            fprintf(stderr, "Using default value \"tif\" for parameter \"writeImagesExtension\" in group %s\n", name);
+         }
+      }
+   }
    this->useImageBCflag = (bool) params->value(name, "useImageBCflag", useImageBCflag);
    this->inverseFlag = (bool) params->value(name, "inverseFlag", inverseFlag);
    this->normalizeLuminanceFlag = (bool) params->value(name, "normalizeLuminanceFlag", normalizeLuminanceFlag);
@@ -106,6 +118,7 @@ int Image::initialize(const char * name, HyPerCol * hc, const char * filename) {
    }
    free(colorbandtypes); colorbandtypes = NULL;
 
+   // Although Image itself does not use jitter, both Movie and Patterns do, so jitterFlag is read in Image.
    jitterFlag = params->value(name,"jitterFlag", 0) != 0;
    if( jitterFlag ) {
       jitterType        = params->value(name,"jitterType", jitterType);
