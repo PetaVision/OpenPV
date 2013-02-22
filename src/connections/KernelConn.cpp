@@ -88,7 +88,9 @@ int KernelConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
 				<< ", shmget_flag parameter specified as true, reset to false because plasticity_flag is true"
 				<< std::endl;
 	}
-#endif
+#else
+	params->value(name, "shmget_flag", false, false); // mark as read so that shmget_flag doesn't get an unread-parameter warning.  This way the same params file can be used with USE_SHMGET on or off.
+#endif // USE_SHMGET
    HyPerConn::initialize(name, hc, pre, post, filename, weightInit);
    initializeUpdateTime(params); // sets weightUpdatePeriod and initial value of weightUpdateTime
    lastUpdateTime = weightUpdateTime - parent->getDeltaTime();
