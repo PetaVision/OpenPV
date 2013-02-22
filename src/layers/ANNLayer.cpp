@@ -149,8 +149,26 @@ int ANNLayer::updateStateOpenCL(double time, double dt)
 int ANNLayer::readVThreshParams(PVParams * params) {
    VMax = params->value(name, "VMax", max_pvdata_t);
    VThresh = params->value(name, "VThresh", -max_pvdata_t);
+   if (VThresh > VMax) {
+      VThresh = VMax;
+      if (parent->columnId()==0) {
+         fprintf(stderr, "Warning: ANNLayer \"%s\": VThresh > VMax.  VThresh changed to %f.\n", name, VMax);
+      }
+   }
    VMin = params->value(name, "VMin", VThresh);
+   if (VMin > VThresh) {
+      VMin = VThresh;
+      if (parent->columnId()==0) {
+         fprintf(stderr, "Warning: ANNLayer \"%s\": VMin > VThresh.  VMin changed to %f.\n", name, VThresh);
+      }
+   }
    VShift = params->value(name, "VShift", 0.0);
+   if (VShift > VThresh-VMin) {
+      VShift = VThresh-VMin;
+      if (parent->columnId()==0) {
+         fprintf(stderr, "Warning: ANNLayer \"%s\": VShift > VThresh-VMin.  VShift changed to %f.\n", name, VShift);
+      }
+   }
    return PV_SUCCESS;
 }
 

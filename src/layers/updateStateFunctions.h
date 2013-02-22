@@ -363,7 +363,7 @@ static inline int applyVMax_ANNLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * V,
 #endif // PV_USE_OPENCL
 				{
 			int kex = kIndexExtended(k, nx, ny, nf, nb);
-			if (V[k] > VMax)
+			if (activity[kex] > VMax)
 				activity[kex] = VMax;
 		}
 	}
