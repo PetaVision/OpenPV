@@ -21,7 +21,7 @@
 #include "../layers/ANNLayer.hpp"
 #include "../layers/GenerativeLayer.hpp"
 #include "../layers/IncrementLayer.hpp"
-#include "../layers/LeakyIntegratedCountLayer.hpp"
+#include "../layers/LeakyIntegrator.hpp"
 #include "../layers/LogLatWTAGenLayer.hpp"
 #include "../layers/PursuitLayer.hpp"
 #include "../layers/CliqueLayer.hpp"
