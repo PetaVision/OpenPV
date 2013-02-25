@@ -366,13 +366,12 @@ int OjaSTDPConn::updateWeights(int arborID)
 		   continue;
 	   }
 
-	   //Post in restricted space
-	   post_oja_tr_m  = &(post_oja_tr->data[kPost]);
+	   post_oja_tr_m  = &(post_oja_tr->data[kPost]); //Post in restricted space
 	   pvdata_t ** postData = wPostDataStartp[arborID] + numPostPatch*kPost + 0; // Pointer array full of addresses pointing to the weights for all of the preNeurons connected to the given postNeuron's receptive field
 	   for (int kPre=0; kPre < numPostPatch; kPre++) { // Loop through all pre-neurons connected to given post-neuron
 		   float * kPreAdd = postData[kPre];  // Address of first preNeuron in receptive field of postNeuron
 		   assert(kPreAdd != NULL);
-		   int kPreExt = (kPreAdd-startAdd) / numPostPatch; // loop over pre neurons connected to post layer
+		   int kPreExt     = (kPreAdd-startAdd) / numPostPatch; // loop over pre neurons connected to post layer
 		   assert(kPreExt < nkPre);
 
 		   //Pre in extended space
@@ -387,7 +386,7 @@ int OjaSTDPConn::updateWeights(int arborID)
 		   // See STDP_LCA_Equations.pdf in documentation for description of Oja (feed-forward weight adaptation) equations. TODO: That file does not exist.
 		   float ojaTerm;
 		   if (ojaFlag) {
-			   ojaTerm = post_oja_tr_m[kPost] * ((*pre_oja_tr_m) - (targetPreRatekHz/targetPostRatekHz) * (*(postData[kPre]) / weightScale) * post_oja_tr_m[kPost]);
+			   ojaTerm = post_oja_tr_m * ((*pre_oja_tr_m) - (targetPreRatekHz/targetPostRatekHz) * (*(postData[kPre]) / weightScale) * post_oja_tr_m);
 			   assert(ojaTerm == ojaTerm); // Make sure it is not NaN (only happens if tauOja is 0)
 		   } else { //should just be standard STDP at this point
 			   ojaTerm = 1.0;
