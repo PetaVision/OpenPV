@@ -321,7 +321,6 @@ int OjaSTDPConn::updateWeights(int arborID)
    //Restricted Post
    pvdata_t * post_stdp_tr_m;   // Postsynaptic trace matrix; i.e. data of post_stdp_tr struct
    pvdata_t * post_oja_tr_m;    // Postsynaptic mean trace matrix
-   pvdata_t * post_int_tr_m;    // Postsynaptic mean trace matrix
    pvdata_t * ampLTD_m;         // local ampLTD
 
 //   post_stdp_tr_m = post_stdp_tr->data;
@@ -367,12 +366,11 @@ int OjaSTDPConn::updateWeights(int arborID)
 	   }
 
 	   post_oja_tr_m  = &(post_oja_tr->data[kPost]); //Address of post trace in restricted space
-	   pvdata_t ** postData = wPostDataStartp[arborID] + numPostPatch*kPost + 0; // Pointer array full of addresses pointing to the weights for all of the preNeurons connected to the given postNeuron's receptive field
+	   pvdata_t ** postData = getPostWeightsp(arborID,kPost); // Pointer array full of addresses pointing to the weights for all of the preNeurons connected to the given postNeuron's receptive field
 	   for (int kPre=0; kPre < numPostPatch; kPre++) { // Loop through all pre-neurons connected to given post-neuron
 		   float * kPreAdd = postData[kPre];  // Address of first preNeuron in receptive field of postNeuron
 		   assert(kPreAdd != NULL);
-		   int kPreExt     = (kPreAdd-startAdd) / numPostPatch; // loop over pre neurons connected to post layer
-		   assert(kPreExt < nkPre);
+           int kPreExt = (kPreAdd-startAdd) / (this->xPatchSize()*this->yPatchSize()*this->fPatchSize()); // loop over pre neurons connected to post layer
 
 		   //Pre in extended space
 		   aPre           = preLayerData[kPreExt];                  // Spiking activity
@@ -449,6 +447,7 @@ int OjaSTDPConn::updateWeights(int arborID)
       }
    }
 #else
+   pvdata_t * post_int_tr_m;    // Postsynaptic mean trace matrix
    // this stride is in extended space for post-synaptic activity and STDP decrement variable
    const int postStrideYExt = postNf * (postNx + 2 * postNb);
 
