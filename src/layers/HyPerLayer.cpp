@@ -146,7 +146,7 @@ int HyPerLayer::initialize(const char * name, HyPerCol * hc, int numChannels) {
    writeStep = params->value(name, "writeStep", parent->getDeltaTime());
    if (writeStep>=0.0f) {
       initialWriteTime = params->value(name, "initialWriteTime", parent->simulationTime());
-      writeTime = initialWriteTime;
+      writeTime = initialWriteTime-writeStep;
    }
 
    //feedforwardDelay = params->value(name, "feedforwardDelay", feedforwardDelay, true);
