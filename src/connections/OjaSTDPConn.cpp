@@ -324,9 +324,9 @@ int OjaSTDPConn::updateWeights(int arborID)
    pvdata_t * post_int_tr_m;    // Postsynaptic mean trace matrix
    pvdata_t * ampLTD_m;         // local ampLTD
 
-   post_stdp_tr_m = post_stdp_tr->data;
-   post_oja_tr_m  = post_oja_tr->data;
-   post_int_tr_m  = post_int_tr->data;
+//   post_stdp_tr_m = post_stdp_tr->data;
+//   post_oja_tr_m  = post_oja_tr->data;
+//   post_int_tr_m  = post_int_tr->data;
 
    //Extended Pre
    pvdata_t * pre_stdp_tr_m;    // Presynaptic trace matrix
@@ -366,7 +366,7 @@ int OjaSTDPConn::updateWeights(int arborID)
 		   continue;
 	   }
 
-	   post_oja_tr_m  = &(post_oja_tr->data[kPost]); //Post in restricted space
+	   post_oja_tr_m  = post_oja_tr->data[kPost]; //Post trace in restricted space
 	   pvdata_t ** postData = wPostDataStartp[arborID] + numPostPatch*kPost + 0; // Pointer array full of addresses pointing to the weights for all of the preNeurons connected to the given postNeuron's receptive field
 	   for (int kPre=0; kPre < numPostPatch; kPre++) { // Loop through all pre-neurons connected to given post-neuron
 		   float * kPreAdd = postData[kPre];  // Address of first preNeuron in receptive field of postNeuron
@@ -403,10 +403,10 @@ int OjaSTDPConn::updateWeights(int arborID)
    }
 
    // Pre-synaptic neurons for LTD
-   for (int kPreExt = 0; kPreExt < nkPre; kPreExt++)           // Loop over all presynaptic neurons
+   for (int kPreExt = 0; kPreExt < nkPre; kPreExt++) // Loop over all presynaptic neurons
    {
       //Pre in extended space
-      aPre           = preLayerData[kPreExt];                  // Spiking activity
+      aPre = preLayerData[kPreExt]; // Spiking activity
       if (aPre == 0) { //No LTD if pre does not spike
     	  continue;
       }
