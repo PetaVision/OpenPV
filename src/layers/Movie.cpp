@@ -57,7 +57,11 @@ int Movie::checkpointRead(const char * cpDir, double * timef){
  * - writeImages, offsetX, offsetY are initialized by Image::initialize()
  */
 int Movie::initialize(const char * name, HyPerCol * hc, const char * fileOfFileNames, float defaultDisplayPeriod) {
-   Image::initialize(name, hc, NULL);
+   int status = Image::initialize(name, hc, NULL);
+   if (status != PV_SUCCESS) {
+      fprintf(stderr, "Image::initialize failed on Movie layer \"%s\".  Exiting.\n", name);
+      exit(PV_FAILURE);
+   }
 
    if( getParent()->icCommunicator()->commRank()==0 ) {
       fp = fopen(fileOfFileNames, "r");
@@ -79,7 +83,7 @@ int Movie::initialize(const char * name, HyPerCol * hc, const char * fileOfFileN
 
    // get size info from image so that data buffer can be allocated
    GDALColorInterp * colorbandtypes = NULL;
-   int status = getImageInfo(filename, parent->icCommunicator(), &imageLoc, &colorbandtypes);
+   status = getImageInfo(filename, parent->icCommunicator(), &imageLoc, &colorbandtypes);
    if(status != 0) {
       fprintf(stderr, "Movie: Unable to get image info for \"%s\"\n", filename);
       abort();
@@ -111,9 +115,10 @@ int Movie::initialize(const char * name, HyPerCol * hc, const char * fileOfFileN
       else {
          movieOutputPath = strdup( hc->getOutputPath());
          assert(movieOutputPath != NULL);
-         printf("Movie output path is not specified in params file.\n"
-               "Movie output path set to default \"%s\"\n",movieOutputPath);
+         printf("movieOutputPath is not specified in params file.\n"
+               "movieOutputPath set to default \"%s\"\n",movieOutputPath);
       }
+      status = parent->ensureDirExists(movieOutputPath);
    }
 
    // exchange border information
