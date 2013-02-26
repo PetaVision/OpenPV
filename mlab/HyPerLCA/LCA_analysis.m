@@ -4,12 +4,12 @@ close all;
 setenv("GNUTERM","X11") 
 addpath("/Users/garkenyon/workspace/PetaVision/mlab/util");
 checkpoint_dir = "/Users/garkenyon/workspace/HyPerHLCA2/Checkpoints";
-last_checkpoint_ndx = 60000;
+last_checkpoint_ndx = 600000;
 first_checkpoint_ndx = 0;
 output_dir = "/Users/garkenyon/workspace/HyPerHLCA2/output";
 max_lines = last_checkpoint_ndx + (last_checkpoint_ndx == 0) * 1000;
 startup_artifact_length = max(max_lines - 4000, 3);
-frame_duration = 500;
+frame_duration = 1000;
 
 %% get DoG kernel
 plot_DoG_kernel = 1;
@@ -46,14 +46,14 @@ if plot_DoG_kernel
   box off
   axis off
     %%drawnow;
-  saveas(DoG_fig, "DoG_weights.png");
+  saveas(DoG_fig, [output_dir, filesep, "DoG_weights.png"]);
 endif
 
 
 plot_Retina = 1;
 if plot_Retina
   Retina_file = [output_dir, filesep, "a1_Retina.pvp"];
-  write_step = 500;
+  write_step = 1000;
   num_frames = floor((last_checkpoint_ndx - first_checkpoint_ndx) / write_step);
   [Retina_struct, Retina_hdr] = readpvpfile(Retina_file, num_frames, []);
   num_frames = size(Retina_struct,1);
@@ -65,7 +65,7 @@ if plot_Retina
     Retina_fig(i_frame) = figure;
     set(Retina_fig(i_frame), "name", ["Retina ", num2str(i_frame)]);
     imagesc(Retina_vals'); colormap(gray); box off; axis off; axis image;
-    saveas(Retina_fig(i_frame), ["Retina_", num2str(i_frame)], "png");
+    saveas(Retina_fig(i_frame), [output_dir, filesep, "Retina_", num2str(i_frame)], "png");
   endfor
   drawnow;
 endif
@@ -73,7 +73,7 @@ endif
 plot_Ganglion = 1;
 if plot_Ganglion
   Ganglion_file = [output_dir, filesep, "a2_Ganglion.pvp"];
-  write_step = 500;
+  write_step = 1000;
   num_frames = floor((last_checkpoint_ndx - first_checkpoint_ndx) / write_step);
   [Ganglion_struct, Ganglion_hdr] = readpvpfile(Ganglion_file, num_frames, []);
   num_frames = size(Ganglion_struct,1);
@@ -85,7 +85,7 @@ if plot_Ganglion
     Ganglion_fig(i_frame) = figure;
     set(Ganglion_fig(i_frame), "name", ["Ganglion ", num2str(i_frame)]);
     imagesc(Ganglion_vals'); colormap(gray); box off; axis off; axis image;
-    saveas(Ganglion_fig(i_frame), ["Ganglion_", num2str(i_frame)], "png");
+    saveas(Ganglion_fig(i_frame), [output_dir, filesep, "Ganglion_", num2str(i_frame)], "png");
 
     %% apply inverse DoG kernel
     if plot_DoG_kernel
@@ -98,7 +98,7 @@ if plot_Ganglion
       inv_Ganglion_fig(i_frame) = figure;
       set(inv_Ganglion_fig(i_frame), "name", ["inverse Ganglion ", num2str(i_frame)]);
       imagesc(inv_Ganglion_DoG); colormap(gray); box off; axis off; axis image;
-      saveas(inv_Ganglion_fig(i_frame), ["inverse_Ganglion_", num2str(i_frame)], "png");
+      saveas(inv_Ganglion_fig(i_frame), [output_dir, filesep, "inverse_Ganglion_", num2str(i_frame)], "png");
     endif
     
   endfor
@@ -108,7 +108,7 @@ endif
 plot_Recon = 1;
 if plot_Recon
   Recon_file = [output_dir, filesep, "a3_Recon.pvp"];
-  write_step = 500;
+  write_step = 1000;
   num_frames = floor((last_checkpoint_ndx - first_checkpoint_ndx) / write_step);
   [Recon_struct, Recon_hdr] = readpvpfile(Recon_file, num_frames, []);
   num_frames = size(Recon_struct,1);
@@ -121,7 +121,7 @@ if plot_Recon
     Recon_fig(i_frame) = figure;
     set(Recon_fig(i_frame), "name", ["Recon ", num2str(i_frame)]);
     imagesc(Recon_vals'); colormap(gray); box off; axis off; axis image;
-    saveas(Recon_fig(i_frame), ["Recon_", num2str(i_frame)], "png");
+    saveas(Recon_fig(i_frame), [output_dir, filesep, "Recon_", num2str(i_frame)], "png");
 
     %% apply inverse DoG kernel
     if plot_DoG_kernel
@@ -129,7 +129,7 @@ if plot_Recon
       inverse_Recon_fig(i_frame) = figure;
       set(inverse_Recon_fig(i_frame), "name", ["inverse Recon ", num2str(i_frame)]);
       imagesc(inverse_Recon_vals); colormap(gray); box off; axis off; axis image;
-      saveas(inverse_Recon_fig(i_frame), ["inverse_Recon_", num2str(i_frame)], "png");
+      saveas(inverse_Recon_fig(i_frame), [output_dir, filesep, "inverse_Recon_", num2str(i_frame)], "png");
     endif
     
   endfor
@@ -166,7 +166,7 @@ if plot_ave_error_vs_time
   error_vs_time_fig = figure;
   error_vs_time_hndl = plot(ave_error);
   set(error_vs_time_fig, "name", ["ave Error"]);
-  saveas(error_vs_time_fig, ["error_vs_time_", num2str(last_checkpoint_ndx)], "png");
+  saveas(error_vs_time_fig, [output_dir, filesep, "error_vs_time_", num2str(last_checkpoint_ndx)], "png");
   drawnow;
 endif
 
@@ -204,11 +204,41 @@ if plot_ave_V1_vs_time
   V1_vs_time_fig = figure;
   V1_vs_time_hndl = plot(ave_V1);
   set(V1_vs_time_fig, "name", ["sparseness_vs_time"]);
-  saveas(V1_vs_time_fig, ["sparseness_vs_time_", num2str(last_checkpoint_ndx)], "png");
+  saveas(V1_vs_time_fig, [output_dir, filesep, "sparseness_vs_time_", num2str(last_checkpoint_ndx)], "png");
   drawnow;
 endif
 
-plot_final_weights = 0;
+plot_V1 = 1;
+if plot_V1
+  V1_path = [output_dir, filesep, "a5_V1.pvp"];
+  write_step = 1000;
+  num_frames = floor((last_checkpoint_ndx - first_checkpoint_ndx) / write_step);
+  [V1_struct, V1_hdr] = readpvpfile(V1_path, num_frames, []);
+  nx_V1 = V1_hdr.nx;
+  ny_V1 = V1_hdr.ny;
+  nf_V1 = V1_hdr.nf;
+  n_V1 = nx_V1 * ny_V1 * nf_V1;
+  num_frames = size(V1_struct,1);
+  i_frame = num_frames;
+  start_frame = 1; %%
+  V1_hist = zeros(1,n);
+  V1_hist_bins = [0.5:1:n-0.5];
+  for i_frame = 1 : 1 : num_frames
+    V1_time = squeeze(V1_struct{i_frame}.values);
+    V1_activity = squeeze(V1_struct{i_frame}.values);
+    V1_hist_frame = hist(V1_activity, V1_hist_bins);
+    V1_hist = V1_hist + V1_hist_frame;
+  endfor %% i_frame
+  V1_hist = V1_hist / (sum(V1_hist(:)) + nnz(V1_hist)==0);
+  V1_hist_title = ["V1_hist", ".png"];
+  V1_hist_fig = figure;
+  V1_hist_hndl = bar(V1_hist_bins, V1_hist);
+  set(V1_hist_fig, "name", ["V1_hist"]);
+  saveas(V1_hist_fig, [output_dir, filesep, "V1_hist_", num2str(fist_checkpoint_ndx), "_", num2str(last_checkpoint_ndx)], "png");
+  drawnow;  
+endif
+
+plot_final_weights = 1;
 if plot_final_weights
   checkpoint_path = [checkpoint_dir, filesep, "Checkpoint", num2str(last_checkpoint_ndx)];
   V1ToError_path = [checkpoint_path, filesep, "V1ToError_W.pvp"];
@@ -237,7 +267,7 @@ if plot_final_weights
     axis off
     %%drawnow;
   endfor
-  saveas(V1ToError_fig, ["V1TpError_", num2str(last_checkpoint_ndx)], "png");
+  saveas(V1ToError_fig, [output_dir, filesep, "V1TpError_", num2str(last_checkpoint_ndx)], "png");
 
 
   %% make histogram of all weights
@@ -245,15 +275,15 @@ if plot_final_weights
   [V1ToError_hist, V1ToError_hist_bins] = hist(V1ToError_weights(:), 100);
   bar(V1ToError_hist_bins, log(V1ToError_hist+1));
   set(V1ToError_hist_fig, "name", ["V1ToError Histogram: ", num2str(last_checkpoint_ndx)]);
-  saveas(V1ToError_hist_fig, ["V1TpError_hist_", num2str(last_checkpoint_ndx)], "png");
+  saveas(V1ToError_hist_fig, [output_dir, filesep, "V1TpError_hist_", num2str(last_checkpoint_ndx)], "png");
 endif
 
-plot_weights_movie = 0;
+plot_weights_movie = 1;
 if plot_weights_movie
   weights_movie_dir = [output_dir, filesep, "weights_movie"];
   mkdir(weights_movie_dir);
   V1ToError_path = [output_dir, filesep, "w4_V1ToError.pvp"];
-  write_step = 500;
+  write_step = 1000;
   num_frames = floor((last_checkpoint_ndx - first_checkpoint_ndx) / write_step);
   [V1ToError_struct, V1ToError_hdr] = readpvpfile(V1ToError_path, num_frames, []);
   num_frames = size(V1ToError_struct,1);
