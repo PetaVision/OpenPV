@@ -370,9 +370,10 @@ int OjaSTDPConn::updateWeights(int arborID)
 	   for (int kPre=0; kPre < numPostPatch; kPre++) { // Loop through all pre-neurons connected to given post-neuron
 		   float * kPreAdd = postData[kPre];  // Address of first preNeuron in receptive field of postNeuron
 		   assert(kPreAdd != NULL);
-           int kPreExt = (kPreAdd-startAdd) / (this->xPatchSize()*this->yPatchSize()*this->fPatchSize()); // loop over pre neurons connected to post layer
+           int kPreExt = (kPreAdd-startAdd) / (this->xPatchSize()*this->yPatchSize()*this->fPatchSize()); // Grab index based on patch size
+           assert(kPreExt < nkPre);
 
-		   //Pre in extended space
+		   // Pre in extended space
 		   aPre           = preLayerData[kPreExt];                  // Spiking activity
 		   pre_stdp_tr_m  = &(pre_stdp_tr[arborID]->data[kPreExt]); // PreTrace for given presynaptic neuron kPreExt
 		   pre_oja_tr_m   = &(pre_oja_tr[arborID]->data[kPreExt]);
@@ -384,18 +385,18 @@ int OjaSTDPConn::updateWeights(int arborID)
 		   // See STDP_LCA_Equations.pdf in documentation for description of Oja (feed-forward weight adaptation) equations. TODO: That file does not exist.
 		   float ojaTerm;
 		   if (ojaFlag) {
-			   ojaTerm = (*post_oja_tr_m) * ((*pre_oja_tr_m) - (targetPreRatekHz/targetPostRatekHz) * (*(postData[kPre]) / weightScale) * (*post_oja_tr_m));
+			   ojaTerm = (*post_oja_tr_m) * ((*pre_oja_tr_m) - (targetPreRatekHz/targetPostRatekHz) * ((*postData[kPre]) / weightScale) * (*post_oja_tr_m));
 			   assert(ojaTerm == ojaTerm); // Make sure it is not NaN (only happens if tauOja is 0)
 		   } else { //should just be standard STDP at this point
 			   ojaTerm = 1.0;
 		   }
 
 		   //STDP Equation
-           *(postData[kPre]) += scaleFactor * ojaTerm * ampLTP * aPost[kPost] * (*pre_stdp_tr_m);
+           (*postData[kPre]) += scaleFactor * ojaTerm * ampLTP * aPost[kPost] * (*pre_stdp_tr_m);
 
-           *(postData[kPre]) = *(postData[kPre]) < wMin ? wMin : *(postData[kPre]); // Stop weights from going all the way to 0
+           (*postData[kPre]) = (*postData[kPre]) < wMin ? wMin : (*postData[kPre]); // Stop weights from going all the way to 0
 		   if (!ojaFlag) { //oja term should get rid of the need to impose a maximum weight
-			   *(postData[kPre]) = *(postData[kPre]) > wMax ? wMax : *(postData[kPre]);
+			   (*postData[kPre]) = (*postData[kPre]) > wMax ? wMax : (*postData[kPre]);
 		   }
 	   }
    }
