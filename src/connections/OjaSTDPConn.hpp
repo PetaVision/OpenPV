@@ -8,8 +8,8 @@
 #ifndef OJASTDPCONN_H_
 #define OJASTDPCONN_H_
 
-//#define SPLIT_PRE_POST
-#undef SPLIT_PRE_POST
+#define SPLIT_PRE_POST
+//#undef SPLIT_PRE_POST
 
 #include "HyPerConn.hpp"
 #include "../include/default_params.h"
