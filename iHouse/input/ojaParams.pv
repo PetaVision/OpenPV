@@ -10,7 +10,7 @@ HyPerCol "column" = {
                                            // 
    randomSeed                   = 1234567890;   
                                            //
-   numSteps                     = 2000000; // amount of time steps performed during run-time
+   numSteps                     = 2000000;    // amount of time steps performed during run-time
    progressStep                 = 10000;    // write output to see progress
    writeProgressToErr           = 0;       // write progress steps to std err
                                            // 
@@ -79,7 +79,7 @@ Patterns "Input" = {
     							     // 
    writeImages             = false;
    //patternsOutputPath      = "~/Documents/Work/LANL/workspace/iHouse/output/sourceFiles"; // Dylan's Mac
-   patternsOutputPath      = "/home/dpaiton/workspace/iHouse/output/sourceFiles"; // Dylan's Remote 
+   //patternsOutputPath      = "/home/dpaiton/workspace/iHouse/output/sourceFiles"; // Dylan's Remote 
     							     // 
    displayPeriod           = 1;
    writeStep               = -1;
@@ -527,7 +527,7 @@ LCALIFLateralConn "lif lateral inhibition" = {
 // Probes Probes Probes Probes Probes Probes Probes Probes Probes Probes Probes
 // Probes Probes Probes Probes Probes Probes Probes Probes Probes Probes Probes
 ////////////////////////////////////////////////////////////////////////////////
-
+//
 //PointLIFProbe "LIF_Probe" = {
 //   targetLayer     = "lif";
 //   probeOutputFile = "ptLIF.txt";
