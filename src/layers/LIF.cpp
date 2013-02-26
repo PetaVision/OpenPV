@@ -358,13 +358,18 @@ int LIF::setParams(PVParams * p)
    if (dt_sec * lParams.noiseFreqI  > 1.0) lParams.noiseFreqI  = 1.0/dt_sec;
    if (dt_sec * lParams.noiseFreqIB > 1.0) lParams.noiseFreqIB = 1.0/dt_sec;
 
-   const char * methodstring = p->stringValue(name, "method", true);
-   method = methodstring ? methodstring[0] : 'o'; // Default is original but could change to 'beginning' if 'original' is deprecated.
+   const char * methodstring = p->stringValue(name, "method", false);
+   method = methodstring ? methodstring[0] : 'a'; // Default is ARMA; 'beginning' and 'original' are deprecated.
    if (method != 'o' && method != 'b' && method != 'a') {
       if (getParent()->columnId()==0) {
-         fprintf(stderr, "LIF::initialize error.  Layer \"%s\" has method \"%s\".  Allowable values are \"arma\", \"beginning\" and \"original\".", name, methodstring);
+         fprintf(stderr, "LIF::setParams error.  Layer \"%s\" has method \"%s\".  Allowable values are \"arma\", \"beginning\" and \"original\".", name, methodstring);
       }
       abort();
+   }
+   if (method != 'a') {
+      if (getParent()->columnId()==0) {
+         fprintf(stderr, "Warning: LIF layer \"%s\" integration method \"%s\" is deprecated.  Method \"arma\" is preferred.\n", name, methodstring);
+      }
    }
    return 0;
 }
