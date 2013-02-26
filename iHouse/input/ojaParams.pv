@@ -482,7 +482,7 @@ OjaSTDPConn "RetinaOFFtoLif" = {
 // Inhib connections      Inhib connections      Inhib connections      Inhib connections      Inhib connections      Inhib connections      
 // Inhib connections      Inhib connections      Inhib connections      Inhib connections      Inhib connections      Inhib connections      
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-LCALIFLateralConn "lif_lateral_inhibition" = {
+LCALIFLateralConn "lif lateral inhibition" = {
     preLayerName               = "lif";
     postLayerName              = "lif";
     channelCode                = 1;
