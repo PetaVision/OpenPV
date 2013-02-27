@@ -21,7 +21,6 @@ public:
    virtual int outputState(double time);
 
 private:
-   HyPerCol * parent;
    FILE * outfp;
    long outFrame;
    pvdata_t * outBuf;
