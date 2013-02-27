@@ -218,7 +218,7 @@ int RandomPatchMovie::outputState(double timed, bool last)
 {
    if (writeImages) {
       char basicFilename[PV_PATH_MAX + 1];
-      snprintf(basicFilename, PV_PATH_MAX, "%s/Movie_%f.tif", parent->getOutputPath(), timed);
+      snprintf(basicFilename, PV_PATH_MAX, "%s/Movie_%f.%s", parent->getOutputPath(), timed, writeImagesExtension);
       write(basicFilename);
    }
 
