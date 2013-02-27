@@ -36,8 +36,10 @@ Retina "Retina" = {
     nxScale = 1;
     nyScale = 1;
     nf = 1;
+    phase = 0;
     marginWidth = 1;
     writeStep = 1.0;
+    initialWriteTime = 0.0;
     mirrorBCflag = true;
     spikingFlag = false;
     writeSparseActivity = false;
@@ -62,8 +64,10 @@ ANNLayer "L0" = {
     nxScale = 1;
     nyScale = 1;
     nf = 4;
+    phase = 0;
     marginWidth = 4;
     writeStep = 1.0;
+    initialWriteTime = 0.0;
     mirrorBCflag = true;
     writeSparseActivity = false;
     // GPUAccelerate = false;
@@ -73,6 +77,7 @@ ANNLayer "L0" = {
     VThresh = -infinity;
     VMax = infinity;
     VMin = -infinity;
+    VShift = 0.0;
 };
 
 
@@ -81,8 +86,10 @@ ANNLayer "Lx1" = {
     nxScale = 1;
     nyScale = 1;
     nf = 4;
+    phase = 0;
     marginWidth = 0;
     writeStep = 1.0;
+    initialWriteTime = 0.0;
     mirrorBCflag = true;
     writeSparseActivity = false;
     // GPUAccelerate = false;
@@ -92,6 +99,7 @@ ANNLayer "Lx1" = {
     VThresh = -infinity;
     VMax = infinity;
     VMin = -infinity;
+    VShift = 0.0;
 };
 
 
@@ -100,8 +108,10 @@ ANNLayer "Lx2" = {
     nxScale = 2;
     nyScale = 2;
     nf = 8;
+    phase = 0;
     marginWidth = 0;
     writeStep = 1.0;
+    initialWriteTime = 0.0;
     mirrorBCflag = true;
     writeSparseActivity = false;
     // GPUAccelerate = false;
@@ -111,6 +121,7 @@ ANNLayer "Lx2" = {
     VThresh = -infinity;
     VMax = infinity;
     VMin = -infinity;
+    VShift = 0.0;
 };
 
 
@@ -119,8 +130,10 @@ ANNLayer "Lx4" = {
     nxScale = 4;
     nyScale = 4;
     nf = 16;
+    phase = 0;
     marginWidth = 0;
     writeStep = 1.0;
+    initialWriteTime = 0.0;
     mirrorBCflag = false;
     writeSparseActivity = false;
     // GPUAccelerate = false;
@@ -130,6 +143,7 @@ ANNLayer "Lx4" = {
     VThresh = -infinity;
     VMax = infinity;
     VMin = -infinity;
+    VShift = 0.0;
 };
 
 
@@ -139,8 +153,10 @@ ANNLayer "Lx1_2" = {
     nxScale = 0.5;
     nyScale = 0.5;
     nf = 2;
+    phase = 0;
     marginWidth = 0;
     writeStep = 1.0;
+    initialWriteTime = 0.0;
     mirrorBCflag = false;
     writeSparseActivity = false;
     // GPUAccelerate = false;
@@ -150,6 +166,7 @@ ANNLayer "Lx1_2" = {
     VThresh = -infinity;
     VMax = infinity;
     VMin = -infinity;
+    VShift = 0.0;
 };
 
 
@@ -159,8 +176,10 @@ ANNLayer "Lx1_4" = {
     nxScale = 0.25;
     nyScale = 0.25;
     nf = 1;
+    phase = 0;
     marginWidth = 0;
     writeStep = 1.0;
+    initialWriteTime = 0.0;
     mirrorBCflag = false;
     writeSparseActivity = false;
     // GPUAccelerate = false;
@@ -170,6 +189,7 @@ ANNLayer "Lx1_4" = {
     VThresh = -infinity;
     VMax = infinity;
     VMin = -infinity;
+    VShift = 0.0;
 };
 
 
@@ -213,6 +233,7 @@ KernelConn "Retina to L0" = {
     normalize_max = 0.0;
     normalize_cutoff = 0;
     // normalize_arbors_individually = false;
+    normalize_RMS_amp = false;
     symmetrizeWeights = 0;
 
     stochasticReleaseFlag = false;
@@ -268,6 +289,7 @@ KernelConn "L0 to Lx1" = {
     normalize_max = 0.0;
     normalize_cutoff = 0;
     normalize_arbors_individually = false;
+    normalize_RMS_amp = false;
     symmetrizeWeights = 0;
 
     stochasticReleaseFlag = false;
@@ -321,6 +343,7 @@ KernelConn "L0 to Lx2" = {
     normalize_max = 0.0;
     normalize_cutoff = 0;
     normalize_arbors_individually = false;
+    normalize_RMS_amp = false;
     symmetrizeWeights = 0;
 
     stochasticReleaseFlag = false;
@@ -374,6 +397,7 @@ KernelConn "L0 to Lx4" = {
     normalize_max = 0.0;
     normalize_cutoff = 0;
     normalize_arbors_individually = false;
+    normalize_RMS_amp = false;
     symmetrizeWeights = 0;
 
     stochasticReleaseFlag = false;
@@ -427,6 +451,7 @@ KernelConn "L0 to Lx1_2" = {
     normalize_max = 0.0;
     normalize_cutoff = 0;
     normalize_arbors_individually = false;
+    normalize_RMS_amp = false;
     symmetrizeWeights = 0;
 
     stochasticReleaseFlag = false;
@@ -480,6 +505,7 @@ KernelConn "L0 to Lx1_4" = {
     normalize_max = 0.0;
     normalize_cutoff = 0;
     normalize_arbors_individually = false;
+    normalize_RMS_amp = false;
     symmetrizeWeights = 0;
 
     stochasticReleaseFlag = false;
