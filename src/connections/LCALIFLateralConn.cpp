@@ -140,7 +140,7 @@ int LCALIFLateralConn::calc_dW(int axonId) {
                //Calculate indicies of post weights
                int kPost_restricted = start_index_restricted + sy_restricted*ky_patch + sx_restricted*kx_patch + sf*kf_patch;
                int kPost_extended = kIndexExtended(kPost_restricted, nxpost, nypost, nfpost, nbpost);
-               if (kPost_extended != kPre_extended) {
+               if (kPost_extended != kPre_extended) { //Neuron shouldn't inhibit itself
                   pvdata_t delta_weight;
                   float pre_scale_dt_weight = (1/target_rate_sq) * ((integratedSpikeCount[kPre_extended]/integrationTimeConstant)
                         * (integratedSpikeCount[kPost_extended]/integrationTimeConstant) - target_rate_sq);
