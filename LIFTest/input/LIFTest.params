@@ -43,6 +43,7 @@ Image "input" = {
     marginWidth = 0;
     writeStep = -1;
     writeSparseActivity = false;
+    phase = 0;
     useImageBCflag = false;
     mirrorBCflag = false;
     inverseFlag = false;
@@ -62,12 +63,14 @@ ANNLayer "scaled input" = {
     mirrorBCflag = false;
     writeStep = -1.0;
     writeSparseActivity = false;
+    phase = 0;
 
     InitVType = "ZeroV";
 
-    VThresh = -infinity;
     VMax = infinity;
+    VShift = 0;
     VMin = -infinity;
+    VThresh = -infinity;
 };
 
 Retina "retina" = {
@@ -79,6 +82,7 @@ Retina "retina" = {
 	mirrorBCflag     = false;
 	writeStep        = -1.0;
 	writeSparseActivity = false;
+    phase = 0;
 	spikingFlag      = true;
 	foregroundRate   = 200.0;
 	backgroundRate   = 0.0;
@@ -103,7 +107,10 @@ GenerativeLayer "Retina Spike Counter" = {
 
     writeStep = -1.0;
     writeSparseActivity = false;
+    phase = 0;
+
     VMax = infinity;
+    VShift = 0.0;
     VMin = -infinity;
     VThresh = -infinity;
     relaxation = 1;
@@ -122,6 +129,7 @@ LIFGap "LIFTest" = {
     writeStep = -1.0;
     mirrorBCflag = false;
     writeSparseActivity = true;
+    phase = 0;
     
     InitVType        = "ConstantV";
     valueV           = -70.0;
@@ -143,7 +151,7 @@ LIFGap "LIFTest" = {
     noiseFreqI       =  0.;     // correlation to time step size !!!
     noiseFreqIB      =   0.;    // should be scaled by the time constant - look at LIF model
     
-    method = "b";
+    method = "a";
 };
 
 GenerativeLayer "LIFTest Spike Counter" = {
@@ -159,7 +167,10 @@ GenerativeLayer "LIFTest Spike Counter" = {
     valueV = 0;
 
     writeStep = -1.0;
+    phase = 0;
+
     VMax = infinity;
+    VShift = 0;
     VMin = -infinity;
     VThresh = -infinity;
     relaxation = 1;
@@ -180,6 +191,7 @@ GapLayer "GapTest" = {
 
     InitVType    = "ConstantV";
     valueV = -70.0;
+    phase = 0;
 
     writeStep = -1;
     writeSparseActivity = false;
@@ -196,6 +208,7 @@ LIFGap "LIFGapTest" = {
     writeStep = -1; // Value 0 means write every timestep, no matter what dt is
     mirrorBCflag = false;
     writeSparseActivity = true;
+    phase = 0;
     
     InitVType        = "ConstantV";
     valueV           = -70.0;
@@ -217,7 +230,7 @@ LIFGap "LIFGapTest" = {
     noiseFreqI       =  0.;     // correlation to time step size !!!
     noiseFreqIB      =   0.;    // should be scaled by the time constant - look at LIF model
     
-    method = "b";
+    method = "a";
 };
 
 GenerativeLayer "LIFGapTest Spike Counter" = {
@@ -233,7 +246,10 @@ GenerativeLayer "LIFGapTest Spike Counter" = {
 
     writeStep = -1;
     writeSparseActivity = false;
+    phase = 0;
+
     VMax = infinity;
+    VShift = 0;
     VMin = -infinity;
     VThresh = -infinity;
     relaxation = 1;
@@ -264,7 +280,7 @@ KernelConn "input to scaled input" = {
     shmget_flag = true;
     stochasticReleaseFlag = false;
     writeCompressedWeights = true;
-    writeCompressedCheckpoints = true;
+    // writeCompressedCheckpoints = true;
     selfFlag = false;
     shrinkPatches = false;
     preActivityIsNotRate = false;
@@ -301,7 +317,7 @@ KernelConn "retina to LIFTest" = {
     shmget_flag = true;
     stochasticReleaseFlag = false;
     writeCompressedWeights = true;
-    writeCompressedCheckpoints = true;
+    // writeCompressedCheckpoints = true;
     selfFlag = false;
     shrinkPatches = false;
     preActivityIsNotRate = false;
@@ -345,7 +361,7 @@ GapConn "GapTest to LIFGapTest" = {
     preActivityIsNotRate = false;
     
     writeCompressedWeights = false;
-    writeCompressedCheckpoints = false;
+    // writeCompressedCheckpoints = false;
     writeStep = -1;
     // initialWriteTime = 0;
 };
