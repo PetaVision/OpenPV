@@ -19,15 +19,18 @@ HyPerCol "column" = {
    randomSeed = 1860277205;  // if not set here,  clock time is used to generate seed
    numSteps = 50;
    progressStep = 10;
+   writeProgressToErr = false;
    outputPath = "output2/";
    outputNamesOfLayersAndConns = "Names.txt";
    filenamesContainLayerNames = true;
+   filenamesContainConnectionNames = true;
    checkpointRead = true;
    checkpointReadDir = "checkpoints1";
    checkpointReadDirIndex = 12;
    checkpointWrite = true;
    checkpointWriteDir = "checkpoints2";
    checkpointWriteStepInterval = 4;
+   deleteOlderCheckpoints = false;
    printParamsFilename = "params.txt";
 };
 
@@ -40,15 +43,17 @@ CPTestInputLayer "input" = {
     nxScale = 1;
     nyScale = 1;
     nf = 1;
+    phase = 0;
     marginWidth = 2;
     writeStep = 1.0;
-    spikingFlag = false;
-    writeNonspikingActivity = true;
+    initialWriteTime = 0.0;
+    writeSparseActivity = false;
     mirrorBCflag = false;
     Vrest = 0;
     VMax = infinity;
     VMin = -infinity;
     VThresh = -infinity;
+    VShift = 0.0;
 };
 
 ANNLayer "output no delay" = {
@@ -56,17 +61,19 @@ ANNLayer "output no delay" = {
     nxScale = 1;
     nyScale = 1;
     nf = 1;
+    phase = 0;
     marginWidth = 0;
     writeStep = 1.0;
+    initialWriteTime = 0.0;
     mirrorBCflag = 1;
-    spikingFlag = 0;
-    writeNonspikingActivity = 1;
+    writeSparseActivity = false;
 
     Vrest = 0.0;
 
     VThresh = -infinity;
     VMax = infinity;
     VMin = -infinity;
+    VShift = 0.0;
 };
 
 ANNLayer "output with delay" = {
@@ -74,17 +81,19 @@ ANNLayer "output with delay" = {
     nxScale = 1;
     nyScale = 1;
     nf = 1;
+    phase = 0;
     marginWidth = 0;
     writeStep = 1.0;
+    initialWriteTime = 0.0;
     mirrorBCflag = 1;
-    spikingFlag = 0;
-    writeNonspikingActivity = 1;
+    writeSparseActivity = false;
 
     Vrest = 0.0;
 
     VThresh = -infinity;
     VMax = infinity;
     VMin = -infinity;
+    VShift = 0.0;
 };
 
 ANNLayer "output arbor" = {
@@ -92,17 +101,19 @@ ANNLayer "output arbor" = {
     nxScale = 1;
     nyScale = 1;
     nf = 1;
+    phase = 0;
     marginWidth = 0;
     writeStep = 1.0;
+    initialWriteTime = 0.0;
     mirrorBCflag = 1;
-    spikingFlag = 0;
-    writeNonspikingActivity = 1;
+    writeSparseActivity = false;
 
     Vrest = 0.0;
 
     VThresh = -infinity;
     VMax = infinity;
     VMin = -infinity;
+    VShift = 0.0;
 };
 
 ANNLayer "output from full hyperconn" = {
@@ -110,17 +121,19 @@ ANNLayer "output from full hyperconn" = {
     nxScale = 1;
     nyScale = 1;
     nf = 1;
+    phase = 0;
     marginWidth = 0;
     writeStep = 1.0;
+    initialWriteTime = 0.0;
     mirrorBCflag = 1;
-    spikingFlag = 0;
-    writeNonspikingActivity = 1;
+    writeSparseActivity = false;
 
     Vrest = 0.0;
 
     VThresh = -infinity;
     VMax = infinity;
     VMin = -infinity;
+    VShift = 0.0;
 };
 
 VaryingKernelConn "conn no delay" = {
@@ -151,6 +164,7 @@ VaryingKernelConn "conn no delay" = {
     symmetrizeWeights = false;
 
     writeCompressedWeights = false;
+    writeCompressedCheckpoints = false;
     plasticityFlag = true;
     selfFlag = false;
     shmget_flag = false;
@@ -190,6 +204,7 @@ VaryingKernelConn "conn with delay" = {
     symmetrizeWeights = false;
 
     writeCompressedWeights = false;
+    writeCompressedCheckpoints = false;
     plasticityFlag = true;
     selfFlag = false;
     shmget_flag = false;
@@ -228,6 +243,7 @@ KernelConn "input to output arbor" = {
     shrinkPatches = false;
 
     writeCompressedWeights = false;
+    writeCompressedCheckpoints = false;
     plasticityFlag = false;
     selfFlag = false;
     shmget_flag = true;
@@ -254,6 +270,7 @@ VaryingHyPerConn "full hyperconn" = {
     shrinkPatches = false;
 
     writeCompressedWeights = false;
+    writeCompressedCheckpoints = false;
     plasticityFlag = false;
     selfFlag = false;
     shmget_flag = true;
