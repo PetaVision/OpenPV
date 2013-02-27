@@ -25,6 +25,8 @@ double timeFromParams(void * params);
 
 size_t pv_sizeof(int datatype);
 
+long int PV_ftell(FILE * fp);
+
 FILE * pvp_open_read_file(const char * filename, Communicator * comm);
 
 FILE * pvp_open_write_file(const char * filename, Communicator * comm, bool append);
@@ -118,7 +120,7 @@ template <typename T> int gatherActivity(FILE * fp, Communicator * comm, int roo
          status = PV_FAILURE;
          abort();
       }
-      long startpos = ftell(fp);
+      long startpos = PV_ftell(fp);
       if (startpos == -1) {
          fprintf(stderr, "gatherActivity error when getting file position: %s\n", strerror(errno));
          status = PV_FAILURE;
@@ -237,7 +239,7 @@ template <typename T> int scatterActivity(FILE * fp, Communicator * comm, int ro
          status = PV_FAILURE;
          abort();
       }
-      long startpos = ftell(fp);
+      long startpos = PV_ftell(fp);
       if (startpos == -1) {
          fprintf(stderr, "scatterActivity error when getting file position: %s\n", strerror(errno));
          status = PV_FAILURE;

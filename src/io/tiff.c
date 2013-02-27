@@ -1,7 +1,4 @@
 #include "tiff.h"
-#include <assert.h>
-#include <stdio.h>
-#include <stdlib.h>
 
 /* number of IFD entries that this library writes */
 #define NUM_OUT_ENTRIES 11

@@ -887,9 +887,9 @@ int HyPerCol::checkpointRead(const char * cpDir) {
          fprintf(stderr, "HyPerCol::checkpointRead error: unable to open \"%s\" for reading.\n", timestamppath);
          abort();
       }
-      long int startpos = ftell(timestampfile);
+      long int startpos = PV_ftell(timestampfile);
       fread(&timestamp,1,timestamp_size,timestampfile);
-      long int endpos = ftell(timestampfile);
+      long int endpos = PV_ftell(timestampfile);
       assert(endpos-startpos==(int)timestamp_size);
       fclose(timestampfile);
    }

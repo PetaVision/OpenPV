@@ -36,7 +36,7 @@
 #define EXACT_LINEAR 2
 #define INTEGRATION_METHOD EXACT_LINEAR
 
-#define MAX_GDALOPEN_TRIES 5
+#define MAX_FILESYSTEMCALL_TRIES 5
 
 //// control dynamics
 //#define STATIC_DYNAMICS   0

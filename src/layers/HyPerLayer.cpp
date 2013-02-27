@@ -1361,7 +1361,7 @@ int HyPerLayer::readDataStoreFromFile(const char * filename, InterColComm * comm
       pvdata_t * buffer = (pvdata_t *) datastore->buffer(0, l);
       int status1 = scatterActivity(readFile, comm, 0/*root process*/, buffer, getLayerLoc(), true);
       if (comm->commRank()==0) {
-         printf("File %s, level %d, file position %ld\n", filename, l, ftell(readFile));
+         printf("File %s, level %d, file position %ld\n", filename, l, PV_ftell(readFile));
       }
       if (status1 != PV_SUCCESS) status = PV_FAILURE;
    }
@@ -1493,7 +1493,7 @@ int HyPerLayer::writeBuffer(FILE * fp, InterColComm * comm, double timed, pvdata
    int rank = 0;
 #endif // PV_USE_MPI
    if( rank == 0 ) {
-      long fpos = ftell(fp);
+      long fpos = PV_ftell(fp);
       if (fpos == 0L) {
          int numNeurons = loc->nx*loc->ny*loc->nf;
          int status = pvp_write_header(fp, comm, timed, loc, PVP_NONSPIKING_ACT_FILE_TYPE,
@@ -1649,7 +1649,7 @@ int HyPerLayer::incrementNBands(int * numCalls) {
    int status;
    if( parent->icCommunicator()->commRank() == 0 ) {
       ++*numCalls;
-      long int fpos = ftell(clayer->activeFP);
+      long int fpos = PV_ftell(clayer->activeFP);
       fseek(clayer->activeFP, sizeof(int)*INDEX_NBANDS, SEEK_SET);
       int intswritten = fwrite(numCalls, sizeof(int), 1, clayer->activeFP);
       fseek(clayer->activeFP, fpos, SEEK_SET);

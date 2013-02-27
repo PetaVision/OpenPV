@@ -145,7 +145,7 @@ GDALDataset * PV_GDALOpen(const char * filename)
       dataset = (GDALDataset *) GDALOpen(filename, GA_ReadOnly);
       if (dataset != NULL) break;
       gdalopencounts++;
-      if (gdalopencounts < MAX_GDALOPEN_TRIES) {
+      if (gdalopencounts < MAX_FILESYSTEMCALL_TRIES) {
          sleep(1);
       }
       else {

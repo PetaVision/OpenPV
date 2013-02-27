@@ -31,33 +31,10 @@ float LCALIF_VmemInf(const float Vrest, const float V_E, const float V_I, const 
    return (Vrest + V_E*G_E + V_I*G_I + V_B*G_B + G_gap)/(1+G_E+G_I+G_B+sumgap);
 }
 
-// The commented-out code below is only used for the Heun's method integration, which works very poorly when the equation is stiff.
-/*
-inline
-float LIFGap_Vmem_derivative(
-      const float Vmem,
-      const float G_E,
-      const float G_I,
-      const float G_IB,
-      const float G_Gap,
-      const float V_E,
-      const float V_I,
-      const float V_IB,
-      const float sum_gap,
-      const float Vrest,
-      const float tau) {
-   float totalconductance = 1.0 + G_E + G_I + G_IB + sum_gap;
-   float Vmeminf = (Vrest + V_E*G_E + V_I*G_I + V_IB*G_IB + G_Gap)/totalconductance;
-   return totalconductance*(Vmeminf-Vmem)/tau;
-}
- */
-
 //
 // update the state of a LCALIF layer (spiking)
 //
 //    assume called with 1D kernel
-//
-// LCALIF_update_state_beginning uses a Heun scheme for V, using values of the conductances at both the beginning and end of the timestep.  Spikes in the input are applied at the beginning of the timestep.
 //
 CL_KERNEL
 void LCALIF_update_state(
@@ -85,10 +62,6 @@ void LCALIF_update_state(
     CL_MEM_GLOBAL float * G_I,
     CL_MEM_GLOBAL float * G_IB,
     CL_MEM_GLOBAL float * GSynHead,
-//    CL_MEM_GLOBAL float * GSynExc,
-//    CL_MEM_GLOBAL float * GSynInh,
-//    CL_MEM_GLOBAL float * GSynInhB,
-//    CL_MEM_GLOBAL float * GSynGap,
     CL_MEM_GLOBAL float * activity, 
 
     const float sum_gap,
@@ -214,10 +187,14 @@ for (int k = 0; k < nx*ny*nf; k++) {
 
    // The portion of code below uses the newer method of calculating l_V.
    float G_E_initial, G_I_initial, G_IB_initial, G_E_final, G_I_final, G_IB_final;
+   float tau_inf_initial, tau_inf_final, V_inf_initial, V_inf_final;
 
    G_E_initial = l_G_E + l_GSynExc;
    G_I_initial = l_G_I + l_GSynInh;
    G_IB_initial = l_G_IB + l_GSynInhB;
+   l_G_Gap = l_GSynGap; // G_Gap doesn't change over the timestep, so don't need initial/final
+   tau_inf_initial = tau/(1+G_E_initial+G_I_initial+G_IB_initial+sum_gap);
+   V_inf_initial = (Vrest+Vexc*G_E_initial+Vinh*G_I_initial+VinhB*G_IB_initial+l_G_Gap)/(1+G_E_initial+G_I_initial+G_IB_initial+sum_gap);
 
    G_E_initial  = (G_E_initial  > GMAX) ? GMAX : G_E_initial;
    G_I_initial  = (G_I_initial  > GMAX) ? GMAX : G_I_initial;
@@ -229,19 +206,15 @@ for (int k = 0; k < nx*ny*nf; k++) {
    G_E_final = G_E_initial * decayE;
    G_I_final = G_I_initial * decayI;
    G_IB_final = G_IB_initial * decayIB;
+   tau_inf_final = tau/(1+G_E_final+G_I_final+G_IB_final+sum_gap);
+   V_inf_final = (Vrest+Vexc*G_E_final+Vinh*G_I_final+VinhB*G_IB_final+l_G_Gap)/(1+G_E_final+G_I_final+G_IB_final+sum_gap);
 
-   l_G_Gap = l_GSynGap;
-
-   float VmemInf1 = LCALIF_VmemInf(Vrest, Vexc, Vinh, VinhB, G_E_initial, G_I_initial, G_IB_initial, l_G_Gap, sum_gap);
-   float tauInf1 = LCALIF_tauInf(tau, G_E_initial, G_I_initial, G_IB_initial, l_G_Gap);
-   // float VmemInf2 = LCALIF_VmemInf(Vrest, Vexc, Vinh, VinhB, G_E_final, G_I_final, G_IB_final, l_G_Gap, sum_gap);
-   // float tauInf2 = LCALIF_tauInf(tau, G_E_final, G_I_final, G_IB_final, l_G_Gap);
-   l_V = exp(-dt/tauInf1)*(l_V - VmemInf1) + VmemInf1;
-   // The commented-out code works very poorly if the equation for the membrane potential is stiff, which happens if tauInf < dt
-   // dV1 = LIFGap_Vmem_derivative(l_V, G_E_initial, G_I_initial, G_IB_initial, l_G_Gap, Vexc, Vinh, VinhB, sum_gap, Vrest, tau);
-   // dV2 = LIFGap_Vmem_derivative(l_V+dt*dV1, G_E_final, G_I_final, G_IB_final, l_G_Gap, Vexc, Vinh, VinhB, sum_gap, Vrest, tau);
-   // dV = (dV1+dV2)*0.5;
-   // l_V = l_V + dt*dV;
+   float tau_slope = (tau_inf_final-tau_inf_initial)/dt;
+   float f1 = tau_slope==0.0f ? EXP(-dt/tau_inf_initial) : powf(tau_inf_final/tau_inf_initial, -1/tau_slope);
+   float f2 = tau_slope==-1.0f ? tau_inf_initial/dt*logf(tau_inf_final/tau_inf_initial+1.0f) :
+                                 (1-tau_inf_initial/dt*(1-f1))/(1+tau_slope);
+   float f3 = 1.0f - f1 - f2;
+   l_V = f1*l_V + f2*V_inf_initial + f3*V_inf_final;
    
    l_G_E = G_E_final;
    l_G_I = G_I_final;
@@ -288,12 +261,6 @@ for (int k = 0; k < nx*ny*nf; k++) {
    G_I[k]  = l_G_I;
    G_IB[k] = l_G_IB;
    G_Gap[k] = l_G_Gap;
-
-   GSynExc[k]  = 0.0f;
-   GSynInh[k]  = 0.0f;
-   GSynInhB[k] = 0.0f;
-   GSynGap[k]  = 0.0f;
-   GSynNorm[k] = 0.0f;
 
 #ifndef PV_USE_OPENCL
    } // loop over k

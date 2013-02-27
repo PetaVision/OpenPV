@@ -55,6 +55,28 @@ size_t pv_sizeof_patch(int count, int datatype)
    // return ( 2*sizeof(unsigned short) + count*pv_sizeof(datatype) );
 }
 
+long int PV_ftell(FILE * fp) {
+   int ftellcounts = 0;
+   long filepos = -1;
+   while (filepos < 0) {
+      errno = 0;
+      filepos = ftell(fp);
+      if (filepos >= 0) break;
+      ftellcounts++;
+      if (ftellcounts < MAX_FILESYSTEMCALL_TRIES) {
+         sleep(1);
+      }
+      else {
+         break;
+      }
+   }
+   if (filepos<0) {
+      fprintf(stderr, "PV_ftell error: %s\n", strerror(errno));
+   }
+   return filepos;
+}
+
+
 /**
  * Copy patches into an unsigned char buffer
  */
@@ -1261,7 +1283,7 @@ int writeActivity(FILE * fp, Communicator * comm, double timed, PVLayer * l)
    int rank = 0;
 #endif // PV_USE_MPI
    if( rank == 0 ) {
-      long fpos = ftell(fp);
+      long fpos = PV_ftell(fp);
       if (fpos == 0L) {
          int * params = pvp_set_nonspiking_act_params(comm, timed, &l->loc, PV_FLOAT_TYPE, 1/*numbands*/);
          assert(params && params[1]==NUM_BIN_PARAMS);
@@ -1342,7 +1364,7 @@ int writeActivitySparse(FILE * fp, Communicator * comm, double time, PVLayer * l
 
       // write activity header
       //
-      long fpos = ftell(fp);
+      long fpos = PV_ftell(fp);
       if (fpos == 0L) {
          int numParams = NUM_BIN_PARAMS;
          status = pvp_write_header(fp, comm, time, &l->loc, PVP_ACT_FILE_TYPE,

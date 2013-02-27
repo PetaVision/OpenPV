@@ -940,8 +940,7 @@ int PVParams::parsefile(const char * filename) {
          fprintf(stderr, "PVParams::parsefile ERROR seeking end of file \"%s\": %s\n", filename, strerror(errno));
          exit(errno);
       }
-      //TODO:: make sure paramBuffer is correctly freed (this method was flagged as a memory leak by valgrind)
-      bufferlen = (size_t) ftell(paramfp);
+      bufferlen = (size_t) PV_ftell(paramfp);
       paramBuffer = (char *) malloc(bufferlen);
       if( paramBuffer == NULL ) {
          fprintf(stderr, "PVParams::parsefile: Rank %d process unable to allocate memory for params buffer\n", rootproc);

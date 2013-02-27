@@ -3,6 +3,8 @@
 
 #include <stdio.h>
 #include <stdint.h>
+#include <assert.h>
+#include <stdlib.h>
 
 /*
  * Tiff file format obtained from http://partners.adobe.com/public/developer/en/tiff/TIFF6.pdf
