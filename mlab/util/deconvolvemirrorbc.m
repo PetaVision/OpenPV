@@ -23,16 +23,19 @@ dogconvrefl = [convolvedimage convolvedimage(:,end:-1:1); convolvedimage(end:-1:
 xctr = (xsize+1)/2;
 yctr = (ysize+1)/2;
 
-fmx = exp(2*pi*1i/gx*(0:gx-1));
-fmy = exp(2*pi*1i/gy*(0:gy-1)');
+kernelfull = zeros(gy,gx);
+kernelfull([gy-yctr+2:gy 1:yctr],[gx-xctr+2:gx 1:xctr])=kernel;
+kernelft = real(fft2(kernelfull));
 
-kernelft = zeros(gy, gx);
-for n=(1:xsize)-xctr
-    for m=(1:ysize)-yctr
-        kernelft = kernelft + kernel(m+yctr,n+yctr) * fmy.^m * fmx.^n;
-    end
-end
-kernelft = real(kernelft);
+% fmy = exp(2*pi*1i/gy*(0:gy-1)');
+% 
+% kernelft = zeros(gy, gx);
+% for n=(1:xsize)-xctr
+%     for m=(1:ysize)-yctr
+%         kernelft = kernelft + kernel(m+yctr,n+yctr) * fmy.^m * fmx.^n;
+%     end
+% end
+% kernelft = real(kernelft);
 
 kernelinverseft = 1./kernelft;
 kernelinverseft(kernelft==0) = 0;
