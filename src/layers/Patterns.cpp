@@ -109,7 +109,7 @@ int Patterns::initialize(const char * name, HyPerCol * hc, PatternType type) {
    if (type==DROP) {
       //(pixels/dt) Radius expands dropSpeed pixles per timestep; 0 for rand
       dropSpeed = params->value(name, "dropSpeed", 1);
-      if (dropSpeed==0) {
+      if (dropSpeed==-1) {
 		  dropSpeedRandomMax = params->value(name, "dropSpeedRandomMax", 3);
 		  dropSpeedRandomMin = params->value(name, "dropSpeedRandomMin", 1);
       }
