@@ -1,22 +1,26 @@
 
 clear all;
 close all;
-setenv("GNUTERM","X11") 
-addpath("/Users/garkenyon/workspace/PetaVision/mlab/util");
-last_checkpoint_ndx = 30000;
+setenv("GNUTERM","X11")
+workspace_path = "/home/gkenyon/workspace";
+%%workspace_path = /Users/garkenyon/workspace;
+LCA_path = [workspace_path, filesep, "HyPerHLCA2"];
+addpath([workspace_path, filesep, "/PetaVision/mlab/util"]);
+output_dir = "/nh/compneuro/Data/vine/LCA/cats"; 
+%%output_dir = "/Users/garkenyon/workspace/HyPerHLCA2/output";
+last_checkpoint_ndx = 20706*59; %%
 first_checkpoint_ndx = 0;
 use_Last_flag = 0;
 if use_Last_flag
-  checkpoint_dir = "/Users/garkenyon/workspace/HyPerHLCA2/output/Last";
+  checkpoint_dir = [output_dir, filesep, "Last"];
   checkpoint_path = [checkpoint_dir]; 
 else
-  checkpoint_dir = "/Users/garkenyon/workspace/HyPerHLCA2/Checkpoints";
+  checkpoint_dir = [LCA_path, filesep, "Checkpoints"];
   checkpoint_path = [checkpoint_dir, filesep, "Checkpoint", num2str(last_checkpoint_ndx)];
 endif
-output_dir = "/Users/garkenyon/workspace/HyPerHLCA2/output";
 max_lines = last_checkpoint_ndx + (last_checkpoint_ndx == 0) * 1000;
 startup_artifact_length = max(max_lines - 4000, 3);
-frame_duration = 1000;
+frame_duration = 500;
 
 
 %% get DoG kernel
