@@ -3,11 +3,11 @@ clear all;
 close all;
 setenv("GNUTERM","X11") 
 addpath("/Users/garkenyon/workspace/PetaVision/mlab/util");
-last_checkpoint_ndx = 600000;
+last_checkpoint_ndx = 30000;
 first_checkpoint_ndx = 0;
 use_Last_flag = 0;
 if use_Last_flag
-  checkpoint_dir = "/Users/garkenyon/workspace/HyPerHLCA2/output_animal/Last";
+  checkpoint_dir = "/Users/garkenyon/workspace/HyPerHLCA2/output/Last";
   checkpoint_path = [checkpoint_dir]; 
 else
   checkpoint_dir = "/Users/garkenyon/workspace/HyPerHLCA2/Checkpoints";
@@ -20,7 +20,7 @@ frame_duration = 1000;
 
 
 %% get DoG kernel
-plot_DoG_kernel = 0;
+plot_DoG_kernel = 1;
 if plot_DoG_kernel
   i_frame = 1;
   i_arbor = 1;
@@ -250,7 +250,11 @@ if plot_V1
     V1_percent_change(i_frame) = ...
 	V1_abs_change(i_frame) / (V1_tot_active + (V1_tot_active==0));
     V1_active_kf = mod(V1_active_ndx, nf_V1) + 1;
-    V1_hist_frame = histc(V1_active_kf, V1_hist_edges);
+    if V1_tot_active > 0
+      V1_hist_frame = histc(V1_active_kf, V1_hist_edges);
+    else
+      V1_hist_frame = zeros(nf_V1+1,1);
+    endif
     V1_hist = V1_hist + V1_hist_frame;
   endfor %% i_frame
   V1_hist = V1_hist(1:nf_V1);
