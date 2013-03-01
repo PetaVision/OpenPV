@@ -1,11 +1,13 @@
-function [reconstruction,kernelft,kernelinverseft] = deconvolvemirrorbc(convolvedimage, kernel)
+function [reconstruction,kernelft,kernelinverseft] = deconvolvemirrorbc(convolvedimage, kernel, reg)
 % A function to invert a transformation obtained by convolving a 2-D image
 % with a kernel using mirror boundary conditions.
 %
-% [reconstruction,kernelft,kernelinverseft] = invertconvmirrorbc(convolvedimage, kernel)
+% [reconstruction,kernelft,kernelinverseft] = invertconvmirrorbc(convolvedimage, kernel, reg)
 %
 % convolvedimage is an m-by-n image
 % kernel is a p-by-q kernel
+% reg is a regularization parameter for computing the inverse transform:
+%    1/x is replaced by 1/sqrt(x^2+reg^2)*sign(x)
 %
 % reconstruction is the solution to convolvedimage = reconstruction*kernel,
 %     where '*' is the convolution operator.
@@ -15,6 +17,10 @@ function [reconstruction,kernelft,kernelinverseft] = deconvolvemirrorbc(convolve
 %     boundary conditions.
 % kernelinverseft is the deconvolution in fourier space.  It is generally
 %     1./kernelft, but where kernelft==0, kernelinverseft is also zero.
+
+if ~exist('reg','var')
+    reg = 0;
+end
 
 dogconvrefl = [convolvedimage convolvedimage(:,end:-1:1); convolvedimage(end:-1:1,:) convolvedimage(end:-1:1, end:-1:1)];
 [gy, gx] = size(dogconvrefl);
@@ -37,7 +43,12 @@ kernelft = real(fft2(kernelfull));
 % end
 % kernelft = real(kernelft);
 
-kernelinverseft = 1./sqrt(kernelft.^2 + 0.0001^2);
+if reg==0
+    kernelinverseft = 1./kernelft;
+else
+    kernelinverseft = 1./sqrt(kernelft.^2 + reg^2).*sign(kernelft);
+end
+
 kernelinverseft(kernelft==0) = 0;
 
 reconstructionrefl = real(ifft2(fft2(dogconvrefl).*kernelinverseft));
