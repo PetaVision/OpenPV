@@ -222,9 +222,11 @@ KernelConn "RetinaToDownsample2X2" = {
    strength = 1.0;       
    normalize = 1.0;
    normalize_zero_offset = 0.0;
+   normalize_RMS_amp = 0.0;
    normalize_max = 0.0;
    normalize_cutoff = 0;
    normalizeTotalToPost = true;
+   symmetrizeWeights = 0;
    preActivityIsNotRate = false;
 
    shrinkPatches = false;
@@ -267,6 +269,7 @@ KernelConn "Downsample2X2ToL1" = {
    strength = 25.0;  
    normalize = 1.0;
    normalize_zero_offset = 0.0;
+   normalize_RMS_amp = 0.0;
    normalize_max = 0.0;
    normalize_cutoff = 0;
    symmetrizeWeights = 0;
@@ -313,6 +316,7 @@ KernelConn "Downsample2X2ToL1Inh" = {
    strength = 25.0;  
    normalize = 1.0;
    normalize_zero_offset = 0.0;
+   normalize_RMS_amp = 0.0;
    normalize_max = 0.0;
    normalize_cutoff = 0;
    symmetrizeWeights = 0;
@@ -378,7 +382,7 @@ KernelConn "MasktoL1Post" = {
    shmget_flag = false;
    stochasticReleaseFlag = false;
     
-   delay = 3;    
+   delay = 0;    
 };
 
 
@@ -408,6 +412,7 @@ CliqueConn "L1ToL1Post" = {
    normalize = 0.0;
    
    plasticityFlag = 1;
+   dWMax = 1.0; // not used
    keepKernelsSynchronized = false; // true; 
    combine_dW_with_W_flag = true; //false; // 
    shrinkPatches = false;
