@@ -1,11 +1,11 @@
 
 %% begin definition of the most volitile parameters
-FLAVOR_ID = "Training"; %% "Challenge"; %% 
+FLAVOR_ID = "Challenge"; %% "Training"; %% 
 disp(["FLAVOR_ID = ", FLAVOR_ID]);
 target_id = cell(1,2); 
 target_id{1,1} = "Car"; target_id{1,2} = "NotCar"; %% 
 target_id
-clips_flag = false; %% true; %% 
+clips_flag = true; %% false;  %%
 if clips_flag 
   clip_ids = [26:26]; %% [1:50]; %% 
   clip_name = cell(length(clip_ids),1);
@@ -16,7 +16,7 @@ else
   clip_name = [];
 endif
 clip_name
-pvp_num_ODD_kernels = 1; %%
+pvp_num_ODD_kernels = 2; %%
 disp(["num_ODD_kernels = ", num2str(pvp_num_ODD_kernels)]);
 %% end definition of the most volitile parameters
 
@@ -237,10 +237,10 @@ for i_object = 1 : size(target_id,1)
 		"L1ToL1Post_W.pvp";
 	  elseif pvp_num_ODD_kernels == 2
 	    weight_filename = ...
-		"L2ToL2Post_W.pvp";
+		"L1CliqueToL2Post_W.pvp";
 	  elseif pvp_num_ODD_kernels == 3
 	    weight_filename = ...
-		"L3ToL3Post_W.pvp";
+		"L2CliqueToL3Post_W.pvp";
 	  else
 	    error(["weight_filename unspecified for pvp_num_ODD_kernels = ", ...
 		   num2str(pvp_num_ODD_kernels)]);
