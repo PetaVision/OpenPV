@@ -1360,9 +1360,6 @@ int HyPerLayer::readDataStoreFromFile(const char * filename, InterColComm * comm
       }
       pvdata_t * buffer = (pvdata_t *) datastore->buffer(0, l);
       int status1 = scatterActivity(readFile, comm, 0/*root process*/, buffer, getLayerLoc(), true);
-      if (comm->commRank()==0) {
-         printf("File %s, level %d, file position %ld\n", filename, l, PV_ftell(readFile));
-      }
       if (status1 != PV_SUCCESS) status = PV_FAILURE;
    }
    assert(status == PV_SUCCESS);
