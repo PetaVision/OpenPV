@@ -222,7 +222,7 @@ if plot_ave_error_vs_time
   drawnow;
 endif
 
-plot_V1 = 0;
+plot_V1 = 1;
 if plot_V1
   V1_path = [output_dir, filesep, "a5_V1.pvp"];
   write_step = 1000;
@@ -236,40 +236,52 @@ if plot_V1
   i_frame = num_frames;
   start_frame = 1; %%
   V1_hist = zeros(nf_V1+1,1);
-  V1_hist_edges = [0:1:nf_V1];
+  V1_hist_edges = [0:1:nf_V1]+0.5;
+  V1_current = zeros(n_V1,1);
+  V1_abs_change = zeros(num_frames,1);
+  V1_percent_change = zeros(num_frames,1);
   for i_frame = 1 : 1 : num_frames
-    V1_time = squeeze(V1_struct{i_frame}.values);
+    V1_time = squeeze(V1_struct{i_frame}.time);
     V1_active_ndx = squeeze(V1_struct{i_frame}.values);
+    V1_previous = V1_current;
+    V1_current = full(sparse(V1_active_ndx+1,1,1,n_V1,1,n_V1));
+    V1_abs_change(i_frame) = sum(V1_current(:) ~= V1_previous(:));
+    V1_tot_active = max(sum(V1_current(:)), sum(V1_previous(:)));
+    V1_percent_change(i_frame) = ...
+	V1_abs_change(i_frame) / (V1_tot_active + (V1_tot_active==0));
     V1_active_kf = mod(V1_active_ndx, nf_V1) + 1;
     V1_hist_frame = histc(V1_active_kf, V1_hist_edges);
     V1_hist = V1_hist + V1_hist_frame;
   endfor %% i_frame
-  V1_hist = V1_hist(2:end);
-  V1_hist = V1_hist / (sum(V1_hist(:)) + (nnz(V1_hist)==0));
+  V1_hist = V1_hist(1:nf_V1);
+  V1_hist = V1_hist / (num_frames * nx_V1 * ny_V1); %% (sum(V1_hist(:)) + (nnz(V1_hist)==0));
   [V1_hist_sorted, V1_hist_rank] = sort(V1_hist, 1, "descend");
   V1_hist_title = ["V1_hist", ".png"];
   V1_hist_fig = figure;
-  V1_hist_hndl = bar(V1_hist_edges(1:end-1), V1_hist_sorted); axis tight;
-  set(V1_hist_fig, "name", ["V1_hist"]);
+  V1_hist_bins = 1:nf_V1;
+  V1_hist_hndl = bar(V1_hist_bins, V1_hist_sorted); axis tight;
+  set(V1_hist_fig, "name", ["V1_hist_", num2str(V1_time)]);
   saveas(V1_hist_fig, ...
 	 [output_dir, filesep, ...
-	  "V1_hist_", num2str(first_checkpoint_ndx), "_", num2str(last_checkpoint_ndx)], "png");
+	  "V1_hist_", num2str(V1_time)], "png");
+
+  V1_abs_change_title = ["V1_abs_change", ".png"];
+  V1_abs_change_fig = figure;
+  V1_abs_change_hndl = plot((1:num_frames)*write_step/1000, V1_abs_change); axis tight;
+  set(V1_abs_change_fig, "name", ["V1_abs_change"]);
+  saveas(V1_abs_change_fig, ...
+	 [output_dir, filesep, "V1_abs_change", num2str(V1_time)], "png");
+
+  V1_percent_change_title = ["V1_percent_change", ".png"];
+  V1_percent_change_fig = figure;
+  V1_percent_change_hndl = plot((1:num_frames)*write_step/1000, V1_percent_change); axis tight;
+  set(V1_percent_change_fig, "name", ["V1_percent_change"]);
+  saveas(V1_percent_change_fig, ...
+	 [output_dir, filesep, "V1_percent_change", num2str(V1_time)], "png");
   drawnow;  
-else
-  V1_path = [checkpoint_path, filesep, "a5_V1.pvp"];
-  if exist(V1_path)
-    write_step = 1000;
-    num_frames = floor((last_checkpoint_ndx - first_checkpoint_ndx) / write_step);
-    [V1_struct, V1_hdr] = readpvpfile(V1_path, num_frames, []);
-    nx_V1 = V1_hdr.nx;
-    ny_V1 = V1_hdr.ny;
-    nf_V1 = V1_hdr.nf;
-    n_V1 = nx_V1 * ny_V1 * nf_V1;
-    V1_hist_rank = (1:nf_V1);
-  endif
 endif
 
-plot_final_weights = 0;
+plot_final_weights = 1;
 if plot_final_weights
   V1ToError_path = [checkpoint_path, filesep, "V1ToError_W.pvp"];
   [V1ToError_struct, V1ToError_hdr] = readpvpfile(V1ToError_path,1);
@@ -295,7 +307,7 @@ if plot_final_weights
     min_patch = min(patch_tmp2(:));
     max_patch = max(patch_tmp2(:));
     patch_tmp2 = (patch_tmp2 - min_patch) * 255 / (max_patch - min_patch);
-    patch_tmp2 = uint8(patch_tmp2);
+    patch_tmp2 = uint8(flipud(patch_tmp2'));
     imagesc(patch_tmp2); colormap(gray);
     box off
     axis off
@@ -312,7 +324,7 @@ if plot_final_weights
   saveas(V1ToError_hist_fig, [output_dir, filesep, "V1TpError_hist_", num2str(last_checkpoint_ndx)], "png");
 endif
 
-plot_weights_movie = 0;
+plot_weights_movie = 1;
 if plot_weights_movie
   weights_movie_dir = [output_dir, filesep, "weights_movie"];
   mkdir(weights_movie_dir);
@@ -341,7 +353,7 @@ if plot_weights_movie
       j_patch_col = 1 + mod(j_patch - 1, num_patches_cols);
       %%subplot(num_patches_rows, num_patches_cols, i_patch); 
       patch_tmp = squeeze(V1ToError_weights(:,:,i_patch));
-      patch_tmp2 = patch_tmp; %% imresize(patch_tmp, 12);
+      patch_tmp2 = flipud(patch_tmp'); %% imresize(patch_tmp, 12);
       min_patch = min(patch_tmp2(:));
       max_patch = max(patch_tmp2(:));
       patch_tmp2 = (patch_tmp2 - min_patch) * 255 / (max_patch - min_patch);
