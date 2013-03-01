@@ -5,7 +5,7 @@ setenv("GNUTERM","X11")
 addpath("/Users/garkenyon/workspace/PetaVision/mlab/util");
 last_checkpoint_ndx = 600000;
 first_checkpoint_ndx = 0;
-use_Last_flag = 1;
+use_Last_flag = 0;
 if use_Last_flag
   checkpoint_dir = "/Users/garkenyon/workspace/HyPerHLCA2/output_animal/Last";
   checkpoint_path = [checkpoint_dir]; 
@@ -13,7 +13,7 @@ else
   checkpoint_dir = "/Users/garkenyon/workspace/HyPerHLCA2/Checkpoints";
   checkpoint_path = [checkpoint_dir, filesep, "Checkpoint", num2str(last_checkpoint_ndx)];
 endif
-output_dir = "/Users/garkenyon/workspace/HyPerHLCA2/output_animal";
+output_dir = "/Users/garkenyon/workspace/HyPerHLCA2/output";
 max_lines = last_checkpoint_ndx + (last_checkpoint_ndx == 0) * 1000;
 startup_artifact_length = max(max_lines - 4000, 3);
 frame_duration = 1000;
@@ -182,10 +182,10 @@ if plot_ave_error_vs_time
   set(error_vs_time_fig, "name", ["ave Error"]);
   saveas(error_vs_time_fig, [output_dir, filesep, "error_vs_time_", num2str(last_checkpoint_ndx)], "png");
   drawnow;
-endif
-
-plot_ave_V1_vs_time = 1;
-if plot_ave_V1_vs_time
+%%endif
+%%
+%%plot_ave_V1_vs_time = 0;
+%%if plot_ave_V1_vs_time
   V1_Stats_file = [output_dir, filesep, "V1_Stats.txt"];
   V1_Stats_fid = fopen(V1_Stats_file, "r");
   V1_Stats_line = fgets(V1_Stats_fid);
@@ -222,7 +222,7 @@ if plot_ave_V1_vs_time
   drawnow;
 endif
 
-plot_V1 = 1;
+plot_V1 = 0;
 if plot_V1
   V1_path = [output_dir, filesep, "a5_V1.pvp"];
   write_step = 1000;
@@ -235,20 +235,21 @@ if plot_V1
   num_frames = size(V1_struct,1);
   i_frame = num_frames;
   start_frame = 1; %%
-  V1_hist = zeros(1,nf_V1);
-  V1_hist_bins = [0.5:1:nf_V1-0.5];
+  V1_hist = zeros(nf_V1+1,1);
+  V1_hist_edges = [0:1:nf_V1];
   for i_frame = 1 : 1 : num_frames
     V1_time = squeeze(V1_struct{i_frame}.values);
     V1_active_ndx = squeeze(V1_struct{i_frame}.values);
     V1_active_kf = mod(V1_active_ndx, nf_V1) + 1;
-    V1_hist_frame = hist(V1_active_kf, V1_hist_bins);
+    V1_hist_frame = histc(V1_active_kf, V1_hist_edges);
     V1_hist = V1_hist + V1_hist_frame;
   endfor %% i_frame
+  V1_hist = V1_hist(2:end);
   V1_hist = V1_hist / (sum(V1_hist(:)) + (nnz(V1_hist)==0));
-  [V1_hist_sorted, V1_hist_rank] = sort(V1_hist, 2, "descend");
+  [V1_hist_sorted, V1_hist_rank] = sort(V1_hist, 1, "descend");
   V1_hist_title = ["V1_hist", ".png"];
   V1_hist_fig = figure;
-  V1_hist_hndl = bar(V1_hist_bins, V1_hist_sorted); axis tight;
+  V1_hist_hndl = bar(V1_hist_edges(1:end-1), V1_hist_sorted); axis tight;
   set(V1_hist_fig, "name", ["V1_hist"]);
   saveas(V1_hist_fig, ...
 	 [output_dir, filesep, ...
@@ -264,17 +265,20 @@ else
     ny_V1 = V1_hdr.ny;
     nf_V1 = V1_hdr.nf;
     n_V1 = nx_V1 * ny_V1 * nf_V1;
+    V1_hist_rank = (1:nf_V1);
   endif
-  V1_hist_rank = (1:nf_V1);
 endif
 
-plot_final_weights = 1;
+plot_final_weights = 0;
 if plot_final_weights
   V1ToError_path = [checkpoint_path, filesep, "V1ToError_W.pvp"];
   [V1ToError_struct, V1ToError_hdr] = readpvpfile(V1ToError_path,1);
   i_frame = 1;
   i_arbor = 1;
   V1ToError_weights = squeeze(V1ToError_struct{i_frame}.values{i_arbor});
+  if isempty(V1_hist_rank)
+    V1_hist_rank = (1:V1ToError_hdr.nf);
+  endif
 
   %% make tableau of all patches
   i_patch = 1;
@@ -285,7 +289,7 @@ if plot_final_weights
   set(V1ToError_fig, "name", ["V1ToError Weights: ", num2str(last_checkpoint_ndx)]);
   for j_patch = 1  : num_patches
     i_patch = V1_hist_rank(j_patch);
-    subplot(num_patches_rows, num_patches_cols, i_patch); 
+    subplot(num_patches_rows, num_patches_cols, j_patch); 
     patch_tmp = squeeze(V1ToError_weights(:,:,i_patch));
     patch_tmp2 = patch_tmp; %% imresize(patch_tmp, 12);
     min_patch = min(patch_tmp2(:));
@@ -308,7 +312,7 @@ if plot_final_weights
   saveas(V1ToError_hist_fig, [output_dir, filesep, "V1TpError_hist_", num2str(last_checkpoint_ndx)], "png");
 endif
 
-plot_weights_movie = 1;
+plot_weights_movie = 0;
 if plot_weights_movie
   weights_movie_dir = [output_dir, filesep, "weights_movie"];
   mkdir(weights_movie_dir);
@@ -319,6 +323,9 @@ if plot_weights_movie
   num_frames = size(V1ToError_struct,1);
   i_frame = num_frames;
   start_frame = floor(last_checkpoint_ndx / write_step);
+  if isempty(V1_hist_rank)
+    V1_hist_rank = (1:V1ToError_hdr.nf);
+  endif
   num_recon = max(floor(frame_duration / write_step) - 1, 0);
   i_arbor = 1;
   for i_frame = 1 : 1 : start_frame
@@ -330,8 +337,8 @@ if plot_weights_movie
     weights_frame = uint8(zeros(num_patches_rows * nyp, num_patches_cols * nxp));
     for j_patch = 1  : num_patches
       i_patch = V1_hist_rank(j_patch);
-      i_patch_row = ceil(i_patch / num_patches_cols);
-      i_patch_col = 1 + mod(i_patch - 1, num_patches_cols);
+      j_patch_row = ceil(j_patch / num_patches_cols);
+      j_patch_col = 1 + mod(j_patch - 1, num_patches_cols);
       %%subplot(num_patches_rows, num_patches_cols, i_patch); 
       patch_tmp = squeeze(V1ToError_weights(:,:,i_patch));
       patch_tmp2 = patch_tmp; %% imresize(patch_tmp, 12);
@@ -339,8 +346,8 @@ if plot_weights_movie
       max_patch = max(patch_tmp2(:));
       patch_tmp2 = (patch_tmp2 - min_patch) * 255 / (max_patch - min_patch);
       patch_tmp2 = uint8(patch_tmp2);
-      weights_frame(((i_patch_row - 1) * nyp + 1): (i_patch_row * nyp), ...
-		    ((i_patch_col - 1) * nxp + 1): (i_patch_col * nxp)) = ...
+      weights_frame(((j_patch_row - 1) * nyp + 1): (j_patch_row * nyp), ...
+		    ((j_patch_col - 1) * nxp + 1): (j_patch_col * nxp)) = ...
 	  patch_tmp2;
       %%imagesc(patch_tmp2);
       box off
