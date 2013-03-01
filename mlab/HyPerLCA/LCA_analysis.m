@@ -321,7 +321,7 @@ if plot_final_weights
     axis off
     %%drawnow;
   endfor
-  saveas(V1ToError_fig, [output_dir, filesep, "V1TpError_", num2str(last_checkpoint_ndx)], "png");
+  saveas(V1ToError_fig, [output_dir, filesep, "V1ToError_", num2str(last_checkpoint_ndx)], "png");
 
 
   %% make histogram of all weights
