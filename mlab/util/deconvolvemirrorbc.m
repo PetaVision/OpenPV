@@ -37,7 +37,7 @@ kernelft = real(fft2(kernelfull));
 % end
 % kernelft = real(kernelft);
 
-kernelinverseft = 1./kernelft;
+kernelinverseft = 1./sqrt(kernelft.^2 + 0.0001^2);
 kernelinverseft(kernelft==0) = 0;
 
 reconstructionrefl = real(ifft2(fft2(dogconvrefl).*kernelinverseft));

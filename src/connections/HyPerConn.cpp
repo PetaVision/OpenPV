@@ -1503,6 +1503,11 @@ int HyPerConn::deleteWeights()
             wPatches[arbor] = NULL;
          }
       }
+   }  // arbor
+
+   for (int arbor = 0; arbor < numAxonalArborLists; arbor++) {
+   // entire arbor allocated as single block
+   if (arbor == 0){
 #ifdef USE_SHMGET
 		if (!shmget_flag) {
 			if (wDataStart != NULL && wDataStart[arbor] != NULL) {
@@ -1525,25 +1530,15 @@ int HyPerConn::deleteWeights()
 			free(this->wDataStart[arbor]);
 		}
 #endif // USE_SHMGET
+   } // arbor == 0
    this->wDataStart[arbor] = NULL;
-/*
-      if (dwPatches != NULL) {
-         if (dwPatches[arbor] != NULL) {
-            for (int k = 0; k < numPatches; k++) {
-               pvpatch_inplace_delete(dwPatches[arbor][k]);
-            }
-            free(dwPatches[arbor]);
-            dwPatches[arbor] = NULL;
-         }
-      }
-*/
       if (!this->combine_dW_with_W_flag) {
          if (dwDataStart != NULL && dwDataStart[arbor] != NULL) {
             free(dwDataStart[arbor]);
             dwDataStart[arbor] = NULL;
          }
       }
-   }
+   }  // arbor
 #ifdef USE_SHMGET
    if (shmget_flag) {
       free(shmget_id);
@@ -1554,8 +1549,6 @@ int HyPerConn::deleteWeights()
    wPatches = NULL;
    free(wDataStart);
    wDataStart = NULL;
-   // free(dwPatches);
-   // dwPatches = NULL;
    if (!this->combine_dW_with_W_flag) {
       free(dwDataStart);
    }
@@ -1567,7 +1560,6 @@ int HyPerConn::deleteWeights()
             if (shrinkPatches_flag || arborID == 0){
                deletePatches(wPostPatches[arborID]);
             }
-            //pvpatch_inplace_delete(wPostPatches[arborID][k]); Not used anymore
             wPostPatches[arborID] = NULL;
          }
 
@@ -2784,8 +2776,14 @@ pvdata_t * HyPerConn::allocWeights(PVPatch *** patches, int nPatches, int nxPatc
 
    size_t patchSize = sp * sizeof(pvdata_t);
    size_t dataSize = nPatches * patchSize;
+   if (arborId > 0){  // wDataStart already allocated
+	   assert(this->get_wDataStart(0) != NULL);
+	   return (this->get_wDataStart(0) + sp * nPatches * arborId);
+	}
+   // arborID == 0
+   size_t arborSize = dataSize * this->numberOfAxonalArborLists();
    pvdata_t * dataPatches = NULL;
-   dataPatches = (pvdata_t *) calloc(dataSize, sizeof(char));
+   dataPatches = (pvdata_t *) calloc(arborSize, sizeof(char));
    assert(dataPatches != NULL);
    return dataPatches;
 }

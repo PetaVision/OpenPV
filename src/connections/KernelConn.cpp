@@ -165,6 +165,7 @@ int KernelConn::initializeUpdateTime(PVParams * params) {
 // use shmget() to save memory on shared memory architectures
 pvdata_t * KernelConn::allocWeights(PVPatch *** patches, int nPatches,
 		int nxPatch, int nyPatch, int nfPatch, int arbor_ID) {
+
 	int sx = nfPatch;
 	int sy = sx * nxPatch;
 	int sp = sy * nyPatch;
@@ -172,13 +173,26 @@ pvdata_t * KernelConn::allocWeights(PVPatch *** patches, int nPatches,
 	size_t patchSize = sp * sizeof(pvdata_t);
 	size_t dataSize = nPatches * patchSize;
 
-	pvdata_t * dataPatches = NULL; // (pvdata_t *) calloc(dataSize, sizeof(char));
+	if (arbor_ID > 0) {  // wDataStart already allocated
 #ifdef USE_SHMGET
 
+		if (shmget_flag) {
+			shmget_owner[arbor_ID] = shmget_owner[0];
+		}
+#endif // SHMGET_DEBUG
+		assert(this->get_wDataStart(0) != NULL);
+		return (this->get_wDataStart(0) + sp * nPatches * arbor_ID);
+	}
+
+	// arbor_ID == 0
+	size_t arborSize = dataSize * this->numberOfAxonalArborLists();
+	pvdata_t * dataPatches = NULL; // (pvdata_t *) calloc(dataSize, sizeof(char));
+#ifdef USE_SHMGET
 	if (!shmget_flag) {
-		dataPatches = (pvdata_t *) calloc(dataSize, sizeof(char));
+		dataPatches = (pvdata_t *) calloc(arborSize, sizeof(char));
 	} else {
 		shmget_owner[arbor_ID] = true;
+		shmget_id[arbor_ID] = shmget_id[0];
 		// shmget diagnostics
 #define SHMGET_DEBUG
 #ifdef SHMGET_DEBUG
@@ -188,7 +202,7 @@ pvdata_t * KernelConn::allocWeights(PVPatch *** patches, int nPatches,
 		}
 #endif // SHMGET_DEBUG
 		// dataSize must be a multiple of PAGE_SIZE
-		size_t shmget_dataSize = (floor(dataSize / PAGE_SIZE) + 1) * PAGE_SIZE;
+		size_t shmget_dataSize = (floor(arborSize / PAGE_SIZE) + 1) * PAGE_SIZE;
 		key_t key = IPC_PRIVATE;
 		const int max_arbors = 8712;
 		key = 11 + (this->getConnectionId() + 1) * max_arbors + arbor_ID; //hopefully unique key identifier for all shared memory associated with this connection arbor
@@ -246,7 +260,7 @@ pvdata_t * KernelConn::allocWeights(PVPatch *** patches, int nPatches,
 		dataPatches = (pvdata_t *) segptr;
 	}
 #else
-	dataPatches = (pvdata_t *) calloc(dataSize, sizeof(char));
+	dataPatches = (pvdata_t *) calloc(arborSize, sizeof(char));
 #endif // USE_SHMGET
 	assert(dataPatches != NULL);
 
