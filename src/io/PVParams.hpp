@@ -135,9 +135,6 @@ private:
 
 class ParameterGroup {
 public:
-#ifdef OBSOLETE // Marked obsolete Aug 10, 2012.  String parameters should be handled on an equal footing with numerical parameters
-   ParameterGroup(char * name, ParameterStack * stack, int rank=0);
-#endif // OBSOLETE
    ParameterGroup(char * name, ParameterStack * stack, ParameterArrayStack * array_stack, ParameterStringStack * string_stack, int rank=0);
    virtual ~ParameterGroup();
 
@@ -153,6 +150,7 @@ public:
    int   stringPresent(const char * stringName);
    const char * stringValue(const char * stringName);
    int warnUnread();
+   bool hasBeenRead(const char * paramName);
    int clearHasBeenReadFlags();
    int outputGroup(FILE * fp);
    int pushNumerical(Parameter * param);
@@ -201,40 +199,6 @@ private:
    char ** valuesString;
 };
 
-#ifdef OBSOLETE // Marked obsolete Aug 9, 2012.  No one uses this, and filenames can be defined as string parameters in parameter groups
-// FilenameDef and FilenameStack deprecated Oct 27, 2011
-class FilenameDef {
-public:
-   FilenameDef(char * newKey, char * newValue);
-   virtual ~FilenameDef();
-
-   const char * getKey() { return key; };
-   const char * getValue() { return value; };
-
-private:
-   char * key;
-   char * value;
-};
-
-// FilenameDef and FilenameStack deprecated Oct 27, 2011
-class FilenameStack {
-public:
-   FilenameStack(unsigned int maxCount);
-   virtual ~FilenameStack();
-
-   unsigned int getMaxCount() { return maxCount; };
-   unsigned int getCount() { return count; };
-   FilenameDef * getFilenameDef(unsigned int index);
-   FilenameDef * getFilenameDefByKey(const char * searchKey);
-   int push(FilenameDef * newfilenamedef);
-   FilenameDef * pop();
-private:
-   unsigned int maxCount;
-   unsigned int count;
-   FilenameDef ** filenamedefs;
-};
-#endif // OBSOLETE
-
 class PVParams {
 public:
    PVParams(size_t initialSize, InterColComm * icComm); // TODO Should be const InterColComm * comm
@@ -252,10 +216,8 @@ public:
    ParameterGroup * group(const char * groupName);
    const char * groupNameFromIndex(int index);
    const char * groupKeywordFromIndex(int index);
-#ifdef OBSOLETE // Marked obsolete Aug 9, 2012.  No one uses this, and filenames can be defined as string parameters in parameter groups
-   const char * getFilename(const char * id);
-#endif // OBSOLETE
    int warnUnread();
+   bool hasBeenRead(const char * group_name, const char * param_name);
    int outputParams(FILE *);
    int setSweepValues(int n);
 
@@ -286,9 +248,6 @@ private:
    ParameterStack * stack;
    ParameterArrayStack * arrayStack;
    ParameterStringStack * stringStack;
-#ifdef OBSOLETE // Marked obsolete Aug 9, 2012.  No one uses this, and filenames can be defined as string parameters in parameter groups
-   FilenameStack * fnstack; // Deprecated Oct 27, 2011
-#endif // OBSOLETE
    bool debugParsing;
    bool disable;
    InterColComm * icComm;

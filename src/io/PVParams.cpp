@@ -12,9 +12,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#ifdef OBSOLETE // Marked obsolete Aug 9, 2012.  No one uses this, and filenames can be defined as string parameters in parameter groups
-#define FILENAMESTACKMAXCOUNT 10
-#endif // OBSOLETE
 #define PARAMETERARRAY_INITIALSIZE 8
 #define PARAMETERARRAYSTACK_INITIALCOUNT 5
 #define PARAMETERSTRINGSTACK_INITIALCOUNT 5
@@ -350,21 +347,6 @@ int ParameterStringStack::outputStack(FILE * fp, int indentation) {
    return status;
 }
 
-#ifdef OBSOLETE // Marked obsolete Aug 10, 2012.  String parameters should be handled on an equal footing with numerical parameters
-/**
- * @name
- * @stack
- * @rank
- */
-ParameterGroup::ParameterGroup(char * name, ParameterStack * stack, int rank)
-{
-   this->groupName = strdup(name);
-   this->groupKeyword = NULL;
-   this->stack     = stack;
-   this->stringStack = NULL;
-   this->processRank = rank;
-}
-#endif // OBSOLETE
 
 /**
  * @name
@@ -571,6 +553,32 @@ int ParameterGroup::warnUnread() {
    return status;
 }
 
+bool ParameterGroup::hasBeenRead(const char * paramName) {
+   int count;
+   count = stack->size();
+   for( int i=0; i<count; i++ ) {
+      Parameter * p = stack->peek(i);
+      if( !strcmp(p->name(),paramName) ) {
+         return p->hasBeenRead();
+      }
+   }
+   count = arrayStack->size();
+   for (int i=0; i<count; i++) {
+      ParameterArray * parr = arrayStack->peek(i);
+      if (!strcmp(parr->name(), paramName)) {
+         return parr->hasBeenRead();
+      }
+   }
+   count = stringStack->size();
+   for( int i=0; i<count; i++ ) {
+      ParameterString * pstr = stringStack->peek(i);
+      if( !strcmp(pstr->getName(), paramName) ) {
+         return pstr->hasBeenRead();
+      }
+   }
+   return false;
+}
+
 int ParameterGroup::clearHasBeenReadFlags() {
    int status = PV_SUCCESS;
    int count = stack->size();
@@ -758,75 +766,6 @@ const char * ParameterSweep::getStringValue(int n) {
    return str;
 }
 
-#ifdef OBSOLETE // Marked obsolete Aug 9, 2012.  No one uses this, and filenames can be defined as string parameters in parameter groups
-FilenameDef::FilenameDef(char * newKey, char * newValue) {
-   size_t keylen, valuelen;
-
-   keylen = strlen(newKey);
-   key = (char *) malloc(sizeof(char)*(keylen+1));
-   if( !key ) return;
-   strcpy(key, newKey);
-   valuelen = strlen(newValue);
-   value = (char *) malloc(sizeof(char)*(valuelen+1));
-   if( !value )
-   {
-      free(key);
-      return;
-   }
-   strcpy(value, newValue);
-}
-
-FilenameDef::~FilenameDef() {
-   free(key);
-   free(value);
-}
-
-FilenameStack::FilenameStack(unsigned int maxCount) {
-   this->maxCount = maxCount;
-   this->count = 0;
-   this->filenamedefs = (FilenameDef **) calloc(maxCount, sizeof(FilenameDef *) );
-   if( !(this->filenamedefs) ) this->maxCount = 0;
-}
-
-FilenameStack::~FilenameStack() {
-   for( unsigned int n = 0; n < maxCount; n++) {
-      if( filenamedefs[n] ) delete filenamedefs[n];
-   }
-   if( this->filenamedefs ) free( this->filenamedefs );
-}
-
-FilenameDef * FilenameStack::getFilenameDef(unsigned int index) {
-   fprintf(stderr, "Warning: FilenameDef is deprecated.  Use a string parameter inside a parameter group instead.\n"
-                   "(getFilenameDef called with index=%d)\n",index);
-   if( index >= count) return NULL;
-   return filenamedefs[index];
-}
-
-FilenameDef * FilenameStack::getFilenameDefByKey(const char * searchKey) {
-   fprintf(stderr, "Warning: FilenameDef is deprecated.  Use a string parameter inside a parameter group instead.\n"
-                   "(getFilenameDefByKey called with searchKey=%s)\n",searchKey);
-   for( unsigned int n = 0; n < count; n++) {
-      if( !strcmp( searchKey, filenamedefs[n]->getKey() ) ) return filenamedefs[n];
-   }
-   return NULL;
-}
-
-int FilenameStack::push(FilenameDef * newfilenamedef) {
-   if( count >= maxCount ) return PV_FAILURE;
-   else {
-      filenamedefs[count] = newfilenamedef;
-      count++;
-      return PV_SUCCESS;
-   }
-}
-
-FilenameDef * FilenameStack::pop() {
-   if( count == 0) return NULL;
-   count--;
-   return filenamedefs[count];
-}
-#endif // OBSOLETE
-
 /**
  * @filename
  * @initialSize
@@ -864,9 +803,6 @@ PVParams::~PVParams()
       delete paramSweeps[i];
    }
    free(paramSweeps); paramSweeps = NULL;
-#ifdef OBSOLETE // Marked obsolete Aug 9, 2012.  No one uses this, and filenames can be defined as string parameters in parameter groups
-   delete fnstack;
-#endif // OBSOLETE
 }
 
 /*
@@ -887,9 +823,6 @@ int PVParams::initialize(size_t initialSize, InterColComm * icComm) {
    numParamSweeps = 0;
    paramSweeps = NULL;
    newActiveParamSweep();
-#ifdef OBSOLETE // Marked obsolete Aug 9, 2012.  No one uses this, and filenames can be defined as string parameters in parameter groups
-   fnstack = new FilenameStack(FILENAMESTACKMAXCOUNT);
-#endif // OBSOLETE
 #ifdef DEBUG_PARSING
    debugParsing = true;
 #else
@@ -1262,16 +1195,6 @@ const char * PVParams::groupKeywordFromIndex(int index) {
    return inbounds ? groups[index]->getGroupKeyword() : NULL;
 }
 
-#ifdef OBSOLETE // Marked obsolete Aug 9, 2012.  No one uses this, and filenames can be defined as string parameters in parameter groups
-const char * PVParams::getFilename(const char * id)
-{
-   FilenameDef * fd = fnstack->getFilenameDefByKey(id);
-   const char * fn = (fd != NULL) ? fd->getValue() : NULL;
-
-   return fn;
-}
-#endif // OBSOLETE
-
 /**
  * @keyword
  * @name
@@ -1335,6 +1258,16 @@ int PVParams::warnUnread() {
       }
    }
    return status;
+}
+
+bool PVParams::hasBeenRead(const char * group_name, const char * param_name) {
+   ParameterGroup * g = group(group_name);
+   if (g == NULL) {
+      return false;
+   }
+
+   return g->hasBeenRead(param_name);
+
 }
 
 int PVParams::clearHasBeenReadFlags() {
@@ -1603,41 +1536,6 @@ int PVParams::checkDuplicates(const char * paramName) {
    }
    return status;
 }
-
-#ifdef OBSOLETE // Marked obsolete March 15, 2012.  There's more flexibility in defining string parameters within groups
-// action_filename_def deprecated on Oct 27, 2011
-void PVParams::action_filename_def(char * id, char * path)
-{
-   if( getRank() == 0 ) {
-      fprintf(stderr, "Warning: FilenameDef is deprecated.  Use a string parameter inside a parameter group instead.\n"
-                      "(action_filename_def called with id=%s, path=%s)\n",id,path);
-   }
-   if( debugParsing && getRank() == 0 ) {
-      fflush(stdout);
-      printf("action_filename_def: %s = %s\n", id, path);
-      fflush(stdout);
-   }
-   size_t pathlength = strlen( path );
-   assert( pathlength >= 2 ); // path still includes the delimiting quotation marks
-   char * filenameptr = (char *) malloc( sizeof(char)*( pathlength - 1) );
-   assert( filenameptr != NULL );
-   strncpy( filenameptr, &(path[1]), pathlength - 2);
-   filenameptr[pathlength-2] = 0;
-
-   size_t labellength = strlen( id );
-   assert( labellength >= 2 );
-   char * label = (char *) malloc( sizeof(char)*( pathlength - 1) );
-   assert( label != NULL );
-   strncpy( label, &(id[1]), labellength - 2);
-   label[labellength-2] = 0;
-
-   FilenameDef * fndef = new FilenameDef(label, filenameptr);
-   int status = fnstack->push(fndef);
-   if( status != PV_SUCCESS) {
-      fprintf(stderr, "Rank %d process: No room for %s:%s\n", getRank(), label, path);
-   }
-}  // close PVParams::action_filename_def block
-#endif // OBSOLETE
 
 char * PVParams::stripQuotationMarks(const char * s) {
    // If a string has quotes as its first and last character, return the
