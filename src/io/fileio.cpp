@@ -234,8 +234,20 @@ FILE * pvp_open_write_file(const char * filename, Communicator * comm, bool appe
 {
    FILE * fp = NULL;
    if (comm->commRank() == 0) {
-      if (append) fp = fopen(filename, "ab");
-      else        fp = fopen(filename, "wb");
+      bool rwmode = false;
+      if (append) {
+         // If the file exists, need to use read/write mode (r+) since we'll navigate back to the header to update nbands
+         // If the file does not exist, mode r+ gives an error
+         struct stat filestat;
+         int status = stat(filename, &filestat);
+         if (status==true) rwmode = true;
+      }
+      if (rwmode) {
+         fp = fopen(filename, "r+b");
+      }
+      else {
+         fp = fopen(filename, "wb");
+      }
       if( !fp ) {
          fprintf(stderr, "pvp_open_write_file error opening \"%s\" for writing: %s\n", filename, strerror(errno));
          exit(EXIT_FAILURE);
