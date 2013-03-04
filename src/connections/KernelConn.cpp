@@ -178,6 +178,7 @@ pvdata_t * KernelConn::allocWeights(PVPatch *** patches, int nPatches,
 
 		if (shmget_flag) {
 			shmget_owner[arbor_ID] = shmget_owner[0];
+	        shmget_id[arbor_ID] = shmget_id[0];
 		}
 #endif // SHMGET_DEBUG
 		assert(this->get_wDataStart(0) != NULL);
@@ -192,7 +193,6 @@ pvdata_t * KernelConn::allocWeights(PVPatch *** patches, int nPatches,
 		dataPatches = (pvdata_t *) calloc(arborSize, sizeof(char));
 	} else {
 		shmget_owner[arbor_ID] = true;
-		shmget_id[arbor_ID] = shmget_id[0];
 		// shmget diagnostics
 #define SHMGET_DEBUG
 #ifdef SHMGET_DEBUG
