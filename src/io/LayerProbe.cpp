@@ -51,7 +51,13 @@ int LayerProbe::initFilePointer(const char * filename, HyPerLayer * layer) {
          char * outputdir = hc->getOutputPath();
          char * path = (char *) malloc(strlen(outputdir)+1+strlen(filename)+1);
          sprintf(path, "%s/%s", outputdir, filename);
-         fp = fopen(path, "w");
+         bool append = layer->getParent()->getCheckpointReadFlag();
+         if (append) {
+            fp = fopen(path, "a");
+         }
+         else {
+            fp = fopen(path, "w");
+         }
          if( !fp ) {
             fprintf(stderr, "LayerProbe error opening \"%s\" for writing: %s\n", path, strerror(errno));
             exit(EXIT_FAILURE);
