@@ -4,19 +4,20 @@ close all;
 setenv("GNUTERM","X11")
 %%workspace_path = "/home/gkenyon/workspace";
 workspace_path = "/Users/garkenyon/workspace";
-LCA_path = [workspace_path, filesep, "HyPerHLCA2"];
+output_dir = "/nh/compneuro/Data/vine/LCA/cats"; 
+%%output_dir = "/Users/garkenyon/workspace/HyPerHLCA2/output";
+LCA_path = [output_dir];
+%%LCA_path = [workspace_path, filesep, "HyPerHLCA2"];
 addpath([workspace_path, filesep, "/PetaVision/mlab/util"]);
-%%output_dir = "/nh/compneuro/Data/vine/LCA/cats"; 
-output_dir = "/Users/garkenyon/workspace/HyPerHLCA2/output"
-last_checkpoint_ndx = 700000; %%20706*59; %%
-first_checkpoint_ndx = 600000;
+last_checkpoint_ndx = 20706*60; %%
+first_checkpoint_ndx = 0;
 use_Last_flag = 0;
 if use_Last_flag
   checkpoint_dir = [output_dir, filesep, "Last"];
   checkpoint_path = [checkpoint_dir]
 else
   checkpoint_dir = [LCA_path, filesep, "Checkpoints"];
-  checkpoint_path = [checkpoint_dir, filesep, "Checkpoint", num2str(last_checkpoint_ndx, "%i")]
+  checkpoint_path = [checkpoint_dir, filesep, "Checkpoint", num2str(last_checkpoint_ndx, "%i")];
 endif
 max_lines = last_checkpoint_ndx + (last_checkpoint_ndx == 0) * 1000;
 max_history = 10000;
@@ -69,7 +70,7 @@ if plot_Recon
   Ganglion_file = [output_dir, filesep, "a2_Ganglion.pvp"];
   Recon_file = [output_dir, filesep, "a3_Recon.pvp"];
   Error_file = [output_dir, filesep, "a4_Error.pvp"];
-  write_step = 1000;
+  write_step = 500;
   num_frames = floor((last_checkpoint_ndx - first_checkpoint_ndx) / write_step);
   [Retina_struct, Retina_hdr] = readpvpfile(Retina_file, num_frames, num_frames);
   [Ganglion_struct, Ganglion_hdr] = readpvpfile(Ganglion_file, num_frames, num_frames);
@@ -232,7 +233,7 @@ endif
 plot_V1 = 1;
 if plot_V1
   V1_path = [output_dir, filesep, "a5_V1.pvp"];
-  write_step = 1000;
+  write_step = 500;
   num_frames = floor((last_checkpoint_ndx - first_checkpoint_ndx) / write_step);
   [V1_struct, V1_hdr] = readpvpfile(V1_path, num_frames, []);
   nx_V1 = V1_hdr.nx;
@@ -299,7 +300,7 @@ if plot_final_weights
   i_frame = 1;
   i_arbor = 1;
   V1ToError_weights = squeeze(V1ToError_struct{i_frame}.values{i_arbor});
-  if isempty(V1_hist_rank)
+  if ~exist("V1_hist_rank") || isempty(V1_hist_rank)
     V1_hist_rank = (1:V1ToError_hdr.nf);
   endif
 
@@ -340,7 +341,7 @@ if plot_weights_movie
   weights_movie_dir = [output_dir, filesep, "weights_movie"];
   mkdir(weights_movie_dir);
   V1ToError_path = [output_dir, filesep, "w4_V1ToError.pvp"];
-  write_step = 1000;
+  write_step = 500;
   num_frames = floor((last_checkpoint_ndx - first_checkpoint_ndx) / write_step);
   [V1ToError_struct, V1ToError_hdr] = readpvpfile(V1ToError_path, num_frames, []);
   num_frames = size(V1ToError_struct,1);
