@@ -240,7 +240,7 @@ FILE * pvp_open_write_file(const char * filename, Communicator * comm, bool appe
          // If the file does not exist, mode r+ gives an error
          struct stat filestat;
          int status = stat(filename, &filestat);
-         if (status==true) rwmode = true;
+         if (status==0) rwmode = true;
       }
       if (rwmode) {
          fp = fopen(filename, "r+b");
