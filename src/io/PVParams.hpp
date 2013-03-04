@@ -218,6 +218,7 @@ public:
    const char * groupKeywordFromIndex(int index);
    int warnUnread();
    bool hasBeenRead(const char * group_name, const char * param_name);
+   bool presentAndNotBeenRead(const char * group_name, const char * param_name);
    int outputParams(FILE *);
    int setSweepValues(int n);
 

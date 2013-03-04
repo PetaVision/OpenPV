@@ -454,8 +454,10 @@ const float * ParameterGroup::arrayValues(const char * name, int * size) {
    if (!v) {
       Parameter * q = NULL;
       for (int i=0; i<stack->size(); i++) {
-         q = stack->peek(i);
-         if (strcmp(name, q->name())==0) {
+         Parameter * q1 = stack->peek(i);
+         assert(q1);
+         if (strcmp(name, q1->name())==0) {
+            q = q1;
             break;
          }
       }
@@ -482,8 +484,10 @@ const double * ParameterGroup::arrayValuesDbl(const char * name, int * size) {
    if (!v) {
       Parameter * q = NULL;
       for (int i=0; i<stack->size(); i++) {
-         q = stack->peek(i);
-         if (strcmp(name, q->name())==0) {
+         Parameter * q1 = stack->peek(i);
+         assert(q1);
+         if (strcmp(name, q1->name())==0) {
+            q = q1;
             break;
          }
       }
@@ -1267,7 +1271,15 @@ bool PVParams::hasBeenRead(const char * group_name, const char * param_name) {
    }
 
    return g->hasBeenRead(param_name);
+}
 
+bool PVParams::presentAndNotBeenRead(const char * group_name, const char * param_name) {
+   int dummysize;
+   bool is_present = present(group_name, param_name);
+   is_present |= stringPresent(group_name, param_name);
+   is_present |= arrayValues(group_name, param_name, &dummysize)!=NULL;
+   bool has_been_read = hasBeenRead(group_name, param_name);
+   return is_present && !has_been_read;
 }
 
 int PVParams::clearHasBeenReadFlags() {
