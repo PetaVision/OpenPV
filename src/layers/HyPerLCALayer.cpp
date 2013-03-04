@@ -86,8 +86,8 @@ int HyPerLCALayer::doUpdateState(double time, double dt, const PVLayerLoc * loc,
       int num_neurons = nx*ny*nf;
       pvdata_t dt_tau = dt / timeConstantTau;
       //dt_tau = 1-exp(-dt_tau);
-	HyPerLCALayer_update_state(num_neurons, nx, ny, nf, loc->nb, V, VThresh,
-			VMax, VMin, VShift, dt_tau, gSynHead, A);
+      HyPerLCALayer_update_state(num_neurons, nx, ny, nf, loc->nb, V, VThresh,
+            VMax, VMin, VShift, dt_tau, gSynHead, A);
       if (this->writeSparseActivity){
          updateActiveIndices();  // added by GTK to allow for sparse output, can this be made an inline function???
       }
