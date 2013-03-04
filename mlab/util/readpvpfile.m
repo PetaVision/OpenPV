@@ -1,4 +1,4 @@
-function [data,hdr] = readpvpfile(filename,progressperiod)
+function [data,hdr] = readpvpfile(filename,progressperiod, num_frames)
 % Usage:[data,hdr] = readpvpfile(filename)
 % filename is a pvp file (any type)
 % data is a cell array containing the data.
@@ -34,7 +34,12 @@ switch hdr.filetype
         framesize = hdr.recordsize*hdr.numrecords;
         numframes = (filedata(1).bytes - hdr.headersize)/framesize;
     case 2 % PVP_ACT_FILE_TYPE % Compressed for spiking
-        numframes = hdr.nbands;
+	if (~exist("num_frames","var") || isempty(num_frames))
+          numframes = hdr.nbands;
+	else
+	  numframes = num_frames;
+	endif
+        %%numframes = hdr.nbands;
         % framesize is variable
     case 3 % PVP_WGT_FILE_TYPE % HyPerConns that aren't KernelConns
         framesize = hdr.recordsize*hdr.numrecords+hdr.headersize;
@@ -43,7 +48,11 @@ switch hdr.filetype
         nxprocs = hdr.nxGlobal/hdr.nx;
         nyprocs = hdr.nyGlobal/hdr.ny;
         framesize = hdr.recordsize*hdr.datasize*nxprocs*nyprocs+8;
-        numframes = hdr.nbands;
+	if (~exist("num_frames","var") || isempty(num_frames))
+          numframes = hdr.nbands;
+	else
+	  numframes = num_frames;
+	endif
     case 5 % PVP_KERNEL_FILE_TYPE
         framesize = hdr.recordsize*hdr.nbands+hdr.headersize;
         numframes = filedata(1).bytes/framesize;
