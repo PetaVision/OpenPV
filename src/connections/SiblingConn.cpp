@@ -102,9 +102,9 @@ int SiblingConn::normalizeFamily() {
 #ifdef PV_USE_MPI
 #ifdef USE_SHMGET
 	// insert barrier to ensure that all processes have finished scaling weights before computing sums
-	std::cout << "entering MPI_Barrier in SiblingConn::normalizeFamily: " << this->name << ", rank = " << getParent()->icCommunicator()->commRank() << std::endl;
+//	std::cout << "entering MPI_Barrier in SiblingConn::normalizeFamily: " << this->name << ", rank = " << getParent()->icCommunicator()->commRank() << std::endl;
 	MPI_Barrier(parent->icCommunicator()->communicator());
-	std::cout << "exiting MPI_Barrier in SiblingConn::normalizeFamily: " << this->name << ", rank = " << getParent()->icCommunicator()->commRank() << std::endl;
+//	std::cout << "exiting MPI_Barrier in SiblingConn::normalizeFamily: " << this->name << ", rank = " << getParent()->icCommunicator()->commRank() << std::endl;
 #endif
 #endif
 
@@ -160,9 +160,9 @@ int SiblingConn::normalizeWeights(PVPatch ** patches, pvdata_t ** dataStart,
 #ifdef PV_USE_MPI
 #ifdef USE_SHMGET
 		// insert barrier to ensure that all processes have finished individual normalization before starting family normalization
-		std::cout << "entering MPI_Barrier in SiblingConn::normalizeWeights: " << this->name << ", rank = " << getParent()->icCommunicator()->commRank() << std::endl;
+//		std::cout << "entering MPI_Barrier in SiblingConn::normalizeWeights: " << this->name << ", rank = " << getParent()->icCommunicator()->commRank() << std::endl;
 		MPI_Barrier(parent->icCommunicator()->communicator());
-		std::cout << "exiting MPI_Barrier in SiblingConn::normalizeWeights: " << this->name << ", rank = " << getParent()->icCommunicator()->commRank() << std::endl;
+//		std::cout << "exiting MPI_Barrier in SiblingConn::normalizeWeights: " << this->name << ", rank = " << getParent()->icCommunicator()->commRank() << std::endl;
 #endif
 #endif
 		status = this->normalizeFamily();
