@@ -2,25 +2,26 @@
 clear all;
 close all;
 setenv("GNUTERM","X11")
-workspace_path = "/home/gkenyon/workspace";
-%%workspace_path = /Users/garkenyon/workspace;
+%%workspace_path = "/home/gkenyon/workspace";
+workspace_path = "/Users/garkenyon/workspace";
 LCA_path = [workspace_path, filesep, "HyPerHLCA2"];
 addpath([workspace_path, filesep, "/PetaVision/mlab/util"]);
-output_dir = "/nh/compneuro/Data/vine/LCA/cats"; 
-%%output_dir = "/Users/garkenyon/workspace/HyPerHLCA2/output";
-last_checkpoint_ndx = 20706*59; %%
-first_checkpoint_ndx = 0;
+%%output_dir = "/nh/compneuro/Data/vine/LCA/cats"; 
+output_dir = "/Users/garkenyon/workspace/HyPerHLCA2/output"
+last_checkpoint_ndx = 700000; %%20706*59; %%
+first_checkpoint_ndx = 600000;
 use_Last_flag = 0;
 if use_Last_flag
   checkpoint_dir = [output_dir, filesep, "Last"];
-  checkpoint_path = [checkpoint_dir]; 
+  checkpoint_path = [checkpoint_dir]
 else
   checkpoint_dir = [LCA_path, filesep, "Checkpoints"];
-  checkpoint_path = [checkpoint_dir, filesep, "Checkpoint", num2str(last_checkpoint_ndx)];
+  checkpoint_path = [checkpoint_dir, filesep, "Checkpoint", num2str(last_checkpoint_ndx, "%i")]
 endif
 max_lines = last_checkpoint_ndx + (last_checkpoint_ndx == 0) * 1000;
-startup_artifact_length = max(max_lines - 4000, 3);
-frame_duration = 500;
+max_history = 10000;
+begin_statProbe_step = max(max_lines - max_history, 3);
+frame_duration = 1000;
 
 
 %% get DoG kernel
@@ -63,16 +64,17 @@ endif
 
 plot_Recon = 1;
 if plot_Recon
+  %%keyboard;
   Retina_file = [output_dir, filesep, "a1_Retina.pvp"];
   Ganglion_file = [output_dir, filesep, "a2_Ganglion.pvp"];
   Recon_file = [output_dir, filesep, "a3_Recon.pvp"];
   Error_file = [output_dir, filesep, "a4_Error.pvp"];
   write_step = 1000;
   num_frames = floor((last_checkpoint_ndx - first_checkpoint_ndx) / write_step);
-  [Retina_struct, Retina_hdr] = readpvpfile(Retina_file, num_frames, []);
-  [Ganglion_struct, Ganglion_hdr] = readpvpfile(Ganglion_file, num_frames, []);
-  [Recon_struct, Recon_hdr] = readpvpfile(Recon_file, num_frames, []);
-  [Error_struct, Error_hdr] = readpvpfile(Error_file, num_frames, []);
+  [Retina_struct, Retina_hdr] = readpvpfile(Retina_file, num_frames, num_frames);
+  [Ganglion_struct, Ganglion_hdr] = readpvpfile(Ganglion_file, num_frames, num_frames);
+  [Recon_struct, Recon_hdr] = readpvpfile(Recon_file, num_frames, num_frames);
+  [Error_struct, Error_hdr] = readpvpfile(Error_file, num_frames, num_frames);
   num_frames = size(Retina_struct,1);
   i_frame = num_frames;
   start_frame = floor(last_checkpoint_ndx / write_step);
@@ -161,7 +163,8 @@ if plot_ave_error_vs_time
   Error_Stats_line = fgets(Error_Stats_fid);
   ave_error = [];
   %% skip startup artifact
-  for i_line = 1:startup_artifact_length
+  first_statProbe_step = first_checkpoint_ndx;
+  for i_line = first_statProbe_step:begin_statProbe_step
     Error_Stats_line = fgets(Error_Stats_fid);
   endfor
   while (Error_Stats_line ~= -1)
@@ -195,7 +198,7 @@ if plot_ave_error_vs_time
   V1_Stats_line = fgets(V1_Stats_fid);
   ave_V1 = [];
   %% skip startup artifact
-  for i_line = 1:startup_artifact_length
+  for i_line = first_statProbe_step:begin_statProbe_step
     V1_Stats_line = fgets(V1_Stats_fid);
   endfor
     V1_Stats_ndx1 = strfind(V1_Stats_line, "N==");
@@ -342,13 +345,16 @@ if plot_weights_movie
   [V1ToError_struct, V1ToError_hdr] = readpvpfile(V1ToError_path, num_frames, []);
   num_frames = size(V1ToError_struct,1);
   i_frame = num_frames;
-  start_frame = floor(last_checkpoint_ndx / write_step);
+  start_frame = 1; 
   if isempty(V1_hist_rank)
     V1_hist_rank = (1:V1ToError_hdr.nf);
   endif
   num_recon = max(floor(frame_duration / write_step) - 1, 0);
   i_arbor = 1;
-  for i_frame = 1 : 1 : start_frame
+  for i_frame = start_frame : 1 : num_frames
+    if mod(i_frame, max(floor(num_frames/20),1)) == 0
+      disp(["writing frame # ", num2str(i_frame)]);
+    endif
     V1ToError_weights = squeeze(V1ToError_struct{i_frame}.values{i_arbor});
     i_patch = 1;
     [nyp, nxp, num_patches] = size(V1ToError_weights);
