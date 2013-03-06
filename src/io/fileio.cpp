@@ -55,6 +55,27 @@ size_t pv_sizeof_patch(int count, int datatype)
    // return ( 2*sizeof(unsigned short) + count*pv_sizeof(datatype) );
 }
 
+FILE * PV_fopen(const char * path, const char * mode) {
+   int fopencounts = 0;
+   FILE * filepointer = NULL;
+   while (filepointer == NULL) {
+      errno = 0;
+      filepointer = fopen(path, mode);
+      if (filepointer != NULL) break;
+      fopencounts++;
+      if (fopencounts < MAX_FILESYSTEMCALL_TRIES) {
+         sleep(1);
+      }
+      else {
+         break;
+      }
+   }
+   if (filepointer == NULL) {
+      fprintf(stderr, "PV_fopen error: %s\n", strerror(errno));
+   }
+   return filepointer;
+}
+
 long int PV_ftell(FILE * fp) {
    int ftellcounts = 0;
    long filepos = -1;

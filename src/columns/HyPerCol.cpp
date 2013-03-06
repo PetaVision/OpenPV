@@ -970,7 +970,7 @@ int HyPerCol::checkpointWrite(const char * cpDir) {
       char timestamppath[PV_PATH_MAX];
       int chars_needed = snprintf(timestamppath, PV_PATH_MAX, "%s/timeinfo.bin", cpDir);
       assert(chars_needed < PV_PATH_MAX);
-      FILE * timestampfile = fopen(timestamppath,"w");
+      FILE * timestampfile = PV_fopen(timestamppath,"w");
       assert(timestampfile);
       fwrite(&simTime,1,sizeof(double),timestampfile);
       fwrite(&currentStep,1,sizeof(long int),timestampfile);

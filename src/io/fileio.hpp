@@ -25,6 +25,7 @@ double timeFromParams(void * params);
 
 size_t pv_sizeof(int datatype);
 
+FILE * PV_fopen(const char * path, const char * mode);
 long int PV_ftell(FILE * fp);
 
 FILE * pvp_open_read_file(const char * filename, Communicator * comm);
