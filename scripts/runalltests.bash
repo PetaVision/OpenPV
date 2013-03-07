@@ -33,7 +33,9 @@ fi
 cd ../..
 wd=$PWD # $wd is the eclipse workspace directory
 
-echo $wd
+echo cd $wd
+
+fails=""
 
 function runandecho() {
     testname=$1
@@ -43,6 +45,7 @@ function runandecho() {
         echo "$testname passed"
     else
         echo "$testname FAILED"
+        fails="$fails $testname"
     fi
 }
 
@@ -63,12 +66,14 @@ else
             echo "$testname with two processes passed"
         else
             echo "$testname with two processes FAILED"
+            fails="$fails $testname(2 procs)"
         fi
         if $PV_MPIRUN -np 4 $* 1> /dev/null 2>/dev/null
         then
             echo "$testname with four processes passed"
         else
             echo "$testname with four processes FAILED"
+            fails="$fails $testname(4 procs)"
         fi
 
     }
@@ -207,3 +212,11 @@ then
     make runMPItests 2>/dev/null | egrep 'passed|FAILED'
 fi
 cd $wd
+
+if test -n "$fails"
+then
+    echo "The following tests failed: $fails"
+    exit 1
+else
+    echo "All tests succeeded."
+fi
