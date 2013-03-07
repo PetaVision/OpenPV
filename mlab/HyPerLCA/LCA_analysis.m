@@ -4,13 +4,15 @@ close all;
 setenv("GNUTERM","X11")
 %%workspace_path = "/home/gkenyon/workspace";
 workspace_path = "/Users/garkenyon/workspace";
-output_dir = "/nh/compneuro/Data/vine/LCA/cats"; 
-%%output_dir = "/Users/garkenyon/workspace/HyPerHLCA2/output";
-LCA_path = [output_dir];
-%%LCA_path = [workspace_path, filesep, "HyPerHLCA2"];
+%%output_dir = "/nh/compneuro/Data/vine/LCA/cats"; 
+output_dir = "/Users/garkenyon/workspace/HyPerHLCA2/output"
+%%LCA_path = [output_dir];
+LCA_path = [workspace_path, filesep, "HyPerHLCA2"];
 addpath([workspace_path, filesep, "/PetaVision/mlab/util"]);
-last_checkpoint_ndx = 20706*60; %%
-first_checkpoint_ndx = 0;
+last_checkpoint_ndx = 1200000; %%20706*59; %%
+first_checkpoint_ndx = 600000;
+%%last_checkpoint_ndx = 20706*60; %%
+%%first_checkpoint_ndx = 0;
 use_Last_flag = 0;
 if use_Last_flag
   checkpoint_dir = [output_dir, filesep, "Last"];
@@ -76,7 +78,7 @@ if plot_Recon
   [Ganglion_struct, Ganglion_hdr] = readpvpfile(Ganglion_file, num_frames, num_frames);
   [Recon_struct, Recon_hdr] = readpvpfile(Recon_file, num_frames, num_frames);
   [Error_struct, Error_hdr] = readpvpfile(Error_file, num_frames, num_frames);
-  num_frames = size(Retina_struct,1);
+  num_frames = size(Retina_struct,1)-1;
   i_frame = num_frames;
   start_frame = floor(last_checkpoint_ndx / write_step);
   if start_frame > num_frames
