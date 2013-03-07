@@ -10,13 +10,13 @@ function [data,hdr] = readpvpfile(filename,progressperiod, num_frames)
 filedata = dir(filename);
 if length(filedata) ~= 1
     error('readpvpfile:notonefile',...
-          'Path %s should expand to exactly one file; in this case there are %d',...
-          filename,length(filedata));
+        'Path %s should expand to exactly one file; in this case there are %d',...
+        filename,length(filedata));
 end
 
 if filedata(1).bytes < 1
     error('readpvpfile:fileempty',...
-          'File %s is empty',filename);
+        'File %s is empty',filename);
 end%if filedata(1).bytes
 
 fid = fopen(filename);
@@ -34,11 +34,11 @@ switch hdr.filetype
         framesize = hdr.recordsize*hdr.numrecords;
         numframes = (filedata(1).bytes - hdr.headersize)/framesize;
     case 2 % PVP_ACT_FILE_TYPE % Compressed for spiking
-	if (~exist("num_frames","var") || isempty(num_frames))
-          numframes = hdr.nbands;
-	else
-	  numframes = num_frames;
-	endif
+        if (~exist('num_frames','var') || isempty(num_frames))
+            numframes = hdr.nbands;
+        else
+            numframes = num_frames;
+        end%if
         %%numframes = hdr.nbands;
         % framesize is variable
     case 3 % PVP_WGT_FILE_TYPE % HyPerConns that aren't KernelConns
@@ -47,12 +47,12 @@ switch hdr.filetype
     case 4 % PVP_NONSPIKING_ACT_FILE_TYPE
         nxprocs = hdr.nxGlobal/hdr.nx;
         nyprocs = hdr.nyGlobal/hdr.ny;
-        framesize = hdr.recordsize*hdr.datasize*nxprocs*nyprocs+8;
-	if (~exist("num_frames","var") || isempty(num_frames))
-          numframes = hdr.nbands;
-	else
-	  numframes = num_frames;
-	endif
+        % framesize = hdr.recordsize*hdr.datasize*nxprocs*nyprocs+8;
+        if (~exist('num_frames','var') || isempty(num_frames))
+            numframes = hdr.nbands;
+        else
+            numframes = num_frames;
+        end%if
     case 5 % PVP_KERNEL_FILE_TYPE
         framesize = hdr.recordsize*hdr.nbands+hdr.headersize;
         numframes = filedata(1).bytes/framesize;
@@ -143,7 +143,7 @@ if isempty(errorstring)
                 data{f}.values = cell(hdr.nxprocs,hdr.nyprocs,hdr.nbands);
                 data{f}.nx = cell(hdr.nxprocs,hdr.nyprocs,hdr.nbands);
                 data{f}.ny = cell(hdr.nxprocs,hdr.nyprocs,hdr.nbands);
-                data{f}.offset = cell(hdr.nxprocs,hdr.nyprocs,hdr.nbands);                
+                data{f}.offset = cell(hdr.nxprocs,hdr.nyprocs,hdr.nbands);
                 for arbor=1:hdr.nbands
                     for y=1:hdr.nyprocs
                         for x=1:hdr.nxprocs
@@ -226,7 +226,7 @@ if isempty(errorstring)
                         Z = fread(fid,hdr.nfp*hdr.nxp*hdr.nyp,precision);
                         tempdata = reshape(Z,hdr.nfp,hdr.nxp,hdr.nyp);
                         tempdata = permute(tempdata,[2 3 1]);
-                                                
+                        
                         data{f}.values{cellindex}(:,:,:,p) = tempdata;
                     end
                     if hdr.datatype==1 % byte-type.  If float-type, no rescaling took place.
