@@ -150,19 +150,11 @@ if isempty(errorstring)
                 if numextra > 0
                     hdr.additional = fread(fid,numextra,'int32');
                 end
-<<<<<<< .mine
                 data_tmp = struct('time',hdr.time,'values',[],'nx',[],'ny',[],'offset',[]);
                 data_tmp.values = cell(hdr.nxprocs,hdr.nyprocs,hdr.nbands);
                 data_tmp.nx = cell(hdr.nxprocs,hdr.nyprocs,hdr.nbands);
                 data_tmp.ny = cell(hdr.nxprocs,hdr.nyprocs,hdr.nbands);
                 data_tmp.offset = cell(hdr.nxprocs,hdr.nyprocs,hdr.nbands);                
-=======
-                data{f} = struct('time',hdr.time,'values',[],'nx',[],'ny',[],'offset',[]);
-                data{f}.values = cell(hdr.nxprocs,hdr.nyprocs,hdr.nbands);
-                data{f}.nx = cell(hdr.nxprocs,hdr.nyprocs,hdr.nbands);
-                data{f}.ny = cell(hdr.nxprocs,hdr.nyprocs,hdr.nbands);
-                data{f}.offset = cell(hdr.nxprocs,hdr.nyprocs,hdr.nbands);
->>>>>>> .r6729
                 for arbor=1:hdr.nbands
                     for y=1:hdr.nyprocs
                         for x=1:hdr.nxprocs
