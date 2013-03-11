@@ -9,7 +9,7 @@ output_dir = "/Users/garkenyon/workspace/HyPerHLCA2/output"
 %%LCA_path = [output_dir];
 LCA_path = [workspace_path, filesep, "HyPerHLCA2"];
 addpath([workspace_path, filesep, "/PetaVision/mlab/util"]);
-last_checkpoint_ndx = 250000; %%20706*59; %%
+last_checkpoint_ndx = 650000; %%20706*59; %%
 first_checkpoint_ndx = 0; %%600000;
 %%last_checkpoint_ndx = 20706*60; %%
 %%first_checkpoint_ndx = 0;
@@ -325,7 +325,7 @@ if plot_final_weights
   [V1ToError_hist, V1ToError_hist_bins] = hist(V1ToError_weights(:), 100);
   bar(V1ToError_hist_bins, log(V1ToError_hist+1));
   set(V1ToError_hist_fig, "name", ["V1ToError Histogram: ", num2str(last_checkpoint_ndx)]);
-  saveas(V1ToError_hist_fig, [output_dir, filesep, "V1TpError_hist_", num2str(last_checkpoint_ndx, "%i")], "png");
+  saveas(V1ToError_hist_fig, [output_dir, filesep, "V1ToError_hist_", num2str(last_checkpoint_ndx, "%i")], "png");
 endif
 
 plot_weights_movie = 1;
@@ -334,10 +334,9 @@ if plot_weights_movie
   mkdir(weights_movie_dir);
   V1ToError_path = [output_dir, filesep, "w4_V1ToError.pvp"];
   write_step = frame_duration;
-  %%num_frames = floor((last_checkpoint_ndx - first_checkpoint_ndx) / write_step);
-  num_frames = floor((last_checkpoint_ndx - 0) / write_step) - 1;
+  num_frames = floor((last_checkpoint_ndx - first_checkpoint_ndx) / write_step);
   start_frame = 1;
-  [V1ToError_struct, V1ToError_hdr] = readpvpfile(V1ToError_path, num_frames, []);
+  [V1ToError_struct, V1ToError_hdr] = readpvpfile(V1ToError_path, num_frames);
   num_frames = size(V1ToError_struct,1);
   i_frame = num_frames;
   start_frame = 1; 
