@@ -2,17 +2,17 @@
 clear all;
 close all;
 setenv("GNUTERM","X11")
-%%workspace_path = "/home/gkenyon/workspace";
-workspace_path = "/Users/garkenyon/workspace";
-%%output_dir = "/nh/compneuro/Data/vine/LCA/cats"; 
-output_dir = "/Users/garkenyon/workspace/HyPerHLCA2/output"
-%%LCA_path = [output_dir];
-LCA_path = [workspace_path, filesep, "HyPerHLCA2"];
+workspace_path = "/home/gkenyon/workspace";
+%%workspace_path = "/Users/garkenyon/workspace";
+output_dir = "/nh/compneuro/Data/vine/LCA/cats"; 
+%%output_dir = "/Users/garkenyon/workspace/HyPerHLCA2/output"
+LCA_path = [output_dir];
+%%LCA_path = [workspace_path, filesep, "HyPerHLCA2"];
 addpath([workspace_path, filesep, "/PetaVision/mlab/util"]);
-last_checkpoint_ndx = 1200000; %%20706*59; %%
-first_checkpoint_ndx = 0; %%600000;
-%%last_checkpoint_ndx = 20706*60; %%
-%%first_checkpoint_ndx = 0;
+last_checkpoint_ndx = 20706*60; %%
+first_checkpoint_ndx = 0;
+%%last_checkpoint_ndx = 1200000; %%20706*59; %%
+%%first_checkpoint_ndx = 0; %%600000;
 use_Last_flag = 0;
 if use_Last_flag
   checkpoint_dir = [output_dir, filesep, "Last"];
@@ -74,7 +74,7 @@ if plot_Recon
   Error_file = [output_dir, filesep, "a4_Error.pvp"];
   write_step = frame_duration;
   num_frames = floor((last_checkpoint_ndx - first_checkpoint_ndx) / write_step);
-  start_frame = []; %%1; %% floor((first_checkpoint_ndx) / write_step);
+  start_frame = num_frames-1; %%1; %% floor((first_checkpoint_ndx) / write_step);
   [Retina_struct, Retina_hdr] = readpvpfile(Retina_file, num_frames, num_frames, start_frame);
   [Ganglion_struct, Ganglion_hdr] = readpvpfile(Ganglion_file, num_frames, num_frames, start_frame);
   [Recon_struct, Recon_hdr] = readpvpfile(Recon_file, num_frames, num_frames, start_frame);
@@ -227,7 +227,7 @@ if plot_V1
   V1_path = [output_dir, filesep, "a5_V1.pvp"];
   write_step = frame_duration;
   num_frames = floor((last_checkpoint_ndx - first_checkpoint_ndx) / write_step);
-  [V1_struct, V1_hdr] = readpvpfile(V1_path, num_frames, []);
+  [V1_struct, V1_hdr] = readpvpfile(V1_path, num_frames, num_frames, num_frames - 1000);
   nx_V1 = V1_hdr.nx;
   ny_V1 = V1_hdr.ny;
   nf_V1 = V1_hdr.nf;
@@ -352,7 +352,7 @@ if plot_weights_movie
   write_step = frame_duration;
   num_frames = floor((last_checkpoint_ndx - first_checkpoint_ndx) / write_step);
   start_frame = 1;
-  [V1ToError_struct, V1ToError_hdr] = readpvpfile(V1ToError_path, num_frames);
+  [V1ToError_struct, V1ToError_hdr] = readpvpfile(V1ToError_path, num_frames, num_frames, num_frames - 1000);
   num_frames = size(V1ToError_struct,1);
   i_frame = num_frames;
   start_frame = 1; 
