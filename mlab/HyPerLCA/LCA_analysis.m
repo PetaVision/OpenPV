@@ -9,7 +9,7 @@ output_dir = "/Users/garkenyon/workspace/HyPerHLCA2/output"
 %%LCA_path = [output_dir];
 LCA_path = [workspace_path, filesep, "HyPerHLCA2"];
 addpath([workspace_path, filesep, "/PetaVision/mlab/util"]);
-last_checkpoint_ndx = 650000; %%20706*59; %%
+last_checkpoint_ndx = 1200000; %%20706*59; %%
 first_checkpoint_ndx = 0; %%600000;
 %%last_checkpoint_ndx = 20706*60; %%
 %%first_checkpoint_ndx = 0;
@@ -89,28 +89,28 @@ if plot_Recon
     Retina_time = Retina_struct{i_frame}.time;
     Retina_vals = Retina_struct{i_frame}.values;
     Retina_fig(i_frame) = figure;
-    set(Retina_fig(i_frame), "name", ["Retina ", num2str(i_frame)]);
+    set(Retina_fig(i_frame), "name", ["Retina ", num2str(i_frame, "%i")]);
     imagesc(Retina_vals'); colormap(gray); box off; axis off; axis image;
     saveas(Retina_fig(i_frame), [output_dir, filesep, "Retina_", num2str(i_frame, "%i")], "png");
 
     Ganglion_time = Ganglion_struct{i_frame}.time;
     Ganglion_vals = Ganglion_struct{i_frame}.values;
     Ganglion_fig(i_frame) = figure;
-    set(Ganglion_fig(i_frame), "name", ["Ganglion ", num2str(i_frame)]);
+    set(Ganglion_fig(i_frame), "name", ["Ganglion ", num2str(i_frame, "%i")]);
     imagesc(Ganglion_vals'); colormap(gray); box off; axis off; axis image;
     saveas(Ganglion_fig(i_frame), [output_dir, filesep, "Ganglion_", num2str(i_frame, "%i")], "png");
 
     Error_time = Error_struct{i_frame}.time;
     Error_vals = Error_struct{i_frame}.values;
     Error_fig(i_frame) = figure;
-    set(Error_fig(i_frame), "name", ["Error ", num2str(i_frame)]);
+    set(Error_fig(i_frame), "name", ["Error ", num2str(i_frame, "%i")]);
     imagesc(Error_vals'); colormap(gray); box off; axis off; axis image;
     saveas(Error_fig(i_frame), [output_dir, filesep, "Error_", num2str(i_frame, "%i")], "png");
 
     Recon_time = Recon_struct{i_frame}.time;
     Recon_vals = Recon_struct{i_frame}.values;
     Recon_fig(i_frame) = figure;
-    set(Recon_fig(i_frame), "name", ["Recon ", num2str(i_frame)]);
+    set(Recon_fig(i_frame), "name", ["Recon ", num2str(i_frame, "%i")]);
     imagesc(Recon_vals'); colormap(gray); box off; axis off; axis image;
     saveas(Recon_fig(i_frame), [output_dir, filesep, "Recon_", num2str(i_frame, "%i")], "png");
 
@@ -129,7 +129,7 @@ if plot_Recon
       std_Ganglion = std(Ganglion_vals(:));
       [unwhitened_Ganglion_DoG] =  deconvolvemirrorbc(Ganglion_vals', DoG_weights);
       unwhitened_Ganglion_fig(i_frame) = figure;
-      set(unwhitened_Ganglion_fig(i_frame), "name", ["unwhitened Ganglion ", num2str(i_frame)]);
+      set(unwhitened_Ganglion_fig(i_frame), "name", ["unwhitened Ganglion ", num2str(i_frame, "%i")]);
       imagesc(unwhitened_Ganglion_DoG); colormap(gray); box off; axis off; axis image;
       saveas(unwhitened_Ganglion_fig(i_frame), ...
 	     [output_dir, filesep, "unwhitened_Ganglion_", num2str(i_frame, "%i")], "png");
@@ -138,7 +138,7 @@ if plot_Recon
       std_Recon = std(Recon_vals(:));
       [unwhitened_Recon_vals] = deconvolvemirrorbc(Recon_vals', DoG_weights); 
       unwhitened_Recon_fig(i_frame) = figure;
-      set(unwhitened_Recon_fig(i_frame), "name", ["unwhitened Recon ", num2str(i_frame)]);
+      set(unwhitened_Recon_fig(i_frame), "name", ["unwhitened Recon ", num2str(i_frame, "%i")]);
       imagesc(unwhitened_Recon_vals); colormap(gray); box off; axis off; axis image;
       saveas(unwhitened_Recon_fig(i_frame), ...
 	     [output_dir, filesep, "unwhitened_Recon_", num2str(i_frame, "%i")], "png");
@@ -240,15 +240,20 @@ if plot_V1
   V1_current = zeros(n_V1,1);
   V1_abs_change = zeros(num_frames,1);
   V1_percent_change = zeros(num_frames,1);
+  V1_current_active = 0;
+  V1_tot_active = zeros(num_frames,1);
   for i_frame = 1 : 1 : num_frames
     V1_time = squeeze(V1_struct{i_frame}.time);
     V1_active_ndx = squeeze(V1_struct{i_frame}.values);
     V1_previous = V1_current;
     V1_current = full(sparse(V1_active_ndx+1,1,1,n_V1,1,n_V1));
     V1_abs_change(i_frame) = sum(V1_current(:) ~= V1_previous(:));
-    V1_tot_active = max(sum(V1_current(:)), sum(V1_previous(:)));
+    V1_previous_active = V1_current_active;
+    V1_current_active = sum(V1_current(:));
+    V1_tot_active(i_frame) = V1_current_active;
+    V1_max_active = max(V1_current_active, V1_previous_active);
     V1_percent_change(i_frame) = ...
-	V1_abs_change(i_frame) / (V1_tot_active + (V1_tot_active==0));
+	V1_abs_change(i_frame) / (V1_max_active + (V1_max_active==0));
     V1_active_kf = mod(V1_active_ndx, nf_V1) + 1;
     if V1_tot_active > 0
       V1_hist_frame = histc(V1_active_kf, V1_hist_edges);
@@ -264,24 +269,35 @@ if plot_V1
   V1_hist_fig = figure;
   V1_hist_bins = 1:nf_V1;
   V1_hist_hndl = bar(V1_hist_bins, V1_hist_sorted); axis tight;
-  set(V1_hist_fig, "name", ["V1_hist_", num2str(V1_time)]);
+  set(V1_hist_fig, "name", ["V1_hist_", num2str(V1_time, "%i")]);
   saveas(V1_hist_fig, ...
 	 [output_dir, filesep, ...
-	  "V1_hist_", num2str(V1_time)], "png");
+	  "V1_hist_", num2str(V1_time, "%i")], "png");
 
   V1_abs_change_title = ["V1_abs_change", ".png"];
   V1_abs_change_fig = figure;
   V1_abs_change_hndl = plot((1:num_frames)*write_step/1000, V1_abs_change); axis tight;
   set(V1_abs_change_fig, "name", ["V1_abs_change"]);
   saveas(V1_abs_change_fig, ...
-	 [output_dir, filesep, "V1_abs_change", num2str(V1_time)], "png");
+	 [output_dir, filesep, "V1_abs_change", num2str(V1_time, "%i")], "png");
 
   V1_percent_change_title = ["V1_percent_change", ".png"];
   V1_percent_change_fig = figure;
   V1_percent_change_hndl = plot((1:num_frames)*write_step/1000, V1_percent_change); axis tight;
   set(V1_percent_change_fig, "name", ["V1_percent_change"]);
   saveas(V1_percent_change_fig, ...
-	 [output_dir, filesep, "V1_percent_change", num2str(V1_time)], "png");
+	 [output_dir, filesep, "V1_percent_change", num2str(V1_time, "%i")], "png");
+
+  V1_tot_active_title = ["V1_tot_active", ".png"];
+  V1_tot_active_fig = figure;
+  V1_tot_active_hndl = plot((1:num_frames)*write_step/1000, V1_tot_active/n_V1); axis tight;
+  set(V1_tot_active_fig, "name", ["V1_tot_active"]);
+  saveas(V1_tot_active_fig, ...
+	 [output_dir, filesep, "V1_tot_active", num2str(V1_time, "%i")], "png");
+
+  V1_mean_active = mean(V1_tot_active(:)/n_V1);
+  disp(["V1_mean_active = ", num2str(V1_mean_active)]);
+
   drawnow;  
 endif
 
@@ -302,7 +318,7 @@ if plot_final_weights
   num_patches_rows = floor(sqrt(num_patches));
   num_patches_cols = ceil(num_patches / num_patches_rows);
   V1ToError_fig = figure;
-  set(V1ToError_fig, "name", ["V1ToError Weights: ", num2str(last_checkpoint_ndx)]);
+  set(V1ToError_fig, "name", ["V1ToError Weights: ", num2str(last_checkpoint_ndx, "%i")]);
   for j_patch = 1  : num_patches
     i_patch = V1_hist_rank(j_patch);
     subplot(num_patches_rows, num_patches_cols, j_patch); 
@@ -324,7 +340,7 @@ if plot_final_weights
   V1ToError_hist_fig = figure;
   [V1ToError_hist, V1ToError_hist_bins] = hist(V1ToError_weights(:), 100);
   bar(V1ToError_hist_bins, log(V1ToError_hist+1));
-  set(V1ToError_hist_fig, "name", ["V1ToError Histogram: ", num2str(last_checkpoint_ndx)]);
+  set(V1ToError_hist_fig, "name", ["V1ToError Histogram: ", num2str(last_checkpoint_ndx, "%i")]);
   saveas(V1ToError_hist_fig, [output_dir, filesep, "V1ToError_hist_", num2str(last_checkpoint_ndx, "%i")], "png");
 endif
 
@@ -347,7 +363,7 @@ if plot_weights_movie
   i_arbor = 1;
   for i_frame = start_frame : 1 : num_frames
     if mod(i_frame, max(floor(num_frames/20),1)) == 0
-      disp(["writing frame # ", num2str(i_frame)]);
+      disp(["writing frame # ", num2str(i_frame, "%i")]);
     endif
     V1ToError_weights = squeeze(V1ToError_struct{i_frame}.values{i_arbor});
     i_patch = 1;
