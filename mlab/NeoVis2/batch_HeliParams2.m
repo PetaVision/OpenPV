@@ -1,11 +1,11 @@
 
 %% begin definition of the most volitile parameters
-FLAVOR_ID = "Challenge"; %% "Training"; %% 
+FLAVOR_ID = "Training"; %% "Challenge"; %% 
 disp(["FLAVOR_ID = ", FLAVOR_ID]);
 target_id = cell(1,2); 
 target_id{1,1} = "Car"; target_id{1,2} = "NotCar"; %% 
 target_id
-clips_flag = true; %% false;  %%
+clips_flag = false;  %%true; %% 
 if clips_flag 
   clip_ids = [26:26]; %% [1:50]; %% 
   clip_name = cell(length(clip_ids),1);
@@ -16,7 +16,7 @@ else
   clip_name = [];
 endif
 clip_name
-pvp_num_ODD_kernels = 2; %%
+pvp_num_ODD_kernels = 3; %%
 disp(["num_ODD_kernels = ", num2str(pvp_num_ODD_kernels)]);
 %% end definition of the most volitile parameters
 
