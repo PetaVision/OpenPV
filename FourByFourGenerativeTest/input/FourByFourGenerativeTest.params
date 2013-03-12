@@ -16,8 +16,11 @@ HyPerCol "column" = {
     writeProgressToErr = false;
     outputPath = "output/";
     filenamesContainLayerNames = true;
+    filenamesContainConnectionNames = true;
     checkpointRead = false;
     checkpointWrite = false;
+    // checkpointWriteDir = "checkpoints";
+    // checkpointWriteStepInterval = 1;
     suppressLastOutput = false;
     outputNamesOfLayersAndConns = "LayerAndConnNames.txt";
 };
@@ -41,11 +44,11 @@ Movie "Slideshow" = {
     nxScale = 1;
     nyScale = 1;
     nf = 1;
+    phase = 0;
     marginWidth = 0;
     writeStep = -1;
     mirrorBCflag = false;
-    spikingFlag = false;
-    writeNonspikingActivity = -1;
+    writeSparseActivity = false;
     
     writeImages = 0;
     useImageBCflag = false;
@@ -56,6 +59,7 @@ Movie "Slideshow" = {
     skip_frame_index = 0;
 
     displayPeriod = 50;
+    echoFramePathnameFlag = false;
     jitterFlag = 0;
     randomMovie = 0;
     offsetX = 0;
@@ -67,11 +71,12 @@ Retina "Retina" = {
     nxScale = 1;
     nyScale = 1;
     nf = 1;
+    phase = 0;
     marginWidth = 0;
     writeStep = -1;
     mirrorBCflag = 1;
-    spikingFlag = 0;
-    writeNonspikingActivity = -1;
+    spikingFlag = false;
+    writeSparseActivity = 0;
     
     refractoryPeriod = 5;
     absRefractoryPeriod = 3;
@@ -90,17 +95,18 @@ ANNLayer "AnaRetina" = {
     nxScale = 1;
     nyScale = 1;
     nf = 1;
+    phase = 0;
     marginWidth = 0;
     writeStep = -1;
     mirrorBCflag = 1;
-    spikingFlag = 0;
-    writeNonspikingActivity = -1;
+    writeSparseActivity = 0;
 
     InitVType = "ZeroV";
 
     VMax = infinity;
     VThresh = -infinity;
     VMin = -infinity;
+    VShift = 0.0;
 };
 
 LogLatWTAGenLayer "Layer A" = {
@@ -108,16 +114,18 @@ LogLatWTAGenLayer "Layer A" = {
     nxScale = 0.25;
     nyScale = 0.25;
     nf = 8;
+    phase = 0;
     marginWidth = 0;
     writeStep = 1;
+    initialWriteTime = 0;
     mirrorBCflag = 1;
-    spikingFlag = 0;
-    writeNonspikingActivity = 1;
+    writeSparseActivity = 0;
     InitVType = "ZeroV";
 
     VMax = infinity;
     VThresh = 0;
     VMin = 0;
+    VShift = 0.0;
 
     relaxation = 1E-1;
     activityThreshold = 0;
@@ -132,17 +140,18 @@ PoolingANNLayer "Pooling AnaLayer A" = {
     nxScale = 0.25;
     nyScale = 0.25;
     nf = 8;
+    phase = 0;
     marginWidth = 0;
     writeStep = -1;
     mirrorBCflag = 1;
-    spikingFlag = 0;
-    writeNonspikingActivity = -1;
+    writeSparseActivity = 0;
         
     InitVType = "ZeroV";
 
     VMax = infinity;
     VThresh = -infinity;
     VMin = -infinity;
+    VShift = 0.0;
     
     bias = 0;
 };
@@ -152,17 +161,18 @@ PoolingANNLayer "Arrow AnaLayer A" = {
     nxScale = 0.25;
     nyScale = 0.25;
     nf = 8;
+    phase = 0;
     marginWidth = 0;
     writeStep = -1;
     mirrorBCflag = 1;
-    spikingFlag = 0;
-    writeNonspikingActivity = -1;
+    writeSparseActivity = 0;
         
     InitVType = "ZeroV";
 
     VMax = infinity;
     VThresh = -infinity;
     VMin = -infinity;
+    VShift = 0.0;
     
     bias = 1;
 };
@@ -172,17 +182,18 @@ ANNLayer "Flat AnaLayer A" = {
     nxScale = 0.25;
     nyScale = 0.25;
     nf = 8;
+    phase = 0;
     marginWidth = 0;
     writeStep = -1;
     mirrorBCflag = 1;
-    spikingFlag = 0;
-    writeNonspikingActivity = -1;
+    writeSparseActivity = 0;
         
     InitVType = "ZeroV";
 
     VMax = infinity;
     VThresh = -infinity;
     VMin = -infinity;
+    VShift = 0.0;
 };
 
 ANNLayer "CataLayer B" = {
@@ -190,17 +201,18 @@ ANNLayer "CataLayer B" = {
     nxScale = 0.25;
     nyScale = 0.25;
     nf = 2;
+    phase = 0;
     marginWidth = 0;
     writeStep = -1;
     mirrorBCflag = 1;
-    spikingFlag = 0;
-    writeNonspikingActivity = -1;
+    writeSparseActivity = 0;
         
     InitVType = "ZeroV";
 
     VMax = infinity;
     VThresh = -infinity;
     VMin = -infinity;
+    VShift = 0.0;
 };
 
 TrainingLayer "Layer B" = {
@@ -210,15 +222,16 @@ TrainingLayer "Layer B" = {
     nxScale = 0.25;
     nyScale = 0.25;
     nf = 2;
+    phase = 0;
     marginWidth = 0;
     writeStep = -1;
     mirrorBCflag = 1;
-    spikingFlag = 0;
-    writeNonspikingActivity = -1;
+    writeSparseActivity = 0;
     
     VMax = infinity;
     VThresh = -infinity;
     VMin = -infinity;
+    VShift = 0.0;
     strength = 1.0;
     
     displayPeriod = 50;
@@ -230,17 +243,18 @@ PtwiseProductLayer "Energy AnaLayer A" = {
     nxScale = 0.25;
     nyScale = 0.25;
     nf = 8;
+    phase = 0;
     marginWidth = 0;
     writeStep = -1;
     mirrorBCflag = 1;
-    spikingFlag = 0;
-    writeNonspikingActivity = 1;
+    writeSparseActivity = 0;
         
     InitVType = "ZeroV";
 
     VMax = infinity;
     VThresh = -infinity;
     VMin = -infinity;
+    VShift = 0.0;
 };
 
 
