@@ -1748,6 +1748,7 @@ int writeWeights(const char * filename, Communicator * comm, double timed, bool 
          fprintf(stderr, "PV::writeWeights: ERROR opening file %s\n", filename);
          return -1;
       }
+      if (append) fseek(fp, 0L, SEEK_END); // If append is true we open in "r+" mode so we need to move to the end of the file.
 
       // use file_type passed as argument to enable different behavior
       status = pvp_write_header(fp, comm, timed, loc, file_type,
