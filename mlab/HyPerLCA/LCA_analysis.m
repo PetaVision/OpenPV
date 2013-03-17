@@ -28,15 +28,37 @@ frame_duration = 1000;
 
 
 %% get DoG kernel
+
+plot_Recon = 1;
+if plot_Recon
+  %%keyboard;
+  Retina_file = [output_dir, filesep, "a1_Retina.pvp"];
+  Ganglion_file = [output_dir, filesep, "a3_Ganglion.pvp"];
+  Recon_file = [output_dir, filesep, "a4_Recon.pvp"];
+  Error_file = [output_dir, filesep, "a5_Error.pvp"];
+  write_step = frame_duration;
+  num_frames = floor((last_checkpoint_ndx - first_checkpoint_ndx) / write_step);
+  start_frame = 1; %% floor((first_checkpoint_ndx) / write_step);
+  [Retina_struct, Retina_hdr] = readpvpfile(Retina_file, num_frames, num_frames, start_frame);
+  [Ganglion_struct, Ganglion_hdr] = readpvpfile(Ganglion_file, num_frames, num_frames, start_frame);
+  [Recon_struct, Recon_hdr] = readpvpfile(Recon_file, num_frames, num_frames, start_frame);
+  [Error_struct, Error_hdr] = readpvpfile(Error_file, num_frames, num_frames, start_frame);
+  num_frames = size(Retina_struct,1)-1;
+  i_frame = num_frames;
+  start_frame = num_frames; %% floor(last_checkpoint_ndx / write_step);
+  if start_frame > num_frames
+    start_frame = num_frames
+  endif
+
 plot_DoG_kernel = 1;
 if plot_DoG_kernel
   i_frame = 1;
   i_arbor = 1;
   i_patch = 1;
-  DoG_center_path = [checkpoint_path, filesep, "RetinaToGanglionCenter_W.pvp"];
+  DoG_center_path = [checkpoint_path, filesep, "BipolarToGanglionCenter_W.pvp"];
   [DoG_center_struct, DoG_center_hdr] = readpvpfile(DoG_center_path,1);
   DoG_center_weights = squeeze(DoG_center_struct{i_frame}.values{i_arbor});
-  DoG_surround_path = [checkpoint_path, filesep, "RetinaToGanglionSurround_W.pvp"];
+  DoG_surround_path = [checkpoint_path, filesep, "BipolarToGanglionSurround_W.pvp"];
   [DoG_surround_struct, DoG_surround_hdr] = readpvpfile(DoG_surround_path,1);
   DoG_surround_weights = squeeze(DoG_surround_struct{i_frame}.values{i_arbor});
   DoG_pad = (size(DoG_surround_weights) - size(DoG_center_weights)) / 2;
@@ -64,27 +86,6 @@ if plot_DoG_kernel
   saveas(DoG_fig, [output_dir, filesep, "DoG_weights.png"]);
 endif
 
-
-plot_Recon = 1;
-if plot_Recon
-  %%keyboard;
-  Retina_file = [output_dir, filesep, "a1_Retina.pvp"];
-  Ganglion_file = [output_dir, filesep, "a2_Ganglion.pvp"];
-  Recon_file = [output_dir, filesep, "a3_Recon.pvp"];
-  Error_file = [output_dir, filesep, "a4_Error.pvp"];
-  write_step = frame_duration;
-  num_frames = floor((last_checkpoint_ndx - first_checkpoint_ndx) / write_step);
-  start_frame = num_frames-1; %%1; %% floor((first_checkpoint_ndx) / write_step);
-  [Retina_struct, Retina_hdr] = readpvpfile(Retina_file, num_frames, num_frames, start_frame);
-  [Ganglion_struct, Ganglion_hdr] = readpvpfile(Ganglion_file, num_frames, num_frames, start_frame);
-  [Recon_struct, Recon_hdr] = readpvpfile(Recon_file, num_frames, num_frames, start_frame);
-  [Error_struct, Error_hdr] = readpvpfile(Error_file, num_frames, num_frames, start_frame);
-  num_frames = size(Retina_struct,1)-1;
-  i_frame = num_frames;
-  start_frame = num_frames; %% floor(last_checkpoint_ndx / write_step);
-  if start_frame > num_frames
-    start_frame = num_frames
-  endif
   for i_frame = start_frame : 1 : num_frames
     Retina_time = Retina_struct{i_frame}.time;
     Retina_vals = Retina_struct{i_frame}.values;
@@ -224,7 +225,7 @@ endif
 
 plot_V1 = 1;
 if plot_V1
-  V1_path = [output_dir, filesep, "a5_V1.pvp"];
+  V1_path = [output_dir, filesep, "a6_V1.pvp"];
   write_step = frame_duration;
   num_frames = floor((last_checkpoint_ndx - first_checkpoint_ndx) / write_step);
   [V1_struct, V1_hdr] = readpvpfile(V1_path, num_frames, num_frames, num_frames - 1000);
@@ -255,7 +256,7 @@ if plot_V1
     V1_percent_change(i_frame) = ...
 	V1_abs_change(i_frame) / (V1_max_active + (V1_max_active==0));
     V1_active_kf = mod(V1_active_ndx, nf_V1) + 1;
-    if V1_tot_active > 0
+    if V1_max_active > 0
       V1_hist_frame = histc(V1_active_kf, V1_hist_edges);
     else
       V1_hist_frame = zeros(nf_V1+1,1);
@@ -331,6 +332,7 @@ if plot_final_weights
     imagesc(patch_tmp2); colormap(gray);
     box off
     axis off
+    axis image
     %%drawnow;
   endfor
   saveas(V1ToError_fig, [output_dir, filesep, "V1ToError_", num2str(last_checkpoint_ndx, "%i")], "png");
@@ -342,6 +344,9 @@ if plot_final_weights
   bar(V1ToError_hist_bins, log(V1ToError_hist+1));
   set(V1ToError_hist_fig, "name", ["V1ToError Histogram: ", num2str(last_checkpoint_ndx, "%i")]);
   saveas(V1ToError_hist_fig, [output_dir, filesep, "V1ToError_hist_", num2str(last_checkpoint_ndx, "%i")], "png");
+
+  V1ToError_weights_file = [output_dir, filesep, "V1ToError_weights", num2str(last_checkpoint_ndx, "%i"), ".mat"];
+  save(  "-mat", V1ToError_weights_file, "V1ToError_weights");
 endif
 
 plot_weights_movie = 1;
