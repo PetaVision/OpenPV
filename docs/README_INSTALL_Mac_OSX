@@ -29,7 +29,7 @@ Here is the procedure for installing and compiling the PetaVision repository on 
 3. Check out PetaVision.
   a. Window menu -> Open Perspective -> Other ..., and select SVN Repository Exploring.
 
-  b. Click the "New Repository Location" button, in the upper right corner of the left-most pane.  It is a yellow cylinder with a green plus-sign.  The URL is "https://petavision.svn.sourceforge.net/svnroot/petavision" (no quotes).   Double-click the repository when it appears in the left-hand pane.
+  b. Click the "New Repository Location" button, in the upper right corner of the left-most pane.  It is a yellow cylinder with a green plus-sign.  The URL is "http://svn.code.sf.net/p/petavision/code" (no quotes).   Double-click the repository when it appears in the left-hand pane.
 
   c. Right-click "trunk" and choose Checkout... from the pop-up menu.  In the "Checkout from SVN" window, click Finish.  This step downloads the PetaVision library project.
   
