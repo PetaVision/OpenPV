@@ -313,21 +313,16 @@ int OjaSTDPConn::updateWeights(int arborID)
    const int nkPre = pre->getNumExtended();
    assert(nkPre == getNumWeightPatches());
 
-   const pvdata_t * preLayerData = pre->getLayerData(getDelay(arborID));
-   //Extended Post
-   const pvdata_t * aPost        = post->getLayerData();
-   pvdata_t aPre;
 
    //Restricted Post
+   const pvdata_t * aPost = post->getLayerData(getDelay(arborID));
    pvdata_t * post_stdp_tr_m;   // Postsynaptic trace matrix; i.e. data of post_stdp_tr struct
    pvdata_t * post_oja_tr_m;    // Postsynaptic mean trace matrix
    pvdata_t * ampLTD_m;         // local ampLTD
 
-//   post_stdp_tr_m = post_stdp_tr->data;
-//   post_oja_tr_m  = post_oja_tr->data;
-//   post_int_tr_m  = post_int_tr->data;
-
    //Extended Pre
+   const pvdata_t * preLayerData = pre->getLayerData(getDelay(arborID));
+   pvdata_t aPre;
    pvdata_t * pre_stdp_tr_m;    // Presynaptic trace matrix
    pvdata_t * pre_oja_tr_m;
    pvdata_t * W;                // Weight matrix pointer
@@ -357,7 +352,21 @@ int OjaSTDPConn::updateWeights(int arborID)
    //Loop over postsynaptic neurons for LTP
    const int numPostPatch = nxpPost * nypPost * nfpPost; // Number of pre-neurons in post receptive field. Postsynaptic weights are never shrunken
 
-   float * startAdd = this->get_wDataStart(arborID); // Address of first preNeuron in pre
+   std::cout << "\nnew\n";
+
+   //Update all pre traces (all traces decay every time step)
+   for (int kPreExt = 0; kPreExt < nkPre; kPreExt++)           // Loop over all presynaptic neurons
+   {
+      aPre           = preLayerData[kPreExt];                  // Spiking activity
+      pre_stdp_tr_m  = &(pre_stdp_tr[arborID]->data[kPreExt]); // PreTrace for given presynaptic neuron kPreExt
+      pre_oja_tr_m   = &(pre_oja_tr[arborID]->data[kPreExt]);
+
+      // 2. Updates the presynaptic trace
+      *pre_stdp_tr_m = decayLTP * ((*pre_stdp_tr_m) + aPre);        //If spiked, minimum is 1. If no spike, minimum is 0.
+      *pre_oja_tr_m  = decayOja * ((*pre_oja_tr_m)  + aPre);
+   }
+
+   float * startAdd = this->get_wDataStart(arborID); // Address of first neuron in pre layer
    //Loop through postsynaptic neurons (non-extended indices)
    for (int kPost = 0; kPost < post->getNumNeurons(); kPost++) { //Neuron indices
 	   //Post in extended space
@@ -367,36 +376,34 @@ int OjaSTDPConn::updateWeights(int arborID)
 
 	   post_oja_tr_m  = &(post_oja_tr->data[kPost]); //Address of post trace in restricted space
 	   pvdata_t ** postData = getPostWeightsp(arborID,kPost); // Pointer array full of addresses pointing to the weights for all of the preNeurons connected to the given postNeuron's receptive field
-	   for (int kPre=0; kPre < numPostPatch; kPre++) { // Loop through all pre-neurons connected to given post-neuron
-		   float * kPreAdd = postData[kPre];  // Address of first preNeuron in receptive field of postNeuron
+	   for (int kPrePatch=0; kPrePatch < numPostPatch; kPrePatch++) { // Loop through all pre-neurons connected to given post-neuron
+		   float * kPreAdd = postData[kPrePatch];  // Address of preNeuron in receptive field of postNeuron
 		   assert(kPreAdd != NULL);
+
            int kPreExt = (kPreAdd-startAdd) / (this->xPatchSize()*this->yPatchSize()*this->fPatchSize()); // Grab index based on patch size
            assert(kPreExt < nkPre);
 
 		   // Pre in extended space
-		   aPre           = preLayerData[kPreExt];                  // Spiking activity
 		   pre_stdp_tr_m  = &(pre_stdp_tr[arborID]->data[kPreExt]); // PreTrace for given presynaptic neuron kPreExt
 		   pre_oja_tr_m   = &(pre_oja_tr[arborID]->data[kPreExt]);
 
-		   // Update the presynaptic trace
-		   *pre_stdp_tr_m = decayLTP * ((*pre_stdp_tr_m) + aPre);        //If spiked, minimum is 1. If no spike, minimum is 0.
-		   *pre_oja_tr_m  = decayOja * ((*pre_oja_tr_m)  + aPre);
+		   std::cout << "\nnkPre: "<<nkPre<<" numPostPatch: "<<numPostPatch<<" kPost: "<<kPost<<" kPrePatch: "<<kPrePatch<<" kPreExt: "<<kPreExt<<" trace: "<<(*pre_oja_tr_m)<<"\n";
 
 		   // See STDP_LCA_Equations.pdf in documentation for description of Oja (feed-forward weight adaptation) equations. TODO: That file does not exist.
 		   float ojaTerm;
 		   if (ojaFlag) {
-			   ojaTerm = (*post_oja_tr_m) * ((*pre_oja_tr_m) - (targetPreRatekHz/targetPostRatekHz) * ((*postData[kPre]) / weightScale) * (*post_oja_tr_m));
+			   ojaTerm = (*post_oja_tr_m) * ((*pre_oja_tr_m) - (targetPreRatekHz/targetPostRatekHz) * ((*postData[kPrePatch]) / weightScale) * (*post_oja_tr_m));
 			   assert(ojaTerm == ojaTerm); // Make sure it is not NaN (only happens if tauOja is 0)
 		   } else { //should just be standard STDP at this point
 			   ojaTerm = 1.0;
 		   }
 
 		   //STDP Equation
-           (*postData[kPre]) += scaleFactor * ojaTerm * ampLTP * aPost[kPost] * (*pre_stdp_tr_m);
+           (*postData[kPrePatch]) += scaleFactor * ojaTerm * ampLTP * aPost[kPost] * (*pre_stdp_tr_m);
 
-           (*postData[kPre]) = (*postData[kPre]) < wMin ? wMin : (*postData[kPre]); // Stop weights from going all the way to 0
+           (*postData[kPrePatch]) = (*postData[kPrePatch]) < wMin ? wMin : (*postData[kPrePatch]); // Stop weights from going all the way to 0
 		   if (!ojaFlag) { //oja term should get rid of the need to impose a maximum weight
-			   (*postData[kPre]) = (*postData[kPre]) > wMax ? wMax : (*postData[kPre]);
+			   (*postData[kPrePatch]) = (*postData[kPrePatch]) > wMax ? wMax : (*postData[kPrePatch]);
 		   }
 	   }
    }
@@ -448,9 +455,10 @@ int OjaSTDPConn::updateWeights(int arborID)
       }
    }
 #else
-   pvdata_t * post_int_tr_m;    // Postsynaptic mean trace matrix
    // this stride is in extended space for post-synaptic activity and STDP decrement variable
    const int postStrideYExt = postNf * (postNx + 2 * postNb);
+
+   //std::cout << "\nold\n";
 
    for (int kPreExt = 0; kPreExt < nkPre; kPreExt++)           // Loop over all presynaptic neurons
    {
@@ -482,6 +490,7 @@ int OjaSTDPConn::updateWeights(int arborID)
       *pre_stdp_tr_m = decayLTP * ((*pre_stdp_tr_m) + aPre);        //If spiked, minimum is 1. If no spike, minimum is 0.
       *pre_oja_tr_m  = decayOja * ((*pre_oja_tr_m)  + aPre);
 
+	   //std::cout << "\n\n"<<kPreExt<<"\t"<<(*pre_oja_tr_m)<<"\n";
       // 3. Update weights
       for (int y = 0; y < ny; y++) {
          for (int kPatchLoc = 0; kPatchLoc < nk; kPatchLoc++) { //loop over all postsynaptic neurons connected to given presynaptic neuron
@@ -511,7 +520,6 @@ int OjaSTDPConn::updateWeights(int arborID)
          // postActivity and post trace are extended layer
          aPost          += postStrideYExt; //TODO: is this really in the extended space?
          post_stdp_tr_m += postStrideYRes;
-         post_int_tr_m  += postStrideYRes;
          post_oja_tr_m  += postStrideYRes;
          ampLTD_m       += postStrideYRes;
       }
