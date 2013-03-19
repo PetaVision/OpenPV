@@ -1,6 +1,12 @@
 Petavision may be obtained from sourceforge.net using the subversion command:
 
-    svn co https://petavision.svn.sourceforge.net/svnroot/petavision/trunk PetaVision
+    svn checkout http://svn.code.sf.net/p/petavison PetaVision
+or
+    svn checkout https://USERNAME@svn.code.sf.net/p/petavision PetaVision
+where USERNAME is your sourceforge username.
+
+The http version allows you to check out but not to commit (that is, it's read-only);
+the https version allows you to commit as well. 
     
 You should also check out one of the example projects, (CellularAutomata, for example):
 
