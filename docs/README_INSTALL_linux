@@ -34,7 +34,15 @@ Rubor and Retozo have separate filesystems and password databases; anything you 
 3. Check out PetaVision.
   a. Window menu -> Open Perspective -> Other ..., and select SVN Repository Exploring.
 
-  b. Click the "Add SVN Repository" button, in the upper right corner of the left-most pane.  It is a yellow rectangle with an "SVN" label and a plus-sign.  The URL is "http://svn.code.sf.net/p/petavision/code" (no quotes).   Double-click the repository when it appears in the left-hand pane.
+  b. Click the "Add SVN Repository" button, in the upper right corner of the
+     left-most pane.  It is a yellow rectangle with "SVN" and a plus-sign.
+     If you only need to check out, not commit, you can use the URL
+     "http://svn.code.sf.net/p/petavision/code" (no quotes).
+     If you plan to commit code, use "https://USERNAME@svn.code.sf.net/p/petavision/code",
+     where USERNAME is your sourceforge username.
+     You will be prompted for your sourceforge password.
+     
+     Double-click the repository when it appears in the left-hand pane.
 
   c. Right-click "trunk" and choose Checkout... from the pop-up menu.  In the "Checkout from SVN" window, click Finish.  This step downloads the PetaVision library project.
 
