@@ -18,6 +18,8 @@
 #include "../columns/Communicator.hpp"
 #include "../arch/opencl/pv_uint4.h"
 
+#include <unistd.h>
+
 namespace PV {
 
 void timeToParams(double time, void * params);
