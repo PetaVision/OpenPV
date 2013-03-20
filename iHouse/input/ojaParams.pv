@@ -624,4 +624,5 @@ OjaConnProbe "Oja_OFF_Probe_Dia" = {
     kxPost           = 23; //About half of the radius out
     kyPost           = 23; //About half of the radius out
     kfPost           = 0;  //feature
+};
 //};
