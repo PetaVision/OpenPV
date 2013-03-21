@@ -84,10 +84,7 @@ protected:
    float tauOja;
    float tauTHR;
    float tauO;
-   float weightDecay;
-//   float dWMax;
    float targetPostRateHz;
-   float targetPreRateHz;
    float weightScale;
    float LTDscale;
 
