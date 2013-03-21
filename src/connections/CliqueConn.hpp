@@ -27,6 +27,8 @@ protected:
    int initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
          HyPerLayer * post, const char * filename,
          InitWeights *weightInit);
+   virtual int setParams(PVParams * params);
+   virtual void readCliqueSize(PVParams * params);
 
 private:
    int initialize_base();

@@ -28,10 +28,17 @@ int CliqueConn::initialize_base(){
 int CliqueConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
       HyPerLayer * post, const char * filename, InitWeights *weightInit){
    KernelConn::initialize(name, hc, pre, post, filename, weightInit);
-   // pvdata_t *** dw_data;
-   PVParams * params = parent->parameters();
-   cliqueSize = (int)params->value(name, "cliqueSize", 1, true);
    return PV_SUCCESS;
+}
+
+int CliqueConn::setParams(PVParams * params) {
+   int status = KernelConn::setParams(params);
+   readCliqueSize(params);
+   return status;
+}
+
+void CliqueConn::readCliqueSize(PVParams * params) {
+   cliqueSize = (int)params->value(name, "cliqueSize", 1, true);
 }
 
 int CliqueConn::updateState(double time, double dt)
