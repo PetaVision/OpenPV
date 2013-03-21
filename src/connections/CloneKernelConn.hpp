@@ -49,8 +49,7 @@ protected:
    virtual void readNumAxonalArborLists(PVParams * params);
    virtual void readPlasticityFlag(PVParams * params);
    virtual void readShrinkPatches(PVParams * params);
-   virtual int  readNxp(PVParams * params);
-   virtual int  readNyp(PVParams * params);
+   virtual int  readPatchSize(PVParams * params);
    virtual int  readNfp(PVParams * params);
 
    KernelConn * originalConn;

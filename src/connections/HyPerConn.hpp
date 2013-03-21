@@ -505,8 +505,7 @@ protected:
    virtual void readWriteStep(PVParams * params);
    virtual void readInitialWriteTime(PVParams * params);
    virtual void readDelay(PVParams * params);
-   virtual int readNxp(PVParams * params);
-   virtual int readNyp(PVParams * params);
+   virtual int readPatchSize(PVParams * params);
    virtual int readNfp(PVParams * params);
 
 #ifdef PV_USE_OPENCL

@@ -501,8 +501,7 @@ int HyPerConn::setParams(PVParams * inputParams)
    readWriteStep(inputParams);
    readInitialWriteTime(inputParams);
    readDelay(inputParams);
-   readNxp(inputParams);
-   readNyp(inputParams);
+   readPatchSize(inputParams);
    readNfp(inputParams);
    readShrinkPatches(inputParams); // Sets shrinkPatches_flag; derived-class methods that override readShrinkPatches must also set shrinkPatches_flag
    return PV_SUCCESS;
@@ -679,23 +678,21 @@ int HyPerConn::initializeDelays(const float * fDelayArray, int size){
    return status;
 }
 
-int HyPerConn::readNxp(PVParams * params) {
-   // Reads params file's nxp and checks that it's consistent with post-synaptic geometry.
+int HyPerConn::readPatchSize(PVParams * params) {
+   // Reads params file's nxp and nyp and checks that they're consistent with post-synaptic geometry.
    // A return value of -1 indicates an error (although currently checkPatchSize calls exit(EXIT_FAILURE) if there is an error).
+   int status = PV_SUCCESS;
+
    nxp = parent->parameters()->value(name, "nxp", post->getCLayer()->loc.nx);
    int xScalePre = pre->getXScale();
    int xScalePost = post->getXScale();
-   int status = checkPatchSize(nxp, xScalePre, xScalePost, 'x');
+   status = checkPatchSize(nxp, xScalePre, xScalePost, 'x');
    if( status != PV_SUCCESS) nxp=-1;
-   return status;
-}
 
-int HyPerConn::readNyp(PVParams * params) {
-   // Reads params file's nyp and checks that it's consistent with post-synaptic geometry.
    nyp = parent->parameters()->value(name, "nyp", post->getCLayer()->loc.ny);
    int yScalePre = pre->getYScale();
    int yScalePost = post->getYScale();
-   int status = checkPatchSize(nyp, yScalePre, yScalePost, 'y');
+   status = checkPatchSize(nyp, yScalePre, yScalePost, 'y');
    if( status != PV_SUCCESS) nyp=-1;
    return status;
 }
@@ -708,6 +705,10 @@ int HyPerConn::readNfp(PVParams * params) {
                post->getCLayer()->loc.nf, post->getName() );
       exit(PV_FAILURE);
    }
+   // Currently, the only acceptable number for nfp is the number of post-synaptic features.
+   // However, we may add flexibility on this score in the future, e.g. MPI in feature space
+   // with each feature connecting to only a few nearby features.
+   // Accordingly, we still keep readNfp.
    return PV_SUCCESS;
 }
 

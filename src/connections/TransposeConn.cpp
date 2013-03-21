@@ -58,7 +58,7 @@ void TransposeConn::readNumAxonalArborLists(PVParams * params) {
    }
 }
 
-int TransposeConn::readNxp(PVParams * params) {
+int TransposeConn::readPatchSize(PVParams * params) {
    // If originalConn is many-to-one, the transpose connection is one-to-many.
    // Then xscaleDiff > 0.
    // Similarly, if originalConn is one-to-many, xscaleDiff < 0.
@@ -71,10 +71,6 @@ int TransposeConn::readNxp(PVParams * params) {
        nxp /= (int) pow(2,-xscaleDiff);
        assert(originalConn->xPatchSize()==nxp*pow( 2, (float) (-xscaleDiff) ));
    }
-   return PV_SUCCESS;
-}
-
-int TransposeConn::readNyp(PVParams * params) {
    int yscaleDiff = pre->getYScale() - post->getYScale();
    nyp = originalConn->yPatchSize();
    if(yscaleDiff > 0 ) {

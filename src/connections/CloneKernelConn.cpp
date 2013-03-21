@@ -135,12 +135,8 @@ void CloneKernelConn::readPlasticityFlag(PVParams * params) {
    plasticityFlag = false; // CloneKernelConn updates automatically, since it's done using pointer magic.
 }
 
-int CloneKernelConn::readNxp(PVParams * params) {
+int CloneKernelConn::readPatchSize(PVParams * params) {
    nxp = originalConn->xPatchSize();
-   return PV_SUCCESS;
-}
-
-int CloneKernelConn::readNyp(PVParams * params) {
    nyp = originalConn->yPatchSize();
    return PV_SUCCESS;
 }

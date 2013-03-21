@@ -39,8 +39,7 @@ protected:
     virtual void readWriteCompressedWeights(PVParams * params);
     virtual void readWriteCompressedCheckpoints(PVParams * params);
     virtual void readSelfFlag(PVParams * params);
-    virtual int  readNxp(PVParams * params);
-    virtual int  readNyp(PVParams * params);
+    virtual int  readPatchSize(PVParams * params);
     virtual int  readNfp(PVParams * params);
     virtual void readKeepKernelsSynchronized(PVParams * params);
     virtual void readWeightUpdatePeriod(PVParams * params);

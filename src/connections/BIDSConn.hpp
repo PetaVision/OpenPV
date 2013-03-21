@@ -19,6 +19,7 @@ public:
              const char * filename, InitWeights *weightInit);
 
 protected:
+   virtual int readPatchSize(PVParams * params);
    virtual int setPatchSize(const char* filename);
 
 };
