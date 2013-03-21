@@ -13,6 +13,11 @@
 
 namespace PV {
 
+OjaSTDPConn::OjaSTDPConn()
+{
+	initialize_base();
+}
+
 OjaSTDPConn::OjaSTDPConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
       HyPerLayer * post, const char * filename, InitWeights *weightInit)
 {
@@ -67,9 +72,7 @@ int OjaSTDPConn::initialize_base() {
    this->ampLTD           = NULL; // Will allocate later
    this->initAmpLTD       = 1;
    this->targetPostRateHz = 1;
-   this->targetPreRateHz  = 20;
    this->LTDscale         = ampLTP;
-   this->weightDecay      = 0.01;
    this->dWMax            = 1;
    this->weightScale      = 0.25;
 
@@ -153,9 +156,7 @@ int OjaSTDPConn::setParams(PVParams * params)
    tauTHR           = params->value(getName(), "tauTHR", tauTHR);
    tauO             = params->value(getName(), "tauO",tauO);
 
-   weightDecay      = params->value(getName(), "weightDecay", weightDecay);
    targetPostRateHz = params->value(getName(), "targetPostRate", targetPostRateHz);
-   targetPreRateHz  = params->value(getName(), "targetPreRate", targetPreRateHz);
 
    ojaFlag          = params->value(getName(), "ojaFlag",ojaFlag);
    synscalingFlag   = params->value(getName(), "synscalingFlag", synscalingFlag);
@@ -165,7 +166,6 @@ int OjaSTDPConn::setParams(PVParams * params)
       wMax          = params->value(getName(), "wMax", wMax);
    }
    wMin             = params->value(getName(), "wMin", wMin);
-   // dWMax            = params->value(getName(), "dWMax", dWMax); // dWMax is set in HyPerConn::setParams, called above
    weightScale      = params->value(getName(), "weightScale", weightScale);
 
    return 0;
@@ -306,8 +306,6 @@ int OjaSTDPConn::updateWeights(int arborID)
    const float dt                = parent->getDeltaTime();
    const float decayLTP          = exp(-dt / tauLTP);
    const float decayOja          = exp(-dt / tauOja);
-   const float targetPostRatekHz = targetPostRateHz/1000; // Convert Hz to kHz
-   const float targetPreRatekHz  = targetPreRateHz/1000; // Convert Hz to kHz
 
    //Extended Pre
    const int nkPre = pre->getNumExtended();
@@ -392,7 +390,7 @@ int OjaSTDPConn::updateWeights(int arborID)
 		   // See STDP_LCA_Equations.pdf in documentation for description of Oja (feed-forward weight adaptation) equations. TODO: That file does not exist.
 		   float ojaTerm;
 		   if (ojaFlag) {
-			   ojaTerm = (*post_oja_tr_m) * ((*pre_oja_tr_m) - (targetPreRatekHz/targetPostRatekHz) * ((*postData[kPrePatch]) / weightScale) * (*post_oja_tr_m));
+			   ojaTerm = (*post_oja_tr_m) * ((*pre_oja_tr_m) -  ((*postData[kPrePatch]) / weightScale) * (*post_oja_tr_m));
 			   assert(ojaTerm == ojaTerm); // Make sure it is not NaN (only happens if tauOja is 0)
 		   } else { //should just be standard STDP at this point
 			   ojaTerm = 1.0;
@@ -498,7 +496,7 @@ int OjaSTDPConn::updateWeights(int arborID)
             // See STDP_LCA_Equations.pdf in documentation for description of Oja (feed-forward weight adaptation) equations. TODO: That file does not exist.
             float ojaTerm;
             if (ojaFlag) {
-               ojaTerm = post_oja_tr_m[kPatchLoc] * ((*pre_oja_tr_m) - (targetPreRatekHz/targetPostRatekHz) * (W[kPatchLoc]/weightScale) * post_oja_tr_m[kPatchLoc]);
+               ojaTerm = post_oja_tr_m[kPatchLoc] * ((*pre_oja_tr_m) - (W[kPatchLoc]/weightScale) * post_oja_tr_m[kPatchLoc]);
                assert(ojaTerm == ojaTerm); // Make sure it is not NaN (only happens if tauOja is 0)
             } else { //should just be standard STDP at this point
               ojaTerm = 1.0;
@@ -506,7 +504,7 @@ int OjaSTDPConn::updateWeights(int arborID)
 
             //STDP Equation
             W[kPatchLoc] += scaleFactor *
-              (ojaTerm * ampLTP * aPost[kPatchLoc] * (*pre_stdp_tr_m) - ampLTD_m[kPatchLoc] * aPre * post_stdp_tr_m[kPatchLoc] - weightDecay * W[kPatchLoc]);
+              (ojaTerm * ampLTP * aPost[kPatchLoc] * (*pre_stdp_tr_m) - ampLTD_m[kPatchLoc] * aPre * post_stdp_tr_m[kPatchLoc]);
 
             W[kPatchLoc] = W[kPatchLoc] < wMin ? wMin : W[kPatchLoc]; // Stop weights from going all the way to 0
             if (!ojaFlag) { //oja term should get rid of the need to impose a maximum weight
