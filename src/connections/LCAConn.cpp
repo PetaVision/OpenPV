@@ -18,7 +18,6 @@ namespace PV {
   {
     KernelConn::initialize_base();
     KernelConn::initialize(name, hc, pre, post, filename, weightInit);
-    //this->plasticityFlag = true;
     layerOfInterest = auxLayer;
   }
   

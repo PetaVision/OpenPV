@@ -215,7 +215,7 @@ int HyPerConn::initialize_base()
    this->combine_dW_with_W_flag = false;
    this->normalize_flag = true; // default value, overridden by params file parameter "normalize" in initNormalize()
    this->plasticityFlag = false;
-   this->shrinkPatches_flag = false; // default value, overridden by params file parameter "normalize" in initNormalize()
+   this->shrinkPatches_flag = false; // default value, overridden by params file parameter "shrinkPatches" in readShrinkPatches()
    this->normalizeArborsIndividually = true;
    this->normalize_max = false;
    this->normalize_zero_offset = false;
@@ -270,13 +270,6 @@ int HyPerConn::createArbors() {
       aPostOffset[k] = aPostOffsetBuffer
             + this->shrinkPatches_flag * k * preSynapticLayer()->getNumExtended();
    }
-
-// Moved to initializeDelays(), which is called by initialize(), just before constructWeights() -Oct 24, 2012
-//   delays = (int *) calloc(numAxonalArborLists, sizeof(int));
-//   if( delays == NULL ) {
-//      createArborsOutOfMemory();
-//      assert(false);
-//   }
    wDataStart = (pvdata_t **) calloc(numAxonalArborLists, sizeof(pvdata_t *));
    if( wDataStart == NULL ) {
       createArborsOutOfMemory();
@@ -309,7 +302,7 @@ int HyPerConn::constructWeights(const char * filename)
 {
    int status = PV_SUCCESS;
 
-   initShrinkPatches(); // Sets shrinkPatches; derived-class methods that override initShrinkPatches must also set shrinkPatches
+   readShrinkPatches(parent->parameters()); // Sets shrinkPatches; derived-class methods that override readShrinkPatches must also set shrinkPatches
    // createArbors() uses the value of shrinkPatches.
    //allocate the arbor arrays:
    createArbors();
@@ -411,10 +404,8 @@ int HyPerConn::shrinkPatch(int kExt, int arborId /* PVAxonalArbor * arbor */) {
 }
 
 
-int HyPerConn::initShrinkPatches() {
-   PVParams * params = parent->parameters();
+void HyPerConn::readShrinkPatches(PVParams * params) {
    shrinkPatches_flag = params->value(name, "shrinkPatches", shrinkPatches_flag);
-   return PV_SUCCESS;
 }
 
 int HyPerConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
@@ -430,31 +421,7 @@ int HyPerConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
    this->post = post;
 
    PVParams * inputParams = parent->parameters();
-   status = setParams(inputParams /*, &defaultConnParams*/);
-
-   //Grab delays in ms and change into timesteps
-   //TODO: Change to allow for multiple delays for multiple arbors
-   //defaultDelay = round(inputParams->value(name, "delay", 0)/parent->getDeltaTime());
-
-
-   int delayArraySize;
-   //fDelayArray is the float representation from the array values
-   fDelayArray = inputParams->arrayValues(name, "delay", &delayArraySize);
-
-   ChannelType channel = readChannelCode(inputParams);
-
-   int postnumchannels = post->getNumChannels();
-   if(postnumchannels <= 0) {
-      fprintf(stderr, "Connection \"%s\": layer \"%s\" has no channels and cannot be a post-synaptic layer.  Exiting.\n",
-              name, post->getName());
-      exit(EXIT_FAILURE);
-   }
-   if( channel < 0 || channel >= postnumchannels ) {
-      fprintf(stderr, "Connection \"%s\": given channel is %d but channels for post-synaptic layer \"%s\" are 0 through %d. Exiting.\n",
-              name, channel, post->getName(), post->getNumChannels()-1);
-      exit(EXIT_FAILURE);
-   }
-   this->channel = channel;
+   status = setParams(inputParams);
 
    initNumWeightPatches();
    initNumDataPatches();
@@ -472,30 +439,9 @@ int HyPerConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
 
    this->connId = parent->addConnection(this);
 
-   writeStep = inputParams->value(name, "writeStep", parent->getDeltaTime());
-   writeTime = parent->simulationTime();
-   if( writeStep >= 0 ) {
-      writeTime = inputParams->value(name, "initialWriteTime", writeTime);
-   }
-
-   initializeDelays(delayArraySize);
    constructWeights(filename);
 
 
-   // Find maximum delay over all the arbors and send it to the presynaptic layer
-   int maxdelay = 0;
-   for( int arborId=0; arborId<numberOfAxonalArborLists(); arborId++ ) {
-      int curdelay = this->getDelay(arborId);
-      if( maxdelay < curdelay ) maxdelay = curdelay;
-   }
-   int allowedDelay = pre->increaseDelayLevels(maxdelay);
-   if( allowedDelay < maxdelay ) {
-      if( parent->icCommunicator()->commRank() == 0 ) {
-         fflush(stdout);
-         fprintf(stderr, "Connection \"%s\": attempt to set delay to %d, but the maximum allowed delay is %d.  Exiting\n", name, maxdelay, allowedDelay);
-      }
-      exit(EXIT_FAILURE);
-   }
 
 //This has been commented out because layers will decide if GPU acceleration
 //will happen and they will call the init methods as necessary
@@ -511,47 +457,6 @@ int HyPerConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
 }
 
 
-
-ChannelType HyPerConn::readChannelCode(PVParams * params) {
-   int is_present = params->present(name, "channelCode");
-   if (!is_present) {
-      fprintf(stderr, "Group \"%s\" must set parameter channelCode.\n", name);
-      abort();
-   }
-   int ch = (int)params->value(name, "channelCode");
-   int status = decodeChannel(ch, &channel);
-   if (status != PV_SUCCESS) {
-      fprintf(stderr, "HyPerConn::readChannelCode: channelCode %d for connection \"%s\" is not a valid channel.\n",  ch, name);
-      abort();
-   }
-   return channel;
-}
-
-int HyPerConn::decodeChannel(int channel_code, ChannelType * channel_type) {
-   int status = PV_SUCCESS;
-   switch( channel_code ) {
-   case CHANNEL_EXC:
-      *channel_type = CHANNEL_EXC;
-      break;
-   case CHANNEL_INH:
-      *channel_type = CHANNEL_INH;
-      break;
-   case CHANNEL_INHB:
-      *channel_type = CHANNEL_INHB;
-      break;
-   case CHANNEL_GAP:
-      *channel_type = CHANNEL_GAP;
-      break;
-   case CHANNEL_NORM:
-      *channel_type = CHANNEL_NORM;
-      break;
-   default:
-      *channel_type = CHANNEL_INVALID;
-      status = PV_FAILURE;
-      break;
-   }
-   return status;
-}
 
 int HyPerConn::initNumWeightPatches() {
    numWeightPatches = pre->getNumExtended();
@@ -582,37 +487,155 @@ int HyPerConn::initPlasticityPatches()
 }
 
 // set member variables specified by user
-int HyPerConn::setParams(PVParams * inputParams /*, PVConnParams * p*/)
+int HyPerConn::setParams(PVParams * inputParams)
 {
-   const char * name = getName();
-
-   numAxonalArborLists=(int) inputParams->value(name, "numAxonalArbors", 1, true);
-   if (numAxonalArborLists==0) {
-         fprintf(stdout, "HyPerConn:: Warning: Connection %s: Variable numAxonalArbors is set to 0. No connections will be made.\n",name);
-   }
-   plasticityFlag = inputParams->value(name, "plasticityFlag", plasticityFlag, true) != 0;
-   stochasticReleaseFlag = inputParams->value(name, "stochasticReleaseFlag", false, true) != 0;
-   preActivityIsNotRate = inputParams->value(name, "preActivityIsNotRate", false, true) != 0;
-
-   writeCompressedWeights = inputParams->value(name, "writeCompressedWeights", writeCompressedWeights, /*warnifabsent*/true) != 0;
-   if (parent->getCheckpointWriteFlag()) {
-      writeCompressedCheckpoints = inputParams->value(name, "writeCompressedCheckpoints", writeCompressedCheckpoints, /*warnifabsent*/true) != 0;
-   }
-   selfFlag = (pre == post);  // if true, this is a valid assignment, but there are cases where
-   //   selfFlag must be set to true even though the pre and post layers are instantiated separately.
-   //   For example, when learning unde the control of a mask.
-   selfFlag = inputParams->value(name, "selfFlag", selfFlag, true) != 0;
-   if (plasticityFlag){
-      combine_dW_with_W_flag = inputParams->value(name, "combine_dW_with_W_flag", combine_dW_with_W_flag, true) != 0;
-      dWMax            = inputParams->value(getName(), "dWMax", dWMax, true);
-   }
+   readChannelCode(inputParams);
+   readNumAxonalArborLists(inputParams);
+   readPlasticityFlag(inputParams);
+   readStochasticReleaseFlag(inputParams);
+   readPreActivityIsNotRate(inputParams);
+   readWriteCompressedWeights(inputParams);
+   readWriteCompressedCheckpoints(inputParams);
+   readSelfFlag(inputParams);
+   readCombine_dW_with_W_flag(inputParams);
+   readWriteStep(inputParams);
+   readInitialWriteTime(inputParams);
+   readDelay(inputParams);
+   readNxp(inputParams);
+   readNyp(inputParams);
+   readNfp(inputParams);
+   readShrinkPatches(inputParams); // Sets shrinkPatches_flag; derived-class methods that override readShrinkPatches must also set shrinkPatches_flag
+   return PV_SUCCESS;
 
    return 0;
 }
 
-int HyPerConn::initializeDelays(int size){
+void HyPerConn::readChannelCode(PVParams * params) {
+   int is_present = params->present(name, "channelCode");
+   if (!is_present) {
+      fprintf(stderr, "Group \"%s\" must set parameter channelCode.\n", name);
+      abort();
+   }
+   int ch = (int)params->value(name, "channelCode");
+   int status = decodeChannel(ch, &channel);
+   if (status != PV_SUCCESS) {
+      fprintf(stderr, "HyPerConn::readChannelCode: channelCode %d for connection \"%s\" is not a valid channel.\n",  ch, name);
+      abort();
+   }
+
+   int postnumchannels = post->getNumChannels();
+   if(postnumchannels <= 0) {
+      fprintf(stderr, "Connection \"%s\": layer \"%s\" has no channels and cannot be a post-synaptic layer.  Exiting.\n",
+              name, post->getName());
+      exit(EXIT_FAILURE);
+   }
+   if( channel < 0 || channel >= postnumchannels ) {
+      fprintf(stderr, "Connection \"%s\": given channel is %d but channels for post-synaptic layer \"%s\" are 0 through %d. Exiting.\n",
+              name, channel, post->getName(), post->getNumChannels()-1);
+      exit(EXIT_FAILURE);
+   }
+}
+
+int HyPerConn::decodeChannel(int channel_code, ChannelType * channel_type) {
+   int status = PV_SUCCESS;
+   switch( channel_code ) {
+   case CHANNEL_EXC:
+      *channel_type = CHANNEL_EXC;
+      break;
+   case CHANNEL_INH:
+      *channel_type = CHANNEL_INH;
+      break;
+   case CHANNEL_INHB:
+      *channel_type = CHANNEL_INHB;
+      break;
+   case CHANNEL_GAP:
+      *channel_type = CHANNEL_GAP;
+      break;
+   case CHANNEL_NORM:
+      *channel_type = CHANNEL_NORM;
+      break;
+   default:
+      *channel_type = CHANNEL_INVALID;
+      status = PV_FAILURE;
+      break;
+   }
+   return status;
+}
+
+void HyPerConn::readNumAxonalArborLists(PVParams * params) {
+   numAxonalArborLists=(int) params->value(name, "numAxonalArbors", 1, true);
+   if (numAxonalArborLists==0 && parent->columnId()==0) {
+         fprintf(stdout, "HyPerConn:: Warning: Connection %s: Variable numAxonalArbors is set to 0. No connections will be made.\n",name);
+   }
+}
+
+void HyPerConn::readPlasticityFlag(PVParams * params) {
+   plasticityFlag = params->value(name, "plasticityFlag", plasticityFlag, true) != 0;
+}
+
+void HyPerConn::readStochasticReleaseFlag(PVParams * params) {
+   stochasticReleaseFlag = params->value(name, "stochasticReleaseFlag", false, true) != 0;
+}
+
+void HyPerConn::readPreActivityIsNotRate(PVParams * params) {
+   preActivityIsNotRate = params->value(name, "preActivityIsNotRate", false, true) != 0;
+}
+
+void HyPerConn::readWriteCompressedWeights(PVParams * params) {
+   writeCompressedWeights = params->value(name, "writeCompressedWeights", writeCompressedWeights, /*warnifabsent*/true) != 0;
+}
+
+void HyPerConn::readWriteCompressedCheckpoints(PVParams * params) {
+   if (parent->getCheckpointWriteFlag()) {
+      writeCompressedCheckpoints = params->value(name, "writeCompressedCheckpoints", writeCompressedCheckpoints, /*warnifabsent*/true) != 0;
+   }
+}
+
+void HyPerConn::readSelfFlag(PVParams * params) {
+   selfFlag = (pre == post);  // if true, this is a valid assignment, but there are cases where
+   //   selfFlag must be set to true even though the pre and post layers are instantiated separately.
+   //   For example, when learning under the control of a mask.
+   selfFlag = params->value(name, "selfFlag", selfFlag, true) != 0;
+}
+
+void HyPerConn::readCombine_dW_with_W_flag(PVParams * params) {
+   if (plasticityFlag){
+      combine_dW_with_W_flag = params->value(name, "combine_dW_with_W_flag", combine_dW_with_W_flag, true) != 0;
+   }
+}
+
+void HyPerConn::read_dWMax(PVParams * params) {
+   if (plasticityFlag){
+      dWMax = params->value(getName(), "dWMax", dWMax, true);
+   }
+}
+
+void HyPerConn::readWriteStep(PVParams * params) {
+   writeStep = params->value(name, "writeStep", parent->getDeltaTime());
+}
+
+void HyPerConn::readInitialWriteTime(PVParams * params) {
+   assert(!params->presentAndNotBeenRead(name, "writeStep"));
+   if (!params->present(name, "writeStep")) {
+      if (parent->columnId()==0) {
+         fprintf(stderr, "HyPerConn::readInitialWriteTime warning for connection \"%s\": reading initialWriteTime using default for writeStep.\n", name);
+      }
+   }
+   writeTime = params->value(name, "initialWriteTime", parent->simulationTime());
+}
+
+void HyPerConn::readDelay(PVParams * params) {
+   //Grab delays in ms and change into timesteps
+   int delayArraySize;
+   //fDelayArray is the float representation from the array values
+   const float * fDelayArray = params->arrayValues(name, "delay", &delayArraySize);
+   initializeDelays(fDelayArray, delayArraySize);
+}
+
+int HyPerConn::initializeDelays(const float * fDelayArray, int size){
 
    int status = PV_SUCCESS;
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "numAxonalArborLists"));
    //Allocate delay data structure
    delays = (int *) calloc(numAxonalArborLists, sizeof(int));
    if( delays == NULL ) {
@@ -638,7 +661,54 @@ int HyPerConn::initializeDelays(int size){
          abort();
       }
    }
+
+   // Find maximum delay over all the arbors and send it to the presynaptic layer
+   int maxdelay = 0;
+   for( int arborId=0; arborId<numberOfAxonalArborLists(); arborId++ ) {
+      int curdelay = this->getDelay(arborId);
+      if( maxdelay < curdelay ) maxdelay = curdelay;
+   }
+   int allowedDelay = pre->increaseDelayLevels(maxdelay);
+   if( allowedDelay < maxdelay ) {
+      if( parent->icCommunicator()->commRank() == 0 ) {
+         fflush(stdout);
+         fprintf(stderr, "Connection \"%s\": attempt to set delay to %d, but the maximum allowed delay is %d.  Exiting\n", name, maxdelay, allowedDelay);
+      }
+      exit(EXIT_FAILURE);
+   }
    return status;
+}
+
+int HyPerConn::readNxp(PVParams * params) {
+   // Reads params file's nxp and checks that it's consistent with post-synaptic geometry.
+   // A return value of -1 indicates an error (although currently checkPatchSize calls exit(EXIT_FAILURE) if there is an error).
+   nxp = parent->parameters()->value(name, "nxp", post->getCLayer()->loc.nx);
+   int xScalePre = pre->getXScale();
+   int xScalePost = post->getXScale();
+   int status = checkPatchSize(nxp, xScalePre, xScalePost, 'x');
+   if( status != PV_SUCCESS) nxp=-1;
+   return status;
+}
+
+int HyPerConn::readNyp(PVParams * params) {
+   // Reads params file's nyp and checks that it's consistent with post-synaptic geometry.
+   nyp = parent->parameters()->value(name, "nyp", post->getCLayer()->loc.ny);
+   int yScalePre = pre->getYScale();
+   int yScalePost = post->getYScale();
+   int status = checkPatchSize(nyp, yScalePre, yScalePost, 'y');
+   if( status != PV_SUCCESS) nyp=-1;
+   return status;
+}
+
+int HyPerConn::readNfp(PVParams * params) {
+   nfp = parent->parameters()->value(name, "nfp", post->getCLayer()->loc.nf);
+   if( nfp != post->getCLayer()->loc.nf ) {
+      fprintf( stderr, "Params file specifies %d features for connection \"%s\",\n", nfp, name );
+      fprintf( stderr, "but %d features for post-synaptic layer %s\n",
+               post->getCLayer()->loc.nf, post->getName() );
+      exit(PV_FAILURE);
+   }
+   return PV_SUCCESS;
 }
 
 // returns handle to initialized weight patches
@@ -671,62 +741,7 @@ InitWeights * HyPerConn::getDefaultInitWeightsMethod(const char * keyword) {
 }
 
 InitWeights * HyPerConn::handleMissingInitWeights(PVParams * params) {
-   int rank = parent->icCommunicator()->commRank();
-   bool randomFlag = params->value(name, "randomFlag", 0.0f, false) != 0;
-   bool smartWeights = params->value(name, "smartWeights",0.0f, false) != 0;
-   bool cocircWeights = params->value(name, "cocircWeights",0.0f, false) != 0;
-
-   if( rank == 0 ) {
-      bool using_legacy_flags = randomFlag || smartWeights || cocircWeights;
-      if( using_legacy_flags ) {
-         fprintf(stderr, "Connection \"%s\": This method of initializing weights has been deprecated.\n"
-                         "  Please pass an InitWeights object to the constructor.\n"
-                         "  In buildandrun(), use the string parameter \"weightInitType\" to set the InitWeights object.\n", name);
-      }
-      else {
-         fprintf(stderr, "Connection \"%s\": Please pass an InitWeights object to the constructor.\n"
-                         "  In buildandrun(), use the string parameter \"weightInitType\" to set the InitWeights object.\n", name);
-
-      }
-   }
-
-   if( randomFlag ) {
-      if( rank==0 && (smartWeights || cocircWeights) ) {
-         fprintf(stderr, "Connection \"%s\": Conflict in specifying initial weights.  randomFlag will be used\n", name);
-      }
-      bool uniform_weights = params->value(name, "uniformWeights", 1.0f, false) != 0;
-      bool gaussian_weights = params->value(name, "gaussianWeights", 0.0f, false) != 0;
-      if( uniform_weights ) {
-         if( gaussian_weights ) {
-            if( rank==0 ) {
-               fprintf(stderr, "Connection \"%s\": Conflict in specifying distribution for random weights.  uniformWeights will be used\n", name);
-            }
-         }
-         return new InitUniformRandomWeights();
-      }
-      else if( gaussian_weights ) {
-         return new InitGaussianRandomWeights();
-      }
-      else {
-         if( rank==0 ) {
-            fprintf(stderr, "Connection \"%s\": No distribution for random weights specified.  gaussianWeights will be used.\n", name);
-         }
-         return new InitGaussianRandomWeights();
-      }
-   }
-   else if (smartWeights) {
-      if( rank==0 && (cocircWeights) ) {
-         fprintf(stderr, "Connection \"%s\": Conflict in specifying initial weights.  smartWeights will be used\n", name);
-      }
-      return new InitSmartWeights();
-   }
-   else if (cocircWeights) {
-      return new InitCocircWeights();
-   }
-   else {
-      return new InitWeights();
-   }
-   return NULL;
+   return new InitWeights();
 }
 
 #ifdef PV_USE_OPENCL
@@ -2653,15 +2668,9 @@ int HyPerConn::setPatchSize(const char * filename)
    int status;
    PVParams * inputParams = parent->parameters();
 
-   nxp = (int) inputParams->value(name, "nxp", post->getCLayer()->loc.nx);
-   nyp = (int) inputParams->value(name, "nyp", post->getCLayer()->loc.ny);
-   nfp = (int) inputParams->value(name, "nfp", post->getCLayer()->loc.nf);
-   if( nfp != post->getCLayer()->loc.nf ) {
-      fprintf( stderr, "Params file specifies %d features for connection \"%s\",\n", nfp, name );
-      fprintf( stderr, "but %d features for post-synaptic layer %s\n",
-               post->getCLayer()->loc.nf, post->getName() );
-      exit(PV_FAILURE);
-   }
+   assert(!inputParams->presentAndNotBeenRead(name, "nxp"));
+   assert(!inputParams->presentAndNotBeenRead(name, "nyp"));
+   assert(!inputParams->presentAndNotBeenRead(name, "nfp"));
    int xScalePre = pre->getXScale();
    int xScalePost = post->getXScale();
    status = checkPatchSize(nxp, xScalePre, xScalePost, 'x');

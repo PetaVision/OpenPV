@@ -49,27 +49,79 @@ int IdentConn::initialize( const char * name, HyPerCol * hc, HyPerLayer * pre, H
 }
 
 int IdentConn::setParams(PVParams * inputParams) {
+   const PVLayerLoc * preLoc = pre->getLayerLoc();
+   const PVLayerLoc * postLoc = post->getLayerLoc();
+   if( preLoc->nx != postLoc->nx || preLoc->ny != postLoc->ny || preLoc->nf != postLoc->nf ) {
+      if (parent->columnId()==0) {
+         fprintf( stderr,
+                  "IdentConn Error: %s and %s do not have the same dimensions\n",
+                  pre->getName(),post->getName() );
+      }
+      exit(EXIT_FAILURE);
+   }
+   int status = KernelConn::setParams(inputParams);
+
+   return status;
+}
+
+void IdentConn::readNumAxonalArborLists(PVParams * params) {
    numAxonalArborLists=1;
+}
+
+void IdentConn::readPlasticityFlag(PVParams * params) {
    plasticityFlag = false;
+}
+
+void IdentConn::readKeepKernelsSynchronized(PVParams * params) {
+   keepKernelsSynchronized_flag = true;
+}
+
+void IdentConn::readWeightUpdatePeriod(PVParams * params) {
+   weightUpdatePeriod = 1.0f;
+}
+
+void IdentConn::readInitialWeightUpdateTime(PVParams * params) {
+   weightUpdateTime = 0.0f;
+}
+
+void IdentConn::readStochasticReleaseFlag(PVParams * params) {
    stochasticReleaseFlag = false;
+}
+
+void IdentConn::readPreActivityIsNotRate(PVParams * params) {
    preActivityIsNotRate = false;
+}
+
+void IdentConn::readWriteCompressedWeights(PVParams * params) {
    writeCompressedWeights = true;
+}
+
+void IdentConn::readWriteCompressedCheckpoints(PVParams * params) {
+   writeCompressedCheckpoints = true;
+}
+
+void IdentConn::readSelfFlag(PVParams * params) {
+   assert(pre!=NULL && post!=NULL);
+   selfFlag = pre==post;
+}
+
+int IdentConn::readNxp(PVParams * params) {
+   nxp = 1;
+   return PV_SUCCESS;
+}
+
+int IdentConn::readNyp(PVParams * params) {
+   nyp = 1;
+   return PV_SUCCESS;
+}
+
+int IdentConn::readNfp(PVParams * params) {
+   nfp = pre->getLayerLoc()->nf;
+   assert(nfp==post->getLayerLoc()->nf);
    return PV_SUCCESS;
 }
 
 int IdentConn::setPatchSize(const char * filename) {
-   const PVLayerLoc * preLoc = pre->getLayerLoc();
-   const PVLayerLoc * postLoc = post->getLayerLoc();
-   if( preLoc->nx != postLoc->nx || preLoc->ny != postLoc->ny || preLoc->nf != postLoc->nf ) {
-      fprintf( stderr,
-               "IdentConn Error: %s and %s do not have the same dimensions\n",
-               pre->getName(),post->getName() );
-      exit(EXIT_FAILURE);
-   }
-   nxp = 1;
-   nyp = 1;
-   nfp = preLoc->nf;
-
    return PV_SUCCESS;
 }  // end of IdentConn::setPatchSize(const char *)
 
@@ -78,9 +130,8 @@ int IdentConn::initNormalize() {
    return PV_SUCCESS;
 }
 
-int IdentConn::initShrinkPatches() {
+void IdentConn::readShrinkPatches(PVParams * params) {
    shrinkPatches_flag = false;
-   return PV_SUCCESS;
 }
 
 }  // end of namespace PV block

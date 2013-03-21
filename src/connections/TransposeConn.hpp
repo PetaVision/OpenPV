@@ -22,8 +22,12 @@ public:
     virtual int updateWeights(int axonId);
 
 protected:
-    virtual int initialize_base();
+    int initialize_base();
     int initialize(const char * name, HyPerCol * hc, HyPerLayer * preLayer, HyPerLayer * postLayer, KernelConn * auxConn);
+    virtual void readNumAxonalArborLists(PVParams * params);
+    virtual int  readNxp(PVParams * params);
+    virtual int  readNyp(PVParams * params);
+    virtual int  readNfp(PVParams * params);
     virtual PVPatch *** initializeWeights(PVPatch *** arbors, pvdata_t ** dataStart, int numPatches, const char * filename);
     virtual InitWeights * handleMissingInitWeights(PVParams * params);
     int setPatchSize(const char * filename);

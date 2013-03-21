@@ -64,35 +64,8 @@ int KernelConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
       InitWeights *weightInit)
 {
    PVParams * params = hc->parameters();
-   bool normalize_flag = params->value(name, "normalize",0,true);
-   if (normalize_flag){
-      symmetrizeWeightsFlag = params->value(name, "symmetrizeWeights", false);
-   }
-#ifdef USE_SHMGET
-	bool plasticity_flag = params->value(name, "plasticityFlag", plasticityFlag,
-			true) != 0;
-	shmget_flag = params->value(name, "shmget_flag", shmget_flag, true);
-//#ifdef PV_USE_MPI
-//	if (parent->icCommunicator() != NULL
-//			&& parent->icCommunicator()->numCommColumns()
-//					* parent->icCommunicator()->numCommRows() > 1
-//			&& shmget_flag) {
-//		std::cout << "warning: in KernelConn::initialize: " << this->name
-//				<< ", shmget_flag parameter specified as true but only 1 process"
-//				<< std::endl;
-//	}
-//#endif
-	if (plasticity_flag && shmget_flag) {
-		shmget_flag = false;
-		std::cout << "in KernelConn::initialize: " << this->name
-				<< ", shmget_flag parameter specified as true, reset to false because plasticity_flag is true"
-				<< std::endl;
-	}
-#else
-	params->value(name, "shmget_flag", false, false); // mark as read so that shmget_flag doesn't get an unread-parameter warning.  This way the same params file can be used with USE_SHMGET on or off.
-#endif // USE_SHMGET
    HyPerConn::initialize(name, hc, pre, post, filename, weightInit);
-   initializeUpdateTime(params); // sets weightUpdatePeriod and initial value of weightUpdateTime
+   assert(!params->presentAndNotBeenRead(name, "initialWeightUpdateTime"));
    lastUpdateTime = weightUpdateTime - parent->getDeltaTime();
 
    // nxKernel = (pre->getXScale() < post->getXScale()) ? pow(2,
@@ -125,6 +98,65 @@ int KernelConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
    return PV_SUCCESS;
 }
 
+int KernelConn::setParams(PVParams * params) {
+   int status = HyPerConn::setParams(params);
+   readShmget_flag(params);
+   readKeepKernelsSynchronized(params);
+   readWeightUpdatePeriod(params);
+   readInitialWeightUpdateTime(params);
+   return status;
+}
+
+void KernelConn::readShmget_flag(PVParams * params) {
+#ifdef USE_SHMGET
+    assert(!params->presentAndNotBeenRead(name, "plasticityFlag"));
+    shmget_flag = params->value(name, "shmget_flag", shmget_flag, true);
+//#ifdef PV_USE_MPI
+//  if (parent->icCommunicator() != NULL
+//          && parent->icCommunicator()->numCommColumns()
+//                  * parent->icCommunicator()->numCommRows() > 1
+//          && shmget_flag) {
+//      std::cout << "warning: in KernelConn::initialize: " << this->name
+//              << ", shmget_flag parameter specified as true but only 1 process"
+//              << std::endl;
+//  }
+//#endif
+    if (plasticity_flag && shmget_flag) {
+        shmget_flag = false;
+        std::cout << "in KernelConn::initialize: " << this->name
+                << ", shmget_flag parameter specified as true, reset to false because plasticity_flag is true"
+                << std::endl;
+    }
+#else
+    params->value(name, "shmget_flag", false, false); // mark as read so that shmget_flag doesn't get an unread-parameter warning.  This way the same params file can be used with USE_SHMGET on or off.
+#endif // USE_SHMGET
+}
+
+void KernelConn::readKeepKernelsSynchronized(PVParams * params) {
+   assert(!params->presentAndNotBeenRead(name, "plasticityFlag"));
+   if( getPlasticityFlag() ) {
+#ifdef PV_USE_MPI
+      keepKernelsSynchronized_flag = getParent()->parameters()->value(name, "keepKernelsSynchronized", keepKernelsSynchronized_flag, true);
+#endif
+   }
+}
+
+void KernelConn::readWeightUpdatePeriod(PVParams * params) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
+   weightUpdatePeriod = 1.0f;
+   if (plasticityFlag) {
+      weightUpdatePeriod = params->value(name, "weightUpdatePeriod", weightUpdatePeriod);
+   }
+}
+
+void KernelConn::readInitialWeightUpdateTime(PVParams * params) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
+   weightUpdateTime = 0.0f;
+   if (plasticityFlag) {
+      weightUpdateTime = params->value(name, "initialWeightUpdateTime", weightUpdateTime);
+   }
+}
+
 int KernelConn::createArbors() {
 #ifdef USE_SHMGET
 	if (shmget_flag){
@@ -141,24 +173,13 @@ int KernelConn::createArbors() {
 }
 
 int KernelConn::initPlasticityPatches() {
-   if( getPlasticityFlag() ) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
 #ifdef PV_USE_MPI
-   keepKernelsSynchronized_flag = getParent()->parameters()->value(name, "keepKernelsSynchronized", keepKernelsSynchronized_flag, true);
-#endif
-      HyPerConn::initPlasticityPatches();
+   if( getPlasticityFlag() ) {
+      assert(!parent->parameters()->presentAndNotBeenRead(name, "keepKernelsSynchronized"));
    }
-   return PV_SUCCESS;
-}
-
-int KernelConn::initializeUpdateTime(PVParams * params) {
-   if( plasticityFlag ) {
-      float defaultUpdatePeriod = 1.f;
-      weightUpdatePeriod = params->value(name, "weightUpdatePeriod", defaultUpdatePeriod);
-      weightUpdateTime = params->value(name, "initialWeightUpdateTime", 0.0f);
-   }
-   else {
-      weightUpdateTime = 0.0f;
-   }
+#endif // PV_USE_MPI
+   HyPerConn::initPlasticityPatches();
    return PV_SUCCESS;
 }
 
@@ -301,6 +322,15 @@ int KernelConn::initNumDataPatches()
          post->getYScale() - pre->getYScale()) : 1;
    numDataPatches = pre->clayer->loc.nf * nxKernel * nyKernel;
    return PV_SUCCESS;
+}
+
+int KernelConn::initNormalize() {
+   int status = HyPerConn::initNormalize();
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "normalize"));
+   if (normalize_flag){
+      symmetrizeWeightsFlag = parent->parameters()->value(name, "symmetrizeWeights", false);
+   }
+   return status;
 }
 
 float KernelConn::minWeight(int arborId)

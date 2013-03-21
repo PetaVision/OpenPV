@@ -86,7 +86,7 @@ protected:
    virtual pvdata_t * allocWeights(PVPatch *** patches, int nPatches, int nxPatch,
          int nyPatch, int nfPatch, int arborId);
    int initNumDataPatches();
-   virtual int initializeUpdateTime(PVParams * params);
+   virtual int initNormalize();
    virtual PVPatch *** initializeWeights(PVPatch *** arbors, pvdata_t ** dataStart,
          int numPatches, const char * filename);
 
@@ -105,6 +105,12 @@ protected:
 //   virtual PVPatch ** readWeights(PVPatch ** patches, int numPatches,
 //                                     const char * filename);
    int getReciprocalWgtCoordinates(int kx, int ky, int kf, int kernelidx, int * kxRecip, int * kyRecip, int * kfRecip, int * kernelidxRecip);
+
+   virtual int setParams(PVParams* params);
+   virtual void readShmget_flag(PVParams * params);
+   virtual void readKeepKernelsSynchronized(PVParams * params);
+   virtual void readWeightUpdatePeriod(PVParams * params);
+   virtual void readInitialWeightUpdateTime(PVParams * params);
 
 private:
    int deleteWeights();

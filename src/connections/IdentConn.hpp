@@ -24,13 +24,28 @@ public:
 
    int initialize_base();
    int initialize(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post, const char * filename);
-   virtual int setParams(PVParams * inputParams);
    virtual int updateWeights(int axonID) {return PV_SUCCESS;}
-   virtual int initShrinkPatches();
 
 protected:
     int setPatchSize(const char * filename);
     virtual int initNormalize();
+
+    virtual int setParams(PVParams * inputParams);
+    virtual void readNumAxonalArborLists(PVParams * params);
+    virtual void readPlasticityFlag(PVParams * params);
+    virtual void readStochasticReleaseFlag(PVParams * params);
+    virtual void readPreActivityIsNotRate(PVParams * params);
+    virtual void readShrinkPatches(PVParams * params);
+    virtual void readWriteCompressedWeights(PVParams * params);
+    virtual void readWriteCompressedCheckpoints(PVParams * params);
+    virtual void readSelfFlag(PVParams * params);
+    virtual int  readNxp(PVParams * params);
+    virtual int  readNyp(PVParams * params);
+    virtual int  readNfp(PVParams * params);
+    virtual void readKeepKernelsSynchronized(PVParams * params);
+    virtual void readWeightUpdatePeriod(PVParams * params);
+    virtual void readInitialWeightUpdateTime(PVParams * params);
+
 };
 
 }  // end of block for namespace PV

@@ -42,9 +42,8 @@ int GapConn::initialize(const char * name, HyPerCol * hc,
    return KernelConn::initialize(name, hc, pre, post, filename, weightInit);
 }
 
-ChannelType GapConn::readChannelCode(PVParams * params) {
+void GapConn::readChannelCode(PVParams * params) {
    channel = CHANNEL_GAP;
-   return channel;
 }
 
 

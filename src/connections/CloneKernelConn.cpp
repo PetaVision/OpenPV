@@ -50,10 +50,8 @@ int CloneKernelConn::initialize(const char * name, HyPerCol * hc,
 }
 
 int CloneKernelConn::setPatchSize(const char * filename) {
+   // nxp, nyp, nfp were set by the read-methods called by HyPerConn::setParams
    assert(filename == NULL);
-   nxp = originalConn->xPatchSize();
-   nyp = originalConn->yPatchSize();
-   nfp = originalConn->fPatchSize();
    int xScalePre = pre->getXScale();
    int xScalePost = post->getXScale();
    int status = checkPatchSize(nxp, xScalePre, xScalePost, 'x');
@@ -73,7 +71,7 @@ int CloneKernelConn::initNormalize() {
 int CloneKernelConn::constructWeights(const char * filename) {
    int status = PV_SUCCESS;
 
-   if( status == PV_SUCCESS ) status = initShrinkPatches();
+   if( status == PV_SUCCESS ) readShrinkPatches(parent->parameters());
 
    if( status == PV_SUCCESS ) status = createArbors();
 
@@ -118,27 +116,37 @@ PVPatch *** CloneKernelConn::initializeWeights(PVPatch *** patches, pvdata_t ** 
    return patches;
    // nothing to be done as the weight patches point to originalConn's space.
 }
-/*
-int CloneKernelConn::setWPatches(PVPatch ** patches, int arborId) {
-   return HyPerConn::setWPatches(patches, arborId);
-}
-int CloneKernelConn::setdWPatches(PVPatch ** patches, int arborId) {
-   return HyPerConn::setWPatches(patches, arborId);
-}
-*/
 
-int CloneKernelConn::initShrinkPatches() {
+void CloneKernelConn::readShrinkPatches(PVParams * params) {
+   assert(originalConn);
    shrinkPatches_flag = originalConn->getShrinkPatches_flag();
-   return PV_SUCCESS;
 }
 
 int CloneKernelConn::setParams(PVParams * params) {
+   return KernelConn::setParams(params);
+}
+
+void CloneKernelConn::readNumAxonalArborLists(PVParams * params) {
+   assert(originalConn);
    numAxonalArborLists = originalConn->numberOfAxonalArborLists();
+}
+
+void CloneKernelConn::readPlasticityFlag(PVParams * params) {
    plasticityFlag = false; // CloneKernelConn updates automatically, since it's done using pointer magic.
-   stochasticReleaseFlag = params->value(name, "stochasticReleaseFlag", 0.0f, true);
-   preActivityIsNotRate = params->value(name, "preActivityIsNotRate", false, true) != 0;
-   writeCompressedWeights = params->value(name, "writeCompressedWeights", 0.0f, true);
-   selfFlag = params->value(name, "selfFlag", selfFlag, true) != 0;
+}
+
+int CloneKernelConn::readNxp(PVParams * params) {
+   nxp = originalConn->xPatchSize();
+   return PV_SUCCESS;
+}
+
+int CloneKernelConn::readNyp(PVParams * params) {
+   nyp = originalConn->yPatchSize();
+   return PV_SUCCESS;
+}
+
+int CloneKernelConn::readNfp(PVParams * params) {
+   nfp = originalConn->fPatchSize();
    return PV_SUCCESS;
 }
 

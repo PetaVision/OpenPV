@@ -165,7 +165,7 @@ int OjaSTDPConn::setParams(PVParams * params)
       wMax          = params->value(getName(), "wMax", wMax);
    }
    wMin             = params->value(getName(), "wMin", wMin);
-   dWMax            = params->value(getName(), "dWMax", dWMax);
+   // dWMax            = params->value(getName(), "dWMax", dWMax); // dWMax is set in HyPerConn::setParams, called above
    weightScale      = params->value(getName(), "weightScale", weightScale);
 
    return 0;

@@ -263,7 +263,6 @@ public:
       connId = id;
    }
 
-   virtual int setParams(PVParams* params);
    PVPatch*** convertPreSynapticWeights(double time);
    PVPatch**** point2PreSynapticWeights();
    //PVPatch**** point2PreSynapticWeights2();
@@ -271,7 +270,6 @@ public:
          int* kyPre);
    int postSynapticPatchHead(int kPre, int* kxPostOut, int* kyPostOut,
          int* kfPostOut, int* dxOut, int* dyOut, int* nxpOut, int* nypOut);
-   virtual int initShrinkPatches();
    virtual int shrinkPatches(int arborId);
    int shrinkPatch(int kExt, int arborId);
 
@@ -451,8 +449,6 @@ protected:
       delays = delayptr;
    }
 
-   virtual ChannelType readChannelCode(PVParams * params);
-
    int calcUnitCellIndex(int patchIndex, int* kxUnitCellIndex = NULL,
          int* kyUnitCellIndex = NULL, int* kfUnitCellIndex = NULL);
    virtual int setPatchSize(const char* filename);
@@ -465,7 +461,7 @@ protected:
    int initialize_base();
    virtual int createArbors();
    void createArborsOutOfMemory();
-   int initializeDelays(int size);
+   int initializeDelays(const float * fDelayArray, int size);
    virtual int constructWeights(const char* filename);
    int initialize(const char* name, HyPerCol* hc, HyPerLayer* pre,
          HyPerLayer* post, const char* filename,
@@ -493,6 +489,25 @@ protected:
 
    virtual int calc_dW(int arborId = 0);
    void connOutOfMemory(const char* funcname);
+
+   virtual int setParams(PVParams* params);
+   virtual void readChannelCode(PVParams * params);
+   virtual void readNumAxonalArborLists(PVParams * params);
+   virtual void readPlasticityFlag(PVParams * params);
+   virtual void readStochasticReleaseFlag(PVParams * params);
+   virtual void readPreActivityIsNotRate(PVParams * params);
+   virtual void readWriteCompressedWeights(PVParams * params);
+   virtual void readWriteCompressedCheckpoints(PVParams * params);
+   virtual void readSelfFlag(PVParams * params);
+   virtual void readCombine_dW_with_W_flag(PVParams * params);
+   virtual void read_dWMax(PVParams * params);
+   virtual void readShrinkPatches(PVParams * params);
+   virtual void readWriteStep(PVParams * params);
+   virtual void readInitialWriteTime(PVParams * params);
+   virtual void readDelay(PVParams * params);
+   virtual int readNxp(PVParams * params);
+   virtual int readNyp(PVParams * params);
+   virtual int readNfp(PVParams * params);
 
 #ifdef PV_USE_OPENCL
    virtual void initIgnoreGPUFlag(); // sets the ignoreGPUFlag parameter.  virtual so that a class can make it always false or always true

@@ -20,7 +20,7 @@ public:
    virtual ~GapConn();
 protected:
    GapConn();
-   ChannelType readChannelCode(PVParams * params);
+   void readChannelCode(PVParams * params);
    int initialize(const char * name, HyPerCol * hc,
                   HyPerLayer * pre, HyPerLayer * post,
                   const char * filename,

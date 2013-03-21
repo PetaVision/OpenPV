@@ -139,7 +139,7 @@ int STDP3Conn::setParams(PVParams * params)
 
       wMax = params->value(getName(), "wMax", wMax);
       wMin = params->value(getName(), "wMin", wMin);
-      dWMax = params->value(getName(), "dWMax", dWMax);
+      // dWMax = params->value(getName(), "dWMax", dWMax); // dWMax is set in HyPerConn::setParams, called above.
       synscalingFlag = params->value(getName(), "synscalingFlag", synscalingFlag);
       synscaling_v = params->value(getName(), "synscaling_v", synscaling_v);
    }

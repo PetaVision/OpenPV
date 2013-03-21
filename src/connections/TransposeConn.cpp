@@ -41,9 +41,55 @@ int TransposeConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre
    originalConn = auxConn;
    normalize_flag = false; // HyPerConn::initializeWeights never gets called (most of what it does isn't needed) so initNormalize never gets called
    int status = KernelConn::initialize(name, hc, preLayer, postLayer, NULL, NULL);
-   //TransposeConn has not been updated to support multiple arbors!
    assert(numberOfAxonalArborLists()==1);
    return status;
+}
+
+void TransposeConn::readNumAxonalArborLists(PVParams * params) {
+   assert(originalConn);
+   numAxonalArborLists = originalConn->numberOfAxonalArborLists();
+   //TransposeConn has not been updated to support multiple arbors
+   if (numAxonalArborLists!=1) {
+      if (parent->columnId()==0) {
+         fprintf(stderr, "TransposeConn error for connection \"%s\": original conn \"%s\" must have only one arbor.\n", name, originalConn->getName());
+      }
+      MPI_Barrier(getParent()->icCommunicator()->communicator());
+      exit(EXIT_FAILURE);
+   }
+}
+
+int TransposeConn::readNxp(PVParams * params) {
+   // If originalConn is many-to-one, the transpose connection is one-to-many.
+   // Then xscaleDiff > 0.
+   // Similarly, if originalConn is one-to-many, xscaleDiff < 0.
+   int xscaleDiff = pre->getXScale() - post->getXScale();
+   nxp = originalConn->xPatchSize();
+   if(xscaleDiff > 0 ) {
+       nxp *= (int) pow( 2, xscaleDiff );
+   }
+   else if(xscaleDiff < 0) {
+       nxp /= (int) pow(2,-xscaleDiff);
+       assert(originalConn->xPatchSize()==nxp*pow( 2, (float) (-xscaleDiff) ));
+   }
+   return PV_SUCCESS;
+}
+
+int TransposeConn::readNyp(PVParams * params) {
+   int yscaleDiff = pre->getYScale() - post->getYScale();
+   nyp = originalConn->yPatchSize();
+   if(yscaleDiff > 0 ) {
+       nyp *= (int) pow( 2, (float) yscaleDiff );
+   }
+   else if(yscaleDiff < 0) {
+       nyp /= (int) pow(2,-yscaleDiff);
+       assert(originalConn->yPatchSize()==nyp*pow( 2, (float) (-yscaleDiff) ));
+   }
+   return PV_SUCCESS;
+}
+
+int TransposeConn::readNfp(PVParams * params) {
+   nfp = post->getLayerLoc()->nf;
+   return PV_SUCCESS;
 }
 
 InitWeights * TransposeConn::handleMissingInitWeights(PVParams * params) {
@@ -68,30 +114,6 @@ PVPatch *** TransposeConn::initializeWeights(PVPatch *** arbors, pvdata_t ** dat
 
 int TransposeConn::setPatchSize(const char * filename) {
     int status = PV_SUCCESS;
-
-    int xscaleDiff = pre->getXScale() - post->getXScale();
-    // If originalConn is many-to-one, the transpose connection is one-to-many.
-    // Then xscaleDiff > 0.
-    // Similarly, if originalConn is one-to-many, xscaleDiff < 0.
-    int yscaleDiff = pre->getYScale() - post->getYScale();
-
-    nxp = originalConn->xPatchSize();
-    if(xscaleDiff > 0 ) {
-        nxp *= (int) pow( 2, xscaleDiff );
-    }
-    else if(xscaleDiff < 0) {
-        nxp /= (int) pow(2,-xscaleDiff);
-        assert(originalConn->xPatchSize()==nxp*pow( 2, (float) (-xscaleDiff) ));
-    }
-    nyp = originalConn->yPatchSize();
-    if(yscaleDiff > 0 ) {
-        nyp *= (int) pow( 2, (float) yscaleDiff );
-    }
-    else if(yscaleDiff < 0) {
-        nyp /= (int) pow(2,-yscaleDiff);
-        assert(originalConn->yPatchSize()==nyp*pow( 2, (float) (-yscaleDiff) ));
-    }
-    nfp = post->getLayerLoc()->nf;
 
     assert( checkPatchSize(nyp, pre->getXScale(), post->getXScale(), 'x') ==
             PV_SUCCESS );

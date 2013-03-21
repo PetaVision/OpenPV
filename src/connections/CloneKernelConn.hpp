@@ -30,14 +30,8 @@ public:
    // For CloneKernelConn, filename is ignored, but we include it
    // to agree with the interface for HyPerConn
 
-   virtual int initShrinkPatches();
-
-   virtual int setParams(PVParams * params);
-
    virtual int updateState(double time, double dt);
 
-   // virtual int writeWeights(PVPatch *** patches, pvdata_t ** dataStart, int numPatches,
-   //      const char * filename, float timef, bool last){return PV_SUCCESS;};
    virtual int writeWeights(double time, bool last=false){return PV_SUCCESS;};
    virtual int writeWeights(const char * filename){return PV_SUCCESS;};
    virtual int checkpointWrite(const char * cpDir){return PV_SUCCESS;};
@@ -50,6 +44,14 @@ protected:
    void constructWeightsOutOfMemory();
    virtual int createAxonalArbors(int arborId);
    virtual int initNormalize();
+
+   virtual int setParams(PVParams * params);
+   virtual void readNumAxonalArborLists(PVParams * params);
+   virtual void readPlasticityFlag(PVParams * params);
+   virtual void readShrinkPatches(PVParams * params);
+   virtual int  readNxp(PVParams * params);
+   virtual int  readNyp(PVParams * params);
+   virtual int  readNfp(PVParams * params);
 
    KernelConn * originalConn;
 
