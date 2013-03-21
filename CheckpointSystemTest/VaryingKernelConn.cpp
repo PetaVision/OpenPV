@@ -17,8 +17,8 @@ VaryingKernelConn::VaryingKernelConn(const char * name, HyPerCol * hc, HyPerLaye
 VaryingKernelConn::~VaryingKernelConn() {}
 
 int VaryingKernelConn::initialize(const char * name, HyPerCol * hc,
-         HyPerLayer * pre, HyPerLayer * post,
-         const char * filename, InitWeights *weightInit) {
+      HyPerLayer * pre, HyPerLayer * post,
+      const char * filename, InitWeights *weightInit) {
    KernelConn::initialize(name, hc, pre, post, filename, weightInit);
 
    // initialize all dW's to one.
@@ -46,20 +46,19 @@ int VaryingKernelConn::calc_dW(int axonId) {
 
 int VaryingKernelConn::setParams(PVParams * inputParams /*, PVConnParams * p*/)
 {
-	KernelConn::setParams(inputParams);
-   const char * name = getName();
+   KernelConn::setParams(inputParams);
 
-   numAxonalArborLists=(int) inputParams->value(name, "numAxonalArbors", 1, true);
+   return 0;
+}
+
+void VaryingKernelConn::readPlasticityFlag(PVParams * params) {
    plasticityFlag = true;
+}
+
+void VaryingKernelConn::readShmget_flag(PVParams * params) {
 #ifdef USE_SHMGET
    shmget_flag = false;
 #endif // USE_SHMGET
-   stochasticReleaseFlag = inputParams->value(name, "stochasticReleaseFlag", false, true) != 0;
-   combine_dW_with_W_flag = inputParams->value(name, "combine_dW_with_W_flag", combine_dW_with_W_flag, true) != 0;
-   dWMax            = inputParams->value(getName(), "dWMax", dWMax, true);
-   writeCompressedWeights = inputParams->value(name, "writeCompressedWeights", true);
-
-   return 0;
 }
 
 }  // end of namespace PV block

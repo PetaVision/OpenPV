@@ -27,7 +27,7 @@ public:
 
 
 protected:
-   virtual ChannelType readChannelCode(PVParams * params) { channel = CHANNEL_INH; return channel;}
+   virtual void readChannelCode(PVParams * params) { channel = CHANNEL_INH;}
    PVPatch ** initializeGaussian2DWeights(PVPatch ** patches, pvdata_t * dataStart, int numPatches);
    virtual int gauss2DCalcWeights(pvdata_t * dataStart, int kPre, int noPost,
                              int numFlanks, float shift, float rotate, float aspect, float sigma,

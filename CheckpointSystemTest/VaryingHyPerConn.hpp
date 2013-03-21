@@ -18,7 +18,6 @@ public:
    VaryingHyPerConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
          const char * filename, InitWeights *weightInit);
    virtual ~VaryingHyPerConn();
-   virtual int setParams(PVParams * inputParams);
    virtual int updateWeights(int axonId = 0);
 
 protected:
@@ -26,6 +25,8 @@ protected:
                   HyPerLayer * pre, HyPerLayer * post,
                   const char * filename,
                   InitWeights *weightInit=NULL);
+   virtual int setParams(PVParams * inputParams);
+   virtual void readPlasticityFlag(PVParams * inputParams);
    virtual int calc_dW(int axonId);
 
 }; // end class VaryingHyPerConn

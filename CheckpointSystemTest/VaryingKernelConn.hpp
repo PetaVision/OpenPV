@@ -18,13 +18,15 @@ public:
    VaryingKernelConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
          const char * filename, InitWeights *weightInit);
    virtual ~VaryingKernelConn();
-   virtual int setParams(PVParams * inputParams);
 
 protected:
    int initialize(const char * name, HyPerCol * hc,
                   HyPerLayer * pre, HyPerLayer * post,
                   const char * filename,
                   InitWeights *weightInit=NULL);
+   virtual int setParams(PVParams * inputParams);
+   virtual void readPlasticityFlag(PVParams * params);
+   virtual void readShmget_flag(PVParams * params);
    virtual int calc_dW(int axonId);
 
 }; // end class VaryingKernelConn
