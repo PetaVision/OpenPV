@@ -18,6 +18,30 @@
 extern "C" {
 #endif
 
+void LIF_update_state_arma(
+    const int numNeurons,
+    const float time,
+    const float dt,
+
+    const int nx,
+    const int ny,
+    const int nf,
+    const int nb,
+
+    LIF_params * params,
+    uint4 * rnd,
+
+    float * V,
+    float * Vth,
+    float * G_E,
+    float * G_I,
+    float * G_IB,
+    float * GSynHead,
+//    float * GSynExc,
+//    float * GSynInh,
+//    float * GSynInhB,
+    float * activity);
+
 void LIF_update_state_beginning(
     const int numNeurons,
     const float time,
@@ -104,15 +128,19 @@ int BIDSLayer::updateState(double time, double dt)
 //      pvdata_t * GSynExc   = getChannel(CHANNEL_EXC);
 //      pvdata_t * GSynInh   = getChannel(CHANNEL_INH);
 //      pvdata_t * GSynInhB  = getChannel(CHANNEL_INHB);
-      pvdata_t * activity = clayer->activity->data;
+      pvdata_t * activity = getActivity();
 
       switch (method) {
+      case 'a':
+         LIF_update_state_arma(getNumNeurons(), time, dt, nx, ny, nf, nb, &lParams, rand_state, getV(), Vth,
+               G_E, G_I, G_IB, GSynHead, activity);
+         break;
       case 'b':
-         LIF_update_state_beginning(getNumNeurons(), time, dt, nx, ny, nf, nb, &lParams, rand_state, clayer->V, Vth,
+         LIF_update_state_beginning(getNumNeurons(), time, dt, nx, ny, nf, nb, &lParams, rand_state, getV(), Vth,
                G_E, G_I, G_IB, GSynHead, activity);
          break;
       case 'o':
-         LIF_update_state_original(getNumNeurons(), time, dt, nx, ny, nf, nb, &lParams, rand_state, clayer->V, Vth,
+         LIF_update_state_original(getNumNeurons(), time, dt, nx, ny, nf, nb, &lParams, rand_state, getV(), Vth,
                G_E, G_I, G_IB, GSynHead, activity);
          break;
       default:
@@ -130,9 +158,3 @@ int BIDSLayer::updateState(double time, double dt)
 
 
 } // namespace PV
-
-///////////////////////////////////////////////////////
-//
-// implementation of LIF kernels
-//
-
