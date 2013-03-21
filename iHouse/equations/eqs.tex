@@ -1,7 +1,7 @@
 \documentclass{article}
 \usepackage{amssymb,amsmath}
-\def\nterm#1#2{n_{#1}^{\displaystyle{\tau_{#2}}}}
-\def\fterm#1#2{f_{#1}^{\displaystyle{\tau_{#2}}}}
+\def\nterm#1#2{n_{#1}^{\displaystyle{\tau^{#2}}}}
+\def\fterm#1#2{f_{#1}^{\displaystyle{\tau^{#2}}}}
 
 \begin{document}
 
@@ -43,31 +43,51 @@
 %\vspace{2pc}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-{\bf Feed-forward weight adaptation (STDP):}
+{\bf Feed-forward excitatory weight adaptation (STDP):}\\
+{Pre before post is $'$, pre after post is $''$}\\
 \begin{equation}\nonumber
-Q_{ij}(t+\Delta t) &= Q_{ij}(t) + \beta \left(\frac{\Delta t}{\tau_{oja}}\right)^{2} \left\{Oja*LTP - LTD - decay\right\} \right}
+Q_{ij}(t+\Delta t) &= Q_{ij}(t) + \beta \left(\frac{\Delta t}{\tau_{oja}}\right)^{2} \left\{Oja*LTP - LTD\right\}
 \end{equation}
 i.e.\\
-\begin{equation}\begin{split}
-Q_{ij}(t+\Delta t) &= Q_{ij}(t) + \beta \left(\frac{\Delta t}{\tau_{oja}}\right)^{2} \left\{\right.\\[2mm]
-                        &\nterm{Y_j}{oja}(t) \left[\nterm{X_i}{oja}(t) - \frac{f_{pre}}{f_{o}} \frac{Q_{ij}(t)}{W_{scale}} \nterm{Y_j}{oja}(t)\right] \cdot \lambda_{P} A_{Y}(t) \nterm{X_{i}}{P}(t)\\[2mm]
-                        &-\lambda_{D}_{j} A_{X}_{i}(t) \nterm{Y_{j}}{D}(t)\\[2mm]
-                        &-\alpha_{dec} Q_{ij}(t)\left\}\right.\\
+\begin{equation}\begin{split}\label{exciteSTDP}
+Q_{ij}(t+\Delta t) &= Q_{ij}(t) + \beta \left(\frac{\Delta t}{\tau_{oja}}\right)^{2} \left\{\left.\\[2mm]
+                        &\nterm{Y_j}{oja}(t) \left[\nterm{X_i}{oja}(t) - \frac{Q_{ij}(t)}{W_{scale}} \nterm{Y_j}{oja}(t)\right] \cdot \lambda^{'} A_{Y}(t) \nterm{X_{i}}{'}(t)\\[2mm]
+                        &-\lambda^{''}_{j} A_{X}_{i}(t) \nterm{Y_{j}}{''}(t)\left\}\right.\\[2mm]
 \end{split}\end{equation}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %\vspace{2pc}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-{\bf Adaptive LTD for feed-forward weights}
-\begin{align}\label{LTD}
-        \lambda_{D}_{j}(t+\Delta t) &= \lambda_{D}_{j}(t) +
-            \frac{\Delta t}{\displaystyle{\tau}_{_{thr}}}
+{\bf Feed-forward inhibitory weight adaptation (STDP):}\\
+{Pre before post is $'$, pre after post is $''$}\\
+\begin{equation}\nonumber
+Q_{ij}(t+\Delta t) &= Q_{ij}(t) + \beta \left\{PreAfterPost('') - PreBeforePost(')\right\}
+\end{equation}
+i.e.\\
+\begin{equation}\begin{split}\label{inhibSTDP}
+Q_{ij}(t+\Delta t) &= Q_{ij}(t) + \beta \left\{\left.\\[2mm]
+                        &\lambda^{''}_{j} A_{X}_{i}(t) \nterm{Y_{j}}{''}(t)\\[2mm]
+                        &-\lambda^{'} A_{Y}(t) \nterm{X_{i}}{'}(t)\left\}\right.\\[2mm]
+\end{split}\end{equation}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\vspace{2pc}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+{\bf Adaptive $\lambda_{D}$ for feed-forward weights}
+\begin{equation}\nonumber
+\lambda^{D}_{j} = \lambda^{''}_{j}
+\end{equation}
+
+\begin{align}\label{lambdaD}
+        \lambda^{D}_{j}(t+\Delta t) &= \lambda^{D}_{j}(t) +
+            \frac{\Delta t}{\displaystyle{\tau}^{thr}}
             \left[\fterm{j}{o}(t) - f_o\right]
-            \frac{\lambda_{Dscale}}{f_o}\\[3mm]
+            \frac{\lambda^{Dscale}}{f_o}\\[3mm]
 \intertext{where}
-        \lambda_{D}_{j} &> 0\nonumber\\[3mm]
-        \lambda_{D}_{j}(0) &= \lambda_{Dinit}\nonumber
+        \lambda^{D}_{j} &> 0\nonumber\\[3mm]
+        \lambda^{D}_{j}(0) &= \lambda^{Dinit}\nonumber
 \end{align}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
