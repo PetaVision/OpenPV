@@ -44,11 +44,6 @@ int OjaKernelConn::initialize_base() {
 int OjaKernelConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
       const char * filename, InitWeights *weightInit) {
    int status = KernelConn::initialize(name, hc, pre, post, filename, weightInit);
-   learningTime = readLearningTime();
-   inputTargetRate = 0.001*readInputTargetRate(); // params file specifies target rates in hertz; convert to khz since times are in ms
-   outputTargetRate = 0.001*readOutputTargetRate();
-   integrationTime = readIntegrationTime();
-   alphaMultiplier = readAlphaMultiplier();
 
    int numarbors = numberOfAxonalArborLists(); assert(numarbors>0);
    int n_pre_ext = getNumWeightPatches();
@@ -103,6 +98,16 @@ int OjaKernelConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre
       abort();
    }
    mpi_datatype = Communicator::newDatatypes(pre->getLayerLoc());
+   return status;
+}
+
+int OjaKernelConn::setParams(PVParams * params) {
+   int status = KernelConn::setParams(params);
+   readLearningTime(params);
+   readInputTargetRate(params);
+   readOutputTargetRate(params);
+   readIntegrationTime(params);
+   readAlphaMultiplier(params);
    return status;
 }
 

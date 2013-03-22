@@ -25,8 +25,6 @@ public:
             const char * filename=NULL, InitWeights *weightInit=NULL);
    virtual ~OjaSTDPConn();
 
-   int setParams(PVParams * params);
-
    virtual float maxWeight(int axonID);
    virtual int writeTextWeightsExtra(FILE * fd, int k, int axonID);
 
@@ -59,6 +57,22 @@ protected:
    int initialize(const char * name, HyPerCol * hc,
                   HyPerLayer * pre, HyPerLayer * post,
                   const char * filename, InitWeights *weightInit);
+   virtual int setParams(PVParams * params);
+   virtual void readAmpLTP(PVParams * params) {ampLTP = params->value(getName(), "ampLTP", ampLTP);}
+   virtual void readInitAmpLTD(PVParams * params) {initAmpLTD = params->value(getName(), "initAmpLTD", initAmpLTD);}
+   virtual void readTauLTP(PVParams * params) {tauLTP = params->value(getName(), "tauLTP", tauLTP);}
+   virtual void readTauLTD(PVParams * params) {tauLTD = params->value(getName(), "tauLTD", tauLTD);}
+   virtual void readTauOja(PVParams * params) {tauOja = params->value(getName(), "tauOja", tauOja);}
+   virtual void readTauTHR(PVParams * params) {tauTHR = params->value(getName(), "tauTHR", tauTHR);}
+   virtual void readTauO(PVParams * params) {tauO = params->value(getName(), "tauO", tauO);}
+   virtual void readTargetPostRate(PVParams * params) {targetPostRateHz = params->value(getName(), "targetPostRate", targetPostRateHz);}
+   virtual void readOjaFlag(PVParams * params) {ojaFlag = params->value(getName(), "ojaFlag", ojaFlag);}
+   virtual void readSynscalingFlag(PVParams * params) {synscalingFlag = params->value(getName(), "synscalingFlag", synscalingFlag);}
+   virtual void readSynscaling_v(PVParams * params) {synscaling_v = params->value(getName(), "synscaling_v", synscaling_v);}
+   virtual void readWMax(PVParams * params);
+   virtual void readWMin(PVParams * params);
+   virtual void readWeightScale(PVParams * params) {weightScale = params->value(getName(), "weightScale", weightScale);}
+   virtual void readLTDscale(PVParams * params);
    virtual int initPlasticityPatches();
 #ifdef PV_USE_OPENCL
    virtual int initializeThreadBuffers(const char * kernelName);

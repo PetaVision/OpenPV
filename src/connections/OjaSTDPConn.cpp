@@ -109,9 +109,9 @@ int OjaSTDPConn::initialize(const char * name, HyPerCol * hc,
    postLIF = dynamic_cast <LIF*> (postHyPerLayer);
    assert(postLIF != NULL);
 
-   //Grab VthRest from presynaptic LIF params
-   float VthRest;
-   VthRest = postLIF->getLIFParams()->VthRest;
+   // //Grab VthRest from presynaptic LIF params // Commented out March 22, 2013, as VthRest is unused
+   // float VthRest;
+   // VthRest = postLIF->getLIFParams()->VthRest;
 
    //allocate ampLTD and set to initial value
    //Restricted post
@@ -120,14 +120,6 @@ int OjaSTDPConn::initialize(const char * name, HyPerCol * hc,
       ampLTD[kRes] = initAmpLTD;
    }
 
-   //set LTDscale param (should default to ampLTP
-   LTDscale = hc->parameters()->value(name, "LTDscale", LTDscale);
-   if (LTDscale < 0) {
-      if (hc->columnId()==0) {
-         fprintf(stderr,"OjaSTDPConn \"%s\": LTDscale must be positive (value in params is %f).\n", name, LTDscale);
-      }
-      abort();
-   }
 
    mpi_datatype = Communicator::newDatatypes(pre->getLayerLoc());
    if (mpi_datatype==NULL) {
@@ -148,27 +140,49 @@ int OjaSTDPConn::setParams(PVParams * params)
 {
    HyPerConn::setParams(params);
 
-   ampLTP           = params->value(getName(), "ampLTP", ampLTP);
-   initAmpLTD       = params->value(getName(), "initAmpLTD", initAmpLTD);
-   tauLTP           = params->value(getName(), "tauLTP", tauLTP);
-   tauLTD           = params->value(getName(), "tauLTD", tauLTD);
-   tauOja           = params->value(getName(), "tauOja", tauOja);
-   tauTHR           = params->value(getName(), "tauTHR", tauTHR);
-   tauO             = params->value(getName(), "tauO",tauO);
+   readAmpLTP(params);
+   readInitAmpLTD(params);
+   readTauLTP(params);
+   readTauLTD(params);
+   readTauOja(params);
+   readTauTHR(params);
+   readTauO(params);
 
-   targetPostRateHz = params->value(getName(), "targetPostRate", targetPostRateHz);
+   readTargetPostRate(params);
 
-   ojaFlag          = params->value(getName(), "ojaFlag",ojaFlag);
-   synscalingFlag   = params->value(getName(), "synscalingFlag", synscalingFlag);
-   synscaling_v     = params->value(getName(), "synscaling_v", synscaling_v);
+   readOjaFlag(params);
+   readSynscalingFlag(params);
+   readSynscaling_v(params);
 
-   if (!ojaFlag) { //Don't even look for the param if ojaFlag is set to 1
-      wMax          = params->value(getName(), "wMax", wMax);
-   }
-   wMin             = params->value(getName(), "wMin", wMin);
-   weightScale      = params->value(getName(), "weightScale", weightScale);
+   readWMax(params);
+   readWMin(params);
+   readWeightScale(params);
+
+   readLTDscale(params);
 
    return 0;
+}
+
+void OjaSTDPConn::readWMax(PVParams * params) {
+   assert(!params->presentAndNotBeenRead(name, "ojaFlag"));
+   if (!ojaFlag) {
+      wMax = params->value(getName(), "wMax", wMax);
+   }
+}
+
+void OjaSTDPConn::readWMin(PVParams * params) {
+   wMin = params->value(getName(), "wMin", wMin);
+}
+
+void OjaSTDPConn::readLTDscale(PVParams * params) {
+   //set LTDscale param (should default to ampLTP)
+   LTDscale = params->value(name, "LTDscale", LTDscale);
+   if (LTDscale < 0) {
+      if (parent->columnId()==0) {
+         fprintf(stderr,"OjaSTDPConn \"%s\": LTDscale must be positive (value in params is %f).\n", name, LTDscale);
+      }
+      abort();
+   }
 }
 
 int OjaSTDPConn::initPlasticityPatches()

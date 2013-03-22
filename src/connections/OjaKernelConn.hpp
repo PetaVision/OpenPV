@@ -43,12 +43,16 @@ protected:
    virtual int update_dW(int axonId);
    virtual int updateWeights(int axonId);
 
+   virtual int setParams(PVParams * params);
    // Load member variables from params.  Virtual so that derived classes can deactivate a param if it isn't needed.
-   virtual float readLearningTime() {return getParent()->parameters()->value(name, "learningTime", 1.0);}
-   virtual float readInputTargetRate() {return getParent()->parameters()->value(name, "inputTargetRate", 1.0);}
-   virtual float readOutputTargetRate() {return getParent()->parameters()->value(name, "outputTargetRate", 1.0);}
-   virtual float readIntegrationTime() {return getParent()->parameters()->value(name, "integrationTime", 1.0);}
-   virtual float readAlphaMultiplier() {return getParent()->parameters()->value(name, "alphaMultiplier", 1.0);}
+   virtual void readLearningTime(PVParams * params) {learningTime = params->value(name, "learningTime", 1.0);}
+
+   // params file specifies target rates in hertz; convert to KHz since times are in ms
+   virtual void readInputTargetRate(PVParams * params) {inputTargetRate = 0.001*params->value(name, "inputTargetRate", 1.0);}
+   virtual void readOutputTargetRate(PVParams * params) {outputTargetRate = 0.001*params->value(name, "outputTargetRate", 1.0);}
+
+   virtual void readIntegrationTime(PVParams * params) {integrationTime = params->value(name, "integrationTime", 1.0);}
+   virtual void readAlphaMultiplier(PVParams * params) {alphaMultiplier = params->value(name, "alphaMultiplier", 1.0);}
 
 private:
    int initialize_base();
