@@ -28,6 +28,10 @@ protected:
     int initialize(const char * name, HyPerCol * hc,
             HyPerLayer * pre, HyPerLayer * post, HyPerLayer * pre2, HyPerLayer * post2,
             const char * filename=NULL, InitWeights *weightInit=NULL);
+    int setParams(PVParams * params);
+    void readSlownessFlag(PVParams * params);
+    int readSlownessPre(PVParams * params);
+    int readSlownessPost(PVParams * params);
     bool checkLayersCompatible(HyPerLayer * layer1, HyPerLayer * layer2);
     int getSlownessLayer(HyPerLayer ** l, const char * paramname);
     HyPerLayer * pre2;

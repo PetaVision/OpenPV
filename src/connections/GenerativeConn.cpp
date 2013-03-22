@@ -38,33 +38,57 @@ int GenerativeConn::initialize_base() {
    // so derived class initialize_base doesn't need to.
 }
 
-#ifdef OBSOLETE
-int GenerativeConn::initialize(const char * name, HyPerCol * hc,
-      HyPerLayer * pre, HyPerLayer * post, ChannelType channel) {
-   return initialize(name, hc, pre, post, channel, NULL, NULL);
-}
-#endif // OBSOLETE
-
 int GenerativeConn::initialize(const char * name, HyPerCol * hc,
       HyPerLayer * pre, HyPerLayer * post,
       const char * filename, InitWeights *weightInit) {
-   PVParams * params = hc->parameters();
-   relaxation = params->value(name, "relaxation", 1.0f);
-   nonnegConstraintFlag = params->value(name, "nonnegConstraintFlag", 0.0f) != 0.0; // default is not to constrain nonnegative.
-   imprintingFlag = params->value(name,"imprintingFlag", 0.f) != 0; // default is no imprinting
-   if( imprintingFlag ) imprintCount = 0;
-   weightDecayFlag = params->value(name, "weightDecayFlag", 0.0f) != 0.0f;
-   if( weightDecayFlag ) {
-      weightDecayRate = params->value(name, "weightDecayRate", 0.0f);
-      weightNoiseLevel = params->value(name, "weightNoiseLevel", 0.0f);
-
-   }
    KernelConn::initialize(name, hc, pre, post, filename, weightInit);
 
-   //GenerativeConn has not been updated to support multiple arbors!
+   //GenerativeConn has not been updated to support multiple arbors
    assert(numberOfAxonalArborLists()==1);
 
    return PV_SUCCESS;
+}
+
+int GenerativeConn::setParams(PVParams * params) {
+   int status = KernelConn::setParams(params);
+   readRelaxation(params);
+   readNonnegConstraintFlag(params);
+   readImprintingFlag(params);
+   readWeightDecayFlag(params);
+   readWeightDecayRate(params);
+   readWeightNoiseLevel(params);
+   return status;
+}
+
+void GenerativeConn::readRelaxation(PVParams * params) {
+   relaxation = params->value(name, "relaxation", 1.0f);
+}
+
+void GenerativeConn::readNonnegConstraintFlag(PVParams * params) {
+   nonnegConstraintFlag = params->value(name, "nonnegConstraintFlag", 0.0f) != 0.0; // default is not to constrain nonnegative.
+}
+
+void GenerativeConn::readImprintingFlag(PVParams * params) {
+   imprintingFlag = params->value(name,"imprintingFlag", 0.f) != 0; // default is no imprinting
+   if( imprintingFlag ) imprintCount = 0;
+}
+
+void GenerativeConn::readWeightDecayFlag(PVParams * params) {
+   weightDecayFlag = params->value(name, "weightDecayFlag", 0.0f) != 0.0f;
+}
+
+void GenerativeConn::readWeightDecayRate(PVParams * params) {
+   assert(!params->presentAndNotBeenRead(name, "weightDecayFlag"));
+   if( weightDecayFlag ) {
+      weightDecayRate = params->value(name, "weightDecayRate", 0.0f);
+   }
+}
+
+void GenerativeConn::readWeightNoiseLevel(PVParams * params) {
+   assert(!params->presentAndNotBeenRead(name, "weightDecayFlag"));
+   if( weightDecayFlag ) {
+      weightNoiseLevel = params->value(name, "weightNoiseLevel", 0.0f);
+   }
 }
 
 int GenerativeConn::update_dW(int axonID) {
@@ -75,18 +99,7 @@ int GenerativeConn::update_dW(int axonID) {
          const pvdata_t * patch_wData = get_wDataHead(axonID, p);
          pvdata_t * patch_dwData = get_dwDataHead(axonID, p);
          for(int k=0; k<nxp*nyp*nfp; k++) {
-//            pvdata_t y = postSynapticLayer()->getLayerData(getDelay(axonID))[k];
-//            pvdata_t decayterm = 1-y;
-//            pvdata_t W = patch_wData[k];
-//            if(decayterm <= 0) {
-//               decayterm = 0;
-//            }
-//            else {
-//               decayterm *= y;
-//               decayterm *= W*(1-W);
-//            }
             pvdata_t decayterm = patch_wData[k];
-            // decayterm *= 1-decayterm;
             patch_dwData[k] += -weightDecayRate * decayterm + weightNoiseLevel * (2*pv_random_prob()-1);
          }
       }

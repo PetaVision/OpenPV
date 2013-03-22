@@ -34,6 +34,13 @@ public:
 
 protected:
    GenerativeConn();
+   virtual int setParams(PVParams * params);
+   virtual void readRelaxation(PVParams * params);
+   virtual void readNonnegConstraintFlag(PVParams * params);
+   virtual void readImprintingFlag(PVParams * params);
+   virtual void readWeightDecayFlag(PVParams * params);
+   virtual void readWeightDecayRate(PVParams * params);
+   virtual void readWeightNoiseLevel(PVParams * params);
    virtual int initNormalize();
    virtual int update_dW(int axonID);
 

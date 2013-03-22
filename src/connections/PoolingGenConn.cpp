@@ -53,6 +53,33 @@ int PoolingGenConn::initialize(const char * name, HyPerCol * hc,
 }  // end of PoolingGenConn::initialize(const char *, HyPerCol *,
    //   HyPerLayer *, HyPerLayer *, HyPerLayer *, HyPerLayer *, int, const char *, InitWeights *)
 
+int PoolingGenConn::setParams(PVParams * params) {
+   int status = GenerativeConn::setParams(params);
+   readSlownessFlag(params);
+   if (status == PV_SUCCESS) status = readSlownessPre(params);
+   if (status == PV_SUCCESS) status = readSlownessPost(params);
+   if (status != PV_SUCCESS) {
+      abort();
+   }
+   return status;
+}
+
+void PoolingGenConn::readSlownessFlag(PVParams * params) {
+   slownessFlag = params->value(name, "slownessFlag", 0.0/*default is false*/, true/*warn if absent*/);
+}
+
+int PoolingGenConn::readSlownessPre(PVParams * params) {
+   assert(!params->presentAndNotBeenRead(name, "slownessFlag"));
+   int status = slownessFlag ? getSlownessLayer(&slownessPre, "slownessPre") : PV_SUCCESS;
+   return status;
+}
+
+int PoolingGenConn::readSlownessPost(PVParams * params) {
+   assert(!params->presentAndNotBeenRead(name, "slownessFlag"));
+   int status = slownessFlag ? getSlownessLayer(&slownessPost, "slownessPost") : PV_SUCCESS;
+   return status;
+}
+
 bool PoolingGenConn::checkLayersCompatible(HyPerLayer * layer1, HyPerLayer * layer2) {
 	int nx1 = layer1->getLayerLoc()->nx;
 	int nx2 = layer2->getLayerLoc()->nx;
