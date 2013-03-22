@@ -58,6 +58,8 @@ protected:
                   HyPerLayer * pre, HyPerLayer * post,
                   const char * filename, InitWeights *weightInit);
    virtual int setParams(PVParams * params);
+
+   virtual void read_dWMax(PVParams * params) {HyPerConn::read_dWMax(params);}
    virtual void readAmpLTP(PVParams * params) {ampLTP = params->value(getName(), "ampLTP", ampLTP);}
    virtual void readInitAmpLTD(PVParams * params) {initAmpLTD = params->value(getName(), "initAmpLTD", initAmpLTD);}
    virtual void readTauLTP(PVParams * params) {tauLTP = params->value(getName(), "tauLTP", tauLTP);}
@@ -73,6 +75,7 @@ protected:
    virtual void readWMin(PVParams * params);
    virtual void readWeightScale(PVParams * params) {weightScale = params->value(getName(), "weightScale", weightScale);}
    virtual void readLTDscale(PVParams * params);
+
    virtual int initPlasticityPatches();
 #ifdef PV_USE_OPENCL
    virtual int initializeThreadBuffers(const char * kernelName);

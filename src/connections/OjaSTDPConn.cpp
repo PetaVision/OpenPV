@@ -154,6 +154,8 @@ int OjaSTDPConn::setParams(PVParams * params)
    readSynscalingFlag(params);
    readSynscaling_v(params);
 
+   read_dWMax(params);
+
    readWMax(params);
    readWMin(params);
    readWeightScale(params);
