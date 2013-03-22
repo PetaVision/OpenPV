@@ -13,22 +13,17 @@ FeedbackConn::FeedbackConn() {
     initialize_base();
 }
 
-FeedbackConn::FeedbackConn(const char * name, HyPerCol * hc, KernelConn * ffconn) :
-        TransposeConn(name, hc, ffconn->postSynapticLayer(), ffconn->preSynapticLayer(), ffconn) {
+FeedbackConn::FeedbackConn(const char * name, HyPerCol * hc, KernelConn * ffconn) {
     initialize_base();
     initialize(name, hc, ffconn);
 }  // end of FeedbackConn::FeedbackConn(const char *, HyPerCol *, int, GenerativeConn *)
 
 int FeedbackConn::initialize_base() {
-   feedforwardConn = NULL;
    return PV_SUCCESS;
 }
 
 int FeedbackConn::initialize(const char * name, HyPerCol *hc, KernelConn * ffconn) {
-   feedforwardConn = originalConn;
-   //why doesn't feedbackconn call kernelconn's initialize???
-   //kernelconns need this and the GPU stuff...
-   initPatchToDataLUT();
+   TransposeConn::initialize(name, hc, ffconn->postSynapticLayer(), ffconn->preSynapticLayer(), ffconn);
    return PV_SUCCESS;
 }
 
@@ -41,21 +36,21 @@ int FeedbackConn::readPatchSize(PVParams * params) {
    // Similarly, if feedforwardConn is one-to-many, xscaleDiff < 0.
    int yscaleDiff = pre->getYScale() - post->getYScale();
 
-   nxp = feedforwardConn->xPatchSize();
+   nxp = originalConn->xPatchSize();
    if(xscaleDiff > 0 ) {
        nxp *= (int) powf( 2, xscaleDiff );
    }
    else if(xscaleDiff < 0) {
        nxp /= (int) powf(2,-xscaleDiff);
-       assert(feedforwardConn->xPatchSize()==nxp*powf( 2, (float) (-xscaleDiff) ));
+       assert(originalConn->xPatchSize()==nxp*powf( 2, (float) (-xscaleDiff) ));
    }
-   nyp = feedforwardConn->yPatchSize();
+   nyp = originalConn->yPatchSize();
    if(yscaleDiff > 0 ) {
        nyp *= (int) powf( 2, (float) yscaleDiff );
    }
    else if(yscaleDiff < 0) {
        nyp /= (int) powf(2,-yscaleDiff);
-       assert(feedforwardConn->yPatchSize()==nyp*powf( 2, (float) (-yscaleDiff) ));
+       assert(originalConn->yPatchSize()==nyp*powf( 2, (float) (-yscaleDiff) ));
    }
    assert( checkPatchSize(nxp, pre->getXScale(), post->getXScale(), 'x') ==
            PV_SUCCESS );
@@ -66,7 +61,7 @@ int FeedbackConn::readPatchSize(PVParams * params) {
 
 int FeedbackConn::readNfp(PVParams * params) {
    nfp = post->getLayerLoc()->nf;
-   assert(feedforwardConn && nfp==feedforwardConn->preSynapticLayer()->getLayerLoc()->nf);
+   assert(originalConn && nfp==originalConn->preSynapticLayer()->getLayerLoc()->nf);
    return PV_SUCCESS;
 }
 

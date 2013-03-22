@@ -63,29 +63,34 @@ int KernelConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
       HyPerLayer * post, const char * filename,
       InitWeights *weightInit)
 {
-   PVParams * params = hc->parameters();
    HyPerConn::initialize(name, hc, pre, post, filename, weightInit);
-   assert(!params->presentAndNotBeenRead(name, "initialWeightUpdateTime"));
-   lastUpdateTime = weightUpdateTime - parent->getDeltaTime();
 
-   // nxKernel = (pre->getXScale() < post->getXScale()) ? pow(2,
-   //       post->getXScale() - pre->getXScale()) : 1;
-   // nyKernel = (pre->getYScale() < post->getYScale()) ? pow(2,
-   //       post->getYScale() - pre->getYScale()) : 1;
-   // nfKernel = pre->getLayerLoc()->nf;
+   PVParams * params = hc->parameters();
+   assert(!params->presentAndNotBeenRead(name, "plasticityFlag"));
+   if (plasticityFlag) {
+      assert(!params->presentAndNotBeenRead(name, "initialWeightUpdateTime"));
+      lastUpdateTime = weightUpdateTime - parent->getDeltaTime();
+   }
 
 #ifdef PV_USE_MPI
    // preallocate buffer for MPI_Allreduce call in reduceKernels
-   //int arborID = 0; // for now, only one axonal arbor
-   const int numPatches = getNumDataPatches();
-   const size_t patchSize = nxp*nyp*nfp*sizeof(pvdata_t);
-   const size_t localSize = numPatches * patchSize;
-   mpiReductionBuffer = (pvdata_t *) malloc(localSize*sizeof(pvdata_t));
-   if(mpiReductionBuffer == NULL) {
-      fprintf(stderr, "KernelConn::initialize:Unable to allocate memory\n");
-      exit(PV_FAILURE);
+   // Should only call reduceKernels if plasticityFlag is set, so only allocate if it is set.
+   assert(!params->presentAndNotBeenRead(name, "plasticityFlag"));
+   if (plasticityFlag) {
+      const int numPatches = getNumDataPatches();
+      const size_t patchSize = nxp*nyp*nfp*sizeof(pvdata_t);
+      const size_t localSize = numPatches * patchSize;
+      mpiReductionBuffer = (pvdata_t *) malloc(localSize*sizeof(pvdata_t));
+      if(mpiReductionBuffer == NULL) {
+         if (parent->columnId()==0) {
+            fprintf(stderr, "KernelConn::initialize:Unable to allocate memory\n");
+         }
+         MPI_Barrier(parent->icCommunicator()->communicator());
+         exit(PV_FAILURE);
+      }
    }
 #endif // PV_USE_MPI
+
 #ifdef PV_USE_OPENCL
 //   //don't support GPU accelleration in kernelconn yet
 //   ignoreGPUflag=false;
@@ -528,6 +533,7 @@ float KernelConn::computeNewWeightUpdateTime(double time, double currentUpdateTi
 
 #ifdef PV_USE_MPI
 int KernelConn::reduceKernels(const int arborID) {
+   assert(plasticityFlag && mpiReductionBuffer);
    Communicator * comm = parent->icCommunicator();
    const MPI_Comm mpi_comm = comm->communicator();
    int ierr;

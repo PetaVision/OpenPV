@@ -31,8 +31,6 @@ protected:
     int setPatchSize(const char * filename);
     PVPatch *** initializeWeights(PVPatch *** arbors, pvdata_t ** dataStart, int numPatches,
           const char * filename);
-
-    KernelConn * feedforwardConn; // same as TransposeConn's originalConn; kept for backward compatibility
 };
 
 }  // end of block for namespace PV

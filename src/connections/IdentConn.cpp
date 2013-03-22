@@ -31,19 +31,10 @@ int IdentConn::initialize( const char * name, HyPerCol * hc, HyPerLayer * pre, H
       fprintf(stderr, "IdentConn \"%s\": Rank %d process unable to create InitIdentWeights object.  Exiting.\n", name, hc->icCommunicator()->commRank());
       exit(EXIT_FAILURE);
    }
-   symmetrizeWeightsFlag = false; // The data members set here should not be used by IdentConn.
-   weightUpdateTime = -1;         // Give them safe values nonetheless, as a precaution.
 #ifdef PV_USE_MPI
    mpiReductionBuffer = NULL;
 #endif // PV_USE_MPI
-   int status = HyPerConn::initialize(name, hc, pre, post, NULL, weightInit);
-#ifdef PV_USE_OPENCL
-   //don't support GPU acceleration in kernelconn yet
-   ignoreGPUflag=true;
-   //tell the receiving layer to copy gsyn to the gpu, because kernelconn won't be calculating it
-   //post->copyChannelToDevice();
-#endif
-   initPatchToDataLUT();
+   int status = KernelConn::initialize(name, hc, pre, post, NULL, weightInit);
    delete weightInit;
    return status;
 }

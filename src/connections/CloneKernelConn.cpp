@@ -41,10 +41,7 @@ int CloneKernelConn::initialize(const char * name, HyPerCol * hc,
    this->originalConn = originalConn;
    InitCloneKernelWeights * weightInit = new InitCloneKernelWeights();
    assert(weightInit != NULL);
-   int status = HyPerConn::initialize(name, hc, pre, post, NULL, weightInit);
-   //why doesn't clonekernelconn call kernelconn's initialize???
-   //kernelconns need this and the GPU stuff...
-   initPatchToDataLUT();
+   int status = KernelConn::initialize(name, hc, pre, post, NULL, weightInit);
    delete weightInit;
    return status;
 }
