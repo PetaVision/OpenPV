@@ -105,6 +105,7 @@ int KernelConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
 
 int KernelConn::setParams(PVParams * params) {
    int status = HyPerConn::setParams(params);
+   read_dWMax(params);
    readShmget_flag(params);
    readKeepKernelsSynchronized(params);
    readWeightUpdatePeriod(params);
