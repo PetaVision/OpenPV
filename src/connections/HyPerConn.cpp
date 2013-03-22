@@ -598,12 +598,14 @@ void HyPerConn::readSelfFlag(PVParams * params) {
 }
 
 void HyPerConn::readCombine_dW_with_W_flag(PVParams * params) {
+   assert(!params->presentAndNotBeenRead(name, "plasticityFlag"));
    if (plasticityFlag){
       combine_dW_with_W_flag = params->value(name, "combine_dW_with_W_flag", combine_dW_with_W_flag, true) != 0;
    }
 }
 
 void HyPerConn::read_dWMax(PVParams * params) {
+   assert(!params->presentAndNotBeenRead(name, "plasticityFlag"));
    if (plasticityFlag){
       dWMax = params->value(getName(), "dWMax", dWMax, true);
    }
