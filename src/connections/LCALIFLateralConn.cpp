@@ -105,6 +105,7 @@ int LCALIFLateralConn::setParams(PVParams * params) {
    readInhibitionTimeConstant();
    readTargetRate();
    readCorrThresh();
+   read_dWMax(params);
    return status;
 }
 

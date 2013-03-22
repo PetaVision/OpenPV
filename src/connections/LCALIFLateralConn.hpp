@@ -39,6 +39,7 @@ protected:
    int initialize(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post, const char * filename, InitWeights * weightInit);
    virtual int calc_dW(int axonId = 0);
 
+   virtual void read_dWMax(PVParams * params) {HyPerConn::read_dWMax(params);}
    virtual void readIntegrationTimeConstant() {integrationTimeConstant = getParent()->parameters()->value(name, "integrationTimeConstant", 1.0);}
    virtual void readInhibitionTimeConstant() {inhibitionTimeConstant = getParent()->parameters()->value(name, "inhibitionTimeConstant", 1.0);}
    virtual void readTargetRate() {targetRateKHz = 0.001 * getParent()->parameters()->value(name, "targetRate", 1.0);}
