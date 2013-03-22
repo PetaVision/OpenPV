@@ -29,6 +29,7 @@ size_t pv_sizeof(int datatype);
 
 FILE * PV_fopen(const char * path, const char * mode);
 long int PV_ftell(FILE * fp);
+int PV_fseek(FILE * fp, long int offset, int whence);
 
 FILE * pvp_open_read_file(const char * filename, Communicator * comm);
 
@@ -139,7 +140,7 @@ template <typename T> int gatherActivity(FILE * fp, Communicator * comm, int roo
             abort();
          }
       }
-      int fseekstatus = fseek(fp, startpos, SEEK_SET);
+      int fseekstatus = PV_fseek(fp, startpos, SEEK_SET);
       if (fseekstatus != 0) {
          fprintf(stderr, "gatherActivity error when setting file position: %s\n", strerror(errno));
          status = PV_FAILURE;
@@ -167,11 +168,18 @@ template <typename T> int gatherActivity(FILE * fp, Communicator * comm, int roo
             int kx0 = layerLoc->nx*columnFromRank(r, comm->numCommRows(), comm->numCommColumns());
             int k_local = kIndex(0, y, 0, layerLoc->nx, layerLoc->ny, layerLoc->nf);
             int k_global = kIndex(kx0, y+ky0, 0, layerLoc->nxGlobal, layerLoc->nyGlobal, layerLoc->nf);
-            fseek(fp, startpos + k_global*datasize, SEEK_SET);
-            int numwritten = fwrite(&temp_buffer[k_local], datasize, linesize, fp);
-            if (numwritten != linesize) {
-               fprintf(stderr, "gatherActivity error when writing: number of bytes attempted %d, number written %d\n", numwritten, numLocalNeurons);
+            int fseekstatus = PV_fseek(fp, startpos + k_global*datasize, SEEK_SET);
+            if (fseekstatus == 0) {
+               int numwritten = fwrite(&temp_buffer[k_local], datasize, linesize, fp);
+               if (numwritten != linesize) {
+                  fprintf(stderr, "gatherActivity error when writing: number of bytes attempted %d, number written %d\n", numwritten, numLocalNeurons);
+                  status = PV_FAILURE;
+               }
+            }
+            else {
+               fprintf(stderr, "gatherActivity error when setting file position: %s\n", strerror(errno));
                status = PV_FAILURE;
+               abort();
             }
          }
       }

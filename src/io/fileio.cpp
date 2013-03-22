@@ -97,6 +97,27 @@ long int PV_ftell(FILE * fp) {
    return filepos;
 }
 
+int PV_fseek(FILE * fp, long offset, int whence) {
+   int fseekcounts = 0;
+   int fseekstatus = -1;
+   while (fseekstatus != 0) {
+      errno = 0;
+      fseekstatus = fseek(fp, offset, whence);
+      if (fseekstatus==0) break;
+      fseekcounts++;
+      if (fseekcounts<MAX_FILESYSTEMCALL_TRIES) {
+         sleep(1);
+      }
+      else {
+         break;
+      }
+   }
+   if (fseekstatus!=0) {
+      fprintf(stderr, "PV_fseek error: %s\n", strerror(errno));
+   }
+   return fseekstatus;
+}
+
 
 /**
  * Copy patches into an unsigned char buffer
@@ -1601,7 +1622,7 @@ int readWeights(PVPatch *** patches, pvdata_t ** dataStart, int numArbors, int n
          if( header_file_type == PVP_KERNEL_FILE_TYPE ) {
             arborStart = headerSize + localSize*arborId;
             long offset = arborStart;
-            fseek(fp, offset, SEEK_SET);
+            PV_fseek(fp, offset, SEEK_SET);
             int numRead = fread(cbuf, localSize, 1, fp);
             if( numRead != 1 ) return -1;
 #ifdef PV_USE_MPI
@@ -1620,7 +1641,7 @@ int readWeights(PVPatch *** patches, pvdata_t ** dataStart, int numArbors, int n
                for( int px=0; px<nxProcs; px++ ) {
                   if( ++dest == 0 ) continue;
                   long offset = arborStart + dest*localSize;
-                  fseek(fp, offset, SEEK_SET);
+                  PV_fseek(fp, offset, SEEK_SET);
                   int numRead = fread(cbuf, localSize, 1, fp);
                   if( numRead != 1 ) return -1;
                   MPI_Send(cbuf, localSize, MPI_BYTE, dest, tag, mpi_comm);
@@ -1639,7 +1660,7 @@ int readWeights(PVPatch *** patches, pvdata_t ** dataStart, int numArbors, int n
 #endif // PV_USE_MPI
          if( readLocalPortion ) {
             long offset = arborStart + 0*localSize;
-            fseek(fp, offset, SEEK_SET);
+            PV_fseek(fp, offset, SEEK_SET);
             int numRead = fread(cbuf, localSize, 1, fp);
             if  (numRead != 1) {
                fprintf(stderr, "[%2d]: readWeights: failed in fread, offset==%ld\n",
@@ -1748,7 +1769,7 @@ int writeWeights(const char * filename, Communicator * comm, double timed, bool 
          fprintf(stderr, "PV::writeWeights: ERROR opening file %s\n", filename);
          return -1;
       }
-      if (append) fseek(fp, 0L, SEEK_END); // If append is true we open in "r+" mode so we need to move to the end of the file.
+      if (append) PV_fseek(fp, 0L, SEEK_END); // If append is true we open in "r+" mode so we need to move to the end of the file.
 
       // use file_type passed as argument to enable different behavior
       status = pvp_write_header(fp, comm, timed, loc, file_type,
