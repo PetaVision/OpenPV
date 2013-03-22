@@ -29,7 +29,7 @@ LCALIFLateralConn::~LCALIFLateralConn()
 int LCALIFLateralConn::initialize_base() {
    integratedSpikeCountCube = NULL;
    integratedSpikeCount = NULL;
-   coorThresh = 1;
+   corrThresh = 1;
    return PV_SUCCESS;
 }
 
@@ -101,10 +101,10 @@ return status;
 
 int LCALIFLateralConn::setParams(PVParams * params) {
    int status = HyPerConn::setParams(params);
-   integrationTimeConstant = readIntegrationTimeConstant();
-   inhibitionTimeConstant = readInhibitionTimeConstant();
-   targetRateKHz = 0.001 * readTargetRate();
-   coorThresh = readCoorThresh();
+   readIntegrationTimeConstant();
+   readInhibitionTimeConstant();
+   readTargetRate();
+   readCorrThresh();
    return status;
 }
 
@@ -144,12 +144,12 @@ int LCALIFLateralConn::calc_dW(int axonId) {
                   pvdata_t delta_weight;
                   float pre_scale_dt_weight = (1/target_rate_sq) * ((integratedSpikeCount[kPre_extended]/integrationTimeConstant)
                         * (integratedSpikeCount[kPost_extended]/integrationTimeConstant) - target_rate_sq);
-                  //Check to see if decoor is low enough to stop changing delta_weight
-                  if (pre_scale_dt_weight > 0 && pre_scale_dt_weight < coorThresh){
+                  //Check to see if decorrelation is low enough to stop changing delta_weight
+                  if (pre_scale_dt_weight > 0 && pre_scale_dt_weight < corrThresh){
                      delta_weight = 0;
                   }
-                  else if(pre_scale_dt_weight >= coorThresh){
-                     delta_weight = dt_inh * (pre_scale_dt_weight - coorThresh);
+                  else if(pre_scale_dt_weight >= corrThresh){
+                     delta_weight = dt_inh * (pre_scale_dt_weight - corrThresh);
                   }
                   else{
                      delta_weight = dt_inh * pre_scale_dt_weight;

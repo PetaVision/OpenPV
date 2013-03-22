@@ -126,9 +126,9 @@ int LCALIFLateralKernelConn::initialize(const char * name, HyPerCol * hc, HyPerL
 
 int LCALIFLateralKernelConn::setParams(PVParams * params) {
    int status = KernelConn::setParams(params);
-   integrationTimeConstant = readIntegrationTimeConstant();
-   inhibitionTimeConstant = readInhibitionTimeConstant();
-   targetRateKHz = 0.001 * readTargetRate();
+   readIntegrationTimeConstant();
+   readInhibitionTimeConstant();
+   readTargetRate();
    return status;
 }
 

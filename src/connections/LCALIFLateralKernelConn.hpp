@@ -37,10 +37,10 @@ class LCALIFLateralKernelConn: public KernelConn {
       int initialize(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post, const char * filename, InitWeights * weightInit);
       virtual int update_dW(int axonId = 0);
 
-      virtual float readIntegrationTimeConstant() {return getParent()->parameters()->value(name, "integrationTimeConstant", 1.0);}
-      virtual float readInhibitionTimeConstant() {return getParent()->parameters()->value(name, "inhibitionTimeConstant", 1.0);}
-      virtual float readTargetRate() {return getParent()->parameters()->value(name, "targetRate", 1.0);}
-      virtual float readCorrelationThreshold() {return getParent()->parameters()->value(name, "correlationThreshold", 1.0);}
+      virtual void readIntegrationTimeConstant() {integrationTimeConstant = getParent()->parameters()->value(name, "integrationTimeConstant", 1.0);}
+      virtual void readInhibitionTimeConstant() {inhibitionTimeConstant = getParent()->parameters()->value(name, "inhibitionTimeConstant", 1.0);}
+      virtual void readTargetRate() {targetRateKHz = 0.001 * getParent()->parameters()->value(name, "targetRate", 1.0);}
+      // virtual void readCorrelationThreshold() {corrThresh = getParent()->parameters()->value(name, "correlationThreshold", 1.0);}
 
       virtual int updateIntegratedSpikeCount();
 
