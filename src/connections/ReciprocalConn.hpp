@@ -43,6 +43,15 @@ protected:
          HyPerLayer * pre, HyPerLayer * post,
          const char * filename,
          InitWeights *weightInit=NULL);
+   virtual int setParams(PVParams * params);
+   virtual void readRelaxationRate(PVParams * params);
+   virtual void readReciprocalFidelityCoeff(PVParams * params);
+   virtual int readUpdateRulePre(PVParams * params);
+   virtual int readUpdateRulePost(PVParams * params);
+   virtual void readSlownessFlag(PVParams * params);
+   virtual int readSlownessPre(PVParams * params);
+   virtual int readSlownessPost(PVParams * params);
+   virtual int readReciprocalWgts(PVParams * params);
    int initParameterLayer(const char * parametername, HyPerLayer ** layerPtr,
          HyPerLayer * defaultlayer=NULL);
    virtual int initNormalize();

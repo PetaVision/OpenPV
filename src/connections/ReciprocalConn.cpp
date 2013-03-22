@@ -64,28 +64,70 @@ int ReciprocalConn::initialize_base() {
 int ReciprocalConn::initialize(const char * name, HyPerCol * hc,
       HyPerLayer * pre, HyPerLayer * post,
       const char * filename, InitWeights * weightInit) {
-   int status = PV_SUCCESS;
-   status = KernelConn::initialize(name, hc, pre, post, filename, weightInit);
-   PVParams * params = hc->parameters();
+   int status = KernelConn::initialize(name, hc, pre, post, filename, weightInit);
+
+   return status;
+}
+
+int ReciprocalConn::setParams(PVParams * params) {
+   int status = KernelConn::setParams(params);
+   readRelaxationRate(params);
+   readReciprocalFidelityCoeff(params);
+   status = readUpdateRulePre(params)==PV_SUCCESS ? status : PV_FAILURE;
+   status = readUpdateRulePost(params)==PV_SUCCESS ? status : PV_FAILURE;
+   readSlownessFlag(params);
+   status = readSlownessPre(params)==PV_SUCCESS ? status : PV_FAILURE;
+   status = readSlownessPost(params)==PV_SUCCESS ? status : PV_FAILURE;
+   status = readReciprocalWgts(params)==PV_SUCCESS ? status : PV_FAILURE;
+   if( status != PV_SUCCESS ) abort();
+   return status;
+}
+
+void ReciprocalConn::readRelaxationRate(PVParams * params) {
    relaxationRate = params->value(name, "relaxationRate", 1.0f);
+}
+
+void ReciprocalConn::readReciprocalFidelityCoeff(PVParams * params) {
    reciprocalFidelityCoeff = params->value(name, "reciprocalFidelityCoeff", 1.0f);
+}
 
-   status = initParameterLayer("updateRulePre", &updateRulePre, pre) == PV_SUCCESS ? status : PV_FAILURE;
-   status = initParameterLayer("updateRulePost", &updateRulePost, post) == PV_SUCCESS ? status : PV_FAILURE;
+int ReciprocalConn::readUpdateRulePre(PVParams * params) {
+   return initParameterLayer("updateRulePre", &updateRulePre, pre);
+}
 
+int ReciprocalConn::readUpdateRulePost(PVParams * params) {
+   return initParameterLayer("updateRulePost", &updateRulePost, post);
+}
+
+void ReciprocalConn::readSlownessFlag(PVParams * params) {
    slownessFlag = params->value(name, "slownessFlag", false)!=0;
-   if( slownessFlag ) {
-      status = initParameterLayer("slownessPre", &slownessPre, NULL) == PV_SUCCESS ? status : PV_FAILURE;
-      status = initParameterLayer("slownessPost", &slownessPost, NULL) == PV_SUCCESS ? status : PV_FAILURE;
-   }
+}
 
+int ReciprocalConn::readSlownessPre(PVParams * params) {
+   int status = PV_SUCCESS;
+   assert(!params->presentAndNotBeenRead(name, "slownessFlag"));
+   if (slownessFlag) {
+      status = initParameterLayer("slownessPre", &slownessPre, NULL);
+   }
+   return status;
+}
+
+int ReciprocalConn::readSlownessPost(PVParams * params) {
+   int status = PV_SUCCESS;
+   assert(!params->presentAndNotBeenRead(name, "slownessFlag"));
+   if (slownessFlag) {
+      status = initParameterLayer("slownessPost", &slownessPost, NULL);
+   }
+   return status;
+}
+
+int ReciprocalConn::readReciprocalWgts(PVParams * params) {
    reciprocalWgtsName = params->stringValue(name, "reciprocalWgts");
+   int status = PV_SUCCESS;
    if( reciprocalWgtsName == NULL || reciprocalWgtsName[0] == '0') {
       fprintf(stderr, "ReciprocalConn \"%s\": reciprocalWgts must be defined.\n", name);
       status = PV_FAILURE;
    }
-   if( status != PV_SUCCESS ) abort();
-
    return status;
 }
 
