@@ -49,7 +49,6 @@ protected:
    void readAmpLTD(PVParams * params);
    void readTauLTP(PVParams * params);
    void readTauLTD(PVParams * params);
-   void readTauY(PVParams * params);
    void readWMax(PVParams * params);
    void readWMin(PVParams * params);
    void read_dWMax(PVParams * params);

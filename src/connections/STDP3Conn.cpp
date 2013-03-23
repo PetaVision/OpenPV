@@ -193,11 +193,6 @@ void STDP3Conn::readWMin(PVParams * params) {
    if(stdpFlag) wMin = params->value(getName(), "wMin", wMin);
 }
 
-void STDP3Conn::readWMin(PVParams * params) {
-   assert(!params->presentAndNotBeenRead(name, "stdpFlag"));
-   if(stdpFlag) wMin = params->value(getName(), "wMin", wMin);
-}
-
 void STDP3Conn::read_dWMax(PVParams * params) {
    assert(!params->presentAndNotBeenRead(name, "stdpFlag"));
    if(stdpFlag) HyPerConn::read_dWMax(params);

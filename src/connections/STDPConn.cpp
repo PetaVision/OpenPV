@@ -125,7 +125,7 @@ PVLayerCube * STDPConn::getPlasticityDecrement()
  * to a pointer to a derived class (LIF). This way I do not need to define a virtual
  * function getWmax() in HyPerLayer which only returns a NULL pointer in the base class.
  */
-int STDP3Conn::setParams(PVParams * params)
+int STDPConn::setParams(PVParams * params)
 {
    // stdpFlag is now set by constructor
    // stdpFlag = (bool) filep->value(getName(), "stdpFlag", (float) stdpFlag);
@@ -135,7 +135,6 @@ int STDP3Conn::setParams(PVParams * params)
    readAmpLTD(params);
    readTauLTP(params);
    readTauLTD(params);
-   readTauY(params);
    readWMax(params);
    readWMin(params);
    read_dWMax(params);
@@ -159,57 +158,47 @@ int STDP3Conn::setParams(PVParams * params)
    return 0;
 }
 
-void STDP3Conn::readAmpLTP(PVParams * params) {
+void STDPConn::readAmpLTP(PVParams * params) {
    assert(!params->presentAndNotBeenRead(name, "stdpFlag"));
    if(stdpFlag) ampLTP = params->value(getName(), "ampLTP", ampLTP);
 }
 
-void STDP3Conn::readAmpLTD(PVParams * params) {
+void STDPConn::readAmpLTD(PVParams * params) {
    assert(!params->presentAndNotBeenRead(name, "stdpFlag"));
    if(stdpFlag) ampLTD = params->value(getName(), "ampLTD", ampLTD);
 }
 
-void STDP3Conn::readTauLTP(PVParams * params) {
+void STDPConn::readTauLTP(PVParams * params) {
    assert(!params->presentAndNotBeenRead(name, "stdpFlag"));
    if(stdpFlag) tauLTP = params->value(getName(), "tauLTP", tauLTP);
 }
 
-void STDP3Conn::readTauLTD(PVParams * params) {
+void STDPConn::readTauLTD(PVParams * params) {
    assert(!params->presentAndNotBeenRead(name, "stdpFlag"));
    if(stdpFlag) tauLTD = params->value(getName(), "tauLTD", tauLTD);
 }
 
-void STDP3Conn::readTauY(PVParams * params) {
-   assert(!params->presentAndNotBeenRead(name, "stdpFlag"));
-   if(stdpFlag) tauY = params->value(getName(), "tauY", tauY);
-}
-
-void STDP3Conn::readWMax(PVParams * params) {
+void STDPConn::readWMax(PVParams * params) {
    assert(!params->presentAndNotBeenRead(name, "stdpFlag"));
    if(stdpFlag) wMax = params->value(getName(), "wMax", wMax);
 }
 
-void STDP3Conn::readWMin(PVParams * params) {
+void STDPConn::readWMin(PVParams * params) {
    assert(!params->presentAndNotBeenRead(name, "stdpFlag"));
    if(stdpFlag) wMin = params->value(getName(), "wMin", wMin);
 }
 
-void STDP3Conn::readWMin(PVParams * params) {
-   assert(!params->presentAndNotBeenRead(name, "stdpFlag"));
-   if(stdpFlag) wMin = params->value(getName(), "wMin", wMin);
-}
-
-void STDP3Conn::read_dWMax(PVParams * params) {
+void STDPConn::read_dWMax(PVParams * params) {
    assert(!params->presentAndNotBeenRead(name, "stdpFlag"));
    if(stdpFlag) HyPerConn::read_dWMax(params);
 }
 
-void STDP3Conn::readSynscalingFlag(PVParams * params) {
+void STDPConn::readSynscalingFlag(PVParams * params) {
    assert(!params->presentAndNotBeenRead(name, "stdpFlag"));
    if(stdpFlag) synscalingFlag = params->value(getName(), "synscalingFlag", synscalingFlag);
 }
 
-void STDP3Conn::readSynscaling_v(PVParams * params) {
+void STDPConn::readSynscaling_v(PVParams * params) {
    assert(!params->presentAndNotBeenRead(name, "stdpFlag"));
    if(stdpFlag) synscaling_v = params->value(getName(), "synscaling_v", synscaling_v);
 }
