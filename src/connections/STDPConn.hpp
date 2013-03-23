@@ -22,8 +22,6 @@ public:
             InitWeights *weightInit=NULL);
    virtual ~STDPConn();
 
-   int setParams(PVParams * params);
-
 #ifdef PV_USE_OPENCL
    virtual int initializeThreadBuffers(const char * kernelName);
    virtual int initializeThreadKernels(const char * kernelName);
