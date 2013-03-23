@@ -46,6 +46,18 @@ protected:
    int initialize(const char * name, HyPerCol * hc,
                   HyPerLayer * pre, HyPerLayer * post,
                   const char * filename, bool stdpFlag, InitWeights *weightInit);
+   int setParams(PVParams * params);
+   void readAmpLTP(PVParams * params);
+   void readAmpLTD(PVParams * params);
+   void readTauLTP(PVParams * params);
+   void readTauLTD(PVParams * params);
+   void readTauY(PVParams * params);
+   void readWMax(PVParams * params);
+   void readWMin(PVParams * params);
+   void read_dWMax(PVParams * params);
+   void readSynscalingFlag(PVParams * params);
+   void readSynscaling_v(PVParams * params);
+
    virtual int initPlasticityPatches();
 
    PVLayerCube    * post_tr;      // plasticity decrement variable for postsynaptic layer
