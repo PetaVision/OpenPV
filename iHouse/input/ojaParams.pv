@@ -29,7 +29,7 @@ HyPerCol "column" = {
                                            //
    checkpointWrite              = true;
    deleteOlderCheckpoints       = false;
-   checkpointWriteStepInterval  = 10000;
+   checkpointWriteStepInterval  = 100;
    //checkpointWriteDir           = "~/Documents/workspace/iHouse/output/checkpoints";
    //checkpointWriteDir           = "~/Documents/Work/LANL/workspace/iHouse/checkpoints"; //Dylan's Mac
    checkpointWriteDir           = "/home/dpaiton/workspace/iHouse/checkpoints"; //Dylan's Remote 
