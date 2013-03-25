@@ -1349,7 +1349,11 @@ int writeActivity(FILE * fp, Communicator * comm, double timed, PVLayer * l)
 
       // write time
       //
-      if ( fwrite(&timed, sizeof(double), 1, fp) != 1 )              return -1;
+      if ( fwrite(&timed, sizeof(double), 1, fp) != 1 ) {
+         fprintf(stderr,"fwrite of timestamp in PV::writeActivity failed for layer %d at time %f\n", l->layerId, timed);
+         abort();
+         return -1;
+      }
    }
 
    if (gatherActivity(fp, comm, 0/*root process*/, l->activity->data, &l->loc, true/*extended*/)!=PV_SUCCESS) {
