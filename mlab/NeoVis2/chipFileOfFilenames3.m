@@ -92,12 +92,12 @@ function [tot_train_images, ...
   mkdir(filenames_path);
 
   %% path to generic image processing routines
-  img_proc_dir = "~/workspace/PetaVision/mlab/imgProc/";
+  img_proc_dir = "~/workspace_new/PetaVision/mlab/imgProc/";
   addpath(img_proc_dir);
 
 
   %% path to string manipulation kernels for use with parcellfun
-  str_kernel_dir = "~/workspace/PetaVision/mlab/stringKernels/";
+  str_kernel_dir = "~/workspace_new/PetaVision/mlab/stringKernels/";
   addpath(str_kernel_dir);
 
   %%object_folder = [chip_path, object_name, object_name_suffix, filesep];
@@ -168,7 +168,9 @@ function [tot_train_images, ...
       disp(["fileOfTargetFilenames_mask = ", fileOfTargetFilenames_mask]);
       fid_target_mask = fopen(fileOfTargetFilenames_mask, "w", "native");
       for i_file = 1 : num_train(i_output)
-	fprintf(fid_target_mask, "%s\n", [target_mask_dir, "target_", train_names{write_train_ndx(i_file)}]);
+	%%fprintf(fid_target_mask, "%s\n", [target_mask_dir, "target_", train_names{write_train_ndx(i_file)}]);
+	fprintf(fid_target_mask, "%s\n", ...
+		[target_mask_dir, strrep(train_names{write_train_ndx(i_file)}, "original", "target")]);
       endfor %%
       fclose(fid_target_mask);
     endif
@@ -177,7 +179,9 @@ function [tot_train_images, ...
       disp(["fileOfDistractorFilenames_mask = ", fileOfDistractorFilenames_mask]);
       fid_distractor_mask = fopen(fileOfDistractorFilenames_mask, "w", "native");
       for i_file = 1 : num_train(i_output)
-	fprintf(fid_distractor_mask, "%s\n", [distractor_mask_dir, "distractor_", train_names{write_train_ndx(i_file)}]);
+	%%fprintf(fid_distractor_mask, "%s\n", [distractor_mask_dir, "distractor_", train_names{write_train_ndx(i_file)}]);
+	fprintf(fid_distractor_mask, "%s\n", ...
+		[distractor_mask_dir, strrep(train_names{write_train_ndx(i_file)}, "original", "distractor")]);
       endfor %%
       fclose(fid_distractor_mask);
     endif
