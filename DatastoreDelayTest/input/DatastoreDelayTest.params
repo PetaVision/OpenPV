@@ -16,13 +16,16 @@ HyPerCol "column" = {
    randomSeed = 30926100951;  // if not set here,  clock time is used to generate seed
    numSteps = 20;
    progressStep = 20;
+   writeProgressToErr = false;
    outputPath = "output/";
    filenamesContainLayerNames = false;
+   filenamesContainConnectionNames = false;
    checkpointRead = false;
    checkpointWrite = true;
    checkpointWriteDir = "checkpoints/";
    checkpointWriteStepInterval = 1;
    checkpointWriteTimeInterval = -1;
+   deleteOlderCheckpoints = false;
 };
 
 //
@@ -34,16 +37,18 @@ DatastoreDelayTestLayer "input" = {
     nxScale = 1;
     nyScale = 1;
     nf = 1;
+    phase = 0;
     marginWidth = 0;
-    writeStep = 1;
+    writeStep = 1.0;
+    initialWriteTime = 0.0;
     mirrorBCflag = false;
-    spikingFlag = 0;
-    writeNonspikingActivity = 1;
+    writeSparseActivity = false;
     
     InitVType = "ZeroV";
     VMax = infinity;
     VThresh = -infinity;
     VMin = -infinity;
+    VShift = 0.0;
 };
 
 ANNLayer "output" = {
@@ -51,16 +56,18 @@ ANNLayer "output" = {
     nxScale = 1;
     nyScale = 1;
     nf = 1;
+    phase = 0;
     marginWidth = 0;
-    writeStep = 1;
+    writeStep = 1.0;
+    initialWriteTime = 0.0;
     mirrorBCflag = false;
-    spikingFlag = 0;
-    writeNonspikingActivity = 1;
+    writeSparseActivity = false;
     
     InitVType = "ZeroV";
     VMax = infinity;
     VThresh = -infinity;
     VMin = -infinity;
+    VShift = 0.0;
 };
 
 ANNLayer "outputArbor" = {
@@ -68,16 +75,18 @@ ANNLayer "outputArbor" = {
     nxScale = 1;
     nyScale = 1;
     nf = 1;
+    phase = 0;
     marginWidth = 0;
-    writeStep = 1;
+    writeStep = 1.0;
+    initialWriteTime = 0.0;
     mirrorBCflag = false;
-    spikingFlag = 0;
-    writeNonspikingActivity = 1;
+    writeSparseActivity = false;
     
     InitVType = "ZeroV";
     VMax = infinity;
     VThresh = -infinity;
     VMin = -infinity;
+    VShift = 0.0;
 };
 // Connections
 
@@ -140,23 +149,24 @@ KernelConn "delayArbor" = {
     weightInit = 1.0;
       
     normalize              = false;
-    symmetrizeWeights      = false;
     plasticityFlag         = false;
     stochasticReleaseFlag  = false;
     writeCompressedWeights = true;
+    writeCompressedCheckpoints = true;
     selfFlag               = false;
     shrinkPatches          = false;
     preActivityIsNotRate   = false;
-    combineWeightFiles     = false;
     shmget_flag            = true;
 };
 
 DatastoreDelayTestProbe "probe" = {
     targetLayer = "output";
     probeOutputFile = "probe.txt";
+    message = "probe           ";
 };
 
 DatastoreDelayTestProbe "probeArbor" = {
     targetLayer = "outputArbor";
     probeOutputFile = "probeArbor.txt";
+    message = "probeArbor      ";
 };
