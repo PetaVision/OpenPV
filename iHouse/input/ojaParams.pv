@@ -195,7 +195,7 @@ LIF "Inter" = {						//A.K.A. - Smooth-Stellate cells, parvalbumin positive cell
                                     // 
    writeStep           = -1; 		// Set to 1 to make post movie
                                     //
-   marginWidth         = 11;
+   marginWidth         = 8;
    mirrorBCflag        = 0;         // mirroring boundary conditions
    InitVType           = "ConstantV";
    method              = "arma";
