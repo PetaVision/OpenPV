@@ -438,6 +438,7 @@ int HyPerConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
    accumulateFunctionPointer = stochasticReleaseFlag ? &pvpatch_accumulate_stochastic : &pvpatch_accumulate;
 
    this->connId = parent->addConnection(this);
+   ioAppend = parent->getCheckpointReadFlag();
 
    constructWeights(filename);
 

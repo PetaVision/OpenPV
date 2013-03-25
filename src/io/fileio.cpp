@@ -286,6 +286,7 @@ FILE * pvp_open_write_file(const char * filename, Communicator * comm, bool appe
       }
       if (rwmode) {
          fp = fopen(filename, "r+b");
+         PV_fseek(fp, 0L, SEEK_END); // If append is true we open in "r+" mode so we need to move to the end of the file.
       }
       else {
          fp = fopen(filename, "wb");
