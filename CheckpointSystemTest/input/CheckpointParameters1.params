@@ -47,7 +47,7 @@ CPTestInputLayer "input" = {
     initialWriteTime = 0.0;
     writeSparseActivity = false;
     mirrorBCflag = false;
-    Vrest = 0;
+    InitVType = "ZeroV";
     VMax = infinity;
     VMin = -infinity;
     VThresh = -infinity;
@@ -66,7 +66,7 @@ ANNLayer "output no delay" = {
     mirrorBCflag = 1;
     writeSparseActivity = false;
 
-    Vrest = 0.0;
+    InitVType = "ZeroV";
 
     VThresh = -infinity;
     VMax = infinity;
@@ -86,7 +86,7 @@ ANNLayer "output with delay" = {
     mirrorBCflag = 1;
     writeSparseActivity = false;
 
-    Vrest = 0.0;
+    InitVType = "ZeroV";
 
     VThresh = -infinity;
     VMax = infinity;
@@ -106,7 +106,7 @@ ANNLayer "output arbor" = {
     mirrorBCflag = 1;
     writeSparseActivity = false;
 
-    Vrest = 0.0;
+    InitVType = "ZeroV";
 
     VThresh = -infinity;
     VMax = infinity;
@@ -126,7 +126,7 @@ ANNLayer "output from full hyperconn" = {
     mirrorBCflag = 1;
     writeSparseActivity = false;
 
-    Vrest = 0.0;
+    InitVType = "ZeroV";
 
     VThresh = -infinity;
     VMax = infinity;
@@ -143,6 +143,7 @@ VaryingKernelConn "conn no delay" = {
     nfp = 1;
     numAxonalArbors = 1;
     writeStep = 1;
+    initialWriteTime = 0;
     initFromLastFlag = 0;
     
     weightInitType = "Gauss2DWeight";
@@ -159,17 +160,20 @@ VaryingKernelConn "conn no delay" = {
       
     strength = 1.0;  // 1.0 x post->num_neurons / pre->num_neurons
     normalize = false;
-    symmetrizeWeights = false;
 
     writeCompressedWeights = false;
     writeCompressedCheckpoints = false;
     plasticityFlag = true;
+    combine_dW_with_W_flag = false;
+    dWMax = 1.0;
     selfFlag = false;
-    shmget_flag = false;
+    keepKernelsSynchronized = true;
     weightUpdatePeriod = 1;
+    initialWeightUpdateTime = 0;
 
     delay = 0;
 
+    preActivityIsNotRate = false;
     stochasticReleaseFlag = false;
     shrinkPatches = false;
 };
@@ -183,6 +187,7 @@ VaryingKernelConn "conn with delay" = {
     nfp = 1;
     numAxonalArbors = 1;
     writeStep = 1;
+    initialWriteTime = 0.0;
     initFromLastFlag = 0;
     
     weightInitType = "Gauss2DWeight";
@@ -199,17 +204,20 @@ VaryingKernelConn "conn with delay" = {
       
     strength = 1.0;  // 1.0 x post->num_neurons / pre->num_neurons
     normalize = false;
-    symmetrizeWeights = false;
 
     writeCompressedWeights = false;
     writeCompressedCheckpoints = false;
     plasticityFlag = true;
+    combine_dW_with_W_flag = false;
+    dWMax = 1.0;
     selfFlag = false;
-    shmget_flag = false;
-    weightUpdatePeriod = 1;
+    keepKernelsSynchronized = true;
+    weightUpdatePeriod = 1.0;
+    initialWeightUpdateTime = 0.0;
 
     delay = 2;
 
+    preActivityIsNotRate = false;
     stochasticReleaseFlag = false;
     shrinkPatches = false;
 };
@@ -222,12 +230,16 @@ KernelConn "input to output arbor" = {
     nxp = 3;
     nyp = 3;
     nfp = 1;
-    writeStep = 1;
+    writeStep = 1.0;
+    initialWriteTime = 0.0;
     initFromLastFlag = 0;
     
     weightInit=1;
     
     weightInitType = "SpreadOverArborsWeight";
+    deltaThetaMax = 0.0;
+    thetaMax = 0.0;
+    rotate = 0.0;
       
     normalize = true;
     strength = 9.0;  // 1.0 x post->num_neurons / pre->num_neurons
@@ -235,8 +247,11 @@ KernelConn "input to output arbor" = {
     normalize_max = 0.0;
     normalize_cutoff = 0;
     normalize_arbors_individually = false;
+    normalizeTotalToPost = false;
+    normalize_RMS_amp = false;
     symmetrizeWeights = 0;
 
+    preActivityIsNotRate = false;
     stochasticReleaseFlag = false;
     shrinkPatches = false;
 
@@ -257,21 +272,23 @@ VaryingHyPerConn "full hyperconn" = {
     nxp = 1;
     nyp = 1;
     nfp = 1;
-    writeStep = 1;
+    writeStep = 1.0;
+    initialWriteTime = 0.0;
     initFromLastFlag = 0;
         
     weightInitType = "SmartWeight";
 
     normalize = false;
 
+    preActivityIsNotRate = false;
     stochasticReleaseFlag = false;
     shrinkPatches = false;
 
     writeCompressedWeights = false;
     writeCompressedCheckpoints = false;
     plasticityFlag = false;
+    combine_dW_with_W_flag = false;
     selfFlag = false;
-    shmget_flag = false;
 
     delay = 0;     
 };
