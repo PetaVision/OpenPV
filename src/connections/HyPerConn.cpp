@@ -2224,7 +2224,23 @@ int HyPerConn::writePostSynapticWeights(double timef, bool last) {
    const int nfPostPatch = lPre->loc.nf;
 
    const char * last_str = (last) ? "_last" : "";
-   snprintf(path, PV_PATH_MAX-1, "%s/w%d_post%s.pvp", parent->getOutputPath(), getConnectionId(), last_str);
+
+   int chars_needed = 0;
+   assert(parent->includeConnectionName()<=2 && parent->includeConnectionName()>=0);
+   switch(parent->includeConnectionName()) {
+   case 0:
+	  chars_needed = snprintf(path, PV_PATH_MAX-1, "%s/w%d_post%s.pvp", parent->getOutputPath(), getConnectionId(), last_str);
+	  break;
+   case 1:
+	  chars_needed = snprintf(path, PV_PATH_MAX-1, "%s/w%d_%s_post%s.pvp", parent->getOutputPath(), getConnectionId(), name, last_str);
+	  break;
+   case 2:
+	  chars_needed = snprintf(path, PV_PATH_MAX-1, "%s/%s_post%s.pvp", parent->getOutputPath(), name, last_str);
+	  break;
+   default:
+	  assert(0);
+	  break;
+   }
 
    const PVLayerLoc * loc  = post->getLayerLoc();
    Communicator * comm = parent->icCommunicator();
