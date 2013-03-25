@@ -10,8 +10,8 @@ HyPerCol "column" = {
                                            // 
    randomSeed                   = 1234567890;   
                                            //
-   numSteps                     = 1000000; // amount of time steps performed during run-time
-   progressStep                 = 1000;    // write output to see progress
+   numSteps                     = 55100; // amount of time steps performed during run-time
+   progressStep                 = 100;    // write output to see progress
    writeProgressToErr           = 0;       // write progress steps to std err
                                            // 
    //outputPath                   = "~/Documents/workspace/iHouse/output";
@@ -21,15 +21,15 @@ HyPerCol "column" = {
    filenamesContainLayerNames      = 2;    // stores pvp files as: 0 = layer number/1 = layer number and layer name/2 = layer name
    filenamesContainConnectionNames = 2;
                                            // 
-   checkpointRead               = false;
-   checkpointReadDirIndex       = 1000000;
+   checkpointRead               = true;
+   checkpointReadDirIndex       = 55000;
    //checkpointReadDir            = "~/Documents/workspace/iHouse/checkpoints";
    //checkpointReadDir            = "~/Documents/Work/LANL/workspace/iHouse/checkpoints"; //Dylan's Mac
    checkpointReadDir            = "/home/dpaiton/workspace/iHouse/checkpoints"; //Dylan's Remote 
                                            //
    checkpointWrite              = true;
    deleteOlderCheckpoints       = false;
-   checkpointWriteStepInterval  = 5000;
+   checkpointWriteStepInterval  = 10000;
    //checkpointWriteDir           = "~/Documents/workspace/iHouse/output/checkpoints";
    //checkpointWriteDir           = "~/Documents/Work/LANL/workspace/iHouse/checkpoints"; //Dylan's Mac
    checkpointWriteDir           = "/home/dpaiton/workspace/iHouse/checkpoints"; //Dylan's Remote 
@@ -112,7 +112,7 @@ Retina "RetinaON" = {
     foregroundRate      = 400;    // Hz // Max poisson spiking rate when input is 255
     backgroundRate      = 10;     // Hz // Min poisson spiking rate when input is 0
                                   //
-    burstFreq           = 0.001;  // Hz // Everything coming into the retina should be burstin burstFreq times per sec
+    burstFreq           = 0.001;  // Hz // Everything coming into the retina should be bursting burstFreq times per sec
     burstDuration       = 1000000;// ms // Bursts last burstDuration ms
                                   //
     beginStim           = 0;      // Restrict stimulus to a window of time
@@ -140,7 +140,7 @@ Retina "RetinaOFF" = {
     foregroundRate      = 400;    // Hz // Max poisson spiking rate when input is 255
     backgroundRate      = 10;     // Hz // Min poisson spiking rate when input is 0
                                   //
-    burstFreq           = 0.001;  // Hz // Everything coming into the retina should be burstin burstFreq times per sec
+    burstFreq           = 0.001;  // Hz // Everything coming into the retina should be bursting burstFreq times per sec
     burstDuration       = 1000000;// ms // Bursts last burstDuration ms
                                   //
     beginStim           = 0;      // Restrict stimulus to a window of time
@@ -175,7 +175,7 @@ LIF "Stellate" = {					//Spiny stellate cells, layer 4B
    tauIB               = 10.0;      // (ms) inhibitory potassium channel 
    Vrest               = -70.0;     // (mV) resting V level
    VthRest             = -55.0;     // (mV) firing threshold 15 mV above rest
-   tauVth              = 10.0;      // 10.0 relative refractory period
+   tauVth              = 10.0;      // relative refractory period
    deltaVth            = 5.0;       // jump of threshold when firing
    noiseAmpE           = 0.02; //0.25;      // 0 to 1 means conductance is equal to lead conductance -gjk
    noiseAmpI           = 0.01; //0.25;      // 0 to 1 twice as easy for the membrane capacitance to discharge -gjk
@@ -210,7 +210,7 @@ LIF "Inter" = {						//A.K.A. - Smooth-Stellate cells, parvalbumin positive cell
    tauIB               = 10.0;      // (ms) inhibitory potassium channel 
    Vrest               = -70.0;     // (mV) resting V level
    VthRest             = -55.0;     // (mV) firing threshold 15 mV above rest
-   tauVth              = 10.0;      // 10.0 relative refractory period
+   tauVth              = 10.0;      // relative refractory period
    deltaVth            = 5.0;       // jump of threshold when firing
    noiseAmpE           = 0.02; //0.25;      // 0 to 1 means conductance is equal to lead conductance -gjk
    noiseAmpI           = 0.01; //0.25;      // 0 to 1 twice as easy for the membrane capacitance to discharge -gjk
@@ -299,13 +299,14 @@ KernelConn "ImagetoRetinaOFFCenter" = {
    writeCompressedWeights     = true;
    selfFlag                   = false;
    shrinkPatches              = false;
+                                 //
    normalizeTotalToPost       = true;
    normalize_cutoff           = false;
-                                 //
    normalize                  = true;
    normalize_zero_offset      = 0.0;
    normalize_max              = 0.0;
    normalize_RMS_amp          = false;
+                                 //
    symmetrizeWeights          = 0;
    writeCompressedCheckpoints = false;
 };
@@ -338,13 +339,14 @@ KernelConn "ImagetoRetinaONSurround" = {
    writeCompressedWeights     = true;
    selfFlag                   = false;
    shrinkPatches              = false;
+                                 //
    normalizeTotalToPost       = true;
    normalize_cutoff           = false;
-                                 //
    normalize                  = true;
    normalize_zero_offset      = 0.0;
    normalize_max              = 0.0;
    normalize_RMS_amp          = false;
+                                 //
    symmetrizeWeights          = 0;
    writeCompressedCheckpoints = false;
 };
