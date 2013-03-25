@@ -618,12 +618,15 @@ void HyPerConn::readWriteStep(PVParams * params) {
 
 void HyPerConn::readInitialWriteTime(PVParams * params) {
    assert(!params->presentAndNotBeenRead(name, "writeStep"));
-   if (!params->present(name, "writeStep")) {
-      if (parent->columnId()==0) {
-         fprintf(stderr, "HyPerConn::readInitialWriteTime warning for connection \"%s\": reading initialWriteTime using default for writeStep.\n", name);
+   writeTime = parent->simulationTime();
+   if (writeStep>=0) {
+      if (!params->present(name, "writeStep")) {
+         if (parent->columnId()==0) {
+            fprintf(stderr, "HyPerConn::readInitialWriteTime warning for connection \"%s\": reading initialWriteTime using default for writeStep.\n", name);
+         }
       }
+      writeTime = params->value(name, "initialWriteTime", writeTime);
    }
-   writeTime = params->value(name, "initialWriteTime", parent->simulationTime());
 }
 
 void HyPerConn::readDelay(PVParams * params) {
