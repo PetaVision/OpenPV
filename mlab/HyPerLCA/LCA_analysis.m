@@ -2,33 +2,34 @@
 clear all;
 close all;
 setenv("GNUTERM","X11")
-%%workspace_path = "/home/gkenyon/workspace";
-workspace_path = "/Users/garkenyon/workspace";
-%%output_dir = "/nh/compneuro/Data/vine/LCA/cats"; 
-output_dir = "/Users/garkenyon/workspace/HyPerHLCA2/output"
-%%LCA_path = [output_dir];
-LCA_path = [workspace_path, filesep, "HyPerHLCA2"];
-addpath([workspace_path, filesep, "/PetaVision/mlab/util"]);
-%%last_checkpoint_ndx = 20706*60; %%
-%%first_checkpoint_ndx = 0;
-last_checkpoint_ndx = 850000; %%20706*59; %%
-first_checkpoint_ndx = 0; %%600000;
-use_Last_flag = 0;
-if use_Last_flag
-  checkpoint_dir = [output_dir, filesep, "Last"];
-  checkpoint_path = [checkpoint_dir]
-else
-  checkpoint_dir = [LCA_path, filesep, "Checkpoints"];
-  checkpoint_path = [checkpoint_dir, filesep, "Checkpoint", num2str(last_checkpoint_ndx, "%i")];
+if ismac
+  workspace_path = "/Users/garkenyon/workspace";
+  output_dir = "/Users/garkenyon/workspace/HyPerHLCA2/output"
+  LCA_path = [workspace_path, filesep, "HyPerHLCA2"];
+  last_checkpoint_ndx = 20000; 
+  next_checkpoint_ndx = 40000;
+  first_checkpoint_ndx = 0; 
+  frame_duration = 1000;
+elseif isunix
+  workspace_path = "/home/gkenyon/workspace_new";
+  output_dir = "/nh/compneuro/Data/vine/LCA/cats"; 
+  LCA_path = [output_dir];
+  last_checkpoint_ndx = 20706*40; 
+  next_checkpoint_ndx = 20706*41; 
+  first_checkpoint_ndx = 1; %% 20706*0;
+  frame_duration = 500;
 endif
+addpath([workspace_path, filesep, "/PetaVision/mlab/util"]);
+checkpoint_dir = [LCA_path, filesep, "Checkpoints"];
+checkpoint_path = [checkpoint_dir, filesep, "Checkpoint", num2str(last_checkpoint_ndx, "%i")];
+next_checkpoint_path = [checkpoint_dir, filesep, "Checkpoint", num2str(next_checkpoint_ndx, "%i")];
 max_lines = last_checkpoint_ndx + (last_checkpoint_ndx == 0) * 1000;
 max_history = 50000;
 begin_statProbe_step = max(max_lines - max_history, 3);
 frame_duration = 1000;
 
 
-%% get DoG kernel
-
+%% plot Reconstructions
 plot_Recon = 1;
 if plot_Recon
   %%keyboard;
@@ -347,8 +348,11 @@ if plot_V1
 endif
 
 plot_final_weights = 1;
-if plot_final_weights
+if plot_final_weights 
   V1ToError_path = [checkpoint_path, filesep, "V1ToError_W.pvp"];
+  if ~exist(V1ToError_path, "file")
+    V1ToError_path = [next_checkpoint_path, filesep, "V1ToError_W.pvp"];
+  endif
   [V1ToError_struct, V1ToError_hdr] = readpvpfile(V1ToError_path,1);
   i_frame = 1;
   i_arbor = 1;
