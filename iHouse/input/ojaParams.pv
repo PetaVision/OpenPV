@@ -10,8 +10,8 @@ HyPerCol "column" = {
                                            // 
    randomSeed                   = 1234567890;   
                                            //
-   numSteps                     = 55100; // amount of time steps performed during run-time
-   progressStep                 = 100;    // write output to see progress
+   numSteps                     = 1000000; // amount of time steps performed during run-time
+   progressStep                 = 1000;    // write output to see progress
    writeProgressToErr           = 0;       // write progress steps to std err
                                            // 
    //outputPath                   = "~/Documents/workspace/iHouse/output";
@@ -29,7 +29,7 @@ HyPerCol "column" = {
                                            //
    checkpointWrite              = true;
    deleteOlderCheckpoints       = false;
-   checkpointWriteStepInterval  = 100;
+   checkpointWriteStepInterval  = 10000;
    //checkpointWriteDir           = "~/Documents/workspace/iHouse/output/checkpoints";
    //checkpointWriteDir           = "~/Documents/Work/LANL/workspace/iHouse/checkpoints"; //Dylan's Mac
    checkpointWriteDir           = "/home/dpaiton/workspace/iHouse/checkpoints"; //Dylan's Remote 
