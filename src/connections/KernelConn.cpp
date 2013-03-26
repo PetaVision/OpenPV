@@ -127,7 +127,7 @@ void KernelConn::readShmget_flag(PVParams * params) {
 //              << std::endl;
 //  }
 //#endif
-    if (plasticity_flag && shmget_flag) {
+    if (plasticityFlag && shmget_flag) {
         shmget_flag = false;
         std::cout << "in KernelConn::initialize: " << this->name
                 << ", shmget_flag parameter specified as true, reset to false because plasticity_flag is true"
