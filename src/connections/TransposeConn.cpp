@@ -257,4 +257,10 @@ int TransposeConn::transposeKernels() {
     return PV_SUCCESS;
 }  // TransposeConn::transposeKernels()
 
+int TransposeConn::reduceKernels(int arborID) {
+   // Values are taken from originalConn.  If originalConn keeps kernels synchronized, then TransposeConn stays synchronized automatically.
+   // If originalConn does not, then TransposeConn shouldn't either.
+   return PV_SUCCESS;
+}
+
 } // end namespace PV

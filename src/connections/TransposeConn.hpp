@@ -39,6 +39,7 @@ protected:
     int setPatchSize(const char * filename);
     int transposeKernels();
     virtual int calc_dW(int arborId){return PV_BREAK;};
+    virtual int reduceKernels(int arborID);
     KernelConn * originalConn;
 };
 
