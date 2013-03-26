@@ -78,8 +78,8 @@ Retina "Retina" = {
     spikingFlag = false;
     writeSparseActivity = 0;
     
-    refractoryPeriod = 5;
-    absRefractoryPeriod = 3;
+    // refractoryPeriod = 5; // Not used for nonspiking retinas
+    // absRefractoryPeriod = 3;
 
     foregroundRate = 1000;
     backgroundRate = 0;
@@ -330,13 +330,14 @@ GenerativeConn "AnaRetina to Layer A" = {
     weightInitType = "UniformRandomWeight";
     wMinInit = 0;
     wMaxInit = 1;
+    sparseFraction = 0.0;
     normalize = 1;
     
     plasticityFlag = true;
-    symmetrizeWeights = 0;
     stochasticReleaseFlag = false;
     shrinkPatches = false;
     preActivityIsNotRate = false;
+    dWMax = 1.0;
 
     weightUpdatePeriod = 10;
     initialWeightUpdateTime = 0;
@@ -358,6 +359,9 @@ FeedbackConn "Layer A to AnaRetina Feedback" = {
     writeCompressedWeights = false;
 
     delay = 0;
+    stochasticReleaseFlag = false;
+    preActivityIsNotRate = false;
+    selfFlag = false;
 };
 
 IdentConn "Layer A to Pooling AnaLayer A" = {
@@ -452,10 +456,11 @@ PoolingGenConn "Arrow AnaLayer A to Layer B" = {
     weightInitType = "UniformRandomWeight";
     wMinInit = 0;
     wMaxInit = 1;
+    sparseFraction = 0.0;
     normalize = 1;
     
     plasticityFlag = true;
-    symmetrizeWeights = 0;
+    dWMax = 1.0;
     slownessFlag = false;
     stochasticReleaseFlag = false;
     shrinkPatches = false;
@@ -502,6 +507,9 @@ TransposeConn "CataLayer B to Layer A" = {
     writeCompressedWeights = false;
 
     delay = 0;
+    stochasticReleaseFlag = false;
+    preActivityIsNotRate = false;
+    selfFlag = false;
 };
 
 CloneKernelConn "Layer B to Flat AnaLayer A" = {
