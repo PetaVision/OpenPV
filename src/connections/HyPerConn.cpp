@@ -302,8 +302,8 @@ int HyPerConn::constructWeights(const char * filename)
 {
    int status = PV_SUCCESS;
 
-   readShrinkPatches(parent->parameters()); // Sets shrinkPatches; derived-class methods that override readShrinkPatches must also set shrinkPatches
-   // createArbors() uses the value of shrinkPatches.
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "shrinkPatches"));
+   // createArbors() uses the value of shrinkPatches.  It should have already been read in setParams.
    //allocate the arbor arrays:
    createArbors();
 
