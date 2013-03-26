@@ -21,15 +21,15 @@ HyPerCol "column" = {
    filenamesContainLayerNames      = 2;    // stores pvp files as: 0 = layer number/1 = layer number and layer name/2 = layer name
    filenamesContainConnectionNames = 2;
                                            // 
-   checkpointRead               = true;
-   checkpointReadDirIndex       = 1605000;
+   checkpointRead               = false;
+   checkpointReadDirIndex       = 2000000;
    //checkpointReadDir            = "~/Documents/workspace/iHouse/checkpoints";
    //checkpointReadDir            = "~/Documents/Work/LANL/workspace/iHouse/checkpoints"; //Dylan's Mac
    checkpointReadDir            = "/home/dpaiton/workspace/iHouse/checkpoints"; //Dylan's Remote 
                                            //
    checkpointWrite              = true;
    deleteOlderCheckpoints       = false;
-   checkpointWriteStepInterval  = 50000;
+   checkpointWriteStepInterval  = 10000;
    //checkpointWriteDir           = "~/Documents/workspace/iHouse/output/checkpoints";
    //checkpointWriteDir           = "~/Documents/Work/LANL/workspace/iHouse/checkpoints"; //Dylan's Mac
    checkpointWriteDir           = "/home/dpaiton/workspace/iHouse/checkpoints"; //Dylan's Remote 
@@ -60,11 +60,11 @@ Patterns "Input" = {
    //dropSpeedRandomMin      = 1;      // only applies of dropSpeed = -1
    //dropSpeedRandomMax      = 2;      // only applies if dropSpeed = -1
     							     // 
-   dropPeriod              = 25;     //(dt) -1 for random period, otherwise, number of frames in between drops
+   dropPeriod              = 15;     //(dt) -1 for random period, otherwise, number of frames in between drops
    //dropPeriodRandomMin     = 25;
-   //dropPeriodRandomMax     = 75;    // avg of 50
+   //dropPeriodRandomMax     = 75;     // avg of 50
     							     // 
-   dropPosition            = 100;    // -1 random period of drop positions, 0 is drop from center only, n>0 is number of frames (period) for drop positions
+   dropPosition            = 150;    // -1 random period of drop positions, 0 is drop from center only, n>0 is number of frames (period) for drop positions
    //dropPositionRandomMin   = 5;      // Min length of time that drop stays in a certain position if dropPosition=-1
    //dropPositionRandomMax   = 20;     // Max length of time that drop stays in a certain position if dropPosition=-1
     							     //TODO: Sets dropPosition random min and max when dropPosition=0, shouldn't do that.
@@ -103,7 +103,7 @@ Retina "RetinaON" = {
     nf                  = 1;
     							  // 
     marginWidth         = 3;      // 1/2 of post receptive field - 1 if one to many conn
-    writeStep           = -1;      // 1 to make pre movie
+    writeStep           = 1;      // 1 to make pre movie
     mirrorBCflag        = 0;
     spikingFlag         = true;   //
     writeSparseActivity = true;
@@ -131,7 +131,7 @@ Retina "RetinaOFF" = {
     nf                  = 1;
                                   //    
     marginWidth         = 3;      // 1/2 of post receptive field size - 1 if one to many conn
-    writeStep           = -1;      // 1 to make pre movie
+    writeStep           = 1;      // 1 to make pre movie
     mirrorBCflag        = 0;
     spikingFlag         = true;   // false is translated to 0
     writeSparseActivity = true;
@@ -158,7 +158,7 @@ LIF "Stellate" = {					//Spiny stellate cells, layer 4B
    nyScale             = 4;         //
    nf                  = 1;         //
                                     // 
-   writeStep           = -1; 		// Set to 1 to make post movie
+   writeStep           = 1; 		// Set to 1 to make post movie
                                     //
    marginWidth         = 13;
    mirrorBCflag        = 0;         // mirroring boundary conditions
@@ -193,7 +193,7 @@ LIF "Inter" = {						//A.K.A. - Smooth-Stellate cells, parvalbumin positive cell
    nyScale             = 2;         //
    nf                  = 1;         //
                                     // 
-   writeStep           = -1; 		// Set to 1 to make post movie
+   writeStep           = 1; 		// Set to 1 to make post movie
                                     //
    marginWidth         = 8;
    mirrorBCflag        = 0;         // mirroring boundary conditions
