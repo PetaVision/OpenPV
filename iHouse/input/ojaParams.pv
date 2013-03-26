@@ -22,14 +22,14 @@ HyPerCol "column" = {
    filenamesContainConnectionNames = 2;
                                            // 
    checkpointRead               = true;
-   checkpointReadDirIndex       = 1600000;
+   checkpointReadDirIndex       = 1605000;
    //checkpointReadDir            = "~/Documents/workspace/iHouse/checkpoints";
    //checkpointReadDir            = "~/Documents/Work/LANL/workspace/iHouse/checkpoints"; //Dylan's Mac
    checkpointReadDir            = "/home/dpaiton/workspace/iHouse/checkpoints"; //Dylan's Remote 
                                            //
    checkpointWrite              = true;
    deleteOlderCheckpoints       = false;
-   checkpointWriteStepInterval  = 100000;
+   checkpointWriteStepInterval  = 50000;
    //checkpointWriteDir           = "~/Documents/workspace/iHouse/output/checkpoints";
    //checkpointWriteDir           = "~/Documents/Work/LANL/workspace/iHouse/checkpoints"; //Dylan's Mac
    checkpointWriteDir           = "/home/dpaiton/workspace/iHouse/checkpoints"; //Dylan's Remote 
