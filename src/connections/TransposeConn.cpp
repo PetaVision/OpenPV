@@ -88,6 +88,40 @@ int TransposeConn::readNfp(PVParams * params) {
    return PV_SUCCESS;
 }
 
+void TransposeConn::readPlasticityFlag(PVParams * params) {
+   assert(originalConn);
+   plasticityFlag = originalConn->getPlasticityFlag();
+}
+
+void TransposeConn::readCombine_dW_with_W_flag(PVParams * params) {
+   combine_dW_with_W_flag = false;
+}
+
+void TransposeConn::read_dWMax(PVParams * params) {
+   dWMax = 1.0;
+}
+
+void TransposeConn::readKeepKernelsSynchronized(PVParams * params) {
+   keepKernelsSynchronized_flag = false;
+}
+
+void TransposeConn::readWeightUpdatePeriod(PVParams * params) {
+   weightUpdatePeriod = 0.0f;  // Ensures that every timestep updateState calls updateWeights, which will compare lastUpdateTime to originalConn's lastUpdateTime
+}
+
+void TransposeConn::readInitialWeightUpdateTime(PVParams * params) {
+   weightUpdateTime = parent->simulationTime();
+}
+
+void TransposeConn::readShrinkPatches(PVParams * params) {
+   if(originalConn->getShrinkPatches_flag()) {
+      if (parent->columnId()==0) {
+         fprintf(stderr, "TransposeConn \"%s\" error: original conn \"%s\" has shrinkPatches set to true.  TransposeConn has not been implemented for that case.\n", name, originalConn->getName());
+      }
+   }
+   shrinkPatches_flag = false;
+}
+
 InitWeights * TransposeConn::handleMissingInitWeights(PVParams * params) {
    // TransposeConn doesn't use InitWeights; it initializes the weight by transposing the initial weights of originalConn
    return NULL;

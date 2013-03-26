@@ -27,6 +27,13 @@ protected:
     virtual void readNumAxonalArborLists(PVParams * params);
     virtual int  readPatchSize(PVParams * params);
     virtual int  readNfp(PVParams * params);
+    virtual void readPlasticityFlag(PVParams * params);
+    virtual void readCombine_dW_with_W_flag(PVParams * params);
+    virtual void read_dWMax(PVParams * params);
+    virtual void readKeepKernelsSynchronized(PVParams * params);
+    virtual void readWeightUpdatePeriod(PVParams * params);
+    virtual void readInitialWeightUpdateTime(PVParams * params);
+    virtual void readShrinkPatches(PVParams * params);
     virtual PVPatch *** initializeWeights(PVPatch *** arbors, pvdata_t ** dataStart, int numPatches, const char * filename);
     virtual InitWeights * handleMissingInitWeights(PVParams * params);
     int setPatchSize(const char * filename);
