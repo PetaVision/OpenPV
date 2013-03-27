@@ -27,7 +27,7 @@ GPUTestForNinesProbe::~GPUTestForNinesProbe() {}
 
 int GPUTestForNinesProbe::outputState(double timed)
 {
-	int status = StatsProbe::outputState(timed);
+   int status = StatsProbe::outputState(timed);
 #ifdef PV_USE_MPI
    InterColComm * icComm = getTargetLayer()->getParent()->icCommunicator();
    const int rcvProc = 0;
@@ -35,13 +35,13 @@ int GPUTestForNinesProbe::outputState(double timed)
       return 0;
    }
 #endif // PV_USE_MPI
-	if(timed>2.0f){
-		assert((fMin>8.99)&&(fMin<9.01));
-		assert((fMax>8.99)&&(fMax<9.01));
-		assert((avg>8.99)&&(avg<9.01));
-	}
+   if(timed>2.0f){
+      assert((fMin>8.99)&&(fMin<9.01));
+      assert((fMax>8.99)&&(fMax<9.01));
+      assert((avg>8.99)&&(avg<9.01));
+   }
 
-	return status;
+   return status;
 }
 
 

@@ -423,7 +423,7 @@ KernelConn "L0 to Lx1" = {
     plasticityFlag = 0;
     // weightUpdatePeriod = -1.0;
 
-    delay = 0;     
+    delay = [0, 1, 2, 3];     
     ignoreGPU=false; 
 };
 
@@ -469,7 +469,7 @@ KernelConn "L0 to Lx2" = {
     plasticityFlag = 0;
     // weightUpdatePeriod = -1.0;
 
-    delay = 0;     
+    delay = [0, 1, 2, 3];     
     ignoreGPU=false; 
 };
 
@@ -515,7 +515,7 @@ KernelConn "L0 to Lx4" = {
     plasticityFlag = 0;
     // weightUpdatePeriod = -1.0;
 
-    delay = 0;     
+    delay = [0, 1, 2, 3];     
     ignoreGPU=false; 
 };
 
@@ -561,7 +561,7 @@ KernelConn "L0 to Lx1_2" = {
     plasticityFlag = 0;
     // weightUpdatePeriod = -1.0;
 
-    delay = 0;     
+    delay = [0, 1, 2, 3];     
     ignoreGPU=false; 
 };
 
@@ -616,7 +616,7 @@ KernelConn "L0 to Lx1_4" = {
     plasticityFlag = 0;
     // weightUpdatePeriod = -1.0;
 
-    delay = 0;     
+    delay = [0, 1, 2, 3];     
     ignoreGPU=false; 
 };
 
@@ -678,7 +678,7 @@ KernelConn "L0 to TestANNSQWGPU Exc" = {
    
    rotate = 5;
        
-   strength = 5;  
+   strength = 3;  
    normalize = true;
    normalize_zero_offset = 0.0;
    normalize_max = 0.0;

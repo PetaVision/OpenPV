@@ -36,20 +36,20 @@ int GPUTestProbe::outputState(double timed)
       return 0;
    }
 #endif // PV_USE_MPI
-	if(timed==3.0f){
-		assert((avg>0.24)&&(avg<0.29));
-	}
-	else if(timed==4.0f){
-		assert((avg>0.4)&&(avg<0.61));
-	}
-	else if(timed==5.0f){
-		assert((avg>0.74)&&(avg<0.761));
-	}
-	else if(timed>5.0f){
-		assert((fMin>0.97)&&(fMin<1.070));
-		assert((fMax>0.97)&&(fMax<1.070));
-		assert((avg>0.97)&&(avg<1.070));
-	}
+   if(timed==1.0f){
+       assert((avg>0.2499)&&(avg<0.2501));
+   }
+   else if(timed==2.0f){
+       assert((avg>0.4999)&&(avg<0.5001));
+   }
+   else if(timed==3.0f){
+       assert((avg>0.7499)&&(avg<0.7501));
+   }
+   else if(timed>3.0f){
+       assert((fMin>0.9999)&&(fMin<1.001));
+       assert((fMax>0.9999)&&(fMax<1.001));
+       assert((avg>0.9999)&&(avg<1.001));
+   }
 
 	return status;
 }
