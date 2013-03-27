@@ -7,7 +7,7 @@
 //  - input parameters for test_kernel.cpp for system level testing of kernels
 //
 
-//debugParsing = false;
+debugParsing = false;
 
 HyPerCol "column" = {
    nx = 32;   
@@ -15,11 +15,14 @@ HyPerCol "column" = {
    dt = 1.0;
    randomSeed = 322903499;  // if not set here,  clock time is used to generate seed
    numSteps = 10;  // num images plus (num layers + 1) * delay
+   writeProgressToErr = false;
    progressStep = 10;
    outputPath = "output/";
    filenamesContainLayerNames = false;
+   filenamesContainConnectionNames = false;
    checkpointRead = false;
    checkpointWrite = false;
+   suppressLastOutput = false;
 };
 
 //
@@ -31,15 +34,17 @@ Retina "Retina" = {
     nxScale = 1;
     nyScale = 1;
     nf = 1;
+    phase = 0;
     marginWidth = 1;
     writeStep = 1.0;
+    writeSparseActivity = false;
+    initialWriteTime = 0.0;
     mirrorBCflag = 1;
-    spikingFlag = 0;
-    writeNonspikingActivity = 1;
+    spikingFlag = false;
     GPUAccelerate = false;
 
-    poissonEdgeProb = 1;
-    poissonBlankProb = 1;
+    foregroundRate = 1000;
+    backgroundRate = 1000;
     burstFreq = 1;
     burstDuration = 1000;
 
@@ -55,11 +60,12 @@ ANNLayer "L0" = {
     nxScale = 1;
     nyScale = 1;
     nf = 4;
+    phase = 0;
     marginWidth = 4;
     writeStep = 1.0;
+    initialWriteTime = 0.0;
     mirrorBCflag = 1;
-    spikingFlag = 0;
-    writeNonspikingActivity = 1;
+    writeSparseActivity = 0;
     GPUAccelerate=true;
 
     InitVType = "ZeroV";
@@ -67,6 +73,7 @@ ANNLayer "L0" = {
     VThresh = -infinity;
     VMax = infinity;
     VMin = -infinity;
+    VShift = 0.0;
 };
 
 
@@ -75,18 +82,20 @@ ANNLayer "Lx1" = {
     nxScale = 1;
     nyScale = 1;
     nf = 4;
+    phase = 0;
     marginWidth = 0;
     writeStep = 1.0;
+    initialWriteTime = 0.0;
     mirrorBCflag = 1;
-    spikingFlag = 0;
-    writeNonspikingActivity = 1;
+    writeSparseActivity = 0;
+    GPUAccelerate=true;
 
     InitVType = "ZeroV";
 
     VThresh = -infinity;
     VMax = infinity;
     VMin = -infinity;
-    GPUAccelerate=true;
+    VShift = 0.0;
 };
 
 
@@ -95,18 +104,21 @@ ANNLayer "Lx2" = {
     nxScale = 2;
     nyScale = 2;
     nf = 8;
+    phase = 0;
     marginWidth = 0;
     writeStep = 1.0;
+    initialWriteTime = 0.0;
     mirrorBCflag = 1;
     spikingFlag = 0;
-    writeNonspikingActivity = 1;
+    writeSparseActivity = false;
+    GPUAccelerate=true;
 
     InitVType = "ZeroV";
 
     VThresh = -infinity;
     VMax = infinity;
     VMin = -infinity;
-    GPUAccelerate=true;
+    VShift = 0.0;
 };
 
 
@@ -115,18 +127,21 @@ ANNLayer "Lx4" = {
     nxScale = 4;
     nyScale = 4;
     nf = 16;
+    phase = 0;
     marginWidth = 0;
     writeStep = 1.0;
-    mirrorBCflag = 0;
+    initialWriteTime = 0.0;
+    mirrorBCflag = 1;
     spikingFlag = 0;
-    writeNonspikingActivity = 1;
+    writeSparseActivity = false;
+    GPUAccelerate=true;
 
     InitVType = "ZeroV";
 
     VThresh = -infinity;
     VMax = infinity;
     VMin = -infinity;
-    GPUAccelerate=true;
+    VShift = 0.0;
 };
 
 
@@ -136,18 +151,21 @@ ANNLayer "Lx1_2" = {
     nxScale = 0.5;
     nyScale = 0.5;
     nf = 2;
+    phase = 0;
     marginWidth = 0;
     writeStep = 1.0;
-    mirrorBCflag = 0;
+    initialWriteTime = 0.0;
+    mirrorBCflag = 1;
     spikingFlag = 0;
-    writeNonspikingActivity = 1;
+    writeSparseActivity = false;
+    GPUAccelerate=true;
 
     InitVType = "ZeroV";
 
     VThresh = -infinity;
     VMax = infinity;
     VMin = -infinity;
-    GPUAccelerate=true;
+    VShift = 0.0;
 };
 
 
@@ -157,18 +175,21 @@ ANNLayer "Lx1_4" = {
     nxScale = 0.25;
     nyScale = 0.25;
     nf = 1;
+    phase = 0;
     marginWidth = 0;
     writeStep = 1.0;
-    mirrorBCflag = 0;
+    initialWriteTime = 0.0;
+    mirrorBCflag = 1;
     spikingFlag = 0;
-    writeNonspikingActivity = 1;
+    writeSparseActivity = false;
+    GPUAccelerate=true;
 
     InitVType = "ZeroV";
 
     VThresh = -infinity;
     VMax = infinity;
     VMin = -infinity;
-    GPUAccelerate=true;
+    VShift = 0.0;
 };
 
 //the following layers are implemented mostly to check for 
@@ -179,14 +200,19 @@ Retina "RetinaWGPU" = {
     nxScale = 1;
     nyScale = 1;
     nf = 1;
+    phase = 0;
     marginWidth = 4;
     writeStep = 1.0;
+    initialWriteTime = 0.0;
     mirrorBCflag = 1;
-    spikingFlag =  true; // (no quotes) is translated to 0
-    //writeNonspikingActivity = true; // true (no quotes) is translated to 1
+    writeSparseActivity =  true; // (no quotes) is translated to 0
+    GPUAccelerate=true;
 
-    poissonEdgeProb = 1;
-    poissonBlankProb = 0;
+    spikingFlag = true;
+    foregroundRate = 1000;
+    backgroundRate = 0;
+    refractoryPeriod = 0.0;
+    absRefractoryPeriod = 0.0;
     burstFreq = 1;
     burstDuration = 1000;
 
@@ -194,17 +220,18 @@ Retina "RetinaWGPU" = {
 
     beginStim = 1;
     endStim = 1000;
-    GPUAccelerate=true;
 };
 LIF "lgntest" = {
     restart = 0;
     nxScale = 1; 
     nyScale = 1; 
     nf = 1;
+    phase = 0;
     marginWidth = 4;
     writeStep = 1.0;
+    initialWriteTime = 0.0;
     mirrorBCflag = 1;
-    spikingFlag = true;  
+    writeSparseActivity = true;  
     InitVType = "ZeroV";
    
    	Vrest = -70.0;
@@ -231,10 +258,12 @@ LIFGap "lifgaptestwgpu" = {
     nxScale = 1; 
     nyScale = 1; 
     nf = 1;
+    phase = 0;
     marginWidth = 4;
     writeStep = 1.0;
+    initialWriteTime = 0.0;
     mirrorBCflag = 1;
-    spikingFlag = true;  
+    writeSparseActivity = true;  
     InitVType = "ZeroV";
    
    	Vrest = -70.0;
@@ -264,19 +293,20 @@ ANNSquaredLayer "TestANNSQWGPU" = {
     nxScale = 1;
     nyScale = 1;
     nf = 4;
+    phase = 0;
     marginWidth = 4;
     writeStep = 1.0;
+    initialWriteTime = 0.0;
     mirrorBCflag = 1;
-    spikingFlag = 0;
-    writeNonspikingActivity = 1;
+    writeSparseActivity = false;
+    GPUAccelerate=true;
 
-    //Vrest = 1.0;
     InitVType = "ZeroV";
 
     VThresh = -infinity;
     VMax = infinity;
     VMin = -infinity;
-    GPUAccelerate=true;
+    VShift = 0.0;
 };
 //testing ANNDivLayer:
 ANNDivInhLayer "TestANNDVWGPU" = {
@@ -284,19 +314,20 @@ ANNDivInhLayer "TestANNDVWGPU" = {
     nxScale = 1;
     nyScale = 1;
     nf = 4;
+    phase = 0;
     marginWidth = 4;
     writeStep = 1.0;
+    initialWriteTime = 0.0;
     mirrorBCflag = 1;
-    spikingFlag = 0;
-    writeNonspikingActivity = 1;
+    writeSparseActivity = false;
+    GPUAccelerate=true;
 
-    //Vrest = 1.0;
     InitVType = "ZeroV";
 
     VThresh = -infinity;
     VMax = infinity;
     VMin = -infinity;
-    GPUAccelerate=true;
+    VShift = 0.0;
 };
 
 //  connections: 
@@ -310,39 +341,34 @@ KernelConn "Retina to L0" = {
     nyp = 1;
     nfp = 4;
     writeStep = 1.0; // -1;
+    initialWriteTime = 0.0;
     initFromLastFlag = 0;
     
     weightInit=1;
     
     weightInitType = "SpreadOverArborsWeight";
-    // aspect = 1;
-    // sigma = 1;
-    // rMax  = infinity;
     deltaThetaMax = 6.2832;
     thetaMax = 1;
     rotate = 1;
-    // bowtieFlag = 0;
-    // numFlanks = 1;
-    // flankShift = 0;
-    // no = 4;
     
+    preActivityIsNotRate = false;
     keepKernelsSynchronized = true;
     selfFlag = false;
     combine_dW_with_W_flag = false;
       
     strength = 4.0;  // 1.0 x post->num_neurons / pre->num_neurons
-    normalize = 1.0;
+    normalize = true;
     normalize_zero_offset = 0.0;
     normalize_max = 0.0;
     normalize_cutoff = 0;
     normalize_arbors_individually = false;
-    symmetrizeWeights = 0;
+    normalizeTotalToPost = false;
+    normalize_RMS_amp = false;
+    symmetrizeWeights = false;
 
     stochasticReleaseFlag = false;
     shrinkPatches = false;
 
-    // wMax = 1.0;
-    // wMin = 0;
     writeCompressedWeights = 0.0;
     plasticityFlag = 0;
     // weightUpdatePeriod = -1.0;
@@ -363,33 +389,30 @@ KernelConn "L0 to Lx1" = {
     nyp = 5;
     nfp = 4;
     writeStep = 1.0; // -1;
+    initialWriteTime = 0.0;
     initFromLastFlag = 0;
 
     weightInit=1;
     
     weightInitType = "SpreadOverArborsWeight";
-    // aspect = 1;
-    // sigma = infinity;
-    // rMax  = infinity;
     deltaThetaMax = 6.2832;
     thetaMax = 1;
     rotate = 1;
-    // bowtieFlag = 0;
-    // numFlanks = 1;
-    // flankShift = 0;
-    // no = 4;
       
+    preActivityIsNotRate = false;
     keepKernelsSynchronized = true;
     selfFlag = false;
     combine_dW_with_W_flag = false;
 
     strength = 1; //0.25; //was 1, now 1/4 // 1.0 x post->num_neurons / pre->num_neurons
-    normalize = 1.0;
+    normalize = true;
     normalize_zero_offset = 0.0;
     normalize_max = 0.0;
     normalize_cutoff = 0;
     normalize_arbors_individually = false;
-    symmetrizeWeights = 0;
+    normalizeTotalToPost = false;
+    normalize_RMS_amp = false;
+    symmetrizeWeights = false;
 
     stochasticReleaseFlag = false;
     shrinkPatches = false;
@@ -414,39 +437,34 @@ KernelConn "L0 to Lx2" = {
     nyp = 10;
     nfp = 8;
     writeStep = 1.0; // -1;
+    initialWriteTime = 0.0;
     initFromLastFlag = 0;
 
     weightInit=1;
     
     weightInitType = "SpreadOverArborsWeight";
-    // aspect = 1; //2;
-    // sigma = infinity;
-    // rMax  = infinity;
     deltaThetaMax = 6.2832;
     thetaMax = 1;
     rotate = 1;
-    // bowtieFlag = 0;
-    // numFlanks = 1;
-    // flankShift = 0;
-    // no = 8;
       
+    preActivityIsNotRate = false;
     keepKernelsSynchronized = true;
     selfFlag = false;
     combine_dW_with_W_flag = false;
       
     strength = 8; //2.0; //was 8, now 2 // 1.0 x post->num_neurons / pre->num_neurons
-    normalize = 1.0;
+    normalize = true;
     normalize_zero_offset = 0.0;
     normalize_max = 0.0;
     normalize_cutoff = 0;
     normalize_arbors_individually = false;
-    symmetrizeWeights = 0;
+    normalizeTotalToPost = false;
+    normalize_RMS_amp = false;
+    symmetrizeWeights = false;
 
     stochasticReleaseFlag = false;
     shrinkPatches = false;
 
-    // wMax = 1.0;
-    // wMin = 0;
     writeCompressedWeights = 0.0;
     plasticityFlag = 0;
     // weightUpdatePeriod = -1.0;
@@ -465,39 +483,34 @@ KernelConn "L0 to Lx4" = {
     nyp = 20;
     nfp = 16;
     writeStep = 1.0; // -1;
+    initialWriteTime = 0.0;
     initFromLastFlag = 0;
 
     weightInit=1;
     
     weightInitType = "SpreadOverArborsWeight";
-    // aspect = 1; //4;
-    // sigma = infinity;
-    // rMax  = infinity;
     deltaThetaMax = 6.2832;
     thetaMax = 1;
     rotate = 1;
-    // bowtieFlag = 0;
-    // numFlanks = 1;
-    // flankShift = 0;
-    // no = 16;
       
+    preActivityIsNotRate = false;
     keepKernelsSynchronized = true;
     selfFlag = false;
     combine_dW_with_W_flag = false;
       
     strength = 64; //16.0; //was 64.0, now 64/4 // 1.0 x post->num_neurons / pre->num_neurons
-    normalize = 1.0;
+    normalize = true;
     normalize_zero_offset = 0.0;
     normalize_max = 0.0;
     normalize_cutoff = 0;
     normalize_arbors_individually = false;
-    symmetrizeWeights = 0;
+    normalizeTotalToPost = false;
+    normalize_RMS_amp = false;
+    symmetrizeWeights = false;
 
     stochasticReleaseFlag = false;
     shrinkPatches = false;
 
-    // wMax = 1.0;
-    // wMin = 0;
     writeCompressedWeights = 0.0;
     plasticityFlag = 0;
     // weightUpdatePeriod = -1.0;
@@ -516,39 +529,34 @@ KernelConn "L0 to Lx1_2" = {
     nyp = 3;
     nfp = 2;
     writeStep = 1.0; // -1;
+    initialWriteTime = 0.0;
     initFromLastFlag = 0;
 
     weightInit=1;
     
     weightInitType = "SpreadOverArborsWeight";
-    // aspect = 2;
-    // sigma = infinity;
-    // rMax  = infinity;
     deltaThetaMax = 6.2832;
     thetaMax = 1;
     rotate = 1;
-    // bowtieFlag = 0;
-    // numFlanks = 1;
-    // flankShift = 0;
-    // no = 2;
       
+    preActivityIsNotRate = false;
     keepKernelsSynchronized = true;
     selfFlag = false;
     combine_dW_with_W_flag = false;
       
     strength = 0.125; //0.03125; //was 0.125, now 0.125/4 1.0 x post->num_neurons / pre->num_neurons
-    normalize = 1.0;
+    normalize = true;
     normalize_zero_offset = 0.0;
     normalize_max = 0.0;
     normalize_cutoff = 0;
     normalize_arbors_individually = false;
-    symmetrizeWeights = 0;
+    normalizeTotalToPost = false;
+    normalize_RMS_amp = false;
+    symmetrizeWeights = false;
 
     stochasticReleaseFlag = false;
     shrinkPatches = false;
 
-    // wMax = 1.0;
-    // wMin = 0;
     writeCompressedWeights = 0.0;
     plasticityFlag = 0;
     // weightUpdatePeriod = -1.0;
@@ -567,6 +575,7 @@ KernelConn "L0 to Lx1_4" = {
     nyp = 1;
     nfp = 1;
     writeStep = 1.0; // -1;
+    initialWriteTime = 0.0;
     initFromLastFlag = 0;
 
     weightInit=1;
@@ -583,17 +592,20 @@ KernelConn "L0 to Lx1_4" = {
     // flankShift = 0;
     // no = 1;
       
+    preActivityIsNotRate = false;
     keepKernelsSynchronized = true;
     selfFlag = false;
     combine_dW_with_W_flag = false;
       
     strength = 0.015625; // 1.0 x post->num_neurons / pre->num_neurons
-    normalize = 1.0;
+    normalize = true;
     normalize_zero_offset = 0.0;
     normalize_max = 0.0;
     normalize_cutoff = 0;
     normalize_arbors_individually = false;
-    symmetrizeWeights = 0;
+    normalizeTotalToPost = false;
+    normalize_RMS_amp = false;
+    symmetrizeWeights = false;
 
     stochasticReleaseFlag = false;
     shrinkPatches = false;
@@ -667,16 +679,19 @@ KernelConn "L0 to TestANNSQWGPU Exc" = {
    rotate = 5;
        
    strength = 5;  
-   normalize = 1.0;
+   normalize = true;
    normalize_zero_offset = 0.0;
    normalize_max = 0.0;
-   symmetrizeWeights = 0;
+   normalizeTotalToPost = false;
+   normalize_RMS_amp = false;
+   symmetrizeWeights = false;
 
    writeCompressedWeights = 1.0;
    //gauss2DCalcWeights = 1;
    normalize_cutoff = 0;
    plasticityFlag = 0;
    
+   preActivityIsNotRate = false;
    keepKernelsSynchronized=1;
    selfFlag=0;
    combine_dW_with_W_flag=0;
@@ -686,52 +701,7 @@ KernelConn "L0 to TestANNSQWGPU Exc" = {
    delay = 0;   
    ignoreGPU=false; 
 };
-KernelConn "L0 to TestANNSQWGPU Inh" = {
-   preLayerName = "L0";
-   postLayerName = "TestANNSQWGPU";
-   weightInitType = "Gauss2DWeight";
-   numAxonalArbors=1;
-   channelCode = 1;
-   nxp = 9; 
-   nyp = 9; 
-   nfp = 4;
-   
-   stochasticReleaseFlag = false;
-   shrinkPatches = false;
-   
-   initFromLastFlag = 0;  // 1;  // restart
-   writeStep = -1;
 
-   aspect = 7;
-   sigma = 7;
-   rMax  = 7;
-   deltaThetaMax = 6.2832;
-   thetaMax = 1;
-   bowtieFlag = 0;
-   numFlanks = 2;
-   
-   rotate = 5;
-       
-   strength = 2;  
-   normalize = 1.0;
-   normalize_zero_offset = 0.0;
-   normalize_max = 0.0;
-   symmetrizeWeights = 0;
-
-   writeCompressedWeights = 1.0;
-   //gauss2DCalcWeights = 1;
-   normalize_cutoff = 0;
-   plasticityFlag = 0;
-   
-   keepKernelsSynchronized=1;
-   selfFlag=0;
-   combine_dW_with_W_flag=0;
-   rMin=0;
-   
-   flankShift = 1.5;
-   delay = 0;   
-   ignoreGPU=false; 
-};
 //test ANNDivLayer connections:
 KernelConn "L0 to TestANNDVWGPU Exc" = {
    preLayerName = "L0";
@@ -760,16 +730,19 @@ KernelConn "L0 to TestANNDVWGPU Exc" = {
    rotate = 5;
        
    strength = 9;  
-   normalize = 1.0;
+   normalize = true;
    normalize_zero_offset = 0.0;
    normalize_max = 0.0;
-   symmetrizeWeights = 0;
+   normalizeTotalToPost = false;
+   normalize_RMS_amp = false;
+   symmetrizeWeights = false;
 
    writeCompressedWeights = 1.0;
    //gauss2DCalcWeights = 1;
    normalize_cutoff = 0;
    plasticityFlag = 0;
    
+   preActivityIsNotRate = false;
    keepKernelsSynchronized=1;
    selfFlag=0;
    combine_dW_with_W_flag=0;
@@ -806,16 +779,19 @@ KernelConn "L0 to TestANNDVWGPU Inh" = {
    rotate = 5;
        
    strength = 5;  
-   normalize = 1.0;
+   normalize = true;
    normalize_zero_offset = 0.0;
    normalize_max = 0.0;
-   symmetrizeWeights = 0;
+   normalizeTotalToPost = false;
+   normalize_RMS_amp = false;
+   symmetrizeWeights = false;
 
    writeCompressedWeights = 1.0;
    //gauss2DCalcWeights = 1;
    normalize_cutoff = 0;
    plasticityFlag = 0;
    
+   preActivityIsNotRate = false;
    keepKernelsSynchronized=1;
    selfFlag=0;
    combine_dW_with_W_flag=0;
@@ -852,16 +828,19 @@ KernelConn "L0 to TestANNDVWGPU Div" = {
    rotate = 5;
        
    strength = 2;  
-   normalize = 1.0;
+   normalize = true;
    normalize_zero_offset = 0.0;
    normalize_max = 0.0;
-   symmetrizeWeights = 0;
+   normalizeTotalToPost = false;
+   normalize_RMS_amp = false;
+   symmetrizeWeights = false;
 
    writeCompressedWeights = 1.0;
    //gauss2DCalcWeights = 1;
    normalize_cutoff = 0;
    plasticityFlag = 0;
    
+   preActivityIsNotRate = false;
    keepKernelsSynchronized=1;
    selfFlag=0;
    combine_dW_with_W_flag=0;
