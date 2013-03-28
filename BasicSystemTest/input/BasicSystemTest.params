@@ -105,7 +105,7 @@ KernelConn "input to output" = {
     symmetrizeWeights = 0;
     preActivityIsNotRate = false;
 
-    writeCompressedWeights = 0.0;
+    writeCompressedCheckpoints = false;
     plasticityFlag = false;
     selfFlag = false;
     shmget_flag = true;
