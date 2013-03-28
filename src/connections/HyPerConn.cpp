@@ -495,12 +495,12 @@ int HyPerConn::setParams(PVParams * inputParams)
    readPlasticityFlag(inputParams);
    readStochasticReleaseFlag(inputParams);
    readPreActivityIsNotRate(inputParams);
+   readWriteStep(inputParams);
+   readInitialWriteTime(inputParams);
    readWriteCompressedWeights(inputParams);
    readWriteCompressedCheckpoints(inputParams);
    readSelfFlag(inputParams);
    readCombine_dW_with_W_flag(inputParams);
-   readWriteStep(inputParams);
-   readInitialWriteTime(inputParams);
    readDelay(inputParams);
    readPatchSize(inputParams);
    readNfp(inputParams);
@@ -581,12 +581,32 @@ void HyPerConn::readPreActivityIsNotRate(PVParams * params) {
    preActivityIsNotRate = params->value(name, "preActivityIsNotRate", false, true) != 0;
 }
 
+void HyPerConn::readWriteStep(PVParams * params) {
+   writeStep = params->value(name, "writeStep", parent->getDeltaTime());
+}
+
+void HyPerConn::readInitialWriteTime(PVParams * params) {
+   assert(!params->presentAndNotBeenRead(name, "writeStep"));
+   writeTime = parent->simulationTime();
+   if (writeStep>=0) {
+      if (!params->present(name, "writeStep")) {
+         if (parent->columnId()==0) {
+            fprintf(stderr, "HyPerConn::readInitialWriteTime warning for connection \"%s\": reading initialWriteTime using default for writeStep.\n", name);
+         }
+      }
+      writeTime = params->value(name, "initialWriteTime", writeTime);
+   }
+}
+
 void HyPerConn::readWriteCompressedWeights(PVParams * params) {
-   writeCompressedWeights = params->value(name, "writeCompressedWeights", writeCompressedWeights, /*warnifabsent*/true) != 0;
+   assert(!params->presentAndNotBeenRead(name, "writeStep"));
+   if (writeStep>=0) {
+      writeCompressedWeights = params->value(name, "writeCompressedWeights", writeCompressedWeights, /*warnifabsent*/true) != 0;
+   }
 }
 
 void HyPerConn::readWriteCompressedCheckpoints(PVParams * params) {
-   if (parent->getCheckpointWriteFlag()) {
+   if (parent->getCheckpointWriteFlag() || !parent->getSuppresLastOutputFlag()) {
       writeCompressedCheckpoints = params->value(name, "writeCompressedCheckpoints", writeCompressedCheckpoints, /*warnifabsent*/true) != 0;
    }
 }
@@ -609,23 +629,6 @@ void HyPerConn::read_dWMax(PVParams * params) {
    assert(!params->presentAndNotBeenRead(name, "plasticityFlag"));
    if (plasticityFlag){
       dWMax = params->value(getName(), "dWMax", dWMax, true);
-   }
-}
-
-void HyPerConn::readWriteStep(PVParams * params) {
-   writeStep = params->value(name, "writeStep", parent->getDeltaTime());
-}
-
-void HyPerConn::readInitialWriteTime(PVParams * params) {
-   assert(!params->presentAndNotBeenRead(name, "writeStep"));
-   writeTime = parent->simulationTime();
-   if (writeStep>=0) {
-      if (!params->present(name, "writeStep")) {
-         if (parent->columnId()==0) {
-            fprintf(stderr, "HyPerConn::readInitialWriteTime warning for connection \"%s\": reading initialWriteTime using default for writeStep.\n", name);
-         }
-      }
-      writeTime = params->value(name, "initialWriteTime", writeTime);
    }
 }
 

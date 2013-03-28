@@ -83,6 +83,7 @@ public:
    long int getCurrentStep()              {return currentStep;}
    bool getCheckpointReadFlag()           {return checkpointReadFlag;}
    bool getCheckpointWriteFlag()          {return checkpointWriteFlag;}
+   bool getSuppresLastOutputFlag()        {return suppressLastOutput;}
 
    int includeLayerName()                 {return filenamesContainLayerNames;}
    int includeConnectionName()            {return filenamesContainConnectionNames;}
