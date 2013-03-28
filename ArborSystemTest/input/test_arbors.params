@@ -242,7 +242,8 @@ KernelConn "Retina to L0" = {
 
     // wMax = 1.0;
     // wMin = 0;
-    writeCompressedWeights = 0.0;
+    writeCompressedWeights = false;
+    writeCompressedCheckpoints = false;
     plasticityFlag = false;
     // weightUpdatePeriod = -1.0;
 
@@ -298,7 +299,8 @@ KernelConn "L0 to Lx1" = {
 
     // wMax = 1.0;
     // wMin = 0;
-    writeCompressedWeights = 0.0;
+    writeCompressedWeights = false;
+    writeCompressedCheckpoints = false;
     plasticityFlag = false;
     // weightUpdatePeriod = -1.0;
 
@@ -352,7 +354,8 @@ KernelConn "L0 to Lx2" = {
 
     // wMax = 1.0;
     // wMin = 0;
-    writeCompressedWeights = 0.0;
+    writeCompressedWeights = false;
+    writeCompressedCheckpoints = false;
     plasticityFlag = false;
     // weightUpdatePeriod = -1.0;
 
@@ -406,7 +409,8 @@ KernelConn "L0 to Lx4" = {
 
     // wMax = 1.0;
     // wMin = 0;
-    writeCompressedWeights = 0.0;
+    writeCompressedWeights = false;
+    writeCompressedCheckpoints = false;
     plasticityFlag = false;
     // weightUpdatePeriod = -1.0;
 
@@ -460,7 +464,8 @@ KernelConn "L0 to Lx1_2" = {
 
     // wMax = 1.0;
     // wMin = 0;
-    writeCompressedWeights = 0.0;
+    writeCompressedWeights = false;
+    writeCompressedCheckpoints = false;
     plasticityFlag = false;
     // weightUpdatePeriod = -1.0;
 
@@ -514,7 +519,8 @@ KernelConn "L0 to Lx1_4" = {
 
     // wMax = 1.0;
     // wMin = 0;
-    writeCompressedWeights = 0.0;
+    writeCompressedWeights = false;
+    writeCompressedCheckpoints = false;
     plasticityFlag = false;
     // weightUpdatePeriod = -1.0;
 
