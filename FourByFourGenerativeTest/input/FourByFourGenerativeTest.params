@@ -319,6 +319,7 @@ GenerativeConn "AnaRetina to Layer A" = {
     writeStep = 10;
     initialWriteTime = 0;
     writeCompressedWeights = false;
+    writeCompressedCheckpoints = false;
     selfFlag = false;
     
     delay = 0;
@@ -356,7 +357,7 @@ FeedbackConn "Layer A to AnaRetina Feedback" = {
     channelCode = 1;
 
     writeStep = -1;
-    writeCompressedWeights = false;
+    writeCompressedCheckpoints = false;
 
     delay = 0;
     stochasticReleaseFlag = false;
@@ -445,6 +446,7 @@ PoolingGenConn "Arrow AnaLayer A to Layer B" = {
 
     writeStep = 10;
     writeCompressedWeights = false;
+    writeCompressedCheckpoints = false;
     initialWriteTime = 0;
     selfFlag = false;
     
@@ -486,7 +488,7 @@ CloneKernelConn "Layer A to CataLayer B" = {
     channelCode = 1;
 
     writeStep = -1;
-    writeCompressedWeights = false;
+    writeCompressedCheckpoints = false;
     selfFlag = false;
     preActivityIsNotRate = false;
 
@@ -504,7 +506,7 @@ TransposeConn "CataLayer B to Layer A" = {
     channelCode = 0;
     
     writeStep = -1;
-    writeCompressedWeights = false;
+    writeCompressedCheckpoints = false;
 
     delay = 0;
     stochasticReleaseFlag = false;
@@ -521,7 +523,7 @@ CloneKernelConn "Layer B to Flat AnaLayer A" = {
     channelCode = 1;
     
     writeStep = -1;
-    writeCompressedWeights = false;
+    writeCompressedCheckpoints = false;
     selfFlag = false;
     preActivityIsNotRate = false;
     

@@ -15,10 +15,13 @@ HyPerCol "column" = {
     randomSeed = 433216548;
     numSteps = 10001;
     progressStep = 10000;
+    writeProgressToErr = false;
     outputPath = "./output/";
     filenamesContainLayerNames = true;
+    filenamesContainConnectionNames = true;
     checkpointRead = false;
     checkpointWrite = false;
+    suppressLastOutput = false;
 };
 
 // 10 layers:
@@ -39,17 +42,18 @@ ANNLayer "Slideshow" = {
     nxScale = 1;
     nyScale = 1;
     nf = 1;
+    phase = 0;
     marginWidth = 0;
     writeStep = -1;
     mirrorBCflag = 0;
-    spikingFlag = 0;
-    writeNonspikingActivity = -1;
+    writeSparseActivity = false;
 
     InitVType = "ZeroV";
 
     VMax = infinity;
     VThresh = -infinity;
     VMin = -infinity;
+    VShift = 0.0;
 };
 
 LogLatWTAGenLayer "Reconstructed Image" = {
@@ -57,16 +61,18 @@ LogLatWTAGenLayer "Reconstructed Image" = {
     nxScale = 1;
     nyScale = 1;
     nf = 1;
+    phase = 0;
     marginWidth = 0;
     writeStep = 1.0;
+    initialWriteTime = 0.0;
     mirrorBCflag = 1;
-    spikingFlag = 0;
-    writeNonspikingActivity = 1;
+    writeSparseActivity = false;
     InitVType = "ZeroV";
 
     VMax = infinity;
     VThresh = 0;
     VMin = 0;
+    VShift = 0.0;
 
     relaxation = 2E-2;
     activityThreshold = 0;
@@ -81,17 +87,19 @@ ANNLayer "AnaRetina" = {
     nxScale = 1;
     nyScale = 1;
     nf = 1;
+    phase = 0;
     marginWidth = 0;
     writeStep = 1.0;
+    initialWriteTime = 0.0;
     mirrorBCflag = 1;
-    spikingFlag = 0;
-    writeNonspikingActivity = -1;
+    writeSparseActivity = false;
 
     InitVType = "ZeroV";
 
     VMax = infinity;
     VThresh = -infinity;
     VMin = -infinity;
+    VShift = 0.0;
 };
 
 LogLatWTAGenLayer "Layer A" = {
@@ -99,16 +107,18 @@ LogLatWTAGenLayer "Layer A" = {
     nxScale = 0.25;
     nyScale = 0.25;
     nf = 8;
+    phase = 0;
     marginWidth = 0;
     writeStep = 1.0;
+    initialWriteTime = 0.0;
     mirrorBCflag = 1;
-    spikingFlag = 0;
-    writeNonspikingActivity = 1;
+    writeSparseActivity = false;
     InitVType = "ZeroV";
 
     VMax = infinity;
     VThresh = 0;
     VMin = 0;
+    VShift = 0.0;
 
     relaxation = 2E-2;
     activityThreshold = 0;
@@ -123,17 +133,19 @@ PoolingANNLayer "Pooling AnaLayer A" = {
     nxScale = 0.25;
     nyScale = 0.25;
     nf = 8;
+    phase = 0;
     marginWidth = 0;
     writeStep = 1.0;
+    initialWriteTime = 0.0;
     mirrorBCflag = 1;
-    spikingFlag = 0;
-    writeNonspikingActivity = -1;
+    writeSparseActivity = false;
         
     InitVType = "ZeroV";
 
     VMax = infinity;
     VThresh = -infinity;
     VMin = -infinity;
+    VShift = 0.0;
     
     bias = 0;
 };
@@ -143,17 +155,19 @@ PoolingANNLayer "Arrow AnaLayer A" = {
     nxScale = 0.25;
     nyScale = 0.25;
     nf = 8;
+    phase = 0;
     marginWidth = 0;
     writeStep = 1.0;
+    initialWriteTime = 0.0;
     mirrorBCflag = 1;
-    spikingFlag = 0;
-    writeNonspikingActivity = -1;
+    writeSparseActivity = false;
         
     InitVType = "ZeroV";
 
     VMax = infinity;
     VThresh = -infinity;
     VMin = -infinity;
+    VShift = 0.0;
     
     bias = 1;
 };
@@ -163,17 +177,19 @@ ANNLayer "Flat AnaLayer A" = {
     nxScale = 0.25;
     nyScale = 0.25;
     nf = 8;
+    phase = 0;
     marginWidth = 0;
     writeStep = 1.0;
+    initialWriteTime = 0.0;
     mirrorBCflag = 1;
-    spikingFlag = 0;
-    writeNonspikingActivity = -1;
+    writeSparseActivity = false;
         
     InitVType = "ZeroV";
 
     VMax = infinity;
     VThresh = -infinity;
     VMin = -infinity;
+    VShift = 0.0;
 };
 
 ANNLayer "CataLayer B" = {
@@ -181,17 +197,19 @@ ANNLayer "CataLayer B" = {
     nxScale = 0.25;
     nyScale = 0.25;
     nf = 2;
+    phase = 0;
     marginWidth = 0;
     writeStep = 1.0;
+    initialWriteTime = 0.0;
     mirrorBCflag = 1;
-    spikingFlag = 0;
-    writeNonspikingActivity = -1;
+    writeSparseActivity = false;
         
     InitVType = "ZeroV";
 
     VMax = infinity;
     VThresh = -infinity;
     VMin = -infinity;
+    VShift = 0.0;
 };
 
 TrainingLayer "Layer B" = {
@@ -201,17 +219,17 @@ TrainingLayer "Layer B" = {
     nxScale = 0.25;
     nyScale = 0.25;
     nf = 2;
+    phase = 0;
     marginWidth = 0;
     writeStep = 1.0;
+    initialWriteTime = 0.0;
     mirrorBCflag = 1;
-    spikingFlag = 0;
-    writeNonspikingActivity = -1;
-        
-    InitVType = "ZeroV";
+    writeSparseActivity = false;
     
     VMax = infinity;
     VThresh = -infinity;
     VMin = -infinity;
+    VShift = 0.0;
     
     displayPeriod = 5000;
     distToData = 0;
@@ -223,17 +241,19 @@ PtwiseProductLayer "Energy AnaLayer A" = {
     nxScale = 0.25;
     nyScale = 0.25;
     nf = 8;
+    phase = 0;
     marginWidth = 0;
     writeStep = 1.0;
+    initialWriteTime = 0.0;
     mirrorBCflag = 1;
-    spikingFlag = 0;
-    writeNonspikingActivity = 1;
+    writeSparseActivity = false;
         
     InitVType = "ZeroV";
 
     VMax = infinity;
     VThresh = -infinity;
     VMin = -infinity;
+    VShift = 0.0;
 };
 
 
@@ -297,13 +317,12 @@ KernelConn "AnaRetina to Layer A" = {
     numAxonalArbors = 1;
 
     writeStep = -1;
-    writeCompressedWeights = false;
+    writeCompressedCheckpoints = false;
     
     delay = 0;
     
-    keepKernelsSynchronized = true;
     selfFlag = false;
-    combine_dW_with_W_flag = false;
+    preActivityIsNotRate = false;
     
     initFromLastFlag = false;
     weightInitType = "FileWeight";
@@ -313,7 +332,6 @@ KernelConn "AnaRetina to Layer A" = {
     normalize = false;
     
     plasticityFlag = false;
-    symmetrizeWeights = false;
     stochasticReleaseFlag = false;
     shrinkPatches = false;
 };
@@ -324,9 +342,13 @@ FeedbackConn "Layer A to AnaRetina Feedback" = {
     channelCode = 1;
 
     writeStep = -1;
-    writeCompressedWeights = false;
+    writeCompressedCheckpoints = false;
 
     delay = 0;
+
+    stochasticReleaseFlag = false;
+    preActivityIsNotRate = false;
+    selfFlag = false;
 };
 
 IdentConn "Layer A to Pooling AnaLayer A" = {
@@ -409,13 +431,12 @@ KernelConn "Arrow AnaLayer A to Layer B" = {
     numAxonalArbors = 1;
 
     writeStep = -1;
-    writeCompressedWeights = false;
+    writeCompressedCheckpoints = false;
 
     delay = 0;
     
-    keepKernelsSynchronized = true;
     selfFlag = false;
-    combine_dW_with_W_flag = false;
+    preActivityIsNotRate = false;
     
     initFromLastFlag = false;
     weightInitType = "FileWeight";
@@ -425,7 +446,6 @@ KernelConn "Arrow AnaLayer A to Layer B" = {
     normalize = false;
     
     plasticityFlag = false;
-    symmetrizeWeights = false;
     stochasticReleaseFlag = false;
     shrinkPatches = false;
 };
@@ -439,11 +459,13 @@ CloneKernelConn "Layer A to CataLayer B" = {
     channelCode = 1;
 
     writeStep = -1;
-    writeCompressedWeights = false;
+    writeCompressedCheckpoints = false;
 
     delay = 0;
 
     stochasticReleaseFlag = false;
+    preActivityIsNotRate = false;
+    selfFlag = false;
 };
 
 TransposeConn "CataLayer B to Layer A" = {
@@ -455,9 +477,13 @@ TransposeConn "CataLayer B to Layer A" = {
     channelCode = 0;
     
     writeStep = -1;
-    writeCompressedWeights = false;
+    writeCompressedCheckpoints = false;
 
     delay = 0;
+    
+    stochasticReleaseFlag = false;
+    preActivityIsNotRate = false;
+    selfFlag = false;
 };
 
 CloneKernelConn "Layer B to Flat AnaLayer A" = {
@@ -469,11 +495,13 @@ CloneKernelConn "Layer B to Flat AnaLayer A" = {
     channelCode = 1;
     
     writeStep = -1;
-    writeCompressedWeights = false;
+    writeCompressedCheckpoints = false;
     
     delay = 0;
 
     stochasticReleaseFlag = false;
+    preActivityIsNotRate = false;
+    selfFlag = false;
 };
 
 IdentConn "Layer B to CataLayer B" = {
@@ -522,6 +550,7 @@ IdentConn "Flat AnaLayer A to Energy AnaLayer A" = {
 
 TopDownTestProbe "Topdown Test Probe" = {
     targetLayer = "Reconstructed Image";
+    message = "Topdown Test Probe             ";
     probeOutputFile = "Reconstruction_Score.txt";
     checkPeriod = 5000;
 };
@@ -532,6 +561,7 @@ GenColProbe "Total Energy Probe" = {
 
 L2NormProbe "AnaRetina Energy" = {
     targetLayer = "AnaRetina";
+    message = "AnaRetina Energy               ";
     parentGenColProbe = "Total Energy Probe";
     coeff = 1;
     probeOutputFile = "AnaRetina_Energy.txt";
@@ -539,6 +569,7 @@ L2NormProbe "AnaRetina Energy" = {
 
 L2NormProbe "AnaLayer A Energy" = {
     targetLayer = "Energy AnaLayer A";
+    message = "AnaLayer A Energy              ";
     parentGenColProbe = "Total Energy Probe";
     coeff = 0.5;
     probeOutputFile = "AnaLayer_A_Energy.txt";
@@ -546,6 +577,7 @@ L2NormProbe "AnaLayer A Energy" = {
 
 L2NormProbe "CataLayer B Energy" = {
     targetLayer = "CataLayer B";
+    message = "CataLayer B Energy             ";
     parentGenColProbe = "Total Energy Probe";
     coeff = 1;
     probeOutputFile = "CataLayer_B_Energy.txt";
@@ -553,6 +585,7 @@ L2NormProbe "CataLayer B Energy" = {
 
 LogLatWTAProbe "Layer A Lateral Competition Penalty" = {
     targetLayer = "Layer A";
+    message = "Layer A Lateral Competition Penalty";
     parentGenColProbe = "Total Energy Probe";
     coeff = 1.0;
     probeOutputFile = "Layer_A_LatCompPenalty.txt";
@@ -560,6 +593,7 @@ LogLatWTAProbe "Layer A Lateral Competition Penalty" = {
 
 LogLatWTAProbe "Layer B Lateral Competition Penalty" = {
     targetLayer = "Layer B";
+    message = "Layer B Lateral Competition Penalty";
     parentGenColProbe = "Total Energy Probe";
     coeff = 1.0;
     probeOutputFile = "Layer_B_LatCompPenalty.txt";
