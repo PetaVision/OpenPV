@@ -100,6 +100,13 @@ runandecho $testname Debug/$testname $arglist
 mpirunandecho $testname Debug/$testname $arglist
 cd $wd
 
+testname=CloneKernelConnTest
+arglist="-p input/CloneKernelConnTest.params"
+cd "$testname"
+runandecho $testname Debug/$testname $arglist
+mpirunandecho $testname Debug/$testname $arglist
+cd $wd
+
 testname=DatastoreDelayTest
 arglist="-p input/DatastoreDelayTest.params"
 cd "$testname"
