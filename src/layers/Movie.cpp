@@ -97,8 +97,10 @@ int Movie::initialize(const char * name, HyPerCol * hc, const char * fileOfFileN
    randomMovie       = (int) params->value(name,"randomMovie",0);
    if( randomMovie ) {
       randomMovieProb   = params->value(name,"randomMovieProb", 0.05);  // 100 Hz
+      numGlobalRNGs = 1; // TODO: each neuron should have its own seed.  For now, all neurons use the same seed
+      unsigned int seed = parent->getObjectSeed(getNumGlobalRNGs());
+      cl_random_init(&rand_state, 1UL, seed);
 
-      // random number generator initialized by HyPerCol::initialize
       randomFrame();
    }else{
       status = readImage(filename, getOffsetX(), getOffsetY(), colorbandtypes);
