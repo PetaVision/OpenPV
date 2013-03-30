@@ -24,6 +24,9 @@ HyPerCol "column" = {
 
 Movie "8x8 Images" = {
     imageListPath = "./input/image08x08sequence.txt";
+    start_frame_index = 0;
+    skip_frame_index = 0;
+    echoFramePathnameFlag = false;
 
     restart = 0;
     nxScale = 0.5;
@@ -49,6 +52,9 @@ Movie "8x8 Images" = {
 
 Movie "16x16 Images" = {
     imageListPath = "./input/image16x16sequence.txt";
+    start_frame_index = 0;
+    skip_frame_index = 0;
+    echoFramePathnameFlag = false;
 
     restart = 0;
     nxScale = 1;
@@ -74,6 +80,9 @@ Movie "16x16 Images" = {
 
 Movie "32x32 Images" = {
     imageListPath = "./input/image32x32sequence.txt";
+    start_frame_index = 0;
+    skip_frame_index = 0;
+    echoFramePathnameFlag = false;
 
     restart = 0;
     nxScale = 2;
@@ -105,6 +114,7 @@ ANNLayer "pre 16x16 singleband" = {
     phase = 0;
     marginWidth = 4;
     writeStep = 1;
+    initialWriteTime = 0.0;
     mirrorBCflag = 0;
     writeSparseActivity = false;
     
@@ -112,6 +122,7 @@ ANNLayer "pre 16x16 singleband" = {
     VMax = infinity;
     VThresh = -infinity;
     VMin = -infinity;
+    VShift = 0.0;
 };
 
 ANNLayer "pre 16x16 multiband" = {
@@ -122,6 +133,7 @@ ANNLayer "pre 16x16 multiband" = {
     phase = 0;
     marginWidth = 4;
     writeStep = 1;
+    initialWriteTime = 0.0;
     mirrorBCflag = 0;
     writeSparseActivity = false;
     
@@ -129,6 +141,7 @@ ANNLayer "pre 16x16 multiband" = {
     VMax = infinity;
     VThresh = -infinity;
     VMin = -infinity;
+    VShift = 0.0;
 };
 
 ANNLayer "post 8x8 singleband" = {
@@ -139,6 +152,7 @@ ANNLayer "post 8x8 singleband" = {
     phase = 0;
     marginWidth = 0;
     writeStep = 1;
+    initialWriteTime = 0.0;
     mirrorBCflag = 0;
     writeSparseActivity = false;
     
@@ -146,6 +160,7 @@ ANNLayer "post 8x8 singleband" = {
     VMax = infinity;
     VThresh = -infinity;
     VMin = -infinity;
+    VShift = 0.0;
 };
 
 ANNLayer "post 8x8 multiband" = {
@@ -156,6 +171,7 @@ ANNLayer "post 8x8 multiband" = {
     phase = 0;
     marginWidth = 2;
     writeStep = 1;
+    initialWriteTime = 0.0;
     mirrorBCflag = 0;
     writeSparseActivity = false;
     
@@ -163,6 +179,7 @@ ANNLayer "post 8x8 multiband" = {
     VMax = infinity;
     VThresh = -infinity;
     VMin = -infinity;
+    VShift = 0.0;
 };
 
 ANNLayer "post 16x16 singleband" = {
@@ -173,6 +190,7 @@ ANNLayer "post 16x16 singleband" = {
     phase = 0;
     marginWidth = 0;
     writeStep = 1;
+    initialWriteTime = 0.0;
     mirrorBCflag = 0;
     writeSparseActivity = false;
     
@@ -180,6 +198,7 @@ ANNLayer "post 16x16 singleband" = {
     VMax = infinity;
     VThresh = -infinity;
     VMin = -infinity;
+    VShift = 0.0;
 };
 
 ANNLayer "post 16x16 multiband" = {
@@ -190,6 +209,7 @@ ANNLayer "post 16x16 multiband" = {
     phase = 0;
     marginWidth = 2;
     writeStep = 1;
+    initialWriteTime = 0.0;
     mirrorBCflag = 0;
     writeSparseActivity = false;
     
@@ -197,6 +217,7 @@ ANNLayer "post 16x16 multiband" = {
     VMax = infinity;
     VThresh = -infinity;
     VMin = -infinity;
+    VShift = 0.0;
 };
 
 ANNLayer "post 32x32 singleband" = {
@@ -207,6 +228,7 @@ ANNLayer "post 32x32 singleband" = {
     phase = 0;
     marginWidth = 0;
     writeStep = 1;
+    initialWriteTime = 0.0;
     mirrorBCflag = 0;
     writeSparseActivity = false;
     
@@ -214,6 +236,7 @@ ANNLayer "post 32x32 singleband" = {
     VMax = infinity;
     VThresh = -infinity;
     VMin = -infinity;
+    VShift = 0.0;
 };
 
 ANNLayer "post 32x32 multiband" = {
@@ -224,6 +247,7 @@ ANNLayer "post 32x32 multiband" = {
     phase = 0;
     marginWidth = 2;
     writeStep = 1;
+    initialWriteTime = 0.0;
     mirrorBCflag = 0;
     writeSparseActivity = false;
     
@@ -231,6 +255,7 @@ ANNLayer "post 32x32 multiband" = {
     VMax = infinity;
     VThresh = -infinity;
     VMin = -infinity;
+    VShift = 0.0;
 };
 
 IdentConn "16x16 Images to pre 16x16 singleband" = {
