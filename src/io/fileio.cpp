@@ -285,11 +285,17 @@ FILE * pvp_open_write_file(const char * filename, Communicator * comm, bool appe
          if (status==0) rwmode = true;
       }
       if (rwmode) {
-         fp = fopen(filename, "r+b");
-         PV_fseek(fp, 0L, SEEK_END); // If append is true we open in "r+" mode so we need to move to the end of the file.
+         fp = PV_fopen(filename, "r+b");
+         if (fp!=NULL) {
+            int status = PV_fseek(fp, 0L, SEEK_END); // We opened the file in "r+" mode so we need to move to the end of the file.
+            if (status != 0) {
+               fprintf(stderr, "pvp_open_write_file error in file \"%s\": PV_fseek error %s.\n", filename, strerror(errno));
+               exit(EXIT_FAILURE);
+            }
+         }
       }
       else {
-         fp = fopen(filename, "wb");
+         fp = PV_fopen(filename, "wb");
       }
       if( !fp ) {
          fprintf(stderr, "pvp_open_write_file error opening \"%s\" for writing: %s\n", filename, strerror(errno));
