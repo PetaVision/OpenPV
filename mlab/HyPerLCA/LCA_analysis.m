@@ -12,12 +12,12 @@ if ismac
   frame_duration = 1000;
 elseif isunix
   workspace_path = "/home/gkenyon/workspace_new";
-  output_dir = "/nh/compneuro/Data/vine/LCA/cats"; 
+  output_dir = "/nh/compneuro/Data/MRI/LCA/5_subjects"; %% vine/LCA/cats"; %% 
   LCA_path = [output_dir];
-  last_checkpoint_ndx = 20706*40; 
-  next_checkpoint_ndx = 20706*41; 
-  first_checkpoint_ndx = 1; %% 20706*0;
-  frame_duration = 500;
+  last_checkpoint_ndx = 100000*5; %%50000*29; %% 
+  next_checkpoint_ndx = 100000*6; %%50000*29+1000; %% 
+  first_checkpoint_ndx = 1;
+  frame_duration = 1000;
 endif
 addpath([workspace_path, filesep, "/PetaVision/mlab/util"]);
 checkpoint_dir = [LCA_path, filesep, "Checkpoints"];
@@ -25,15 +25,14 @@ checkpoint_path = [checkpoint_dir, filesep, "Checkpoint", num2str(last_checkpoin
 next_checkpoint_path = [checkpoint_dir, filesep, "Checkpoint", num2str(next_checkpoint_ndx, "%i")];
 max_lines = last_checkpoint_ndx + (last_checkpoint_ndx == 0) * 1000;
 max_history = 50000;
-begin_statProbe_step = max(max_lines - max_history, 3);
-frame_duration = 1000;
+begin_statProbe_step = max(max_lines - max_history, 30);
 
 
 %% plot Reconstructions
 plot_Recon = 1;
 if plot_Recon
   %%keyboard;
-  num_recon = 3;
+  num_recon = 4;
   recon_dir = [output_dir, filesep, "recon"];
   mkdir(recon_dir);
   Retina_file = [output_dir, filesep, "a1_Retina.pvp"];
@@ -43,7 +42,7 @@ if plot_Recon
   write_step = frame_duration;
   num_frames = floor((last_checkpoint_ndx - first_checkpoint_ndx) / write_step);
   start_frame = num_frames-num_recon+1; %% floor((first_checkpoint_ndx) / write_step);
-  [Retina_struct, Retina_hdr] = readpvpfile(Retina_file, num_frames, [], start_frame);
+  [Retina_struct, Retina_hdr] = readpvpfile(Retina_file, num_frames, num_frames, start_frame);
   num_Retina_frames = size(Retina_struct,1);
   [Ganglion_struct, Ganglion_hdr] = ...
       readpvpfile(Ganglion_file, num_frames, start_frame + num_Retina_frames - 1, start_frame);
@@ -403,7 +402,7 @@ if plot_final_weights
   save(  "-mat", V1ToError_weights_file, "V1ToError_weights");
 endif
 
-plot_weights_movie = 0;
+plot_weights_movie = 1;
 if plot_weights_movie
   weights_movie_dir = [output_dir, filesep, "V1ToError_movie"];
   mkdir(weights_movie_dir);
