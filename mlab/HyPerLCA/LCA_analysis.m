@@ -25,7 +25,8 @@ checkpoint_path = [checkpoint_dir, filesep, "Checkpoint", num2str(last_checkpoin
 next_checkpoint_path = [checkpoint_dir, filesep, "Checkpoint", num2str(next_checkpoint_ndx, "%i")];
 max_lines = last_checkpoint_ndx + (last_checkpoint_ndx == 0) * 1000;
 max_history = 50000;
-begin_statProbe_step = max(max_lines - max_history, 30);
+begin_statProbe_step = max(max_lines - max_history, 3);
+training_flag = 1;
 
 
 %% plot Reconstructions
@@ -46,8 +47,13 @@ if plot_Recon
   num_Retina_frames = size(Retina_struct,1);
   [Ganglion_struct, Ganglion_hdr] = ...
       readpvpfile(Ganglion_file, num_frames, start_frame + num_Retina_frames - 1, start_frame);
-  [Recon_struct, Recon_hdr] = ...
-      readpvpfile(Recon_file, num_frames, start_frame + num_Retina_frames - 1, start_frame);
+  if training_flag
+    [Recon_struct, Recon_hdr] = ...
+	readpvpfile(Recon_file, num_frames, start_frame + num_Retina_frames - 1, start_frame);
+  else  %% 
+    [Recon_struct, Recon_hdr] = ...
+	readpvpfile(Recon_file, [], [], []);
+  endif
   %%[Error_struct, Error_hdr] = readpvpfile(Error_file, num_frames, num_frames, start_frame);
   num_Ganglion_frames = size(Ganglion_struct,1);
   num_Recon_frames = size(Recon_struct,1);
@@ -89,71 +95,83 @@ if plot_Recon
   endif
 
   Retina_fig = figure;
+  Retina_mean = 0;
+  Retina_std = 0;
   for i_frame = num_Retina_frames - num_recon + 1: 1 : num_Retina_frames
     Retina_time = Retina_struct{i_frame}.time;
     Retina_vals = Retina_struct{i_frame}.values;
-    set(Retina_fig, "name", ["Retina ", num2str(Retina_time)]);
+    Retina_mean = Retina_mean + mean(Retina_vals(:));
+    Retina_std = Retina_std + std(Retina_vals(:));
+    set(Retina_fig, "name", ["Retina ", num2str(Retina_time, "%0d")]);
     imagesc(Retina_vals'); colormap(gray); box off; axis off; axis image;
-    saveas(Retina_fig, [recon_dir, filesep, "Retina_", num2str(Retina_time)], "png");
+    saveas(Retina_fig, [recon_dir, filesep, "Retina_", num2str(Retina_time, "%0d")], "png");
   endfor   %% i_frame
+  Retina_mean = Retina_mean / (num_recon + (num_recon == 0));
+  Retina_std = Retina_std / (num_recon + (num_recon == 0));
+  disp(["Retina_mean = ", num2str(Retina_mean), " +/- ", num2str(Retina_std)]);
 
   Ganglion_fig = figure;
-    if plot_DoG_kernel
-      unwhitened_Ganglion_fig = figure;
-    endif
-    for i_frame = num_Ganglion_frames - num_recon + 1 : 1 : num_Ganglion_frames
+  Ganglion_mean = 0;
+  Ganglion_std = 0;
+  if plot_DoG_kernel
+    unwhitened_Ganglion_fig = figure;
+  endif
+  for i_frame = num_Ganglion_frames - num_recon + 1 : 1 : num_Ganglion_frames
     Ganglion_time = Ganglion_struct{i_frame}.time;
     Ganglion_vals = Ganglion_struct{i_frame}.values;
+    Ganglion_mean = Ganglion_mean + mean(Ganglion_vals(:));
+    Ganglion_std = Ganglion_std + std(Ganglion_vals(:));
     figure(Ganglion_fig);
-    set(Ganglion_fig, "name", ["Ganglion ", num2str(Ganglion_time)]);
+    set(Ganglion_fig, "name", ["Ganglion ", num2str(Ganglion_time, "%0d")]);
     imagesc(Ganglion_vals'); colormap(gray); box off; axis off; axis image;
-    saveas(Ganglion_fig, [recon_dir, filesep, "Ganglion_", num2str(Ganglion_time)], "png");
-    drawnow
-
-    %%Error_time = Error_struct{i_frame}.time;
-    %%Error_vals = Error_struct{i_frame}.values;
-    %%Error_fig(i_frame) = figure;
-    %%set(Error_fig(i_frame), "name", ["Error ", num2str(i_frame, "%i")]);
-    %%imagesc(Error_vals'); colormap(gray); box off; axis off; axis image;
-    %%saveas(Error_fig(i_frame), [recon_dir, filesep, "Error_", num2str(i_frame, "%i")], "png");
-
+    saveas(Ganglion_fig, [recon_dir, filesep, "Ganglion_", num2str(Ganglion_time, "%0d")], "png");
     if plot_DoG_kernel
-      mean_Ganglion = mean(Ganglion_vals(:));
-      std_Ganglion = std(Ganglion_vals(:));
       [unwhitened_Ganglion_DoG] =  deconvolvemirrorbc(Ganglion_vals', DoG_weights);
       figure(unwhitened_Ganglion_fig);
-      set(unwhitened_Ganglion_fig, "name", ["unwhitened Ganglion ", num2str(Ganglion_time)]);
+      set(unwhitened_Ganglion_fig, "name", ["unwhitened Ganglion ", num2str(Ganglion_time, "%0d")]);
       imagesc(unwhitened_Ganglion_DoG); colormap(gray); box off; axis off; axis image;
       saveas(unwhitened_Ganglion_fig, ...
-	     [recon_dir, filesep, "unwhitened_Ganglion_", num2str(Ganglion_time)], "png");
+	     [recon_dir, filesep, "unwhitened_Ganglion_", num2str(Ganglion_time, "%0d")], "png");
+      drawnow
     endif %% plot_DoG_kernel
-
   endfor   %% i_frame
+  Ganglion_mean = Ganglion_mean / (num_recon + (num_recon == 0));
+  Ganglion_std = Ganglion_std / (num_recon + (num_recon == 0));
+  disp(["Ganglion_mean = ", num2str(Ganglion_mean), " +/- ", num2str(Ganglion_std)]);
 
-  recon_start_frame = num_Recon_frames - num_recon + 1; %%
+  if training_flag
+    recon_start_frame = num_Recon_frames - num_recon + 1; %%
+  else
+    recon_start_frame = 1;
+  endif
   Recon_fig = figure;
+  Recon_mean = 0;
+  Recon_std = 0;
   if plot_DoG_kernel
       unwhitened_Recon_fig = figure;
   endif
   for i_frame = recon_start_frame : 1 : num_Recon_frames
     Recon_time = Recon_struct{i_frame}.time;
     Recon_vals = Recon_struct{i_frame}.values;
+    Recon_mean = Recon_mean + mean(Recon_vals(:));
+    Recon_std = Recon_std + std(Recon_vals(:));
     figure(Recon_fig);
     set(Recon_fig, "name", ["Recon ", num2str(Recon_time)]);
     imagesc(Recon_vals'); colormap(gray); box off; axis off; axis image;
-    saveas(Recon_fig, [recon_dir, filesep, "Recon_", num2str(Recon_time)], "png");
+    saveas(Recon_fig, [recon_dir, filesep, "Recon_", num2str(Recon_time, "%0d")], "png");
     if plot_DoG_kernel
-      mean_Recon = mean(Recon_vals(:));
-      std_Recon = std(Recon_vals(:));
       [unwhitened_Recon_vals] = deconvolvemirrorbc(Recon_vals', DoG_weights); 
       figure(unwhitened_Recon_fig);
-      set(unwhitened_Recon_fig, "name", ["unwhitened Recon ", num2str(Recon_time)]);
+      set(unwhitened_Recon_fig, "name", ["unwhitened Recon ", num2str(Recon_time, "%0d")]);
       imagesc(unwhitened_Recon_vals); colormap(gray); box off; axis off; axis image;
       saveas(unwhitened_Recon_fig, ...
-	     [recon_dir, filesep, "unwhitened_Recon_", num2str(Recon_time)], "png");
+	     [recon_dir, filesep, "unwhitened_Recon_", num2str(Recon_time, "%0d")], "png");
+      drawnow
     endif %% plot_DoG_kernel
-
-  endfor
+  endfor %% i_frames
+  Recon_mean = Recon_mean / (num_recon + (num_recon == 0));
+  Recon_std = Recon_std / (num_recon + (num_recon == 0));
+  disp(["Recon_mean = ", num2str(Recon_mean), " +/- ", num2str(Recon_std)]);
   drawnow;
 endif
 
@@ -402,7 +420,11 @@ if plot_final_weights
   save(  "-mat", V1ToError_weights_file, "V1ToError_weights");
 endif
 
+<<<<<<< .mine
+plot_weights_movie = training_flag;
+=======
 plot_weights_movie = 1;
+>>>>>>> .r6825
 if plot_weights_movie
   weights_movie_dir = [output_dir, filesep, "V1ToError_movie"];
   mkdir(weights_movie_dir);
