@@ -5,7 +5,7 @@ disp(["FLAVOR_ID = ", FLAVOR_ID]);
 target_id = cell(1,2); 
 target_id{1,1} = "Car"; target_id{1,2} = "NotCar"; %% 
 target_id
-clips_flag = true; %% false;  %%
+clips_flag = true; %%false; %% 
 if clips_flag 
   clip_ids = [26:26]; %% [1:50]; %% 
   clip_name = cell(length(clip_ids),1);
@@ -16,7 +16,7 @@ else
   clip_name = [];
 endif
 clip_name
-pvp_num_ODD_kernels = 1; %%
+pvp_num_ODD_kernels = 2; %%
 disp(["num_ODD_kernels = ", num2str(pvp_num_ODD_kernels)]);
 %% end definition of the most volitile parameters
 
@@ -28,7 +28,7 @@ disp(["frame_size = ", mat2str(pvp_frame_size)]);
 pvp_edge_type = "canny"; 
 pvp_clique_id = "3way2X2"; %% ""; %%
 pvp_training_dir = "Formative";
-pvp_training_tag = "F"; 
+pvp_training_tag = "F"; %% ""; %%
 num_versions = length(version_ids);
 if num_versions > 0
   version_str = cell(num_versions,1);
@@ -184,7 +184,7 @@ for i_object = 1 : size(target_id,1)
     mkdir(file_of_weights_object_path2);
     file_of_weights_object_path = ...
 	[file_of_weights_object_path2, ...
-	 pvp_edge_type, pvp_clique_id, filesep];
+	 pvp_edge_type, pvp_clique_id, pvp_training_tag, filesep];
     mkdir(file_of_weights_object_path);
     pvp_file_of_weights_filename = ...
 	[DATASET_ID, ...
@@ -194,7 +194,7 @@ for i_object = 1 : size(target_id,1)
 	 target_id{i_object, target_flag}, ...
 	 pvp_num_ODD_kernels_str, ...
 	 "_", ...
-	 pvp_edge_type, pvp_clique_id, ...
+	 pvp_edge_type, pvp_clique_id, pvp_training_tag, ...
 	 ".weights"];	
     pvp_file_of_weights_file{1, target_flag} = ...
 	[pvp_file_of_weights_path, pvp_file_of_weights_filename];
