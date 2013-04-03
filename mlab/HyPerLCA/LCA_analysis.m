@@ -4,10 +4,10 @@ close all;
 setenv("GNUTERM","X11")
 if ismac
   workspace_path = "/Users/garkenyon/workspace";
-  output_dir = "/Users/garkenyon/workspace/HyPerHLCA2/output"
+  output_dir = "/Users/garkenyon/workspace/HyPerHLCA2/output_animal1200000_distractor1200000"
   LCA_path = [workspace_path, filesep, "HyPerHLCA2"];
-  last_checkpoint_ndx = 20000; 
-  next_checkpoint_ndx = 40000;
+  last_checkpoint_ndx = 50000*21; 
+  next_checkpoint_ndx = 50000*21;
   first_checkpoint_ndx = 0; 
   frame_duration = 1000;
 elseif isunix
@@ -420,11 +420,7 @@ if plot_final_weights
   save(  "-mat", V1ToError_weights_file, "V1ToError_weights");
 endif
 
-<<<<<<< .mine
 plot_weights_movie = training_flag;
-=======
-plot_weights_movie = 1;
->>>>>>> .r6825
 if plot_weights_movie
   weights_movie_dir = [output_dir, filesep, "V1ToError_movie"];
   mkdir(weights_movie_dir);
