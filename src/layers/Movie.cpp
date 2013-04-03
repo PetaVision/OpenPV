@@ -311,6 +311,7 @@ const char * Movie::getNextFileName()
       if ((c = fgetc(fp)) == EOF) {
          rewind(fp);
          fprintf(stderr, "Movie %s: EOF reached, rewinding file \"%s\"\n", name, filename);
+         // TODO: add a flag so that the next pass through the files it flips or rotates the images
       }
       else {
          ungetc(c, fp);
