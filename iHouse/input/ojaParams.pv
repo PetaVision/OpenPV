@@ -713,9 +713,10 @@ LCALIFLateralConn "stellate_lateral_inhibition" = {
    inhibitionTimeConstant     = 1600000;
    targetRate                 = 5;
    coorThresh                 = 1;
+   	   	   	   	   	                //
+   writeStep                  = -1;
                                     //
    numAxonalArbors            = 1;
-   writeStep                  = -1;
    initFromLastFlag           = 0;
    initialWriteTime           = 0;
                                     //
@@ -751,9 +752,10 @@ LCALIFLateralConn "inter_lateral_inhibition" = {
    inhibitionTimeConstant     = 1600000;
    targetRate                 = 5;
    coorThresh                 = 1;
+   	   	   	   	   	   	   	   	    //
+   writeStep                  = -1;
                                     //
    numAxonalArbors            = 1;
-   writeStep                  = -1;
    initFromLastFlag           = 0;
    initialWriteTime           = 0;
                                     //
