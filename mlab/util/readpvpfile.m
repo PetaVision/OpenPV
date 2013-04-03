@@ -8,7 +8,7 @@ function [data,hdr] = readpvpfile(filename,progressperiod, num_frames, start_fra
 %     For weights, values is a cell array, each element is an nxp-by-nyp-by-nfp array.
 
 %% start_frame allows the user to only read frames from some starting point
-if nargin < 4 || ~exist("start_frame") || isempty(start_frame)
+if nargin < 4 || ~exist('start_frame') || isempty(start_frame)
   start_frame = 1;
 end
 
@@ -57,7 +57,7 @@ switch hdr.filetype
         errorstring = sprintf('readpvpfile:File %s has unrecognized file type %d',filename,hdr.filetype);
 end
 %% allow user to override value of numframes
-if (exist("num_frames","var") && ~isempty(num_frames))
+if (exist('num_frames','var') && ~isempty(num_frames))
     numframes = num_frames;
 end
 
