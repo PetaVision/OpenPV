@@ -63,6 +63,7 @@ FILE * PV_fopen(const char * path, const char * mode) {
       filepointer = fopen(path, mode);
       if (filepointer != NULL) break;
       fopencounts++;
+      fprintf(stderr, "fopen failure on attempt %d\n", fopencounts);
       if (fopencounts < MAX_FILESYSTEMCALL_TRIES) {
          sleep(1);
       }
@@ -84,6 +85,7 @@ long int PV_ftell(FILE * fp) {
       filepos = ftell(fp);
       if (filepos >= 0) break;
       ftellcounts++;
+      fprintf(stderr, "ftell failure on attempt %d\n", ftellcounts);
       if (ftellcounts < MAX_FILESYSTEMCALL_TRIES) {
          sleep(1);
       }
@@ -105,6 +107,7 @@ int PV_fseek(FILE * fp, long offset, int whence) {
       fseekstatus = fseek(fp, offset, whence);
       if (fseekstatus==0) break;
       fseekcounts++;
+      fprintf(stderr, "fopen failure on attempt %d\n", fseekcounts);
       if (fseekcounts<MAX_FILESYSTEMCALL_TRIES) {
          sleep(1);
       }
@@ -116,6 +119,33 @@ int PV_fseek(FILE * fp, long offset, int whence) {
       fprintf(stderr, "PV_fseek error: %s\n", strerror(errno));
    }
    return fseekstatus;
+}
+
+size_t PV_fwrite(const void * RESTRICT ptr, size_t size, size_t nitems, FILE * RESTRICT stream) {
+   int fwritecounts = 0;
+   size_t fwritten = !nitems;
+   while (fwritten == nitems) {
+      long int fpos = PV_ftell(stream);
+      if (fpos<0) {
+         fprintf(stderr, "PV_fwrite error: unable to determine file position.  Fatal error\n");
+         exit(PV_SUCCESS);
+      }
+      fwritten = fwrite(ptr, size, nitems, stream);
+      fwritecounts++;
+      fprintf(stderr, "fwrite failure on attempt %d.  Attempting to return to original position\n", fwritecounts);
+      if (fwritecounts<MAX_FILESYSTEMCALL_TRIES) {
+         sleep(1);
+         int fseekstatus = PV_fseek(stream, fpos, SEEK_SET);
+         if (fseekstatus!=0) {
+            fprintf(stderr, "PV_fwrite error: unable to return to original position after failed fwrite call.  Fatal error.\n");
+            exit(PV_SUCCESS);
+         }
+      }
+      else {
+         break;
+      }
+   }
+   return fwritten;
 }
 
 

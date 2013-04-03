@@ -30,6 +30,7 @@ size_t pv_sizeof(int datatype);
 FILE * PV_fopen(const char * path, const char * mode);
 long int PV_ftell(FILE * fp);
 int PV_fseek(FILE * fp, long int offset, int whence);
+size_t PV_fwrite(const void * RESTRICT ptr, size_t size, size_t nitems, FILE * RESTRICT stream);
 
 FILE * pvp_open_read_file(const char * filename, Communicator * comm);
 
