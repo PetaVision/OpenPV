@@ -5,7 +5,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [outMat] = cellMap(onWeightValues, offWeightValues, arborId, patchLoc)
    [procsX procsY numArbors] = size(onWeightValues);
-   [patchLocSizeX patchLocSizeY numFeatures temp] = size(onWeightValues{procsX, procsY, numArbors});
+   [patchLocSizeX patchLocSizeY numFeatures numPatches] = size(onWeightValues{procsX, procsY, numArbors});
    global sizeX sizeY;
    outMat = zeros(patchLocSizeY, patchLocSizeX);
    patchLocX = patchLoc(1);

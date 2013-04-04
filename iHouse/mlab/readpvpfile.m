@@ -9,7 +9,6 @@ function [data,hdr] = readpvpfile(filename,output_path,MOVIE_FLAG,progressperiod
 
 rootname     = '00';
 OUT_FILE_EXT = 'jpg';             %either png or jpg for now
-%MOVIE_FLAG   = 1;
 global FNUM_ALL;
 global FNUM_SPEC;              %Can be -1 for all or specify multiple start:int:end frames
 

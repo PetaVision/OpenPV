@@ -4,25 +4,24 @@ system("clear");
 %Nessessary Petavision Variables 
 global postNxScale; postNxScale = 1; 
 global postNyScale; postNyScale = 1;
-global lifInhPatchX; lifInhPatchX = 21;
-global lifInhPatchY; lifInhPatchY = 21;
-global deltaT; deltaT = 1;
-global tLCA; tLCA = 20;
-rootDir                                    = '/Users/slundquist';
-workspaceDir                               = [rootDir,'/Documents/workspace/iHouse'];
-pvpDir                                     = [workspaceDir,'/testOutput/'];
-outputDir                                  = [workspaceDir,'/testOutput/analysis/'];
-%rootDir                                    = '/Users/dpaiton';
-%workspaceDir                               = [rootDir,'/Documents/Work/LANL/workspace/iHouse'];
-%pvpDir                                     = [workspaceDir,'/checkpoints/Checkpoint1000000/'];
-%outputDir                                  = [pvpDir,'/analysis/'];
+
+%% Path information
+%rootDir       = '/Users/slundquist';
+%workspaceDir  = [rootDir,'/Documents/workspace/iHouse'];
+%pvpDir        = [workspaceDir,'/testOutput/'];
+%outputDir     = [workspaceDir,'/testOutput/analysis/'];
+rootDir       = '/Users/dpaiton';
+workspaceDir  = [rootDir,'/Documents/Work/LANL/workspace/iHouse'];
+pvpDir        = [workspaceDir,'/output/'];
+outputDir     = [pvpDir,'/analysisInter/'];
+%outputDir     = [pvpDir,'/analysisStellate/'];
 
 %Reconstruct Flags
-global SPIKING_POST_FLAG;      SPIKING_POST_FLAG      = 0;  %Create spiking post output flag
-global SPIKING_PRE_FLAG;       SPIKING_PRE_FLAG       = 0;
+global SPIKING_POST_FLAG;      SPIKING_POST_FLAG      = 1;  %Create spiking post output flag
+global SPIKING_PRE_FLAG;       SPIKING_PRE_FLAG       = 1;
 
 %Spiking Output
-global FNUM_ALL;  FNUM_ALL = 0;   %1 for all frames, 0 for FNUM_SPEC
+global FNUM_ALL;  FNUM_ALL = 1;   %1 for all frames, 0 for FNUM_SPEC
 global FNUM_SPEC; FNUM_SPEC= {... %start:int:end frames
    [10000:20000]...
    [50000:60000]...
@@ -31,12 +30,20 @@ global FNUM_SPEC; FNUM_SPEC= {... %start:int:end frames
    [180000:190000]...
 };
 
-global RECONSTRUCTION_FLAG;    RECONSTRUCTION_FLAG = 0; %Create reconstructions
+global RECONSTRUCTION_FLAG;    RECONSTRUCTION_FLAG = 1; %Create reconstructions
 global WEIGHTS_MAP_FLAG;       WEIGHTS_MAP_FLAG    = 1; %Create weight maps
-global WEIGHTS_CELL_FLAG;      WEIGHTS_CELL_FLAG   = 0;
+global WEIGHTS_CELL_FLAG;      WEIGHTS_CELL_FLAG   = 0; %Create smaller weight map based on cell values
 global CELL; CELL = {...
-   [35, 20]...
-   [10, 20]...
+   [21, 15]...
+  %[22, 15]...
+  %[23, 15]...
+  %[24, 15]...
+  %[25, 15]...
+  %[23, 13]...
+  %[23, 14]...
+  %[23, 15]...
+  %[23, 16]...
+  %[23, 17]...
 };        %X by Y of weigh cell
 
 global WEIGHT_HIST_FLAG;  WEIGHT_HIST_FLAG  = 1;
@@ -52,15 +59,18 @@ global GRAY_SC;    GRAY_SC    = 0;              %Image in grayscale
 global RECON_IMAGE_SC;   RECON_IMAGE_SC   = -1; %-1 for autoscale
 global WEIGHTS_IMAGE_SC; WEIGHTS_IMAGE_SC = -1; %-1 for autoscale
 global GRID_FLAG;        GRID_FLAG        = 0;
-global NUM_PROCS;        NUM_PROCS        = nproc();
+global NUM_PROCS;        NUM_PROCS        = 1;%nproc();
 
 
 %File names
-postActivityFile                           = [pvpDir,'lif.pvp'];
+%postActivityFile                           = [pvpDir,'Stellate.pvp'];
+postActivityFile                          = [pvpDir,'Inter.pvp'];
 preOnActivityFile                          = [pvpDir,'RetinaON.pvp'];
 preOffActivityFile                         = [pvpDir,'RetinaOFF.pvp'];
-ONweightfile                               = [pvpDir,'w5_post.pvp'];
-OFFweightfile                              = [pvpDir,'w6_post.pvp'];
+%ONweightfile                               = [pvpDir,'RetinaONtoStellate_post.pvp'];
+ONweightfile                               = [pvpDir,'RetinaONtoInter_post.pvp'];
+%OFFweightfile                              = [pvpDir,'RetinaOFFtoStellate_post.pvp'];
+OFFweightfile                               = [pvpDir,'RetinaOFFtoInter_post.pvp'];
 readPostSpikingDir                         = [outputDir, 'postpvp/'];
 readPreSpikingDir                          = [outputDir, 'prepvp/'];
 readPreOnSpikingDir                        = [readPreSpikingDir, 'On/'];
@@ -94,8 +104,10 @@ end
 if (exist(weightMapOutDir, 'dir') ~= 7)
    mkdir(weightMapOutDir);
 end
-if (exist(cellMapOutDir, 'dir') ~= 7)
-   mkdir(cellMapOutDir);
+if (WEIGHTS_CELL_FLAG)
+    if (exist(cellMapOutDir, 'dir') ~= 7)
+       mkdir(cellMapOutDir);
+    end
 end
 if (exist(onWeightHistOutDir, 'dir') ~= 7)
    mkdir(onWeightHistOutDir);
@@ -197,7 +209,7 @@ end
 
 if(RECONSTRUCTION_FLAG || SPIKING_POST_FLAG) 
     assert(length(activityData) >= 2);
-    activityWriteStep = activityData{2}.time - activityData{1}.time;
+    activityWriteStep = activityData{3}.time - activityData{2}.time;
     if(SPIKING_POST_FLAG)
        assert(activityWriteStep == 1, 'Post layer write step must be 1 with spiking post flag on');
     end
@@ -276,7 +288,7 @@ for weightTimeIndex = 1:numWeightSteps; %For every weight timestep
    disp(['Time: ', num2str(time)]);
    if (RECONSTRUCTION_FLAG || SPIKING_POST_FLAG) %TODO: might not work if recon flag is true and spik flag is false
        %Calculate weight time index to activity
-       activityTimeIndex = find(aTimeI == time);
+       activityTimeIndex = find(aTimeI(2:end) == time);
        assert(length(activityTimeIndex) <= 1);
        %Time is not found
        if (length(activityTimeIndex) == 0)
@@ -314,7 +326,7 @@ for weightTimeIndex = 1:numWeightSteps; %For every weight timestep
       if (WEIGHTS_CELL_FLAG > 0)
          for cellIndex = 1:length(CELL)
             outMat = cellMap(weightDataOn{weightTimeIndex}.values, weightDataOff{weightTimeIndex}.values, i, CELL{cellIndex});
-            printImage(outMat, time, i, cellMapOutDir, WEIGHTS_IMAGE_SC, ['Cell_Map_',num2str(CELL{cellIndex}(1)),'_',num2str(CELL{cellIndex}(2))]) 
+            printImage(outMat, time, i, cellMapOutDir, WEIGHTS_IMAGE_SC, ['Cell\_Map\_',num2str(CELL{cellIndex}(1)),'\_',num2str(CELL{cellIndex}(2))]) 
          end
       end
    end
