@@ -8,13 +8,13 @@ nbPre      = 3;
 nxGlobal   = 32;
 nyGlobal   = 32;
 
-postScaleX = 4;
-postScaleY = 4;
-nbPost     = 13;
+%postScaleX = 4;
+%postScaleY = 4;
+%nbPost     = 13;
 
-%postScaleX = 2;
-%postScaleY = 2;
-%nbPost     = 8;
+postScaleX = 2;
+postScaleY = 2;
+nbPost     = 8;
 
 %%%%%%%%%%%%%%%%%%%
 %% Path information
@@ -208,7 +208,7 @@ for checkPointIdx = 1:length({checkPoints.name}) %Loop through each sub-dir of c
                     outCell{arborIdx,time,postIdxY,postIdxX} = cellMap(weightDataOn{time}.values, weightDataOff{time}.values, arborIdx, [cellMatX(postIdxX),cellMatY(postIdxY)]);
                 end
             end
-            outMat = reshape([outCell{arborIdx,time,:,:}],weightHdrOn.nyp,weightHdrOn.nxp);
+            outMat = reshape([outCell{arborIdx,time,:,:}],weightHdrOn.nyp/weightHdrOn.postScaleY*weightHdrOn.ny,weightHdrOn.nxp/weightHdrOn.postScaleX*weightHdrOn.nx);
             printImage(outMat, checkPointIdx, arborIdx, cellMovOutDir, WEIGHTS_IMAGE_SC, ['Cell\_Map\_X\_[',num2str(min(cellMatX)),':',num2str(max(cellMatY)),']\_Y\_[',num2str(min(cellMatY)),':',num2str(max(cellMatY)),']']) 
         end
     end
