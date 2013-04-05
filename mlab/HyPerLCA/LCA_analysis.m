@@ -4,12 +4,12 @@ close all;
 setenv("GNUTERM","X11")
 if ismac
   workspace_path = "/Users/garkenyon/workspace";
-  output_dir = "/Users/garkenyon/workspace/HyPerHLCA2/output_animal1200000_distractor1200000"
+  output_dir = "/Users/garkenyon/workspace/HyPerHLCA2/output_test" %% output_animal1200000_distractor1200000" %%
   LCA_path = [workspace_path, filesep, "HyPerHLCA2"];
-  last_checkpoint_ndx = 50000*21; 
-  next_checkpoint_ndx = 50000*21;
+  last_checkpoint_ndx = 20000*1; 
+  next_checkpoint_ndx = 20000*1;
   first_checkpoint_ndx = 0; 
-  frame_duration = 1000;
+  frame_duration = 5000;
 elseif isunix
   workspace_path = "/home/gkenyon/workspace_new";
   output_dir = "/nh/compneuro/Data/MRI/LCA/5_subjects"; %% vine/LCA/cats"; %% 
@@ -24,13 +24,13 @@ checkpoint_dir = [LCA_path, filesep, "Checkpoints"];
 checkpoint_path = [checkpoint_dir, filesep, "Checkpoint", num2str(last_checkpoint_ndx, "%i")];
 next_checkpoint_path = [checkpoint_dir, filesep, "Checkpoint", num2str(next_checkpoint_ndx, "%i")];
 max_lines = last_checkpoint_ndx + (last_checkpoint_ndx == 0) * 1000;
-max_history = 50000;
+max_history = 20000;
 begin_statProbe_step = max(max_lines - max_history, 3);
-training_flag = 1;
+training_flag = 0;
 
 
 %% plot Reconstructions
-plot_Recon = 1;
+plot_Recon = 0;
 if plot_Recon
   %%keyboard;
   num_recon = 4;
@@ -41,7 +41,7 @@ if plot_Recon
   Recon_file = [output_dir, filesep, "a4_Recon.pvp"];
   Error_file = [output_dir, filesep, "a5_Error.pvp"];
   write_step = frame_duration;
-  num_frames = floor((last_checkpoint_ndx - first_checkpoint_ndx) / write_step);
+  num_frames = floor((last_checkpoint_ndx - first_checkpoint_ndx) / write_step) + 1;
   start_frame = num_frames-num_recon+1; %% floor((first_checkpoint_ndx) / write_step);
   [Retina_struct, Retina_hdr] = readpvpfile(Retina_file, num_frames, num_frames, start_frame);
   num_Retina_frames = size(Retina_struct,1);
@@ -364,7 +364,7 @@ if plot_V1
   drawnow;  
 endif
 
-plot_final_weights = 1;
+plot_final_weights = 0;
 if plot_final_weights 
   V1ToError_path = [checkpoint_path, filesep, "V1ToError_W.pvp"];
   if ~exist(V1ToError_path, "file")
