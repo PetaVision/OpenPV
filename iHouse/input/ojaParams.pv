@@ -10,7 +10,7 @@ HyPerCol "column" = {
                                            // 
    randomSeed                   = 1234567890;   
                                            //
-   numSteps                     = 2000000; // amount of time steps performed during run-time
+   numSteps                     = 4000000; // amount of time steps performed during run-time
    progressStep                 = 1000;    // write output to see progress
    writeProgressToErr           = 0;       // write progress steps to std err
                                            // 
@@ -21,7 +21,7 @@ HyPerCol "column" = {
    filenamesContainLayerNames      = 2;    // stores pvp files as: 0 = layer number/1 = layer number and layer name/2 = layer name
    filenamesContainConnectionNames = 2;
                                            // 
-   checkpointRead               = false;
+   checkpointRead               = true;
    checkpointReadDirIndex       = 2000000;
    //checkpointReadDir            = "~/Documents/workspace/iHouse/checkpoints";
    //checkpointReadDir            = "~/Documents/Work/LANL/workspace/iHouse/checkpoints"; //Dylan's Mac
