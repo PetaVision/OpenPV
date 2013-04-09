@@ -42,10 +42,7 @@ int InitWeightsParams::initialize_base() {
    this->post = NULL;
    this->channel = CHANNEL_EXC;
    this->name = strdup("Unknown");
-
-   deltaTheta=0;
-
-   return 1;
+   return PV_SUCCESS;
 }
 int InitWeightsParams::getnfPatch_tmp()        {return parentConn->fPatchSize();}
 int InitWeightsParams::getnyPatch_tmp() {
@@ -69,6 +66,11 @@ int InitWeightsParams::initialize(HyPerConn * pConn) {
    this->setName(parentConn->getName());
 
    return status;
+}
+
+void InitWeightsParams::calcOtherParams(int dataPatchIndex) {
+   this->getcheckdimensionsandstrides();
+   kernelIndexCalculations(dataPatchIndex);
 }
 
 void InitWeightsParams::getcheckdimensionsandstrides() {
@@ -126,35 +128,6 @@ int InitWeightsParams::kernelIndexCalculations(int dataPatchIndex) {
    return kfPre_tmp;
 }
 
-void InitWeightsParams::calculateThetas(int kfPre_tmp, int patchIndex) {
-   noPost = post->getLayerLoc()->nf;
-   dthPost = PI*thetaMax / (float) noPost;
-   th0Post = rotate * dthPost / 2.0f;
-   noPre = pre->getLayerLoc()->nf;
-   const float dthPre = calcDthPre();
-   const float th0Pre = calcTh0Pre(dthPre);
-   fPre = patchIndex % pre->getLayerLoc()->nf;
-   assert(fPre == kfPre_tmp);
-   const int iThPre = patchIndex % noPre;
-   thPre = th0Pre + iThPre * dthPre;
-}
-
-float InitWeightsParams::calcDthPre() {
-   return PI*thetaMax / (float) noPre;
-}
-float InitWeightsParams::calcTh0Pre(float dthPre) {
-   return rotate * dthPre / 2.0f;
-}
-
-float InitWeightsParams::calcThPost(int fPost) {
-   int oPost = fPost % noPost;
-   float thPost = th0Post + oPost * dthPost;
-   if (noPost == 1 && noPre > 1) {
-      thPost = thPre;
-   }
-   return thPost;
-}
-
 float InitWeightsParams::calcYDelta(int jPost) {
    return calcDelta(jPost, dyPost, yDistHeadPreUnits);
 }
@@ -165,6 +138,39 @@ float InitWeightsParams::calcXDelta(int iPost) {
 
 float InitWeightsParams::calcDelta(int post, float dPost, float distHeadPreUnits) {
    return distHeadPreUnits + post * dPost;
+}
+
+
+// moved to InitGauss2DWeightsParams
+/*
+
+void InitWeightsParams::calculateThetas(int kfPre_tmp, int patchIndex) {
+   //numOrientationsPost = post->getLayerLoc()->nf;  // to allow for color bands, can't assume numOrientations
+   dthPost = PI*thetaMax / (float) numOrientationsPost;
+   th0Post = rotate * dthPost / 2.0f;
+   //numOrientationsPre = pre->getLayerLoc()->nf; // to allow for color bands, can't assume numOrientations
+   const float dthPre = calcDthPre();
+   const float th0Pre = calcTh0Pre(dthPre);
+   fPre = patchIndex % pre->getLayerLoc()->nf;
+   assert(fPre == kfPre_tmp);
+   const int iThPre = patchIndex % numOrientationsPre;
+   thPre = th0Pre + iThPre * dthPre;
+}
+
+float InitWeightsParams::calcDthPre() {
+   return PI*thetaMax / (float) numOrientationsPre;
+}
+float InitWeightsParams::calcTh0Pre(float dthPre) {
+   return rotate * dthPre / 2.0f;
+}
+
+float InitWeightsParams::calcThPost(int fPost) {
+   int oPost = fPost % numOrientationsPost;
+   float thPost = th0Post + oPost * dthPost;
+   if (numOrientationsPost == 1 && numOrientationsPre > 1) {
+      thPost = thPre;
+   }
+   return thPost;
 }
 
 bool InitWeightsParams::checkTheta(float thPost) {
@@ -179,5 +185,6 @@ bool InitWeightsParams::checkTheta(float thPost) {
    return false;
 }
 
+*/
 
 } /* namespace PV */

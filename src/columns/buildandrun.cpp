@@ -623,7 +623,10 @@ InitWeights *createInitWeightsObject(const char * name, HyPerCol * hc) {
    const char * weightInitTypeStr = params->stringValue(name, "weightInitType",false);
    InitWeights *weightInitializer;
 
-   if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "CoCircWeight"))) {
+   if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "Gauss2DWeight"))) {
+      weightInitializer = new InitGauss2DWeights();
+   }
+   else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "CoCircWeight"))) {
       weightInitializer = new InitCocircWeights();
    }
    else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "UniformWeight"))) {
@@ -661,9 +664,6 @@ InitWeights *createInitWeightsObject(const char * name, HyPerCol * hc) {
    }
    else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "OneToOneWeights"))) {
       weightInitializer = new InitOneToOneWeights();
-   }
-   else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "Gauss2DWeight"))) {
-      weightInitializer = new InitWeights();
    }
    else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "SpreadOverArborsWeight"))) {
       weightInitializer = new InitSpreadOverArborsWeights();

@@ -9,13 +9,14 @@
 #define INITRULEWEIGHTS_HPP_
 
 #include "InitWeights.hpp"
+#include "InitGauss2DWeights.hpp"
 
 namespace PV {
 
 class InitWeightsParams;
 class InitRuleWeightsParams;
 
-class InitRuleWeights: public PV::InitWeights {
+class InitRuleWeights: public PV::InitGauss2DWeights {
 public:
    InitRuleWeights();
    virtual ~InitRuleWeights();
@@ -27,7 +28,7 @@ public:
 
 
 protected:
-   virtual int initialize_base();
+   int initialize_base();
 
 private:
    int ruleWeights(/* PVPatch * patch */ pvdata_t * dataStart, InitRuleWeightsParams * weightParamPtr);

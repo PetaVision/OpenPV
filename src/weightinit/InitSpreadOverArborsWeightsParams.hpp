@@ -9,10 +9,11 @@
 #define INITSPREADOVERARBORSWEIGHTSPARAMS_HPP_
 
 #include "InitWeightsParams.hpp"
+#include "InitGauss2DWeightsParams.hpp"
 
 namespace PV {
 
-class InitSpreadOverArborsWeightsParams: public PV::InitWeightsParams {
+class InitSpreadOverArborsWeightsParams: public PV::InitGauss2DWeightsParams {
 public:
    InitSpreadOverArborsWeightsParams();
    InitSpreadOverArborsWeightsParams(HyPerConn * parentConn);
@@ -25,7 +26,7 @@ public:
 
 
 protected:
-   virtual int initialize_base();
+   int initialize_base();
    int initialize(HyPerConn * parentConn);
 
 

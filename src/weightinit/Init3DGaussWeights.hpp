@@ -11,13 +11,14 @@
 #include "InitWeights.hpp"
 #include "InitWeightsParams.hpp"
 #include "Init3DGaussWeightsParams.hpp"
+#include "InitGauss2DWeights.hpp"
 
 namespace PV {
 
 class InitWeightsParams;
 class Init3DGaussWeightsParams;
 
-class Init3DGaussWeights: public PV::InitWeights {
+class Init3DGaussWeights: public PV::InitGauss2DWeights {
 public:
    Init3DGaussWeights();
    virtual ~Init3DGaussWeights();
@@ -28,7 +29,7 @@ public:
 
 
 protected:
-   virtual int initialize_base();
+   int initialize_base();
 
 //private:
    int gauss3DWeights(/*PVPatch * patch */ pvdata_t * dataStart, Init3DGaussWeightsParams * weightParamPtr);

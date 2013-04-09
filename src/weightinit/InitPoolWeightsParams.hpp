@@ -9,10 +9,11 @@
 #define INITPOOLWEIGHTSPARAMS_HPP_
 
 #include "InitWeightsParams.hpp"
+#include "InitGauss2DWeightsParams.hpp"
 
 namespace PV {
 
-class InitPoolWeightsParams: public PV::InitWeightsParams {
+class InitPoolWeightsParams: public PV::InitGauss2DWeightsParams {
 public:
    InitPoolWeightsParams();
    InitPoolWeightsParams(HyPerConn * parentConn);
@@ -23,7 +24,7 @@ public:
    inline float getStrength()        {return strength;}
 
 protected:
-   virtual int initialize_base();
+   int initialize_base();
    int initialize(HyPerConn * parentConn);
 
 private:

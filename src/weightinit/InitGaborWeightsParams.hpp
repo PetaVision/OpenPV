@@ -9,10 +9,11 @@
 #define INITGABORWEIGHTSPARAMS_HPP_
 
 #include "InitWeightsParams.hpp"
+#include "InitGauss2DWeightsParams.hpp"
 
 namespace PV {
 
-class InitGaborWeightsParams: public PV::InitWeightsParams {
+class InitGaborWeightsParams: public PV::InitGauss2DWeightsParams {
 public:
    InitGaborWeightsParams();
    InitGaborWeightsParams(HyPerConn * parentConn);
@@ -20,27 +21,27 @@ public:
    void calcOtherParams(int patchIndex);
 
    //get/set methods:
-   inline float getaspect()        {return aspect;}
-   inline float getshift()        {return shift;}
-   inline double getr2Max()        {return r2Max;}
-   inline float getsigma()        {return sigma;}
+//   inline float getaspect()        {return aspect;}
+//   inline float getshift()        {return shift;}
+//   inline double getr2Max()        {return r2Max;}
+//   inline float getsigma()        {return sigma;}
    inline float getlambda()        {return lambda;}
    inline float getphi()        {return phi;}
    inline bool getinvert()        {return invert;}
 
 protected:
-   virtual int initialize_base();
+   int initialize_base();
    int initialize(HyPerConn * parentConn);
 
 private:
    //params variables:
-   float aspect;
-   float sigma;
-   float rMax;
-   double r2Max;
-   float strength;
+//   float aspect;
+//   float sigma;
+//   float rMax;
+//   double r2Max;
+//   float strength;
    int lambda;
-   float shift;
+//   float shift;
    //float rotate; // rotate so that axis isn't aligned
    float phi;
    bool invert;

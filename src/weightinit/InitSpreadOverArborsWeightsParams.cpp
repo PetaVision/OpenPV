@@ -14,7 +14,7 @@ InitSpreadOverArborsWeightsParams::InitSpreadOverArborsWeightsParams()
    initialize_base();
 }
 InitSpreadOverArborsWeightsParams::InitSpreadOverArborsWeightsParams(HyPerConn * parentConn)
-                     : InitWeightsParams() {
+                     : InitGauss2DWeightsParams() {
    initialize_base();
    initialize(parentConn);
 }

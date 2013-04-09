@@ -9,13 +9,14 @@
 #define INITSPREADOVERARBORSWEIGHTS_HPP_
 
 #include "InitWeights.hpp"
+#include "InitGauss2DWeights.hpp"
 
 namespace PV {
 
 class InitSpreadOverArborsWeightsParams;
 
 
-class InitSpreadOverArborsWeights: public PV::InitWeights {
+class InitSpreadOverArborsWeights: public PV::InitGauss2DWeights {
 public:
    InitSpreadOverArborsWeights();
    virtual ~InitSpreadOverArborsWeights();
@@ -24,7 +25,7 @@ public:
    virtual int calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, int arborId, InitWeightsParams *weightParams);
 
 protected:
-   virtual int initialize_base();
+   int initialize_base();
 
 private:
    int spreadOverArborsWeights(/* PVPatch * patch */ pvdata_t * dataStart, int arborId,

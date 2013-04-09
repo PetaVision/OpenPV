@@ -6,6 +6,7 @@
  */
 
 #include "InitPoolWeightsParams.hpp"
+#include "InitGauss2DWeightsParams.hpp"
 
 namespace PV {
 
@@ -14,7 +15,7 @@ InitPoolWeightsParams::InitPoolWeightsParams()
    initialize_base();
 }
 InitPoolWeightsParams::InitPoolWeightsParams(HyPerConn * parentConn)
-                     : InitWeightsParams() {
+                     : InitGauss2DWeightsParams() {
    initialize_base();
    initialize(parentConn);
 }

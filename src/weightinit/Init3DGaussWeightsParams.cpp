@@ -14,7 +14,7 @@ Init3DGaussWeightsParams::Init3DGaussWeightsParams()
    initialize_base();
 }
 Init3DGaussWeightsParams::Init3DGaussWeightsParams(HyPerConn * parentConn)
-                     : InitWeightsParams() {
+                     : InitGauss2DWeightsParams() {
    initialize_base();
    initialize(parentConn);
 }

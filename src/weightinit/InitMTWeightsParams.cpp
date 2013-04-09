@@ -14,7 +14,7 @@ InitMTWeightsParams::InitMTWeightsParams()
    initialize_base();
 }
 InitMTWeightsParams::InitMTWeightsParams(HyPerConn * parentConn)
-                     : InitWeightsParams() {
+                     : InitGauss2DWeightsParams() {
    initialize_base();
    initialize(parentConn);
 }
@@ -63,7 +63,7 @@ int InitMTWeightsParams::initialize(HyPerConn * parentConn) {
 }
 
 float InitMTWeightsParams::calcDthPre() {
-   return PI*inputV1ThetaMax / (float) noPre;
+   return PI*inputV1ThetaMax / (float) numOrientationsPre;
 }
 float InitMTWeightsParams::calcTh0Pre(float dthPre) {
    return inputV1Rotate * dthPre / 2.0f;

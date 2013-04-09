@@ -21,13 +21,11 @@ InitGauss2DWeightsParams::InitGauss2DWeightsParams(HyPerConn * parentConn)
 
 InitGauss2DWeightsParams::~InitGauss2DWeightsParams()
 {
-   // TODO Auto-generated destructor stub
 }
 
 int InitGauss2DWeightsParams::initialize_base() {
 
-   // default values (chosen for center on cell of one pixel)
-   //int noPost = parentConn->fPatchSize();
+   // default values
    aspect = 1.0f; // circular (not line oriented)
    sigma = 0.8f;
    rMax = 1.4f;
@@ -40,10 +38,12 @@ int InitGauss2DWeightsParams::initialize_base() {
    setRotate(0.0f);  // rotate so that axis isn't aligned
    bowtieFlag = 0.0f;  // flag for setting bowtie angle
    bowtieAngle = PI * 2.0f;  // bowtie angle
-
-
-   return 1;
+   numOrientationsPost = 1;
+   numOrientationsPre = 1;
+   deltaTheta=0;
+   return PV_SUCCESS;
 }
+
 int InitGauss2DWeightsParams::initialize(HyPerConn * parentConn) {
    InitWeightsParams::initialize(parentConn);
 
@@ -55,9 +55,15 @@ int InitGauss2DWeightsParams::initialize(HyPerConn * parentConn) {
    rMax     = params->value(getName(), "rMax", rMax);
    rMin     = params->value(getName(), "rMin", rMin);
    strength = params->value(getName(), "strength", strength);
-   // old if condition failed to account for connections between oriented to non-oriented cells
-//   if (parentConn->fPatchSize() > 1) {
-   if (aspect != 1.0) {      //noPost = (int) params->value(post->getName(), "no", parentConn->fPatchSize());
+   if (this->post->getLayerLoc()->nf > 1){
+		numOrientationsPost = (int) params->value(post->getName(),
+				"numOrientationsPost", this->post->getLayerLoc()->nf);
+   }
+	if (this->pre->getLayerLoc()->nf > 1) {
+		numOrientationsPre = (int) params->value(post->getName(),
+				"numOrientationsPre", this->pre->getLayerLoc()->nf);
+	}
+   if (aspect != 1.0 && ((this->numOrientationsPre <= 1)||(this->numOrientationsPost <= 1))) {
       setDeltaThetaMax(params->value(getName(), "deltaThetaMax", getDeltaThetaMax()));
       setThetaMax(params->value(getName(), "thetaMax", getThetaMax()));
       numFlanks = (int) params->value(getName(), "numFlanks", (float) numFlanks);
@@ -77,22 +83,14 @@ int InitGauss2DWeightsParams::initialize(HyPerConn * parentConn) {
 
 //calculate other values:
    self = (pre != post);
-
-
    return status;
 
 }
 
 void InitGauss2DWeightsParams::calcOtherParams(int patchIndex) {
-
-   this->getcheckdimensionsandstrides();
-
-   const int kfPre_tmp = this->kernelIndexCalculations(patchIndex);
-
-
-
-   this->calculateThetas(kfPre_tmp, patchIndex);
-
+	InitWeightsParams::calcOtherParams(patchIndex);
+	const int kfPre_tmp = this->kernelIndexCalculations(patchIndex);
+	this->calculateThetas(kfPre_tmp, patchIndex);
 }
 
 
@@ -114,5 +112,48 @@ bool InitGauss2DWeightsParams::checkBowtieAngle(float xp, float yp) {
    }
    return false;
 }
+
+
+void InitGauss2DWeightsParams::calculateThetas(int kfPre_tmp, int patchIndex) {
+   //numOrientationsPost = post->getLayerLoc()->nf;  // to allow for color bands, can't assume numOrientations
+   dthPost = PI*thetaMax / (float) numOrientationsPost;
+   th0Post = rotate * dthPost / 2.0f;
+   //numOrientationsPre = pre->getLayerLoc()->nf; // to allow for color bands, can't assume numOrientations
+   const float dthPre = calcDthPre();
+   const float th0Pre = calcTh0Pre(dthPre);
+   fPre = patchIndex % pre->getLayerLoc()->nf;
+   assert(fPre == kfPre_tmp);
+   const int iThPre = patchIndex % numOrientationsPre;
+   thPre = th0Pre + iThPre * dthPre;
+}
+
+float InitGauss2DWeightsParams::calcDthPre() {
+   return PI*thetaMax / (float) numOrientationsPre;
+}
+
+float InitGauss2DWeightsParams::calcTh0Pre(float dthPre) {
+   return rotate * dthPre / 2.0f;
+}
+
+float InitGauss2DWeightsParams::calcThPost(int fPost) {
+   int oPost = fPost % numOrientationsPost;
+   float thPost = th0Post + oPost * dthPost;
+   if (numOrientationsPost == 1 && numOrientationsPre > 1) {
+      thPost = thPre;
+   }
+   return thPost;
+}
+
+bool InitGauss2DWeightsParams::checkTheta(float thPost) {
+  if ((deltaTheta = fabs(thPre - thPost)) > deltaThetaMax) {
+     //the following is obviously not ideal. But cocirc needs this deltaTheta:
+     deltaTheta = (deltaTheta <= PI / 2.0) ? deltaTheta : PI - deltaTheta;
+      return true;
+   }
+  deltaTheta = (deltaTheta <= PI / 2.0) ? deltaTheta : PI - deltaTheta;
+   return false;
+}
+
+
 
 } /* namespace PV */

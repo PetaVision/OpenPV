@@ -16,26 +16,14 @@ InitUniformRandomWeights::InitUniformRandomWeights()
 {
    initialize_base();
 }
-//InitUniformRandomWeights::InitUniformRandomWeights(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
-//      ChannelType channel) : InitWeights() {
-//
-//   InitUniformRandomWeights::initialize_base();
-//   InitUniformRandomWeights::initialize(name, hc, pre, post, channel);
-//}
 
 InitUniformRandomWeights::~InitUniformRandomWeights()
 {
-   // TODO Auto-generated destructor stub
 }
 
 int InitUniformRandomWeights::initialize_base() {
    return PV_SUCCESS;
 }
-//int InitUniformRandomWeights::initialize(const char * name, HyPerCol * hc,
-//      HyPerLayer * pre, HyPerLayer * post, ChannelType channel) {
-//   InitWeights::initialize(name, hc, pre, post, channel);
-//   return PV_SUCCESS;
-//}
 
 InitWeightsParams * InitUniformRandomWeights::createNewWeightParams(HyPerConn * callingConn) {
    InitWeightsParams * tempPtr = new InitUniformRandomWeightsParams(callingConn);

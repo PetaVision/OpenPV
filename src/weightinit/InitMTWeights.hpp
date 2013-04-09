@@ -9,6 +9,7 @@
 #define INITMTWEIGHTS_HPP_
 
 #include "InitWeights.hpp"
+#include "InitGauss2DWeights.hpp"
 #include "InitWeightsParams.hpp"
 #include "InitMTWeightsParams.hpp"
 
@@ -17,7 +18,7 @@ namespace PV {
 class InitWeightsParams;
 class InitMTWeightsParams;
 
-class InitMTWeights: public PV::InitWeights {
+class InitMTWeights: public PV::InitGauss2DWeights {
 public:
    InitMTWeights();
    virtual ~InitMTWeights();
@@ -27,7 +28,7 @@ public:
 
 
 protected:
-   virtual int initialize_base();
+   int initialize_base();
 
 private:
    int calculateMTWeights(/* PVPatch * patch */ pvdata_t * dataStart, InitMTWeightsParams * weightParamPtr);

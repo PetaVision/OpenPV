@@ -9,13 +9,14 @@
 #define INITGABORWEIGHTS_HPP_
 
 #include "InitWeights.hpp"
+#include "InitGauss2DWeights.hpp"
 
 namespace PV {
 
 class InitWeightsParams;
 class InitGaborWeightsParams;
 
-class InitGaborWeights: public PV::InitWeights {
+class InitGaborWeights: public PV::InitGauss2DWeights {
 public:
    InitGaborWeights();
    virtual ~InitGaborWeights();
@@ -27,7 +28,7 @@ public:
 
 
 protected:
-   virtual int initialize_base();
+   int initialize_base();
 
 private:
    int gaborWeights(/* PVPatch * patch */ pvdata_t * dataStart, InitGaborWeightsParams * weightParamPtr);

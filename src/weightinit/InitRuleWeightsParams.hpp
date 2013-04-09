@@ -9,10 +9,11 @@
 #define INITRULEWEIGHTSPARAMS_HPP_
 
 #include "InitWeightsParams.hpp"
+#include "InitGauss2DWeightsParams.hpp"
 
 namespace PV {
 
-class InitRuleWeightsParams: public PV::InitWeightsParams {
+class InitRuleWeightsParams: public PV::InitGauss2DWeightsParams {
 public:
    InitRuleWeightsParams();
    InitRuleWeightsParams(HyPerConn * parentConn);
@@ -23,7 +24,7 @@ public:
    inline float getStrength()        {return strength;}
 
 protected:
-   virtual int initialize_base();
+   int initialize_base();
    int initialize(HyPerConn * parentConn);
 
 private:

@@ -24,7 +24,7 @@ public:
    inline float getSparseFraction()        {return sparseFraction;}
 
 protected:
-   virtual int initialize_base();
+   int initialize_base();
    int initialize(HyPerConn * parentConn);
 
 

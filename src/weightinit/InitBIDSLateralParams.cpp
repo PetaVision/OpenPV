@@ -14,7 +14,7 @@ InitBIDSLateralParams::InitBIDSLateralParams()
    initialize_base();
 }
 InitBIDSLateralParams::InitBIDSLateralParams(HyPerConn * parentConn)
-                     : InitWeightsParams() {
+                     : InitGauss2DWeightsParams() {
    initialize_base();
    initialize(parentConn);
 }

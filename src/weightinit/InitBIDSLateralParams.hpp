@@ -9,12 +9,13 @@
 #define INITBIDSLATERALPARAMS_HPP_
 
 #include "InitWeightsParams.hpp"
+#include "InitGauss2DWeightsParams.hpp"
 #include "../layers/BIDSLayer.hpp"
 #include "../layers/BIDSMovieCloneMap.hpp"
 
 namespace PV {
 
-class InitBIDSLateralParams: public PV::InitWeightsParams {
+class InitBIDSLateralParams: public PV::InitGauss2DWeightsParams {
 public:
    InitBIDSLateralParams();
    InitBIDSLateralParams(HyPerConn * parentConn);

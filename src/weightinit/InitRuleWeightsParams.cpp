@@ -14,7 +14,7 @@ InitRuleWeightsParams::InitRuleWeightsParams()
    initialize_base();
 }
 InitRuleWeightsParams::InitRuleWeightsParams(HyPerConn * parentConn)
-                     : InitWeightsParams() {
+                     : InitGauss2DWeightsParams() {
    initialize_base();
    initialize(parentConn);
 }

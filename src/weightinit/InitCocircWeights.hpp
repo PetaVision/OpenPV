@@ -9,7 +9,9 @@
 #define INITCOCIRCWEIGHTS_HPP_
 
 #include "InitWeights.hpp"
+#include "InitGauss2DWeights.hpp"
 #include "InitWeightsParams.hpp"
+#include "InitGauss2DWeightsParams.hpp"
 #include "InitCocircWeightsParams.hpp"
 
 namespace PV {
@@ -17,7 +19,7 @@ namespace PV {
 class InitWeightsParams;
 class InitCocircWeightsParams;
 
-class InitCocircWeights: public PV::InitWeights {
+class InitCocircWeights: public PV::InitGauss2DWeights {
 public:
    InitCocircWeights();
 //   InitCocircWeights(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
@@ -30,7 +32,7 @@ public:
 
 
 protected:
-   virtual int initialize_base();
+   int initialize_base();
 //   int initialize(const char * name, HyPerCol * hc,
 //                  HyPerLayer * pre, HyPerLayer * post,
 //                  ChannelType channel);

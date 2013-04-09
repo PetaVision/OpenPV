@@ -9,10 +9,11 @@
 #define INIT3DGAUSSWEIGHTSPARAMS_HPP_
 
 #include "InitWeightsParams.hpp"
+#include "InitGauss2DWeightsParams.hpp"
 
 namespace PV {
 
-class Init3DGaussWeightsParams: public PV::InitWeightsParams {
+class Init3DGaussWeightsParams: public PV::InitGauss2DWeightsParams {
 public:
    Init3DGaussWeightsParams();
    Init3DGaussWeightsParams(HyPerConn * parentConn);
@@ -35,7 +36,7 @@ public:
    inline float getStrength()        {return strength;}
 
 protected:
-   virtual int initialize_base();
+   int initialize_base();
    int initialize(HyPerConn * parentConn);
 
 

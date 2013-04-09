@@ -9,10 +9,11 @@
 #define INITCOCIRCWEIGHTSPARAMS_HPP_
 
 #include "InitWeightsParams.hpp"
+#include "InitGauss2DWeightsParams.hpp"
 
 namespace PV {
 
-class InitCocircWeightsParams: public PV::InitWeightsParams {
+class InitCocircWeightsParams: public PV::InitGauss2DWeightsParams {
 public:
    InitCocircWeightsParams();
    InitCocircWeightsParams(HyPerConn * parentConn);
@@ -51,7 +52,7 @@ public:
    void addToGDist(float inc);
 
 protected:
-   virtual int initialize_base();
+   int initialize_base();
    int initialize(HyPerConn * parentConn);
 
 

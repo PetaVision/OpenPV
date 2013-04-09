@@ -76,6 +76,7 @@
 #include "../connections/InhibSTDPConn.hpp"
 
 #include "../weightinit/InitWeights.hpp"
+#include "../weightinit/InitGauss2DWeights.hpp"
 #include "../weightinit/InitCocircWeights.hpp"
 #include "../weightinit/InitSmartWeights.hpp"
 #include "../weightinit/InitUniformRandomWeights.hpp"

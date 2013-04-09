@@ -9,10 +9,11 @@
 #define INITMTWEIGHTSPARAMS_HPP_
 
 #include "InitWeightsParams.hpp"
+#include "InitGauss2DWeightsParams.hpp"
 
 namespace PV {
 
-class InitMTWeightsParams: public PV::InitWeightsParams {
+class InitMTWeightsParams: public PV::InitGauss2DWeightsParams {
 public:
    InitMTWeightsParams();
    InitMTWeightsParams(HyPerConn * parentConn);
@@ -30,7 +31,7 @@ public:
 
 
 protected:
-   virtual int initialize_base();
+   int initialize_base();
    int initialize(HyPerConn * parentConn);
 
 private:

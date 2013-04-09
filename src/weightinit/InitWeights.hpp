@@ -42,7 +42,7 @@ public:
                            const char * filename, HyPerConn * callingConn, double * time=NULL);
 
 protected:
-   virtual int initialize_base();
+   int initialize_base();
 
 private:
 

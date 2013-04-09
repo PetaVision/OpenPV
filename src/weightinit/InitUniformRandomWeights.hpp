@@ -16,8 +16,6 @@ namespace PV {
 class InitUniformRandomWeights: public PV::InitWeights {
 public:
    InitUniformRandomWeights();
-//   InitUniformRandomWeights(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
-//         ChannelType channel);
    virtual ~InitUniformRandomWeights();
 
    virtual InitWeightsParams * createNewWeightParams(HyPerConn * callingConn);
@@ -25,10 +23,7 @@ public:
    virtual int calcWeights(/* PVPatch * wp */ pvdata_t * dataStart, int patchIndex, int arborId, InitWeightsParams *weightParams);
 
 protected:
-   virtual int initialize_base();
-//   int initialize(const char * name, HyPerCol * hc,
-//                  HyPerLayer * pre, HyPerLayer * post,
-//                  ChannelType channel);
+   int initialize_base();
 
 private:
    int uniformWeights(/* PVPatch * wp */ pvdata_t * dataStart, float minwgt, float maxwgt, float sparseFraction, InitUniformRandomWeightsParams *weightParamPtr);

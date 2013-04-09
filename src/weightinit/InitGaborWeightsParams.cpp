@@ -14,14 +14,13 @@ InitGaborWeightsParams::InitGaborWeightsParams()
    initialize_base();
 }
 InitGaborWeightsParams::InitGaborWeightsParams(HyPerConn * parentConn)
-                     : InitWeightsParams() {
+                     : InitGauss2DWeightsParams() {
    initialize_base();
    initialize(parentConn);
 }
 
 InitGaborWeightsParams::~InitGaborWeightsParams()
 {
-   // TODO Auto-generated destructor stub
 }
 
 int InitGaborWeightsParams::initialize_base() {
@@ -47,23 +46,23 @@ int InitGaborWeightsParams::initialize_base() {
 }
 
 int InitGaborWeightsParams::initialize(HyPerConn * parentConn) {
-   InitWeightsParams::initialize(parentConn);
+   InitGauss2DWeightsParams::initialize(parentConn);
 
    PVParams * params = parent->parameters();
    int status = PV_SUCCESS;
 
-   aspect = params->value(name, "aspect", aspect);
-   sigma = params->value(name, "sigma", sigma);
-   rMax = params->value(name, "rMax", rMax);
+//   aspect = params->value(name, "aspect", aspect);
+//   sigma = params->value(name, "sigma", sigma);
+//   rMax = params->value(name, "rMax", rMax);
    lambda   = (int)params->value(name, "lambda", lambda);
-   strength = params->value(name, "strength", strength);
+//   strength = params->value(name, "strength", strength);
    phi = params->value(name, "phi", phi);
-   double rMaxd = (double) rMax;
-   r2Max = rMaxd * rMaxd;
-
-   shift = params->value(name, "flankShift", shift);
+//   double rMaxd = (double) rMax;
+//   r2Max = rMaxd * rMaxd;
+//
+//   shift = params->value(name, "flankShift", shift);
    //rotate = params->value(name, "rotate", rotate);
-   setRotate(params->value(name, "rotate", getRotate()));
+//   setRotate(params->value(name, "rotate", getRotate()));
    invert = (bool)params->value(name, "invert", invert);
 
    return status;

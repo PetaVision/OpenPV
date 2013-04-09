@@ -15,7 +15,6 @@
 #include "../utils/conversions.h"
 #include "../utils/pv_random.h"
 #include "../columns/InterColComm.hpp"
-#include "InitGauss2DWeightsParams.hpp"
 
 
 namespace PV {
@@ -27,7 +26,6 @@ InitWeights::InitWeights()
 
 InitWeights::~InitWeights()
 {
-   // TODO Auto-generated destructor stub
 }
 
 /*This method does the three steps involved in initializing weights.  Subclasses usually don't need to override this method.
@@ -108,32 +106,16 @@ int InitWeights::initializeWeights(PVPatch *** patches, pvdata_t ** dataStart,
 }
 
 InitWeightsParams * InitWeights::createNewWeightParams(HyPerConn * callingConn) {
-   InitWeightsParams * tempPtr = new InitGauss2DWeightsParams(callingConn);
+   InitWeightsParams * tempPtr = new InitWeightsParams(callingConn);
    return tempPtr;
 }
 
 int InitWeights::calcWeights(pvdata_t * dataStart, int dataPatchIndex, int arborId,
                                InitWeightsParams *weightParams) {
-
-    InitGauss2DWeightsParams *weightParamPtr = dynamic_cast<InitGauss2DWeightsParams*> (weightParams);
-
-    if(weightParamPtr==NULL) {
-       fprintf(stderr, "Failed to recast pointer to weightsParam!  Exiting...");
-       exit(PV_FAILURE);
-    }
-
-
-    weightParamPtr->calcOtherParams(dataPatchIndex);
-
-    //calculate the weights:
-    gauss2DCalcWeights(dataStart, weightParamPtr);
-
-
     return PV_SUCCESS;
 }
 
 int InitWeights::initialize_base() {
-
    return PV_SUCCESS;
 }
 
@@ -275,12 +257,13 @@ int InitWeights::readWeights(PVPatch *** patches, pvdata_t ** dataStart, int num
 }
 
 
-/**
+// moved to separate subclass InitGauss2DWeights
+/*
+
+*
  * calculate gaussian weights between oriented line segments
- */
-int InitWeights::gauss2DCalcWeights(/* PVPatch * patch */ pvdata_t * dataStart, InitGauss2DWeightsParams * weightParamPtr) {
 
-
+int InitWeights::gauss2DCalcWeights(pvdata_t * dataStart, InitGauss2DWeightsParams * weightParamPtr) {
 
    //load necessary params:
    int nfPatch_tmp = weightParamPtr->getnfPatch_tmp();
@@ -345,6 +328,7 @@ int InitWeights::gauss2DCalcWeights(/* PVPatch * patch */ pvdata_t * dataStart, 
    return 0;
 }
 
+*/
 
 
 } /* namespace PV */

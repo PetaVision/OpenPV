@@ -14,7 +14,7 @@ InitCocircWeightsParams::InitCocircWeightsParams()
    initialize_base();
 }
 InitCocircWeightsParams::InitCocircWeightsParams(HyPerConn * parentConn)
-                     : InitWeightsParams() {
+                     : InitGauss2DWeightsParams() {
    initialize_base();
    initialize(parentConn);
 }
