@@ -16,8 +16,8 @@
 namespace PV {
 
 STDP3Conn::STDP3Conn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
-                   const char * filename, bool stdpFlag,
-                   InitWeights *weightInit) : HyPerConn()
+      const char * filename, bool stdpFlag,
+      InitWeights *weightInit) : HyPerConn()
 {
    initialize_base();
    initialize(name, hc, pre, post, filename, stdpFlag, weightInit);
@@ -46,8 +46,8 @@ int STDP3Conn::initialize_base() {
 }
 
 int STDP3Conn::initialize(const char * name, HyPerCol * hc,
-                         HyPerLayer * pre, HyPerLayer * post,
-                         const char * filename, bool stdpFlag, InitWeights *weightInit)
+      HyPerLayer * pre, HyPerLayer * post,
+      const char * filename, bool stdpFlag, InitWeights *weightInit)
 {
    this->stdpFlag = stdpFlag; //needs to be before call to HyPerConn::initialize since it calls overridden methods that depend on stdpFlag being set.
    int status = HyPerConn::initialize(name, hc, pre, post, filename, weightInit);
@@ -71,7 +71,7 @@ int STDP3Conn::initPlasticityPatches()
    //const int arbor = 0;
    //const int numAxons = numberOfAxonalArborLists();
 
-//   dwPatches = createWeights(NULL, numWeightPatches(), nxp, nyp, nfp, 0);
+   //   dwPatches = createWeights(NULL, numWeightPatches(), nxp, nyp, nfp, 0);
    post_tr = pvcube_new(&post->getCLayer()->loc, post->getNumExtended());
    post2_tr = pvcube_new(&post->getCLayer()->loc, post->getNumExtended());
    pre_tr = pvcube_new(&pre->getCLayer()->loc, pre->getNumExtended());
@@ -141,19 +141,19 @@ int STDP3Conn::setParams(PVParams * params)
    readSynscalingFlag(params);
    readSynscaling_v(params);
 
-//   if (stdpFlag) {
-//      ampLTP = params->value(getName(), "ampLTP", ampLTP);
-//      ampLTD = params->value(getName(), "ampLTD", ampLTD);
-//      tauLTP = params->value(getName(), "tauLTP", tauLTP);
-//      tauLTD = params->value(getName(), "tauLTD", tauLTD);
-//      tauY = params->value(getName(), "tauY", tauY);
-//
-//      wMax = params->value(getName(), "wMax", wMax);
-//      wMin = params->value(getName(), "wMin", wMin);
-//      // dWMax = params->value(getName(), "dWMax", dWMax); // dWMax is set in HyPerConn::setParams, called above.
-//      synscalingFlag = params->value(getName(), "synscalingFlag", synscalingFlag);
-//      synscaling_v = params->value(getName(), "synscaling_v", synscaling_v);
-//   }
+   //   if (stdpFlag) {
+   //      ampLTP = params->value(getName(), "ampLTP", ampLTP);
+   //      ampLTD = params->value(getName(), "ampLTD", ampLTD);
+   //      tauLTP = params->value(getName(), "tauLTP", tauLTP);
+   //      tauLTD = params->value(getName(), "tauLTD", tauLTD);
+   //      tauY = params->value(getName(), "tauY", tauY);
+   //
+   //      wMax = params->value(getName(), "wMax", wMax);
+   //      wMin = params->value(getName(), "wMin", wMin);
+   //      // dWMax = params->value(getName(), "dWMax", dWMax); // dWMax is set in HyPerConn::setParams, called above.
+   //      synscalingFlag = params->value(getName(), "synscalingFlag", synscalingFlag);
+   //      synscaling_v = params->value(getName(), "synscaling_v", synscaling_v);
+   //   }
 
    return 0;
 }
@@ -270,9 +270,9 @@ int STDP3Conn::updateWeights(int axonId)
 
    // 1. Updates the postsynaptic traces
    for (int kPost = 0; kPost < nkPost; kPost++) {
-             //post_tr_m[kPost] = (decayLTD * post_tr_m[kPost] + aPost[kPost]) > 1? 1 : (decayLTD * post_tr_m[kPost] + aPost[kPost]);
-            post_tr_m[kPost] = decayLTD * post_tr_m[kPost] + aPost[kPost];
-            post2_tr_m[kPost] = decayY * post2_tr_m[kPost] + aPost[kPost];
+      //post_tr_m[kPost] = (decayLTD * post_tr_m[kPost] + aPost[kPost]) > 1? 1 : (decayLTD * post_tr_m[kPost] + aPost[kPost]);
+      post_tr_m[kPost] = decayLTD * post_tr_m[kPost] + aPost[kPost];
+      post2_tr_m[kPost] = decayY * post2_tr_m[kPost] + aPost[kPost];
    }
 
    // this stride is in extended space for post-synaptic activity and STDP decrement variable
@@ -281,91 +281,91 @@ int STDP3Conn::updateWeights(int axonId)
 
    for (int kPre = 0; kPre < nkpre; kPre++) {
 
-         aPre = preLayerData[kPre];
-         PVPatch * w = getWeights(kPre, axonId); //Get weights in form of a patch (nx,ny,nf), TODO: what's the role of the offset?
-         size_t postOffset = getAPostOffset(kPre, axonId); //Gets start index for postsynaptic vectors given presynaptic neuron kPre
+      aPre = preLayerData[kPre];
+      PVPatch * w = getWeights(kPre, axonId); //Get weights in form of a patch (nx,ny,nf), TODO: what's the role of the offset?
+      size_t postOffset = getAPostOffset(kPre, axonId); //Gets start index for postsynaptic vectors given presynaptic neuron kPre
 
-         aPost = &post->getLayerData()[postOffset]; //Gets postsynaptic activity
-         post_tr_m = &(post_tr->data[postOffset]);  // STDP decrement variable
-         post2_tr_m = &(post_tr->data[postOffset]);  // STDP y decrement variable
-         //pre_tr_m = get_dwData(axonId, kPre);        // STDP increment variable
-         pre_tr_m = &(pre_tr->data[kPre]);
-         W = get_wData(axonId, kPre); // w->data;
+      aPost = &post->getLayerData()[postOffset]; //Gets postsynaptic activity
+      post_tr_m = &(post_tr->data[postOffset]);  // STDP decrement variable
+      post2_tr_m = &(post_tr->data[postOffset]);  // STDP y decrement variable
+      //pre_tr_m = get_dwData(axonId, kPre);        // STDP increment variable
+      pre_tr_m = &(pre_tr->data[kPre]);
+      W = get_wData(axonId, kPre); // w->data;
 
-         nk  = nfp * w->nx; // one line in x at a time
-         ny  = w->ny;
+      nk  = nfp * w->nx; // one line in x at a time
+      ny  = w->ny;
 
-         // 2. Updates the presynaptic trace
-         //pre_tr_m[0] = (decayLTP * pre_tr_m[0] + aPre) > 1? 1 : (decayLTP * pre_tr_m[0] + aPre);
-         pre_tr_m[0] = decayLTP * pre_tr_m[0] + aPre;
+      // 2. Updates the presynaptic trace
+      //pre_tr_m[0] = (decayLTP * pre_tr_m[0] + aPre) > 1? 1 : (decayLTP * pre_tr_m[0] + aPre);
+      pre_tr_m[0] = decayLTP * pre_tr_m[0] + aPre;
 
-         //3. Update weights
-         for (int y = 0; y < ny; y++) {
-               for (int k = 0; k < nk; k++) {
-                  // The next statement allows some synapses to "die".
-                  if (W[k] < WEIGHT_MIN_VALUE) continue;
+      //3. Update weights
+      for (int y = 0; y < ny; y++) {
+         for (int k = 0; k < nk; k++) {
+            // The next statement allows some synapses to "die".
+            if (W[k] < WEIGHT_MIN_VALUE) continue;
 
-                   W[k] += dWMax * (-ampLTD*aPre * post_tr_m[k] + ampLTP * aPost[k] * (pre_tr_m[0]*post2_tr_m[k]));
+            W[k] += dWMax * (-ampLTD*aPre * post_tr_m[k] + ampLTP * aPost[k] * (pre_tr_m[0]*post2_tr_m[k]));
 
-                   W[k] = W[k] < wMin ? wMin : W[k];
-                   W[k] = W[k] > wMax ? wMax : W[k];
+            W[k] = W[k] < wMin ? wMin : W[k];
+            W[k] = W[k] > wMax ? wMax : W[k];
 
-               }
-
-            // advance pointers in y
-            W += syp; //FIXME: W += nk
-            //pre_tr_m += syp; //FIXME: pre_tr_m += syp;
-
-            // postActivity and post trace are extended layer
-            aPost += postStrideY; //TODO: is this really in the extended space?
-            post_tr_m += postStrideY;
-            post2_tr_m += postStrideY;
          }
 
+         // advance pointers in y
+         W += syp; //FIXME: W += nk
+         //pre_tr_m += syp; //FIXME: pre_tr_m += syp;
+
+         // postActivity and post trace are extended layer
+         aPost += postStrideY; //TODO: is this really in the extended space?
+         post_tr_m += postStrideY;
+         post2_tr_m += postStrideY;
       }
+
+   }
 
 
    if(synscalingFlag){
-         //int kxPre, kyPre, kPre;
+      //int kxPre, kyPre, kPre;
 
-         const int numPostPatch = nxpPost * nypPost * nfpPost; // Post-synaptic weights are never shrunken
+      const int numPostPatch = nxpPost * nypPost * nfpPost; // Post-synaptic weights are never shrunken
 
-         float sumW = 0;
-         //int kxPost, kyPost, kfPost;
-         const int xScale = post->getXScale() - pre->getXScale();
-         const int yScale = post->getYScale() - pre->getYScale();
-         const double powXScale = pow(2.0f, (double) xScale);
-         const double powYScale = pow(2.0f, (double) yScale);
+      float sumW = 0;
+      //int kxPost, kyPost, kfPost;
+      const int xScale = post->getXScale() - pre->getXScale();
+      const int yScale = post->getYScale() - pre->getYScale();
+      const double powXScale = pow(2.0f, (double) xScale);
+      const double powYScale = pow(2.0f, (double) yScale);
 
-         nxpPost = (int) (nxp * powXScale);
-         nypPost = (int) (nyp * powYScale);
-         nfpPost = pre->clayer->loc.nf;
+      nxpPost = (int) (nxp * powXScale);
+      nypPost = (int) (nyp * powYScale);
+      nfpPost = pre->clayer->loc.nf;
 
-         for(int axonID=0;axonID<numberOfAxonalArborLists();axonID++) {
+      for(int axonID=0;axonID<numberOfAxonalArborLists();axonID++) {
 
-               // loop through post-synaptic neurons (non-extended indices)
-               for (int kPost = 0; kPost < post_tr->numItems; kPost++) {
+         // loop through post-synaptic neurons (non-extended indices)
+         for (int kPost = 0; kPost < post_tr->numItems; kPost++) {
 
-                  pvdata_t ** postData = wPostDataStartp[axonID] + numPostPatch*kPost + 0;
-                  for (int kp = 0; kp < numPostPatch; kp++) {
-                     sumW += *(postData[kp]);
-                  }
-                  for (int kp = 0; kp < numPostPatch; kp++) {
-                     *(postData[kp]) = ((*postData[kp])/sumW)*synscaling_v;
-                  }
-                  //printf("%f ",sumW);
-                  sumW = 0;
-               }
-               //printf("\n");
+            pvdata_t ** postData = wPostDataStartp[axonID] + numPostPatch*kPost + 0;
+            for (int kp = 0; kp < numPostPatch; kp++) {
+               sumW += *(postData[kp]);
+            }
+            for (int kp = 0; kp < numPostPatch; kp++) {
+               *(postData[kp]) = ((*postData[kp])/sumW)*synscaling_v;
+            }
+            //printf("%f ",sumW);
+            sumW = 0;
          }
+         //printf("\n");
       }
+   }
 
    return 0;
 }
 
 
 int STDP3Conn::pvpatch_update_plasticity_incr(int nk, float * RESTRICT p,
-                                   float aPre, float decay, float ltpAmp)
+      float aPre, float decay, float ltpAmp)
 {
    int k;
    for (k = 0; k < nk; k++) {
@@ -376,17 +376,17 @@ int STDP3Conn::pvpatch_update_plasticity_incr(int nk, float * RESTRICT p,
 
 
 int STDP3Conn::pvpatch_update_weights(int nk, float * RESTRICT w, const float * RESTRICT m,
-                           const float * RESTRICT p, float aPre,
-                           const float * RESTRICT aPost, float dWMax, float wMin, float wMax)
+      const float * RESTRICT p, float aPre,
+      const float * RESTRICT aPost, float dWMax, float wMin, float wMax)
 {
    int k;
    for (k = 0; k < nk; k++) {
       // The next statement allows some synapses to "die".
       // TODO - check to see if its faster to not use branching
       if (w[k] < WEIGHT_MIN_VALUE) continue;
-       w[k] += dWMax * (aPre * m[k] + aPost[k] * p[k]);
-       w[k] = w[k] < wMin ? wMin : w[k];
-       w[k] = w[k] > wMax ? wMax : w[k];
+      w[k] += dWMax * (aPre * m[k] + aPost[k] * p[k]);
+      w[k] = w[k] < wMin ? wMin : w[k];
+      w[k] = w[k] > wMax ? wMax : w[k];
    }
    return 0;
 }
@@ -397,37 +397,37 @@ int STDP3Conn::outputState(double timef, bool last)
    int status;
 
    if (last) {
-         printf("Writing last STDP weights..%f\n",timef);
-         convertPreSynapticWeights(timef);
-         status = writePostSynapticWeights(timef, last);
-         assert(status == 0);
-      }else if ( (timef >= writeTime) && (writeStep >= 0) ) {
-         //writeTime += writeStep; Done in HyperConn
-         convertPreSynapticWeights(timef);
-         status = writePostSynapticWeights(timef, false);
-         assert(status == 0);
+      printf("Writing last STDP weights..%f\n",timef);
+      convertPreSynapticWeights(timef);
+      status = writePostSynapticWeights(timef, last);
+      assert(status == 0);
+   }else if ( (timef >= writeTime) && (writeStep >= 0) ) {
+      //writeTime += writeStep; Done in HyperConn
+      convertPreSynapticWeights(timef);
+      status = writePostSynapticWeights(timef, false);
+      assert(status == 0);
 
-         // append to output file after original open
-         //ioAppend = true;
-      }
+      // append to output file after original open
+      //ioAppend = true;
+   }
    status = HyPerConn::outputState(timef, last);
 
    if (status != PV_SUCCESS) return status;
 
 
-//   if (stdpFlag != true) return status;
-//
-//   if (last) {
-//      convertPreSynapticWeights(time);
-//      status = writePostSynapticWeights(time, last);
-//      assert(status == PV_SUCCESS);
-//   }
-//   else if ( (time >= writeTime) && (writeStep >= 0) ) {
-//
-//      convertPreSynapticWeights(time);
-//      status = writePostSynapticWeights(time, last);
-//      assert(status == PV_SUCCESS);
-//   }
+   //   if (stdpFlag != true) return status;
+   //
+   //   if (last) {
+   //      convertPreSynapticWeights(time);
+   //      status = writePostSynapticWeights(time, last);
+   //      assert(status == PV_SUCCESS);
+   //   }
+   //   else if ( (time >= writeTime) && (writeStep >= 0) ) {
+   //
+   //      convertPreSynapticWeights(time);
+   //      status = writePostSynapticWeights(time, last);
+   //      assert(status == PV_SUCCESS);
+   //   }
 
    return status;
 }
