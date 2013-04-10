@@ -6,7 +6,6 @@
  */
 
 #include "HyPerConn.hpp"
-#include "../layers/LIF.hpp"
 #include "../layers/PVLayer.h"
 #include "../include/default_params.h"
 #include "../io/io.h"

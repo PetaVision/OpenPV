@@ -28,8 +28,6 @@
 
 namespace PV {
 
-class HyPerCol;
-class HyPerLayer;
 class InitWeights;
 class InitUniformRandomWeights;
 class InitGaussianRandomWeights;
