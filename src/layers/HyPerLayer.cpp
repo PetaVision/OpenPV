@@ -1464,7 +1464,7 @@ int HyPerLayer::writeBufferFile(const char * filename, InterColComm * comm, doub
       abort();
    }
    if (writeFile != NULL) { // Root process has writeFile set to non-null; other processes to NULL.
-      int numwritten = fwrite(&timed, sizeof(double), 1, writeFile);
+      int numwritten = PV_fwrite(&timed, sizeof(double), 1, writeFile);
       if (numwritten != 1) {
          fprintf(stderr, "HyPerLayer::writeBufferFile error writing timestamp to \"%s\"\n", filename);
          abort();
@@ -1508,7 +1508,7 @@ int HyPerLayer::writeBuffer(FILE * fp, InterColComm * comm, double timed, pvdata
    }
    int status = PV_SUCCESS;
    for( int band=0; band<numbands; band++ ) {
-      if ( rank==0 && fwrite(&timed, sizeof(double), 1, fp) != 1 )              return -1;
+      if ( rank==0 && PV_fwrite(&timed, sizeof(double), 1, fp) != 1 )              return -1;
       int status1 =  write_pvdata(fp, comm, timed, buffer+band*buffersize, loc, PV_FLOAT_TYPE,
                                   extended, contiguous, PVP_NONSPIKING_ACT_FILE_TYPE);
       status = status1 != PV_SUCCESS ? status1 : status;
@@ -1532,7 +1532,7 @@ int HyPerLayer::writeDataStoreToFile(const char * filename, InterColComm * comm,
    DataStore * datastore = comm->publisherStore(getCLayer()->layerId);
    for (int l=0; l<numlevels; l++) {
       if (writeFile != NULL) { // Root process has writeFile set to non-null; other processes to NULL.
-         int numwritten = fwrite(&timed, sizeof(double), 1, writeFile);
+         int numwritten = PV_fwrite(&timed, sizeof(double), 1, writeFile);
          if (numwritten != 1) {
             fprintf(stderr, "HyPerLayer::writeBufferFile error writing timestamp to \"%s\"\n", filename);
             abort();
@@ -1562,7 +1562,7 @@ int HyPerLayer::writeScalarFloat(const char * cp_dir, const char * val_name, dou
          fprintf(stderr, "HyPerLayer::checkpointWrite error: unable to open path %s for writing.\n", filename);
          abort();
       }
-      int num_written = fwrite(&val, sizeof(val), 1, fp);
+      int num_written = PV_fwrite(&val, sizeof(val), 1, fp);
       if (num_written != 1) {
          fprintf(stderr, "HyPerLayer::checkpointWrite error while writing to %s.\n", filename);
          abort();
@@ -1648,7 +1648,7 @@ int HyPerLayer::incrementNBands(int * numCalls) {
       ++*numCalls;
       long int fpos = PV_ftell(clayer->activeFP);
       fseek(clayer->activeFP, sizeof(int)*INDEX_NBANDS, SEEK_SET);
-      int intswritten = fwrite(numCalls, sizeof(int), 1, clayer->activeFP);
+      int intswritten = PV_fwrite(numCalls, sizeof(int), 1, clayer->activeFP);
       fseek(clayer->activeFP, fpos, SEEK_SET);
       status = intswritten == 1 ? PV_SUCCESS : PV_FAILURE;
    }

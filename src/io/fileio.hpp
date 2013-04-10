@@ -134,7 +134,7 @@ template <typename T> int gatherActivity(FILE * fp, Communicator * comm, int roo
       // Write zeroes to make sure the file is big enough since we'll write nonsequentially under MPI.  This may not be necessary.
       int comm_size = comm->commSize();
       for (int r=0; r<comm_size; r++) {
-         int numwritten = fwrite(temp_buffer, datasize, numLocalNeurons, fp);
+         int numwritten = PV_fwrite(temp_buffer, datasize, numLocalNeurons, fp);
          if (numwritten != numLocalNeurons) {
             fprintf(stderr, "gatherActivity error when writing: number of bytes attempted %d, number written %d\n", numwritten, numLocalNeurons);
             status = PV_FAILURE;
@@ -171,7 +171,7 @@ template <typename T> int gatherActivity(FILE * fp, Communicator * comm, int roo
             int k_global = kIndex(kx0, y+ky0, 0, layerLoc->nxGlobal, layerLoc->nyGlobal, layerLoc->nf);
             int fseekstatus = PV_fseek(fp, startpos + k_global*datasize, SEEK_SET);
             if (fseekstatus == 0) {
-               int numwritten = fwrite(&temp_buffer[k_local], datasize, linesize, fp);
+               int numwritten = PV_fwrite(&temp_buffer[k_local], datasize, linesize, fp);
                if (numwritten != linesize) {
                   fprintf(stderr, "gatherActivity error when writing: number of bytes attempted %d, number written %d\n", numwritten, numLocalNeurons);
                   status = PV_FAILURE;

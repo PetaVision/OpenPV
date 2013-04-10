@@ -123,17 +123,20 @@ int PV_fseek(FILE * fp, long offset, int whence) {
 
 size_t PV_fwrite(const void * RESTRICT ptr, size_t size, size_t nitems, FILE * RESTRICT stream) {
    int fwritecounts = 0;
-   size_t fwritten = !nitems;
-   while (fwritten == nitems) {
+   size_t fwritten = nitems - 1;
+   while (fwritten != nitems) {
       long int fpos = PV_ftell(stream);
       if (fpos<0) {
          fprintf(stderr, "PV_fwrite error: unable to determine file position.  Fatal error\n");
          exit(PV_SUCCESS);
       }
       fwritten = fwrite(ptr, size, nitems, stream);
+      if (fwritten == nitems) {
+    	  return fwritten;
+      }
       fwritecounts++;
-      fprintf(stderr, "fwrite failure on attempt %d.  Attempting to return to original position\n", fwritecounts);
       if (fwritecounts<MAX_FILESYSTEMCALL_TRIES) {
+         fprintf(stderr, "fwrite failure on attempt %d.  Attempting to return to original position\n", fwritecounts);
          sleep(1);
          int fseekstatus = PV_fseek(stream, fpos, SEEK_SET);
          if (fseekstatus!=0) {
@@ -142,7 +145,8 @@ size_t PV_fwrite(const void * RESTRICT ptr, size_t size, size_t nitems, FILE * R
          }
       }
       else {
-         break;
+    	 fprintf(stderr, "fwrite failure on attempt %d.  MAX_FILESYSTEMCALL_TRIES = %d exceeded\n", fwritecounts, MAX_FILESYSTEMCALL_TRIES);
+         assert(fwritten == nitems);
       }
    }
    return fwritten;
@@ -626,7 +630,7 @@ int pvp_write_header(FILE * fp, Communicator * comm, int * params, int numParams
    int rootproc = 0;
    int rank = comm->commRank();
    if (rank == rootproc) {
-      if ( (int) fwrite(params, sizeof(int), numParams, fp) != numParams ) {
+      if ( (int) PV_fwrite(params, sizeof(int), numParams, fp) != numParams ) {
          status = -1;
       }
    }
@@ -705,7 +709,7 @@ int pvp_write_header(FILE * fp, Communicator * comm, double time, const PVLayerL
    timeToParams(time, &params[INDEX_TIME]);
 
    numParams = NUM_BIN_PARAMS;  // there may be more to come
-   if ( fwrite(params, sizeof(int), numParams, fp) != numParams ) {
+   if ( PV_fwrite(params, sizeof(int), numParams, fp) != numParams ) {
       status = -1;
    }
 
@@ -1331,7 +1335,7 @@ int write_pvdata(FILE *fp, Communicator * comm, double time, const pvdata_t * da
       assert(fp != NULL);
 
       // write local image portion
-      size_t numWrite = fwrite(cbuf, sizeof(unsigned char), localSize, fp);
+      size_t numWrite = PV_fwrite(cbuf, sizeof(unsigned char), localSize, fp);
       assert(numWrite == localSize);
 
 #ifdef PV_USE_MPI
@@ -1350,7 +1354,7 @@ int write_pvdata(FILE *fp, Communicator * comm, double time, const pvdata_t * da
             //const int headerSize = numParams * sizeof(int);
             //long offset = headerSize + src * localSize;
             //fseek(fp, offset, SEEK_SET);
-            numWrite = fwrite(cbuf, sizeof(unsigned char), localSize, fp);
+            numWrite = PV_fwrite(cbuf, sizeof(unsigned char), localSize, fp);
             fflush(fp); // for debugging
             assert(numWrite == localSize);
          }
@@ -1385,7 +1389,7 @@ int writeActivity(FILE * fp, Communicator * comm, double timed, PVLayer * l)
 
       // write time
       //
-      if ( fwrite(&timed, sizeof(double), 1, fp) != 1 ) {
+      if ( PV_fwrite(&timed, sizeof(double), 1, fp) != 1 ) {
          fprintf(stderr,"fwrite of timestamp in PV::writeActivity failed for layer %d at time %f\n", l->layerId, timed);
          abort();
          return -1;
@@ -1473,20 +1477,20 @@ int writeActivitySparse(FILE * fp, Communicator * comm, double time, PVLayer * l
 
       // write time, total active count, and local activity
       //
-      status = (fwrite(&time, sizeof(double), 1, fp) != 1 );
+      status = (PV_fwrite(&time, sizeof(double), 1, fp) != 1 );
       if (status != 0) {
          fprintf(stderr, "[%2d]: writeActivitySparse: failed in fwrite(&time), time==%f\n",
                  comm->commRank(), time);
          return status;
       }
-      status = ( fwrite(&totalActive, sizeof(unsigned int), 1, fp) != 1 );
+      status = ( PV_fwrite(&totalActive, sizeof(unsigned int), 1, fp) != 1 );
       if (status != 0) {
          fprintf(stderr, "[%2d]: writeActivitySparse: failed in fwrite(&totalActive), totalActive==%d\n",
                  comm->commRank(), totalActive);
          return status;
       }
      if (localActive > 0) {
-         status = (fwrite(indices, sizeof(unsigned int), localActive, fp) != (size_t) localActive );
+         status = (PV_fwrite(indices, sizeof(unsigned int), localActive, fp) != (size_t) localActive );
          if (status != 0) {
             fprintf(stderr, "[%2d]: writeActivitySparse: failed in fwrite(indices), localActive==%d\n",
                     comm->commRank(), localActive);
@@ -1504,7 +1508,7 @@ int writeActivitySparse(FILE * fp, Communicator * comm, double time, PVLayer * l
             fflush(stderr);
 #endif // DEBUG_OUTPUT
             MPI_Recv(indices, numActive[p], MPI_INT, p, tag, mpi_comm, MPI_STATUS_IGNORE);
-            status = (fwrite(indices, sizeof(unsigned int), numActive[p], fp) != numActive[p] );
+            status = (PV_fwrite(indices, sizeof(unsigned int), numActive[p], fp) != numActive[p] );
             if (status != 0) {
                fprintf(stderr, "[%2d]: writeActivitySparse: failed in fwrite(indices), numActive[p]==%d, p=%d\n",
                        comm->commRank(), numActive[p], p);
@@ -1833,7 +1837,7 @@ int writeWeights(const char * filename, Communicator * comm, double timed, bool 
       }
 
       numParams = NUM_WGT_EXTRA_PARAMS;
-      unsigned int num_written = fwrite(wgtExtraParams, sizeof(int), numParams, fp);
+      unsigned int num_written = PV_fwrite(wgtExtraParams, sizeof(int), numParams, fp);
       free(wgtExtraParams); wgtExtraParams=NULL; wgtExtraIntParams=NULL; wgtExtraFloatParams=NULL;
       if ( num_written != (unsigned int) numParams ) {
          fprintf(stderr, "PV::writeWeights: error writing weight header to file %s\n", filename);
@@ -1845,7 +1849,7 @@ int writeWeights(const char * filename, Communicator * comm, double timed, bool 
          // numPatches - each neuron has a patch; pre-synaptic neurons live in extended layer
          PVPatch ** arborPatches = file_type == PVP_KERNEL_FILE_TYPE ? NULL : patches[arbor];
          pvp_copy_patches(cbuf, arborPatches, dataStart[arbor], numPatches, nxp, nyp, nfp, minVal, maxVal, compress);
-         size_t numfwritten = fwrite(cbuf, localSize, 1, fp);
+         size_t numfwritten = PV_fwrite(cbuf, localSize, 1, fp);
          if ( numfwritten != 1 ) {
             fprintf(stderr, "PV::writeWeights: error writing weight data to file %s\n", filename);
             return -1;
@@ -1868,7 +1872,7 @@ int writeWeights(const char * filename, Communicator * comm, double timed, bool 
                // const int headerSize = numParams * sizeof(int);
                // long offset = headerSize + src * localSize;
                // fseek(fp, offset, SEEK_SET);
-               if ( fwrite(cbuf, localSize, 1, fp) != 1 ) return -1;
+               if ( PV_fwrite(cbuf, localSize, 1, fp) != 1 ) return -1;
             }
          }
 #endif // PV_USE_MPI

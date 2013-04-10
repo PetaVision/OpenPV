@@ -920,21 +920,21 @@ int Patterns::checkpointWrite(const char * cpDir) {
       FILE * fp = fopen(filename, "w");
       int size = vDrops.size();
       if( fp != NULL ) {
-         status = fwrite(&type, sizeof(PatternType), 1, fp) == 1 ? status : PV_FAILURE;
-         status = fwrite(&patternRandState, sizeof(uint4), 1, fp) == 1 ? status : PV_FAILURE;
+         status = PV_fwrite(&type, sizeof(PatternType), 1, fp) == 1 ? status : PV_FAILURE;
+         status = PV_fwrite(&patternRandState, sizeof(uint4), 1, fp) == 1 ? status : PV_FAILURE;
          // This should only write the variables used by PatternType type.
          // For example, DROP doesn't use orientation and BARS doesn't use nextDropFrame
-         status = fwrite(&orientation, sizeof(OrientationMode), 1, fp) == 1 ? status : PV_FAILURE;
-         status = fwrite(&position, sizeof(float), 1, fp) == 1 ? status : PV_FAILURE;
-         status = fwrite(&nextDisplayTime, sizeof(double), 1, fp) == 1 ? status : PV_FAILURE;
-         status = fwrite(&nextDropFrame, sizeof(double), 1, fp) == 1 ? status : PV_FAILURE;
-         status = fwrite(&nextPosChangeFrame, sizeof(double), 1, fp) == 1 ? status : PV_FAILURE;
-         status = fwrite(&initPatternCntr, sizeof(int), 1, fp) == 1 ? status : PV_FAILURE;
-         status = fwrite(&xPos, sizeof(int), 1, fp) == 1 ? status : PV_FAILURE;
-         status = fwrite(&yPos, sizeof(int), 1, fp) == 1 ? status : PV_FAILURE;
-         status = fwrite(&size, sizeof(int), 1, fp) == 1 ? status : PV_FAILURE;
+         status = PV_fwrite(&orientation, sizeof(OrientationMode), 1, fp) == 1 ? status : PV_FAILURE;
+         status = PV_fwrite(&position, sizeof(float), 1, fp) == 1 ? status : PV_FAILURE;
+         status = PV_fwrite(&nextDisplayTime, sizeof(double), 1, fp) == 1 ? status : PV_FAILURE;
+         status = PV_fwrite(&nextDropFrame, sizeof(double), 1, fp) == 1 ? status : PV_FAILURE;
+         status = PV_fwrite(&nextPosChangeFrame, sizeof(double), 1, fp) == 1 ? status : PV_FAILURE;
+         status = PV_fwrite(&initPatternCntr, sizeof(int), 1, fp) == 1 ? status : PV_FAILURE;
+         status = PV_fwrite(&xPos, sizeof(int), 1, fp) == 1 ? status : PV_FAILURE;
+         status = PV_fwrite(&yPos, sizeof(int), 1, fp) == 1 ? status : PV_FAILURE;
+         status = PV_fwrite(&size, sizeof(int), 1, fp) == 1 ? status : PV_FAILURE;
          for (int k=0; k<size; k++) {
-            status = fwrite(&vDrops[k], sizeof(Drop), 1, fp) == 1 ? status : PV_FAILURE;
+            status = PV_fwrite(&vDrops[k], sizeof(Drop), 1, fp) == 1 ? status : PV_FAILURE;
          }
          fclose(fp);
       }

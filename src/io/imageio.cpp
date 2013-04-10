@@ -1,5 +1,6 @@
 #include "imageio.hpp"
 #include "io.h"
+#include "fileio.hpp"
 
 #include <assert.h>
 #include <string.h>
@@ -347,7 +348,7 @@ int gatherImageFilePVP(const char * filename,
       params[INDEX_NB]          = loc->nb;
       params[INDEX_NBANDS]      = 1;
 
-      int numWrite = fwrite(params, sizeof(int), numParams, fp);
+      int numWrite = PV::PV_fwrite(params, sizeof(int), numParams, fp);
       if (numWrite != numParams) {
          fprintf(stderr, "gatherImageFilePVP error writing the header.  fwrite called with %d parameters; %d were written.\n", numParams, numWrite);
          abort();

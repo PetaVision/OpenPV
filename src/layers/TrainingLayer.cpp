@@ -176,7 +176,7 @@ int TrainingLayer::checkpointWrite(const char * cpDir) {
          fprintf(stderr, "TrainingLayer::checkpointWrite error opening \"%s\" for writing: %s\n", curLabelIndexPath, strerror(errno));
          abort();
       }
-      int numread = fwrite(&curTrainingLabelIndex, sizeof(curTrainingLabelIndex), 1, curLabelIndexFile);
+      int numread = PV_fwrite(&curTrainingLabelIndex, sizeof(curTrainingLabelIndex), 1, curLabelIndexFile);
       if (numread != 1) {
          fprintf(stderr, "TrainingLayer::checkpointWrite error.  Unable to write to \"%s\".\n", curLabelIndexPath);
          abort();
