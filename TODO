@@ -1,24 +1,23 @@
 This file contains a list of items to do.
 
-Task: Create HyperColumn classes based on a design we agree on (John Galbraith is going
-  to take a first stab at a design).
-Assigned to:
-Assigned date:
-Finished date:
+Get rid of Channel_Type enum and instead use preprocessor directives if needed
 
-Task: Add layers representing capabilities of the MIT model.
-Assigned to:
-Assigned date:
-Finished date:
+Weight .pvp files shouldn't depend on the mpi configuration being used when writing.
 
-Task: Create an autoconf configure script.
-Assigned to:
-Assigned date:
-Finished date:
+Eliminate need for marginWidth parameter
 
-Task: Modify architecture for multiple layers within a HyperColumn.  The C structures
-should reflect the HyperColumn class design.
-Assigned to: Craig Rasmussen
-Assigned date: 6/23/08
-Finished date: Done (sometime in 2009 with C++ classes)
+Each neuron (& weight?) its own reproducible rng (layer and conn can specify a seedIncrement) (done for retina and lif)
 
+No more activity buffer; things that write to activity only write to DataStore
+
+Initialize_base/initialize cascade for layer probes
+
+More graceful aborting from errors under mpi.  There's a pv_log but it's preprocessor directived to fprintf
+
+Add ffmpeg support
+
+PatternState.bin and .txt only writes the stuff being used
+
+Movie class should have an option to flip images on even-numbered passes through the file list
+
+params.pv should be params.xml, and include all parameters
