@@ -1,7 +1,7 @@
 //
-// HyPerHLCA_animalDB_test.params
+// HyPerHLCA.params
 //
-// used to run dictionary trained on 600 animalDB animal images on test images
+// used to train dictionary  on 600 animalDB animal images and/or 600 distractor images
 //
 // created by peteschultz: Sept 27, 2012, modified garkenyon, 1/20/13
 //
@@ -17,17 +17,17 @@ HyPerCol "column" = {
    ny = 256;
    dt = 1.0;
    randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
-   numSteps = 20000;
+   numSteps = 1200000;
    progressStep = 1;
-   outputPath = "output_test/";
+   outputPath = "output_animal1200000_color/";
    filenamesContainLayerNames = true;
    filenamesContainConnectionNames = true;
    checkpointRead = false;
-   checkpointReadDir = "Checkpoints";
-   checkpointReadDirIndex = 600000;
+   checkpointReadDir = "output_animal1200000_color/Checkpoints";
+   checkpointReadDirIndex = 1200000;
    checkpointWrite = true;
-   checkpointWriteDir = "Checkpoints";
-   checkpointWriteStepInterval = 20000;
+   checkpointWriteDir = "output_animal1200000_color/Checkpoints";
+   checkpointWriteStepInterval = 50000;
    deleteOlderCheckpoints = true;
    suppressLastOutput = false;
    writeProgressToErr = true;
@@ -42,20 +42,20 @@ Movie "Image" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
-    imageListPath = "/Users/garkenyon/Pictures/AnimalDB/target.txt";
-    nf = 1;
-    marginWidth = 1;
+    imageListPath = "/Users/garkenyon/Pictures/AnimalDB/target.txt"; //distractor.txt"; //
+    nf = 3;
+    marginWidth = 0;
     writeStep = -1;
     writeSparseActivity = false;
-    displayPeriod = 5000;
-    start_frame_index = 446;
+    displayPeriod = 1000;
+    start_frame_index = 1;
     skip_frame_index = 1;
     echoFramePathnameFlag = true;
     mirrorBCflag = true;
     jitterFlag = 0;
     useImageBCflag = false;
     inverseFlag = false;
-    normalizeLuminanceFlag = true;
+    normalizeLuminanceFlag = false;
     writeImages = false;
     offsetX = 0;
     offsetY = 0;
@@ -92,10 +92,10 @@ Retina "Retina" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
-    nf = 1;
+    nf = 3;
     marginWidth = 1;
-    writeStep = 5000.0;
-    initialWriteTime = 2499.0;
+    writeStep = 1000.0;
+    initialWriteTime = 999.0;
     mirrorBCflag = 1;
     spikingFlag = 0;
     writeSparseActivity = 0;
@@ -116,10 +116,10 @@ ANNLayer "Bipolar" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
-    nf = 1;
+    nf = 3;
     marginWidth = 6;
-    writeStep = 5000.0;
-    initialWriteTime = 4999.0;
+    writeStep = 1000.0;
+    initialWriteTime = 999.0;
     mirrorBCflag = 1;
     writeSparseActivity = 0;
 
@@ -137,10 +137,10 @@ ANNLayer "Ganglion" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
-    nf = 1;
+    nf = 3;
     marginWidth = 6;
-    writeStep = 5000.0;
-    initialWriteTime = 4999.0;
+    writeStep = 1000.0;
+    initialWriteTime = 999.0;
     mirrorBCflag = 1;
     writeSparseActivity = 0;
 
@@ -246,16 +246,16 @@ ANNLayer "Recon" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
-    nf = 1;
+    nf = 3;
     marginWidth = 0;
-    initialWriteTime = 0.0;
-    writeStep = 10.0;
+    initialWriteTime = 999.0;
+    writeStep = 1000.0;
     mirrorBCflag = 1;
     writeSparseActivity = 0;
 
-    //InitVType = "ZeroV";
-    InitVType = "InitVFromFile";
-    Vfilename = "/Users/garkenyon/workspace/HyPerHLCA2/Checkpoints/Checkpoint1050000/Recon_V.pvp";
+    InitVType = "ZeroV";
+    //InitVType = "InitVFromFile";
+    //Vfilename = "/Users/garkenyon/workspace/HyPerHLCA2/output_animal1200000_distractor1200000/Checkpoints/Checkpoint1050000/Recon_V.pvp";
 
     VThresh = -infinity; //-infinity;
     VMax = infinity; //infinity;  // prevent reconstruction from exceeding reasonable bounds
@@ -270,16 +270,16 @@ ANNLayer "Error" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
-    nf = 1;
+    nf = 3;
     marginWidth = 6;
-    initialWriteTime = 4999.0;
-    writeStep = 5000;
+    initialWriteTime = 999.0;
+    writeStep = 1000;
     mirrorBCflag = 1;
     writeSparseActivity = 0;
 
-    //InitVType = "ZeroV";
-    InitVType = "InitVFromFile";
-    Vfilename = "/Users/garkenyon/workspace/HyPerHLCA2/Checkpoints/Checkpoint1050000/Error_V.pvp";
+    InitVType = "ZeroV";
+    //InitVType = "InitVFromFile";
+    //Vfilename = "/Users/garkenyon/workspace/HyPerHLCA2/output_animal1200000_distractor1200000/Checkpoints/Checkpoint1050000/Error_V.pvp";
 
     VThresh = -infinity;
     VMax =  infinity;
@@ -294,18 +294,18 @@ HyPerLCALayer "V1" = {
     restart = 0;
     nxScale = 0.25;
     nyScale = 0.25;
-    nf = 512;
+    nf = 1024; //512;
     marginWidth = 1;
-    initialWriteTime = 4999.0;
-    writeStep = 5000.0;
+    initialWriteTime = 999.0;
+    writeStep = 1000.0;
     mirrorBCflag = 1;
     writeSparseActivity = 1;
 
-    //InitVType = "UniformRandomV";
-    InitVType = "InitVFromFile";
-    Vfilename = "/Users/garkenyon/workspace/HyPerHLCA2/Checkpoints/Checkpoint1050000/V1_V.pvp";
+    InitVType = "UniformRandomV";
+    //InitVType = "InitVFromFile";
+    //Vfilename = "/Users/garkenyon/workspace/HyPerHLCA2/output_animal1200000_distractor1200000/Checkpoints/Checkpoint1050000/V1_V.pvp";
     minV = -1.0;
-    maxV = 1.05;
+    maxV = 0.1; //1.05;
     
     timeConstantTau = 100.0;
     
@@ -323,13 +323,13 @@ HyPerLCALayer "V1" = {
 // connections
 
 
-KernelConn "MovieToRetina" = {
+IdentConn "MovieToRetina" = {
     preLayerName = "Image";
     postLayerName = "Retina";
     channelCode = 0;
-    nxp = 1;
-    nyp = 1;
-    nfp = 1;
+    //nxp = 1;
+    //nyp = 1;
+    //nfp = 3;
     numAxonalArbors = 1;
     writeStep = -1;
     initFromLastFlag = 0;
@@ -337,7 +337,7 @@ KernelConn "MovieToRetina" = {
     weightInitType = "UniformWeight";
     weightInit = 1.0;
 
-    normalize = 0;
+    //normalize = 0;
        
     writeCompressedWeights = false;
     writeCompressedCheckpoints = false;
@@ -357,18 +357,20 @@ KernelConn "RetinaToBipolarCenter" = {
    preLayerName = "Retina";
    postLayerName = "Bipolar";
    channelCode = 0;
-   nxp = 1; 
-   nyp = 1; 
-   nfp = 1;
+   nxp = 3; 
+   nyp = 3; 
+   nfp = 3;
    numAxonalArbors = 1;
    initFromLastFlag = 0;  // 1;  // restart
    writeStep = -1;
    
    weightInitType = "Gauss2DWeight";
    aspect = 1;
-   sigma = 1;
+   sigma = 0.5;
    rMax  = 3;
    rMin = 0;
+   numOrientationsPre = 1;
+   numOrientationsPost = 1;
        
    strength = 1.0;  
    normalize = 1.0;
@@ -402,7 +404,7 @@ KernelConn "BipolarToGanglionCenter" = {
    channelCode = 0;
    nxp = 1; 
    nyp = 1; 
-   nfp = 1;
+   nfp = 3;
    numAxonalArbors = 1;
    initFromLastFlag = 0;  // 1;  // restart
    writeStep = -1;
@@ -412,6 +414,8 @@ KernelConn "BipolarToGanglionCenter" = {
    sigma = 1;
    rMax  = 3;
    rMin = 0;
+   numOrientationsPre = 1;
+   numOrientationsPost = 1;
        
    strength = 1.0;  
    normalize = 1.0;
@@ -445,7 +449,7 @@ KernelConn "BipolarToGanglionSurround" = {
    channelCode = 1;
    nxp = 11; 
    nyp = 11; 
-   nfp = 1;
+   nfp = 3;
    numAxonalArbors = 1;
    initFromLastFlag = 0;  // 1;  // restart
    writeStep = -1;
@@ -455,6 +459,8 @@ KernelConn "BipolarToGanglionSurround" = {
    sigma = 5.5;
    rMax  = 7.5;
    rMin = 0.5;
+   numOrientationsPre = 1;
+   numOrientationsPost = 1;
        
    strength = 1.0;  
    normalize = 1.0;
@@ -682,16 +688,16 @@ KernelConn "V1ToError" = {
     channelCode = 1;
     nxp = 12;
     nyp = 12;
-    nfp = 1;
+    nfp = 3;
     numAxonalArbors = 1;
     initFromLastFlag = 0;
     
-    weightInitType = "FileWeight";
-    initWeightsFile = "/Users/garkenyon/workspace/HyPerHLCA2/Checkpoints/Checkpoint1050000/V1ToError_W.pvp";
-//    weightInitType = "UniformRandomWeight";
-//    wMinInit = -1.0;
-//    wMaxInit = 1.0;
-//    sparseFraction = .90;
+    //weightInitType = "FileWeight";
+    //initWeightsFile = "/Users/garkenyon/workspace/HyPerHLCA2/output_animal1200000_distractor1200000/Checkpoints/Checkpoint1050000/V1ToError_W.pvp";
+    weightInitType = "UniformRandomWeight";
+    wMinInit = -1.0;
+    wMaxInit = 1.0;
+    sparseFraction = .95;
    
     strength = 1.0;  
     normalize = 1.0;
@@ -706,10 +712,10 @@ KernelConn "V1ToError" = {
     keepKernelsSynchronized = true; 
     combine_dW_with_W_flag = false; 
 
-    writeStep = -1;
+    writeStep = 1000;
     writeCompressedWeights = false;
     writeCompressedCheckpoints = false;
-    plasticityFlag = false; //true;
+    plasticityFlag = true;
     weightUpdatePeriod = 20.0;
     initialWeightUpdateTime = 999.0;
     initialWriteTime = 0.0;
@@ -743,7 +749,7 @@ TransposeConn "ErrorToV1" = {
 	writeCompressedCheckpoints = false;
 	plasticityFlag = true;
 	dWMax = 1.0; // not used
-	initialWeightUpdateTime = 999.0;
+	initialWeightUpdateTime = 20.0;
 	initialWriteTime = 0.0;
 	shmget_flag = false;
 	
