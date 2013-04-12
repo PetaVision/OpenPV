@@ -12,11 +12,11 @@ if ismac
   frame_duration = 1000;
 elseif isunix
   workspace_path = "/home/gkenyon/workspace_new";
-  output_dir = "/nh/compneuro/Data/MRI/LCA/5_subjects"; %% vine/LCA/cats"; %% 
+  output_dir = "/nh/compneuro/Data/vine/LCA/cats"; %%MRI/LCA/5_subjects"; %%  
   LCA_path = [output_dir];
-  last_checkpoint_ndx = 100000*5; %%50000*29; %% 
-  next_checkpoint_ndx = 100000*6; %%50000*29+1000; %% 
-  first_checkpoint_ndx = 1;
+  last_checkpoint_ndx = 100000*81; %%50000*21; %% 
+  next_checkpoint_ndx = 100000*82; %%50000*22; %% 
+  first_checkpoint_ndx = 0;
   frame_duration = 1000;
 endif
 addpath([workspace_path, filesep, "/PetaVision/mlab/util"]);
@@ -27,13 +27,13 @@ max_lines = last_checkpoint_ndx + (last_checkpoint_ndx == 0) * 1000;
 max_history = 20000;
 begin_statProbe_step = max(max_lines - max_history, 3);
 training_flag = 1;
+num_recon = 128;
 
 
 %% plot Reconstructions
 plot_Recon = 1;
 if plot_Recon
   %%keyboard;
-  num_recon = 4;
   recon_dir = [output_dir, filesep, "recon"];
   mkdir(recon_dir);
   Retina_file = [output_dir, filesep, "a1_Retina.pvp"];
@@ -287,7 +287,7 @@ if plot_V1
     V1_current = full(sparse(V1_active_ndx+1,1,1,n_V1,1,n_V1));
     V1_abs_change(i_frame) = sum(V1_current(:) ~= V1_previous(:));
     V1_previous_active = V1_current_active;
-    V1_current_active = sum(V1_current(:));
+    V1_current_active = nnz(V1_current(:));
     V1_tot_active(i_frame) = V1_current_active;
     V1_max_active = max(V1_current_active, V1_previous_active);
     V1_percent_change(i_frame) = ...
@@ -329,6 +329,8 @@ if plot_V1
   set(V1_percent_change_fig, "name", ["V1_percent_change"]);
   saveas(V1_percent_change_fig, ...
 	 [V1_change_dir, filesep, "V1_percent_change", num2str(V1_times(num_frames), "%i")], "png");
+  V1_mean_change = mean(V1_percent_change(:));
+  disp(["V1_mean_change = ", num2str(V1_mean_change)]);
 
   V1_tot_active_title = ["V1_tot_active", ".png"];
   V1_tot_active_fig = figure;
