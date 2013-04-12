@@ -1,11 +1,11 @@
 
 %% begin definition of the most volitile parameters
-FLAVOR_ID = "Challenge"; %% "Formative"; %% "Training"; %% 
+FLAVOR_ID = "Formative"; %% "Challenge"; %% "Training"; %% 
 disp(["FLAVOR_ID = ", FLAVOR_ID]);
 target_id = cell(1,2); 
 target_id{1,1} = "Car"; target_id{1,2} = "NotCar"; %% 
 target_id
-clips_flag = true; %%false; %% 
+clips_flag = false; %% true; %% 
 if clips_flag 
   clip_ids = [26:26]; %% [1:50]; %% 
   clip_name = cell(length(clip_ids),1);
@@ -16,8 +16,10 @@ else
   clip_name = [];
 endif
 clip_name
-pvp_num_ODD_kernels = 2; %%
+pvp_num_ODD_kernels = 3; %%
 disp(["num_ODD_kernels = ", num2str(pvp_num_ODD_kernels)]);
+pvp_training_dir = "Formative";
+pvp_training_tag = ""; %%"F"; %% 
 %% end definition of the most volitile parameters
 
 %% version_str stores the training or testing run index 
@@ -27,8 +29,6 @@ pvp_frame_size = [1080 1920]; %%
 disp(["frame_size = ", mat2str(pvp_frame_size)]);
 pvp_edge_type = "canny"; 
 pvp_clique_id = "3way2X2"; %% ""; %%
-pvp_training_dir = "Formative";
-pvp_training_tag = "F"; %% ""; %%
 num_versions = length(version_ids);
 if num_versions > 0
   version_str = cell(num_versions,1);
@@ -243,6 +243,9 @@ for i_object = 1 : size(target_id,1)
 	  elseif pvp_num_ODD_kernels == 3
 	    weight_filename = ...
 		"L2CliqueToL3Post_W.pvp";
+	  elseif pvp_num_ODD_kernels == 4
+	    weight_filename = ...
+		"L3CliqueToL4Post_W.pvp";
 	  else
 	    error(["weight_filename unspecified for pvp_num_ODD_kernels = ", ...
 		   num2str(pvp_num_ODD_kernels)]);
@@ -257,6 +260,9 @@ for i_object = 1 : size(target_id,1)
 	  elseif pvp_num_ODD_kernels == 3
 	    weight_filename = ...
 		"L3ToL3_W.pvp";
+	  elseif pvp_num_ODD_kernels == 4
+	    weight_filename = ...
+		"L4ToL4_W.pvp";
 	  else
 	    error(["weight_filename unspecified for pvp_num_ODD_kernels = ", ...
 		   num2str(pvp_num_ODD_kernels)]);
@@ -336,8 +342,13 @@ for i_object = 1 : size(target_id,1)
     pvp_fileOfFrames_path = ...
 	[list_object_path];
     if ~clips_flag
-      pvp_fileOfFrames_file = ...
-	  [target_id{i_object, 1}, "_", "fileOfFilenames.txt"];
+      if strcmp(FLAVOR_ID,"Training")
+	pvp_fileOfFrames_file = ...
+	    [target_id{i_object, 1}, "_", "fileOfFilenames.txt"];
+      elseif  strcmp(FLAVOR_ID,"Formative")
+	pvp_fileOfFrames_file = ...
+	    [target_id{i_object, 1}, "_", "fileOfFilenamesIncTraining.txt"];
+      endif
     else
       pvp_fileOfFrames_file = ...
 	  [clip_name{i_clip, 1}, "_", "fileOfFilenames.txt"];
@@ -350,13 +361,23 @@ for i_object = 1 : size(target_id,1)
     endif
 
     if target_flag == 1
-      pvp_fileOfMasks_file = ...
-	  [target_id{i_object, 1}, "_", "fileOfTargetMasknames.txt"];
+      if strcmp(FLAVOR_ID,"Training") || strcmp(FLAVOR_ID,"Challenge") 
+	pvp_fileOfMasks_file = ...
+	    [target_id{i_object, 1}, "_", "fileOfTargetMasknames.txt"];
+      elseif  strcmp(FLAVOR_ID,"Formative")
+	pvp_fileOfMasks_file = ...
+	    [target_id{i_object, 1}, "_", "fileOfTargetMasknamesIncTraining.txt"];
+      endif
       pvp_fileOfMasks = ...
 	  [pvp_fileOfFrames_path, pvp_fileOfMasks_file];
     elseif target_flag == 2
-      pvp_fileOfMasks_file = ...
-	  [target_id{i_object, 1}, "_", "fileOfDistractorMasknames.txt"];
+      if strcmp(FLAVOR_ID,"Training") || strcmp(FLAVOR_ID,"Challenge") 
+	pvp_fileOfMasks_file = ...
+	    [target_id{i_object, 1}, "_", "fileOfDistractorMasknames.txt"];
+      elseif  strcmp(FLAVOR_ID,"Formative")
+	pvp_fileOfMasks_file = ...
+	    [target_id{i_object, 1}, "_", "fileOfDistractorMasknamesIncTraining.txt"];
+      endif
       pvp_fileOfMasks = ...
 	  [pvp_fileOfFrames_path, pvp_fileOfMasks_file];
     else

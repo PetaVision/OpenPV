@@ -4,8 +4,8 @@ clip_name = cell(length(clip_ids),1);
 for i_clip = 1 : length(clip_name)
   clip_name{i_clip} = num2str(clip_ids(i_clip), "%3.3i");
 endfor
-num_ODD_kernels = 1; %% 2; %% 
-pvp_layer = 5; %%9;  %% 
+num_ODD_kernels = 3; %% 
+pvp_layer = 7; %%9;  %% 
 pvp_path_flag = true; %% false; %% 
 NEOVISION_DISTRIBUTION_ID = "Challenge"; %% "Training"; %%"Formative"; %%   
 ObjectType = "Car"; %% "Cyclist"; %%  
