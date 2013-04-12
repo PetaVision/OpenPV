@@ -46,8 +46,8 @@ public:
    virtual float calcDthPre();
    virtual float calcTh0Pre(float dthPre);
    float calcThPost(int fPost);
-   bool checkTheta(float thPost);
-
+   bool checkThetaDiff(float thPost);
+   bool checkColorDiff(int fPost);
 
 protected:
    int initialize_base();

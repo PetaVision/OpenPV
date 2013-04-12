@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+//#include <stat.h>
 
 #define PARAMETERARRAY_INITIALSIZE 8
 #define PARAMETERARRAYSTACK_INITIALCOUNT 5

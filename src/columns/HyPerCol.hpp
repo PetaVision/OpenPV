@@ -9,7 +9,9 @@
 #define HYPERCOL_HPP_
 
 #include "HyPerColRunDelegate.hpp"
+#include "InterColComm.hpp"
 #include "../layers/PVLayer.h"
+#include "../layers/HyPerLayer.hpp"
 #include "../connections/HyPerConn.hpp"
 #include "../io/PVParams.hpp"
 #include "../include/pv_types.h"
@@ -22,9 +24,9 @@
 
 namespace PV {
 
-class HyPerLayer;
-class InterColComm;
-class HyPerConn;
+//class HyPerLayer;
+//class InterColComm;
+//class HyPerConn;
 class ColProbe;
 class PVParams;
 
@@ -32,7 +34,7 @@ class HyPerCol {
 
 public:
 
-   HyPerCol(const char * name, int argc, char * argv[], PVParams * params=NULL);
+   HyPerCol(const char * name, int argc, char * argv[], PV::PVParams * params=NULL);
    // HyPerCol(const char* name, int argc, char* argv[], const char * path); // Not defined in .cpp file
    virtual ~HyPerCol();
 

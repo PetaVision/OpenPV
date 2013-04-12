@@ -70,7 +70,7 @@ int InitSpreadOverArborsWeights::spreadOverArborsWeights(/* PVPatch * patch */ p
    // loop over all post-synaptic cells in temporary patch
    for (int fPost = 0; fPost < nfPatch_tmp; fPost++) {
       float thPost = weightParamPtr->calcThPost(fPost);
-      if(weightParamPtr->checkTheta(thPost)) continue;
+      if(weightParamPtr->checkThetaDiff(thPost)) continue;
       for (int jPost = 0; jPost < nyPatch_tmp; jPost++) {
          float yDelta = weightParamPtr->calcYDelta(jPost);
          for (int iPost = 0; iPost < nxPatch_tmp; iPost++) {

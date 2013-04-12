@@ -10,6 +10,8 @@
 
 #include "../include/pv_common.h"
 #include "../columns/HyPerCol.hpp"
+#include "../columns/InterColComm.hpp"
+#include <stdio.h>
 #include <string.h>
 
 // TODO - make MAX_PARAMS dynamic
@@ -18,6 +20,8 @@
 #undef HAS_MAIN   // define if provides a main function
 
 namespace PV {
+
+class InterColComm;
 
 class Parameter {
 public:

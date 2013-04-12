@@ -83,7 +83,7 @@ int Init3DGaussWeights::gauss3DWeights(/* PVPatch * patch */ pvdata_t * w_tmp, I
    for (int fPost = 0; fPost < nfPatch_tmp; fPost++) {
       float thPost = weightParamPtr->calcThPost(fPost);
       //TODO: add additional weight factor for difference between thPre and thPost
-      if(weightParamPtr->checkTheta(thPost)) continue;
+      if(weightParamPtr->checkThetaDiff(thPost)) continue;
       for (int jPost = 0; jPost < nyPatch_tmp; jPost++) {
          float yDelta = weightParamPtr->calcYDelta(jPost);
          for (int iPost = 0; iPost < nxPatch_tmp; iPost++) {

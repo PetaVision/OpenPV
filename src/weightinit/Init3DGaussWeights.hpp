@@ -10,13 +10,13 @@
 
 #include "InitWeights.hpp"
 #include "InitWeightsParams.hpp"
-#include "Init3DGaussWeightsParams.hpp"
 #include "InitGauss2DWeights.hpp"
+#include "Init3DGaussWeightsParams.hpp"
 
 namespace PV {
 
-class InitWeightsParams;
-class Init3DGaussWeightsParams;
+//class InitWeightsParams;
+//class Init3DGaussWeightsParams;
 
 class Init3DGaussWeights: public PV::InitGauss2DWeights {
 public:

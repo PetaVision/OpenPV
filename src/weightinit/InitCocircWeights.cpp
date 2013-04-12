@@ -81,7 +81,7 @@ int InitCocircWeights::cocircCalcWeights(/* PVPatch * patch */ pvdata_t * w_tmp,
 
       weightParamPtr->calcKurvePostAndSigmaKurvePost(kfPost);
 
-     if(weightParamPtr->checkTheta(thPost)) continue;
+     if(weightParamPtr->checkThetaDiff(thPost)) continue;
 
      for (int jPost = 0; jPost < nyPatch_tmp; jPost++) {
         float yDelta = weightParamPtr->calcYDelta(jPost);

@@ -56,11 +56,11 @@ int InitGauss2DWeightsParams::initialize(HyPerConn * parentConn) {
    rMin     = params->value(getName(), "rMin", rMin);
    strength = params->value(getName(), "strength", strength);
    if (this->post->getLayerLoc()->nf > 1){
-		numOrientationsPost = (int) params->value(post->getName(),
+		numOrientationsPost = (int) params->value(getName(),
 				"numOrientationsPost", this->post->getLayerLoc()->nf);
    }
 	if (this->pre->getLayerLoc()->nf > 1) {
-		numOrientationsPre = (int) params->value(post->getName(),
+		numOrientationsPre = (int) params->value(getName(),
 				"numOrientationsPre", this->pre->getLayerLoc()->nf);
 	}
    if (aspect != 1.0 && ((this->numOrientationsPre <= 1)||(this->numOrientationsPost <= 1))) {
@@ -144,13 +144,22 @@ float InitGauss2DWeightsParams::calcThPost(int fPost) {
    return thPost;
 }
 
-bool InitGauss2DWeightsParams::checkTheta(float thPost) {
+bool InitGauss2DWeightsParams::checkThetaDiff(float thPost) {
   if ((deltaTheta = fabs(thPre - thPost)) > deltaThetaMax) {
      //the following is obviously not ideal. But cocirc needs this deltaTheta:
      deltaTheta = (deltaTheta <= PI / 2.0) ? deltaTheta : PI - deltaTheta;
       return true;
    }
   deltaTheta = (deltaTheta <= PI / 2.0) ? deltaTheta : PI - deltaTheta;
+   return false;
+}
+
+bool InitGauss2DWeightsParams::checkColorDiff(int fPost) {
+	int postColor = (int) (fPost / numOrientationsPost);
+	int preColor = (int) (fPre / numOrientationsPre);
+  if (postColor != preColor) {
+      return true;
+   }
    return false;
 }
 

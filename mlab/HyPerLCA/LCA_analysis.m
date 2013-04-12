@@ -4,12 +4,12 @@ close all;
 setenv("GNUTERM","X11")
 if ismac
   workspace_path = "/Users/garkenyon/workspace";
-  output_dir = "/Users/garkenyon/workspace/HyPerHLCA2/output_test" %% output_animal1200000_distractor1200000" %%
-  LCA_path = [workspace_path, filesep, "HyPerHLCA2"];
-  last_checkpoint_ndx = 20000*1; 
-  next_checkpoint_ndx = 20000*1;
+  output_dir = "/Users/garkenyon/workspace/HyPerHLCA2/output_animal1200000_color"; %%output_test"; %% output_animal1200000_distractor1200000"; %%
+  LCA_path = [output_dir]; %%[workspace_path, filesep, "HyPerHLCA2"];
+  last_checkpoint_ndx = 50000*1; 
+  next_checkpoint_ndx = 50000*2;
   first_checkpoint_ndx = 0; 
-  frame_duration = 5000;
+  frame_duration = 1000;
 elseif isunix
   workspace_path = "/home/gkenyon/workspace_new";
   output_dir = "/nh/compneuro/Data/MRI/LCA/5_subjects"; %% vine/LCA/cats"; %% 
@@ -26,11 +26,11 @@ next_checkpoint_path = [checkpoint_dir, filesep, "Checkpoint", num2str(next_chec
 max_lines = last_checkpoint_ndx + (last_checkpoint_ndx == 0) * 1000;
 max_history = 20000;
 begin_statProbe_step = max(max_lines - max_history, 3);
-training_flag = 0;
+training_flag = 1;
 
 
 %% plot Reconstructions
-plot_Recon = 0;
+plot_Recon = 1;
 if plot_Recon
   %%keyboard;
   num_recon = 4;
@@ -63,18 +63,26 @@ if plot_Recon
     i_frame = 1;
     i_arbor = 1;
     i_patch = 1;
+    blurr_center_path = [checkpoint_path, filesep, "RetinaToBipolarCenter_W.pvp"];
+    [blurr_center_struct, blurr_center_hdr] = readpvpfile(blurr_center_path,1);
+    DoG_center_weights = (DoG_center_struct{i_frame}.values{i_arbor});
+    size_DoG_center_weights = size(DoG_center_weights);
     DoG_center_path = [checkpoint_path, filesep, "BipolarToGanglionCenter_W.pvp"];
     [DoG_center_struct, DoG_center_hdr] = readpvpfile(DoG_center_path,1);
-    DoG_center_weights = squeeze(DoG_center_struct{i_frame}.values{i_arbor});
+    DoG_center_weights = (DoG_center_struct{i_frame}.values{i_arbor});
+    size_DoG_center_weights = size(DoG_center_weights);
     DoG_surround_path = [checkpoint_path, filesep, "BipolarToGanglionSurround_W.pvp"];
     [DoG_surround_struct, DoG_surround_hdr] = readpvpfile(DoG_surround_path,1);
-    DoG_surround_weights = squeeze(DoG_surround_struct{i_frame}.values{i_arbor});
-    DoG_pad = (size(DoG_surround_weights) - size(DoG_center_weights)) / 2;
-    DoG_center_padded = zeros(size(DoG_surround_weights));
+    DoG_surround_weights = (DoG_surround_struct{i_frame}.values{i_arbor});
+    size_DoG_surround_weights = size(DoG_surround_weights);
+    DoG_pad = (size_DoG_surround_weights(1:2) - size_DoG_center_weights(1:2)) / 2;
+    num_pre_colors = size_DoG_suround_weights(3);
+    num_post_colors = size_DoG_suround_weights(4);
+    DoG_center_padded = zeros(size_DoG_surround_weights(1:2));
     DoG_row_start = DoG_pad(1)+1;
-    DoG_row_stop = size(DoG_surround_weights,1)-DoG_pad(1);
+    DoG_row_stop = size_DoG_surround_weights(1)-DoG_pad(1);
     DoG_col_start = DoG_pad(2)+1;
-    DoG_col_stop = size(DoG_surround_weights,2)-DoG_pad(2);
+    DoG_col_stop = size_DoG_surround_weights(2)-DoG_pad(2);
     DoG_center_padded(DoG_row_start:DoG_row_stop, DoG_col_start:DoG_col_stop) = ...
 	DoG_center_weights;
     DoG_weights = ...
@@ -364,7 +372,7 @@ if plot_V1
   drawnow;  
 endif
 
-plot_final_weights = 0;
+plot_final_weights = 1;
 if plot_final_weights 
   V1ToError_path = [checkpoint_path, filesep, "V1ToError_W.pvp"];
   if ~exist(V1ToError_path, "file")

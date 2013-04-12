@@ -9,6 +9,7 @@
 #define HYPERCONN_HPP_
 
 #include "../columns/InterColComm.hpp"
+#include "../columns/HyPerCol.hpp"
 #include "../include/pv_common.h"
 #include "../include/pv_types.h"
 #include "../io/PVParams.hpp"
@@ -28,11 +29,10 @@
 
 namespace PV {
 
+
+//class HyPerCol;
+//class HyPerLayer;
 class InitWeights;
-class InitUniformRandomWeights;
-class InitGaussianRandomWeights;
-class InitSmartWeights;
-class InitCocircWeights;
 class BaseConnectionProbe;
 class PVParams;
 

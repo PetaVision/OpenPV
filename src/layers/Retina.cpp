@@ -274,7 +274,7 @@ int Retina::setParams(PVParams * p)
 {
    double dt_sec = parent->getDeltaTime() * .001;  // seconds
 
-   clayer->loc.nf = 1;
+   //clayer->loc.nf = 1;  // WTF???  who put this here???
    clayer->loc.nb = (int) p->value(name, "marginWidth", 0.0);
 
    clayer->params = &rParams;
