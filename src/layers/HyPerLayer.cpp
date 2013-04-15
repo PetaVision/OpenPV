@@ -404,15 +404,34 @@ int HyPerLayer::initializeLayerId(int layerId)
 
 int HyPerLayer::setLayerLoc(PVLayerLoc * layerLoc, float nxScale, float nyScale, int margin, int nf)
 {
+   int status = PV_SUCCESS;
+
    InterColComm * icComm = parent->icCommunicator();
-   layerLoc->nxGlobal = (int) (nxScale * parent->getNxGlobal());
-   layerLoc->nyGlobal = (int) (nyScale * parent->getNyGlobal());
+
+   float nxglobalfloat = nearbyintf(nxScale * parent->getNxGlobal());
+   layerLoc->nxGlobal = (int) nxglobalfloat;
+   if (fabs(nxglobalfloat-layerLoc->nxGlobal)>0.0001) {
+      if (parent->columnId()==0) {
+         fprintf(stderr, "Size of column is compatible with nxScale of layer \"%s\".\n", getName());
+         fprintf(stderr, "Column nx %d multiplied by nxScale %f must be an integer.\n", parent->getNxGlobal(), nxScale);
+      }
+      status = PV_FAILURE;
+   }
+
+   float nyglobalfloat = nearbyintf(nyScale * parent->getNyGlobal());
+   layerLoc->nyGlobal = (int) nyglobalfloat;
+   if (fabs(nxglobalfloat-layerLoc->nxGlobal)>0.0001) {
+      if (parent->columnId()==0) {
+         fprintf(stderr, "Size of column is compatible with nyScale of layer \"%s\".\n", getName());
+         fprintf(stderr, "Column ny %d multiplied by nyScale %f must be an integer.\n", parent->getNyGlobal(), nxScale);
+      }
+      status = PV_FAILURE;
+   }
 
    // partition input space based on the number of processor
    // columns and rows
    //
 
-   int status = PV_SUCCESS;
    if (layerLoc->nxGlobal % icComm->numCommColumns() != 0) {
       if (parent->columnId()==0) {
          fprintf(stderr, "Size of HyPerLayer \"%s\" is not  compatible with the mpi configuration.\n", name);
