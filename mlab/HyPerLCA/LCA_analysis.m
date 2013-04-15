@@ -24,7 +24,7 @@ checkpoint_dir = [LCA_path, filesep, "Checkpoints"];
 checkpoint_path = [checkpoint_dir, filesep, "Checkpoint", num2str(last_checkpoint_ndx, "%i")];
 next_checkpoint_path = [checkpoint_dir, filesep, "Checkpoint", num2str(next_checkpoint_ndx, "%i")];
 max_lines = last_checkpoint_ndx + (last_checkpoint_ndx == 0) * 1000;
-max_history = 20000;
+max_history = 150000;
 begin_statProbe_step = max(max_lines - max_history, 3);
 training_flag = 1;
 num_recon = 128;
@@ -65,8 +65,29 @@ if plot_Recon
     i_patch = 1;
     blurr_center_path = [checkpoint_path, filesep, "RetinaToBipolarCenter_W.pvp"];
     [blurr_center_struct, blurr_center_hdr] = readpvpfile(blurr_center_path,1);
-    DoG_center_weights = (DoG_center_struct{i_frame}.values{i_arbor});
-    size_DoG_center_weights = size(DoG_center_weights);
+    blurr_center_weights = (blurr_center_struct{i_frame}.values{i_arbor});
+    blurr_fig = figure;
+    set(blurr_fig, "name", "blurr Weights");
+    size_blurr_center_weights = size(blurr_center_weights);
+    num_pre_colors = size_blurr_center_weights(3);
+    num_post_colors = size_blurr_center_weights(4);
+    for i_pre_color = 1 : num_pre_colors
+      for i_post_color = 1 : num_post_colors
+	subplot(num_pre_colors, num_post_colors, (i_pre_color - 1) * num_post_colors + i_post_color);
+	patch_tmp = blurr_center_weights(:,:,i_pre_color, i_post_color);
+	patch_tmp2 = patch_tmp; %% imresize(patch_tmp, 12);
+	min_patch = min(patch_tmp2(:));
+	max_patch = max(patch_tmp2(:));
+	patch_tmp2 = (patch_tmp2 - min_patch) * 255 / (max_patch - min_patch + ((max_patch-min_patch)==0));
+	patch_tmp2 = uint8(patch_tmp2);
+	imagesc(patch_tmp2); colormap(gray);
+	box off
+	axis off
+      endfor
+    endfor
+    saveas(blurr_fig, [recon_dir, filesep, "blurr_weights.png"]);
+
+    %%drawnow;
     DoG_center_path = [checkpoint_path, filesep, "BipolarToGanglionCenter_W.pvp"];
     [DoG_center_struct, DoG_center_hdr] = readpvpfile(DoG_center_path,1);
     DoG_center_weights = (DoG_center_struct{i_frame}.values{i_arbor});
@@ -76,28 +97,33 @@ if plot_Recon
     DoG_surround_weights = (DoG_surround_struct{i_frame}.values{i_arbor});
     size_DoG_surround_weights = size(DoG_surround_weights);
     DoG_pad = (size_DoG_surround_weights(1:2) - size_DoG_center_weights(1:2)) / 2;
-    num_pre_colors = size_DoG_suround_weights(3);
-    num_post_colors = size_DoG_suround_weights(4);
+    num_pre_colors = size_DoG_surround_weights(3);
+    num_post_colors = size_DoG_surround_weights(4);
     DoG_center_padded = zeros(size_DoG_surround_weights(1:2));
     DoG_row_start = DoG_pad(1)+1;
     DoG_row_stop = size_DoG_surround_weights(1)-DoG_pad(1);
     DoG_col_start = DoG_pad(2)+1;
     DoG_col_stop = size_DoG_surround_weights(2)-DoG_pad(2);
-    DoG_center_padded(DoG_row_start:DoG_row_stop, DoG_col_start:DoG_col_stop) = ...
-	DoG_center_weights;
-    DoG_weights = ...
-	DoG_center_padded - DoG_surround_weights;
     DoG_fig = figure;
     set(DoG_fig, "name", "DoG Weights");
-    patch_tmp = DoG_weights;
-    patch_tmp2 = patch_tmp; %% imresize(patch_tmp, 12);
-    min_patch = min(patch_tmp2(:));
-    max_patch = max(patch_tmp2(:));
-    patch_tmp2 = (patch_tmp2 - min_patch) * 255 / (max_patch - min_patch);
-    patch_tmp2 = uint8(patch_tmp2);
-    imagesc(patch_tmp2); colormap(gray);
-    box off
-    axis off
+    for i_pre_color = 1 : num_pre_colors
+      for i_post_color = 1 : num_post_colors
+	DoG_center_padded(DoG_row_start:DoG_row_stop, DoG_col_start:DoG_col_stop) = ...
+	    DoG_center_weights(:,:, i_pre_color, i_post_color);
+	DoG_weights = ...
+	    DoG_center_padded - DoG_surround_weights(:, :, i_pre_color, i_post_color);
+	subplot(num_pre_colors, num_post_colors, (i_pre_color - 1) * num_post_colors + i_post_color);
+	patch_tmp = DoG_weights;
+	patch_tmp2 = patch_tmp; %% imresize(patch_tmp, 12);
+	min_patch = min(patch_tmp2(:));
+	max_patch = max(patch_tmp2(:));
+	patch_tmp2 = (patch_tmp2 - min_patch) * 255 / (max_patch - min_patch + ((max_patch-min_patch)==0));
+	patch_tmp2 = uint8(patch_tmp2);
+	imagesc(patch_tmp2); colormap(gray);
+	box off
+	axis off
+      endfor
+    endfor
     %%drawnow;
     saveas(DoG_fig, [recon_dir, filesep, "DoG_weights.png"]);
   endif
@@ -111,7 +137,12 @@ if plot_Recon
     Retina_mean = Retina_mean + mean(Retina_vals(:));
     Retina_std = Retina_std + std(Retina_vals(:));
     set(Retina_fig, "name", ["Retina ", num2str(Retina_time, "%0d")]);
-    imagesc(Retina_vals'); colormap(gray); box off; axis off; axis image;
+    imagesc(permute(Retina_vals,[2,1,3])); 
+    num_Retina_colors = size(Retina_vals,3);
+    if num_Retina_colors == 1
+      colormap(gray); 
+    endif
+    box off; axis off; axis image;
     saveas(Retina_fig, [recon_dir, filesep, "Retina_", num2str(Retina_time, "%0d")], "png");
   endfor   %% i_frame
   Retina_mean = Retina_mean / (num_recon + (num_recon == 0));
@@ -131,13 +162,26 @@ if plot_Recon
     Ganglion_std = Ganglion_std + std(Ganglion_vals(:));
     figure(Ganglion_fig);
     set(Ganglion_fig, "name", ["Ganglion ", num2str(Ganglion_time, "%0d")]);
-    imagesc(Ganglion_vals'); colormap(gray); box off; axis off; axis image;
+    imagesc(permute(Ganglion_vals,[2,1,3])); 
+    num_Ganglion_colors = size(Ganglion_vals,3);
+    if num_Ganglion_colors == 1
+      colormap(gray); 
+    endif
+    box off; axis off; axis image;
     saveas(Ganglion_fig, [recon_dir, filesep, "Ganglion_", num2str(Ganglion_time, "%0d")], "png");
     if plot_DoG_kernel
-      [unwhitened_Ganglion_DoG] =  deconvolvemirrorbc(Ganglion_vals', DoG_weights);
+      unwhitened_Ganglion_DoG = zeros(size(permute(Ganglion_vals,[2,1,3])));
+      for i_color = 1 : num_Ganglion_colors
+	[unwhitened_Ganglion_DoG(:,:,i_color)] = ...
+	    deconvolvemirrorbc(squeeze(Ganglion_vals(:,:,i_color))', DoG_weights);
+      endfor
       figure(unwhitened_Ganglion_fig);
       set(unwhitened_Ganglion_fig, "name", ["unwhitened Ganglion ", num2str(Ganglion_time, "%0d")]);
-      imagesc(unwhitened_Ganglion_DoG); colormap(gray); box off; axis off; axis image;
+      imagesc(squeeze(unwhitened_Ganglion_DoG)); 
+      if num_Ganglion_colors == 1
+	colormap(gray); 
+      endif
+      box off; axis off; axis image;
       saveas(unwhitened_Ganglion_fig, ...
 	     [recon_dir, filesep, "unwhitened_Ganglion_", num2str(Ganglion_time, "%0d")], "png");
       drawnow
@@ -165,13 +209,31 @@ if plot_Recon
     Recon_std = Recon_std + std(Recon_vals(:));
     figure(Recon_fig);
     set(Recon_fig, "name", ["Recon ", num2str(Recon_time)]);
-    imagesc(Recon_vals'); colormap(gray); box off; axis off; axis image;
+    num_Recon_colors = size(Recon_vals,3);
+    imagesc(permute(Recon_vals, [2,1,3])); 
+    if num_Recon_colors == 1
+      colormap(gray); 
+    endif
+    box off; axis off; axis image;
     saveas(Recon_fig, [recon_dir, filesep, "Recon_", num2str(Recon_time, "%0d")], "png");
     if plot_DoG_kernel
-      [unwhitened_Recon_vals] = deconvolvemirrorbc(Recon_vals', DoG_weights); 
+      unwhitened_Recon_vals = zeros(size(permute(Recon_vals,[2,1,3])));
+      for i_color = 1 : num_Recon_colors
+	[unwhitened_Recon_vals(:,:,i_color)] = ...
+	    deconvolvemirrorbc(squeeze(Recon_vals(:,:,i_color))', DoG_weights); 
+	tmp_recon = unwhitened_Recon_vals(:,:,i_color);
+	max_recon = max(tmp_recon(:));
+	min_recon = min(tmp_recon(:));
+	tmp_recon = (tmp_recon - min_recon) / (max_recon - min_recon + ((max_recon - min_recon)==0));
+	unwhitened_Recon_vals(:,:,i_color) = tmp_recon;
+      endfor
       figure(unwhitened_Recon_fig);
       set(unwhitened_Recon_fig, "name", ["unwhitened Recon ", num2str(Recon_time, "%0d")]);
-      imagesc(unwhitened_Recon_vals); colormap(gray); box off; axis off; axis image;
+      imagesc(squeeze(unwhitened_Recon_vals)); 
+      if num_Recon_colors == 1
+	colormap(gray);
+      endif
+      box off; axis off; axis image;
       saveas(unwhitened_Recon_fig, ...
 	     [recon_dir, filesep, "unwhitened_Recon_", num2str(Recon_time, "%0d")], "png");
       drawnow
@@ -389,22 +451,35 @@ if plot_final_weights
   endif
 
   %% make tableau of all patches
+  %%keyboard;
   i_patch = 1;
-  num_patches = size(V1ToError_weights, 3);
+  num_V1_dims = ndims(V1ToError_weights);
+  num_patches = size(V1ToError_weights, num_V1_dims);
   num_patches_rows = floor(sqrt(num_patches));
   num_patches_cols = ceil(num_patches / num_patches_rows);
+  num_V1_colors = 1;
+  if num_V1_dims == 4
+    num_V1_colors = size(V1ToError_weights,3);
+  endif
   V1ToError_fig = figure;
   set(V1ToError_fig, "name", ["V1ToError Weights: ", num2str(last_checkpoint_ndx, "%i")]);
   for j_patch = 1  : num_patches
     i_patch = V1_hist_rank(j_patch);
     subplot(num_patches_rows, num_patches_cols, j_patch); 
-    patch_tmp = squeeze(V1ToError_weights(:,:,i_patch));
+    if num_V1_colors == 1
+      patch_tmp = squeeze(V1ToError_weights(:,:,i_patch));
+    else
+      patch_tmp = squeeze(V1ToError_weights(:,:,:,i_patch));
+    endif
     patch_tmp2 = patch_tmp; %% imresize(patch_tmp, 12);
     min_patch = min(patch_tmp2(:));
     max_patch = max(patch_tmp2(:));
-    patch_tmp2 = (patch_tmp2 - min_patch) * 255 / (max_patch - min_patch);
-    patch_tmp2 = uint8(flipud(patch_tmp2'));
-    imagesc(patch_tmp2); colormap(gray);
+    patch_tmp2 = (patch_tmp2 - min_patch) * 255 / (max_patch - min_patch + ((max_patch - min_patch)==0));
+    patch_tmp2 = uint8(flipdim(permute(patch_tmp2, [2,1,3]),1));
+    imagesc(patch_tmp2); 
+    if num_V1_colors == 1
+      colormap(gray);
+    endif
     box off
     axis off
     axis image
@@ -453,23 +528,34 @@ if plot_weights_movie
     endif
     V1ToError_weights = squeeze(V1ToError_struct{i_frame}.values{i_arbor});
     i_patch = 1;
-    [nyp, nxp, num_patches] = size(V1ToError_weights);
+    nyp = size(V1ToError_weights,1);
+    nxp = size(V1ToError_weights,2);
+    num_V1_dims = ndims(V1ToError_weights);
+    num_patches = size(V1ToError_weights, num_V1_dims);
     num_patches_rows = floor(sqrt(num_patches));
     num_patches_cols = ceil(num_patches / num_patches_rows);
-    weights_frame = uint8(zeros(num_patches_rows * nyp, num_patches_cols * nxp));
+    num_V1_colors = 1;
+    if num_V1_dims == 4
+      num_V1_colors = size(V1ToError_weights,3);
+    endif
+    weights_frame = uint8(zeros(num_patches_rows * nyp, num_patches_cols * nxp, num_V1_colors));
     for j_patch = 1  : num_patches
       i_patch = V1_hist_rank(j_patch);
       j_patch_row = ceil(j_patch / num_patches_cols);
       j_patch_col = 1 + mod(j_patch - 1, num_patches_cols);
       %%subplot(num_patches_rows, num_patches_cols, i_patch); 
-      patch_tmp = squeeze(V1ToError_weights(:,:,i_patch));
-      patch_tmp2 = flipud(patch_tmp'); %% imresize(patch_tmp, 12);
-      min_patch = min(patch_tmp2(:));
-      max_patch = max(patch_tmp2(:));
-      patch_tmp2 = (patch_tmp2 - min_patch) * 255 / (max_patch - min_patch);
+      if num_V1_colors == 1
+	patch_tmp = squeeze(V1ToError_weights(:,:,i_patch));
+      else
+	patch_tmp = squeeze(V1ToError_weights(:,:,:,i_patch));
+      endif
+      min_patch = min(patch_tmp(:));
+      max_patch = max(patch_tmp(:));
+      patch_tmp2 = (patch_tmp - min_patch) * 255 / ((max_patch - min_patch) + ((max_patch - min_patch)==0));
+      patch_tmp2 = uint8(flipdim(permute(patch_tmp2, [2,1,3]),1));
       patch_tmp2 = uint8(patch_tmp2);
       weights_frame(((j_patch_row - 1) * nyp + 1): (j_patch_row * nyp), ...
-		    ((j_patch_col - 1) * nxp + 1): (j_patch_col * nxp)) = ...
+		    ((j_patch_col - 1) * nxp + 1): (j_patch_col * nxp), :) = ...
 	  patch_tmp2;
       %%imagesc(patch_tmp2);
       box off
