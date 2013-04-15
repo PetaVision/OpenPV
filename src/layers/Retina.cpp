@@ -537,7 +537,7 @@ int Retina::updateBorder(double time, double dt)
    pvdata_t * activity_bot = &clayer->activity->data[(nb+ny)*sy];
 
    pvdata_t * activity_l = &clayer->activity->data[nb*sy];
-   pvdata_t * activity_r = &clayer->activity->data[nb*sy + nb+nx];
+   pvdata_t * activity_r = &clayer->activity->data[nb*sy + nf*(nb+nx)];
 
    // top and bottom borders (including corners)
    for (int kex = 0; kex < nx_ex*nf*nb; kex++) {
