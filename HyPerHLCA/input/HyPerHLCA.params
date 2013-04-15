@@ -11,23 +11,23 @@
 debugParsing = true;
 
 HyPerCol "column" = {
-   nx = 256;   
-   ny = 256;
+   nx = 480; 
+   ny = 480; 
    dt = 1.0;
    randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
-   numSteps = 1200000;
-   progressStep = 1;
-   outputPath = "output/";
+   numSteps = 20706000; 
+   progressStep = 100000;
+   outputPath = "/nh/compneuro/Data/vine/LCA/cats/";
    filenamesContainLayerNames = true;
    filenamesContainConnectionNames = true;
    checkpointRead = false;
    checkpointReadDir = "Checkpoints";
-   checkpointReadDirIndex = 600000;
+   checkpointReadDirIndex = 704004;
    checkpointWrite = true;
-   checkpointWriteDir = "Checkpoints";
-   checkpointWriteStepInterval = 50000;
-   deleteOlderCheckpoints = true;
-   suppressLastOutput = false;
+   checkpointWriteDir = "/nh/compneuro/Data/vine/LCA/cats/Checkpoints";
+   checkpointWriteStepInterval = 100000;
+   deleteOlderCheckpoints = false;
+   suppressLastOutput = false;  // only used if not checkpointWrite == false
    writeProgressToErr = true;
    outputNamesOfLayersAndConns = "LayerAndConnNames.txt";
 };
@@ -40,7 +40,7 @@ Movie "Image" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
-    imageListPath = "/Users/garkenyon/Pictures/AnimalDB/target.txt";
+    imageListPath = "/nh/compneuro/Data/vine/list/cats/all_2n.txt";
     nf = 1;
     marginWidth = 1;
     writeStep = -1;
@@ -59,7 +59,7 @@ Movie "Image" = {
     offsetY = 0;
     randomMovie = 0;
     phase = 0;
-    useParamsImage = true;
+    useParamsImage = true; // only read if booting from checkpoint
 };
 
 
@@ -83,6 +83,8 @@ Movie "Image" = {
 //    phase = 0;
 //    useParamsImage = true;
 //};
+
+
 
 
 
@@ -180,7 +182,7 @@ ANNLayer "Ganglion" = {
 //    nyScale = 0.25;
 //    nf = 1;
 //    marginWidth = 1;
-//    writeStep = 500.0;
+//    writeStep = 1000.0;
 //    initialWriteTime = 999.0;
 //    mirrorBCflag = 1;
 //    writeSparseActivity = 0;
@@ -202,7 +204,7 @@ ANNLayer "Ganglion" = {
 //    nyScale = 0.25;
 //    nf = 1;
 //    marginWidth = 1;
-//    writeStep = 500.0;
+//    writeStep = 1000.0;
 //    initialWriteTime = 999.0;
 //    mirrorBCflag = 1;
 //    writeSparseActivity = 0;
@@ -225,7 +227,7 @@ ANNLayer "Ganglion" = {
 //    nf = 1;
 //    marginWidth = 0;
 //    initialWriteTime = 999.0;
-//    writeStep = 500.0;
+//    writeStep = 1000.0;
 //    mirrorBCflag = 1;
 //    writeSparseActivity = 0;
 //
@@ -253,7 +255,7 @@ ANNLayer "Recon" = {
 
     //InitVType = "ZeroV";
     InitVType = "InitVFromFile";
-    Vfilename = "/Users/garkenyon/workspace/HyPerHLCA2/Checkpoints/Checkpoint1200000/Recon_V.pvp";
+    Vfilename = "/nh/compneuro/Data/vine/LCA/cats/Checkpoints/Checkpoint704004/Recon_V.pvp";
 
     VThresh = -infinity; //-infinity;
     VMax = infinity; //infinity;  // prevent reconstruction from exceeding reasonable bounds
@@ -271,13 +273,13 @@ ANNLayer "Error" = {
     nf = 1;
     marginWidth = 6;
     initialWriteTime = 999.0;
-    writeStep = 1000;
+    writeStep = 1000.0;
     mirrorBCflag = 1;
     writeSparseActivity = 0;
 
     //InitVType = "ZeroV";
     InitVType = "InitVFromFile";
-    Vfilename = "/Users/garkenyon/workspace/HyPerHLCA2/Checkpoints/Checkpoint1200000/Error_V.pvp";
+    Vfilename = "/nh/compneuro/Data/vine/LCA/cats/Checkpoints/Checkpoint704004/Error_V.pvp";
 
     VThresh = -infinity;
     VMax =  infinity;
@@ -300,10 +302,10 @@ HyPerLCALayer "V1" = {
     writeSparseActivity = 1;
 
     //InitVType = "UniformRandomV";
+    //minV = -1.0;
+    //maxV = 1.05;
     InitVType = "InitVFromFile";
-    Vfilename = "/Users/garkenyon/workspace/HyPerHLCA2/Checkpoints/Checkpoint1200000/V1_V.pvp";
-    minV = -1.0;
-    maxV = 1.05;
+    Vfilename = "/nh/compneuro/Data/vine/LCA/cats/Checkpoints/Checkpoint704004/V1_V.pvp";
     
     timeConstantTau = 100.0;
     
@@ -364,7 +366,7 @@ KernelConn "RetinaToBipolarCenter" = {
    
    weightInitType = "Gauss2DWeight";
    aspect = 1;
-   sigma = 1;
+   sigma = 0.5; //1.0;
    rMax  = 3;
    rMin = 0;
        
@@ -685,7 +687,7 @@ KernelConn "V1ToError" = {
     initFromLastFlag = 0;
     
 //    weightInitType = "FileWeight";
-//    initWeightsFile = "/Users/garkenyon/workspace/HyPerHLCA2/Checkpoints/Checkpoint1200000/V1ToError_W.pvp";
+//    initWeightsFile = "/nh/compneuro/Data/vine/LCA/cats/Checkpoints/Checkpoint704004/V1ToError_W.pvp";
     weightInitType = "UniformRandomWeight";
     wMinInit = -1.0;
     wMaxInit = 1.0;
@@ -704,7 +706,7 @@ KernelConn "V1ToError" = {
     keepKernelsSynchronized = true; 
     combine_dW_with_W_flag = false; 
 
-    writeStep = 1000;
+    writeStep = 1000.0;
     writeCompressedWeights = false;
     writeCompressedCheckpoints = false;
     plasticityFlag = true;
@@ -725,11 +727,9 @@ TransposeConn "ErrorToV1" = {
 	preLayerName = "Error";
 	postLayerName = "V1";
 	channelCode = 0;
-	numAxonalArbors = 1;
 
 	originalConnName = "V1ToError";
 	    
-	normalize = false;  
 	selfFlag = false;
 	preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
 	keepKernelsSynchronized = false; 
@@ -742,7 +742,7 @@ TransposeConn "ErrorToV1" = {
 	plasticityFlag = true;
 	dWMax = 1.0; // not used
 	initialWeightUpdateTime = 999.0;
-	initialWriteTime = 0.0;
+	//initialWriteTime = 0.0;
 	shmget_flag = false;
 	
 	delay = 0;
@@ -771,13 +771,13 @@ CloneKernelConn "V1ToRecon" = {
 // Probes
 
 
-StatsProbe "RetinaStats" = {
-    targetLayer = "Retina";
-};
-
-StatsProbe "GanglionStats" = {
-    targetLayer = "Ganglion";
-};
+//StatsProbe "RetinaStats" = {
+//    targetLayer = "Retina";
+//};
+//
+//StatsProbe "GanglionStats" = {
+//    targetLayer = "Ganglion";
+//};
 
 //StatsProbe "GanglionSquaredStats" = {
 //    targetLayer = "GanglionSquared";
@@ -795,17 +795,17 @@ StatsProbe "GanglionStats" = {
 //    targetLayer = "V1AveSquaredInput";
 //};
 
-StatsProbe "ReconStats" = {
-    targetLayer = "Recon";
-};
-
-StatsProbe "ErrorStats" = {
-    targetLayer = "Error";
-};
-
-StatsProbe "V1Stats" = {
-    targetLayer = "V1";
-};
+//StatsProbe "ReconStats" = {
+//    targetLayer = "Recon";
+//};
+//
+//StatsProbe "ErrorStats" = {
+//    targetLayer = "Error";
+//};
+//
+//StatsProbe "V1Stats" = {
+//    targetLayer = "V1";
+//};
 
 
 
