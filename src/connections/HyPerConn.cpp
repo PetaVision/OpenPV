@@ -179,6 +179,7 @@ int HyPerConn::initialize_base()
    this->nyp = 1;
    this->nxpShrunken = nxp;
    this->nypShrunken = nyp;
+   this->offsetShrunken = 0;
    this->nfp = 1;
    this->sxp = 1;
    this->syp = 1;
@@ -1656,7 +1657,7 @@ int HyPerConn::adjustAxonalArbors(int arborId)
       nxPatch = nxPatch < nxpShrunken ? nxPatch : nxpShrunken;
       nyPatch = nyPatch < nypShrunken ? nyPatch : nypShrunken;
 
-      int dxShrunken, dyShrunken, dxDiff, dyDiff, offsetShrunken;
+      int dxShrunken, dyShrunken, dxDiff, dyDiff;
 
       dxShrunken = (nxp - nxpShrunken)/2;
       dyShrunken = (nyp - nypShrunken)/2;
