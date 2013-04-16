@@ -172,6 +172,8 @@ int HyPerConn::initialize_base()
    this->name = strdup("Unknown");
    this->nxp = 1;
    this->nyp = 1;
+   this->nxpShrunken = nxp;
+   this->nypShrunken = nyp;
    this->nfp = 1;
    this->sxp = 1;
    this->syp = 1;
@@ -702,6 +704,11 @@ int HyPerConn::readPatchSize(PVParams * params) {
    int yScalePost = post->getYScale();
    status = checkPatchSize(nyp, yScalePre, yScalePost, 'y');
    if( status != PV_SUCCESS) nyp=-1;
+
+   nxpShrunken = parent->parameters()->value(name,"nxpShrunken",nxp,false);
+   assert(nxpShrunken<=nxp);
+   nypShrunken = parent->parameters()->value(name,"nypShrunken",nyp,false);
+   assert(nypShrunken<=nyp);
    return status;
 }
 
@@ -1637,13 +1644,39 @@ int HyPerConn::adjustAxonalArbors(int arborId)
       int kl, offset, nxPatch, nyPatch, dx, dy;
       calcPatchSize(arborId, kex, &kl, &offset, &nxPatch, &nyPatch, &dx, &dy);
 
+      nxPatch = nxPatch < nxpShrunken ? nxPatch : nxpShrunken;
+      nyPatch = nyPatch < nypShrunken ? nyPatch : nypShrunken;
+
+      int dxShrunken, dyShrunken, dxDiff, dyDiff, offsetShrunken;
+
+      dxShrunken = (nxp - nxpShrunken)/2;
+      dyShrunken = (nyp - nypShrunken)/2;
+
+      dxDiff = dxShrunken - dx < 0 ? 0 : dxShrunken - dx;
+      dyDiff = dyShrunken - dy < 0 ? 0 : dyShrunken - dy;
+
+      dx = dx > dxShrunken ? dx : dxShrunken;
+      dy = dy > dyShrunken ? dy : dyShrunken;
+
+      int nxexPost, nyexPost;
+      const int dfDiff = 0;
+	  const PVLayer * lPost = post->getCLayer();
+      const int nfPost  = lPost->loc.nf;
+      const int nxPost  = lPost->loc.nx;
+      const int nyPost  = lPost->loc.ny;
+      const int postPad = lPost->loc.nb;
+	  nxexPost = nxPost + 2 * postPad;
+	  nyexPost = nyPost + 2 * postPad;
+
+	  offsetShrunken = kIndex(dxDiff, dyDiff, dfDiff, nxexPost, nyexPost, nfPost);
+
       // initialize the receiving (of spiking data) gSyn variable
       pvdata_t * gSyn = post->getChannel(channel) + kl;
       gSynPatchStart[arborId][kex] = gSyn;
       // pvpatch_init(arbor->data, nxPatch, nyPatch, nfp, psx, psy, psf, gSyn);
 
       // arbor->offset = offset;
-      aPostOffset[arborId][kex] = offset;
+      aPostOffset[arborId][kex] = offset+offsetShrunken;
 
       // adjust patch size (shrink) to fit within interior of post-synaptic layer
       //
