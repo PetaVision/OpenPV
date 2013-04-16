@@ -27,7 +27,8 @@ protected:
                   const char * filename, InitWeights *weightInit=NULL,
                   SiblingConn *sibling_conn=NULL);
    virtual int initNormalize();
-   virtual int normalizeWeights(PVPatch ** patches, pvdata_t ** dataStart, int numPatches, int arborId);
+   virtual int normalizeWeights();
+   // virtual int normalizeWeights(PVPatch ** patches, pvdata_t ** dataStart, int numPatches, int arborId);
    virtual int normalizeFamily();
 
 private:

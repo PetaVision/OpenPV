@@ -140,7 +140,7 @@ int OjaKernelConn::updateWeights(int axonId) {
       pvdata_t * w_data_start = get_wDataStart(kAxon);
       for( int k=0; k<nxp*nyp*nfp*getNumDataPatches(); k++ ) {
          pvdata_t w = w_data_start[k];
-         w += get_dwDataStart(kAxon)[k];
+         w += (weightUpdatePeriod/parent->getDeltaTime())*get_dwDataStart(kAxon)[k];
          if (w < 0.0f) w = 0.0f;
          w_data_start[k] = w;
       }

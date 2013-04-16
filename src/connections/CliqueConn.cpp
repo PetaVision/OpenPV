@@ -6,6 +6,7 @@
  */
 
 #include "CliqueConn.hpp"
+#include "../normalizers/NormalizeBase.hpp"
 int pvpatch_update_clique(int nk, float* RESTRICT v, float a, float* RESTRICT w);
 int pvpatch_update_clique2(int nk, float* RESTRICT v, float a, float* RESTRICT w, float* RESTRICT m);
 
@@ -75,16 +76,9 @@ int CliqueConn::updateState(double time, double dt)
 
       // dW and W are the same so don't copy
       if (parent->simulationTime() >= parent->getStopTime() - parent->getDeltaTime()) {
-         if (normalize_flag) {
-            for (int axonID = 0; axonID < numberOfAxonalArborLists(); axonID++) {
-               status = normalizeWeights(NULL, this->get_wDataStart(),
-                     getNumDataPatches(), axonID);
-               if (status == PV_BREAK) {
-                  break;
-               }
-               assert(status == PV_SUCCESS);
-            }
-         } // normalize_flag
+         if (normalizer) {
+            normalizer->normalizeWeights(this);
+         }
       } //
 
    } // time > weightUpdateTime

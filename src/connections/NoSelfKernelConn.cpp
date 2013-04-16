@@ -18,6 +18,11 @@ NoSelfKernelConn::NoSelfKernelConn(const char * name, HyPerCol * hc, HyPerLayer 
    KernelConn::initialize(name, hc, pre, post, filename, weightInit);
 };
 
+int NoSelfKernelConn::normalizeWeights() {
+   zeroSelfWeights(getNumDataPatches(), 0);
+   return KernelConn::normalizeWeights();
+}
+
 int NoSelfKernelConn::zeroSelfWeights(int numPatches, int arborId){
    //int axonID = 0;
    // self-interactions only defined for layers of same size
@@ -43,13 +48,14 @@ int NoSelfKernelConn::zeroSelfWeights(int numPatches, int arborId){
    return PV_BREAK;
 }
 
+#ifdef OBSOLETE // Marked obsolete April 11, 2013.  Implementing the new NormalizeBase class hierarchy
 int NoSelfKernelConn::normalizeWeights(PVPatch ** patches, pvdata_t ** dataStart, int numPatches, int arborId)
 {
    int status = zeroSelfWeights(numPatches, arborId);
    assert( (status == PV_SUCCESS) || (status == PV_BREAK) );
    return KernelConn::normalizeWeights(patches, dataStart, numPatches, arborId);  // parent class should return PV_BREAK
 }
-
+#endif // OBSOLETE
 
 
 } /* namespace PV */

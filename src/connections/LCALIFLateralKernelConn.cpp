@@ -208,7 +208,7 @@ int LCALIFLateralKernelConn::updateWeights(int axonId) {
                for (int f=0; f<nfp; f++) {
                   int idx = sxp*x + syp*y + sfp*f;
                   pvdata_t dw = dw_data[idx] * normalizer;
-                  pvdata_t w = w_data[idx] + dw;
+                  pvdata_t w = w_data[idx] + (weightUpdatePeriod/parent->getDeltaTime())*dw;
                   if (w<0) w=0;
                   w_data[idx] = w;
                }

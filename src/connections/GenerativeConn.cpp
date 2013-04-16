@@ -134,6 +134,7 @@ int GenerativeConn::updateWeights(int axonID) {
    return PV_SUCCESS;
 }  // end of GenerativeConn::updateWeights(int)
 
+#ifdef OBSOLETE // Marked obsolete April 16, 2013.  Implementing the new NormalizeBase class hierarchy
 int GenerativeConn::initNormalize() {
    PVParams * params = parent->parameters();
    normalize_flag = params->value(name, "normalize", normalize_flag) != 0;
@@ -210,5 +211,6 @@ int GenerativeConn::normalizeWeights(PVPatch ** patches, pvdata_t ** dataStart, 
    }
    return status;
 }  // end of GenerativeConn::normalizeWeights
+#endif // OBSOLETE
 
 }  // end of namespace PV block

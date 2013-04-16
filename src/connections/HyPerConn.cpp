@@ -22,6 +22,11 @@
 #include "../weightinit/InitSmartWeights.hpp"
 #include "../weightinit/InitUniformRandomWeights.hpp"
 #include "../weightinit/InitGaussianRandomWeights.hpp"
+#include "../normalizers/NormalizeBase.hpp"
+#include "../normalizers/NormalizeSum.hpp"
+#include "../normalizers/NormalizeL2.hpp"
+#include "../normalizers/NormalizeMax.hpp"
+#include "../normalizers/NormalizeContrastZeroMean.hpp"
 #ifdef USE_SHMGET
    #include <sys/shm.h>
 #endif
@@ -214,6 +219,7 @@ int HyPerConn::initialize_base()
 
    this->selfFlag = false;  // specifies whether connection is from a layer to itself (i.e. a self-connection)
    this->combine_dW_with_W_flag = false;
+   this->normalizer = NULL;
    this->normalize_flag = true; // default value, overridden by params file parameter "normalize" in initNormalize()
    this->plasticityFlag = false;
    this->shrinkPatches_flag = false; // default value, overridden by params file parameter "shrinkPatches" in readShrinkPatches()
@@ -740,12 +746,15 @@ PVPatch *** HyPerConn::initializeWeights(PVPatch *** patches, pvdata_t ** dataSt
    //std::cout << "leaving MPI_Barrier in HyPerConn::initializeWeights: " << this->name << ", rank = " << getParent()->icCommunicator()->commRank() << std::endl;
 #endif // PV_USE_MPI
 #endif // USE_SHMGET
-   initNormalize(); // Sets normalize_flag; derived-class methods that override initNormalize must also set normalize_flag
-   if (normalize_flag) {
+   initNormalize(); // Sets normalizeMethod; derived-class methods that override initNormalize must also set normalizeMethod
+   if (normalizer) {
+      normalizer->normalizeWeights(this);
+#ifdef OBSOLETE // Marked obsolete April 11, 2013.  Implementing the new NormalizeBase class hierarchy.
       for(int arborId=0; arborId<numberOfAxonalArborLists(); arborId++) {
          int status = normalizeWeights(patches ? patches[arborId] : NULL, dataStart, numPatches, arborId);
          if (status == PV_BREAK) break;
       } // arborId
+#endif // OBSOLETE
    } // normalize_flag
    return patches;
 }
@@ -2301,6 +2310,58 @@ int HyPerConn::writePostSynapticWeights(double timef, bool last) {
 
 int HyPerConn::initNormalize() {
    PVParams * params = parent->parameters();
+
+   normalizeMethod = NULL;
+   normalizeMethod = params->stringValue(name, "normalizeMethod");
+   if (!normalizeMethod || normalizeMethod[0]=='\0') {
+      bool normalize_flag = params->value(name, "normalize", true/*default*/);
+      if (normalize_flag) {
+         if (parent->columnId()==0) {
+            fprintf(stderr, "initNormalize warning for connection \"%s\": normalize_flag is deprecated.  Please use the string parameter normalizeMethod.\n", name);
+         }
+         if (params->value(name, "normalize_max", false/*default*/) != 0.0f) {
+            normalizeMethod = "normalizeMax";
+         }
+         bool L2flag = params->value(name, "normalize_RMS_amp", false/*default*/) != 0;
+         if (L2flag) {
+            normalizeMethod = "normalizeL2";
+         }
+         else {
+            normalizeMethod = "normalizeSum";
+         }
+      }
+      else {
+         normalizeMethod = "";
+      }
+   }
+   if (normalizeMethod && normalizeMethod[0]!='\0') {
+      if (!strcmp(normalizeMethod, "normalizeSum")) {
+         normalizer = new NormalizeSum(name, params);
+      }
+      else if (!strcmp(normalizeMethod, "normalizeL2"))  {
+         normalizer = new NormalizeL2(name, params);
+      }
+      else if (!strcmp(normalizeMethod, "normalizeMax")) {
+         normalizer = new NormalizeMax(name, params);
+      }
+      else if (!strcmp(normalizeMethod, "normalizeContrastZeroMean")) {
+         normalizer = new NormalizeContrastZeroMean(name, params);
+      }
+      else if (!strcmp(normalizeMethod, "none")) {
+         normalizer = NULL;
+      }
+      else {
+         if (parent->columnId()==0) {
+            fprintf(stderr, "HyPerConn::initNormalize error: unrecognized normalizeMethod \"%s\".\n", normalizeMethod);
+            exit(EXIT_FAILURE);
+         }
+      }
+   }
+   else {
+      normalizer = NULL;
+   }
+
+#ifdef OBSOLETE // Marked obsolete April 11, 2013.  Implementing the NormalizeBase class hierarchy for normalizing
    normalize_flag = params->value(name, "normalize", normalize_flag);
    if( normalize_flag ) {
       normalize_strength = params->value(name, "strength", 1.0f);
@@ -2317,6 +2378,8 @@ int HyPerConn::initNormalize() {
          normalizeArborsIndividually = params->value(name, "normalize_arbors_individually", normalizeArborsIndividually) != 0.0f;
       }
    }
+#endif // OBSOLETE
+
    return PV_SUCCESS;
 }
 
@@ -2503,6 +2566,15 @@ int HyPerConn::checkNormalizeArbor(PVPatch ** patches, pvdata_t ** dataStart, in
    } // normalizeArborsIndividually
 } // checkNormalizeArbor
 
+int HyPerConn::normalizeWeights() {
+   int status = PV_SUCCESS;
+   if (normalizer) {
+      status = normalizer->normalizeWeights(this);
+   }
+   return status;
+}
+
+#ifdef OBSOLETE // Marked obsolete April 11, 2013.  Implementing the new NormalizeBase class hierarchy
 int HyPerConn::normalizeWeights(PVPatch ** patches, pvdata_t ** dataStart, int numPatches, int arborId)
 {
    if (dataStart == NULL){
@@ -2594,7 +2666,7 @@ int HyPerConn::normalizeWeights(PVPatch ** patches, pvdata_t ** dataStart, int n
       return PV_BREAK;
    }
 } // normalizeWeights
-
+#endif // OBSOLETE
 
 int HyPerConn::calcPatchSize(int arbor_index, int kex,
                              int * kl_out, int * offset_out,

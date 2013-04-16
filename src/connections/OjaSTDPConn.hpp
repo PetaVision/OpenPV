@@ -1,12 +1,12 @@
 /*
- * OjaSTDPConn.h
+ * OjaSTDPConn.hpp
  *
  *  Created on: Sep 27, 2012
  *      Author: dpaiton et slundquist
  */
 
-#ifndef OJASTDPCONN_H_
-#define OJASTDPCONN_H_
+#ifndef OJASTDPCONN_HPP_
+#define OJASTDPCONN_HPP_
 
 //#define SPLIT_PRE_POST
 #undef SPLIT_PRE_POST
@@ -125,4 +125,4 @@ private:
 
 }
 
-#endif /* OJASTDPCONN_H_ */
+#endif /* OJASTDPCONN_HPP_ */

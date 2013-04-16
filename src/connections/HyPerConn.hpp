@@ -35,6 +35,7 @@ namespace PV {
 class InitWeights;
 class BaseConnectionProbe;
 class PVParams;
+class NormalizeBase;
 
 /**
  * A HyPerConn identifies a connection between two layers
@@ -282,8 +283,9 @@ public:
    virtual int checkNormalizeWeights(float sum, float sum2, float sigma2, float maxVal);
    virtual int checkNormalizeArbor(PVPatch** patches, float** dataStart,
          int numPatches, int arborId);
-   virtual int normalizeWeights(PVPatch** patches, float** dataStart,
-         int numPatches, int arborId);
+   virtual int normalizeWeights();
+//   virtual int normalizeWeights(PVPatch** patches, float** dataStart,
+//         int numPatches, int arborId);
 
 #ifdef PV_USE_OPENCL
    virtual int * getLUTpointer() {return NULL;}
@@ -368,6 +370,8 @@ protected:
    bool plasticityFlag;
    bool combine_dW_with_W_flag; // indicates that dwDataStart should be set equal to wDataStart, useful for saving memory when weights are not being learned but not used
    bool selfFlag; // indicates that connection is from a layer to itself (even though pre and post may be separately instantiated)
+   const char * normalizeMethod;
+   NormalizeBase * normalizer;
    bool normalize_flag;
    float normalize_strength;
    bool normalizeArborsIndividually; // if true, each arbor is normalized individually, otherwise, arbors normalized together

@@ -1,12 +1,12 @@
 /*
- * OjaKernelConn.h
+ * OjaKernelConn.hpp
  *
  *  Created on: Oct 10, 2012
  *      Author: pschultz
  */
 
-#ifndef OJAKERNELCONN_H_
-#define OJAKERNELCONN_H_
+#ifndef OJAKERNELCONN_HPP_
+#define OJAKERNELCONN_HPP_
 
 #include "KernelConn.hpp"
 
@@ -72,4 +72,4 @@ protected:
 };
 
 } /* namespace PV */
-#endif /* OJAKERNELCONN_H_ */
+#endif /* OJAKERNELCONN_HPP_ */

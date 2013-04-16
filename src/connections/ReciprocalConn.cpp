@@ -296,6 +296,8 @@ int ReciprocalConn::updateWeights(int arborID) {
    return status;
 }
 
+// normalizeNoiseLevel is not being used by NormalizeBase.  Not being fixed because nobody is using ReciprocalConn right now.
+#ifdef OBSOLETE // Marked obsolete April 11, 2013.  Implementing the new NormalizeBase class hierarchy
 int ReciprocalConn::normalizeWeights(PVPatch ** patches, pvdata_t ** dataStart, int numPatches, int arborID) {
    assert(arborID == 0); // TODO how to handle arbors.  Do I need to sum over arbors or handle each arbor independently?
    int status = PV_SUCCESS;
@@ -337,6 +339,7 @@ int ReciprocalConn::normalizeWeights(PVPatch ** patches, pvdata_t ** dataStart, 
    }
    return status;
 }
+#endif // OBSOLETE
 
 ReciprocalConn::~ReciprocalConn() {
    free(sums); sums=NULL;

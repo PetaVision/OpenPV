@@ -57,7 +57,7 @@ protected:
    virtual int initNormalize();
    virtual int update_dW(int axonID);
    virtual int updateWeights(int axonId);
-   virtual int normalizeWeights(PVPatch ** patches, pvdata_t ** dataStart, int numPatches, int arborID);
+   // virtual int normalizeWeights(PVPatch ** patches, pvdata_t ** dataStart, int numPatches, int arborID);
 
    pvdata_t * getSums()         {return sums;}
 

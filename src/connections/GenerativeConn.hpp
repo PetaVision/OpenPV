@@ -29,7 +29,7 @@ public:
 #endif // OBSOLETE
    inline float getRelaxation() { return relaxation; }
    virtual int updateWeights(int axonID);
-   virtual int normalizeWeights(PVPatch ** patches, pvdata_t ** dataStart, int numPatches, int arborId);
+   // virtual int normalizeWeights(PVPatch ** patches, pvdata_t ** dataStart, int numPatches, int arborId);
 
 
 protected:
@@ -41,7 +41,9 @@ protected:
    virtual void readWeightDecayFlag(PVParams * params);
    virtual void readWeightDecayRate(PVParams * params);
    virtual void readWeightNoiseLevel(PVParams * params);
+#ifdef OBSOLETE // Marked obsolete April 16, 2013.  Implementing the new NormalizeBase class hierarchy
    virtual int initNormalize();
+#endif // OBSOLETE
    virtual int update_dW(int axonID);
 
    float relaxation;

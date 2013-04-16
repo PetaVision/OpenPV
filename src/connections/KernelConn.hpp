@@ -31,8 +31,8 @@ public:
    virtual float maxWeight(int arborId = 0);
 
    //virtual int checkNormalizeArbor(PVPatch ** patches, pvdata_t ** dataStart, int numPatches, int arborId);
-   virtual int normalizeWeights(PVPatch ** patches, pvdata_t ** dataStart, int numPatches, int arborId);
-   virtual int symmetrizeWeights(pvdata_t * dataStart, int numPatches, int arborId);
+   // virtual int normalizeWeights(PVPatch ** patches, pvdata_t ** dataStart, int numPatches, int arborId);
+   // virtual int symmetrizeWeights(pvdata_t * dataStart, int numPatches, int arborId);
 
    virtual int writeWeights(double time, bool last=false);
    virtual int writeWeights(const char * filename);
@@ -86,7 +86,9 @@ protected:
    virtual pvdata_t * allocWeights(PVPatch *** patches, int nPatches, int nxPatch,
          int nyPatch, int nfPatch, int arborId);
    int initNumDataPatches();
+#ifdef OBSOLETE // Marked obsolete April 15, 2013.  Implementing the new NormalizeBase class hierarchy
    virtual int initNormalize();
+#endif // OBSOLETE
    virtual PVPatch *** initializeWeights(PVPatch *** arbors, pvdata_t ** dataStart,
          int numPatches, const char * filename);
 

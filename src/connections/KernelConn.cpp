@@ -6,6 +6,7 @@
  */
 
 #include "KernelConn.hpp"
+#include "../normalizers/NormalizeBase.hpp"
 #include <assert.h>
 #include <float.h>
 #include "../io/io.h"
@@ -47,9 +48,6 @@ int KernelConn::initialize_base()
    plasticityFlag = false;
    normalizeArborsIndividually = false;
    symmetrizeWeightsFlag = false;
-   // nxKernel = 0;
-   // nyKernel = 0;
-   // nfKernel = 0;
 #ifdef PV_USE_MPI
    keepKernelsSynchronized_flag = true;
    mpiReductionBuffer = NULL;
@@ -330,6 +328,8 @@ int KernelConn::initNumDataPatches()
    return PV_SUCCESS;
 }
 
+
+#ifdef OBSOLETE // Marked obsolete April 15, 2013.  Implementing the new NormalizeBase class hierarchy
 int KernelConn::initNormalize() {
    int status = HyPerConn::initNormalize();
    assert(!parent->parameters()->presentAndNotBeenRead(name, "normalize"));
@@ -338,6 +338,7 @@ int KernelConn::initNormalize() {
    }
    return status;
 }
+#endif // OBSOLETE
 
 float KernelConn::minWeight(int arborId)
 {
@@ -491,13 +492,9 @@ int KernelConn::updateState(double timef, double dt) {
          if (status == PV_BREAK) {break;}
          assert(status == PV_SUCCESS);
       }
-      if( normalize_flag ) {
-         for(int arborID=0;arborID<numberOfAxonalArborLists();arborID++) {
-            status = normalizeWeights(NULL, this->get_wDataStart(), getNumDataPatches(), arborID);
-            if (status == PV_BREAK) {break;}
-            assert(status == PV_SUCCESS);
-         }
-      }  // normalize_flag
+      if (normalizer) {
+         normalizer->normalizeWeights(this);
+      }
    } // time > weightUpdateTime
 
 update_timer->stop();
@@ -603,6 +600,7 @@ int KernelConn::patchToDataLUT(int patchIndex) {
    return patch2datalookuptable[patchIndex];
 }
 
+#ifdef OBSOLETE // Marked obsolete April 11, 2013.  Implementing the new NormalizeBase class hierarchy.
 int KernelConn::normalizeWeights(PVPatch ** patches, pvdata_t ** dataStart,
 		int numPatches, int arborId) {
 	int status = PV_SUCCESS;
@@ -691,6 +689,7 @@ int KernelConn::symmetrizeWeights(pvdata_t * dataStart, int numPatches, int arbo
    printf("Exiting KernelConn::symmetrizeWeights for connection \"%s\"\n", name);
    return status;
 }
+#endif // OBSOLETE
 
 int KernelConn::writeWeights(double timef, bool last) {
    const int numPatches = getNumDataPatches();
