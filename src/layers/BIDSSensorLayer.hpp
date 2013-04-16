@@ -1,12 +1,12 @@
 /*
- * BIDSSensorLayer.h
+ * BIDSSensorLayer.hpp
  *
  *  Created on: Sep 7, 2012
  *      Author: slundquist
  */
 
-#ifndef BIDSSENSORLAYER_H_
-#define BIDSSENSORLAYER_H_
+#ifndef BIDSSENSORLAYER_HPP_
+#define BIDSSENSORLAYER_HPP_
 
 #include "HyPerLayer.hpp"
 #include "BIDSMovieCloneMap.hpp"
@@ -51,4 +51,4 @@ protected:
 
 
 
-#endif /* BIDSSENSORLAYER_H_ */
+#endif /* BIDSSENSORLAYER_HPP_ */

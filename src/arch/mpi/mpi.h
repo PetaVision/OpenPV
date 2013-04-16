@@ -1,5 +1,8 @@
 #ifdef PV_USE_LOCAL_MPI
 
+#ifndef MPI_H_
+#define MPI_H_
+
 #define MPI_Request  int
 #define MPI_Datatype int
 #define MPI_Request  int
@@ -52,6 +55,8 @@ double MPI_Wtick();
 #ifdef __cplusplus
 }
 #endif
+
+#endif /* MPI_H_ */
 
 #endif // PV_USE_LOCAL_MPI
 

@@ -1,12 +1,12 @@
 /*
- * CliqueLayer.h
+ * CliqueLayer.hpp
  *
  *  Created on: Sep 3, 2011
  *      Author: gkenyon
  */
 
-#ifndef CLIQUELAYER_H_
-#define CLIQUELAYER_H_
+#ifndef CLIQUELAYER_HPP_
+#define CLIQUELAYER_HPP_
 
 #include "../columns/HyPerCol.hpp"
 //#include "../connections/HyPerConn.hpp"
@@ -38,4 +38,4 @@ private:
 
 } /* namespace PV */
 
-#endif /* CLIQUELAYER_H_ */
+#endif /* CLIQUELAYER_HPP_ */

@@ -1,12 +1,12 @@
 /*
- * DataStore.h
+ * DataStore.hpp
  *
  *  Created on: Sep 10, 2008
  *      Author: Craig Rasmussen
  */
 
-#ifndef DATASTORE_H_
-#define DATASTORE_H_
+#ifndef DATASTORE_HPP_
+#define DATASTORE_HPP_
 
 #include "../include/pv_arch.h"
 #include <stdlib.h>
@@ -69,4 +69,4 @@ public:
 
 } // NAMESPACE
 
-#endif /* DATASTORE_H_ */
+#endif /* DATASTORE_HPP_ */
