@@ -456,7 +456,7 @@ int KernelConn::defaultUpdate_dW(int arbor_ID) {
 }
 
 pvdata_t KernelConn::updateRule_dW(pvdata_t pre, pvdata_t post) {
-   return dWMax * pre*post;
+   return dWMax * pre * post;
 }
 
 int KernelConn::updateState(double timef, double dt) {
