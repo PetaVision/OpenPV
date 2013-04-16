@@ -17,6 +17,6 @@ do
     r=$(ffmpeg -i $k 2>&1 | sed -n "s/.*, \(.*\) fps.*/\1/p")
     baseName=$(basename "$k" .mp4)
     echo "$baseName"
-    ffmpeg -r "$r" -i "$k" $outPath/"$baseName"-%04d.png
+    ffmpeg -i "$k" -r "$r" "${outPath}/${baseName}-%04d.png"
 done
 
