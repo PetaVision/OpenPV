@@ -41,8 +41,8 @@ int NormalizeContrastZeroMean::normalizeWeights(HyPerConn * conn) {
 #ifdef PV_USE_MPI
    if (conn->getShmgetFlag() && !conn->getShmgetOwner(0)) { // Assumes that all arbors are owned by the same process
       MPI_Barrier(conn->getParent()->icCommunicator()->communicator());
+      return status;
    }
-   return status;
 #endif // PV_USE_MPI
 #endif // USE_SHMGET
 
