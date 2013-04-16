@@ -14,8 +14,8 @@ elseif isunix
   workspace_path = "/home/gkenyon/workspace";
   output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output"; %%MRI/LCA/5_subjects"; %%  
   LCA_path = [output_dir];
-  last_checkpoint_ndx = 50000*19; %%50000*21; %% 
-  next_checkpoint_ndx = 50000*20; %%50000*22; %% 
+  last_checkpoint_ndx = 100000*81; %%50000*21; %% 
+  next_checkpoint_ndx = 100000*82; %%50000*22; %% 
   first_checkpoint_ndx = 0;
   frame_duration = 1000;
 endif
@@ -184,6 +184,7 @@ if plot_Recon
     set(Ganglion_fig, "name", ["Ganglion ", num2str(Ganglion_time, "%0d")]);
     imagesc(permute(Ganglion_vals,[2,1,3])); 
     num_Ganglion_colors = size(Ganglion_vals,3);
+    mean_unwhitened_Ganglion = ones(num_Ganglion_colors,1);
     if num_Ganglion_colors == 1
       colormap(gray); 
     endif
@@ -192,8 +193,10 @@ if plot_Recon
     if plot_DoG_kernel
       unwhitened_Ganglion_DoG = zeros(size(permute(Ganglion_vals,[2,1,3])));
       for i_color = 1 : num_Ganglion_colors
-	[unwhitened_Ganglion_DoG(:,:,i_color)] = ...
+	tmp_Ganglion = ...
 	    deconvolvemirrorbc(squeeze(Ganglion_vals(:,:,i_color))', DoG_weights);
+	mean_unwhitened_Ganglion(i_color) = mean(tmp_Ganglion(:));
+	[unwhitened_Ganglion_DoG(:,:,i_color)] = tmp_Ganglion;
       endfor
       figure(unwhitened_Ganglion_fig);
       set(unwhitened_Ganglion_fig, "name", ["unwhitened Ganglion ", num2str(Ganglion_time, "%0d")]);
@@ -242,9 +245,12 @@ if plot_Recon
 	[unwhitened_Recon_vals(:,:,i_color)] = ...
 	    deconvolvemirrorbc(squeeze(Recon_vals(:,:,i_color))', DoG_weights); 
 	tmp_recon = unwhitened_Recon_vals(:,:,i_color);
-	max_recon = max(tmp_recon(:));
-	min_recon = min(tmp_recon(:));
-	tmp_recon = (tmp_recon - min_recon) / (max_recon - min_recon + ((max_recon - min_recon)==0));
+	mean_recon = mean(tmp_recon(:));
+	%% inverse DoG filtering is ambiguous to within an overall additive constant
+	tmp_recon = tmp_recon - (mean_recon - mean_unwhitened_Ganglion(i_color)); 
+	%%max_recon = max(tmp_recon(:));
+	%%min_recon = min(tmp_recon(:));
+	%%tmp_recon = (tmp_recon - min_recon) / (max_recon - min_recon + ((max_recon - min_recon)==0));
 	unwhitened_Recon_vals(:,:,i_color) = tmp_recon;
       endfor
       figure(unwhitened_Recon_fig);
