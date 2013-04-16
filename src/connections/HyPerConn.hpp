@@ -338,6 +338,7 @@ private:
 protected:
    char* name;
    int nxp, nyp, nfp; // size of weight dimensions
+   int nxpShrunken, nypShrunken; // if user requires a smaller patch than is required by PetaVision
    int sxp, syp, sfp; // stride in x,y,features
    ChannelType channel; // which channel of the post to update (e.g. inhibit)
    int connId; // connection id
