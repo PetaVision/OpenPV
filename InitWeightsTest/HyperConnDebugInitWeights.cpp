@@ -6,6 +6,7 @@
  */
 
 #include "HyperConnDebugInitWeights.hpp"
+#include "../PetaVision/src/normalizers/NormalizeBase.hpp"
 
 
 namespace PV {
@@ -98,8 +99,8 @@ PVPatch *** HyperConnDebugInitWeights::initializeWeights(PVPatch *** arbors, pvd
    }
 
    initNormalize(); // Sets normalize_flag; derived-class methods that override initNormalize must also set normalize_flag
-   if (normalize_flag) {
-      normalizeWeights(patches, dataStart, numPatches, 0);
+   if (normalizer) {
+      normalizer->normalizeWeights(this);
    }
    return arbors;
 }
