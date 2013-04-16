@@ -39,7 +39,7 @@ int NormalizeMax::normalizeWeights(HyPerConn * conn) {
    int status = PV_SUCCESS;
 #ifdef USE_SHMGET
 #ifdef PV_USE_MPI
-   if (shmget_flag && !shmget_owner[0]) { // Assumes that all arbors are owned by the same process
+   if (conn->getShmgetFlag() && !conn->getShmgetOwner(0)) { // Assumes that all arbors are owned by the same process
       MPI_Barrier(conn->getParent()->icCommunicator()->communicator());
    }
    return status;
@@ -98,8 +98,8 @@ int NormalizeMax::normalizeWeights(HyPerConn * conn) {
    }
 #ifdef USE_SHMGET
 #ifdef PV_USE_MPI
-   if (shmget_flag) {
-      assert(shmget_owner[0]); // Assumes that all arbors are owned by the same process
+   if (conn->getShmgetFlag()) {
+      assert(conn->getShmgetOwner(0)); // Assumes that all arbors are owned by the same process
       MPI_Barrier(conn->getParent()->icCommunicator()->communicator());
    }
 #endif // PV_USE_MPI
