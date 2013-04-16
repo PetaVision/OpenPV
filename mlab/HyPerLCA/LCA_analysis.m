@@ -11,11 +11,11 @@ if ismac
   first_checkpoint_ndx = 0; 
   frame_duration = 1000;
 elseif isunix
-  workspace_path = "/home/gkenyon/workspace_new";
-  output_dir = "/nh/compneuro/Data/vine/LCA/cats"; %%MRI/LCA/5_subjects"; %%  
+  workspace_path = "/home/gkenyon/workspace";
+  output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output"; %%MRI/LCA/5_subjects"; %%  
   LCA_path = [output_dir];
-  last_checkpoint_ndx = 100000*81; %%50000*21; %% 
-  next_checkpoint_ndx = 100000*82; %%50000*22; %% 
+  last_checkpoint_ndx = 50000*19; %%50000*21; %% 
+  next_checkpoint_ndx = 50000*20; %%50000*22; %% 
   first_checkpoint_ndx = 0;
   frame_duration = 1000;
 endif
@@ -27,7 +27,7 @@ max_lines = last_checkpoint_ndx + (last_checkpoint_ndx == 0) * 1000;
 max_history = 150000;
 begin_statProbe_step = max(max_lines - max_history, 3);
 training_flag = 1;
-num_recon = 128;
+num_recon = 1;
 
 
 %% plot Reconstructions
@@ -36,6 +36,96 @@ if plot_Recon
   %%keyboard;
   recon_dir = [output_dir, filesep, "recon"];
   mkdir(recon_dir);
+
+  %% parse center/surround pre-processing filters
+  plot_DoG_kernel = 1;
+  if plot_DoG_kernel
+    i_frame = 1;
+    i_arbor = 1;
+    i_patch = 1;
+    blur_center_path = [checkpoint_path, filesep, "RetinaToBipolarCenter_W.pvp"];
+    [blur_center_struct, blur_center_hdr] = readpvpfile(blur_center_path,1);
+    blur_weights = (blur_center_struct{i_frame}.values{i_arbor});
+    blur_fig = figure;
+    set(blur_fig, "name", "blur Weights");
+    size_blur_weights = size(blur_weights);
+    num_dims_blur = length(size_blur_weights);
+    if num_dims_blur > 2
+      num_pre_colors = size_blur_weights(3);
+    else
+      num_pre_colors = 1;
+    endif
+    if num_dims_blur > 3
+      num_post_colors = size_blur_weights(4);
+    else
+      num_post_colors = 1;
+    endif
+    for i_pre_color = 1 : num_pre_colors
+      for i_post_color = 1 : num_post_colors
+	subplot(num_pre_colors, num_post_colors, (i_pre_color - 1) * num_post_colors + i_post_color);
+	patch_tmp = blur_weights(:,:,i_pre_color, i_post_color);
+	patch_tmp2 = patch_tmp; %% imresize(patch_tmp, 12);
+	min_patch = min(patch_tmp2(:));
+	max_patch = max(patch_tmp2(:));
+	patch_tmp2 = (patch_tmp2 - min_patch) * 255 / (max_patch - min_patch + ((max_patch-min_patch)==0));
+	patch_tmp2 = uint8(patch_tmp2);
+	imagesc(patch_tmp2); colormap(gray);
+	box off
+	axis off
+      endfor
+    endfor
+    saveas(blur_fig, [recon_dir, filesep, "blur_weights.png"]);
+    drawnow;
+    DoG_center_path = [checkpoint_path, filesep, "BipolarToGanglionCenter_W.pvp"];
+    [DoG_center_struct, DoG_center_hdr] = readpvpfile(DoG_center_path,1);
+    DoG_center_weights = (DoG_center_struct{i_frame}.values{i_arbor});
+    size_DoG_center_weights = size(DoG_center_weights);
+    DoG_surround_path = [checkpoint_path, filesep, "BipolarToGanglionSurround_W.pvp"];
+    [DoG_surround_struct, DoG_surround_hdr] = readpvpfile(DoG_surround_path,1);
+    DoG_surround_weights = (DoG_surround_struct{i_frame}.values{i_arbor});
+    size_DoG_weights = size(DoG_surround_weights);
+    DoG_pad = (size_DoG_weights(1:2) - size_DoG_center_weights(1:2)) / 2;
+    num_dims_DoG = length(size_DoG_weights);
+    if num_dims_DoG > 2
+      num_pre_colors = size_DoG_weights(3);
+    else
+      num_pre_colors = 1;
+    endif
+    if num_dims_DoG > 3
+      num_post_colors = size_DoG_weights(4);
+    else
+      num_post_colors = 1;
+    endif
+    DoG_center_padded = zeros(size_DoG_weights(1:2));
+    DoG_row_start = DoG_pad(1)+1;
+    DoG_row_stop = size_DoG_weights(1)-DoG_pad(1);
+    DoG_col_start = DoG_pad(2)+1;
+    DoG_col_stop = size_DoG_weights(2)-DoG_pad(2);
+    DoG_fig = figure;
+    set(DoG_fig, "name", "DoG Weights");
+    for i_pre_color = 1 : num_pre_colors
+      for i_post_color = 1 : num_post_colors
+	DoG_center_padded(DoG_row_start:DoG_row_stop, DoG_col_start:DoG_col_stop) = ...
+	    DoG_center_weights(:,:, i_pre_color, i_post_color);
+	DoG_weights = ...
+	    DoG_center_padded - DoG_surround_weights(:, :, i_pre_color, i_post_color);
+	subplot(num_pre_colors, num_post_colors, (i_pre_color - 1) * num_post_colors + i_post_color);
+	patch_tmp = DoG_weights;
+	patch_tmp2 = patch_tmp; %% imresize(patch_tmp, 12);
+	min_patch = min(patch_tmp2(:));
+	max_patch = max(patch_tmp2(:));
+	patch_tmp2 = (patch_tmp2 - min_patch) * 255 / (max_patch - min_patch + ((max_patch-min_patch)==0));
+	patch_tmp2 = uint8(patch_tmp2);
+	imagesc(patch_tmp2); colormap(gray);
+	box off
+	axis off
+      endfor
+    endfor
+    drawnow;
+    saveas(DoG_fig, [recon_dir, filesep, "DoG_weights.png"]);
+  endif
+
+  %% parse activity files
   Retina_file = [output_dir, filesep, "a1_Retina.pvp"];
   Ganglion_file = [output_dir, filesep, "a3_Ganglion.pvp"];
   Recon_file = [output_dir, filesep, "a4_Recon.pvp"];
@@ -57,76 +147,6 @@ if plot_Recon
   %%[Error_struct, Error_hdr] = readpvpfile(Error_file, num_frames, num_frames, start_frame);
   num_Ganglion_frames = size(Ganglion_struct,1);
   num_Recon_frames = size(Recon_struct,1);
-
-  plot_DoG_kernel = 1;
-  if plot_DoG_kernel
-    i_frame = 1;
-    i_arbor = 1;
-    i_patch = 1;
-    blurr_center_path = [checkpoint_path, filesep, "RetinaToBipolarCenter_W.pvp"];
-    [blurr_center_struct, blurr_center_hdr] = readpvpfile(blurr_center_path,1);
-    blurr_center_weights = (blurr_center_struct{i_frame}.values{i_arbor});
-    blurr_fig = figure;
-    set(blurr_fig, "name", "blurr Weights");
-    size_blurr_center_weights = size(blurr_center_weights);
-    num_pre_colors = size_blurr_center_weights(3);
-    num_post_colors = size_blurr_center_weights(4);
-    for i_pre_color = 1 : num_pre_colors
-      for i_post_color = 1 : num_post_colors
-	subplot(num_pre_colors, num_post_colors, (i_pre_color - 1) * num_post_colors + i_post_color);
-	patch_tmp = blurr_center_weights(:,:,i_pre_color, i_post_color);
-	patch_tmp2 = patch_tmp; %% imresize(patch_tmp, 12);
-	min_patch = min(patch_tmp2(:));
-	max_patch = max(patch_tmp2(:));
-	patch_tmp2 = (patch_tmp2 - min_patch) * 255 / (max_patch - min_patch + ((max_patch-min_patch)==0));
-	patch_tmp2 = uint8(patch_tmp2);
-	imagesc(patch_tmp2); colormap(gray);
-	box off
-	axis off
-      endfor
-    endfor
-    saveas(blurr_fig, [recon_dir, filesep, "blurr_weights.png"]);
-
-    %%drawnow;
-    DoG_center_path = [checkpoint_path, filesep, "BipolarToGanglionCenter_W.pvp"];
-    [DoG_center_struct, DoG_center_hdr] = readpvpfile(DoG_center_path,1);
-    DoG_center_weights = (DoG_center_struct{i_frame}.values{i_arbor});
-    size_DoG_center_weights = size(DoG_center_weights);
-    DoG_surround_path = [checkpoint_path, filesep, "BipolarToGanglionSurround_W.pvp"];
-    [DoG_surround_struct, DoG_surround_hdr] = readpvpfile(DoG_surround_path,1);
-    DoG_surround_weights = (DoG_surround_struct{i_frame}.values{i_arbor});
-    size_DoG_surround_weights = size(DoG_surround_weights);
-    DoG_pad = (size_DoG_surround_weights(1:2) - size_DoG_center_weights(1:2)) / 2;
-    num_pre_colors = size_DoG_surround_weights(3);
-    num_post_colors = size_DoG_surround_weights(4);
-    DoG_center_padded = zeros(size_DoG_surround_weights(1:2));
-    DoG_row_start = DoG_pad(1)+1;
-    DoG_row_stop = size_DoG_surround_weights(1)-DoG_pad(1);
-    DoG_col_start = DoG_pad(2)+1;
-    DoG_col_stop = size_DoG_surround_weights(2)-DoG_pad(2);
-    DoG_fig = figure;
-    set(DoG_fig, "name", "DoG Weights");
-    for i_pre_color = 1 : num_pre_colors
-      for i_post_color = 1 : num_post_colors
-	DoG_center_padded(DoG_row_start:DoG_row_stop, DoG_col_start:DoG_col_stop) = ...
-	    DoG_center_weights(:,:, i_pre_color, i_post_color);
-	DoG_weights = ...
-	    DoG_center_padded - DoG_surround_weights(:, :, i_pre_color, i_post_color);
-	subplot(num_pre_colors, num_post_colors, (i_pre_color - 1) * num_post_colors + i_post_color);
-	patch_tmp = DoG_weights;
-	patch_tmp2 = patch_tmp; %% imresize(patch_tmp, 12);
-	min_patch = min(patch_tmp2(:));
-	max_patch = max(patch_tmp2(:));
-	patch_tmp2 = (patch_tmp2 - min_patch) * 255 / (max_patch - min_patch + ((max_patch-min_patch)==0));
-	patch_tmp2 = uint8(patch_tmp2);
-	imagesc(patch_tmp2); colormap(gray);
-	box off
-	axis off
-      endfor
-    endfor
-    %%drawnow;
-    saveas(DoG_fig, [recon_dir, filesep, "DoG_weights.png"]);
-  endif
 
   Retina_fig = figure;
   Retina_mean = 0;
