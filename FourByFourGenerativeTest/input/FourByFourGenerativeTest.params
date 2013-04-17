@@ -332,7 +332,6 @@ GenerativeConn "AnaRetina to Layer A" = {
     wMinInit = 0;
     wMaxInit = 1;
     sparseFraction = 0.0;
-    normalize = 1;
     
     plasticityFlag = true;
     stochasticReleaseFlag = false;
@@ -346,9 +345,14 @@ GenerativeConn "AnaRetina to Layer A" = {
     imprintingFlag = false;
     weightDecayFlag = false;
     nonnegConstraintFlag = 1;
-    normalizeMethod = 3;
-                        
-    normalizeConstant = 1.41421356;
+
+    normalizeMethod = "normalizeL2";
+    strength = 1.41421356;
+    normalize_cutoff = false;
+    symmetrizeWeights = false;
+    normalizeFromPostPerspective = false;
+    normalizeArborsIndividually = false;
+    minL2NormTolerated = 0.0;
 };
 
 FeedbackConn "Layer A to AnaRetina Feedback" = {
@@ -459,7 +463,6 @@ PoolingGenConn "Arrow AnaLayer A to Layer B" = {
     wMinInit = 0;
     wMaxInit = 1;
     sparseFraction = 0.0;
-    normalize = 1;
     
     plasticityFlag = true;
     dWMax = 1.0;
@@ -474,9 +477,14 @@ PoolingGenConn "Arrow AnaLayer A to Layer B" = {
     initialWeightUpdateTime = 0;
     relaxation = 1E-1;
     nonnegConstraintFlag = 1;
-    normalizeMethod = 3;
-                        
-    normalizeConstant = 1;
+
+    normalizeMethod = "normalizeL2";
+    strength = 1.0;
+    normalize_cutoff = false;
+    symmetrizeWeights = false;
+    normalizeFromPostPerspective = false;
+    normalizeArborsIndividually = false;
+    minL2NormTolerated = 0.0;
 };
 
 CloneKernelConn "Layer A to CataLayer B" = {
