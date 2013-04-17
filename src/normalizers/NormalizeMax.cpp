@@ -22,11 +22,7 @@ int NormalizeMax::initialize_base() {
 }
 
 int NormalizeMax::initialize(const char * name, PVParams * params) {
-   int status = NormalizeBase::initialize(name, params);
-   if (status == PV_SUCCESS) {
-      status = setParams();
-   }
-   return status;
+   return NormalizeBase::initialize(name, params);
 }
 
 int NormalizeMax::setParams() {

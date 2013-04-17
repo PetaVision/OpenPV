@@ -22,11 +22,7 @@ int NormalizeL2::initialize_base() {
 }
 
 int NormalizeL2::initialize(const char * name, PVParams * params) {
-   int status = NormalizeBase::initialize(name, params);
-   if (status == PV_SUCCESS) {
-      status = setParams();
-   }
-   return status;
+   return NormalizeBase::initialize(name, params);
 }
 
 int NormalizeL2::setParams() {
