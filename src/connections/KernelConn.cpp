@@ -492,9 +492,7 @@ int KernelConn::updateState(double timef, double dt) {
          if (status == PV_BREAK) {break;}
          assert(status == PV_SUCCESS);
       }
-      if (normalizer) {
-         normalizer->normalizeWeights(this);
-      }
+      normalizeWeights();
    } // time > weightUpdateTime
 
 update_timer->stop();
