@@ -183,6 +183,12 @@ runandecho $testname Debug/$testname $arglist
 mpirunandecho $testname Debug/$testname $arglist
 cd $wd
 
+testname=NormalizeSystemTest
+arglist="-p input/NormalizeSystemTest.params"
+cd "$testname"
+runandecho $testname Debug/$testname $arglist
+cd $wd
+
 testname=ParameterSweepTest
 cd "$testname"
 arglist="-p input/ParameterSweepTest.params"

@@ -22,6 +22,12 @@ public:
 
    virtual int normalizeWeights(HyPerConn * conn);
 
+   const float getStrength() {return strength;}
+   const float getNormalizeCutoff() {return normalize_cutoff;}
+   const bool getSymmetrizeWeightsFlag() {return symmetrizeWeightsFlag;}
+   const bool getNormalizeFromPostPerspectiveFlag() {return normalizeFromPostPerspective;}
+   const bool getNormalizeArborsIndividuallyFlag() {return normalizeArborsIndividually;}
+
 protected:
    NormalizeBase();
    int initialize(const char * name, PVParams * params);

@@ -65,7 +65,7 @@ int NormalizeContrastZeroMean::normalizeWeights(HyPerConn * conn) {
             }
             float mean = sum/weights_per_patch;
             float var = sumsq/weights_per_patch - mean*mean;
-            subtractOffsetAndNormalize(dataStartPatch, weights_per_patch, sum/weights_per_patch, scale_factor*sqrt(var));
+            subtractOffsetAndNormalize(dataStartPatch, weights_per_patch, sum/weights_per_patch, sqrt(var)/scale_factor);
          }
       }
    }
@@ -86,7 +86,7 @@ int NormalizeContrastZeroMean::normalizeWeights(HyPerConn * conn) {
          float var = sumsq/count - mean*mean;
          for (int arborID = 0; arborID<nArbors; arborID++) {
             pvdata_t * dataStartPatch = conn->get_wDataStart(arborID)+patchindex*weights_per_patch;
-            subtractOffsetAndNormalize(dataStartPatch, weights_per_patch, mean, scale_factor*sqrt(var));
+            subtractOffsetAndNormalize(dataStartPatch, weights_per_patch, mean, sqrt(var)/scale_factor);
          }
       }
    }

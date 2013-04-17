@@ -274,6 +274,10 @@ public:
       connId = id;
    }
 
+   NormalizeBase * getNormalizer() {
+      return normalizer;
+   }
+
    PVPatch*** convertPreSynapticWeights(double time);
    PVPatch**** point2PreSynapticWeights();
    //PVPatch**** point2PreSynapticWeights2();
