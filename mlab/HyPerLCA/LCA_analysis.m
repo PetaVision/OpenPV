@@ -6,8 +6,8 @@ if ismac
   workspace_path = "/Users/garkenyon/workspace";
   output_dir = "/Users/garkenyon/workspace/HyPerHLCA2/output_animal1200000_color"; %%output_test"; %% output_animal1200000_distractor1200000"; %%
   LCA_path = [output_dir]; %%[workspace_path, filesep, "HyPerHLCA2"];
-  last_checkpoint_ndx = 50000*1; 
-  next_checkpoint_ndx = 50000*2;
+  last_checkpoint_ndx = 50000*4; 
+  next_checkpoint_ndx = 50000*5;
   first_checkpoint_ndx = 0; 
   frame_duration = 1000;
 elseif isunix
@@ -27,7 +27,7 @@ max_lines = last_checkpoint_ndx + (last_checkpoint_ndx == 0) * 1000;
 max_history = 150000;
 begin_statProbe_step = max(max_lines - max_history, 3);
 training_flag = 1;
-num_recon = 1;
+num_recon = 4;
 
 
 %% plot Reconstructions
@@ -304,6 +304,7 @@ if plot_ave_error_vs_time
   fclose(Error_Stats_fid);
   error_vs_time_fig = figure;
   error_vs_time_hndl = plot(ave_error);
+  axis tight
   set(error_vs_time_fig, "name", ["ave Error"]);
   saveas(error_vs_time_fig, [sparseness_error_vs_time_dir, filesep, "error_vs_time_", num2str(last_checkpoint_ndx, "%i")], "png");
   drawnow;
@@ -342,6 +343,7 @@ if plot_ave_error_vs_time
   fclose(V1_Stats_fid);
   V1_vs_time_fig = figure;
   V1_vs_time_hndl = plot(ave_V1);
+  axis tight
   set(V1_vs_time_fig, "name", ["sparseness_vs_time"]);
   saveas(V1_vs_time_fig, [sparseness_error_vs_time_dir, filesep, "sparseness_vs_time_", num2str(last_checkpoint_ndx, "%i")], "png");
   drawnow;
