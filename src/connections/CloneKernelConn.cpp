@@ -135,6 +135,8 @@ void CloneKernelConn::readPlasticityFlag(PVParams * params) {
 int CloneKernelConn::readPatchSize(PVParams * params) {
    nxp = originalConn->xPatchSize();
    nyp = originalConn->yPatchSize();
+   nxpShrunken = originalConn->getNxpShrunken();
+   nypShrunken = originalConn->getNypShrunken();
    return PV_SUCCESS;
 }
 

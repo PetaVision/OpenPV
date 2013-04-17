@@ -80,11 +80,26 @@ int TransposeConn::readPatchSize(PVParams * params) {
        nyp /= (int) pow(2,-yscaleDiff);
        assert(originalConn->yPatchSize()==nyp*pow( 2, (float) (-yscaleDiff) ));
    }
+   assert( checkPatchSize(nxp, pre->getXScale(), post->getXScale(), 'x') ==
+           PV_SUCCESS );
+   assert( checkPatchSize(nyp, pre->getYScale(), post->getYScale(), 'y') ==
+           PV_SUCCESS );
+
+   // Set nxpShrunken, nypShrunken
+   if (originalConn->getNxpShrunken() != originalConn->xPatchSize() || originalConn->getNypShrunken() != originalConn->xPatchSize()) {
+      if (parent->columnId()==0) {
+         fprintf(stderr, "TransposeConn \"%s\": original connection \"%s\" uses nxpShrunken, nypShrunken.  TransposeConn not implemented in this case.\n", name, originalConn->getName());
+         exit(EXIT_FAILURE);
+      }
+   }
+   nxpShrunken = nxp;
+   nypShrunken = nyp;
    return PV_SUCCESS;
 }
 
 int TransposeConn::readNfp(PVParams * params) {
    nfp = post->getLayerLoc()->nf;
+   assert(originalConn && nfp==originalConn->preSynapticLayer()->getLayerLoc()->nf);
    return PV_SUCCESS;
 }
 

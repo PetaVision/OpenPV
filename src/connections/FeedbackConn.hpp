@@ -26,8 +26,6 @@ public:
     int initialize(const char * name, HyPerCol * hc, KernelConn * ffconn);
 
 protected:
-    virtual int readPatchSize(PVParams * params);
-    virtual int readNfp(PVParams * params);
     int setPatchSize(const char * filename);
     PVPatch *** initializeWeights(PVPatch *** arbors, pvdata_t ** dataStart, int numPatches,
           const char * filename);

@@ -47,6 +47,9 @@ int BIDSConn::readPatchSize(PVParams * params) {
    nyp = (1 + 2*(int)(ceil(lateralRadius/(double)yScale) + ceil(2.0 * jitter/(double)yScale)));
    status = checkPatchSize(nyp, yScalePre, yScalePost, 'y');
 
+   nxpShrunken = 1;
+   nypShrunken = 1;
+
    return status;
 }
 

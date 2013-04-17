@@ -27,44 +27,6 @@ int FeedbackConn::initialize(const char * name, HyPerCol *hc, KernelConn * ffcon
    return PV_SUCCESS;
 }
 
-int FeedbackConn::readPatchSize(PVParams * params) {
-   int status = PV_SUCCESS;
-
-   int xscaleDiff = pre->getXScale() - post->getXScale();
-   // If feedforward conn is many-to-one, feedback conn is one-to-many.
-   // Then xscaleDiff > 0.
-   // Similarly, if feedforwardConn is one-to-many, xscaleDiff < 0.
-   int yscaleDiff = pre->getYScale() - post->getYScale();
-
-   nxp = originalConn->xPatchSize();
-   if(xscaleDiff > 0 ) {
-       nxp *= (int) powf( 2, xscaleDiff );
-   }
-   else if(xscaleDiff < 0) {
-       nxp /= (int) powf(2,-xscaleDiff);
-       assert(originalConn->xPatchSize()==nxp*powf( 2, (float) (-xscaleDiff) ));
-   }
-   nyp = originalConn->yPatchSize();
-   if(yscaleDiff > 0 ) {
-       nyp *= (int) powf( 2, (float) yscaleDiff );
-   }
-   else if(yscaleDiff < 0) {
-       nyp /= (int) powf(2,-yscaleDiff);
-       assert(originalConn->yPatchSize()==nyp*powf( 2, (float) (-yscaleDiff) ));
-   }
-   assert( checkPatchSize(nxp, pre->getXScale(), post->getXScale(), 'x') ==
-           PV_SUCCESS );
-   assert( checkPatchSize(nyp, pre->getYScale(), post->getYScale(), 'y') ==
-           PV_SUCCESS );
-   return status;
-}
-
-int FeedbackConn::readNfp(PVParams * params) {
-   nfp = post->getLayerLoc()->nf;
-   assert(originalConn && nfp==originalConn->preSynapticLayer()->getLayerLoc()->nf);
-   return PV_SUCCESS;
-}
-
 int FeedbackConn::setPatchSize(const char * filename) {
    int status = PV_SUCCESS;
    if( filename != NULL ) {

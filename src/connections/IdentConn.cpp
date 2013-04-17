@@ -99,6 +99,8 @@ void IdentConn::readSelfFlag(PVParams * params) {
 int IdentConn::readPatchSize(PVParams * params) {
    nxp = 1;
    nyp = 1;
+   nxpShrunken = 1;
+   nypShrunken = 1;
    return PV_SUCCESS;
 }
 
