@@ -748,15 +748,13 @@ PVPatch *** HyPerConn::initializeWeights(PVPatch *** patches, pvdata_t ** dataSt
 #endif // PV_USE_MPI
 #endif // USE_SHMGET
    initNormalize(); // Sets normalizeMethod; derived-class methods that override initNormalize must also set normalizeMethod
-   if (normalizer) {
-      normalizer->normalizeWeights(this);
+   normalizeWeights();
 #ifdef OBSOLETE // Marked obsolete April 11, 2013.  Implementing the new NormalizeBase class hierarchy.
       for(int arborId=0; arborId<numberOfAxonalArborLists(); arborId++) {
          int status = normalizeWeights(patches ? patches[arborId] : NULL, dataStart, numPatches, arborId);
          if (status == PV_BREAK) break;
       } // arborId
 #endif // OBSOLETE
-   } // normalize_flag
    return patches;
 }
 
