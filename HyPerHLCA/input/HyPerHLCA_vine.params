@@ -17,17 +17,20 @@ HyPerCol "column" = {
    randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
    numSteps = 100495000;       // Depends on number of VINE video frames
    progressStep = 1;
-   outputPath = "/nh/compneuro/Data/vine/LCA/2013_01_31/output";
+   //outputPath = "/nh/compneuro/Data/vine/LCA/2013_01_31/output";
+   outputPath = "/nh/compneuro/Data/vine/LCA/2013_01_31/outputOverlap";
    filenamesContainLayerNames = true;
    filenamesContainConnectionNames = true;
    checkpointRead = false;
-   checkpointReadDir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output/Checkpoints";
+   //checkpointReadDir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output/Checkpoints";
+   checkpointReadDir = "/nh/compneuro/Data/vine/LCA/2013_01_31/outputOverlap/Checkpoints";
    checkpointReadDirIndex = 1200000;
    checkpointWrite = true;
-   checkpointWriteDir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output/Checkpoints";
+   //checkpointWriteDir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output/Checkpoints";
+   checkpointWriteDir = "/nh/compneuro/Data/vine/LCA/2013_01_31/outputOverlap/Checkpoints";
    checkpointWriteStepInterval = 100000;
    deleteOlderCheckpoints = false;
-   suppressLastOutput = false;
+   //suppressLastOutput = false;
    writeProgressToErr = true;
    outputNamesOfLayersAndConns = "LayerAndConnNames.txt";
 };
@@ -117,14 +120,14 @@ ANNLayer "Ganglion" = {
     initialWriteTime = 4999.0;
     mirrorBCflag = 1;
     writeSparseActivity = 0;
-
+    //
     InitVType = "ZeroV";
-
+    //
     VThresh = -infinity;
     VMax = infinity;
     VMin = -infinity;
     VShift = 0;
-    
+    // 
     phase = 3;
 };
 
@@ -138,16 +141,16 @@ ANNLayer "Recon" = {
     writeStep = 5000.0;
     mirrorBCflag = 1;
     writeSparseActivity = 0;
-
+    //
     InitVType = "ZeroV";
     //InitVType = "InitVFromFile";
     //Vfilename = "";
-
+    //
     VThresh = -infinity;
     VMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
     VMin = -infinity; 
     VShift = 0;
-    
+    // 
     phase = 6; 
 };
 
@@ -162,44 +165,56 @@ ANNLayer "Error" = {
     writeStep = 5000;
     mirrorBCflag = 1;
     writeSparseActivity = 0;
-
+    //
     InitVType = "ZeroV";
     //InitVType = "InitVFromFile";
     //Vfilename = "";
-
+    //
     VThresh = -infinity;
     VMax =  infinity;
     VMin = -infinity;
     VShift = 0;
-    
+    //
     phase = 4;  
 };
 
 
 HyPerLCALayer "V1" = {
     restart = 0;
-    nxScale = 0.0625;
-    nyScale = 0.0625;
-    nf = 1024;
-    marginWidth = 0;
+    /*****************/
+    //NON OVERLAPPING
+    /*****************/
+    //nxScale = 0.0625;
+    //nyScale = 0.0625;
+    //nf = 1024;
+    //marginWidth = 0;
+    // 
+    /*****************/
+    //OVERLAPPING
+    /*****************/
+    nxScale = 0.125;
+    nyScale = 0.125;
+    nf = 256;
+    marginWidth = 1;
+    // 
     initialWriteTime = 4999.0;
     writeStep = 5000.0;
     mirrorBCflag = 1;
     writeSparseActivity = 1;
-
+    //
     InitVType = "UniformRandomV";
     //InitVType = "InitVFromFile";
     //Vfilename = "";
     minV = -1.0;
     maxV = .1; //0.05 above VThresh
-    
+    // 
     timeConstantTau = 100.0;
-    
+    // 
     VThresh = 0.05; //0.125; // 1.0;
     VMax = infinity;
     VMin = 0;
     VShift = 0.0;  // 0 -> hard threshold, 1 -> soft threshold
-
+    //
     phase = 5;
 };
 
@@ -223,7 +238,7 @@ KernelConn "MovieToRetina" = {
 
     normalize = 0;
        
-    writeCompressedWeights = false;
+    //writeCompressedWeights = false;
     writeCompressedCheckpoints = false;
     plasticityFlag = 0;
     stochasticReleaseFlag = false;
@@ -264,7 +279,7 @@ KernelConn "RetinaToBipolarCenter" = {
    normalizeTotalToPost = true;
 
    shrinkPatches = false;
-   writeCompressedWeights = 0.0;
+   //writeCompressedWeights = 0.0;
    writeCompressedCheckpoints = false;
    plasticityFlag = 0;
    stochasticReleaseFlag = false;
@@ -304,7 +319,7 @@ KernelConn "BipolarToGanglionCenter" = {
    normalizeTotalToPost = true;
 
    shrinkPatches = false;
-   writeCompressedWeights = 0.0;
+   //writeCompressedWeights = 0.0;
    writeCompressedCheckpoints = false;
    plasticityFlag = 0;
    stochasticReleaseFlag = false;
@@ -344,7 +359,7 @@ KernelConn "BipolarToGanglionSurround" = {
    normalizeTotalToPost = true;
 
    shrinkPatches = false;
-   writeCompressedWeights = 0.0;
+   //writeCompressedWeights = 0.0;
    writeCompressedCheckpoints = false;
    plasticityFlag = 0;
    stochasticReleaseFlag = false;
@@ -370,14 +385,26 @@ KernelConn "V1ToError" = {
     preLayerName = "V1";
     postLayerName = "Error";
     channelCode = 1;
-    nxp = 16;
-    nyp = 16;
+    //
+    /*****************/
+    //NON OVERLAPPING
+    /*****************/
+    //nxp = 16;
+    //nyp = 16;
+    /*****************/
+    //NON OVERLAPPING
+    /*****************/
+    nxp = 24;
+    nyp = 24;
+    nxpShrunken = 16;
+    nypShrunken = 16;
+    //
     nfp = 1;
     numAxonalArbors = 1;
     initFromLastFlag = 0;
     
-//    weightInitType = "FileWeight";
-//    initWeightsFile = "";
+    //weightInitType = "FileWeight";
+    //initWeightsFile = "";
     weightInitType = "UniformRandomWeight";
     wMinInit = -1.0;
     wMaxInit = 1.0;
@@ -417,24 +444,17 @@ TransposeConn "ErrorToV1" = {
 	preLayerName = "Error";
 	postLayerName = "V1";
 	channelCode = 0;
-	numAxonalArbors = 1;
 
 	originalConnName = "V1ToError";
 	    
-	normalize = false;  
 	selfFlag = false;
 	preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
 	keepKernelsSynchronized = false; 
-	combine_dW_with_W_flag = false; 
-	weightUpdatePeriod = 20.0;  // not used (uses original conn's value)
 //	
 	writeStep = -1;
-	writeCompressedWeights = false;
 	writeCompressedCheckpoints = false;
 	plasticityFlag = true;
-	dWMax = 1.0; // not used
 	initialWeightUpdateTime = 4999.0;
-	initialWriteTime = 0.0;
 	shmget_flag = false;
 //
 	delay = 0;
@@ -449,7 +469,7 @@ CloneKernelConn "V1ToRecon" = {
    channelCode = 0;
    writeStep = -1;
    originalConnName = "V1ToError";
-   writeCompressedWeights = 0.0;
+   //writeCompressedWeights = 0.0;
    selfFlag = false;
    stochasticReleaseFlag = false;
    delay = 0;
