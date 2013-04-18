@@ -148,10 +148,9 @@ KernelConn "delayArbor" = {
     weightInitType = "OneToOneWeights";
     weightInit = 1.0;
       
-    normalize              = false;
+    normalizeMethod        = "none";
     plasticityFlag         = false;
     stochasticReleaseFlag  = false;
-    writeCompressedWeights = true;
     writeCompressedCheckpoints = true;
     selfFlag               = false;
     shrinkPatches          = false;
