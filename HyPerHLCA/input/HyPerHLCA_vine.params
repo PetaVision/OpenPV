@@ -392,7 +392,7 @@ KernelConn "V1ToError" = {
     //nxp = 16;
     //nyp = 16;
     /*****************/
-    //NON OVERLAPPING
+    //OVERLAPPING
     /*****************/
     nxp = 24;
     nyp = 24;
