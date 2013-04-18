@@ -159,7 +159,7 @@ VaryingKernelConn "conn no delay" = {
     bowtieFlag = false;
       
     strength = 1.0;  // 1.0 x post->num_neurons / pre->num_neurons
-    normalize = false;
+    normalizeMethod = "none";
 
     writeCompressedWeights = false;
     writeCompressedCheckpoints = false;
@@ -203,7 +203,7 @@ VaryingKernelConn "conn with delay" = {
     bowtieFlag = false;
       
     strength = 1.0;  // 1.0 x post->num_neurons / pre->num_neurons
-    normalize = false;
+    normalizeMethod = "none";
 
     writeCompressedWeights = false;
     writeCompressedCheckpoints = false;
@@ -241,15 +241,13 @@ KernelConn "input to output arbor" = {
     thetaMax = 0.0;
     rotate = 0.0;
       
-    normalize = true;
+    normalizeMethod = "normalizeSum";
     strength = 9.0;  // 1.0 x post->num_neurons / pre->num_neurons
-    normalize_zero_offset = 0.0;
-    normalize_max = 0.0;
+    normalizeArborsIndividually = false;
     normalize_cutoff = 0;
-    normalize_arbors_individually = false;
-    normalizeTotalToPost = false;
-    normalize_RMS_amp = false;
     symmetrizeWeights = 0;
+    minSumTolerated = 0.0;
+    normalizeFromPostPerspective = false;
 
     preActivityIsNotRate = false;
     stochasticReleaseFlag = false;
@@ -278,7 +276,7 @@ VaryingHyPerConn "full hyperconn" = {
         
     weightInitType = "SmartWeight";
 
-    normalize = false;
+    normalizeMethod = "none";
 
     preActivityIsNotRate = false;
     stochasticReleaseFlag = false;

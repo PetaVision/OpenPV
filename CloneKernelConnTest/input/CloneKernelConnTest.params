@@ -166,16 +166,15 @@ KernelConn "original" = {
     sigma = 1;
     rMax  = infinity;
     rMin = 0;
-    // no = 4;
+    numOrientationsPost = 8;
       
     strength = 1.0;  // 1.0 x post->num_neurons / pre->num_neurons
-    normalize = true;
-    normalize_zero_offset = 0.0;
-    normalize_max = 0.0;
-    normalize_cutoff = 0;
-    normalizeTotalToPost = 0;
-    normalize_RMS_amp = false;
+    normalizeMethod = "normalizeSum";
+    normalize_cutoff = 0.0;
+    normalizeArborsIndividually = false;
     symmetrizeWeights = false;
+    minSumTolerated = 0.0;
+    normalizeFromPostPerspective = false;
 
     writeCompressedWeights = false;
     writeCompressedCheckpoints = false;

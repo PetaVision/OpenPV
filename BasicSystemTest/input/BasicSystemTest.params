@@ -93,17 +93,16 @@ KernelConn "input to output" = {
     sigma = 1;
     rMax  = infinity;
     rMin = 0;
-    // no = 4;
+    numOrientationsPost = 8;
       
     strength = 4.0;  // 1.0 x post->num_neurons / pre->num_neurons
-    normalize = 1.0;
-    normalize_zero_offset = 0.0;
-    normalize_max = 0.0;
+    normalizeMethod = "normalizeSum";
+    normalizeArborsIndividually = false;
     normalize_cutoff = 0;
-    normalizeTotalToPost = false;
-    normalize_RMS_amp = false;
     symmetrizeWeights = 0;
     preActivityIsNotRate = false;
+    minSumTolerated = 0.0;
+    normalizeFromPostPerspective = false;
 
     writeCompressedCheckpoints = false;
     plasticityFlag = false;

@@ -49,7 +49,7 @@ CPTestInputLayer "input" = {
     initialWriteTime = 0.0;
     writeSparseActivity = false;
     mirrorBCflag = false;
-    InitVType = "ZeroV";
+    // InitVType = "ZeroV"; // inited from checkpoint
     VMax = infinity;
     VMin = -infinity;
     VThresh = -infinity;
@@ -57,7 +57,7 @@ CPTestInputLayer "input" = {
 };
 
 ANNLayer "output no delay" = {
-    restart = 0;
+    // restart = 0;
     nxScale = 1;
     nyScale = 1;
     nf = 1;
@@ -68,7 +68,7 @@ ANNLayer "output no delay" = {
     mirrorBCflag = 1;
     writeSparseActivity = false;
 
-    InitVType = "ZeroV";
+    // InitVType = "ZeroV"; // inited from checkpoint
 
     VThresh = -infinity;
     VMax = infinity;
@@ -77,7 +77,7 @@ ANNLayer "output no delay" = {
 };
 
 ANNLayer "output with delay" = {
-    restart = 0;
+    // restart = 0;
     nxScale = 1;
     nyScale = 1;
     nf = 1;
@@ -88,7 +88,7 @@ ANNLayer "output with delay" = {
     mirrorBCflag = 1;
     writeSparseActivity = false;
 
-    InitVType = "ZeroV";
+    // InitVType = "ZeroV"; // inited from checkpoint
 
     VThresh = -infinity;
     VMax = infinity;
@@ -97,7 +97,7 @@ ANNLayer "output with delay" = {
 };
 
 ANNLayer "output arbor" = {
-    restart = 0;
+    // restart = 0;
     nxScale = 1;
     nyScale = 1;
     nf = 1;
@@ -108,7 +108,7 @@ ANNLayer "output arbor" = {
     mirrorBCflag = 1;
     writeSparseActivity = false;
 
-    InitVType = "ZeroV";
+    // InitVType = "ZeroV"; // inited from checkpoint
 
     VThresh = -infinity;
     VMax = infinity;
@@ -117,7 +117,7 @@ ANNLayer "output arbor" = {
 };
 
 ANNLayer "output from full hyperconn" = {
-    restart = 0;
+    // restart = 0;
     nxScale = 1;
     nyScale = 1;
     nf = 1;
@@ -128,7 +128,7 @@ ANNLayer "output from full hyperconn" = {
     mirrorBCflag = 1;
     writeSparseActivity = false;
 
-    InitVType = "ZeroV";
+    // InitVType = "ZeroV"; // inited from checkpoint
 
     VThresh = -infinity;
     VMax = infinity;
@@ -159,9 +159,10 @@ VaryingKernelConn "conn no delay" = {
     flankShift = false;
     rotate = false;
     bowtieFlag = false;
+    combineWeightFiles = false;
       
     strength = 1.0;  // 1.0 x post->num_neurons / pre->num_neurons
-    normalize = false;
+    normalizeMethod = "none";
 
     writeCompressedWeights = false;
     writeCompressedCheckpoints = false;
@@ -203,9 +204,10 @@ VaryingKernelConn "conn with delay" = {
     flankShift = false;
     rotate = false;
     bowtieFlag = false;
+    combineWeightFiles = false;
       
     strength = 1.0;  // 1.0 x post->num_neurons / pre->num_neurons
-    normalize = false;
+    normalizeMethod = "none";
 
     writeCompressedWeights = false;
     writeCompressedCheckpoints = false;
@@ -242,16 +244,16 @@ KernelConn "input to output arbor" = {
     deltaThetaMax = 0.0;
     thetaMax = 0.0;
     rotate = 0.0;
+    useListOfArborFiles = false;
+    combineWeightFiles = false;
       
-    normalize = true;
+    normalizeMethod = "normalizeSum";
     strength = 9.0;  // 1.0 x post->num_neurons / pre->num_neurons
-    normalize_zero_offset = 0.0;
-    normalize_max = 0.0;
+    normalizeArborsIndividually = false;
     normalize_cutoff = 0;
-    normalize_arbors_individually = false;
-    normalizeTotalToPost = false;
-    normalize_RMS_amp = false;
     symmetrizeWeights = 0;
+    minSumTolerated = 0.0;
+    normalizeFromPostPerspective = false;
 
     preActivityIsNotRate = false;
     stochasticReleaseFlag = false;
@@ -279,8 +281,9 @@ VaryingHyPerConn "full hyperconn" = {
     initFromLastFlag = 0;
         
     weightInitType = "SmartWeight";
+    combineWeightFiles = false;
 
-    normalize = false;
+    normalizeMethod = "none";
 
     preActivityIsNotRate = false;
     stochasticReleaseFlag = false;
@@ -301,4 +304,5 @@ IdentConn "selfconnection for output with delay" = {
     channelCode = 1;
     delay = 0;
     writeStep = -1;
+    combineWeightFiles = false;
 };
