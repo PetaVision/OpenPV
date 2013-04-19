@@ -7,6 +7,8 @@
 //  - input parameters for test_kernel.cpp for system level testing of kernels
 //
 
+debugParsing = false;
+
 HyPerCol "column" = {
    nx = 32;   
    ny = 32;
@@ -14,8 +16,13 @@ HyPerCol "column" = {
    randomSeed = 926268668;  // if not set here,  clock time is used to generate seed
    numSteps = 4;  // num images plus (num layers + 1) * delay
    progressStep = 5;
+   writeProgressToErr = false;
    outputPath = "output/";
    filenamesContainLayerNames = 2;
+   filenamesContainConnectionNames = 2;
+   checkpointRead = false;
+   checkpointWrite = false;
+   suppressLastOutput = false;
 };
 
 //
@@ -28,10 +35,12 @@ Retina "Retina" = {
     nyScale = 1;
     nf = 1;
     marginWidth = 1;
+    phase = 0;
     writeStep = 1.0;
+    initialWriteTime = false;
     mirrorBCflag = 1;
-    spikingFlag = 0;
-    writeNonspikingActivity = 1;
+    spikingFlag = false;
+    writeSparseActivity = false;
 
     foregroundRate = 1000;
     backgroundRate = 1000;
@@ -51,16 +60,19 @@ ANNLayer "L0" = {
     nyScale = 1;
     nf = 4;
     marginWidth = 4;
+    phase = 0;
     writeStep = 1.0;
+    initialWriteTime = 0.0;
     mirrorBCflag = 1;
-    spikingFlag = 0;
-    writeNonspikingActivity = 1;
+    writeSparseActivity = false;
 
-    Vrest = 1.0;
+    InitVType = "ConstantV";
+    valueV = 1.0;
 
     VThresh = -infinity;
     VMax = infinity;
     VMin = -infinity;
+    VShift = 0.0;
 };
 
 
@@ -70,16 +82,18 @@ ANNLayer "Lx1" = {
     nyScale = 1;
     nf = 4;
     marginWidth = 0;
+    phase = 0;
     writeStep = 1.0;
+    initialWriteTime = 0.0;
     mirrorBCflag = 1;
-    spikingFlag = 0;
-    writeNonspikingActivity = 1;
+    writeSparseActivity = false;
 
-    Vrest = 0.0;
+    InitVType = "ZeroV";
 
     VThresh = -infinity;
     VMax = infinity;
     VMin = -infinity;
+    VShift = 0.0;
 };
 
 
@@ -89,16 +103,18 @@ ANNLayer "Lx2" = {
     nyScale = 2;
     nf = 8;
     marginWidth = 0;
+    phase = 0;
     writeStep = 1.0;
+    initialWriteTime = 0.0;
     mirrorBCflag = 1;
-    spikingFlag = 0;
-    writeNonspikingActivity = 1;
+    writeSparseActivity = false;
 
-    Vrest = 0.0;
+    InitVType = "ZeroV";
 
     VThresh = -infinity;
     VMax = infinity;
     VMin = -infinity;
+    VShift = 0.0;
 };
 
 
@@ -108,16 +124,18 @@ ANNLayer "Lx4" = {
     nyScale = 4;
     nf = 16;
     marginWidth = 0;
+    phase = 0;
     writeStep = 1.0;
+    initialWriteTime = 0.0;
     mirrorBCflag = 0;
-    spikingFlag = 0;
-    writeNonspikingActivity = 1;
+    writeSparseActivity = false;
 
-    Vrest = 0.0;
+    InitVType = "ZeroV";
 
     VThresh = -infinity;
     VMax = infinity;
     VMin = -infinity;
+    VShift = 0.0;
 };
 
 
@@ -128,16 +146,18 @@ ANNLayer "Lx1_2" = {
     nyScale = 0.5;
     nf = 2;
     marginWidth = 0;
+    phase = 0;
     writeStep = 1.0;
+    initialWriteTime = 0.0;
     mirrorBCflag = 0;
-    spikingFlag = 0;
-    writeNonspikingActivity = 1;
+    writeSparseActivity = false;
 
-    Vrest = 0.0;
+    InitVType = "ZeroV";
 
     VThresh = -infinity;
     VMax = infinity;
     VMin = -infinity;
+    VShift = 0.0;
 };
 
 
@@ -148,16 +168,18 @@ ANNLayer "Lx1_4" = {
     nyScale = 0.25;
     nf = 1;
     marginWidth = 0;
+    phase = 0;
     writeStep = 1.0;
+    initialWriteTime = 0.0;
     mirrorBCflag = 0;
-    spikingFlag = 0;
-    writeNonspikingActivity = 1;
+    writeSparseActivity = false;
 
-    Vrest = 0.0;
+    InitVType = "ZeroV";
 
     VThresh = -infinity;
     VMax = infinity;
     VMin = -infinity;
+    VShift = 0.0;
 };
 
 
@@ -179,16 +201,17 @@ KernelConn "Retina to L0" = {
     sigma = 1;
     rMax  = infinity;
     rMin = 0;
-    // no = 4;
+    numOrientationsPost = 4;
       
     strength = 4.0;  // 1.0 x post->num_neurons / pre->num_neurons
-    normalize = 1.0;
-    normalize_zero_offset = 0.0;
-    normalize_max = 0.0;
-    normalize_cutoff = 0;
-    symmetrizeWeights = 0;
+    normalizeMethod = "normalizeSum";
+    normalizeArborsIndividually = false;
+    normalize_cutoff = 0.0;
+    symmetrizeWeights = false;
+    minSumTolerated = 0.0;
+    normalizeFromPostPerspective = false;
 
-    writeCompressedWeights = 0.0;
+    writeCompressedCheckpoints = false;
     plasticityFlag = 0;
     shmget_flag = 1;
 
@@ -196,6 +219,8 @@ KernelConn "Retina to L0" = {
 
     stochasticReleaseFlag = false;
     shrinkPatches = false;
+    preActivityIsNotRate = false;
+    selfFlag = false;
 };
 
 
@@ -217,16 +242,18 @@ KernelConn "L0 to Lx1" = {
     sigma = infinity;
     rMax  = infinity;
     rMin = 0;
-    // no = 4;
-      
+    numOrientationsPost = 4;
+    numOrientationsPre = 4;
+    
     strength = 1.0;  // 1.0 x post->num_neurons / pre->num_neurons
-    normalize = 1.0;
-    normalize_zero_offset = 0.0;
-    normalize_max = 0.0;
-    normalize_cutoff = 0;
-    symmetrizeWeights = 0;
+    normalizeMethod = "normalizeSum";
+    normalizeArborsIndividually = false;
+    normalize_cutoff = 0.0;
+    symmetrizeWeights = false;
+    minSumTolerated = 0.0;
+    normalizeFromPostPerspective = false;
 
-    writeCompressedWeights = 0.0;
+    writeCompressedCheckpoints = false;
     plasticityFlag = 0;
     shmget_flag = 1;
 
@@ -234,6 +261,8 @@ KernelConn "L0 to Lx1" = {
 
     stochasticReleaseFlag = false;
     shrinkPatches = false;
+    preActivityIsNotRate = false;
+    selfFlag = false;
 };
 
 
@@ -259,16 +288,18 @@ KernelConn "L0 to Lx2" = {
     // numFlanks = 1;
     // flankShift = 0;
     // rotate = 1;
-    // no = 8;
+    numOrientationsPost = 8;
+    numOrientationsPre = 4;
       
     strength = 8.0; // 1.0 x post->num_neurons / pre->num_neurons
-    normalize = 1.0;
-    normalize_zero_offset = 0.0;
-    normalize_max = 0.0;
-    normalize_cutoff = 0;
-    symmetrizeWeights = 0;
+    normalizeMethod = "normalizeSum";
+    normalizeArborsIndividually = false;
+    normalize_cutoff = 0.0;
+    symmetrizeWeights = false;
+    minSumTolerated = 0.0;
+    normalizeFromPostPerspective = false;
 
-    writeCompressedWeights = 0.0;
+    writeCompressedCheckpoints = false;
     plasticityFlag = 0;
     shmget_flag = 1;
 
@@ -276,6 +307,8 @@ KernelConn "L0 to Lx2" = {
 
     stochasticReleaseFlag = false;
     shrinkPatches = false;
+    preActivityIsNotRate = false;
+    selfFlag = false;
 };
 
 
@@ -301,16 +334,18 @@ KernelConn "L0 to Lx4" = {
     // numFlanks = 1;
     // flankShift = 0;
     // rotate = 1;
-    // no = 16;
+    numOrientationsPost = 16;
+    numOrientationsPre = 4;
       
     strength = 64.0; // 1.0 x post->num_neurons / pre->num_neurons
-    normalize = 1.0;
-    normalize_zero_offset = 0.0;
-    normalize_max = 0.0;
-    normalize_cutoff = 0;
-    symmetrizeWeights = 0;
+    normalizeMethod = "normalizeSum";
+    normalizeArborsIndividually = false;
+    normalize_cutoff = 0.0;
+    symmetrizeWeights = false;
+    minSumTolerated = 0.0;
+    normalizeFromPostPerspective = false;
 
-    writeCompressedWeights = 0.0;
+    writeCompressedCheckpoints = false;
     plasticityFlag = 0;
     shmget_flag = 1;
 
@@ -318,6 +353,8 @@ KernelConn "L0 to Lx4" = {
 
     stochasticReleaseFlag = false;
     shrinkPatches = false;
+    preActivityIsNotRate = false;
+    selfFlag = false;
 };
 
 
@@ -337,22 +374,24 @@ KernelConn "L0 to Lx1_2" = {
     sigma = infinity;
     rMax  = infinity;
     rMin = 0;
-    deltaThetaMax = 6.2832;
-    thetaMax = 1;
-    bowtieFlag = 0;
-    numFlanks = 1;
-    flankShift = 0;
-    rotate = 1;
-    // no = 2;
+    // deltaThetaMax = 6.2832;
+    // thetaMax = 1;
+    // bowtieFlag = 0;
+    // numFlanks = 1;
+    // flankShift = 0;
+    // rotate = 1;
+    numOrientationsPost = 2;
+    numOrientationsPre = 4;
       
     strength = 0.125; // 1.0 x post->num_neurons / pre->num_neurons
-    normalize = 1.0;
-    normalize_zero_offset = 0.0;
-    normalize_max = 0.0;
-    normalize_cutoff = 0;
-    symmetrizeWeights = 0;
+    normalizeMethod = "normalizeSum";
+    normalizeArborsIndividually = false;
+    normalize_cutoff = 0.0;
+    symmetrizeWeights = false;
+    minSumTolerated = 0.0;
+    normalizeFromPostPerspective = false;
 
-    writeCompressedWeights = 0.0;
+    writeCompressedCheckpoints = false;
     plasticityFlag = 0;
     shmget_flag = 1;
 
@@ -360,6 +399,8 @@ KernelConn "L0 to Lx1_2" = {
 
     stochasticReleaseFlag = false;
     shrinkPatches = false;
+    preActivityIsNotRate = false;
+    selfFlag = false;
 };
 
 
@@ -385,16 +426,17 @@ KernelConn "L0 to Lx1_4" = {
     // numFlanks = 1;
     // flankShift = 0;
     // rotate = 1;
-    // no = 1;
+    numOrientationsPre = 4;
       
     strength = 0.015625; // 1.0 x post->num_neurons / pre->num_neurons
-    normalize = 1.0;
-    normalize_zero_offset = 0.0;
-    normalize_max = 0.0;
-    normalize_cutoff = 0;
-    symmetrizeWeights = 0;
+    normalizeMethod = "normalizeSum";
+    normalizeArborsIndividually = false;
+    normalize_cutoff = 0.0;
+    symmetrizeWeights = false;
+    minSumTolerated = 0.0;
+    normalizeFromPostPerspective = false;
 
-    writeCompressedWeights = 0.0;
+    writeCompressedCheckpoints = false;
     plasticityFlag = 0;
     shmget_flag = 1;
 
@@ -402,6 +444,8 @@ KernelConn "L0 to Lx1_4" = {
 
     stochasticReleaseFlag = false;
     shrinkPatches = false;
+    preActivityIsNotRate = false;
+    selfFlag = false;
 };
 
 
@@ -409,50 +453,64 @@ KernelConn "L0 to Lx1_4" = {
 KernelTestProbe "Retina Stats File" = {
     targetLayer = "Retina";
     probeOutputFile = "Retina_Stats.txt";
+    message = "Retina Stats File      ";
 };
 KernelTestProbe "L0 Stats File" = {
     targetLayer = "L0";
     probeOutputFile = "L0_Stats.txt";
+    message = "L0 Stats File          ";
 };
 KernelTestProbe "Lx1 Stats File" = {
     targetLayer = "Lx1";
     probeOutputFile = "Lx1_Stats.txt";
+    message = "Lx1 Stats File         ";
 };
 KernelTestProbe "Lx2 Stats File" = {
     targetLayer = "Lx2";
     probeOutputFile = "Lx2_Stats.txt";
+    message = "Lx2 Stats File         ";
 };
 KernelTestProbe "Lx4 Stats File" = {
     targetLayer = "Lx4";
     probeOutputFile = "Lx4_Stats.txt";
+    message = "Lx4 Stats File         ";
 };
 KernelTestProbe "Lx1_2 Stats File" = {
     targetLayer = "Lx1_2";
     probeOutputFile = "Lx1_2_Stats.txt";
+    message = "Lx1_2 Stats File       ";
 };
 KernelTestProbe "Lx1_4 Stats File" = {
     targetLayer = "Lx1_4";
     probeOutputFile = "Lx1_4_Stats.txt";
+    message = "Lx1_4 Stats File       ";
 };
 
 KernelTestProbe "Retina Stats Screen" = {
     targetLayer = "Retina";
+    message = "Retina Stats Screen    ";
 };
 KernelTestProbe "L0 Stats Screen" = {
     targetLayer = "L0";
+    message = "L0 Stats Screen        ";
 };
 KernelTestProbe "Lx1 Stats Screen" = {
     targetLayer = "Lx1";
+    message = "Lx1 Stats Screen       ";
 };
 KernelTestProbe "Lx2 Stats Screen" = {
     targetLayer = "Lx2";
+    message = "Lx2 Stats Screen       ";
 };
 KernelTestProbe "Lx4 Stats Screen" = {
     targetLayer = "Lx4";
+    message = "Lx4 Stats Screen       ";
 };
 KernelTestProbe "Lx1_2 Stats Screen" = {
     targetLayer = "Lx1_2";
+    message = "Lx1_2 Stats Screen     ";
 };
 KernelTestProbe "Lx1_4 Stats Screen" = {
     targetLayer = "Lx1_4";
+    message = "Lx1_4 Stats Screen     ";
 };
