@@ -16,8 +16,13 @@ HyPerCol "column" = {
    randomSeed = 977074598;  // if not set here,  clock time is used to generate seed
    numSteps = 4;  // num images plus (num layers + 1) * delay
    progressStep = 5;
+   writeProgressToErr = false;
    outputPath = "output/";
    filenamesContainLayerNames = false;
+   filenamesContainConnectionNames = false;
+   checkpointRead = false;
+   checkpointWrite = false;
+   suppressLastOutput = false;
 };
 
 //
@@ -30,13 +35,13 @@ Retina "Retina" = {
     nyScale = 1;
     nf = 1;
     marginWidth = 4;
+    phase = 0;
     writeStep = 1.0;
+    initialWriteTime = 0.0;
     mirrorBCflag = 1;
-    spikingFlag = 0;
-    writeNonspikingActivity = 1;
+    writeSparseActivity = false;
 
-    Vrest = 1.0;
-    invert = 0;
+    spikingFlag = false;
     foregroundRate = 1000;
     backgroundRate = 1000;
     burstFreq = 1;
@@ -55,16 +60,19 @@ ANNLayer "L0" = {
     nyScale = 1;
     nf = 8;
     marginWidth = 4;
+    phase = 0;
     writeStep = 1.0;
+    initialWriteTime = 0.0;
     mirrorBCflag = 1;
-    spikingFlag = 0;
-    writeNonspikingActivity = 1;
+    writeSparseActivity = false;
 
-    Vrest = 1.0;
+    InitVType = "ConstantV";
+    valueV = 1.0;
 
     VThresh = -infinity;
     VMax = infinity;
     VMin = -infinity;
+    VShift = 0.0;
 };
 
 ANNLayer "L1" = {
@@ -73,16 +81,19 @@ ANNLayer "L1" = {
     nyScale = 1;
     nf = 8;
     marginWidth = 4;
+    phase = 0;
     writeStep = 1.0;
+    initialWriteTime = 0.0;
     mirrorBCflag = 1;
-    spikingFlag = 0;
-    writeNonspikingActivity = 1;
+    writeSparseActivity = false;
 
-    Vrest = 1.0;
+    InitVType = "ConstantV";
+    valueV = 1.0;
 
     VThresh = -infinity;
     VMax = infinity;
     VMin = -infinity;
+    VShift = 0.0;
 };
 
 ANNLayer "L2" = {
@@ -91,16 +102,19 @@ ANNLayer "L2" = {
     nyScale = 1;
     nf = 4;
     marginWidth = 4;
+    phase = 0;
     writeStep = 1.0;
+    initialWriteTime = 0.0;
     mirrorBCflag = 1;
-    spikingFlag = 0;
-    writeNonspikingActivity = 1;
+    writeSparseActivity = false;
 
-    Vrest = 1.0;
+    InitVType = "ConstantV";
+    valueV = 1.0;
 
     VThresh = -infinity;
     VMax = infinity;
     VMin = -infinity;
+    VShift = 0.0;
 };
 
 // ANNLayer "L3" = {
@@ -109,16 +123,19 @@ ANNLayer "L2" = {
 //     nyScale = 1;
 //     nf = 8;
 //     marginWidth = 4;
+//     phase = 0;
 //     writeStep = 1.0;
+//     initialWriteTime = 0.0;
 //     mirrorBCflag = 1;
-//     spikingFlag = 0;
-//     writeNonspikingActivity = 1;
+//     writeSparseActivity = false;
 // 
-//     Vrest = 1.0;
+//     InitVType = "ConstantV";
+//     valueV = 1.0;
 // 
 //     VThresh = -infinity;
 //     VMax = infinity;
 //     VMin = -infinity;
+//     VShift = 0.0;
 // };
 // 
 // ANNLayer "L4" = {
@@ -127,16 +144,19 @@ ANNLayer "L2" = {
 //     nyScale = 1;
 //     nf = 8;
 //     marginWidth = 4;
+//     phase = 0;
 //     writeStep = 1.0;
+//     initialWriteTime = 0.0;
 //     mirrorBCflag = 1;
-//     spikingFlag = 0;
-//     writeNonspikingActivity = 1;
+//     writeSparseActivity = false;
 // 
-//     Vrest = 1.0;
+//     InitVType = "ConstantV";
+//     valueV = 1.0;
 // 
 //     VThresh = -infinity;
 //     VMax = infinity;
 //     VMin = -infinity;
+//     VShift = 0.0;
 // };
 
 //KernelConn connected layers:
@@ -146,16 +166,19 @@ ANNLayer "L5" = {
     nyScale = 1;
     nf = 8;
     marginWidth = 4;
+    phase = 0;
     writeStep = 1.0;
+    initialWriteTime = 0.0;
     mirrorBCflag = 1;
-    spikingFlag = 0;
-    writeNonspikingActivity = 1;
+    writeSparseActivity = false;
 
-    Vrest = 1.0;
+    InitVType = "ConstantV";
+    valueV = 1.0;
 
     VThresh = -infinity;
     VMax = infinity;
     VMin = -infinity;
+    VShift = 0.0;
 };
 
 ANNLayer "L6" = {
@@ -164,16 +187,19 @@ ANNLayer "L6" = {
     nyScale = 1;
     nf = 8;
     marginWidth = 4;
+    phase = 0;
     writeStep = 1.0;
+    initialWriteTime = 0.0;
     mirrorBCflag = 1;
-    spikingFlag = 0;
-    writeNonspikingActivity = 1;
+    writeSparseActivity = false;
 
-    Vrest = 1.0;
+    InitVType = "ConstantV";
+    valueV = 1.0;
 
     VThresh = -infinity;
     VMax = infinity;
     VMin = -infinity;
+    VShift = 0.0;
 };
 
 ANNLayer "L7" = {
@@ -182,16 +208,19 @@ ANNLayer "L7" = {
     nyScale = 1;
     nf = 4;
     marginWidth = 4;
+    phase = 0;
     writeStep = 1.0;
+    initialWriteTime = 0.0;
     mirrorBCflag = 1;
-    spikingFlag = 0;
-    writeNonspikingActivity = 1;
+    writeSparseActivity = false;
 
-    Vrest = 1.0;
+    InitVType = "ConstantV";
+    valueV = 1.0;
 
     VThresh = -infinity;
     VMax = infinity;
     VMin = -infinity;
+    VShift = 0.0;
 };
 
 ANNLayer "L8" = {
@@ -200,16 +229,19 @@ ANNLayer "L8" = {
     nyScale = 1;
     nf = 8;
     marginWidth = 4;
+    phase = 0;
     writeStep = 1.0;
+    initialWriteTime = 0.0;
     mirrorBCflag = 1;
-    spikingFlag = 0;
-    writeNonspikingActivity = 1;
+    writeSparseActivity = false;
 
-    Vrest = 1.0;
+    InitVType = "ConstantV";
+    valueV = 1.0;
 
     VThresh = -infinity;
     VMax = infinity;
     VMin = -infinity;
+    VShift = 0.0;
 };
 
 ANNLayer "L9" = {
@@ -218,23 +250,25 @@ ANNLayer "L9" = {
     nyScale = 1;
     nf = 8;
     marginWidth = 4;
+    phase = 0;
     writeStep = 1.0;
+    initialWriteTime = 0.0;
     mirrorBCflag = 1;
-    spikingFlag = 0;
-    writeNonspikingActivity = 1;
+    writeSparseActivity = false;
 
-    Vrest = 1.0;
+    InitVType = "ConstantV";
+    valueV = 1.0;
 
     VThresh = -infinity;
     VMax = infinity;
     VMin = -infinity;
+    VShift = 0.0;
 };
 
 // HyPerConn connections: 
 HyPerConn "Retina to L0" = {
    preLayerName = "Retina";
    postLayerName = "L0";
-   weightInitType = "Gauss2DWeight";
    numAxonalArbors=1;
    channelCode = 0;
    nxp = 9; 
@@ -244,13 +278,17 @@ HyPerConn "Retina to L0" = {
    stochasticReleaseFlag = false;
    shrinkPatches = false;
    
-   randomFlag = 0; 
    initFromLastFlag = 0;  // 1;  // restart
-   writeStep = 1;
+   writeStep = 1.0;
+   initialWriteTime = 0.0;
+   writeCompressedWeights = false;
+   writeCompressedCheckpoints = false;
 
+   weightInitType = "Gauss2DWeight";
    aspect = 7;
    sigma = 7;
    rMax  = 7;
+   rMin = 0;
    deltaThetaMax = 6.2832;
    thetaMax = 1;
    bowtieFlag = 0;
@@ -259,29 +297,25 @@ HyPerConn "Retina to L0" = {
    rotate = 5;
        
    strength = 25;  
-   normalize = 1;
-   normalize_zero_offset = 0.0;
-   normalize_max = 0.0;
-   symmetrizeWeights = 0;
+   normalizeMethod = "normalizeSum";
+   normalizeArborsIndividually = false;
+   symmetrizeWeights = false;
+   minSumTolerated = 0.0;
+   normalizeFromPostPerspective = false;
 
-   wMax = 25;
-   wMin = 0;
-   writeCompressedWeights = 1.0;
-   gauss2DCalcWeights = 1;
-   no = 8;
+   numOrientationsPost = 8;
    normalize_cutoff = 0;
-   plasticityFlag = 0;
-   weightUpdatePeriod = 1.0;
-   
+   plasticityFlag = 0;   
    
    flankShift = 1.5;
-   delay = 0;   
+   delay = 0;
+   preActivityIsNotRate = false;
+   selfFlag = false;
 };
 
 HyPerConn "Retina to L1" = {
    preLayerName = "Retina";
    postLayerName = "L1";
-   weightInitType = "CoCircWeight";
    numAxonalArbors=1;
    channelCode = 0;
    nxp = 9; 
@@ -291,10 +325,11 @@ HyPerConn "Retina to L1" = {
    stochasticReleaseFlag = false;
    shrinkPatches = false;
    
-   randomFlag = 0; 
    initFromLastFlag = 0;  // 1;  // restart
    writeStep = -1;
-   
+   writeCompressedCheckpoints = false;
+
+   weightInitType = "CoCircWeight";
    noPre=1;
    noPost=8;
    sigmaCocirc=1.570796326794897;
@@ -307,37 +342,28 @@ HyPerConn "Retina to L1" = {
    sigma = 7;
    rMax  = 7;
    deltaThetaMax = 6.2832;
-   thetaMax = 1;
-   bowtieFlag = 0;
    numFlanks = 2;
-   
+   flankShift = 1.5;   
    rotate = 4;
        
    strength = 25;  
-   normalize = 1.0;
-   normalize_zero_offset = 0.0;
-   normalize_max = 0.0;
-   symmetrizeWeights = 0;
+   normalizeMethod = "normalizeSum";
+   normalize_cutoff = false;
+   normalizeArborsIndividually = false;
+   symmetrizeWeights = false;
+   minSumTolerated = 0.0;
+   normalizeFromPostPerspective = false;
 
-   wMax = 25;
-   wMin = 0;
-   writeCompressedWeights = 1.0;
-   gauss2DCalcWeights = 1;
-   no = 8;
-   normalize_cutoff = 0;
-   plasticityFlag = 0;
-   weightUpdatePeriod = 1.0;
+   plasticityFlag = false;
    
-   
-   flankShift = 1.5;
    delay = 0;   
-
+   preActivityIsNotRate = false;
+   selfFlag = false;
 };
 
 HyPerConn "Retina to L2" = {
    preLayerName = "Retina";
    postLayerName = "L2";
-   weightInitType = "SmartWeight";
    numAxonalArbors=1;
    channelCode = 0;
    nxp = 9; 
@@ -347,44 +373,30 @@ HyPerConn "Retina to L2" = {
    stochasticReleaseFlag = false;
    shrinkPatches = false;
    
-   randomFlag = 0; 
    initFromLastFlag = 0;  // 1;  // restart
    writeStep = -1;
+   writeCompressedCheckpoints = false;
 
-   aspect = 7;
-   sigma = 7;
-   rMax  = 7;
-   deltaThetaMax = 6.2832;
-   thetaMax = 1;
-   bowtieFlag = 0;
-   numFlanks = 2;
+   weightInitType = "SmartWeight";
    
-   rotate = 0;
-       
    strength = 25;  
-   normalize = 1.0;
-   normalize_zero_offset = 0.0;
-   normalize_max = 0.0;
-   symmetrizeWeights = 0;
+   normalizeMethod = "normalizeSum";
+   normalize_cutoff = false;
+   normalizeArborsIndividually = false;
+   symmetrizeWeights = false;
+   minSumTolerated = 0.0;
+   normalizeFromPostPerspective = false;
 
-   wMax = 25;
-   wMin = 0;
-   writeCompressedWeights = 1.0;
-   gauss2DCalcWeights = 1;
-   no = 8;
-   normalize_cutoff = 0;
    plasticityFlag = 0;
-   weightUpdatePeriod = 1.0;
    
-   
-   flankShift = 1.5;
    delay = 0;   
+   preActivityIsNotRate = false;
+   selfFlag = false;
 };
 
 // HyPerConn "Retina to L3" = {
 //    preLayerName = "Retina";
 //    postLayerName = "L3";
-//    weightInitType = "GaborWeight";
 //    numAxonalArbors=1;
 //    channelCode = 0;
 //    nxp = 9; 
@@ -394,10 +406,10 @@ HyPerConn "Retina to L2" = {
 //    stochasticReleaseFlag = false;
 //    shrinkPatches = false;
 // 
-//    randomFlag = 0; 
 //    initFromLastFlag = 0;  // 1;  // restart
 //    writeStep = -1;
 // 
+//    weightInitType = "GaborWeight";
 //    aspect = 7;
 //    sigma = 7;
 //    rMax  = 7;
@@ -414,16 +426,17 @@ HyPerConn "Retina to L2" = {
 //    invert = 1;
 //        
 //    strength = 25;  
-//    normalize = 1.0;
-//    normalize_zero_offset = 0.0;
-//    normalize_max = 0.0;
-//    symmetrizeWeights = 0;
+//    normalizeMethod = "normalizeSum";
+//    normalizeArborsIndividually = false;
+//    symmetrizeWeights = false;
+//    minSumTolerated = 0.0;
+//    normalizeFromPostPerspective = false;
 // 
 //    wMax = 25;
 //    wMin = 0;
-//    writeCompressedWeights = 1.0;
-//    gauss2DCalcWeights = 1;
-//    no = 8;
+//    writeCompressedWeights = false;
+//    writeCompressedCheckpoints = false;
+//    numOrientationsPost =8;
 //    normalize_cutoff = 0;
 //    plasticityFlag = 0;
 //    weightUpdatePeriod = 1.0;
@@ -432,12 +445,14 @@ HyPerConn "Retina to L2" = {
 //    flankShift = 0;
 //    delay = 0;   
 // 
+//    preActivityIsNotRate = false;
+//    selfFlag = false;
+
 // };
 // 
 // HyPerConn "Retina to L4" = {
 //    preLayerName = "Retina";
 //    postLayerName = "L4";
-//    weightInitType = "GaborWeight";
 //    numAxonalArbors=1;
 //    channelCode = 0;
 //    nxp = 9; 
@@ -447,10 +462,10 @@ HyPerConn "Retina to L2" = {
 //    stochasticReleaseFlag = false;
 //    shrinkPatches = false;
 //    
-//    randomFlag = 0; 
 //    initFromLastFlag = 0;  // 1;  // restart
 //    writeStep = -1;
 // 
+//    weightInitType = "GaborWeight";
 //    aspect = 7;
 //    sigma = 7;
 //    rMax  = 7;
@@ -467,16 +482,17 @@ HyPerConn "Retina to L2" = {
 //    invert = 0;
 //        
 //    strength = 25;  
-//    normalize = 1.0;
-//    normalize_zero_offset = 0.0;
-//    normalize_max = 0.0;
-//    symmetrizeWeights = 0;
+//    normalizeMethod = "normalizeSum";
+//    normalizeArborsIndividually = false;
+//    symmetrizeWeights = false;
+//    minSumTolerated = 0.0;
+//    normalizeFromPostPerspective = false;
 // 
 //    wMax = 25;
 //    wMin = 0;
-//    writeCompressedWeights = 1.0;
-//    gauss2DCalcWeights = 1;
-//    no = 8;
+//    writeCompressedWeights = false;
+//    writeCompressedCheckpoints = false;
+//    numOrientationsPost =8;
 //    normalize_cutoff = 0;
 //    plasticityFlag = 0;
 //    weightUpdatePeriod = 1.0;
@@ -484,14 +500,14 @@ HyPerConn "Retina to L2" = {
 //    
 //    flankShift = 0;
 //    delay = 0;   
-// 
+//    preActivityIsNotRate = false;
+//    selfFlag = false;
 // };
 
 // KernelConn connections: 
 KernelConn "Retina to L5" = {
    preLayerName = "Retina";
    postLayerName = "L5";
-   weightInitType = "Gauss2DWeight";
    numAxonalArbors=1;
    channelCode = 0;
    nxp = 9; 
@@ -501,44 +517,40 @@ KernelConn "Retina to L5" = {
    stochasticReleaseFlag = false;
    shrinkPatches = false;
    
-   randomFlag = 0; 
    initFromLastFlag = 0;  // 1;  // restart
    writeStep = -1;
+   writeCompressedCheckpoints = false;
 
+   weightInitType = "Gauss2DWeight";
    aspect = 7;
    sigma = 7;
    rMax  = 7;
+   rMin = 0.0;
    deltaThetaMax = 6.2832;
    thetaMax = 1;
    bowtieFlag = 0;
    numFlanks = 2;
-   
+   flankShift = 1.5;   
    rotate = 5;
        
    strength = 25;  
-   normalize = 1.0;
-   normalize_zero_offset = 0.0;
-   normalize_max = 0.0;
-   symmetrizeWeights = 0;
+   normalizeMethod = "normalizeSum";
+   normalize_cutoff = false;
+   normalizeArborsIndividually = false;
+   symmetrizeWeights = false;
+   minSumTolerated = 0.0;
+   normalizeFromPostPerspective = false;
 
-   wMax = 25;
-   wMin = 0;
-   writeCompressedWeights = 1.0;
-   gauss2DCalcWeights = 1;
-   no = 8;
-   normalize_cutoff = 0;
-   plasticityFlag = 0;
-   weightUpdatePeriod = 1.0;
+   plasticityFlag = false;
    
-   
-   flankShift = 1.5;
    delay = 0;   
+   preActivityIsNotRate = false;
+   selfFlag = false;
 };
 
 KernelConn "Retina to L6" = {
    preLayerName = "Retina";
    postLayerName = "L6";
-   weightInitType = "CoCircWeight";
    numAxonalArbors=1;
    channelCode = 0;
    nxp = 9; 
@@ -548,10 +560,11 @@ KernelConn "Retina to L6" = {
    stochasticReleaseFlag = false;
    shrinkPatches = false;
    
-   randomFlag = 0; 
    initFromLastFlag = 0;  // 1;  // restart
    writeStep = -1;
+   writeCompressedCheckpoints = false;
 
+   weightInitType = "CoCircWeight";
    noPre=1;
    noPost=8;
    sigmaCocirc=1.570796326794897;
@@ -564,37 +577,28 @@ KernelConn "Retina to L6" = {
    sigma = 7;
    rMax  = 7;
    deltaThetaMax = 6.2832;
-   thetaMax = 1;
-   bowtieFlag = 0;
    numFlanks = 2;
-   
+   flankShift = 1.5;
    rotate = 4;
        
    strength = 25;  
-   normalize = 1.0;
-   normalize_zero_offset = 0.0;
-   normalize_max = 0.0;
-   symmetrizeWeights = 0;
+   normalizeMethod = "normalizeSum";
+   normalize_cutoff = false;
+   normalizeArborsIndividually = false;
+   symmetrizeWeights = false;
+   minSumTolerated = 0.0;
+   normalizeFromPostPerspective = false;
 
-   wMax = 25;
-   wMin = 0;
-   writeCompressedWeights = 1.0;
-   gauss2DCalcWeights = 1;
-   no = 8;
-   normalize_cutoff = 0;
-   plasticityFlag = 0;
-   weightUpdatePeriod = 1.0;
+   plasticityFlag = false;
    
-   
-   flankShift = 1.5;
    delay = 0;   
-
+   preActivityIsNotRate = false;
+   selfFlag = false;
 };
 
 KernelConn "Retina to L7" = {
    preLayerName = "Retina";
    postLayerName = "L7";
-   weightInitType = "SmartWeight";
    numAxonalArbors=1;
    channelCode = 0;
    nxp = 9; 
@@ -604,44 +608,23 @@ KernelConn "Retina to L7" = {
    stochasticReleaseFlag = false;
    shrinkPatches = false;
    
-   randomFlag = 0; 
    initFromLastFlag = 0;  // 1;  // restart
    writeStep = -1;
+   writeCompressedCheckpoints = false;
 
-   aspect = 7;
-   sigma = 7;
-   rMax  = 7;
-   deltaThetaMax = 6.2832;
-   thetaMax = 1;
-   bowtieFlag = 0;
-   numFlanks = 2;
-   
-   rotate = 0;
-       
-   strength = 25;  
-   normalize = 0; // 1.0;
-   normalize_zero_offset = 0.0;
-   normalize_max = 0.0;
-   symmetrizeWeights = 0;
+   weightInitType = "SmartWeight";
+   normalizeMethod = "none";
 
-   wMax = 25;
-   wMin = 0;
-   writeCompressedWeights = 1.0;
-   gauss2DCalcWeights = 1;
-   no = 8;
-   normalize_cutoff = 0;
    plasticityFlag = 0;
-   weightUpdatePeriod = 1.0;
    
-   
-   flankShift = 1.5;
    delay = 0;   
+   preActivityIsNotRate = false;
+   selfFlag = false;
 };
 
 KernelConn "Retina to L8" = {
    preLayerName = "Retina";
    postLayerName = "L8";
-   weightInitType = "GaborWeight";
    numAxonalArbors=1;
    channelCode = 0;
    nxp = 9; 
@@ -651,19 +634,22 @@ KernelConn "Retina to L8" = {
    stochasticReleaseFlag = false;
    shrinkPatches = false;
    
-   randomFlag = 0; 
    initFromLastFlag = 0;  // 1;  // restart
    writeStep = -1;
+   writeCompressedCheckpoints = false;
 
+   weightInitType = "GaborWeight";
    aspect = 7;
    sigma = 7;
    rMax  = 7;
+   rMin = 0.0;
    deltaThetaMax = 6.2832;
    thetaMax = 1;
    bowtieFlag = 0;
    numFlanks = 2;
    
    rotate = 4;
+   numOrientationsPost =8;
    
    //gabor specific params:
    lambda = 2;
@@ -671,30 +657,25 @@ KernelConn "Retina to L8" = {
    invert = 1;
        
    strength = 25;  
-   normalize = 1.0;
-   normalize_zero_offset = 0.0;
-   normalize_max = 0.0;
-   symmetrizeWeights = 0;
+   normalizeMethod = "normalizeSum";
+   normalize_cutoff = false;
+   normalizeArborsIndividually = false;
+   symmetrizeWeights = false;
+   minSumTolerated = 0.0;
+   normalizeFromPostPerspective = false;
 
-   wMax = 25;
-   wMin = 0;
-   writeCompressedWeights = 1.0;
-   gauss2DCalcWeights = 1;
-   no = 8;
-   normalize_cutoff = 0;
    plasticityFlag = 0;
-   weightUpdatePeriod = 1.0;
    
    
    flankShift = 0;
    delay = 0;   
-
+   preActivityIsNotRate = false;
+   selfFlag = false;
 };
 
 KernelConn "Retina to L9" = {
    preLayerName = "Retina";
    postLayerName = "L9";
-   weightInitType = "GaborWeight";
    numAxonalArbors=1;
    channelCode = 0;
    nxp = 9; 
@@ -704,17 +685,20 @@ KernelConn "Retina to L9" = {
    stochasticReleaseFlag = false;
    shrinkPatches = false;
    
-   randomFlag = 0; 
    initFromLastFlag = 0;  // 1;  // restart
    writeStep = -1;
+   writeCompressedCheckpoints = false;
 
+   weightInitType = "GaborWeight";
    aspect = 7;
    sigma = 7;
    rMax  = 7;
+   rMin = 0.0;
    deltaThetaMax = 6.2832;
    thetaMax = 1;
    bowtieFlag = 0;
    numFlanks = 2;
+   flankShift = 0;
    
    rotate = 4;
    
@@ -724,33 +708,27 @@ KernelConn "Retina to L9" = {
    invert = 0;
        
    strength = 25;  
-   normalize = 1.0;
-   normalize_zero_offset = 0.0;
-   normalize_max = 0.0;
-   symmetrizeWeights = 0;
+   normalizeMethod = "normalizeSum";
+   normalize_cutoff = false;
+   normalizeArborsIndividually = false;
+   symmetrizeWeights = false;
+   minSumTolerated = 0.0;
+   normalizeFromPostPerspective = false;
 
-   wMax = 25;
-   wMin = 0;
-   writeCompressedWeights = 1.0;
-   gauss2DCalcWeights = 1;
-   no = 8;
-   normalize_cutoff = 0;
-   plasticityFlag = 0;
-   weightUpdatePeriod = 1.0;
+   numOrientationsPost =8;
+   plasticityFlag = false;
    
-   
-   flankShift = 0;
    delay = 0;   
-
+   preActivityIsNotRate = false;
+   selfFlag = false;
 };
 
 // HyperConnDebugInitWeights connections: 
 HyperConnDebugInitWeights "Retina to L0 check" = {
    preLayerName = "Retina";
    postLayerName = "L0";
-   weightInitType = "Gauss2DWeight";
+   copiedConn = "Retina to L0";
    numAxonalArbors=1;
-   channelCode = 1;
    nxp = 9; 
    nyp = 9; 
    nfp = 8;
@@ -758,10 +736,11 @@ HyperConnDebugInitWeights "Retina to L0 check" = {
    stochasticReleaseFlag = false;
    shrinkPatches = false;
    
-   randomFlag = 0; 
    initFromLastFlag = 0;  // 1;  // restart
    writeStep = 1;
+   initialWriteTime = 0.0;
 
+   weightInitType = "Gauss2DWeight";
    aspect = 7;
    sigma = 7;
    rMax  = 7;
@@ -773,31 +752,29 @@ HyperConnDebugInitWeights "Retina to L0 check" = {
    rotate = 5;
        
    strength = 25;  
-   normalize = 1;
-   normalize_zero_offset = 0.0;
-   normalize_max = 0.0;
-   symmetrizeWeights = 0;
+   normalizeMethod = "normalizeSum";
+   normalizeArborsIndividually = false;
+   symmetrizeWeights = false;
+   minSumTolerated = 0.0;
+   normalizeFromPostPerspective = false;
 
-   wMax = 25;
-   wMin = 0;
-   writeCompressedWeights = 1.0;
-   gauss2DCalcWeights = 1;
-   no = 8;
+   writeCompressedWeights = false;
+   writeCompressedCheckpoints = false;
    normalize_cutoff = 0;
    plasticityFlag = 0;
-   weightUpdatePeriod = 1.0;
    
    
    flankShift = 1.5;
    delay = 0;   
+   preActivityIsNotRate = false;
+   selfFlag = false;
 };
 
 HyperConnDebugInitWeights "Retina to L1 check" = {
    preLayerName = "Retina";
    postLayerName = "L1";
-   weightInitType = "CoCircWeight";
+   copiedConn = "Retina to L1";
    numAxonalArbors=1;
-   channelCode = 1;
    nxp = 9; 
    nyp = 9; 
    nfp = 8;
@@ -805,12 +782,12 @@ HyperConnDebugInitWeights "Retina to L1 check" = {
    stochasticReleaseFlag = false;
    shrinkPatches = false;
    
-   randomFlag = 0; 
    initFromLastFlag = 0;  // 1;  // restart
    writeStep = -1;
+   writeCompressedCheckpoints = false;
    
+   weightInitType = "CoCircWeight";
    noPre=1;
-   noPost=8;
    sigmaCocirc=1.570796326794897;
    sigmaKurve=2;
    sigmaChord=0.5;
@@ -821,39 +798,31 @@ HyperConnDebugInitWeights "Retina to L1 check" = {
    sigma = 7;
    rMax  = 7;
    deltaThetaMax = 6.2832;
-   thetaMax = 1;
-   bowtieFlag = 0;
    numFlanks = 2;
+   flankShift = 1.5;
    
    rotate = 4;
        
    strength = 25;  
-   normalize = 1.0;
-   normalize_zero_offset = 0.0;
-   normalize_max = 0.0;
-   symmetrizeWeights = 0;
+   normalizeMethod = "normalizeSum";
+   normalizeArborsIndividually = false;
+   symmetrizeWeights = false;
+   minSumTolerated = 0.0;
+   normalizeFromPostPerspective = false;
 
-   wMax = 25;
-   wMin = 0;
-   writeCompressedWeights = 1.0;
-   gauss2DCalcWeights = 1;
-   no = 8;
    normalize_cutoff = 0;
    plasticityFlag = 0;
-   weightUpdatePeriod = 1.0;
    
-   
-   flankShift = 1.5;
    delay = 0;   
-
+   preActivityIsNotRate = false;
+   selfFlag = false;
 };
 
 HyperConnDebugInitWeights "Retina to L2 check" = {
    preLayerName = "Retina";
    postLayerName = "L2";
-   weightInitType = "SmartWeight";
+   copiedConn = "Retina to L2";
    numAxonalArbors=1;
-   channelCode = 1;
    nxp = 9; 
    nyp = 9; 
    nfp = 4;
@@ -861,46 +830,32 @@ HyperConnDebugInitWeights "Retina to L2 check" = {
    stochasticReleaseFlag = false;
    shrinkPatches = false;
    
-   randomFlag = 0; 
    initFromLastFlag = 0;  // 1;  // restart
    writeStep = -1;
+   writeCompressedCheckpoints = false;
 
-   aspect = 7;
-   sigma = 7;
-   rMax  = 7;
-   deltaThetaMax = 6.2832;
-   thetaMax = 1;
-   bowtieFlag = 0;
-   numFlanks = 2;
-   
-   rotate = 0;
+   weightInitType = "SmartWeight";
        
    strength = 25;  
-   normalize = 1.0;
-   normalize_zero_offset = 0.0;
-   normalize_max = 0.0;
-   symmetrizeWeights = 0;
+   normalizeMethod = "normalizeSum";
+   normalize_cutoff = false;
+   normalizeArborsIndividually = false;
+   symmetrizeWeights = false;
+   minSumTolerated = 0.0;
+   normalizeFromPostPerspective = false;
 
-   wMax = 25;
-   wMin = 0;
-   writeCompressedWeights = 1.0;
-   gauss2DCalcWeights = 1;
-   no = 8;
-   normalize_cutoff = 0;
-   plasticityFlag = 0;
-   weightUpdatePeriod = 1.0;
+   plasticityFlag = false;
    
-   
-   flankShift = 1.5;
    delay = 0;   
+   preActivityIsNotRate = false;
+   selfFlag = false;
 };
 
 // HyperConnDebugInitWeights "Retina to L3 check" = {
 //    preLayerName = "Retina";
 //    postLayerName = "L3";
-//    weightInitType = "GaborWeight";
+//    copiedConn = "Retina to L3";
 //    numAxonalArbors=1;
-//    channelCode = 1;
 //    nxp = 9; 
 //    nyp = 9; 
 //    nfp = 8;
@@ -908,10 +863,10 @@ HyperConnDebugInitWeights "Retina to L2 check" = {
 //    stochasticReleaseFlag = false;
 //    shrinkPatches = false;
 // 
-//    randomFlag = 0; 
 //    initFromLastFlag = 0;  // 1;  // restart
 //    writeStep = -1;
 // 
+//    weightInitType = "GaborWeight";
 //    aspect = 7;
 //    sigma = 7;
 //    rMax  = 7;
@@ -928,16 +883,15 @@ HyperConnDebugInitWeights "Retina to L2 check" = {
 //    invert = 1;
 //        
 //    strength = 25;  
-//    normalize = 1.0;
-//    normalize_zero_offset = 0.0;
-//    normalize_max = 0.0;
-//    symmetrizeWeights = 0;
+//    normalizeMethod = "normalizeSum";
+//    normalizeArborsIndividually = false;
+//    symmetrizeWeights = false;
+//    minSumTolerated = 0.0;
+//    normalizeFromPostPerspective = false;
 // 
-//    wMax = 25;
-//    wMin = 0;
-//    writeCompressedWeights = 1.0;
-//    gauss2DCalcWeights = 1;
-//    no = 8;
+//    writeCompressedWeights = false;
+//    writeCompressedCheckpoints = false;
+//    numOrientationsPost =8;
 //    normalize_cutoff = 0;
 //    plasticityFlag = 0;
 //    weightUpdatePeriod = 1.0;
@@ -945,15 +899,15 @@ HyperConnDebugInitWeights "Retina to L2 check" = {
 //    
 //    flankShift = 0;
 //    delay = 0;   
-// 
+//    preActivityIsNotRate = false;
+//    selfFlag = false;
 // };
 // 
 // HyperConnDebugInitWeights "Retina to L4 check" = {
 //    preLayerName = "Retina";
 //    postLayerName = "L4";
-//    weightInitType = "GaborWeight";
+//    copiedConn = "Retina to L4";
 //    numAxonalArbors=1;
-//    channelCode = 1;
 //    nxp = 9; 
 //    nyp = 9; 
 //    nfp = 8;
@@ -961,10 +915,10 @@ HyperConnDebugInitWeights "Retina to L2 check" = {
 //    stochasticReleaseFlag = false;
 //    shrinkPatches = false;
 //    
-//    randomFlag = 0; 
 //    initFromLastFlag = 0;  // 1;  // restart
 //    writeStep = -1;
 // 
+//    weightInitType = "GaborWeight";
 //    aspect = 7;
 //    sigma = 7;
 //    rMax  = 7;
@@ -981,16 +935,15 @@ HyperConnDebugInitWeights "Retina to L2 check" = {
 //    invert = 0;
 //        
 //    strength = 25;  
-//    normalize = 1.0;
-//    normalize_zero_offset = 0.0;
-//    normalize_max = 0.0;
-//    symmetrizeWeights = 0;
+//    normalizeMethod = "normalizeSum";
+//    normalizeArborsIndividually = false;
+//    symmetrizeWeights = false;
+//    minSumTolerated = 0.0;
+//    normalizeFromPostPerspective = false;
 // 
-//    wMax = 25;
-//    wMin = 0;
-//    writeCompressedWeights = 1.0;
-//    gauss2DCalcWeights = 1;
-//    no = 8;
+//    writeCompressedWeights = false;
+//    writeCompressedCheckpoints = false;
+//    numOrientationsPost =8;
 //    normalize_cutoff = 0;
 //    plasticityFlag = 0;
 //    weightUpdatePeriod = 1.0;
@@ -998,16 +951,16 @@ HyperConnDebugInitWeights "Retina to L2 check" = {
 //    
 //    flankShift = 0;
 //    delay = 0;   
-// 
+//    preActivityIsNotRate = false;
+//    selfFlag = false;
 // };
 
 // KernelConnDebugInitWeights connections: 
 KernelConnDebugInitWeights "Retina to L5 check" = {
    preLayerName = "Retina";
    postLayerName = "L5";
-   weightInitType = "Gauss2DWeight";
+   copiedConn = "Retina to L5";
    numAxonalArbors=1;
-   channelCode = 1;
    nxp = 9; 
    nyp = 9; 
    nfp = 8;
@@ -1015,10 +968,11 @@ KernelConnDebugInitWeights "Retina to L5 check" = {
    stochasticReleaseFlag = false;
    shrinkPatches = false;
    
-   randomFlag = 0; 
    initFromLastFlag = 0;  // 1;  // restart
    writeStep = -1;
+   writeCompressedCheckpoints = false;
 
+   weightInitType = "Gauss2DWeight";
    aspect = 7;
    sigma = 7;
    rMax  = 7;
@@ -1026,35 +980,30 @@ KernelConnDebugInitWeights "Retina to L5 check" = {
    thetaMax = 1;
    bowtieFlag = 0;
    numFlanks = 2;
+   flankShift = 1.5;
    
    rotate = 5;
        
    strength = 25;  
-   normalize = 1.0;
-   normalize_zero_offset = 0.0;
-   normalize_max = 0.0;
-   symmetrizeWeights = 0;
+   normalizeMethod = "normalizeSum";
+   normalize_cutoff = false;
+   normalizeArborsIndividually = false;
+   symmetrizeWeights = false;
+   minSumTolerated = 0.0;
+   normalizeFromPostPerspective = false;
 
-   wMax = 25;
-   wMin = 0;
-   writeCompressedWeights = 1.0;
-   gauss2DCalcWeights = 1;
-   no = 8;
-   normalize_cutoff = 0;
-   plasticityFlag = 0;
-   weightUpdatePeriod = 1.0;
+   plasticityFlag = false;
    
-   
-   flankShift = 1.5;
    delay = 0;   
+   preActivityIsNotRate = false;
+   selfFlag = false;
 };
 
 KernelConnDebugInitWeights "Retina to L6 check" = {
    preLayerName = "Retina";
    postLayerName = "L6";
-   weightInitType = "CoCircWeight";
+   copiedConn = "Retina to L6";
    numAxonalArbors=1;
-   channelCode = 1;
    nxp = 9; 
    nyp = 9; 
    nfp = 8;
@@ -1062,12 +1011,12 @@ KernelConnDebugInitWeights "Retina to L6 check" = {
    stochasticReleaseFlag = false;
    shrinkPatches = false;
    
-   randomFlag = 0; 
    initFromLastFlag = 0;  // 1;  // restart
    writeStep = -1;
+   writeCompressedCheckpoints = false;
 
+   weightInitType = "CoCircWeight";
    noPre=1;
-   noPost=8;
    sigmaCocirc=1.570796326794897;
    sigmaKurve=2;
    sigmaChord=0.5;
@@ -1078,39 +1027,32 @@ KernelConnDebugInitWeights "Retina to L6 check" = {
    sigma = 7;
    rMax  = 7;
    deltaThetaMax = 6.2832;
-   thetaMax = 1;
-   bowtieFlag = 0;
    numFlanks = 2;
+   flankShift = 1.5;
    
    rotate = 4;
        
    strength = 25;  
-   normalize = 1.0;
-   normalize_zero_offset = 0.0;
-   normalize_max = 0.0;
-   symmetrizeWeights = 0;
+   normalizeMethod = "normalizeSum";
+   normalize_cutoff = false;
+   normalizeArborsIndividually = false;
+   symmetrizeWeights = false;
+   minSumTolerated = 0.0;
+   normalizeFromPostPerspective = false;
 
-   wMax = 25;
-   wMin = 0;
-   writeCompressedWeights = 1.0;
-   gauss2DCalcWeights = 1;
-   no = 8;
-   normalize_cutoff = 0;
-   plasticityFlag = 0;
-   weightUpdatePeriod = 1.0;
+   plasticityFlag = false;
    
    
-   flankShift = 1.5;
    delay = 0;   
-
+   preActivityIsNotRate = false;
+   selfFlag = false;
 };
 
 KernelConnDebugInitWeights "Retina to L7 check" = {
    preLayerName = "Retina";
    postLayerName = "L7";
-   weightInitType = "SmartWeight";
+   copiedConn = "Retina to L7";
    numAxonalArbors=1;
-   channelCode = 1;
    nxp = 9; 
    nyp = 9; 
    nfp = 4;
@@ -1118,46 +1060,25 @@ KernelConnDebugInitWeights "Retina to L7 check" = {
    stochasticReleaseFlag = false;
    shrinkPatches = false;
    
-   randomFlag = 0; 
    initFromLastFlag = 0;  // 1;  // restart
    writeStep = -1;
+   writeCompressedCheckpoints = false;
 
-   aspect = 7;
-   sigma = 7;
-   rMax  = 7;
-   deltaThetaMax = 6.2832;
-   thetaMax = 1;
-   bowtieFlag = 0;
-   numFlanks = 2;
-   
-   rotate = 0;
-       
-   strength = 25;  
-   normalize = 0; // 1.0;
-   normalize_zero_offset = 0.0;
-   normalize_max = 0.0;
-   symmetrizeWeights = 0;
+   weightInitType = "SmartWeight";
+   normalizeMethod = "none"; // 1.0;
 
-   wMax = 25;
-   wMin = 0;
-   writeCompressedWeights = 1.0;
-   gauss2DCalcWeights = 1;
-   no = 8;
-   normalize_cutoff = 0;
-   plasticityFlag = 0;
-   weightUpdatePeriod = 1.0;
+   plasticityFlag = false;
    
-   
-   flankShift = 1.5;
    delay = 0;   
+   preActivityIsNotRate = false;
+   selfFlag = false;
 };
 
 KernelConnDebugInitWeights "Retina to L8 check" = {
    preLayerName = "Retina";
    postLayerName = "L8";
-   weightInitType = "GaborWeight";
+   copiedConn = "Retina to L8";
    numAxonalArbors=1;
-   channelCode = 1;
    nxp = 9; 
    nyp = 9; 
    nfp = 8;
@@ -1165,17 +1086,14 @@ KernelConnDebugInitWeights "Retina to L8 check" = {
    stochasticReleaseFlag = false;
    shrinkPatches = false;
    
-   randomFlag = 0; 
    initFromLastFlag = 0;  // 1;  // restart
    writeStep = -1;
+   writeCompressedCheckpoints = false;
 
+   weightInitType = "GaborWeight";
    aspect = 7;
    sigma = 7;
    rMax  = 7;
-   deltaThetaMax = 6.2832;
-   thetaMax = 1;
-   bowtieFlag = 0;
-   numFlanks = 2;
    
    rotate = 4;
    
@@ -1185,32 +1103,25 @@ KernelConnDebugInitWeights "Retina to L8 check" = {
    invert = 1;
        
    strength = 25;  
-   normalize = 1.0;
-   normalize_zero_offset = 0.0;
-   normalize_max = 0.0;
-   symmetrizeWeights = 0;
+   normalizeMethod = "normalizeSum";
+   normalize_cutoff = false;
+   normalizeArborsIndividually = false;
+   symmetrizeWeights = false;
+   minSumTolerated = 0.0;
+   normalizeFromPostPerspective = false;
 
-   wMax = 25;
-   wMin = 0;
-   writeCompressedWeights = 1.0;
-   gauss2DCalcWeights = 1;
-   no = 8;
-   normalize_cutoff = 0;
-   plasticityFlag = 0;
-   weightUpdatePeriod = 1.0;
+   plasticityFlag = false;
    
-   
-   flankShift = 0;
    delay = 0;   
-
+   preActivityIsNotRate = false;
+   selfFlag = false;
 };
 
 KernelConnDebugInitWeights "Retina to L9 check" = {
    preLayerName = "Retina";
    postLayerName = "L9";
-   weightInitType = "GaborWeight";
+   copiedConn = "Retina to L9";
    numAxonalArbors=1;
-   channelCode = 1;
    nxp = 9; 
    nyp = 9; 
    nfp = 8;
@@ -1218,17 +1129,14 @@ KernelConnDebugInitWeights "Retina to L9 check" = {
    stochasticReleaseFlag = false;
    shrinkPatches = false;
    
-   randomFlag = 0; 
    initFromLastFlag = 0;  // 1;  // restart
    writeStep = -1;
+   writeCompressedCheckpoints = false;
 
+   weightInitType = "GaborWeight";
    aspect = 7;
    sigma = 7;
    rMax  = 7;
-   deltaThetaMax = 6.2832;
-   thetaMax = 1;
-   bowtieFlag = 0;
-   numFlanks = 2;
    
    rotate = 4;
    
@@ -1238,101 +1146,117 @@ KernelConnDebugInitWeights "Retina to L9 check" = {
    invert = 0;
        
    strength = 25;  
-   normalize = 1.0;
-   normalize_zero_offset = 0.0;
-   normalize_max = 0.0;
-   symmetrizeWeights = 0;
+   normalizeMethod = "normalizeSum";
+   normalize_cutoff = false;
+   normalizeArborsIndividually = false;
+   symmetrizeWeights = false;
+   minSumTolerated = 0.0;
+   normalizeFromPostPerspective = false;
 
-   wMax = 25;
-   wMin = 0;
-   writeCompressedWeights = 1.0;
-   gauss2DCalcWeights = 1;
-   no = 8;
-   normalize_cutoff = 0;
-   plasticityFlag = 0;
-   weightUpdatePeriod = 1.0;
+   plasticityFlag = false;
    
-   
-   flankShift = 0;
    delay = 0;   
-
+   preActivityIsNotRate = false;
+   selfFlag = false;
 };
 
 StatsProbe "Retina Stats File" = {
     targetLayer = "Retina";
     probeOutputFile = "Retina_Stats.txt";
+    message = "Retina Stats File      ";
 };
 InitWeightTestProbe "L0 Stats File" = {
     targetLayer = "L0";
     probeOutputFile = "L0_Stats.txt";
+    message = "L0 Stats File          ";
 };
 InitWeightTestProbe "L1 Stats File" = {
     targetLayer = "L1";
     probeOutputFile = "L1_Stats.txt";
+    message = "L1 Stats File          ";
 };
 InitWeightTestProbe "L2 Stats File" = {
     targetLayer = "L2";
     probeOutputFile = "L2_Stats.txt";
+    message = "L2 Stats File          ";
 };
 // InitWeightTestProbe "L3 Stats File" = {
 //     targetLayer = "L3";
 //     probeOutputFile = "L3_Stats.txt";
+//     message = "L3 Stats File          ";
 // };
 // InitWeightTestProbe "L4 Stats File" = {
 //     targetLayer = "L4";
 //     probeOutputFile = "L4_Stats.txt";
+//     message = "L4 Stats File          ";
 // };
 InitWeightTestProbe "L5 Stats File" = {
     targetLayer = "L5";
     probeOutputFile = "L5_Stats.txt";
+    message = "L5 Stats File          ";
 };
 InitWeightTestProbe "L6 Stats File" = {
     targetLayer = "L6";
     probeOutputFile = "L6_Stats.txt";
+    message = "L6 Stats File          ";
 };
 StatsProbe "L7 Stats File" = {
     targetLayer = "L7";
     probeOutputFile = "L7_Stats.txt";
+    message = "L7 Stats File          ";
 };
 InitWeightTestProbe "L8 Stats File" = {
     targetLayer = "L8";
     probeOutputFile = "L8_Stats.txt";
+    message = "L8 Stats File          ";
 };
 InitWeightTestProbe "L9 Stats File" = {
     targetLayer = "L9";
     probeOutputFile = "L9_Stats.txt";
+    message = "L9 Stats File          ";
 };
 
 StatsProbe "Retina Stats Screen" = {
     targetLayer = "Retina";
+    message = "Retina Stats Screen    ";
 };
 InitWeightTestProbe "L0 Stats Screen" = {
     targetLayer = "L0";
+    message = "L0 Stats Screen        ";
 };
 InitWeightTestProbe "L1 Stats Screen" = {
     targetLayer = "L1";
+    message = "L1 Stats Screen        ";
 };
 InitWeightTestProbe "L2 Stats Screen" = {
     targetLayer = "L2";
+    message = "L2 Stats Screen        ";
 };
 // InitWeightTestProbe "L3 Stats Screen" = {
 //     targetLayer = "L3";
+//     message = "L3 Stats Screen        ";
 // };
 // InitWeightTestProbe "L4 Stats Screen" = {
 //     targetLayer = "L4";
+//     message = "L4 Stats Screen        ";
 // };
 InitWeightTestProbe "L5 Stats Screen" = {
     targetLayer = "L5";
+    message = "L5 Stats Screen        ";
 };
 InitWeightTestProbe "L6 Stats Screen" = {
     targetLayer = "L6";
+    message = "L6 Stats Screen        ";
 };
 StatsProbe "L7 Stats Screen" = {
     targetLayer = "L7";
+    message = "L7 Stats Screen        ";
 };
 InitWeightTestProbe "L8 Stats Screen" = {
     targetLayer = "L8";
+    message = "L8 Stats Screen        ";
 };
 InitWeightTestProbe "L9 Stats Screen" = {
     targetLayer = "L9";
+    message = "L9 Stats Screen        ";
 };
