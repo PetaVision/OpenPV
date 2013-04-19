@@ -24,7 +24,7 @@ public:
 protected:
     int initialize_base();
     int initialize(const char * name, HyPerCol * hc, HyPerLayer * preLayer, HyPerLayer * postLayer, KernelConn * auxConn);
-    virtual void readNumAxonalArborLists(PVParams * params);
+    virtual void readNumAxonalArbors(PVParams * params);
     virtual int  readPatchSize(PVParams * params);
     virtual int  readNfp(PVParams * params);
     virtual void readPlasticityFlag(PVParams * params);

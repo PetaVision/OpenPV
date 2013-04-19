@@ -31,7 +31,7 @@ protected:
     virtual int initNormalize();
 
     virtual int setParams(PVParams * inputParams);
-    virtual void readNumAxonalArborLists(PVParams * params);
+    virtual void readNumAxonalArbors(PVParams * params);
     virtual void readPlasticityFlag(PVParams * params);
     virtual void readStochasticReleaseFlag(PVParams * params);
     virtual void readPreActivityIsNotRate(PVParams * params);
@@ -39,6 +39,7 @@ protected:
     virtual void readWriteCompressedWeights(PVParams * params);
     virtual void readWriteCompressedCheckpoints(PVParams * params);
     virtual void readSelfFlag(PVParams * params);
+    virtual void readCombine_dW_with_W_flag(PVParams * params);
     virtual int  readPatchSize(PVParams * params);
     virtual int  readNfp(PVParams * params);
     virtual void readKeepKernelsSynchronized(PVParams * params);

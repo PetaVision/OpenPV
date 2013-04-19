@@ -45,7 +45,7 @@ int TransposeConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre
    return status;
 }
 
-void TransposeConn::readNumAxonalArborLists(PVParams * params) {
+void TransposeConn::readNumAxonalArbors(PVParams * params) {
    assert(originalConn);
    numAxonalArborLists = originalConn->numberOfAxonalArborLists();
    //TransposeConn has not been updated to support multiple arbors

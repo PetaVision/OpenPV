@@ -123,7 +123,7 @@ int CloneKernelConn::setParams(PVParams * params) {
    return KernelConn::setParams(params);
 }
 
-void CloneKernelConn::readNumAxonalArborLists(PVParams * params) {
+void CloneKernelConn::readNumAxonalArbors(PVParams * params) {
    assert(originalConn);
    numAxonalArborLists = originalConn->numberOfAxonalArborLists();
 }

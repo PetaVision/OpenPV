@@ -46,7 +46,7 @@ protected:
    virtual int initNormalize();
 
    virtual int setParams(PVParams * params);
-   virtual void readNumAxonalArborLists(PVParams * params);
+   virtual void readNumAxonalArbors(PVParams * params);
    virtual void readPlasticityFlag(PVParams * params);
    virtual void readShrinkPatches(PVParams * params);
    virtual int  readPatchSize(PVParams * params);

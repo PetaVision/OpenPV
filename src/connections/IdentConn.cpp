@@ -55,7 +55,7 @@ int IdentConn::setParams(PVParams * inputParams) {
    return status;
 }
 
-void IdentConn::readNumAxonalArborLists(PVParams * params) {
+void IdentConn::readNumAxonalArbors(PVParams * params) {
    numAxonalArborLists=1;
 }
 
@@ -94,6 +94,10 @@ void IdentConn::readWriteCompressedCheckpoints(PVParams * params) {
 void IdentConn::readSelfFlag(PVParams * params) {
    assert(pre!=NULL && post!=NULL);
    selfFlag = pre==post;
+}
+
+void IdentConn::readCombine_dW_with_W_flag(PVParams * params) {
+   return;
 }
 
 int IdentConn::readPatchSize(PVParams * params) {

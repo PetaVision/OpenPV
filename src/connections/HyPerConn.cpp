@@ -499,7 +499,7 @@ int HyPerConn::initPlasticityPatches()
 int HyPerConn::setParams(PVParams * inputParams)
 {
    readChannelCode(inputParams);
-   readNumAxonalArborLists(inputParams);
+   readNumAxonalArbors(inputParams);
    readPlasticityFlag(inputParams);
    readStochasticReleaseFlag(inputParams);
    readPreActivityIsNotRate(inputParams);
@@ -570,7 +570,7 @@ int HyPerConn::decodeChannel(int channel_code, ChannelType * channel_type) {
    return status;
 }
 
-void HyPerConn::readNumAxonalArborLists(PVParams * params) {
+void HyPerConn::readNumAxonalArbors(PVParams * params) {
    numAxonalArborLists=(int) params->value(name, "numAxonalArbors", 1, true);
    if (numAxonalArborLists==0 && parent->columnId()==0) {
          fprintf(stdout, "HyPerConn:: Warning: Connection %s: Variable numAxonalArbors is set to 0. No connections will be made.\n",name);
@@ -651,7 +651,7 @@ void HyPerConn::readDelay(PVParams * params) {
 int HyPerConn::initializeDelays(const float * fDelayArray, int size){
 
    int status = PV_SUCCESS;
-   assert(!parent->parameters()->presentAndNotBeenRead(name, "numAxonalArborLists"));
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "numAxonalArbors"));
    //Allocate delay data structure
    delays = (int *) calloc(numAxonalArborLists, sizeof(int));
    if( delays == NULL ) {
