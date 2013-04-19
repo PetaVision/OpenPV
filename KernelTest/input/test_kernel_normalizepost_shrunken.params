@@ -53,8 +53,6 @@ ANNLayer "L0" = {
     spikingFlag = 0;
     writeNonspikingActivity = 1;
 
-    Vrest = 1.0;
-
     VThresh = -infinity;
     VMax = infinity;
     VMin = -infinity;
@@ -70,8 +68,6 @@ ANNLayer "Lx1" = {
     mirrorBCflag = 1;
     spikingFlag = 0;
     writeNonspikingActivity = 1;
-
-    Vrest = 0.0;
 
     VThresh = -infinity;
     VMax = infinity;
@@ -89,8 +85,6 @@ ANNLayer "Lx2" = {
     spikingFlag = 0;
     writeNonspikingActivity = 1;
 
-    Vrest = 0.0;
-
     VThresh = -infinity;
     VMax = infinity;
     VMin = -infinity;
@@ -106,8 +100,6 @@ ANNLayer "Lx4" = {
     mirrorBCflag = 0;
     spikingFlag = 0;
     writeNonspikingActivity = 1;
-
-    Vrest = 0.0;
 
     VThresh = -infinity;
     VMax = infinity;
@@ -125,8 +117,6 @@ ANNLayer "Lx1_2" = {
     spikingFlag = 0;
     writeNonspikingActivity = 1;
 
-    Vrest = 0.0;
-
     VThresh = -infinity;
     VMax = infinity;
     VMin = -infinity;
@@ -142,8 +132,6 @@ ANNLayer "Lx1_4" = {
     mirrorBCflag = 0;
     spikingFlag = 0;
     writeNonspikingActivity = 1;
-
-    Vrest = 0.0;
 
     VThresh = -infinity;
     VMax = infinity;
@@ -194,6 +182,8 @@ KernelConn "L0 to Lx1" = {
     channelCode = 0;
     nxp = 5;
     nyp = 5;
+    nxpShrunken = 3;
+    nypShrunken = 3;
     nfp = 4;
     numAxonalArbors = 1;
     writeStep = -1;
@@ -230,6 +220,8 @@ KernelConn "L0 to Lx2" = {
     channelCode = 0;
     nxp = 10;
     nyp = 10;
+    nxpShrunken = 8;
+    nypShrunken = 8;
     nfp = 8;
     numAxonalArbors = 1;
     writeStep = -1;
@@ -272,6 +264,8 @@ KernelConn "L0 to Lx4" = {
     channelCode = 0;
     nxp = 20;
     nyp = 20;
+    nxpShrunken = 16;
+    nypShrunken = 16;
     nfp = 16;
     numAxonalArbors = 1;
     writeStep = -1;
@@ -314,6 +308,8 @@ KernelConn "L0 to Lx1_2" = {
     channelCode = 0;
     nxp = 3;
     nyp = 3;
+    nxpShrunken = 1;
+    nypShrunken = 1;
     nfp = 2;
     numAxonalArbors = 1;
     writeStep = -1;
@@ -357,6 +353,8 @@ KernelConn "L0 to Lx1_4" = {
     channelCode = 0;
     nxp = 1;
     nyp = 1;
+    nxpShrunken = 1;
+    nypShrunken = 1;
     nfp = 1;
     numAxonalArbors = 1;
     writeStep = -1;
