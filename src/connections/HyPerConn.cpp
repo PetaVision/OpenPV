@@ -433,6 +433,7 @@ int HyPerConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
 
    initNumWeightPatches();
    initNumDataPatches();
+   initPatchToDataLUT();
 
    //if a weight initializer hasn't been created already, use the default--> either 2D Gauss or read from file
    if(weightInit==NULL) {
@@ -449,7 +450,6 @@ int HyPerConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
    ioAppend = parent->getCheckpointReadFlag();
 
    constructWeights(filename);
-
 
 
 //This has been commented out because layers will decide if GPU acceleration

@@ -58,6 +58,11 @@ int NormalizeSum::normalizeWeights(HyPerConn * conn) {
    int nxp = conn->xPatchSize();
    int nyp = conn->yPatchSize();
    int nfp = conn->fPatchSize();
+   int nxpShrunken = conn->getNxpShrunken();
+   int nypShrunken = conn->getNypShrunken();
+   int offsetShrunken = conn->getOffsetShrunken();
+   int xPatchStride = conn->xPatchStride();
+   int yPatchStride = conn->yPatchStride();
    int weights_per_patch = nxp*nyp*nfp;
    int nArbors = conn->numberOfAxonalArborLists();
    int numDataPatches = conn->getNumDataPatches();
@@ -66,7 +71,13 @@ int NormalizeSum::normalizeWeights(HyPerConn * conn) {
          for (int patchindex = 0; patchindex<numDataPatches; patchindex++) {
             pvdata_t * dataStartPatch = conn->get_wDataStart(arborID) + patchindex * weights_per_patch;
             double sum = 0.0;
-            accumulateSum(dataStartPatch, weights_per_patch, &sum);
+            if (offsetShrunken == 0){
+            	accumulateSum(dataStartPatch, weights_per_patch, &sum);
+            }
+            else{
+            	accumulateSumShrunken(dataStartPatch, &sum,
+            			nxpShrunken, nypShrunken, offsetShrunken, xPatchStride, yPatchStride);
+            }
             if (fabs(sum) <= minSumTolerated) {
                fprintf(stderr, "NormalizeSum warning for normalizer \"%s\": sum of weights in patch %d of arbor %d is within minSumTolerated=%f of zero. Weights in this patch unchanged.\n", conn->getName(), patchindex, arborID, minSumTolerated);
                break;
@@ -80,7 +91,13 @@ int NormalizeSum::normalizeWeights(HyPerConn * conn) {
          double sum = 0.0;
          for (int arborID = 0; arborID<nArbors; arborID++) {
             pvdata_t * dataStartPatch = conn->get_wDataStart(arborID)+patchindex*weights_per_patch;
-            accumulateSum(dataStartPatch, weights_per_patch, &sum);
+            if (offsetShrunken == 0){
+            	accumulateSum(dataStartPatch, weights_per_patch, &sum);
+            }
+            else{
+            	accumulateSumShrunken(dataStartPatch, &sum,
+            			nxpShrunken, nypShrunken, offsetShrunken, xPatchStride, yPatchStride);
+            }
          }
          if (fabs(sum) <= minSumTolerated) {
             fprintf(stderr, "NormalizeSum warning for connection \"%s\": sum of weights in patch %d is within minSumTolerated=%f of zero.  Weights in this patch unchanged.\n", conn->getName(), patchindex, minSumTolerated);

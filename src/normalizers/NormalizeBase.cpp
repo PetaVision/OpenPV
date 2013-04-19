@@ -105,6 +105,22 @@ int NormalizeBase::accumulateSum(pvdata_t * dataPatchStart, int weights_in_patch
    return PV_SUCCESS;
 }
 
+int NormalizeBase::accumulateSumShrunken(pvdata_t * dataPatchStart, double * sum,
+		int nxpShrunken, int nypShrunken, int offsetShrunken, int xPatchStride, int yPatchStride) {
+   // Do not call with sumsq uninitialized.
+   // sum, sumsq, max are not cleared inside this routine so that you can accumulate the stats over several patches with multiple calls
+	pvdata_t * dataPatchStartOffset = dataPatchStart + offsetShrunken;
+	int weights_in_row = xPatchStride * nxpShrunken;
+	for (int ky = 0; ky<nypShrunken; ky++){
+		for (int k=0; k<weights_in_row; k++) {
+			pvdata_t w = dataPatchStartOffset[k];
+			*sum += w;
+		}
+		dataPatchStartOffset += yPatchStride;
+	}
+   return PV_SUCCESS;
+}
+
 int NormalizeBase::accumulateSumSquared(pvdata_t * dataPatchStart, int weights_in_patch, double * sumsq) {
    // Do not call with sumsq uninitialized.
    // sum, sumsq, max are not cleared inside this routine so that you can accumulate the stats over several patches with multiple calls
@@ -112,6 +128,22 @@ int NormalizeBase::accumulateSumSquared(pvdata_t * dataPatchStart, int weights_i
       pvdata_t w = dataPatchStart[k];
       *sumsq += w*w;
    }
+   return PV_SUCCESS;
+}
+
+int NormalizeBase::accumulateSumSquaredShrunken(pvdata_t * dataPatchStart, double * sumsq,
+		int nxpShrunken, int nypShrunken, int offsetShrunken, int xPatchStride, int yPatchStride) {
+   // Do not call with sumsq uninitialized.
+   // sum, sumsq, max are not cleared inside this routine so that you can accumulate the stats over several patches with multiple calls
+	pvdata_t * dataPatchStartOffset = dataPatchStart + offsetShrunken;
+	int weights_in_row = xPatchStride * nxpShrunken;
+	for (int ky = 0; ky<nypShrunken; ky++){
+		for (int k=0; k<weights_in_row; k++) {
+			pvdata_t w = dataPatchStartOffset[k];
+			*sumsq += w*w;
+		}
+		dataPatchStartOffset += yPatchStride;
+	}
    return PV_SUCCESS;
 }
 

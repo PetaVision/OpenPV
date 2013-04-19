@@ -101,9 +101,100 @@ int InitWeights::initializeWeights(PVPatch *** patches, pvdata_t ** dataStart,
 //						MPI_FLOAT, root_proc, mpi_comm);
 //			}
 //		}
+	} // filename != null
+	int successFlag = zeroWeightsOutsideShrunkenPatch(patches, callingConn);
+	if (successFlag != PV_SUCCESS) {
+		fprintf(stderr,
+				"Failed to zero annulus around shrunken patch for %s! Exiting...\n",
+				callingConn->getName());
+		exit(PV_FAILURE);
 	}
 	return PV_SUCCESS;
 }
+
+
+int InitWeights::zeroWeightsOutsideShrunkenPatch(PVPatch *** patches, HyPerConn * callingConn) {
+	// hack to bypass HyPerConn's for now, because HyPerConn normalization currently needs "outside" weights
+	// correct solution is to implement normalization of HyPerConns from post POV
+	if (patches != NULL){
+		return PV_SUCCESS;
+	}
+	int numArbors = callingConn->numberOfAxonalArborLists();
+	// initialize full sized patch dimensions
+	int nxPatch = callingConn->xPatchSize();
+	int nyPatch  = callingConn->yPatchSize();
+	int nkPatch  = callingConn->fPatchSize() * nxPatch;
+	int syPatch = callingConn->yPatchStride();                   // stride in patch
+	int offsetPatch = 0;
+	pvdata_t * wData_head = NULL;
+	int delta_offset = 0;
+	for (int arborID = 0; arborID < numArbors; arborID++) {
+		for (int kPre = 0; kPre < callingConn->getNumDataPatches(); kPre++) {
+			wData_head = callingConn->get_wDataHead(arborID,kPre);
+			if (patches != NULL) {  // callingConn is a HyPerConn
+				PVPatch * weightPatch = callingConn->getWeights(kPre, arborID);
+				nxPatch = weightPatch->nx;
+				nyPatch = weightPatch->ny;
+				offsetPatch = weightPatch->offset;
+				nkPatch  = callingConn->fPatchSize() * nxPatch;
+				pvdata_t * wData = callingConn->get_wData(arborID,kPre);
+				delta_offset = wData - wData_head;
+			}
+			else {  // callingConn is a KernelConn
+				delta_offset = callingConn->getOffsetShrunken();
+				nxPatch = callingConn->getNxpShrunken();
+				nyPatch = callingConn->getNypShrunken();
+				nkPatch  = callingConn->fPatchSize() * nxPatch;
+			}
+			int dy_south = delta_offset / syPatch;
+			assert(dy_south >= 0); assert(dy_south <= callingConn->yPatchSize());
+			int dy_north = callingConn->yPatchSize() - nyPatch - dy_south;
+			assert(dy_north >= 0); assert(dy_north <= callingConn->yPatchSize());
+			int dx_west = (delta_offset - dy_south * syPatch) / callingConn->fPatchSize();
+			assert(dx_west >= 0); assert(dx_west <= callingConn->xPatchSize());
+			int dx_east = callingConn->xPatchSize() - nxPatch - dx_west;
+			assert(dx_east >= 0); assert(dx_east <= callingConn->xPatchSize());
+			// zero north border
+			pvdata_t * outside_weights = wData_head;
+			for (int ky = 0; ky < dy_north; ky++){
+				for (int kPatch = 0; kPatch < syPatch; kPatch++){
+					outside_weights[kPatch] = 0;
+				}
+				outside_weights+= syPatch;
+			}
+			// zero south border
+			outside_weights = wData_head +
+					(dy_north + nyPatch) * syPatch;
+			for (int ky = 0; ky < dy_south; ky++){
+				for (int kPatch = 0; kPatch < syPatch; kPatch++){
+					outside_weights[kPatch] = 0;
+				}
+				outside_weights+= syPatch;
+			}
+			// zero west border
+			outside_weights = wData_head +
+					dy_north * syPatch;
+			for (int ky = 0; ky < nyPatch; ky++){
+				for (int kPatch = 0; kPatch < dx_west * callingConn->fPatchSize(); kPatch++){
+					outside_weights[kPatch] = 0;
+				}
+				outside_weights+= syPatch;
+			}
+			// zero east border
+			outside_weights = wData_head +
+					dy_north * syPatch +
+					(dx_west + nxPatch) * callingConn->fPatchSize();
+			for (int ky = 0; ky < nyPatch; ky++){
+				for (int kPatch = 0; kPatch < dx_east * callingConn->fPatchSize(); kPatch++){
+					outside_weights[kPatch] = 0;
+				}
+				outside_weights+= syPatch;
+			}
+		} // kPre
+	} // arborID
+	return PV_SUCCESS;
+}
+
 
 InitWeightsParams * InitWeights::createNewWeightParams(HyPerConn * callingConn) {
    InitWeightsParams * tempPtr = new InitWeightsParams(callingConn);

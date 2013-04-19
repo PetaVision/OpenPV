@@ -37,8 +37,8 @@ KernelConn::KernelConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPer
 KernelConn::~KernelConn() {
    deleteWeights();
    #ifdef PV_USE_MPI
-   free(mpiReductionBuffer);
-#endif // PV_USE_MPI
+      free(mpiReductionBuffer);
+   #endif // PV_USE_MPI
 }
 
 int KernelConn::initialize_base()
@@ -95,8 +95,6 @@ int KernelConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
 //   //tell the recieving layer to copy gsyn to the gpu, because kernelconn won't be calculating it
 //   post->copyChannelToDevice();
 #endif
-
-   initPatchToDataLUT();
 
    return PV_SUCCESS;
 }

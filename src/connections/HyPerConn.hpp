@@ -306,6 +306,7 @@ public:
 #ifdef PV_USE_OPENCL
    virtual int * getLUTpointer() {return NULL;}
 #endif // PV_USE_OPENCL
+   virtual void initPatchToDataLUT(){};
    virtual int patchToDataLUT(int patchIndex);
    virtual int patchIndexToDataIndex(int patchIndex, int* kx = NULL, int* ky =
          NULL, int* kf = NULL);

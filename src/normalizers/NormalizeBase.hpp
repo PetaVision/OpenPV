@@ -40,7 +40,11 @@ protected:
    virtual void readNormalizeArborsIndividually() {normalizeArborsIndividually = params->value(name, "normalizeArborsIndividually", false/*default value*/, true/*warnIfAbsent*/);}
 
    int accumulateSum(pvdata_t * dataPatchStart, int weights_in_patch, double * sum);
+   int accumulateSumShrunken(pvdata_t * dataPatchStart, double * sum,
+   		int nxpShrunken, int nypShrunken, int offsetShrunken, int xPatchStride, int yPatchStride);
    int accumulateSumSquared(pvdata_t * dataPatchStart, int weights_in_patch, double * sumsq);
+   int accumulateSumSquaredShrunken(pvdata_t * dataPatchStart, double * sumsq,
+   		int nxpShrunken, int nypShrunken, int offsetShrunken, int xPatchStride, int yPatchStride);
    int accumulateMax(pvdata_t * dataPatchStart, int weights_in_patch, float * max);
    int applyThreshold(pvdata_t * dataPatchStart, int weights_in_patch, float wMax); // weights less than normalize_cutoff*max(weights) are zeroed out
    int symmetrizeWeights(HyPerConn * conn); // may be used by several subclasses

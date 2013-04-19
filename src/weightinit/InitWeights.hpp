@@ -33,16 +33,18 @@ public:
     * to inherit InitWeights::initializeWeights, and only override calcWeights.
     * The method is nevertheless virtual to allow special cases (e.g. BIDS)
     */
-	virtual int initializeWeights(PVPatch *** patches, pvdata_t ** dataStart,
+   virtual int initializeWeights(PVPatch *** patches, pvdata_t ** dataStart,
 			int numPatches, const char * filename, HyPerConn * callingConn,
 			double * timef = NULL);
    virtual InitWeightsParams * createNewWeightParams(HyPerConn * callingConn);
 
-	virtual int calcWeights(/* PVPatch * patch */pvdata_t * dataStart,
+   virtual int calcWeights(/* PVPatch * patch */pvdata_t * dataStart,
 			int patchIndex, int arborId, InitWeightsParams *weightParams);
 
    virtual int readWeights(PVPatch *** patches, pvdata_t ** dataStart, int numPatches,
                            const char * filename, HyPerConn * callingConn, double * time=NULL);
+
+   virtual int zeroWeightsOutsideShrunkenPatch(PVPatch *** patches, HyPerConn * callingConn);
 
 protected:
    int initialize_base();
