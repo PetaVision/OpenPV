@@ -264,5 +264,26 @@ void NormalizeBase::normalizePatch(pvdata_t * dataStartPatch, int weights_per_pa
    for (int k=0; k<weights_per_patch; k++) dataStartPatch[k] *= multiplier;
 }
 
+void NormalizeBase::readNormalizeFromPostPerspective() {
+   if (!params->present(name, "normalizeFromPostPerspective") && params->present(name, "normalizeTotalToPost")) {
+      fprintf(stderr, "Normalizer \"%s\": parameter name normalizeTotalToPost is deprecated.  Use normalizeFromPostPerspective.\n", name);
+      normalizeFromPostPerspective = params->value(name, "normalizeTotalToPost");
+   }
+   else {
+      normalizeFromPostPerspective = params->value(name, "normalizeFromPostPerspective", false/*default value*/, true/*warnIfAbsent*/);
+   }
+}
+
+void NormalizeBase::readNormalizeArborsIndividually() {
+   if (!params->present(name, "normalizeArborsIndividually") && params->present(name, "normalize_arbors_individually")) {
+      fprintf(stderr, "Normalizer \"%s\": parameter name normalize_arbors_individually is deprecated.  Use normalizeArborsIndividually.\n", name);
+      normalizeArborsIndividually = params->value(name, "normalize_arbors_individually");
+   }
+   else {
+      normalizeArborsIndividually = params->value(name, "normalizeArborsIndividually", false/*default value*/, true/*warnIfAbsent*/);
+   }
+}
+// virtual void readNormalizeArborsIndividually() {normalizeArborsIndividually = params->value(name, "normalizeArborsIndividually", false/*default value*/, true/*warnIfAbsent*/);}
+
 } // end namespace PV
 

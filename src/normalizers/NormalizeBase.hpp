@@ -36,8 +36,8 @@ protected:
    virtual void readStrength() {strength = params->value(name, "strength", 1.0f, true/*warnIfAbsent*/);}
    virtual void readNormalizeCutoff() {normalize_cutoff = params->value(name, "normalize_cutoff", 0.0f, true/*warnIfAbsent*/);}
    virtual void readSymmetrizeWeights() {symmetrizeWeightsFlag = params->value(name, "symmetrizeWeights", false/*default value*/, true/*warnIfAbsent*/);}
-   virtual void readNormalizeFromPostPerspective() {normalizeFromPostPerspective = params->value(name, "normalizeFromPostPerspective", false/*default value*/, true/*warnIfAbsent*/);}
-   virtual void readNormalizeArborsIndividually() {normalizeArborsIndividually = params->value(name, "normalizeArborsIndividually", false/*default value*/, true/*warnIfAbsent*/);}
+   virtual void readNormalizeFromPostPerspective();
+   virtual void readNormalizeArborsIndividually();
 
    int accumulateSum(pvdata_t * dataPatchStart, int weights_in_patch, double * sum);
    int accumulateSumShrunken(pvdata_t * dataPatchStart, double * sum,
