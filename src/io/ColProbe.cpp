@@ -12,9 +12,11 @@ namespace PV {
 ColProbe::ColProbe() { // Default constructor to be called by derived classes.
    // They should call ColProbe::initialize from their own initialization routine
    // instead of calling a non-default constructor.
+   initialize_base();
 }
 
 ColProbe::ColProbe(const char * filename, HyPerCol * hc) { // Kept for backward compatibility
+   initialize_base();
    initialize("ColProbe", filename, hc);
 }
 
@@ -26,6 +28,12 @@ ColProbe::~ColProbe() {
    if( fp != NULL && fp != stdout) {
       fclose(fp);
    }
+}
+
+int ColProbe::initialize_base() {
+   fp = NULL;
+   colProbeName = NULL;
+   return PV_SUCCESS;
 }
 
 int ColProbe::initialize(const char * probeName, const char * filename, HyPerCol * hc) {

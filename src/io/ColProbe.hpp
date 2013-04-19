@@ -30,6 +30,9 @@ protected:
     int initialize(const char * probeName, const char * filename, HyPerCol * hc);
     int initialize_path(const char * filename, HyPerCol * hc);
     int setColProbeName(const char * name);
+
+private:
+    int initialize_base();
 }; // end class ColProbe
 
 }  // end namespace PV
