@@ -148,7 +148,7 @@ public:
    int setStringStack(ParameterStringStack * stringStack);
    int   present(const char * name);
    double value  (const char * name);
-   int   arrayPresent(const char * name);
+   bool  arrayPresent(const char * name);
    const float * arrayValues(const char * name, int * size);
    const double * arrayValuesDbl(const char * name, int * size);
    int   stringPresent(const char * stringName);
@@ -212,9 +212,10 @@ public:
    bool getParseStatus() { return parseStatus; }
    int   present(const char * groupName, const char * paramName);
    double value  (const char * groupName, const char * paramName);
+   bool arrayPresent(const char * groupName, const char * paramName);
    double value  (const char * groupName, const char * paramName, double initialValue, bool warnIfAbsent=true);
-   const float * arrayValues(const char * groupName, const char * paramName, int * arraySize);
-   const double * arrayValuesDbl(const char * groupName, const char * paramName, int * arraySize);
+   const float * arrayValues(const char * groupName, const char * paramName, int * arraySize, bool warnIfAbsent=true);
+   const double * arrayValuesDbl(const char * groupName, const char * paramName, int * arraySize, bool warnIfAbsent=true);
    int   stringPresent(const char * groupName, const char * paramStringName);
    const char * stringValue(const char * groupName, const char * paramStringName, bool warnIfAbsent=true);
    ParameterGroup * group(const char * groupName);

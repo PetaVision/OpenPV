@@ -427,7 +427,7 @@ double ParameterGroup::value(const char * name)
    exit(1);
 }
 
-int ParameterGroup::arrayPresent(const char * name) {
+bool ParameterGroup::arrayPresent(const char * name) {
    int array_found = 0;
    int count = arrayStack->size();
    for (int i=0; i<count; i++) {
@@ -437,7 +437,7 @@ int ParameterGroup::arrayPresent(const char * name) {
          break;
       }
    }
-   return array_found; // string is not present
+   return array_found;
 }
 
 const float * ParameterGroup::arrayValues(const char * name, int * size) {
@@ -1109,12 +1109,27 @@ double PVParams::value(const char * groupName, const char * paramName, double in
    }
 }
 
+bool PVParams::arrayPresent(const char * groupName, const char * paramName) {
+   ParameterGroup * g = group(groupName);
+   if (g == NULL) {
+      if( getRank() == 0 ) {
+         fprintf(stderr, "PVParams::present: ERROR, couldn't find a group for %s\n",
+                 groupName);
+      }
+      exit(EXIT_FAILURE);
+   }
+
+   return g->arrayPresent(paramName);
+
+}
+
+// Could use a template function for arrayValues and arrayValuesDbl
 /*
  *  @groupName
  *  @paramName
  *  @size
  */
-const float * PVParams::arrayValues(const char * groupName, const char * paramName, int * size) {
+const float * PVParams::arrayValues(const char * groupName, const char * paramName, int * size, bool warnIfAbsent) {
    ParameterGroup * g = group(groupName);
    if (g == NULL) {
       if( getRank() == 0 ) {
@@ -1123,7 +1138,14 @@ const float * PVParams::arrayValues(const char * groupName, const char * paramNa
       }
       return NULL;
    }
-   return g->arrayValues(paramName, size);
+   const float * retval = g->arrayValues(paramName, size);
+   if (retval == NULL) {
+      assert(*size==0);
+      if (getRank()==0) {
+         fprintf(stderr, "Using default value for parameter \"%s\" in group \"%s\"\n", paramName, groupName);
+      }
+   }
+   return retval;
 }
 
 /*
@@ -1131,7 +1153,7 @@ const float * PVParams::arrayValues(const char * groupName, const char * paramNa
  *  @paramName
  *  @size
  */
-const double * PVParams::arrayValuesDbl(const char * groupName, const char * paramName, int * size) {
+const double * PVParams::arrayValuesDbl(const char * groupName, const char * paramName, int * size, bool warnIfAbsent) {
    ParameterGroup * g = group(groupName);
    if (g == NULL) {
       if( getRank() == 0 ) {
@@ -1140,7 +1162,14 @@ const double * PVParams::arrayValuesDbl(const char * groupName, const char * par
       }
       return NULL;
    }
-   return g->arrayValuesDbl(paramName, size);
+   const double * retval = g->arrayValuesDbl(paramName, size);
+   if (retval == NULL) {
+      assert(*size==0);
+      if (getRank()==0) {
+         fprintf(stderr, "Using default value %f for parameter \"%s\" in group \"%s\"\n", *retval, paramName, groupName);
+      }
+   }
+   return retval;
 }
 
 /*
@@ -1275,10 +1304,9 @@ bool PVParams::hasBeenRead(const char * group_name, const char * param_name) {
 }
 
 bool PVParams::presentAndNotBeenRead(const char * group_name, const char * param_name) {
-   int dummysize;
    bool is_present = present(group_name, param_name);
-   is_present |= stringPresent(group_name, param_name);
-   is_present |= arrayValues(group_name, param_name, &dummysize)!=NULL;
+   if (!is_present) is_present = arrayPresent(group_name, param_name);
+   if (!is_present) is_present = stringPresent(group_name, param_name);
    bool has_been_read = hasBeenRead(group_name, param_name);
    return is_present && !has_been_read;
 }
