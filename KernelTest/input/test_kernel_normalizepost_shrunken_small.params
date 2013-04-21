@@ -1,0 +1,192 @@
+//
+// test_kernel.params
+//
+// created by garkenyon: August 4, 2011
+//
+
+//  - input parameters for test_kernel.cpp for system level testing of kernels
+//
+
+HyPerCol "column" = {
+   nx = 8;   
+   ny = 8;
+   dt = 1.0;
+   randomSeed = 926268668;  // if not set here,  clock time is used to generate seed
+   numSteps = 4;  // num images plus (num layers + 1) * delay
+   progressStep = 5;
+   outputPath = "output/";
+   filenamesContainLayerNames = 2;
+   writeProgressToErr = 0;
+   filenamesContainConnectionNames = 0;
+   checkpointRead = 0;
+   checkpointWrite = 0;
+   suppressLastOutput = 0;
+};
+
+//
+// layers
+//
+
+Retina "Retina" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 1;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeSparseActivity = false;
+
+    foregroundRate = 1000;
+    backgroundRate = 1000;
+    burstFreq = 1;
+    burstDuration = 1000;
+
+    beginStim = 0;
+    endStim = 1000;
+    
+    initialWriteTime = 0;
+    phase = 0;
+};
+
+ANNLayer "L0" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 2;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    writeSparseActivity = false;
+
+	InitVType = "ConstantV";
+	valueV = 0;
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+    
+    initialWriteTime = 0;
+    VShift = 0;
+    phase = 1;    
+};
+
+ANNLayer "Lx1" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 0;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    writeSparseActivity = false;
+
+	InitVType = "ConstantV";
+	valueV = 0;
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+    
+    initialWriteTime = 0;
+    VShift = 0;
+    phase = 2;
+};
+
+
+//  connections: 
+
+KernelConn "Retina to L0" = {
+    preLayerName = "Retina";
+    postLayerName = "L0";
+    channelCode = 0;
+    nxp = 1;
+    nyp = 1;
+    nfp = 1;
+    numAxonalArbors = 1;
+    writeStep = -1;
+    initFromLastFlag = 0;
+    
+    weightInitType = "UniformWeight";
+    weightInit = 1;
+      
+    strength = 1.0;  // 1.0 x post->num_neurons / pre->num_neurons
+    normalizeMethod = "normalizeSum";
+    minSumTolerated = 0;
+	normalizeArborsIndividually = 0;
+    normalize_cutoff = 0.0;
+    normalizeFromPostPerspective = true;
+    symmetrizeWeights = 0;
+
+    plasticityFlag = 0;
+    shmget_flag = 1;
+
+    delay = 0;
+
+    stochasticReleaseFlag = false;
+    shrinkPatches = false;
+    
+    preActivityIsNotRate = 0;
+    writeCompressedCheckpoints = 0;
+    selfFlag = 0;
+};
+
+KernelConn "L0 to Lx1" = {
+    preLayerName = "L0";
+    postLayerName = "Lx1";
+    channelCode = 0;
+    nxp = 5;
+    nyp = 5;
+    nxpShrunken = 3;
+    nypShrunken = 3;
+    nfp = 1;
+    numAxonalArbors = 1;
+    writeStep = -1;
+    initFromLastFlag = 0;
+    
+    weightInitType = "UniformWeight";
+    weightInit = 1;
+      
+    strength = 1.0;  // 1.0 x post->num_neurons / pre->num_neurons
+    normalizeMethod = "normalizeSum";
+    minSumTolerated = 0;
+	normalizeArborsIndividually = 0;
+    normalize_cutoff = 0.0;
+    normalizeFromPostPerspective = true;
+    symmetrizeWeights = 0;
+
+    plasticityFlag = 0;
+    shmget_flag = 1;
+
+    delay = 0;
+
+    stochasticReleaseFlag = false;
+    shrinkPatches = false;
+    
+    preActivityIsNotRate = 0;
+    writeCompressedCheckpoints = 0;
+    selfFlag = 0;
+};
+
+
+KernelTestProbe "Retina Stats File" = {
+    targetLayer = "Retina";
+    probeOutputFile = "Retina_Stats.txt";
+};
+KernelTestProbe "L0 Stats File" = {
+    targetLayer = "L0";
+    probeOutputFile = "L0_Stats.txt";
+};
+KernelTestProbe "Lx1 Stats File" = {
+    targetLayer = "Lx1";
+    probeOutputFile = "Lx1_Stats.txt";
+};
+
+KernelTestProbe "Retina Stats Screen" = {
+    targetLayer = "Retina";
+};
+KernelTestProbe "L0 Stats Screen" = {
+    targetLayer = "L0";
+};
+KernelTestProbe "Lx1 Stats Screen" = {
+    targetLayer = "Lx1";
+};

@@ -16,6 +16,11 @@ HyPerCol "column" = {
    progressStep = 5;
    outputPath = "output/";
    filenamesContainLayerNames = 2;
+   writeProgressToErr = 0;
+   filenamesContainConnectionNames = 0;
+   checkpointRead = 0;
+   checkpointWrite = 0;
+   suppressLastOutput = 0;
 };
 
 //
@@ -31,7 +36,7 @@ Retina "Retina" = {
     writeStep = 1.0;
     mirrorBCflag = 1;
     spikingFlag = 0;
-    writeNonspikingActivity = 1;
+    writeSparseActivity = false;
 
     foregroundRate = 1000;
     backgroundRate = 1000;
@@ -40,6 +45,9 @@ Retina "Retina" = {
 
     beginStim = 0;
     endStim = 1000;
+    
+    initialWriteTime = 0;
+    phase = 0;
 };
 
 ANNLayer "L0" = {
@@ -50,12 +58,17 @@ ANNLayer "L0" = {
     marginWidth = 4;
     writeStep = 1.0;
     mirrorBCflag = 1;
-    spikingFlag = 0;
-    writeNonspikingActivity = 1;
+    writeSparseActivity = false;
 
+	InitVType = "ConstantV";
+	valueV = 0;
     VThresh = -infinity;
     VMax = infinity;
     VMin = -infinity;
+    
+    initialWriteTime = 0;
+    VShift = 0;
+    phase = 1;    
 };
 
 ANNLayer "Lx1" = {
@@ -66,12 +79,17 @@ ANNLayer "Lx1" = {
     marginWidth = 0;
     writeStep = 1.0;
     mirrorBCflag = 1;
-    spikingFlag = 0;
-    writeNonspikingActivity = 1;
+    writeSparseActivity = false;
 
+	InitVType = "ConstantV";
+	valueV = 0;
     VThresh = -infinity;
     VMax = infinity;
     VMin = -infinity;
+    
+    initialWriteTime = 0;
+    VShift = 0;
+    phase = 2;
 };
 
 ANNLayer "Lx2" = {
@@ -82,12 +100,17 @@ ANNLayer "Lx2" = {
     marginWidth = 0;
     writeStep = 1.0;
     mirrorBCflag = 1;
-    spikingFlag = 0;
-    writeNonspikingActivity = 1;
+    writeSparseActivity = false;
 
+	InitVType = "ConstantV";
+	valueV = 0;
     VThresh = -infinity;
     VMax = infinity;
     VMin = -infinity;
+    
+    initialWriteTime = 0;
+    VShift = 0;
+    phase = 2;    
 };
 
 ANNLayer "Lx4" = {
@@ -98,12 +121,17 @@ ANNLayer "Lx4" = {
     marginWidth = 0;
     writeStep = 1.0;
     mirrorBCflag = 0;
-    spikingFlag = 0;
-    writeNonspikingActivity = 1;
+    writeSparseActivity = false;
 
+	InitVType = "ConstantV";
+	valueV = 0;
     VThresh = -infinity;
     VMax = infinity;
     VMin = -infinity;
+
+    initialWriteTime = 0;
+    VShift = 0;
+    phase = 2;  
 };
 
 ANNLayer "Lx1_2" = {
@@ -114,12 +142,17 @@ ANNLayer "Lx1_2" = {
     marginWidth = 0;
     writeStep = 1.0;
     mirrorBCflag = 0;
-    spikingFlag = 0;
-    writeNonspikingActivity = 1;
+    writeSparseActivity = false;
 
+	InitVType = "ConstantV";
+	valueV = 0;
     VThresh = -infinity;
     VMax = infinity;
     VMin = -infinity;
+    
+    initialWriteTime = 0;
+    VShift = 0;
+    phase = 2;  
 };
 
 ANNLayer "Lx1_4" = {
@@ -130,12 +163,17 @@ ANNLayer "Lx1_4" = {
     marginWidth = 0;
     writeStep = 1.0;
     mirrorBCflag = 0;
-    spikingFlag = 0;
-    writeNonspikingActivity = 1;
+    writeSparseActivity = false;
 
+	InitVType = "ConstantV";
+	valueV = 0;
     VThresh = -infinity;
     VMax = infinity;
     VMin = -infinity;
+    
+    initialWriteTime = 0;
+    VShift = 0;
+    phase = 2;  
 };
 
 //  connections: 
@@ -151,22 +189,17 @@ KernelConn "Retina to L0" = {
     writeStep = -1;
     initFromLastFlag = 0;
     
-    weightInitType = "Gauss2DWeight";
-    aspect = 1;
-    sigma = 1;
-    rMax  = infinity;
-    rMin = 0;
-    // no = 4;
+    weightInitType = "UniformWeight";
+    weightInit = 1;
       
     strength = 1.0;  // 1.0 x post->num_neurons / pre->num_neurons
-    normalize = 1.0;
-    normalize_zero_offset = 0.0;
-    normalize_max = 0.0;
+    normalizeMethod = "normalizeSum";
+    minSumTolerated = 0;
+	normalizeArborsIndividually = 0;
     normalize_cutoff = 0.0;
     normalizeFromPostPerspective = true;
     symmetrizeWeights = 0;
 
-    writeCompressedWeights = 0.0;
     plasticityFlag = 0;
     shmget_flag = 1;
 
@@ -174,6 +207,10 @@ KernelConn "Retina to L0" = {
 
     stochasticReleaseFlag = false;
     shrinkPatches = false;
+    
+    preActivityIsNotRate = 0;
+    writeCompressedCheckpoints = 0;
+    selfFlag = 0;
 };
 
 KernelConn "L0 to Lx1" = {
@@ -189,29 +226,28 @@ KernelConn "L0 to Lx1" = {
     writeStep = -1;
     initFromLastFlag = 0;
     
-    weightInitType = "Gauss2DWeight";
-    aspect = 1;
-    sigma = infinity;
-    rMax  = infinity;
-    rMin = 0;
-    // no = 4;
+    weightInitType = "UniformWeight";
+    weightInit = 1;
       
     strength = 1.0;  // 1.0 x post->num_neurons / pre->num_neurons
-    normalize = 1.0;
-    normalize_zero_offset = 0.0;
-    normalize_max = 0.0;
+    normalizeMethod = "normalizeSum";
+    minSumTolerated = 0;
+	normalizeArborsIndividually = 0;
     normalize_cutoff = 0.0;
     normalizeFromPostPerspective = true;
     symmetrizeWeights = 0;
 
-    writeCompressedWeights = 0.0;
     plasticityFlag = 0;
     shmget_flag = 1;
 
-    delay = 0;     
+    delay = 0;
 
     stochasticReleaseFlag = false;
     shrinkPatches = false;
+    
+    preActivityIsNotRate = 0;
+    writeCompressedCheckpoints = 0;
+    selfFlag = 0;
 };
 
 KernelConn "L0 to Lx2" = {
@@ -227,35 +263,28 @@ KernelConn "L0 to Lx2" = {
     writeStep = -1;
     initFromLastFlag = 0;
     
-    weightInitType = "Gauss2DWeight";
-    aspect = 1; //2;
-    sigma = infinity;
-    rMax  = infinity;
-    rMin = 0;
-    // deltaThetaMax = 6.2832;
-    // thetaMax = 1;
-    // bowtieFlag = 0;
-    // numFlanks = 1;
-    // flankShift = 0;
-    // rotate = 1;
-    // no = 8;
+    weightInitType = "UniformWeight";
+    weightInit = 1;
       
-    strength = 1.0; // 1.0 x post->num_neurons / pre->num_neurons
-    normalize = 1.0;
-    normalize_zero_offset = 0.0;
-    normalize_max = 0.0;
+    strength = 1.0;  // 1.0 x post->num_neurons / pre->num_neurons
+    normalizeMethod = "normalizeSum";
+    minSumTolerated = 0;
+	normalizeArborsIndividually = 0;
     normalize_cutoff = 0.0;
     normalizeFromPostPerspective = true;
     symmetrizeWeights = 0;
 
-    writeCompressedWeights = 0.0;
     plasticityFlag = 0;
     shmget_flag = 1;
 
-    delay = 0;     
+    delay = 0;
 
     stochasticReleaseFlag = false;
     shrinkPatches = false;
+    
+    preActivityIsNotRate = 0;
+    writeCompressedCheckpoints = 0;
+    selfFlag = 0;
 };
 
 KernelConn "L0 to Lx4" = {
@@ -271,35 +300,28 @@ KernelConn "L0 to Lx4" = {
     writeStep = -1;
     initFromLastFlag = 0;
     
-    weightInitType = "Gauss2DWeight";
-    aspect = 1; //4;
-    sigma = infinity;
-    rMax  = infinity;
-    rMin = 0;
-    // deltaThetaMax = 6.2832;
-    // thetaMax = 1;
-    // bowtieFlag = 0;
-    // numFlanks = 1;
-    // flankShift = 0;
-    // rotate = 1;
-    // no = 16;
+    weightInitType = "UniformWeight";
+    weightInit = 1;
       
-    strength = 1.0; // 1.0 x post->num_neurons / pre->num_neurons
-    normalize = 1.0;
-    normalize_zero_offset = 0.0;
-    normalize_max = 0.0;
+    strength = 1.0;  // 1.0 x post->num_neurons / pre->num_neurons
+    normalizeMethod = "normalizeSum";
+    minSumTolerated = 0;
+	normalizeArborsIndividually = 0;
     normalize_cutoff = 0.0;
     normalizeFromPostPerspective = true;
     symmetrizeWeights = 0;
 
-    writeCompressedWeights = 0.0;
     plasticityFlag = 0;
     shmget_flag = 1;
 
-    delay = 0;     
+    delay = 0;
 
     stochasticReleaseFlag = false;
     shrinkPatches = false;
+    
+    preActivityIsNotRate = 0;
+    writeCompressedCheckpoints = 0;
+    selfFlag = 0;
 };
 
 KernelConn "L0 to Lx1_2" = {
@@ -315,35 +337,28 @@ KernelConn "L0 to Lx1_2" = {
     writeStep = -1;
     initFromLastFlag = 0;
     
-    weightInitType = "Gauss2DWeight";
-    aspect = 2;
-    sigma = infinity;
-    rMax  = infinity;
-    rMin = 0;
-    deltaThetaMax = 6.2832;
-    thetaMax = 1;
-    bowtieFlag = 0;
-    numFlanks = 1;
-    flankShift = 0;
-    rotate = 1;
-    // no = 2;
+    weightInitType = "UniformWeight";
+    weightInit = 1;
       
-    strength = 1; // 1.0 x post->num_neurons / pre->num_neurons
-    normalize = 1.0;
-    normalize_zero_offset = 0.0;
-    normalize_max = 0.0;
+    strength = 1.0;  // 1.0 x post->num_neurons / pre->num_neurons
+    normalizeMethod = "normalizeSum";
+    minSumTolerated = 0;
+	normalizeArborsIndividually = 0;
     normalize_cutoff = 0.0;
     normalizeFromPostPerspective = true;
     symmetrizeWeights = 0;
 
-    writeCompressedWeights = 0.0;
     plasticityFlag = 0;
     shmget_flag = 1;
 
-    delay = 0;     
+    delay = 0;
 
     stochasticReleaseFlag = false;
     shrinkPatches = false;
+    
+    preActivityIsNotRate = 0;
+    writeCompressedCheckpoints = 0;
+    selfFlag = 0;
 };
 
 
@@ -360,35 +375,28 @@ KernelConn "L0 to Lx1_4" = {
     writeStep = -1;
     initFromLastFlag = 0;
     
-    weightInitType = "Gauss2DWeight";
-    aspect = 1;
-    sigma = infinity;
-    rMax  = infinity;
-    rMin = 0;
-    // deltaThetaMax = 6.2832;
-    // thetaMax = 1;
-    // bowtieFlag = 0;
-    // numFlanks = 1;
-    // flankShift = 0;
-    // rotate = 1;
-    // no = 1;
+    weightInitType = "UniformWeight";
+    weightInit = 1;
       
-    strength = 1; // 1.0 x post->num_neurons / pre->num_neurons
-    normalize = 1.0;
-    normalize_zero_offset = 0.0;
-    normalize_max = 0.0;
+    strength = 1.0;  // 1.0 x post->num_neurons / pre->num_neurons
+    normalizeMethod = "normalizeSum";
+    minSumTolerated = 0;
+	normalizeArborsIndividually = 0;
     normalize_cutoff = 0.0;
     normalizeFromPostPerspective = true;
     symmetrizeWeights = 0;
 
-    writeCompressedWeights = 0.0;
     plasticityFlag = 0;
     shmget_flag = 1;
 
-    delay = 0;     
+    delay = 0;
 
     stochasticReleaseFlag = false;
     shrinkPatches = false;
+    
+    preActivityIsNotRate = 0;
+    writeCompressedCheckpoints = 0;
+    selfFlag = 0;
 };
 
 
