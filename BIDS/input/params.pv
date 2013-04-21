@@ -9,11 +9,17 @@ HyPerCol "column" = {
    randomSeed 				= 1020304050.0; // remove when running for real
    //checkpointRead  			= true;  		// normal run
    checkpointRead  				= false; 		// init run
-   checkpointWrite 				= false;  		// always
-   numSteps 					= 701;			// amount of time steps performed during run-time
-   progressStep					= 2000;
-   outputPath                   = "/Users/slundquist/Documents/workspace/BIDS/output/";
+   checkpointWrite 				= true;  		// always
+   checkpointWriteDir           = "/Users/Burger/Documents/workspace/BIDS/output/checkpoints/";
+   checkpointWriteStepInterval  = 100;
+   numSteps 					= 700;			// amount of time steps performed during run-time
+   progressStep					= 100;
+   outputPath                   = "/Users/Burger/Documents/workspace/BIDS/output/";
    filenamesContainLayerNames 	= 2; 			// stores pvp files as: 1 = layer number/2 = layer number and layer name/3 = layer name
+
+   writeProgressToErr           = 0;
+   filenamesContainConnectionNames = 1;
+   suppressLastOutput = 1;
 };
 
 // Layers Layers Layers Layers Layers Layers Layers Layers Layers Layers Layers
@@ -27,10 +33,11 @@ Movie "Source" = {
 //    imageListPath = "/Users/slundquist/Documents/workspace/BIDS/input/wave_prop_files2.txt";
 //    imageListPath = "/Users/slundquist/Documents/workspace/BIDS/input/wave_with_noise.txt";
 //    imageListPath = "/Users/slundquist/Documents/workspace/BIDS/input/weak_wave_file.txt";
-    imageListPath = "/Users/slundquist/Documents/workspace/BIDS/input/norm_wave_file.txt";
+//    imageListPath = "/Users/slundquist/Documents/workspace/BIDS/input/norm_wave_file.txt";
 //    imageListPath = "/Users/slundquist/Documents/workspace/BIDS/input/strong_wave_file.txt";
 //    imageListPath = "/Users/slundquist/Documents/workspace/BIDS/input/blank_img_files.txt";
 //    imageListPath = "/Users/slundquist/Documents/workspace/BIDS/input/full_img_files.txt";
+    imageListPath = "/Users/Burger/Documents/workspace/BIDS/input/filenames.txt";
 
 	restart = 0;
     nxScale = 1;
@@ -47,6 +54,18 @@ Movie "Source" = {
     jitterFlag = 0;
     offsetX = 0;
     offsetY = 0;
+
+    writeStep = 0;
+    initialWriteTime = 0;
+    phase = 0;
+    writeImages = 0;
+    useImageBCflag = 0;
+    inverseFlag = 0;
+    normalizeLuminanceFlag = 0;
+    start_frame_index = 0;
+    skip_frame_index = 0;
+    echoFramePathnameFlag = 0;
+    randomMovie = 0;
 };
 
 //Image "Neutral" = {
@@ -67,6 +86,12 @@ BIDSMovieCloneMap "BIDS_Movie" = {
 	nyScale       = .25;
 	jitter        = 3;
 	writeStep     = 1.0;
+
+    nf = 1;
+    marginWidth = 0;
+    initialWriteTime = 0;
+    phase = 0;
+    mirrorBCflag = 0;
 };
 
 BIDSSensorLayer "BIDS_Sensor_Head" = {
@@ -78,6 +103,13 @@ BIDSSensorLayer "BIDS_Sensor_Head" = {
     frequency     = 300;           //In hz, the frequency of the signal
     weight        = .5;            //Weight of sensor layer output
     ts_per_period = 16;            //How many time steps per frequency period
+
+    nf = 1;
+    marginWidth = 0;
+    writeStep = 1;
+    initialWriteTime = 0;
+    phase = 0;
+    mirrorBCflag = 0;
 };
 
 BIDSLayer "BIDS_Node" = {       
@@ -103,11 +135,15 @@ BIDSLayer "BIDS_Node" = {
    tauVth           = 10.0;    	// 10.0 relative refractory period
    deltaVth         = 5.0;     	// jump of threshold when firing
    noiseAmpE        = 1;     	// 0.5 1 means conductance is equal to lead conductance  gjk
-   noiseAmpI        = 1;     	// 0,5 "twice as easy for the membrane capacitance to discharge" gjk
+   noiseAmpI        = 1;     	// 0,5 "twice as easy for the membrane capacitance to discharge"
    noiseAmpIB       = 0.0;     	// no noise here 
    noiseFreqE       = 250.;    	// spontaneous transmitter release/channel openings
    noiseFreqI       = 250.;    	// correlation to time step size !!!
    noiseFreqIB      =   0.;    	// should be scaled by the time constant - look at LIF model
+
+   initialWriteTime = 0;
+   phase = 0;
+   writeSparseActivity = 1;
 };
 
 BIDSCloneLayer "BIDS_Clone" ={  
@@ -123,6 +159,14 @@ BIDSCloneLayer "BIDS_Clone" ={
    VthRest          	= -47.5;                 
    mirrorBCflag     	= 0; 
    restart          	= 0.0;    
+
+   nf = 1;
+   InverseFlag = 0;
+   SigmoidFlag = 1;
+   SigmoidAlpha = .1;
+   writeSparseActivity = 1;
+   initialWriteTime = 0;
+   phase = 9;
 };
 
 // Connections Connections Connections Connections Connections Connections
@@ -146,6 +190,11 @@ IdentConn "Sensor to Nodes" = {
    channelCode              = 0; 			//excitatory channel
    writeStep                = -1;
    delay                    = 0;
+
+   preActivityIsNotRate = 0;
+   writeCompressedCheckpoints = 0;
+   nxp = -1;
+   nyp = -1;
 };
 
 BIDSConn "Lateral Excitation" = {   			// This connects the image to the BIDS_receptor so that the sensor(s) on the receptor can detect active pixels
@@ -173,6 +222,11 @@ BIDSConn "Lateral Excitation" = {   			// This connects the image to the BIDS_re
    strength				    = 0.11; //0.025
    falloffType				= "Log";       //possible falloff rates right now are "Gaussian", "radSquared", and "Linear"
    lateralRadius			= 15;
+
+   preActivityIsNotRate = 0;
+   writeCompressedCheckpoints = 0;
+   nxp = -1;
+   nyp = -1;
 };
 
 BIDSConn "Lateral Inhibition" = {
@@ -200,4 +254,9 @@ BIDSConn "Lateral Inhibition" = {
    strength				    = 0.22; //0.025
    falloffType				= "Log";       //possible falloff rates right now are "Gaussian", "radSquared", and "Linear"
    lateralRadius			= 15;
+
+   preActivityIsNotRate = 0;
+   writeCompressedCheckpoints = 0;
+   nxp = -1;
+   nyp = -1;
 };
