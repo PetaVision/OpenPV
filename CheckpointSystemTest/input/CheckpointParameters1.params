@@ -163,7 +163,7 @@ VaryingKernelConn "conn no delay" = {
 
     writeCompressedWeights = false;
     writeCompressedCheckpoints = false;
-    plasticityFlag = true;
+    //plasticityFlag = true;
     combine_dW_with_W_flag = false;
     dWMax = 1.0;
     selfFlag = false;
@@ -207,7 +207,7 @@ VaryingKernelConn "conn with delay" = {
 
     writeCompressedWeights = false;
     writeCompressedCheckpoints = false;
-    plasticityFlag = true;
+    //plasticityFlag = true;
     combine_dW_with_W_flag = false;
     dWMax = 1.0;
     selfFlag = false;
@@ -284,7 +284,7 @@ VaryingHyPerConn "full hyperconn" = {
 
     writeCompressedWeights = false;
     writeCompressedCheckpoints = false;
-    plasticityFlag = false;
+    //plasticityFlag = false;
     combine_dW_with_W_flag = false;
     selfFlag = false;
 
