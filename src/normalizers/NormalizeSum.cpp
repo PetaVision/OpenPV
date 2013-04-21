@@ -67,30 +67,46 @@ int NormalizeSum::normalizeWeights(HyPerConn * conn) {
    int nArbors = conn->numberOfAxonalArborLists();
    int numDataPatches = conn->getNumDataPatches();
    if (normalizeArborsIndividually) {
-      for (int arborID = 0; arborID<nArbors; arborID++) {
-         for (int patchindex = 0; patchindex<numDataPatches; patchindex++) {
-            pvdata_t * dataStartPatch = conn->get_wDataStart(arborID) + patchindex * weights_per_patch;
-            double sum = 0.0;
-            if (offsetShrunken == 0){
-            	accumulateSum(dataStartPatch, weights_per_patch, &sum);
-            }
-            else{
-            	accumulateSumShrunken(dataStartPatch, &sum,
-            			nxpShrunken, nypShrunken, offsetShrunken, xPatchStride, yPatchStride);
-            }
-            if (fabs(sum) <= minSumTolerated) {
-               fprintf(stderr, "NormalizeSum warning for normalizer \"%s\": sum of weights in patch %d of arbor %d is within minSumTolerated=%f of zero. Weights in this patch unchanged.\n", conn->getName(), patchindex, arborID, minSumTolerated);
-               break;
-            }
-            normalizePatch(dataStartPatch, weights_per_patch, scale_factor/sum);
-         }
-      }
+	  for (int arborID = 0; arborID<nArbors; arborID++) {
+		 for (int patchindex = 0; patchindex<numDataPatches; patchindex++) {
+			 pvdata_t * dataStartPatch = conn->get_wDataHead(arborID,patchindex);
+			double sum = 0.0;
+			if (offsetShrunken == 0){
+				accumulateSum(dataStartPatch, weights_per_patch, &sum);
+			}
+			else{
+				accumulateSumShrunken(dataStartPatch, &sum,
+						nxpShrunken, nypShrunken, offsetShrunken, xPatchStride, yPatchStride);
+			}
+			if (fabs(sum) <= minSumTolerated) {
+			   fprintf(stderr, "NormalizeSum warning for normalizer \"%s\": sum of weights in patch %d of arbor %d is within minSumTolerated=%f of zero. Weights in this patch unchanged.\n", conn->getName(), patchindex, arborID, minSumTolerated);
+			   break;
+			}
+			normalizePatch(dataStartPatch, weights_per_patch, scale_factor/sum);
+		 }
+	  }
+	  bool testNormalizationFlag = true;
+	  if (testNormalizationFlag){
+		  for (int arborID = 0; arborID<nArbors; arborID++) {
+			 for (int patchindex = 0; patchindex<numDataPatches; patchindex++) {
+				 pvdata_t * dataStartPatch = conn->get_wDataHead(arborID,patchindex);
+				double sum = 0.0;
+				if (offsetShrunken == 0){
+					accumulateSum(dataStartPatch, weights_per_patch, &sum);
+				}
+				else{
+					accumulateSumShrunken(dataStartPatch, &sum,
+							nxpShrunken, nypShrunken, offsetShrunken, xPatchStride, yPatchStride);
+				}
+			 }
+		  }
+	  } // testNormalizationFlag
    }
    else {
       for (int patchindex = 0; patchindex<numDataPatches; patchindex++) {
          double sum = 0.0;
          for (int arborID = 0; arborID<nArbors; arborID++) {
-            pvdata_t * dataStartPatch = conn->get_wDataStart(arborID)+patchindex*weights_per_patch;
+            pvdata_t * dataStartPatch = conn->get_wDataHead(arborID,patchindex);
             if (offsetShrunken == 0){
             	accumulateSum(dataStartPatch, weights_per_patch, &sum);
             }
@@ -105,11 +121,34 @@ int NormalizeSum::normalizeWeights(HyPerConn * conn) {
 
          }
          for (int arborID = 0; arborID<nArbors; arborID++) {
-            pvdata_t * dataStartPatch = conn->get_wDataStart(arborID)+patchindex*weights_per_patch;
+            pvdata_t * dataStartPatch = conn->get_wDataHead(arborID,patchindex);
             normalizePatch(dataStartPatch, weights_per_patch, scale_factor/sum);
          }
-      }
-   }
+      } // patchindex
+      bool testNormalizationFlag = true;
+      float tol = 1e-6;
+      if (testNormalizationFlag){
+		  for (int patchindex = 0; patchindex<numDataPatches; patchindex++) {
+			 double sum = 0.0;
+			 for (int arborID = 0; arborID<nArbors; arborID++) {
+				 pvdata_t * dataStartPatch = conn->get_wDataHead(arborID,patchindex);
+				 if (offsetShrunken == 0){
+					accumulateSum(dataStartPatch, weights_per_patch, &sum);
+				 }
+				 else{
+					 accumulateSumShrunken(dataStartPatch, &sum,
+							 nxpShrunken, nypShrunken, offsetShrunken, xPatchStride, yPatchStride);
+				 }
+			 }
+			 if (sum > tol){
+				 assert(sum <= scale_factor*(1+tol) && sum >= scale_factor*(1-tol));
+			 }
+			 else{
+				 std::cout << conn->getName() << "::normalizeSum::sum < tol, sum = " << sum << ", tol = " << tol << std::endl;
+			 }
+		  } // patchindex
+      } // testNormalizationFlag
+   } // normalizeArborsIndividually
 #ifdef USE_SHMGET
 #ifdef PV_USE_MPI
    if (conn->getShmgetFlag()) {

@@ -1646,56 +1646,94 @@ int HyPerConn::adjustAxonalArbors(int arborId)
    //
    int numPatches = getNumWeightPatches();
 
+   int dxPatchHead, dyPatchHead;
+   dxPatchHead = (nxp - nxpShrunken)/2;
+   dyPatchHead = (nyp - nypShrunken)/2;
+
+   offsetShrunken = dxPatchHead * nfp + dyPatchHead * nxp * nfp;
+
+
    for (int kex = 0; kex < numPatches; kex++) {
 
       // kex is in extended frame, this makes transformations more difficult
-      int kl, offset, nxPatch, nyPatch, dx, dy;
-      calcPatchSize(arborId, kex, &kl, &offset, &nxPatch, &nyPatch, &dx, &dy);
+      int kl, offset, nxpMargin, nypMargin, dxMargin, dyMargin;
+      calcPatchSize(arborId, kex, &kl, &offset, &nxpMargin, &nypMargin, &dxMargin, &dyMargin);
 
-      nxPatch = nxPatch < nxpShrunken ? nxPatch : nxpShrunken;
-      nyPatch = nyPatch < nypShrunken ? nyPatch : nypShrunken;
+      int dx = dxMargin;
+      int dy = dyMargin;
+      int nxPatch = nxpMargin;
+      int nyPatch = nypMargin;
 
-      int dxShrunken, dyShrunken, dxDiff, dyDiff;
-
-      dxShrunken = (nxp - nxpShrunken)/2;
-      dyShrunken = (nyp - nypShrunken)/2;
-
-      dxDiff = dxShrunken - dx < 0 ? 0 : dxShrunken - dx;
-      dyDiff = dyShrunken - dy < 0 ? 0 : dyShrunken - dy;
-
-      dx = dx > dxShrunken ? dx : dxShrunken;
-      dy = dy > dyShrunken ? dy : dyShrunken;
-
-      int nxexPost, nyexPost;
-      const int dfDiff = 0;
-	  const PVLayer * lPost = post->getCLayer();
-      const int nfPost  = lPost->loc.nf;
-      const int nxPost  = lPost->loc.nx;
-      const int nyPost  = lPost->loc.ny;
-      const int postPad = lPost->loc.nb;
-	  nxexPost = nxPost + 2 * postPad;
-	  nyexPost = nyPost + 2 * postPad;
-
-	  offsetShrunken = kIndex(dxDiff, dyDiff, dfDiff, nxexPost, nyexPost, nfPost);
-
-      // initialize the receiving (of spiking data) gSyn variable
-      pvdata_t * gSyn = post->getChannel(channel) + kl;
-      gSynPatchStart[arborId][kex] = gSyn;
-      // pvpatch_init(arbor->data, nxPatch, nyPatch, nfp, psx, psy, psf, gSyn);
+      if (nxpMargin > 0 && nypMargin > 0) {
+    	  if (dxMargin > 0){ // left border
+    		  if (dxMargin > dxPatchHead) {
+    			  int dxShrunken = dxMargin - dxPatchHead; //dx from simulated shrunken patch head
+    			  nxPatch = nxpShrunken - dxShrunken;
+    			  dx = dxMargin;
+    		  }
+    		  else {
+    			  nxPatch = nxpShrunken < nxpMargin ? nxpShrunken : nxpMargin;
+    			  dx = dxPatchHead;
+    		  } // dxMargin > dxPatchHead
+    	  } // left border
+    	  else {  // right border or inside
+			  dx = dxPatchHead;
+			  int physicalShrink = nxp - nxpMargin;
+			  if (physicalShrink > dxPatchHead) { // right border
+				  nxPatch = nxpShrunken - (physicalShrink - dxPatchHead);
+			  }
+			  else{ // inside
+				  nxPatch = nxpShrunken;
+			  }
+    	  } // dxMargin > 0
+    	  if (dyMargin > 0){ // left border
+    		  if (dyMargin > dyPatchHead) {
+    			  int dyShrunken = dyMargin - dyPatchHead; //dy from simulated shrunken patch head
+    			  nyPatch = nypShrunken - dyShrunken;
+    			  dy = dyMargin;
+    		  }
+    		  else {
+    			  nyPatch = nypShrunken < nypMargin ? nypShrunken : nypMargin;
+    			  dy = dyPatchHead;
+    		  } // dyMargin > dyPatchHead
+    	  } // left border
+    	  else {  // right border or inside
+			  dy = dyPatchHead;
+			  int physicalShrink = nyp - nypMargin;
+			  if (physicalShrink > dyPatchHead) { // right border
+				  nyPatch = nypShrunken - (physicalShrink - dyPatchHead);
+			  }
+			  else{ // inside
+				  nyPatch = nypShrunken;
+			  }
+    	  } // dyMargin > 0
+      } //  nxPatch > 0 && nyPatch > 0
+      if (nxPatch <= 0  || nyPatch <= 0) {
+    	  nxPatch = 0; nyPatch = 0;
+    	  dx = 0; dy = 0;
+    	  dxMargin = 0; dyMargin = 0;
+      }
 
       // arbor->offset = offset;
-      aPostOffset[arborId][kex] = offset+offsetShrunken;
+      const PVLayerLoc * post_loc = post->getLayerLoc();
+      int offsetDiffExtended =
+    		  	  (dx - dxMargin) * post_loc->nf + (dy - dyMargin) * (post_loc->nx + 2*post_loc->nb) * post_loc->nf;
+  	  assert(offsetDiffExtended >= 0); assert(offsetDiffExtended <= post->getNumNeurons());
+      aPostOffset[arborId][kex] = offset + offsetDiffExtended;
 
-      // adjust patch size (shrink) to fit within interior of post-synaptic layer
-      //
+      // initialize the receiving gSyn variable
+      int offsetDiffRestricted =
+    		  	  (dx - dxMargin) * post_loc->nf + (dy - dyMargin) * post_loc->nx * post_loc->nf;
+  	  assert(offsetDiffRestricted >= 0); assert(offsetDiffRestricted <= post->getNumNeurons());
+      pvdata_t * gSyn = post->getChannel(channel) + kl + offsetDiffRestricted;
+      gSynPatchStart[arborId][kex] = gSyn;
+
+      // adjust patch dimensions
       pvpatch_adjust(getWeights(kex,arborId), sxp, syp, nxPatch, nyPatch, dx, dy);
 
    } // loop over patches
 
-   //TODO: Move this into set delay in initialize in HyPerConn
-   //delays[arborId] = defaultDelay;
-
-   return 0;
+   return PV_SUCCESS;
 }
 
 PVPatch *** HyPerConn::convertPreSynapticWeights(double time)
