@@ -21,7 +21,7 @@ DROP_POS = [DIM(1)/4, DIM(2)/4];
 
 MOVIE_NAME = '~/plot';
 OUTPUT_DIR = '~/wave_stimulus';
-NOISE_SCALE = .4;
+NOISE_SCALE = .1; %1 - NOISE_SCALE = SNR (i.e. 80% is 0.2)
 
 
 

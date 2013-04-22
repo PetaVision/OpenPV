@@ -1,5 +1,5 @@
 %Path to k-wave toolkit
-addpath('~/MATLAB/k-Wave Toolbox');
+addpath('/Users/dpaiton/Documents/Work/LANL/workspace/BIDS/createInput/k-Wave Toolbox');
 
 %Set up kgrid world
 Nx = DIM(1);

@@ -10,11 +10,13 @@ HyPerCol "column" = {
    //checkpointRead  			= true;  		// normal run
    checkpointRead  				= false; 		// init run
    checkpointWrite 				= true;  		// always
-   checkpointWriteDir           = "/Users/Burger/Documents/workspace/BIDS/output/checkpoints/";
+   //checkpointWriteDir           = "/Users/Burger/Documents/workspace/BIDS/output/checkpoints/";
+   checkpointWriteDir           = "~/Documents/Work/LANL/workspace/BIDS/output/checkpoints/";
    checkpointWriteStepInterval  = 100;
    numSteps 					= 700;			// amount of time steps performed during run-time
    progressStep					= 100;
-   outputPath                   = "/Users/Burger/Documents/workspace/BIDS/output/";
+   //outputPath                   = "/Users/Burger/Documents/workspace/BIDS/output/";
+   outputPath                   = "~/Documents/Work/LANL/workspace/BIDS/output/";
    filenamesContainLayerNames 	= 2; 			// stores pvp files as: 1 = layer number/2 = layer number and layer name/3 = layer name
 
    writeProgressToErr           = 0;
