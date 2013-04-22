@@ -126,11 +126,11 @@ if isempty(errorstring)
                     end
                 end
             end
-        case 2 % PVP_ACT_FILE_TYPE % Compressed for spiking; I'm not using yet
+        case 2 % PVP_ACT_FILE_TYPE % Compressed for spiking
             %Only one feature for now
             assert(hdr.nf == 1);
             movieFrame = 0;
-            buffer = fread(fid, Inf, '*uint8');
+            buffer = fread(fid, Inf, '*uint8'); %% * forces buffer to also be uint8 instead of double
             bufPos = 1;
             totactive = 0;
             firingRate = zeros([hdr.nyGlobal, hdr.nxGlobal]);
@@ -139,6 +139,10 @@ if isempty(errorstring)
                 data{frame}.time = typecast(buffer(bufPos:bufPos + 7), 'double');
                 bufPos += 8;
                 numactive = typecast(buffer(bufPos:bufPos + 3), 'uint32'); 
+                if gt(numactive,hdr.nx*hdr.ny*hdr.nf)
+                    disp('Too many active elements in file. Possible PV write error.')
+                    keyboard
+                end
                 bufPos += 4;
                 data{frame}.values = typecast(buffer(bufPos:bufPos + (4 * numactive) - 1), 'uint32');
                 bufPos += 4 * numactive;

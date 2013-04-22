@@ -8,10 +8,12 @@ nbPre      = 3;
 nxGlobal   = 32;
 nyGlobal   = 32;
 
+%%STELLATE
 %postScaleX = 4;
 %postScaleY = 4;
 %nbPost     = 13;
 
+%%INTER
 postScaleX = 2;
 postScaleY = 2;
 nbPost     = 8;

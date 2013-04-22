@@ -10,23 +10,29 @@ from collections import OrderedDict
 workspaceDir  = "/Users/dpaiton/Documents/Work/LANL/workspace" #Dylan Mac
 probeFileDir  = workspaceDir+"/iHouse/output"
 
-#filenames = [("label","path")]
+filenames = [("label","path")]
 filenames    = [
-            ("onVer",probeFileDir+"/retONtoLifVer.txt"),
-            ("onHor",probeFileDir+"/retONtoLifHor.txt")]
-            #("onDia",probeFileDir+"/retONtoLifDia.txt"),
-            #("offVer",probeFileDir+"/retOFFtoLifVer.txt"),
-            #("offHor",probeFileDir+"/retOFFtoLifHor.txt"),
-            #("offDia",probeFileDir+"/retOFFtoLifDia.txt")]
+        #   ("onStelVer1",probeFileDir+"/retONtoStellateVer1.txt"),
+        #   ("onStelVer2",probeFileDir+"/retONtoStellateVer2.txt"),
+        #   ("onStelVer3",probeFileDir+"/retONtoStellateVer3.txt"),
+        #   ("onStelVer4",probeFileDir+"/retONtoStellateVer4.txt"),
+        #   ("onStelHor",probeFileDir+"/retONtoStellateHor.txt"),
+        #   ("onStelDia",probeFileDir+"/retONtoStellateDia.txt"),
+        #   ("offStelVer",probeFileDir+"/retOFFtoStellateVer.txt"),
+        #   ("offStelHor",probeFileDir+"/retOFFtoStellateHor.txt"),
+        #   ("offStelDia",probeFileDir+"/retOFFtoStellateDia.txt"),
+            ("onInterVer1",probeFileDir+"/retONtoInterVer1.txt")]
+
 #filenames     = [
-#        ("OnVer",probeFileDir+"/retONtoLifVer.txt")]
+#        ("ptStellate",probeFileDir+"/ptStellate.txt"),
+#        ("ptInter",probeFileDir+"/ptInter.txt")]
 
 rootFigOutDir = probeFileDir+"/analysis/probeFigs"
-rootFigName   = 'weights'
+rootFigName   = 'pr4Oja'
 
 #Values for range of frames
-startTime   = 0
-endTime     = 100000 #End must be under number of lines in file
+startTime   = 2000000
+endTime     = 2000100 #End must be under number of lines in file
 
 #Which plots
 timePlot    = True 
@@ -35,7 +41,7 @@ weightMap   = True #Needs 'weight*' in data dictionary
 
 #Other flags
 numTCBins   = 2     #number of bins for time course plot
-doLegend    = True  #if True, time graph will have a legend
+doLegend    = False #if True, time graph will have a legend
 dispFigs    = False #if True, display figures. Otherwise, print them to file.
 
 #Data structure for scale, and data array to store all the data
@@ -54,7 +60,7 @@ data['t']                     = []
 #data['prOjaTr_0_1']    = []
 #data['prOjaTr_0_2']    = []
 #data['prOjaTr_0_3']    = []
-#data['prOjaTr_0_4']    = []
+data['prOjaTr_0_4']    = []
 #data['prOjaTr_0_5']    = []
 #data['prOjaTr_0_6']    = []
 #data['prOjaTr_0_7']    = []
@@ -82,13 +88,24 @@ data['t']                     = []
 #######
 #data['ampLTD']      = []
 #######
-data['weight*']     = []
+#data['weight_0_0']    = []
+#data['weight_0_1']    = []
+#data['weight_0_2']    = []
+#data['weight_0_3']    = []
+#data['weight_0_4']    = []
+#data['weight_0_5']    = []
+#data['weight_0_6']    = []
+#data['weight_0_7']    = []
+#data['weight_0_8']    = []
+#data['weight_0_9']    = []
+#######
+#data['weight*']     = []
 
 ####
 ####lif layer
 ####
-#data['v']                    = []
-#data['vth']                  = []
+#data['V']                    = []
+#data['Vth']                  = []
 #data['a']                    = []
 
 #set scales for plots. Key must be the same as what is in the data dictionary

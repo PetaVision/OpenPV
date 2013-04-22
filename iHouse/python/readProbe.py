@@ -7,7 +7,6 @@
 ##
 ##Dylan Paiton and Sheng Lundquist
 #####
-from numpy import *
 import sys
 import matplotlib
 

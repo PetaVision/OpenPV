@@ -1,3 +1,5 @@
+from numpy import *
+
 def readProbeFile(filename,startTime,endTime):
     f = open(filename, 'r')
     firstLine = f.readline()
@@ -73,4 +75,4 @@ def getNumArbors(tok,line):
         
 
 def countActivity(data,key):
-   print "Num activity: " + str(len(nonzero(data[key])[0]))
+   print "Average activity: " + str(len(nonzero(data[key])[0]))

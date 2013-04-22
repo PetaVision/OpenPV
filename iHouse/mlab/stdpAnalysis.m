@@ -2,8 +2,8 @@ clear all; close all; more off; clc;
 system("clear");
 
 %Nessessary Petavision Variables 
-global postNxScale; postNxScale = 1; 
-global postNyScale; postNyScale = 1;
+global postNxScale; postNxScale = 2; 
+global postNyScale; postNyScale = 2;
 
 %% Path information
 %rootDir       = '/Users/slundquist';
@@ -13,7 +13,7 @@ global postNyScale; postNyScale = 1;
 rootDir       = '/Users/dpaiton';
 workspaceDir  = [rootDir,'/Documents/Work/LANL/workspace/iHouse'];
 pvpDir        = [workspaceDir,'/output/'];
-outputDir     = [pvpDir,'/analysisInter/'];
+outputDir     = [pvpDir,'/analysis/'];
 %outputDir     = [pvpDir,'/analysisStellate/'];
 
 %Reconstruct Flags
@@ -23,15 +23,15 @@ global SPIKING_PRE_FLAG;       SPIKING_PRE_FLAG       = 1;
 %Spiking Output
 global FNUM_ALL;  FNUM_ALL = 1;   %1 for all frames, 0 for FNUM_SPEC
 global FNUM_SPEC; FNUM_SPEC= {... %start:int:end frames
-   [10000:20000]...
-   [50000:60000]...
-   [90000:99999]...
-   [130000:140000]...
-   [180000:190000]...
+   [1:5000:1000000]...
+  %[50000:60000]...
+  %[90000:99999]...
+  %[130000:140000]...
+  %[180000:190000]...
 };
 
-global RECONSTRUCTION_FLAG;    RECONSTRUCTION_FLAG = 1; %Create reconstructions
-global WEIGHTS_MAP_FLAG;       WEIGHTS_MAP_FLAG    = 1; %Create weight maps
+global RECONSTRUCTION_FLAG;    RECONSTRUCTION_FLAG = 0; %Create reconstructions
+global WEIGHTS_MAP_FLAG;       WEIGHTS_MAP_FLAG    = 0; %Create weight maps
 global WEIGHTS_CELL_FLAG;      WEIGHTS_CELL_FLAG   = 0; %Create smaller weight map based on cell values
 global CELL; CELL = {...
    [21, 15]...
@@ -46,7 +46,7 @@ global CELL; CELL = {...
   %[23, 17]...
 };        %X by Y of weigh cell
 
-global WEIGHT_HIST_FLAG;  WEIGHT_HIST_FLAG  = 1;
+global WEIGHT_HIST_FLAG;  WEIGHT_HIST_FLAG  = 0;
 global NUM_BINS;          NUM_BINS          = 20;
 
 %global COOR_FLAG; COOR_FLAG = 1;
@@ -125,7 +125,7 @@ if(RECONSTRUCTION_FLAG || SPIKING_POST_FLAG)
    numFun += 1;
    fileName{numFun} = postActivityFile;
    output_path{numFun} = readPostSpikingDir;
-   print{numFun} = SPIKING_POST_FLAG;
+   printSpec{numFun} = SPIKING_POST_FLAG;
 end
 %Pre Activity File
 if(SPIKING_PRE_FLAG)
@@ -133,12 +133,12 @@ if(SPIKING_PRE_FLAG)
    numFun += 1;
    fileName{numFun} = preOnActivityFile;
    output_path{numFun} = readPreOnSpikingDir;
-   print{numFun} = SPIKING_PRE_FLAG;
+   printSpec{numFun} = SPIKING_PRE_FLAG;
    %Off
    numFun += 1;
    fileName{numFun} = preOffActivityFile;
    output_path{numFun} = readPreOffSpikingDir;
-   print{numFun} = SPIKING_PRE_FLAG;
+   printSpec{numFun} = SPIKING_PRE_FLAG;
 end
 %Post weights
 if(RECONSTRUCTION_FLAG || WEIGHTS_MAP_FLAG || WEIGHTS_CELL_FLAG || WEIGHT_HIST_FLAG)
@@ -146,20 +146,20 @@ if(RECONSTRUCTION_FLAG || WEIGHTS_MAP_FLAG || WEIGHTS_CELL_FLAG || WEIGHT_HIST_F
    numFun += 1;
    fileName{numFun} = ONweightfile;
    output_path{numFun} = '';  %No output path needed for weights
-   print{numFun} = 0;
+   printSpec{numFun} = 0;
    %Off
    numFun += 1;
    fileName{numFun} = OFFweightfile;
    output_path{numFun} = '';  %No output path needed for weights
-   print{numFun} = 0;
+   printSpec{numFun} = 0;
 end
 
 disp('stdpAnalysis: Reading pvp files')
 fflush(1);
 if NUM_PROCS == 1
-   [data hdr] = cellfun(@readpvpfile, fileName, output_path, print, 'UniformOutput', 0);
+   [data hdr] = cellfun(@readpvpfile, fileName, output_path, printSpec, 'UniformOutput', 0);
 else
-   [data hdr] = parcellfun(NUM_PROCS, @readpvpfile, fileName, output_path, print, 'UniformOutput', 0);
+   [data hdr] = parcellfun(NUM_PROCS, @readpvpfile, fileName, output_path, printSpec, 'UniformOutput', 0);
 end
 
 %Grab data from (par)cellfun
