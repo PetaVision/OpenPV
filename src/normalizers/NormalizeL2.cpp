@@ -80,7 +80,7 @@ int NormalizeL2::normalizeWeights(HyPerConn * conn) {
             }
             double l2norm = sqrt(sumsq);
             if (fabs(l2norm) <= minL2NormTolerated) {
-               fprintf(stderr, "NormalizeSum warning for normalizer \"%s\": sum of weights in patch %d of arbor %d is within minSumTolerated=%f of zero.  Weights in this patch unchanged.\n", conn->getName(), patchindex, arborID, minL2NormTolerated);
+               fprintf(stderr, "NormalizeSum warning for normalizer \"%s\": sum of weights in patch %d of arbor %d is within minL2NormTolerated=%f of zero.  Weights in this patch unchanged.\n", conn->getName(), patchindex, arborID, minL2NormTolerated);
                break;
             }
             normalizePatch(dataStartPatch, weights_per_patch, scale_factor/l2norm);
@@ -102,7 +102,7 @@ int NormalizeL2::normalizeWeights(HyPerConn * conn) {
          }
          double l2norm = sqrt(sumsq);
          if (fabs(sumsq) <= minL2NormTolerated) {
-            fprintf(stderr, "NormalizeSum warning for connection \"%s\": sum of weights in patch %d is within minSumTolerated=%f of zero.  Weights in this patch unchanged.\n", conn->getName(), patchindex, minL2NormTolerated);
+            fprintf(stderr, "NormalizeSum warning for connection \"%s\": sum of weights in patch %d is within minL2NormTolerated=%f of zero.  Weights in this patch unchanged.\n", conn->getName(), patchindex, minL2NormTolerated);
             break;
          }
          for (int arborID = 0; arborID<nArbors; arborID++) {
