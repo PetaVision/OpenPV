@@ -409,7 +409,7 @@ KernelConn "V1ToError" = {
    
     strength = 1.0;  
     normalizeMethod = "normalizeL2";
-    minSumTolerated = 0;
+    minL2NormTolerated = 0;
     normalizeArborsIndividually = 0;
     normalize_cutoff = 0.0;
     normalizeFromPostPerspective = true;
@@ -445,12 +445,9 @@ TransposeConn "ErrorToV1" = {
 	    
 	selfFlag = false;
 	preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
-	keepKernelsSynchronized = false; 
 //	
 	writeStep = -1;
 	writeCompressedCheckpoints = false;
-	plasticityFlag = true;
-	initialWeightUpdateTime = 4999.0;
 	shmget_flag = false;
 //
 	delay = 0;
