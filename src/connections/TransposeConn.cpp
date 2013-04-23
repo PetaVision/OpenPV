@@ -85,13 +85,6 @@ int TransposeConn::readPatchSize(PVParams * params) {
    assert( checkPatchSize(nyp, pre->getYScale(), post->getYScale(), 'y') ==
            PV_SUCCESS );
 
-   // Set nxpShrunken, nypShrunken
-   if (originalConn->getNxpShrunken() != originalConn->xPatchSize() || originalConn->getNypShrunken() != originalConn->xPatchSize()) {
-      if (parent->columnId()==0) {
-         fprintf(stderr, "TransposeConn \"%s\": original connection \"%s\" uses nxpShrunken, nypShrunken.  TransposeConn not implemented in this case.\n", name, originalConn->getName());
-         exit(EXIT_FAILURE);
-      }
-   }
    nxpShrunken = nxp;
    nypShrunken = nyp;
    return PV_SUCCESS;
