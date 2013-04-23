@@ -348,7 +348,7 @@ GapConn "GapTest to LIFGapTest" = {
     rMax          = 256.; // maximum distance of connection
     normalizeMethod = "normalizeSum"; // 
     normalize_cutoff      = false;  //
-    normalizeFromPostPerspective = false;
+    normalizeFromPostPerspective = true;
     normalizeArborsIndividually = false;
     minSumTolerated = 0.0;
     
