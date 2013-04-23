@@ -408,12 +408,12 @@ KernelConn "V1ToError" = {
     sparseFraction = .90;
    
     strength = 1.0;  
-   normalizeMethod = "normalizeL2";
-   minSumTolerated = 0;
-   normalizeArborsIndividually = 0;
-   normalize_cutoff = 0.0;
-   normalizeFromPostPerspective = true;
-   symmetrizeWeights = false;
+    normalizeMethod = "normalizeL2";
+    minSumTolerated = 0;
+    normalizeArborsIndividually = 0;
+    normalize_cutoff = 0.0;
+    normalizeFromPostPerspective = true;
+    symmetrizeWeights = false;
 
     preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
     keepKernelsSynchronized = true; 
@@ -456,7 +456,6 @@ TransposeConn "ErrorToV1" = {
 	delay = 0;
 	
 	stochasticReleaseFlag = false;
-	shrinkPatches = false;
 };
 
 CloneKernelConn "V1ToRecon" = {
