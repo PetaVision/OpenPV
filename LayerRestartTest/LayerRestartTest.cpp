@@ -46,6 +46,10 @@ int main(int argc, char * argv[]) {
    int mpi_initialized_on_entry;
    MPI_Initialized(&mpi_initialized_on_entry);
    if( !mpi_initialized_on_entry ) MPI_Init(&argc, &argv);
+   int rank;
+   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#else // PV_USE_MPI
+   int rank = 0;
 #endif // PV_USE_MPI
 
    int num_cl_args;
@@ -58,14 +62,23 @@ int main(int argc, char * argv[]) {
    for( int k=1; k<argc; k++) {
       cl_args[k+2] = strdup(argv[k]);
    }
+   if (rank==0) {
+      printf("*** %s: running params file %s\n", cl_args[0], cl_args[2]);
+   }
    status = buildandrun(num_cl_args, cl_args);
    if( status == PV_SUCCESS ) {
       free(cl_args[2]);
       cl_args[2] = strdup("input/LayerRestartTest-Check.params");
+      if (rank==0) {
+         printf("*** %s: running params file %s\n", cl_args[0], cl_args[2]);
+      }
       status = buildandrun(num_cl_args, cl_args, NULL, &checkComparisonNonzero);
       if( status == PV_SUCCESS ) {
          free(cl_args[2]);
          cl_args[2] = strdup("input/LayerRestartTest-Read.params");
+         if (rank==0) {
+            printf("*** %s: running params file %s\n", cl_args[0], cl_args[2]);
+         }
          status = buildandrun(num_cl_args, cl_args, NULL, &checkComparisonZero);
       }
    }
@@ -76,9 +89,7 @@ int main(int argc, char * argv[]) {
 #ifdef PV_USE_MPI
    // Output status from each process, but go through root process since we might be using MPI across several machines
    // and only have a console on the root process
-   int rank;
-   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-   if( rank == 0 ) {
+   if (rank == 0) {
       int otherprocstatus = status;
       int commsize;
       MPI_Comm_size(MPI_COMM_WORLD, &commsize);
