@@ -14,10 +14,13 @@ HyPerCol "column" = {
    randomSeed = 41896532;  // if not set here,  clock time is used to generate seed
    numSteps = 1000;  // num images plus (num layers + 1) * delay
    progressStep = 200;
+   writeProgressToErr = false;
    outputPath = "output/";
    filenamesContainLayerNames = false;
+   filenamesContainConnectionNames = false;
    checkpointRead = false;
    checkpointWrite = false;
+   suppressLastOutput = false;
 };
 
 //
@@ -31,16 +34,18 @@ MPITestLayer "L0" = {
     nyScale = 1;
     nf = 4;
     marginWidth = 4;
+    phase = 0;
     writeStep = -1;
     mirrorBCflag = 0;
-    spikingFlag = 0;
-    writeNonspikingActivity = 1;
-
-    Vrest = 1.0;
+    writeSparseActivity = false;
+    
+    InitVType = "ConstantV";
+    valueV = 1.0;
 
     VThresh = -infinity;
     VMax = infinity;
     VMin = -infinity;
+    VShift = 0.0;
 };
 
 
@@ -50,16 +55,17 @@ ANNLayer "Lx1" = {
     nyScale = 1;
     nf = 4;
     marginWidth = 0;
+    phase = 0;
     writeStep = -1;
     mirrorBCflag = 0;
-    spikingFlag = 0;
-    writeNonspikingActivity = 1;
-
-    Vrest = 0.0;
+    writeSparseActivity = false;
+    
+    InitVType = "ZeroV";
 
     VThresh = -infinity;
     VMax = infinity;
     VMin = -infinity;
+    VShift = 0.0;
 };
 
 
@@ -69,16 +75,17 @@ ANNLayer "Lx2" = {
     nyScale = 2;
     nf = 8;
     marginWidth = 0;
+    phase = 0;
     writeStep = -1;
     mirrorBCflag = 0;
-    spikingFlag = 0;
-    writeNonspikingActivity = 1;
-
-    Vrest = 0.0;
+    writeSparseActivity = false;
+    
+    InitVType = "ZeroV";
 
     VThresh = -infinity;
     VMax = infinity;
     VMin = -infinity;
+    VShift = 0.0;
 };
 
 
@@ -88,16 +95,17 @@ ANNLayer "Lx4" = {
     nyScale = 4;
     nf = 16;
     marginWidth = 0;
+    phase = 0;
     writeStep = -1;
     mirrorBCflag = 0;
-    spikingFlag = 0;
-    writeNonspikingActivity = 1;
-
-    Vrest = 0.0;
+    writeSparseActivity = false;
+    
+    InitVType = "ZeroV";
 
     VThresh = -infinity;
     VMax = infinity;
     VMin = -infinity;
+    VShift = 0.0;
 };
 
 
@@ -108,16 +116,17 @@ ANNLayer "Lx1_2" = {
     nyScale = 0.5;
     nf = 2;
     marginWidth = 0;
+    phase = 0;
     writeStep = -1;
     mirrorBCflag = 0;
-    spikingFlag = 0;
-    writeNonspikingActivity = 1;
-
-    Vrest = 0.0;
+    writeSparseActivity = false;
+    
+    InitVType = "ZeroV";
 
     VThresh = -infinity;
     VMax = infinity;
     VMin = -infinity;
+    VShift = 0.0;
 };
 
 
@@ -128,16 +137,17 @@ ANNLayer "Lx1_4" = {
     nyScale = 0.25;
     nf = 1;
     marginWidth = 0;
+    phase = 0;
     writeStep = -1;
     mirrorBCflag = 0;
-    spikingFlag = 0;
-    writeNonspikingActivity = 1;
-
-    Vrest = 0.0;
+    writeSparseActivity = false;
+    
+    InitVType = "ZeroV";
 
     VThresh = -infinity;
     VMax = infinity;
     VMin = -infinity;
+    VShift = 0.0;
 };
 
 
@@ -160,32 +170,34 @@ KernelConn "L0 to Lx1" = {
     aspect = 1;
     sigma = infinity;
     rMax  = infinity;
-    deltaThetaMax = 6.2832;
-    thetaMax = 1;
-    bowtieFlag = 0;
-    numFlanks = 1;
-    flankShift = 0;
-    rotate = 1;
-    no = 4;
+    rMin = 0.0;
+    // deltaThetaMax = 6.2832;
+    // thetaMax = 1;
+    // bowtieFlag = 0;
+    // numFlanks = 1;
+    // flankShift = 0;
+    // rotate = 1;
+    numOrientationsPre = 4;
+    numOrientationsPost = 4;
       
     strength = 1.0;  // 1.0 x post->num_neurons / pre->num_neurons
-    normalize = 1.0;
-    normalize_zero_offset = 0.0;
-    normalize_max = 0.0;
-    normalize_cutoff = 0;
-    symmetrizeWeights = 0;
+    normalizeMethod = "normalizeSum";
+    normalize_cutoff = false;
+    symmetrizeWeights = false;
+    normalizeFromPostPerspective = false;
+    normalizeArborsIndividually = false;
+    minSumTolerated = 0.0;
 
-    wMax = 1.0;
-    wMin = 0;
-    writeCompressedWeights = 0.0;
+    writeCompressedCheckpoints = false;
     plasticityFlag = 0;
     shmget_flag = 1;
-    weightUpdatePeriod = -1.0;
 
     delay = 0;     
 
     stochasticReleaseFlag = false;
     shrinkPatches = false;
+    preActivityIsNotRate = false;
+    selfFlag = false;
 };
 
 
@@ -204,32 +216,34 @@ KernelConn "L0 to Lx2" = {
     aspect = 1; //2;
     sigma = infinity;
     rMax  = infinity;
-    deltaThetaMax = 6.2832;
-    thetaMax = 1;
-    bowtieFlag = 0;
-    numFlanks = 1;
-    flankShift = 0;
-    rotate = 1;
-    no = 8;
+    rMin = 0.0;
+    // deltaThetaMax = 6.2832;
+    // thetaMax = 1;
+    // bowtieFlag = 0;
+    // numFlanks = 1;
+    // flankShift = 0;
+    // rotate = 1;
+    numOrientationsPre = 4;
+    numOrientationsPost = 8;
       
     strength = 8.0; // 1.0 x post->num_neurons / pre->num_neurons
-    normalize = 1.0;
-    normalize_zero_offset = 0.0;
-    normalize_max = 0.0;
-    normalize_cutoff = 0;
-    symmetrizeWeights = 0;
+    normalizeMethod = "normalizeSum";
+    normalize_cutoff = false;
+    symmetrizeWeights = false;
+    normalizeFromPostPerspective = false;
+    normalizeArborsIndividually = false;
+    minSumTolerated = 0.0;
 
-    wMax = 1.0;
-    wMin = 0;
-    writeCompressedWeights = 0.0;
+    writeCompressedCheckpoints = false;
     plasticityFlag = 0;
     shmget_flag = 1;
-    weightUpdatePeriod = -1.0;
 
     delay = 0;     
 
     stochasticReleaseFlag = false;
     shrinkPatches = false;
+    preActivityIsNotRate = false;
+    selfFlag = false;
 };
 
 
@@ -248,32 +262,34 @@ KernelConn "L0 to Lx4" = {
     aspect = 1; //4;
     sigma = infinity;
     rMax  = infinity;
-    deltaThetaMax = 6.2832;
-    thetaMax = 1;
-    bowtieFlag = 0;
-    numFlanks = 1;
-    flankShift = 0;
-    rotate = 1;
-    no = 16;
+    rMin = 0.0;
+    // deltaThetaMax = 6.2832;
+    // thetaMax = 1;
+    // bowtieFlag = 0;
+    // numFlanks = 1;
+    // flankShift = 0;
+    // rotate = 1;
+    numOrientationsPre = 4;
+    numOrientationsPost = 16;
       
     strength = 64.0; // 1.0 x post->num_neurons / pre->num_neurons
-    normalize = 1.0;
-    normalize_zero_offset = 0.0;
-    normalize_max = 0.0;
-    normalize_cutoff = 0;
-    symmetrizeWeights = 0;
+    normalizeMethod = "normalizeSum";
+    normalize_cutoff = false;
+    symmetrizeWeights = false;
+    normalizeFromPostPerspective = false;
+    normalizeArborsIndividually = false;
+    minSumTolerated = 0.0;
 
-    wMax = 1.0;
-    wMin = 0;
-    writeCompressedWeights = 0.0;
+    writeCompressedCheckpoints = false;
     plasticityFlag = 0;
     shmget_flag = 1;
-    weightUpdatePeriod = -1.0;
 
     delay = 0;     
 
     stochasticReleaseFlag = false;
     shrinkPatches = false;
+    preActivityIsNotRate = false;
+    selfFlag = false;
 };
 
 
@@ -292,32 +308,34 @@ KernelConn "L0 to Lx1_2" = {
     aspect = 2;
     sigma = infinity;
     rMax  = infinity;
-    deltaThetaMax = 6.2832;
-    thetaMax = 1;
-    bowtieFlag = 0;
-    numFlanks = 1;
-    flankShift = 0;
-    rotate = 1;
-    no = 2;
+    rMin = 0.0;
+    // deltaThetaMax = 6.2832;
+    // thetaMax = 1;
+    // bowtieFlag = 0;
+    // numFlanks = 1;
+    // flankShift = 0;
+    // rotate = 1;
+    numOrientationsPre = 4;
+    numOrientationsPost = 2;
       
     strength = 0.125; // 1.0 x post->num_neurons / pre->num_neurons
-    normalize = 1.0;
-    normalize_zero_offset = 0.0;
-    normalize_max = 0.0;
-    normalize_cutoff = 0;
-    symmetrizeWeights = 0;
+    normalizeMethod = "normalizeSum";
+    normalize_cutoff = false;
+    symmetrizeWeights = false;
+    normalizeFromPostPerspective = false;
+    normalizeArborsIndividually = false;
+    minSumTolerated = 0.0;
 
-    wMax = 1.0;
-    wMin = 0;
-    writeCompressedWeights = 0.0;
+    writeCompressedCheckpoints = false;
     plasticityFlag = 0;
     shmget_flag = 1;
-    weightUpdatePeriod = -1.0;
 
     delay = 0;     
 
     stochasticReleaseFlag = false;
     shrinkPatches = false;
+    preActivityIsNotRate = false;
+    selfFlag = false;
 };
 
 
@@ -336,32 +354,33 @@ KernelConn "L0 to Lx1_4" = {
     aspect = 1;
     sigma = infinity;
     rMax  = infinity;
-    deltaThetaMax = 6.2832;
-    thetaMax = 1;
-    bowtieFlag = 0;
-    numFlanks = 1;
-    flankShift = 0;
-    rotate = 1;
-    no = 1;
+    rMin = 0.0;
+    // deltaThetaMax = 6.2832;
+    // thetaMax = 1;
+    // bowtieFlag = 0;
+    // numFlanks = 1;
+    // flankShift = 0;
+    // rotate = 1;
+    numOrientationsPre = 4;
       
     strength = 0.015625; // 1.0 x post->num_neurons / pre->num_neurons
-    normalize = 1.0;
-    normalize_zero_offset = 0.0;
-    normalize_max = 0.0;
-    normalize_cutoff = 0;
-    symmetrizeWeights = 0;
+    normalizeMethod = "normalizeSum";
+    normalize_cutoff = false;
+    symmetrizeWeights = false;
+    normalizeFromPostPerspective = false;
+    normalizeArborsIndividually = false;
+    minSumTolerated = 0.0;
 
-    wMax = 1.0;
-    wMin = 0;
-    writeCompressedWeights = 0.0;
+    writeCompressedCheckpoints = false;
     plasticityFlag = 0;
     shmget_flag = 1;
-    weightUpdatePeriod = -1.0;
 
     delay = 0;     
 
     stochasticReleaseFlag = false;
     shrinkPatches = false;
+    preActivityIsNotRate = false;
+    selfFlag = false;
 };
 
 
@@ -369,43 +388,55 @@ KernelConn "L0 to Lx1_4" = {
 StatsProbe "L0_Stats_File" = {
     targetLayer = "L0";
     probeOutputFile = "L0_Stats.txt";
+    message = "L0_Stats_File           ";
 };
 MPITestProbe "Lx1_Stats_File" = {
     targetLayer = "Lx1";
     probeOutputFile = "Lx1_Stats.txt";
+    message = "Lx1_Stats_File          ";
 };
 MPITestProbe "Lx2_Stats_File" = {
     targetLayer = "Lx2";
     probeOutputFile = "Lx2_Stats.txt";
+    message = "Lx2_Stats_File          ";
 };
 MPITestProbe "Lx4_Stats_File" = {
     targetLayer = "Lx4";
     probeOutputFile = "Lx4_Stats.txt";
+    message = "Lx4_Stats_File          ";
 };
 MPITestProbe "Lx1_2_Stats_File" = {
     targetLayer = "Lx1_2";
     probeOutputFile = "Lx1_2_Stats.txt";
+    message = "Lx1_Stats_File          ";
 };
 MPITestProbe "Lx1_4_Stats_File" = {
     targetLayer = "Lx1_4";
     probeOutputFile = "Lx1_4_Stats.txt";
+    message = "Lx1_4_Stats_File        ";
 };
 
 StatsProbe "L0_Stats_Screen" = {
     targetLayer = "L0";
+    message = "L0_Stats_Screen         ";
 };
 MPITestProbe "Lx1_Stats_Screen" = {
     targetLayer = "Lx1";
+    message = "Lx1_Stats_Screen        ";
 };
 MPITestProbe "Lx2_Stats_Screen" = {
     targetLayer = "Lx2";
+    message = "Lx2_Stats_Screen        ";
 };
 MPITestProbe "Lx4_Stats_Screen" = {
     targetLayer = "Lx4";
+    message = "Lx4_Stats_Screen        ";
 };
 MPITestProbe "Lx1_2_Stats_Screen" = {
     targetLayer = "Lx1_2";
+    message = "Lx1_Stats_Screen        ";
 };
 MPITestProbe "Lx1_4_Stats_Screen" = {
     targetLayer = "Lx1_4";
+    message = "Lx1_4_Stats_Screen      ";
 };
