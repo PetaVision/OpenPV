@@ -18,7 +18,7 @@ HyPerCol "column" = {
    numSteps = 100495000;       // Depends on number of VINE video frames
    progressStep = 10000;
    //outputPath = "/nh/compneuro/Data/vine/LCA/2013_01_31/output";
-   //outputPath = "/nh/compneuro/Data/vine/LCA/2013_01_31/outputOverlap";
+   outputPath = "/nh/compneuro/Data/vine/LCA/2013_01_31/outputOverlap";
    filenamesContainLayerNames = true;
    filenamesContainConnectionNames = true;
    checkpointRead = false;
@@ -426,7 +426,7 @@ KernelConn "V1ToError" = {
     weightUpdatePeriod = 20.0;
     initialWeightUpdateTime = 4999.0;
     initialWriteTime = 0.0;
-    dWMax = 20.0;
+    dWMax = 1.0;
     selfFlag = false;
     shmget_flag = false;
 
