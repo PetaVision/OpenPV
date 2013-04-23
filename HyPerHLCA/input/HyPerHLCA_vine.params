@@ -1,12 +1,12 @@
-//
-// HyPerHLCA.params
+// // HyPerHLCA.params
 //
 // created by peteschultz: Sept 27, 2012, modified garkenyon, 1/20/13
 //
-
+//
 // Implements the locally competitive algorithm described in
 // Rozell et al., "Sparse Coding via Thresholding and Local Cometition
 // in Neural Circuits," Neural Computation 20, 2526-2563 (2008).
+///////////////////////////
 
 debugParsing = true;
 
@@ -18,7 +18,7 @@ HyPerCol "column" = {
    numSteps = 100495000;       // Depends on number of VINE video frames
    progressStep = 10000;
    //outputPath = "/nh/compneuro/Data/vine/LCA/2013_01_31/output";
-   outputPath = "/nh/compneuro/Data/vine/LCA/2013_01_31/outputOverlap";
+   //outputPath = "/nh/compneuro/Data/vine/LCA/2013_01_31/outputOverlap";
    filenamesContainLayerNames = true;
    filenamesContainConnectionNames = true;
    checkpointRead = false;
@@ -236,7 +236,7 @@ KernelConn "MovieToRetina" = {
     weightInitType = "UniformWeight";
     weightInit = 1.0;
 
-    normalize = 0;
+    normalizeMethod = "none";
        
     //writeCompressedWeights = false;
     writeCompressedCheckpoints = false;
@@ -270,13 +270,12 @@ KernelConn "RetinaToBipolarCenter" = {
    rMin = 0;
        
    strength = 1.0;  
-   normalize = 1.0;
-   normalize_zero_offset = false;
-   normalize_max = false;
-   normalize_cutoff = 0;
-   normalize_RMS_amp = false;
+   normalizeMethod = "normalizeSum";
+   minSumTolerated = 0;
+   normalizeArborsIndividually = 0;
+   normalize_cutoff = 0.0;
+   normalizeFromPostPerspective = true;
    symmetrizeWeights = false;
-   normalizeTotalToPost = true;
 
    shrinkPatches = false;
    //writeCompressedWeights = 0.0;
@@ -310,13 +309,12 @@ KernelConn "BipolarToGanglionCenter" = {
    rMin = 0;
        
    strength = 1.0;  
-   normalize = 1.0;
-   normalize_zero_offset = false;
-   normalize_max = false;
-   normalize_cutoff = 0;
-   normalize_RMS_amp = false;
+   normalizeMethod = "normalizeSum";
+   minSumTolerated = 0;
+   normalizeArborsIndividually = 0;
+   normalize_cutoff = 0.0;
+   normalizeFromPostPerspective = true;
    symmetrizeWeights = false;
-   normalizeTotalToPost = true;
 
    shrinkPatches = false;
    //writeCompressedWeights = 0.0;
@@ -350,13 +348,12 @@ KernelConn "BipolarToGanglionSurround" = {
    rMin = 0.5;
        
    strength = 1.0;  
-   normalize = 1.0;
-   normalize_zero_offset = false;
-   normalize_max = false;
+   normalizeMethod = "normalizeSum";
+   minSumTolerated = 0;
+   normalizeArborsIndividually = 0;
    normalize_cutoff = 0.0;
-   normalize_RMS_amp = false;
+   normalizeFromPostPerspective = true;
    symmetrizeWeights = false;
-   normalizeTotalToPost = true;
 
    shrinkPatches = false;
    //writeCompressedWeights = 0.0;
@@ -411,13 +408,12 @@ KernelConn "V1ToError" = {
     sparseFraction = .90;
    
     strength = 1.0;  
-    normalize = 1.0;
-    normalize_zero_offset = false; // could be set to true to write whitened patches
-    normalize_max = false;
-    normalize_cutoff = 0.0;
-    normalize_RMS_amp = true;
-    symmetrizeWeights = false;
-    normalizeTotalToPost = false;
+   normalizeMethod = "normalizeL2";
+   minSumTolerated = 0;
+   normalizeArborsIndividually = 0;
+   normalize_cutoff = 0.0;
+   normalizeFromPostPerspective = true;
+   symmetrizeWeights = false;
 
     preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
     keepKernelsSynchronized = true; 
