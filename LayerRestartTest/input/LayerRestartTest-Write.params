@@ -11,10 +11,13 @@ HyPerCol "column" = {
     randomSeed = 896426020;
     numSteps = 1;
     progressStep = 1;
+    writeProgressToErr = false;
     outputPath = "output/";
     filenamesContainLayerNames = true;    
+    filenamesContainConnectionNames = true;    
     checkpointRead = false;
     checkpointWrite = false;
+    suppressLastOutput = false;
 };
 
 // 4 layers:
@@ -30,10 +33,15 @@ Image "Image" = {
     imagePath = "input/F_N160050.jpg";
     nf = 3;
     marginWidth = 0;
+    phase = 0;
     writeStep = -1;
     writeSparseActivity = false;
     mirrorBCflag = false;
     writeImages = false;
+    useImageBCflag = false;
+    inverseFlag = false;
+    normalizeLuminanceFlag = false;
+    jitterFlag = false;
     offsetX = 0;
     offsetY = 0;
 };
@@ -44,6 +52,7 @@ ANNLayer "Copy" = {
     nyScale = 1;
     nf = 3;
     marginWidth = 0;
+    phase = 0;
     writeStep = -1;
     mirrorBCflag = 0;
     writeSparseActivity = 0;
@@ -54,6 +63,7 @@ ANNLayer "Copy" = {
     VThresh = -infinity;
     VMax = infinity;
     VMin = -infinity;
+    VShift = 0.0;
 };
 
 Image "Random Image" = {
@@ -63,10 +73,15 @@ Image "Random Image" = {
     imagePath = "input/randomimage.png";
     nf = 3;
     marginWidth = 0;
+    phase = 0;
     writeStep = -1;
     writeSparseActivity = false;
     mirrorBCflag = false;
     writeImages = false;
+    useImageBCflag = false;
+    inverseFlag = false;
+    normalizeLuminanceFlag = false;
+    jitterFlag = false;
     offsetX = 0;
     offsetY = 0;
 };
@@ -77,6 +92,7 @@ ANNLayer "Comparison" = {
     nyScale = 1;
     nf = 3;
     marginWidth = 0;
+    phase = 0;
     writeStep = -1;
     mirrorBCflag = 0;
     writeSparseActivity = 0;
@@ -87,18 +103,17 @@ ANNLayer "Comparison" = {
     VThresh = -infinity;
     VMax = infinity;
     VMin = -infinity;
+    VShift = 0.0;
 };
 
 IdentConn "Image to Copy" = {
     channelCode = 0;   
     writeStep = -1;
-    writeCompressedWeights = true;
     delay = 0;         
 };
 
 IdentConn "Random Image to Comparison" = {
     channelCode = 0;   
     writeStep = -1;
-    writeCompressedWeights = true;
     delay = 0;         
 };
