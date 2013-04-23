@@ -85,7 +85,7 @@ int NormalizeSum::normalizeWeights(HyPerConn * conn) {
 			normalizePatch(dataStartPatch, weights_per_patch, scale_factor/sum);
 		 }
 	  }
-	  bool testNormalizationFlag = true;
+	  bool testNormalizationFlag = false;
 	  if (testNormalizationFlag){
 		  for (int arborID = 0; arborID<nArbors; arborID++) {
 			 for (int patchindex = 0; patchindex<numDataPatches; patchindex++) {
@@ -125,7 +125,7 @@ int NormalizeSum::normalizeWeights(HyPerConn * conn) {
             normalizePatch(dataStartPatch, weights_per_patch, scale_factor/sum);
          }
       } // patchindex
-      bool testNormalizationFlag = true;
+      bool testNormalizationFlag = false;
       float tol = 1e-6;
       if (testNormalizationFlag){
 		  for (int patchindex = 0; patchindex<numDataPatches; patchindex++) {
