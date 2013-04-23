@@ -43,8 +43,8 @@ int BIDSCloneLayer::initialize(const char * name, HyPerCol * hc, LIF * clone) {
    SigmoidAlpha = parent->parameters()->value(name,"SigmoidAlpha",SIGMOIDALPHA);
 
 
-   if(InverseFlag)   fprintf(stdout,"SigmoidLayer: Inverse flag is set");
-   if(SigmoidFlag)   fprintf(stdout,"SigmoidLayer: True Sigmoid flag is set");
+   //if(InverseFlag)   fprintf(stdout,"SigmoidLayer: Inverse flag is set.\n");
+   //if(SigmoidFlag)   fprintf(stdout,"SigmoidLayer: True Sigmoid flag is set.\n");
 
    this->writeSparseActivity = true;
    sourceLayer = clone;
