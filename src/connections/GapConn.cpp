@@ -50,6 +50,25 @@ void GapConn::readChannelCode(PVParams * params) {
 
 int GapConn::initNormalize(){
    int status = KernelConn::initNormalize();
+   if (normalizer==NULL) {
+      if (parent->columnId()==0) {
+         fprintf(stderr, "GapConn::initNormalize error in connection \"%s\".  normalizeMethod cannot be \"none\".\n", name);
+      }
+#ifdef PV_USE_MPI
+      MPI_Barrier(parent->icCommunicator()->communicator());
+#endif // PV_USE_MPI
+      exit(PV_FAILURE);
+   }
+   assert(normalizer);
+   if (!normalizer->getNormalizeFromPostPerspectiveFlag()) {
+      if (parent->columnId()==0) {
+         fprintf(stderr, "GapConn::initNormalize error in connection \"%s\".  normalizeFromPostPerspective must be true for GapConns.\n", name);
+      }
+#ifdef PV_USE_MPI
+      MPI_Barrier(parent->icCommunicator()->communicator());
+#endif // PV_USE_MPI
+      exit(PV_FAILURE);
+   }
    HyPerLayer * postHyPerLayer = this->postSynapticLayer();
    LIFGap * postLIFGap = NULL;
    postLIFGap = dynamic_cast <LIFGap*> (postHyPerLayer);
@@ -61,7 +80,7 @@ int GapConn::initNormalize(){
       //TODO!!! terrible hack here: should compute sum of gap junctions connection strengths into each post synaptic cell
       // instead, we check that normalize is true as a stop gap
       assert(this->normalizer);
-      gap_strength = normalizer->getStrength() / this->postSynapticLayer()->getNumNeurons() * this->preSynapticLayer()->getNumNeurons();
+      gap_strength = normalizer->getStrength(); // normalizer->getStrength() / this->postSynapticLayer()->getNumNeurons() * this->preSynapticLayer()->getNumNeurons();
       //      fprintf(stdout,"This is connection %i, setting initNormalizeFlag to true and adding gap_strength %f \n",this->getConnectionId(),gap_strength);
       postLIFGap->addGapStrength(gap_strength);
    }
