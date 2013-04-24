@@ -32,25 +32,26 @@ HyPerCol "column" = {
 // Layers Layers Layers Layers Layers Layers Layers Layers Layers Layers Layers
 
 Movie "Source" = {
-//    imageListPath = "/Users/slundquist/Documents/workspace/BIDS/input/wave_prop_files.txt";
-//    imageListPath = "/Users/slundquist/Documents/workspace/BIDS/input/wave_prop_files2.txt";
-//    imageListPath = "/Users/slundquist/Documents/workspace/BIDS/input/wave_with_noise.txt";
-//    imageListPath = "/Users/slundquist/Documents/workspace/BIDS/input/weak_wave_file.txt";
-//    imageListPath = "/Users/slundquist/Documents/workspace/BIDS/input/norm_wave_file.txt";
-//    imageListPath = "/Users/slundquist/Documents/workspace/BIDS/input/strong_wave_file.txt";
-//    imageListPath = "/Users/slundquist/Documents/workspace/BIDS/input/blank_img_files.txt";
-//    imageListPath = "/Users/slundquist/Documents/workspace/BIDS/input/full_img_files.txt";
-//    imageListPath = "/Users/Burger/Documents/workspace/BIDS/input/filenames.txt";
-      imageListPath = "/Users/dpaiton/Documents/Work/LANL/workspace/BIDS/input/filenames.txt";
+//      imageListPath = "/Users/slundquist/Documents/workspace/BIDS/input/wave_prop_files.txt";
+//      imageListPath = "/Users/slundquist/Documents/workspace/BIDS/input/wave_prop_files2.txt";
+//      imageListPath = "/Users/slundquist/Documents/workspace/BIDS/input/wave_with_noise.txt";
+//      imageListPath = "/Users/slundquist/Documents/workspace/BIDS/input/weak_wave_file.txt";
+//      imageListPath = "/Users/slundquist/Documents/workspace/BIDS/input/norm_wave_file.txt";
+//      imageListPath = "/Users/slundquist/Documents/workspace/BIDS/input/strong_wave_file.txt";
+//      imageListPath = "/Users/slundquist/Documents/workspace/BIDS/input/blank_img_files.txt";
+//      imageListPath = "/Users/slundquist/Documents/workspace/BIDS/input/full_img_files.txt";
+//      imageListPath = "/Users/Burger/Documents/workspace/BIDS/input/filenames.txt";
+//      imageListPath = "/Users/dpaiton/Documents/Work/LANL/workspace/BIDS/input/filenames.txt";
+      imageListPath = "~/Documents/Work/LANL/workspace/BIDS/input/filenames_gray_test.txt";
                            //
-	restart = 0;
+   restart = 0;
    nxScale = 1;
    nyScale = 1;
    nf      = 1;
                           //
    marginWidth = 0; 	   // boundary
    
-   mirrorBCflag   = 1;
+   mirrorBCflag   = 0;
    useImageBCflag = 1;   // Fill boundary with image instead of mirror or 0's
                           //
    displayPeriod = 1;    // Once per time step
@@ -115,7 +116,7 @@ BIDSLayer "BIDS_Node" = { // child of LIF
    marginWidth         = 27;     	// based on lateral radius and jitter
    writeStep           = 1;
    mirrorBCflag        = 1;     	// mirroring boundary conditions
-   method              = "beginning"; // "original", "beginning", "arma"
+   method              = "arma"; // "original", "beginning", "arma"
    InitVType           = "ConstantV";
    valueV			   = -70.0;
    Vrest               = -70.;    
@@ -125,13 +126,13 @@ BIDSLayer "BIDS_Node" = { // child of LIF
    VinhB               = -90.0;   	// potassium reversal
    tau                 = 10.0;    	// intrinsic leak membrane time constant (max)
    tauE                = 1.0;     	// how long glutamine stays bound
-   tauI                = 5.0;     	// how long GABA stays bound
+   tauI                = 1.0;     	// how long GABA stays bound
    tauIB               = 10.0;    	// inhibitory potassium channel 
-   VthRest             = -55.0;   	// firing threshold 15 mV above rest
+   VthRest             = -35.0;//-55.0;   	// firing threshold 15 mV above rest
    tauVth              = 10.0;    	// relative refractory period
    deltaVth            = 5.0;     	// jump of threshold when firing
-   noiseAmpE           = 1;     	//  means conductance is equal to lead conductance  
-   noiseAmpI           = 1;     	// twice as easy for the membrane capacitance to discharge
+   noiseAmpE           = 0.5;    	//  means conductance is equal to lead conductance  
+   noiseAmpI           = 0.5;     	// twice as easy for the membrane capacitance to discharge
    noiseAmpIB          = 0.0;     	// no noise here 
    noiseFreqE          = 250.;    	// spontaneous transmitter release/channel openings
    noiseFreqI          = 250.;    	// correlation to time step size !!!
@@ -206,7 +207,7 @@ BIDSConn "Lateral_Excitation" = {   			// This connects the image to the BIDS_re
    sigma					  = 32;
    rMax					      = 32;
    rMin					      = 0;
-   strength				      = 0.11; //0.025
+   strength				      = 0.4; //0.025
    falloffType				  = "Log";       //possible falloff rates right now are "Log", "Gaussian", "radSquared", and "Linear"
    lateralRadius			  = 15;
                                         //
