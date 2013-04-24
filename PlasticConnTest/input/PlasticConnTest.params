@@ -16,9 +16,12 @@ HyPerCol "column" = {
    randomSeed = 1364931845;  // if not set here,  clock time is used to generate seed
    numSteps = 100;
    progressStep = 100;
+   writeProgressToErr = false;
    outputPath = "output/";
    filenamesContainLayerNames = false;
+   filenamesContainConnectionNames = false;
    checkpointWrite = false;
+   suppressLastOutput = false;
    checkpointRead = false;
 };
 
@@ -32,10 +35,11 @@ PlasticConnTestLayer "pre" = {
     nyScale = 1;
     nf = 1;
     marginWidth = 4;
-    writeStep = 1;
+    phase = 0;
+    writeStep = 1.0;
+    initialWriteTime = 0.0;
     mirrorBCflag = false;
-    spikingFlag = false;
-    writeNonspikingActivity = true;
+    writeSparseActivity = false;
 
     InitVType = "ConstantV";
     valueV = 1.0;
@@ -43,6 +47,7 @@ PlasticConnTestLayer "pre" = {
     VThresh = -infinity;
     VMax = infinity;
     VMin = -infinity;
+    VShift = 0.0;
 };
 
 
@@ -52,10 +57,11 @@ PlasticConnTestLayer "post" = {
     nyScale = 1;
     nf = 1;
     marginWidth = 0;
-    writeStep = 1;
+    phase = 0;
+    writeStep = 1.0;
+    initialWriteTime = 0.0;
     mirrorBCflag = false;
-    spikingFlag = false;
-    writeNonspikingActivity = true;
+    writeSparseActivity = false;
 
     InitVType = "ConstantV";
     valueV = 1.0;
@@ -63,6 +69,7 @@ PlasticConnTestLayer "post" = {
     VThresh = -infinity;
     VMax = infinity;
     VMin = -infinity;
+    VShift = 0.0;
 };
 //  connections: 
 
@@ -74,22 +81,30 @@ PlasticTestConn "pre to post" = {
     nyp = 5;
     nfp = 1;
     numAxonalArbors = 1;
-    writeStep = 1;
+    writeStep = 1.0;
+    initialWriteTime = 0.0;
     initFromLastFlag = 0;
     
     weightInitType = "UniformWeight";
     weightInit = 0.0;
 
+    normalizeMethod = "none";
+
     writeCompressedWeights = false;
+    writeCompressedCheckpoints = false;
     plasticityFlag = true;
     weightUpdatePeriod = 1.0;
-    symmetrizeWeights = false;
-    normalize = false;
+    initialWeightUpdateTime = 0.0;
 
     delay = 0;     
 
     stochasticReleaseFlag = false;
     shrinkPatches = false;
+    preActivityIsNotRate = false;
+    selfFlag = false;
+    combine_dW_with_W_flag = false;
+    dWMax = 1.0;
+    keepKernelsSynchronized = true;
 };
 
 // PlasticConnTestProbe "probe"
