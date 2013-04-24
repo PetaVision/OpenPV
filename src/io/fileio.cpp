@@ -85,7 +85,7 @@ long int PV_ftell(FILE * fp) {
       filepos = ftell(fp);
       if (filepos >= 0) break;
       ftellcounts++;
-      fprintf(stderr, "ftell failure on attempt %d\n", ftellcounts);
+      fprintf(stderr, "ftell failure on attempt %d\n: %s", ftellcounts, strerror(errno));
       if (ftellcounts < MAX_FILESYSTEMCALL_TRIES) {
          sleep(1);
       }
