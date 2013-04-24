@@ -172,7 +172,7 @@ BIDSCloneLayer "BIDS_Clone" ={ // child of HyPerLayer
 // Connections Connections Connections Connections Connections Connections
 // Connections Connections Connections Connections Connections Connections
 
-IdentConn "Movie to Sensor" = {
+IdentConn "Movie_to_Sensor" = {
    preLayerName 			= "BIDS_Movie";
    postLayerName 			= "BIDS_Sensor_Head";
    channelCode              = 0; 			//excitatory channel
@@ -180,7 +180,7 @@ IdentConn "Movie to Sensor" = {
    delay                    = 0;
 };
 
-IdentConn "Sensor to Nodes" = {
+IdentConn "Sensor_to_Nodes" = {
    preLayerName 			= "BIDS_Sensor_Head";
    postLayerName 			= "BIDS_Node";
    channelCode              = 0; 			//excitatory channel
@@ -188,7 +188,7 @@ IdentConn "Sensor to Nodes" = {
    delay                    = 0;
 };
 
-BIDSConn "Lateral Excitation" = {   			// This connects the image to the BIDS_receptor so that the sensor(s) on the receptor can detect active pixels
+BIDSConn "Lateral_Excitation" = {   			// This connects the image to the BIDS_receptor so that the sensor(s) on the receptor can detect active pixels
    preLayerName 			  = "BIDS_Node";
    postLayerName 			  = "BIDS_Node";
    weightInitType 			  = "BIDSLateral"; 	// determines how PetaVision distributes and handles the weights for neurons/nodes 
@@ -196,7 +196,7 @@ BIDSConn "Lateral Excitation" = {   			// This connects the image to the BIDS_re
    channelCode 				  = 0;               		// forward
    normalizeMethod           = "none";
    delay         			  = 0.0; 					// in time steps, additional to the one you always get
-   writeStep             	  = -1;  				// do not write these out
+   writeStep             	  = 100;  				// write out if you want to see excitatory lateral weights
    numAxonalArbors			  = 1;
    plasticityFlag			  = 0;
    stochasticReleaseFlag	  = 0;
@@ -217,7 +217,7 @@ BIDSConn "Lateral Excitation" = {   			// This connects the image to the BIDS_re
    nfp 					      = 1;
 };
 
-//BIDSConn "Lateral Inhibition" = {
+//BIDSConn "Lateral_Inhibition" = {
 //   preLayerName 			= "BIDS_Node";
 //   postLayerName 			= "BIDS_Node";
 //   weightInitType 			= "BIDSLateral"; 	// determines how PetaVision distributes and handles the weights for neurons/nodes 
