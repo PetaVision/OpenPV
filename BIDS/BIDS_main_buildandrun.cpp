@@ -25,10 +25,6 @@ int main(int argc, char * argv[]) {
 
 #ifdef MAIN_USES_ADDCUSTOM
 int addcustom(HyPerCol * hc, int argc, char * argv[]) {
-    printf("addcustom(hc, argc, argv) is called after PetaVision builds the HyPerCol\n");
-    printf("and before PetaVision runs the simulation.\n");
-    printf("Hence addcustom can be used to add additional objects to the HyPerCol that\n");
-    printf("aren't in the PetaVision Library");
 
     return PV_SUCCESS;
 }
