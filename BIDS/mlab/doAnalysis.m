@@ -1,6 +1,6 @@
 function [pSet, AUC] = doAnalysis(label,fileLoc,params)
     workspacePath   = fileLoc.workspacePath;
-    inputFileName   = fileLoc.inputFileName;
+    layerFileName   = fileLoc.layerFileName;
     outputPath      = fileLoc.outputPath;
     outFileExt      = params.outFileExt;
 
@@ -10,6 +10,12 @@ function [pSet, AUC] = doAnalysis(label,fileLoc,params)
     if GRAPH_FLAG
         graphSpec   = params.graphSpec;
         numHistBins = params.numHistBins;
+    end
+
+    WEIGHTS_FLAG    = params.WEIGHTS_FLAG;
+    if WEIGHTS_FLAG
+        connFileName = fileLoc.connFileName;
+    end
 
     addpath([workspacePath,'PetaVision/mlab/util/']);
 
@@ -17,14 +23,24 @@ function [pSet, AUC] = doAnalysis(label,fileLoc,params)
         mkdir(outputPath);
     end
 
-    [data hdr] = readpvpfile(inputFileName);
-    if ~exist('data','var') || ~exist('hdr','var')
-        print('bidsAnalysis: readpvpfile error.')
+    [layerData layerHDR] = readpvpfile(layerFileName);
+    if ~exist('layerData','var') || ~exist('layerHDR','var')
+        print('bidsAnalysis: readpvpfile error on layer data.')
         keyboard
     end
+    
+    if WEIGHTS_FLAG
+        [connData connHDR] = readpvpfile(connFileName);
+        if ~exist('connData','var') || ~exist('connHDR','var')
+            print('bidsAnalysis: readpvpfile error on conn data.')
+            keyboard
+        end
+        numConnFrames = length(connData)-1; %First element is steady state
+        assert(isequal(connData{2}.values,connData{numConnFrames}.values)); %The weights should not change over time
+    end
 
-    numFrames = hdr.nbands-1; %First band is steady state - does not factor into calculations
-    N         = hdr.nx * hdr.ny * hdr.nf;
+    numFrames = layerHDR.nbands-1; %First band is steady state - does not factor into calculations
+    N         = layerHDR.nx * layerHDR.ny * layerHDR.nf;
 
     if GRAPH_FLAG
         noStimLength = graphSpec(2) - graphSpec(1);
@@ -37,24 +53,23 @@ function [pSet, AUC] = doAnalysis(label,fileLoc,params)
         clear stimLength;
         clear noStimLength;
 
-        integratedHalf1 = zeros([hdr.nyGlobal,hdr.nxGlobal]);
-        integratedHalf0 = zeros([hdr.nyGlobal,hdr.nxGlobal]);
+        integratedHalf1 = zeros([layerHDR.nyGlobal,layerHDR.nxGlobal]);
+        integratedHalf0 = zeros([layerHDR.nyGlobal,layerHDR.nxGlobal]);
     end
 
     times      = zeros(numFrames,1); 
     spikeCount = zeros(numFrames,1);
     frame      = 0;
     for frameIdx = 2:numFrames
+        assert(layerData{frameIdx}.time==frame); % Make sure we are on the right time step
 
-        assert(data{frameIdx}.time==frame); % Make sure we are on the right time step
+        spikeCount(frameIdx) = length(find(layerData{frameIdx}.values(:)));
 
-        spikeCount(frameIdx) = length(find(data{frameIdx}.values(:)));
+        times(frameIdx)      = squeeze(layerData{frameIdx}.time);
 
-        times(frameIdx)      = squeeze(data{frameIdx}.time);
-
-        activeIdx            = squeeze(data{frameIdx}.values);
+        activeIdx            = squeeze(layerData{frameIdx}.values);
         vecMat               = full(sparse(activeIdx+1,1,1,N,1,N)); %%Column vector. PetaVision increments in order: nf, nx, ny
-        rsMat                = reshape(vecMat,hdr.nf,hdr.nx,hdr.ny);
+        rsMat                = reshape(vecMat,layerHDR.nf,layerHDR.nx,layerHDR.ny);
         fullMat              = permute(rsMat,[3 2 1]); %%Matrix is now [ny, nx, nf]
 
         if GRAPH_FLAG
@@ -98,7 +113,7 @@ function [pSet, AUC] = doAnalysis(label,fileLoc,params)
         numSpikesStim   = sum(spikeCount(graphSpec(3):graphSpec(4)))/halfLength
 
         pSet = zeros(2,numHistBins);
-        mask = ones([hdr.nyGlobal,hdr.nxGlobal]); %In case you want to histogram over a certain window
+        mask = ones([layerHDR.nyGlobal,layerHDR.nxGlobal]); %In case you want to histogram over a certain window
 
         [rows0 cols0 counts0] = find(integratedHalf0.*mask);
         [rows1 cols1 counts1] = find(integratedHalf1.*mask);
