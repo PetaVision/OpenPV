@@ -187,35 +187,35 @@ IdentConn "Sensor to Nodes" = {
    writeStep                = -1;
    delay                    = 0;
 };
-
-BIDSConn "Lateral Excitation" = {   			// This connects the image to the BIDS_receptor so that the sensor(s) on the receptor can detect active pixels
-   preLayerName 			  = "BIDS_Node";
-   postLayerName 			  = "BIDS_Node";
-   weightInitType 			  = "BIDSLateral"; 	// determines how PetaVision distributes and handles the weights for neurons/nodes 
-   jitterSource               = "BIDS_Movie";
-   channelCode 				  = 0;               		// forward
-   normalizeMethod           = "none";
-   delay         			  = 0.0; 					// in time steps, additional to the one you always get
-   writeStep             	  = -1;  				// do not write these out
-   numAxonalArbors			  = 1;
-   plasticityFlag			  = 0;
-   stochasticReleaseFlag	  = 0;
-   selfFlag				      = 0;
-   shrinkPatches			  = 0;
-   aspect					  = 1;
-   sigma					  = 32;
-   rMax					      = 32;
-   rMin					      = 0;
-   strength				      = 0.11; //0.025
-   falloffType				  = "Log";       //possible falloff rates right now are "Log", "Gaussian", "radSquared", and "Linear"
-   lateralRadius			  = 15;
-                                        //
-   preActivityIsNotRate       = 0;
-   writeCompressedCheckpoints = 0;
-   nxp                        = -1; //BIDS Conn figures out nxp & nyp based on jitter info
-   nyp                        = -1;
-   nfp 					      = 1;
-};
+  
+//BIDSConn "Lateral Excitation" = {   			// This connects the image to the BIDS_receptor so that the sensor(s) on the receptor can detect active pixels
+//   preLayerName 			  = "BIDS_Node";
+//   postLayerName 			  = "BIDS_Node";
+//   weightInitType 			  = "BIDSLateral"; 	// determines how PetaVision distributes and handles the weights for neurons/nodes 
+//   jitterSource               = "BIDS_Movie";
+//   channelCode 				  = 0;               		// forward
+//   normalizeMethod           = "none";
+//   delay         			  = 0.0; 					// in time steps, additional to the one you always get
+//   writeStep             	  = -1;  				// do not write these out
+//   numAxonalArbors			  = 1;
+//   plasticityFlag			  = 0;
+//   stochasticReleaseFlag	  = 0;
+//   selfFlag				      = 0;
+//   shrinkPatches			  = 0;
+//   aspect					  = 1;
+//   sigma					  = 32;
+//   rMax					      = 32;
+//   rMin					      = 0;
+//   strength				      = 0; //0.025
+//   falloffType				  = "Log";       //possible falloff rates right now are "Log", "Gaussian", "radSquared", and "Linear"
+//   lateralRadius			  = 15;
+//                                        //
+//   preActivityIsNotRate       = 0;
+//   writeCompressedCheckpoints = 0;
+//   nxp                        = -1; //BIDS Conn figures out nxp & nyp based on jitter info
+//   nyp                        = -1;
+//   nfp 					      = 1;
+//};
 
 //BIDSConn "Lateral Inhibition" = {
 //   preLayerName 			= "BIDS_Node";
