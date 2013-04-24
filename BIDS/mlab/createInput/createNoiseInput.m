@@ -1,4 +1,4 @@
-addpath('~/MATLAB/k-Wave Toolbox');
+addpath('./k-Wave Toolbox');
 clear all;
 
 % =========================================================================

@@ -1,5 +1,5 @@
 %Path to k-wave toolkit
-addpath('/Users/dpaiton/Documents/Work/LANL/workspace/BIDS/new_mlab/createInput/k-Wave Toolbox');
+addpath('./k-Wave Toolbox');
 
 %Set up kgrid world
 Nx = DIM(1);
