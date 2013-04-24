@@ -14,8 +14,8 @@ HyPerCol "column" = {
    ny                           = 256;
    dt                           = 1.0;
    randomSeed                   = 1020304050;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
-   numSteps                     = 10;
-   progressStep                 = 10;
+   numSteps                     = 50;
+   progressStep                 = 50;
    writeProgressToErr           = false;
    outputPath                   = "output2";
    filenamesContainLayerNames   = 2;
@@ -35,12 +35,14 @@ HyPerCol "column" = {
 //
 
 Image "input" = {
-    restart                     = 0;
+    // restart                     = 0;
     nxScale                     = 1;
     nyScale                     = 1;
+    useParamsImage              = false; //Load from checkpoint
     imagePath                   = "input/sampleimage.png";
     nf                          = 1;
     marginWidth                 = 3;
+    phase                       = 0;
     writeStep                   = -1;
     writeSparseActivity         = false;
     mirrorBCflag                = false;
@@ -58,15 +60,16 @@ Retina "retina on" = {
     nyScale                     = 1;
     nf                          = 1;
     marginWidth                 = 4;
-    restart                     = false;
+    phase                       = 0;
+    // restart                     = false;
     
     writeSparseActivity         = true;
     writeStep                   = -1;
     mirrorBCflag                = true;
     spikingFlag                 = true;  // false (no quotes) is translated to 0
 
-    noiseOnFreq                 = 200;   // Hz // Max poisson spiking rate when input is 255
-    noiseOffFreq                = 10;    // Hz // Min poisson spiking rate when input is 0
+    foregroundRate              = 200;   // Hz // Max poisson spiking rate when input is 255
+    backgroundRate              = 10;    // Hz // Min poisson spiking rate when input is 0
 
     burstFreq                   = 50;    // Hz // Everything coming into the retina should be burstin burstFreq times per sec
     burstDuration               = 20;    // ms // Bursts last burstDuration ms
@@ -83,15 +86,16 @@ Retina "retina off" = {
     nyScale                     = 1;
     nf                          = 1;
     marginWidth                 = 4;
-    restart                     = false;
+    phase                       = 0;
+    // restart                     = false;
     
     writeSparseActivity         = true;
     writeStep                   = -1;
     mirrorBCflag                = true;
     spikingFlag                 = true;  // false (no quotes) is translated to 0
 
-    noiseOnFreq                 = 200;   // Hz // Max poisson spiking rate when input is 255
-    noiseOffFreq                = 10;    // Hz // Min poisson spiking rate when input is 0
+    foregroundRate              = 200;   // Hz // Max poisson spiking rate when input is 255
+    backgroundRate              = 10;    // Hz // Min poisson spiking rate when input is 0
 
     burstFreq                   = 50;    // Hz // Everything coming into the retina should be burstin burstFreq times per sec
     burstDuration               = 20;    // ms // Bursts last burstDuration ms
@@ -104,11 +108,12 @@ Retina "retina off" = {
 };
 
 LIFGap "lif layer" = {
-    restart                     = 0;
+    // restart                     = 0;
     nxScale                     = 1;
     nyScale                     = 1;
     nf                          = 1;
     marginWidth                 = 1;
+    phase                       = 0;
     writeSparseActivity         = true;
     writeStep                   = -1.0;
     mirrorBCflag                = false;
@@ -133,7 +138,7 @@ LIFGap "lif layer" = {
     noiseFreqI                  =  0.;     // correlation to time step size !!!
     noiseFreqIB                 =   0.;    // should be scaled by the time constant - look at LIF model
     
-    method                      = "b";
+    method                      = "arma";
 };
 
 
@@ -157,21 +162,21 @@ KernelConn "center on" = {
    rMin                         = 0;
    rMax                         = 1;   
    strength                     = 2.66666666667;
+   combineWeightFiles           = false;
 
-   normalize                    = true;
-   normalizeTotalToPost         = true;
-   normalize_max                = false;
-   normalize_zero_offset        = false;
+   normalizeMethod              = "normalizeSum";
+   normalizeFromPostPerspective = true;
+   normalizeArborsIndividually  = false;
    normalize_cutoff             = false;
    symmetrizeWeights            = false;
    plasticityFlag               = false;
    shmget_flag                  = true;
    stochasticReleaseFlag        = false;
-   writeCompressedWeights       = true;
    writeCompressedCheckpoints   = false;
    selfFlag                     = false;
    shrinkPatches                = false;
    preActivityIsNotRate         = false;
+   minSumTolerated              = 0.0;
 };
 
 KernelConn "surround on" = {
@@ -193,21 +198,21 @@ KernelConn "surround on" = {
    rMax                         = 5;
    rMin                         = 0.1;
    strength                     = 2.66666666667;
+   combineWeightFiles           = false;
 
-   normalize                    = true;
-   normalizeTotalToPost         = true;
-   normalize_max                = false;
-   normalize_zero_offset        = false;
+   normalizeMethod              = "normalizeSum";
+   normalizeFromPostPerspective = true;
+   normalizeArborsIndividually  = false;
    normalize_cutoff             = false;
    symmetrizeWeights            = false;
    plasticityFlag               = false;
    shmget_flag                  = true;
    stochasticReleaseFlag        = false;
-   writeCompressedWeights       = true;
    writeCompressedCheckpoints   = false;
    selfFlag                     = false;
    shrinkPatches                = false;
    preActivityIsNotRate         = false;
+   minSumTolerated              = 0.0;
 };
 
 KernelConn "center off" = {
@@ -230,21 +235,21 @@ KernelConn "center off" = {
    rMin                         = 0;
    rMax                         = 1;   
    strength                     = 2.66666666667;
+   combineWeightFiles           = false;
 
-   normalize                    = true;
-   normalizeTotalToPost         = true;
-   normalize_max                = false;
-   normalize_zero_offset        = false;
+   normalizeMethod              = "normalizeSum";
+   normalizeFromPostPerspective = true;
+   normalizeArborsIndividually  = false;
    normalize_cutoff             = false;
    symmetrizeWeights            = false;
    plasticityFlag               = false;
    shmget_flag                  = true;
    stochasticReleaseFlag        = false;
-   writeCompressedWeights       = true;
    writeCompressedCheckpoints   = false;
    selfFlag                     = false;
    shrinkPatches                = false;
    preActivityIsNotRate         = false;
+   minSumTolerated              = 0.0;
 };
 
 KernelConn "surround off" = {
@@ -266,21 +271,21 @@ KernelConn "surround off" = {
    rMax                         = 5;
    rMin                         = 0.1;
    strength                     = 2.66666666667;
+   combineWeightFiles           = false;
 
-   normalize                    = true;
-   normalizeTotalToPost         = true;
-   normalize_max                = false;
-   normalize_zero_offset        = false;
+   normalizeMethod              = "normalizeSum";
+   normalizeFromPostPerspective = true;
+   normalizeArborsIndividually  = false;
    normalize_cutoff             = false;
    symmetrizeWeights            = false;
    plasticityFlag               = false;
    shmget_flag                  = true;
    stochasticReleaseFlag        = false;
-   writeCompressedWeights       = true;
    writeCompressedCheckpoints   = false;
    selfFlag                     = false;
    shrinkPatches                = false;
    preActivityIsNotRate         = false;
+   minSumTolerated              = 0.0;
 };
 
 KernelConn "retina on to lif layer" = {
@@ -296,12 +301,12 @@ KernelConn "retina on to lif layer" = {
 
    weightInitType              = "OneToOneWeights";
    weightInit                  = 1.0;
+   combineWeightFiles           = false;
       
-   normalize                   = false;
+   normalizeMethod              = "none";
    plasticityFlag              = false;
-   shmget_flag                  = true;
+   shmget_flag                 = true;
    stochasticReleaseFlag       = false;
-   writeCompressedWeights      = true;
    writeCompressedCheckpoints  = false;
    selfFlag                    = false;
    shrinkPatches               = false;
@@ -321,14 +326,15 @@ KernelConn "retina off to lif layer" = {
     
    weightInitType              = "OneToOneWeights";
    weightInit                  = 1.0;
+   combineWeightFiles           = false;
       
-   normalize                   = false;
+   normalizeMethod              = "none";
    plasticityFlag              = false;
-   shmget_flag                  = true;
+   shmget_flag                 = true;
    stochasticReleaseFlag       = false;
-   writeCompressedWeights      = true;
-   writeCompressedCheckpoints   = false;
+   writeCompressedCheckpoints  = false;
    selfFlag                    = false;
    shrinkPatches               = false;
    preActivityIsNotRate        = false;
 };
+

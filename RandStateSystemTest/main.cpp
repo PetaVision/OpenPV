@@ -3,7 +3,8 @@
  *
  */
 
-
+#include <iostream>
+#include <sstream>
 #include <mpi.h>
 #include "../PetaVision/src/columns/buildandrun.hpp"
 
@@ -27,7 +28,7 @@ int main(int argc, char * argv[]) {
    cl_argv[1] = strdup("-p");
    cl_argv[2] = strdup(paramfile1);
 
-   int status1 = buildandrun(cl_argc, cl_argv, NULL, &customexit, NULL);
+   int status1 = buildandrun(cl_argc, cl_argv, NULL, NULL, NULL);
    if (status1 != PV_SUCCESS) {
       fprintf(stderr, "%s failed on param file %s with return code %d.\n", cl_argv[0], cl_argv[2], status1);
       return EXIT_FAILURE;
@@ -37,8 +38,7 @@ int main(int argc, char * argv[]) {
    cl_argv[2] = strdup(paramfile2);
    int status2 = buildandrun(cl_argc, cl_argv, NULL, &customexit, NULL);
    if (status2 != PV_SUCCESS) {
-      fprintf(stderr, "%s failed on param file %s with return code %d.\n", cl_argv[0], cl_argv[2], status2);
-      return EXIT_FAILURE;
+      fprintf(stderr, "%s failed on param file %s.\n", cl_argv[0], cl_argv[2]);
    }
    free(cl_argv[2]);
    free(cl_argv[1]);
@@ -47,11 +47,18 @@ int main(int argc, char * argv[]) {
    MPI_Finalize();
 #endif // PV_USE_MPI
 
-   int status = system("diff -r -q checkpoints*/Checkpoint10");
-
-   return status ? EXIT_FAILURE : EXIT_SUCCESS;
+   return status1==PV_SUCCESS && status2==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
 int customexit(HyPerCol * hc, int argc, char * argv[]) {
-   return PV_SUCCESS;
+   std::string cmd("diff -r -q checkpoints*/Checkpoint");
+   std::stringstream stepnumber;
+   stepnumber << hc->numberOfTimeSteps();
+   cmd += stepnumber.str();
+   const char * cmdstr = cmd.c_str();
+   int status = system(cmdstr);
+   if (status != 0) {
+      fprintf(stderr, "%s failed: system command \"%s\" returned %d\n", argv[0], cmdstr, status);
+   }
+   return status ? PV_FAILURE : PV_SUCCESS;
 }
