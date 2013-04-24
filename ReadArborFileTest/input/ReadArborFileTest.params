@@ -14,11 +14,14 @@ HyPerCol "column" = {
    randomSeed = 1724094279;  // if not set here,  clock time is used to generate seed
    numSteps = 5;
    progressStep = 5;
+   writeProgressToErr = false;
    outputPath = "output/";
    outputNamesOfLayersAndConns = "Names.txt";
    filenamesContainLayerNames = false;
+   filenamesContainConnectionNames = false;
    checkpointRead = false;
    checkpointWrite = false;
+   suppressLastOutput = false;
 };
 
 //
@@ -31,13 +34,18 @@ Image "input" = {
     imagePath = "input/singledot.png";
     nf = 1;
     marginWidth = 1;
+    phase = 0;
     writeStep = -1;
-    spikingFlag = false;
-    writeNonspikingActivity = true;
+    writeSparseActivity = false;
     mirrorBCflag = false;
+    
+    inverseFlag = false;
+    normalizeLuminanceFlag = false;
+    useImageBCflag = false;
     writeImages = false;
     offsetX = 0;
     offsetY = 0;
+    jitterFlag = false;
 };
 
 ANNLayer "output1" = {
@@ -46,16 +54,18 @@ ANNLayer "output1" = {
     nyScale = 1;
     nf = 1;
     marginWidth = 0;
+    phase = 0;
     writeStep = 1.0;
+    initialWriteTime = 0.0;
     mirrorBCflag = 1;
-    spikingFlag = 0;
-    writeNonspikingActivity = 1;
+    writeSparseActivity = false;
 
-    Vrest = 0.0;
+    InitVType = "ZeroV";
 
     VThresh = -infinity;
     VMax = infinity;
     VMin = -infinity;
+    VShift = 0.0;
 };
 
 ANNLayer "output2" = {
@@ -64,16 +74,18 @@ ANNLayer "output2" = {
     nyScale = 1;
     nf = 1;
     marginWidth = 0;
+    phase = 0;
     writeStep = 1.0;
+    initialWriteTime = 0.0;
     mirrorBCflag = 1;
-    spikingFlag = 0;
-    writeNonspikingActivity = 1;
+    writeSparseActivity = false;
 
-    Vrest = 0.0;
+    InitVType = "ZeroV";
 
     VThresh = -infinity;
     VMax = infinity;
     VMin = -infinity;
+    VShift = 0.0;
 };
 
 ANNLayer "comparison" = {
@@ -82,16 +94,18 @@ ANNLayer "comparison" = {
     nyScale = 1;
     nf = 1;
     marginWidth = 0;
+    phase = 0;
     writeStep = 1.0;
+    initialWriteTime = 0.0;
     mirrorBCflag = 1;
-    spikingFlag = 0;
-    writeNonspikingActivity = 1;
+    writeSparseActivity = false;
 
-    Vrest = 0.0;
+    InitVType = "ZeroV";
 
     VThresh = -infinity;
     VMax = infinity;
     VMin = -infinity;
+    VShift = 0.0;
 };
 
 KernelConn "all arbors at once" = {
@@ -108,11 +122,11 @@ KernelConn "all arbors at once" = {
     weightInitType = "FileWeight";
     initWeightsFile = "input/concat.pvp";
     useListOfArborFiles = false;
-      
-    normalize = false;
-    symmetrizeWeights = false;
+    combineWeightFiles = false;
 
-    writeCompressedWeights = false;
+    normalizeMethod = "none";
+
+    writeCompressedCheckpoints = false;
     plasticityFlag = false;
     shmget_flag = 1;
 
@@ -120,6 +134,8 @@ KernelConn "all arbors at once" = {
 
     stochasticReleaseFlag = false;
     shrinkPatches = false;
+    preActivityIsNotRate = false;
+    selfFlag = false;
 };
 
 KernelConn "arbors split into files" = {
@@ -136,11 +152,11 @@ KernelConn "arbors split into files" = {
     weightInitType = "FileWeight";
     initWeightsFile = "input/ArborFiles.txt";
     useListOfArborFiles = true;
+    combineWeightFiles = false;
       
-    normalize = false;
-    symmetrizeWeights = false;
+    normalizeMethod = "none";
 
-    writeCompressedWeights = false;
+    writeCompressedCheckpoints = false;
     plasticityFlag = false;
     shmget_flag = 1;
 
@@ -148,6 +164,8 @@ KernelConn "arbors split into files" = {
 
     stochasticReleaseFlag = false;
     shrinkPatches = false;
+    preActivityIsNotRate = false;
+    selfFlag = false;
 };
 
 IdentConn "output1 to comparison" = {
