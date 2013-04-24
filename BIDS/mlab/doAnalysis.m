@@ -49,10 +49,6 @@ function [pSet, AUC] = doAnalysis(label,fileLoc,params)
             print('bidsAnalysis: Graph spec not properly formatted!');
             keyboard
         end
-        halfLength = stimLength;
-        clear stimLength;
-        clear noStimLength;
-
         integratedHalf1 = zeros([layerHDR.nyGlobal,layerHDR.nxGlobal]);
         integratedHalf0 = zeros([layerHDR.nyGlobal,layerHDR.nxGlobal]);
     end
@@ -109,8 +105,14 @@ function [pSet, AUC] = doAnalysis(label,fileLoc,params)
             mkdir(figPath);
         end
 
-        numSpikesNoStim = sum(spikeCount(graphSpec(1):graphSpec(2)))/halfLength
-        numSpikesStim   = sum(spikeCount(graphSpec(3):graphSpec(4)))/halfLength
+        numSpikesNoStim = sum(spikeCount(graphSpec(1):graphSpec(2)));
+        numSpikesStim   = sum(spikeCount(graphSpec(3):graphSpec(4)));
+
+        disp(['numSpikesNoStim = ',num2str(numSpikesNoStim)])
+        disp(['noStimRate = ',num2str(numSpikesNoStim/(noStimLength/1000)/params.numBIDSNodes)])
+        disp(['numSpikesStim = ',num2str(numSpikesStim)])
+        disp(['StimRate = ',num2str(numSpikesStim/(stimLength/1000)/params.numBIDSNodes)])
+        disp(['----'])
 
         pSet = zeros(2,numHistBins);
         mask = ones([layerHDR.nyGlobal,layerHDR.nxGlobal]); %In case you want to histogram over a certain window
@@ -132,14 +134,14 @@ function [pSet, AUC] = doAnalysis(label,fileLoc,params)
             h0 = hist(counts0,binLoc,1);
             h1 = hist(counts1,binLoc,1);
 
-            Pd = cumsum(h1);
-            Pf = cumsum(h0);
+            Pf = fliplr(1-cumsum(h0)); %We want an ascending count, not descending
+            Pd = fliplr(1-cumsum(h1));
         end
 
-        pSet(1,:) = Pd;
-        pSet(2,:) = Pf;
+        AUC = trapz(Pf,Pd);
 
-        AUC = trapz(Pd,Pf);
+        pSet(1,:) = Pf;
+        pSet(2,:) = Pd;
 
         %Histograms
         figure
