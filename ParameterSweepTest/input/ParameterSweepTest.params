@@ -16,8 +16,10 @@ HyPerCol "column" = {
    randomSeed = 1946576187;  // if not set here,  clock time is used to generate seed
    numSteps = 10;
    progressStep = 10;
+   writeProgressToErr = false;
    //outputPath = "output/";
    filenamesContainLayerNames = false;
+   filenamesContainConnectionNames = false;
    checkpointRead = false;
    checkpointWrite = false;
    suppressLastOutput = false;
@@ -34,13 +36,17 @@ Image "input" = {
     imagePath = "input/sampleimage.png";
     nf = 1;
     marginWidth = 3;
+    phase = 0;
     writeStep = -1;
-    spikingFlag = false;
-    writeNonspikingActivity = true;
+    writeSparseActivity = false;
     mirrorBCflag = false;
+    useImageBCflag = false;
+    inverseFlag = false;
+    normalizeLuminanceFlag = false;
     writeImages = false;
     offsetX = 0;
     offsetY = 0;
+    jitterFlag = 0;
 };
 
 ANNLayer "output" = {
@@ -49,16 +55,18 @@ ANNLayer "output" = {
     nyScale = 1;
     nf = 1;
     marginWidth = 0;
+    phase = 0;
     writeStep = 1.0;
+    initialWriteTime = 0.0;
     mirrorBCflag = true;
-    spikingFlag = 0;
-    writeNonspikingActivity = 1;
+    writeSparseActivity = false;
 
     InitVType = "ZeroV";
 
     VThresh = -infinity;
     VMax = infinity;
     VMin = -infinity;
+    VShift=0.0;
 };
 
 ANNLayer "output1x1" = {
@@ -67,16 +75,18 @@ ANNLayer "output1x1" = {
     nyScale = 1;
     nf = 1;
     marginWidth = 0;
+    phase = 0;
     writeStep = 1.0;
+    initialWriteTime = 0.0;
     mirrorBCflag = true;
-    spikingFlag = 0;
-    writeNonspikingActivity = 1;
+    writeSparseActivity = false;
 
     InitVType = "ZeroV";
 
     VThresh = -infinity;
     VMax = infinity;
     VMin = -infinity;
+    VShift=0.0;
 };
 
 ANNLayer "output3x3" = {
@@ -85,16 +95,18 @@ ANNLayer "output3x3" = {
     nyScale = 1;
     nf = 1;
     marginWidth = 1;
+    phase = 0;
     writeStep = 1.0;
+    initialWriteTime = 0.0;
     mirrorBCflag = true;
-    spikingFlag = 0;
-    writeNonspikingActivity = 1;
+    writeSparseActivity = false;
 
     InitVType = "ZeroV";
 
     VThresh = -infinity;
     VMax = infinity;
     VMin = -infinity;
+    VShift=0.0;
 };
 
 ANNLayer "output5x5" = {
@@ -103,16 +115,18 @@ ANNLayer "output5x5" = {
     nyScale = 1;
     nf = 1;
     marginWidth = 2;
+    phase = 0;
     writeStep = 1.0;
+    initialWriteTime = 0.0;
     mirrorBCflag = true;
-    spikingFlag = 0;
-    writeNonspikingActivity = 1;
+    writeSparseActivity = false;
 
     InitVType = "ZeroV";
 
     VThresh = -infinity;
     VMax = infinity;
     VMin = -infinity;
+    VShift=0.0;
 };
 
 ANNLayer "output7x7" = {
@@ -121,16 +135,18 @@ ANNLayer "output7x7" = {
     nyScale = 1;
     nf = 1;
     marginWidth = 3;
+    phase = 0;
     writeStep = 1.0;
+    initialWriteTime = 0.0;
     mirrorBCflag = true;
-    spikingFlag = 0;
-    writeNonspikingActivity = 1;
+    writeSparseActivity = false;
 
     InitVType = "ZeroV";
 
     VThresh = -infinity;
     VMax = infinity;
     VMin = -infinity;
+    VShift=0.0;
 };
 
 ANNLayer "comparison1x1" = {
@@ -139,16 +155,18 @@ ANNLayer "comparison1x1" = {
     nyScale = 1;
     nf = 1;
     marginWidth = 0;
+    phase = 0;
     writeStep = 1.0;
+    initialWriteTime = 0.0;
     mirrorBCflag = true;
-    spikingFlag = 0;
-    writeNonspikingActivity = 1;
+    writeSparseActivity = false;
 
     InitVType = "ZeroV";
 
     VThresh = -infinity;
     VMax = infinity;
     VMin = -infinity;
+    VShift=0.0;
 };
 
 ANNLayer "comparison3x3" = {
@@ -157,16 +175,18 @@ ANNLayer "comparison3x3" = {
     nyScale = 1;
     nf = 1;
     marginWidth = 0;
+    phase = 0;
     writeStep = 1.0;
+    initialWriteTime = 0.0;
     mirrorBCflag = true;
-    spikingFlag = 0;
-    writeNonspikingActivity = 1;
+    writeSparseActivity = false;
 
     InitVType = "ZeroV";
 
     VThresh = -infinity;
     VMax = infinity;
     VMin = -infinity;
+    VShift=0.0;
 };
 
 ANNLayer "comparison5x5" = {
@@ -175,16 +195,18 @@ ANNLayer "comparison5x5" = {
     nyScale = 1;
     nf = 1;
     marginWidth = 0;
+    phase = 0;
     writeStep = 1.0;
+    initialWriteTime = 0.0;
     mirrorBCflag = true;
-    spikingFlag = 0;
-    writeNonspikingActivity = 1;
+    writeSparseActivity = false;
 
     InitVType = "ZeroV";
 
     VThresh = -infinity;
     VMax = infinity;
     VMin = -infinity;
+    VShift=0.0;
 };
 
 ANNLayer "comparison7x7" = {
@@ -193,16 +215,18 @@ ANNLayer "comparison7x7" = {
     nyScale = 1;
     nf = 1;
     marginWidth = 0;
+    phase = 0;
     writeStep = 1.0;
+    initialWriteTime = 0.0;
     mirrorBCflag = true;
-    spikingFlag = 0;
-    writeNonspikingActivity = 1;
+    writeSparseActivity = false;
 
     InitVType = "ZeroV";
 
     VThresh = -infinity;
     VMax = infinity;
     VMin = -infinity;
+    VShift=0.0;
 };
 
 KernelConn "input to output" = {
@@ -219,10 +243,9 @@ KernelConn "input to output" = {
     weightInitType = "UniformWeight";
     weightInit = 1.0;
       
-    normalize = false;
-    symmetrizeWeights = 0;
+    normalizeMethod = "none";
 
-    writeCompressedWeights = 0.0;
+    writeCompressedCheckpoints = 0.0;
     plasticityFlag = false;
     shmget_flag = 1;
     selfFlag = false;
@@ -231,6 +254,7 @@ KernelConn "input to output" = {
 
     stochasticReleaseFlag = false;
     shrinkPatches = false;
+    preActivityIsNotRate = false;
 };
 
 KernelConn "input to output1x1" = {
@@ -247,10 +271,9 @@ KernelConn "input to output1x1" = {
     weightInitType = "UniformWeight";
     weightInit = 1.0;
       
-    normalize = false;
-    symmetrizeWeights = 0;
+    normalizeMethod = "none";
 
-    writeCompressedWeights = 0.0;
+    writeCompressedCheckpoints = 0.0;
     plasticityFlag = false;
     shmget_flag = 1;
     selfFlag = false;
@@ -259,6 +282,7 @@ KernelConn "input to output1x1" = {
 
     stochasticReleaseFlag = false;
     shrinkPatches = false;
+    preActivityIsNotRate = false;
 };
 
 KernelConn "input to output3x3" = {
@@ -275,10 +299,9 @@ KernelConn "input to output3x3" = {
     weightInitType = "UniformWeight";
     weightInit = 1.0;
       
-    normalize = false;
-    symmetrizeWeights = 0;
+    normalizeMethod = "none";
 
-    writeCompressedWeights = 0.0;
+    writeCompressedCheckpoints = 0.0;
     plasticityFlag = false;
     shmget_flag = 1;
     selfFlag = false;
@@ -287,6 +310,7 @@ KernelConn "input to output3x3" = {
 
     stochasticReleaseFlag = false;
     shrinkPatches = false;
+    preActivityIsNotRate = false;
 };
 
 KernelConn "input to output5x5" = {
@@ -303,10 +327,9 @@ KernelConn "input to output5x5" = {
     weightInitType = "UniformWeight";
     weightInit = 1.0;
       
-    normalize = false;
-    symmetrizeWeights = 0;
+    normalizeMethod = "none";
 
-    writeCompressedWeights = 0.0;
+    writeCompressedCheckpoints = 0.0;
     plasticityFlag = false;
     shmget_flag = 1;
     selfFlag = false;
@@ -315,6 +338,7 @@ KernelConn "input to output5x5" = {
 
     stochasticReleaseFlag = false;
     shrinkPatches = false;
+    preActivityIsNotRate = false;
 };
 
 KernelConn "input to output7x7" = {
@@ -331,10 +355,9 @@ KernelConn "input to output7x7" = {
     weightInitType = "UniformWeight";
     weightInit = 1.0;
       
-    normalize = false;
-    symmetrizeWeights = 0;
+    normalizeMethod = "none";
 
-    writeCompressedWeights = 0.0;
+    writeCompressedCheckpoints = 0.0;
     plasticityFlag = false;
     shmget_flag = 1;
     selfFlag = false;
@@ -343,6 +366,7 @@ KernelConn "input to output7x7" = {
 
     stochasticReleaseFlag = false;
     shrinkPatches = false;
+    preActivityIsNotRate = false;
 };
 
 IdentConn "output to comparison1x1" = {
@@ -395,18 +419,22 @@ IdentConn "output7x7 to comparison7x7" = {
 
 ParameterSweepTestProbe "comparison1x1 probe" = {
     targetLayer = "comparison1x1";
+    message = "comparison1x1 probe     ";
 };
 
 ParameterSweepTestProbe "comparison3x3 probe" = {
     targetLayer = "comparison3x3";
+    message = "comparison3x3 probe     ";
 };
 
 ParameterSweepTestProbe "comparison5x5 probe" = {
     targetLayer = "comparison5x5";
+    message = "comparison5x5 probe     ";
 };
 
 ParameterSweepTestProbe "comparison7x7 probe" = {
     targetLayer = "comparison7x7";
+    message = "comparison7x7 probe     ";
 };
 
 ParameterSweep "input to output":nxp = {
