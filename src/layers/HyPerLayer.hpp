@@ -63,6 +63,7 @@ DerivedLayer::initialize(arguments) {
 #include "../include/pv_common.h"
 #include "../include/pv_types.h"
 #include "../utils/Timer.hpp"
+#include <fstream>
 
 #ifndef PV_USE_OPENCL
 #  include "../layers/updateStateFunctions.h"
@@ -115,6 +116,11 @@ protected:
    virtual int calcActiveIndices();
    int readScalarFloat(const char * cp_dir, const char * val_name, double * val_ptr, double default_value=0.0f);
    int writeScalarFloat(const char * cp_dir, const char * val_name, double value);
+
+   template <typename T>
+   int writeScalarToFile(const char * cp_dir, const char * val_name, T val);
+   template <typename T>
+   int readScalarFromFile(const char * cp_dir, const char * val_name, T * val, T default_value=(T) 0);
 
    pvdata_t * getActivity()          {return clayer->activity->data;}
 
@@ -409,46 +415,5 @@ protected:
 };
 
 } // namespace PV
-
-// Template functions
-//
-template <typename T>
-int PV::HyPerLayer::copyFromBuffer(const T * buf, T * data,
-                                   const PVLayerLoc * loc, bool extended, T scale)
-{
-   size_t sf, sx, sy;
-
-   const int nx = loc->nx;
-   const int ny = loc->ny;
-   const int nf = loc->nf;
-
-   int nxBorder = 0;
-   int nyBorder = 0;
-
-   if (extended) {
-      nxBorder = loc->nb;
-      nyBorder = loc->nb;
-      sf = strideFExtended(loc);
-      sx = strideXExtended(loc);
-      sy = strideYExtended(loc);
-   }
-   else {
-      sf = strideF(loc);
-      sx = strideX(loc);
-      sy = strideY(loc);
-   }
-
-   int ii = 0;
-   for (int j = 0; j < ny; j++) {
-      int jex = j + nyBorder;
-      for (int i = 0; i < nx; i++) {
-         int iex = i + nxBorder;
-         for (int f = 0; f < nf; f++) {
-            data[iex*sx + jex*sy + f*sf] = scale * buf[ii++];
-         }
-      }
-   }
-   return 0;
-}
 
 #endif /* HYPERLAYER_HPP_ */

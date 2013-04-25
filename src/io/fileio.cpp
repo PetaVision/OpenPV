@@ -316,7 +316,19 @@ FILE * pvp_open_write_file(const char * filename, Communicator * comm, bool appe
          // If the file does not exist, mode r+ gives an error
          struct stat filestat;
          int status = stat(filename, &filestat);
-         if (status==0) rwmode = true;
+         if (status==0) {
+            rwmode = true;
+         }
+         else {
+            if (errno==ENOENT) {
+               fprintf(stderr, "Warning: activity file \"%s\" does not exist.  File will be created\n", filename);
+               rwmode = false;
+            }
+            else {
+               fprintf(stderr, "Error opening activity file \"%s\": %s", filename, strerror(errno));
+               abort();
+            }
+         }
       }
       if (rwmode) {
          fp = PV_fopen(filename, "r+b");
@@ -461,7 +473,8 @@ int pvp_read_header(FILE * fp, Communicator * comm, int * params, int * numParam
    // If the return value is PV_FAILURE, *numParams has information on the type of failure.
    int status = PV_SUCCESS;
    int numParamsRead = 0;
-   int mpi_buffer[*numParams+2]; // space for params to be MPI_Bcast, along with space for status and number of params read
+   int * mpi_buffer = (int *) calloc((size_t)(*numParams+2), sizeof(int));
+   // int mpi_buffer[*numParams+2]; // space for params to be MPI_Bcast, along with space for status and number of params read
    if (fp!=NULL) {
       if (*numParams < 2) {
          numParamsRead = 0;
@@ -507,14 +520,15 @@ int pvp_read_header(FILE * fp, Communicator * comm, int * params, int * numParam
       mpi_buffer[0] = status;
       mpi_buffer[1] = numParamsRead;
       memcpy(&mpi_buffer[2], params, sizeof(int)*(*numParams));
-      MPI_Bcast(mpi_buffer, *numParams+2, MPI_INT, 0/*root process*/, comm->communicator());
+      MPI_Bcast(mpi_buffer, 22, MPI_INT, 0/*root*/, comm->communicator());
    } // fp!=NULL
    else {
-      MPI_Bcast(mpi_buffer, *numParams+2, MPI_INT, 0/*root process*/, comm->communicator());
+      MPI_Bcast(mpi_buffer, 22, MPI_INT, 0/*root*/, comm->communicator());
       status = mpi_buffer[0];
       memcpy(params, &mpi_buffer[2], sizeof(int)*(*numParams));
    }
    *numParams = mpi_buffer[1];
+   free(mpi_buffer);
    return status;
 }
 

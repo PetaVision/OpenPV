@@ -196,7 +196,7 @@ int PursuitLayer::checkpointWrite(const char * cpDir) {
    pvdata_t * buffer1ptr = buffer1feature;
    writeBufferFile(filename, icComm, timed, &buffer1ptr, 1/*numbands*/, false/*extended*/, &flat_loc);
 
-   writeScalarFloat(cpDir, "nextUpdate", nextUpdate);
+   writeScalarToFile(cpDir, "nextUpdate", nextUpdate);
 
    free(filename);
    return status;

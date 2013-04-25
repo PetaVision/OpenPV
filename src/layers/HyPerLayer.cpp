@@ -49,6 +49,8 @@ DerivedLayer::initialize(arguments) {
 }
  */
 
+#include <iostream>
+#include <sstream>
 #include "HyPerLayer.hpp"
 #include "../include/pv_common.h"
 #include "../include/default_params.h"
@@ -182,7 +184,7 @@ int HyPerLayer::initialize(const char * name, HyPerCol * hc, int numChannels) {
       }
    }
    else {
-       writeSparseActivity = (bool) params->value(name, "writeSparseActivity", 0);
+      writeSparseActivity = (bool) params->value(name, "writeSparseActivity", 0);
    }
    bool writeNonspikingActivityPresent = params->present(name, "writeNonspikingActivity");
    if (writeNonspikingActivityPresent) {
@@ -297,10 +299,10 @@ HyPerLayer::~HyPerLayer()
       pvlayer_finalize(clayer);
       clayer = NULL;
    }
-   
+
    free(name); name = NULL;
    freeChannels();
-   
+
 #ifdef PV_USE_OPENCL
    if(gpuAccelerateFlag) {
       delete krUpdate;
@@ -309,13 +311,13 @@ HyPerLayer::~HyPerLayer()
       delete clPrevTime;
       delete clParams;
 
-   //   if (clGSyn != NULL) {
-   //      for (int m = 0; m < numChannels; m++) {
-   //         delete clGSyn[m];
-   //      }
-   //      free(clGSyn);
-   //      clGSyn = NULL;
-   //   }
+      //   if (clGSyn != NULL) {
+      //      for (int m = 0; m < numChannels; m++) {
+      //         delete clGSyn[m];
+      //      }
+      //      free(clGSyn);
+      //      clGSyn = NULL;
+      //   }
 
       free(evList);
       evList = NULL;
@@ -335,9 +337,9 @@ void HyPerLayer::freeChannels()
 {
 #ifdef PV_USE_OPENCL
    if(gpuAccelerateFlag) {
-//      for (int m = 0; m < numChannels; m++) {
-//         delete clGSyn[m];
-//      }
+      //      for (int m = 0; m < numChannels; m++) {
+      //         delete clGSyn[m];
+      //      }
       //free(clGSyn);
       delete clGSyn;
       clGSyn = NULL;
@@ -395,6 +397,9 @@ int HyPerLayer::initializeLayerId(int layerId)
             }
          }
          fclose(fp);
+      }
+      else {
+         ioAppend = false;
       }
    }
    clayer->activeFP = pvp_open_write_file(filename, parent->icCommunicator(), ioAppend);
@@ -551,14 +556,14 @@ int HyPerLayer::initializeThreadBuffers(const char * kernel_name)
    const size_t size_gsyn=getNumNeurons()*numChannels*sizeof(pvdata_t);
    //clGSyn = NULL;
    clGSyn = device->createBuffer(CL_MEM_COPY_HOST_PTR, size_gsyn, GSyn[0]);
-//   if (numChannels > 0) {
-//      clGSyn = (CLBuffer **) malloc(numChannels*sizeof(CLBuffer *));
-//      assert(clGSyn != NULL);
-//
-//      for (int m = 0; m < numChannels; m++) {
-//         clGSyn[m] = device->createBuffer(CL_MEM_COPY_HOST_PTR, size, GSyn[m]);
-//      }
-//   }
+   //   if (numChannels > 0) {
+   //      clGSyn = (CLBuffer **) malloc(numChannels*sizeof(CLBuffer *));
+   //      assert(clGSyn != NULL);
+   //
+   //      for (int m = 0; m < numChannels; m++) {
+   //         clGSyn[m] = device->createBuffer(CL_MEM_COPY_HOST_PTR, size, GSyn[m]);
+   //      }
+   //   }
 
    return status;
 }
@@ -911,8 +916,8 @@ int HyPerLayer::updateBorder(double time, double dt)
    }
    numWait = 0;
 
-//   status |= clWaitForEvents(1, &evUpdate);
-//   clReleaseEvent(evUpdate);
+   //   status |= clWaitForEvents(1, &evUpdate);
+   //   clReleaseEvent(evUpdate);
 #endif
 
    return status;
@@ -949,24 +954,24 @@ int HyPerLayer::calcActiveIndices() {
 
 float HyPerLayer::getConvertToRateDeltaTimeFactor(HyPerConn* conn)
 {
-	//printf("[%d]: HyPerLayr::recvSyn: neighbor=%d num=%d actv=%p this=%p conn=%p\n", rank, neighbor, numExtended, activity, this, conn);
-	float dt_factor = 1.0f;
-	bool preActivityIsNotRate = conn->preSynapticActivityIsNotRate();
-	if (preActivityIsNotRate) {
-		enum ChannelType channel_type = conn->getChannel();
-		float dt = getParent()->getDeltaTime();
-		float tau = this->getChannelTimeConst(channel_type);
-		if (tau > 0) {
-			double exp_dt_tau = exp(-dt / tau);
-			dt_factor = (1 - exp_dt_tau) / exp_dt_tau;
-			// the above factor ensures that for a constant input of G_SYN to an excitatory conductance G_EXC,
-			// then G_EXC -> G_SYN as t -> inf
-		}
-		else {
-			dt_factor = dt;
-		}
-	}
-	return dt_factor;
+   //printf("[%d]: HyPerLayr::recvSyn: neighbor=%d num=%d actv=%p this=%p conn=%p\n", rank, neighbor, numExtended, activity, this, conn);
+   float dt_factor = 1.0f;
+   bool preActivityIsNotRate = conn->preSynapticActivityIsNotRate();
+   if (preActivityIsNotRate) {
+      enum ChannelType channel_type = conn->getChannel();
+      float dt = getParent()->getDeltaTime();
+      float tau = this->getChannelTimeConst(channel_type);
+      if (tau > 0) {
+         double exp_dt_tau = exp(-dt / tau);
+         dt_factor = (1 - exp_dt_tau) / exp_dt_tau;
+         // the above factor ensures that for a constant input of G_SYN to an excitatory conductance G_EXC,
+         // then G_EXC -> G_SYN as t -> inf
+      }
+      else {
+         dt_factor = dt;
+      }
+   }
+   return dt_factor;
 }
 
 
@@ -1022,7 +1027,7 @@ int HyPerLayer::recvAllSynapticInput() {
          status = recvSynapticInput(conn, &cube, arbor);
          assert(status == PV_SUCCESS || status == PV_BREAK);
          if (status == PV_BREAK){
-        	 break;
+            break;
          }
       }
    }
@@ -1031,11 +1036,11 @@ int HyPerLayer::recvAllSynapticInput() {
 
 int HyPerLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activity, int arborID)
 {
-	// only receive synaptic input on "allowed" time steps, which may be spaced to account for feedback delays
-//	int step = parent->getCurrentStep();
-//	if (step < feedforwardDelay
-//			|| (step - feedforwardDelay) % feedbackDelay != 0)
-//		return PV_SUCCESS;
+   // only receive synaptic input on "allowed" time steps, which may be spaced to account for feedback delays
+   //	int step = parent->getCurrentStep();
+   //	if (step < feedforwardDelay
+   //			|| (step - feedforwardDelay) % feedbackDelay != 0)
+   //		return PV_SUCCESS;
 
    recvsyn_timer->start();
 
@@ -1071,7 +1076,7 @@ int HyPerLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activity
       pvdata_t * data = conn->get_wData(arborID,kPre);
       for (int y = 0; y < ny; y++) {
          (conn->accumulateFunctionPointer)(nk, gSynPatchStart + y*sy, a, data + y*syw);
-//       if (err != 0) printf("  ERROR kPre = %d\n", kPre);
+         //       if (err != 0) printf("  ERROR kPre = %d\n", kPre);
       }
    }
 
@@ -1093,27 +1098,27 @@ int HyPerLayer::triggerReceive(InterColComm* comm)
    // deliver calls recvSynapticInput for all connections for which this layer is presynaptic (i.e. all connections made by this layer)
    //
    int status = comm->deliver(parent, getLayerId());
-//#ifdef PV_USE_OPENCL
-//   if((gpuAccelerateFlag)&&(copyToDevice)) {
-//      status |= getChannelCLBuffer()->copyToDevice(&evList[getEVGSyn()]);
-////      status |= getChannelCLBuffer()->copyToDevice(&evList[getEVGSynE()]);
-////      status |= getChannelCLBuffer()->copyToDevice(&evList[getEVGSynI()]);
-//      //numWait += 2;
-//      numWait ++;
-//   }
-//#endif
+   //#ifdef PV_USE_OPENCL
+   //   if((gpuAccelerateFlag)&&(copyToDevice)) {
+   //      status |= getChannelCLBuffer()->copyToDevice(&evList[getEVGSyn()]);
+   ////      status |= getChannelCLBuffer()->copyToDevice(&evList[getEVGSynE()]);
+   ////      status |= getChannelCLBuffer()->copyToDevice(&evList[getEVGSynI()]);
+   //      //numWait += 2;
+   //      numWait ++;
+   //   }
+   //#endif
    return status;
 }
 
 int HyPerLayer::publish(InterColComm* comm, double time)
 {
-	// only publish on "allowed" time steps, which may be spaced to account for feedback delays
-//  int step = parent->getCurrentStep();
-//  if (step < feedforwardDelay
-//     || (step - feedforwardDelay) % feedbackDelay != 0)
-//     return PV_SUCCESS;
+   // only publish on "allowed" time steps, which may be spaced to account for feedback delays
+   //  int step = parent->getCurrentStep();
+   //  if (step < feedforwardDelay
+   //     || (step - feedforwardDelay) % feedbackDelay != 0)
+   //     return PV_SUCCESS;
 
-	if ( useMirrorBCs() ) {
+   if ( useMirrorBCs() ) {
       for (int borderId = 1; borderId < NUM_NEIGHBORHOOD; borderId++){
          mirrorInteriorToBorder(borderId, clayer->activity, clayer->activity);
       }
@@ -1132,11 +1137,11 @@ int HyPerLayer::publish(InterColComm* comm, double time)
 
 int HyPerLayer::waitOnPublish(InterColComm* comm)
 {
-	// only publish on "allowed" time steps, which may be spaced to account for feedback delays
-//	int step = parent->getCurrentStep();
-//	if (step < feedforwardDelay
-//			|| (step - feedforwardDelay) % feedbackDelay != 0)
-//		return PV_SUCCESS;
+   // only publish on "allowed" time steps, which may be spaced to account for feedback delays
+   //	int step = parent->getCurrentStep();
+   //	if (step < feedforwardDelay
+   //			|| (step - feedforwardDelay) % feedbackDelay != 0)
+   //		return PV_SUCCESS;
 
    // wait for MPI border transfers to complete
    //
@@ -1180,11 +1185,11 @@ int HyPerLayer::insertProbe(LayerProbe * p)
 int HyPerLayer::outputState(double timef, bool last)
 {
    int status = PV_SUCCESS;
-	// only output on "allowed" time steps, which may be spaced to account for feedback delays
-//	int step = parent->getCurrentStep();
-//	if (step < feedforwardDelay
-//			|| (step - feedforwardDelay) % feedbackDelay != 0)
-//		return PV_SUCCESS;
+   // only output on "allowed" time steps, which may be spaced to account for feedback delays
+   //	int step = parent->getCurrentStep();
+   //	if (step < feedforwardDelay
+   //			|| (step - feedforwardDelay) % feedbackDelay != 0)
+   //		return PV_SUCCESS;
 
 
    for (int i = 0; i < numProbes; i++) {
@@ -1255,26 +1260,57 @@ int HyPerLayer::checkpointRead(const char * cpDir, double * timed) {
       fprintf(stderr, "Warning: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, filetime, *timed);
    }
 
-   chars_needed = snprintf(filename, PV_PATH_MAX, "%s_nextWrite.bin", basepath);
-   assert(chars_needed < PV_PATH_MAX);
-   if( parent->icCommunicator()->commRank() == 0 ) {
-      FILE * fpWriteTime = fopen(filename, "r");
-      double write_time = writeTime;
-      if (fpWriteTime==NULL) {
-         fprintf(stderr, "HyPerLayer::checkpointRead warning: unable to open path %s for reading.  writeTime will be %f\n", filename, write_time);
-      }
-      else {
-         int num_read = fread(&writeTime, sizeof(writeTime), 1, fpWriteTime);
-         if (num_read != 1) {
-            fprintf(stderr, "HyPerLayer::checkpointRead warning: unable to read from %s.  writeTime will be %f\n", filename, write_time);
-            writeTime = write_time;
+   readScalarFromFile(cpDir, "nextWrite", &writeTime, writeTime);
+
+   if (ioAppend) {
+      long activityfilepos = 0L;
+      readScalarFromFile(cpDir, "filepos", &activityfilepos);
+      if (parent->columnId()==0) {
+         assert(clayer->activeFP);
+         if (PV_fseek(clayer->activeFP, activityfilepos, SEEK_SET) != 0) {
+            fprintf(stderr, "HyPerLayer::checkpointRead error: unable to recover initial file position in activity file for layer %s\n", name);
+            abort();
          }
       }
-      fclose(fpWriteTime);
+      int * num_calls_ptr = NULL;
+      const char * nfname = NULL;
+      if (writeSparseActivity) {
+         nfname = "numframes_sparse";
+         num_calls_ptr = &writeActivitySparseCalls;
+      }
+      else {
+         nfname = "numframes";
+         num_calls_ptr = &writeActivityCalls;
+      }
+      struct stat statbuffer;
+      int statstatus[2];
+      chars_needed = snprintf(filename, PV_PATH_MAX, "%s_%s.bin", basepath, nfname);
+      assert(chars_needed < PV_PATH_MAX);
+      if (parent->columnId()==0) {
+         statstatus[0] = stat(filename, &statbuffer);
+         statstatus[1] = errno;
+      }
+      MPI_Bcast(statstatus, 2, MPI_INT, 0/*root*/, icComm->communicator());
+
+      if (statstatus[0]==0) {
+         readScalarFromFile(cpDir, nfname, num_calls_ptr, 0);
+      }
+      else {
+         if (statstatus[1] == ENOENT) {
+            *num_calls_ptr = 0;
+            if (icComm->commRank()==0) {
+               fprintf(stderr, "checkpointRead warning: file \"%s\" not found; will use %d for the value.\n", filename, *num_calls_ptr);
+            }
+         }
+         else {
+            if (icComm->commRank()==0) {
+               fprintf(stderr, "checkpointRead error determining status of file \"%s\": %s", filename, strerror(errno));
+            }
+            MPI_Barrier(icComm->communicator());
+            exit(EXIT_FAILURE);
+         }
+      }
    }
-#ifdef PV_USE_MPI
-   MPI_Bcast(&writeTime, 1, MPI_DOUBLE, 0, icComm->communicator());
-#endif // PV_USE_MPI
 
    return PV_SUCCESS;
 }
@@ -1466,7 +1502,23 @@ int HyPerLayer::checkpointWrite(const char * cpDir) {
    assert(chars_needed < PV_PATH_MAX);
    writeDataStoreToFile(filename, icComm, timed);
 
-   writeScalarFloat(cpDir, "nextWrite", writeTime);
+   writeScalarToFile(cpDir, "nextWrite", writeTime);
+
+   if (parent->columnId()==0) {
+      if (clayer->activeFP) {
+         long activityfilepos = PV_ftell(clayer->activeFP);
+         writeScalarToFile(cpDir, "filepos", activityfilepos);
+      }
+   }
+
+   if (writeStep>=0.0f) {
+      if (writeSparseActivity) {
+         writeScalarToFile(cpDir, "numframes_sparse", writeActivitySparseCalls);
+      }
+      else {
+         writeScalarToFile(cpDir, "numframes", writeActivityCalls);
+      }
+   }
 
    return PV_SUCCESS;
 }
@@ -1567,6 +1619,7 @@ int HyPerLayer::writeDataStoreToFile(const char * filename, InterColComm * comm,
    return status;
 }
 
+#ifdef OBSOLETE // Marked obsolote April 23, 2013.  Use the template function writeScalarToFile instead
 int HyPerLayer::writeScalarFloat(const char * cp_dir, const char * val_name, double val) {
    int status = PV_SUCCESS;
    if (parent->columnId()==0)  {
@@ -1599,6 +1652,7 @@ int HyPerLayer::writeScalarFloat(const char * cp_dir, const char * val_name, dou
    }
    return status;
 }
+#endif // OBSOLETE
 
 int HyPerLayer::readState(double * timef)
 {
@@ -1906,7 +1960,7 @@ int HyPerLayer::mirrorToSouthEast(PVLayerCube* dest, PVLayerCube* src)
       }
    }
    return 0;
- }
+}
 
 /**
  * Return the label (if any) of a neuron in this layer.  A label may be the
@@ -1944,42 +1998,153 @@ int * HyPerLayer::getMarginIndices(){
       int nyExt = ny + marginUp + marginDn;
       //int syExt = nf * nxExt;
       //int sxExt = nf;
-      int * marginIndices = (int *) calloc(numMargin,
-                      sizeof(int));
+      int * marginIndices = (int *) calloc(numMargin, sizeof(int));
       assert(marginIndices != NULL);
       // get North margin indices
       for (int kPreExt = 0; kPreExt < nf * nxExt * marginUp; kPreExt++) {
-              marginIndices[kMargin++] = kPreExt;
+         marginIndices[kMargin++] = kPreExt;
       }
       assert(kMargin == nf * nxExt * marginUp);
       // get East margin indices
       for (int ky = marginUp; ky < marginUp + ny; ky++) {
-              for (int kx = 0; kx < marginLt; kx++) {
-                      for (int kf = 0; kf < nf; kf++) {
-                              int kPreExt = kIndex(kx, ky, kf, nxExt, nyExt, nf);
-                              marginIndices[kMargin++] = kPreExt;
-                      }
-              }
+         for (int kx = 0; kx < marginLt; kx++) {
+            for (int kf = 0; kf < nf; kf++) {
+               int kPreExt = kIndex(kx, ky, kf, nxExt, nyExt, nf);
+               marginIndices[kMargin++] = kPreExt;
+            }
+         }
       }
       assert(kMargin == nf * nxExt * marginUp + nf * marginLt * ny);
       // get West margin indices
       for (int ky = marginUp; ky < marginUp + ny; ky++) {
-              for (int kx = nx + marginLt; kx < nxExt; kx++) {
-                      for (int kf = 0; kf < nf; kf++) {
-                              int kPreExt = kIndex(kx, ky, kf, nxExt, nyExt, nf);
-                              marginIndices[kMargin++] = kPreExt;
-                      }
-              }
+         for (int kx = nx + marginLt; kx < nxExt; kx++) {
+            for (int kf = 0; kf < nf; kf++) {
+               int kPreExt = kIndex(kx, ky, kf, nxExt, nyExt, nf);
+               marginIndices[kMargin++] = kPreExt;
+            }
+         }
       }
       assert(kMargin == nf * nxExt * marginUp + nf * marginLt * ny + nf * marginUp * ny);
       // get South margin indices
       for (int kPreExt = kMargin; kPreExt < numMargin; kPreExt++) {
-              marginIndices[kMargin++] = kPreExt;
+         marginIndices[kMargin++] = kPreExt;
       }
       assert(kMargin == numMargin);
    }
    return marginIndices;
 }
+// Template functions
+//
+template <typename T>
+int HyPerLayer::copyFromBuffer(const T * buf, T * data,
+      const PVLayerLoc * loc, bool extended, T scale)
+{
+   size_t sf, sx, sy;
+
+   const int nx = loc->nx;
+   const int ny = loc->ny;
+   const int nf = loc->nf;
+
+   int nxBorder = 0;
+   int nyBorder = 0;
+
+   if (extended) {
+      nxBorder = loc->nb;
+      nyBorder = loc->nb;
+      sf = strideFExtended(loc);
+      sx = strideXExtended(loc);
+      sy = strideYExtended(loc);
+   }
+   else {
+      sf = strideF(loc);
+      sx = strideX(loc);
+      sy = strideY(loc);
+   }
+
+   int ii = 0;
+   for (int j = 0; j < ny; j++) {
+      int jex = j + nyBorder;
+      for (int i = 0; i < nx; i++) {
+         int iex = i + nxBorder;
+         for (int f = 0; f < nf; f++) {
+            data[iex*sx + jex*sy + f*sf] = scale * buf[ii++];
+         }
+      }
+   }
+   return 0;
+}
+
+template <typename T>
+int HyPerLayer::writeScalarToFile(const char * cp_dir, const char * val_name, T val) {
+   int status = PV_SUCCESS;
+   if (parent->columnId()==0)  {
+      char filename[PV_PATH_MAX];
+      int chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_%s.bin", cp_dir, name, val_name);
+      if (chars_needed >= PV_PATH_MAX) {
+         fprintf(stderr, "writeScalarToFile error: path %s/%s_%s.bin is too long.\n", cp_dir, name, val_name);
+         abort();
+      }
+      FILE * fp = PV_fopen(filename, "w");
+      if (fp==NULL) {
+         fprintf(stderr, "HyPerLayer::writeScalarToFile error: unable to open path %s for writing.\n", filename);
+         abort();
+      }
+      int num_written = PV_fwrite(&val, sizeof(val), 1, fp);
+      if (num_written != 1) {
+         fprintf(stderr, "HyPerLayer::writeScalarToFile error while writing to %s.\n", filename);
+         abort();
+      }
+      fclose(fp);
+      chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_%s.txt", cp_dir, name, val_name);
+      assert(chars_needed < PV_PATH_MAX);
+      std::ofstream fs;
+      fs.open(filename);
+      if (!fs) {
+         fprintf(stderr, "HyPerLayer::writeScalarToFile error: unable to open path %s for writing.\n", filename);
+         abort();
+      }
+      fs << val;
+      fs << std::endl; // Can write as fs << val << std::endl, but eclipse flags that as an error 'Invalid overload of std::endl'
+      fs.close();
+   }
+   return status;
+}
+
+template <typename T>
+int HyPerLayer::readScalarFromFile(const char * cp_dir, const char * val_name, T * val, T default_value) {
+   int status = PV_SUCCESS;
+   if( parent->icCommunicator()->commRank() == 0 ) {
+      char filename[PV_PATH_MAX];
+      int chars_needed;
+      chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_%s.bin", cp_dir, getName(), val_name);
+      if(chars_needed >= PV_PATH_MAX) {
+         fprintf(stderr, "HyPerLayer::readScalarFloat error: path %s/%s_%s.bin is too long.\n", cp_dir, getName(), val_name);
+         abort();
+      }
+      FILE * fp = fopen(filename, "r");
+      *val = default_value;
+      if (fp==NULL) {
+         std::cerr << "HyPerLayer::readScalarFloat warning: unable to open path \"" << filename << "\" for reading.  Value used will be " << *val;
+         std::cerr << std::endl;
+         // fprintf(stderr, "HyPerLayer::readScalarFloat warning: unable to open path %s for reading.  value used will be %f\n", filename, default_value);
+      }
+      else {
+         int num_read = fread(val, sizeof(T), 1, fp);
+         if (num_read != 1) {
+            std::cerr << "HyPerLayer::readScalarFloat warning: unable to read from \"" << filename << "\".  Value used will be " << *val;
+            std::cerr << std::endl;
+            // fprintf(stderr, "HyPerLayer::readScalarFloat warning: unable to read from %s.  value used will be %f\n", filename, default_value);
+         }
+         fclose(fp);
+      }
+   }
+#ifdef PV_USE_MPI
+   MPI_Bcast(val, sizeof(T), MPI_CHAR, 0, getParent()->icCommunicator()->communicator());
+#endif // PV_USE_MPI
+
+   return status;
+}
+
 
 } // end of PV namespace
 
