@@ -2351,11 +2351,17 @@ int HyPerConn::initNormalize() {
    normalizeMethod = NULL;
    normalizeMethod = params->stringValue(name, "normalizeMethod");
    if (!normalizeMethod || normalizeMethod[0]=='\0') {
+      if (params->present(name, "normalize")) {
+         if (parent->columnId()==0) {
+            fprintf(stderr, "initNormalize warning for connection \"%s\": normalize_flag is deprecated.\n", name);
+            fprintf(stderr, "Please use the string parameter normalizeMethod.\n");
+            fprintf(stderr, "'normalize = false;' should be replaced by 'normalizeMethod = \"none\"';\n");
+            fprintf(stderr, "and 'normalize = true;' should be replaced by setting normalizeMethod to one of\n");
+            fprintf(stderr, "\"normalizeSum\", \"normalizeL2\", \"normalizeMax\", or \"normalizeContrastZeroMean\".\n");
+         }
+      }
       bool normalize_flag = params->value(name, "normalize", true/*default*/);
       if (normalize_flag) {
-         if (parent->columnId()==0) {
-            fprintf(stderr, "initNormalize warning for connection \"%s\": normalize_flag is deprecated.  Please use the string parameter normalizeMethod.\n", name);
-         }
          if (params->value(name, "normalize_max", false/*default*/) != 0.0f) {
             normalizeMethod = "normalizeMax";
          }
