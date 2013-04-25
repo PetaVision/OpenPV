@@ -249,6 +249,16 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * p
    else {
       outputParams("params.pv");
    }
+#ifdef UNDERCONSTRUCTION // We plan to create an XML file containing all params whether specified in params or by default value
+              // The problem with doing that from within HyPerCol::initialize is that the layers and columns haven't been added yet.
+   if (params->stringPresent(name, "paramsXMLFilename")) {
+      const char * paramsXMLFilename = params->stringValue(name, "paramsXMLFilename", true);
+      outputParamsXML(paramsXMLFilename);
+   }
+   else {
+      outputParamsXML("params.xml");
+   }
+#endif // UNDERCONSTRUCTION
 
    // run only on GPU for now
 #ifdef PV_USE_OPENCL
@@ -1054,6 +1064,61 @@ int HyPerCol::outputParams(const char * filename) {
    }
    return status;
 }
+
+#ifdef UNDERCONSTRUCTION // The plan is to output all params, whether they were set in the params file or not.
+int HyPerCol::outputParamsXML(const char * filename) {
+   int status = PV_SUCCESS;
+#ifdef PV_USE_MPI
+   int rank=icComm->commRank();
+#else
+   int rank=0;
+#endif
+   if( rank==0 && filename != NULL && filename[0] != '\0' ) {
+      char printParamsPath[PV_PATH_MAX];
+      int len;
+      if (filename[0] == '/') { // filename is absolute path
+         len = snprintf(printParamsPath, PV_PATH_MAX, "%s", filename);
+      }
+      else { // filename is relative path from outputPath
+         len = snprintf(printParamsPath, PV_PATH_MAX, "%s/%s", outputPath, filename);
+      }
+      if( len < PV_PATH_MAX ) {
+         FILE * fp = fopen(printParamsPath, "w");
+         if( fp != NULL ) {
+            status = outputParamsXML(fp);
+            if( status != PV_SUCCESS ) {
+               fprintf(stderr, "outputParamsXML: Error copying params to \"%s\"\n", printParamsPath);
+            }
+            fclose(fp); fp = NULL;
+         }
+         else {
+            status = errno;
+            fprintf(stderr, "outputParamsXML error opening \"%s\" for writing: %s\n", printParamsPath, strerror(errno));
+         }
+      }
+      else {
+         fprintf(stderr, "outputParams: ");
+         if (filename[0] != '/') fprintf(stderr, "outputPath + ");
+         fprintf(stderr, "paramsXMLFilename gives too long a filename.  Parameters will not be printed.\n");
+      }
+   }
+   return status;
+}
+
+int HyPerCol::outputParamsXML(FILE * fp) {
+   assert(fp!=NULL);
+   fprintf(fp, "<?xml version='1.0' encoding=\"UTF-8\"?>\n");
+   fprintf(fp, "<params>\n");
+   fprintf(fp, "   <HyPerCol name=\"%s\">\n", name);
+   fprintf(fp, "      <param name=\"nx\" type=\"int\">%d</param>\n", nxGlobal);
+   fprintf(fp, "      <param name=\"ny\" type=\"int\">%d</param>\n", nyGlobal);
+   fprintf(fp, "      <param name=\"dt\" type=\"double\">%lf</param>\n", deltaTime);
+   fprintf(fp, "      <param name=\"numSteps\" type=\"long int\">%ld</param>\n", numSteps);
+   fprintf(fp, "   </HyPerCol>\n");
+   fprintf(fp, "</params>\n");
+   return PV_SUCCESS;
+}
+#endif // UNDERCONSTRUCTION
 
 int HyPerCol::exitRunLoop(bool exitOnFinish)
 {

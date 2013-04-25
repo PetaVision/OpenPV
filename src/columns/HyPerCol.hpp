@@ -130,6 +130,10 @@ private:
    int checkpointRead(const char * cpDir);
    int checkpointWrite(const char * cpDir);
    int outputParams(const char * filename);
+#ifdef UNDERCONSTRUCTION // Plans to output the params, including those set to default values, as an XML file.
+   int outputParamsXML(const char * filename);
+   int outputParamsXML(FILE * fp);
+#endif // UNDERCONSTRUCTION
    int checkMarginWidths();
    int zCheckMarginWidth(HyPerConn * conn, const char * dim, int patchSize, int scalePre, int scalePost, int prevStatus);
    int lCheckMarginWidth(HyPerLayer * layer, const char * dim, int layerSize, int layerGlobalSize, int prevStatus);
