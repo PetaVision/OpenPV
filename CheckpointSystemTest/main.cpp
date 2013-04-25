@@ -15,8 +15,15 @@ int customexit(HyPerCol * hc, int argc, char * argv[]);
 
 int main(int argc, char * argv[]) {
 
-   if( argc > 1) {
-      fprintf(stderr, "%s: run without input arguments; the necessary arguments are hardcoded.\n", argv[0]);
+   bool argerr = false;
+   int reqrtn = 0;
+   if (argc > 2) argerr = 2;
+   else if (argc == 2) {
+      argerr = strcmp(argv[1], "--require-return");
+      reqrtn = 1;
+   }
+   if (argerr) {
+      fprintf(stderr, "%s: run without input arguments (except for --require-return); the necessary arguments are hardcoded.\n", argv[0]);
       exit(EXIT_FAILURE);
    }
 #ifdef PV_USE_MPI
@@ -41,11 +48,17 @@ int main(int argc, char * argv[]) {
 #endif // REQUIRE_RETURN
 
    int status;
-   char * cl_args[3];
+   assert(reqrtn==0 || reqrtn==1);
+   int cl_argc = 3+reqrtn;
+   char * cl_args[cl_argc];
    cl_args[0] = strdup(argv[0]);
    cl_args[1] = strdup("-p");
    cl_args[2] = strdup("input/CheckpointParameters1.params");
-   status = buildandrun(3, cl_args, NULL, NULL, &customgroup);
+   if (reqrtn) {
+      assert(cl_argc==4);
+      cl_args[3] = strdup("--require-return");
+   }
+   status = buildandrun(cl_argc, cl_args, NULL, NULL, &customgroup);
    if( status != PV_SUCCESS ) {
       fprintf(stderr, "%s: running with params file %s returned error %d.\n", cl_args[0], cl_args[2], status);
       exit(status);
@@ -53,7 +66,7 @@ int main(int argc, char * argv[]) {
 
    free(cl_args[2]);
    cl_args[2] = strdup("input/CheckpointParameters2.params");
-   status = buildandrun(3, cl_args, NULL, &customexit, &customgroup);
+   status = buildandrun(cl_argc, cl_args, NULL, &customexit, &customgroup);
    if( status != PV_SUCCESS ) {
       fprintf(stderr, "%s: running with params file %s returned error %d.\n", cl_args[0], cl_args[2], status);
    }
@@ -62,6 +75,9 @@ int main(int argc, char * argv[]) {
    MPI_Finalize();
 #endif // PV_USE_MPI
 
+   for (int i=0; i<cl_argc; i++) {
+      free(cl_args[i]);
+   }
    return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
