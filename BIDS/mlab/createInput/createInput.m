@@ -4,44 +4,52 @@ addpath('./k-Wave Toolbox');
 %Set up kgrid world
 Nx = DIM(1);
 Ny = DIM(2);
-dx = .25;
-dy = dx;
 kgrid = makeGrid(Nx, dx, Ny, dy);
 
-%medium properties
-medium.sound_speed = 1500;
-medium.alpha_coeff = .75;
-medium.alpha_power = 1.5;
-
 %time array
-%time step is a 16th of a period
-dt = 1/(TS_PER_PERIOD*WAVE_FREQUENCY);
-%1/8 second in time
-kgrid.t_array = [0:dt:.125];
+kgrid.t_array = [0:dt:TIME_LENGTH];
 
-%t_end = DIM(3);
-%dt = t_end/DIM(3);
-%kgrid.t_array = 0:dt:t_end;
-%[kgrid.t_array, dt] = makeTime(kgrid, medium.sound_speed);
 t_end = length(kgrid.t_array);
-time_diff = t_end/2;
 
 %Pressure differences
-if DROP_WAVE == 1
-   source.p = zeros([1 t_end]);
-   source.p(time_diff:t_end) = WAVE_STRENGTH*sin(2*pi*WAVE_FREQUENCY*kgrid.t_array(time_diff:t_end));
-else
-   source.p = zeros([1 t_end]);
-   source.p(time_diff:(t_end-time_diff)/NUM_DROPS:t_end) = DROP_STRENGTH;
-end
+source_pressure = WAVE_STRENGTH*sin(2*pi*WAVE_FREQUENCY*kgrid.t_array);
 
-source.p = filterTimeSeries(kgrid, medium, source.p);
+source_pressure = filterTimeSeries(kgrid, medium, source_pressure);
 
 %Pressure mask, or drop position
-source.p_mask = makeDisc(DIM(2), DIM(1), DROP_POS(2), DROP_POS(1), DROP_RADIUS);
-orig_drop = source.p_mask;
-%source.p_mask = zeros([Ny, Nx]);
-%source.p_mask(DROP_POS(2), DROP_POS(1)) = 1;
+source.p_mask = zeros(Nx, Ny);
+source.p_mask(DROP_POS(2)-DROP_RADIUS:DROP_POS(2)+DROP_RADIUS,:) = 1;
+
+% Preallocate an empty source matrix
+num_source_positions = sum(source.p_mask(:));
+source.p = zeros(num_source_positions,length(kgrid.t_array));
+
+% move the source along the source mask by interpolating the pressure
+% series between the source elements
+sensor_index = 1;
+t_index = 1;
+while t_index < length(kgrid.t_array) && sensor_index < num_source_positions - 1
+    % check if the source has moved to the next pair of grid points
+    if kgrid.t_array(t_index) > (sensor_index*dy/SOURCE_VEL)
+        sensor_index = sensor_index + 1;
+    end    
+    
+    % calculate the position of source in between the two current grid
+    % points
+    exact_pos = (SOURCE_VEL*kgrid.t_array(t_index));
+    discrete_pos = sensor_index*dy;
+    pos_ratio = (discrete_pos - exact_pos) ./ dy;
+    
+    % update the pressure at the two current grid points using linear
+    % interpolation
+    source.p(sensor_index, t_index) = pos_ratio*source_pressure(t_index);
+    source.p(sensor_index + 1, t_index) = (1 - pos_ratio)*source_pressure(t_index);
+    
+    % update the time index
+    t_index = t_index + 1;
+end
+
+original_drop = source.p;
 
 %Sensor mask
 sensor = [];
