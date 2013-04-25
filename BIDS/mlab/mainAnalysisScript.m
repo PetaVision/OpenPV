@@ -65,8 +65,8 @@ end
 figure
 hold on
 plot([0,1],[0,1],'k')
-plot([0 NLI80pSet(1,:) 1],[0 NLI80pSet(2,:) 1],'Color','r')
-plot([0 LI80pSet(1,:) 1],[0 LI80pSet(2,:) 1],'Color','b')
+plot(NLI80pSet(1,:),NLI80pSet(2,:),'Color','r')
+plot(LI80pSet(1,:),LI80pSet(2,:),'Color','b')
 hold off
 xlim([0 1])
 ylim([0 1])
@@ -79,20 +79,20 @@ ylabel('Probability of Detection')
 title('Receiver Operator Characterists for BIDS Network at 80% SNR')
 print([figPath,'ROC.png'])
 
-%x = [0 .6 .8 .9 1];
-%y_NLI = [0 NLI60AUC NLI80AUC NLI90AUC 1];
-%y_LI = [0 LI60AUC LI80AUC LI90AUC 1];
-%figure
-%hold on
-%plot(x, y_NLI, 'r-o');
-%plot(x, y_LI, 'b-o');
-%hold off
-%legend('No Lateral Interaction', 'Lateral Interaction', 'Location', 'SouthEast');
-%xlabel('Signal Strength');
-%ylabel('Area Under Recevier Operator Characteristic (ROC) Curves');
-%xlim([0 1])
-%ylim([0 1])
-%%xlim([0.6 0.9])
-%%ylim([0.6 0.9])
-%title('Signal Strength vs Area under ROC');
-%print([figPath, 'Strength_vs_AUC.png'])
+x = [0 .6 .8 .9 1];
+y_NLI = [NLI60AUC NLI80AUC NLI90AUC];
+y_LI = [LI60AUC LI80AUC LI90AUC];
+figure
+hold on
+plot(x, y_NLI, 'r-o');
+plot(x, y_LI, 'b-o');
+hold off
+legend('No Lateral Interaction', 'Lateral Interaction', 'Location', 'SouthEast');
+xlabel('Signal Strength');
+ylabel('Area Under Recevier Operator Characteristic (ROC) Curves');
+xlim([0 1])
+ylim([0 1])
+%xlim([0.6 0.9])
+%ylim([0.6 0.9])
+title('Signal Strength vs Area under ROC');
+print([figPath, 'Strength_vs_AUC.png'])

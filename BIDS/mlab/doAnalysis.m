@@ -134,8 +134,8 @@ function [pSet, AUC] = doAnalysis(label,fileLoc,params)
             h0 = hist(counts0,binLoc,1);
             h1 = hist(counts1,binLoc,1);
 
-            Pf = fliplr(1-cumsum(h0)); %We want an ascending count, not descending
-            Pd = fliplr(1-cumsum(h1));
+            Pf = [0 fliplr(1-cumsum(h0)) 1]; %We want an ascending count, not descending
+            Pd = [0 fliplr(1-cumsum(h1)) 1];
         end
 
         AUC = trapz(Pf,Pd);
