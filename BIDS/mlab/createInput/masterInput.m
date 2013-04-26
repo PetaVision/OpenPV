@@ -2,10 +2,10 @@ clear all;
 close all;
 addpath('./k-Wave Toolbox');
 
-DIM = [512, 512, 0];     % [X, Y, t=0] This will be a 1280x1280m grid for the simulation (0.4 px/m).
-dx = .4;              % [m]
-dy = dx;              % [m]
-BETA = -1;            % 0 is gaussian white, -1 is pink, -2 is Brownian
+DIM = [1024, 1024, 0];   % [X, Y, t=0] This will be a 1280x1280m grid for the simulation (0.4 px/m).
+dx = 0.625;              % [m]
+dy = dx;                 % [m]
+BETA = -1;               % 0 is gaussian white, -1 is pink, -2 is Brownian
 
 %Sine wave params
 % peak vehicle frequency
