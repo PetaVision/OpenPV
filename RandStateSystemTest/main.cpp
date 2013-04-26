@@ -47,7 +47,16 @@ int main(int argc, char * argv[]) {
    MPI_Finalize();
 #endif // PV_USE_MPI
 
-   return status1==PV_SUCCESS && status2==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
+   int status = status1==PV_SUCCESS && status2==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
+
+   if (status == EXIT_SUCCESS) {
+      printf("Test complete.  %s passed on process rank %d.\n", cl_argv[0], rank);
+   }
+   else {
+      fprintf(stderr, "Test complete.  %s FAILED on process rank %d.\n", cl_argv[0], rank);
+   }
+
+   return status;
 }
 
 int customexit(HyPerCol * hc, int argc, char * argv[]) {
