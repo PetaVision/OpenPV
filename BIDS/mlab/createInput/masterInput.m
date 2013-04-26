@@ -31,13 +31,14 @@ MOVIE_NAME = '~/plot';
 OUTPUT_DIR = '~/wave_stimulus';
 NOISE_SCALE = .1; %1 - NOISE_SCALE = SNR (i.e. 80% is 0.2)
 
+if ne(exist(OUTPUT_DIR),7)
+   mkdir(OUTPUT_DIR);
+end
+
 disp('MasterScript: Creating wave input...')
 
 %Create input wave
 createInput;
-
-%Parse input wave to ones with stimulus
-%all_wave = all_wave(:, :, 1:count);
 
 %Remove orig drop from matrix
 orig_drop = 1 - orig_drop;
@@ -45,10 +46,6 @@ all_wave = bsxfun(@times, orig_drop, all_wave);
 
 [Y, X, Z] = size(all_wave);
 DIM(3) = Z*2;
-
-if ne(exist(OUTPUT_DIR),7)
-   mkdir(OUTPUT_DIR);
-end
 
 disp('MasterScript: Creating noise...');
 all_noise = spatialPattern(DIM, BETA);
