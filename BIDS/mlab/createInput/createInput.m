@@ -49,7 +49,7 @@ while t_index < length(kgrid.t_array) && sensor_index < num_source_positions - 1
     t_index = t_index + 1;
 end
 
-original_drop = source.p;
+orig_drop = source.p;
 
 %Sensor mask
 sensor = [];
