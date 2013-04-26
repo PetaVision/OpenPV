@@ -40,7 +40,7 @@ fails=""
 function runandecho() {
     testname=$1
     shift
-    if $* 1> /dev/null 2>/dev/null
+    if $* &> $testname.log ## 1> /dev/null 2>/dev/null
     then
         echo "$testname passed"
     else
@@ -61,14 +61,14 @@ else
     function mpirunandecho() {
         testname=$1
         shift
-        if $PV_MPIRUN -np 2 $* 1> /dev/null 2>/dev/null
+        if $PV_MPIRUN -np 2 $* &> $testname.log ## 1> /dev/null 2>/dev/null
         then
             echo "$testname with two processes passed"
         else
             echo "$testname with two processes FAILED"
             fails="$fails $testname(2 procs)"
         fi
-        if $PV_MPIRUN -np 4 $* 1> /dev/null 2>/dev/null
+        if $PV_MPIRUN -np 4 $* &> $testname.log ## 1> /dev/null 2>/dev/null
         then
             echo "$testname with four processes passed"
         else
@@ -150,6 +150,13 @@ cd $wd
 
 testname=KernelTest
 arglist="-p input/test_kernel.params"
+cd "$testname"
+runandecho $testname Debug/$testname $arglist
+mpirunandecho $testname Debug/$testname $arglist
+cd $wd
+
+testname=KernelTest
+arglist="-p input/test_kernel_normalizepost_shrunken.params"
 cd "$testname"
 runandecho $testname Debug/$testname $arglist
 mpirunandecho $testname Debug/$testname $arglist
