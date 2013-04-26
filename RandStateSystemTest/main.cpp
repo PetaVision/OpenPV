@@ -60,14 +60,17 @@ int main(int argc, char * argv[]) {
 }
 
 int customexit(HyPerCol * hc, int argc, char * argv[]) {
-   std::string cmd("diff -r -q checkpoints*/Checkpoint");
-   std::stringstream stepnumber;
-   stepnumber << hc->numberOfTimeSteps();
-   cmd += stepnumber.str();
-   const char * cmdstr = cmd.c_str();
-   int status = system(cmdstr);
-   if (status != 0) {
-      fprintf(stderr, "%s failed: system command \"%s\" returned %d\n", argv[0], cmdstr, status);
+   int status = PV_SUCCESS;
+   if (hc->columnId()==0) {
+      std::string cmd("diff -r -q checkpoints*/Checkpoint");
+      std::stringstream stepnumber;
+      stepnumber << hc->numberOfTimeSteps();
+      cmd += stepnumber.str();
+      const char * cmdstr = cmd.c_str();
+      status = system(cmdstr);
+      if (status != 0) {
+         fprintf(stderr, "%s failed: system command \"%s\" returned %d\n", argv[0], cmdstr, status);
+      }
    }
-   return status ? PV_FAILURE : PV_SUCCESS;
+   return status;
 }
