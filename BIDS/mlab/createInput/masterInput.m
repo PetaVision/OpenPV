@@ -20,8 +20,8 @@ dt = 10e-3;              % [s] - 1ms
 %Medium properties
 % pure tone through air at 20 deg C, 30 perc humidity, 4000ft elevation (0.8755 bars, 0.864 ATM)
 medium.sound_speed = 348.9; % [m/s]
-medium.alpha_coeff = .06;  % [dB/MHz^y cm]
-medium.alpha_power = 1.0000000001;     % y
+medium.alpha_coeff = 404;   % [dB/MHz^y cm]
+medium.alpha_power = 1.9;     % y
 
 %Source mask params
 DROP_RADIUS = 1; %~2.5m radius
@@ -42,7 +42,7 @@ createInput;
 
 %Remove orig drop from matrix
 orig_drop = 1 - orig_drop;
-all_wave = bsxfun(@times, orig_drop, all_wave);
+all_wave = bsxfun(@times, orig_drop, all_wave); %%TODO: This might be cheating - check with Gar
 
 [Y, X, Z] = size(all_wave);
 DIM(3) = Z*2;
