@@ -7,7 +7,7 @@ SIMULATION_FILENAME2 = './modified_simulation_output.mat';
 NOISE_FILENAME       = './noise_output.mat';
 
 DIM  = [512, 512, 0];   % [X, Y, t=0] This will be a 2560x2560m (640*4) grid for the simulation (2.5 m/px).
-dx   = 1.25;             % [m]
+dx   = 2.5;             % [m]
 dy   = dx;              % [m]
 BETA = -1;              % 0 is gaussian white, -1 is pink, -2 is Brownian
 
@@ -18,7 +18,7 @@ WAVE_STRENGTH  = 0.11;  %Pa (75dB SBL)
 
 %Time properties
 SOURCE_VEL  = 8.9408;   % [m/s] = 20 mph
-TIME_LENGTH = 60;      % [s]
+TIME_LENGTH = 120;      % [s]
 dt          = 10e-3;    % [s] - 1ms
 
 %Medium properties
@@ -52,7 +52,7 @@ all_wave = bsxfun(@times, orig_drop, all_wave); %%TODO: This might be cheating -
 DIM(3) = Z*2;
 disp('Saving simulation output...')
 save(SIMULATION_FILENAME1,'all_wave','-v7.3');
-clearvars -except DIM BETA NOISE_SCALE NOISE_FILENAME OUTPUT_DIR
+clearvars -except DIM BETA NOISE_SCALE NOISE_FILENAME OUTPUT_DIR SIMULATION_FILENAME1, SIMULATION_FILENAME2
 
 all_wave  = matfile(SIMULATION_FILENAME1);
 range_wave(i) = zeros(DIM(3));
