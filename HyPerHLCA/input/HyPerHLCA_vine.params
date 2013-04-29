@@ -17,17 +17,17 @@ HyPerCol "column" = {
    randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
    numSteps = 100495000;       // Depends on number of VINE video frames
    progressStep = 10000;
-   //outputPath = "/nh/compneuro/Data/vine/LCA/2013_01_31/output";
-   outputPath = "/nh/compneuro/Data/vine/LCA/2013_01_31/outputOverlap";
+   outputPath = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_6000000";
+   //outputPath = "/nh/compneuro/Data/vine/LCA/2013_01_31/outputOverlap";
    filenamesContainLayerNames = true;
    filenamesContainConnectionNames = true;
    checkpointRead = false;
-   //checkpointReadDir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output/Checkpoints";
-   checkpointReadDir = "/nh/compneuro/Data/vine/LCA/2013_01_31/outputOverlap/Checkpoints";
+   checkpointReadDir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output/Checkpoints";
+   //checkpointReadDir = "/nh/compneuro/Data/vine/LCA/2013_01_31/outputOverlap/Checkpoints";
    checkpointReadDirIndex = 1200000;
    checkpointWrite = true;
-   //checkpointWriteDir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output/Checkpoints";
-   checkpointWriteDir = "/nh/compneuro/Data/vine/LCA/2013_01_31/outputOverlap/Checkpoints";
+   checkpointWriteDir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_6000000/Checkpoints";
+   //checkpointWriteDir = "/nh/compneuro/Data/vine/LCA/2013_01_31/outputOverlap/Checkpoints";
    checkpointWriteStepInterval = 100000;
    deleteOlderCheckpoints = false;
    //suppressLastOutput = false;
@@ -49,7 +49,7 @@ Movie "Image" = {
     writeStep = -1;
     writeSparseActivity = false;
     displayPeriod = 5000;
-    start_frame_index = 1;
+    start_frame_index = 1200; //1;
     skip_frame_index = 1;
     echoFramePathnameFlag = true;
     mirrorBCflag = true;
@@ -142,9 +142,9 @@ ANNLayer "Recon" = {
     mirrorBCflag = 1;
     writeSparseActivity = 0;
     //
-    InitVType = "ZeroV";
-    //InitVType = "InitVFromFile";
-    //Vfilename = "";
+    //InitVType = "ZeroV";
+    InitVType = "InitVFromFile";
+    Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_31/output/Checkpoints/Checkpoint6000000/Recon_V.pvp";
     //
     VThresh = -infinity;
     VMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
@@ -166,9 +166,9 @@ ANNLayer "Error" = {
     mirrorBCflag = 1;
     writeSparseActivity = 0;
     //
-    InitVType = "ZeroV";
-    //InitVType = "InitVFromFile";
-    //Vfilename = "";
+    //InitVType = "ZeroV";
+    InitVType = "InitVFromFile";
+    Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_31/output/Checkpoints/Checkpoint6000000/Error_V.pvp";
     //
     VThresh = -infinity;
     VMax =  infinity;
@@ -184,29 +184,29 @@ HyPerLCALayer "V1" = {
     /*****************/
     //NON OVERLAPPING
     /*****************/
-    //nxScale = 0.0625;
-    //nyScale = 0.0625;
-    //nf = 1024;
-    //marginWidth = 0;
+    nxScale = 0.0625;
+    nyScale = 0.0625;
+    nf = 1024;
+    marginWidth = 0;
     // 
     /*****************/
     //OVERLAPPING
     /*****************/
-    nxScale = 0.125;
-    nyScale = 0.125;
-    nf = 256;
-    marginWidth = 1;
+    //nxScale = 0.125;
+    //nyScale = 0.125;
+    //nf = 256;
+    //marginWidth = 1;
     // 
     initialWriteTime = 4999.0;
     writeStep = 5000.0;
     mirrorBCflag = 1;
     writeSparseActivity = 1;
     //
-    InitVType = "UniformRandomV";
-    //InitVType = "InitVFromFile";
-    //Vfilename = "";
-    minV = -1.0;
-    maxV = .1; //0.05 above VThresh
+    //InitVType = "UniformRandomV";
+    //minV = -1.0;
+    //maxV = .1; //0.05 above VThresh
+    InitVType = "InitVFromFile";
+    Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_31/output/Checkpoints/Checkpoint6000000/V1_V.pvp";
     // 
     timeConstantTau = 100.0;
     // 
@@ -386,26 +386,26 @@ KernelConn "V1ToError" = {
     /*****************/
     //NON OVERLAPPING
     /*****************/
-    //nxp = 16;
-    //nyp = 16;
+    nxp = 16;
+    nyp = 16;
     /*****************/
     //OVERLAPPING
     /*****************/
-    nxp = 24;
-    nyp = 24;
-    nxpShrunken = 16;
-    nypShrunken = 16;
+    //nxp = 24;
+    //nyp = 24;
+    //nxpShrunken = 16;
+    //nypShrunken = 16;
     //
     nfp = 1;
     numAxonalArbors = 1;
     initFromLastFlag = 0;
     
-    //weightInitType = "FileWeight";
-    //initWeightsFile = "";
-    weightInitType = "UniformRandomWeight";
-    wMinInit = -1.0;
-    wMaxInit = 1.0;
-    sparseFraction = .90;
+    weightInitType = "FileWeight";
+    initWeightsFile = "/nh/compneuro/Data/vine/LCA/2013_01_31/output/Checkpoints/Checkpoint6000000/V1ToError_W.pvp";
+    //weightInitType = "UniformRandomWeight";
+    //wMinInit = -1.0;
+    //wMaxInit = 1.0;
+    //sparseFraction = .90;
    
     strength = 1.0;  
     normalizeMethod = "normalizeL2";
