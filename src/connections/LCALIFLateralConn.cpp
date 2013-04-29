@@ -55,7 +55,7 @@ int LCALIFLateralConn::initialize(const char * name, HyPerCol * hc, HyPerLayer *
    memset(integratedSpikeCount, 0, pre->getNumExtended()*sizeof(*integratedSpikeCount)); // Spike counts initialized to 0
 
    //Loop through patches setting the self to self connection to 0
-   pvdata_t * gSyn_buffer_start = post->getChannel(channel);
+   //pvdata_t * gSyn_buffer_start = post->getChannel(channel);
 
    const PVPatchStrides * strides_restricted  = getPostNonextStrides();
    const int sx_restricted = strides_restricted->sx;
@@ -65,8 +65,9 @@ int LCALIFLateralConn::initialize(const char * name, HyPerCol * hc, HyPerLayer *
    for (int axonId = 0; axonId < numberOfAxonalArborLists(); axonId++){
       for (int kPre_extended=0; kPre_extended<getNumWeightPatches(); kPre_extended++) {
 
-         pvdata_t * gSyn_patch_start = getGSynPatchStart(kPre_extended, axonId);
-         int start_index_restricted = gSyn_patch_start - gSyn_buffer_start;
+//         pvdata_t * gSyn_patch_start = getGSynPatchStart(kPre_extended, axonId);
+//         int start_index_restricted = gSyn_patch_start - gSyn_buffer_start;
+    	  int start_index_restricted = getGSynPatchStart(kPre_extended, axonId);
 
          const PVPatch * p = getWeights(kPre_extended, axonId);
          int nx_patch = p->nx;
@@ -129,8 +130,9 @@ int LCALIFLateralConn::calc_dW(int axonId) {
       // The weight p(x,y,f) connects a presynaptic neuron in extended space to a postsynaptic neuron in restricted space.
       // We need to get the indices.  The presynaptic index is k.  To get the postsynaptic index, find
       // The memory location this weight is mapped to and subtract it from the start of the postsynaptic GSyn buffer.
-      pvdata_t * gSyn_patch_start = getGSynPatchStart(kPre_extended, axonId);
-      int start_index_restricted = gSyn_patch_start - gSyn_buffer_start;
+//      pvdata_t * gSyn_patch_start = getGSynPatchStart(kPre_extended, axonId);
+//      int start_index_restricted = gSyn_patch_start - gSyn_buffer_start;
+      int start_index_restricted = getGSynPatchStart(kPre_extended, axonId);
       const PVPatch * p = getWeights(kPre_extended, axonId);
       pvdata_t * dw_data = get_dwData(axonId,kPre_extended);
       int nx_patch = p->nx;

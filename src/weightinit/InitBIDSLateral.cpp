@@ -203,8 +203,9 @@ int InitBIDSLateral::BIDSLateralCalcWeights(/* PVPatch * patch */ int kPre, pvda
       for (int delY = principleJittDiffy; delY < nyp - principleJittDiffy; delY++) {
          float * RESTRICT w = dataStart + delY * syw; //stride gets correct weight vector
          for (int delX = principleJittDiffx; delX < nxp - principleJittDiffx; delX++) {
-            pvdata_t * memLoc = conn->getGSynPatchStart(kPre, arborID) + delY * sy + delX * sx + 0 * 1;
-            int index = memLoc - channel;
+//            pvdata_t * memLoc = conn->getGSynPatchStart(kPre, arborID) + delY * sy + delX * sx + 0 * 1;
+//            int index = memLoc - channel;
+            int index = conn->getGSynPatchStart(kPre, arborID) + delY * sy + delX * sx + 0 * 1;
             /*
             if (index >= maxindex){
                maxindex = index;

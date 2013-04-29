@@ -255,10 +255,12 @@ int CliqueLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activit
          int nyPost = w_patch->ny;
          int sywPatch = conn->yPatchStride(); // stride in patch
 
+         pvdata_t * gSynPatchHead = this->getChannel(conn->getChannel());
+
          // TODO - unroll
          for (int y = 0; y < nyPost; y++) {
             pvpatch_accumulate2(nkPost,
-                  (float *) (conn->getGSynPatchStart(kPreExt, arborNdx) + y * syPost),
+                  (float *) (gSynPatchHead + conn->getGSynPatchStart(kPreExt, arborNdx) + y * syPost),
                   cliqueProd, (float *) (w_head + w_offset + y * sywPatch), // (w_patch->data + y * sywPatch),
                   (float *) (a_post_mask + w_offset + y * sywPatch));
          }

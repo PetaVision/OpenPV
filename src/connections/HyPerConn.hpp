@@ -44,6 +44,7 @@ class NormalizeBase;
 class HyPerConn {
 
 public:
+	friend class CloneKernelConn;
    HyPerConn();
    HyPerConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post);
    HyPerConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
@@ -250,7 +251,11 @@ public:
       return numAxonalArborLists;
    }
 
-   inline float* getGSynPatchStart(int kPre, int arborId) {
+//   inline float* getGSynPatchStart(int kPre, int arborId) {
+//      return gSynPatchStart[arborId][kPre];
+//   }
+
+   inline size_t getGSynPatchStart(int kPre, int arborId) {
       return gSynPatchStart[arborId][kPre];
    }
 
@@ -342,8 +347,11 @@ protected:
 #endif
 private:
    PVPatch*** wPatches; // list of weight patches, one set per arbor
-   float*** gSynPatchStart; //  gSynPatchStart[arborId][kExt] is a pointer to the start of the patch in the post-synaptic GSyn buffer
-   float** gSynPatchStartBuffer;
+   // GTK:: gSynPatchStart redefined as offset from start of associated gSynBuffer
+   //float*** gSynPatchStart; //  gSynPatchStart[arborId][kExt] is a pointer to the start of the patch in the post-synaptic GSyn buffer
+   size_t** gSynPatchStart;  // gSynPatchStart[arborId][kExt] is the offset to the start of the patch from the beginning of the post-synaptic GSyn buffer for corresponding channel
+   //float** gSynPatchStartBuffer;
+   size_t * gSynPatchStartBuffer;
    size_t** aPostOffset; // aPostOffset[arborId][kExt] is the index of the start of a patch into an extended post-synaptic layer
    size_t* aPostOffsetBuffer;
    int* delays; // delays[arborId] is the delay in timesteps (not units of dt) of the arborId'th arbor
@@ -421,12 +429,20 @@ protected:
       wPatches = patches;
    }
 
-   inline float*** getGSynPatchStart() {
+//   inline float*** getGSynPatchStart() {
+//      return gSynPatchStart;
+//   }
+
+   inline size_t** getGSynPatchStart() {
       return gSynPatchStart;
    }
 
-   inline void setGSynPatchStart(float*** patchstart) {
-      gSynPatchStart = patchstart;
+//   inline void setGSynPatchStart(float*** patchstart) {
+//      gSynPatchStart = patchstart;
+//   }
+
+   inline void setGSynPatchStart(size_t** patchstart) {
+	   gSynPatchStart = patchstart;
    }
 
    inline size_t** getAPostOffset() {

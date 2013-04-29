@@ -163,7 +163,7 @@ int OjaKernelConn::update_dW(int axonId) {
 
    for (int kex=0; kex<getNumWeightPatches(); kex++) {
       PVPatch * weights = getWeights(kex,axonId);
-      int offset = getGSynPatchStart(kex,axonId)-post->getChannel(channel);
+      int offset = getGSynPatchStart(kex,axonId); //-post->getChannel(channel);
       int ny = weights->ny;
       int nk = weights->nx * nfp;
       pvdata_t * dwdata = get_dwData(axonId, kex);

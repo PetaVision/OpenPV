@@ -70,19 +70,25 @@ int CloneKernelConn::constructWeights(const char * filename) {
 
    if( status == PV_SUCCESS ) readShrinkPatches(parent->parameters());
 
-   if( status == PV_SUCCESS ) status = createArbors();
+   //if( status == PV_SUCCESS ) status = createArbors();
 
    if( status == PV_SUCCESS ) status = setPatchSize(NULL);
    if( status == PV_SUCCESS ) status = setPatchStrides();
 
-   for( int arbor=0; arbor<numberOfAxonalArborLists(); arbor++) {
-      get_wDataStart()[arbor] = originalConn->get_wDataStart(arbor);
-      get_wPatches()[arbor] = originalConn->weights(arbor);
-      // this->setKernelPatches(originalConn->getKernelPatches(arbor),arbor);
-      if( status == PV_SUCCESS )
-         status = createAxonalArbors(arbor); // sets gSynPatchStart[arbor][*] and aPostOffset[arbor][*]
-      if( status != PV_SUCCESS ) break;
-   }
+   wPatches = this->originalConn->get_wPatches();
+   wDataStart = this->originalConn->get_wDataStart();
+   gSynPatchStart = this->originalConn->getGSynPatchStart();
+   aPostOffset = this->originalConn->getAPostOffset();
+   dwDataStart = this->originalConn->get_dwDataStart();
+
+//   for( int arbor=0; arbor<numberOfAxonalArborLists(); arbor++) {
+//      get_wDataStart()[arbor] = originalConn->get_wDataStart(arbor);
+//      get_wPatches()[arbor] = originalConn->weights(arbor);
+//      // this->setKernelPatches(originalConn->getKernelPatches(arbor),arbor);
+//      if( status == PV_SUCCESS )
+//         status = createAxonalArbors(arbor); // sets gSynPatchStart[arbor][*] and aPostOffset[arbor][*]
+//      if( status != PV_SUCCESS ) break;
+//   }
 
    // Don't call initPlasticityPatches since plasticityFlag is always false.
    // Don't call shrinkPatches() since the original connection will have already shrunk patches
@@ -94,17 +100,17 @@ void CloneKernelConn::constructWeightsOutOfMemory() {
 }
 
 int CloneKernelConn::createAxonalArbors(int arborId) {
-   int numPatches = getNumWeightPatches();
-   for( int kex = 0; kex < numPatches; kex++ ) {
-      // kex is in extended frame, this makes transformations more difficult
-      int kl, offset, nxPatch, nyPatch, dx, dy;
-      calcPatchSize(arborId, kex, &kl, &offset, &nxPatch, &nyPatch, &dx, &dy);
-      pvdata_t * gSyn = post->getChannel(channel) + kl;
-      getGSynPatchStart()[arborId][kex] = gSyn;
-      getAPostOffset()[arborId][kex] = offset;
-      // Don't call pvpatch_adjust because weight patches point to the
-      // original conn's weight patches, which were already shrunk.
-   }
+//   int numPatches = getNumWeightPatches();
+//   for( int kex = 0; kex < numPatches; kex++ ) {
+//      // kex is in extended frame, this makes transformations more difficult
+//      int kl, offset, nxPatch, nyPatch, dx, dy;
+//      calcPatchSize(arborId, kex, &kl, &offset, &nxPatch, &nyPatch, &dx, &dy);
+//      pvdata_t * gSyn = post->getChannel(channel) + kl;
+//      getGSynPatchStart()[arborId][kex] = gSyn;
+//      getAPostOffset()[arborId][kex] = offset;
+//      // Don't call pvpatch_adjust because weight patches point to the
+//      // original conn's weight patches, which were already shrunk.
+//   }
    return PV_SUCCESS;
 }
 
@@ -154,10 +160,15 @@ int CloneKernelConn::deleteWeights() {
    // Have to make sure not to free memory belonging to originalConn.
    // Set pointers that point into originalConn to NULL so that free() has no effect
    // when KernelConn::deleteWeights or HyPerConn::deleteWeights is called
-   for(int arbor=0; arbor<numberOfAxonalArborLists(); arbor++) {
-      get_wPatches()[arbor] = NULL;
-      set_wDataStart(arbor,NULL);
-   }
+	   wPatches = NULL;
+	   wDataStart = NULL;
+	   gSynPatchStart = NULL;
+	   aPostOffset = NULL;
+	   dwDataStart = NULL;
+//   for(int arbor=0; arbor<numberOfAxonalArborLists(); arbor++) {
+//      get_wPatches()[arbor] = NULL;
+//      set_wDataStart(arbor,NULL);
+//   }
    // set_kernelPatches(NULL);
 
    return 0; // HyPerConn::deleteWeights(); // HyPerConn destructor calls HyPerConn::deleteWeights()

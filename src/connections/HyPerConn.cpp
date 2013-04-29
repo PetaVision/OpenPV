@@ -245,14 +245,19 @@ int HyPerConn::createArbors() {
       createArborsOutOfMemory();
       assert(false);
    }
-   gSynPatchStart = (pvdata_t ***) calloc( numAxonalArborLists, sizeof(pvdata_t **) );
+   // GTK:  gSynPatchStart redefined as offset form beginning of gSyn buffer for the corresponding channel
+   //gSynPatchStart = (pvdata_t ***) calloc( numAxonalArborLists, sizeof(pvdata_t **) );
+   gSynPatchStart = (size_t **) calloc( numAxonalArborLists, sizeof(size_t *) );
    if( gSynPatchStart == NULL ) {
       createArborsOutOfMemory();
       assert(false);
    }
-   gSynPatchStartBuffer = (pvdata_t **) calloc(
-         (this->shrinkPatches_flag ? numAxonalArborLists : 1)
-               * preSynapticLayer()->getNumExtended(), sizeof(pvdata_t *));
+   //   gSynPatchStartBuffer = (pvdata_t **) calloc(
+   //         (this->shrinkPatches_flag ? numAxonalArborLists : 1)
+   //               * preSynapticLayer()->getNumExtended(), sizeof(pvdata_t *));
+   gSynPatchStartBuffer = (size_t *) calloc(
+		   (this->shrinkPatches_flag ? numAxonalArborLists : 1)
+		   * preSynapticLayer()->getNumExtended(), sizeof(size_t));
    if (gSynPatchStartBuffer == NULL) {
       createArborsOutOfMemory();
       assert(false);
@@ -1528,97 +1533,102 @@ int HyPerConn::clearWeights(pvdata_t * arborDataStart, int numPatches, int nxp, 
    return PV_SUCCESS;
 }
 
-int HyPerConn::deleteWeights()
-{
-   // to be used if createPatches is used above
-   // HyPerConn::deletePatches(numAxonalArborLists, wPatches);
-
-   for (int arbor = 0; arbor < numAxonalArborLists; arbor++) {
-      if (wPatches != NULL) {
-         if (wPatches[arbor] != NULL) {
-            if (shrinkPatches_flag || arbor == 0){
-               deletePatches(wPatches[arbor]);
-            }
-            wPatches[arbor] = NULL;
-         }
-      }
-   }  // arbor
-
-   for (int arbor = 0; arbor < numAxonalArborLists; arbor++) {
-   // entire arbor allocated as single block
-   if (arbor == 0){
-#ifdef USE_SHMGET
-		if (!shmget_flag) {
-			if (wDataStart != NULL && wDataStart[arbor] != NULL) {
-				free(this->wDataStart[arbor]);
+int HyPerConn::deleteWeights() {
+	// to be used if createPatches is used above
+	// HyPerConn::deletePatches(numAxonalArborLists, wPatches);
+	if (wPatches != NULL) {
+		for (int arbor = 0; arbor < numAxonalArborLists; arbor++) {
+			if (wPatches[arbor] != NULL) {
+				if (shrinkPatches_flag || arbor == 0) {
+					deletePatches(wPatches[arbor]);
+				}
+				wPatches[arbor] = NULL;
 			}
-		} else {
-			if (wDataStart != NULL && wDataStart[arbor] != NULL) {
-				int shmget_status = shmdt(this->get_wDataStart(arbor));
-				assert(shmget_status==0);
-				if (shmget_owner[arbor]) {
-					shmid_ds * shmget_ds = NULL;
-					shmget_status = shmctl(shmget_id[arbor], IPC_RMID,
-							shmget_ds);
-					assert(shmget_status==0);
+		}  // arbor
+		free(wPatches);
+		wPatches = NULL;
+	} // wPatches != NULL
+
+	if (wDataStart != NULL) {
+		for (int arbor = 0; arbor < numAxonalArborLists; arbor++) {
+			// entire arbor allocated as single block
+			if (arbor == 0) {
+#ifdef USE_SHMGET
+				if (!shmget_flag) {
+					if (wDataStart[arbor] != NULL) {
+						free(this->wDataStart[arbor]);
+					}
+				} else {
+					if (wDataStart[arbor] != NULL) {
+						int shmget_status = shmdt(this->get_wDataStart(arbor));
+						assert(shmget_status==0);
+						if (shmget_owner[arbor]) {
+							shmid_ds * shmget_ds = NULL;
+							shmget_status = shmctl(shmget_id[arbor], IPC_RMID,
+									shmget_ds);
+							assert(shmget_status==0);
+						}
+					}
+				}
+#else
+				if (wDataStart[arbor] != NULL) {
+					free(this->wDataStart[arbor]);
+				}
+#endif // USE_SHMGET
+			} // arbor == 0
+			this->wDataStart[arbor] = NULL;
+			if (!this->combine_dW_with_W_flag) {
+				if (dwDataStart != NULL && dwDataStart[arbor] != NULL) {
+					free(dwDataStart[arbor]);
+					dwDataStart[arbor] = NULL;
 				}
 			}
+		}  // arbor
+		free(wDataStart);
+		wDataStart = NULL;
+		if (!this->combine_dW_with_W_flag) {
+			free(dwDataStart);
 		}
-#else
-		if (wDataStart != NULL && wDataStart[arbor] != NULL) {
-			free(this->wDataStart[arbor]);
-		}
-#endif // USE_SHMGET
-   } // arbor == 0
-   this->wDataStart[arbor] = NULL;
-      if (!this->combine_dW_with_W_flag) {
-         if (dwDataStart != NULL && dwDataStart[arbor] != NULL) {
-            free(dwDataStart[arbor]);
-            dwDataStart[arbor] = NULL;
-         }
-      }
-   }  // arbor
+		dwDataStart = NULL;
+	} // wDataStart != NULL
+
 #ifdef USE_SHMGET
-   if (shmget_flag) {
-      free(shmget_id);
-      free(shmget_owner);
-   }
+	if (shmget_flag) {
+		free(shmget_id);
+		free(shmget_owner);
+	}
 #endif
-   free(wPatches);
-   wPatches = NULL;
-   free(wDataStart);
-   wDataStart = NULL;
-   if (!this->combine_dW_with_W_flag) {
-      free(dwDataStart);
-   }
-   dwDataStart = NULL;
 
-   if (wPostPatches != NULL) {
-      for(int arborID=0;arborID<numberOfAxonalArborLists();arborID++) {
-         if (wPostPatches[arborID] != NULL) {
-            if (shrinkPatches_flag || arborID == 0){
-               deletePatches(wPostPatches[arborID]);
-            }
-            wPostPatches[arborID] = NULL;
-         }
+	if (wPostPatches != NULL) {
+		for (int arborID = 0; arborID < numberOfAxonalArborLists(); arborID++) {
+			if (wPostPatches[arborID] != NULL) {
+				if (shrinkPatches_flag || arborID == 0) {
+					deletePatches(wPostPatches[arborID]);
+				}
+				wPostPatches[arborID] = NULL;
+			}
 
-         if (wPostDataStart != NULL) {
-            free(this->wPostDataStart[arborID]);
-            this->wPostDataStart[arborID] = NULL;
-         }
-      }
-      free(wPostPatches);
-      wPostPatches = NULL;
-      free(wPostDataStart);
-      wPostDataStart = NULL;
-   }
+			if (wPostDataStart != NULL) {
+				free(this->wPostDataStart[arborID]);
+				this->wPostDataStart[arborID] = NULL;
+			}
+		}
+		free(wPostPatches);
+		wPostPatches = NULL;
+		free(wPostDataStart);
+		wPostDataStart = NULL;
+	}  // wPostPatches != NULL
 
-   free(gSynPatchStartBuffer); // All gSynPatchStart[k]'s were allocated together in a single malloc call.
-   free(gSynPatchStart);
-   free(aPostOffsetBuffer); // All aPostOffset[k]'s were allocated together in a single malloc call.
-   free(aPostOffset);
+	if (gSynPatchStart != NULL) {
+		free(gSynPatchStartBuffer); // All gSynPatchStart[k]'s were allocated together in a single malloc call.
+		free(gSynPatchStart);
+	}
+	if (aPostOffset != NULL) {
+		free(aPostOffsetBuffer); // All aPostOffset[k]'s were allocated together in a single malloc call.
+		free(aPostOffset);
+	}
 
-   return 0;
+	return PV_SUCCESS;
 }
 
 //!
@@ -1725,7 +1735,9 @@ int HyPerConn::adjustAxonalArbors(int arborId)
       int offsetDiffRestricted =
     		  	  (dx - dxMargin) * post_loc->nf + (dy - dyMargin) * post_loc->nx * post_loc->nf;
   	  assert(offsetDiffRestricted >= 0); assert(offsetDiffRestricted <= post->getNumNeurons());
-      pvdata_t * gSyn = post->getChannel(channel) + kl + offsetDiffRestricted;
+  	  //GTK:  gSynPatchStart redefined as offset from head of gSynBuffer
+      //pvdata_t * gSyn = post->getChannel(channel) + kl + offsetDiffRestricted;
+  	  int gSyn = kl + offsetDiffRestricted;
       gSynPatchStart[arborId][kex] = gSyn;
 
       // adjust patch dimensions

@@ -1071,7 +1071,10 @@ int HyPerLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activity
       int ny  = weights->ny;
       int sy  = conn->getPostNonextStrides()->sy;       // stride in layer
       int syw = conn->yPatchStride();                   // stride in patch
-      pvdata_t * gSynPatchStart = conn->getGSynPatchStart(kPre, arborID);
+      pvdata_t * gSynPatchHead = this->getChannel(conn->getChannel());
+      pvdata_t * gSynPatchStart = gSynPatchHead + conn->getGSynPatchStart(kPre, arborID);
+      // GTK: gSynPatchStart redefined as offset from start of gSyn buffer
+      //pvdata_t * gSynPatchStart = conn->getGSynPatchStart(kPre, arborID);
       // TODO - unroll
       pvdata_t * data = conn->get_wData(arborID,kPre);
       for (int y = 0; y < ny; y++) {
