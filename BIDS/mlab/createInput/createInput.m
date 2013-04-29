@@ -56,7 +56,7 @@ sensor = [];
 
 %input arguments for movie recording
 %input_args = {'RecordMovie', true, 'MovieType', 'image', 'MovieName', MOVIE_NAME, 'PlotFreq', 1};
-input_args = {'RecordMovie', false};
+input_args = {'RecordMovie', false, 'PlotPML', true, 'PlotSim', false};
 sensor_data = kspaceFirstOrder2D(kgrid, medium, source, sensor, input_args{:});
 all_wave = sensor_data.p_plots_all;
 count = sensor_data.count;
