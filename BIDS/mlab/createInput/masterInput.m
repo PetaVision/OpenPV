@@ -2,10 +2,11 @@ clear all;
 close all;
 addpath('./k-Wave Toolbox');
 
-SIMULATION_FILENAME = './simulation_output.mat';
-NOISE_FILENAME      = './noise_output.mat';
+SIMULATION_FILENAME1 = './simulation_output.mat';
+SIMULATION_FILENAME2 = './modified_simulation_output.mat';
+NOISE_FILENAME       = './noise_output.mat';
 
-DIM  = [1024, 1024, 0]; % [X, Y, t=0] This will be a 2560x2560m (640*4) grid for the simulation (2.5 m/px).
+DIM  = [512, 512, 0];   % [X, Y, t=0] This will be a 2560x2560m (640*4) grid for the simulation (2.5 m/px).
 dx   = 2.5;             % [m]
 dy   = dx;              % [m]
 BETA = -1;              % 0 is gaussian white, -1 is pink, -2 is Brownian
@@ -17,7 +18,7 @@ WAVE_STRENGTH  = 0.11;  %Pa (75dB SBL)
 
 %Time properties
 SOURCE_VEL  = 8.9408;   % [m/s] = 20 mph
-TIME_LENGTH = 240;      % [s]
+TIME_LENGTH = 120;      % [s]
 dt          = 10e-3;    % [s] - 1ms
 
 %Medium properties
@@ -49,13 +50,20 @@ all_wave = bsxfun(@times, orig_drop, all_wave); %%TODO: This might be cheating -
 
 [Y, X, Z] = size(all_wave);
 DIM(3) = Z*2;
+disp('Saving simulation output...')
+save(SIMULATION_FILENAME1,'all_wave','-v7.3');
+clearvars -except DIM BETA NOISE_SCALE NOISE_FILENAME OUTPUT_DIR
 
-%Scale wave
-range_wave = max(all_wave(:)) - min(all_wave(:));
-new_wave = all_wave ./ range_wave;
+all_wave  = matfile(SIMULATION_FILENAME1);
+range_wave(i) = zeros(DIM(3));
+for i = 1:DIM(3)
+    %Scale wave
+    range_wave(i) = max(all_wave(:,:,i)) - min(all_wave(:,:,i));
+end
+new_wave = all_wave ./ (max(range_wave(:))-min(range_wave(:)));
 long_wave = zeros(DIM);
 long_wave(:,:,DIM(3)/2:end) = new_wave;
-save(SIMULATION_FILENAME,'long_wave','-v7.3');
+save(SIMULATION_FILENAME2,'long_wave','-v7.3');
 clearvars -except DIM BETA NOISE_SCALE NOISE_FILENAME OUTPUT_DIR
 
 disp('MasterScript: Creating noise...');
@@ -68,18 +76,16 @@ new_noise = new_noise .* NOISE_SCALE;
 save(NOISE_FILENAME,'new_noise','-v7.3');
 clearvars -except DIM OUTPUT_DIR
 
-long_wave  = matfile(SIMULATION_FILENAME);
+long_wave  = matfile(SIMULATION_FILENAME2);
 new_noise = matfile(NOISE_FILENAME);
 
 disp('MasterScript: Scaling input...');
+
 scale_time = zeros(DIM(3));
 for i = 1:DIM(3)
     new_input = long_wave(:,:,i) + new_noise(:,:,i);
     scale_time(i) = (max([abs(max(new_input(:))) abs(min(new_input(:)))]) * 2);
 end
-
-scale = max(scale_time(:));
-clearvars scale_time;
 
 disp('MasterScript: Writing files...');
 h = waitbar(0, 'Writing files...');
@@ -89,7 +95,7 @@ for i = 1:DIM(3)
     new_input = long_wave(:,:,i) + new_noise(:,:,i);
 
     %Scale input for imwrite
-    scaled_input = new_input ./ scale;
+    scaled_input = new_input ./ scale(i);
     scaled_input = scaled_input .* 255; 
     scaled_input = scaled_input + 128;
     scaled_input = uint8(floor(scaled_input));
