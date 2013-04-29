@@ -2,13 +2,14 @@ clear all;
 close all;
 addpath('./k-Wave Toolbox');
 
-SIMULATION_FILENAME = './simulation_output.mat';
-NOISE_FILENAME       = './noise_output.mat';
-
-DIM  = [512, 512, 0];   % [X, Y, t=0] This will be a 320x3200m grid for the simulation
+%World properties
+DIM  = [256, 256, 0];   % [X, Y, t=0] This will be a 320x3200m grid for the simulation
 dx   = 0.625;            % [m/px]
 dy   = dx;              % [m/px]
+
+%Noise properties
 BETA = -1;              % 0 is gaussian white, -1 is pink, -2 is Brownian
+NOISE_SCALE = .01; % (1 - NOISE_SCALE) = SNR (i.e. 80% is 0.2)
 
 %Sine wave params
 % peak vehicle frequency
@@ -17,7 +18,7 @@ WAVE_STRENGTH  = 0.11;  %Pa (75dB SBL)
 
 %Time properties
 SOURCE_VEL  = 8.9408;   % [m/s] = 20 mph
-TIME_LENGTH = 30;       % [s]
+TIME_LENGTH = 3;       % [s]
 dt          = 10e-3;    % [s] - 10ms
 
 %Medium properties
@@ -30,12 +31,19 @@ medium.alpha_power = 1.9;     % y
 DROP_RADIUS = 1; %~2.5m radius
 DROP_POS    = [1, DIM(2)/2+1]; %[X, Y] - NOTE: 1 indexed
 
-MOVIE_NAME  = '~/plot';
-OUTPUT_DIR  = '~/wave_stimulus';
-NOISE_SCALE = .4; % (1 - NOISE_SCALE) = SNR (i.e. 80% is 0.2)
+%File Locations
+SIMULATION_FILENAME = './simulation_output.mat';
+NOISE_FILENAME      = './noise_output.mat';
+MOVIE_NAME          = '~/plot';
+OUTPUT_DIR          = '~/wave_stimulus';
 
-CLOBBER_SIMULATION = 0;
+%Clobbering preferences
+CLOBBER_SIMULATION = 1;
 CLOBBER_NOISE      = 1;
+
+%%%%%%%%%%%%%
+%Main code
+%%%%%%%%%%%%%
 
 if ne(exist(OUTPUT_DIR),7)
    mkdir(OUTPUT_DIR);
@@ -58,11 +66,12 @@ else
 end
 
 [Y, X, Z] = size(all_wave);
-DIM(3) = Z*2; %Need an equal set of noisy frames without the stimulus
+DIM(3) = 2*Z; %Need an equal set of noisy frames without the stimulus
 disp('masterInput: Scaling simulation...')
 
 %Scale wave
 range_wave = max(all_wave(:)) - min(all_wave(:));
+assert(range_wave>0);
 new_wave   = all_wave ./ range_wave;
 long_wave  = zeros(DIM);
 long_wave(:,:,DIM(3)/2+1:end) = new_wave;
@@ -91,6 +100,8 @@ new_input    = long_wave + new_noise;
 clearvars -except new_input DIM OUTPUT_DIR
 
 scale        = (max([abs(max(new_input(:))) abs(min(new_input(:)))]) * 2);
+assert(ne(scale,0));
+
 scaled_input = new_input ./ scale;
 scaled_input = scaled_input .* 255; 
 scaled_input = scaled_input + 128;
@@ -107,5 +118,5 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-clearvars -except new_input
+%clearvars -except new_input
 disp('masterInput: Done.');

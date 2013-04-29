@@ -4,6 +4,8 @@ addpath('./k-Wave Toolbox');
 %Set up kgrid world
 Nx = DIM(1);
 Ny = DIM(2);
+assert(dx>0);
+assert(dy>0);
 kgrid = makeGrid(Nx, dx, Ny, dy);
 
 %time array
@@ -55,8 +57,7 @@ orig_drop = source.p_mask;
 sensor = [];
 
 %input arguments for movie recording
-%input_args = {'RecordMovie', true, 'MovieType', 'image', 'MovieName', MOVIE_NAME, 'PlotFreq', 1};
-input_args = {'RecordMovie', false, 'PlotPML', true, 'PlotSim', false};
+input_args = {'RecordMovie', true, 'MovieType', 'image', 'MovieName', MOVIE_NAME, 'PlotFreq', 1,'PlotPML',true,'PlotStim',false}; %%To plot movie
 sensor_data = kspaceFirstOrder2D(kgrid, medium, source, sensor, input_args{:});
 all_wave = sensor_data.p_plots_all;
 count = sensor_data.count;
