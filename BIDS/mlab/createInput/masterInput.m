@@ -78,6 +78,9 @@ for i = 1:DIM(3)
     scale_time(i) = (max([abs(max(new_input(:))) abs(min(new_input(:)))]) * 2);
 end
 
+scale = max(scale_time(:));
+clearvars scale_time;
+
 disp('MasterScript: Writing files...');
 h = waitbar(0, 'Writing files...');
 for i = 1:DIM(3)
@@ -86,7 +89,7 @@ for i = 1:DIM(3)
     new_input = long_wave(:,:,i) + new_noise(:,:,i);
 
     %Scale input for imwrite
-    scaled_input = new_input ./ scale(i);
+    scaled_input = new_input ./ scale;
     scaled_input = scaled_input .* 255; 
     scaled_input = scaled_input + 128;
     scaled_input = uint8(floor(scaled_input));
