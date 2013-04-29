@@ -128,7 +128,7 @@ size_t PV_fwrite(const void * RESTRICT ptr, size_t size, size_t nitems, FILE * R
       long int fpos = PV_ftell(stream);
       if (fpos<0) {
          fprintf(stderr, "PV_fwrite error: unable to determine file position.  Fatal error\n");
-         exit(PV_SUCCESS);
+         exit(EXIT_FAILURE);
       }
       fwritten = fwrite(ptr, size, nitems, stream);
       if (fwritten == nitems) {
@@ -141,7 +141,7 @@ size_t PV_fwrite(const void * RESTRICT ptr, size_t size, size_t nitems, FILE * R
          int fseekstatus = PV_fseek(stream, fpos, SEEK_SET);
          if (fseekstatus!=0) {
             fprintf(stderr, "PV_fwrite error: unable to return to original position after failed fwrite call.  Fatal error.\n");
-            exit(PV_SUCCESS);
+            exit(EXIT_FAILURE);
          }
       }
       else {
