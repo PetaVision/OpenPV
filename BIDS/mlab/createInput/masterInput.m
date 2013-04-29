@@ -7,7 +7,7 @@ SIMULATION_FILENAME2 = './modified_simulation_output.mat';
 NOISE_FILENAME       = './noise_output.mat';
 
 DIM  = [512, 512, 0];   % [X, Y, t=0] This will be a 2560x2560m (640*4) grid for the simulation (2.5 m/px).
-dx   = 2.5;             % [m]
+dx   = 1.25;             % [m]
 dy   = dx;              % [m]
 BETA = -1;              % 0 is gaussian white, -1 is pink, -2 is Brownian
 
@@ -18,7 +18,7 @@ WAVE_STRENGTH  = 0.11;  %Pa (75dB SBL)
 
 %Time properties
 SOURCE_VEL  = 8.9408;   % [m/s] = 20 mph
-TIME_LENGTH = 120;      % [s]
+TIME_LENGTH = 60;      % [s]
 dt          = 10e-3;    % [s] - 1ms
 
 %Medium properties
