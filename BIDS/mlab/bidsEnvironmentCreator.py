@@ -4,6 +4,7 @@ import random
 import os
 from math import floor
 from scipy.misc import imsave
+import Image, ImageDraw
 
 #Params
 #Node radius is how big to make the dot.
@@ -11,15 +12,18 @@ from scipy.misc import imsave
 #Note: there is a change for nodes to overlap in the image
 nodeRadius = 1
 
-jitterVal = 9
-worldSize = (256, 256) #y by x
-bidsSize = (20, 20) #y by x, number of bids nodes in world
+#Using 256 by 256, with 64 by 64 nodes, jitter 3
+worldSize = (400, 400) #y by x
+bidsSize = (56, 56) #y by x, number of bids nodes in world
+borderSize = 20 #Number of pixels between 2 images
+cBorderRatio = 2 #vertical center is 3 times as big as border size
+jitterVal = 6
 outputDir = "./envFigs/"
-filename = "envFig_"
+filename = "envFig"
 ext = ".png"
 
-def makeFig(jitterVal, worldSize, bidsSize, nodeRadius, outputFilename):
-    world = np.zeros(worldSize);
+def makeFig(jitterVal, worldSize, bidsSize, nodeRadius):
+    world = np.ones(worldSize);
     spacing = (float(worldSize[0])/bidsSize[0], float(worldSize[1])/bidsSize[1])
 
     #Make sure radius isn't going to make node go off screen without jitter
@@ -48,24 +52,57 @@ def makeFig(jitterVal, worldSize, bidsSize, nodeRadius, outputFilename):
             #Square
             for horL in range(int(coor[1]-curRadius), int(coor[1]+curRadius+1)):
                 #Top line
-                world[coor[0]-curRadius][horL] = 1
+                world[coor[0]-curRadius][horL] = 0
                 #Bot line
-                world[coor[0]+curRadius][horL] = 1
+                world[coor[0]+curRadius][horL] = 0
             for vertL in range(int(coor[0]-curRadius), int(coor[0]+curRadius+1)):
                 #Left line
-                world[vertL][coor[1]-curRadius] = 1
+                world[vertL][coor[1]-curRadius] = 0
                 #Right line
-                world[vertL][coor[1]+curRadius] = 1
+                world[vertL][coor[1]+curRadius] = 0
 
-
+    return world
     #save img
-    imsave(outputFilename, world)
+    #imsave(outputFilename, world)
 
 
 if not os.path.exists(outputDir):
     os.makedirs(outputDir)
 
 #No jitter
-makeFig(0, worldSize, bidsSize, nodeRadius, outputDir + filename + "nj" + ext)
+njWorld = makeFig(0, worldSize, bidsSize, nodeRadius)
 #jitter
-makeFig(jitterVal, worldSize, bidsSize, nodeRadius, outputDir + filename + "j" + ext)
+jWorld = makeFig(jitterVal, worldSize, bidsSize, nodeRadius)
+vertBorder = np.zeros((worldSize[0], borderSize))
+cVertBorder = np.zeros((worldSize[0], borderSize*cBorderRatio))
+horBorder = np.zeros((borderSize, worldSize[1] * 2 + borderSize * 2 + borderSize * cBorderRatio))
+world = np.concatenate([vertBorder, njWorld, cVertBorder, jWorld, vertBorder], axis=1)
+world = np.concatenate([horBorder, world, horBorder], axis=0)
+outputFilename = outputDir + filename + ext
+imsave(outputFilename, world)
+
+
+#Read image back in using image
+im = Image.open(outputFilename)
+draw = ImageDraw.Draw(im)
+#Draw location is x by y
+#left image
+#upper left
+draw.text((10, 10), "0", 255)
+#lower left
+draw.text((2, worldSize[0]+borderSize - 10), "255", 255)
+draw.text((20, worldSize[0]+borderSize), "0", 255)
+#lower right
+draw.text((worldSize[1]+borderSize - 10, worldSize[0]+borderSize), "255", 255)
+
+#right image
+#upper left
+draw.text((worldSize[1]+borderSize*(cBorderRatio) + 10, 10), "0", 255)
+#lower left
+draw.text((worldSize[1]+borderSize*(cBorderRatio) + 2, worldSize[0]+borderSize-10), "255", 255)
+draw.text((worldSize[1]+borderSize*(cBorderRatio) + 20, worldSize[0]+borderSize), "0", 255)
+#lower right
+draw.text((2*worldSize[1]+borderSize*(cBorderRatio+1) - 10, worldSize[0]+borderSize), "255", 255)
+
+del draw
+im.save(outputFilename, "PNG")
