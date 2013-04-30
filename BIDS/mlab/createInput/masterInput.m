@@ -1,16 +1,33 @@
-%%% Simulate non-attenuating medium propagating through space
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Simulate non-attenuating wave propagating through space
+%%
+%%    To achieve reported units - 
+%%       All time parameters are multiplied by alpha = 0.75e6/125 = 6000
+%%       All spatial (distance) parameters are multiplied by beta = (350/1500)*(6000) = 1400
+%%    
+%%    Desired units:
+%%       Grid size:      60m x 60m
+%%       Time step:      0.12e-3 s
+%%       Wave freq:      125 Hz
+%%       Wave speed:     350 m/s
+%%       Object speed:   8.9408 m/s (20mph)
+%%       Attenuation:    none
+%%       Wave amplitude: arbitrary - scaled with respect to noise levels to fix SNR
+%%       
+%%       
+%%
+%%  D M Paiton, G T Kenyon, S Y Lundquist
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
 clear all;
 close all;
 addpath('./k-Wave Toolbox');
 
 %World properties
-DIM  = [256, 256, 0];      % [X, Y, t=0] This will be a 320x3200m grid for the simulation
+DIM  = [256, 256, 0];      % [X, Y, t=0]
 dx   = 1.5625e-4;          % [m/px]
 dy   = dx;                 % [m/px]
-
-%Noise properties
-BETA = -1;                 % 0 is gaussian white, -1 is pink, -2 is Brownian
-NOISE_SCALE = .01;         % (1 - NOISE_SCALE) = SNR (i.e. 80% is 0.2)
 
 %Sine wave params
 % peak vehicle frequency
@@ -18,13 +35,17 @@ WAVE_FREQUENCY = 0.75e6;   % [Hz]
 WAVE_STRENGTH  = 3;        % [au]
 
 %Time properties
-SOURCE_VEL  = 40;          % [m/s]
+SOURCE_VEL  = 38.31771;    % [m/s]
 dt          = 20e-9;       % [s]
 
 %Medium properties
 medium.sound_speed = 1500; % [m/s]
 medium.alpha_coeff = 0;    % [dB/MHz^y cm]
 medium.alpha_power = 1.01; % y
+
+%Noise properties
+BETA = -1;                 % 0 is gaussian white, -1 is pink, -2 is Brownian
+NOISE_SCALE = .01;         % (1 - NOISE_SCALE) = SNR (i.e. 80% is 0.2)
 
 %File Locations
 SIMULATION_FILENAME = './simulation_output.mat';

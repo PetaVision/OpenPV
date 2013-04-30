@@ -2,13 +2,13 @@
 addpath('./k-Wave Toolbox');
 
 %Set up kgrid world
-pml_size = 20;
-
 Nx = DIM(1);
 Ny = DIM(2);
 assert(dx>0);
 assert(dy>0);
 kgrid = makeGrid(Nx, dx, Ny, dy);
+
+pml_size = 20; %%arbitrary boarder around outer edge
 
 t_end = (Ny - 2*pml_size - 2)*dy / SOURCE_VEL; % [s]
 
@@ -17,7 +17,6 @@ kgrid.t_array = 0:dt:t_end;
 
 %Pressure differences
 source_pressure = WAVE_STRENGTH*sin(2*pi*WAVE_FREQUENCY*kgrid.t_array);
-
 source_pressure = filterTimeSeries(kgrid, medium, source_pressure);
 
 %Pressure mask, or drop position
