@@ -193,7 +193,7 @@ int InitBIDSLateral::BIDSLateralCalcWeights(/* PVPatch * patch */ int kPre, pvda
       int sy  = conn->getPostNonextStrides()->sy;       // stride in layer
       int sx  = conn->getPostNonextStrides()->sx;       // generally the # of features
       int syw = conn->yPatchStride(); //weights->sy;    // stride in patch
-      pvdata_t * channel = conn->getPost()->getChannel(conn->getChannel());
+      // pvdata_t * channel = conn->getPost()->getChannel(conn->getChannel());
 
 //      std::cout << "Loop: " << principleJittDiffy << " to " << nyp - principleJittDiffy << "\n";
 //      std::cout << "Loop: " << principleJittDiffx << " to " << nxp - principleJittDiffx << "\n";

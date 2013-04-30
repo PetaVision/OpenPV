@@ -113,7 +113,7 @@ int LCALIFLateralConn::setParams(PVParams * params) {
 int LCALIFLateralConn::calc_dW(int axonId) {
    assert(axonId>=0 && axonId < numberOfAxonalArborLists());
    updateIntegratedSpikeCount();
-   pvdata_t * gSyn_buffer_start = post->getChannel(channel);
+   // pvdata_t * gSyn_buffer_start = post->getChannel(channel);
    pvdata_t target_rate_sq = getTargetRateKHz() * getTargetRateKHz();
    float dt_inh = parent->getDeltaTime()/inhibitionTimeConstant;
    const PVPatchStrides * strides_restricted  = getPostNonextStrides();
