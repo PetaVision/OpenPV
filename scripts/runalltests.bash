@@ -40,7 +40,7 @@ fails=""
 function runandecho() {
     testname=$1
     shift
-    if $* &> $testname.log ## 1> /dev/null 2>/dev/null
+    if $* &> ${testname}_1.log ## 1> /dev/null 2>/dev/null
     then
         echo "$testname passed"
     else
@@ -61,14 +61,14 @@ else
     function mpirunandecho() {
         testname=$1
         shift
-        if $PV_MPIRUN -np 2 $* &> $testname.log ## 1> /dev/null 2>/dev/null
+        if $PV_MPIRUN -np 2 $* &> ${testname}_2.log ## 1> /dev/null 2>/dev/null
         then
             echo "$testname with two processes passed"
         else
             echo "$testname with two processes FAILED"
             fails="$fails $testname(2 procs)"
         fi
-        if $PV_MPIRUN -np 4 $* &> $testname.log ## 1> /dev/null 2>/dev/null
+        if $PV_MPIRUN -np 4 $* &> ${testname}_4.log ## 1> /dev/null 2>/dev/null
         then
             echo "$testname with four processes passed"
         else
