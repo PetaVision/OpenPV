@@ -1,35 +1,30 @@
+%%% Simulate non-attenuating medium propagating through space
 clear all;
 close all;
 addpath('./k-Wave Toolbox');
 
 %World properties
-DIM  = [256, 256, 0];   % [X, Y, t=0] This will be a 320x3200m grid for the simulation
-dx   = 0.625;            % [m/px]
-dy   = dx;              % [m/px]
+DIM  = [256, 256, 0];      % [X, Y, t=0] This will be a 320x3200m grid for the simulation
+dx   = 1.5625e-4;          % [m/px]
+dy   = dx;                 % [m/px]
 
 %Noise properties
-BETA = -1;              % 0 is gaussian white, -1 is pink, -2 is Brownian
-NOISE_SCALE = .01; % (1 - NOISE_SCALE) = SNR (i.e. 80% is 0.2)
+BETA = -1;                 % 0 is gaussian white, -1 is pink, -2 is Brownian
+NOISE_SCALE = .01;         % (1 - NOISE_SCALE) = SNR (i.e. 80% is 0.2)
 
 %Sine wave params
 % peak vehicle frequency
-WAVE_FREQUENCY = 125;   %Hz
-WAVE_STRENGTH  = 0.11;  %Pa (75dB SBL)
+WAVE_FREQUENCY = 0.75e6;   % [Hz]
+WAVE_STRENGTH  = 3;        % [au]
 
 %Time properties
-SOURCE_VEL  = 8.9408;   % [m/s] = 20 mph
-TIME_LENGTH = 3;       % [s]
-dt          = 10e-3;    % [s] - 10ms
+SOURCE_VEL  = 40;          % [m/s]
+dt          = 20e-9;       % [s]
 
 %Medium properties
-% pure tone through air at 20 deg C, 30 perc humidity, 4000ft elevation (0.8755 bars, 0.864 ATM)
-medium.sound_speed = 348.9; % [m/s]
-medium.alpha_coeff = 404;   % [dB/MHz^y cm]
-medium.alpha_power = 1.9;     % y
-
-%Source mask params
-DROP_RADIUS = 1; %~2.5m radius
-DROP_POS    = [1, DIM(2)/2+1]; %[X, Y] - NOTE: 1 indexed
+medium.sound_speed = 1500; % [m/s]
+medium.alpha_coeff = 0;    % [dB/MHz^y cm]
+medium.alpha_power = 1.01; % y
 
 %File Locations
 SIMULATION_FILENAME = './simulation_output.mat';
