@@ -680,9 +680,10 @@ tic;
 xlen = length(x1:x2);
 ylen = length(y1:y2);
 
-p_plots_all = zeros(ylen, xlen, length(index_start:index_step:index_end));
+p_plots_all = zeros(xlen, ylen, length(index_start:index_step:index_end));
 
 count = 0;
+frame_index = 1;
 
 % start time loop
 for t_index = index_start:index_step:index_end
