@@ -285,19 +285,18 @@ static char *
 load_program_source(const char *filename)
 {
     struct stat statbuf;
-    FILE * fh;
     char * source;
     size_t count;
 
-    fh = fopen(filename, "r");
-    if (fh == 0) {
+    PV_Stream * pvstream = PV_fopen(filename, "r");
+    if (pvstream == 0) {
        fprintf(stderr, "Failed to find source for file %s\n", filename);
        return NULL;
     }
 
     stat(filename, &statbuf);
     source = (char *) malloc(statbuf.st_size + 1);
-    count = fread(source, statbuf.st_size, 1, fh);
+    count = fread(source, statbuf.st_size, 1, pvstream->fp);
     assert(count == 1);
 
     source[statbuf.st_size] = '\0';
