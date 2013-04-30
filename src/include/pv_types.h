@@ -10,6 +10,7 @@
 
 #include "PVLayerLoc.h"
 #include <stdlib.h>   /* for size_t */
+#include <stdio.h>    /* for FILE */
 #include <float.h>
 
 
@@ -75,6 +76,12 @@ enum PVPatchStrideFields {
    PATCH_SY,
    PATCH_SF
 };
+
+typedef struct PV_Stream_ {
+   char * name;
+   FILE       * fp;
+   int          isfile; /* True or false, tells whether stream corresponds to a file */
+} PV_Stream;
 
 /*
  * function declarations and inline definitions

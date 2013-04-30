@@ -437,10 +437,10 @@ float STDP3Conn::maxWeight(int arborID)
    return wMax;
 }
 
-int STDP3Conn::writeTextWeightsExtra(FILE * fd, int k, int arborID)
+int STDP3Conn::writeTextWeightsExtra(PV_Stream * pvstream, int k, int arborID)
 {
    if (stdpFlag) {
-      pv_text_write_patch(fd, getWeights(k, arborID), get_dwData(arborID, k), nfp, sxp, syp, sfp); // write the Ps variable
+      pv_text_write_patch(pvstream, getWeights(k, arborID), get_dwData(arborID, k), nfp, sxp, syp, sfp); // write the Ps variable
    }
    return 0;
 }

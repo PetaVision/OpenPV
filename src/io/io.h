@@ -81,13 +81,19 @@ int pv_getopt_unsigned_long(int argc, char * argv[], const char * opt, unsigned 
 
 int readFile(const char * filename, float * buf, int * nx, int * ny);
 
-int pv_text_write_patch(FILE * fd, PVPatch * patch, pvdata_t * data, int nf, int sx, int sy, int sf);
+int pv_text_write_patch(PV_Stream * pvstream, PVPatch * patch, pvdata_t * data, int nf, int sx, int sy, int sf);
 int pv_center_image(float * V, int nx0, int ny0, int nx, int ny);
 
+#ifdef OBSOLETE // Marked obsolete April 29, 2013.  Use fileio's pvp_open_read_file instead.
 FILE * pv_open_binary(const char * filename, int * numParams, int * type, int * nx, int * ny, int * nf);
-int    pv_read_binary_params(FILE * fp, int numParams, int params[]);
+#endif // OBSOLETE
+#ifdef OBSOLETE // Marked obsolete April 29, 2013.  Use fileio's pvp_read_header instead.
+int    pv_read_binary_params(FILE * pvstream, int numParams, int params[]);
+#endif // OBSOLETE
+#ifdef OBSOLETE // Marked obsolete April 29, 2013.  Use fileio's PV_fclose instead.
 int    pv_close_binary(FILE * fp);
-size_t pv_read_binary_record(FILE * fp, pvdata_t * buf, int nItems);
+#endif // OBSOLETE
+// size_t pv_read_binary_record(FILE * pvstream, pvdata_t * buf, int nItems); // No function definition to go with this prototype
 
 int parse_options(int argc, char * argv[], char ** output_path,
                   char ** param_file, long int * n_time_steps, int * opencl_device,

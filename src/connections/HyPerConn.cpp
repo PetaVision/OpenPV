@@ -1005,18 +1005,22 @@ int HyPerConn::writeWeights(PVPatch *** patches, pvdata_t ** dataStart, int numP
 
 int HyPerConn::writeTextWeights(const char * filename, int k)
 {
-   FILE * fd = stdout;
-   char outfile[PV_PATH_MAX];
+   PV_Stream * pvstream = NULL;
 
    if (filename != NULL) {
+      char outfile[PV_PATH_MAX];
       snprintf(outfile, PV_PATH_MAX-1, "%s/%s", parent->getOutputPath(), filename);
-      fd = fopen(outfile, "w");
-      if (fd == NULL) {
-         fprintf(stderr, "writeWeights: ERROR opening file %s\n", filename);
-         return 1;
-      }
+      pvstream = PV_fopen(outfile, "w");
+   }
+   else {
+      pvstream = PV_stdout();
+   }
+   if (pvstream == NULL) {
+     fprintf(stderr, "writeWeights: ERROR opening file \"%s\"\n", filename);
+     return PV_FAILURE;
    }
 
+   FILE * fd = pvstream->fp;
    fprintf(fd, "Weights for connection \"%s\", neuron %d\n", name, k);
    fprintf(fd, "   (kxPre,kyPre,kfPre)   = (%i,%i,%i)\n",
            kxPos(k,pre->getLayerLoc()->nx + 2*pre->getLayerLoc()->nb,
@@ -1038,14 +1042,12 @@ int HyPerConn::writeTextWeights(const char * filename, int k)
       fprintf(fd, "displaying arbor %1.1d\n", arbor);
       // give a chance for derived classes to add extra information
       //
-      writeTextWeightsExtra(fd, k, arbor);
-      pv_text_write_patch(fd, wPatches[arbor][k], get_wData(arbor,k), nfp, sxp, syp, sfp);
+      writeTextWeightsExtra(pvstream, k, arbor);
+      pv_text_write_patch(pvstream, wPatches[arbor][k], get_wData(arbor,k), nfp, sxp, syp, sfp);
       fprintf(fd, "----------------------------\n");
    }
 
-   if (fd != stdout) {
-      fclose(fd);
-   }
+   PV_fclose(pvstream);
 
    return 0;
 }
@@ -1328,26 +1330,26 @@ int HyPerConn::writeScalarFloat(const char * cp_dir, const char * val_name, doub
          fprintf(stderr, "writeScalarFloat error: path %s/%s_%s.bin is too long.\n", cp_dir, name, val_name);
          abort();
       }
-      FILE * fpWriteTime = fopen(filename, "w");
-      if (fpWriteTime==NULL) {
+      PV_Stream * writeTimeStream = PV_fopen(filename, "w");
+      if (writeTimeStream==NULL) {
          fprintf(stderr, "HyPerLayer::checkpointWrite error: unable to open path %s for writing.\n", filename);
          abort();
       }
-      int num_written = PV_fwrite(&val, sizeof(val), 1, fpWriteTime);
+      int num_written = PV_fwrite(&val, sizeof(val), 1, writeTimeStream);
       if (num_written != 1) {
          fprintf(stderr, "HyPerLayer::checkpointWrite error while writing to %s.\n", filename);
          abort();
       }
-      fclose(fpWriteTime);
+      PV_fclose(writeTimeStream);
       chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_%s.txt", cp_dir, name, val_name);
       assert(chars_needed < PV_PATH_MAX);
-      fpWriteTime = fopen(filename, "w");
-      if (fpWriteTime==NULL) {
-         fprintf(stderr, "HyPerLayer::checkpointWrite error: unable to open path %s for writing.\n", filename);
+      writeTimeStream = PV_fopen(filename, "w");
+      if (writeTimeStream==NULL) {
+         fprintf(stderr, "HyPerLayer::checkpointWrite error: unable to open path %s for writing: %s\n", filename, strerror(errno));
          abort();
       }
-      fprintf(fpWriteTime, "%f\n", val);
-      fclose(fpWriteTime);
+      fprintf(writeTimeStream->fp, "%f\n", val);
+      PV_fclose(writeTimeStream);
    }
    return status;
 }

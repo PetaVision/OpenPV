@@ -585,24 +585,24 @@ int HyPerCol::run(long int nTimeSteps)
    if( outputNamesOfLayersAndConns ) {
       assert( icComm->commRank() == 0 );
       printf("Dumping layer and connection names to \"%s\"\n", outputNamesOfLayersAndConns);
-      FILE * fpOutputNames = fopen(outputNamesOfLayersAndConns,"w");
-      if( fpOutputNames == NULL ) {
+      PV_Stream * outputNamesStream = PV_fopen(outputNamesOfLayersAndConns,"w");
+      if( outputNamesStream == NULL ) {
          fprintf(stderr, "HyPerCol \"%s\" unable to open \"%s\" for writing: error %d.  Exiting.\n", name, outputNamesOfLayersAndConns, errno);
          exit(errno);
       }
-      fprintf(fpOutputNames, "Layers and Connections in HyPerCol \"%s\"\n\n", name);
+      fprintf(outputNamesStream->fp, "Layers and Connections in HyPerCol \"%s\"\n\n", name);
       for( int k=0; k<numLayers; k++ ) {
-         fprintf(fpOutputNames, "    Layer % 4d: %s\n", k, layers[k]->getName());
+         fprintf(outputNamesStream->fp, "    Layer % 4d: %s\n", k, layers[k]->getName());
       }
-      fprintf(fpOutputNames, "\n");
+      fprintf(outputNamesStream->fp, "\n");
       for( int k=0; k<numConnections; k++ ) {
-         fprintf(fpOutputNames, "    Conn. % 4d: %s\n", k, connections[k]->getName());
+         fprintf(outputNamesStream->fp, "    Conn. % 4d: %s\n", k, connections[k]->getName());
       }
-      int fcloseStatus = fclose(fpOutputNames);
+      int fcloseStatus = PV_fclose(outputNamesStream);
       if( fcloseStatus != 0 ) {
          fprintf(stderr, "Warning: Attempting to close output file \"%s\" generated an error.\n", outputNamesOfLayersAndConns);
       }
-      fpOutputNames = NULL;
+      outputNamesStream = NULL;
    }
 
    stopTime = simTime + nTimeSteps * deltaTime;
@@ -892,16 +892,16 @@ int HyPerCol::checkpointRead(const char * cpDir) {
          fprintf(stderr, "HyPerCol::checkpointRead error: path \"%s/timeinfo.bin\" is too long.\n", cpDir);
          abort();
       }
-      FILE * timestampfile = fopen(timestamppath,"r");
+      PV_Stream * timestampfile = PV_fopen(timestamppath,"r");
       if (timestampfile == NULL) {
          fprintf(stderr, "HyPerCol::checkpointRead error: unable to open \"%s\" for reading.\n", timestamppath);
          abort();
       }
       long int startpos = PV_ftell(timestampfile);
-      fread(&timestamp,1,timestamp_size,timestampfile);
+      fread(&timestamp,1,timestamp_size,timestampfile->fp);
       long int endpos = PV_ftell(timestampfile);
       assert(endpos-startpos==(int)timestamp_size);
-      fclose(timestampfile);
+      PV_fclose(timestampfile);
    }
 #ifdef PV_USE_MPI
    MPI_Bcast(&timestamp,(int) timestamp_size,MPI_CHAR,0,icCommunicator()->communicator());
@@ -980,18 +980,18 @@ int HyPerCol::checkpointWrite(const char * cpDir) {
       char timestamppath[PV_PATH_MAX];
       int chars_needed = snprintf(timestamppath, PV_PATH_MAX, "%s/timeinfo.bin", cpDir);
       assert(chars_needed < PV_PATH_MAX);
-      FILE * timestampfile = PV_fopen(timestamppath,"w");
+      PV_Stream * timestampfile = PV_fopen(timestamppath,"w");
       assert(timestampfile);
       PV_fwrite(&simTime,1,sizeof(double),timestampfile);
       PV_fwrite(&currentStep,1,sizeof(long int),timestampfile);
-      fclose(timestampfile);
+      PV_fclose(timestampfile);
       chars_needed = snprintf(timestamppath, PV_PATH_MAX, "%s/timeinfo.txt", cpDir);
       assert(chars_needed < PV_PATH_MAX);
-      timestampfile = fopen(timestamppath,"w");
+      timestampfile = PV_fopen(timestamppath,"w");
       assert(timestampfile);
-      fprintf(timestampfile,"time = %g\n", simTime);
-      fprintf(timestampfile,"timestep = %ld\n", currentStep);
-      fclose(timestampfile);
+      fprintf(timestampfile->fp,"time = %g\n", simTime);
+      fprintf(timestampfile->fp,"timestep = %ld\n", currentStep);
+      PV_fclose(timestampfile);
    }
 
    if (deleteOlderCheckpoints) {
@@ -1043,13 +1043,13 @@ int HyPerCol::outputParams(const char * filename) {
          len = snprintf(printParamsPath, PV_PATH_MAX, "%s/%s", outputPath, filename);
       }
       if( len < PV_PATH_MAX ) {
-         FILE * fp = fopen(printParamsPath, "w");
-         if( fp != NULL ) {
-            status = params->outputParams(fp);
+         PV_Stream * pvstream = PV_fopen(printParamsPath, "w");
+         if( pvstream != NULL ) {
+            status = params->outputParams(pvstream->fp);
             if( status != PV_SUCCESS ) {
                fprintf(stderr, "outputParams: Error copying params to \"%s\"\n", printParamsPath);
             }
-            fclose(fp); fp = NULL;
+            PV_fclose(pvstream); pvstream = NULL;
          }
          else {
             status = errno;
@@ -1083,13 +1083,13 @@ int HyPerCol::outputParamsXML(const char * filename) {
          len = snprintf(printParamsPath, PV_PATH_MAX, "%s/%s", outputPath, filename);
       }
       if( len < PV_PATH_MAX ) {
-         FILE * fp = fopen(printParamsPath, "w");
+         PV_Stream * pvstream = PV_fopen(printParamsPath, "w");
          if( fp != NULL ) {
             status = outputParamsXML(fp);
             if( status != PV_SUCCESS ) {
                fprintf(stderr, "outputParamsXML: Error copying params to \"%s\"\n", printParamsPath);
             }
-            fclose(fp); fp = NULL;
+            PV_fclose(pvstream); pvstream = NULL;
          }
          else {
             status = errno;
@@ -1105,8 +1105,9 @@ int HyPerCol::outputParamsXML(const char * filename) {
    return status;
 }
 
-int HyPerCol::outputParamsXML(FILE * fp) {
-   assert(fp!=NULL);
+int HyPerCol::outputParamsXML(PV_Stream * pvstream) {
+   assert(pvstream!=NULL && pvstream->fp!=NULL);
+   FILE * fp = pvstream->fp;
    fprintf(fp, "<?xml version='1.0' encoding=\"UTF-8\"?>\n");
    fprintf(fp, "<params>\n");
    fprintf(fp, "   <HyPerCol name=\"%s\">\n", name);

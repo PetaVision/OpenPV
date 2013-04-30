@@ -614,10 +614,10 @@ float OjaSTDPConn::maxWeight(int arborID)
 }
 
 // Anything extra that you want to write out when HyPerConn calls writeTextWeights
-int OjaSTDPConn::writeTextWeightsExtra(FILE * fd, int k, int arborID)
+int OjaSTDPConn::writeTextWeightsExtra(PV_Stream * pvstream, int k, int arborID)
 {
    if (plasticityFlag) {
-      pv_text_write_patch(fd, getWeights(k, arborID), get_dwData(arborID, k), nfp, sxp, syp, sfp); // write data[xp,yp,fp]
+      pv_text_write_patch(pvstream, getWeights(k, arborID), get_dwData(arborID, k), nfp, sxp, syp, sfp); // write data[xp,yp,fp]
    }
    return 0;
 }

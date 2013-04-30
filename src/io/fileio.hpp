@@ -27,25 +27,27 @@ double timeFromParams(void * params);
 
 size_t pv_sizeof(int datatype);
 
-FILE * PV_fopen(const char * path, const char * mode);
-long int PV_ftell(FILE * fp);
-int PV_fseek(FILE * fp, long int offset, int whence);
-size_t PV_fwrite(const void * RESTRICT ptr, size_t size, size_t nitems, FILE * RESTRICT stream);
+PV_Stream * PV_fopen(const char * path, const char * mode);
+long int PV_ftell(PV_Stream * pvstream);
+int PV_fseek(PV_Stream * pvstream, long int offset, int whence);
+size_t PV_fwrite(const void * RESTRICT ptr, size_t size, size_t nitems, PV_Stream * RESTRICT pvstream);
+int PV_fclose(PV_Stream * pvstream);
+PV_Stream * PV_stdout();
 
-FILE * pvp_open_read_file(const char * filename, Communicator * comm);
+PV_Stream * pvp_open_read_file(const char * filename, Communicator * comm);
 
-FILE * pvp_open_write_file(const char * filename, Communicator * comm, bool append);
+PV_Stream * pvp_open_write_file(const char * filename, Communicator * comm, bool append);
 
-int pvp_close_file(FILE * fp, Communicator * comm);
+int pvp_close_file(PV_Stream * pvstream, Communicator * comm);
 
-int pvp_read_header(FILE * fp, Communicator * comm, int * params, int * numParams);
+int pvp_read_header(PV_Stream * pvstream, Communicator * comm, int * params, int * numParams);
 int pvp_read_header(const char * filename, Communicator * comm, double * time,
                     int * filetype, int * datatype, int params[], int * numParams);
 void read_header_err(const char * filename, Communicator * comm, int returned_num_params, int * params);
-int pvp_write_header(FILE * fp, Communicator * comm, int * params, int numParams);
+int pvp_write_header(PV_Stream * pvstream, Communicator * comm, int * params, int numParams);
 
 // The pvp_write_header below will go away in favor of the pvp_write_header above.
-int pvp_write_header(FILE * fp, Communicator * comm, double time, const PVLayerLoc * loc,
+int pvp_write_header(PV_Stream * pvstream, Communicator * comm, double time, const PVLayerLoc * loc,
                      int filetype, int datatype, int numbands,
                      bool extended, bool contiguous, unsigned int numParams, size_t localSize);
 
@@ -57,24 +59,11 @@ int * pvp_set_kernel_params(Communicator * comm, double timed, const PVLayerLoc 
 int * alloc_params(int numParams);
 int set_weight_params(int * params, int nxp, int nyp, int nfp, float min, float max, int numPatches);
 
-int pvp_read_time(FILE * fp, Communicator * comm, int root_process, double * timed);
-#ifdef OBSOLETE // Marked Obsolete Dec 18, 2012.  Files use pvp_open_read_file, pvp_read_header, pvp_read_time, and then gatherActivity
-int readNonspikingActFile(const char * filename, Communicator * comm, double * time, void * data,
-         int level, const PVLayerLoc * loc, int datatype, bool extended, bool contiguous);
-#endif // OBSOLETE
-int read_pvdata(const char * filename, Communicator * comm, double * time, void * data,
-         const PVLayerLoc * loc, int datatype, bool extended, bool contiguous);
-size_t read_pvdata_oneproc(FILE * fp, int px, int py, const PVLayerLoc * loc, unsigned char * cbuf, const size_t localSizeInMem, const int * params, int numParams);
+int pvp_read_time(PV_Stream * pvstream, Communicator * comm, int root_process, double * timed);
 
-int write_pvdata(const char * filename, Communicator * comm, double time, const pvdata_t * data,
-          const PVLayerLoc * loc, int datatype, bool extended, bool contiguous, bool append=false);
+int writeActivity(PV_Stream * pvstream, Communicator * comm, double time, PVLayer * l);
 
-int write_pvdata(FILE * fp, Communicator * comm, double time, const pvdata_t * data,
-          const PVLayerLoc * loc, int datatype, bool extended, bool contiguous, int tag);
-
-int writeActivity(FILE * fp, Communicator * comm, double time, PVLayer * l);
-
-int writeActivitySparse(FILE * fp, Communicator * comm, double time, PVLayer * l);
+int writeActivitySparse(PV_Stream * pvstream, Communicator * comm, double time, PVLayer * l);
 
 int readWeights(PVPatch *** patches, pvdata_t ** dataStart, int numArbors, int numPatches, const char * filename,
                 Communicator * comm, double * timed, const PVLayerLoc * loc, bool * shmget_owner = NULL, bool shmget_flag = false);
@@ -89,7 +78,7 @@ int writeRandState(const char * filename, Communicator * comm, uint4 * randState
 
 int readRandState(const char * filename, Communicator * comm, uint4 * randState, const PVLayerLoc * loc);
 
-template <typename T> int gatherActivity(FILE * fp, Communicator * comm, int rootproc, T * buffer, const PVLayerLoc * layerLoc, bool extended) {
+template <typename T> int gatherActivity(PV_Stream * pvstream, Communicator * comm, int rootproc, T * buffer, const PVLayerLoc * layerLoc, bool extended) {
    // In MPI when this process is called, all processes must call it.
    // Only the root process uses the file pointer.
    int status = PV_SUCCESS;
@@ -120,12 +109,12 @@ template <typename T> int gatherActivity(FILE * fp, Communicator * comm, int roo
 #ifdef PV_USE_MPI
    int rank = comm->commRank();
    if (rank==rootproc) {
-      if (fp == NULL) {
+      if (pvstream == NULL) {
          fprintf(stderr, "gatherActivity error: file pointer on root process is null.\n");
          status = PV_FAILURE;
          abort();
       }
-      long startpos = PV_ftell(fp);
+      long startpos = PV_ftell(pvstream);
       if (startpos == -1) {
          fprintf(stderr, "gatherActivity error when getting file position: %s\n", strerror(errno));
          status = PV_FAILURE;
@@ -134,14 +123,14 @@ template <typename T> int gatherActivity(FILE * fp, Communicator * comm, int roo
       // Write zeroes to make sure the file is big enough since we'll write nonsequentially under MPI.  This may not be necessary.
       int comm_size = comm->commSize();
       for (int r=0; r<comm_size; r++) {
-         int numwritten = PV_fwrite(temp_buffer, datasize, numLocalNeurons, fp);
+         int numwritten = PV_fwrite(temp_buffer, datasize, numLocalNeurons, pvstream);
          if (numwritten != numLocalNeurons) {
             fprintf(stderr, "gatherActivity error when writing: number of bytes attempted %d, number written %d\n", numwritten, numLocalNeurons);
             status = PV_FAILURE;
             abort();
          }
       }
-      int fseekstatus = PV_fseek(fp, startpos, SEEK_SET);
+      int fseekstatus = PV_fseek(pvstream, startpos, SEEK_SET);
       if (fseekstatus != 0) {
          fprintf(stderr, "gatherActivity error when setting file position: %s\n", strerror(errno));
          status = PV_FAILURE;
@@ -169,9 +158,9 @@ template <typename T> int gatherActivity(FILE * fp, Communicator * comm, int roo
             int kx0 = layerLoc->nx*columnFromRank(r, comm->numCommRows(), comm->numCommColumns());
             int k_local = kIndex(0, y, 0, layerLoc->nx, layerLoc->ny, layerLoc->nf);
             int k_global = kIndex(kx0, y+ky0, 0, layerLoc->nxGlobal, layerLoc->nyGlobal, layerLoc->nf);
-            int fseekstatus = PV_fseek(fp, startpos + k_global*datasize, SEEK_SET);
+            int fseekstatus = PV_fseek(pvstream, startpos + k_global*datasize, SEEK_SET);
             if (fseekstatus == 0) {
-               int numwritten = PV_fwrite(&temp_buffer[k_local], datasize, linesize, fp);
+               int numwritten = PV_fwrite(&temp_buffer[k_local], datasize, linesize, pvstream);
                if (numwritten != linesize) {
                   fprintf(stderr, "gatherActivity error when writing: number of bytes attempted %d, number written %d\n", numwritten, numLocalNeurons);
                   status = PV_FAILURE;
@@ -184,7 +173,7 @@ template <typename T> int gatherActivity(FILE * fp, Communicator * comm, int roo
             }
          }
       }
-      fseek(fp, startpos+numLocalNeurons*datasize*comm_size, SEEK_SET);
+      PV_fseek(pvstream, startpos+numLocalNeurons*datasize*comm_size, SEEK_SET);
    }
    else {
       if (nb>0) {
@@ -205,7 +194,7 @@ template <typename T> int gatherActivity(FILE * fp, Communicator * comm, int roo
    return status;
 }
 
-template <typename T> int scatterActivity(FILE * fp, Communicator * comm, int rootproc, T * buffer, const PVLayerLoc * layerLoc, bool extended, const PVLayerLoc * fileLoc=NULL, int offsetX=0, int offsetY=0) {
+template <typename T> int scatterActivity(PV_Stream * pvstream, Communicator * comm, int rootproc, T * buffer, const PVLayerLoc * layerLoc, bool extended, const PVLayerLoc * fileLoc=NULL, int offsetX=0, int offsetY=0) {
    // In MPI when this process is called, all processes must call it.
    // Only the root process uses the file pointer fp or the file PVLayerLoc fileLoc.
    //
@@ -246,12 +235,12 @@ template <typename T> int scatterActivity(FILE * fp, Communicator * comm, int ro
 #ifdef PV_USE_MPI
    int rank = comm->commRank();
    if (rank==rootproc) {
-      if (fp == NULL) {
+      if (pvstream == NULL) {
          fprintf(stderr, "scatterActivity error: file pointer on root process is null.\n");
          status = PV_FAILURE;
          abort();
       }
-      long startpos = PV_ftell(fp);
+      long startpos = PV_ftell(pvstream);
       if (startpos == -1) {
          fprintf(stderr, "scatterActivity error when getting file position: %s\n", strerror(errno));
          status = PV_FAILURE;
@@ -275,8 +264,8 @@ template <typename T> int scatterActivity(FILE * fp, Communicator * comm, int ro
             int kx0 = layerLoc->nx*columnFromRank(r, comm->numCommRows(), comm->numCommColumns());
             int k_inmemory = kIndex(0, y, 0, layerLoc->nx, layerLoc->ny, layerLoc->nf);
             int k_infile = kIndex(offsetX+kx0, offsetY+ky0+y, 0, fileLoc->nxGlobal, fileLoc->nyGlobal, layerLoc->nf);
-            fseek(fp, startpos + k_infile*(long) datasize, SEEK_SET);
-            int numread = fread(&temp_buffer[k_inmemory], datasize, linesize, fp);
+            PV_fseek(pvstream, startpos + k_infile*(long) datasize, SEEK_SET);
+            int numread = fread(&temp_buffer[k_inmemory], datasize, linesize, pvstream->fp);
             if (numread != linesize) {
                fprintf(stderr, "scatterActivity error when reading: number of bytes attempted %d, number written %d\n", numread, numLocalNeurons);
                abort();
@@ -289,14 +278,14 @@ template <typename T> int scatterActivity(FILE * fp, Communicator * comm, int ro
          int kx0 = layerLoc->nx*columnFromRank(rootproc, comm->numCommRows(), comm->numCommColumns());
          int k_inmemory = kIndex(0, y, 0, layerLoc->nx, layerLoc->ny, layerLoc->nf);
          int k_infile = kIndex(offsetX+kx0, offsetY+ky0+y, 0, fileLoc->nxGlobal, fileLoc->nyGlobal, layerLoc->nf);
-         fseek(fp, startpos + k_infile*(long) datasize, SEEK_SET);
-         int numread = fread(&temp_buffer[k_inmemory], datasize, linesize, fp);
+         PV_fseek(pvstream, startpos + k_infile*(long) datasize, SEEK_SET);
+         int numread = fread(&temp_buffer[k_inmemory], datasize, linesize, pvstream->fp);
          if (numread != linesize) {
             fprintf(stderr, "scatterActivity error when reading: number of bytes attempted %d, number written %d\n", linesize, numread);
             abort();
          }
       }
-      fseek(fp, startpos+numLocalNeurons*datasize*comm_size, SEEK_SET);
+      PV_fseek(pvstream, startpos+numLocalNeurons*datasize*comm_size, SEEK_SET);
    }
    else {
       MPI_Recv(temp_buffer, sizeof(uint4)*numLocalNeurons, MPI_BYTE, rootproc, 171+rank/*tag*/, comm->communicator(), MPI_STATUS_IGNORE);
@@ -305,8 +294,8 @@ template <typename T> int scatterActivity(FILE * fp, Communicator * comm, int ro
    for (int y=0; y<layerLoc->ny; y++) {
       int k_inmemory = kIndex(xLineStart, y+yLineStart, 0, xBufSize, yBufSize, layerLoc->nf);
       int k_infile = kIndex(offsetX, offsetY+y, 0, fileLoc->nxGlobal, fileLoc->nyGlobal, layerLoc->nf);
-      fseek(fp, startpos + k_infile*(long) datasize, SEEK_SET);
-      int numread = fread(&temp_buffer[k_inmemory], datasize, linesize, fp);
+      PV_fseek(pvstream, startpos + k_infile*(long) datasize, SEEK_SET);
+      int numread = fread(&temp_buffer[k_inmemory], datasize, linesize, pvstream->fp);
       if (numread != linesize) {
          fprintf(stderr, "scatterActivity error when reading: number of bytes attempted %d, number written %d\n", numread, numLocalNeurons);
          abort();

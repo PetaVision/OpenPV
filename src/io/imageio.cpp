@@ -74,12 +74,12 @@ int getImageInfo(const char * filename, PV::Communicator * comm, PVLayerLoc * lo
 
 int getImageInfoPVP(const char * filename, PV::Communicator * comm, PVLayerLoc * loc, GDALColorInterp ** colorbandtypes)
 {
-   const int locSize = sizeof(PVLayerLoc) / sizeof(int);
-   int locBuf[locSize];
+   // const int locSize = sizeof(PVLayerLoc) / sizeof(int);
+   // int locBuf[locSize];
    int status = 0;
 
    // LayerLoc should contain 12 ints
-   assert(locSize == 12);
+   assert(sizeof(PVLayerLoc) / sizeof(int) == 12);
 
    const int icCol = comm->commColumn();
    const int icRow = comm->commRow();
@@ -91,47 +91,28 @@ int getImageInfoPVP(const char * filename, PV::Communicator * comm, PVLayerLoc *
            comm->commRank(), nxProcs, nyProcs, icRow, icCol);
 #endif // DEBUG_OUTPUT
 
-   if (comm->commRank() == 0) {
-      int numParams, params[NUM_PAR_BYTE_PARAMS];
+   PV_Stream * pvstream = PV::PV_fopen(filename, "rb");
+   int numParams = NUM_PAR_BYTE_PARAMS;
+   int params[numParams];
+   pvp_read_header(pvstream, comm, params, &numParams);
+   PV::PV_fclose(pvstream); pvstream = NULL;
 
-      FILE * fp = fopen(filename, "rb");
-      assert(fp != NULL);
+   assert(numParams == NUM_PAR_BYTE_PARAMS);
+   assert(params[INDEX_FILE_TYPE] == PVP_FILE_TYPE);
 
-      numParams = pv_read_binary_params(fp, NUM_PAR_BYTE_PARAMS, params);
-      fclose(fp);
+   const int dataSize = params[INDEX_DATA_SIZE];
+   const int dataType = params[INDEX_DATA_TYPE];
+   assert( (dataType == PV_BYTE_TYPE && dataSize == 1) || (dataType == PV_FLOAT_TYPE && dataSize == 4));
 
-      assert(numParams == NUM_PAR_BYTE_PARAMS);
-      assert(params[INDEX_FILE_TYPE] == PVP_FILE_TYPE);
+   loc->nx       = params[INDEX_NX];
+   loc->ny       = params[INDEX_NY];
+   loc->nxGlobal = params[INDEX_NX_GLOBAL];
+   loc->nyGlobal = params[INDEX_NY_GLOBAL];
+   loc->kx0      = params[INDEX_KX0];
+   loc->ky0      = params[INDEX_KY0];
+   loc->nb       = params[INDEX_NB];
+   loc->nf       = params[INDEX_NF];
 
-      const int dataSize = params[INDEX_DATA_SIZE];
-      const int dataType = params[INDEX_DATA_TYPE];
-//      const int nxProcs  = params[INDEX_NX_PROCS];
-//      const int nyProcs  = params[INDEX_NY_PROCS];
-
-      loc->nx       = params[INDEX_NX];
-      loc->ny       = params[INDEX_NY];
-      loc->nxGlobal = params[INDEX_NX_GLOBAL];
-      loc->nyGlobal = params[INDEX_NY_GLOBAL];
-      loc->kx0      = params[INDEX_KX0];
-      loc->ky0      = params[INDEX_KY0];
-      loc->nb       = params[INDEX_NB];
-      loc->nf       = params[INDEX_NF];
-
-//      assert(dataSize == 1);
-      assert( (dataType == PV_BYTE_TYPE && dataSize == 1) || (dataType == PV_FLOAT_TYPE && dataSize == 4));
-
-
-      copyToLocBuffer(locBuf, loc);
-   }
-
-#ifdef PV_USE_MPI
-   // broadcast location information
-   MPI_Bcast(locBuf, locSize, MPI_INT, 0, comm->communicator());
-#endif // PV_USE_MPI
-
-   copyFromLocBuffer(locBuf, loc);
-
-   // fix up layer indices
    loc->kx0 = loc->nx * icCol;
    loc->ky0 = loc->ny * icRow;
 
@@ -317,10 +298,10 @@ int gatherImageFilePVP(const char * filename,
    int rootproc = 0;
    int rank = comm->commRank();
 
-   FILE * fp = NULL;
+   PV_Stream * pvstream = NULL;
    if (rank==rootproc) {
-      fp = fopen(filename, "wb");
-      if (fp==NULL) {
+      pvstream = PV::PV_fopen(filename, "wb");
+      if (pvstream==NULL) {
          fprintf(stderr, "gatherImageFilePVP error opening \"%s\" for writing.\n", filename);
          abort();
       }
@@ -348,16 +329,16 @@ int gatherImageFilePVP(const char * filename,
       params[INDEX_NB]          = loc->nb;
       params[INDEX_NBANDS]      = 1;
 
-      int numWrite = PV::PV_fwrite(params, sizeof(int), numParams, fp);
+      int numWrite = PV::PV_fwrite(params, sizeof(int), numParams, pvstream);
       if (numWrite != numParams) {
          fprintf(stderr, "gatherImageFilePVP error writing the header.  fwrite called with %d parameters; %d were written.\n", numParams, numWrite);
          abort();
       }
    }
-   status = gatherActivity(fp, comm, rootproc, buf, loc, false/*extended*/);
+   status = gatherActivity(pvstream, comm, rootproc, buf, loc, false/*extended*/);
    // buf is a nonextended buffer.  Image layers copy buf into the extended data buffer by calling Image::copyFromInteriorBuffer
    if (rank==rootproc) {
-      fclose(fp); fp=NULL;
+      PV::PV_fclose(pvstream); pvstream=NULL;
    }
    return status;
 }
@@ -481,29 +462,11 @@ int scatterImageFilePVP(const char * filename, int xOffset, int yOffset,
    int rootproc = 0;
    int rank = comm->commRank();
 
-   FILE * fp = NULL;
+   PV_Stream * pvstream = PV::pvp_open_read_file(filename, comm);
+   int numParams = NUM_BIN_PARAMS;
+   int params[numParams];
+   PV::pvp_read_header(pvstream, comm, params, &numParams);
    if (rank==rootproc) {
-      int numParams = 0;
-      int filetype = 0;
-      int nx = 0;
-      int ny = 0;
-      int nf = 0;
-      fp = pv_open_binary(filename, &numParams, &filetype, &nx, &ny, &nf);
-      if (fp==NULL) {
-         fprintf(stderr, "scatterImageFilePVP error opening \"%s\" for reading.\n", filename);
-         abort();
-      }
-      if (numParams < MIN_BIN_PARAMS) {
-         fprintf(stderr, "scatterImageFilePVP error in header of \"%s\": number of parameters is too small.\n", filename);
-         abort();
-      }
-      rewind(fp);
-      int params[numParams];
-      int paramsread = fread(params, sizeof(int), numParams, fp);
-      if (paramsread != numParams) {
-         fprintf(stderr, "scatterImageFilePVP error reading header of \"%s\".\n", filename);
-         abort();
-      }
       PVLayerLoc fileloc;
       fileloc.nx = params[INDEX_NX];
       fileloc.ny = params[INDEX_NY];
@@ -523,17 +486,18 @@ int scatterImageFilePVP(const char * filename, int xOffset, int yOffset,
       }
       bool spiking = false;
       double timed = 0.0;
+      int filetype = params[INDEX_FILE_TYPE];
       switch (filetype) {
       case PVP_FILE_TYPE:
          break;
       case PVP_ACT_FILE_TYPE:
          spiking = true;
-         fread(&timed, sizeof(double), 1, fp);
+         fread(&timed, sizeof(double), 1, pvstream->fp);
          fprintf(stderr, "scatterImageFilePVP error opening \"%s\": Reading spiking PVP files into an Image layer hasn't been implemented yet.\n", filename);
          abort();
          break;
       case PVP_NONSPIKING_ACT_FILE_TYPE:
-         fread(&timed, sizeof(double), 1, fp);
+         fread(&timed, sizeof(double), 1, pvstream->fp);
          status = PV_SUCCESS;
          break;
       case PVP_WGT_FILE_TYPE:
@@ -545,12 +509,12 @@ int scatterImageFilePVP(const char * filename, int xOffset, int yOffset,
          status = PV_FAILURE;
          break;
       }
-      scatterActivity(fp, comm, rootproc, buf, loc, false/*extended*/, &fileloc, xOffset, yOffset);
+      scatterActivity(pvstream, comm, rootproc, buf, loc, false/*extended*/, &fileloc, xOffset, yOffset);
       // buf is a nonextended layer.  Image layers copy the extended buffer data into buf by calling Image::copyToInteriorBuffer
-      fclose(fp); fp = NULL;
+      PV::PV_fclose(pvstream); pvstream = NULL;
    }
    else {
-      scatterActivity(fp, comm, rootproc, buf, loc, false/*extended*/, NULL, xOffset, yOffset);
+      scatterActivity(pvstream, comm, rootproc, buf, loc, false/*extended*/, NULL, xOffset, yOffset);
    }
    return status;
 }

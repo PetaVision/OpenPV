@@ -34,7 +34,7 @@ public:
    virtual int updateState(double time, double dt);
    virtual int updateWeights(int axonId);
    virtual int outputState(double time, bool last=false);
-   virtual int writeTextWeightsExtra(FILE * fd, int k, int arborID);
+   virtual int writeTextWeightsExtra(PV_Stream * pvstream, int k, int arborID);
 
    virtual PVLayerCube * getPlasticityDecrement();
 

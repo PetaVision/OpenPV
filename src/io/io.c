@@ -201,7 +201,7 @@ int readFile(const char * filename, float * buf, int * nx, int * ny)
 {
    int result, nItems;
    int status = 0;
-   FILE * fd;
+   FILE * fp;
    const char * altfile = INPUT_PATH "const_one_64x64.bin";
 
    if (filename == NULL) {
@@ -213,10 +213,10 @@ int readFile(const char * filename, float * buf, int * nx, int * ny)
       return tiff_read_file(filename, buf, nx, ny);
    }
 
-   fd = fopen(filename, "rb");
+   fp = fopen(filename, "rb");
 
-   if (fd == NULL) {
-      fprintf(stderr, "[ ]: readFile: ERROR, Input file %s not found.\n", filename);
+   if (fp == NULL) {
+      fprintf(stderr, "[ ]: readFile: ERROR opening input file %s: %s\n", filename, strerror(errno));
       return 1;
    }
    else {
@@ -224,8 +224,8 @@ int readFile(const char * filename, float * buf, int * nx, int * ny)
 
       // assume binary file
       assert(filetype(filename) == BINARY_FILE_TYPE);
-      result = fread(buf, sizeof(float), nItems, fd);
-      fclose(fd);
+      result = fread(buf, sizeof(float), nItems, fp);
+      fclose(fp);
 
       if (result != nItems) {
          pv_log(stderr, "[ ]: Warning: readFile %s, expected %d, got %d.\n",
@@ -242,6 +242,7 @@ int readFile(const char * filename, float * buf, int * nx, int * ny)
    return status;
 }
 
+#ifdef OBSOLETE // Marked obsolete April 29, 2013.  Use fileio's pvp_read_header instead.
 /**
  * @fp
  * @numParams
@@ -256,7 +257,9 @@ int pv_read_binary_params(FILE * fp, int numParams, int params[])
 
    return fread(params, sizeof(int), numParams, fp);
 }
+#endif // OBSOLETE
 
+#ifdef OBSOLETE // Marked obsolete April 29, 2013.  Use fileio's pvp_open_read_file instead.
 /**
  * Open a PV binary file for reading.
  * @numParams contains the number of integer parameters on return
@@ -288,7 +291,9 @@ FILE * pv_open_binary(const char * filename, int * numParams, int * type, int * 
 
    return fp;
 }
+#endif // OBSOLETE
 
+#ifdef OBSOLETE // Marked obsolete April 29, 2013.  Use fileio's PV_fclose instead
 /**
  * Close a PV binary file.
  * @fp
@@ -297,12 +302,13 @@ int pv_close_binary(FILE * fp)
 {
    return fclose(fp);
 }
+#endif // OBSOLETE
 
 /**
  * @fd
  * @patch
  */
-int pv_text_write_patch(FILE * fd, PVPatch * patch, pvdata_t * data, int nf, int sx, int sy, int sf)
+int pv_text_write_patch(PV_Stream * pvstream, PVPatch * patch, pvdata_t * data, int nf, int sx, int sy, int sf)
 {
    int f, i, j;
 
@@ -314,8 +320,9 @@ int pv_text_write_patch(FILE * fd, PVPatch * patch, pvdata_t * data, int nf, int
    //const int sy = (int) patch->sy;  //assert(sy == nf*nx);
    //const int sf = (int) patch->sf;  assert(sf == 1);
 
-   assert(fd != NULL);
+   assert(pvstream != NULL);
 
+   FILE * fd = pvstream->fp;
    for (f = 0; f < nf; f++) {
       for (j = 0; j < ny; j++) {
          for (i = 0; i < nx; i++) {

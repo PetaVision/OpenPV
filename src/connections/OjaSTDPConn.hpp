@@ -26,7 +26,7 @@ public:
    virtual ~OjaSTDPConn();
 
    virtual float maxWeight(int axonID);
-   virtual int writeTextWeightsExtra(FILE * fd, int k, int axonID);
+   virtual int writeTextWeightsExtra(PV_Stream * pvstream, int k, int axonID);
 
    virtual int updateState(double time, double dt);
    virtual int updateAmpLTD();

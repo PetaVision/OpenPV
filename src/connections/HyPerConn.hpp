@@ -71,7 +71,7 @@ public:
          int numPatches, const char* filename, double timef, bool compressWeights, bool last);
    virtual int writeTextWeights(const char* filename, int k);
 
-   virtual int writeTextWeightsExtra(FILE* fd, int k, int arborID) {
+   virtual int writeTextWeightsExtra(PV_Stream * pvstream, int k, int arborID) {
       return PV_SUCCESS;
    }
 

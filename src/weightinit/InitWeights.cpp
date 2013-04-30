@@ -224,21 +224,21 @@ int InitWeights::readWeights(PVPatch *** patches, pvdata_t ** dataStart, int num
 #endif
    if( useListOfArborFiles ) {
       int arbor=0;
-      FILE * arborfp = pvp_open_read_file(filename, icComm);
+      PV_Stream * arborstream = pvp_open_read_file(filename, icComm);
 
       int rootproc = 0;
       char arborfilename[PV_PATH_MAX];
       while( arbor < conn->numberOfAxonalArborLists() ) {
          if( icComm->commRank() == rootproc ) {
-            char * fgetsstatus = fgets(arborfilename, PV_PATH_MAX, arborfp);
+            char * fgetsstatus = fgets(arborfilename, PV_PATH_MAX, arborstream->fp);
             if( fgetsstatus == NULL ) {
-               bool endoffile = feof(arborfp)!=0;
+               bool endoffile = feof(arborstream->fp)!=0;
                if( endoffile ) {
                   fprintf(stderr, "File of arbor files \"%s\" reached end of file before all %d arbors were read.  Exiting.\n", filename, numArbors);
                   exit(EXIT_FAILURE);
                }
                else {
-                  int error = ferror(arborfp);
+                  int error = ferror(arborstream->fp);
                   assert(error);
                   fprintf(stderr, "File of arbor files: error %d while reading.  Exiting.\n", error);
                   exit(error);
@@ -280,8 +280,8 @@ int InitWeights::readWeights(PVPatch *** patches, pvdata_t ** dataStart, int num
       int max_weight_files = 1;  // arbitrary limit...
       int num_weight_files = (int)conn->getParent()->parameters()->value(conn->getName(), "numWeightFiles", max_weight_files, true);
       int file_count=0;
-      FILE * weightsfp = pvp_open_read_file(filename, icComm);
-      if ((weightsfp == NULL) && (icComm->commRank() == rootproc) ){
+      PV_Stream * weightstream = pvp_open_read_file(filename, icComm);
+      if ((weightstream == NULL) && (icComm->commRank() == rootproc) ){
          fprintf(stderr, ""
                "Cannot open file of weight files \"%s\".  Exiting.\n", filename);
          exit(EXIT_FAILURE);
@@ -290,15 +290,15 @@ int InitWeights::readWeights(PVPatch *** patches, pvdata_t ** dataStart, int num
       char weightsfilename[PV_PATH_MAX];
       while( file_count < num_weight_files ) {
          if( icComm->commRank() == rootproc ) {
-            char * fgetsstatus = fgets(weightsfilename, PV_PATH_MAX, weightsfp);
+            char * fgetsstatus = fgets(weightsfilename, PV_PATH_MAX, weightstream->fp);
             if( fgetsstatus == NULL ) {
-               bool endoffile = feof(weightsfp)!=0;
+               bool endoffile = feof(weightstream->fp)!=0;
                if( endoffile ) {
                   fprintf(stderr, "File of weight files \"%s\" reached end of file before all %d weight files were read.  Exiting.\n", filename, num_weight_files);
                   exit(EXIT_FAILURE);
                }
                else {
-                  int error = ferror(weightsfp);
+                  int error = ferror(weightstream->fp);
                   assert(error);
                   fprintf(stderr, "File of weight files: error %d while reading.  Exiting.\n", error);
                   exit(error);

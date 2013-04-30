@@ -91,7 +91,12 @@ int pvlayer_finalize(PVLayer * l)
 {
    pvcube_delete(l->activity);
 
-   if (l->activeFP != NULL) fclose(l->activeFP);
+   if (l->activeFP != NULL) {
+      fclose(l->activeFP->fp); // Can't call fileio.cpp routines from a .c file, so have to replicate PV_fclose
+      free(l->activeFP->name);
+      free(l->activeFP);
+      l->activeFP = NULL;
+   }
 
    free(l->prevActivity);
    free(l->activeIndices);

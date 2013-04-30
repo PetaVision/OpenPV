@@ -105,12 +105,6 @@ protected:
    int setLayerLoc(PVLayerLoc * layerLoc, float nxScale, float nyScale, int margin, int nf);
    virtual int allocateBuffers();
    int readDataStoreFromFile(const char * filename, InterColComm * comm, double * timed);
-#ifdef OBSOLETE // Marked obsolete Dec 18, 2012.  Calling functions call pvp_open_read_file and then pvp_read_header with the resulting file pointer.
-   static int readHeader(const char * filename, InterColComm * comm, double * timed, int * params, const PVLayerLoc * loc);
-#endif // OBSOLETE
-   #ifdef OBSOLETE // Marked obsolete Dec 13, 2012.  Writing is done via gatherActivity in fileio.cpp
-   static int writeBuffer(FILE * fp, InterColComm * comm, double dtime, pvdata_t * buffer, int numbands, bool extended, bool contiguous, const PVLayerLoc * loc);
-#endif // OBSOLETE
    int incrementNBands(int * numCalls);
    int writeDataStoreToFile(const char * filename, InterColComm * comm, double dtime);
    virtual int calcActiveIndices();
@@ -188,9 +182,6 @@ public:
    static int writeBufferFile(const char * filename, InterColComm * comm, double dtime, pvdata_t ** buffers, int numbands, bool extended, const PVLayerLoc * loc);
 
    virtual int readState (double * timef);
-#ifdef OBSOLETE // Marked obsolete July 13, 2012.  Dumping the state is now done by checkpointWrite.
-   virtual int writeState(double timef, bool last=false);
-#endif // OBSOLETE
    virtual int outputState(double timef, bool last=false);
    virtual int writeActivity(double timed);
    virtual int writeActivitySparse(double timed);

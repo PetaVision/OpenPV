@@ -171,7 +171,7 @@ int TrainingLayer::checkpointWrite(const char * cpDir) {
          fprintf(stderr, "TrainingLayer::checkpointWrite error.  Path \"%s/%s_currentLabelIndex.bin\" is too long.\n", cpDir, name);
          abort();
       }
-      FILE * curLabelIndexFile = fopen(curLabelIndexPath, "w");
+      PV_Stream * curLabelIndexFile = PV_fopen(curLabelIndexPath, "w");
       if (curLabelIndexFile == NULL) {
          fprintf(stderr, "TrainingLayer::checkpointWrite error opening \"%s\" for writing: %s\n", curLabelIndexPath, strerror(errno));
          abort();
@@ -181,7 +181,7 @@ int TrainingLayer::checkpointWrite(const char * cpDir) {
          fprintf(stderr, "TrainingLayer::checkpointWrite error.  Unable to write to \"%s\".\n", curLabelIndexPath);
          abort();
       }
-      fclose(curLabelIndexFile);
+      PV_fclose(curLabelIndexFile);
    }
    return status;
 }

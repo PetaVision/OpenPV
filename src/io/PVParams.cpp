@@ -869,27 +869,27 @@ int PVParams::parsefile(const char * filename) {
          fprintf(stderr, "PVParams::parsefile ERROR: specified file \"%s\" is a directory.\n", filename);
          exit(EISDIR);
       }
-      FILE * paramfp = fopen(filename, "r");
-      if( paramfp == NULL ) {
+      PV_Stream * paramstream = PV_fopen(filename, "r");
+      if( paramstream == NULL ) {
          fprintf(stderr, "PVParams::parsefile ERROR opening file \"%s\": %s\n", filename, strerror(errno));
          exit(errno);
       }
-      if( fseek(paramfp, 0, SEEK_END) != 0 ) {
+      if( PV_fseek(paramstream, 0, SEEK_END) != 0 ) {
          fprintf(stderr, "PVParams::parsefile ERROR seeking end of file \"%s\": %s\n", filename, strerror(errno));
          exit(errno);
       }
-      bufferlen = (size_t) PV_ftell(paramfp);
+      bufferlen = (size_t) PV_ftell(paramstream);
       paramBuffer = (char *) malloc(bufferlen);
       if( paramBuffer == NULL ) {
          fprintf(stderr, "PVParams::parsefile: Rank %d process unable to allocate memory for params buffer\n", rootproc);
          exit(ENOMEM);
       }
-      fseek(paramfp, 0L, SEEK_SET);
-      if( fread(paramBuffer,1, (unsigned long int) bufferlen, paramfp) != bufferlen) {
+      PV_fseek(paramstream, 0L, SEEK_SET);
+      if( fread(paramBuffer,1, (unsigned long int) bufferlen, paramstream->fp) != bufferlen) {
          fprintf(stderr, "PVParams::parsefile: ERROR reading params file \"%s\"", filename);
          exit(EIO);
       }
-      fclose(paramfp);
+      PV_fclose(paramstream);
 #ifdef PV_USE_MPI
       int sz = icComm->commSize();
       for( int i=0; i<sz; i++ ) {

@@ -1319,7 +1319,7 @@ int HyPerLayer::checkpointRead(const char * cpDir, double * timed) {
 }
 
 int HyPerLayer::readBufferFile(const char * filename, InterColComm * comm, double * timed, pvdata_t ** buffers, int numbands, bool extended, const PVLayerLoc * loc) {
-   FILE * readFile = pvp_open_read_file(filename, comm);
+   PV_Stream * readFile = pvp_open_read_file(filename, comm);
    int rank = comm->commRank();
    assert( (readFile != NULL && rank == 0) || (readFile == NULL && rank != 0) );
    int numParams = NUM_BIN_PARAMS;
@@ -1383,7 +1383,7 @@ int HyPerLayer::readBufferFile(const char * filename, InterColComm * comm, doubl
 }
 
 int HyPerLayer::readDataStoreFromFile(const char * filename, InterColComm * comm, double * timeptr) {
-   FILE * readFile = pvp_open_read_file(filename, comm);
+   PV_Stream * readFile = pvp_open_read_file(filename, comm);
    assert( (readFile != NULL && comm->commRank() == 0) || (readFile == NULL && comm->commRank() != 0) );
    int numParams = NUM_BIN_PARAMS;
    int params[NUM_BIN_PARAMS];
@@ -1423,30 +1423,6 @@ int HyPerLayer::readDataStoreFromFile(const char * filename, InterColComm * comm
    assert(status == PV_SUCCESS);
    return status;
 }
-
-#ifdef OBSOLETE // Marked obsolete Dec 18, 2012.  Calling functions call pvp_open_read_file and then pvp_read_header with the resulting file pointer.
-int HyPerLayer::readHeader(const char * filename, InterColComm * comm, double * timed, int * params, const PVLayerLoc * loc) {
-   int filetype, datatype;
-   int numParams = NUM_BIN_PARAMS;
-   int status = pvp_read_header(filename, comm, timed,
-                                &filetype, &datatype, params, &numParams);
-
-
-   // Sanity checks
-   assert(status == PV_SUCCESS);
-   assert(numParams == NUM_BIN_PARAMS);
-   assert(params[INDEX_HEADER_SIZE] == NUM_BIN_PARAMS*sizeof(pvdata_t));
-   assert(params[INDEX_NUM_PARAMS] == NUM_BIN_PARAMS);
-   assert(params[INDEX_FILE_TYPE] == PVP_NONSPIKING_ACT_FILE_TYPE); // TODO allow params[INDEX_FILE_TYPE] == PVP_ACT_FILE_TYPE
-   assert(params[INDEX_NF] == loc->nf);
-   assert(params[INDEX_DATA_SIZE] == sizeof(pvdata_t));
-   assert(params[INDEX_DATA_TYPE] == PV_FLOAT_TYPE);
-   assert(params[INDEX_KX0] == 0);
-   assert(params[INDEX_KY0] == 0);
-   assert(params[INDEX_NB] == loc->nb);
-   return PV_SUCCESS;
-}
-#endif // OBSOLETE
 
 int HyPerLayer::readScalarFloat(const char * cp_dir, const char * val_name, double * val_ptr, double default_value) {
    int status = PV_SUCCESS;
@@ -1527,7 +1503,7 @@ int HyPerLayer::checkpointWrite(const char * cpDir) {
 }
 
 int HyPerLayer::writeBufferFile(const char * filename, InterColComm * comm, double timed, pvdata_t ** buffers, int numbands, bool extended, const PVLayerLoc * loc) {
-   FILE * writeFile = pvp_open_write_file(filename, comm, /*append*/false);
+   PV_Stream * writeFile = pvp_open_write_file(filename, comm, /*append*/false);
    assert( (writeFile != NULL && comm->commRank() == 0) || (writeFile == NULL && comm->commRank() != 0) );
 
    int * params = pvp_set_nonspiking_act_params(comm, timed, loc, PV_FLOAT_TYPE, numbands);
@@ -1553,46 +1529,8 @@ int HyPerLayer::writeBufferFile(const char * filename, InterColComm * comm, doub
    return status;
 }
 
-#ifdef OBSOLETE // Marked obsolete Dec 13, 2012.  Writing is done via gatherActivity in fileio.cpp
-int HyPerLayer::writeBuffer(FILE * fp, InterColComm * comm, double timed, pvdata_t * buffer, int numbands, bool extended, bool contiguous, const PVLayerLoc * loc) {
-   assert(contiguous == false); // TODO contiguous == true case
-
-   // write header, but only at the beginning
-#ifdef PV_USE_MPI
-   int rank = comm->commRank();
-#else // PV_USE_MPI
-   int rank = 0;
-#endif // PV_USE_MPI
-   if( rank == 0 ) {
-      long fpos = PV_ftell(fp);
-      if (fpos == 0L) {
-         int numNeurons = loc->nx*loc->ny*loc->nf;
-         int status = pvp_write_header(fp, comm, timed, loc, PVP_NONSPIKING_ACT_FILE_TYPE,
-                                       PV_FLOAT_TYPE, numbands, extended, contiguous, NUM_BIN_PARAMS, numNeurons);
-         if (status != PV_SUCCESS) return status;
-      }
-   }
-
-   int buffersize;
-   if( extended ) {
-      buffersize = (loc->nx+2*loc->nb)*(loc->ny+2*loc->nb)*loc->nf;
-   }
-   else {
-      buffersize = loc->nx*loc->ny*loc->nf;
-   }
-   int status = PV_SUCCESS;
-   for( int band=0; band<numbands; band++ ) {
-      if ( rank==0 && PV_fwrite(&timed, sizeof(double), 1, fp) != 1 )              return -1;
-      int status1 =  write_pvdata(fp, comm, timed, buffer+band*buffersize, loc, PV_FLOAT_TYPE,
-                                  extended, contiguous, PVP_NONSPIKING_ACT_FILE_TYPE);
-      status = status1 != PV_SUCCESS ? status1 : status;
-   }
-   return status;
-}
-#endif // OBSOLETE
-
 int HyPerLayer::writeDataStoreToFile(const char * filename, InterColComm * comm, double timed) {
-   FILE * writeFile = pvp_open_write_file(filename, comm, /*append*/false);
+   PV_Stream * writeFile = pvp_open_write_file(filename, comm, /*append*/false);
    assert( (writeFile != NULL && comm->commRank() == 0) || (writeFile == NULL && comm->commRank() != 0) );
    int numlevels = comm->publisherStore(getCLayer()->layerId)->numberOfLevels();
    assert(numlevels == getCLayer()->numDelayLevels);
@@ -1670,33 +1608,6 @@ int HyPerLayer::readState(double * timef)
    return checkpointRead(last_dir, timef);
 }
 
-#ifdef OBSOLETE // Marked obsolete Jul 13, 2012.  Dumping the state is now done by CheckpointWrite.
-int HyPerLayer::writeState(float timef, bool last)
-{
-   char path[PV_PATH_MAX];
-   bool contiguous = false;
-   bool extended   = false;
-
-   int status = PV_SUCCESS;
-
-   PVLayerLoc * loc = & clayer->loc;
-   Communicator * comm = parent->icCommunicator();
-
-   const char * last_str = (last) ? "_last" : "";
-
-   if( getV() != NULL ) {
-      getOutputFilename(path, "V", last_str);
-      status |= write_pvdata(path, comm, timef, getV(), loc, PV_FLOAT_TYPE, extended, contiguous);
-   }
-
-   extended = true;
-   getOutputFilename(path, "A", last_str);
-   status |= write_pvdata(path, comm, timef, getLayerData(), loc, PV_FLOAT_TYPE, extended, contiguous);
-
-   return status;
-}
-#endif // OBSOLETE
-
 int HyPerLayer::writeActivitySparse(double timed)
 {
    int status = PV::writeActivitySparse(clayer->activeFP, parent->icCommunicator(), timed, clayer);
@@ -1723,9 +1634,9 @@ int HyPerLayer::incrementNBands(int * numCalls) {
    if( parent->icCommunicator()->commRank() == 0 ) {
       ++*numCalls;
       long int fpos = PV_ftell(clayer->activeFP);
-      fseek(clayer->activeFP, sizeof(int)*INDEX_NBANDS, SEEK_SET);
+      PV_fseek(clayer->activeFP, sizeof(int)*INDEX_NBANDS, SEEK_SET);
       int intswritten = PV_fwrite(numCalls, sizeof(int), 1, clayer->activeFP);
-      fseek(clayer->activeFP, fpos, SEEK_SET);
+      PV_fseek(clayer->activeFP, fpos, SEEK_SET);
       status = intswritten == 1 ? PV_SUCCESS : PV_FAILURE;
    }
    else {
@@ -2087,17 +1998,17 @@ int HyPerLayer::writeScalarToFile(const char * cp_dir, const char * val_name, T 
          fprintf(stderr, "writeScalarToFile error: path %s/%s_%s.bin is too long.\n", cp_dir, name, val_name);
          abort();
       }
-      FILE * fp = PV_fopen(filename, "w");
-      if (fp==NULL) {
+      PV_Stream * pvstream = PV_fopen(filename, "w");
+      if (pvstream==NULL) {
          fprintf(stderr, "HyPerLayer::writeScalarToFile error: unable to open path %s for writing.\n", filename);
          abort();
       }
-      int num_written = PV_fwrite(&val, sizeof(val), 1, fp);
+      int num_written = PV_fwrite(&val, sizeof(val), 1, pvstream);
       if (num_written != 1) {
          fprintf(stderr, "HyPerLayer::writeScalarToFile error while writing to %s.\n", filename);
          abort();
       }
-      fclose(fp);
+      PV_fclose(pvstream);
       chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_%s.txt", cp_dir, name, val_name);
       assert(chars_needed < PV_PATH_MAX);
       std::ofstream fs;

@@ -150,7 +150,7 @@ int InitV::calcVFromFile(PVLayer * clayer, InterColComm * icComm) {
    PVLayerLoc fileLoc;
    int filetype = getFileType(filename);
    if( filetype == PVP_FILE_TYPE) {
-      FILE * readFile = pvp_open_read_file(filename, icComm);
+      PV_Stream * readFile = pvp_open_read_file(filename, icComm);
       assert( (readFile != NULL && icComm->commRank() == 0) || (readFile == NULL && icComm->commRank() != 0) );
       int numParams = NUM_BIN_PARAMS;
       int params[NUM_BIN_PARAMS];

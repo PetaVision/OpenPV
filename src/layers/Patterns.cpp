@@ -917,42 +917,42 @@ int Patterns::checkpointWrite(const char * cpDir) {
 
    sprintf(filename, "%s/%s_PatternState.bin", cpDir, name);
    if( icComm->commRank() == 0 ) {
-      FILE * fp = fopen(filename, "w");
+      PV_Stream * pvstream = PV_fopen(filename, "w");
       int size = vDrops.size();
-      if( fp != NULL ) {
-         status = PV_fwrite(&type, sizeof(PatternType), 1, fp) == 1 ? status : PV_FAILURE;
-         status = PV_fwrite(&patternRandState, sizeof(uint4), 1, fp) == 1 ? status : PV_FAILURE;
+      if( pvstream != NULL ) {
+         status = PV_fwrite(&type, sizeof(PatternType), 1, pvstream) == 1 ? status : PV_FAILURE;
+         status = PV_fwrite(&patternRandState, sizeof(uint4), 1, pvstream) == 1 ? status : PV_FAILURE;
          // This should only write the variables used by PatternType type.
          // For example, DROP doesn't use orientation and BARS doesn't use nextDropFrame
-         status = PV_fwrite(&orientation, sizeof(OrientationMode), 1, fp) == 1 ? status : PV_FAILURE;
-         status = PV_fwrite(&position, sizeof(float), 1, fp) == 1 ? status : PV_FAILURE;
-         status = PV_fwrite(&nextDisplayTime, sizeof(double), 1, fp) == 1 ? status : PV_FAILURE;
-         status = PV_fwrite(&nextDropFrame, sizeof(double), 1, fp) == 1 ? status : PV_FAILURE;
-         status = PV_fwrite(&nextPosChangeFrame, sizeof(double), 1, fp) == 1 ? status : PV_FAILURE;
-         status = PV_fwrite(&initPatternCntr, sizeof(int), 1, fp) == 1 ? status : PV_FAILURE;
-         status = PV_fwrite(&xPos, sizeof(int), 1, fp) == 1 ? status : PV_FAILURE;
-         status = PV_fwrite(&yPos, sizeof(int), 1, fp) == 1 ? status : PV_FAILURE;
-         status = PV_fwrite(&size, sizeof(int), 1, fp) == 1 ? status : PV_FAILURE;
+         status = PV_fwrite(&orientation, sizeof(OrientationMode), 1, pvstream) == 1 ? status : PV_FAILURE;
+         status = PV_fwrite(&position, sizeof(float), 1, pvstream) == 1 ? status : PV_FAILURE;
+         status = PV_fwrite(&nextDisplayTime, sizeof(double), 1, pvstream) == 1 ? status : PV_FAILURE;
+         status = PV_fwrite(&nextDropFrame, sizeof(double), 1, pvstream) == 1 ? status : PV_FAILURE;
+         status = PV_fwrite(&nextPosChangeFrame, sizeof(double), 1, pvstream) == 1 ? status : PV_FAILURE;
+         status = PV_fwrite(&initPatternCntr, sizeof(int), 1, pvstream) == 1 ? status : PV_FAILURE;
+         status = PV_fwrite(&xPos, sizeof(int), 1, pvstream) == 1 ? status : PV_FAILURE;
+         status = PV_fwrite(&yPos, sizeof(int), 1, pvstream) == 1 ? status : PV_FAILURE;
+         status = PV_fwrite(&size, sizeof(int), 1, pvstream) == 1 ? status : PV_FAILURE;
          for (int k=0; k<size; k++) {
-            status = PV_fwrite(&vDrops[k], sizeof(Drop), 1, fp) == 1 ? status : PV_FAILURE;
+            status = PV_fwrite(&vDrops[k], sizeof(Drop), 1, pvstream) == 1 ? status : PV_FAILURE;
          }
-         fclose(fp);
+         PV_fclose(pvstream);
       }
       else {
          fprintf(stderr, "Unable to write to \"%s\"\n", filename);
       }
       sprintf(filename, "%s/%s_PatternState.txt", cpDir, name);
-      fp = fopen(filename, "w");
-      fprintf(fp, "Orientation = ");
+      pvstream = PV_fopen(filename, "w");
+      fprintf(pvstream->fp, "Orientation = ");
       switch(orientation) {
       case horizontal:
-         fprintf(fp, "horizontal\n");
+         fprintf(pvstream->fp, "horizontal\n");
          break;
       case vertical:
-         fprintf(fp, "vertical\n");
+         fprintf(pvstream->fp, "vertical\n");
          break;
       case mixed:
-         fprintf(fp, "mixed\n");
+         fprintf(pvstream->fp, "mixed\n");
          break;
       default:
          assert(0);
@@ -960,44 +960,44 @@ int Patterns::checkpointWrite(const char * cpDir) {
       }
       switch(type) {
       case BARS:
-         fprintf(fp, "Type = %d (BARS)\n", type);
+         fprintf(pvstream->fp, "Type = %d (BARS)\n", type);
          break;
       case RECTANGLES:
-         fprintf(fp, "Type = %d (RECTANGLES)\n", type);
+         fprintf(pvstream->fp, "Type = %d (RECTANGLES)\n", type);
          break;
       case SINEWAVE:
-         fprintf(fp, "Type = %d (SINEWAVE)\n", type);
+         fprintf(pvstream->fp, "Type = %d (SINEWAVE)\n", type);
          break;
       case COSWAVE:
-         fprintf(fp, "Type = %d (COSWAVE)\n", type);
+         fprintf(pvstream->fp, "Type = %d (COSWAVE)\n", type);
          break;
       case IMPULSE:
-         fprintf(fp, "Type = %d (IMPULSE)\n", type);
+         fprintf(pvstream->fp, "Type = %d (IMPULSE)\n", type);
          break;
       case SINEV:
-         fprintf(fp, "Type = %d (SINEV)\n", type);
+         fprintf(pvstream->fp, "Type = %d (SINEV)\n", type);
          break;
       case COSV:
-         fprintf(fp, "Type = %d (COSV)\n", type);
+         fprintf(pvstream->fp, "Type = %d (COSV)\n", type);
          break;
       case DROP:
-         fprintf(fp, "Type = %d (DROP)\n", type);
+         fprintf(pvstream->fp, "Type = %d (DROP)\n", type);
          break;
       }
-      fprintf(fp, "Random state = %u, %u, %u, %u\n", patternRandState.s0, patternRandState.state.s1, patternRandState.state.s2, patternRandState.state.s3);
-      fprintf(fp, "Position = %f\n", position);
-      fprintf(fp, "nextDisplayTime = %f\n", nextDisplayTime);
-      fprintf(fp, "initPatternCntr = %d\n", initPatternCntr);
-      fprintf(fp, "nextDropFrame = %f\n", nextDropFrame);
-      fprintf(fp, "nextPosChangeFrame = %f\n", nextPosChangeFrame);
-      fprintf(fp, "xPos = %d\n", xPos);
-      fprintf(fp, "yPos = %d\n", yPos);
-      fprintf(fp, "size of vDrops vector = %d\n", size);
+      fprintf(pvstream->fp, "Random state = %u, %u, %u, %u\n", patternRandState.s0, patternRandState.state.s1, patternRandState.state.s2, patternRandState.state.s3);
+      fprintf(pvstream->fp, "Position = %f\n", position);
+      fprintf(pvstream->fp, "nextDisplayTime = %f\n", nextDisplayTime);
+      fprintf(pvstream->fp, "initPatternCntr = %d\n", initPatternCntr);
+      fprintf(pvstream->fp, "nextDropFrame = %f\n", nextDropFrame);
+      fprintf(pvstream->fp, "nextPosChangeFrame = %f\n", nextPosChangeFrame);
+      fprintf(pvstream->fp, "xPos = %d\n", xPos);
+      fprintf(pvstream->fp, "yPos = %d\n", yPos);
+      fprintf(pvstream->fp, "size of vDrops vector = %d\n", size);
       for (int k=0; k<size; k++) {
-         fprintf(fp, "   element %d: centerX = %d, centerY = %d, speed = %f, radius = %f, on = %d\n",
+         fprintf(pvstream->fp, "   element %d: centerX = %d, centerY = %d, speed = %f, radius = %f, on = %d\n",
                      k, vDrops[k].centerX, vDrops[k].centerY, vDrops[k].speed, vDrops[k].radius, vDrops[k].on);
       }
-      fclose(fp);
+      PV_fclose(pvstream);
    }
    free(filename); filename=NULL;
    return PV_SUCCESS;
