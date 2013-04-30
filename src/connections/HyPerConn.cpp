@@ -1272,13 +1272,13 @@ int HyPerConn::checkpointRead(const char * cpDir, double * timef) {
    int chars_needed = snprintf(path, PV_PATH_MAX, "%s/%s_nextWrite.bin", cpDir, name);
    assert(chars_needed < PV_PATH_MAX);
    if( parent->icCommunicator()->commRank() == 0 ) {
-      FILE * fpWriteTime = fopen(path, "r");
       double write_time = writeTime;
-      if (fpWriteTime==NULL) {
+      PV_Stream * writeTimeStream = PV_fopen(path, "r");
+      if (writeTimeStream==NULL) {
          fprintf(stderr, "HyPerConn::checkpointRead warning: unable to open path %s for reading.  writeTime will be %f\n", path, write_time);
       }
       else {
-         int num_read = fread(&writeTime, sizeof(writeTime), 1, fpWriteTime);
+         int num_read = fread(&writeTime, sizeof(writeTime), 1, writeTimeStream->fp);
          if (num_read != 1) {
             fprintf(stderr, "HyPerConn::checkpointRead warning: unable to read from %s.  writeTime will be %f\n", path, write_time);
             writeTime = write_time;
@@ -1292,7 +1292,7 @@ int HyPerConn::checkpointRead(const char * cpDir, double * timef) {
             writeTime = parent->simulationTime();
          }
       }
-      fclose(fpWriteTime);
+      PV_fclose(writeTimeStream);
    }
    //writeTime
    MPI_Bcast(&writeTime, 1, MPI_DOUBLE, 0, parent->icCommunicator()->communicator());
