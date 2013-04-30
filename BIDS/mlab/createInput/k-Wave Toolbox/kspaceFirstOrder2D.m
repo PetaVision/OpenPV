@@ -647,18 +647,19 @@ end
 
 % initialise the figures used for animation if 'PlotSim' is set to 'true'
 if plot_sim
-    img = figure;
+    %img = figure; %%DP
     if ~time_rev
         pbar = waitbar(0, 'Computing Pressure Field', 'Visible', 'off');
     else
-        pbar = waitbar(0, 'Computing Time Reversed Field', 'Visible', 'off');
+        %pbar = waitbar(0, 'Computing Time Reversed Field', 'Visible', 'off'); %% DP
+        pbar = waitbar(0, 'Computing Time Reversed Field', 'Visible', 'on'); %% DP
     end
     
     % shift the waitbar so it doesn't overlap the figure window
-    posn_pbar = get(pbar, 'OuterPosition');
-    posn_img = get(img, 'OuterPosition');
-    posn_pbar(2) = max(min(posn_pbar(2) - posn_pbar(4), posn_img(2) - posn_pbar(4) - 10), 0);
-    set(pbar, 'OuterPosition', posn_pbar, 'Visible', 'on');
+    %posn_pbar = get(pbar, 'OuterPosition'); %%DP
+    %posn_img = get(img, 'OuterPosition'); %%DP
+    %posn_pbar(2) = max(min(posn_pbar(2) - posn_pbar(4), posn_img(2) - posn_pbar(4) - 10), 0); %%DP
+    %set(pbar, 'OuterPosition', posn_pbar, 'Visible', 'on'); %%DP
 end 
 
 % initialise movie parameters if 'RecordMovie' is set to 'true'
@@ -677,13 +678,14 @@ disp('  starting time loop...');
 % restart timing variables
 loop_start_time = clock;
 tic;
-xlen = length(x1:x2);
-ylen = length(y1:y2);
 
-p_plots_all = zeros(xlen, ylen, length(index_start:index_step:index_end));
+xlen = length(x1:x2); %%DP
+ylen = length(y1:y2); %%DP
+
+p_plots_all = zeros(xlen, ylen, length(index_start:index_step:index_end)); %%DP
 
 count = 0;
-frame_index = 1;
+frame_index = 1; %%DP
 
 % start time loop
 for t_index = index_start:index_step:index_end
@@ -946,54 +948,50 @@ for t_index = index_start:index_step:index_end
                         
         else
             
-            % update plot
-            imagesc(kgrid.y_vec(y1:y2)*scale, kgrid.x_vec(x1:x2)*scale, p_plot, plot_scale);
-            colormap(COLOR_MAP);
-            ylabel(['x-position [' prefix 'm]']);
-            xlabel(['y-position [' prefix 'm]']);
-            axis image;
+            % update plot %%DP
+            %imagesc(kgrid.y_vec(y1:y2)*scale, kgrid.x_vec(x1:x2)*scale, p_plot, plot_scale); %%DP
+            %colormap(COLOR_MAP); %%DP
+            %ylabel(['x-position [' prefix 'm]']); %%DP
+            %xlabel(['y-position [' prefix 'm]']); %%DP
+            %axis image; %%DP
             
         end
 
         % force plot update
-        drawnow;        
+        %drawnow;  %%DP      
+
+        p_plots_all(:,:,frame_index) = p_plot; %%DP
+        % update frame index %%DP
+        frame_index = frame_index  + 1; %%DP  
 
         % save movie frame if required
         if record_movie
-           
             count = count + 1; 
-            p_plots_all(:,:,frame_index) = p_plot;
-           % if strcmp(movie_type, 'frame')
+            if strcmp(movie_type, 'frame')
 
-           %     % set background color to white
-           %     set(gcf, 'Color', [1 1 1]);
+                % set background color to white
+                set(gcf, 'Color', [1 1 1]);
 
-           %     % save the movie frame
-           %     movie_frames(frame_index) = getframe(gcf);
+                % save the movie frame
+                movie_frames(frame_index) = getframe(gcf);
+            else
+                % scale the image data from 1 -> length(COLOR_MAP) using the
+                % plot_scale used for the simulation animation
+                if ne(exist(movie_name),7)
+                   mkdir(movie_name)
+                end
+            
+                file_name = [movie_name, '/p_plots_', num2str(frame_index), '.png'];
+                dlmwrite(file_name, p_plot);
 
-           % else
+                p_plot(p_plot > plot_scale(2)) = plot_scale(2);
+                p_plot(p_plot < plot_scale(1)) = plot_scale(1);
+                p_plot = (length(COLOR_MAP) - 1).*(p_plot + abs(plot_scale(1)))./(plot_scale(2) + abs(plot_scale(1))) + 1;
 
-           %     % scale the image data from 1 -> length(COLOR_MAP) using the
-           %     % plot_scale used for the simulation animation
-           %     %if ne(exist(movie_name),7)
-           %     %   mkdir(movie_name)
-           %     %end
-           % 
-           %     %file_name = [movie_name, '/p_plots_', num2str(frame_index), '.png'];
-           %     %dlmwrite(file_name, p_plot);
-
-
-           %     p_plot(p_plot > plot_scale(2)) = plot_scale(2);
-           %     p_plot(p_plot < plot_scale(1)) = plot_scale(1);
-           %     p_plot = (length(COLOR_MAP) - 1).*(p_plot + abs(plot_scale(1)))./(plot_scale(2) + abs(plot_scale(1))) + 1;
-
-           %     % save the movie frame
-           %     movie_frames(frame_index) = im2frame(p_plot, COLOR_MAP);
-           %     
-           % end
-           % 
-           % % update frame index
-            frame_index = frame_index  + 1;  
+                % save the movie frame
+                movie_frames(frame_index) = im2frame(p_plot, COLOR_MAP);
+                
+            end
         end
         
         % update variable used for timing variable to exclude the first
@@ -1018,13 +1016,14 @@ disp(['  simulation completed in ' scaleTime(toc)]);
 
 % save the movie frames to disk
 if record_movie
-%    kspaceFirstOrder_saveMovieFile;   
+    kspaceFirstOrder_saveMovieFile;   
 end
 
 % clean up used figures
 if plot_sim
-    close(img);
-    close(pbar);
+    %close(img);
+    %close(pbar);
+    close all; %%%DP
 end
 
 % reset the indexing variables to allow original grid size to be maintained

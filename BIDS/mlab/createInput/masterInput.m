@@ -6,15 +6,13 @@
 %%       All spatial (distance) parameters are multiplied by beta = (350/1500)*(6000) = 1400
 %%    
 %%    Desired units:
-%%       Grid size:      60m x 60m
-%%       Time step:      0.12e-3 s
-%%       Wave freq:      125 Hz
-%%       Wave speed:     350 m/s
-%%       Object speed:   8.9408 m/s (20mph)
-%%       Attenuation:    none
-%%       Wave amplitude: arbitrary - scaled with respect to noise levels to fix SNR
-%%       
-%%       
+%%       Grid size:          60m x 60m
+%%       Time step:          0.12e-3 s
+%%       Wave freq:          125 Hz
+%%       Wave speed:         350 m/s
+%%       Object speed:       8.9408 m/s (20mph)
+%%       Medium Attenuation: none
+%%       Wave amplitude:     arbitrary - scaled with respect to noise levels to fix SNR
 %%
 %%  D M Paiton, G T Kenyon, S Y Lundquist
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -43,19 +41,21 @@ medium.sound_speed = 1500; % [m/s]
 medium.alpha_coeff = 0;    % [dB/MHz^y cm]
 medium.alpha_power = 1.01; % y
 
+%Radius for removing center dot
+SOURCE_RAD = 10;           % [px]
+
 %Noise properties
 BETA = -1;                 % 0 is gaussian white, -1 is pink, -2 is Brownian
 NOISE_SCALE = .01;         % (1 - NOISE_SCALE) = SNR (i.e. 80% is 0.2)
 
 %File Locations
 SIMULATION_FILENAME = './simulation_output.mat';
-NOISE_FILENAME      = './noise_output.mat';
-MOVIE_NAME          = '~/plot';
-OUTPUT_DIR          = '~/wave_stimulus';
+NOISE_FILENAME      = './noise_output_90.mat';
+OUTPUT_DIR          = '~/wave_stimulus_90';
 
 %Clobbering preferences
-CLOBBER_SIMULATION = 1;
-CLOBBER_NOISE      = 1;
+CLOBBER_SIMULATION = 0;
+CLOBBER_NOISE      = 0;
 
 %%%%%%%%%%%%%
 %Main code
@@ -72,8 +72,10 @@ if ~exist(SIMULATION_FILENAME) || CLOBBER_SIMULATION
     createInput;
 
     %Remove orig drop from matrix
-    orig_drop = 1 - orig_drop;
-    all_wave = bsxfun(@times, orig_drop, all_wave); %%TODO: This might be cheating - check with Gar
+    %orig_drop = 1 - orig_drop;
+    %all_wave = bsxfun(@times, orig_drop, all_wave); %%TODO: This might be cheating - check with Gar
+
+    %Save
     disp('Saving simulation output...')
     save(SIMULATION_FILENAME,'all_wave','-v7.3');
 else
