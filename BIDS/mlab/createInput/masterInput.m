@@ -14,7 +14,13 @@
 %%       Medium Attenuation: none
 %%       Wave amplitude:     arbitrary - scaled with respect to noise levels to fix SNR
 %%
+%%    The following script generates png files that can be interpreted (using the above units)
+%%    as a pure tone sine wave representation of a vehicle's noise spectrum. The predominant
+%%    frequency for a vehicle is at about 125 Hz, which is found in Hillquist et al, 1975.
+%%
 %%  D M Paiton, G T Kenyon, S Y Lundquist
+%%  2013
+%%  Los Alamos National Laboratory, New Mexico Institute of Mining and Technology
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
