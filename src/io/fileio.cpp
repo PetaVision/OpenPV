@@ -64,7 +64,7 @@ PV_Stream * PV_fopen(const char * path, const char * mode) {
       fp = fopen(path, mode);
       if (fp != NULL) break;
       fopencounts++;
-      fprintf(stderr, "fopen failure on attempt %d: %s\n", fopencounts, strerror(errno));
+      fprintf(stderr, "fopen failure for \"%s\" on attempt %d: %s\n", path, fopencounts, strerror(errno));
       if (fopencounts < MAX_FILESYSTEMCALL_TRIES) {
          sleep(1);
       }
@@ -76,6 +76,9 @@ PV_Stream * PV_fopen(const char * path, const char * mode) {
       fprintf(stderr, "PV_fopen error for \"%s\": MAX_FILESYSTEMCALL_TRIES = %d exceeded\n", path, MAX_FILESYSTEMCALL_TRIES);
    }
    else {
+      if (fopencounts>0) {
+         fprintf(stderr, "fopen succeeded for \"%s\" on attempt %d\n", path, fopencounts+1);
+      }
       streampointer = (PV_Stream *) calloc(1, sizeof(PV_Stream));
       if (streampointer != NULL) {
          streampointer->name = strdup(path);
@@ -109,6 +112,9 @@ long int PV_ftell(PV_Stream * pvstream) {
    if (filepos<0) {
       fprintf(stderr, "PV_ftell failure for \"%s\": MAX_FILESYSTEMCALL_TRIES = %d exceeded\n", pvstream->name, MAX_FILESYSTEMCALL_TRIES);
    }
+   else if (ftellcounts>0) {
+      fprintf(stderr, "PV_ftell succeeded for \"%s\" on attempt %d", pvstream->name, ftellcounts+1);
+   }
    return filepos;
 }
 
@@ -131,6 +137,9 @@ int PV_fseek(PV_Stream * pvstream, long offset, int whence) {
    if (fseekstatus!=0) {
       fprintf(stderr, "PV_fseek failure for \"%s\": MAX_FILESYSTEMCALL_TRIES = %d exceeded\n", pvstream->name, MAX_FILESYSTEMCALL_TRIES);
    }
+   else if (fseekcounts>0) {
+      fprintf(stderr, "PV_fseek succeeded for \"%s\" on attempt %d", pvstream->name, fseekcounts+1);
+   }
    return fseekstatus;
 }
 
@@ -145,7 +154,10 @@ size_t PV_fwrite(const void * RESTRICT ptr, size_t size, size_t nitems, PV_Strea
       }
       fwritten = fwrite(ptr, size, nitems, pvstream->fp);
       if (fwritten == nitems) {
-    	  return fwritten;
+    	 if (fwritecounts>0) {
+    	    fprintf(stderr, "fwrite succeeded for \"%s\" on attempt %d.\n", pvstream->name, fwritecounts++);
+    	 }
+         return fwritten;
       }
       fwritecounts++;
       if (fwritecounts<MAX_FILESYSTEMCALL_TRIES) {
