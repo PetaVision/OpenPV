@@ -54,13 +54,11 @@ while t_index < length(kgrid.t_array) && sensor_index < num_source_positions - 1
     t_index = t_index + 1;
 end
 
-orig_drop = source.p_mask;
-
 %Sensor mask
 sensor = [];
 
 %input arguments for movie recording
-input_args = {'PlotFreq', 1,'PlotPML',false,'PlotSim',true}; %%To plot movie
+input_args = {'PlotFreq', 1,'PlotPML',true,'PMLInside',true,'PlotSim',true}; %%To plot movie
 sensor_data = kspaceFirstOrder2D(kgrid, medium, source, sensor, input_args{:});
 all_wave = sensor_data.p_plots_all;
 count = sensor_data.count;

@@ -648,12 +648,11 @@ end
 % initialise the figures used for animation if 'PlotSim' is set to 'true'
 if plot_sim
     %img = figure; %%DP
-    if ~time_rev
-        pbar = waitbar(0, 'Computing Pressure Field', 'Visible', 'off');
-    else
-        %pbar = waitbar(0, 'Computing Time Reversed Field', 'Visible', 'off'); %% DP
-        pbar = waitbar(0, 'Computing Time Reversed Field', 'Visible', 'on'); %% DP
-    end
+    %if ~time_rev %%DP
+    %    pbar = waitbar(0, 'Computing Pressure Field', 'Visible', 'off'); %%DP
+    %else %%DP
+    %    pbar = waitbar(0, 'Computing Time Reversed Field', 'Visible', 'off'); %%DP
+    %end %%DP
     
     % shift the waitbar so it doesn't overlap the figure window
     %posn_pbar = get(pbar, 'OuterPosition'); %%DP
@@ -913,8 +912,8 @@ for t_index = index_start:index_step:index_end
     if plot_sim && (rem(t_index, plot_freq) == 0 || t_index == 1 || t_index == index_end) 
 
         % update progress bar
-        waitbar(t_index/length(t_array), pbar);
-        drawnow;   
+        %waitbar(t_index/length(t_array), pbar); %%DP
+        %drawnow; %%DP
 
         % ensure p is cast as a CPU variable and remove the PML from the
         % plot if required
