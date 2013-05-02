@@ -1263,11 +1263,11 @@ int HyPerLayer::checkpointRead(const char * cpDir, double * timed) {
       fprintf(stderr, "Warning: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, filetime, *timed);
    }
 
-   parent->readScalarFromFile(cpDir, "nextWrite", &writeTime, writeTime);
+   parent->readScalarFromFile(cpDir, getName(), "nextWrite", &writeTime, writeTime);
 
    if (ioAppend) {
       long activityfilepos = 0L;
-      parent->readScalarFromFile(cpDir, "filepos", &activityfilepos);
+      parent->readScalarFromFile(cpDir, getName(), "filepos", &activityfilepos);
       if (parent->columnId()==0) {
          assert(clayer->activeFP);
          if (PV_fseek(clayer->activeFP, activityfilepos, SEEK_SET) != 0) {
@@ -1296,7 +1296,7 @@ int HyPerLayer::checkpointRead(const char * cpDir, double * timed) {
       MPI_Bcast(statstatus, 2, MPI_INT, 0/*root*/, icComm->communicator());
 
       if (statstatus[0]==0) {
-         parent->readScalarFromFile(cpDir, nfname, num_calls_ptr, 0);
+         parent->readScalarFromFile(cpDir, getName(), nfname, num_calls_ptr, 0);
       }
       else {
          if (statstatus[1] == ENOENT) {
@@ -1424,7 +1424,7 @@ int HyPerLayer::readDataStoreFromFile(const char * filename, InterColComm * comm
    return status;
 }
 
-#ifdef OBSOLETE // Marked obsolete May 1, 2013.  Use template function readScalarFromFile instead
+#ifdef OBSOLETE // Marked obsolete May 1, 2013.  Use HyPerCol template function readScalarFromFile instead
 int HyPerLayer::readScalarFloat(const char * cp_dir, const char * val_name, double * val_ptr, double default_value) {
    int status = PV_SUCCESS;
    if( parent->icCommunicator()->commRank() == 0 ) {
@@ -1483,21 +1483,21 @@ int HyPerLayer::checkpointWrite(const char * cpDir) {
    assert(chars_needed < PV_PATH_MAX);
    writeDataStoreToFile(filename, icComm, timed);
 
-   parent->writeScalarToFile(cpDir, "nextWrite", writeTime);
+   parent->writeScalarToFile(cpDir, getName(), "nextWrite", writeTime);
 
    if (parent->columnId()==0) {
       if (clayer->activeFP) {
          long activityfilepos = PV_ftell(clayer->activeFP);
-         parent->writeScalarToFile(cpDir, "filepos", activityfilepos);
+         parent->writeScalarToFile(cpDir, getName(), "filepos", activityfilepos);
       }
    }
 
    if (writeStep>=0.0f) {
       if (writeSparseActivity) {
-         parent->writeScalarToFile(cpDir, "numframes_sparse", writeActivitySparseCalls);
+         parent->writeScalarToFile(cpDir, getName(), "numframes_sparse", writeActivitySparseCalls);
       }
       else {
-         parent->writeScalarToFile(cpDir, "numframes", writeActivityCalls);
+         parent->writeScalarToFile(cpDir, getName(), "numframes", writeActivityCalls);
       }
    }
 

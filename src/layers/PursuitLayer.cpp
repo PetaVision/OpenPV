@@ -164,7 +164,7 @@ int PursuitLayer::checkpointRead(const char * cpDir, double * timef) {
       foundFeatures[k] = (int) buffer1feature[k];
    }
 
-   status = parent->readScalarFromFile(cpDir, "nextUpdate", &nextUpdate, firstUpdate);
+   status = parent->readScalarFromFile(cpDir, getName(), "nextUpdate", &nextUpdate, firstUpdate);
    assert(status == PV_SUCCESS);
    return status;
 }
@@ -197,7 +197,7 @@ int PursuitLayer::checkpointWrite(const char * cpDir) {
    pvdata_t * buffer1ptr = buffer1feature;
    writeBufferFile(filename, icComm, timed, &buffer1ptr, 1/*numbands*/, false/*extended*/, &flat_loc);
 
-   status = parent->writeScalarToFile(cpDir, "nextUpdate", nextUpdate);
+   status = parent->writeScalarToFile(cpDir, getName(), "nextUpdate", nextUpdate);
    assert(status==PV_SUCCESS);
 
    free(filename);

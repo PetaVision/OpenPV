@@ -1273,7 +1273,7 @@ int HyPerConn::checkpointRead(const char * cpDir, double * timef) {
    InitWeights * weightsInitObject = new InitWeights();
    weightsInitObject->initializeWeights(wPatches, get_wDataStart(), getNumDataPatches(), path, this, timef);
 
-   status = parent->readScalarFromFile(cpDir, "nextWrite", &writeTime, writeTime);
+   status = parent->readScalarFromFile(cpDir, getName(), "nextWrite", &writeTime, writeTime);
    assert(status == PV_SUCCESS);
 
    return status;
@@ -1285,7 +1285,7 @@ int HyPerConn::checkpointWrite(const char * cpDir) {
    assert(status==PV_SUCCESS);
    status = writeWeights(wPatches, wDataStart, getNumWeightPatches(), filename, parent->simulationTime(), writeCompressedCheckpoints, /*last*/true);
    assert(status==PV_SUCCESS);
-   status = parent->writeScalarToFile(cpDir, "nextWrite", writeTime);
+   status = parent->writeScalarToFile(cpDir, getName(), "nextWrite", writeTime);
    assert(status==PV_SUCCESS);
    return status;
 }

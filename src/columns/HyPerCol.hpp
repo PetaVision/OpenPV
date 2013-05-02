@@ -124,9 +124,9 @@ public:
    int ensureDirExists(const char * dirname);
 
    template <typename T>
-   int writeScalarToFile(const char * cp_dir, const char * val_name, T val);
+   int writeScalarToFile(const char * cp_dir, const char * group_name, const char * val_name, T val);
    template <typename T>
-   int readScalarFromFile(const char * cp_dir, const char * val_name, T * val, T default_value=(T) 0);
+   int readScalarFromFile(const char * cp_dir, const char * group_name, const char * val_name, T * val, T default_value=(T) 0);
 
 private:
    int initialize(const char * name, int argc, char ** argv, PVParams * params);

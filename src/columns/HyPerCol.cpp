@@ -1338,13 +1338,13 @@ int HyPerCol::lCheckMarginWidth(HyPerLayer * layer, const char * dim, int layerS
 }
 
 template <typename T>
-int HyPerCol::writeScalarToFile(const char * cp_dir, const char * val_name, T val) {
+int HyPerCol::writeScalarToFile(const char * cp_dir, const char * group_name, const char * val_name, T val) {
    int status = PV_SUCCESS;
    if (columnId()==0)  {
       char filename[PV_PATH_MAX];
-      int chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_%s.bin", cp_dir, name, val_name);
+      int chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_%s.bin", cp_dir, group_name, val_name);
       if (chars_needed >= PV_PATH_MAX) {
-         fprintf(stderr, "writeScalarToFile error: path %s/%s_%s.bin is too long.\n", cp_dir, name, val_name);
+         fprintf(stderr, "writeScalarToFile error: path %s/%s_%s.bin is too long.\n", cp_dir, group_name, val_name);
          abort();
       }
       PV_Stream * pvstream = PV_fopen(filename, "w");
@@ -1358,7 +1358,7 @@ int HyPerCol::writeScalarToFile(const char * cp_dir, const char * val_name, T va
          abort();
       }
       PV_fclose(pvstream);
-      chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_%s.txt", cp_dir, name, val_name);
+      chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_%s.txt", cp_dir, group_name, val_name);
       assert(chars_needed < PV_PATH_MAX);
       std::ofstream fs;
       fs.open(filename);
@@ -1372,20 +1372,20 @@ int HyPerCol::writeScalarToFile(const char * cp_dir, const char * val_name, T va
    }
    return status;
 }
-template int HyPerCol::writeScalarToFile<int>(char const * cpDir, char const * val_name, int val);
-template int HyPerCol::writeScalarToFile<long>(char const * cpDir, char const * val_name, long val);
-template int HyPerCol::writeScalarToFile<float>(char const * cpDir, char const * val_name, float val);
-template int HyPerCol::writeScalarToFile<double>(char const * cpDir, char const * val_name, double val);
+template int HyPerCol::writeScalarToFile<int>(char const * cpDir, const char * group_name, char const * val_name, int val);
+template int HyPerCol::writeScalarToFile<long>(char const * cpDir, const char * group_name, char const * val_name, long val);
+template int HyPerCol::writeScalarToFile<float>(char const * cpDir, const char * group_name, char const * val_name, float val);
+template int HyPerCol::writeScalarToFile<double>(char const * cpDir, const char * group_name, char const * val_name, double val);
 
 template <typename T>
-int HyPerCol::readScalarFromFile(const char * cp_dir, const char * val_name, T * val, T default_value) {
+int HyPerCol::readScalarFromFile(const char * cp_dir, const char * group_name, const char * val_name, T * val, T default_value) {
    int status = PV_SUCCESS;
    if( columnId() == 0 ) {
       char filename[PV_PATH_MAX];
       int chars_needed;
-      chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_%s.bin", cp_dir, getName(), val_name);
+      chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_%s.bin", cp_dir, group_name, val_name);
       if(chars_needed >= PV_PATH_MAX) {
-         fprintf(stderr, "HyPerLayer::readScalarFloat error: path %s/%s_%s.bin is too long.\n", cp_dir, getName(), val_name);
+         fprintf(stderr, "HyPerLayer::readScalarFloat error: path %s/%s_%s.bin is too long.\n", cp_dir, group_name, val_name);
          abort();
       }
       FILE * fp = fopen(filename, "r");
@@ -1411,9 +1411,9 @@ int HyPerCol::readScalarFromFile(const char * cp_dir, const char * val_name, T *
 
    return status;
 }
-template int HyPerCol::readScalarFromFile<int>(char const * cpDir, char const * val_name, int * val, int default_value);
-template int HyPerCol::readScalarFromFile<long>(char const * cpDir, char const * val_name, long * val, long default_value);
-template int HyPerCol::readScalarFromFile<float>(char const * cpDir, char const * val_name, float * val, float default_value);
-template int HyPerCol::readScalarFromFile<double>(char const * cpDir, char const * val_name, double * val, double default_value);
+template int HyPerCol::readScalarFromFile<int>(char const * cpDir, const char * group_name, char const * val_name, int * val, int default_value);
+template int HyPerCol::readScalarFromFile<long>(char const * cpDir, const char * group_name, char const * val_name, long * val, long default_value);
+template int HyPerCol::readScalarFromFile<float>(char const * cpDir, const char * group_name, char const * val_name, float * val, float default_value);
+template int HyPerCol::readScalarFromFile<double>(char const * cpDir, const char * group_name, char const * val_name, double * val, double default_value);
 
 } // PV namespace
