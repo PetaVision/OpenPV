@@ -63,7 +63,6 @@ DerivedLayer::initialize(arguments) {
 #include "../include/pv_common.h"
 #include "../include/pv_types.h"
 #include "../utils/Timer.hpp"
-#include <fstream>
 
 #ifndef PV_USE_OPENCL
 #  include "../layers/updateStateFunctions.h"
@@ -108,6 +107,7 @@ protected:
    int incrementNBands(int * numCalls);
    int writeDataStoreToFile(const char * filename, InterColComm * comm, double dtime);
    virtual int calcActiveIndices();
+#ifdef OBSOLETE // Marked obsolete May 1, 2013.  Use HyPerCol template functions readScalarFromFile and writeScalarToFile instead
    int readScalarFloat(const char * cp_dir, const char * val_name, double * val_ptr, double default_value=0.0f);
    int writeScalarFloat(const char * cp_dir, const char * val_name, double value);
 
@@ -115,6 +115,7 @@ protected:
    int writeScalarToFile(const char * cp_dir, const char * val_name, T val);
    template <typename T>
    int readScalarFromFile(const char * cp_dir, const char * val_name, T * val, T default_value=(T) 0);
+#endif // OBSOLETE
 
    pvdata_t * getActivity()          {return clayer->activity->data;}
 

@@ -1005,6 +1005,11 @@ int HyPerConn::writeWeights(PVPatch *** patches, pvdata_t ** dataStart, int numP
 
 int HyPerConn::writeTextWeights(const char * filename, int k)
 {
+   if (parent->icCommunicator()->commSize()>1) {
+      fprintf(stderr, "writeTextWeights error for connection \"%s\": writeTextWeights is not compatible with MPI", name);
+      abort();
+      // NOTE : if run under MPI when more than one process sees the same file system, the contending processes will clobber each other.
+   }
    PV_Stream * pvstream = NULL;
 
    if (filename != NULL) {
@@ -1268,34 +1273,9 @@ int HyPerConn::checkpointRead(const char * cpDir, double * timef) {
    InitWeights * weightsInitObject = new InitWeights();
    weightsInitObject->initializeWeights(wPatches, get_wDataStart(), getNumDataPatches(), path, this, timef);
 
+   status = parent->readScalarFromFile(cpDir, "nextWrite", &writeTime, writeTime);
+   assert(status == PV_SUCCESS);
 
-   int chars_needed = snprintf(path, PV_PATH_MAX, "%s/%s_nextWrite.bin", cpDir, name);
-   assert(chars_needed < PV_PATH_MAX);
-   if( parent->icCommunicator()->commRank() == 0 ) {
-      double write_time = writeTime;
-      PV_Stream * writeTimeStream = PV_fopen(path, "r");
-      if (writeTimeStream==NULL) {
-         fprintf(stderr, "HyPerConn::checkpointRead warning: unable to open path %s for reading.  writeTime will be %f\n", path, write_time);
-      }
-      else {
-         int num_read = fread(&writeTime, sizeof(writeTime), 1, writeTimeStream->fp);
-         if (num_read != 1) {
-            fprintf(stderr, "HyPerConn::checkpointRead warning: unable to read from %s.  writeTime will be %f\n", path, write_time);
-            writeTime = write_time;
-         }
-         //Check that writeTime is set properly based on new writeStep
-         if (writeStep > 0){
-            int N = ceil(parent->simulationTime()/writeStep);
-            writeTime = N*writeStep;
-         }
-         else{
-            writeTime = parent->simulationTime();
-         }
-      }
-      PV_fclose(writeTimeStream);
-   }
-   //writeTime
-   MPI_Bcast(&writeTime, 1, MPI_DOUBLE, 0, parent->icCommunicator()->communicator());
    return status;
 }
 
@@ -1305,7 +1285,7 @@ int HyPerConn::checkpointWrite(const char * cpDir) {
    assert(status==PV_SUCCESS);
    status = writeWeights(wPatches, wDataStart, getNumWeightPatches(), filename, parent->simulationTime(), writeCompressedCheckpoints, /*last*/true);
    assert(status==PV_SUCCESS);
-   status = writeScalarFloat(cpDir, "nextWrite", writeTime);
+   status = parent->writeScalarToFile(cpDir, "nextWrite", writeTime);
    assert(status==PV_SUCCESS);
    return status;
 }
@@ -1321,6 +1301,7 @@ int HyPerConn::checkpointFilename(char * cpFilename, int size, const char * cpDi
    return PV_SUCCESS;
 }
 
+#ifdef OBSOLETE // Marked obsolete May 1, 2013.  Use HyPerCol's writeScalarToFile instead
 int HyPerConn::writeScalarFloat(const char * cp_dir, const char * val_name, double val) {
    int status = PV_SUCCESS;
    if (parent->columnId()==0)  {
@@ -1353,6 +1334,7 @@ int HyPerConn::writeScalarFloat(const char * cp_dir, const char * val_name, doub
    }
    return status;
 }
+#endif // OBSOLETE
 
 float HyPerConn::maxWeight(int arborId)
 {

@@ -1263,11 +1263,11 @@ int HyPerLayer::checkpointRead(const char * cpDir, double * timed) {
       fprintf(stderr, "Warning: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, filetime, *timed);
    }
 
-   readScalarFromFile(cpDir, "nextWrite", &writeTime, writeTime);
+   parent->readScalarFromFile(cpDir, "nextWrite", &writeTime, writeTime);
 
    if (ioAppend) {
       long activityfilepos = 0L;
-      readScalarFromFile(cpDir, "filepos", &activityfilepos);
+      parent->readScalarFromFile(cpDir, "filepos", &activityfilepos);
       if (parent->columnId()==0) {
          assert(clayer->activeFP);
          if (PV_fseek(clayer->activeFP, activityfilepos, SEEK_SET) != 0) {
@@ -1296,7 +1296,7 @@ int HyPerLayer::checkpointRead(const char * cpDir, double * timed) {
       MPI_Bcast(statstatus, 2, MPI_INT, 0/*root*/, icComm->communicator());
 
       if (statstatus[0]==0) {
-         readScalarFromFile(cpDir, nfname, num_calls_ptr, 0);
+         parent->readScalarFromFile(cpDir, nfname, num_calls_ptr, 0);
       }
       else {
          if (statstatus[1] == ENOENT) {
@@ -1424,6 +1424,7 @@ int HyPerLayer::readDataStoreFromFile(const char * filename, InterColComm * comm
    return status;
 }
 
+#ifdef OBSOLETE // Marked obsolete May 1, 2013.  Use template function readScalarFromFile instead
 int HyPerLayer::readScalarFloat(const char * cp_dir, const char * val_name, double * val_ptr, double default_value) {
    int status = PV_SUCCESS;
    if( parent->icCommunicator()->commRank() == 0 ) {
@@ -1453,6 +1454,7 @@ int HyPerLayer::readScalarFloat(const char * cp_dir, const char * val_name, doub
 
    return status;
 }
+#endif // OBSOLETE
 
 int HyPerLayer::checkpointWrite(const char * cpDir) {
    // Writes checkpoint files for V, A, and datastore to files in working directory
@@ -1481,21 +1483,21 @@ int HyPerLayer::checkpointWrite(const char * cpDir) {
    assert(chars_needed < PV_PATH_MAX);
    writeDataStoreToFile(filename, icComm, timed);
 
-   writeScalarToFile(cpDir, "nextWrite", writeTime);
+   parent->writeScalarToFile(cpDir, "nextWrite", writeTime);
 
    if (parent->columnId()==0) {
       if (clayer->activeFP) {
          long activityfilepos = PV_ftell(clayer->activeFP);
-         writeScalarToFile(cpDir, "filepos", activityfilepos);
+         parent->writeScalarToFile(cpDir, "filepos", activityfilepos);
       }
    }
 
    if (writeStep>=0.0f) {
       if (writeSparseActivity) {
-         writeScalarToFile(cpDir, "numframes_sparse", writeActivitySparseCalls);
+         parent->writeScalarToFile(cpDir, "numframes_sparse", writeActivitySparseCalls);
       }
       else {
-         writeScalarToFile(cpDir, "numframes", writeActivityCalls);
+         parent->writeScalarToFile(cpDir, "numframes", writeActivityCalls);
       }
    }
 
@@ -1986,77 +1988,6 @@ int HyPerLayer::copyFromBuffer(const T * buf, T * data,
       }
    }
    return 0;
-}
-
-template <typename T>
-int HyPerLayer::writeScalarToFile(const char * cp_dir, const char * val_name, T val) {
-   int status = PV_SUCCESS;
-   if (parent->columnId()==0)  {
-      char filename[PV_PATH_MAX];
-      int chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_%s.bin", cp_dir, name, val_name);
-      if (chars_needed >= PV_PATH_MAX) {
-         fprintf(stderr, "writeScalarToFile error: path %s/%s_%s.bin is too long.\n", cp_dir, name, val_name);
-         abort();
-      }
-      PV_Stream * pvstream = PV_fopen(filename, "w");
-      if (pvstream==NULL) {
-         fprintf(stderr, "HyPerLayer::writeScalarToFile error: unable to open path %s for writing.\n", filename);
-         abort();
-      }
-      int num_written = PV_fwrite(&val, sizeof(val), 1, pvstream);
-      if (num_written != 1) {
-         fprintf(stderr, "HyPerLayer::writeScalarToFile error while writing to %s.\n", filename);
-         abort();
-      }
-      PV_fclose(pvstream);
-      chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_%s.txt", cp_dir, name, val_name);
-      assert(chars_needed < PV_PATH_MAX);
-      std::ofstream fs;
-      fs.open(filename);
-      if (!fs) {
-         fprintf(stderr, "HyPerLayer::writeScalarToFile error: unable to open path %s for writing.\n", filename);
-         abort();
-      }
-      fs << val;
-      fs << std::endl; // Can write as fs << val << std::endl, but eclipse flags that as an error 'Invalid overload of std::endl'
-      fs.close();
-   }
-   return status;
-}
-
-template <typename T>
-int HyPerLayer::readScalarFromFile(const char * cp_dir, const char * val_name, T * val, T default_value) {
-   int status = PV_SUCCESS;
-   if( parent->icCommunicator()->commRank() == 0 ) {
-      char filename[PV_PATH_MAX];
-      int chars_needed;
-      chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_%s.bin", cp_dir, getName(), val_name);
-      if(chars_needed >= PV_PATH_MAX) {
-         fprintf(stderr, "HyPerLayer::readScalarFloat error: path %s/%s_%s.bin is too long.\n", cp_dir, getName(), val_name);
-         abort();
-      }
-      FILE * fp = fopen(filename, "r");
-      *val = default_value;
-      if (fp==NULL) {
-         std::cerr << "HyPerLayer::readScalarFloat warning: unable to open path \"" << filename << "\" for reading.  Value used will be " << *val;
-         std::cerr << std::endl;
-         // fprintf(stderr, "HyPerLayer::readScalarFloat warning: unable to open path %s for reading.  value used will be %f\n", filename, default_value);
-      }
-      else {
-         int num_read = fread(val, sizeof(T), 1, fp);
-         if (num_read != 1) {
-            std::cerr << "HyPerLayer::readScalarFloat warning: unable to read from \"" << filename << "\".  Value used will be " << *val;
-            std::cerr << std::endl;
-            // fprintf(stderr, "HyPerLayer::readScalarFloat warning: unable to read from %s.  value used will be %f\n", filename, default_value);
-         }
-         fclose(fp);
-      }
-   }
-#ifdef PV_USE_MPI
-   MPI_Bcast(val, sizeof(T), MPI_CHAR, 0, getParent()->icCommunicator()->communicator());
-#endif // PV_USE_MPI
-
-   return status;
 }
 
 

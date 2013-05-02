@@ -1337,5 +1337,83 @@ int HyPerCol::lCheckMarginWidth(HyPerLayer * layer, const char * dim, int layerS
    return status;
 }
 
+template <typename T>
+int HyPerCol::writeScalarToFile(const char * cp_dir, const char * val_name, T val) {
+   int status = PV_SUCCESS;
+   if (columnId()==0)  {
+      char filename[PV_PATH_MAX];
+      int chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_%s.bin", cp_dir, name, val_name);
+      if (chars_needed >= PV_PATH_MAX) {
+         fprintf(stderr, "writeScalarToFile error: path %s/%s_%s.bin is too long.\n", cp_dir, name, val_name);
+         abort();
+      }
+      PV_Stream * pvstream = PV_fopen(filename, "w");
+      if (pvstream==NULL) {
+         fprintf(stderr, "writeScalarToFile error: unable to open path %s for writing.\n", filename);
+         abort();
+      }
+      int num_written = PV_fwrite(&val, sizeof(val), 1, pvstream);
+      if (num_written != 1) {
+         fprintf(stderr, "writeScalarToFile error while writing to %s.\n", filename);
+         abort();
+      }
+      PV_fclose(pvstream);
+      chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_%s.txt", cp_dir, name, val_name);
+      assert(chars_needed < PV_PATH_MAX);
+      std::ofstream fs;
+      fs.open(filename);
+      if (!fs) {
+         fprintf(stderr, "writeScalarToFile error: unable to open path %s for writing.\n", filename);
+         abort();
+      }
+      fs << val;
+      fs << std::endl; // Can write as fs << val << std::endl, but eclipse flags that as an error 'Invalid overload of std::endl'
+      fs.close();
+   }
+   return status;
+}
+template int HyPerCol::writeScalarToFile<int>(char const * cpDir, char const * val_name, int val);
+template int HyPerCol::writeScalarToFile<long>(char const * cpDir, char const * val_name, long val);
+template int HyPerCol::writeScalarToFile<float>(char const * cpDir, char const * val_name, float val);
+template int HyPerCol::writeScalarToFile<double>(char const * cpDir, char const * val_name, double val);
+
+template <typename T>
+int HyPerCol::readScalarFromFile(const char * cp_dir, const char * val_name, T * val, T default_value) {
+   int status = PV_SUCCESS;
+   if( columnId() == 0 ) {
+      char filename[PV_PATH_MAX];
+      int chars_needed;
+      chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_%s.bin", cp_dir, getName(), val_name);
+      if(chars_needed >= PV_PATH_MAX) {
+         fprintf(stderr, "HyPerLayer::readScalarFloat error: path %s/%s_%s.bin is too long.\n", cp_dir, getName(), val_name);
+         abort();
+      }
+      FILE * fp = fopen(filename, "r");
+      *val = default_value;
+      if (fp==NULL) {
+         std::cerr << "HyPerLayer::readScalarFloat warning: unable to open path \"" << filename << "\" for reading.  Value used will be " << *val;
+         std::cerr << std::endl;
+         // fprintf(stderr, "HyPerLayer::readScalarFloat warning: unable to open path %s for reading.  value used will be %f\n", filename, default_value);
+      }
+      else {
+         int num_read = fread(val, sizeof(T), 1, fp);
+         if (num_read != 1) {
+            std::cerr << "HyPerLayer::readScalarFloat warning: unable to read from \"" << filename << "\".  Value used will be " << *val;
+            std::cerr << std::endl;
+            // fprintf(stderr, "HyPerLayer::readScalarFloat warning: unable to read from %s.  value used will be %f\n", filename, default_value);
+         }
+         fclose(fp);
+      }
+   }
+#ifdef PV_USE_MPI
+   MPI_Bcast(val, sizeof(T), MPI_CHAR, 0, icCommunicator()->communicator());
+#endif // PV_USE_MPI
+
+   return status;
+}
+template int HyPerCol::readScalarFromFile<int>(char const * cpDir, char const * val_name, int * val, int default_value);
+template int HyPerCol::readScalarFromFile<long>(char const * cpDir, char const * val_name, long * val, long default_value);
+template int HyPerCol::readScalarFromFile<float>(char const * cpDir, char const * val_name, float * val, float default_value);
+template int HyPerCol::readScalarFromFile<double>(char const * cpDir, char const * val_name, double * val, double default_value);
 
 } // PV namespace

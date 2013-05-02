@@ -1,5 +1,5 @@
 /*
- * HyPerCol.h
+ * HyPerCol.hpp
  *
  *  Created on: Jul 30, 2008
  *      Author: Craig Rasmussen
@@ -19,6 +19,7 @@
 #include "../io/ColProbe.hpp"
 #include <time.h>
 #include <sys/stat.h>
+#include <fstream>
 
 #include "../arch/opencl/CLDevice.hpp"
 
@@ -121,6 +122,11 @@ public:
    int insertProbe(ColProbe * p);
    int outputState(double time);
    int ensureDirExists(const char * dirname);
+
+   template <typename T>
+   int writeScalarToFile(const char * cp_dir, const char * val_name, T val);
+   template <typename T>
+   int readScalarFromFile(const char * cp_dir, const char * val_name, T * val, T default_value=(T) 0);
 
 private:
    int initialize(const char * name, int argc, char ** argv, PVParams * params);
