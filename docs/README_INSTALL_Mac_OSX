@@ -4,7 +4,7 @@ Here is the procedure for installing and compiling the PetaVision repository on 
 
 1. Launch eclipse.  If you get the "Welcome to Eclipse" screen, click Workbench in the top right corner.
 
-2. Install subclipse (the SVN plugin)
+2. Install subclipse (the SVN plugin).  If subclipse is already installed, skip this step
   a. Help menu -> Install New Software… -> enter "http://subclipse.tigris.org/update_1.6.x" (no quotes) in the "Work with:" field, and press Enter.  Note: there is a version 1.8, but Ubuntu's SVN seems to be incompatible with the newest version.
 
   b. Click Select All, and Next.  The Install Details window opens.
@@ -19,14 +19,16 @@ Here is the procedure for installing and compiling the PetaVision repository on 
 
   g. If the "Subversion Native Library Not Available" error appears, click OK.  If the "Unsupported Password Stores" error appears, click OK.
 
-  h. Window menu -> Open Perspective, then click "Other" and select SVNKit 3.2.5.
+3. Additional SVN settings.  These should be followed even if subclipse was already installed.
+  a. Eclipse menu -> Preferences.  In the left-hand pane, double-click Team, then single-click SVN below it.
+     In the SVN interface section, set the client to SVNKit (Pure Java).
   
-  i. The .settings folder should be ignored when synchronizing projects.  Open the Eclipse menu from the menu bar and select preferences.
-     Then open Team from the left pane, and select Ignored Resources.  Click the Add Pattern... button,
-     enter ".settings" (no quotes), and then click OK to close the Add Ignore Pattern window, and then click OK to
-     close the preferences window.
+  b. The .settings folder should be ignored when synchronizing projects.
+     Select Ignored Resources (also under Team).  Click the Add Pattern... button,
+     enter ".settings" (no quotes), and then click OK to close the Add Ignore Pattern window,
+     and then click OK to close the preferences window.
 
-3. Check out PetaVision.
+4. Check out PetaVision.
   a. Window menu -> Open Perspective -> Other ..., and select SVN Repository Exploring.
 
   b. Click the "Add SVN Repository" button, in the upper right corner of the
@@ -37,13 +39,16 @@ Here is the procedure for installing and compiling the PetaVision repository on 
      where USERNAME is your sourceforge username.
      You will be prompted for your sourceforge password.
 
-  c. Right-click "trunk" and choose Checkout... from the pop-up menu.  In the "Checkout from SVN" window, click Finish.  This step downloads the PetaVision library project.
+  c. Doubleclick the repository url.
+     Then right-click "trunk" and choose Checkout... from the pop-up menu.
+     In the "Checkout from SVN" window, click Finish.
+     This step downloads the PetaVision library project.
   
   d. Repeat step [c] for any desired projects in the PVSystemsTests and sandbox directories.
 
   e. From a terminal, navigate to the PetaVision directory in your eclipse workspace, and copy "mac.cproject" to ".cproject".
      Repeat for any system tests and sandboxes checked out in step [d].
-     You can also use the script PetaVision/scripts/copycprojects.bash to copy all projects' mac.cproject to .cproject in a batch.
+     You can also use the script PetaVision/scripts/copycproject.bash to copy all projects' mac.cproject to .cproject in a batch.
   
   f. Install the template for PV code style, to use uniform conventions for indenting, etc.  To do this,
      Open Window menu -> Open Perspective -> Other ..., and select C/C++
@@ -53,7 +58,7 @@ Here is the procedure for installing and compiling the PetaVision repository on 
      Click "Import..." and navigate to PVCodeStyle.xml in the PetaVision directory of your workspace.
      Click Open and then OK
 
-4. Compile PetaVision.
+5. Compile PetaVision.
   a. Window menu -> Open Perspective -> Other ..., and select C/C++
 
   b. Right-click PetaVision in the left-hand pane, select Properties.
@@ -64,22 +69,20 @@ Here is the procedure for installing and compiling the PetaVision repository on 
 
   e. Right-click PetaVision in the left-hand pane, select Clean Project. Do the same thing, but select Build Project. This should be enough to build the library without errors.
 
-5. Compile a Systems test
+6. Compile a Systems test
   a. Go to the SVN Repository Exploring perspective and click the drop-down menu for PVSystemTest 5118, then check out KernelTest.
 
-  b. Once checked out, right-click on Kernel Test in C/C++ view and select Build Project ....  It should build without errors.
+  b. Once checked out, right-click on KernelTest in C/C++ view and select Build Project ....  It should build without errors.
 
-6. Run a Systems test
+7. Run a Systems test
   I use the command line to run PV jobs.  In a terminal window, cd to the KernelTest directory and type the command
 Debug/KernelTest -p input/test_kernel.params
 
 To run under 16 processes,
 mpirun -np 16 Debug/KernelTest -p input/test_kernel.params
 
-It should be possible to run and debug from within the Eclipse environment the same as you would on a Mac, but I'm the wrong person to ask how to set that up.
+It should be possible to run and debug from within the Eclipse environment, but I'm the wrong person to ask how to set that up.
 
-7. The projects' .cproject files on the repository now have optimization set to most and debugging set to none, for both C and C++.  To change these, go to Properties, open the triangle by C/C++ Build, and select Settings.  There are separate Optimization and Debugging panes under both "GCC C++ Compiler" and "GCC C Compiler" in the main part of the properties window.
+8. The projects' .cproject files on the repository have optimization set to most and debugging set to none, for both C and C++.  To change these, go to Properties, open the triangle by C/C++ Build, and select Settings.  There are separate Optimization and Debugging panes under both "GCC C++ Compiler" and "GCC C Compiler" in the main part of the properties window.
 
-Please take care when committing, not to commit the .cproject and .project files or the .settings directory.
-
-8. To read *.cl files in the C editor, go to Eclipse menu -> Preferences, open C/C++ and select File Types.  Click New... and enter Pattern: "*.cl" (no quotes) and Type: C Source File.
+9. To read *.cl files in the C editor, go to Eclipse menu -> Preferences, open C/C++ and select File Types.  Click New... and enter Pattern: "*.cl" (no quotes) and Type: C Source File.
