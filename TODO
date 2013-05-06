@@ -10,8 +10,6 @@ Each neuron (& weight?) its own reproducible rng (layer and conn can specify a s
 
 No more activity buffer; things that write to activity only write to DataStore
 
-Initialize_base/initialize cascade for layer probes
-
 More graceful aborting from errors under mpi.  There's a pv_log but it's preprocessor directived to fprintf
 
 Add ffmpeg support
