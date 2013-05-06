@@ -1,11 +1,11 @@
 
 %% begin definition of the most volitile parameters
-FLAVOR_ID = "Formative"; %% "Challenge"; %% "Training"; %% 
+FLAVOR_ID = "Challenge"; %% "Training"; %% "Formative"; %% 
 disp(["FLAVOR_ID = ", FLAVOR_ID]);
 target_id = cell(1,2); 
 target_id{1,1} = "Car"; target_id{1,2} = "NotCar"; %% 
 target_id
-clips_flag = false; %% true; %% 
+clips_flag = true; %% false; %% 
 if clips_flag 
   clip_ids = [26:26]; %% [1:50]; %% 
   clip_name = cell(length(clip_ids),1);
@@ -16,10 +16,10 @@ else
   clip_name = [];
 endif
 clip_name
-pvp_num_ODD_kernels = 3; %%
+pvp_num_ODD_kernels = 4; %%
 disp(["num_ODD_kernels = ", num2str(pvp_num_ODD_kernels)]);
 pvp_training_dir = "Formative";
-pvp_training_tag = ""; %%"F"; %% 
+pvp_training_tag = "F"; %% ""; %%
 %% end definition of the most volitile parameters
 
 %% version_str stores the training or testing run index 
@@ -53,10 +53,10 @@ pvp_home_path = ...
 %%    [filesep, "Users", filesep, "garkenyon", filesep];
 if ismac
   pvp_workspace_path = ...
-      [pvp_home_path, "workspace_new", filesep];
+      [pvp_home_path, "workspace", filesep];
 else
   pvp_workspace_path = ...
-      [pvp_home_path, "workspace_new", filesep];
+      [pvp_home_path, "workspace", filesep];
 endif
 pvp_mlab_path = ...
     [pvp_workspace_path, "PetaVision", filesep, "mlab", filesep];
