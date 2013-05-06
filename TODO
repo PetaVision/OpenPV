@@ -18,8 +18,6 @@ Add ffmpeg support
 
 PatternState.bin and .txt only writes the stuff being used
 
-Movie class should have an option to flip images on even-numbered passes through the file list
-
  * params.pv should be params.xml, and include all parameters
 
 Use cmake to manage makefiles
