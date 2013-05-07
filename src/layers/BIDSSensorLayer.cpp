@@ -139,6 +139,7 @@ float BIDSSensorLayer::matchFilter(int node_index, int frame_index){
    float normalize_val = ((float)2 * double_C + .5 * half_C) / (float)2;
 
    float out = (log(C/normalize_val)/log((float)2));
+   out = out < 0 ? 0 : out;
    return out;
 }
 
