@@ -82,10 +82,6 @@ int TextStream::initialize(const char * name, HyPerCol * hc, const char * filena
 }
 
 void TextStream::readNxScale(PVParams * params) {
-	displayPeriod = params->value(name,"displayPeriod", displayPeriod);
-}
-
-void TextStream::readNxScale(PVParams * params) {
    nxScale = 1; // Layer size needs to equal column size
 }
 
