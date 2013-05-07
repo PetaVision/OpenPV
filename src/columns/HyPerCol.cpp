@@ -682,7 +682,8 @@ int HyPerCol::run(long int nTimeSteps)
    // time loop
    //
    long int step = 0;
-   while (simTime < stopTime) {
+   int status = PV_SUCCESS;
+   while (simTime < stopTime && status != PV_EXIT_NORMALLY) {
       if( checkpointWriteFlag && advanceCPWriteTime() ) {
          if ( !checkpointReadFlag || strcmp(checkpointReadDir, checkpointWriteDir) || cpReadDirIndex!=currentStep ) {
             if (icComm->commRank()==0) {
@@ -713,7 +714,7 @@ int HyPerCol::run(long int nTimeSteps)
             }
          }
       }
-      simTime = advanceTime(simTime);
+      int status = advanceTime(simTime);
 
       step += 1;
 #ifdef TIMER_ON
@@ -749,7 +750,7 @@ int HyPerCol::initPublishers() {
    return PV_SUCCESS;
 }
 
-double HyPerCol::advanceTime(double sim_time)
+int HyPerCol::advanceTime(double sim_time)
 {
 #ifdef TIMESTEP_OUTPUT
    if (currentStep%progressStep == 0 && columnId() == 0) {
@@ -769,10 +770,16 @@ double HyPerCol::advanceTime(double sim_time)
    // been delivered to the data store.
    //
 
+   int status;
+   bool exitAfterUpdate = false;
+
    // update the connections (weights)
    //
    for (int c = 0; c < numConnections; c++) {
-      connections[c]->updateState(sim_time, deltaTime);
+      status = connections[c]->updateState(sim_time, deltaTime);
+      if (!exitAfterUpdate) {
+		  exitAfterUpdate = status == PV_EXIT_NORMALLY;
+      }
    }
    for (int c = 0; c < numConnections; c++) {
       connections[c]->outputState(sim_time);
@@ -800,7 +807,10 @@ double HyPerCol::advanceTime(double sim_time)
       // recvSynapticInput uses the datastore to compute GSyn.
       for(int l = 0; l < numLayers; l++) {
          if (layers[l]->getPhase() != phase) continue;
-         layers[l]->updateState(sim_time, deltaTime);
+         status = layers[l]->updateState(sim_time, deltaTime);
+		 if (!exitAfterUpdate) {
+			 exitAfterUpdate = status == PV_EXIT_NORMALLY;
+		 }
       }
 
       // This loop separate from the update layer loop above
@@ -850,7 +860,11 @@ double HyPerCol::advanceTime(double sim_time)
 
    outputState(outputTime);
 
-   return simTime;
+   if (exitAfterUpdate) {
+	   status = PV_EXIT_NORMALLY;
+   }
+
+   return status;
 }
 
 bool HyPerCol::advanceCPWriteTime() {

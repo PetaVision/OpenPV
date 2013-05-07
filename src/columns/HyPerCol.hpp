@@ -48,8 +48,8 @@ public:
    int run()  {return run(numSteps);}
    int run(long int nTimeSteps);
 
-   double advanceTime(double time);
-   int   exitRunLoop(bool exitOnFinish);
+   int advanceTime(double time);
+   int exitRunLoop(bool exitOnFinish);
 
    int loadState();
    int columnId();

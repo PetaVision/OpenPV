@@ -114,6 +114,7 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
                "HyPerLCALayer",
              "GapLayer",
              "LCALayer",
+             "TextStream",
              "Image",
                "CreateMovies",
                "ImageCreator",
@@ -394,6 +395,11 @@ HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPe
       addedLayer = (HyPerLayer *) new MaxPooling(name, hc);
       status = checknewobject((void *) addedLayer, classkeyword, name, hc);
    }
+   if( !strcmp(classkeyword, "TextStream") ) {
+      keywordMatched = true;
+      addedLayer = (HyPerLayer *) addTextStream(name, hc);
+      status = checknewobject((void *) addedLayer, classkeyword, name, hc);
+   }
    if( !strcmp(classkeyword, "Image") ) {
       keywordMatched = true;
       addedLayer = (HyPerLayer *) addImage(name, hc);
@@ -506,6 +512,19 @@ GapLayer * addGapLayer(const char * name, HyPerCol * hc) {
    }
    else {
       fprintf(stderr, "Group \"%s\": Original layer \"%s\" must a LIFGap layer\n", name, originalLayer->getName());
+      addedLayer = NULL;
+   }
+   return addedLayer;
+}
+
+TextStream * addTextStream( const char * name, HyPerCol * hc) {
+   TextStream * addedLayer;
+   const char * filelabelspath = hc->parameters()->stringValue(name, "filePath");
+   if (filelabelspath) {
+      addedLayer = new TextStream(name, hc, filelabelspath);
+   }
+   else {
+      fprintf(stderr, "Group \"%s\": Parameter group for class TextStream must set string parameter filePath\n", name);
       addedLayer = NULL;
    }
    return addedLayer;

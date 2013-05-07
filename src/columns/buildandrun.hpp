@@ -30,6 +30,7 @@
 #include "../layers/TrainingLayer.hpp"
 #include "../layers/GapLayer.hpp"
 #include "../layers/MaxPooling.hpp"
+#include "../layers/TextStream.hpp"
 #include "../layers/Image.hpp"
 #include "../layers/CreateMovies.hpp"
 #include "../layers/ImageCreator.hpp"
@@ -130,6 +131,7 @@ HyPerCol * addHyPerColToColumn(const char * classkeyword, const char * name, HyP
 HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPerCol * hc);
 TrainingLayer * addTrainingLayer(const char * name, HyPerCol *hc);
 GapLayer * addGapLayer(const char * name, HyPerCol * hc);
+TextStream * addTextStream(const char * name, HyPerCol *hc);
 Image * addImage(const char * name, HyPerCol *hc);
 Movie * addMovie(const char * name, HyPerCol *hc);
 Patterns * addPatterns(const char * name, HyPerCol *hc);
