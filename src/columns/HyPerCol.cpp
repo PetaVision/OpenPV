@@ -714,7 +714,7 @@ int HyPerCol::run(long int nTimeSteps)
             }
          }
       }
-      int status = advanceTime(simTime);
+      status = advanceTime(simTime);
 
       step += 1;
 #ifdef TIMER_ON
