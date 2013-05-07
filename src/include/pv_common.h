@@ -19,6 +19,7 @@
 #define PV_SUCCESS 0
 #define PV_FAILURE 1
 #define PV_BREAK 2
+#define PV_EXIT_NORMALLY 3
 #define PV_MARGINWIDTH_FAILURE 65
 
 // For debugging/control:
