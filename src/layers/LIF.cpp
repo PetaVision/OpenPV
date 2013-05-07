@@ -174,18 +174,18 @@ int LIF::initialize_base() {
 // Initialize this class
 /*
  *
- * setParams() is called first so that we read all control parameters
+ * setLIFParams() is called first so that we read all control parameters
  * from the params file.
  *
  */
 int LIF::initialize(const char * name, HyPerCol * hc, PVLayerType type, int num_channels, const char * kernel_name) {
    HyPerLayer::initialize(name, hc, num_channels);
-   setParams(hc->parameters());
+   setLIFParams(hc->parameters());
    clayer->layerType = type;
    const size_t numNeurons = getNumNeurons();
 
    for (size_t k = 0; k < numNeurons; k++){
-      Vth[k] = lParams.VthRest; // lParams.VthRest is set in setParams
+      Vth[k] = lParams.VthRest; // lParams.VthRest is set in setLIFParams
    }
 
    // Commented out Nov. 28, 2012
@@ -319,7 +319,7 @@ int LIF::initializeThreadKernels(const char * kernel_name)
 
 // Set Parameters
 //
-int LIF::setParams(PVParams * p)
+int LIF::setLIFParams(PVParams * p)
 {
    float dt_sec = .001 * parent->getDeltaTime();// seconds
 
@@ -362,7 +362,7 @@ int LIF::setParams(PVParams * p)
    method = methodstring ? methodstring[0] : 'a'; // Default is ARMA; 'beginning' and 'original' are deprecated.
    if (method != 'o' && method != 'b' && method != 'a') {
       if (getParent()->columnId()==0) {
-         fprintf(stderr, "LIF::setParams error.  Layer \"%s\" has method \"%s\".  Allowable values are \"arma\", \"beginning\" and \"original\".", name, methodstring);
+         fprintf(stderr, "LIF::setLIFParams error.  Layer \"%s\" has method \"%s\".  Allowable values are \"arma\", \"beginning\" and \"original\".", name, methodstring);
       }
       abort();
    }

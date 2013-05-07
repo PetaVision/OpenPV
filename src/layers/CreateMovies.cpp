@@ -67,7 +67,7 @@ int CreateMovies::initialize(const char * name, HyPerCol * hc) {
    Image::initialize(name, hc, NULL);
 
    PVParams * pvparams = hc->parameters();
-   setParams(pvparams, &DefaultCMParams);
+   setMovieParams(pvparams, &DefaultCMParams);
    displayPeriod = pvparams->value(name, "displayPeriod", 20.0);
    lastDisplayTime = hc->simulationTime();
    nextDisplayTime = hc->simulationTime() + displayPeriod;
@@ -76,7 +76,7 @@ int CreateMovies::initialize(const char * name, HyPerCol * hc) {
    flagy = 1;
    flagr = 1;
 
-   setParams(pvparams, &DefaultCMParams);
+   setMovieParams(pvparams, &DefaultCMParams);
    CreateMovies_Params * cp = (CreateMovies_Params *) CMParams;
 
    PVLayerLoc * loc = & clayer->loc;
@@ -104,7 +104,7 @@ int CreateMovies::initialize(const char * name, HyPerCol * hc) {
    return PV_SUCCESS;
 }
 
-int CreateMovies::setParams(PVParams * params, CreateMovies_Params * p)
+int CreateMovies::setMovieParams(PVParams * params, CreateMovies_Params * p)
 {
 
    CMParams = (CreateMovies_Params *) malloc(sizeof(*p));

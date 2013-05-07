@@ -72,7 +72,7 @@ public:
 
    virtual LIF_params * getLIFParams() {return &lParams;};
 
-   int setParams(PVParams * p);
+   int setLIFParams(PVParams * p);
 
 protected:
 

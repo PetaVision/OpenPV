@@ -113,7 +113,7 @@ int Retina::initialize(const char * name, HyPerCol * hc, PVLayerType type) {
 
    PVLayer * l = clayer;
 
-   setParams(parent->parameters());
+   setRetinaParams(parent->parameters());
 
    // the size of the Retina may have changed due to size of image
    //
@@ -270,7 +270,7 @@ int Retina::initializeState() {
    return PV_SUCCESS;
 }
 
-int Retina::setParams(PVParams * p)
+int Retina::setRetinaParams(PVParams * p)
 {
    double dt_sec = parent->getDeltaTime() * .001;  // seconds
 

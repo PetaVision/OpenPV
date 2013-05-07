@@ -91,8 +91,12 @@ DerivedLayer::initialize(arguments) {
 namespace PV {
 
 class InitV;
+class PVParams;
 
 class HyPerLayer : public LayerDataInterface {
+
+private:
+   int initialize_base();
 
 protected:
 
@@ -100,6 +104,7 @@ protected:
    HyPerLayer();
    int initialize(const char * name, HyPerCol * hc, int numChannels);
 
+   virtual int initClayer(PVParams * params);
    virtual int initializeLayerId(int layerId);
    int setLayerLoc(PVLayerLoc * layerLoc, float nxScale, float nyScale, int margin, int nf);
    virtual int allocateBuffers();
@@ -107,6 +112,24 @@ protected:
    int incrementNBands(int * numCalls);
    int writeDataStoreToFile(const char * filename, InterColComm * comm, double dtime);
    virtual int calcActiveIndices();
+   pvdata_t * getActivity()          {return clayer->activity->data;}
+
+   virtual int setParams(PVParams * params);
+   virtual void readNxScale(PVParams * params);
+   virtual void readNyScale(PVParams * params);
+   virtual void readNf(PVParams * params);
+   virtual void readMarginWidth(PVParams * params);
+   virtual void readWriteStep(PVParams * params);
+   virtual void readInitialWriteTime(PVParams * params);
+   virtual void readPhase(PVParams * params);
+   virtual void readWriteSparseActivity(PVParams * params);
+   virtual void readMirrorBCFlag(PVParams * params);
+   virtual void readRestart(PVParams * params);
+
+#ifdef PV_USE_OPENCL
+   virtual void readGPUAccelerateFlag(PVParams * params);
+#endif
+
 #ifdef OBSOLETE // Marked obsolete May 1, 2013.  Use HyPerCol template functions readScalarFromFile and writeScalarToFile instead
    int readScalarFloat(const char * cp_dir, const char * val_name, double * val_ptr, double default_value=0.0f);
    int writeScalarFloat(const char * cp_dir, const char * val_name, double value);
@@ -117,15 +140,11 @@ protected:
    int readScalarFromFile(const char * cp_dir, const char * val_name, T * val, T default_value=(T) 0);
 #endif // OBSOLETE
 
-   pvdata_t * getActivity()          {return clayer->activity->data;}
 
 #ifdef PV_USE_OPENCL
    virtual int initializeThreadBuffers(const char * kernelName);
    virtual int initializeThreadKernels(const char * kernelName);
 #endif
-
-private:
-   int initialize_base();
 
 public:
 
@@ -269,6 +288,16 @@ protected:
 
    int numChannels;             // number of channels
    pvdata_t ** GSyn;            // of dynamic length numChannels
+
+   float nxScale, nyScale;        // Size of layer relative to column
+   int numFeatures;
+   int margin;
+
+   bool restartFlag;
+
+#ifdef PV_USE_OPENCL
+   bool gpuAccelerateFlag;
+#endif
 
    int numProbes;
    LayerProbe ** probes;

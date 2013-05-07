@@ -83,6 +83,11 @@ HyPerLayer::HyPerLayer() {
 int HyPerLayer::initialize_base() {
    this->name = NULL;
    this->probes = NULL;
+   this->nxScale = 1.0f;
+   this->nyScale = 1.0f;
+   this->numFeatures = 1;
+   this->mirrorBCflag = 0;
+   this->margin = 0;
    this->numProbes = 0;
    this->ioAppend = 0;
    this->numChannels = 0;
@@ -133,83 +138,15 @@ int HyPerLayer::initialize(const char * name, HyPerCol * hc, int numChannels) {
       exit(-1);
    }
 
-   const float nxScale = params->value(name, "nxScale", 1.0f);
-   const float nyScale = params->value(name, "nyScale", 1.0f);
-
-   const int numFeatures = (int) params->value(name, "nf", 1);
-   const int margin      = (int) params->value(name, "marginWidth", 0);
-
-   double xScaled = -log2( (double) nxScale);
-   double yScaled = -log2( (double) nyScale);
-
-   int xScale = (int) nearbyint(xScaled);
-   int yScale = (int) nearbyint(yScaled);
-
-   writeStep = params->value(name, "writeStep", parent->getDeltaTime());
-   if (writeStep>=0.0f) {
-      initialWriteTime = params->value(name, "initialWriteTime", parent->simulationTime());
-      writeTime = initialWriteTime-writeStep;
-   }
-
-   //feedforwardDelay = params->value(name, "feedforwardDelay", feedforwardDelay, true);
-   //feedbackDelay = params->value(name, "feedbackDelay", feedbackDelay, true);
-   //assert(feedbackDelay > 0);
-
-   phase = params->value(name, "phase", phase, true);
-   if (phase<0) {
-      if (parent->columnId()==0) fprintf(stderr, "Error in layer \"%s\": phase must be >= 0 (given value was %d).\n", name, phase);
-      abort();
-   }
-
-   // TODO: when satisfied that everyone has had the chance to change spikingFlag to writeSparseActivity
-   // and remove writeNonspikingActivity, remove the checks below and replace with
-   // writeSparseActivity = (bool) params->value(name, "writeSparseActivity", 0);
-   bool writeSparseActivityPresent = params->present(name, "writeSparseActivity");
-   if (!writeSparseActivityPresent) {
-      bool spikingFlagPresent = params->present(name, "spikingFlag");
-      if (spikingFlagPresent) {
-         if (parent->icCommunicator()->commRank()==0) {
-            Retina * retina = dynamic_cast<Retina *>(this);
-            if(retina) {
-               fprintf(stderr, "Warning in parameters for retina \"%s\"\n", name);
-               fprintf(stderr, "spikingFlag controls whether the dynamics of the retina is spiking, but\n");
-               fprintf(stderr, "no longer controls whether the activity file is sparse or not.\n");
-               fprintf(stderr, "Set writeSparseActivity to true or false to control the type of file created by outputState.\n");
-            }
-            else {
-               fprintf(stderr, "Warning in parameters for layer \"%s\": spikingFlag has been renamed to writeSparseActivity\n", name);
-            }
-         }
-         writeSparseActivity = (bool) params->value(name, "spikingFlag", 0);
-      }
-   }
-   else {
-      writeSparseActivity = (bool) params->value(name, "writeSparseActivity", 0);
-   }
-   bool writeNonspikingActivityPresent = params->present(name, "writeNonspikingActivity");
-   if (writeNonspikingActivityPresent) {
-      if (parent->icCommunicator()->commRank()==0) {
-         fprintf(stderr, "Warning in parameters for layer \"%s\": parameter writeNonspikingActivity has been deprecated.\n", name);
-         fprintf(stderr, "Instead, set writeStep<0 to prevent writing activity.\n");
-      }
-      if (params->value(name, "writeNonspikingActivity")==0 && writeStep>=0) {
-         writeStep=-1;
-         if (parent->icCommunicator()->commRank()==0) {
-            fprintf(stderr, "Since writeNonspikingActivity is false, writeStep has been changed to -1.  This behavior will change in the future.\n");
-         }
-      }
-   }
-   // end of checks for obsolete parameter calls.
+   int status = setParams(params);
+   assert(status == PV_SUCCESS);
 
    writeActivityCalls = 0;
    writeActivitySparseCalls = 0;
 
-   mirrorBCflag = (bool) params->value(name, "mirrorBCflag", 0);
+   //Initialize C Layer struct
+   initClayer(params);
 
-   PVLayerLoc layerLoc;
-   setLayerLoc(&layerLoc, nxScale, nyScale, margin, numFeatures);
-   clayer = pvlayer_new(layerLoc, xScale, yScale, numChannels);
-   clayer->layerType = TypeGeneric;
    // must set ioAppend before addLayer is called (addLayer causes activity file to be opened using layerid)
    ioAppend = parent->getCheckpointReadFlag() ? 1 : 0;
    // layerId stored as clayer->layerId
@@ -220,7 +157,7 @@ int HyPerLayer::initialize(const char * name, HyPerCol * hc, int numChannels) {
 
    // allocate storage for the input conductance arrays
    //
-   int status = allocateBuffers();
+   status = allocateBuffers();
    assert(status == PV_SUCCESS);
 
    // Initializing now takes place at the beginning of HyPerCol::run(int), after
@@ -243,6 +180,7 @@ int HyPerLayer::initialize(const char * name, HyPerCol * hc, int numChannels) {
 #ifdef PV_USE_OPENCL
    initUseGPUFlag();
 #endif
+
    return PV_SUCCESS;
 }
 
@@ -251,7 +189,7 @@ int HyPerLayer::initialize(const char * name, HyPerCol * hc, int numChannels) {
 //this layer
 void HyPerLayer::initUseGPUFlag() {
    PVParams * params = parent->parameters();
-   gpuAccelerateFlag = params->value(name, "GPUAccelerate", gpuAccelerateFlag);
+   readGPUAcceleratedFlag(params);
    copyDataStoreFlag=false;
 }
 
@@ -357,6 +295,20 @@ void HyPerLayer::freeChannels()
 #ifdef PV_USE_OPENCL
 #endif
 
+int HyPerLayer::initClayer(PVParams * params) {
+   double xScaled = -log2( (double) nxScale);
+   double yScaled = -log2( (double) nyScale);
+
+   int xScale = (int) nearbyint(xScaled);
+   int yScale = (int) nearbyint(yScaled);
+
+   PVLayerLoc layerLoc;
+   setLayerLoc(&layerLoc, nxScale, nyScale, margin, numFeatures);
+   clayer = pvlayer_new(layerLoc, xScale, yScale, numChannels);
+   clayer->layerType = TypeGeneric;
+
+   return PV_SUCCESS;
+}
 /**
  * Initialize a few things that require a layer id
  */
@@ -509,8 +461,8 @@ int HyPerLayer::allocateBuffers() {
 int HyPerLayer::initializeState() {
    int status = PV_SUCCESS;
    PVParams * params = parent->parameters();
-   bool restart_flag = params->value(name, "restart", 0.0f) != 0.0f;
-   if( restart_flag ) {
+   readRestart(params);
+   if( restartFlag ) {
       double timef;
       status = readState(&timef);
    }
@@ -527,7 +479,112 @@ int HyPerLayer::initializeState() {
    return status;
 }
 
+int HyPerLayer::setParams(PVParams * inputParams)
+{
+   readNxScale(inputParams);
+   readNyScale(inputParams);
+   readNf(inputParams);
+   readMarginWidth(inputParams);
+   readWriteStep(inputParams);
+   readPhase(inputParams);
+   readWriteSparseActivity(inputParams);
+   readMirrorBCFlag(inputParams);
+
+   return PV_SUCCESS;
+}
+
+void HyPerLayer::readNxScale(PVParams * params) {
+   nxScale = params->value(name, "nxScale", nxScale);
+}
+
+void HyPerLayer::readNyScale(PVParams * params) {
+   nyScale = params->value(name, "nyScale", nyScale);
+}
+
+void HyPerLayer::readNf(PVParams * params) {
+   numFeatures = (int) params->value(name, "nf", numFeatures);
+}
+
+void HyPerLayer::readMarginWidth(PVParams * params) {
+   margin = (int) params->value(name, "marginWidth", margin);
+}
+
+void HyPerLayer::readWriteStep(PVParams * params) {
+   writeStep = params->value(name, "writeStep", parent->getDeltaTime());
+   if (writeStep>=0.0f) {
+	  readInitialWriteTime(params);
+      writeTime = initialWriteTime-writeStep;
+   }
+
+}
+
+void HyPerLayer::readInitialWriteTime(PVParams * params) {
+   initialWriteTime = params->value(name, "initialWriteTime", parent->simulationTime());
+}
+
+void HyPerLayer::readPhase(PVParams * params) {
+   phase = params->value(name, "phase", phase, true);
+   if (phase<0) {
+      if (parent->columnId()==0) fprintf(stderr, "Error in layer \"%s\": phase must be >= 0 (given value was %d).\n", name, phase);
+      abort();
+   }
+}
+
+void HyPerLayer::readWriteSparseActivity(PVParams * params) {
+   // TODO: when satisfied that everyone has had the chance to change spikingFlag to writeSparseActivity
+   // and remove writeNonspikingActivity, remove the checks below and replace with
+   // writeSparseActivity = (bool) params->value(name, "writeSparseActivity", 0);
+   bool writeSparseActivityPresent = params->present(name, "writeSparseActivity");
+   if (!writeSparseActivityPresent) {
+      bool spikingFlagPresent = params->present(name, "spikingFlag");
+      if (spikingFlagPresent) {
+         if (parent->icCommunicator()->commRank()==0) {
+            Retina * retina = dynamic_cast<Retina *>(this);
+            if(retina) {
+               fprintf(stderr, "Warning in parameters for retina \"%s\"\n", name);
+               fprintf(stderr, "spikingFlag controls whether the dynamics of the retina is spiking, but\n");
+               fprintf(stderr, "no longer controls whether the activity file is sparse or not.\n");
+               fprintf(stderr, "Set writeSparseActivity to true or false to control the type of file created by outputState.\n");
+            }
+            else {
+               fprintf(stderr, "Warning in parameters for layer \"%s\": spikingFlag has been renamed to writeSparseActivity\n", name);
+            }
+         }
+         writeSparseActivity = (bool) params->value(name, "spikingFlag", 0);
+      }
+   }
+   else {
+      writeSparseActivity = (bool) params->value(name, "writeSparseActivity", 0);
+   }
+   bool writeNonspikingActivityPresent = params->present(name, "writeNonspikingActivity");
+   if (writeNonspikingActivityPresent) {
+      if (parent->icCommunicator()->commRank()==0) {
+         fprintf(stderr, "Warning in parameters for layer \"%s\": parameter writeNonspikingActivity has been deprecated.\n", name);
+         fprintf(stderr, "Instead, set writeStep<0 to prevent writing activity.\n");
+      }
+      if (params->value(name, "writeNonspikingActivity")==0 && writeStep>=0) {
+         writeStep=-1;
+         if (parent->icCommunicator()->commRank()==0) {
+            fprintf(stderr, "Since writeNonspikingActivity is false, writeStep has been changed to -1.  This behavior will change in the future.\n");
+         }
+      }
+   }
+   // end of checks for obsolete parameter calls.
+}
+
+void HyPerLayer::readMirrorBCFlag(PVParams * params) {
+   mirrorBCflag = (bool) params->value(name, "mirrorBCflag", mirrorBCflag);
+}
+
+void HyPerLayer::readRestart(PVParams * params) {
+   restartFlag = params->value(name, "restart", 0.0f) != 0.0f;
+}
+
 #ifdef PV_USE_OPENCL
+void HyPerLayer::readGPUAccelerateFlag(PVParams * params) {
+   gpuAccelerateFlag = params->value(name, "GPUAccelerate", gpuAccelerateFlag);
+}
+
 /**
  * Initialize OpenCL buffers.  This must be called after PVLayer data have
  * been allocated.

@@ -37,7 +37,7 @@ public:
    virtual ~Retina();
    virtual int initializeState();
 
-   int setParams(PVParams * p);
+   int setRetinaParams(PVParams * p);
 
    virtual int triggerReceive(InterColComm* comm);
    virtual int updateState(double time, double dt);
