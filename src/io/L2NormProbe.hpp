@@ -20,8 +20,12 @@ public:
    pvdata_t evaluate();
 
 protected:
+   L2NormProbe();
    int initL2NormProbe(const char * filename, HyPerLayer * layer, const char * msg);
    virtual int writeState(double timed, HyPerLayer * l, pvdata_t value);
+
+private:
+   int initL2NormProbe_base() {return PV_SUCCESS;}
 }; // end class L2NormProbe
 
 }  // end namespace PV

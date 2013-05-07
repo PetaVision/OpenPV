@@ -52,7 +52,7 @@ private:
    char inputfile[PV_PATH_MAX];  // current input file name
    char * movieOutputPath;  // path to output file directory for movie frames
 
-   FILE * fp;
+   PV_Stream * filenamestream;
 };
 
 }

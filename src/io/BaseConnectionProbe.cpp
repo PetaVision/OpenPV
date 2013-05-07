@@ -16,14 +16,14 @@ BaseConnectionProbe::BaseConnectionProbe() {
 BaseConnectionProbe::~BaseConnectionProbe() {
    free(name);
    free(filename);
-   assert(fp != NULL);
-   if( fp != stdout && fp != NULL ) fclose(fp);
+   assert(stream != NULL);
+   if (stream->isfile) PV_fclose(stream);
 }
 
 int BaseConnectionProbe::initialize_base() {
    name = NULL;
    filename = NULL;
-   fp = NULL;
+   stream = NULL;
    targetConn = NULL;
    isPostProbe = 1; //default to 1
    return PV_SUCCESS;
@@ -107,18 +107,18 @@ int BaseConnectionProbe::initialize(const char * probename, const char * filenam
          char path[PV_PATH_MAX];
          sprintf(path, "%s/%s", outputdir, filename);
 
-         fp = fopen(path, "w");
-         if( fp == NULL )  {
+         stream = PV_fopen(path, "w");
+         if (stream == NULL)  {
             fprintf(stderr, "BaseConnectionProbe error opening \"%s\" for writing: %s.\n", path, strerror(errno));
             exit(EXIT_FAILURE);
          }
       }
       else {
-         fp = stdout;
+         stream = PV_stdout();
       }
    }
    else {
-      fp = NULL;
+      stream = NULL;
    }
    targetConn = conn;
    conn->insertProbe(this);

@@ -131,7 +131,7 @@ protected:
 
    double displayPeriod;   // length of time a frame is displayed
    double nextDisplayTime; // time of next frame
-   FILE * patternsFile;
+   PV_Stream * patternsFile;
 
    uint4 patternRandState; // RNG state for Patterns class.  Everything is done sequentially, so a single RNG should be reproducible
 

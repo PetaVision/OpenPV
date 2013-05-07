@@ -108,7 +108,13 @@ int OjaKernelConn::setParams(PVParams * params) {
    readOutputTargetRate(params);
    readIntegrationTime(params);
    readAlphaMultiplier(params);
+   read_dWUpdatePeriod(params);
    return status;
+}
+
+void OjaKernelConn::readInitialWeightUpdateTime(PVParams * params) {
+   KernelConn::readInitialWeightUpdateTime(params);
+   dWUpdateTime = weightUpdateTime;
 }
 
 int OjaKernelConn::updateState(double timef, double dt) {
@@ -136,11 +142,13 @@ int OjaKernelConn::updateState(double timef, double dt) {
 
 int OjaKernelConn::updateWeights(int axonId) {
    lastUpdateTime = parent->simulationTime();
+   float timestepsPerUpdate = weightUpdatePeriod/parent->getDeltaTime(); // Number of timesteps between weight updates;
+   // dw needs to be multiplied by this quantity since updateWeights is only called this often.
    for(int kAxon = 0; kAxon < this->numberOfAxonalArborLists(); kAxon++){
       pvdata_t * w_data_start = get_wDataStart(kAxon);
       for( int k=0; k<nxp*nyp*nfp*getNumDataPatches(); k++ ) {
          pvdata_t w = w_data_start[k];
-         w += (weightUpdatePeriod/parent->getDeltaTime())*get_dwDataStart(kAxon)[k];
+         w += timestepsPerUpdate*get_dwDataStart(kAxon)[k];
          if (w < 0.0f) w = 0.0f;
          w_data_start[k] = w;
       }
@@ -148,6 +156,15 @@ int OjaKernelConn::updateWeights(int axonId) {
    return PV_BREAK;
 }
 
+int OjaKernelConn::calc_dW(int arborId) {
+   int status = PV_SUCCESS;
+   if (parent->simulationTime() < dWUpdateTime) {
+      return status;
+   }
+   dWUpdateTime += dWUpdatePeriod;
+   status = KernelConn::calc_dW(arborId);
+   return status;
+}
 
 int OjaKernelConn::update_dW(int axonId) {
    int status = PV_SUCCESS;
@@ -209,12 +226,17 @@ int OjaKernelConn::checkpointRead(const char * cpDir, double * timef) {
       }
    }
    double timed;
-   HyPerLayer::readBufferFile(filename, parent->icCommunicator(), &timed, &outputFiringRate, 1, /*extended*/false, post->getLayerLoc());
+   status = HyPerLayer::readBufferFile(filename, parent->icCommunicator(), &timed, &outputFiringRate, 1, /*extended*/false, post->getLayerLoc());
+   assert(status==PV_SUCCESS);
 
    const PVLayerLoc * preloc = pre->getLayerLoc();
    chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_inputFiringRate.pvp", cpDir, name);
    assert(chars_needed<PV_PATH_MAX);
-   HyPerLayer::readBufferFile(filename, parent->icCommunicator(), &timed, inputFiringRate, numberOfAxonalArborLists(), /*extended*/true, preloc);
+   status = HyPerLayer::readBufferFile(filename, parent->icCommunicator(), &timed, inputFiringRate, numberOfAxonalArborLists(), /*extended*/true, preloc);
+   assert(status==PV_SUCCESS);
+
+   status = parent->readScalarFromFile(cpDir, getName(), "next_dWUpdate", &dWUpdateTime, weightUpdateTime);
+   assert(status==PV_SUCCESS);
 
    // Apply mirror boundary conditions
 
@@ -241,10 +263,15 @@ int OjaKernelConn::checkpointWrite(const char * cpDir) {
          abort();
       }
    }
-   HyPerLayer::writeBufferFile(filename, parent->icCommunicator(), (double) parent->simulationTime(), &outputFiringRate, 1, /*extended*/ false, post->getLayerLoc());
+   status = HyPerLayer::writeBufferFile(filename, parent->icCommunicator(), (double) parent->simulationTime(), &outputFiringRate, 1, /*extended*/ false, post->getLayerLoc());
+   assert(status == PV_SUCCESS);
    chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_inputFiringRate.pvp", cpDir, name);
    assert(chars_needed<PV_PATH_MAX);
-   HyPerLayer::writeBufferFile(filename, parent->icCommunicator(), (double) parent->simulationTime(), inputFiringRate, numberOfAxonalArborLists(), /*extended*/ true, pre->getLayerLoc());
+   status = HyPerLayer::writeBufferFile(filename, parent->icCommunicator(), (double) parent->simulationTime(), inputFiringRate, numberOfAxonalArborLists(), /*extended*/ true, pre->getLayerLoc());
+   assert(status == PV_SUCCESS);
+   status = parent->writeScalarToFile(cpDir, getName(), "next_dWUpdate", dWUpdateTime);
+   assert(status == PV_SUCCESS);
+
    return status;
 }
 

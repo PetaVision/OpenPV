@@ -30,11 +30,13 @@ protected:
 
    // bool sparseOutput;
 
+   PointProbe();
    int initPointProbe(const char * filename, HyPerLayer * layer, int xLoc, int yLoc, int fLoc, const char * msg);
-   virtual int initFilePointer(const char * filename, HyPerLayer * layer);
+   virtual int initOutputStream(const char * filename, HyPerLayer * layer);
    virtual int writeState(double timef, HyPerLayer * l, int k, int kex);
 
 private:
+   int initPointProbe_base();
    int initMessage(const char * msg);
 };
 

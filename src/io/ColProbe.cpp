@@ -25,13 +25,13 @@ ColProbe::ColProbe(const char * probeName, const char * filename, HyPerCol * hc)
 }
 
 ColProbe::~ColProbe() {
-   if( fp != NULL && fp != stdout) {
-      fclose(fp);
+   if (stream != NULL && stream->isfile) {
+      PV_fclose(stream);
    }
 }
 
 int ColProbe::initialize_base() {
-   fp = NULL;
+   stream = NULL;
    colProbeName = NULL;
    return PV_SUCCESS;
 }
@@ -43,17 +43,23 @@ int ColProbe::initialize(const char * probeName, const char * filename, HyPerCol
 }
 
 int ColProbe::initialize_path(const char * filename, HyPerCol * hc) {
-   if( filename != NULL ) {
-      char * path;
-      const char * output_path = hc->getOutputPath();
-      size_t len = strlen(output_path) + strlen(filename) + 1;
-      path = (char *) malloc( len * sizeof(char) );
-      sprintf(path, "%s/%s", output_path, filename);
-      fp = fopen(path, "w");
-      free(path);
+   if (hc->columnId()==0)
+   {
+      if( filename != NULL ) {
+         char * path;
+         const char * output_path = hc->getOutputPath();
+         size_t len = strlen(output_path) + strlen(filename) + 1;
+         path = (char *) malloc( len * sizeof(char) );
+         sprintf(path, "%s/%s", output_path, filename);
+         stream = PV_fopen(path, "w");
+         free(path);
+      }
+      else {
+         stream = PV_stdout();
+      }
    }
    else {
-      fp = stdout;
+      stream = NULL;
    }
    return PV_SUCCESS;
 }

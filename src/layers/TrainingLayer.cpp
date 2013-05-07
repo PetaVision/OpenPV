@@ -53,7 +53,7 @@ int TrainingLayer::initialize(const char * name, HyPerCol * hc, const char * fil
 }
 
 int TrainingLayer::readTrainingLabels(const char * filename, int ** trainingLabelsFromFile) {
-   FILE * instream = fopen(filename, "r");
+   PV_Stream * instream = PV_fopen(filename, "r");
    if( instream == NULL ) {
       fprintf( stderr, "TrainingLayer error opening \"%s\": %s\n", filename, strerror(errno) );
       *trainingLabelsFromFile = NULL;
@@ -66,10 +66,11 @@ int TrainingLayer::readTrainingLabels(const char * filename, int ** trainingLabe
    int * labels = NULL;
    int * oldlabels;
    do {
-      didReadLabel = fscanf(instream, "%d", &label);
+      didReadLabel = fscanf(instream->fp, "%d", &label);
+      updatePV_StreamFilepos(instream); // to recalculate instream->filepos since it's not easy to tell how many characters were read
       switch( didReadLabel ) {
       case 0:
-         fseek( instream, 1L, SEEK_CUR );
+         PV_fseek( instream, 1L, SEEK_CUR );
          break;
       case 1:
          n++;
@@ -82,7 +83,7 @@ int TrainingLayer::readTrainingLabels(const char * filename, int ** trainingLabe
          break;
       }
    } while( didReadLabel != EOF );
-   fclose(instream);
+   PV_fclose(instream);
    *trainingLabelsFromFile = labels;
    return n;
 }
@@ -143,17 +144,17 @@ int TrainingLayer::checkpointRead(const char * cpDir, double * timef) {
          fprintf(stderr, "TrainingLayer::checkpointRead error.  Path \"%s/%s_currentLabelIndex.bin\" is too long.\n", cpDir, name);
          abort();
       }
-      FILE * curLabelIndexFile = fopen(curLabelIndexPath, "r");
-      if (curLabelIndexFile == NULL) {
+      PV_Stream * curLabelIndexStream = PV_fopen(curLabelIndexPath, "r");
+      if (curLabelIndexStream == NULL) {
          fprintf(stderr, "TrainingLayer::checkpointRead error opening \"%s\" for reading: %s\n", curLabelIndexPath, strerror(errno));
          abort();
       }
-      int numread = fread(&curTrainingLabelIndex, sizeof(curTrainingLabelIndex), 1, curLabelIndexFile);
+      int numread = PV_fread(&curTrainingLabelIndex, sizeof(curTrainingLabelIndex), 1, curLabelIndexStream);
       if (numread != 1) {
          fprintf(stderr, "TrainingLayer::checkpointRead error.  Unable to read \"%s\".\n", curLabelIndexPath);
          abort();
       }
-      fclose(curLabelIndexFile);
+      PV_fclose(curLabelIndexStream);
    }
 #ifdef PV_USE_MPI
    MPI_Bcast(&curTrainingLabelIndex, 1, MPI_INT, rootProc, icComm->communicator());

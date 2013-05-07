@@ -79,8 +79,11 @@ enum PVPatchStrideFields {
 
 typedef struct PV_Stream_ {
    char * name;
-   FILE       * fp;
-   int          isfile; /* True or false, tells whether stream corresponds to a file */
+   char * mode;
+   FILE * fp;
+   long   filepos;
+   long   filelength;
+   int    isfile; /* True or false, tells whether stream corresponds to a file */
 } PV_Stream;
 
 /*

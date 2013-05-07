@@ -22,8 +22,12 @@ public:
    virtual ~LogLatWTAProbe();
 
 protected:
+   LogLatWTAProbe();
    int initLogLatWTAProbe(const char * filename, HyPerLayer * layer, const char * msg);
    virtual int writeState(double timed, HyPerLayer * l, pvdata_t value);
+
+private:
+   int initLogLatWTAProbe_base() { return PV_SUCCESS; }
 };
 
 }  // end namespace PV

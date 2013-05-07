@@ -56,6 +56,27 @@ size_t pv_sizeof_patch(int count, int datatype)
 }
 
 PV_Stream * PV_fopen(const char * path, const char * mode) {
+   if (mode==NULL) {
+      fprintf(stderr, "PV_fopen error for \"%s\": mode argument must be a string.\n", path);
+      errno = EINVAL;
+      return NULL;
+   }
+   long filepos = 0L;
+   long filelength = 0L;
+   if (mode[0]=='r' || mode[0]=='a') {
+      struct stat statbuf;
+      int statstatus = stat(path, &statbuf); // TODO : PV_stat?
+      if (statstatus == 0) {
+         filelength = (long) statbuf.st_size;
+         if (mode[0]=='a') {
+            filepos = filelength;
+         }
+      }
+      else if (errno != ENOENT) {
+         fprintf(stderr, "PV_fopen error for \"%s\" with mode \"%s\": stat error %s\n", path, mode, strerror(errno));
+         abort();
+      }
+   }
    int fopencounts = 0;
    PV_Stream * streampointer = NULL;
    FILE * fp = NULL;
@@ -82,7 +103,10 @@ PV_Stream * PV_fopen(const char * path, const char * mode) {
       streampointer = (PV_Stream *) calloc(1, sizeof(PV_Stream));
       if (streampointer != NULL) {
          streampointer->name = strdup(path);
+         streampointer->mode = strdup(mode);
          streampointer->fp = fp;
+         streampointer->filepos = filepos;
+         streampointer->filelength = filelength;
          streampointer->isfile = 1;
       }
       else {
@@ -93,7 +117,8 @@ PV_Stream * PV_fopen(const char * path, const char * mode) {
    return streampointer;
 }
 
-long int PV_ftell(PV_Stream * pvstream) {
+long int PV_ftell_primitive(PV_Stream * pvstream) {
+   // Calls ftell() and returns value ftell returns, but doesn't compare or change stream's fpos
    int ftellcounts = 0;
    long filepos = -1;
    while (filepos < 0) {
@@ -114,6 +139,26 @@ long int PV_ftell(PV_Stream * pvstream) {
    }
    else if (ftellcounts>0) {
       fprintf(stderr, "PV_ftell succeeded for \"%s\" on attempt %d", pvstream->name, ftellcounts+1);
+   }
+   return filepos;
+}
+
+long int getPV_StreamFilepos(PV_Stream * pvstream) {
+   return pvstream->filepos;
+}
+
+long int updatePV_StreamFilepos(PV_Stream * pvstream) {
+   long int filepos = PV_ftell_primitive(pvstream);
+   pvstream->filepos = filepos;
+   return filepos;
+}
+
+// Use getPV_StreamFilepos instead of PV_ftell whenever possible, since NMC cluster's ftell is currently unreliable
+long int PV_ftell(PV_Stream * pvstream) {
+   long int filepos = PV_ftell_primitive(pvstream);
+   if (pvstream->filepos != filepos)
+   {
+      fprintf(stderr, "Warning: ftell for \"%s\" returned %ld instead of the expected %ld\n", pvstream->name, filepos, pvstream->filepos);
    }
    return filepos;
 }
@@ -140,44 +185,103 @@ int PV_fseek(PV_Stream * pvstream, long offset, int whence) {
    else if (fseekcounts>0) {
       fprintf(stderr, "PV_fseek succeeded for \"%s\" on attempt %d", pvstream->name, fseekcounts+1);
    }
+   if (pvstream->mode[0] != 'a') {
+      switch(whence) {
+      case SEEK_SET:
+         pvstream->filepos = offset;
+         break;
+      case SEEK_CUR:
+         pvstream->filepos += offset;
+         break;
+      case SEEK_END:
+         pvstream->filepos = pvstream->filelength + offset;
+         break;
+      default:
+         assert(0);
+         break;
+      }
+   }
    return fseekstatus;
 }
 
 size_t PV_fwrite(const void * RESTRICT ptr, size_t size, size_t nitems, PV_Stream * RESTRICT pvstream) {
    int fwritecounts = 0;
-   size_t fwritten = nitems - 1;
-   while (fwritten != nitems) {
-      long int fpos = PV_ftell(pvstream);
-      if (fpos<0) {
-         fprintf(stderr, "PV_fwrite error: unable to determine file position of \"%s\".  Fatal error\n", pvstream->name);
-         exit(EXIT_FAILURE);
+   size_t writesize = nitems*size;
+   size_t stilltowrite = writesize;
+   const char * RESTRICT curptr = (const char * RESTRICT) ptr;
+   long int fpos = pvstream->filepos; // PV_ftell(pvstream);
+   if (fpos<0) {
+      fprintf(stderr, "PV_fwrite error: unable to determine file position of \"%s\".  Fatal error\n", pvstream->name);
+      exit(EXIT_FAILURE);
+   }
+   while (stilltowrite != 0UL) {
+      size_t charswritten_thispass = fwrite(curptr, 1UL, stilltowrite, pvstream->fp);
+      stilltowrite -= charswritten_thispass;
+      pvstream->filepos += charswritten_thispass;
+      if (pvstream->filepos > pvstream->filelength) pvstream->filelength = pvstream->filepos;
+      if (stilltowrite == 0UL) {
+         if (fwritecounts>0) {
+            fprintf(stderr, "fwrite succeeded for \"%s\" on attempt %d.\n", pvstream->name, fwritecounts+1);
+         }
+         break;
       }
-      fwritten = fwrite(ptr, size, nitems, pvstream->fp);
-      if (fwritten == nitems) {
-    	 if (fwritecounts>0) {
-    	    fprintf(stderr, "fwrite succeeded for \"%s\" on attempt %d.\n", pvstream->name, fwritecounts++);
-    	 }
-         return fwritten;
-      }
+      curptr += charswritten_thispass;
       fwritecounts++;
       if (fwritecounts<MAX_FILESYSTEMCALL_TRIES) {
-         fprintf(stderr, "fwrite failure for \"%s\" on attempt %d.  Attempting to return to original position\n", pvstream->name, fwritecounts);
+         fprintf(stderr, "fwrite failure for \"%s\" on attempt %d.  %lu bytes written; %lu bytes still to write so far.\n", pvstream->name, fwritecounts, charswritten_thispass, stilltowrite);
          sleep(1);
-         int fseekstatus = PV_fseek(pvstream, fpos, SEEK_SET);
-         if (fseekstatus!=0) {
-            fprintf(stderr, "PV_fwrite error: unable to return to original position after failed fwrite call for \"%s\".  Fatal error.\n", pvstream->name);
-            exit(EXIT_FAILURE);
-         }
+         // int fseekstatus = PV_fseek(pvstream, fpos, SEEK_SET);
+         // if (fseekstatus!=0) {
+         //    fprintf(stderr, "PV_fwrite error: unable to return to original position after failed fwrite call for \"%s\".  Fatal error.\n", pvstream->name);
+         //    exit(EXIT_FAILURE);
+         // }
       }
       else {
-    	 fprintf(stderr, "PV_fwrite failure for \"%s\": MAX_FILESYSTEMCALL_TRIES = %d exceeded\n", pvstream->name, MAX_FILESYSTEMCALL_TRIES);
-         assert(fwritten == nitems);
+    	 fprintf(stderr, "PV_fwrite failure for \"%s\": MAX_FILESYSTEMCALL_TRIES = %d exceeded, and %lu bytes of %lu written.\n", pvstream->name, MAX_FILESYSTEMCALL_TRIES, writesize-stilltowrite, writesize);
       }
    }
-   return fwritten;
+   return (writesize - stilltowrite)/size;
 }
 
-// TODO PV_fread
+size_t PV_fread(void * RESTRICT ptr, size_t size, size_t nitems, PV_Stream * RESTRICT pvstream) {
+   int freadcounts = 0;
+   size_t readsize = nitems*size;
+   size_t stilltoread = readsize;
+   char * RESTRICT curptr = (char * RESTRICT) ptr;
+   long int fpos = pvstream->filepos; // PV_ftell(pvstream);
+   clearerr(pvstream->fp);
+   if (fpos<0) {
+      fprintf(stderr, "PV_fread error: unable to determine file position of \"%s\".  Fatal error\n", pvstream->name);
+      exit(EXIT_FAILURE);
+   }
+   while (stilltoread != 0UL) {
+      size_t charsread_thispass = fread(curptr, 1UL, stilltoread, pvstream->fp);
+      stilltoread -= charsread_thispass;
+      pvstream->filepos += charsread_thispass;
+      if (stilltoread == 0UL) {
+         if (freadcounts>0) {
+            fprintf(stderr, "fread succeeded for \"%s\" on attempt %d.\n", pvstream->name, freadcounts+1);
+         }
+         break;
+      }
+      else {
+         if (feof(pvstream->fp)) {
+            fprintf(stderr, "fread failure for \"%s\": end of file reached with %lu characters still unread.\n", pvstream->name, stilltoread);
+            break;
+         }
+      }
+      curptr += charsread_thispass;
+      freadcounts++;
+      if (freadcounts<MAX_FILESYSTEMCALL_TRIES) {
+         fprintf(stderr, "fread failure for \"%s\" on attempt %d.  %lu bytes written; %lu bytes still to write so far.\n", pvstream->name, freadcounts, charsread_thispass, stilltoread);
+         sleep(1);
+      }
+      else {
+         fprintf(stderr, "PV_fread failure for \"%s\": MAX_FILESYSTEMCALL_TRIES = %d exceeded, and %lu bytes of %lu written.\n", pvstream->name, MAX_FILESYSTEMCALL_TRIES, readsize-stilltoread, readsize);
+      }
+   }
+   return (readsize - stilltoread)/size;
+}
 
 int PV_fclose(PV_Stream * pvstream) {
    int status = PV_SUCCESS;
@@ -185,10 +289,11 @@ int PV_fclose(PV_Stream * pvstream) {
       if (pvstream->fp && pvstream->isfile) {
          status = fclose(pvstream->fp);
          if (status!=0) {
-            fprintf(stderr, "fclose failure for \"%s\"", pvstream->name);
+            fprintf(stderr, "fclose failure for \"%s\": %s", pvstream->name, strerror(errno));
          }
       }
       free(pvstream->name);
+      free(pvstream->mode);
       free(pvstream); pvstream = NULL;
    }
    return status;
@@ -198,7 +303,10 @@ PV_Stream * PV_stdout() {
    PV_Stream * pvstream = (PV_Stream *) calloc(1, sizeof(PV_Stream));
    if (pvstream != NULL) {
       pvstream->name = strdup("stdout");
+      pvstream->mode = strdup("w");
       pvstream->fp = stdout;
+      pvstream->filepos = 0L;   // stdout doesn't have meaningful filepos or filelength, but the fields still exist.
+      pvstream->filelength = 0L;
       pvstream->isfile = 0;
    }
    else {
@@ -540,7 +648,7 @@ int pvp_read_header(PV_Stream * pvstream, Communicator * comm, int * params, int
       // find out how many parameters there are
       //
       if (status == PV_SUCCESS) {
-         int numread = fread(params, sizeof(int), 2, pvstream->fp);
+         int numread = PV_fread(params, sizeof(int), 2, pvstream);
          if (numread != 2) {
             numParamsRead = -1;
             status = PV_FAILURE;
@@ -564,7 +672,7 @@ int pvp_read_header(PV_Stream * pvstream, Communicator * comm, int * params, int
       // read the rest
       //
       if (status == PV_SUCCESS && *numParams > 2) {
-         size_t numRead = fread(&params[2], sizeof(int), nParams - 2, pvstream->fp);
+         size_t numRead = PV_fread(&params[2], sizeof(int), nParams - 2, pvstream);
          if (numRead != (size_t) nParams - 2) {
             status = PV_FAILURE;
             *numParams = numRead;
@@ -627,7 +735,7 @@ int pvp_read_header(PV_Stream * pvstream, double * time, int * filetype,
 
    // find out how many parameters there are
    //
-   if ( fread(params, sizeof(int), 2, pvstream->fp) != 2 ) return -1;
+   if ( PV_fread(params, sizeof(int), 2, pvstream) != 2 ) return -1;
 
    int nParams = params[INDEX_NUM_PARAMS];
    assert(params[INDEX_HEADER_SIZE] == (int) (nParams * sizeof(int)));
@@ -638,7 +746,7 @@ int pvp_read_header(PV_Stream * pvstream, double * time, int * filetype,
 
    // read the rest
    //
-   if (fread(&params[2], sizeof(int), nParams - 2, pvstream->fp) != (unsigned int) nParams - 2) return -1;
+   if (PV_fread(&params[2], sizeof(int), nParams - 2, pvstream) != (unsigned int) nParams - 2) return -1;
 
    *numParams  = params[INDEX_NUM_PARAMS];
    *filetype   = params[INDEX_FILE_TYPE];
@@ -968,7 +1076,7 @@ int pvp_read_time(PV_Stream * pvstream, Communicator * comm, int root_process, d
          fprintf(stderr, "pvp_read_time error: root process called with null stream argument.\n");
          abort();
       }
-      int numread = fread(timed, sizeof(*timed), 1, pvstream->fp);
+      int numread = PV_fread(timed, sizeof(*timed), 1, pvstream);
       mpi_data.status = (numread == 1) ? PV_SUCCESS : PV_FAILURE;
       mpi_data.time = *timed;
    }
@@ -988,7 +1096,7 @@ int writeActivity(PV_Stream * pvstream, Communicator * comm, double timed, PVLay
    int rank = 0;
 #endif // PV_USE_MPI
    if( rank == 0 ) {
-      long fpos = PV_ftell(pvstream);
+      long fpos = getPV_StreamFilepos(pvstream);
       if (fpos == 0L) {
          int * params = pvp_set_nonspiking_act_params(comm, timed, &l->loc, PV_FLOAT_TYPE, 1/*numbands*/);
          assert(params && params[1]==NUM_BIN_PARAMS);
@@ -1073,7 +1181,7 @@ int writeActivitySparse(PV_Stream * pvstream, Communicator * comm, double time, 
 
       // write activity header
       //
-      long fpos = PV_ftell(pvstream);
+      long fpos = getPV_StreamFilepos(pvstream);
       if (fpos == 0L) {
          int numParams = NUM_BIN_PARAMS;
          status = pvp_write_header(pvstream, comm, time, &l->loc, PVP_ACT_FILE_TYPE,
@@ -1278,7 +1386,7 @@ int readWeights(PVPatch *** patches, pvdata_t ** dataStart, int numArbors, int n
             arborStart = headerSize + localSize*arborId;
             long offset = arborStart;
             PV_fseek(pvstream, offset, SEEK_SET);
-            int numRead = fread(cbuf, localSize, 1, pvstream->fp);
+            int numRead = PV_fread(cbuf, localSize, 1, pvstream);
             if( numRead != 1 ) return -1;
 #ifdef PV_USE_MPI
             for( int py=0; py<nyProcs; py++ ) {
@@ -1297,7 +1405,7 @@ int readWeights(PVPatch *** patches, pvdata_t ** dataStart, int numArbors, int n
                   if( ++dest == 0 ) continue;
                   long offset = arborStart + dest*localSize;
                   PV_fseek(pvstream, offset, SEEK_SET);
-                  int numRead = fread(cbuf, localSize, 1, pvstream->fp);
+                  int numRead = PV_fread(cbuf, localSize, 1, pvstream);
                   if( numRead != 1 ) return -1;
                   MPI_Send(cbuf, localSize, MPI_BYTE, dest, tag, mpi_comm);
                }
@@ -1316,9 +1424,9 @@ int readWeights(PVPatch *** patches, pvdata_t ** dataStart, int numArbors, int n
          if( readLocalPortion ) {
             long offset = arborStart + 0*localSize;
             PV_fseek(pvstream, offset, SEEK_SET);
-            int numRead = fread(cbuf, localSize, 1, pvstream->fp);
+            int numRead = PV_fread(cbuf, localSize, 1, pvstream);
             if  (numRead != 1) {
-               fprintf(stderr, "[%2d]: readWeights: failed in fread, offset==%ld\n",
+               fprintf(stderr, "[%2d]: readWeights: failed in PV_fread, offset==%ld\n",
                      comm->commRank(), offset);
             }
          }
@@ -1533,5 +1641,250 @@ int readRandState(const char * filename, Communicator * comm, uint4 * randState,
    }
    return status;
 }
+
+template <typename T> int gatherActivity(PV_Stream * pvstream, Communicator * comm, int rootproc, T * buffer, const PVLayerLoc * layerLoc, bool extended) {
+   // In MPI when this process is called, all processes must call it.
+   // Only the root process uses the file pointer.
+   int status = PV_SUCCESS;
+
+   int numLocalNeurons = layerLoc->nx * layerLoc->ny * layerLoc->nf;
+
+   int xLineStart = 0;
+   int yLineStart = 0;
+   int xBufSize = layerLoc->nx;
+   int yBufSize = layerLoc->ny;
+   int nb = 0;
+   if (extended) {
+      nb = layerLoc->nb;
+      xLineStart = nb;
+      yLineStart = nb;
+      xBufSize += 2*nb;
+      yBufSize += 2*nb;
+   }
+   int linesize = layerLoc->nx*layerLoc->nf; // All values across x and f for a specific y are contiguous; do a single write for each y.
+   size_t datasize = sizeof(T);
+   // read into a temporary buffer since buffer may be extended but the file only contains the restricted part.
+   T * temp_buffer = (T *) calloc(numLocalNeurons, datasize);
+   if (temp_buffer==NULL) {
+      fprintf(stderr, "scatterActivity unable to allocate memory for temp_buffer.\n");
+      status = PV_FAILURE;
+      abort();
+   }
+#ifdef PV_USE_MPI
+   int rank = comm->commRank();
+   if (rank==rootproc) {
+      if (pvstream == NULL) {
+         fprintf(stderr, "gatherActivity error: file pointer on root process is null.\n");
+         status = PV_FAILURE;
+         abort();
+      }
+      long startpos = getPV_StreamFilepos(pvstream);
+      if (startpos == -1) {
+         fprintf(stderr, "gatherActivity error when getting file position: %s\n", strerror(errno));
+         status = PV_FAILURE;
+         abort();
+      }
+      // Write zeroes to make sure the file is big enough since we'll write nonsequentially under MPI.  This may not be necessary.
+      int comm_size = comm->commSize();
+      for (int r=0; r<comm_size; r++) {
+         int numwritten = PV_fwrite(temp_buffer, datasize, numLocalNeurons, pvstream);
+         if (numwritten != numLocalNeurons) {
+            fprintf(stderr, "gatherActivity error when writing: number of bytes attempted %d, number written %d\n", numwritten, numLocalNeurons);
+            status = PV_FAILURE;
+            abort();
+         }
+      }
+      int fseekstatus = PV_fseek(pvstream, startpos, SEEK_SET);
+      if (fseekstatus != 0) {
+         fprintf(stderr, "gatherActivity error when setting file position: %s\n", strerror(errno));
+         status = PV_FAILURE;
+         abort();
+      }
+      for (int r=0; r<comm_size; r++) {
+         if (r==rootproc) {
+            if (extended) {
+               for (int y=0; y<layerLoc->ny; y++) {
+                  int k_extended = kIndex(nb, y+yLineStart, 0, xBufSize, yBufSize, layerLoc->nf);
+                  int k_restricted = kIndex(0, y, 0, layerLoc->nx, layerLoc->ny, layerLoc->nf);
+                  memcpy(&temp_buffer[k_restricted], &buffer[k_extended], datasize*linesize);
+               }
+            }
+            else {
+               memcpy(temp_buffer, buffer, (size_t) numLocalNeurons*datasize);
+            }
+         }
+         else {
+            MPI_Recv(temp_buffer, numLocalNeurons*(int) datasize, MPI_BYTE, r, 171+r/*tag*/, comm->communicator(), MPI_STATUS_IGNORE);
+         }
+         // Data to be written is in temp_buffer, which is nonextend.
+         for (int y=0; y<layerLoc->ny; y++) {
+            int ky0 = layerLoc->ny*rowFromRank(r, comm->numCommRows(), comm->numCommColumns());
+            int kx0 = layerLoc->nx*columnFromRank(r, comm->numCommRows(), comm->numCommColumns());
+            int k_local = kIndex(0, y, 0, layerLoc->nx, layerLoc->ny, layerLoc->nf);
+            int k_global = kIndex(kx0, y+ky0, 0, layerLoc->nxGlobal, layerLoc->nyGlobal, layerLoc->nf);
+            int fseekstatus = PV_fseek(pvstream, startpos + k_global*datasize, SEEK_SET);
+            if (fseekstatus == 0) {
+               int numwritten = PV_fwrite(&temp_buffer[k_local], datasize, linesize, pvstream);
+               if (numwritten != linesize) {
+                  fprintf(stderr, "gatherActivity error when writing: number of bytes attempted %d, number written %d\n", numwritten, numLocalNeurons);
+                  status = PV_FAILURE;
+               }
+            }
+            else {
+               fprintf(stderr, "gatherActivity error when setting file position: %s\n", strerror(errno));
+               status = PV_FAILURE;
+               abort();
+            }
+         }
+      }
+      PV_fseek(pvstream, startpos+numLocalNeurons*datasize*comm_size, SEEK_SET);
+   }
+   else {
+      if (nb>0) {
+         // temp_buffer is a restricted buffer, but if extended is true, buffer is an extended buffer.
+         for (int y=0; y<layerLoc->ny; y++) {
+            int k_extended = kIndex(nb, y+yLineStart, 0, xBufSize, yBufSize, layerLoc->nf);
+            int k_restricted = kIndex(0, y, 0, layerLoc->nx, layerLoc->ny, layerLoc->nf);
+            memcpy(&temp_buffer[k_restricted], &buffer[k_extended], datasize*linesize);
+         }
+         MPI_Send(temp_buffer, numLocalNeurons*datasize, MPI_BYTE, rootproc, 171+rank/*tag*/, comm->communicator());
+      }
+      else {
+         MPI_Send(buffer, numLocalNeurons*datasize, MPI_BYTE, rootproc, 171+rank/*tag*/, comm->communicator());
+      }
+   }
+#endif // PV_USE_MPI
+   free(temp_buffer); temp_buffer = NULL;
+   return status;
+}
+// Declare the instantiations of readScalarToFile that occur in other .cpp files; otherwise you'll get linker errors.
+template int gatherActivity<unsigned char>(PV_Stream * pvstream, Communicator * comm, int rootproc,  unsigned char * buffer, const PVLayerLoc * layerLoc, bool extended);
+
+template <typename T> int scatterActivity(PV_Stream * pvstream, Communicator * comm, int rootproc, T * buffer, const PVLayerLoc * layerLoc, bool extended, const PVLayerLoc * fileLoc, int offsetX, int offsetY) {
+   // In MPI when this process is called, all processes must call it.
+   // Only the root process uses the file pointer fp or the file PVLayerLoc fileLoc.
+   //
+   // layerLoc refers to the PVLayerLoc of the layer being read into.
+   // fileLoc refers to the PVLayerLoc of the file being read from.  They do not have to be the same.
+   // The position (0,0) of the layer corresponds to (offsetX, offsetY) of the file.
+   // fileLoc and layerLoc do not have to have the same nxGlobal or nyGlobal, but they must have the same nf.
+
+   // Potential improvements:
+   // Detect when you can do a single read of the whole block instead of layerLoc->ny smaller reads of one line each
+   // If nb=0, don't need to allocate a temporary buffer; can just read into buffer.
+   int status = PV_SUCCESS;
+
+   int numLocalNeurons = layerLoc->nx * layerLoc->ny * layerLoc->nf;
+
+   int xLineStart = 0;
+   int yLineStart = 0;
+   int xBufSize = layerLoc->nx;
+   int yBufSize = layerLoc->ny;
+   int nb = 0;
+   if (extended) {
+      nb = layerLoc->nb;
+      xLineStart = nb;
+      yLineStart = nb;
+      xBufSize += 2*nb;
+      yBufSize += 2*nb;
+   }
+   int linesize = layerLoc->nx * layerLoc->nf;
+   size_t datasize = sizeof(T);
+   // read into a temporary buffer since buffer may be extended but the file only contains the restricted part.
+   T * temp_buffer = (T *) calloc(numLocalNeurons, datasize);
+   if (temp_buffer==NULL) {
+      fprintf(stderr, "scatterActivity unable to allocate memory for temp_buffer.\n");
+      status = PV_FAILURE;
+      abort();
+   }
+
+#ifdef PV_USE_MPI
+   int rank = comm->commRank();
+   if (rank==rootproc) {
+      if (pvstream == NULL) {
+         fprintf(stderr, "scatterActivity error: file pointer on root process is null.\n");
+         status = PV_FAILURE;
+         abort();
+      }
+      long startpos = getPV_StreamFilepos(pvstream);
+      if (startpos == -1) {
+         fprintf(stderr, "scatterActivity error when getting file position: %s\n", strerror(errno));
+         status = PV_FAILURE;
+         abort();
+      }
+      if (fileLoc==NULL) fileLoc = layerLoc;
+      if (fileLoc->nf != layerLoc->nf) {
+         fprintf(stderr, "scatterActivity error: layerLoc->nf and fileLoc->nf must be equal (they are %d and %d)\n", layerLoc->nf, fileLoc->nf);
+         abort();
+      }
+      if (offsetX < 0 || offsetX + layerLoc->nxGlobal > fileLoc->nxGlobal ||
+            offsetY < 0 || offsetY + layerLoc->nyGlobal > fileLoc->nyGlobal) {
+         fprintf(stderr, "scatterActivity error: offset window does not completely fit inside image frame. This case has not been implemented yet.\n");
+         abort();
+      }
+      int comm_size = comm->commSize();
+      for (int r=0; r<comm_size; r++) {
+         if (r==rootproc) continue; // Need to load root process last, or subsequent processes will clobber temp_buffer.
+         for (int y=0; y<layerLoc->ny; y++) {
+            int ky0 = layerLoc->ny*rowFromRank(r, comm->numCommRows(), comm->numCommColumns());
+            int kx0 = layerLoc->nx*columnFromRank(r, comm->numCommRows(), comm->numCommColumns());
+            int k_inmemory = kIndex(0, y, 0, layerLoc->nx, layerLoc->ny, layerLoc->nf);
+            int k_infile = kIndex(offsetX+kx0, offsetY+ky0+y, 0, fileLoc->nxGlobal, fileLoc->nyGlobal, layerLoc->nf);
+            PV_fseek(pvstream, startpos + k_infile*(long) datasize, SEEK_SET);
+            int numread = PV_fread(&temp_buffer[k_inmemory], datasize, linesize, pvstream);
+            if (numread != linesize) {
+               fprintf(stderr, "scatterActivity error when reading: number of bytes attempted %d, number written %d\n", numread, numLocalNeurons);
+               abort();
+            }
+         }
+         MPI_Send(temp_buffer, numLocalNeurons*(int) datasize, MPI_BYTE, r, 171+r/*tag*/, comm->communicator());
+      }
+      for (int y=0; y<layerLoc->ny; y++) {
+         int ky0 = layerLoc->ny*rowFromRank(rootproc, comm->numCommRows(), comm->numCommColumns());
+         int kx0 = layerLoc->nx*columnFromRank(rootproc, comm->numCommRows(), comm->numCommColumns());
+         int k_inmemory = kIndex(0, y, 0, layerLoc->nx, layerLoc->ny, layerLoc->nf);
+         int k_infile = kIndex(offsetX+kx0, offsetY+ky0+y, 0, fileLoc->nxGlobal, fileLoc->nyGlobal, layerLoc->nf);
+         PV_fseek(pvstream, startpos + k_infile*(long) datasize, SEEK_SET);
+         int numread = PV_fread(&temp_buffer[k_inmemory], datasize, linesize, pvstream);
+         if (numread != linesize) {
+            fprintf(stderr, "scatterActivity error when reading: number of bytes attempted %d, number written %d\n", linesize, numread);
+            abort();
+         }
+      }
+      PV_fseek(pvstream, startpos+numLocalNeurons*datasize*comm_size, SEEK_SET);
+   }
+   else {
+      MPI_Recv(temp_buffer, sizeof(uint4)*numLocalNeurons, MPI_BYTE, rootproc, 171+rank/*tag*/, comm->communicator(), MPI_STATUS_IGNORE);
+   }
+#else // PV_USE_MPI
+   for (int y=0; y<layerLoc->ny; y++) {
+      int k_inmemory = kIndex(xLineStart, y+yLineStart, 0, xBufSize, yBufSize, layerLoc->nf);
+      int k_infile = kIndex(offsetX, offsetY+y, 0, fileLoc->nxGlobal, fileLoc->nyGlobal, layerLoc->nf);
+      PV_fseek(pvstream, startpos + k_infile*(long) datasize, SEEK_SET);
+      int numread = PV_fread(&temp_buffer[k_inmemory], datasize, linesize, pvstream);
+      if (numread != linesize) {
+         fprintf(stderr, "scatterActivity error when reading: number of bytes attempted %d, number written %d\n", numread, numLocalNeurons);
+         abort();
+      }
+   }
+#endif // PV_USE_MPI
+   // At this point, each process has the data, as a restricted layer, in temp_buffer.
+   // Each process now copies the data to buffer, which may be extended.
+   if (nb>0) {
+      for (int y=0; y<layerLoc->ny; y++) {
+         int k_extended = kIndex(xLineStart, y+yLineStart, 0, xBufSize, yBufSize, layerLoc->nf);
+         int k_restricted = kIndex(0, y, 0, layerLoc->nx, layerLoc->ny, layerLoc->nf);
+         memcpy(&buffer[k_extended], &temp_buffer[k_restricted], (size_t)linesize*datasize);
+      }
+   }
+   else {
+      memcpy(buffer, temp_buffer, (size_t) numLocalNeurons*datasize);
+   }
+   free(temp_buffer); temp_buffer = NULL;
+
+   return status;
+}
+// Declare the instantiations of readScalarToFile that occur in other .cpp files; otherwise you'll get linker errors.
+template int scatterActivity<float>(PV_Stream * pvstream, Communicator * icComm, int rootproc, float * buffer, const PVLayerLoc * layerLoc, bool extended, const PVLayerLoc * fileLoc, int offsetX, int offsetY);
 
 } // namespace PV

@@ -91,7 +91,8 @@ int getImageInfoPVP(const char * filename, PV::Communicator * comm, PVLayerLoc *
            comm->commRank(), nxProcs, nyProcs, icRow, icCol);
 #endif // DEBUG_OUTPUT
 
-   PV_Stream * pvstream = PV::PV_fopen(filename, "rb");
+   PV_Stream * pvstream = NULL;
+   if (comm->commRank()==0) { pvstream = PV::PV_fopen(filename, "rb"); }
    int numParams = NUM_PAR_BYTE_PARAMS;
    int params[numParams];
    pvp_read_header(pvstream, comm, params, &numParams);
@@ -492,12 +493,12 @@ int scatterImageFilePVP(const char * filename, int xOffset, int yOffset,
          break;
       case PVP_ACT_FILE_TYPE:
          spiking = true;
-         fread(&timed, sizeof(double), 1, pvstream->fp);
+         PV::PV_fread(&timed, sizeof(double), 1, pvstream);
          fprintf(stderr, "scatterImageFilePVP error opening \"%s\": Reading spiking PVP files into an Image layer hasn't been implemented yet.\n", filename);
          abort();
          break;
       case PVP_NONSPIKING_ACT_FILE_TYPE:
-         fread(&timed, sizeof(double), 1, pvstream->fp);
+         PV::PV_fread(&timed, sizeof(double), 1, pvstream);
          status = PV_SUCCESS;
          break;
       case PVP_WGT_FILE_TYPE:

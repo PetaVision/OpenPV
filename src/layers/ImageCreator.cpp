@@ -577,19 +577,19 @@ int ImageCreator::writeImageToFile(const float time, const unsigned char options
  */
 int ImageCreator::writeImageToTxt(const char *filename)
 {
-   FILE * txtfile = NULL;
+   PV_Stream * txtfile = NULL;
    const PVLayerLoc * loc = getLayerLoc();
    const int nx = loc->nx;
    const int ny = loc->ny;
 
-   if ((txtfile = fopen(filename, "w"))) {
+   if ((txtfile = PV_fopen(filename, "w"))) {
       for (int i = 0; i < nx; i++) {
          for (int j = 0; j < ny; j++) {
-            fprintf(txtfile, "%d ", (int) getmark(i, j));
+            fprintf(txtfile->fp, "%d ", (int) getmark(i, j));
          }
-         fprintf(txtfile, "\n");
+         fprintf(txtfile->fp, "\n");
       }
-      fclose(txtfile);
+      PV_fclose(txtfile);
       return 0;
    }
    else {
@@ -610,20 +610,20 @@ int ImageCreator::writeImageToTxt(const char *filename)
  */
 int ImageCreator::writeImageToBin(const char *filename)
 {
-   FILE * binfile = NULL;
+   PV_Stream * binfile = NULL;
    const PVLayerLoc * loc = getLayerLoc();
 
    const int nx = loc->nx;
    const int ny = loc->ny;
 
-   if ((binfile = fopen(filename, "wb"))) {
+   if ((binfile = PV_fopen(filename, "wb"))) {
       for (int i = 0; i < nx; i++) {
          for (int j = 0; j < ny; j++) {
-            fprintf(binfile, "%d ", (int) getmark(i, j));
+            fprintf(binfile->fp, "%d ", (int) getmark(i, j));
          }
-         fprintf(binfile, "\n");
+         fprintf(binfile->fp, "\n");
       }
-      fclose(binfile);
+      PV_fclose(binfile);
       return 0;
    }
    else {

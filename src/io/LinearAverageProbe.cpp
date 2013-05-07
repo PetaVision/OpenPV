@@ -12,6 +12,11 @@
 
 namespace PV {
 
+LinearAverageProbe::LinearAverageProbe() {
+   initLinearAverageProbe_base();
+   // Derived classes should call initLinearAverageProbe during their own initialization
+}
+
 /**
  * @hc
  * @dim
@@ -21,6 +26,7 @@ namespace PV {
 LinearAverageProbe::LinearAverageProbe(HyPerLayer * layer, PVDimType dim, int f, const char * gifFile)
    : LinearActivityProbe()
 {
+   initLinearAverageProbe_base();
    initLinearAverageProbe(NULL, layer, dim, f, gifFile);
 }
 
@@ -34,21 +40,28 @@ LinearAverageProbe::LinearAverageProbe(HyPerLayer * layer, PVDimType dim, int f,
 LinearAverageProbe::LinearAverageProbe(const char * filename, HyPerLayer * layer, PVDimType dim, int f, const char * gifFile)
     : LinearActivityProbe()
 {
+   initLinearAverageProbe_base();
    initLinearAverageProbe(filename, layer, dim, f, gifFile);
 }
 
 LinearAverageProbe::~LinearAverageProbe()
 {
-   if (fpGif != NULL) {
-      fclose(fpGif);
+   if (gifFileStream != NULL) {
+      PV_fclose(gifFileStream);
    }
+}
+
+int LinearAverageProbe::initLinearAverageProbe_base() {
+   gifFilename = NULL;
+   gifFileStream = NULL;
+   return PV_SUCCESS;
 }
 
 int LinearAverageProbe::initLinearAverageProbe(const char * filename, HyPerLayer * layer, PVDimType dim, int f, const char * gifFile) {
 
    initLinearActivityProbe(filename, layer, dim, 0, f);
-   this->gifFile = strdup(gifFile);
-   this->fpGif   = NULL;
+   this->gifFilename = strdup(gifFile);
+   this->gifFileStream   = NULL;
    return PV_SUCCESS;
 }
 
@@ -64,11 +77,10 @@ int LinearAverageProbe::outputState(double timef)
    HyPerLayer * l = getTargetLayer();
    const PVLayer * clayer = l->clayer;
 
-   if (fpGif == NULL) {
+   if (gifFileStream == NULL) {
       int numOnLines = 0;
       char path[PV_PATH_MAX];
-      sprintf(path, "%s/%s", l->getParent()->getOutputPath(), gifFile);
-//      fpGif = fopen(path, "r");
+      sprintf(path, "%s/%s", l->getParent()->getOutputPath(), gifFilename);
 
       int nx = clayer->loc.nxGlobal;
       int ny = clayer->loc.nyGlobal;
@@ -136,16 +148,16 @@ int LinearAverageProbe::outputState(double timef)
    }
 
    float freq = sum / (nk * dt * 0.001);
-   fprintf(fp, "t=%4d sum=%3d f=%6.1f Hz :", (int)timef, (int)sum, freq);
+   fprintf(outputstream->fp, "t=%4d sum=%3d f=%6.1f Hz :", (int)timef, (int)sum, freq);
 
    for (int k = 0; k < nk; k++) {
       float a = line[f + k * sk];
-      if (a > 0.0) fprintf(fp, "*");
-      else         fprintf(fp, " ");
+      if (a > 0.0) fprintf(outputstream->fp, "*");
+      else         fprintf(outputstream->fp, " ");
    }
 
-   fprintf(fp, ":\n");
-   fflush(fp);
+   fprintf(outputstream->fp, ":\n");
+   fflush(outputstream->fp);
 
    return 0;
 }

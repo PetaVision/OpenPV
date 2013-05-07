@@ -22,7 +22,7 @@ public:
    virtual int outputState(double timef) = 0;
    const char * getName()               {return name;}
    const char * getFilename()           {return filename;}
-   FILE * getFilePtr()                  {return fp;}
+   PV_Stream * getStream()              {return stream;}
    HyPerConn * getTargetConn()          {return targetConn;}
 
 protected:
@@ -38,7 +38,7 @@ private:
 protected:
    char * name; // Name of the probe; corresponds to the group name in the params file
    char * filename; // Name of the output file.  Can be NULL if output goes to stdout
-   FILE * fp; // pointer to output file; NULL except for root process.  If filename is NULL, fp will be stdout.
+   PV_Stream * stream; // pointer to output file; NULL except for root process.  If filename is NULL, fp will be stdout.
    HyPerConn * targetConn;
    bool isPostProbe;
 

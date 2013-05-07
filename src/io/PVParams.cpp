@@ -37,12 +37,14 @@ int pv_parseParameters(PV::PVParams * action_handler, const char * paramBuffer, 
 #define INITIALNUMGROUPS 20   // maximum number of groups
 int main()
 {
-   yyin = fopen("parser/params.txt", "r");
-   PV::PVParams* handler = new PV::PVParams(INITIAL_NUM_GROUPS);
+   PV_Stream pvstream = PV_fopen("parser/params.txt", "r");
+   yyin = pvstream->fp;
+   PV::PVParams * handler = new PV::PVParams(INITIAL_NUM_GROUPS);
 
    pv_parseParameters(handler);
 
-   fclose(yyin);
+   PV_fclose(pvstream);
+   yyin = NULL;
    delete handler;
 
    return 0;
@@ -878,14 +880,14 @@ int PVParams::parsefile(const char * filename) {
          fprintf(stderr, "PVParams::parsefile ERROR seeking end of file \"%s\": %s\n", filename, strerror(errno));
          exit(errno);
       }
-      bufferlen = (size_t) PV_ftell(paramstream);
+      bufferlen = (size_t) getPV_StreamFilepos(paramstream);
       paramBuffer = (char *) malloc(bufferlen);
       if( paramBuffer == NULL ) {
          fprintf(stderr, "PVParams::parsefile: Rank %d process unable to allocate memory for params buffer\n", rootproc);
          exit(ENOMEM);
       }
       PV_fseek(paramstream, 0L, SEEK_SET);
-      if( fread(paramBuffer,1, (unsigned long int) bufferlen, paramstream->fp) != bufferlen) {
+      if( PV_fread(paramBuffer,1, (unsigned long int) bufferlen, paramstream) != bufferlen) {
          fprintf(stderr, "PVParams::parsefile: ERROR reading params file \"%s\"", filename);
          exit(EIO);
       }

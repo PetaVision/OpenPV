@@ -85,8 +85,8 @@ int GenColProbe::outputState(double time, HyPerCol * hc) {
 #ifdef PV_USE_MPI
    if( hc->icCommunicator()->commRank() != 0 ) return PV_SUCCESS;
 #endif // PV_USE_MPI
-   fprintf(fp, "time = %f, %s = %f\n", time, hc->getName(), colprobeval);
-   fflush(fp);
+   fprintf(stream->fp, "time = %f, %s = %f\n", time, hc->getName(), colprobeval);
+   fflush(stream->fp);
    return PV_SUCCESS;
 }  // end GenColProbe::outputState(float, HyPerCol *)
 

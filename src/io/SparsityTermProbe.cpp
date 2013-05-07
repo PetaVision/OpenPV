@@ -9,15 +9,21 @@
 
 namespace PV {
 
+SparsityTermProbe::SparsityTermProbe() {
+   initSparsityTermProbe_base();
+}
+
 SparsityTermProbe::SparsityTermProbe(HyPerLayer * layer, const char * msg)
    : LayerFunctionProbe()
 {
+   initSparsityTermProbe_base();
    initSparsityTermProbe(NULL, layer, msg);
 }
 
 SparsityTermProbe::SparsityTermProbe(const char * filename, HyPerLayer * layer, const char * msg)
    : LayerFunctionProbe()
 {
+   initSparsityTermProbe_base();
    initSparsityTermProbe(filename, layer, msg);
 }
 
@@ -34,8 +40,10 @@ int SparsityTermProbe::outputState(double timef) {
    int nk = l->getNumNeurons();
    pvdata_t sum = function->evaluate(timef, l);
 
-   fprintf(fp, "%st = %6.3f numNeurons = %8d Sparsity Penalty = %f\n", msg, timef, nk, sum);
-   fflush(fp);
+   if (outputstream && outputstream->fp) {
+      fprintf(outputstream->fp, "%st = %6.3f numNeurons = %8d Sparsity Penalty = %f\n", msg, timef, nk, sum);
+      fflush(outputstream->fp);
+   }
 
    return EXIT_SUCCESS;
 }

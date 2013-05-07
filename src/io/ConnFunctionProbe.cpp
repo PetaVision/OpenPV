@@ -32,7 +32,7 @@ int ConnFunctionProbe::outputState(double timef) {
    int status = PV_SUCCESS;
    if( status == PV_SUCCESS ) {
       double energy = evaluate(timef);
-      fprintf(getFilePtr(), "Time %f: Energy %f\n", timef, energy);
+      fprintf(getStream()->fp, "Time %f: Energy %f\n", timef, energy);
    }
    return status;
 }

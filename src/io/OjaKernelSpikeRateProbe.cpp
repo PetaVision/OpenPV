@@ -69,18 +69,18 @@ int OjaKernelSpikeRateProbe::initialize(const char * probename, const char * fil
          char path[PV_PATH_MAX];
          sprintf(path, "%s/%s", outputdir, filename);
 
-         fp = fopen(path, "w");
-         if( fp == NULL )  {
+         stream = PV_fopen(path, "w");
+         if( stream == NULL )  {
             fprintf(stderr, "BaseConnectionProbe error opening \"%s\" for writing: %s.\n", path, strerror(errno));
             exit(EXIT_FAILURE);
          }
       }
       else {
-         fp = stdout;
+         stream = PV_stdout();
       }
    }
    else {
-      fp = NULL;
+      stream = NULL;
    }
    conn->insertProbe(this);
 
@@ -88,12 +88,12 @@ int OjaKernelSpikeRateProbe::initialize(const char * probename, const char * fil
 }
 
 int OjaKernelSpikeRateProbe::outputState(double timed) {
-   if (fp!=NULL) {
+   if (stream!=NULL) {
       if (isInputRate) {
-         fprintf(fp, "Connection \"%s\", t=%f: arbor %d, x=%d, y=%d, f=%d, input integrated rate=%f\n", targetOjaKernelConn->getName(), timed, arbor, xg, yg, feature, *spikeRate);
+         fprintf(stream->fp, "Connection \"%s\", t=%f: arbor %d, x=%d, y=%d, f=%d, input integrated rate=%f\n", targetOjaKernelConn->getName(), timed, arbor, xg, yg, feature, *spikeRate);
       }
       else {
-         fprintf(fp, "Connection \"%s\", t=%f: x=%d, y=%d, f=%d, output integrated rate=%f\n", targetOjaKernelConn->getName(), timed, xg, yg, feature, *spikeRate);
+         fprintf(stream->fp, "Connection \"%s\", t=%f: x=%d, y=%d, f=%d, output integrated rate=%f\n", targetOjaKernelConn->getName(), timed, xg, yg, feature, *spikeRate);
       }
    }
    return PV_SUCCESS;

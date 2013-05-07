@@ -21,7 +21,11 @@ public:
    virtual int outputState(double timef);
 
 protected:
+   SparsityTermProbe();
    int initSparsityTermProbe(const char * filename, HyPerLayer * layer, const char * msg);
+
+private:
+   int initSparsityTermProbe_base() { return PV_SUCCESS; }
 };
 
 }  // end namespace PV

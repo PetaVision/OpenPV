@@ -162,29 +162,29 @@ int OjaConnProbe::outputState(double timef)
    ampLTD     = ojaConn->getAmpLTD(kLocal);
 
    // Write out to file
-   FILE * fp = getFilePtr();
-   assert(fp); // invalid pointer
+   PV_Stream * pvstream = getStream();
+   assert(pvstream); // invalid pointer
 
    const char * msg = getName(); // Message to precede the probe's output line
 
-   fprintf(fp, "%s:      t=%.1f kLocal=%d", msg, timef, kLocal);
-   fprintf(fp, " poStdpTr=%-6.3f",postStdpTr);
-   fprintf(fp, " poOjaTr=%-6.3f",postOjaTr);
-   fprintf(fp, " poIntTr=%-6.3f",postIntTr);
-   fprintf(fp, " ampLTD=%-6.3f",ampLTD);
+   fprintf(pvstream->fp, "%s:      t=%.1f kLocal=%d", msg, timef, kLocal);
+   fprintf(pvstream->fp, " poStdpTr=%-6.3f",postStdpTr);
+   fprintf(pvstream->fp, " poOjaTr=%-6.3f",postOjaTr);
+   fprintf(pvstream->fp, " poIntTr=%-6.3f",postIntTr);
+   fprintf(pvstream->fp, " ampLTD=%-6.3f",ampLTD);
    int weightIdx = 0;
 
    for (int arborID=0; arborID < numArbors; arborID++) {
       for (int patchID=0; patchID < numPostPatch; patchID++) {
-         fprintf(fp, " prStdpTr_%d_%d=%-6.3f",arborID,patchID,preStdpTrs[weightIdx]);
-         fprintf(fp, " prOjaTr_%d_%d=%-6.3f",arborID,patchID,preOjaTrs[weightIdx]);
-         fprintf(fp, " weight_%d_%d=%-6.3f",arborID,patchID,preWeights[weightIdx]);
+         fprintf(pvstream->fp, " prStdpTr_%d_%d=%-6.3f",arborID,patchID,preStdpTrs[weightIdx]);
+         fprintf(pvstream->fp, " prOjaTr_%d_%d=%-6.3f",arborID,patchID,preOjaTrs[weightIdx]);
+         fprintf(pvstream->fp, " weight_%d_%d=%-6.3f",arborID,patchID,preWeights[weightIdx]);
 
          weightIdx++;
       }
    }
-   fprintf(fp, "\n");
-   fflush(fp);
+   fprintf(pvstream->fp, "\n");
+   fflush(pvstream->fp);
 
    return PV_SUCCESS;
 }

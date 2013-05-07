@@ -23,7 +23,7 @@ public:
     const char * getColProbeName() { return colProbeName; }
 
 protected:
-    FILE * fp;
+    PV_Stream * stream;
     char * colProbeName;
 
     ColProbe();

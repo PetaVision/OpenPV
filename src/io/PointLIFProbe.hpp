@@ -23,6 +23,14 @@ public:
    virtual int writeState(double timed, HyPerLayer * l, int k, int kex);
 
 protected:
+   PointLIFProbe();
+   int initPointLIFProbe(const char * filename, HyPerLayer * layer, int xLoc, int yLoc, int fLoc, float writeStep, const char * msg);
+   int initPointLIFProbe(const char * filename, HyPerLayer * layer, int xLoc, int yLoc, int fLoc, const char * msg);
+
+private:
+   int initPointLIFProbe_base();
+
+protected:
    double writeTime;             // time of next output
    double writeStep;             // output time interval
 

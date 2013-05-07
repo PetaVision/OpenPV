@@ -21,11 +21,15 @@ public:
    virtual int outputState(double timef);
 
 protected:
+   LinearAverageProbe();
    int initLinearAverageProbe(const char * filename, HyPerLayer * layer, PVDimType dim, int f, const char * gifFile);
 
-   const char * gifFile;
-   FILE * fpGif;
-   int * locs;
+private:
+   int initLinearAverageProbe_base();
+
+protected:
+   const char * gifFilename;
+   PV_Stream * gifFileStream;
 };
 
 }

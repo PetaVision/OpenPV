@@ -129,10 +129,20 @@ int LCALIFLateralKernelConn::setParams(PVParams * params) {
    readIntegrationTimeConstant();
    readInhibitionTimeConstant();
    readTargetRate();
+   read_dWUpdatePeriod();
    return status;
 }
 
+void LCALIFLateralKernelConn::readInitialWeightUpdateTime(PVParams * params) {
+   KernelConn::readInitialWeightUpdateTime(params);
+   dWUpdateTime = weightUpdateTime;
+}
+
 int LCALIFLateralKernelConn::update_dW(int axonId) {
+   if (parent->simulationTime() < dWUpdateTime) {
+      return PV_SUCCESS;
+   }
+   dWUpdateTime += dWUpdatePeriod;
    int nExt = preSynapticLayer()->getNumExtended();
    int numKernelIndices = getNumDataPatches();
    updateIntegratedSpikeCount();

@@ -10,41 +10,66 @@
 #include "io.h"
 #include "tiff.h"
 
-static FILE *
+static PV_Stream *
 pv_tiff_open_frame(const char * filename,
                    const PVLayerLoc * loc, pvdata_t ** imageBuf, long * nextFrame);
 
 static int
-pv_tiff_close_frame(FILE * fp, pvdata_t * imageBuf, long nextFrame);
+pv_tiff_close_frame(PV_Stream * pvstream, pvdata_t * imageBuf, long nextFrame);
 
 static int
-pv_tiff_write_frame(FILE * fp, const pvdata_t * data,
+pv_tiff_write_frame(PV_Stream * pvstream, const pvdata_t * data,
                     const PVLayerLoc * loc, pvdata_t * buf, long * nextFrame);
 
 
 
 namespace PV {
 
+ActivityProbe::ActivityProbe() {
+   initActivityProbe_base();
+}
+
 ActivityProbe::ActivityProbe(const char * filename, HyPerLayer * layer)
 {
-   initLayerProbe(NULL, layer); // ActivityProbe doesn't use LayerProbe's fp.  Should outfp be replaced with fp?
-   outfp = pv_tiff_open_frame(filename, layer->getLayerLoc(), &outBuf, &outFrame);
+   initActivityProbe_base();
+   initActivityProbe(filename, layer);
 }
 
 ActivityProbe::~ActivityProbe()
 {
-   if (outfp != NULL) {
-      pv_tiff_close_frame(outfp, outBuf, outFrame);
+   if (outputstream != NULL) {
+      pv_tiff_close_frame(outputstream, outBuf, outFrame);
+      outputstream = NULL;
    }
 }
+
+int ActivityProbe::initActivityProbe_base() {
+   outFrame = 0L;
+   outBuf = NULL;
+   return PV_SUCCESS;
+}
+
+int ActivityProbe::initActivityProbe(const char * filename, HyPerLayer * layer) {
+   if (layer->getParent()->icCommunicator()->commSize()>1) {
+      fprintf(stderr, "ActivityProbe error for layer \"%s\": ActivityProbe is not compatible with MPI.\n", layer->getName());
+      exit(EXIT_FAILURE);
+   }
+   return initLayerProbe(filename, layer);
+}
+
+int ActivityProbe::initOutputStream(const char * filename, HyPerLayer * layer) {
+   outputstream = pv_tiff_open_frame(filename, layer->getLayerLoc(), &outBuf, &outFrame);
+   return PV_SUCCESS;
+}
+
 
 int ActivityProbe::outputState(double time)
 {
    int status = 0;
 
-   if (outfp != NULL) {
+   if (outputstream != NULL) {
       const pvdata_t * data = getTargetLayer()->getLayerData();
-      status = pv_tiff_write_frame(outfp, data, getTargetLayer()->getLayerLoc(), outBuf, &outFrame);
+      status = pv_tiff_write_frame(outputstream, data, getTargetLayer()->getLayerLoc(), outBuf, &outFrame);
    }
 
    return status;
@@ -54,34 +79,34 @@ int ActivityProbe::outputState(double time)
 
 
 static int
-pv_tiff_close_frame(FILE * fp, pvdata_t * imageBuf, long nextLoc)
+pv_tiff_close_frame(PV_Stream * pvstream, pvdata_t * imageBuf, long nextLoc)
 {
-        tiff_write_finish(fp, nextLoc);
-        fclose(fp);
+        tiff_write_finish(pvstream->fp, nextLoc);
+        PV::PV_fclose(pvstream);
         free(imageBuf);
 
         return 0;
 }
 
-static FILE *
+static PV_Stream *
 pv_tiff_open_frame(const char * filename, const PVLayerLoc * loc, pvdata_t ** imageBuf, long * nextLoc)
 {
    pvdata_t * buf = (pvdata_t *) malloc(loc->nx * loc->ny * loc->nf * sizeof(pvdata_t));
    *imageBuf = buf;
 
-   FILE * fp = fopen(filename, "wb");
-   if (fp == NULL) {
+   PV_Stream * pvstream = PV::PV_fopen(filename, "wb");
+   if (pvstream == NULL) {
       fprintf(stderr, "pv_tiff_open_frame_cube: ERROR opening file %s\n", filename);
-      return fp;
+      return pvstream;
    }
 
-   tiff_write_header(fp, nextLoc);
+   tiff_write_header(pvstream->fp, nextLoc);
 
-   return fp;
+   return pvstream;
 }
 
 static int
-pv_tiff_write_frame(FILE * fp, const pvdata_t * data,
+pv_tiff_write_frame(PV_Stream * pvstream, const pvdata_t * data,
                     const PVLayerLoc * loc, pvdata_t * buf, long * nextLoc)
 {
    int k;
@@ -115,8 +140,8 @@ pv_tiff_write_frame(FILE * fp, const pvdata_t * data,
 
    PV::HyPerLayer::copyToBuffer(buf, data, loc, true, scale);
 
-   tiff_write_ifd(fp, nextLoc, nx, ny);
-   tiff_write_image(fp, buf, nx, ny);
+   tiff_write_ifd(pvstream->fp, nextLoc, nx, ny);
+   tiff_write_image(pvstream->fp, buf, nx, ny);
 
    return 0;
 }

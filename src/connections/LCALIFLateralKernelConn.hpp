@@ -40,9 +40,11 @@ class LCALIFLateralKernelConn: public KernelConn {
       virtual void readIntegrationTimeConstant() {integrationTimeConstant = getParent()->parameters()->value(name, "integrationTimeConstant", 1.0);}
       virtual void readInhibitionTimeConstant() {inhibitionTimeConstant = getParent()->parameters()->value(name, "inhibitionTimeConstant", 1.0);}
       virtual void readTargetRate() {targetRateKHz = 0.001 * getParent()->parameters()->value(name, "targetRate", 1.0);}
-      // virtual void readCorrelationThreshold() {corrThresh = getParent()->parameters()->value(name, "correlationThreshold", 1.0);}
 
       virtual int updateIntegratedSpikeCount();
+
+      virtual void read_dWUpdatePeriod() {dWUpdatePeriod = getParent()->parameters()->value(name, "dWUpdatePeriod", 1.0); }
+      virtual void readInitialWeightUpdateTime(PVParams * params);
 
    private:
       int initialize_base();
@@ -54,6 +56,9 @@ class LCALIFLateralKernelConn: public KernelConn {
       float integrationTimeConstant; // Time constant for the integrated spike counts, often the same as the the LCALIFLayer's tau_LCA
       float inhibitionTimeConstant; // Time constant tau_{inh}, the timescale for updating he weights in this connection
       float targetRateKHz;          // Target rate in kilohertz; note that params file is understood to give value in hertz
+      float dWUpdatePeriod;         // Only update dW this often.  Param value is in the same units as dt.
+      float dWUpdateTime;           // The next time that dW will update
+
       MPI_Datatype * mpi_datatype;  // Used to mirror the integrated spike count
       float ** interiorCounts;         // We should average only over the patches where the presynaptic neuron is in the restricted patch, to eliminate correlations caused by mirroring.  This buffer maintains the count to divide by in obtaining the average.
 };

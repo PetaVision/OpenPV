@@ -31,14 +31,28 @@ LinearActivityProbe::LinearActivityProbe(HyPerLayer * layer, PVDimType dim, int 
 LinearActivityProbe::LinearActivityProbe(const char * filename, HyPerLayer * layer, PVDimType dim, int linePos, int f)
     : LayerProbe()
 {
+   initLinearActivityProbe_base();
    initLinearActivityProbe(filename, layer, dim, linePos, f);
 }
 
 LinearActivityProbe::LinearActivityProbe() {
+   initLinearActivityProbe_base();
    // Derived classes should call initLinearActivityProbe
 }
 
+int LinearActivityProbe::initLinearActivityProbe_base() {
+   hc = NULL;
+   dim = DimX;
+   linePos = 0;
+   f = 0;
+   return PV_SUCCESS;
+}
+
 int LinearActivityProbe::initLinearActivityProbe(const char * filename, HyPerLayer * layer, PVDimType dim, int linePos, int f) {
+   if (layer->getParent()->icCommunicator()->commSize()>1) {
+      fprintf(stderr, "LinearActivityProbe error for layer \"%s\": LinearActivityProbe is not compatible with MPI.\n", layer->getName());
+      exit(EXIT_FAILURE);
+   }
    initLayerProbe(filename, layer);
    this->hc = layer->getParent();
    this->dim = dim;
@@ -93,15 +107,15 @@ int LinearActivityProbe::outputState(double timef)
    }
 
    freq = sum / (width * dt * 0.001);
-   fprintf(fp, "t=%6.1f sum=%3d f=%6.1f Hz :", timef, (int)sum, freq);
+   fprintf(outputstream->fp, "t=%6.1f sum=%3d f=%6.1f Hz :", timef, (int)sum, freq);
 
    for (int k = 0; k < width; k++) {
      float a = line[f + k * sLine];
-     if (a > 0.0) fprintf(fp, "*");
-     else         fprintf(fp, " ");
+     if (a > 0.0) { fprintf(outputstream->fp, "*"); }
+     else         { fprintf(outputstream->fp, " "); }
    }
-   fprintf(fp, ":\n");
-   fflush(fp);
+   fprintf(outputstream->fp, ":\n");
+   fflush(outputstream->fp);
 
    return 0;
 }

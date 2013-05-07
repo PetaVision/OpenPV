@@ -144,7 +144,7 @@ int LCALIFLateralProbe::outputState(double timef)
    }
 
    // Write out to file
-   FILE * fp = getFilePtr();
+   FILE * fp = getStream()->fp;
    assert(fp); // invalid pointer
 
    const char * msg = getName(); // Message to precede the probe's output line

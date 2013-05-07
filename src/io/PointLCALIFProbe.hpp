@@ -17,6 +17,13 @@ public:
    PointLCALIFProbe(const char * filename, HyPerLayer * layer, int xLoc, int yLoc, int fLoc, const char * msg);
    virtual ~PointLCALIFProbe();
    virtual int writeState(double timed, HyPerLayer * l, int k, int kex);
+
+protected:
+   PointLCALIFProbe();
+   int initPointLCALIFProbe(const char * filename, HyPerLayer * layer, int xLoc, int yLoc, int fLoc, const char * msg);
+
+private:
+   int initPointLCALIFProbe_base();
 };
 
 } /* namespace PV */

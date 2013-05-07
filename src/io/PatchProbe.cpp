@@ -90,7 +90,7 @@ int PatchProbe::outputState(double timef)
 #else
    const int rank = 0;
 #endif // PV_USE_MPI
-   FILE * fp = getFilePtr();
+   FILE * fp = getStream()->fp;
    int kPre, kxPre, kyPre, kfPre;
    const PVLayerLoc * loc = c->preSynapticLayer()->getLayerLoc();
    int nxGlobal = loc->nxGlobal;

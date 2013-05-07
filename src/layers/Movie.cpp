@@ -64,8 +64,8 @@ int Movie::initialize(const char * name, HyPerCol * hc, const char * fileOfFileN
    }
 
    if( getParent()->icCommunicator()->commRank()==0 ) {
-      fp = fopen(fileOfFileNames, "r");
-      if( fp == NULL ) {
+      filenamestream = PV_fopen(fileOfFileNames, "r");
+      if( filenamestream == NULL ) {
          fprintf(stderr, "Movie::initialize error opening \"%s\": %s\n", fileOfFileNames, strerror(errno));
          abort();
       }
@@ -135,8 +135,8 @@ Movie::~Movie()
       delete imageData;
       imageData = NULL;
    }
-   if (getParent()->icCommunicator()->commRank()==0 && fp != NULL && fp != stdout) {
-      fclose(fp);
+   if (getParent()->icCommunicator()->commRank()==0 && filenamestream != NULL && filenamestream->isfile) {
+      PV_fclose(filenamestream);
    }
 }
 
@@ -189,7 +189,7 @@ bool Movie::updateImage(double time, double dt)
          nextDisplayTime += displayPeriod;
 
          if(writePosition && parent->icCommunicator()->commRank()==0){
-            fprintf(fp_pos,"%f %s: \n",time,filename);
+            fprintf(fp_pos->fp,"%f %s: \n",time,filename);
          }
          lastUpdateTime = time;
       } // time >= nextDisplayTime
@@ -308,16 +308,19 @@ const char * Movie::getNextFileName()
 
 
       // if at end of file (EOF), rewind
-      if ((c = fgetc(fp)) == EOF) {
-         rewind(fp);
+      if ((c = fgetc(filenamestream->fp)) == EOF) {
+         PV_fseek(filenamestream, 0L, SEEK_SET);
          fprintf(stderr, "Movie %s: EOF reached, rewinding file \"%s\"\n", name, filename);
-         // TODO: add a flag so that the next pass through the files it flips or rotates the images
       }
       else {
-         ungetc(c, fp);
+         ungetc(c, filenamestream->fp);
       }
 
-      char * path = fgets(inputfile, len, fp);
+      char * path = fgets(inputfile, len, filenamestream->fp);
+      if (path) {
+         filenamestream->filepos += strlen(path)+1;
+      }
+
       if (echoFramePathnameFlag){
          fprintf(stderr, "%s", path);
       }

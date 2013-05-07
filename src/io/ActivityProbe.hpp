@@ -20,8 +20,15 @@ public:
 
    virtual int outputState(double time);
 
+protected:
+   ActivityProbe();
+   int initActivityProbe(const char * filename, HyPerLayer * layer);
+   virtual int initOutputStream(const char * filename, HyPerLayer * layer);
+
 private:
-   FILE * outfp;
+   int initActivityProbe_base();
+
+private:
    long outFrame;
    pvdata_t * outBuf;
 };

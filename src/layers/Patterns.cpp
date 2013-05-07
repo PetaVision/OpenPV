@@ -31,7 +31,7 @@ Patterns::~Patterns()
    vDrops.clear();
 
    if( patternsFile != NULL ) {
-      fclose(patternsFile);
+      PV_fclose(patternsFile);
       patternsFile = NULL;
    }
 }
@@ -203,7 +203,7 @@ int Patterns::initialize(const char * name, HyPerCol * hc, PatternType type) {
       //int nchars = snprintf(file_name, PV_PATH_MAX-1, "%s/bar-pos.txt", patternsOutputPath);
       if (parent->columnId()==0) {
          printf("write position to %s\n",file_name);
-         patternsFile = fopen(file_name,"a");
+         patternsFile = PV_fopen(file_name,"a");
          if(patternsFile == NULL) {
             fprintf(stderr, "Patterns layer \"%s\" unable to open \"%s\" for writing: error %s\n", name, file_name, strerror(errno));
             abort();
@@ -803,7 +803,7 @@ float Patterns::calcPosition(float pos, int step)
    }
    if (patternsFile != NULL) {
       assert(parent->columnId()==0);
-      fprintf(patternsFile, "Time %f, position %f\n", parent->simulationTime(), pos);
+      fprintf(patternsFile->fp, "Time %f, position %f\n", parent->simulationTime(), pos);
    }
 
    return pos;
@@ -820,28 +820,28 @@ int Patterns::checkpointRead(const char * cpDir, double * timef) {
    int chars_needed = snprintf(filename, filenamesize, "%s/%s_PatternState.bin", cpDir, name);
    assert(chars_needed < filenamesize);
    if( icComm->commRank() == 0 ) {
-      FILE * fp = fopen(filename, "r");
-      if( fp != NULL ) {
-         status = fread(&type, sizeof(PatternType), 1, fp) == 1 ? status : PV_FAILURE;
-         status = fread(&patternRandState, sizeof(uint4), 1, fp) == 1 ? status : PV_FAILURE;
-         status = fread(&orientation, sizeof(OrientationMode), 1, fp) == 1 ? status : PV_FAILURE;
-         status = fread(&position, sizeof(float), 1, fp) ? status : PV_FAILURE;
-         status = fread(&nextDisplayTime, sizeof(double), 1, fp) ? status : PV_FAILURE;
-         status = fread(&nextDropFrame, sizeof(double), 1, fp) ? status : PV_FAILURE;
-         status = fread(&nextPosChangeFrame, sizeof(double), 1, fp) ? status : PV_FAILURE;
-         status = fread(&initPatternCntr, sizeof(int), 1, fp) ? status : PV_FAILURE;
-         status = fread(&xPos, sizeof(int), 1, fp) ? status : PV_FAILURE;
-         status = fread(&yPos, sizeof(int), 1, fp) ? status : PV_FAILURE;
+      PV_Stream * pvstream = PV_fopen(filename, "r");
+      if( pvstream != NULL ) {
+         status = PV_fread(&type, sizeof(PatternType), 1, pvstream) == 1 ? status : PV_FAILURE;
+         status = PV_fread(&patternRandState, sizeof(uint4), 1, pvstream) == 1 ? status : PV_FAILURE;
+         status = PV_fread(&orientation, sizeof(OrientationMode), 1, pvstream) == 1 ? status : PV_FAILURE;
+         status = PV_fread(&position, sizeof(float), 1, pvstream) ? status : PV_FAILURE;
+         status = PV_fread(&nextDisplayTime, sizeof(double), 1, pvstream) ? status : PV_FAILURE;
+         status = PV_fread(&nextDropFrame, sizeof(double), 1, pvstream) ? status : PV_FAILURE;
+         status = PV_fread(&nextPosChangeFrame, sizeof(double), 1, pvstream) ? status : PV_FAILURE;
+         status = PV_fread(&initPatternCntr, sizeof(int), 1, pvstream) ? status : PV_FAILURE;
+         status = PV_fread(&xPos, sizeof(int), 1, pvstream) ? status : PV_FAILURE;
+         status = PV_fread(&yPos, sizeof(int), 1, pvstream) ? status : PV_FAILURE;
          int size;
-         status = fread(&size, sizeof(int), 1, fp) ? status : PV_FAILURE;
+         status = PV_fread(&size, sizeof(int), 1, pvstream) ? status : PV_FAILURE;
          vDrops.clear();
          for (int k=0; k<size; k++) {
             Drop drop;
-            fread(&drop, sizeof(Drop), 1, fp);
+            PV_fread(&drop, sizeof(Drop), 1, pvstream);
             vDrops.push_back(drop);
          }
          assert((int)vDrops.size()==size);
-         fclose(fp);
+         PV_fclose(pvstream);
       }
       else {
          fprintf(stderr, "Unable to read from \"%s\"\n", filename);

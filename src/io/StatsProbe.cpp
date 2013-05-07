@@ -20,6 +20,7 @@ namespace PV {
 StatsProbe::StatsProbe(const char * filename, HyPerLayer * layer, const char * msg)
    : LayerProbe()
 {
+   initStatsProbe_base();
    initStatsProbe(filename, layer, BufActivity, msg);
 }
 
@@ -29,6 +30,7 @@ StatsProbe::StatsProbe(const char * filename, HyPerLayer * layer, const char * m
 StatsProbe::StatsProbe(HyPerLayer * layer, const char * msg)
    : LayerProbe()
 {
+   initStatsProbe_base();
    initStatsProbe(NULL, layer, BufActivity, msg);
 }
 
@@ -154,7 +156,7 @@ int StatsProbe::outputState(double timef)
 #ifdef PV_USE_MPI
          if( rank != rcvProc ) return 0;
 #endif // PV_USE_MPI
-         fprintf(fp, "%sV buffer is NULL\n", msg);
+         fprintf(outputstream->fp, "%sV buffer is NULL\n", msg);
          return 0;
       }
       for( int k=0; k<nk; k++ ) {
@@ -211,15 +213,15 @@ int StatsProbe::outputState(double timef)
    sigma = sqrt(sum2/nk - avg*avg);
    if ( type == BufActivity  && getTargetLayer()->getSpikingFlag() ) {
       float freq = 1000.0 * avg;
-      fprintf(fp, "%st==%6.1f N==%d Total==%f Min==%f Avg==%f Hz (/dt ms) Max==%f sigma==%f nnz==%i\n", msg, timef,
+      fprintf(outputstream->fp, "%st==%6.1f N==%d Total==%f Min==%f Avg==%f Hz (/dt ms) Max==%f sigma==%f nnz==%i\n", msg, timef,
               nk, (float)sum, fMin, freq, fMax, (float)sigma, nnz);
    }
    else {
-      fprintf(fp, "%st==%6.1f N==%d Total==%f Min==%f Avg==%f Max==%f sigma==%f nnz==%i\n", msg, timef,
+      fprintf(outputstream->fp, "%st==%6.1f N==%d Total==%f Min==%f Avg==%f Max==%f sigma==%f nnz==%i\n", msg, timef,
               nk, (float)sum, fMin, (float) avg, fMax, (float) sigma, nnz);
    }
 
-   fflush(fp);
+   fflush(outputstream->fp);
 
    return 0;
 }

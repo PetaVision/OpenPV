@@ -40,6 +40,7 @@ protected:
    OjaKernelConn(); // Called by derived classes' constructors
    int initialize(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
                   const char * filename, InitWeights *weightInit);
+   virtual int calc_dW(int axonId);
    virtual int update_dW(int axonId);
    virtual int updateWeights(int axonId);
 
@@ -53,6 +54,9 @@ protected:
 
    virtual void readIntegrationTime(PVParams * params) {integrationTime = params->value(name, "integrationTime", 1.0);}
    virtual void readAlphaMultiplier(PVParams * params) {alphaMultiplier = params->value(name, "alphaMultiplier", 1.0);}
+
+   virtual void read_dWUpdatePeriod(PVParams * params) {dWUpdatePeriod = params->value(name, "dWUpdatePeriod", 1.0);}
+   virtual void readInitialWeightUpdateTime(PVParams * params);
 
 private:
    int initialize_base();
@@ -68,7 +72,8 @@ protected:
    pvdata_t * outputFiringRate; // outputFiringRate[output neuron (in restricted space)]
    MPI_Datatype * mpi_datatype;   // Used to mirror the inputFiringRateCubes
    float alphaMultiplier;
-
+   float dWUpdatePeriod;
+   float dWUpdateTime;
 };
 
 } /* namespace PV */

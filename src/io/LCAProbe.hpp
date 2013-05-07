@@ -20,11 +20,12 @@ public:
    virtual ~LCAProbe();
 
 protected:
+   LCAProbe();
    int initLCAProbe(const char * filename, HyPerLayer * layer, int xLoc, int yLoc, int fLoc, const char * msg);
    virtual int writeState(double timed, HyPerLayer * l, int k, int kex);
 
 private:
-
+   int initLCAProbe_base();
 };
 
 } /* namespace PV */

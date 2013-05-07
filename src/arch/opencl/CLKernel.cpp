@@ -296,7 +296,7 @@ load_program_source(const char *filename)
 
     stat(filename, &statbuf);
     source = (char *) malloc(statbuf.st_size + 1);
-    count = fread(source, statbuf.st_size, 1, pvstream->fp);
+    count = PV_fread(source, statbuf.st_size, 1, pvstream);
     assert(count == 1);
 
     source[statbuf.st_size] = '\0';

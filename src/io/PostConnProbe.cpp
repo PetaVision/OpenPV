@@ -126,7 +126,7 @@ int PostConnProbe::outputState(double timef)
          break;
       }
    }
-   FILE * fp = getFilePtr();
+   FILE * fp = getStream()->fp;
    if (stdpVars && (postFired || changed)) {
       if (postFired) fprintf(fp, "*");
       else fprintf(fp, " ");

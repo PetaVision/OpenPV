@@ -30,8 +30,8 @@ Image::~Image() {
    Communicator::freeDatatypes(mpi_datatypes); mpi_datatypes = NULL;
 
    if(writePosition){
-      if (getParent()->icCommunicator()->commRank()==0 && fp_pos != NULL && fp_pos != stdout) {
-            fclose(fp_pos);
+      if (getParent()->icCommunicator()->commRank()==0 && fp_pos != NULL && fp_pos->isfile) {
+            PV_fclose(fp_pos);
          }
    }
 }
@@ -165,12 +165,12 @@ int Image::initialize(const char * name, HyPerCol * hc, const char * filename) {
                abort();
             }
             printf("Image layer \"%s\" will write jitter positions to %s\n",getName(), file_name);
-            fp_pos = fopen(file_name,"w");
+            fp_pos = PV_fopen(file_name,"w");
             if(fp_pos == NULL) {
                fprintf(stderr, "Image \"%s\" unable to open file \"%s\" for writing jitter positions.\n", getName(), file_name);
                abort();
             }
-            fprintf(fp_pos,"Layer \"%s\", t=%f, bias x=%d y=%d, offset x=%d y=%d\n",getName(),hc->simulationTime(),biases[0],biases[1],
+            fprintf(fp_pos->fp,"Layer \"%s\", t=%f, bias x=%d y=%d, offset x=%d y=%d\n",getName(),hc->simulationTime(),biases[0],biases[1],
                   getOffsetX(),getOffsetY());
          }
       }
@@ -541,7 +541,7 @@ bool Image::jitter() {
    constrainOffsets();
 
    if(writePosition && parent->icCommunicator()->commRank()==0){
-      fprintf(fp_pos,"t=%f, bias x=%d, y=%d, offset x=%d y=%d\n",timed,biases[0],biases[1],offsets[0],offsets[1]);
+      fprintf(fp_pos->fp,"t=%f, bias x=%d, y=%d, offset x=%d y=%d\n",timed,biases[0],biases[1],offsets[0],offsets[1]);
    }
    lastUpdateTime = timed;
    return needNewImage;

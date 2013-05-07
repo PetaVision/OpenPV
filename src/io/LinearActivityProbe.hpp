@@ -29,6 +29,10 @@ protected:
    LinearActivityProbe();
    int initLinearActivityProbe(const char * filename, HyPerLayer * layer, PVDimType dim, int linePos, int f);
 
+private:
+   int initLinearActivityProbe_base();
+
+protected:
    HyPerCol * hc;
    PVDimType dim;
    int linePos;

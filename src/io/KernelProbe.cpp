@@ -41,7 +41,7 @@ int KernelProbe::initialize(const char * probename, const char * filename, HyPer
          status = PV_FAILURE;
       }
    }
-   if(getFilePtr()) fprintf(getFilePtr(), "Probe \"%s\", kernel index %d, arbor index %d.\n", getName(), kernelIndex, arborID);
+   if(getStream()) fprintf(getStream()->fp, "Probe \"%s\", kernel index %d, arbor index %d.\n", getName(), kernelIndex, arborID);
    return status;
 }
 
@@ -63,20 +63,20 @@ int KernelProbe::outputState(double timef) {
    const pvdata_t * wdata = getTargetKConn()->get_wDataStart(arborID)+patchSize*kernelIndex;
    const pvdata_t * dwdata = outputPlasticIncr ?
          getTargetKConn()->get_dwDataStart(arborID)+patchSize*kernelIndex : NULL;
-   fprintf(getFilePtr(), "Time %f, KernelConn \"%s\", nxp=%d, nyp=%d, nfp=%d\n",
+   fprintf(getStream()->fp, "Time %f, KernelConn \"%s\", nxp=%d, nyp=%d, nfp=%d\n",
            timef, getTargetKConn()->getName(),nxp, nyp, nfp);
    for(int f=0; f<nfp; f++) {
       for(int y=0; y<nyp; y++) {
          for(int x=0; x<nxp; x++) {
             int k = kIndex(x,y,f,nxp,nyp,nfp);
-            fprintf(getFilePtr(), "    x=%d, y=%d, f=%d (index %d):", x, y, f, k);
+            fprintf(getStream()->fp, "    x=%d, y=%d, f=%d (index %d):", x, y, f, k);
             if(outputWeights) {
-               fprintf(getFilePtr(), "  weight=%f", wdata[k]); // fprintf(fp, "  weight=%f", w->data[k]);
+               fprintf(getStream()->fp, "  weight=%f", wdata[k]); // fprintf(fp, "  weight=%f", w->data[k]);
             }
             if(outputPlasticIncr) {
-               fprintf(getFilePtr(), "  dw=%f", dwdata[k]); // fprintf(fp, "  dw=%f", dw[k]);
+               fprintf(getStream()->fp, "  dw=%f", dwdata[k]); // fprintf(fp, "  dw=%f", dw[k]);
             }
-            fprintf(getFilePtr(),"\n");
+            fprintf(getStream()->fp,"\n");
          }
       }
    }
@@ -109,7 +109,7 @@ int KernelProbe::patchIndices(KernelConn * kconn) {
       int kxPre = kxPos(kPre,nxPreExt,nyPreExt,nfPre)-marginWidth;
       int kyPre = kyPos(kPre,nxPreExt,nyPreExt,nfPre)-marginWidth;
       int kfPre = featureIndex(kPre,nxPreExt,nyPreExt,nfPre);
-      fprintf(getFilePtr(),"    presynaptic neuron %d (x=%d, y=%d, f=%d) uses kernel index %d, starting at x=%d, y=%d\n",
+      fprintf(getStream()->fp,"    presynaptic neuron %d (x=%d, y=%d, f=%d) uses kernel index %d, starting at x=%d, y=%d\n",
             kPre, kxPre, kyPre, kfPre, kconn->patchIndexToDataIndex(kPre), xOffset, yOffset);
    /*
       pvdata_t * hData = kconn->getWeights(kPre, arborID)->data;

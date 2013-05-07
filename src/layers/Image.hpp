@@ -126,7 +126,7 @@ protected:
    float recurrenceProb;  // If using jitter, probability that offset returns to bias position
    float persistenceProb; // If using jitter, probability that offset stays the same
    int writePosition;     // If using jitter, write positions to input/image-pos.txt
-   FILE * fp_pos;         // If writePosition is true, write the positions to this file
+   PV_Stream * fp_pos;    // If writePosition is true, write the positions to this file
    long biasChangeTime;    // If using jitter, time period for recalculating bias position
 
    int jitterType;       // If using jitter, specify type of jitter (random walk or random jump)

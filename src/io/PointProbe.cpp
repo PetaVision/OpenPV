@@ -11,6 +11,11 @@
 
 namespace PV {
 
+PointProbe::PointProbe() {
+   initPointProbe_base();
+   // Default constructor for derived classes.  Derived classes should call initPointProbe from their init-method.
+}
+
 /**
  * @filename
  * @layer
@@ -23,6 +28,7 @@ PointProbe::PointProbe(const char * filename, HyPerLayer * layer, int xLoc, int 
       const char * msg) :
    LayerProbe()
 {
+   initPointProbe_base();
    initPointProbe(filename, layer, xLoc, yLoc, fLoc, msg);
 }
 
@@ -36,12 +42,21 @@ PointProbe::PointProbe(const char * filename, HyPerLayer * layer, int xLoc, int 
 PointProbe::PointProbe(HyPerLayer * layer, int xLoc, int yLoc, int fLoc, const char * msg) :
    LayerProbe()
 {
+   initPointProbe_base();
    initPointProbe(NULL, layer, xLoc, yLoc, fLoc, msg);
 }
 
 PointProbe::~PointProbe()
 {
    free(msg);
+}
+
+int PointProbe::initPointProbe_base() {
+   xLoc = 0;
+   yLoc = 0;
+   fLoc = 0;
+   msg = NULL;
+   return PV_SUCCESS;
 }
 
 int PointProbe::initPointProbe(const char * filename, HyPerLayer * layer, int xLoc, int yLoc, int fLoc, const char * msg) {
@@ -72,7 +87,7 @@ int PointProbe::initPointProbe(const char * filename, HyPerLayer * layer, int xL
    return status;
 }
 
-int PointProbe::initFilePointer(const char * filename, HyPerLayer * layer) {
+int PointProbe::initOutputStream(const char * filename, HyPerLayer * layer) {
    // Called by LayerProbe::initLayerProbe, which is called near the end of PointProbe::initPointProbe
    // So this->xLoc, yLoc, fLoc have been set.
    const PVLayerLoc * loc = layer->getLayerLoc();
@@ -89,19 +104,19 @@ int PointProbe::initFilePointer(const char * filename, HyPerLayer * layer) {
          char * outputdir = layer->getParent()->getOutputPath();
          char * path = (char *) malloc(strlen(outputdir)+1+strlen(filename)+1);
          sprintf(path, "%s/%s", outputdir, filename);
-         fp = fopen(path, "w");
-         if( !fp ) {
+         outputstream = PV_fopen(path, "w");
+         if( !outputstream ) {
             fprintf(stderr, "LayerProbe error opening \"%s\" for writing: %s\n", path, strerror(errno));
             exit(EXIT_FAILURE);
          }
          free(path);
       }
       else {
-         fp = stdout;
+         outputstream = PV_stdout();
       }
    }
    else {
-      fp = NULL;
+      outputstream = NULL;
    }
    return PV_SUCCESS;
 }
@@ -171,15 +186,15 @@ int PointProbe::outputState(double timef)
  */
 int PointProbe::writeState(double timef, HyPerLayer * l, int k, int kex) {
 
-   assert(fp);
+   assert(outputstream && outputstream->fp);
    const pvdata_t * V = l->getV();
    const pvdata_t * activity = l->getLayerData();
 
-   fprintf(fp, "%s t=%.1f", msg, timef);
-   fprintf(fp, " V=%6.5f", V != NULL ? V[k] : 0.0f);
-   fprintf(fp, " a=%.5f", activity[kex]);
-   fprintf(fp, "\n");
-   fflush(fp);
+   fprintf(outputstream->fp, "%s t=%.1f", msg, timef);
+   fprintf(outputstream->fp, " V=%6.5f", V != NULL ? V[k] : 0.0f);
+   fprintf(outputstream->fp, " a=%.5f", activity[kex]);
+   fprintf(outputstream->fp, "\n");
+   fflush(outputstream->fp);
 
    return PV_SUCCESS;
 }

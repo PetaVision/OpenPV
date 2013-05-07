@@ -30,6 +30,11 @@ protected:
    LayerFunctionProbe();
    int initLayerFunctionProbe(const char * filename, HyPerLayer * layer, const char * msg, LayerFunction * F);
    virtual int writeState(double timef, HyPerLayer * l, pvdata_t value);
+
+private:
+   int initLayerFunctionProbe_base();
+
+protected:
    LayerFunction * function;
 };
 

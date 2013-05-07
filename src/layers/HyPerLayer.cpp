@@ -336,10 +336,10 @@ int HyPerLayer::initializeLayerId(int layerId)
    // only the root process needs these member variables so we don't need to do any MPI.
    int rootproc = 0;
    if (ioAppend && parent->columnId()==rootproc) {
-      FILE * fp = fopen(filename,"r");
-      if (fp) {
+      PV_Stream * pvstream = PV_fopen(filename,"r");
+      if (pvstream) {
          int params[NUM_BIN_PARAMS];
-         int numread = fread(params, sizeof(int), NUM_BIN_PARAMS, fp);
+         int numread = PV_fread(params, sizeof(int), NUM_BIN_PARAMS, pvstream);
          if (numread==NUM_BIN_PARAMS) {
             if (writeSparseActivity) {
                writeActivitySparseCalls = params[INDEX_NBANDS];
@@ -348,7 +348,7 @@ int HyPerLayer::initializeLayerId(int layerId)
                writeActivityCalls = params[INDEX_NBANDS];
             }
          }
-         fclose(fp);
+         PV_fclose(pvstream);
       }
       else {
          ioAppend = false;
@@ -1492,18 +1492,18 @@ int HyPerLayer::readScalarFloat(const char * cp_dir, const char * val_name, doub
          fprintf(stderr, "HyPerLayer::readScalarFloat error: path %s/%s_%s.bin is too long.\n", cp_dir, getName(), val_name);
          abort();
       }
-      FILE * fp = fopen(filename, "r");
+      PV_Stream * pvstream = PV_fopen(filename, "r");
       *val_ptr = default_value;
-      if (fp==NULL  && parent->icCommunicator()->commRank() == 0 ) {
+      if (pvstream==NULL  && parent->icCommunicator()->commRank() == 0 ) {
          fprintf(stderr, "HyPerLayer::readScalarFloat warning: unable to open path %s for reading.  writeTime will be %f\n", filename, default_value);
       }
       else {
-         int num_read = fread(val_ptr, sizeof(*val_ptr), 1, fp);
-         if (num_read != 1 && parent->icCommunicator()->commRank() == 0 ) {
+         int num_read = PV_fread(val_ptr, sizeof(*val_ptr), 1UL, pvstream);
+         if (num_read != 1) {
             fprintf(stderr, "HyPerLayer::readScalarFloat warning: unable to read from %s.  writeTime will be %f\n", filename, default_value);
          }
       }
-      fclose(fp);
+      PV_fclose(pvstream);
    }
 #ifdef PV_USE_MPI
    MPI_Bcast(val_ptr, 1, MPI_DOUBLE, 0, getParent()->icCommunicator()->communicator());
@@ -1544,7 +1544,7 @@ int HyPerLayer::checkpointWrite(const char * cpDir) {
 
    if (parent->columnId()==0) {
       if (clayer->activeFP) {
-         long activityfilepos = PV_ftell(clayer->activeFP);
+         long activityfilepos = getPV_StreamFilepos(clayer->activeFP);
          parent->writeScalarToFile(cpDir, getName(), "filepos", activityfilepos);
       }
    }
@@ -1629,26 +1629,26 @@ int HyPerLayer::writeScalarFloat(const char * cp_dir, const char * val_name, dou
          fprintf(stderr, "writeScalarFloat error: path %s/%s_%s.bin is too long.\n", cp_dir, name, val_name);
          abort();
       }
-      FILE * fp = fopen(filename, "w");
-      if (fp==NULL) {
+      PV_Stream * pvstream = PV_fopen(filename, "w");
+      if (pvstream==NULL) {
          fprintf(stderr, "HyPerLayer::checkpointWrite error: unable to open path %s for writing.\n", filename);
          abort();
       }
-      int num_written = PV_fwrite(&val, sizeof(val), 1, fp);
+      int num_written = PV_fwrite(&val, sizeof(val), 1, pvstream);
       if (num_written != 1) {
          fprintf(stderr, "HyPerLayer::checkpointWrite error while writing to %s.\n", filename);
          abort();
       }
-      fclose(fp);
+      PV_fclose(pvstream);
       chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_%s.txt", cp_dir, name, val_name);
       assert(chars_needed < PV_PATH_MAX);
-      fp = fopen(filename, "w");
-      if (fp==NULL) {
+      pvstream = PV_fopen(filename, "w");
+      if (pvstream==NULL) {
          fprintf(stderr, "HyPerLayer::checkpointWrite error: unable to open path %s for writing.\n", filename);
          abort();
       }
-      fprintf(fp, "%f\n", val);
-      fclose(fp);
+      fprintf(pvstream->fp, "%f\n", val);
+      PV_fclose(pvstream);
    }
    return status;
 }
@@ -1692,7 +1692,7 @@ int HyPerLayer::incrementNBands(int * numCalls) {
    int status;
    if( parent->icCommunicator()->commRank() == 0 ) {
       ++*numCalls;
-      long int fpos = PV_ftell(clayer->activeFP);
+      long int fpos = getPV_StreamFilepos(clayer->activeFP);
       PV_fseek(clayer->activeFP, sizeof(int)*INDEX_NBANDS, SEEK_SET);
       int intswritten = PV_fwrite(numCalls, sizeof(int), 1, clayer->activeFP);
       PV_fseek(clayer->activeFP, fpos, SEEK_SET);

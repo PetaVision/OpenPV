@@ -9,6 +9,7 @@
 #define LAYERPROBE_HPP_
 
 #include <stdio.h>
+#include "../io/fileio.hpp"
 
 namespace PV {
 
@@ -34,15 +35,15 @@ public:
 protected:
    LayerProbe();
    int initLayerProbe(const char * filename, HyPerLayer * layer);
-   virtual int initFilePointer(const char * filename, HyPerLayer * layer);
+   virtual int initOutputStream(const char * filename, HyPerLayer * layer);
 
 private:
-   int initialize_base();
+   int initLayerProbe_base();
    void setTargetLayer(HyPerLayer * l) {targetLayer = l;}
 
 // Member variables
 protected:
-   FILE * fp;
+   PV_Stream * outputstream;
 
 private:
    HyPerLayer * targetLayer;

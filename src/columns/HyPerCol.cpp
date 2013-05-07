@@ -911,9 +911,9 @@ int HyPerCol::checkpointRead(const char * cpDir) {
          fprintf(stderr, "HyPerCol::checkpointRead error: unable to open \"%s\" for reading.\n", timestamppath);
          abort();
       }
-      long int startpos = PV_ftell(timestampfile);
-      fread(&timestamp,1,timestamp_size,timestampfile->fp);
-      long int endpos = PV_ftell(timestampfile);
+      long int startpos = getPV_StreamFilepos(timestampfile);
+      PV_fread(&timestamp,1,timestamp_size,timestampfile);
+      long int endpos = getPV_StreamFilepos(timestampfile);
       assert(endpos-startpos==(int)timestamp_size);
       PV_fclose(timestampfile);
    }
@@ -1386,6 +1386,7 @@ int HyPerCol::writeScalarToFile(const char * cp_dir, const char * group_name, co
    }
    return status;
 }
+// Declare the instantiations of writeScalarToFile that occur in other .cpp files; otherwise you'll get linker errors.
 template int HyPerCol::writeScalarToFile<int>(char const * cpDir, const char * group_name, char const * val_name, int val);
 template int HyPerCol::writeScalarToFile<long>(char const * cpDir, const char * group_name, char const * val_name, long val);
 template int HyPerCol::writeScalarToFile<float>(char const * cpDir, const char * group_name, char const * val_name, float val);
@@ -1402,21 +1403,21 @@ int HyPerCol::readScalarFromFile(const char * cp_dir, const char * group_name, c
          fprintf(stderr, "HyPerLayer::readScalarFloat error: path %s/%s_%s.bin is too long.\n", cp_dir, group_name, val_name);
          abort();
       }
-      FILE * fp = fopen(filename, "r");
+      PV_Stream * pvstream = PV_fopen(filename, "r");
       *val = default_value;
-      if (fp==NULL) {
-         std::cerr << "HyPerLayer::readScalarFloat warning: unable to open path \"" << filename << "\" for reading.  Value used will be " << *val;
+      if (pvstream==NULL) {
+         std::cerr << "readScalarFromFile warning: unable to open path \"" << filename << "\" for reading.  Value used will be " << *val;
          std::cerr << std::endl;
          // fprintf(stderr, "HyPerLayer::readScalarFloat warning: unable to open path %s for reading.  value used will be %f\n", filename, default_value);
       }
       else {
-         int num_read = fread(val, sizeof(T), 1, fp);
+         int num_read = PV_fread(val, sizeof(T), 1, pvstream);
          if (num_read != 1) {
-            std::cerr << "HyPerLayer::readScalarFloat warning: unable to read from \"" << filename << "\".  Value used will be " << *val;
+            std::cerr << "readScalarFromFile warning: unable to read from \"" << filename << "\".  Value used will be " << *val;
             std::cerr << std::endl;
             // fprintf(stderr, "HyPerLayer::readScalarFloat warning: unable to read from %s.  value used will be %f\n", filename, default_value);
          }
-         fclose(fp);
+         PV_fclose(pvstream);
       }
    }
 #ifdef PV_USE_MPI
@@ -1425,6 +1426,7 @@ int HyPerCol::readScalarFromFile(const char * cp_dir, const char * group_name, c
 
    return status;
 }
+// Declare the instantiations of readScalarToFile that occur in other .cpp files; otherwise you'll get linker errors.
 template int HyPerCol::readScalarFromFile<int>(char const * cpDir, const char * group_name, char const * val_name, int * val, int default_value);
 template int HyPerCol::readScalarFromFile<long>(char const * cpDir, const char * group_name, char const * val_name, long * val, long default_value);
 template int HyPerCol::readScalarFromFile<float>(char const * cpDir, const char * group_name, char const * val_name, float * val, float default_value);
