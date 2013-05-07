@@ -20,6 +20,8 @@ BIDSConn::BIDSConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
 #endif
 }
 
+//Comments in this conn are assuming a HyPerCol size of 256x256 and a bids_node layer of 1/4 the density.
+//Adjust numbers accordingly for a given simulation
 int BIDSConn::readPatchSize(PVParams * params) {
    int status;
 
@@ -47,8 +49,8 @@ int BIDSConn::readPatchSize(PVParams * params) {
    nyp = (1 + 2*(int)(ceil(lateralRadius/(double)yScale) + ceil(2.0 * jitter/(double)yScale)));
    status = checkPatchSize(nyp, yScalePre, yScalePost, 'y');
 
-   nxpShrunken = 1;
-   nypShrunken = 1;
+   nxpShrunken = nxp;
+   nypShrunken = nyp;
 
    return status;
 }
