@@ -30,6 +30,13 @@ protected:
 	int initialize(const char * name, HyPerCol * hc, const char * filename);
 	int getCharEncoding(const char printableASCIIChar);
 
+	virtual void readNxScale(PVParams * params);
+	virtual void readNyScale(PVParams * params);
+	virtual void readNf(PVParams * params);
+	virtual void readUseCapitalization(PVParams * params);
+	virtual void readDisplayPeriod(PVParams * params);
+	virtual void readUseTextBCFlag(PVParams * params);
+
 	MPI_Datatype * mpi_datatypes;  // MPI datatypes for boundary exchange
 
 	FILE * fp;
@@ -41,9 +48,10 @@ protected:
 
 	double displayPeriod;   // Length of time a string 'frame' is displayed
 	double nextDisplayTime;
-	double lastUpdateTime; // time of last image update
+	double lastUpdateTime;  // time of last image update
 
 	bool useCapitalization; // Should mapping account for capital letters
+	bool useTextBCFlag;     // Pad the end of the text with zeros
 
 };
 }

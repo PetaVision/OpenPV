@@ -38,31 +38,23 @@ int TextStream::initialize_base() {
 	displayPeriod = 1;
 	nextDisplayTime = 1;
 	useCapitalization = false;
+	useTextBCFlag = true;
 	return PV_SUCCESS;
 }
 
 int TextStream::initialize(const char * name, HyPerCol * hc, const char * filename) {
 	int status = PV_SUCCESS;
 
-	HyPerLayer::initialize(name, hc, 0);
-
 	PVParams * params = parent->parameters();
-	this->useCapitalization = (bool) params->value(name, "useCapitalization", useCapitalization);
+	readUseCapitalization(params);
 
-	// nx & ny need to match HyPerCol size
-	const float nxScale = 1;
-	const float nyScale = 1;
-    const double xScaled = -log2( (double) nxScale);
-    const double yScaled = -log2( (double) nxScale);
-    const int xScale = (int) nearbyint(xScaled);
-    const int yScale = (int) nearbyint(yScaled);
-
-	// useCapitalization  : (97) Number of printable ASCII characters + new line (\r,\n) + other
-	// !useCapitalization : (71) Number of printable ASCII characters - capital letters + new line + other
-    const int numFeatures = useCapitalization ? 95+1+1 : 95-26+1+1;
+	HyPerLayer::initialize(name, hc, 0);
 
 	free(clayer->V);
 	clayer->V = NULL;
+
+	// point to clayer data struct
+    textData = clayer->activity->data;
 
 	// create mpi_datatypes for border transfer
 	mpi_datatypes = Communicator::newDatatypes(getLayerLoc());
@@ -83,10 +75,41 @@ int TextStream::initialize(const char * name, HyPerCol * hc, const char * filena
 		}
 	}
 
-	displayPeriod = params->value(name,"displayPeriod", displayPeriod);
+	readDisplayPeriod(params);
 	nextDisplayTime = hc->simulationTime() + displayPeriod;
 
 	return status;
+}
+
+void TextStream::readNxScale(PVParams * params) {
+	displayPeriod = params->value(name,"displayPeriod", displayPeriod);
+}
+
+void TextStream::readNxScale(PVParams * params) {
+   nxScale = 1; // Layer size needs to equal column size
+}
+
+void TextStream::readNyScale(PVParams * params) {
+   nyScale = 1; // Layer size needs to equal column size
+}
+
+void TextStream::readNf(PVParams * params) {
+
+	// useCapitalization  : (97) Number of printable ASCII characters + new line (\r,\n) + other
+	// !useCapitalization : (71) Number of printable ASCII characters - capital letters + new line + other
+    numFeatures = useCapitalization ? 95+1+1 : 95-26+1+1;
+}
+
+void TextStream::readDisplayPeriod(PVParams * params) {
+	displayPeriod = params->value(name,"displayPeriod",displayPeriod);
+}
+
+void TextStream::readUseCapitalization(PVParams * params) {
+	useCapitalization = (bool) params->value(name, "useCapitalization", useCapitalization);
+}
+
+void TextStream::readUseTextBCFlag(PVParams * params) {
+	useTextBCFlag = (bool) params->value(name,"useTextBCFlag",useTextBCFlag);
 }
 
 int TextStream::updateState(double time, double dt)
@@ -104,6 +127,7 @@ int TextStream::updateState(double time, double dt)
          lastUpdateTime = time;
       } // time >= nextDisplayTime
 
+      //TODO: Flag to determine if user wants to loop text file or exit normally
       // if at end of file (EOF), exit normally
       int c;
       if ((c = fgetc(fp)) == EOF) {
