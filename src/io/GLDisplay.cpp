@@ -149,12 +149,19 @@ void GLDisplay::advanceTime(void)
    // check if image has changed
    //
    if (image != NULL && lastUpdateTime < image->lastUpdate()  && holdon) {
-      holdon = 1;
-      loadTexture(getTextureId(image), image);
-      lastUpdateTime = time;
+	   holdon = 1;
+	   loadTexture(getTextureId(image), image);
+	   lastUpdateTime = time;
    }
 
-   time = parent->advanceTime(time);
+   int status = parent->advanceTime(time);
+   if (status == PV_SUCCESS || status == PV_EXIT_NORMALLY) {
+	   time = parent->simulationTime();
+   }
+   else {
+	   fprintf(stderr,"GLDisplay::advanceTime returned abnormal status %d\n",status);
+	   abort();
+   }
 }
 
 void GLDisplay::run(double time, double stopTime)
