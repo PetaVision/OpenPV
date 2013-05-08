@@ -7,7 +7,7 @@ target_id{1,1} = "Car"; target_id{1,2} = "NotCar"; %%
 target_id
 clips_flag = true; %% false; %% 
 if clips_flag 
-  clip_ids = [26:26]; %% [1:50]; %% 
+  clip_ids = [29:50]; %% [1:50]; %% 
   clip_name = cell(length(clip_ids),1);
   for i_clip = 1 : length(clip_name)
     clip_name{i_clip} = num2str(clip_ids(i_clip), "%3.3i");   
@@ -159,10 +159,11 @@ checkpoint_read_path = ...
      pvp_training_dir, filesep, ...
      "checkpoints", filesep];
 
-i_clip = 1;  %% should loop over clips here
+for i_clip = 1:length(clip_ids)  %%  loop over clips here
 for i_object = 1 : size(target_id,1)
 
   %% get checkpoint read dir and list of weights
+  if i_clip == 1 endif
   max_checkpoint_dir = cell(num_versions,2);
   %%keyboard;
   pvp_weight_pathname = [];
@@ -339,9 +340,9 @@ for i_object = 1 : size(target_id,1)
       list_path = list_object_path;
     endif
 
-    pvp_fileOfFrames_path = ...
-	[list_object_path];
     if ~clips_flag
+      pvp_fileOfFrames_path = ...
+	  [list_object_path];
       if strcmp(FLAVOR_ID,"Training")
 	pvp_fileOfFrames_file = ...
 	    [target_id{i_object, 1}, "_", "fileOfFilenames.txt"];
@@ -350,6 +351,8 @@ for i_object = 1 : size(target_id,1)
 	    [target_id{i_object, 1}, "_", "fileOfFilenamesIncTraining.txt"];
       endif
     else
+      pvp_fileOfFrames_path = ...
+	  [list_object_path, clip_name{i_clip, 1}, filesep];
       pvp_fileOfFrames_file = ...
 	  [clip_name{i_clip, 1}, "_", "fileOfFilenames.txt"];
     endif
@@ -409,7 +412,7 @@ for i_object = 1 : size(target_id,1)
 	endif
 	mkdir(output_path);
 
-	checkpoint_read_path = max_checkpoint_dir{i_version, target_flag};
+	max_checkpoint_read_path = max_checkpoint_dir{i_version, target_flag};
 	
 	checkpoint_version_path = ...
 	    [checkpoint_object_path, ...
@@ -451,7 +454,7 @@ for i_object = 1 : size(target_id,1)
 	endif
 	mkdir(output_path);
 
-	checkpoint_read_path = max_checkpoint_dir{1, target_flag};
+	max_checkpoint_read_path = max_checkpoint_dir{1, target_flag};
 	
 	checkpoint_write_path = [checkpoint_object_path];
 	
@@ -500,12 +503,12 @@ for i_object = 1 : size(target_id,1)
 			    pvp_fileOfFrames, ...
 			    pvp_fileOfMasks, ...
 			    output_path, ...
-			    checkpoint_read_path, ...
+			    max_checkpoint_read_path, ...
 			    checkpoint_write_path, ...
 			    params_filename);
     
     endfor %% i_version
   endfor %% target_flag  
 endfor  %% i_object
-
+endfor %% i_clip
 

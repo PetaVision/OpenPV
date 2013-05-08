@@ -92,12 +92,12 @@ function [tot_train_images, ...
   mkdir(filenames_path);
 
   %% path to generic image processing routines
-  img_proc_dir = "~/workspace_new/PetaVision/mlab/imgProc/";
+  img_proc_dir = "~/workspace/PetaVision/mlab/imgProc/";
   addpath(img_proc_dir);
 
 
   %% path to string manipulation kernels for use with parcellfun
-  str_kernel_dir = "~/workspace_new/PetaVision/mlab/stringKernels/";
+  str_kernel_dir = "~/workspace/PetaVision/mlab/stringKernels/";
   addpath(str_kernel_dir);
 
   %%object_folder = [chip_path, object_name, object_name_suffix, filesep];
