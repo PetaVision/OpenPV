@@ -52,12 +52,12 @@ int DatastoreDelayTestProbe::outputState(double timed) {
       pvdata_t * V = l->getV();
       for( int k=0; k<l->getNumNeurons(); k++ ) {
          if( V[k] != correctValue ) {
-            fprintf(fp, "Layer \"%s\": timef = %f, neuron %d: value is %f instead of %d\n", l->getName(), timed, k, V[k], (int) correctValue);
+            fprintf(outputstream->fp, "Layer \"%s\": timef = %f, neuron %d: value is %f instead of %d\n", l->getName(), timed, k, V[k], (int) correctValue);
             status = PV_FAILURE;
          }
       }
       if( status == PV_SUCCESS) {
-         fprintf(fp, "Layer \"%s\": timef = %f, all neurons have correct value %d\n", l->getName(), timed, (int) correctValue);
+         fprintf(outputstream->fp, "Layer \"%s\": timef = %f, all neurons have correct value %d\n", l->getName(), timed, (int) correctValue);
       }
    }
    assert(status == PV_SUCCESS);
