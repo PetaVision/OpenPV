@@ -188,8 +188,6 @@ public:
    virtual int updateActiveIndices();
    int resetBuffer(pvdata_t * buf, int numItems);
 
-   virtual int reconstruct(HyPerConn * conn, PVLayerCube * cube);
-
    int initFinish();
 
    int mirrorInteriorToBorder(int whichBorder, PVLayerCube * cube, PVLayerCube * borderCube);

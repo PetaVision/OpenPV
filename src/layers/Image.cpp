@@ -198,8 +198,8 @@ int Image::initializeState() {
    int status = PV_SUCCESS;
 
    PVParams * params = parent->parameters();
-   bool restart_flag = params->value(name, "restart", 0.0f) != 0.0f;
-   if( restart_flag ) {
+   assert(!params->presentAndNotBeenRead(name, "restart"));
+   if( restartFlag ) {
       double timef;
       status = readState(&timef);
    }

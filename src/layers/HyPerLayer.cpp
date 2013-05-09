@@ -461,7 +461,8 @@ int HyPerLayer::allocateBuffers() {
 int HyPerLayer::initializeState() {
    int status = PV_SUCCESS;
    PVParams * params = parent->parameters();
-   readRestart(params);
+   assert(!params->presentAndNotBeenRead(name, "restart"));
+   // readRestart(params);
    if( restartFlag ) {
       double timef;
       status = readState(&timef);
@@ -489,6 +490,10 @@ int HyPerLayer::setParams(PVParams * inputParams)
    readPhase(inputParams);
    readWriteSparseActivity(inputParams);
    readMirrorBCFlag(inputParams);
+   readRestart(inputParams);
+// #ifdef PV_USE_OPENCL
+//    readGPUAccelerateFlag(inputParams);
+// #endif // PV_USE_OPENCL
 
    return PV_SUCCESS;
 }
@@ -1145,14 +1150,6 @@ int HyPerLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activity
    return PV_SUCCESS;
 }
 
-int HyPerLayer::reconstruct(HyPerConn * conn, PVLayerCube * cube)
-{
-   // TODO - implement
-   printf("[%d]: HyPerLayer::reconstruct: to layer %d from %d\n",
-          clayer->columnId, clayer->layerId, conn->preSynapticLayer()->clayer->layerId);
-   return 0;
-}
-
 int HyPerLayer::triggerReceive(InterColComm* comm)
 {
    // deliver calls recvSynapticInput for all connections for which this layer is presynaptic (i.e. all connections made by this layer)
@@ -1301,7 +1298,6 @@ int HyPerLayer::checkpointRead(const char * cpDir, double * timed) {
    int status = readBufferFile(filename, icComm, &filetime, &clayer->activity->data, 1, /*extended*/true, getLayerLoc());
    assert(status == PV_SUCCESS);
    *timed = filetime;
-   // TODO contiguous should be true in the writeBufferFile calls (needs to be added to writeBuffer method)
    if( getV() != NULL ) {
       chars_needed = snprintf(filename, PV_PATH_MAX, "%s_V.pvp", basepath);
       assert(chars_needed < PV_PATH_MAX);
