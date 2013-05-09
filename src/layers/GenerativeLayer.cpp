@@ -85,7 +85,7 @@ int GenerativeLayer::updateState(double timef, double dt,
       updateV_GenerativeLayer(num_neurons, V, dV, A, VMax, VMin, VThresh, trunc_rel, nx, ny, nf, loc->nb);
       relax_remaining -=trunc_rel;
    }
-   //setActivity_GenerativeLayer(num_neurons, A, V, nx, ny, nf, loc->nb, activity_threshold);
+   setActivity_GenerativeLayer(num_neurons, A, V, nx, ny, nf, loc->nb, activity_threshold);
    resetGSynBuffers_HyPerLayer(num_neurons, getNumChannels(), gSynHead);
    return PV_SUCCESS;
 }
