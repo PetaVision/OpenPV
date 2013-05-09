@@ -122,7 +122,7 @@ int spike(float timed, float dt,
 //   }
    probSpike += probStim * burst_status;  // negative prob is OK
 
-   probSpike *= dt; // convert rate from number of spikes per millisecond to number of spikes in dt.
+   // probSpike *= dt; // conversion to expected number of spikes in dt now takes place in setRetinaParams
 
    *rnd_state = cl_random_get(*rnd_state);
    int spike_flag = (cl_random_prob(*rnd_state) < probSpike);
