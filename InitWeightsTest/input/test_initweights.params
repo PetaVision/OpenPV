@@ -293,8 +293,8 @@ HyPerConn "Retina to L0" = {
    thetaMax = 1;
    bowtieFlag = 0;
    numFlanks = 2;
-   
    rotate = 5;
+   numOrientationsPost = 8;
        
    strength = 25;  
    normalizeMethod = "normalizeSum";
@@ -303,7 +303,6 @@ HyPerConn "Retina to L0" = {
    minSumTolerated = 0.0;
    normalizeFromPostPerspective = false;
 
-   numOrientationsPost = 8;
    normalize_cutoff = 0;
    plasticityFlag = 0;   
    
@@ -532,6 +531,7 @@ KernelConn "Retina to L5" = {
    numFlanks = 2;
    flankShift = 1.5;   
    rotate = 5;
+   numOrientationsPost = 8;
        
    strength = 25;  
    normalizeMethod = "normalizeSum";
@@ -737,19 +737,22 @@ HyperConnDebugInitWeights "Retina to L0 check" = {
    shrinkPatches = false;
    
    initFromLastFlag = 0;  // 1;  // restart
-   writeStep = 1;
+   writeStep = 1.0;
    initialWriteTime = 0.0;
+   writeCompressedWeights = false;
+   writeCompressedCheckpoints = false;
 
    weightInitType = "Gauss2DWeight";
    aspect = 7;
    sigma = 7;
    rMax  = 7;
+   rMin = 0;
    deltaThetaMax = 6.2832;
    thetaMax = 1;
    bowtieFlag = 0;
    numFlanks = 2;
-   
    rotate = 5;
+   numOrientationsPost = 8;
        
    strength = 25;  
    normalizeMethod = "normalizeSum";
@@ -758,14 +761,11 @@ HyperConnDebugInitWeights "Retina to L0 check" = {
    minSumTolerated = 0.0;
    normalizeFromPostPerspective = false;
 
-   writeCompressedWeights = false;
-   writeCompressedCheckpoints = false;
    normalize_cutoff = 0;
-   plasticityFlag = 0;
-   
+   plasticityFlag = 0;   
    
    flankShift = 1.5;
-   delay = 0;   
+   delay = 0;
    preActivityIsNotRate = false;
    selfFlag = false;
 };
@@ -785,9 +785,10 @@ HyperConnDebugInitWeights "Retina to L1 check" = {
    initFromLastFlag = 0;  // 1;  // restart
    writeStep = -1;
    writeCompressedCheckpoints = false;
-   
+
    weightInitType = "CoCircWeight";
    noPre=1;
+   noPost=8;
    sigmaCocirc=1.570796326794897;
    sigmaKurve=2;
    sigmaChord=0.5;
@@ -799,19 +800,18 @@ HyperConnDebugInitWeights "Retina to L1 check" = {
    rMax  = 7;
    deltaThetaMax = 6.2832;
    numFlanks = 2;
-   flankShift = 1.5;
-   
+   flankShift = 1.5;   
    rotate = 4;
        
    strength = 25;  
    normalizeMethod = "normalizeSum";
+   normalize_cutoff = false;
    normalizeArborsIndividually = false;
    symmetrizeWeights = false;
    minSumTolerated = 0.0;
    normalizeFromPostPerspective = false;
 
-   normalize_cutoff = 0;
-   plasticityFlag = 0;
+   plasticityFlag = false;
    
    delay = 0;   
    preActivityIsNotRate = false;
@@ -976,13 +976,14 @@ KernelConnDebugInitWeights "Retina to L5 check" = {
    aspect = 7;
    sigma = 7;
    rMax  = 7;
+   rMin = 0.0;
    deltaThetaMax = 6.2832;
    thetaMax = 1;
    bowtieFlag = 0;
    numFlanks = 2;
-   flankShift = 1.5;
-   
+   flankShift = 1.5;   
    rotate = 5;
+   numOrientationsPost = 8;
        
    strength = 25;  
    normalizeMethod = "normalizeSum";
@@ -1017,6 +1018,7 @@ KernelConnDebugInitWeights "Retina to L6 check" = {
 
    weightInitType = "CoCircWeight";
    noPre=1;
+   noPost=8;
    sigmaCocirc=1.570796326794897;
    sigmaKurve=2;
    sigmaChord=0.5;
@@ -1029,7 +1031,6 @@ KernelConnDebugInitWeights "Retina to L6 check" = {
    deltaThetaMax = 6.2832;
    numFlanks = 2;
    flankShift = 1.5;
-   
    rotate = 4;
        
    strength = 25;  
@@ -1041,7 +1042,6 @@ KernelConnDebugInitWeights "Retina to L6 check" = {
    normalizeFromPostPerspective = false;
 
    plasticityFlag = false;
-   
    
    delay = 0;   
    preActivityIsNotRate = false;
