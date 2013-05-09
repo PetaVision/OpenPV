@@ -1159,7 +1159,6 @@ int HyPerCol::outputParamsXML(PV_Stream * pvstream) {
    fprintf(fp, "<params>\n");
    int indentation=1;
    outputParamGroup(pvstream, "HyPerCol", name, indentation);
-   fprintf(fp, "   <HyPerCol name=\"%s\">\n", name);
    indentation++;
    outputParamInt(pvstream, "nx", nxGlobal, indentation);
    outputParamInt(pvstream, "ny", nyGlobal, indentation);
@@ -1183,7 +1182,6 @@ int HyPerCol::outputParamsXML(PV_Stream * pvstream) {
    outputParamBoolean(pvstream, "suppressLastOutput", suppressLastOutput, indentation);
    indentation--;
    outputParamCloseGroup(pvstream, "HyPerCol", indentation);
-   fprintf(fp, "   </HyPerCol>\n");
    fprintf(fp, "</params>\n");
    return PV_SUCCESS;
 }
