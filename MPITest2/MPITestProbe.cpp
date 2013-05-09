@@ -71,9 +71,9 @@ int MPITestProbe::outputState(double timed) {
 	}
 	float ave_global_xpos = (min_global_xpos + max_global_xpos) / 2.0f;
 
-	fprintf(fp, "%s min_global_xpos==%f ave_global_xpos==%f max_global_xpos==%f \n",
+	fprintf(outputstream->fp, "%s min_global_xpos==%f ave_global_xpos==%f max_global_xpos==%f \n",
 			msg, min_global_xpos, ave_global_xpos, max_global_xpos);
-	fflush(fp);
+	fflush(outputstream->fp);
 	if (timed > 3.0f) {
 		assert((fMin/min_global_xpos > (1 - tol)) && (fMin/min_global_xpos < (1 + tol)));
 		assert((fMax/max_global_xpos > (1 - tol)) && (fMax/max_global_xpos < (1 + tol)));
