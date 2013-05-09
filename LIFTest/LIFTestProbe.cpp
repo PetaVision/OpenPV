@@ -83,11 +83,11 @@ int LIFTestProbe::initLIFTestProbe(const char * filename, HyPerLayer * layer, PV
       counts[k] = c[k];
    }
    if (layer->getParent()->icCommunicator()->commRank()==0) {
-      fprintf(fp, "%s Correct: ", msg);
+      fprintf(outputstream->fp, "%s Correct: ", msg);
       for (int k=0; k<LIFTESTPROBE_BINS; k++) {
-         fprintf(fp, " %f", targetrates[k]);
+         fprintf(outputstream->fp, " %f", targetrates[k]);
       }
-      fprintf(fp, "\n");
+      fprintf(outputstream->fp, "\n");
    }
    return status;
 }
@@ -127,12 +127,12 @@ int LIFTestProbe::outputState(double timed) {
 #endif // PV_USE_MPI
    if (icComm->commRank()==root_proc) {
       MPI_Reduce(MPI_IN_PLACE, rates, LIFTESTPROBE_BINS, MPI_DOUBLE, MPI_SUM, root_proc, icComm->communicator());
-      fprintf(fp, "%s t=%f:", msg, timed);
+      fprintf(outputstream->fp, "%s t=%f:", msg, timed);
       for (int j=0; j<LIFTESTPROBE_BINS; j++) {
          rates[j] /= counts[j]*timed/1000.0;
-         fprintf(fp, " %f", rates[j]);
+         fprintf(outputstream->fp, " %f", rates[j]);
       }
-      fprintf(fp, "\n");
+      fprintf(outputstream->fp, "\n");
       if (timed >= endingTime) {
          double stdfactor = sqrt(timed/1000.0); // Since the values of std are based on t=1000.
          for (int j=0; j<LIFTESTPROBE_BINS; j++) {
