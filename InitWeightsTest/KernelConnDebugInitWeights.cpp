@@ -164,7 +164,7 @@ PVPatch ** KernelConnDebugInitWeights::initializeCocircWeights(PVPatch ** patche
    assert(noPre <= pre->getLayerLoc()->nf);
 
    int noPost = post->getLayerLoc()->nf;
-   noPost = (int) params->value(name, "no", noPost);
+   noPost = (int) params->value(name, "noPost", noPost);
    assert(noPost > 0);
    assert(noPost <= post->getLayerLoc()->nf);
 
@@ -566,12 +566,13 @@ PVPatch ** KernelConnDebugInitWeights::initializeGaussian2DWeights(PVPatch ** pa
 
    // default values (chosen for center on cell of one pixel)
    int noPost = nfp;
-   float aspect = 1.0; // circular (not line oriented)
-   float sigma = 0.8;
-   float rMax = 1.4;
-   float strength = 1.0;
+   float aspect = 1.0f; // circular (not line oriented)
+   float sigma = 0.8f;
+   float rMax = 1.4f;
+   float rMin = 0.0f;
+   float strength = 1.0f;
    float deltaThetaMax = 2.0f * PI;  // max difference in orientation between pre and post
-   float thetaMax = 1.0;  // max orientation in units of PI
+   float thetaMax = 1.0f;  // max orientation in units of PI
    int numFlanks = 1;
    float shift = 0.0f;
    float rotate = 0.0f;   // rotate so that axis isn't aligned
@@ -581,9 +582,10 @@ PVPatch ** KernelConnDebugInitWeights::initializeGaussian2DWeights(PVPatch ** pa
    aspect   = params->value(name, "aspect", aspect);
    sigma    = params->value(name, "sigma", sigma);
    rMax     = params->value(name, "rMax", rMax);
+   rMin     = params->value(name, "rMin", rMin);
    strength = params->value(name, "strength", strength);
    if (nfp > 1) {
-      noPost = (int) params->value(post->getName(), "no", nfp);
+      noPost = (int) params->value(getName(), "numOrientationsPost", nfp);
       deltaThetaMax = params->value(name, "deltaThetaMax", deltaThetaMax);
       thetaMax = params->value(name, "thetaMax", thetaMax);
       numFlanks = (int) params->value(name, "numFlanks", (float) numFlanks);
@@ -596,16 +598,17 @@ PVPatch ** KernelConnDebugInitWeights::initializeGaussian2DWeights(PVPatch ** pa
    }
 
    float r2Max = rMax * rMax;
+   float r2Min = rMin * rMin;
 
    for (int patchIndex = 0; patchIndex < numPatches; patchIndex++) {
       gauss2DCalcWeights(&dataStart[patchIndex*nxp*nyp*nfp], patchIndex, noPost, numFlanks, shift, rotate,
-            aspect, sigma, r2Max, strength, deltaThetaMax, thetaMax, bowtieFlag, bowtieAngle);
+            aspect, sigma, r2Max, r2Min, strength, deltaThetaMax, thetaMax, bowtieFlag, bowtieAngle);
    }
 
    return patches;
 }
 int KernelConnDebugInitWeights::gauss2DCalcWeights(pvdata_t * dataStart, int dataPatchIndex, int no, int numFlanks,
-      float shift, float rotate, float aspect, float sigma, float r2Max, float strength,
+      float shift, float rotate, float aspect, float sigma, float r2Max, float r2Min, float strength,
       float deltaThetaMax, float thetaMax, float bowtieFlag, float bowtieAngle)
 {
 //   const PVLayer * lPre = pre->clayer;
@@ -747,16 +750,17 @@ int KernelConnDebugInitWeights::gauss2DCalcWeights(pvdata_t * dataStart, int dat
 
             // include shift to flanks
             float d2 = xp * xp + (aspect * (yp - shift) * aspect * (yp - shift));
-            w_tmp[iPost * sx_tmp + jPost * sy_tmp + fPost * sf_tmp] = 0;
-            if (d2 <= r2Max) {
-               w_tmp[iPost * sx_tmp + jPost * sy_tmp + fPost * sf_tmp] += expf(-d2
+            int index = iPost * sx_tmp + jPost * sy_tmp + fPost * sf_tmp;
+            w_tmp[index] = 0;
+            if ((d2 <= r2Max) && (d2 >= r2Min)) {
+               w_tmp[index] += expf(-d2
                      / (2.0f * sigma * sigma));
             }
             if (numFlanks > 1) {
                // shift in opposite direction
                d2 = xp * xp + (aspect * (yp + shift) * aspect * (yp + shift));
-               if (d2 <= r2Max) {
-                  w_tmp[iPost * sx_tmp + jPost * sy_tmp + fPost * sf_tmp] += expf(-d2
+               if ((d2 <= r2Max) && (d2 >= r2Min)) {
+                  w_tmp[index] += expf(-d2
                         / (2.0f * sigma * sigma));
                }
             }

@@ -32,7 +32,7 @@ protected:
    PVPatch ** initializeGaussian2DWeights(PVPatch ** patches, pvdata_t * dataStart, int numPatches);
    virtual int gauss2DCalcWeights(PVPatch * wp, pvdata_t * dataStart, int kPre, int noPost,
                              int numFlanks, float shift, float rotate, float aspect, float sigma,
-                             float r2Max, float strength, float deltaThetaMax, float thetaMax,
+                             float r2Max, float r2Min, float strength, float deltaThetaMax, float thetaMax,
                              float bowtieFlag, float bowtieAngle);
    PVPatch ** initializeCocircWeights(PVPatch ** patches, pvdata_t * dataStart, int numPatches);
    virtual int cocircCalcWeights(PVPatch * wp, pvdata_t * dataStart, int kPre, int noPre, int noPost,

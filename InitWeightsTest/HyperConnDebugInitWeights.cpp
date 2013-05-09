@@ -166,7 +166,7 @@ PVPatch ** HyperConnDebugInitWeights::initializeCocircWeights(PVPatch ** patches
    assert(noPre <= pre->getLayerLoc()->nf);
 
    int noPost = post->getLayerLoc()->nf;
-   noPost = (int) params->value(name, "no", noPost);
+   noPost = (int) params->value(name, "noPost", noPost);
    assert(noPost > 0);
    assert(noPost <= post->getLayerLoc()->nf);
 
@@ -583,6 +583,7 @@ PVPatch ** HyperConnDebugInitWeights::initializeGaussian2DWeights(PVPatch ** pat
    float aspect = 1.0; // circular (not line oriented)
    float sigma = 0.8;
    float rMax = 1.4;
+   float rMin = 1.4;
    float strength = 1.0;
    float deltaThetaMax = 2.0f * PI;  // max difference in orientation between pre and post
    float thetaMax = 1.0;  // max orientation in units of PI
@@ -595,9 +596,10 @@ PVPatch ** HyperConnDebugInitWeights::initializeGaussian2DWeights(PVPatch ** pat
    aspect   = params->value(name, "aspect", aspect);
    sigma    = params->value(name, "sigma", sigma);
    rMax     = params->value(name, "rMax", rMax);
+   rMin     = params->value(name, "rMin", rMin);
    strength = params->value(name, "strength", strength);
    if (nfp > 1) {
-      noPost = (int) params->value(post->getName(), "no", nfp);
+      noPost = (int) params->value(getName(), "numOrientationsPost", nfp);
       deltaThetaMax = params->value(name, "deltaThetaMax", deltaThetaMax);
       thetaMax = params->value(name, "thetaMax", thetaMax);
       numFlanks = (int) params->value(name, "numFlanks", (float) numFlanks);
@@ -610,16 +612,17 @@ PVPatch ** HyperConnDebugInitWeights::initializeGaussian2DWeights(PVPatch ** pat
    }
 
    float r2Max = rMax * rMax;
+   float r2Min = rMin * rMin;
 
    for (int patchIndex = 0; patchIndex < numPatches; patchIndex++) {
       gauss2DCalcWeights(patches[patchIndex], &dataStart[patchIndex*nxp*nyp*nfp], patchIndex, noPost, numFlanks, shift, rotate,
-            aspect, sigma, r2Max, strength, deltaThetaMax, thetaMax, bowtieFlag, bowtieAngle);
+            aspect, sigma, r2Max, r2Min, strength, deltaThetaMax, thetaMax, bowtieFlag, bowtieAngle);
    }
 
    return patches;
 }
 int HyperConnDebugInitWeights::gauss2DCalcWeights(PVPatch * wp, pvdata_t * dataStart, int dataPatchIndex, int no, int numFlanks,
-      float shift, float rotate, float aspect, float sigma, float r2Max, float strength,
+      float shift, float rotate, float aspect, float sigma, float r2Max, float r2Min, float strength,
       float deltaThetaMax, float thetaMax, float bowtieFlag, float bowtieAngle)
 {
    //   const PVLayer * lPre = pre->clayer;
@@ -760,16 +763,17 @@ int HyperConnDebugInitWeights::gauss2DCalcWeights(PVPatch * wp, pvdata_t * dataS
 
             // include shift to flanks
             float d2 = xp * xp + (aspect * (yp - shift) * aspect * (yp - shift));
-            w_tmp[iPost * sx_tmp + jPost * sy_tmp + fPost * sf_tmp] = 0;
-            if (d2 <= r2Max) {
-               w_tmp[iPost * sx_tmp + jPost * sy_tmp + fPost * sf_tmp] += strength*expf(-d2
+            int index = iPost * sx_tmp + jPost * sy_tmp + fPost * sf_tmp;
+            w_tmp[index] = 0;
+            if ((d2 <= r2Max) && (d2 >= r2Min)) {
+               w_tmp[index] += expf(-d2
                      / (2.0f * sigma * sigma));
             }
             if (numFlanks > 1) {
                // shift in opposite direction
                d2 = xp * xp + (aspect * (yp + shift) * aspect * (yp + shift));
-               if (d2 <= r2Max) {
-                  w_tmp[iPost * sx_tmp + jPost * sy_tmp + fPost * sf_tmp] += strength*expf(-d2
+               if ((d2 <= r2Max) && (d2 >= r2Min)) {
+                  w_tmp[index] += expf(-d2
                         / (2.0f * sigma * sigma));
                }
             }
