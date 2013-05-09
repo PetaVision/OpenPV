@@ -32,6 +32,7 @@ namespace PV {
 HyPerCol::HyPerCol(const char * name, int argc, char * argv[], PVParams * params)
          : warmStart(false), isInitialized(false)
 {
+   initialize_base();
    initialize(name, argc, argv, params);
 }
 
@@ -77,7 +78,6 @@ HyPerCol::~HyPerCol()
    free(connections);
    free(layers);
    free(name);
-   free(path);
    free(outputPath);
    free(outputNamesOfLayersAndConns);
    if (checkpointWriteFlag) {
@@ -107,7 +107,58 @@ int HyPerCol::initFinish(void)
    return status;
 }
 
-#define NUMSTEPS 1
+#define DEFAULT_NUMSTEPS 1
+int HyPerCol::initialize_base() {
+   // Initialize all member variables to safe values.  They will be set to their actual values in initialize()
+   numSteps = 0;
+   currentStep = 0;
+   layerArraySize = INITIAL_LAYER_ARRAY_SIZE;
+   numLayers = 0;
+   numPhases = 0;
+   connectionArraySize = INITIAL_CONNECTION_ARRAY_SIZE;
+   numConnections = 0;
+   checkpointReadFlag = false;
+   checkpointWriteFlag = false;
+   checkpointReadDir = NULL;
+   cpReadDirIndex = -1L;
+   checkpointWriteDir = NULL;
+   cpWriteStepInterval = -1L;
+   nextCPWriteStep = 0L;
+   cpWriteTimeInterval = -1.0;
+   nextCPWriteTime = 0.0;
+   deleteOlderCheckpoints = false;
+   memset(lastCheckpointDir, 0, PV_PATH_MAX);
+   suppressLastOutput = false;
+   simTime = 0.0;
+   stopTime = 0.0;
+   deltaTime = DELTA_T;
+   progressStep = 1L;
+   writeProgressToErr = false;
+   clDevice = NULL;
+   layers = NULL;
+   connections = NULL;
+   name = NULL;
+   outputPath = NULL;
+   outputNamesOfLayersAndConns = NULL;
+   image_file = NULL;
+   nxGlobal = 0;
+   nyGlobal = 0;
+   ownsParams = true;
+   ownsInterColComm = true;
+   params = NULL;
+   icComm = NULL;
+   runDelegate = NULL;
+   runTimer = NULL;
+   numProbes = 0;
+   probes = NULL;
+   filenamesContainLayerNames = 0;
+   filenamesContainConnectionNames = 0;
+   random_seed = 0;
+   random_seed_obj = 0;
+
+   return PV_SUCCESS;
+}
+
 int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * params)
 {
    ownsInterColComm = (params==NULL || params->getInterColComm()==NULL);
@@ -140,36 +191,19 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * p
       MPI_Barrier(icComm->communicator());
 #endif // PV_USE_MPI
    }
-#endif
-;
-   layerArraySize = INITIAL_LAYER_ARRAY_SIZE;
-   connectionArraySize = INITIAL_CONNECTION_ARRAY_SIZE;
+#endif // PVP_DEBUG
 
    this->name = strdup(name);
    this->runTimer = new Timer();
 
-   char * param_file;
-   char * working_dir;
-   simTime = 0;
-   currentStep = 0;
-   numLayers = 0;
-   numPhases = 0;
-   numConnections = 0;
    layers = (HyPerLayer **) malloc(layerArraySize * sizeof(HyPerLayer *));
    connections = (HyPerConn **) malloc(connectionArraySize * sizeof(HyPerConn *));
 
    int opencl_device = 0;  // default to GPU for now
-   numSteps = 0; // numSteps = 2;
-   outputPath = NULL;
-   image_file = NULL;
-   param_file = NULL;
-   working_dir = NULL;
-   random_seed = 0;
-   deleteOlderCheckpoints = false;
+   char * param_file = NULL;
+   char * working_dir = NULL;
    parse_options(argc, argv, &outputPath, &param_file,
                  &numSteps, &opencl_device, &random_seed, &working_dir);
-   progressStep       = 1;
-   writeProgressToErr = false;
 
    if(working_dir) {
       int status = chdir(working_dir);
@@ -180,9 +214,10 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * p
       }
    }
 
-   path = (char *) malloc(1+PV_PATH_MAX);
-   assert(path != NULL);
-   path = getcwd(path, PV_PATH_MAX);
+   // path to working directory is no longer used
+   // path = (char *) malloc(1+PV_PATH_MAX);
+   // assert(path != NULL);
+   // path = getcwd(path, PV_PATH_MAX);
 
    ownsParams = params==NULL;
    if (ownsParams) {
@@ -213,9 +248,8 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * p
          numSteps = (long int) params->value(name, "numSteps");
       }
       else {
-         numSteps = NUMSTEPS;
          printf("Number of steps specified neither in the command line nor the params file.\n"
-                "Number of steps set to default %d\n",NUMSTEPS);
+                "Number of steps set to default %ld\n",numSteps);
       }
    }
    if( (double) numSteps > PV_MAX_NUMSTEPS ) {
@@ -300,7 +334,6 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * p
    nxGlobal = (int) params->value(name, "nx");
    nyGlobal = (int) params->value(name, "ny");
 
-   deltaTime = DELTA_T;
    deltaTime = params->value(name, "dt", deltaTime, true);
 
    runDelegate = NULL;
@@ -1098,8 +1131,8 @@ int HyPerCol::outputParamsXML(const char * filename) {
       }
       if( len < PV_PATH_MAX ) {
          PV_Stream * pvstream = PV_fopen(printParamsPath, "w");
-         if( fp != NULL ) {
-            status = outputParamsXML(fp);
+         if( pvstream != NULL ) {
+            status = outputParamsXML(pvstream);
             if( status != PV_SUCCESS ) {
                fprintf(stderr, "outputParamsXML: Error copying params to \"%s\"\n", printParamsPath);
             }
@@ -1124,14 +1157,130 @@ int HyPerCol::outputParamsXML(PV_Stream * pvstream) {
    FILE * fp = pvstream->fp;
    fprintf(fp, "<?xml version='1.0' encoding=\"UTF-8\"?>\n");
    fprintf(fp, "<params>\n");
+   int indentation=1;
+   outputParamGroup(pvstream, "HyPerCol", name, indentation);
    fprintf(fp, "   <HyPerCol name=\"%s\">\n", name);
-   fprintf(fp, "      <param name=\"nx\" type=\"int\">%d</param>\n", nxGlobal);
-   fprintf(fp, "      <param name=\"ny\" type=\"int\">%d</param>\n", nyGlobal);
-   fprintf(fp, "      <param name=\"dt\" type=\"double\">%lf</param>\n", deltaTime);
-   fprintf(fp, "      <param name=\"numSteps\" type=\"long int\">%ld</param>\n", numSteps);
+   indentation++;
+   outputParamInt(pvstream, "nx", nxGlobal, indentation);
+   outputParamInt(pvstream, "ny", nyGlobal, indentation);
+   outputParamDouble(pvstream, "dt", deltaTime, indentation);
+   outputParamUnsignedLongInt(pvstream, "randomSeed", random_seed, indentation);
+   outputParamLongInt(pvstream, "numSteps", numSteps, indentation);
+   outputParamLongInt(pvstream, "progressStep", progressStep, indentation);
+   outputParamBoolean(pvstream, "writeProgressToErr", writeProgressToErr, indentation);
+   outputParamFilename(pvstream, "outputPath", outputPath, indentation);
+   outputParamFilename(pvstream, "paramsXMLFilename", pvstream->name, indentation);
+   outputParamInt(pvstream, "filenamesContainLayerNames", filenamesContainLayerNames, indentation);
+   outputParamInt(pvstream, "filenamesContainConnectionNames", filenamesContainConnectionNames, indentation);
+   outputParamBoolean(pvstream, "checkpointRead", checkpointReadFlag, indentation);
+   outputParamFilename(pvstream, "checkpointReadDir", checkpointReadDir, indentation);
+   outputParamLongInt(pvstream, "checkpointReadDirIndex", cpReadDirIndex, indentation);
+   outputParamBoolean(pvstream, "checkpointWrite", checkpointWriteFlag, indentation);
+   outputParamFilename(pvstream, "checkpointWriteDir", checkpointWriteDir, indentation);
+   outputParamLongInt(pvstream, "checkpointWriteStepInterval", cpWriteStepInterval, indentation);
+   outputParamDouble(pvstream, "chekpointWriteTimeInterval", cpWriteTimeInterval, indentation);
+   outputParamBoolean(pvstream, "deleteOlderCheckpoints", deleteOlderCheckpoints, indentation);
+   outputParamBoolean(pvstream, "suppressLastOutput", suppressLastOutput, indentation);
+   indentation--;
+   outputParamCloseGroup(pvstream, "HyPerCol", indentation);
    fprintf(fp, "   </HyPerCol>\n");
    fprintf(fp, "</params>\n");
    return PV_SUCCESS;
+}
+
+int HyPerCol::outputParamGroup(PV_Stream * pvstream, const char * classname, const char * groupname, int indentation) {
+   indent(pvstream, indentation);
+   fprintf(pvstream->fp, "<%s name=\"%s\">\n", classname, groupname);
+   return PV_SUCCESS;
+}
+
+int HyPerCol::outputParamCloseGroup(PV_Stream * pvstream, const char * classname, int indentation) {
+   indent(pvstream, indentation);
+   fprintf(pvstream->fp, "</%s>\n", classname);
+   return PV_SUCCESS;
+}
+
+int HyPerCol::outputParamInt(PV_Stream * pvstream, const char * paramname, int value, int indentation) {
+   indent(pvstream, indentation);
+   fprintf(pvstream->fp, "<param name=\"%s\" type=\"int\">%d</param>\n", paramname, value);
+   return PV_SUCCESS;
+}
+
+int HyPerCol::outputParamLongInt(PV_Stream * pvstream, const char * paramname, long int value, int indentation) {
+   indent(pvstream, indentation);
+   fprintf(pvstream->fp, "<param name=\"%s\" type=\"long int\">%ld</param>\n", paramname, value);
+   return PV_SUCCESS;
+}
+
+int HyPerCol::outputParamUnsignedLongInt(PV_Stream * pvstream, const char * paramname, unsigned long int value, int indentation) {
+   indent(pvstream, indentation);
+   fprintf(pvstream->fp, "<param name=\"%s\" type=\"unsigned long int\">%lu</param>\n", paramname, value);
+   return PV_SUCCESS;
+}
+
+int HyPerCol::outputParamFloat(PV_Stream * pvstream, const char * paramname, float value, int indentation) {
+   indent(pvstream, indentation);
+   fprintf(pvstream->fp, "<param name=\"%s\" type=\"float\">%f (", paramname, value);
+   hexdump(pvstream, value);
+   fprintf(pvstream->fp, ")</param>\n");
+   return PV_SUCCESS;
+}
+
+int HyPerCol::outputParamDouble(PV_Stream * pvstream, const char * paramname, double value, int indentation) {
+   indent(pvstream, indentation);
+   fprintf(pvstream->fp, "<param name=\"%s\" type=\"double\">%f (", paramname, value);
+   hexdump(pvstream, value);
+   fprintf(pvstream->fp, ")</param>\n");
+   return PV_SUCCESS;
+}
+
+template <typename T> int HyPerCol::hexdump(PV_Stream * pvstream, T value) {
+   size_t sz = sizeof(value);
+   unsigned char c[sz];
+   memcpy(c, &value, sz);
+   fprintf(pvstream->fp, "0x");
+   for (size_t j=sz; j>0;) {
+      fprintf(pvstream->fp, "%02x", c[--j]);
+   }
+   return PV_SUCCESS;
+}
+template int HyPerCol::hexdump<float>(PV_Stream * pvstream, float value);
+template int HyPerCol::hexdump<double>(PV_Stream * pvstream, double value);
+
+int HyPerCol::outputParamBoolean(PV_Stream * pvstream, const char * paramname, bool value, int indentation) {
+   indent(pvstream, indentation);
+   const char * truestring = "true";
+   const char * falsestring = "false";
+   fprintf(pvstream->fp, "<param name=\"%s\" type=\"boolean\">%s</param>\n", paramname, value?truestring:falsestring);
+   return PV_SUCCESS;
+}
+
+int HyPerCol::outputParamFilename(PV_Stream * pvstream, const char * paramname, const char * value, int indentation) {
+   indent(pvstream, indentation);
+   fprintf(pvstream->fp, "<param name=\"%s\" type=\"filename\">\"", paramname);
+   if (value) fprintf(pvstream->fp, "%s", value);
+   fprintf(pvstream->fp, "\"</param>\n");
+   return PV_SUCCESS;
+}
+
+int HyPerCol::outputParamString(PV_Stream * pvstream, const char * paramname, const char * value, int indentation) {
+   indent(pvstream, indentation);
+   fprintf(pvstream->fp, "<param name=\"%s\" type=\"filename\">\"", paramname);
+   if (value) fprintf(pvstream->fp, "%s", value);
+   fprintf(pvstream->fp, "\"</param>\n");
+   return PV_SUCCESS;
+}
+
+int HyPerCol::indent(PV_Stream * pvstream, int indentation) {
+   const char indentstring[] = "   ";
+   int printed = 0;
+   for (int k=0; k<indentation; k++) {
+      int fprintstatus = fprintf(pvstream->fp, indentstring);
+      assert(fprintstatus = strlen(indentstring));
+      printed += fprintstatus;
+   }
+   assert(indentation<0 || printed==indentation*(int)strlen(indentstring));
+   return printed;
 }
 #endif // UNDERCONSTRUCTION
 

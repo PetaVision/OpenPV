@@ -67,7 +67,7 @@ public:
    ColProbe * getColProbe(int which)      {return probes[which];}
 
    char * getName()                       {return name;}
-   char * getPath()                       {return path;}
+   // char * getPath()                       {return path;}
    char * getOutputPath()                 {return outputPath;}
    int getNxGlobal()                      {return nxGlobal;}
    int getNyGlobal()                      {return nyGlobal;}
@@ -128,7 +128,22 @@ public:
    template <typename T>
    int readScalarFromFile(const char * cp_dir, const char * group_name, const char * val_name, T * val, T default_value=(T) 0);
 
+#ifdef UNDERCONSTRUCTION
+   static int outputParamGroup(PV_Stream * pvstream, const char * classname, const char * groupname, int indentation);
+   static int outputParamCloseGroup(PV_Stream * pvstream, const char * classname, int indentation);
+   static int outputParamInt(PV_Stream * pvstream, const char * paramName, int value, int indentation);
+   static int outputParamLongInt(PV_Stream * pvstream, const char * paramName, long int value, int indentation);
+   static int outputParamUnsignedLongInt(PV_Stream * pvstream, const char * paramName, unsigned long int value, int indentation);
+   static int outputParamFloat(PV_Stream * pvstream, const char * paramName, float value, int indentation);
+   static int outputParamDouble(PV_Stream * pvstream, const char * paramName, double value, int indentation);
+   static int outputParamBoolean(PV_Stream * pvstream, const char * paramName, bool value, int indentation);
+   static int outputParamFilename(PV_Stream * pvstream, const char * paramName, const char * value, int indentation);
+   static int outputParamString(PV_Stream * pvstream, const char * paramName, const char * value, int indentation);
+   static int indent(PV_Stream * pvstream, int indentation);
+#endif // UNDERCONSTRUCTION
+
 private:
+   int initialize_base();
    int initialize(const char * name, int argc, char ** argv, PVParams * params);
    int checkDirExists(const char * dirname, struct stat * pathstat);
    int initPublishers();
@@ -139,6 +154,7 @@ private:
 #ifdef UNDERCONSTRUCTION // Plans to output the params, including those set to default values, as an XML file.
    int outputParamsXML(const char * filename);
    int outputParamsXML(PV_Stream * pvstream);
+   template <typename T> static int hexdump(PV_Stream * pvstream, T value);
 #endif // UNDERCONSTRUCTION
    int checkMarginWidths();
    int zCheckMarginWidth(HyPerConn * conn, const char * dim, int patchSize, int scalePre, int scalePost, int prevStatus);
@@ -182,7 +198,7 @@ private:
    HyPerConn  ** connections;
 
    char * name;
-   char * path;
+   // char * path;
    char * outputPath;     // path to output file directory
    char * outputNamesOfLayersAndConns;  // path to file for writing list of layer names and connection names
    char * image_file;
