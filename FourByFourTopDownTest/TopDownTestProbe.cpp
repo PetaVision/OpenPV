@@ -86,11 +86,11 @@ int TopDownTestProbe::outputState(double timed) {
       }
       assert(numatmin > 0);
       minscore = sqrtf(minscore);
-      fprintf(fp,"%stime=%f, reconstruction within %f of image %d in L2",msg, timed, minscore, minidx);
+      fprintf(outputstream->fp,"%stime=%f, reconstruction within %f of image %d in L2",msg, timed, minscore, minidx);
       if( numatmin > 1) {
-         fprintf(fp, " (as well as %d others)", numatmin-1);
+         fprintf(outputstream->fp, " (as well as %d others)", numatmin-1);
       }
-      fprintf(fp,"\n");
+      fprintf(outputstream->fp,"\n");
       if( minscore > 0.1 ) {
          fprintf(stderr, "%sLayer %s failed to converge to one of the target images.  Exiting.\n", msg, getTargetLayer()->getName());
          exit(EXIT_FAILURE);
