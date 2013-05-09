@@ -32,10 +32,6 @@
 // numerical integration parameters
 #define DELTA_T 1.0 //time step size (msec)
 #define MIRROR_BC_FLAG true
-#define EXPLICIT_EULER 0
-#define IMPLICIT_EULER 1
-#define EXACT_LINEAR 2
-#define INTEGRATION_METHOD EXACT_LINEAR
 
 #define MAX_FILESYSTEMCALL_TRIES 5
 
