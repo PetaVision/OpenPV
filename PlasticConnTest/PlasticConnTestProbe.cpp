@@ -43,7 +43,8 @@ int PlasticConnTestProbe::outputState(double timed) {
       fprintf(stderr, "PlasticConnTestProbe \"%s\": connection \"%s\" is not a KernelConn.\n", getName(), c->getName() );
       return PV_FAILURE;
    }
-   fprintf(getFilePtr(), "    Time %f, connection \"%s\":\n", timed, kconn->getName());
+   FILE * fp = getStream()->fp;
+   fprintf(fp, "    Time %f, connection \"%s\":\n", timed, kconn->getName());
    // kconn->getKernelPatch(arborID, kernelIndex);
    const pvdata_t * w = kconn->get_wDataHead(arborID, kernelIndex); // wPatch->data;
    const pvdata_t * dw = kconn->get_dwDataHead(arborID, kernelIndex); // kconn->get_dKernelData(arborID, kernelIndex);
@@ -65,7 +66,7 @@ int PlasticConnTestProbe::outputState(double timed) {
 //            status = PV_FAILURE;
             int y=kyPos(k,nxp,nyp,nfp);
             int f=featureIndex(k,nxp,nyp,nfp);
-            fprintf(getFilePtr(), "        index %d (x=%d, y=%d, f=%d: w = %f, should be %f\n", k, x, y, f, wObserved, wCorrect);
+            fprintf(fp, "        index %d (x=%d, y=%d, f=%d: w = %f, should be %f\n", k, x, y, f, wObserved, wCorrect);
          }
       }
       if(timed > 0 && outputPlasticIncr && dw != NULL) {
@@ -75,14 +76,14 @@ int PlasticConnTestProbe::outputState(double timed) {
 //            status = PV_FAILURE;
             int y=kyPos(k,nxp,nyp,nfp);
             int f=featureIndex(k,nxp,nyp,nfp);
-            fprintf(getFilePtr(), "        index %d (x=%d, y=%d, f=%d: dw = %f, should be %f\n", k, x, y, f, dwObserved, dwCorrect);
+            fprintf(fp, "        index %d (x=%d, y=%d, f=%d: dw = %f, should be %f\n", k, x, y, f, dwObserved, dwCorrect);
          }
       }
    }
    assert(status==PV_SUCCESS);
    if( status == PV_SUCCESS ) {
-      if( outputWeights ) fprintf(getFilePtr(), "        All weights are correct.\n");
-      if( outputPlasticIncr ) fprintf(getFilePtr(), "        All plastic increments are correct.\n");
+      if( outputWeights ) fprintf(fp, "        All weights are correct.\n");
+      if( outputPlasticIncr ) fprintf(fp, "        All plastic increments are correct.\n");
    }
    if(outputPatchIndices) {
       patchIndices(kconn);
@@ -93,7 +94,7 @@ int PlasticConnTestProbe::outputState(double timed) {
 
 PlasticConnTestProbe::~PlasticConnTestProbe() {
    if( !errorPresent ) {
-      fprintf(getFilePtr(), "No errors detected\n");
+      fprintf(getStream()->fp, "No errors detected\n");
    }
 }
 
