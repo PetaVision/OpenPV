@@ -1218,32 +1218,15 @@ int HyPerCol::outputParamUnsignedLongInt(PV_Stream * pvstream, const char * para
 
 int HyPerCol::outputParamFloat(PV_Stream * pvstream, const char * paramname, float value, int indentation) {
    indent(pvstream, indentation);
-   fprintf(pvstream->fp, "<param name=\"%s\" type=\"float\">%f (", paramname, value);
-   hexdump(pvstream, value);
-   fprintf(pvstream->fp, ")</param>\n");
+   fprintf(pvstream->fp, "<param name=\"%s\" type=\"float\">%f (0x%08A)</param>\n", paramname, value, value);
    return PV_SUCCESS;
 }
 
 int HyPerCol::outputParamDouble(PV_Stream * pvstream, const char * paramname, double value, int indentation) {
    indent(pvstream, indentation);
-   fprintf(pvstream->fp, "<param name=\"%s\" type=\"double\">%f (", paramname, value);
-   hexdump(pvstream, value);
-   fprintf(pvstream->fp, ")</param>\n");
+   fprintf(pvstream->fp, "<param name=\"%s\" type=\"float\">%f (0x%016A)</param>\n", paramname, value, value);
    return PV_SUCCESS;
 }
-
-template <typename T> int HyPerCol::hexdump(PV_Stream * pvstream, T value) {
-   size_t sz = sizeof(value);
-   unsigned char c[sz];
-   memcpy(c, &value, sz);
-   fprintf(pvstream->fp, "0x");
-   for (size_t j=sz; j>0;) {
-      fprintf(pvstream->fp, "%02x", c[--j]);
-   }
-   return PV_SUCCESS;
-}
-template int HyPerCol::hexdump<float>(PV_Stream * pvstream, float value);
-template int HyPerCol::hexdump<double>(PV_Stream * pvstream, double value);
 
 int HyPerCol::outputParamBoolean(PV_Stream * pvstream, const char * paramname, bool value, int indentation) {
    indent(pvstream, indentation);

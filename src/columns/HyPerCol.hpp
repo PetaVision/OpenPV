@@ -8,6 +8,8 @@
 #ifndef HYPERCOL_HPP_
 #define HYPERCOL_HPP_
 
+#undef UNDERCONSTRUCTION
+
 #include "HyPerColRunDelegate.hpp"
 #include "InterColComm.hpp"
 #include "../layers/PVLayer.h"
@@ -154,7 +156,6 @@ private:
 #ifdef UNDERCONSTRUCTION // Plans to output the params, including those set to default values, as an XML file.
    int outputParamsXML(const char * filename);
    int outputParamsXML(PV_Stream * pvstream);
-   template <typename T> static int hexdump(PV_Stream * pvstream, T value);
 #endif // UNDERCONSTRUCTION
    int checkMarginWidths();
    int zCheckMarginWidth(HyPerConn * conn, const char * dim, int patchSize, int scalePre, int scalePost, int prevStatus);
