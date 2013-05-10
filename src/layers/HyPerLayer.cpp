@@ -336,6 +336,25 @@ int HyPerLayer::initializeLayerId(int layerId)
    // only the root process needs these member variables so we don't need to do any MPI.
    int rootproc = 0;
    if (ioAppend && parent->columnId()==rootproc) {
+      struct stat statbuffer;
+      int filestatus = stat(filename, &statbuffer);
+      if (filestatus == 0) {
+         if (statbuffer.st_size==(off_t) 0)
+         {
+            ioAppend = false;
+         }
+      }
+      else {
+         if (errno==ENOENT) {
+            ioAppend = false;
+         }
+         else {
+            fprintf(stderr, "HyPerLayer::initializeLayerId error: stat \"%s\": %s\n", filename, strerror(errno));
+            abort();
+         }
+      }
+   }
+   if (ioAppend && parent->columnId()==rootproc) {
       PV_Stream * pvstream = PV_fopen(filename,"r");
       if (pvstream) {
          int params[NUM_BIN_PARAMS];
@@ -354,7 +373,9 @@ int HyPerLayer::initializeLayerId(int layerId)
          ioAppend = false;
       }
    }
-   clayer->activeFP = pvp_open_write_file(filename, parent->icCommunicator(), ioAppend);
+   InterColComm * icComm = parent->icCommunicator();
+   MPI_Bcast(&ioAppend, 1, MPI_INT, 0/*root*/, icComm->communicator());
+   clayer->activeFP = pvp_open_write_file(filename, icComm, ioAppend);
 
    return 0;
 }
