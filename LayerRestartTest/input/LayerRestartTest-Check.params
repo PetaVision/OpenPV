@@ -29,6 +29,7 @@ ANNLayer "Comparison" = {
     marginWidth = 0;
     phase = 0;
     writeStep = 1;
+    initialWriteTime = 0.0;
     mirrorBCflag = 0;
     writeSparseActivity = 0;
 
@@ -39,6 +40,7 @@ ANNLayer "Comparison" = {
     VThresh = -infinity;
     VMax = infinity;
     VMin = -infinity;
+    VShift = 0.0;
 };
 
 IdentConn "Maintain Comparison" = {

@@ -35,7 +35,7 @@ HyPerCol "column" = {
 //
 
 Image "input" = {
-    // restart                     = 0;
+    restart                     = 0;
     nxScale                     = 1;
     nyScale                     = 1;
     useParamsImage              = false; //Load from checkpoint
@@ -61,7 +61,7 @@ Retina "retina on" = {
     nf                          = 1;
     marginWidth                 = 4;
     phase                       = 0;
-    // restart                     = false;
+    restart                     = false;
     
     writeSparseActivity         = true;
     writeStep                   = -1;
@@ -87,7 +87,7 @@ Retina "retina off" = {
     nf                          = 1;
     marginWidth                 = 4;
     phase                       = 0;
-    // restart                     = false;
+    restart                     = false;
     
     writeSparseActivity         = true;
     writeStep                   = -1;
@@ -108,7 +108,7 @@ Retina "retina off" = {
 };
 
 LIFGap "lif layer" = {
-    // restart                     = 0;
+    restart                     = 0;
     nxScale                     = 1;
     nyScale                     = 1;
     nf                          = 1;
@@ -118,8 +118,8 @@ LIFGap "lif layer" = {
     writeStep                   = -1.0;
     mirrorBCflag                = false;
     
-    InitVType                   = "ConstantV";
-    valueV                      = -70.0;
+    // InitVType                   = "ConstantV";
+    // valueV                      = -70.0;
     Vrest                       = -70.0;    // adjusted for gap of 0.025   
     Vexc                        = 0.0;     // reversal potential 
     Vinh                        = -75.0;   // chloride channel
