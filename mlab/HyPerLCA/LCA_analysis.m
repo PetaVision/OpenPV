@@ -12,12 +12,12 @@ if ismac
   frame_duration = 1000;
 elseif isunix
   workspace_path = "/home/gkenyon/workspace";
-  output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output"; %%MRI/LCA/5_subjects"; %%  
+  output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_16x16x1024_Overlap_lambda_05X2"; %%MRI/LCA/5_subjects"; %%  
   LCA_path = [output_dir];
-  last_checkpoint_ndx = 100000*81; %%50000*21; %% 
-  next_checkpoint_ndx = 100000*82; %%50000*22; %% 
+  last_checkpoint_ndx = 100000*7 %%50000*21; %% 
+  next_checkpoint_ndx = 100000*8; %%50000*22; %% 
   first_checkpoint_ndx = 0;
-  frame_duration = 1000;
+  frame_duration = 5000;
 endif
 addpath([workspace_path, filesep, "/PetaVision/mlab/util"]);
 checkpoint_dir = [LCA_path, filesep, "Checkpoints"];
@@ -142,7 +142,8 @@ if plot_Recon
   write_step = frame_duration;
   num_frames = floor((last_checkpoint_ndx - first_checkpoint_ndx) / write_step) + 1;
   start_frame = max(1,num_frames-num_recon+1); %% floor((first_checkpoint_ndx) / write_step);
-  [Retina_struct, Retina_hdr] = readpvpfile(Retina_file, num_frames, num_frames, start_frame);
+  [Retina_struct, Retina_hdr] = ...
+      readpvpfile(Retina_file, num_frames, num_frames, start_frame);
   num_Retina_frames = size(Retina_struct,1);
   [Ganglion_struct, Ganglion_hdr] = ...
       readpvpfile(Ganglion_file, num_frames, start_frame + num_Retina_frames - 1, start_frame);
@@ -251,7 +252,7 @@ if plot_Recon
     Recon_mean = Recon_mean + mean(Recon_vals(:));
     Recon_std = Recon_std + std(Recon_vals(:));
     figure(Recon_fig);
-    set(Recon_fig, "name", ["Recon ", num2str(Recon_time)]);
+    set(Recon_fig, "name", ["Recon ", num2str(Recon_time, "%0d")]);
     num_Recon_colors = size(Recon_vals,3);
     imagesc(permute(Recon_vals, [2,1,3])); 
     if num_Recon_colors == 1
