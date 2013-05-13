@@ -785,7 +785,7 @@ StatsProbe "L3CliqueStatsFile" = {
 
 StatsProbe "L4CliqueStatsFile" = {
     targetLayer = "L4Clique";
-    probeOutputFile = "L4_Stats.txt";
+    probeOutputFile = "L4Clique_Stats.txt";
 };
 
 
