@@ -4,10 +4,10 @@ close all;
 setenv("GNUTERM","X11")
 if ismac
   workspace_path = "/Users/garkenyon/workspace";
-  output_dir = "/Users/garkenyon/workspace/HyPerHLCA2/output_animal1200000_color"; %%output_test"; %% output_animal1200000_distractor1200000"; %%
+  output_dir = "/Users/garkenyon/workspace/HyPerHLCA2/output_animal1200000_color_deep"; %%output_test"; %% output_animal1200000_distractor1200000"; %%
   LCA_path = [output_dir]; %%[workspace_path, filesep, "HyPerHLCA2"];
-  last_checkpoint_ndx = 50000*4; 
-  next_checkpoint_ndx = 50000*5;
+  last_checkpoint_ndx = 10000*14; 
+  next_checkpoint_ndx = 10000*15;
   first_checkpoint_ndx = 0; 
   frame_duration = 1000;
 elseif isunix
@@ -23,11 +23,12 @@ addpath([workspace_path, filesep, "/PetaVision/mlab/util"]);
 checkpoint_dir = [LCA_path, filesep, "Checkpoints"];
 checkpoint_path = [checkpoint_dir, filesep, "Checkpoint", num2str(last_checkpoint_ndx, "%i")];
 next_checkpoint_path = [checkpoint_dir, filesep, "Checkpoint", num2str(next_checkpoint_ndx, "%i")];
-max_lines = last_checkpoint_ndx + (last_checkpoint_ndx == 0) * 1000;
-max_history = 150000;
+max_lines = last_checkpoint_ndx + (last_checkpoint_ndx == 0) * 50000;
+max_history = 50000;
 begin_statProbe_step = max(max_lines - max_history, 3);
 training_flag = 1;
-num_recon = 4;
+num_recon = 1;
+deep_flag = 1;
 
 
 %% plot Reconstructions
@@ -36,6 +37,10 @@ if plot_Recon
   %%keyboard;
   recon_dir = [output_dir, filesep, "recon"];
   mkdir(recon_dir);
+  if deep_flag
+    recon2_dir = [output_dir, filesep, "recon2"];
+    mkdir(recon2_dir);
+  endif
 
   %% parse center/surround pre-processing filters
   plot_DoG_kernel = 1;
@@ -128,11 +133,15 @@ if plot_Recon
   %% parse activity files
   Retina_file = [output_dir, filesep, "a1_Retina.pvp"];
   Ganglion_file = [output_dir, filesep, "a3_Ganglion.pvp"];
-  Recon_file = [output_dir, filesep, "a4_Recon.pvp"];
-  Error_file = [output_dir, filesep, "a5_Error.pvp"];
+  Recon_file = [output_dir, filesep, "a6_Recon.pvp"];
+  %%Error_file = [output_dir, filesep, "a4_Error.pvp"];
+  if deep_flag
+    Recon2_file = [output_dir, filesep, "a9_Recon2.pvp"];
+    %%Error2_file = [output_dir, filesep, "a7_Error2.pvp"];
+  endif
   write_step = frame_duration;
   num_frames = floor((last_checkpoint_ndx - first_checkpoint_ndx) / write_step) + 1;
-  start_frame = num_frames-num_recon+1; %% floor((first_checkpoint_ndx) / write_step);
+  start_frame = max(1,num_frames-num_recon+1); %% floor((first_checkpoint_ndx) / write_step);
   [Retina_struct, Retina_hdr] = readpvpfile(Retina_file, num_frames, num_frames, start_frame);
   num_Retina_frames = size(Retina_struct,1);
   [Ganglion_struct, Ganglion_hdr] = ...
@@ -140,13 +149,24 @@ if plot_Recon
   if training_flag
     [Recon_struct, Recon_hdr] = ...
 	readpvpfile(Recon_file, num_frames, start_frame + num_Retina_frames - 1, start_frame);
+    if deep_flag      
+      [Recon2_struct, Recon2_hdr] = ...
+	  readpvpfile(Recon2_file, num_frames, start_frame + num_Retina_frames - 1, start_frame);
+    endif
   else  %% 
     [Recon_struct, Recon_hdr] = ...
 	readpvpfile(Recon_file, [], [], []);
+    if deep_flag      
+      [Recon2_struct, Recon2_hdr] = ...
+	  readpvpfile(Recon2_file, [], [], []);
+    endif
   endif
   %%[Error_struct, Error_hdr] = readpvpfile(Error_file, num_frames, num_frames, start_frame);
   num_Ganglion_frames = size(Ganglion_struct,1);
   num_Recon_frames = size(Recon_struct,1);
+  if deep_flag      
+    num_Recon2_frames = size(Recon2_struct,1);
+  endif
 
   Retina_fig = figure;
   Retina_mean = 0;
@@ -223,7 +243,7 @@ if plot_Recon
   Recon_mean = 0;
   Recon_std = 0;
   if plot_DoG_kernel
-      unwhitened_Recon_fig = figure;
+    unwhitened_Recon_fig = figure;
   endif
   for i_frame = recon_start_frame : 1 : num_Recon_frames
     Recon_time = Recon_struct{i_frame}.time;
@@ -269,6 +289,36 @@ if plot_Recon
   Recon_std = Recon_std / (num_recon + (num_recon == 0));
   disp(["Recon_mean = ", num2str(Recon_mean), " +/- ", num2str(Recon_std)]);
   drawnow;
+
+  if deep_flag
+    if training_flag
+      recon2_start_frame = num_Recon2_frames - num_recon + 1; %%
+    else
+      recon2_start_frame = 1;
+    endif
+    Recon2_fig = figure;
+    Recon2_mean = 0;
+    Recon2_std = 0;
+    for i_frame = recon2_start_frame : 1 : num_Recon2_frames
+      Recon2_time = Recon2_struct{i_frame}.time;
+      Recon2_vals = Recon2_struct{i_frame}.values;
+      Recon2_mean = Recon2_mean + mean(Recon2_vals(:));
+      Recon2_std = Recon2_std + std(Recon2_vals(:));
+      figure(Recon2_fig);
+      set(Recon2_fig, "name", ["Recon2 ", num2str(Recon2_time)]);
+      num_Recon2_colors = size(Recon2_vals,3);
+      imagesc(permute(Recon2_vals, [2,1,3])); 
+      if num_Recon2_colors == 1
+	colormap(gray); 
+      endif
+      box off; axis off; axis image;
+      saveas(Recon2_fig, [recon2_dir, filesep, "Recon2_", num2str(Recon2_time, "%0d")], "png");
+    endfor %% i_frames
+    Recon2_mean = Recon2_mean / (num_recon + (num_recon == 0));
+    Recon2_std = Recon2_std / (num_recon + (num_recon == 0));
+    disp(["Recon2_mean = ", num2str(Recon2_mean), " +/- ", num2str(Recon2_std)]);
+    drawnow;
+  endif
 endif
 
 
@@ -308,10 +358,10 @@ if plot_ave_error_vs_time
   set(error_vs_time_fig, "name", ["ave Error"]);
   saveas(error_vs_time_fig, [sparseness_error_vs_time_dir, filesep, "error_vs_time_", num2str(last_checkpoint_ndx, "%i")], "png");
   drawnow;
-%%endif
-%%
-%%plot_ave_V1_vs_time = 0;
-%%if plot_ave_V1_vs_time
+  %%endif
+  %%
+  %%plot_ave_V1_vs_time = 0;
+  %%if plot_ave_V1_vs_time
   V1_Stats_file = [output_dir, filesep, "V1_Stats.txt"];
   V1_Stats_fid = fopen(V1_Stats_file, "r");
   V1_Stats_line = fgets(V1_Stats_fid);
@@ -320,10 +370,10 @@ if plot_ave_error_vs_time
   for i_line = first_statProbe_step:begin_statProbe_step
     V1_Stats_line = fgets(V1_Stats_fid);
   endfor
-    V1_Stats_ndx1 = strfind(V1_Stats_line, "N==");
-    V1_Stats_ndx2 = strfind(V1_Stats_line, "Total==");
-    V1_Stats_str = V1_Stats_line(V1_Stats_ndx1+3:V1_Stats_ndx2-2);
-    num_V1 = str2num(V1_Stats_str);
+  V1_Stats_ndx1 = strfind(V1_Stats_line, "N==");
+  V1_Stats_ndx2 = strfind(V1_Stats_line, "Total==");
+  V1_Stats_str = V1_Stats_line(V1_Stats_ndx1+3:V1_Stats_ndx2-2);
+  num_V1 = str2num(V1_Stats_str);
   while (V1_Stats_line ~= -1)
     V1_Stats_ndx1 = strfind(V1_Stats_line, "nnz==");
     V1_Stats_ndx2 = length(V1_Stats_line); %% strfind(V1_Stats_line, "Max==");
@@ -347,11 +397,84 @@ if plot_ave_error_vs_time
   set(V1_vs_time_fig, "name", ["sparseness_vs_time"]);
   saveas(V1_vs_time_fig, [sparseness_error_vs_time_dir, filesep, "sparseness_vs_time_", num2str(last_checkpoint_ndx, "%i")], "png");
   drawnow;
+  if deep_flag
+    Error2_Stats_file = [output_dir, filesep, "Error2_Stats.txt"];
+    Error2_Stats_fid = fopen(Error2_Stats_file, "r");
+    Error2_Stats_line = fgets(Error2_Stats_fid);
+    ave_error2 = [];
+    %% skip startup artifact
+    first_statProbe_step = first_checkpoint_ndx;
+    for i_line = first_statProbe_step:begin_statProbe_step
+      Error2_Stats_line = fgets(Error2_Stats_fid);
+    endfor
+    while (Error2_Stats_line ~= -1)
+      Error2_Stats_ndx1 = strfind(Error2_Stats_line, "sigma==");
+      Error2_Stats_ndx2 = strfind(Error2_Stats_line, "nnz==");
+      Error2_Stats_str = Error2_Stats_line(Error2_Stats_ndx1+7:Error2_Stats_ndx2-2);
+      Error2_Stats_val = str2num(Error2_Stats_str);
+      if isempty(ave_error2)
+	ave_error2 = Error2_Stats_val;
+      else
+	ave_error2 = [ave_error2; Error2_Stats_val];
+      endif
+      Error2_Stats_line = fgets(Error2_Stats_fid);
+      i_line = i_line + 1;
+      if i_line > max_lines
+	break;
+      endif
+    endwhile
+    fclose(Error2_Stats_fid);
+    error2_vs_time_fig = figure;
+    error2_vs_time_hndl = plot(ave_error2);
+    axis tight
+    set(error2_vs_time_fig, "name", ["ave Error2"]);
+    saveas(error2_vs_time_fig, [sparseness_error_vs_time_dir, filesep, "error2_vs_time_", num2str(last_checkpoint_ndx, "%i")], "png");
+    drawnow;
+    %%endif
+    %%
+    %%plot_ave_V1_vs_time = 0;
+    %%if plot_ave_V1_vs_time
+    V2_Stats_file = [output_dir, filesep, "V2_Stats.txt"];
+    V2_Stats_fid = fopen(V2_Stats_file, "r");
+    V2_Stats_line = fgets(V2_Stats_fid);
+    ave_V2 = [];
+    %% skip startup artifact
+    for i_line = first_statProbe_step:begin_statProbe_step
+      V2_Stats_line = fgets(V2_Stats_fid);
+    endfor
+    V2_Stats_ndx1 = strfind(V2_Stats_line, "N==");
+    V2_Stats_ndx2 = strfind(V2_Stats_line, "Total==");
+    V2_Stats_str = V2_Stats_line(V2_Stats_ndx1+3:V2_Stats_ndx2-2);
+    num_V2 = str2num(V2_Stats_str);
+    while (V2_Stats_line ~= -1)
+      V2_Stats_ndx1 = strfind(V2_Stats_line, "nnz==");
+      V2_Stats_ndx2 = length(V2_Stats_line); %% strfind(V2_Stats_line, "Max==");
+      V2_Stats_str = V2_Stats_line(V2_Stats_ndx1+5:V2_Stats_ndx2-1);
+      V2_Stats_val = str2num(V2_Stats_str);
+      if isempty(ave_V2)
+	ave_V2 = V2_Stats_val/num_V2;
+      else
+	ave_V2 = [ave_V2; V2_Stats_val/num_V2];
+      endif
+      V2_Stats_line = fgets(V2_Stats_fid);
+      i_line = i_line + 1;
+      if i_line > max_lines
+	break;
+      endif
+    endwhile
+    fclose(V2_Stats_fid);
+    V2_vs_time_fig = figure;
+    V2_vs_time_hndl = plot(ave_V2);
+    axis tight
+    set(V2_vs_time_fig, "name", ["sparseness_vs_time"]);
+    saveas(V2_vs_time_fig, [sparseness_error_vs_time_dir, filesep, "sparseness_vs_time_", num2str(last_checkpoint_ndx, "%i")], "png");
+    drawnow;
+  endif
 endif
 
 plot_V1 = 1;
 if plot_V1
-  V1_path = [output_dir, filesep, "a6_V1.pvp"];
+  V1_path = [output_dir, filesep, "a5_V1.pvp"];
   write_step = frame_duration;
   num_frames = floor((last_checkpoint_ndx - first_checkpoint_ndx) / write_step);
   [V1_struct, V1_hdr] = readpvpfile(V1_path, num_frames, num_frames, 1);
@@ -432,7 +555,7 @@ if plot_V1
   V1_mean_active = mean(V1_tot_active(:)/n_V1);
   disp(["V1_mean_active = ", num2str(V1_mean_active)]);
 
-  Error_path = [output_dir, filesep, "a5_Error.pvp"];
+  Error_path = [output_dir, filesep, "a4_Error.pvp"];
   write_step = frame_duration;
   num_frames = floor((last_checkpoint_ndx - first_checkpoint_ndx) / write_step);
   [Error_struct, Error_hdr] = readpvpfile(Error_path, num_frames, num_frames, 1);
@@ -462,6 +585,119 @@ if plot_V1
   disp(["Error_mean_RMS = ", num2str(Error_mean_RMS)]);
 
   drawnow;  
+  if deep_flag
+    V2_path = [output_dir, filesep, "a8_V2.pvp"];
+    write_step = frame_duration;
+    num_frames = floor((last_checkpoint_ndx - first_checkpoint_ndx) / write_step);
+    [V2_struct, V2_hdr] = readpvpfile(V2_path, num_frames, num_frames, 1);
+    nx_V2 = V2_hdr.nx;
+    ny_V2 = V2_hdr.ny;
+    nf_V2 = V2_hdr.nf;
+    n_V2 = nx_V2 * ny_V2 * nf_V2;
+    num_frames = size(V2_struct,1);
+    i_frame = num_frames;
+    start_frame = 1; %%
+    V2_hist = zeros(nf_V2+1,1);
+    V2_hist_edges = [0:1:nf_V2]+0.5;
+    V2_current = zeros(n_V2,1);
+    V2_abs_change = zeros(num_frames,1);
+    V2_percent_change = zeros(num_frames,1);
+    V2_current_active = 0;
+    V2_tot_active = zeros(num_frames,1);
+    V2_times = zeros(num_frames,1);
+    for i_frame = 1 : 1 : num_frames
+      V2_times(i_frame) = squeeze(V2_struct{i_frame}.time);
+      V2_active_ndx = squeeze(V2_struct{i_frame}.values);
+      V2_previous = V2_current;
+      V2_current = full(sparse(V2_active_ndx+1,1,1,n_V2,1,n_V2));
+      V2_abs_change(i_frame) = sum(V2_current(:) ~= V2_previous(:));
+      V2_previous_active = V2_current_active;
+      V2_current_active = nnz(V2_current(:));
+      V2_tot_active(i_frame) = V2_current_active;
+      V2_max_active = max(V2_current_active, V2_previous_active);
+      V2_percent_change(i_frame) = ...
+	  V2_abs_change(i_frame) / (V2_max_active + (V2_max_active==0));
+      V2_active_kf = mod(V2_active_ndx, nf_V2) + 1;
+      if V2_max_active > 0
+	V2_hist_frame = histc(V2_active_kf, V2_hist_edges);
+      else
+	V2_hist_frame = zeros(nf_V2+1,1);
+      endif
+      V2_hist = V2_hist + V2_hist_frame;
+    endfor %% i_frame
+    V2_hist = V2_hist(1:nf_V2);
+    V2_hist = V2_hist / (num_frames * nx_V2 * ny_V2); %% (sum(V2_hist(:)) + (nnz(V2_hist)==0));
+    [V2_hist_sorted, V2_hist_rank] = sort(V2_hist, 1, "descend");
+    V2_hist_title = ["V2_hist", ".png"];
+    V2_hist_fig = figure;
+    V2_hist_bins = 1:nf_V2;
+    V2_hist_hndl = bar(V2_hist_bins, V2_hist_sorted); axis tight;
+    set(V2_hist_fig, "name", ["V2_hist_", num2str(V2_times(num_frames), "%i")]);
+    V2_rank_dir = [output_dir, filesep, "V2_rank"];
+    mkdir(V2_rank_dir);
+    saveas(V2_hist_fig, ...
+	   [V2_rank_dir, filesep, ...
+	    "V2_rank_", num2str(V2_times(num_frames), "%i")], "png");
+
+    V2_abs_change_title = ["V2_abs_change", ".png"];
+    V2_abs_change_fig = figure;
+    V2_abs_change_hndl = plot(V2_times, V2_abs_change); axis tight;
+    set(V2_abs_change_fig, "name", ["V2_abs_change"]);
+    V2_change_dir = [output_dir, filesep, "V2_rank"];
+    mkdir(V2_change_dir);
+    saveas(V2_abs_change_fig, ...
+	   [V2_change_dir, filesep, "V2_abs_change", num2str(V2_times(num_frames), "%i")], "png");
+
+    V2_percent_change_title = ["V2_percent_change", ".png"];
+    V2_percent_change_fig = figure;
+    V2_percent_change_hndl = plot(V2_times, V2_percent_change); axis tight;
+    set(V2_percent_change_fig, "name", ["V2_percent_change"]);
+    saveas(V2_percent_change_fig, ...
+	   [V2_change_dir, filesep, "V2_percent_change", num2str(V2_times(num_frames), "%i")], "png");
+    V2_mean_change = mean(V2_percent_change(:));
+    disp(["V2_mean_change = ", num2str(V2_mean_change)]);
+
+    V2_tot_active_title = ["V2_tot_active", ".png"];
+    V2_tot_active_fig = figure;
+    V2_tot_active_hndl = plot(V2_times, V2_tot_active/n_V2); axis tight;
+    set(V2_tot_active_fig, "name", ["V2_tot_active"]);
+    saveas(V2_tot_active_fig, ...
+	   [V2_change_dir, filesep, "V2_tot_active", num2str(V2_times(num_frames), "%i")], "png");
+
+    V2_mean_active = mean(V2_tot_active(:)/n_V2);
+    disp(["V2_mean_active = ", num2str(V2_mean_active)]);
+
+    Error2_path = [output_dir, filesep, "a7_Error2.pvp"];
+    write_step = frame_duration;
+    num_frames = floor((last_checkpoint_ndx - first_checkpoint_ndx) / write_step);
+    [Error2_struct, Error2_hdr] = readpvpfile(Error2_path, num_frames, num_frames, 1);
+    nx_Error2 = Error2_hdr.nx;
+    ny_Error2 = Error2_hdr.ny;
+    nf_Error2 = Error2_hdr.nf;
+    n_Error2 = nx_Error2 * ny_Error2 * nf_Error2;
+    num_frames = size(Error2_struct,1);
+    i_frame = num_frames;
+    start_frame = 1; %%
+    Error2_RMS = zeros(num_frames,1);
+    Error2_times = zeros(num_frames,1);
+    for i_frame = 1 : 1 : num_frames
+      Error2_times(i_frame) = squeeze(Error2_struct{i_frame}.time);
+      Error2_vals = squeeze(Error2_struct{i_frame}.values);
+      Error2_RMS(i_frame) = std(Error2_vals(:));;
+    endfor %% i_frame
+
+    Error2_RMS_title = ["Error2_RMS", ".png"];
+    Error2_RMS_fig = figure;
+    Error2_RMS_hndl = plot(Error2_times, Error2_RMS); axis tight;
+    set(Error2_RMS_fig, "name", ["Error2_RMS"]);
+    saveas(Error2_RMS_fig, ...
+	   [V2_change_dir, filesep, "Error2_RMS", num2str(Error2_times(num_frames), "%i")], "png");
+
+    Error2_mean_RMS = mean(Error2_RMS(:));
+    disp(["Error2_mean_RMS = ", num2str(Error2_mean_RMS)]);
+
+    drawnow;  
+  endif
 endif
 
 plot_final_weights = 1;
@@ -531,6 +767,76 @@ if plot_final_weights
   mkdir(mat_dir);
   V1ToError_weights_file = [mat_dir, filesep, "V1ToError_weights", num2str(last_checkpoint_ndx, "%i"), ".mat"];
   save(  "-mat", V1ToError_weights_file, "V1ToError_weights");
+
+
+  if deep_flag
+    V2ToError2_path = [checkpoint_path, filesep, "V2ToError2_W.pvp"];
+    if ~exist(V2ToError2_path, "file")
+      V2ToError2_path = [next_checkpoint_path, filesep, "V2ToError2_W.pvp"];
+    endif
+    [V2ToError2_struct, V2ToError2_hdr] = readpvpfile(V2ToError2_path,1);
+    i_frame = 1;
+    i_arbor = 1;
+    V2ToError2_weights = squeeze(V2ToError2_struct{i_frame}.values{i_arbor});
+    if ~exist("V2_hist_rank") || isempty(V2_hist_rank)
+      V2_hist_rank = (1:V2ToError2_hdr.nf);
+    endif
+
+    %% make tableau of all patches
+    %%keyboard;
+    i_patch = 1;
+    num_V2_dims = ndims(V2ToError2_weights);
+    num_patches = size(V2ToError2_weights, num_V2_dims);
+    num_patches_rows = floor(sqrt(num_patches));
+    num_patches_cols = ceil(num_patches / num_patches_rows);
+    num_V2_colors = 1;
+    if num_V2_dims == 4
+      num_V2_colors = size(V2ToError2_weights,3);
+    endif
+    V2ToError2_fig = figure;
+    set(V2ToError2_fig, "name", ["V2ToError2 Weights: ", num2str(last_checkpoint_ndx, "%i")]);
+    for j_patch = 1  : num_patches
+      i_patch = V2_hist_rank(j_patch);
+      subplot(num_patches_rows, num_patches_cols, j_patch); 
+      if num_V2_colors == 1
+	patch_tmp = squeeze(V2ToError2_weights(:,:,i_patch));
+      else
+	patch_tmp = squeeze(V2ToError2_weights(:,:,:,i_patch));
+      endif
+      patch_tmp2 = patch_tmp; %% imresize(patch_tmp, 12);
+      min_patch = min(patch_tmp2(:));
+      max_patch = max(patch_tmp2(:));
+      patch_tmp2 = (patch_tmp2 - min_patch) * 255 / (max_patch - min_patch + ((max_patch - min_patch)==0));
+      patch_tmp2 = uint8(flipdim(permute(patch_tmp2, [2,1,3]),1));
+      imagesc(patch_tmp2); 
+      if num_V2_colors == 1
+	colormap(gray);
+      endif
+      box off
+      axis off
+      axis image
+      %%drawnow;
+    endfor
+    V2ToError2_weights_dir = [output_dir, filesep, "V2ToError2_weights"];
+    mkdir(V2ToError2_weights_dir);
+    saveas(V2ToError2_fig, [V2ToError2_weights_dir, filesep, "V2ToError2_", num2str(last_checkpoint_ndx, "%i")], "png");
+
+
+    %% make histogram of all weights
+    V2ToError2_hist_fig = figure;
+    [V2ToError2_hist, V2ToError2_hist_bins] = hist(V2ToError2_weights(:), 100);
+    bar(V2ToError2_hist_bins, log(V2ToError2_hist+1));
+    set(V2ToError2_hist_fig, "name", ["V2ToError2 Histogram: ", num2str(last_checkpoint_ndx, "%i")]);
+    V2ToError2_weights_hist_dir = [output_dir, filesep, "V2ToError2_hist"];
+    mkdir(V2ToError2_weights_hist_dir);
+    saveas(V2ToError2_hist_fig, [V2ToError2_weights_hist_dir, filesep, "V2ToError2_hist_", num2str(last_checkpoint_ndx, "%i")], "png");
+
+    mat_dir = [output_dir, filesep, "mat"];
+    mkdir(mat_dir);
+    V2ToError2_weights_file = [mat_dir, filesep, "V2ToError2_weights", num2str(last_checkpoint_ndx, "%i"), ".mat"];
+    save(  "-mat", V2ToError2_weights_file, "V2ToError2_weights");
+
+  endif
 endif
 
 plot_weights_movie = training_flag;
@@ -592,4 +898,65 @@ if plot_weights_movie
     frame_title = [num2str(i_frame, "%04d"), "_V1ToError", ".png"];
     imwrite(weights_frame, [weights_movie_dir, filesep, frame_title]);
   endfor %% i_frame
+
+  if deep_flag
+  weights_movie_dir = [output_dir, filesep, "V2ToError2_movie"];
+  mkdir(weights_movie_dir);
+  V2ToError2_path = [output_dir, filesep, "w9_V2ToError2.pvp"];
+  write_step = frame_duration;
+  num_frames = floor((last_checkpoint_ndx - first_checkpoint_ndx) / write_step);
+  start_frame = 1;
+  [V2ToError2_struct, V2ToError2_hdr] = readpvpfile(V2ToError2_path, num_frames);
+  num_frames = size(V2ToError2_struct,1);
+  i_frame = num_frames;
+  start_frame = 1; 
+  if isempty(V1_hist_rank)
+    V1_hist_rank = (1:V2ToError2_hdr.nf);
+  endif
+  num_recon = max(floor(frame_duration / write_step) - 1, 0);
+  i_arbor = 1;
+  for i_frame = start_frame : 1 : num_frames
+    if mod(i_frame, max(floor(num_frames/20),1)) == 0
+      disp(["writing frame # ", num2str(i_frame, "%i")]);
+    endif
+    V2ToError2_weights = squeeze(V2ToError2_struct{i_frame}.values{i_arbor});
+    i_patch = 1;
+    nyp = size(V2ToError2_weights,1);
+    nxp = size(V2ToError2_weights,2);
+    num_V1_dims = ndims(V2ToError2_weights);
+    num_patches = size(V2ToError2_weights, num_V1_dims);
+    num_patches_rows = floor(sqrt(num_patches));
+    num_patches_cols = ceil(num_patches / num_patches_rows);
+    num_V1_colors = 1;
+    if num_V1_dims == 4
+      num_V1_colors = size(V2ToError2_weights,3);
+    endif
+    weights_frame = uint8(zeros(num_patches_rows * nyp, num_patches_cols * nxp, num_V1_colors));
+    for j_patch = 1  : num_patches
+      i_patch = V1_hist_rank(j_patch);
+      j_patch_row = ceil(j_patch / num_patches_cols);
+      j_patch_col = 1 + mod(j_patch - 1, num_patches_cols);
+      %%subplot(num_patches_rows, num_patches_cols, i_patch); 
+      if num_V1_colors == 1
+	patch_tmp = squeeze(V2ToError2_weights(:,:,i_patch));
+      else
+	patch_tmp = squeeze(V2ToError2_weights(:,:,:,i_patch));
+      endif
+      min_patch = min(patch_tmp(:));
+      max_patch = max(patch_tmp(:));
+      patch_tmp2 = (patch_tmp - min_patch) * 255 / ((max_patch - min_patch) + ((max_patch - min_patch)==0));
+      patch_tmp2 = uint8(flipdim(permute(patch_tmp2, [2,1,3]),1));
+      patch_tmp2 = uint8(patch_tmp2);
+      weights_frame(((j_patch_row - 1) * nyp + 1): (j_patch_row * nyp), ...
+		    ((j_patch_col - 1) * nxp + 1): (j_patch_col * nxp), :) = ...
+	  patch_tmp2;
+      %%imagesc(patch_tmp2);
+      box off
+      axis off
+    endfor  %% i_patch
+    frame_title = [num2str(i_frame, "%04d"), "_V2ToError2", ".png"];
+    imwrite(weights_frame, [weights_movie_dir, filesep, frame_title]);
+  endfor %% i_frame
+
+  endif
 endif
