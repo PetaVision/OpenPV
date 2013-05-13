@@ -17,8 +17,8 @@ HyPerCol "column" = {
    randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
    numSteps = 100495000;       // Depends on number of VINE video frames
    progressStep = 10000;
-   outputPath = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_16x16x4096_NoOverlap_lambda_05X2";
-   //outputPath = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_16x16x1024_Overlap_lambda_05X2";
+   //outputPath = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_16x16x4096_NoOverlap_lambda_05X2";
+   outputPath = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_16x16x1024_Overlap_lambda_05X2";
    filenamesContainLayerNames = true;
    filenamesContainConnectionNames = true;
    checkpointRead = false;
@@ -26,8 +26,8 @@ HyPerCol "column" = {
    //checkpointReadDir = "/nh/compneuro/Data/vine/LCA/2013_01_31/outputOverlap/Checkpoints";
    //checkpointReadDirIndex = 1200000;
    checkpointWrite = true;
-   checkpointWriteDir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_16x16x4096_NoOverlap_lambda_05X2/Checkpoints";
-   //checkpointWriteDir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_16x16x1024_Overlap_lambda_05X2/Checkpoints";
+   //checkpointWriteDir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_16x16x4096_NoOverlap_lambda_05X2/Checkpoints";
+   checkpointWriteDir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_16x16x1024_Overlap_lambda_05X2/Checkpoints";
    checkpointWriteStepInterval = 100000;
    deleteOlderCheckpoints = false;
    //suppressLastOutput = false;
@@ -184,18 +184,18 @@ HyPerLCALayer "V1" = {
     /*****************/
     //NON OVERLAPPING
     /*****************/
-    nxScale = 0.0625;
-    nyScale = 0.0625;
-    nf = 4096; //1024;
-    marginWidth = 0;
+    //nxScale = 0.0625;
+    //nyScale = 0.0625;
+    //nf = 4096; //1024;
+    //marginWidth = 0;
     // 
     /*****************/
     //OVERLAPPING
     /*****************/
-    //nxScale = 0.125;
-    //nyScale = 0.125;
-    //nf = 1024; //256;
-    //marginWidth = 1;
+    nxScale = 0.125;
+    nyScale = 0.125;
+    nf = 1024; //256;
+    marginWidth = 1;
     // 
     initialWriteTime = 4999.0;
     writeStep = 5000.0;
@@ -386,15 +386,15 @@ KernelConn "V1ToError" = {
     /*****************/
     //NON OVERLAPPING
     /*****************/
-    nxp = 16;
-    nyp = 16;
+    //nxp = 16;
+    //nyp = 16;
     /*****************/
     //OVERLAPPING
     /*****************/
-    //nxp = 24;
-    //nyp = 24;
-    //nxpShrunken = 16;
-    //nypShrunken = 16;
+    nxp = 24;
+    nyp = 24;
+    nxpShrunken = 16;
+    nypShrunken = 16;
     //
     nfp = 1;
     numAxonalArbors = 1;
@@ -412,7 +412,7 @@ KernelConn "V1ToError" = {
     minL2NormTolerated = 0;
     normalizeArborsIndividually = 0;
     normalize_cutoff = 0.0;
-    normalizeFromPostPerspective = true;
+    normalizeFromPostPerspective = false;
     symmetrizeWeights = false;
 
     preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
