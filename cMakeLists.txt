@@ -8,10 +8,6 @@ set(PV_VERSION_TWEAK 0)
 
 set(CMAKE_BUILD_TYPE Release) #Can be: None, Debug, Release, RelWithDebInfo, MinSizeRel
 
-##Can specify folder or file. If folder - will exclude all cpp or c files in folder and all sub-directories, recursively
-#set(PV_EXCLUDE_FOLDERS obsolete analysis arch/mpi/old arch/rr bindings columns/old io/apps tests)
-#set(PV_EXCLUDE_FILES arch/opencl/convolve_main.cpp utils/rand_sse.c io/create_weights.cpp)
-
 # File which denotes compile-ready folders
 set(PV_SRC_LIST PV_FOLDER_LIST.txt)
 
