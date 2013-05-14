@@ -8,7 +8,7 @@ function [pSet, AUC] = doAnalysis(label,fileLoc,params)
 
     GRAPH_FLAG      = params.GRAPH_FLAG;
     if GRAPH_FLAG
-        graphSpec   = params.graphSpec;
+        graphSpec   = params.graphSpec.*(params.displayPeriod/params.dt);
         numHistBins = params.numHistBins;
     end
 
@@ -57,11 +57,14 @@ function [pSet, AUC] = doAnalysis(label,fileLoc,params)
     spikeCount = zeros(numFrames,1);
     frame      = 0;
     for frameIdx = 2:numFrames
-        assert(layerData{frameIdx}.time==frame); % Make sure we are on the right time step
+        if ne(uint64(layerData{frameIdx}.time/params.dt),uint64(frame)) % Make sure we are on the right time step
+            disp('doAnalysis: ERROR: layerData{frameIdx}.time != frame')
+            keyboard
+        end
 
         spikeCount(frameIdx) = length(find(layerData{frameIdx}.values(:)));
 
-        times(frameIdx)      = squeeze(layerData{frameIdx}.time);
+        times(frameIdx)      = squeeze(layerData{frameIdx}.time/params.dt);
 
         activeIdx            = squeeze(layerData{frameIdx}.values);
         vecMat               = full(sparse(activeIdx+1,1,1,N,1,N)); %%Column vector. PetaVision increments in order: nf, nx, ny
@@ -114,7 +117,7 @@ function [pSet, AUC] = doAnalysis(label,fileLoc,params)
         disp(['StimRate = ',num2str(numSpikesStim/(stimLength/1000)/params.numBIDSNodes)])
         disp(['----'])
 
-        pSet = zeros(2,numHistBins);
+        pSet = zeros(2,numHistBins+2);
         mask = ones([layerHDR.nyGlobal,layerHDR.nxGlobal]); %In case you want to histogram over a certain window
 
         [rows0 cols0 counts0] = find(integratedHalf0.*mask);
@@ -153,9 +156,22 @@ function [pSet, AUC] = doAnalysis(label,fileLoc,params)
         set(fid0,'edgecolor',[0 0 1])
         set(fid1,'facecolor',[1 0 0])
         set(fid1,'edgecolor',[1 0 0])
-        xlabel('Number of Spikes')
-        ylabel('Normalized Number of Nodes')
-        title(['Histogram Plot for BIDS Nodes - ',label])
+        hxLabel = xlabel('Number of Spikes');
+        hyLabel = ylabel('Normalized Number of Nodes');
+        hTitle = title(['Histogram Plot for BIDS Nodes - ',label]);
+        set(gca, ...
+            'FontName'  ,'Helvetica', ...
+            'FontSize'  ,20, ...
+            'TickDir'   ,'out', ...
+            'XMinorTick','on', ...
+            'YMinorTick','on');
+        set([hxLabel, hyLabel, hTitle], ...
+            'FontName','AvantGarde');
+        set([hxLabel, hyLabel], ...
+            'FontSize',20);
+        set(hTitle, ...
+            'FontSize',20, ...
+            'FontWeight','bold');
         print([figPath,label,'_','Hist.png'])
         
     end%GRAPH_FLAG
