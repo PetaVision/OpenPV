@@ -1,0 +1,7 @@
+## See http://www.cmake.org/Wiki/CMake_Useful_Variables for more variables to set
+cmake_minimum_required(VERSION 2.6)
+
+project(PetaVision)
+
+add_subdirectory(PetaVision)
+add_subdirectory(BIDS)

@@ -1,0 +1,75 @@
+## See http://www.cmake.org/Wiki/CMake_Useful_Variables for more variables to set
+cmake_minimum_required(VERSION 2.6)
+
+set(PV_VERSION_MAJOR 0)
+set(PV_VERSION_MINOR 1)
+set(PV_VERSION_PATCH 0)
+set(PV_VERSION_TWEAK 0)
+
+set(CMAKE_BUILD_TYPE Release) #Can be: None, Debug, Release, RelWithDebInfo, MinSizeRel
+
+##Can specify folder or file. If folder - will exclude all cpp or c files in folder and all sub-directories, recursively
+#set(PV_EXCLUDE_FOLDERS obsolete analysis arch/mpi/old arch/rr bindings columns/old io/apps tests)
+#set(PV_EXCLUDE_FILES arch/opencl/convolve_main.cpp utils/rand_sse.c io/create_weights.cpp)
+
+# File which denotes compile-ready folders
+set(PV_SRC_LIST PV_FOLDER_LIST.txt)
+
+set(PV_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
+set(PV_BINARY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lib")
+
+
+######################################################################################
+######################################################################################
+##
+## MAIN CODE
+##
+######################################################################################
+######################################################################################
+
+set(LIBRARY_OUTPUT_PATH ${PV_BINARY_DIR})
+set(EXECUTABLE_OUTPUT_PATH ${PV_BINARY_DIR})
+
+# Read in file and parse by line
+file(READ "${PV_SRC_LIST}" contents)
+STRING(REGEX REPLACE "\n" ";" contents "${contents}")
+
+# Find PetaVision c/cpp files
+foreach(LIN ${contents})
+
+   file(GLOB_RECURSE libSrcCPP ${LIN}/*.cpp)
+   file(GLOB_RECURSE libSrcC ${LIN}/*.c)
+   set(PVLibSrc ${PVLibSrc} ${libSrcCPP})
+   set(PVLibSrc ${PVLibSrc} ${libSrcC})
+
+   # Print what is in the given folder
+   #message(${LIN})
+   #list(LENGTH libSrcCPP lengthA)
+   #message("Number of CPP files: ${lengthA}")
+   #list(LENGTH libSrcC lengthB)
+   #message("Number of C files:   ${lengthB}")
+endforeach(LIN ${contents})
+
+# Header file to pass CMake settings to source code
+configure_file (
+   "cMakeHeader.template"
+   "${PV_SOURCE_DIR}/include/cMakeHeader.h"
+)
+
+# Add external libraries 
+find_package(GDAL)
+if(GDAL_FOUND)
+   include_directories(${GDAL_INCLUDE_DIR})
+endif(GDAL_FOUND)
+
+find_package(MPI)
+if(MPI_CPP_FOUND)
+   include_directories(${MPI_CPP_INCLUDE_PATH})
+endif(MPI_CPP_FOUND)
+
+if(MPI_C_FOUND)
+   include_directories(${MPI_C_INCLUDE_PATH})
+endif(MPI_C_FOUND)
+
+# Add PetaVision
+add_library(PetaVision ${PVLibSrc})
