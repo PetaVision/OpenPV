@@ -10,7 +10,7 @@
 %%       Time step:          0.12e-3 s
 %%       Wave freq:          125 Hz
 %%       Wave speed:         350 m/s
-%%       Object speed:       8.9408 m/s (20mph)
+%%       Object speed:       8.9408 m/s (20mph) (about 6.7 sec to get across)
 %%       Medium Attenuation: none
 %%       Wave amplitude:     arbitrary - scaled with respect to noise levels to fix SNR
 %%
@@ -130,7 +130,7 @@ new_wave   = all_wave ./ std(all_wave(:)); %RMS Amplitude = standard deviation
 long_wave  = zeros(DIM);
 long_wave(:,:,DIM(3)/2+1:end) = new_wave;
 
-clearvars -except long_wave SNR DIM BETA OUTPUT_DIR NOISE_SCALE NOISE_FILENAME CLOBBER_NOISE
+clearvars -except long_wave DIM BETA OUTPUT_DIR NOISE_SCALE NOISE_FILENAME CLOBBER_NOISE
 
 if ~exist(['./',NOISE_FILENAME,'.mat']) || CLOBBER_NOISE
     %Generate noise
@@ -148,9 +148,9 @@ end
 
 disp('masterInput: Combining noise with simulation output...')
 for i_snr = 1:length(SNR)
-    NEW_OUTPUT_DIR = [OUTPUT_DIR,'_',num2str(SNR(i_snr)*100)];
-    if ne(exist(NEW_OUTPUT_DIR),7)
-       mkdir(NEW_OUTPUT_DIR);
+    OUTPUT_DIR = [OUTPUT_DIR,'_',num2str(SNR(i_snr)*100)];
+    if ne(exist(OUTPUT_DIR),7)
+       mkdir(OUTPUT_DIR);
     end
 
     %Scale input for imwrite
@@ -167,7 +167,7 @@ for i_snr = 1:length(SNR)
     disp('masterInput: Writing files...');
     for i = 1:DIM(3)
         frame_str = sprintf('%05d',i);
-        imwrite(abs(scaled_input(:,:,i)),[NEW_OUTPUT_DIR,'/input_',frame_str,'.jpg']);
+        imwrite(abs(scaled_input(:,:,i)),[OUTPUT_DIR,'/input_',frame_str,'.jpg']);
     end
 end
 
