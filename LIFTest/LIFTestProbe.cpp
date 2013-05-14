@@ -70,9 +70,9 @@ int LIFTestProbe::initLIFTestProbe(const char * filename, HyPerLayer * layer, PV
    // The simulation is run for 2 seconds (8000 timesteps with dt=0.25).  The average rate over each bin is calculated and compared with
    // the values in the r[] array.  It needs to be within 2.5 standard deviations (the s[] array) of the correct value.
    // The hard-coded values in r[] and s[] were determined empirically.
-   double r[] = {2.0964560,1.5421708,0.9808872,0.4943285,0.1828809}; // Expected rates of each bin
-   double s[] = {0.1460102,0.0969807,0.0718997,0.0432749,0.0217653}; // Standard deviations of each bin at on t=1000.
-   // Note: s[] was determined by running the test 100 times for t=100 seconds (1e5 ms) and then multiplying by 10 since sigma should vary as 1/sqrt(t).
+   double r[] = {25.058765822784814,24.429162500000004,23.701505474452546,22.788644662921353,21.571396713615037}; // Expected rates of each bin
+   double s[] = {0.10532785056608626,0.09163171768337709,0.08387269359631463,0.05129454286195273,0.05482686550202272}; // Standard deviations of each bin at t=1000.
+   // Note: s[] was determined by running the test 100 times for t=2000ms.
    int c[] = {316,400,548,712,852}; // Number of pixels that fall into each bin // TODO calculate on the fly based on layer size and bin boundaries
 
    // Bins are r<10, 10<=r<15, 15<=r<20, 20<=r<25, and 25<=r<30.
@@ -134,13 +134,13 @@ int LIFTestProbe::outputState(double timed) {
       }
       fprintf(outputstream->fp, "\n");
       if (timed >= endingTime) {
-         double stdfactor = sqrt(timed/1000.0); // Since the values of std are based on t=1000.
+         double stdfactor = sqrt(timed/2000.0); // Since the values of std are based on t=2000.
          for (int j=0; j<LIFTESTPROBE_BINS; j++) {
             double scaledstdev = stddevs[j]/stdfactor;
             double observed = (rates[j]-targetrates[j])/scaledstdev;
             if(fabs(observed)>tolerance) {
                fprintf(stderr, "Bin number %d failed at time %f: %f standard deviations off, with tolerance %f.\n", j, timed, observed, tolerance);
-               abort();
+               status = PV_FAILURE;
             }
          }
       }
@@ -149,7 +149,7 @@ int LIFTestProbe::outputState(double timed) {
       MPI_Reduce(rates, rates, LIFTESTPROBE_BINS, MPI_DOUBLE, MPI_SUM, root_proc, icComm->communicator());
       // Not using Allreduce, so the value of rates does not get updated in non-root processes.
    }
-
+   if (status!=PV_SUCCESS) abort();
    return status;
 }
 
