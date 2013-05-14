@@ -124,6 +124,7 @@ protected:
    virtual void readPhase(PVParams * params);
    virtual void readWriteSparseActivity(PVParams * params);
    virtual void readMirrorBCFlag(PVParams * params);
+   virtual void readValueBC(PVParams * params);
    virtual void readRestart(PVParams * params);
 
 #ifdef PV_USE_OPENCL
@@ -249,6 +250,8 @@ public:
    void setParent(HyPerCol* parent)  {this->parent = parent;}
 
    bool useMirrorBCs()               {return this->mirrorBCflag;}
+   pvdata_t getValueBC() {return this->valueBC;}
+
    bool getSpikingFlag()             {return this->writeSparseActivity;}
 
    int getPhase()                    {return this->phase;}
@@ -305,6 +308,7 @@ protected:
    int * labels;                // label for the feature a neuron is tuned to
 
    bool mirrorBCflag;           // true when mirror BC are to be applied
+   pvdata_t valueBC; // If mirrorBCflag is false, the value of A to fill extended cells with
 
    int ioAppend;                // controls opening of binary files
    double initialWriteTime;             // time of next output

@@ -147,6 +147,41 @@ int HyPerLayer::initialize(const char * name, HyPerCol * hc, int numChannels) {
    //Initialize C Layer struct
    initClayer(params);
 
+   // If not mirroring, fill nonrestricted part of extended activity values
+   // Since we calloc'ed, we only need to do this if valueBC is nonzero
+   if (!useMirrorBCs() && getValueBC()!=0.0f) {
+      const PVLayerLoc * loc = getLayerLoc();
+      int nx = loc->nx;
+      int ny = loc->ny;
+      int nf = loc->nf;
+      int nb = loc->nb;
+      int idx = 0;
+      for (int b=0; b<getLayerLoc()->nb; b++) {
+         for(int k=0; k<(nx+2*nb)*nf; k++) {
+            clayer->activity->data[idx] = getValueBC();
+            idx++;
+         }
+      }
+      for (int y=0; y<ny; y++) {
+         for(int k=0; k<nb*nf; k++) {
+            clayer->activity->data[idx] = getValueBC();
+            idx++;
+         }
+         idx += nx;
+         for(int k=0; k<nb*nf; k++) {
+            clayer->activity->data[idx] = getValueBC();
+            idx++;
+         }
+      }
+      for (int b=0; b<getLayerLoc()->nb; b++) {
+         for(int k=0; k<(nx+2*nb)*nf; k++) {
+            clayer->activity->data[idx] = getValueBC();
+            idx++;
+         }
+      }
+      assert(idx==getNumExtended());
+   }
+
    // must set ioAppend before addLayer is called (addLayer causes activity file to be opened using layerid)
    ioAppend = parent->getCheckpointReadFlag() ? 1 : 0;
    // layerId stored as clayer->layerId
@@ -511,6 +546,7 @@ int HyPerLayer::setParams(PVParams * inputParams)
    readPhase(inputParams);
    readWriteSparseActivity(inputParams);
    readMirrorBCFlag(inputParams);
+   readValueBC(inputParams);
    readRestart(inputParams);
 // #ifdef PV_USE_OPENCL
 //    readGPUAccelerateFlag(inputParams);
@@ -600,6 +636,13 @@ void HyPerLayer::readWriteSparseActivity(PVParams * params) {
 
 void HyPerLayer::readMirrorBCFlag(PVParams * params) {
    mirrorBCflag = (bool) params->value(name, "mirrorBCflag", mirrorBCflag);
+}
+
+void HyPerLayer::readValueBC(PVParams * params) {
+   assert(!params->presentAndNotBeenRead(name, "mirrorBCflag"));
+   if (!mirrorBCflag) {
+      valueBC = (pvdata_t) params->value(name, "valueBC", 0.0);
+   }
 }
 
 void HyPerLayer::readRestart(PVParams * params) {
@@ -1226,6 +1269,7 @@ int HyPerLayer::waitOnPublish(InterColComm* comm)
    int status = comm->wait(getLayerId());
    return status;
 }
+
 //
 /* Inserts a new probe into an array of LayerProbes.
  *
