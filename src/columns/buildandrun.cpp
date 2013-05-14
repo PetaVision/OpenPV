@@ -519,14 +519,7 @@ GapLayer * addGapLayer(const char * name, HyPerCol * hc) {
 
 TextStream * addTextStream( const char * name, HyPerCol * hc) {
    TextStream * addedLayer;
-   const char * filelabelspath = hc->parameters()->stringValue(name, "filePath");
-   if (filelabelspath) {
-      addedLayer = new TextStream(name, hc, filelabelspath);
-   }
-   else {
-      fprintf(stderr, "Group \"%s\": Parameter group for class TextStream must set string parameter filePath\n", name);
-      addedLayer = NULL;
-   }
+   addedLayer = new TextStream(name, hc);
    return addedLayer;
 }
 
