@@ -16,37 +16,39 @@ TextStream::TextStream() {
 	initialize_base();
 }
 
-TextStream::TextStream(const char * name, HyPerCol * hc, const char * filename) {
+TextStream::TextStream(const char * name, HyPerCol * hc) {
 	initialize_base();
-	initialize(name, hc, filename);
+	initialize(name, hc);
 }
 
 TextStream::~TextStream() {
-	free(filename);
 	filename = NULL;
 	Communicator::freeDatatypes(mpi_datatypes); mpi_datatypes = NULL;
    if (textData != NULL) {
       delete textData;
       textData = NULL;
    }
-   if (getParent()->icCommunicator()->commRank()==0 && fp != NULL && fp != stdout) {
-      fclose(fp);
+   if (getParent()->icCommunicator()->commRank()==0 && fileStream != NULL && fileStream->isfile) {
+      PV_fclose(fileStream);
    }
 }
 
 int TextStream::initialize_base() {
 	displayPeriod = 1;
 	nextDisplayTime = 1;
+	textOffset = 0;
 	useCapitalization = false;
-	useTextBCFlag = true;
+	loopInput = false;
+	filename = NULL;
 	return PV_SUCCESS;
 }
 
-int TextStream::initialize(const char * name, HyPerCol * hc, const char * filename) {
+int TextStream::initialize(const char * name, HyPerCol * hc) {
 	int status = PV_SUCCESS;
 
 	PVParams * params = parent->parameters();
 	readUseCapitalization(params);
+	readLoopInput(params);
 
 	HyPerLayer::initialize(name, hc, 0);
 
@@ -62,14 +64,15 @@ int TextStream::initialize(const char * name, HyPerCol * hc, const char * filena
 	// exchange border information
 	parent->icCommunicator()->exchange(textData, mpi_datatypes, getLayerLoc());
 
+	readTextInputPath(params);
 	assert(filename != NULL);
 
-	if( getParent()->icCommunicator()->commRank()==0 ) {
-		this->filename = strdup(filename);
-		assert( this->filename != NULL );
+	if( getParent()->icCommunicator()->commRank()==0 ) { // Only rank 0 should open the file pointer
+		filename = strdup(filename);
+		assert(filename != NULL );
 
-		fp = fopen(filename, "r");
-		if( fp == NULL ) {
+		fileStream = PV_fopen(filename, "r");
+		if( fileStream->fp == NULL ) {
 			fprintf(stderr, "TextStream::initialize error opening \"%s\": %s\n", filename, strerror(errno));
 			abort();
 		}
@@ -90,7 +93,6 @@ void TextStream::readNyScale(PVParams * params) {
 }
 
 void TextStream::readNf(PVParams * params) {
-
 	// useCapitalization  : (97) Number of printable ASCII characters + new line (\r,\n) + other
 	// !useCapitalization : (71) Number of printable ASCII characters - capital letters + new line + other
     numFeatures = useCapitalization ? 95+1+1 : 95-26+1+1;
@@ -104,8 +106,16 @@ void TextStream::readUseCapitalization(PVParams * params) {
 	useCapitalization = (bool) params->value(name, "useCapitalization", useCapitalization);
 }
 
-void TextStream::readUseTextBCFlag(PVParams * params) {
-	useTextBCFlag = (bool) params->value(name,"useTextBCFlag",useTextBCFlag);
+void TextStream::readTextInputPath(PVParams * params) {
+	filename = params->stringValue(name,"textInputPath",NULL);
+}
+
+void TextStream::readLoopInput(PVParams * params) {
+	loopInput = (bool) params->value(name,"loopInput",loopInput);
+}
+
+void TextStream::readTextOffset(PVParams * params) {
+	textOffset = params->value(name,"textOffset",textOffset);
 }
 
 int TextStream::updateState(double time, double dt)
@@ -123,14 +133,19 @@ int TextStream::updateState(double time, double dt)
          lastUpdateTime = time;
       } // time >= nextDisplayTime
 
-      //TODO: Flag to determine if user wants to loop text file or exit normally
-      // if at end of file (EOF), exit normally
+      // if at end of file (EOF), exit normally or loop
       int c;
-      if ((c = fgetc(fp)) == EOF) {
-    	  return PV_EXIT_NORMALLY;
+      if ((c = fgetc(fileStream->fp)) == EOF) {
+    	  if (loopInput) {
+			 PV_fseek(fileStream, 0L, SEEK_SET);
+			 fprintf(stderr, "Text Input %s: EOF reached, rewinding file \"%s\"\n", name, filename);
+    	  }
+    	  else {
+			  return PV_EXIT_NORMALLY;
+    	  }
       }
       else {
-         ungetc(c, fp);
+         ungetc(c, fileStream->fp);
       }
 
 	// exchange border information
