@@ -1,0 +1,58 @@
+-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+PETAVISION INSTALL
+-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+
+Before installing PetaVision, you need the following libraries:
+	Open MPI
+		 http://www.open-mpi.org/software/ompi/v1.6/
+	GDAL
+		http://trac.osgeo.org/gdal/wiki/DownloadingGdalBinaries	
+	CMake
+		http://www.cmake.org/cmake/resources/software.html
+	SubVersion
+		http://subversion.apache.org/packages.html
+
+We recommend using apt-get on linux systems, mac ports on OSX systems, and cygwin on Windows systems to obtain the above libraries.
+
+You will also need a SourceForge account, which is free: https://sourceforge.net/user/registration
+
+We recommend the following, although they are not required:
+	Octave
+		http://www.gnu.org/software/octave/download.html
+		We recommend getting the latest octave-devel version on mac ports if you are using OSX.
+	Enthought Python Distribution
+		https://enthought.com/products/epd/free/
+
+-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+
+To install a clean build of PetaVision:
+
+Create a workspace directory:
+	mkdir workspace
+
+Navigate into this directory:
+	cd workspace
+
+Download PetaVision from subversion:
+	svn co https://username@svn.code.sf.net/p/petavision/code/trunk PetaVision
+
+Download any optional sandboxes or systems tests. First, as an example, the BIDS sandbox:
+	svn co https://username@svn.code.sf.net/p/petavision/code/sandbox/BIDS BIDS	
+
+Copy the CMake project configuration file from the PetaVision docs folder to the workspace folder:
+	cp PetaVision/docs/cmake/cMakeLists.txt .
+
+Run CMake to create your make files:
+	cmake cMakeLists.txt
+
+Run the Makefile to build PetaVision and any additional sandboxes or systems tests.
+	make
+
+Done! To rebuild, run 'make clean' then 'make' in the workspace folder.
+
+To execute a PetaVision simulation, run it from the given Debug folder. For example, if you chose to checkout the BIDS repository:
+cd BIDS/
+./Debug/BIDS -p input/params.pv
