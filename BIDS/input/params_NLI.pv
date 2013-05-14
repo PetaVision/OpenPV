@@ -5,12 +5,11 @@
 HyPerCol "column" = {
    nx 							   = 256; 			// pixel width of input image
    ny 							   = 256; 			// pixel height of input image
-   dt 							   = 1.;           // according GK
-   randomSeed 				       = 1020304050.0; // remove when running for real
-   numSteps 					   = 700;			// amount of time steps performed during run-time
-   progressStep					   = 100;
-   //outputPath                      = "/Users/Burger/Documents/workspace/BIDS/output/";
-   outputPath                      = "~/Documents/Work/LANL/workspace/BIDS/output/";
+   dt 							   = 1.2;          //
+   randomSeed 				       = 1020304050.0;  // remove when running for real
+   numSteps 					   = 9740;			// amount of time steps performed during run-time
+   progressStep					   = 500;
+   //outputPath                      = "~/Documents/workspace/BIDS/output/";
 
    writeProgressToErr              = 1;
    filenamesContainLayerNames 	   = 2; 			// stores pvp files as: 1 = layer number/2 = layer number and layer name/3 = layer name
@@ -18,8 +17,7 @@ HyPerCol "column" = {
    
    checkpointRead  				   = false; 		// init run
    checkpointWrite 				   = false;  		// always
-   //checkpointWriteDir              = "/Users/Burger/Documents/workspace/BIDS/output/checkpoints/";
-   //checkpointWriteDir              = "~/Documents/Work/LANL/workspace/BIDS/output/checkpoints/";
+   //checkpointWriteDir              = "~/Documents/workspace/BIDS/output/checkpoints/";
    //checkpointWriteStepInterval     = 200;
    //deleteOlderCheckpoints          = 0;
    suppressLastOutput              = 0;
@@ -32,16 +30,15 @@ HyPerCol "column" = {
 // Layers Layers Layers Layers Layers Layers Layers Layers Layers Layers Layers
 
 Movie "Source" = {
-//      imageListPath = "/Users/slundquist/Documents/workspace/BIDS/input/wave_prop_files.txt";
-//      imageListPath = "/Users/slundquist/Documents/workspace/BIDS/input/wave_prop_files2.txt";
-//      imageListPath = "/Users/slundquist/Documents/workspace/BIDS/input/wave_with_noise.txt";
-//      imageListPath = "/Users/slundquist/Documents/workspace/BIDS/input/weak_wave_file.txt";
-//      imageListPath = "/Users/slundquist/Documents/workspace/BIDS/input/norm_wave_file.txt";
-//      imageListPath = "/Users/slundquist/Documents/workspace/BIDS/input/strong_wave_file.txt";
-//      imageListPath = "/Users/slundquist/Documents/workspace/BIDS/input/blank_img_files.txt";
-//      imageListPath = "/Users/slundquist/Documents/workspace/BIDS/input/full_img_files.txt";
-//      imageListPath = "/Users/Burger/Documents/workspace/BIDS/input/filenames.txt";
-   imageListPath = "/Users/dpaiton/Documents/Work/LANL/workspace/BIDS/input/filenames.txt";
+//      imageListPath = "~/Documents/workspace/BIDS/input/wave_prop_files.txt";
+//      imageListPath = "~/Documents/workspace/BIDS/input/wave_prop_files2.txt";
+//      imageListPath = "~/Documents/workspace/BIDS/input/wave_with_noise.txt";
+//      imageListPath = "~/Documents/workspace/BIDS/input/weak_wave_file.txt";
+//      imageListPath = "~/Documents/workspace/BIDS/input/norm_wave_file.txt";
+//      imageListPath = "~/Documents/workspace/BIDS/input/strong_wave_file.txt";
+//      imageListPath = "~/Documents/workspace/BIDS/input/blank_img_files.txt";
+//      imageListPath = "~/Documents/workspace/BIDS/input/full_img_files.txt";
+//      imageListPath = "~/Documents/workspace/BIDS/input/filenames.txt";
                            //
    restart                = 0;
    nxScale                = 1;
@@ -53,7 +50,7 @@ Movie "Source" = {
    mirrorBCflag           = 0;
    useImageBCflag         = 1;   // Fill boundary with image instead of mirror or 0's
                                  //
-   displayPeriod          = 10;  //
+   displayPeriod          = 12;  //
    jitterFlag             = 0;
    offsetX                = 0;
    offsetY                = 0;
@@ -71,11 +68,11 @@ Movie "Source" = {
 };
 
 BIDSMovieCloneMap "BIDS_Movie" = { // child of HyPerLayer
-	originalMovie    = "Source";
-	nxScale          = 0.25;
-	nyScale          = 0.25;
-	jitter           = 3;
-	writeStep        = 1;
+   originalMovie    = "Source";
+   nxScale          = 0.25;
+   nyScale          = 0.25;
+   jitter           = 3;
+   writeStep        = 1;
 
    nf               = 1;
    marginWidth      = 0;
@@ -127,7 +124,7 @@ BIDSLayer "BIDS_Node" = { // child of LIF
    tauE                = 1.0;     	// how long glutamine stays bound
    tauI                = 1.0;     	// how long GABA stays bound
    tauIB               = 10.0;    	// inhibitory potassium channel 
-   VthRest             = -35.0;//-55.0;   	// firing threshold 15 mV above rest
+   VthRest             = -43.38;   	// firing threshold
    tauVth              = 10.0;    	// relative refractory period
    deltaVth            = 5.0;     	// jump of threshold when firing
    noiseAmpE           = 0.5;     	//  means conductance is equal to lead conductance  
@@ -208,7 +205,7 @@ IdentConn "Sensor_to_Nodes" = {
 //   rMin					      = 0;
 //   strength				      = 0; //0.025
 //   falloffType				  = "Log";       //possible falloff rates right now are "Log", "Gaussian", "radSquared", and "Linear"
-//   lateralRadius			  = 15;
+//   lateralRadius			  = 65; //pixels
 //                                        //
 //   preActivityIsNotRate       = 0;
 //   writeCompressedCheckpoints = 0;
@@ -251,20 +248,20 @@ IdentConn "Sensor_to_Nodes" = {
 
 //PROBES
 
-StatsProbe "MovieStats" = {
-    targetLayer = "BIDS_Movie";
-    probeOutputFile = "MovieStats.txt";
-};
-
-StatsProbe "NodeStats" = {
-    targetLayer = "BIDS_Node";
-    probeOutputFile = "NodeStats.txt";
-};
-
-PointLIFProbe "BIDS_Node_Probe" = {
-   targetLayer     = "BIDS_Node";
-   probeOutputFile = "ptBIDSNode.txt";
-   xLoc            = 23;
-   yLoc            = 23;
-   fLoc            = 0;
-};
+//StatsProbe "MovieStats" = {
+//    targetLayer = "BIDS_Movie";
+//    probeOutputFile = "MovieStats.txt";
+//};
+//
+//StatsProbe "NodeStats" = {
+//    targetLayer = "BIDS_Node";
+//    probeOutputFile = "NodeStats.txt";
+//};
+//
+//PointLIFProbe "BIDS_Node_Probe" = {
+//   targetLayer     = "BIDS_Node";
+//   probeOutputFile = "ptBIDSNode.txt";
+//   xLoc            = 23;
+//   yLoc            = 23;
+//   fLoc            = 0;
+//};
