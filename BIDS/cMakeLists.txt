@@ -25,7 +25,8 @@ target_link_libraries(BIDS PetaVision)
 
 # Link executable to external libraries
 target_link_libraries(BIDS ${GDAL_LIBRARY})
-target_link_libraries(BIDS ${MPI_LIBRARY})
+target_link_libraries(BIDS ${MPI_C_LIBRARIES})
+target_link_libraries(BIDS ${MPI_CXX_LIBRARIES})
 
 
 
