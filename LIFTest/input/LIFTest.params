@@ -4,30 +4,30 @@
 // created by peteschultz: Aug 3, 2012
 //
 
-//  A params file for testing LIF, GapLayer, LIFGapLayer, SigmoidLayer
+//  A params file for testing LIF, GapLayer, LIFGapLayer, GapConn
 //
 
 debugParsing = false;
 
 HyPerCol "column" = {
-   nx = 64;   
-   ny = 64;
-   dt = 0.25;
-   randomSeed = 1829107657; // if not set here,  clock time is used to generate seed
-   numSteps = 8001;
-   progressStep = 400;
-   writeProgressToErr = false;
-   outputPath = "output";
-   filenamesContainLayerNames = false;
-   filenamesContainConnectionNames = false;
-   checkpointRead = false;
-   // checkpointReadDir = "Checkpoints";
-   // checkpointReadDirIndex = 2000;
-   checkpointWrite = false;
-   // checkpointWriteDir = "Checkpoints";
-   // checkpointWriteStepInterval = 4000;
-   // deleteOlderCheckpoints = false;
-   suppressLastOutput = false;
+   nx                               = 64;   
+   ny                               = 64;
+   dt                               = 0.25;
+   randomSeed                       = 1829107657; // if not set here,  clock time is used to generate seed
+   numSteps                         = 8001;
+   progressStep                     = 400;
+   writeProgressToErr               = false;
+   outputPath                       = "output";
+   filenamesContainLayerNames       = false;
+   filenamesContainConnectionNames  = false;
+   checkpointRead                   = false;
+   // checkpointReadDir                = "Checkpoints";
+   // checkpointReadDirIndex           = 2000;
+   checkpointWrite                  = false;
+   // checkpointWriteDir               = "Checkpoints";
+   // checkpointWriteStepInterval      = 4000;
+   // deleteOlderCheckpoints           = false;
+   suppressLastOutput               = false;
 };
 
 //
@@ -46,6 +46,7 @@ Image "input" = {
     phase                           = 0;
     useImageBCflag                  = false;
     mirrorBCflag                    = false;
+    valueBC                         = 0.0;
     inverseFlag                     = false;
     normalizeLuminanceFlag          = false;
     writeImages                     = false;
@@ -61,6 +62,7 @@ ANNLayer "scaled input" = {
     nf                              = 1;
     marginWidth                     = 0;
     mirrorBCflag                    = false;
+    valueBC                         = 0.0;
     writeStep                       = -1;
     writeSparseActivity             = false;
     phase                           = 0;
@@ -80,6 +82,7 @@ Retina "retina" = {
     nf                              = 1;
     marginWidth                     = 0;
     mirrorBCflag                    = false;
+    valueBC                         = 0.0;
     writeStep                       = -1;
     writeSparseActivity             = false;
     phase                           = 0;
@@ -101,6 +104,7 @@ GenerativeLayer "Retina Spike Counter" = {
     nf                              = 1;
     marginWidth                     = 0;
     mirrorBCflag                    = false;
+    valueBC                         = 0.0;
     
     InitVType                       = "ConstantV";
     valueV                          = 0;
@@ -128,6 +132,7 @@ LIFGap "LIFTest" = {
     marginWidth                     = 1;
     writeStep                       = -1.0;
     mirrorBCflag                    = false;
+    valueBC                         = 0.0;
     writeSparseActivity             = true;
     phase                           = 0;
     
@@ -161,6 +166,7 @@ GenerativeLayer "LIFTest Spike Counter" = {
     nf                              = 1;
     marginWidth                     = 0;
     mirrorBCflag                    = false;
+    valueBC                         = 0.0;
     writeSparseActivity             = false;
     
     InitVType                       = "ConstantV";
@@ -182,7 +188,7 @@ GenerativeLayer "LIFTest Spike Counter" = {
 
 GapLayer "GapTest" = {
     restart                         = false;
-    originalLayerName="LIFTest";
+    originalLayerName               = "LIFTest";
     nxScale                         = 1; // Should this be 0.5 or 1?
     nyScale                         = 1; // Should this be 0.5 or 1?
     nf                              = 1;
@@ -207,6 +213,7 @@ LIFGap "LIFGapTest" = {
     marginWidth                     = 0;
     writeStep                       = -1; // Value 0 means write every timestep, no matter what dt is
     mirrorBCflag                    = false;
+    valueBC                         = 0.0;
     writeSparseActivity             = true;
     phase                           = 0;
     
@@ -240,6 +247,7 @@ GenerativeLayer "LIFGapTest Spike Counter" = {
     nf                              = 1;
     marginWidth                     = 0;
     mirrorBCflag                    = false;
+    valueBC                         = 0.0;
     
     InitVType                       = "ConstantV";
     valueV                          = 0;
