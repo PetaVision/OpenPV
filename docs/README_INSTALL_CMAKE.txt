@@ -53,6 +53,8 @@ Copy the CMake project configuration file from the PetaVision docs folder to the
 
 Run CMake to create your make files:
 	cmake cMakeLists.txt
+   NOTE: It is possible to suggest a compiler ID for MPI. For example, to have CMake look for openmpi, installed by MacPorts:
+      cmake cMakeLists.txt -DMPI_C_COMPILER_ID:STRING=openmpicc -DMPI_CXX_COMPILER_ID:STRING=openmpic++
 
 Run the Makefile to build PetaVision and any additional sandboxes or systems tests.
 	make
