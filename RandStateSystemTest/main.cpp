@@ -40,21 +40,27 @@ int main(int argc, char * argv[]) {
    if (status2 != PV_SUCCESS) {
       fprintf(stderr, "%s failed on param file %s.\n", cl_argv[0], cl_argv[2]);
    }
+   int status = status1==PV_SUCCESS && status2==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
    free(cl_argv[2]);
    free(cl_argv[1]);
 
 #ifdef PV_USE_MPI
    MPI_Finalize();
-#endif // PV_USE_MPI
-
-   int status = status1==PV_SUCCESS && status2==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
-
    if (status == EXIT_SUCCESS) {
       printf("Test complete.  %s passed on process rank %d.\n", cl_argv[0], rank);
    }
    else {
       fprintf(stderr, "Test complete.  %s FAILED on process rank %d.\n", cl_argv[0], rank);
    }
+#else
+   if (status == EXIT_SUCCESS) {
+      printf("Test complete.  %s passed.\n", cl_argv[0]);
+   }
+   else {
+      fprintf(stderr, "Test complete.  %s FAILED.\n", cl_argv[0]);
+   }
+#endif // PV_USE_MPI
+
 
    return status;
 }
