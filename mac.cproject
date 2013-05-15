@@ -61,7 +61,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="src/obsolete|src/arch/opencl/convolve.cl|src/arch/opencl/convolve_cpu.cl|src/kernels|src/arch/opencl/convolve_main.cpp|src/utils/rand_sse.c|analysis|src/arch/mpi/old|src/arch/rr|src/bindings|src/columns/old|src/io/apps|src/io/create_weights.cpp|tests" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="src/arch/openclMain|src/obsolete|src/kernels|analysis|src/arch/rr|src/bindings|tests" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
