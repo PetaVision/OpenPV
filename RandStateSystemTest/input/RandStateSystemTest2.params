@@ -46,6 +46,7 @@ Image "input" = {
     writeStep                   = -1;
     writeSparseActivity         = false;
     mirrorBCflag                = false;
+    valueBC                     = 0.0;
     useImageBCflag              = false;
     inverseFlag                 = false;
     normalizeLuminanceFlag      = false;
@@ -117,6 +118,7 @@ LIFGap "lif layer" = {
     writeSparseActivity         = true;
     writeStep                   = -1.0;
     mirrorBCflag                = false;
+    valueBC                     = 0.0;
     
     // InitVType                   = "ConstantV";
     // valueV                      = -70.0;
