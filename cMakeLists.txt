@@ -58,7 +58,7 @@ find_package(GDAL REQUIRED)
 include_directories(${GDAL_INCLUDE_DIR})
 
 find_package(MPIModified REQUIRED)
-include_directories(${MPI_CPP_INCLUDE_PATH})
+include_directories(${MPI_CXX_INCLUDE_PATH})
 include_directories(${MPI_C_INCLUDE_PATH})
 
 # Add PetaVision
