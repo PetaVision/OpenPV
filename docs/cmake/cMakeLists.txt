@@ -1,6 +1,14 @@
 ## See http://www.cmake.org/Wiki/CMake_Useful_Variables for more variables to set
 cmake_minimum_required(VERSION 2.6)
 
+# The user may specify a path to override the default for MPI & GDAL
+#  For example, the user may type:
+#    cmake cMakeList.txt -DMPI_PATH:STRING=/opt/local/
+#    
+
+set(MPI_PATH "NA" CACHE STRING "NA")
+set(GDAL_PATH "NA" CACHE STRING "NA")
+
 project(PetaVision)
 
 add_subdirectory(PetaVision)

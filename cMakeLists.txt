@@ -14,7 +14,6 @@ set(PV_SRC_LIST PV_FOLDER_LIST.txt)
 set(PV_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
 set(PV_BINARY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lib")
 
-
 ######################################################################################
 ######################################################################################
 ##
@@ -53,19 +52,26 @@ configure_file (
 )
 
 # Add external libraries 
-find_package(GDAL)
-if(GDAL_FOUND)
-   include_directories(${GDAL_INCLUDE_DIR})
-endif(GDAL_FOUND)
+if(GDAL_PATH STREQUAL "NA")
+   find_package(GDAL REQUIRED)
+else(GDAL_PATH STREQUAL "NA")
+   message(STATUS "Using GDAL path ${GDAL_PATH}")
+   find_package(GDAL REQUIRED
+      HINT ${GDAL_PATH}
+   )
+endif(GDAL_PATH STREQUAL "NA")
+include_directories(${GDAL_INCLUDE_DIR})
 
-find_package(MPI)
-if(MPI_CPP_FOUND)
-   include_directories(${MPI_CPP_INCLUDE_PATH})
-endif(MPI_CPP_FOUND)
-
-if(MPI_C_FOUND)
-   include_directories(${MPI_C_INCLUDE_PATH})
-endif(MPI_C_FOUND)
+if(MPI_PATH STREQUAL "NA")
+   find_package(MPI REQUIRED)
+else(MPI_PATH STREQUAL "NA")
+   message(STATUS "Using MPI path ${MPI_PATH}")
+   find_package(MPI REQUIRED
+      HINT ${MPI_PATH}
+   )
+endif(MPI_PATH STREQUAL "NA")
+include_directories(${MPI_CPP_INCLUDE_PATH})
+include_directories(${MPI_C_INCLUDE_PATH})
 
 # Add PetaVision
 add_library(PetaVision ${PVLibSrc})
