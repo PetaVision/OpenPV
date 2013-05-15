@@ -9,7 +9,7 @@ HyPerCol "column" = {
    randomSeed 				       = 1020304050.0; // remove when running for real
    numSteps 					   = 9740;			// amount of time steps performed during run-time
    progressStep					   = 500;
-   //outputPath                      = "~/Documents/workspace/BIDS/output/";
+   outputPath                      = "~/Documents/workspace/BIDS/output/";
 
    writeProgressToErr              = 1;
    filenamesContainLayerNames 	   = 2; 			// stores pvp files as: 1 = layer number/2 = layer number and layer name/3 = layer name
@@ -37,7 +37,7 @@ Movie "Source" = {
 //      imageListPath = "~/Documents/workspace/BIDS/input/norm_wave_file.txt";
 //      imageListPath = "~/Documents/workspace/BIDS/input/strong_wave_file.txt";
 //      imageListPath = "~/Documents/workspace/BIDS/input/blank_img_files.txt";
-//      imageListPath = "~/Documents/workspace/BIDS/input/filenames.txt";
+      imageListPath = "~/Documents/workspace/BIDS/input/filenames.txt";
                            //
    restart = 0;
    nxScale = 1;
@@ -68,9 +68,9 @@ Movie "Source" = {
 
 BIDSMovieCloneMap "BIDS_Movie" = { // child of HyPerLayer
    originalMovie    = "Source";
-   nxScale          = 0.25
-   nyScale          = 0.25
-   jitter           = 3
+   nxScale          = 0.25;
+   nyScale          = 0.25;
+   jitter           = 3;
    writeStep        = 1;
 
    nf               = 1;
@@ -84,8 +84,8 @@ BIDSMovieCloneMap "BIDS_Movie" = { // child of HyPerLayer
 };
 
 BIDSSensorLayer "BIDS_Sensor_Head" = { // child of Image 
-   nxScale          = 0.25
-   nyScale          = 0.25
+   nxScale          = 0.25;
+   nyScale          = 0.25;
    buffer_size      = 30;            //The amount of data in time steps that is saved to find 
    neutral_val      = 128;           //The neutral value of a pixel with no stimulus
    jitterSource     = "BIDS_Movie";
