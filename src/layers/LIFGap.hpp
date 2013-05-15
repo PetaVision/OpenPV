@@ -29,8 +29,10 @@ public:
    int virtual triggerReceive(InterColComm* comm);
    int virtual updateState(double time, double dt);
 
+#ifdef OBSOLETE // Marked obsolete May 15, 2013.  G_Gap wasn't being used (GSyn[3] isn't filtered into a conductance) so the checkpointed G_Gap was all zeroes.
    virtual int checkpointRead(const char * cpDir, double * timef);
    virtual int checkpointWrite(const char * cpDir);
+#endif //OBSOLETE
 
 #ifdef OBSOLETE // Marked obsolete July 13, 2012.  Restarting from last now handled by a call to checkpointRead from within HyPerLayer::initializeState
    int virtual readState(float * time);
@@ -43,7 +45,7 @@ protected:
 
    LIFGap();
    int initialize(const char * name, HyPerCol * hc, PVLayerType type, int num_channels, const char * kernel_name);
-   virtual int allocateBuffers();
+   virtual int allocateConductances(int num_channels);
 
    pvdata_t * G_Gap;
    pvdata_t sumGap;

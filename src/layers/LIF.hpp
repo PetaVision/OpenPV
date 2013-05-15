@@ -117,6 +117,7 @@ protected:
    LIF();
    int initialize(const char * name, HyPerCol * hc, PVLayerType type, int num_channels, const char * kernel_name);
    virtual int allocateBuffers();
+   virtual int allocateConductances(int num_channels);
 
 private:
    int initialize_base();

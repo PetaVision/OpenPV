@@ -221,16 +221,12 @@ int LIFGap::initializeThreadKernels(const char * kernel_name)
 }
 #endif
 
-int LIFGap::allocateBuffers() {
-   int status = LIF::allocateBuffers();
-   if( status == PV_SUCCESS ) {
-      const size_t num_neurons = getNumNeurons();
-      this->G_Gap  = G_E + 3*num_neurons;
-      this->sumGap = 0.0f;
-   }
-   return status;
+int LIFGap::allocateConductances(int num_channels) {
+   this->sumGap = 0.0f;
+   return LIF::allocateConductances(num_channels-1); // Don't need conductance for gap channel
 }
 
+#ifdef OBSOLETE // Marked obsolete May 15, 2013.  G_Gap wasn't being used (GSyn[3] isn't filtered into a conductance) so the checkpointed G_Gap was all zeroes.
 int LIFGap::checkpointRead(const char * cpDir, double * timef) {
    LIF::checkpointRead(cpDir, timef);
    InterColComm * icComm = parent->icCommunicator();
@@ -264,6 +260,7 @@ int LIFGap::checkpointWrite(const char * cpDir) {
    free(filename);
    return PV_SUCCESS;
 }
+#endif // OBSOLETE
 
 int LIFGap::updateStateOpenCL(double time, double dt)
 {

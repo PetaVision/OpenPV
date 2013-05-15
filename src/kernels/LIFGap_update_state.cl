@@ -108,7 +108,7 @@ for (k = 0; k < nx*ny*nf; k++) {
    float l_G_E  = G_E[k];
    float l_G_I  = G_I[k];
    float l_G_IB = G_IB[k];
-   float l_G_Gap = G_Gap[k];
+   // float l_G_Gap = G_Gap[k];
 
    CL_MEM_GLOBAL float * GSynExc = &GSynHead[CHANNEL_EXC*numNeurons];
    CL_MEM_GLOBAL float * GSynInh = &GSynHead[CHANNEL_INH*numNeurons];
@@ -164,10 +164,10 @@ for (k = 0; k < nx*ny*nf; k++) {
    l_G_I  = (l_G_I  > GMAX) ? GMAX : l_G_I;
    l_G_IB = (l_G_IB > GMAX) ? GMAX : l_G_IB;
 
-   l_G_Gap = l_GSynGap;
+   // l_G_Gap = l_GSynGap;
 
    tauInf  = (dt/tau) * (1.0 + l_G_E + l_G_I + l_G_IB + sum_gap);
-   VmemInf = (Vrest + l_G_E*Vexc + l_G_I*Vinh + l_G_IB*VinhB + l_G_Gap)
+   VmemInf = (Vrest + l_G_E*Vexc + l_G_I*Vinh + l_G_IB*VinhB + l_GSynGap)
            / (1.0 + l_G_E + l_G_I + l_G_IB + sum_gap);
 
    l_V = VmemInf + (l_V - VmemInf)*EXP(-tauInf);
@@ -200,7 +200,7 @@ for (k = 0; k < nx*ny*nf; k++) {
    G_E[k]  = l_G_E; // G_E_final;
    G_I[k]  = l_G_I; // G_I_final;
    G_IB[k] = l_G_IB; // G_IB_final;
-   G_Gap[k] = l_G_Gap;
+   // G_Gap[k] = l_G_Gap;
 
    GSynExc[k]  = 0.0f;
    GSynInh[k]  = 0.0f;
@@ -279,7 +279,7 @@ for (k = 0; k < nx*ny*nf; k++) {
    float l_G_E  = G_E[k];
    float l_G_I  = G_I[k];
    float l_G_IB = G_IB[k];
-   float l_G_Gap = G_Gap[k];
+   // float l_G_Gap = G_Gap[k];
 
    CL_MEM_GLOBAL float * GSynExc = &GSynHead[CHANNEL_EXC*numNeurons];
    CL_MEM_GLOBAL float * GSynInh = &GSynHead[CHANNEL_INH*numNeurons];
@@ -340,10 +340,10 @@ for (k = 0; k < nx*ny*nf; k++) {
    G_I_final = G_I_initial*exp_tauI;
    G_IB_final = G_IB_initial*exp_tauIB;
 
-   l_G_Gap = l_GSynGap;
+   // l_G_Gap = l_GSynGap;
 
-   dV1 = LIFGap_Vmem_derivative(l_V, G_E_initial, G_I_initial, G_IB_initial, l_G_Gap, Vexc, Vinh, VinhB, sum_gap, Vrest, tau);
-   dV2 = LIFGap_Vmem_derivative(l_V+dt*dV1, G_E_final, G_I_final, G_IB_final, l_G_Gap, Vexc, Vinh, VinhB, sum_gap, Vrest, tau);
+   dV1 = LIFGap_Vmem_derivative(l_V, G_E_initial, G_I_initial, G_IB_initial, l_GSynGap, Vexc, Vinh, VinhB, sum_gap, Vrest, tau);
+   dV2 = LIFGap_Vmem_derivative(l_V+dt*dV1, G_E_final, G_I_final, G_IB_final, l_GSynGap, Vexc, Vinh, VinhB, sum_gap, Vrest, tau);
    dV = (dV1+dV2)*0.5;
    l_V = l_V + dt*dV;
    
@@ -379,7 +379,7 @@ for (k = 0; k < nx*ny*nf; k++) {
    G_E[k]  = l_G_E; // G_E_final;
    G_I[k]  = l_G_I; // G_I_final;
    G_IB[k] = l_G_IB; // G_IB_final;
-   G_Gap[k] = l_G_Gap;   
+   // G_Gap[k] = l_G_Gap;
 
 #ifndef PV_USE_OPENCL
    } // loop over k
@@ -453,7 +453,7 @@ void LIFGap_update_state_arma(
       float l_G_E  = G_E[k];
       float l_G_I  = G_I[k];
       float l_G_IB = G_IB[k];
-      float l_G_Gap = G_Gap[k];
+      // float l_G_Gap = G_Gap[k];
 
       CL_MEM_GLOBAL float * GSynExc = &GSynHead[CHANNEL_EXC*numNeurons];
       CL_MEM_GLOBAL float * GSynInh = &GSynHead[CHANNEL_INH*numNeurons];
@@ -507,9 +507,9 @@ void LIFGap_update_state_arma(
       G_E_initial = l_G_E + l_GSynExc;
       G_I_initial = l_G_I + l_GSynInh;
       G_IB_initial = l_G_IB + l_GSynInhB;
-      l_G_Gap = l_GSynGap;
+      // l_G_Gap = l_GSynGap;
       tau_inf_initial = tau/(1+G_E_initial+G_I_initial+G_IB_initial+sum_gap);
-      V_inf_initial = (Vrest+Vexc*G_E_initial+Vinh*G_I_initial+VinhB*G_IB_initial+l_G_Gap)/(1+G_E_initial+G_I_initial+G_IB_initial+sum_gap);
+      V_inf_initial = (Vrest+Vexc*G_E_initial+Vinh*G_I_initial+VinhB*G_IB_initial+l_GSynGap)/(1+G_E_initial+G_I_initial+G_IB_initial+sum_gap);
 
       G_E_initial  = (G_E_initial  > GMAX) ? GMAX : G_E_initial;
       G_I_initial  = (G_I_initial  > GMAX) ? GMAX : G_I_initial;
@@ -519,7 +519,7 @@ void LIFGap_update_state_arma(
       G_I_final = G_I_initial*exp_tauI;
       G_IB_final = G_IB_initial*exp_tauIB;
       tau_inf_final = tau/(1+G_E_final+G_I_final+G_IB_final+sum_gap);
-      V_inf_final = (Vrest+Vexc*G_E_final+Vinh*G_I_final+VinhB*G_IB_final+l_G_Gap)/(1+G_E_final+G_I_final+G_IB_final+sum_gap);
+      V_inf_final = (Vrest+Vexc*G_E_final+Vinh*G_I_final+VinhB*G_IB_final+l_GSynGap)/(1+G_E_final+G_I_final+G_IB_final+sum_gap);
 
       float tau_slope = (tau_inf_final-tau_inf_initial)/dt;
       float f1 = tau_slope==0.0f ? EXP(-dt/tau_inf_initial) : powf(tau_inf_final/tau_inf_initial, -1/tau_slope);

@@ -381,19 +381,30 @@ int LIF::setActivity() {
 }
 
 int LIF::allocateBuffers() {
-   const size_t numNeurons = getNumNeurons();
-   G_E = G_I = G_IB = NULL;
-
-   if (numChannels > 0) {
-      G_E = (pvdata_t *) calloc(numNeurons*numChannels, sizeof(pvdata_t));
-      assert(G_E != NULL);
-
-      G_I  = G_E + 1*numNeurons;
-      G_IB = G_E + 2*numNeurons;
+   int status = allocateConductances(numChannels);
+   assert(status==PV_SUCCESS);
+   Vth = (pvdata_t *) calloc((size_t) getNumNeurons(), sizeof(pvdata_t));
+   if(Vth == NULL) {
+      fprintf(stderr, "LIF layer \"%s\" rank %d process unable to allocate memory for Vth: %s\n",
+              name, parent->columnId(), strerror(errno));
+      exit(EXIT_FAILURE);
    }
-   Vth = (pvdata_t *) calloc(numNeurons, sizeof(pvdata_t));
-   assert(Vth != NULL);
    return HyPerLayer::allocateBuffers();
+}
+
+int LIF::allocateConductances(int num_channels) {
+   assert(num_channels>=3); // Need exc, inh, and inhb at a minimum.
+   const int numNeurons = getNumNeurons();
+   G_E = (pvdata_t *) calloc((size_t) (getNumNeurons()*numChannels), sizeof(pvdata_t));
+   if(G_E == NULL) {
+      fprintf(stderr, "LIF layer \"%s\" rank %d process unable to allocate memory for %d conductances: %s\n",
+              name, parent->columnId(), num_channels, strerror(errno));
+      exit(EXIT_FAILURE);
+   }
+
+   G_I  = G_E + 1*numNeurons;
+   G_IB = G_E + 2*numNeurons;
+   return PV_SUCCESS;
 }
 
 int LIF::checkpointRead(const char * cpDir, double * timef) {
