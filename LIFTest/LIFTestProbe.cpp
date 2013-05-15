@@ -121,10 +121,9 @@ int LIFTestProbe::outputState(double timed) {
          rates[bin_number] += l->getV()[k];
       }
    }
+#ifdef PV_USE_MPI
    int root_proc = 0;
    InterColComm * icComm = l->getParent()->icCommunicator();
-#ifdef PV_USE_MPI
-#endif // PV_USE_MPI
    if (icComm->commRank()==root_proc) {
       MPI_Reduce(MPI_IN_PLACE, rates, LIFTESTPROBE_BINS, MPI_DOUBLE, MPI_SUM, root_proc, icComm->communicator());
       fprintf(outputstream->fp, "%s t=%f:", msg, timed);
@@ -149,6 +148,7 @@ int LIFTestProbe::outputState(double timed) {
       MPI_Reduce(rates, rates, LIFTESTPROBE_BINS, MPI_DOUBLE, MPI_SUM, root_proc, icComm->communicator());
       // Not using Allreduce, so the value of rates does not get updated in non-root processes.
    }
+#endif // PV_USE_MPI
    if (status!=PV_SUCCESS) abort();
    return status;
 }
