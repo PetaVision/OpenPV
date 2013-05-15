@@ -25,6 +25,8 @@ set(PV_BINARY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lib")
 set(LIBRARY_OUTPUT_PATH ${PV_BINARY_DIR})
 set(EXECUTABLE_OUTPUT_PATH ${PV_BINARY_DIR})
 
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PV_SOURCE_DIR}/../docs/cmake/Moduels/")
+
 # Read in file and parse by line
 file(READ "${PV_SRC_LIST}" contents)
 STRING(REGEX REPLACE "\n" ";" contents "${contents}")
