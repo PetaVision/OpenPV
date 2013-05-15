@@ -56,9 +56,7 @@ if(GDAL_PATH STREQUAL "NA")
    find_package(GDAL REQUIRED)
 else(GDAL_PATH STREQUAL "NA")
    message(STATUS "Using GDAL path ${GDAL_PATH}")
-   find_package(GDAL REQUIRED
-      HINT ${GDAL_PATH}
-   )
+   find_package(GDAL REQUIRED)
 endif(GDAL_PATH STREQUAL "NA")
 include_directories(${GDAL_INCLUDE_DIR})
 
@@ -66,9 +64,10 @@ if(MPI_PATH STREQUAL "NA")
    find_package(MPI REQUIRED)
 else(MPI_PATH STREQUAL "NA")
    message(STATUS "Using MPI path ${MPI_PATH}")
-   find_package(MPI REQUIRED
-      HINT ${MPI_PATH}
-   )
+   set(OLD_PATH ${CMAKE_LIBRARY_PATH})
+   set(CMAKE_LIBRARY_PATH ${MPI_PATH})
+   find_package(MPI REQUIRED)
+   set(CMAKE_LIBRARY_PATH ${OLD_PATH})
 endif(MPI_PATH STREQUAL "NA")
 include_directories(${MPI_CPP_INCLUDE_PATH})
 include_directories(${MPI_C_INCLUDE_PATH})
