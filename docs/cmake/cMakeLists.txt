@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 2.6)
 
 # The user may specify a non-standard compiler ID for MPI
 #  For example, the user may type:
-#    cmake cMakeLists.txt -DMPI_C_COMPILER_ID:STRING=openmpicc -DMPI_C_COMPILER_ID:STRING=openmpic++
+#    cmake cMakeLists.txt -DMPI_C_COMPILER_ID:STRING=openmpicc -DMPI_CXX_COMPILER_ID:STRING=openmpic++
 #    
 
 set(MPI_C_COMPILER_ID "mpicc" CACHE STRING "mpicc")
