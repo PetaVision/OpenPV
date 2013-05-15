@@ -16,7 +16,9 @@ Before installing PetaVision, you need the following libraries:
 
 We recommend using apt-get on linux systems, mac ports on OSX systems, and cygwin on Windows systems to obtain the above libraries.
 
-You will also need a SourceForge account, which is free: https://sourceforge.net/user/registration
+You will need a SourceForge account, which is free: https://sourceforge.net/user/registration
+
+If you wish to contribute (commit changes) to PetaVision, contact us to be added as a developer.
 
 We recommend the following, although they are not required:
 	Octave
@@ -37,10 +39,14 @@ Navigate into this directory:
 	cd workspace
 
 Download PetaVision from subversion:
-	svn co https://username@svn.code.sf.net/p/petavision/code/trunk PetaVision
+	If you are a developer:
+		svn co https://username@svn.code.sf.net/p/petavision/code/trunk PetaVision
+	If you would like a read-only version:
+		svn co http://svn.code.sf.net/p/petavision/code/trunk PetaVision
 
 Download any optional sandboxes or systems tests. First, as an example, the BIDS sandbox:
-	svn co https://username@svn.code.sf.net/p/petavision/code/sandbox/BIDS BIDS	
+	Developers: svn co https://username@svn.code.sf.net/p/petavision/code/sandbox/BIDS BIDS
+	Users: svn co http://svn.code.sf.net/p/petavision/code/sandbox/BIDS BIDS
 
 Copy the CMake project configuration file from the PetaVision docs folder to the workspace folder:
 	cp PetaVision/docs/cmake/cMakeLists.txt .
