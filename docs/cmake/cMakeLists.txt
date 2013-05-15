@@ -5,12 +5,11 @@ cmake_minimum_required(VERSION 2.6)
 
 # The user may specify a non-standard compiler name for MPI
 #  For example, the user may type:
-#    cmake cMakeLists.txt -DMPI_C_COMPILER_NAME:STRING=openmpicc -DMPI_CXX_COMPILER_NAME:STRING=openmpic++
+#    cmake cMakeLists.txt -DCMAKE_C_COMPILER=openmpicc -DCMAKE_CXX_COMPILER=openmpic++
 #    
 
-set(MPI_C_COMPILER_NAME "mpicc" CACHE STRING "mpicc")
-set(MPI_CXX_COMPILER_NAME "mpic++" CACHE STRING "mpic++")
-
+set(MPI_C_COMPILER_NAME "${CMAKE_C_COMPILER}")
+set(MPI_CXX_COMPILER_NAME "${CMAKE_CXX_COMPILER}")
 
 add_subdirectory(PetaVision)
 add_subdirectory(BIDS)
