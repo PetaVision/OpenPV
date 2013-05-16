@@ -27,14 +27,3 @@ target_link_libraries(BIDS PetaVision)
 target_link_libraries(BIDS ${GDAL_LIBRARY})
 target_link_libraries(BIDS ${MPI_C_LIBRARIES})
 target_link_libraries(BIDS ${MPI_CXX_LIBRARIES})
-
-# Set compiler flags
-set_target_properties(
-   COMPILE_FLAGS ${MPI_C_COMPILE_FLAGS}
-   COMPILE_FLAGS ${MPI_CXX_COMPILE_FLAGS}
-   LINK_FLAGS ${MPI_C_LINK_FLAGS}
-   LINK_FLAGS ${MPI_CXX_LINK_FLAGS}
-   )
-
-
-
