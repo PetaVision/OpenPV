@@ -69,8 +69,7 @@ void LIFGap_update_state_original(
     CL_MEM_GLOBAL float * GSynHead,
     CL_MEM_GLOBAL float * activity, 
 
-    const float sum_gap,
-    CL_MEM_GLOBAL float * G_Gap)
+    const float sum_gap)
 {
    int k;
 
@@ -236,8 +235,7 @@ void LIFGap_update_state_beginning(
     CL_MEM_GLOBAL float * GSynHead,
     CL_MEM_GLOBAL float * activity, 
 
-    const float sum_gap,
-    CL_MEM_GLOBAL float * G_Gap)
+    const float sum_gap)
 {
    int k;
 
@@ -409,8 +407,7 @@ void LIFGap_update_state_arma(
     CL_MEM_GLOBAL float * GSynHead,
     CL_MEM_GLOBAL float * activity,
 
-    const float sum_gap,
-    CL_MEM_GLOBAL float * G_Gap)
+    const float sum_gap)
 {
    int k;
 

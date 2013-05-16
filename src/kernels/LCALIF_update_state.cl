@@ -65,7 +65,6 @@ void LCALIF_update_state(
     CL_MEM_GLOBAL float * activity, 
 
     const float sum_gap,
-    CL_MEM_GLOBAL float * G_Gap,
     CL_MEM_GLOBAL float * Vattained,
     CL_MEM_GLOBAL float * Vmeminf,
     const int normalizeInputFlag,
@@ -122,7 +121,6 @@ for (int k = 0; k < nx*ny*nf; k++) {
    float l_G_E  = G_E[k];
    float l_G_I  = G_I[k];
    float l_G_IB = G_IB[k];
-   float l_G_Gap = G_Gap[k];
 
 #define CHANNEL_NORM (CHANNEL_GAP+1)
    CL_MEM_GLOBAL float * GSynExc = &GSynHead[CHANNEL_EXC*numNeurons];
@@ -192,9 +190,8 @@ for (int k = 0; k < nx*ny*nf; k++) {
    G_E_initial = l_G_E + l_GSynExc;
    G_I_initial = l_G_I + l_GSynInh;
    G_IB_initial = l_G_IB + l_GSynInhB;
-   l_G_Gap = l_GSynGap; // G_Gap doesn't change over the timestep, so don't need initial/final
    tau_inf_initial = tau/(1+G_E_initial+G_I_initial+G_IB_initial+sum_gap);
-   V_inf_initial = (Vrest+Vexc*G_E_initial+Vinh*G_I_initial+VinhB*G_IB_initial+l_G_Gap)/(1+G_E_initial+G_I_initial+G_IB_initial+sum_gap);
+   V_inf_initial = (Vrest+Vexc*G_E_initial+Vinh*G_I_initial+VinhB*G_IB_initial+l_GSynGap)/(1+G_E_initial+G_I_initial+G_IB_initial+sum_gap);
 
    G_E_initial  = (G_E_initial  > GMAX) ? GMAX : G_E_initial;
    G_I_initial  = (G_I_initial  > GMAX) ? GMAX : G_I_initial;
@@ -207,7 +204,7 @@ for (int k = 0; k < nx*ny*nf; k++) {
    G_I_final = G_I_initial * decayI;
    G_IB_final = G_IB_initial * decayIB;
    tau_inf_final = tau/(1+G_E_final+G_I_final+G_IB_final+sum_gap);
-   V_inf_final = (Vrest+Vexc*G_E_final+Vinh*G_I_final+VinhB*G_IB_final+l_G_Gap)/(1+G_E_final+G_I_final+G_IB_final+sum_gap);
+   V_inf_final = (Vrest+Vexc*G_E_final+Vinh*G_I_final+VinhB*G_IB_final+l_GSynGap)/(1+G_E_final+G_I_final+G_IB_final+sum_gap);
 
    float tau_slope = (tau_inf_final-tau_inf_initial)/dt;
    float f1 = tau_slope==0.0f ? EXP(-dt/tau_inf_initial) : powf(tau_inf_final/tau_inf_initial, -1/tau_slope);
@@ -260,7 +257,6 @@ for (int k = 0; k < nx*ny*nf; k++) {
    G_E[k]  = l_G_E;
    G_I[k]  = l_G_I;
    G_IB[k] = l_G_IB;
-   G_Gap[k] = l_G_Gap;
 
 #ifndef PV_USE_OPENCL
    } // loop over k

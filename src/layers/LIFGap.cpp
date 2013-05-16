@@ -44,8 +44,7 @@ void LIFGap_update_state_original(
     float * GSynHead,
     float * activity,
 
-    const float sum_gap,
-    float * G_Gap
+    const float sum_gap
 );
 
 void LIFGap_update_state_beginning(
@@ -69,8 +68,7 @@ void LIFGap_update_state_beginning(
     float * GSynHead,
     float * activity,
 
-    const float sum_gap,
-    float * G_Gap
+    const float sum_gap
 );
 
 void LIFGap_update_state_arma(
@@ -94,8 +92,7 @@ void LIFGap_update_state_arma(
     float * GSynHead,
     float * activity,
 
-    const float sum_gap,
-    float * G_Gap
+    const float sum_gap
 );
 
 
@@ -142,7 +139,6 @@ LIFGap::~LIFGap()
 }
 
 int LIFGap::initialize_base() {
-   G_Gap = NULL;
 
 #ifdef PV_USE_OPENCL
    clG_Gap = NULL;
@@ -328,15 +324,15 @@ int LIFGap::updateState(double time, double dt)
    switch (method) {
    case 'a':
       LIFGap_update_state_arma(getNumNeurons(), time, dt, nx, ny, nf, nb, &lParams, rand_state, clayer->V, Vth, G_E,
-            G_I, G_IB, GSynHead, activity, sumGap, G_Gap);
+            G_I, G_IB, GSynHead, activity, sumGap);
    break;
    case 'b':
       LIFGap_update_state_beginning(getNumNeurons(), time, dt, nx, ny, nf, nb, &lParams, rand_state, clayer->V, Vth, G_E,
-            G_I, G_IB, GSynHead, activity, sumGap, G_Gap);
+            G_I, G_IB, GSynHead, activity, sumGap);
    break;
    case 'o':
       LIFGap_update_state_original(getNumNeurons(), time, dt, nx, ny, nf, nb, &lParams, rand_state, clayer->V, Vth, G_E,
-            G_I, G_IB, GSynHead, activity, sumGap, G_Gap);
+            G_I, G_IB, GSynHead, activity, sumGap);
       break;
    default:
       assert(0);

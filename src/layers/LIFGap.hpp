@@ -47,9 +47,8 @@ protected:
    int initialize(const char * name, HyPerCol * hc, PVLayerType type, int num_channels, const char * kernel_name);
    virtual int allocateConductances(int num_channels);
 
-   pvdata_t * G_Gap;
+   // pvdata_t * G_Gap; // Commented out May 15, 2013
    pvdata_t sumGap;
-   // char method;  // Moved to LIF
 
 #ifdef PV_USE_OPENCL
    virtual int initializeThreadBuffers(const char * kernelName);

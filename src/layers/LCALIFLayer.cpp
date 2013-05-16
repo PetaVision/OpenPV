@@ -63,7 +63,6 @@ void LCALIF_update_state(
    CL_MEM_GLOBAL float * activity,
 
    const float sum_gap,
-   CL_MEM_GLOBAL float * G_Gap,
    CL_MEM_GLOBAL float * Vattained,
    CL_MEM_GLOBAL float * Vmeminf,
    const int normalizeInputFlag,
@@ -171,7 +170,7 @@ int LCALIFLayer::updateState(double timed, double dt)
    }
    LCALIF_update_state(getNumNeurons(), timed, dt, clayer->loc.nx, clayer->loc.ny, clayer->loc.nf,
          clayer->loc.nb, Vscale, Vadpt, tauTHR, targetRateHz, integratedSpikeCount, &lParams,
-         rand_state, clayer->V, Vth, G_E, G_I, G_IB, GSyn[0], clayer->activity->data, sumGap, G_Gap, Vattained, Vmeminf, (int) normalizeInputFlag,
+         rand_state, clayer->V, Vth, G_E, G_I, G_IB, GSyn[0], clayer->activity->data, sumGap, Vattained, Vmeminf, (int) normalizeInputFlag,
          GSynExcEffective, GSynInhEffective, excitatoryNoise, inhibitoryNoise, inhibNoiseB);
    updateActiveIndices();
    return PV_SUCCESS;
