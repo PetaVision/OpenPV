@@ -171,7 +171,7 @@ int PV_fseek(PV_Stream * pvstream, long offset, int whence) {
       fseekstatus = fseek(pvstream->fp, offset, whence);
       if (fseekstatus==0) break;
       fseekcounts++;
-      fprintf(stderr, "fseek failure for \"%s\" on attempt %d\n", pvstream->name, fseekcounts);
+      fprintf(stderr, "fseek failure for \"%s\" on attempt %d: %s\n", pvstream->name, fseekcounts, strerror(errno));
       if (fseekcounts<MAX_FILESYSTEMCALL_TRIES) {
          sleep(1);
       }
