@@ -49,10 +49,10 @@ Download any optional sandboxes or systems tests. First, as an example, the BIDS
 	Users: svn co http://svn.code.sf.net/p/petavision/code/sandbox/BIDS BIDS
 
 Copy the CMake project configuration file from the PetaVision docs folder to the workspace folder:
-	cp PetaVision/docs/cmake/cMakeLists.txt .
+	cp PetaVision/docs/cmake/CMakeLists.txt .
 
 Run CMake to create your make files:
-	cmake cMakeLists.txt -DCMAKE_C_COMPILER=<c_compiler> -DCMAKE_CXX_COMPILER=<cpp_compiler>
+	cmake CMakeLists.txt -DCMAKE_C_COMPILER=<c_compiler> -DCMAKE_CXX_COMPILER=<cpp_compiler>
 
    where <c_compiler> is usually your mpi compiler (e.g. mpicc or openmpicc) and <cpp_compiler) is your c++ compiler
 

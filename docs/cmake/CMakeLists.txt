@@ -5,7 +5,7 @@ cmake_minimum_required(VERSION 2.8)
 
 # The user may specify a non-standard compiler name for MPI
 #  For example, the user may type:
-#    cmake cMakeLists.txt -DCMAKE_C_COMPILER=openmpicc -DCMAKE_CXX_COMPILER=openmpic++
+#    cmake CMakeLists.txt -DCMAKE_C_COMPILER=openmpicc -DCMAKE_CXX_COMPILER=openmpic++
 #    
 
 set(MPI_C_COMPILER_NAME "${CMAKE_C_COMPILER}")
