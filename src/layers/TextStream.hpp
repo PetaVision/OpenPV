@@ -12,6 +12,10 @@
 #include "../columns/HyPerCol.hpp"
 #include "../utils/cl_random.h"
 
+#ifndef STAT_H
+#include <sys/stat.h>
+#endif
+
 namespace PV {
 
 class TextStream : public HyPerLayer{
@@ -28,8 +32,9 @@ private:
 protected:
 	TextStream();
 	int initialize(const char * name, HyPerCol * hc);
-	int getCharEncoding(const char printableASCIIChar);
+	int getCharEncoding(const char * printableASCIIChar);
 
+	virtual int setParams(PVParams * params);
 	virtual void readNxScale(PVParams * params); // Override from HyPerLayer - will just set nxScale now instead of reading
 	virtual void readNyScale(PVParams * params); // Override from HyPerLayer - will just set nyScale now instead of reading
 	virtual void readNf(PVParams * params);      // Override from HyPerLayer - will just set NF now instead of reading
@@ -38,27 +43,35 @@ protected:
 	virtual void readDisplayPeriod(PVParams * params);
 	virtual void readTextInputPath(PVParams * params);
 	virtual void readTextOffset(PVParams * params);
+	virtual void readMirrorBCFlag(PVParams * params) {mirrorBCflag = false;} // Flag doesn't make sense for text
+	virtual void readTextBCFlag(PVParams * params);
 
-	int scatterTextFile(const char * filename, int xOffset, int yOffset,
-                         PV::Communicator * comm, const PVLayerLoc * loc, float * buf);
+	int scatterTextBuffer(PV::Communicator * comm, const PVLayerLoc * loc);
+	int readFileToBuffer(PV_Stream * inStream, int offset, const PVLayerLoc * loc, int * buf);
+	int loadBufferIntoData(const PVLayerLoc * loc, int * buf);
+
 
 	MPI_Datatype * mpi_datatypes;  // MPI datatypes for boundary exchange
 
 	PV_Stream * fileStream;
 
-	const char * filename;        // Path to file if a file exists
+	const char * filename;    // Path to file if a file exists
 
-	PVLayerLoc textLoc;     // Size/location of actual image in global context
-	pvdata_t * textData;    // Buffer containing image
+	PVLayerLoc textLoc;       // Size/location of actual image in global context
+	pvdata_t * textData;      // Buffer containing image
 
-	double displayPeriod;   // Length of time a string 'frame' is displayed
+	double displayPeriod;     // Length of time a string 'frame' is displayed
 	double nextDisplayTime;
-	double lastUpdateTime;  // Time of last image update
+	double lastUpdateTime;    // Time of last image update
 
-	int textOffset;         // Starting point for run
+	int textOffset;           // Starting point for run
+	int numCharsPerWord;      // Word size
 
-	bool useCapitalization; // Should mapping account for capital letters
-	bool loopInput;         // Should the algorithm loop through the text file until specified total run time is completed or exit gracefully
+	bool useCapitalization;   // Should mapping account for capital letters
+	bool loopInput;           // Should the algorithm loop through the text file until specified total run time is completed or exit gracefully
+	bool textBCFlag;          // Grab text in either direction
+
+	int * textBCBuffer;       // Stores nb words from previous stream for buffer
 
 };
 }
