@@ -524,14 +524,16 @@ int HyPerLayer::initializeState() {
       status = readState(&timef);
    }
    else {
-      InitV * initVObject = new InitV(parent, name);
-      if( initVObject == NULL ) {
-         fprintf(stderr, "HyPerLayer::initializeState error: layer %s unable to create InitV object\n", name);
-         abort();
-      }
-      status = initVObject->calcV(this);
-      delete initVObject;
-      setActivity();
+	  if (this->getV()!=NULL) {
+		  InitV * initVObject = new InitV(parent, name);
+		  if( initVObject == NULL ) {
+			 fprintf(stderr, "HyPerLayer::initializeState error: layer %s unable to create InitV object\n", name);
+			 abort();
+		  }
+		  status = initVObject->calcV(this);
+		  delete initVObject;
+		  setActivity();
+	  }
    }
    return status;
 }
