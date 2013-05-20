@@ -27,22 +27,17 @@ TextStream::~TextStream() {
    if (getParent()->icCommunicator()->commRank()==0 && fileStream != NULL && fileStream->isfile) {
       PV_fclose(fileStream);
    }
-   if (textBCBuffer != NULL) {
-	   delete textBCBuffer;
-	   textBCBuffer=NULL;
-   }
 }
 
 int TextStream::initialize_base() {
 	displayPeriod = 1;
 	nextDisplayTime = 1;
 	textOffset = 0;
-	useCapitalization = false;
+	useCapitalization = true;
 	loopInput = false;
 	textBCFlag = true;
 	filename = NULL;
 	textData = NULL;
-	textBCBuffer = NULL;
 
 	return PV_SUCCESS;
 }
@@ -52,20 +47,12 @@ int TextStream::initialize(const char * name, HyPerCol * hc) {
 
 	HyPerLayer::initialize(name, hc, 0);
 
-	PVParams * params = parent->parameters();
-	setParams(params);
-	numCharsPerWord = parent->getNyGlobal();
-
 	free(clayer->V);
 	clayer->V = NULL;
 
 	// Point to clayer data struct
     textData = clayer->activity->data;
     assert(textData!=NULL);
-
-    // Initialize text buffer
-    textBCBuffer = new int[this->getLayerLoc()->nb * ((2*this->getLayerLoc()->nb)+this->getLayerLoc()->nx) * this->getLayerLoc()->nf];
-    assert(textBCBuffer!=NULL);
 
 	// Create mpi_datatypes for border transfer
 	mpi_datatypes = Communicator::newDatatypes(getLayerLoc());
@@ -98,14 +85,14 @@ int TextStream::initialize(const char * name, HyPerCol * hc) {
 }
 
 int TextStream::setParams(PVParams * params) {
-	int status = HyPerLayer::setParams(params);
-
 	readUseCapitalization(params);
 	readLoopInput(params);
 	readTextInputPath(params);
 	readDisplayPeriod(params);
 	readTextOffset(params);
 	readTextBCFlag(params);
+
+	int status = HyPerLayer::setParams(params);
 
 	return status;
 }
@@ -244,25 +231,24 @@ int TextStream::readFileToBuffer(PV_Stream * inStream, int offset, const PVLayer
 	int encodedChar;
 	int dataIndex = 0;
 	int loc_ny = loc->ny;
-	int yEnd = loc_ny;
+	int loc_nx = loc->nx;
+	int y_start = 0;
+
+	if (fileStream->filepos==0) { // Skip initial margin stuff for first read
+		y_start = loc->nb;
+	}
 
 	if (textBCFlag) {
 		loc_ny = loc->ny + 2*loc->nb;
-		yEnd = loc_ny - loc->nb;
-
-		dataIndex = loc->nb*(loc->nx+2*loc->nb)*loc->nf;
-		if (inStream->filepos != 0) { // Not at beginning of file
-			for (int idx=0; idx<dataIndex; idx++) {
-				buf[idx] = textBCBuffer[idx];
-			}
-		}
+		loc_nx = loc->nx + 2*loc->nb;
 	}
 
+	int preMarginReads, numExtraReads = 0;
 	char * tmpChar = new char[1];  // One character at a time
-	for (int y=0; y<yEnd; y++) {  // ny = words per proc
-		encodedChar = NAN;
+	for (int y=y_start; y<loc_ny; y++) {  // ny = words per proc
+		encodedChar = -1;
 		bool punctChar = false; // Set if punctuation was read
-		for (int x=0; x<loc->nx; x++) { // nx = numCharsPerWord ; leave 0s in buffer
+		for (int x=0; x<loc_nx; x++) { // nx = numCharsPerWord ; leave 0s in buffer
 			// Only read from file if previous char was not a space
 			// Also, only read if not at the end of the file
 			// Also, only read if last char was not punctuation
@@ -287,7 +273,7 @@ int TextStream::readFileToBuffer(PV_Stream * inStream, int offset, const PVLayer
 				if (encodedChar == 1 || encodedChar == 2 || encodedChar == 8 || encodedChar == 9 ||
 						encodedChar == 12 || encodedChar == 14 || encodedChar == 26 ||
 						encodedChar == 27 || encodedChar == 31 || encodedChar == 64 ||
-						encodedChar == 95) {
+						encodedChar == 69) {
 					punctChar = true;
 				}
 			}
@@ -316,28 +302,23 @@ int TextStream::readFileToBuffer(PV_Stream * inStream, int offset, const PVLayer
 
 		if (punctChar) { // If you had read a punctuation mark, back out the file pointer
 			PV_fseek(inStream,-1,SEEK_CUR); // back up FP to re-read
+			numReads--;
 		}
 
-		while (encodedChar !=0 && numReads<inStream->filelength) { // If word is longer than numCharsPerWord, read and dump the rest
+		while (encodedChar!=0 && numReads<inStream->filelength) { // If word is longer than numCharsPerWord, read and dump the rest
 			int numRead = PV_fread(tmpChar,sizeof(char),numItems,inStream);
 			assert(numRead==numItems);
 			encodedChar = getCharEncoding(tmpChar);
 			numReads += numRead;
 		}
+		if (y == loc->ny-1) {
+			preMarginReads = numReads;
+		}
 	}
 
-	if (textBCFlag) {
-		dataIndex = 0;
-		for (int b=0; b<loc->nb; b++) {
-			for (int x=0; x<(2*loc->nb)+loc->nx; x++) {
-				for (int f=0; f<loc->nf; f++) {
-					if (b <= loc->nb) { // Fill in the end of the last thing read
-						textBCBuffer[dataIndex] = buf[loc_ny*loc->nx*loc->nf - (loc->nb*loc->nx*loc->nf) + dataIndex];
-					}
-					dataIndex += 1;
-				}
-			}
-		}
+	numExtraReads = numReads - preMarginReads;
+	if (textBCFlag) { // Back up to pre-margin file position
+		PV_fseek(inStream,-numExtraReads,SEEK_CUR);
 	}
 
 	delete tmpChar;
@@ -346,16 +327,18 @@ int TextStream::readFileToBuffer(PV_Stream * inStream, int offset, const PVLayer
 
 int TextStream::loadBufferIntoData(const PVLayerLoc * loc, int * buf) {
 	int loc_ny = loc->ny;
+	int loc_nx = loc->nx;
+
 	if(textBCFlag){ //Expand dimensions to the extended space
 		loc_ny = loc->ny + 2*loc->nb;
+		loc_nx = loc->nx + 2*loc->nb;
 	}
 
 	int locIdx = 0;
 	for (int y=0; y<loc_ny; y++) {         // number of words per proc
-		for (int x=0; x<loc->nx; x++) {     // Chars per word
+		for (int x=0; x<loc_nx; x++) {     // Chars per word
 			for (int f=0; f<loc->nf; f++) { // Char vector
-				int extLocIdx = kIndexExtended(locIdx,loc->nx,loc_ny,loc->nf,loc->nb);
-				textData[extLocIdx] = buf[locIdx];
+				textData[locIdx] = buf[locIdx];
 				locIdx += 1; // Local non-extended index
 			}
 		}

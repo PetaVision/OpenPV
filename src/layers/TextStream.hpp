@@ -65,14 +65,10 @@ protected:
 	double lastUpdateTime;    // Time of last image update
 
 	int textOffset;           // Starting point for run
-	int numCharsPerWord;      // Word size
 
 	bool useCapitalization;   // Should mapping account for capital letters
 	bool loopInput;           // Should the algorithm loop through the text file until specified total run time is completed or exit gracefully
 	bool textBCFlag;          // Grab text in either direction
-
-	int * textBCBuffer;       // Stores nb words from previous stream for buffer
-
 };
 }
 
