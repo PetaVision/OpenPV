@@ -45,8 +45,8 @@ int IdentConn::setParams(PVParams * inputParams) {
    if( preLoc->nx != postLoc->nx || preLoc->ny != postLoc->ny || preLoc->nf != postLoc->nf ) {
       if (parent->columnId()==0) {
          fprintf( stderr,
-                  "IdentConn Error: %s and %s do not have the same dimensions\n",
-                  pre->getName(),post->getName() );
+                  "IdentConn Error: %s and %s do not have the same dimensions.\n Dims: %dx%dx%d vs. %dx%dx%d\n",
+                  pre->getName(),post->getName(),preLoc->nx,preLoc->ny,preLoc->nf,postLoc->nx,postLoc->ny,postLoc->nf);
       }
       exit(EXIT_FAILURE);
    }
