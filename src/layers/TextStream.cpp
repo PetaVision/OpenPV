@@ -77,7 +77,7 @@ int TextStream::initialize(const char * name, HyPerCol * hc) {
 		}
 	}
 
-	nextDisplayTime = hc->simulationTime() + displayPeriod;
+	nextDisplayTime = hc->simulationTime(); //  + displayPeriod;
 
 	status = updateState(0,parent->getDeltaTime());
 
