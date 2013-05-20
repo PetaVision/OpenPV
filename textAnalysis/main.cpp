@@ -38,11 +38,12 @@ void * addcustomgroup(const char * keyword, const char * groupname, HyPerCol * h
             fprintf(stderr, "Error reading params group \"%s\"\n", groupname);
             return addedProbe;
         }
+        int display_period = hc->parameters()->value(groupname, "displayPeriod", 1);
         if( filename ) {
-            addedProbe =  new TextStreamProbe(filename, targetlayer);
+            addedProbe =  new TextStreamProbe(filename, targetlayer, display_period);
         }
         else {
-            addedProbe =  new TextStreamProbe(NULL, targetlayer);
+            addedProbe =  new TextStreamProbe(NULL, targetlayer, display_period);
         }
         free(message); message=NULL; // message was alloc'ed in getLayerFunctionProbeParameters call
         if( !addedProbe ) {

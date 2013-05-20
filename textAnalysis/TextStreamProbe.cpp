@@ -14,9 +14,9 @@ TextStreamProbe::TextStreamProbe() {
    initTextStreamProbe_base();
 }
 
-TextStreamProbe::TextStreamProbe(const char * filename, HyPerLayer * layer) {
+TextStreamProbe::TextStreamProbe(const char * filename, HyPerLayer * layer, pvdata_t display_period) {
    initTextStreamProbe_base();
-   initTextStreamProbe(filename, layer);
+   initTextStreamProbe(filename, layer, display_period);
 }
 
 TextStreamProbe::~TextStreamProbe() {
@@ -26,8 +26,10 @@ int TextStreamProbe::initTextStreamProbe_base() {
    return PV_SUCCESS;
 }
 
-int TextStreamProbe::initTextStreamProbe(const char * filename, HyPerLayer * layer) {
+int TextStreamProbe::initTextStreamProbe(const char * filename, HyPerLayer * layer, pvdata_t display_period) {
    int status = LayerProbe::initLayerProbe(filename, layer);
+   displayPeriod = display_period;
+   nextDisplayTime = 0.0f;
    int nf = layer->getLayerLoc()->nf;
    switch(nf) {
    case 97:
@@ -44,6 +46,8 @@ int TextStreamProbe::initTextStreamProbe(const char * filename, HyPerLayer * lay
 }
 
 int TextStreamProbe::outputState(double timef) {
+   if (timef<nextDisplayTime) return PV_SUCCESS;
+   nextDisplayTime += displayPeriod;
    int status = PV_SUCCESS;
    assert(getTargetLayer()->getParent()->icCommunicator()->numCommColumns()==1);
    int num_rows = getTargetLayer()->getParent()->icCommunicator()->numCommRows();
@@ -60,7 +64,7 @@ int TextStreamProbe::outputState(double timef) {
 
    int rootproc = 0;
    if (getTargetLayer()->getParent()->columnId()==rootproc) {
-      char * cbuf = (char *) calloc(2*nx*ny, sizeof(char)); // Translation of feature numbers into characters.  2x because nonprintable characters
+      char * cbuf = (char *) calloc(2*nx, sizeof(char)); // Translation of feature numbers into characters.  2x because nonprintable characters
       for (int proc=0; proc<num_rows; proc++) {
          if (proc==rootproc) {
             // Copy to layer data to buf.
@@ -72,8 +76,8 @@ int TextStreamProbe::outputState(double timef) {
          else {
             MPI_Recv(buf, ny*nx*nf, MPI_FLOAT, proc, 157, mpi_comm, MPI_STATUS_IGNORE);
          }
-         char * curcbuf = cbuf;
          for (int y=0; y<ny; y++) {
+            char * curcbuf = cbuf;
             for (int x=0; x<nx; x++) {
                pvdata_t fmax = -FLT_MAX;
                int floc = -1;
@@ -87,13 +91,13 @@ int TextStreamProbe::outputState(double timef) {
                // Now floc is the location of the maximum over f, and fmax is the value.
                featureNumberToCharacter(floc, &curcbuf, cbuf, 2*nx*ny);
             }
+            assert(curcbuf-cbuf<2*nx*ny);
+            *curcbuf = '\0';
+            fprintf(outputstream->fp, "%s ", cbuf);
          }
-         fprintf(outputstream->fp, "%s ", cbuf);
       }
       fprintf(outputstream->fp, "\n");
-
-
-      free(buf); buf=NULL;
+      free(cbuf); cbuf = NULL;
    }
    else {
       for (int y=0; y<ny; y++) {
@@ -102,6 +106,7 @@ int TextStreamProbe::outputState(double timef) {
       }
       MPI_Send(buf, ny*nx*nf, MPI_FLOAT, rootproc, 157, mpi_comm);
    }
+   free(buf); buf=NULL;
 
    return status;
 }
