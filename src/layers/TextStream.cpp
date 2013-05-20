@@ -367,7 +367,7 @@ int TextStream::getCharEncoding(const char * printableASCIIChar) {
 				charMapValue = asciiValue - 32;
 			}
 			else {
-				charMapValue = asciiValue - 26 - 32;
+				charMapValue = asciiValue - 32 - 32;
 			}
 		}
 	}
