@@ -24,10 +24,6 @@ TextStream::TextStream(const char * name, HyPerCol * hc) {
 TextStream::~TextStream() {
 	filename = NULL;
 	Communicator::freeDatatypes(mpi_datatypes); mpi_datatypes = NULL;
-   if (textData != NULL) {
-      delete textData;
-      textData = NULL;
-   }
    if (getParent()->icCommunicator()->commRank()==0 && fileStream != NULL && fileStream->isfile) {
       PV_fclose(fileStream);
    }
@@ -68,7 +64,8 @@ int TextStream::initialize(const char * name, HyPerCol * hc) {
     assert(textData!=NULL);
 
     // Initialize text buffer
-    textBCBuffer = new int[this->getLayerLoc()->nb * this->getLayerLoc()->nx * this->getLayerLoc()->nf];
+    textBCBuffer = new int[this->getLayerLoc()->nb * ((2*this->getLayerLoc()->nb)+this->getLayerLoc()->nx) * this->getLayerLoc()->nf];
+    assert(textBCBuffer!=NULL);
 
 	// Create mpi_datatypes for border transfer
 	mpi_datatypes = Communicator::newDatatypes(getLayerLoc());
@@ -189,15 +186,26 @@ int TextStream::scatterTextBuffer(PV::Communicator * comm, const PVLayerLoc * lo
 	int rootproc = 0;
 
 	int loc_ny = loc->ny;
+	int loc_nx = loc->nx;
 	if(textBCFlag){ //Expand dimensions to the extended space
 		loc_ny = loc->ny + 2*loc->nb;
+		loc_nx = loc->nx + 2*loc->nb;
 	}
 
-	int numLocalNeurons = loc_ny * loc->nx * loc->nf;
+	int numLocalNeurons = loc_ny * loc_nx * loc->nf;
 
 	int comm_size = comm->commSize();
+	//TODO: Change to loc_nx?
 	if (loc->nx % comm_size != 0) { // Need to be able to devide the number of neurons in the x (words) direction by the number of procs
 		fprintf(stderr, "textStream: Number of processors must evenly devide into number of words");
+		status = PV_FAILURE;
+		abort();
+	}
+
+	size_t datasize = sizeof(int);
+	int * temp_buffer = (int *) calloc(numLocalNeurons, datasize);
+	if (temp_buffer==NULL) {
+		fprintf(stderr, "scatterTextBuffer unable to allocate memory for temp_buffer.\n");
 		status = PV_FAILURE;
 		abort();
 	}
@@ -205,17 +213,9 @@ int TextStream::scatterTextBuffer(PV::Communicator * comm, const PVLayerLoc * lo
 #ifdef PV_USE_MPI
 	int rank = comm->commRank();
 
-	size_t datasize = sizeof(int);
-	int * temp_buffer = (int *) calloc(numLocalNeurons, datasize);
-	if (temp_buffer==NULL) {
-		fprintf(stderr, "scatterActivity unable to allocate memory for temp_buffer.\n");
-		status = PV_FAILURE;
-		abort();
-	}
-
 	if (rank==rootproc) { // Root proc should send stuff out
-		readFileToBuffer(fileStream,textOffset,this->getLayerLoc(), temp_buffer);
 		for (int r=0; r<comm_size; r++) {
+			readFileToBuffer(fileStream,textOffset,this->getLayerLoc(), temp_buffer);
 			if (r==rootproc) {
 				status = loadBufferIntoData(loc,temp_buffer);
 			}
@@ -223,18 +223,18 @@ int TextStream::scatterTextBuffer(PV::Communicator * comm, const PVLayerLoc * lo
 				MPI_Send(temp_buffer, numLocalNeurons*(int) datasize, MPI_BYTE, r, 171+r/*tag*/, comm->communicator());
 			}
 		}
-
 	}
 	else {
 		MPI_Recv(temp_buffer, sizeof(uint4)*numLocalNeurons, MPI_BYTE, rootproc, 171+rank/*tag*/, comm->communicator(), MPI_STATUS_IGNORE);
 		status = loadBufferIntoData(loc,temp_buffer);
 	}
 #else // PV_USE_MPI
-	readFileToBuffer(fileStream,textOffset,this->getLayerLoc(), tmpFileBuf);
+	readFileToBuffer(fileStream,textOffset,this->getLayerLoc(), temp_buffer);
 	status = loadBufferIntoData(loc,temp_buffer);
 #endif // PV_USE_MPI
 
 	free(temp_buffer);
+	temp_buffer = NULL;
 	return status;
 }
 
@@ -250,7 +250,7 @@ int TextStream::readFileToBuffer(PV_Stream * inStream, int offset, const PVLayer
 		loc_ny = loc->ny + 2*loc->nb;
 		yEnd = loc_ny - loc->nb;
 
-		dataIndex = loc->nb*loc->nx*loc->nf;
+		dataIndex = loc->nb*(loc->nx+2*loc->nb)*loc->nf;
 		if (inStream->filepos != 0) { // Not at beginning of file
 			for (int idx=0; idx<dataIndex; idx++) {
 				buf[idx] = textBCBuffer[idx];
@@ -262,7 +262,7 @@ int TextStream::readFileToBuffer(PV_Stream * inStream, int offset, const PVLayer
 	for (int y=0; y<yEnd; y++) {  // ny = words per proc
 		encodedChar = NAN;
 		bool punctChar = false; // Set if punctuation was read
-		for (int x=0; x<loc->nx; x++) { // nx = numCharsPerWord
+		for (int x=0; x<loc->nx; x++) { // nx = numCharsPerWord ; leave 0s in buffer
 			// Only read from file if previous char was not a space
 			// Also, only read if not at the end of the file
 			// Also, only read if last char was not punctuation
@@ -275,15 +275,26 @@ int TextStream::readFileToBuffer(PV_Stream * inStream, int offset, const PVLayer
 
 			// These special characters are counted as words
 			//  ! " ( ) , . : ; ? `
-			if (encodedChar == 1 || encodedChar == 2 || encodedChar == 8 || encodedChar == 9 ||
-					encodedChar == 12 || encodedChar == 14 || encodedChar == 26 ||
-					encodedChar == 27 || encodedChar == 31 || encodedChar == 64) {
-				punctChar = true;
+			if (useCapitalization) {
+				if (encodedChar == 1 || encodedChar == 2 || encodedChar == 8 || encodedChar == 9 ||
+						encodedChar == 12 || encodedChar == 14 || encodedChar == 26 ||
+						encodedChar == 27 || encodedChar == 31 || encodedChar == 64 ||
+						encodedChar == 95) {
+					punctChar = true;
+				}
+			}
+			else { //TODO: Need to look up the no Cap numbers & make sure they're right
+				if (encodedChar == 1 || encodedChar == 2 || encodedChar == 8 || encodedChar == 9 ||
+						encodedChar == 12 || encodedChar == 14 || encodedChar == 26 ||
+						encodedChar == 27 || encodedChar == 31 || encodedChar == 64 ||
+						encodedChar == 95) {
+					punctChar = true;
+				}
 			}
 
 			for (int f=0; f<loc->nf; f++) { //nf = numFeatures (num printable ascii chars w/ or w/out caps)
 				if (punctChar) {
-					if (x==0) { // If punctuation the start of the word
+					if (x==0) { // If punctuation at the start of the word
 						if (f==encodedChar) {
 							buf[dataIndex] = 1;
 						} else {
@@ -317,10 +328,8 @@ int TextStream::readFileToBuffer(PV_Stream * inStream, int offset, const PVLayer
 
 	if (textBCFlag) {
 		dataIndex = 0;
-		long desiredFP = inStream->filepos;
-		encodedChar = NAN;
 		for (int b=0; b<loc->nb; b++) {
-			for (int x=0; x<loc->nx; x++) {
+			for (int x=0; x<(2*loc->nb)+loc->nx; x++) {
 				for (int f=0; f<loc->nf; f++) {
 					if (b <= loc->nb) { // Fill in the end of the last thing read
 						textBCBuffer[dataIndex] = buf[loc_ny*loc->nx*loc->nf - (loc->nb*loc->nx*loc->nf) + dataIndex];
@@ -329,7 +338,6 @@ int TextStream::readFileToBuffer(PV_Stream * inStream, int offset, const PVLayer
 				}
 			}
 		}
-		PV_fseek(fileStream,-(desiredFP-inStream->filepos),SEEK_CUR); // Move back to where you were
 	}
 
 	delete tmpChar;
