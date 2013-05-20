@@ -355,7 +355,7 @@ int TextStream::getCharEncoding(const char * printableASCIIChar) {
 
 	int asciiValue = (int)printableASCIIChar[0];
 
-	if (asciiValue == 11 || asciiValue == 13) {
+	if (asciiValue == 10 || asciiValue == 13) {
 		charMapValue = useCapitalization ? 95 : 69;
 	}
 	else if (asciiValue >= 32 || asciiValue <= 126) {
