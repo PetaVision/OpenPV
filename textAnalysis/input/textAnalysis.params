@@ -17,15 +17,15 @@ HyPerCol "column" = {
    randomSeed                      = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
    numSteps                        = 5000;       
    progressStep                    = 100;
-   outputPath                      = "~/Documents/Work/LANL/workspace/textAnalysis/output";
+   outputPath                      = "/Users/dpaiton/Documents/Work/LANL/workspace/textAnalysis/output";
    filenamesContainLayerNames      = true;
    filenamesContainConnectionNames = true;
    checkpointRead                  = false;
    //checkpointReadDir               = "~/Documents/Work/LANL/workspace/textAnalysis/output/Checkpoints";
    //checkpointReadDirIndex          = 1200000;
    checkpointWrite                 = true;
-   checkpointWriteDir              = "~/Documents/Work/LANL/workspace/textAnalysis/output/Checkpoints";
-   checkpointWriteStepInterval     = 1000;
+   checkpointWriteDir              = "/Users/dpaiton/Documents/Work/LANL/workspace/textAnalysis/output/Checkpoints";
+   checkpointWriteStepInterval     = 10;
    deleteOlderCheckpoints          = false;
    //suppressLastOutput              = false;
    writeProgressToErr              = true;
@@ -53,29 +53,6 @@ TextStream "Text" = {
     phase                  = 0;
 };
 
-Retina "Retina" = {
-    restart             = 0;
-    nxScale             = 1;
-    nyScale             = 1;
-    nf                  = 1;
-    marginWidth         = 1;
-    writeStep           = 5000.0;
-    initialWriteTime    = 4999.0;
-    mirrorBCflag        = 1;
-    spikingFlag         = 0;
-    writeSparseActivity = 0;
-                            //
-    foregroundRate      = 1000;
-    backgroundRate      = 0;
-    burstFreq           = 1;
-    burstDuration       = 1000;
-                            //
-    beginStim           = 0;
-    endStim             = 1000000000;
-                            //
-    phase               = 1;
-};
-
 ANNLayer "Recon" = {
     restart             = 0;
     nxScale             = 1;
@@ -97,13 +74,12 @@ ANNLayer "Recon" = {
     phase               = 4; 
 };
 
-
 ANNLayer "Error" = {
     restart             = 0;
     nxScale             = 1;
     nyScale             = 1;
-    nf                  = 1;
-    marginWidth         = 6;
+    nf                  = 97; // With Capitalization on
+    marginWidth         = 4;
     initialWriteTime    = 4999.0;
     writeStep           = 5000;
     mirrorBCflag        = 1;
@@ -118,7 +94,6 @@ ANNLayer "Error" = {
     //
     phase               = 2;  
 };
-
 
 HyPerLCALayer "V1" = {
     restart             = 0;
@@ -146,47 +121,15 @@ HyPerLCALayer "V1" = {
     phase               = 3;
 };
 
-
 // connections
 
-
-KernelConn "TextToRetina" = {
-    preLayerName               = "Text";
-    postLayerName              = "Retina";
-    channelCode                = 0;
-    nxp                        = 1;
-    nyp                        = 1;
-    nfp                        = 1;
-    numAxonalArbors            = 1;
-    writeStep                  = -1;
-    initFromLastFlag           = 0;
-                                    //
-    weightInitType             = "UniformWeight";
-    weightInit                 = 1.0;
-                                    //
-    normalizeMethod            = "none";
-                                    //
-    writeCompressedCheckpoints = false;
-    plasticityFlag             = 0;
-    stochasticReleaseFlag      = false;
-                                    //
-    preActivityIsNotRate       = false;
-    selfFlag                   = false;
-    shmget_flag                = false;
-    shrinkPatches              = false;
-                                    //
-    delay                      = 0;     
-};
-
-
-IdentConn "RetinaToError" = {
-    preLayerName  = "Retina";
+IdentConn "TextToError" = {
+    preLayerName  = "Text";
     postLayerName = "Error";
     channelCode   = 0;
     delay         = 0;
     writeStep     = -1;
 };
-
 
 KernelConn "V1ToError" = {
     preLayerName                 = "V1";
@@ -196,9 +139,9 @@ KernelConn "V1ToError" = {
     nxp                          = 1;  // Should always be 1
     nyp                          = 12; // y is num words in window
     nxpShrunken                  = 1;
-    nypShrunken                  = 4;  // Patch will be shrunken to this size
+    nypShrunken                  = 8;  // Patch will be shrunken to this size
                                        //
-    nfp                          = 1;
+    nfp                          = 97; // for Capitalization (71 if no caps)
     numAxonalArbors              = 1;
     initFromLastFlag             = 0;
                                        //
