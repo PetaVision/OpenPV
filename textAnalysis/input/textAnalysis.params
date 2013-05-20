@@ -17,14 +17,14 @@ HyPerCol "column" = {
    randomSeed                      = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
    numSteps                        = 5000;       
    progressStep                    = 100;
-   outputPath                      = "/Users/dpaiton/Documents/Work/LANL/workspace/textAnalysis/output";
+   outputPath                      = "/Users/pschultz/Workspace/NMC/PV_Output/textAnalysis/output";
    filenamesContainLayerNames      = true;
    filenamesContainConnectionNames = true;
    checkpointRead                  = false;
-   //checkpointReadDir               = "~/Documents/Work/LANL/workspace/textAnalysis/output/Checkpoints";
+   //checkpointReadDir               = "/Users/pschultz/Workspace/NMC/PV_Output/textAnalysis/output/Checkpoints";
    //checkpointReadDirIndex          = 1200000;
    checkpointWrite                 = true;
-   checkpointWriteDir              = "/Users/dpaiton/Documents/Work/LANL/workspace/textAnalysis/output/Checkpoints";
+   checkpointWriteDir              = "/Users/pschultz/Workspace/NMC/PV_Output/textAnalysis/output/Checkpoints";
    checkpointWriteStepInterval     = 10;
    deleteOlderCheckpoints          = false;
    //suppressLastOutput              = false;
@@ -246,6 +246,17 @@ CloneKernelConn "V1ToRecon" = {
 //    probeOutputFile = "Ganglion_Stats.txt";
 //};
 //
+
+TextStreamProbe "Text Probe" = {
+    targetLayer = "Text";
+    probeOutputFile = "Text_Probe.txt";
+};
+
+TextStreamProbe "Recon Probe" = {
+    targetLayer = "Recon";
+    probeOutputFile = "Recon_Probe.txt";
+};
+
 StatsProbe "ReconStatsFile" = {
     targetLayer = "Recon";
     probeOutputFile = "Recon_Stats.txt";
