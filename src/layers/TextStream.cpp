@@ -244,7 +244,7 @@ int TextStream::readFileToBuffer(PV_Stream * inStream, int offset, const PVLayer
 		loc_nx = loc->nx + 2*loc->nb;
 	}
 
-	int preMarginReads, numExtraReads = 0;
+	int preMarginReads=0, numExtraReads = 0;
 	unsigned char * tmpChar = new unsigned char[1];  // One character at a time
 	for (int y=y_start; y<loc_ny; y++) { // ny = words per proc
 		while(encodedChar==0 && numReads<inStream->filelength) { // Read until nonspace
@@ -380,12 +380,13 @@ int TextStream::loadBufferIntoData(const PVLayerLoc * loc, int * buf) {
 			}
 		}
 	}
+
 //	locIdx = 0;
 //	for (int idx=0; idx<loc_ny*loc_nx; idx++) {
 //		for (int f=0; f<loc->nf; f++) {
-//			if (buf[locIdx]!=0) {
-//				std::cout<<f<<"  ";
-//			}
+////			if (buf[locIdx]!=0) {
+////				std::cout<<f<<"  ";
+////			}
 //			if(textData[locIdx]!=0){
 //				std::cout<<f<<"  ";
 //			}
