@@ -1,5 +1,5 @@
 %% begin definition of most variable input params
-clip_ids = [26]; %% [1:50]; %% [7:17,21:22,30:31]; %%
+clip_ids = [37:50]; %% [1:50]; %% [7:17,21:22,30:31]; %%
 clip_name = cell(length(clip_ids),1);
 for i_clip = 1 : length(clip_name)
   clip_name{i_clip} = num2str(clip_ids(i_clip), "%3.3i");

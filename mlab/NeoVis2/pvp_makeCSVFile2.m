@@ -581,7 +581,8 @@ function [num_frames, ...
   
   disp("");
 
-  if isempty(pvp_path)
+  %% don't make CSV file until fixed
+  if 1 %%isempty(pvp_path)
     return;
   endif
 
