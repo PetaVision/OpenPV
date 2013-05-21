@@ -19,7 +19,7 @@ HyPerCol "column" = {
    $$$_printParamsFilename_$$$
    writeProgressToErr = true;
    filenamesContainConnectionNames = false;
-   suppressLastOutput = false;
+   suppressLastOutput = true;
 };
 
 //
