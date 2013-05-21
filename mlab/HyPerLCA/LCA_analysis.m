@@ -12,10 +12,11 @@ if ismac
   frame_duration = 1000;
 elseif isunix
   workspace_path = "/home/gkenyon/workspace";
-  output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_16x16x1024_Overlap_lambda_05X2"; %%MRI/LCA/5_subjects"; %%  
+  %%output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_16x16x1024_Overlap_lambda_05X2"; %%MRI/LCA/5_subjects"; %%  
+  output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_12x12x1024_lambda_05X2_color_deep"; %%MRI/LCA/5_subjects"; %%  
   LCA_path = [output_dir];
-  last_checkpoint_ndx = 100000*11 %%50000*21; %% 
-  next_checkpoint_ndx = 100000*12; %%50000*22; %% 
+  last_checkpoint_ndx = 10000*9 %%50000*21; %% 
+  next_checkpoint_ndx = 10000*9; %%50000*22; %% 
   first_checkpoint_ndx = 0;
   frame_duration = 5000;
 endif
@@ -24,11 +25,12 @@ checkpoint_dir = [LCA_path, filesep, "Checkpoints"];
 checkpoint_path = [checkpoint_dir, filesep, "Checkpoint", num2str(last_checkpoint_ndx, "%i")];
 next_checkpoint_path = [checkpoint_dir, filesep, "Checkpoint", num2str(next_checkpoint_ndx, "%i")];
 max_lines = last_checkpoint_ndx + (last_checkpoint_ndx == 0) * 50000;
-max_history = 50000;
+max_history = 90000;
 begin_statProbe_step = max(max_lines - max_history, 3);
 training_flag = 1;
-num_recon = 1;
+num_recon = 16;
 deep_flag = 1;
+deep2_flag = 1;
 
 
 %% plot Reconstructions
@@ -133,11 +135,13 @@ if plot_Recon
   %% parse activity files
   Retina_file = [output_dir, filesep, "a1_Retina.pvp"];
   Ganglion_file = [output_dir, filesep, "a3_Ganglion.pvp"];
-  Recon_file = [output_dir, filesep, "a6_Recon.pvp"];
-  %%Error_file = [output_dir, filesep, "a4_Error.pvp"];
+  %%Error_file = [output_dir, filesep, "a5_Error.pvp"];
   if deep_flag
-    Recon2_file = [output_dir, filesep, "a9_Recon2.pvp"];
+   Recon_file = [output_dir, filesep, "a6_Recon.pvp"];
+   Recon2_file = [output_dir, filesep, "a9_Recon2.pvp"];
     %%Error2_file = [output_dir, filesep, "a7_Error2.pvp"];
+  else
+    Recon_file = [output_dir, filesep, "a4_Recon.pvp"];
   endif
   write_step = frame_duration;
   num_frames = floor((last_checkpoint_ndx - first_checkpoint_ndx) / write_step) + 1;
@@ -477,7 +481,11 @@ endif
 
 plot_V1 = 1;
 if plot_V1
-  V1_path = [output_dir, filesep, "a5_V1.pvp"];
+  if deep_flag
+    V1_path = [output_dir, filesep, "a5_V1.pvp"];
+  else
+    V1_path = [output_dir, filesep, "a6_V1.pvp"];
+  endif
   write_step = frame_duration;
   num_frames = floor((last_checkpoint_ndx - first_checkpoint_ndx) / write_step);
   [V1_struct, V1_hdr] = readpvpfile(V1_path, num_frames, num_frames, 1);
@@ -558,7 +566,11 @@ if plot_V1
   V1_mean_active = mean(V1_tot_active(:)/n_V1);
   disp(["V1_mean_active = ", num2str(V1_mean_active)]);
 
-  Error_path = [output_dir, filesep, "a4_Error.pvp"];
+  if deep_flag
+    Error_path = [output_dir, filesep, "a4_Error.pvp"];
+  else
+    Error_path = [output_dir, filesep, "a5_Error.pvp"];
+  endif
   write_step = frame_duration;
   num_frames = floor((last_checkpoint_ndx - first_checkpoint_ndx) / write_step);
   [Error_struct, Error_hdr] = readpvpfile(Error_path, num_frames, num_frames, 1);
