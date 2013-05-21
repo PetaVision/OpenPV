@@ -32,7 +32,7 @@ private:
 protected:
 	TextStream();
 	int initialize(const char * name, HyPerCol * hc);
-	int getCharEncoding(const char * printableASCIIChar);
+	int getCharEncoding(const unsigned char * printableASCIIChar);
 
 	virtual int setParams(PVParams * params);
 	virtual void readNxScale(PVParams * params); // Override from HyPerLayer - will just set nxScale now instead of reading

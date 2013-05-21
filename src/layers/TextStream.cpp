@@ -58,7 +58,7 @@ int TextStream::initialize(const char * name, HyPerCol * hc) {
 	mpi_datatypes = Communicator::newDatatypes(getLayerLoc());
 
 	// Exchange border information
-	parent->icCommunicator()->exchange(textData, mpi_datatypes, getLayerLoc());
+	parent->icCommunicator()->exchange(textData, mpi_datatypes, this->getLayerLoc());
 
 	assert(filename!=NULL);
 	if( getParent()->icCommunicator()->commRank()==0 ) { // Only rank 0 should open the file pointer
@@ -68,6 +68,7 @@ int TextStream::initialize(const char * name, HyPerCol * hc) {
 		fileStream = PV_fopen(filename, "r");
 		if( fileStream->fp == NULL ) {
 			fprintf(stderr, "TextStream::initialize error opening \"%s\": %s\n", filename, strerror(errno));
+			status = PV_FAILURE;
 			abort();
 		}
 
@@ -179,18 +180,18 @@ int TextStream::scatterTextBuffer(PV::Communicator * comm, const PVLayerLoc * lo
 		loc_nx = loc->nx + 2*loc->nb;
 	}
 
-	int numLocalNeurons = loc_ny * loc_nx * loc->nf;
+	int numExtendedNeurons = loc_ny * loc_nx * loc->nf;
 
 	int comm_size = comm->commSize();
-	//TODO: Change to loc_nx?
-	if (loc->nx % comm_size != 0) { // Need to be able to devide the number of neurons in the x (words) direction by the number of procs
-		fprintf(stderr, "textStream: Number of processors must evenly devide into number of words");
+	//TODO: Change to loc_ny?
+	if (loc->ny % comm_size != 0) { // Need to be able to devide the number of neurons in the y (words) direction by the number of procs
+		fprintf(stderr, "textStream: Number of processors must evenly devide into number of words. NumProcs=%d, NumWords=%d",comm_size,loc->ny);
 		status = PV_FAILURE;
 		abort();
 	}
 
 	size_t datasize = sizeof(int);
-	int * temp_buffer = (int *) calloc(numLocalNeurons, datasize);
+	int * temp_buffer = (int *) calloc(numExtendedNeurons, datasize);
 	if (temp_buffer==NULL) {
 		fprintf(stderr, "scatterTextBuffer unable to allocate memory for temp_buffer.\n");
 		status = PV_FAILURE;
@@ -207,12 +208,12 @@ int TextStream::scatterTextBuffer(PV::Communicator * comm, const PVLayerLoc * lo
 				status = loadBufferIntoData(loc,temp_buffer);
 			}
 			else {
-				MPI_Send(temp_buffer, numLocalNeurons*(int) datasize, MPI_BYTE, r, 171+r/*tag*/, comm->communicator());
+				MPI_Send(temp_buffer, numExtendedNeurons*(int) datasize, MPI_BYTE, r, 171+r/*tag*/, comm->communicator());
 			}
 		}
 	}
 	else {
-		MPI_Recv(temp_buffer, sizeof(uint4)*numLocalNeurons, MPI_BYTE, rootproc, 171+rank/*tag*/, comm->communicator(), MPI_STATUS_IGNORE);
+		MPI_Recv(temp_buffer, sizeof(uint4)*numExtendedNeurons, MPI_BYTE, rootproc, 171+rank/*tag*/, comm->communicator(), MPI_STATUS_IGNORE);
 		status = loadBufferIntoData(loc,temp_buffer);
 	}
 #else // PV_USE_MPI
@@ -226,10 +227,10 @@ int TextStream::scatterTextBuffer(PV::Communicator * comm, const PVLayerLoc * lo
 }
 
 int TextStream::readFileToBuffer(PV_Stream * inStream, int offset, const PVLayerLoc * loc, int * buf) {
-	int numReads = 0;
-	int numItems = 1; // Number of chars to read at a time
-	int encodedChar;
-	int dataIndex = 0;
+	int numReads=0;
+	int numItems=1; // Number of chars to read at a time
+	int encodedChar=0;
+	int dataIndex=0;
 	int loc_ny = loc->ny;
 	int loc_nx = loc->nx;
 	int y_start = 0;
@@ -244,20 +245,18 @@ int TextStream::readFileToBuffer(PV_Stream * inStream, int offset, const PVLayer
 	}
 
 	int preMarginReads, numExtraReads = 0;
-	char * tmpChar = new char[1];  // One character at a time
-	for (int y=y_start; y<loc_ny; y++) {  // ny = words per proc
-		encodedChar = -1;
-		bool punctChar = false; // Set if punctuation was read
-		for (int x=0; x<loc_nx; x++) { // nx = numCharsPerWord ; leave 0s in buffer
-			// Only read from file if previous char was not a space
-			// Also, only read if not at the end of the file
-			// Also, only read if last char was not punctuation
-			if (encodedChar!=0 && numReads<inStream->filelength && !punctChar) {
-				int numRead = PV_fread(tmpChar,sizeof(char),numItems,inStream);
-				assert(numRead==numItems);
-				encodedChar = getCharEncoding(tmpChar);
-				numReads += numRead;
-			}
+	unsigned char * tmpChar = new unsigned char[1];  // One character at a time
+	for (int y=y_start; y<loc_ny; y++) { // ny = words per proc
+		while(encodedChar==0 && numReads<inStream->filelength) { // Read until nonspace
+			int numRead = PV_fread(tmpChar,sizeof(char),numItems,inStream);
+			assert(numRead==numItems);
+			encodedChar = getCharEncoding(tmpChar);
+			numReads += numRead;
+		}
+		//std::cout<<"\n---WORD---\n";
+		int x=0;
+		for (; x<loc_nx; x++) { // nx = num chars per word
+			char charType = 'w';
 
 			// These special characters are counted as words
 			//  ! " ( ) , . : ; ? `
@@ -266,51 +265,89 @@ int TextStream::readFileToBuffer(PV_Stream * inStream, int offset, const PVLayer
 						encodedChar == 12 || encodedChar == 14 || encodedChar == 26 ||
 						encodedChar == 27 || encodedChar == 31 || encodedChar == 64 ||
 						encodedChar == 95) {
-					punctChar = true;
+					charType = 'p';
 				}
 			}
-			else { //TODO: Need to look up the no Cap numbers & make sure they're right
+			else {
 				if (encodedChar == 1 || encodedChar == 2 || encodedChar == 8 || encodedChar == 9 ||
 						encodedChar == 12 || encodedChar == 14 || encodedChar == 26 ||
 						encodedChar == 27 || encodedChar == 31 || encodedChar == 64 ||
 						encodedChar == 69) {
-					punctChar = true;
+					charType = 'p';
 				}
 			}
 
-			for (int f=0; f<loc->nf; f++) { //nf = numFeatures (num printable ascii chars w/ or w/out caps)
-				if (punctChar) {
-					if (x==0) { // If punctuation at the start of the word
+			if (encodedChar == 0) {
+				charType = 's';
+			}
+
+			//std::cout<<"READ 1: "<<tmpChar[0]<<" is a "<<charType;
+
+			bool break_loop = false;
+			switch (charType) {
+				case 'p': // Punctuation
+					if (x==0) { // Punctuation is at the beginning of a word
+						for (int f=0; f<loc->nf; f++) { // Store punctuation
+							if (f==encodedChar) {
+								buf[dataIndex] = 1;
+							} else {
+								buf[dataIndex] = 0;
+							}
+							dataIndex++;
+						}
+						//std::cout<<" ADDED\n";
+						if (numReads<inStream->filelength) { // Read next char
+							int numRead = PV_fread(tmpChar,sizeof(char),numItems,inStream);
+							assert(numRead==numItems);
+							encodedChar = getCharEncoding(tmpChar);
+							numReads += numRead;
+						}
+					}
+					break_loop = true;
+					break;
+				case 's': // Space
+					break_loop = true;
+					break;
+				default: // Normal char
+					for (int f=0; f<loc->nf; f++) { // Store char
 						if (f==encodedChar) {
 							buf[dataIndex] = 1;
 						} else {
 							buf[dataIndex] = 0;
 						}
-					} else {
-						buf[dataIndex] = 0;
+						dataIndex++;
 					}
-				} else {
-					if (f==encodedChar) {
-						buf[dataIndex] = 1;
-					} else {
-						buf[dataIndex] = 0;
+					//std::cout<<" ADDED\n";
+					if (numReads<inStream->filelength) { // Read next char
+						int numRead = PV_fread(tmpChar,sizeof(char),numItems,inStream);
+						assert(numRead==numItems);
+						encodedChar = getCharEncoding(tmpChar);
+						numReads += numRead;
 					}
-				}
+					break_loop = false;
+					break;
+			}
+
+			if (break_loop) break;
+		}
+
+		bool paddedWord = x<loc_nx;
+
+		for (; x<loc_nx; x++) { // Fill in the rest of the word with a buffer
+			for (int f=0; f<loc->nf; f++) { // Store 0
+				buf[dataIndex] = 0;
 				dataIndex++;
 			}
 		}
 
-		if (punctChar) { // If you had read a punctuation mark, back out the file pointer
-			PV_fseek(inStream,-1,SEEK_CUR); // back up FP to re-read
-			numReads--;
-		}
-
-		while (encodedChar!=0 && numReads<inStream->filelength) { // If word is longer than numCharsPerWord, read and dump the rest
+		while (!paddedWord && encodedChar!=0 && numReads<inStream->filelength) { // If word is longer than numCharsPerWord, read and dump the rest
 			int numRead = PV_fread(tmpChar,sizeof(char),numItems,inStream);
 			assert(numRead==numItems);
 			encodedChar = getCharEncoding(tmpChar);
+			//std::cout<<"READ 2: "<<tmpChar[0]<<" is a "<<encodedChar<<"\n";
 			numReads += numRead;
 		}
+
 		if (y == loc->ny-1) {
 			preMarginReads = numReads;
 		}
@@ -335,14 +372,39 @@ int TextStream::loadBufferIntoData(const PVLayerLoc * loc, int * buf) {
 	}
 
 	int locIdx = 0;
-	for (int y=0; y<loc_ny; y++) {         // number of words per proc
-		for (int x=0; x<loc_nx; x++) {     // Chars per word
+	for (int y=0; y<loc_ny; y++) {          // Number of words per proc
+		for (int x=0; x<loc_nx; x++) {      // Chars per word
 			for (int f=0; f<loc->nf; f++) { // Char vector
 				textData[locIdx] = buf[locIdx];
 				locIdx += 1; // Local non-extended index
 			}
 		}
 	}
+//	locIdx = 0;
+//	for (int idx=0; idx<loc_ny*loc_nx; idx++) {
+//		for (int f=0; f<loc->nf; f++) {
+//			if (buf[locIdx]!=0) {
+//				std::cout<<f<<"  ";
+//			}
+//			if(textData[locIdx]!=0){
+//				std::cout<<f<<"  ";
+//			}
+//			locIdx++;
+//		}
+//		std::cout<<"\n";
+//	}
+//	std::cout<<"\n\n\n";
+//	locIdx=0;
+//	for (int idx=0; idx<loc_ny*loc_nx; idx++) {
+//		for (int f=0; f<loc->nf; f++) {
+//			if(textData[locIdx]!=0){
+//				std::cout<<f<<" ";
+//			}
+//			locIdx++;
+//		}
+//		std::cout<<"\n";
+//	}
+//	std::cout<<"\n\n\n";
 	return PV_SUCCESS;
 }
 
@@ -350,12 +412,12 @@ int TextStream::loadBufferIntoData(const PVLayerLoc * loc, int * buf) {
  * Map input character to a integer coding set. The set includes the list of printable ASCII
  * characteres with the addition of two values for 'other' and a new line / carriage return.
  */
-int TextStream::getCharEncoding(const char * printableASCIIChar) {
+int TextStream::getCharEncoding(const unsigned char * printableASCIIChar) {
 	int charMapValue;
 
-	int asciiValue = (int)printableASCIIChar[0];
+	int asciiValue = (int)(unsigned char)printableASCIIChar[0];
 
-	if (asciiValue == 10 || asciiValue == 13) {
+	if (asciiValue == 10 || asciiValue == 13) { // new line or carriage return
 		charMapValue = useCapitalization ? 95 : 69;
 	}
 	else if (asciiValue >= 32 || asciiValue <= 126) {
@@ -372,15 +434,22 @@ int TextStream::getCharEncoding(const char * printableASCIIChar) {
 		}
 	}
 	else {
-		charMapValue = useCapitalization ? 96 : 70;
+		charMapValue = useCapitalization ? 96 : 70; // other character
 	}
-	assert(charMapValue>=0);
+	if (charMapValue<0) {
+		fprintf(stderr,"Char map value must be greater than or equal to 0. charMapValue = %d, asciiValue = %d, char = %s\n", charMapValue, asciiValue, printableASCIIChar);
+		abort();
+	}
 
 	if (useCapitalization) {
-		assert(charMapValue<97);
+		if (charMapValue >= 97) {
+			charMapValue = 96;
+		}
 	}
 	else {
-		assert(charMapValue<71);
+		if (charMapValue >= 71) {
+			charMapValue = 70;
+		}
 	}
 
 	return charMapValue;
