@@ -447,7 +447,17 @@ HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPe
    }
    if( !strcmp(classkeyword, "HyPerLCALayer") ) {
      keywordMatched = true;
-     addedLayer = (HyPerLayer *) new HyPerLCALayer(name, hc);
+     int numChannels = hc->parameters()->value(name, "numChannels", 1, true);
+     if (numChannels == 1){
+    	 addedLayer = (HyPerLayer *) new HyPerLCALayer(name, hc, numChannels);
+     }
+     else if (numChannels == 2){
+    	 addedLayer = (HyPerLayer *) new HyPerLCALayer(name, hc, numChannels);
+     }
+     else{
+         fprintf(stderr, "Rank %d process: HyPerLCALayer \"%s\" requires 1 or 2 channels, numChannels = %i\n", hc->columnId(), name, numChannels);
+         status = PV_FAILURE;
+     }
      status = checknewobject((void *) addedLayer, classkeyword, name, hc);
    }
    if( !strcmp(classkeyword, "LCALayer") ) {
