@@ -394,17 +394,6 @@ int TextStream::loadBufferIntoData(const PVLayerLoc * loc, int * buf) {
 //		std::cout<<"\n";
 //	}
 //	std::cout<<"\n\n\n";
-//	locIdx=0;
-//	for (int idx=0; idx<loc_ny*loc_nx; idx++) {
-//		for (int f=0; f<loc->nf; f++) {
-//			if(textData[locIdx]!=0){
-//				std::cout<<f<<" ";
-//			}
-//			locIdx++;
-//		}
-//		std::cout<<"\n";
-//	}
-//	std::cout<<"\n\n\n";
 	return PV_SUCCESS;
 }
 
