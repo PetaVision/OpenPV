@@ -58,8 +58,18 @@
 							</tool>
 						</toolChain>
 					</folderInfo>
+					<folderInfo id="cdt.managedbuild.config.gnu.macosx.exe.debug.1759988689.2010489146" name="/" resourcePath="src/arch/openclMain">
+						<toolChain id="cdt.managedbuild.toolchain.gnu.macosx.exe.debug.13876197" name="MacOSX GCC" superClass="cdt.managedbuild.toolchain.gnu.macosx.exe.debug" unusedChildren="">
+							<tool id="cdt.managedbuild.tool.macosx.c.linker.macosx.exe.debug.590334300" name="MacOS X C Linker" superClass="cdt.managedbuild.tool.macosx.c.linker.macosx.exe.debug.1607263156"/>
+							<tool id="cdt.managedbuild.tool.macosx.cpp.linker.macosx.exe.debug.220464897" name="MacOS X C++ Linker" superClass="cdt.managedbuild.tool.macosx.cpp.linker.macosx.exe.debug.2018191997"/>
+							<tool id="cdt.managedbuild.tool.gnu.assembler.macosx.exe.debug.656142206" name="GCC Assembler" superClass="cdt.managedbuild.tool.gnu.assembler.macosx.exe.debug.1337692211"/>
+							<tool id="cdt.managedbuild.tool.gnu.archiver.macosx.base.910821823" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.macosx.base.1629037732"/>
+							<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.macosx.exe.debug.2146288071" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.macosx.exe.debug.53544112"/>
+							<tool id="cdt.managedbuild.tool.gnu.c.compiler.macosx.exe.debug.93574153" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.macosx.exe.debug.2143387496"/>
+						</toolChain>
+					</folderInfo>
 					<sourceEntries>
-						<entry excluding="src/arch/openclMain|src/obsolete|src/kernels|analysis|src/arch/rr|src/bindings|tests" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="src/arch/openclMain|src/obsolete|src/arch/opencl/convolve.cl|src/arch/opencl/convolve_cpu.cl|src/kernels|src/arch/opencl/convolve_main.cpp|src/utils/rand_sse.c|analysis|src/arch/mpi/old|src/arch/rr|src/bindings|src/columns/old|src/io/apps|src/io/create_weights.cpp|tests" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
@@ -71,8 +81,10 @@
 	<storageModule moduleId="cdtBuildSystem" version="4.0.0">
 		<project id="pv.cdt.managedbuild.target.macosx.exe.1505219028" name="Executable" projectType="cdt.managedbuild.target.macosx.exe"/>
 	</storageModule>
-	<storageModule moduleId="refreshScope" versionNumber="1">
-		<resource resourceType="PROJECT" workspacePath="/PetaVision"/>
+	<storageModule moduleId="refreshScope" versionNumber="2">
+		<configuration configurationName="lib">
+			<resource resourceType="PROJECT" workspacePath="/PetaVision"/>
+		</configuration>
 	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
 	<storageModule moduleId="scannerConfiguration">
