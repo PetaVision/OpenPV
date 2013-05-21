@@ -6,16 +6,16 @@ if ismac
   workspace_path = "/Users/garkenyon/workspace";
   output_dir = "/Users/garkenyon/workspace/HyPerHLCA2/output_animal1200000_color_deep"; %%output_test"; %% output_animal1200000_distractor1200000"; %%
   LCA_path = [output_dir]; %%[workspace_path, filesep, "HyPerHLCA2"];
-  last_checkpoint_ndx = 10000*14; 
-  next_checkpoint_ndx = 10000*15;
+  last_checkpoint_ndx = 10000*50; 
+  next_checkpoint_ndx = 10000*51;
   first_checkpoint_ndx = 0; 
   frame_duration = 1000;
 elseif isunix
   workspace_path = "/home/gkenyon/workspace";
   output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_16x16x1024_Overlap_lambda_05X2"; %%MRI/LCA/5_subjects"; %%  
   LCA_path = [output_dir];
-  last_checkpoint_ndx = 100000*7 %%50000*21; %% 
-  next_checkpoint_ndx = 100000*8; %%50000*22; %% 
+  last_checkpoint_ndx = 100000*11 %%50000*21; %% 
+  next_checkpoint_ndx = 100000*12; %%50000*22; %% 
   first_checkpoint_ndx = 0;
   frame_duration = 5000;
 endif
@@ -325,8 +325,8 @@ endif
 
 plot_ave_error_vs_time = 1;
 if plot_ave_error_vs_time
-  sparseness_error_vs_time_dir = [output_dir, filesep, "sparseness_error_vs_time"];
-  mkdir(sparseness_error_vs_time_dir);
+  V1_sparseness_error_vs_time_dir = [output_dir, filesep, "V1_sparseness_error_vs_time"];
+  mkdir(V1_sparseness_error_vs_time_dir);
   Error_Stats_file = [output_dir, filesep, "Error_Stats.txt"];
   Error_Stats_fid = fopen(Error_Stats_file, "r");
   Error_Stats_line = fgets(Error_Stats_fid);
@@ -354,10 +354,10 @@ if plot_ave_error_vs_time
   endwhile
   fclose(Error_Stats_fid);
   error_vs_time_fig = figure;
-  error_vs_time_hndl = plot(ave_error);
+  error_vs_time_hndl = plot(ave_error); axis tight;
   axis tight
   set(error_vs_time_fig, "name", ["ave Error"]);
-  saveas(error_vs_time_fig, [sparseness_error_vs_time_dir, filesep, "error_vs_time_", num2str(last_checkpoint_ndx, "%i")], "png");
+  saveas(error_vs_time_fig, [V1_sparseness_error_vs_time_dir, filesep, "error_vs_time_", num2str(last_checkpoint_ndx, "%i")], "png");
   drawnow;
   %%endif
   %%
@@ -393,12 +393,14 @@ if plot_ave_error_vs_time
   endwhile
   fclose(V1_Stats_fid);
   V1_vs_time_fig = figure;
-  V1_vs_time_hndl = plot(ave_V1);
+  V1_vs_time_hndl = plot(ave_V1); axis tight;
   axis tight
-  set(V1_vs_time_fig, "name", ["sparseness_vs_time"]);
-  saveas(V1_vs_time_fig, [sparseness_error_vs_time_dir, filesep, "sparseness_vs_time_", num2str(last_checkpoint_ndx, "%i")], "png");
+  set(V1_vs_time_fig, "name", ["V1_sparseness_vs_time"]);
+  saveas(V1_vs_time_fig, [V1_sparseness_error_vs_time_dir, filesep, "V1_sparseness_vs_time_", num2str(last_checkpoint_ndx, "%i")], "png");
   drawnow;
   if deep_flag
+    V2_sparseness_error2_vs_time_dir = [output_dir, filesep, "V2_sparseness_error2_vs_time"];
+    mkdir(V2_sparseness_error2_vs_time_dir);
     Error2_Stats_file = [output_dir, filesep, "Error2_Stats.txt"];
     Error2_Stats_fid = fopen(Error2_Stats_file, "r");
     Error2_Stats_line = fgets(Error2_Stats_fid);
@@ -429,7 +431,7 @@ if plot_ave_error_vs_time
     error2_vs_time_hndl = plot(ave_error2);
     axis tight
     set(error2_vs_time_fig, "name", ["ave Error2"]);
-    saveas(error2_vs_time_fig, [sparseness_error_vs_time_dir, filesep, "error2_vs_time_", num2str(last_checkpoint_ndx, "%i")], "png");
+    saveas(error2_vs_time_fig, [V2_sparseness_error2_vs_time_dir, filesep, "error2_vs_time_", num2str(last_checkpoint_ndx, "%i")], "png");
     drawnow;
     %%endif
     %%
@@ -467,8 +469,8 @@ if plot_ave_error_vs_time
     V2_vs_time_fig = figure;
     V2_vs_time_hndl = plot(ave_V2);
     axis tight
-    set(V2_vs_time_fig, "name", ["sparseness_vs_time"]);
-    saveas(V2_vs_time_fig, [sparseness_error_vs_time_dir, filesep, "sparseness_vs_time_", num2str(last_checkpoint_ndx, "%i")], "png");
+    set(V2_vs_time_fig, "name", ["V2_sparseness_vs_time"]);
+    saveas(V2_vs_time_fig, [V2_sparseness_error2_vs_time_dir, filesep, "V2_sparseness_vs_time_", num2str(last_checkpoint_ndx, "%i")], "png");
     drawnow;
   endif
 endif
@@ -582,8 +584,8 @@ if plot_V1
   saveas(Error_RMS_fig, ...
 	 [V1_change_dir, filesep, "Error_RMS", num2str(Error_times(num_frames), "%i")], "png");
 
-  Error_mean_RMS = mean(Error_RMS(:));
-  disp(["Error_mean_RMS = ", num2str(Error_mean_RMS)]);
+  Error_median_RMS = median(Error_RMS(:));
+  disp(["Error_median_RMS = ", num2str(Error_median_RMS)]);
 
   drawnow;  
   if deep_flag
@@ -690,12 +692,13 @@ if plot_V1
     Error2_RMS_title = ["Error2_RMS", ".png"];
     Error2_RMS_fig = figure;
     Error2_RMS_hndl = plot(Error2_times, Error2_RMS); axis tight;
+    axis([min(Error2_times(:)), max(Error2_times(:)), min(Error2_RMS(:)), max(Error_RMS(:))]); %% use layer 1 max value
     set(Error2_RMS_fig, "name", ["Error2_RMS"]);
     saveas(Error2_RMS_fig, ...
 	   [V2_change_dir, filesep, "Error2_RMS", num2str(Error2_times(num_frames), "%i")], "png");
 
-    Error2_mean_RMS = mean(Error2_RMS(:));
-    disp(["Error2_mean_RMS = ", num2str(Error2_mean_RMS)]);
+    Error2_median_RMS = median(Error2_RMS(:));
+    disp(["Error2_median_RMS = ", num2str(Error2_median_RMS)]);
 
     drawnow;  
   endif
