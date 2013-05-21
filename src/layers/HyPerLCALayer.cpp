@@ -27,6 +27,23 @@ void HyPerLCALayer_update_state(
     float * GSynHead,
     float * activity);
 
+void HyPerLCALayer2_update_state(
+    const int numNeurons,
+    const int nx,
+    const int ny,
+    const int nf,
+    const int nb,
+
+    float * V,
+    const float Vth,
+    const float VMax,
+    const float VMin,
+    const float VShift,
+    const float dt_tau,
+    float * GSynHead,
+    float * activity);
+
+
 #ifdef __cplusplus
 }
 #endif
@@ -38,10 +55,11 @@ HyPerLCALayer::HyPerLCALayer()
    initialize_base();
 }
 
-HyPerLCALayer::HyPerLCALayer(const char * name, HyPerCol * hc, int numChannels)
+HyPerLCALayer::HyPerLCALayer(const char * name, HyPerCol * hc, int num_channels)
 {
    initialize_base();
-   initialize(name, hc, 1);
+   assert(num_channels <= 2);
+   initialize(name, hc, num_channels);
 }
 
 HyPerLCALayer::HyPerLCALayer(const char * name, HyPerCol * hc)
@@ -60,9 +78,9 @@ int HyPerLCALayer::initialize_base()
    return PV_SUCCESS;
 }
 
-int HyPerLCALayer::initialize(const char * name, HyPerCol * hc, int numChannels)
+int HyPerLCALayer::initialize(const char * name, HyPerCol * hc, int num_channels)
 {
-   ANNLayer::initialize(name, hc, 1);
+   ANNLayer::initialize(name, hc, num_channels);
    PVParams * params = parent->parameters();
    timeConstantTau = params->value(name, "timeConstantTau", timeConstantTau, true);
    return PV_SUCCESS;
@@ -86,8 +104,14 @@ int HyPerLCALayer::doUpdateState(double time, double dt, const PVLayerLoc * loc,
       int num_neurons = nx*ny*nf;
       pvdata_t dt_tau = dt / timeConstantTau;
       //dt_tau = 1-exp(-dt_tau);
-      HyPerLCALayer_update_state(num_neurons, nx, ny, nf, loc->nb, V, VThresh,
-            VMax, VMin, VShift, dt_tau, gSynHead, A);
+      if(num_channels == 1){
+    	  HyPerLCALayer_update_state(num_neurons, nx, ny, nf, loc->nb, V, VThresh,
+    			  VMax, VMin, VShift, dt_tau, gSynHead, A);
+      }
+      else if(num_channels == 2){
+    	  HyPerLCALayer2_update_state(num_neurons, nx, ny, nf, loc->nb, V, VThresh,
+    			  VMax, VMin, VShift, dt_tau, gSynHead, A);
+      }
       if (this->writeSparseActivity){
          updateActiveIndices();  // added by GTK to allow for sparse output, can this be made an inline function???
       }
@@ -108,9 +132,11 @@ extern "C" {
 
 #ifndef PV_USE_OPENCL
 #  include "../kernels/HyPerLCALayer_update_state.cl"
+#  include "../kernels/HyPerLCALayer2_update_state.cl"
 #else
 #  undef PV_USE_OPENCL
 #  include "../kernels/HyPerLCALayer_update_state.cl"
+#  include "../kernels/HyPerLCALayer2_update_state.cl"
 #  define PV_USE_OPENCL
 #endif
 
