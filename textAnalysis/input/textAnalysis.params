@@ -12,20 +12,20 @@ debugParsing = true;
 
 HyPerCol "column" = {
    nx                              = 12;  // Num chars per word
-   ny                              = 200; // Num words
+   ny                              = 100; // Num words
    dt                              = 1.0;
    randomSeed                      = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
-   numSteps                        = 5000;       
-   progressStep                    = 100;
-   outputPath                      = "/Users/pschultz/Workspace/NMC/PV_Output/textAnalysis/output";
+   numSteps                        = 10000;       
+   progressStep                    = 10;
+   outputPath                      = "/Users/dpaiton/Documents/Work/LANL/workspace/textAnalysis/output";
    filenamesContainLayerNames      = true;
    filenamesContainConnectionNames = true;
    checkpointRead                  = false;
-   //checkpointReadDir               = "/Users/pschultz/Workspace/NMC/PV_Output/textAnalysis/output/Checkpoints";
+   //checkpointReadDir               = "/Users/dpaiton/Documents/Work/LANL/workspace/textAnalysis/output/checkpoints";
    //checkpointReadDirIndex          = 1200000;
    checkpointWrite                 = true;
-   checkpointWriteDir              = "/Users/pschultz/Workspace/NMC/PV_Output/textAnalysis/output/Checkpoints";
-   checkpointWriteStepInterval     = 10;
+   checkpointWriteDir              = "/Users/dpaiton/Documents/Work/LANL/workspace/textAnalysis/output/checkpoints";
+   checkpointWriteStepInterval     = 1000;
    deleteOlderCheckpoints          = false;
    //suppressLastOutput              = false;
    writeProgressToErr              = true;
@@ -42,13 +42,13 @@ TextStream "Text" = {
     marginWidth            = 0;
     writeStep              = -1;
     writeSparseActivity    = false;
-    displayPeriod          = 5000;
+    displayPeriod          = 5;
     textOffset             = 0;
     valueBC                = 0;     // For outside of the text file
                             //
     useCapitalization      = true;
     loopInput              = false;
-    textBCFlag             = true;
+    textBCFlag             = false;
                             //
     phase                  = 0;
 };
@@ -57,10 +57,10 @@ ANNLayer "Recon" = {
     restart             = 0;
     nxScale             = 1;
     nyScale             = 1;
-    nf                  = 1;
+    nf                  = 97;
     marginWidth         = 0;
     initialWriteTime    = 4999.0;
-    writeStep           = 500.0;
+    writeStep           = -1;//500.0;
     mirrorBCflag        = 1;
     writeSparseActivity = 0;
     //
@@ -81,8 +81,9 @@ ANNLayer "Error" = {
     nf                  = 97; // With Capitalization on
     marginWidth         = 4;
     initialWriteTime    = 4999.0;
-    writeStep           = 5000;
-    mirrorBCflag        = 1;
+    writeStep           = -1;//5000;
+    mirrorBCflag        = 0;
+    valueBC             = 0;     // For outside of the text file
     writeSparseActivity = 0;
     //
     InitVType           = "ZeroV";
@@ -103,7 +104,7 @@ HyPerLCALayer "V1" = {
     marginWidth         = 1;
     // 
     initialWriteTime    = 0;
-    writeStep           = 500.0;
+    writeStep           = -1;//500.0;
     mirrorBCflag        = 1;
     writeSparseActivity = 1;
     //
@@ -137,9 +138,9 @@ KernelConn "V1ToError" = {
     channelCode                  = 1;
                                        //
     nxp                          = 1;  // Should always be 1
-    nyp                          = 12; // y is num words in window
-    nxpShrunken                  = 1;
-    nypShrunken                  = 8;  // Patch will be shrunken to this size
+    nyp                          = 4;//12; // y is num words in window
+    //nxpShrunken                  = 1;
+    //nypShrunken                  = 8;  // Patch will be shrunken to this size
                                        //
     nfp                          = 97; // for Capitalization (71 if no caps)
     numAxonalArbors              = 1;
@@ -162,7 +163,7 @@ KernelConn "V1ToError" = {
     keepKernelsSynchronized      = true; 
     combine_dW_with_W_flag       = false; 
                                        //
-    writeStep                    = 100;
+    writeStep                    = -1;//100;
     writeCompressedWeights       = false;
     writeCompressedCheckpoints   = false;
     plasticityFlag               = true;
@@ -249,27 +250,27 @@ CloneKernelConn "V1ToRecon" = {
 
 TextStreamProbe "Text Probe" = {
     targetLayer = "Text";
+    displayPeriod = 5;
     probeOutputFile = "Text_Probe.txt";
 };
 
 TextStreamProbe "Recon Probe" = {
     targetLayer = "Recon";
+    displayPeriod = 5;
     probeOutputFile = "Recon_Probe.txt";
 };
-
-StatsProbe "ReconStatsFile" = {
-    targetLayer = "Recon";
-    probeOutputFile = "Recon_Stats.txt";
-};
-
-StatsProbe "ErrorStatsFile" = {
-    targetLayer = "Error";
-    probeOutputFile = "Error_Stats.txt";
-};
-
-StatsProbe "V1StatsFile" = {
-    targetLayer = "V1";
-    probeOutputFile = "V1_Stats.txt";
-};
-
-
+//
+//StatsProbe "ReconStatsFile" = {
+//    targetLayer = "Recon";
+//    probeOutputFile = "Recon_Stats.txt";
+//};
+//
+//StatsProbe "ErrorStatsFile" = {
+//    targetLayer = "Error";
+//    probeOutputFile = "Error_Stats.txt";
+//};
+//
+//StatsProbe "V1StatsFile" = {
+//    targetLayer = "V1";
+//    probeOutputFile = "V1_Stats.txt";
+//};
