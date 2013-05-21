@@ -96,7 +96,7 @@ int TextStreamProbe::outputState(double timef) {
             fprintf(outputstream->fp, "%s ", cbuf);
          }
       }
-      fprintf(outputstream->fp, "\n");
+      //fprintf(outputstream->fp, "\n");
       free(cbuf); cbuf = NULL;
    }
    else {
