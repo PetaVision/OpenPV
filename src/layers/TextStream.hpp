@@ -28,6 +28,7 @@ public:
 
 private:
 	int initialize_base();
+	long numReads;
 
 protected:
 	TextStream();

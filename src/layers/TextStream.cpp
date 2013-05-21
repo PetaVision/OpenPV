@@ -36,6 +36,7 @@ int TextStream::initialize_base() {
 	useCapitalization = true;
 	loopInput = false;
 	textBCFlag = true;
+	numReads = 0;
 	filename = NULL;
 	textData = NULL;
 
@@ -153,9 +154,10 @@ int TextStream::updateState(double time, double dt)
 		if ((c = fgetc(fileStream->fp)) == EOF) {
 			if (loopInput) {
 				PV_fseek(fileStream, 0L, SEEK_SET);
-				fprintf(stderr, "Text Input %s: EOF reached, rewinding file \"%s\"\n", name, filename);
+				fprintf(stderr, "Text Input %s: EOF reached, rewinding file \"%s\".\n", name, filename);
 			}
 			else {
+				fprintf(stderr, "Text Input %s: EOF reached, exiting normally from file \"%s\".\n", name, filename);
 				return PV_EXIT_NORMALLY;
 			}
 		}
@@ -190,10 +192,11 @@ int TextStream::scatterTextBuffer(PV::Communicator * comm, const PVLayerLoc * lo
 		abort();
 	}
 
+	//TODO: Would it be more efficient to move this to initialize?
 	size_t datasize = sizeof(int);
 	int * temp_buffer = (int *) calloc(numExtendedNeurons, datasize);
 	if (temp_buffer==NULL) {
-		fprintf(stderr, "scatterTextBuffer unable to allocate memory for temp_buffer.\n");
+		fprintf(stderr, "textStream: scatterTextBuffer unable to allocate memory for temp_buffer.\n");
 		status = PV_FAILURE;
 		abort();
 	}
@@ -203,12 +206,22 @@ int TextStream::scatterTextBuffer(PV::Communicator * comm, const PVLayerLoc * lo
 
 	if (rank==rootproc) { // Root proc should send stuff out
 		for (int r=0; r<comm_size; r++) {
-			readFileToBuffer(fileStream,textOffset,this->getLayerLoc(), temp_buffer);
+			status = readFileToBuffer(fileStream,textOffset,this->getLayerLoc(), temp_buffer);
 			if (r==rootproc) {
 				status = loadBufferIntoData(loc,temp_buffer);
 			}
 			else {
 				MPI_Send(temp_buffer, numExtendedNeurons*(int) datasize, MPI_BYTE, r, 171+r/*tag*/, comm->communicator());
+			}
+			if (numReads >= fileStream->filelength) {
+				if (loopInput) {
+					PV_fseek(fileStream, 0L, SEEK_SET);
+					fprintf(stderr, "Text Input %s: EOF reached, rewinding file \"%s\".\n", name, filename);
+				}
+				else {
+					fprintf(stderr, "Text Input %s: EOF reached, exiting normally from file \"%s\".\n", name, filename);
+					return PV_EXIT_NORMALLY;
+				}
 			}
 		}
 	}
@@ -217,8 +230,18 @@ int TextStream::scatterTextBuffer(PV::Communicator * comm, const PVLayerLoc * lo
 		status = loadBufferIntoData(loc,temp_buffer);
 	}
 #else // PV_USE_MPI
-	readFileToBuffer(fileStream,textOffset,this->getLayerLoc(), temp_buffer);
+	status = readFileToBuffer(fileStream,textOffset,this->getLayerLoc(), temp_buffer);
 	status = loadBufferIntoData(loc,temp_buffer);
+	if (totRead >= fileStream->filelength) {
+		if (loopInput) {
+			PV_fseek(fileStream, 0L, SEEK_SET);
+			fprintf(stderr, "Text Input %s: EOF reached, rewinding file \"%s\".\n", name, filename);
+		}
+		else {
+			fprintf(stderr, "Text Input %s: EOF reached, exiting normally from file \"%s\".\n", name, filename);
+			return PV_EXIT_NORMALLY;
+		}
+	}
 #endif // PV_USE_MPI
 
 	free(temp_buffer);
@@ -227,10 +250,9 @@ int TextStream::scatterTextBuffer(PV::Communicator * comm, const PVLayerLoc * lo
 }
 
 int TextStream::readFileToBuffer(PV_Stream * inStream, int offset, const PVLayerLoc * loc, int * buf) {
-	int numReads=0;
+	int status = PV_SUCCESS;
 	int numItems=1; // Number of chars to read at a time
 	int encodedChar=0;
-	int dataIndex=0;
 	int loc_ny = loc->ny;
 	int loc_nx = loc->nx;
 	int y_start = 0;
@@ -247,11 +269,14 @@ int TextStream::readFileToBuffer(PV_Stream * inStream, int offset, const PVLayer
 	int preMarginReads=0, numExtraReads = 0;
 	unsigned char * tmpChar = new unsigned char[1];  // One character at a time
 	for (int y=y_start; y<loc_ny; y++) { // ny = words per proc
-		while(encodedChar==0 && numReads<inStream->filelength) { // Read until nonspace
+		while(encodedChar==0 && numReads+numItems<inStream->filelength) { // Read until nonspace
 			int numRead = PV_fread(tmpChar,sizeof(char),numItems,inStream);
 			assert(numRead==numItems);
 			encodedChar = getCharEncoding(tmpChar);
 			numReads += numRead;
+		}
+		if (numReads >= inStream->filelength) {
+			return status;
 		}
 		//std::cout<<"\n---WORD---\n";
 		int x=0;
@@ -289,18 +314,22 @@ int TextStream::readFileToBuffer(PV_Stream * inStream, int offset, const PVLayer
 					if (x==0) { // Punctuation is at the beginning of a word
 						for (int f=0; f<loc->nf; f++) { // Store punctuation
 							if (f==encodedChar) {
-								buf[dataIndex] = 1;
+								buf[loc->nf*(loc_nx*y+x)+f] = 1;
 							} else {
-								buf[dataIndex] = 0;
+								buf[loc->nf*(loc_nx*y+x)+f] = 0;
 							}
-							dataIndex++;
 						}
-						//std::cout<<" ADDED\n";
-						if (numReads<inStream->filelength) { // Read next char
+						//std::cout<<" ADDED Punct; x="<<x<<"\n";
+						if (numReads+numItems<inStream->filelength) { // Read next char
 							int numRead = PV_fread(tmpChar,sizeof(char),numItems,inStream);
-							assert(numRead==numItems);
+							if(numRead!=numItems) {
+								fprintf(stderr,"read = %d items = %d\nfileLength = %ld\nnumReads = %ld\n",numRead,numItems,inStream->filelength,numReads);
+								abort();
+							}
 							encodedChar = getCharEncoding(tmpChar);
 							numReads += numRead;
+						} else {
+							return status;
 						}
 					}
 					break_loop = true;
@@ -311,18 +340,19 @@ int TextStream::readFileToBuffer(PV_Stream * inStream, int offset, const PVLayer
 				default: // Normal char
 					for (int f=0; f<loc->nf; f++) { // Store char
 						if (f==encodedChar) {
-							buf[dataIndex] = 1;
+							buf[loc->nf*(loc_nx*y+x)+f] = 1;
 						} else {
-							buf[dataIndex] = 0;
+							buf[loc->nf*(loc_nx*y+x)+f] = 0;
 						}
-						dataIndex++;
 					}
-					//std::cout<<" ADDED\n";
-					if (numReads<inStream->filelength) { // Read next char
+					//std::cout<<" ADDED letter; x="<<x<<"\n";
+					if (numReads+numItems<inStream->filelength) { // Read next char
 						int numRead = PV_fread(tmpChar,sizeof(char),numItems,inStream);
 						assert(numRead==numItems);
 						encodedChar = getCharEncoding(tmpChar);
 						numReads += numRead;
+					} else {
+						return status;
 					}
 					break_loop = false;
 					break;
@@ -333,14 +363,13 @@ int TextStream::readFileToBuffer(PV_Stream * inStream, int offset, const PVLayer
 
 		bool paddedWord = x<loc_nx;
 
-		for (; x<loc_nx; x++) { // Fill in the rest of the word with a buffer
+		for (x=x+1; x<loc_nx; x++) { // Fill in the rest of the word with a buffer
 			for (int f=0; f<loc->nf; f++) { // Store 0
-				buf[dataIndex] = 0;
-				dataIndex++;
+				buf[loc->nf*(loc_nx*y+x)+f] = 0;
 			}
 		}
 
-		while (!paddedWord && encodedChar!=0 && numReads<inStream->filelength) { // If word is longer than numCharsPerWord, read and dump the rest
+		while (!paddedWord && encodedChar!=0 && numReads+numItems<inStream->filelength) { // If word is longer than numCharsPerWord, read and dump the rest
 			int numRead = PV_fread(tmpChar,sizeof(char),numItems,inStream);
 			assert(numRead==numItems);
 			encodedChar = getCharEncoding(tmpChar);
@@ -359,7 +388,7 @@ int TextStream::readFileToBuffer(PV_Stream * inStream, int offset, const PVLayer
 	}
 
 	delete tmpChar;
-	return numReads;
+	return status;
 }
 
 int TextStream::loadBufferIntoData(const PVLayerLoc * loc, int * buf) {
@@ -370,6 +399,9 @@ int TextStream::loadBufferIntoData(const PVLayerLoc * loc, int * buf) {
 		loc_ny = loc->ny + 2*loc->nb;
 		loc_nx = loc->nx + 2*loc->nb;
 	}
+
+	//TODO: Get memcpy to work
+    // memcpy(buf, textData, loc_ny*loc_nx*loc->nf*sizeof(pvdata_t));
 
 	int locIdx = 0;
 	for (int y=0; y<loc_ny; y++) {          // Number of words per proc
@@ -395,6 +427,7 @@ int TextStream::loadBufferIntoData(const PVLayerLoc * loc, int * buf) {
 //		std::cout<<"\n";
 //	}
 //	std::cout<<"\n\n\n";
+
 	return PV_SUCCESS;
 }
 
