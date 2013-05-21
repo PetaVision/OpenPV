@@ -11,7 +11,7 @@
 debugParsing = true;
 
 HyPerCol "column" = {
-   nx                              = 12;  // Num chars per word
+   nx                              = 13;  // Num chars per word
    ny                              = 100; // Num words
    dt                              = 1.0;
    randomSeed                      = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed

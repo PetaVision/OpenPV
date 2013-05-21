@@ -84,15 +84,3 @@ We computed Color SIFT features using the VLFeat vl_phow function. Dense, Color 
 
 PHOG feature histograms were computed using the MATLAB code provided. The histograms were converted into a kernel using the same parameters for vl_homkermap as described above. This kernel was used to train a SVM classifier with parameters identical to the one used for the SIFT features.
 
-
-
-
-
-
-
-
-
-
-
-
-
