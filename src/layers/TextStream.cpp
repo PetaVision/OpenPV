@@ -286,18 +286,18 @@ int TextStream::readFileToBuffer(PV_Stream * inStream, int offset, const PVLayer
 			// These special characters are counted as words
 			//  ! " ( ) , . : ; ? `
 			if (useCapitalization) {
-				if (encodedChar == 1 || encodedChar == 2 || encodedChar == 8 || encodedChar == 9 ||
-						encodedChar == 12 || encodedChar == 14 || encodedChar == 26 ||
-						encodedChar == 27 || encodedChar == 31 || encodedChar == 64 ||
-						encodedChar == 95) {
+				if (encodedChar==1 || encodedChar==2 || encodedChar==8 || encodedChar==9 ||
+						encodedChar==12 || encodedChar==13 || encodedChar==14 ||
+						encodedChar==26 || encodedChar==27 || encodedChar==31 ||
+						encodedChar==64 || encodedChar==95) {
 					charType = 'p';
 				}
 			}
 			else {
-				if (encodedChar == 1 || encodedChar == 2 || encodedChar == 8 || encodedChar == 9 ||
-						encodedChar == 12 || encodedChar == 14 || encodedChar == 26 ||
-						encodedChar == 27 || encodedChar == 31 || encodedChar == 64 ||
-						encodedChar == 69) {
+				if (encodedChar==1 || encodedChar==2 || encodedChar==8 || encodedChar==9 ||
+						encodedChar==12 || encodedChar==13 || encodedChar==14 ||
+						encodedChar==26 || encodedChar==27 || encodedChar==31 ||
+						encodedChar==64 || encodedChar==69) {
 					charType = 'p';
 				}
 			}
@@ -319,7 +319,7 @@ int TextStream::readFileToBuffer(PV_Stream * inStream, int offset, const PVLayer
 								buf[loc->nf*(loc_nx*y+x)+f] = 0;
 							}
 						}
-						//std::cout<<" ADDED Punct; x="<<x<<"\n";
+						//std::cout<<" ADDED Punct "<<encodedChar<<"; x="<<x<<"\n";
 						if (numReads+numItems<inStream->filelength) { // Read next char
 							int numRead = PV_fread(tmpChar,sizeof(char),numItems,inStream);
 							if(numRead!=numItems) {
@@ -345,7 +345,7 @@ int TextStream::readFileToBuffer(PV_Stream * inStream, int offset, const PVLayer
 							buf[loc->nf*(loc_nx*y+x)+f] = 0;
 						}
 					}
-					//std::cout<<" ADDED letter; x="<<x<<"\n";
+					//std::cout<<" ADDED letter "<<encodedChar<<"; x="<<x<<"\n";
 					if (numReads+numItems<inStream->filelength) { // Read next char
 						int numRead = PV_fread(tmpChar,sizeof(char),numItems,inStream);
 						assert(numRead==numItems);
@@ -460,17 +460,15 @@ int TextStream::getCharEncoding(const unsigned char * printableASCIIChar) {
 		charMapValue = useCapitalization ? 96 : 70; // other character
 	}
 	if (charMapValue<0) {
-		fprintf(stderr,"Char map value must be greater than or equal to 0. charMapValue = %d, asciiValue = %d, char = %s\n", charMapValue, asciiValue, printableASCIIChar);
-		abort();
+		charMapValue = useCapitalization ? 96 : 70; // other character
 	}
-
 	if (useCapitalization) {
-		if (charMapValue >= 97) {
+		if (charMapValue > 96) {
 			charMapValue = 96;
 		}
 	}
 	else {
-		if (charMapValue >= 71) {
+		if (charMapValue > 70) {
 			charMapValue = 70;
 		}
 	}
