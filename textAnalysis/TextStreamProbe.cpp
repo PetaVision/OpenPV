@@ -93,7 +93,13 @@ int TextStreamProbe::outputState(double timef) {
             }
             assert(curcbuf-cbuf<2*nx*ny);
             *curcbuf = '\0';
-            fprintf(outputstream->fp, "%s ", cbuf);
+            int firstChar = (int)(unsigned char)cbuf[0];
+            if (firstChar == 10) { // line feed
+            	fprintf(outputstream->fp,"\n");
+            }
+			else {
+				fprintf(outputstream->fp, "%s ", cbuf);
+			}
          }
       }
       //fprintf(outputstream->fp, "\n");
