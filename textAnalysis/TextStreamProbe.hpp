@@ -9,7 +9,6 @@
 #define TEXTSTREAMPROBE_HPP_
 
 #include "../PetaVision/src/io/LayerProbe.hpp"
-#include <string>
 
 namespace PV {
 

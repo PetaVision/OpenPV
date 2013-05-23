@@ -53,7 +53,7 @@ int TextStreamProbe::outputState(double timef) {
    int num_rows = getTargetLayer()->getParent()->icCommunicator()->numCommRows();
    const PVLayerLoc * loc = getTargetLayer()->getLayerLoc();
    int nx = loc->nx;
-   assert(nx==loc->nxGlobal);
+   assert(nx==loc->nxGlobal); // num mpi cols is always 1
    int ny = loc->ny;
    int nyGlobal = loc->nyGlobal;
    int nf = loc->nf;
