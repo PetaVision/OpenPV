@@ -36,7 +36,7 @@ int TextStream::initialize_base() {
 	useCapitalization = true;
 	loopInput = false;
 	textBCFlag = true;
-	numReads = 0;
+	encodedChar = 0;
 	filename = NULL;
 	textData = NULL;
 
@@ -220,14 +220,14 @@ int TextStream::scatterTextBuffer(PV::Communicator * comm, const PVLayerLoc * lo
 			for (int buffIdx=0; buffIdx < numExtendedNeurons; buffIdx++) {
 				temp_buffer[buffIdx] = 0;
 			}
-			status = readFileToBuffer(fileStream,textOffset,this->getLayerLoc(), temp_buffer);
+			status = readFileToBuffer(textOffset,this->getLayerLoc(), temp_buffer);
 			if (r==rootproc) {
 				status = loadBufferIntoData(loc,temp_buffer);
 			}
 			else {
 				MPI_Send(temp_buffer, numExtendedNeurons*(int) datasize, MPI_BYTE, r, 171+r/*tag*/, comm->communicator());
 			}
-			if (numReads >= fileStream->filelength) {
+			if (fileStream->filepos >= fileStream->filelength) {
 				if (loopInput) {
 					PV_fseek(fileStream, 0L, SEEK_SET);
 					fprintf(stderr, "Text Input %s: EOF reached, rewinding file \"%s\".\n", name, filename);
@@ -244,7 +244,7 @@ int TextStream::scatterTextBuffer(PV::Communicator * comm, const PVLayerLoc * lo
 		status = loadBufferIntoData(loc,temp_buffer);
 	}
 #else // PV_USE_MPI
-	status = readFileToBuffer(fileStream,textOffset,this->getLayerLoc(), temp_buffer);
+	status = readFileToBuffer(textOffset,this->getLayerLoc(), temp_buffer);
 	status = loadBufferIntoData(loc,temp_buffer);
 	if (totRead >= fileStream->filelength) {
 		if (loopInput) {
@@ -263,33 +263,34 @@ int TextStream::scatterTextBuffer(PV::Communicator * comm, const PVLayerLoc * lo
 	return status;
 }
 
-int TextStream::readFileToBuffer(PV_Stream * inStream, int offset, const PVLayerLoc * loc, int * buf) {
+int TextStream::readFileToBuffer(int offset, const PVLayerLoc * loc, int * buf) {
 	int status = PV_SUCCESS;
 	int numItems=1; // Number of chars to read at a time
-	int encodedChar=0;
 	int loc_ny = loc->ny;
 	int loc_nx = loc->nx;
 	int y_start = 0;
-
-	if (fileStream->filepos==0) { // Skip initial margin stuff for first read
-		y_start = loc->nb;
-	}
 
 	if (textBCFlag) {
 		loc_ny = loc->ny + 2*loc->nb;
 		loc_nx = loc->nx + 2*loc->nb;
 	}
 
-	int preMarginReads=0, numExtraReads = 0;
+	if (fileStream->filepos==0) { // Skip initial margin stuff for first read
+		y_start = loc->nb;
+	}
+
+	int numWordReads, preMarginReads=0, numExtraReads = 0;
 	unsigned char * tmpChar = new unsigned char[1];  // One character at a time
 	for (int y=y_start; y<loc_ny; y++) { // ny = words per proc
-		while(encodedChar==0 && numReads+numItems<inStream->filelength) { // Read until nonspace
-			int numRead = PV_fread(tmpChar,sizeof(char),numItems,inStream);
+		numWordReads = 0;
+		//std::cout<<"EDCHR: "<<encodedChar<<"\n";
+		while(encodedChar==0 && fileStream->filepos + numItems < fileStream->filelength) { // Read until nonspace
+			int numRead = PV_fread(tmpChar,sizeof(char),numItems,fileStream);
 			assert(numRead==numItems);
 			encodedChar = getCharEncoding(tmpChar);
-			numReads += numRead;
+			//std::cout<<"LKSPC: "<<tmpChar[0]<<" encoded as "<<encodedChar<<"\n";
 		}
-		if (numReads >= inStream->filelength) {
+		if (fileStream->filepos >= fileStream->filelength) {
 			return status;
 		}
 		//std::cout<<"\n---WORD---\n";
@@ -336,14 +337,11 @@ int TextStream::readFileToBuffer(PV_Stream * inStream, int offset, const PVLayer
 							}
 						}
 						//std::cout<<" ADDED Punct "<<encodedChar<<"; x="<<x<<"\n";
-						if (numReads+numItems<inStream->filelength) { // Read next char
-							int numRead = PV_fread(tmpChar,sizeof(char),numItems,inStream);
-							if(numRead!=numItems) {
-								fprintf(stderr,"textStream: Did not read the correct number of items! numRead = %d numItems = %d\nfileLength = %ld\nnumReads = %ld\n",numRead,numItems,inStream->filelength,numReads);
-								abort();
-							}
+						if (fileStream->filepos + numItems < fileStream->filelength) { // Read next char
+							int numRead = PV_fread(tmpChar,sizeof(char),numItems,fileStream);
+							assert(numRead==numItems);
 							encodedChar = getCharEncoding(tmpChar);
-							numReads += numRead;
+							//std::cout<<"PUTRED: "<<tmpChar[0]<<" is a "<<charType<<"encoded as "<<encodedChar<<"\n";
 						} else {
 							return status;
 						}
@@ -364,21 +362,21 @@ int TextStream::readFileToBuffer(PV_Stream * inStream, int offset, const PVLayer
 					}
 					//std::cout<<" ADDED letter "<<encodedChar<<"; x="<<x<<"\n";
 					if (x==loc_nx-1) {
-						while(encodedChar!=0 && numReads+numItems<inStream->filelength) { // Dump the rest of the word
-							int numRead = PV_fread(tmpChar,sizeof(char),numItems,inStream);
+						while(encodedChar!=0 && fileStream->filepos + numItems < fileStream->filelength) { // Dump the rest of the word
+							int numRead = PV_fread(tmpChar,sizeof(char),numItems,fileStream);
 							assert(numRead==numItems);
 							encodedChar = getCharEncoding(tmpChar);
-							numReads += numRead;
+							//std::cout<<"DELET: "<<tmpChar[0]<<" encoded as "<<encodedChar<<"\n";
 						}
-						x++; // Increment x if breaking loop & a char has been added
+						x++; // Increment X if breaking loop & a char has been added
 						break_loop = true;
 					}
 					else {
-						if (numReads+numItems<inStream->filelength) { // Read next char
-							int numRead = PV_fread(tmpChar,sizeof(char),numItems,inStream);
+						if (fileStream->filepos + numItems < fileStream->filelength) { // Read next char
+							int numRead = PV_fread(tmpChar,sizeof(char),numItems,fileStream);
 							assert(numRead==numItems);
 							encodedChar = getCharEncoding(tmpChar);
-							numReads += numRead;
+							//std::cout<<"READ 2: "<<tmpChar[0]<<" encoded as "<<encodedChar<<"\n";
 						} else {
 							return status;
 						}
@@ -389,6 +387,7 @@ int TextStream::readFileToBuffer(PV_Stream * inStream, int offset, const PVLayer
 
 			if (break_loop) break;
 		}
+		//std::cout<<"EDCHO: "<<encodedChar<<"\n";
 
 		for (; x<loc_nx; x++) { // Fill in the rest of the word with a buffer
 			for (int f=0; f<loc->nf; f++) { // Store 0
@@ -397,13 +396,13 @@ int TextStream::readFileToBuffer(PV_Stream * inStream, int offset, const PVLayer
 		}
 
 		if (y == loc->ny-1) {
-			preMarginReads = numReads;
+			preMarginReads = numWordReads;
 		}
 	}
 
-	numExtraReads = numReads - preMarginReads;
+	numExtraReads = numWordReads - preMarginReads;
 	if (textBCFlag) { // Back up to pre-margin file position
-		PV_fseek(inStream,-numExtraReads,SEEK_CUR);
+		PV_fseek(fileStream,-numExtraReads,SEEK_CUR);
 	}
 
 	delete tmpChar;

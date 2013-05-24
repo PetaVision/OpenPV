@@ -28,7 +28,7 @@ public:
 
 private:
 	int initialize_base();
-	long numReads;
+	int encodedChar;
 
 protected:
 	TextStream();
@@ -48,7 +48,7 @@ protected:
 	virtual void readTextBCFlag(PVParams * params);
 
 	int scatterTextBuffer(PV::Communicator * comm, const PVLayerLoc * loc);
-	int readFileToBuffer(PV_Stream * inStream, int offset, const PVLayerLoc * loc, int * buf);
+	int readFileToBuffer(int offset, const PVLayerLoc * loc, int * buf);
 	int loadBufferIntoData(const PVLayerLoc * loc, int * buf);
 
 
