@@ -12,7 +12,7 @@ debugParsing = true;
 
 HyPerCol "column" = {
    nx                              = 13;  // Num chars per word
-   ny                              = 64;  // Num words per "image" presentation (set to fit the number of cores = numCores * numPatchesPerCore)
+   ny                              = 256;  // Num words per "image" presentation (set to fit the number of cores = numCores * numPatchesPerCore * 1/V1nyScale)
                                           //       numPatchesPerCore is memory limited, although for now I am maximizing the number of dictionary elements
    dt                              = 1.0;
    randomSeed                      = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
@@ -105,8 +105,9 @@ HyPerLCALayer "V1" = {
     restart             = 0;
     nxScale             = 1;
     nyScale             = 0.25;
-    nf                  = 16384; 
+    nf                  = 4096; 
     marginWidth         = 1;
+    numChannels         = 1;
     // 
     initialWriteTime    = 0;
     writeStep           = -1;//5000.0;
