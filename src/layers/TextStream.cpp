@@ -194,13 +194,12 @@ int TextStream::scatterTextBuffer(PV::Communicator * comm, const PVLayerLoc * lo
 
 	int numExtendedNeurons = loc_ny * loc_nx * loc->nf;
 
-	int comm_size = comm->commSize();
-	//TODO: Change to loc_ny?
-	if (loc->ny % comm_size != 0) { // Need to be able to devide the number of neurons in the y (words) direction by the number of procs
-		fprintf(stderr, "textStream: Number of processors must evenly devide into number of words. NumProcs=%d, NumWords=%d",comm_size,loc->ny);
-		status = PV_FAILURE;
-		abort();
-	}
+//	//TODO: Change to loc_ny?
+//	if (loc->ny % comm_size != 0) { // Need to be able to devide the number of neurons in the y (words) direction by the number of procs
+//		fprintf(stderr, "textStream: Number of processors must evenly devide into number of words. NumProcs=%d, NumWords=%d",comm_size,loc->ny);
+//		status = PV_FAILURE;
+//		abort();
+//	}
 
 	//TODO: Would it be more efficient to move this to initialize?
 	size_t datasize = sizeof(int);
@@ -212,6 +211,7 @@ int TextStream::scatterTextBuffer(PV::Communicator * comm, const PVLayerLoc * lo
 	}
 
 #ifdef PV_USE_MPI
+	int comm_size = comm->commSize();
 	int rank = comm->commRank();
 
 	if (rank==rootproc) { // Root proc should send stuff out
