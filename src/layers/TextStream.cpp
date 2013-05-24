@@ -281,7 +281,7 @@ int TextStream::readFileToBuffer(int offset, const PVLayerLoc * loc, int * buf) 
 		y_start = loc->nb;
 	}
 
-	int numWordReads, preMarginReads=0, numExtraReads = 0;
+	int numWordReads=0, preMarginReads=0, numExtraReads = 0;
 	unsigned char * tmpChar = new unsigned char[1];  // One character at a time
 	for (int y=y_start; y<loc_ny; y++) { // ny = words per proc
 		numWordReads = 0;
