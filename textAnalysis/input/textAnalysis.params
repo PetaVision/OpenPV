@@ -12,10 +12,11 @@ debugParsing = true;
 
 HyPerCol "column" = {
    nx                              = 13;  // Num chars per word
-   ny                              = 200; // Num words
+   ny                              = 64;  // Num words per "image" presentation (set to fit the number of cores = numCores * numPatchesPerCore)
+                                          //       numPatchesPerCore is memory limited, although for now I am maximizing the number of dictionary elements
    dt                              = 1.0;
    randomSeed                      = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
-   numSteps                        = 1000000;       
+   numSteps                        = 376584219200000;       
    progressStep                    = 10;
    outputPath                      = "/Users/dpaiton/Documents/Work/LANL/workspace/textAnalysis/output";
    filenamesContainLayerNames      = true;
@@ -39,16 +40,16 @@ HyPerCol "column" = {
 TextStream "Text" = {
     restart                = 0;
     textInputPath          = "~/Documents/Work/LANL/workspace/textAnalysis/input/sample_input.txt";
-    marginWidth            = 0;
+    marginWidth            = 4;
     writeStep              = -1;
     writeSparseActivity    = false;
-    displayPeriod          = 5;
+    displayPeriod          = 5000;
     textOffset             = 0;
     valueBC                = 0;     // For outside of the text file
                             //
     useCapitalization      = true;
-    loopInput              = false;
-    textBCFlag             = false;
+    loopInput              = true;
+    textBCFlag             = true;
                             //
     phase                  = 0;
 };
@@ -100,7 +101,7 @@ HyPerLCALayer "V1" = {
     restart             = 0;
     nxScale             = 1;
     nyScale             = 0.25;
-    nf                  = 2048; 
+    nf                  = 16384; 
     marginWidth         = 1;
     // 
     initialWriteTime    = 0;
@@ -138,9 +139,9 @@ KernelConn "V1ToError" = {
     channelCode                  = 1;
                                        //
     nxp                          = 1;  // Should always be 1
-    nyp                          = 4;//12; // y is num words in window
-    //nxpShrunken                  = 1;
-    //nypShrunken                  = 8;  // Patch will be shrunken to this size
+    nyp                          = 12; // y is num words in window
+    nxpShrunken                  = 1;
+    nypShrunken                  = 8;  // Patch will be shrunken to this size
                                        //
     nfp                          = 97; // for Capitalization (71 if no caps)
     numAxonalArbors              = 1;
@@ -212,42 +213,7 @@ CloneKernelConn "V1ToRecon" = {
    writeCompressedCheckpoints = false;
 };
 
-
-
-
 // Probes
-
-//StatsProbe "RetinaStats" = {
-//    targetLayer = "Retina";
-//};
-//
-//StatsProbe "GanglionStats" = {
-//    targetLayer = "Ganglion";
-//};
-//
-//StatsProbe "ReconStats" = {
-//    targetLayer = "Recon";
-//};
-//
-//StatsProbe "ErrorStats" = {
-//    targetLayer = "Error";
-//};
-//
-//StatsProbe "V1Stats" = {
-//    targetLayer = "V1";
-//};
-//
-//StatsProbe "RetinaStatsFile" = {
-//    targetLayer = "Retina";
-//    probeOutputFile = "Retina_Stats.txt";
-//};
-//
-//StatsProbe "GanglionStatsFile" = {
-//    targetLayer = "Ganglion";
-//    probeOutputFile = "Ganglion_Stats.txt";
-//};
-//
-
 TextStreamProbe "Text Probe" = {
     targetLayer = "Text";
     displayPeriod = 5;
@@ -259,18 +225,18 @@ TextStreamProbe "Recon Probe" = {
     displayPeriod = 5;
     probeOutputFile = "Recon_Probe.txt";
 };
-//
-//StatsProbe "ReconStatsFile" = {
-//    targetLayer = "Recon";
-//    probeOutputFile = "Recon_Stats.txt";
-//};
-//
-//StatsProbe "ErrorStatsFile" = {
-//    targetLayer = "Error";
-//    probeOutputFile = "Error_Stats.txt";
-//};
-//
-//StatsProbe "V1StatsFile" = {
-//    targetLayer = "V1";
-//    probeOutputFile = "V1_Stats.txt";
-//};
+
+StatsProbe "ReconStatsFile" = {
+    targetLayer = "Recon";
+    probeOutputFile = "Recon_Stats.txt";
+};
+
+StatsProbe "ErrorStatsFile" = {
+    targetLayer = "Error";
+    probeOutputFile = "Error_Stats.txt";
+};
+
+StatsProbe "V1StatsFile" = {
+    targetLayer = "V1";
+    probeOutputFile = "V1_Stats.txt";
+};
