@@ -39,7 +39,7 @@ HyPerCol "column" = {
 
 TextStream "Text" = {
     restart                = 0;
-    textInputPath          = "~/Documents/Work/LANL/workspace/textAnalysis/input/sample_input.txt";
+    textInputPath          = "~/Documents/Work/LANL/workspace/textAnalysis/input/all_stripped.txt";
     marginWidth            = 4;
     writeStep              = -1;
     writeSparseActivity    = false;
@@ -61,7 +61,7 @@ ANNLayer "Recon" = {
     nf                  = 97;
     marginWidth         = 0;
     initialWriteTime    = 4999.0;
-    writeStep           = -1;//500.0;
+    writeStep           = -1; // Use probe to view reconstruction
     mirrorBCflag        = 1;
     writeSparseActivity = 0;
     //
@@ -105,7 +105,7 @@ HyPerLCALayer "V1" = {
     marginWidth         = 1;
     // 
     initialWriteTime    = 0;
-    writeStep           = -1;//500.0;
+    writeStep           = -1;//5000.0;
     mirrorBCflag        = 1;
     writeSparseActivity = 1;
     //
@@ -164,7 +164,7 @@ KernelConn "V1ToError" = {
     keepKernelsSynchronized      = true; 
     combine_dW_with_W_flag       = false; 
                                        //
-    writeStep                    = -1;//100;
+    writeStep                    = -1; // weights are huge
     writeCompressedWeights       = false;
     writeCompressedCheckpoints   = false;
     plasticityFlag               = true;
