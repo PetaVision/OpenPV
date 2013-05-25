@@ -105,7 +105,7 @@ HyPerLCALayer "V1" = {
     restart             = 0;
     nxScale             = 1;
     nyScale             = 0.25;
-    nf                  = 8192; 
+    nf                  = 32768; 
     marginWidth         = 1;
     numChannels         = 1;
     // 
