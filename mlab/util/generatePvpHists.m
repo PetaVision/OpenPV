@@ -19,8 +19,8 @@
 
 function [numEdges, times] = generatePvpHists(pvp_filename,csv_filename,csv_object)
 
-    %pvp_filename = '/Users/dpaiton/Documents/Work/LANL/NeoVision/repo/neovision-programs-scripts/Matlab_Clustering/PetaVision_Activity/heli/challenge/026/Car5/canny2/a7.pvp';
-    %csv_filename = '/Users/dpaiton/Documents/MATLAB/vlfeat-0.9.16/apps/data/NeoVis/training/Tiles/Car/targets.csv';
+    %pvp_filename = '~/Documents/Work/LANL/NeoVision/repo/neovision-programs-scripts/Matlab_Clustering/PetaVision_Activity/heli/challenge/026/Car5/canny2/a7.pvp';
+    %csv_filename = '~/Documents/MATLAB/vlfeat-0.9.16/apps/data/NeoVis/training/Tiles/Car/targets.csv';
     %csv_object = 'Car';
 
 
