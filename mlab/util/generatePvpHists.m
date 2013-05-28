@@ -1,4 +1,4 @@
-%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%
 %% getPvpHists.m
 %%   Dylan Paiton
 %%   Los Alamos National Laboratory
@@ -15,7 +15,7 @@
 %%   NOTE: CSV file should be in the format:
 %%         Frame,BoundingBox_X1,BoundingBox_Y1,BoundingBox_X2,BoundingBox_Y2,BoundingBox_X3,BoundingBox_Y3,BoundingBox_X4,BoundingBox_Y4,ObjectType,Occlusion,Ambiguous,Confidence,SiteInfo,Version
 %%
-%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%
 
 function [numEdges, times] = generatePvpHists(pvp_filename,csv_filename,csv_object)
 
