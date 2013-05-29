@@ -6,8 +6,8 @@ if ismac
   workspace_path = "/Users/garkenyon/workspace";
   output_dir = "/Users/garkenyon/workspace/HyPerHLCA2/output_animal1200000_color_deep"; %%output_test"; %% output_animal1200000_distractor1200000"; %%
   LCA_path = [output_dir]; %%[workspace_path, filesep, "HyPerHLCA2"];
-  last_checkpoint_ndx = 10000*50; 
-  next_checkpoint_ndx = 10000*51;
+  last_checkpoint_ndx = 10000*70; 
+  next_checkpoint_ndx = 10000*71;
   first_checkpoint_ndx = 0; 
   frame_duration = 1000;
 elseif isunix
