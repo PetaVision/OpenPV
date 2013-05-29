@@ -575,7 +575,7 @@ KernelConn "ReconToError2" = {
     
    weightInitType = "Gauss2DWeight";
    aspect = 1;
-   sigma = inf;
+   sigma = infinity;
    rMax  = 3;
    rMin = 0;
    numOrientationsPre = 1;
