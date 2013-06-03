@@ -6,7 +6,14 @@ set(PV_VERSION_MINOR 1)
 set(PV_VERSION_PATCH 0)
 set(PV_VERSION_TWEAK 0)
 
-set(CMAKE_BUILD_TYPE Release) #Can be: None, Debug, Release, RelWithDebInfo, MinSizeRel
+if (NOT CMAKE_BUILD_TYPE)
+   set(CMAKE_BUILD_TYPE Release) #Can be: None, Debug, Release, RelWithDebInfo, MinSizeRel
+endif (NOT CMAKE_BUILD_TYPE)
+
+set(CMAKE_C_FLAGS_DEBUG "-g3 -O0")
+set(CMAKE_CXX_FLAGS_DEBUG "-g3 -O0")
+set(CMAKE_C_FLAGS_RELEASE "-g0 -O3")
+set(CMAKE_CXX_FLAGS_RELEASE "-g0 -O3")
 
 # File which denotes compile-ready folders
 set(PV_SRC_LIST PV_FOLDER_LIST.txt)
