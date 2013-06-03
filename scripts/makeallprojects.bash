@@ -21,7 +21,7 @@ fi
 cd $wd
 
 # PetaVision must be compiled before any projects that depend on it
-cd PetaVision/lib
+cd PetaVision
 echo cd $PWD
 make -j4 all
 if test "$?" -ne 0
@@ -30,10 +30,18 @@ then
 fi
 cd $wd
 
+projectlist=$(ls -F | egrep '/$' | sed -e '1,$s/\///' | egrep -v '^(CMakeFiles|PetaVision)')
+
 # Compile each project in workspace directory except PetaVision
-for k in $(ls | egrep -v PetaVision)
+for k in $projectlist
 do
-    cd $k/Debug
+    echo ; echo ======== Building $(basename $k) ========
+    if test -f $k/Makefile
+    then
+        cd $k
+    else
+        cd $k/Debug
+    fi
     echo cd $PWD
     make clean
     make -j4 all
