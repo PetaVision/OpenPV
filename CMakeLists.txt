@@ -69,4 +69,4 @@ include_directories(${MPI_CXX_INCLUDE_PATH})
 include_directories(${MPI_C_INCLUDE_PATH})
 
 # Add PetaVision
-add_library(PetaVision ${PVLibSrc})
+add_library(pv ${PVLibSrc})
