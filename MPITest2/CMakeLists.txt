@@ -16,10 +16,17 @@ set(PROJECT_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}") # should we move source fi
 set(PROJECT_BINARY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Debug")
 
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR})
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PV_SOURCE_DIR}/../docs/cmake/Modules/")
 
 if (NOT GDAL_FOUND)
     find_package(GDAL REQUIRED)
 endif (NOT GDAL_FOUND)
+
+if (NOT MPI_C_FOUND OR NOT MPI_CXX_FOUND)
+    find_package(MPIModified REQUIRED)
+endif (NOT MPI_C_FOUND OR NOT MPI_CXX_FOUND)
+include_directories(${MPI_CXX_INCLUDE_PATH})
+include_directories(${MPI_C_INCLUDE_PATH})
 
 # Header files
 include_directories(${PV_SOURCE_DIR})
