@@ -181,7 +181,7 @@ bool Movie::updateImage(double time, double dt)
       lastUpdateTime = time;
    } else {
       bool needNewImage = false;
-      if (time >= nextDisplayTime) {
+      while (time >= nextDisplayTime) {
          needNewImage = true;
          if (filename != NULL) free(filename);
          filename = strdup(getNextFileName(skipFrameIndex));
