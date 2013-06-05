@@ -8,7 +8,7 @@
 #ifndef LATERALGENCONN_HPP_
 #define LATERALGENCONN_HPP_
 
-#include "../PetaVision/src/connections/GenerativeConn.hpp"
+#include <connections/GenerativeConn.hpp>
 #include <string.h>
 
 namespace PV {

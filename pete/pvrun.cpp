@@ -3,7 +3,7 @@
  *
  */
 
-#include "../PetaVision/src/columns/buildandrun.hpp"
+#include <columns/buildandrun.hpp>
 #include "ChannelProbe.hpp"
 #include "OnlineLearningKConn.hpp"
 #include "RandomPatchMovie.hpp"
@@ -13,7 +13,7 @@
 #ifdef PV_USE_MPI
    #include <mpi.h>
 #else
-   #include "../PetaVision/src/include/mpi_stubs.h"
+   #include <include/mpi_stubs.h>
 #endif // PV_USE_MPI
 
 void * customgroups(const char * keyword, const char * name, HyPerCol * hc);

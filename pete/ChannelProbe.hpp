@@ -8,9 +8,9 @@
 #ifndef CHANNELPROBE_HPP_
 #define CHANNELPROBE_HPP_
 
-#include "../PetaVision/src/io/LayerProbe.hpp"
-#include "../PetaVision/src/include/pv_types.h"
-#include "../PetaVision/src/layers/HyPerLayer.hpp"
+#include <io/LayerProbe.hpp>
+#include <include/pv_types.h>
+#include <layers/HyPerLayer.hpp>
 
 namespace PV {
 
