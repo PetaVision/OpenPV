@@ -82,9 +82,9 @@ int TextStream::initialize(const char * name, HyPerCol * hc) {
 		}
 	}
 
-	nextDisplayTime = hc->simulationTime(); //  + displayPeriod;
+	nextDisplayTime = hc->simulationTime();
 
-	status = updateState(0,parent->getDeltaTime());
+	status = updateState(0,hc->getDeltaTime());
 
 	return status;
 }
@@ -146,15 +146,15 @@ int TextStream::updateState(double time, double dt)
 
 	int rootproc = 0;
 
-	bool needNewImage = false;
+	bool needNewText = false;
 	if (time >= nextDisplayTime) {
-		needNewImage = true;
-		nextDisplayTime += displayPeriod;
+		needNewText = true;
+		nextDisplayTime += displayPeriod*dt;
 		lastUpdateTime = time;
 	} // time >= nextDisplayTime
 
-	if (parent->columnId() == rootproc) {
-		if (needNewImage) {
+    if (needNewText) {
+        if (parent->columnId() == rootproc) {
 			// if at end of file (EOF), exit normally or loop
 			int c;
 			if ((c = fgetc(fileStream->fp)) == EOF) {
@@ -170,13 +170,10 @@ int TextStream::updateState(double time, double dt)
 			else {
 				ungetc(c, fileStream->fp);
 			}
-		}
-	}
+        } // (parent->columnId() == rootproc)
 
-	if (needNewImage) {
 		status = scatterTextBuffer(parent->icCommunicator(),this->getLayerLoc());
-	}
-
+    }
 
 	return status;
 }
