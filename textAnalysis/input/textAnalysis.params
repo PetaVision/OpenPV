@@ -47,12 +47,12 @@ TextStream "Text" = {
     marginWidth            = 4;
     writeStep              = -1;
     writeSparseActivity    = false;
-    displayPeriod          = 5000;
-    textOffset             = 0;
+    displayPeriod          = 5000;  // [in time steps] TODO: change to [ms] 
+    textOffset             = 0;     // TODO: I haven't tested this param yet
     valueBC                = 0;     // For outside of the text file
                             //
-    useCapitalization      = true;
-    loopInput              = true;
+    useCapitalization      = true;  // TODO: Not fully tested
+    loopInput              = true;  // TODO: I think this does not work
     textBCFlag             = true;
                             //
     phase                  = 0;
