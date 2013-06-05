@@ -13,6 +13,10 @@ set(PROJECT_BINARY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Debug")
 
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR})
 
+if (NOT GDAL_FOUND)
+    find_package(GDAL REQUIRED)
+endif (NOT GDAL_FOUND)
+
 # Header files
 include_directories(${PV_SOURCE_DIR})
 include_directories(${GDAL_INCLUDE_DIR})
@@ -23,7 +27,9 @@ include_directories(${MPI_CXX_INCLUDE_PATH})
 link_directories(${PV_BINARY_DIR})
 
 # Add executable
-add_executable(OjaKernelLearning ${PROJECT_SOURCE_DIR}/OjaKernelLearning.cpp)
+file(GLOB libSrcCPP ${PROJECT_SOURCE_DIR}/*.cpp)
+file(GLOB libSrcC ${PROJECT_SOURCE_DIR}/*.c)
+add_executable(OjaKernelLearning ${libSrcCPP} ${libSrcC})
 
 # Link executable to PV 
 target_link_libraries(OjaKernelLearning pv)
