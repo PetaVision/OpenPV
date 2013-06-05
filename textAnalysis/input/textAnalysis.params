@@ -42,12 +42,13 @@ HyPerCol "column" = {
 
 TextStream "Text" = {
     restart                = 0;
-    textInputPath          = "/home/dpaiton/workspace/textAnalysis/input/all_stripped.txt";
+    textInputPath          = "/home/dpaiton/workspace/textAnalysis/input/sample_input.txt";
+    //textInputPath          = "/home/dpaiton/workspace/textAnalysis/input/all_stripped.txt";
     //textInputPath          = "~/Documents/Work/LANL/workspace/textAnalysis/input/all_stripped.txt";
     marginWidth            = 4;
     writeStep              = -1;
     writeSparseActivity    = false;
-    displayPeriod          = 5000;  // [in time steps] TODO: change to [ms] 
+    displayPeriod          = 5;//5000;  // [in time steps - I think] TODO: change to [ms] 
     textOffset             = 0;     // TODO: I haven't tested this param yet
     valueBC                = 0;     // For outside of the text file
                             //
