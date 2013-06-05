@@ -12,4 +12,5 @@ set(MPI_C_COMPILER_NAME "${CMAKE_C_COMPILER}")
 set(MPI_CXX_COMPILER_NAME "${CMAKE_CXX_COMPILER}")
 
 add_subdirectory(PetaVision)
-add_subdirectory(BIDS)
+#add_subdirectory(BIDS)
+#add_subdirectory(textAnalysis)
