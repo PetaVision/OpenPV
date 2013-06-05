@@ -23,7 +23,7 @@ int ChannelProbe::outputState(double timed) {
     pvdata_t * buf = getTargetLayer()->getChannel(pChannel);
     int n = getTargetLayer()->getNumNeurons();
     for( int k=0; k<n; k++) {
-        fprintf(fp, "Layer %s, channel %d, time %f, neuron %8d, value=%.8g\n",
+        fprintf(outputstream->fp, "Layer %s, channel %d, time %f, neuron %8d, value=%.8g\n",
         		getTargetLayer()->getName(), (int) pChannel, timed, k, buf[k]);
     }
     return EXIT_SUCCESS;

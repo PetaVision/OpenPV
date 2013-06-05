@@ -7,9 +7,9 @@
 #ifndef RANDOMPATCHMOVIE_HPP_
 #define RANDOMPATCHMOVIE_HPP_
 
-#include <src/layers/Movie.hpp>
-#include <src/utils/pv_random.h>
-#include <src/io/imageio.hpp>
+#include "../PetaVision/src/layers/Movie.hpp"
+#include "../PetaVision/src/utils/pv_random.h"
+#include "../PetaVision/src/io/imageio.hpp"
 #include <limits.h>
 
 namespace PV {

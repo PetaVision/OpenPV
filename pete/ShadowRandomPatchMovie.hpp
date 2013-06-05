@@ -9,7 +9,7 @@
 #define SHADOWRANDOMPATCHMOVIE_HPP_
 
 #include "RandomPatchMovie.hpp"
-#include <src/columns/buildandrun.hpp>
+#include "../PetaVision/src/columns/buildandrun.hpp"
 
 namespace PV {
 

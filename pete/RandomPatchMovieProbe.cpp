@@ -46,7 +46,7 @@ int RandomPatchMovieProbe::outputState(double timed) {
    if( timed >= nextDisplayTime ) {
       nextDisplayTime += displayPeriod;
       const PVLayerLoc * loc = rpm->getLayerLoc();
-      fprintf(fp, "RandomPatchMovie \"%s\": Time %f, Offset (%d,%d), Patch size (%d,%d), File \"%s\"\n", name, timed, rpm->getOffsetX(), rpm->getOffsetY(), loc->nxGlobal, loc->nyGlobal, rpm->getFilename());
+      fprintf(outputstream->fp, "RandomPatchMovie \"%s\": Time %f, Offset (%d,%d), Patch size (%d,%d), File \"%s\"\n", name, timed, rpm->getOffsetX(), rpm->getOffsetY(), loc->nxGlobal, loc->nyGlobal, rpm->getFilename());
    }
    return PV_SUCCESS;
 }  // end outputState(float, HyPerLayer *)

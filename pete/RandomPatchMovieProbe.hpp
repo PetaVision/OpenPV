@@ -8,7 +8,7 @@
 #ifndef RANDOMPATCHMOVIEPROBE_HPP_
 #define RANDOMPATCHMOVIEPROBE_HPP_
 
-#include <src/io/LayerProbe.hpp>
+#include "../PetaVision/src/io/LayerProbe.hpp"
 #include "RandomPatchMovie.hpp"
 
 namespace PV {
