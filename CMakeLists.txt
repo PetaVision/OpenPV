@@ -61,10 +61,15 @@ configure_file (
 )
 
 # Add external libraries 
-find_package(GDAL REQUIRED)
+if (NOT GDAL_FOUND)
+    find_package(GDAL REQUIRED)
+endif (NOT GDAL_FOUND)
 include_directories(${GDAL_INCLUDE_DIR})
 
-find_package(MPIModified REQUIRED)
+
+if (NOT MPI_C_FOUND OR NOT MPI_CXX_FOUND)
+    find_package(MPIModified REQUIRED)
+endif (NOT MPI_C_FOUND OR NOT MPI_CXX_FOUND)
 include_directories(${MPI_CXX_INCLUDE_PATH})
 include_directories(${MPI_C_INCLUDE_PATH})
 
