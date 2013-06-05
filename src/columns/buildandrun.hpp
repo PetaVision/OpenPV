@@ -102,6 +102,7 @@
 #include "../io/OjaKernelSpikeRateProbe.hpp"
 #include "../io/LCALIFLateralProbe.hpp"
 #include "../io/PatchProbe.hpp"
+#include "../io/TextStreamProbe.hpp"
 #include "../io/LCAProbe.hpp"
 #include "../io/ReciprocalEnergyProbe.hpp"
 #include "../io/LayerProbe.hpp"

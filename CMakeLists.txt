@@ -1,6 +1,7 @@
 ## See http://www.cmake.org/Wiki/CMake_Useful_Variables for more variables to set
 cmake_minimum_required(VERSION 2.8)
 
+## Version 0.1.0.0
 set(PV_VERSION_MAJOR 0)
 set(PV_VERSION_MINOR 1)
 set(PV_VERSION_PATCH 0)
@@ -40,18 +41,10 @@ STRING(REGEX REPLACE "\n" ";" contents "${contents}")
 
 # Find PetaVision c/cpp files
 foreach(LIN ${contents})
-
    file(GLOB_RECURSE libSrcCPP ${LIN}/*.cpp)
    file(GLOB_RECURSE libSrcC ${LIN}/*.c)
    set(PVLibSrc ${PVLibSrc} ${libSrcCPP})
    set(PVLibSrc ${PVLibSrc} ${libSrcC})
-
-   # Print what is in the given folder
-   #message(${LIN})
-   #list(LENGTH libSrcCPP lengthA)
-   #message("Number of CPP files: ${lengthA}")
-   #list(LENGTH libSrcC lengthB)
-   #message("Number of C files:   ${lengthB}")
 endforeach(LIN ${contents})
 
 # Header file to pass CMake settings to source code

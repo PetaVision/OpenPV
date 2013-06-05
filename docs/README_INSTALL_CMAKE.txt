@@ -52,11 +52,11 @@ Copy the CMake project configuration file from the PetaVision docs folder to the
 	cp PetaVision/docs/cmake/CMakeLists.txt .
 
 Run CMake to create your make files:
-	cmake CMakeLists.txt -DCMAKE_C_COMPILER=<c_compiler> -DCMAKE_CXX_COMPILER=<cpp_compiler>
+    cmake CMakeLists.txt -DCMAKE_C_COMPILER=<c_compiler> -DCMAKE_CXX_COMPILER=<cpp_compiler>
 
-   where <c_compiler> is usually your mpi compiler (e.g. mpicc or openmpicc) and <cpp_compiler> is your c++ compiler.
+    where <c_compiler> is usually your mpi compiler (e.g. mpicc or openmpicc) and <cpp_compiler> is your c++ compiler.
    
-   You can also add the option -DCMAKE_BUILD_TYPE=Release or -DCMAKE_BUILD_TYPE=Debug to control debugger and optimization options.
+    You can also add the option -DCMAKE_BUILD_TYPE=Release or -DCMAKE_BUILD_TYPE=Debug to control debugger and optimization options.
 
 Run the Makefile to build PetaVision and any additional sandboxes or systems tests.
 	make

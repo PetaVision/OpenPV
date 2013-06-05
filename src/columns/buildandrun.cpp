@@ -161,6 +161,7 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
            "_Start_LayerProbes_",
              "LayerProbe",
                "PointProbe",
+               "TextStreamProbe",
 	       "LCAProbe",
                   "PointLIFProbe",
                     "PointLCALIFProbe",
@@ -1337,6 +1338,28 @@ LayerProbe * addLayerProbeToColumn(const char * classkeyword, const char * name,
          }
       }
       free(message); message=NULL; // message was alloc'ed in getLayerFunctionProbeParameters call
+   }
+   if( !strcmp(classkeyword, "TextStreamProbe") ) {
+     status = getLayerFunctionProbeParameters(name, classkeyword, hc, &targetlayer,
+             &message, &filename);
+     if (status != PV_SUCCESS) {
+         fprintf(stderr, "Error reading params group \"%s\"\n", name);
+         return addedProbe;
+     }
+     int display_period = hc->parameters()->value(name, "displayPeriod", 1);
+     if( filename ) {
+         addedProbe =  new TextStreamProbe(filename, targetlayer, display_period);
+     }
+     else {
+         addedProbe =  new TextStreamProbe(NULL, targetlayer, display_period);
+     }
+     free(message); message=NULL; // message was alloc'ed in getLayerFunctionProbeParameters call
+     if( !addedProbe ) {
+         fprintf(stderr, "Group \"%s\": Unable to create %s\n", name, classkeyword);
+     }
+     assert(targetlayer);
+     checknewobject((void *) addedProbe, classkeyword, name, hc);
+     return addedProbe;
    }
    if( !strcmp(classkeyword, "LCAProbe") ) {
      LCAProbe * addedProbe = NULL;
