@@ -1,11 +1,17 @@
 function [data,hdr] = readpvpfile(filename,progressperiod, num_frames, start_frame)
-   % Usage:[data,hdr] = readpvpfile(filename)
+   % Usage:[data,hdr] = readpvpfile(filename,progressperiod, num_frames, start_frame)
    % filename is a pvp file (any type)
+   % progressperiod is an optional integer argument.  A message is printed
+   %     to the screen every progressperiod frames.
+   % num_frames is the number of frames to read.  Default is all frames.
+   % start_frame is the starting frame.  Default is 1.
+   %
    % data is a cell array containing the data.
    %     In general, data has one element for each time step written.
    %     Each element is a struct containing the fields 'time' and 'values'
    %     For activities, values is an nx-by-ny-by-nf array.
    %     For weights, values is a cell array, each element is an nxp-by-nyp-by-nfp array.
+   % hdr is a struct containing the information in the file's header
 
    %% start_frame allows the user to only read frames from some starting point
    if nargin < 4 || ~exist('start_frame') || isempty(start_frame)
