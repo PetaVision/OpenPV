@@ -18,4 +18,4 @@ PatternState.bin and .txt only writes the stuff being used
 
  * params.pv should be params.xml, and include all parameters
 
-Use cmake to manage makefiles
+Use cmake to manage makefiles (done for PetaVision and some system tests)
