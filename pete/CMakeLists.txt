@@ -1,5 +1,5 @@
 ## See http://www.cmake.org/Wiki/CMake_Useful_Variables for more variables to set
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 2.6)
 
 set(CMAKE_C_FLAGS_DEBUG "-g3 -O0")
 set(CMAKE_CXX_FLAGS_DEBUG "-g3 -O0")
@@ -23,7 +23,7 @@ if (NOT GDAL_FOUND)
 endif (NOT GDAL_FOUND)
 
 if (NOT MPI_C_FOUND OR NOT MPI_CXX_FOUND)
-    find_package(MPIModified REQUIRED)
+    find_package(MPI REQUIRED)
 endif (NOT MPI_C_FOUND OR NOT MPI_CXX_FOUND)
 include_directories(${MPI_CXX_INCLUDE_PATH})
 include_directories(${MPI_C_INCLUDE_PATH})
