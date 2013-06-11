@@ -6,8 +6,8 @@
 // Description : Hello World in C++, Ansi-style
 //============================================================================
 
-#include <src/columns/buildandrun.hpp>
-#include <src/normalizers/NormalizeBase.hpp>
+#include <columns/buildandrun.hpp>
+#include <normalizers/NormalizeBase.hpp>
 
 int customexit(HyPerCol * hc, int argc, char * argv[]);
 
