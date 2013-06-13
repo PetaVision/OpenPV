@@ -1758,7 +1758,7 @@ template <typename T> int gatherActivity(PV_Stream * pvstream, Communicator * co
    return status;
 }
 // Declare the instantiations of gatherActivity that occur in other .cpp files; otherwise you may get linker errors.
-// template int gatherActivity<unsigned char>(PV_Stream * pvstream, Communicator * comm, int rootproc,  unsigned char * buffer, const PVLayerLoc * layerLoc, bool extended);
+template int gatherActivity<unsigned char>(PV_Stream * pvstream, Communicator * comm, int rootproc,  unsigned char * buffer, const PVLayerLoc * layerLoc, bool extended);
 template int gatherActivity<pvdata_t>(PV_Stream * pvstream, Communicator * comm, int rootproc,  pvdata_t * buffer, const PVLayerLoc * layerLoc, bool extended);
 template int gatherActivity<uint4>(PV_Stream * pvstream, Communicator * comm, int rootproc,  uint4 * buffer, const PVLayerLoc * layerLoc, bool extended);
 
