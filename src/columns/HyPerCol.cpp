@@ -803,7 +803,7 @@ int HyPerCol::advanceTime(double sim_time)
    // been delivered to the data store.
    //
 
-   int status;
+   int status = PV_SUCCESS;
    bool exitAfterUpdate = false;
 
    // update the connections (weights)
