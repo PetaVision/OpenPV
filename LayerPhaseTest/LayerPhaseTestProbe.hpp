@@ -8,9 +8,9 @@
 #ifndef LAYERPHASETESTPROBE_HPP_
 #define LAYERPHASETESTPROBE_HPP_
 
-#include <src/include/pv_arch.h>
-#include <src/io/StatsProbe.hpp>
-#include <src/layers/HyPerLayer.hpp>
+#include <include/pv_arch.h>
+#include <io/StatsProbe.hpp>
+#include <layers/HyPerLayer.hpp>
 #include <assert.h>
 
 namespace PV {
