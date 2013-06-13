@@ -1666,7 +1666,7 @@ template <typename T> int gatherActivity(PV_Stream * pvstream, Communicator * co
    // read into a temporary buffer since buffer may be extended but the file only contains the restricted part.
    T * temp_buffer = (T *) calloc(numLocalNeurons, datasize);
    if (temp_buffer==NULL) {
-      fprintf(stderr, "scatterActivity unable to allocate memory for temp_buffer.\n");
+      fprintf(stderr, "gatherActivity unable to allocate memory for temp_buffer.\n");
       status = PV_FAILURE;
       abort();
    }
@@ -1757,8 +1757,10 @@ template <typename T> int gatherActivity(PV_Stream * pvstream, Communicator * co
    free(temp_buffer); temp_buffer = NULL;
    return status;
 }
-// Declare the instantiations of readScalarToFile that occur in other .cpp files; otherwise you'll get linker errors.
-template int gatherActivity<unsigned char>(PV_Stream * pvstream, Communicator * comm, int rootproc,  unsigned char * buffer, const PVLayerLoc * layerLoc, bool extended);
+// Declare the instantiations of gatherActivity that occur in other .cpp files; otherwise you may get linker errors.
+// template int gatherActivity<unsigned char>(PV_Stream * pvstream, Communicator * comm, int rootproc,  unsigned char * buffer, const PVLayerLoc * layerLoc, bool extended);
+template int gatherActivity<pvdata_t>(PV_Stream * pvstream, Communicator * comm, int rootproc,  pvdata_t * buffer, const PVLayerLoc * layerLoc, bool extended);
+template int gatherActivity<uint4>(PV_Stream * pvstream, Communicator * comm, int rootproc,  uint4 * buffer, const PVLayerLoc * layerLoc, bool extended);
 
 template <typename T> int scatterActivity(PV_Stream * pvstream, Communicator * comm, int rootproc, T * buffer, const PVLayerLoc * layerLoc, bool extended, const PVLayerLoc * fileLoc, int offsetX, int offsetY) {
    // In MPI when this process is called, all processes must call it.
@@ -1884,7 +1886,9 @@ template <typename T> int scatterActivity(PV_Stream * pvstream, Communicator * c
 
    return status;
 }
-// Declare the instantiations of readScalarToFile that occur in other .cpp files; otherwise you'll get linker errors.
+// Declare the instantiations of scatterActivity that occur in other .cpp files; otherwise you may get linker errors.
 template int scatterActivity<float>(PV_Stream * pvstream, Communicator * icComm, int rootproc, float * buffer, const PVLayerLoc * layerLoc, bool extended, const PVLayerLoc * fileLoc, int offsetX, int offsetY);
+// template int scatterActivity<pvdata_t>(PV_Stream * pvstream, Communicator * icComm, int rootproc, pvdata_t * buffer, const PVLayerLoc * layerLoc, bool extended, const PVLayerLoc * fileLoc, int offsetX, int offsetY); // duplicates float since pvdata_t is currently float, but this may in principle change
+template int scatterActivity<uint4>(PV_Stream * pvstream, Communicator * icComm, int rootproc, uint4 * buffer, const PVLayerLoc * layerLoc, bool extended, const PVLayerLoc * fileLoc, int offsetX, int offsetY);
 
 } // namespace PV
