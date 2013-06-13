@@ -21,17 +21,17 @@ if (NOT GDAL_FOUND)
     find_package(GDAL REQUIRED)
 endif (NOT GDAL_FOUND)
 
-if (NOT MPI_C_FOUND OR NOT MPI_CXX_FOUND)
-    find_package(MPI REQUIRED)
-endif (NOT MPI_C_FOUND OR NOT MPI_CXX_FOUND)
-include_directories(${MPI_CXX_INCLUDE_PATH})
-include_directories(${MPI_C_INCLUDE_PATH})
+#if (NOT MPI_C_FOUND OR NOT MPI_CXX_FOUND)
+#    find_package(MPI REQUIRED)
+#endif (NOT MPI_C_FOUND OR NOT MPI_CXX_FOUND)
+#include_directories(${MPI_CXX_INCLUDE_PATH})
+#include_directories(${MPI_C_INCLUDE_PATH})
 
 # Header files
 include_directories(${PV_SOURCE_DIR})
 include_directories(${GDAL_INCLUDE_DIR})
-include_directories(${MPI_C_INCLUDE_PATH})
-include_directories(${MPI_CXX_INCLUDE_PATH})
+#include_directories(${MPI_C_INCLUDE_PATH})
+#include_directories(${MPI_CXX_INCLUDE_PATH})
 
 # Link to binary files
 link_directories(${PV_BINARY_DIR})
@@ -40,13 +40,13 @@ link_directories(${PV_BINARY_DIR})
 # Add executable
 file(GLOB libSrcCPP ${PROJECT_SOURCE_DIR}/*.cpp)
 file(GLOB libSrcC ${PROJECT_SOURCE_DIR}/*.c)
-add_executable(MPITest2 ${libSrcCPP} ${libSrcC})
+add_executable(LayerPhaseTest ${libSrcCPP} ${libSrcC})
 
 # Link executable to PV 
-target_link_libraries(MPITest2 pv)
+target_link_libraries(LayerPhaseTest pv)
 
 # Link executable to external libraries
-target_link_libraries(MPITest2 ${GDAL_LIBRARY})
-target_link_libraries(MPITest2 ${MPI_C_LIBRARIES})
-target_link_libraries(MPITest2 ${MPI_CXX_LIBRARIES})
+target_link_libraries(LayerPhaseTest ${GDAL_LIBRARY})
+#target_link_libraries(LayerPhaseTest ${MPI_C_LIBRARIES})
+#target_link_libraries(LayerPhaseTest ${MPI_CXX_LIBRARIES})
 

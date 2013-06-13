@@ -40,13 +40,13 @@ link_directories(${PV_BINARY_DIR})
 # Add executable
 file(GLOB libSrcCPP ${PROJECT_SOURCE_DIR}/*.cpp)
 file(GLOB libSrcC ${PROJECT_SOURCE_DIR}/*.c)
-add_executable(MPITest2 ${libSrcCPP} ${libSrcC})
+add_executable(CheckpointSystemTest ${libSrcCPP} ${libSrcC})
 
 # Link executable to PV 
-target_link_libraries(MPITest2 pv)
+target_link_libraries(CheckpointSystemTest pv)
 
 # Link executable to external libraries
-target_link_libraries(MPITest2 ${GDAL_LIBRARY})
-target_link_libraries(MPITest2 ${MPI_C_LIBRARIES})
-target_link_libraries(MPITest2 ${MPI_CXX_LIBRARIES})
+target_link_libraries(CheckpointSystemTest ${GDAL_LIBRARY})
+target_link_libraries(CheckpointSystemTest ${MPI_C_LIBRARIES})
+target_link_libraries(CheckpointSystemTest ${MPI_CXX_LIBRARIES})
 
