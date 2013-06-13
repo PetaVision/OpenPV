@@ -1,5 +1,5 @@
 ## See http://www.cmake.org/Wiki/CMake_Useful_Variables for more variables to set
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 2.6)
 
 ## Version 0.1.0.0
 set(PV_VERSION_MAJOR 0)
@@ -33,8 +33,6 @@ set(PV_BINARY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lib")
 set(LIBRARY_OUTPUT_PATH ${PV_BINARY_DIR})
 set(EXECUTABLE_OUTPUT_PATH ${PV_BINARY_DIR})
 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PV_SOURCE_DIR}/../docs/cmake/Modules/")
-
 # Read in file and parse by line
 file(READ "${PV_SRC_LIST}" contents)
 STRING(REGEX REPLACE "\n" ";" contents "${contents}")
@@ -59,10 +57,10 @@ if (NOT GDAL_FOUND)
 endif (NOT GDAL_FOUND)
 include_directories(${GDAL_INCLUDE_DIR})
 
-
 if (NOT MPI_C_FOUND OR NOT MPI_CXX_FOUND)
-    find_package(MPIModified REQUIRED)
+    find_package(MPI REQUIRED)
 endif (NOT MPI_C_FOUND OR NOT MPI_CXX_FOUND)
+
 include_directories(${MPI_CXX_INCLUDE_PATH})
 include_directories(${MPI_C_INCLUDE_PATH})
 
