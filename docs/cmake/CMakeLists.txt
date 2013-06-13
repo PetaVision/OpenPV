@@ -1,7 +1,10 @@
+# This CMakeLists.txt file can be used to generate makefiles for several projects at once.
+# It should be put in the directory containing the projects.
+
 project(PetaVision)
 
 # See http://www.cmake.org/Wiki/CMake_Useful_Variables for more variables to set
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 2.6)
 
 # The user may specify a non-standard compiler name for MPI
 #  For example, the user may type:
@@ -12,5 +15,6 @@ set(MPI_C_COMPILER_NAME "${CMAKE_C_COMPILER}")
 set(MPI_CXX_COMPILER_NAME "${CMAKE_CXX_COMPILER}")
 
 add_subdirectory(PetaVision)
-#add_subdirectory(BIDS)
+add_subdirectory(BasicSystemTest)
+# # Insert additional add_subdirectory commands to add other projects.
 #add_subdirectory(textAnalysis)
