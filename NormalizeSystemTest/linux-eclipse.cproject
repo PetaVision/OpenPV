@@ -41,7 +41,7 @@
 								<option id="gnu.cpp.compilermacosx.exe.debug.option.optimization.level.2127268170" name="Optimization Level" superClass="gnu.cpp.compilermacosx.exe.debug.option.optimization.level" value="gnu.cpp.compiler.optimization.level.none" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.macosx.exe.debug.option.debugging.level.855938990" name="Debug Level" superClass="gnu.cpp.compiler.macosx.exe.debug.option.debugging.level" value="gnu.cpp.compiler.debugging.level.max" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.option.include.paths.654080941" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/PetaVision}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/PetaVision/src}&quot;"/>
 									<listOptionValue builtIn="false" value="/usr/include/gdal"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1503812780" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
@@ -50,7 +50,7 @@
 								<option defaultValue="gnu.c.optimization.level.none" id="gnu.c.compiler.macosx.exe.debug.option.optimization.level.1177625562" name="Optimization Level" superClass="gnu.c.compiler.macosx.exe.debug.option.optimization.level" valueType="enumerated"/>
 								<option id="gnu.c.compiler.macosx.exe.debug.option.debugging.level.2046925933" name="Debug Level" superClass="gnu.c.compiler.macosx.exe.debug.option.debugging.level" value="gnu.c.debugging.level.max" valueType="enumerated"/>
 								<option id="gnu.c.compiler.option.include.paths.552626366" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/PetaVision}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/PetaVision/src}&quot;"/>
 									<listOptionValue builtIn="false" value="/usr/include/gdal"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.519662984" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
