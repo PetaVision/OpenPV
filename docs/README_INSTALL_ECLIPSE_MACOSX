@@ -100,10 +100,10 @@ Here is the procedure for installing and compiling the PetaVision repository on 
 
 8. Run a Systems test
   I use the command line to run PV jobs.  In a terminal window, cd to the BasicSystemTest directory and type the command
-  "Debug/KernelTest -p input/test_kernel.params"
+  "Debug/BasicSystemTest -p input/BasicSystemTest.params"
 
   To run under 16 processes,
-  "mpirun -np 16 Debug/KernelTest -p input/test_kernel.params"
+  "mpirun -np 16 Debug/BasicSystemTest -p input/BasicSystemTest.params"
 
 It should be possible to run and debug from within the Eclipse environment, but I'm the wrong person to ask how to set that up.
 

@@ -50,12 +50,12 @@ Here is the procedure for installing and compiling the PetaVision repository on 
   e. Eclipse requires a .cproject file in the project directory to recognize the project as a C/C++ project.
      There are different versions .cproject on the repository.
      If you will be working with PetaVision exclusively in eclipse and want eclipse to manage your makefiles,
-     copy "mac-eclipse.cproject" to ".cproject".
+     copy "linux-eclipse.cproject" to ".cproject".
      If you will sometimes do code development outside of the eclipse environment, or for any reason do not
-     want to have eclipse manage the makefiles, copy "mac-cmake.cproject" to ".cproject".
+     want to have eclipse manage the makefiles, copy "linux-cmake.cproject" to ".cproject".
      Repeat for any system tests and sandboxes checked out in step [d].
      
-     You can also use the script PetaVision/scripts/copycproject.bash to copy all projects' mac-*.cproject to .cproject in a batch.
+     You can also use the script PetaVision/scripts/copycproject.bash to copy all projects' linux-*.cproject to .cproject in a batch.
      Use either the command
      "bash PetaVision/scripts/copycproject.bash eclipse" or "bash PetaVision/scripts/copycproject.bash cmake"
      to copy either the eclipse or cmake versions.
@@ -83,24 +83,24 @@ Here is the procedure for installing and compiling the PetaVision repository on 
   g. Project Menu -> Build Project.  This should be enough to build the library without errors.
 
 6. Compile a Systems test
-  a. Go to the SVN Repository Exploring perspective and check out KernelTest.
+  a. Go to the SVN Repository Exploring perspective and check out BasicSystemTest.
 
   b. Project menu -> Build Project ....  It should build without errors.
 
 7. Run a Systems test
-  I use the command line to run PV jobs.  In a terminal window, cd to the KernelTest directory and type the command
-Debug/KernelTest -p input/test_kernel.params
+  I use the command line to run PV jobs.  In a terminal window, cd to the BasicSystemTest directory and type the command
+Debug/BasicSystemTest -p input/BasicSystemTest.params
 
 To run under 16 processes,
-mpirun -np 16 Debug/KernelTest -p input/test_kernel.params
+mpirun -np 16 Debug/BasicSystemTest -p input/BasicSystemTest.params
 
 It should be possible to run and debug from within the Eclipse environment, but I'm the wrong person to ask how to set that up.
 
-8. The PetaVision's mac-eclipse.cproject file on the repository have optimization set to most and debugging set to none, for both C and C++.
-   The PVSystemTests' mac-eclipse.cproject files have optimization set to none and debugging set to most.
+8. The PetaVision's linux-eclipse.cproject file on the repository have optimization set to most and debugging set to none, for both C and C++.
+   The PVSystemTests' linux-eclipse.cproject files have optimization set to none and debugging set to most.
    To change these, go to Properties for the appropriate project, open the triangle by C/C++ Build, and select Settings.  There are separate Optimization and Debugging panes under both "GCC C++ Compiler" and "GCC C Compiler" in the main part of the properties window.
 
-   If you are using the mac-cmake.cproject files, you can add the option "-DCMAKE_BUILD_TYPE=Release" to the cmake command to
+   If you are using the linux-cmake.cproject files, you can add the option "-DCMAKE_BUILD_TYPE=Release" to the cmake command to
    set optimization to most and debugging to none.  The option "-DCMAKE_BUILD_TYPE=Debug" sets optimization to none and debugging to most.
    The default for PetaVision is Release; the default for the system tests is Debug.
 
