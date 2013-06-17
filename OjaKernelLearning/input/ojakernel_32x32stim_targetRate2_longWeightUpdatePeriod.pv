@@ -11,22 +11,22 @@
 debugParsing = false;
 
 HyPerCol "column" = {
-   nx = 32;  
-   ny = 32;
+   nx = 64;  
+   ny = 64;
    dt = 1.0;
    randomSeed = 1815410804;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
-   numSteps = 1000;
+   numSteps = 100000;
    progressStep = 1;
    writeProgressToErr = false;
-   outputPath = "~/Workspace/NMC/PV_Output/ojakernel_32x32stim_targetRate2_longWeightUpdatePeriod/output";
+   outputPath = "../../PV_Output/ojakernel_32x32stim_targetRate2_longWeightUpdatePeriod/output";
    filenamesContainLayerNames = 2;
    filenamesContainConnectionNames = 2;
-   checkpointRead = false;
-   // checkpointReadDir = "~/Workspace/NMC/PV_Output/ojakernel_32x32stim_targetRate2_longWeightUpdatePeriod/checkpoints/";
-   // checkpointReadDirIndex = 29500000;
+   checkpointRead = true;
+   checkpointReadDir = "../../PV_Output/ojakernel_32x32stim_targetRate2_longWeightUpdatePeriod/checkpoints/";
+   checkpointReadDirIndex = 1000;
    checkpointWrite = true;
-   checkpointWriteDir = "~/Workspace/NMC/PV_Output/ojakernel_32x32stim_targetRate2_longWeightUpdatePeriod/checkpoints/";
-   checkpointWriteStepInterval = 100;
+   checkpointWriteDir = "../../PV_Output/ojakernel_32x32stim_targetRate2_longWeightUpdatePeriod/checkpoints/";
+   checkpointWriteStepInterval = 1000;
    deleteOlderCheckpoints = false;
    // suppressLastOutput = false;
 };
@@ -56,8 +56,8 @@ Patterns "input" = {
    dropPeriodRandomMin           = 250;
    inOut                         = 1;
    
-   maxValue                      = 1.5;
-   minValue                      = 0.5;
+   maxValue                      = 0.75;
+   minValue                      = 0.25;
 
    halfNeutral                   = true;
    dropPosition                  = -1;
@@ -67,8 +67,9 @@ Patterns "input" = {
    startFrame                    = 0; 
    endFrame                      = -1;
    
-   writeImages                   = false;
-   // patternsOutputPath           = "output/sourcefiles";
+   writeImages                   = true;
+   writeImagesExtension          = "png";
+   patternsOutputPath            = "../../PV_Output/ojakernel_32x32stim_targetRate2_longWeightUpdatePeriod/output/stimulus";
    normalizeLuminanceFlag        = false;
    
    displayPeriod                 = 1;
@@ -79,16 +80,36 @@ Patterns "input" = {
    writeSparseActivity           = false;
 };
 
+ANNLayer "scaled input" = {
+    nxScale                 = 1;
+    nyScale                 = 1;
+    nf                      = 1;
+    phase                   = 1;
+    marginWidth             = 1;
+    mirrorBCflag            = 1;
+    writeSparseActivity     = false;
+    writeStep               = 1.0;
+    initialWriteTime        = 0.0;
+
+    restart                 = false;
+    InitVType               = "ZeroV";
+
+    VThresh                 = -infinity;
+    VMax                    = infinity;
+    VMin                    = -infinity;
+    VShift                  = 0.0;
+};
+
 Retina "RetinaON" = {
     nxScale                 = 1;
     nyScale                 = 1;
     nf                      = 1;
-    phase                   = 0;
-    marginWidth             = 0;
+    phase                   = 2;
     restart                 = false;
     
     writeStep               = -1;
     writeSparseActivity     = false;
+    marginWidth             = 4;
     mirrorBCflag            = true;
     spikingFlag             = true;
 
@@ -109,12 +130,12 @@ Retina "RetinaOFF" = {
     nxScale                 = 1;
     nyScale                 = 1;
     nf                      = 1;
-    phase                   = 0;
-    marginWidth             = 0;
+    phase                   = 2;
     restart                 = false;
     
     writeStep               = -1;
     writeSparseActivity     = false;
+    marginWidth             = 4;
     mirrorBCflag            = true;
     spikingFlag             = true;
 
@@ -132,18 +153,18 @@ Retina "RetinaOFF" = {
 };
 
 LCALIFLayer "lcalif" = {
-    nxScale                 = 0.5;        
-    nyScale                 = 0.5;        
+    nxScale                 = 0.25;        
+    nyScale                 = 0.25;        
     nf                      = 256;   
-    phase                   = 0;
+    phase                   = 3;
 
     tauTHR                  = 4000;       // Timescale for changing adaptive threshold, in milliseconds
     targetRate              = 2;           // Target rate of output spikes in Hertz
 
-    marginWidth             = 0;         
     writeSparseActivity     = true;
     writeStep               = -1.0;
     // initialWriteTime        = 0.0;
+    marginWidth             = 2;         
     mirrorBCflag            = true;        // mirroring boundary conditions
     InitVType               = "ConstantV";
     method                  = "arma";
@@ -180,8 +201,34 @@ LCALIFLayer "lcalif" = {
 // Connections Connections Connections Connections Connections Connections
 ////////////////////////////////////////////////////////////////////////////////
 
-KernelConn "ImagetoRetinaONCenter" = {
+KernelConn "input to scaled input" = {
    preLayerName             = "input";
+   postLayerName            = "scaled input";
+   channelCode              = 0;
+   nxp                      = 1;
+   nyp                      = 1;
+   nfp                      = 1;
+   numAxonalArbors          = 1;
+   delay                    = 0;
+
+   initFromLastFlag         = 0;
+   writeStep                = -1;
+   // initialWriteTime         = 0;
+   
+   weightInitType           = "OneToOneWeights";
+   weightInit               = 2.0;
+   
+   normalizeMethod          = "none";
+   plasticityFlag           = false;
+   stochasticReleaseFlag    = false;
+   writeCompressedCheckpoints = false;
+   selfFlag                 = false;
+   shrinkPatches            = false;
+   preActivityIsNotRate     = false;
+};
+
+KernelConn "ImagetoRetinaONCenter" = {
+   preLayerName             = "scaled input";
    postLayerName            = "RetinaON";
    channelCode              = 0;
    nxp                      = 1; 
@@ -217,7 +264,7 @@ KernelConn "ImagetoRetinaONCenter" = {
 };
 
 KernelConn "ImagetoRetinaONSurround" = {
-   preLayerName             = "input";
+   preLayerName             = "scaled input";
    postLayerName            = "RetinaON";
    channelCode              = 1;
    nxp                      = 3;
@@ -252,7 +299,7 @@ KernelConn "ImagetoRetinaONSurround" = {
 };
 
 KernelConn "ImagetoRetinaOFFCenter" = {
-   preLayerName             = "input";
+   preLayerName             = "scaled input";
    postLayerName            = "RetinaOFF";
    channelCode              = 1;
    nxp                      = 1; 
@@ -288,7 +335,7 @@ KernelConn "ImagetoRetinaOFFCenter" = {
 
 
 KernelConn "ImagetoRetinaOFFSurround" = {
-   preLayerName             = "input";
+   preLayerName             = "scaled input";
    postLayerName            = "RetinaOFF";
    channelCode              = 0;
    nxp                      = 3;
@@ -325,8 +372,8 @@ KernelConn "ImagetoRetinaOFFSurround" = {
 OjaKernelConn "RetinaONtoLCALIF" = {
    preLayerName             = "RetinaON";
    postLayerName            = "lcalif";
-   nxp                      = 1;
-   nyp                      = 1;
+   nxp                      = 3;
+   nyp                      = 3;
    nfp                      = 256;
    numAxonalArbors          = 1;
    channelCode              = 0;
@@ -369,8 +416,8 @@ OjaKernelConn "RetinaONtoLCALIF" = {
 OjaKernelConn "RetinaOFFtoLCALIF" = {
    preLayerName             = "RetinaOFF";
    postLayerName            = "lcalif";
-   nxp                      = 1;
-   nyp                      = 1;
+   nxp                      = 3;
+   nyp                      = 3;
    nfp                      = 256;
    numAxonalArbors          = 1;
    channelCode              = 0;
@@ -413,8 +460,8 @@ OjaKernelConn "RetinaOFFtoLCALIF" = {
 KernelConn "ON Kernel Normalizer" = {
    preLayerName             = "RetinaON";
    postLayerName            = "lcalif";
-   nxp                      = 1;
-   nyp                      = 1;
+   nxp                      = 3;
+   nyp                      = 3;
    nfp                      = 256;
    numAxonalArbors          = 1;
    channelCode              = 4;
@@ -437,8 +484,8 @@ KernelConn "ON Kernel Normalizer" = {
 KernelConn "OFF Kernel Normalizer" = {
    preLayerName             = "RetinaOFF";
    postLayerName            = "lcalif";
-   nxp                      = 1;
-   nyp                      = 1;
+   nxp                      = 3;
+   nyp                      = 3;
    nfp                      = 256;
    numAxonalArbors          = 1;
    channelCode              = 4;
@@ -461,8 +508,8 @@ KernelConn "OFF Kernel Normalizer" = {
 LCALIFLateralKernelConn "Lateral Inhibition" = {
    preLayerName             = "lcalif";
    postLayerName            = "lcalif";
-   nxp                      = 1;
-   nyp                      = 1;
+   nxp                      = 5;
+   nyp                      = 5;
    nfp                      = 256;
    numAxonalArbors          = 1;
    channelCode              = 1;
@@ -485,10 +532,10 @@ LCALIFLateralKernelConn "Lateral Inhibition" = {
    keepKernelsSynchronized  = true;
    dWMax                    = 1.0;
    
-   weightInitType           = "FileWeight";
-   initWeightsFile          = "input/lateralinhibition_initialvalues256_W.pvp";
-   useListOfArborFiles     = false;
-   combineWeightFiles      = false;
+   weightInitType          = "UniformRandomWeight";
+   wMinInit                = 0.0;
+   wMaxInit                = 0.1;
+   sparseFraction          = 0.0;
    
    normalizeMethod          = "none";
 
