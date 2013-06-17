@@ -912,6 +912,22 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
       if( auxConn && preLayer && postLayer ) {
          addedConn = (HyPerConn *) new TransposeConn(name, hc, preLayer, postLayer, dynamic_cast<KernelConn *>(auxConn) );
       }
+      else {
+         if (hc->icCommunicator()->commRank()==0) {
+            if (auxConn==NULL) {
+               fprintf(stderr, "%s \"%s\" error: string parameter originalConnName must be set.\n", classkeyword, name);
+            }
+            if (preLayer==NULL) {
+               fprintf(stderr, "%s \"%s\" error: string parameter preLayerName must be set.\n", classkeyword, name);
+            }
+            if (postLayer==NULL) {
+               fprintf(stderr, "%s \"%s\" error: string parameter postLayerName must be set.\n", classkeyword, name);
+            }
+            if (preLayer==NULL && postLayer==NULL) {
+               fprintf(stderr, "    If you name the connection \"preLayerName to postLayerName\", pre and post layer names will be inferred from the connection name.\n");
+            }
+         }
+      }
       status = checknewobject((void *) addedConn, classkeyword, name, hc);
    }
    if( !keywordMatched && !strcmp(classkeyword, "FeedbackConn") ) {
