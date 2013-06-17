@@ -4,12 +4,17 @@ cmake_minimum_required(VERSION 2.6)
 set(CMAKE_C_FLAGS_DEBUG "-g3")
 set(CMAKE_CXX_FLAGS_DEBUG "-g3")
 
-set(CMAKE_BUILD_TYPE ${BUILD_TYPE_OJAKERNELLEARNING}) #Can be: None, Debug, Release, RelWithDebInfo, MinSizeRel
+# To allow for a single CMakeLists.txt to add_subdirectory several projects, where build type might not all be the same,
+# can set BUILD_TYPE_OJAKERNELLEARNING separately and it will be used as set
+if (BUILD_TYPE_OJAKERNELLEARNING)
+    set(BUILD_TYPE_SAVE_OLD ${CMAKE_BUILD_TYPE})
+    set(CMAKE_BUILD_TYPE ${BUILD_TYPE_OJAKERNELLEARNING}) #Can be: None, Debug, Release, RelWithDebInfo, MinSizeRel
+endif (BUILD_TYPE_OJAKERNELLEARNING)
 
 set(PV_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../PetaVision/src")
 set(PV_BINARY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../PetaVision/lib")
 set(PROJECT_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
-set(PROJECT_BINARY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Debug")
+set(PROJECT_BINARY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/${CMAKE_BUILD_TYPE}")
 
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR})
 
@@ -39,3 +44,6 @@ target_link_libraries(OjaKernelLearning ${GDAL_LIBRARY})
 target_link_libraries(OjaKernelLearning ${MPI_C_LIBRARIES})
 target_link_libraries(OjaKernelLearning ${MPI_CXX_LIBRARIES})
 
+if (BUILD_TYPE_OJAKERNELLEARNING)
+    set(CMAKE_BUILD_TYPE ${BUILD_TYPE_OJAKERNELLEARNING})
+endif (BUILD_TYPE_OJAKERNELLEARNING)
