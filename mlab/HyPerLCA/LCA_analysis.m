@@ -1,4 +1,4 @@
- 
+  
 clear all;
 close all;
 setenv("GNUTERM","X11")
@@ -12,11 +12,11 @@ if ismac
   frame_duration = 1000;
 elseif isunix
   workspace_path = "/home/gkenyon/workspace";
-  %%output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_16x16x4096_NoOverlap_lambda_05X2"; %%MRI/LCA/5_subjects"; %%  
-  output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_12x12x1024_lambda_05X2_color_deep"; %%MRI/LCA/5_subjects"; %%  
+  output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_16x16x1024_Overlap_lambda_05X2"; %%MRI/LCA/5_subjects"; %%  
+  %%output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_12x12x1024_lambda_05X2_color_deep"; %%MRI/LCA/5_subjects"; %%  
   LCA_path = [output_dir];
-  last_checkpoint_ndx = 10000*22; %% 
-  next_checkpoint_ndx = 10000*23; %%50000*22; %% 
+  last_checkpoint_ndx = 100000*417; %% 
+  next_checkpoint_ndx = 100000*418; %%50000*22; %% 
   first_checkpoint_ndx = 0;
   frame_duration = 5000;
 endif
@@ -28,13 +28,13 @@ max_lines = last_checkpoint_ndx + (last_checkpoint_ndx == 0) * 50000;
 max_history = 140000;
 begin_statProbe_step = max(max_lines - max_history, 3);
 training_flag = 1;
-num_recon = 9;
-deep_flag = 1;
-deep2_flag = 1;
+num_recon = 32;
+deep_flag = 0;
+deep2_flag = 0;
 
 
 %% plot Reconstructions
-plot_Recon = 1;
+plot_Recon = 0;
 if plot_Recon
   %%keyboard;
   recon_dir = [output_dir, filesep, "recon"];
@@ -228,6 +228,9 @@ if plot_Recon
     imagesc(permute(Ganglion_vals,[2,1,3])); 
     num_Ganglion_colors = size(Ganglion_vals,3);
     mean_unwhitened_Ganglion = ones(num_Ganglion_colors,1);
+    std_unwhitened_Ganglion = ones(num_Ganglion_colors,1);
+    max_unwhitened_Ganglion = ones(num_Ganglion_colors,1);
+    min_unwhitened_Ganglion = ones(num_Ganglion_colors,1);
     if num_Ganglion_colors == 1
       colormap(gray); 
     endif
@@ -239,6 +242,9 @@ if plot_Recon
 	tmp_Ganglion = ...
 	    deconvolvemirrorbc(squeeze(Ganglion_vals(:,:,i_color))', DoG_weights);
 	mean_unwhitened_Ganglion(i_color) = mean(tmp_Ganglion(:));
+	std_unwhitened_Ganglion(i_color) = std(tmp_Ganglion(:));
+	max_unwhitened_Ganglion(i_color) = max(tmp_Ganglion(:));
+	min_unwhitened_Ganglion(i_color) = min(tmp_Ganglion(:));
 	[unwhitened_Ganglion_DoG(:,:,i_color)] = tmp_Ganglion;
       endfor
       figure(unwhitened_Ganglion_fig);
@@ -289,10 +295,11 @@ if plot_Recon
 	    deconvolvemirrorbc(squeeze(Recon_vals(:,:,i_color))', DoG_weights); 
 	tmp_recon = unwhitened_Recon_vals(:,:,i_color);
 	mean_recon = mean(tmp_recon(:));
+	std_recon = std(tmp_recon(:));
 	%% inverse DoG filtering is ambiguous to within an overall additive constant
-	tmp_recon = tmp_recon - (mean_recon - mean_unwhitened_Ganglion(i_color)); 
-	%%max_recon = max(tmp_recon(:));
-	%%min_recon = min(tmp_recon(:));
+	tmp_recon = (tmp_recon - mean_recon) * (std_unwhitened_Ganglion(i_color) / std_recon) + mean_unwhitened_Ganglion(i_color); 
+	max_recon = max(tmp_recon(:));
+	min_recon = min(tmp_recon(:));
 	%%tmp_recon = (tmp_recon - min_recon) / (max_recon - min_recon + ((max_recon - min_recon)==0));
 	unwhitened_Recon_vals(:,:,i_color) = tmp_recon;
       endfor
@@ -399,8 +406,10 @@ if plot_Recon
 		deconvolvemirrorbc(squeeze(ReconSum_vals(:,:,i_color))', DoG_weights); 
 	    tmp_recon = unwhitened_ReconSum_vals(:,:,i_color);
 	    mean_recon = mean(tmp_recon(:));
+	    mean_recon = mean(tmp_recon(:));
+	    std_recon = std(tmp_recon(:));
 	    %% inverse DoG filtering is ambiguous to within an overall additive constant
-	    tmp_recon = tmp_recon - (mean_recon - mean_unwhitened_Ganglion(i_color)); 
+	    tmp_recon = (tmp_recon - mean_recon) * (std_unwhitened_Ganglion(i_color) / std_recon) + mean_unwhitened_Ganglion(i_color); 
 	    %%max_recon = max(tmp_recon(:));
 	    %%min_recon = min(tmp_recon(:));
 	    %%tmp_recon = (tmp_recon - min_recon) / (max_recon - min_recon + ((max_recon - min_recon)==0));
@@ -427,8 +436,8 @@ if plot_Recon
 endif  %% plot_Recon
 
 
-plot_ave_error_vs_time = 1;
-if plot_ave_error_vs_time
+plot_StatsProbe_vs_time = 0;
+if plot_StatsProbe_vs_time
   V1_sparseness_error_vs_time_dir = [output_dir, filesep, "V1_sparseness_error_vs_time"];
   mkdir(V1_sparseness_error_vs_time_dir);
   Error_Stats_file = [output_dir, filesep, "Error_Stats.txt"];
@@ -700,6 +709,8 @@ if plot_V1
   V1_mean_active = mean(V1_tot_active(:)/n_V1);
   disp(["V1_mean_active = ", num2str(V1_mean_active)]);
 
+  plot_Error = 0;
+  if plot_Error
   if deep_flag
     Error_path = [output_dir, filesep, "a4_Error.pvp"];
   else
@@ -734,6 +745,7 @@ if plot_V1
   disp(["Error_median_RMS = ", num2str(Error_median_RMS)]);
 
   drawnow;  
+  endif %% plot_Error
   if deep_flag
     V2_path = [output_dir, filesep, "a8_V2.pvp"];
     write_step = frame_duration;
@@ -883,7 +895,7 @@ if plot_V1
   endif  %% deep_flag
 endif  %% plot_V1
 
-plot_final_weights = 1;
+plot_final_weights = 0;
 if plot_final_weights 
   V1ToError_path = [checkpoint_path, filesep, "V1ToError_W.pvp"];
   if ~exist(V1ToError_path, "file")
@@ -968,20 +980,20 @@ if plot_final_weights
     %% make tableau of all patches
     %%keyboard;
     i_patch = 1;
-    num_V2_dims = ndims(V2ToError2_weights);
-    num_patches = size(V2ToError2_weights, num_V2_dims);
+    num_V2ToError2_dims = ndims(V2ToError2_weights);
+    num_patches = size(V2ToError2_weights, num_V2ToError2_dims);
     num_patches_rows = floor(sqrt(num_patches));
     num_patches_cols = ceil(num_patches / num_patches_rows);
-    num_V2_colors = 1;
-    if num_V2_dims == 4
-      num_V2_colors = size(V2ToError2_weights,3);
+    num_V2ToError2_colors = 1;
+    if num_V2ToError2_dims == 4
+      num_V2ToError2_colors = size(V2ToError2_weights,3);
     endif
     V2ToError2_fig = figure;
     set(V2ToError2_fig, "name", ["V2ToError2 Weights: ", num2str(last_checkpoint_ndx, "%i")]);
     for j_patch = 1  : num_patches
       i_patch = V2_hist_rank(j_patch);
       subplot(num_patches_rows, num_patches_cols, j_patch); 
-      if num_V2_colors == 1
+      if num_V2ToError2_colors == 1
 	patch_tmp = squeeze(V2ToError2_weights(:,:,i_patch));
       else
 	patch_tmp = squeeze(V2ToError2_weights(:,:,:,i_patch));
@@ -992,7 +1004,7 @@ if plot_final_weights
       patch_tmp2 = (patch_tmp2 - min_patch) * 255 / (max_patch - min_patch + ((max_patch - min_patch)==0));
       patch_tmp2 = uint8(flipdim(permute(patch_tmp2, [2,1,3]),1));
       imagesc(patch_tmp2); 
-      if num_V2_colors == 1
+      if num_V2ToError2_colors == 1
 	colormap(gray);
       endif
       box off
@@ -1017,6 +1029,106 @@ if plot_final_weights
     mkdir(mat_dir);
     V2ToError2_weights_file = [mat_dir, filesep, "V2ToError2_weights", num2str(last_checkpoint_ndx, "%i"), ".mat"];
     save(  "-mat", V2ToError2_weights_file, "V2ToError2_weights");
+
+    if deep2_flag
+      V2ToError1_2_path = [checkpoint_path, filesep, "V2ToError1_2_W.pvp"];
+      if ~exist(V2ToError1_2_path, "file")
+	V2ToError1_2_path = [next_checkpoint_path, filesep, "V2ToError1_2_W.pvp"];
+      endif
+      [V2ToError1_2_struct, V2ToError1_2_hdr] = readpvpfile(V2ToError1_2_path,1);
+      i_frame = 1;
+      i_arbor = 1;
+      V2ToError1_2_weights = squeeze(V2ToError1_2_struct{i_frame}.values{i_arbor});
+      if ~exist("V2_hist_rank") || isempty(V2_hist_rank)
+	V2_hist_rank = (1:V2ToError1_2_hdr.nf);
+      endif
+
+      %% make tableau of all patches
+      %%keyboard;
+      i_patch = 1;
+      num_V2ToError1_2_dims = ndims(V2ToError1_2_weights);
+      num_patches = size(V2ToError1_2_weights, num_V2ToError1_2_dims);
+      num_patches_rows = floor(sqrt(num_patches));
+      num_patches_cols = ceil(num_patches / num_patches_rows);
+      num_V2ToError1_2_colors = 1;
+      if num_V2ToError1_2_dims == 4
+	num_V2ToError1_2_colors = size(V2ToError1_2_weights,3);
+      endif
+      V2ToError1_2_fig = figure;
+      set(V2ToError1_2_fig, "name", ["V2ToError1_2 Weights: ", num2str(last_checkpoint_ndx, "%i")]);
+      Retina_V1_nx_ratio = Retina_hdr.nxGlobal / V1_hdr.nxGlobal;
+      Retina_V1_ny_ratio = Retina_hdr.nyGlobal / V1_hdr.nyGlobal;
+      V1ToError_overlapp_x = V1ToError_hdr.nxp - Retina_V1_nx_ratio;
+      V1ToError_overlapp_y = V1ToError_hdr.nyp - Retina_V1_ny_ratio;
+      V2ToError1_2_nxp = V1ToError_hdr.nxp + (V2ToError1_2_hdr.nxp - 1) * (V1ToError_hdr.nxp - V1ToError_overlapp_x); 
+      V2ToError1_2_nyp = V1ToError_hdr.nyp + (V2ToError1_2_hdr.nyp - 1) * (V1ToError_hdr.nyp - V1ToError_overlapp_y); 
+      for j_patch = 1  : num_patches
+	i_patch = V2_hist_rank(j_patch);
+	subplot(num_patches_rows, num_patches_cols, j_patch); 
+	if num_V2ToError1_2_colors == 1
+	  patch_ij_tmp = squeeze(V2ToError1_2_weights(:,:,i_patch));
+	  patch_ij_tmp = repmat(patch_ij_tmp, [1,1,1,1]);
+	else
+	  patch_ij_tmp = squeeze(V2ToError1_2_weights(:,:,:,i_patch));
+	endif
+	patch_ij_array = cell(size(V2ToError1_2_weights,1),size(V2ToError1_2_weights,2));
+	patch_ij = zeros(V2ToError1_2_nyp, V2ToError1_2_nxp, num_V1ToError_colors);
+	for ij_patch_row = 1 : size(V2ToError1_2_weights,1)
+	  for ij_patch_col = 1 : size(V2ToError1_2_weights,2)
+	    patch_ij_array{ij_patch_row, ij_patch_col} = zeros(size(V1ToError_weights(1:3)));
+	    for ij_patch_feature = 1 : num_V2ToError1_2_colors
+	      patch_ij_tmp = patch_tmp(ij_patch_row, ij_path_col, ij_patch_feature);
+	      if num_V1ToError_colors == 1
+		patch_convert = V1ToError_weights(:,:,ij_patch_feature);
+	      else
+		patch_convert = V1ToError_weights(:,:,:,ij_patch_feature);
+	      endif
+	      %%  convert to pixels
+	      patch_ij_array{ij_patch_row, ij_patch_col} = ...
+		  patch_ij_array{ij_patch_row, ij_patch_col} + ...
+		  patch_tmp(ij_patch_row, ij_path_col, ij_patch_feature) * ...
+		  patch_convert;
+	    endfor %% ij_patch_feature
+	    row_start = 1+Retina_V1_ny_ratio*(ij_patch_row-1);
+	    row_end = Retina_V1_ny_ratio*(ij_patch_row-1)+V1ToError_hdr.nyp;
+	    col_start = 1+Retina_V1_ny_ratio*(ij_patch_col-1);
+	    col_end = Retina_V1_ny_ratio*(ij_patch_col-1)+V1ToError_hdr.nyp;
+	    patch_ij(row_start:row_end, col_start:col_end, :) = ...
+		patch_ij_array{ij_patch_row, ij_patch_col};
+	  endfor %% ij_patch_col
+	endfor %% ij_patch_row
+	min_patch = min(patch_ij(:));
+	max_patch = max(patch_ij(:));
+	patch_tmp2 = (patch_ij - min_patch) * 255 / (max_patch - min_patch + ((max_patch - min_patch)==0));
+	patch_tmp2 = uint8(flipdim(permute(patch_tmp2, [2,1,3]),1));
+	imagesc(patch_tmp2); 
+	if num_V2ToError1_2_colors == 1
+	  colormap(gray);
+	endif
+	box off
+	axis off
+	axis image
+	%%drawnow;
+      endfor
+      V2ToError1_2_weights_dir = [output_dir, filesep, "V2ToError1_2_weights"];
+      mkdir(V2ToError1_2_weights_dir);
+      saveas(V2ToError1_2_fig, [V2ToError1_2_weights_dir, filesep, "V2ToError1_2_", num2str(last_checkpoint_ndx, "%i")], "png");
+
+      %% make histogram of all weights
+      V2ToError1_2_hist_fig = figure;
+      [V2ToError1_2_hist, V2ToError1_2_hist_bins] = hist(V2ToError1_2_weights(:), 100);
+      bar(V2ToError1_2_hist_bins, log(V2ToError1_2_hist+1));
+      set(V2ToError1_2_hist_fig, "name", ["V2ToError1_2 Histogram: ", num2str(last_checkpoint_ndx, "%i")]);
+      V2ToError1_2_weights_hist_dir = [output_dir, filesep, "V2ToError1_2_hist"];
+      mkdir(V2ToError1_2_weights_hist_dir);
+      saveas(V2ToError1_2_hist_fig, [V2ToError1_2_weights_hist_dir, filesep, "V2ToError1_2_hist_", num2str(last_checkpoint_ndx, "%i")], "png");
+
+      mat_dir = [output_dir, filesep, "mat"];
+      mkdir(mat_dir);
+      V2ToError1_2_weights_file = [mat_dir, filesep, "V2ToError1_2_weights", num2str(last_checkpoint_ndx, "%i"), ".mat"];
+      save(  "-mat", V2ToError1_2_weights_file, "V2ToError1_2_weights");
+      
+    endif %% deep2_flag
     
   endif  %% deep_flag
 endif  %% plot_final_weights
@@ -1026,21 +1138,32 @@ if plot_weights_movie
   weights_movie_dir = [output_dir, filesep, "V1ToError_movie"];
   mkdir(weights_movie_dir);
   V1ToError_path = [output_dir, filesep, "w5_V1ToError.pvp"];
+  V1ToError_old_frames = glob([weights_movie_dir, filesep, "*_V1ToError.png"]);
+  num_V1ToError_old_frames = length(V1ToError_old_frames);
+  max_old_frame_id = 1;
+  for i_old_frame = 1 : num_V1ToError_old_frames
+    V1ToError_str = V1ToError_old_frames{i_old_frame};
+    old_frame_id_ndx = findstr(V1ToError_str, "_V1ToError.png");
+    old_frame_id = str2num(V1ToError_str(old_frame_id_ndx-4:old_frame_id_ndx-1));
+    max_old_frame_id = max(max_old_frame_id, old_frame_id);
+  endfor
   write_step = frame_duration;
-  num_frames = floor((last_checkpoint_ndx - first_checkpoint_ndx) / write_step);
-  start_frame = 1;
-  [V1ToError_struct, V1ToError_hdr] = readpvpfile(V1ToError_path, num_frames);
-  num_frames = size(V1ToError_struct,1);
-  i_frame = num_frames;
-  start_frame = 1; 
+  progress_period = 1000; %%floor((last_checkpoint_ndx - first_checkpoint_ndx) / write_step);
+  start_frame = max_old_frame_id;
+  V1ToError_fid = fopen(V1ToError_path);
+  V1ToError_hdr = readpvpheader(V1ToError_fid);
+  fclose(V1ToError_fid);
+  max_frames = V1_hdr.nbands
+  num_frames = min(start_frame + 2500, max_frames)
+  [V1ToError_struct, V1ToError_hdr] = readpvpfile(V1ToError_path, progress_period, num_frames, start_frame);
+  num_V1ToError_frames = size(V1ToError_struct,1);
   if isempty(V1_hist_rank)
     V1_hist_rank = (1:V1ToError_hdr.nf);
   endif
-  num_recon = max(floor(frame_duration / write_step) - 1, 0);
   i_arbor = 1;
-  for i_frame = start_frame : 1 : num_frames
+  for i_frame = 1 : num_V1ToError_frames
     if mod(i_frame, max(floor(num_frames/20),1)) == 0
-      disp(["writing frame # ", num2str(i_frame, "%i")]);
+      disp(["writing frame # ", num2str(i_frame+start_frame, "%i")]);
     endif
     V1ToError_weights = squeeze(V1ToError_struct{i_frame}.values{i_arbor});
     i_patch = 1;
@@ -1077,7 +1200,7 @@ if plot_weights_movie
       box off
       axis off
     endfor  %% i_patch
-    frame_title = [num2str(i_frame, "%04d"), "_V1ToError", ".png"];
+    frame_title = [num2str(i_frame+start_frame, "%04d"), "_V1ToError", ".png"];
     imwrite(weights_frame, [weights_movie_dir, filesep, frame_title]);
   endfor %% i_frame
 
@@ -1085,10 +1208,20 @@ if plot_weights_movie
     weights_movie_dir = [output_dir, filesep, "V2ToError2_movie"];
     mkdir(weights_movie_dir);
     V2ToError2_path = [output_dir, filesep, "w9_V2ToError2.pvp"];
+    V2ToError2_old_frames = glob([weights_movie_dir, filesep, "*_V2ToError2.png"]);
+    num_V2ToError2_old_frames = length(V2ToError2_old_frames);
+    max_old_frame_id = 0;
+    for i_old_frame = 1 : num_V2ToError2_old_frames
+      V2ToError2_str = V2ToError2_old_frames{i_old_frame};
+      old_frame_id_ndx = findstr(V2ToError2_str, "_V2ToError2.png");
+      old_frame_id = str2num(V2ToError2_str(old_frame_id_ndx-4:old_frame_id_ndx-1));
+      max_old_frame_id = max(max_old_frame_id, old_frame_id);
+    endfor
     write_step = frame_duration;
-    num_frames = floor((last_checkpoint_ndx - first_checkpoint_ndx) / write_step);
-    start_frame = 1;
-    [V2ToError2_struct, V2ToError2_hdr] = readpvpfile(V2ToError2_path, num_frames);
+    progress_period = floor((last_checkpoint_ndx - first_checkpoint_ndx) / write_step);
+    start_frame = max_old_frame_id;
+    num_frames = start_frame + 1000;
+    [V2ToError2_struct, V2ToError2_hdr] = readpvpfile(V2ToError2_path, progress_period, num_frames, start_frame);
     num_frames = size(V2ToError2_struct,1);
     i_frame = num_frames;
     start_frame = 1; 
