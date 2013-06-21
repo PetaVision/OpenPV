@@ -48,7 +48,7 @@ ANNErrorLayer::ANNErrorLayer(const char * name, HyPerCol * hc, int num_channels)
 ANNErrorLayer::ANNErrorLayer(const char * name, HyPerCol * hc)
 {
    initialize_base();
-   initialize(name, hc, 1);
+   initialize(name, hc, 2);
 }
 
 ANNErrorLayer::~ANNErrorLayer()
