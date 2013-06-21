@@ -4,10 +4,10 @@ MPIRUN=${MPIHOME}/bin/mpirun
 MPIARGS="--mca bta tcp,self"
 BASEDIR=/home/gkenyon/workspace/HyPerHLCA2
 COMMAND="${BASEDIR}/Debug/HyPerHLCA2 -p ${BASEDIR}/input/HyPerHLCA_KITTI.params -rows 5 -columns 12"
-LOGDIR=/nh/compneuro/Data/KITTI/LCA/2011_09_26_drive_0001_sync/
-LOGFILE=${LOGDIR}/KITTI_LCA_2011_09_26_drive_0001_sync.log
+LOGDIR=/nh/compneuro/Data/KITTI/LCA/2011_09_26_drive_0002_sync/
+LOGFILE=${LOGDIR}/KITTI_LCA_2011_09_26_drive_0002_sync.log
 mkdir -p ${LOGDIR}
 touch ${LOGFILE}
 echo ${LOGFILE}
 #time ${MPIRUN} --byslot -np 60 ${MPIARGS} ${COMMAND} &> ${LOGFILE}
-time ${MPIRUN} -np 60 --mca bta tcp,self ${COMMAND} &> ${LOGFILE}
+time ${MPIRUN} -np 60 --mca btl tcp,self ${COMMAND} &> ${LOGFILE}
