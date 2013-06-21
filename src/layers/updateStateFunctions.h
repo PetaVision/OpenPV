@@ -467,7 +467,7 @@ static inline int applyVThresh_ANNErrorLayer(int numNeurons,
 #endif // PV_USE_OPENCL
 				{
 			int kex = kIndexExtended(k, nx, ny, nf, nb);
-			if (abs(V[k]) < VThresh)
+			if (fabs(V[k]) < VThresh)
 				activity[kex] = VMin;
 			else
 				activity[kex] -= VShift;
