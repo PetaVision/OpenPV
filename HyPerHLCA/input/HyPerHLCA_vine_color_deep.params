@@ -697,51 +697,15 @@ CloneKernelConn "V2ToRecon2" = {
 
 
 // Generative connections
-//KernelConn "V2ToV1" = {
-//    preLayerName = "V2";
-//    postLayerName = "V1";
-//    channelCode = 1;
-//    nxp =  2;
-//    nyp =  2;
-//    nfp = 1024;
-//    numAxonalArbors = 1;
-//    initFromLastFlag = 0;
-//    //
-//    //weightInitType = "FileWeight";
-//    //initWeightsFile = "/Users/garkenyon/workspace/HyPerHLCA2/output_animal1200000_color/Checkpoints/Checkpoint1200000/V1ToError_W.pvp";
-//    weightInitType = "UniformRandomWeight";
-//    wMinInit = -1.0;
-//    wMaxInit = 1.0;
-//    sparseFraction = .90;
-//    //
-//    strength = 1.0;  
-//    normalizeMethod = "normalizeL2";
-//    minL2NormTolerated = 0;
-//    normalizeArborsIndividually = 0;
-//    normalize_cutoff = 0.0;
-//    normalizeFromPostPerspective = false;
-//    symmetrizeWeights = false;
-//    //
-//    preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
-//    keepKernelsSynchronized = true; 
-//    combine_dW_with_W_flag = false; 
-//    //
-//    writeStep = 5000;
-//    writeCompressedWeights = false;
-//    writeCompressedCheckpoints = false;
-//    plasticityFlag = true;
-//    weightUpdatePeriod = 20.0;
-//    initialWeightUpdateTime = 4999.0;
-//    initialWriteTime = 0.0;
-//    dWMax = 1.0; // 200.0 used for initial training
-//    selfFlag = false;
-//    shmget_flag = false;
-//    //
-//    delay = 0;
-//    //
-//    stochasticReleaseFlag = false;
-//    shrinkPatches = false;
-//};
+
+IdentConn "V1ToError1_2" = {
+    preLayerName = "V1";
+    postLayerName = "Error1_2";
+    channelCode = 0;
+    delay = 0;
+    writeStep = -1;
+};
+
 
 KernelConn "V2ToError1_2" = {
     preLayerName = "V2";
@@ -788,21 +752,6 @@ KernelConn "V2ToError1_2" = {
     stochasticReleaseFlag = false;
     shrinkPatches = false;
 };
-
-//TransposeConn "V1ToV2" = {
-//    preLayerName = "V1";
-//    postLayerName = "V2";
-//    channelCode = 0;
-//    originalConnName = "V2ToV1";
-//    selfFlag = false;
-//    preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
-//    writeStep = -1;
-//    writeCompressedCheckpoints = false;
-//    shmget_flag = false;
-//    delay = 0;
-//    stochasticReleaseFlag = false;
-//};
-
 
 TransposeConn "Error1_2ToV2" = {
     preLayerName = "Error1_2";
