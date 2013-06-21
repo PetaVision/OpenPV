@@ -50,6 +50,7 @@
 #include "../layers/LCALIFLayer.hpp"
 #include "../layers/LCALayer.hpp"
 #include "../layers/HyPerLCALayer.hpp"
+#include "../layers/ANNErrorLayer.hpp"
 
 
 #include "../connections/HyPerConn.hpp"

@@ -112,6 +112,7 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
                "TrainingLayer",
                "MaxPooling",
                "HyPerLCALayer",
+               "ANNErrorLayer",
              "GapLayer",
              "LCALayer",
              "TextStream",
@@ -465,6 +466,11 @@ HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPe
      keywordMatched = true;
      addedLayer = (HyPerLayer *) new LCALayer(name, hc);
      status = checknewobject((void *) addedLayer, classkeyword, name, hc); 
+   }
+   if( !strcmp(classkeyword, "ANNErrorLayer") ) {
+     keywordMatched = true;
+     addedLayer = (HyPerLayer *) new ANNErrorLayer(name, hc);
+     status = checknewobject((void *) addedLayer, classkeyword, name, hc);
    }
    if( !strcmp(classkeyword, "SigmoidLayer") ) {
       keywordMatched = true;
