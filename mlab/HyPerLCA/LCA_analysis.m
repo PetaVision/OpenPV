@@ -15,8 +15,8 @@ elseif isunix
   output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_16x16x1024_Overlap_lambda_05X2"; %%MRI/LCA/5_subjects"; %%  
   %%output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_12x12x1024_lambda_05X2_color_deep"; %%MRI/LCA/5_subjects"; %%  
   LCA_path = [output_dir];
-  last_checkpoint_ndx = 100000*417; %% 
-  next_checkpoint_ndx = 100000*418; %%50000*22; %% 
+  last_checkpoint_ndx = 100000*419; %% 
+  next_checkpoint_ndx = 100000*420; %%50000*22; %% 
   first_checkpoint_ndx = 0;
   frame_duration = 5000;
 endif
@@ -1154,54 +1154,60 @@ if plot_weights_movie
   V1ToError_hdr = readpvpheader(V1ToError_fid);
   fclose(V1ToError_fid);
   max_frames = V1_hdr.nbands
-  num_frames = min(start_frame + 2500, max_frames)
-  [V1ToError_struct, V1ToError_hdr] = readpvpfile(V1ToError_path, progress_period, num_frames, start_frame);
-  num_V1ToError_frames = size(V1ToError_struct,1);
-  if isempty(V1_hist_rank)
-    V1_hist_rank = (1:V1ToError_hdr.nf);
-  endif
-  i_arbor = 1;
-  for i_frame = 1 : num_V1ToError_frames
-    if mod(i_frame, max(floor(num_frames/20),1)) == 0
-      disp(["writing frame # ", num2str(i_frame+start_frame, "%i")]);
+  frames_per_epoch = 2500;
+  num_epochs = ceil(max_frames - start_frame / frames_per_epoch);
+  for i_epoch = 1 : num_epochs
+    start_epoch = start_frame + (i_epoch-1) * frames_per_epoch
+    end_epoch = start_frame + (i_epoch) * frames_per_epoch
+    num_frames = min(end_epoch, max_frames)
+    [V1ToError_struct, V1ToError_hdr] = readpvpfile(V1ToError_path, progress_period, num_frames, start_frame);
+    num_V1ToError_frames = size(V1ToError_struct,1);
+    if isempty(V1_hist_rank)
+      V1_hist_rank = (1:V1ToError_hdr.nf);
     endif
-    V1ToError_weights = squeeze(V1ToError_struct{i_frame}.values{i_arbor});
-    i_patch = 1;
-    nyp = size(V1ToError_weights,1);
-    nxp = size(V1ToError_weights,2);
-    num_V1_dims = ndims(V1ToError_weights);
-    num_patches = size(V1ToError_weights, num_V1_dims);
-    num_patches_rows = floor(sqrt(num_patches));
-    num_patches_cols = ceil(num_patches / num_patches_rows);
-    num_V1_colors = 1;
-    if num_V1_dims == 4
-      num_V1_colors = size(V1ToError_weights,3);
-    endif
-    weights_frame = uint8(zeros(num_patches_rows * nyp, num_patches_cols * nxp, num_V1_colors));
-    for j_patch = 1  : num_patches
-      i_patch = V1_hist_rank(j_patch);
-      j_patch_row = ceil(j_patch / num_patches_cols);
-      j_patch_col = 1 + mod(j_patch - 1, num_patches_cols);
-      %%subplot(num_patches_rows, num_patches_cols, i_patch); 
-      if num_V1_colors == 1
-	patch_tmp = squeeze(V1ToError_weights(:,:,i_patch));
-      else
-	patch_tmp = squeeze(V1ToError_weights(:,:,:,i_patch));
+    i_arbor = 1;
+    for i_frame = 1 : num_V1ToError_frames
+      if mod(i_frame, max(floor(num_frames/20),1)) == 0
+	disp(["writing frame # ", num2str(i_frame+start_frame, "%i")]);
       endif
-      min_patch = min(patch_tmp(:));
-      max_patch = max(patch_tmp(:));
-      patch_tmp2 = (patch_tmp - min_patch) * 255 / ((max_patch - min_patch) + ((max_patch - min_patch)==0));
-      patch_tmp2 = uint8(flipdim(permute(patch_tmp2, [2,1,3]),1));
-      patch_tmp2 = uint8(patch_tmp2);
-      weights_frame(((j_patch_row - 1) * nyp + 1): (j_patch_row * nyp), ...
-		    ((j_patch_col - 1) * nxp + 1): (j_patch_col * nxp), :) = ...
-	  patch_tmp2;
-      %%imagesc(patch_tmp2);
-      box off
-      axis off
-    endfor  %% i_patch
-    frame_title = [num2str(i_frame+start_frame, "%04d"), "_V1ToError", ".png"];
-    imwrite(weights_frame, [weights_movie_dir, filesep, frame_title]);
+      V1ToError_weights = squeeze(V1ToError_struct{i_frame}.values{i_arbor});
+      i_patch = 1;
+      nyp = size(V1ToError_weights,1);
+      nxp = size(V1ToError_weights,2);
+      num_V1_dims = ndims(V1ToError_weights);
+      num_patches = size(V1ToError_weights, num_V1_dims);
+      num_patches_rows = floor(sqrt(num_patches));
+      num_patches_cols = ceil(num_patches / num_patches_rows);
+      num_V1_colors = 1;
+      if num_V1_dims == 4
+	num_V1_colors = size(V1ToError_weights,3);
+      endif
+      weights_frame = uint8(zeros(num_patches_rows * nyp, num_patches_cols * nxp, num_V1_colors));
+      for j_patch = 1  : num_patches
+	i_patch = V1_hist_rank(j_patch);
+	j_patch_row = ceil(j_patch / num_patches_cols);
+	j_patch_col = 1 + mod(j_patch - 1, num_patches_cols);
+	%%subplot(num_patches_rows, num_patches_cols, i_patch); 
+	if num_V1_colors == 1
+	  patch_tmp = squeeze(V1ToError_weights(:,:,i_patch));
+	else
+	  patch_tmp = squeeze(V1ToError_weights(:,:,:,i_patch));
+	endif
+	min_patch = min(patch_tmp(:));
+	max_patch = max(patch_tmp(:));
+	patch_tmp2 = (patch_tmp - min_patch) * 255 / ((max_patch - min_patch) + ((max_patch - min_patch)==0));
+	patch_tmp2 = uint8(flipdim(permute(patch_tmp2, [2,1,3]),1));
+	patch_tmp2 = uint8(patch_tmp2);
+	weights_frame(((j_patch_row - 1) * nyp + 1): (j_patch_row * nyp), ...
+		      ((j_patch_col - 1) * nxp + 1): (j_patch_col * nxp), :) = ...
+	    patch_tmp2;
+	%%imagesc(patch_tmp2);
+	box off
+	axis off
+      endfor  %% i_patch
+      frame_title = [num2str(i_frame+start_frame, "%04d"), "_V1ToError", ".png"];
+      imwrite(weights_frame, [weights_movie_dir, filesep, frame_title]);
+    endfor %% i_epoch
   endfor %% i_frame
 
   if deep_flag

@@ -210,3 +210,149 @@ if plot_StatsProbe_vs_time
     drawnow;
   endfor %% i_StatsProbe
 endif  %% plot_StatsProbe_vs_time
+
+plot_SparseActive = 1;
+if plot_Sparse
+  Sparse_list = ...
+      {["a5_", "BinocularV1"]};
+  num_Sparse_list = size(Sparse_list,1);
+  for i_Sparse = 1 : num_Sparse_list
+    Sparse_file = [output_dir, filesep, Sparse_list{i_Sparse,1}, Sparse_list{i_Sparse,2}, ".pvp"]
+    if ~exist(Sparse_file, "file")
+      error(["file does not exist: ", Sparse_file]);
+    endif
+    Sparse_fid(i_Sparse) = fopen(Sparse_file);
+    Sparse_hdr{i_Sparse} = readpvpheader(Sparse_fid(i_Sparse));
+    fclose(Sparse_fid(i_Sparse));
+    num_Sparse_frames(i_Sparse) = Sparse_hdr{i_Sparse}.nbands;
+    progress_step = ceil(num_Sparse_frames(i_Sparse) / 10);
+    [Sparse_struct, Sparse_hdr_tmp] = ...
+	readpvpfile(Sparse_file, progress_step, num_Sparse_frames(i_Sparse), num_Sparse_frames(i_Sparse)-num_recon+1);
+    Sparse_fig(i_Sparse) = figure;
+
+  endfor  %% i_Sparse
+  
+  if deep_flag
+    Sparse_path = [output_dir, filesep, "a5_Sparse.pvp"];
+  else
+    Sparse_path = [output_dir, filesep, "a6_Sparse.pvp"];
+  endif
+  write_step = frame_duration;
+  num_frames = floor((last_checkpoint_ndx - first_checkpoint_ndx) / write_step);
+  [Sparse_struct, Sparse_hdr] = readpvpfile(Sparse_path, num_frames, num_frames, 1);
+  nx_Sparse = Sparse_hdr.nx;
+  ny_Sparse = Sparse_hdr.ny;
+  nf_Sparse = Sparse_hdr.nf;
+  n_Sparse = nx_Sparse * ny_Sparse * nf_Sparse;
+  num_frames = size(Sparse_struct,1);
+  i_frame = num_frames;
+  start_frame = 1; %%
+  Sparse_hist = zeros(nf_Sparse+1,1);
+  Sparse_hist_edges = [0:1:nf_Sparse]+0.5;
+  Sparse_current = zeros(n_Sparse,1);
+  Sparse_abs_change = zeros(num_frames,1);
+  Sparse_percent_change = zeros(num_frames,1);
+  Sparse_current_active = 0;
+  Sparse_tot_active = zeros(num_frames,1);
+  Sparse_times = zeros(num_frames,1);
+  for i_frame = 1 : 1 : num_frames
+    Sparse_times(i_frame) = squeeze(Sparse_struct{i_frame}.time);
+    Sparse_active_ndx = squeeze(Sparse_struct{i_frame}.values);
+    Sparse_previous = Sparse_current;
+    Sparse_current = full(sparse(Sparse_active_ndx+1,1,1,n_Sparse,1,n_Sparse));
+    Sparse_abs_change(i_frame) = sum(Sparse_current(:) ~= Sparse_previous(:));
+    Sparse_previous_active = Sparse_current_active;
+    Sparse_current_active = nnz(Sparse_current(:));
+    Sparse_tot_active(i_frame) = Sparse_current_active;
+    Sparse_max_active = max(Sparse_current_active, Sparse_previous_active);
+    Sparse_percent_change(i_frame) = ...
+	Sparse_abs_change(i_frame) / (Sparse_max_active + (Sparse_max_active==0));
+    Sparse_active_kf = mod(Sparse_active_ndx, nf_Sparse) + 1;
+    if Sparse_max_active > 0
+      Sparse_hist_frame = histc(Sparse_active_kf, Sparse_hist_edges);
+    else
+      Sparse_hist_frame = zeros(nf_Sparse+1,1);
+    endif
+    Sparse_hist = Sparse_hist + Sparse_hist_frame;
+  endfor %% i_frame
+  Sparse_hist = Sparse_hist(1:nf_Sparse);
+  Sparse_hist = Sparse_hist / (num_frames * nx_Sparse * ny_Sparse); %% (sum(Sparse_hist(:)) + (nnz(Sparse_hist)==0));
+  [Sparse_hist_sorted, Sparse_hist_rank] = sort(Sparse_hist, 1, "descend");
+  Sparse_hist_title = ["Sparse_hist", ".png"];
+  Sparse_hist_fig = figure;
+  Sparse_hist_bins = 1:nf_Sparse;
+  Sparse_hist_hndl = bar(Sparse_hist_bins, Sparse_hist_sorted); axis tight;
+  set(Sparse_hist_fig, "name", ["Sparse_hist_", num2str(Sparse_times(num_frames), "%i")]);
+  Sparse_rank_dir = [output_dir, filesep, "Sparse_rank"];
+  mkdir(Sparse_rank_dir);
+  saveas(Sparse_hist_fig, ...
+	 [Sparse_rank_dir, filesep, ...
+	  "Sparse_rank_", num2str(Sparse_times(num_frames), "%i")], "png");
+
+  Sparse_abs_change_title = ["Sparse_abs_change", ".png"];
+  Sparse_abs_change_fig = figure;
+  Sparse_abs_change_hndl = plot(Sparse_times, Sparse_abs_change); axis tight;
+  set(Sparse_abs_change_fig, "name", ["Sparse_abs_change"]);
+  Sparse_change_dir = [output_dir, filesep, "Sparse_rank"];
+  mkdir(Sparse_change_dir);
+  saveas(Sparse_abs_change_fig, ...
+	 [Sparse_change_dir, filesep, "Sparse_abs_change", num2str(Sparse_times(num_frames), "%i")], "png");
+
+  Sparse_percent_change_title = ["Sparse_percent_change", ".png"];
+  Sparse_percent_change_fig = figure;
+  Sparse_percent_change_hndl = plot(Sparse_times, Sparse_percent_change); axis tight;
+  set(Sparse_percent_change_fig, "name", ["Sparse_percent_change"]);
+  saveas(Sparse_percent_change_fig, ...
+	 [Sparse_change_dir, filesep, "Sparse_percent_change", num2str(Sparse_times(num_frames), "%i")], "png");
+  Sparse_mean_change = mean(Sparse_percent_change(:));
+  disp(["Sparse_mean_change = ", num2str(Sparse_mean_change)]);
+
+  Sparse_tot_active_title = ["Sparse_tot_active", ".png"];
+  Sparse_tot_active_fig = figure;
+  Sparse_tot_active_hndl = plot(Sparse_times, Sparse_tot_active/n_Sparse); axis tight;
+  set(Sparse_tot_active_fig, "name", ["Sparse_tot_active"]);
+  saveas(Sparse_tot_active_fig, ...
+	 [Sparse_change_dir, filesep, "Sparse_tot_active", num2str(Sparse_times(num_frames), "%i")], "png");
+
+  Sparse_mean_active = mean(Sparse_tot_active(:)/n_Sparse);
+  disp(["Sparse_mean_active = ", num2str(Sparse_mean_active)]);
+
+  plot_Error = 0;
+  if plot_Error
+  if deep_flag
+    Error_path = [output_dir, filesep, "a4_Error.pvp"];
+  else
+    Error_path = [output_dir, filesep, "a5_Error.pvp"];
+  endif
+  write_step = frame_duration;
+  num_frames = floor((last_checkpoint_ndx - first_checkpoint_ndx) / write_step);
+  [Error_struct, Error_hdr] = readpvpfile(Error_path, num_frames, num_frames, 1);
+  nx_Error = Error_hdr.nx;
+  ny_Error = Error_hdr.ny;
+  nf_Error = Error_hdr.nf;
+  n_Error = nx_Error * ny_Error * nf_Error;
+  num_frames = size(Error_struct,1);
+  i_frame = num_frames;
+  start_frame = 1; %%
+  Error_RMS = zeros(num_frames,1);
+  Error_times = zeros(num_frames,1);
+  for i_frame = 1 : 1 : num_frames
+    Error_times(i_frame) = squeeze(Error_struct{i_frame}.time);
+    Error_vals = squeeze(Error_struct{i_frame}.values);
+    Error_RMS(i_frame) = std(Error_vals(:));;
+  endfor %% i_frame
+
+  Error_RMS_title = ["Error_RMS", ".png"];
+  Error_RMS_fig = figure;
+  Error_RMS_hndl = plot(Error_times, Error_RMS); axis tight;
+  set(Error_RMS_fig, "name", ["Error_RMS"]);
+  saveas(Error_RMS_fig, ...
+	 [Sparse_change_dir, filesep, "Error_RMS", num2str(Error_times(num_frames), "%i")], "png");
+
+  Error_median_RMS = median(Error_RMS(:));
+  disp(["Error_median_RMS = ", num2str(Error_median_RMS)]);
+
+  drawnow;  
+  endif %% plot_Error
+endif  %% plot_Sparse
+
