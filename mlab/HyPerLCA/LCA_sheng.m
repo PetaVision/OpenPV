@@ -6,16 +6,12 @@ close all;
 if ismac
   workspace_path = "/Users/garkenyon/workspace";
   output_dir = "/Users/garkenyon/workspace/HyPerHLCA2/output_animal1200000_color_deep"; 
-  frame_duration = 1000;
 elseif isunix
   workspace_path = "/home/slundquist/workspace";
-  output_dir = "/nh/compneuro/Data/KITTI/LCA/2011_09_26_drive_0001_depth_sync"; 
-  %%output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_16x16x1024_Overlap_lambda_05X2"; 
-  %%output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_12x12x1024_lambda_05X2_color_deep"; 
-  %%output_dir = "/nh/compneuro/Data/vine/LCA/detail/output_16x16x1024_overlap_lambda_05X2_errorthresh_005"; 
+  output_dir = "/nh/compneuro/Data/KITTI/LCA/2011_09_26_drive_0001_depth_longrun"; 
 endif
 addpath([workspace_path, filesep, "/PetaVision/mlab/util"]);
-last_checkpoint_ndx = 480000;
+last_checkpoint_ndx = 560000;
 checkpoint_path = [output_dir, filesep, "Checkpoints", filesep,  "Checkpoint", num2str(last_checkpoint_ndx, '%i')]; %% 
 max_history = 196000;
 
@@ -27,16 +23,14 @@ if plot_Recon
 %%      {["a3_"], ["Ganglion"]};
 %%       {["a4_"], ["Recon"]};
   Recon_list = ...
-      {["a1_"], ["LeftRetina"];
-       ["a3_"], ["LeftGanglion"];
-       ["a5_"], ["LeftRecon"];
-       ["a7_"], ["LeftDepthDownsample"];
-       ["a9_"], ["LeftDepthRecon"];
-       ["a11_"], ["RightRetina"];
-       ["a13_"], ["RightGanglion"];
-       ["a15_"], ["RightRecon"];
-       ["a17_"], ["RightDepthDownsample"];
-       ["a19_"], ["RightDepthRecon"]};
+      {["LeftRetina_A"];
+       ["LeftGanglion_A"];
+       ["LeftRecon_A"];
+       ["LeftDepthRecon_A"];
+       ["RightRetina_A"];
+       ["RightGanglion_A"];
+       ["RightRecon_A"];
+       ["RightDepthRecon_A"]};
   num_Recon_list = size(Recon_list,1);
   num_Recon_frames = repmat(num_Recon_default, 1, num_Recon_list);
   unwhiten_list = zeros(num_Recon_list,1);
@@ -51,7 +45,7 @@ if plot_Recon
   mkdir(Recon_dir);
   
   %% parse center/surround pre-processing filters
-  plot_DoG_kernel = 1;
+  plot_DoG_kernel = 0;
   if plot_DoG_kernel
     blur_center_path = [checkpoint_path, filesep, "LeftRetinaToLeftBipolarCenter_W.pvp"];
     [blur_weights] = get_Blur_weights(blur_center_path);
@@ -71,9 +65,10 @@ if plot_Recon
   max_unwhitened_Recon = cell(num_Recon_list, 1);
   min_unwhitened_Recon = cell(num_Recon_list, 1);
   for i_Recon = 1 : num_Recon_list
-    Recon_file = [output_dir, filesep, Recon_list{i_Recon,1}, Recon_list{i_Recon,2}, ".pvp"]
+    %Recon_file = [output_dir, filesep, Recon_list{i_Recon,1}, Recon_list{i_Recon,2}, ".pvp"]
+    Recon_file = [checkpoint_path, filesep, Recon_list{i_Recon}, ".pvp"]
     if ~exist(Recon_file, "file")
-      error(["file does not exist: ", Recon_file]);
+     error(["file does not exist: ", Recon_file]);
     endif
     Recon_fid(i_Recon) = fopen(Recon_file);
     Recon_hdr{i_Recon} = readpvpheader(Recon_fid(i_Recon));
@@ -89,9 +84,9 @@ if plot_Recon
     progress_step = ceil(tot_Recon_frames / 10);
     [Recon_struct, Recon_hdr_tmp] = ...
 	readpvpfile(Recon_file, ...
-		    progress_step, ...
-		    tot_Recon_frames, ... %% num_Recon_frames(i_Recon), ... %%
-		    tot_Recon_frames-num_Recon_frames(i_Recon)+1); %% 1); %% 
+		    progress_step);
+		    %tot_Recon_frames, ... %% num_Recon_frames(i_Recon), ... %%
+		    %tot_Recon_frames-num_Recon_frames(i_Recon)+1); %% 1); %% 
     Recon_fig(i_Recon) = figure;
     num_Recon_colors = Recon_hdr{i_Recon}.nf;
     if plot_DoG_kernel
@@ -101,7 +96,9 @@ if plot_Recon
     std_unwhitened_Recon{i_Recon, 1} = ones(num_Recon_colors, num_Recon_frames(i_Recon));
     max_unwhitened_Recon{i_Recon, 1} = ones(num_Recon_colors, num_Recon_frames(i_Recon));
     min_unwhitened_Recon{i_Recon, 1} = zeros(num_Recon_colors,num_Recon_frames(i_Recon));
-    for i_frame = 1 : num_Recon_frames(i_Recon)
+
+    i_frame = 1;
+    %for i_frame = 1 : num_Recon_frames(i_Recon)
       Recon_time = Recon_struct{i_frame}.time;
       Recon_vals = Recon_struct{i_frame}.values;
       mean_Recon_tmp = mean(Recon_vals(:));
@@ -109,13 +106,13 @@ if plot_Recon
       Recon_mean(i_Recon) = Recon_mean(i_Recon) + mean_Recon_tmp;
       Recon_std(i_Recon) = Recon_std(i_Recon) + std_Recon_tmp;
       figure(Recon_fig(i_Recon));
-      set(Recon_fig(i_Recon), "name", [Recon_list{i_Recon,2}, "_", num2str(i_frame, "%05d")]);
+      set(Recon_fig(i_Recon), "name", [Recon_list{i_Recon}, "_", num2str(i_frame, "%05d")]);
       imagesc(permute(Recon_vals,[2,1,3])); 
       if num_Recon_colors == 1
 	colormap(gray); 
       endif
       box off; axis off; axis image;
-      saveas(Recon_fig(i_Recon), [Recon_dir, filesep, Recon_list{i_Recon,2}, "_", num2str(i_frame, "%05d")], "png");
+      saveas(Recon_fig(i_Recon), [Recon_dir, filesep, Recon_list{i_Recon}, "_", num2str(i_frame, "%05d")], "png");
       if plot_DoG_kernel && unwhiten_list(i_Recon)
 	unwhitened_Recon_DoG = zeros(size(permute(Recon_vals,[2,1,3])));
 	for i_color = 1 : num_Recon_colors
@@ -134,17 +131,17 @@ if plot_Recon
 	  [unwhitened_Recon_DoG(:,:,i_color)] = tmp_Recon;
 	endfor
 	figure(unwhitened_Recon_fig(i_Recon));
-	set(unwhitened_Recon_fig(i_Recon), "name", ["unwhitened ", Recon_list{i_Recon,2}, "_", num2str(i_frame, "%05d")]);
+	set(unwhitened_Recon_fig(i_Recon), "name", ["unwhitened ", Recon_list{i_Recon}, "_", num2str(i_frame, "%05d")]);
 	imagesc(squeeze(unwhitened_Recon_DoG)); 
 	if num_Recon_colors == 1
 	  colormap(gray); 
 	endif
 	box off; axis off; axis image;
 	saveas(unwhitened_Recon_fig(i_Recon), ...
-	       [Recon_dir, filesep, "unwhitened_", Recon_list{i_Recon,2}, "_", num2str(i_frame, "%05d")], "png");
+	       [Recon_dir, filesep, "unwhitened_", Recon_list{i_Recon}, "_", num2str(i_frame, "%05d")], "png");
 	drawnow
       endif %% plot_DoG_kernel
-    endfor   %% i_frame
+    %endfor   %% i_frame
     Recon_mean(i_Recon) = Recon_mean(i_Recon) / (num_Recon_frames(i_Recon) + (num_Recon_frames(i_Recon) == 0));
     Recon_std(i_Recon) = Recon_std(i_Recon) / (num_Recon_frames(i_Recon) + (num_Recon_frames(i_Recon) == 0));
     disp(["Recon_mean = ", num2str(Recon_mean(i_Recon)), " +/- ", num2str(Recon_std(i_Recon))]);
@@ -152,10 +149,101 @@ if plot_Recon
   endfor %% i_Recon
 endif %% plot_Recon
 
+%Prints weights from checkpoints
+plot_Sparse = 0;
+plot_weights = 1;
+if plot_weights
+   weights_list = ...
+       {["BinocularV1ToLeftError_W"]; ...
+        ["BinocularV1ToRightError_W"]; ...
+        ["BinocularV1ToLeftDepthError_W"]; ...
+        ["BinocularV1ToRightDepthError_W"]};
+   pre_list = ...
+       {["BinocularV1_A"]; ...
+        ["BinocularV1_A"]; ...
+        ["BinocularV1_A"]; ...
+        ["BinocularV1_A"]};
+   num_weights_list = size(weights_list, 1);
+   weights_hdr = cell(num_weights_list, 1);
+   pre_hdr = cell(num_weights_list, 1);
+   weights_dir = [output_dir, filesep, "weights"];
+   mkdir(weights_dir);
+   for i_weights = 1:num_weights_list
+      weights_file = [checkpoint_path, filesep, weights_list{i_weights}, '.pvp'];
+      if ~exist(weights_file, "file")
+        error(["file does not exist: ", weights_file]);
+      endif
+      i_pre = i_weights;
+      pre_file = [checkpoint_path, filesep, pre_list{i_pre}, '.pvp'];
+      if ~exist(pre_file, "file")
+        error(["file does not exist: ", pre_file]);
+      endif
+      pre_fid = fopen(pre_file);
+      pre_hdr{i_pre} = readpvpheader(pre_fid);
+      fclose(pre_fid);
+      [weights_struct, weights_hdr_tmp] = ...
+      readpvpfile(weights_file);
+      i_arbor = 1;
+      i_frame = 1;
+      weight_vals = squeeze(weights_struct{i_frame}.values{i_arbor});
+      weight_time = squeeze(weights_struct{i_frame}.time);
+      if plot_Sparse
+        pre_hist_rank = Sparse_hist_rank{sparse_ndx};
+      else
+        pre_hist_rank = (1:pre_hdr{1}.nf);
+      endif
+    %% make tableau of all patches
+    %%keyboard;
+    i_patch = 1;
+    num_weights_dims = ndims(weight_vals);
+    num_patches = size(weight_vals, num_weights_dims);
+    num_patches_rows = floor(sqrt(num_patches));
+    num_patches_cols = ceil(num_patches / num_patches_rows);
+    num_weights_colors = 1;
+    if num_weights_dims == 4
+      num_weights_colors = size(weight_vals,3);
+    endif
+    weights_fig = figure;
+    set(weights_fig, "name", ["Weights_", weights_list{i_weights}, "_", num2str(weight_time)]);
+    for j_patch = 1  : num_patches
+      i_patch = pre_hist_rank(j_patch);
+      subplot(num_patches_rows, num_patches_cols, j_patch); 
+      if num_weights_colors == 1
+	patch_tmp = squeeze(weight_vals(:,:,i_patch));
+      else
+	patch_tmp = squeeze(weight_vals(:,:,:,i_patch));
+      endif
+      patch_tmp2 = patch_tmp; %% imresize(patch_tmp, 12);
+      min_patch = min(patch_tmp2(:));
+      max_patch = max(patch_tmp2(:));
+      patch_tmp2 = (patch_tmp2 - min_patch) * 255 / (max_patch - min_patch + ((max_patch - min_patch)==0));
+      patch_tmp2 = uint8(flipdim(permute(patch_tmp2, [2,1,3]),1));
+      imagesc(patch_tmp2); 
+      if num_weights_colors == 1
+	colormap(gray);
+      endif
+      box off
+      axis off
+      axis image
+      %%drawnow;
+    endfor
+    weights_dir = [output_dir, filesep, "weights"];
+    mkdir(weights_dir);
+    saveas(weights_fig, [weights_dir, filesep, "Weights_", weights_list{i_weights}, "_", num2str(weight_time)], "png");
+    %% make histogram of all weights
+    weights_hist_fig = figure;
+    [weights_hist, weights_hist_bins] = hist(weight_vals(:), 100);
+    bar(weights_hist_bins, log(weights_hist+1));
+    set(weights_hist_fig, "name", ["weights_Histogram_", weights_list{i_weights}, "_", num2str(weight_time)]);
+    saveas(weights_hist_fig, [weights_dir, filesep, "weights_hist_", num2str(weight_time)], "png");
+  endfor %% i_weights
+endif  %% plot_weights
+
+
 %%keyboard;
-plot_StatsProbe_vs_time = 0;
+plot_StatsProbe_vs_time = 1;
 if plot_StatsProbe_vs_time
-  StatsProbe_plot_lines = 196000;
+  StatsProbe_plot_lines = 20000;
 %%  StatsProbe_list = ...
 %%      {["Error"],["_Stats.txt"]; ...
 %%       ["V1"],["_Stats.txt"]};
@@ -238,7 +326,6 @@ if plot_StatsProbe_vs_time
   endfor %% i_StatsProbe
 endif  %% plot_StatsProbe_vs_time
 
-plot_Sparse = 0;
 if plot_Sparse
 %%  Sparse_list = ...
 %%      {["a6_"], ["V1"]};
@@ -381,102 +468,3 @@ if plot_nonSparse
     disp([nonSparse_list{i_nonSparse,2}, "_", num2str(nonSparse_times(num_frames), "%i"), " median RMS = ", num2str(nonSparse_mean_active)]);
   endfor  %% i_nonSparse
 endif %% plot_nonSparse
-
-
-
-plot_weights = 0;
-if plot_weights
-  weights_list = ...
-      {["w14_"], ["BinocularV1ToLeftError"]; ...
-       ["w17_"], ["BinocularV1ToRightError"]; ...
-       ["w20_"], ["BinocularV1ToLeftDepthError"]; ...
-       ["w23_"], ["BinocularV1ToRightDepthError"]};
-  pre_list = ...
-      {["a20_"], ["BinocularV1"]; ...
-       ["a20_"], ["BinocularV1"]; ...
-       ["a20_"], ["BinocularV1"]; ...
-       ["a20_"], ["BinocularV1"]};
-  sparse_ndx = [1; 1];
-  num_weights_list = size(weights_list,1);
-  weights_hdr = cell(num_weights_list,1);
-  pre_hdr = cell(num_weights_list,1);
-  weights_dir = [output_dir, filesep, "weights"];
-  mkdir(weights_dir);
-  for i_weights = 1 : num_weights_list
-    weights_file = [output_dir, filesep, weights_list{i_weights,1}, weights_list{i_weights,2}, ".pvp"]
-    if ~exist(weights_file, "file")
-      error(["file does not exist: ", weights_file]);
-    endif
-    i_pre = i_weights;
-    pre_file = [output_dir, filesep, pre_list{i_pre,1}, pre_list{i_pre,2}, ".pvp"]
-    if ~exist(pre_file, "file")
-      error(["file does not exist: ", pre_file]);
-    endif
-    pre_fid = fopen(pre_file);
-    pre_hdr{i_pre} = readpvpheader(pre_fid);
-    fclose(pre_fid);
-    tot_weights_frames = pre_hdr{i_pre}.nbands;
-    num_weights = 1;
-    progress_step = ceil(tot_weights_frames / 10);
-    [weights_struct, weights_hdr_tmp] = ...
-	readpvpfile(weights_file, progress_step, tot_weights_frames, tot_weights_frames-num_weights+1);
-    i_frame = num_weights;
-    i_arbor = 1;
-    weight_vals = squeeze(weights_struct{i_frame}.values{i_arbor});
-    weight_time = squeeze(weights_struct{i_frame}.time);
-    if plot_Sparse
-      pre_hist_rank = Sparse_hist_rank{sparse_ndx};
-    else
-      pre_hist_rank = (1:pre_hdr{1}.nf);
-    endif
-
-    %% make tableau of all patches
-    %%keyboard;
-    i_patch = 1;
-    num_weights_dims = ndims(weight_vals);
-    num_patches = size(weight_vals, num_weights_dims);
-    num_patches_rows = floor(sqrt(num_patches));
-    num_patches_cols = ceil(num_patches / num_patches_rows);
-    num_weights_colors = 1;
-    if num_weights_dims == 4
-      num_weights_colors = size(weight_vals,3);
-    endif
-    weights_fig = figure;
-    set(weights_fig, "name", ["Weights_", weights_list{i_weights,2}, "_", num2str(weight_time)]);
-    for j_patch = 1  : num_patches
-      i_patch = pre_hist_rank(j_patch);
-      subplot(num_patches_rows, num_patches_cols, j_patch); 
-      if num_weights_colors == 1
-	patch_tmp = squeeze(weight_vals(:,:,i_patch));
-      else
-	patch_tmp = squeeze(weight_vals(:,:,:,i_patch));
-      endif
-      patch_tmp2 = patch_tmp; %% imresize(patch_tmp, 12);
-      min_patch = min(patch_tmp2(:));
-      max_patch = max(patch_tmp2(:));
-      patch_tmp2 = (patch_tmp2 - min_patch) * 255 / (max_patch - min_patch + ((max_patch - min_patch)==0));
-      patch_tmp2 = uint8(flipdim(permute(patch_tmp2, [2,1,3]),1));
-      imagesc(patch_tmp2); 
-      if num_weights_colors == 1
-	colormap(gray);
-      endif
-      box off
-      axis off
-      axis image
-      %%drawnow;
-    endfor
-    weights_dir = [output_dir, filesep, "weights"];
-    mkdir(weights_dir);
-    saveas(weights_fig, [weights_dir, filesep, "Weights_", weights_list{i_weights,2}, "_", num2str(weight_time)], "png");
-
-
-    %% make histogram of all weights
-    weights_hist_fig = figure;
-    [weights_hist, weights_hist_bins] = hist(weight_vals(:), 100);
-    bar(weights_hist_bins, log(weights_hist+1));
-    set(weights_hist_fig, "name", ["weights_Histogram_", weights_list{i_weights,2}, "_", num2str(weight_time)]);
-    saveas(weights_hist_fig, [weights_dir, filesep, "weights_hist_", num2str(weight_time)], "png");
-
-  endfor %% i_weights
-    
-endif  %% plot_weights

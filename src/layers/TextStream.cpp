@@ -217,6 +217,7 @@ int TextStream::scatterTextBuffer(PV::Communicator * comm, const PVLayerLoc * lo
 			for (int buffIdx=0; buffIdx < numExtendedNeurons; buffIdx++) {
 				temp_buffer[buffIdx] = 0;
 			}
+         //Reading different buffers because file position changes
 			status = readFileToBuffer(textOffset,this->getLayerLoc(), temp_buffer);
 			if (r==rootproc) {
 				status = loadBufferIntoData(loc,temp_buffer);
@@ -260,6 +261,35 @@ int TextStream::scatterTextBuffer(PV::Communicator * comm, const PVLayerLoc * lo
 	return status;
 }
 
+char TextStream::getCharType(int encodedChar){
+   char charType = 'l'; // Initialize to letter
+
+   // These special characters are counted as words
+   //  ! " ( ) , . : ; ? `
+   if (useCapitalization) {
+      if (encodedChar==1 || encodedChar==2 || encodedChar==8 || encodedChar==9 ||
+            encodedChar==12 || encodedChar==13 || encodedChar==14 ||
+            encodedChar==26 || encodedChar==27 || encodedChar==28 ||
+            encodedChar==31 || encodedChar==32 || encodedChar==64 ||
+            encodedChar==95) {
+         charType = 'p';
+      }
+   }
+   else {
+      if (encodedChar==1 || encodedChar==2 || encodedChar==8 || encodedChar==9 ||
+            encodedChar==12 || encodedChar==13 || encodedChar==14 ||
+            encodedChar==26 || encodedChar==27 || encodedChar==28 ||
+            encodedChar==31 || encodedChar== 32 || encodedChar==64 ||
+            encodedChar==69) {
+         charType = 'p';
+      }
+   }
+   if (encodedChar == 0) {
+      charType = 's';
+   }
+   return charType;
+}
+
 int TextStream::readFileToBuffer(int offset, const PVLayerLoc * loc, int * buf) {
 	int status = PV_SUCCESS;
 	int numItems=1; // Number of chars to read at a time
@@ -274,19 +304,21 @@ int TextStream::readFileToBuffer(int offset, const PVLayerLoc * loc, int * buf) 
 		x_start = loc->nb;
 	}
 
+	unsigned char * tmpChar = new unsigned char[1];  // One character at a time
+   char charType;
 	if (fileStream->filepos==0) { // Skip initial margin stuff for first read
+      std::cout << "initial\n";
 		y_start = loc->nb;
 	}
 
-	int numWordReads=0, preMarginReads=0, numExtraReads = 0;
-	unsigned char * tmpChar = new unsigned char[1];  // One character at a time
+	int numCharReads=0, preMarginReads=0, numExtraReads = 0;
 	for (int y=y_start; y<loc_ny; y++) { // ny = words per proc
-		numWordReads = 0;
 		//std::cout<<"EDCHR: "<<encodedChar<<"\n";
+      //Remove all extra whitespaces before word
 		while(encodedChar==0 && fileStream->filepos + numItems < fileStream->filelength) { // Read until nonspace
 			int numRead = PV_fread(tmpChar,sizeof(char),numItems,fileStream);
 			assert(numRead==numItems);
-			numWordReads += numRead;
+			numCharReads += numRead;
 			encodedChar = getCharEncoding(tmpChar);
 			//std::cout<<"LKSPC: "<<tmpChar[0]<<" encoded as "<<encodedChar<<"\n";
 		}
@@ -295,36 +327,12 @@ int TextStream::readFileToBuffer(int offset, const PVLayerLoc * loc, int * buf) 
 		}
 		//std::cout<<"\n---WORD---\n";
 		int x=x_start;
+      //std::cout << "loc->nx" << loc->nx << " loc->nb " << loc->nb << "\n";
+      //Read until buffer + one side of margin
+      //x_start is loc->nb
 		for (; x<loc->nx+loc->nb; x++) { // nx = num chars per word
-			char charType = 'l'; // Initialize to letter
-
-			// These special characters are counted as words
-			//  ! " ( ) , . : ; ? `
-			if (useCapitalization) {
-				if (encodedChar==1 || encodedChar==2 || encodedChar==8 || encodedChar==9 ||
-						encodedChar==12 || encodedChar==13 || encodedChar==14 ||
-						encodedChar==26 || encodedChar==27 || encodedChar==28 ||
-						encodedChar==31 || encodedChar==32 || encodedChar==64 ||
-						encodedChar==95) {
-					charType = 'p';
-				}
-			}
-			else {
-				if (encodedChar==1 || encodedChar==2 || encodedChar==8 || encodedChar==9 ||
-						encodedChar==12 || encodedChar==13 || encodedChar==14 ||
-						encodedChar==26 || encodedChar==27 || encodedChar==28 ||
-						encodedChar==31 || encodedChar== 32 || encodedChar==64 ||
-						encodedChar==69) {
-					charType = 'p';
-				}
-			}
-
-			if (encodedChar == 0) {
-				charType = 's';
-			}
-
+         charType = getCharType(encodedChar);
 			//std::cout<<"READ 1: "<<tmpChar[0]<<" is a "<<charType;
-
 			bool break_loop = false;
 			switch (charType) {
 				case 'p': // Punctuation
@@ -340,7 +348,7 @@ int TextStream::readFileToBuffer(int offset, const PVLayerLoc * loc, int * buf) 
 						if (fileStream->filepos + numItems < fileStream->filelength) { // Read next char
 							int numRead = PV_fread(tmpChar,sizeof(char),numItems,fileStream);
 							assert(numRead==numItems);
-							numWordReads += numRead;
+							numCharReads += numRead;
 							encodedChar = getCharEncoding(tmpChar);
 							//std::cout<<"PUTRED: "<<tmpChar[0]<<" is a "<<charType<<"encoded as "<<encodedChar<<"\n";
 						} else {
@@ -362,35 +370,38 @@ int TextStream::readFileToBuffer(int offset, const PVLayerLoc * loc, int * buf) 
 						}
 					}
 					//std::cout<<" ADDED letter "<<encodedChar<<"; x="<<x<<"\n";
-					if (x==loc_nx-1) {
-						while(encodedChar!=0 && fileStream->filepos + numItems < fileStream->filelength) { // Dump the rest of the word
+               //Word too long
+					if (x==loc->nx+loc->nb-1) {
+                  char tempCharType = getCharType(encodedChar);
+                  //Look for spaces, return, puncuation
+						while(encodedChar!=0 && tempCharType!='p' && fileStream->filepos + numItems < fileStream->filelength) { // Dump the rest of the word
 							int numRead = PV_fread(tmpChar,sizeof(char),numItems,fileStream);
 							assert(numRead==numItems);
-							numWordReads += numRead;
+							numCharReads += numRead;
 							encodedChar = getCharEncoding(tmpChar);
 							//std::cout<<"DELET: "<<tmpChar[0]<<" encoded as "<<encodedChar<<"\n";
 						}
 						x++; // Increment X if breaking loop & a char has been added
 						break_loop = true;
 					}
+               //Continue with word
 					else {
-						if (fileStream->filepos + numItems < fileStream->filelength) { // Read next char
+						if (fileStream->filepos + numItems < fileStream->filelength) { 
+                     // Read next char
 							int numRead = PV_fread(tmpChar,sizeof(char),numItems,fileStream);
 							assert(numRead==numItems);
-							numWordReads += numRead;
+							numCharReads += numRead;
 							encodedChar = getCharEncoding(tmpChar);
-							//std::cout<<"READ 2: "<<tmpChar[0]<<" encoded as "<<encodedChar<<"\n";
 						} else {
 							return status;
 						}
 						break_loop = false;
 					}
 					break;
-			}
+			}//End switch statement
 
 			if (break_loop) break;
-		}
-		//std::cout<<"EDCHO: "<<encodedChar<<"\n";
+		}//End reading characters
 
 		for (; x<loc->nx+loc->nb; x++) { // Fill in the rest of the word with a buffer
 			for (int f=0; f<loc->nf; f++) { // Store 0
@@ -398,14 +409,16 @@ int TextStream::readFileToBuffer(int offset, const PVLayerLoc * loc, int * buf) 
 			}
 		}
 
-		if (y == loc->ny+loc->nb) {
-			preMarginReads = numWordReads;
+      //When it's gotten to the end of the restricted layer
+      //Saving until loc->ny since that's where the beginning margin of next proc is
+		if (y == loc->ny - 1) {
+			preMarginReads = numCharReads;
 		}
 	}
 
-	numExtraReads = numWordReads - preMarginReads;
+	numExtraReads = numCharReads - preMarginReads;
 	if (textBCFlag) { // Back up to pre-margin file position
-		PV_fseek(fileStream,-numExtraReads,SEEK_CUR);
+		PV_fseek(fileStream,-1 * numExtraReads,SEEK_CUR);
 	}
 
 	delete tmpChar;
@@ -459,6 +472,11 @@ int TextStream::getCharEncoding(const unsigned char * printableASCIIChar) {
 	int charMapValue;
 
 	int asciiValue = (int)(unsigned char)printableASCIIChar[0];
+
+   //0 is space, 1 is new line
+   //2-44 are symbols
+   //45-70 are uppercase
+   //71-96 are lowercase 
 
 	if (asciiValue == 10 || asciiValue == 13) { // new line or carriage return
 		charMapValue = useCapitalization ? 95 : 69;

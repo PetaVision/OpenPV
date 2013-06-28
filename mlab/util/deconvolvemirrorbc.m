@@ -52,4 +52,5 @@ end
 kernelinverseft(kernelft==0) = 0;
 
 reconstructionrefl = real(ifft2(fft2(dogconvrefl).*kernelinverseft));
-reconstruction = reconstructionrefl(1:gx/2, 1:gy/2);
+reconstruction = reconstructionrefl(1:gy/2, 1:gx/2);
+%reconstruction = reconstructionrefl(1:gx/2, 1:gy/2);

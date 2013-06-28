@@ -102,6 +102,8 @@ int TextStreamProbe::outputState(double timef) {
 			}
          }
       }
+      //Flush outputstream
+      fflush(outputstream->fp);
       //fprintf(outputstream->fp, "\n");
       free(cbuf); cbuf = NULL;
    }
