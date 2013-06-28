@@ -307,7 +307,6 @@ int TextStream::readFileToBuffer(int offset, const PVLayerLoc * loc, int * buf) 
 	unsigned char * tmpChar = new unsigned char[1];  // One character at a time
    char charType;
 	if (fileStream->filepos==0) { // Skip initial margin stuff for first read
-      std::cout << "initial\n";
 		y_start = loc->nb;
 	}
 
