@@ -156,8 +156,8 @@ int TextStream::updateState(double time, double dt)
     if (needNewText) {
         if (parent->columnId() == rootproc) {
 			// if at end of file (EOF), exit normally or loop
-			int c;
-			if ((c = fgetc(fileStream->fp)) == EOF) {
+			int c = fgetc(fileStream->fp);
+			if (c == EOF) {
 				if (loopInput) {
 					PV_fseek(fileStream, 0L, SEEK_SET);
 					fprintf(stderr, "Text Input %s: EOF reached, rewinding file \"%s\".\n", name, filename);
@@ -314,7 +314,7 @@ int TextStream::readFileToBuffer(int offset, const PVLayerLoc * loc, int * buf) 
 	for (int y=y_start; y<loc_ny; y++) { // ny = words per proc
 		//std::cout<<"EDCHR: "<<encodedChar<<"\n";
       //Remove all extra whitespaces before word
-		while(encodedChar==0 && fileStream->filepos + numItems < fileStream->filelength) { // Read until nonspace
+		while(encodedChar==0 && fileStream->filepos + numItems <= fileStream->filelength) { // Read until nonspace
 			int numRead = PV_fread(tmpChar,sizeof(char),numItems,fileStream);
 			assert(numRead==numItems);
 			numCharReads += numRead;
@@ -344,7 +344,7 @@ int TextStream::readFileToBuffer(int offset, const PVLayerLoc * loc, int * buf) 
 							}
 						}
 						//std::cout<<" ADDED Punct "<<encodedChar<<"; x="<<x<<"\n";
-						if (fileStream->filepos + numItems < fileStream->filelength) { // Read next char
+						if (fileStream->filepos + numItems <= fileStream->filelength) { // Read next char
 							int numRead = PV_fread(tmpChar,sizeof(char),numItems,fileStream);
 							assert(numRead==numItems);
 							numCharReads += numRead;
@@ -373,7 +373,7 @@ int TextStream::readFileToBuffer(int offset, const PVLayerLoc * loc, int * buf) 
 					if (x==loc->nx+loc->nb-1) {
                   char tempCharType = getCharType(encodedChar);
                   //Look for spaces, return, puncuation
-						while(encodedChar!=0 && tempCharType!='p' && fileStream->filepos + numItems < fileStream->filelength) { // Dump the rest of the word
+						while(encodedChar!=0 && tempCharType!='p' && fileStream->filepos + numItems <= fileStream->filelength) { // Dump the rest of the word
 							int numRead = PV_fread(tmpChar,sizeof(char),numItems,fileStream);
 							assert(numRead==numItems);
 							numCharReads += numRead;
@@ -385,7 +385,7 @@ int TextStream::readFileToBuffer(int offset, const PVLayerLoc * loc, int * buf) 
 					}
                //Continue with word
 					else {
-						if (fileStream->filepos + numItems < fileStream->filelength) { 
+						if (fileStream->filepos + numItems <= fileStream->filelength) { 
                      // Read next char
 							int numRead = PV_fread(tmpChar,sizeof(char),numItems,fileStream);
 							assert(numRead==numItems);
