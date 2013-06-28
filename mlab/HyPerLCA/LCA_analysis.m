@@ -15,8 +15,8 @@ elseif isunix
   output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_16x16x1024_Overlap_lambda_05X2"; %%MRI/LCA/5_subjects"; %%  
   %%output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_12x12x1024_lambda_05X2_color_deep"; %%MRI/LCA/5_subjects"; %%  
   LCA_path = [output_dir];
-  last_checkpoint_ndx = 100000*419; %% 
-  next_checkpoint_ndx = 100000*420; %%50000*22; %% 
+  last_checkpoint_ndx = 42600000; %% 
+  next_checkpoint_ndx = 42700000; %%50000*22; %% 
   first_checkpoint_ndx = 0;
   frame_duration = 5000;
 endif
@@ -25,16 +25,16 @@ checkpoint_dir = [LCA_path, filesep, "Checkpoints"];
 checkpoint_path = [checkpoint_dir, filesep, "Checkpoint", num2str(last_checkpoint_ndx, "%i")];
 next_checkpoint_path = [checkpoint_dir, filesep, "Checkpoint", num2str(next_checkpoint_ndx, "%i")];
 max_lines = last_checkpoint_ndx + (last_checkpoint_ndx == 0) * 50000;
-max_history = 140000;
+max_history = 196000;
 begin_statProbe_step = max(max_lines - max_history, 3);
 training_flag = 1;
-num_recon = 32;
+num_recon = 196;
 deep_flag = 0;
 deep2_flag = 0;
 
 
 %% plot Reconstructions
-plot_Recon = 0;
+plot_Recon = 1;
 if plot_Recon
   %%keyboard;
   recon_dir = [output_dir, filesep, "recon"];
@@ -436,7 +436,7 @@ if plot_Recon
 endif  %% plot_Recon
 
 
-plot_StatsProbe_vs_time = 0;
+plot_StatsProbe_vs_time = 1;
 if plot_StatsProbe_vs_time
   V1_sparseness_error_vs_time_dir = [output_dir, filesep, "V1_sparseness_error_vs_time"];
   mkdir(V1_sparseness_error_vs_time_dir);
@@ -709,7 +709,7 @@ if plot_V1
   V1_mean_active = mean(V1_tot_active(:)/n_V1);
   disp(["V1_mean_active = ", num2str(V1_mean_active)]);
 
-  plot_Error = 0;
+  plot_Error = 1;
   if plot_Error
   if deep_flag
     Error_path = [output_dir, filesep, "a4_Error.pvp"];
@@ -895,7 +895,7 @@ if plot_V1
   endif  %% deep_flag
 endif  %% plot_V1
 
-plot_final_weights = 0;
+plot_final_weights = 1;
 if plot_final_weights 
   V1ToError_path = [checkpoint_path, filesep, "V1ToError_W.pvp"];
   if ~exist(V1ToError_path, "file")
@@ -1030,7 +1030,7 @@ if plot_final_weights
     V2ToError2_weights_file = [mat_dir, filesep, "V2ToError2_weights", num2str(last_checkpoint_ndx, "%i"), ".mat"];
     save(  "-mat", V2ToError2_weights_file, "V2ToError2_weights");
 
-    if deep2_flag
+    if 0 %% deep2_flag
       V2ToError1_2_path = [checkpoint_path, filesep, "V2ToError1_2_W.pvp"];
       if ~exist(V2ToError1_2_path, "file")
 	V2ToError1_2_path = [next_checkpoint_path, filesep, "V2ToError1_2_W.pvp"];
@@ -1153,9 +1153,11 @@ if plot_weights_movie
   V1ToError_fid = fopen(V1ToError_path);
   V1ToError_hdr = readpvpheader(V1ToError_fid);
   fclose(V1ToError_fid);
-  max_frames = V1_hdr.nbands
-  frames_per_epoch = 2500;
-  num_epochs = ceil(max_frames - start_frame / frames_per_epoch);
+  max_frames = V1_hdr.nbands;
+  frames_per_epoch = 8520;
+  num_epochs = ceil((max_frames - start_frame) / frames_per_epoch);
+  i_count = 0;
+  max_time = -1.0;
   for i_epoch = 1 : num_epochs
     start_epoch = start_frame + (i_epoch-1) * frames_per_epoch
     end_epoch = start_frame + (i_epoch) * frames_per_epoch
