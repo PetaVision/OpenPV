@@ -40,7 +40,7 @@ int L2NormProbe::writeState(double timed, HyPerLayer * l, pvdata_t value) {
    assert(l->getParent()->icCommunicator()->commRank() == 0);
    int nk = l->getNumGlobalNeurons();
    fprintf(outputstream->fp, "%st = %6.3f numNeurons = %8d L2-norm          = %f\n", msg, timed, nk, value);
-
+   fflush(outputstream->fp);
    return PV_SUCCESS;
 }
 
