@@ -80,6 +80,7 @@ public:
    int getBiasX() { return biases[0]; }
    int getBiasY() { return biases[1]; }
    const int * getBiases() { return biases; }
+   int getFrameNumber() { return frameNumber; }
 
 private:
    int initialize_base();
@@ -111,6 +112,7 @@ protected:
    bool useImageBCflag;
    bool inverseFlag;
    bool normalizeLuminanceFlag;
+   int frameNumber;
 
    //float lastPhase;
    double lastUpdateTime; // time of last image update

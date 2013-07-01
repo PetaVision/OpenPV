@@ -99,7 +99,7 @@ int getImageInfoPVP(const char * filename, PV::Communicator * comm, PVLayerLoc *
    PV::PV_fclose(pvstream); pvstream = NULL;
 
    assert(numParams == NUM_PAR_BYTE_PARAMS);
-   assert(params[INDEX_FILE_TYPE] == PVP_FILE_TYPE);
+   assert(params[INDEX_FILE_TYPE] == PVP_NONSPIKING_ACT_FILE_TYPE);
 
    const int dataSize = params[INDEX_DATA_SIZE];
    const int dataType = params[INDEX_DATA_TYPE];
@@ -446,16 +446,16 @@ int gatherImageFileGDAL(const char * filename,
 }
 
 int scatterImageFile(const char * filename, int xOffset, int yOffset,
-                     PV::Communicator * comm, const PVLayerLoc * loc, float * buf)
+                     PV::Communicator * comm, const PVLayerLoc * loc, float * buf, int frameNumber)
 {
    if (getFileType(filename) == PVP_FILE_TYPE) {
-      return scatterImageFilePVP(filename, xOffset, yOffset, comm, loc, buf);
+      return scatterImageFilePVP(filename, xOffset, yOffset, comm, loc, buf, frameNumber);
    }
    return scatterImageFileGDAL(filename, xOffset, yOffset, comm, loc, buf);
 }
 
 int scatterImageFilePVP(const char * filename, int xOffset, int yOffset,
-                        PV::Communicator * comm, const PVLayerLoc * loc, float * buf)
+                        PV::Communicator * comm, const PVLayerLoc * loc, float * buf, int frameNumber)
 {
    // Read a PVP file and scatter it to the multiple processes.
    int status = PV_SUCCESS;
@@ -479,6 +479,8 @@ int scatterImageFilePVP(const char * filename, int xOffset, int yOffset,
       fileloc.ky0 = params[INDEX_KY0];
       int nxProcs = params[INDEX_NX_PROCS];
       int nyProcs = params[INDEX_NY_PROCS];
+      int recordsize = params[INDEX_RECORD_SIZE];
+      int datasize = params[INDEX_DATA_SIZE];
       if (fileloc.nx != fileloc.nxGlobal || fileloc.ny != fileloc.nyGlobal ||
           nxProcs != 1 || nyProcs != 1 ||
           fileloc.kx0 != 0 || fileloc.ky0 != 0) {
@@ -488,6 +490,8 @@ int scatterImageFilePVP(const char * filename, int xOffset, int yOffset,
       bool spiking = false;
       double timed = 0.0;
       int filetype = params[INDEX_FILE_TYPE];
+      int framesize;
+      unsigned int framepos;
       switch (filetype) {
       case PVP_FILE_TYPE:
          break;
@@ -498,10 +502,15 @@ int scatterImageFilePVP(const char * filename, int xOffset, int yOffset,
          abort();
          break;
       case PVP_NONSPIKING_ACT_FILE_TYPE:
+         framesize = recordsize*datasize*nxProcs*nyProcs+8;
+         framepos = framesize * frameNumber;
+         PV::PV_fseek(pvstream, framepos, SEEK_CUR);
          PV::PV_fread(&timed, sizeof(double), 1, pvstream);
          status = PV_SUCCESS;
          break;
       case PVP_WGT_FILE_TYPE:
+         fprintf(stderr, "scatterImageFilePVP error opening \"%s\": file is a weight file, not an image file.\n", filename);
+         break;
       case PVP_KERNEL_FILE_TYPE:
          fprintf(stderr, "scatterImageFilePVP error opening \"%s\": file is a weight file, not an image file.\n", filename);
          break;

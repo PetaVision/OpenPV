@@ -11,12 +11,12 @@ elseif isunix
   output_dir = "/nh/compneuro/Data/KITTI/LCA/2011_09_26_drive_0001_depth_longrun"; 
 endif
 addpath([workspace_path, filesep, "/PetaVision/mlab/util"]);
-last_checkpoint_ndx = 560000;
+last_checkpoint_ndx = 1560000;
 checkpoint_path = [output_dir, filesep, "Checkpoints", filesep,  "Checkpoint", num2str(last_checkpoint_ndx, '%i')]; %% 
 max_history = 196000;
 
 %% plot Reconstructions
-plot_Recon = 1;
+plot_Recon = 0;
 if plot_Recon
   num_Recon_default = 197;
 %%  Recon_list = ...
@@ -151,7 +151,7 @@ endif %% plot_Recon
 
 %Prints weights from checkpoints
 plot_Sparse = 0;
-plot_weights = 1;
+plot_weights = 0;
 if plot_weights
    weights_list = ...
        {["BinocularV1ToLeftError_W"]; ...
@@ -243,7 +243,7 @@ endif  %% plot_weights
 %%keyboard;
 plot_StatsProbe_vs_time = 1;
 if plot_StatsProbe_vs_time
-  StatsProbe_plot_lines = 20000;
+  StatsProbe_plot_lines = 100000;
 %%  StatsProbe_list = ...
 %%      {["Error"],["_Stats.txt"]; ...
 %%       ["V1"],["_Stats.txt"]};
@@ -257,7 +257,7 @@ if plot_StatsProbe_vs_time
   mkdir(StatsProbe_vs_time_dir);
   num_StatsProbe_list = size(StatsProbe_list,1);
   StatsProbe_sigma_flag = ones(1,num_StatsProbe_list);
-  StatsProbe_sigma_flag([2]) = 0;
+  StatsProbe_sigma_flag([5]) = 0;
   StatsProbe_nnz_flag = ~StatsProbe_sigma_flag;
   for i_StatsProbe = 1 : num_StatsProbe_list
     StatsProbe_file = [output_dir, filesep, StatsProbe_list{i_StatsProbe,1}, StatsProbe_list{i_StatsProbe,2}]

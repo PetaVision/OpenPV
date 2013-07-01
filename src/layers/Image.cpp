@@ -58,6 +58,7 @@ int Image::initialize_base() {
    fp_pos = NULL;
    biases[0]   = getOffsetX();
    biases[1]   = getOffsetY();
+   frameNumber = 0;
    return PV_SUCCESS;
 }
 
@@ -85,6 +86,7 @@ int Image::initialize(const char * name, HyPerCol * hc, const char * filename) {
    this->useImageBCflag = (bool) params->value(name, "useImageBCflag", useImageBCflag);
    this->inverseFlag = (bool) params->value(name, "inverseFlag", inverseFlag);
    this->normalizeLuminanceFlag = (bool) params->value(name, "normalizeLuminanceFlag", normalizeLuminanceFlag);
+
    readOffsets();
 
    GDALColorInterp * colorbandtypes = NULL;
@@ -97,11 +99,16 @@ int Image::initialize(const char * name, HyPerCol * hc, const char * filename) {
                name, filename, imageLoc.nf, getLayerLoc()->nf);
          exit(PV_FAILURE);
       }
+      //If filename is pvp
+      if(getFileType(filename) == PVP_FILE_TYPE){
+         this->frameNumber= params->value(name, "frameNumber", frameNumber);
+      }
    }
    else {
       this->filename = NULL;
       this->imageLoc = * getLayerLoc();
    }
+
 
    this->lastUpdateTime = 0.0;
 
@@ -314,7 +321,7 @@ int Image::readImage(const char * filename, int offsetX, int offsetY, GDALColorI
    assert(buf != NULL);
 
    // read the image and scatter the local portions
-   status = scatterImageFile(filename, offsetX, offsetY, parent->icCommunicator(), loc, buf);
+   status = scatterImageFile(filename, offsetX, offsetY, parent->icCommunicator(), loc, buf, frameNumber);
    assert(status == PV_SUCCESS);
    if( loc->nf == 1 && imageLoc.nf > 1 ) {
       float * graybuf = convertToGrayScale(buf,loc->nx,loc->ny,imageLoc.nf, colorbandtypes);

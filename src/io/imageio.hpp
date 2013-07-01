@@ -28,9 +28,9 @@ int gatherImageFileGDAL(const char * filename,
                         PV::Communicator * comm, const PVLayerLoc * loc, unsigned char * buf);
 
 int scatterImageFile(    const char * filename, int xOffset, int yOffset,
-                         PV::Communicator * comm, const PVLayerLoc * loc, float * buf);
+                         PV::Communicator * comm, const PVLayerLoc * loc, float * buf, int frameNumber=0);
 int scatterImageFilePVP( const char * filename, int xOffset, int yOffset,
-                         PV::Communicator * comm, const PVLayerLoc * loc, float * buf);
+                         PV::Communicator * comm, const PVLayerLoc * loc, float * buf, int frameNumber=0);
 #ifdef OBSOLETE // Marked obsolete Dec 10, 2012, during reworking of PVP files to be MPI-independent.
 int windowFromPVPBuffer(int startx, int starty, int nx, int ny, int * params, float * destbuf, char * pvpbuffer, const char * filename);
 #endif // OBSOLETE

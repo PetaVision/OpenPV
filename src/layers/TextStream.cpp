@@ -472,11 +472,6 @@ int TextStream::getCharEncoding(const unsigned char * printableASCIIChar) {
 
 	int asciiValue = (int)(unsigned char)printableASCIIChar[0];
 
-   //0 is space, 1 is new line
-   //2-44 are symbols
-   //45-70 are uppercase
-   //71-96 are lowercase 
-
 	if (asciiValue == 10 || asciiValue == 13) { // new line or carriage return
 		charMapValue = useCapitalization ? 95 : 69;
 	}

@@ -1835,7 +1835,7 @@ template <typename T> int scatterActivity(PV_Stream * pvstream, Communicator * c
             PV_fseek(pvstream, startpos + k_infile*(long) datasize, SEEK_SET);
             int numread = PV_fread(&temp_buffer[k_inmemory], datasize, linesize, pvstream);
             if (numread != linesize) {
-               fprintf(stderr, "scatterActivity error when reading: number of bytes attempted %d, number written %d\n", numread, numLocalNeurons);
+               fprintf(stderr, "scatterActivity error when reading: number of bytes attempted %d, number read %d\n", numread, numLocalNeurons);
                abort();
             }
          }
