@@ -1,8 +1,11 @@
 ## See http://www.cmake.org/Wiki/CMake_Useful_Variables for more variables to set
 cmake_minimum_required(VERSION 2.6)
 
-set(CMAKE_C_FLAGS_DEBUG "-g3")
-set(CMAKE_CXX_FLAGS_DEBUG "-g3")
+
+set(CMAKE_C_FLAGS_DEBUG "-g3 -O0")
+set(CMAKE_CXX_FLAGS_DEBUG "-g3 -O0")
+set(CMAKE_C_FLAGS_RELEASE "-g0 -O3")
+set(CMAKE_CXX_FLAGS_RELEASE "-g0 -O3")
 
 # To allow for a single CMakeLists.txt to add_subdirectory several projects, where build type might not all be the same,
 # can set BUILD_TYPE_OJAKERNELLEARNING separately and it will be used as set
@@ -21,6 +24,12 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR})
 if (NOT GDAL_FOUND)
     find_package(GDAL REQUIRED)
 endif (NOT GDAL_FOUND)
+
+if (NOT MPI_C_FOUND OR NOT MPI_CXX_FOUND)
+    find_package(MPI REQUIRED)
+endif (NOT MPI_C_FOUND OR NOT MPI_CXX_FOUND)
+include_directories(${MPI_CXX_INCLUDE_PATH})
+include_directories(${MPI_C_INCLUDE_PATH})
 
 # Header files
 include_directories(${PV_SOURCE_DIR})
