@@ -21,11 +21,11 @@ if (NOT GDAL_FOUND)
     find_package(GDAL REQUIRED)
 endif (NOT GDAL_FOUND)
 
-#if (NOT MPI_C_FOUND OR NOT MPI_CXX_FOUND)
-#    find_package(MPI REQUIRED)
-#endif (NOT MPI_C_FOUND OR NOT MPI_CXX_FOUND)
-#include_directories(${MPI_CXX_INCLUDE_PATH})
-#include_directories(${MPI_C_INCLUDE_PATH})
+if (NOT MPI_C_FOUND OR NOT MPI_CXX_FOUND)
+    find_package(MPI REQUIRED)
+endif (NOT MPI_C_FOUND OR NOT MPI_CXX_FOUND)
+include_directories(${MPI_CXX_INCLUDE_PATH})
+include_directories(${MPI_C_INCLUDE_PATH})
 
 # Header files
 include_directories(${PV_SOURCE_DIR})
@@ -47,6 +47,6 @@ target_link_libraries(ReadArborFileTest pv)
 
 # Link executable to external libraries
 target_link_libraries(ReadArborFileTest ${GDAL_LIBRARY})
-#target_link_libraries(ReadArborFileTest ${MPI_C_LIBRARIES})
-#target_link_libraries(ReadArborFileTest ${MPI_CXX_LIBRARIES})
+target_link_libraries(ReadArborFileTest ${MPI_C_LIBRARIES})
+target_link_libraries(ReadArborFileTest ${MPI_CXX_LIBRARIES})
 
