@@ -38,6 +38,9 @@ int Movie::initialize_base() {
    echoFramePathnameFlag = false;
    filename = NULL;
    displayPeriod = DISPLAY_PERIOD;
+   readPvpFile = false;
+   frameNumber = 0;
+   numFrames = 0;
    return PV_SUCCESS;
 }
 
@@ -57,13 +60,20 @@ int Movie::checkpointRead(const char * cpDir, double * timef){
  * - writeImages, offsetX, offsetY are initialized by Image::initialize()
  */
 int Movie::initialize(const char * name, HyPerCol * hc, const char * fileOfFileNames, float defaultDisplayPeriod) {
+   
    int status = Image::initialize(name, hc, NULL);
    if (status != PV_SUCCESS) {
       fprintf(stderr, "Image::initialize failed on Movie layer \"%s\".  Exiting.\n", name);
       exit(PV_FAILURE);
    }
 
-   if( getParent()->icCommunicator()->commRank()==0 ) {
+   PVParams * params = hc->parameters();
+
+   //Read pvp file movie
+   readPvpFile = (bool)params->value(name, "readPvpFile", 0);
+
+   //If not pvp file, open fileOfFileNames 
+   if( getParent()->icCommunicator()->commRank()==0 && !readPvpFile) {
       filenamestream = PV_fopen(fileOfFileNames, "r");
       if( filenamestream == NULL ) {
          fprintf(stderr, "Movie::initialize error opening \"%s\": %s\n", fileOfFileNames, strerror(errno));
@@ -71,15 +81,38 @@ int Movie::initialize(const char * name, HyPerCol * hc, const char * fileOfFileN
       }
    }
 
-   PVParams * params = hc->parameters();
-
    // skip to start_frame_index if provided
    int start_frame_index = params->value(name,"start_frame_index", 0);
    skipFrameIndex = params->value(name,"skip_frame_index", 0);
 
-   echoFramePathnameFlag = params->value(name,"echoFramePathnameFlag", false);
-   filename = strdup(getNextFileName(start_frame_index));
-   assert(filename != NULL);
+   if(readPvpFile){
+      //Set filename as param
+      filename = strdup(fileOfFileNames);
+      //One indexed start_frame_index needs to be translated to zero indexed pvp file
+      if (start_frame_index <= 1){
+         frameNumber = 0;
+      }
+      else{
+         frameNumber = start_frame_index - 1;
+      }
+      //Grab number of frames from header
+      PV_Stream * pvstream = NULL;
+      if (getParent()->icCommunicator()->commRank()==0) {
+         pvstream = PV::PV_fopen(filename, "rb");
+      }
+      int numParams = NUM_PAR_BYTE_PARAMS;
+      int params[numParams];
+      pvp_read_header(pvstream, getParent()->icCommunicator(), params, &numParams);
+      PV::PV_fclose(pvstream); pvstream = NULL;
+      assert(numParams == NUM_PAR_BYTE_PARAMS);
+      assert(params[INDEX_FILE_TYPE] == PVP_NONSPIKING_ACT_FILE_TYPE);
+      numFrames = params[INDEX_NBANDS];
+   }
+   else{
+      echoFramePathnameFlag = params->value(name,"echoFramePathnameFlag", false);
+      filename = strdup(getNextFileName(start_frame_index));
+      assert(filename != NULL);
+   }
 
    // get size info from image so that data buffer can be allocated
    GDALColorInterp * colorbandtypes = NULL;
@@ -122,6 +155,7 @@ int Movie::initialize(const char * name, HyPerCol * hc, const char * fileOfFileN
       }
       status = parent->ensureDirExists(movieOutputPath);
    }
+
 
    // exchange border information
    exchange();
@@ -183,9 +217,25 @@ bool Movie::updateImage(double time, double dt)
       bool needNewImage = false;
       while (time >= nextDisplayTime) {
          needNewImage = true;
-         if (filename != NULL) free(filename);
-         filename = strdup(getNextFileName(skipFrameIndex));
-         assert(filename != NULL);
+         if (readPvpFile){
+            //If set to 0 or 1, normal frame
+            if (skipFrameIndex <= 1){
+               frameNumber += 1;
+            }
+            //Otherwise, skip based on skipFrameIndex
+            else{
+               frameNumber += skipFrameIndex;
+            }
+            //Loop when frame number reaches numFrames
+            if (frameNumber >= numFrames){
+               frameNumber = 0;
+            }
+         }
+         else{
+            if (filename != NULL) free(filename);
+            filename = strdup(getNextFileName(skipFrameIndex));
+            assert(filename != NULL);
+         }
          nextDisplayTime += displayPeriod;
 
          if(writePosition && parent->icCommunicator()->commRank()==0){
@@ -206,6 +256,7 @@ bool Movie::updateImage(double time, double dt)
             fprintf(stderr, "Movie %s: Error getting image info \"%s\"\n", name, filename);
             abort();
          }
+         //Set frame number (member variable in Image)
          if( status == PV_SUCCESS ) status = readImage(filename, getOffsetX(), getOffsetY(), colorbandtypes);
          free(colorbandtypes); colorbandtypes = NULL;
          if( status != PV_SUCCESS ) {

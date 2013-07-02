@@ -80,7 +80,7 @@ public:
    int getBiasX() { return biases[0]; }
    int getBiasY() { return biases[1]; }
    const int * getBiases() { return biases; }
-   int getFrameNumber() { return frameNumber; }
+   double getFrameNumber() { return frameNumber; }
 
 private:
    int initialize_base();
@@ -112,7 +112,6 @@ protected:
    bool useImageBCflag;
    bool inverseFlag;
    bool normalizeLuminanceFlag;
-   int frameNumber;
 
    //float lastPhase;
    double lastUpdateTime; // time of last image update
@@ -134,6 +133,9 @@ protected:
    int jitterType;       // If using jitter, specify type of jitter (random walk or random jump)
    const static int RANDOM_WALK = 0;  // const denoting jitter is a random walk
    const static int RANDOM_JUMP = 1;  // const denoting jitter is a random jump
+
+   //Read pvp file frame number
+   double frameNumber;
 
    uint4 rand_state;
 };

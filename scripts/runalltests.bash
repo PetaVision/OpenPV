@@ -141,6 +141,13 @@ cd $wd
 #cd "$wd"
 echo "TODO: fix GPUSystemTest and maybe implement GPUs"
 
+testname=ImageSystemTest
+arglist="-p input/multiframe_SystemTest.params"
+cd "$testname"
+runandecho $testname Debug/$testname $arglist
+mpirunandecho $testname Debug/$testname $arglist
+cd $wd
+
 testname=InitWeightsTest
 arglist="-p input/test_initweights.params"
 cd "$testname"

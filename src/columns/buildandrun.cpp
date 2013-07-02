@@ -556,7 +556,8 @@ Image * addImage( const char * name, HyPerCol * hc) {
 Movie * addMovie(const char * name, HyPerCol * hc) {
    Movie * addedLayer;
    const char * imagelabelspath = hc->parameters()->stringValue(name, "imageListPath");
-   if (imagelabelspath) {
+   //If imagelabelspath is null, readpvpfile must be set
+   if(imagelabelspath){
       addedLayer = new Movie(name, hc, imagelabelspath);
    }
    else {
