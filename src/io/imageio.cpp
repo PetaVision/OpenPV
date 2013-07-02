@@ -99,10 +99,7 @@ int getImageInfoPVP(const char * filename, PV::Communicator * comm, PVLayerLoc *
    PV::PV_fclose(pvstream); pvstream = NULL;
 
    assert(numParams == NUM_PAR_BYTE_PARAMS);
-   //assert(params[INDEX_FILE_TYPE] == PVP_NONSPIKING_ACT_FILE_TYPE);
-   //TODO Make PVP_FILE_TYPE obsolete
-   assert(params[INDEX_FILE_TYPE] == PVP_NONSPIKING_ACT_FILE_TYPE ||
-         params[INDEX_FILE_TYPE] == PVP_FILE_TYPE);
+   assert(params[INDEX_FILE_TYPE] == PVP_NONSPIKING_ACT_FILE_TYPE);
 
    const int dataSize = params[INDEX_DATA_SIZE];
    const int dataType = params[INDEX_DATA_TYPE];
