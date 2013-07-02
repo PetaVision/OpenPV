@@ -9,6 +9,7 @@
 
 #include "../PetaVision/src/columns/buildandrun.hpp"
 #include "ImageTestProbe.hpp"
+#include "MovieTestProbe.hpp"
 
 #define MAIN_USES_CUSTOMGROUPS
 
@@ -33,6 +34,10 @@ void * customgroup(const char * keyword, const char * name, HyPerCol * hc) {
    void * addedGroup = NULL;
    if (strcmp(keyword, "ImageTestProbe") == 0){
       addedGroup = new ImageTestProbe(hc->getLayerFromName(hc->parameters()->stringValue(name, "targetLayer")),
+            hc->parameters()->stringValue(name, "message"));
+   }
+   if (strcmp(keyword, "MovieTestProbe") == 0){
+      addedGroup = new MovieTestProbe(hc->getLayerFromName(hc->parameters()->stringValue(name, "targetLayer")),
             hc->parameters()->stringValue(name, "message"));
    }
    return addedGroup;
