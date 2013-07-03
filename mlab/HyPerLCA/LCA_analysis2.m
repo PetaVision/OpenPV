@@ -10,21 +10,27 @@ elseif isunix
   workspace_path = "/home/gkenyon/workspace";
   %%output_dir = "/nh/compneuro/Data/KITTI/LCA/2011_09_26_drive_0002_sync"; 
   %%output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_16x16x1024_Overlap_lambda_05X2"; 
-  %%output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_12x12x1024_lambda_05X2_color_deep"; 
-  output_dir = "/nh/compneuro/Data/vine/LCA/detail/output_16x16x1024_overlap_lambda_05X2_errorthresh_005"; 
+  output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_12x12x1024_lambda_05X2_color_deep"; 
+  %%output_dir = "/nh/compneuro/Data/vine/LCA/detail/output_16x16x1024_overlap_lambda_05X2_errorthresh_005"; 
 endif
 addpath([workspace_path, filesep, "/PetaVision/mlab/util"]);
-last_checkpoint_ndx = 1640000;
-checkpoint_path = [output_dir, filesep, "Last"];%%"Checkpoints", filesep,  "Checkpoint", num2str(last_checkpoint_ndx, "%i")]; %% 
-max_history = 196000;
+last_checkpoint_ndx = 930000;
+checkpoint_path = [output_dir, filesep, "Checkpoints", filesep,  "Checkpoint", num2str(last_checkpoint_ndx, "%i")]; %% "Last"];%%
+max_history = 77000;
 
 %% plot Reconstructions
-plot_Recon = 0;
+plot_Recon = true;
 if plot_Recon
-  num_Recon_default = 197;
+  num_Recon_default = 16;
+%% deep list
   Recon_list = ...
-      {["a3_"], ["Ganglion"]};
-%%       {["a4_"], ["Recon"]};
+      {["a1_"], ["Retina"];
+       ["a3_"], ["Ganglion"];
+       ["a6_"], ["Recon"];
+       ["a9_"], ["Recon2"];
+       ["a12_"], ["ReconInfra"];
+       ["a12_"], ["ReconInfra"]};
+%% KITTI list
 %%  Recon_list = ...
 %%      {["a1_"], ["LeftRetina"];
 %%       ["a3_"], ["LeftGanglion"];
@@ -34,13 +40,25 @@ if plot_Recon
 %%       ["a11_"], ["RightRecon"]};
   num_Recon_list = size(Recon_list,1);
   num_Recon_frames = repmat(num_Recon_default, 1, num_Recon_list);
+
+%% list of layers to unwhiten
   unwhiten_list = zeros(num_Recon_list,1);
 %%  unwhiten_list([2,3,5,6]) = 1;
-  unwhiten_list([1]) = 1;
+  unwhiten_list([2,3,5,6]) = 1;
+
+%% list of layers to use as a normalization reference for unwhitening
+%% default to self
   normalize_list = 1:num_Recon_list;
 %%  normalize_list(2) = 1;
-%%  normalize_list(3) = 2;
-%%  normalize_list(6) = 5;
+  normalize_list(3) = 2;
+  normalize_list(5) = 2;
+  normalize_list(6) = 2;
+
+%% list of (previous) layers to sum with current layer
+%% default to empty
+  sum_list = cell(num_Recon_list,1);
+  sum_list{6} = 3;
+
   %%keyboard;
   Recon_dir = [output_dir, filesep, "Recon"];
   mkdir(Recon_dir);
@@ -58,10 +76,16 @@ if plot_Recon
     [DoG_weights] = get_DoG_weights(DoG_center_path, DoG_surround_path);
   endif
 
-  %%keyboard;
   Recon_hdr = cell(num_Recon_list,1);
   Recon_fig = zeros(num_Recon_list,1);
-  unwhitened_Recon_fig = zeros(num_Recon_list,1);
+  Recon_fig_name = cell(num_Recon_list,1);
+  Recon_vals = cell(num_Recon_list,1);
+  Recon_times = cell(num_Recon_list,1);
+  if plot_DoG_kernel
+    unwhitened_Recon_fig = zeros(num_Recon_list,1);
+    unwhitened_Recon_DoG = cell(num_Recon_list,1);
+  endif
+  tot_Recon_frames = zeros(num_Recon_list,1);
   Recon_mean = zeros(num_Recon_list, 1);
   Recon_std = zeros(num_Recon_list, 1);
   mean_unwhitened_Recon = cell(num_Recon_list,1);
@@ -76,7 +100,7 @@ if plot_Recon
     Recon_fid(i_Recon) = fopen(Recon_file);
     Recon_hdr{i_Recon} = readpvpheader(Recon_fid(i_Recon));
     fclose(Recon_fid(i_Recon));
-    tot_Recon_frames = Recon_hdr{i_Recon}.nbands;
+    tot_Recon_frames(i_Recon) = Recon_hdr{i_Recon}.nbands;
     %% TODO:: set num_Recon_frames_skip to the number of existing frames in recon dir
 %%    num_Recon_frames(i_Recon) = tot_Recon_frames(i_Recon) - num_Recon_frames(i_Recon);
 %%    if i_Recon == 2
@@ -84,78 +108,100 @@ if plot_Recon
 %%    elseif i_Recon == 1
 %%      num_Recon_frames(i_Recon) = 16;
 %%    endif
-    progress_step = ceil(tot_Recon_frames / 10);
+    progress_step = ceil(tot_Recon_frames(i_Recon) / 10);
     [Recon_struct, Recon_hdr_tmp] = ...
 	readpvpfile(Recon_file, ...
 		    progress_step, ...
-		    tot_Recon_frames, ... %% num_Recon_frames(i_Recon), ... %%
-		    tot_Recon_frames-num_Recon_frames(i_Recon)+1); %% 1); %% 
+		    tot_Recon_frames(i_Recon), ... %% num_Recon_frames(i_Recon), ... %%
+		    tot_Recon_frames(i_Recon)-num_Recon_frames(i_Recon)+1); %% 1); %% 
     Recon_fig(i_Recon) = figure;
     num_Recon_colors = Recon_hdr{i_Recon}.nf;
-    if plot_DoG_kernel
-      unwhitened_Recon_fig(i_Recon) = figure;
-    endif
     mean_unwhitened_Recon{i_Recon,1} = zeros(num_Recon_colors,num_Recon_frames(i_Recon));
     std_unwhitened_Recon{i_Recon, 1} = ones(num_Recon_colors, num_Recon_frames(i_Recon));
     max_unwhitened_Recon{i_Recon, 1} = ones(num_Recon_colors, num_Recon_frames(i_Recon));
     min_unwhitened_Recon{i_Recon, 1} = zeros(num_Recon_colors,num_Recon_frames(i_Recon));
+    Recon_vals{i_Recon} = cell(num_Recon_frames(i_Recon),1);
+    Recon_times{i_Recon} = zeros(num_Recon_frames(i_Recon),1);
+    if plot_DoG_kernel && unwhiten_list(i_Recon)
+      unwhitened_Recon_fig(i_Recon) = figure;
+      unwhitened_Recon_DoG{i_Recon} = cell(num_Recon_frames(i_Recon),1);
+    endif
     for i_frame = 1 : num_Recon_frames(i_Recon)
-      Recon_time = Recon_struct{i_frame}.time;
-      Recon_vals = Recon_struct{i_frame}.values;
-      mean_Recon_tmp = mean(Recon_vals(:));
-      std_Recon_tmp = std(Recon_vals(:));
+      Recon_time{i_Recon}(i_frame) = Recon_struct{i_frame}.time;
+      Recon_vals{i_Recon}{i_frame} = Recon_struct{i_frame}.values;
+      figure(Recon_fig(i_Recon));
+      Recon_fig_name{i_Recon} = Recon_list{i_Recon,2};
+      num_sum_list = length(sum_list{i_Recon});
+      for i_sum = 1 : num_sum_list
+	sum_ndx = sum_list{i_Recon}(i_sum);
+	Recon_vals{i_Recon}{i_frame} = Recon_vals{i_Recon}{i_frame} + ...
+	    Recon_vals{sum_ndx}{i_frame};
+	Recon_fig_name{i_Recon} = [Recon_fig_name{i_Recon}, "_", Recon_list{sum_ndx,2}];
+      endfor %% i_sum
+      mean_Recon_tmp = mean(Recon_vals{i_Recon}{i_frame}(:));
+      std_Recon_tmp = std(Recon_vals{i_Recon}{i_frame}(:));
       Recon_mean(i_Recon) = Recon_mean(i_Recon) + mean_Recon_tmp;
       Recon_std(i_Recon) = Recon_std(i_Recon) + std_Recon_tmp;
-      figure(Recon_fig(i_Recon));
-      set(Recon_fig(i_Recon), "name", [Recon_list{i_Recon,2}, "_", num2str(i_frame, "%05d")]);
-      imagesc(permute(Recon_vals,[2,1,3])); 
+      Recon_fig_name{i_Recon} = [Recon_fig_name{i_Recon}, "_", num2str(i_frame, "%07d")];
+      set(Recon_fig(i_Recon), "name", Recon_fig_name{i_Recon});
+      imagesc(permute(Recon_vals{i_Recon}{i_frame},[2,1,3])); 
       if num_Recon_colors == 1
 	colormap(gray); 
       endif
       box off; axis off; axis image;
-      saveas(Recon_fig(i_Recon), [Recon_dir, filesep, Recon_list{i_Recon,2}, "_", num2str(i_frame, "%05d")], "png");
+      saveas(Recon_fig(i_Recon), [Recon_dir, filesep, Recon_list{i_Recon,2}, "_", num2str(i_frame, "%07d"), ".png"], "png");
       if plot_DoG_kernel && unwhiten_list(i_Recon)
-	unwhitened_Recon_DoG = zeros(size(permute(Recon_vals,[2,1,3])));
+	unwhitened_Recon_DoG{i_Recon}{i_frame} = zeros(size(permute(Recon_vals{i_Recon}{i_frame},[2,1,3])));
 	for i_color = 1 : num_Recon_colors
 	  tmp_Recon = ...
-	      deconvolvemirrorbc(squeeze(Recon_vals(:,:,i_color))', DoG_weights);
+	      deconvolvemirrorbc(squeeze(Recon_vals{i_Recon}{i_frame}(:,:,i_color))', DoG_weights);
 	  mean_unwhitened_Recon{i_Recon}(i_color, i_frame) = mean(tmp_Recon(:));
  	  std_unwhitened_Recon{i_Recon}(i_color, i_frame) = std(tmp_Recon(:));
 	  j_frame = ceil(i_frame * tot_Recon_frames(normalize_list(i_Recon)) / tot_Recon_frames(i_Recon));
 	  tmp_Recon = ...
-	      (tmp_Recon - mean_Recon_tmp) * ...
-	      (std_unwhitened_Recon{normalize_list(i_Recon)}(i_color, j_frame) / std_Recon_tmp) + ...
+	      (tmp_Recon - mean_unwhitened_Recon{i_Recon}(i_color, j_frame)) * ...
+	      (std_unwhitened_Recon{normalize_list(i_Recon)}(i_color, j_frame) / ...
+	       (std_unwhitened_Recon{i_Recon}(i_color, j_frame) + (std_unwhitened_Recon{i_Recon}(i_color, j_frame)==0))) + ...
 	      mean_unwhitened_Recon{normalize_list(i_Recon)}(i_color, j_frame); 
 	  max_unwhitened_Recon{i_Recon}(i_color, i_frame) = max(tmp_Recon(:));
 	  min_unwhitened_Recon{i_Recon}(i_color, i_frame) = min(tmp_Recon(:));
-	  [unwhitened_Recon_DoG(:,:,i_color)] = tmp_Recon;
+	  [unwhitened_Recon_DoG{i_Recon}{i_frame}(:,:,i_color)] = tmp_Recon;
 	endfor
 	figure(unwhitened_Recon_fig(i_Recon));
-	set(unwhitened_Recon_fig(i_Recon), "name", ["unwhitened ", Recon_list{i_Recon,2}, "_", num2str(i_frame, "%05d")]);
-	imagesc(squeeze(unwhitened_Recon_DoG)); 
+	for i_sum = 1 : num_sum_list
+	  sum_ndx = sum_list{i_Recon}(i_sum);
+	  unwhitened_Recon_DoG{i_Recon}{i_frame} = unwhitened_Recon_DoG{i_Recon}{i_frame} + ...
+	      unwhitened_Recon_DoG{sum_ndx}{i_frame};
+	endfor %% i_sum
+	set(unwhitened_Recon_fig(i_Recon), "name", ["unwhitened_", Recon_fig_name{i_Recon}]); 
+	imagesc(squeeze(unwhitened_Recon_DoG{i_Recon}{i_frame})); 
 	if num_Recon_colors == 1
 	  colormap(gray); 
 	endif
 	box off; axis off; axis image;
 	saveas(unwhitened_Recon_fig(i_Recon), ...
-	       [Recon_dir, filesep, "unwhitened_", Recon_list{i_Recon,2}, "_", num2str(i_frame, "%05d")], "png");
+	       [Recon_dir, filesep, "unwhitened_", Recon_fig_name{i_Recon}, ".png"], "png");
 	drawnow
       endif %% plot_DoG_kernel
     endfor   %% i_frame
     Recon_mean(i_Recon) = Recon_mean(i_Recon) / (num_Recon_frames(i_Recon) + (num_Recon_frames(i_Recon) == 0));
     Recon_std(i_Recon) = Recon_std(i_Recon) / (num_Recon_frames(i_Recon) + (num_Recon_frames(i_Recon) == 0));
-    disp(["Recon_mean = ", num2str(Recon_mean(i_Recon)), " +/- ", num2str(Recon_std(i_Recon))]);
+    disp([ Recon_fig_name{i_Recon}, "_Recon_mean = ", num2str(Recon_mean(i_Recon)), " +/- ", num2str(Recon_std(i_Recon))]);
     
   endfor %% i_Recon
 endif %% plot_Recon
 
 %%keyboard;
-plot_StatsProbe_vs_time = 1;
+plot_StatsProbe_vs_time = true;
 if plot_StatsProbe_vs_time
   StatsProbe_plot_lines = 196000;
   StatsProbe_list = ...
       {["Error"],["_Stats.txt"]; ...
-       ["V1"],["_Stats.txt"]};
+       ["V1"],["_Stats.txt"];
+       ["Error2"],["_Stats.txt"]; ...
+       ["V2"],["_Stats.txt"];
+       ["Error1_2"],["_Stats.txt"]; ...
+       ["V1Infra"],["_Stats.txt"]};
 %%  StatsProbe_list = ...
 %%      {["LeftError"],["_Stats.txt"]; ...
 %%       ["RightError"],["_Stats.txt"]; ...
@@ -164,7 +210,7 @@ if plot_StatsProbe_vs_time
   mkdir(StatsProbe_vs_time_dir);
   num_StatsProbe_list = size(StatsProbe_list,1);
   StatsProbe_sigma_flag = ones(1,num_StatsProbe_list);
-  StatsProbe_sigma_flag([2]) = 0;
+  StatsProbe_sigma_flag([2,4,6]) = 0;
   StatsProbe_nnz_flag = ~StatsProbe_sigma_flag;
   for i_StatsProbe = 1 : num_StatsProbe_list
     StatsProbe_file = [output_dir, filesep, StatsProbe_list{i_StatsProbe,1}, StatsProbe_list{i_StatsProbe,2}]
@@ -220,23 +266,24 @@ if plot_StatsProbe_vs_time
       set(StatsProbe_vs_time_fig(i_StatsProbe), "name", [StatsProbe_list{i_StatsProbe,1}, " nnz"]);
       saveas(StatsProbe_vs_time_fig(i_StatsProbe), ...
 	     [StatsProbe_vs_time_dir, filesep, StatsProbe_list{i_StatsProbe,1}, ...
-	      "_nnz_vs_time_", num2str(StatsProbe_time_vals(end), "%i")], "png");
+	      "_nnz_vs_time_", num2str(StatsProbe_time_vals(end), "%07d")], "png");
     else
       StatsProbe_vs_time_hndl = plot(StatsProbe_time_vals, StatsProbe_sigma_vals); axis tight;
       axis tight
       set(StatsProbe_vs_time_fig(i_StatsProbe), "name", [StatsProbe_list{i_StatsProbe,1}, " sigma"]);
       saveas(StatsProbe_vs_time_fig(i_StatsProbe), ...
 	     [StatsProbe_vs_time_dir, filesep, StatsProbe_list{i_StatsProbe,1}, ...
-	      "_sigma_vs_time_", num2str(StatsProbe_time_vals(end), "%i")], "png");
+	      "_sigma_vs_time_", num2str(StatsProbe_time_vals(end), "%07d")], "png");
     endif %% 
     drawnow;
   endfor %% i_StatsProbe
 endif  %% plot_StatsProbe_vs_time
 
-plot_Sparse = 0;
+plot_Sparse = 1;
 if plot_Sparse
   Sparse_list = ...
-      {["a6_"], ["V1"]};
+      {["a5_"], ["V1"]; ...
+       ["a8_"], ["V2"]};
 %%  Sparse_list = ...
 %%      {["a12_"], ["BinocularV1"]};
   num_Sparse_list = size(Sparse_list,1);
@@ -310,31 +357,42 @@ if plot_Sparse
     
     Sparse_percent_change_fig = figure;
     Sparse_percent_change_hndl = plot(Sparse_times, Sparse_percent_change); axis tight;
-    set(Sparse_percent_change_fig, "name", ["percent_change_", Sparse_list{i_Sparse,2}, "_", num2str(Sparse_times(num_frames), "%i")]);
+    set(Sparse_percent_change_fig, ...
+	"name", ["percent_change_", Sparse_list{i_Sparse,2}, "_", num2str(Sparse_times(num_frames), "%07d")]);
     saveas(Sparse_percent_change_fig, ...
-	   [Sparse_dir, filesep, "percent_change_", Sparse_list{i_Sparse,2}, "_", num2str(Sparse_times(num_frames), "%i")], "png");
+	   [Sparse_dir, filesep, ...
+	    "percent_change_", Sparse_list{i_Sparse,2}, "_", num2str(Sparse_times(num_frames), "%07d")], "png");
     
     Sparse_tot_active_fig = figure;
     Sparse_tot_active_hndl = plot(Sparse_times, Sparse_tot_active/n_Sparse); axis tight;
-    set(Sparse_tot_active_fig, "name", ["tot_active_", Sparse_list{i_Sparse,2}, "_", num2str(Sparse_times(num_frames), "%i")]);
+    set(Sparse_tot_active_fig, "name", ["tot_active_", Sparse_list{i_Sparse,2}, "_", ...
+					num2str(Sparse_times(num_frames), "%07d")]);
     saveas(Sparse_tot_active_fig, ...
-	   [Sparse_dir, filesep, "tot_active_", Sparse_list{i_Sparse,2}, "_", num2str(Sparse_times(num_frames), "%i")], "png");
+	   [Sparse_dir, filesep, "tot_active_", Sparse_list{i_Sparse,2}, "_", ...
+	    num2str(Sparse_times(num_frames), "%07d")], "png");
     
     Sparse_mean_active = mean(Sparse_tot_active(:)/n_Sparse);
-    disp([Sparse_list{i_Sparse,2}, "_", num2str(Sparse_times(num_frames), "%i"), " mean_active = ", num2str(Sparse_mean_active)]);
+    disp([Sparse_list{i_Sparse,2}, "_", num2str(Sparse_times(num_frames), "%i"), ...
+	  " mean_active = ", num2str(Sparse_mean_active)]);
   endfor  %% i_Sparse
 endif %% plot_Sparse
 
   
 
-plot_nonSparse = 0;
+plot_nonSparse = true;
 if plot_nonSparse
   nonSparse_list = ...
-      {["a5_"], ["Error"]};%% 
+      {["a4_"], ["Error"]; ...
+       ["a7_"], ["Error2"]; ...
+       ["a10_"], ["Error1_2"]};
 %%  nonSparse_list = ...
 %%      {["a4_"], ["LeftError"]; ...
 %%       ["a10_"], ["RightError"]};
   num_nonSparse_list = size(nonSparse_list,1);
+
+%% num frames to skip between stored frames, default is 
+  nonSparse_skip = repmat(1, num_nonSparse_list, 1);
+  nonSparse_skip(3) = 10;
   nonSparse_hdr = cell(num_nonSparse_list,1);
   nonSparse_dir = [output_dir, filesep, "nonSparse"];
   mkdir(nonSparse_dir);
@@ -347,10 +405,12 @@ if plot_nonSparse
     nonSparse_hdr{i_nonSparse} = readpvpheader(nonSparse_fid);
     fclose(nonSparse_fid);
     tot_nonSparse_frames = nonSparse_hdr{i_nonSparse}.nbands;
+	       
     num_nonSparse = tot_nonSparse_frames;
     progress_step = ceil(tot_nonSparse_frames / 10);
     [nonSparse_struct, nonSparse_hdr_tmp] = ...
-	readpvpfile(nonSparse_file, progress_step, tot_nonSparse_frames, tot_nonSparse_frames-num_nonSparse+1);
+	readpvpfile(nonSparse_file, progress_step, tot_nonSparse_frames, tot_nonSparse_frames-num_nonSparse+1, ...
+		    nonSparse_skip(i_nonSparse));
     nx_nonSparse = nonSparse_hdr{i_nonSparse}.nx;
     ny_nonSparse = nonSparse_hdr{i_nonSparse}.ny;
     nf_nonSparse = nonSparse_hdr{i_nonSparse}.nf;
@@ -359,33 +419,48 @@ if plot_nonSparse
     nonSparse_times = zeros(num_frames,1);
     nonSparse_RMS = zeros(num_frames,1);
     for i_frame = 1 : 1 : num_frames
-      nonSparse_times(i_frame) = squeeze(nonSparse_struct{i_frame}.time);
-      nonSparse_vals = squeeze(nonSparse_struct{i_frame}.values);
-      nonSparse_RMS(i_frame) = std(nonSparse_vals(:));
+      if ~isempty(nonSparse_struct{i_frame})
+	nonSparse_times(i_frame) = squeeze(nonSparse_struct{i_frame}.time);
+	nonSparse_vals = squeeze(nonSparse_struct{i_frame}.values);
+	nonSparse_RMS(i_frame) = std(nonSparse_vals(:));
+      else
+	num_frames = i_frame - 1;
+	nonSparse_times = nonSparse_times(1:num_frames);
+	nonSparse_RMS = nonSparse_RMS(1:num_frames);
+	break;
+      endif
     endfor %% i_frame
     
     nonSparse_RMS_fig = figure;
     nonSparse_RMS_hndl = plot(nonSparse_times, nonSparse_RMS); axis tight;
-    set(nonSparse_RMS_fig, "name", ["RMS_", nonSparse_list{i_nonSparse,2}, "_", num2str(nonSparse_times(num_frames), "%i")]);
+    set(nonSparse_RMS_fig, "name", ["RMS_", nonSparse_list{i_nonSparse,2}, "_", num2str(nonSparse_times(num_frames), "%07d")]);
     saveas(nonSparse_RMS_fig, ...
-	   [nonSparse_dir, filesep, "RMS_", nonSparse_list{i_nonSparse,2}, "_", num2str(nonSparse_times(num_frames), "%i")], "png");
+	   [nonSparse_dir, filesep, ...
+	    "RMS_", nonSparse_list{i_nonSparse,2}, "_", num2str(nonSparse_times(num_frames), "%07d")], "png");
     
     nonSparse_mean_active = median(nonSparse_RMS(:));
-    disp([nonSparse_list{i_nonSparse,2}, "_", num2str(nonSparse_times(num_frames), "%i"), " median RMS = ", num2str(nonSparse_mean_active)]);
+    disp([nonSparse_list{i_nonSparse,2}, "_", num2str(nonSparse_times(num_frames), "%i"), ...
+	  " median RMS = ", num2str(nonSparse_mean_active)]);
   endfor  %% i_nonSparse
 endif %% plot_nonSparse
 
 
 
-plot_weights = 0;
+plot_weights = 1;
 if plot_weights
   weights_list = ...
-      {["w10_"], ["BinocularV1ToLeftError"]; ...
-       ["w13_"], ["BinocularV1ToRightError"]};
+      {["w5_"], ["V1ToError"]; ...
+       ["w9_"], ["V2ToError2"]};
   pre_list = ...
-      {["a12_"], ["BinocularV1"]; ...
-       ["a12_"], ["BinocularV1"]};
-  sparse_ndx = [1; 1];
+      {["a5_"], ["V1"]; ...
+       ["a8_"], ["V2"]};
+%%  weights_list = ...
+%%      {["w10_"], ["BinocularV1ToLeftError"]; ...
+%%       ["w13_"], ["BinocularV1ToRightError"]};
+%%  pre_list = ...
+%%      {["a12_"], ["BinocularV1"]; ...
+%%       ["a12_"], ["BinocularV1"]};
+  sparse_ndx = [1; 2];
   num_weights_list = size(weights_list,1);
   weights_hdr = cell(num_weights_list,1);
   pre_hdr = cell(num_weights_list,1);
@@ -396,6 +471,14 @@ if plot_weights
     if ~exist(weights_file, "file")
       error(["file does not exist: ", weights_file]);
     endif
+    weights_fid = fopen(weights_file);
+    weights_hdr{i_weights} = readpvpheader(weights_fid);    
+    fclose(weights_fid);
+    weights_filedata = dir(weights_file);
+    weights_framesize = weights_hdr{i_weights}.recordsize*weights_hdr{i_weights}.numrecords+weights_hdr{i_weights}.headersize;
+    tot_weights_frames = weights_filedata(1).bytes/weights_framesize;
+
+    %%  
     i_pre = i_weights;
     pre_file = [output_dir, filesep, pre_list{i_pre,1}, pre_list{i_pre,2}, ".pvp"]
     if ~exist(pre_file, "file")
@@ -404,7 +487,7 @@ if plot_weights
     pre_fid = fopen(pre_file);
     pre_hdr{i_pre} = readpvpheader(pre_fid);
     fclose(pre_fid);
-    tot_weights_frames = pre_hdr{i_pre}.nbands;
+
     num_weights = 1;
     progress_step = ceil(tot_weights_frames / 10);
     [weights_struct, weights_hdr_tmp] = ...
@@ -414,7 +497,7 @@ if plot_weights
     weight_vals = squeeze(weights_struct{i_frame}.values{i_arbor});
     weight_time = squeeze(weights_struct{i_frame}.time);
     if plot_Sparse
-      pre_hist_rank = Sparse_hist_rank{sparse_ndx};
+      pre_hist_rank = Sparse_hist_rank{sparse_ndx(i_weights)};
     else
       pre_hist_rank = (1:pre_hdr.nf);
     endif
@@ -431,7 +514,7 @@ if plot_weights
       num_weights_colors = size(weight_vals,3);
     endif
     weights_fig = figure;
-    set(weights_fig, "name", ["Weights_", weights_list{i_weights,2}, "_", num2str(weight_time)]);
+    set(weights_fig, "name", ["Weights_", weights_list{i_weights,2}, "_", num2str(weight_time, "%07d")]);
     for j_patch = 1  : num_patches
       i_patch = pre_hist_rank(j_patch);
       subplot(num_patches_rows, num_patches_cols, j_patch); 
@@ -456,14 +539,201 @@ if plot_weights
     endfor
     weights_dir = [output_dir, filesep, "weights"];
     mkdir(weights_dir);
-    saveas(weights_fig, [weights_dir, filesep, "Weights_", weights_list{i_weights,2}, "_", num2str(weight_time)], "png");
+    saveas(weights_fig, [weights_dir, filesep, "Weights_", weights_list{i_weights,2}, "_", num2str(weight_time, "%07d")], "png");
 
 
     %% make histogram of all weights
     weights_hist_fig = figure;
     [weights_hist, weights_hist_bins] = hist(weight_vals(:), 100);
     bar(weights_hist_bins, log(weights_hist+1));
-    set(weights_hist_fig, "name", ["weights_Histogram_", weights_list{i_weights,2}, "_", num2str(weight_time)]);
+    set(weights_hist_fig, "name", ["weights_Histogram_", weights_list{i_weights,2}, "_", num2str(weight_time, "%07d")]);
+    saveas(weights_hist_fig, [weights_dir, filesep, "weights_hist_", num2str(weight_time)], "png");
+
+  endfor %% i_weights
+    
+endif  %% plot_weights
+
+
+plot_weights1_2 = false;
+if plot_weights1_2
+
+  %% list of weights from layer2 to layer1
+  weights1_2_list = ...
+      {["w13_"], ["V2ToError1_2"]};
+  post1_2_list = ...
+      {["a5_"], ["V1"]};
+  pre1_2_list = ...
+      {["a8_"], ["V2"]};
+  %% list of weights from layer1 to image
+  weights0_1_list = ...
+      {["w5_"], ["V1ToError"]};
+  image_list = ...
+      {["a1_"], ["Retina"]};
+  %% list of indices for reading rank order of presynaptic neuron as function of activation frequency
+  sparse_ndx = [1];
+
+  %% get image header (to get image dimensions)
+  i_image = 1;
+  image_file = [output_dir, filesep, image_list{i_image,1}, image_list{i_image,2}, ".pvp"]
+  if ~exist(image_file, "file")
+    error(["file does not exist: ", image_file]);
+  endif
+  image_fid = fopen(image_file);
+  image_hdr = readpvpheader(image_fid);
+  fclose(image_fid);
+
+  num_weights1_2_list = size(weights_list,1);
+  weights1_2_hdr = cell(num_weights_list,1);
+  pre1_2_hdr = cell(num_weights_list,1);
+  post1_2_hdr = cell(num_weights_list,1);
+
+  weights1_2_dir = [output_dir, filesep, "weights1_2"];
+  mkdir(weights1_2_dir);
+  for i_weights1_2 = 1 : num_weights1_2_list
+
+    %% get weight 2->1 file
+    weights1_2_file = [output_dir, filesep, weights1_2_list{i_weights1_2,1}, weights1_2_list{i_weights1_2,2}, ".pvp"]
+    if ~exist(weights1_2_file, "file")
+      error(["file does not exist: ", weights1_2_file]);
+    endif
+    weights1_2_fid = fopen(weights1_2_file);
+    weights1_2_hdr{i_weights1_2} = readpvpheader(weights1_2_fid);    
+    fclose(weights1_2_fid);
+    weights1_2_filedata = dir(weights1_2_file);
+    weights1_2_framesize = weights1_2_hdr{i_weights1_2}.recordsize*weights1_2_hdr{i_weights1_2}.numrecords+weights1_2_hdr{i_weights1_2}.headersize;
+    tot_weights1_2_frames = weights1_2_filedata(1).bytes/weights1_2_framesize;
+
+    %% get weight 1->0 file
+    i_weights0_1 = i_weights1_2;
+    weights0_1_file = [output_dir, filesep, weights0_1_list{i_weights0_1,1}, weights0_1_list{i_weights0_1,2}, ".pvp"]
+    if ~exist(weights0_1_file, "file")
+      error(["file does not exist: ", weights0_1_file]);
+    endif
+    weights0_1_fid = fopen(weights0_1_file);
+    weights0_1_hdr{i_weights0_1} = readpvpheader(weights0_1_fid);    
+    fclose(weights0_1_fid);
+    weights0_1_filedata = dir(weights0_1_file);
+    weights0_1_framesize = weights0_1_hdr{i_weights0_1}.recordsize*weights0_1_hdr{i_weights0_1}.numrecords+weights0_1_hdr{i_weights0_1}.headersize;
+    tot_weights0_1_frames = weights0_1_filedata(1).bytes/weights0_1_framesize;
+
+    %% get pre header (to get pre layer dimensions)
+    i_pre1_2 = i_weights1_2;
+    pre1_2_file = [output_dir, filesep, pre1_2_list{i_pre1_2,1}, pre1_2_list{i_pre1_2,2}, ".pvp"]
+    if ~exist(pre1_2_file, "file")
+      error(["file does not exist: ", pre1_2_file]);
+    endif
+    pre1_2_fid = fopen(pre1_2_file);
+    pre1_2_hdr{i_pre} = readpvpheader(pre1_2_fid);
+    fclose(pre1_2_fid);
+
+    %% get post header (to get post layer dimensions)
+    i_post1_2 = i_weights1_2;
+    post1_2_file = [output_dir, filesep, post1_2_list{i_post1_2,1}, post1_2_list{i_post1_2,2}, ".pvp"]
+    if ~exist(post1_2_file, "file")
+      error(["file does not exist: ", post1_2_file]);
+    endif
+    post1_2_fid = fopen(post1_2_file);
+    post1_2_hdr{i_post} = readpvpheader(post1_2_fid);
+    fclose(post1_2_fid);
+
+    %% read 2 -> 1 weights
+    num_weights1_2 = 1;
+    progress_step = ceil(tot_weights1_2_frames / 10);
+    [weights1_2_struct, weights1_2_hdr_tmp] = ...
+	readpvpfile(weights1_2_file, progress_step, tot_weights1_2_frames, tot_weights1_2_frames-num_weights1_2+1);
+    i_frame = num_weights1_2;
+    i_arbor = 1;
+    weight1_2_vals = squeeze(weights1_2_struct{i_frame}.values{i_arbor});
+    weight1_2_time = squeeze(weights1_2_struct{i_frame}.time);
+ 
+    %% get rank order of presynaptic elements
+   if plot_Sparse
+      pre_hist_rank = Sparse_hist_rank{sparse_ndx(i_weights1_2)};
+    else
+      pre_hist_rank = (1:pre1_2_hdr{i_pre1_2}.nf);
+    endif
+
+    %% compute layer 2 -> 1 patch size in pixels
+    image2post_nx_ratio = image_hdr.nxGlobal / post1_2_hdr{i_post1_2}.nxGlobal;
+    image2post_ny_ratio = image_hdr.nyGlobal / post1_2_hdr{i_post1_2}.nyGlobal;
+    weights0_1_overlapp_x = weights0_1_hdr{i_weights0_1}.nxp - image2post_nx_ratio;
+    weights0_1_overlapp_y = weights0_1_hdr{i_weights0_1}.nyp - image2post_ny_ratio;
+    weights1_2_nxp = weights0_1_hdr{i_weights0_1}.nxp + (weights1_2_hdr.nxp - 1) * (weights0_1_hdr{i_weights0_1}.nxp - weights0_1_overlapp_x); 
+    weights1_2_nyp = weights0_1_hdr{i_weights0_1}.nyp + (weights1_2_hdr.nyp - 1) * (weights0_1_hdr{i_weights0_1}.nyp - weights0_1_overlapp_y); 
+
+    %% make tableau of all patches
+    %%keyboard;
+    i_patch = 1;
+    num_weights1_2_dims = ndims(weight1_2_vals);
+    num_patches = size(weight1_2_vals, num_weights1_2_dims);
+    num_patches_rows = floor(sqrt(num_patches));
+    num_patches_cols = ceil(num_patches / num_patches_rows);
+    num_pre_features = pre1_2_hdr{i_pre1_2}.nf;
+    if num_weights1_2_dims == 4
+      num_weights1_2_features = size(weight1_2_vals,3);
+    endif
+    weights1_2_fig = figure;
+    set(weights1_2_fig, "name", ["Weights1_2_", weights1_2_list{i_weights1_2,2}, "_", num2str(weight1_2_time, "%07d")]);
+
+    for j_patch = 1  : num_patches
+      i_patch = pre_hist_rank(j_patch);
+      subplot(num_patches_rows, num_patches_cols, j_patch); 
+      if num_weights1_2_features == 1
+	patch_ij_tmp = squeeze(weights1_2_vals(:,:,i_patch));
+	patch_ij_tmp = repmat(patch_ij_tmp, [1,1,1,1]);
+      else
+	patch_ij_tmp = squeeze(weights1_2_vals(:,:,:,i_patch));
+      endif
+      patch_ij_array = cell(size(weights1_2_vals,1),size(weights1_2_vals,2));
+	patch_ij = zeros(weights1_2_nyp, weights1_2_nxp, num_V1ToError_colors);
+	for ij_patch_row = 1 : size(weights1_2_vals,1)
+	  for ij_patch_col = 1 : size(weights1_2_vals,2)
+	    patch_ij_array{ij_patch_row, ij_patch_col} = zeros(size(V1ToError_weights(1:3)));
+	    for ij_patch_feature = 1 : num_weights1_2_features
+	      patch_ij_tmp = patch_tmp(ij_patch_row, ij_path_col, ij_patch_feature);
+	      if num_V1ToError_colors == 1
+		patch_convert = V1ToError_weights(:,:,ij_patch_feature);
+	      else
+		patch_convert = V1ToError_weights(:,:,:,ij_patch_feature);
+	      endif
+	      %%  convert to pixels
+	      patch_ij_array{ij_patch_row, ij_patch_col} = ...
+		  patch_ij_array{ij_patch_row, ij_patch_col} + ...
+		  patch_tmp(ij_patch_row, ij_path_col, ij_patch_feature) * ...
+		  patch_convert;
+	    endfor %% ij_patch_feature
+	    row_start = 1+Retina_V1_ny_ratio*(ij_patch_row-1);
+	    row_end = Retina_V1_ny_ratio*(ij_patch_row-1)+V1ToError_hdr.nyp;
+	    col_start = 1+Retina_V1_ny_ratio*(ij_patch_col-1);
+	    col_end = Retina_V1_ny_ratio*(ij_patch_col-1)+V1ToError_hdr.nyp;
+	    patch_ij(row_start:row_end, col_start:col_end, :) = ...
+		patch_ij_array{ij_patch_row, ij_patch_col};
+	  endfor %% ij_patch_col
+	endfor %% ij_patch_row
+	min_patch = min(patch_ij(:));
+	max_patch = max(patch_ij(:));
+	patch_tmp2 = (patch_ij - min_patch) * 255 / (max_patch - min_patch + ((max_patch - min_patch)==0));
+	patch_tmp2 = uint8(flipdim(permute(patch_tmp2, [2,1,3]),1));
+	imagesc(patch_tmp2); 
+	if num_weights1_2_features == 1
+	  colormap(gray);
+	endif
+	box off
+	axis off
+	axis image
+	%%drawnow;
+
+    endfor %% j_patch
+    weights_dir = [output_dir, filesep, "weights"];
+    mkdir(weights_dir);
+    saveas(weights_fig, [weights_dir, filesep, "Weights_", weights_list{i_weights,2}, "_", num2str(weight_time, "%07d")], "png");
+
+
+    %% make histogram of all weights
+    weights_hist_fig = figure;
+    [weights_hist, weights_hist_bins] = hist(weight_vals(:), 100);
+    bar(weights_hist_bins, log(weights_hist+1));
+    set(weights_hist_fig, "name", ["weights_Histogram_", weights_list{i_weights,2}, "_", num2str(weight_time, "%07d")]);
     saveas(weights_hist_fig, [weights_dir, filesep, "weights_hist_", num2str(weight_time)], "png");
 
   endfor %% i_weights
