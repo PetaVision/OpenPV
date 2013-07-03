@@ -40,6 +40,7 @@
 #include "../layers/LIFGap.hpp"
 #include "../layers/Retina.hpp"
 #include "../layers/SigmoidLayer.hpp"
+#include "../layers/RescaleLayer.hpp"
 #include "../layers/ANNSquaredLayer.hpp"
 #include "../layers/ANNWhitenedLayer.hpp"
 #include "../layers/ANNDivInh.hpp"
@@ -138,6 +139,7 @@ Image * addImage(const char * name, HyPerCol *hc);
 Movie * addMovie(const char * name, HyPerCol *hc);
 Patterns * addPatterns(const char * name, HyPerCol *hc);
 SigmoidLayer * addSigmoidLayer(const char * name, HyPerCol * hc);
+RescaleLayer * addRescaleLayer(const char * name, HyPerCol * hc);
 BIDSCloneLayer * addBIDSCloneLayer(const char * name, HyPerCol * hc);
 InitWeights *createInitWeightsObject(const char * name, HyPerCol * hc);
 InitWeights * getDefaultInitWeightsMethod(const char * keyword);

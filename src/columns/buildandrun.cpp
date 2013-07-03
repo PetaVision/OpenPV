@@ -127,6 +127,7 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
                 "LCALIFLayer",
              "Retina",
              "SigmoidLayer",
+             "RescaleLayer",
              "BIDSMovieCloneMap",
              "BIDSSensorLayer",
              "BIDSCloneLayer",
@@ -477,6 +478,11 @@ HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPe
       addedLayer = (HyPerLayer *) addSigmoidLayer(name, hc);
       status = checknewobject((void *) addedLayer, classkeyword, name, hc);
    }
+   if( !strcmp(classkeyword, "RescaleLayer") ) {
+      keywordMatched = true;
+      addedLayer = (HyPerLayer *) addRescaleLayer(name, hc);
+      status = checknewobject((void *) addedLayer, classkeyword, name, hc);
+   }
    if( !strcmp(classkeyword, "Retina") ) {
       keywordMatched = true;
       addedLayer = (HyPerLayer *) new Retina(name, hc);
@@ -616,6 +622,24 @@ SigmoidLayer * addSigmoidLayer(const char * name, HyPerCol * hc) {
    }
    else {
       fprintf(stderr, "Group \"%s\": Original layer \"%s\" must be a LIF layer\n", name, originalLayer->getName());
+      addedLayer = NULL;
+   }
+   return addedLayer;
+}
+
+RescaleLayer * addRescaleLayer(const char * name, HyPerCol * hc) {
+   HyPerLayer * originalLayer = getLayerFromParameterGroup(name, hc, "originalLayerName");
+   if( originalLayer == NULL ) {
+      fprintf(stderr, "Group \"%s\": Parameter group for class HyPerLayer must set string parameter originalLayerName\n", name);
+      return NULL;
+   }
+   HyPerLayer * originalHyPerLayer = dynamic_cast<HyPerLayer *>(originalLayer);
+   RescaleLayer * addedLayer;
+   if (originalHyPerLayer) {
+      addedLayer = new RescaleLayer(name, hc, originalHyPerLayer);
+   }
+   else {
+      fprintf(stderr, "Group \"%s\": Original layer \"%s\" must be a HyPer layer\n", name, originalLayer->getName());
       addedLayer = NULL;
    }
    return addedLayer;
