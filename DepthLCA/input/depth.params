@@ -17,14 +17,14 @@ HyPerCol "column" = {
     randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
     numSteps = 3000000;       // Depends on number of VINE video frames
     progressStep = 1000;
-    outputPath = "/nh/compneuro/Data/KITTI/LCA/2011_09_26_drive_0001_depth_longrun";
+    outputPath = "/nh/compneuro/Data/Depth/LCA/dataset01";
     filenamesContainLayerNames = true;
     filenamesContainConnectionNames = true;
     checkpointRead = false; //true;
-    //checkpointReadDir = "/nh/compneuro/Data/KITTI/LCA/2011_09_26_drive_0001_depth_test/Checkpoints";
+    //checkpointReadDir = "/nh/compneuro/Data/Depth/LCA/2011_09_26_drive_0001_depth_test/Checkpoints";
     //checkpointReadDirIndex = 1130000;
     checkpointWrite = true;
-    checkpointWriteDir = "/nh/compneuro/Data/KITTI/LCA/2011_09_26_drive_0001_depth_longrun/Checkpoints";
+    checkpointWriteDir = "/nh/compneuro/Data/Depth/LCA/dataset01/Checkpoints";
     checkpointWriteStepInterval = 10000;
     deleteOlderCheckpoints = false;
     //suppressLastOutput = false;
@@ -42,7 +42,8 @@ Movie "LeftImage" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
-    imageListPath = "/nh/compneuro/Data/KITTI/depth_data/list/img_00.txt";
+    readPvpFile = false;
+    imageListPath = "/nh/compneuro/Data/Depth/depth_data_1/list/image_00.txt";
     nf = 1;
     marginWidth = 1;
     writeStep = -1;
@@ -130,6 +131,24 @@ ANNLayer "LeftGanglion" = {
     phase = 3;
 };
 
+RescaleLayer "LeftRescale" = {
+    restart                         = false;
+    originalLayerName               = "LeftGanglion";
+    nxScale                         = 1; // Should this be 0.5 or 1?
+    nyScale                         = 1; // Should this be 0.5 or 1?
+    nf                              = 1;
+    marginWidth                     = 0;
+    mirrorBCflag                    = false;
+
+    phase                           = 4;
+
+    writeStep                       = -1;
+    writeSparseActivity             = false;
+
+    setMax                          = 1;
+    setMin                          = -1;
+};
+
 ANNErrorLayer "LeftError" = {
     restart = 0;
     nxScale = 1;
@@ -150,7 +169,7 @@ ANNErrorLayer "LeftError" = {
     VMin = 0;
     VShift = 0;
     //
-    phase = 4;  
+    phase = 5;  
 };
 
 
@@ -174,7 +193,7 @@ ANNLayer "LeftRecon" = {
     VMin = -infinity; 
     VShift = 0;
     // 
-    phase = 6; 
+    phase = 7; 
 };
 
 //
@@ -185,8 +204,9 @@ Movie "LeftDepthImage" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
-    imageListPath = "/nh/compneuro/Data/KITTI/depth_data/list/depth_00.txt";
-    nf = 1;
+    readPvpFile = true; //Reading a pvp file
+    imageListPath = "/nh/compneuro/Data/Depth/depth_data_1/pvp/depth_00.pvp";
+    nf = 32;
     marginWidth = 0;
     writeStep = -1;
     writeSparseActivity = false;
@@ -211,7 +231,7 @@ ANNLayer "LeftDepthDownsample" = {
     restart = 0;
     nxScale = .25;
     nyScale = .25;
-    nf = 1;
+    nf = 32;
     marginWidth = 0;
     initialWriteTime = 999.0;
     writeStep = 1000;
@@ -234,7 +254,7 @@ ANNErrorLayer "LeftDepthError" = {
     restart = 0;
     nxScale = .25;
     nyScale = .25;
-    nf = 1;
+    nf = 32;
     marginWidth = 1;
     initialWriteTime = 999.0;
     writeStep = 1000;
@@ -257,7 +277,7 @@ ANNLayer "LeftDepthRecon" = {
     restart = 0;
     nxScale = .25;
     nyScale = .25;
-    nf = 1;
+    nf = 32;
     marginWidth = 0;
     initialWriteTime = 999.0;
     writeStep = 1000.0;
@@ -276,7 +296,6 @@ ANNLayer "LeftDepthRecon" = {
     phase = 6; 
 };
 
-
 //
 // Right eye layers
 //
@@ -285,7 +304,8 @@ Movie "RightImage" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
-    imageListPath = "/nh/compneuro/Data/KITTI/depth_data/list/img_01.txt";
+    readPvpFile = false;
+    imageListPath = "/nh/compneuro/Data/Depth/depth_data_1/list/image_01.txt";
     nf = 1;
     marginWidth = 1;
     writeStep = -1;
@@ -373,6 +393,24 @@ ANNLayer "RightGanglion" = {
     phase = 3;
 };
 
+RescaleLayer "RightRescale" = {
+    restart                         = false;
+    originalLayerName               = "RightGanglion";
+    nxScale                         = 1; // Should this be 0.5 or 1?
+    nyScale                         = 1; // Should this be 0.5 or 1?
+    nf                              = 1;
+    marginWidth                     = 0;
+    mirrorBCflag                    = false;
+
+    phase                           = 4;
+
+    writeStep                       = -1;
+    writeSparseActivity             = false;
+
+    setMax                          = 1;
+    setMin                          = -1;
+};
+
 ANNErrorLayer "RightError" = {
     restart = 0;
     nxScale = 1;
@@ -393,7 +431,7 @@ ANNErrorLayer "RightError" = {
     VMin = 0;
     VShift = 0;
     //
-    phase = 4;  
+    phase = 5;  
 };
 
 
@@ -417,7 +455,7 @@ ANNLayer "RightRecon" = {
     VMin = -infinity; 
     VShift = 0;
     // 
-    phase = 6; 
+    phase = 7; 
 };
 
 //
@@ -428,8 +466,9 @@ Movie "RightDepthImage" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
-    imageListPath = "/nh/compneuro/Data/KITTI/depth_data/list/depth_01.txt";
-    nf = 1;
+    readPvpFile = true; //Reading pvp file
+    imageListPath = "/nh/compneuro/Data/Depth/depth_data_1/pvp/depth_01.pvp";
+    nf = 32;
     marginWidth = 0; 
     writeStep = -1;
     writeSparseActivity = false;
@@ -454,7 +493,7 @@ ANNLayer "RightDepthDownsample" = {
     restart = 0;
     nxScale = .25;
     nyScale = .25;
-    nf = 1;
+    nf = 32;
     marginWidth = 0;
     initialWriteTime = 999.0;
     writeStep = 1000;
@@ -477,7 +516,7 @@ ANNErrorLayer "RightDepthError" = {
     restart = 0;
     nxScale = .25;
     nyScale = .25;
-    nf = 1;
+    nf = 32;
     marginWidth = 1;
     initialWriteTime = 999.0;
     writeStep = 1000;
@@ -493,14 +532,14 @@ ANNErrorLayer "RightDepthError" = {
     VMin = 0;
     VShift = 0;
     //
-    phase = 4;  
+    phase = 5;  
 };
 
 ANNLayer "RightDepthRecon" = {
     restart = 0;
     nxScale = .25;
     nyScale = .25;
-    nf = 1;
+    nf = 32;
     marginWidth = 0;
     initialWriteTime = 999.0;
     writeStep = 1000.0;
@@ -516,7 +555,7 @@ ANNLayer "RightDepthRecon" = {
     VMin = -infinity; 
     VShift = 0;
     // 
-    phase = 6; 
+    phase = 7; 
 };
 
 // binoclular layers
@@ -546,7 +585,7 @@ HyPerLCALayer "BinocularV1" = {
     VMin = 0;
     VShift = 0.0;  // 0 -> hard threshold, 1 -> soft threshold
     //
-    phase = 5;
+    phase = 6;
 };
 
 // connections
@@ -685,8 +724,8 @@ KernelConn "LeftBipolarToLeftGanglionSurround" = {
 };
 
 
-IdentConn "LeftGanglionToLeftError" = {
-    preLayerName = "LeftGanglion";
+IdentConn "LeftRescaleToLeftError" = {
+    preLayerName = "LeftRescale";
     postLayerName = "LeftError";
     channelCode = 0;
     delay = 0;
@@ -701,7 +740,7 @@ KernelConn "LeftDepthMovieToLeftDepthDownsample" = {
     channelCode = 0;
     nxp = 1;
     nyp = 1;
-    nfp = 1;
+    nfp = 32;
     numAxonalArbors = 1;
     writeStep = -1;
     initFromLastFlag = 0;
@@ -752,7 +791,6 @@ IdentConn "RightMovieToRightRetina" = {
     delay = 0;
     writeStep = -1;
 };
-
 
 KernelConn "RightRetinaToRightBipolarCenter" = {
     preLayerName = "RightRetina";
@@ -877,8 +915,8 @@ KernelConn "RightBipolarToRightGanglionSurround" = {
 };
 
 
-IdentConn "RightGanglionToRightError" = {
-    preLayerName = "RightGanglion";
+IdentConn "RightRescaleToRightError" = {
+    preLayerName = "RightRescale";
     postLayerName = "RightError";
     channelCode = 0;
     delay = 0;
@@ -893,7 +931,7 @@ KernelConn "RightDepthMovieToRightDepthDownsample" = {
     channelCode = 0;
     nxp = 1;
     nyp = 1;
-    nfp = 1;
+    nfp = 32;
     numAxonalArbors = 1;
     writeStep = -1;
     initFromLastFlag = 0;
@@ -956,7 +994,7 @@ KernelConn "BinocularV1ToLeftError" = {
     wMaxInit = 1.0;
     sparseFraction = .90;
     //
-    strength = 0.0294;//0.25;  
+    strength = 0.25;  
     normalizeMethod = "normalizeL2";
     minL2NormTolerated = 0;
     normalizeArborsIndividually = 0;
@@ -984,7 +1022,6 @@ KernelConn "BinocularV1ToLeftError" = {
     stochasticReleaseFlag = false;
     shrinkPatches = false;
 };
-
 
 TransposeConn "LeftErrorToBinocularV1" = {
     preLayerName = "LeftError";
@@ -1032,7 +1069,7 @@ KernelConn "BinocularV1ToRightError" = {
     wMaxInit = 1.0;
     sparseFraction = .90;
     //
-    strength = 0.0294;//0.25;  
+    strength = 0.25;  
     normalizeMethod = "normalizeL2";
     minL2NormTolerated = 0;
     normalizeArborsIndividually = 0;
@@ -1060,7 +1097,6 @@ KernelConn "BinocularV1ToRightError" = {
     stochasticReleaseFlag = false;
     shrinkPatches = false;
 };
-
 
 TransposeConn "RightErrorToBinocularV1" = {
     preLayerName = "RightError";
@@ -1096,7 +1132,7 @@ KernelConn "BinocularV1ToLeftDepthError" = {
     channelCode = 1;
     nxp = 3; 
     nyp = 3; 
-    nfp = 1;
+    nfp = 32;
     numAxonalArbors = 1;
     initFromLastFlag = 0;
     //
@@ -1109,7 +1145,7 @@ KernelConn "BinocularV1ToLeftDepthError" = {
     wMaxInit = 1.0;
     sparseFraction = 0;
     //
-    strength = 0.4706; 
+    strength = 0.25; 
     normalizeMethod = "normalizeL2";
     minL2NormTolerated = 0;
     normalizeArborsIndividually = 0;
@@ -1137,7 +1173,6 @@ KernelConn "BinocularV1ToLeftDepthError" = {
     stochasticReleaseFlag = false;
     shrinkPatches = false;
 };
-
 
 TransposeConn "LeftDepthErrorToBinocularV1" = {
     preLayerName = "LeftDepthError";
@@ -1165,14 +1200,13 @@ CloneKernelConn "BinocularV1ToLeftDepthRecon" = {
     preActivityIsNotRate = false;
 };
 
-
 KernelConn "BinocularV1ToRightDepthError" = {
     preLayerName = "BinocularV1";
     postLayerName = "RightDepthError";
     channelCode = 1;
     nxp = 3;
     nyp = 3;
-    nfp = 1;
+    nfp = 32;
     numAxonalArbors = 1;
     initFromLastFlag = 0;
     //
@@ -1185,7 +1219,7 @@ KernelConn "BinocularV1ToRightDepthError" = {
     wMaxInit = 1.0;
     sparseFraction = 0;
     //
-    strength = 0.4706; 
+    strength = 0.25; 
     normalizeMethod = "normalizeL2";
     minL2NormTolerated = 0;
     normalizeArborsIndividually = 0;
@@ -1214,7 +1248,6 @@ KernelConn "BinocularV1ToRightDepthError" = {
     shrinkPatches = false;
 };
 
-
 TransposeConn "RightDepthErrorToBinocularV1" = {
     preLayerName = "RightDepthError";
     postLayerName = "BinocularV1";
@@ -1241,10 +1274,6 @@ CloneKernelConn "BinocularV1ToRightDepthRecon" = {
     preActivityIsNotRate = false;
 };
 
-
-
-
-
 // Probes
 
 StatsProbe "LeftRetinaStatsFile" = {
@@ -1255,6 +1284,11 @@ StatsProbe "LeftRetinaStatsFile" = {
 StatsProbe "LeftGanglionStatsFile" = {
     targetLayer = "LeftGanglion";
     probeOutputFile = "LeftGanglion_Stats.txt";
+};
+
+StatsProbe "LeftRescaleStatsFile" = {
+    targetLayer = "LeftRescale";
+    probeOutputFile = "LeftRescale_Stats.txt";
 };
 
 StatsProbe "LeftErrorStatsFile" = {
@@ -1290,6 +1324,11 @@ StatsProbe "RightRetinaStatsFile" = {
 StatsProbe "RightGanglionStatsFile" = {
     targetLayer = "RightGanglion";
     probeOutputFile = "RightGanglion_Stats.txt";
+};
+
+StatsProbe "RightRescaleStatsFile" = {
+    targetLayer = "RightRescale";
+    probeOutputFile = "RightRescale_Stats.txt";
 };
 
 StatsProbe "RightErrorStatsFile" = {

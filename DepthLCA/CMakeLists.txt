@@ -48,5 +48,5 @@ target_link_libraries(DepthLCA pv)
 # Link executable to external libraries
 target_link_libraries(DepthLCA ${GDAL_LIBRARY})
 target_link_libraries(DepthLCA ${MPI_C_LIBRARIES})
-target_link_libraries(DepthHLCA ${MPI_CXX_LIBRARIES})
+target_link_libraries(DepthLCA ${MPI_CXX_LIBRARIES})
 
