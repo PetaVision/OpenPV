@@ -39,6 +39,7 @@ Image "input" = {
     nxScale                         = 1;
     nyScale                         = 1;
     imagePath                       = "input/inputimage.pvp";
+    frameNumber                     = 0;
     nf                              = 1;
     marginWidth                     = 0;
     writeStep                       = -1;
