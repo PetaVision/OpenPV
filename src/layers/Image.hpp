@@ -110,6 +110,7 @@ protected:
 
    bool useParamsImage;
    bool useImageBCflag;
+   bool autoResizeFlag; // if true, PetaVision will automatically resize your images to the size specified by hypercolumn
    bool inverseFlag;
    bool normalizeLuminanceFlag;
 

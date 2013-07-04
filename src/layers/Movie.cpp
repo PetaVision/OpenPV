@@ -125,7 +125,9 @@ int Movie::initialize(const char * name, HyPerCol * hc, const char * fileOfFileN
    displayPeriod = params->value(name,"displayPeriod", defaultDisplayPeriod);
    nextDisplayTime = hc->simulationTime() + displayPeriod;
 
-   constrainOffsets();  // ensure that offsets keep loc within image bounds
+   if (!(bool)params->value(name,"autoResizeFlag",false)){
+      constrainOffsets();  // ensure that offsets keep loc within image bounds
+   }
 
    randomMovie       = (int) params->value(name,"randomMovie",0);
    if( randomMovie ) {

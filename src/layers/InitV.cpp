@@ -204,7 +204,7 @@ int InitV::calcVFromFile(PVLayer * clayer, InterColComm * icComm) {
          // error message produced by checkLoc
          abort();
       }
-      status = scatterImageFileGDAL(this->filename, 0, 0, icComm, loc, V);
+      status = scatterImageFileGDAL(this->filename, 0, 0, icComm, loc, V, false);
       // scatterImageFileGDAL handles the scaling by 1/255.0
    }
    return status;

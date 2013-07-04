@@ -42,6 +42,7 @@ int Image::initialize_base() {
    filename = NULL;
    imageData = NULL;
    useImageBCflag = false;
+   autoResizeFlag = false;
    writeImages = false;
    writeImagesExtension = NULL;
    inverseFlag = false;
@@ -84,6 +85,7 @@ int Image::initialize(const char * name, HyPerCol * hc, const char * filename) {
       }
    }
    this->useImageBCflag = (bool) params->value(name, "useImageBCflag", useImageBCflag);
+   this->autoResizeFlag = (bool) params->value(name, "autoResizeFlag", autoResizeFlag);
    this->inverseFlag = (bool) params->value(name, "inverseFlag", inverseFlag);
    this->normalizeLuminanceFlag = (bool) params->value(name, "normalizeLuminanceFlag", normalizeLuminanceFlag);
 
@@ -321,7 +323,7 @@ int Image::readImage(const char * filename, int offsetX, int offsetY, GDALColorI
    assert(buf != NULL);
 
    // read the image and scatter the local portions
-   status = scatterImageFile(filename, offsetX, offsetY, parent->icCommunicator(), loc, buf, frameNumber);
+   status = scatterImageFile(filename, offsetX, offsetY, parent->icCommunicator(), loc, buf, frameNumber, this->autoResizeFlag);
    assert(status == PV_SUCCESS);
    if( loc->nf == 1 && imageLoc.nf > 1 ) {
       float * graybuf = convertToGrayScale(buf,loc->nx,loc->ny,imageLoc.nf, colorbandtypes);
