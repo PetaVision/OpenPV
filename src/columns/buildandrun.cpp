@@ -116,6 +116,9 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
              "GapLayer",
              "LCALayer",
              "TextStream",
+#ifdef PV_USE_SNDFILE
+             "SoundStream",
+#endif
              "Image",
                "CreateMovies",
                "ImageCreator",
@@ -403,6 +406,13 @@ HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPe
       addedLayer = (HyPerLayer *) addTextStream(name, hc);
       status = checknewobject((void *) addedLayer, classkeyword, name, hc);
    }
+#ifdef PV_USE_SNDFILE
+   if( !strcmp(classkeyword, "SoundStream") ) {
+      keywordMatched = true;
+      addedLayer = (HyPerLayer *) addSoundStream(name, hc);
+      status = checknewobject((void *) addedLayer, classkeyword, name, hc);
+   }
+#endif
    if( !strcmp(classkeyword, "Image") ) {
       keywordMatched = true;
       addedLayer = (HyPerLayer *) addImage(name, hc);
@@ -545,6 +555,14 @@ TextStream * addTextStream( const char * name, HyPerCol * hc) {
    addedLayer = new TextStream(name, hc);
    return addedLayer;
 }
+
+#ifdef PV_USE_SNDFILE
+SoundStream * addSoundStream( const char * name, HyPerCol * hc) {
+   SoundStream * addedLayer;
+   addedLayer = new SoundStream(name, hc);
+   return addedLayer;
+}
+#endif
 
 Image * addImage( const char * name, HyPerCol * hc) {
    Image * addedLayer;

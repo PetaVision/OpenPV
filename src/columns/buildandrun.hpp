@@ -31,6 +31,9 @@
 #include "../layers/GapLayer.hpp"
 #include "../layers/MaxPooling.hpp"
 #include "../layers/TextStream.hpp"
+#ifdef PV_USE_SNDFILE
+#include "../layers/SoundStream.hpp"
+#endif
 #include "../layers/Image.hpp"
 #include "../layers/CreateMovies.hpp"
 #include "../layers/ImageCreator.hpp"
@@ -135,6 +138,9 @@ HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPe
 TrainingLayer * addTrainingLayer(const char * name, HyPerCol *hc);
 GapLayer * addGapLayer(const char * name, HyPerCol * hc);
 TextStream * addTextStream(const char * name, HyPerCol *hc);
+#ifdef PV_USE_SNDFILE
+SoundStream * addSoundStream(const char * name, HyPerCol *hc);
+#endif
 Image * addImage(const char * name, HyPerCol *hc);
 Movie * addMovie(const char * name, HyPerCol *hc);
 Patterns * addPatterns(const char * name, HyPerCol *hc);
