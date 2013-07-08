@@ -25,6 +25,8 @@ public:
    virtual int outputState(double time, bool last=false);
    virtual int updateState(double time, double dt);
    bool        updateImage(double time, double dt);
+   bool        getNewImageFlag();
+   const char * getCurrentImage();
 
    int  randomFrame();
 
@@ -46,6 +48,7 @@ private:
    float randomMovieProb;
 
    bool echoFramePathnameFlag; // if true, echo the frame pathname to stdout
+   bool newImageFlag; // true when a new image was presented this timestep;
 
    int skipFrameIndex; // skip this number of frames between each load
 

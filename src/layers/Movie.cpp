@@ -41,6 +41,7 @@ int Movie::initialize_base() {
    readPvpFile = false;
    frameNumber = 0;
    numFrames = 0;
+   newImageFlag = false;
    return PV_SUCCESS;
 }
 
@@ -162,6 +163,8 @@ int Movie::initialize(const char * name, HyPerCol * hc, const char * fileOfFileN
    // exchange border information
    exchange();
 
+   newImageFlag = true;
+
    return PV_SUCCESS;
 }
 
@@ -266,6 +269,10 @@ bool Movie::updateImage(double time, double dt)
             fprintf(stderr, "Movie %s: Error reading file \"%s\"\n", name, filename);
             abort();
          }
+         newImageFlag = true;
+      }
+      else{
+         newImageFlag = false;
       }
    } // randomMovie
 
@@ -393,6 +400,14 @@ const char * Movie::getNextFileName()
 #ifdef PV_USE_MPI
    MPI_Bcast(inputfile, PV_PATH_MAX, MPI_CHAR, 0, icComm->communicator());
 #endif // PV_USE_MPI
+   return inputfile;
+}
+
+bool Movie::getNewImageFlag(){
+   return newImageFlag;
+}
+
+const char * Movie::getCurrentImage(){
    return inputfile;
 }
 
