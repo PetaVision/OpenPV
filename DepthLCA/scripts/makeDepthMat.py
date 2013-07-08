@@ -8,11 +8,11 @@ from math import pi, sqrt
 #import matplotlib.pyplot as plt
 #from mpl_toolkits.mplot3d import Axes3D
 
-datasetVal = 1
+datasetVal = 2
 eyeVal = 1
 depthFileListDir = "/nh/compneuro/Data/Depth/depth_data_"+str(datasetVal) + "/list/"
 depthFileList = depthFileListDir + "depth_0" + str(eyeVal) + ".txt"
-outputFileName = "/nh/compneuro/Data/Depth/depth_data_1/pvp/depth_0" + str(eyeVal) + ".pvp"
+outputFileName = "/nh/compneuro/Data/Depth/depth_data_"+str(datasetVal)+"/pvp/depth_0" + str(eyeVal) + ".pvp"
 numBins = 32
 numSigma = 2
 
@@ -67,7 +67,7 @@ for frameIdx, depthFile in enumerate(fileList):
    depthMat /= normVal
    #Write data for frame
    writeData(outMatFile, depthMat, frameIdx)
-
+outMatFile.close()
 #y, x, z = depthMat.nonzero()
 #
 #fig = plt.figure()

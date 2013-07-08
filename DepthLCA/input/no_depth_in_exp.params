@@ -1,0 +1,1349 @@
+// // HyPerHLCA.params
+//
+// created by peteschultz: Sept 27, 2012, modified garkenyon, 1/20/13
+//
+//
+// Implements the locally competitive algorithm described in
+// Rozell et al., "Sparse Coding via Thresholding and Local Cometition
+// in Neural Circuits," Neural Computation 20, 2526-2563 (2008).
+///////////////////////////
+
+debugParsing = true;
+
+HyPerCol "column" = {
+    nx = 1200; //1242;  // KITTI synced value
+    ny = 208;  //218;
+    dt = 1.0;
+    randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
+    numSteps = 2000000;       // Depends on number of VINE video frames
+    progressStep = 1000;
+    outputPath = "/nh/compneuro/Data/Depth/LCA/depth_recon";
+    filenamesContainLayerNames = true;
+    filenamesContainConnectionNames = true;
+    checkpointRead = false;
+    checkpointWrite = true;
+    checkpointWriteDir = "/nh/compneuro/Data/Depth/LCA/depth_recon/Checkpoints";
+    checkpointWriteStepInterval = 10000; 
+    deleteOlderCheckpoints = false;
+    //suppressLastOutput = false;
+    writeProgressToErr = true;
+    outputNamesOfLayersAndConns = "LayerAndConnNames.txt";
+};
+
+//
+// layers
+//
+
+// left eye layers
+
+Movie "LeftImage" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    imageListPath = "/nh/compneuro/Data/Depth/depth_data_2/list/image_00.txt";
+    nf = 1;
+    marginWidth = 1;
+    writeStep = -1;
+    writeSparseActivity = false;
+    displayPeriod = 1000; //Changed
+    start_frame_index = 1;
+    skip_frame_index = 1;
+    echoFramePathnameFlag = true;
+    mirrorBCflag = true;
+    jitterFlag = 0;
+    useImageBCflag = false;
+    inverseFlag = false;
+    normalizeLuminanceFlag = false;
+    writeImages = false;
+    offsetX = 0;
+    offsetY = 0;
+    randomMovie = 0;
+    phase = 0;
+    //useParamsImage = true;
+};
+
+Retina "LeftRetina" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 1;
+    writeStep = 1000.0; //Changed
+    initialWriteTime = 999.0; //Changed
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeSparseActivity = 0;
+
+    foregroundRate = 1000;
+    backgroundRate = 0;
+    burstFreq = 1;
+    burstDuration = 1000;
+
+    beginStim = 0;
+    endStim = 1000000000;
+    
+    phase = 1;
+};
+
+
+ANNLayer "LeftBipolar" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 6;
+    writeStep = 1000.0;
+    initialWriteTime = 999.0;
+    mirrorBCflag = 1;
+    writeSparseActivity = 0;
+
+    InitVType = "ZeroV";
+
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+    VShift = 0;
+    
+    phase = 2;
+};
+
+ANNLayer "LeftGanglion" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 0;
+    writeStep = 1000.0;
+    initialWriteTime = 999.0;
+    mirrorBCflag = 1;
+    writeSparseActivity = 0;
+    //
+    InitVType = "ZeroV";
+    //
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+    VShift = 0;
+    // 
+    phase = 3;
+};
+
+ANNErrorLayer "LeftError" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 6;
+    initialWriteTime = 999.0;
+    writeStep = 1000;
+    mirrorBCflag = 1;
+    writeSparseActivity = 0;
+    //
+    InitVType = "ZeroV";
+    //InitVType = "InitVFromFile";
+    //Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_31/output/Checkpoints/Checkpoint6000000/Error_V.pvp";
+    //
+    VThresh = 0.005;
+    VMax =  infinity;
+    VMin = 0;
+    VShift = 0;
+    //
+    phase = 4;  
+};
+
+
+ANNLayer "LeftRecon" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 0;
+    initialWriteTime = 999.0;
+    writeStep = 1000.0;
+    mirrorBCflag = 1;
+    writeSparseActivity = 0;
+    //
+    InitVType = "ZeroV";
+    //InitVType = "InitVFromFile";
+    //Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_31/output/Checkpoints/Checkpoint6000000/Recon_V.pvp";
+    //
+    VThresh = -infinity;
+    VMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
+    VMin = -infinity; 
+    VShift = 0;
+    // 
+    phase = 6; 
+};
+
+//
+// Left depth eye layers
+//
+
+//Movie "LeftDepthImage" = {
+//    restart = 0;
+//    nxScale = 1;
+//    nyScale = 1;
+//    imageListPath = "/nh/compneuro/Data/KITTI/depth_data/list/depth_00.txt";
+//    nf = 1;
+//    marginWidth = 0;
+//    writeStep = -1;
+//    writeSparseActivity = false;
+//    displayPeriod = 1000;
+//    start_frame_index = 1;
+//    skip_frame_index = 1;
+//    echoFramePathnameFlag = true;
+//    mirrorBCflag = true;
+//    jitterFlag = 0;
+//    useImageBCflag = false;
+//    inverseFlag = false;
+//    normalizeLuminanceFlag = false;
+//    writeImages = false;
+//    offsetX = 0;
+//    offsetY = 0;
+//    randomMovie = 0;
+//    phase = 0;
+//    //useParamsImage = true;
+//};
+//
+//ANNLayer "LeftDepthDownsample" = {
+//    restart = 0;
+//    nxScale = .25;
+//    nyScale = .25;
+//    nf = 1;
+//    marginWidth = 0;
+//    initialWriteTime = 999.0;
+//    writeStep = 1000;
+//    mirrorBCflag = 1;
+//    writeSparseActivity = 0;
+//    //
+//    InitVType = "ZeroV";
+//    //InitVType = "InitVFromFile";
+//    //Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_31/output/Checkpoints/Checkpoint6000000/Error_V.pvp";
+//    //
+//    VThresh = -infinity;
+//    VMax =  infinity;
+//    VMin = -infinity;
+//    VShift = 0;
+//    //
+//    phase = 4;  
+//};
+
+//ANNErrorLayer "LeftDepthError" = {
+//    restart = 0;
+//    nxScale = .25;
+//    nyScale = .25;
+//    nf = 1;
+//    marginWidth = 1;
+//    initialWriteTime = 999.0;
+//    writeStep = 1000;
+//    mirrorBCflag = 1;
+//    writeSparseActivity = 0;
+//    //
+//    InitVType = "ZeroV";
+//    //InitVType = "InitVFromFile";
+//    //Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_31/output/Checkpoints/Checkpoint6000000/Error_V.pvp";
+//    //
+//    VThresh = 0.005;
+//    VMax =  infinity;
+//    VMin = 0;
+//    VShift = 0;
+//    //
+//    phase = 4;  
+//};
+
+ANNLayer "LeftDepthRecon" = {
+    restart = 0;
+    nxScale = .25;
+    nyScale = .25;
+    nf = 32;
+    marginWidth = 0;
+    initialWriteTime = 999.0;
+    writeStep = 1000.0;
+    mirrorBCflag = 1;
+    writeSparseActivity = 0;
+    //
+    InitVType = "ZeroV";
+    //InitVType = "InitVFromFile";
+    //Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_31/output/Checkpoints/Checkpoint6000000/Recon_V.pvp";
+    //
+    VThresh = -infinity;
+    VMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
+    VMin = -infinity; 
+    VShift = 0;
+    // 
+    phase = 6; 
+};
+
+
+//
+// Right eye layers
+//
+
+Movie "RightImage" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    imageListPath = "/nh/compneuro/Data/Depth/depth_data_2/list/image_01.txt";
+    nf = 1;
+    marginWidth = 1;
+    writeStep = -1;
+    writeSparseActivity = false;
+    displayPeriod = 1000;
+    start_frame_index = 1;
+    skip_frame_index = 1;
+    echoFramePathnameFlag = true;
+    mirrorBCflag = true;
+    jitterFlag = 0;
+    useImageBCflag = false;
+    inverseFlag = false;
+    normalizeLuminanceFlag = false;
+    writeImages = false;
+    offsetX = 0;
+    offsetY = 0;
+    randomMovie = 0;
+    phase = 0;
+    //useParamsImage = true;
+};
+
+Retina "RightRetina" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 1;
+    writeStep = 1000.0;
+    initialWriteTime = 999.0;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeSparseActivity = 0;
+
+    foregroundRate = 1000;
+    backgroundRate = 0;
+    burstFreq = 1;
+    burstDuration = 1000;
+
+    beginStim = 0;
+    endStim = 1000000000;
+    
+    phase = 1;
+};
+
+
+ANNLayer "RightBipolar" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 6;
+    writeStep = 1000.0;
+    initialWriteTime = 999.0;
+    mirrorBCflag = 1;
+    writeSparseActivity = 0;
+
+    InitVType = "ZeroV";
+
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+    VShift = 0;
+    
+    phase = 2;
+};
+
+ANNLayer "RightGanglion" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 0;
+    writeStep = 1000.0;
+    initialWriteTime = 999.0;
+    mirrorBCflag = 1;
+    writeSparseActivity = 0;
+    //
+    InitVType = "ZeroV";
+    //
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+    VShift = 0;
+    // 
+    phase = 3;
+};
+
+ANNErrorLayer "RightError" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 6;
+    initialWriteTime = 999.0;
+    writeStep = 1000;
+    mirrorBCflag = 1;
+    writeSparseActivity = 0;
+    //
+    InitVType = "ZeroV";
+    //InitVType = "InitVFromFile";
+    //Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_31/output/Checkpoints/Checkpoint6000000/Error_V.pvp";
+    //
+    VThresh = .005;
+    VMax =  infinity;
+    VMin = 0;
+    VShift = 0;
+    //
+    phase = 4;  
+};
+
+
+ANNLayer "RightRecon" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 0;
+    initialWriteTime = 999.0;
+    writeStep = 1000.0;
+    mirrorBCflag = 1;
+    writeSparseActivity = 0;
+    //
+    InitVType = "ZeroV";
+    //InitVType = "InitVFromFile";
+    //Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_31/output/Checkpoints/Checkpoint6000000/Recon_V.pvp";
+    //
+    VThresh = -infinity;
+    VMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
+    VMin = -infinity; 
+    VShift = 0;
+    // 
+    phase = 6; 
+};
+
+//
+// Right depth eye layers
+//
+
+//Movie "RightDepthImage" = {
+//    restart = 0;
+//    nxScale = 1;
+//    nyScale = 1;
+//    //CHANGE THIS
+//    imageListPath = "/nh/compneuro/Data/KITTI/depth_data/list/depth_01.txt";
+//    nf = 1;
+//    marginWidth = 0; 
+//    writeStep = -1;
+//    writeSparseActivity = false;
+//    displayPeriod = 1000;
+//    start_frame_index = 1;
+//    skip_frame_index = 1;
+//    echoFramePathnameFlag = true;
+//    mirrorBCflag = true;
+//    jitterFlag = 0;
+//    useImageBCflag = false;
+//    inverseFlag = false;
+//    normalizeLuminanceFlag = false;
+//    writeImages = false;
+//    offsetX = 0;
+//    offsetY = 0;
+//    randomMovie = 0;
+//    phase = 0;
+//    //useParamsImage = true;
+//};
+//
+//ANNLayer "RightDepthDownsample" = {
+//    restart = 0;
+//    nxScale = .25;
+//    nyScale = .25;
+//    nf = 1;
+//    marginWidth = 0;
+//    initialWriteTime = 999.0;
+//    writeStep = 1000;
+//    mirrorBCflag = 1;
+//    writeSparseActivity = 0;
+//    //
+//    InitVType = "ZeroV";
+//    //InitVType = "InitVFromFile";
+//    //Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_31/output/Checkpoints/Checkpoint6000000/Error_V.pvp";
+//    //
+//    VThresh = -infinity;
+//    VMax =  infinity;
+//    VMin = -infinity;
+//    VShift = 0;
+//    //
+//    phase = 4;  
+//};
+//
+//ANNErrorLayer "RightDepthError" = {
+//    restart = 0;
+//    nxScale = .25;
+//    nyScale = .25;
+//    nf = 1;
+//    marginWidth = 1;
+//    initialWriteTime = 999.0;
+//    writeStep = 1000;
+//    mirrorBCflag = 1;
+//    writeSparseActivity = 0;
+//    //
+//    InitVType = "ZeroV";
+//    //InitVType = "InitVFromFile";
+//    //Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_31/output/Checkpoints/Checkpoint6000000/Error_V.pvp";
+//    //
+//    VThresh = 0.005;
+//    VMax =  infinity;
+//    VMin = 0;
+//    VShift = 0;
+//    //
+//    phase = 4;  
+//};
+
+ANNLayer "RightDepthRecon" = {
+    restart = 0;
+    nxScale = .25;
+    nyScale = .25;
+    nf = 32;
+    marginWidth = 0;
+    initialWriteTime = 999.0;
+    writeStep = 1000.0;
+    mirrorBCflag = 1;
+    writeSparseActivity = 0;
+    //
+    InitVType = "ZeroV";
+    //InitVType = "InitVFromFile";
+    //Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_31/output/Checkpoints/Checkpoint6000000/Recon_V.pvp";
+    //
+    VThresh = -infinity;
+    VMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
+    VMin = -infinity; 
+    VShift = 0;
+    // 
+    phase = 6; 
+};
+
+// binoclular layers
+
+HyPerLCALayer "BinocularV1" = {
+    restart = 0;
+    nxScale = 0.25;
+    nyScale = 0.25;
+    nf = 1024; //256;
+    numChannels = 2;
+    marginWidth = 1;
+    initialWriteTime = 999.0;
+    writeStep = 1000.0;
+    mirrorBCflag = 1;
+    writeSparseActivity = 1;
+    //
+    InitVType = "UniformRandomV";
+    minV = -1.0;
+    maxV = .15; //0.05 above VThresh
+    //InitVType = "InitVFromFile";
+    //Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_31/output/Checkpoints/Checkpoint6000000/V1_V.pvp";
+    // 
+    timeConstantTau = 100.0;
+    // 
+    VThresh = 0.1; //  // 0.05 works for animalDB
+    VMax = infinity;
+    VMin = 0;
+    VShift = 0.0;  // 0 -> hard threshold, 1 -> soft threshold
+    //
+    phase = 5;
+};
+
+// connections
+
+// Left eye connections
+
+IdentConn "LeftMovieToLeftRetina" = {
+    preLayerName = "LeftImage";
+    postLayerName = "LeftRetina";
+    channelCode = 0;
+    delay = 0;
+    writeStep = -1;
+};
+
+
+KernelConn "LeftRetinaToLeftBipolarCenter" = {
+    preLayerName = "LeftRetina";
+    postLayerName = "LeftBipolar";
+    channelCode = 0;
+    nxp = 3; 
+    nyp = 3; 
+    nfp = 1;
+    numAxonalArbors = 1;
+    initFromLastFlag = 0;  // 1;  // restart
+    writeStep = -1;
+    
+    weightInitType = "Gauss2DWeight";
+    aspect = 1;
+    sigma = 0.5;
+    rMax  = 3;
+    rMin = 0;
+    numOrientationsPre = 1;
+    numOrientationsPost = 1;
+        
+    strength = 1.0;  
+    normalizeMethod = "normalizeSum";
+    minSumTolerated = 0;
+    normalizeArborsIndividually = 0;
+    normalize_cutoff = 0.0;
+    normalizeFromPostPerspective = true;
+    symmetrizeWeights = false;
+    
+    shrinkPatches = false;
+    //writeCompressedWeights = 0.0;
+    writeCompressedCheckpoints = false;
+    plasticityFlag = 0;
+    stochasticReleaseFlag = false;
+     
+    delay = 0;
+     
+    preActivityIsNotRate = false;
+    selfFlag = false;
+    shmget_flag = false;
+};
+
+
+KernelConn "LeftBipolarToLeftGanglionCenter" = {
+    preLayerName = "LeftBipolar";
+    postLayerName = "LeftGanglion";
+    channelCode = 0;
+    nxp = 1; 
+    nyp = 1; 
+    nfp = 1;
+    numAxonalArbors = 1;
+    initFromLastFlag = 0;  // 1;  // restart
+    writeStep = -1;
+    
+    weightInitType = "Gauss2DWeight";
+    aspect = 1;
+    sigma = 1;
+    rMax  = 3;
+    rMin = 0;
+    numOrientationsPre = 1;
+    numOrientationsPost = 1;
+        
+    strength = 1.0;  
+    normalizeMethod = "normalizeSum";
+    minSumTolerated = 0;
+    normalizeArborsIndividually = 0;
+    normalize_cutoff = 0.0;
+    normalizeFromPostPerspective = true;
+    symmetrizeWeights = false;
+    
+    shrinkPatches = false;
+    //writeCompressedWeights = 0.0;
+    writeCompressedCheckpoints = false;
+    plasticityFlag = 0;
+    stochasticReleaseFlag = false;
+     
+    delay = 0;
+     
+    preActivityIsNotRate = false;
+    selfFlag = false;
+    shmget_flag = false;
+};
+
+
+KernelConn "LeftBipolarToLeftGanglionSurround" = {
+    preLayerName = "LeftBipolar";
+    postLayerName = "LeftGanglion";
+    channelCode = 1;
+    nxp = 11; 
+    nyp = 11; 
+    nfp = 1;
+    numAxonalArbors = 1;
+    initFromLastFlag = 0;  // 1;  // restart
+    writeStep = -1;
+    
+    weightInitType = "Gauss2DWeight";
+    aspect = 1;
+    sigma = 5.5;
+    rMax  = 7.5;
+    rMin = 0.5;
+    numOrientationsPre = 1;
+    numOrientationsPost = 1;
+               
+    strength = 1.0;  
+    normalizeMethod = "normalizeSum";
+    minSumTolerated = 0;
+    normalizeArborsIndividually = 0;
+    normalize_cutoff = 0.0;
+    normalizeFromPostPerspective = true;
+    symmetrizeWeights = false;
+    
+    shrinkPatches = false;
+    //writeCompressedWeights = 0.0;
+    writeCompressedCheckpoints = false;
+    plasticityFlag = 0;
+    stochasticReleaseFlag = false;
+     
+    delay = 0;
+     
+    preActivityIsNotRate = false;
+    selfFlag = false;
+    shmget_flag = false;
+};
+
+
+IdentConn "LeftGanglionToLeftError" = {
+    preLayerName = "LeftGanglion";
+    postLayerName = "LeftError";
+    channelCode = 0;
+    delay = 0;
+    writeStep = -1;
+};
+
+// Left depth connections
+
+//KernelConn "LeftDepthMovieToLeftDepthDownsample" = {
+//    preLayerName = "LeftDepthImage";
+//    postLayerName = "LeftDepthDownsample";
+//    channelCode = 0;
+//    nxp = 1;
+//    nyp = 1;
+//    nfp = 1;
+//    numAxonalArbors = 1;
+//    writeStep = -1;
+//    initFromLastFlag = 0;
+//    
+//    weightInitType = "Gauss2DWeight";
+//    aspect = 1;
+//    sigma = 10000;
+//    rMax  = 3;
+//    rMin = 0;
+//    numOrientationsPre = 1;
+//    numOrientationsPost = 1;
+//        
+//    strength = 1.0;  
+//    normalizeMethod = "normalizeSum";
+//    minSumTolerated = 0;
+//    normalizeArborsIndividually = 0;
+//    normalize_cutoff = 0.0;
+//    normalizeFromPostPerspective = true;
+//    symmetrizeWeights = false;
+//    
+//    shrinkPatches = false;
+//    //writeCompressedWeights = 0.0;
+//    writeCompressedCheckpoints = false;
+//    plasticityFlag = 0;
+//    stochasticReleaseFlag = false;
+//     
+//    delay = 0;
+//     
+//    preActivityIsNotRate = false;
+//    selfFlag = false;
+//    shmget_flag = false;
+//};
+//
+//IdentConn "LeftDepthDownsampleToLeftDepthError" = {
+//    preLayerName = "LeftDepthDownsample";
+//    postLayerName = "LeftDepthError";
+//    channelCode = 0;
+//    delay = 0;
+//    writeStep = -1;
+//};
+
+// Right eye connections
+
+IdentConn "RightMovieToRightRetina" = {
+    preLayerName = "RightImage";
+    postLayerName = "RightRetina";
+    channelCode = 0;
+    delay = 0;
+    writeStep = -1;
+};
+
+
+KernelConn "RightRetinaToRightBipolarCenter" = {
+    preLayerName = "RightRetina";
+    postLayerName = "RightBipolar";
+    channelCode = 0;
+    nxp = 3; 
+    nyp = 3; 
+    nfp = 1;
+    numAxonalArbors = 1;
+    initFromLastFlag = 0;  // 1;  // restart
+    writeStep = -1;
+    
+    weightInitType = "Gauss2DWeight";
+    aspect = 1;
+    sigma = 0.5;
+    rMax  = 3;
+    rMin = 0;
+    numOrientationsPre = 1;
+    numOrientationsPost = 1;
+        
+    strength = 1.0;  
+    normalizeMethod = "normalizeSum";
+    minSumTolerated = 0;
+    normalizeArborsIndividually = 0;
+    normalize_cutoff = 0.0;
+    normalizeFromPostPerspective = true;
+    symmetrizeWeights = false;
+    
+    shrinkPatches = false;
+    //writeCompressedWeights = 0.0;
+    writeCompressedCheckpoints = false;
+    plasticityFlag = 0;
+    stochasticReleaseFlag = false;
+     
+    delay = 0;
+     
+    preActivityIsNotRate = false;
+    selfFlag = false;
+    shmget_flag = false;
+};
+
+
+KernelConn "RightBipolarToRightGanglionCenter" = {
+    preLayerName = "RightBipolar";
+    postLayerName = "RightGanglion";
+    channelCode = 0;
+    nxp = 1; 
+    nyp = 1; 
+    nfp = 1;
+    numAxonalArbors = 1;
+    initFromLastFlag = 0;  // 1;  // restart
+    writeStep = -1;
+    
+    weightInitType = "Gauss2DWeight";
+    aspect = 1;
+    sigma = 1;
+    rMax  = 3;
+    rMin = 0;
+    numOrientationsPre = 1;
+    numOrientationsPost = 1;
+        
+    strength = 1.0;  
+    normalizeMethod = "normalizeSum";
+    minSumTolerated = 0;
+    normalizeArborsIndividually = 0;
+    normalize_cutoff = 0.0;
+    normalizeFromPostPerspective = true;
+    symmetrizeWeights = false;
+    
+    shrinkPatches = false;
+    //writeCompressedWeights = 0.0;
+    writeCompressedCheckpoints = false;
+    plasticityFlag = 0;
+    stochasticReleaseFlag = false;
+     
+    delay = 0;
+     
+    preActivityIsNotRate = false;
+    selfFlag = false;
+    shmget_flag = false;
+};
+
+
+KernelConn "RightBipolarToRightGanglionSurround" = {
+    preLayerName = "RightBipolar";
+    postLayerName = "RightGanglion";
+    channelCode = 1;
+    nxp = 11; 
+    nyp = 11; 
+    nfp = 1;
+    numAxonalArbors = 1;
+    initFromLastFlag = 0;  // 1;  // restart
+    writeStep = -1;
+    
+    weightInitType = "Gauss2DWeight";
+    aspect = 1;
+    sigma = 5.5;
+    rMax  = 7.5;
+    rMin = 0.5;
+    numOrientationsPre = 1;
+    numOrientationsPost = 1;
+               
+    strength = 1.0;  
+    normalizeMethod = "normalizeSum";
+    minSumTolerated = 0;
+    normalizeArborsIndividually = 0;
+    normalize_cutoff = 0.0;
+    normalizeFromPostPerspective = true;
+    symmetrizeWeights = false;
+    
+    shrinkPatches = false;
+    //writeCompressedWeights = 0.0;
+    writeCompressedCheckpoints = false;
+    plasticityFlag = 0;
+    stochasticReleaseFlag = false;
+     
+    delay = 0;
+     
+    preActivityIsNotRate = false;
+    selfFlag = false;
+    shmget_flag = false;
+};
+
+
+IdentConn "RightGanglionToRightError" = {
+    preLayerName = "RightGanglion";
+    postLayerName = "RightError";
+    channelCode = 0;
+    delay = 0;
+    writeStep = -1;
+};
+
+//Right depth Connections
+
+//KernelConn "RightDepthMovieToRightDepthDownsample" = {
+//    preLayerName = "RightDepthImage";
+//    postLayerName = "RightDepthDownsample";
+//    channelCode = 0;
+//    nxp = 1;
+//    nyp = 1;
+//    nfp = 1;
+//    numAxonalArbors = 1;
+//    writeStep = -1;
+//    initFromLastFlag = 0;
+//    
+//    weightInitType = "Gauss2DWeight";
+//    aspect = 1;
+//    sigma = 10000;
+//    rMax  = 3;
+//    rMin = 0;
+//    numOrientationsPre = 1;
+//    numOrientationsPost = 1;
+//        
+//    strength = 1.0;  
+//    normalizeMethod = "normalizeSum";
+//    minSumTolerated = 0;
+//    normalizeArborsIndividually = 0;
+//    normalize_cutoff = 0.0;
+//    normalizeFromPostPerspective = true;
+//    symmetrizeWeights = false;
+//    
+//    shrinkPatches = false;
+//    //writeCompressedWeights = 0.0;
+//    writeCompressedCheckpoints = false;
+//    plasticityFlag = 0;
+//    stochasticReleaseFlag = false;
+//     
+//    delay = 0;
+//     
+//    preActivityIsNotRate = false;
+//    selfFlag = false;
+//    shmget_flag = false;
+//};
+//
+//IdentConn "RightDepthDownsampleToRightDepthError" = {
+//    preLayerName = "RightDepthDownsample";
+//    postLayerName = "RightDepthError";
+//    channelCode = 0;
+//    delay = 0;
+//    writeStep = -1;
+//};
+
+// binocular connections
+
+KernelConn "BinocularV1ToLeftError" = {
+    preLayerName = "BinocularV1";
+    postLayerName = "LeftError";
+    channelCode = 1;
+    nxp = 12;
+    nyp = 12;
+    nfp = 1;
+    numAxonalArbors = 1;
+    initFromLastFlag = 0;
+    //
+    weightInitType = "FileWeight";
+    initWeightsFile = "/nh/compneuro/Data/Depth/LCA/dataset01/Checkpoints/Checkpoint650000/BinocularV1ToLeftError_W.pvp";
+    //weightInitType = "UniformRandomWeight";
+    //wMinInit = -1.0;
+    //wMaxInit = 1.0;
+    //sparseFraction = .90;
+    //
+    strength = 0.5;
+    normalizeMethod = "normalizeL2";
+    minL2NormTolerated = 0;
+    normalizeArborsIndividually = 0;
+    normalize_cutoff = 0.0;
+    normalizeFromPostPerspective = false;
+    symmetrizeWeights = false;
+    //
+    preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
+    keepKernelsSynchronized = true; 
+    combine_dW_with_W_flag = false; 
+    //
+    writeStep = 1000;
+    writeCompressedWeights = false;
+    writeCompressedCheckpoints = false;
+    plasticityFlag = false; //true;
+    weightUpdatePeriod = 20.0;
+    initialWeightUpdateTime = 999.0;
+    initialWriteTime = 0.0;
+    dWMax = 1.0; // 200.0 used for initial training
+    selfFlag = false;
+    shmget_flag = false;
+    //
+    delay = 0;
+    //
+    stochasticReleaseFlag = false;
+    shrinkPatches = false;
+};
+
+
+TransposeConn "LeftErrorToBinocularV1" = {
+    preLayerName = "LeftError";
+    postLayerName = "BinocularV1";
+    channelCode = 0;
+    originalConnName = "BinocularV1ToLeftError";
+    selfFlag = false;
+    preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
+    writeStep = -1;
+    writeCompressedCheckpoints = false;
+    shmget_flag = false;
+    delay = 0;
+    stochasticReleaseFlag = false;
+};
+
+CloneKernelConn "BinocularV1ToLeftRecon" = {
+    preLayerName = "BinocularV1";
+    postLayerName = "LeftRecon";
+    channelCode = 0;
+    writeStep = -1;
+    originalConnName = "BinocularV1ToLeftError";
+    selfFlag = false;
+    stochasticReleaseFlag = false;
+    delay = 0;
+    preActivityIsNotRate = false;
+};
+
+
+KernelConn "BinocularV1ToRightError" = {
+    preLayerName = "BinocularV1";
+    postLayerName = "RightError";
+    channelCode = 1;
+    nxp = 12;
+    nyp = 12;
+    nfp = 1;
+    numAxonalArbors = 1;
+    initFromLastFlag = 0;
+    //
+    weightInitType = "FileWeight";
+    initWeightsFile = "/nh/compneuro/Data/Depth/LCA/dataset01/Checkpoints/Checkpoint650000/BinocularV1ToRightError_W.pvp";
+    //weightInitType = "UniformRandomWeight";
+    //wMinInit = -1.0;
+    //wMaxInit = 1.0;
+    //sparseFraction = .90;
+    //
+    strength = 0.25;
+    normalizeMethod = "normalizeL2";
+    minL2NormTolerated = 0;
+    normalizeArborsIndividually = 0;
+    normalize_cutoff = 0.0;
+    normalizeFromPostPerspective = false;
+    symmetrizeWeights = false;
+    //
+    preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
+    keepKernelsSynchronized = true; 
+    combine_dW_with_W_flag = false; 
+    //
+    writeStep = 1000;
+    writeCompressedWeights = false;
+    writeCompressedCheckpoints = false;
+    plasticityFlag = false; //true;
+    weightUpdatePeriod = 20.0;
+    initialWeightUpdateTime = 999.0;
+    initialWriteTime = 0.0;
+    dWMax = 1.0; // 200.0 used for initial training
+    selfFlag = false;
+    shmget_flag = false;
+    //
+    delay = 0;
+    //
+    stochasticReleaseFlag = false;
+    shrinkPatches = false;
+};
+
+
+TransposeConn "RightErrorToBinocularV1" = {
+    preLayerName = "RightError";
+    postLayerName = "BinocularV1";
+    channelCode = 0;
+    originalConnName = "BinocularV1ToRightError";
+    selfFlag = false;
+    preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
+    writeStep = -1;
+    writeCompressedCheckpoints = false;
+    shmget_flag = false;
+    delay = 0;
+    stochasticReleaseFlag = false;
+};
+
+CloneKernelConn "BinocularV1ToRightRecon" = {
+    preLayerName = "BinocularV1";
+    postLayerName = "RightRecon";
+    channelCode = 0;
+    writeStep = -1;
+    originalConnName = "BinocularV1ToRightError";
+    selfFlag = false;
+    stochasticReleaseFlag = false;
+    delay = 0;
+    preActivityIsNotRate = false;
+};
+
+// Depth Binocular Connections
+//KernelConn "BinocularV1ToLeftDepthError" = {
+//    preLayerName = "BinocularV1";
+//    postLayerName = "LeftDepthError";
+//    channelCode = 1;
+//    nxp = 3; 
+//    nyp = 3; 
+//    nfp = 1;
+//    numAxonalArbors = 1;
+//    initFromLastFlag = 0;
+//    //
+//    weightInitType = "FileWeight";
+//    initWeightsFile = "/nh/compneuro/Data/KITTI/LCA/2011_09_26_drive_0001_depth_longrun/Checkpoints/Checkpoint1080000/BinocularV1ToLeftDepthError_W.pvp";
+//    //weightInitType = "UniformRandomWeight";
+//    //wMinInit = -1.0;
+//    //wMaxInit = 1.0;
+//    //sparseFraction = 0;
+//    //
+//    strength = 0.25; 
+//    normalizeMethod = "normalizeL2";
+//    minL2NormTolerated = 0;
+//    normalizeArborsIndividually = 0;
+//    normalize_cutoff = 0.0;
+//    normalizeFromPostPerspective = false;
+//    symmetrizeWeights = false;
+//    //
+//    preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
+//    keepKernelsSynchronized = true; 
+//    combine_dW_with_W_flag = false; 
+//    //
+//    writeStep = 1000;
+//    writeCompressedWeights = false;
+//    writeCompressedCheckpoints = false;
+//    plasticityFlag = false;
+//    weightUpdatePeriod = 20.0;
+//    initialWeightUpdateTime = 999.0;
+//    initialWriteTime = 0.0;
+//    dWMax = 1.0; // 200.0 used for initial training
+//    selfFlag = false;
+//    shmget_flag = false;
+//    //
+//    delay = 0;
+//    //
+//    stochasticReleaseFlag = false;
+//    shrinkPatches = false;
+//};
+//
+//
+//TransposeConn "LeftDepthErrorToBinocularV1" = {
+//    preLayerName = "LeftDepthError";
+//    postLayerName = "BinocularV1";
+//    channelCode = 0;
+//    originalConnName = "BinocularV1ToLeftDepthError";
+//    selfFlag = false;
+//    preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
+//    writeStep = -1;
+//    writeCompressedCheckpoints = false;
+//    shmget_flag = false;
+//    delay = 0;
+//    stochasticReleaseFlag = false;
+//};
+//
+//CloneKernelConn "BinocularV1ToLeftDepthRecon" = {
+//    preLayerName = "BinocularV1";
+//    postLayerName = "LeftDepthRecon";
+//    channelCode = 0;
+//    writeStep = -1;
+//    originalConnName = "BinocularV1ToLeftDepthError";
+//    selfFlag = false;
+//    stochasticReleaseFlag = false;
+//    delay = 0;
+//    preActivityIsNotRate = false;
+//};
+//KernelConn "BinocularV1ToRightDepthError" = {
+//    preLayerName = "BinocularV1";
+//    postLayerName = "RightDepthError";
+//    channelCode = 1;
+//    nxp = 3;
+//    nyp = 3;
+//    nfp = 1;
+//    numAxonalArbors = 1;
+//    initFromLastFlag = 0;
+//    weightInitType = "FileWeight";
+//    initWeightsFile = "/nh/compneuro/Data/KITTI/LCA/2011_09_26_drive_0001_depth_longrun/Checkpoints/Checkpoint1080000/BinocularV1ToRightDepthError_W.pvp";
+//    //weightInitType = "UniformRandomWeight";
+//    //wMinInit = -1.0;
+//    //wMaxInit = 1.0;
+//    //sparseFraction = 0;
+//    //
+//    strength = 0.25;  
+//    normalizeMethod = "normalizeL2";
+//    minL2NormTolerated = 0;
+//    normalizeArborsIndividually = 0;
+//    normalize_cutoff = 0.0;
+//    normalizeFromPostPerspective = false;
+//    symmetrizeWeights = false;
+//    //
+//    preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
+//    keepKernelsSynchronized = true; 
+//    combine_dW_with_W_flag = false; 
+//    //
+//    writeStep = 1000;
+//    writeCompressedWeights = false;
+//    writeCompressedCheckpoints = false;
+//    plasticityFlag = false;
+//    weightUpdatePeriod = 20.0;
+//    initialWeightUpdateTime = 999.0;
+//    initialWriteTime = 0.0;
+//    dWMax = 1.0; // 200.0 used for initial training
+//    selfFlag = false;
+//    shmget_flag = false;
+//    //
+//    delay = 0;
+//    //
+//    stochasticReleaseFlag = false;
+//    shrinkPatches = false;
+//};
+//
+//TransposeConn "RightDepthErrorToBinocularV1" = {
+//    preLayerName = "RightDepthError";
+//    postLayerName = "BinocularV1";
+//    channelCode = 0;
+//    originalConnName = "BinocularV1ToRightDepthError";
+//    selfFlag = false;
+//    preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
+//    writeStep = -1;
+//    writeCompressedCheckpoints = false;
+//    shmget_flag = false;
+//    delay = 0;
+//    stochasticReleaseFlag = false;
+//};
+//
+//CloneKernelConn "BinocularV1ToRightDepthRecon" = {
+//    preLayerName = "BinocularV1";
+//    postLayerName = "RightDepthRecon";
+//    channelCode = 0;
+//    writeStep = -1;
+//    originalConnName = "BinocularV1ToRightDepthError";
+//    selfFlag = false;
+//    stochasticReleaseFlag = false;
+//    delay = 0;
+//    preActivityIsNotRate = false;
+//};
+
+KernelConn "BinocularV1ToLeftDepthRecon" = {
+    preLayerName = "BinocularV1";
+    postLayerName = "LeftDepthRecon";
+    nxp = 3; 
+    nyp = 3; 
+    nfp = 32;
+    numAxonalArbors = 1;
+    initFromLastFlag = 0;
+    weightInitType = "FileWeight";
+    initWeightsFile = "/nh/compneuro/Data/Depth/LCA/dataset01/Checkpoints/Checkpoint650000/BinocularV1ToLeftDepthError_W.pvp";
+    normalizeMethod = "none";
+    preActivityIsNotRate = false;
+    channelCode = 0;
+    writeStep = -1;
+    selfFlag = false;
+    stochasticReleaseFlag = false;
+    shrinkPatches = false;
+    plasticityFlag = false;
+    delay = 0;
+};
+
+KernelConn "BinocularV1ToRightDepthRecon" = {
+    preLayerName = "BinocularV1";
+    postLayerName = "RightDepthRecon";
+    nxp = 3; 
+    nyp = 3; 
+    nfp = 32;
+    numAxonalArbors = 1;
+    initFromLastFlag = 0;
+    weightInitType = "FileWeight";
+    initWeightsFile = "/nh/compneuro/Data/Depth/LCA/dataset01/Checkpoints/Checkpoint650000/BinocularV1ToRightDepthError_W.pvp";
+    normalizeMethod = "none";
+    preActivityIsNotRate = false;
+    channelCode = 0;
+    writeStep = -1;
+    selfFlag = false;
+    stochasticReleaseFlag = false;
+    shrinkPatches = false;
+    plasticityFlag = false;
+    delay = 0;
+};
+
+//// Probes
+//
+//StatsProbe "LeftRetinaStatsFile" = {
+//    targetLayer = "LeftRetina";
+//    probeOutputFile = "LeftRetina_Stats.txt";
+//};
+//
+//StatsProbe "LeftGanglionStatsFile" = {
+//    targetLayer = "LeftGanglion";
+//    probeOutputFile = "LeftGanglion_Stats.txt";
+//};
+//
+//StatsProbe "LeftErrorStatsFile" = {
+//    targetLayer = "LeftError";
+//    probeOutputFile = "LeftError_Stats.txt";
+//};
+//
+//StatsProbe "LeftReconStatsFile" = {
+//    targetLayer = "LeftRecon";
+//    probeOutputFile = "LeftRecon_Stats.txt";
+//};
+//
+//StatsProbe "LeftDepthDownsampleStatsFile" = {
+//   targetLayer = "LeftDepthDownsample";
+//   probeOutputFile = "LeftDepthDownsample_Stats.txt";
+//};
+//
+//StatsProbe "LeftDepthErrorStatsFile" = {
+//    targetLayer = "LeftDepthError";
+//    probeOutputFile = "LeftDepthError_Stats.txt";
+//};
+//
+//StatsProbe "LeftDepthReconStatsFile" = {
+//    targetLayer = "LeftDepthRecon";
+//    probeOutputFile = "LeftDepthRecon_Stats.txt";
+//};
+//
+//StatsProbe "RightRetinaStatsFile" = {
+//    targetLayer = "RightRetina";
+//    probeOutputFile = "RightRetina_Stats.txt";
+//};
+//
+//StatsProbe "RightGanglionStatsFile" = {
+//    targetLayer = "RightGanglion";
+//    probeOutputFile = "RightGanglion_Stats.txt";
+//};
+//
+//StatsProbe "RightErrorStatsFile" = {
+//    targetLayer = "RightError";
+//    probeOutputFile = "RightError_Stats.txt";
+//};
+//
+//StatsProbe "RightReconStatsFile" = {
+//    targetLayer = "RightRecon";
+//    probeOutputFile = "RightRecon_Stats.txt";
+//};
+//
+//StatsProbe "RightDepthDownsampleStatsFile" = {
+//   targetLayer = "RightDepthDownsample";
+//   probeOutputFile = "RightDepthDownsample_Stats.txt";
+//};
+//
+//StatsProbe "RightDepthErrorStatsFile" = {
+//    targetLayer = "RightDepthError";
+//    probeOutputFile = "RightDepthError_Stats.txt";
+//};
+//
+//StatsProbe "RightDepthReconStatsFile" = {
+//    targetLayer = "RightDepthRecon";
+//    probeOutputFile = "RightDepthRecon_Stats.txt";
+//};
+//
+//StatsProbe "BinocularV1StatsFile" = {
+//    targetLayer = "BinocularV1";
+//    probeOutputFile = "BinocularV1_Stats.txt";
+//};
+//
+//
