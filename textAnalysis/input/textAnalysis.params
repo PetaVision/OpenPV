@@ -12,12 +12,12 @@ debugParsing = true;
 
 HyPerCol "column" = {
    nx                              = 13;  // Num chars per word
-   ny                              = 96;  // Num words per "image" presentation (set to fit the number of cores = numCores * numPatchesPerCore * 1/V1nyScale)
+   ny                              = 800;  // Num words per "image" presentation (set to fit the number of cores = numCores * numPatchesPerCore * 1/V1nyScale)
                                           //       numPatchesPerCore is memory limited, although for now I am maximizing the number of dictionary elements
    dt                              = 1.0;
    randomSeed                      = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
    numSteps                        = 376584219200000;       
-   progressStep                    = 100;
+   progressStep                    = 1000;
    outputPath                      = "/nh/compneuro/Data/text/textAnalysis/output";
    //outputPath                      = "/Users/dpaiton/Documents/Work/LANL/workspace/textAnalysis/output";
    filenamesContainLayerNames      = true;
@@ -29,7 +29,7 @@ HyPerCol "column" = {
    checkpointWrite                 = true;
    checkpointWriteDir              = "/nh/compneuro/Data/text/textAnalysis/output/checkpoints";
    //checkpointWriteDir              = "/Users/dpaiton/Documents/Work/LANL/workspace/textAnalysis/output/checkpoints";
-   checkpointWriteStepInterval     = 500000;
+   checkpointWriteStepInterval     = 5000;
    deleteOlderCheckpoints          = false;
    //suppressLastOutput              = false;
    writeProgressToErr              = true;
@@ -42,18 +42,17 @@ HyPerCol "column" = {
 
 TextStream "Text" = {
     restart                = 0;
-    textInputPath          = "/home/dpaiton/workspace/textAnalysis/input/sample_input.txt";
-    //textInputPath          = "/home/dpaiton/workspace/textAnalysis/input/all_stripped.txt";
-    //textInputPath          = "~/Documents/Work/LANL/workspace/textAnalysis/input/all_stripped.txt";
+    //textInputPath          = "/home/slundquist/workspace/textAnalysis/input/sample_input.txt";
+    textInputPath          = "/nh/compneuro/Data/text/children.txt";
     marginWidth            = 4;
     writeStep              = -1;
     writeSparseActivity    = false;
-    displayPeriod          = 5;//5000;  // [in time steps - I think] TODO: change to [ms] 
+    displayPeriod          = 1000;//5000;  // [in time steps - I think] TODO: change to [ms] 
     textOffset             = 0;     // TODO: I haven't tested this param yet
     valueBC                = 0;     // For outside of the text file
                             //
     useCapitalization      = true;  // TODO: Not fully tested
-    loopInput              = true;  // TODO: I think this does not work
+    loopInput              = true;  
     textBCFlag             = true;
                             //
     phase                  = 0;
@@ -65,7 +64,7 @@ ANNLayer "Recon" = {
     nyScale             = 1;
     nf                  = 97;
     marginWidth         = 0;
-    initialWriteTime    = 4999.0;
+    initialWriteTime    = 999.0;
     writeStep           = -1; // Use probe to view reconstruction
     mirrorBCflag        = 1;
     writeSparseActivity = 0;
@@ -86,7 +85,7 @@ ANNLayer "Error" = {
     nyScale             = 1;
     nf                  = 97; // With Capitalization on
     marginWidth         = 4;
-    initialWriteTime    = 4999.0;
+    initialWriteTime    = 999.0;
     writeStep           = -1;//5000;
     mirrorBCflag        = 0;
     valueBC             = 0;     // For outside of the text file
@@ -174,8 +173,8 @@ KernelConn "V1ToError" = {
     writeCompressedWeights       = false;
     writeCompressedCheckpoints   = false;
     plasticityFlag               = true;
-    weightUpdatePeriod           = 20.0;
-    initialWeightUpdateTime      = 4999.0;
+    weightUpdatePeriod           = 50.0;
+    initialWeightUpdateTime      = 999.0;
     initialWriteTime             = 0.0;
     dWMax                        = 1.0;
     selfFlag                     = false;
@@ -222,13 +221,13 @@ CloneKernelConn "V1ToRecon" = {
 // Probes
 TextStreamProbe "Text Probe" = {
     targetLayer = "Text";
-    displayPeriod = 5;
+    displayPeriod = 1000;
     probeOutputFile = "Text_Probe.txt";
 };
 
 TextStreamProbe "Recon Probe" = {
     targetLayer = "Recon";
-    displayPeriod = 5;
+    displayPeriod = 1000;
     probeOutputFile = "Recon_Probe.txt";
 };
 
