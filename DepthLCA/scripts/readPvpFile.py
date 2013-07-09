@@ -1,7 +1,7 @@
 import numpy as np
 import struct
 
-def readHeaderFile(filestream):
+def readHeaderFile(filestream, pos=None):
    params = struct.unpack("iiiiiiiiiiiiiiiiiid", filestream.read(80))
    header = {}
    header["headersize"] = params[0]
@@ -23,8 +23,14 @@ def readHeaderFile(filestream):
    header["nb"]         = params[16]
    header["nbands"]     = params[17]
 
-   assert header["filetype"] == 4
+   if hdr["numparams"] > 20:
+      header["additional"] = []
+      numAddParams = header["numparams"] - 20
+      for i in range(numAddParams):
+         header["additional"].append(struct.unpack("i", filestream.read(4)))
+
    assert header["datatype"] == 3
+   assert (header["filetype"] == 4 or header["filetype"] == 3)
    return header
 
 #Returns a matrix

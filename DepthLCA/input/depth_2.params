@@ -270,7 +270,7 @@ ANNErrorLayer "LeftDepthError" = {
     VMin = 0;
     VShift = 0;
     //
-    phase = 4;  
+    phase = 5;  
 };
 
 ANNLayer "LeftDepthRecon" = {
@@ -293,7 +293,7 @@ ANNLayer "LeftDepthRecon" = {
     VMin = -infinity; 
     VShift = 0;
     // 
-    phase = 6; 
+    phase = 7; 
 };
 
 //

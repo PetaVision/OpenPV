@@ -6,20 +6,24 @@ import os
 #For plotting
 #import matplotlib.pyplot as plt
 
-datasetVal = 1
+#datasetVal = 2
 #eyeVal = 1
 #depthFileListDir = "/nh/compneuro/Data/Depth/depth_data_"+str(datasetVal) + "/list/"
 #depthFileList = depthFileListDir + "depth_0" + str(eyeVal) + ".txt"
 #pvpFileName = "/nh/compneuro/Data/Depth/depth_data_1/pvp/depth_0" + str(eyeVal)+ ".pvp"
-lastCheckpoint = 640000
+lastCheckpoint = 680000
 #outputDir = "/nh/compneuro/Data/Depth/LCA/dataset01/"
-outputDir = "/nh/compneuro/Data/Depth/LCA/depth_recon/"
+outputDir = "/nh/compneuro/Data/Depth/LCA/dataset02/"
 readFromCheckpoint = False
 layers = [
-      #"LeftDepthDownsample_A",
-      "a6_LeftDepthRecon",
-      #"RightDepthDownsample_A",
-      "a13_RightDepthRecon"
+      "a3_LeftGanglion",
+      "a6_LeftRecon",
+      "a8_LeftDepthDownsample",
+      "a10_LeftDepthRecon",
+      "a14_RightGanglion",
+      "a17_RightRecon",
+      "a19_RightDepthDownsample",
+      "a21_RightDepthRecon",
       ]
 
 checkpointDir = outputDir + "Checkpoints/Checkpoint"+str(lastCheckpoint)+"/"
@@ -47,6 +51,15 @@ def matToImage(mat):
    outimg[yidx, xidx] = idxVal
    return outimg
 
+#Scales mat to be between 0 and 1 for image saving
+def scaleMat(mat):
+   (Y, X, Z) = np.shape(mat)
+   assert Z == 1
+   img = mat[:, :, 0]
+   img = (img - np.min(img)) / (np.max(img) - np.min(img))
+   return img
+
+
 reconDir = outputDir + "Recon/"
 if not os.path.exists(reconDir):
    os.makedirs(reconDir)
@@ -68,14 +81,20 @@ for layername in layers:
    if readFromCheckpoint:
       #Read only one timestamp
       (idx, mat) = readData(pvpFile, shape, numPerFrame)
-      img = matToImage(mat)
+      if header["nf"] > 1:
+         img = matToImage(mat)
+      else:
+         img = scaleMat(mat)
       imsave(reconDir + layername + ".png", img)
    else:
       #Read until errors out (EOF)
       (idx, mat) = readData(pvpFile, shape, numPerFrame)
       #While not eof
       while idx != -1:
-         img = matToImage(mat)
+         if header["nf"] > 1:
+            img = matToImage(mat)
+         else:
+            img = scaleMat(mat)
          imsave(reconDir + layername + str(int(idx[0])) + ".png", img)
          (idx, mat) = readData(pvpFile, shape, numPerFrame)
 

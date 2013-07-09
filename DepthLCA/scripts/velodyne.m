@@ -7,8 +7,6 @@
 % base_dir .... absolute path to sequence base directory (ends with _sync)
 % calib_dir ... absolute path to directory that contains calibration files
 
-%Not tested since move from devkit folder
-
 % clear and close everything
 clear all; close all; dbstop error; clc;
 
@@ -26,9 +24,9 @@ verboseLevel = 1; %verbose level for parcellfun
 
 numFrame     = 153; % 0-based index
 %Multithreading
-numproc = 1;
+%numproc = 1;
 %numproc = nproc()
-%numproc = 16 
+numproc = 30
 
 if ~exist(out_dir, 'dir')
   mkdir(out_dir);
