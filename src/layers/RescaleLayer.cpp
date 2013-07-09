@@ -79,11 +79,15 @@ int RescaleLayer::updateState(double timef, double dt) {
    const PVLayerLoc * sourceLoc = sourceLayer->getLayerLoc();
    
    //Make sure layer loc and source layer loc is equivelent
+   if (V == NULL){
+      fprintf(stderr, "Rescale Layer %s: Source layer must have a V buffer to rescale. Exiting.\n",
+            name);
+      exit(PV_FAILURE);
+   }
    assert(loc->nx == sourceLoc->nx);
    assert(loc->ny == sourceLoc->ny);
    assert(loc->nf == sourceLoc->nf);
    assert(loc->nb == sourceLoc->nb);
-
    
    //Find max and min of V
    for (int k = 0; k < numNeurons; k++){
