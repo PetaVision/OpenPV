@@ -61,6 +61,6 @@ target_link_libraries(InitWeightsTest ${GDAL_LIBRARY})
 target_link_libraries(InitWeightsTest ${MPI_C_LIBRARIES})
 target_link_libraries(InitWeightsTest ${MPI_CXX_LIBRARIES})
 IF(LIBSNDFILE_FOUND)
-   target_link_libraries(InitWeightTest ${LIBSNDFILE_LIBRARY})
+   target_link_libraries(InitWeightsTest ${LIBSNDFILE_LIBRARY})
 ENDIF(LIBSNDFILE_FOUND)
 
