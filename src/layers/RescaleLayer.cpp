@@ -76,6 +76,14 @@ int RescaleLayer::updateState(double timef, double dt) {
    pvdata_t * V = clayer->V; 
    pvdata_t * A = getActivity();
    const PVLayerLoc * loc = getLayerLoc();
+   const PVLayerLoc * sourceLoc = sourceLayer->getLayerLoc();
+   
+   //Make sure layer loc and source layer loc is equivelent
+   assert(loc->nx == sourceLoc->nx);
+   assert(loc->ny == sourceLoc->ny);
+   assert(loc->nf == sourceLoc->nf);
+   assert(loc->nb == sourceLoc->nb);
+
    
    //Find max and min of V
    for (int k = 0; k < numNeurons; k++){
