@@ -1,9 +1,12 @@
 ## See http://www.cmake.org/Wiki/CMake_Useful_Variables for more variables to set
 cmake_minimum_required(VERSION 2.8)
 
-IF(NOT LIBSNDFILE_FOUND)
-    MESSAGE(FATAL_ERROR "Sndfile library required for soundAnalysis sandbox")
-ENDIF(NOT LIBSNDFILE_FOUND)
+#Set CMAKE_MODULE_PATH
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/../PetaVision/docs/cmake/Modules/")
+
+if (NOT LIBSNDFILE_FOUND)
+   find_package(LIBSNDFILE REQUIRED)
+endif (NOT LIBSNDFILE_FOUND)
 
 set(PV_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../PetaVision/src")
 set(PV_BINARY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../PetaVision/lib")
