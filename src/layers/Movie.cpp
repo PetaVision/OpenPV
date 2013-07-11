@@ -215,6 +215,7 @@ int Movie::updateState(double time, double dt)
  */
 bool Movie::updateImage(double time, double dt)
 {
+   InterColComm * icComm = getParent()->icCommunicator();
    if(randomMovie){
       randomFrame();
       lastUpdateTime = time;
@@ -233,7 +234,9 @@ bool Movie::updateImage(double time, double dt)
             }
             //Loop when frame number reaches numFrames
             if (frameNumber >= numFrames){
-               fprintf(stderr, "Movie %s: EOF reached, rewinding file \"%s\"\n", name, filename);
+               if( icComm->commRank()==0 ) {
+                  fprintf(stderr, "Movie %s: EOF reached, rewinding file \"%s\"\n", name, filename);
+               }
                frameNumber = 0;
             }
          }

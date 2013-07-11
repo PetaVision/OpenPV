@@ -25,12 +25,18 @@ protected:
    RescaleLayer();
    int initialize(const char * name, HyPerCol * hc, HyPerLayer * clone);
    int setParams(PVParams * params);
-   void readSetMax(PVParams * params);
-   void readSetMin(PVParams * params);
+   void readTargetMax(PVParams * params);
+   void readTargetMin(PVParams * params);
+   void readTargetMean(PVParams * params);
+   void readTargetStd(PVParams * params);
+   void readRescaleMethod(PVParams * params);
 private:
    int initialize_base();
-   float setMax;
-   float setMin;
+   float targetMax;
+   float targetMin;
+   float targetMean;
+   float targetStd;
+   char * rescaleMethod; //can be either maxmin or meanstd
 };
 
 }
