@@ -63,8 +63,8 @@ int main(int argc, char * argv[]) {
 
 void * customgroup(const char * keyword, const char * name, HyPerCol * hc) {
    PVParams * params = hc->parameters();
-   HyPerLayer * preLayer;
-   HyPerLayer * postLayer;
+   char * preLayerName = NULL;
+   char * postLayerName = NULL;
    void * addedGroup = NULL;
    const char * filename;
    if( !strcmp(keyword, "PlasticConnTestLayer") ) {
@@ -73,29 +73,26 @@ void * customgroup(const char * keyword, const char * name, HyPerCol * hc) {
       addedGroup = (void *) addedLayer;
    }
    else if( !strcmp(keyword, "PlasticTestConn") ) {
-      getPreAndPostLayers(name, hc, &preLayer, &postLayer);
+      HyPerConn::getPreAndPostLayerNames(name, hc->parameters(), &preLayerName, &postLayerName);
       HyPerConn * addedConn = NULL;
-      if( preLayer && postLayer ) {
+      if( preLayerName && postLayerName ) {
          InitWeights * weightInitializer = createInitWeightsObject(name, hc);
          if( weightInitializer == NULL ) {
             weightInitializer = getDefaultInitWeightsMethod(keyword);
          }
          filename = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
 
-         addedConn = (HyPerConn * ) new PlasticTestConn(name, hc, preLayer, postLayer, filename, weightInitializer);
+         addedConn = (HyPerConn * ) new PlasticTestConn(name, hc, preLayerName, postLayerName, filename, weightInitializer);
       }
       checknewobject((void *) addedConn, keyword, name, hc);
       addedGroup = (void *) addedConn;
    }
    else if( !strcmp( keyword, "PlasticConnTestProbe" ) ) {
       PlasticConnTestProbe * addedProbe = NULL;
-      int kernelIndex = params->value(name, "kernelIndex");
-      int arborID = params->value(name, "arborId");
       const char * targetConnName = params->stringValue(name, "targetConnection");
       HyPerConn * targetConn = hc->getConnFromName(targetConnName);
       if( targetConn ) {
-         const char * filename = params->stringValue(name, "probeOutputFile");
-         addedProbe = new PlasticConnTestProbe(name, filename, targetConn, kernelIndex, arborID);
+         addedProbe = new PlasticConnTestProbe(name, hc);
          if( checknewobject((void *) addedProbe, keyword, name, hc) == PV_SUCCESS ) {
          }
       }
@@ -105,6 +102,8 @@ void * customgroup(const char * keyword, const char * name, HyPerCol * hc) {
       }
       addedGroup = (void *) addedProbe;
    }
+   free(preLayerName);
+   free(postLayerName);
    return addedGroup;
 }
 

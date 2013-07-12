@@ -14,14 +14,14 @@ namespace PV {
 
 class PlasticConnTestProbe: public KernelProbe {
 public:
-   PlasticConnTestProbe(const char * probename, const char * filename, HyPerConn * conn, int kernelIndex, int arborId);
+   PlasticConnTestProbe(const char * probename, HyPerCol * hc);
 
    virtual int outputState(double timed);
 
    virtual ~PlasticConnTestProbe();
 
 protected:
-   int initialize(const char * probename, const char * filename, HyPerConn * conn, int kernelIndex, int arborId);
+   int initialize(const char * probename, HyPerCol * hc);
 
 protected:
    bool errorPresent;
