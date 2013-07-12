@@ -9,18 +9,22 @@
 
 namespace PV {
 
-VaryingKernelConn::VaryingKernelConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
+VaryingKernelConn::VaryingKernelConn(const char * name, HyPerCol * hc,
+      const char * pre_layer_name, const char * post_layer_name,
       const char * filename, InitWeights *weightInit) : KernelConn() {
-   initialize(name, hc, pre, post, filename, weightInit);
+   initialize(name, hc, pre_layer_name, post_layer_name, filename, weightInit);
 }
 
 VaryingKernelConn::~VaryingKernelConn() {}
 
 int VaryingKernelConn::initialize(const char * name, HyPerCol * hc,
-      HyPerLayer * pre, HyPerLayer * post,
+      const char * pre_layer_name, const char * post_layer_name,
       const char * filename, InitWeights *weightInit) {
-   KernelConn::initialize(name, hc, pre, post, filename, weightInit);
+   return KernelConn::initialize(name, hc, pre_layer_name, post_layer_name, filename, weightInit);
+}
 
+int VaryingKernelConn::allocateDataStructures() {
+   KernelConn::allocateDataStructures();
    // initialize all dW's to one.
    int syPatch = yPatchStride();
    for(int kAxon = 0; kAxon < this->numberOfAxonalArborLists(); kAxon++){

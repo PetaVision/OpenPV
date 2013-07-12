@@ -15,15 +15,16 @@ namespace PV {
 class VaryingKernelConn : public KernelConn {
 
 public:
-   VaryingKernelConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
+   VaryingKernelConn(const char * name, HyPerCol * hc,
+         const char * pre_layer_name, const char * post_layer_name,
          const char * filename, InitWeights *weightInit);
    virtual ~VaryingKernelConn();
+   virtual int allocateDataStructures();
 
 protected:
    int initialize(const char * name, HyPerCol * hc,
-                  HyPerLayer * pre, HyPerLayer * post,
-                  const char * filename,
-                  InitWeights *weightInit=NULL);
+         const char * pre_layer_name, const char * post_layer_name,
+         const char * filename, InitWeights *weightInit=NULL);
    virtual int setParams(PVParams * inputParams);
    virtual void readPlasticityFlag(PVParams * params);
    virtual void readShmget_flag(PVParams * params);

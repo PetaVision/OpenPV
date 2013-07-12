@@ -84,35 +84,33 @@ int main(int argc, char * argv[]) {
 void * customgroup(const char * keyword, const char * name, HyPerCol * hc) {
    void * addedGroup = NULL;
    PVParams * params = hc->parameters();
+   char * preLayerName = NULL;
+   char * postLayerName = NULL;
    if( !strcmp(keyword, "CPTestInputLayer") ) {
       addedGroup = (void *) new CPTestInputLayer(name, hc);
    }
    if( !strcmp(keyword, "VaryingKernelConn") ) {
-      HyPerLayer * preLayer;
-      HyPerLayer * postLayer;
-      getPreAndPostLayers(name, hc, &preLayer, &postLayer);
-      if( preLayer && postLayer ) {
+      HyPerConn::getPreAndPostLayerNames(name, params, &preLayerName, &postLayerName);
+      if( preLayerName && postLayerName ) {
          InitWeights *weightInitializer;
          weightInitializer = createInitWeightsObject(name, hc);
          if( weightInitializer == NULL ) {
             weightInitializer = getDefaultInitWeightsMethod(keyword);
          }
          const char * fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
-         addedGroup = (void * ) new VaryingKernelConn(name, hc, preLayer, postLayer, fileName, weightInitializer);
+         addedGroup = (void * ) new VaryingKernelConn(name, hc, preLayerName, postLayerName, fileName, weightInitializer);
       }
    }
    if( !strcmp(keyword, "VaryingHyPerConn") ) {
-      HyPerLayer * preLayer;
-      HyPerLayer * postLayer;
-      getPreAndPostLayers(name, hc, &preLayer, &postLayer);
-      if( preLayer && postLayer ) {
+      HyPerConn::getPreAndPostLayerNames(name, params, &preLayerName, &postLayerName);
+      if( preLayerName && postLayerName ) {
          InitWeights *weightInitializer;
          weightInitializer = createInitWeightsObject(name, hc);
          if( weightInitializer == NULL ) {
             weightInitializer = getDefaultInitWeightsMethod(keyword);
          }
          const char * fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
-         addedGroup = (void * ) new VaryingHyPerConn(name, hc, preLayer, postLayer, fileName, weightInitializer);
+         addedGroup = (void * ) new VaryingHyPerConn(name, hc, preLayerName, postLayerName, fileName, weightInitializer);
       }
    }
    return addedGroup;

@@ -9,18 +9,24 @@
 
 namespace PV {
 
-VaryingHyPerConn::VaryingHyPerConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
+VaryingHyPerConn::VaryingHyPerConn(const char * name, HyPerCol * hc,
+      const char * pre_layer_name, const char * post_layer_name,
       const char * filename, InitWeights *weightInit) : HyPerConn() {
-   initialize(name, hc, pre, post, filename, weightInit);
+   initialize(name, hc, pre_layer_name, post_layer_name, filename, weightInit);
 }
 
 VaryingHyPerConn::~VaryingHyPerConn() {}
 
 int VaryingHyPerConn::initialize(const char * name, HyPerCol * hc,
-         HyPerLayer * pre, HyPerLayer * post,
-         const char * filename, InitWeights *weightInit) {
-   HyPerConn::initialize(name, hc, pre, post, filename, weightInit);
+      const char * pre_layer_name, const char * post_layer_name,
+      const char * filename, InitWeights *weightInit) {
+   HyPerConn::initialize(name, hc, pre_layer_name, post_layer_name, filename, weightInit);
 
+   return PV_SUCCESS;
+}
+
+int VaryingHyPerConn::allocateDataStructures() {
+   HyPerConn::allocateDataStructures();
    // initialize all dW's to one.
    int syPatch = yPatchStride();
    for(int kAxon = 0; kAxon < numberOfAxonalArborLists(); kAxon++){
@@ -36,6 +42,7 @@ int VaryingHyPerConn::initialize(const char * name, HyPerCol * hc,
          }
       }
    }
+
    return PV_SUCCESS;
 }
 
