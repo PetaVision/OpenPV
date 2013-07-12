@@ -18,25 +18,24 @@ int main(int argc, char * argv[]) {
 void * customgroups(const char * keyword, const char * name, HyPerCol * hc) {
    bool errorFound = false;
    void * newobject = NULL;
+   char * pre_layer_name = NULL;
+   char * post_layer_name = NULL;
+   PVParams * params = hc->parameters();
    if (!strcmp( keyword, "HyperConnDebugInitWeights") ) {
-      HyPerLayer * pre = NULL;
-      HyPerLayer * post = NULL;
-      getPreAndPostLayers(name, hc, &pre, &post);
-      const char * copiedConnName = hc->parameters()->stringValue(name, "copiedConn");
+      HyPerConn::getPreAndPostLayerNames(name, params, &pre_layer_name, &post_layer_name);
+      const char * copiedConnName = params->stringValue(name, "copiedConn");
       HyPerConn * copiedConn = hc->getConnFromName(copiedConnName);
-      newobject = new HyperConnDebugInitWeights(name, hc, pre, post, copiedConn);
+      newobject = new HyperConnDebugInitWeights(name, hc, pre_layer_name, post_layer_name, copiedConn);
       if( !newobject ) {
           fprintf(stderr, "Group \"%s\": Unable to create HyperConnDebugInitWeights\n", name);
           errorFound = true;
       }
    }
    else if (!strcmp(keyword, "KernelConnDebugInitWeights") ) {
-      HyPerLayer * pre = NULL;
-      HyPerLayer * post = NULL;
-      getPreAndPostLayers(name, hc, &pre, &post);
-      const char * copiedConnName = hc->parameters()->stringValue(name, "copiedConn");
+      HyPerConn::getPreAndPostLayerNames(name, params, &pre_layer_name, &post_layer_name);
+      const char * copiedConnName = params->stringValue(name, "copiedConn");
       HyPerConn * copiedConn = hc->getConnFromName(copiedConnName);
-      newobject = new KernelConnDebugInitWeights(name, hc, pre, post, copiedConn);
+      newobject = new KernelConnDebugInitWeights(name, hc, pre_layer_name, post_layer_name, copiedConn);
       if( !newobject ) {
           fprintf(stderr, "Group \"%s\": Unable to create KernelConnDebugInitWeights\n", name);
           errorFound = true;
@@ -65,5 +64,7 @@ void * customgroups(const char * keyword, const char * name, HyPerCol * hc) {
       assert(targetlayer);
       checknewobject(newobject, keyword, name, hc);
    }
+   free(pre_layer_name);
+   free(post_layer_name);
    return newobject;
 }

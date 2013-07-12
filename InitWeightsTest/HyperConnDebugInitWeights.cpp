@@ -16,11 +16,12 @@ HyperConnDebugInitWeights::HyperConnDebugInitWeights()
    initialize_base();
 }
 
-HyperConnDebugInitWeights::HyperConnDebugInitWeights(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
+HyperConnDebugInitWeights::HyperConnDebugInitWeights(const char * name, HyPerCol * hc,
+      const char * pre_layer_name, const char * post_layer_name,
       HyPerConn *copiedConn) : HyPerConn()
 {
    initialize_base();
-   HyperConnDebugInitWeights::initialize(name, hc, pre, post, copiedConn);
+   HyperConnDebugInitWeights::initialize(name, hc, pre_layer_name, post_layer_name, copiedConn);
 }
 
 HyperConnDebugInitWeights::~HyperConnDebugInitWeights()
@@ -28,9 +29,10 @@ HyperConnDebugInitWeights::~HyperConnDebugInitWeights()
    // TODO Auto-generated destructor stub
 }
 
-int HyperConnDebugInitWeights::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
+int HyperConnDebugInitWeights::initialize(const char * name, HyPerCol * hc,
+      const char * pre_layer_name, const char * post_layer_name,
       HyPerConn *copiedConn) {
-   HyPerConn::initialize(name, hc, pre, post, NULL, new InitWeights());
+   HyPerConn::initialize(name, hc, pre_layer_name, post_layer_name, NULL, new InitWeights());
    otherConn=copiedConn;
    return PV_SUCCESS;
 }

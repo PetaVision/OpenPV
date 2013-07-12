@@ -15,12 +15,14 @@ namespace PV {
 class KernelConnDebugInitWeights: public PV::KernelConn {
 public:
    KernelConnDebugInitWeights();
-   KernelConnDebugInitWeights(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
-             HyPerConn *copiedConn);
+   KernelConnDebugInitWeights(const char * name, HyPerCol * hc,
+         const char * pre_layer_name, const char * post_layer_name,
+         HyPerConn *copiedConn);
    virtual ~KernelConnDebugInitWeights();
 
    virtual int initialize_base();
-   int initialize(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
+   int initialize(const char * name, HyPerCol * hc,
+         const char * pre_layer_name, const char * post_layer_name,
          HyPerConn *copiedConn);
    virtual PVPatch *** initializeWeights(PVPatch *** arbors, pvdata_t ** dataStart, int numPatches,
          const char * filename);
