@@ -38,11 +38,12 @@ int customexit(HyPerCol * hc, int argc, char * argv[]) {
 void * customgroup(const char * keyword, const char * name, HyPerCol * hc) {
    void * addedGroup = NULL;
    if (!strcmp(keyword, "AverageRateConn") ) {
-      HyPerLayer * pre, * post;
+      char * pre_layer_name = NULL;
+      char * post_layer_name = NULL;
       AverageRateConn * g = NULL;
-      getPreAndPostLayers(name, hc, &pre, &post);
-      if( pre && post ) {
-         g = new AverageRateConn(name, hc, pre, post);
+      HyPerConn::getPreAndPostLayerNames(name, hc->parameters(), &pre_layer_name, &post_layer_name);
+      if( pre_layer_name && post_layer_name ) {
+         g = new AverageRateConn(name, hc, pre_layer_name, post_layer_name);
       }
       if (checknewobject((void *) g, keyword, name, hc) == PV_SUCCESS) {
          addedGroup = (void *) g;

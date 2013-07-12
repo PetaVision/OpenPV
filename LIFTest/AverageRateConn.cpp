@@ -13,9 +13,9 @@ AverageRateConn::AverageRateConn() {
    initialize_base();
 }
 
-AverageRateConn::AverageRateConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post) {
+AverageRateConn::AverageRateConn(const char * name, HyPerCol * hc,  const char * pre_layer_name, const char * post_layer_name) {
    initialize_base();
-   initialize(name, hc, pre, post);
+   initialize(name, hc, pre_layer_name, post_layer_name);
 }
 
 AverageRateConn::~AverageRateConn() {
@@ -25,8 +25,8 @@ int AverageRateConn::initialize_base() {
    return PV_SUCCESS;
 }
 
-int AverageRateConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post) {
-   int status = IdentConn::initialize(name, hc, pre, post, NULL);
+int AverageRateConn::initialize(const char * name, HyPerCol * hc,  const char * pre_layer_name, const char * post_layer_name) {
+   int status = IdentConn::initialize(name, hc, pre_layer_name, post_layer_name, NULL);
    return status;
 }
 
