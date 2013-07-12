@@ -17,16 +17,10 @@ namespace PV {
  * @kPost
  * @arbID
  */
-PostConnProbe::PostConnProbe(const char * filename, HyPerConn * conn, int kPost, int arbID)
+PostConnProbe::PostConnProbe(const char * probename, HyPerCol * hc)
    : PatchProbe()
 {
-   initialize(NULL, filename, conn, INDEX_METHOD, 0, -1, -1, -1, arbID);
-}
-
-PostConnProbe::PostConnProbe(const char * filename, HyPerConn * conn, int kxPost, int kyPost, int kfPost, int arbID)
-   : PatchProbe()
-{
-   initialize(NULL, filename, conn, COORDINATE_METHOD, -1, 0, 0, 0, arbID);
+   initialize(probename, hc);
 }
 
 PostConnProbe::~PostConnProbe()
@@ -36,17 +30,45 @@ PostConnProbe::~PostConnProbe()
 }
 
 
-int PostConnProbe::initialize(const char * probename, const char * filename, HyPerConn * conn, PatchIDMethod method, int kPost, int kxPost, int kyPost, int kfPost, int arbID) {
-   int status = PatchProbe::initialize(NULL, filename, conn, method, kPost, kxPost, kyPost, kfPost, arbID);
-   this->kxPost = kxPost;
-   this->kyPost = kyPost;
-   this->kfPost = kfPost;
-   this->kPost = kPost;
+int PostConnProbe::initialize(const char * probename, HyPerCol * hc) {
+   int status = PatchProbe::initialize(probename, hc);
    this->image = NULL;
    this->wPrev = NULL;
    this->wActiv = NULL;
    return status;
 }
+
+int PostConnProbe::getPatchID() {
+   assert(parent);
+   PVParams * params = parent->parameters();
+   int indexmethod = params->present(name, "kPost");
+   int coordmethod = params->present(name, "kxPost") && params->present(name,"kyPost") && params->present(name,"kfPost");
+   if( indexmethod && coordmethod ) {
+      fprintf(stderr, "PatchProbe \"%s\": Ambiguous definition with both kPost and (kxPost,kyPost,kfPost) defined\n", name);
+      return NULL;
+   }
+   if( !indexmethod && !coordmethod ) {
+      fprintf(stderr, "PatchProbe \"%s\": Exactly one of kPost and (kxPost,kyPost,kfPost) must be defined\n", name);
+      return NULL;
+   }
+   if (indexmethod) {
+      this->kPost = params->value(name, "kPost");
+      this->kxPost = INT_MIN;
+      this->kyPost = INT_MIN;
+      this->kfPost = INT_MIN;
+      patchIDMethod = INDEX_METHOD;
+   }
+   else if (coordmethod) {
+      this->kPost = INT_MIN;
+      this->kxPost = params->present(name, "kxPost");
+      this->kyPost = params->present(name, "kyPost");
+      this->kfPost = params->present(name, "kfPost");
+      patchIDMethod = COORDINATE_METHOD;
+   }
+   else assert(false);
+   return PV_SUCCESS;
+}
+
 /**
  * @timef
  * NOTES:
@@ -136,7 +158,7 @@ int PostConnProbe::outputState(double timef)
       fprintf(fp, "\n");
    }
    if (stdpVars && changed) {
-      text_write_patch_extra(fp, w, wPostData, wPrev, wActiv);
+      text_write_patch_extra(fp, w, wPostData, wPrev, wActiv, targetConn);
       fflush(fp);
    }
 
@@ -157,8 +179,6 @@ int PostConnProbe::outputState(double timef)
    return 0;
 }
 
-//broken but never referenced: if used need to change patch size and strides to match post-synaptic patch
-/*
 int PostConnProbe::text_write_patch_extra(FILE * fp, PVPatch * patch,
                                           pvdata_t * data, pvdata_t * prev, pvdata_t * activ, HyPerConn * parentConn)
 {
@@ -169,9 +189,9 @@ int PostConnProbe::text_write_patch_extra(FILE * fp, PVPatch * patch,
    const int nf = parentConn->fPatchSize(); //patch->nf;
 
    const int sx = parentConn->xPatchStride(); //patch->sx;
-   assert(sx == nfp);
+   assert(sx == parentConn->fPatchSize());
    const int sy = parentConn->yPatchStride(); //patch->sy;
-   assert(sy == nf*nxp); // stride could be weird at border
+   assert(sy == nf*parentConn->fPatchSize()); // stride could be weird at border
    const int sf = parentConn->fPatchStride(); //patch->sf;
    assert(sf == 1);
 
@@ -201,7 +221,5 @@ int PostConnProbe::text_write_patch_extra(FILE * fp, PVPatch * patch,
 
    return 0;
 }
-*/
-
 
 } // namespace PV

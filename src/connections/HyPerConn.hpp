@@ -46,17 +46,20 @@ class HyPerConn {
 public:
 	friend class CloneKernelConn;
    HyPerConn();
-   HyPerConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post);
-   HyPerConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
+   HyPerConn(const char * name, HyPerCol * hc, const char * pre_layer_name, const char * post_layer_name);
+   HyPerConn(const char * name, HyPerCol * hc, const char * pre_layer_name, const char * post_layer_name,
              const char * filename);
-   HyPerConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
+   HyPerConn(const char * name, HyPerCol * hc, const char * pre_layer_name, const char * post_layer_name,
              const char * filename, InitWeights *weightInit);
-   HyPerConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
+   HyPerConn(const char * name, HyPerCol * hc, const char * pre_layer_name, const char * post_layer_name,
              InitWeights *weightInit);
    virtual ~HyPerConn();
 #ifdef PV_USE_OPENCL
    virtual int deliverOpenCL(Publisher * pub, const PVLayerCube * cube);
 #endif
+
+   virtual int communicateInitInfo();
+   virtual int allocateDataStructures();
 
    virtual int deliver(Publisher * pub, const PVLayerCube * cube, int neighbor);
    virtual int checkpointRead(const char * cpDir, double* timef);
@@ -94,8 +97,16 @@ public:
       return parent;
    }
 
+   inline const char * getPreLayerName() {
+      return preLayerName;
+   }
+
    inline HyPerLayer* getPre() {
       return pre;
+   }
+
+   inline const char * getPostLayerName() {
+      return postLayerName;
    }
 
    inline HyPerLayer* getPost() {
@@ -318,6 +329,7 @@ public:
    virtual int dataIndexToUnitCellIndex(int dataIndex, int* kx = NULL, int* ky =
          NULL, int* kf = NULL);
    static int decodeChannel(int channel_code, ChannelType * channel_type);
+   static int getPreAndPostLayerNames(const char * name, PVParams * params, char ** preLayerNamePtr, char ** postLayerNamePtr);
 
 #ifdef USE_SHMGET
    virtual bool getShmgetFlag(){
@@ -332,9 +344,13 @@ public:
 #endif
 
 protected:
+   char * preLayerName;
+   char * postLayerName;
    HyPerLayer* pre;
    HyPerLayer* post;
    HyPerCol* parent;
+   char * filename; // Filename if loading weights from a file
+   int fileparams[NUM_WGT_PARAMS]; // The header of the file named by the filename member variable
    int numWeightPatches; // Number of PVPatch structures in buffer pointed to by wPatches[arbor]
    int numDataPatches; // Number of blocks of pvdata_t's in buffer pointed to by wDataStart[arbor]
 
@@ -365,6 +381,7 @@ private:
 protected:
    char* name;
    int nxp, nyp, nfp; // size of weight dimensions
+   bool warnDefaultNfp; // Whether to print a warning if the default nfp is used.
    int nxpShrunken, nypShrunken, offsetShrunken; // if user requires a smaller patch than is required by PetaVision
    int sxp, syp, sfp; // stride in x,y,features
    ChannelType channel; // which channel of the post to update (e.g. inhibit)
@@ -413,6 +430,12 @@ protected:
    bool preActivityIsNotRate; // TODO Rename this member variable
    bool normalizeTotalToPost; // if false, normalize the sum of weights from each presynaptic neuron.  If true, normalize the sum of weights into a postsynaptic neuron.
    float dWMax;  // dW scale factor
+   bool useListOfArborFiles;
+   bool combineWeightFiles;
+
+   int neededRNGSeeds;  // The number of independent random number generators used by the layer, summed over all MPI processes.
+   unsigned long rngSeedBase; // The starting seed for rng.  The parent HyPerCol reserves {rngSeedbase, rngSeedbase+1,...rngSeedbase+neededRNGSeeds-1} for use by this layer
+
 #ifdef PV_USE_OPENCL
    bool gpuAccelerateFlag; // Whether to accelerate the connection on a GPU
    bool ignoreGPUflag;     // Don't use GPU (overrides gpuAccelerateFlag)
@@ -487,8 +510,9 @@ protected:
 
    int calcUnitCellIndex(int patchIndex, int* kxUnitCellIndex = NULL,
          int* kyUnitCellIndex = NULL, int* kfUnitCellIndex = NULL);
-   virtual int setPatchSize(const char* filename);
+   // virtual int setPatchSize();
    virtual int setPatchStrides();
+   int checkPatchDimensions();
    virtual int checkPatchSize(int patchSize, int scalePre, int scalePost,
          char dim);
    int calcPatchSize(int n, int kex, int* kl, int* offset, int* nxPatch,
@@ -499,10 +523,18 @@ protected:
    void createArborsOutOfMemory();
    int initializeDelays(const float * fDelayArray, int size);
    virtual int constructWeights(const char* filename);
-   int initialize(const char* name, HyPerCol* hc, HyPerLayer* pre,
-         HyPerLayer* post, const char* filename,
+   int initialize(const char* name, HyPerCol* hc, const char * pre_layer_name,
+         const char * post_layer_name, const char* filename,
          InitWeights* weightInit = NULL);
+   int setParent(HyPerCol * hc);
+   int setName(const char * name);
+   int setPreLayerName(const char * pre_name);
+   int setPostLayerName(const char * post_name);
+   int setFilename(const char * filename);
+   int setWeightInitializer(InitWeights * weightInit);
    virtual int initPlasticityPatches();
+   virtual int setPatchSize(); // Sets nxp, nyp, nfp if weights are loaded from file.  Subclasses override if they have specialized ways of setting patch size that needs to go in the communicate stage.
+                               // (e.g. BIDSConn uses pre and post layer size to set nxp,nyp, but pre and post aren't set until communicateInitInfo().
    virtual PVPatch*** initializeWeights(PVPatch*** arbors, float** dataStart,
          int numPatches, const char* filename);
    virtual InitWeights* getDefaultInitWeightsMethod(const char* keyword);
@@ -517,7 +549,7 @@ protected:
    virtual int initNormalize();
    virtual int checkPVPFileHeader(Communicator* comm, const PVLayerLoc* loc,
          int params[], int numParams);
-   virtual int checkWeightsHeader(const char* filename, int wgtParams[]);
+   virtual int checkWeightsHeader(const char* filename, const int wgtParams[]);
    // virtual int deleteWeights(); // Changed to a private method.  Should not be virtual since it's called from the destructor.
    virtual int adjustAxonalArbors(int arborId);
    int checkpointFilename(char * cpFilename, int size, const char * cpDir);
@@ -542,7 +574,13 @@ protected:
    virtual void readInitialWriteTime(PVParams * params);
    virtual void readDelay(PVParams * params);
    virtual int readPatchSize(PVParams * params);
+   virtual int readPatchSizeFromFile(const char * filename);
+   virtual int readPatchSizeFromParams(PVParams * params);
    virtual int readNfp(PVParams * params);
+   virtual void readUseListOfArborFiles(PVParams * params);
+   virtual void readCombineWeightFiles(PVParams * params);
+
+   virtual int setNeededRNGSeeds();
 
 #ifdef PV_USE_OPENCL
    virtual void initIgnoreGPUFlag(); // sets the ignoreGPUFlag parameter.  virtual so that a class can make it always false or always true
@@ -608,6 +646,25 @@ public:
       //free(patches);
 
       return 0;
+   }
+
+protected:
+   static inline int computeMargin(int prescale, int postscale, int patchsize) {
+   // 2^prescale is the distance between adjacent neurons in pre-layer, thus a smaller prescale means a layer with more neurons
+      int margin = 0;
+      if (prescale<postscale) { // Density of pre is greater than density of pre
+         assert(patchsize%2==1);
+         int densityratio = (int) powf(2.0f,(float)(postscale-prescale));
+         margin = ((patchsize-1)/2) * densityratio;
+      }
+      else
+      {
+         int densityratio = (int) powf(2.0f,(float)(prescale-postscale));
+         int numcells = patchsize/densityratio;
+         assert(numcells*densityratio==patchsize && numcells%2==1);
+         margin = (numcells-1)/2;
+      }
+      return margin;
    }
 
 };

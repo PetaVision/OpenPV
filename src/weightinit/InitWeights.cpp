@@ -207,6 +207,7 @@ int InitWeights::calcWeights(pvdata_t * dataStart, int dataPatchIndex, int arbor
 }
 
 int InitWeights::initialize_base() {
+   neededRNGSeeds = 0;
    return PV_SUCCESS;
 }
 

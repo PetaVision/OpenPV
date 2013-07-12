@@ -13,10 +13,12 @@
 #include "ColProbe.hpp"
 #include "../columns/HyPerCol.hpp"
 #include "../layers/HyPerLayer.hpp"
-#include "ConnFunctionProbe.hpp"
+// #include "ConnFunctionProbe.hpp" // Moved to .cpp because of circular dependencies between GenColProbe and ConnFunctionProbe
 #include "LayerFunctionProbe.hpp"
 
 namespace PV {
+
+class ConnFunctionProbe;
 
 typedef struct gencolprobelayerterm_ {
    LayerFunctionProbe * function;

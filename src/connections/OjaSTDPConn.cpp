@@ -18,11 +18,12 @@ OjaSTDPConn::OjaSTDPConn()
 	initialize_base();
 }
 
-OjaSTDPConn::OjaSTDPConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
-      HyPerLayer * post, const char * filename, InitWeights *weightInit)
+OjaSTDPConn::OjaSTDPConn(const char * name, HyPerCol * hc,
+      const char * pre_layer_name, const char * post_layer_name,
+      const char * filename, InitWeights *weightInit)
 {
    initialize_base();
-   initialize(name, hc, pre, post, filename, weightInit);
+   initialize(name, hc, pre_layer_name, post_layer_name, filename, weightInit);
 #ifdef PV_USE_OPENCL
    if(gpuAccelerateFlag)
       initializeGPU();
@@ -93,39 +94,43 @@ int OjaSTDPConn::initialize_base() {
 }
 
 int OjaSTDPConn::initialize(const char * name, HyPerCol * hc,
-      HyPerLayer * pre, HyPerLayer * post,
+      const char * pre_layer_name, const char * post_layer_name,
       const char * filename, InitWeights *weightInit)
 {
 
-   int status = HyPerConn::initialize(name, hc, pre, post, filename, weightInit);
+   int status = HyPerConn::initialize(name, hc, pre_layer_name, post_layer_name, filename, weightInit);
 
-   status |= initPlasticityPatches(); // needs to be called after HyPerConn::initialize since it depends on post being set
+   // status |= initPlasticityPatches(); // called by HyPerConn::constructWeights since initPlasticityPatches is virtual
 
-   point2PreSynapticWeights(); //set up post synaptic weight monitoring
+   // point2PreSynapticWeights(); // Moved to allocateDataStructures since point2PreSynapticWeights allocates post patches
 
-   //Need to assert that the previous layer is a LIF layer.
-   HyPerLayer * postHyPerLayer = this->postSynapticLayer();
-   LIF * postLIF = NULL;
-   postLIF = dynamic_cast <LIF*> (postHyPerLayer);
-   assert(postLIF != NULL);
+   // Moved to communicate since postSynapticLayer won't be set until then.
+   //
+   // //Need to assert that the previous layer is a LIF layer.
+   // HyPerLayer * postHyPerLayer = this->postSynapticLayer();
+   // LIF * postLIF = NULL;
+   // postLIF = dynamic_cast <LIF*> (postHyPerLayer);
+   // assert(postLIF != NULL);
 
    // //Grab VthRest from presynaptic LIF params // Commented out March 22, 2013, as VthRest is unused
    // float VthRest;
    // VthRest = postLIF->getLIFParams()->VthRest;
 
-   //allocate ampLTD and set to initial value
-   //Restricted post
-   ampLTD = (float *) calloc(post->getNumNeurons(), sizeof(float));
-   for (int kRes = 0; kRes < post->getNumNeurons(); kRes++) {
-      ampLTD[kRes] = initAmpLTD;
-   }
+   // Moved allocation of ampLTD to allocateDataStructures
+   // //allocate ampLTD and set to initial value
+   // //Restricted post
+   // ampLTD = (float *) calloc(post->getNumNeurons(), sizeof(float));
+   // for (int kRes = 0; kRes < post->getNumNeurons(); kRes++) {
+   //    ampLTD[kRes] = initAmpLTD;
+   // }
 
 
-   mpi_datatype = Communicator::newDatatypes(pre->getLayerLoc());
-   if (mpi_datatype==NULL) {
-      fprintf(stderr, "LCALIFLateralKernelConn \"%s\" error creating mpi_datatype\n", name);
-      abort();
-   }
+   // Moved creation of mpi_datatype to allocateDataStructures
+   // mpi_datatype = Communicator::newDatatypes(pre->getLayerLoc());
+   // if (mpi_datatype==NULL) {
+   //    fprintf(stderr, "LCALIFLateralKernelConn \"%s\" error creating mpi_datatype\n", name);
+   //    abort();
+   // }
 
    return status;
 }
@@ -185,6 +190,37 @@ void OjaSTDPConn::readLTDscale(PVParams * params) {
       }
       abort();
    }
+}
+
+int OjaSTDPConn::communicateInitInfo() {
+   int status = HyPerConn::communicateInitInfo();
+   //Need to assert that the previous layer is a LIF layer.
+   HyPerLayer * postHyPerLayer = this->postSynapticLayer();
+   LIF * postLIF = NULL;
+   postLIF = dynamic_cast <LIF*> (postHyPerLayer);
+   assert(postLIF != NULL);
+
+   return status;
+}
+
+int OjaSTDPConn::allocateDataStructures() {
+   int status = HyPerConn::allocateDataStructures();
+   point2PreSynapticWeights(); //set up post synaptic weight monitoring
+
+   //allocate ampLTD and set to initial value
+   //Restricted post
+   ampLTD = (float *) calloc(post->getNumNeurons(), sizeof(float));
+   for (int kRes = 0; kRes < post->getNumNeurons(); kRes++) {
+      ampLTD[kRes] = initAmpLTD;
+   }
+
+   mpi_datatype = Communicator::newDatatypes(pre->getLayerLoc());
+   if (mpi_datatype==NULL) {
+      fprintf(stderr, "LCALIFLateralKernelConn \"%s\" error creating mpi_datatype\n", name);
+      abort();
+   }
+
+   return status;
 }
 
 int OjaSTDPConn::initPlasticityPatches()

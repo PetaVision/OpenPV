@@ -17,15 +17,18 @@ namespace PV {
 class STDP3Conn : HyPerConn {
 public:
    STDP3Conn();
-   STDP3Conn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
-               const char * filename=NULL, bool stdpFlag=true,
-               InitWeights *weightInit=NULL);
+   STDP3Conn(const char * name, HyPerCol * hc,
+             const char * pre_layer_name, const char * post_layer_name,
+             const char * filename=NULL, bool stdpFlag=true,
+             InitWeights *weightInit=NULL);
    virtual ~STDP3Conn();
 
 #ifdef PV_USE_OPENCL
    virtual int initializeThreadBuffers(const char * kernelName);
    virtual int initializeThreadKernels(const char * kernelName);
 #endif // PV_USE_OPENCL
+
+   virtual int allocateDataStructures();
 
    // virtual int deleteWeights(); // Changed to a private method.  Should not be virtual since it's called from the destructor.
 
@@ -42,8 +45,8 @@ protected:
 
    int initialize_base();
    int initialize(const char * name, HyPerCol * hc,
-                     HyPerLayer * pre, HyPerLayer * post,
-                     const char * filename, bool stdpFlag, InitWeights *weightInit);
+                  const char * pre_layer_name, const char * post_layer_name,
+                  const char * filename, bool stdpFlag, InitWeights *weightInit);
    int setParams(PVParams * params);
    void readAmpLTP(PVParams * params);
    void readAmpLTD(PVParams * params);

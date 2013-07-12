@@ -14,10 +14,10 @@ LCALIFLateralKernelConn::LCALIFLateralKernelConn()
    initialize_base();
 }
 
-LCALIFLateralKernelConn::LCALIFLateralKernelConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
+LCALIFLateralKernelConn::LCALIFLateralKernelConn(const char * name, HyPerCol * hc, const char * pre_layer_name, const char * post_layer_name,
       const char * filename, InitWeights *weightInit) {
    initialize_base();
-   initialize(name, hc, pre, post, filename, weightInit);
+   initialize(name, hc, pre_layer_name, post_layer_name, filename, weightInit);
 }
 
 LCALIFLateralKernelConn::~LCALIFLateralKernelConn()
@@ -36,9 +36,30 @@ int LCALIFLateralKernelConn::initialize_base() {
    return PV_SUCCESS;
 }
 
-int LCALIFLateralKernelConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
+int LCALIFLateralKernelConn::initialize(const char * name, HyPerCol * hc,
+      const char * pre_layer_name, const char * post_layer_name,
       const char * filename, InitWeights * weightInit) {
-   int status = KernelConn::initialize(name, hc, pre, post, filename, weightInit);
+   int status = KernelConn::initialize(name, hc, pre_layer_name, post_layer_name, filename, weightInit);
+   return status;
+}
+
+int LCALIFLateralKernelConn::setParams(PVParams * params) {
+   int status = KernelConn::setParams(params);
+   readIntegrationTimeConstant();
+   readInhibitionTimeConstant();
+   readTargetRate();
+   read_dWUpdatePeriod();
+   return status;
+}
+
+void LCALIFLateralKernelConn::readInitialWeightUpdateTime(PVParams * params) {
+   KernelConn::readInitialWeightUpdateTime(params);
+   dWUpdateTime = weightUpdateTime;
+}
+
+int LCALIFLateralKernelConn::communicateInitInfo() {
+   int status = KernelConn::communicateInitInfo();
+   if (status != PV_SUCCESS) return status;
 
    const PVLayerLoc * preloc = pre->getLayerLoc();
    const PVLayerLoc * postloc = post->getLayerLoc();
@@ -52,8 +73,14 @@ int LCALIFLateralKernelConn::initialize(const char * name, HyPerCol * hc, HyPerL
          fprintf(stderr, "  Pre:  nx=%d, ny=%d, nf=%d, nb=%d\n", nxpre, nypre, nfpre, nbpre);
          fprintf(stderr, "  Post: nx=%d, ny=%d, nf=%d, nb=%d\n", nxpost, nypost, nfpost, nbpost);
       }
+      MPI_Barrier(parent->icCommunicator()->communicator());
       abort();
    }
+  return PV_SUCCESS;
+}
+
+int LCALIFLateralKernelConn::allocateDataStructures() {
+   int status = KernelConn::allocateDataStructures();
 
    // Neurons don't inhibit themselves, only their neighbors; set self-interaction weights to mmzero.
    assert(nxp % 2 == 1 && nyp % 2 == 1 && getNumDataPatches()==nfp);
@@ -86,6 +113,14 @@ int LCALIFLateralKernelConn::initialize(const char * name, HyPerCol * hc, HyPerL
    for (int arbor=1; arbor<num_arbors; arbor++) {
       interiorCounts[arbor] = interiorCounts[0]+arbor*getNumDataPatches()*nxp*nyp*nfp;
    }
+
+   const PVLayerLoc * preloc = pre->getLayerLoc();
+   const PVLayerLoc * postloc = post->getLayerLoc();
+   int nxpre = preloc->nx; int nxpost = postloc->nx;
+   int nypre = preloc->ny; int nypost = postloc->ny;
+   int nfpre = preloc->nf; int nfpost = postloc->nf;
+   int nbpre = preloc->nb; int nbpost = postloc->nb;
+
    int nExt = pre->getNumExtended();
    int sya = getPostExtStrides()->sy;
    int nxglob = preloc->nxGlobal;
@@ -122,20 +157,6 @@ int LCALIFLateralKernelConn::initialize(const char * name, HyPerCol * hc, HyPerL
    MPI_Allreduce(MPI_IN_PLACE, interiorCounts[0], bufsize, MPI_FLOAT, MPI_SUM, parent->icCommunicator()->communicator());
 
    return status;
-}
-
-int LCALIFLateralKernelConn::setParams(PVParams * params) {
-   int status = KernelConn::setParams(params);
-   readIntegrationTimeConstant();
-   readInhibitionTimeConstant();
-   readTargetRate();
-   read_dWUpdatePeriod();
-   return status;
-}
-
-void LCALIFLateralKernelConn::readInitialWeightUpdateTime(PVParams * params) {
-   KernelConn::readInitialWeightUpdateTime(params);
-   dWUpdateTime = weightUpdateTime;
 }
 
 int LCALIFLateralKernelConn::update_dW(int axonId) {

@@ -16,7 +16,8 @@ class NoSelfKernelConn: public PV::KernelConn {
 public:
    NoSelfKernelConn();
 
-   NoSelfKernelConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
+   NoSelfKernelConn(const char * name, HyPerCol * hc,
+               const char * pre_layer_name, const char * post_layer_name,
                const char * filename, InitWeights *weightInit);
    int zeroSelfWeights(int numPatches, int arborId);
    virtual int normalizeWeights();

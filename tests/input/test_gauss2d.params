@@ -6,117 +6,211 @@ debugParsing = false;
 HyPerCol "test_gauss2d column" = {
    nx = 16;
    ny = 16;
+   numSteps = 1;
+   progressStep = 1;
+   writeProgressToErr = false;
+   dt = 1.0;
    outputPath = "output/test_gauss2d/";
+   filenamesContainLayerNames = 2;
+   filenamesContainConnectionNames = 2;
+   checkpointRead = false;
+   checkpointWrite = false;
+   suppressLastOutput = false;
 };
 
 HyPerLayer "test_gauss2d pre" = {
+   restart = false;
    nxScale = 1;
    nyScale = 1;
    nf = 4;
+   phase = 0;
    marginWidth = 2;
+   mirrorBCflag = false;
+   valueBC = 0.0;
+   writeStep = 1.0;
+   initialWriteTime = 0.0;
 };
 
 HyPerLayer "test_gauss2d post" = {
+   restart = false;
    nxScale = 1;
    nyScale = 1;
    nf = 4;
+   phase = 0;
    marginWidth = 2;  
+   mirrorBCflag = false;
+   valueBC = 0.0;
+   writeStep = 1.0;
+   initialWriteTime = 0.0;
 };
 
 HyPerConn "test_gauss2d hyperconn" = {
    weightInitType = "Gauss2DWeight";
    nxp = 5;
    nyp = 5;
+   // nfp;
+   numAxonalArbors = 1;
    channelCode = 0;
    aspect = 2;
    sigma = 3;
    rMax = 5;
    strength = 1.0;
-   normalize = 0.0;
-   normalize_cutoff = 0.0;
+   normalizeMethod = "none";
    writeCompressedWeights = false;
+   plasticityFlag = false;
+   stochasticReleaseFlag = false;
+   preActivityIsNotRate = false;
+   writeStep = 1.0;
+   initialWriteTime = 0.0;
+   writeCompressedCheckpoints = false;
+   selfFlag = false;
+   delay = 0;
+   shrinkPatches = false;
+   
 };
 
 HyPerConn "test_gauss2d kernelconn" = {
    weightInitType = "Gauss2DWeight";
    nxp = 5;
    nyp = 5;
+   // nfp;
+   numAxonalArbors = 1;
    channelCode = 0;
    aspect = 2;
    sigma = 3;
    rMax = 5;
    strength = 1.0;
-   normalize = 0.0;
-   normalize_cutoff = 0.0;
+   normalizeMethod = "none";
    writeCompressedWeights = false;
+   plasticityFlag = false;
+   stochasticReleaseFlag = false;
+   preActivityIsNotRate = false;
+   writeStep = 1.0;
+   initialWriteTime = 0.0;
+   writeCompressedCheckpoints = false;
+   selfFlag = false;
+   delay = 0;
+   shrinkPatches = false;
 };
 
 HyPerLayer "test_gauss2d pre 2" = {
+   restart = false;
    nxScale = 2;
    nyScale = 2;
    nf = 4;
+   phase = 0;
    marginWidth = 4;
+   mirrorBCflag = false;
+   valueBC = 0.0;
+   writeStep = 1.0;
+   initialWriteTime = 0.0;
 };
 
 HyPerLayer "test_gauss2d post 2" = {
+   restart = false;
    nxScale = 2;
    nyScale = 2;
    nf = 4;
+   phase = 0;
    marginWidth = 4;  
+   mirrorBCflag = false;
+   valueBC = 0.0;
+   writeStep = 1.0;
+   initialWriteTime = 0.0;
 };
 
 HyPerConn "test_gauss2d hyperconn 1 to 2" = {
    // test_gauss2d hardcodes InitWeights, which uses Gauss2DWeights
    nxp = 10;  // must be scale factor times odd number
    nyp = 10;
+   // nfp;
+   numAxonalArbors = 1;
    channelCode = 0;
    aspect = 2;
    sigma = 6;
    rMax = 8;
    strength = 1.0;
-   normalize = 0.0;
-   normalize_cutoff = 0.0;
+   normalizeMethod = "none";
    writeCompressedWeights = false;
+   plasticityFlag = false;
+   stochasticReleaseFlag = false;
+   preActivityIsNotRate = false;
+   writeStep = 1.0;
+   initialWriteTime = 0.0;
+   writeCompressedCheckpoints = false;
+   selfFlag = false;
+   delay = 0;
+   shrinkPatches = false;
 };
 
 HyPerConn "test_gauss2d kernelconn 1 to 2" = {
    // test_gauss2d hardcodes InitWeights, which uses Gauss2DWeights
    nxp = 10;  // must be scale factor times odd number
    nyp = 10;
+   // nfp;
+   numAxonalArbors = 1;
    channelCode = 0;
    aspect = 2;
    sigma = 6;
    rMax = 8;
    strength = 1.0;
-   normalize = 0.0;
-   normalize_cutoff = 0.0;
+   normalizeMethod = "none";
    writeCompressedWeights = false;
+   plasticityFlag = false;
+   stochasticReleaseFlag = false;
+   preActivityIsNotRate = false;
+   writeStep = 1.0;
+   initialWriteTime = 0.0;
+   writeCompressedCheckpoints = false;
+   selfFlag = false;
+   delay = 0;
+   shrinkPatches = false;
 };
 
 HyPerConn "test_gauss2d hyperconn 2 to 1" = {
    // test_gauss2d hardcodes InitWeights, which uses Gauss2DWeights
    nxp = 5; // must be odd
    nyp = 5;
+   // nfp;
+   numAxonalArbors = 1;
    channelCode = 0;
    aspect = 2;
    sigma = 3;
    rMax = 5;
    strength = 1.0;
-   normalize = 0.0;
-   normalize_cutoff = 0.0;
+   normalizeMethod = "none";
    writeCompressedWeights = false;
+   plasticityFlag = false;
+   stochasticReleaseFlag = false;
+   preActivityIsNotRate = false;
+   writeStep = 1.0;
+   initialWriteTime = 0.0;
+   writeCompressedCheckpoints = false;
+   selfFlag = false;
+   delay = 0;
+   shrinkPatches = false;
 };
 
 HyPerConn "test_gauss2d kernelconn 2 to 1" = {
    // test_gauss2d hardcodes InitWeights, which uses Gauss2DWeights
    nxp = 5;
    nyp = 5;
+   // nfp;
+   numAxonalArbors = 1;
    channelCode = 0;
    aspect = 2;
    sigma = 3;
    rMax = 5;
    strength = 1.0;
-   normalize = 0.0;
-   normalize_cutoff = 0.0;
+   normalizeMethod = "none";
    writeCompressedWeights = false;
+   plasticityFlag = false;
+   stochasticReleaseFlag = false;
+   preActivityIsNotRate = false;
+   writeStep = 1.0;
+   initialWriteTime = 0.0;
+   writeCompressedCheckpoints = false;
+   selfFlag = false;
+   delay = 0;
+   shrinkPatches = false;
 };

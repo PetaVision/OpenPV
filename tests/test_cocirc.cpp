@@ -23,22 +23,54 @@ int check_cocirc_vs_hyper(HyPerConn * cHyPer, KernelConn * cKernel, int kPre,
 int main(int argc, char * argv[])
 {
    PV::HyPerCol * hc = new PV::HyPerCol("test_cocirc column", argc, argv);
-   PV::Example * pre = new PV::Example("test_cocirc pre", hc);
-   PV::Example * post = new PV::Example("test_cocirc post", hc);
-   PV::HyPerConn * cHyPer = new HyPerConn("test_cocirc hyperconn", hc, pre,
-                                          post);
+   
+   const char * preLayerName = "test_cocirc pre";
+   const char * postLayerName = "test_cocirc post";
+   const char * pre2LayerName = "test_cocirc pre 2";
+   const char * post2LayerName = "test_cocirc post 2";
+   
+   PV::Example * pre = new PV::Example(preLayerName, hc);
+   assert(pre);
+   PV::Example * post = new PV::Example(postLayerName, hc);
+   assert(post);
+   PV::HyPerConn * cHyPer = new HyPerConn("test_cocirc hyperconn", hc,
+                                          preLayerName, postLayerName);
+   assert(cHyPer);
    PV::KernelConn * cCocirc = new KernelConn("test_cocirc cocircconn", hc,
-                                             pre, post);
+                                             preLayerName, postLayerName);
+   assert(cCocirc);
+   
    PV::Example * pre2 = new PV::Example("test_cocirc pre 2", hc);
+   assert(pre2);
    PV::Example * post2 = new PV::Example("test_cocirc post 2", hc);
-   PV::HyPerConn * cHyPer1to2 = new HyPerConn("test_cocirc hyperconn 1 to 2", hc, pre,
-                                              post2);
+   assert(post2);
+   PV::HyPerConn * cHyPer1to2 = new HyPerConn("test_cocirc hyperconn 1 to 2", hc,
+                                              preLayerName, post2LayerName);
+   assert(cHyPer1to2);
    PV::KernelConn * cCocirc1to2 = new KernelConn("test_cocirc cocircconn 1 to 2", hc,
-                                                 pre, post2);
-   PV::HyPerConn * cHyPer2to1 = new HyPerConn("test_cocirc hyperconn 2 to 1", hc, pre2,
-                                              post);
+                                                 preLayerName, post2LayerName);
+   assert(cCocirc1to2);
+   PV::HyPerConn * cHyPer2to1 = new HyPerConn("test_cocirc hyperconn 2 to 1", hc,
+                                              pre2LayerName, postLayerName);
+   assert(cHyPer2to1);
    PV::KernelConn * cCocirc2to1 = new KernelConn("test_cocirc cocircconn 2 to 1", hc,
-                                                 pre2, post);
+                                                 pre2LayerName, postLayerName);
+   assert(cCocirc2to1);
+   
+   for (int l=0; l<hc->numberOfLayers(); l++) {
+      hc->getLayer(l)->communicateInitInfo();
+   }   
+   for (int c=0; c<hc->numberOfConnections(); c++) {
+      hc->getConnection(c)->communicateInitInfo();
+   }
+   
+   for (int l=0; l<hc->numberOfLayers(); l++) {
+      hc->getLayer(l)->allocateDataStructures();
+   }
+   
+   for (int c=0; c<hc->numberOfConnections(); c++) {
+      hc->getConnection(c)->allocateDataStructures();
+   }
 
    const int axonID = 0;
    int num_pre_extended = pre->clayer->numExtended;

@@ -9,10 +9,11 @@
 
 namespace PV {
 PoolingGenConn::PoolingGenConn(const char * name, HyPerCol * hc,
-        HyPerLayer * pre, HyPerLayer * post, HyPerLayer * pre2, HyPerLayer * post2,
-        const char * filename, InitWeights *weightInit) {
-        initialize_base();
-        initialize(name, hc, pre, post, pre2, post2, filename, weightInit);
+      const char * pre_layer_name, const char * post_layer_name,
+      const char * pre_layer_name2, const char * post_layer_name2,
+      const char * filename, InitWeights *weightInit) {
+   initialize_base();
+   initialize(name, hc, pre_layer_name, post_layer_name, pre_layer_name2, post_layer_name2, filename, weightInit);
 }  // end of PoolingGenConn::PoolingGenConn(const char *, HyPerCol *,
    //   HyPerLayer *, HyPerLayer *, HyPerLayer *, HyPerLayer *, int, const char *)
 
@@ -23,32 +24,14 @@ int PoolingGenConn::initialize_base() {
 }
 
 int PoolingGenConn::initialize(const char * name, HyPerCol * hc,
-        HyPerLayer * pre, HyPerLayer * post, HyPerLayer * pre2, HyPerLayer * post2,
-        const char * filename, InitWeights *weightInit) {
+      const char * pre_layer_name, const char * post_layer_name,
+      const char * pre_layer_name2, const char * post_layer_name2,
+      const char * filename, InitWeights *weightInit) {
    int status;
    PVParams * params = hc->parameters();
-   status = GenerativeConn::initialize(name, hc, pre, post, filename, weightInit);
-   if( status == PV_SUCCESS && checkLayersCompatible(pre, pre2) && checkLayersCompatible(post, post2) ) {
-      this->pre2 = pre2;
-      this->post2 = post2;
-   }
-   else {
-      status = PV_FAILURE;
-   }
-   if( status == PV_SUCCESS ) {
-      slownessFlag = params->value(name, "slownessFlag", 0.0/*default is false*/);
-   }
-   if( slownessFlag ) {
-      status = getSlownessLayer(&slownessPre, "slownessPre");
-      status = getSlownessLayer(&slownessPost, "slownessPost")==PV_SUCCESS ? status : PV_FAILURE;
-   }
-   if( slownessFlag && status == PV_SUCCESS ) {
-      status = checkLayersCompatible(pre, slownessPre) ? status : PV_FAILURE;
-      status = checkLayersCompatible(post, slownessPost) ? status : PV_FAILURE;
-   }
-   if( status != PV_SUCCESS ) {
-      abort();
-   }
+   preLayerName2 = strdup(pre_layer_name2);
+   postLayerName2 = strdup(post_layer_name2);
+   status = GenerativeConn::initialize(name, hc, pre_layer_name, post_layer_name, filename, weightInit);
    return status;
 }  // end of PoolingGenConn::initialize(const char *, HyPerCol *,
    //   HyPerLayer *, HyPerLayer *, HyPerLayer *, HyPerLayer *, int, const char *, InitWeights *)
@@ -77,6 +60,34 @@ int PoolingGenConn::readSlownessPre(PVParams * params) {
 int PoolingGenConn::readSlownessPost(PVParams * params) {
    assert(!params->presentAndNotBeenRead(name, "slownessFlag"));
    int status = slownessFlag ? getSlownessLayer(&slownessPost, "slownessPost") : PV_SUCCESS;
+   return status;
+}
+
+int PoolingGenConn::communicateInitInfo() {
+   int status = GenerativeConn::communicateInitInfo();
+   if (status != PV_SUCCESS) return status;
+   pre2 = parent->getLayerFromName(preLayerName2);
+   post2 = parent->getLayerFromName(postLayerName2);
+   if (status == PV_SUCCESS) {
+      status = checkLayersCompatible(pre, pre2) && checkLayersCompatible(post, post2) ? PV_SUCCESS : PV_FAILURE;
+   }
+   else {
+      status = PV_FAILURE;
+   }
+   if( status == PV_SUCCESS ) {
+      slownessFlag = parent->parameters()->value(name, "slownessFlag", 0.0/*default is false*/);
+   }
+   if( slownessFlag ) {
+      status = getSlownessLayer(&slownessPre, "slownessPre");
+      status = getSlownessLayer(&slownessPost, "slownessPost")==PV_SUCCESS ? status : PV_FAILURE;
+   }
+   if( slownessFlag && status == PV_SUCCESS ) {
+      status = checkLayersCompatible(pre, slownessPre) ? status : PV_FAILURE;
+      status = checkLayersCompatible(post, slownessPost) ? status : PV_FAILURE;
+   }
+   if( status != PV_SUCCESS ) {
+      abort();
+   }
    return status;
 }
 

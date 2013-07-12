@@ -15,9 +15,9 @@ IdentConn::IdentConn() {
 }
 
 IdentConn::IdentConn(const char * name, HyPerCol *hc,
-        HyPerLayer * pre, HyPerLayer * post) {
+      const char * pre_layer_name, const char * post_layer_name) {
    initialize_base();
-   initialize(name, hc, pre, post, NULL);
+   initialize(name, hc, pre_layer_name, post_layer_name, NULL);
 }  // end of IdentConn::IdentConn(const char *, HyPerCol *, HyPerLayer *, HyPerLayer *, ChannelType)
 
 int IdentConn::initialize_base() {
@@ -25,7 +25,7 @@ int IdentConn::initialize_base() {
    return PV_SUCCESS;
 }  // end of IdentConn::initialize_base()
 
-int IdentConn::initialize( const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post, const char * filename ) {
+int IdentConn::initialize( const char * name, HyPerCol * hc, const char * pre_layer_name, const char * post_layer_name, const char * filename ) {
    InitIdentWeights * weightInit = new InitIdentWeights;
    if( weightInit == NULL ) {
       fprintf(stderr, "IdentConn \"%s\": Rank %d process unable to create InitIdentWeights object.  Exiting.\n", name, hc->icCommunicator()->commRank());
@@ -34,22 +34,11 @@ int IdentConn::initialize( const char * name, HyPerCol * hc, HyPerLayer * pre, H
 #ifdef PV_USE_MPI
    mpiReductionBuffer = NULL;
 #endif // PV_USE_MPI
-   int status = KernelConn::initialize(name, hc, pre, post, NULL, weightInit);
-   delete weightInit;
+   int status = KernelConn::initialize(name, hc, pre_layer_name, post_layer_name, NULL, weightInit);
    return status;
 }
 
 int IdentConn::setParams(PVParams * inputParams) {
-   const PVLayerLoc * preLoc = pre->getLayerLoc();
-   const PVLayerLoc * postLoc = post->getLayerLoc();
-   if( preLoc->nx != postLoc->nx || preLoc->ny != postLoc->ny || preLoc->nf != postLoc->nf ) {
-      if (parent->columnId()==0) {
-         fprintf( stderr,
-                  "IdentConn Error: %s and %s do not have the same dimensions.\n Dims: %dx%dx%d vs. %dx%dx%d\n",
-                  pre->getName(),post->getName(),preLoc->nx,preLoc->ny,preLoc->nf,postLoc->nx,postLoc->ny,postLoc->nf);
-      }
-      exit(EXIT_FAILURE);
-   }
    int status = KernelConn::setParams(inputParams);
 
    return status;
@@ -92,8 +81,8 @@ void IdentConn::readWriteCompressedCheckpoints(PVParams * params) {
 }
 
 void IdentConn::readSelfFlag(PVParams * params) {
-   assert(pre!=NULL && post!=NULL);
-   selfFlag = pre==post;
+   assert(preLayerName!=NULL && postLayerName!=NULL);
+   selfFlag = strcmp(preLayerName,postLayerName)==0;
 }
 
 void IdentConn::readCombine_dW_with_W_flag(PVParams * params) {
@@ -109,22 +98,35 @@ int IdentConn::readPatchSize(PVParams * params) {
 }
 
 int IdentConn::readNfp(PVParams * params) {
-   nfp = pre->getLayerLoc()->nf;
-   assert(nfp==post->getLayerLoc()->nf);
-   return PV_SUCCESS;
-}
-
-int IdentConn::setPatchSize(const char * filename) {
-   return PV_SUCCESS;
-}  // end of IdentConn::setPatchSize(const char *)
-
-int IdentConn::initNormalize() {
-   normalize_flag = false; // Make sure that updateState doesn't call normalizeWeights
+   nfp = -1;
+   // nfp is set in HyPerConn::communicateInitInfo(), where it is copied from postsynaptic layer's nf.
+   warnDefaultNfp = false;
    return PV_SUCCESS;
 }
 
 void IdentConn::readShrinkPatches(PVParams * params) {
    shrinkPatches_flag = false;
+}
+
+int IdentConn::communicateInitInfo() {
+   int status = KernelConn::communicateInitInfo();
+   assert(pre && post);
+   const PVLayerLoc * preLoc = pre->getLayerLoc();
+   const PVLayerLoc * postLoc = post->getLayerLoc();
+   if( preLoc->nx != postLoc->nx || preLoc->ny != postLoc->ny || preLoc->nf != postLoc->nf ) {
+      if (parent->columnId()==0) {
+         fprintf( stderr,
+                  "IdentConn \"%s\" Error: %s and %s do not have the same dimensions.\n Dims: %dx%dx%d vs. %dx%dx%d\n",
+                  name, preLayerName,postLayerName,preLoc->nx,preLoc->ny,preLoc->nf,postLoc->nx,postLoc->ny,postLoc->nf);
+      }
+      exit(EXIT_FAILURE);
+   }
+   return PV_SUCCESS;
+}
+
+int IdentConn::initNormalize() {
+   normalize_flag = false; // Make sure that updateState doesn't call normalizeWeights
+   return PV_SUCCESS;
 }
 
 }  // end of namespace PV block

@@ -18,8 +18,10 @@ class LCALIFLateralKernelConn: public KernelConn {
 
    // Methods
    public:
-      LCALIFLateralKernelConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post, const char * filename, InitWeights * weightInit);
+      LCALIFLateralKernelConn(const char * name, HyPerCol * hc, const char * pre_layer_name, const char * post_layer_name, const char * filename, InitWeights * weightInit);
       virtual ~LCALIFLateralKernelConn();
+      virtual int communicateInitInfo();
+      virtual int allocateDataStructures();
       virtual int updateWeights(int axonId = 0);
 
       float getIntegratedSpikeCount(int kex) {return integratedSpikeCount[kex];}
@@ -34,7 +36,8 @@ class LCALIFLateralKernelConn: public KernelConn {
 
    protected:
       LCALIFLateralKernelConn();
-      int initialize(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post, const char * filename, InitWeights * weightInit);
+      int initialize(const char * name, HyPerCol * hc, const char * pre_layer_name, const char * post_layer_name, const char * filename, InitWeights * weightInit);
+
       virtual int update_dW(int axonId = 0);
 
       virtual void readIntegrationTimeConstant() {integrationTimeConstant = getParent()->parameters()->value(name, "integrationTimeConstant", 1.0);}

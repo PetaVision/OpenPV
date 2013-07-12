@@ -9,23 +9,31 @@
 #define CONNFUNCTIONPROBE_HPP_
 
 #include "BaseConnectionProbe.hpp"
+#include "GenColProbe.hpp"
 #include "../connections/HyPerConn.hpp"
 
 namespace PV {
 
 class ConnFunctionProbe: public BaseConnectionProbe {
 public:
-   ConnFunctionProbe(const char * probename, const char * filename, HyPerConn * conn);
+   ConnFunctionProbe(const char * probename, HyPerCol * hc);
    virtual ~ConnFunctionProbe();
+   virtual int communicate();
+   virtual int allocateProbe();
    virtual int outputState(double timef);
    virtual double evaluate(double timef) {return 0.0f;}
 
 protected:
    ConnFunctionProbe();
-   int initialize(const char * probename, const char * filename, HyPerConn * conn);
+   int initialize(const char * probename, HyPerCol * hc);
 
 private:
    int initialize_base();
+
+// Member variables
+private:
+   char * parentGenColName;
+   GenColProbe * parentGenCol;
 };
 
 }  // end namespace PV

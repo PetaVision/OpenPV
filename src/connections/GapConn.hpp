@@ -14,15 +14,16 @@ namespace PV {
 
 class GapConn: public PV::KernelConn {
 public:
-   GapConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
-         HyPerLayer * post, const char * filename, InitWeights *weightInit=NULL);
+   GapConn(const char * name, HyPerCol * hc,
+         const char * pre_layer_name, const char * post_layer_name,
+         const char * filename, InitWeights *weightInit=NULL);
    // No channel argument to constructor because GapConn must always use CHANNEL_GAP
    virtual ~GapConn();
 protected:
    GapConn();
    void readChannelCode(PVParams * params);
    int initialize(const char * name, HyPerCol * hc,
-                  HyPerLayer * pre, HyPerLayer * post,
+                  const char * pre_layer_name, const char * post_layer_name,
                   const char * filename,
                   InitWeights *weightInit=NULL);
 private:

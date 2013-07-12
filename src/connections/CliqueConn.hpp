@@ -15,8 +15,9 @@ namespace PV {
 class CliqueConn: public KernelConn {
 public:
 
-   CliqueConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
-              const char * filename, InitWeights *weightInit);
+   CliqueConn(const char * name, HyPerCol * hc, const char * pre_layer_name,
+         const char * post_layer_name, const char * filename,
+         InitWeights *weightInit);
    virtual int update_dW(int axonId);
    virtual int updateState(double time, double dt);
    virtual int updateWeights(int arbor);
@@ -24,9 +25,9 @@ public:
 
 protected:
    int cliqueSize; // number of presynaptic cells in clique (traditional ANN uses 1)
-   int initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
-         HyPerLayer * post, const char * filename,
-         InitWeights *weightInit);
+   int initialize(const char * name, HyPerCol * hc,
+         const char * pre_layer_name, const char * post_layer_name,
+         const char * filename, InitWeights *weightInit);
    virtual int setParams(PVParams * params);
    virtual void readCliqueSize(PVParams * params);
 

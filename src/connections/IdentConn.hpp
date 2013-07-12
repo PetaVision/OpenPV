@@ -18,33 +18,35 @@ class InitIdentWeights;
 
 class IdentConn : public KernelConn {
 public:
-    IdentConn();
-    IdentConn(const char * name, HyPerCol *hc,
-            HyPerLayer * pre, HyPerLayer * post);
+   IdentConn(const char * name, HyPerCol *hc,
+         const char * pre_layer_name, const char * post_layer_name);
 
-   int initialize_base();
-   int initialize(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post, const char * filename);
+   virtual int communicateInitInfo();
    virtual int updateWeights(int axonID) {return PV_SUCCESS;}
 
 protected:
-    int setPatchSize(const char * filename);
-    virtual int initNormalize();
+   IdentConn();
+   int initialize_base();
+   int initialize(const char * name, HyPerCol * hc,
+         const char * pre_layer_name, const char * post_layer_name,
+         const char * filename);
+   virtual int initNormalize();
 
-    virtual int setParams(PVParams * inputParams);
-    virtual void readNumAxonalArbors(PVParams * params);
-    virtual void readPlasticityFlag(PVParams * params);
-    virtual void readStochasticReleaseFlag(PVParams * params);
-    virtual void readPreActivityIsNotRate(PVParams * params);
-    virtual void readShrinkPatches(PVParams * params);
-    virtual void readWriteCompressedWeights(PVParams * params);
-    virtual void readWriteCompressedCheckpoints(PVParams * params);
-    virtual void readSelfFlag(PVParams * params);
-    virtual void readCombine_dW_with_W_flag(PVParams * params);
-    virtual int  readPatchSize(PVParams * params);
-    virtual int  readNfp(PVParams * params);
-    virtual void readKeepKernelsSynchronized(PVParams * params);
-    virtual void readWeightUpdatePeriod(PVParams * params);
-    virtual void readInitialWeightUpdateTime(PVParams * params);
+   virtual int setParams(PVParams * inputParams);
+   virtual void readNumAxonalArbors(PVParams * params);
+   virtual void readPlasticityFlag(PVParams * params);
+   virtual void readStochasticReleaseFlag(PVParams * params);
+   virtual void readPreActivityIsNotRate(PVParams * params);
+   virtual void readShrinkPatches(PVParams * params);
+   virtual void readWriteCompressedWeights(PVParams * params);
+   virtual void readWriteCompressedCheckpoints(PVParams * params);
+   virtual void readSelfFlag(PVParams * params);
+   virtual void readCombine_dW_with_W_flag(PVParams * params);
+   virtual int  readPatchSize(PVParams * params);
+   virtual int  readNfp(PVParams * params);
+   virtual void readKeepKernelsSynchronized(PVParams * params);
+   virtual void readWeightUpdatePeriod(PVParams * params);
+   virtual void readInitialWeightUpdateTime(PVParams * params);
 
 };
 

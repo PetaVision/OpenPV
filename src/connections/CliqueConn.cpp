@@ -12,12 +12,12 @@ int pvpatch_update_clique2(int nk, float* RESTRICT v, float a, float* RESTRICT w
 
 namespace PV {
 
-CliqueConn::CliqueConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
-      HyPerLayer * post, const char * filename,
+CliqueConn::CliqueConn(const char * name, HyPerCol * hc, const char * pre_layer_name,
+      const char * post_layer_name, const char * filename,
       InitWeights *weightInit)
 {
    CliqueConn::initialize_base();
-   CliqueConn::initialize(name, hc, pre, post, filename, weightInit);
+   CliqueConn::initialize(name, hc, pre_layer_name, post_layer_name, filename, weightInit);
 };
 
 int CliqueConn::initialize_base(){
@@ -26,9 +26,10 @@ int CliqueConn::initialize_base(){
    return PV_SUCCESS;
 }
 
-int CliqueConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
-      HyPerLayer * post, const char * filename, InitWeights *weightInit){
-   KernelConn::initialize(name, hc, pre, post, filename, weightInit);
+int CliqueConn::initialize(const char * name, HyPerCol * hc,
+      const char * pre_layer_name, const char * post_layer_name,
+      const char * filename, InitWeights *weightInit){
+   KernelConn::initialize(name, hc, pre_layer_name, post_layer_name, filename, weightInit);
    return PV_SUCCESS;
 }
 

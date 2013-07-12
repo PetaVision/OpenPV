@@ -19,30 +19,32 @@ class BaseConnectionProbe {
 // Methods
 public:
    virtual ~BaseConnectionProbe();
-   virtual int outputState(double timef) = 0;
-   const char * getName()               {return name;}
-   const char * getFilename()           {return filename;}
-   PV_Stream * getStream()              {return stream;}
-   HyPerConn * getTargetConn()          {return targetConn;}
+   virtual int communicate();
+   virtual int allocateProbe();
+   virtual int outputState(double timed) = 0;
+
+   const char * getName()                  {return name;}
+   const char * getTargetConnName()        {return targetConnName;}
+   HyPerConn * getTargetConn()             {return targetConn;}
 
 protected:
    BaseConnectionProbe(); // Default constructor, can only be called by derived classes
-   int initialize(const char * probename, const char * filename, HyPerConn * conn);
-   int initialize(const char * probename, const char * filename, HyPerConn * conn, int k, bool postProbeFlag);
-   int initialize(const char * probename, const char * filename, HyPerConn * conn, int kx, int ky, int kf, bool postProbeFlag);
-
-private:
+   int initialize(const char * probename, HyPerCol * hc);
    int initialize_base();
 
-// Member variables
-protected:
-   char * name; // Name of the probe; corresponds to the group name in the params file
-   char * filename; // Name of the output file.  Can be NULL if output goes to stdout
-   PV_Stream * stream; // pointer to output file; NULL except for root process.  If filename is NULL, fp will be stdout.
-   HyPerConn * targetConn;
-   bool isPostProbe;
+   HyPerCol * getParent()                  {return parent;}
+   PV_Stream * getStream()                 {return stream;}
 
-}; // end of class BaseConnectionProbe block
+private:
+
+// Member Variables
+protected:
+   HyPerCol * parent; // HyPerCol that owns the probe
+   char * name; // Name of the probe; corresponds to the group name in the params file
+   PV_Stream * stream; // pointer to output file; NULL except for root process.  If filename is NULL, fp will be stdout.
+   char * targetConnName; // The name of the connection being probed.
+   HyPerConn * targetConn; // The connection itself.
+};
 
 }  // end of namespace PV block
 

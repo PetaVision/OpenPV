@@ -9,9 +9,9 @@
 
 namespace PV {
 
-OjaKernelSpikeRateProbe::OjaKernelSpikeRateProbe(const char * probename, const char * filename, HyPerConn * conn) {
+OjaKernelSpikeRateProbe::OjaKernelSpikeRateProbe(const char * probename, HyPerCol * hc) {
    initialize_base();
-   initialize(probename, filename, conn);
+   initialize(probename, hc);
 }
 
 OjaKernelSpikeRateProbe::OjaKernelSpikeRateProbe()
@@ -25,29 +25,35 @@ int OjaKernelSpikeRateProbe::initialize_base() {
    return PV_SUCCESS;
 }
 
-int OjaKernelSpikeRateProbe::initialize(const char * probename, const char * filename, HyPerConn * conn) {
-   HyPerCol * hc = conn->getParent();
+int OjaKernelSpikeRateProbe::initialize(const char * probename, HyPerCol * hc) {
+   BaseConnectionProbe::initialize(probename, hc);
    PVParams * params = hc->parameters();
-   targetConn = conn;
-   targetOjaKernelConn = dynamic_cast<OjaKernelConn *>(conn);
-   if (targetOjaKernelConn == NULL) {
-      if (conn->getParent()->columnId()==0) {
-         fprintf(stderr, "LCATraceProbe error: connection \"%s\" must be an LCALIFLateralConn.\n", conn->getName());
-      }
-      abort();
-   }
    xg = params->value(probename, "x");
    yg = params->value(probename, "y");
    feature = params->value(probename, "f", 0, /*warnIfAbsent*/true);
    isInputRate = params->value(probename, "isInputRate") != 0.0;
-   const PVLayerLoc * loc;
    if (isInputRate) {
       arbor = params->value(probename, "arbor", 0, /*warnIfAbsent*/true);
-      loc = targetOjaKernelConn->preSynapticLayer()->getLayerLoc();
+   }
+   return PV_SUCCESS;
+}
+
+int OjaKernelSpikeRateProbe::allocateProbe() {
+   targetOjaKernelConn = dynamic_cast<OjaKernelConn *>(getTargetConn());
+   if (targetOjaKernelConn == NULL) {
+      if (getParent()->columnId()==0) {
+         fprintf(stderr, "LCATraceProbe error: connection \"%s\" must be an LCALIFLateralConn.\n", getTargetConn()->getName());
+      }
+      abort();
+   }
+   HyPerLayer * targetLayer = NULL;
+   if (isInputRate) {
+      targetLayer = targetOjaKernelConn->preSynapticLayer();
    }
    else {
-      loc = targetOjaKernelConn->postSynapticLayer()->getLayerLoc();
+      targetLayer = targetOjaKernelConn->postSynapticLayer();
    }
+   const PVLayerLoc * loc = targetLayer->getLayerLoc();
    int x_local = xg - loc->kx0;
    int y_local = yg - loc->ky0;
    bool inBounds = (x_local >= 0 && x_local < loc->nx && y_local >= 0 && y_local < loc->ny);
@@ -60,29 +66,11 @@ int OjaKernelSpikeRateProbe::initialize(const char * probename, const char * fil
       else {
          spikeRate = &targetOjaKernelConn->getOutputFiringRate()[krestricted];
       }
-      if( filename ) {
-         const char * outputdir = hc->getOutputPath();
-         if( strlen(outputdir) + strlen(filename) + 2 > PV_PATH_MAX ) {
-            fprintf(stderr, "BaseConnectionProbe: output filename \"%s/%s\" too long.  Exiting.\n",outputdir,filename);
-            exit(EXIT_FAILURE);
-         }
-         char path[PV_PATH_MAX];
-         sprintf(path, "%s/%s", outputdir, filename);
-
-         stream = PV_fopen(path, "w");
-         if( stream == NULL )  {
-            fprintf(stderr, "BaseConnectionProbe error opening \"%s\" for writing: %s.\n", path, strerror(errno));
-            exit(EXIT_FAILURE);
-         }
-      }
-      else {
-         stream = PV_stdout();
-      }
    }
    else {
       stream = NULL;
    }
-   conn->insertProbe(this);
+   getTargetConn()->insertProbe(this);
 
    return PV_SUCCESS;
 }

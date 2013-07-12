@@ -9,24 +9,37 @@
 
 namespace PV {
 
-SiblingConn::SiblingConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
-      HyPerLayer * post, const char * filename, InitWeights *weightInit,
-      SiblingConn *sibling_conn) {
+SiblingConn::SiblingConn(const char * name, HyPerCol * hc,
+      const char * pre_layer_name, const char * post_layer_name,
+      const char * filename, InitWeights *weightInit,
+      const char *sibling_conn_name) {
    SiblingConn::initialize_base();
-   SiblingConn::initialize(name, hc, pre, post, filename, weightInit,
-         sibling_conn);
+   SiblingConn::initialize(name, hc, pre_layer_name, post_layer_name, filename, weightInit,
+         sibling_conn_name);
    // HyPerConn::initialize is not virtual
 }
 
-int SiblingConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
-      HyPerLayer * post, const char * filename, InitWeights *weightInit,
-      SiblingConn *sibling_conn) {
-   siblingConn = sibling_conn;
+int SiblingConn::initialize(const char * name, HyPerCol * hc,
+      const char * pre_layer_name, const char * post_layer_name,
+      const char * filename, InitWeights *weightInit,
+      const char *sibling_conn_name) {
+   siblingConnName = strdup(sibling_conn_name);
+   if (siblingConnName==NULL) {
+      fprintf(stderr, "SiblingConn \"%s\" error: unable to allocate memory for siblingConnName \"%s\".\n", name, sibling_conn_name);
+      exit(EXIT_FAILURE);
+   }
    isNormalized = false;
+   return KernelConn::initialize(name, hc, pre_layer_name, post_layer_name, filename, weightInit);
+}
+
+int SiblingConn::communicateInitInfo() {
+   int status = NoSelfKernelConn::communicateInitInfo();
+   HyPerConn * hyper_conn = parent->getConnFromName(siblingConnName);
+   siblingConn = dynamic_cast<SiblingConn *>(hyper_conn);
    if (siblingConn != NULL) {
       siblingConn->setSiblingConn(this);
    }
-   return KernelConn::initialize(name, hc, pre, post, filename, weightInit);
+   return status;
 }
 
 int SiblingConn::initNormalize() {

@@ -18,14 +18,16 @@ class LCALIFLateralProbe: public BaseConnectionProbe {
    //Methods
 public:
    LCALIFLateralProbe();
-   LCALIFLateralProbe(const char * probename, const char * filename, HyPerConn * conn, int preIndex);
-   LCALIFLateralProbe(const char * probename, const char * filename, HyPerConn * conn, int kxPre, int kyPre, int kfPre);
+   LCALIFLateralProbe(const char * probename, HyPerCol * hc);
+   // LCALIFLateralProbe(const char * probename, const char * filename, HyPerConn * conn, int kxPre, int kyPre, int kfPre);
    virtual ~LCALIFLateralProbe();
+   virtual int allocateProbe();
 
    virtual int outputState(double timef);
 
 protected:
-   int initialize(const char * probename, const char * filename, HyPerConn * conn, PatchIDMethod method, int preIndex, int kxPre, int kyPre, int kfPre, bool isPostProbe);
+   int initialize(const char * probename, HyPerCol * hc);
+   // int initialize(const char * probename, const char * filename, HyPerConn * conn, PatchIDMethod method, int preIndex, int kxPre, int kyPre, int kfPre, bool isPostProbe);
 
 private:
    int initialize_base();
@@ -38,6 +40,12 @@ private:
    //output variables
    float postIntTr;
    float * preWeights;
+
+   PatchIDMethod patchIDMethod;
+   int kPost;  // Index of patch
+   int kxPost; // x-coordinate of patch
+   int kyPost; // y-coordinate of patch
+   int kfPost; // feature number of patch
 
 };
 } // end namespace PV

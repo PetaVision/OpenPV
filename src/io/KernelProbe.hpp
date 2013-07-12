@@ -17,30 +17,34 @@ class KernelProbe : public BaseConnectionProbe {
 
 // Methods
 public:
-   KernelProbe(const char * probename, const char * filename, HyPerConn * conn, int kernelIndex, int arborID);
+   KernelProbe(const char * probename, HyPerCol * hc);
    virtual ~KernelProbe();
+   virtual int communicate();
+   virtual int allocateProbe();
    virtual int outputState(double timef);
 protected:
    KernelProbe(); // Default constructor, can only be called by derived classes
-   int initialize(const char * probename, const char * filename, HyPerConn * conn, int kernel, int arbor);
+   int initialize(const char * probename, HyPerCol * hc);
    int patchIndices(KernelConn * kconn);
 
+   int getKernelIndex() {return kernelIndex;}
+   int getArbor()       {return arborID;}
+   bool getOutputWeights() {return outputWeights;}
+   bool getOutputPlasticIncr() {return outputPlasticIncr;}
+   bool getOutputPatchIndices() {return outputPatchIndices;}
    KernelConn * getTargetKConn() {return targetKConn;}
 
 private:
    int initialize_base();
 
 // Member variables
-protected:
+private:
    int kernelIndex; // which kernel index to investigate
    int arborID; // which arbor to investigate
    bool outputWeights;      // whether to output W
    bool outputPlasticIncr;  // whether to output dW
    bool outputPatchIndices; // whether to output which presynaptic neurons using the given kernel index
-
-private:
-   KernelConn * targetKConn; // dynamic cast of targetConn to a KernelConn
-
+   KernelConn * targetKConn; // The target connection, dynamically cast to a KernelConn
 
 }; // end of class KernelProbe block
 

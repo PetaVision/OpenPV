@@ -18,17 +18,12 @@ class CloneKernelConn : public KernelConn {
 public:
    CloneKernelConn();
    CloneKernelConn(const char * name, HyPerCol * hc,
-      HyPerLayer * pre, HyPerLayer * post,
-      KernelConn * originalConn);
+      const char * pre_layer_name, const char * post_layer_name,
+      const char * original_kernelconn_name);
    virtual ~CloneKernelConn();
-   int initialize_base();
-   int initialize(const char * name, HyPerCol * hc,
-      HyPerLayer * pre, HyPerLayer * post,
-      KernelConn * originalConn);
 
-   virtual int setPatchSize(const char * filename);
-   // For CloneKernelConn, filename is ignored, but we include it
-   // to agree with the interface for HyPerConn
+   virtual int communicateInitInfo();
+   // virtual int setPatchSize(const char * filename); // Now a protected method.
 
    virtual int updateState(double time, double dt);
 
@@ -38,6 +33,9 @@ public:
    virtual int checkpointRead(const char * cpDir, double *timef){return PV_SUCCESS;};
 
 protected:
+   int initialize(const char * name, HyPerCol * hc,
+         const char * pre_layer_name, const char * post_layer_name,
+         const char * original_kernelconn_name);
    virtual PVPatch *** initializeWeights(PVPatch *** patches, pvdata_t ** dataStart, int numPatches,
             const char * filename);
    virtual int constructWeights(const char * filename);
@@ -51,10 +49,13 @@ protected:
    virtual void readShrinkPatches(PVParams * params);
    virtual int  readPatchSize(PVParams * params);
    virtual int  readNfp(PVParams * params);
+   virtual int  setPatchSize(); // virtual int setPatchSize(const char * filename); // filename is now a member variable.
 
+   char * originalConnName;
    KernelConn * originalConn;
 
 private:
+   int initialize_base();
    int deleteWeights();
 
 }; // end class CloneKernelConn

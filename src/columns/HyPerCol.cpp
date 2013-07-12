@@ -610,6 +610,32 @@ int HyPerCol::addConnection(HyPerConn * conn)
 
 int HyPerCol::run(long int nTimeSteps)
 {
+   for (int l=0; l<numLayers; l++) {
+      int status = layers[l]->communicateInitInfo();
+      if (status != PV_SUCCESS) {
+         exit(EXIT_FAILURE); // Error message printed in HyPerLayer::communicateInitInfo().
+      }
+   }
+   for (int c=0; c<numConnections; c++) {
+      int status = connections[c]->communicateInitInfo();
+      if (status != PV_SUCCESS) {
+         exit(EXIT_FAILURE); // Error message printed in HyPerConn::communicateInitInfo().
+      }
+   }
+   for (int l=0; l<numLayers; l++) {
+      int status = layers[l]->allocateDataStructures();
+      if (status != PV_SUCCESS) {
+         exit(EXIT_FAILURE); // Error message printed in HyPerLayer::allocateDataStructures().
+      }
+   }
+   for (int c=0; c<numConnections; c++) {
+      int status = connections[c]->allocateDataStructures();
+      if (status != PV_SUCCESS) {
+         exit(EXIT_FAILURE); // Error message printed in HyPerConn::communicateDataStructures().
+      }
+   }
+
+   // Soon to be obsolete!
    if( checkMarginWidths() != PV_SUCCESS ) {
       fprintf(stderr, "Margin width failure; unable to continue.\n");
       return PV_MARGINWIDTH_FAILURE;
@@ -1412,6 +1438,22 @@ HyPerConn * HyPerCol::getConnFromName(const char * connName) {
       if( !strcmp( curConn->getName(), connName) ) return curConn;
    }
    return NULL;
+}
+
+ColProbe * HyPerCol::getColProbeFromName(const char * probeName) {
+   if (probeName == NULL) return NULL;
+   ColProbe * p = NULL;
+   int n = numberOfProbes();
+   for (int i=0; i<n; i++) {
+      ColProbe * curColProbe = getColProbe(i);
+      const char * curName = curColProbe->getColProbeName();
+      assert(curName);
+      if (!strcmp(curName, probeName)) {
+         p = curColProbe;
+      }
+      break;
+   }
+   return p;
 }
 
 unsigned long HyPerCol::getRandomSeed() {

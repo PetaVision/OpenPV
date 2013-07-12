@@ -17,15 +17,16 @@ namespace PV {
 
 class InhibSTDPConn: public PV::OjaSTDPConn {
 public:
-   InhibSTDPConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
-            const char * filename=NULL, InitWeights *weightInit=NULL);
+   InhibSTDPConn(const char * name, HyPerCol * hc,
+         const char * pre_layer_name, const char * post_layer_name,
+         const char * filename=NULL, InitWeights *weightInit=NULL);
 
    virtual int updateWeights(int axonID);
 
 protected:
    int initialize(const char * name, HyPerCol * hc,
-                  HyPerLayer * pre, HyPerLayer * post,
-                  const char * filename, InitWeights *weightInit);
+         const char * pre_layer_name, const char * post_layer_name,
+         const char * filename, InitWeights *weightInit);
 
    int setParams(PVParams * params);
 

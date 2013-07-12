@@ -90,9 +90,17 @@ int runonecolumn(int argc, char * argv[], int correctvalue) {
    char * paramfilename;
    pv_getopt_str(argc, argv, "-p", &paramfilename);
    HyPerCol * hc = new HyPerCol("column", argc, argv);
+   
+   const char * preLayerName = "presynaptic layer";
+   const char * postLayerName = "postsynaptic layer";
+   
    HyPerLayer * pre = new Retina("presynaptic layer", hc);
+   assert(pre);
    HyPerLayer * post = new ANNLayer("postsynaptic layer", hc);
-   /* HyPerConn * conn = */ new KernelConn("pre to post connection", hc, pre, post);
+   assert(post);
+   HyPerConn * conn = new KernelConn("pre to post connection", hc, preLayerName, postLayerName);
+   assert(conn);
+   
    bool rootproc = hc->icCommunicator()->commRank()==0;
    if(rootproc) {
       printf("%s: Beginning test of %s.  For this test, ", argv[0], argv[2]);

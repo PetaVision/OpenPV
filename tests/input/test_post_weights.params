@@ -5,9 +5,11 @@ HyPerCol "column" = {
    ny = 32;
    numSteps = 1;
    progressStep = 1;
+   writeProgressToErr = false;
    randomSeed = 1615192023;
    dt = 1;
    filenamesContainLayerNames = false;
+   filenamesContainConnectionNames = false;
    checkpointRead = false;
    checkpointWrite = false;
    outputPath = "output/test_post_weights";
@@ -18,11 +20,12 @@ HyPerLayer "test_post_weights L1" = {
    nxScale = 1;
    nyScale = 1;
    nf = 1;
+   phase = 0;
    marginWidth = 1;
-   writeStep = -1;
-   spikingFlag = false;
-   writeNonspikingActivity = true;
    mirrorBCflag = false;
+   valueBC = 0.0;
+   writeStep = -1;
+   writeSparseActivity = false;
    restart = false;
    InitVType = "ZeroV";
 };
@@ -31,11 +34,13 @@ HyPerLayer "test_post_weights L2" = {
    nxScale = 1;
    nyScale = 1;
    nf = 1;
+   phase = 0;
    marginWidth = 2;  // works for scale of 2 and npatch of 8
+   mirrorBCflag = false;
+   valueBC = 0.0;
    writeStep = -1;
    spikingFlag = false;
-   writeNonspikingActivity = true;
-   mirrorBCflag = false;
+   writeSparseActivity = false;
    restart = false;
    InitVType = "ZeroV";
 };
@@ -44,11 +49,12 @@ HyPerLayer "test_post_weights L3" = {
    nxScale = 2;
    nyScale = 2;
    nf = 1;
+   phase = 0;
    marginWidth = 4;
-   writeStep = -1;
-   spikingFlag = false;
-   writeNonspikingActivity = true;
    mirrorBCflag = false;
+   valueBC = 0.0;
+   writeStep = -1;
+   writeSparseActivity = false;
    restart = false;
    InitVType = "ZeroV";
 };
@@ -63,12 +69,13 @@ HyPerConn "test_post_weights L1 to L1" = {
    weightInit = 0.0; // InitUniformWeights is hardcoded in main() function.  set_weights_to_source_index() will then set custom weight values
    plasticityFlag = false;
    stochasticReleaseFlag = false;
-   writeCompressedWeights = false;
+   writeCompressedCheckpoints = false;
    selfFlag = false;
    delay = 0;
    writeStep = -1;
    shrinkPatches = false;
-   normalize = false;
+   preActivityIsNotRate = false;
+   normalizeMethod = "none";
 };
 
 // patch size should be odd number times scale factor
@@ -82,12 +89,13 @@ HyPerConn "test_post_weights L2 to L3" = {
    weightInit = 0.0; // InitUniformWeights is hardcoded in main() function.  set_weights_to_source_index() will then set custom weight values
    plasticityFlag = false;
    stochasticReleaseFlag = false;
-   writeCompressedWeights = false;
+   writeCompressedCheckpoints = false;
    selfFlag = false;
    delay = 0;
    writeStep = -1;
    shrinkPatches = false;
-   normalize = false;
+   preActivityIsNotRate = false;
+   normalizeMethod = "none";
 };
 
 // patch size should be odd number 
@@ -101,10 +109,11 @@ HyPerConn "test_post_weights L3 to L2" = {
    weightInit = 0.0; // InitUniformWeights is hardcoded in main() function.  set_weights_to_source_index() will then set custom weight values
    plasticityFlag = false;
    stochasticReleaseFlag = false;
-   writeCompressedWeights = false;
+   writeCompressedCheckpoints = false;
    selfFlag = false;
    delay = 0;
    writeStep = -1;
    shrinkPatches = false;
-   normalize = false;
+   preActivityIsNotRate = false;
+   normalizeMethod = "none";
 };

@@ -20,12 +20,13 @@
 
 namespace PV {
 
-STDPConn::STDPConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
-                   const char * filename, bool stdpFlag,
-                   InitWeights *weightInit) : HyPerConn()
+STDPConn::STDPConn(const char * name, HyPerCol * hc,
+      const char * pre_layer_name, const char * post_layer_name,
+      const char * filename, bool stdpFlag,
+      InitWeights *weightInit) : HyPerConn()
 {
    initialize_base();
-   initialize(name, hc, pre, post, filename, stdpFlag, weightInit);
+   initialize(name, hc, pre_layer_name, post_layer_name, filename, stdpFlag, weightInit);
 }
 
 STDPConn::~STDPConn()
@@ -49,20 +50,29 @@ int STDPConn::initialize_base() {
 }
 
 int STDPConn::initialize(const char * name, HyPerCol * hc,
-                         HyPerLayer * pre, HyPerLayer * post,
+                         const char * pre_layer_name, const char * post_layer_name,
                          const char * filename, bool stdpFlag, InitWeights *weightInit)
 {
    this->stdpFlag = stdpFlag; //needs to be before call to HyPerConn::initialize since it calls overridden methods that depend on stdpFlag being set.
-   int status = HyPerConn::initialize(name, hc, pre, post, filename, weightInit);
+   int status = HyPerConn::initialize(name, hc, pre_layer_name, post_layer_name, filename, weightInit);
 
-   status |= setParams(hc->parameters()); // needs to be called after HyPerConn::initialize since it depends on post being set
-   status |= initPlasticityPatches();
+   // status |= setParams(hc->parameters()); // called by HyPerConn::initialize since setParams is virtual
+   // status |= initPlasticityPatches();     // called by HyPerConn::constructWeights since initPlasticityPatches is virtual
 
+   // Moved to allocateDataStructures since point2PreSynapticWeights allocates post patches
+   // if(synscalingFlag){
+   //    point2PreSynapticWeights();
+   // }
+
+   return status;
+}
+
+int STDPConn::allocateDataStructures() {
+   HyPerConn::allocateDataStructures();
    if(synscalingFlag){
       point2PreSynapticWeights();
    }
-
-   return status;
+   return PV_SUCCESS;
 }
 
 int STDPConn::initPlasticityPatches()

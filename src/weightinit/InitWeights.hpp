@@ -46,12 +46,18 @@ public:
 
    virtual int zeroWeightsOutsideShrunkenPatch(PVPatch *** patches, HyPerConn * callingConn);
 
+   virtual int getNeededRNGSeeds() {return neededRNGSeeds;}
+
 protected:
    int initialize_base();
 
 private:
 
    //int gauss2DCalcWeights(pvdata_t * dataStart, InitGauss2DWeightsParams * weightParamPtr);
+
+// Member variables
+protected:
+   int neededRNGSeeds;
 };
 
 } /* namespace PV */

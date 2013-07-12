@@ -16,12 +16,12 @@ namespace PV {
 class GenerativeConn : public KernelConn {
 public:
    GenerativeConn(const char * name, HyPerCol * hc,
-         HyPerLayer * pre, HyPerLayer * post,
+         const char * pre_layer_name, const char * post_layer_name,
          const char * filename=NULL, InitWeights *weightInit=NULL);
 
    int initialize_base();
    int initialize(const char * name, HyPerCol * hc,
-         HyPerLayer * pre, HyPerLayer * post,
+         const char * pre_layer_name, const char * post_layer_name,
          const char * filename, InitWeights *weightInit);
 #ifdef OBSOLETE
    int initialize(const char * name, HyPerCol * hc,
@@ -35,6 +35,7 @@ public:
 protected:
    GenerativeConn();
    virtual int setParams(PVParams * params);
+   virtual void readNumAxonalArbors(PVParams * params);
    virtual void readRelaxation(PVParams * params);
    virtual void readNonnegConstraintFlag(PVParams * params);
    virtual void readImprintingFlag(PVParams * params);

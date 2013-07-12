@@ -13,10 +13,10 @@ CloneKernelConn::CloneKernelConn(){
 }
 
 CloneKernelConn::CloneKernelConn(const char * name, HyPerCol * hc,
-      HyPerLayer * pre, HyPerLayer * post,
-      KernelConn * originalConn) {
+      const char * pre_layer_name, const char * post_layer_name,
+      const char * original_kernelconn_name) {
    initialize_base();
-   initialize(name, hc, pre, post, originalConn);
+   initialize(name, hc, pre_layer_name, post_layer_name, original_kernelconn_name);
 }
 
 int CloneKernelConn::initialize_base() {
@@ -25,40 +25,38 @@ int CloneKernelConn::initialize_base() {
 }
 
 int CloneKernelConn::initialize(const char * name, HyPerCol * hc,
-      HyPerLayer * pre, HyPerLayer * post,
-      KernelConn * originalConn) {
-   // Presynaptic layers of the CloneKernelConn and its original conn must have the same size, or the patches won't line up with each other.
-   const PVLayerLoc * preLoc = pre->getLayerLoc();
-   const PVLayerLoc * origPreLoc = originalConn->preSynapticLayer()->getLayerLoc();
-   if (preLoc->nx != origPreLoc->nx || preLoc->ny != origPreLoc->ny || preLoc->nf != origPreLoc->nf || preLoc->nb != origPreLoc->nb ) {
-      if (hc->icCommunicator()->commRank()==0) {
-         fprintf(stderr, "CloneKernelConn::initialize error: CloneKernelConn \"%s\" and KernelConn \"%s\" must have presynaptic layers with the same geometry (including margin width).\n", name, originalConn->getName());
-         fprintf(stderr, "{nx=%d, ny=%d, nf=%d, nb=%d} versus {nx=%d, ny=%d, nf=%d, nb=%d}\n",
-                 preLoc->nx, preLoc->ny, preLoc->nf, preLoc->nb, origPreLoc->nx, origPreLoc->ny, origPreLoc->nf, origPreLoc->nb);
-      }
-      abort();
-   }
-   this->originalConn = originalConn;
+      const char * pre_layer_name, const char * post_layer_name,
+      const char * original_kernelconn_name) {
    InitCloneKernelWeights * weightInit = new InitCloneKernelWeights();
    assert(weightInit != NULL);
-   int status = KernelConn::initialize(name, hc, pre, post, NULL, weightInit);
-   delete weightInit;
+   int status = KernelConn::initialize(name, hc, pre_layer_name, post_layer_name, NULL, weightInit);
+   if (original_kernelconn_name==NULL) {
+      fprintf(stderr, "CloneKernelConn \"%s\" error in rank %d process: originalConnName must be set.\n",
+            name, hc->columnId());
+      abort();
+   }
+   originalConnName = strdup(original_kernelconn_name);
+   if (originalConnName == NULL) {
+      fprintf(stderr, "CloneKernelConn \"%s\" error in rank %d process: unable to allocate memory for originalConnName \"%s\": %s\n",
+            name, hc->columnId(), original_kernelconn_name, strerror(errno));
+      abort();
+   }
    return status;
 }
 
-int CloneKernelConn::setPatchSize(const char * filename) {
-   // nxp, nyp, nfp were set by the read-methods called by HyPerConn::setParams
-   assert(filename == NULL);
-   int xScalePre = pre->getXScale();
-   int xScalePost = post->getXScale();
-   int status = checkPatchSize(nxp, xScalePre, xScalePost, 'x');
-   if( status == PV_SUCCESS) {
-      int yScalePre = pre->getYScale();
-      int yScalePost = post->getYScale();
-      status = checkPatchSize(nyp, yScalePre, yScalePost, 'y');
-   }
-   return status;
-}
+//int CloneKernelConn::setPatchSize(const char * filename) {
+//   // nxp, nyp, nfp were set by the read-methods called by HyPerConn::setParams
+//   assert(filename == NULL);
+//   int xScalePre = pre->getXScale();
+//   int xScalePost = post->getXScale();
+//   int status = checkPatchSize(nxp, xScalePre, xScalePost, 'x');
+//   if( status == PV_SUCCESS) {
+//      int yScalePre = pre->getYScale();
+//      int yScalePost = post->getYScale();
+//      status = checkPatchSize(nyp, yScalePre, yScalePost, 'y');
+//   }
+//   return status;
+//}
 
 int CloneKernelConn::initNormalize() {
    normalize_flag = false;
@@ -68,11 +66,10 @@ int CloneKernelConn::initNormalize() {
 int CloneKernelConn::constructWeights(const char * filename) {
    int status = PV_SUCCESS;
 
-   if( status == PV_SUCCESS ) readShrinkPatches(parent->parameters());
+   // CloneKernelConn::readShrinkPatches does nothing; shrinkPatches_flag is set in communicateInitInfo()
+   // if( status == PV_SUCCESS ) readShrinkPatches(parent->parameters());
 
-   //if( status == PV_SUCCESS ) status = createArbors();
-
-   if( status == PV_SUCCESS ) status = setPatchSize(NULL);
+   // if( status == PV_SUCCESS ) status = setPatchSize(NULL);
    if( status == PV_SUCCESS ) status = setPatchStrides();
 
    wPatches = this->originalConn->get_wPatches();
@@ -121,8 +118,7 @@ PVPatch *** CloneKernelConn::initializeWeights(PVPatch *** patches, pvdata_t ** 
 }
 
 void CloneKernelConn::readShrinkPatches(PVParams * params) {
-   assert(originalConn);
-   shrinkPatches_flag = originalConn->getShrinkPatches_flag();
+   // During the communication phase, shrinkPatches_flag will be copied from originalConn
 }
 
 int CloneKernelConn::setParams(PVParams * params) {
@@ -130,8 +126,7 @@ int CloneKernelConn::setParams(PVParams * params) {
 }
 
 void CloneKernelConn::readNumAxonalArbors(PVParams * params) {
-   assert(originalConn);
-   numAxonalArborLists = originalConn->numberOfAxonalArborLists();
+   // During the communication phase, numAxonalArbors will be copied from originalConn
 }
 
 void CloneKernelConn::readPlasticityFlag(PVParams * params) {
@@ -139,14 +134,56 @@ void CloneKernelConn::readPlasticityFlag(PVParams * params) {
 }
 
 int CloneKernelConn::readPatchSize(PVParams * params) {
-   nxp = originalConn->xPatchSize();
-   nyp = originalConn->yPatchSize();
-   nxpShrunken = originalConn->getNxpShrunken();
-   nypShrunken = originalConn->getNypShrunken();
+   // During the communication phase, nxp, nyp, nxpShrunken, nypShrunken will be copied from originalConn
    return PV_SUCCESS;
 }
 
 int CloneKernelConn::readNfp(PVParams * params) {
+   // During the communication phase, nfp will be copied from originalConn
+   return PV_SUCCESS;
+}
+
+int CloneKernelConn::communicateInitInfo() {
+   // Need to set originalConn before calling KernelConn::communicate, since KernelConn::communicate calls setPatchSize, which needs originalConn.
+   HyPerConn * origHyPerConn = parent->getConnFromName(originalConnName);
+   if (origHyPerConn == NULL) {
+      fprintf(stderr, "CloneKernelConn \"%s\" error in rank %d process: originalConnName \"%s\" is not a connection in the column.\n",
+            name, parent->columnId(), originalConnName);
+   }
+   originalConn = dynamic_cast<KernelConn *>(origHyPerConn);
+   if (originalConn == NULL) {
+      fprintf(stderr, "CloneKernelConn \"%s\" error in rank %d process: originalConnName \"%s\" must be a KernelConn or a KernelConn-derived class.\n",
+            name, parent->columnId(), originalConnName);
+   }
+
+   int status = KernelConn::communicateInitInfo();
+   if (status != PV_SUCCESS) return status;
+
+   // Presynaptic layers of the CloneKernelConn and its original conn must have the same size, or the patches won't line up with each other.
+   const PVLayerLoc * preLoc = pre->getLayerLoc();
+   const PVLayerLoc * origPreLoc = originalConn->preSynapticLayer()->getLayerLoc();
+   if (preLoc->nx != origPreLoc->nx || preLoc->ny != origPreLoc->ny || preLoc->nf != origPreLoc->nf || preLoc->nb != origPreLoc->nb ) {
+      if (parent->icCommunicator()->commRank()==0) {
+         fprintf(stderr, "CloneKernelConn \"%s\" error in rank %d process: CloneKernelConn and originalConn \"%s\" must have presynaptic layers with the same geometry (including margin width).\n",
+               name, parent->columnId(), originalConn->getName());
+         fprintf(stderr, "{nx=%d, ny=%d, nf=%d, nb=%d} versus {nx=%d, ny=%d, nf=%d, nb=%d}\n",
+                 preLoc->nx, preLoc->ny, preLoc->nf, preLoc->nb, origPreLoc->nx, origPreLoc->ny, origPreLoc->nf, origPreLoc->nb);
+      }
+      abort();
+   }
+
+   numAxonalArborLists = originalConn->numberOfAxonalArborLists();
+   shrinkPatches_flag = originalConn->getShrinkPatches_flag();
+
+   return status;
+}
+
+int CloneKernelConn::setPatchSize() {
+   assert(originalConn);
+   nxp = originalConn->xPatchSize();
+   nyp = originalConn->yPatchSize();
+   nxpShrunken = originalConn->getNxpShrunken();
+   nypShrunken = originalConn->getNypShrunken();
    nfp = originalConn->fPatchSize();
    return PV_SUCCESS;
 }

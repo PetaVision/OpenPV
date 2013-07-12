@@ -533,19 +533,14 @@ TrainingLayer * addTrainingLayer(const char * name, HyPerCol * hc) {
 }
 
 GapLayer * addGapLayer(const char * name, HyPerCol * hc) {
-   HyPerLayer * originalLayer = getLayerFromParameterGroup(name, hc, "originalLayerName");
-   if( originalLayer == NULL ) {
+   const char * originalLayerName = hc->parameters()->stringValue(name, "originalLayerName");
+   GapLayer * addedLayer = NULL;
+   if( originalLayerName == NULL ) {
       fprintf(stderr, "Group \"%s\": Parameter group for class GapLayer must set string parameter originalLayerName\n", name);
       return NULL;
    }
-   LIFGap * originalLIFLayer = dynamic_cast<LIFGap *>(originalLayer);
-   GapLayer * addedLayer;
-   if (originalLIFLayer) {
-      addedLayer = new GapLayer(name, hc, originalLIFLayer);
-   }
    else {
-      fprintf(stderr, "Group \"%s\": Original layer \"%s\" must a LIFGap layer\n", name, originalLayer->getName());
-      addedLayer = NULL;
+      addedLayer = new GapLayer(name, hc, originalLayerName);
    }
    return addedLayer;
 }
@@ -628,20 +623,12 @@ Patterns * addPatterns(const char * name, HyPerCol *hc) {
 }
 
 SigmoidLayer * addSigmoidLayer(const char * name, HyPerCol * hc) {
-   HyPerLayer * originalLayer = getLayerFromParameterGroup(name, hc, "originalLayerName");
-   if( originalLayer == NULL ) {
+   const char * originalLayerName = hc->parameters()->stringValue(name, "originalLayerName");
+   if( originalLayerName == NULL ) {
       fprintf(stderr, "Group \"%s\": Parameter group for class SigmoidLayer must set string parameter originalLayerName\n", name);
       return NULL;
    }
-   LIF * originalLIFLayer = dynamic_cast<LIF *>(originalLayer);
-   SigmoidLayer * addedLayer;
-   if (originalLIFLayer) {
-      addedLayer = new SigmoidLayer(name, hc, originalLIFLayer);
-   }
-   else {
-      fprintf(stderr, "Group \"%s\": Original layer \"%s\" must be a LIF layer\n", name, originalLayer->getName());
-      addedLayer = NULL;
-   }
+   SigmoidLayer * addedLayer = new SigmoidLayer(name, hc, originalLayerName);
    return addedLayer;
 }
 
@@ -664,20 +651,12 @@ RescaleLayer * addRescaleLayer(const char * name, HyPerCol * hc) {
 }
 
 BIDSCloneLayer * addBIDSCloneLayer(const char * name, HyPerCol * hc) {
-   HyPerLayer * originalLayer = getLayerFromParameterGroup(name, hc, "originalLayerName");
-   if( originalLayer == NULL ) {
+   const char * originalLayerName = hc->parameters()->stringValue(name, "originalLayerName");
+   if( originalLayerName == NULL ) {
       fprintf(stderr, "Group \"%s\": Parameter group for class BIDSCloneLayer must set string parameter originalLayerName\n", name);
       return NULL;
    }
-   LIF * originalLIFLayer = dynamic_cast<LIF *>(originalLayer);
-   BIDSCloneLayer * addedLayer;
-   if (originalLIFLayer) {
-      addedLayer = new BIDSCloneLayer(name, hc, originalLIFLayer);
-   }
-   else {
-      fprintf(stderr, "Group \"%s\": Original layer \"%s\" must be a LIF layer\n", name, originalLayer->getName());
-      addedLayer = NULL;
-   }
+   BIDSCloneLayer * addedLayer = new BIDSCloneLayer(name, hc, originalLayerName);
    return addedLayer;
 }
 
@@ -800,9 +779,8 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
    HyPerConn * addedConn = NULL;
    assert( hc != NULL );
    const char * fileName;
-   HyPerLayer * preLayer, * postLayer;
-   HyPerConn * auxConn;
-   HyPerLayer * auxLayer;
+   char * preLayerName = NULL;
+   char * postLayerName = NULL;
    PVParams * params = hc->parameters();
    InitWeights *weightInitializer;
 
@@ -827,231 +805,230 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
    int status = PV_SUCCESS;
    if( !strcmp(classkeyword, "HyPerConn") ) {
       keywordMatched = true;
-      getPreAndPostLayers(name, hc, &preLayer, &postLayer);
-      if( preLayer && postLayer ) {
+      HyPerConn::getPreAndPostLayerNames(name, hc->parameters(), &preLayerName, &postLayerName);
+      if( preLayerName && postLayerName ) {
 
          fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
 
-         addedConn = new HyPerConn(name, hc, preLayer, postLayer, fileName, weightInitializer);
+         addedConn = new HyPerConn(name, hc, preLayerName, postLayerName, fileName, weightInitializer);
+      }
+      status = checknewobject((void *) addedConn, classkeyword, name, hc);
+   }
+   if( !keywordMatched && !strcmp(classkeyword, "BIDSConn") ) {
+      keywordMatched = true;
+      HyPerConn::getPreAndPostLayerNames(name, hc->parameters(), &preLayerName, &postLayerName);
+      if( preLayerName && postLayerName ) {
+         fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
+         addedConn = (HyPerConn*) new BIDSConn(name, hc, preLayerName, postLayerName, fileName, weightInitializer);
       }
       status = checknewobject((void *) addedConn, classkeyword, name, hc);
    }
    if( !keywordMatched && !strcmp(classkeyword, "KernelConn") ) {
       keywordMatched = true;
-      getPreAndPostLayers(name, hc, &preLayer, &postLayer);
-      if( preLayer && postLayer ) {
+      HyPerConn::getPreAndPostLayerNames(name, hc->parameters(), &preLayerName, &postLayerName);
+      if( preLayerName && postLayerName ) {
          fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
 
-         addedConn = (HyPerConn * ) new KernelConn(name, hc, preLayer, postLayer, fileName, weightInitializer);
-      }
-      status = checknewobject((void *) addedConn, classkeyword, name, hc);
-   }
-   if( !keywordMatched && !strcmp(classkeyword, "LCAConn") ) {
-     keywordMatched = true;
-     getPreAndPostLayers(name, hc, &preLayer, &postLayer);
-     if( preLayer && postLayer ) {
-       fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
-       auxLayer = getLayerFromParameterGroup(name, hc, "otherLayerName");
-       addedConn = (HyPerConn * ) new LCAConn(name, hc, preLayer, postLayer, fileName, weightInitializer, dynamic_cast<Movie *>(auxLayer) );
-     }
-     status = checknewobject((void *) addedConn, classkeyword, name, hc);
-   }
-   if( !keywordMatched && !strcmp( classkeyword, "CloneKernelConn") ) {
-      keywordMatched = true;
-      getPreAndPostLayers(name, hc, &preLayer, &postLayer);
-      auxConn = getConnFromParameterGroup(name, hc, "originalConnName");
-      if( auxConn && preLayer && postLayer ) {
-         addedConn = (HyPerConn *) new CloneKernelConn(name, hc, preLayer, postLayer, dynamic_cast<KernelConn *>(auxConn)  );
-      }
-      status = checknewobject((void *) addedConn, classkeyword, name, hc);
-   }
-   if( !keywordMatched && !strcmp(classkeyword, "LCALIFLateralKernelConn") ) {
-      keywordMatched = true;
-      getPreAndPostLayers(name, hc, &preLayer, &postLayer);
-      if( preLayer && postLayer ) {
-         fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
-         addedConn = new LCALIFLateralKernelConn(name, hc, preLayer, postLayer, fileName, weightInitializer);
-      }
-      status = checknewobject((void *) addedConn, classkeyword, name, hc);
-   }
-   if( !keywordMatched && !strcmp(classkeyword, "NoSelfKernelConn") ) {
-      keywordMatched = true;
-      getPreAndPostLayers(name, hc, &preLayer, &postLayer);
-      if( preLayer && postLayer ) {
-         fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
-         addedConn = new NoSelfKernelConn(name, hc, preLayer, postLayer, fileName, weightInitializer);
-      }
-      status = checknewobject((void *) addedConn, classkeyword, name, hc);
-   }
-   if( !keywordMatched && !strcmp(classkeyword, "OjaKernelConn") ) {
-      keywordMatched = true;
-      getPreAndPostLayers(name, hc, &preLayer, &postLayer);
-      if( preLayer && postLayer ) {
-         fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
-         addedConn = new OjaKernelConn(name, hc, preLayer, postLayer, fileName, weightInitializer);
-      }
-      status = checknewobject((void *) addedConn, classkeyword, name, hc);
-   }
-   if( !keywordMatched && !strcmp(classkeyword, "ReciprocalConn") ) {
-      keywordMatched = true;
-      getPreAndPostLayers(name, hc, &preLayer, &postLayer);
-      if( preLayer && postLayer ) {
-         fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
-         addedConn = new ReciprocalConn(name, hc, preLayer, postLayer, fileName, weightInitializer);
+         addedConn = (HyPerConn * ) new KernelConn(name, hc, preLayerName, postLayerName, fileName, weightInitializer);
       }
       status = checknewobject((void *) addedConn, classkeyword, name, hc);
    }
    if( !keywordMatched && !strcmp(classkeyword, "CliqueConn") ) {
       keywordMatched = true;
-      getPreAndPostLayers(name, hc, &preLayer, &postLayer);
-      if( preLayer && postLayer ) {
+      HyPerConn::getPreAndPostLayerNames(name, hc->parameters(), &preLayerName, &postLayerName);
+      if( preLayerName && postLayerName ) {
          fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
-         addedConn = new CliqueConn(name, hc, preLayer, postLayer, fileName, weightInitializer);
+         addedConn = new CliqueConn(name, hc, preLayerName, postLayerName, fileName, weightInitializer);
       }
       status = checknewobject((void *) addedConn, classkeyword, name, hc);
    }
-   if( !keywordMatched && !strcmp(classkeyword, "SiblingConn") ) {
+   if( !keywordMatched && !strcmp( classkeyword, "CloneKernelConn") ) {
       keywordMatched = true;
-      getPreAndPostLayers(name, hc, &preLayer, &postLayer);
-      HyPerConn * temp_conn = getConnFromParameterGroup(name, hc, "siblingConnName");
-      SiblingConn * sibling_conn;
-      if (temp_conn != NULL){
-         sibling_conn = dynamic_cast<SiblingConn *>(temp_conn);
+      HyPerConn::getPreAndPostLayerNames(name, hc->parameters(), &preLayerName, &postLayerName);
+      const char * originalKernelConnName = params->stringValue(name, "originalConnName");
+      if( originalKernelConnName && preLayerName && postLayerName ) {
+         addedConn = (HyPerConn *) new CloneKernelConn(name, hc, preLayerName, postLayerName, originalKernelConnName  );
       }
-      else{
-         sibling_conn = NULL;
-      }
-      if( preLayer && postLayer ) {
+      status = checknewobject((void *) addedConn, classkeyword, name, hc);
+   }
+   if( !keywordMatched && !strcmp(classkeyword, "GapConn") ) {
+      keywordMatched = true;
+      HyPerConn::getPreAndPostLayerNames(name, hc->parameters(), &preLayerName, &postLayerName);
+      if( preLayerName && postLayerName ) {
          fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
-         addedConn = new SiblingConn(name, hc, preLayer, postLayer, fileName, weightInitializer, sibling_conn);
+         addedConn = new GapConn(name, hc, preLayerName, postLayerName, fileName, weightInitializer);
+      }
+      status = checknewobject((void *) addedConn, classkeyword, name, hc);
+   }
+   if( !keywordMatched && !strcmp(classkeyword, "GenerativeConn") ) {
+      keywordMatched = true;
+      HyPerConn::getPreAndPostLayerNames(name, hc->parameters(), &preLayerName, &postLayerName);
+      if( preLayerName && postLayerName ) {
+         fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
+         addedConn = new GenerativeConn(name, hc, preLayerName, postLayerName, fileName, weightInitializer);
+      }
+      status = checknewobject((void *) addedConn, classkeyword, name, hc);
+   }
+   if( !keywordMatched && !strcmp(classkeyword, "PoolingGenConn") ) {
+      keywordMatched = true;
+      HyPerConn::getPreAndPostLayerNames(name, hc->parameters(), &preLayerName, &postLayerName);
+      if( preLayerName && postLayerName ) {
+         fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
+         addedConn = (HyPerConn *) addPoolingGenConn(name, hc, preLayerName, postLayerName, fileName, weightInitializer);
       }
       status = checknewobject((void *) addedConn, classkeyword, name, hc);
    }
    if( !keywordMatched && !strcmp( classkeyword, "IdentConn") ) {
       // Filename is ignored
       keywordMatched = true;
-      getPreAndPostLayers(name, hc, &preLayer, &postLayer);
-      if( preLayer && postLayer ) {
-         addedConn = (HyPerConn * ) new IdentConn(name, hc, preLayer, postLayer);
+      HyPerConn::getPreAndPostLayerNames(name, hc->parameters(), &preLayerName, &postLayerName);
+      if( preLayerName && postLayerName ) {
+         addedConn = (HyPerConn * ) new IdentConn(name, hc, preLayerName, postLayerName);
       }
       status = checknewobject((void *) addedConn, classkeyword, name, hc);
    }
-   if( !keywordMatched && !strcmp(classkeyword, "GenerativeConn") ) {
+   if( !keywordMatched && !strcmp(classkeyword, "LCAConn") ) {
+     keywordMatched = true;
+     HyPerConn::getPreAndPostLayerNames(name, hc->parameters(), &preLayerName, &postLayerName);
+     if( preLayerName && postLayerName ) {
+       fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
+       const char * movieLayerName = params->stringValue(name, "otherLayerName");
+       addedConn = (HyPerConn * ) new LCAConn(name, hc, preLayerName, postLayerName, fileName, weightInitializer, movieLayerName );
+     }
+     status = checknewobject((void *) addedConn, classkeyword, name, hc);
+   }
+   if( !keywordMatched && !strcmp(classkeyword, "LCALIFLateralKernelConn") ) {
       keywordMatched = true;
-      getPreAndPostLayers(name, hc, &preLayer, &postLayer);
-      if( preLayer && postLayer ) {
+      HyPerConn::getPreAndPostLayerNames(name, hc->parameters(), &preLayerName, &postLayerName);
+      if( preLayerName && postLayerName ) {
          fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
-         addedConn = new GenerativeConn(name, hc, preLayer, postLayer, fileName, weightInitializer);
+         addedConn = new LCALIFLateralKernelConn(name, hc, preLayerName, postLayerName, fileName, weightInitializer);
       }
       status = checknewobject((void *) addedConn, classkeyword, name, hc);
    }
-   if( !keywordMatched && !strcmp(classkeyword, "PoolingGenConn") ) {
+   if( !keywordMatched && !strcmp(classkeyword, "NoSelfKernelConn") ) {
       keywordMatched = true;
-      getPreAndPostLayers(name, hc, &preLayer, &postLayer);
-      if( preLayer && postLayer ) {
+      HyPerConn::getPreAndPostLayerNames(name, hc->parameters(), &preLayerName, &postLayerName);
+      if( preLayerName && postLayerName ) {
          fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
-         addedConn = (HyPerConn *) addPoolingGenConn(name, hc, preLayer, postLayer, fileName, weightInitializer);
+         addedConn = new NoSelfKernelConn(name, hc, preLayerName, postLayerName, fileName, weightInitializer);
+      }
+      status = checknewobject((void *) addedConn, classkeyword, name, hc);
+   }
+   if( !keywordMatched && !strcmp(classkeyword, "SiblingConn") ) {
+      keywordMatched = true;
+      HyPerConn::getPreAndPostLayerNames(name, hc->parameters(), &preLayerName, &postLayerName);
+      const char * sibling_conn_name = hc->parameters()->stringValue(name, "siblingConnName");
+      // HyPerConn * temp_conn = getConnFromParameterGroup(name, hc, "siblingConnName");
+      // SiblingConn * sibling_conn;
+      // if (temp_conn != NULL){
+      //    sibling_conn = dynamic_cast<SiblingConn *>(temp_conn);
+      // }
+      // else{
+      //    sibling_conn = NULL;
+      // }
+      if( preLayerName && postLayerName ) {
+         fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
+         addedConn = new SiblingConn(name, hc, preLayerName, postLayerName, fileName, weightInitializer, sibling_conn_name);
+      }
+      status = checknewobject((void *) addedConn, classkeyword, name, hc);
+   }
+   if( !keywordMatched && !strcmp(classkeyword, "OjaKernelConn") ) {
+      keywordMatched = true;
+      HyPerConn::getPreAndPostLayerNames(name, hc->parameters(), &preLayerName, &postLayerName);
+      if( preLayerName && postLayerName ) {
+         fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
+         addedConn = new OjaKernelConn(name, hc, preLayerName, postLayerName, fileName, weightInitializer);
+      }
+      status = checknewobject((void *) addedConn, classkeyword, name, hc);
+   }
+   if( !keywordMatched && !strcmp(classkeyword, "ReciprocalConn") ) {
+      keywordMatched = true;
+      HyPerConn::getPreAndPostLayerNames(name, hc->parameters(), &preLayerName, &postLayerName);
+      if( preLayerName && postLayerName ) {
+         fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
+         addedConn = new ReciprocalConn(name, hc, preLayerName, postLayerName, fileName, weightInitializer);
       }
       status = checknewobject((void *) addedConn, classkeyword, name, hc);
    }
    if( !keywordMatched && !strcmp(classkeyword, "TransposeConn") ) {
       keywordMatched = true;
-      getPreAndPostLayers(name, hc, &preLayer, &postLayer);
-      auxConn = getConnFromParameterGroup(name, hc, "originalConnName");
-      if( auxConn && preLayer && postLayer ) {
-         addedConn = (HyPerConn *) new TransposeConn(name, hc, preLayer, postLayer, dynamic_cast<KernelConn *>(auxConn) );
-      }
-      else {
+      HyPerConn::getPreAndPostLayerNames(name, hc->parameters(), &preLayerName, &postLayerName);
+      const char * originalConnName = hc->parameters()->stringValue(name, "originalConnName");
+      if (originalConnName==NULL) {
          if (hc->icCommunicator()->commRank()==0) {
-            if (auxConn==NULL) {
-               fprintf(stderr, "%s \"%s\" error: string parameter originalConnName must be set.\n", classkeyword, name);
-            }
-            if (preLayer==NULL) {
-               fprintf(stderr, "%s \"%s\" error: string parameter preLayerName must be set.\n", classkeyword, name);
-            }
-            if (postLayer==NULL) {
-               fprintf(stderr, "%s \"%s\" error: string parameter postLayerName must be set.\n", classkeyword, name);
-            }
-            if (preLayer==NULL && postLayer==NULL) {
-               fprintf(stderr, "    If you name the connection \"preLayerName to postLayerName\", pre and post layer names will be inferred from the connection name.\n");
-            }
+            fprintf(stderr, "%s \"%s\" error: string parameter originalConnName must be set.\n", classkeyword, name);
          }
+      }
+      else if( preLayerName && postLayerName ) {
+         addedConn = (HyPerConn *) new TransposeConn(name, hc, preLayerName, postLayerName, originalConnName);
       }
       status = checknewobject((void *) addedConn, classkeyword, name, hc);
    }
    if( !keywordMatched && !strcmp(classkeyword, "FeedbackConn") ) {
       keywordMatched = true;
-      auxConn = getConnFromParameterGroup(name, hc, "originalConnName");
-      if( auxConn ) {
-         addedConn = (HyPerConn *) new FeedbackConn(name, hc, dynamic_cast<KernelConn *>(auxConn) );
+      const char * originalConnName = hc->parameters()->stringValue(name, "originalConnName");
+      if (originalConnName==NULL) {
+         if (hc->icCommunicator()->commRank()==0) {
+            fprintf(stderr, "%s \"%s\" error: string parameter originalConnName must be set.\n", classkeyword, name);
+         }
+      }
+      else {
+         addedConn = (HyPerConn *) new FeedbackConn(name, hc, originalConnName);
       }
       status = checknewobject((void *) addedConn, classkeyword, name, hc);
    }
    if( !keywordMatched && !strcmp(classkeyword, "LCALIFLateralConn")) {
      keywordMatched = true;
-     getPreAndPostLayers(name, hc, &preLayer, &postLayer);
-     if( preLayer && postLayer ) {
+     HyPerConn::getPreAndPostLayerNames(name, hc->parameters(), &preLayerName, &postLayerName);
+     if( preLayerName && postLayerName ) {
        fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
-       addedConn = (HyPerConn * ) new LCALIFLateralConn(name, hc, preLayer, postLayer, fileName, weightInitializer);
+       addedConn = (HyPerConn * ) new LCALIFLateralConn(name, hc, preLayerName, postLayerName, fileName, weightInitializer);
      }
      status = checknewobject((void *) addedConn, classkeyword, name, hc);
    }
-   if( !keywordMatched && !strcmp(classkeyword, "STDPConn")) {
-     keywordMatched = true;
-     getPreAndPostLayers(name, hc, &preLayer, &postLayer);
-     bool stdpFlag = params->value(name, "stdpFlag", (float) true, true);
-     if( preLayer && postLayer ) {
-       fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
-       addedConn = (HyPerConn * ) new STDPConn(name, hc, preLayer, postLayer, fileName, stdpFlag, weightInitializer);
-     }
-     status = checknewobject((void *) addedConn, classkeyword, name, hc);
-   }
-   if( !keywordMatched && !strcmp(classkeyword, "STDP3Conn")) {
-        keywordMatched = true;
-        getPreAndPostLayers(name, hc, &preLayer, &postLayer);
-        bool stdpFlag = params->value(name, "stdpFlag", (float) true, true);
-        if( preLayer && postLayer ) {
-          fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
-          addedConn = (HyPerConn * ) new STDP3Conn(name, hc, preLayer, postLayer, fileName, stdpFlag, weightInitializer);
-        }
-        status = checknewobject((void *) addedConn, classkeyword, name, hc);
-      }
    if( !keywordMatched && !strcmp(classkeyword, "OjaSTDPConn")) {
         keywordMatched = true;
-        getPreAndPostLayers(name, hc, &preLayer, &postLayer);
-        if( preLayer && postLayer ) {
+        HyPerConn::getPreAndPostLayerNames(name, hc->parameters(), &preLayerName, &postLayerName);
+        if( preLayerName && postLayerName ) {
           fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
-          addedConn = (HyPerConn * ) new OjaSTDPConn(name, hc, preLayer, postLayer, fileName, weightInitializer);
+          addedConn = (HyPerConn * ) new OjaSTDPConn(name, hc, preLayerName, postLayerName, fileName, weightInitializer);
         }
         status = checknewobject((void *) addedConn, classkeyword, name, hc);
       }
    if( !keywordMatched && !strcmp(classkeyword, "InhibSTDPConn")) {
         keywordMatched = true;
-        getPreAndPostLayers(name, hc, &preLayer, &postLayer);
-        if( preLayer && postLayer ) {
+        HyPerConn::getPreAndPostLayerNames(name, hc->parameters(), &preLayerName, &postLayerName);
+        if( preLayerName && postLayerName ) {
           fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
-          addedConn = (HyPerConn * ) new InhibSTDPConn(name, hc, preLayer, postLayer, fileName, weightInitializer);
+          addedConn = (HyPerConn * ) new InhibSTDPConn(name, hc, preLayerName, postLayerName, fileName, weightInitializer);
         }
         status = checknewobject((void *) addedConn, classkeyword, name, hc);
       }
-   if( !keywordMatched && !strcmp(classkeyword, "GapConn") ) {
-      keywordMatched = true;
-      getPreAndPostLayers(name, hc, &preLayer, &postLayer);
-      if( preLayer && postLayer ) {
-         fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
-         addedConn = new GapConn(name, hc, preLayer, postLayer, fileName, weightInitializer);
+  if( !keywordMatched && !strcmp(classkeyword, "STDP3Conn")) {
+        keywordMatched = true;
+        HyPerConn::getPreAndPostLayerNames(name, hc->parameters(), &preLayerName, &postLayerName);
+        bool stdpFlag = params->value(name, "stdpFlag", (float) true, true);
+        if( preLayerName && postLayerName ) {
+          fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
+          addedConn = (HyPerConn * ) new STDP3Conn(name, hc, preLayerName, postLayerName, fileName, stdpFlag, weightInitializer);
+        }
+        status = checknewobject((void *) addedConn, classkeyword, name, hc);
       }
-      status = checknewobject((void *) addedConn, classkeyword, name, hc);
+   if( !keywordMatched && !strcmp(classkeyword, "STDPConn")) {
+     keywordMatched = true;
+     HyPerConn::getPreAndPostLayerNames(name, hc->parameters(), &preLayerName, &postLayerName);
+     bool stdpFlag = params->value(name, "stdpFlag", (float) true, true);
+     if( preLayerName && postLayerName ) {
+       fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
+       addedConn = (HyPerConn * ) new STDPConn(name, hc, preLayerName, postLayerName, fileName, stdpFlag, weightInitializer);
+     }
+     status = checknewobject((void *) addedConn, classkeyword, name, hc);
    }
-   if( !keywordMatched && !strcmp(classkeyword, "BIDSConn") ) {
-      keywordMatched = true;
-      getPreAndPostLayers(name, hc, &preLayer, &postLayer);
-      if( preLayer && postLayer ) {
-         fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
-         addedConn = (HyPerConn*) new BIDSConn(name, hc, preLayer, postLayer, fileName, weightInitializer);
-      }
-      status = checknewobject((void *) addedConn, classkeyword, name, hc);
-   }
+#ifdef NOTYETREFACTORED // Refactoring taking place 2013-07-01.  Split initialization into three stages.
+#endif // NOTYETREFACTORED
+   free(preLayerName);
+   free(postLayerName);
    if( !keywordMatched ) {
       fprintf(stderr, "Class keyword \"%s\" of group \"%s\" not recognized\n", classkeyword, name);
       status = PV_FAILURE;
@@ -1059,17 +1036,17 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
    if( status != PV_SUCCESS ) {
       exit(EXIT_FAILURE);
    }
-   delete weightInitializer;
-   weightInitializer = NULL;
+   // delete weightInitializer; // The connection takes ownership of the InitWeights object
+   // weightInitializer = NULL;
    return addedConn;
 }
 
-PoolingGenConn * addPoolingGenConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post, const char * filename, InitWeights *weightInit) {
+PoolingGenConn * addPoolingGenConn(const char * name, HyPerCol * hc, const char * pre_layer_name, const char * post_layer_name, const char * filename, InitWeights *weightInit) {
    PoolingGenConn * addedConn;
-   HyPerLayer * secondaryPreLayer = getLayerFromParameterGroup(name, hc, "secondaryPreLayerName");
-   HyPerLayer * secondaryPostLayer = getLayerFromParameterGroup(name, hc, "secondaryPostLayerName");
-   if( secondaryPreLayer && secondaryPostLayer ) {
-       addedConn = new PoolingGenConn(name, hc, pre, post, secondaryPreLayer, secondaryPostLayer, filename, weightInit);
+   const char * secondary_pre_layer_name = hc->parameters()->stringValue(name, "secondaryPreLayerName");
+   const char * secondary_post_layer_name = hc->parameters()->stringValue(name, "secondaryPostLayerName");
+   if( secondary_pre_layer_name && secondary_post_layer_name ) {
+       addedConn = new PoolingGenConn(name, hc, pre_layer_name, post_layer_name, secondary_pre_layer_name, secondary_post_layer_name, filename, weightInit);
    }
    else {
        addedConn = NULL;
@@ -1084,6 +1061,8 @@ const char * getStringValueFromParameterGroup(const char * groupName, PVParams *
    return str;
 }
 
+#ifdef OBSOLETE // Marked obsolete July 3, 2013.  No longer pass HyPerLayers to the connections' constructors, but names
+                // of the layers.  Accordingly, use HyPerConn::getPreAndPostLayerNames() instead.
 int getPreAndPostLayers(const char * name, HyPerCol * hc, HyPerLayer ** preLayerPtr, HyPerLayer **postLayerPtr) {
    const char * separator = " to ";
    *preLayerPtr = getLayerFromParameterGroup(name, hc, "preLayerName", false);
@@ -1124,6 +1103,7 @@ int getPreAndPostLayers(const char * name, HyPerCol * hc, HyPerLayer ** preLayer
    }
    return *preLayerPtr != NULL && *postLayerPtr != NULL ? PV_SUCCESS : PV_FAILURE;
 }
+#endif // OBSOLETE
 
 // make a method in HyPerCol?
 HyPerLayer * getLayerFromParameterGroup(const char * groupName, HyPerCol * hc, const char * parameterStringName, bool warnIfAbsent) {
@@ -1149,6 +1129,16 @@ HyPerConn * getConnFromParameterGroup(const char * groupName, HyPerCol * hc, con
 }
 
 ColProbe * getColProbeFromParameterGroup(const char * groupName, HyPerCol * hc, const char * parameterStringName) {
+   ColProbe * colprobe = NULL;
+   const char * colprobename = hc->parameters()->stringValue(groupName, parameterStringName);
+   if (colprobename != NULL) {
+      colprobe = hc->getColProbeFromName(colprobename); // getColProbeFromParameterGroup(name, hc, "parentGenColProbe");
+   }
+   return colprobe;
+}
+
+/*
+ColProbe * getColProbeFromParameterGroup(const char * groupName, HyPerCol * hc, const char * parameterStringName) {
    ColProbe * p = NULL;
    PVParams * params = hc->parameters();
    const char * colProbeName = getStringValueFromParameterGroup(groupName, params, parameterStringName, false);
@@ -1164,6 +1154,7 @@ ColProbe * getColProbeFromParameterGroup(const char * groupName, HyPerCol * hc, 
    }
    return p;
 }
+*/
 
 ColProbe * addColProbeToColumn(const char * classkeyword, const char * probeName, HyPerCol * hc) {
    ColProbe * addedProbe = NULL;
@@ -1199,162 +1190,39 @@ void insertColProbe(ColProbe * colProbe, HyPerCol * hc, const char * classkeywor
 BaseConnectionProbe * addBaseConnectionProbeToColumn(const char * classkeyword, const char * name, HyPerCol * hc) {
    BaseConnectionProbe * addedProbe = NULL;
    PVParams * params = hc->parameters();
-   HyPerConn * targetConn = NULL;
    bool keywordMatched = false;
    int status = PV_SUCCESS;
+   if( !strcmp(classkeyword, "ReciprocalEnergyProbe") ) {
+      keywordMatched = true;
+      addedProbe = new ReciprocalEnergyProbe(name, hc);
+      status = checknewobject((void *) addedProbe, classkeyword, name, hc);
+   }
    if( !strcmp(classkeyword, "KernelProbe") ) {
       keywordMatched = true;
-      int kernelIndex = params->value(name, "kernelIndex", 0);
-      int arborId = params->value(name, "arborId", 0);
-      targetConn = hc->getConnFromName(params->stringValue(name, "targetConnection"));
-      if( targetConn ) {
-         const char * filename = params->stringValue(name, "probeOutputFile");
-         addedProbe = new KernelProbe(name, filename, targetConn, kernelIndex, arborId);
-         status = checknewobject((void *) addedProbe, classkeyword, name, hc);
-      }
-      else {
-         fprintf(stderr, "Error: connection probe \"%s\" requires parameter \"targetConnection\".\n", name);
-         status = PV_FAILURE;
-      }
-   }
-   if( !strcmp(classkeyword, "OjaConnProbe")) {
-      keywordMatched = true;
-      const char * filename = params->stringValue(name, "probeOutputFile");
-      const bool isPostProbe = params->value(name,"isPostProbe",true);
-      targetConn = hc->getConnFromName(params->stringValue(name, "targetConnection"));
-      if( targetConn == NULL ) {
-         fprintf(stderr, "Error: connection probe \"%s\" requires parameter \"targetConnection\".\n", name);
-         return NULL;
-      }
-      const char * msg = params->stringValue(name,"msg", name);
-      int indexmethod = params->present(name, "kPost");
-      int coordmethod = params->present(name, "kxPost") && params->present(name,"kyPost") && params->present(name,"kfPost");
-      if( indexmethod && coordmethod ) {
-         fprintf(stderr, "OjaConnProbe \"%s\": Ambiguous definition with both kPost and (kxPost,kyPost,kfPost) defined\n", name);
-         return NULL;
-      }
-      if( !indexmethod && !coordmethod ) {
-         fprintf(stderr, "OjaConnProbe \"%s\": Exactly one of kPost and (kxPost,kyPost,kfPost) must be defined\n", name);
-         return NULL;
-      }
-      if( indexmethod ) {
-         int kPost = params->value(name, "kPost");
-         addedProbe = new OjaConnProbe(msg, filename, targetConn, kPost, isPostProbe);
-      }
-      else {
-         assert(coordmethod);
-         int kxPost = params->value(name, "kxPost");
-         int kyPost = params->value(name, "kyPost");
-         int kfPost = params->value(name, "kfPost");
-         addedProbe = new OjaConnProbe(msg, filename, targetConn, kxPost, kyPost, kfPost, isPostProbe);
-      }
+      addedProbe = new KernelProbe(name, hc);
       status = checknewobject((void *) addedProbe, classkeyword, name, hc);
    }
-   if( !strcmp(classkeyword, "OjaKernelSpikeRateProbe")) {
+   if( !strcmp(classkeyword, "LCALIFLateralProbe") ) {
       keywordMatched = true;
-      const char * filename = params->stringValue(name, "probeOutputFile");
-      targetConn = hc->getConnFromName(params->stringValue(name, "targetConnection"));
-      if( targetConn == NULL ) {
-         fprintf(stderr, "Error: connection probe \"%s\" requires parameter \"targetConnection\".\n", name);
-         return NULL;
-      }
-      addedProbe = new OjaKernelSpikeRateProbe(name, filename, targetConn);
+      addedProbe = new LCALIFLateralProbe(name, hc);
       status = checknewobject((void *) addedProbe, classkeyword, name, hc);
    }
-   if( !strcmp(classkeyword, "LCALIFLateralProbe")) {
+   if( !strcmp(classkeyword, "OjaConnProbe") ) {
       keywordMatched = true;
-      const char * filename = params->stringValue(name, "probeOutputFile");
-      targetConn = hc->getConnFromName(params->stringValue(name, "targetConnection"));
-      if( targetConn == NULL ) {
-         fprintf(stderr, "Error: connection probe \"%s\" requires parameter \"targetConnection\".\n", name);
-         return NULL;
-      }
-      const char * msg = params->stringValue(name,"msg", name);
-      int indexmethod = params->present(name, "kPost");
-      int coordmethod = params->present(name, "kxPost") && params->present(name,"kyPost") && params->present(name,"kfPost");
-      if( indexmethod && coordmethod ) {
-         fprintf(stderr, "LCALIFLateralProbe \"%s\": Ambiguous definition with both kPost and (kxPost,kyPost,kfPost) defined\n", name);
-         return NULL;
-      }
-      if( !indexmethod && !coordmethod ) {
-         fprintf(stderr, "LCALIFLateralProbe \"%s\": Exactly one of kPost and (kxPost,kyPost,kfPost) must be defined\n", name);
-         return NULL;
-      }
-      if( indexmethod ) {
-         int kPost = params->value(name, "kPost");
-         addedProbe = new LCALIFLateralProbe(msg, filename, targetConn, kPost);
-      }
-      else {
-         assert(coordmethod);
-         int kxPost = params->value(name, "kxPost");
-         int kyPost = params->value(name, "kyPost");
-         int kfPost = params->value(name, "kfPost");
-         addedProbe = new LCALIFLateralProbe(msg, filename, targetConn, kxPost, kyPost, kfPost);
-      }
+      addedProbe = new LCALIFLateralProbe(name, hc);
+      status = checknewobject((void *) addedProbe, classkeyword, name, hc);
+   }
+   if( !strcmp(classkeyword, "OjaKernelSpikeRateProbe") ) {
+      keywordMatched = true;
+      addedProbe = new OjaKernelSpikeRateProbe(name, hc);
       status = checknewobject((void *) addedProbe, classkeyword, name, hc);
    }
    if( !strcmp(classkeyword, "PatchProbe") ) {
       keywordMatched = true;
-      int arborID = params->value(name, "arborID");
-      int indexmethod = params->present(name, "kPre");
-      int coordmethod = params->present(name, "kxPre") && params->present(name,"kyPre") && params->present(name,"kfPre");
-      if( indexmethod && coordmethod ) {
-         fprintf(stderr, "PatchProbe \"%s\": Ambiguous definition with both kPre and (kxPre,kyPre,kfPre) defined\n", name);
-         return NULL;
-      }
-      if( !indexmethod && !coordmethod ) {
-         fprintf(stderr, "PatchProbe \"%s\": Exactly one of kPre and (kxPre,kyPre,kfPre) must be defined\n", name);
-         return NULL;
-      }
-      const char * filename = params->stringValue(name, "probeOutputFile");
-      targetConn = hc->getConnFromName(params->stringValue(name, "targetConnection"));
-      if( targetConn == NULL ) {
-         fprintf(stderr, "Error: connection probe \"%s\" requires parameter \"targetConnection\".\n", name);
-         return NULL;
-      }
-      if( indexmethod ) {
-         int kPre = params->value(name, "kPre");
-         addedProbe = new PatchProbe(name, filename, targetConn, kPre, arborID);
-      }
-      else {
-         assert(coordmethod);
-         int kxPre = params->value(name, "kxPre");
-         int kyPre = params->value(name, "kyPre");
-         int kfPre = params->value(name, "kfPre");
-         addedProbe = new PatchProbe(name, filename, targetConn, kxPre, kyPre, kfPre, arborID);
-      }
+      addedProbe = new PatchProbe(name, hc);
       status = checknewobject((void *) addedProbe, classkeyword, name, hc);
    }
-   if( !strcmp(classkeyword, "ReciprocalEnergyProbe") ) {
-      keywordMatched = true;
-      const char * filename = params->stringValue(name, "probeOutputFile");
-      targetConn = hc->getConnFromName(params->stringValue(name, "targetConnection"));
-      if( targetConn == NULL ) {
-         fprintf(stderr, "Error: connection probe \"%s\" requires parameter \"targetConnection\".\n", name);
-         status = PV_FAILURE;
-      }
-      if( status == PV_SUCCESS ) {
-         addedProbe = new ReciprocalEnergyProbe(name, filename, targetConn);
-         status = checknewobject((void *) addedProbe, classkeyword, name, hc);
-      }
-      if( status == PV_SUCCESS ) {
-         ColProbe * colProbeFromParams = getColProbeFromParameterGroup(name, hc, "parentGenColProbe");
-         if( colProbeFromParams != NULL ) {
-            GenColProbe * parentcolprobe = dynamic_cast<GenColProbe *>(colProbeFromParams);
-            if( parentcolprobe == NULL) {
-               fprintf(stderr, "ReciprocalEnergyProbe \"%s\": parentGenColProbe \"%s\" is not a GenColProbe\n", name, parentcolprobe->getColProbeName());
-               status = PV_FAILURE;
-            }
-            else {
-               parentcolprobe->addConnTerm((ConnFunctionProbe *) addedProbe, targetConn, 1.0f);
-               // ReciprocalEnergyProbe uses reciprocalFidelityCoeff for the energy
-               // so I think a separate probe parameter for the coefficient won't be necessary.
-            }
-         }
-      }
-   }
    assert(keywordMatched);
-   assert( !(status == PV_SUCCESS && targetConn == NULL) );
    assert( !(status == PV_SUCCESS && !addedProbe) );
    if( status != PV_SUCCESS ) {
       exit(EXIT_FAILURE);
@@ -1548,7 +1416,8 @@ LayerProbe * addLayerProbeToColumn(const char * classkeyword, const char * name,
          }
       }
       if( !errorFound ) {
-         parentcolprobe = (GenColProbe *) getColProbeFromParameterGroup(name, hc, "parentGenColProbe");
+         ColProbe * colprobe = getColProbeFromParameterGroup(name, hc, "parentGenColProbe");
+         parentcolprobe = dynamic_cast<GenColProbe *>(colprobe);
          if( parentcolprobe )
          {
             pvdata_t coeff = params->value(name, "coeff", 1);
@@ -1573,7 +1442,8 @@ LayerProbe * addLayerProbeToColumn(const char * classkeyword, const char * name,
          }
       }
       if( !errorFound ) {
-         parentcolprobe = (GenColProbe *) getColProbeFromParameterGroup(name, hc, "parentGenColProbe");
+         ColProbe * colprobe = getColProbeFromParameterGroup(name, hc, "parentGenColProbe");
+         parentcolprobe = dynamic_cast<GenColProbe *>(colprobe);
          if( parentcolprobe )
          {
             pvdata_t coeff = params->value(name, "coeff", 1);
@@ -1598,7 +1468,8 @@ LayerProbe * addLayerProbeToColumn(const char * classkeyword, const char * name,
          }
       }
       if( !errorFound ) {
-         parentcolprobe = (GenColProbe *) getColProbeFromParameterGroup(name, hc, "parentGenColProbe");
+         ColProbe * colprobe = getColProbeFromParameterGroup(name, hc, "parentGenColProbe");
+         parentcolprobe = dynamic_cast<GenColProbe *>(colprobe);
          if( parentcolprobe )
          {
             pvdata_t coeff = params->value(name, "coeff", 1);

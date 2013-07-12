@@ -20,10 +20,12 @@ GapConn::GapConn()
    initialize_base();
 }
 
-GapConn::GapConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
-      HyPerLayer * post, const char * filename, InitWeights *weightInit) {
+GapConn::GapConn(const char * name, HyPerCol * hc,
+      const char * pre_layer_name, const char * post_layer_name,
+      const char * filename, InitWeights *weightInit) {
    // No channel argument to constructor because GapConn must always use CHANNEL_GAP
-   GapConn::initialize(name, hc, pre, post, filename, weightInit);
+   initialize_base();
+   GapConn::initialize(name, hc, pre_layer_name, post_layer_name, filename, weightInit);
 }
 
 GapConn::~GapConn()
@@ -36,11 +38,9 @@ int GapConn::initialize_base(){
 }
 
 int GapConn::initialize(const char * name, HyPerCol * hc,
-               HyPerLayer * pre, HyPerLayer * post,
-               const char * filename,
-               InitWeights *weightInit){
-   initialize_base();
-   return KernelConn::initialize(name, hc, pre, post, filename, weightInit);
+      const char * pre_layer_name, const char * post_layer_name,
+      const char * filename, InitWeights *weightInit){
+   return KernelConn::initialize(name, hc, pre_layer_name, post_layer_name, filename, weightInit);
 }
 
 void GapConn::readChannelCode(PVParams * params) {

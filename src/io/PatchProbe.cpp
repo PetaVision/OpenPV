@@ -27,48 +27,61 @@ PatchProbe::PatchProbe() {
  *
  */
 
-PatchProbe::PatchProbe(const char * probename, const char * filename, HyPerConn * conn, int kPre, int arbID)
+PatchProbe::PatchProbe(const char * probename, HyPerCol * hc)
 {
    initialize_base();
-   initialize(probename, filename, conn, INDEX_METHOD, kPre, -1, -1, -1, arbID);
+   initialize(probename, hc);
 }
 
-PatchProbe::PatchProbe(const char * probename, const char * filename, HyPerConn * conn, int kxPre, int kyPre, int kfPre, int arbID)
-{
-   initialize_base();
-   initialize(probename, filename, conn, COORDINATE_METHOD, -1, kxPre, kyPre, kfPre, arbID);
-}
 PatchProbe::~PatchProbe()
 {
+   initialize_base();
 }
 
 int PatchProbe::initialize_base() {
    return PV_SUCCESS;
 }
 
-int PatchProbe::initialize(const char * probename, const char * filename,
-      HyPerConn * conn, PatchIDMethod method, int kPre,
-      int kxPre, int kyPre, int kfPre, int arbID) {
-   if( method == INDEX_METHOD ) {
-      this->kPre = kPre;
+int PatchProbe::initialize(const char * probename, HyPerCol * hc) {
+   BaseConnectionProbe::initialize(probename, hc);
+   PVParams * params = hc->parameters();
+   getPatchID();
+   arborID = params->value(name, "arborID");
+   outputWeights = params->value(name, "outputWeights", true);
+   outputPlasticIncr = params->value(name, "outputPlasticIncr", false);
+   outputPostIndices = params->value(name, "outputPostIndices", false);
+   return PV_SUCCESS;
+}
+
+int PatchProbe::getPatchID() {
+   assert(parent);
+   PVParams * params = parent->parameters();
+   int indexmethod = params->present(name, "kPre");
+   int coordmethod = params->present(name, "kxPre") && params->present(name,"kyPre") && params->present(name,"kfPre");
+   if( indexmethod && coordmethod ) {
+      fprintf(stderr, "PatchProbe \"%s\": Ambiguous definition with both kPre and (kxPre,kyPre,kfPre) defined\n", name);
+      return NULL;
+   }
+   if( !indexmethod && !coordmethod ) {
+      fprintf(stderr, "PatchProbe \"%s\": Exactly one of kPre and (kxPre,kyPre,kfPre) must be defined\n", name);
+      return NULL;
+   }
+   if (indexmethod) {
+      this->kPre = params->present(name, "kPre");
       this->kxPre = INT_MIN;
       this->kyPre = INT_MIN;
       this->kfPre = INT_MIN;
-      patchIDMethod = method;
+      patchIDMethod = INDEX_METHOD;
    }
-   else if( method == COORDINATE_METHOD ) {
+   else if (coordmethod) {
       this->kPre = INT_MIN;
-      this->kxPre = kxPre;
-      this->kyPre = kyPre;
-      this->kfPre = kfPre;
+      this->kxPre = params->present(name, "kxPre");
+      this->kyPre = params->present(name, "kyPre");
+      this->kfPre = params->present(name, "kfPre");
+      patchIDMethod = COORDINATE_METHOD;
    }
    else assert(false);
-   patchIDMethod = method;
-   arborID = arbID;
-   outputWeights = true; // set by setOutputWeights method
-   outputPlasticIncr = false; // set by setOutputPlasticIncr method
-   outputPostIndices = false; // set by setOutputPostIndices method
-   return BaseConnectionProbe::initialize(getName(), filename, conn);
+   return PV_SUCCESS;
 }
 
 /**

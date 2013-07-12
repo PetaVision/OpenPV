@@ -6,6 +6,7 @@
  */
 
 #include "GenColProbe.hpp"
+#include "ConnFunctionProbe.hpp"
 
 namespace PV {
 

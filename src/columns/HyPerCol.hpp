@@ -63,6 +63,7 @@ public:
 
    HyPerLayer * getLayerFromName(const char * layerName);
    HyPerConn * getConnFromName(const char * connectionName);
+   ColProbe * getColProbeFromName(const char * probeName);
 
    HyPerLayer * getLayer(int which)       {return layers[which];}
    HyPerConn  * getConnection(int which)  {return connections[which];}

@@ -152,6 +152,9 @@ public:
    virtual ~HyPerLayer() = 0;
    virtual int initializeState();
 
+   virtual int communicateInitInfo();
+   virtual int allocateDataStructures();
+
    static int copyToBuffer(pvdata_t * buf, const pvdata_t * data,
                            const PVLayerLoc * loc, bool extended, float scale);
    static int copyToBuffer(unsigned char * buf, const pvdata_t * data,
@@ -235,6 +238,8 @@ public:
    PVLayerType getLayerType()        {return clayer->layerType;}
    void setLayerId(int id)           {clayer->layerId = id;}
    int increaseDelayLevels(int neededDelay);
+   int requireMarginWidth(int marginWidthNeeded, int * marginWidthResult);
+   int requireChannel(int channelNeeded, int * numChannelsResult);
 
    PVLayer*  getCLayer()             {return clayer;}
    pvdata_t * getV()                 {return clayer->V;}           // name query
@@ -324,6 +329,8 @@ protected:
    int numGlobalRNGs;     // The number of separate random number streams a layer needs.  E.g. stochastically spiking layers need one RNG for each neuron.
                           // numGlobalRNGs should take into account the global layer, so that random number generation is reproducible in different MPI configurations.
    float maxRate;         // Maximum rate of activity.  HyPerLayer sets to 1/dt during initialize(); derived classes should override in their own initialize method after calling HyPerLayer's, if needed.
+
+   unsigned long rngSeedBase; // The starting seed for rng.  The parent HyPerCol reserves {rngSeedbase, rngSeedbase+1,...rngSeedbase+neededRNGSeeds-1} for use by this layer
 
 //   int feedforwardDelay;  // minimum delay required for a change in the input to potentially influence this layer
 //   int feedbackDelay;     // minimum delay required for a change in this layer to potentially influence itself via feedback loop

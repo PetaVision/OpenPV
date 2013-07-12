@@ -22,11 +22,12 @@ KernelConn::KernelConn()
 }
 
 
-KernelConn::KernelConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
+KernelConn::KernelConn(const char * name, HyPerCol * hc,
+      const char * pre_layer_name, const char * post_layer_name,
       const char * filename, InitWeights *weightInit) : HyPerConn()
 {
    KernelConn::initialize_base();
-   KernelConn::initialize(name, hc, pre, post, filename, weightInit);
+   KernelConn::initialize(name, hc, pre_layer_name, post_layer_name, filename, weightInit);
    // HyPerConn::initialize is not virtual
 #ifdef PV_USE_OPENCL
    if(gpuAccelerateFlag)
@@ -57,37 +58,11 @@ int KernelConn::initialize_base()
    // calls HyPerConn::initialize_base().
 }
 
-int KernelConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
-      HyPerLayer * post, const char * filename,
-      InitWeights *weightInit)
+int KernelConn::initialize(const char * name, HyPerCol * hc,
+      const char * pre_layer_name, const char * post_layer_name,
+      const char * filename, InitWeights *weightInit)
 {
-   HyPerConn::initialize(name, hc, pre, post, filename, weightInit);
-
-   PVParams * params = hc->parameters();
-   assert(!params->presentAndNotBeenRead(name, "plasticityFlag"));
-   if (plasticityFlag) {
-      assert(!params->presentAndNotBeenRead(name, "initialWeightUpdateTime"));
-      lastUpdateTime = weightUpdateTime - parent->getDeltaTime();
-   }
-
-#ifdef PV_USE_MPI
-   // preallocate buffer for MPI_Allreduce call in reduceKernels
-   // Should only call reduceKernels if plasticityFlag is set, so only allocate if it is set.
-   assert(!params->presentAndNotBeenRead(name, "plasticityFlag"));
-   if (plasticityFlag) {
-      const int numPatches = getNumDataPatches();
-      const size_t patchSize = nxp*nyp*nfp*sizeof(pvdata_t);
-      const size_t localSize = numPatches * patchSize;
-      mpiReductionBuffer = (pvdata_t *) malloc(localSize*sizeof(pvdata_t));
-      if(mpiReductionBuffer == NULL) {
-         if (parent->columnId()==0) {
-            fprintf(stderr, "KernelConn::initialize:Unable to allocate memory\n");
-         }
-         MPI_Barrier(parent->icCommunicator()->communicator());
-         exit(PV_FAILURE);
-      }
-   }
-#endif // PV_USE_MPI
+   HyPerConn::initialize(name, hc, pre_layer_name, post_layer_name, filename, weightInit);
 
 #ifdef PV_USE_OPENCL
 //   //don't support GPU accelleration in kernelconn yet
@@ -337,6 +312,35 @@ int KernelConn::initNormalize() {
    return status;
 }
 #endif // OBSOLETE
+
+int KernelConn::allocateDataStructures() {
+   HyPerConn::allocateDataStructures();
+   PVParams * params = parent->parameters();
+   assert(!params->presentAndNotBeenRead(name, "plasticityFlag"));
+   if (plasticityFlag) {
+      assert(!params->presentAndNotBeenRead(name, "initialWeightUpdateTime"));
+      lastUpdateTime = weightUpdateTime - parent->getDeltaTime();
+   }
+#ifdef PV_USE_MPI
+   // preallocate buffer for MPI_Allreduce call in reduceKernels
+   // Should only call reduceKernels if plasticityFlag is set, so only allocate if it is set.
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
+   if (plasticityFlag) {
+      const int numPatches = getNumDataPatches();
+      const size_t patchSize = nxp*nyp*nfp*sizeof(pvdata_t);
+      const size_t localSize = numPatches * patchSize;
+      mpiReductionBuffer = (pvdata_t *) malloc(localSize*sizeof(pvdata_t));
+      if(mpiReductionBuffer == NULL) {
+         if (parent->columnId()==0) {
+            fprintf(stderr, "KernelConn::initialize:Unable to allocate memory\n");
+         }
+         MPI_Barrier(parent->icCommunicator()->communicator());
+         exit(PV_FAILURE);
+      }
+   }
+#endif // PV_USE_MPI
+   return PV_SUCCESS;
+}
 
 float KernelConn::minWeight(int arborId)
 {

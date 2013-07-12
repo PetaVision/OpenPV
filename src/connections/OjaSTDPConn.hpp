@@ -21,9 +21,13 @@ namespace PV {
 class OjaSTDPConn: public HyPerConn {
 public:
    OjaSTDPConn();
-   OjaSTDPConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
-            const char * filename=NULL, InitWeights *weightInit=NULL);
+   OjaSTDPConn(const char * name, HyPerCol * hc,
+         const char * pre_layer_name, const char * post_layer_name,
+         const char * filename=NULL, InitWeights *weightInit=NULL);
    virtual ~OjaSTDPConn();
+
+   virtual int communicateInitInfo();
+   virtual int allocateDataStructures();
 
    virtual float maxWeight(int axonID);
    virtual int writeTextWeightsExtra(PV_Stream * pvstream, int k, int axonID);
@@ -55,8 +59,8 @@ protected:
 
    int initialize_base();
    int initialize(const char * name, HyPerCol * hc,
-                  HyPerLayer * pre, HyPerLayer * post,
-                  const char * filename, InitWeights *weightInit);
+         const char * pre_layer_name, const char * post_layer_name,
+         const char * filename, InitWeights *weightInit);
    virtual int setParams(PVParams * params);
 
    virtual void read_dWMax(PVParams * params) {HyPerConn::read_dWMax(params);}

@@ -13,9 +13,9 @@ ReciprocalEnergyProbe::ReciprocalEnergyProbe() {
    initialize_base();
 }
 
-ReciprocalEnergyProbe::ReciprocalEnergyProbe(const char * probename, const char * filename, HyPerConn * conn) {
+ReciprocalEnergyProbe::ReciprocalEnergyProbe(const char * probename, HyPerCol * hc) {
    initialize_base();
-   int status = initialize(getName(), filename, conn);
+   int status = initialize(getName(), hc);
    assert(status==PV_SUCCESS);
 }
 
@@ -23,16 +23,25 @@ int ReciprocalEnergyProbe::initialize_base() {
    return PV_SUCCESS;
 }
 
-int ReciprocalEnergyProbe::initialize(const char * probename, const char * filename, HyPerConn * conn) {
-   int status = ConnFunctionProbe::initialize(probename, filename, conn);
+int ReciprocalEnergyProbe::initialize(const char * probename, HyPerCol * hc) {
+   int status = ConnFunctionProbe::initialize(probename, hc);
+   return status;
+}
+
+int ReciprocalEnergyProbe::communicate() {
+   int status = PV_SUCCESS;
    if(status==PV_SUCCESS) {
-      targetRecipConn = dynamic_cast<ReciprocalConn *>(conn);
+      targetRecipConn = dynamic_cast<ReciprocalConn *>(targetConn);
       if(targetRecipConn == NULL) {
          fprintf(stderr, "ReciprocalEnergyProbe \"%s\": connection \"%s\" is not a ReciprocalConn.\n", getName(), getTargetConn()->getName());
          status = PV_FAILURE;
       }
    }
    return status;
+}
+
+int ReciprocalEnergyProbe::allocateProbe() {
+   return PV_SUCCESS;
 }
 
 double ReciprocalEnergyProbe::evaluate(double timed) {

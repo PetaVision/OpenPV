@@ -24,8 +24,10 @@ public:
    KernelConn();
    virtual ~KernelConn();
 
-   KernelConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
-              const char * filename = NULL, InitWeights *weightInit = NULL);
+   KernelConn(const char * name, HyPerCol * hc, const char * pre_layer_name,
+         const char * post_layer_name, const char * filename = NULL,
+         InitWeights *weightInit = NULL);
+   virtual int allocateDataStructures();
 
    virtual float minWeight(int arborId = 0);
    virtual float maxWeight(int arborId = 0);
@@ -78,9 +80,8 @@ protected:
 
    int initialize_base();
    int initialize(const char * name, HyPerCol * hc,
-                  HyPerLayer * pre, HyPerLayer * post,
-                  const char * filename,
-                  InitWeights *weightInit=NULL);
+                  const char * pre_layer_name, const char * post_layer_name,
+                  const char * filename, InitWeights *weightInit=NULL);
    virtual int createArbors();
    virtual int initPlasticityPatches();
    virtual pvdata_t * allocWeights(PVPatch *** patches, int nPatches, int nxPatch,

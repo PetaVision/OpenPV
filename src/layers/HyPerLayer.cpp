@@ -100,6 +100,7 @@ int HyPerLayer::initialize_base() {
    this->writeTime = 0;
    this->initialWriteTime = 0;
    this->phase = 0;
+
 #ifdef PV_USE_OPENCL
    this->krUpdate = NULL;
    this->clV = NULL;
@@ -719,6 +720,34 @@ int HyPerLayer::initFinish()
    return 0;
 }
 
+int HyPerLayer::communicateInitInfo()
+{
+   // HyPerLayers need to tell the parent HyPerCol how many random number
+   // seeds they need.  At the start of HyPerCol::run, the parent HyPerCol
+   // calls each layer's communicateInitInfo() sequentially in a repeatable order
+   // (probably the order the layers appear in the params file) to make sure
+   // that the same runs use the same RNG seeds in the same way.
+   //
+   // HyPerCol also calls each HyPerConn's communicateInitInfo() method, which
+   // (among other things) calls its presynaptic layer's requireMarginWidth().
+   // Since all communicateInitInfo() methods are called before any allocateDataStructures()
+   // methods, HyPerLayer knows its marginWidth before it has to allocate
+   // anything.  So it no longer needs to be specified in params!
+   int status = PV_SUCCESS;
+   // TODO
+   return status;
+}
+
+int HyPerLayer::allocateDataStructures()
+{
+   // Once initialize and communicate have been called, HyPerLayer has the
+   // information it needs to allocate the membrane potential buffer V, the
+   // activity buffer activity->data, and the data store.
+   int status = PV_SUCCESS;
+   // TODO
+   return status;
+}
+
 /*
  * Call this routine to increase the number of levels in the data store ring buffer.
  * Calls to this routine after the data store has been initialized will have no effect.
@@ -730,6 +759,16 @@ int HyPerLayer::increaseDelayLevels(int neededDelay) {
    return clayer->numDelayLevels;
 }
 
+int HyPerLayer::requireMarginWidth(int marginWidthNeeded, int * marginWidthResult) {
+   // TODO - set margin based on calls to requireMarginWidth, and not have a marginWidth parameter in the params file
+   return marginWidthNeeded <= margin ? PV_SUCCESS : PV_FAILURE;
+}
+
+int HyPerLayer::requireChannel(int channelNeeded, int * numChannelsResult) {
+   // TODO - set numChannels based on calls to requireChannel calls, and not have a numChannels argument in the constructors
+   *numChannelsResult = numChannels;
+   return channelNeeded < numChannels ? PV_SUCCESS : PV_FAILURE;
+}
 
 /**
  * Returns the activity data for the layer.  This data is in the

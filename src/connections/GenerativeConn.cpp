@@ -14,10 +14,10 @@ GenerativeConn::GenerativeConn() {
 }  // end of GenerativeConn::GenerativeConn()
 
 GenerativeConn::GenerativeConn(const char * name, HyPerCol * hc,
-      HyPerLayer * pre, HyPerLayer * post,
+      const char * pre_layer_name, const char * post_layer_name,
       const char * filename, InitWeights *weightInit) {
    initialize_base();
-   initialize(name, hc, pre, post, filename, weightInit);
+   initialize(name, hc, pre_layer_name, post_layer_name, filename, weightInit);
 }  // end of GenerativeConn::GenerativeConn(const char *, HyPerCol *,
 //   HyPerLayer *, HyPerLayer *, int, const char *)
 
@@ -39,12 +39,9 @@ int GenerativeConn::initialize_base() {
 }
 
 int GenerativeConn::initialize(const char * name, HyPerCol * hc,
-      HyPerLayer * pre, HyPerLayer * post,
+      const char * pre_layer_name, const char * post_layer_name,
       const char * filename, InitWeights *weightInit) {
-   KernelConn::initialize(name, hc, pre, post, filename, weightInit);
-
-   //GenerativeConn has not been updated to support multiple arbors
-   assert(numberOfAxonalArborLists()==1);
+   KernelConn::initialize(name, hc, pre_layer_name, post_layer_name, filename, weightInit);
 
    return PV_SUCCESS;
 }
@@ -58,6 +55,17 @@ int GenerativeConn::setParams(PVParams * params) {
    readWeightDecayRate(params);
    readWeightNoiseLevel(params);
    return status;
+}
+
+void GenerativeConn::readNumAxonalArbors(PVParams * params) {
+   KernelConn::readNumAxonalArbors(params);
+   if (numAxonalArborLists!=1) {
+      if (parent->columnId()==0) {
+         fprintf(stderr, "GenerativeConn \"%s\" error: GenerativeConn has not been updated to support multiple arbors.\n", name);
+      }
+      MPI_Barrier(parent->icCommunicator()->communicator());
+      exit(EXIT_FAILURE);
+   }
 }
 
 void GenerativeConn::readRelaxation(PVParams * params) {
@@ -105,7 +113,7 @@ int GenerativeConn::update_dW(int axonID) {
       }
    }
    return status;
-}  // end of GenerativeConn::calc_dW(int);
+}  // end of GenerativeConn::update_dW(int);
 
 int GenerativeConn::updateWeights(int axonID) {
    const int numPatches = getNumDataPatches();

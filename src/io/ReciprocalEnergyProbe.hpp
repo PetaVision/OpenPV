@@ -16,19 +16,21 @@ namespace PV {
 class ReciprocalEnergyProbe : public ConnFunctionProbe {
 public:
    // public methods
-   ReciprocalEnergyProbe(const char * probename, const char * filename, HyPerConn * conn);
+   ReciprocalEnergyProbe(const char * probename, HyPerCol * hc);
    virtual ~ReciprocalEnergyProbe();
+   virtual int communicate();
+   virtual int allocateProbe();
    virtual double evaluate(double timed);
 
 protected:
    ReciprocalEnergyProbe();
-   int initialize(const char * probename, const char * filename, HyPerConn * conn);
+   int initialize(const char * probename, HyPerCol * hc);
 
 private:
    int initialize_base();
 
 private:
-   ReciprocalConn * targetRecipConn;
+   ReciprocalConn * targetRecipConn; // targetConn, dynamic_cast to ReciprocalConn
 };
 
 } /* namespace PV */

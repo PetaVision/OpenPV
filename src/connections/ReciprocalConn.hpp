@@ -17,10 +17,10 @@ class ReciprocalConn: public PV::KernelConn {
 public:
    // public methods
    ReciprocalConn(const char * name, HyPerCol * hc,
-         HyPerLayer * pre, HyPerLayer * post,
-         const char * filename=NULL,
-         InitWeights * weightInit=NULL);
+         const char * pre_layer_name, const char * post_layer_name,
+         const char * filename=NULL, InitWeights * weightInit=NULL);
    virtual ~ReciprocalConn();
+   virtual int communicateInitInfo();
 
    const HyPerLayer * getUpdateRulePre()      {return updateRulePre;}
    const HyPerLayer * getUpdateRulePost()     {return updateRulePost;}
@@ -34,15 +34,12 @@ public:
 
    int setReciprocalWgts(const char * recipName);
 
-   virtual int updateState(double timef, double dt);
-
 protected:
    // protected methods
    ReciprocalConn();
    int initialize(const char * name, HyPerCol * hc,
-         HyPerLayer * pre, HyPerLayer * post,
-         const char * filename,
-         InitWeights *weightInit=NULL);
+         const char * pre_layer_name, const char * post_layer_name,
+         const char * filename, InitWeights *weightInit=NULL);
    virtual int setParams(PVParams * params);
    virtual void readRelaxationRate(PVParams * params);
    virtual void readReciprocalFidelityCoeff(PVParams * params);
@@ -51,9 +48,9 @@ protected:
    virtual void readSlownessFlag(PVParams * params);
    virtual int readSlownessPre(PVParams * params);
    virtual int readSlownessPost(PVParams * params);
+   int getLayerName(PVParams * params, const char * parameter_name, char ** layer_name_ptr, const char * default_name=NULL);
    virtual int readReciprocalWgts(PVParams * params);
-   int initParameterLayer(const char * parametername, HyPerLayer ** layerPtr,
-         HyPerLayer * defaultlayer=NULL);
+   int setParameterLayer(const char * paramname, const char * layername, HyPerLayer ** layerPtr);
    virtual int initNormalize();
    virtual int update_dW(int axonID);
    virtual int updateWeights(int axonId);
@@ -70,6 +67,8 @@ protected:
 
 private:
    // private member variables
+   char * updateRulePreName;
+   char * updateRulePostName;
    HyPerLayer * updateRulePre;
    HyPerLayer * updateRulePost;
    const char * reciprocalWgtsName;
@@ -77,6 +76,8 @@ private:
    float relaxationRate; // The coefficient eta in dW = eta * dE/dW, measured in the same units as HyPerCol's dt
    float reciprocalFidelityCoeff;
    bool slownessFlag;
+   char * slownessPreName;
+   char * slownessPostName;
    HyPerLayer * slownessPre;
    HyPerLayer * slownessPost;
    int nxUnitCellPost;

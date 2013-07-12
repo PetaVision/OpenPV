@@ -19,8 +19,10 @@ class LCALIFLateralConn: public PV::HyPerConn {
 
 // Methods
 public:
-   LCALIFLateralConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post, const char * filename, InitWeights * weightInit);
+   LCALIFLateralConn(const char * name, HyPerCol * hc, const char * pre_layer_name, const char * post_layer_name, const char * filename, InitWeights * weightInit);
    virtual ~LCALIFLateralConn();
+   virtual int communicateInitInfo();
+   virtual int allocateDataStructures();
    virtual int updateWeights(int axonId = 0);
 
    float getIntegratedSpikeCount(int kex) {return integratedSpikeCount[kex];}
@@ -36,7 +38,7 @@ public:
 
 protected:
    LCALIFLateralConn();
-   int initialize(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post, const char * filename, InitWeights * weightInit);
+   int initialize(const char * name, HyPerCol * hc, const char * pre_layer_name, const char * post_layer_name, const char * filename, InitWeights * weightInit);
    virtual int calc_dW(int axonId = 0);
 
    virtual void read_dWMax(PVParams * params) {HyPerConn::read_dWMax(params);}

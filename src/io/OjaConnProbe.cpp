@@ -13,16 +13,10 @@ OjaConnProbe::OjaConnProbe() {
    initialize_base();
 }
 
-OjaConnProbe::OjaConnProbe(const char * probename, const char * filename, HyPerConn * conn, int postIndex, bool isPostProbe)
+OjaConnProbe::OjaConnProbe(const char * probename, HyPerCol * hc)
 {
    initialize_base();
-   initialize(probename, filename, conn, INDEX_METHOD, postIndex, -1, -1, -1, isPostProbe);
-}
-
-OjaConnProbe::OjaConnProbe(const char * probename, const char * filename, HyPerConn * conn, int kxPost, int kyPost, int kfPost, bool isPostProbe)
-{
-   initialize_base();
-   initialize(probename, filename, conn, COORDINATE_METHOD, -1, kxPost, kyPost, kfPost, isPostProbe);
+   initialize(probename, hc);
 }
 
 OjaConnProbe::~OjaConnProbe()
@@ -45,11 +39,39 @@ int OjaConnProbe::initialize_base() {
    return PV_SUCCESS;
 }
 
-int OjaConnProbe::initialize(const char * probename, const char * filename,
-      HyPerConn * conn, PatchIDMethod pidMethod, int kPost,
-      int kxPost, int kyPost, int kfPost, bool isPostProbe)
+int OjaConnProbe::initialize(const char * probename, HyPerCol * hc)
 {
-   ojaConn = dynamic_cast<OjaSTDPConn *>(conn);
+   BaseConnectionProbe::initialize(probename, hc);
+   PVParams * params = hc->parameters();
+   //Since it's a lateral conn, postConn shouldn't matter
+   int indexmethod = params->present(name, "kPost");
+   int coordmethod = params->present(name, "kxPost") && params->present(name,"kyPost") && params->present(name,"kfPost");
+   if( indexmethod && coordmethod ) {
+      fprintf(stderr, "OjaConnProbe \"%s\": Ambiguous definition with both kPost and (kxPost,kyPost,kfPost) defined\n", name);
+      return NULL;
+   }
+   if( !indexmethod && !coordmethod ) {
+      fprintf(stderr, "OjaConnProbe \"%s\": Exactly one of kPost and (kxPost,kyPost,kfPost) must be defined\n", name);
+      return NULL;
+   }
+   if( indexmethod ) {
+      int kPost = params->value(name, "kPost");
+      patchIDMethod = INDEX_METHOD;
+   }
+   else {
+      assert(coordmethod);
+      int kxPost = params->value(name, "kxPost");
+      int kyPost = params->value(name, "kyPost");
+      int kfPost = params->value(name, "kfPost");
+      patchIDMethod = COORDINATE_METHOD;
+   }
+   return PV_SUCCESS;
+}
+
+int OjaConnProbe::allocateProbe()
+{
+   BaseConnectionProbe::allocateProbe();
+   ojaConn = dynamic_cast<OjaSTDPConn *>(targetConn);
    assert(ojaConn != NULL);
 
    const PVLayerLoc * postLoc;
@@ -59,20 +81,18 @@ int OjaConnProbe::initialize(const char * probename, const char * filename,
    int nyGlobal = postLoc->nyGlobal;
    int nf = postLoc->nf;
 
-   if (pidMethod == INDEX_METHOD) {
+   if (patchIDMethod == INDEX_METHOD) {
       kxPost = kxPos(kPost,nxGlobal,nyGlobal,nf);
       kyPost = kyPos(kPost,nxGlobal,nyGlobal,nf);
       kfPost = featureIndex(kPost,nxGlobal,nyGlobal,nf);
    }
-   else if(pidMethod == COORDINATE_METHOD) {
+   else if(patchIDMethod == COORDINATE_METHOD) {
       assert(kfPost >= 0);
       kPost = kIndex(kxPost,kyPost,kfPost,nxGlobal,nyGlobal,nf); // nx, ny, nf NOT in extended space
    }
    else assert(false);
    assert(kPost != -1);
    assert(kfPost < nf);
-
-   BaseConnectionProbe::initialize(probename, filename, conn,kxPost,kyPost,kfPost,isPostProbe);
 
 // Now convert from global coordinates to local coordinates
    int kxPostLocal = kxPost - postLoc->kx0;

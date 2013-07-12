@@ -47,17 +47,23 @@ int main(int argc, char * argv[])
       free(cl_args[k]);
    }
 
-   Image * image   = new Image("test_border_activity image", hc, image_file);
-   Retina * retina = new Retina("test_border_activity retina", hc);
-   ANNLayer * l1     = new ANNLayer("test_border_activity layer", hc);
+   const char * imageLayerName = "test_border_activity image";
+   const char * retinaLayerName = "test_border_activity retina";
+   const char * l1LayerName = "test_border_activity layer";
 
+   Image * image   = new Image(imageLayerName, hc, image_file); assert(image);
+   Retina * retina = new Retina(retinaLayerName, hc);           assert(retina);
+   ANNLayer * l1     = new ANNLayer(l1LayerName, hc);           assert(l1);
 
    InitWeights * weightInit1 = new InitUniformWeights();
-   new HyPerConn("test_border_activity connection 1", hc, image, retina, weightInit1);
-   delete weightInit1;
+   HyPerConn * conn1 = new HyPerConn("test_border_activity connection 1", hc, imageLayerName, retinaLayerName, weightInit1);
+   assert(conn1);
+   // delete weightInit1; // HyPerConn object takes ownership of InitWeights object
    InitWeights * weightInit2 = new InitUniformWeights();
-   new HyPerConn("test_border_activity connection 2", hc, retina, l1, weightInit2);
-   delete weightInit2;
+   HyPerConn * conn2 = new HyPerConn("test_border_activity connection 2", hc, retinaLayerName, l1LayerName, weightInit2);
+   assert(conn2);
+   
+   // delete weightInit2; // HyPerConn object takes ownership of InitWeights object
 
 #ifdef DEBUG_OUTPUT
    PointProbe * p1 = new PointProbe( 0,  0,  0, "L1 (0,0,0):");

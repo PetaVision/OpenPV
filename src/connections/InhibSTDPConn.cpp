@@ -13,10 +13,11 @@
 
 namespace PV {
 
-InhibSTDPConn::InhibSTDPConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
-      HyPerLayer * post, const char * filename, InitWeights *weightInit)
+InhibSTDPConn::InhibSTDPConn(const char * name, HyPerCol * hc,
+      const char * pre_layer_name, const char * post_layer_name,
+      const char * filename, InitWeights *weightInit)
 {
-   initialize(name, hc, pre, post, filename, weightInit);
+   initialize(name, hc, pre_layer_name, post_layer_name, filename, weightInit);
 #ifdef PV_USE_OPENCL
    if(gpuAccelerateFlag)
       initializeGPU();
@@ -24,10 +25,10 @@ InhibSTDPConn::InhibSTDPConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
 }
 
 int InhibSTDPConn::initialize(const char * name, HyPerCol * hc,
-      HyPerLayer * pre, HyPerLayer * post,
+      const char * pre_layer_name, const char * post_layer_name,
       const char * filename, InitWeights *weightInit)
 {
-   int status = OjaSTDPConn::initialize(name, hc, pre, post, filename, weightInit);
+   int status = OjaSTDPConn::initialize(name, hc, pre_layer_name, post_layer_name, filename, weightInit);
    return status;
 }
 

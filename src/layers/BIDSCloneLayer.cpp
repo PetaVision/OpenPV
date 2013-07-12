@@ -18,9 +18,9 @@ BIDSCloneLayer::BIDSCloneLayer() {
    initialize_base();
 }
 
-BIDSCloneLayer::BIDSCloneLayer(const char * name, HyPerCol * hc, LIF * originalLayer) {
+BIDSCloneLayer::BIDSCloneLayer(const char * name, HyPerCol * hc, const char * origLayerName) {
    initialize_base();
-   initialize(name, hc, originalLayer);
+   initialize(name, hc, origLayerName);
 }
 
 BIDSCloneLayer::~BIDSCloneLayer()
@@ -33,7 +33,7 @@ int BIDSCloneLayer::initialize_base() {
    return PV_SUCCESS;
 }
 
-int BIDSCloneLayer::initialize(const char * name, HyPerCol * hc, LIF * clone) {
+int BIDSCloneLayer::initialize(const char * name, HyPerCol * hc, const char * origLayerName) {
    int status_init = HyPerLayer::initialize(name, hc, MAX_CHANNELS);
 
    V0 = parent->parameters()->value(name, "Vrest", V_REST);
@@ -47,7 +47,22 @@ int BIDSCloneLayer::initialize(const char * name, HyPerCol * hc, LIF * clone) {
    //if(SigmoidFlag)   fprintf(stdout,"SigmoidLayer: True Sigmoid flag is set.\n");
 
    this->writeSparseActivity = true;
-   sourceLayer = clone;
+
+   if (origLayerName==NULL) {
+      fprintf(stderr, "SigmoidLayer \"%s\": originalLayerName must be set.\n", name);
+      return(EXIT_FAILURE);
+   }
+   HyPerLayer * origHyPerLayer = parent->getLayerFromName(origLayerName);
+   if (origHyPerLayer==NULL) {
+      fprintf(stderr, "SigmoidLayer \"%s\" error: originalLayerName \"%s\" is not a layer in the HyPerCol.\n", name, origLayerName);
+      return(EXIT_FAILURE);
+   }
+   sourceLayer = dynamic_cast<LIF *>(origHyPerLayer);
+   if (origHyPerLayer==NULL) {
+      fprintf(stderr, "SigmoidLayer \"%s\" error: originalLayerName \"%s\" is not a LIF or LIF-derived layer in the HyPerCol.\n", name, origLayerName);
+      return(EXIT_FAILURE);
+   }
+
    //free(clayer->V);
    //clayer->V = sourceLayer->getV();
 

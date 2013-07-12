@@ -13,12 +13,18 @@
 
 namespace PV {
   
-  LCAConn::LCAConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
-		   const char * filename, InitWeights *weightInit, Movie * auxLayer) 
+  LCAConn::LCAConn(const char * name, HyPerCol * hc,
+        const char * pre_layer_name, const char * post_layer_name,
+		const char * filename, InitWeights *weightInit, const char * movieLayerName)
   {
     KernelConn::initialize_base();
-    KernelConn::initialize(name, hc, pre, post, filename, weightInit);
-    layerOfInterest = auxLayer;
+    KernelConn::initialize(name, hc, pre_layer_name, post_layer_name, filename, weightInit);
+    HyPerLayer * layer = parent->getLayerFromName(movieLayerName);
+    layerOfInterest = dynamic_cast<Movie *>(layer);
+    if (layerOfInterest==NULL) {
+       fprintf(stderr, "LCAConn \"%s\" error: otherLayerName \"%s\" is not a Movie layer.\n", name, movieLayerName);
+       exit(EXIT_FAILURE);
+    }
   }
   
   int LCAConn::update_dW(int axonId)

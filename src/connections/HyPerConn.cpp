@@ -66,11 +66,11 @@ HyPerConn::HyPerConn()
    initialize_base();
 }
 
-HyPerConn::HyPerConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
-      HyPerLayer * post)
+HyPerConn::HyPerConn(const char * name, HyPerCol * hc, const char * pre_layer_name,
+      const char * post_layer_name)
 {
    initialize_base();
-   initialize(name, hc, pre, post, NULL, NULL);
+   initialize(name, hc, pre_layer_name, post_layer_name, NULL, NULL);
 #ifdef PV_USE_OPENCL
    gpuAccelerateFlag=post->getUseGPUFlag();
    if(gpuAccelerateFlag)
@@ -78,11 +78,11 @@ HyPerConn::HyPerConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
 #endif
 }
 
-HyPerConn::HyPerConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
-      HyPerLayer * post, InitWeights *weightInit)
+HyPerConn::HyPerConn(const char * name, HyPerCol * hc, const char * pre_layer_name,
+      const char * post_layer_name, InitWeights *weightInit)
 {
    initialize_base();
-   initialize(name, hc, pre, post, NULL, weightInit);
+   initialize(name, hc, pre_layer_name, post_layer_name, NULL, weightInit);
 #ifdef PV_USE_OPENCL
    gpuAccelerateFlag=post->getUseGPUFlag();
    if(gpuAccelerateFlag)
@@ -91,11 +91,11 @@ HyPerConn::HyPerConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
 }
 
 // provide filename or set to NULL
-HyPerConn::HyPerConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
-      HyPerLayer * post, const char * filename)
+HyPerConn::HyPerConn(const char * name, HyPerCol * hc, const char * pre_layer_name,
+      const char * post_layer_name, const char * filename)
 {
    initialize_base();
-   initialize(name, hc, pre, post, filename, NULL);
+   initialize(name, hc, pre_layer_name, post_layer_name, filename, NULL);
 #ifdef PV_USE_OPENCL
    gpuAccelerateFlag=post->getUseGPUFlag();
    if(gpuAccelerateFlag)
@@ -103,11 +103,11 @@ HyPerConn::HyPerConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
 #endif
 }
 
-HyPerConn::HyPerConn(const char * name, HyPerCol * hc, HyPerLayer * pre,
-      HyPerLayer * post, const char * filename, InitWeights *weightInit)
+HyPerConn::HyPerConn(const char * name, HyPerCol * hc, const char * pre_layer_name,
+      const char * post_layer_name, const char * filename, InitWeights *weightInit)
 {
    initialize_base();
-   initialize(name, hc, pre, post, filename, weightInit);
+   initialize(name, hc, pre_layer_name, post_layer_name, filename, weightInit);
 #ifdef PV_USE_OPENCL
    gpuAccelerateFlag=post->getUseGPUFlag();
    if(gpuAccelerateFlag)
@@ -161,8 +161,10 @@ HyPerConn::~HyPerConn()
       free(probes[i_probe]);
    }
    free(this->probes);
+   free(this->preLayerName);
+   free(this->postLayerName);
 
-   // delete weightInitializer; // weightInitializer should be deleted by whoever called the HyPerConn constructor
+   delete weightInitializer; // The following comment is no longer operative. // weightInitializer should be deleted by whoever called the HyPerConn constructor
 
 }
 
@@ -180,14 +182,18 @@ int HyPerConn::initialize_base()
    this->nxpShrunken = nxp;
    this->nypShrunken = nyp;
    this->offsetShrunken = 0;
-   this->nfp = 1;
+   this->nfp = -1; // A negative value for nfp will be converted to postsynaptic layer's nf.
+   this->warnDefaultNfp = true;  // Issue a warning if default value of nfp (post's nf) is used.  Derived layers can set to false if only one nfp is allowed (e.g. IdentConn)
    this->sxp = 1;
    this->syp = 1;
    this->sfp = 1;
    this->parent = NULL;
    this->connId = 0;
+   this->preLayerName = NULL;
+   this->postLayerName = NULL;
    this->pre = NULL;
    this->post = NULL;
+   this->filename = NULL;
    this->numAxonalArborLists = 1;
    this->channel = CHANNEL_EXC;
    this->ioAppend = false;
@@ -230,6 +236,8 @@ int HyPerConn::initialize_base()
    this->normalize_cutoff = 0.0f;
    this->normalize_RMS_amp = false;
    this->dWMax            = 1;
+
+   this->neededRNGSeeds = 0; // Derived layers that use random numbers should set neededRNGSeeds in setNeededRNGSeeds, called by HyPerLayer::communicate.
 
 #ifdef USE_SHMGET
    shmget_flag = false;
@@ -320,11 +328,7 @@ int HyPerConn::constructWeights(const char * filename)
    //allocate the arbor arrays:
    createArbors();
 
-
-   //const int arbor = 0;
-   //numAxonalArborLists = 1;
-
-   setPatchSize(filename);
+   // setPatchSize(filename); // moved to readPatchSize() so that nxp, nyp are set as early as possible
    setPatchStrides();
 
    //allocate weight patches and axonal arbors for each arbor
@@ -421,41 +425,24 @@ void HyPerConn::readShrinkPatches(PVParams * params) {
    shrinkPatches_flag = params->value(name, "shrinkPatches", shrinkPatches_flag);
 }
 
-int HyPerConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
-      HyPerLayer * post, const char * filename, InitWeights *weightInit)
-{
+int HyPerConn::initialize(const char * name, HyPerCol * hc, const char * pre_layer_name,
+      const char * post_layer_name, const char * filename, InitWeights *weightInit) {
    int status = PV_SUCCESS;
 
-   free(this->name);  // name will already have been set in initialize_base()
-   this->name = strdup(name);
-   assert(this->name != NULL);
-   this->parent = hc;
-   this->pre = pre;
-   this->post = post;
+   status = setParent(hc);
+   status = setName(name);
+   status = setPreLayerName(pre_layer_name);
+   status = setPostLayerName(post_layer_name);
+   status = setFilename(filename);
+   status = setWeightInitializer(weightInit);
 
+   assert(parent);
    PVParams * inputParams = parent->parameters();
    status = setParams(inputParams);
 
-   initNumWeightPatches();
-   initNumDataPatches();
-   initPatchToDataLUT();
-
-   //if a weight initializer hasn't been created already, use the default--> either 2D Gauss or read from file
-   if(weightInit==NULL) {
-      this->weightInitializer = handleMissingInitWeights(inputParams);
-   }
-   else {
-      this->weightInitializer = weightInit;
-   }
-   // assert(this->weightInitializer != NULL); // TransposeConn doesn't use weightInitializer so it overrides handleMissingInitWeights to return NULL.
-
    accumulateFunctionPointer = stochasticReleaseFlag ? &pvpatch_accumulate_stochastic : &pvpatch_accumulate;
 
-   this->connId = parent->addConnection(this);
    ioAppend = parent->getCheckpointReadFlag();
-
-   constructWeights(filename);
-
 
 //This has been commented out because layers will decide if GPU acceleration
 //will happen and they will call the init methods as necessary
@@ -467,10 +454,149 @@ int HyPerConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre,
    gpuAccelerateFlag=post->getUseGPUFlag();
 #endif
 
+   this->connId = parent->addConnection(this);
+
    return status;
 }
 
+int HyPerConn::setParent(HyPerCol * hc) {
+   assert(parent==NULL);
+   if(hc==NULL) {
+      int rank = 0;
+      MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+      fprintf(stderr, "HyPerConn error in rank %d process: constructor called with HyPerCol set to the null pointer.\n", rank);
+      exit(EXIT_FAILURE);
+   }
+   parent = hc;
+   return PV_SUCCESS;
+}
 
+int HyPerConn::setName(const char * name) {
+   assert(parent!=NULL);
+   if(name==NULL) {
+      fprintf(stderr, "HyPerConn error in rank %d process: constructor called with name set to the null pointer.\n", parent->columnId());
+      exit(EXIT_FAILURE);
+   }
+   free(this->name);  // name will already have been set in initialize_base()
+   this->name = strdup(name);
+   if (this->name==NULL) {
+      fprintf(stderr, "Connection \"%s\" error in rank %d process: unable to allocate memory for name of connection: %s\n",
+            name, parent->columnId(), strerror(errno));
+      exit(EXIT_FAILURE);
+   }
+   return PV_SUCCESS;
+}
+
+int HyPerConn::setPreLayerName(const char * pre_name) {
+   assert(parent!=NULL);
+   assert(this->preLayerName==NULL);
+   this->preLayerName = strdup(pre_name);
+   if (this->preLayerName==NULL) {
+      fprintf(stderr, "Connection \"%s\" error in rank %d process: unable to allocate memory for name of presynaptic layer \"%s\": %s\n",
+            name, parent->columnId(), pre_name, strerror(errno));
+      exit(EXIT_FAILURE);
+   }
+   return PV_SUCCESS;
+}
+
+int HyPerConn::setPostLayerName(const char * post_name) {
+   assert(this->postLayerName==NULL);
+   this->postLayerName = strdup(post_name);
+   if (this->postLayerName==NULL) {
+      fprintf(stderr, "Connection \"%s\" error in rank %d process: unable to allocate memory for name of postsynaptic layer \"%s\": %s\n",
+            name, parent->columnId(), post_name, strerror(errno));
+      exit(EXIT_FAILURE);
+   }
+   return PV_SUCCESS;
+}
+
+int HyPerConn::setFilename(const char * filename) {
+   // filename can be (and often is) NULL, but for FileWeight initialization method, it is the name of the file used to load the weights.
+   assert(parent!=NULL);
+   assert(this->filename==NULL); // Should have been nulled in initialize_base, and nothing else should have changed it.
+   if (filename!=NULL) {
+      this->filename = strdup(filename);
+      if (this->filename==NULL) {
+         fprintf(stderr, "Connection \"%s\" error in rank %d process: unable to allocate memory for InitWeights filename \"%s\": %s\n",
+               name, parent->columnId(), filename, strerror(errno));
+         exit(EXIT_FAILURE);
+      }
+   }
+   return PV_SUCCESS;
+}
+
+int HyPerConn::setWeightInitializer(InitWeights * weightInit) {
+   //if a weight initializer hasn't been created already, use the default--> either 2D Gauss or read from file
+   if(weightInit==NULL) {
+      this->weightInitializer = handleMissingInitWeights(parent->parameters());
+   }
+   else {
+      this->weightInitializer = weightInit;
+   }
+   return PV_SUCCESS;
+}
+
+
+int HyPerConn::getPreAndPostLayerNames(const char * name, PVParams * params, char ** preLayerNamePtr, char ** postLayerNamePtr) {
+   // Retrieves preLayerName and postLayerName from parameter group whose name is given in the functions first argument.
+   // If BOTH of these params are absent, and the connection name has the form "ABC to XYZ", then pre will be ABC and post will be XYZ.
+   // This routine uses strdup to fill *{pre,post}LayerNamePtr, so the routine calling this one is responsible for freeing them.
+   int status = PV_SUCCESS;
+   *preLayerNamePtr = NULL;
+   *postLayerNamePtr = NULL;
+   const char * preLayerNameParam = params->stringValue(name, "preLayerName", false);
+   const char * postLayerNameParam = params->stringValue(name, "postLayerName", false);
+   if (preLayerNameParam != NULL && postLayerNameParam != NULL) {
+      *preLayerNamePtr = strdup(preLayerNameParam);
+      *postLayerNamePtr = strdup(postLayerNameParam);
+   }
+   if( preLayerNameParam == NULL && postLayerNameParam == NULL ) {
+      // Check to see if the string " to " appears exactly once in name
+      // If so, use part preceding " to " as pre-layer, and part after " to " as post.
+      const char * separator = " to ";
+      const char * locto = strstr(name, separator);
+      if( locto != NULL ) {
+         const char * nextto = strstr(locto+1, separator); // Make sure " to " doesn't appear again.
+         if( nextto == NULL ) {
+            int seplen = strlen(separator);
+
+            int pre_len = locto - name;
+            *preLayerNamePtr = (char *) malloc((size_t) (pre_len + 1));
+            if( *preLayerNamePtr==NULL) {
+               fprintf(stderr, "Error: unable to allocate memory for preLayerName in connection \"%s\": %s\n", name, strerror(errno));
+               exit(EXIT_FAILURE);
+            }
+            const char * preInConnName = name;
+            memcpy(*preLayerNamePtr, preInConnName, pre_len);
+            (*preLayerNamePtr)[pre_len] = 0;
+
+            int post_len = strlen(name)-pre_len-seplen;
+            *postLayerNamePtr = (char *) malloc((size_t) (post_len + 1));
+            if( *postLayerNamePtr==NULL) {
+               fprintf(stderr, "Error: unable to allocate memory for postLayerName in connection \"%s\": %s\n", name, strerror(errno));
+               exit(EXIT_FAILURE);
+            }
+            const char * postInConnName = &name[pre_len+seplen];
+            memcpy(*postLayerNamePtr, postInConnName, post_len);
+            (*postLayerNamePtr)[post_len] = 0;
+         }
+      }
+   }
+   if( *preLayerNamePtr == NULL ) {
+      fprintf(stderr, "Parameter string \"preLayerName\" missing from group \"%s\"\n",name);
+      status = PV_FAILURE;
+   }
+   if( *postLayerNamePtr == NULL ) {
+      fprintf(stderr, "Parameter string \"postLayerName\" missing from group \"%s\"\n",name);
+      status = PV_FAILURE;
+   }
+   if (status != PV_SUCCESS) {
+      fprintf(stderr, "If the connection name has a name of the form \"ABC to XYZ\", where\n");
+      fprintf(stderr, "neither ABC nor XYZ contains the string \" to \", the pre and post layers\n");
+      fprintf(stderr, "will be inferred if both preLayerName and postLayerName are absent.\n");
+   }
+   return status;
+}
 
 int HyPerConn::initNumWeightPatches() {
    numWeightPatches = pre->getNumExtended();
@@ -534,18 +660,6 @@ void HyPerConn::readChannelCode(PVParams * params) {
    if (status != PV_SUCCESS) {
       fprintf(stderr, "HyPerConn::readChannelCode: channelCode %d for connection \"%s\" is not a valid channel.\n",  ch, name);
       abort();
-   }
-
-   int postnumchannels = post->getNumChannels();
-   if(postnumchannels <= 0) {
-      fprintf(stderr, "Connection \"%s\": layer \"%s\" has no channels and cannot be a post-synaptic layer.  Exiting.\n",
-              name, post->getName());
-      exit(EXIT_FAILURE);
-   }
-   if( channel < 0 || channel >= postnumchannels ) {
-      fprintf(stderr, "Connection \"%s\": given channel is %d but channels for post-synaptic layer \"%s\" are 0 through %d. Exiting.\n",
-              name, channel, post->getName(), post->getNumChannels()-1);
-      exit(EXIT_FAILURE);
    }
 }
 
@@ -682,6 +796,128 @@ int HyPerConn::initializeDelays(const float * fDelayArray, int size){
          abort();
       }
    }
+   return status;
+}
+
+int HyPerConn::readPatchSize(PVParams * params) {
+   int status = PV_SUCCESS;
+   nxp = parent->parameters()->value(name, "nxp", 1); // These two lines could be moved to readPatchSizeFromParams,
+   nyp = parent->parameters()->value(name, "nyp", 1); // but checkWeightHeader() expects that nxp,nyp will have been read.
+   if (filename!=NULL) {
+      status = readPatchSizeFromFile(filename);
+   }
+   else {
+      status = readPatchSizeFromParams(params);
+   }
+   return status;
+}
+
+int HyPerConn::readPatchSizeFromParams(PVParams * params) {
+   // Reads params file's nxp and nyp, and nxpShrunken and nypShrunken
+   // Checking that they're consistent with post-synaptic geometry has been moved to the communicate phase, since pre and post aren't set till then
+   int status = PV_SUCCESS;
+   nxpShrunken = parent->parameters()->value(name,"nxpShrunken",nxp,false);
+   nypShrunken = parent->parameters()->value(name,"nypShrunken",nyp,false);
+   if(nxpShrunken>nxp) {
+      if (parent->columnId()==0) {
+         fprintf(stderr, "readPatchSize error in connection \"%s\": nxpShrunken cannot be greater than nxp.\n", name);
+      }
+      status = PV_FAILURE;
+   }
+   if(nypShrunken>nyp) {
+      if (parent->columnId()==0) {
+         fprintf(stderr, "readPatchSize error in connection \"%s\": nypShrunken cannot be greater than nyp.\n", name);
+      }
+      status = PV_FAILURE;
+   }
+   return status;
+}
+
+int HyPerConn::readPatchSizeFromFile(const char * filename) {
+   assert(filename != NULL);
+   int status = PV_SUCCESS;
+   readUseListOfArborFiles(parent->parameters());
+   readCombineWeightFiles(parent->parameters());
+   if( !useListOfArborFiles && !combineWeightFiles) { // Should still get patch size from file if either of these flags is true
+      status = patchSizeFromFile(filename);
+   }
+   else {
+      status = readPatchSizeFromParams(parent->parameters());
+   }
+   return status;
+}
+
+int HyPerConn::readNfp(PVParams * params) {
+   if (filename==NULL) { // If filename is set, nfp already will have been read by patchSizeFromFile.
+      nfp = params->value(name, "nfp", -1);
+   }
+   return PV_SUCCESS;
+}
+
+void HyPerConn::readUseListOfArborFiles(PVParams * params) {
+   assert(filename!=NULL);
+   useListOfArborFiles = params->value(name, "useListOfArborFiles", false)!=0;
+}
+
+void HyPerConn::readCombineWeightFiles(PVParams * params) {
+   assert(filename!=NULL);
+   combineWeightFiles = params->value(name, "combineWeightFiles", false)!=0;
+}
+
+int HyPerConn::communicateInitInfo() {
+   // HyPerConns need to tell the parent HyPerCol how many random number
+   // seeds they need.  At the start of HyPerCol::run, the parent HyPerCol
+   // calls each layer's and each connection's communicateInitInfo() sequentially in
+   // a repeatable order (probably the order they appear in the params
+   // file) to make sure that the same runs use the same RNG seeds in the
+   // same way.
+   //
+   // HyPerConns need RNGs if they are using stochastic release flag, or if
+   // their InitWeights method is random (e.g. UniformRandomWeights or
+   // GaussianRandomWeights).
+   //
+   // HyPerConn also tells:
+   // - its pre-synaptic layer how big a margin is needed
+   // - its pre-synaptic layer how long a delay is needed in the data store
+   // - its post-synaptic layer which channel it will deliver GSyn to.
+   //
+   // The routine also checks that nxp and nyp are consistent with
+   // the relative densities of the pre and post layers, and that nfp is
+   // consistent with the number of features of post.
+   //
+   // Subclasses (e.g. CloneKernelConn) may also need
+   // to send messages to related layers and connections before the allocation
+   // phase.  These subclasses should override communicateInitInfo(), and the
+   // subclass's communicateInitInfo() should call the parent class's communicateInitInfo().
+
+   int status = PV_SUCCESS;
+
+   this->pre = parent->getLayerFromName(preLayerName);
+   this->post = parent->getLayerFromName(postLayerName);
+   if (this->pre==NULL) {
+      if (parent->columnId()==0) {
+         fprintf(stderr, "Connection \"%s\": preLayerName \"%s\" does not correspond to a layer in the column.\n", name, preLayerName);
+      }
+      status = PV_FAILURE;
+   }
+   if (this->post==NULL) {
+      if (parent->columnId()==0) {
+         fprintf(stderr, "Connection \"%s\": postLayerName \"%s\" does not correspond to a layer in the column.\n", name, postLayerName);
+      }
+      status = PV_FAILURE;
+   }
+   MPI_Barrier(parent->icCommunicator()->communicator());
+   if (status != PV_SUCCESS) {
+      exit(EXIT_FAILURE);
+   }
+
+   setNeededRNGSeeds(); // sets neededRNGSeeds; virtual
+   if (neededRNGSeeds>0) {
+      rngSeedBase = parent->getObjectSeed(neededRNGSeeds);
+   }
+
+   pre = parent->getLayerFromName(preLayerName);
+   post = parent->getLayerFromName(postLayerName);
 
    // Find maximum delay over all the arbors and send it to the presynaptic layer
    int maxdelay = 0;
@@ -697,45 +933,59 @@ int HyPerConn::initializeDelays(const float * fDelayArray, int size){
       }
       exit(EXIT_FAILURE);
    }
-   return status;
-}
 
-int HyPerConn::readPatchSize(PVParams * params) {
-   // Reads params file's nxp and nyp and checks that they're consistent with post-synaptic geometry.
-   // A return value of -1 indicates an error (although currently checkPatchSize calls exit(EXIT_FAILURE) if there is an error).
-   int status = PV_SUCCESS;
+   // Make sure post-synaptic layer has enough channels.
+   int num_channels_check;
+   status = post->requireChannel((int) channel, &num_channels_check);
+   if (status != PV_SUCCESS) { return status; }
+   assert(num_channels_check > (int) channel);
 
-   nxp = parent->parameters()->value(name, "nxp", post->getCLayer()->loc.nx);
-   int xScalePre = pre->getXScale();
-   int xScalePost = post->getXScale();
-   status = checkPatchSize(nxp, xScalePre, xScalePost, 'x');
-   if( status != PV_SUCCESS) nxp=-1;
+   status = setPatchSize();
+   status = checkPatchDimensions();
 
-   nyp = parent->parameters()->value(name, "nyp", post->getCLayer()->loc.ny);
-   int yScalePre = pre->getYScale();
-   int yScalePost = post->getYScale();
-   status = checkPatchSize(nyp, yScalePre, yScalePost, 'y');
-   if( status != PV_SUCCESS) nyp=-1;
-
-   nxpShrunken = parent->parameters()->value(name,"nxpShrunken",nxp,false);
-   assert(nxpShrunken<=nxp);
-   nypShrunken = parent->parameters()->value(name,"nypShrunken",nyp,false);
-   assert(nypShrunken<=nyp);
-   return status;
-}
-
-int HyPerConn::readNfp(PVParams * params) {
-   nfp = parent->parameters()->value(name, "nfp", post->getCLayer()->loc.nf);
-   if( nfp != post->getCLayer()->loc.nf ) {
-      fprintf( stderr, "Params file specifies %d features for connection \"%s\",\n", nfp, name );
-      fprintf( stderr, "but %d features for post-synaptic layer %s\n",
+   if (nfp == -1) {
+      nfp = post->getCLayer()->loc.nf;
+      if (warnDefaultNfp && parent->columnId()==0) {
+         printf("Connection \"%s\" setting nfp to number of postsynaptic features = %d.\n", name, nfp);
+      }
+   }
+   if (nfp != post->getCLayer()->loc.nf) {
+      if (parent->columnId()==0) {
+         fprintf( stderr, "Params file specifies %d features for connection \"%s\",\n", nfp, name );
+         fprintf( stderr, "but %d features for post-synaptic layer %s\n",
                post->getCLayer()->loc.nf, post->getName() );
+      }
+      MPI_Barrier(parent->icCommunicator()->communicator());
       exit(PV_FAILURE);
    }
    // Currently, the only acceptable number for nfp is the number of post-synaptic features.
    // However, we may add flexibility on this score in the future, e.g. MPI in feature space
    // with each feature connecting to only a few nearby features.
    // Accordingly, we still keep readNfp.
+
+   int xmargin = computeMargin(pre->getXScale(), post->getXScale(), nxp);
+   int ymargin = computeMargin(pre->getYScale(), post->getYScale(), nyp);
+   int margin = xmargin>=ymargin ? xmargin : ymargin;
+   int receivedmargin = 0;
+   status = pre->requireMarginWidth(margin, &receivedmargin);
+   if (status != PV_SUCCESS) { status = PV_MARGINWIDTH_FAILURE; }
+
+   return status;
+}
+
+int HyPerConn::setPatchSize() {
+   int status = PV_SUCCESS;
+   if (filename) {
+      const PVLayerLoc * loc = pre->getLayerLoc();
+      status = checkPVPFileHeader(parent->icCommunicator(), loc, fileparams, NUM_WGT_PARAMS);
+      if (status < 0) status = PV_FAILURE;
+   }
+   return status;
+}
+
+int HyPerConn::setNeededRNGSeeds() {
+   this->weightInitializer->getNeededRNGSeeds();
+   neededRNGSeeds = 0;  // Perhaps if stochasticReleaseFlag is set this will need to be a huge number.
    return PV_SUCCESS;
 }
 
@@ -761,6 +1011,16 @@ PVPatch *** HyPerConn::initializeWeights(PVPatch *** patches, pvdata_t ** dataSt
       } // arborId
 #endif // OBSOLETE
    return patches;
+}
+
+int HyPerConn::allocateDataStructures() {
+   initNumWeightPatches();
+   initNumDataPatches();
+   initPatchToDataLUT();
+
+   int status = constructWeights(filename);
+
+   return status;
 }
 
 InitWeights * HyPerConn::getDefaultInitWeightsMethod(const char * keyword) {
@@ -907,26 +1167,27 @@ int HyPerConn::checkPVPFileHeader(Communicator * comm, const PVLayerLoc * loc, i
    return pvp_check_file_header(comm, loc, params, numParams);
 }
 
-int HyPerConn::checkWeightsHeader(const char * filename, int * wgtParams)
+int HyPerConn::checkWeightsHeader(const char * filename, const int * wgtParams)
 {
    // extra weight parameters
    //
    const int nxpFile = wgtParams[NUM_BIN_PARAMS + INDEX_WGT_NXP];
-   const int nypFile = wgtParams[NUM_BIN_PARAMS + INDEX_WGT_NYP];
-   const int nfpFile = wgtParams[NUM_BIN_PARAMS + INDEX_WGT_NFP];
-
    if (nxp != nxpFile) {
       fprintf(stderr,
               "ignoring nxp = %i in HyPerConn %s, using nxp = %i in binary file %s\n",
               nxp, name, nxpFile, filename);
       nxp = nxpFile;
    }
+
+   const int nypFile = wgtParams[NUM_BIN_PARAMS + INDEX_WGT_NYP];
    if (nyp != nypFile) {
       fprintf(stderr,
               "ignoring nyp = %i in HyPerConn %s, using nyp = %i in binary file %s\n",
               nyp, name, nypFile, filename);
       nyp = nypFile;
    }
+
+   const int nfpFile = wgtParams[NUM_BIN_PARAMS + INDEX_WGT_NFP];
    if (nfp != nfpFile) {
       fprintf(stderr,
               "ignoring nfp = %i in HyPerConn %s, using nfp = %i in binary file %s\n",
@@ -2832,43 +3093,13 @@ int HyPerConn::calcPatchSize(int arbor_index, int kex,
    return status;
 }
 
-int HyPerConn::setPatchSize(const char * filename)
-{
-   int status;
-   PVParams * inputParams = parent->parameters();
-
-   assert(!inputParams->presentAndNotBeenRead(name, "nxp"));
-   assert(!inputParams->presentAndNotBeenRead(name, "nyp"));
-   assert(!inputParams->presentAndNotBeenRead(name, "nfp"));
-   int xScalePre = pre->getXScale();
-   int xScalePost = post->getXScale();
-   status = checkPatchSize(nxp, xScalePre, xScalePost, 'x');
-   if( status != PV_SUCCESS) return status;
-
-   int yScalePre = pre->getYScale();
-   int yScalePost = post->getYScale();
-   status = checkPatchSize(nyp, yScalePre, yScalePost, 'y');
-   if( status != PV_SUCCESS) return status;
-
-   status = PV_SUCCESS;
-   if( filename != NULL ) {
-      bool useListOfArborFiles = inputParams->value(name, "useListOfArborFiles", false)!=0;
-      bool combineWeightFiles = inputParams->value(name, "combineWeightFiles", false)!=0;
-      if( !useListOfArborFiles && !combineWeightFiles) status = patchSizeFromFile(filename);
-   }
-
-   return status;
-}
-
 int HyPerConn::patchSizeFromFile(const char * filename) {
    // use patch dimensions from file if (filename != NULL)
    //
    int status = PV_SUCCESS;
    int filetype, datatype;
-   double time = 0.0;
-   const PVLayerLoc loc = pre->getCLayer()->loc;
+   double timed = 0.0;
 
-   int wgtParams[NUM_WGT_PARAMS];
    int numWgtParams = NUM_WGT_PARAMS;
 
    Communicator * comm = parent->icCommunicator();
@@ -2877,15 +3108,24 @@ int HyPerConn::patchSizeFromFile(const char * filename) {
    for (int arborId = 0; arborId < this->numberOfAxonalArborLists(); arborId++){
       snprintf(nametmp, PV_PATH_MAX-1, "%s", filename);
 
-      status = pvp_read_header(nametmp, comm, &time, &filetype, &datatype, wgtParams, &numWgtParams);
+      status = pvp_read_header(nametmp, comm, &timed, &filetype, &datatype, fileparams, &numWgtParams);
       if (status < 0) return status;
+      assert(numWgtParams==NUM_WGT_PARAMS);
 
-      status = checkPVPFileHeader(comm, &loc, wgtParams, numWgtParams);
-      if (status < 0) return status;
+      // const PVLayerLoc loc = pre->getCLayer()->loc; // checkPVPFileHeader moved to communicate since pre needs to be defined.
+      // status = checkPVPFileHeader(comm, &loc, wgtParams, numWgtParams);
+      // if (status < 0) return status;
 
       // reconcile differences with inputParams
-      status = checkWeightsHeader(nametmp, wgtParams);
+      status = checkWeightsHeader(nametmp, fileparams);
    }
+   return status;
+}
+
+int HyPerConn::checkPatchDimensions() {
+   int statusx = checkPatchSize(nxp, pre->getXScale(), post->getXScale(), 'x');
+   int statusy = checkPatchSize(nyp, pre->getYScale(), post->getYScale(), 'y');
+   int status = statusx==PV_SUCCESS && statusy==PV_SUCCESS ? PV_SUCCESS : PV_FAILURE;
    return status;
 }
 
@@ -2965,18 +3205,6 @@ pvdata_t * HyPerConn::allocWeights(PVPatch *** patches, int nPatches, int nxPatc
    assert(dataPatches != NULL);
    return dataPatches;
 }
-
-
-#ifdef OBSOLETE // Marked obsolete Feb. 29, 2012.  There is no kernelIndexToPatchIndex().  There has never been a kernelIndexToPatchIndex().
-// one to many mapping, chose first patch index in restricted space
-// kernelIndex for unit cell
-// patchIndex in extended space
-int HyPerConn::kernelIndexToPatchIndex(int kernelIndex, int * kxPatchIndex,
-      int * kyPatchIndex, int * kfPatchIndex)
-{
-   return kernelIndex;
-}
-#endif // OBSOLETE
 
 int HyPerConn::patchToDataLUT(int patchIndex) {
    return patchIndex;

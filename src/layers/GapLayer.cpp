@@ -14,9 +14,9 @@ GapLayer::GapLayer() {
    initialize_base();
 }
 
-GapLayer::GapLayer(const char * name, HyPerCol * hc, LIFGap * originalLayer) {
+GapLayer::GapLayer(const char * name, HyPerCol * hc, const char * originalLayerName) {
    initialize_base();
-   initialize(name, hc, originalLayer);
+   initialize(name, hc, originalLayerName);
 }
 
 GapLayer::~GapLayer()
@@ -30,11 +30,21 @@ int GapLayer::initialize_base() {
    return PV_SUCCESS;
 }
 
-int GapLayer::initialize(const char * name, HyPerCol * hc, LIFGap * originalLayer)
+int GapLayer::initialize(const char * name, HyPerCol * hc, const char * originalLayerName)
 {
    int status_init = HyPerLayer::initialize(name, hc, MAX_CHANNELS);
+   if (originalLayerName == NULL) {
+      fprintf(stderr, "GapLayer \"%s\" error: originalLayerName must be set.\n", name);
+      abort();
+   }
+   HyPerLayer * hyperlayer = parent->getLayerFromName(originalLayerName);
+   if (hyperlayer == NULL) {
+      fprintf(stderr, "GapLayer \"%s\" error: originalLayerName \"%s\" is not a layer in the HyPerCol.\n", name, originalLayerName);
+      abort();
+   }
+   LIFGap * originalLayer = dynamic_cast<LIFGap *>(hyperlayer);
    if (originalLayer == NULL) {
-      fprintf(stderr, "GapLayer \"%s\" received null source layer.\n", name);
+      fprintf(stderr, "GapLayer \"%s\" error: originalLayerName \"%s\" is not a LIFGap or LIFGap-derived class.\n", name, originalLayerName);
       abort();
    }
    const PVLayerLoc * sourceLoc = originalLayer->getLayerLoc();

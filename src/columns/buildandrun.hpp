@@ -56,30 +56,28 @@
 #include "../layers/HyPerLCALayer.hpp"
 #include "../layers/ANNErrorLayer.hpp"
 
-
 #include "../connections/HyPerConn.hpp"
-#include "../connections/HyPerConn.hpp"
+#include "../connections/BIDSConn.hpp"
 #include "../connections/KernelConn.hpp"
-#include "../connections/LCAConn.hpp"
-#include "../connections/LCALIFLateralKernelConn.hpp"
-#include "../connections/NoSelfKernelConn.hpp"
-#include "../connections/OjaKernelConn.hpp"
-#include "../connections/GapConn.hpp"
 #include "../connections/CliqueConn.hpp"
-#include "../connections/SiblingConn.hpp"
+#include "../connections/CloneKernelConn.hpp"
 #include "../connections/GapConn.hpp"
 #include "../connections/GenerativeConn.hpp"
 #include "../connections/PoolingGenConn.hpp"
 #include "../connections/IdentConn.hpp"
-#include "../connections/CloneKernelConn.hpp"
+#include "../connections/LCAConn.hpp"
+#include "../connections/LCALIFLateralKernelConn.hpp"
+#include "../connections/NoSelfKernelConn.hpp"
+#include "../connections/SiblingConn.hpp"
+#include "../connections/OjaKernelConn.hpp"
+#include "../connections/ReciprocalConn.hpp"
 #include "../connections/TransposeConn.hpp"
 #include "../connections/FeedbackConn.hpp"
 #include "../connections/LCALIFLateralConn.hpp"
-#include "../connections/STDPConn.hpp"
-#include "../connections/STDP3Conn.hpp"
-#include "../connections/BIDSConn.hpp"
 #include "../connections/OjaSTDPConn.hpp"
 #include "../connections/InhibSTDPConn.hpp"
+#include "../connections/STDP3Conn.hpp"
+#include "../connections/STDPConn.hpp"
 
 #include "../weightinit/InitWeights.hpp"
 #include "../weightinit/InitGauss2DWeights.hpp"
@@ -102,14 +100,14 @@
 #include "../weightinit/InitMTWeights.hpp"
 
 #include "../io/BaseConnectionProbe.hpp"
+#include "../io/ReciprocalEnergyProbe.hpp"
 #include "../io/KernelProbe.hpp"
+#include "../io/LCALIFLateralProbe.hpp"
 #include "../io/OjaConnProbe.hpp"
 #include "../io/OjaKernelSpikeRateProbe.hpp"
-#include "../io/LCALIFLateralProbe.hpp"
 #include "../io/PatchProbe.hpp"
 #include "../io/TextStreamProbe.hpp"
 #include "../io/LCAProbe.hpp"
-#include "../io/ReciprocalEnergyProbe.hpp"
 #include "../io/LayerProbe.hpp"
 #include "../io/PointProbe.hpp"
 #include "../io/PointLCALIFProbe.hpp"
@@ -150,15 +148,15 @@ BIDSCloneLayer * addBIDSCloneLayer(const char * name, HyPerCol * hc);
 InitWeights *createInitWeightsObject(const char * name, HyPerCol * hc);
 InitWeights * getDefaultInitWeightsMethod(const char * keyword);
 HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerCol * hc);
-PoolingGenConn * addPoolingGenConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post, const char * filename, InitWeights *weightInit);
+PoolingGenConn * addPoolingGenConn(const char * name, HyPerCol * hc, const char * pre_layer_name, const char * post_layer_name, const char * filename, InitWeights *weightInit);
 ColProbe * addColProbeToColumn(const char * classkeyword, const char * name, HyPerCol * hc);
 void insertColProbe(ColProbe * colProbe, HyPerCol * hc, const char * classkeyword);
 BaseConnectionProbe * addBaseConnectionProbeToColumn(const char * classkeyword, const char * name, HyPerCol * hc);
-#ifdef OBSOLETE // Marked obsolete Feb. 27, 2012.  Replaced by PatchProbe.
-ConnectionProbe * addConnectionProbeToColumn(const char * classkeyword, const char * name, HyPerCol * hc);
-#endif // OBSOLETE
 const char * getStringValueFromParameterGroup(const char * groupName, PVParams * params, const char * parameterString, bool warnIfAbsent);
+#ifdef OBSOLETE // Marked obsolete July 3, 2013.  No longer pass HyPerLayers to the connections' constructors, but names
+                // of the layers.  Accordingly, use HyPerConn::getPreAndPostLayerNames() instead.
 int getPreAndPostLayers(const char * name, HyPerCol * hc, HyPerLayer ** preLayerPtr, HyPerLayer **postLayer);
+#endif // OBSOLETE
 HyPerLayer * getLayerFromParameterGroup(const char * groupName, HyPerCol * hc, const char * parameterStringName, bool warnIfAbsent=true);
 HyPerConn * getConnFromParameterGroup(const char * groupName, HyPerCol * hc, const char * parameterStringName, bool warnIfAbesnt=true);
 LayerProbe * addLayerProbeToColumn(const char * classkeyword, const char * name, HyPerCol * hc);

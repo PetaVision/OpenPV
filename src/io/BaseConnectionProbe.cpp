@@ -15,113 +15,107 @@ BaseConnectionProbe::BaseConnectionProbe() {
 
 BaseConnectionProbe::~BaseConnectionProbe() {
    free(name);
-   free(filename);
    assert(stream != NULL);
    if (stream->isfile) PV_fclose(stream);
+   free(stream);
+   free(targetConnName);
 }
 
 int BaseConnectionProbe::initialize_base() {
    name = NULL;
-   filename = NULL;
    stream = NULL;
+   targetConnName = NULL;
    targetConn = NULL;
-   isPostProbe = 1; //default to 1
    return PV_SUCCESS;
 }
 
-int BaseConnectionProbe::initialize(const char * probename, const char * filename, HyPerConn * conn) {
-   int kx = 0;
-   int ky = 0;
-   int kf = 0;
-   bool postProbeFlag = true;
-
-   initialize(probename,filename,conn,kx,ky,kf,postProbeFlag);
-
-   return PV_SUCCESS;
-}
-int BaseConnectionProbe::initialize(const char * probename, const char * filename, HyPerConn * conn, int k, bool postProbeFlag) {
-   isPostProbe = postProbeFlag;
-
-   int kx, ky, kf;
-   const PVLayerLoc * loc;
-   if (isPostProbe) {
-      loc = conn->postSynapticLayer()->getLayerLoc();
-      int nxGlobal = loc->nxGlobal;
-      int nyGlobal = loc->nyGlobal;
-      int nf = loc->nf;
-      kx = kxPos(k,nxGlobal,nyGlobal,nf);
-      ky = kyPos(k,nxGlobal,nyGlobal,nf);
-      kf = featureIndex(k,nxGlobal,nyGlobal,nf);
+int BaseConnectionProbe::initialize(const char * probename, HyPerCol * hc) {
+   int status = PV_SUCCESS;
+   if (hc==NULL) {
+      fprintf(stderr, "BaseConnectionProbe error: probename cannot be null.\n");
+      exit(EXIT_FAILURE);
    }
-   else
-   {
-      //TODO: Check in bounds for pre probes
-      assert(false);
-      //loc = conn->preSynapticLayer()->getLayerLoc();
+   parent = hc;
+
+   if (probename==NULL) {
+      fprintf(stderr, "BaseConnectionProbe error in rank %d process: probename cannot be null.\n", hc->columnId());
+      status = PV_FAILURE;
+   }
+   MPI_Barrier(hc->icCommunicator()->communicator());
+   if (status!=PV_SUCCESS) {
+      exit(EXIT_FAILURE);
    }
 
-   initialize(probename,filename,conn,kx,ky,kf,postProbeFlag);
-
-   return PV_SUCCESS;
-}
-
-int BaseConnectionProbe::initialize(const char * probename, const char * filename, HyPerConn * conn, int kx, int ky, int kf, bool postProbeFlag) {
-   isPostProbe = postProbeFlag;
-
-   bool inBounds = false;
-   const PVLayerLoc * loc;
-   if (isPostProbe) {
-      loc = conn->postSynapticLayer()->getLayerLoc();
-      int kxLocal = kx - loc->kx0;
-      int kyLocal = ky - loc->ky0;
-      //Restricted index only for both post and pre
-      inBounds = !(kxLocal < 0 || kxLocal >= loc->nx || kyLocal < 0 || kyLocal >= loc->ny);
+   name = strdup(probename);
+   if (name==NULL) {
+      fprintf(stderr, "BaseConnectionProbe \"%s\" error in rank %d process: unable to allocate memory for name of probe.\n", probename, hc->columnId());
+      status = PV_FAILURE;
    }
-   else
-   {
-      assert(false);
-      //loc = conn->preSynapticLayer()->getLayerLoc();
+   MPI_Barrier(hc->icCommunicator()->communicator());
+   if (status!=PV_SUCCESS) {
+      exit(EXIT_FAILURE);
    }
 
-   if( probename ) {
-      name = strdup(probename);
-   }
-   else {
-      name = strdup("Unnamed connection probe");
-   }
-   if( filename ) {
-      this->filename = strdup(filename);
-   }
-   else {
-      this->filename = NULL;
-   }
-
-   HyPerCol * hc = conn->getParent();
-   if(inBounds ) { // if inBounds
-      if( filename ) {
-         const char * outputdir = hc->getOutputPath();
-         if( strlen(outputdir) + strlen(filename) + 2 > PV_PATH_MAX ) {
-            fprintf(stderr, "BaseConnectionProbe: output filename \"%s/%s\" too long.  Exiting.\n",outputdir,filename);
-            exit(EXIT_FAILURE);
-         }
-         char path[PV_PATH_MAX];
+   if (hc->columnId()==0) {
+      const char * filename = hc->parameters()->stringValue(name, "probeOutputFile");
+      if( filename != NULL ) {
+         char * outputdir = hc->getOutputPath();
+         char * path = (char *) malloc(strlen(outputdir)+1+strlen(filename)+1);
          sprintf(path, "%s/%s", outputdir, filename);
-
          stream = PV_fopen(path, "w");
-         if (stream == NULL)  {
-            fprintf(stderr, "BaseConnectionProbe error opening \"%s\" for writing: %s.\n", path, strerror(errno));
+         if( !stream ) {
+            fprintf(stderr, "BaseConnectionProbe error opening \"%s\" for writing: %s\n", path, strerror(errno));
             exit(EXIT_FAILURE);
          }
+         free(path);
       }
       else {
          stream = PV_stdout();
+         if( !stream ) {
+            exit(EXIT_FAILURE);
+         }
       }
    }
-   else {
-      stream = NULL;
+
+   const char * target_conn_name = hc->parameters()->stringValue(name, "targetConnection");
+   if (target_conn_name==NULL) {
+      fprintf(stderr, "BaseConnectionProbe \"%s\" error in rank %d process: targetConnection cannot be null.\n", probename, hc->columnId());
+      status = PV_FAILURE;
    }
-   targetConn = conn;
-   conn->insertProbe(this);
+   MPI_Barrier(hc->icCommunicator()->communicator());
+   if (status!=PV_SUCCESS) {
+      exit(EXIT_FAILURE);
+   }
+
+   targetConnName = strdup(target_conn_name);
+   if (target_conn_name==NULL) {
+      fprintf(stderr, "BaseConnectionProbe \"%s\" error in rank %d process: unable to allocate memory for name of target connection.\n", probename, hc->columnId());
+      status = PV_FAILURE;
+   }
+   MPI_Barrier(hc->icCommunicator()->communicator());
+   if (status!=PV_SUCCESS) {
+      exit(EXIT_FAILURE);
+   }
+
+   return status;
+}
+
+int BaseConnectionProbe::communicate() {
+   int status = PV_SUCCESS;
+   targetConn = getParent()->getConnFromName(getTargetConnName());
+   if (targetConn==NULL) {
+      fprintf(stderr, "BaseConnectionProbe \"%s\" error in rank %d process: targetConnection \"%s\" is not a connection in the HyPerCol.\n",
+            name, getParent()->columnId(), getTargetConnName());
+      status = PV_FAILURE;
+   }
+   MPI_Barrier(getParent()->icCommunicator()->communicator());
+   if (status != PV_SUCCESS) {
+      exit(EXIT_FAILURE);
+   }
+   return status;
+}
+
+int BaseConnectionProbe::allocateProbe() {
    return PV_SUCCESS;
 }
 

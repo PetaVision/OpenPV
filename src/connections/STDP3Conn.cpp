@@ -15,12 +15,13 @@
 
 namespace PV {
 
-STDP3Conn::STDP3Conn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
+STDP3Conn::STDP3Conn(const char * name, HyPerCol * hc,
+      const char * pre_layer_name, const char * post_layer_name,
       const char * filename, bool stdpFlag,
       InitWeights *weightInit) : HyPerConn()
 {
    initialize_base();
-   initialize(name, hc, pre, post, filename, stdpFlag, weightInit);
+   initialize(name, hc, pre_layer_name, post_layer_name, filename, stdpFlag, weightInit);
 }
 
 STDP3Conn::~STDP3Conn()
@@ -46,18 +47,20 @@ int STDP3Conn::initialize_base() {
 }
 
 int STDP3Conn::initialize(const char * name, HyPerCol * hc,
-      HyPerLayer * pre, HyPerLayer * post,
+      const char * pre_layer_name, const char * post_layer_name,
       const char * filename, bool stdpFlag, InitWeights *weightInit)
 {
    this->stdpFlag = stdpFlag; //needs to be before call to HyPerConn::initialize since it calls overridden methods that depend on stdpFlag being set.
-   int status = HyPerConn::initialize(name, hc, pre, post, filename, weightInit);
+   int status = HyPerConn::initialize(name, hc, pre_layer_name, post_layer_name, filename, weightInit);
 
+   // status |= setParams(hc->parameters()); // called by HyPerConn::initialize since setParams is virtual
+   // status |= initPlasticityPatches();     // called by HyPerConn::constructWeights since initPlasticityPatches is virtual
+
+   // Moved to allocateDataStructures since point2PreSynapticWeights allocates post patches
+   // if(synscalingFlag){
+   //    point2PreSynapticWeights();
+   // }
    status |= setParams(hc->parameters()); // needs to be called after HyPerConn::initialize since it depends on post being set
-   status |= initPlasticityPatches();
-
-   if(synscalingFlag){
-      point2PreSynapticWeights();
-   }
 
    return status;
 }
@@ -206,6 +209,14 @@ void STDP3Conn::readSynscalingFlag(PVParams * params) {
 void STDP3Conn::readSynscaling_v(PVParams * params) {
    assert(!params->presentAndNotBeenRead(name, "stdpFlag"));
    if(stdpFlag) synscaling_v = params->value(getName(), "synscaling_v", synscaling_v);
+}
+
+int STDP3Conn::allocateDataStructures() {
+   HyPerConn::allocateDataStructures();
+   if(synscalingFlag){
+      point2PreSynapticWeights();
+   }
+   return PV_SUCCESS;
 }
 
 /**

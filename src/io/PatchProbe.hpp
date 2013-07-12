@@ -19,8 +19,7 @@ class PatchProbe : public BaseConnectionProbe {
 
 // Methods
 public:
-   PatchProbe(const char * probename, const char * filename, HyPerConn * conn, int kPre, int arbID=0);
-   PatchProbe(const char * probename, const char * filename, HyPerConn * conn, int kxPre, int kyPre, int kfPre, int arbID=0);
+   PatchProbe(const char * probename, HyPerCol * hc);
    virtual ~PatchProbe();
 
    virtual int outputState(double timef);
@@ -40,17 +39,17 @@ public:
 
 protected:
    PatchProbe();
-   int initialize(const char * probename, const char * filename, HyPerConn * conn, PatchIDMethod method, int kPre, int kxPre, int kyPre, int kfPre, int arbID);
+   int initialize(const char * probename, HyPerCol * hc);
+   virtual int getPatchID();
 
 private:
    int initialize_base();
-   void setOutputWeights(bool flag)       {outputWeights = flag;}
-   void setOutputPlasticIncr(bool flag)   {outputPlasticIncr = flag;}
-   void setOutputPostIndices(bool flag)   {outputPostIndices = flag;}
 
 // Member variables
-private:
+protected:
    PatchIDMethod patchIDMethod;
+
+private:
    int    kPre;  // index of pre-synaptic neuron
    int    kxPre, kyPre, kfPre;
    int    arborID;

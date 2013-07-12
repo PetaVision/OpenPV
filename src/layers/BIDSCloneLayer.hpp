@@ -21,7 +21,7 @@ namespace PV {
 // CloneLayer can be used to implement Sigmoid junctions between spiking neurons
 class BIDSCloneLayer: public HyPerLayer {
 public:
-   BIDSCloneLayer(const char * name, HyPerCol * hc, LIF * clone);
+   BIDSCloneLayer(const char * name, HyPerCol * hc, const char * origLayerName);
    virtual ~BIDSCloneLayer();
    virtual int updateState(double timef, double dt);
    // virtual int updateV();
@@ -32,7 +32,7 @@ public:
    int mapCoords();
 protected:
    BIDSCloneLayer();
-   int initialize(const char * name, HyPerCol * hc, LIF * clone);
+   int initialize(const char * name, HyPerCol * hc, const char * origLayerName);
    int initialize_base();
    float V0;
    float Vth;

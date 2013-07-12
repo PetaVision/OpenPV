@@ -14,8 +14,11 @@ namespace PV {
 
 class SiblingConn: public PV::NoSelfKernelConn {
 public:
-   SiblingConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
-              const char * filename = NULL, InitWeights *weightInit = NULL, SiblingConn *sibing_conn = NULL);
+   SiblingConn(const char * name, HyPerCol * hc,
+         const char * pre_layer_name, const char * post_layer_name,
+         const char * filename = NULL, InitWeights *weightInit = NULL,
+         const char * sibling_conn_name=NULL);
+   virtual int communicateInitInfo();
    bool getIsNormalized();
    void setSiblingConn(SiblingConn *sibling_conn);
    SiblingConn * getSiblingConn(){return siblingConn;};
@@ -23,15 +26,16 @@ public:
 protected:
    int initialize_base(){return PV_SUCCESS;};
    int initialize(const char * name, HyPerCol * hc,
-                  HyPerLayer * pre, HyPerLayer * post,
-                  const char * filename, InitWeights *weightInit=NULL,
-                  SiblingConn *sibling_conn=NULL);
+         const char * pre_layer_name, const char * post_layer_name,
+         const char * filename, InitWeights *weightInit=NULL,
+         const char * sibling_conn_name=NULL);
    virtual int initNormalize();
    virtual int normalizeWeights();
    // virtual int normalizeWeights(PVPatch ** patches, pvdata_t ** dataStart, int numPatches, int arborId);
    virtual int normalizeFamily();
 
 private:
+   char * siblingConnName;
    SiblingConn * siblingConn;
    bool isNormalized;
 };

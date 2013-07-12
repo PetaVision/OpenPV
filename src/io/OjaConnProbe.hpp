@@ -21,9 +21,10 @@ class OjaConnProbe: public BaseConnectionProbe {
    //Methods
 public:
    OjaConnProbe();
-   OjaConnProbe(const char * probename, const char * filename, HyPerConn * conn, int postIndex, bool isPostProbe);
-   OjaConnProbe(const char * probename, const char * filename, HyPerConn * conn, int kxPost, int kyPost, int kfPost, bool isPostProbe);
+   OjaConnProbe(const char * probename, HyPerCol * hc);
    virtual ~OjaConnProbe();
+
+   virtual int allocateProbe();
 
    virtual int outputState(double timef);
 
@@ -32,7 +33,7 @@ public:
                                   const PVLayerLoc * loc, int kx0, int ky0, int kf0);
 
 protected:
-   int initialize(const char * probename, const char * filename, HyPerConn * conn, PatchIDMethod method, int postIndex, int kxPost, int kyPost, int kfPost, bool isPostProbe);
+   int initialize(const char * probename, HyPerCol * hc);
 
 private:
    int initialize_base();
@@ -54,6 +55,11 @@ private:
    pvdata_t * postWeights;
 #endif
 
+   PatchIDMethod patchIDMethod;
+   int kPost;  // Index of patch
+   int kxPost; // x-coordinate of patch
+   int kyPost; // y-coordinate of patch
+   int kfPost; // feature number of patch
 };
 } // end namespace PV
 #endif /* OJACONNPROBE_HPP_ */

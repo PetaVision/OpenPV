@@ -17,11 +17,13 @@ class OjaKernelConn: public PV::KernelConn {
 // Methods
 public:
    // Public constructor, called when creating a new OjaKernelConn object
-   OjaKernelConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
+   OjaKernelConn(const char * name, HyPerCol * hc,
+                 const char * pre_layer_name, const char * post_layer_name,
                  const char * filename = NULL, InitWeights *weightInit = NULL);
 
    virtual ~OjaKernelConn();
 
+   virtual int allocateDataStructures();
    virtual int checkpointRead(const char * cpDir, double * timef);
    virtual int checkpointWrite(const char * cpDir);
 
@@ -38,7 +40,8 @@ public:
 
 protected:
    OjaKernelConn(); // Called by derived classes' constructors
-   int initialize(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
+   int initialize(const char * name, HyPerCol * hc,
+                  const char * pre_layer_name, const char * post_layer_name,
                   const char * filename, InitWeights *weightInit);
    virtual int calc_dW(int axonId);
    virtual int update_dW(int axonId);

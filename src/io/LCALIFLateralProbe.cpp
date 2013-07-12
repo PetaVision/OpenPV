@@ -13,17 +13,10 @@ LCALIFLateralProbe::LCALIFLateralProbe() {
    initialize_base();
 }
 
-LCALIFLateralProbe::LCALIFLateralProbe(const char * probename, const char * filename, HyPerConn * conn, int postIndex)
+LCALIFLateralProbe::LCALIFLateralProbe(const char * probename, HyPerCol * hc)
 {
    initialize_base();
-   //Since it's a lateral conn, postConn shouldn't matter
-   initialize(probename, filename, conn, INDEX_METHOD, postIndex, -1, -1, -1, true);
-}
-
-LCALIFLateralProbe::LCALIFLateralProbe(const char * probename, const char * filename, HyPerConn * conn, int kxPost, int kyPost, int kfPost)
-{
-   initialize_base();
-   initialize(probename, filename, conn, COORDINATE_METHOD, -1, kxPost, kyPost, kfPost, true);
+   initialize(probename, hc);
 }
 
 LCALIFLateralProbe::~LCALIFLateralProbe()
@@ -40,11 +33,38 @@ int LCALIFLateralProbe::initialize_base() {
    return PV_SUCCESS;
 }
 
-int LCALIFLateralProbe::initialize(const char * probename, const char * filename,
-      HyPerConn * conn, PatchIDMethod pidMethod, int kPost,
-      int kxPost, int kyPost, int kfPost, bool isPostProbe)
-{
-   LCALIFConn = dynamic_cast<LCALIFLateralConn *>(conn);
+int LCALIFLateralProbe::initialize(const char * probename, HyPerCol * hc) {
+   BaseConnectionProbe::initialize(probename, hc);
+   PVParams * params = hc->parameters();
+   //Since it's a lateral conn, postConn shouldn't matter
+   int indexmethod = params->present(name, "kPost");
+   int coordmethod = params->present(name, "kxPost") && params->present(name,"kyPost") && params->present(name,"kfPost");
+   if( indexmethod && coordmethod ) {
+      fprintf(stderr, "LCALIFLateralProbe \"%s\": Ambiguous definition with both kPost and (kxPost,kyPost,kfPost) defined\n", name);
+      return NULL;
+   }
+   if( !indexmethod && !coordmethod ) {
+      fprintf(stderr, "LCALIFLateralProbe \"%s\": Exactly one of kPost and (kxPost,kyPost,kfPost) must be defined\n", name);
+      return NULL;
+   }
+   if( indexmethod ) {
+      int kPost = params->value(name, "kPost");
+      patchIDMethod = INDEX_METHOD;
+   }
+   else {
+      assert(coordmethod);
+      int kxPost = params->value(name, "kxPost");
+      int kyPost = params->value(name, "kyPost");
+      int kfPost = params->value(name, "kfPost");
+      patchIDMethod = COORDINATE_METHOD;
+   }
+
+   return PV_SUCCESS;
+}
+
+int LCALIFLateralProbe::allocateProbe() {
+   BaseConnectionProbe::allocateProbe();
+   LCALIFConn = dynamic_cast<LCALIFLateralConn *>(targetConn);
    assert(LCALIFConn != NULL);
 
    const PVLayerLoc * loc;
@@ -56,12 +76,12 @@ int LCALIFLateralProbe::initialize(const char * probename, const char * filename
    int nf = loc->nf;
    int nb = loc->nb;
 
-   if (pidMethod == INDEX_METHOD) {
+   if (patchIDMethod == INDEX_METHOD) {
       kxPost = kxPos(kPost,nxGlobal,nyGlobal,nf);
       kyPost = kyPos(kPost,nxGlobal,nyGlobal,nf);
       kfPost = featureIndex(kPost,nxGlobal,nyGlobal,nf);
    }
-   else if(pidMethod == COORDINATE_METHOD) {
+   else if(patchIDMethod == COORDINATE_METHOD) {
       //kfPost can't be lower than 0
       assert(kfPost >= 0);
       kPost = kIndex(kxPost,kyPost,kfPost,nxGlobal,nyGlobal,nf); // nx, ny, nf NOT in extended space
@@ -70,9 +90,7 @@ int LCALIFLateralProbe::initialize(const char * probename, const char * filename
    assert(kPost != -1);
    assert(kfPost < nf);
 
-   BaseConnectionProbe::initialize(probename, filename, conn,kxPost,kyPost,kfPost,isPostProbe);
-
-// Now convert from global coordinates to local coordinates
+   // Now convert from global coordinates to local coordinates
    //Restricted index
    int kxPostLocal = kxPost - loc->kx0;
    int kyPostLocal = kyPost - loc->ky0;

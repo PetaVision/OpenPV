@@ -30,17 +30,41 @@ int main(int argc, char * argv[])
 
    int status = 0;
 
+   const char * l1name = "test_post_weights L1";
+   const char * l2name = "test_post_weights L2";
+   const char * l3name = "test_post_weights L3";
    HyPerCol  * hc = new HyPerCol("column", argc, argv);
-   Example   * l1 = new Example("test_post_weights L1", hc);
-   Example   * l2 = new Example("test_post_weights L2", hc);
-   Example   * l3 = new Example("test_post_weights L3", hc);
+   Example   * l1 = new Example(l1name, hc); assert(l1);
+   Example   * l2 = new Example(l2name, hc); assert(l2);
+   Example   * l3 = new Example(l3name, hc); assert(l3);
+
    InitWeights * initWeights = new InitUniformWeights();
-   HyPerConn * c1 = new HyPerConn("test_post_weights L1 to L1", hc, l1, l1, NULL, initWeights);
-   HyPerConn * c2 = new HyPerConn("test_post_weights L2 to L3", hc, l2, l3, NULL, initWeights);
-   HyPerConn * c3 = new HyPerConn("test_post_weights L3 to L2", hc, l3, l2, NULL, initWeights);
+
+   HyPerConn * c1 = new HyPerConn("test_post_weights L1 to L1", hc, l1name, l1name, NULL, initWeights);
+   assert(c1);
    assert(c1->numberOfAxonalArborLists() == 1);
+
+   HyPerConn * c2 = new HyPerConn("test_post_weights L2 to L3", hc, l2name, l3name, NULL, initWeights);
+   assert(c2);
    assert(c2->numberOfAxonalArborLists() == 1);
+
+   HyPerConn * c3 = new HyPerConn("test_post_weights L3 to L2", hc, l3name, l2name, NULL, initWeights);
+   assert(c3);
    assert(c3->numberOfAxonalArborLists() == 1);
+
+   l1->communicateInitInfo();
+   l2->communicateInitInfo();
+   l3->communicateInitInfo();
+   c1->communicateInitInfo();
+   c2->communicateInitInfo();
+   c3->communicateInitInfo();
+   
+   l1->allocateDataStructures();
+   l2->allocateDataStructures();
+   l3->allocateDataStructures();
+   c1->allocateDataStructures();
+   c2->allocateDataStructures();
+   c3->allocateDataStructures();
 
    // set weights to be k index source in pre-synaptic layer
    //

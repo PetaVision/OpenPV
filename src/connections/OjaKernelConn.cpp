@@ -8,10 +8,11 @@
 #include "OjaKernelConn.hpp"
 
 namespace PV {
-OjaKernelConn::OjaKernelConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
-                             const char * filename, InitWeights *weightInit) {
+OjaKernelConn::OjaKernelConn(const char * name, HyPerCol * hc,
+      const char * pre_layer_name, const char * post_layer_name,
+      const char * filename, InitWeights *weightInit) {
    initialize_base();
-   initialize(name, hc, pre, post, filename, weightInit);
+   initialize(name, hc, pre_layer_name, post_layer_name, filename, weightInit);
 }
 
 OjaKernelConn::OjaKernelConn()
@@ -41,63 +42,10 @@ int OjaKernelConn::initialize_base() {
    return PV_SUCCESS;
 }
 
-int OjaKernelConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
+int OjaKernelConn::initialize(const char * name, HyPerCol * hc,
+      const char * pre_layer_name, const char * post_layer_name,
       const char * filename, InitWeights *weightInit) {
-   int status = KernelConn::initialize(name, hc, pre, post, filename, weightInit);
-
-   int numarbors = numberOfAxonalArborLists(); assert(numarbors>0);
-   int n_pre_ext = getNumWeightPatches();
-   int n_post = post->getNumNeurons();
-   inputFiringRateCubes = (PVLayerCube **) calloc(numarbors, sizeof(PVLayerCube *));
-   if (inputFiringRateCubes == NULL) {
-      fprintf(stderr, "OjaKernelConn \"%s\" error allocating inputFiringRateCubes", name);
-      abort();
-   }
-
-   // Don't allocate cube's data in place, so that the data can be written to/ read from a pvp file at once
-   inputFiringRate = (pvdata_t **) calloc(numarbors, sizeof(pvdata_t *));
-   if (inputFiringRate == NULL) {
-      fprintf(stderr, "OjaKernelConn::initialize error for layer \"%s\": unable to allocate memory for input firing rates\n", name);
-      abort();
-   }
-   inputFiringRate = (pvdata_t **) calloc(numarbors, sizeof(pvdata_t *));
-   if (inputFiringRate == NULL) {
-      fprintf(stderr, "OjaKernelConn::initialize error for layer \"%s\": unable to allocate memory for input firing rate pointers\n", name);
-      abort();
-   }
-   inputFiringRate[0] = (pvdata_t *) malloc(numarbors*n_pre_ext * sizeof(pvdata_t *));
-   if (inputFiringRate[0]==NULL) {
-      fprintf(stderr, "OjaKernelConn::initialize error for layer \"%s\": unable to allocate memory for input firing rates\n", name);
-      abort();
-   }
-   for (int arbor = 1; arbor<numarbors; arbor++) {
-      inputFiringRate[arbor] = inputFiringRate[0]+arbor*n_pre_ext;
-   }
-   for (int k=0; k<numarbors*n_pre_ext; k++) {
-      inputFiringRate[0][k] = getInputTargetRate();
-   }
-   for (int arbor = 0; arbor<numarbors; arbor++) {
-      inputFiringRateCubes[arbor] = (PVLayerCube *) calloc(1, sizeof(PVLayerCube));
-      if (inputFiringRateCubes[arbor]==NULL) {
-         fprintf(stderr, "inputFiringRateCubes[arbor]==NULL.  This computer fails.\n");
-         abort();
-      }
-      inputFiringRateCubes[arbor]->size = pvcube_size(n_pre_ext); // Should be okay even though cube's data is not in place, since the mirrorTo functions don't use the size field
-      inputFiringRateCubes[arbor]->numItems = pvcube_size(n_pre_ext);
-      memcpy(&(inputFiringRateCubes[arbor]->loc), pre->getLayerLoc(), sizeof(PVLayerLoc));
-      inputFiringRateCubes[arbor]->data = inputFiringRate[arbor];
-   }
-
-   // Output firing rate doesn't need arbors since all arbors go to the same output, or a cube since we don't have to exchange borders.
-   outputFiringRate = (pvdata_t *) malloc(n_post * sizeof(pvdata_t *));
-   for (int k=0; k<n_post; k++) {
-      outputFiringRate[k] = getOutputTargetRate();
-   }
-   if (outputFiringRate == NULL) {
-      fprintf(stderr, "OjaKernelConn::initialize error for layer \"%s\": unable to allocate memory for output firing rates\n", name);
-      abort();
-   }
-   mpi_datatype = Communicator::newDatatypes(pre->getLayerLoc());
+   int status = KernelConn::initialize(name, hc, pre_layer_name, post_layer_name, filename, weightInit);
    return status;
 }
 
@@ -115,6 +63,60 @@ int OjaKernelConn::setParams(PVParams * params) {
 void OjaKernelConn::readInitialWeightUpdateTime(PVParams * params) {
    KernelConn::readInitialWeightUpdateTime(params);
    dWUpdateTime = weightUpdateTime;
+}
+
+int OjaKernelConn::allocateDataStructures() {
+   int status = KernelConn::allocateDataStructures();
+   int numarbors = numberOfAxonalArborLists(); assert(numarbors>0);
+
+   // Don't allocate cube's data in place, so that the data can be written to/ read from a pvp file at once
+   inputFiringRate = (pvdata_t **) calloc(numarbors, sizeof(pvdata_t *));
+   if (inputFiringRate == NULL) {
+      fprintf(stderr, "OjaKernelConn::initialize error for layer \"%s\": unable to allocate memory for input firing rate pointers\n", name);
+      abort();
+   }
+   int n_pre_ext = getNumWeightPatches();
+   inputFiringRate[0] = (pvdata_t *) malloc(numarbors*n_pre_ext * sizeof(pvdata_t *));
+   if (inputFiringRate[0]==NULL) {
+      fprintf(stderr, "OjaKernelConn::initialize error for layer \"%s\": unable to allocate memory for input firing rates\n", name);
+      abort();
+   }
+   for (int arbor = 1; arbor<numarbors; arbor++) {
+      inputFiringRate[arbor] = inputFiringRate[0]+arbor*n_pre_ext;
+   }
+   for (int k=0; k<numarbors*n_pre_ext; k++) {
+      inputFiringRate[0][k] = getInputTargetRate();
+   }
+
+   inputFiringRateCubes = (PVLayerCube **) calloc(numarbors, sizeof(PVLayerCube *));
+   if (inputFiringRateCubes == NULL) {
+      fprintf(stderr, "OjaKernelConn \"%s\" error allocating inputFiringRateCubes", name);
+      abort();
+   }
+   for (int arbor = 0; arbor<numarbors; arbor++) {
+      inputFiringRateCubes[arbor] = (PVLayerCube *) calloc(1, sizeof(PVLayerCube));
+      if (inputFiringRateCubes[arbor]==NULL) {
+         fprintf(stderr, "inputFiringRateCubes[arbor]==NULL.  This computer fails.\n");
+         abort();
+      }
+      inputFiringRateCubes[arbor]->size = pvcube_size(n_pre_ext); // Should be okay even though cube's data is not in place, since the mirrorTo functions don't use the size field
+      inputFiringRateCubes[arbor]->numItems = pvcube_size(n_pre_ext);
+      memcpy(&(inputFiringRateCubes[arbor]->loc), pre->getLayerLoc(), sizeof(PVLayerLoc));
+      inputFiringRateCubes[arbor]->data = inputFiringRate[arbor];
+   }
+   mpi_datatype = Communicator::newDatatypes(pre->getLayerLoc());
+
+   // Output firing rate doesn't need arbors since all arbors go to the same output, or a cube since we don't have to exchange borders.
+   int n_post = post->getNumNeurons();
+   outputFiringRate = (pvdata_t *) malloc(n_post * sizeof(pvdata_t *));
+   for (int k=0; k<n_post; k++) {
+      outputFiringRate[k] = getOutputTargetRate();
+   }
+   if (outputFiringRate == NULL) {
+      fprintf(stderr, "OjaKernelConn::initialize error for layer \"%s\": unable to allocate memory for output firing rates\n", name);
+      abort();
+   }
+   return status;
 }
 
 int OjaKernelConn::updateState(double timef, double dt) {

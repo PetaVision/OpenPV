@@ -15,8 +15,9 @@ namespace PV {
 
 class OjaKernelSpikeRateProbe: public PV::BaseConnectionProbe {
 public:
-   OjaKernelSpikeRateProbe(const char * probename, const char * filename, HyPerConn * conn);
+   OjaKernelSpikeRateProbe(const char * probename, HyPerCol * hc);
    virtual ~OjaKernelSpikeRateProbe();
+   virtual int allocateProbe();
    virtual int outputState(double timed);
 
 protected:
@@ -24,7 +25,7 @@ protected:
    int initialize_base();
 
 private:
-   int initialize(const char * probename, const char * filename, HyPerConn * conn);
+   int initialize(const char * probename, HyPerCol * hc);
 
 protected:
    OjaKernelConn * targetOjaKernelConn;

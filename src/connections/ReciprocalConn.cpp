@@ -44,16 +44,21 @@ ReciprocalConn::ReciprocalConn() {
 }
 
 ReciprocalConn::ReciprocalConn(const char * name, HyPerCol * hc,
-         HyPerLayer * pre, HyPerLayer * post,
-         const char * filename, InitWeights * weightInit) {
+      const char * pre_layer_name, const char * post_layer_name,
+      const char * filename, InitWeights * weightInit) {
    initialize_base();
-   initialize(name, hc, pre, post, filename, weightInit);
+   initialize(name, hc, pre_layer_name, post_layer_name, filename, weightInit);
 }
 
 int ReciprocalConn::initialize_base() {
+   updateRulePreName = NULL;
+   updateRulePostName = NULL;
    updateRulePre = NULL;
    updateRulePost = NULL;
+   reciprocalWgtsName = NULL;
    reciprocalWgts = NULL;
+   slownessPreName = NULL;
+   slownessPostName = NULL;
    slownessPre = NULL;
    slownessPost = NULL;
    sums = NULL;
@@ -62,9 +67,9 @@ int ReciprocalConn::initialize_base() {
 }
 
 int ReciprocalConn::initialize(const char * name, HyPerCol * hc,
-      HyPerLayer * pre, HyPerLayer * post,
+      const char * pre_layer_name, const char * post_layer_name,
       const char * filename, InitWeights * weightInit) {
-   int status = KernelConn::initialize(name, hc, pre, post, filename, weightInit);
+   int status = KernelConn::initialize(name, hc, pre_layer_name, post_layer_name, filename, weightInit);
 
    return status;
 }
@@ -79,6 +84,8 @@ int ReciprocalConn::setParams(PVParams * params) {
    status = readSlownessPre(params)==PV_SUCCESS ? status : PV_FAILURE;
    status = readSlownessPost(params)==PV_SUCCESS ? status : PV_FAILURE;
    status = readReciprocalWgts(params)==PV_SUCCESS ? status : PV_FAILURE;
+   MPI_Barrier(parent->icCommunicator()->communicator());
+   if (status != PV_SUCCESS) exit(EXIT_FAILURE);
    if( status != PV_SUCCESS ) abort();
    return status;
 }
@@ -92,11 +99,11 @@ void ReciprocalConn::readReciprocalFidelityCoeff(PVParams * params) {
 }
 
 int ReciprocalConn::readUpdateRulePre(PVParams * params) {
-   return initParameterLayer("updateRulePre", &updateRulePre, pre);
+   return getLayerName(params, "updateRulePre", &updateRulePreName, preLayerName);
 }
 
 int ReciprocalConn::readUpdateRulePost(PVParams * params) {
-   return initParameterLayer("updateRulePost", &updateRulePost, post);
+   return getLayerName(params, "updateRulePost", &updateRulePostName, postLayerName);
 }
 
 void ReciprocalConn::readSlownessFlag(PVParams * params) {
@@ -106,17 +113,43 @@ void ReciprocalConn::readSlownessFlag(PVParams * params) {
 int ReciprocalConn::readSlownessPre(PVParams * params) {
    int status = PV_SUCCESS;
    assert(!params->presentAndNotBeenRead(name, "slownessFlag"));
-   if (slownessFlag) {
-      status = initParameterLayer("slownessPre", &slownessPre, NULL);
-   }
-   return status;
+   return getLayerName(params, "slownessPre", &slownessPreName, NULL);
 }
 
 int ReciprocalConn::readSlownessPost(PVParams * params) {
    int status = PV_SUCCESS;
    assert(!params->presentAndNotBeenRead(name, "slownessFlag"));
+   return getLayerName(params, "slownessPost", &slownessPostName, NULL);
+   return status;
+   // status = initParameterLayer("slownessPost", &slownessPost, NULL);
+}
+
+int ReciprocalConn::getLayerName(PVParams * params, const char * parameter_name, char ** layer_name_ptr, const char * default_name) {
+   int status = PV_SUCCESS;
+   assert(*layer_name_ptr==NULL);
    if (slownessFlag) {
-      status = initParameterLayer("slownessPost", &slownessPost, NULL);
+      const char * slowness_pre_name = params->stringValue(name, parameter_name);
+      if (slowness_pre_name==NULL) {
+         if (default_name != NULL) {
+            *layer_name_ptr = strdup(default_name);
+            if (slownessPreName==NULL) {
+               fprintf(stderr, "ReciprocalConn \"%s\" error: unable to allocate memory for name of %s layer.\n", name, parameter_name);
+               status = PV_FAILURE;
+            }
+         }
+         else {
+            fprintf(stderr, "ReciprocalConn \"%s\" error: parameter \"%s\" must be defined.\n", name, parameter_name);
+            status = PV_FAILURE;
+         }
+      }
+      else {
+         *layer_name_ptr = strdup(slowness_pre_name);
+         if (slownessPreName==NULL) {
+            fprintf(stderr, "ReciprocalConn \"%s\" error: unable to allocate memory for name of %s layer.\n", name, parameter_name);
+            status = PV_FAILURE;
+         }
+      }
+      // status = initParameterLayer("slownessPre", &slownessPre, NULL);
    }
    return status;
 }
@@ -131,26 +164,23 @@ int ReciprocalConn::readReciprocalWgts(PVParams * params) {
    return status;
 }
 
-int ReciprocalConn::initParameterLayer(const char * parametername, HyPerLayer ** layerPtr, HyPerLayer * defaultlayer) {
+int ReciprocalConn::communicateInitInfo() {
+   int status = KernelConn::communicateInitInfo();
+   status = setParameterLayer("updateRulePre", updateRulePreName, &updateRulePre)==PV_SUCCESS ? status : PV_FAILURE;
+   status = setParameterLayer("updateRulePost", updateRulePostName, &updateRulePost)==PV_SUCCESS ? status : PV_FAILURE;
+   status = setParameterLayer("slownessPre", slownessPreName, &slownessPre)==PV_SUCCESS ? status : PV_FAILURE;
+   status = setParameterLayer("slownessPost", slownessPostName, &slownessPost)==PV_SUCCESS ? status : PV_FAILURE;
+   status = setReciprocalWgts(reciprocalWgtsName)==PV_SUCCESS ? status : PV_FAILURE;
+   return status;
+}
+
+int ReciprocalConn::setParameterLayer(const char * paramname, const char * layername, HyPerLayer ** layerPtr) {
    int status = PV_SUCCESS;
-   PVParams * params = parent->parameters();
-   const char * layerName = params->stringValue(name, parametername);
-   if( layerName == NULL || layerName[0] == '0') {
-      if( defaultlayer == NULL ) {
-         fprintf(stderr, "ReciprocalConn \"%s\": parameter \"%s\" was not defined and no default was specified.\n", name, parametername);
-         status = PV_FAILURE;
-      }
-      else {
-         fprintf(stdout, "ReciprocalConn \"%s\": parameter \"%s\" set to \"s\"\n", name, defaultlayer->getName());
-         *layerPtr = defaultlayer;
-      }
-   }
-   else {
-      *layerPtr = parent->getLayerFromName(layerName);
-      if( *layerPtr == NULL ) {
-         fprintf(stderr, "ReciprocalConn \"%s\" parameter \"%s\": value \"%s\" is not the name of a layer.\n", name, parametername, layerName);
-         status = PV_FAILURE;
-      }
+   assert(layername);
+   *layerPtr = parent->getLayerFromName(layername);
+   if( *layerPtr == NULL ) {
+      fprintf(stderr, "ReciprocalConn \"%s\" error: parameter \"%s\" has value \"%s\", but this not the name of a layer.\n", name, paramname, layername);
+      status = PV_FAILURE;
    }
    return status;
 }
@@ -166,16 +196,6 @@ int ReciprocalConn::initNormalize() {
    if( sums == NULL ) abort();
 
    return PV_SUCCESS;
-}
-
-int ReciprocalConn::updateState(double timef, double dt) {
-   // Need to set reciprocalWgts the first time updateState is called, so that each ReciprocalConn in a pair can define the other
-   // If it was set in initialize, the second would not have been defined when the first was called.
-   if( reciprocalWgts == NULL) {
-      setReciprocalWgts(reciprocalWgtsName);
-   }
-   int status = KernelConn::updateState(timef, dt);
-   return status;
 }
 
 int ReciprocalConn::setReciprocalWgts(const char * recipName) {
@@ -285,9 +305,9 @@ int ReciprocalConn::update_dW(int axonID) {
 int ReciprocalConn::updateWeights(int arborID) {
    lastUpdateTime = parent->simulationTime();
    // add dw to w
-      for( int k=0; k<nxp*nyp*nfp*getNumDataPatches(); k++ ) {
-         get_wDataStart(arborID)[k] += relaxationRate*parent->getDeltaTime()*get_dwDataStart(arborID)[k];
-      }
+   for( int k=0; k<nxp*nyp*nfp*getNumDataPatches(); k++ ) {
+      get_wDataStart(arborID)[k] += relaxationRate*parent->getDeltaTime()*get_dwDataStart(arborID)[k];
+   }
    int status = PV_SUCCESS;
    pvdata_t * arborstart = get_wDataStart(arborID);
    for( int k=0; k<nxp*nyp*nfp*getNumDataPatches(); k++ ) {
@@ -342,7 +362,32 @@ int ReciprocalConn::normalizeWeights(PVPatch ** patches, pvdata_t ** dataStart, 
 #endif // OBSOLETE
 
 ReciprocalConn::~ReciprocalConn() {
-   free(sums); sums=NULL;
+   free(updateRulePreName);  updateRulePreName = NULL;
+   free(updateRulePostName); updateRulePostName = NULL;
+   free(slownessPreName);    slownessPreName = NULL;
+   free(slownessPostName);   slownessPostName = NULL;
+   free(sums);               sums=NULL;
 }
+/*
+   char * updateRulePreName;
+   char * updateRulePostName;
+   HyPerLayer * updateRulePre;
+   HyPerLayer * updateRulePost;
+   const char * reciprocalWgtsName;
+   ReciprocalConn * reciprocalWgts;
+   float relaxationRate; // The coefficient eta in dW = eta * dE/dW, measured in the same units as HyPerCol's dt
+   float reciprocalFidelityCoeff;
+   bool slownessFlag;
+   char * slownessPreName;
+   char * slownessPostName;
+   HyPerLayer * slownessPre;
+   HyPerLayer * slownessPost;
+   int nxUnitCellPost;
+   int nyUnitCellPost;
+   int nfUnitCellPost;
+   int sizeUnitCellPost;
+   pvdata_t * sums; // Used in normalizeWeights
+   pvdata_t normalizeNoiseLevel; // Used in normalizeWeights
 
+ */
 } /* namespace PV */

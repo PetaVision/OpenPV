@@ -14,10 +14,10 @@ LCALIFLateralConn::LCALIFLateralConn()
    initialize_base();
 }
 
-LCALIFLateralConn::LCALIFLateralConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
+LCALIFLateralConn::LCALIFLateralConn(const char * name, HyPerCol * hc, const char * pre_layer_name, const char * post_layer_name,
       const char * filename, InitWeights *weightInit) {
    initialize_base();
-   initialize(name, hc, pre, post, filename, weightInit);
+   initialize(name, hc, pre_layer_name, post_layer_name, filename, weightInit);
 }
 
 LCALIFLateralConn::~LCALIFLateralConn()
@@ -33,9 +33,26 @@ int LCALIFLateralConn::initialize_base() {
    return PV_SUCCESS;
 }
 
-int LCALIFLateralConn::initialize(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
+int LCALIFLateralConn::initialize(const char * name, HyPerCol * hc, const char * pre_layer_name, const char * post_layer_name,
       const char * filename, InitWeights * weightInit) {
-   int status = HyPerConn::initialize(name, hc, pre, post, filename, weightInit);
+   int status = HyPerConn::initialize(name, hc, pre_layer_name, post_layer_name, filename, weightInit);
+   // Everything else moved to allocateDataStructures.
+   return status;
+}
+
+int LCALIFLateralConn::setParams(PVParams * params) {
+   int status = HyPerConn::setParams(params);
+   readIntegrationTimeConstant();
+   readInhibitionTimeConstant();
+   readTargetRate();
+   readCorrThresh();
+   read_dWMax(params);
+   return status;
+}
+
+int LCALIFLateralConn::communicateInitInfo() {
+   int status = HyPerConn::communicateInitInfo();
+   assert(pre && post);
    const PVLayerLoc * preloc = pre->getLayerLoc();
    const PVLayerLoc * postloc = post->getLayerLoc();
    int nxpre = preloc->nx; int nxpost = postloc->nx;
@@ -48,8 +65,17 @@ int LCALIFLateralConn::initialize(const char * name, HyPerCol * hc, HyPerLayer *
          fprintf(stderr, "  Pre:  nx=%d, ny=%d, nf=%d, nb=%d\n", nxpre, nypre, nfpre, nbpre);
          fprintf(stderr, "  Post: nx=%d, ny=%d, nf=%d, nb=%d\n", nxpost, nypost, nfpost, nbpost);
       }
+      status = PV_FAILURE;
+   }
+   MPI_Barrier(parent->icCommunicator()->communicator());
+   if (status!=PV_SUCCESS) {
       abort();
    }
+   return status;
+}
+
+int LCALIFLateralConn::allocateDataStructures() {
+   int status = HyPerConn::allocateDataStructures();
    integratedSpikeCountCube = pvcube_new(pre->getLayerLoc(), pre->getNumExtended());
    integratedSpikeCount = integratedSpikeCountCube->data;
    memset(integratedSpikeCount, 0, pre->getNumExtended()*sizeof(*integratedSpikeCount)); // Spike counts initialized to 0
@@ -67,7 +93,7 @@ int LCALIFLateralConn::initialize(const char * name, HyPerCol * hc, HyPerLayer *
 
 //         pvdata_t * gSyn_patch_start = getGSynPatchStart(kPre_extended, axonId);
 //         int start_index_restricted = gSyn_patch_start - gSyn_buffer_start;
-    	  int start_index_restricted = getGSynPatchStart(kPre_extended, axonId);
+          int start_index_restricted = getGSynPatchStart(kPre_extended, axonId);
 
          const PVPatch * p = getWeights(kPre_extended, axonId);
          int nx_patch = p->nx;
@@ -75,6 +101,11 @@ int LCALIFLateralConn::initialize(const char * name, HyPerCol * hc, HyPerLayer *
 
          pvdata_t * w_data = get_wData(axonId,kPre_extended);
 
+         const PVLayerLoc * postloc = post->getLayerLoc();
+         int nxpost = postloc->nx;
+         int nypost = postloc->ny;
+         int nfpost = postloc->nf;
+         int nbpost = postloc->nb;
          for (int ky_patch=0; ky_patch<ny_patch; ky_patch++) {
             for (int kx_patch=0; kx_patch<nx_patch; kx_patch++) {
                for (int kf_patch=0; kf_patch<nfp; kf_patch++) {
@@ -97,16 +128,7 @@ int LCALIFLateralConn::initialize(const char * name, HyPerCol * hc, HyPerLayer *
       fprintf(stderr, "LCALIFLateralKernelConn \"%s\" error creating mpi_datatype\n", name);
       abort();
    }
-return status;
-}
 
-int LCALIFLateralConn::setParams(PVParams * params) {
-   int status = HyPerConn::setParams(params);
-   readIntegrationTimeConstant();
-   readInhibitionTimeConstant();
-   readTargetRate();
-   readCorrThresh();
-   read_dWMax(params);
    return status;
 }
 
