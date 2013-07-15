@@ -3,6 +3,14 @@ Here is the procedure for installing and compiling the PetaVision repository on 
 0. If eclipse is not installed, download "Eclipse for Parallel Application Developers" from <http://eclipse.org/downloads/>.
    Choose the 32-bit or 64-bit version depending on your machine.  See <http://support.apple.com/kb/HT3696> to determine
    if your architecture is 32-bit or 64-bit.
+   
+   You will also need Open MPI and GDAL.  The projects on the repository assume that these packages have been installed using MacPorts.
+   Download MacPorts from <http://www.macports.org> and install it, if it hasn't been installed already.  Then, from a terminal prompt,
+   run the commands
+   
+   /opt/local/bin/port selfupdate
+   /opt/local/bin/port install openmpi
+   /opt/local/bin/port install gdal
 
 1. Launch eclipse.  If you get the "Welcome to Eclipse" screen, click Workbench in the top right corner.
 
