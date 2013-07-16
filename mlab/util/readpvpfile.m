@@ -1,4 +1,4 @@
-function [data,hdr] = readpvpfile(filename,progressperiod, num_frames, start_frame)
+function [data,hdr] = readpvpfile(filename,progressperiod, num_frames, start_frame, skip_frames)
    % Usage:[data,hdr] = readpvpfile(filename,progressperiod, num_frames, start_frame)
    % filename is a pvp file (any type)
    % progressperiod is an optional integer argument.  A message is printed
@@ -62,10 +62,14 @@ function [data,hdr] = readpvpfile(filename,progressperiod, num_frames, start_fra
          errorident = 'readpvpfile:badfiletype';
          errorstring = sprintf('readpvpfile:File %s has unrecognized file type %d',filename,hdr.filetype);
       end
+      if (~exist('skip_frames','var') || isempty(skip_frames)) || skip_frames < 1
+         skip_frames = 1;
+      end
       %% allow user to override value of numframes
       if (exist('num_frames','var') && ~isempty(num_frames))
-         numframes = num_frames;
+         numframes = min(num_frames, numframes);
       end
+      tot_frames = ceil((numframes-start_frame+1)/skip_frames);
 
       if isempty(errorstring)
          if(numframes ~= round(numframes) || numframes <= 0)
@@ -75,7 +79,8 @@ function [data,hdr] = readpvpfile(filename,progressperiod, num_frames, start_fra
       end
 
       if isempty(errorstring)
-         data = cell(numframes-start_frame+1,1);
+         %%data = cell(numframes-start_frame+1,1);
+         data = cell(tot_frames,1);
          switch hdr.datatype
             case 1 % PV_BYTE_TYPE
                precision = 'uchar';
@@ -116,10 +121,10 @@ function [data,hdr] = readpvpfile(filename,progressperiod, num_frames, start_fra
                            fflush(1);
                         end
                      end
-                     if f < start_frame
+                     if f < start_frame || mod(f,skip_frames)~=0
                         continue;
                      end
-                     data{f - start_frame + 1} = data_tmp;
+                     data{ceil((f - start_frame + 1)/skip_frames)} = data_tmp;
                   end  %% num_frames
                case 2 % PVP_ACT_FILE_TYPE % Compressed for spiking
                   for f=1:numframes
@@ -133,10 +138,10 @@ function [data,hdr] = readpvpfile(filename,progressperiod, num_frames, start_fra
                            fflush(1);
                         end
                      end
-                     if f < start_frame
+                     if f < start_frame || mod(f,skip_frames)~=0
                         continue;
                      end
-                     data{f - start_frame + 1} = data_tmp;
+                     data{ceil((f - start_frame + 1)/skip_frames)} = data_tmp;
                   end %% num_frames
                case 3 % PVP_WGT_FILE_TYPE
                   fseek(fid,0,'bof');
@@ -197,10 +202,10 @@ function [data,hdr] = readpvpfile(filename,progressperiod, num_frames, start_fra
                            fflush(1);
                         end
                      end
-                     if f < start_frame
+                     if f < start_frame || mod(f,skip_frames)~=0
                         continue;
                      end
-                     data{f-start_frame+1} = data_tmp;
+                     data{ceil((f - start_frame + 1)/skip_frames)} = data_tmp;
                   end  %% num_frames
                case 4 % PVP_NONSPIKING_ACT_FILE_TYPE
                   for f=1:numframes
@@ -220,10 +225,10 @@ function [data,hdr] = readpvpfile(filename,progressperiod, num_frames, start_fra
                            fflush(1);
                         end
                      end
-                     if f < start_frame
+                     if f < start_frame || mod(f,skip_frames)~=0
                         continue;
                      end
-                     data{f-start_frame+1} = data_tmp;
+                     data{ceil((f - start_frame + 1)/skip_frames)} = data_tmp;
                   end %% numframes
                case 5 % PVP_KERNEL_FILE_TYPE
                   fseek(fid,0,'bof'); % there's a header in every frame, unlike other file types
@@ -274,10 +279,10 @@ function [data,hdr] = readpvpfile(filename,progressperiod, num_frames, start_fra
                            fflush(1);
                         end
                      end
-                     if f < start_frame
+                     if f < start_frame || mod(f,skip_frames)~=0
                         continue;
                      end
-                     data{f-start_frame+1} = data_tmp;
+                     data{ceil((f - start_frame + 1)/skip_frames)} = data_tmp;
                   end %% num_frames
                otherwise
                   assert(0); % This possibility should have been weeded out above
