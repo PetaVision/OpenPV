@@ -21,8 +21,8 @@ HyPerCol "column" = {
     filenamesContainLayerNames = true;
     filenamesContainConnectionNames = true;
     checkpointRead = false; //true;
-    //checkpointReadDir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_12x12x512_lambda_05X2_color_deep/Checkpoints";
-    //checkpointReadDirIndex = 130000;
+    checkpointReadDir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_12x12x512_lambda_05X2_color_deep/Checkpoints";
+    checkpointReadDirIndex = 540000;
     checkpointWrite = true;
     checkpointWriteDir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_12x12x512_lambda_05X2_color_deep/Checkpoints";
     checkpointWriteStepInterval = 10000;
@@ -58,6 +58,8 @@ Movie "Image" = {
     offsetX = 0;
     offsetY = 0;
     randomMovie = 0;
+    autoResizeFlag = false;
+    readPvpFile = false;
     phase = 0;
     //useParamsImage = true;
 };
@@ -143,7 +145,7 @@ ANNErrorLayer "Error" = {
     //InitVType = "InitVFromFile";
     //Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_31/output/Checkpoints/Checkpoint6000000/Error_V.pvp";
     //
-    VThresh = 0.01; // 0.005;
+    VThresh = 0.005;
     VMax =  infinity;
     VMin = 0;
     VShift = 0;
@@ -166,13 +168,15 @@ HyPerLCALayer "V1" = {
     //
     InitVType = "UniformRandomV";
     minV = -1.0;
-    maxV = .25; //0.05 above VThresh
+    maxV = .15; //0.05 above VThresh
     //InitVType = "InitVFromFile";
     //Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_31/output/Checkpoints/Checkpoint6000000/V1_V.pvp";
     // 
-    timeConstantTau = 50.0; // 100.0;
+    timeConstantTau = 200.0;
+    timeConstantTauMinimum = 10.0;
+    slopeErrorStd = 0.1;
     // 
-    VThresh = 0.2; //0.1; //  // 0.05 works for animalDB
+    VThresh = 0.1; //  // 0.05 works for animalDB
     VMax = infinity;
     VMin = 0;
     VShift = 0.0;  // 0 -> hard threshold, 1 -> soft threshold
@@ -248,9 +252,11 @@ HyPerLCALayer "V2" = {
     //InitVType = "InitVFromFile";
     //Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_31/output/Checkpoints/Checkpoint6000000/V1_V.pvp";
     // 
-    timeConstantTau = 50.0; // 200.0;
+    timeConstantTau = 200.0;
+    timeConstantTauMinimum = 10.0;
+    slopeErrorStd = 0.1;
     // 
-    VThresh = 0.1; //  // 0.05 works for animalDB
+    VThresh = 0.05;
     VMax = infinity;
     VMin = 0;
     VShift = 0.0;  // 0 -> hard threshold, 1 -> soft threshold
@@ -290,7 +296,7 @@ ANNErrorLayer "Error1_2" = {
     nf = 512;
     marginWidth = 6;
     initialWriteTime = 199.0;
-    writeStep = 200;
+    writeStep = 2000;
     mirrorBCflag = 1;
     writeSparseActivity = 0;
     //
@@ -316,13 +322,13 @@ ANNLayer "V1Infra" = {
     initialWriteTime = 199.0;
     writeStep = 200.0;
     mirrorBCflag = 1;
-    writeSparseActivity = 0;
+    writeSparseActivity = 1;
     //
     InitVType = "ZeroV";
     //InitVType = "InitVFromFile";
     //Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_31/output/Checkpoints/Checkpoint6000000/Recon_V.pvp";
     //
-    VThresh = 0.2; // use V1's VThresh
+    VThresh = 0.005; // using V1's VThresh might be unstable, trying Error1_2 thresh
     VMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
     VMin = 0.0; // use V1's VMin
     VShift = 0;
@@ -532,7 +538,7 @@ KernelConn "V1ToError" = {
     keepKernelsSynchronized = true; 
     combine_dW_with_W_flag = false; 
     //
-    writeStep = 200;
+    writeStep = 2000;
     writeCompressedWeights = false;
     writeCompressedCheckpoints = false;
     plasticityFlag = true;
@@ -636,7 +642,7 @@ KernelConn "V2ToError2" = {
     wMaxInit = 1.0;
     sparseFraction = .90;
     //
-    strength = 0.2;  
+    strength = 0.5;  
     normalizeMethod = "normalizeL2";
     minL2NormTolerated = 0;
     normalizeArborsIndividually = 0;
@@ -648,14 +654,14 @@ KernelConn "V2ToError2" = {
     keepKernelsSynchronized = true; 
     combine_dW_with_W_flag = false; 
     //
-    writeStep = 200;
+    writeStep = 2000;
     writeCompressedWeights = false;
     writeCompressedCheckpoints = false;
     plasticityFlag = true;
     weightUpdatePeriod = 50.0;
     initialWeightUpdateTime = 199.0;
     initialWriteTime = 0.0;
-    dWMax = 1.0; // 200.0 used for initial training
+    dWMax = 1.0; 
     selfFlag = false;
     shmget_flag = false;
     //
@@ -736,14 +742,14 @@ KernelConn "V2ToError1_2" = {
     keepKernelsSynchronized = true; 
     combine_dW_with_W_flag = false; 
     //
-    writeStep = 200;
+    writeStep = 2000;
     writeCompressedWeights = false;
     writeCompressedCheckpoints = false;
     plasticityFlag = true;
     weightUpdatePeriod = 50.0;
     initialWeightUpdateTime = 199.0;
     initialWriteTime = 0.0;
-    dWMax = 1.0; // 200.0 used for initial training
+    dWMax = 1.0; 
     selfFlag = false;
     shmget_flag = false;
     //
