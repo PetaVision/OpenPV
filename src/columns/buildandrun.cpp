@@ -123,6 +123,7 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
                "CreateMovies",
                "ImageCreator",
                "Movie",
+                  "LabelLayer",
                "Patterns",
              "LIF",
                 "LIFGap",
@@ -287,6 +288,7 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
          didAddObject = addedLayerProbe != NULL;
       }
       else {
+         fprintf(stderr,"?? How did you get here? \n");
       }
 
       if( !didAddObject && hc->icCommunicator()->commRank()==0 ) {
@@ -431,6 +433,11 @@ HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPe
    if( !strcmp(classkeyword, "Movie") ) {
       keywordMatched = true;
       addedLayer = (HyPerLayer *) addMovie(name, hc);
+      status = checknewobject((void *) addedLayer, classkeyword, name, hc);
+   }
+   if ( !strcmp(classkeyword, "LabelLayer") ) {
+      keywordMatched = true;
+      addedLayer = (HyPerLayer *) addLabelLayer(name,hc);
       status = checknewobject((void *) addedLayer, classkeyword, name, hc);
    }
    if( !strcmp(classkeyword, "Patterns") ) {
@@ -584,6 +591,38 @@ Movie * addMovie(const char * name, HyPerCol * hc) {
       addedLayer = NULL;
    }
    return addedLayer;
+}
+
+LabelLayer * addLabelLayer(const char * name, HyPerCol * hc){
+
+   const char * movieLayerName = hc->parameters()->stringValue(name, "movieLayerName");
+   LabelLayer * addedLayer = NULL;
+   if( movieLayerName == NULL ) {
+      fprintf(stderr, "Group \"%s\": Parameter group for class LabelLayer must set string parameter movieLayerName\n", name);
+      return NULL;
+   }
+   else {
+      addedLayer = new LabelLayer(name, hc, movieLayerName);
+   }
+   return addedLayer;
+
+
+//   HyPerLayer * movieLayer = NULL;
+//   movieLayer = getLayerFromParameterGroup(name, hc, "movieLayerName");
+//   if( movieLayer == NULL ) {
+//      fprintf(stderr, "Group \"%s\": Parameter group for class LabelLayer must set string parameter movieLayerName\n", name);
+//      return NULL;
+//   }
+//   Movie * movieLabelLayer = dynamic_cast<Movie *>(movieLayer);
+//   LabelLayer * addedLayer;
+//   if (movieLabelLayer) {
+//      addedLayer = new LabelLayer(name, hc, movieLabelLayer);
+//   }
+//   else {
+//      fprintf(stderr, "Group \"%s\": Original layer \"%s\" must a Movie layer\n", name, movieLayer->getName());
+//      addedLayer = NULL;
+//   }
+//   return addedLayer;
 }
 
 Patterns * addPatterns(const char * name, HyPerCol *hc) {

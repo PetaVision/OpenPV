@@ -39,6 +39,7 @@
 #include "../layers/ImageCreator.hpp"
 #include "../layers/Movie.hpp"
 #include "../layers/Patterns.hpp"
+#include "../layers/LabelLayer.hpp"
 #include "../layers/LIF.hpp"
 #include "../layers/LIFGap.hpp"
 #include "../layers/Retina.hpp"
@@ -142,6 +143,7 @@ SoundStream * addSoundStream(const char * name, HyPerCol *hc);
 Image * addImage(const char * name, HyPerCol *hc);
 Movie * addMovie(const char * name, HyPerCol *hc);
 Patterns * addPatterns(const char * name, HyPerCol *hc);
+LabelLayer * addLabelLayer(const char * name, HyPerCol * hc);
 SigmoidLayer * addSigmoidLayer(const char * name, HyPerCol * hc);
 RescaleLayer * addRescaleLayer(const char * name, HyPerCol * hc);
 BIDSCloneLayer * addBIDSCloneLayer(const char * name, HyPerCol * hc);

@@ -1661,6 +1661,7 @@ template <typename T> int gatherActivity(PV_Stream * pvstream, Communicator * co
       xBufSize += 2*nb;
       yBufSize += 2*nb;
    }
+
    int linesize = layerLoc->nx*layerLoc->nf; // All values across x and f for a specific y are contiguous; do a single write for each y.
    size_t datasize = sizeof(T);
    // read into a temporary buffer since buffer may be extended but the file only contains the restricted part.
@@ -1700,6 +1701,7 @@ template <typename T> int gatherActivity(PV_Stream * pvstream, Communicator * co
          status = PV_FAILURE;
          abort();
       }
+
       for (int r=0; r<comm_size; r++) {
          if (r==rootproc) {
             if (extended) {
@@ -1716,6 +1718,7 @@ template <typename T> int gatherActivity(PV_Stream * pvstream, Communicator * co
          else {
             MPI_Recv(temp_buffer, numLocalNeurons*(int) datasize, MPI_BYTE, r, 171+r/*tag*/, comm->communicator(), MPI_STATUS_IGNORE);
          }
+
          // Data to be written is in temp_buffer, which is nonextend.
          for (int y=0; y<layerLoc->ny; y++) {
             int ky0 = layerLoc->ny*rowFromRank(r, comm->numCommRows(), comm->numCommColumns());

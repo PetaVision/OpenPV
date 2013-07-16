@@ -900,6 +900,7 @@ int HyPerConn::communicateInitInfo() {
       }
       status = PV_FAILURE;
    }
+
    if (this->post==NULL) {
       if (parent->columnId()==0) {
          fprintf(stderr, "Connection \"%s\": postLayerName \"%s\" does not correspond to a layer in the column.\n", name, postLayerName);
@@ -938,6 +939,7 @@ int HyPerConn::communicateInitInfo() {
    int num_channels_check;
    status = post->requireChannel((int) channel, &num_channels_check);
    if (status != PV_SUCCESS) { return status; }
+
    assert(num_channels_check > (int) channel);
 
    status = setPatchSize();
@@ -968,7 +970,10 @@ int HyPerConn::communicateInitInfo() {
    int margin = xmargin>=ymargin ? xmargin : ymargin;
    int receivedmargin = 0;
    status = pre->requireMarginWidth(margin, &receivedmargin);
-   if (status != PV_SUCCESS) { status = PV_MARGINWIDTH_FAILURE; }
+   if (status != PV_SUCCESS) {
+      status = PV_MARGINWIDTH_FAILURE;
+      fprintf(stderr,"Margin Failure for layer %s.  Received margin is %d, but required margin is %d",name,receivedmargin,margin);
+   }
 
    return status;
 }
