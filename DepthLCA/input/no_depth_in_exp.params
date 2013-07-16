@@ -40,7 +40,7 @@ Movie "LeftImage" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
-    imageListPath = "/nh/compneuro/Data/Depth/depth_data_5/list/image_00.txt";
+    imageListPath = "/nh/compneuro/Data/Depth/depth_data_2/list/image_00.txt";
     nf = 1;
     marginWidth = 1;
     writeStep = -1;
@@ -142,8 +142,9 @@ RescaleLayer "LeftRescale" = {
     writeStep                       = -1;
     writeSparseActivity             = false;
 
-    setMax                          = 1;
-    setMin                          = -1;
+    rescaleMethod                   = "meanstd"; //Can be either meanstd or maxmin
+    targetMean                      = 0;
+    targetStd                       = 1;
 };
 
 ANNErrorLayer "LeftError" = {
@@ -225,7 +226,7 @@ Movie "RightImage" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
-    imageListPath = "/nh/compneuro/Data/Depth/depth_data_5/list/image_01.txt";
+    imageListPath = "/nh/compneuro/Data/Depth/depth_data_2/list/image_01.txt";
     nf = 1;
     marginWidth = 1;
     writeStep = -1;
@@ -327,8 +328,9 @@ RescaleLayer "RightRescale" = {
     writeStep                       = -1;
     writeSparseActivity             = false;
 
-    setMax                          = 1;
-    setMin                          = -1;
+    rescaleMethod                   = "meanstd"; //Can be either meanstd or maxmin
+    targetMean                      = 0;
+    targetStd                       = 1;
 };
 
 ANNErrorLayer "RightError" = {
