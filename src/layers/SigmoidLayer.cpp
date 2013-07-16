@@ -46,8 +46,6 @@ int SigmoidLayer::initialize(const char * name, HyPerCol * hc, const char * orig
       if(SigmoidFlag)   fprintf(stdout,"SigmoidLayer: True Sigmoid flag is set\n");
    }
 
-   this->writeSparseActivity = false;
-
    if (origLayerName==NULL) {
       fprintf(stderr, "SigmoidLayer \"%s\": originalLayerName must be set.\n", name);
       return(EXIT_FAILURE);
@@ -95,59 +93,6 @@ int SigmoidLayer::updateState(double timef, double dt, const PVLayerLoc * loc, p
    return PV_SUCCESS;
 }
 
-//int SigmoidLayer::updateV() {
-//   return PV_SUCCESS;
-//}
-
-//int SigmoidLayer::resetGSynBuffers() {
-//   return PV_SUCCESS;
-//}
-
-
-//int SigmoidLayer::setActivity() {
-//
-//   const int nx = getLayerLoc()->nx;
-//   const int ny = getLayerLoc()->ny;
-//   const int nf = getLayerLoc()->nf;
-//   const int nb = getLayerLoc()->nb;
-//   pvdata_t * activity = getCLayer()->activity->data;
-//   pvdata_t * V = getV();
-//   for( int k=0; k<getNumExtended(); k++ ) {
-//      activity[k] = 0; // Would it be faster to only do the margins?
-//   }
-//   pvdata_t sig_scale = 1.0f;
-//   if ( Vth > V0 ){
-//      if(SigmoidFlag){
-//      sig_scale = -0.5f * log(1.0f/SigmoidAlpha - 1.0f) / (Vth - V0);   // scale to get response alpha at Vrest
-//      }
-//      else{
-//      sig_scale = 0.5/(Vth-V0);        // threshold in the middle
-//      }
-//   }
-//   for( int k=0; k<getNumNeurons(); k++ ) {
-//      int kex = kIndexExtended(k, nx, ny, nf, nb);
-//
-//      if(!SigmoidFlag) {
-//         if (V[k] > 2*Vth-V0){    //  2x(Vth-V0) + V0
-//            activity[kex] = 1.0f;
-//         }
-//         else if (V[k] < V0){
-//            activity[kex] = 0.0f;
-//         }
-//         else{
-//            activity[kex] = (V[k] - V0) * sig_scale;
-//         }
-//      }
-//      else{
-//         activity[kex] = 1.0f / (1.0f + exp(2.0f * (V[k] - Vth)*sig_scale));
-//      }
-//
-//      if (InverseFlag) activity[kex] = 1.0f - activity[kex];
-//   }
-//
-//   return PV_SUCCESS;
-//
-//}
 
 
 } // end namespace PV

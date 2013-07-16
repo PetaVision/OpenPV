@@ -95,7 +95,7 @@ int RescaleLayer::setActivity() {
 }
 
 int RescaleLayer::updateState(double timef, double dt) {
-   int status;
+   int status = PV_SUCCESS;
    int numNeurons = sourceLayer->getNumNeurons();
    int kext;
    pvdata_t * V = clayer->V; 

@@ -23,9 +23,14 @@ void HyPerLCALayer_update_state(
     const float VMax,
     const float VMin,
     const float VShift,
-    const float dt_tau,
+    const float tau_max,
+    const float tau_min,
+    const float slope_error_std,
+    float * dt_tau,
     float * GSynHead,
-    float * activity);
+    float * activity,
+    double * error_mean,
+    double * error_std);
 
 void HyPerLCALayer2_update_state(
     const int numNeurons,
@@ -39,9 +44,14 @@ void HyPerLCALayer2_update_state(
     const float VMax,
     const float VMin,
     const float VShift,
-    const float dt_tau,
+    const float tau_max,
+    const float tau_min,
+    const float slope_error_std,
+    float * dt_tau,
     float * GSynHead,
-    float * activity);
+    float * activity,
+    double * error_mean,
+    double * error_std);
 
 
 #ifdef __cplusplus
@@ -74,7 +84,10 @@ HyPerLCALayer::~HyPerLCALayer()
 
 int HyPerLCALayer::initialize_base()
 {
-   timeConstantTau = 1.0;
+   tauMax = 1.0;
+   tauMin = tauMax;
+   errorStd = 1.0;
+   slopeErrorStd = 1.0;
    return PV_SUCCESS;
 }
 
@@ -82,7 +95,11 @@ int HyPerLCALayer::initialize(const char * name, HyPerCol * hc, int num_channels
 {
    ANNLayer::initialize(name, hc, num_channels);
    PVParams * params = parent->parameters();
-   timeConstantTau = params->value(name, "timeConstantTau", timeConstantTau, true);
+   tauMax = params->value(name, "timeConstantTau", tauMax, true);
+   tauMin = params->value(name, "timeConstantTauMinimum", tauMax, false); // default to no adaptation
+   if ((tauMax - tauMin) > 1.0){
+	   slopeErrorStd = params->value(name, "slopeErrorStd", slopeErrorStd, true);
+   }
    return PV_SUCCESS;
 }
 
@@ -102,15 +119,15 @@ int HyPerLCALayer::doUpdateState(double time, double dt, const PVLayerLoc * loc,
       int ny = loc->ny;
       int nf = loc->nf;
       int num_neurons = nx*ny*nf;
-      pvdata_t dt_tau = dt / timeConstantTau;
-      //dt_tau = 1-exp(-dt_tau);
+      dtTau = dt;
+      double error_mean = 0;
       if(num_channels == 1){
     	  HyPerLCALayer_update_state(num_neurons, nx, ny, nf, loc->nb, V, VThresh,
-    			  VMax, VMin, VShift, dt_tau, gSynHead, A);
+    			  VMax, VMin, VShift, tauMax, tauMin, slopeErrorStd, &dtTau, gSynHead, A, &error_mean, &errorStd);
       }
       else if(num_channels == 2){
     	  HyPerLCALayer2_update_state(num_neurons, nx, ny, nf, loc->nb, V, VThresh,
-    			  VMax, VMin, VShift, dt_tau, gSynHead, A);
+    			  VMax, VMin, VShift, tauMax, tauMin, slopeErrorStd, &dtTau, gSynHead, A, &error_mean, &errorStd);
       }
       if (this->writeSparseActivity){
          updateActiveIndices();  // added by GTK to allow for sparse output, can this be made an inline function???
