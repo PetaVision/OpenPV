@@ -34,7 +34,7 @@ protected:
 public:
    LabelLayer(const char * name, HyPerCol * hc, const char * movieLayerName);
    virtual int updateState(double time, double dt);
-   virtual int outputState(double time, double dt);
+   virtual int outputState(double time, bool last);
    virtual ~LabelLayer();
 
 private:
