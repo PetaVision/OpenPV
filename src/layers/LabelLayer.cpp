@@ -160,12 +160,12 @@ int LabelLayer::updateState(double time, double dt){
 
 }
 
-int LabelLayer::outputState(double time, double dt){
+int LabelLayer::outputState(double time, bool last){
    int status = PV_SUCCESS;
 
    fprintf(stderr,"Writing Label Layer state \n");
 
-   status = HyPerLayer::outputState(time, dt);
+   status = HyPerLayer::outputState(time, last);
 
    return status;
 }
