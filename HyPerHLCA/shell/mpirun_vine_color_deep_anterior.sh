@@ -8,4 +8,4 @@ LOGFILE=${LOGDIR}/LCA_vine_12x12x512_lambda_05X2_color_deep.log
 mkdir -p ${LOGDIR}
 touch ${LOGFILE}
 echo ${LOGFILE}
-time ${MPIRUN} --bynode --hostfile ~/.mpi_hosts -np 120 ${COMMAND} &> ${LOGFILE}
+time ${MPIRUN} --byslot --hostfile ~/.mpi_anterior_hosts_custom -np 120 ${COMMAND} &> ${LOGFILE}
