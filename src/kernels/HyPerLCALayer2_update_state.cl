@@ -35,9 +35,15 @@ void HyPerLCALayer2_update_state(
     const float VMax,
     const float VMin,
     const float VShift,
-    const float dt_tau,
+    const float tau_max,
+    const float tau_min,
+    const float slope_error_std,
+    CL_MEM_GLOBAL float * dt_tau,
     CL_MEM_GLOBAL float * GSynHead,
-    CL_MEM_GLOBAL float * activity)
+    CL_MEM_GLOBAL float * activity,
+    CL_MEM_GLOBAL double * error_mean,
+    CL_MEM_GLOBAL double * error_std)
 {
-   updateV_HyPerLCALayer2(numNeurons, V, GSynHead, activity, VMax, VMin, Vth, VShift, dt_tau, nx, ny, nf, nb);
+   updateV_HyPerLCALayer2(numNeurons, V, GSynHead, activity, error_mean, error_std,
+		   VMax, VMin, Vth, VShift, dt_tau, tau_max, tau_min, slope_error_std, nx, ny, nf, nb);
 }
