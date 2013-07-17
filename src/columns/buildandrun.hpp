@@ -45,6 +45,7 @@
 #include "../layers/Retina.hpp"
 #include "../layers/SigmoidLayer.hpp"
 #include "../layers/RescaleLayer.hpp"
+#include "../layers/ShuffleLayer.hpp"
 #include "../layers/ANNSquaredLayer.hpp"
 #include "../layers/ANNWhitenedLayer.hpp"
 #include "../layers/ANNDivInh.hpp"
@@ -146,6 +147,7 @@ Patterns * addPatterns(const char * name, HyPerCol *hc);
 LabelLayer * addLabelLayer(const char * name, HyPerCol * hc);
 SigmoidLayer * addSigmoidLayer(const char * name, HyPerCol * hc);
 RescaleLayer * addRescaleLayer(const char * name, HyPerCol * hc);
+ShuffleLayer * addShuffleLayer(const char * name, HyPerCol * hc);
 BIDSCloneLayer * addBIDSCloneLayer(const char * name, HyPerCol * hc);
 InitWeights *createInitWeightsObject(const char * name, HyPerCol * hc);
 InitWeights * getDefaultInitWeightsMethod(const char * keyword);

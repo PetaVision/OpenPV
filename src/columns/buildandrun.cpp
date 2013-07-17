@@ -132,6 +132,7 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
              "Retina",
              "SigmoidLayer",
              "RescaleLayer",
+             "ShuffleLayer",
              "BIDSMovieCloneMap",
              "BIDSSensorLayer",
              "BIDSCloneLayer",
@@ -500,6 +501,11 @@ HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPe
       addedLayer = (HyPerLayer *) addRescaleLayer(name, hc);
       status = checknewobject((void *) addedLayer, classkeyword, name, hc);
    }
+   if( !strcmp(classkeyword, "ShuffleLayer") ) {
+      keywordMatched = true;
+      addedLayer = (HyPerLayer *) addShuffleLayer(name, hc);
+      status = checknewobject((void *) addedLayer, classkeyword, name, hc);
+   }
    if( !strcmp(classkeyword, "Retina") ) {
       keywordMatched = true;
       addedLayer = (HyPerLayer *) new Retina(name, hc);
@@ -681,6 +687,24 @@ RescaleLayer * addRescaleLayer(const char * name, HyPerCol * hc) {
    RescaleLayer * addedLayer;
    if (originalHyPerLayer) {
       addedLayer = new RescaleLayer(name, hc, originalHyPerLayer);
+   }
+   else {
+      fprintf(stderr, "Group \"%s\": Original layer \"%s\" must be a HyPer layer\n", name, originalLayer->getName());
+      addedLayer = NULL;
+   }
+   return addedLayer;
+}
+
+ShuffleLayer * addShuffleLayer(const char * name, HyPerCol * hc) {
+   HyPerLayer * originalLayer = getLayerFromParameterGroup(name, hc, "originalLayerName");
+   if( originalLayer == NULL ) {
+      fprintf(stderr, "Group \"%s\": Parameter group for class HyPerLayer must set string parameter originalLayerName\n", name);
+      return NULL;
+   }
+   HyPerLayer * originalHyPerLayer = dynamic_cast<HyPerLayer *>(originalLayer);
+   ShuffleLayer * addedLayer;
+   if (originalHyPerLayer) {
+      addedLayer = new ShuffleLayer(name, hc, originalHyPerLayer);
    }
    else {
       fprintf(stderr, "Group \"%s\": Original layer \"%s\" must be a HyPer layer\n", name, originalLayer->getName());
