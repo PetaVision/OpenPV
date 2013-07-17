@@ -9,10 +9,13 @@ import os
 #import matplotlib.pyplot as plt
 #from mpl_toolkits.mplot3d import Axes3D
 
-datasetVal = 5
+datasetVal = 1
 #eyeVal = 1
 numBins = 32
 numSigma = 2
+
+targetMean = 0
+targetStd = 1
 
 depthFileDir = "/nh/compneuro/Data/Depth/depth_data_"+str(datasetVal)+"/"
 depthFileListDir = depthFileDir + "list/"
@@ -25,7 +28,7 @@ if not os.path.exists(outputFileDir):
 
 for eyeVal in range(2):
    depthFileList = depthFileListDir + "depth_0" + str(eyeVal) + ".txt"
-   outputFileName = "depth_0" + str(eyeVal) + ".pvp"
+   outputFileName = outputFileDir + "depth_0" + str(eyeVal) + ".pvp"
 #Open output file
    outMatFile = open(outputFileName, 'wb')
 
@@ -44,7 +47,7 @@ for eyeVal in range(2):
 #Write out header
    writeHeaderFile(outMatFile, (Y, X, numBins), numFrames)
 
-#Calculate peak of normal distribution based on standard deviation
+#Calculate stepSize based on number of bins
    stepSize = float(1)/numBins
    normVal = 1/(stepSize * sqrt(2 * pi))
 
@@ -73,8 +76,12 @@ for eyeVal in range(2):
             xVal = lowthresh + (float(upthresh - lowthresh)/2)
             outmat = (normpdf(xVal, image, stepSize)) * binImage[:,:,bin]
             depthMat[:, :, curBin] += outmat[:,:]
-      #Normalize matrix
-      depthMat /= normVal
+      #Normalize with max as 1
+      #depthMat = depthMat / normVal
+      #Normalize with mean/std
+      matMean = np.mean(depthMat)
+      matStd = np.std(depthMat)
+      depthMat = (depthMat - matMean) * (targetStd/matStd) + targetMean
       #Write data for frame
       writeData(outMatFile, depthMat, frameIdx)
    outMatFile.close()

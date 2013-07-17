@@ -12,7 +12,7 @@ import os
 #depthFileList = depthFileListDir + "depth_0" + str(eyeVal) + ".txt"
 #pvpFileName = "/nh/compneuro/Data/Depth/depth_data_1/pvp/depth_0" + str(eyeVal)+ ".pvp"
 #lastCheckpoint = 680000
-outputDir = "/nh/compneuro/Data/Depth/LCA/dataset01/"
+outputDir = "/nh/compneuro/Data/Depth/LCA/dataset01_binocular/"
 #outputDir = "/nh/compneuro/Data/Depth/LCA/dataset02/"
 readFromCheckpoint = False
 layers = [
@@ -24,18 +24,14 @@ layers = [
       "a8_LeftRescale2",
       "a11_LeftRecon1",
       "a12_LeftRecon2",
-      "a14_LeftDepthDownsample",
-      "a16_LeftDepthRecon",
-      "a20_RightGanglion1",
-      "a21_RightGanglion2",
-      "a22_RightDownsample1",
-      "a23_RightDownsample2",
-      "a24_RightRescale1",
-      "a25_RightRescale2",
-      "a28_RightRecon1",
-      "a29_RightRecon2",
-      "a31_RightDepthDownsample",
-      "a33_RightDepthRecon"
+      "a16_RightGanglion1",
+      "a17_RightGanglion2",
+      "a18_RightDownsample1",
+      "a19_RightDownsample2",
+      "a20_RightRescale1",
+      "a21_RightRescale2",
+      "a24_RightRecon1",
+      "a25_RightRecon2"
       ]
 
 #checkpointDir = outputDir + "Checkpoints/Checkpoint"+str(lastCheckpoint)+"/"

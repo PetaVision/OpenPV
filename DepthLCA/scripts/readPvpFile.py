@@ -23,7 +23,7 @@ def readHeaderFile(filestream, pos=None):
    header["nb"]         = params[16]
    header["nbands"]     = params[17]
 
-   if hdr["numparams"] > 20:
+   if header["numparams"] > 20:
       header["additional"] = []
       numAddParams = header["numparams"] - 20
       for i in range(numAddParams):
