@@ -802,7 +802,7 @@ if plot_weights1_2
 	  row_end = image2post_ny_ratio*(weights1_2_patch_row-1)+weights0_1_nyp;
 	  col_start = 1+image2post_nx_ratio*(weights1_2_patch_col-1);
 	  col_end = image2post_nx_ratio*(weights1_2_patch_col-1)+weights0_1_nxp;
-	  patch1_2(row_start:row_end, col_start:col_end, :) = ...
+	  patch1_2(row_start:row_end, col_start:col_end, :) = patch1_2(row_start:row_end, col_start:col_end, :) + ...
 	      patch1_2_array{weights1_2_patch_row, weights1_2_patch_col};
 	endfor %% weights1_2_patch_col
       endfor %% weights1_2_patch_row
