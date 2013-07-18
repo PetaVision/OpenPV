@@ -575,7 +575,7 @@ protected:
    virtual void readDelay(PVParams * params);
    virtual int readPatchSize(PVParams * params);
    virtual int readPatchSizeFromFile(const char * filename);
-   virtual int readPatchSizeFromParams(PVParams * params);
+   virtual int checkShrunkenSize();
    virtual int readNfp(PVParams * params);
    virtual void readUseListOfArborFiles(PVParams * params);
    virtual void readCombineWeightFiles(PVParams * params);

@@ -803,21 +803,21 @@ int HyPerConn::readPatchSize(PVParams * params) {
    int status = PV_SUCCESS;
    nxp = parent->parameters()->value(name, "nxp", 1); // These two lines could be moved to readPatchSizeFromParams,
    nyp = parent->parameters()->value(name, "nyp", 1); // but checkWeightHeader() expects that nxp,nyp will have been read.
+   nxpShrunken = parent->parameters()->value(name,"nxpShrunken",nxp,false);
+   nypShrunken = parent->parameters()->value(name,"nypShrunken",nyp,false);
    if (filename!=NULL) {
       status = readPatchSizeFromFile(filename);
-   }
-   else {
-      status = readPatchSizeFromParams(params);
+   // }
+   // else {
+   //    status = readPatchSizeFromParams(params);
    }
    return status;
 }
 
-int HyPerConn::readPatchSizeFromParams(PVParams * params) {
-   // Reads params file's nxp and nyp, and nxpShrunken and nypShrunken
-   // Checking that they're consistent with post-synaptic geometry has been moved to the communicate phase, since pre and post aren't set till then
+int HyPerConn::checkShrunkenSize() {
    int status = PV_SUCCESS;
-   nxpShrunken = parent->parameters()->value(name,"nxpShrunken",nxp,false);
-   nypShrunken = parent->parameters()->value(name,"nypShrunken",nyp,false);
+   // nxpShrunken = parent->parameters()->value(name,"nxpShrunken",nxp,false);
+   // nypShrunken = parent->parameters()->value(name,"nypShrunken",nyp,false);
    if(nxpShrunken>nxp) {
       if (parent->columnId()==0) {
          fprintf(stderr, "readPatchSize error in connection \"%s\": nxpShrunken cannot be greater than nxp.\n", name);
@@ -841,9 +841,9 @@ int HyPerConn::readPatchSizeFromFile(const char * filename) {
    if( !useListOfArborFiles && !combineWeightFiles) { // Should still get patch size from file if either of these flags is true
       status = patchSizeFromFile(filename);
    }
-   else {
-      status = readPatchSizeFromParams(parent->parameters());
-   }
+   // else {
+   //    status = readPatchSizeFromParams(parent->parameters());
+   // }
    return status;
 }
 
