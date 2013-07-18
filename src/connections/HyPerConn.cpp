@@ -1192,13 +1192,14 @@ int HyPerConn::checkWeightsHeader(const char * filename, const int * wgtParams)
       nyp = nypFile;
    }
 
-   const int nfpFile = wgtParams[NUM_BIN_PARAMS + INDEX_WGT_NFP];
-   if (nfp != nfpFile) {
-      fprintf(stderr,
-              "ignoring nfp = %i in HyPerConn %s, using nfp = %i in binary file %s\n",
-              nfp, name, nfpFile, filename);
-      nfp = nfpFile;
-   }
+   nfp = wgtParams[NUM_BIN_PARAMS + INDEX_WGT_NFP];
+   // const int nfpFile = wgtParams[NUM_BIN_PARAMS + INDEX_WGT_NFP];
+   // if (nfp != nfpFile) {
+   //    fprintf(stderr,
+   //            "ignoring nfp = %i in HyPerConn %s, using nfp = %i in binary file %s\n",
+   //            nfp, name, nfpFile, filename);
+   //    nfp = nfpFile;
+   // }
    return 0;
 }
 
