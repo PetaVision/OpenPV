@@ -121,6 +121,8 @@ if plot_Recon
   std_unwhitened_Recon = cell(num_Recon_list, 1);
   max_unwhitened_Recon = cell(num_Recon_list, 1);
   min_unwhitened_Recon = cell(num_Recon_list, 1);
+  %% get lowest frame number 
+  min_tot_Recon_frames = 100000000;
   for i_Recon = 1 : num_Recon_list
     Recon_file = [output_dir, filesep, Recon_list{i_Recon,1}, Recon_list{i_Recon,2}, ".pvp"]
     if ~exist(Recon_file, "file")
@@ -129,20 +131,23 @@ if plot_Recon
     Recon_fid(i_Recon) = fopen(Recon_file);
     Recon_hdr{i_Recon} = readpvpheader(Recon_fid(i_Recon));
     fclose(Recon_fid(i_Recon));
-    tot_Recon_frames(i_Recon) = Recon_hdr{i_Recon}.nbands;
-    %% TODO:: set num_Recon_frames_skip to the number of existing frames in recon dir
-%%    num_Recon_frames(i_Recon) = tot_Recon_frames(i_Recon) - num_Recon_frames(i_Recon);
-%%    if i_Recon == 2
-%%      num_Recon_frames(i_Recon) = 4000;
-%%    elseif i_Recon == 1
-%%      num_Recon_frames(i_Recon) = 16;
-%%    endif
-    progress_step = ceil(tot_Recon_frames(i_Recon) / 10);
+    min_tot_Recon_frames = min(min_tot_Recon_frames, Recon_hdr{i_Recon}.nbands);
+  endfor %% i_Recon
+  for i_Recon = 1 : num_Recon_list
+    Recon_file = [output_dir, filesep, Recon_list{i_Recon,1}, Recon_list{i_Recon,2}, ".pvp"]
+    if ~exist(Recon_file, "file")
+      error(["file does not exist: ", Recon_file]);
+    endif
+    %%Recon_fid(i_Recon) = fopen(Recon_file);
+    %%Recon_hdr{i_Recon} = readpvpheader(Recon_fid(i_Recon));
+    %%fclose(Recon_fid(i_Recon));
+    tot_Recon_frames(i_Recon) = min_tot_Recon_frames; %%Recon_hdr{i_Recon}.nbands;
+    progress_step = ceil(min_tot_Recon_frames / 10);
     [Recon_struct, Recon_hdr_tmp] = ...
 	readpvpfile(Recon_file, ...
 		    progress_step, ...
-		    tot_Recon_frames(i_Recon), ... %% num_Recon_frames(i_Recon), ... %%
-		    tot_Recon_frames(i_Recon)-num_Recon_frames(i_Recon)+1); %% 1); %% 
+		    min_tot_Recon_frames, ... 
+		    min_tot_Recon_frames-num_Recon_frames(i_Recon)+1); 
     Recon_fig(i_Recon) = figure;
     num_Recon_colors = Recon_hdr{i_Recon}.nf;
     mean_unwhitened_Recon{i_Recon,1} = zeros(num_Recon_colors,num_Recon_frames(i_Recon));
@@ -163,8 +168,19 @@ if plot_Recon
       num_sum_list = length(sum_list{i_Recon});
       for i_sum = 1 : num_sum_list
 	sum_ndx = sum_list{i_Recon}(i_sum);
+	%% if simulation still running, current layer might reflect later times
+	j_frame = i_frame;
+	while (Recon_time{i_Recon}(i_frame) > Recon_time{sum_ndx}(j_frame))
+	  j_frame = j_frame + 1;
+	  if j_frame > num_Recon_frames(i_Recon)
+	    break;
+	  endif
+	endwhile
+	if j_frame > num_Recon_frames(i_Recon)
+	  continue;
+	endif
 	Recon_vals{i_Recon}{i_frame} = Recon_vals{i_Recon}{i_frame} + ...
-	    Recon_vals{sum_ndx}{i_frame};
+	    Recon_vals{sum_ndx}{j_frame};
 	Recon_fig_name{i_Recon} = [Recon_fig_name{i_Recon}, "_", Recon_list{sum_ndx,2}];
       endfor %% i_sum
       mean_Recon_tmp = mean(Recon_vals{i_Recon}{i_frame}(:));
@@ -634,7 +650,7 @@ if plot_weights1_2
   image_list = ...
       {["a1_"], ["Retina"]};
   %% list of indices for reading rank order of presynaptic neuron as function of activation frequency
-  sparse_ndx = [1];
+  sparse_ndx = [2];
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
   %% get image header (to get image dimensions)
