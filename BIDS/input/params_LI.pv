@@ -9,7 +9,7 @@ HyPerCol "column" = {
    randomSeed 				       = 1020304050.0; // remove when running for real
    numSteps 					   = 9740;			// amount of time steps performed during run-time
    progressStep					   = 500;
-   //outputPath                      = "~/Documents/workspace/BIDS/output/";
+   //outputPath                      = "~/workspace/BIDS/output/";
 
    writeProgressToErr              = 1;
    filenamesContainLayerNames 	   = 2; 			// stores pvp files as: 1 = layer number/2 = layer number and layer name/3 = layer name
@@ -17,7 +17,7 @@ HyPerCol "column" = {
    
    checkpointRead  				   = false; 		// init run
    checkpointWrite 				   = false;  		// always
-   //checkpointWriteDir              = "~/Documents/workspace/BIDS/output/checkpoints/";
+   //checkpointWriteDir              = "~/workspace/BIDS/output/checkpoints/";
    //checkpointWriteStepInterval     = 200;
    //deleteOlderCheckpoints          = 0;
    suppressLastOutput              = 0;

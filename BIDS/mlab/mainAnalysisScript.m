@@ -1,6 +1,6 @@
 clear all; close all; clc;
 
-fileLoc.workspacePath = ['/Users/dpaiton/Documents/Work/LANL/workspace/'];
+fileLoc.workspacePath = ['~/workspace/'];
 fileLoc.outputPath    = [fileLoc.workspacePath,'BIDS/experimentAnalysis/'];
 
 params.GRAPH_FLAG     = 1;                    %% Display histograms

@@ -51,7 +51,7 @@ DIL_RAD = 5;              % [px]
 
 %Noise properties
 BETA = -1;                 % 0 is gaussian white, -1 is pink, -2 is Brownian
-SNR  = [0.9 0.8 0.6];      % Must be between 0 and 1, inclusive. 0.8 is 80% SNR
+%SNR  = [0.9 0.8 0.6];      % Must be between 0 and 1, inclusive. 0.8 is 80% SNR
 
 %File Locations
 SIMULATION_FILENAME = 'simulation_output';
@@ -147,7 +147,9 @@ else
 end
 
 disp('masterInput: Combining noise with simulation output...')
-for i_snr = 1:length(SNR)
+%for i_snr = 1:length(SNR)
+SNR  = [.4];      % Must be between 0 and 1, inclusive. 0.8 is 80% SNR
+i_snr = 1;
     OUTPUT_DIR = [OUTPUT_DIR,'_',num2str(SNR(i_snr)*100)];
     if ne(exist(OUTPUT_DIR),7)
        mkdir(OUTPUT_DIR);
@@ -169,7 +171,7 @@ for i_snr = 1:length(SNR)
         frame_str = sprintf('%05d',i);
         imwrite(abs(scaled_input(:,:,i)),[OUTPUT_DIR,'/input_',frame_str,'.jpg']);
     end
-end
+%end
 
 %clearvars -except new_input
 disp('masterInput: Done.');
