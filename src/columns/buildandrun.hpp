@@ -57,7 +57,7 @@
 #include "../layers/LCALayer.hpp"
 #include "../layers/HyPerLCALayer.hpp"
 #include "../layers/ANNErrorLayer.hpp"
-
+#include "../layers/ANNLabelLayer.hpp"
 #include "../connections/HyPerConn.hpp"
 #include "../connections/BIDSConn.hpp"
 #include "../connections/KernelConn.hpp"
