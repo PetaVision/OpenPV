@@ -94,3 +94,19 @@ namespace PV{
     }
 
 }
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#ifndef PV_USE_OPENCL
+#  include "../kernels/ANNLabelLayer_update_state.cl"
+#else
+#  undef PV_USE_OPENCL
+#  include "../kernels/ANNLabelLayer_update_state.cl"
+#  define PV_USE_OPENCL
+#endif
+
+#ifdef __cplusplus
+}
+#endif
