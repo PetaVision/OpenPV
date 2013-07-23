@@ -156,6 +156,7 @@ int CloneKernelConn::communicateInitInfo() {
             name, parent->columnId(), originalConnName);
    }
 
+   numAxonalArborLists = originalConn->numberOfAxonalArborLists();
    int status = KernelConn::communicateInitInfo();
    if (status != PV_SUCCESS) return status;
 
@@ -171,7 +172,7 @@ int CloneKernelConn::communicateInitInfo() {
       }
       abort();
    }
-
+   //Redudent read in case it's a clone of a clone
    numAxonalArborLists = originalConn->numberOfAxonalArborLists();
    shrinkPatches_flag = originalConn->getShrinkPatches_flag();
 

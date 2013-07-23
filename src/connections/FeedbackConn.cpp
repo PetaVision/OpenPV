@@ -43,7 +43,9 @@ PVPatch *** FeedbackConn::initializeWeights(PVPatch *** arbors, pvdata_t ** data
       const char * filename) {
     if( filename ) return KernelConn::initializeWeights(arbors, dataStart, numPatches, filename);
 
-    transposeKernels();
+    for(int arborId = 0; arborId < numAxonalArborLists; arborId++){
+       transposeKernels(arborId);
+    }
     return arbors;
 }  // end of FeedbackConn::initializeWeights
 

@@ -88,7 +88,66 @@ int HyPerLCALayer::initialize_base()
    tauMin = tauMax;
    errorStd = 1.0;
    slopeErrorStd = 1.0;
+   //Locality in Kernal conn
+   numWindowX = 1;
+   numWindowY = 1;
+   windowSymX = false;
+   windowSymY = false;
    return PV_SUCCESS;
+}
+
+bool HyPerLCALayer::inWindowExt(int windowId, int neuronIdxExt){
+   const PVLayerLoc * loc = this->getLayerLoc();
+   int globalExtX = kxPos(neuronIdxExt, loc->nx + 2*loc->nb, loc->ny + 2*loc->nb, loc->nf) + loc->kx0;
+   int globalExtY = kyPos(neuronIdxExt, loc->nx + 2*loc->nb, loc->ny + 2*loc->nb, loc->nf) + loc->ky0;
+   int outWindow = calcWindow(globalExtX, globalExtY);
+   return (outWindow == windowId);
+}
+
+bool HyPerLCALayer::inWindowRes(int windowId, int neuronIdxRes){
+   const PVLayerLoc * loc = this->getLayerLoc();
+   int globalExtX = kxPos(neuronIdxRes, loc->nx, loc->ny, loc->nf) + loc->kx0;
+   int globalExtY = kyPos(neuronIdxRes, loc->nx, loc->ny, loc->nf) + loc->ky0;
+   int outWindow = calcWindow(globalExtX, globalExtY);
+   return (outWindow == windowId);
+}
+
+int HyPerLCALayer::calcWindow(int globalExtX, int globalExtY){
+   const PVLayerLoc * loc = this->getLayerLoc();
+   int stepX = ceil((float)(loc->nxGlobal+2*loc->nb)/numWindowX);
+   int stepY = ceil((float)(loc->nyGlobal+2*loc->nb)/numWindowY);
+   //Calculate x and y with symmetry on
+   if(windowSymX && globalExtX > ceil((float)numWindowX/2) * stepX){
+      globalExtX = numWindowX * stepX - globalExtX;
+   }
+   if(windowSymY && globalExtY > ceil((float)numWindowY/2) * stepY){
+      globalExtY = numWindowY * stepY - globalExtY;
+   }
+   //Calculate the window x and y
+   int windowX = floor(((float)globalExtX/(loc->nxGlobal+2*loc->nb)) * numWindowX); 
+   int windowY = floor(((float)globalExtY/(loc->nyGlobal+2*loc->nb)) * numWindowY);
+   //Change x and y into index
+   int windowIdx = (windowY * numWindowY) + windowX;
+   assert(windowIdx <= getNumWindows());
+   assert(windowIdx >= 0);
+   return windowIdx;
+}
+
+int HyPerLCALayer::getNumWindows(){
+   int windowsX, windowsY;
+   if(windowSymX){
+      windowsX = ceil((float)numWindowX / 2);
+   }
+   else{
+      windowsX = numWindowX;
+   }
+   if(windowSymY){
+      windowsY = ceil((float)numWindowY / 2);
+   }
+   else{
+      windowsY = numWindowY;
+   }
+   return windowsX * windowsY;
 }
 
 int HyPerLCALayer::initialize(const char * name, HyPerCol * hc, int num_channels)
@@ -97,6 +156,16 @@ int HyPerLCALayer::initialize(const char * name, HyPerCol * hc, int num_channels
    PVParams * params = parent->parameters();
    tauMax = params->value(name, "timeConstantTau", tauMax, true);
    tauMin = params->value(name, "timeConstantTauMinimum", tauMax, false); // default to no adaptation
+   numWindowX = params->value(name, "numWindowX", numWindowX);
+   numWindowY = params->value(name, "numWindowY", numWindowX);
+   if(numWindowX != 1){
+      windowSymX = (bool)params->value(name, "windowSymX", windowSymX);
+   }
+   if(numWindowY != 1){
+      windowSymY = (bool)params->value(name, "windowSymY", windowSymY);
+   }
+   int windowXNeeded;
+
    if ((tauMax - tauMin) > 1.0){
 	   slopeErrorStd = params->value(name, "slopeErrorStd", slopeErrorStd, true);
    }

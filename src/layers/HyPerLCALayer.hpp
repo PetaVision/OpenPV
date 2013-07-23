@@ -17,6 +17,11 @@ public:
    HyPerLCALayer(const char * name, HyPerCol * hc, int numChannels);
    HyPerLCALayer(const char * name, HyPerCol * hc);
    virtual ~HyPerLCALayer();
+
+   //Overwriting HyPerLayer's window methods
+   virtual int getNumWindows();
+   virtual bool inWindowExt(int windowId, int neuronIdxExt);
+   virtual bool inWindowRes(int windowId, int neuronIdxRes);
 protected:
    HyPerLCALayer();
    int initialize(const char * name, HyPerCol * hc, int numChannels);
@@ -31,6 +36,11 @@ private:
    float slopeErrorStd;
    double errorStd;
    int initialize_base();
+   int numWindowX;
+   int numWindowY;
+   bool windowSymX;
+   bool windowSymY;
+   int calcWindow(int globalExtX, int globalExtY);
 };
 
 } /* namespace PV */

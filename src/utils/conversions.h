@@ -471,6 +471,74 @@ static inline int globalIndex(int kf, float x, float y, float x0, float y0,
    return kIndex(kx, ky, kf, nx, ny, nf);
 }
 
+//Converts an index from one layer to the other in the extended space
+//Warning: function will return center point in a one to many conversion
+//Conversion in feature space does not exist, output will be first feature
+//If outside the area of out layer, will move to the clostest avaliable position in out layer
+static inline int layerIndexExt(int kPreExt, const PVLayerLoc * inLoc, const PVLayerLoc * outLoc){
+   //Calculate scale factor based on restricted
+   float scaleFactorX = (float)outLoc->nxGlobal / inLoc->nxGlobal;
+   float scaleFactorY = (float)outLoc->nyGlobal / inLoc->nyGlobal;
+   //Calculate x and y in extended space
+   int kPreX = kxPos(kPreExt, inLoc->nx + 2*inLoc->nb, inLoc->ny+ 2*inLoc->nb, inLoc->nf);
+   int kPreY = kyPos(kPreExt, inLoc->nx + 2*inLoc->nb, inLoc->ny+ 2*inLoc->nb, inLoc->nf);
+   //Subtract nb to set 0 to the beginning of the restricted space 
+   kPreX -= inLoc->nb;
+   kPreY -= inLoc->nb;
+   int kPostX, kPostY, half;
+   //If one to many, scale factor is greater than 1
+   if (scaleFactorX > 1){
+      half = floor(scaleFactorX / 2);
+      kPostX = kPreX * scaleFactorX + half;
+   }
+   else{
+      kPostX = floor(kPreX * scaleFactorX);
+   }
+   if (scaleFactorY > 1){
+      half = floor(scaleFactorY / 2);
+      kPostY = kPreY * scaleFactorY + half;
+   }
+   else{
+      kPostY = floor(kPreY * scaleFactorY);
+   }
+   //If outside of out layer margins, shrink
+   //Left margin
+   if (kPostX < -1 * outLoc->nb){
+      kPostX = -1 * outLoc->nb;
+   }
+   //Right Margin
+   else if(kPostX >= outLoc->nx + outLoc->nb){
+      kPostX = outLoc->nx + outLoc->nb - 1;
+   }
+   //Top margin
+   if (kPostY < -1 * outLoc->nb){
+      kPostY = -1 * outLoc->nb;
+   }
+   //Bottom Margin
+   else if(kPostY >= outLoc->ny + outLoc->nb){
+      kPostY = outLoc->ny + outLoc->nb - 1;
+   }
+   //Change back to ext points 
+   kPostX += outLoc->nb;
+   kPostY += outLoc->nb;
+   //Change back to index
+   //Using feature of 0
+   return kIndex(kPostX, kPostY, 0, outLoc->nx + 2*outLoc->nb, outLoc->ny + 2*outLoc->nb, outLoc->nf);
+}
+
+//Converts an index from one layer to the other in the restricted space
+//Warning: function will return center point in a one to many conversion
+//Conversion in feature space does not exist, output will be first feature
+static inline int layerIndexRes(int kPreRes, const PVLayerLoc * inLoc, const PVLayerLoc * outLoc){
+   //Call with extended index
+   int kPreExt = kIndexExtended(kPreRes, inLoc->nx, inLoc->ny, inLoc->nf, inLoc->nb);
+   return layerIndexExt(kPreExt, inLoc, outLoc);
+}
+
+
+
+
+
 /**
  * @x0
  * @x

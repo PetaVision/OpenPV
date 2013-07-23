@@ -1174,6 +1174,7 @@ float HyPerLayer::getConvertToRateDeltaTimeFactor(HyPerConn* conn)
 //   for( int k=0; k<numItems; k++ ) buf[k] = 0.0;
 //   return PV_SUCCESS;
 //}
+//
 
 int HyPerLayer::recvAllSynapticInput() {
    int status = PV_SUCCESS;
@@ -1222,9 +1223,21 @@ int HyPerLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activity
    fflush(stdout);
 #endif // DEBUG_OUTPUT
 
-
    float dt_factor = getConvertToRateDeltaTimeFactor(conn);
    for (int kPre = 0; kPre < numExtended; kPre++) {
+      bool inWindow; 
+      //Using pre's windows
+      //Post layer recieves synaptic input
+      if (conn->getUseWindowPost()){
+         const PVLayerLoc * preLoc = conn->preSynapticLayer()->getLayerLoc();
+         const PVLayerLoc * postLoc = this->getLayerLoc();
+         int kPost = layerIndexExt(kPre, preLoc, postLoc);
+         inWindow = inWindowExt(arborID, kPost);
+      }
+      else{
+         inWindow = conn->preSynapticLayer()->inWindowExt(arborID, kPre);
+      }
+      if(!inWindow) continue;
       float a = activity->data[kPre] * dt_factor;
       // Activity < 0 is used by generative models --pete
       if (a == 0.0f) continue;  // TODO - assume activity is sparse so make this common branch

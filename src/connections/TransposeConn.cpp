@@ -184,13 +184,13 @@ int TransposeConn::communicateInitInfo() {
 
    numAxonalArborLists = originalConn->numberOfAxonalArborLists();
    //TransposeConn has not been updated to support multiple arbors
-   if (numAxonalArborLists!=1) {
-      if (parent->columnId()==0) {
-         fprintf(stderr, "TransposeConn error for connection \"%s\": Currently, originalConn \"%s\" can have only one arbor.\n", name, originalConn->getName());
-      }
-      MPI_Barrier(getParent()->icCommunicator()->communicator());
-      exit(EXIT_FAILURE);
-   }
+   //if (numAxonalArborLists!=1) {
+   //   if (parent->columnId()==0) {
+   //      fprintf(stderr, "TransposeConn error for connection \"%s\": Currently, originalConn \"%s\" can have only one arbor.\n", name, originalConn->getName());
+   //   }
+   //   MPI_Barrier(getParent()->icCommunicator()->communicator());
+   //   exit(EXIT_FAILURE);
+   //}
    plasticityFlag = originalConn->getPlasticityFlag();
 
    if(originalConn->getShrinkPatches_flag()) {
@@ -262,7 +262,9 @@ PVPatch *** TransposeConn::initializeWeights(PVPatch *** arbors, pvdata_t ** dat
       return KernelConn::initializeWeights(arbors, dataStart, numPatches, filename);
    }
    else {
-      transposeKernels();
+      for(int arborId = 0; arborId < numAxonalArborLists; arborId++){
+         transposeKernels(arborId);
+      }
    }
    return arbors;
 }  // TransposeConn::initializeWeights(PVPatch **, int, const char *)
@@ -276,7 +278,7 @@ int TransposeConn::updateWeights(int axonID) {
    int status;
    float original_update_time = originalConn->getLastUpdateTime();
    if(original_update_time > lastUpdateTime ) {
-      status = transposeKernels();
+      status = transposeKernels(axonID);
       lastUpdateTime = parent->simulationTime();
    }
    else
@@ -286,7 +288,7 @@ int TransposeConn::updateWeights(int axonID) {
 
 // TODO reorganize transposeKernels():  Loop over kernelNumberFB on outside, call transposeOneKernel(kpFB, kernelnumberFB), which handles all the cases.
 // This would play better with Kris's initWeightsMethod.
-int TransposeConn::transposeKernels() {
+int TransposeConn::transposeKernels(int arborId) {
    // compute the transpose of originalConn->kernelPatches and
    // store into this->kernelPatches
    // assume scale factors are 1 and that nxp, nyp are odd.
@@ -302,9 +304,10 @@ int TransposeConn::transposeKernels() {
       int xscaleq = (int) pow(2,-xscalediff);
       int yscaleq = (int) pow(2,-yscalediff);
 
+
       for( int kernelnumberFB = 0; kernelnumberFB < numFBKernelPatches; kernelnumberFB++ ) {
          // PVPatch * kpFB = getKernelPatch(0, kernelnumberFB);
-         pvdata_t * dataStartFB = get_wDataHead(0, kernelnumberFB);
+         pvdata_t * dataStartFB = get_wDataHead(arborId, kernelnumberFB);
          int nfFB = nfp;
          assert(numFFKernelPatches == nfFB);
          int nxFB = nxp; // kpFB->nx;
@@ -315,7 +318,7 @@ int TransposeConn::transposeKernels() {
                   int kIndexFB = kIndex(kxFB,kyFB,kfFB,nxFB,nyFB,nfFB);
                   int kernelnumberFF = kfFB;
                   // PVPatch * kpFF = originalConn->getKernelPatch(0, kernelnumberFF);
-                  pvdata_t * dataStartFF = originalConn->get_wDataHead(0, kernelnumberFF);
+                  pvdata_t * dataStartFF = originalConn->get_wDataHead(arborId, kernelnumberFF);
                   int nxpFF = originalConn->xPatchSize();
                   int nypFF = originalConn->yPatchSize();
                   assert(numFBKernelPatches == originalConn->fPatchSize() * xscaleq * yscaleq);
@@ -338,7 +341,7 @@ int TransposeConn::transposeKernels() {
       int yscaleq = (int) pow(2,yscalediff);
       for( int kernelnumberFB = 0; kernelnumberFB < numFBKernelPatches; kernelnumberFB++ ) {
          // PVPatch * kpFB = getKernelPatch(0, kernelnumberFB);
-         pvdata_t * dataStartFB = get_wDataHead(0, kernelnumberFB);
+         pvdata_t * dataStartFB = get_wDataHead(arborId, kernelnumberFB);
          int nxFB = nxp; // kpFB->nx;
          int nyFB = nyp; // kpFB->ny;
          int nfFB = nfp;
@@ -348,7 +351,7 @@ int TransposeConn::transposeKernels() {
                int precelloffsetx = kxFB % xscaleq;
                for( int kfFB = 0; kfFB < nfFB; kfFB++ ) {
                   int kernelnumberFF = (precelloffsety*xscaleq + precelloffsetx)*nfFB + kfFB;
-                  pvdata_t * dataStartFF = originalConn->get_wDataHead(0, kernelnumberFF);
+                  pvdata_t * dataStartFF = originalConn->get_wDataHead(arborId, kernelnumberFF);
                   int nxpFF = originalConn->xPatchSize();
                   int nypFF = originalConn->yPatchSize();
                   int kxFF = (nxp-kxFB-1)/xscaleq;

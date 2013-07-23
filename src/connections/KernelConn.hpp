@@ -82,6 +82,7 @@ protected:
    int initialize(const char * name, HyPerCol * hc,
                   const char * pre_layer_name, const char * post_layer_name,
                   const char * filename, InitWeights *weightInit=NULL);
+   virtual int communicateInitInfo();
    virtual int createArbors();
    virtual int initPlasticityPatches();
    virtual pvdata_t * allocWeights(PVPatch *** patches, int nPatches, int nxPatch,

@@ -58,12 +58,20 @@ int KernelConn::initialize_base()
    // calls HyPerConn::initialize_base().
 }
 
+int KernelConn::communicateInitInfo(){
+   int status = HyPerConn::communicateInitInfo();
+   //Check axonal arbors against windows
+   if (pre->getNumWindows() != 1 && pre->getNumWindows() != this->numberOfAxonalArborLists()){
+      fprintf(stderr, "KernelConn::Number of windows in %s is %d (calculated from symmetry), while number of arbors in %s is %d. Either some windows or arbors will not be used\n", pre->getName(), pre->getNumWindows(), name, this->numberOfAxonalArborLists());
+   }
+   return status;
+}
+
 int KernelConn::initialize(const char * name, HyPerCol * hc,
       const char * pre_layer_name, const char * post_layer_name,
       const char * filename, InitWeights *weightInit)
 {
    HyPerConn::initialize(name, hc, pre_layer_name, post_layer_name, filename, weightInit);
-
 #ifdef PV_USE_OPENCL
 //   //don't support GPU accelleration in kernelconn yet
 //   ignoreGPUflag=false;
@@ -374,8 +382,9 @@ float KernelConn::maxWeight(int arborId)
 
 int KernelConn::calc_dW(int arbor_ID){
    clear_dW(arbor_ID);
-   update_dW(arbor_ID);
-   return PV_BREAK;
+   //update_dW(arbor_ID);
+   //return PV_BREAK;
+   return update_dW(arbor_ID);
 }
 
 int KernelConn::clear_dW(int arbor_ID) {
@@ -420,6 +429,17 @@ int KernelConn::defaultUpdate_dW(int arbor_ID) {
    int sya = (post->getLayerLoc()->nf * (post->getLayerLoc()->nx + 2*post->getLayerLoc()->nb));
 
    for(int kExt=0; kExt<nExt;kExt++) {
+      bool inWindow; 
+      if(useWindowPost){
+         const PVLayerLoc * preLoc = pre->getLayerLoc();
+         const PVLayerLoc * postLoc = post->getLayerLoc();
+         int kPost = layerIndexExt(kExt, preLoc, postLoc);
+         inWindow = post->inWindowExt(arbor_ID, kPost);
+      }
+      else{
+         inWindow = pre->inWindowExt(arbor_ID, kExt);
+      }
+      if(!inWindow) continue;
       pvdata_t preact = preactbuf[kExt];
       // if (preact == 0.0f) continue;
       PVPatch * weights = getWeights(kExt,arbor_ID);
@@ -470,6 +490,7 @@ int KernelConn::updateState(double timef, double dt) {
    update_timer->start();
    if( timef >= weightUpdateTime) {
       computeNewWeightUpdateTime(timef, weightUpdateTime);
+
       for(int arborID=0;arborID<numberOfAxonalArborLists();arborID++) {
          status = calc_dW(arborID);  // calculate changes in weights
          if (status == PV_BREAK) {break;}

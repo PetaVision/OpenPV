@@ -175,6 +175,11 @@ public:
    // (i.e. methods for receiving synaptic input, updating internal state, publishing output)
    // ************************************************************************************//
    int recvAllSynapticInput(); // Calls recvSynapticInput for each conn and each arborID
+   //Method to see if the neuron is in the window. Default window id is mapped to the arbor id. Parent class is always true, and can be overwritten 
+   virtual bool inWindowExt(int windowId, int neuronIdxExt) {return true;};
+   virtual bool inWindowRes(int windowId, int neuronIdxRes) {return true;}; 
+   //Returns number of windows, with a default of 1 window for the entire layer
+   virtual int getNumWindows(){return 1;};
    virtual int recvSynapticInput(HyPerConn * conn, const PVLayerCube * cube, int arborID);
    virtual int updateState (double time, double dt);
    virtual int publish(InterColComm * comm, double time);
@@ -437,6 +442,7 @@ protected:
    //bool copyToDevice;
    bool copyDataStoreFlag;
    //bool buffersInitialized;
+   //
 
 #endif
 

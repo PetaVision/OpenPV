@@ -335,6 +335,7 @@ int InitWeights::readWeights(PVPatch *** patches, pvdata_t ** dataStart, int num
    } // if combineWeightFiles
    else {
 #ifndef USE_SHMGET
+      
       int status = PV::readWeights(patches, dataStart, numArbors, numPatches, filename, icComm, &timed, preLoc);
 #else
          int status = PV::readWeights(patches, dataStart, numArbors, numPatches, filename, icComm, &timed, preLoc, shmget_owner, shmget_flag);

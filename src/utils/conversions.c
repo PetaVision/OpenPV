@@ -8,6 +8,7 @@
 #include "conversions.h"
 #include "assert.h"
 
+
 /**
  * Return the leading index in z direction (either x or y) of a patch in postsynaptic layer
  * @kzPre is the pre-synaptic index in z direction (can be either local or global)
@@ -217,4 +218,6 @@ int posPatchHead(const int kPre, const int xScaleLog2Pre,
 
    return 0;
 }
+
+
 #endif /* DEPRECATED_FEATURES */

@@ -318,6 +318,8 @@ public:
    virtual int normalizeWeights();
 //   virtual int normalizeWeights(PVPatch** patches, float** dataStart,
 //         int numPatches, int arborId);
+//
+   bool getUseWindowPost(){return useWindowPost;};
 
 #ifdef PV_USE_OPENCL
    virtual int * getLUTpointer() {return NULL;}
@@ -377,8 +379,10 @@ private:
    float** dwDataStart; //now that data for all patches are allocated to one continuous block of memory, this pointer saves the starting address of that array
    int defaultDelay; //added to save params file defined delay...
    const float* fDelayArray;
+   int delayArraySize;
 
 protected:
+   bool useWindowPost;
    char* name;
    int nxp, nyp, nfp; // size of weight dimensions
    bool warnDefaultNfp; // Whether to print a warning if the default nfp is used.
@@ -579,6 +583,7 @@ protected:
    virtual int readNfp(PVParams * params);
    virtual void readUseListOfArborFiles(PVParams * params);
    virtual void readCombineWeightFiles(PVParams * params);
+   virtual void readUseWindowPost(PVParams * params);
 
    virtual int setNeededRNGSeeds();
 

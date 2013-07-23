@@ -239,6 +239,8 @@ int HyPerConn::initialize_base()
 
    this->neededRNGSeeds = 0; // Derived layers that use random numbers should set neededRNGSeeds in setNeededRNGSeeds, called by HyPerLayer::communicate.
 
+   this->useWindowPost = false;
+
 #ifdef USE_SHMGET
    shmget_flag = false;
    shmget_owner = NULL;
@@ -644,6 +646,7 @@ int HyPerConn::setParams(PVParams * inputParams)
    readPatchSize(inputParams);
    readNfp(inputParams);
    readShrinkPatches(inputParams); // Sets shrinkPatches_flag; derived-class methods that override readShrinkPatches must also set shrinkPatches_flag
+   readUseWindowPost(inputParams);
    return PV_SUCCESS;
 
    return 0;
@@ -712,6 +715,10 @@ void HyPerConn::readWriteStep(PVParams * params) {
    writeStep = params->value(name, "writeStep", parent->getDeltaTime());
 }
 
+void HyPerConn::readUseWindowPost(PVParams * params){
+   useWindowPost = (bool)params->value(name, "useWindowPost", useWindowPost); 
+}
+
 void HyPerConn::readInitialWriteTime(PVParams * params) {
    assert(!params->presentAndNotBeenRead(name, "writeStep"));
    writeTime = parent->simulationTime();
@@ -761,10 +768,10 @@ void HyPerConn::read_dWMax(PVParams * params) {
 
 void HyPerConn::readDelay(PVParams * params) {
    //Grab delays in ms and change into timesteps
-   int delayArraySize;
    //fDelayArray is the float representation from the array values
-   const float * fDelayArray = params->arrayValues(name, "delay", &delayArraySize);
-   initializeDelays(fDelayArray, delayArraySize);
+   fDelayArray = params->arrayValues(name, "delay", &delayArraySize);
+   //Being called now in allocate
+   //initializeDelays(fDelayArray, delayArraySize);
 }
 
 int HyPerConn::initializeDelays(const float * fDelayArray, int size){
@@ -922,10 +929,15 @@ int HyPerConn::communicateInitInfo() {
 
    // Find maximum delay over all the arbors and send it to the presynaptic layer
    int maxdelay = 0;
-   for( int arborId=0; arborId<numberOfAxonalArborLists(); arborId++ ) {
-      int curdelay = this->getDelay(arborId);
-      if( maxdelay < curdelay ) maxdelay = curdelay;
+   for (int delayi = 0; delayi < delayArraySize; delayi++){
+      if (fDelayArray[delayi] > maxdelay){
+         maxdelay = fDelayArray[delayi];
+      }
    }
+   //for( int arborId=0; arborId<numberOfAxonalArborLists(); arborId++ ) {
+   //   int curdelay = this->getDelay(arborId);
+   //   if( maxdelay < curdelay ) maxdelay = curdelay;
+   //}
    int allowedDelay = pre->increaseDelayLevels(maxdelay);
    if( allowedDelay < maxdelay ) {
       if( parent->icCommunicator()->commRank() == 0 ) {
@@ -1022,6 +1034,7 @@ int HyPerConn::allocateDataStructures() {
    initNumWeightPatches();
    initNumDataPatches();
    initPatchToDataLUT();
+   initializeDelays(fDelayArray, delayArraySize);
 
    int status = constructWeights(filename);
 
