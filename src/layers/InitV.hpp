@@ -46,7 +46,7 @@ private:
    pvdata_t generateGaussianRand();
    int calcUniformRandomV(pvdata_t * V, int numNeurons);
    pvdata_t generateUnifRand();
-   int calcVFromFile(PVLayer * clayer, InterColComm * icComm);
+   int calcVFromFile(pvdata_t * V, const PVLayerLoc * loc, InterColComm * icComm);
    int checkLoc(const PVLayerLoc * loc, int nx, int ny, int nf, int nxGlobal, int nyGlobal);
    int checkLocValue(int fromParams, int fromFile, const char * field);
    int printerr(const char * fmtstring, ...);

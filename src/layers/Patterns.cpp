@@ -56,14 +56,15 @@ int Patterns::initialize(const char * name, HyPerCol * hc, PatternType type) {
    PVParams * params = hc->parameters();
    const PVLayerLoc * loc = getLayerLoc();
 
-   unsigned int seed = parent->getObjectSeed(1);
-   cl_random_init(&patternRandState, 1, seed);
-   // This should put the RNG into the same state across MPI, but let's check.
-#ifndef NDEBUG
-   unsigned int check_seed = seed;
-   MPI_Bcast(&check_seed, 1, MPI_UNSIGNED, 0, parent->icCommunicator()->communicator());
-   assert(check_seed == seed);
-#endif // NDEBUG
+   // Moved to communicateInitInfo()
+   // unsigned int seed = parent->getObjectSeed(1);
+   // cl_random_init(&patternRandState, 1, seed);
+   // // This should put the RNG into the same state across MPI, but let's check.
+// #ifndef NDEBUG
+//    unsigned int check_seed = seed;
+//    MPI_Bcast(&check_seed, 1, MPI_UNSIGNED, 0, parent->icCommunicator()->communicator());
+//    assert(check_seed == seed);
+// #endif // NDEBUG
 
    if (type==BARS) {
       orientation = readOrientation();
@@ -160,21 +161,22 @@ int Patterns::initialize(const char * name, HyPerCol * hc, PatternType type) {
          nextDropFrame = dropPeriod;
       }
 
-      if(dropPosition == -1){
-         nextPosChangeFrame = nextDropFrame + dropPositionRandomMin + floor((dropPositionRandomMax - dropPositionRandomMin) * patternRand());
-         xPos = (int)floor(loc->nxGlobal * patternRand());
-         yPos = (int)floor(loc->nyGlobal * patternRand());
-      }
-      else if(dropPosition == 0){
-         xPos = (int)floor((loc->nxGlobal - 1) / 2);
-         yPos = (int)floor((loc->nyGlobal - 1) / 2);
-      }
-      else{
-         nextPosChangeFrame = nextDropFrame + dropPosition;
-         xPos = (int)floor(loc->nxGlobal * patternRand());
-         yPos = (int)floor(loc->nyGlobal * patternRand());
-      }
-      MPI_Bcast(&nextDropFrame, 1, MPI_DOUBLE, 0, parent->icCommunicator()->communicator());
+      // Moved to communicateInitInfo() since iti uses the RNG
+      // if(dropPosition == -1){
+      //    nextPosChangeFrame = nextDropFrame + dropPositionRandomMin + floor((dropPositionRandomMax - dropPositionRandomMin) * patternRand());
+      //    xPos = (int)floor(loc->nxGlobal * patternRand());
+      //    yPos = (int)floor(loc->nyGlobal * patternRand());
+      // }
+      // else if(dropPosition == 0){
+      //    xPos = (int)floor((loc->nxGlobal - 1) / 2);
+      //    yPos = (int)floor((loc->nyGlobal - 1) / 2);
+      // }
+      // else{
+      //    nextPosChangeFrame = nextDropFrame + dropPosition;
+      //    xPos = (int)floor(loc->nxGlobal * patternRand());
+      //    yPos = (int)floor(loc->nyGlobal * patternRand());
+      // }
+      // MPI_Bcast(&nextDropFrame, 1, MPI_DOUBLE, 0, parent->icCommunicator()->communicator());
    }
 
    // set parameters that controls writing of new images
@@ -219,7 +221,8 @@ int Patterns::initialize(const char * name, HyPerCol * hc, PatternType type) {
    // displayPeriod = 0 means nextDisplayTime will always >= starting time and therefore the pattern will update every timestep
    nextDisplayTime = hc->simulationTime() + displayPeriod;
 
-   drawPattern(maxVal);
+   // Moved to allocateDataStructures()
+   // drawPattern(maxVal);
 
    return PV_SUCCESS;
 }
@@ -307,6 +310,44 @@ MovementType Patterns::readMovementType() {
       }
    }
    return movement_type;
+}
+
+int Patterns::communicateInitInfo() {
+   int status = Image::communicateInitInfo();
+
+   unsigned int seed = parent->getObjectSeed(1);
+   cl_random_init(&patternRandState, 1, seed);
+   // This should put the RNG into the same state across MPI, but let's check.
+#ifndef NDEBUG
+   unsigned int check_seed = seed;
+   MPI_Bcast(&check_seed, 1, MPI_UNSIGNED, 0, parent->icCommunicator()->communicator());
+   assert(check_seed == seed);
+#endif // NDEBUG
+
+   const PVLayerLoc * loc = getLayerLoc();
+   if(dropPosition == -1){
+      nextPosChangeFrame = nextDropFrame + dropPositionRandomMin + floor((dropPositionRandomMax - dropPositionRandomMin) * patternRand());
+      xPos = (int)floor(loc->nxGlobal * patternRand());
+      yPos = (int)floor(loc->nyGlobal * patternRand());
+   }
+   else if(dropPosition == 0){
+      xPos = (int)floor((loc->nxGlobal - 1) / 2);
+      yPos = (int)floor((loc->nyGlobal - 1) / 2);
+   }
+   else{
+      nextPosChangeFrame = nextDropFrame + dropPosition;
+      xPos = (int)floor(loc->nxGlobal * patternRand());
+      yPos = (int)floor(loc->nyGlobal * patternRand());
+   }
+   MPI_Bcast(&nextDropFrame, 1, MPI_DOUBLE, 0, parent->icCommunicator()->communicator());
+
+   return status;
+}
+
+int Patterns::allocateDataStructures() {
+   int status = Image::allocateDataStructures();
+   drawPattern(maxVal);
+   return status;
 }
 
 int Patterns::tag()

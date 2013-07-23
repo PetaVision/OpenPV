@@ -570,7 +570,6 @@ int HyPerCol::addLayer(HyPerLayer * l)
       free(layers);
       layers = newLayers;
    }
-   l->columnWillAddLayer(icComm, numLayers);
    layers[numLayers++] = l;
    if (l->getPhase() >= numPhases) numPhases = l->getPhase()+1;
    return (numLayers - 1);
@@ -800,7 +799,7 @@ int HyPerCol::run(long int nTimeSteps)
 int HyPerCol::initPublishers() {
    for( int l=0; l<numLayers; l++ ) {
       PVLayer * clayer = layers[l]->getCLayer();
-      icComm->addPublisher(layers[l], clayer->activity->numItems, clayer->numDelayLevels);
+      icComm->addPublisher(layers[l], layers[l]->getNumExtended(), layers[l]->getNumDelayLevels());
    }
    for( int c=0; c<numConnections; c++ ) {
       icComm->subscribe(connections[c]);

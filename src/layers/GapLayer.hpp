@@ -20,11 +20,12 @@ public:
    GapLayer(const char * name, HyPerCol * hc, const char * originalLayerName);
    virtual ~GapLayer();
 
+   virtual int communicateInitInfo();
+   virtual int allocateDataStructures();
+
    virtual int updateState(double timef, double dt);
 
    // virtual int updateV();
-
-   LIFGap * sourceLayer;
 
 protected:
    GapLayer();
@@ -37,6 +38,8 @@ protected:
 private:
    int initialize_base();
 
+   char * sourceLayerName;
+   LIFGap * sourceLayer;
    float ampSpikelet;
 
 };

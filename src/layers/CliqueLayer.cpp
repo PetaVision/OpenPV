@@ -280,7 +280,7 @@ int CliqueLayer::doUpdateState(double timef, double dt, const PVLayerLoc * loc, 
 {
    return updateStateClique(timef, dt,loc, A, getV(),
          num_channels, gSynHead, this->Voffset, this->Vgain, this->VMax, this->VMin,
-         this->VThresh, clayer->columnId);
+         this->VThresh, parent->columnId());
 }
 
 // TODO: direct clique input to separate GSyn: CHANNEL_CLIQUE

@@ -57,6 +57,21 @@ int IncrementLayer::readVThreshParams(PVParams * params) {
    return PV_SUCCESS;
 }
 
+int IncrementLayer::allocateDataStructures() {
+   int status = ANNLayer::allocateDataStructures();
+
+   if (status == PV_SUCCESS) status = allocateBuffer(&Vprev, getNumNeurons(), "V at previous time");
+   if (status == PV_SUCCESS) {
+      assert(GSyn && GSyn[0] && GSyn[1]);
+      for( int k=0; k<getNumNeurons(); k++ ) {
+         assert(GSyn[0][k]==0 && GSyn[1][k]==0);
+      }
+   }
+   if (status != PV_SUCCESS) exit(EXIT_FAILURE);
+
+   return status;
+}
+
 int IncrementLayer::updateState(double timef, double dt) {
    int status;
    status = updateState(timef, dt, &VInited, &nextUpdateTime, firstUpdateTime, displayPeriod, getLayerLoc(), getCLayer()->activity->data, getV(), getVprev(), getNumChannels(), GSyn[0], getCLayer()->activeIndices, &getCLayer()->numActive);
@@ -70,8 +85,8 @@ int IncrementLayer::updateState(double timef, double dt, bool * inited, double *
    int ny = loc->ny;
    int nf = loc->nf;
    int num_neurons = nx*ny*nf;
-//   pvdata_t * gSynExc = getChannelStart(gSynHead, CHANNEL_EXC, num_neurons);
-//   pvdata_t * gSynInh = getChannelStart(gSynHead, CHANNEL_INH, num_neurons);
+   //   pvdata_t * gSynExc = getChannelStart(gSynHead, CHANNEL_EXC, num_neurons);
+   //   pvdata_t * gSynInh = getChannelStart(gSynHead, CHANNEL_INH, num_neurons);
 
    if( *inited ) {
       if( timef >= *next_update_time ) {

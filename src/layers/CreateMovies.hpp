@@ -48,6 +48,7 @@ class CreateMovies: public PV::Image {
 public:
    CreateMovies(const char * name, HyPerCol * hc);
    virtual ~CreateMovies();
+   virtual int allocateDataStructures();
    virtual int setMovieParams(PVParams * params, CreateMovies_Params * p);
 
    virtual int Rotate(const float DAngle, const int centerx = 0, const int centery = 0);

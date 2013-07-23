@@ -23,6 +23,7 @@ class TextStream : public HyPerLayer{
 public:
 	TextStream(const char * name, HyPerCol * hc);
 	virtual ~TextStream();
+	virtual int allocateDataStructures();
 	virtual int updateState(double time, double dt);
 	float lastUpdate()  { return lastUpdateTime; }
 

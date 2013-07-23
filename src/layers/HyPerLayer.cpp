@@ -144,74 +144,62 @@ int HyPerLayer::initialize(const char * name, HyPerCol * hc, int numChannels) {
 
    writeActivityCalls = 0;
    writeActivitySparseCalls = 0;
+   numDelayLevels = 1; // If a connection has positive delay so that more delay levels are needed, numDelayLevels is increased when HyPerConn::communicateInitInfo calls increaseDelayLevels
+   maxRate = 1000.0f/parent->getDeltaTime();
 
-   //Initialize C Layer struct
-   initClayer(params);
+   initClayer();
 
-   // If not mirroring, fill nonrestricted part of extended activity values
-   // Since we calloc'ed, we only need to do this if valueBC is nonzero
-   if (!useMirrorBCs() && getValueBC()!=0.0f) {
-      const PVLayerLoc * loc = getLayerLoc();
-      int nx = loc->nx;
-      int ny = loc->ny;
-      int nf = loc->nf;
-      int nb = loc->nb;
-      int idx = 0;
-      for (int b=0; b<getLayerLoc()->nb; b++) {
-         for(int k=0; k<(nx+2*nb)*nf; k++) {
-            clayer->activity->data[idx] = getValueBC();
-            idx++;
-         }
-      }
-      for (int y=0; y<ny; y++) {
-         for(int k=0; k<nb*nf; k++) {
-            clayer->activity->data[idx] = getValueBC();
-            idx++;
-         }
-         idx += nx;
-         for(int k=0; k<nb*nf; k++) {
-            clayer->activity->data[idx] = getValueBC();
-            idx++;
-         }
-      }
-      for (int b=0; b<getLayerLoc()->nb; b++) {
-         for(int k=0; k<(nx+2*nb)*nf; k++) {
-            clayer->activity->data[idx] = getValueBC();
-            idx++;
-         }
-      }
-      assert(idx==getNumExtended());
-   }
+   // Moved to allocateDataStructures
+   //   // If not mirroring, fill nonrestricted part of extended activity values
+   //   // Since we calloc'ed, we only need to do this if valueBC is nonzero
+   //   if (!useMirrorBCs() && getValueBC()!=0.0f) {
+   //      const PVLayerLoc * loc = getLayerLoc();
+   //      int nx = loc->nx;
+   //      int ny = loc->ny;
+   //      int nf = loc->nf;
+   //      int nb = loc->nb;
+   //      int idx = 0;
+   //      for (int b=0; b<getLayerLoc()->nb; b++) {
+   //         for(int k=0; k<(nx+2*nb)*nf; k++) {
+   //            clayer->activity->data[idx] = getValueBC();
+   //            idx++;
+   //         }
+   //      }
+   //      for (int y=0; y<ny; y++) {
+   //         for(int k=0; k<nb*nf; k++) {
+   //            clayer->activity->data[idx] = getValueBC();
+   //            idx++;
+   //         }
+   //         idx += nx;
+   //         for(int k=0; k<nb*nf; k++) {
+   //            clayer->activity->data[idx] = getValueBC();
+   //            idx++;
+   //         }
+   //      }
+   //      for (int b=0; b<getLayerLoc()->nb; b++) {
+   //         for(int k=0; k<(nx+2*nb)*nf; k++) {
+   //            clayer->activity->data[idx] = getValueBC();
+   //            idx++;
+   //         }
+   //      }
+   //      assert(idx==getNumExtended());
+   //   }
 
    // must set ioAppend before addLayer is called (addLayer causes activity file to be opened using layerid)
    ioAppend = parent->getCheckpointReadFlag() ? 1 : 0;
-   // layerId stored as clayer->layerId
-   int layerID = parent->addLayer(this); // Could this line and the setParent line be combined in a HyPerLayer method?
-   assert(layerID == clayer->layerId);
 
-   maxRate = 1000.0f/parent->getDeltaTime();
+   layerId = parent->addLayer(this);
+
+   status = openOutputStateFile();
 
    // allocate storage for the input conductance arrays
    //
-   status = allocateBuffers();
-   assert(status == PV_SUCCESS);
+   // status = allocateBuffers(); // Moved to allocateDataStructures
+   // assert(status == PV_SUCCESS);
 
-   // Initializing now takes place at the beginning of HyPerCol::run(int), after
-   // the publishers have been initialized, to allow loading data into the datastore
-#ifdef OBSOLETE // Marked obsolete July 11, 2012
-   bool restart_flag = params->value(name, "restart", 0.0f) != 0.0f;
-   if( restart_flag ) {
-      float timef;
-      readState(&timef);
-   }
-   else {
-      initializeState();
-   }
-#endif // OBSOLETE
-
-   // labels are not extended
-   labels = (int *) calloc(getNumNeurons(), sizeof(int));
-   assert(labels != NULL);
+   // // labels are not extended
+   // labels = (int *) calloc(getNumNeurons(), sizeof(int));
+   // assert(labels != NULL);
 
 #ifdef PV_USE_OPENCL
    initUseGPUFlag();
@@ -220,12 +208,45 @@ int HyPerLayer::initialize(const char * name, HyPerCol * hc, int numChannels) {
    return PV_SUCCESS;
 }
 
+int HyPerLayer::initClayer() {
+   clayer = (PVLayer *) calloc(1UL, sizeof(PVLayer));
+   int status = PV_SUCCESS;
+   if (clayer==NULL) {
+      fprintf(stderr, "HyPerLayer \"%s\" error in rank %d process: unable to allocate memory for Clayer.\n", name, parent->columnId());
+      exit(EXIT_FAILURE);
+   }
+
+   PVLayerLoc * loc = &clayer->loc;
+   setLayerLoc(loc, nxScale, nyScale, numFeatures);
+   updateClayerMargin(clayer, margin);
+
+   clayer->numNeurons  = loc->nx * loc->ny * loc->nf;
+
+   double xScaled = -log2( (double) nxScale);
+   double yScaled = -log2( (double) nyScale);
+
+   int xScale = (int) nearbyint(xScaled);
+   int yScale = (int) nearbyint(yScaled);
+
+   clayer->xScale = xScale;
+   clayer->yScale = yScale;
+
+   clayer->dx = powf(2.0f, (float) xScale);
+   clayer->dy = powf(2.0f, (float) yScale);
+
+   clayer->xOrigin = 0.5 + clayer->loc.kx0 * clayer->dx;
+   clayer->yOrigin = 0.5 + clayer->loc.ky0 * clayer->dy;
+
+   // Other fields of clayer will be set in allocateClayerBuffers, or during updateState
+   return status;
+}
+
 #ifdef PV_USE_OPENCL
 //This method checks for a parameter telling Petavision to GPU accellerate
 //this layer
 void HyPerLayer::initUseGPUFlag() {
    PVParams * params = parent->parameters();
-   readGPUAcceleratedFlag(params);
+   assert(!params->presentAndNotBeenRead(name,"GPUAccelerate"));
    copyDataStoreFlag=false;
 }
 
@@ -268,12 +289,7 @@ HyPerLayer::~HyPerLayer()
    delete recvsyn_timer; recvsyn_timer = NULL;
    delete update_timer; update_timer = NULL;
 
-   if (clayer != NULL) {
-      // pvlayer_finalize will free clayer
-      pvlayer_finalize(clayer);
-      clayer = NULL;
-   }
-
+   freeClayer();
    free(name); name = NULL;
    freeChannels();
 
@@ -307,6 +323,23 @@ HyPerLayer::~HyPerLayer()
    free(probes);
 }
 
+int HyPerLayer::freeClayer() {
+   pvcube_delete(clayer->activity);
+
+   if (clayer->activeFP != NULL) {
+      PV_fclose(clayer->activeFP);
+      clayer->activeFP = NULL;
+   }
+
+   free(clayer->activeIndices); clayer->activeIndices = NULL;
+   free(clayer->prevActivity);  clayer->prevActivity = NULL;
+   free(clayer->activeIndices); clayer->activeIndices = NULL;
+   free(clayer->V);             clayer->V = NULL;
+   free(clayer);                clayer = NULL;
+
+   return PV_SUCCESS;
+}
+
 void HyPerLayer::freeChannels()
 {
 #ifdef PV_USE_OPENCL
@@ -320,7 +353,9 @@ void HyPerLayer::freeChannels()
    }
 #endif
 
-   if (numChannels > 0) {
+   // Test on GSyn because numChannels gets set in initialize, but GSyn gets allocated in allocateDataStructures, and only if numChannels>0.
+   if (GSyn) {
+      assert(numChannels>0);
       free(GSyn[0]);  // conductances allocated contiguously so frees all buffer storage
       free(GSyn);     // this frees the array pointers to separate conductance channels
       GSyn = NULL;
@@ -331,92 +366,59 @@ void HyPerLayer::freeChannels()
 #ifdef PV_USE_OPENCL
 #endif
 
-int HyPerLayer::initClayer(PVParams * params) {
-   double xScaled = -log2( (double) nxScale);
-   double yScaled = -log2( (double) nyScale);
+int HyPerLayer::allocateClayerBuffers() {
+   int k;
+   // clayer fields numNeurons, numExtended, loc, xScale, yScale, dx, dy, xOrigin, yOrigin were set in initClayer().
+   assert(clayer);
+   clayer->params = NULL;
 
-   int xScale = (int) nearbyint(xScaled);
-   int yScale = (int) nearbyint(yScaled);
+   clayer->numActive = 0;
 
-   PVLayerLoc layerLoc;
-   setLayerLoc(&layerLoc, nxScale, nyScale, margin, numFeatures);
-   clayer = pvlayer_new(layerLoc, xScale, yScale, numChannels);
-   clayer->layerType = TypeGeneric;
+   int status = PV_SUCCESS;
+
+   int statusV = allocateV();                      if (statusV!=PV_SUCCESS) status = PV_FAILURE;
+   int statusA = allocateActivity();               if (statusA!=PV_SUCCESS) status = PV_FAILURE;
+   int statusActIndices = allocateActiveIndices(); if (statusActIndices!=PV_SUCCESS) status = PV_FAILURE;
+   int statusPrevAct = allocatePrevActivity();     if (statusPrevAct!=PV_SUCCESS) status = PV_FAILURE;
+   for (k = 0; k < getNumExtended(); k++) {
+      clayer->prevActivity[k] = -10*REFRACTORY_PERIOD;  // allow neuron to fire at time t==0
+   }
 
    return PV_SUCCESS;
 }
-/**
- * Initialize a few things that require a layer id
- */
-int HyPerLayer::initializeLayerId(int layerId)
-{
-   char filename[PV_PATH_MAX];
 
-   setLayerId(layerId);
-   switch( parent->includeLayerName() ) {
-   case 0:
-      snprintf(filename, PV_PATH_MAX, "%s/a%d.pvp", parent->getOutputPath(), clayer->layerId);
-      break;
-   case 1:
-      snprintf(filename, PV_PATH_MAX, "%s/a%d_%s.pvp", parent->getOutputPath(), clayer->layerId, name);
-      break;
-   case 2:
-      snprintf(filename, PV_PATH_MAX, "%s/%s.pvp", parent->getOutputPath(), name);
-      break;
-   default:
-      assert(0);
-      break;
+template <typename T>
+int HyPerLayer::allocateBuffer(T ** buf, int bufsize, const char * bufname) {
+   int status = PV_SUCCESS;
+   *buf = (T *) calloc(bufsize, sizeof(T));
+   if(*buf == NULL) {
+      fprintf(stderr, "Layer \"%s\" error in rank %d process: unable to allocate memory for %s: %s.\n", name, parent->columnId(), bufname, strerror(errno));
+      status = PV_FAILURE;
    }
+   return status;
+}
+// Declare the instantiations of allocateBuffer that occur in other .cpp files; otherwise you may get linker errors.
+template int HyPerLayer::allocateBuffer<pvdata_t>(pvdata_t ** buf, int bufsize, const char * bufname);
+template int HyPerLayer::allocateBuffer<int>(int ** buf, int bufsize, const char * bufname);
 
-   // initialize writeActivityCalls and writeSparseActivityCalls
-   // only the root process needs these member variables so we don't need to do any MPI.
-   int rootproc = 0;
-   if (ioAppend && parent->columnId()==rootproc) {
-      struct stat statbuffer;
-      int filestatus = stat(filename, &statbuffer);
-      if (filestatus == 0) {
-         if (statbuffer.st_size==(off_t) 0)
-         {
-            ioAppend = false;
-         }
-      }
-      else {
-         if (errno==ENOENT) {
-            ioAppend = false;
-         }
-         else {
-            fprintf(stderr, "HyPerLayer::initializeLayerId error: stat \"%s\": %s\n", filename, strerror(errno));
-            abort();
-         }
-      }
-   }
-   if (ioAppend && parent->columnId()==rootproc) {
-      PV_Stream * pvstream = PV_fopen(filename,"r");
-      if (pvstream) {
-         int params[NUM_BIN_PARAMS];
-         int numread = PV_fread(params, sizeof(int), NUM_BIN_PARAMS, pvstream);
-         if (numread==NUM_BIN_PARAMS) {
-            if (writeSparseActivity) {
-               writeActivitySparseCalls = params[INDEX_NBANDS];
-            }
-            else {
-               writeActivityCalls = params[INDEX_NBANDS];
-            }
-         }
-         PV_fclose(pvstream);
-      }
-      else {
-         ioAppend = false;
-      }
-   }
-   InterColComm * icComm = parent->icCommunicator();
-   MPI_Bcast(&ioAppend, 1, MPI_INT, 0/*root*/, icComm->communicator());
-   clayer->activeFP = pvp_open_write_file(filename, icComm, ioAppend);
-
-   return 0;
+int HyPerLayer::allocateV() {
+   return allocateBuffer(&clayer->V, getNumNeurons(), "membrane potential V");
 }
 
-int HyPerLayer::setLayerLoc(PVLayerLoc * layerLoc, float nxScale, float nyScale, int margin, int nf)
+int HyPerLayer::allocateActivity() {
+   clayer->activity = pvcube_new(&clayer->loc, getNumExtended());
+   return clayer->activity!=NULL ? PV_SUCCESS : PV_FAILURE;
+}
+
+int HyPerLayer::allocateActiveIndices() {
+   return allocateBuffer(&clayer->activeIndices, getNumNeurons(), "active indices");
+}
+
+int HyPerLayer::allocatePrevActivity() {
+   return allocateBuffer(&clayer->prevActivity, getNumExtended(), "time of previous activity");
+}
+
+int HyPerLayer::setLayerLoc(PVLayerLoc * layerLoc, float nxScale, float nyScale, int nf)
 {
    int status = PV_SUCCESS;
 
@@ -478,14 +480,31 @@ int HyPerLayer::setLayerLoc(PVLayerLoc * layerLoc, float nxScale, float nyScale,
    layerLoc->ky0 = layerLoc->ny * icComm->commRow();
 
    layerLoc->nf = nf;
-   layerLoc->nb = margin;
 
-   layerLoc->halo.lt = margin;
-   layerLoc->halo.rt = margin;
-   layerLoc->halo.dn = margin;
-   layerLoc->halo.up = margin;
+   // nb and halo are set in calls to updateClayerMargin
+   layerLoc->nb = 0; // margin;
+
+   layerLoc->halo.lt = 0; // margin;
+   layerLoc->halo.rt = 0; // margin;
+   layerLoc->halo.dn = 0; // margin;
+   layerLoc->halo.up = 0; // margin;
 
    return 0;
+}
+
+int HyPerLayer::updateClayerMargin(PVLayer * clayer, int new_margin) {
+   // Only be called before buffers are allocated
+   assert(clayer!=NULL);
+   PVLayerLoc * loc = &clayer->loc;
+   clayer->loc.nb = new_margin;
+   PVHalo * halo = &loc->halo;
+   halo->lt = new_margin;
+   halo->rt = new_margin;
+   halo->dn = new_margin;
+   halo->up = new_margin;
+
+   clayer->numExtended = (loc->nx+2*new_margin)*(loc->ny+2*new_margin)*loc->nf;
+   return PV_SUCCESS;
 }
 
 int HyPerLayer::allocateBuffers() {
@@ -525,16 +544,16 @@ int HyPerLayer::initializeState() {
       status = readState(&timef);
    }
    else {
-	  if (this->getV()!=NULL) {
-		  InitV * initVObject = new InitV(parent, name);
-		  if( initVObject == NULL ) {
-			 fprintf(stderr, "HyPerLayer::initializeState error: layer %s unable to create InitV object\n", name);
-			 abort();
-		  }
-		  status = initVObject->calcV(this);
-		  delete initVObject;
-		  setActivity();
-	  }
+      if (this->getV()!=NULL) {
+         InitV * initVObject = new InitV(parent, name);
+         if( initVObject == NULL ) {
+            fprintf(stderr, "HyPerLayer::initializeState error: layer %s unable to create InitV object\n", name);
+            abort();
+         }
+         status = initVObject->calcV(this);
+         delete initVObject;
+         setActivity();
+      }
    }
    return status;
 }
@@ -551,9 +570,9 @@ int HyPerLayer::setParams(PVParams * inputParams)
    readMirrorBCFlag(inputParams);
    readValueBC(inputParams);
    readRestart(inputParams);
-// #ifdef PV_USE_OPENCL
-//    readGPUAccelerateFlag(inputParams);
-// #endif // PV_USE_OPENCL
+#ifdef PV_USE_OPENCL
+   readGPUAccelerate(inputParams);
+#endif // PV_USE_OPENCL
 
    return PV_SUCCESS;
 }
@@ -577,7 +596,7 @@ void HyPerLayer::readMarginWidth(PVParams * params) {
 void HyPerLayer::readWriteStep(PVParams * params) {
    writeStep = params->value(name, "writeStep", parent->getDeltaTime());
    if (writeStep>=0.0f) {
-	  readInitialWriteTime(params);
+      readInitialWriteTime(params);
       writeTime = initialWriteTime-writeStep;
    }
 
@@ -653,7 +672,7 @@ void HyPerLayer::readRestart(PVParams * params) {
 }
 
 #ifdef PV_USE_OPENCL
-void HyPerLayer::readGPUAccelerateFlag(PVParams * params) {
+void HyPerLayer::readGPUAccelerate(PVParams * params) {
    gpuAccelerateFlag = params->value(name, "GPUAccelerate", gpuAccelerateFlag);
 }
 
@@ -704,17 +723,6 @@ int HyPerLayer::initializeThreadKernels(const char * kernel_name)
 }
 #endif
 
-int HyPerLayer::columnWillAddLayer(InterColComm * comm, int layerId)
-{
-   clayer->columnId = parent->columnId();
-   initializeLayerId(layerId);
-
-   // addPublisher call has been moved to start of HyPerCol::run(int), so that connections can adjust numDelayLevels as necessary.
-   // comm->addPublisher(this, clayer->activity->numItems, clayer->numDelayLevels);
-
-   return 0;
-}
-
 int HyPerLayer::initFinish()
 {
    return 0;
@@ -734,34 +742,152 @@ int HyPerLayer::communicateInitInfo()
    // methods, HyPerLayer knows its marginWidth before it has to allocate
    // anything.  So it no longer needs to be specified in params!
    int status = PV_SUCCESS;
-   // TODO
+
    return status;
+}
+
+int HyPerLayer::openOutputStateFile() {
+   char filename[PV_PATH_MAX];
+   switch( parent->includeLayerName() ) {
+   case 0:
+      snprintf(filename, PV_PATH_MAX, "%s/a%d.pvp", parent->getOutputPath(), layerId);
+      break;
+   case 1:
+      snprintf(filename, PV_PATH_MAX, "%s/a%d_%s.pvp", parent->getOutputPath(), layerId, name);
+      break;
+   case 2:
+      snprintf(filename, PV_PATH_MAX, "%s/%s.pvp", parent->getOutputPath(), name);
+      break;
+   default:
+      assert(0);
+      break;
+   }
+
+   // initialize writeActivityCalls and writeSparseActivityCalls
+   // only the root process needs these member variables so we don't need to do any MPI.
+   int rootproc = 0;
+   if (ioAppend && parent->columnId()==rootproc) {
+      struct stat statbuffer;
+      int filestatus = stat(filename, &statbuffer);
+      if (filestatus == 0) {
+         if (statbuffer.st_size==(off_t) 0)
+         {
+            ioAppend = false;
+         }
+      }
+      else {
+         if (errno==ENOENT) {
+            ioAppend = false;
+         }
+         else {
+            fprintf(stderr, "HyPerLayer::initializeLayerId error: stat \"%s\": %s\n", filename, strerror(errno));
+            abort();
+         }
+      }
+   }
+   if (ioAppend && parent->columnId()==rootproc) {
+      PV_Stream * pvstream = PV_fopen(filename,"r");
+      if (pvstream) {
+         int params[NUM_BIN_PARAMS];
+         int numread = PV_fread(params, sizeof(int), NUM_BIN_PARAMS, pvstream);
+         if (numread==NUM_BIN_PARAMS) {
+            if (writeSparseActivity) {
+               writeActivitySparseCalls = params[INDEX_NBANDS];
+            }
+            else {
+               writeActivityCalls = params[INDEX_NBANDS];
+            }
+         }
+         PV_fclose(pvstream);
+      }
+      else {
+         ioAppend = false;
+      }
+   }
+   InterColComm * icComm = parent->icCommunicator();
+   MPI_Bcast(&ioAppend, 1, MPI_INT, 0/*root*/, icComm->communicator());
+   clayer->activeFP = pvp_open_write_file(filename, icComm, ioAppend);
+
+   return PV_SUCCESS;
 }
 
 int HyPerLayer::allocateDataStructures()
 {
-   // Once initialize and communicate have been called, HyPerLayer has the
+   // Once initialize and communicateInitInfo have been called, HyPerLayer has the
    // information it needs to allocate the membrane potential buffer V, the
    // activity buffer activity->data, and the data store.
    int status = PV_SUCCESS;
-   // TODO
+
+   allocateClayerBuffers();
+
+   // If not mirroring, fill the boundaries with the value in the valueBC param
+   if (!useMirrorBCs() && getValueBC()!=0.0f) {
+      const PVLayerLoc * loc = getLayerLoc();
+      int nx = loc->nx;
+      int ny = loc->ny;
+      int nf = loc->nf;
+      int nb = loc->nb;
+      int idx = 0;
+      for (int b=0; b<getLayerLoc()->nb; b++) {
+         for(int k=0; k<(nx+2*nb)*nf; k++) {
+            clayer->activity->data[idx] = getValueBC();
+            idx++;
+         }
+      }
+      for (int y=0; y<ny; y++) {
+         for(int k=0; k<nb*nf; k++) {
+            clayer->activity->data[idx] = getValueBC();
+            idx++;
+         }
+         idx += nx;
+         for(int k=0; k<nb*nf; k++) {
+            clayer->activity->data[idx] = getValueBC();
+            idx++;
+         }
+      }
+      for (int b=0; b<getLayerLoc()->nb; b++) {
+         for(int k=0; k<(nx+2*nb)*nf; k++) {
+            clayer->activity->data[idx] = getValueBC();
+            idx++;
+         }
+      }
+      assert(idx==getNumExtended());
+   }
+
+   // allocate storage for the input conductance arrays
+   status = allocateBuffers();
+   assert(status == PV_SUCCESS);
+
+   // labels are not extended
+   labels = (int *) calloc(getNumNeurons(), sizeof(int));
+   if (labels==NULL) {
+      fprintf(stderr, "HyPerLayer \"%s\" error: rank %d unable to allocate memory for labels.\n", name, parent->columnId());
+      exit(EXIT_FAILURE);
+   }
+
    return status;
 }
 
 /*
  * Call this routine to increase the number of levels in the data store ring buffer.
  * Calls to this routine after the data store has been initialized will have no effect.
- * The routine returns the new value of clayer->numDelayLevels
+ * The routine returns the new value of numDelayLevels
  */
 int HyPerLayer::increaseDelayLevels(int neededDelay) {
-   if( clayer->numDelayLevels < neededDelay+1 ) clayer->numDelayLevels = neededDelay+1;
-   if( clayer->numDelayLevels > MAX_F_DELAY ) clayer->numDelayLevels = MAX_F_DELAY;
-   return clayer->numDelayLevels;
+   if( numDelayLevels < neededDelay+1 ) numDelayLevels = neededDelay+1;
+   if( numDelayLevels > MAX_F_DELAY ) numDelayLevels = MAX_F_DELAY;
+   return numDelayLevels;
 }
 
 int HyPerLayer::requireMarginWidth(int marginWidthNeeded, int * marginWidthResult) {
-   // TODO - set margin based on calls to requireMarginWidth, and not have a marginWidth parameter in the params file
-   return marginWidthNeeded <= margin ? PV_SUCCESS : PV_FAILURE;
+   if (margin < marginWidthNeeded) {
+      assert(clayer);
+      printf("Layer \"%s\": adjusting margin width from %d to %d\n", name, margin, marginWidthNeeded);
+      margin = marginWidthNeeded;
+      updateClayerMargin(clayer, margin);
+   }
+   *marginWidthResult = margin;
+   return PV_SUCCESS;
 }
 
 int HyPerLayer::requireChannel(int channelNeeded, int * numChannelsResult) {
@@ -900,7 +1026,7 @@ int HyPerLayer::gatherToInteriorBuffer(unsigned char * buf)
 }
 
 int HyPerLayer::copyToBuffer(unsigned char * buf, const pvdata_t * data,
-                             const PVLayerLoc * loc, bool extended, float scale)
+      const PVLayerLoc * loc, bool extended, float scale)
 {
    size_t sf, sx, sy;
 
@@ -938,7 +1064,7 @@ int HyPerLayer::copyToBuffer(unsigned char * buf, const pvdata_t * data,
 }
 
 int HyPerLayer::copyToBuffer(pvdata_t * buf, const pvdata_t * data,
-                             const PVLayerLoc * loc, bool extended, float scale)
+      const PVLayerLoc * loc, bool extended, float scale)
 {
    size_t sf, sx, sy;
    int nxBorder, nyBorder;
@@ -979,7 +1105,7 @@ int HyPerLayer::copyToBuffer(pvdata_t * buf, const pvdata_t * data,
 }
 
 int HyPerLayer::copyFromBuffer(const unsigned char * buf, pvdata_t * data,
-                               const PVLayerLoc * loc, bool extended, float scale)
+      const PVLayerLoc * loc, bool extended, float scale)
 {
    size_t sf, sx, sy;
 
@@ -1569,12 +1695,12 @@ int HyPerLayer::readDataStoreFromFile(const char * filename, InterColComm * comm
       }
       abort();
    }
-   int numlevels = comm->publisherStore(getCLayer()->layerId)->numberOfLevels();
+   int numlevels = comm->publisherStore(getLayerId())->numberOfLevels();
    if (params[INDEX_NBANDS] != numlevels) {
       fprintf(stderr, "readDataStoreFromFile error reading \"%s\": number of delays in file is %d, but number of delays in layer is %d\n", filename, params[INDEX_NBANDS], numlevels);
       abort();
    }
-   DataStore * datastore = comm->publisherStore(getCLayer()->layerId);
+   DataStore * datastore = comm->publisherStore(getLayerId());
    for (int l=0; l<numlevels; l++) {
       double tlevel;
       pvp_read_time(readFile, comm, 0/*root process*/, &tlevel);
@@ -1706,8 +1832,8 @@ int HyPerLayer::writeBufferFile(const char * filename, InterColComm * comm, doub
 int HyPerLayer::writeDataStoreToFile(const char * filename, InterColComm * comm, double timed) {
    PV_Stream * writeFile = pvp_open_write_file(filename, comm, /*append*/false);
    assert( (writeFile != NULL && comm->commRank() == 0) || (writeFile == NULL && comm->commRank() != 0) );
-   int numlevels = comm->publisherStore(getCLayer()->layerId)->numberOfLevels();
-   assert(numlevels == getCLayer()->numDelayLevels);
+   int numlevels = comm->publisherStore(getLayerId())->numberOfLevels();
+   assert(numlevels == getNumDelayLevels());
    int * params = pvp_set_nonspiking_act_params(comm, timed, getLayerLoc(), PV_FLOAT_TYPE, numlevels);
    assert(params && params[1]==NUM_BIN_PARAMS);
    int status = pvp_write_header(writeFile, comm, params, NUM_BIN_PARAMS);
@@ -1715,7 +1841,7 @@ int HyPerLayer::writeDataStoreToFile(const char * filename, InterColComm * comm,
       fprintf(stderr, "HyPerLayer::writeBufferFile error writing \"%s\"\n", filename);
       abort();
    }
-   DataStore * datastore = comm->publisherStore(getCLayer()->layerId);
+   DataStore * datastore = comm->publisherStore(getLayerId());
    for (int l=0; l<numlevels; l++) {
       if (writeFile != NULL) { // Root process has writeFile set to non-null; other processes to NULL.
          int numwritten = PV_fwrite(&timed, sizeof(double), 1, writeFile);

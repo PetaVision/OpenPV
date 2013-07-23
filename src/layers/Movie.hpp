@@ -18,6 +18,8 @@ public:
    Movie(const char * name, HyPerCol * hc, const char * fileOfFileNames, float displayPeriod);
    virtual ~Movie();
 
+   virtual int allocateDataStructures();
+
    virtual pvdata_t * getImageBuffer();
    virtual PVLayerLoc getImageLoc();
 
@@ -33,6 +35,7 @@ public:
 protected:
    Movie();
    int initialize(const char * name, HyPerCol * hc, const char * fileOfFileNames, float defaultDisplayPeriod);
+   virtual int setParams(PVParams * params);
 
 private:
    int initialize_base();
@@ -50,13 +53,17 @@ private:
    bool echoFramePathnameFlag; // if true, echo the frame pathname to stdout
    bool newImageFlag; // true when a new image was presented this timestep;
 
+   int startFrameIndex;
    int skipFrameIndex; // skip this number of frames between each load
+
+   bool autoResizeFlag;
 
    char inputfile[PV_PATH_MAX];  // current input file name
    char * movieOutputPath;  // path to output file directory for movie frames
 
    double numFrames; //Number of frames
    bool readPvpFile;
+   char * fileOfFileNames;
 
    PV_Stream * filenamestream;
 };

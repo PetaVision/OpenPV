@@ -39,6 +39,7 @@ public:
    virtual ~ImageCreator();
 
    int initialize();
+   virtual int allocateDataStructures();
 
    int clearImage();
    int fillImage(pvdata_t val);

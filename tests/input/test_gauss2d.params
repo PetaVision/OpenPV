@@ -48,7 +48,7 @@ HyPerConn "test_gauss2d hyperconn" = {
    weightInitType = "Gauss2DWeight";
    nxp = 5;
    nyp = 5;
-   // nfp;
+   nfp = -1;
    numAxonalArbors = 1;
    channelCode = 0;
    aspect = 2;
@@ -73,7 +73,7 @@ HyPerConn "test_gauss2d kernelconn" = {
    weightInitType = "Gauss2DWeight";
    nxp = 5;
    nyp = 5;
-   // nfp;
+   nfp = -1;
    numAxonalArbors = 1;
    channelCode = 0;
    aspect = 2;
@@ -123,7 +123,7 @@ HyPerConn "test_gauss2d hyperconn 1 to 2" = {
    // test_gauss2d hardcodes InitWeights, which uses Gauss2DWeights
    nxp = 10;  // must be scale factor times odd number
    nyp = 10;
-   // nfp;
+   nfp = -1;
    numAxonalArbors = 1;
    channelCode = 0;
    aspect = 2;
@@ -147,7 +147,7 @@ HyPerConn "test_gauss2d kernelconn 1 to 2" = {
    // test_gauss2d hardcodes InitWeights, which uses Gauss2DWeights
    nxp = 10;  // must be scale factor times odd number
    nyp = 10;
-   // nfp;
+   nfp = -1;
    numAxonalArbors = 1;
    channelCode = 0;
    aspect = 2;
@@ -171,7 +171,7 @@ HyPerConn "test_gauss2d hyperconn 2 to 1" = {
    // test_gauss2d hardcodes InitWeights, which uses Gauss2DWeights
    nxp = 5; // must be odd
    nyp = 5;
-   // nfp;
+   nfp = -1;
    numAxonalArbors = 1;
    channelCode = 0;
    aspect = 2;
@@ -195,7 +195,7 @@ HyPerConn "test_gauss2d kernelconn 2 to 1" = {
    // test_gauss2d hardcodes InitWeights, which uses Gauss2DWeights
    nxp = 5;
    nyp = 5;
-   // nfp;
+   nfp = -1;
    numAxonalArbors = 1;
    channelCode = 0;
    aspect = 2;

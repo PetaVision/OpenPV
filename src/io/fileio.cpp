@@ -1108,7 +1108,7 @@ int writeActivity(PV_Stream * pvstream, Communicator * comm, double timed, PVLay
       // write time
       //
       if ( PV_fwrite(&timed, sizeof(double), 1, pvstream) != 1 ) {
-         fprintf(stderr,"fwrite of timestamp in PV::writeActivity failed for layer %d at time %f\n", l->layerId, timed);
+         fprintf(stderr,"fwrite of timestamp in PV::writeActivity failed in file \"%s\" at time %f\n", pvstream->name, timed);
          abort();
          return -1;
       }

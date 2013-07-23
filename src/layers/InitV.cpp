@@ -92,7 +92,7 @@ int InitV::calcV(HyPerLayer * layer) {
       status = calcGaussianRandomV(layer->getV(), layer->getNumNeurons());
       break;
    case InitVFromFile:
-      status = calcVFromFile(layer->getCLayer(), layer->getParent()->icCommunicator());
+      status = calcVFromFile(layer->getV(), layer->getLayerLoc(), layer->getParent()->icCommunicator());
       break;
    default:
       status = PV_FAILURE;
@@ -143,10 +143,8 @@ pvdata_t InitV::generateUnifRand() {
    return V;
 }
 
-int InitV::calcVFromFile(PVLayer * clayer, InterColComm * icComm) {
+int InitV::calcVFromFile(pvdata_t * V, const PVLayerLoc * loc, InterColComm * icComm) {
    int status = PV_SUCCESS;
-   const PVLayerLoc * loc = &(clayer->loc);
-   pvdata_t * V = clayer->V;
    PVLayerLoc fileLoc;
    int filetype = getFileType(filename);
    if( filetype == PVP_FILE_TYPE) {

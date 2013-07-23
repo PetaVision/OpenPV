@@ -16,9 +16,9 @@ ShuffleLayer::ShuffleLayer() {
    initialize_base();
 }
 
-ShuffleLayer::ShuffleLayer(const char * name, HyPerCol * hc, HyPerLayer * originalLayer) {
+ShuffleLayer::ShuffleLayer(const char * name, HyPerCol * hc) {
    initialize_base();
-   initialize(name, hc, originalLayer);
+   initialize(name, hc);
 }
 
 ShuffleLayer::~ShuffleLayer()
@@ -35,21 +35,25 @@ int ShuffleLayer::initialize_base() {
    return PV_SUCCESS;
 }
 
-int ShuffleLayer::initialize(const char * name, HyPerCol * hc, HyPerLayer * clone) {
+int ShuffleLayer::initialize(const char * name, HyPerCol * hc) {
    //int num_channels = sourceLayer->getNumChannels();
    int status_init = HyPerLayer::initialize(name, hc, 0);
 
-   sourceLayer = clone;
-   // don't need conductance channels
-   freeChannels();
+   // source layer name read in readOriginalLayer, called by setParams
+   // sourceLayer = clone;
 
-   int numGlobalNeurons = sourceLayer->getNumGlobalNeurons();
-
-   indexArray = (int*) calloc(numGlobalNeurons, sizeof(int));
+   // Moved to allocateDataStructures
+   // // don't need conductance channels
+   // freeChannels();
+   //
+   // int numGlobalNeurons = sourceLayer->getNumGlobalNeurons();
+   //
+   // indexArray = (int*) calloc(numGlobalNeurons, sizeof(int));
    return status_init;
 }
 
 int ShuffleLayer::setParams(PVParams * params){
+   readOriginalLayerName(params);
    HyPerLayer::setParams(params);
    readShuffleMethod(params);
    //Read additional parameters based on shuffle method
@@ -62,8 +66,34 @@ int ShuffleLayer::setParams(PVParams * params){
    return PV_SUCCESS;
 }
 
+void ShuffleLayer::readOriginalLayerName(PVParams * params) {
+   const char * original_layer_name = params->stringValue(name, "originalLayerName");
+   if( original_layer_name == NULL ) {
+      fprintf(stderr, "RescaleLayer \"%s\": string parameter originalLayerName must be set\n", name);
+      exit(EXIT_FAILURE);
+   }
+   originalLayerName = strdup(original_layer_name);
+   if (originalLayerName==NULL) {
+      fprintf(stderr, "RescaleLayer \"%s\" error: unable to copy originalLayerName \"%s\": %s\n", name, original_layer_name, strerror(errno));
+      exit(EXIT_FAILURE);
+   }
+}
+
 void ShuffleLayer::readShuffleMethod(PVParams * params){
    shuffleMethod = strdup(params->stringValue(name, "shuffleMethod", NULL));
+}
+
+int ShuffleLayer::allocateDataStructures() {
+   int status = HyPerLayer::allocateDataStructures();
+
+   // don't need conductance channels
+   freeChannels();
+
+   int numGlobalNeurons = sourceLayer->getNumGlobalNeurons();
+
+   indexArray = (int*) calloc(numGlobalNeurons, sizeof(int));
+
+   return status;
 }
 
 int ShuffleLayer::setActivity() {

@@ -106,14 +106,16 @@ int Retina::initialize_base() {
 int Retina::initialize(const char * name, HyPerCol * hc, PVLayerType type) {
    int status = HyPerLayer::initialize(name, hc, NUM_RETINA_CHANNELS);
 
-   free(clayer->V);
-   clayer->V = NULL;
+   // Moved to allocateDataStructures
+   // free(clayer->V);
+   // clayer->V = NULL;
 
    clayer->layerType = type;
 
-   PVLayer * l = clayer;
-
    setRetinaParams(parent->parameters());
+
+#ifdef OBSOLETE // Marked obsolete July 19, 2013.  This appears to be a remnant from before retina and image were separate objects
+   PVLayer * l = clayer;
 
    // the size of the Retina may have changed due to size of image
    //
@@ -123,26 +125,23 @@ int Retina::initialize(const char * name, HyPerCol * hc, PVLayerType type) {
    const int nb = l->loc.nb;
    l->numNeurons  = nx * ny * nf;
    l->numExtended = (nx + 2*nb) * (ny + 2*nb) * nf;
+#endif // OBSOLETE
 
-   // Commented out Nov. 29, 2012
-   // // random seed should be different for different layers
-   // unsigned int seed = (unsigned int) (parent->getRandomSeed() + getLayerId());
-
+   // Moved to communicateInitInfo()
    // // a random state variable is needed for every neuron/clthread
-   // rand_state = cl_random_init(numNeurons, seed);
-   numGlobalRNGs = getNumGlobalNeurons();
-   rand_state = (uint4 *) malloc(getNumNeurons() * sizeof(uint4));
-   if (rand_state == NULL) {
-      fprintf(stderr, "Retina::initialize error.  Layer \"%s\" unable to allocate memory for random states.\n", getName());
-      exit(EXIT_FAILURE);
-   }
-   unsigned int seed = parent->getObjectSeed(getNumGlobalRNGs());
-   const PVLayerLoc * loc = getLayerLoc();
-   for (int y = 0; y<loc->ny; y++) {
-      int k_local = kIndex(0, y, 0, loc->nx, loc->ny, loc->nf);
-      int k_global = kIndex(loc->kx0, y+loc->ky0, 0, loc->nxGlobal, loc->nyGlobal, loc->nf);
-      cl_random_init(&rand_state[k_local], loc->nx * loc->nf, seed + k_global);
-   }
+   // numGlobalRNGs = getNumGlobalNeurons();
+   // rand_state = (uint4 *) malloc(getNumNeurons() * sizeof(uint4));
+   // if (rand_state == NULL) {
+   //    fprintf(stderr, "Retina::initialize error.  Layer \"%s\" unable to allocate memory for random states.\n", getName());
+   //    exit(EXIT_FAILURE);
+   // }
+   // unsigned int seed = parent->getObjectSeed(getNumGlobalRNGs());
+   // const PVLayerLoc * loc = getLayerLoc();
+   // for (int y = 0; y<loc->ny; y++) {
+   //    int k_local = kIndex(0, y, 0, loc->nx, loc->ny, loc->nf);
+   //    int k_global = kIndex(loc->kx0, y+loc->ky0, 0, loc->nxGlobal, loc->nyGlobal, loc->nf);
+   //    cl_random_init(&rand_state[k_local], loc->nx * loc->nf, seed + k_global);
+   // }
 
 #ifdef PV_USE_OPENCL
    numEvents=NUM_RETINA_EVENTS;
@@ -254,6 +253,36 @@ int Retina::initializeThreadKernels(const char * kernel_name)
    return status;
 }
 #endif
+
+int Retina::communicateInitInfo() {
+   int status = HyPerLayer::communicateInitInfo();
+
+   // // a random state variable is needed for every neuron/clthread
+   numGlobalRNGs = getNumGlobalNeurons();
+   rand_state = (uint4 *) malloc(getNumNeurons() * sizeof(uint4));
+   if (rand_state == NULL) {
+      fprintf(stderr, "Retina::initialize error.  Layer \"%s\" unable to allocate memory for random states.\n", getName());
+      exit(EXIT_FAILURE);
+   }
+   unsigned int seed = parent->getObjectSeed(getNumGlobalRNGs());
+   const PVLayerLoc * loc = getLayerLoc();
+   for (int y = 0; y<loc->ny; y++) {
+      int k_local = kIndex(0, y, 0, loc->nx, loc->ny, loc->nf);
+      int k_global = kIndex(loc->kx0, y+loc->ky0, 0, loc->nxGlobal, loc->nyGlobal, loc->nf);
+      cl_random_init(&rand_state[k_local], loc->nx * loc->nf, seed + k_global);
+   }
+
+   return status;
+}
+
+int Retina::allocateDataStructures() {
+   int status = HyPerLayer::allocateDataStructures();
+
+   free(clayer->V);
+   clayer->V = NULL;
+
+   return status;
+}
 
 int Retina::initializeState() {
 

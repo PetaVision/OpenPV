@@ -47,82 +47,128 @@ int PursuitLayer::initialize_base() {
 
 int PursuitLayer::initialize(const char * name, HyPerCol * hc, int num_channels) {
    int status = ANNLayer::initialize(name, hc, MAX_CHANNELS);
-   free(getCLayer()->V);
-   getCLayer()->V = NULL;
 
-   if (status==PV_SUCCESS) {
-      wnormsq = (pvdata_t *) calloc(getLayerLoc()->nf, sizeof(pvdata_t));
-      if (wnormsq == NULL) {
-         fprintf(stderr, "PursuitLayer::initialize unable to allocate memory for wnormsq: %s\n", strerror(errno));
-         abort();
-      }
-   }
-   if (status==PV_SUCCESS) {
-      minimumLocations = (pvdata_t *) calloc(getNumNeurons(), sizeof(pvdata_t));
-      if (minimumLocations == NULL) {
-         fprintf(stderr, "PursuitLayer::initialize unable to allocate memory for minimumLocations: %s\n", strerror(errno));
-         abort();
-      }
-   }
-   if (status==PV_SUCCESS) {
-      energyDrops = (pvdata_t *) calloc(getNumNeurons(), sizeof(pvdata_t));
-      if (energyDrops == NULL) {
-         fprintf(stderr, "PursuitLayer::initialize unable to allocate memory for minEnergies: %s\n", strerror(errno));
-         abort();
-      }
-   }
-   int xy = getLayerLoc()->nx * getLayerLoc()->ny;
-   if (status==PV_SUCCESS) {
-      minFeatures = (int *) calloc(xy, sizeof(pvdata_t));
-      if (minFeatures == NULL) {
-         fprintf(stderr, "PursuitLayer::initialize unable to allocate memory for minFeatures: %s\n", strerror(errno));
-         abort();
-      }
-   }
-   if (status==PV_SUCCESS) {
-      energyDropsBestFeature = (pvdata_t *) calloc(xy, sizeof(pvdata_t));
-      if (energyDropsBestFeature == NULL) {
-         fprintf(stderr, "PursuitLayer::initialize unable to allocate memory for gSynSparse: %s\n", strerror(errno));
-         abort();
-      }
-   }
-   if (status==PV_SUCCESS) {
-      foundFeatures = (int *) calloc(xy, sizeof(pvdata_t));
-      if (foundFeatures == NULL) {
-         fprintf(stderr, "PursuitLayer::initialize unable to allocate memory for foundFeatures: %s\n", strerror(errno));
-         abort();
-      }
-   }
-   for (int k=0; k<xy; k++) {
-      foundFeatures[k]=-1;
-   }
-   if (status==PV_SUCCESS) {
-      minLocationsBestFeature = (pvdata_t *) calloc(xy, sizeof(pvdata_t));
-      if (minLocationsBestFeature == NULL) {
-         fprintf(stderr, "PursuitLayer::initialize unable to allocate memory for minLocationsBestFeature: %s\n", strerror(errno));
-         abort();
-      }
-   }
-   if (status==PV_SUCCESS) {
-      gSynSparse = (pvdata_t *) calloc(xy, sizeof(pvdata_t));
-      if (gSynSparse == NULL) {
-         fprintf(stderr, "PursuitLayer::initialize unable to allocate memory for gSynSparse: %s\n", strerror(errno));
-         abort();
-      }
-   }
-   if (status==PV_SUCCESS) {
-      minEnergyFiltered = (pvdata_t *) calloc(xy, sizeof(pvdata_t));
-      if (minEnergyFiltered == NULL) {
-         fprintf(stderr, "PursuitLayer::initialize unable to allocate memory for minEnergyFiltered: %s\n", strerror(errno));
-         abort();
-      }
-   }
+   // Moved to allocateDataStructures(), and callocs are done with calls to allocateBuffer
+   //free(getCLayer()->V);
+   //getCLayer()->V = NULL;
+   //
+   //if (status==PV_SUCCESS) {
+   //   wnormsq = (pvdata_t *) calloc(getLayerLoc()->nf, sizeof(pvdata_t));
+   //   if (wnormsq == NULL) {
+   //      fprintf(stderr, "PursuitLayer::initialize unable to allocate memory for wnormsq: %s\n", strerror(errno));
+   //      abort();
+   //   }
+   //}
+   //if (status==PV_SUCCESS) {
+   //    minimumLocations = (pvdata_t *) calloc(getNumNeurons(), sizeof(pvdata_t));
+   //    if (minimumLocations == NULL) {
+   //       fprintf(stderr, "PursuitLayer::initialize unable to allocate memory for minimumLocations: %s\n", strerror(errno));
+   //       abort();
+   //    }
+   // }
+   //if (status==PV_SUCCESS) {
+   //   energyDrops = (pvdata_t *) calloc(getNumNeurons(), sizeof(pvdata_t));
+   //   if (energyDrops == NULL) {
+   //      fprintf(stderr, "PursuitLayer::initialize unable to allocate memory for minEnergies: %s\n", strerror(errno));
+   //      abort();
+   //   }
+   //}
+   //int xy = getLayerLoc()->nx * getLayerLoc()->ny;
+   //if (status==PV_SUCCESS) {
+   //   minFeatures = (int *) calloc(xy, sizeof(pvdata_t));
+   //   if (minFeatures == NULL) {
+   //      fprintf(stderr, "PursuitLayer::initialize unable to allocate memory for minFeatures: %s\n", strerror(errno));
+   //      abort();
+   //   }
+   //}
+   //if (status==PV_SUCCESS) {
+   //   energyDropsBestFeature = (pvdata_t *) calloc(xy, sizeof(pvdata_t));
+   //   if (energyDropsBestFeature == NULL) {
+   //      fprintf(stderr, "PursuitLayer::initialize unable to allocate memory for gSynSparse: %s\n", strerror(errno));
+   //      abort();
+   //   }
+   //}
+   //if (status==PV_SUCCESS) {
+   //   foundFeatures = (int *) calloc(xy, sizeof(pvdata_t));
+   //   if (foundFeatures == NULL) {
+   //      fprintf(stderr, "PursuitLayer::initialize unable to allocate memory for foundFeatures: %s\n", strerror(errno));
+   //      abort();
+   //   }
+   //}
+   //for (int k=0; k<xy; k++) {
+   //   foundFeatures[k]=-1;
+   //}
+   //if (status==PV_SUCCESS) {
+   //   minLocationsBestFeature = (pvdata_t *) calloc(xy, sizeof(pvdata_t));
+   //   if (minLocationsBestFeature == NULL) {
+   //      fprintf(stderr, "PursuitLayer::initialize unable to allocate memory for minLocationsBestFeature: %s\n", strerror(errno));
+   //      abort();
+   //   }
+   //}
+   //if (status==PV_SUCCESS) {
+   //   gSynSparse = (pvdata_t *) calloc(xy, sizeof(pvdata_t));
+   //   if (gSynSparse == NULL) {
+   //      fprintf(stderr, "PursuitLayer::initialize unable to allocate memory for gSynSparse: %s\n", strerror(errno));
+   //      abort();
+   //   }
+   //}
+   //if (status==PV_SUCCESS) {
+   //   minEnergyFiltered = (pvdata_t *) calloc(xy, sizeof(pvdata_t));
+   //   if (minEnergyFiltered == NULL) {
+   //      fprintf(stderr, "PursuitLayer::initialize unable to allocate memory for minEnergyFiltered: %s\n", strerror(errno));
+   //      abort();
+   //   }
+   //}
 
    PVParams * params = parent->parameters();
    firstUpdate = params->value(name, "firstUpdate", 1);
    updatePeriod = params->value(name, "updatePeriod", 1);
    nextUpdate = firstUpdate;
    updateReady = false;
+
+   return status;
+}
+
+int PursuitLayer::allocateDataStructures() {
+   int status = ANNLayer::allocateDataStructures();
+   if (status == PV_SUCCESS) {
+      free(getCLayer()->V); // TODO: override allocateV so that this is unnecessary
+      getCLayer()->V = NULL;
+   }
+
+   if (status == PV_SUCCESS) {
+      status = allocateBuffer(&wnormsq, getLayerLoc()->nf, "wnormsq");
+   }
+   if (status==PV_SUCCESS) {
+      status = allocateBuffer(&minimumLocations, getNumNeurons(), "minimumLocations");
+   }
+   if (status==PV_SUCCESS) {
+      status = allocateBuffer(&energyDrops, getNumNeurons(), "energyDrops");
+   }
+
+   int xy = getLayerLoc()->nx * getLayerLoc()->ny;
+   if (status==PV_SUCCESS) {
+      status = allocateBuffer(&minFeatures, xy, "minFeatures");
+   }
+   if (status==PV_SUCCESS) {
+      status = allocateBuffer(&energyDropsBestFeature, xy, "energyDropsBestFeature");
+   }
+   if (status==PV_SUCCESS) {
+      status = allocateBuffer(&foundFeatures, xy, "foundFeatures");
+      for (int k=0; k<xy; k++) {
+         foundFeatures[k]=-1;
+      }
+   }
+   if (status==PV_SUCCESS) {
+      status = allocateBuffer(&minLocationsBestFeature, xy, "minLocationsBestFeature");
+   }
+   if (status==PV_SUCCESS) {
+      status = allocateBuffer(&gSynSparse, xy, "gSynSparse");
+   }
+   if (status==PV_SUCCESS) {
+      status = allocateBuffer(&minEnergyFiltered, xy, "minEnergyFiltered");
+   }
+   if (status != PV_SUCCESS) abort();
 
    return status;
 }

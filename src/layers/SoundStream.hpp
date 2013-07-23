@@ -29,6 +29,7 @@ class SoundStream : public HyPerLayer{
 public:
 	SoundStream(const char * name, HyPerCol * hc);
 	virtual ~SoundStream();
+	virtual int allocateDataStructures();
 	virtual int updateState(double time, double dt);
 	float lastUpdate()  { return lastUpdateTime; }
 

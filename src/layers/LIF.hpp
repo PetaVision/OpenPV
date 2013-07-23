@@ -38,6 +38,9 @@ public:
    LIF(const char* name, HyPerCol * hc, PVLayerType type, int num_channels);
    virtual ~LIF();
 
+   virtual int communicateInitInfo();
+   virtual int allocateDataStructures();
+
    virtual int triggerReceive(InterColComm* comm);
    virtual int updateState(double time, double dt);
    virtual int updateStateOpenCL(double time, double dt);
@@ -72,7 +75,6 @@ public:
 
    virtual LIF_params * getLIFParams() {return &lParams;};
 
-   int setLIFParams(PVParams * p);
 
 protected:
 
@@ -116,6 +118,8 @@ protected:
 protected:
    LIF();
    int initialize(const char * name, HyPerCol * hc, PVLayerType type, int num_channels, const char * kernel_name);
+   virtual int setParams(PVParams * p);
+   virtual void readMethod(PVParams * params);
    virtual int allocateBuffers();
    virtual int allocateConductances(int num_channels);
 

@@ -22,107 +22,105 @@ extern "C" {
 // pvlayer C interface implementation
 //
 
-PVLayer * pvlayer_new(const PVLayerLoc loc, int xScale, int yScale, int numChannels)
-{
-   PVLayer * l = (PVLayer *) calloc(sizeof(PVLayer), sizeof(char));
-   assert(l != NULL);
-   pvlayer_init(l, loc, xScale, yScale, numChannels);
-   return l;
-}
+//PVLayer * pvlayer_new(const PVLayerLoc loc, int xScale, int yScale)
+//{
+//   PVLayer * l = (PVLayer *) calloc(sizeof(PVLayer), sizeof(char));
+//   assert(l != NULL);
+//   pvlayer_init(l, loc, xScale, yScale);
+//   return l;
+//}
 
-/**
- * Initialize layer data.  This originally did not allocate layer data.  However,
- * now the size of the layer (nx,ny) is known at initialization time so allocation
- * has been moved here (functionality of initGlobal) and integrated with OpenCL
- * buffers.
- */
-int pvlayer_init(PVLayer * l, PVLayerLoc loc, int xScale, int yScale, int numChannels)
-{
-   int k;
-   const int nx = loc.nx;
-   const int ny = loc.ny;
-   const int nf = loc.nf;
+///**
+// * Initialize layer data.  This originally did not allocate layer data.  However,
+// * now the size of the layer (nx,ny) is known at initialization time so allocation
+// * has been moved here (functionality of initGlobal) and integrated with OpenCL
+// * buffers.
+// */
+//int pvlayer_init(PVLayer * l, PVLayerLoc loc, int xScale, int yScale)
+//{
+//   int k;
+//   const int nx = loc.nx;
+//   const int ny = loc.ny;
+//   const int nf = loc.nf;
+//
+//   const int numNeurons  = nx * ny * nf;
+//   const int numExtended = (nx + 2*loc.nb) * (ny + 2*loc.nb) * nf;
+//
+//   // l->numDelayLevels = 1; // HyPerConns will increase this as necessary by calling pre-synaptic layer's increaseDelayLevels
+//   // numDelayLevels now a HyPerLayer member variable
+//
+//   l->loc = loc;
+//   l->numNeurons  = numNeurons;
+//   l->numExtended = numExtended;
+//
+//   l->xScale = xScale;
+//   l->yScale = yScale;
+//
+//   l->dx = powf(2.0f, (float) xScale);
+//   l->dy = powf(2.0f, (float) yScale);
+//
+//   l->xOrigin = 0.5 + l->loc.kx0 * l->dx;
+//   l->yOrigin = 0.5 + l->loc.ky0 * l->dy;
+//
+//   l->params = NULL;
+//
+//   l->numActive = 0;
+//   l->activeFP  = NULL;
+//
+//   l->activity = pvcube_new(&l->loc, numExtended);
+//   l->prevActivity = (float *) calloc(numExtended, sizeof(float));
+//
+//   l->V = (pvdata_t *) calloc(numNeurons, sizeof(pvdata_t));
+//   assert(l->V != NULL);
+//
+//   l->activeIndices = (unsigned int *) calloc(l->numNeurons, sizeof(unsigned int));
+//   assert(l->activeIndices != NULL);
+//
+//   // initialize prevActivity (other buffers allocated in HyPerLayer::initialize_base() )
+//   //
+//   for (k = 0; k < numExtended; k++) {
+//      l->prevActivity[k] = -10*REFRACTORY_PERIOD;  // allow neuron to fire at time t==0
+//   }
+//
+//   return PV_SUCCESS;
+//}
 
-   const int numNeurons  = nx * ny * nf;
-   const int numExtended = (nx + 2*loc.nb) * (ny + 2*loc.nb) * nf;
+//int pvlayer_finalize(PVLayer * l)
+//{
+//   pvcube_delete(l->activity);
+//
+//   if (l->activeFP != NULL) {
+//      fclose(l->activeFP->fp); // Can't call fileio.cpp routines from a .c file, so have to replicate PV_fclose
+//      free(l->activeFP->name);
+//      free(l->activeFP);
+//      l->activeFP = NULL;
+//   }
+//
+//   free(l->prevActivity);
+//   free(l->activeIndices);
+//   free(l->V);
+//   free(l);
+//
+//   return 0;
+//}
 
-   l->columnId = 0;
+//float pvlayer_getWeight(float x0, float x, float r, float sigma)
+//{
+//   float dx = x - x0;
+//   return expf(0.5 * dx * dx / (sigma * sigma));
+//}
 
-   l->layerId = -1; // the HyPerCol will set this
-   l->numDelayLevels = 1; // HyPerConns will increase this as necessary by calling pre-synaptic layer's increaseDelayLevels
-
-   l->loc = loc;
-   l->numNeurons  = numNeurons;
-   l->numExtended = numExtended;
-
-   l->xScale = xScale;
-   l->yScale = yScale;
-
-   l->dx = powf(2.0f, (float) xScale);
-   l->dy = powf(2.0f, (float) yScale);
-
-   l->xOrigin = 0.5 + l->loc.kx0 * l->dx;
-   l->yOrigin = 0.5 + l->loc.ky0 * l->dy;
-
-   l->params = NULL;
-
-   l->numActive = 0;
-   l->activeFP  = NULL;
-
-   l->activity = pvcube_new(&l->loc, numExtended);
-   l->prevActivity = (float *) calloc(numExtended, sizeof(float));
-
-   l->V = (pvdata_t *) calloc(numNeurons, sizeof(pvdata_t));
-   assert(l->V != NULL);
-
-   l->activeIndices = (unsigned int *) calloc(l->numNeurons, sizeof(unsigned int));
-   assert(l->activeIndices != NULL);
-
-   // initialize prevActivity (other buffers allocated in HyPerLayer::initialize_base() )
-   //
-   for (k = 0; k < numExtended; k++) {
-      l->prevActivity[k] = -10*REFRACTORY_PERIOD;  // allow neuron to fire at time t==0
-   }
-
-   return PV_SUCCESS;
-}
-
-int pvlayer_finalize(PVLayer * l)
-{
-   pvcube_delete(l->activity);
-
-   if (l->activeFP != NULL) {
-      fclose(l->activeFP->fp); // Can't call fileio.cpp routines from a .c file, so have to replicate PV_fclose
-      free(l->activeFP->name);
-      free(l->activeFP);
-      l->activeFP = NULL;
-   }
-
-   free(l->prevActivity);
-   free(l->activeIndices);
-   free(l->V);
-   free(l);
-
-   return 0;
-}
-
-float pvlayer_getWeight(float x0, float x, float r, float sigma)
-{
-   float dx = x - x0;
-   return expf(0.5 * dx * dx / (sigma * sigma));
-}
-
-int pvlayer_copyUpdate(PVLayer* l) {
-   int k;
-   pvdata_t * activity = l->activity->data;
-   float* V = l->V;
-
-   // copy from the V buffer to the activity buffer
-   for (k = 0; k < l->numNeurons; k++) {
-      activity[k] = V[k];
-   }
-   return 0;
-}
+//int pvlayer_copyUpdate(PVLayer* l) {
+//   int k;
+//   pvdata_t * activity = l->activity->data;
+//   float* V = l->V;
+//
+//   // copy from the V buffer to the activity buffer
+//   for (k = 0; k < l->numNeurons; k++) {
+//      activity[k] = V[k];
+//   }
+//   return 0;
+//}
 
 ///////////////////////////////////////////////////////
 // pvpatch interface implementation

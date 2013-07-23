@@ -26,6 +26,8 @@ public:
    virtual int checkpointRead(const char * cpDir, double * timef);
    virtual int checkpointWrite(const char * cpDir);
 
+   virtual int allocateDataStructures();
+
    int updateState(double time, double dt);
 
    virtual int recvSynapticInput(HyPerConn * conn, const PVLayerCube * cube, int arborID);

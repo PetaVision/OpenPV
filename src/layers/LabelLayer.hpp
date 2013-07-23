@@ -19,7 +19,8 @@ class LabelLayer : public HyPerLayer {
 protected:
    LabelLayer();
    int initialize(const char * name, HyPerCol * hc, const char * movieLayerName);
-   int initClayer(PVParams * params);
+   int initClayer();
+   char * movieLayerName;
    Movie * movie;
    pvdata_t * labelData;
    int stepSize;
@@ -33,6 +34,8 @@ protected:
 
 public:
    LabelLayer(const char * name, HyPerCol * hc, const char * movieLayerName);
+   virtual int communicateInitInfo();
+   virtual int allocateDataStructures();
    virtual int updateState(double time, double dt);
    virtual int outputState(double time, bool last);
    virtual ~LabelLayer();

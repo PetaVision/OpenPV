@@ -24,6 +24,8 @@ public:
 //   GenerativeLayer(const char * name, HyPerCol * hc, PVLayerType type);
    ~GenerativeLayer();
 
+   virtual int allocateDataStructures();
+
    virtual int updateState(double timef, double dt);
 
    pvdata_t getRelaxation() {return relaxation;}

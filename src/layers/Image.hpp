@@ -21,7 +21,24 @@ class Image : public HyPerLayer {
 protected:
    Image();
    int initialize(const char * name, HyPerCol * hc, const char * filename);
-   virtual int readOffsets(); // reads offsetX, offsetY from params.  Override with empty function if a derived class doesn't use these parameters (e.g. Patterns)
+   virtual int setParams(PVParams * params);
+   virtual int readOffsets(PVParams * params); // reads offsetX, offsetY from params.  Override with empty function if a derived class doesn't use these parameters (e.g. Patterns)
+   virtual void readWriteImagesFlag(PVParams * params);
+   virtual void readWriteImagesExtension(PVParams * params);
+   virtual void readUseImageBCflag(PVParams * params);
+   virtual void readAutoResizeFlag(PVParams * params);
+   virtual void readInverseFlag(PVParams * params);
+   virtual void readNormalizeLuminanceFlag(PVParams * params);
+   virtual void readFrameNumber(PVParams * params);
+   virtual void readJitterFlag(PVParams * params);
+   virtual void readJitterType(PVParams * params);
+   virtual void readStepSize(PVParams * params);
+   virtual void readPersistenceProb(PVParams * params);
+   virtual void readRecurrenceProb(PVParams * params);
+   virtual void readBiasChangeTime(PVParams * params);
+   virtual void readBiasConstraintMethod(PVParams * params);
+   virtual void readOffsetConstraintMethod(PVParams * params);
+   virtual void readWritePosition(PVParams * params);
    static inline int calcBandWeights(int numBands, float * bandweights, GDALColorInterp * colorbandtypes);
    static inline void equalBandWeights(int numBands, float * bandweights);
 
@@ -39,6 +56,8 @@ public:
    Image(const char * name, HyPerCol * hc, const char * filename);
    virtual ~Image();
    virtual int initializeState();
+   virtual int communicateInitInfo();
+   virtual int allocateDataStructures();
 
    // primary layer interface
    //

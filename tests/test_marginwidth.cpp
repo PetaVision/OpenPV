@@ -103,6 +103,7 @@ int runonecolumn(int argc, char * argv[], int correctvalue) {
    
    bool rootproc = hc->icCommunicator()->commRank()==0;
    if(rootproc) {
+      fflush(stdout);
       printf("%s: Beginning test of %s.  For this test, ", argv[0], argv[2]);
       if( correctvalue == PV_MARGINWIDTH_FAILURE) {
          printf("marginwidth failures are the correct behavior.\n");

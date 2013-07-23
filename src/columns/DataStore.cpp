@@ -26,6 +26,7 @@ DataStore::DataStore(HyPerCol * hc, int numBuffers, size_t bufSize, int numLevel
 DataStore::DataStore(HyPerCol * hc, int numBuffers, size_t bufSize, int numLevels)
 #endif // PV_USE_OPENCL
 {
+   assert(numLevels > 0 && numBuffers > 0);
    this->curLevel = numLevels - 1;  // start at bottom, work up
    this->bufSize = bufSize;
    this->numLevels = numLevels;

@@ -32,13 +32,24 @@ int LCALayer::initialize(const char * name, HyPerCol * hc, int num_channels) {
    threshold = readThreshold();
    thresholdSoftness = readThresholdSoftness();
    timeConstantTau = readTimeConstantTau();
-   stimulus = (pvdata_t *) calloc(getNumNeurons(), sizeof(pvdata_t));
-   if (stimulus == NULL) {
-      fprintf(stderr, "LCALayer::initialize error allocating memory for stimulus: %s", strerror(errno));
-      abort();
-   }
+
+   // Moved to allocateDataStructures
+   // stimulus = (pvdata_t *) calloc(getNumNeurons(), sizeof(pvdata_t));
+   // if (stimulus == NULL) {
+   //    fprintf(stderr, "LCALayer::initialize error allocating memory for stimulus: %s", strerror(errno));
+   //    abort();
+   // }
 
    return status;
+}
+
+int LCALayer::allocateDataStructures() {
+   int status = HyPerLayer::allocateDataStructures();
+
+   allocateBuffer(&stimulus, getNumNeurons(), "stimulus");
+
+   return status;
+
 }
 
 int LCALayer::updateState(double timed, double dt) {

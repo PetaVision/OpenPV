@@ -172,41 +172,37 @@ int LIF::initialize_base() {
 }
 
 // Initialize this class
-/*
- *
- * setLIFParams() is called first so that we read all control parameters
- * from the params file.
- *
- */
 int LIF::initialize(const char * name, HyPerCol * hc, PVLayerType type, int num_channels, const char * kernel_name) {
    HyPerLayer::initialize(name, hc, num_channels);
-   setLIFParams(hc->parameters());
+   // setLIFParams(hc->parameters()); // renamed setParams, so it is called by HyPerLayer::initialize
+   clayer->params = &lParams;
    clayer->layerType = type;
-   const size_t numNeurons = getNumNeurons();
-
-   for (size_t k = 0; k < numNeurons; k++){
-      Vth[k] = lParams.VthRest; // lParams.VthRest is set in setLIFParams
-   }
+   // Moved to allocateDataStructures since Vth isn't allocated until then.
+   // const size_t numNeurons = getNumNeurons();
+   //
+   // for (size_t k = 0; k < numNeurons; k++){
+   //    Vth[k] = lParams.VthRest; // lParams.VthRest is set in setLIFParams
+   // }
 
    // Commented out Nov. 28, 2012
    // // random seed should be different for different layers
    // unsigned int seed = (unsigned int) (parent->getRandomSeed() + getLayerId());
 
+   // Moved to communicateInitInfo
    // // a random state variable is needed for every neuron/clthread
-   // rand_state = cl_random_init(numNeurons, seed);
-   numGlobalRNGs = getNumGlobalNeurons();
-   rand_state = (uint4 *) malloc(getNumNeurons() * sizeof(uint4));
-   if (rand_state == NULL) {
-      fprintf(stderr, "LIF::initialize error.  Layer \"%s\" unable to allocate memory for random states.\n", getName());
-      exit(EXIT_FAILURE);
-   }
-   unsigned int seed = parent->getObjectSeed(getNumGlobalRNGs());
-   const PVLayerLoc * loc = getLayerLoc();
-   for (int y = 0; y<loc->ny; y++) {
-      int k_local = kIndex(0, y, 0, loc->nx, loc->ny, loc->nf);
-      int k_global = kIndex(loc->kx0, y+loc->ky0, 0, loc->nxGlobal, loc->nyGlobal, loc->nf);
-      cl_random_init(&rand_state[k_local], loc->nx * loc->nf, seed + k_global);
-   }
+   // numGlobalRNGs = getNumGlobalNeurons();
+   // rand_state = (uint4 *) malloc(getNumNeurons() * sizeof(uint4));
+   // if (rand_state == NULL) {
+   //    fprintf(stderr, "LIF::initialize error.  Layer \"%s\" unable to allocate memory for random states.\n", getName());
+   //    exit(EXIT_FAILURE);
+   // }
+   // unsigned int seed = parent->getObjectSeed(getNumGlobalRNGs());
+   // const PVLayerLoc * loc = getLayerLoc();
+   // for (int y = 0; y<loc->ny; y++) {
+   //    int k_local = kIndex(0, y, 0, loc->nx, loc->ny, loc->nf);
+   //    int k_global = kIndex(loc->kx0, y+loc->ky0, 0, loc->nxGlobal, loc->nyGlobal, loc->nf);
+   //    cl_random_init(&rand_state[k_local], loc->nx * loc->nf, seed + k_global);
+   // }
 
    // initialize OpenCL parameters
    //
@@ -319,11 +315,14 @@ int LIF::initializeThreadKernels(const char * kernel_name)
 
 // Set Parameters
 //
-int LIF::setLIFParams(PVParams * p)
+
+int LIF::setParams(PVParams * p)
 {
+   HyPerLayer::setParams(p);
+
    float dt_sec = .001 * parent->getDeltaTime();// seconds
 
-   clayer->params = &lParams;
+   // clayer->params = &lParams; // Moved to initialize, after HyPerLayer::initialize call, since clayer isn't initialized until after setParams is called.
 
    // writeSparseActivity is already set in HyPerLayer::initialize // writeSparseActivity = (int) p->value(name, "spikingFlag", 1);
 
@@ -358,7 +357,13 @@ int LIF::setLIFParams(PVParams * p)
    if (dt_sec * lParams.noiseFreqI  > 1.0) lParams.noiseFreqI  = 1.0/dt_sec;
    if (dt_sec * lParams.noiseFreqIB > 1.0) lParams.noiseFreqIB = 1.0/dt_sec;
 
-   const char * methodstring = p->stringValue(name, "method", true/*warnIfAbsent*/);
+   readMethod(p);
+   return 0;
+}
+
+void LIF::readMethod(PVParams * params) {
+   // Read the integration method: one of 'arma' (preferred), 'beginning' (deprecated), or 'original' (deprecated).
+   const char * methodstring = params->stringValue(name, "method", true/*warnIfAbsent*/);
    method = methodstring ? methodstring[0] : 'a'; // Default is ARMA; 'beginning' and 'original' are deprecated.
    if (method != 'o' && method != 'b' && method != 'a') {
       if (getParent()->columnId()==0) {
@@ -371,13 +376,44 @@ int LIF::setLIFParams(PVParams * p)
          fprintf(stderr, "Warning: LIF layer \"%s\" integration method \"%s\" is deprecated.  Method \"arma\" is preferred.\n", name, methodstring);
       }
    }
-   return 0;
 }
 
 int LIF::setActivity() {
    pvdata_t * activity = clayer->activity->data;
    memset(activity, 0, sizeof(pvdata_t) * clayer->numExtended);
    return 0;
+}
+
+int LIF::communicateInitInfo() {
+   int status = HyPerLayer::communicateInitInfo();
+
+   // // a random state variable is needed for every neuron/clthread
+   numGlobalRNGs = getNumGlobalNeurons();
+   rand_state = (uint4 *) malloc(getNumNeurons() * sizeof(uint4));
+   if (rand_state == NULL) {
+      fprintf(stderr, "LIF::initialize error.  Layer \"%s\" unable to allocate memory for random states.\n", getName());
+      exit(EXIT_FAILURE);
+   }
+   unsigned int seed = parent->getObjectSeed(getNumGlobalRNGs());
+   const PVLayerLoc * loc = getLayerLoc();
+   for (int y = 0; y<loc->ny; y++) {
+      int k_local = kIndex(0, y, 0, loc->nx, loc->ny, loc->nf);
+      int k_global = kIndex(loc->kx0, y+loc->ky0, 0, loc->nxGlobal, loc->nyGlobal, loc->nf);
+      cl_random_init(&rand_state[k_local], loc->nx * loc->nf, seed + k_global);
+   }
+
+   return status;
+}
+
+int LIF::allocateDataStructures() {
+   int status = HyPerLayer::allocateDataStructures();
+
+   int numNeurons = getNumNeurons();
+   assert(Vth);
+   for (size_t k = 0; k < numNeurons; k++){
+      Vth[k] = lParams.VthRest; // lParams.VthRest is set in setLIFParams
+   }
+   return status;
 }
 
 int LIF::allocateBuffers() {

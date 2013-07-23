@@ -23,6 +23,7 @@ public:
    NaiveBayesLayer(const char * name, HyPerCol * hc, int numChannels);
    NaiveBayesLayer(const char * name, HyPerCol * hc);
    virtual ~NaiveBayesLayer();
+   virtual int allocateDataStructures();
    virtual int updateState(double timef, double dt);
 protected:
    NaiveBayesLayer();

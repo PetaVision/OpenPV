@@ -35,8 +35,6 @@ typedef enum {
  * PVLayer is a collection of neurons of a specific class
  */
 typedef struct PVLayer_ {
-   int layerId;    // unique ID that identifies this layer in column
-   int columnId;   // column ID
    int numNeurons; // # neurons in this HyPerLayer (i.e. in PVLayerCube)
    int numExtended;// # neurons in layer including extended border regions
 
@@ -54,7 +52,7 @@ typedef struct PVLayer_ {
 
    // Output activity buffers -- a ring buffer to implement delay
    // TODO - get rid of this, belongs in connection?
-   int numDelayLevels; // # of delay levels for activity buffers
+   // int numDelayLevels; // # of delay levels for activity buffers
 
    PVLayerCube * activity;  // activity buffer FROM this layer
    float * prevActivity;    // time of previous activity
@@ -69,15 +67,15 @@ typedef struct PVLayer_ {
 extern "C" {
 #endif
 
-PVLayer * pvlayer_new(PVLayerLoc loc, int xScale, int yScale, int numChannels);
-int pvlayer_init(PVLayer* l, PVLayerLoc loc, int xScale, int yScale, int numChannels);
-int pvlayer_initGlobal(PVLayer * l, int colId, int colRow, int colCol, int nRows, int nCols);
-int pvlayer_initFinish(PVLayer * l);
-int pvlayer_finalize(PVLayer * l);
+// PVLayer * pvlayer_new(PVLayerLoc loc, int xScale, int yScale);
+// int pvlayer_init(PVLayer* l, PVLayerLoc loc, int xScale, int yScale);
+// int pvlayer_initGlobal(PVLayer * l, int colId, int colRow, int colCol, int nRows, int nCols);
+// int pvlayer_initFinish(PVLayer * l);
+// int pvlayer_finalize(PVLayer * l);
 
-int pvlayer_copyUpdate(PVLayer * l);
+// int pvlayer_copyUpdate(PVLayer * l);
 
-float pvlayer_getWeight(float x0, float x, float r, float sigma);
+// float pvlayer_getWeight(float x0, float x, float r, float sigma);
 
 PVLayerCube * pvcube_new(const PVLayerLoc * loc, int numItems);
 PVLayerCube * pvcube_init(PVLayerCube * cube, const PVLayerLoc * loc, int numItems);
@@ -89,10 +87,6 @@ PVPatch * pvpatch_new(int nx, int ny); // PVPatch * pvpatch_new(int nx, int ny, 
 int       pvpatch_delete(PVPatch * p);
 
 pvdata_t * pvpatches_new(PVPatch ** patches, int nx, int ny, int nf, int nPatches);
-#ifdef OBSOLETE // Marked obsolete Feb. 27, 2012.  New refactoring for weights means that patches are never created with the data adjacent to the patch structure.
-PVPatch * pvpatch_inplace_new_sepdata(int nx, int ny, int nf, pvdata_t * data);
-PVPatch * pvpatch_inplace_new(int nx, int ny, int nf);
-#endif // OBSOLETE
 int       pvpatch_inplace_delete(PVPatch * p);
 
 int pvpatch_accumulate(int nk, float * v, float a, float * w);

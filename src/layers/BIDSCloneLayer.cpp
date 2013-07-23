@@ -26,9 +26,11 @@ BIDSCloneLayer::BIDSCloneLayer(const char * name, HyPerCol * hc, const char * or
 BIDSCloneLayer::~BIDSCloneLayer()
 {
     clayer->V = NULL;
+    free(jitterSourceName);
 }
 
 int BIDSCloneLayer::initialize_base() {
+   sourceLayerName = NULL;
    sourceLayer = NULL;
    return PV_SUCCESS;
 }
@@ -49,40 +51,91 @@ int BIDSCloneLayer::initialize(const char * name, HyPerCol * hc, const char * or
    this->writeSparseActivity = true;
 
    if (origLayerName==NULL) {
-      fprintf(stderr, "SigmoidLayer \"%s\": originalLayerName must be set.\n", name);
-      return(EXIT_FAILURE);
+      fprintf(stderr, "BIDSCloneLayer \"%s\" error: origLayerName must be set.\n", name);
+      exit(EXIT_FAILURE);
    }
-   HyPerLayer * origHyPerLayer = parent->getLayerFromName(origLayerName);
+   sourceLayerName = strdup(origLayerName);
+   if (sourceLayerName==NULL) {
+      fprintf(stderr, "BIDSCloneLayer \"%s\" error: unable to copy origLayerName \"%s\": %s.\n", name, origLayerName, strerror(errno));
+      exit(EXIT_FAILURE);
+   }
+   // Moved to communicateInitInfo
+   // HyPerLayer * origHyPerLayer = parent->getLayerFromName(origLayerName);
+   // if (origHyPerLayer==NULL) {
+   //    fprintf(stderr, "SigmoidLayer \"%s\" error: originalLayerName \"%s\" is not a layer in the HyPerCol.\n", name, origLayerName);
+   //    return(EXIT_FAILURE);
+   // }
+   // sourceLayer = dynamic_cast<LIF *>(origHyPerLayer);
+   // if (origHyPerLayer==NULL) {
+   //    fprintf(stderr, "SigmoidLayer \"%s\" error: originalLayerName \"%s\" is not a LIF or LIF-derived layer in the HyPerCol.\n", name, origLayerName);
+   //    return(EXIT_FAILURE);
+   // }
+
+   // Moved to allocateDataStructures
+   //free(clayer->V);
+   //clayer->V = sourceLayer->getV();
+   //
+   // // don't need conductance channels
+   // freeChannels();
+   // sourceLayerA = sourceLayer->getCLayer()->activeIndices;
+   // sourceLayerNumIndices = &(sourceLayer->getCLayer()->numActive);
+
+   const char * jitter_source_name = parent->parameters()->stringValue(name, "jitterSource");
+   jitterSourceName = strdup(jitter_source_name);
+
+   // Moved to allocateDataStructures()
+   // BIDSMovieCloneMap *blayer = dynamic_cast<BIDSMovieCloneMap*> (sourceLayer->getParent()->getLayerFromName(jitterSourceName));
+   // assert(blayer != NULL);
+   // coords = blayer->getCoords();
+   // numNodes = blayer->getNumNodes();
+   //
+   // for(int i = 0; i < getNumExtended(); i++){
+   //    this->clayer->activity->data[i] = 0;
+   // }
+
+   return status_init;
+}
+
+int BIDSCloneLayer::communicateInitInfo() {
+   int status = HyPerLayer::communicateInitInfo();
+   HyPerLayer * origHyPerLayer = parent->getLayerFromName(sourceLayerName);
    if (origHyPerLayer==NULL) {
-      fprintf(stderr, "SigmoidLayer \"%s\" error: originalLayerName \"%s\" is not a layer in the HyPerCol.\n", name, origLayerName);
+      fprintf(stderr, "SigmoidLayer \"%s\" error: originalLayerName \"%s\" is not a layer in the HyPerCol.\n", name, sourceLayerName);
       return(EXIT_FAILURE);
    }
    sourceLayer = dynamic_cast<LIF *>(origHyPerLayer);
    if (origHyPerLayer==NULL) {
-      fprintf(stderr, "SigmoidLayer \"%s\" error: originalLayerName \"%s\" is not a LIF or LIF-derived layer in the HyPerCol.\n", name, origLayerName);
+      fprintf(stderr, "SigmoidLayer \"%s\" error: originalLayerName \"%s\" is not a LIF or LIF-derived layer in the HyPerCol.\n", name, sourceLayerName);
       return(EXIT_FAILURE);
    }
 
-   //free(clayer->V);
-   //clayer->V = sourceLayer->getV();
+   return status;
+}
+
+int BIDSCloneLayer::allocateDataStructures() {
+   int status = HyPerLayer::allocateDataStructures();
+
+   free(clayer->V);
+   clayer->V = sourceLayer->getV();
 
    // don't need conductance channels
    freeChannels();
-   sourceLayerA = sourceLayer->getCLayer()->activeIndices;
-   sourceLayerNumIndices = &(sourceLayer->getCLayer()->numActive);
-   //TODO Check if this works with Pete
+   // sourceLayerA = sourceLayer->getCLayer()->activeIndices; // Replaced with member function getSourceActiveIndices()
+   // sourceLayerNumIndices = &(sourceLayer->getCLayer()->numActive); // Replaced with member function getSourceNumActive()
 
-   const char * jitterSourceName = parent->parameters()->stringValue(name, "jitterSource");
    BIDSMovieCloneMap *blayer = dynamic_cast<BIDSMovieCloneMap*> (sourceLayer->getParent()->getLayerFromName(jitterSourceName));
-   assert(blayer != NULL);
+   if (blayer==NULL) {
+      fprintf(stderr, "BIDSCloneLayer \"%s\": jitterSource \"%s\" must be a BIDSMovieCloneMap.\n", name, jitterSourceName);
+      abort();
+   }
+   // assert(blayer != NULL);
    coords = blayer->getCoords();
    numNodes = blayer->getNumNodes();
 
    for(int i = 0; i < getNumExtended(); i++){
       this->clayer->activity->data[i] = 0;
    }
-
-   return status_init;
+   return status;
 }
 
 int BIDSCloneLayer::mapCoords(){
@@ -92,7 +145,9 @@ int BIDSCloneLayer::mapCoords(){
       this->clayer->activity->data[indexEx] = 0;
    }
 
-   for(unsigned int i = 0; i < *sourceLayerNumIndices; i++){
+   unsigned int * sourceLayerA = getSourceActiveIndices();
+   unsigned int sourceLayerNumIndices = getSourceNumActive();
+   for(unsigned int i = 0; i < sourceLayerNumIndices; i++){
       int index = kIndex(coords[sourceLayerA[i]].xCoord, coords[sourceLayerA[i]].yCoord, 0, clayer->loc.nx, clayer->loc.ny, clayer->loc.nf);
       int indexEx = kIndexExtended(index, clayer->loc.nx, clayer->loc.ny, clayer->loc.nf, clayer->loc.nb);
       //printf("Coords: %d,%d\tIndex: %d\n", coords[sourceLayerA[i]].xCoord, coords[sourceLayerA[i]].yCoord, index);

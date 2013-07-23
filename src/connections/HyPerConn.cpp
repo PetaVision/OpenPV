@@ -6,7 +6,6 @@
  */
 
 #include "HyPerConn.hpp"
-#include "../layers/PVLayer.h"
 #include "../include/default_params.h"
 #include "../io/io.h"
 #include "../io/fileio.hpp"
@@ -2019,8 +2018,8 @@ PVPatch *** HyPerConn::convertPreSynapticWeights(double time)
    }
    wPostTime = time;
 
-   const PVLayer * lPre  = pre->getCLayer();
-   const PVLayer * lPost = post->getCLayer();
+   const PVLayerLoc * preLoc = pre->getLayerLoc();
+   const PVLayerLoc * postLoc = post->getLayerLoc();
 
    const int xScale = post->getXScale() - pre->getXScale();
    const int yScale = post->getYScale() - pre->getYScale();
@@ -2032,21 +2031,21 @@ PVPatch *** HyPerConn::convertPreSynapticWeights(double time)
 //   assert(xScale <= 0);
 //   assert(yScale <= 0);
 
-   const int prePad = lPre->loc.nb;
+   const int prePad = preLoc->nb;
 
    // pre-synaptic weights are in extended layer reference frame
-   const int nxPre = lPre->loc.nx + 2 * prePad;
-   const int nyPre = lPre->loc.ny + 2 * prePad;
-   const int nfPre = lPre->loc.nf;
+   const int nxPre = preLoc->nx + 2 * prePad;
+   const int nyPre = preLoc->ny + 2 * prePad;
+   const int nfPre = preLoc->nf;
 
-   const int nxPost  = lPost->loc.nx;
-   const int nyPost  = lPost->loc.ny;
-   const int nfPost  = lPost->loc.nf;
-   const int numPost = lPost->numNeurons;
+   const int nxPost  = postLoc->nx;
+   const int nyPost  = postLoc->ny;
+   const int nfPost  = postLoc->nf;
+   const int numPost = post->getNumNeurons();
 
    nxpPost = (int) (nxp * powXScale);
    nypPost = (int) (nyp * powYScale);
-   nfpPost = lPre->loc.nf;
+   nfpPost = preLoc->nf;
 
    // the number of features is the end-point value (normally post-synaptic)
    const int numPostPatch = nxpPost * nypPost * nfpPost; // Post-synaptic weights are never shrunken
@@ -2144,7 +2143,7 @@ PVPatch *** HyPerConn::convertPreSynapticWeights(double time)
 
                //assert(nxp_post == p->nx);
                //assert(nyp_post == p->ny);
-               //assert(nfp == lPost->loc.nf);
+               //assert(nfp == postLoc->nf);
 
                int kxPrePatch, kyPrePatch; // relative index in shrunken patch
                kxPrePatch = kxPost - kxPostHead;
@@ -2237,8 +2236,8 @@ PVPatch *** HyPerConn::convertPreSynapticWeights(double time)
 PVPatch **** HyPerConn::point2PreSynapticWeights()
 {
 
-   const PVLayer * lPre  = pre->getCLayer();
-   const PVLayer * lPost = post->getCLayer();
+   const PVLayerLoc * preLoc = pre->getLayerLoc();
+   const PVLayerLoc * postLoc = post->getLayerLoc();
 
    const int xScale = post->getXScale() - pre->getXScale();
    const int yScale = post->getYScale() - pre->getYScale();
@@ -2250,21 +2249,21 @@ PVPatch **** HyPerConn::point2PreSynapticWeights()
 //   assert(xScale <= 0);
 //   assert(yScale <= 0);
 
-   const int prePad = lPre->loc.nb;
+   const int prePad = preLoc->nb;
 
    // pre-synaptic weights are in extended layer reference frame
-   const int nxPre = lPre->loc.nx + 2 * prePad;
-   const int nyPre = lPre->loc.ny + 2 * prePad;
-   const int nfPre = lPre->loc.nf;
+   const int nxPre = preLoc->nx + 2 * prePad;
+   const int nyPre = preLoc->ny + 2 * prePad;
+   const int nfPre = preLoc->nf;
 
-   const int nxPost  = lPost->loc.nx;
-   const int nyPost  = lPost->loc.ny;
-   const int nfPost  = lPost->loc.nf;
-   const int numPost = lPost->numNeurons;
+   const int nxPost  = postLoc->nx;
+   const int nyPost  = postLoc->ny;
+   const int nfPost  = postLoc->nf;
+   const int numPost = post->getNumNeurons();
 
    nxpPost = (int) (nxp * powXScale);
    nypPost = (int) (nyp * powYScale);
-   nfpPost = lPre->loc.nf;
+   nfpPost = preLoc->nf;
    float z = 0;
 
    // the number of features is the end-point value (normally post-synaptic)
@@ -2455,24 +2454,24 @@ int HyPerConn::postSynapticPatchHead(int kPreEx,
 {
    int status = 0;
 
-   const PVLayer * lPre  = pre->getCLayer();
-   const PVLayer * lPost = post->getCLayer();
+   const PVLayerLoc * preLoc = pre->getLayerLoc();
+   const PVLayerLoc * postLoc = post->getLayerLoc();
 
-   const int prePad  = lPre->loc.nb;
+   const int prePad  = preLoc->nb;
 
-   const int nxPre  = lPre->loc.nx;
-   const int nyPre  = lPre->loc.ny;
-   const int kx0Pre = lPre->loc.kx0;
-   const int ky0Pre = lPre->loc.ky0;
-   const int nfPre  = lPre->loc.nf;
+   const int nxPre  = preLoc->nx;
+   const int nyPre  = preLoc->ny;
+   const int kx0Pre = preLoc->kx0;
+   const int ky0Pre = preLoc->ky0;
+   const int nfPre  = preLoc->nf;
 
    const int nxexPre = nxPre + 2 * prePad;
    const int nyexPre = nyPre + 2 * prePad;
 
-   const int nxPost  = lPost->loc.nx;
-   const int nyPost  = lPost->loc.ny;
-   const int kx0Post = lPost->loc.kx0;
-   const int ky0Post = lPost->loc.ky0;
+   const int nxPost  = postLoc->nx;
+   const int nyPost  = postLoc->ny;
+   const int kx0Post = postLoc->kx0;
+   const int ky0Post = postLoc->ky0;
 
    // kPreEx is in extended frame, this makes transformations more difficult
    //
@@ -2560,8 +2559,8 @@ int HyPerConn::writePostSynapticWeights(double timef, bool last) {
    int status = PV_SUCCESS;
    char path[PV_PATH_MAX];
 
-   const PVLayer * lPre  = pre->getCLayer();
-   const PVLayer * lPost = post->getCLayer();
+   const PVLayerLoc * preLoc = pre->getLayerLoc();
+   const PVLayerLoc * postLoc = post->getLayerLoc();
 
    float minVal = FLT_MAX;
    float maxVal = -FLT_MAX;
@@ -2572,7 +2571,7 @@ int HyPerConn::writePostSynapticWeights(double timef, bool last) {
       if( maxVal1 > maxVal ) maxVal = maxVal1;
    }
 
-   const int numPostPatches = lPost->numNeurons;
+   const int numPostPatches = post->getNumNeurons();
 
    const int xScale = post->getXScale() - pre->getXScale();
    const int yScale = post->getYScale() - pre->getYScale();
@@ -2581,7 +2580,7 @@ int HyPerConn::writePostSynapticWeights(double timef, bool last) {
 
    const int nxPostPatch = (int) (nxp * powXScale);
    const int nyPostPatch = (int) (nyp * powYScale);
-   const int nfPostPatch = lPre->loc.nf;
+   const int nfPostPatch = preLoc->nf;
 
    const char * last_str = (last) ? "_last" : "";
 
@@ -2994,26 +2993,26 @@ int HyPerConn::calcPatchSize(int arbor_index, int kex,
 {
    int status = PV_SUCCESS;
 
-   const PVLayer * lPre  = pre->getCLayer();
-   const PVLayer * lPost = post->getCLayer();
+   const PVLayerLoc * preLoc = pre->getLayerLoc();
+   const PVLayerLoc * postLoc = post->getLayerLoc();
 
-   const int prePad  = lPre->loc.nb;
-   const int postPad = lPost->loc.nb;
+   const int prePad  = preLoc->nb;
+   const int postPad = postLoc->nb;
 
-   const int nxPre  = lPre->loc.nx;
-   const int nyPre  = lPre->loc.ny;
-   const int kx0Pre = lPre->loc.kx0;
-   const int ky0Pre = lPre->loc.ky0;
-   const int nfPre  = lPre->loc.nf;
+   const int nxPre  = preLoc->nx;
+   const int nyPre  = preLoc->ny;
+   const int kx0Pre = preLoc->kx0;
+   const int ky0Pre = preLoc->ky0;
+   const int nfPre  = preLoc->nf;
 
    const int nxexPre = nxPre + 2 * prePad;
    const int nyexPre = nyPre + 2 * prePad;
 
-   const int nxPost  = lPost->loc.nx;
-   const int nyPost  = lPost->loc.ny;
-   const int kx0Post = lPost->loc.kx0;
-   const int ky0Post = lPost->loc.ky0;
-   const int nfPost  = lPost->loc.nf;
+   const int nxPost  = postLoc->nx;
+   const int nyPost  = postLoc->ny;
+   const int kx0Post = postLoc->kx0;
+   const int ky0Post = postLoc->ky0;
+   const int nfPost  = postLoc->nf;
 
    const int nxexPost = nxPost + 2 * postPad;
    const int nyexPost = nyPost + 2 * postPad;
@@ -3091,7 +3090,7 @@ int HyPerConn::calcPatchSize(int arbor_index, int kex,
    // local non-extended index but shifted to be in bounds
    int kl = kIndex(kxPost, kyPost, kfPost, nxPost, nyPost, nfPost);
    assert(kl >= 0);
-   assert(kl < lPost->numNeurons);
+   assert(kl < post->getNumNeurons());
 
    // get offset in extended frame
    kxPost += postPad;
@@ -3099,7 +3098,7 @@ int HyPerConn::calcPatchSize(int arbor_index, int kex,
 
    int offset = kIndex(kxPost, kyPost, kfPost, nxexPost, nyexPost, nfPost);
    assert(offset >= 0);
-   assert(offset < lPost->numExtended);
+   assert(offset < post->getNumExtended());
 
    // set return variables
    *kl_out = kl;

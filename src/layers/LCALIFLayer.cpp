@@ -117,13 +117,14 @@ int LCALIFLayer::initialize(const char * name, HyPerCol * hc, int num_channels, 
       abort();
    }
    
-   int numNeurons = getNumNeurons();
-   for (int k=0; k<numNeurons; k++) { 
-      integratedSpikeCount[k] = targetRateHz/1000; // Initialize integrated spikes to non-zero value
-      Vadpt[k]                = lParams.VthRest;   // Initialize integrated spikes to non-zero value
-      Vattained[k]            = lParams.Vrest;
-      Vmeminf[k]              = lParams.Vrest;
-   }
+   // Moved to allocateDataStructures()
+   // int numNeurons = getNumNeurons();
+   // for (int k=0; k<numNeurons; k++) {
+   //    integratedSpikeCount[k] = targetRateHz/1000; // Initialize integrated spikes to non-zero value
+   //    Vadpt[k]                = lParams.VthRest;   // Initialize integrated spikes to non-zero value
+   //    Vattained[k]            = lParams.Vrest;
+   //    Vmeminf[k]              = lParams.Vrest;
+   // }
 
    return PV_SUCCESS;
 }
@@ -136,29 +137,35 @@ LCALIFLayer::~LCALIFLayer()
    free(Vmeminf); Vmeminf = NULL;
 }
 
+int LCALIFLayer::allocateDataStructures() {
+   int status = LIFGap::allocateDataStructures();
+
+   int numNeurons = getNumNeurons();
+   for (int k=0; k<numNeurons; k++) {
+      integratedSpikeCount[k] = targetRateHz/1000; // Initialize integrated spikes to non-zero value
+      Vadpt[k]                = lParams.VthRest;   // Initialize integrated spikes to non-zero value
+      Vattained[k]            = lParams.Vrest;
+      Vmeminf[k]              = lParams.Vrest;
+   }
+
+   return status;
+}
+
 int LCALIFLayer::allocateBuffers() {
    const size_t numNeurons = getNumNeurons();
    //Allocate data to keep track of trace
-   integratedSpikeCount = (pvdata_t *) calloc(numNeurons, sizeof(pvdata_t));
-   assert(integratedSpikeCount != NULL);
-   Vadpt = (pvdata_t *) calloc(numNeurons, sizeof(pvdata_t));
-   assert(Vadpt != NULL);
-   Vattained = (pvdata_t *) calloc(numNeurons, sizeof(pvdata_t));
-   assert(Vattained != NULL);
-   Vmeminf = (pvdata_t *) calloc(numNeurons, sizeof(pvdata_t));
-   assert(Vattained != NULL);
-   G_Norm = (pvdata_t *) calloc(numNeurons, sizeof(pvdata_t));
-   assert(G_Norm != NULL);
-   GSynExcEffective = (pvdata_t *) calloc(numNeurons, sizeof(pvdata_t));
-   assert(GSynExcEffective != NULL);
-   GSynInhEffective = (pvdata_t *) calloc(numNeurons, sizeof(pvdata_t));
-   assert(GSynInhEffective != NULL);
-   excitatoryNoise = (pvdata_t *) calloc(numNeurons, sizeof(pvdata_t));
-   assert(excitatoryNoise != NULL);
-   inhibitoryNoise = (pvdata_t *) calloc(numNeurons, sizeof(pvdata_t));
-   assert(inhibitoryNoise != NULL);
-   inhibNoiseB = (pvdata_t *) calloc(numNeurons, sizeof(pvdata_t));
-   assert(inhibNoiseB != NULL);
+   int status = PV_SUCCESS;
+   if (status==PV_SUCCESS) status = allocateBuffer(&integratedSpikeCount, numNeurons, "integratedSpikeCount");
+   if (status==PV_SUCCESS) status = allocateBuffer(&Vadpt, numNeurons, "Vadpt");
+   if (status==PV_SUCCESS) status = allocateBuffer(&Vattained, numNeurons, "Vattained");
+   if (status==PV_SUCCESS) status = allocateBuffer(&Vmeminf, numNeurons, "Vmeminf");
+   if (status==PV_SUCCESS) status = allocateBuffer(&G_Norm, numNeurons, "G_Norm");
+   if (status==PV_SUCCESS) status = allocateBuffer(&GSynExcEffective, numNeurons, "GSynExcEffective");
+   if (status==PV_SUCCESS) status = allocateBuffer(&GSynInhEffective, numNeurons, "GSynInhEffective");
+   if (status==PV_SUCCESS) status = allocateBuffer(&excitatoryNoise, numNeurons, "excitatoryNoise");
+   if (status==PV_SUCCESS) status = allocateBuffer(&inhibitoryNoise, numNeurons, "inhibitoryNoise");
+   if (status==PV_SUCCESS) status = allocateBuffer(&inhibNoiseB, numNeurons, "inhibNoiseB");
+   if (status!=PV_SUCCESS) exit(EXIT_FAILURE);
    return LIFGap::allocateBuffers();
 }
 

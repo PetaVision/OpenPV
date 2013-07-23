@@ -113,7 +113,7 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
                "MaxPooling",
                "HyPerLCALayer",
                "ANNErrorLayer",
-           "ANNLabelLayer",
+               "ANNLabelLayer",
              "GapLayer",
              "LCALayer",
              "TextStream",
@@ -224,20 +224,21 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
        if( !strcmp(kw,"_Start_LayerProbes_") ) { first_layerprobe_index = j; continue;}
        if( !strcmp(kw,"_Stop_LayerProbes_") ) { last_layerprobe_index = j; continue;}
    }
-   assert( first_hypercol_index >= 0 );
-   assert( last_hypercol_index >= 0 );
-   assert( first_hyperconn_index >= 0 );
-   assert( last_hyperconn_index >= 0 );
-   assert( first_hyperlayer_index >= 0 );
-   assert( last_hyperlayer_index >= 0 );
-   assert( first_colprobe_index >= 0 );
-   assert( last_colprobe_index >= 0 );
-   assert( first_connectionprobe_index >= 0 );
-   assert( last_connectionprobe_index >= 0 );
-   assert( first_layerprobe_index >= 0 );
-   assert( last_layerprobe_index > 0 );
 
    int numclasskeywords = j;
+
+   assert( first_hypercol_index >= 0 && first_hypercol_index < numclasskeywords );
+   assert( last_hypercol_index >= 0 && last_hypercol_index < numclasskeywords );
+   assert( first_hyperconn_index >= 0 && first_hyperconn_index < numclasskeywords );
+   assert( last_hyperconn_index >= 0 && last_hyperconn_index < numclasskeywords );
+   assert( first_hyperlayer_index >= 0 && first_hyperlayer_index < numclasskeywords );
+   assert( last_hyperlayer_index >= 0 && last_hyperlayer_index < numclasskeywords );
+   assert( first_colprobe_index >= 0 && first_colprobe_index < numclasskeywords );
+   assert( last_colprobe_index >= 0 && last_colprobe_index < numclasskeywords );
+   assert( first_connectionprobe_index >= 0 && first_connectionprobe_index < numclasskeywords );
+   assert( last_connectionprobe_index >= 0 && last_connectionprobe_index < numclasskeywords );
+   assert( first_layerprobe_index >= 0 && first_layerprobe_index < numclasskeywords );
+   assert( last_layerprobe_index >= 0 && last_layerprobe_index < numclasskeywords );
 
    PVParams * hcparams = hc->parameters();
    int numGroups = hcparams->numberOfGroups();
@@ -265,7 +266,7 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
          void * addedCustomObject = customgroups(kw, name, hc);
          didAddObject = addedCustomObject != NULL;
       }
-      if( j > first_hypercol_index && j < last_hypercol_index ) {
+      else if( j > first_hypercol_index && j < last_hypercol_index ) {
          addedHyPerCol = addHyPerColToColumn(kw, name, hc);
          didAddObject = addedHyPerCol != NULL;
       }
@@ -290,7 +291,8 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
          didAddObject = addedLayerProbe != NULL;
       }
       else {
-         fprintf(stderr,"?? How did you get here? \n");
+         fprintf(stderr,"%s \"%s\" in params: Keyword %s is unrecognized.\n", kw, name, kw);
+         // fprintf(stderr,"?? How did you get here? \n");
       }
 
       if( !didAddObject && hc->icCommunicator()->commRank()==0 ) {
@@ -492,11 +494,6 @@ HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPe
      addedLayer = (HyPerLayer *) new ANNErrorLayer(name, hc);
      status = checknewobject((void *) addedLayer, classkeyword, name, hc);
    }
-   if( !strcmp(classkeyword, "ANNLabelLayer") ) {
-     keywordMatched = true;
-     addedLayer = (HyPerLayer *) new ANNLabelLayer(name, hc);
-     status = checknewobject((void *) addedLayer, classkeyword, name, hc);
-   }
    if( !strcmp(classkeyword, "SigmoidLayer") ) {
       keywordMatched = true;
       addedLayer = (HyPerLayer *) addSigmoidLayer(name, hc);
@@ -505,11 +502,6 @@ HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPe
    if( !strcmp(classkeyword, "RescaleLayer") ) {
       keywordMatched = true;
       addedLayer = (HyPerLayer *) addRescaleLayer(name, hc);
-      status = checknewobject((void *) addedLayer, classkeyword, name, hc);
-   }
-   if( !strcmp(classkeyword, "ShuffleLayer") ) {
-      keywordMatched = true;
-      addedLayer = (HyPerLayer *) addShuffleLayer(name, hc);
       status = checknewobject((void *) addedLayer, classkeyword, name, hc);
    }
    if( !strcmp(classkeyword, "Retina") ) {
@@ -684,38 +676,7 @@ SigmoidLayer * addSigmoidLayer(const char * name, HyPerCol * hc) {
 }
 
 RescaleLayer * addRescaleLayer(const char * name, HyPerCol * hc) {
-   HyPerLayer * originalLayer = getLayerFromParameterGroup(name, hc, "originalLayerName");
-   if( originalLayer == NULL ) {
-      fprintf(stderr, "Group \"%s\": Parameter group for class HyPerLayer must set string parameter originalLayerName\n", name);
-      return NULL;
-   }
-   HyPerLayer * originalHyPerLayer = dynamic_cast<HyPerLayer *>(originalLayer);
-   RescaleLayer * addedLayer;
-   if (originalHyPerLayer) {
-      addedLayer = new RescaleLayer(name, hc, originalHyPerLayer);
-   }
-   else {
-      fprintf(stderr, "Group \"%s\": Original layer \"%s\" must be a HyPer layer\n", name, originalLayer->getName());
-      addedLayer = NULL;
-   }
-   return addedLayer;
-}
-
-ShuffleLayer * addShuffleLayer(const char * name, HyPerCol * hc) {
-   HyPerLayer * originalLayer = getLayerFromParameterGroup(name, hc, "originalLayerName");
-   if( originalLayer == NULL ) {
-      fprintf(stderr, "Group \"%s\": Parameter group for class HyPerLayer must set string parameter originalLayerName\n", name);
-      return NULL;
-   }
-   HyPerLayer * originalHyPerLayer = dynamic_cast<HyPerLayer *>(originalLayer);
-   ShuffleLayer * addedLayer;
-   if (originalHyPerLayer) {
-      addedLayer = new ShuffleLayer(name, hc, originalHyPerLayer);
-   }
-   else {
-      fprintf(stderr, "Group \"%s\": Original layer \"%s\" must be a HyPer layer\n", name, originalLayer->getName());
-      addedLayer = NULL;
-   }
+   RescaleLayer * addedLayer = new RescaleLayer(name, hc);
    return addedLayer;
 }
 

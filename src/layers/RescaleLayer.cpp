@@ -16,18 +16,19 @@ RescaleLayer::RescaleLayer() {
    initialize_base();
 }
 
-RescaleLayer::RescaleLayer(const char * name, HyPerCol * hc, HyPerLayer * originalLayer) {
+RescaleLayer::RescaleLayer(const char * name, HyPerCol * hc) {
    initialize_base();
-   initialize(name, hc, originalLayer);
+   initialize(name, hc);
 }
 
 RescaleLayer::~RescaleLayer()
 {
-    clayer->V = NULL;
+   free(originalLayerName);
+   clayer->V = NULL;
 }
 
 int RescaleLayer::initialize_base() {
-   sourceLayer = NULL;
+   originalLayer = NULL;
    targetMax = 1;
    targetMin = -1;
    targetMean = 0;
@@ -36,21 +37,44 @@ int RescaleLayer::initialize_base() {
    return PV_SUCCESS;
 }
 
-int RescaleLayer::initialize(const char * name, HyPerCol * hc, HyPerLayer * clone) {
+int RescaleLayer::initialize(const char * name, HyPerCol * hc) {
    //int num_channels = sourceLayer->getNumChannels();
    int status_init = HyPerLayer::initialize(name, hc, 0);
 
-   sourceLayer = clone;
-   free(clayer->V);
-   clayer->V = sourceLayer->getV();
-
-   // don't need conductance channels
-   freeChannels();
+   // Moved to communicateInitInfo();
+   // originalLayer = clone;
+   // Moved to allocateDataStructures();
+   // free(clayer->V);
+   // clayer->V = sourceLayer->getV();
+   //
+   // // don't need conductance channels
+   // freeChannels();
 
    return status_init;
 }
 
+int RescaleLayer::communicateInitInfo() {
+   int status = HyPerLayer::communicateInitInfo();
+   originalLayer = parent->getLayerFromName(originalLayerName);
+   if (originalLayer==NULL) {
+      fprintf(stderr, "Group \"%s\": Original layer \"%s\" must be a HyPer layer\n", name, originalLayerName);
+   }
+   return status;
+}
+
+int RescaleLayer::allocateDataStructures() {
+   int status = HyPerLayer::allocateDataStructures();
+   free(clayer->V);
+   clayer->V = originalLayer->getV();
+
+   // don't need conductance channels
+   freeChannels();
+
+   return status;
+}
+
 int RescaleLayer::setParams(PVParams * params){
+   readOriginalLayerName(params);
    HyPerLayer::setParams(params);
    readRescaleMethod(params);
    if (strcmp(rescaleMethod, "maxmin") == 0){
@@ -67,6 +91,19 @@ int RescaleLayer::setParams(PVParams * params){
       exit(PV_FAILURE);
    }
    return PV_SUCCESS;
+}
+
+void RescaleLayer::readOriginalLayerName(PVParams * params) {
+   const char * original_layer_name = params->stringValue(name, "originalLayerName");
+   if( original_layer_name == NULL ) {
+      fprintf(stderr, "RescaleLayer \"%s\": string parameter originalLayerName must be set\n", name);
+      exit(EXIT_FAILURE);
+   }
+   originalLayerName = strdup(original_layer_name);
+   if (originalLayerName==NULL) {
+      fprintf(stderr, "RescaleLayer \"%s\" error: unable to copy originalLayerName \"%s\": %s\n", name, original_layer_name, strerror(errno));
+      exit(EXIT_FAILURE);
+   }
 }
 
 void RescaleLayer::readTargetMax(PVParams * params){
@@ -96,13 +133,13 @@ int RescaleLayer::setActivity() {
 
 int RescaleLayer::updateState(double timef, double dt) {
    int status = PV_SUCCESS;
-   int numNeurons = sourceLayer->getNumNeurons();
+   int numNeurons = originalLayer->getNumNeurons();
    int kext;
    pvdata_t * V = clayer->V; 
    pvdata_t * A = getActivity();
    const PVLayerLoc * loc = getLayerLoc();
-   const PVLayerLoc * sourceLoc = sourceLayer->getLayerLoc();
-   
+   const PVLayerLoc * sourceLoc = originalLayer->getLayerLoc();
+
    //Make sure layer loc and source layer loc is equivelent
    if (V == NULL){
       fprintf(stderr, "Rescale Layer %s: Source layer must have a V buffer to rescale. Exiting.\n",
@@ -113,7 +150,7 @@ int RescaleLayer::updateState(double timef, double dt) {
    assert(loc->ny == sourceLoc->ny);
    assert(loc->nf == sourceLoc->nf);
    assert(loc->nb == sourceLoc->nb);
-   
+
    if (strcmp(rescaleMethod, "maxmin") == 0){
       float maxV = -1000000000;
       float minV = 1000000000;
@@ -154,7 +191,7 @@ int RescaleLayer::updateState(double timef, double dt) {
       MPI_Allreduce(MPI_IN_PLACE, &sum, 1, MPI_FLOAT, MPI_SUM, parent->icCommunicator()->communicator());
 #endif // PV_USE_MPI
 
-      float mean = sum / sourceLayer->getNumGlobalNeurons();
+      float mean = sum / originalLayer->getNumGlobalNeurons();
 
       //Find (val - mean)^2 of V
       for (int k = 0; k < numNeurons; k++){
@@ -163,7 +200,7 @@ int RescaleLayer::updateState(double timef, double dt) {
 #ifdef PV_USE_MPI
       MPI_Allreduce(MPI_IN_PLACE, &sumsq, 1, MPI_FLOAT, MPI_SUM, parent->icCommunicator()->communicator());
 #endif // PV_USE_MPI
-      float std = sqrt(sumsq / sourceLayer->getNumGlobalNeurons());
+      float std = sqrt(sumsq / originalLayer->getNumGlobalNeurons());
       //Normalize
       for (int k = 0; k < numNeurons; k++){
          kext = kIndexExtended(k, loc->nx, loc->ny, loc->nf, loc->nb);

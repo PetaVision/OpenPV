@@ -43,18 +43,17 @@ int GenerativeLayer::initialize(const char * name, HyPerCol * hc) {
    auxChannelCoeff = params->value(name, "auxChannelCoeff", 0.0f);
    sparsityTermCoeff = params->value(name, "sparsityTermCoefficient", 1.0f);
    persistence = params->value(name, "persistence", 0.0f);
-   dV = (pvdata_t *) calloc(getNumNeurons(), sizeof(pvdata_t *));
-   if( dV == NULL ) {
-      fprintf(stderr, "Layer \"%s\": Unable to allocate memory for dAold\n", getName());
-      exit(EXIT_FAILURE);
-   }
-   sparsitytermderivative = (pvdata_t *) malloc(getNumNeurons() * sizeof(pvdata_t *));
-   if( sparsitytermderivative == NULL ) {
-      fprintf(stderr, "Layer \"%s\": Unable to allocate memory for sparsitytermderivative\n", getName());
-      exit(EXIT_FAILURE);
-   }
    return PV_SUCCESS;
 }  // end of GenerativeLayer::initialize()
+
+int GenerativeLayer::allocateDataStructures() {
+   int status = ANNLayer::allocateDataStructures();
+   if (status != PV_SUCCESS) return status;
+   if (status == PV_SUCCESS) status = allocateBuffer(&dV, getNumNeurons(), "dV");
+   if (status == PV_SUCCESS) status = allocateBuffer(&sparsitytermderivative, getNumNeurons(), "sparsitytermderivative");
+   if (status != PV_SUCCESS) exit(EXIT_FAILURE);
+   return status;
+}
 
 int GenerativeLayer::updateState(double timef, double dt) {
    int status;

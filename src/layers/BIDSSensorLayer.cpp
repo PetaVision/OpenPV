@@ -33,8 +33,8 @@ int BIDSSensorLayer::initialize(const char * name, HyPerCol * hc, int numChannel
    HyPerLayer::initialize(name, hc, numChannels);
 
    //Grab Parameters
-   float nxScale = (float)(parent->parameters()->value(name, "nxScale"));
-   float nyScale = (float)(parent->parameters()->value(name, "nyScale"));
+   // float nxScale = (float)(parent->parameters()->value(name, "nxScale"));
+   // float nyScale = (float)(parent->parameters()->value(name, "nyScale"));
    int HyPerColx = (int)(parent->parameters()->value("column", "nx"));
    int HyPerColy = (int)(parent->parameters()->value("column", "ny"));
 
@@ -43,21 +43,66 @@ int BIDSSensorLayer::initialize(const char * name, HyPerCol * hc, int numChannel
    buf_size = (int)(parent->parameters()->value(name, "buffer_size"));
    neutral_val = (float)(parent->parameters()->value(name, "neutral_val"));
    weight = (float)(parent->parameters()->value(name, "weight"));
+   const char * blayer_name = parent->parameters()->stringValue(name, "jitterSource");
+   if (blayer_name==NULL) {
+      fprintf(stderr, "BIDSSensorLayer \"%s\": jitterSource must be set.\n", name);
+   }
+   blayerName = strdup(blayer_name);
+   if (blayerName==NULL) {
+      fprintf(stderr, "BIDSSensorLayer \"%s\": error copying jitterSource name \"%s\": %s\n", name, blayer_name, strerror(errno));
+      abort();
+   }
 
-   //Grab coords
-   const char * jitterSourceName = parent->parameters()->stringValue(name, "jitterSource");
-   blayer = dynamic_cast<BIDSMovieCloneMap*> (parent->getLayerFromName(jitterSourceName));
-   assert(blayer != NULL);
-   coords = blayer->getCoords();
-   numNodes = blayer->getNumNodes();
+   //Moved to communicateInitInfo()
+   // //Grab coords
+   // blayer = dynamic_cast<BIDSMovieCloneMap*> (parent->getLayerFromName(blayerName));
+   // assert(blayer != NULL);
+
+   // Replaced with member functions getCoords() and getNumNodes()
+   // coords = blayer->getCoords();
+   // numNodes = blayer->getNumNodes();
+
 
    //Set nx and ny
    nx = (int)(nxScale * HyPerColx);
    ny = (int)(nyScale * HyPerColy);
+   // Moved to communicateInitInfo()
+   // nf = blayer->getLayerLoc()->nf;
+
+   // Moved to allocateDataStructures()
+   // //Create data structure for data
+   // //data[Node_id][Buffer_id]
+   // float* datatemp = (float*)malloc(sizeof(float)*numNodes*buf_size);
+   // data = (float**)malloc(sizeof(float*)*numNodes);
+   //
+   // //Initialize data structure
+   // for(int i = 0; i < numNodes; i++){
+   //    data[i] = &datatemp[i*buf_size];
+   //    for(int j = 0; j < buf_size; j++){
+   //       data[i][j] = 0;
+   //    }
+   // }
+
+   //Get perfect match for match filter to normalize output
+   return PV_SUCCESS;
+}
+
+int BIDSSensorLayer::communicateInitInfo() {
+   int status = Image::communicateInitInfo();
+
+   blayer = dynamic_cast<BIDSMovieCloneMap*> (parent->getLayerFromName(blayerName));
+   assert(blayer != NULL);
+
    nf = blayer->getLayerLoc()->nf;
+   return status;
+}
+
+int BIDSSensorLayer::allocateDataStructures() {
+   int status = Image::allocateDataStructures();
 
    //Create data structure for data
    //data[Node_id][Buffer_id]
+   int numNodes = getNumNodes();
    float* datatemp = (float*)malloc(sizeof(float)*numNodes*buf_size);
    data = (float**)malloc(sizeof(float*)*numNodes);
 
@@ -68,9 +113,7 @@ int BIDSSensorLayer::initialize(const char * name, HyPerCol * hc, int numChannel
          data[i][j] = 0;
       }
    }
-
-   //Get perfect match for match filter to normalize output
-   return PV_SUCCESS;
+   return status;
 }
 
 int BIDSSensorLayer::updateState(double timef, double dt){

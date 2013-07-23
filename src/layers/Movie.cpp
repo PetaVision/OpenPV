@@ -39,6 +39,7 @@ int Movie::initialize_base() {
    filename = NULL;
    displayPeriod = DISPLAY_PERIOD;
    readPvpFile = false;
+   fileOfFileNames = NULL;
    frameNumber = 0;
    numFrames = 0;
    newImageFlag = false;
@@ -61,17 +62,29 @@ int Movie::checkpointRead(const char * cpDir, double * timef){
  * - writeImages, offsetX, offsetY are initialized by Image::initialize()
  */
 int Movie::initialize(const char * name, HyPerCol * hc, const char * fileOfFileNames, float defaultDisplayPeriod) {
-   
+   displayPeriod = defaultDisplayPeriod; // Will be replaced with params value when setParams is called.
    int status = Image::initialize(name, hc, NULL);
    if (status != PV_SUCCESS) {
       fprintf(stderr, "Image::initialize failed on Movie layer \"%s\".  Exiting.\n", name);
       exit(PV_FAILURE);
    }
 
+   if (fileOfFileNames != NULL) {
+      this->fileOfFileNames = strdup(fileOfFileNames);
+      if (this->fileOfFileNames==NULL) {
+         fprintf(stderr, "Movie::initialize error in layer \"%s\": unable to copy fileOfFileNames: %s\n", name, strerror(errno));
+      }
+   }
+
    PVParams * params = hc->parameters();
 
-   //Read pvp file movie
-   readPvpFile = (bool)params->value(name, "readPvpFile", 0);
+   assert(!params->presentAndNotBeenRead(name, "displayPeriod"));
+   nextDisplayTime = hc->simulationTime() + displayPeriod;
+
+   assert(!params->presentAndNotBeenRead(name, "randomMovie")); // randomMovie should have been set in setParams
+   if (randomMovie) return status; // Nothing else to be done until data buffer is allocated, in allocateDataStructures
+
+   assert(!params->presentAndNotBeenRead(name, "readPvpFile")); // readPvpFile should have been set in setParams
 
    //If not pvp file, open fileOfFileNames 
    if( getParent()->icCommunicator()->commRank()==0 && !readPvpFile) {
@@ -82,90 +95,90 @@ int Movie::initialize(const char * name, HyPerCol * hc, const char * fileOfFileN
       }
    }
 
-   // skip to start_frame_index if provided
-   int start_frame_index = params->value(name,"start_frame_index", 0);
-   skipFrameIndex = params->value(name,"skip_frame_index", 0);
-
-   if(readPvpFile){
-      //Set filename as param
-      filename = strdup(fileOfFileNames);
-      //One indexed start_frame_index needs to be translated to zero indexed pvp file
-      if (start_frame_index <= 1){
-         frameNumber = 0;
+   if (!randomMovie) {
+      if(readPvpFile){
+         //Set filename as param
+         filename = strdup(fileOfFileNames);
+         assert(filename != NULL);
+         //One indexed start_frame_index needs to be translated to zero indexed pvp file
+         if (startFrameIndex <= 1){
+            frameNumber = 0;
+         }
+         else{
+            frameNumber = startFrameIndex - 1;
+         }
+         //Grab number of frames from header
+         PV_Stream * pvstream = NULL;
+         if (getParent()->icCommunicator()->commRank()==0) {
+            pvstream = PV::PV_fopen(filename, "rb");
+         }
+         int numParams = NUM_PAR_BYTE_PARAMS;
+         int params[numParams];
+         pvp_read_header(pvstream, getParent()->icCommunicator(), params, &numParams);
+         PV::PV_fclose(pvstream); pvstream = NULL;
+         if(numParams != NUM_PAR_BYTE_PARAMS || params[INDEX_FILE_TYPE] != PVP_NONSPIKING_ACT_FILE_TYPE) {
+            fprintf(stderr, "Movie layer \"%s\" error: file \"%s\" is not a nonspiking-activity pvp file.\n", name, filename);
+            abort();
+         }
+         numFrames = params[INDEX_NBANDS];
       }
       else{
-         frameNumber = start_frame_index - 1;
+         // echoFramePathnameFlag = params->value(name,"echoFramePathnameFlag", false);
+         filename = strdup(getNextFileName(startFrameIndex));
+         assert(filename != NULL);
       }
-      //Grab number of frames from header
-      PV_Stream * pvstream = NULL;
-      if (getParent()->icCommunicator()->commRank()==0) {
-         pvstream = PV::PV_fopen(filename, "rb");
-      }
-      int numParams = NUM_PAR_BYTE_PARAMS;
-      int params[numParams];
-      pvp_read_header(pvstream, getParent()->icCommunicator(), params, &numParams);
-      PV::PV_fclose(pvstream); pvstream = NULL;
-      assert(numParams == NUM_PAR_BYTE_PARAMS);
-      assert(params[INDEX_FILE_TYPE] == PVP_NONSPIKING_ACT_FILE_TYPE);
-      numFrames = params[INDEX_NBANDS];
-   }
-   else{
-      echoFramePathnameFlag = params->value(name,"echoFramePathnameFlag", false);
-      filename = strdup(getNextFileName(start_frame_index));
-      assert(filename != NULL);
    }
 
-   // get size info from image so that data buffer can be allocated
-   GDALColorInterp * colorbandtypes = NULL;
-   status = getImageInfo(filename, parent->icCommunicator(), &imageLoc, &colorbandtypes);
-   if(status != 0) {
-      fprintf(stderr, "Movie: Unable to get image info for \"%s\"\n", filename);
-      abort();
-   }
-
-   displayPeriod = params->value(name,"displayPeriod", defaultDisplayPeriod);
-   nextDisplayTime = hc->simulationTime() + displayPeriod;
-
-   if (!(bool)params->value(name,"autoResizeFlag",false)){
-      constrainOffsets();  // ensure that offsets keep loc within image bounds
-   }
-
-   randomMovie       = (int) params->value(name,"randomMovie",0);
-   if( randomMovie ) {
-      randomMovieProb   = params->value(name,"randomMovieProb", 0.05);  // 100 Hz
-      numGlobalRNGs = 1; // TODO: each neuron should have its own seed.  For now, all neurons use the same seed
-      unsigned int seed = parent->getObjectSeed(getNumGlobalRNGs());
-      cl_random_init(&rand_state, 1UL, seed);
-
-      randomFrame();
-   }else{
-      status = readImage(filename, getOffsetX(), getOffsetY(), colorbandtypes);
-      assert(status == PV_SUCCESS);
-   }
-   free(colorbandtypes); colorbandtypes = NULL;
+   // getImageInfo/constrainOffsets/readImage calls moved to Movie::allocateDataStructures
 
    // set output path for movie frames
+   if(writeImages){
+      // if ( params->stringPresent(name, "movieOutputPath") ) {
+      //    movieOutputPath = strdup(params->stringValue(name, "movieOutputPath"));
+      //    assert(movieOutputPath != NULL);
+      // }
+      // else {
+      //    movieOutputPath = strdup( hc->getOutputPath());
+      //    assert(movieOutputPath != NULL);
+      //    printf("movieOutputPath is not specified in params file.\n"
+      //          "movieOutputPath set to default \"%s\"\n",movieOutputPath);
+      // }
+      status = parent->ensureDirExists(movieOutputPath);
+   }
+
+   return PV_SUCCESS;
+}
+
+int Movie::setParams(PVParams * params) {
+   int status = Image::setParams(params);
+   displayPeriod = params->value(name,"displayPeriod", displayPeriod);
+   randomMovie = (int) params->value(name,"randomMovie",0);
+   if (randomMovie) {
+      randomMovieProb   = params->value(name,"randomMovieProb", 0.05);  // 100 Hz
+   }
+   else {
+      readPvpFile = (bool)params->value(name, "readPvpFile", 0);
+      if (!readPvpFile) {
+         echoFramePathnameFlag = params->value(name,"echoFramePathnameFlag", false);
+      }
+      startFrameIndex = params->value(name,"start_frame_index", 0);
+      skipFrameIndex = params->value(name,"skip_frame_index", 0);
+      autoResizeFlag = (bool)params->value(name,"autoResizeFlag",false);
+   }
+   assert(!params->presentAndNotBeenRead(name, "writeImages"));
    if(writeImages){
       if ( params->stringPresent(name, "movieOutputPath") ) {
          movieOutputPath = strdup(params->stringValue(name, "movieOutputPath"));
          assert(movieOutputPath != NULL);
       }
       else {
-         movieOutputPath = strdup( hc->getOutputPath());
+         movieOutputPath = strdup( parent->getOutputPath());
          assert(movieOutputPath != NULL);
          printf("movieOutputPath is not specified in params file.\n"
                "movieOutputPath set to default \"%s\"\n",movieOutputPath);
       }
-      status = parent->ensureDirExists(movieOutputPath);
    }
-
-
-   // exchange border information
-   exchange();
-
-   newImageFlag = true;
-
-   return PV_SUCCESS;
+   return status;
 }
 
 Movie::~Movie()
@@ -177,18 +190,58 @@ Movie::~Movie()
    if (getParent()->icCommunicator()->commRank()==0 && filenamestream != NULL && filenamestream->isfile) {
       PV_fclose(filenamestream);
    }
+   free(fileOfFileNames); fileOfFileNames = NULL;
+}
+
+int Movie::allocateDataStructures() {
+   int status = Image::allocateDataStructures();
+
+   if (!randomMovie) {
+      assert(!parent->parameters()->presentAndNotBeenRead(name, "start_frame_index"));
+      assert(!parent->parameters()->presentAndNotBeenRead(name, "skip_frame_index"));
+      // skip to start_frame_index if provided
+      // int start_frame_index = params->value(name,"start_frame_index", 0);
+      // skipFrameIndex = params->value(name,"skip_frame_index", 0);
+
+      // get size info from image so that data buffer can be allocated
+      GDALColorInterp * colorbandtypes = NULL;
+      status = getImageInfo(filename, parent->icCommunicator(), &imageLoc, &colorbandtypes);
+      if(status != 0) {
+         fprintf(stderr, "Movie: Unable to get image info for \"%s\"\n", filename);
+         abort();
+      }
+
+      assert(!parent->parameters()->presentAndNotBeenRead(name, "autoResizeFlag"));
+      if (!autoResizeFlag){
+         constrainOffsets();  // ensure that offsets keep loc within image bounds
+      }
+
+      status = readImage(filename, getOffsetX(), getOffsetY(), colorbandtypes);
+      assert(status == PV_SUCCESS);
+
+      free(colorbandtypes); colorbandtypes = NULL;
+   }
+   else {
+      status = randomFrame();
+   }
+
+   // exchange border information
+   exchange();
+
+   newImageFlag = true;
+   return status;
 }
 
 pvdata_t * Movie::getImageBuffer()
 {
-//   return imageData;
+   //   return imageData;
    return data;
 }
 
 PVLayerLoc Movie::getImageLoc()
 {
    return imageLoc;
-//   return clayer->loc;
+   //   return clayer->loc;
    // imageLoc contains size information of the image file being loaded;
    // clayer->loc contains size information of the layer, which may
    // be smaller than the whole image.  To get information on the layer, use
@@ -197,8 +250,8 @@ PVLayerLoc Movie::getImageLoc()
 
 int Movie::updateState(double time, double dt)
 {
-  updateImage(time, dt);
-  return 0;
+   updateImage(time, dt);
+   return 0;
 }
 
 /**

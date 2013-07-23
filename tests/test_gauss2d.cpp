@@ -106,6 +106,10 @@ int main(int argc, char * argv[])
       status = hc->getConnection(c)->communicateInitInfo();
       assert(status==PV_SUCCESS);
    }
+   for (int l=0; l<hc->numberOfLayers(); l++) {
+      status = hc->getLayer(l)->allocateDataStructures();
+      assert(status==PV_SUCCESS);
+   }
    for( int c=0; c<hc->numberOfConnections(); c++ ) {
       HyPerConn * conn = hc->getConnection(c);
       conn->allocateDataStructures();

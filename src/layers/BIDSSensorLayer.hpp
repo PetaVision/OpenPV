@@ -24,16 +24,21 @@ public:
    virtual ~BIDSSensorLayer();
    int initialize_base();
    int initialize(const char * name, HyPerCol * hc, int numChannels=MAX_CHANNELS);
+   virtual int communicateInitInfo();
+   virtual int allocateDataStructures();
    int updateState(double timef, double dt);
 protected:
    BIDSSensorLayer();
    float matchFilter(int node_index, int frame_index);
    void writeCSV(std::string fname, int node_index);
+   BIDSCoords * getCoords() {return blayer->getCoords();}
+   int getNumNodes() {return blayer->getNumNodes();}
 //   float perfectMatch();
    float** data;
-   BIDSCoords* coords;
+   // BIDSCoords* coords; // Replaced with getNumNodes()
    int buf_size;
    float neutral_val;
+   char * blayerName;
    BIDSMovieCloneMap *blayer;
    int nx;
    int ny;
@@ -42,7 +47,7 @@ protected:
    double ts;
    float freq;
    float weight;
-   int numNodes;
+   // int numNodes; // Replaced with getNumNodes()
  //  float perf_match;
 
 };

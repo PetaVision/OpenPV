@@ -27,7 +27,7 @@ public:
    pvdata_t getVMin()           { return VMin; }
 protected:
    ANNLayer();
-   int initialize(const char * name, HyPerCol * hc, int numChannels);
+   int initialize(const char * name, HyPerCol * hc, int numChannels=MAX_CHANNELS);
    virtual int doUpdateState(double time, double dt, const PVLayerLoc * loc, pvdata_t * A,
          pvdata_t * V, int num_channels, pvdata_t * gSynHead, bool spiking,
          unsigned int * active_indices, unsigned int * num_active);

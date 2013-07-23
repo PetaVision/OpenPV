@@ -28,26 +28,64 @@ int BIDSMovieCloneMap::initialize(const char * name, HyPerCol * hc, int numChann
    HyPerLayer::initialize(name, hc, numChannels);
 
    //Grab Orig Movie
-   const char * strOriginalMovie = parent->parameters()->stringValue(name, "originalMovie");
-   originalMovie = getParent()->getLayerFromName(strOriginalMovie);
-   nbPre = originalMovie->getLayerLoc()->nb;
-   nxPre = originalMovie->getLayerLoc()->nx;
-   nyPre = originalMovie->getLayerLoc()->ny;
-   nf = originalMovie->getLayerLoc()->nf;
+   const char * original_movie_name = parent->parameters()->stringValue(name, "originalMovie");
+   originalMovieName = strdup(original_movie_name);
+   if (originalMovieName==NULL) {
+      fprintf(stderr, "BIDSMovieCloneMap \"%s\" error: originalMovie must be set.\n", name);
+      exit(EXIT_FAILURE);
+   }
 
-   //Grab params
-   float nxScale = (float)(parent->parameters()->value(name, "nxScale"));
-   float nyScale = (float)(parent->parameters()->value(name, "nyScale"));
-   int HyPerColx = (int)(parent->parameters()->value("column", "nx"));
-   int HyPerColy = (int)(parent->parameters()->value("column", "ny"));
+   // Moved to communicateInitInfo()
+   // originalMovie = getParent()->getLayerFromName(originalMovieName);
 
-   nxPost = (int)(nxScale * HyPerColx);
-   nyPost = (int)(nyScale * HyPerColy);
-   int jitter = (int)(parent->parameters()->value(name, "jitter"));
+   // nbPre, nxPre, nyPre, nf replaced with member functions getNbOrig, getNxOrig, getNyOrig, getNfOrig
+   // nbPre = originalMovie->getLayerLoc()->nb;
+   // nxPre = originalMovie->getLayerLoc()->nx;
+   // nyPre = originalMovie->getLayerLoc()->ny;
+   // nf = originalMovie->getLayerLoc()->nf;
+
+   // Moved to allocateDataStructures()
+   // //Grab params
+   // float nxScale = (float)(parent->parameters()->value(name, "nxScale"));
+   // float nyScale = (float)(parent->parameters()->value(name, "nyScale"));
+   // int HyPerColx = (int)(parent->parameters()->value("column", "nx"));
+   // int HyPerColy = (int)(parent->parameters()->value("column", "ny"));
+
+   // nxPost = (int)(nxScale * HyPerColx);
+   // nyPost = (int)(nyScale * HyPerColy);
+   jitter = (int)(parent->parameters()->value(name, "jitter"));
 
    //Check jitter
 //   assert(2 * jitter < nbPre);
    assert(jitter >= 0); //jitter cannot be below zero
+
+   // Moved to allocateDataStructures()
+   // int numNodes = nxPost * nyPost;
+   // coords = (BIDSCoords*)malloc(sizeof(BIDSCoords) * numNodes);
+
+   //Apply jitter
+   // setCoords(jitter, nxScale, nyScale, HyPerColx, HyPerColy);
+
+   return PV_SUCCESS;
+}
+
+int BIDSMovieCloneMap::communicateInitInfo() {
+   int status = HyPerLayer::communicateInitInfo();
+   originalMovie = getParent()->getLayerFromName(originalMovieName);
+
+   int HyPerColx = (int)(parent->parameters()->value("column", "nx"));
+   int HyPerColy = (int)(parent->parameters()->value("column", "ny"));
+   nxPost = (int)(nxScale * HyPerColx);
+   nyPost = (int)(nyScale * HyPerColy);
+
+   return status;
+}
+
+int BIDSMovieCloneMap::allocateDataStructures() {
+   int status = HyPerLayer::allocateDataStructures();
+   //Grab params
+   int HyPerColx = (int)(parent->parameters()->value("column", "nx"));
+   int HyPerColy = (int)(parent->parameters()->value("column", "ny"));
 
    int numNodes = nxPost * nyPost;
    coords = (BIDSCoords*)malloc(sizeof(BIDSCoords) * numNodes);
@@ -55,7 +93,7 @@ int BIDSMovieCloneMap::initialize(const char * name, HyPerCol * hc, int numChann
    //Apply jitter
    setCoords(jitter, nxScale, nyScale, HyPerColx, HyPerColy);
 
-   return PV_SUCCESS;
+   return status;
 }
 
 void BIDSMovieCloneMap::setCoords(int jitter, float nxScale, float nyScale, int HyPerColx, int HyPerColy){
@@ -93,6 +131,10 @@ int BIDSMovieCloneMap::updateState(double timef, double dt){
    int indexPost;
    BIDSCoords coord;
    //Iterate through post layer
+   int nxPre = getNxOrig();
+   int nyPre = getNyOrig();
+   int nf = getNfOrig();
+   int nbPre = getNbOrig();
    for (int i = 0; i < nxPost * nyPost; i++){
       //Iterate through features
       for (int k = 0; k < nf; k++){
@@ -115,6 +157,7 @@ int BIDSMovieCloneMap::getNumNodes(){
 }
 
 BIDSMovieCloneMap::~BIDSMovieCloneMap(){
+   free(originalMovieName);
    free(coords);
 }
 }

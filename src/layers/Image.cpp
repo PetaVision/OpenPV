@@ -8,7 +8,7 @@
 #include "Image.hpp"
 
 #ifdef PV_USE_MPI
-   #include <mpi.h>
+#include <mpi.h>
 #endif
 #include <assert.h>
 #include <string.h>
@@ -31,8 +31,8 @@ Image::~Image() {
 
    if(writePosition){
       if (getParent()->icCommunicator()->commRank()==0 && fp_pos != NULL && fp_pos->isfile) {
-            PV_fclose(fp_pos);
-         }
+         PV_fclose(fp_pos);
+      }
    }
 }
 
@@ -64,76 +64,146 @@ int Image::initialize_base() {
 }
 
 int Image::initialize(const char * name, HyPerCol * hc, const char * filename) {
-   HyPerLayer::initialize(name, hc, 0);
+   if (filename != NULL) {
+      this->filename = strdup(filename);
+      assert( this->filename != NULL);
+   }
+   else {
+      this->filename = NULL;
+   }
 
-   free(clayer->V);
-   clayer->V = NULL;
+   HyPerLayer::initialize(name, hc, 0);
+   // Much of the functionality that was previously here has been moved to either read-methods, communicateInitInfo, or allocateDataStructures
 
    int status = PV_SUCCESS;
 
+   this->lastUpdateTime = 0.0;
+
    PVParams * params = parent->parameters();
+
+   assert(!params->presentAndNotBeenRead(name, "jitterFlag"));
+   if (jitterFlag) {
+      assert(!params->presentAndNotBeenRead(name, "offsetX"));
+      assert(!params->presentAndNotBeenRead(name, "offsetY"));
+      biases[0] = getOffsetX();
+      biases[1] = getOffsetY();
+   }
+
+   // TODO - Add option to use image size to determine layer size and column size
+
+   return status;
+}
+
+int Image::setParams(PVParams * params) {
+   int status = HyPerLayer::setParams(params);
+
+   readOffsets(params);
+   readWriteImagesFlag(params);
+
+   readUseImageBCflag(params);
+   readAutoResizeFlag(params);
+   readInverseFlag(params);
+   readNormalizeLuminanceFlag(params);
+
+   readFrameNumber(params);
+
+   // Although Image itself does not use jitter, both Movie and Patterns do, so jitterFlag is read in Image.
+   readJitterFlag(params);
+   readJitterType(params);
+   readStepSize(params);
+   readPersistenceProb(params);
+   readRecurrenceProb(params);
+   readBiasChangeTime(params);
+   readBiasConstraintMethod(params);
+   readOffsetConstraintMethod(params);
+
+   return status;
+}
+
+int Image::readOffsets(PVParams * params) {
+
+   offsets[0]      = (int) params->value(name,"offsetX", offsets[0]);
+   offsets[1]      = (int) params->value(name,"offsetY", offsets[1]);
+
+   return PV_SUCCESS;
+}
+
+void Image::readWriteImagesFlag(PVParams * params) {
    this->writeImages = params->value(name, "writeImages", writeImages) != 0;
+}
+
+void Image::readWriteImagesExtension(PVParams * params) {
+   assert(!params->presentAndNotBeenRead(name, "writeImages"));
    if (this->writeImages) {
       if (params->stringPresent(name, "writeImagesExtension")) {
          writeImagesExtension = strdup(params->stringValue(name, "writeImagesExtension", false));
       }
       else {
          writeImagesExtension = strdup("tif");
-         if (hc->columnId()==0) {
+         if (parent->columnId()==0) {
             fprintf(stderr, "Using default value \"tif\" for parameter \"writeImagesExtension\" in group %s\n", name);
          }
       }
    }
+}
+
+void Image::readUseImageBCflag(PVParams * params) {
    this->useImageBCflag = (bool) params->value(name, "useImageBCflag", useImageBCflag);
+}
+
+void Image::readAutoResizeFlag(PVParams * params) {
    this->autoResizeFlag = (bool) params->value(name, "autoResizeFlag", autoResizeFlag);
+}
+
+void Image::readInverseFlag(PVParams * params) {
    this->inverseFlag = (bool) params->value(name, "inverseFlag", inverseFlag);
+}
+
+void Image::readNormalizeLuminanceFlag(PVParams * params) {
    this->normalizeLuminanceFlag = (bool) params->value(name, "normalizeLuminanceFlag", normalizeLuminanceFlag);
+}
 
-   readOffsets();
-
-   GDALColorInterp * colorbandtypes = NULL;
-   if(filename != NULL ) {
-      this->filename = strdup(filename);
-      assert( this->filename != NULL );
-      status = getImageInfo(filename, parent->icCommunicator(), &imageLoc, &colorbandtypes);
-      if( getLayerLoc()->nf != imageLoc.nf && getLayerLoc()->nf != 1) {
-         fprintf(stderr, "Image %s: file %s has %d features but the layer has %d features.  Exiting.\n",
-               name, filename, imageLoc.nf, getLayerLoc()->nf);
-         exit(PV_FAILURE);
-      }
-      //If filename is pvp
-      if(getFileType(filename) == PVP_FILE_TYPE){
-         this->frameNumber= params->value(name, "frameNumber", frameNumber);
-      }
+void Image::readFrameNumber(PVParams * params) {
+   if (filename!=NULL && getFileType(filename)==PVP_FILE_TYPE) {
+      this->frameNumber = params->value(name, "frameNumber", frameNumber);
    }
-   else {
-      this->filename = NULL;
-      this->imageLoc = * getLayerLoc();
+}
+
+void Image::readJitterFlag(PVParams * params) {
+   jitterFlag = params->value(name, "jitterFlag", 0) != 0;
+}
+
+void Image::readJitterType(PVParams * params) {
+   assert(!params->presentAndNotBeenRead(name, "jitterFlag"));
+   if (jitterFlag) {
+      jitterType = params->value(name, "jitterType", jitterType);
    }
+}
 
-
-   this->lastUpdateTime = 0.0;
-
-// TODO - must make image conform to layer size
-
-   data = clayer->activity->data;
-
-   // create mpi_datatypes for border transfer
-   mpi_datatypes = Communicator::newDatatypes(getLayerLoc());
-
-   if (filename != NULL) {
-      status = readImage(filename, getOffsetX(), getOffsetY(), colorbandtypes);
-      assert(status == PV_SUCCESS);
+void Image::readStepSize(PVParams * params) {
+   assert(!params->presentAndNotBeenRead(name, "jitterFlag"));
+   if (jitterFlag) {
+      stepSize = params->value(name, "stepSize", stepSize);
    }
-   free(colorbandtypes); colorbandtypes = NULL;
+}
 
-   // Although Image itself does not use jitter, both Movie and Patterns do, so jitterFlag is read in Image.
-   jitterFlag = params->value(name,"jitterFlag", 0) != 0;
-   if( jitterFlag ) {
-      jitterType        = params->value(name,"jitterType", jitterType);
-      stepSize          = (int) params->value(name, "stepSize", stepSize);
-      persistenceProb   = params->value(name,"persistenceProb", persistenceProb);
-      recurrenceProb    = params->value(name,"recurrenceProb", recurrenceProb);
+void Image::readPersistenceProb(PVParams * params) {
+   assert(!params->presentAndNotBeenRead(name, "jitterFlag"));
+   if (jitterFlag) {
+      persistenceProb = params->value(name, "persistenceProb", persistenceProb);
+   }
+}
+
+void Image::readRecurrenceProb(PVParams * params) {
+   assert(!params->presentAndNotBeenRead(name, "jitterFlag"));
+   if (jitterFlag) {
+      recurrenceProb = params->value(name, "recurrenceProb", recurrenceProb);
+   }
+}
+
+void Image::readBiasChangeTime(PVParams * params) {
+   assert(!params->presentAndNotBeenRead(name, "jitterFlag"));
+   if (jitterFlag) {
       double biasChangeTimeParam = params->value(name, "biasChangeTime", biasChangeTime);
       if (biasChangeTimeParam==FLT_MAX || biasChangeTimeParam < 0) {
          biasChangeTime = LONG_MAX;
@@ -141,66 +211,105 @@ int Image::initialize(const char * name, HyPerCol * hc, const char * filename) {
       else {
          biasChangeTime = (long) biasChangeTimeParam;
       }
-      biases[0] = getOffsetX();
-      biases[1]   = getOffsetY();
+   }
+}
 
-      biasConstraintMethod = params->value(name, "biasConstraintMethod",0);
+void Image::readBiasConstraintMethod(PVParams * params) {
+   assert(!params->presentAndNotBeenRead(name, "jitterFlag"));
+   if (jitterFlag) {
+      biasConstraintMethod = params->value(name, "biasConstraintMethod", biasConstraintMethod);
       if (biasConstraintMethod <0 || biasConstraintMethod >3) {
          fprintf(stderr, "Image layer \"%s\": biasConstraintMethod allowed values are 0 (ignore), 1 (mirror BC), 2 (threshold), 3 (circular BC)\n", getName());
          exit(EXIT_FAILURE);
       }
+   }
+}
 
+void Image::readOffsetConstraintMethod(PVParams * params) {
+   assert(!params->presentAndNotBeenRead(name, "jitterFlag"));
+   if (jitterFlag) {
       offsetConstraintMethod = params->value(name, "offsetConstraintMethod",0);
       if (offsetConstraintMethod <0 || offsetConstraintMethod >3) {
          fprintf(stderr, "Image layer \"%s\": offsetConstraintMethod allowed values are 0 (ignore), 1 (mirror BC), 2 (threshold), 3 (circular BC)\n", getName());
          exit(EXIT_FAILURE);
       }
-
-      writePosition     = (int) params->value(name,"writePosition", writePosition);
-      if(writePosition){
-         assert(jitterFlag);
-         // Note: biasX and biasY are used only to calculate offsetX and offsetY;
-         //       offsetX and offsetY are used only by readImage;
-         //       readImage only uses the offsets in the zero-rank process
-         // Therefore, the other ranks do not need to have their offsets stored.
-         // In fact, it would be reasonable for the nonzero ranks not to compute biases and offsets at all,
-         // but I chose not to fill the code with even more if(rank==0) statements.
-         if( parent->icCommunicator()->commRank()==0 ) {
-            char file_name[PV_PATH_MAX];
-
-            int nchars = snprintf(file_name, PV_PATH_MAX, "%s/%s_jitter.txt", parent->getOutputPath(), getName());
-            if (nchars >= PV_PATH_MAX) {
-               fprintf(stderr, "Path for jitter positions \"%s/%s_jitter.txt is too long.\n", parent->getOutputPath(), getName());
-               abort();
-            }
-            printf("Image layer \"%s\" will write jitter positions to %s\n",getName(), file_name);
-            fp_pos = PV_fopen(file_name,"w");
-            if(fp_pos == NULL) {
-               fprintf(stderr, "Image \"%s\" unable to open file \"%s\" for writing jitter positions.\n", getName(), file_name);
-               abort();
-            }
-            fprintf(fp_pos->fp,"Layer \"%s\", t=%f, bias x=%d y=%d, offset x=%d y=%d\n",getName(),hc->simulationTime(),biases[0],biases[1],
-                  getOffsetX(),getOffsetY());
-         }
-      }
-      numGlobalRNGs = 1;
-      unsigned int seed = parent->getObjectSeed(getNumGlobalRNGs());
-      cl_random_init(&rand_state, 1UL, seed);
    }
+}
+
+void Image::readWritePosition(PVParams * params) {
+   assert(!params->presentAndNotBeenRead(name, "jitterFlag"));
+   if (jitterFlag) {
+      writePosition     = (int) params->value(name,"writePosition", writePosition);
+   }
+}
+
+int Image::communicateInitInfo() {
+   numGlobalRNGs = 1;
+   unsigned int seed = parent->getObjectSeed(getNumGlobalRNGs());
+   cl_random_init(&rand_state, 1UL, seed);
+   return PV_SUCCESS;
+}
+
+int Image::allocateDataStructures() {
+   int status = HyPerLayer::allocateDataStructures();
+
+   free(clayer->V);
+   clayer->V = NULL;
+
+   data = clayer->activity->data;
+
+   if(filename != NULL) {
+      GDALColorInterp * colorbandtypes = NULL;
+      status = getImageInfo(filename, parent->icCommunicator(), &imageLoc, &colorbandtypes);
+      if( getLayerLoc()->nf != imageLoc.nf && getLayerLoc()->nf != 1) {
+         fprintf(stderr, "Image %s: file %s has %d features but the layer has %d features.  Exiting.\n",
+               name, filename, imageLoc.nf, getLayerLoc()->nf);
+         exit(PV_FAILURE);
+      }
+      status = readImage(filename, getOffsetX(), getOffsetY(), colorbandtypes);
+      assert(status == PV_SUCCESS);
+      free(colorbandtypes); colorbandtypes = NULL;
+   }
+   else {
+      this->imageLoc = * getLayerLoc();
+   }
+
+   // Open the file recording jitter positions.
+   // This is in allocateDataStructures in case a subclass does something weird with the offsets, causing
+   // the initial offsets to be unknown until the allocateDataStructures phase
+   if(jitterFlag && writePosition){
+      // Note: biasX and biasY are used only to calculate offsetX and offsetY;
+      //       offsetX and offsetY are used only by readImage;
+      //       readImage only uses the offsets in the zero-rank process
+      // Therefore, the other ranks do not need to have their offsets stored.
+      // In fact, it would be reasonable for the nonzero ranks not to compute biases and offsets at all,
+      // but I chose not to fill the code with even more if(rank==0) statements.
+      if( parent->icCommunicator()->commRank()==0 ) {
+         char file_name[PV_PATH_MAX];
+
+         int nchars = snprintf(file_name, PV_PATH_MAX, "%s/%s_jitter.txt", parent->getOutputPath(), getName());
+         if (nchars >= PV_PATH_MAX) {
+            fprintf(stderr, "Path for jitter positions \"%s/%s_jitter.txt is too long.\n", parent->getOutputPath(), getName());
+            abort();
+         }
+         printf("Image layer \"%s\" will write jitter positions to %s\n",getName(), file_name);
+         fp_pos = PV_fopen(file_name,"w");
+         if(fp_pos == NULL) {
+            fprintf(stderr, "Image \"%s\" unable to open file \"%s\" for writing jitter positions.\n", getName(), file_name);
+            abort();
+         }
+         fprintf(fp_pos->fp,"Layer \"%s\", t=%f, bias x=%d y=%d, offset x=%d y=%d\n",getName(),parent->simulationTime(),biases[0],biases[1],
+               getOffsetX(),getOffsetY());
+      }
+   }
+
+   // create mpi_datatypes for border transfer
+   mpi_datatypes = Communicator::newDatatypes(getLayerLoc());
 
    // exchange border information
    exchange();
 
    return status;
-}
-
-int Image::readOffsets() {
-   PVParams * params = parent->parameters();
-
-   offsets[0]      = (int) params->value(name,"offsetX", offsets[0]);
-   offsets[1]      = (int) params->value(name,"offsetY", offsets[1]);
-
-   return PV_SUCCESS;
 }
 
 int Image::initializeState() {
@@ -352,17 +461,17 @@ int Image::readImage(const char * filename, int offsetX, int offsetY, GDALColorI
       MPI_Allreduce(MPI_IN_PLACE, &image_min, 1, MPI_FLOAT, MPI_MIN, parent->icCommunicator()->communicator());
 #endif
       if (image_max > image_min){
-          float image_stretch = 1.0f / (image_max - image_min);
-    	  for (int k=0; k<n; k++) {
-    		  buf[k] -= image_min;
-    		  buf[k] *= image_stretch;
-    	  }
+         float image_stretch = 1.0f / (image_max - image_min);
+         for (int k=0; k<n; k++) {
+            buf[k] -= image_min;
+            buf[k] *= image_stretch;
+         }
       }
       else{ // image_max == image_min
-		  float image_shift = 0.5f - image_ave;
-    	  for (int k=0; k<n; k++) {
-    		  buf[k] += image_shift;
-    	  }
+         float image_shift = 0.5f - image_ave;
+         for (int k=0; k<n; k++) {
+            buf[k] += image_shift;
+         }
       }
    } // normalizeLuminanceFlag
 
@@ -442,14 +551,14 @@ int Image::copyFromInteriorBuffer(float * buf, float fac)
 
    if(useImageBCflag){
       for(int n=0; n<getNumExtended(); n++) {
-            //int n_ex = kIndexExtended(n, nx, ny, nf, nBorder);
-            data[n] = fac*buf[n];
-         }
+         //int n_ex = kIndexExtended(n, nx, ny, nf, nBorder);
+         data[n] = fac*buf[n];
+      }
    }else{
       for(int n=0; n<getNumNeurons(); n++) {
-            int n_ex = kIndexExtended(n, nx, ny, nf, nBorder);
-            data[n_ex] = fac*buf[n];
-         }
+         int n_ex = kIndexExtended(n, nx, ny, nf, nBorder);
+         data[n_ex] = fac*buf[n];
+      }
    }
 
    return 0;

@@ -24,6 +24,8 @@ public:
    BIDSMovieCloneMap(const char * name, HyPerCol * hc);
    int initialize_base();
    int initialize(const char * name, HyPerCol * hc, int numChannels=MAX_CHANNELS);
+   virtual int communicateInitInfo();
+   virtual int allocateDataStructures();
    void setCoords(int jitter, float nxScale, float nyScale, int HyPerColx, int HyPerColy);
    BIDSCoords* getCoords();
    int getNumNodes();
@@ -32,14 +34,16 @@ public:
    
 protected:
    BIDSMovieCloneMap();
+   char * originalMovieName;
    HyPerLayer * originalMovie;
    BIDSCoords* coords;
-   int nbPre;
-   int nxPre;
-   int nyPre;
+   int getNbOrig() {return originalMovie->getLayerLoc()->nb;}
+   int getNxOrig() {return originalMovie->getLayerLoc()->nx;}
+   int getNyOrig() {return originalMovie->getLayerLoc()->ny;}
    int nxPost;
    int nyPost;
-   int nf;
+   int getNfOrig() {return originalMovie->getLayerLoc()->nf;}
+   int jitter;
 };
 
 }

@@ -28,6 +28,7 @@ SigmoidLayer::~SigmoidLayer()
 }
 
 int SigmoidLayer::initialize_base() {
+   sourceLayerName = NULL;
    sourceLayer = NULL;
    return PV_SUCCESS;
 }
@@ -50,24 +51,61 @@ int SigmoidLayer::initialize(const char * name, HyPerCol * hc, const char * orig
       fprintf(stderr, "SigmoidLayer \"%s\": originalLayerName must be set.\n", name);
       return(EXIT_FAILURE);
    }
-   HyPerLayer * origHyPerLayer = parent->getLayerFromName(origLayerName);
+   sourceLayerName = strdup(origLayerName);
+   if (sourceLayerName==NULL) {
+      fprintf(stderr, "SigmoidLayer \"%s\" error: unable to copy originalLayerName \"%s\": %s\n", name, origLayerName, strerror(errno));
+      exit(EXIT_FAILURE);
+   }
+
+   // Moved to communicateInitInfo()
+   // HyPerLayer * origHyPerLayer = parent->getLayerFromName(origLayerName);
+   // if (origHyPerLayer==NULL) {
+   //    fprintf(stderr, "SigmoidLayer \"%s\" error: originalLayerName \"%s\" is not a layer in the HyPerCol.\n", name, origLayerName);
+   //    return(EXIT_FAILURE);
+   // }
+   // sourceLayer = dynamic_cast<LIF *>(origHyPerLayer);
+   // if (origHyPerLayer==NULL) {
+   //    fprintf(stderr, "SigmoidLayer \"%s\" error: originalLayerName \"%s\" is not a LIF or LIF-derived layer in the HyPerCol.\n", name, origLayerName);
+   //    return(EXIT_FAILURE);
+   // }
+
+   // Moved to allocateInitInfo()
+   // free(clayer->V);
+   // clayer->V = sourceLayer->getV();
+   //
+   // // don't need conductance channels
+   // freeChannels();
+
+   return status_init;
+}
+
+int SigmoidLayer::communicateInitInfo() {
+   int status = HyPerLayer::communicateInitInfo();
+
+   HyPerLayer * origHyPerLayer = parent->getLayerFromName(sourceLayerName);
    if (origHyPerLayer==NULL) {
-      fprintf(stderr, "SigmoidLayer \"%s\" error: originalLayerName \"%s\" is not a layer in the HyPerCol.\n", name, origLayerName);
+      fprintf(stderr, "SigmoidLayer \"%s\" error: originalLayerName \"%s\" is not a layer in the HyPerCol.\n", name, sourceLayerName);
       return(EXIT_FAILURE);
    }
    sourceLayer = dynamic_cast<LIF *>(origHyPerLayer);
    if (origHyPerLayer==NULL) {
-      fprintf(stderr, "SigmoidLayer \"%s\" error: originalLayerName \"%s\" is not a LIF or LIF-derived layer in the HyPerCol.\n", name, origLayerName);
+      fprintf(stderr, "SigmoidLayer \"%s\" error: originalLayerName \"%s\" is not a LIF or LIF-derived layer in the HyPerCol.\n", name, sourceLayerName);
       return(EXIT_FAILURE);
    }
+
+   return status;
+}
+
+int SigmoidLayer::allocateDataStructures() {
+   int status = HyPerLayer::allocateDataStructures();
    free(clayer->V);
    clayer->V = sourceLayer->getV();
 
    // don't need conductance channels
    freeChannels();
-
-   return status_init;
+   return status;
 }
+
 
 int SigmoidLayer::setActivity() {
    pvdata_t * activity = clayer->activity->data;

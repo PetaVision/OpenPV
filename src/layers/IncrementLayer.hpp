@@ -20,6 +20,7 @@ public:
    virtual ~IncrementLayer();
    int checkpointRead(const char * cpDir, double * timef);
    int checkpointWrite(const char * cpDir);
+   virtual int allocateDataStructures();
    virtual int updateState(double timef, double dt);
 
    inline pvdata_t * getVprev() {return Vprev;}

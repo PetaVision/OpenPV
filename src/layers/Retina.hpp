@@ -35,6 +35,8 @@ public:
 
    Retina(const char * name, HyPerCol * hc);
    virtual ~Retina();
+   virtual int communicateInitInfo();
+   virtual int allocateDataStructures();
    virtual int initializeState();
 
    int setRetinaParams(PVParams * p);

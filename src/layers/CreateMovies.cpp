@@ -59,6 +59,7 @@ CreateMovies::~CreateMovies() {
 }
 
 int CreateMovies::initialize_base() {
+   data = NULL;
    CMParams = NULL;
    return PV_SUCCESS;
 }
@@ -67,7 +68,7 @@ int CreateMovies::initialize(const char * name, HyPerCol * hc) {
    Image::initialize(name, hc, NULL);
 
    PVParams * pvparams = hc->parameters();
-   setMovieParams(pvparams, &DefaultCMParams);
+   // setMovieParams(pvparams, &DefaultCMParams); // Duplicated below
    displayPeriod = pvparams->value(name, "displayPeriod", 20.0);
    lastDisplayTime = hc->simulationTime();
    nextDisplayTime = hc->simulationTime() + displayPeriod;
@@ -86,22 +87,38 @@ int CreateMovies::initialize(const char * name, HyPerCol * hc) {
    loc->nb = (int)pvparams->value(name, "marginWidth", 0);
    loc->halo.lt = loc->halo.rt = loc->halo.dn = loc->halo.up = loc->nb;
 
-   free(data);
-   size_t dn = loc->nf * (loc->nx + loc->halo.lt + loc->halo.rt)
-                                  * (loc->ny + loc->halo.dn + loc->halo.up) * sizeof(pvdata_t);
-   data = (pvdata_t *) malloc(dn);
-   assert(data != NULL);
-   memset((pvdata_t *)data, (int)(cp->backgroundval), dn);
-   Transform(0, 0, 0);
-
+   // Moved to allocateDataStructures()
+   // free(data);
+   // size_t dn = loc->nf * (loc->nx + loc->halo.lt + loc->halo.rt)
+   //                                * (loc->ny + loc->halo.dn + loc->halo.up) * sizeof(pvdata_t);
+   // data = (pvdata_t *) malloc(dn);
+   // assert(data != NULL);
+   // memset((pvdata_t *)data, (int)(cp->backgroundval), dn);
+   // Transform(0, 0, 0);
+   //
 #ifdef DEBUG_OUTPUTIMAGES
-   double T = hc->simulationTime() ;
+   double T = parent->simulationTime() ;
    char title[1000];
    ::sprintf(title,"output/images/%05d.tif",(int)T);
    write(title);
 #endif
 
    return PV_SUCCESS;
+}
+
+int CreateMovies::allocateDataStructures() {
+   int status = Image::allocateDataStructures();
+
+   const PVLayerLoc * loc = getLayerLoc();
+   free(data);
+   size_t dn = loc->nf * (loc->nx + loc->halo.lt + loc->halo.rt)
+                                  * (loc->ny + loc->halo.dn + loc->halo.up) * sizeof(pvdata_t);
+   data = (pvdata_t *) malloc(dn);
+   assert(data != NULL);
+   memset((pvdata_t *)data, (int)(CMParams->backgroundval), dn);
+   Transform(0, 0, 0);
+
+   return status;
 }
 
 int CreateMovies::setMovieParams(PVParams * params, CreateMovies_Params * p)

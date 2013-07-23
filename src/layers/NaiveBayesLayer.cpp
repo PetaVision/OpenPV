@@ -43,6 +43,21 @@ int NaiveBayesLayer::initialize(const char * name, HyPerCol * hc, int numChannel
    HyPerLayer::initialize(name, hc, numChannels);
    //PVParams * params = parent->parameters();
    //Voffset = params->value(name, "Voffset", 0.0f, true);
+
+   // Moved to allocateDataStructures
+   // inClassCount = (long *) calloc(this->getCLayer()->numNeurons, sizeof(long));
+   // assert(inClassCount != NULL);
+   // outClassCount = (long *) calloc(this->getCLayer()->numNeurons, sizeof(long));
+   // assert(outClassCount != NULL);
+   // inClassSum = (double *) calloc(this->getCLayer()->numNeurons, sizeof(double));
+   // assert(inClassSum != NULL);
+   // outClassSum = (double *) calloc(this->getCLayer()->numNeurons, sizeof(double));
+   // assert(outClassSum != NULL);
+   return PV_SUCCESS;
+}
+
+int NaiveBayesLayer::allocateDataStructures() {
+   int status = HyPerLayer::allocateDataStructures();
    inClassCount = (long *) calloc(this->getCLayer()->numNeurons, sizeof(long));
    assert(inClassCount != NULL);
    outClassCount = (long *) calloc(this->getCLayer()->numNeurons, sizeof(long));
@@ -51,14 +66,13 @@ int NaiveBayesLayer::initialize(const char * name, HyPerCol * hc, int numChannel
    assert(inClassSum != NULL);
    outClassSum = (double *) calloc(this->getCLayer()->numNeurons, sizeof(double));
    assert(outClassSum != NULL);
-   return PV_SUCCESS;
+   return status;
 }
-
 
 int NaiveBayesLayer::updateState(double timef, double dt){
 
    return updateState(timef, dt, getLayerLoc(), getCLayer()->activity->data, getV(),
-         getNumChannels(), GSyn[0], clayer->columnId);
+         getNumChannels(), GSyn[0], parent->columnId());
 }
 
 

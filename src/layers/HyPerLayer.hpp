@@ -103,11 +103,21 @@ protected:
    // only subclasses can be constructed directly
    HyPerLayer();
    int initialize(const char * name, HyPerCol * hc, int numChannels);
+   virtual int initClayer();
 
-   virtual int initClayer(PVParams * params);
-   virtual int initializeLayerId(int layerId);
-   int setLayerLoc(PVLayerLoc * layerLoc, float nxScale, float nyScale, int margin, int nf);
+   virtual int allocateClayerBuffers();
+   int setLayerLoc(PVLayerLoc * layerLoc, float nxScale, float nyScale, int nf);
+   int updateClayerMargin(PVLayer * clayer, int new_margin);
    virtual int allocateBuffers();
+
+   template <typename T>
+   int allocateBuffer(T ** buf, int bufsize, const char * bufname);
+
+   int allocateCube();
+   virtual int allocateV();
+   virtual int allocateActivity();
+   virtual int allocateActiveIndices();
+   virtual int allocatePrevActivity();
    int readDataStoreFromFile(const char * filename, InterColComm * comm, double * timed);
    int incrementNBands(int * numCalls);
    int writeDataStoreToFile(const char * filename, InterColComm * comm, double dtime);
@@ -126,6 +136,8 @@ protected:
    virtual void readMirrorBCFlag(PVParams * params);
    virtual void readValueBC(PVParams * params);
    virtual void readRestart(PVParams * params);
+
+   int freeClayer();
 
 #ifdef PV_USE_OPENCL
    virtual void readGPUAccelerateFlag(PVParams * params);
@@ -201,8 +213,6 @@ public:
 
    int mirrorInteriorToBorder(int whichBorder, PVLayerCube * cube, PVLayerCube * borderCube);
 
-   virtual int columnWillAddLayer(InterColComm * comm, int id);
-
    virtual int checkpointRead(const char * cpDir, double * timed);
    virtual int checkpointWrite(const char * cpDir);
    static int readBufferFile(const char * filename, InterColComm * comm, double * timed, pvdata_t ** buffers, int numbands, bool extended, const PVLayerLoc * loc);
@@ -238,12 +248,13 @@ public:
    int getNumGlobalNeurons()         {const PVLayerLoc * loc = getLayerLoc(); return loc->nxGlobal*loc->nyGlobal*loc->nf;}
    int getNumGlobalExtended()        {const PVLayerLoc * loc = getLayerLoc(); return (loc->nxGlobal+2*loc->nb)*(loc->nyGlobal+2*loc->nb)*loc->nf;}
    int getNumGlobalRNGs()            {return numGlobalRNGs;}
+   int getNumDelayLevels()           {return numDelayLevels;}
 
-   int  getLayerId()                 {return clayer->layerId;}
+   int  getLayerId()                 {return layerId;}
    PVLayerType getLayerType()        {return clayer->layerType;}
-   void setLayerId(int id)           {clayer->layerId = id;}
+   void setLayerId(int id)           {layerId = id;}
    int increaseDelayLevels(int neededDelay);
-   int requireMarginWidth(int marginWidthNeeded, int * marginWidthResult);
+   virtual int requireMarginWidth(int marginWidthNeeded, int * marginWidthResult);
    int requireChannel(int channelNeeded, int * numChannelsResult);
 
    PVLayer*  getCLayer()             {return clayer;}
@@ -286,6 +297,7 @@ public:
 
 protected:
 
+   int openOutputStateFile();
    /* static methods called by updateState({long_argument_list})*/
    virtual int doUpdateState(double timef, double dt, const PVLayerLoc * loc, pvdata_t * A,
          pvdata_t * V, int num_channels, pvdata_t * GSynHead, bool spiking,
@@ -296,6 +308,8 @@ protected:
    HyPerCol * parent;
 
    char * name;                 // well known name of layer
+
+   int layerId;                 // unique ID that identifies layer in its parent HyPerCol
 
    int numChannels;             // number of channels
    pvdata_t ** GSyn;            // of dynamic length numChannels
@@ -314,6 +328,7 @@ protected:
    LayerProbe ** probes;
 
    int phase;                   // All layers with phase 0 get updated before any with phase 1, etc.
+   int numDelayLevels;          // The number of timesteps in the datastore ring buffer to store older timesteps for connections with delays
 
    int * labels;                // label for the feature a neuron is tuned to
 

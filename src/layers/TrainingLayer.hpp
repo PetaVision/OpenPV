@@ -22,6 +22,7 @@ class TrainingLayer : public ANNLayer {
 public:
    TrainingLayer(const char * name, HyPerCol * hc, const char * filename);
    virtual ~TrainingLayer();
+   virtual int allocateDataStructures();
    int readTrainingLabels(const char * filename, int ** trainingLabels);
    virtual int initializeState();
    virtual int updateState(double timef, double dt);
@@ -31,6 +32,7 @@ public:
 protected:
    TrainingLayer();
    int initialize(const char * name, HyPerCol * hc, const char * filename);
+   char * filename;
    int numTrainingLabels;
    int * trainingLabels;
    int curTrainingLabelIndex;

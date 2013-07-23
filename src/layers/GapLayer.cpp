@@ -1,5 +1,5 @@
 /*
- * CloneLayer.cpp
+ * GapLayer.cpp
  *
  *  Created on: May 11, 2011
  *      Author: garkenyon
@@ -37,37 +37,86 @@ int GapLayer::initialize(const char * name, HyPerCol * hc, const char * original
       fprintf(stderr, "GapLayer \"%s\" error: originalLayerName must be set.\n", name);
       abort();
    }
-   HyPerLayer * hyperlayer = parent->getLayerFromName(originalLayerName);
-   if (hyperlayer == NULL) {
-      fprintf(stderr, "GapLayer \"%s\" error: originalLayerName \"%s\" is not a layer in the HyPerCol.\n", name, originalLayerName);
+   this->sourceLayerName = strdup(originalLayerName);
+   if (this->sourceLayerName==NULL) {
+      fprintf(stderr, "GapLayer \"%s\" error: unable to copy originalLayerName \"%s\": %s\n", name, originalLayerName, strerror(errno));
       abort();
    }
-   LIFGap * originalLayer = dynamic_cast<LIFGap *>(hyperlayer);
-   if (originalLayer == NULL) {
-      fprintf(stderr, "GapLayer \"%s\" error: originalLayerName \"%s\" is not a LIFGap or LIFGap-derived class.\n", name, originalLayerName);
-      abort();
-   }
-   const PVLayerLoc * sourceLoc = originalLayer->getLayerLoc();
-   const PVLayerLoc * thisLoc = getLayerLoc();
-   if (sourceLoc->nx != thisLoc->nx || sourceLoc->ny != thisLoc->ny || sourceLoc->nf != thisLoc->nf || sourceLoc->nb != thisLoc->nb) {
-      fprintf(stderr, "GapLayer \"%s\" must have the same dimensions as source layer \"%s\" (including marginWidth).\n", name, originalLayer->getName());
-      abort();
-   }
+
+   // Moved to communicateInitInfo()
+   // HyPerLayer * hyperlayer = parent->getLayerFromName(originalLayerName);
+   // if (hyperlayer == NULL) {
+   //    fprintf(stderr, "GapLayer \"%s\" error: originalLayerName \"%s\" is not a layer in the HyPerCol.\n", name, originalLayerName);
+   //    abort();
+   // }
+   // LIFGap * originalLayer = dynamic_cast<LIFGap *>(hyperlayer);
+   // if (originalLayer == NULL) {
+   //    fprintf(stderr, "GapLayer \"%s\" error: originalLayerName \"%s\" is not a LIFGap or LIFGap-derived class.\n", name, originalLayerName);
+   //    abort();
+   // }
+   // const PVLayerLoc * sourceLoc = originalLayer->getLayerLoc();
+   // const PVLayerLoc * thisLoc = getLayerLoc();
+   // if (sourceLoc->nx != thisLoc->nx || sourceLoc->ny != thisLoc->ny || sourceLoc->nf != thisLoc->nf || sourceLoc->nb != thisLoc->nb) {
+   //    fprintf(stderr, "GapLayer \"%s\" must have the same dimensions as source layer \"%s\" (including marginWidth).\n", name, originalLayer->getName());
+   //    abort();
+   // }
    this->clayer->layerType = TypeNonspiking;
-   this->writeSparseActivity = false;
-   sourceLayer = originalLayer;
-   free(clayer->V);
-   clayer->V = sourceLayer->getV();
+   // this->writeSparseActivity = false; // Should use value in params file
+   // sourceLayer = originalLayer;
+
+   // Moved to allocateDataStructures
+   // free(clayer->V);
+   // clayer->V = sourceLayer->getV();
 
    ampSpikelet = parent->parameters()->value(name,"ampSpikelet",ampSpikelet);
+
+   // Moved to allocateDataStructures
+   // const PVLayerLoc * loc = getLayerLoc();
+   // // HyPerLayer::setActivity();
+   // setActivity_HyPerLayer(getNumNeurons(), getCLayer()->activity->data, getV(), loc->nx, loc->ny, loc->nf, loc->nb);
+   // // this copies the potential into the activity buffer for t=0
+
+
+   return status_init;
+}
+
+int GapLayer::communicateInitInfo() {
+   int status = HyPerLayer::communicateInitInfo();
+
+   assert(sourceLayerName);
+   HyPerLayer * hyperlayer = parent->getLayerFromName(sourceLayerName);
+   if (hyperlayer == NULL) {
+      fprintf(stderr, "GapLayer \"%s\" error: originalLayerName \"%s\" is not a layer in the HyPerCol.\n", name, sourceLayerName);
+      abort();
+   }
+   sourceLayer = dynamic_cast<LIFGap *>(hyperlayer);
+   if (sourceLayer == NULL) {
+      fprintf(stderr, "GapLayer \"%s\" error: originalLayerName \"%s\" is not a LIFGap or LIFGap-derived class.\n", name, sourceLayerName);
+      abort();
+   }
+   const PVLayerLoc * sourceLoc = sourceLayer->getLayerLoc();
+   const PVLayerLoc * thisLoc = getLayerLoc();
+   if (sourceLoc->nx != thisLoc->nx || sourceLoc->ny != thisLoc->ny || sourceLoc->nf != thisLoc->nf) {
+      fprintf(stderr, "GapLayer \"%s\" must have the same dimensions as source layer \"%s\".\n", name, sourceLayer->getName());
+      abort();
+   }
+
+   return status;
+}
+
+int GapLayer::allocateDataStructures() {
+   int status = HyPerLayer::allocateDataStructures();
+
+   // TODO: handle this by overriding allocateV(), so that we don't allocate V unnecessarily.
+   free(clayer->V);
+   clayer->V = sourceLayer->getV();
 
    const PVLayerLoc * loc = getLayerLoc();
    // HyPerLayer::setActivity();
    setActivity_HyPerLayer(getNumNeurons(), getCLayer()->activity->data, getV(), loc->nx, loc->ny, loc->nf, loc->nb);
    // this copies the potential into the activity buffer for t=0
 
-
-   return status_init;
+   return status;
 }
 
 int GapLayer::updateState(double timef, double dt) {

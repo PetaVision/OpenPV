@@ -24,6 +24,8 @@ public:
    float getThresholdSoftness() {return thresholdSoftness;}
    float getTimeConstantTau() {return timeConstantTau;}
 
+   virtual int allocateDataStructures();
+
    virtual int updateState(double timef, double dt);
    virtual int checkpointWrite(const char * cpDir);
 

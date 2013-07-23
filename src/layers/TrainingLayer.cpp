@@ -28,15 +28,39 @@ int TrainingLayer::initialize_base() {
 }
 
 int TrainingLayer::initialize(const char * name, HyPerCol * hc, const char * filename) {
+   if (filename==NULL) {
+      fprintf(stderr, "TrainingLayer \"%s\" error: filename cannot be null.\n", name);
+      abort();
+   }
+   this->filename = strdup(filename);
+   if (this->filename==NULL) {
+      fprintf(stderr, "TrainingLayer \"%s\" error copying filename \"%s\": %s.\n", name, filename, strerror(errno));
+      abort();
+   }
    int status = ANNLayer::initialize(name, hc, MAX_CHANNELS);
    PVParams * params = hc->parameters();
-   float displayPeriod = params->value(name, "displayPeriod", -1);
-   float distToData = params->value(name, "distToData", -1);
-   strength = params->value(name, "strength", 1);
+   this->displayPeriod = params->value(name, "displayPeriod", -1);
+   this->distToData = params->value(name, "distToData", -1);
    if( displayPeriod < 0 || distToData < 0) {
       fprintf(stderr, "Constructor for TrainingLayer \"%s\" requires parameters displayPeriod and distToData to be set to nonnegative values in the params file.\n", name);
       exit(PV_FAILURE);
    }
+   strength = params->value(name, "strength", 1);
+   // errno = 0;
+   // numTrainingLabels = readTrainingLabels( filename, &this->trainingLabels ); // trainingLabelsFromFile allocated within this readTrainingLabels call
+   // if( this->trainingLabels == NULL) return PV_FAILURE;
+   // if( numTrainingLabels <= 0) {
+   //    fprintf(stderr, "Training Layer \"%s\": No training labels.  Exiting\n", name);
+   //    exit( errno ? errno : EXIT_FAILURE );
+   // }
+   curTrainingLabelIndex = 0;
+   this->nextLabelTime = displayPeriod + distToData;
+
+   return status;
+}
+
+int TrainingLayer::allocateDataStructures() {
+   ANNLayer::allocateDataStructures();
    errno = 0;
    numTrainingLabels = readTrainingLabels( filename, &this->trainingLabels ); // trainingLabelsFromFile allocated within this readTrainingLabels call
    if( this->trainingLabels == NULL) return PV_FAILURE;
@@ -44,12 +68,7 @@ int TrainingLayer::initialize(const char * name, HyPerCol * hc, const char * fil
       fprintf(stderr, "Training Layer \"%s\": No training labels.  Exiting\n", name);
       exit( errno ? errno : EXIT_FAILURE );
    }
-   curTrainingLabelIndex = 0;
-   this->displayPeriod = displayPeriod;
-   this->distToData = distToData;
-   this->nextLabelTime = displayPeriod + distToData;
-
-   return status;
+   return PV_SUCCESS;
 }
 
 int TrainingLayer::readTrainingLabels(const char * filename, int ** trainingLabelsFromFile) {

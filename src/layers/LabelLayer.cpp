@@ -25,10 +25,11 @@ LabelLayer::LabelLayer(const char * name, HyPerCol * hc, const char * movieLayer
 }
 
 LabelLayer::~LabelLayer(){
-
+   free(movieLayerName);
 }
 
 int LabelLayer::initialize_base(){
+   movieLayerName = NULL;
    movie = NULL;
    labelData = NULL;
    stepSize = 0;
@@ -40,21 +41,32 @@ int LabelLayer::initialize_base(){
    return PV_SUCCESS;
 }
 
-int LabelLayer::initialize(const char * name, HyPerCol * hc, const char * movieLayerName){
+int LabelLayer::initialize(const char * name, HyPerCol * hc, const char * movieLayerName) {
 
    HyPerLayer::initialize(name, hc, 0);
 
-   HyPerLayer * hyperlayer = parent->getLayerFromName(movieLayerName);
-   if (hyperlayer == NULL) {
-      fprintf(stderr, "LabelLayer \"%s\" error: movieLayerName \"%s\" is not a layer in the HyPerCol.\n", name, movieLayerName);
+   if (movieLayerName==NULL) {
+      fprintf(stderr, "LabelLayer \"%s\" error: movieLayerName must be set.\n", name);
+      abort();
+   }
+   this->movieLayerName = strdup(movieLayerName);
+   if (this->movieLayerName==NULL) {
+      fprintf(stderr, "LabelLayer \"%s\" error: unable to copy movieLayerName: %s\n", name, strerror(errno));
       abort();
    }
 
-   movie = dynamic_cast<Movie *>(hyperlayer);
-   if (movie == NULL) {
-      fprintf(stderr, "LabelLayer \"%s\" error: movieLayerName \"%s\" is not a Movie or Movie-derived class.\n", name, movieLayerName);
-      abort();
-   }
+   // Moved to communicateInitInfo()
+   // HyPerLayer * hyperlayer = parent->getLayerFromName(movieLayerName);
+   // if (hyperlayer == NULL) {
+   //    fprintf(stderr, "LabelLayer \"%s\" error: movieLayerName \"%s\" is not a layer in the HyPerCol.\n", name, movieLayerName);
+   //    abort();
+   // }
+   //
+   // movie = dynamic_cast<Movie *>(hyperlayer);
+   // if (movie == NULL) {
+   //    fprintf(stderr, "LabelLayer \"%s\" error: movieLayerName \"%s\" is not a Movie or Movie-derived class.\n", name, movieLayerName);
+   //    abort();
+   // }
 
    this->labelLoc = * getLayerLoc();
 
@@ -73,6 +85,7 @@ int LabelLayer::initialize(const char * name, HyPerCol * hc, const char * movieL
 
    int status = PV_SUCCESS;
 
+   // Moved to allocateDataStructures()
    free(clayer->V);
    clayer->V = NULL;
 
@@ -113,6 +126,68 @@ int LabelLayer::initialize(const char * name, HyPerCol * hc, const char * movieL
 
    return status;
 
+}
+
+int LabelLayer::communicateInitInfo() {
+   int status = HyPerLayer::communicateInitInfo();
+
+   HyPerLayer * hyperlayer = parent->getLayerFromName(movieLayerName);
+   if (hyperlayer == NULL) {
+      fprintf(stderr, "LabelLayer \"%s\" error: movieLayerName \"%s\" is not a layer in the HyPerCol.\n", name, movieLayerName);
+      abort();
+   }
+
+   movie = dynamic_cast<Movie *>(hyperlayer);
+   if (movie == NULL) {
+      fprintf(stderr, "LabelLayer \"%s\" error: movieLayerName \"%s\" is not a Movie or Movie-derived class.\n", name, movieLayerName);
+      abort();
+   }
+
+   return status;
+}
+
+int LabelLayer::allocateDataStructures() {
+   int status = HyPerLayer::allocateDataStructures();
+
+   free(clayer->V);
+   clayer->V = NULL;
+
+   PVParams * params = parent->parameters();
+
+   this->beginLabel = params->value(name, "labelStart", beginLabel);
+   this->maxLabel = params->value(name,"nf",maxLabel);
+   this->lenLabel = params->value(name,"labelLength",lenLabel);
+
+   labelData = clayer->activity->data;
+
+   filename = movie->getCurrentImage();
+   char tmp[lenLabel];
+   for (int i=0; i<lenLabel; i++){
+      tmp[i] = filename[i + beginLabel];
+   }
+
+   using std::istringstream;
+   if ( ! (istringstream(tmp) >> currentLabel) ) currentLabel = -1;
+
+   if (currentLabel == -1){
+      status = PV_FAILURE;
+   }
+   else{
+
+      fprintf(stderr,"Current Label Integer: %d out of %d\n",currentLabel, maxLabel);
+
+      fprintf(stderr,"NF = %d, NX = %d, NY = %d",labelLoc.nf, labelLoc.nx, labelLoc.ny);
+      for (int i = 0; i<(labelLoc.nf*(labelLoc.nx+labelLoc.nb*2)*(labelLoc.ny+labelLoc.nb*2)); i++){
+         if (i%maxLabel == currentLabel){
+            labelData[i] = 1.0;
+         }
+         else{
+            labelData[i] = 0.0;
+         }
+      }
+   }
+
+   return status;
 }
 
 int LabelLayer::updateState(double time, double dt){
@@ -173,14 +248,13 @@ int LabelLayer::outputState(double time, bool last){
 
 // This layer exists to force LabelLayer to always have the smallest nx and ny
 // dimension possible.
-int LabelLayer::initClayer(PVParams * params) {
+int LabelLayer::initClayer() {
 
    int minX = this->parent->getNxGlobal();
    int minY = this->parent->getNyGlobal();
-   int margin = (int) params->value(name, "marginWidth",0);
 
-   double nxScale = 1.0;
-   double nyScale = 1.0;
+   nxScale = 1.0;
+   nyScale = 1.0;
 
    while (minX%2 == 0){
       minX /= 2;
@@ -191,19 +265,7 @@ int LabelLayer::initClayer(PVParams * params) {
       nyScale /=2;
    }
 
-
-   double xScaled = -log2(nxScale);
-   double yScaled = -log2(nyScale);
-
-   int xScale = (int) nearbyint(xScaled);
-   int yScale = (int) nearbyint(yScaled);
-
-   PVLayerLoc layerLoc;
-   setLayerLoc(&layerLoc, nxScale, nyScale, margin, numFeatures);
-   clayer = pvlayer_new(layerLoc, xScale, yScale, numChannels);
-   clayer->layerType = TypeGeneric;
-
-   fprintf(stderr,"Calculated nxScale as %f and nyScale as %f\n",nyScale, nyScale);
+   HyPerLayer::initClayer();
 
    return PV_SUCCESS;
 }

@@ -45,13 +45,26 @@ int ImageCreator::initialize_base() {
 int ImageCreator::initialize(const char * name, HyPerCol * hc) {
    Image::initialize(name, hc, NULL);
    this->hc = hc;
+
+   // Moved to allocateDataStructures
+   // const PVLayerLoc * loc = getLayerLoc();
+   // const int numItems = loc->nx * loc->ny * loc->nf;
+   //
+   // drawBuffer = (float *) calloc(sizeof(float), numItems);
+   // assert(drawBuffer != 0);
+
+   return PV_SUCCESS;
+}
+
+int ImageCreator::allocateDataStructures() {
+   int status = Image::allocateDataStructures();
+
    const PVLayerLoc * loc = getLayerLoc();
    const int numItems = loc->nx * loc->ny * loc->nf;
 
    drawBuffer = (float *) calloc(sizeof(float), numItems);
    assert(drawBuffer != 0);
-
-   return PV_SUCCESS;
+   return status;
 }
 
 
