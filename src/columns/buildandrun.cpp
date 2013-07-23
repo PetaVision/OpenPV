@@ -494,6 +494,11 @@ HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPe
      addedLayer = (HyPerLayer *) new ANNErrorLayer(name, hc);
      status = checknewobject((void *) addedLayer, classkeyword, name, hc);
    }
+   if( !strcmp(classkeyword, "ANNLabelLayer") ) {
+     keywordMatched = true;
+     addedLayer = (HyPerLayer *) new ANNLabelLayer(name, hc);
+     status = checknewobject((void *) addedLayer, classkeyword, name, hc);
+   }
    if( !strcmp(classkeyword, "SigmoidLayer") ) {
       keywordMatched = true;
       addedLayer = (HyPerLayer *) addSigmoidLayer(name, hc);
