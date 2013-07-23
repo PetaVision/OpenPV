@@ -12,20 +12,20 @@ extern "C" {
 #endif
 
 void CPTestInputLayer_update_state(
-    const int numNeurons,
-    const int nx,
-    const int ny,
-    const int nf,
-    const int nb,
+      const int numNeurons,
+      const int nx,
+      const int ny,
+      const int nf,
+      const int nb,
 
-    float * V,
-    const float Vth,
-    const float VMax,
-    const float VMin,
-    float * GSynHead,
-/*    float * GSynExc,
+      float * V,
+      const float Vth,
+      const float VMax,
+      const float VMin,
+      float * GSynHead,
+      /*    float * GSynExc,
     float * GSynInh,*/
-    float * activity);
+      float * activity);
 
 #ifdef __cplusplus
 }
@@ -33,16 +33,27 @@ void CPTestInputLayer_update_state(
 
 namespace PV {
 
-CPTestInputLayer::CPTestInputLayer(const char * name, HyPerCol * hc) : ANNLayer(name, hc) {
-   initialize();
+CPTestInputLayer::CPTestInputLayer(const char * name, HyPerCol * hc) {
+   initialize(name, hc);
 }
 
 CPTestInputLayer::~CPTestInputLayer() {
 }
 
-int CPTestInputLayer::initialize() {
-   initializeV();
+int CPTestInputLayer::initialize(const char * name, HyPerCol * hc) {
+   ANNLayer::initialize(name, hc);
    return PV_SUCCESS;
+}
+
+int CPTestInputLayer::allocateDataStructures() {
+   int status = ANNLayer::allocateDataStructures();
+   if (status!=PV_SUCCESS) return status;
+
+   status = initializeV();
+   if (status != PV_SUCCESS) {
+      fprintf(stderr, "CPTestInputLayer \"%s\" error in rank %d process: initializeV failed.\n", name, parent->columnId());
+   }
+   return status;
 }
 
 int CPTestInputLayer::initializeV() {

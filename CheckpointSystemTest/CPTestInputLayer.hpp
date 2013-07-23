@@ -17,10 +17,11 @@ class CPTestInputLayer : public ANNLayer {
 public:
    CPTestInputLayer(const char * name, HyPerCol * hc);
    virtual ~CPTestInputLayer();
+   virtual int allocateDataStructures();
    virtual int updateState(double timed, double dt);
 
 protected:
-   int initialize();
+   int initialize(const char * name, HyPerCol * hc);
    virtual int initializeV();
 
 #ifdef PV_USE_OPENCL
