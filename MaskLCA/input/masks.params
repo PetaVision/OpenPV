@@ -17,14 +17,14 @@ HyPerCol "column" = {
    randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
    numSteps = 20706000; 
    progressStep = 10000;
-   outputPath = "/nh/compneuro/Data/AnimalDB/LCA/Output/";
+   outputPath = "/nh/compneuro/Data/AnimalDB/LCA/UC2DW/";
    filenamesContainLayerNames = true;
    filenamesContainConnectionNames = true;
    checkpointRead = false;
    checkpointReadDir = "Checkpoints";
    checkpointReadDirIndex = 704004;
    checkpointWrite = true;
-   checkpointWriteDir = "/nh/compneuro/Data/AnimalDB/LCA/Output/Checkpoints/";
+   checkpointWriteDir = "/nh/compneuro/Data/AnimalDB/LCA/UC2DW/Checkpoints/";
    checkpointWriteStepInterval = 10000;
    deleteOlderCheckpoints = false;
    suppressLastOutput = false;  // only used if not checkpointWrite == false
@@ -77,7 +77,7 @@ ANNErrorLayer "Error" = {
     //InitVType = "InitVFromFile";
     //Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_31/output/Checkpoints/Checkpoint6000000/Error_V.pvp";
     //
-    VThresh = 0.1;
+    VThresh = 0.005;
     VMax =  infinity;
     VMin = 0;
     VShift = 0;
@@ -112,7 +112,7 @@ HyPerLCALayer "V1" = {
     restart = 0;
     nxScale = 0.25;
     nyScale = 0.25;
-    nf = 512; //2048 or 4096;
+    nf = 128; //2048 or 4096;
     numChannels = 2;
     marginWidth = 4;
     writeStep = 1000.0;
@@ -126,7 +126,7 @@ HyPerLCALayer "V1" = {
     //InitVType = "InitVFromFile";
     //Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_31/output/Checkpoints/Checkpoint6000000/V1_V.pvp";
     // 
-    timeConstantTau = 200.0;
+    timeConstantTau = 100.0;
     // 
     VThresh = .1; //mean + 1 std of the positive input to error
     VMax = infinity;
@@ -189,7 +189,7 @@ KernelConn "V1ToError" = {
     weightUpdatePeriod = 50.0;
     initialWeightUpdateTime = 1999.0;
     initialWriteTime = 0.0;
-    dWMax = 0.1; // 200.0 used for initial training
+    dWMax = 2; // 200.0 used for initial training
     selfFlag = false;
     shmget_flag = false;
     //
