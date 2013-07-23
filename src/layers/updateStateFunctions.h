@@ -51,6 +51,10 @@ static inline int updateV_ANNErrorLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t *
 		CL_MEM_GLOBAL pvdata_t * GSynHead, CL_MEM_GLOBAL float * activity,
 		pvdata_t VMax, pvdata_t VMin, pvdata_t VThresh, pvdata_t VShift, int nx,
 		int ny, int nf, int nb);
+static inline int updateV_ANNLabelLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * V,
+		CL_MEM_GLOBAL pvdata_t * GSynHead, CL_MEM_GLOBAL float * activity,
+		pvdata_t VMax, pvdata_t VMin, pvdata_t VThresh, pvdata_t VShift, int nx,
+		int ny, int nf, int nb);
 static inline int applyGSyn_HyPerLCALayer(int numNeurons,
 		CL_MEM_GLOBAL pvdata_t * V, CL_MEM_GLOBAL pvdata_t * GSynHead,
 		CL_MEM_GLOBAL pvdata_t * activity, pvdata_t dt_tau, int nx, int ny,
@@ -112,6 +116,10 @@ static inline int applyVThresh_ANNLayer(int numNeurons,
 static inline int applyVThresh_ANNErrorLayer(int numNeurons,
 		CL_MEM_GLOBAL pvdata_t * V, pvdata_t VMin, pvdata_t VThresh,
 		pvdata_t VShift, CL_MEM_GLOBAL pvdata_t * activity, int nx, int ny,
+		int nf, int nb);
+static inline int applyV_ANNLabelLayer(int numNeurons,
+                                       CL_MEM_GLOBAL pvdata_t * V, pvdata_t VMin, pvdata_t VMax, pvdata_t VThresh,
+                                       CL_MEM_GLOBAL pvdata_t * activity, int nx, int ny,
 		int nf, int nb);
 static inline int squareV_ANNSquaredLayer(int numNeurons,
 		CL_MEM_GLOBAL pvdata_t * V);
@@ -337,6 +345,19 @@ static inline int updateV_ANNErrorLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t *
    return status;
 }
 
+static inline int updateV_ANNLabelLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * V,
+      CL_MEM_GLOBAL pvdata_t * GSynHead, CL_MEM_GLOBAL float * activity, pvdata_t VMax,
+      pvdata_t VMin, pvdata_t VThresh, pvdata_t VShift, int nx, int ny, int nf, int nb)
+{
+   int status;
+   status = applyGSyn_HyPerLayer(numNeurons, V, GSynHead);
+   if(status == PV_SUCCESS) status = setActivity_HyPerLayer(numNeurons, activity, V, nx, ny, nf, nb);
+   if( status == PV_SUCCESS ) status =
+                                  applyV_ANNLabelLayer(numNeurons, V, VMin, VMax, VThresh, activity, nx, ny, nf, nb);
+
+   return status;
+}
+
 static inline int updateV_ANNWhitenedLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * V,
       CL_MEM_GLOBAL pvdata_t * GSynHead, CL_MEM_GLOBAL float * activity, pvdata_t VMax,
       pvdata_t VMin, pvdata_t VThresh, pvdata_t VShift, int nx, int ny, int nf, int nb)
@@ -532,6 +553,30 @@ static inline int applyVThresh_ANNErrorLayer(int numNeurons,
 	}
 	return PV_SUCCESS;
 }
+
+static inline int applyV_ANNLabelLayer(int numNeurons,
+                                       CL_MEM_GLOBAL pvdata_t * V, pvdata_t VMin, pvdata_t VMax, pvdata_t VThresh,CL_MEM_GLOBAL pvdata_t * activity, int nx, int ny,
+                                             int nf, int nb) {
+    if (VThresh > -max_pvdata_t) {
+        int k = 0;
+#ifndef PV_USE_OPENCL
+        for (k = 0; k < numNeurons; k++)
+#else
+            k = get_global_id(0);
+#endif // PV_USE_OPENCL
+        {
+            int kex = kIndexExtended(k, nx, ny, nf, nb);
+            int featureindex = featureIndex(k, nx, ny, nf) % nf;
+            if (fabs(V[k]) == featureindex)
+                activity[kex] = VMax;
+            else
+                activity[kex] = VMin;
+        }
+    }
+    return PV_SUCCESS;
+}
+
+
 
 static inline int squareV_ANNSquaredLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * V) {
    int k;
