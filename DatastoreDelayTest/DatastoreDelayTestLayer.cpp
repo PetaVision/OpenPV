@@ -10,13 +10,14 @@
 
 namespace PV {
 
-DatastoreDelayTestLayer::DatastoreDelayTestLayer(const char* name, HyPerCol * hc) : ANNLayer(name, hc){
-   initialize();
+DatastoreDelayTestLayer::DatastoreDelayTestLayer(const char* name, HyPerCol * hc) {
+   initialize(name, hc);
 }
 
 DatastoreDelayTestLayer::~DatastoreDelayTestLayer() {}
 
-int DatastoreDelayTestLayer::initialize() {
+int DatastoreDelayTestLayer::initialize(const char * name, HyPerCol * hc) {
+   ANNLayer::initialize(name, hc);
    inited = false; // The first call to updateV sets this to true, so that the class knows whether to initialize or not.
    period = -1; // Can't set period until number of delay levels is determined, but that's determined by the connections,
                 // which can't be created until after initialization is finished.  period will be set in the first call to updateV
@@ -30,7 +31,7 @@ int DatastoreDelayTestLayer::updateState(double timed, double dt) {
 
 int DatastoreDelayTestLayer::updateState(double timef, double dt, int num_neurons, pvdata_t * V, pvdata_t * A, int nx, int ny, int nf, int nb) {
    // updateV();
-   updateV_DatastoreDelayTestLayer(getLayerLoc(), &inited, getV(), parent->icCommunicator()->publisherStore(clayer->layerId)->numberOfLevels());
+   updateV_DatastoreDelayTestLayer(getLayerLoc(), &inited, getV(), parent->icCommunicator()->publisherStore(getLayerId())->numberOfLevels());
    setActivity_HyPerLayer(num_neurons, A, V, nx, ny, nf, nb);
    // resetGSynBuffers(); // Since V doesn't use the GSyn buffers, no need to maintain them.
    updateActiveIndices();

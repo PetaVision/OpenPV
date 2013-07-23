@@ -46,7 +46,7 @@ int DatastoreDelayTestProbe::outputState(double timed) {
    }
 #endif // PV_USE_MPI
    int status = PV_SUCCESS;
-   int numDelayLevels = l->getParent()->getLayer(0)->getCLayer()->numDelayLevels;
+   int numDelayLevels = l->getParent()->getLayer(0)->getNumDelayLevels();
    pvdata_t correctValue = numDelayLevels*(numDelayLevels+1)/2;
    if( timed >= numDelayLevels+2 ) {
       pvdata_t * V = l->getV();
