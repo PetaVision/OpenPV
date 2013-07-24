@@ -31,11 +31,39 @@ endif (NOT MPI_C_FOUND OR NOT MPI_CXX_FOUND)
 include_directories(${MPI_CXX_INCLUDE_PATH})
 include_directories(${MPI_C_INCLUDE_PATH})
 
+SET(LIBSndFile_FIND_REQUIRED FALSE)
+IF (NOT LIBSNDFILE_FOUND)
+    # Base Io build system
+    # Written by Jeremy Tregunna <jeremy.tregunna@me.com>
+    #
+    # Find libsndfile.
+    FIND_PATH(LIBSNDFILE_INCLUDE_DIR sndfile.h)
+
+    SET(LIBSNDFILE_NAMES ${LIBSNDFILE_NAMES} sndfile libsndfile)
+    FIND_LIBRARY(LIBSNDFILE_LIBRARY NAMES ${LIBSNDFILE_NAMES} PATH)
+
+    IF(LIBSNDFILE_INCLUDE_DIR AND LIBSNDFILE_LIBRARY)
+        SET(LIBSNDFILE_FOUND TRUE CACHE INTERNAL "")
+    ENDIF(LIBSNDFILE_INCLUDE_DIR AND LIBSNDFILE_LIBRARY)
+
+    IF(LIBSNDFILE_FOUND)
+        MESSAGE(STATUS "Found LibSndFile: ${LIBSNDFILE_LIBRARY}")
+        #Add compiler definition PV_USE_SNDFILE
+        ADD_DEFINITIONS(-DPV_USE_SNDFILE)
+    ELSE(LIBSNDFILE_FOUND)
+        MESSAGE(STATUS "Skipping Sndfile library")
+        REMOVE_DEFINITIONS(-DPV_USE_SNDFILE)
+    ENDIF (LIBSNDFILE_FOUND)
+ENDIF (NOT LIBSNDFILE_FOUND)
+
 # Header files
 include_directories(${PV_SOURCE_DIR})
 include_directories(${GDAL_INCLUDE_DIR})
 include_directories(${MPI_C_INCLUDE_PATH})
 include_directories(${MPI_CXX_INCLUDE_PATH})
+IF(LIBSNDFILE_FOUND)
+    include_directories(${LIBSNDFILE_INCLUDE_DIR})
+ENDIF(LIBSNDFILE_FOUND)
 
 # Link to binary files
 link_directories(${PV_BINARY_DIR})
@@ -52,6 +80,9 @@ target_link_libraries(OjaKernelLearning pv)
 target_link_libraries(OjaKernelLearning ${GDAL_LIBRARY})
 target_link_libraries(OjaKernelLearning ${MPI_C_LIBRARIES})
 target_link_libraries(OjaKernelLearning ${MPI_CXX_LIBRARIES})
+IF(LIBSNDFILE_FOUND)
+    target_link_libraries(OjaKernelLearning ${LIBSNDFILE_LIBRARY})
+ENDIF(LIBSNDFILE_FOUND)
 
 if (BUILD_TYPE_OJAKERNELLEARNING)
     set(CMAKE_BUILD_TYPE ${BUILD_TYPE_OJAKERNELLEARNING})
