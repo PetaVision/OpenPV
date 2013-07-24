@@ -4,8 +4,6 @@ Get rid of Channel_Type enum and instead use preprocessor directives if needed
 
 Weight .pvp files shouldn't depend on the mpi configuration being used when writing.
 
-Eliminate need for marginWidth parameter
-
 Each neuron (& weight?) its own reproducible rng (layer and conn can specify a seedIncrement) (done for retina and lif)
 
 No more activity buffer; things that write to activity only write to DataStore
@@ -18,4 +16,6 @@ PatternState.bin and .txt only writes the stuff being used
 
  * params.pv should be params.xml, and include all parameters
 
-Use cmake to manage makefiles (done for PetaVision and some system tests)
+Use cmake to manage makefiles (done for PetaVision and system tests)
+
+Eliminate need for marginWidth parameter -- DONE (some additional testing is needed)
