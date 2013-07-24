@@ -567,7 +567,13 @@ static inline int applyV_ANNLabelLayer(int numNeurons,
         {
             int kex = kIndexExtended(k, nx, ny, nf, nb);
             int featureindex = featureIndex(k, nx, ny, nf) % nf;
-            if (fabs(fabs(V[k]) * 255.0 - featureindex) < 0.000001)
+            float factor;
+            if (nf == 2)
+                factor = 1.0;
+            else
+                factor = 255.0;
+            
+            if (fabs(fabs(V[k]) * factor - featureindex) < 0.00001)
                 activity[kex] = VMax;
             else
                 activity[kex] = VMin;
