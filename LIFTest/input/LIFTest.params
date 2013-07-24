@@ -50,6 +50,7 @@ Image "input" = {
     valueBC                         = 0.0;
     inverseFlag                     = false;
     normalizeLuminanceFlag          = false;
+    autoResizeFlag                  = false;
     writeImages                     = false;
     jitterFlag                      = false;
     offsetX                         = 96;
