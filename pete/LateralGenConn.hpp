@@ -16,9 +16,9 @@ namespace PV {
 class LateralGenConn : public GenerativeConn {
 public:
     LateralGenConn();
-    LateralGenConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post, const char * filename=NULL);
+    LateralGenConn(const char * name, HyPerCol * hc, const char * pre_layer_name, const char * post_layer_name, const char * filename=NULL);
     int initialize_base();
-    int initialize(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post, const char * filename);
+    int initialize(const char * name, HyPerCol * hc, const char * pre_layer_name, const char * post_layer_name, const char * filename);
     int updateWeights(int axonID);
 
 protected:

@@ -14,10 +14,10 @@ LateralGenConn::LateralGenConn() {
 }  // end of LateralGenConn::LateralGenConn()
 
 LateralGenConn::LateralGenConn(const char * name, HyPerCol *hc,
-      HyPerLayer * pre, HyPerLayer * post,
+      const char * pre_layer_name, const char * post_layer_name,
       const char * filename) {
    initialize_base();
-   initialize(name, hc, pre, post, filename);
+   initialize(name, hc, pre_layer_name, post_layer_name, filename);
 }
 
 int LateralGenConn::initialize_base() {
@@ -26,18 +26,18 @@ int LateralGenConn::initialize_base() {
 }  // end of LateralGenConn::initialize_base()
 
 int LateralGenConn::initialize(const char * name, HyPerCol * hc,
-      HyPerLayer * pre, HyPerLayer * post, const char * filename) {
+      const char * pre_layer_name, const char * post_layer_name, const char * filename) {
 
-   const PVLayerLoc * preLoc = pre->getLayerLoc();
-   const PVLayerLoc * postLoc = post->getLayerLoc();
+   const PVLayerLoc * preLoc = hc->getLayerFromName(pre_layer_name)->getLayerLoc();
+   const PVLayerLoc * postLoc = hc->getLayerFromName(post_layer_name)->getLayerLoc();
    if( preLoc->nx != postLoc->nx || preLoc->ny != postLoc->ny ||
          preLoc->nf != postLoc->nf ) {
       fprintf( stderr,
             "LateralGenConn Error: %s and %s do not have the same dimensions\n",
-            pre->getName(),post->getName() );
+            pre_layer_name,post_layer_name );
       exit(1);
    }
-   GenerativeConn::initialize(name, hc, pre, post, filename, NULL);
+   GenerativeConn::initialize(name, hc, pre_layer_name, post_layer_name, filename, NULL);
    int prePad = pre->getLayerLoc()->nb;
    int xPatchHead = zPatchHead(0, nxp, 0, 0);
    int yPatchHead = zPatchHead(0, nyp, 0, 0);

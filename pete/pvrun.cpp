@@ -63,18 +63,20 @@ void * customgroups(const char * keyword, const char * name, HyPerCol * hc) {
    }
    if( !strcmp( keyword, "OnlineLearningKConn") ) {
       OnlineLearningKConn * addedConn = NULL;
-      HyPerLayer * pre = NULL;
-      HyPerLayer * post = NULL;
-      getPreAndPostLayers(name, hc, &pre, &post);
-      if (pre && post) {
+      char * pre_layer_name = NULL;
+      char * post_layer_name = NULL;
+      HyPerConn::getPreAndPostLayerNames(name, params, &pre_layer_name, &post_layer_name);
+      if (pre_layer_name && post_layer_name) {
          InitWeights * weightInitializer = createInitWeightsObject(name, hc);
          if( weightInitializer == NULL ) {
             weightInitializer = new InitWeights();
             fprintf(stderr, "weightInitType not set or unrecognized.  Using default method.\n");
          }
          const char * filename = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
-         addedConn = new OnlineLearningKConn(name, hc, pre, post, filename, weightInitializer);
+         addedConn = new OnlineLearningKConn(name, hc, pre_layer_name, post_layer_name, filename, weightInitializer);
       }
+      free(pre_layer_name);
+      free(post_layer_name);
       status = checknewobject((void *) addedConn, keyword, name, hc);
    }
    if( !strcmp( keyword, "RandomPatchMovie") ) {
