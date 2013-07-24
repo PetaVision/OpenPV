@@ -1,0 +1,1 @@
+Lx2_Unshrunken_Stats_File       :t==   0.0 N==32768 Total==0.000000 Min==0.000000 Avg==0.000000 Max==0.000000 sigma==0.000000 nnz==0
