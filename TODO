@@ -14,8 +14,8 @@ Add ffmpeg support
 
 PatternState.bin and .txt only writes the stuff being used
 
- * params.pv should be params.xml, and include all parameters
+params.pv should be params.xml, and include all parameters
 
-Use cmake to manage makefiles (done for PetaVision and system tests)
+DONE! -- Use cmake to manage makefiles (done for PetaVision and system tests)
 
-Eliminate need for marginWidth parameter -- DONE (some additional testing is needed)
+DONE! -- Eliminate need for marginWidth parameter
