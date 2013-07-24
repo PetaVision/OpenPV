@@ -101,7 +101,7 @@ bool HyPerLCALayer::inWindowExt(int windowId, int neuronIdxExt){
    int globalExtX = kxPos(neuronIdxExt, loc->nx + 2*loc->nb, loc->ny + 2*loc->nb, loc->nf) + loc->kx0;
    int globalExtY = kyPos(neuronIdxExt, loc->nx + 2*loc->nb, loc->ny + 2*loc->nb, loc->nf) + loc->ky0;
    int outWindow = calcWindow(globalExtX, globalExtY);
-   std::cout << globalExtX << "/" << loc->nxGlobal + 2*loc->nb << " " << globalExtY << "/" << loc->nyGlobal + 2*loc->nb << " " << outWindow << "," << windowId << "\n";
+   //std::cout << globalExtX << "/" << loc->nxGlobal + 2*loc->nb << " " << globalExtY << "/" << loc->nyGlobal + 2*loc->nb << " " << outWindow << "," << windowId << "\n";
    return (outWindow == windowId);
 }
 
