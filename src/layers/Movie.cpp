@@ -36,7 +36,7 @@ int Movie::initialize_base() {
    movieOutputPath = NULL;
    skipFrameIndex = 0;
    echoFramePathnameFlag = false;
-   filename = NULL;
+   filenamestream = NULL;
    displayPeriod = DISPLAY_PERIOD;
    readPvpFile = false;
    fileOfFileNames = NULL;
