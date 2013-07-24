@@ -13,13 +13,16 @@ elseif isunix
   %%output_dir = "/nh/compneuro/Data/vine/LCA/detail/output_16x16x1024_overlap_lambda_05X2_errorthresh_005"; 
 endif
 addpath([workspace_path, filesep, "/PetaVision/mlab/util"]);
-last_checkpoint_ndx = 10000;
+last_checkpoint_ndx = 800000;  %% used to grab DoG weights, doesn't not have to be current
 checkpoint_path = [output_dir, filesep, "Checkpoints", filesep,  "Checkpoint", num2str(last_checkpoint_ndx, "%i")]; %% "Last"];%%
+use_last_checkpoint_ndx = false; %%true;  %% flag to set whether to use last_checkpoint_ndx in determining the maximum frames index to analyze 
+layer_write_step = 200;  %% used to compute maximum frame index to process
+weight_write_step = 2000;
 
 %% plot Reconstructions
 plot_Recon = true;
 if plot_Recon
-  num_Recon_default = 16;
+  num_Recon_default = 1;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% deep list
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -122,7 +125,11 @@ if plot_Recon
   max_unwhitened_Recon = cell(num_Recon_list, 1);
   min_unwhitened_Recon = cell(num_Recon_list, 1);
   %% get lowest frame number 
-  min_tot_Recon_frames = 100000000;
+  if use_last_checkpoint_ndx
+    min_tot_Recon_frames = fix(last_checkpoint_ndx / layer_write_step);  %% use to specify maximum frame to display
+  else
+    min_tot_Recon_frames = 10000000000000000;
+  endif
   for i_Recon = 1 : num_Recon_list
     Recon_file = [output_dir, filesep, Recon_list{i_Recon,1}, Recon_list{i_Recon,2}, ".pvp"]
     if ~exist(Recon_file, "file")
@@ -265,6 +272,11 @@ if plot_StatsProbe_vs_time
   StatsProbe_sigma_flag = ones(1,num_StatsProbe_list);
   StatsProbe_sigma_flag([2,4,6]) = 0;
   StatsProbe_nnz_flag = ~StatsProbe_sigma_flag;
+  if use_last_checkpoint_ndx
+    max_StatsProbe_line = last_checkpoint_ndx;
+  else
+    max_StatsProbe_line = 100000000000000;
+  endif
   for i_StatsProbe = 1 : num_StatsProbe_list
     StatsProbe_file = [output_dir, filesep, StatsProbe_list{i_StatsProbe,1}, StatsProbe_list{i_StatsProbe,2}]
     if ~exist(StatsProbe_file,"file")
@@ -281,6 +293,7 @@ if plot_StatsProbe_vs_time
     StatsProbe_sigma_vals = [];
     StatsProbe_nnz_vals = [];
     last_StatsProbe_line = StatsProbe_num_lines - 2;
+    last_StatsProbe_line = min(last_StatsProbe_line, max_StatsProbe_line);
     first_StatsProbe_line = max([(last_StatsProbe_line - StatsProbe_plot_lines), 1]);
     StatsProbe_time_vals = zeros(1,StatsProbe_plot_lines);
     StatsProbe_time_vals = zeros(1,StatsProbe_plot_lines);
@@ -360,6 +373,9 @@ if plot_Sparse
     Sparse_hdr{i_Sparse} = readpvpheader(Sparse_fid);
     fclose(Sparse_fid);
     tot_Sparse_frames = Sparse_hdr{i_Sparse}.nbands;
+    if use_last_checkpoint_ndx
+      tot_Sparse_frames = min(tot_Sparse_frames, fix(last_checkpoint_ndx / layer_write_step));  %% use to specify maximum frame to display
+    endif
     num_Sparse = tot_Sparse_frames;
     progress_step = ceil(tot_Sparse_frames / 10);
     [Sparse_struct, Sparse_hdr_tmp] = ...
@@ -459,9 +475,9 @@ if plot_nonSparse
 
 %% num frames to skip between stored frames, default is 
   nonSparse_skip = repmat(1, num_nonSparse_list, 1);
-  nonSparse_skip(1) = 10;
-  nonSparse_skip(2) = 10;
-  nonSparse_skip(3) = 10;
+  nonSparse_skip(1) = 2;
+  nonSparse_skip(2) = 2;
+  nonSparse_skip(3) = 1;
   nonSparse_hdr = cell(num_nonSparse_list,1);
   nonSparse_dir = [output_dir, filesep, "nonSparse"];
   mkdir(nonSparse_dir);
@@ -474,7 +490,9 @@ if plot_nonSparse
     nonSparse_hdr{i_nonSparse} = readpvpheader(nonSparse_fid);
     fclose(nonSparse_fid);
     tot_nonSparse_frames = nonSparse_hdr{i_nonSparse}.nbands;
-	       
+    if use_last_checkpoint_ndx
+      tot_nonSparse_frames = min(tot_nonSparse_frames, fix(last_checkpoint_ndx / layer_write_step));  %% use to specify maximum frame to display
+    endif	       
     num_nonSparse = tot_nonSparse_frames;
     progress_step = ceil(tot_nonSparse_frames / 10);
     [nonSparse_struct, nonSparse_hdr_tmp] = ...
@@ -554,6 +572,9 @@ if plot_weights
     weights_filedata = dir(weights_file);
     weights_framesize = weights_hdr{i_weights}.recordsize*weights_hdr{i_weights}.numrecords+weights_hdr{i_weights}.headersize;
     tot_weights_frames = weights_filedata(1).bytes/weights_framesize;
+    if use_last_checkpoint_ndx
+      tot_weights_frames = min(tot_weights_frames, fix(last_checkpoint_ndx / weight_write_step));  %% use to specify maximum frame to display
+    endif
 
     %%  
     i_pre = i_weights;
@@ -684,6 +705,9 @@ if plot_weights1_2
     weights1_2_framesize = ...
 	weights1_2_hdr{i_weights1_2}.recordsize*weights1_2_hdr{i_weights1_2}.numrecords+weights1_2_hdr{i_weights1_2}.headersize;
     tot_weights1_2_frames = weights1_2_filedata(1).bytes/weights1_2_framesize;
+    if use_last_checkpoint_ndx
+      tot_weights1_2_frames = min(tot_weights1_2_frames, fix(last_checkpoint_ndx / weight_write_step));  %% use to specify maximum frame to display
+    endif
     weights1_2_nxp = weights1_2_hdr{i_weights1_2}.additional(1);
     weights1_2_nyp = weights1_2_hdr{i_weights1_2}.additional(2);
     weights1_2_nfp = weights1_2_hdr{i_weights1_2}.additional(3);
@@ -701,6 +725,9 @@ if plot_weights1_2
     weights0_1_framesize = ...
 	weights0_1_hdr{i_weights0_1}.recordsize*weights0_1_hdr{i_weights0_1}.numrecords+weights0_1_hdr{i_weights0_1}.headersize;
     tot_weights0_1_frames = weights0_1_filedata(1).bytes/weights0_1_framesize;
+    if use_last_checkpoint_ndx
+      tot_weights0_1_frames = min(tot_weights0_1_frames, fix(last_checkpoint_ndx / weight_write_step));  %% use to specify maximum frame to display
+    endif
     weights0_1_nxp = weights0_1_hdr{i_weights0_1}.additional(1);
     weights0_1_nyp = weights0_1_hdr{i_weights0_1}.additional(2);
     weights0_1_nfp = weights0_1_hdr{i_weights0_1}.additional(3);
@@ -778,6 +805,7 @@ if plot_weights1_2
     weights1_2_fig = figure;
     set(weights1_2_fig, "name", ["Weights1_2_", weights1_2_list{i_weights1_2,2}, "_", num2str(weights1_2_time, "%07d")]);
 
+    max_shrinkage = 8; %% 
     for kf_pre1_2_rank = 1  : num_patches1_2
       kf_pre1_2 = pre_hist_rank(kf_pre1_2_rank);
       subplot(num_patches_rows, num_patches_cols, kf_pre1_2_rank); 
@@ -787,15 +815,15 @@ if plot_weights1_2
       else
 	patch1_2_tmp = squeeze(weights1_2_vals(:,:,:,kf_pre1_2));
       endif
-      %% patch1_2_array stores the sum over all post layer 1 neurons, weighted by weights1_2, 
+      %% patch0_2_array stores the sum over all post layer 1 neurons, weighted by weights1_2, 
       %% of image patches for each columun of weights0_1 for pre layer 2 neuron kf_pre
-      patch1_2_array = cell(size(weights1_2_vals,1),size(weights1_2_vals,2));
-      %% patch1_2 stores the complete image patch of the layer 2 neuron kf_pre
-      patch1_2 = zeros(weights0_2_nyp, weights0_2_nxp, weights0_1_nfp);
+      patch0_2_array = cell(size(weights1_2_vals,1),size(weights1_2_vals,2));
+      %% patch0_2 stores the complete image patch of the layer 2 neuron kf_pre
+      patch0_2 = zeros(weights0_2_nyp, weights0_2_nxp, weights0_1_nfp);
       %% loop over weights1_2 rows and columns
       for weights1_2_patch_row = 1 : weights1_2_nyp
 	for weights1_2_patch_col = 1 : weights1_2_nxp
-	  patch1_2_array{weights1_2_patch_row, weights1_2_patch_col} = ...
+	  patch0_2_array{weights1_2_patch_row, weights1_2_patch_col} = ...
 	      zeros([weights0_1_nxp, weights0_1_nyp, weights0_1_nfp]);
 	  %% accumulate weights0_1 patches for each post feature separately for each weights0_1 column 
 	  for kf_post1_2 = 1 : post1_2_nf
@@ -809,8 +837,8 @@ if plot_weights1_2
 	      weights0_1_patch = squeeze(weights0_1_vals(:,:,:,kf_post1_2));
 	    endif
 	    %%  store weights0_1_patch by column
-	    patch1_2_array{weights1_2_patch_row, weights1_2_patch_col} = ...
-		patch1_2_array{weights1_2_patch_row, weights1_2_patch_col} + ...
+	    patch0_2_array{weights1_2_patch_row, weights1_2_patch_col} = ...
+		patch0_2_array{weights1_2_patch_row, weights1_2_patch_col} + ...
 		patch1_2_weight .* ...
 		weights0_1_patch;
 	  endfor %% kf_post1_2
@@ -818,15 +846,45 @@ if plot_weights1_2
 	  row_end = image2post_ny_ratio*(weights1_2_patch_row-1)+weights0_1_nyp;
 	  col_start = 1+image2post_nx_ratio*(weights1_2_patch_col-1);
 	  col_end = image2post_nx_ratio*(weights1_2_patch_col-1)+weights0_1_nxp;
-	  patch1_2(row_start:row_end, col_start:col_end, :) = patch1_2(row_start:row_end, col_start:col_end, :) + ...
-	      patch1_2_array{weights1_2_patch_row, weights1_2_patch_col};
+	  patch0_2(row_start:row_end, col_start:col_end, :) = patch0_2(row_start:row_end, col_start:col_end, :) + ...
+	      patch0_2_array{weights1_2_patch_row, weights1_2_patch_col};
 	endfor %% weights1_2_patch_col
       endfor %% weights1_2_patch_row
-      min_patch = min(patch1_2(:));
-      max_patch = max(patch1_2(:));
-      patch_tmp2 = (patch1_2 - min_patch) * 255 / (max_patch - min_patch + ((max_patch - min_patch)==0));
-      patch_tmp2 = uint8(flipdim(permute(patch_tmp2, [2,1,3]),1));
-      imagesc(patch_tmp2); 
+      patch_tmp2 = flipdim(permute(patch0_2, [2,1,3]),1);
+      patch_tmp3 = patch_tmp2;
+      weights0_2_nyp_shrunken = size(patch_tmp3, 1);
+      patch_tmp4 = patch_tmp3(1, :, :);
+      while ~any(patch_tmp4(:)) %% && ((weights0_2_nyp - weights0_2_nyp_shrunken) <= max_shrinkage/2)
+	weights0_2_nyp_shrunken = weights0_2_nyp_shrunken - 1;
+	patch_tmp3 = patch_tmp3(2:weights0_2_nyp_shrunken, :, :);
+	patch_tmp4 = patch_tmp3(1, :, :);
+      endwhile
+      weights0_2_nyp_shrunken = size(patch_tmp3, 1);
+      patch_tmp4 = patch_tmp3(weights0_2_nyp_shrunken, :, :);
+      while ~any(patch_tmp4(:))
+	weights0_2_nyp_shrunken = weights0_2_nyp_shrunken - 1;
+	patch_tmp3 = patch_tmp3(1:weights0_2_nyp_shrunken, :, :);
+	patch_tmp4 = patch_tmp3(weights0_2_nyp_shrunken, :, :);
+      endwhile
+      weights0_2_nxp_shrunken = size(patch_tmp3, 2);
+      patch_tmp4 = patch_tmp3(:, 1, :);
+      while ~any(patch_tmp4(:)) %% && ((weights0_2_nyp - weights0_2_nyp_shrunken) <= max_shrinkage/2)
+	weights0_2_nxp_shrunken = weights0_2_nxp_shrunken - 1;
+	patch_tmp3 = patch_tmp3(:, 2:weights0_2_nxp_shrunken, :);
+	patch_tmp4 = patch_tmp3(:, 1, :);
+      endwhile
+      weights0_2_nxp_shrunken = size(patch_tmp3, 2);
+      patch_tmp4 = patch_tmp3(:, weights0_2_nxp_shrunken, :);
+      while ~any(patch_tmp4(:))
+	weights0_2_nxp_shrunken = weights0_2_nxp_shrunken - 1;
+	patch_tmp3 = patch_tmp3(:, 1:weights0_2_nxp_shrunken, :);
+	patch_tmp4 = patch_tmp3(:, weights0_2_nxp_shrunken, :);
+      endwhile
+      min_patch = min(patch3(:));
+      max_patch = max(patch3(:));
+      patch_tmp5 = uint8((patch3 - min_patch) * 255 / (max_patch - min_patch + ((max_patch - min_patch)==0)));
+		 
+      imagesc(patch_tmp5); 
       if weights0_1_nfp == 1
 	colormap(gray);
       endif
