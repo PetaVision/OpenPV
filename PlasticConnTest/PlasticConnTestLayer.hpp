@@ -16,12 +16,13 @@ class PlasticConnTestLayer: public PV::ANNLayer {
 public:
 	PlasticConnTestLayer(const char* name, HyPerCol * hc, int numChannels);
 	PlasticConnTestLayer(const char* name, HyPerCol * hc);
+	virtual int allocateDataStructures();
 	virtual int updateState(double timef, double dt);
 	virtual int publish(InterColComm * comm, double timef);
 protected:
 	int copyAtoV();
 	int setActivitytoGlobalPos();
-	int initialize();
+	int initialize(const char * name, HyPerCol * hc, int num_channels);
 };
 
 } /* namespace PV */
