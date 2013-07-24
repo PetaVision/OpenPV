@@ -1,0 +1,387 @@
+//
+// MPI_test.params
+//
+// created by garkenyon: August 4, 2011
+//
+
+//  - input parameters for ShrunkenPatchTest for system level testing of nxpShrunken, nypShrunken
+//
+
+debugParsing = false;
+
+HyPerCol "column" = {
+   nx = 32;   
+   ny = 32;
+   dt = 1.0;
+   randomSeed = 1047149415;  // if not set here,  clock time is used to generate seed
+   numSteps = 10;  // num images plus (num layers + 1) * delay
+   progressStep = 200;
+   writeProgressToErr = false;
+   outputPath = "output/";
+   filenamesContainLayerNames = false;
+   filenamesContainConnectionNames = false;
+   checkpointRead = false;
+   checkpointWrite = false;
+   suppressLastOutput = false;
+};
+
+//
+// layers
+//
+
+
+ShrunkenPatchTestLayer "L0" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 4;
+    marginWidth = 4;
+    phase = 0;
+    writeStep = -1;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+    writeSparseActivity = false;
+    
+    InitVType = "ConstantV";
+    valueV = 1.0;
+
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+    VShift = 0.0;
+};
+
+
+ANNLayer "Lx2_with_unshrunken" = {
+    restart = 0;
+    nxScale = 2;
+    nyScale = 2;
+    nf = 8;
+    marginWidth = 0;
+    phase = 0;
+    writeStep = -1;
+    mirrorBCflag = 0;
+    writeSparseActivity = false;
+    
+    InitVType = "ZeroV";
+
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+    VShift = 0.0;
+};
+
+
+ANNLayer "Lx4_with_unshrunken" = {
+    restart = 0;
+    nxScale = 4;
+    nyScale = 4;
+    nf = 16;
+    marginWidth = 0;
+    phase = 0;
+    writeStep = -1;
+    mirrorBCflag = 0;
+    writeSparseActivity = false;
+    
+    InitVType = "ZeroV";
+
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+    VShift = 0.0;
+};
+
+
+ANNLayer "Lx2_with_shrunken" = {
+    restart = 0;
+    nxScale = 2;
+    nyScale = 2;
+    nf = 8;
+    marginWidth = 0;
+    phase = 0;
+    writeStep = -1;
+    mirrorBCflag = 0;
+    writeSparseActivity = false;
+    
+    InitVType = "ZeroV";
+
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+    VShift = 0.0;
+};
+
+
+ANNLayer "Lx4_with_shrunken" = {
+    restart = 0;
+    nxScale = 4;
+    nyScale = 4;
+    nf = 16;
+    marginWidth = 0;
+    phase = 0;
+    writeStep = -1;
+    mirrorBCflag = 0;
+    writeSparseActivity = false;
+    
+    InitVType = "ZeroV";
+
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+    VShift = 0.0;
+};
+
+
+//  connections: 
+
+
+KernelConn "L0toLx2unshrunken" = {
+    preLayerName = "L0";
+    postLayerName = "Lx2_with_unshrunken";
+    channelCode = 0;
+    nxp = 10;
+    nyp = 10;
+    nfp = 8;
+    numAxonalArbors = 1;
+    writeStep = -1;
+    initFromLastFlag = 0;
+    
+    weightInitType = "Gauss2DWeight";
+    aspect = 1; //2;
+    sigma = infinity;
+    rMax  = infinity;
+    rMin = 0.0;
+    // deltaThetaMax = 6.2832;
+    // thetaMax = 1;
+    // bowtieFlag = 0;
+    // numFlanks = 1;
+    // flankShift = 0;
+    // rotate = 1;
+    numOrientationsPre = 4;
+    numOrientationsPost = 8;
+      
+    strength = 8.0; // 1.0 x post->num_neurons / pre->num_neurons
+    normalizeMethod = "normalizeSum";
+    normalize_cutoff = false;
+    symmetrizeWeights = false;
+    normalizeFromPostPerspective = false;
+    normalizeArborsIndividually = false;
+    minSumTolerated = 0.0;
+
+    writeCompressedCheckpoints = false;
+    plasticityFlag = 0;
+    shmget_flag = 1;
+
+    delay = 0;     
+
+    stochasticReleaseFlag = false;
+    shrinkPatches = false;
+    preActivityIsNotRate = false;
+    selfFlag = false;
+};
+
+
+KernelConn "L0toLx4unshrunken" = {
+    preLayerName = "L0";
+    postLayerName = "Lx4_with_unshrunken";
+    channelCode = 0;
+    nxp = 20;
+    nyp = 20;
+    nfp = 16;
+    numAxonalArbors = 1;
+    writeStep = -1;
+    initFromLastFlag = 0;
+    
+    weightInitType = "Gauss2DWeight";
+    aspect = 1; //4;
+    sigma = infinity;
+    rMax  = infinity;
+    rMin = 0.0;
+    // deltaThetaMax = 6.2832;
+    // thetaMax = 1;
+    // bowtieFlag = 0;
+    // numFlanks = 1;
+    // flankShift = 0;
+    // rotate = 1;
+    numOrientationsPre = 4;
+    numOrientationsPost = 16;
+      
+    strength = 64.0; // 1.0 x post->num_neurons / pre->num_neurons
+    normalizeMethod = "normalizeSum";
+    normalize_cutoff = false;
+    symmetrizeWeights = false;
+    normalizeFromPostPerspective = false;
+    normalizeArborsIndividually = false;
+    minSumTolerated = 0.0;
+
+    writeCompressedCheckpoints = false;
+    plasticityFlag = 0;
+    shmget_flag = 1;
+
+    delay = 0;     
+
+    stochasticReleaseFlag = false;
+    shrinkPatches = false;
+    preActivityIsNotRate = false;
+    selfFlag = false;
+};
+
+
+KernelConn "L0toLx2shrunken" = {
+    preLayerName = "L0";
+    postLayerName = "Lx2_with_shrunken";
+    channelCode = 0;
+    nxp = 10;
+    nyp = 10;
+    nxpShrunken = 8;
+    nypShrunken = 8;
+    nfp = 8;
+    numAxonalArbors = 1;
+    writeStep = -1;
+    initFromLastFlag = 0;
+    
+    weightInitType = "Gauss2DWeight";
+    aspect = 1; //2;
+    sigma = infinity;
+    rMax  = infinity;
+    rMin = 0.0;
+    // deltaThetaMax = 6.2832;
+    // thetaMax = 1;
+    // bowtieFlag = 0;
+    // numFlanks = 1;
+    // flankShift = 0;
+    // rotate = 1;
+    numOrientationsPre = 4;
+    numOrientationsPost = 8;
+      
+    strength = 8.0; // 1.0 x post->num_neurons / pre->num_neurons
+    normalizeMethod = "normalizeSum";
+    normalize_cutoff = false;
+    symmetrizeWeights = false;
+    normalizeFromPostPerspective = false;
+    normalizeArborsIndividually = false;
+    minSumTolerated = 0.0;
+
+    writeCompressedCheckpoints = false;
+    plasticityFlag = 0;
+    shmget_flag = 1;
+
+    delay = 0;     
+
+    stochasticReleaseFlag = false;
+    shrinkPatches = false;
+    preActivityIsNotRate = false;
+    selfFlag = false;
+};
+
+
+KernelConn "L0toLx4shrunken" = {
+    preLayerName = "L0";
+    postLayerName = "Lx4_with_shrunken";
+    channelCode = 0;
+    nxp = 20;
+    nyp = 20;
+    nxpShrunken = 16;
+    nypShrunken = 16;
+    nfp = 16;
+    numAxonalArbors = 1;
+    writeStep = -1;
+    initFromLastFlag = 0;
+    
+    weightInitType = "Gauss2DWeight";
+    aspect = 1; //4;
+    sigma = infinity;
+    rMax  = infinity;
+    rMin = 0.0;
+    // deltaThetaMax = 6.2832;
+    // thetaMax = 1;
+    // bowtieFlag = 0;
+    // numFlanks = 1;
+    // flankShift = 0;
+    // rotate = 1;
+    numOrientationsPre = 4;
+    numOrientationsPost = 16;
+      
+    strength = 64.0; // 1.0 x post->num_neurons / pre->num_neurons
+    normalizeMethod = "normalizeSum";
+    normalize_cutoff = false;
+    symmetrizeWeights = false;
+    normalizeFromPostPerspective = false;
+    normalizeArborsIndividually = false;
+    minSumTolerated = 0.0;
+
+    writeCompressedCheckpoints = false;
+    plasticityFlag = 0;
+    shmget_flag = 1;
+
+    delay = 0;     
+
+    stochasticReleaseFlag = false;
+    shrinkPatches = false;
+    preActivityIsNotRate = false;
+    selfFlag = false;
+};
+
+// 
+// StatsProbe "L0_Stats_File" = {
+//     targetLayer = "L0";
+//     probeOutputFile = "L0_Stats.txt";
+//     message = "L0_Stats_File           ";
+// };
+// ShrunkenPatchTestProbe "Lx2_Unshrunken_Stats_File" = {
+//     targetLayer = "Lx2_with_unshrunken";
+//     probeOutputFile = "Lx2_Unshrunken_Stats.txt";
+//     message = "Lx2_Unshrunken_Stats_File       ";
+//     nxpShrunken=10;
+//     nypShrunken=10;
+// };
+// ShrunkenPatchTestProbe "Lx4_Unshrunken_Stats_File" = {
+//     targetLayer = "Lx4_with_unshrunken";
+//     probeOutputFile = "Lx4_Unshrunken_Stats.txt";
+//     message = "Lx4_Unshrunken_Stats_File       ";
+//     nxpShrunken=20;
+//     nypShrunken=20;
+// };
+// ShrunkenPatchTestProbe "Lx2_Shrunken_Stats_File" = {
+//     targetLayer = "Lx2_with_shrunken";
+//     probeOutputFile = "Lx2_Shrunken_Stats.txt";
+//     message = "Lx2_Shrunken_Stats_File         ";
+//     nxpShrunken=8;
+//     nypShrunken=8;
+// };
+// ShrunkenPatchTestProbe "Lx4_Shrunken_Stats_File" = {
+//     targetLayer = "Lx4_with_shrunken";
+//     probeOutputFile = "Lx4_Shrunken_Stats.txt";
+//     message = "Lx4_Shrunken_Stats_File         ";
+//     nxpShrunken=16;
+//     nypShrunken=16;
+// };
+
+StatsProbe "L0_Stats_Screen" = {
+    targetLayer = "L0";
+    message = "L0_Stats_Screen         ";
+};
+ShrunkenPatchTestProbe "Lx2_Stats_Screen" = {
+    targetLayer = "Lx2_with_unshrunken";
+    message = "Lx2_Stats_Screen        ";
+    nxpShrunken=10;
+    nypShrunken=10;
+};
+ShrunkenPatchTestProbe "Lx4_Stats_Screen" = {
+    targetLayer = "Lx4_with_unshrunken";
+    message = "Lx4_Stats_Screen        ";
+    nxpShrunken=20;
+    nypShrunken=20;
+};
+ShrunkenPatchTestProbe "Lx1_2_Stats_Screen" = {
+    targetLayer = "Lx2_with_shrunken";
+    message = "Lx1_Stats_Screen        ";
+    nxpShrunken=8;
+    nypShrunken=8;
+};
+ShrunkenPatchTestProbe "Lx1_4_Stats_Screen" = {
+    targetLayer = "Lx4_with_shrunken";
+    message = "Lx1_4_Stats_Screen      ";
+    nxpShrunken=16;
+    nypShrunken=16;
+};
