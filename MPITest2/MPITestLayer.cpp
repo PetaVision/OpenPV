@@ -63,10 +63,17 @@ int MPITestLayer::setActivitytoGlobalPos(){
 
 int MPITestLayer::initialize(const char * name, HyPerCol * hc, int numChannels){
    ANNLayer::initialize(name, hc, numChannels);
-   setVtoGlobalPos();
-   setActivitytoGlobalPos();
 
    return PV_SUCCESS;
+}
+
+int MPITestLayer::allocateDataStructures() {
+   int status = ANNLayer::allocateDataStructures();
+   if (status==PV_SUCCESS) {
+      setVtoGlobalPos();
+      setActivitytoGlobalPos();
+   }
+   return status;
 }
 
 int MPITestLayer::updateState(double timed, double dt)
