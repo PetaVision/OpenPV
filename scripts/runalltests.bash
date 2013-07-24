@@ -232,6 +232,13 @@ runandecho $testname Debug/$testname $arglist
 mpirunandecho $testname Debug/$testname $arglist
 cd "$wd"
 
+testname=ShrunkenPatchTest
+cd "$testname"
+arglist="" # parameter filename is in main()
+runandecho $testname Debug/$testname $arglist
+mpirunandecho $testname Debug/$testname $arglist
+cd "$wd"
+
 cd "./PetaVision/tests"
 make runtests 2>/dev/null | egrep 'passed|FAILED'
 if test $usempi -eq 1
