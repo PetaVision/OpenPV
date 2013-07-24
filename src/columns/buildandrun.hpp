@@ -123,11 +123,11 @@
 using namespace PV;
 
 int buildandrun(int argc, char * argv[],
-                int (*customadd)(HyPerCol *, int, char **) = NULL,
+                int (*custominit)(HyPerCol *, int, char **) = NULL,
                 int (*customexit)(HyPerCol *, int, char **) = NULL,
                 void * (*customgroups)(const char *, const char *, HyPerCol *) = NULL);
 int buildandrun1paramset(int argc, char * argv[],
-                         int (*customadd)(HyPerCol *, int, char **),
+                         int (*custominit)(HyPerCol *, int, char **),
                          int (*customexit)(HyPerCol *, int, char **),
                          void * (*customgroups)(const char *, const char *, HyPerCol *),
                          PVParams * params);

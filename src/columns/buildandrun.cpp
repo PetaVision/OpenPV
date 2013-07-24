@@ -15,7 +15,7 @@
 
 using namespace PV;
 
-int buildandrun(int argc, char * argv[], int (*customadd)(HyPerCol *, int, char **), int (*customexit)(HyPerCol *, int, char **), void * (*customgroups)(const char *, const char *, HyPerCol *)) {
+int buildandrun(int argc, char * argv[], int (*custominit)(HyPerCol *, int, char **), int (*customexit)(HyPerCol *, int, char **), void * (*customgroups)(const char *, const char *, HyPerCol *)) {
 
    //Parse param file
    char * param_file = NULL;
@@ -33,11 +33,11 @@ int buildandrun(int argc, char * argv[], int (*customadd)(HyPerCol *, int, char 
             printf("Parameter sweep: starting run %d of %d\n", k+1, numSweepValues);
          }
          params->setSweepValues(k);
-         status = buildandrun1paramset(argc, argv, customadd, customexit, customgroups, params) == PV_SUCCESS ? status : PV_FAILURE;
+         status = buildandrun1paramset(argc, argv, custominit, customexit, customgroups, params) == PV_SUCCESS ? status : PV_FAILURE;
       }
    }
    else {
-      status = buildandrun1paramset(argc, argv, customadd, customexit, customgroups, params);
+      status = buildandrun1paramset(argc, argv, custominit, customexit, customgroups, params);
    }
 
    delete params;
@@ -46,7 +46,7 @@ int buildandrun(int argc, char * argv[], int (*customadd)(HyPerCol *, int, char 
 }
 
 int buildandrun1paramset(int argc, char * argv[],
-                         int (*customadd)(HyPerCol *, int, char **),
+                         int (*custominit)(HyPerCol *, int, char **),
                          int (*customexit)(HyPerCol *, int, char **),
                          void * (*customgroups)(const char *, const char *, HyPerCol *),
                          PVParams * params) {
@@ -54,10 +54,10 @@ int buildandrun1paramset(int argc, char * argv[],
    if( hc == NULL ) return PV_FAILURE;  // build() prints error message
 
    int status = PV_SUCCESS;
-   if( customadd != NULL ) {
-      status = (*customadd)(hc, argc, argv);
+   if( custominit != NULL ) {
+      status = (*custominit)(hc, argc, argv);
       if(status != PV_SUCCESS) {
-         fprintf(stderr, "customadd function failed with return value %d\n", status);
+         fprintf(stderr, "custominit function failed with return value %d\n", status);
       }
    }
 
