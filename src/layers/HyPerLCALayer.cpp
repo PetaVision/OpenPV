@@ -101,6 +101,7 @@ bool HyPerLCALayer::inWindowExt(int windowId, int neuronIdxExt){
    int globalExtX = kxPos(neuronIdxExt, loc->nx + 2*loc->nb, loc->ny + 2*loc->nb, loc->nf) + loc->kx0;
    int globalExtY = kyPos(neuronIdxExt, loc->nx + 2*loc->nb, loc->ny + 2*loc->nb, loc->nf) + loc->ky0;
    int outWindow = calcWindow(globalExtX, globalExtY);
+   std::cout << globalExtX << "/" << loc->nxGlobal + 2*loc->nb << " " << globalExtY << "/" << loc->nyGlobal + 2*loc->nb << " " << outWindow << "," << windowId << "\n";
    return (outWindow == windowId);
 }
 
@@ -114,21 +115,19 @@ bool HyPerLCALayer::inWindowRes(int windowId, int neuronIdxRes){
 
 int HyPerLCALayer::calcWindow(int globalExtX, int globalExtY){
    const PVLayerLoc * loc = this->getLayerLoc();
-   int stepX = ceil((float)(loc->nxGlobal+2*loc->nb)/numWindowX);
-   int stepY = ceil((float)(loc->nyGlobal+2*loc->nb)/numWindowY);
    //Calculate x and y with symmetry on
-   if(windowSymX && globalExtX > ceil((float)numWindowX/2) * stepX){
-      globalExtX = numWindowX * stepX - globalExtX;
+   if(windowSymX && globalExtX >= floor((loc->nxGlobal + 2*loc->nb)/2)){
+      globalExtX = loc->nxGlobal+2*loc->nb - globalExtX - 1;
    }
-   if(windowSymY && globalExtY > ceil((float)numWindowY/2) * stepY){
-      globalExtY = numWindowY * stepY - globalExtY;
+   if(windowSymY && globalExtY >= floor((loc->nyGlobal + 2*loc->nb)/2)){
+      globalExtY = loc->nyGlobal+2*loc->nb - globalExtY - 1;
    }
    //Calculate the window x and y
    int windowX = floor(((float)globalExtX/(loc->nxGlobal+2*loc->nb)) * numWindowX); 
    int windowY = floor(((float)globalExtY/(loc->nyGlobal+2*loc->nb)) * numWindowY);
    //Change x and y into index
    int windowIdx = (windowY * numWindowY) + windowX;
-   assert(windowIdx <= getNumWindows());
+   assert(windowIdx < getNumWindows());
    assert(windowIdx >= 0);
    return windowIdx;
 }
