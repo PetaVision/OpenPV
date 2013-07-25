@@ -1339,17 +1339,6 @@ int HyPerCol::exitRunLoop(bool exitOnFinish)
       checkpointWrite(cpDir);
    }
 
-#ifdef OBSOLETE // Marked obsolete July 13, 2012.  Final output is written to {outputPath}/Last, above, using CheckpointWrite
-   bool last = true;
-   for (int l = 0; l < numLayers; l++) {
-      layers[l]->writeState(simTime, last);
-   }
-
-   for (int c = 0; c < numConnections; c++) {
-      connections[c]->outputState(simTime, last);
-   }
-#endif // OBSOLETE
-
    if (exitOnFinish) {
       delete this;
       exit(0);

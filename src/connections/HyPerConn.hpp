@@ -61,7 +61,9 @@ public:
    virtual int communicateInitInfo();
    virtual int allocateDataStructures();
 
+#ifdef OBSOLETE // Marked obsolete July 25, 2013.  recvSynapticInput is now called by recvAllSynapticInput, called by HyPerCol, so deliver andtriggerReceive aren't needed.
    virtual int deliver(Publisher * pub, const PVLayerCube * cube, int neighbor);
+#endif // OBSOLETE
    virtual int checkpointRead(const char * cpDir, double* timef);
    virtual int checkpointWrite(const char * cpDir);
    virtual int insertProbe(BaseConnectionProbe* p);

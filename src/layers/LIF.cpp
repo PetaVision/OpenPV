@@ -560,6 +560,7 @@ int LIF::updateStateOpenCL(double time, double dt)
    return status;
 }
 
+#ifdef OBSOLETE // Marked obsolete July 25, 2013.  recvSynapticInput is now called by recvAllSynapticInput, called by HyPerCol, so deliver andtriggerReceive aren't needed.
 int LIF::triggerReceive(InterColComm* comm)
 {
    int status = HyPerLayer::triggerReceive(comm);
@@ -577,11 +578,12 @@ int LIF::triggerReceive(InterColComm* comm)
    status |= clGSynI->copyToDevice(&evList[EV_LIF_GSYN_I]);
    status |= clGSynI->copyToDevice(&evList[EV_LIF_GSYN_IB]);
    numWait += 3;
-#endif
-#endif
+#endif // PV_CL_COPY_BUFFERS
+#endif // PV_USE_OPENCL
 
    return status;
 }
+#endif // OBSOLETE
 
 int LIF::waitOnPublish(InterColComm* comm)
 {
@@ -664,94 +666,6 @@ float LIF::getChannelTimeConst(enum ChannelType channel_type)
    }
    return channel_time_const;
 }
-
-
-#ifdef OBSOLETE // Marked obsolete July 13, 2012.  Restarting from last now handled by a call to checkpointRead from within HyPerLayer::initializeState
-int LIF::readState(float * time)
-{
-   double dtime;
-   char path[PV_PATH_MAX];
-   bool contiguous = false;
-   bool extended   = false;
-
-   int status = HyPerLayer::readState(time);
-
-   PVLayerLoc * loc = & clayer->loc;
-   Communicator * comm = parent->icCommunicator();
-
-   getOutputFilename(path, "Vth", "_last");
-   status = read_pvdata(path, comm, &dtime, Vth, loc, PV_FLOAT_TYPE, extended, contiguous);
-   assert(status == PV_SUCCESS);
-
-   getOutputFilename(path, "G_E", "_last");
-   status = read_pvdata(path, comm, &dtime, G_E, loc, PV_FLOAT_TYPE, extended, contiguous);
-   assert(status == PV_SUCCESS);
-
-   getOutputFilename(path, "G_I", "_last");
-   status = read_pvdata(path, comm, &dtime, G_I, loc, PV_FLOAT_TYPE, extended, contiguous);
-   assert(status == PV_SUCCESS);
-
-   getOutputFilename(path, "G_IB", "_last");
-   status = read_pvdata(path, comm, &dtime, G_IB, loc, PV_FLOAT_TYPE, extended, contiguous);
-   assert(status == PV_SUCCESS);
-
-   *time = (float) dtime;
-   return status;
-
-}
-#endif // OBSOLETE
-
-#ifdef OBSOLETE // Marked obsolete Jul 13, 2012.  Dumping the state is now done by CheckpointWrite.
-int LIF::writeState(float time, bool last)
-{
-   char path[PV_PATH_MAX];
-   bool contiguous = false;
-   bool extended   = false;
-
-   const char * last_str = (last) ? "_last" : "";
-
-   int status = HyPerLayer::writeState(time, last);
-
-   PVLayerLoc * loc = & clayer->loc;
-   Communicator * comm = parent->icCommunicator();
-
-   getOutputFilename(path, "Vth", last_str);
-   status = write_pvdata(path, comm, time, Vth, loc, PV_FLOAT_TYPE, extended, contiguous);
-
-   getOutputFilename(path, "G_E", last_str);
-   status = write_pvdata(path, comm, time, G_E, loc, PV_FLOAT_TYPE, extended, contiguous);
-
-   getOutputFilename(path, "G_I", last_str);
-   status = write_pvdata(path, comm, time, G_I, loc, PV_FLOAT_TYPE, extended, contiguous);
-
-   getOutputFilename(path, "G_IB", last_str);
-   status = write_pvdata(path, comm, time, G_IB, loc, PV_FLOAT_TYPE, extended, contiguous);
-
-#ifdef DEBUG_OUTPUT
-   // print activity at center of image
-
-   int sx = clayer->loc.nf;
-   int sy = sx*clayer->loc.nx;
-   pvdata_t * a = clayer->activity->data;
-
-   int n = (int) (sy*(clayer->loc.ny/2 - 1) + sx*(clayer->loc.nx/2));
-   for (int f = 0; f < clayer->loc.nf; f++) {
-      printf("f = %d, a[%d] = %f\n", f, n, a[n]);
-      n += 1;
-   }
-   printf("\n");
-
-   n = (int) (sy*(clayer->loc.ny/2 - 1) + sx*(clayer->loc.nx/2));
-   n -= 8;
-   for (int f = 0; f < clayer->loc.nf; f++) {
-      printf("f = %d, a[%d] = %f\n", f, n, a[n]);
-      n += 1;
-   }
-#endif
-
-   return 0;
-}
-#endif // OBSOLETE
 
 int LIF::findPostSynaptic(int dim, int maxSize, int col,
 // input: which layer, which neuron

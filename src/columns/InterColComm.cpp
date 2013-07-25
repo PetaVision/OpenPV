@@ -111,6 +111,7 @@ int InterColComm::wait(int pubId)
    return publishers[pubId]->wait(numRemote);
 }
 
+#ifdef OBSOLETE // Marked obsolete July 25, 2013.  recvSynapticInput is now called by recvAllSynapticInput, called by HyPerCol, so deliver andtriggerReceive aren't needed.
 /**
  * deliver all outstanding published messages
  */
@@ -121,6 +122,7 @@ int InterColComm::deliver(HyPerCol* hc, int pubId)
 #endif // DEBUG_OUTPUT
    return publishers[pubId]->deliver(hc, numNeighbors, numBorders);
 }
+#endif // OBSOLETE
 
 #ifdef PV_USE_OPENCL
 Publisher::Publisher(int pubId, HyPerCol * hc, int numItems, PVLayerLoc loc, int numLevels, bool copydstoreflag)
@@ -253,6 +255,7 @@ int Publisher::wait(int numRemote)
    return 0;
 }
 
+#ifdef OBSOLETE // Marked obsolete July 25, 2013.  recvSynapticInput is now called by recvAllSynapticInput, called by HyPerCol, so deliver andtriggerReceive aren't needed.
 /**
  * deliver published messages
  */
@@ -296,6 +299,7 @@ int Publisher::deliver(HyPerCol* hc, int numNeighbors, int numBorders)
 
    return 0;
 }
+#endif // OBSOLETE
 
 int Publisher::readData(int delay) {
    if (delay > 0) {

@@ -437,6 +437,7 @@ int Retina::updateStateOpenCL(double time, double dt)
    return status;
 }
 
+#ifdef OBSOLETE // Marked obsolete July 25, 2013.  recvSynapticInput is now called by recvAllSynapticInput, called by HyPerCol, so deliver andtriggerReceive aren't needed.
 int Retina::triggerReceive(InterColComm* comm)
 {
    int status = HyPerLayer::triggerReceive(comm);
@@ -454,6 +455,7 @@ int Retina::triggerReceive(InterColComm* comm)
 
    return status;
 }
+#endif // OBSOLETE
 
 int Retina::waitOnPublish(InterColComm* comm)
 {
@@ -586,33 +588,6 @@ int Retina::updateBorder(double time, double dt)
 
    return 0;
 }
-
-#ifdef OBSOLETE // Marked obsolete Jul 13, 2012.  Dumping the state is now done by CheckpointWrite.
-int Retina::writeState(double timef, bool last)
-{
-   int status = HyPerLayer::writeState(timef, last);
-
-   // print activity at center of image
-
-#ifdef DEBUG_OUTPUT
-   int sx = clayer->loc.nf;
-   int sy = sx*clayer->loc.nx;
-   pvdata_t * a = clayer->activity->data;
-
-   for (int k = 0; k < clayer->numExtended; k++) {
-      if (a[k] == 1.0) printf("a[%d] == 1\n", k);
-   }
-
-  int n = (int) (sy*(clayer->loc.ny/2 - 1) + sx*(clayer->loc.nx/2));
-  for (int f = 0; f < clayer->loc.nf; f++) {
-     printf("a[%d] = %f\n", n, a[n]);
-     n += 1;
-  }
-#endif
-
-   return status;
-}
-#endif // OBSOLETE
 
 int Retina::outputState(double time, bool last)
 {

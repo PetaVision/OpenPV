@@ -1504,6 +1504,7 @@ int HyPerConn::deliverOpenCL(Publisher * pub, const PVLayerCube * cube)
 }
 #endif // PV_USE_OPENCL
 
+#ifdef OBSOLETE // Marked obsolete July 25, 2013.  recvSynapticInput is now called by recvAllSynapticInput, called by HyPerCol, so deliver andtriggerReceive aren't needed.
 int HyPerConn::deliver(Publisher * pub, const PVLayerCube * cube, int neighbor)
 {
 #ifdef DEBUG_OUTPUT
@@ -1521,7 +1522,7 @@ int HyPerConn::deliver(Publisher * pub, const PVLayerCube * cube, int neighbor)
       //if((gpuAccelerateFlag)&&(ignoreGPUflag)) post->copyChannelFromDevice(getChannel());
       if((gpuAccelerateFlag)&&(ignoreGPUflag))
          post->copyGSynFromDevice();
-#endif
+#endif // PV_USE_OPENCL
       for(int arborId=0;arborId<numberOfAxonalArborLists();arborId++) {
          int delay = getDelay(arborId);
          pub->readData(delay);
@@ -1534,7 +1535,7 @@ int HyPerConn::deliver(Publisher * pub, const PVLayerCube * cube, int neighbor)
          post->copyGSynToDevice();
 
    }
-#endif
+#endif // PV_USE_OPENCL
 
 #ifdef DEBUG_OUTPUT
    printf("[%d]: HyPerConn::delivered: \n", rank);
@@ -1542,6 +1543,7 @@ int HyPerConn::deliver(Publisher * pub, const PVLayerCube * cube, int neighbor)
 #endif // DEBUG_OUTPUT
    return 0;
 }
+#endif // OBSOLETE
 
 int HyPerConn::checkpointRead(const char * cpDir, double * timef) {
    clearWeights(get_wDataStart(), getNumDataPatches(), nxp, nyp, nfp);

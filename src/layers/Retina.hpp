@@ -41,15 +41,14 @@ public:
 
    int setRetinaParams(PVParams * p);
 
+#ifdef OBSOLETE // Marked obsolete July 25, 2013.  recvSynapticInput is now called by recvAllSynapticInput, called by HyPerCol, so deliver andtriggerReceive aren't needed.
    virtual int triggerReceive(InterColComm* comm);
+#endif // OBSOLETE
    virtual int updateState(double time, double dt);
    virtual int outputState(double time, bool last);
    virtual int updateStateOpenCL(double time, double dt);
    virtual int updateBorder(double time, double dt);
    virtual int waitOnPublish(InterColComm* comm);
-#ifdef OBSOLETE // Marked obsolete Jul 13, 2012.  Dumping the state is now done by CheckpointWrite.
-   virtual int writeState(double timef, bool last=false);
-#endif // OBSOLETE
    virtual int checkpointRead(const char * cpDir, double * timef);
    virtual int checkpointWrite(const char * cpDir);
 

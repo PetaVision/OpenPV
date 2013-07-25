@@ -26,20 +26,15 @@ public:
 
    void addGapStrength(float gap_strength){sumGap += gap_strength;}
    int virtual updateStateOpenCL(double time, double dt);
+#ifdef OBSOLETE // Marked obsolete July 25, 2013.  recvSynapticInput is now called by recvAllSynapticInput, called by HyPerCol, so deliver andtriggerReceive aren't needed.
    int virtual triggerReceive(InterColComm* comm);
+#endif // OBSOLETE
    int virtual updateState(double time, double dt);
 
 #ifdef OBSOLETE // Marked obsolete May 15, 2013.  G_Gap wasn't being used (GSyn[3] isn't filtered into a conductance) so the checkpointed G_Gap was all zeroes.
    virtual int checkpointRead(const char * cpDir, double * timef);
    virtual int checkpointWrite(const char * cpDir);
 #endif //OBSOLETE
-
-#ifdef OBSOLETE // Marked obsolete July 13, 2012.  Restarting from last now handled by a call to checkpointRead from within HyPerLayer::initializeState
-   int virtual readState(float * time);
-#endif // OBSOLETE
-#ifdef OBSOLETE // Marked obsolete Jul 13, 2012.  Dumping the state is now done by CheckpointWrite.
-   int virtual writeState(float time, bool last);
-#endif // OBSOLETE
 
 protected:
 

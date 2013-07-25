@@ -41,7 +41,9 @@ public:
    virtual int communicateInitInfo();
    virtual int allocateDataStructures();
 
+#ifdef OBSOLETE // Marked obsolete July 25, 2013.  recvSynapticInput is now called by recvAllSynapticInput, called by HyPerCol, so deliver andtriggerReceive aren't needed.
    virtual int triggerReceive(InterColComm* comm);
+#endif // OBSOLETE
    virtual int updateState(double time, double dt);
    virtual int updateStateOpenCL(double time, double dt);
    virtual int waitOnPublish(InterColComm* comm);
@@ -49,13 +51,6 @@ public:
    
    virtual int checkpointRead(const char * cpDir, double * timef);
    virtual int checkpointWrite(const char * cpDir);
-
-#ifdef OBSOLETE // Marked obsolete July 13, 2012.  Restarting from last now handled by a call to checkpointRead from within HyPerLayer::initializeState
-   virtual int readState (double * time);
-#endif // OBSOLETE
-#ifdef OBSOLETE // Marked obsolete Jul 13, 2012.  Dumping the state is now done by CheckpointWrite.
-   virtual int writeState(double time, bool last=false);
-#endif // OBSOLETE
 
    pvdata_t * getVth()              {return Vth;}
    virtual pvdata_t * getConductance(ChannelType ch) {

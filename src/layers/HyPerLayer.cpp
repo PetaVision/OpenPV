@@ -1415,6 +1415,7 @@ int HyPerLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activity
    return PV_SUCCESS;
 }
 
+#ifdef OBSOLETE // Marked obsolete July 25, 2013.  recvSynapticInput is now called by recvAllSynapticInput, called by HyPerCol, so deliver andtriggerReceive aren't needed.
 int HyPerLayer::triggerReceive(InterColComm* comm)
 {
    // deliver calls recvSynapticInput for all connections for which this layer is presynaptic (i.e. all connections made by this layer)
@@ -1431,6 +1432,7 @@ int HyPerLayer::triggerReceive(InterColComm* comm)
    //#endif
    return status;
 }
+#endif // OBSOLETE
 
 int HyPerLayer::publish(InterColComm* comm, double time)
 {

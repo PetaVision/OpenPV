@@ -198,8 +198,10 @@ public:
    virtual int resetGSynBuffers(double timef, double dt);
    // ************************************************************************************//
 
+#ifdef OBSOLETE // Marked obsolete July 25, 2013.  recvSynapticInput is now called by recvAllSynapticInput, called by HyPerCol, so deliver andtriggerReceive aren't needed.
    // public method for invoking synaptic communication network, cause all layers to send to all targets
    virtual int triggerReceive(InterColComm * comm);
+#endif // OBSOLETE
 
    // mpi public wait method to ensure all targets have received synaptic input before proceeding to next time step
    virtual int waitOnPublish(InterColComm * comm);
