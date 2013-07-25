@@ -47,6 +47,27 @@ DerivedLayer::initialize(arguments) {
 
   // other DerivedLayer methods
 }
+ *
+ * DerivedLayer's constructors should only call the base class's default constructor (that only calls initialize_base).
+ * This ensures that each class's initialize_base and initialize are only called once each, and that initialize_base
+ * is called before initialize.
+ *
+ * initialize_base() should only set member variables to default values and member variable pointers to null.
+ * initialize() should only store the constructor's arguments into member variables and read the hypercolumn's parameters,
+ * storing the results in member variables.  Note that at the time the constructor (and therefore initialize) is called,
+ * you cannot assume that any other layers and connections have been added to the HyPerCol.
+ *
+ * If you need to receive information from or send information to another object to fully initialize the layer,
+ * override communicateInitInfo().  Be sure to call the base class's communicateInitInfo() within the derived class's
+ * communicateInitInfo() method.
+ *
+ * If you have any buffers (e.g. conductances) that need to be allocated, do so by overriding allocateBuffers(),
+ * which is called by HyPerLayer's allocateDataStructures().  Be sure to call the base class's allocateBuffers() within
+ * the dervied class's allocateBuffers() method.  The reason for doing allocations here is that if a buffer is extended
+ * and therefore depends on the value of the margin, it needs to wait until after the communicateInitInfo stage.
+ * There may be some specialized layers that inherit their nx, ny, nf values from other layers, so that even for
+ * restricted buffers it makes sense to wait until the allocateDataStructures stage to do the allocation.
+ *
  */
 
 #include <iostream>
