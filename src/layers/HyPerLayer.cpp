@@ -134,11 +134,6 @@ int HyPerLayer::initialize(const char * name, HyPerCol * hc, int numChannels) {
 
    PVParams * params = parent->parameters();
 
-   if (params->present(name, "nx") || params->present(name, "ny")) {
-      fprintf(stderr, "HyPerLayer::initialize_base: ERROR, use (nxScale,nyScale) not (nx,ny)\n");
-      exit(-1);
-   }
-
    int status = setParams(params);
    assert(status == PV_SUCCESS);
 
@@ -590,7 +585,12 @@ void HyPerLayer::readNf(PVParams * params) {
 }
 
 void HyPerLayer::readMarginWidth(PVParams * params) {
-   margin = (int) params->value(name, "marginWidth", margin);
+   if (params->present(name, "marginWidth")) {
+      margin = (int) params->value(name, "marginWidth");
+      if (parent->columnId()==0) {
+         fprintf(stderr, "HyPerLayer \"%s\": margins are adjusted automatically; parameter marginWidth is deprecated.\n", name);
+      }
+   }
 }
 
 void HyPerLayer::readWriteStep(PVParams * params) {
