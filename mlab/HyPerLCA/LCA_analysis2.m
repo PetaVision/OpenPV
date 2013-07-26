@@ -7,14 +7,15 @@ if ismac
   output_dir = "/Users/garkenyon/workspace/HyPerHLCA2/output_animal1200000_color_deep"; 
 elseif isunix
   workspace_path = "/home/gkenyon/workspace";
-  output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_12x12x512_lambda_05X2_color_deep"; 
+  output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_12x12x128_lambda_05X2_color_deep"; 
   %%output_dir = "/nh/compneuro/Data/KITTI/LCA/2011_09_26_drive_0005_sync"; 
   %%output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_16x16x1024_Overlap_lambda_05X2"; 
   %%output_dir = "/nh/compneuro/Data/vine/LCA/detail/output_16x16x1024_overlap_lambda_05X2_errorthresh_005"; 
 endif
 addpath([workspace_path, filesep, "/PetaVision/mlab/util"]);
-last_checkpoint_ndx = 800000;  %% used to grab DoG weights, doesn't not have to be current
+last_checkpoint_ndx = 20000;  %% used to grab DoG weights, doesn't not have to be current
 checkpoint_path = [output_dir, filesep, "Checkpoints", filesep,  "Checkpoint", num2str(last_checkpoint_ndx, "%i")]; %% "Last"];%%
+%%output_dir = checkpoint_path;
 use_last_checkpoint_ndx = false; %%true;  %% flag to set whether to use last_checkpoint_ndx in determining the maximum frames index to analyze 
 layer_write_step = 200;  %% used to compute maximum frame index to process
 weight_write_step = 2000;
@@ -541,10 +542,11 @@ if plot_weights
   weights_list = ...
       {["w5_"], ["V1ToError"]; ...
        ["w9_"], ["V2ToError2"]};
-  pre_list = ...
-      {["a5_"], ["V1"]; ...
-       ["a8_"], ["V2"]};
   sparse_ndx = [1; 2];
+%%  weights_list = ...
+%%      {["V1ToError"], ["_W"], ; ...
+%%       ["V2ToError2"], ["_W"]};
+%%  sparse_ndx = [1; 2];
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% KITTI list
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -576,16 +578,6 @@ if plot_weights
       tot_weights_frames = min(tot_weights_frames, fix(last_checkpoint_ndx / weight_write_step));  %% use to specify maximum frame to display
     endif
 
-    %%  
-    i_pre = i_weights;
-    pre_file = [output_dir, filesep, pre_list{i_pre,1}, pre_list{i_pre,2}, ".pvp"]
-    if ~exist(pre_file, "file")
-      error(["file does not exist: ", pre_file]);
-    endif
-    pre_fid = fopen(pre_file);
-    pre_hdr{i_pre} = readpvpheader(pre_fid);
-    fclose(pre_fid);
-
     num_weights = 1;
     progress_step = ceil(tot_weights_frames / 10);
     [weights_struct, weights_hdr_tmp] = ...
@@ -597,7 +589,7 @@ if plot_weights
     if plot_Sparse
       pre_hist_rank = Sparse_hist_rank{sparse_ndx(i_weights)};
     else
-      pre_hist_rank = (1:pre_hdr.nf);
+      pre_hist_rank = (1:weights_hdr{i_weights}.nf);
     endif
 
     %% make tableau of all patches
@@ -660,23 +652,26 @@ if plot_weights1_2
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   %% list of weights from layer2 to layer1
   weights1_2_list = ...
-      {["w13_"], ["V2ToError1_2"]};
+     {["w13_"], ["V2ToError1_2"]};
+%%     {["V2ToError1_2"], ["_W"]};
   post1_2_list = ...
       {["a5_"], ["V1"]};
-  pre1_2_list = ...
-      {["a8_"], ["V2"]};
+%%      {["V1"], ["_A"]};
   %% list of weights from layer1 to image
   weights0_1_list = ...
       {["w5_"], ["V1ToError"]};
+%%      {["V1ToError"], ["_W"]};
   image_list = ...
       {["a1_"], ["Retina"]};
+%%      {["Retina"], ["_A"]};
   %% list of indices for reading rank order of presynaptic neuron as function of activation frequency
   sparse_ndx = [2];
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
   %% get image header (to get image dimensions)
   i_image = 1;
-  image_file = [output_dir, filesep, image_list{i_image,1}, image_list{i_image,2}, ".pvp"]
+  image_file = ...
+      [output_dir, filesep, image_list{i_image,1}, image_list{i_image,2}, ".pvp"]
   if ~exist(image_file, "file")
     error(["file does not exist: ", image_file]);
   endif
@@ -732,16 +727,6 @@ if plot_weights1_2
     weights0_1_nyp = weights0_1_hdr{i_weights0_1}.additional(2);
     weights0_1_nfp = weights0_1_hdr{i_weights0_1}.additional(3);
 
-    %% get pre header (to get pre layer dimensions)
-    i_pre1_2 = i_weights1_2;
-    pre1_2_file = [output_dir, filesep, pre1_2_list{i_pre1_2,1}, pre1_2_list{i_pre1_2,2}, ".pvp"]
-    if ~exist(pre1_2_file, "file")
-      error(["file does not exist: ", pre1_2_file]);
-    endif
-    pre1_2_fid = fopen(pre1_2_file);
-    pre1_2_hdr{i_pre1_2} = readpvpheader(pre1_2_fid);
-    fclose(pre1_2_fid);
-
     %% get post header (to get post layer dimensions)
     i_post1_2 = i_weights1_2;
     post1_2_file = [output_dir, filesep, post1_2_list{i_post1_2,1}, post1_2_list{i_post1_2,2}, ".pvp"]
@@ -777,7 +762,7 @@ if plot_weights1_2
    if plot_Sparse
       pre_hist_rank = Sparse_hist_rank{sparse_ndx(i_weights1_2)};
     else
-      pre_hist_rank = (1:pre1_2_hdr{i_pre1_2}.nf);
+      pre_hist_rank = (1:weights1_2_hdr{i_weights1_2}.nf);
     endif
 
     %% compute layer 2 -> 1 patch size in pixels
@@ -880,9 +865,9 @@ if plot_weights1_2
 	patch_tmp3 = patch_tmp3(:, 1:weights0_2_nxp_shrunken, :);
 	patch_tmp4 = patch_tmp3(:, weights0_2_nxp_shrunken, :);
       endwhile
-      min_patch = min(patch3(:));
-      max_patch = max(patch3(:));
-      patch_tmp5 = uint8((patch3 - min_patch) * 255 / (max_patch - min_patch + ((max_patch - min_patch)==0)));
+      min_patch = min(patch_tmp3(:));
+      max_patch = max(patch_tmp3(:));
+      patch_tmp5 = uint8((patch_tmp3 - min_patch) * 255 / (max_patch - min_patch + ((max_patch - min_patch)==0)));
 		 
       imagesc(patch_tmp5); 
       if weights0_1_nfp == 1
