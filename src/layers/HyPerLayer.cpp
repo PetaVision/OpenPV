@@ -570,6 +570,7 @@ int HyPerLayer::initializeState() {
          status = initVObject->calcV(this);
          delete initVObject;
          setActivity();
+         if (status == PV_SUCCESS) status = updateActiveIndices();
       }
    }
    return status;
@@ -1683,6 +1684,8 @@ int HyPerLayer::checkpointRead(const char * cpDir, double * timed) {
    int status = readBufferFile(filename, icComm, &filetime, &clayer->activity->data, 1, /*extended*/true, getLayerLoc());
    assert(status == PV_SUCCESS);
    *timed = filetime;
+   updateActiveIndices();
+
    if( getV() != NULL ) {
       chars_needed = snprintf(filename, PV_PATH_MAX, "%s_V.pvp", basepath);
       assert(chars_needed < PV_PATH_MAX);
@@ -1693,6 +1696,7 @@ int HyPerLayer::checkpointRead(const char * cpDir, double * timed) {
          fprintf(stderr, "Warning: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, filetime, *timed);
       }
    }
+
    chars_needed = snprintf(filename, PV_PATH_MAX, "%s_Delays.pvp", basepath);
    assert(chars_needed < PV_PATH_MAX);
    status = readDataStoreFromFile(filename, icComm, &filetime);
