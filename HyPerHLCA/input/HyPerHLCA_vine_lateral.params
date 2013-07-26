@@ -17,14 +17,14 @@ HyPerCol "column" = {
     randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
     numSteps = 2009900;       // Depends on number of VINE video frames
     progressStep = 1000;
-    outputPath = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_12x12x128_lambda_05X2_color_deep";
+    outputPath = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_12x12x512_lambda_05X2_lateral";
     filenamesContainLayerNames = true;
     filenamesContainConnectionNames = true;
-    checkpointRead = true;
-    checkpointReadDir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_12x12x128_lambda_05X2_color_deep/Checkpoints";
-    checkpointReadDirIndex = 1050000;
+    checkpointRead = false; //true;
+    checkpointReadDir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_12x12x512_lambda_05X2_lateral/Checkpoints";
+    checkpointReadDirIndex = 540000;
     checkpointWrite = true;
-    checkpointWriteDir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_12x12x128_lambda_05X2_color_deep/Checkpoints";
+    checkpointWriteDir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_12x12x512_lambda_05X2_lateral/Checkpoints";
     checkpointWriteStepInterval = 10000;
     deleteOlderCheckpoints = false;
     //suppressLastOutput = false;
@@ -158,7 +158,7 @@ HyPerLCALayer "V1" = {
     restart = 0;
     nxScale = 0.25;
     nyScale = 0.25;
-    nf = 128; //256;
+    nf = 512; //256;
     numChannels = 2;
     marginWidth = 1;
     initialWriteTime = 199.0;
@@ -174,7 +174,7 @@ HyPerLCALayer "V1" = {
     // 
     timeConstantTau = 200.0;
     timeConstantTauMinimum = 10.0;
-    slopeErrorStd = 0.01;
+    slopeErrorStd = 0.1;
     // 
     VThresh = 0.1; //  // 0.05 works for animalDB
     VMax = infinity;
@@ -209,12 +209,13 @@ ANNLayer "Recon" = {
 };
 
 
+// intra-column error
 ANNErrorLayer "Error2" = {
     restart = 0;
-    nxScale = 0.5;
-    nyScale = 0.5;
-    nf = 3;
-    marginWidth = 6;
+    nxScale = 0.25;
+    nyScale = 0.25;
+    nf = 512;
+    marginWidth = 0;
     initialWriteTime = 199.0;
     writeStep = 200;
     mirrorBCflag = 1;
@@ -233,11 +234,12 @@ ANNErrorLayer "Error2" = {
 };
 
 
+// lateral connection layer
 HyPerLCALayer "V2" = {
     restart = 0;
-    nxScale = 0.125;
-    nyScale = 0.125;
-    nf = 128; //256;
+    nxScale = 0.25;
+    nyScale = 0.25;
+    nf = 512; //256;
     numChannels = 2;
     marginWidth = 1;
     // 
@@ -254,9 +256,9 @@ HyPerLCALayer "V2" = {
     // 
     timeConstantTau = 200.0;
     timeConstantTauMinimum = 10.0;
-    slopeErrorStd = 0.01;
+    slopeErrorStd = 0.1;
     // 
-    VThresh = 0.1; //0.05;
+    VThresh = 0.05;
     VMax = infinity;
     VMin = 0;
     VShift = 0.0;  // 0 -> hard threshold, 1 -> soft threshold
@@ -265,11 +267,12 @@ HyPerLCALayer "V2" = {
 };
 
 
+// intra-column recon
 ANNLayer "Recon2" = {
     restart = 0;
-    nxScale = 0.5;
-    nyScale = 0.5;
-    nf = 3;
+    nxScale = 0.25;
+    nyScale = 0.25;
+    nf = 512;
     marginWidth = 0;
     initialWriteTime = 199.0;
     writeStep = 200.0;
@@ -289,12 +292,13 @@ ANNLayer "Recon2" = {
 };
 
 
+// lateral reconstruction error
 ANNErrorLayer "Error1_2" = {
     restart = 0;
     nxScale = 0.25;
     nyScale = 0.25;
-    nf = 128;
-    marginWidth = 6;
+    nf = 512;
+    marginWidth = 4;
     initialWriteTime = 199.0;
     writeStep = 2000;
     mirrorBCflag = 1;
@@ -317,7 +321,7 @@ ANNLayer "V1Infra" = {
     restart = 0;
     nxScale = 0.25;
     nyScale = 0.25;
-    nf = 128;
+    nf = 512;
     marginWidth = 1;
     initialWriteTime = 199.0;
     writeStep = 200.0;
@@ -545,7 +549,7 @@ KernelConn "V1ToError" = {
     weightUpdatePeriod = 50.0;
     initialWeightUpdateTime = 199.0;
     initialWriteTime = 0.0;
-    dWMax = 2.0; // 200.0 used for initial training
+    dWMax = 1.0; // 200.0 used for initial training
     selfFlag = false;
     shmget_flag = false;
     //
@@ -584,13 +588,13 @@ CloneKernelConn "V1ToRecon" = {
 
 
 
-KernelConn "ReconToError2" = {
-    preLayerName = "Recon";
+KernelConn "V1ToError2" = {
+    preLayerName = "V1";
     postLayerName = "Error2";
     channelCode = 0;
     nxp = 1;
     nyp = 1;
-    nfp = 3;
+    nfp = 512;
     numAxonalArbors = 1;
     writeStep = -1;
     initFromLastFlag = 0;
@@ -661,7 +665,7 @@ KernelConn "V2ToError2" = {
     weightUpdatePeriod = 50.0;
     initialWeightUpdateTime = 199.0;
     initialWriteTime = 0.0;
-    dWMax = 0.1; 
+    dWMax = 1.0; 
     selfFlag = false;
     shmget_flag = false;
     //
@@ -719,7 +723,7 @@ KernelConn "V2ToError1_2" = {
     nyp =  6;
     nxpShrunken = 4;
     nypShrunken = 4;    
-    nfp = 128;
+    nfp = 512;
     numAxonalArbors = 1;
     initFromLastFlag = 0;
     //
@@ -749,7 +753,7 @@ KernelConn "V2ToError1_2" = {
     weightUpdatePeriod = 50.0;
     initialWeightUpdateTime = 199.0;
     initialWriteTime = 0.0;
-    dWMax = 0.1; 
+    dWMax = 1.0; 
     selfFlag = false;
     shmget_flag = false;
     //
