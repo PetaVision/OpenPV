@@ -193,6 +193,7 @@ public:
    //Returns number of windows, with a default of 1 window for the entire layer
    virtual int getNumWindows(){return 1;};
    virtual int recvSynapticInput(HyPerConn * conn, const PVLayerCube * cube, int arborID);
+   virtual int recvSynapticInputFromPost(HyPerConn * conn, const PVLayerCube * activity, int arborID);
    virtual int updateState (double time, double dt);
    virtual int publish(InterColComm * comm, double time);
    virtual int resetGSynBuffers(double timef, double dt);

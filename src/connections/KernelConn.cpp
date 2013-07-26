@@ -89,6 +89,7 @@ int KernelConn::setParams(PVParams * params) {
    readKeepKernelsSynchronized(params);
    readWeightUpdatePeriod(params);
    readInitialWeightUpdateTime(params);
+   readUseWindowPost(params);
    return status;
 }
 
@@ -140,6 +141,10 @@ void KernelConn::readInitialWeightUpdateTime(PVParams * params) {
    if (plasticityFlag) {
       weightUpdateTime = params->value(name, "initialWeightUpdateTime", weightUpdateTime);
    }
+}
+
+void KernelConn::readUseWindowPost(PVParams * params){
+   useWindowPost = (bool)params->value(name, "useWindowPost", useWindowPost); 
 }
 
 int KernelConn::createArbors() {
@@ -430,15 +435,16 @@ int KernelConn::defaultUpdate_dW(int arbor_ID) {
 
    for(int kExt=0; kExt<nExt;kExt++) {
       bool inWindow; 
-      if(useWindowPost){
-         const PVLayerLoc * preLoc = pre->getLayerLoc();
-         const PVLayerLoc * postLoc = post->getLayerLoc();
-         int kPost = layerIndexExt(kExt, preLoc, postLoc);
-         inWindow = post->inWindowExt(arbor_ID, kPost);
-      }
-      else{
-         inWindow = pre->inWindowExt(arbor_ID, kExt);
-      }
+      //Only get post windows
+      //if(useWindowPost){
+      const PVLayerLoc * preLoc = pre->getLayerLoc();
+      const PVLayerLoc * postLoc = post->getLayerLoc();
+      int kPost = layerIndexExt(kExt, preLoc, postLoc);
+      inWindow = post->inWindowExt(arbor_ID, kPost);
+      //}
+      //else{
+      //   inWindow = pre->inWindowExt(arbor_ID, kExt);
+      //}
       if(!inWindow) continue;
       pvdata_t preact = preactbuf[kExt];
       // if (preact == 0.0f) continue;

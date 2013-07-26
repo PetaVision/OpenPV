@@ -163,6 +163,7 @@ int CloneKernelConn::communicateInitInfo() {
    // Presynaptic layers of the CloneKernelConn and its original conn must have the same size, or the patches won't line up with each other.
    const PVLayerLoc * preLoc = pre->getLayerLoc();
    const PVLayerLoc * origPreLoc = originalConn->preSynapticLayer()->getLayerLoc();
+
    if (preLoc->nx != origPreLoc->nx || preLoc->ny != origPreLoc->ny || preLoc->nf != origPreLoc->nf || preLoc->nb != origPreLoc->nb ) {
       if (parent->icCommunicator()->commRank()==0) {
          fprintf(stderr, "CloneKernelConn \"%s\" error in rank %d process: CloneKernelConn and originalConn \"%s\" must have presynaptic layers with the same geometry (including margin width).\n",
@@ -172,6 +173,7 @@ int CloneKernelConn::communicateInitInfo() {
       }
       abort();
    }
+
    //Redudent read in case it's a clone of a clone
    numAxonalArborLists = originalConn->numberOfAxonalArborLists();
    shrinkPatches_flag = originalConn->getShrinkPatches_flag();

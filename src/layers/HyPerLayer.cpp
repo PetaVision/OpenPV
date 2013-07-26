@@ -77,6 +77,7 @@ DerivedLayer::initialize(arguments) {
 #include "../include/default_params.h"
 #include "../columns/HyPerCol.hpp"
 #include "../connections/HyPerConn.hpp"
+#include "../connections/TransposeConn.hpp"
 #include "InitV.hpp"
 #include "../io/fileio.hpp"
 #include "../io/imageio.hpp"
@@ -914,7 +915,11 @@ int HyPerLayer::requireMarginWidth(int marginWidthNeeded, int * marginWidthResul
 int HyPerLayer::requireChannel(int channelNeeded, int * numChannelsResult) {
    // TODO - set numChannels based on calls to requireChannel calls, and not have a numChannels argument in the constructors
    *numChannelsResult = numChannels;
-   return channelNeeded < numChannels ? PV_SUCCESS : PV_FAILURE;
+   int status = channelNeeded < numChannels ? PV_SUCCESS : PV_FAILURE;
+   if (status != PV_SUCCESS){
+      fprintf(stderr, "Layer \"%s\": Channel %d does not exist, last allowable channel index is %d.\n", name, channelNeeded, numChannels-1);
+   }
+   return status;
 }
 
 /**
@@ -1329,6 +1334,7 @@ int HyPerLayer::recvAllSynapticInput() {
    for (int c=0; c<numConnections; c++) {
       HyPerConn * conn = parent->getConnection(c);
       if (conn->postSynapticLayer()!=this) continue;
+      //Check if updating from post perspective
       HyPerLayer * pre = conn->preSynapticLayer();
       PVLayerCube cube;
       memcpy(&cube.loc, pre->getLayerLoc(), sizeof(PVLayerLoc));
@@ -1339,7 +1345,16 @@ int HyPerLayer::recvAllSynapticInput() {
       for (int arbor=0; arbor<numArbors; arbor++) {
          int delay = conn->getDelay(arbor);
          cube.data = (pvdata_t *) store->buffer(LOCAL, delay);
-         status = recvSynapticInput(conn, &cube, arbor);
+         if(!conn->getUpdateGSynFromPostPerspective()){
+            status = recvSynapticInput(conn, &cube, arbor);
+         }
+         else{
+            //Source layer is pre layer in current connection, post layer in original connection
+            //Target layer is post layer in current connection, pre layer in original connection
+            //cube is activity buffer of source layer
+            //conn is source to target
+            status = recvSynapticInputFromPost(conn, &cube, arbor);
+         }
          assert(status == PV_SUCCESS || status == PV_BREAK);
          if (status == PV_BREAK){
             break;
@@ -1349,6 +1364,108 @@ int HyPerLayer::recvAllSynapticInput() {
    return status;
 }
 
+/**
+ * Get synaptic input from pre synaptic layer by looping over post synaptic neurons
+ * Source layer is pre layer in current connection, post layer in original connection
+ * Target layer is post layer in current connection, pre layer in original connection
+ * Current layer is target layer
+ * cube is activity buffer of source layer
+ * conn is the connection from source to target
+ */
+int HyPerLayer::recvSynapticInputFromPost(HyPerConn * conn, const PVLayerCube * activity, int arborID)
+{
+   //Cast to transpose conn
+   TransposeConn * sourceToTargetConn = dynamic_cast <TransposeConn*> (conn);
+   if(sourceToTargetConn == NULL){
+      fprintf(stderr, "HyPerLayer \"%s\": Updating GSyn buffer from post perspective requires connection %s to be a TransposeConn.\n", name, conn->getName());
+      abort();
+   }
+   //update conn to original connection
+   HyPerConn * targetToSourceConn = sourceToTargetConn->getOriginalConn();
+   //Assert that the transpose is opposite of the original connection
+   if(targetToSourceConn->preSynapticLayer()->getLayerId() != sourceToTargetConn->postSynapticLayer()->getLayerId() ||
+      targetToSourceConn->postSynapticLayer()->getLayerId() != sourceToTargetConn->preSynapticLayer()->getLayerId()){
+      fprintf(stderr, "HyPerLayer \"%s\": Transpose connection %s must be the same connection in the oposite direction of %s.\n", name, sourceToTargetConn->getName(), conn->getName());
+      abort();
+   }
+
+   recvsyn_timer->start();
+
+   assert(arborID >= 0);
+   //Get number of neurons restricted target
+   const int numRestricted = getNumNeurons();
+
+#ifdef DEBUG_OUTPUT
+   int rank;
+   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+   //printf("[%d]: HyPerLayr::recvSyn: neighbor=%d num=%d actv=%p this=%p conn=%p\n", rank, neighbor, numExtended, activity, this, conn);
+   printf("[%d]: HyPerLayr::pullSyn: neighbor=%d num=%d actv=%p this=%p conn=%p\n", rank, 0, numRestricted, activity, this, sourceToTargetConn);
+   fflush(stdout);
+#endif // DEBUG_OUTPUT
+
+   float dt_factor = getConvertToRateDeltaTimeFactor(sourceToTargetConn);
+
+   const PVLayerLoc * sourceLoc = sourceToTargetConn->preSynapticLayer()->getLayerLoc();
+   const PVLayerLoc * targetLoc = getLayerLoc();
+   for (int kTargetRes = 0; kTargetRes < numRestricted; kTargetRes++){
+      //Change restricted to extended post neuron
+      int kTargetExt = kIndexExtended(kTargetRes, targetLoc->nx, targetLoc->ny, targetLoc->nf, targetLoc->nb);
+      //std::cout << "ktargetExt: " << kTargetExt << "\n";
+      //TODO put window stuff here
+      //
+      //Get start index of source from gsyn in restricted
+      int sourceRes = targetToSourceConn->getGSynPatchStart(kTargetExt, arborID);
+      int sourceExt= kIndexExtended(sourceRes, sourceLoc->nx, sourceLoc->ny, sourceLoc->nf, sourceLoc->nb);
+      int sourceXExt = kxPos(sourceExt, sourceLoc->nx + 2*sourceLoc->nb, sourceLoc->ny + 2*sourceLoc->nb, sourceLoc->nf);
+      int sourceYExt = kyPos(sourceExt, sourceLoc->nx + 2*sourceLoc->nb, sourceLoc->ny + 2*sourceLoc->nb, sourceLoc->nf);
+      int sourceF = featureIndex(sourceExt, sourceLoc->nx + 2*sourceLoc->nb, sourceLoc->ny + 2*sourceLoc->nb, sourceLoc->nf);
+
+      //Grab patch given the post
+      PVPatch * shrunkenWeights = targetToSourceConn->getWeights(kTargetExt, arborID);
+      //Grab offset
+      int offset = shrunkenWeights->offset;
+      //Get x and y in patch space
+      //conn is target to source
+      int patchX = kxPos(offset, targetToSourceConn->xPatchSize(), targetToSourceConn->yPatchSize(), targetToSourceConn->fPatchSize());
+      int patchY = kyPos(offset, targetToSourceConn->xPatchSize(), targetToSourceConn->yPatchSize(), targetToSourceConn->fPatchSize());
+
+      //Move source X and Y to offset
+      sourceXExt -= patchX; 
+      sourceYExt -= patchY; 
+
+      //Change sourceExt back to extended source index, but unshrunken
+      int startSourceExt = kIndex(sourceXExt, sourceYExt, sourceF, sourceLoc->nx + 2*sourceLoc->nb, sourceLoc->ny + 2*sourceLoc->nb, sourceLoc->nf);
+
+      //Calculate target's start of gsyn
+      pvdata_t * gSynPatchHead = this->getChannel(sourceToTargetConn->getChannel());
+      pvdata_t * gSynPatchPos = gSynPatchHead + kTargetRes;
+
+      //get source layer's extended y stride
+      int sy  = targetToSourceConn->getPostExtStrides()->sy;
+      //get source layer's patch y stride
+      int syp = targetToSourceConn->yPatchStride();
+      //Store sum value
+      float value = 0;
+      //Iterate through y patch
+      int numPerStride = targetToSourceConn->xPatchSize() * targetToSourceConn->fPatchSize();
+      //std::cout << "numPerStride"<< numPerStride << "\n";
+      for (int ky = 0; ky < targetToSourceConn->yPatchSize(); ky++){
+         float * activityY = &(activity->data[startSourceExt + ky*sy]);
+         int kernelIndex = targetToSourceConn->patchToDataLUT(kTargetExt);
+         float * weightY = targetToSourceConn->get_wDataHead(arborID, kernelIndex) + ky*syp;
+         for (int kp = 0; kp < numPerStride; kp++){
+            //std::cout << "activity:" << activityY[kp] << " weight:" << weightY[kp] << "\n";
+            value += dt_factor * activityY[kp] * weightY[kp];
+         }
+      }
+      *gSynPatchPos += value;
+   }
+   return PV_SUCCESS;
+}
+
+/**
+ * Receive synaptic input from pre synaptic layer by looping over pre synaptic neurons 
+ */
 int HyPerLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activity, int arborID)
 {
    // only receive synaptic input on "allowed" time steps, which may be spaced to account for feedback delays
@@ -1372,19 +1489,19 @@ int HyPerLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activity
 
    float dt_factor = getConvertToRateDeltaTimeFactor(conn);
    for (int kPre = 0; kPre < numExtended; kPre++) {
-      bool inWindow; 
-      //Using pre's windows
-      //Post layer recieves synaptic input
-      if (conn->getUseWindowPost()){
-         const PVLayerLoc * preLoc = conn->preSynapticLayer()->getLayerLoc();
-         const PVLayerLoc * postLoc = this->getLayerLoc();
-         int kPost = layerIndexExt(kPre, preLoc, postLoc);
-         inWindow = inWindowExt(arborID, kPost);
-      }
-      else{
-         inWindow = conn->preSynapticLayer()->inWindowExt(arborID, kPre);
-      }
-      if(!inWindow) continue;
+      //bool inWindow; 
+      ////Post layer recieves synaptic input
+      ////Only get post windows
+      ////if (conn->getUseWindowPost()){
+      //const PVLayerLoc * preLoc = conn->preSynapticLayer()->getLayerLoc();
+      //const PVLayerLoc * postLoc = this->getLayerLoc();
+      //int kPost = layerIndexExt(kPre, preLoc, postLoc);
+      //inWindow = inWindowExt(arborID, kPost);
+      ////}
+      ////else{
+      ////   inWindow = conn->preSynapticLayer()->inWindowExt(arborID, kPre);
+      ////}
+      //if(!inWindow) continue;
       float a = activity->data[kPre] * dt_factor;
       // Activity < 0 is used by generative models --pete
       if (a == 0.0f) continue;  // TODO - assume activity is sparse so make this common branch

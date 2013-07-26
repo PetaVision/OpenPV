@@ -238,7 +238,10 @@ int HyPerConn::initialize_base()
 
    this->neededRNGSeeds = 0; // Derived layers that use random numbers should set neededRNGSeeds in setNeededRNGSeeds, called by HyPerLayer::communicate.
 
+   //This flag is only set otherwise in kernelconn
    this->useWindowPost = false;
+
+   this->updateGSynFromPostPerspective = false;
 
 #ifdef USE_SHMGET
    shmget_flag = false;
@@ -424,6 +427,10 @@ int HyPerConn::shrinkPatch(int kExt, int arborId /* PVAxonalArbor * arbor */) {
 
 void HyPerConn::readShrinkPatches(PVParams * params) {
    shrinkPatches_flag = params->value(name, "shrinkPatches", shrinkPatches_flag);
+}
+
+void HyPerConn::readUpdateGSynFromPostPerspective(PVParams * params){
+   updateGSynFromPostPerspective = (bool) params->value(name, "updateGSynFromPostPerspective", updateGSynFromPostPerspective);
 }
 
 int HyPerConn::initialize(const char * name, HyPerCol * hc, const char * pre_layer_name,
@@ -645,7 +652,7 @@ int HyPerConn::setParams(PVParams * inputParams)
    readPatchSize(inputParams);
    readNfp(inputParams);
    readShrinkPatches(inputParams); // Sets shrinkPatches_flag; derived-class methods that override readShrinkPatches must also set shrinkPatches_flag
-   readUseWindowPost(inputParams);
+   readUpdateGSynFromPostPerspective(inputParams);
    return PV_SUCCESS;
 
    return 0;
@@ -714,9 +721,6 @@ void HyPerConn::readWriteStep(PVParams * params) {
    writeStep = params->value(name, "writeStep", parent->getDeltaTime());
 }
 
-void HyPerConn::readUseWindowPost(PVParams * params){
-   useWindowPost = (bool)params->value(name, "useWindowPost", useWindowPost); 
-}
 
 void HyPerConn::readInitialWriteTime(PVParams * params) {
    assert(!params->presentAndNotBeenRead(name, "writeStep"));

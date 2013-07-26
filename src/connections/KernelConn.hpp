@@ -115,6 +115,7 @@ protected:
    virtual void readKeepKernelsSynchronized(PVParams * params);
    virtual void readWeightUpdatePeriod(PVParams * params);
    virtual void readInitialWeightUpdateTime(PVParams * params);
+   virtual void readUseWindowPost(PVParams * params);
 
 private:
    int deleteWeights();

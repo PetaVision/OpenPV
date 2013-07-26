@@ -310,6 +310,9 @@ public:
       return shrinkPatches_flag;
    }
 
+   bool getUseWindowPost(){return useWindowPost;};
+   bool getUpdateGSynFromPostPerspective(){return updateGSynFromPostPerspective;};
+
    int sumWeights(int nx, int ny, int offset, float* dataStart, double* sum,
          double* sum2, float* maxVal);
    int scaleWeights(int nx, int ny, int offset, float* dataStart, float sum,
@@ -321,7 +324,7 @@ public:
 //   virtual int normalizeWeights(PVPatch** patches, float** dataStart,
 //         int numPatches, int arborId);
 //
-   bool getUseWindowPost(){return useWindowPost;};
+
 
 #ifdef PV_USE_OPENCL
    virtual int * getLUTpointer() {return NULL;}
@@ -382,6 +385,7 @@ private:
    int defaultDelay; //added to save params file defined delay...
    const float* fDelayArray;
    int delayArraySize;
+   bool updateGSynFromPostPerspective;
 
 protected:
    bool useWindowPost;
@@ -585,7 +589,7 @@ protected:
    virtual int readNfp(PVParams * params);
    virtual void readUseListOfArborFiles(PVParams * params);
    virtual void readCombineWeightFiles(PVParams * params);
-   virtual void readUseWindowPost(PVParams * params);
+   void readUpdateGSynFromPostPerspective(PVParams * params);
 
    virtual int setNeededRNGSeeds();
 

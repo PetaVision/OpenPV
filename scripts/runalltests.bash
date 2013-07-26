@@ -79,6 +79,13 @@ else
     }
 fi
 
+testname=ReceiveFromPostTest
+cd "$testname"
+arglist="-p input/postTest.params"
+runandecho $testname Debug/$testname $arglist
+mpirunandecho $testname Debug/$testname $arglist
+cd "$wd"
+
 testname=BasicSystemTest
 arglist="-p input/BasicSystemTest.params"
 cd "$testname"
@@ -238,6 +245,7 @@ arglist="-p input/ReadArborFileTest.params"
 runandecho $testname Debug/$testname $arglist
 mpirunandecho $testname Debug/$testname $arglist
 cd "$wd"
+
 
 testname=ShrunkenPatchTest
 cd "$testname"
