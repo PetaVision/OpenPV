@@ -99,6 +99,7 @@ protected:
    virtual int update_dW(int arborId);
    virtual int defaultUpdate_dW(int arborId);
    virtual pvdata_t updateRule_dW(pvdata_t pre, pvdata_t post);
+   virtual bool skipPre(pvdata_t preact){return preact == 0.0f;};
 
    virtual int updateState(double time, double dt);
    virtual int updateWeights(int arborId);

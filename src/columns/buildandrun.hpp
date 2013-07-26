@@ -58,6 +58,7 @@
 #include "../layers/HyPerLCALayer.hpp"
 #include "../layers/ANNErrorLayer.hpp"
 #include "../layers/ANNLabelLayer.hpp"
+#include "../layers/ANNTriggerUpdateOnNewImageLayer.hpp"
 #include "../connections/HyPerConn.hpp"
 #include "../connections/BIDSConn.hpp"
 #include "../connections/KernelConn.hpp"
@@ -145,6 +146,7 @@ Image * addImage(const char * name, HyPerCol *hc);
 Movie * addMovie(const char * name, HyPerCol *hc);
 Patterns * addPatterns(const char * name, HyPerCol *hc);
 LabelLayer * addLabelLayer(const char * name, HyPerCol * hc);
+ANNTriggerUpdateOnNewImageLayer * addANNTriggerUpdateOnNewImageLayer(const char * name, HyPerCol * hc);
 SigmoidLayer * addSigmoidLayer(const char * name, HyPerCol * hc);
 RescaleLayer * addRescaleLayer(const char * name, HyPerCol * hc);
 ShuffleLayer * addShuffleLayer(const char * name, HyPerCol * hc);

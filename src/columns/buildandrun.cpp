@@ -114,6 +114,7 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
                "HyPerLCALayer",
                "ANNErrorLayer",
                "ANNLabelLayer",
+               "ANNTriggerUpdateOnNewImageLayer",
              "GapLayer",
              "LCALayer",
              "TextStream",
@@ -467,6 +468,11 @@ HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPe
      keywordMatched = true;
      addedLayer = (HyPerLayer *) new ANNLabelLayer(name, hc);
    }
+   if( !strcmp(classkeyword, "ANNTriggerUpdateOnNewImageLayer") ) {
+      keywordMatched = true;
+      addedLayer = (HyPerLayer *) addANNTriggerUpdateOnNewImageLayer(name, hc);
+      status = checknewobject((void *) addedLayer, classkeyword, name, hc);
+   }
    if( !strcmp(classkeyword, "SigmoidLayer") ) {
       keywordMatched = true;
       addedLayer = (HyPerLayer *) addSigmoidLayer(name, hc);
@@ -632,6 +638,18 @@ Patterns * addPatterns(const char * name, HyPerCol *hc) {
       fprintf(stderr, "Group \"%s\": Pattern type \"%s\" not recognized.\n", name, patternTypeStr);
       return NULL;
    }
+}
+
+ANNTriggerUpdateOnNewImageLayer * addANNTriggerUpdateOnNewImageLayer(const char * name, HyPerCol * hc) {
+   const char * movieLayerName = hc->parameters()->stringValue(name, "movieLayerName");
+   if( movieLayerName == NULL ) {
+      fprintf(stderr, "Group \"%s\": Parameter group for class ANNTriggerUpdateOnNewImageLayer "
+    		  "must set string parameter originalLayerName\n", name);
+      return NULL;
+   }
+   ANNTriggerUpdateOnNewImageLayer * addedLayer =
+		   new ANNTriggerUpdateOnNewImageLayer(name, hc, movieLayerName);
+   return addedLayer;
 }
 
 SigmoidLayer * addSigmoidLayer(const char * name, HyPerCol * hc) {

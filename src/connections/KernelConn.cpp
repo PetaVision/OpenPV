@@ -447,7 +447,8 @@ int KernelConn::defaultUpdate_dW(int arbor_ID) {
       //}
       if(!inWindow) continue;
       pvdata_t preact = preactbuf[kExt];
-      // if (preact == 0.0f) continue;
+      if (skipPre(preact)) continue;
+      //if (preact == 0.0f) continue;
       PVPatch * weights = getWeights(kExt,arbor_ID);
       size_t offset = getAPostOffset(kExt, arbor_ID);
       int ny = weights->ny;

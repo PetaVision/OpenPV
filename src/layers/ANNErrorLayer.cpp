@@ -62,8 +62,7 @@ int ANNErrorLayer::initialize_base()
 
 int ANNErrorLayer::initialize(const char * name, HyPerCol * hc, int num_channels)
 {
-   ANNLayer::initialize(name, hc, num_channels);
-   return PV_SUCCESS;
+   return ANNLayer::initialize(name, hc, num_channels);
 }
 
 int ANNErrorLayer::doUpdateState(double time, double dt, const PVLayerLoc * loc, pvdata_t * A,
