@@ -66,11 +66,11 @@ static inline int applyGSyn_HyPerLCALayer2(int numNeurons,
 static inline int applyGSyn_ANNWhitenedLayer(int numNeurons,
 		CL_MEM_GLOBAL pvdata_t * V, CL_MEM_GLOBAL pvdata_t * GSynHead);
 static inline int updateV_HyPerLCALayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * V,
-	      CL_MEM_GLOBAL pvdata_t * GSynHead, CL_MEM_GLOBAL float * activity,
-	      CL_MEM_GLOBAL double * error_mean, CL_MEM_GLOBAL double * error_std, pvdata_t VMax,
-	      pvdata_t VMin, pvdata_t VThresh, pvdata_t VShift,
-	      pvdata_t * dt_tau, pvdata_t tau_max, pvdata_t tau_min, pvdata_t slope_error_std,
-	      int nx, int ny, int nf, int nb);
+      CL_MEM_GLOBAL pvdata_t * GSynHead, CL_MEM_GLOBAL float * activity,
+      CL_MEM_GLOBAL double * error_mean, CL_MEM_GLOBAL double * error_std, pvdata_t VMax,
+      pvdata_t VMin, pvdata_t VThresh, pvdata_t VShift,
+      pvdata_t * dt_tau, pvdata_t tau_max, pvdata_t tau_min, pvdata_t slope_error_std,
+      int nx, int ny, int nf, int nb, int numChannels);
 static inline int updateV_ANNWhitenedLayer(int numNeurons,
 		CL_MEM_GLOBAL pvdata_t * V,
 		CL_MEM_GLOBAL pvdata_t * GSynHead,
