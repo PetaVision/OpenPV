@@ -15,16 +15,16 @@ HyPerCol "column" = {
     ny = 480;
     dt = 1.0;
     randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
-    numSteps = 2009900;       // Depends on number of VINE video frames
+    numSteps = 4019800; //2009900;       // Depends on number of VINE video frames and displayPeriod
     progressStep = 1000;
-    outputPath = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_12x12x512_lambda_05X2_lateral";
+    outputPath = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_12x12x128_lateral";
     filenamesContainLayerNames = true;
     filenamesContainConnectionNames = true;
-    checkpointRead = false; //true;
-    checkpointReadDir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_12x12x512_lambda_05X2_lateral/Checkpoints";
-    checkpointReadDirIndex = 540000;
+    checkpointRead = false;
+    checkpointReadDir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_12x12x128_lateral/Checkpoints";
+    checkpointReadDirIndex = 2009900;
     checkpointWrite = true;
-    checkpointWriteDir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_12x12x512_lambda_05X2_lateral/Checkpoints";
+    checkpointWriteDir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_12x12x128_lateral/Checkpoints";
     checkpointWriteStepInterval = 10000;
     deleteOlderCheckpoints = false;
     //suppressLastOutput = false;
@@ -42,7 +42,6 @@ Movie "Image" = {
     nyScale = 1;
     imageListPath = "/nh/compneuro/Data/vine/list/2013_01_31/fileList_2013_01_31.txt";
     nf = 3;
-    marginWidth = 1;
     writeStep = -1;
     writeSparseActivity = false;
     displayPeriod = 200;
@@ -69,7 +68,6 @@ Retina "Retina" = {
     nxScale = 1;
     nyScale = 1;
     nf = 3;
-    marginWidth = 1;
     writeStep = 200.0;
     initialWriteTime = 199.0;
     mirrorBCflag = 1;
@@ -88,17 +86,17 @@ Retina "Retina" = {
 };
 
 
-ANNLayer "Bipolar" = {
+ANNTriggerUpdateOnNewImageLayer "Bipolar" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
     nf = 3;
-    marginWidth = 6;
     writeStep = 200.0;
     initialWriteTime = 199.0;
     mirrorBCflag = 1;
     writeSparseActivity = 0;
 
+    movieLayerName = "Image";
     InitVType = "ZeroV";
 
     VThresh = -infinity;
@@ -109,7 +107,7 @@ ANNLayer "Bipolar" = {
     phase = 2;
 };
 
-ANNLayer "Ganglion" = {
+ANNTriggerUpdateOnNewImageLayer "Ganglion" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
@@ -120,6 +118,7 @@ ANNLayer "Ganglion" = {
     mirrorBCflag = 1;
     writeSparseActivity = 0;
     //
+    movieLayerName = "Image";
     InitVType = "ZeroV";
     //
     VThresh = -infinity;
@@ -135,7 +134,6 @@ ANNErrorLayer "Error" = {
     nxScale = 1;
     nyScale = 1;
     nf = 3;
-    marginWidth = 6;
     initialWriteTime = 199.0;
     writeStep = 200;
     mirrorBCflag = 1;
@@ -158,9 +156,8 @@ HyPerLCALayer "V1" = {
     restart = 0;
     nxScale = 0.25;
     nyScale = 0.25;
-    nf = 512; //256;
-    numChannels = 2;
-    marginWidth = 1;
+    nf = 128; //256;
+    numChannels = 1; // should be 1
     initialWriteTime = 199.0;
     writeStep = 200.0;
     mirrorBCflag = 1;
@@ -174,7 +171,7 @@ HyPerLCALayer "V1" = {
     // 
     timeConstantTau = 200.0;
     timeConstantTauMinimum = 10.0;
-    slopeErrorStd = 0.1;
+    slopeErrorStd = 0.01;
     // 
     VThresh = 0.1; //  // 0.05 works for animalDB
     VMax = infinity;
@@ -184,13 +181,12 @@ HyPerLCALayer "V1" = {
     phase = 5;
 };
 
-
-ANNLayer "Recon" = {
+// for visualization only, makes no output
+ANNTriggerUpdateOnNewImageLayer "Recon" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
     nf = 3;
-    marginWidth = 0;
     initialWriteTime = 199.0;
     writeStep = 200.0;
     mirrorBCflag = 1;
@@ -205,17 +201,15 @@ ANNLayer "Recon" = {
     VMin = -infinity; 
     VShift = 0;
     // 
-    phase = 6; 
+    phase = 4;  // should be less than V1 phase
 };
 
-
-// intra-column error
+// use for intra-column connections
 ANNErrorLayer "Error2" = {
     restart = 0;
     nxScale = 0.25;
     nyScale = 0.25;
-    nf = 512;
-    marginWidth = 0;
+    nf = 128;
     initialWriteTime = 199.0;
     writeStep = 200;
     mirrorBCflag = 1;
@@ -233,15 +227,13 @@ ANNErrorLayer "Error2" = {
     phase = 7;  
 };
 
-
-// lateral connection layer
+// V1 layers II-III (complex cells with lateral interactions)
 HyPerLCALayer "V2" = {
     restart = 0;
     nxScale = 0.25;
     nyScale = 0.25;
-    nf = 512; //256;
-    numChannels = 2;
-    marginWidth = 1;
+    nf = 128; //256;
+    numChannels = 1;  // should be 1
     // 
     initialWriteTime = 199.0;
     writeStep = 200.0;
@@ -256,9 +248,9 @@ HyPerLCALayer "V2" = {
     // 
     timeConstantTau = 200.0;
     timeConstantTauMinimum = 10.0;
-    slopeErrorStd = 0.1;
+    slopeErrorStd = 0.01;
     // 
-    VThresh = 0.05;
+    VThresh = 0.1; //0.05;
     VMax = infinity;
     VMin = 0;
     VShift = 0.0;  // 0 -> hard threshold, 1 -> soft threshold
@@ -266,14 +258,12 @@ HyPerLCALayer "V2" = {
     phase = 8;
 };
 
-
-// intra-column recon
-ANNLayer "Recon2" = {
+// use for visualizing intra-column reconstructions, not pre-synaptic
+ANNTriggerUpdateOnNewImageLayer "Recon2" = {
     restart = 0;
-    nxScale = 0.25;
-    nyScale = 0.25;
-    nf = 512;
-    marginWidth = 0;
+    nxScale = 1.0;
+    nyScale = 1.0;
+    nf = 3;
     initialWriteTime = 199.0;
     writeStep = 200.0;
     mirrorBCflag = 1;
@@ -288,17 +278,38 @@ ANNLayer "Recon2" = {
     VMin = -infinity; 
     VShift = 0;
     // 
-    phase = 9; 
+    phase = 7; // should be less than V2 phase
 };
 
+// staging for visualizing reconstructions from intra column interactions
+ANNTriggerUpdateOnNewImageLayer "V1Intra" = {
+    restart = 0;
+    nxScale = 0.25;
+    nyScale = 0.25;
+    nf = 128;
+    initialWriteTime = 199.0;
+    writeStep = 200.0;
+    mirrorBCflag = 1;
+    writeSparseActivity = 1;
+    //
+    InitVType = "ZeroV";
+    //InitVType = "InitVFromFile";
+    //Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_31/output/Checkpoints/Checkpoint6000000/Recon_V.pvp";
+    //
+    VThresh = 0.005; // using V1's VThresh might be unstable, trying Error1_2 thresh
+    VMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
+    VMin = 0.0; // use V1's VMin
+    VShift = 0;
+    // 
+    phase = 6; // should be less than Recon2 phase
+};
 
-// lateral reconstruction error
+// long-range lateral interactions
 ANNErrorLayer "Error1_2" = {
     restart = 0;
     nxScale = 0.25;
     nyScale = 0.25;
-    nf = 512;
-    marginWidth = 4;
+    nf = 128;
     initialWriteTime = 199.0;
     writeStep = 2000;
     mirrorBCflag = 1;
@@ -316,37 +327,12 @@ ANNErrorLayer "Error1_2" = {
     phase = 7;  
 };
 
-
-ANNLayer "V1Infra" = {
-    restart = 0;
-    nxScale = 0.25;
-    nyScale = 0.25;
-    nf = 512;
-    marginWidth = 1;
-    initialWriteTime = 199.0;
-    writeStep = 200.0;
-    mirrorBCflag = 1;
-    writeSparseActivity = 1;
-    //
-    InitVType = "ZeroV";
-    //InitVType = "InitVFromFile";
-    //Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_31/output/Checkpoints/Checkpoint6000000/Recon_V.pvp";
-    //
-    VThresh = 0.005; // using V1's VThresh might be unstable, trying Error1_2 thresh
-    VMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
-    VMin = 0.0; // use V1's VMin
-    VShift = 0;
-    // 
-    phase = 9; 
-};
-
-
-ANNLayer "ReconInfra" = {
+// use for visualizing long-range lateral reconstructions, not pre-synaptic
+ANNTriggerUpdateOnNewImageLayer "ReconInfra" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
     nf = 3;
-    marginWidth = 0;
     initialWriteTime = 199.0;
     writeStep = 200.0;
     mirrorBCflag = 1;
@@ -361,7 +347,30 @@ ANNLayer "ReconInfra" = {
     VMin = -infinity; 
     VShift = 0;
     // 
-    phase = 10; 
+    phase = 7; 
+};
+
+// staging for visualizing reconstructions from long-range lateral interactions
+ANNTriggerUpdateOnNewImageLayer "V1Infra" = {
+    restart = 0;
+    nxScale = 0.25;
+    nyScale = 0.25;
+    nf = 128;
+    initialWriteTime = 199.0;
+    writeStep = 200.0;
+    mirrorBCflag = 1;
+    writeSparseActivity = 1;
+    //
+    InitVType = "ZeroV";
+    //InitVType = "InitVFromFile";
+    //Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_31/output/Checkpoints/Checkpoint6000000/Recon_V.pvp";
+    //
+    VThresh = 0.005; // using V1's VThresh might be unstable, trying Error1_2 thresh
+    VMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
+    VMin = 0.0; // use V1's VMin
+    VShift = 0;
+    // 
+    phase = 6; // should be less than Recon2 phase
 };
 
 
@@ -549,7 +558,7 @@ KernelConn "V1ToError" = {
     weightUpdatePeriod = 50.0;
     initialWeightUpdateTime = 199.0;
     initialWriteTime = 0.0;
-    dWMax = 1.0; // 200.0 used for initial training
+    dWMax = 2.0; // 200.0 used for initial training
     selfFlag = false;
     shmget_flag = false;
     //
@@ -588,54 +597,23 @@ CloneKernelConn "V1ToRecon" = {
 
 
 
-KernelConn "V1ToError2" = {
+// for learning intra-column connections (bottom-up input)
+IdentConn "V1ToError2" = {
     preLayerName = "V1";
-    postLayerName = "Error2";
-    channelCode = 0;
-    nxp = 1;
-    nyp = 1;
-    nfp = 512;
-    numAxonalArbors = 1;
-    writeStep = -1;
-    initFromLastFlag = 0;
-    
-    weightInitType = "Gauss2DWeight";
-    aspect = 1;
-    sigma = 2000;
-    rMax  = 3;
-    rMin = 0;
-    numOrientationsPre = 1;
-    numOrientationsPost = 1;
-        
-    strength = 1.0;  
-    normalizeMethod = "normalizeSum";
-    minSumTolerated = 0;
-    normalizeArborsIndividually = 0;
-    normalize_cutoff = 0.0;
-    normalizeFromPostPerspective = true;
-    symmetrizeWeights = false;
-    
-    shrinkPatches = false;
-    //writeCompressedWeights = 0.0;
-    writeCompressedCheckpoints = false;
-    plasticityFlag = 0;
-    stochasticReleaseFlag = false;
-     
+	postLayerName = "Error2";
+	channelCode = 0;
     delay = 0;
-     
-    preActivityIsNotRate = false;
-    selfFlag = false;
-    shmget_flag = false;
+    writeStep = -1;
 };
 
-
+// for learning intra-column connections (top-down input)
 KernelConn "V2ToError2" = {
     preLayerName = "V2";
     postLayerName = "Error2";
     channelCode = 1;
-    nxp = 12;
-    nyp = 12;
-    nfp = 3;
+    nxp = 1;
+    nyp = 1;
+    nfp = 128;
     numAxonalArbors = 1;
     initFromLastFlag = 0;
     //
@@ -665,7 +643,7 @@ KernelConn "V2ToError2" = {
     weightUpdatePeriod = 50.0;
     initialWeightUpdateTime = 199.0;
     initialWriteTime = 0.0;
-    dWMax = 1.0; 
+    dWMax = 0.05; 
     selfFlag = false;
     shmget_flag = false;
     //
@@ -690,9 +668,9 @@ TransposeConn "Error2ToV2" = {
 };
 
 
-CloneKernelConn "V2ToRecon2" = {
+CloneKernelConn "V2ToV1Intra" = {
    preLayerName = "V2";
-   postLayerName = "Recon2";
+   postLayerName = "V1Intra";
    channelCode = 0;
    writeStep = -1;
    originalConnName = "V2ToError2";
@@ -703,9 +681,23 @@ CloneKernelConn "V2ToRecon2" = {
 };
 
 
+CloneKernelConn "V1IntraToRecon2" = {
+   preLayerName = "V1Intra";
+   postLayerName = "Recon2";
+   channelCode = 0;
+   writeStep = -1;
+   originalConnName = "V1ToError";
+   selfFlag = false;
+   stochasticReleaseFlag = false;
+   delay = 0;
+   preActivityIsNotRate = false;
+};
 
-// Generative connections
 
+
+// lateral connections
+
+// bottom-up 
 IdentConn "V1ToError1_2" = {
     preLayerName = "V1";
     postLayerName = "Error1_2";
@@ -714,16 +706,16 @@ IdentConn "V1ToError1_2" = {
     writeStep = -1;
 };
 
-
+// long-range lateral
 KernelConn "V2ToError1_2" = {
     preLayerName = "V2";
     postLayerName = "Error1_2";
     channelCode = 1;
-    nxp =  6;
-    nyp =  6;
-    nxpShrunken = 4;
-    nypShrunken = 4;    
-    nfp = 512;
+    nxp =  9;
+    nyp =  9;
+    rMinX = 0.75; // zero intra-column connections
+    rMinY = 0.75;
+    nfp = 128;
     numAxonalArbors = 1;
     initFromLastFlag = 0;
     //
@@ -753,7 +745,7 @@ KernelConn "V2ToError1_2" = {
     weightUpdatePeriod = 50.0;
     initialWeightUpdateTime = 199.0;
     initialWriteTime = 0.0;
-    dWMax = 1.0; 
+    dWMax = 0.05; 
     selfFlag = false;
     shmget_flag = false;
     //
@@ -789,15 +781,6 @@ CloneKernelConn "V2ToV1Infra" = {
     stochasticReleaseFlag = false;
     delay = 0;
     preActivityIsNotRate = false;
-};
-
-
-IdentConn "ReconInfraToError" = {
-    preLayerName = "ReconInfra";
-    postLayerName = "Error";
-    channelCode = 1;
-    delay = 0;
-    writeStep = -1;
 };
 
 
@@ -885,14 +868,20 @@ StatsProbe "Recon2StatsFile" = {
     probeOutputFile = "Recon2_Stats.txt";
 };
 
-StatsProbe "V1InfraStatsFile" = {
-    targetLayer = "V1Infra";
-    probeOutputFile = "V1Infra_Stats.txt";
+StatsProbe "V1IntraStatsFile" = {
+    targetLayer = "V1Intra";
+    probeOutputFile = "V1Intra_Stats.txt";
 };
 
 StatsProbe "ReconInfraStatsFile" = {
     targetLayer = "ReconInfra";
     probeOutputFile = "ReconInfra_Stats.txt";
 };
+
+StatsProbe "V1InfraStatsFile" = {
+    targetLayer = "V1Infra";
+    probeOutputFile = "V1Infra_Stats.txt";
+};
+
 
 
