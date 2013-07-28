@@ -71,12 +71,6 @@ static inline int updateV_HyPerLCALayer(int numNeurons, CL_MEM_GLOBAL pvdata_t *
 	      pvdata_t VMin, pvdata_t VThresh, pvdata_t VShift,
 	      pvdata_t * dt_tau, pvdata_t tau_max, pvdata_t tau_min, pvdata_t slope_error_std,
 	      int nx, int ny, int nf, int nb);
-static inline int updateV_HyPerLCALayer2(int numNeurons, CL_MEM_GLOBAL pvdata_t * V,
-	      CL_MEM_GLOBAL pvdata_t * GSynHead, CL_MEM_GLOBAL float * activity,
-	      CL_MEM_GLOBAL double * error_mean, CL_MEM_GLOBAL double * error_std, pvdata_t VMax,
-	      pvdata_t VMin, pvdata_t VThresh, pvdata_t VShift,
-	      pvdata_t * dt_tau, pvdata_t tau_max, pvdata_t tau_min, pvdata_t slope_error_std,
-	      int nx, int ny, int nf, int nb);
 static inline int updateV_ANNWhitenedLayer(int numNeurons,
 		CL_MEM_GLOBAL pvdata_t * V,
 		CL_MEM_GLOBAL pvdata_t * GSynHead,
@@ -279,7 +273,7 @@ static inline int updateV_HyPerLCALayer(int numNeurons, CL_MEM_GLOBAL pvdata_t *
       CL_MEM_GLOBAL double * error_mean, CL_MEM_GLOBAL double * error_std, pvdata_t VMax,
       pvdata_t VMin, pvdata_t VThresh, pvdata_t VShift,
       pvdata_t * dt_tau, pvdata_t tau_max, pvdata_t tau_min, pvdata_t slope_error_std,
-      int nx, int ny, int nf, int nb)
+      int nx, int ny, int nf, int nb, int numChannels)
 {
    int status;
    pvdata_t tau_adapt = tau_max;
@@ -294,37 +288,14 @@ static inline int updateV_HyPerLCALayer(int numNeurons, CL_MEM_GLOBAL pvdata_t *
 			   (tau_max - tau_min) * 2.0 / (1.0 + exp(percent_change_error_std / slope_error_std));
    }
    *dt_tau = *dt_tau / tau_adapt;
-   if( status == PV_SUCCESS ) status =
-		   applyGSyn_HyPerLCALayer(numNeurons, V, GSynHead, activity, *dt_tau, nx, ny, nf, nb);
-   if(status == PV_SUCCESS) status = setActivity_HyPerLayer(numNeurons, activity, V, nx, ny, nf, nb);
-   if( status == PV_SUCCESS ) status =
-		   applyVThresh_ANNLayer(numNeurons, V, VMin, VThresh, VShift, activity, nx, ny, nf, nb);
-   if( status == PV_SUCCESS ) status = applyVMax_ANNLayer(numNeurons, V, VMax, activity, nx, ny, nf, nb);
-   return status;
-}
-
-static inline int updateV_HyPerLCALayer2(int numNeurons, CL_MEM_GLOBAL pvdata_t * V,
-      CL_MEM_GLOBAL pvdata_t * GSynHead, CL_MEM_GLOBAL float * activity,
-      CL_MEM_GLOBAL double * error_mean, CL_MEM_GLOBAL double * error_std, pvdata_t VMax,
-      pvdata_t VMin, pvdata_t VThresh, pvdata_t VShift,
-      pvdata_t * dt_tau, pvdata_t tau_max, pvdata_t tau_min, pvdata_t slope_error_std,
-      int nx, int ny, int nf, int nb)
-{
-   int status;
-   pvdata_t tau_adapt = tau_max;
-   if ((tau_max - tau_min) > 1.0) {
-	   double old_error_std = *error_std;
-	   status = calcGSyn_Mean_StdDev(numNeurons, GSynHead, error_mean, error_std);
-	   pvdata_t percent_change_error_std;
-	   percent_change_error_std = (*error_std + old_error_std) != 0 ?
-			   fabs(*error_std - old_error_std) / (*error_std + old_error_std) :
-			   0.0;
-	   tau_adapt = tau_max -
-			   (tau_max - tau_min) * 2.0 / (1.0 + exp(percent_change_error_std / slope_error_std));
+   if (numChannels == 2){
+	   if( status == PV_SUCCESS ) status =
+			   applyGSyn_HyPerLCALayer2(numNeurons, V, GSynHead, activity, *dt_tau, nx, ny, nf, nb);
    }
-   *dt_tau = *dt_tau / tau_adapt;
-   if( status == PV_SUCCESS ) status =
-		   applyGSyn_HyPerLCALayer2(numNeurons, V, GSynHead, activity, *dt_tau, nx, ny, nf, nb);
+   else if (numChannels == 1){
+	   if( status == PV_SUCCESS ) status =
+			   applyGSyn_HyPerLCALayer(numNeurons, V, GSynHead, activity, *dt_tau, nx, ny, nf, nb);
+   }
    if(status == PV_SUCCESS) status = setActivity_HyPerLayer(numNeurons, activity, V, nx, ny, nf, nb);
    if( status == PV_SUCCESS ) status =
 		   applyVThresh_ANNLayer(numNeurons, V, VMin, VThresh, VShift, activity, nx, ny, nf, nb);

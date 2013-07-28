@@ -43,6 +43,7 @@ int NormalizeBase::initialize(const char * name, PVParams * params) {
 
 int NormalizeBase::setParams() {
    readStrength();
+   readRMin();
    readNormalizeCutoff();
    readSymmetrizeWeights();
    readNormalizeFromPostPerspective();
@@ -62,6 +63,14 @@ int NormalizeBase::normalizeWeights(HyPerConn * conn) {
       if (status != PV_SUCCESS) return status;
    }
 
+   if (rMinX > 0.5f && rMinY > 0.5f){
+	   int num_arbors = conn->numberOfAxonalArborLists();
+       for (int arbor=0; arbor<num_arbors; arbor++) {
+          pvdata_t * dataPatchStart = conn->get_wDataStart(arbor);
+          applyRMin(dataPatchStart, rMinX, rMinY,
+        		  conn->xPatchSize(), conn->yPatchSize(), conn->xPatchStride(), conn->yPatchStride());
+       }
+   }
    if (normalize_cutoff>0) {
       int num_arbors = conn->numberOfAxonalArborLists();
       int num_patches = conn->getNumDataPatches();
@@ -164,6 +173,30 @@ int NormalizeBase::applyThreshold(pvdata_t * dataPatchStart, int weights_in_patc
       if (fabsf(dataPatchStart[k])<threshold) dataPatchStart[k] = 0;
    }
    return PV_SUCCESS;
+}
+
+// dataPatchStart points to head of full-sized patch
+// rMinX, rMinY are the minimum radii from the center of the patch,
+// all weights inside (non-inclusive) of this radius are set to zero
+// the diameter of the central exclusion region is truncated to the nearest integer value, which may be zero
+int NormalizeBase::applyRMin(pvdata_t * dataPatchStart, float rMinX, float rMinY,
+		int nxp, int nyp, int xPatchStride, int yPatchStride) {
+	if(rMinX==0 && rMinY == 0) return PV_SUCCESS;
+	int fullWidthX = floor(2 * rMinX);
+	int fullWidthY = floor(2 * rMinY);
+	int offsetX = ceil((nxp - fullWidthX) / 2.0);
+	int offsetY = ceil((nyp - fullWidthY) / 2.0);
+	int widthX = nxp - 2 * offsetX;
+	int widthY = nyp - 2 * offsetY;
+	pvdata_t * rMinPatchStart = dataPatchStart + offsetY * yPatchStride + offsetX * xPatchStride;
+	int weights_in_row = xPatchStride * widthX;
+	for (int ky = 0; ky<widthY; ky++){
+		for (int k=0; k<weights_in_row; k++) {
+			rMinPatchStart[k] = 0;
+		}
+		rMinPatchStart += yPatchStride;
+	}
+  return PV_SUCCESS;
 }
 
 int NormalizeBase::symmetrizeWeights(HyPerConn * conn) {

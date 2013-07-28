@@ -17,6 +17,7 @@ void HyPerLCALayer_update_state(
     const int ny,
     const int nf,
     const int nb,
+    const int numChannels,
 
     float * V,
     const float Vth,
@@ -31,28 +32,6 @@ void HyPerLCALayer_update_state(
     float * activity,
     double * error_mean,
     double * error_std);
-
-void HyPerLCALayer2_update_state(
-    const int numNeurons,
-    const int nx,
-    const int ny,
-    const int nf,
-    const int nb,
-
-    float * V,
-    const float Vth,
-    const float VMax,
-    const float VMin,
-    const float VShift,
-    const float tau_max,
-    const float tau_min,
-    const float slope_error_std,
-    float * dt_tau,
-    float * GSynHead,
-    float * activity,
-    double * error_mean,
-    double * error_std);
-
 
 #ifdef __cplusplus
 }
@@ -189,14 +168,9 @@ int HyPerLCALayer::doUpdateState(double time, double dt, const PVLayerLoc * loc,
       int num_neurons = nx*ny*nf;
       dtTau = dt;
       double error_mean = 0;
-      if(num_channels == 1){
-    	  HyPerLCALayer_update_state(num_neurons, nx, ny, nf, loc->nb, V, VThresh,
-    			  VMax, VMin, VShift, tauMax, tauMin, slopeErrorStd, &dtTau, gSynHead, A, &error_mean, &errorStd);
-      }
-      else if(num_channels == 2){
-    	  HyPerLCALayer2_update_state(num_neurons, nx, ny, nf, loc->nb, V, VThresh,
-    			  VMax, VMin, VShift, tauMax, tauMin, slopeErrorStd, &dtTau, gSynHead, A, &error_mean, &errorStd);
-      }
+    	  HyPerLCALayer_update_state(num_neurons, nx, ny, nf, loc->nb, numChannels,
+    			  V, VThresh, VMax, VMin, VShift, tauMax, tauMin, slopeErrorStd,
+    			  &dtTau, gSynHead, A, &error_mean, &errorStd);
       if (this->writeSparseActivity){
          updateActiveIndices();  // added by GTK to allow for sparse output, can this be made an inline function???
       }
@@ -217,11 +191,9 @@ extern "C" {
 
 #ifndef PV_USE_OPENCL
 #  include "../kernels/HyPerLCALayer_update_state.cl"
-#  include "../kernels/HyPerLCALayer2_update_state.cl"
 #else
 #  undef PV_USE_OPENCL
 #  include "../kernels/HyPerLCALayer_update_state.cl"
-#  include "../kernels/HyPerLCALayer2_update_state.cl"
 #  define PV_USE_OPENCL
 #endif
 

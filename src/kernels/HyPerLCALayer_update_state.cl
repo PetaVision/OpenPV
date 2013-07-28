@@ -29,6 +29,7 @@ void HyPerLCALayer_update_state(
     const int ny,
     const int nf,
     const int nb,
+    const int numChannels,
 
     CL_MEM_GLOBAL float * V,
     const float Vth,
@@ -45,5 +46,5 @@ void HyPerLCALayer_update_state(
     CL_MEM_GLOBAL double * error_std)
 {
    updateV_HyPerLCALayer(numNeurons, V, GSynHead, activity, error_mean, error_std,
-		   VMax, VMin, Vth, VShift, dt_tau, tau_max, tau_min, slope_error_std, nx, ny, nf, nb);
+		   VMax, VMin, Vth, VShift, dt_tau, tau_max, tau_min, slope_error_std, nx, ny, nf, nb, numChannels);
 }

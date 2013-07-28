@@ -434,21 +434,24 @@ int KernelConn::defaultUpdate_dW(int arbor_ID) {
    int sya = (post->getLayerLoc()->nf * (post->getLayerLoc()->nx + 2*post->getLayerLoc()->nb));
 
    for(int kExt=0; kExt<nExt;kExt++) {
-      bool inWindow; 
+      pvdata_t preact = preactbuf[kExt];
+      if (skipPre(preact)) continue;
+      //if (preact == 0.0f) continue;
+      bool inWindow = true;
+      // only check inWindow if number of arbors > 1
+      if (this->numberOfAxonalArborLists()>1){
       //Only get post windows
       //if(useWindowPost){
-      const PVLayerLoc * preLoc = pre->getLayerLoc();
-      const PVLayerLoc * postLoc = post->getLayerLoc();
-      int kPost = layerIndexExt(kExt, preLoc, postLoc);
-      inWindow = post->inWindowExt(arbor_ID, kPost);
+    	  const PVLayerLoc * preLoc = pre->getLayerLoc();
+    	  const PVLayerLoc * postLoc = post->getLayerLoc();
+    	  int kPost = layerIndexExt(kExt, preLoc, postLoc);
+    	  inWindow = post->inWindowExt(arbor_ID, kPost);
+      }
       //}
       //else{
       //   inWindow = pre->inWindowExt(arbor_ID, kExt);
       //}
       if(!inWindow) continue;
-      pvdata_t preact = preactbuf[kExt];
-      if (skipPre(preact)) continue;
-      //if (preact == 0.0f) continue;
       PVPatch * weights = getWeights(kExt,arbor_ID);
       size_t offset = getAPostOffset(kExt, arbor_ID);
       int ny = weights->ny;

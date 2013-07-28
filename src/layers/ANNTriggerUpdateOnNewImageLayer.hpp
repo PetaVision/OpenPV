@@ -17,7 +17,8 @@ class ANNTriggerUpdateOnNewImageLayer: public PV::ANNLayer {
 public:
 	ANNTriggerUpdateOnNewImageLayer(const char * name, HyPerCol * hc, int numChannels, const char * movieLayerName);
 	ANNTriggerUpdateOnNewImageLayer(const char * name, HyPerCol * hc, const char * movieLayerName);
-   virtual ~ANNTriggerUpdateOnNewImageLayer();
+	virtual int recvAllSynapticInput();
+	virtual ~ANNTriggerUpdateOnNewImageLayer();
 protected:
    ANNTriggerUpdateOnNewImageLayer();
    int initialize(const char * name, HyPerCol * hc, int numChannels, const char * movieLayerName);

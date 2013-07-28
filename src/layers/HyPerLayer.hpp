@@ -186,7 +186,7 @@ public:
    // interface for public methods for controlling HyPerLayer cellular and synaptic dynamics
    // (i.e. methods for receiving synaptic input, updating internal state, publishing output)
    // ************************************************************************************//
-   int recvAllSynapticInput(); // Calls recvSynapticInput for each conn and each arborID
+   virtual int recvAllSynapticInput(); // Calls recvSynapticInput for each conn and each arborID
    //Method to see if the neuron is in the window. Default window id is mapped to the arbor id. Parent class is always true, and can be overwritten 
    virtual bool inWindowExt(int windowId, int neuronIdxExt) {return true;};
    virtual bool inWindowRes(int windowId, int neuronIdxRes) {return true;}; 
