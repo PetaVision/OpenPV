@@ -1411,8 +1411,9 @@ int HyPerLayer::recvSynapticInputFromPost(HyPerConn * conn, const PVLayerCube * 
    for (int kTargetRes = 0; kTargetRes < numRestricted; kTargetRes++){
       //Change restricted to extended post neuron
       int kTargetExt = kIndexExtended(kTargetRes, targetLoc->nx, targetLoc->ny, targetLoc->nf, targetLoc->nb);
-      //std::cout << "ktargetExt: " << kTargetExt << "\n";
-      //TODO put window stuff here
+      bool inWindow; 
+      inWindow = inWindowExt(arborID, kTargetExt);
+      if(!inWindow) continue;
       //
       //Get start index of source from gsyn in restricted
       int sourceRes = targetToSourceConn->getGSynPatchStart(kTargetExt, arborID);
@@ -1461,6 +1462,7 @@ int HyPerLayer::recvSynapticInputFromPost(HyPerConn * conn, const PVLayerCube * 
       }
       *gSynPatchPos += value;
    }
+   recvsyn_timer->stop();
    return PV_SUCCESS;
 }
 
@@ -1490,19 +1492,16 @@ int HyPerLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activity
 
    float dt_factor = getConvertToRateDeltaTimeFactor(conn);
    for (int kPre = 0; kPre < numExtended; kPre++) {
-      //bool inWindow; 
-      ////Post layer recieves synaptic input
-      ////Only get post windows
-      ////if (conn->getUseWindowPost()){
-      //const PVLayerLoc * preLoc = conn->preSynapticLayer()->getLayerLoc();
-      //const PVLayerLoc * postLoc = this->getLayerLoc();
-      //int kPost = layerIndexExt(kPre, preLoc, postLoc);
-      //inWindow = inWindowExt(arborID, kPost);
-      ////}
-      ////else{
-      ////   inWindow = conn->preSynapticLayer()->inWindowExt(arborID, kPre);
-      ////}
-      //if(!inWindow) continue;
+
+      bool inWindow; 
+      //Post layer recieves synaptic input
+      //Only with respect to post layer
+      const PVLayerLoc * preLoc = conn->preSynapticLayer()->getLayerLoc();
+      const PVLayerLoc * postLoc = this->getLayerLoc();
+      int kPost = layerIndexExt(kPre, preLoc, postLoc);
+      inWindow = inWindowExt(arborID, kPost);
+      if(!inWindow) continue;
+
       float a = activity->data[kPre] * dt_factor;
       // Activity < 0 is used by generative models --pete
       if (a == 0.0f) continue;  // TODO - assume activity is sparse so make this common branch
