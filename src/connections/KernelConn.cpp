@@ -174,8 +174,9 @@ int KernelConn::initPlasticityPatches() {
 }
 
 // use shmget() to save memory on shared memory architectures
-pvdata_t * KernelConn::allocWeights(PVPatch *** patches, int nPatches,
-		int nxPatch, int nyPatch, int nfPatch, int arbor_ID) {
+//pvdata_t * KernelConn::allocWeights(PVPatch *** patches, int nPatches,
+//		int nxPatch, int nyPatch, int nfPatch, int arbor_ID) {
+pvdata_t * KernelConn::allocWeights(int nPatches, int nxPatch, int nyPatch, int nfPatch){
 
 	int sx = nfPatch;
 	int sy = sx * nxPatch;
@@ -184,17 +185,17 @@ pvdata_t * KernelConn::allocWeights(PVPatch *** patches, int nPatches,
 	size_t patchSize = sp * sizeof(pvdata_t);
 	size_t dataSize = nPatches * patchSize;
 
-	if (arbor_ID > 0) {  // wDataStart already allocated
-#ifdef USE_SHMGET
+	//if (arbor_ID > 0) {  // wDataStart already allocated
+//#ifdef USE_SHMGET
 
-		if (shmget_flag) {
-			shmget_owner[arbor_ID] = shmget_owner[0];
-	        shmget_id[arbor_ID] = shmget_id[0];
-		}
-#endif // SHMGET_DEBUG
-		assert(this->get_wDataStart(0) != NULL);
-		return (this->get_wDataStart(0) + sp * nPatches * arbor_ID);
-	}
+	//	if (shmget_flag) {
+	//		shmget_owner[arbor_ID] = shmget_owner[0];
+	//        shmget_id[arbor_ID] = shmget_id[0];
+	//	}
+//#endif // SHMGET_DEBUG
+	//	assert(this->get_wDataStart(0) != NULL);
+	//	return (this->get_wDataStart(0) + sp * nPatches * arbor_ID);
+	//}
 
 	// arbor_ID == 0
 	size_t arborSize = dataSize * this->numberOfAxonalArborLists();
@@ -546,7 +547,9 @@ int KernelConn::updateWeights(int arbor_ID){
 //#else
       pvdata_t * w_data_start = get_wDataStart(kArbor);
 //#endif
+//
       for( int k=0; k<nxp*nyp*nfp*getNumDataPatches(); k++ ) {
+         //std::cout << "Arbor: " << kArbor << "    " << w_data_start[k] << " += " << get_dwDataStart(kArbor)[k] << "\n";
          w_data_start[k] += get_dwDataStart(kArbor)[k];
       }
    }

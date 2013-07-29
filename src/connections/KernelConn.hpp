@@ -85,8 +85,9 @@ protected:
    virtual int communicateInitInfo();
    virtual int createArbors();
    virtual int initPlasticityPatches();
-   virtual pvdata_t * allocWeights(PVPatch *** patches, int nPatches, int nxPatch,
-         int nyPatch, int nfPatch, int arborId);
+   //virtual pvdata_t * allocWeights(PVPatch *** patches, int nPatches, int nxPatch,
+   //      int nyPatch, int nfPatch, int arborId);
+   virtual pvdata_t * allocWeights(int nPatches, int nxPatch, int nyPatch, int nfPatch);
    int initNumDataPatches();
 #ifdef OBSOLETE // Marked obsolete April 15, 2013.  Implementing the new NormalizeBase class hierarchy
    virtual int initNormalize();

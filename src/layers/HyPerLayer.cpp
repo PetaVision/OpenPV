@@ -350,7 +350,7 @@ int HyPerLayer::freeClayer() {
 
    free(clayer->activeIndices); clayer->activeIndices = NULL;
    free(clayer->prevActivity);  clayer->prevActivity = NULL;
-   free(clayer->activeIndices); clayer->activeIndices = NULL;
+   //free(clayer->activeIndices); clayer->activeIndices = NULL;
    free(clayer->V);             clayer->V = NULL;
    free(clayer);                clayer = NULL;
 

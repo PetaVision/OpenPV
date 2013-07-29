@@ -97,6 +97,7 @@
 #include "../weightinit/InitOneToOneWeights.hpp"
 #include "../weightinit/InitIdentWeights.hpp"
 #include "../weightinit/InitUniformWeights.hpp"
+#include "../weightinit/InitByArborWeights.hpp"
 #include "../weightinit/InitSpreadOverArborsWeights.hpp"
 #include "../weightinit/Init3DGaussWeights.hpp"
 #include "../weightinit/InitWindowed3DGaussWeights.hpp"

@@ -549,11 +549,12 @@ protected:
          int numPatches, const char* filename);
    virtual InitWeights* getDefaultInitWeightsMethod(const char* keyword);
    virtual InitWeights* handleMissingInitWeights(PVParams* params);
-   virtual float* createWeights(PVPatch*** patches, int nWeightPatches, int nDataPatches, int nxPatch,
+   virtual int createWeights(PVPatch*** patches, int nWeightPatches, int nDataPatches, int nxPatch,
          int nyPatch, int nfPatch, int arborId);
-   float* createWeights(PVPatch*** patches, int arborId);
-   virtual pvdata_t * allocWeights(PVPatch *** patches, int nPatches, int nxPatch,
-         int nyPatch, int nfPatch, int arborId);
+   int createWeights(PVPatch*** patches, int arborId);
+   virtual pvdata_t * allocWeights(int nPatches, int nxPatch, int nyPatch, int nfPatch);
+   //virtual pvdata_t * allocWeights(PVPatch *** patches, int nPatches, int nxPatch,
+   //      int nyPatch, int nfPatch, int arborId);
    //PVPatch ** allocWeights(PVPatch ** patches);
    int clearWeights(float** dataStart, int numPatches, int nx, int ny, int nf);
    virtual int initNormalize();

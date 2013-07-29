@@ -501,26 +501,28 @@ static inline int layerIndexExt(int kPreExt, const PVLayerLoc * inLoc, const PVL
    else{
       kPostY = floor(kPreY * scaleFactorY);
    }
-   //If outside of out layer margins, shrink
-   //Left margin
-   if (kPostX < -1 * outLoc->nb){
-      kPostX = -1 * outLoc->nb;
-   }
-   //Right Margin
-   else if(kPostX >= outLoc->nx + outLoc->nb){
-      kPostX = outLoc->nx + outLoc->nb - 1;
-   }
-   //Top margin
-   if (kPostY < -1 * outLoc->nb){
-      kPostY = -1 * outLoc->nb;
-   }
-   //Bottom Margin
-   else if(kPostY >= outLoc->ny + outLoc->nb){
-      kPostY = outLoc->ny + outLoc->nb - 1;
-   }
+
    //Change back to ext points 
    kPostX += outLoc->nb;
    kPostY += outLoc->nb;
+
+   //If outside of out layer margins, shrink
+   //Left margin
+   if (kPostX < 0){
+      kPostX = 0;
+   }
+   //Right Margin
+   else if(kPostX >= outLoc->nx + 2*outLoc->nb){
+      kPostX = outLoc->nx + 2*outLoc->nb - 1;
+   }
+   //Top margin
+   if (kPostY < 0){
+      kPostY = 0;
+   }
+   //Bottom Margin
+   else if(kPostY >= outLoc->ny + 2*outLoc->nb){
+      kPostY = outLoc->ny + 2*outLoc->nb - 1;
+   }
    //Change back to index
    //Using feature of 0
    return kIndex(kPostX, kPostY, 0, outLoc->nx + 2*outLoc->nb, outLoc->ny + 2*outLoc->nb, outLoc->nf);

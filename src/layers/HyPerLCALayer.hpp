@@ -22,6 +22,8 @@ public:
    virtual int getNumWindows();
    virtual bool inWindowExt(int windowId, int neuronIdxExt);
    virtual bool inWindowRes(int windowId, int neuronIdxRes);
+   //calcWindow used in WindowSystemTest, so needs to be public
+   int calcWindow(int globalExtX, int globalExtY);
 protected:
    HyPerLCALayer();
    int initialize(const char * name, HyPerCol * hc, int numChannels);
@@ -40,7 +42,6 @@ private:
    int numWindowY;
    bool windowSymX;
    bool windowSymY;
-   int calcWindow(int globalExtX, int globalExtY);
 };
 
 } /* namespace PV */

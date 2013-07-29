@@ -706,6 +706,9 @@ InitWeights *createInitWeightsObject(const char * name, HyPerCol * hc) {
    else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "DistributedWeight"))) {
       weightInitializer = new InitDistributedWeights();
    }
+   else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "ArborWeight"))) {
+      weightInitializer = new InitByArborWeights();
+   }
    else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "BIDSLateral"))) {
       weightInitializer = new InitBIDSLateral();
    }

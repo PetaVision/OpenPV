@@ -325,6 +325,10 @@ void HyPerConn::createArborsOutOfMemory() {
  */
 int HyPerConn::constructWeights(const char * filename)
 {
+   int sx = nfp;
+   int sy = sx * nxp;
+   int sp = sy * nyp;
+   int nPatches = getNumDataPatches();
    int status = PV_SUCCESS;
 
    assert(!parent->parameters()->presentAndNotBeenRead(name, "shrinkPatches"));
@@ -336,9 +340,18 @@ int HyPerConn::constructWeights(const char * filename)
    setPatchStrides();
 
    //allocate weight patches and axonal arbors for each arbor
+   //Allocate all the weights
+   wDataStart[0] = allocWeights(nPatches, nxp, nyp, nfp);
+   assert(this->get_wDataStart(0) != NULL);
    for (int arborId=0;arborId<numAxonalArborLists;arborId++) {
-      wDataStart[arborId] = createWeights(wPatches, arborId);
+      status = createWeights(wPatches, arborId);
       assert(wPatches[arborId] != NULL);
+
+      //wDataStart[arborId] = createWeights(wPatches, arborId);
+      if (arborId > 0){  // wDataStart already allocated
+         wDataStart[arborId] = (this->get_wDataStart(0) + sp * nPatches * arborId);
+         assert(this->wDataStart[arborId] != NULL);
+      }
       if (shrinkPatches_flag || arborId == 0){
          status |= adjustAxonalArbors(arborId);
       }
@@ -618,6 +631,10 @@ int HyPerConn::initNumDataPatches() {
 
 int HyPerConn::initPlasticityPatches()
 {
+   int sx = nfp;
+   int sy = sx * nxp;
+   int sp = sy * nyp;
+   int nPatches = getNumDataPatches();
    if (!plasticityFlag) return PV_SUCCESS;
 
    const int numAxons = numberOfAxonalArborLists();
@@ -626,8 +643,11 @@ int HyPerConn::initPlasticityPatches()
       dwDataStart = wDataStart;
       return PV_SUCCESS;
    }
+   dwDataStart[0] = allocWeights(nPatches, nxp, nyp, nfp);
+   assert(this->get_dwDataStart(0) != NULL);
    for (int arborId = 0; arborId < numAxons; arborId++) {
-      set_dwDataStart(arborId, allocWeights(wPatches, getNumDataPatches(), nxp, nyp, nfp, arborId));
+      dwDataStart[arborId] = (dwDataStart[0] + sp * nPatches * arborId);
+      //set_dwDataStart(arborId, allocWeights(getNumDataPatches(), nxp, nyp, nfp, arborId));
       assert(get_dwDataStart(arborId) != NULL);
    } // loop over arbors
 
@@ -1748,7 +1768,7 @@ PVPatch * HyPerConn::getWeights(int k, int arbor)
    return wPatches[arbor][k];
 }
 
-pvdata_t * HyPerConn::createWeights(PVPatch *** patches, int nWeightPatches, int nDataPatches, int nxPatch,
+int HyPerConn::createWeights(PVPatch *** patches, int nWeightPatches, int nDataPatches, int nxPatch,
       int nyPatch, int nfPatch, int arborId)
 {
    // could create only a single patch with following call
@@ -1768,14 +1788,14 @@ pvdata_t * HyPerConn::createWeights(PVPatch *** patches, int nWeightPatches, int
    }
 
    // allocate space for all weights at once (inplace), return pointer to beginning of weight array
-   pvdata_t * data_patches = allocWeights(patches, nDataPatches, nxPatch, nyPatch, nfPatch, arborId);
-   return data_patches;
+   //pvdata_t * data_patches = allocWeights(patches, nDataPatches, nxPatch, nyPatch, nfPatch, arborId);
+   return PV_SUCCESS;
 }
 
 /**
  * Create a separate patch of weights for every neuron
  */
-pvdata_t * HyPerConn::createWeights(PVPatch *** patches, int arborId)
+int HyPerConn::createWeights(PVPatch *** patches, int arborId)
 {
    int nWeightPatches = getNumWeightPatches();
    int nDataPatches = getNumDataPatches();
@@ -1783,8 +1803,8 @@ pvdata_t * HyPerConn::createWeights(PVPatch *** patches, int arborId)
    int nyPatch = nyp;
    int nfPatch = nfp;
 
-   pvdata_t * data_patches = createWeights(patches, nWeightPatches, nDataPatches, nxPatch, nyPatch, nfPatch, arborId);
-   return data_patches;
+   int status = createWeights(patches, nWeightPatches, nDataPatches, nxPatch, nyPatch, nfPatch, arborId);
+   return status;
 }
 
 int HyPerConn::clearWeights(pvdata_t ** dataStart, int numPatches, int nxp, int nyp, int nfp) {
@@ -2053,6 +2073,10 @@ PVPatch *** HyPerConn::convertPreSynapticWeights(double time)
    nypPost = (int) (nyp * powYScale);
    nfpPost = preLoc->nf;
 
+   int sxPost = nfpPost;
+   int syPost = sxPost * nxpPost;
+   int spPost = syPost * nypPost;
+
    // the number of features is the end-point value (normally post-synaptic)
    const int numPostPatch = nxpPost * nypPost * nfpPost; // Post-synaptic weights are never shrunken
 
@@ -2062,8 +2086,15 @@ PVPatch *** HyPerConn::convertPreSynapticWeights(double time)
       assert(wPostDataStart == NULL);
       wPostDataStart = (pvdata_t **) calloc(numAxonalArborLists, sizeof(pvdata_t *));
       assert(wPostDataStart!=NULL);
+      wPostDataStart[0] = allocWeights(numPost, nxpPost, nypPost, nfpPost);
+      assert(wPostDataStart[0] != NULL);
       for(int arborID=0;arborID<numberOfAxonalArborLists();arborID++) {
-         wPostDataStart[arborID] = createWeights(wPostPatches, numPost, numPost, nxpPost, nypPost, nfpPost, arborID);
+         int status = createWeights(wPostPatches, numPost, numPost, nxpPost, nypPost, nfpPost, arborID);
+         assert(status == PV_SUCCESS);
+         if (arborID > 0){  // wDataStart already allocated
+            wPostDataStart[arborID] = wPostDataStart[0] + spPost * numPost * arborID;
+            assert(wPostDataStart[arborID] != NULL);
+         }
       }
    }
 
@@ -3209,8 +3240,9 @@ int HyPerConn::setPatchStrides() {
    return PV_SUCCESS;
 }
 
-pvdata_t * HyPerConn::allocWeights(PVPatch *** patches, int nPatches, int nxPatch,
-      int nyPatch, int nfPatch, int arborId)
+//pvdata_t * HyPerConn::allocWeights(PVPatch *** patches, int nPatches, int nxPatch,
+//      int nyPatch, int nfPatch, int arborId)
+pvdata_t * HyPerConn::allocWeights(int nPatches, int nxPatch, int nyPatch, int nfPatch)
 {
    int sx = nfPatch;
    int sy = sx * nxPatch;
@@ -3218,10 +3250,10 @@ pvdata_t * HyPerConn::allocWeights(PVPatch *** patches, int nPatches, int nxPatc
 
    size_t patchSize = sp * sizeof(pvdata_t);
    size_t dataSize = nPatches * patchSize;
-   if (arborId > 0){  // wDataStart already allocated
-	   assert(this->get_wDataStart(0) != NULL);
-	   return (this->get_wDataStart(0) + sp * nPatches * arborId);
-	}
+   //if (arborId > 0){  // wDataStart already allocated
+	//   assert(this->get_wDataStart(0) != NULL);
+	//   return (this->get_wDataStart(0) + sp * nPatches * arborId);
+	//}
    // arborID == 0
    size_t arborSize = dataSize * this->numberOfAxonalArborLists();
    pvdata_t * dataPatches = NULL;
