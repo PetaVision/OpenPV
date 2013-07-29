@@ -85,14 +85,14 @@ int SigmoidLayer::communicateInitInfo() {
    HyPerLayer * origHyPerLayer = parent->getLayerFromName(sourceLayerName);
    if (origHyPerLayer==NULL) {
       fprintf(stderr, "SigmoidLayer \"%s\" error: originalLayerName \"%s\" is not a layer in the HyPerCol.\n",
-    		  name, sourceLayerName);
+              name, sourceLayerName);
       return(EXIT_FAILURE);
    }
    sourceLayer = dynamic_cast<LIF *>(origHyPerLayer);
    if (sourceLayer==NULL) {
       fprintf(stderr,
-    		  "SigmoidLayer \"%s\" error: sourceLayer \"%s\" is not a LIF or LIF-derived layer in the HyPerCol.\n",
-    		  name, sourceLayerName);
+              "SigmoidLayer \"%s\" error: sourceLayer \"%s\" is not a LIF or LIF-derived layer in the HyPerCol.\n",
+              name, sourceLayerName);
       return(EXIT_FAILURE);
    }
 
