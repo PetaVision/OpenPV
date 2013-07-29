@@ -385,7 +385,6 @@ private:
    int defaultDelay; //added to save params file defined delay...
    const float* fDelayArray;
    int delayArraySize;
-   bool updateGSynFromPostPerspective;
 
 protected:
    bool useWindowPost;
@@ -442,6 +441,7 @@ protected:
    float dWMax;  // dW scale factor
    bool useListOfArborFiles;
    bool combineWeightFiles;
+   bool updateGSynFromPostPerspective;
 
    int neededRNGSeeds;  // The number of independent random number generators used by the layer, summed over all MPI processes.
    unsigned long rngSeedBase; // The starting seed for rng.  The parent HyPerCol reserves {rngSeedbase, rngSeedbase+1,...rngSeedbase+neededRNGSeeds-1} for use by this layer
@@ -589,7 +589,7 @@ protected:
    virtual int readNfp(PVParams * params);
    virtual void readUseListOfArborFiles(PVParams * params);
    virtual void readCombineWeightFiles(PVParams * params);
-   void readUpdateGSynFromPostPerspective(PVParams * params);
+   virtual void readUpdateGSynFromPostPerspective(PVParams * params);
 
    virtual int setNeededRNGSeeds();
 
