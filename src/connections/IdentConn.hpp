@@ -47,7 +47,7 @@ protected:
    virtual void readKeepKernelsSynchronized(PVParams * params);
    virtual void readWeightUpdatePeriod(PVParams * params);
    virtual void readInitialWeightUpdateTime(PVParams * params);
-
+   virtual void readUpdateGSynFromPostPerspective(PVParams * params);
 };
 
 }  // end of block for namespace PV

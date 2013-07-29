@@ -108,6 +108,10 @@ void IdentConn::readShrinkPatches(PVParams * params) {
    shrinkPatches_flag = false;
 }
 
+void IdentConn::readUpdateGSynFromPostPerspective(PVParams * params){
+   updateGSynFromPostPerspective = false;
+}
+
 int IdentConn::communicateInitInfo() {
    int status = KernelConn::communicateInitInfo();
    assert(pre && post);
