@@ -3,7 +3,6 @@
 	<name>InitWeightsTest</name>
 	<comment></comment>
 	<projects>
-		<project>PetaVision</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
