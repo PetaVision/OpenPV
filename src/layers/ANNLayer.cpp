@@ -172,6 +172,26 @@ int ANNLayer::readVThreshParams(PVParams * params) {
    return PV_SUCCESS;
 }
 
+int ANNLayer::updateState(double timed, double dt) {
+    int status = PV_SUCCESS;
+    // Check that there is at least two channels---exc and inh.
+    // Can't put the check in allocateDataStructures because a subclass might need only one channel (e.g. HyPerLCA)
+    // but subclasses still call parent class's allocateDataStructures
+    // A subclass that allows only one channel should not call ANNLayer::updateState during its updateState call.
+    if (getNumChannels()>=2) {
+       status = HyPerLayer::updateState(timed, dt);
+    }
+    else {
+       if (parent->columnId()==0) {
+          fprintf(stderr, "ANNLayer \"%s\": At least two channels are needed but the layer has only %d.\n", name, getNumChannels());
+       }
+       status = PV_FAILURE;
+    }
+    MPI_Barrier(parent->icCommunicator()->communicator());
+    if (status != PV_SUCCESS) exit(EXIT_FAILURE);
+    return status;
+}
+
 //! new ANNLayer update state, to add support for GPU kernel.
 //
 /*!
