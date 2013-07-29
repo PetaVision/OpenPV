@@ -1,0 +1,130 @@
+debugParsing = true;
+
+HyPerCol "column" = {
+    nx = 32; //1242;  // KITTI synced value
+    ny = 32;  //218;
+    dt = 1.0;
+    randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
+    numSteps = 5;       // Depends on number of VINE video frames
+    progressStep = 1;
+    //Change this
+    outputPath = "output/";
+    filenamesContainLayerNames = true;
+    filenamesContainConnectionNames = true;
+    checkpointRead = false;
+    checkpointWrite = false;
+    deleteOlderCheckpoints = false;
+    suppressLastOutput = false;
+    writeProgressToErr = true;
+};
+
+WindowTestLayer "input" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 5;
+    writeStep = 1.0;
+    mirrorBCflag = -1;
+    writeSparseActivity = 0;
+    //
+    InitVType = "ConstantV";
+    valueV = 1.0;
+
+    VThresh = -infinity;
+    VMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
+    VMin = -infinity; 
+    VShift = 0;
+    // 
+    phase = 0; 
+
+    //windowLayerName = "output";
+};
+
+WindowLCALayer "output" = {
+    restart = 0;
+    nxScale = .5;
+    nyScale = .5;
+    nf = 10;
+    marginWidth = 5;
+    writeStep = 1.0;
+    mirrorBCflag = -1;
+    writeSparseActivity = 0;
+    //
+    InitVType = "ZeroV";
+
+    VThresh = -infinity;
+    VMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
+    VMin = -infinity; 
+    VShift = 0;
+    // 
+
+    numWindowX = 16;
+    numWindowY = 1;
+    windowSymX = true;
+    windowSymY = false;
+
+    phase = 1; 
+};
+
+KernelConn "outToIn" = {
+    preLayerName = "output";
+    postLayerName = "input";
+    channelCode = 2; //To channel 3, does nothing
+    nxp = 6; 
+    nyp = 6; 
+    nfp = 1;
+    numAxonalArbors = 8;
+    initFromLastFlag = 0;  // 1;  // restart
+    writeStep = 1;
+    
+    weightInitType = "ArborWeight";
+    //weightInit = 1.0;
+    //sparseFraction = 0;
+        
+    strength = 1.0;  
+    normalizeMethod = "none";
+    //minL2NormTolerated = 0;
+    //normalizeArborsIndividually = 1;
+    //normalize_cutoff = 0.0;
+    //normalizeFromPostPerspective = false;
+    //symmetrizeWeights = false;
+    
+    shrinkPatches = false;
+    //writeCompressedWeights = 0.0;
+    writeCompressedCheckpoints = false;
+    plasticityFlag = 0;
+    stochasticReleaseFlag = false;
+     
+    delay = 0;
+     
+    preActivityIsNotRate = false;
+    selfFlag = false;
+    shmget_flag = false;
+
+    useWindowPost = false;
+    updateGSynFromPostPerspective = false;
+};
+
+TransposeConn "inToOut" = {
+    preLayerName = "input";
+    postLayerName = "output";
+    channelCode = 0;
+    originalConnName = "outToIn";
+    selfFlag = false;
+    preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
+    writeStep = -1;
+    writeCompressedCheckpoints = false;
+    shmget_flag = false;
+    delay = 0;
+    stochasticReleaseFlag = false;
+
+    useWindowPost = true;
+    updateGSynFromPostPerspective = true;
+};
+
+WindowProbe "testProbe" = {
+   targetLayer = "output";
+   message = "testProbe ";
+};
+
