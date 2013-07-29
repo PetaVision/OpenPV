@@ -905,7 +905,9 @@ int HyPerLayer::increaseDelayLevels(int neededDelay) {
 int HyPerLayer::requireMarginWidth(int marginWidthNeeded, int * marginWidthResult) {
    if (margin < marginWidthNeeded) {
       assert(clayer);
-      printf("Layer \"%s\": adjusting margin width from %d to %d\n", name, margin, marginWidthNeeded);
+      if (parent->columnId()==0) {
+         printf("Layer \"%s\": adjusting margin width from %d to %d\n", name, margin, marginWidthNeeded);
+      }
       margin = marginWidthNeeded;
       updateClayerMargin(clayer, margin);
    }
