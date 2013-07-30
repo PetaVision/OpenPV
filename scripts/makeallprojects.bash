@@ -9,6 +9,7 @@ cd ../.. # We should now be in the eclipse workspace directory
 wd=$PWD
 
 fails=""
+nomakefile=""
 
 # Building PetaVision does not automatically build the parser files created by flex/bison
 cd PetaVision/src/io/parser
@@ -38,16 +39,25 @@ do
     echo ; echo ======== Building $(basename $k) ========
     if test -f $k/Makefile
     then
+        hasmake=1
         cd $k
-    else
-        cd $k/Debug
-    fi
-    echo cd $PWD
-    make clean
-    make -j4 all
-    if test "$?" -ne 0
+    elif test -f $k/Debug/Makefile
     then
-        fails="$fails $k"
+        hasmake=1
+        cd $k/Debug
+    else
+        hasmake=0
+    fi
+    if test $hasmake -eq 1
+    then
+        make clean
+        make -j4 all
+        if test "$?" -ne 0
+        then
+            fails="$fails $k"
+        fi
+    else
+        nomakefile="$nomakefile $k"
     fi
     cd $wd
 done
@@ -69,4 +79,8 @@ then
     echo "The following projects failed to build:$fails"
 else
     echo "All builds succeeded."
+fi
+if test -n "$nomakefile"
+then
+    echo "The following projects have no makefile:$nomakefile"
 fi
