@@ -147,26 +147,17 @@ int ANNLayer::updateStateOpenCL(double time, double dt)
 #endif
 
 int ANNLayer::readVThreshParams(PVParams * params) {
-   VMax = params->value(name, "VMax", max_pvdata_t);
    VThresh = params->value(name, "VThresh", -max_pvdata_t);
-   if (VThresh > VMax) {
-      VThresh = VMax;
-      if (parent->columnId()==0) {
-         fprintf(stderr, "Warning: ANNLayer \"%s\": VThresh > VMax.  VThresh changed to %f.\n", name, VMax);
-      }
-   }
    VMin = params->value(name, "VMin", VThresh);
-   if (VMin > VThresh) {
-      VMin = VThresh;
-      if (parent->columnId()==0) {
-         fprintf(stderr, "Warning: ANNLayer \"%s\": VMin > VThresh.  VMin changed to %f.\n", name, VThresh);
-      }
-   }
+   VMax = params->value(name, "VMax", max_pvdata_t);
    VShift = params->value(name, "VShift", 0.0);
-   if (VShift > VThresh-VMin) {
-      VShift = VThresh-VMin;
+
+   pvdata_t limfromright = VThresh-VShift;
+   if (VMax < limfromright) limfromright = VMax;
+
+   if (VMin > limfromright) {
       if (parent->columnId()==0) {
-         fprintf(stderr, "Warning: ANNLayer \"%s\": VShift > VThresh-VMin.  VShift changed to %f.\n", name, VShift);
+         fprintf(stderr, "Warning: ANNLayer \"%s\" has a nonmonotonic transfer function, jumping from %f to %f at Vthresh=%f\n", name, VMin, limfromright, VThresh);
       }
    }
    return PV_SUCCESS;
