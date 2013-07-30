@@ -22,7 +22,7 @@ public:
 protected:
    virtual int setParams(PVParams * params);
    virtual void readLateralRadius(PVParams * inputParams);
-   // virtual void readJitterSource(PVParams * inputParams);
+   virtual void readJitterSource(PVParams * inputParams);
    virtual void readJitter(PVParams * inputParams);
    virtual int setPatchSize();
 

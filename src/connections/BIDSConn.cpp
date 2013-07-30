@@ -25,7 +25,7 @@ BIDSConn::BIDSConn(const char * name, HyPerCol * hc, const char * pre_layer_name
 
 int BIDSConn::initialize_base() {
    lateralRadius = 0.0;
-   // jitterSourceName = NULL;
+   jitterSourceName = NULL;
    jitter = 0.0;
    return PV_SUCCESS;
 }
@@ -33,7 +33,7 @@ int BIDSConn::initialize_base() {
 int BIDSConn::setParams(PVParams * params) {
    int status = HyPerConn::setParams(params);
    readLateralRadius(params);
-   // readJitterSource(params); // jitterSource not used.  Obsolete?
+   readJitterSource(params);
    readJitter(params);
    return status;
 }
@@ -44,10 +44,10 @@ void BIDSConn::readLateralRadius(PVParams * inputParams) {
 }
 
 
-// void BIDSConn::readJitterSource(PVParams * inputParams) {
-//    const char * jitter_source = inputParams->stringValue(name, "jitterSource");
-//    jitterSourceName = strdup(jitter_source);
-// }
+ void BIDSConn::readJitterSource(PVParams * inputParams) {
+    const char * jitter_source = inputParams->stringValue(name, "jitterSource");
+    jitterSourceName = strdup(jitter_source);
+ }
 
 //@jitter: The maximum possible amount that a physical node in 256x256 can be placed from its original mathematical position in 256x256 space
 //In order to get the full length of the radius at which a node can see its neighboring nodes in 256x256 physical space while accounting for jitter
@@ -92,7 +92,7 @@ int BIDSConn::setPatchSize()
 }
 
 BIDSConn::~BIDSConn() {
-   // free(jitterSourceName); jitterSourceName = NULL;
+   free(jitterSourceName); jitterSourceName = NULL;
 }
 
 } // namespace PV
