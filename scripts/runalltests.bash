@@ -79,6 +79,7 @@ else
     }
 fi
 
+
 testname=BasicSystemTest
 arglist="-p input/BasicSystemTest.params"
 cd "$testname"
@@ -252,6 +253,14 @@ arglist="" # parameter filename is in main()
 runandecho $testname Debug/$testname $arglist
 mpirunandecho $testname Debug/$testname $arglist
 cd "$wd"
+
+testname=WindowSystemTest
+cd "$testname"
+arglist="-p input/postTest.params" # parameter filename is in main()
+runandecho $testname Debug/$testname $arglist
+mpirunandecho $testname Debug/$testname $arglist
+cd "$wd"
+
 
 cd "./PetaVision/tests"
 make runtests 2>/dev/null | egrep 'passed|FAILED'
