@@ -284,16 +284,16 @@ int pvpatch_max(int nk, float * RESTRICT v, float a, float * RESTRICT w, int fea
    return err;
 }
 
-int pvpatch_max_pooling(int nk, float* RESTRICT v, float a, float* RESTRICT w)
-{
-   int k;
-   int err = 0;
-   for (k = 0; k < nk; k++) {
-      v[k] = v[k] > a*w[k] ? v[k] : a*w[k];
-   }
-   return err;
-}
-
+  int pvpatch_max_pooling(int nk, float* RESTRICT v, float a, float* RESTRICT w)
+  {
+    int k;
+    int err = 0;
+    for (k = 0; k < nk; k++) {
+      v[k] = v[k] > a ? v[k] : a;
+    }
+    return err;
+  }
+  
 
 ///////////////////////////////////////////////////////
 // pvcube interface implementation

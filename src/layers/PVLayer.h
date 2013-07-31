@@ -93,6 +93,7 @@ int pvpatch_accumulate(int nk, float * v, float a, float * w);
 int pvpatch_accumulate2(int nk, float* RESTRICT v, float a, float* RESTRICT w, float* RESTRICT m);
 int pvpatch_accumulate_stochastic(int nk, float* RESTRICT v, float a, float* RESTRICT w);
 int pvpatch_max(int nk, float * RESTRICT v, float a, float * RESTRICT w, int feature, int * RESTRICT maxloc);
+
 int pvpatch_max_pooling(int nk, float* RESTRICT v, float a, float* RESTRICT w);
 
 #ifdef __cplusplus

@@ -461,7 +461,12 @@ int HyPerConn::initialize(const char * name, HyPerCol * hc, const char * pre_lay
    PVParams * inputParams = parent->parameters();
    status = setParams(inputParams);
 
-   accumulateFunctionPointer = stochasticReleaseFlag ? &pvpatch_accumulate_stochastic : &pvpatch_accumulate;
+   //set accumulateFunctionPointer's default value
+   accumulateFunctionPointer  = &pvpatch_accumulate;
+   if (strcmp(pvpatchAccumulateType, "Stochastic") != 0)
+       accumulateFunctionPointer = &pvpatch_accumulate_stochastic;
+   else if (strcmp(pvpatchAccumulateType, "Maxpooling") != 0)
+       accumulateFunctionPointer = &pvpatch_max_pooling;
 
    ioAppend = parent->getCheckpointReadFlag();
 
@@ -660,7 +665,7 @@ int HyPerConn::setParams(PVParams * inputParams)
    readChannelCode(inputParams);
    readNumAxonalArbors(inputParams);
    readPlasticityFlag(inputParams);
-   readStochasticReleaseFlag(inputParams);
+   readPvpatchAccumulateType(inputParams);
    readPreActivityIsNotRate(inputParams);
    readWriteStep(inputParams);
    readInitialWriteTime(inputParams);
@@ -729,8 +734,8 @@ void HyPerConn::readPlasticityFlag(PVParams * params) {
    plasticityFlag = params->value(name, "plasticityFlag", plasticityFlag, true) != 0;
 }
 
-void HyPerConn::readStochasticReleaseFlag(PVParams * params) {
-   stochasticReleaseFlag = params->value(name, "stochasticReleaseFlag", false, true) != 0;
+void HyPerConn::readPvpatchAccumulateType(PVParams * params) {
+    pvpatchAccumulateType = params->stringValue(name, "pvpatchAccumulateType", true);
 }
 
 void HyPerConn::readPreActivityIsNotRate(PVParams * params) {

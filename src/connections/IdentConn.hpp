@@ -35,7 +35,7 @@ protected:
    virtual int setParams(PVParams * inputParams);
    virtual void readNumAxonalArbors(PVParams * params);
    virtual void readPlasticityFlag(PVParams * params);
-   virtual void readStochasticReleaseFlag(PVParams * params);
+   virtual void readPvpatchAccumulateType(PVParams * params);
    virtual void readPreActivityIsNotRate(PVParams * params);
    virtual void readShrinkPatches(PVParams * params);
    virtual void readWriteCompressedWeights(PVParams * params);

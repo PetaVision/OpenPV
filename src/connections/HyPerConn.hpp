@@ -82,7 +82,8 @@ public:
 
    virtual int writePostSynapticWeights(double time, bool last);
    int readWeights(const char* filename);
-   bool stochasticReleaseFlag;
+   const char* pvpatchAccumulateType;
+    
    int (*accumulateFunctionPointer)(int nk, float* v, float a, float* w);
    inline bool preSynapticActivityIsNotRate() {return preActivityIsNotRate;}
 
@@ -573,7 +574,7 @@ protected:
    virtual void readChannelCode(PVParams * params);
    virtual void readNumAxonalArbors(PVParams * params);
    virtual void readPlasticityFlag(PVParams * params);
-   virtual void readStochasticReleaseFlag(PVParams * params);
+   virtual void readPvpatchAccumulateType(PVParams * params);
    virtual void readPreActivityIsNotRate(PVParams * params);
    virtual void readWriteCompressedWeights(PVParams * params);
    virtual void readWriteCompressedCheckpoints(PVParams * params);

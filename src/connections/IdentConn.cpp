@@ -64,8 +64,8 @@ void IdentConn::readInitialWeightUpdateTime(PVParams * params) {
    weightUpdateTime = 0.0f;
 }
 
-void IdentConn::readStochasticReleaseFlag(PVParams * params) {
-   stochasticReleaseFlag = false;
+void IdentConn::readPvpatchAccumulateType(PVParams * params) {
+   pvpatchAccumulateType = NULL;
 }
 
 void IdentConn::readPreActivityIsNotRate(PVParams * params) {
