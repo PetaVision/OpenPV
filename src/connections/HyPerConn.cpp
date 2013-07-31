@@ -243,6 +243,8 @@ int HyPerConn::initialize_base()
 
    this->updateGSynFromPostPerspective = false;
 
+   this->pvpatchAccumulateType = NULL;
+
 #ifdef USE_SHMGET
    shmget_flag = false;
    shmget_owner = NULL;
@@ -463,10 +465,12 @@ int HyPerConn::initialize(const char * name, HyPerCol * hc, const char * pre_lay
 
    //set accumulateFunctionPointer's default value
    accumulateFunctionPointer  = &pvpatch_accumulate;
-   if (strcmp(pvpatchAccumulateType, "Stochastic") != 0)
-       accumulateFunctionPointer = &pvpatch_accumulate_stochastic;
-   else if (strcmp(pvpatchAccumulateType, "Maxpooling") != 0)
-       accumulateFunctionPointer = &pvpatch_max_pooling;
+   if (pvpatchAccumulateType != NULL) {
+      if (strcmp(pvpatchAccumulateType, "Stochastic") != 0)
+         accumulateFunctionPointer = &pvpatch_accumulate_stochastic;
+      else if (strcmp(pvpatchAccumulateType, "Maxpooling") != 0)
+         accumulateFunctionPointer = &pvpatch_max_pooling;
+   }
 
    ioAppend = parent->getCheckpointReadFlag();
 

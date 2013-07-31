@@ -82,7 +82,6 @@ public:
 
    virtual int writePostSynapticWeights(double time, bool last);
    int readWeights(const char* filename);
-   const char* pvpatchAccumulateType;
     
    int (*accumulateFunctionPointer)(int nk, float* v, float a, float* w);
    inline bool preSynapticActivityIsNotRate() {return preActivityIsNotRate;}
@@ -437,6 +436,7 @@ protected:
    //2D Gaussian weights.  If weight initialization type isn't created in a way supported by Buildandrun,
    //this class will try to read the weights from a file or will do a 2D Gaussian.
    InitWeights* weightInitializer;
+   const char* pvpatchAccumulateType;
    bool preActivityIsNotRate; // TODO Rename this member variable
    bool normalizeTotalToPost; // if false, normalize the sum of weights from each presynaptic neuron.  If true, normalize the sum of weights into a postsynaptic neuron.
    float dWMax;  // dW scale factor
