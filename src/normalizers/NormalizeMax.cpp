@@ -27,8 +27,12 @@ int NormalizeMax::initialize(const char * name, PVParams * params) {
 
 int NormalizeMax::setParams() {
    int status = NormalizeBase::setParams();
-   readMinSumTolerated();
+   readMinMaxTolerated();
    return status;
+}
+
+void NormalizeMax::readMinMaxTolerated() {
+   minMaxTolerated = params->value(name, "minMaxTolerated", 0.0f, true/*warnIfAbsent*/);
 }
 
 int NormalizeMax::normalizeWeights(HyPerConn * conn) {
@@ -68,7 +72,7 @@ int NormalizeMax::normalizeWeights(HyPerConn * conn) {
             float max = 0.0f;
             accumulateMax(dataStartPatch, weights_per_patch, &max);
             if (max <= minMaxTolerated) {
-               fprintf(stderr, "NormalizeMax warning for normalizer \"%s\": sum of weights in patch %d of arbor %d is within minMaxTolerated=%f of zero.  Weights in this patch unchanged.\n", conn->getName(), patchindex, arborID, minMaxTolerated);
+               fprintf(stderr, "NormalizeMax warning for normalizer \"%s\": max of weights in patch %d of arbor %d is within minMaxTolerated=%f of zero.  Weights in this patch unchanged.\n", conn->getName(), patchindex, arborID, minMaxTolerated);
                break;
             }
             normalizePatch(dataStartPatch, weights_per_patch, scale_factor/max);
@@ -83,7 +87,7 @@ int NormalizeMax::normalizeWeights(HyPerConn * conn) {
             accumulateMax(dataStartPatch, weights_per_patch, &max);
          }
          if (max <= minMaxTolerated) {
-            fprintf(stderr, "NormalizeMax warning for connection \"%s\": sum of weights in patch %d is within minMaxTolerated=%f of zero. Weights in this patch unchanged.\n", conn->getName(), patchindex, minMaxTolerated);
+            fprintf(stderr, "NormalizeMax warning for connection \"%s\": max of weights in patch %d is within minMaxTolerated=%f of zero. Weights in this patch unchanged.\n", conn->getName(), patchindex, minMaxTolerated);
             break;
          }
          for (int arborID = 0; arborID<nArbors; arborID++) {

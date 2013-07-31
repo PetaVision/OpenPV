@@ -33,12 +33,10 @@ protected:
    int initialize(const char * name, PVParams * params);
    virtual int setParams();
 
-   virtual void readStrength() {strength = params->value(name, "strength", 1.0f, true/*warnIfAbsent*/);}
-   virtual void readRMin() {
-	   rMinX = params->value(name, "rMinX", 0.0f, false/*warnIfAbsent*/);
-	   rMinY = params->value(name, "rMinY", 0.0f, false/*warnIfAbsent*/);}
-   virtual void readNormalizeCutoff() {normalize_cutoff = params->value(name, "normalize_cutoff", 0.0f, true/*warnIfAbsent*/);}
-   virtual void readSymmetrizeWeights() {symmetrizeWeightsFlag = params->value(name, "symmetrizeWeights", false/*default value*/, true/*warnIfAbsent*/);}
+   virtual void readStrength();
+   virtual void readRMin();
+   virtual void readNormalizeCutoff();
+   virtual void readSymmetrizeWeights();
    virtual void readNormalizeFromPostPerspective();
    virtual void readNormalizeArborsIndividually();
 

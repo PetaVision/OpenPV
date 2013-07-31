@@ -25,7 +25,7 @@ class NormalizeL2: public PV::NormalizeBase {
       int initialize(const char * name, PVParams * params);
       virtual int setParams();
 
-      virtual void readMinL2NormTolerated() {minL2NormTolerated = params->value(name, "minL2NormTolerated", 0.0f, true/*warnIfAbsent*/);}
+      virtual void readMinL2NormTolerated();
 
    private:
       int initialize_base();

@@ -297,6 +297,23 @@ void NormalizeBase::normalizePatch(pvdata_t * dataStartPatch, int weights_per_pa
    for (int k=0; k<weights_per_patch; k++) dataStartPatch[k] *= multiplier;
 }
 
+void NormalizeBase::readStrength() {
+   strength = params->value(name, "strength", 1.0f, true/*warnIfAbsent*/);
+}
+
+void NormalizeBase::readRMin() {
+   rMinX = params->value(name, "rMinX", 0.0f, false/*warnIfAbsent*/);
+   rMinY = params->value(name, "rMinY", 0.0f, false/*warnIfAbsent*/);
+}
+
+void NormalizeBase::readNormalizeCutoff() {
+   normalize_cutoff = params->value(name, "normalize_cutoff", 0.0f, true/*warnIfAbsent*/);
+}
+
+void NormalizeBase::readSymmetrizeWeights() {
+   symmetrizeWeightsFlag = params->value(name, "symmetrizeWeights", false/*default value*/, true/*warnIfAbsent*/);
+}
+
 void NormalizeBase::readNormalizeFromPostPerspective() {
    if (!params->present(name, "normalizeFromPostPerspective") && params->present(name, "normalizeTotalToPost")) {
       fprintf(stderr, "Normalizer \"%s\": parameter name normalizeTotalToPost is deprecated.  Use normalizeFromPostPerspective.\n", name);

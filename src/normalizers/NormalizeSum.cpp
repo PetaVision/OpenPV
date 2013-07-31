@@ -31,6 +31,10 @@ int NormalizeSum::setParams() {
    return status;
 }
 
+void NormalizeSum::readMinSumTolerated() {
+   minSumTolerated = params->value(name, "minSumTolerated", 0.0f, true/*warnIfAbsent*/);
+}
+
 int NormalizeSum::normalizeWeights(HyPerConn * conn) {
    int status = PV_SUCCESS;
 #ifdef USE_SHMGET

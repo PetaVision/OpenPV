@@ -25,7 +25,7 @@ protected:
    int initialize(const char * name, PVParams * params);
    virtual int setParams();
 
-   virtual void readMinSumTolerated() {minMaxTolerated = params->value(name, "minMaxTolerated", 0.0f, true/*warnIfAbsent*/);}
+   virtual void readMinMaxTolerated();
 
 private:
    int initialize_base();
