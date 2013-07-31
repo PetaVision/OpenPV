@@ -17,7 +17,6 @@ InitUniformWeights::InitUniformWeights()
 
 InitUniformWeights::~InitUniformWeights()
 {
-   // TODO Auto-generated destructor stub
 }
 
 int InitUniformWeights::initialize_base() {
