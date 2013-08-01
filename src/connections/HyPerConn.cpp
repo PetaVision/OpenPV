@@ -956,8 +956,8 @@ int HyPerConn::communicateInitInfo() {
       rngSeedBase = parent->getObjectSeed(neededRNGSeeds);
    }
 
-   pre = parent->getLayerFromName(preLayerName);
-   post = parent->getLayerFromName(postLayerName);
+   // pre = parent->getLayerFromName(preLayerName);   // redundant lines; pre and post were set at the beginning of the this method
+   // post = parent->getLayerFromName(postLayerName);
 
    // Find maximum delay over all the arbors and send it to the presynaptic layer
    int maxdelay = 0;
