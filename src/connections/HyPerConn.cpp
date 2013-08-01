@@ -466,9 +466,9 @@ int HyPerConn::initialize(const char * name, HyPerCol * hc, const char * pre_lay
    //set accumulateFunctionPointer's default value
    accumulateFunctionPointer  = &pvpatch_accumulate;
    if (pvpatchAccumulateType != NULL) {
-      if (strcmp(pvpatchAccumulateType, "Stochastic") != 0)
+      if (strcmp(pvpatchAccumulateType, "Stochastic") == 0)
          accumulateFunctionPointer = &pvpatch_accumulate_stochastic;
-      else if (strcmp(pvpatchAccumulateType, "Maxpooling") != 0)
+      else if (strcmp(pvpatchAccumulateType, "Maxpooling") == 0)
          accumulateFunctionPointer = &pvpatch_max_pooling;
    }
 
