@@ -311,7 +311,7 @@ int KernelConn::initNumDataPatches()
          post->getXScale() - pre->getXScale()) : 1;
    int nyKernel = (pre->getYScale() < post->getYScale()) ? (int)pow(2,
          post->getYScale() - pre->getYScale()) : 1;
-   numDataPatches = pre->clayer->loc.nf * nxKernel * nyKernel;
+   numDataPatches = pre->getLayerLoc()->nf * nxKernel * nyKernel;
    return PV_SUCCESS;
 }
 
