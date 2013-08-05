@@ -144,7 +144,10 @@ void KernelConn::readInitialWeightUpdateTime(PVParams * params) {
 }
 
 void KernelConn::readUseWindowPost(PVParams * params){
-   useWindowPost = (bool)params->value(name, "useWindowPost", useWindowPost); 
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "numAxonalArbors"));
+   if (numAxonalArborLists>1) {
+      useWindowPost = (bool)params->value(name, "useWindowPost", useWindowPost);
+   }
 }
 
 int KernelConn::createArbors() {
