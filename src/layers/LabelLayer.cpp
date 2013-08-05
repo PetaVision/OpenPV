@@ -113,7 +113,7 @@ int LabelLayer::initialize(const char * name, HyPerCol * hc, const char * movieL
 
       fprintf(stderr,"Current Label Integer: %d out of %d\n",currentLabel, maxLabel);
 
-      fprintf(stderr,"NF = %d, NX = %d, NY = %d",labelLoc.nf, labelLoc.nx, labelLoc.ny);
+      //fprintf(stderr,"NF = %d, NX = %d, NY = %d",labelLoc.nf, labelLoc.nx, labelLoc.ny);
       for (int i = 0; i<(labelLoc.nf*(labelLoc.nx+labelLoc.nb*2)*(labelLoc.ny+labelLoc.nb*2)); i++){
          if (i%maxLabel == currentLabel){
             labelData[i] = 1.0;
@@ -238,7 +238,7 @@ int LabelLayer::updateState(double time, double dt){
 int LabelLayer::outputState(double time, bool last){
    int status = PV_SUCCESS;
 
-   fprintf(stderr,"Writing Label Layer state \n");
+   //fprintf(stderr,"Writing Label Layer state \n");
 
    status = HyPerLayer::outputState(time, last);
 
