@@ -12,8 +12,8 @@ fails=""
 nomakefile=""
 
 # Building PetaVision does not automatically build the parser files created by flex/bison
+echo ; echo ======== Building io/parser ========
 cd PetaVision/src/io/parser
-echo cd $PWD
 make all
 if test "$?" -ne 0
 then
@@ -22,12 +22,22 @@ fi
 cd $wd
 
 # PetaVision must be compiled before any projects that depend on it
+echo ; echo ======== Building PetaVision ========
 cd PetaVision
-echo cd $PWD
 make -j4 all
 if test "$?" -ne 0
 then
     fails="$fails PetaVision"
+fi
+cd $wd
+
+# The PetaVision/tools directory has the source code for the command-line tool readpvpheader
+echo ; echo ======== Building PetaVision tools ========
+cd PetaVision/tools
+make
+if test "$?" -ne 0
+then
+    fails="$fails PetaVision/tools"
 fi
 cd $wd
 
@@ -63,8 +73,8 @@ do
 done
 
 # Compile the unit tests
+echo ; echo ======== Building PetaVision/tests ========
 cd PetaVision/tests
-echo cd $PWD
 make clean
 make -j4 all
 if test "$?" -ne 0
