@@ -24,6 +24,7 @@ void ANNLayer_update_state(
     const float VMax,
     const float VMin,
     const float VShift,
+    int num_channels,
     float * GSynHead,
     float * activity);
 
@@ -163,26 +164,6 @@ int ANNLayer::readVThreshParams(PVParams * params) {
    return PV_SUCCESS;
 }
 
-int ANNLayer::updateState(double timed, double dt) {
-    int status = PV_SUCCESS;
-    // Check that there is at least two channels---exc and inh.
-    // Can't put the check in allocateDataStructures because a subclass might need only one channel (e.g. HyPerLCA)
-    // but subclasses still call parent class's allocateDataStructures
-    // A subclass that allows only one channel should not call ANNLayer::updateState during its updateState call.
-    if (getNumChannels()>=2) {
-       status = HyPerLayer::updateState(timed, dt);
-    }
-    else {
-       if (parent->columnId()==0) {
-          fprintf(stderr, "ANNLayer \"%s\": At least two channels are needed but the layer has only %d.\n", name, getNumChannels());
-       }
-       status = PV_FAILURE;
-    }
-    MPI_Barrier(parent->icCommunicator()->communicator());
-    if (status != PV_SUCCESS) exit(EXIT_FAILURE);
-    return status;
-}
-
 //! new ANNLayer update state, to add support for GPU kernel.
 //
 /*!
@@ -193,7 +174,6 @@ int ANNLayer::updateState(double timed, double dt) {
 //   applyVMax(); (see below)
 //   applyVThresh(); (see below)
  *      - Activity = V
- *      - GSynExc = GSynInh = 0
  *
  *
  */
@@ -213,7 +193,7 @@ int ANNLayer::doUpdateState(double time, double dt, const PVLayerLoc * loc, pvda
       int ny = loc->ny;
       int nf = loc->nf;
       int num_neurons = nx*ny*nf;
-      ANNLayer_update_state(num_neurons, nx, ny, nf, loc->nb, V, VThresh, VMax, VMin, VShift, gSynHead, A);
+      ANNLayer_update_state(num_neurons, nx, ny, nf, loc->nb, V, VThresh, VMax, VMin, VShift, num_channels, gSynHead, A);
       if (this->writeSparseActivity){
          updateActiveIndices();  // added by GTK to allow for sparse output, can this be made an inline function???
       }

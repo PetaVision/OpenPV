@@ -19,10 +19,6 @@ class ANNLayer : public HyPerLayer {
 public:
    ANNLayer(const char* name, HyPerCol * hc, int numChannels=MAX_CHANNELS);
    virtual ~ANNLayer();
-   virtual int updateState(double timed, double dt);
-   // virtual int updateV();
-   // virtual int applyVMax();
-   // virtual int applyVThresh();
    pvdata_t getVThresh()        { return VThresh; }
    pvdata_t getVMax()           { return VMax; }
    pvdata_t getVMin()           { return VMin; }
