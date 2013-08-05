@@ -65,10 +65,14 @@ int NormalizeBase::normalizeWeights(HyPerConn * conn) {
 
    if (rMinX > 0.5f && rMinY > 0.5f){
 	   int num_arbors = conn->numberOfAxonalArborLists();
+	   int num_patches = conn->getNumDataPatches();
+	   int num_weights_in_patch = conn->xPatchSize()*conn->yPatchSize()*conn->fPatchSize();
        for (int arbor=0; arbor<num_arbors; arbor++) {
           pvdata_t * dataPatchStart = conn->get_wDataStart(arbor);
-          applyRMin(dataPatchStart, rMinX, rMinY,
+          for (int patchindex=0; patchindex<num_patches; patchindex++) {
+        	  applyRMin(dataPatchStart+patchindex*num_weights_in_patch, rMinX, rMinY,
         		  conn->xPatchSize(), conn->yPatchSize(), conn->xPatchStride(), conn->yPatchStride());
+          }
        }
    }
    if (normalize_cutoff>0) {
