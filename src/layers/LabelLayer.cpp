@@ -85,44 +85,44 @@ int LabelLayer::initialize(const char * name, HyPerCol * hc, const char * movieL
 
    int status = PV_SUCCESS;
 
-   // Moved to allocateDataStructures()
-   free(clayer->V);
-   clayer->V = NULL;
-
-   PVParams * params = hc->parameters();
-
-   this->beginLabel = params->value(name, "labelStart", beginLabel);
-   this->maxLabel = params->value(name,"nf",maxLabel);
-   this->lenLabel = params->value(name,"labelLength",lenLabel);
-
-   labelData = clayer->activity->data;
-
-   filename = movie->getCurrentImage();
-   char tmp[lenLabel];
-   for (int i=0; i<lenLabel; i++){
-      tmp[i] = filename[i + beginLabel];
-   }
-
-   using std::istringstream;
-   if ( ! (istringstream(tmp) >> currentLabel) ) currentLabel = -1;
-
-   if (currentLabel == -1){
-      status = PV_FAILURE;
-   }
-   else{
-
-      fprintf(stderr,"Current Label Integer: %d out of %d\n",currentLabel, maxLabel);
-
-      //fprintf(stderr,"NF = %d, NX = %d, NY = %d",labelLoc.nf, labelLoc.nx, labelLoc.ny);
-      for (int i = 0; i<(labelLoc.nf*(labelLoc.nx+labelLoc.nb*2)*(labelLoc.ny+labelLoc.nb*2)); i++){
-         if (i%maxLabel == currentLabel){
-            labelData[i] = 1.0;
-         }
-         else{
-            labelData[i] = 0.0;
-         }
-      }
-   }
+//   // Moved to allocateDataStructures()
+//   free(clayer->V);
+//   clayer->V = NULL;
+//
+//   PVParams * params = hc->parameters();
+//
+//   this->beginLabel = params->value(name, "labelStart", beginLabel);
+//   this->maxLabel = params->value(name,"nf",maxLabel);
+//   this->lenLabel = params->value(name,"labelLength",lenLabel);
+//
+//   labelData = clayer->activity->data;
+//
+//   filename = movie->getCurrentImage();
+//   char tmp[lenLabel];
+//   for (int i=0; i<lenLabel; i++){
+//      tmp[i] = filename[i + beginLabel];
+//   }
+//
+//   using std::istringstream;
+//   if ( ! (istringstream(tmp) >> currentLabel) ) currentLabel = -1;
+//
+//   if (currentLabel == -1){
+//      status = PV_FAILURE;
+//   }
+//   else{
+//
+//      fprintf(stderr,"Current Label Integer: %d out of %d\n",currentLabel, maxLabel);
+//
+//      //fprintf(stderr,"NF = %d, NX = %d, NY = %d",labelLoc.nf, labelLoc.nx, labelLoc.ny);
+//      for (int i = 0; i<(labelLoc.nf*(labelLoc.nx+labelLoc.nb*2)*(labelLoc.ny+labelLoc.nb*2)); i++){
+//         if (i%maxLabel == currentLabel){
+//            labelData[i] = 1.0;
+//         }
+//         else{
+//            labelData[i] = 0.0;
+//         }
+//      }
+//   }
 
    return status;
 
