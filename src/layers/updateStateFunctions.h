@@ -280,7 +280,7 @@ static inline int updateV_HyPerLCALayer(int numNeurons, CL_MEM_GLOBAL pvdata_t *
       pvdata_t * dt_tau, pvdata_t tau_max, pvdata_t tau_min, pvdata_t slope_error_std,
       int nx, int ny, int nf, int nb, int numChannels)
 {
-   int status;
+   int status = PV_SUCCESS;
    pvdata_t tau_adapt = tau_max;
    if ((tau_max - tau_min) > 1.0) {
 	   double old_error_std = *error_std;
