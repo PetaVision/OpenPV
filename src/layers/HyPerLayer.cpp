@@ -2063,10 +2063,6 @@ int HyPerLayer::writeActivitySparse(double timed)
 // write non-spiking activity
 int HyPerLayer::writeActivity(double timed)
 {
-   // currently numActive only used by writeActivitySparse
-   //
-   clayer->numActive = 0;
-
    int status = PV::writeActivity(clayer->activeFP, parent->icCommunicator(), timed, clayer);
    incrementNBands(&writeActivityCalls);
    return status;
