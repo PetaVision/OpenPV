@@ -131,6 +131,7 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
                 "LIFGap",
                 "BIDSLayer",
                 "LCALIFLayer",
+             "MatchingPursuitLayer",
              "Retina",
              "SigmoidLayer",
              "RescaleLayer",
@@ -480,6 +481,10 @@ HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPe
    if( !strcmp(classkeyword, "RescaleLayer") ) {
       keywordMatched = true;
       addedLayer = (HyPerLayer *) addRescaleLayer(name, hc);
+   }
+   if (!strcmp(classkeyword, "MatchingPursuitLayer")) {
+      keywordMatched = true;
+      addedLayer = (HyPerLayer *) new MatchingPursuitLayer(name, hc);
    }
    if( !strcmp(classkeyword, "Retina") ) {
       keywordMatched = true;
@@ -1129,7 +1134,7 @@ HyPerConn * getConnFromParameterGroup(const char * groupName, HyPerCol * hc, con
 ColProbe * getColProbeFromParameterGroup(const char * groupName, HyPerCol * hc, const char * parameterStringName) {
    ColProbe * colprobe = NULL;
    const char * colprobename = hc->parameters()->stringValue(groupName, parameterStringName);
-   if (colprobename != NULL) {
+   if (colprobename != NULL && colprobename[0] != '\0') {
       colprobe = hc->getColProbeFromName(colprobename); // getColProbeFromParameterGroup(name, hc, "parentGenColProbe");
    }
    return colprobe;

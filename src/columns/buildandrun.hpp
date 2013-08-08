@@ -42,6 +42,7 @@
 #include "../layers/LabelLayer.hpp"
 #include "../layers/LIF.hpp"
 #include "../layers/LIFGap.hpp"
+#include "../layers/MatchingPursuitLayer.hpp"
 #include "../layers/Retina.hpp"
 #include "../layers/SigmoidLayer.hpp"
 #include "../layers/RescaleLayer.hpp"
