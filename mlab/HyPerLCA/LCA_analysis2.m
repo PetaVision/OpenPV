@@ -7,13 +7,15 @@ if ismac
   output_dir = "/Users/garkenyon/workspace/HyPerHLCA2/output_animal1200000_color_deep"; 
 elseif isunix
   workspace_path = "/home/gkenyon/workspace";
-  output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_12x12x128_lambda_05X2_color_deep"; 
-  %%output_dir = "/nh/compneuro/Data/KITTI/LCA/2011_09_26_drive_0005_sync"; 
-  %%output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_16x16x1024_Overlap_lambda_05X2"; 
-  %%output_dir = "/nh/compneuro/Data/vine/LCA/detail/output_16x16x1024_overlap_lambda_05X2_errorthresh_005"; 
+  run_type = "lateral"; %%"color_deep"; %%
+  if strcmp(run_type, "color_deep")
+    output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_12x12x128_lambda_05X2_color_deep"; 
+  elseif strcmp(run_type, "lateral")
+    output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_12x12x128_lambda_05X2_lateral"; 
+  endif
 endif
 addpath([workspace_path, filesep, "/PetaVision/mlab/util"]);
-last_checkpoint_ndx = 20000;  %% used to grab DoG weights, doesn't not have to be current
+last_checkpoint_ndx = 0;  %% used to grab DoG weights, doesn't not have to be current
 checkpoint_path = [output_dir, filesep, "Checkpoints", filesep,  "Checkpoint", num2str(last_checkpoint_ndx, "%i")]; %% "Last"];%%
 %%output_dir = checkpoint_path;
 use_last_checkpoint_ndx = false; %%true;  %% flag to set whether to use last_checkpoint_ndx in determining the maximum frames index to analyze 
@@ -24,67 +26,74 @@ weight_write_step = 2000;
 plot_Recon = true;
 if plot_Recon
   num_Recon_default = 1;
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% deep list
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  Recon_list = ...
-      {["a1_"], ["Retina"];
-       ["a3_"], ["Ganglion"];
-       ["a6_"], ["Recon"];
-       ["a9_"], ["Recon2"];
-       ["a12_"], ["ReconInfra"];
-       ["a12_"], ["ReconInfra"]};
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% KITTI list
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%  Recon_list = ...
-%%      {["a1_"], ["LeftRetina"];
-%%       ["a3_"], ["LeftGanglion"];
-%%       ["a5_"], ["LeftRecon"];
-%%       ["a7_"], ["RightRetina"];
-%%       ["a9_"], ["RightGanglion"];
-%%       ["a11_"], ["RightRecon"]};
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  num_Recon_list = size(Recon_list,1);
+  if strcmp(run_type, "color_deep")
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% deep list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    Recon_list = ...
+	{["a1_"], ["Retina"];
+	 ["a3_"], ["Ganglion"];
+	 ["a6_"], ["Recon"];
+	 ["a9_"], ["Recon2"];
+	 ["a12_"], ["ReconInfra"];
+	 ["a12_"], ["ReconInfra"]};
+    %% list of layers to unwhiten
+    num_Recon_list = size(Recon_list,1);
+    unwhiten_list = zeros(num_Recon_list,1);
+    unwhiten_list([2,3,5,6]) = 1;
+    %% list of layers to use as a normalization reference for unwhitening
+    normalize_list = 1:num_Recon_list;
+    normalize_list(3) = 2;
+    normalize_list(5) = 2;
+    normalize_list(6) = 2;
+    %% list of (previous) layers to sum with current layer
+    sum_list = cell(num_Recon_list,1);
+    sum_list{6} = 3;
+  elseif strcmp(run_type, "lateral")
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% lateral list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    Recon_list = ...
+	{["a1_"], ["Retina"];
+	 ["a3_"], ["Ganglion"];
+	 ["a6_"], ["Recon"];
+	 ["a9_"], ["Recon2"];
+	 ["a12_"], ["ReconInfra"]};
+    %% list of layers to unwhiten
+    num_Recon_list = size(Recon_list,1);
+    unwhiten_list = zeros(num_Recon_list,1);
+    unwhiten_list([2,3,5]) = 1;
+    %% list of layers to use as a normalization reference for unwhitening
+    normalize_list = 1:num_Recon_list;
+    normalize_list(3) = 2;
+    normalize_list(5) = 2;
+    %% list of (previous) layers to sum with current layer
+    sum_list = cell(num_Recon_list,1);
+  elseif strcmp(run_type, "KITTI")
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% KITTI list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%  Recon_list = ...
+    %%      {["a1_"], ["LeftRetina"];
+    %%       ["a3_"], ["LeftGanglion"];
+    %%       ["a5_"], ["LeftRecon"];
+    %%       ["a7_"], ["RightRetina"];
+    %%       ["a9_"], ["RightGanglion"];
+    %%       ["a11_"], ["RightRecon"]};
+    %%%% list of layers to unwhiten
+    %%  num_Recon_list = size(Recon_list,1);
+    %%  unwhiten_list = zeros(num_Recon_list,1);
+    %%  unwhiten_list([2,3,5,6]) = 1;
+    %%%% list of layers to use as a normalization reference for unwhitening
+    %%  normalize_list = 1:num_Recon_list;
+    %%  normalize_list(3) = 2;
+    %%  normalize_list(6) = 5;
+    %%%% list of (previous) layers to sum with current layer
+    %%  sum_list = cell(num_Recon_list,1);
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  endif %% run_type
   num_Recon_frames = repmat(num_Recon_default, 1, num_Recon_list);
-
-%% list of layers to unwhiten
-  unwhiten_list = zeros(num_Recon_list,1);
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% deep list
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  unwhiten_list([2,3,5,6]) = 1;
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% KITTI list
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%  unwhiten_list([2,3,5,6]) = 1;
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-%% list of layers to use as a normalization reference for unwhitening
-%% default to self
-  normalize_list = 1:num_Recon_list;
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% deep list
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  normalize_list(3) = 2;
-  normalize_list(5) = 2;
-  normalize_list(6) = 2;
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% KITTI list
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%  normalize_list(3) = 2;
-%%  normalize_list(6) = 5;
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-%% list of (previous) layers to sum with current layer
-%% default to empty
-  sum_list = cell(num_Recon_list,1);
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% deep list
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  sum_list{6} = 3;
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
+  
   %%keyboard;
   Recon_dir = [output_dir, filesep, "Recon"];
   mkdir(Recon_dir);
@@ -92,22 +101,25 @@ if plot_Recon
   %% parse center/surround pre-processing filters
   plot_DoG_kernel = 1;
   if plot_DoG_kernel
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% deep list
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    blur_center_path = [checkpoint_path, filesep, "RetinaToBipolarCenter_W.pvp"];
-    DoG_center_path = [checkpoint_path, filesep, "BipolarToGanglionCenter_W.pvp"];
-    DoG_surround_path = [checkpoint_path, filesep, "BipolarToGanglionSurround_W.pvp"];
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% KITTI list
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%    blur_center_path = [checkpoint_path, filesep, "LeftRetinaToLeftBipolarCenter_W.pvp"];
-%%    DoG_center_path = [checkpoint_path, filesep, "LeftBipolarToLeftGanglionCenter_W.pvp"];
-%%    DoG_surround_path = [checkpoint_path, filesep, "LeftBipolarToLeftGanglionSurround_W.pvp"];
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    if strcmp(run_type, "color_deep") || strcmp(run_type, "lateral")
+      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+      %% deep/lateral list
+      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+      blur_center_path = [checkpoint_path, filesep, "RetinaToBipolarCenter_W.pvp"];
+      DoG_center_path = [checkpoint_path, filesep, "BipolarToGanglionCenter_W.pvp"];
+      DoG_surround_path = [checkpoint_path, filesep, "BipolarToGanglionSurround_W.pvp"];
+    elseif strcmp(run_type, "KITTI")
+      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+      %% KITTI list
+      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+      %%    blur_center_path = [checkpoint_path, filesep, "LeftRetinaToLeftBipolarCenter_W.pvp"];
+      %%    DoG_center_path = [checkpoint_path, filesep, "LeftBipolarToLeftGanglionCenter_W.pvp"];
+      %%    DoG_surround_path = [checkpoint_path, filesep, "LeftBipolarToLeftGanglionSurround_W.pvp"];
+      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    endif %% run_type
     [blur_weights] = get_Blur_weights(blur_center_path);
     [DoG_weights] = get_DoG_weights(DoG_center_path, DoG_surround_path);
-  endif
+  endif  %% plot_DoG_kernel
 
   Recon_hdr = cell(num_Recon_list,1);
   Recon_fig = zeros(num_Recon_list,1);
@@ -203,7 +215,7 @@ if plot_Recon
       endif
       box off; axis off; axis image;
       saveas(Recon_fig(i_Recon), ...
-	     [Recon_dir, filesep, Recon_list{i_Recon,2}, "_", num2str(Recon_time{i_Recon}(i_frame), "%07d"), ".png"], "png");
+	     [Recon_dir, filesep, Recon_fig_name{i_Recon}, ".png"], "png");
       if plot_DoG_kernel && unwhiten_list(i_Recon)
 	unwhitened_Recon_DoG{i_Recon}{i_frame} = zeros(size(permute(Recon_vals{i_Recon}{i_frame},[2,1,3])));
 	for i_color = 1 : num_Recon_colors
@@ -212,7 +224,7 @@ if plot_Recon
 	  mean_unwhitened_Recon{i_Recon}(i_color, i_frame) = mean(tmp_Recon(:));
  	  std_unwhitened_Recon{i_Recon}(i_color, i_frame) = std(tmp_Recon(:));
 	  j_frame = ceil(i_frame * tot_Recon_frames(normalize_list(i_Recon)) / tot_Recon_frames(i_Recon));
-	  tmp_Recon = ...
+	  tmp_Recon2 = ...
 	      (tmp_Recon - mean_unwhitened_Recon{i_Recon}(i_color, j_frame)) * ...
 	      (std_unwhitened_Recon{normalize_list(i_Recon)}(i_color, j_frame) / ...
 	       (std_unwhitened_Recon{i_Recon}(i_color, j_frame) + (std_unwhitened_Recon{i_Recon}(i_color, j_frame)==0))) + ...
@@ -249,29 +261,56 @@ endif %% plot_Recon
 plot_StatsProbe_vs_time = true;
 if plot_StatsProbe_vs_time
   StatsProbe_plot_lines = 5000;
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% deep list
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  StatsProbe_list = ...
-      {["Error"],["_Stats.txt"]; ...
-       ["V1"],["_Stats.txt"];
-       ["Error2"],["_Stats.txt"]; ...
-       ["V2"],["_Stats.txt"];
-       ["Error1_2"],["_Stats.txt"]; ...
-       ["V1Infra"],["_Stats.txt"]};
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% KITTI list
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%  StatsProbe_list = ...
-%%      {["LeftError"],["_Stats.txt"]; ...
-%%       ["RightError"],["_Stats.txt"]; ...
-%%       ["BinocularV1"],["_Stats.txt"]};
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  if strcmp(run_type, "color_deep")
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% deep list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    StatsProbe_list = ...
+        {["Error"],["_Stats.txt"]; ...
+         ["V1"],["_Stats.txt"];
+         ["Error2"],["_Stats.txt"]; ...
+         ["V2"],["_Stats.txt"];
+         ["Error1_2"],["_Stats.txt"]; ...
+         ["V1Infra"],["_Stats.txt"]};
+  elseif strcmp(run_type, "lateral")
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% lateral list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    StatsProbe_list = ...
+	{["Error"],["_Stats.txt"]; ...
+	 ["V1"],["_Stats.txt"];
+	 ["Error2"],["_Stats.txt"]; ...
+	 ["V2"],["_Stats.txt"];
+	 ["Error1_2"],["_Stats.txt"]; ...
+	 ["V1Infra"],["_Stats.txt"]; ...
+	 ["V1Intra"],["_Stats.txt"]};
+  elseif strcmp(run_type, "KITTI")
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% KITTI list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%  StatsProbe_list = ...
+    %%      {["LeftError"],["_Stats.txt"]; ...
+    %%       ["RightError"],["_Stats.txt"]; ...
+    %%       ["BinocularV1"],["_Stats.txt"]};
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  endif %% run_type
   StatsProbe_vs_time_dir = [output_dir, filesep, "StatsProbe_vs_time"];
   mkdir(StatsProbe_vs_time_dir);
   num_StatsProbe_list = size(StatsProbe_list,1);
+
   StatsProbe_sigma_flag = ones(1,num_StatsProbe_list);
-  StatsProbe_sigma_flag([2,4,6]) = 0;
+  if strcmp(run_type, "color_deep")
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% deep list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    StatsProbe_sigma_flag([2,4,6]) = 0;
+  elseif strcmp(run_type, "lateral")
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% lateral list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    StatsProbe_sigma_flag([2,4,6,7]) = 0;
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  endif %% run_type
   StatsProbe_nnz_flag = ~StatsProbe_sigma_flag;
   if use_last_checkpoint_ndx
     max_StatsProbe_line = last_checkpoint_ndx;
@@ -348,18 +387,21 @@ endif  %% plot_StatsProbe_vs_time
 
 plot_Sparse = true;
 if plot_Sparse
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% deep list
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  Sparse_list = ...
-      {["a5_"], ["V1"]; ...
-       ["a8_"], ["V2"]};
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% KITTI list
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%  Sparse_list = ...
-%%      {["a12_"], ["BinocularV1"]};
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  if strcmp(run_type, "color_deep") || strcmp(run_type, "lateral")
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% deep/lateral list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    Sparse_list = ...
+	{["a5_"], ["V1"]; ...
+	 ["a8_"], ["V2"]};
+  elseif strcmp(run_type, "KITTI")
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% KITTI list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%  Sparse_list = ...
+    %%      {["a12_"], ["BinocularV1"]};
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  endif %% run_type
   num_Sparse_list = size(Sparse_list,1);
   Sparse_hdr = cell(num_Sparse_list,1);
   Sparse_hist_rank = cell(num_Sparse_list,1);
@@ -403,11 +445,11 @@ if plot_Sparse
       Sparse_previous_active = Sparse_current_active;
       Sparse_current_active = nnz(Sparse_current(:));
       Sparse_tot_active(i_frame) = Sparse_current_active;
-      Sparse_max_active = max(Sparse_current_active, Sparse_previous_active);
+      Sparse_OR_active = sum(Sparse_current(:) | Sparse_previous(:));
       Sparse_percent_change(i_frame) = ...
-	  Sparse_abs_change(i_frame) / (Sparse_max_active + (Sparse_max_active==0));
+	  Sparse_abs_change(i_frame) / (Sparse_OR_active + (Sparse_OR_active==0));
       Sparse_active_kf = mod(Sparse_active_ndx, nf_Sparse) + 1;
-      if Sparse_max_active > 0
+      if Sparse_current_active > 0
 	Sparse_hist_frame = histc(Sparse_active_kf, Sparse_hist_edges);
       else
 	Sparse_hist_frame = zeros(nf_Sparse+1,1);
@@ -454,31 +496,42 @@ if plot_Sparse
   endfor  %% i_Sparse
 endif %% plot_Sparse
 
-  
+
 
 plot_nonSparse = true;
 if plot_nonSparse
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% deep list
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  nonSparse_list = ...
-      {["a4_"], ["Error"]; ...
-       ["a7_"], ["Error2"]; ...
-       ["a10_"], ["Error1_2"]};
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% KITTI list
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%  nonSparse_list = ...
-%%      {["a4_"], ["LeftError"]; ...
-%%       ["a10_"], ["RightError"]};
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  if strcmp(run_type, "color_deep")
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% deep list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    nonSparse_list = ...
+        {["a4_"], ["Error"]; ...
+         ["a7_"], ["Error2"]; ...
+         ["a10_"], ["Error1_2"]};
+  elseif strcmp(run_type, "lateral")
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% lateral list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    nonSparse_list = ...
+	{["a4_"], ["Error"]; ...
+	 ["a7_"], ["Error2"]; ...
+	 ["a11_"], ["Error1_2"]};
+  elseif strcmp(run_type, "KITTI")
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% KITTI list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%  nonSparse_list = ...
+    %%      {["a4_"], ["LeftError"]; ...
+    %%       ["a10_"], ["RightError"]};
+    %%%%%%%%%%%%%%%%%%%%%%%%e%%%%%%%%%%%%%%%%%%%%
+  endif %% run_type
   num_nonSparse_list = size(nonSparse_list,1);
 
-%% num frames to skip between stored frames, default is 
+  %% num frames to skip between stored frames, default is 
   nonSparse_skip = repmat(1, num_nonSparse_list, 1);
-  nonSparse_skip(1) = 2;
-  nonSparse_skip(2) = 2;
-  nonSparse_skip(3) = 1;
+  nonSparse_skip(1) = 10;
+  nonSparse_skip(2) = 10;
+  nonSparse_skip(3) = 10;
   nonSparse_hdr = cell(num_nonSparse_list,1);
   nonSparse_dir = [output_dir, filesep, "nonSparse"];
   mkdir(nonSparse_dir);
@@ -536,28 +589,40 @@ endif %% plot_nonSparse
 
 plot_weights = true;
 if plot_weights
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% deep list
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  weights_list = ...
-      {["w5_"], ["V1ToError"]; ...
-       ["w9_"], ["V2ToError2"]};
-  sparse_ndx = [1; 2];
-%%  weights_list = ...
-%%      {["V1ToError"], ["_W"], ; ...
-%%       ["V2ToError2"], ["_W"]};
-%%  sparse_ndx = [1; 2];
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% KITTI list
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%  weights_list = ...
-%%      {["w10_"], ["BinocularV1ToLeftError"]; ...
-%%       ["w13_"], ["BinocularV1ToRightError"]};
-%%  pre_list = ...
-%%      {["a12_"], ["BinocularV1"]; ...
-%%       ["a12_"], ["BinocularV1"]};
-%%  sparse_ndx = [1; 1];
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  if strcmp(run_type, "color_deep")
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% deep list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    weights_list = ...
+        {["w5_"], ["V1ToError"]; ...
+         ["w9_"], ["V2ToError2"]};
+    sparse_ndx = [1; 2];
+  elseif strcmp(run_type, "lateral")
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% lateral list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    weights_list = ...
+	{["w5_"], ["V1ToError"]};
+    sparse_ndx = [1];
+  elseif strcmp(run_type, "KITTI")
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% KITTI list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%  weights_list = ...
+    %%      {["w10_"], ["BinocularV1ToLeftError"]; ...
+    %%       ["w13_"], ["BinocularV1ToRightError"]};
+    %%  pre_list = ...
+    %%      {["a12_"], ["BinocularV1"]; ...
+    %%       ["a12_"], ["BinocularV1"]};
+    %%  sparse_ndx = [1; 1];
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%  weights_list = ...
+    %%      {["V1ToError"], ["_W"], ; ...
+    %%       ["V2ToError2"], ["_W"]};
+    %%  sparse_ndx = [1; 2];
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  endif %% run_type
   num_weights_list = size(weights_list,1);
   weights_hdr = cell(num_weights_list,1);
   pre_hdr = cell(num_weights_list,1);
@@ -637,36 +702,62 @@ if plot_weights
     [weights_hist, weights_hist_bins] = hist(weight_vals(:), 100);
     bar(weights_hist_bins, log(weights_hist+1));
     set(weights_hist_fig, "name", ["weights_Histogram_", weights_list{i_weights,2}, "_", num2str(weight_time, "%07d")]);
-    saveas(weights_hist_fig, [weights_dir, filesep, "weights_hist_", num2str(weight_time)], "png");
+    saveas(weights_hist_fig, [weights_dir, filesep, "weights_hist_", num2str(weight_time, "%07d")], "png");
 
   endfor %% i_weights
-    
+  
 endif  %% plot_weights
 
 
 plot_weights1_2 = true;
 if plot_weights1_2
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% deep list
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  %% list of weights from layer2 to layer1
-  weights1_2_list = ...
-     {["w13_"], ["V2ToError1_2"]};
-%%     {["V2ToError1_2"], ["_W"]};
-  post1_2_list = ...
-      {["a5_"], ["V1"]};
-%%      {["V1"], ["_A"]};
-  %% list of weights from layer1 to image
-  weights0_1_list = ...
-      {["w5_"], ["V1ToError"]};
-%%      {["V1ToError"], ["_W"]};
-  image_list = ...
-      {["a1_"], ["Retina"]};
-%%      {["Retina"], ["_A"]};
-  %% list of indices for reading rank order of presynaptic neuron as function of activation frequency
-  sparse_ndx = [2];
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  if strcmp(run_type, "color_deep")
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% deep list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% list of weights from layer2 to layer1
+    weights1_2_list = ...
+        {["w13_"], ["V2ToError1_2"]};
+    %%     {["V2ToError1_2"], ["_W"]};
+    post1_2_list = ...
+        {["a5_"], ["V1"]};
+    %%      {["V1"], ["_A"]};
+    %% list of weights from layer1 to image
+    weights0_1_list = ...
+        {["w5_"], ["V1ToError"]};
+    %%      {["V1ToError"], ["_W"]};
+    image_list = ...
+        {["a1_"], ["Retina"]};
+    %%      {["Retina"], ["_A"]};
+    %% list of indices for reading rank order of presynaptic neuron as function of activation frequency
+    sparse_ndx = [2];
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  elseif strcmp(run_type, "lateral")
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% lateral list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% list of weights from layer2 to layer1
+    weights1_2_list = ...
+	{["w9_"], ["V2ToError2"];...
+	 ["w14_"], ["V2ToError1_2"]};
+    %%     {["V2ToError1_2"], ["_W"]};
+    post1_2_list = ...
+	{["a5_"], ["V1"]; ...
+	 ["a5_"], ["V1"]};
+    %%      {["V1"], ["_A"]};
+    %% list of weights from layer1 to image
+    weights0_1_list = ...
+	{["w5_"], ["V1ToError"]; ...
+	 ["w5_"], ["V1ToError"]};
+    %%      {["V1ToError"], ["_W"]};
+    image_list = ...
+	{["a1_"], ["Retina"]; ...
+	 ["a1_"], ["Retina"]};
+    %%      {["Retina"], ["_A"]};
+    %% list of indices for reading rank order of presynaptic neuron as function of activation frequency
+    sparse_ndx = [2,2];
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  endif %% run_type
 
   %% get image header (to get image dimensions)
   i_image = 1;
@@ -747,7 +838,7 @@ if plot_weights1_2
     i_arbor = 1;
     weights1_2_vals = squeeze(weights1_2_struct{i_frame}.values{i_arbor});
     weights1_2_time = squeeze(weights1_2_struct{i_frame}.time);
- 
+    
     %% read 1 -> 0 weights
     num_weights0_1 = 1;
     progress_step = ceil(tot_weights0_1_frames / 10);
@@ -757,9 +848,9 @@ if plot_weights1_2
     i_arbor = 1;
     weights0_1_vals = squeeze(weights0_1_struct{i_frame}.values{i_arbor});
     weights0_1_time = squeeze(weights0_1_struct{i_frame}.time);
- 
+    
     %% get rank order of presynaptic elements
-   if plot_Sparse
+    if plot_Sparse
       pre_hist_rank = Sparse_hist_rank{sparse_ndx(i_weights1_2)};
     else
       pre_hist_rank = (1:weights1_2_hdr{i_weights1_2}.nf);
@@ -794,11 +885,14 @@ if plot_weights1_2
     for kf_pre1_2_rank = 1  : num_patches1_2
       kf_pre1_2 = pre_hist_rank(kf_pre1_2_rank);
       subplot(num_patches_rows, num_patches_cols, kf_pre1_2_rank); 
-      if ndims(weights1_2_vals) == 3
-	patch1_2_tmp = squeeze(weights1_2_vals(:,:,kf_pre1_2));
-	patch1_2_tmp = repmat(patch1_2_tmp, [1,1,1]);
-      else
+      if ndims(weights1_2_vals) == 4
 	patch1_2_tmp = squeeze(weights1_2_vals(:,:,:,kf_pre1_2));
+      elseif ndims(weights1_2_vals) == 3
+	patch1_2_tmp = squeeze(weights1_2_vals(:,:,kf_pre1_2));
+	patch1_2_tmp = reshape(patch1_2_tmp, [1,1,1,size(weights1_2_vals,2)]);
+      elseif ndims(weights1_2_vals) == 2
+	patch1_2_tmp = squeeze(weights1_2_vals(:,kf_pre1_2));
+	patch1_2_tmp = reshape(patch1_2_tmp, [1,1,1,size(weights1_2_vals,2)]);
       endif
       %% patch0_2_array stores the sum over all post layer 1 neurons, weighted by weights1_2, 
       %% of image patches for each columun of weights0_1 for pre layer 2 neuron kf_pre
@@ -868,7 +962,7 @@ if plot_weights1_2
       min_patch = min(patch_tmp3(:));
       max_patch = max(patch_tmp3(:));
       patch_tmp5 = uint8((patch_tmp3 - min_patch) * 255 / (max_patch - min_patch + ((max_patch - min_patch)==0)));
-		 
+      
       imagesc(patch_tmp5); 
       if weights0_1_nfp == 1
 	colormap(gray);
@@ -890,8 +984,8 @@ if plot_weights1_2
     set(weights1_2_hist_fig, "name", ["weights1_2_Histogram_", weights1_2_list{i_weights1_2,2}, "_", ...
 				      num2str(weights1_2_time, "%07d")]);
     saveas(weights1_2_hist_fig, [weights1_2_dir, filesep, "weights1_2_hist_", weights1_2_list{i_weights1_2,2}, "_", ...
-				      num2str(weights1_2_time)], "png");
+				 num2str(weights1_2_time, "%07d")], "png");
 
   endfor %% i_weights
-    
+  
 endif  %% plot_weights
