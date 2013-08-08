@@ -84,10 +84,13 @@ function [data,hdr] = readpvpfile(filename,progressperiod, num_frames, start_fra
          switch hdr.datatype
             case 1 % PV_BYTE_TYPE
                precision = 'uchar';
+               data_size = 1;
             case 2 % PV_INT_TYPE
                precision = 'int32';
+               data_size = 4;
             case 3 % PV_FLOAT_TYPE
                precision = 'float32';
+               data_size = 4;
             end
             switch hdr.filetype
                case 1 % PVP_FILE_TYPE, used in HyPerCol::exitRunLoop
@@ -144,8 +147,9 @@ function [data,hdr] = readpvpfile(filename,progressperiod, num_frames, start_fra
                      data{ceil((f - start_frame + 1)/skip_frames)} = data_tmp;
                   end %% num_frames
                case 3 % PVP_WGT_FILE_TYPE
-                  fseek(fid,0,'bof');
-                  for f=1:numframes
+                  %fseek(fid,0,'bof');
+                  fseek(fid, (start_frame-1)*(data_size*hdr.recordsize + hdr.headersize + 8), 'bof');
+                  for f=start_frame:numframes
                      hdr = readpvpheader(fid,ftell(fid));
                      hdr = rmfield(hdr,'additional');
                      numextrabytes = hdr.headersize - 80;
@@ -208,7 +212,8 @@ function [data,hdr] = readpvpfile(filename,progressperiod, num_frames, start_fra
                      data{ceil((f - start_frame + 1)/skip_frames)} = data_tmp;
                   end  %% num_frames
                case 4 % PVP_NONSPIKING_ACT_FILE_TYPE
-                  for f=1:numframes
+	          fseek(fid,(start_frame-1)*(hdr.recordsize*4 + 8), 'cof');
+                  for f=start_frame:numframes
                      data_tmp = struct('time',0,'values',zeros(hdr.nxGlobal,hdr.nyGlobal,hdr.nf));
                      data_tmp.time = fread(fid,1,'float64');
                      for y=1:nyprocs
