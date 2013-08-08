@@ -204,6 +204,7 @@ pvdata_t * KernelConn::allocWeights(int nPatches, int nxPatch, int nyPatch, int 
 	size_t arborSize = dataSize * this->numberOfAxonalArborLists();
 	pvdata_t * dataPatches = NULL; // (pvdata_t *) calloc(dataSize, sizeof(char));
 #ifdef USE_SHMGET
+	int arbor_ID = 0;
 	if (!shmget_flag) {
 		dataPatches = (pvdata_t *) calloc(arborSize, sizeof(char));
 	} else {
