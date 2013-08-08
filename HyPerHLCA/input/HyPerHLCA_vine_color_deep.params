@@ -15,17 +15,17 @@ HyPerCol "column" = {
     ny = 480;
     dt = 1.0;
     randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
-    numSteps = 4019800; //2009900;       // Depends on number of VINE video frames
+    numSteps = 8039600;// 4019800; //2009900;       // Depends on number of VINE video frames
     progressStep = 1000;
     outputPath = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_12x12x128_lambda_05X2_color_deep";
     filenamesContainLayerNames = true;
     filenamesContainConnectionNames = true;
     checkpointRead = true;
     checkpointReadDir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_12x12x128_lambda_05X2_color_deep/Checkpoints";
-    checkpointReadDirIndex = 2009900;
+    checkpointReadDirIndex = 1100000;
     checkpointWrite = true;
     checkpointWriteDir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_12x12x128_lambda_05X2_color_deep/Checkpoints";
-    checkpointWriteStepInterval = 10000;
+    checkpointWriteStepInterval = 100000;
     deleteOlderCheckpoints = false;
     //suppressLastOutput = false;
     writeProgressToErr = true;
@@ -135,7 +135,7 @@ ANNErrorLayer "Error" = {
     nf = 3;
     initialWriteTime = 199.0;
     writeStep = 200;
-    mirrorBCflag = 1;
+    mirrorBCflag = 0;
     writeSparseActivity = 0;
     //
     InitVType = "ZeroV";
@@ -159,7 +159,7 @@ HyPerLCALayer "V1" = {
     numChannels = 1; // should be 1
     initialWriteTime = 199.0;
     writeStep = 200.0;
-    mirrorBCflag = 1;
+    mirrorBCflag = 0;
     writeSparseActivity = 1;
     //
     InitVType = "UniformRandomV";
@@ -188,7 +188,7 @@ ANNLayer "Recon" = {
     nf = 3;
     initialWriteTime = 199.0;
     writeStep = 200.0;
-    mirrorBCflag = 1;
+    mirrorBCflag = 0;
     writeSparseActivity = 0;
     //
     InitVType = "ZeroV";
@@ -211,7 +211,7 @@ ANNErrorLayer "Error2" = {
     nf = 3;
     initialWriteTime = 199.0;
     writeStep = 200;
-    mirrorBCflag = 1;
+    mirrorBCflag = 0;
     writeSparseActivity = 0;
     //
     InitVType = "ZeroV";
@@ -236,7 +236,7 @@ HyPerLCALayer "V2" = {
     // 
     initialWriteTime = 199.0;
     writeStep = 200.0;
-    mirrorBCflag = 1;
+    mirrorBCflag = 0;
     writeSparseActivity = 1;
     //
     InitVType = "UniformRandomV";
@@ -265,7 +265,7 @@ ANNLayer "Recon2" = {
     nf = 3;
     initialWriteTime = 199.0;
     writeStep = 200.0;
-    mirrorBCflag = 1;
+    mirrorBCflag = 0;
     writeSparseActivity = 0;
     //
     InitVType = "ZeroV";
@@ -289,7 +289,7 @@ ANNErrorLayer "Error1_2" = {
     marginWidth = 6;
     initialWriteTime = 199.0;
     writeStep = 2000;
-    mirrorBCflag = 1;
+    mirrorBCflag = 0;
     writeSparseActivity = 0;
     //
     InitVType = "ZeroV";
@@ -312,7 +312,7 @@ ANNLayer "V1Infra" = {
     nf = 128;
     initialWriteTime = 199.0;
     writeStep = 200.0;
-    mirrorBCflag = 1;
+    mirrorBCflag = 0;
     writeSparseActivity = 1;
     //
     InitVType = "ZeroV";
@@ -335,7 +335,7 @@ ANNLayer "ReconInfra" = {
     nf = 3;
     initialWriteTime = 199.0;
     writeStep = 200.0;
-    mirrorBCflag = 1;
+    mirrorBCflag = 0;
     writeSparseActivity = 0;
     //
     InitVType = "ZeroV";
@@ -535,7 +535,7 @@ KernelConn "V1ToError" = {
     weightUpdatePeriod = 50.0;
     initialWeightUpdateTime = 199.0;
     initialWriteTime = 0.0;
-    dWMax = 2.0; // 200.0 used for initial training
+    dWMax = 1.0; //2.0; 
     selfFlag = false;
     shmget_flag = false;
     //
@@ -651,7 +651,7 @@ KernelConn "V2ToError2" = {
     weightUpdatePeriod = 50.0;
     initialWeightUpdateTime = 199.0;
     initialWriteTime = 0.0;
-    dWMax = 0.05; 
+    dWMax = 0.02; //0.05; 
     selfFlag = false;
     shmget_flag = false;
     //
@@ -739,7 +739,7 @@ KernelConn "V2ToError1_2" = {
     weightUpdatePeriod = 50.0;
     initialWeightUpdateTime = 199.0;
     initialWriteTime = 0.0;
-    dWMax = 0.05; 
+    dWMax = 0.02; //0.05; 
     selfFlag = false;
     shmget_flag = false;
     //

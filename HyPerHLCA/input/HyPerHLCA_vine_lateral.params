@@ -15,16 +15,16 @@ HyPerCol "column" = {
     ny = 480;
     dt = 1.0;
     randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
-    numSteps = 4019800; //2009900;       // Depends on number of VINE video frames and displayPeriod
+    numSteps = 8039600;// 4019800; //2009900;       // Depends on number of VINE video frames and displayPeriod
     progressStep = 1000;
-    outputPath = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_12x12x128_lateral";
+    outputPath = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_12x12x128_lambda_05X2_lateral";
     filenamesContainLayerNames = true;
     filenamesContainConnectionNames = true;
     checkpointRead = false;
-    checkpointReadDir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_12x12x128_lateral/Checkpoints";
-    checkpointReadDirIndex = 2009900;
+    checkpointReadDir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_12x12x128_lambda_05X2_lateral/Checkpoints";
+    checkpointReadDirIndex = 140000;
     checkpointWrite = true;
-    checkpointWriteDir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_12x12x128_lateral/Checkpoints";
+    checkpointWriteDir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_12x12x128_lambda_05X2_lateral/Checkpoints";
     checkpointWriteStepInterval = 10000;
     deleteOlderCheckpoints = false;
     //suppressLastOutput = false;
@@ -192,6 +192,7 @@ ANNTriggerUpdateOnNewImageLayer "Recon" = {
     mirrorBCflag = 1;
     writeSparseActivity = 0;
     //
+    movieLayerName = "Image";
     InitVType = "ZeroV";
     //InitVType = "InitVFromFile";
     //Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_31/output/Checkpoints/Checkpoint6000000/Recon_V.pvp";
@@ -269,6 +270,7 @@ ANNTriggerUpdateOnNewImageLayer "Recon2" = {
     mirrorBCflag = 1;
     writeSparseActivity = 0;
     //
+    movieLayerName = "Image";
     InitVType = "ZeroV";
     //InitVType = "InitVFromFile";
     //Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_31/output/Checkpoints/Checkpoint6000000/Recon_V.pvp";
@@ -292,6 +294,7 @@ ANNTriggerUpdateOnNewImageLayer "V1Intra" = {
     mirrorBCflag = 1;
     writeSparseActivity = 1;
     //
+    movieLayerName = "Image";
     InitVType = "ZeroV";
     //InitVType = "InitVFromFile";
     //Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_31/output/Checkpoints/Checkpoint6000000/Recon_V.pvp";
@@ -338,6 +341,7 @@ ANNTriggerUpdateOnNewImageLayer "ReconInfra" = {
     mirrorBCflag = 1;
     writeSparseActivity = 0;
     //
+    movieLayerName = "Image";
     InitVType = "ZeroV";
     //InitVType = "InitVFromFile";
     //Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_31/output/Checkpoints/Checkpoint6000000/Recon_V.pvp";
@@ -361,6 +365,7 @@ ANNTriggerUpdateOnNewImageLayer "V1Infra" = {
     mirrorBCflag = 1;
     writeSparseActivity = 1;
     //
+    movieLayerName = "Image";
     InitVType = "ZeroV";
     //InitVType = "InitVFromFile";
     //Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_31/output/Checkpoints/Checkpoint6000000/Recon_V.pvp";
@@ -651,7 +656,7 @@ KernelConn "V2ToError2" = {
     //
     stochasticReleaseFlag = false;
     shrinkPatches = false;
-};
+\};
 
 TransposeConn "Error2ToV2" = {
     preLayerName = "Error2";
