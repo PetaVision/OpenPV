@@ -423,7 +423,7 @@ protected:
    bool selfFlag; // indicates that connection is from a layer to itself (even though pre and post may be separately instantiated)
    const char * normalizeMethod;
    NormalizeBase * normalizer;
-   bool normalize_flag;
+   // bool normalize_flag; // replaced by testing whether normalizer!=NULL
    float normalize_strength;
    bool normalizeArborsIndividually; // if true, each arbor is normalized individually, otherwise, arbors normalized together
    bool normalize_max;

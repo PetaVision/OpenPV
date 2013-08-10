@@ -226,7 +226,7 @@ int HyPerConn::initialize_base()
    this->selfFlag = false;  // specifies whether connection is from a layer to itself (i.e. a self-connection)
    this->combine_dW_with_W_flag = false;
    this->normalizer = NULL;
-   this->normalize_flag = true; // default value, overridden by params file parameter "normalize" in initNormalize()
+   // this->normalize_flag = true; // replaced by testing whether normalizer!=NULL
    this->plasticityFlag = false;
    this->shrinkPatches_flag = false; // default value, overridden by params file parameter "shrinkPatches" in readShrinkPatches()
    this->normalizeArborsIndividually = true;

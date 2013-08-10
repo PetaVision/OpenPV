@@ -59,7 +59,8 @@ int CloneKernelConn::initialize(const char * name, HyPerCol * hc,
 //}
 
 int CloneKernelConn::initNormalize() {
-   normalize_flag = false;
+   normalizer = NULL;
+   // normalize_flag = false; // replaced by testing whether normalizer!=NULL
    return PV_SUCCESS;
 }
 

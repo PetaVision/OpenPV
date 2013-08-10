@@ -253,7 +253,8 @@ int TransposeConn::setPatchSize() {
 int TransposeConn::allocateDataStructures() {
    KernelConn::allocateDataStructures();
    // Don't need to call KernelConn::allocateDataStructures(), since all it does is create mpiReductionBuffer, but transpose is automatically reduced if the originalConn is reduced.
-   normalize_flag = false; // HyPerConn::initializeWeights never gets called (most of what it does isn't needed) so initNormalize never gets called
+   normalizer = NULL;
+   // normalize_flag = false; // replaced by testing whether normalizer!=NULL
    return PV_SUCCESS;
 }
 
