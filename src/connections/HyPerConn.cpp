@@ -245,6 +245,9 @@ int HyPerConn::initialize_base()
 
    this->pvpatchAccumulateType = NULL;
 
+   this->initInfoCommunicatedFlag = false;
+   this->dataStructuresAllocatedFlag = false;
+
 #ifdef USE_SHMGET
    shmget_flag = false;
    shmget_owner = NULL;

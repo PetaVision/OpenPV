@@ -123,6 +123,9 @@ int HyPerLayer::initialize_base() {
    this->initialWriteTime = 0;
    this->phase = 0;
 
+   this->initInfoCommunicatedFlag = false;
+   this->dataStructuresAllocatedFlag = false;
+
 #ifdef PV_USE_OPENCL
    this->krUpdate = NULL;
    this->clV = NULL;

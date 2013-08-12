@@ -167,6 +167,13 @@ public:
    virtual int communicateInitInfo();
    virtual int allocateDataStructures();
 
+   // TODO The two routines below shouldn't be public, but HyPerCol needs to call them, so for now they are.
+   void setInitInfoCommunicatedFlag() {initInfoCommunicatedFlag = true;}
+   void setDataStructuresAllocatedFlag() {dataStructuresAllocatedFlag = true;}
+
+   bool getInitInfoCommunicatedFlag() {return initInfoCommunicatedFlag;}
+   bool getDataStructuresAllocatedFlag() {return dataStructuresAllocatedFlag;}
+
    static int copyToBuffer(pvdata_t * buf, const pvdata_t * data,
                            const PVLayerLoc * loc, bool extended, float scale);
    static int copyToBuffer(unsigned char * buf, const pvdata_t * data,
@@ -354,6 +361,9 @@ protected:
    float maxRate;         // Maximum rate of activity.  HyPerLayer sets to 1/dt during initialize(); derived classes should override in their own initialize method after calling HyPerLayer's, if needed.
 
    unsigned long rngSeedBase; // The starting seed for rng.  The parent HyPerCol reserves {rngSeedbase, rngSeedbase+1,...rngSeedbase+neededRNGSeeds-1} for use by this layer
+
+   bool initInfoCommunicatedFlag;
+   bool dataStructuresAllocatedFlag;
 
 //   int feedforwardDelay;  // minimum delay required for a change in the input to potentially influence this layer
 //   int feedbackDelay;     // minimum delay required for a change in this layer to potentially influence itself via feedback loop

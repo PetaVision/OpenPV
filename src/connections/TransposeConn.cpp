@@ -179,18 +179,19 @@ int TransposeConn::communicateInitInfo() {
    }
    if (status != PV_SUCCESS) return status;
 
+   if (!originalConn->getInitInfoCommunicatedFlag()) {
+      if (parent->columnId()==0) {
+         const char * connectiontype = parent->parameters()->groupKeywordFromName(name);
+         printf("%s \"%s\" must wait until original connection \"%s\" has finished its communicateInitInfo stage.\n", connectiontype, name, originalConn->getName());
+      }
+      return PV_POSTPONE;
+   }
+
    status = KernelConn::communicateInitInfo();
    if (status != PV_SUCCESS) return status;
 
    numAxonalArborLists = originalConn->numberOfAxonalArborLists();
-   //TransposeConn has not been updated to support multiple arbors
-   //if (numAxonalArborLists!=1) {
-   //   if (parent->columnId()==0) {
-   //      fprintf(stderr, "TransposeConn error for connection \"%s\": Currently, originalConn \"%s\" can have only one arbor.\n", name, originalConn->getName());
-   //   }
-   //   MPI_Barrier(getParent()->icCommunicator()->communicator());
-   //   exit(EXIT_FAILURE);
-   //}
+
    plasticityFlag = originalConn->getPlasticityFlag();
 
    if(originalConn->getShrinkPatches_flag()) {
@@ -251,8 +252,15 @@ int TransposeConn::setPatchSize() {
 }
 
 int TransposeConn::allocateDataStructures() {
+   if (!originalConn->getDataStructuresAllocatedFlag()) {
+      if (parent->columnId()==0) {
+         const char * connectiontype = parent->parameters()->groupKeywordFromName(name);
+         printf("%s \"%s\" must wait until original connection \"%s\" has finished its allocateDataStructures stage.\n", connectiontype, name, originalConn->getName());
+      }
+      return PV_POSTPONE;
+   }
+
    KernelConn::allocateDataStructures();
-   // Don't need to call KernelConn::allocateDataStructures(), since all it does is create mpiReductionBuffer, but transpose is automatically reduced if the originalConn is reduced.
    normalizer = NULL;
    // normalize_flag = false; // replaced by testing whether normalizer!=NULL
    return PV_SUCCESS;

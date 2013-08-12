@@ -149,6 +149,13 @@ private:
    int initialize_base();
    int initialize(const char * name, int argc, char ** argv, PVParams * params);
    int checkDirExists(const char * dirname, struct stat * pathstat);
+
+   int doInitializationStage(int (HyPerCol::*layerInitializationStage)(int), int (HyPerCol::*connInitializationStage)(int), const char * stageName);
+   int layerCommunicateInitInfo(int l);
+   int connCommunicateInitInfo(int c);
+   int layerAllocateDataStructures(int l);
+   int connAllocateDataStructures(int c);
+
    int initPublishers();
    bool advanceCPWriteTime();
    int checkpointRead(const char * cpDir);
@@ -159,9 +166,12 @@ private:
    int outputParamsXML(PV_Stream * pvstream);
    template <typename T> static int hexdump(PV_Stream * pvstream, T value);
 #endif // UNDERCONSTRUCTION
+
+#ifdef OBSOLETE // Marked obsolete Aug 9, 2013.  Look, everybody, checkMarginWidths is obsolete!
    int checkMarginWidths();
    int zCheckMarginWidth(HyPerConn * conn, const char * dim, int patchSize, int scalePre, int scalePost, int prevStatus);
    int lCheckMarginWidth(HyPerLayer * layer, const char * dim, int layerSize, int layerGlobalSize, int prevStatus);
+#endif // OBSOLETE
 
    long int numSteps;
    long int currentStep;

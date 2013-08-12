@@ -61,6 +61,13 @@ public:
    virtual int communicateInitInfo();
    virtual int allocateDataStructures();
 
+   // TODO The two routines below shouldn't be public, but HyPerCol needs to call them, so for now they are.
+   void setInitInfoCommunicatedFlag() {initInfoCommunicatedFlag = true;}
+   void setDataStructuresAllocatedFlag() {dataStructuresAllocatedFlag = true;}
+
+   bool getInitInfoCommunicatedFlag() {return initInfoCommunicatedFlag;}
+   bool getDataStructuresAllocatedFlag() {return dataStructuresAllocatedFlag;}
+
 #ifdef OBSOLETE // Marked obsolete July 25, 2013.  recvSynapticInput is now called by recvAllSynapticInput, called by HyPerCol, so deliver andtriggerReceive aren't needed.
    virtual int deliver(Publisher * pub, const PVLayerCube * cube, int neighbor);
 #endif // OBSOLETE
@@ -276,6 +283,9 @@ public:
       return aPostOffset[arborId][kPre];
    }
 
+   const char * preSynapticLayerName() {return preLayerName;}
+   const char * postSynapticLayerName() {return postLayerName;}
+
    HyPerLayer* preSynapticLayer() {
       return pre;
    }
@@ -446,6 +456,9 @@ protected:
 
    int neededRNGSeeds;  // The number of independent random number generators used by the layer, summed over all MPI processes.
    unsigned long rngSeedBase; // The starting seed for rng.  The parent HyPerCol reserves {rngSeedbase, rngSeedbase+1,...rngSeedbase+neededRNGSeeds-1} for use by this layer
+
+   bool initInfoCommunicatedFlag;
+   bool dataStructuresAllocatedFlag;
 
 #ifdef PV_USE_OPENCL
    bool gpuAccelerateFlag; // Whether to accelerate the connection on a GPU

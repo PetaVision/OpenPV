@@ -609,36 +609,25 @@ int HyPerCol::addConnection(HyPerConn * conn)
 
 int HyPerCol::run(long int nTimeSteps)
 {
-   for (int l=0; l<numLayers; l++) {
-      int status = layers[l]->communicateInitInfo();
-      if (status != PV_SUCCESS) {
-         exit(EXIT_FAILURE); // Error message printed in HyPerLayer::communicateInitInfo().
-      }
-   }
-   for (int c=0; c<numConnections; c++) {
-      int status = connections[c]->communicateInitInfo();
-      if (status != PV_SUCCESS) {
-         exit(EXIT_FAILURE); // Error message printed in HyPerConn::communicateInitInfo().
-      }
-   }
-   for (int l=0; l<numLayers; l++) {
-      int status = layers[l]->allocateDataStructures();
-      if (status != PV_SUCCESS) {
-         exit(EXIT_FAILURE); // Error message printed in HyPerLayer::allocateDataStructures().
-      }
-   }
-   for (int c=0; c<numConnections; c++) {
-      int status = connections[c]->allocateDataStructures();
-      if (status != PV_SUCCESS) {
-         exit(EXIT_FAILURE); // Error message printed in HyPerConn::communicateDataStructures().
-      }
-   }
+   int (HyPerCol::*layerInitializationStage)(int) = NULL;
+   int (HyPerCol::*connInitializationStage)(int) = NULL;
 
-   // Soon to be obsolete!
+   // communicateInitInfo stage
+   layerInitializationStage = &HyPerCol::layerCommunicateInitInfo;
+   connInitializationStage = &HyPerCol::connCommunicateInitInfo;
+   doInitializationStage(layerInitializationStage, connInitializationStage, "communicateInitInfo");
+
+   // allocateDataStructures stage
+   layerInitializationStage = &HyPerCol::layerAllocateDataStructures;
+   connInitializationStage = &HyPerCol::connAllocateDataStructures;
+   doInitializationStage(layerInitializationStage, connInitializationStage, "allocateDataStructures");
+
+#ifdef OBSOLETE // Marked obsolete Aug 9, 2013.  Look everybody, checkMarginWidths is obsolete!
    if( checkMarginWidths() != PV_SUCCESS ) {
       fprintf(stderr, "Margin width failure; unable to continue.\n");
       return PV_MARGINWIDTH_FAILURE;
    }
+#endif // OBSOLETE
 
    if( outputNamesOfLayersAndConns ) {
       assert( icComm->commRank() == 0 );
@@ -794,6 +783,120 @@ int HyPerCol::run(long int nTimeSteps)
 #endif
 
    return PV_SUCCESS;
+}
+
+int HyPerCol::doInitializationStage(int (HyPerCol::*layerInitializationStage)(int), int (HyPerCol::*connInitializationStage)(int), const char * stageName) {
+   int status = PV_SUCCESS;
+   int * layerStatus = (int *) malloc((size_t) numLayers * sizeof(int));
+   assert(layerStatus);
+   for (int l=0; l<numLayers; l++) {
+      layerStatus[l]=PV_POSTPONE;
+   }
+   int * connStatus = (int *) malloc((size_t) numConnections * sizeof(int));
+   for (int c=0; c<numConnections; c++) {
+      connStatus[c]=PV_POSTPONE;
+   }
+   int numPostponedLayers = numLayers;
+   int numPostponedConns = numConnections;
+   int prevNumPostponedLayers;
+   int prevNumPostponedConns;
+   do {
+      prevNumPostponedLayers = numPostponedLayers;
+      prevNumPostponedConns = numPostponedConns;
+      for (int l=0; l<numLayers; l++) {
+         if (layerStatus[l]==PV_POSTPONE) {
+            int status = (this->*layerInitializationStage)(l);
+            switch (status) {
+            case PV_SUCCESS:
+               layerStatus[l] = PV_SUCCESS;
+               numPostponedLayers--;
+               assert(numPostponedLayers>=0);
+               if (columnId()==0) printf("Layer \"%s\" %s completed.\n", layers[l]->getName(), stageName);
+               break;
+            case PV_POSTPONE:
+               if (columnId()==0) printf("Layer \"%s\": %s postponed.\n", layers[l]->getName(), stageName);
+               break;
+            case PV_FAILURE:
+               exit(EXIT_FAILURE); // Error message printed in HyPerLayer::communicateInitInfo().
+               break;
+            default:
+               assert(0); // This shouldn't be possible
+            }
+         }
+      }
+      for (int c=0; c<numConnections; c++) {
+         if (connStatus[c]==PV_POSTPONE) {
+            int status = (this->*connInitializationStage)(c);
+            switch (status) {
+            case PV_SUCCESS:
+               connStatus[c] = PV_SUCCESS;
+               numPostponedConns--;
+               assert(numPostponedConns>=0);
+               if (columnId()==0) printf("Connection \"%s\" %s completed.\n", connections[c]->getName(), stageName);
+               break;
+            case PV_POSTPONE:
+               if (columnId()==0) printf("Connection \"%s\" %s postponed.\n", connections[c]->getName(), stageName);
+               break;
+            case PV_FAILURE:
+               exit(EXIT_FAILURE); // Error message printed in HyPerConn::communicateInitInfo().
+               break;
+            default:
+               assert(0); // This shouldn't be possible
+            }
+         }
+      }
+   }
+   while (numPostponedLayers < prevNumPostponedLayers || numPostponedConns < prevNumPostponedConns);
+
+   if (numPostponedLayers != 0 || numPostponedConns != 0) {
+      printf("communicateInitInfo loop has hung on rank %d process.\n", columnId());
+      for (int l=0; l<numLayers; l++) {
+         if (layerStatus[l]==PV_POSTPONE) {
+            printf("Layer \"%s\" on rank %d is still postponed.\n", layers[l]->getName(), columnId());
+         }
+      }
+      for (int c=0; c<numConnections; c++) {
+         if (layerStatus[c]==PV_POSTPONE) {
+            printf("Connection \"%s\" on rank %d is still postponed.\n", connections[c]->getName(), columnId());
+         }
+      }
+      exit(EXIT_FAILURE);
+   }
+   free(layerStatus); layerStatus = NULL;
+   free(connStatus); connStatus = NULL;
+   return status;
+}
+
+int HyPerCol::layerCommunicateInitInfo(int l) {
+   HyPerLayer * layer = layers[l];
+   assert(l>=0 && l<numLayers && layer->getInitInfoCommunicatedFlag()==false);
+   int status = layer->communicateInitInfo();
+   if (status==PV_SUCCESS) layer->setInitInfoCommunicatedFlag();
+   return status;
+}
+
+int HyPerCol::connCommunicateInitInfo(int c) {
+   HyPerConn * conn = connections[c];
+   assert(c>=0 && c<numConnections && conn->getInitInfoCommunicatedFlag()==false);
+   int status = conn->communicateInitInfo();
+   if (status==PV_SUCCESS) conn->setInitInfoCommunicatedFlag();
+   return status;
+}
+
+int HyPerCol::layerAllocateDataStructures(int l) {
+   HyPerLayer * layer = layers[l];
+   assert(l>=0 && l<numLayers && layer->getDataStructuresAllocatedFlag()==false);
+   int status = layer->allocateDataStructures();
+   if (status==PV_SUCCESS) layer->setDataStructuresAllocatedFlag();
+   return status;
+}
+
+int HyPerCol::connAllocateDataStructures(int c) {
+   HyPerConn * conn = connections[c];
+   assert(c>=0 && c<numConnections && conn->getDataStructuresAllocatedFlag()==false);
+   int status = conn->allocateDataStructures();
+   if (status==PV_SUCCESS) conn->setDataStructuresAllocatedFlag();
+   return status;
 }
 
 int HyPerCol::initPublishers() {
@@ -1454,6 +1557,7 @@ unsigned long HyPerCol::getRandomSeed() {
    return t;
 }
 
+#ifdef OBSOLETE // Marked obsolete Aug 9, 2013.  Look, everybody, checkMarginWidths is obsolete!
 int HyPerCol::checkMarginWidths() {
    // For each connection, make sure that the pre-synaptic margin width is
    // large enough for the patch size.
@@ -1533,6 +1637,7 @@ int HyPerCol::lCheckMarginWidth(HyPerLayer * layer, const char * dim, int layerS
    else status = PV_SUCCESS;
    return status;
 }
+#endif // OBSOLETE
 
 template <typename T>
 int HyPerCol::writeScalarToFile(const char * cp_dir, const char * group_name, const char * val_name, T val) {
