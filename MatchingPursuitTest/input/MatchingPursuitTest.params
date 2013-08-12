@@ -1,0 +1,145 @@
+// matchingpursuit.params
+//
+// A params file to use MatchingPursuitLayer to solve matching pursuit
+
+debugParsing = false;
+
+HyPerCol "column" = {
+    nx                                  = 16;
+    ny                                  = 16;
+    dt                                  = 1.0;
+    randomSeed                          = 570867389;
+    numSteps                            = 260;
+    progressStep                        = 260;
+    writeProgressToErr                  = false;
+    outputPath                          = "output";
+    filenamesContainLayerNames          = 2;
+    filenamesContainConnectionNames     = 2;
+    checkpointRead                      = false;
+    // checkpointReadDir;
+    // checkpointReadDirIndex;
+    checkpointWrite                     = false;
+    // checkpointWriteDir                  = "output/checkpoints";
+    // checkpointWriteStepInterval         = 1;
+    // checkpointWriteTimeInterval;
+    // deleteOlderCheckpoints;
+    suppressLastOutput                  = false;
+};
+
+Image "input" = {
+    restart                             = false;
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    phase                               = 0;
+    writeStep                           = -1;
+    // initialWriteTime;
+    // writeSparseActivity;
+    writeSparseActivity                 = 0;
+    mirrorBCflag                        = false;
+    valueBC                             = 0.0;
+    // GPUAccelerate;
+    
+    imagePath                       = "input/testimage.png";
+    // frameNumber;
+    offsetX                             = 0;
+    offsetY                             = 0;
+    writeImages                         = false;
+    // writeImagesExtension;
+    useImageBCflag                      = false;
+    autoResizeFlag                      = false;
+    inverseFlag                         = false;
+    normalizeLuminanceFlag              = false;
+    jitterFlag                          = false;
+    // jitterType;
+    // stepSize;
+    // persistenceProb;
+    // recurrenceProb;
+    // biasChangeTime;
+    // biasConstraintMethod;
+    // offsetConstraintMethod;
+    // writePosition;
+    // useParamsImage;
+};
+
+IdentConn "input to residual" = {
+    channelCode                         = 0;
+    delay                               = 0;
+    writeStep                           = -1;
+};
+
+ANNLayer "residual" = {
+    restart                             = false;
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    phase                               = 1;
+    writeStep                           = 1.0;
+    initialWriteTime                    = 0.0;
+    writeSparseActivity                 = false;
+    mirrorBCflag                        = false;
+    valueBC                             = 0.0;
+    // GPUAccelerate;
+    
+    InitVType                           = "ZeroV";
+
+    VThresh                             = -infinity;
+    VMin                                = -infinity;
+    VShift                              = 0.0;
+    VMax                                = infinity;
+};
+
+FeedbackConn "residual to matching_pursuit_layer" = {
+    channelCode                         = 0;
+    originalConnName                    = "matching_pursuit_layer to residual";
+    delay                               = 0;
+    updateGSynFromPostPerspective       = false;
+    pvpatchAccumulateType               = "";
+    preActivityIsNotRate                = false;
+    writeStep                           = -1;
+    // initialWriteTime;
+    // writeCompressedWeights;
+    writeCompressedCheckpoints          = false;
+    selfFlag                            = false;
+};
+
+IdentConn "matching_pursuit_layer to residual" = {
+    channelCode                         = 1;
+    delay                               = 0;
+    writeStep                           = -1;
+    // initialWriteTime;
+    // writeCompressedWeights;
+    // ignoreGPU
+    
+    shmget_flag                         = false;
+};
+
+MatchingPursuitLayer "matching_pursuit_layer" = {
+    restart                             = false;
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    phase                               = 2;
+    writeStep                           = 1.0;
+    initialWriteTime                    = 0.0;
+    writeSparseActivity                 = false;
+    mirrorBCflag                        = false;
+    valueBC                             = 0.0;
+    // GPUAccelerate;
+        
+    activationThreshold                 = 0.0;  // Treat activations with absolute value below this value as zero.
+    syncedMovie                         = "";   // If set to a movie layer, activity resets when the movie sets newImageFlag
+    tracePursuit                        = true; // Whether to trace the progress of the matching pursuit
+    traceFile                           = "output/pursuit.txt"; // The file for the tracePursuit output.  If empty or absent, use standard output
+};
+
+L2NormProbe "residual L2 error" = {
+    targetLayer = "residual";
+    message = "residual L2 error      ";
+    probeOutputFile = "residual_error.txt";
+    parentGenColProbe = "";
+};
+
+MatchingPursuitProbe "matching_pursuit_layer probe" = {
+    targetLayer = "matching_pursuit_layer";
+};
