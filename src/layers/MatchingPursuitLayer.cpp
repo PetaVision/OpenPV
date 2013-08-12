@@ -48,9 +48,10 @@ int MatchingPursuitLayer::initialize_base() {
    syncedMovie = NULL;
    tracePursuit = false;
    traceFile = NULL;
-   maxinfo.maxval = 0.0f;
-   maxinfo.maxloc = -1;
-   maxinfo.mpirank = -1;
+   initializeMaxinfo();
+   useWindowedSynapticInput = true;
+   xWindowSize = 0;
+   yWindowSize = 0;
    return PV_SUCCESS;
 }
 
@@ -116,6 +117,12 @@ int MatchingPursuitLayer::openPursuitFile() {
    return PV_SUCCESS;
 }
 
+void MatchingPursuitLayer::initializeMaxinfo(int rank) {
+   maxinfo.maxval = 0.0f;
+   maxinfo.maxloc = -1;
+   maxinfo.mpirank = rank;
+}
+
 int MatchingPursuitLayer::communicateInitInfo() {
    int status = HyPerLayer::communicateInitInfo();
 
@@ -135,6 +142,22 @@ int MatchingPursuitLayer::communicateInitInfo() {
       }
    }
 
+   for (int c=0; c<parent->numberOfConnections(); c++) {
+      HyPerConn * conn = parent->getConnection(c);
+      // Need to use getPreAndPostNames or whatever it's called
+      if (strcmp(conn->postSynapticLayerName(), getName())) continue;
+      if (conn->getUseWindowPost()) {
+         int nxp = conn->xPatchSize();
+         if (nxp > xWindowSize) xWindowSize = nxp;
+         int nyp = conn->yPatchSize();
+         if (nyp > yWindowSize) yWindowSize = nyp;
+      }
+      else {
+         useWindowedSynapticInput = false;
+         break;
+      }
+   }
+
    return status;
 }
 
@@ -145,6 +168,37 @@ int MatchingPursuitLayer::allocateDataStructures() {
    clayer->V = NULL;
 
    return status;
+}
+
+bool MatchingPursuitLayer::inWindowExt(int windowId, int neuronIdxExt) {
+   bool inWindow = true;
+   if (useWindowedSynapticInput && maxinfo.maxloc>=0) {
+      const PVLayerLoc * loc = getLayerLoc();
+      // maxinfo.maxloc is global restricted; neuronIdxExt is local extended.
+      int neuronIdxRes = kIndexRestricted(neuronIdxExt, loc->nx, loc->ny, loc->nf, loc->nb);
+      if (neuronIdxRes >= 0) {
+         inWindow = inWindowGlobalRes(neuronIdxRes, loc);
+      }
+   }
+   return inWindow;
+}
+
+bool MatchingPursuitLayer::inWindowRes(int windowId, int neuronIdxRes) {
+   bool inWindow = true;
+   if (useWindowedSynapticInput && maxinfo.maxloc>=0) {
+      const PVLayerLoc * loc = getLayerLoc();
+      // maxinfo.maxloc is global restricted; neuronIdxExt is local restricted.
+      inWindow = inWindowGlobalRes(neuronIdxRes, loc);
+   }
+   return inWindow;
+}
+
+bool MatchingPursuitLayer::inWindowGlobalRes(int neuronIdxRes, const PVLayerLoc * loc) {
+   int neuronIdxGlobal = globalIndexFromLocal(neuronIdxRes, *loc);
+   int xdiff = kxPos(neuronIdxGlobal, loc->nxGlobal, loc->nyGlobal, loc->nf) - kxPos(maxinfo.maxloc, loc->nxGlobal, loc->nyGlobal, loc->nf);
+   int ydiff = kxPos(neuronIdxGlobal, loc->nxGlobal, loc->nyGlobal, loc->nf) - kyPos(maxinfo.maxloc, loc->nxGlobal, loc->nyGlobal, loc->nf);
+   return xdiff > -xWindowSize && xdiff < yWindowSize && ydiff > -xWindowSize && ydiff < yWindowSize;
+
 }
 
 int MatchingPursuitLayer::updateState(double timed, double dt) {
@@ -158,10 +212,8 @@ int MatchingPursuitLayer::updateState(double timed, double dt) {
       getCLayer()->numActive = 0;
    }
 
-   maxinfo.maxval = 0.0f;
-   maxinfo.maxloc = -1;
-   int rank = parent->columnId();
-   maxinfo.mpirank = rank;
+   initializeMaxinfo(parent->columnId()==0);
+   maxinfo.mpirank = parent->columnId();
    if (numChannels==1) {
       for (int k=0; k<getNumNeurons(); k++) {
          updateMaxinfo(GSyn[0][k], k);
@@ -178,6 +230,7 @@ int MatchingPursuitLayer::updateState(double timed, double dt) {
    maxinfo.maxloc = globalIndexFromLocal(maxinfo.maxloc, *getLayerLoc());
 
 #ifdef PV_USE_MPI
+   int rank = parent->columnId();
    int rootproc = 0;
    if (parent->columnId()==0) {
       struct matchingpursuit_mpi_data maxinfobyprocess;
@@ -217,9 +270,11 @@ int MatchingPursuitLayer::updateState(double timed, double dt) {
 }
 
 void MatchingPursuitLayer::updateMaxinfo(pvdata_t gsyn, int k) {
-   bool newmax = fabsf(maxinfo.maxval) < fabsf(gsyn);
-   maxinfo.maxloc = newmax ? k : maxinfo.maxloc;
-   maxinfo.maxval = newmax ? gsyn : maxinfo.maxval;
+   if (inWindowRes(0, k)) {
+      bool newmax = fabsf(maxinfo.maxval) < fabsf(gsyn);
+      maxinfo.maxloc = newmax ? k : maxinfo.maxloc;
+      maxinfo.maxval = newmax ? gsyn : maxinfo.maxval;
+   }
 }
 
 int MatchingPursuitLayer::outputState(double timed, bool last) {
@@ -230,7 +285,7 @@ int MatchingPursuitLayer::outputState(double timed, bool last) {
       int x = kxPos(maxinfo.maxloc, loc->nxGlobal, loc->nyGlobal, loc->nf);
       int y = kyPos(maxinfo.maxloc, loc->nxGlobal, loc->nyGlobal, loc->nf);
       int f = featureIndex(maxinfo.maxloc, loc->nxGlobal, loc->nyGlobal, loc->nf);
-      if (fabsf(maxinfo.maxloc)>activationThreshold) {
+      if (fabsf(maxinfo.maxval)>activationThreshold) {
          fprintf(traceFile->fp, "Time %f: Neuron %d (x=%d, y=%d, f=%d), activity %f\n", timed, maxinfo.maxloc, x, y, f, maxinfo.maxval);
       }
       else {
