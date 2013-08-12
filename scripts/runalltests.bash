@@ -198,6 +198,13 @@ runandecho $testname Debug/$testname $arglist
 mpirunandecho $testname Debug/$testname $arglist
 cd $wd
 
+testname=MatchingPursuitTest
+arglist=""
+cd "$testname"
+runandecho $testname Debug/$testname $arglist
+mpirunandecho $testname Debug/$testname $arglist
+cd $wd
+
 testname=MPITest2
 arglist="-p input/MPI_test.params -n 100"
 cd "$testname"
