@@ -1231,6 +1231,15 @@ const char * PVParams::groupKeywordFromIndex(int index) {
    return inbounds ? groups[index]->getGroupKeyword() : NULL;
 }
 
+const char * PVParams::groupKeywordFromName(const char * name) {
+   const char * kw = NULL;
+   ParameterGroup * g = group(name);
+   if (g!=NULL) {
+      kw = g->getGroupKeyword();
+   }
+   return kw;
+}
+
 /**
  * @keyword
  * @name

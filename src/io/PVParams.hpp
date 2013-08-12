@@ -221,6 +221,7 @@ public:
    ParameterGroup * group(const char * groupName);
    const char * groupNameFromIndex(int index);
    const char * groupKeywordFromIndex(int index);
+   const char * groupKeywordFromName(const char * name);
    int warnUnread();
    bool hasBeenRead(const char * group_name, const char * param_name);
    bool presentAndNotBeenRead(const char * group_name, const char * param_name);
