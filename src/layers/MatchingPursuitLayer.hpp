@@ -23,6 +23,7 @@ public:
    virtual int allocateDataStructures();
    virtual bool inWindowExt(int windowId, int neuronIdxExt);
    virtual bool inWindowRes(int windowId, int neuronIdxRes);
+   virtual int resetGSynBuffers(double timed, double dt);
    virtual int updateState(double timed, double dt);
    virtual int outputState(double timed, bool last=false);
 
@@ -61,7 +62,6 @@ protected:
                                   // If true, then we only need to update activity in a window around the most recently changed activity.
    int xWindowSize;               // The distance in the x-direction from the changed activity to the edge of the window where the GSyn changes.
    int yWindowSize;               // The distance in the y-direction from the changed activity to the edge of the window where the GSyn changes.
-                                  // xWindowSize and yWindowSize are only used if useWindowedSynapticInput is true.
 };
 
 } /* namespace PV */

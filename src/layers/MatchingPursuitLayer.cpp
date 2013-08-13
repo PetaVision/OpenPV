@@ -142,11 +142,19 @@ int MatchingPursuitLayer::communicateInitInfo() {
       }
    }
 
+   return status;
+}
+
+int MatchingPursuitLayer::allocateDataStructures() {
+   int status = HyPerLayer::allocateDataStructures();
+
+   free(clayer->V);
+   clayer->V = NULL;
+
    for (int c=0; c<parent->numberOfConnections(); c++) {
       HyPerConn * conn = parent->getConnection(c);
-      // Need to use getPreAndPostNames or whatever it's called
       if (strcmp(conn->postSynapticLayerName(), getName())) continue;
-      if (conn->getUseWindowPost()) {
+      if (conn->getUpdateGSynFromPostPerspective()) {
          int nxp = conn->xPatchSize();
          if (nxp > xWindowSize) xWindowSize = nxp;
          int nyp = conn->yPatchSize();
@@ -161,13 +169,21 @@ int MatchingPursuitLayer::communicateInitInfo() {
    return status;
 }
 
-int MatchingPursuitLayer::allocateDataStructures() {
-   int status = HyPerLayer::allocateDataStructures();
-
-   free(clayer->V);
-   clayer->V = NULL;
-
-   return status;
+int MatchingPursuitLayer::resetGSynBuffers(double timed, double dt) {
+   // Only reset the GSyn of those neurons in the window.
+   for (int k=0; k<getNumNeurons(); k++) {
+      if (inWindowRes(0, k)) {
+         GSyn[0][k] = 0.0f;
+      }
+   }
+   if (numChannels > 1) {
+      for (int k=0; k<getNumNeurons(); k++) {
+         if (inWindowRes(0, k)) {
+            GSyn[1][k] = 0.0f;
+         }
+      }
+   }
+   return PV_SUCCESS;
 }
 
 bool MatchingPursuitLayer::inWindowExt(int windowId, int neuronIdxExt) {
@@ -196,8 +212,8 @@ bool MatchingPursuitLayer::inWindowRes(int windowId, int neuronIdxRes) {
 bool MatchingPursuitLayer::inWindowGlobalRes(int neuronIdxRes, const PVLayerLoc * loc) {
    int neuronIdxGlobal = globalIndexFromLocal(neuronIdxRes, *loc);
    int xdiff = kxPos(neuronIdxGlobal, loc->nxGlobal, loc->nyGlobal, loc->nf) - kxPos(maxinfo.maxloc, loc->nxGlobal, loc->nyGlobal, loc->nf);
-   int ydiff = kxPos(neuronIdxGlobal, loc->nxGlobal, loc->nyGlobal, loc->nf) - kyPos(maxinfo.maxloc, loc->nxGlobal, loc->nyGlobal, loc->nf);
-   return xdiff > -xWindowSize && xdiff < yWindowSize && ydiff > -xWindowSize && ydiff < yWindowSize;
+   int ydiff = kyPos(neuronIdxGlobal, loc->nxGlobal, loc->nyGlobal, loc->nf) - kyPos(maxinfo.maxloc, loc->nxGlobal, loc->nyGlobal, loc->nf);
+   return xdiff > -xWindowSize && xdiff < xWindowSize && ydiff > -yWindowSize && ydiff < yWindowSize;
 
 }
 
@@ -270,11 +286,9 @@ int MatchingPursuitLayer::updateState(double timed, double dt) {
 }
 
 void MatchingPursuitLayer::updateMaxinfo(pvdata_t gsyn, int k) {
-   if (inWindowRes(0, k)) {
       bool newmax = fabsf(maxinfo.maxval) < fabsf(gsyn);
       maxinfo.maxloc = newmax ? k : maxinfo.maxloc;
       maxinfo.maxval = newmax ? gsyn : maxinfo.maxval;
-   }
 }
 
 int MatchingPursuitLayer::outputState(double timed, bool last) {
@@ -291,7 +305,9 @@ int MatchingPursuitLayer::outputState(double timed, bool last) {
       else {
          fprintf(traceFile->fp, "Time %f:     No neurons exceeded the activation threshold.\n", timed);
       }
+      fflush(traceFile->fp);
    }
+
    return status;
 }
 
