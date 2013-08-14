@@ -328,7 +328,7 @@ bool Movie::updateImage(double time, double dt)
          newImageFlag = true;
       }
       else{
-         newImageFlag = false;
+         if (time>0.0) newImageFlag = false;
       }
    } // randomMovie
 
