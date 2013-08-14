@@ -73,12 +73,10 @@ int ANNTriggerUpdateOnNewImageLayer::communicateInitInfo() {
 }
 
 int ANNTriggerUpdateOnNewImageLayer::recvAllSynapticInput(){
-	update_timer->start();
 	int status = PV_SUCCESS;
 	if (movieLayer->getNewImageFlag()){
 		status = ANNLayer::recvAllSynapticInput();
 	}
-	update_timer->stop();
 	return status;
 }
 
