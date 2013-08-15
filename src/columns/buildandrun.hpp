@@ -25,6 +25,7 @@
 #include "../layers/LogLatWTAGenLayer.hpp"
 #include "../layers/PursuitLayer.hpp"
 #include "../layers/CliqueLayer.hpp"
+#include "../layers/MatchingPursuitResidual.hpp"
 #include "../layers/PoolingANNLayer.hpp"
 #include "../layers/PtwiseProductLayer.hpp"
 #include "../layers/TrainingLayer.hpp"

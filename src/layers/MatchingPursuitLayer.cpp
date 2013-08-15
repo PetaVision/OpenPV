@@ -148,9 +148,6 @@ int MatchingPursuitLayer::communicateInitInfo() {
 int MatchingPursuitLayer::allocateDataStructures() {
    int status = HyPerLayer::allocateDataStructures();
 
-   free(clayer->V);
-   clayer->V = NULL;
-
    for (int c=0; c<parent->numberOfConnections(); c++) {
       HyPerConn * conn = parent->getConnection(c);
       if (strcmp(conn->postSynapticLayerName(), getName())) continue;
@@ -218,13 +215,15 @@ bool MatchingPursuitLayer::inWindowGlobalRes(int neuronIdxRes, const PVLayerLoc 
 }
 
 int MatchingPursuitLayer::updateState(double timed, double dt) {
+   update_timer->start();
+   PVLayerLoc loc = *getLayerLoc();
    if (syncedMovie && syncedMovie->getNewImageFlag()) {
-      PVLayerLoc loc = *getLayerLoc();
-      for (int k=0; k<getCLayer()->numActive; k++) {
-         int kLocal = localIndexFromGlobal(getCLayer()->activeIndices[k], loc);
-         int kExt = kIndexExtended(kLocal, loc.nx, loc.ny, loc.nf, loc.nb);
-         getActivity()[kExt] = 0.0f;
-      }
+      memset(getV(),0,(size_t) getNumNeurons()*sizeof(pvdata_t));
+   }
+   if (getCLayer()->numActive) {
+      int kLocal = localIndexFromGlobal(getCLayer()->activeIndices[0], loc);
+      int kExt = kIndexExtended(kLocal, loc.nx, loc.ny, loc.nf, loc.nb);
+      getActivity()[kExt] = 0.0f;
       getCLayer()->numActive = 0;
    }
 
@@ -274,13 +273,15 @@ int MatchingPursuitLayer::updateState(double timed, double dt) {
       const PVLayerLoc * loc = getLayerLoc();
       int kLocal = localIndexFromGlobal(maxinfo.maxloc, *loc);
       int kExt = kIndexExtended(kLocal, loc->nx, loc->ny, loc->nf, loc->nb);
-      if (getActivity()[kExt]==0) {
-         getCLayer()->activeIndices[getCLayer()->numActive] = maxinfo.maxloc;
-         getCLayer()->numActive++;
-      }
-      getActivity()[kExt] += maxinfo.maxval;
+      getV()[kLocal] += maxinfo.maxval;
+      getActivity()[kExt] = maxinfo.maxval;
+      getCLayer()->activeIndices[getCLayer()->numActive] = maxinfo.maxloc;
+      getCLayer()->numActive++;
+      assert(getCLayer()->numActive==1);
    }
 #endif // PV_USE_MPI
+
+   update_timer->stop();
 
    return PV_SUCCESS;
 }
