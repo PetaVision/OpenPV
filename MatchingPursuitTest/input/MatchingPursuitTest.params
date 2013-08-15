@@ -68,7 +68,7 @@ IdentConn "input to residual" = {
     writeStep                           = -1;
 };
 
-ANNLayer "residual" = {
+MatchingPursuitResidual "residual" = {
     restart                             = false;
     nxScale                             = 1;
     nyScale                             = 1;
@@ -87,6 +87,10 @@ ANNLayer "residual" = {
     VMin                                = -infinity;
     VShift                              = 0.0;
     VMax                                = infinity;
+    
+    syncedMovie                         = "";   // If set to a movie layer, activity resets when the movie sets newImageFlag
+    inputLayer                          = "diff_gaussians"; // If syncedMovie is true, the layer that provides input.  Defaults to syncedMovie
+
 };
 
 FeedbackConn "residual to matching_pursuit_layer" = {
@@ -126,6 +130,8 @@ MatchingPursuitLayer "matching_pursuit_layer" = {
     mirrorBCflag                        = false;
     valueBC                             = 0.0;
     // GPUAccelerate;
+    
+    InitVType                           = "ZeroV";
         
     activationThreshold                 = 0.0;  // Treat activations with absolute value below this value as zero.
     syncedMovie                         = "";   // If set to a movie layer, activity resets when the movie sets newImageFlag
@@ -140,6 +146,6 @@ L2NormProbe "residual L2 error" = {
     parentGenColProbe = "";
 };
 
-MatchingPursuitProbe "matching_pursuit_layer probe" = {
+MatchingPursuitProbe2 "matching_pursuit_layer probe" = {
     targetLayer = "matching_pursuit_layer";
 };
