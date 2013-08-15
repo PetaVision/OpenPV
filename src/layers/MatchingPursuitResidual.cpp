@@ -99,7 +99,7 @@ int MatchingPursuitResidual::recvSynapticInputFromPost(HyPerConn * conn, const P
 }
 
 bool MatchingPursuitResidual::updateGSynFlag(HyPerConn * conn) {
-   return !gSynInited || conn->getChannel()!=CHANNEL_EXC || (syncedMovie && syncedMovie->getNewImageFlag());
+   return !gSynInited || conn->getChannel()!=CHANNEL_EXC || !syncedMovie || syncedMovie->getNewImageFlag();
 }
 
 bool MatchingPursuitResidual::getNewImageFlag() {
