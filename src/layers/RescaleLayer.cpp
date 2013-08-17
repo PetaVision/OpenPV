@@ -5,7 +5,6 @@
  *      Author: garkenyon
  */
 
-#include "HyPerLayer.hpp"
 #include "RescaleLayer.hpp"
 #include <stdio.h>
 
@@ -23,8 +22,9 @@ RescaleLayer::RescaleLayer(const char * name, HyPerCol * hc) {
 
 RescaleLayer::~RescaleLayer()
 {
-   free(originalLayerName);
-   clayer->V = NULL;
+   // Handled by CloneVLayer destructor
+   // free(originalLayerName);
+   // clayer->V = NULL;
 }
 
 int RescaleLayer::initialize_base() {
@@ -39,22 +39,13 @@ int RescaleLayer::initialize_base() {
 
 int RescaleLayer::initialize(const char * name, HyPerCol * hc) {
    //int num_channels = sourceLayer->getNumChannels();
-   int status_init = HyPerLayer::initialize(name, hc, 0);
-
-   // Moved to communicateInitInfo();
-   // originalLayer = clone;
-   // Moved to allocateDataStructures();
-   // free(clayer->V);
-   // clayer->V = sourceLayer->getV();
-   //
-   // // don't need conductance channels
-   // freeChannels();
+   int status_init = CloneVLayer::initialize(name, hc);
 
    return status_init;
 }
 
 int RescaleLayer::communicateInitInfo() {
-   int status = HyPerLayer::communicateInitInfo();
+   int status = CloneVLayer::communicateInitInfo();
    originalLayer = parent->getLayerFromName(originalLayerName);
    if (originalLayer==NULL) {
       fprintf(stderr, "Group \"%s\": Original layer \"%s\" must be a HyPer layer\n", name, originalLayerName);
@@ -63,19 +54,21 @@ int RescaleLayer::communicateInitInfo() {
 }
 
 int RescaleLayer::allocateDataStructures() {
-   int status = HyPerLayer::allocateDataStructures();
+   int status = CloneVLayer::allocateDataStructures();
    free(clayer->V);
    clayer->V = originalLayer->getV();
 
-   // don't need conductance channels
-   freeChannels();
+   // Should have been initialized with zero channels, so GSyn should be NULL and freeChannels() call should be unnecessary
+   assert(GSyn==NULL);
+   // // don't need conductance channels
+   // freeChannels();
 
    return status;
 }
 
 int RescaleLayer::setParams(PVParams * params){
    readOriginalLayerName(params);
-   HyPerLayer::setParams(params);
+   CloneVLayer::setParams(params);
    readRescaleMethod(params);
    if (strcmp(rescaleMethod, "maxmin") == 0){
       readTargetMax(params);
@@ -93,18 +86,19 @@ int RescaleLayer::setParams(PVParams * params){
    return PV_SUCCESS;
 }
 
-void RescaleLayer::readOriginalLayerName(PVParams * params) {
-   const char * original_layer_name = params->stringValue(name, "originalLayerName");
-   if( original_layer_name == NULL ) {
-      fprintf(stderr, "RescaleLayer \"%s\": string parameter originalLayerName must be set\n", name);
-      exit(EXIT_FAILURE);
-   }
-   originalLayerName = strdup(original_layer_name);
-   if (originalLayerName==NULL) {
-      fprintf(stderr, "RescaleLayer \"%s\" error: unable to copy originalLayerName \"%s\": %s\n", name, original_layer_name, strerror(errno));
-      exit(EXIT_FAILURE);
-   }
-}
+// Handled by CloneVLayer
+// void RescaleLayer::readOriginalLayerName(PVParams * params) {
+//   const char * original_layer_name = params->stringValue(name, "originalLayerName");
+//   if( original_layer_name == NULL ) {
+//      fprintf(stderr, "RescaleLayer \"%s\": string parameter originalLayerName must be set\n", name);
+//      exit(EXIT_FAILURE);
+//   }
+//   originalLayerName = strdup(original_layer_name);
+//   if (originalLayerName==NULL) {
+//      fprintf(stderr, "RescaleLayer \"%s\" error: unable to copy originalLayerName \"%s\": %s\n", name, original_layer_name, strerror(errno));
+//      exit(EXIT_FAILURE);
+//   }
+//}
 
 void RescaleLayer::readTargetMax(PVParams * params){
    targetMax = params->value(name, "targetMax", targetMax);
@@ -140,7 +134,7 @@ int RescaleLayer::updateState(double timef, double dt) {
    const PVLayerLoc * loc = getLayerLoc();
    const PVLayerLoc * sourceLoc = originalLayer->getLayerLoc();
 
-   //Make sure layer loc and source layer loc is equivelent
+   //Make sure layer loc and source layer loc is equivalent
    if (V == NULL){
       fprintf(stderr, "Rescale Layer %s: Source layer must have a V buffer to rescale. Exiting.\n",
             name);
@@ -149,7 +143,7 @@ int RescaleLayer::updateState(double timef, double dt) {
    assert(loc->nx == sourceLoc->nx);
    assert(loc->ny == sourceLoc->ny);
    assert(loc->nf == sourceLoc->nf);
-   assert(loc->nb == sourceLoc->nb);
+   assert(loc->nb == sourceLoc->nb); // Is it necessary for margins to be equivalent?
 
    if (strcmp(rescaleMethod, "maxmin") == 0){
       float maxV = -1000000000;

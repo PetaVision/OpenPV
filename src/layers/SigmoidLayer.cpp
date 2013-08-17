@@ -5,107 +5,128 @@
  *      Author: garkenyon
  */
 
-#include "HyPerLayer.hpp"
 #include "SigmoidLayer.hpp"
 #include <stdio.h>
 
 #include "../include/default_params.h"
 
-// CloneLayer can be used to implement Sigmoid junctions
+// SigmoidLayer can be used to implement Sigmoid junctions
 namespace PV {
 SigmoidLayer::SigmoidLayer() {
    initialize_base();
 }
 
-SigmoidLayer::SigmoidLayer(const char * name, HyPerCol * hc, const char * origLayerName) {
+SigmoidLayer::SigmoidLayer(const char * name, HyPerCol * hc) {
    initialize_base();
-   initialize(name, hc, origLayerName);
+   initialize(name, hc);
 }
 
 SigmoidLayer::~SigmoidLayer()
 {
-    clayer->V = NULL;
+   // Handled by CloneVLayer destructor
+   // clayer->V = NULL;
+   // free(sourceLayerName);
 }
 
 int SigmoidLayer::initialize_base() {
-   sourceLayerName = NULL;
-   sourceLayer = NULL;
+   // Handled by CloneVLayer
+   // sourceLayerName = NULL;
+   // sourceLayer = NULL;
    return PV_SUCCESS;
 }
 
-int SigmoidLayer::initialize(const char * name, HyPerCol * hc, const char * origLayerName) {
-   int status_init = HyPerLayer::initialize(name, hc, MAX_CHANNELS);
-
-   V0 = parent->parameters()->value(name, "Vrest", V_REST);
-   Vth = parent->parameters()->value(name,"VthRest",VTH_REST);
-   InverseFlag = parent->parameters()->value(name,"InverseFlag",INVERSEFLAG);
-   SigmoidFlag = parent->parameters()->value(name,"SigmoidFlag",SIGMOIDFLAG);
-   SigmoidAlpha = parent->parameters()->value(name,"SigmoidAlpha",SIGMOIDALPHA);
+int SigmoidLayer::initialize(const char * name, HyPerCol * hc) {
+   // if (origLayerName==NULL) {
+   //    fprintf(stderr, "SigmoidLayer \"%s\": originalLayerName must be set.\n", name);
+   //    exit(EXIT_FAILURE);
+   // }
+   // sourceLayerName = strdup(origLayerName);
+   // if (sourceLayerName == NULL) {
+   //    fprintf(stderr, "SigmoidLayer \"%s\" error: rank %d process unable to copy original layer name \"%s\": %s\n", name, parent->columnId(), origLayerName, strerror(errno));
+   //    exit(EXIT_FAILURE);
+   // }
+   int status_init = CloneVLayer::initialize(name, hc);
 
    if (parent->columnId()==0) {
       if(InverseFlag)   fprintf(stdout,"SigmoidLayer: Inverse flag is set\n");
       if(SigmoidFlag)   fprintf(stdout,"SigmoidLayer: True Sigmoid flag is set\n");
    }
 
-   if (origLayerName==NULL) {
-      fprintf(stderr, "SigmoidLayer \"%s\": originalLayerName must be set.\n", name);
-      return(EXIT_FAILURE);
-   }
-   sourceLayerName = strdup(origLayerName);
-   if (sourceLayerName==NULL) {
-      fprintf(stderr, "SigmoidLayer \"%s\" error: unable to copy originalLayerName \"%s\": %s\n", name, origLayerName, strerror(errno));
+   if (SigmoidAlpha < 0.0f || SigmoidAlpha > 1.0f) {
+      if (parent->columnId()==0) {
+         fprintf(stderr, "%s \"%s\" error: SigmoidAlpha cannot be negative or greater than 1.\n", parent->parameters()->groupKeywordFromName(name), name);
+      }
+      MPI_Barrier(parent->icCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
-
-   // Moved to communicateInitInfo()
-   // HyPerLayer * origHyPerLayer = parent->getLayerFromName(origLayerName);
-   // if (origHyPerLayer==NULL) {
-   //    fprintf(stderr, "SigmoidLayer \"%s\" error: originalLayerName \"%s\" is not a layer in the HyPerCol.\n", name, origLayerName);
-   //    return(EXIT_FAILURE);
-   // }
-   // sourceLayer = dynamic_cast<LIF *>(origHyPerLayer);
-   // if (origHyPerLayer==NULL) {
-   //    fprintf(stderr, "SigmoidLayer \"%s\" error: originalLayerName \"%s\" is not a LIF or LIF-derived layer in the HyPerCol.\n", name, origLayerName);
-   //    return(EXIT_FAILURE);
-   // }
-
-   // Moved to allocateInitInfo()
-   // free(clayer->V);
-   // clayer->V = sourceLayer->getV();
-   //
-   // // don't need conductance channels
-   // freeChannels();
 
    return status_init;
 }
 
-int SigmoidLayer::communicateInitInfo() {
-   int status = HyPerLayer::communicateInitInfo();
+int SigmoidLayer::setParams(PVParams * params) {
+   int status = CloneVLayer::setParams(params);
+   readVrest(params);
+   readVthRest(params);
+   readInverseFlag(params);
+   readSigmoidFlag(params);
+   readSigmoidAlpha(params);
+   return status;
+}
 
-   HyPerLayer * origHyPerLayer = parent->getLayerFromName(sourceLayerName);
-   if (origHyPerLayer==NULL) {
-      fprintf(stderr, "SigmoidLayer \"%s\" error: originalLayerName \"%s\" is not a layer in the HyPerCol.\n",
-              name, sourceLayerName);
-      return(EXIT_FAILURE);
-   }
-   sourceLayer = dynamic_cast<LIF *>(origHyPerLayer);
-   if (sourceLayer==NULL) {
-      fprintf(stderr,
-              "SigmoidLayer \"%s\" error: sourceLayer \"%s\" is not a LIF or LIF-derived layer in the HyPerCol.\n",
-              name, sourceLayerName);
-      return(EXIT_FAILURE);
-   }
+void SigmoidLayer::readVrest(PVParams * params) {
+   V0 = params->value(name, "Vrest", V_REST);
+}
+void SigmoidLayer::readVthRest(PVParams * params) {
+   Vth = params->value(name,"VthRest",VTH_REST);
+}
+void SigmoidLayer::readInverseFlag(PVParams * params) {
+   InverseFlag = params->value(name,"InverseFlag",INVERSEFLAG);
+}
+void SigmoidLayer::readSigmoidFlag(PVParams * params) {
+   SigmoidFlag = params->value(name,"SigmoidFlag",SIGMOIDFLAG);
+}
+void SigmoidLayer::readSigmoidAlpha(PVParams * params) {
+   SigmoidAlpha = params->value(name,"SigmoidAlpha",SIGMOIDALPHA);
+}
+
+int SigmoidLayer::communicateInitInfo() {
+   int status = CloneVLayer::communicateInitInfo();
+
+   // Handled by CloneVLayer::communicateInitInfo
+   // sourceLayer = parent->getLayerFromName(sourceLayerName);
+   // if (sourceLayer==NULL) {
+   //    if (parent->columnId()==0) {
+   //       fprintf(stderr, "SigmoidLayer \"%s\" error: originalLayerName \"%s\" is not a layer in the HyPerCol.\n",
+   //               name, sourceLayerName);
+   //    }
+   //    MPI_Barrier(parent->icCommunicator()->communicator());
+   //    exit(EXIT_FAILURE);
+   // }
+   // const PVLayerLoc * srcLoc = sourceLayer->getLayerLoc();
+   // const PVLayerLoc * loc = getLayerLoc();
+   // if (srcLoc->nxGlobal != loc->nxGlobal || srcLoc->nyGlobal != loc->nyGlobal || srcLoc->nf != loc->nf) {
+   //    if (parent->columnId()==0) {
+   //       fprintf(stderr, "SigmoidLayer \"%s\" error: original layer \"%s\" must have the same dimensions.\n", name, sourceLayerName);
+   //       fprintf(stderr, "    original: (x=%d, y=%d, f=%d), SigmoidLayer: (x=%d, y=%d, f=%d)\n",
+   //               srcLoc->nxGlobal, srcLoc->nyGlobal, srcLoc->nf, loc->nxGlobal, loc->nyGlobal, loc->nf);
+   //    }
+   //    MPI_Barrier(parent->icCommunicator()->communicator());
+   //    exit(EXIT_FAILURE);
+   // }
 
    return status;
 }
 
 int SigmoidLayer::allocateDataStructures() {
-   int status = HyPerLayer::allocateDataStructures();
-   free(clayer->V);
-   clayer->V = sourceLayer->getV();
+   int status = CloneVLayer::allocateDataStructures();
+   // Handled by CloneVLayer::allocateV
+   // free(clayer->V);
+   // clayer->V = sourceLayer->getV();
 
-   // don't need conductance channels
-   freeChannels();
+   // Should have been initialized with zero channels, so GSyn should be NULL and freeChannels() call should be unnecessary
+   assert(GSyn==NULL);
+   // // don't need conductance channels
+   // freeChannels();
    return status;
 }
 

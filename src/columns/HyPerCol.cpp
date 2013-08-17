@@ -849,7 +849,7 @@ int HyPerCol::doInitializationStage(int (HyPerCol::*layerInitializationStage)(in
    while (numPostponedLayers < prevNumPostponedLayers || numPostponedConns < prevNumPostponedConns);
 
    if (numPostponedLayers != 0 || numPostponedConns != 0) {
-      printf("communicateInitInfo loop has hung on rank %d process.\n", columnId());
+      printf("%s loop has hung on rank %d process.\n", stageName, columnId());
       for (int l=0; l<numLayers; l++) {
          if (layerStatus[l]==PV_POSTPONE) {
             printf("Layer \"%s\" on rank %d is still postponed.\n", layers[l]->getName(), columnId());

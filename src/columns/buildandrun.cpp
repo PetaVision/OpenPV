@@ -116,7 +116,11 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
                "ANNErrorLayer",
                "ANNLabelLayer",
                "ANNTriggerUpdateOnNewImageLayer",
-             "GapLayer",
+             "CloneVLayer",
+               "BIDSCloneLayer",
+               "GapLayer",
+               "RescaleLayer",
+               "SigmoidLayer",
              "LCALayer",
              "TextStream",
 #ifdef PV_USE_SNDFILE
@@ -134,12 +138,9 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
                 "LCALIFLayer",
              "MatchingPursuitLayer",
              "Retina",
-             "SigmoidLayer",
-             "RescaleLayer",
              "ShuffleLayer",
              "BIDSMovieCloneMap",
              "BIDSSensorLayer",
-             "BIDSCloneLayer",
            "_Stop_HyPerLayers_",
            "_Start_HyPerConns_",
              "HyPerConn",
@@ -398,6 +399,10 @@ HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPe
       keywordMatched = true;
       addedLayer = (HyPerLayer *) new MaxPooling(name, hc);
    }
+   if( !strcmp(classkeyword, "CloneVLayer") ) {
+      keywordMatched = true;
+      addedLayer = (HyPerLayer *) new CloneVLayer(name, hc);
+   }
    if( !strcmp(classkeyword, "TextStream") ) {
       keywordMatched = true;
       addedLayer = (HyPerLayer *) addTextStream(name, hc);
@@ -446,7 +451,7 @@ HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPe
    }
    if( !strcmp(classkeyword, "GapLayer") ) {
       keywordMatched = true;
-      addedLayer = (HyPerLayer *) addGapLayer(name, hc);
+      addedLayer = (HyPerLayer *) new GapLayer(name, hc);
    }
    if( !strcmp(classkeyword, "HyPerLCALayer") ) {
      keywordMatched = true;
@@ -481,11 +486,11 @@ HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPe
    }
    if( !strcmp(classkeyword, "SigmoidLayer") ) {
       keywordMatched = true;
-      addedLayer = (HyPerLayer *) addSigmoidLayer(name, hc);
+      addedLayer = (HyPerLayer *) new SigmoidLayer(name, hc);
    }
    if( !strcmp(classkeyword, "RescaleLayer") ) {
       keywordMatched = true;
-      addedLayer = (HyPerLayer *) addRescaleLayer(name, hc);
+      addedLayer = (HyPerLayer *) new RescaleLayer(name, hc);
    }
    if (!strcmp(classkeyword, "MatchingPursuitLayer")) {
       keywordMatched = true;
@@ -501,7 +506,7 @@ HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPe
    }
    if( !strcmp(classkeyword, "BIDSCloneLayer") ) {
       keywordMatched = true;
-      addedLayer = (HyPerLayer *) addBIDSCloneLayer(name, hc);
+      addedLayer = (HyPerLayer *) new BIDSCloneLayer(name, hc);
    }
    status = checknewobject((void *) addedLayer, classkeyword, name, hc); // checknewobject tests addedObject against null, and either prints error message to stderr or success message to stdout.
    if( !keywordMatched ) {
@@ -524,19 +529,6 @@ TrainingLayer * addTrainingLayer(const char * name, HyPerCol * hc) {
    else {
       fprintf(stderr, "Group \"%s\": Parameter group for class TrainingLayer must set string parameter trainingLabelsPath\n", name);
       addedLayer = NULL;
-   }
-   return addedLayer;
-}
-
-GapLayer * addGapLayer(const char * name, HyPerCol * hc) {
-   const char * originalLayerName = hc->parameters()->stringValue(name, "originalLayerName");
-   GapLayer * addedLayer = NULL;
-   if( originalLayerName == NULL ) {
-      fprintf(stderr, "Group \"%s\": Parameter group for class GapLayer must set string parameter originalLayerName\n", name);
-      return NULL;
-   }
-   else {
-      addedLayer = new GapLayer(name, hc, originalLayerName);
    }
    return addedLayer;
 }
@@ -661,32 +653,6 @@ ANNTriggerUpdateOnNewImageLayer * addANNTriggerUpdateOnNewImageLayer(const char 
 		   new ANNTriggerUpdateOnNewImageLayer(name, hc, movieLayerName);
    return addedLayer;
 }
-
-SigmoidLayer * addSigmoidLayer(const char * name, HyPerCol * hc) {
-   const char * originalLayerName = hc->parameters()->stringValue(name, "originalLayerName");
-   if( originalLayerName == NULL ) {
-      fprintf(stderr, "Group \"%s\": Parameter group for class SigmoidLayer must set string parameter originalLayerName\n", name);
-      return NULL;
-   }
-   SigmoidLayer * addedLayer = new SigmoidLayer(name, hc, originalLayerName);
-   return addedLayer;
-}
-
-RescaleLayer * addRescaleLayer(const char * name, HyPerCol * hc) {
-   RescaleLayer * addedLayer = new RescaleLayer(name, hc);
-   return addedLayer;
-}
-
-BIDSCloneLayer * addBIDSCloneLayer(const char * name, HyPerCol * hc) {
-   const char * originalLayerName = hc->parameters()->stringValue(name, "originalLayerName");
-   if( originalLayerName == NULL ) {
-      fprintf(stderr, "Group \"%s\": Parameter group for class BIDSCloneLayer must set string parameter originalLayerName\n", name);
-      return NULL;
-   }
-   BIDSCloneLayer * addedLayer = new BIDSCloneLayer(name, hc, originalLayerName);
-   return addedLayer;
-}
-
 
 /*
  * This method parses the weightInitType parameter and creates an

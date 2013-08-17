@@ -9,7 +9,7 @@
 #ifndef BIDSCLONELAYER_HPP_
 #define BIDSCLONELAYER_HPP_
 
-#include "HyPerLayer.hpp"
+#include "CloneVLayer.hpp"
 #include "LIF.hpp"
 #include "BIDSLayer.hpp"
 #include "BIDSMovieCloneMap.hpp"
@@ -18,37 +18,28 @@
 
 namespace PV {
 
-// CloneLayer can be used to implement Sigmoid junctions between spiking neurons
-class BIDSCloneLayer: public HyPerLayer {
+// TODO: Fix this comment for BIDS: CloneLayer can be used to implement Sigmoid junctions between spiking neurons
+class BIDSCloneLayer: public CloneVLayer {
 public:
-   BIDSCloneLayer(const char * name, HyPerCol * hc, const char * origLayerName);
+   BIDSCloneLayer(const char * name, HyPerCol * hc);
    virtual ~BIDSCloneLayer();
    virtual int communicateInitInfo();
    virtual int allocateDataStructures();
    virtual int updateState(double timef, double dt);
-   // virtual int updateV();
-   // virtual int setActivity();
-   // virtual int resetGSynBuffers();
    virtual int setActivity();
    int mapCoords();
+
 protected:
    BIDSCloneLayer();
-   int initialize(const char * name, HyPerCol * hc, const char * origLayerName);
-   unsigned int * getSourceActiveIndices() {return sourceLayer->getCLayer()->activeIndices;}
-   unsigned int getSourceNumActive() {return sourceLayer->getCLayer()->numActive;}
-   char * sourceLayerName;
-   LIF * sourceLayer;
-   float V0;
-   float Vth;
-   bool  InverseFlag;
-   bool  SigmoidFlag;
-   float SigmoidAlpha;
+   int initialize(const char * name, HyPerCol * hc);
+   virtual int setParams(PVParams * params);
+   virtual void readWriteSparseActivity(PVParams * params);
+   virtual void readJitterSource(PVParams * params);
+   unsigned int * getSourceActiveIndices() {return originalLayer->getCLayer()->activeIndices;}
+   unsigned int getSourceNumActive() {return originalLayer->getCLayer()->numActive;}
    int numNodes;
-   // unsigned int *sourceLayerA; // replaced with member function getSourceActiveIndices()
    BIDSCoords * coords;
-   // unsigned int *sourceLayerNumIndices; // replaced with member function getSourceNumActive()
    char * jitterSourceName;
-
 
 private:
    int initialize_base();

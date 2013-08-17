@@ -690,20 +690,15 @@ static inline int setActivity_GapLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * 
    return PV_SUCCESS;
 }
 
-static inline int setActivity_SigmoidLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * A, CL_MEM_GLOBAL pvdata_t * V, int nx, int ny, int nf, int nb, float Vth, float V0, float sigmoid_alpha, bool sigmoid_flag, bool inverse_flag, float dt) {
-   pvdata_t sig_scale = 1.0f;
-   if( Vth > V0 ) {
-      //VthRest turns the 0.9 point on the sigmoid function, or the average between V0 and the parameter VthRest
-      if( sigmoid_flag ) {
- //        sig_scale = -0.5f * log(1.0f/sigmoid_alpha - 1.0f) / (Vth - V0);   // scale to get response alpha at Vrest
-         Vth = (Vth+V0)/2.; // the middle for L_G_E = 1
-         sig_scale = -1.0f * log(1.0f/sigmoid_alpha - 1.0f) / (Vth - V0); // Vth for L_G_E =1
-      }
-      else {
-         //sig_scale = 0.5/(Vth-V0); // threshold in the middle
-         sig_scale = 1.0/(Vth-V0); // threshold for L_G_E = 1
-       }
+static inline int setActivity_SigmoidLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * A, CL_MEM_GLOBAL pvdata_t * V, int nx, int ny, int nf, int nb, float VthRest, float Vrest, float sigmoid_alpha, bool sigmoid_flag, bool inverse_flag, float dt) {
+   pvdata_t Vth = (VthRest+Vrest)/2.0;
+   pvdata_t sig_scale = -logf(1.0f/sigmoid_alpha - 1.0f)/(Vth - Vrest);
+   if (!sigmoid_flag) {
+      sig_scale = sig_scale/logf(3.0f);
+      // If sigmoid_flag is off, A is a piecewise linear function of V, with slope of sig_scale/2 at V=Vth, truncated to have minimum value 0 and maximum value 1.
+      // The log(3) term makes alpha=1/4 have the slope such that V reaches 0 at Vrest, and V reaches 1 at VthRest.  Without it, that alpha happens at 0.26894...
    }
+
    int k;
 #ifndef PV_USE_OPENCL
    for( k=0; k<numNeurons; k++ )
@@ -712,20 +707,16 @@ static inline int setActivity_SigmoidLayer(int numNeurons, CL_MEM_GLOBAL pvdata_
 #endif // PV_USE_OPENCL
    {
       int kex = kIndexExtended(k, nx, ny, nf, nb);
+      pvdata_t activity = 0.0f;
       if(!sigmoid_flag) {
-         if (V[k] > 2*Vth-V0){    //  2x(Vth-V0) + V0
-            A[kex] = 1.0f;
-         }
-         else if (V[k] < V0){
-            A[kex] = 0.0f;
-         }
-         else{
-            A[kex] = (V[k] - V0) * sig_scale;
-         }
+         activity = 0.5f - (V[k] - Vth) * sig_scale/2;
+         activity = activity < 0.0f ? 0.0f : activity;
+         activity = activity > 1.0f ? 1.0f : activity;
       }
       else{
-         A[kex] = 1.0f / (1.0f + exp(2.0f * (V[k] - Vth) * sig_scale));
+         activity = 1.0f / (1.0f + exp(2.0f * (V[k] - Vth) * sig_scale));
       }
+      A[kex] = activity;
       if (inverse_flag) A[kex] = 1.0f - A[kex];
       // At this point A[kex] is in spikes per milli seconds;
       // A*dt makes activity dimensionless and timestep-independent

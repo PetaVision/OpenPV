@@ -29,6 +29,7 @@
 #include "../layers/PoolingANNLayer.hpp"
 #include "../layers/PtwiseProductLayer.hpp"
 #include "../layers/TrainingLayer.hpp"
+#include "../layers/CloneVLayer.hpp"
 #include "../layers/GapLayer.hpp"
 #include "../layers/MaxPooling.hpp"
 #include "../layers/TextStream.hpp"
@@ -140,7 +141,6 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
 HyPerCol * addHyPerColToColumn(const char * classkeyword, const char * name, HyPerCol * hc);
 HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPerCol * hc);
 TrainingLayer * addTrainingLayer(const char * name, HyPerCol *hc);
-GapLayer * addGapLayer(const char * name, HyPerCol * hc);
 TextStream * addTextStream(const char * name, HyPerCol *hc);
 #ifdef PV_USE_SNDFILE
 SoundStream * addSoundStream(const char * name, HyPerCol *hc);
@@ -150,10 +150,7 @@ Movie * addMovie(const char * name, HyPerCol *hc);
 Patterns * addPatterns(const char * name, HyPerCol *hc);
 LabelLayer * addLabelLayer(const char * name, HyPerCol * hc);
 ANNTriggerUpdateOnNewImageLayer * addANNTriggerUpdateOnNewImageLayer(const char * name, HyPerCol * hc);
-SigmoidLayer * addSigmoidLayer(const char * name, HyPerCol * hc);
-RescaleLayer * addRescaleLayer(const char * name, HyPerCol * hc);
 ShuffleLayer * addShuffleLayer(const char * name, HyPerCol * hc);
-BIDSCloneLayer * addBIDSCloneLayer(const char * name, HyPerCol * hc);
 InitWeights *createInitWeightsObject(const char * name, HyPerCol * hc);
 InitWeights * getDefaultInitWeightsMethod(const char * keyword);
 HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerCol * hc);

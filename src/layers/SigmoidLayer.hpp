@@ -9,28 +9,28 @@
 #ifndef SIGMOIDLAYER_HPP_
 #define SIGMOIDLAYER_HPP_
 
-#include "HyPerLayer.hpp"
-#include "LIF.hpp"
-
-#include "../kernels/LIF_params.h"
+#include "CloneVLayer.hpp"
 
 namespace PV {
 
-// CloneLayer can be used to implement Sigmoid junctions between spiking neurons
-class SigmoidLayer: public HyPerLayer {
+// SigmoidLayer can be used to implement Sigmoid junctions between spiking neurons
+class SigmoidLayer: public CloneVLayer {
 public:
-   SigmoidLayer(const char * name, HyPerCol * hc, const char * origLayerName);
+   SigmoidLayer(const char * name, HyPerCol * hc);
    virtual ~SigmoidLayer();
    virtual int communicateInitInfo();
    virtual int allocateDataStructures();
    virtual int updateState(double timef, double dt);
-   // virtual int updateV();
-   // virtual int setActivity();
-   // virtual int resetGSynBuffers();
    virtual int setActivity();
 protected:
    SigmoidLayer();
-   int initialize(const char * name, HyPerCol * hc, const char * origLayerName);
+   int initialize(const char * name, HyPerCol * hc);
+   virtual int setParams(PVParams * params);
+   virtual void readVrest(PVParams * params);
+   virtual void readVthRest(PVParams * params);
+   virtual void readInverseFlag(PVParams * params);
+   virtual void readSigmoidFlag(PVParams * params);
+   virtual void readSigmoidAlpha(PVParams * params);
    /* static */ int updateState(double timef, double dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels, pvdata_t * gSynHead, float Vth, float V0, float sigmoid_alpha, bool sigmoid_flag, bool inverse_flag, unsigned int * active_indices, unsigned int * num_active);
 private:
    int initialize_base();
@@ -39,8 +39,9 @@ private:
    bool  InverseFlag;
    bool  SigmoidFlag;
    float SigmoidAlpha;
-   char * sourceLayerName;
-   LIF * sourceLayer;
+   // Use CloneVLayer's originalLayerName and originalLayer member variables
+   // char * sourceLayerName;
+   // HyPerLayer * sourceLayer;
 };
 
 }

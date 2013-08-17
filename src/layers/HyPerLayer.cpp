@@ -1174,14 +1174,11 @@ int HyPerLayer::copyFromBuffer(const unsigned char * buf, pvdata_t * data,
    return 0;
 }
 
-// to allow sufficient time for information to propagate around feedback loops before each update step,
-// updateState checks the current time step against the feedbackLength and startStep
 int HyPerLayer::updateState(double timef, double dt) {
    int status;
-   //int step = parent->getCurrentStep();
-   //if (step < feedforwardDelay || (step - feedforwardDelay) % feedbackDelay != 0) return PV_SUCCESS;
+   pvdata_t * gSynHead = GSyn==NULL ? NULL : GSyn[0];
    status = doUpdateState(timef, dt, getLayerLoc(), getCLayer()->activity->data, getV(),
-         getNumChannels(), GSyn[0], getSpikingFlag(), getCLayer()->activeIndices,
+         getNumChannels(), gSynHead, getSpikingFlag(), getCLayer()->activeIndices,
          &getCLayer()->numActive);
    if(status == PV_SUCCESS) status = updateActiveIndices();
    return status;
@@ -1190,8 +1187,6 @@ int HyPerLayer::updateState(double timef, double dt) {
 
 int HyPerLayer::resetGSynBuffers(double timef, double dt) {
    int status = PV_SUCCESS;
-   //int step = parent->getCurrentStep();
-   //if (step < feedforwardDelay || (step - feedforwardDelay) % feedbackDelay != 0) return PV_SUCCESS;
    if (GSyn == NULL) return PV_SUCCESS;
    resetGSynBuffers_HyPerLayer(this->getNumNeurons(), getNumChannels(), GSyn[0]); // resetGSynBuffers();
    return status;
@@ -1476,12 +1471,6 @@ int HyPerLayer::recvSynapticInputFromPost(HyPerConn * conn, const PVLayerCube * 
  */
 int HyPerLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activity, int arborID)
 {
-   // only receive synaptic input on "allowed" time steps, which may be spaced to account for feedback delays
-   //	int step = parent->getCurrentStep();
-   //	if (step < feedforwardDelay
-   //			|| (step - feedforwardDelay) % feedbackDelay != 0)
-   //		return PV_SUCCESS;
-
    recvsyn_timer->start();
 
    assert(arborID >= 0);
@@ -1558,12 +1547,6 @@ int HyPerLayer::triggerReceive(InterColComm* comm)
 
 int HyPerLayer::publish(InterColComm* comm, double time)
 {
-   // only publish on "allowed" time steps, which may be spaced to account for feedback delays
-   //  int step = parent->getCurrentStep();
-   //  if (step < feedforwardDelay
-   //     || (step - feedforwardDelay) % feedbackDelay != 0)
-   //     return PV_SUCCESS;
-
    if ( useMirrorBCs() ) {
       for (int borderId = 1; borderId < NUM_NEIGHBORHOOD; borderId++){
          mirrorInteriorToBorder(borderId, clayer->activity, clayer->activity);
@@ -1583,12 +1566,6 @@ int HyPerLayer::publish(InterColComm* comm, double time)
 
 int HyPerLayer::waitOnPublish(InterColComm* comm)
 {
-   // only publish on "allowed" time steps, which may be spaced to account for feedback delays
-   //	int step = parent->getCurrentStep();
-   //	if (step < feedforwardDelay
-   //			|| (step - feedforwardDelay) % feedbackDelay != 0)
-   //		return PV_SUCCESS;
-
    // wait for MPI border transfers to complete
    //
    int status = comm->wait(getLayerId());
@@ -1632,12 +1609,6 @@ int HyPerLayer::insertProbe(LayerProbe * p)
 int HyPerLayer::outputState(double timef, bool last)
 {
    int status = PV_SUCCESS;
-   // only output on "allowed" time steps, which may be spaced to account for feedback delays
-   //	int step = parent->getCurrentStep();
-   //	if (step < feedforwardDelay
-   //			|| (step - feedforwardDelay) % feedbackDelay != 0)
-   //		return PV_SUCCESS;
-
 
    for (int i = 0; i < numProbes; i++) {
       probes[i]->outputState(timef);
