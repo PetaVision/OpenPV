@@ -1450,15 +1450,11 @@ int HyPerLayer::recvSynapticInputFromPost(HyPerConn * conn, const PVLayerCube * 
       float value = 0;
       //Iterate through y patch
       int numPerStride = targetToSourceConn->xPatchSize() * targetToSourceConn->fPatchSize();
-      //std::cout << "numPerStride"<< numPerStride << "\n";
+      int kernelIndex = targetToSourceConn->patchToDataLUT(kTargetExt);
       for (int ky = 0; ky < targetToSourceConn->yPatchSize(); ky++){
          float * activityY = &(activity->data[startSourceExt + ky*sy]);
-         int kernelIndex = targetToSourceConn->patchToDataLUT(kTargetExt);
          float * weightY = targetToSourceConn->get_wDataHead(arborID, kernelIndex) + ky*syp;
-         for (int kp = 0; kp < numPerStride; kp++){
-            //std::cout << "activity:" << activityY[kp] << " weight:" << weightY[kp] << "\n";
-            value += dt_factor * activityY[kp] * weightY[kp];
-         }
+         (conn->accumulateFunctionFromPostPointer)(numPerStride, gSynPatchPos, activityY, weightY, dt_factor);
       }
       *gSynPatchPos += value;
    }

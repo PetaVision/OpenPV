@@ -245,6 +245,17 @@ int pvpatch_accumulate(int nk, float* RESTRICT v, float a, float* RESTRICT w)
 }
 #endif
 
+int pvpatch_accumulate_from_post(int nk, float * RESTRICT v, float * RESTRICT a, float * RESTRICT w, float dt_factor) {
+   int status = 0;
+   int k;
+   float dv = 0.0f;
+   for (k = 0; k < nk; k++) {
+      dv = dv + a[k]*w[k];
+   }
+   *v = *v + dt_factor*dv;
+   return status;
+}
+
 int pvpatch_accumulate2(int nk, float* RESTRICT v, float a, float* RESTRICT w, float* RESTRICT m)
 {
    int k;
@@ -267,6 +278,19 @@ int pvpatch_accumulate_stochastic(int nk, float* RESTRICT v, float a, float* RES
    return err;
 }
 
+int pvpatch_accumulate_stochastic_from_post(int nk, float * RESTRICT v, float * RESTRICT a, float * RESTRICT w, float dt_factor) {
+   int status = 0;
+   int k;
+   float dv = 0.0f;
+   for (k = 0; k < nk; k++) {
+      long along = (long) (a[k]*pv_random_max());
+      dv = pv_random()<along ? dv + a[k]*w[k] : 0.0f;
+   }
+   *v = *v + dt_factor*dv;
+   return status;
+}
+
+#ifdef OBSOLETE // Marked obsolete Aug 19, 2013.  Nobody calls pvpatch_max and whatever WTACompressedLayer was, it's not in the code now.
 // Used by WTACompressedLayer
 int pvpatch_max(int nk, float * RESTRICT v, float a, float * RESTRICT w, int feature, int * RESTRICT maxloc) {
    int k;
@@ -283,16 +307,28 @@ int pvpatch_max(int nk, float * RESTRICT v, float a, float * RESTRICT w, int fea
    }
    return err;
 }
+#endif
 
-  int pvpatch_max_pooling(int nk, float* RESTRICT v, float a, float* RESTRICT w)
-  {
-    int k;
-    int err = 0;
-    for (k = 0; k < nk; k++) {
-      v[k] = v[k] > a ? v[k] : a;
-    }
-    return err;
+int pvpatch_max_pooling(int nk, float* RESTRICT v, float a, float* RESTRICT w)
+{
+  int k;
+  int err = 0;
+  for (k = 0; k < nk; k++) {
+     v[k] = v[k] > a ? v[k] : a;
   }
+  return err;
+}
+
+int pvpatch_max_pooling_from_post(int nk, float * RESTRICT v, float * RESTRICT a, float * RESTRICT w, float dt_factor) {
+   int status = 0;
+   int k;
+   float vmax = *v;
+   for (k = 0; k < nk; k++) {
+      vmax = vmax > a[k] ? vmax : a[k];
+   }
+   *v = vmax;
+   return status;
+}
   
 
 ///////////////////////////////////////////////////////

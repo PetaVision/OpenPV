@@ -91,6 +91,7 @@ public:
    int readWeights(const char* filename);
     
    int (*accumulateFunctionPointer)(int nk, float* v, float a, float* w);
+   int (*accumulateFunctionFromPostPointer)(int nk, float* v, float* a, float* w, float dt_factor);
    inline bool preSynapticActivityIsNotRate() {return preActivityIsNotRate;}
 
    // TODO make a get-method to return this.

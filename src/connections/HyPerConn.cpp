@@ -468,11 +468,16 @@ int HyPerConn::initialize(const char * name, HyPerCol * hc, const char * pre_lay
 
    //set accumulateFunctionPointer's default value
    accumulateFunctionPointer  = &pvpatch_accumulate;
+   accumulateFunctionFromPostPointer = &pvpatch_accumulate_from_post;
    if (pvpatchAccumulateType != NULL) {
-      if (strcmp(pvpatchAccumulateType, "Stochastic") == 0)
+      if (strcmp(pvpatchAccumulateType, "Stochastic") == 0) {
          accumulateFunctionPointer = &pvpatch_accumulate_stochastic;
-      else if (strcmp(pvpatchAccumulateType, "Maxpooling") == 0)
+         accumulateFunctionFromPostPointer = &pvpatch_accumulate_stochastic_from_post;
+      }
+      else if (strcmp(pvpatchAccumulateType, "Maxpooling") == 0) {
          accumulateFunctionPointer = &pvpatch_max_pooling;
+         accumulateFunctionFromPostPointer = &pvpatch_max_pooling_from_post;
+      }
    }
 
    ioAppend = parent->getCheckpointReadFlag();
