@@ -315,20 +315,14 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * p
       fprintf(stderr, "Error: random seed %lu is too small. Use a seed of at least 10000000.\n", random_seed);
       abort();
    }
-   // random_seed /= (unsigned long) (1+columnId()); // Commented out Nov. 28, 2012.  For reproducibility across MPI configurations, need all processes to use the same seed
 
-   // Commented out Nov. 28, 2012.  getRandomSeed prints the seed so we don't have to do it here.
-   // if (seedfromclock) {
-   //    if (icComm->commRank()==0) {
-   //       printf("Using time to get random seed.\n");
-   //    }
-   //    printf("Rank %d process seed set to %lu\n", icComm->commRank(), random_seed);
-   // }
+   // As much as possible, we should be using cl_random.c/cl_random.h/cl_random.hcl routines for random number generation.
+   // However, there are still some routines using pv_random, which calls random(), so we need to seed the system RNG here.
+   // Each MPI process will have its own seed, for independence, but the results will depend on MPI configuration, and
+   // restarting from checkpoint cannot recover the previous state of the system RNG.
+   unsigned long system_random_seed = random_seed / ((unsigned long) (2+columnId()));
+   pv_srandom(system_random_seed); // initialize system random number generator
 
-   // Commented out Nov. 28, 2012.  Individual neurons have a Tausworthe pseudo-rng so that their state can be
-   // recovered in checkpointing, and so that MPI runs are reproducible even though MPI processes call the
-   // random() system call a nondeterministic number of times.
-   // pv_srandom(random_seed); // initialize random seed
    random_seed_obj = random_seed;
 
    nxGlobal = (int) params->value(name, "nx");
