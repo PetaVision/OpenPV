@@ -236,13 +236,12 @@ int LabelLayer::updateState(double time, double dt){
 }
 
 int LabelLayer::outputState(double time, bool last){
-   int status = PV_SUCCESS;
+   // io_timer->start();
+   // fprintf(stderr,"Writing Label Layer state \n");
+   // io_timer->stop();
 
-   //fprintf(stderr,"Writing Label Layer state \n");
-
-   status = HyPerLayer::outputState(time, last);
-
-   return status;
+   // HyPerLayer::outputState already has an io timer so don't duplicate
+   return HyPerLayer::outputState(time, last);
 }
 
 
