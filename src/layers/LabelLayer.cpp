@@ -1,6 +1,27 @@
 /*
  * LabelLayer.cpp
  *
+ * Label Layer is a type of HyPerLayer that can be used to assign images with a label or category.
+ * It is meant to be used together with a Movie layer.
+ *
+ * This layer takes a label from the filepath of the names of the images.  It has a layer with nf =
+ * number of categories.  For every new image, the layer will adjust its activity such that all
+ * neurons have an activity of 0 except those with the feature corresponding to your image, which
+ * will have an activity of 1.
+ *
+ * Additional Params:
+ * movieLayerName - the name of the movie layer, where images are defined in categories
+ * labelStart - the character in the file name or file path (as defined by your [images].txt file)
+ *      where the category or label is specified.  These labels must be formatted as a number
+ *      between 0 and (total number of categories - 1), and every label must have the same number
+ *      of digits (e.g. use 01 for 2 digits)
+ * labelLength - the number of digits in the labels
+ *
+ * Other notes:
+ * The label layer will automatically determine the nxscale and nyscale in order to have the smallest
+ * number of neurons per layer possible.  You can specify an nxscale or nyscale, but these values will
+ * be ignored.
+ *
  *  Created on: Jul 9, 2013
  *      Author: bcrocker
  */
