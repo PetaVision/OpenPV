@@ -363,20 +363,21 @@ int Image::updateState(double time, double dt)
 {
    // make sure image is copied to activity buffer
    //
-   update_timer->start();
-   update_timer->stop();
+   //update_timer->start();
+   //update_timer->stop();
    return 0;
 }
 
 int Image::outputState(double time, bool last)
 {
+   //io_timer->start();
    // this could probably use Marion's update time interval
    // for some classes
    //
+   //io_timer->stop();
+
    return 0;
 }
-
-
 
 int Image::checkpointRead(const char * cpDir, double * timef){
 
@@ -391,11 +392,8 @@ int Image::checkpointRead(const char * cpDir, double * timef){
       HyPerLayer::checkpointRead(cpDir, timef);
    }
 
-
    return PV_SUCCESS;
 }
-
-
 
 
 //! CLEAR IMAGE
