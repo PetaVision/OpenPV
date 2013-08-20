@@ -459,14 +459,19 @@ int Retina::triggerReceive(InterColComm* comm)
 
 int Retina::waitOnPublish(InterColComm* comm)
 {
+   // HyPerLayer::waitOnPublish already has a publish timer so don't duplicate
    int status = HyPerLayer::waitOnPublish(comm);
 
    // copy activity to device
    //
 #ifdef PV_USE_OPENCL
 #if PV_CL_COPY_BUFFERS
+   publish_timer->start();
+
    status |= clActivity->copyToDevice(&evList[EV_R_ACTIVITY]);
    numWait += 1;
+
+   publish_timer->stop();
 #endif
 #endif
 
@@ -521,8 +526,6 @@ int Retina::updateState(double timed, double dt)
 #ifdef PV_USE_OPENCL
    }
 #endif // PV_USE_OPENCL
-
-
 
 #ifdef DEBUG_PRINT
    char filename[132];
@@ -591,7 +594,11 @@ int Retina::updateBorder(double time, double dt)
 
 int Retina::outputState(double time, bool last)
 {
+   // io_timer->start();
    // if( spikingFlag ) updateActiveIndices(); // updateActiveIndices moved back into updateState.
+   // io_timer->stop();
+
+   // HyPerLayer::outputState already has an io timer so don't duplicate
    return HyPerLayer::outputState(time, last);
 }
 
