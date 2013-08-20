@@ -35,8 +35,7 @@ public:
     * This method is purposely not virtual!  Only calcWeights will be virtual and can be over ridden by sub
     * initweights classes
     */
-   //void initializeWeights(const char * filename, HyPerConn * callingConn, float * timef=NULL);
-   virtual int initializeWeights(PVPatch *** patches, pvdata_t ** dataStart, int numPatches, const char * filename, HyPerConn * callingConn, double * timef=NULL);
+   virtual int initializeWeights(PVPatch *** patches, pvdata_t ** dataStart, const char * filename, HyPerConn * callingConn, double * timef=NULL);
    virtual InitWeightsParams * createNewWeightParams(HyPerConn * callingConn);
 
    virtual int calcWeightsBIDS(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, int arborId, InitWeightsParams *weightParams, HyPerConn * conn);
@@ -48,16 +47,6 @@ public:
 
 protected:
    virtual int initialize_base();
-#ifdef OBSOLETE // Marked obsolete Feb 27, 2012.  With refactoring of wDataStart, there is no need to initialize on an unshrunken patch and copy to a shrunken patch
-   PVPatch * createUnShrunkenPatch(HyPerConn * callingConn, PVPatch * wp);
-   static int copyToOriginalPatch(PVPatch * wp, PVPatch * wp_tmp, pvdata_t * wtop, int patchIndex, int nf_patch, int sy_patch);
-#endif // OBSOLETE
-//   char * name; //this is actually the Connection name
-//   HyPerLayer     * pre;
-//   HyPerLayer     * post;
-//   HyPerCol       * parent;
-//   HyPerConn      * parentConn;
-//   ChannelType channel;    // which channel of the post to update (e.g. inhibit)
    BIDSMovieCloneMap * movieLayer;
 
 private:

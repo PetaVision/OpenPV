@@ -31,13 +31,12 @@ InitWeights::~InitWeights()
 /*This method does the three steps involved in initializing weights.  Subclasses usually don't need to override this method.
  * Instead they should override calcWeights to do their own type of weight initialization.
  *
- * This method initializes the full unshrunken patch.  The input argument numPatches is ignored.  Instead, method uses getNumDataPatches to determine number of
- * data patches.
+ * This method initializes the full unshrunken patch.
  * For KernelConns, patches should be NULL.
  *
  */
 int InitWeights::initializeWeights(PVPatch *** patches, pvdata_t ** dataStart,
-		int numPatches, const char * filename, HyPerConn * callingConn,
+		const char * filename, HyPerConn * callingConn,
 		double * timef /*default NULL*/) {
 	PVParams * inputParams = callingConn->getParent()->parameters();
 	int initFromLastFlag = inputParams->value(callingConn->getName(),
@@ -89,18 +88,6 @@ int InitWeights::initializeWeights(PVPatch *** patches, pvdata_t ** dataStart,
 			}
 		}
 		delete (weightParams);
-//		} // callCalcWeights
-//		if (patches == NULL) {
-//
-//			int buf_size = callingConn->xPatchSize() * callingConn->yPatchSize()
-//					* callingConn->fPatchSize()
-//					* callingConn->getNumDataPatches();
-//			MPI_Comm mpi_comm = hc->icCommunicator()->communicator();
-//			for (int arbor = 0; arbor < numArbors; arbor++) {
-//				MPI_Bcast(callingConn->get_wDataStart(arbor), buf_size,
-//						MPI_FLOAT, root_proc, mpi_comm);
-//			}
-//		}
 	} // filename != null
 	int successFlag = zeroWeightsOutsideShrunkenPatch(patches, callingConn);
 	if (successFlag != PV_SUCCESS) {

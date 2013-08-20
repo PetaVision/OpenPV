@@ -39,7 +39,7 @@ InitWeightsParams * InitDistributedWeights::createNewWeightParams(HyPerConn * ca
    return tempPtr;
 }
 
-int InitDistributedWeights::initializeWeights(PVPatch *** patches, pvdata_t ** dataStart, int numPatches, const char * filename, HyPerConn * callingConn, double * timef /*default NULL*/) {
+int InitDistributedWeights::initializeWeights(PVPatch *** patches, pvdata_t ** dataStart, const char * filename, HyPerConn * callingConn, double * timef /*default NULL*/) {
    PVParams * inputParams = callingConn->getParent()->parameters();
    assert(callingConn->getNumDataPatches() == callingConn->getNumWeightPatches()); //assures that this function can only be called in a HyPerConn
    int initFromLastFlag = inputParams->value(callingConn->getName(), "initFromLastFlag", 0.0f, false) != 0;

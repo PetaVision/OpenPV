@@ -1049,7 +1049,7 @@ int HyPerConn::setNeededRNGSeeds() {
 // returns handle to initialized weight patches
 PVPatch *** HyPerConn::initializeWeights(PVPatch *** patches, pvdata_t ** dataStart, int numPatches, const char * filename)
 {
-   weightInitializer->initializeWeights(patches, dataStart, numPatches, filename, this);
+   weightInitializer->initializeWeights(patches, dataStart, filename, this);
    // insert synchronization barrier to ensure that all processes have finished loading portions of shared memory for which they
    // might be responsible
 #ifdef USE_SHMGET
@@ -1593,7 +1593,7 @@ int HyPerConn::checkpointRead(const char * cpDir, double * timef) {
    int status = checkpointFilename(path, PV_PATH_MAX, cpDir);
    assert(status==PV_SUCCESS);
    InitWeights * weightsInitObject = new InitWeights();
-   weightsInitObject->initializeWeights(wPatches, get_wDataStart(), getNumDataPatches(), path, this, timef);
+   weightsInitObject->initializeWeights(wPatches, get_wDataStart(), path, this, timef);
 
    status = parent->readScalarFromFile(cpDir, getName(), "nextWrite", &writeTime, writeTime);
    assert(status == PV_SUCCESS);

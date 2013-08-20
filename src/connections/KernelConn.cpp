@@ -746,7 +746,7 @@ int KernelConn::checkpointRead(const char * cpDir, double * timef) {
    int status = checkpointFilename(path, PV_PATH_MAX, cpDir);
    assert(status==PV_SUCCESS);
    InitWeights * weightsInitObject = new InitWeights();
-   weightsInitObject->initializeWeights(NULL, get_wDataStart(), getNumDataPatches(), path, this, timef);
+   weightsInitObject->initializeWeights(NULL, get_wDataStart(), path, this, timef);
    return PV_SUCCESS;
 }
 

@@ -11,9 +11,6 @@
 #include <math.h>
 
 #include "../include/default_params.h"
-#ifdef OBSOLETE // Marked obsolete Feb. 27, 2012.  Replaced by PatchProbe.
-#include "../io/ConnectionProbe.hpp"
-#endif // OBSOLETE
 #include "../io/io.h"
 #include "../io/fileio.hpp"
 #include "../utils/conversions.h"
@@ -36,10 +33,9 @@ InitBIDSLateral::~InitBIDSLateral(){
 /*This method does the three steps involved in initializing weights.  Subclasses shouldn't touch this method.
  * Subclasses should only generate their own versions of calcWeights to do their own type of weight initialization.
  *
- * This method initializes the full unshrunken patch.  The input argument numPatches is ignored.  Instead, method uses getNumDataPatches to determine number of
- * data patches.
+ * This method initializes the full unshrunken patch.
  */
-int InitBIDSLateral::initializeWeights(PVPatch *** patches, pvdata_t ** dataStart, int numPatches, const char * filename, HyPerConn * callingConn, double * timef /*default NULL*/){
+int InitBIDSLateral::initializeWeights(PVPatch *** patches, pvdata_t ** dataStart, const char * filename, HyPerConn * callingConn, double * timef /*default NULL*/){
    PVParams * inputParams = callingConn->getParent()->parameters();
    movieLayer = (BIDSMovieCloneMap*)(callingConn->getParent()->getLayerFromName("BIDS_Movie"));
    int initFromLastFlag = inputParams->value(callingConn->getName(), "initFromLastFlag", 0.0f, false) != 0;
@@ -55,38 +51,17 @@ int InitBIDSLateral::initializeWeights(PVPatch *** patches, pvdata_t ** dataStar
    }
    else {
       weightParams = createNewWeightParams(callingConn);
-      //int patchSize = nfp*nxp*nyp;
-//      std::cout<<"\n\nnumAbors: " << numArbors << " Patch size: " << callingConn->getNumDataPatches() << "\n";
       for( int arbor=0; arbor<numArbors; arbor++ ) {
          for (int dataPatchIndex = 0; dataPatchIndex < callingConn->getNumDataPatches(); dataPatchIndex++) {
-
-            //int correctedPatchIndex = callingConn->correctPIndex(patchIndex);
-            //int correctedPatchIndex = patchIndex;
-            //create full sized patch:
-            // PVPatch * wp_tmp = createUnShrunkenPatch(callingConn, patches[arbor][patchIndex]);
-            // if(wp_tmp==NULL) continue;
-
-            //calc weights for patch:
-
-            //int successFlag = calcWeights(get_wDataHead[arbor]+patchIndex*patchSize, patchIndex /*correctedPatchIndex*/, arbor, weightParams);
-            //int successFlag = calcWeights(callingConn->get_wDataHead(arbor, patchIndex), patchIndex /*correctedPatchIndex*/, arbor, weightParams);
             int successFlag = calcWeightsBIDS(callingConn->get_wDataHead(arbor, dataPatchIndex), dataPatchIndex, arbor, weightParams, callingConn);
             if (successFlag != PV_SUCCESS) {
                fprintf(stderr, "Failed to create weights for %s! Exiting...\n", callingConn->getName());
                exit(PV_FAILURE);
             }
-
-            //copy back to unshrunk patch:
-            //copyToOriginalPatch(patches[arbor][patchIndex], wp_tmp);
-            //copyToOriginalPatch(patches[arbor][patchIndex], wp_tmp,
-            //      callingConn->get_wDataStart(arbor), patchIndex,
-            //      callingConn->fPatchSize(), callingConn->yPatchStride());
-            //free(wp_tmp);
          }
       }
       delete(weightParams);
    }
-   //return callingConn->weights();
    return PV_SUCCESS;
 }
 

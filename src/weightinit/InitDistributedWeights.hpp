@@ -22,19 +22,13 @@ namespace PV {
 class InitDistributedWeights: public PV::InitWeights {
 public:
    InitDistributedWeights();
-//   InitUniformRandomWeights(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
-//         ChannelType channel);
    virtual ~InitDistributedWeights();
-   virtual int initializeWeights(PVPatch *** patches, pvdata_t ** dataStart, int numPatches, const char * filename, HyPerConn * callingConn, double * timef=NULL);
+   virtual int initializeWeights(PVPatch *** patches, pvdata_t ** dataStart, const char * filename, HyPerConn * callingConn, double * timef=NULL);
 
    virtual InitWeightsParams * createNewWeightParams(HyPerConn * callingConn);
 
 protected:
    virtual int initialize_base();
-//   int initialize(const char * name, HyPerCol * hc,
-//                  HyPerLayer * pre, HyPerLayer * post,
-//                  ChannelType channel);
-
 
 };
 

@@ -34,7 +34,7 @@ public:
     * The method is nevertheless virtual to allow special cases (e.g. BIDS)
     */
    virtual int initializeWeights(PVPatch *** patches, pvdata_t ** dataStart,
-			int numPatches, const char * filename, HyPerConn * callingConn,
+			const char * filename, HyPerConn * callingConn,
 			double * timef = NULL);
    virtual InitWeightsParams * createNewWeightParams(HyPerConn * callingConn);
 
