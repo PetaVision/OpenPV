@@ -593,8 +593,12 @@ int LIF::waitOnPublish(InterColComm* comm)
    //
 #ifdef PV_USE_OPENCL
 #if PV_CL_COPY_BUFFERS
+   publish_timer->start();
+
    status |= clActivity->copyToDevice(&evList[EV_LIF_ACTIVITY]);
    numWait += 1;
+
+   publish_timer->stop();
 #endif
 #endif
 
