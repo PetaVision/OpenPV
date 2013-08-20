@@ -293,7 +293,10 @@ void MatchingPursuitLayer::updateMaxinfo(pvdata_t gsyn, int k) {
 }
 
 int MatchingPursuitLayer::outputState(double timed, bool last) {
+   // HyPerLayer::outputState already has an io timer so don't duplicate
    int status = HyPerLayer::outputState(timed, last);
+
+   io_timer->start();
 
    if (parent->columnId()==0 && tracePursuit) {
       const PVLayerLoc * loc = getLayerLoc();
@@ -308,6 +311,8 @@ int MatchingPursuitLayer::outputState(double timed, bool last) {
       }
       fflush(traceFile->fp);
    }
+
+   io_timer->stop();
 
    return status;
 }
