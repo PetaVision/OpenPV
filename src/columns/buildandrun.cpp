@@ -146,6 +146,7 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
              "HyPerConn",
                "BIDSConn",
                "KernelConn",
+                 "MapReduceKernelConn",
                  "CliqueConn",
                  "CloneKernelConn",
                  "IdentConn",
@@ -646,7 +647,7 @@ ANNTriggerUpdateOnNewImageLayer * addANNTriggerUpdateOnNewImageLayer(const char 
    const char * movieLayerName = hc->parameters()->stringValue(name, "movieLayerName");
    if( movieLayerName == NULL ) {
       fprintf(stderr, "Group \"%s\": Parameter group for class ANNTriggerUpdateOnNewImageLayer "
-    		  "must set string parameter originalLayerName\n", name);
+    		  "must set string parameter movieLayerName\n", name);
       return NULL;
    }
    ANNTriggerUpdateOnNewImageLayer * addedLayer =
@@ -824,6 +825,22 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
          fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
 
          addedConn = (HyPerConn * ) new KernelConn(name, hc, preLayerName, postLayerName, fileName, weightInitializer);
+      }
+   }
+   if( !keywordMatched && !strcmp(classkeyword, "MapReduceKernelConn") ) {
+      keywordMatched = true;
+      HyPerConn::getPreAndPostLayerNames(name, hc->parameters(), &preLayerName, &postLayerName);
+      if( preLayerName && postLayerName ) {
+         fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
+         const char * movieLayerName = hc->parameters()->stringValue(name, "movieLayerName");
+         if( movieLayerName == NULL ) {
+            fprintf(stderr, "Group \"%s\": Parameter group for class MapReduceKernelConn "
+          		  "must set string parameter movieLayerName\n", name);
+            return NULL;
+         }
+
+         addedConn = (HyPerConn * ) new MapReduceKernelConn(name, hc, preLayerName, postLayerName, fileName,
+        		 weightInitializer, movieLayerName);
       }
    }
    if( !keywordMatched && !strcmp(classkeyword, "CliqueConn") ) {

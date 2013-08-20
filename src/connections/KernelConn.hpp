@@ -107,6 +107,8 @@ protected:
    virtual float computeNewWeightUpdateTime(double time, double currentUpdateTime);
 #ifdef PV_USE_MPI
    virtual int reduceKernels(int arborID);
+#else
+   virtual int reduceKernels(int arborID){return PV_SUCCESS;};
 #endif // PV_USE_MPI
 //   virtual PVPatch ** readWeights(PVPatch ** patches, int numPatches,
 //                                     const char * filename);

@@ -64,7 +64,7 @@ int ANNTriggerUpdateOnNewImageLayer::communicateInitInfo() {
    }
    movieLayer = dynamic_cast<Movie *>(origHyPerLayer);
    if (movieLayer==NULL) {
-      fprintf(stderr, "SigmoidLayer \"%s\" error: movieLayerName \"%s\" is not a Movie or Movie-derived layer in the HyPerCol.\n",
+      fprintf(stderr, "ANNTriggerUpdateOnNewImageLayer \"%s\" error: movieLayerName \"%s\" is not a Movie or Movie-derived layer in the HyPerCol.\n",
     		  name, movieLayerName);
       return(EXIT_FAILURE);
    }

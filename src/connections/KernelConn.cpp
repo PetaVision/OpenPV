@@ -581,8 +581,22 @@ int KernelConn::reduceKernels(const int arborID) {
    const int numPatches = getNumDataPatches();
    const size_t patchSize = nxp*nyp*nfp*sizeof(pvdata_t);
    const size_t localSize = numPatches * patchSize;
+   const size_t arborSize = localSize * this->numberOfAxonalArborLists();
+
+
+   ierr = MPI_Allreduce(MPI_IN_PLACE, this->get_dwDataStart(0), arborSize, MPI_FLOAT, MPI_SUM, mpi_comm);
+   pvdata_t * dW_data = this->get_dwDataStart(0);
+   for (int i_dW = 0; i_dW < arborSize; i_dW++){
+	   dW_data[i_dW] /= nProcs;
+   }
+
+
 
    // Copy this column's weights into mpiReductionBuffer
+   //TODO!!! should do mem copy here since weights stored in contiguous memory
+   //memcpy(mpiReductionBuffer, this->get_dwDataStart(arborID), localSize);
+
+/*
    int idx = 0;
    for (int k = 0; k < numPatches; k++) {
       const pvdata_t * data = get_dwDataHead(arborID,k);
@@ -596,14 +610,19 @@ int KernelConn::reduceKernels(const int arborID) {
          }
       }
    }
+*/
 
    // MPI_Allreduce combines all processors' buffers and puts the common result
    // into each processor's buffer.
-   ierr = MPI_Allreduce(MPI_IN_PLACE, mpiReductionBuffer, localSize, MPI_FLOAT, MPI_SUM, mpi_comm);
+   //ierr = MPI_Allreduce(MPI_IN_PLACE, mpiReductionBuffer, localSize, MPI_FLOAT, MPI_SUM, mpi_comm);
    // TODO error handling
 
    // mpiReductionBuffer now holds the sum over all processes.
    // Divide by number of processes to get average and copy back to patches
+   //TODO!!! should do mem copy here since weights stored in contiguous memory
+   //memcpy(this->get_dwDataStart(), mpiReductionBuffer, localSize);
+
+/*
    idx = 0;
    for (int k = 0; k < numPatches; k++) {
       pvdata_t * data = get_dwDataHead(arborID,k); // p->data;
@@ -617,8 +636,10 @@ int KernelConn::reduceKernels(const int arborID) {
          }
       }
    }
+*/
 
-   return PV_SUCCESS;
+   //return PV_SUCCESS;
+   return PV_BREAK;
 }
 #endif // PV_USE_MPI
 

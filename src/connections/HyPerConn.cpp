@@ -1266,7 +1266,8 @@ int HyPerConn::writeWeights(const char * filename) {
    return writeWeights(wPatches, wDataStart, getNumWeightPatches(), filename, parent->simulationTime(), writeCompressedWeights, true);
 }
 
-int HyPerConn::writeWeights(PVPatch *** patches, pvdata_t ** dataStart, int numPatches, const char * filename, double timef, bool compressWeights, bool last) {
+int HyPerConn::writeWeights(PVPatch *** patches, pvdata_t ** dataStart, int numPatches,
+		const char * filename, double timef, bool compressWeights, bool last) {
    int status = PV_SUCCESS;
    char path[PV_PATH_MAX];
 

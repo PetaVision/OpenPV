@@ -65,6 +65,7 @@
 #include "../connections/HyPerConn.hpp"
 #include "../connections/BIDSConn.hpp"
 #include "../connections/KernelConn.hpp"
+#include "../connections/MapReduceKernelConn.hpp"
 #include "../connections/CliqueConn.hpp"
 #include "../connections/CloneKernelConn.hpp"
 #include "../connections/GapConn.hpp"
