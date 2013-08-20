@@ -18,8 +18,8 @@ MapReduceKernelConn::~MapReduceKernelConn() {
 }
 
 int MapReduceKernelConn::initialize_base() {
-	numWeightFiles = 1;
-	weightFileIndex = 0;
+	num_dWeightFiles = 1;
+	dWeightFileIndex = 0;
 	//dWeightsList = NULL;
 	movieLayerName = NULL;
 	movieLayer = NULL;
@@ -63,12 +63,12 @@ int MapReduceKernelConn::initialize(const char * name, HyPerCol * hc,
 #endif // PV_USE_MPI
 		exit(EXIT_FAILURE);
 	} // this->dWeightsListName == NULL
-	numWeightFiles = inputParams->value(name, "numWeightFiles", numWeightFiles,
+	num_dWeightFiles = inputParams->value(name, "num_dWeightFiles", num_dWeightFiles,
 			true);
-	assert(numWeightFiles > 0);
-	weightFileIndex = inputParams->value(name, "weightFileIndex",
-			weightFileIndex, true);
-	assert(weightFileIndex >= 0);
+	assert(num_dWeightFiles > 0);
+	dWeightFileIndex = inputParams->value(name, "dWeightFileIndex",
+			dWeightFileIndex, true);
+	assert(dWeightFileIndex >= 0);
 	InterColComm *icComm = parent->icCommunicator();
 	int rootproc = 0;
 	int file_count = 0;
@@ -82,7 +82,7 @@ int MapReduceKernelConn::initialize(const char * name, HyPerCol * hc,
 	} // dWeightstream == NULL
 
 	if (icComm->commRank() == rootproc) {
-		for (file_count = 0; file_count < numWeightFiles; file_count++) {
+		for (file_count = 0; file_count < num_dWeightFiles; file_count++) {
 /*
 			for (int i_char = 0; i_char < PV_PATH_MAX; i_char++) {
 				dWeightsList[file_count][i_char] = 0;
@@ -96,7 +96,7 @@ int MapReduceKernelConn::initialize(const char * name, HyPerCol * hc,
 					fprintf(stderr,
 							"MapReduceKernelConn::initialize: "
 									"File of weight files \"%s\" reached end of file before all %d weight files were read.  "
-									"Exiting.\n", filename, numWeightFiles);
+									"Exiting.\n", filename, num_dWeightFiles);
 					exit(EXIT_FAILURE);
 				} else {
 					int error = ferror(dWeightstream->fp);
@@ -117,11 +117,11 @@ int MapReduceKernelConn::initialize(const char * name, HyPerCol * hc,
 				}
 			} // fgetsstatus == NULL
 		} // file_count
-		for (file_count = 0; file_count < numWeightFiles; file_count++) {
+		for (file_count = 0; file_count < num_dWeightFiles; file_count++) {
 			std::cout << "dWeightFile[" << file_count << "] = "
 					<< dWeightsList[file_count] << std::endl;
 		} // file_count
-		this->dWeightsFilename = strdup(dWeightsList[weightFileIndex]);
+		this->dWeightsFilename = strdup(dWeightsList[dWeightFileIndex]);
 	} // commRank() == rootproc
 	return status;
 }
@@ -159,13 +159,13 @@ int MapReduceKernelConn::reduceKernels(const int arborID) {
 	if (icComm->commRank() == rootproc) {
 		// write dW for this instantiation of PetaVision to disk
 		status = HyPerConn::writeWeights(NULL, this->get_dwDataStart(),
-				getNumDataPatches(), dWeightsList[weightFileIndex],
+				getNumDataPatches(), dWeightsList[dWeightFileIndex],
 				parent->simulationTime(), /*writeCompressedWeights*/false, /*last*/
 				false);
 		if (status != PV_SUCCESS) {
 			fprintf(stderr,
 					"MapReduceKernelConn::reduceKernels::HyPerConn::writeWeights: problem writing to file %s, "
-							"SHUTTING DOWN\n", dWeightsList[weightFileIndex]);
+							"SHUTTING DOWN\n", dWeightsList[dWeightFileIndex]);
 			exit(EXIT_FAILURE);
 		} // status
 		  // use dWeightsList to read in the weights written by other PetaVision instantiations
@@ -176,8 +176,8 @@ int MapReduceKernelConn::reduceKernels(const int arborID) {
 		int params[NUM_BIN_PARAMS + NUM_WGT_EXTRA_PARAMS];
 		const PVLayerLoc *preLoc = this->preSynapticLayer()->getLayerLoc();
 		int file_count = 0;
-		for (file_count = 0; file_count < numWeightFiles; file_count++) {
-			if (file_count == weightFileIndex) {
+		for (file_count = 0; file_count < num_dWeightFiles; file_count++) {
+			if (file_count == dWeightFileIndex) {
 				continue;
 			}
 			int num_attempts = 0;
@@ -208,7 +208,7 @@ int MapReduceKernelConn::reduceKernels(const int arborID) {
 		  // average dW from map-reduce
 		pvdata_t * dW_data = this->get_dwDataStart(0);
 		for (int i_dW = 0; i_dW < arborSize; i_dW++) {
-			dW_data[i_dW] /= numWeightFiles;
+			dW_data[i_dW] /= num_dWeightFiles;
 		}
 	} // rootproc
 

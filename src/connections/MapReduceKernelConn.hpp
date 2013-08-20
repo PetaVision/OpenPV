@@ -33,8 +33,8 @@ private:
 	char * dWeightsListName;
 	char * dWeightsFilename;
 	char dWeightsList[MAX_WEIGHT_FILES][PV_PATH_MAX];
-	int numWeightFiles;
-	int weightFileIndex;
+	int num_dWeightFiles;
+	int dWeightFileIndex;
 	char * movieLayerName;
 	Movie * movieLayer;
 
