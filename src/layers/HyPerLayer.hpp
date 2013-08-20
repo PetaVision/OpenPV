@@ -476,6 +476,8 @@ protected:
 
    Timer * update_timer;
    Timer * recvsyn_timer;
+   Timer * publish_timer;
+   Timer * io_timer;
 };
 
 } // namespace PV

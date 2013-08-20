@@ -139,8 +139,12 @@ int HyPerLayer::initialize_base() {
    this->evList = NULL;
    this->gpuAccelerateFlag=false;
 #endif // PV_USE_OPENCL
-   this->update_timer = NULL;
+
+   this->update_timer  = NULL;
    this->recvsyn_timer = NULL;
+   this->publish_timer = NULL;
+   this->io_timer      = NULL;
+
    return PV_SUCCESS;
 }
 
@@ -156,6 +160,8 @@ int HyPerLayer::initialize(const char * name, HyPerCol * hc, int numChannels) {
 
    this->update_timer  = new Timer();
    this->recvsyn_timer = new Timer();
+   this->publish_timer = new Timer();
+   this->io_timer      = new Timer();
 
    PVParams * params = parent->parameters();
 
@@ -304,10 +310,16 @@ HyPerLayer::~HyPerLayer()
       recvsyn_timer->elapsed_time();
       printf("%32s: total time in %6s %10s: ", name, "layer", "update ");
       update_timer->elapsed_time();
+      printf("%32s: total time in %6s %10s: ", name, "layer", "publish");
+      publish_timer->elapsed_time();
+      printf("%32s: total time in %6s %10s: ", name, "layer", "io     ");
+      io_timer->elapsed_time();
       fflush(stdout);
    }
-   delete recvsyn_timer; recvsyn_timer = NULL;
-   delete update_timer; update_timer = NULL;
+   delete recvsyn_timer;  recvsyn_timer = NULL;
+   delete update_timer;   update_timer  = NULL;
+   delete publish_timer;  publish_timer = NULL;
+   delete io_timer;       io_timer      = NULL;
 
    freeClayer();
    free(name); name = NULL;
@@ -1543,6 +1555,8 @@ int HyPerLayer::triggerReceive(InterColComm* comm)
 
 int HyPerLayer::publish(InterColComm* comm, double time)
 {
+   publish_timer->start();
+
    if ( useMirrorBCs() ) {
       for (int borderId = 1; borderId < NUM_NEIGHBORHOOD; borderId++){
          mirrorInteriorToBorder(borderId, clayer->activity, clayer->activity);
@@ -1557,14 +1571,20 @@ int HyPerLayer::publish(InterColComm* comm, double time)
       //numWait += 1;
    }
 #endif
+
+   publish_timer->stop();
    return status;
 }
 
 int HyPerLayer::waitOnPublish(InterColComm* comm)
 {
+   publish_timer->start();
+
    // wait for MPI border transfers to complete
    //
    int status = comm->wait(getLayerId());
+
+   publish_timer->stop();
    return status;
 }
 
@@ -1606,6 +1626,8 @@ int HyPerLayer::outputState(double timef, bool last)
 {
    int status = PV_SUCCESS;
 
+   io_timer->start();
+
    for (int i = 0; i < numProbes; i++) {
       probes[i]->outputState(timef);
    }
@@ -1621,6 +1643,7 @@ int HyPerLayer::outputState(double timef, bool last)
       }
    }
 
+   io_timer->stop();
    return status;
 }
 
