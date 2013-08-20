@@ -40,7 +40,7 @@ fails=""
 function runandecho() {
     testname=$1
     shift
-    if $* &> ${testname}_1.log ## 1> /dev/null 2>/dev/null
+    if $PV_MPIRUN -np 1 $* &> ${testname}_1.log ## 1> /dev/null 2>/dev/null
     then
         echo "$testname passed"
     else
