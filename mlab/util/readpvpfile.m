@@ -236,9 +236,12 @@ function [data,hdr] = readpvpfile(filename,progressperiod, num_frames, start_fra
                      data{ceil((f - start_frame + 1)/skip_frames)} = data_tmp;
                   end %% numframes
                case 5 % PVP_KERNEL_FILE_TYPE
-                  fseek(fid,0,'bof'); % there's a header in every frame, unlike other file types
+                  %keyboard;
+                  fseek(fid, (start_frame-1)*framesize, 'bof');
+                  for f=start_frame:numframes
+                  % fseek(fid,0,'bof'); % there's a header in every frame, unlike other file types
                   % So go back to the beginning and read the header in each frame.
-                  for f=1:numframes
+                  % for f=1:numframes
                      hdr = readpvpheader(fid,ftell(fid));
                      hdr = rmfield(hdr,'additional');
                      numextrabytes = hdr.headersize - 80;
