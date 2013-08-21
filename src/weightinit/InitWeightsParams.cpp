@@ -10,13 +10,9 @@
 #include <stdlib.h>
 
 #include "../include/default_params.h"
-#ifdef OBSOLETE // Marked obsolete Feb. 27, 2012.  Replaced by PatchProbe.
-#include "../io/ConnectionProbe.hpp"
-#endif // OBSOLETE
 #include "../io/io.h"
 #include "../io/fileio.hpp"
 #include "../utils/conversions.h"
-#include "../utils/pv_random.h"
 #include "../columns/InterColComm.hpp"
 
 namespace PV {
@@ -139,52 +135,5 @@ float InitWeightsParams::calcXDelta(int iPost) {
 float InitWeightsParams::calcDelta(int post, float dPost, float distHeadPreUnits) {
    return distHeadPreUnits + post * dPost;
 }
-
-
-// moved to InitGauss2DWeightsParams
-/*
-
-void InitWeightsParams::calculateThetas(int kfPre_tmp, int patchIndex) {
-   //numOrientationsPost = post->getLayerLoc()->nf;  // to allow for color bands, can't assume numOrientations
-   dthPost = PI*thetaMax / (float) numOrientationsPost;
-   th0Post = rotate * dthPost / 2.0f;
-   //numOrientationsPre = pre->getLayerLoc()->nf; // to allow for color bands, can't assume numOrientations
-   const float dthPre = calcDthPre();
-   const float th0Pre = calcTh0Pre(dthPre);
-   fPre = patchIndex % pre->getLayerLoc()->nf;
-   assert(fPre == kfPre_tmp);
-   const int iThPre = patchIndex % numOrientationsPre;
-   thPre = th0Pre + iThPre * dthPre;
-}
-
-float InitWeightsParams::calcDthPre() {
-   return PI*thetaMax / (float) numOrientationsPre;
-}
-float InitWeightsParams::calcTh0Pre(float dthPre) {
-   return rotate * dthPre / 2.0f;
-}
-
-float InitWeightsParams::calcThPost(int fPost) {
-   int oPost = fPost % numOrientationsPost;
-   float thPost = th0Post + oPost * dthPost;
-   if (numOrientationsPost == 1 && numOrientationsPre > 1) {
-      thPost = thPre;
-   }
-   return thPost;
-}
-
-bool InitWeightsParams::checkTheta(float thPost) {
-   //      float deltaTheta = fabsf(thetaPre - thPost);
-   //      deltaTheta = (deltaTheta <= PI / 2.0) ? deltaTheta : PI - deltaTheta;
-  if ((deltaTheta = fabs(thPre - thPost)) > deltaThetaMax) {
-     //the following is obviously not ideal. But cocirc needs this deltaTheta:
-     deltaTheta = (deltaTheta <= PI / 2.0) ? deltaTheta : PI - deltaTheta;
-      return true;
-   }
-  deltaTheta = (deltaTheta <= PI / 2.0) ? deltaTheta : PI - deltaTheta;
-   return false;
-}
-
-*/
 
 } /* namespace PV */

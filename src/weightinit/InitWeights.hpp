@@ -52,8 +52,6 @@ protected:
 
 private:
 
-   //int gauss2DCalcWeights(pvdata_t * dataStart, InitGauss2DWeightsParams * weightParamPtr);
-
 // Member variables
 protected:
    uint4 * rnd_state;

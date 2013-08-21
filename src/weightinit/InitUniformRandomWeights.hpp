@@ -21,7 +21,7 @@ public:
 
    virtual InitWeightsParams * createNewWeightParams(HyPerConn * callingConn);
 
-   virtual int calcWeights(/* PVPatch * wp */ pvdata_t * dataStart, int patchIndex, int arborId, InitWeightsParams *weightParams);
+   virtual int calcWeights(pvdata_t * dataStart, int patchIndex, int arborId, InitWeightsParams *weightParams);
 
 protected:
    int initialize_base();
@@ -29,7 +29,7 @@ protected:
    unsigned int rand_ul(uint4 * state);
 
 private:
-   int uniformWeights(/* PVPatch * wp */ pvdata_t * dataStart, float minwgt, float maxwgt,
+   int uniformWeights(pvdata_t * dataStart, float minwgt, float maxwgt,
          float sparseFraction, InitUniformRandomWeightsParams *weightParamPtr, int patchIndex);
 };
 
