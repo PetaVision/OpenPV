@@ -12,7 +12,7 @@
 #include <stdlib.h>
 #include <limits.h>
 
-#define CL_RANDOM_MAX       0x7fffffff
+#define CL_RANDOM_MAX       0xffffffff
 
 #ifdef __cplusplus
 extern "C"
