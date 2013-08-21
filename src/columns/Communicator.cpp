@@ -116,6 +116,9 @@ Communicator::Communicator(int* argc, char*** argv)
 #ifdef PV_USE_MPI
    MPI_Barrier(MPI_COMM_WORLD);
 #endif // PV_USE_MPI
+
+   // install timers
+   this->exchange_timer = new Timer();
 }
 
 Communicator::~Communicator()
@@ -125,6 +128,15 @@ Communicator::~Communicator()
 #endif // PV_USE_MPI
 
    commFinalize();
+
+   // delete timers
+   //
+   if (commRank() == 0) {
+      printf("%32s: total time in %6s %10s: ", "Communicator", " comm", "exchng ");
+      exchange_timer->elapsed_time();
+      fflush(stdout);
+   }
+   delete exchange_timer; exchange_timer = NULL;
 }
 
 int Communicator::commInit(int* argc, char*** argv)
@@ -690,6 +702,7 @@ int Communicator::exchange(pvdata_t * data,
                            const PVLayerLoc * loc)
 {
 #ifdef PV_USE_MPI
+   exchange_timer->start();
 
    // don't send interior
    int nreq = 0;
@@ -712,6 +725,7 @@ int Communicator::exchange(pvdata_t * data,
 #endif // DEBUG_OUTPUT
    MPI_Waitall(count, requests, MPI_STATUSES_IGNORE);
 
+   exchange_timer->stop();
 #endif // PV_USE_MPI
 
    return 0;

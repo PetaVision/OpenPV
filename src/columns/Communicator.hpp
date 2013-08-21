@@ -7,6 +7,7 @@
 
 #include "../include/pv_arch.h"
 #include "../include/pv_types.h"
+#include "../utils/Timer.hpp"
 #include <stdlib.h>
 
 #ifdef PV_USE_MPI
@@ -101,6 +102,8 @@ private:
 
    MPI_Comm    icComm;
    MPI_Request requests[NUM_NEIGHBORHOOD-1];
+
+   Timer * exchange_timer;
 
    // These methods are private for now, move to public as needed
 
