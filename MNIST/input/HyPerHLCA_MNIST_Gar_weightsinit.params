@@ -10,7 +10,7 @@
 // Rozell et al., "Sparse Coding via Thresholding and Local Cometition
 // in Neural Circuits," Neural Computation 20, 2526-2563 (2008).
 
-debugParsing = false;
+debugParsing = true;
 
 HyPerCol "column" = {
    nx = 32;   
@@ -19,15 +19,15 @@ HyPerCol "column" = {
    randomSeed = 1234567890;
    numSteps = 53000000;
    progressStep = 100;
-   outputPath = "output_testrun2/";
+   outputPath = "output_28000/";
    filenamesContainLayerNames = true;
    filenamesContainConnectionNames = true;
    checkpointRead = true;
-   checkpointReadDir = "output_testrun2/Checkpoints";
-   checkpointReadDirIndex = 12000000;
+   checkpointReadDir = "output_28000/Checkpoints";
+   checkpointReadDirIndex = 28000000;
    checkpointWrite = true;
-   checkpointWriteDir = "output_testrun2/Checkpoints";
-   checkpointWriteStepInterval = 1000000;
+   checkpointWriteDir = "output_28000/Checkpoints";
+   checkpointWriteStepInterval = 100000;
    deleteOlderCheckpoints = false;
    suppressLastOutput = false;
    writeProgressToErr = true;
@@ -42,7 +42,7 @@ Movie "Image" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
-    imageListPath = "/Users/bcrocker/Pictures/MNIST/randorder.txt";
+    imageListPath = "/Users/garkenyon/workspace/MNIST/input/randorder.txt";
     nf = 1;
     marginWidth = 1;
     writeStep = -1;
@@ -66,7 +66,7 @@ Movie "Image" = {
 
 LabelLayer "labels" = {
     nf = 10;
-    labelStart = 31;
+    labelStart = 32; // 31; // bcrocker == 31, gkenyon = 32
     labelLength = 1;
     movieLayerName = "Image";
     phase = 1;
@@ -201,9 +201,8 @@ KernelConn "V1ToMovieError" = {
     numAxonalArbors = 1;
     initFromLastFlag = 0;
     
-    
     weightInitType = "FileWeight";
-    initWeightsFile = "/Users/bcrocker/Documents/workspace/HyPerHLCA2/input/w_imprintedweights.pvp";
+    initWeightsFile = "/Users/garkenyon/workspace/MNIST/InitializedWeightFiles/w_imprintedweights.pvp";
 
     //weightInitType = "UniformRandomWeight";
     //wMinInit = -1.0;
@@ -285,7 +284,7 @@ KernelConn "V1ToLabelError" = {
     initFromLastFlag = 0;
     
     weightInitType = "FileWeight";
-    initWeightsFile = "/Users/bcrocker/Documents/workspace/HyPerHLCA2/input/w_imprintedlabels.pvp";
+    initWeightsFile = "/Users/garkenyon/workspace/MNIST/InitializedWeightFiles/w_imprintedlabels.pvp";
 
     //weightInitType = "UniformRandomWeight";
     //wMinInit = -1.0;
