@@ -7,7 +7,6 @@
 
 #include "Patterns.hpp"
 #include "../include/pv_common.h"  // for PI
-#include "../utils/pv_random.h"
 
 #define PATTERNS_MAXVAL  1.0f
 #define PATTERNS_MINVAL  0.0f

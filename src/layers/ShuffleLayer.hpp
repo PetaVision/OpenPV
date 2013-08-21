@@ -10,7 +10,6 @@
 #define SHUFFLELAYER_HPP_
 
 #include "HyPerLayer.hpp"
-#include "../utils/pv_random.h"
 
 namespace PV {
 
