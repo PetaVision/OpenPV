@@ -12,6 +12,8 @@
 #include <stdlib.h>
 #include <limits.h>
 
+#define CL_RANDOM_MAX       0x7fffffff
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -19,6 +21,7 @@ extern "C"
 
 int cl_random_init(uint4 * state, size_t count, unsigned int seed);
 uint4 cl_random_get(uint4 state);
+static inline long cl_random_max() {return CL_RANDOM_MAX;}
 
 #ifdef __cplusplus
 }

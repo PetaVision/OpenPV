@@ -10,6 +10,7 @@
 
 #include "InitWeights.hpp"
 #include "InitUniformRandomWeightsParams.hpp"
+#include "../utils/cl_random.h"
 
 namespace PV {
 
@@ -24,9 +25,12 @@ public:
 
 protected:
    int initialize_base();
+   virtual int initRNGs(HyPerConn * conn, bool isKernel);
+   unsigned int rand_ul(uint4 * state);
 
 private:
-   int uniformWeights(/* PVPatch * wp */ pvdata_t * dataStart, float minwgt, float maxwgt, float sparseFraction, InitUniformRandomWeightsParams *weightParamPtr);
+   int uniformWeights(/* PVPatch * wp */ pvdata_t * dataStart, float minwgt, float maxwgt,
+         float sparseFraction, InitUniformRandomWeightsParams *weightParamPtr, int patchIndex);
 };
 
 } /* namespace PV */

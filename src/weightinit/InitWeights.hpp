@@ -46,10 +46,9 @@ public:
 
    virtual int zeroWeightsOutsideShrunkenPatch(PVPatch *** patches, HyPerConn * callingConn);
 
-   virtual int getNeededRNGSeeds() {return neededRNGSeeds;}
-
 protected:
    int initialize_base();
+   virtual int initRNGs(HyPerConn * conn, bool isKernel) { rnd_state = NULL; return PV_SUCCESS; }
 
 private:
 
@@ -57,7 +56,7 @@ private:
 
 // Member variables
 protected:
-   int neededRNGSeeds;
+   uint4 * rnd_state;
 };
 
 } /* namespace PV */

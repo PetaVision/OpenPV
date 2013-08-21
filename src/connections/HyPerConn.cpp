@@ -1041,7 +1041,6 @@ int HyPerConn::setPatchSize() {
 }
 
 int HyPerConn::setNeededRNGSeeds() {
-   this->weightInitializer->getNeededRNGSeeds();
    neededRNGSeeds = 0;  // Perhaps if stochasticReleaseFlag is set this will need to be a huge number.
    return PV_SUCCESS;
 }
@@ -1267,7 +1266,7 @@ int HyPerConn::writeWeights(const char * filename) {
 }
 
 int HyPerConn::writeWeights(PVPatch *** patches, pvdata_t ** dataStart, int numPatches,
-		const char * filename, double timef, bool compressWeights, bool last) {
+      const char * filename, double timef, bool compressWeights, bool last) {
    int status = PV_SUCCESS;
    char path[PV_PATH_MAX];
 
