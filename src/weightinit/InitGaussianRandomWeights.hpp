@@ -8,31 +8,24 @@
 #ifndef INITGAUSSIANRANDOMWEIGHTS_HPP_
 #define INITGAUSSIANRANDOMWEIGHTS_HPP_
 
-#include "InitWeights.hpp"
+#include "InitRandomWeights.hpp"
 #include "InitGaussianRandomWeightsParams.hpp"
+#include "../utils/cl_random.h"
 
 namespace PV {
 
-class InitGaussianRandomWeights: public PV::InitWeights {
+class InitGaussianRandomWeights: public PV::InitRandomWeights {
 public:
-	InitGaussianRandomWeights();
-//	InitGaussianRandomWeights(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
-//		 ChannelType channel);
-	virtual ~InitGaussianRandomWeights();
+   InitGaussianRandomWeights();
+   virtual ~InitGaussianRandomWeights();
 
-	   virtual InitWeightsParams * createNewWeightParams(HyPerConn * callingConn);
-
-	   virtual int calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, int arborId, InitWeightsParams *weightParams);
-
+   virtual InitWeightsParams * createNewWeightParams(HyPerConn * callingConn);
 
 protected:
-	virtual int initialize_base();
-//	int initialize(const char * name, HyPerCol * hc,
-//	               HyPerLayer * pre, HyPerLayer * post,
-//	               ChannelType channel);
+   virtual int randomWeights(pvdata_t * patchDataStart, InitWeightsParams *weightParamPtr, uint4 * rnd_state);
 
 private:
-	int gaussianWeights(/* PVPatch * wp */ pvdata_t * dataStart, float mean, float stdev, InitGaussianRandomWeightsParams *weightParamPtr);
+   int initialize_base();
 
 };
 

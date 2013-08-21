@@ -31,8 +31,6 @@
 
 #include "../arch/opencl/pv_uint4.h"
 #include "cl_random.h"
-#include <assert.h>
-#include <limits.h>
 
 static inline unsigned int taus_get (taus_state_t *vstate);
 static void taus_set (taus_state_t *state, unsigned int s);
@@ -108,3 +106,45 @@ taus_get (taus_state_t * state)
 
   return (state->s1 ^ state->s2 ^ state->s3);
 }
+
+
+/* boxmuller.c           Implements the Polar form of the Box-Muller
+                         Transformation
+
+                      (c) Copyright 1994, Everett F. Carter Jr.
+                          Permission is granted by the author to use
+                          this software for any application provided this
+                          copyright notice is preserved.
+
+*/
+// Argument uint4 * rnd_state added so that cl_random_prob() could be used in place of Carter's ranf().
+float cl_box_muller(float m, float s, uint4 * rnd_state)      /* normal random variate generator */
+{                                       /* mean m, standard deviation s */
+   float x1, x2, w, y1;
+   static float y2;
+   static int use_last = 0;
+
+   if (use_last)                   /* use value from previous call */
+   {
+      y1 = y2;
+      use_last = 0;
+   }
+   else
+   {
+      do {
+         *rnd_state = cl_random_get(*rnd_state);
+         x1 = 2.0 * rnd_state->s0/(double) CL_RANDOM_MAX - 1.0;
+         *rnd_state = cl_random_get(*rnd_state);
+         x2 = 2.0 * rnd_state->s0/(double) CL_RANDOM_MAX - 1.0;
+         w = x1 * x1 + x2 * x2;
+      } while ( w >= 1.0 );
+
+      w = sqrt( (-2.0 * log( w ) ) / w );
+      y1 = x1 * w;
+      y2 = x2 * w;
+      use_last = 1;
+   }
+
+   return( m + y1 * s );
+}
+

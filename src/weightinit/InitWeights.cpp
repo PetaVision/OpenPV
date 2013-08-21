@@ -195,7 +195,6 @@ int InitWeights::calcWeights(pvdata_t * dataStart, int dataPatchIndex, int arbor
 }
 
 int InitWeights::initialize_base() {
-   rnd_state = NULL;
    return PV_SUCCESS;
 }
 

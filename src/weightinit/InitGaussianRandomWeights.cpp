@@ -6,45 +6,30 @@
  */
 
 #include "InitGaussianRandomWeights.hpp"
-
 #include "InitGaussianRandomWeightsParams.hpp"
-#include "../utils/pv_random.h"
-
 
 namespace PV {
 
 InitGaussianRandomWeights::InitGaussianRandomWeights() {
-	   initialize_base();
+   initialize_base();
 }
-//InitGaussianRandomWeights::InitGaussianRandomWeights(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
-//      ChannelType channel) : InitWeights() {
-//
-//	InitGaussianRandomWeights::initialize_base();
-//	InitGaussianRandomWeights::initialize(name, hc, pre, post, channel);
-//
-//}
 
 InitGaussianRandomWeights::~InitGaussianRandomWeights() {
-	// TODO Auto-generated destructor stub
 }
 
 int InitGaussianRandomWeights::initialize_base() {
    return PV_SUCCESS;
 }
-//int InitGaussianRandomWeights::initialize(const char * name, HyPerCol * hc,
-//      HyPerLayer * pre, HyPerLayer * post, ChannelType channel) {
-//   InitWeights::initialize(name, hc, pre, post, channel);
-//   return PV_SUCCESS;
-//}
 
 InitWeightsParams * InitGaussianRandomWeights::createNewWeightParams(HyPerConn * callingConn) {
    InitWeightsParams * tempPtr = new InitGaussianRandomWeightsParams(callingConn);
    return tempPtr;
 }
 
-int InitGaussianRandomWeights::calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, int arborId,
-      InitWeightsParams *weightParams) {
-
+/**
+ * randomWeights() fills the full-size patch with random numbers, whether or not the patch is shrunken.
+ */
+int InitGaussianRandomWeights::randomWeights(pvdata_t * patchDataStart, InitWeightsParams *weightParams, uint4 * rnd_state) {
    InitGaussianRandomWeightsParams *weightParamPtr = dynamic_cast<InitGaussianRandomWeightsParams*>(weightParams);
 
    if(weightParamPtr==NULL) {
@@ -52,44 +37,22 @@ int InitGaussianRandomWeights::calcWeights(/* PVPatch * patch */ pvdata_t * data
       exit(1);
    }
 
-   const float wGaussMean = weightParamPtr->getMean();
-   const float wGaussStdev = weightParamPtr->getStDev();
+   const float mean = weightParamPtr->getMean();
+   const float stdev = weightParamPtr->getStDev();
 
-   gaussianWeights(dataStart, wGaussMean, wGaussStdev, weightParamPtr);
-   return PV_SUCCESS; // return 1;
-}
+   const int nxp = weightParamPtr->getnxPatch_tmp();
+   const int nyp = weightParamPtr->getnyPatch_tmp();
+   const int nfp = weightParamPtr->getnfPatch_tmp();
 
-/**
- * generate random weights for a patch from a gaussian distribution
- * NOTES:
- *    - the pointer w already points to the patch head in the data structure
- *    - it only sets the weights to "real" neurons, not to neurons in the boundary
- *    layer. For example, if x are boundary neurons and o are real neurons,
- *    x x x x
- *    x o o o
- *    x o o o
- *    x o o o
- *
- *    for a 4x4 connection it sets the weights to the o neurons only.
- *    .
- */
-// int HyPerConn::gaussianWeights(PVPatch * wp, float mean, float stdev, int * seed)
-int InitGaussianRandomWeights::gaussianWeights(/* PVPatch * wp */ pvdata_t * dataStart, float mean, float stdev, InitGaussianRandomWeightsParams *weightParamPtr) {
-   // pvdata_t * w = wp->data;
-
-   const int nxp = weightParamPtr->getnxPatch_tmp(); // wp->nx;
-   const int nyp = weightParamPtr->getnyPatch_tmp(); // wp->ny;
-   const int nfp = weightParamPtr->getnfPatch_tmp(); //wp->nf;
-
-   const int sxp = weightParamPtr->getsx_tmp(); //wp->sx;
-   const int syp = weightParamPtr->getsy_tmp(); //wp->sy;
-   const int sfp = weightParamPtr->getsf_tmp(); //wp->sf;
+   const int sxp = weightParamPtr->getsx_tmp();
+   const int syp = weightParamPtr->getsy_tmp();
+   const int sfp = weightParamPtr->getsf_tmp();
 
    // loop over all post-synaptic cells in patch
    for (int y = 0; y < nyp; y++) {
       for (int x = 0; x < nxp; x++) {
          for (int f = 0; f < nfp; f++) {
-            dataStart[x * sxp + y * syp + f * sfp] = box_muller(mean,stdev);
+            patchDataStart[x * sxp + y * syp + f * sfp] = cl_box_muller(mean,stdev,rnd_state);
          }
       }
    }

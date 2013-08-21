@@ -8,29 +8,26 @@
 #ifndef INITUNIFORMRANDOMWEIGHTS_HPP_
 #define INITUNIFORMRANDOMWEIGHTS_HPP_
 
-#include "InitWeights.hpp"
+#include "InitRandomWeights.hpp"
 #include "InitUniformRandomWeightsParams.hpp"
 #include "../utils/cl_random.h"
 
 namespace PV {
 
-class InitUniformRandomWeights: public PV::InitWeights {
+class InitUniformRandomWeights: public PV::InitRandomWeights {
 public:
    InitUniformRandomWeights();
    virtual ~InitUniformRandomWeights();
 
    virtual InitWeightsParams * createNewWeightParams(HyPerConn * callingConn);
 
-   virtual int calcWeights(pvdata_t * dataStart, int patchIndex, int arborId, InitWeightsParams *weightParams);
-
 protected:
-   int initialize_base();
-   virtual int initRNGs(HyPerConn * conn, bool isKernel);
+   int randomWeights(pvdata_t * patchDataStart, InitWeightsParams *weightParams, uint4 * rnd_state);
    unsigned int rand_ul(uint4 * state);
 
 private:
-   int uniformWeights(pvdata_t * dataStart, float minwgt, float maxwgt,
-         float sparseFraction, InitUniformRandomWeightsParams *weightParamPtr, int patchIndex);
+   int initialize_base();
+
 };
 
 } /* namespace PV */

@@ -11,6 +11,7 @@
 #include "../arch/opencl/pv_uint4.h"
 #include <stdlib.h>
 #include <limits.h>
+#include <math.h>
 
 #define CL_RANDOM_MAX       0xffffffff
 
@@ -22,6 +23,7 @@ extern "C"
 int cl_random_init(uint4 * state, size_t count, unsigned int seed);
 uint4 cl_random_get(uint4 state);
 static inline long cl_random_max() {return CL_RANDOM_MAX;}
+float cl_box_muller(float m, float s, uint4 * rnd_state);
 
 #ifdef __cplusplus
 }

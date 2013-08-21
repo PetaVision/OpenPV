@@ -47,14 +47,11 @@ public:
    virtual int zeroWeightsOutsideShrunkenPatch(PVPatch *** patches, HyPerConn * callingConn);
 
 protected:
-   int initialize_base();
-   virtual int initRNGs(HyPerConn * conn, bool isKernel) { rnd_state = NULL; return PV_SUCCESS; }
+   virtual int initRNGs(HyPerConn * conn, bool isKernel) { return PV_SUCCESS; }
 
 private:
+   int initialize_base();
 
-// Member variables
-protected:
-   uint4 * rnd_state;
 };
 
 } /* namespace PV */
