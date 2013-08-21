@@ -579,7 +579,7 @@ int KernelConn::reduceKernels(const int arborID) {
       return PV_BREAK;
    }
    const int numPatches = getNumDataPatches();
-   const size_t patchSize = nxp*nyp*nfp*sizeof(pvdata_t);
+   const size_t patchSize = nxp*nyp*nfp; // *sizeof(pvdata_t);
    const size_t localSize = numPatches * patchSize;
    const size_t arborSize = localSize * this->numberOfAxonalArborLists();
 
