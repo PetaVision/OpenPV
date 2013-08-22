@@ -312,7 +312,7 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * p
       }
    }
    if (random_seed < 10000000) {
-      fprintf(stderr, "Error: random seed %lu is too small. Use a seed of at least 10000000.\n", random_seed);
+      fprintf(stderr, "Error: random seed %u is too small. Use a seed of at least 10000000.\n", random_seed);
       abort();
    }
 
@@ -1541,13 +1541,13 @@ ColProbe * HyPerCol::getColProbeFromName(const char * probeName) {
    return p;
 }
 
-unsigned long HyPerCol::getRandomSeed() {
+unsigned int HyPerCol::getRandomSeed() {
    unsigned long t = 0UL;
    int rootproc = 0;
    if (columnId()==rootproc) {
        t = time((time_t *) NULL);
    }
-   MPI_Bcast(&t, 1, MPI_UNSIGNED_LONG, rootproc, icComm->communicator());
+   MPI_Bcast(&t, 1, MPI_UNSIGNED, rootproc, icComm->communicator());
    return t;
 }
 

@@ -44,6 +44,12 @@ enum ChannelType {
   CHANNEL_INVALID  = -1
 };
 
+enum GSynAccumulateType {
+   ACCUMULATE_CONVOLVE = 0,
+   ACCUMULATE_STOCHASTIC = 1,
+   ACCUMULATE_MAXPOOLING = 2
+};
+
 typedef struct PVPatch_ {
    // pvdata_t * __attribute__ ((aligned)) data;
    unsigned int offset;

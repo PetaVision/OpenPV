@@ -65,7 +65,7 @@ void IdentConn::readInitialWeightUpdateTime(PVParams * params) {
 }
 
 void IdentConn::readPvpatchAccumulateType(PVParams * params) {
-   pvpatchAccumulateType = NULL;
+   pvpatchAccumulateType = ACCUMULATE_CONVOLVE;
 }
 
 void IdentConn::readPreActivityIsNotRate(PVParams * params) {

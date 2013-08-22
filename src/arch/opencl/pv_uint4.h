@@ -8,6 +8,10 @@
 #ifndef PV_UINT4_H_
 #define PV_UINT4_H_
 
+#include <limits.h>
+
+#define CL_RANDOM_MAX       UINT_MAX
+
 typedef struct
   {
     unsigned int s1, s2, s3;

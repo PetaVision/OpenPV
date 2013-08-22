@@ -238,14 +238,12 @@ int HyPerConn::initialize_base()
    this->normalize_RMS_amp = false;
    this->dWMax            = 1;
 
-   this->neededRNGSeeds = 0; // Derived layers that use random numbers should set neededRNGSeeds in setNeededRNGSeeds, called by HyPerLayer::communicate.
-
    //This flag is only set otherwise in kernelconn
    this->useWindowPost = false;
 
    this->updateGSynFromPostPerspective = false;
 
-   this->pvpatchAccumulateType = NULL;
+   this->pvpatchAccumulateType = ACCUMULATE_CONVOLVE;
 
    this->initInfoCommunicatedFlag = false;
    this->dataStructuresAllocatedFlag = false;
@@ -468,18 +466,23 @@ int HyPerConn::initialize(const char * name, HyPerCol * hc, const char * pre_lay
    PVParams * inputParams = parent->parameters();
    status = setParams(inputParams);
 
-   //set accumulateFunctionPointer's default value
-   accumulateFunctionPointer  = &pvpatch_accumulate;
-   accumulateFunctionFromPostPointer = &pvpatch_accumulate_from_post;
-   if (pvpatchAccumulateType != NULL) {
-      if (strcmp(pvpatchAccumulateType, "Stochastic") == 0) {
-         accumulateFunctionPointer = &pvpatch_accumulate_stochastic;
-         accumulateFunctionFromPostPointer = &pvpatch_accumulate_stochastic_from_post;
-      }
-      else if (strcmp(pvpatchAccumulateType, "Maxpooling") == 0) {
-         accumulateFunctionPointer = &pvpatch_max_pooling;
-         accumulateFunctionFromPostPointer = &pvpatch_max_pooling_from_post;
-      }
+   //set accumulateFunctionPointer
+   assert(!inputParams->presentAndNotBeenRead(name, "pvpatchAccumulateType"));
+   switch (pvpatchAccumulateType) {
+   case ACCUMULATE_CONVOLVE:
+      accumulateFunctionPointer  = &pvpatch_accumulate;
+      accumulateFunctionFromPostPointer = &pvpatch_accumulate_from_post;
+      break;
+   case ACCUMULATE_STOCHASTIC:
+      accumulateFunctionPointer = &pvpatch_accumulate_stochastic;
+      accumulateFunctionFromPostPointer = &pvpatch_accumulate_stochastic_from_post;
+      break;
+   case ACCUMULATE_MAXPOOLING:
+      accumulateFunctionPointer = &pvpatch_max_pooling;
+      accumulateFunctionFromPostPointer = &pvpatch_max_pooling_from_post;
+      break;
+   default:
+      assert(0);
    }
 
    ioAppend = parent->getCheckpointReadFlag();
@@ -749,7 +752,55 @@ void HyPerConn::readPlasticityFlag(PVParams * params) {
 }
 
 void HyPerConn::readPvpatchAccumulateType(PVParams * params) {
-    pvpatchAccumulateType = params->stringValue(name, "pvpatchAccumulateType", true);
+   // stochasticReleaseFlag deprecated on Aug 22, 2013.
+   if (params->present(name, "stochasticReleaseFlag")) {
+      bool stochasticReleaseFlag = params->value(name, "stochasticReleaseFlag");
+      pvpatchAccumulateType = stochasticReleaseFlag ? ACCUMULATE_STOCHASTIC : ACCUMULATE_CONVOLVE;
+      if (parent->columnId()==0) {
+         fprintf(stderr, "%s \"%s\" warning: parameter stochasticReleaseFlag is deprecated.  Instead, set pvpatchAccumulateType to one of \"convolve\" (the default), \"stochastic\", or \"maxpooling\".\n", parent->parameters()->groupKeywordFromName(name), name);
+         fprintf(stderr, "    pvpatcchAccumulateType set to \"%s\" \n", stochasticReleaseFlag ? "stochastic" : "convolve");
+      }
+      return;
+   }
+
+   const char * pvpatch_accumulate_type = params->stringValue(name, "pvpatchAccumulateType", true);
+   if (pvpatch_accumulate_type==NULL) {
+      if (parent->columnId()==0) {
+         printf("%s \"%s\": pvpatchAccumulateType set to \"convolve\"\n", parent->parameters()->groupKeywordFromName(name), name);
+      }
+      pvpatchAccumulateType = ACCUMULATE_CONVOLVE;
+   }
+   else {
+      // Convert string to lowercase so that capitalization doesn't matter.
+      char * pvpatch_accumulate_type_i = strdup(pvpatch_accumulate_type);
+      if (pvpatch_accumulate_type_i == NULL) {
+         fprintf(stderr, "%s \"%s\" error: Rank %d process unable to copy pvpatchAccumulateType string.\n", parent->parameters()->groupKeywordFromName(name), name, parent->columnId());
+         exit(EXIT_FAILURE);
+      }
+      for (char * c = pvpatch_accumulate_type_i; *c!='\0'; c++) {
+         *c = (char) tolower((int) *c);
+      }
+
+      if (strcmp(pvpatch_accumulate_type_i,"convolve")==0) {
+         pvpatchAccumulateType = ACCUMULATE_CONVOLVE;
+      }
+      else if (strcmp(pvpatch_accumulate_type_i,"stochastic")==0) {
+         pvpatchAccumulateType = ACCUMULATE_STOCHASTIC;
+      }
+      else if (strcmp(pvpatch_accumulate_type_i,"maxpooling")==0 ||
+               strcmp(pvpatch_accumulate_type_i,"max pooling")==0) {
+         pvpatchAccumulateType = ACCUMULATE_MAXPOOLING;
+      }
+      else {
+         if (parent->columnId()==0) {
+            fprintf(stderr, "%s \"%s\" error: pvpatchAccumulateType \"%s\" unrecognized.  Allowed values are \"convolve\", \"stochastic\", or \"maxpooling\"\n",
+                  parent->parameters()->groupKeywordFromName(name), name, pvpatch_accumulate_type);
+         }
+         MPI_Barrier(parent->icCommunicator()->communicator());
+         exit(EXIT_FAILURE);
+      }
+      free(pvpatch_accumulate_type_i);
+   }
 }
 
 void HyPerConn::readPreActivityIsNotRate(PVParams * params) {
@@ -961,11 +1012,6 @@ int HyPerConn::communicateInitInfo() {
       exit(EXIT_FAILURE);
    }
 
-   setNeededRNGSeeds(); // sets neededRNGSeeds; virtual
-   if (neededRNGSeeds>0) {
-      rngSeedBase = parent->getObjectSeed(neededRNGSeeds);
-   }
-
    // pre = parent->getLayerFromName(preLayerName);   // redundant lines; pre and post were set at the beginning of the this method
    // post = parent->getLayerFromName(postLayerName);
 
@@ -1042,11 +1088,6 @@ int HyPerConn::setPatchSize() {
    return status;
 }
 
-int HyPerConn::setNeededRNGSeeds() {
-   neededRNGSeeds = 0;  // Perhaps if stochasticReleaseFlag is set this will need to be a huge number.
-   return PV_SUCCESS;
-}
-
 // returns handle to initialized weight patches
 PVPatch *** HyPerConn::initializeWeights(PVPatch *** patches, pvdata_t ** dataStart, int numPatches, const char * filename)
 {
@@ -1076,6 +1117,27 @@ int HyPerConn::allocateDataStructures() {
    initNumDataPatches();
    initPatchToDataLUT();
    initializeDelays(fDelayArray, delayArraySize);
+
+   if (pvpatchAccumulateType == ACCUMULATE_STOCHASTIC) {
+      bool from_post = getUpdateGSynFromPostPerspective();
+      const PVLayerLoc * loc = (from_post ? post : pre)->getLayerLoc();
+      int nx = loc->nx;
+      int ny = loc->ny;
+      int nf = loc->nf;
+      if (!from_post) {
+         int nb2 = 2*loc->nb;
+         nx += nb2;
+         ny += nb2;
+      }
+      int neededRNGSeeds = from_post ? post->getNumGlobalNeurons() : pre->getNumGlobalExtended();
+      rngSeedBase = parent->getObjectSeed(neededRNGSeeds);
+      rnd_state = (uint4 *) malloc((size_t)neededRNGSeeds*sizeof(uint4));
+      for (int y=0; y<ny; y++) {
+         int localIndex = kIndex(0,y,0,nx,ny,nf);
+         int globalIndex = globalIndexFromLocal(localIndex, *loc);
+         cl_random_init(&rnd_state[localIndex], nx*nf, rngSeedBase+(unsigned int) globalIndex);
+      }
+   }
 
    int status = constructWeights(filename);
 

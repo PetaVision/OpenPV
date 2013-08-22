@@ -29,7 +29,6 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#include "../arch/opencl/pv_uint4.h"
 #include "cl_random.h"
 
 static inline unsigned int taus_get (taus_state_t *vstate);

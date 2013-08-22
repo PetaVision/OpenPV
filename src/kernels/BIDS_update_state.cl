@@ -21,11 +21,6 @@
 #  define CHANNEL_GAP   3
 #endif
 
-//#undef USE_CLRANDOM
-#ifndef USE_CLRANDOM
-#  include "../utils/pv_random.h"
-#endif
-
 //
 // update the state of a retinal layer (spiking)
 //
@@ -123,7 +118,6 @@ for (k = 0; k < nx*ny*nf; k++) {
    // add noise
    //
 
-#ifdef USE_CLRANDOM
    l_rnd = cl_random_get(l_rnd);
    if (cl_random_prob(l_rnd) < dt_sec*params->noiseFreqE) {
       l_rnd = cl_random_get(l_rnd);
@@ -141,19 +135,6 @@ for (k = 0; k < nx*ny*nf; k++) {
       l_rnd = cl_random_get(l_rnd);
       l_GSynInhB = l_GSynInhB + params->noiseAmpIB*cl_random_prob(l_rnd);
    }
-#else
-   if (pv_random_prob() < dt_sec*params->noiseFreqE) {
-      l_GSynExc = l_GSynExc + params->noiseAmpE*pv_random_prob();
-   }
-
-   if (pv_random_prob() < dt_sec*params->noiseFreqI) {
-      l_GSynInh = l_GSynInh + params->noiseAmpI*pv_random_prob();
-   }
-
-   if (pv_random_prob() < dt_sec*params->noiseFreqIB) {
-      l_GSynInhB = l_GSynInhB + params->noiseAmpIB*pv_random_prob();
-   }
-#endif
 
    l_G_E  = l_GSynExc  + l_G_E *exp_tauE;
    l_G_I  = l_GSynInh  + l_G_I *exp_tauI;

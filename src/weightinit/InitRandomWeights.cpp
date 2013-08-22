@@ -36,7 +36,7 @@ int InitRandomWeights::initRNGs(HyPerConn * conn, bool isKernel) {
    int numDataPatches = conn->getNumDataPatches();
    rnd_state = (uint4 *) malloc((size_t) (numDataPatches * sizeof(uint4)));
    int numGlobalRNGs = isKernel ? numDataPatches : conn->preSynapticLayer()->getNumGlobalExtended();
-   unsigned long int seedBase = conn->getParent()->getObjectSeed(numGlobalRNGs);
+   unsigned int seedBase = conn->getParent()->getObjectSeed(numGlobalRNGs);
    if (rnd_state==NULL) {
       fprintf(stderr, "InitUniformRandomWeights error in rank %d process: unable to allocate memory for random number state: %s", conn->getParent()->columnId(), strerror(errno));
       exit(EXIT_FAILURE);

@@ -9,6 +9,7 @@
 #include "../io/io.h"
 #include "../include/default_params.h"
 #include "../utils/pv_random.h"
+#include "../utils/cl_random.h"
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -234,7 +235,7 @@ void pvpatch_accumulate(int nk, float* restrict v, float a, float* restrict w,
    }
 }
 #else
-int pvpatch_accumulate(int nk, float* RESTRICT v, float a, float* RESTRICT w)
+int pvpatch_accumulate(int nk, float* RESTRICT v, float a, float* RESTRICT w, void * auxPtr)
 {
    int k;
    int err = 0;
@@ -245,7 +246,7 @@ int pvpatch_accumulate(int nk, float* RESTRICT v, float a, float* RESTRICT w)
 }
 #endif
 
-int pvpatch_accumulate_from_post(int nk, float * RESTRICT v, float * RESTRICT a, float * RESTRICT w, float dt_factor) {
+int pvpatch_accumulate_from_post(int nk, float * RESTRICT v, float * RESTRICT a, float * RESTRICT w, float dt_factor, void * auxPtr) {
    int status = 0;
    int k;
    float dv = 0.0f;
@@ -266,8 +267,8 @@ int pvpatch_accumulate2(int nk, float* RESTRICT v, float a, float* RESTRICT w, f
    return err;
 }
 
-
-int pvpatch_accumulate_stochastic(int nk, float* RESTRICT v, float a, float* RESTRICT w)
+#ifdef OBSOLETE // Marked obsolete Aug 21, 2013.  Use cl_random instead of pv_random
+int pvpatch_accumulate_stochastic(int nk, float* RESTRICT v, float a, float* RESTRICT w, void * auxPtr)
 {
    int k;
    long along = (long) (a*pv_random_max());
@@ -278,7 +279,7 @@ int pvpatch_accumulate_stochastic(int nk, float* RESTRICT v, float a, float* RES
    return err;
 }
 
-int pvpatch_accumulate_stochastic_from_post(int nk, float * RESTRICT v, float * RESTRICT a, float * RESTRICT w, float dt_factor) {
+int pvpatch_accumulate_stochastic_from_post(int nk, float * RESTRICT v, float * RESTRICT a, float * RESTRICT w, float dt_factor, void * auxPtr) {
    int status = 0;
    int k;
    float dv = 0.0f;
@@ -289,6 +290,41 @@ int pvpatch_accumulate_stochastic_from_post(int nk, float * RESTRICT v, float * 
    *v = *v + dt_factor*dv;
    return status;
 }
+#else
+int pvpatch_accumulate_stochastic(int nk, float* RESTRICT v, float a, float* RESTRICT w, void * auxPtr)
+{
+   struct auxInfo { uint4 * rngArray; size_t startIndex; int nf;};
+   struct auxInfo * auxInfoPtr = (struct auxInfo *) auxPtr;
+   uint4 * rngArray = &auxInfoPtr->rngArray[auxInfoPtr->startIndex];
+   long along = (long) (a*pv_random_max());
+   int err = 0;
+   int nf = auxInfoPtr->nf;
+   int k;
+   for (k = 0; k < nk; k++) {
+      uint4 rng = rngArray[k/nf];
+      rng = cl_random_get(rng);
+      double p = (double) rng.s0/cl_random_max(); // 0.0 < p < 1.0
+      v[k] = v[k] + (pv_random()<along)*w[k];
+   }
+   return err;
+}
+
+int pvpatch_accumulate_stochastic_from_post(int nk, float * RESTRICT v, float * RESTRICT a, float * RESTRICT w, float dt_factor, void * auxPtr) {
+   int status = 0;
+   struct auxInfo { uint4 * rngArray; size_t startIndex; int nf;};
+   struct auxInfo * auxInfoPtr = (struct auxInfo *) auxPtr;
+   uint4 rng = auxInfoPtr->rngArray[auxInfoPtr->startIndex];
+   int k;
+   float dv = 0.0f;
+   for (k = 0; k < nk; k++) {
+      rng = cl_random_get(rng);
+      double p = (double) rng.s0/cl_random_max(); // 0.0 < p < 1.0
+      dv += p<a[k] ? dv + a[k]*w[k] : 0.0f;
+   }
+   *v = *v + dt_factor*dv;
+   return status;
+}
+#endif // OBSOLETE
 
 #ifdef OBSOLETE // Marked obsolete Aug 19, 2013.  Nobody calls pvpatch_max and whatever WTACompressedLayer was, it's not in the code now.
 // Used by WTACompressedLayer
@@ -309,7 +345,7 @@ int pvpatch_max(int nk, float * RESTRICT v, float a, float * RESTRICT w, int fea
 }
 #endif
 
-int pvpatch_max_pooling(int nk, float* RESTRICT v, float a, float* RESTRICT w)
+int pvpatch_max_pooling(int nk, float* RESTRICT v, float a, float* RESTRICT w, void * auxPtr)
 {
   int k;
   int err = 0;
@@ -319,7 +355,7 @@ int pvpatch_max_pooling(int nk, float* RESTRICT v, float a, float* RESTRICT w)
   return err;
 }
 
-int pvpatch_max_pooling_from_post(int nk, float * RESTRICT v, float * RESTRICT a, float * RESTRICT w, float dt_factor) {
+int pvpatch_max_pooling_from_post(int nk, float * RESTRICT v, float * RESTRICT a, float * RESTRICT w, float dt_factor, void * auxPtr) {
    int status = 0;
    int k;
    float vmax = *v;

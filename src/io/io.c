@@ -36,7 +36,7 @@ void usage()
  */
 int parse_options(int argc, char * argv[], char ** output_path,
                   char ** param_file, long int * n_time_steps, int * opencl_device,
-                  unsigned long * random_seed, char ** working_dir)
+                  unsigned int * random_seed, char ** working_dir)
 {
    if (argc < 2) {
       usage();
@@ -51,7 +51,7 @@ int parse_options(int argc, char * argv[], char ** output_path,
    pv_getopt_int(argc, argv, "-d", opencl_device);
    pv_getopt_str(argc, argv, "-o", output_path);
    pv_getopt_str(argc, argv, "-p", param_file);
-   pv_getopt_unsigned_long(argc, argv, "-s", random_seed);
+   pv_getopt_unsigned(argc, argv, "-s", random_seed);
    pv_getopt_str(argc, argv, "-w", working_dir);
 
    return 0;
@@ -99,12 +99,12 @@ int pv_getopt_long(int argc, char * argv[], const char * opt, long int * iVal)
  * @opt
  * @iVal
  */
-int pv_getopt_unsigned_long(int argc, char * argv[], const char * opt, unsigned long * iVal)
+int pv_getopt_unsigned(int argc, char * argv[], const char * opt, unsigned int * uVal)
 {
    int i;
    for (i = 1; i < argc; i += 1) {
       if (i+1 < argc && strcmp(argv[i], opt) == 0) {
-         if( iVal != NULL ) *iVal = strtoul(argv[i+1], NULL, 0);
+         if( uVal != NULL ) *uVal = (unsigned int) strtoul(argv[i+1], NULL, 0);
          return 0;
       }
    }

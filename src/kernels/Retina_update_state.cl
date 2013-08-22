@@ -67,7 +67,6 @@ static inline
 float calcBurstStatus(double timed, CL_MEM_CONST Retina_params * params) {
    float burstStatus;
    if (params->burstDuration <= 0 || params->burstFreq == 0) {
-      // sinAmp = COS( 2*PI*time * params->burstFreq / 1000. );
       burstStatus = COS( 2*PI*timed * params->burstFreq / 1000. );
    }
    else {
@@ -83,8 +82,6 @@ int spike(float timed, float dt,
           float prev, float stimFactor, uint4 * rnd_state, float burst_status, CL_MEM_CONST Retina_params * params)
 {
    float probSpike;
-   // float burstStatus = 1;
-   // float sinAmp = 1.0;
 
    // input parameters
    //
@@ -104,29 +101,13 @@ int spike(float timed, float dt,
       probStim *= refract;
    }
 
-   // burstStatus = calcBurstStatus(time, params);
-//   if (params->burstDuration <= 0 || params->burstFreq == 0) {
-//      // sinAmp = COS( 2*PI*time * params->burstFreq / 1000. );
-//      burstStatus = COS( 2*PI*time * params->burstFreq / 1000. );
-//   }
-//   else {
-//      burstStatus = FMOD(time, 1000. / params->burstFreq);
-//      burstStatus = burstStatus <= params->burstDuration;
-//   }
-
-//   burstStatus *= (int) ( (time >= params->beginStim) && (time < params->endStim) );
    probSpike = probBase;
 
-//   if ((int)burstStatus) {
-//      probSpike += probStim * sinAmp;  // negative prob is OK
-//   }
    probSpike += probStim * burst_status;  // negative prob is OK
-
-   // probSpike *= dt; // conversion to expected number of spikes in dt now takes place in setRetinaParams
+   // probSpike is spikes per millisecond; conversion to expected number of spikes in dt takes place in setRetinaParams
 
    *rnd_state = cl_random_get(*rnd_state);
    int spike_flag = (cl_random_prob(*rnd_state) < probSpike);
-   // int spike_flag = (pv_random_prob() < probSpike);
    return spike_flag;
 }
 
@@ -149,8 +130,6 @@ void Retina_spiking_update_state (
     CL_MEM_CONST Retina_params * params,
     CL_MEM_GLOBAL uint4 * rnd,
     CL_MEM_GLOBAL float * GSynHead,
-//    CL_MEM_GLOBAL float * phiExc,
-//    CL_MEM_GLOBAL float * phiInh,
     CL_MEM_GLOBAL float * activity,
     CL_MEM_GLOBAL float * prevTime)
 {
@@ -216,8 +195,6 @@ void Retina_nonspiking_update_state (
 
     CL_MEM_CONST Retina_params * params,
     CL_MEM_GLOBAL float * GSynHead,
-//    CL_MEM_GLOBAL float * phiExc,
-//    CL_MEM_GLOBAL float * phiInh,
     CL_MEM_GLOBAL float * activity)
 {
    int k;
@@ -244,8 +221,6 @@ for (k = 0; k < nx*ny*nf; k++) {
 
    // adding base prob should not change default behavior
    l_activ = burstStatus * params->probStim*(l_phiExc - l_phiInh) + params->probBase;
-//   if (l_activ != 0.0f && burstStatus != 1.0f)
-//       l_activ *= burstStatus;
 
    l_phiExc = 0.0f;
    l_phiInh = 0.0f;

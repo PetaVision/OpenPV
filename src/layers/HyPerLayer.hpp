@@ -360,7 +360,7 @@ protected:
                           // numGlobalRNGs should take into account the global layer, so that random number generation is reproducible in different MPI configurations.
    float maxRate;         // Maximum rate of activity.  HyPerLayer sets to 1/dt during initialize(); derived classes should override in their own initialize method after calling HyPerLayer's, if needed.
 
-   unsigned long rngSeedBase; // The starting seed for rng.  The parent HyPerCol reserves {rngSeedbase, rngSeedbase+1,...rngSeedbase+neededRNGSeeds-1} for use by this layer
+   unsigned int rngSeedBase; // The starting seed for rng.  The parent HyPerCol reserves {rngSeedbase, rngSeedbase+1,...rngSeedbase+neededRNGSeeds-1} for use by this layer
 
    bool initInfoCommunicatedFlag;
    bool dataStructuresAllocatedFlag;

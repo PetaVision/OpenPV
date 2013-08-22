@@ -1459,14 +1459,15 @@ int HyPerLayer::recvSynapticInputFromPost(HyPerConn * conn, const PVLayerCube * 
       //get source layer's patch y stride
       int syp = targetToSourceConn->yPatchStride();
       //Store sum value
-      float value = 0;
+      float value = 0.0f;
       //Iterate through y patch
       int numPerStride = targetToSourceConn->xPatchSize() * targetToSourceConn->fPatchSize();
       int kernelIndex = targetToSourceConn->patchToDataLUT(kTargetExt);
+      uint4 * rngPtr = conn->getRnd_state(kTargetRes);
       for (int ky = 0; ky < targetToSourceConn->yPatchSize(); ky++){
          float * activityY = &(activity->data[startSourceExt + ky*sy]);
          float * weightY = targetToSourceConn->get_wDataHead(arborID, kernelIndex) + ky*syp;
-         (conn->accumulateFunctionFromPostPointer)(numPerStride, gSynPatchPos, activityY, weightY, dt_factor);
+         (conn->accumulateFunctionFromPostPointer)(numPerStride, gSynPatchPos, activityY, weightY, dt_factor, rngPtr);
       }
       *gSynPatchPos += value;
    }
@@ -1493,6 +1494,7 @@ int HyPerLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activity
 #endif // DEBUG_OUTPUT
 
    float dt_factor = getConvertToRateDeltaTimeFactor(conn);
+
    for (int kPre = 0; kPre < numExtended; kPre++) {
 
       bool inWindow; 
@@ -1518,14 +1520,14 @@ int HyPerLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activity
       int sy  = conn->getPostNonextStrides()->sy;       // stride in layer
       int syw = conn->yPatchStride();                   // stride in patch
       pvdata_t * gSynPatchHead = this->getChannel(conn->getChannel());
-      pvdata_t * gSynPatchStart = gSynPatchHead + conn->getGSynPatchStart(kPre, arborID);
+      size_t gSynPatchStartIndex = conn->getGSynPatchStart(kPre, arborID);
+      pvdata_t * gSynPatchStart = gSynPatchHead + gSynPatchStartIndex;
       // GTK: gSynPatchStart redefined as offset from start of gSyn buffer
-      //pvdata_t * gSynPatchStart = conn->getGSynPatchStart(kPre, arborID);
       // TODO - unroll
       pvdata_t * data = conn->get_wData(arborID,kPre);
+      uint4 * rngPtr = conn->getRnd_state(kPre);
       for (int y = 0; y < ny; y++) {
-         (conn->accumulateFunctionPointer)(nk, gSynPatchStart + y*sy, a, data + y*syw);
-         //       if (err != 0) printf("  ERROR kPre = %d\n", kPre);
+         (conn->accumulateFunctionPointer)(nk, gSynPatchStart + y*sy, a, data + y*syw, rngPtr);
       }
    }
 

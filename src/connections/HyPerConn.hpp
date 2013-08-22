@@ -90,8 +90,9 @@ public:
    virtual int writePostSynapticWeights(double time, bool last);
    int readWeights(const char* filename);
     
-   int (*accumulateFunctionPointer)(int nk, float* v, float a, float* w);
-   int (*accumulateFunctionFromPostPointer)(int nk, float* v, float* a, float* w, float dt_factor);
+   GSynAccumulateType getPvpatchAccumulateType() { return pvpatchAccumulateType; }
+   int (*accumulateFunctionPointer)(int nk, float* v, float a, float* w, void* auxPtr);
+   int (*accumulateFunctionFromPostPointer)(int nk, float* v, float* a, float* w, float dt_factor, void* auxPtr);
    inline bool preSynapticActivityIsNotRate() {return preActivityIsNotRate;}
 
    // TODO make a get-method to return this.
@@ -321,8 +322,10 @@ public:
       return shrinkPatches_flag;
    }
 
-   bool getUseWindowPost(){return useWindowPost;};
-   bool getUpdateGSynFromPostPerspective(){return updateGSynFromPostPerspective;};
+   bool getUseWindowPost(){return useWindowPost;}
+   bool getUpdateGSynFromPostPerspective(){return updateGSynFromPostPerspective;}
+
+   uint4 * getRnd_state(int index) { return pvpatchAccumulateType==ACCUMULATE_STOCHASTIC ? &rnd_state[index] : NULL; }
 
    int sumWeights(int nx, int ny, int offset, float* dataStart, double* sum,
          double* sum2, float* maxVal);
@@ -332,9 +335,6 @@ public:
    virtual int checkNormalizeArbor(PVPatch** patches, float** dataStart,
          int numPatches, int arborId);
    virtual int normalizeWeights();
-//   virtual int normalizeWeights(PVPatch** patches, float** dataStart,
-//         int numPatches, int arborId);
-//
 
 
 #ifdef PV_USE_OPENCL
@@ -450,7 +450,7 @@ protected:
    //2D Gaussian weights.  If weight initialization type isn't created in a way supported by Buildandrun,
    //this class will try to read the weights from a file or will do a 2D Gaussian.
    InitWeights* weightInitializer;
-   const char* pvpatchAccumulateType;
+   GSynAccumulateType pvpatchAccumulateType;
    bool preActivityIsNotRate; // TODO Rename this member variable
    bool normalizeTotalToPost; // if false, normalize the sum of weights from each presynaptic neuron.  If true, normalize the sum of weights into a postsynaptic neuron.
    float dWMax;  // dW scale factor
@@ -458,8 +458,8 @@ protected:
    bool combineWeightFiles;
    bool updateGSynFromPostPerspective;
 
-   int neededRNGSeeds;  // The number of independent random number generators used by the layer, summed over all MPI processes.
-   unsigned long rngSeedBase; // The starting seed for rng.  The parent HyPerCol reserves {rngSeedbase, rngSeedbase+1,...rngSeedbase+neededRNGSeeds-1} for use by this layer
+   unsigned int rngSeedBase; // The starting seed for rng.  The parent HyPerCol reserves {rngSeedbase, rngSeedbase+1,...rngSeedbase+neededRNGSeeds-1} for use by this layer
+   uint4 * rnd_state; // An array of RNGs.
 
    bool initInfoCommunicatedFlag;
    bool dataStructuresAllocatedFlag;
@@ -609,8 +609,6 @@ protected:
    virtual void readUseListOfArborFiles(PVParams * params);
    virtual void readCombineWeightFiles(PVParams * params);
    virtual void readUpdateGSynFromPostPerspective(PVParams * params);
-
-   virtual int setNeededRNGSeeds();
 
 #ifdef PV_USE_OPENCL
    virtual void initIgnoreGPUFlag(); // sets the ignoreGPUFlag parameter.  virtual so that a class can make it always false or always true
