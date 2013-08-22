@@ -119,7 +119,9 @@ int OjaKernelConn::allocateDataStructures() {
    return status;
 }
 
-int OjaKernelConn::updateState(double timef, double dt) {
+int OjaKernelConn::updateState(double timef, double dt)
+{
+   update_timer->start();
 
    float decayfactor = expf(-parent->getDeltaTime()/integrationTime);
    // Update output firing rate
@@ -136,10 +138,11 @@ int OjaKernelConn::updateState(double timef, double dt) {
       }
    }
 
-   // HyPerConn::updateState calls update_dW and updateWeights
-   int status = KernelConn::updateState(timef, dt);
+   // update timer already in KernelConn::updateState, don't call twice
+   update_timer->stop();
 
-   return status;
+   // HyPerConn::updateState calls update_dW and updateWeights
+   return KernelConn::updateState(timef, dt);
 }
 
 int OjaKernelConn::updateWeights(int axonId) {
