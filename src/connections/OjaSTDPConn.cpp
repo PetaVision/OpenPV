@@ -618,6 +618,7 @@ pvdata_t ** OjaSTDPConn::getPostWeightsp(int arborID, int kPost) {
 int OjaSTDPConn::outputState(double timef, bool last)
 {
    int status;
+   io_timer->start();
 
    if (last) {
       printf("Writing last STDP weights..%f\n",timef);
@@ -634,11 +635,10 @@ int OjaSTDPConn::outputState(double timef, bool last)
       //ioAppend = true;
    }
 
+   // io timer already in HyPerConn::outputState, don't call twice
+   io_timer->stop();
+
    status = HyPerConn::outputState(timef, last);
-
-
-   if (status != PV_SUCCESS) return status;
-
 
    return status;
 }
