@@ -18,7 +18,7 @@ CliqueConn::CliqueConn(const char * name, HyPerCol * hc, const char * pre_layer_
 {
    CliqueConn::initialize_base();
    CliqueConn::initialize(name, hc, pre_layer_name, post_layer_name, filename, weightInit);
-};
+}
 
 int CliqueConn::initialize_base(){
    cliqueSize = 1;
@@ -84,10 +84,9 @@ int CliqueConn::updateState(double time, double dt)
 
    } // time > weightUpdateTime
 
-update_timer->stop();
-return PV_SUCCESS;
-
-};
+   update_timer->stop();
+   return PV_SUCCESS;
+}
 
 int CliqueConn::update_dW(int arborId)
 {
