@@ -532,8 +532,8 @@ int KernelConn::updateState(double timef, double dt) {
       normalizeWeights();
    } // time > weightUpdateTime
 
-update_timer->stop();
-return PV_SUCCESS;
+   update_timer->stop();
+   return PV_SUCCESS;
 } // updateState
 
 int KernelConn::updateWeights(int arbor_ID){
