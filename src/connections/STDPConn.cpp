@@ -483,25 +483,30 @@ int STDPConn::pvpatch_update_weights(int nk, float * RESTRICT w, const float * R
 int STDPConn::outputState(double timef, bool last)
 {
    int status;
+   io_timer->start();
 
    if (last) {
-         printf("Writing last STDP weights..%f\n",timef);
-         convertPreSynapticWeights(timef);
-         status = writePostSynapticWeights(timef, last);
-         assert(status == 0);
-      }else if ( (timef >= writeTime) && (writeStep >= 0) ) {
-         //writeTime += writeStep; Done in HyperConn
-         convertPreSynapticWeights(timef);
-         status = writePostSynapticWeights(timef, false);
-         assert(status == 0);
+      printf("Writing last STDP weights..%f\n",timef);
+      convertPreSynapticWeights(timef);
+      status = writePostSynapticWeights(timef, last);
+      assert(status == 0);
+   } else if ( (timef >= writeTime) && (writeStep >= 0) ) {
+      //writeTime += writeStep; Done in HyperConn
+      convertPreSynapticWeights(timef);
+      status = writePostSynapticWeights(timef, false);
+      assert(status == 0);
 
-         // append to output file after original open
-         //ioAppend = true;
-      }
+      // append to output file after original open
+      //ioAppend = true;
+   }
+
+   // io timer already in HyPerConn::outputState, don't call twice
+   io_timer->stop();
+
    status = HyPerConn::outputState(timef, last);
 
+#ifdef OBSOLETE
    if (status != PV_SUCCESS) return status;
-
 
 //   if (stdpFlag != true) return status;
 //
@@ -516,6 +521,7 @@ int STDPConn::outputState(double timef, bool last)
 //      status = writePostSynapticWeights(time, last);
 //      assert(status == PV_SUCCESS);
 //   }
+#endif // OBSOLETE
 
    return status;
 }
