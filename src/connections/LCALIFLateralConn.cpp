@@ -280,6 +280,7 @@ int LCALIFLateralConn::checkpointRead(const char * cpDir, double* timef) {
 int LCALIFLateralConn::outputState(double timef, bool last)
 {
    int status;
+   io_timer->start();
 
    if (last) {
       printf("Writing last LCALIFLateral weights..%f\n",timef);
@@ -296,11 +297,10 @@ int LCALIFLateralConn::outputState(double timef, bool last)
       //ioAppend = true;
    }
 
+   // io timer already in HyPerConn::outputState, don't call twice
+   io_timer->stop();
+
    status = HyPerConn::outputState(timef, last);
-
-
-   if (status != PV_SUCCESS) return status;
-
 
    return status;
 }
