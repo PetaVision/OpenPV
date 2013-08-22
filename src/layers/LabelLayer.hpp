@@ -29,6 +29,7 @@ protected:
    int maxLabel;
    int beginLabel;
    int lenLabel;
+   bool echoLabelFlag;
    PVLayerLoc labelLoc;
 
 
