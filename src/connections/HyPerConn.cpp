@@ -113,15 +113,17 @@ HyPerConn::HyPerConn(const char * name, HyPerCol * hc, const char * pre_layer_na
 #endif
 }
 
-
 HyPerConn::~HyPerConn()
 {
    if (parent->columnId() == 0) {
+      printf("%32s: total time in %6s %10s: ", name, "conn", "io     ");
+      io_timer->elapsed_time();
       printf("%32s: total time in %6s %10s: ", name, "conn", "update ");
       update_timer->elapsed_time();
       fflush(stdout);
    }
-   delete update_timer;
+   delete io_timer;      io_timer     = NULL;
+   delete update_timer;  update_timer = NULL;
 
    free(name);
 
@@ -201,6 +203,7 @@ int HyPerConn::initialize_base()
    this->probes = NULL;
    this->numProbes = 0;
 
+   this->io_timer     = new Timer();
    this->update_timer = new Timer();
 
    this->wMin = 0.0;
@@ -1704,6 +1707,7 @@ int HyPerConn::insertProbe(BaseConnectionProbe * p)
 int HyPerConn::outputState(double timef, bool last)
 {
    int status = 0;
+   io_timer->start();
 
    if( !last ) {
       for (int i = 0; i < numProbes; i++) {
@@ -1728,6 +1732,7 @@ int HyPerConn::outputState(double timef, bool last)
       writeTime = timef;
    }
 
+   io_timer->stop();
    return status;
 }
 
@@ -1745,6 +1750,7 @@ int HyPerConn::updateState(double time, double dt)
       // TODO error handling
       status = updateWeights(arborId);  // Apply changes in weights
    }
+
    update_timer->stop();
    return status;
 }

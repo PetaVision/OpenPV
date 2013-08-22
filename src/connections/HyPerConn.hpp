@@ -428,7 +428,10 @@ protected:
    bool writeCompressedWeights; // if true, outputState writes weights with 8-bit precision; if false, write weights with float precision
    bool writeCompressedCheckpoints; // similar to writeCompressedWeights, but for checkpointWrite instead of outputState
    int fileType; // type ID for file written by PV::writeWeights
-   Timer* update_timer;
+
+   Timer * io_timer;
+   Timer * update_timer;
+
    bool plasticityFlag;
    bool combine_dW_with_W_flag; // indicates that dwDataStart should be set equal to wDataStart, useful for saving memory when weights are not being learned but not used
    bool selfFlag; // indicates that connection is from a layer to itself (even though pre and post may be separately instantiated)
