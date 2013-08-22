@@ -193,7 +193,11 @@ int CloneKernelConn::setPatchSize() {
 }
 
 int CloneKernelConn::updateState(double time, double dt) {
+   update_timer->start();
+
    lastUpdateTime = originalConn->getLastUpdateTime();
+
+   update_timer->stop();
    return PV_SUCCESS;
 }
 
