@@ -77,6 +77,9 @@ InitV::~InitV() {free(this->groupName);}
 
 int InitV::calcV(HyPerLayer * layer) {
    int status = PV_SUCCESS;
+   const PVLayerLoc * loc = layer->getLayerLoc();
+   int numNeuronSites = loc->nx*loc->ny;
+   unsigned int seedBase = layer->getParent()->getObjectSeed(numNeuronSites);
    switch(initVTypeCode) {
    case UndefinedInitV:
       status = PV_FAILURE;
@@ -86,10 +89,10 @@ int InitV::calcV(HyPerLayer * layer) {
       status = calcConstantV(layer->getV(), layer->getNumNeurons());
       break;
    case UniformRandomV:
-      status = calcUniformRandomV(layer->getV(), layer->getNumNeurons());
+      status = calcUniformRandomV(layer->getV(), loc, seedBase);
       break;
    case GaussianRandomV:
-      status = calcGaussianRandomV(layer->getV(), layer->getNumNeurons());
+      status = calcGaussianRandomV(layer->getV(), loc, seedBase);
       break;
    case InitVFromFile:
       status = calcVFromFile(layer->getV(), layer->getLayerLoc(), layer->getParent()->icCommunicator());
@@ -107,40 +110,81 @@ int InitV::calcConstantV(pvdata_t * V, int numNeurons) {
    return PV_SUCCESS;
 }
 
-int InitV::calcGaussianRandomV(pvdata_t * V, int numNeurons) {
-   for( int k=0; k<numNeurons; k++ ) V[k] = generateGaussianRand();
+int InitV::calcGaussianRandomV(pvdata_t * V, const PVLayerLoc * loc, unsigned int seedBase) {
+   PVLayerLoc flatLoc;
+   memcpy(&flatLoc, loc, sizeof(PVLayerLoc));
+   flatLoc.nf = 1;
+   uint4 * rngArray = (uint4 *) malloc((size_t)(flatLoc.nx)*sizeof(uint4));
+   assert(rngArray!=NULL);
+   int ny = flatLoc.ny;
+   for (int y=0; y<ny; y++) {
+      int localIndex = kIndex(0,y,0,flatLoc.nx,flatLoc.ny,1);
+      int globalIndex = globalIndexFromLocal(localIndex,flatLoc);
+      cl_random_init(rngArray, (size_t) flatLoc.nx, seedBase+(unsigned int) globalIndex);
+      generateGaussianRand(&V[localIndex], rngArray, loc->nx, loc->nf);
+   }
+   free(rngArray); rngArray = NULL;
    return PV_SUCCESS;
 }
 
-#define GENERATEGAUSSIANRAND_TWOPI (6.283185307179586)
-pvdata_t InitV::generateGaussianRand() {
-   pvdata_t V;
-   if( valueIsBeingHeld) {
-      V = heldValue;
-      valueIsBeingHeld = false;
-   }
-   else {
-      double U1, U2;
-      U1 = pv_random_prob();
-      U2 = pv_random_prob();
-      double t = GENERATEGAUSSIANRAND_TWOPI * U2;
-      double r = sigmaV*sqrt(-2*log(U1)); // U1<1 so r is real
-      V = r*cos(t) + meanV;
-      heldValue = r*sin(t) + meanV;
-      valueIsBeingHeld = true;
-   }
-   return V;
+#define GENERATEGAUSSIANRAND_TWOPI (6.283185307179586f)
+int InitV::generateGaussianRand(pvdata_t * V, uint4 * rngArray, int nx, int nf) {
+   int nk = nx*nf;
+   int f = 0;
+   struct box_muller_state bm_state;
 
-}
+   bm_state.state = rngArray;
+   bm_state.use_last = 0;
 
-int InitV::calcUniformRandomV(pvdata_t * V, int numNeurons) {
-   for( int k=0; k<numNeurons; k++ ) V[k] = generateUnifRand();
+   for (int k=0; k<nk; k++) {
+      V[k] = cl_box_muller(meanV, sigmaV, &bm_state);
+
+      f++;
+      if (f==nf) {
+         f = 0;
+         bm_state.state++;
+         bm_state.use_last = 0;
+      }
+   }
+
    return PV_SUCCESS;
 }
 
-pvdata_t InitV::generateUnifRand() {
-   pvdata_t V = (pvdata_t) (pv_random_prob() * (maxV - minV) + minV);
-   return V;
+int InitV::calcUniformRandomV(pvdata_t * V, const PVLayerLoc * loc, unsigned int seedBase) {
+   PVLayerLoc flatLoc;
+   memcpy(&flatLoc, loc, sizeof(PVLayerLoc));
+   flatLoc.nf = 1;
+   uint4 * rngArray = (uint4 *) malloc((size_t)(flatLoc.nx)*sizeof(uint4));
+   assert(rngArray!=NULL);
+   int ny = flatLoc.ny;
+   for (int y=0; y<ny; y++) {
+      int localIndex = kIndex(0,y,0,flatLoc.nx,flatLoc.ny,1);
+      int globalIndex = globalIndexFromLocal(localIndex,flatLoc);
+      cl_random_init(rngArray, (size_t) flatLoc.nx, seedBase+(unsigned int) globalIndex);
+      generateUnifRand(&V[localIndex], rngArray, loc->nx, loc->nf);
+   }
+   free(rngArray); rngArray = NULL;
+   return PV_SUCCESS;
+}
+
+int InitV::generateUnifRand(pvdata_t * V, uint4 * rngArray, int nx, int nf) {
+   int nk = nx*nf;
+   int f = 0;
+
+   uint4 * rngPtr = rngArray;
+
+   for (int k=0; k<nk; k++) {
+      *rngPtr = cl_random_get(*rngPtr);
+      V[k] = rngPtr->s0/cl_random_max();
+
+      f++;
+      if (f==nf) {
+         f = 0;
+         rngPtr++;
+      }
+   }
+
+   return PV_SUCCESS;
 }
 
 int InitV::calcVFromFile(pvdata_t * V, const PVLayerLoc * loc, InterColComm * icComm) {

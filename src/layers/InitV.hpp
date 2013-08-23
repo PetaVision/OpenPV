@@ -11,7 +11,7 @@
 #include "../include/default_params.h"
 #include "../include/pv_types.h"
 #include "../include/pv_common.h"
-#include "../utils/pv_random.h"
+#include "../utils/cl_random.h"
 #include "../layers/HyPerLayer.hpp"
 #include "../io/fileio.hpp"
 #include "../io/imageio.hpp"
@@ -42,10 +42,10 @@ protected:
 private:
    int initialize_base();
    int calcConstantV(pvdata_t * V, int numNeurons);
-   int calcGaussianRandomV(pvdata_t * V, int numNeurons);
-   pvdata_t generateGaussianRand();
-   int calcUniformRandomV(pvdata_t * V, int numNeurons);
-   pvdata_t generateUnifRand();
+   int calcGaussianRandomV(pvdata_t * V, const PVLayerLoc * loc, unsigned int seedBase);
+   int generateGaussianRand(pvdata_t * V, uint4 * rngArray, int nx, int nf);
+   int calcUniformRandomV(pvdata_t * V, const PVLayerLoc * loc, unsigned int seedBase);
+   int generateUnifRand(pvdata_t * V, uint4 * rngArray, int nx, int nf);
    int calcVFromFile(pvdata_t * V, const PVLayerLoc * loc, InterColComm * icComm);
    int checkLoc(const PVLayerLoc * loc, int nx, int ny, int nf, int nxGlobal, int nyGlobal);
    int checkLocValue(int fromParams, int fromFile, const char * field);
@@ -54,9 +54,9 @@ private:
    char * groupName;
    InitVType initVTypeCode;
    pvdata_t constantValue; // Defined only for initVTypeCode=ConstantV
-   pvdata_t minV, maxV, uniformMultiplier; // Defined only for initVTypeCode=UniformRandomV
+   pvdata_t minV, maxV; // Defined only for initVTypeCode=UniformRandomV
       // uniformMultiplier converts the primary random number to a double between 0 and maxV-minV
-   pvdata_t meanV, sigmaV, heldValue; bool valueIsBeingHeld;// Defined only for GaussianRandomV
+   pvdata_t meanV, sigmaV; // Defined only for initVTypeCode=GaussianRandomV
       // if valueIsBeingHeld is true, heldValue is normally distributed random number with mean meanV, st.dev. sigmaV
       // if valueIsBeingHeld is false, heldValue is undefined
    const char * filename; // Defined only for initVTypeCode=InitVFromFile
