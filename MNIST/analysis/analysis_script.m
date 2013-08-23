@@ -41,7 +41,7 @@ v1rank = v1plots(V1_file, statsdir)
 %% Change Params Here %%
 
 lastcheckpointndx = 28000000;
-checkdir = [pwd filesep "Checkpoints" filesep "Checkpoint" num2str(lastcheckpointndx)];
+checkdir = [pwd filesep "Checkpoints" filesep "Checkpoint" "28000000"];
 labelweights = [checkdir filesep "V1ToLabelError_W.pvp"];
 movieweights = [checkdir filesep "V1ToMovieError_W.pvp"];
 statsdir = [pwd filesep "stats"];
@@ -52,7 +52,7 @@ statsdir = [pwd filesep "stats"];
 W = readpvpfile(movieweights);
 W = W{end}.values{1};
 L = readpvpfile(labelweights);
-L = squeeze(L{end}.values);			
+L = squeeze(L{end}.values{1});			
 f = figure;
 sz = get (0, "screensize");
 set (gcf, "position", sz) 
@@ -68,8 +68,8 @@ saveas(f,[statsdir filesep "V1ToMovieWeights_bw_" num2str(lastcheckpointndx)],"p
 
 %% Label Dictionary %%
 
-[~, maxnum] = max(L,[],2);
-[maxnum,maxind] = sort(magnum);
+[~, maxnum] = max(L,[],1);
+[maxnum,maxind] = sort(maxnum);
 g = figure;
 imagesc(L(:,maxind))
 saveas(g,[statsdir filesep "V1ToLabelWeights_bw_" num2str(lastcheckpointndx)],"png")
@@ -78,7 +78,7 @@ saveas(g,[statsdir filesep "V1ToLabelWeights_bw_" num2str(lastcheckpointndx)],"p
 
 label = 3; %% anything 1:nf
 h = figure;
-imagesc(squeeze(mean(W(:,:,1,maxind(maxnum==label))))')
+imagesc(squeeze(mean(W(:,:,1,maxind(maxnum==label)),4))')
 
 
 %%%%%%%%%%%%% Checking Accuracy %%%%%%%%%%%%%%%

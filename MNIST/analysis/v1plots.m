@@ -1,6 +1,6 @@
 %% v1rank = function v1plots(V1_file, statsdir)
 
-v1rank = function v1plots(V1_file, statsdir)
+function v1rank = v1plots(V1_file, statsdir)
 
   %%%%%% PATHS %%%%%%%%%%
   [V1_struct, V1_hdr] = readpvpfile(V1_file, [], [], []);
