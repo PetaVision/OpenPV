@@ -9,7 +9,6 @@
 #define RECIPROCALCONN_HPP_
 
 #include "KernelConn.hpp"
-#include "../utils/pv_random.h"
 
 namespace PV {
 
@@ -54,9 +53,6 @@ protected:
    virtual int initNormalize();
    virtual int update_dW(int axonID);
    virtual int updateWeights(int axonId);
-   // virtual int normalizeWeights(PVPatch ** patches, pvdata_t ** dataStart, int numPatches, int arborID);
-
-   pvdata_t * getSums()         {return sums;}
 
 private:
    // private methods
@@ -84,8 +80,6 @@ private:
    int nyUnitCellPost;
    int nfUnitCellPost;
    int sizeUnitCellPost;
-   pvdata_t * sums; // Used in normalizeWeights
-   pvdata_t normalizeNoiseLevel; // Used in normalizeWeights
 };
 
 } /* namespace PV */

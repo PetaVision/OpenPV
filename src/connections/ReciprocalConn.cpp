@@ -61,8 +61,6 @@ int ReciprocalConn::initialize_base() {
    slownessPostName = NULL;
    slownessPre = NULL;
    slownessPost = NULL;
-   sums = NULL;
-   normalizeNoiseLevel = 0.0;
    return PV_SUCCESS;
 }
 
@@ -121,7 +119,6 @@ int ReciprocalConn::readSlownessPost(PVParams * params) {
    assert(!params->presentAndNotBeenRead(name, "slownessFlag"));
    return getLayerName(params, "slownessPost", &slownessPostName, NULL);
    return status;
-   // status = initParameterLayer("slownessPost", &slownessPost, NULL);
 }
 
 int ReciprocalConn::getLayerName(PVParams * params, const char * parameter_name, char ** layer_name_ptr, const char * default_name) {
@@ -149,7 +146,6 @@ int ReciprocalConn::getLayerName(PVParams * params, const char * parameter_name,
             status = PV_FAILURE;
          }
       }
-      // status = initParameterLayer("slownessPre", &slownessPre, NULL);
    }
    return status;
 }
@@ -187,13 +183,10 @@ int ReciprocalConn::setParameterLayer(const char * paramname, const char * layer
 
 int ReciprocalConn::initNormalize() {
    PVParams * params = parent->parameters();
-   normalizeNoiseLevel = params->value(name, "normalizeNoiseLevel", normalizeNoiseLevel);
    nxUnitCellPost = zUnitCellSize(postSynapticLayer()->getXScale(), preSynapticLayer()->getXScale());
    nyUnitCellPost = zUnitCellSize(postSynapticLayer()->getYScale(), preSynapticLayer()->getYScale());
    nfUnitCellPost = fPatchSize();
    sizeUnitCellPost = nxUnitCellPost*nyUnitCellPost*nfUnitCellPost;
-   sums = (pvdata_t *) malloc(sizeUnitCellPost*sizeof(pvdata_t));
-   if( sums == NULL ) abort();
 
    return PV_SUCCESS;
 }
@@ -316,78 +309,11 @@ int ReciprocalConn::updateWeights(int arborID) {
    return status;
 }
 
-// normalizeNoiseLevel is not being used by NormalizeBase.  Not being fixed because nobody is using ReciprocalConn right now.
-#ifdef OBSOLETE // Marked obsolete April 11, 2013.  Implementing the new NormalizeBase class hierarchy
-int ReciprocalConn::normalizeWeights(PVPatch ** patches, pvdata_t ** dataStart, int numPatches, int arborID) {
-   assert(arborID == 0); // TODO how to handle arbors.  Do I need to sum over arbors or handle each arbor independently?
-   int status = PV_SUCCESS;
-   assert( numPatches == getNumDataPatches() );
-
-   if( normalizeNoiseLevel == 0.0f ) {
-      for( int k=0; k<sizeUnitCellPost; k++ ) sums[k] = 0;
-   }
-   else {
-      for( int k=0; k<sizeUnitCellPost; k++ ) sums[k] = normalizeNoiseLevel * pv_random_prob();
-   }
-
-   for( int kernel=0; kernel<numPatches; kernel++ ) {
-      pvdata_t * kernelData = &dataStart[arborID][kernel*nxp*nyp*nfp];
-      for( int y=0; y<yPatchSize(); y++ ) {
-         int yInCell = y % nyUnitCellPost;
-         for( int x=0; x<xPatchSize(); x++ ) {
-            int xInCell = x % nxUnitCellPost;
-            for( int f=0; f<fPatchSize(); f++ ) {
-               int idxInCell = kIndex(xInCell, yInCell, f, nxUnitCellPost, nyUnitCellPost, nfUnitCellPost);
-               sums[idxInCell] += kernelData[kIndex(x,y,f,nxp,nyp,nfp)];
-            }
-         }
-      }
-   }
-
-   for( int kernel=0; kernel<numPatches; kernel++ ) {
-      pvdata_t * kernelData = &dataStart[arborID][kernel*nxp*nyp*nfp];
-      for( int y=0; y<yPatchSize(); y++ ) {
-         int yInCell = y % nyUnitCellPost;
-         for( int x=0; x<xPatchSize(); x++ ) {
-            int xInCell = x % nxUnitCellPost;
-            for( int f=0; f<fPatchSize(); f++ ) {
-               int idxInCell = kIndex(xInCell, yInCell, f, nxUnitCellPost, nyUnitCellPost, nfUnitCellPost);
-               kernelData[kIndex(x,y,f,nxp,nyp,nfp)] /= sums[idxInCell];
-            }
-         }
-      }
-   }
-   return status;
-}
-#endif // OBSOLETE
-
 ReciprocalConn::~ReciprocalConn() {
    free(updateRulePreName);  updateRulePreName = NULL;
    free(updateRulePostName); updateRulePostName = NULL;
    free(slownessPreName);    slownessPreName = NULL;
    free(slownessPostName);   slownessPostName = NULL;
-   free(sums);               sums=NULL;
 }
-/*
-   char * updateRulePreName;
-   char * updateRulePostName;
-   HyPerLayer * updateRulePre;
-   HyPerLayer * updateRulePost;
-   const char * reciprocalWgtsName;
-   ReciprocalConn * reciprocalWgts;
-   float relaxationRate; // The coefficient eta in dW = eta * dE/dW, measured in the same units as HyPerCol's dt
-   float reciprocalFidelityCoeff;
-   bool slownessFlag;
-   char * slownessPreName;
-   char * slownessPostName;
-   HyPerLayer * slownessPre;
-   HyPerLayer * slownessPost;
-   int nxUnitCellPost;
-   int nyUnitCellPost;
-   int nfUnitCellPost;
-   int sizeUnitCellPost;
-   pvdata_t * sums; // Used in normalizeWeights
-   pvdata_t normalizeNoiseLevel; // Used in normalizeWeights
 
- */
 } /* namespace PV */
