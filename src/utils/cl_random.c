@@ -116,32 +116,31 @@ taus_get (taus_state_t * state)
                           copyright notice is preserved.
 
 */
-// Argument uint4 * rnd_state added so that cl_random_prob() could be used in place of Carter's ranf().
-float cl_box_muller(float m, float s, uint4 * rnd_state)      /* normal random variate generator */
+// Argument box_muller_state * bm_state added so that cl_random_prob() could be used in place of Carter's ranf().
+// use_last and y2 changed to elements of bm_state so that several independent RNGs can be used.
+float cl_box_muller(float m, float s, struct box_muller_state * bm_state)      /* normal random variate generator */
 {                                       /* mean m, standard deviation s */
    float x1, x2, w, y1;
-   static float y2;
-   static int use_last = 0;
 
-   if (use_last)                   /* use value from previous call */
+   if (bm_state->use_last)                   /* use value from previous call */
    {
-      y1 = y2;
-      use_last = 0;
+      y1 = bm_state->last_value;
+      bm_state->use_last = 0;
    }
    else
    {
       do {
-         *rnd_state = cl_random_get(*rnd_state);
-         x1 = 2.0 * rnd_state->s0/(double) CL_RANDOM_MAX - 1.0;
-         *rnd_state = cl_random_get(*rnd_state);
-         x2 = 2.0 * rnd_state->s0/(double) CL_RANDOM_MAX - 1.0;
+         *(bm_state->state) = cl_random_get(*(bm_state->state));
+         x1 = 2.0 * bm_state->state->s0/(double) CL_RANDOM_MAX - 1.0;
+         *(bm_state->state) = cl_random_get(*(bm_state->state));
+         x2 = 2.0 * bm_state->state->s0/(double) CL_RANDOM_MAX - 1.0;
          w = x1 * x1 + x2 * x2;
       } while ( w >= 1.0 );
 
       w = sqrt( (-2.0 * log( w ) ) / w );
       y1 = x1 * w;
-      y2 = x2 * w;
-      use_last = 1;
+      bm_state->last_value = x2 * w;
+      bm_state->use_last = 1;
    }
 
    return( m + y1 * s );

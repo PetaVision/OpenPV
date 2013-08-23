@@ -48,11 +48,15 @@ int InitGaussianRandomWeights::randomWeights(pvdata_t * patchDataStart, InitWeig
    const int syp = weightParamPtr->getsy_tmp();
    const int sfp = weightParamPtr->getsf_tmp();
 
+   struct box_muller_state bm_state;
+   bm_state.state = rnd_state;
+   bm_state.use_last = 0;
+
    // loop over all post-synaptic cells in patch
    for (int y = 0; y < nyp; y++) {
       for (int x = 0; x < nxp; x++) {
          for (int f = 0; f < nfp; f++) {
-            patchDataStart[x * sxp + y * syp + f * sfp] = cl_box_muller(mean,stdev,rnd_state);
+            patchDataStart[x * sxp + y * syp + f * sfp] = cl_box_muller(mean,stdev,&bm_state);
          }
       }
    }

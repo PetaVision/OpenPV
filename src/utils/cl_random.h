@@ -18,10 +18,12 @@ extern "C"
 {
 #endif
 
+struct box_muller_state { uint4 * state; int use_last; float last_value;};
+
 int cl_random_init(uint4 * state, size_t count, unsigned int seed);
 uint4 cl_random_get(uint4 state);
 static inline double cl_random_max() {return (double) CL_RANDOM_MAX;}
-float cl_box_muller(float m, float s, uint4 * rnd_state);
+float cl_box_muller(float m, float s, struct box_muller_state * bm_state);
 
 #ifdef __cplusplus
 }
