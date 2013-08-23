@@ -27,11 +27,17 @@ namespace PV {
 
 class Random {
 public:
+   Random(HyPerCol * hc, unsigned int numBlocks, unsigned int blockLength, unsigned int numGlobalBlocks, unsigned int globalBlockLength, unsigned int startIndex);
+   Random(HyPerCol * hc, int count);
    Random(HyPerCol * hc, const PVLayerLoc * locptr, bool isExtended);
    virtual ~Random();
 
    HyPerCol * getParentHyPerCol() {return parentHyPerCol;}
-   const PVLayerLoc * getLoc() {return &loc;}
+   unsigned int getNumBlocks() {return numBlocks;}
+   unsigned int getBlockLength() {return blockLength;}
+   unsigned int getNumGlobalBlocks() {return numGlobalBlocks;}
+   unsigned int getGlobalBlockLength() {return globalBlockLength;}
+   unsigned int getStartIndex() {return startIndex;}
    size_t getRNGArraySize() {return rngArraySize;}
    uint4 * getRNG(int index) {return &rngArray[index];}
    float uniformRandom(int localIndex);
@@ -41,7 +47,7 @@ public:
 
 protected:
    Random();
-   int initialize(HyPerCol * hc, const PVLayerLoc * locptr, bool isExtended);
+   int initialize(HyPerCol * hc, unsigned int numBlocks, unsigned int blockLength, unsigned int numGlobalBlocks, unsigned int globalBlockLength, unsigned int startIndex);
 
 private:
    int initialize_base();
@@ -49,7 +55,11 @@ private:
 // Member variables
 protected:
    HyPerCol * parentHyPerCol;
-   PVLayerLoc loc;
+   unsigned int numBlocks;
+   unsigned int blockLength;
+   unsigned int numGlobalBlocks;
+   unsigned int globalBlockLength;
+   unsigned int startIndex;
    uint4 * rngArray;
    size_t rngArraySize;
 };
