@@ -40,7 +40,7 @@ public:
    unsigned int getStartIndex() {return startIndex;}
    size_t getRNGArraySize() {return rngArraySize;}
    uint4 * getRNG(int index) {return &rngArray[index];}
-   float uniformRandom(int localIndex);
+   float uniformRandom(int localIndex=0);
    float uniformRandom(int localIndex, float min, float max) {return min+uniformRandom(localIndex)*(max-min);}
    void uniformRandom(float * values, int localIndex, int count=1) {for (int k=0; k<count; k++) values[k] = uniformRandom(localIndex+k);}
    void uniformRandom(float * values, int localIndex, int count, float min, float max) {for (int k=0; k<count; k++) values[k] = uniformRandom(localIndex+k,min,max);}
