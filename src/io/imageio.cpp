@@ -626,6 +626,9 @@ int scatterImageFileGDAL(const char * filename, int xOffset, int yOffset,
       int xImageSize = dataset->GetRasterXSize();
       int yImageSize = dataset->GetRasterYSize();
       const int bandsInFile = dataset->GetRasterCount();
+      int panBandMap[1] = {0};
+      bool copyGrayImageFlag = false;
+      
       numTotal = nx * ny * bandsInFile;
 #ifdef PV_USE_MPI
 #ifdef DEBUG_OUTPUT
@@ -650,9 +653,15 @@ int scatterImageFileGDAL(const char * filename, int xOffset, int yOffset,
             return -1;
          }
       }
+      // if nf > bands of image, it will copy the gray image to each
+      //band of layer
+      assert(numBands == 1 || numBands == bandsInFile || (numBands > 1 && bandsInFile == 1));
 
-      assert(numBands == 1 || numBands == bandsInFile);
+      if (numBands > 1 &&  bandsInFile == 1)
+          copyGrayImageFlag = true;
 
+          
+      
 #ifdef PV_USE_MPI
       int dest = -1;
       const int tag = 13;
@@ -689,9 +698,20 @@ int scatterImageFileGDAL(const char * filename, int xOffset, int yOffset,
 
                 //fprintf(stderr, "kx = %d, ky = %d, nx = %d, new_y = %d", kx, ky, xImageSize/nxProcs, new_y);
 
-                dataset->RasterIO(GF_Read, kx, ky + y_off + jitter_y, xImageSize/nxProcs, new_y, buf, nx, ny,
-                      GDT_Float32, bandsInFile, NULL, bandsInFile*sizeof(float),
-                      bandsInFile*nx*sizeof(float), sizeof(float));
+                if (copyGrayImageFlag)
+                {
+                    for (int i = 0; i < numBands; i++)
+                    {
+                        panBandMap[0] = i+1;
+                        dataset->RasterIO(GF_Read, kx, ky + y_off + jitter_y, xImageSize/nxProcs, new_y, buf, nx, ny,
+                                          GDT_Float32, bandsInFile, panBandMap, bandsInFile*sizeof(float),
+                                          bandsInFile*nx*sizeof(float), sizeof(float));
+                    }
+                }
+                else
+                    dataset->RasterIO(GF_Read, kx, ky + y_off + jitter_y, xImageSize/nxProcs, new_y, buf, nx, ny,
+                                      GDT_Float32, bandsInFile, NULL, bandsInFile*sizeof(float),
+                                      bandsInFile*nx*sizeof(float), sizeof(float));
              }
              else{
                 int new_x = int(round(nx*yImageSize/(double)yTotalSize));
@@ -707,18 +727,41 @@ int scatterImageFileGDAL(const char * filename, int xOffset, int yOffset,
                 ky = yImageSize/nyProcs * row;
 
                 //fprintf(stderr, "kx = %d, ky = %d, new_x = %d, ny = %d, x_off = %d", kx, ky, new_x, yImageSize/nyProcs, x_off);
-
-                dataset->RasterIO(GF_Read, kx + x_off + jitter_x, ky, new_x, yImageSize/nyProcs, buf, nx, ny,
-                      GDT_Float32, bandsInFile, NULL, bandsInFile*sizeof(float),
-                      bandsInFile*nx*sizeof(float),sizeof(float));
+                if (copyGrayImageFlag)
+                {
+                    for (int i = 0; i < numBands; i++)
+                    {
+                        panBandMap[0] = i+1;
+                        dataset->RasterIO(GF_Read, kx + x_off + jitter_x, ky, new_x, yImageSize/nyProcs, buf, nx, ny,
+                                          GDT_Float32, bandsInFile, panBandMap, bandsInFile*sizeof(float),
+                                          bandsInFile*nx*sizeof(float),sizeof(float));
+                    }
+                }
+                else
+                    dataset->RasterIO(GF_Read, kx + x_off + jitter_x, ky, new_x, yImageSize/nyProcs, buf, nx, ny,
+                                      GDT_Float32, bandsInFile, NULL, bandsInFile*sizeof(float),
+                                      bandsInFile*nx*sizeof(float),sizeof(float));
              }
           }
          else {
 
             //fprintf(stderr, "just checking");
-            dataset->RasterIO(GF_Read, kx+xOffset, ky+yOffset, nx, ny, buf,
-                           nx, ny, GDT_Float32, bandsInFile, NULL,
-                           bandsInFile*sizeof(float), bandsInFile*nx*sizeof(float), sizeof(float));
+             if (copyGrayImageFlag)
+             {
+                 for (int i = 0; i < numBands; i++)
+                 {
+                     panBandMap[0] = i+1;
+                     dataset->RasterIO(GF_Read, kx+xOffset, ky+yOffset, nx, ny, buf,
+                                       nx, ny, GDT_Float32, bandsInFile, panBandMap,
+                                       bandsInFile*sizeof(float), bandsInFile*nx*sizeof(float), sizeof(float));
+
+                 }
+             }
+             else
+                 dataset->RasterIO(GF_Read, kx+xOffset, ky+yOffset, nx, ny, buf,
+                                   nx, ny, GDT_Float32, bandsInFile, NULL,
+                                   bandsInFile*sizeof(float), bandsInFile*nx*sizeof(float), sizeof(float));
+             
          }
 #ifdef DEBUG_OUTPUT
 fprintf(stderr, "[%2d]: scatterImageFileGDAL: sending to %d xSize==%d"
@@ -748,10 +791,20 @@ fprintf(stderr, "[%2d]: scatterImageFileGDAL: sending to %d xSize==%d"
             }
 
             //fprintf(stderr, "kx = %d, ky = %d, nx = %d, new_y = %d", 0, 0, xImageSize/nxProcs, new_y);
-                     
-            dataset->RasterIO(GF_Read, 0, y_off + jitter_y, xImageSize/nxProcs, new_y, buf, nx, ny,
-                  GDT_Float32, bandsInFile, NULL, bandsInFile*sizeof(float), 
-                  bandsInFile*nx*sizeof(float), sizeof(float));           
+             if (copyGrayImageFlag)
+             {
+                 for (int i = 0; i < numBands; i++)
+                 {
+                     panBandMap[0] = i+1;
+                     dataset->RasterIO(GF_Read, 0, y_off + jitter_y, xImageSize/nxProcs, new_y, buf, nx, ny,
+                                       GDT_Float32, bandsInFile, panBandMap, bandsInFile*sizeof(float), 
+                                       bandsInFile*nx*sizeof(float), sizeof(float));           
+                 }
+             }
+             else
+                 dataset->RasterIO(GF_Read, 0, y_off + jitter_y, xImageSize/nxProcs, new_y, buf, nx, ny,
+                                   GDT_Float32, bandsInFile, NULL, bandsInFile*sizeof(float), 
+                                   bandsInFile*nx*sizeof(float), sizeof(float));           
          }
          else{
             int new_x = int(round(nx*yImageSize/(double)yTotalSize));
@@ -764,18 +817,40 @@ fprintf(stderr, "[%2d]: scatterImageFileGDAL: sending to %d xSize==%d"
             }
             
             //fprintf(stderr, "xImageSize = %d, xTotalSize = %d, yImageSize = %d, yTotalSize = %d", xImageSize, xTotalSize, yImageSize, yTotalSize);
-            //fprintf(stderr, "kx = %d, ky = %d, new_x = %d, ny = %d", 0, 0, new_x, yImageSize/nyProcs);
+            //fprintf(stderr, "kx = %d, ky = %d, new_x = %d, ny = %d",
+            //0, 0, new_x, yImageSize/nyProcs);
+             if (copyGrayImageFlag)
+             {
+                 for (int i = 0; i < numBands; i++)
+                 {
+                     panBandMap[0] = i+1;
+                     dataset->RasterIO(GF_Read, x_off + jitter_x, 0, new_x, yImageSize/nyProcs, buf, nx, ny,
+                                       GDT_Float32, bandsInFile, panBandMap, bandsInFile*sizeof(float),
+                                       bandsInFile*nx*sizeof(float),sizeof(float));
 
-            dataset->RasterIO(GF_Read, x_off + jitter_x, 0, new_x, yImageSize/nyProcs, buf, nx, ny,
-                  GDT_Float32, bandsInFile, NULL, bandsInFile*sizeof(float),
-                  bandsInFile*nx*sizeof(float),sizeof(float));
+                 }
+             }
+             else
+                 dataset->RasterIO(GF_Read, x_off + jitter_x, 0, new_x, yImageSize/nyProcs, buf, nx, ny,
+                                   GDT_Float32, bandsInFile, NULL, bandsInFile*sizeof(float),
+                                   bandsInFile*nx*sizeof(float),sizeof(float));
          }
       }
       else {
 
          //fprintf(stderr,"just checking");
-         dataset->RasterIO(GF_Read, xOffset, yOffset, nx, ny, buf, nx, ny,
-               GDT_Float32, bandsInFile, NULL, bandsInFile*sizeof(float), bandsInFile*nx*sizeof(float), sizeof(float));
+             if (copyGrayImageFlag)
+             {
+                 for (int i = 0; i < numBands; i++)
+                 {
+                     panBandMap[0] = i+1;
+                     dataset->RasterIO(GF_Read, xOffset, yOffset, nx, ny, buf, nx, ny,
+                                       GDT_Float32, bandsInFile, NULL, bandsInFile*sizeof(float), bandsInFile*nx*sizeof(float), sizeof(float));
+                 }
+             }
+             else
+                 dataset->RasterIO(GF_Read, xOffset, yOffset, nx, ny, buf, nx, ny,
+                                   GDT_Float32, bandsInFile, NULL, bandsInFile*sizeof(float), bandsInFile*nx*sizeof(float), sizeof(float));
       }
 
       GDALClose(dataset);
