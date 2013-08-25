@@ -137,10 +137,10 @@ int LabelLayer::allocateDataStructures() {
 
       for (int i = 0; i<(labelLoc.nf*(labelLoc.nx+labelLoc.nb*2)*(labelLoc.ny+labelLoc.nb*2)); i++){
          if (i%maxLabel == currentLabel){
-            labelData[i] = 1.0/(maxLabel^0.5/(maxLabel-1));
+            labelData[i] = 1.0/(pow(maxLabel,0.5)/(maxLabel-1));
          }
          else{
-            labelData[i] = -1.0/(maxLabel-1)/(maxLabel^0.5/(maxLabel-1));
+             labelData[i] = -1.0/(maxLabel-1)/(pow(maxLabel,0.5)/(maxLabel-1));
          }
       }
    }
@@ -174,10 +174,10 @@ int LabelLayer::updateState(double time, double dt){
          }
          for (int i = 0; i<(labelLoc.nf*(labelLoc.nx+labelLoc.nb*2)*(labelLoc.ny+labelLoc.nb*2)); i++){
             if (i%maxLabel == currentLabel){
-               labelData[i] = 1.0/(maxLabel^0.5/(maxLabel-1));
+               labelData[i] = 1.0/(pow(maxLabel,0.5)/(maxLabel-1));
             }
             else{
-               labelData[i] = -1.0/(maxLabel-1)/(maxLabel^0.5/(maxLabel-1));
+               labelData[i] = -1.0/(maxLabel-1)/(pow(maxLabel,0.5)/(maxLabel-1));
             }
          }
       }
