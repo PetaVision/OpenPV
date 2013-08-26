@@ -4,7 +4,7 @@
  */
 
 
-#include "../PetaVision/src/columns/buildandrun.hpp"
+#include <columns/buildandrun.hpp>
 
 #define MAIN_USES_CUSTOMGROUPS
 

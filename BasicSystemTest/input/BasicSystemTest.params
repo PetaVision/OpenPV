@@ -45,7 +45,7 @@ Image "input" = {
     phase = 0; //phase defines an order in which layers should be executed.
     writeStep = -1;  //-1 means doesn't write for log
     writeSparseActivity = false; //only write weights which are not 0
-    mirrorBCflag = false;    //board condition flag
+    mirrorBCflag = false;    //border condition flag
     valueBC = 0.0;
     useImageBCflag = false;
     inverseFlag = false; 
@@ -124,7 +124,7 @@ KernelConn "input to output" = {
 
     delay = 0;
 
-    pvpatchAccumulateType = ""; // "Stochastic" to have connections release stochastically; "Maxpooling" for the accumulation to use max over the patch instead of sum 
-    shrinkPatches = false; //if only a small part of connections whose weights are non-zero, then we could shrink the whole networks
+    pvpatchAccumulateType = "Convolve"; // "Convolve", "Stochastic", or "Maxpooling" (case-insensitive)
+    shrinkPatches = false; // If only a small part of connections whose weights are non-zero, then we could shrink the whole networks
     updateGSynFromPostPerspective = false; // Whether receiving synaptic input should loop over pre-synaptic neurons (false) or post-synaptic neurons (true)
 };
