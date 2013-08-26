@@ -292,15 +292,12 @@ int pvpatch_accumulate_stochastic_from_post(int nk, float * RESTRICT v, float * 
 #else
 int pvpatch_accumulate_stochastic(int nk, float* RESTRICT v, float a, float* RESTRICT w, void * auxPtr)
 {
-   struct auxInfo { uint4 * rngArray; size_t startIndex; int nf;};
-   struct auxInfo * auxInfoPtr = (struct auxInfo *) auxPtr;
-   uint4 * rngArray = &auxInfoPtr->rngArray[auxInfoPtr->startIndex];
+   uint4 * rngArray = (uint4 *) auxPtr;
    long along = (long) (a*cl_random_max());
    int err = 0;
-   int nf = auxInfoPtr->nf;
    int k;
    for (k = 0; k < nk; k++) {
-      uint4 rng = rngArray[k/nf];
+      uint4 rng = rngArray[k];
       rng = cl_random_get(rng);
       double p = (double) rng.s0;
       v[k] = v[k] + (rng.s0<along)*w[k];
@@ -310,9 +307,7 @@ int pvpatch_accumulate_stochastic(int nk, float* RESTRICT v, float a, float* RES
 
 int pvpatch_accumulate_stochastic_from_post(int nk, float * RESTRICT v, float * RESTRICT a, float * RESTRICT w, float dt_factor, void * auxPtr) {
    int status = 0;
-   struct auxInfo { uint4 * rngArray; size_t startIndex; int nf;};
-   struct auxInfo * auxInfoPtr = (struct auxInfo *) auxPtr;
-   uint4 rng = auxInfoPtr->rngArray[auxInfoPtr->startIndex];
+   uint4 rng = *(uint4 *) auxPtr;
    int k;
    float dv = 0.0f;
    for (k = 0; k < nk; k++) {
