@@ -9,7 +9,7 @@
 #include "../layers/HyPerLayer.hpp"
 
 #include <assert.h>
-
+#include <unistd.h>
 #undef DEBUG_OUTPUT
 
 namespace PV {

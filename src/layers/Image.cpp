@@ -439,6 +439,14 @@ int Image::readImage(const char * filename, int offsetX, int offsetY, GDALColorI
       //Redefine n for grayscale images
       n = loc->nx * loc->ny;
    }
+   else if (loc->nf > 1 && imageLoc.nf == 1)
+   {
+       delete buf;
+       buf = copyGrayScaletoMultiBands(buf,loc->nx,loc->ny,loc->nf,colorbandtypes);
+       n = loc->nx * loc->ny * loc->nf;
+       
+   }
+   
    // now buf is loc->nf by loc->nx by loc->ny
 
    // if normalizeLuminanceFlag == true then force average luminance to be 0.5
@@ -594,7 +602,34 @@ float * Image::convertToGrayScale(float * buf, int nx, int ny, int numBands, GDA
    free(bandweight);
    return graybuf;
 }
+    float* Image::copyGrayScaletoMultiBands(float * buf, int nx, int ny, int numBands, GDALColorInterp * colorbandtypes)
+    {
+        const int sxcolor = numBands;
+        const int sycolor = numBands*nx;
+        const int sb = 1;
 
+        const int sxgray = 1;
+        const int sygray = nx;
+
+        float * multiBandsBuf = new float[nx*ny*numBands];
+        
+        for (int j = 0; j < ny; j++)
+        {
+            for (int i = 0; i < nx; i++)
+            {
+                for (int b = 0; b < numBands; b++)
+                {
+                    multiBandsBuf[i*sxcolor + j*sycolor + b*sb] = buf[i*sxgray + j*sygray];
+                }
+
+            }
+
+        }
+
+        return multiBandsBuf;
+                
+    }
+    
 int Image::calcBandWeights(int numBands, float * bandweight, GDALColorInterp * colorbandtypes) {
    int colortype = 0; // 1=grayscale(with or without alpha), return value 2=RGB(with or without alpha), 0=unrecognized
    const GDALColorInterp grayalpha[2] = {GCI_GrayIndex, GCI_AlphaBand};

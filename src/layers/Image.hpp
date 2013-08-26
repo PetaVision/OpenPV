@@ -88,6 +88,7 @@ public:
 
    int toGrayScale();
    static float * convertToGrayScale(float * buf, int nx, int ny, int numBands, GDALColorInterp * colorbandtypes);
+    static float* copyGrayScaletoMultiBands(float * buf, int nx, int ny, int numBands, GDALColorInterp * colorbandtypes);
 
    int copyFromInteriorBuffer(float * buf, float fac);
    int copyToInteriorBuffer(unsigned char * buf, float fac);
