@@ -8,7 +8,6 @@
 #include "PVLayer.h"
 #include "../io/io.h"
 #include "../include/default_params.h"
-#include "../utils/pv_random.h"
 #include "../utils/cl_random.h"
 #include <assert.h>
 #include <stdio.h>
@@ -296,15 +295,15 @@ int pvpatch_accumulate_stochastic(int nk, float* RESTRICT v, float a, float* RES
    struct auxInfo { uint4 * rngArray; size_t startIndex; int nf;};
    struct auxInfo * auxInfoPtr = (struct auxInfo *) auxPtr;
    uint4 * rngArray = &auxInfoPtr->rngArray[auxInfoPtr->startIndex];
-   long along = (long) (a*pv_random_max());
+   long along = (long) (a*cl_random_max());
    int err = 0;
    int nf = auxInfoPtr->nf;
    int k;
    for (k = 0; k < nk; k++) {
       uint4 rng = rngArray[k/nf];
       rng = cl_random_get(rng);
-      double p = (double) rng.s0/cl_random_max(); // 0.0 < p < 1.0
-      v[k] = v[k] + (pv_random()<along)*w[k];
+      double p = (double) rng.s0;
+      v[k] = v[k] + (rng.s0<along)*w[k];
    }
    return err;
 }
@@ -319,7 +318,7 @@ int pvpatch_accumulate_stochastic_from_post(int nk, float * RESTRICT v, float * 
    for (k = 0; k < nk; k++) {
       rng = cl_random_get(rng);
       double p = (double) rng.s0/cl_random_max(); // 0.0 < p < 1.0
-      dv += p<a[k] ? dv + a[k]*w[k] : 0.0f;
+      dv += (p<a[k])*w[k];
    }
    *v = *v + dt_factor*dv;
    return status;
