@@ -34,7 +34,6 @@ Retina "Retina" = {
     nxScale = 1;
     nyScale = 1;
     nf = 1;
-    marginWidth = 1;
     phase = 0;
     writeStep = 1.0;
     initialWriteTime = false;
@@ -59,7 +58,6 @@ ANNLayer "L0" = {
     nxScale = 1;
     nyScale = 1;
     nf = 4;
-    marginWidth = 4;
     phase = 0;
     writeStep = 1.0;
     initialWriteTime = 0.0;
@@ -81,7 +79,6 @@ ANNLayer "Lx1" = {
     nxScale = 1;
     nyScale = 1;
     nf = 4;
-    marginWidth = 0;
     phase = 0;
     writeStep = 1.0;
     initialWriteTime = 0.0;
@@ -102,7 +99,6 @@ ANNLayer "Lx2" = {
     nxScale = 2;
     nyScale = 2;
     nf = 8;
-    marginWidth = 0;
     phase = 0;
     writeStep = 1.0;
     initialWriteTime = 0.0;
@@ -123,11 +119,10 @@ ANNLayer "Lx4" = {
     nxScale = 4;
     nyScale = 4;
     nf = 16;
-    marginWidth = 0;
     phase = 0;
     writeStep = 1.0;
     initialWriteTime = 0.0;
-    mirrorBCflag = 0;
+    mirrorBCflag = 1;
     writeSparseActivity = false;
 
     InitVType = "ZeroV";
@@ -145,11 +140,10 @@ ANNLayer "Lx1_2" = {
     nxScale = 0.5;
     nyScale = 0.5;
     nf = 2;
-    marginWidth = 0;
     phase = 0;
     writeStep = 1.0;
     initialWriteTime = 0.0;
-    mirrorBCflag = 0;
+    mirrorBCflag = 1;
     writeSparseActivity = false;
 
     InitVType = "ZeroV";
@@ -167,11 +161,10 @@ ANNLayer "Lx1_4" = {
     nxScale = 0.25;
     nyScale = 0.25;
     nf = 1;
-    marginWidth = 0;
     phase = 0;
     writeStep = 1.0;
     initialWriteTime = 0.0;
-    mirrorBCflag = 0;
+    mirrorBCflag = 1;
     writeSparseActivity = false;
 
     InitVType = "ZeroV";
@@ -217,10 +210,11 @@ KernelConn "Retina to L0" = {
 
     delay = 0;
 
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
     shrinkPatches = false;
     preActivityIsNotRate = false;
     selfFlag = false;
+    updateGSynFromPostPerspective = false;
 };
 
 
@@ -259,10 +253,11 @@ KernelConn "L0 to Lx1" = {
 
     delay = 0;     
 
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
     shrinkPatches = false;
     preActivityIsNotRate = false;
     selfFlag = false;
+    updateGSynFromPostPerspective = false;
 };
 
 
@@ -305,10 +300,11 @@ KernelConn "L0 to Lx2" = {
 
     delay = 0;     
 
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
     shrinkPatches = false;
     preActivityIsNotRate = false;
     selfFlag = false;
+    updateGSynFromPostPerspective = false;
 };
 
 
@@ -351,10 +347,11 @@ KernelConn "L0 to Lx4" = {
 
     delay = 0;     
 
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
     shrinkPatches = false;
     preActivityIsNotRate = false;
     selfFlag = false;
+    updateGSynFromPostPerspective = false;
 };
 
 
@@ -397,10 +394,11 @@ KernelConn "L0 to Lx1_2" = {
 
     delay = 0;     
 
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
     shrinkPatches = false;
     preActivityIsNotRate = false;
     selfFlag = false;
+    updateGSynFromPostPerspective = false;
 };
 
 
@@ -442,10 +440,11 @@ KernelConn "L0 to Lx1_4" = {
 
     delay = 0;     
 
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
     shrinkPatches = false;
     preActivityIsNotRate = false;
     selfFlag = false;
+    updateGSynFromPostPerspective = false;
 };
 
 
