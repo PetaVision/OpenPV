@@ -1395,12 +1395,13 @@ int HyPerLayer::recvSynapticInputFromPost(HyPerConn * conn, const PVLayerCube * 
    }
    //update conn to original connection
    HyPerConn * targetToSourceConn = sourceToTargetConn->getOriginalConn();
-   //Assert that the transpose is opposite of the original connection
-   if(targetToSourceConn->preSynapticLayer()->getLayerId() != sourceToTargetConn->postSynapticLayer()->getLayerId() ||
-      targetToSourceConn->postSynapticLayer()->getLayerId() != sourceToTargetConn->preSynapticLayer()->getLayerId()){
-      fprintf(stderr, "HyPerLayer \"%s\": Transpose connection %s must be the same connection in the oposite direction of %s.\n", name, sourceToTargetConn->getName(), conn->getName());
-      abort();
-   }
+   // Don't need TransposeConn to have the same pre and post as originalConn but flipped.  nx,ny,nf must be consistent, but that's checked in initialization.
+   // //Assert that the transpose is opposite of the original connection
+   // if(targetToSourceConn->preSynapticLayer()->getLayerId() != sourceToTargetConn->postSynapticLayer()->getLayerId() ||
+   //    targetToSourceConn->postSynapticLayer()->getLayerId() != sourceToTargetConn->preSynapticLayer()->getLayerId()){
+   //    fprintf(stderr, "HyPerLayer \"%s\": Transpose connection %s must be the same connection in the oposite direction of %s.\n", name, sourceToTargetConn->getName(), conn->getName());
+   //    abort();
+   // }
 
    recvsyn_timer->start();
 
@@ -1428,6 +1429,7 @@ int HyPerLayer::recvSynapticInputFromPost(HyPerConn * conn, const PVLayerCube * 
       if(!inWindow) continue;
       //
       //Get start index of source from gsyn in restricted
+      // We have to use gSynPatchStart instead of aPostOffset because originalConn's post-synaptic layer's nb may not be the same as conn's pre-layer's nb.
       int sourceRes = targetToSourceConn->getGSynPatchStart(kTargetExt, arborID);
       int sourceExt= kIndexExtended(sourceRes, sourceLoc->nx, sourceLoc->ny, sourceLoc->nf, sourceLoc->nb);
       int sourceXExt = kxPos(sourceExt, sourceLoc->nx + 2*sourceLoc->nb, sourceLoc->ny + 2*sourceLoc->nb, sourceLoc->nf);
@@ -1455,21 +1457,20 @@ int HyPerLayer::recvSynapticInputFromPost(HyPerConn * conn, const PVLayerCube * 
       pvdata_t * gSynPatchPos = gSynPatchHead + kTargetRes;
 
       //get source layer's extended y stride
-      int sy  = targetToSourceConn->getPostExtStrides()->sy;
+      int sy  = (sourceLoc->nx+2*sourceLoc->nb)*sourceLoc->nf;
       //get source layer's patch y stride
-      int syp = targetToSourceConn->yPatchStride();
-      //Store sum value
-      float value = 0.0f;
+      int syp = targetToSourceConn->yPatchStride(); // Should be correct even if targetToSourceConn points to a different layer than sourceToTargetConn's pre.
       //Iterate through y patch
       int numPerStride = targetToSourceConn->xPatchSize() * targetToSourceConn->fPatchSize();
-      int kernelIndex = targetToSourceConn->patchToDataLUT(kTargetExt);
+      const PVLayerLoc * origPostLoc = targetToSourceConn->postSynapticLayer()->getLayerLoc();
+      int kTargetOrigConnExt = kIndexExtended(kTargetRes, origPostLoc->nx, origPostLoc->ny, origPostLoc->nf, origPostLoc->nb);
+      int kernelIndex = targetToSourceConn->patchToDataLUT(kTargetOrigConnExt);
       uint4 * rngPtr = conn->getRnd_state(kTargetRes);
       for (int ky = 0; ky < targetToSourceConn->yPatchSize(); ky++){
          float * activityY = &(activity->data[startSourceExt + ky*sy]);
          float * weightY = targetToSourceConn->get_wDataHead(arborID, kernelIndex) + ky*syp;
          (conn->accumulateFunctionFromPostPointer)(numPerStride, gSynPatchPos, activityY, weightY, dt_factor, rngPtr);
       }
-      *gSynPatchPos += value;
    }
    recvsyn_timer->stop();
    return PV_SUCCESS;
