@@ -190,6 +190,28 @@ int TransposeConn::communicateInitInfo() {
    status = KernelConn::communicateInitInfo();
    if (status != PV_SUCCESS) return status;
 
+   const PVLayerLoc * preLoc = pre->getLayerLoc();
+   const PVLayerLoc * origPostLoc = originalConn->postSynapticLayer()->getLayerLoc();
+   if (preLoc->nx != origPostLoc->nx || preLoc->ny != origPostLoc->ny || preLoc->nf != origPostLoc->nf) {
+      if (parent->columnId()==0) {
+         fprintf(stderr, "%s \"%s\" error: transpose's pre layer and original connection's post layer must have the same dimensions.\n", parent->parameters()->groupKeywordFromName(name), name);
+         fprintf(stderr, "    (x=%d, y=%d, f=%d) versus (x=%d, y=%d, f=%d).\n", preLoc->nx, preLoc->ny, preLoc->nf, origPostLoc->nx, origPostLoc->ny, origPostLoc->nf);
+      }
+      MPI_Barrier(parent->icCommunicator()->communicator());
+      exit(EXIT_FAILURE);
+   }
+   const PVLayerLoc * postLoc = pre->getLayerLoc();
+   const PVLayerLoc * origPreLoc = originalConn->postSynapticLayer()->getLayerLoc();
+   if (postLoc->nx != origPreLoc->nx || postLoc->ny != origPreLoc->ny || postLoc->nf != origPreLoc->nf) {
+      if (parent->columnId()==0) {
+         fprintf(stderr, "%s \"%s\" error: transpose's post layer and original connection's pre layer must have the same dimensions.\n", parent->parameters()->groupKeywordFromName(name), name);
+         fprintf(stderr, "    (x=%d, y=%d, f=%d) versus (x=%d, y=%d, f=%d).\n", postLoc->nx, postLoc->ny, postLoc->nf, origPreLoc->nx, origPreLoc->ny, origPreLoc->nf);
+      }
+      MPI_Barrier(parent->icCommunicator()->communicator());
+      exit(EXIT_FAILURE);
+   }
+
+
    numAxonalArborLists = originalConn->numberOfAxonalArborLists();
 
    plasticityFlag = originalConn->getPlasticityFlag();
