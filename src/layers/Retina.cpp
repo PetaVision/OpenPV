@@ -10,7 +10,6 @@
 #include "../io/io.h"
 #include "../include/default_params.h"
 #include "../utils/cl_random.h"
-#include "../utils/pv_random.h"
 
 #include <assert.h>
 #include <stdio.h>
@@ -79,7 +78,7 @@ Retina::Retina(const char * name, HyPerCol * hc) {
 
 Retina::~Retina()
 {
-   free(rand_state);
+      free(rand_state[0]);
  #ifdef PV_USE_OPENCL
    if((gpuAccelerateFlag)&&(spikingFlag)) {
       delete clRand;
@@ -90,7 +89,11 @@ Retina::~Retina()
 }
 
 int Retina::initialize_base() {
-   rand_state = NULL;
+   for (int nbr=0; nbr<NUM_NEIGHBORHOOD; nbr++) {
+      rand_state[nbr] = NULL;
+      rand_state_size[nbr] = 0UL;
+      border_indices[nbr] = NULL;
+   }
    spikingFlag = true;
    rParams.abs_refractory_period = 0.0f;
    rParams.refractory_period = 0.0f;
@@ -105,10 +108,6 @@ int Retina::initialize_base() {
 
 int Retina::initialize(const char * name, HyPerCol * hc, PVLayerType type) {
    int status = HyPerLayer::initialize(name, hc, NUM_RETINA_CHANNELS);
-
-   // Moved to allocateDataStructures
-   // free(clayer->V);
-   // clayer->V = NULL;
 
    clayer->layerType = type;
 
@@ -126,22 +125,6 @@ int Retina::initialize(const char * name, HyPerCol * hc, PVLayerType type) {
    l->numNeurons  = nx * ny * nf;
    l->numExtended = (nx + 2*nb) * (ny + 2*nb) * nf;
 #endif // OBSOLETE
-
-   // Moved to communicateInitInfo()
-   // // a random state variable is needed for every neuron/clthread
-   // numGlobalRNGs = getNumGlobalNeurons();
-   // rand_state = (uint4 *) malloc(getNumNeurons() * sizeof(uint4));
-   // if (rand_state == NULL) {
-   //    fprintf(stderr, "Retina::initialize error.  Layer \"%s\" unable to allocate memory for random states.\n", getName());
-   //    exit(EXIT_FAILURE);
-   // }
-   // unsigned int seed = parent->getObjectSeed(getNumGlobalRNGs());
-   // const PVLayerLoc * loc = getLayerLoc();
-   // for (int y = 0; y<loc->ny; y++) {
-   //    int k_local = kIndex(0, y, 0, loc->nx, loc->ny, loc->nf);
-   //    int k_global = kIndex(loc->kx0, y+loc->ky0, 0, loc->nxGlobal, loc->nyGlobal, loc->nf);
-   //    cl_random_init(&rand_state[k_local], loc->nx * loc->nf, seed + k_global);
-   // }
 
 #ifdef PV_USE_OPENCL
    numEvents=NUM_RETINA_EVENTS;
@@ -194,7 +177,7 @@ int Retina::initializeThreadBuffers(const char * kernel_name)
 //   clReleaseEvent(evUpdate);
 
    if (spikingFlag) {
-      clRand   = device->createBuffer(CL_MEM_COPY_HOST_PTR, getNumNeurons()*sizeof(uint4), rand_state);
+      clRand   = device->createBuffer(CL_MEM_COPY_HOST_PTR, getNumNeurons()*sizeof(uint4), *rand_state);
 //      clRand->copyToDevice(&evUpdate);
 //      status |= clWaitForEvents(1, &evUpdate);
 //      clReleaseEvent(evUpdate);
@@ -256,32 +239,102 @@ int Retina::initializeThreadKernels(const char * kernel_name)
 
 int Retina::communicateInitInfo() {
    int status = HyPerLayer::communicateInitInfo();
-
-   // // a random state variable is needed for every neuron/clthread
-   numGlobalRNGs = getNumGlobalNeurons();
-   rand_state = (uint4 *) malloc(getNumNeurons() * sizeof(uint4));
-   if (rand_state == NULL) {
-      fprintf(stderr, "Retina::initialize error.  Layer \"%s\" unable to allocate memory for random states.\n", getName());
-      exit(EXIT_FAILURE);
-   }
-   unsigned int seed = parent->getObjectSeed(getNumGlobalRNGs());
-   const PVLayerLoc * loc = getLayerLoc();
-   for (int y = 0; y<loc->ny; y++) {
-      int k_local = kIndex(0, y, 0, loc->nx, loc->ny, loc->nf);
-      int k_global = kIndex(loc->kx0, y+loc->ky0, 0, loc->nxGlobal, loc->nyGlobal, loc->nf);
-      cl_random_init(&rand_state[k_local], loc->nx * loc->nf, seed + k_global);
-   }
-
    return status;
 }
 
 int Retina::allocateDataStructures() {
    int status = HyPerLayer::allocateDataStructures();
 
-   free(clayer->V);
-   clayer->V = NULL;
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "spikingFlag"));
+   if (spikingFlag) {
+      // // a random state variable is needed for every neuron/clthread
+      numGlobalRNGs = getNumGlobalExtended();
+
+      unsigned int seed = parent->getObjectSeed(getNumGlobalRNGs());
+      const PVLayerLoc * loc = getLayerLoc();
+      unsigned int columnOffset = (unsigned int) kIndex(loc->kx0,loc->ky0,0,loc->nxGlobal,loc->nyGlobal,loc->nf);
+      allocateRandStateRestricted(loc->nx, loc->ny, loc->nf, seed+columnOffset, loc->nxGlobal * loc->nf);
+
+      int indexStride = (loc->nx+2*loc->nb)*loc->nf;
+      int globalExtStride = (loc->nxGlobal+2*loc->nb)*loc->nf;
+
+      seed += getNumGlobalNeurons();
+      int indexBase = 0;
+      allocateRandStateBorder(NORTHWEST, loc->nb, loc->nb, loc->nf, seed, globalExtStride, indexBase, indexStride);
+      allocateRandStateBorder(NORTH, loc->nx, loc->nb, loc->nf, seed + loc->nb + loc->kx0, globalExtStride, indexBase+loc->nb, indexStride);
+      allocateRandStateBorder(NORTHEAST, loc->nb, loc->nb, loc->nf, seed + loc->nb + loc->nxGlobal, globalExtStride, indexBase+loc->nb+loc->nx, indexStride);
+      seed += (loc->nxGlobal + 2*loc->nb) * loc->nb * loc->nf;
+      indexBase = kIndex(0, loc->nb, 0, loc->nx+2*loc->nb, loc->ny+2*loc->nb, loc->nf);
+      allocateRandStateBorder(WEST, loc->nb, loc->ny, loc->nf, seed + loc->ky0*(2*loc->nb*loc->nf), 2*loc->nb*loc->nf, indexBase, indexStride);
+      allocateRandStateBorder(EAST, loc->nb, loc->ny, loc->nf, seed + loc->ky0*(2*loc->nb*loc->nf)+loc->nb*loc->nf, 2*loc->nb*loc->nf, indexBase+loc->nx+loc->nb, indexStride);
+      seed += 2*loc->nb * loc->nyGlobal * loc->nf;
+      indexBase = kIndex(0, loc->nb+loc->ny, 0, loc->nx+2*loc->nb, loc->ny+2*loc->nb, loc->nf);
+      allocateRandStateBorder(SOUTHWEST, loc->nb, loc->nb, loc->nf, seed, globalExtStride, indexBase, indexStride);
+      allocateRandStateBorder(SOUTH, loc->nx, loc->nb, loc->nf, seed + loc->nb + loc->kx0, globalExtStride, indexBase+loc->nb, indexStride);
+      allocateRandStateBorder(SOUTHEAST, loc->nb, loc->nb, loc->nf, seed + loc->nb + loc->nxGlobal, globalExtStride, indexBase+loc->nb+loc->nx, indexStride);
+   }
 
    return status;
+}
+
+int Retina::allocateRandStateRestricted(size_t xCount, size_t yCount, size_t fCount, unsigned int seedStart, unsigned int seedStride) {
+   int status = allocateRandState(0, xCount, yCount, fCount, seedStart, seedStride);
+   return status;
+}
+
+int Retina::allocateRandStateBorder(int neighbor, size_t xCount, size_t yCount, size_t fCount, unsigned int seedStart, unsigned int seedStride, int indexStart, int indexStride) {
+   assert(neighbor!=LOCAL && neighbor>=0 && neighbor<NUM_NEIGHBORHOOD);
+   int status = PV_SUCCESS;
+   if (!parent->icCommunicator()->hasNeighbor(neighbor)) {
+      if (status == PV_SUCCESS) status = allocateRandState(neighbor, xCount, yCount, fCount, seedStart, seedStride);
+      if (status == PV_SUCCESS) status = allocateBorderIndices(neighbor, xCount, yCount, fCount, indexStart, indexStride);
+
+   }
+   return status;
+}
+
+int Retina::allocateRandState(int neighbor, size_t xCount, size_t yCount, size_t fCount, unsigned int seedStart, unsigned int seedStride) {
+   assert(rand_state[neighbor]==NULL);
+   size_t count = xCount * yCount * fCount;
+   rand_state_size[neighbor] = count;
+   rand_state[neighbor] = (uint4 *) malloc(count * sizeof(uint4));
+   if (rand_state[neighbor]==NULL) {
+      fprintf(stderr, "Retina::initialize error in rank %d.  Layer \"%s\" unable to allocate memory for random states.\n", parent->columnId(), getName());
+      exit(EXIT_FAILURE);
+   }
+   unsigned int seed = seedStart;
+   int kCount = xCount*fCount;
+   for (size_t y=0; y<yCount; y++) {
+      int k = kIndex(0, y, 0, (int) xCount, (int) yCount, (int) fCount);
+      cl_random_init(&rand_state[neighbor][k], kCount, seed);
+      seed += seedStride;
+   }
+
+   return PV_SUCCESS;
+}
+
+int Retina::allocateBorderIndices(int neighbor, size_t xCount, size_t yCount, size_t fCount, int indexStart, int indexStride) {
+   assert(neighbor!=LOCAL && neighbor>=0 && neighbor<NUM_NEIGHBORHOOD);
+   border_indices[neighbor] = (int *) malloc(rand_state_size[neighbor]*sizeof(int));
+   if (border_indices[neighbor]==NULL) {
+      fprintf(stderr, "%s \"%s\" error in rank %d process: setBorderIndices unable to allocate memory for neighbor %d\n.", parent->parameters()->groupKeywordFromName(name), name, parent->columnId(), neighbor);
+      exit(EXIT_FAILURE);
+   }
+   int index = indexStart;
+   size_t kCount = xCount*fCount;
+   int j=0;
+   for (size_t y=0; y<yCount; y++) {
+      for (int k=0; k<kCount; k++) {
+         border_indices[neighbor][j++] = index+k;
+      }
+      index += indexStride;
+   }
+   return PV_SUCCESS;
+}
+
+int Retina::allocateV() {
+   clayer->V = NULL;
+   return PV_SUCCESS;
 }
 
 int Retina::initializeState() {
@@ -378,8 +431,10 @@ int Retina::checkpointRead(const char * cpDir, double * timef) {
       }
       abort();
    }
-   int rand_state_status = readRandState(filename, parent->icCommunicator(), rand_state, getLayerLoc());
-   if (rand_state_status != PV_SUCCESS) status = rand_state_status;
+   if (spikingFlag) {
+      int rand_state_status = readRandState(filename, parent->icCommunicator(), rand_state[0], getLayerLoc());
+      if (rand_state_status != PV_SUCCESS) status = rand_state_status;
+   }
    return status;
 }
 
@@ -395,8 +450,10 @@ int Retina::checkpointWrite(const char * cpDir) {
       }
       abort();
    }
-   int rand_state_status = writeRandState(filename, parent->icCommunicator(), rand_state, getLayerLoc());
-   if (rand_state_status != PV_SUCCESS) status = rand_state_status;
+   if (spikingFlag) {
+      int rand_state_status = writeRandState(filename, parent->icCommunicator(), rand_state[0], getLayerLoc());
+      if (rand_state_status != PV_SUCCESS) status = rand_state_status;
+   }
    return status;
 }
 
@@ -516,7 +573,7 @@ int Retina::updateState(double timed, double dt)
 
       if (spikingFlag == 1) {
          Retina_spiking_update_state(getNumNeurons(), timed, dt, nx, ny, nf, nb,
-                                     &rParams, rand_state,
+                                     &rParams, rand_state[0],
                                      GSynHead, activity, clayer->prevActivity);
       }
       else {
@@ -549,47 +606,15 @@ int Retina::updateBorder(double time, double dt)
    // wait for OpenCL data transfers to finish
    HyPerLayer::updateBorder(time, dt);
 
-   // Data has arrived from OpenCL device now safe to add background
-   // activity to border regions.  Update all of the regions regions
-   // even if using MPI and the border may be from an adjacent processor.
-   // TODO - check that MPI will overwrite the border regions after this
-   // function has been called.
-
-   const PVLayerLoc * loc = getLayerLoc();
-
-   const int nb = loc->nb;
-   if (nb == 0) return 0;
-
-   const int nx = loc->nx;
-   const int ny = loc->ny;
-   const int nf = loc->nf;
-
-   const int nx_ex = nx + 2*nb;
-   const int sy = nf*nx_ex;
-
-   pvdata_t * activity_top = &clayer->activity->data[0];
-   pvdata_t * activity_bot = &clayer->activity->data[(nb+ny)*sy];
-
-   pvdata_t * activity_l = &clayer->activity->data[nb*sy];
-   pvdata_t * activity_r = &clayer->activity->data[nb*sy + nf*(nb+nx)];
-
-   // top and bottom borders (including corners)
-   for (int kex = 0; kex < nx_ex*nf*nb; kex++) {
-      activity_top[kex] = (pv_random_prob() < rParams.probBase) ? 1.0 : 0.0;
-      activity_bot[kex] = (pv_random_prob() < rParams.probBase) ? 1.0 : 0.0;
-   }
-
-   // left and right borders
-   for (int y = 0; y < ny; y++) {
-      for (int x = 0; x < nf*nb; x++) {
-         activity_l[x] = (pv_random_prob() < rParams.probBase) ? 1.0 : 0.0;
-         activity_r[x] = (pv_random_prob() < rParams.probBase) ? 1.0 : 0.0;
+   unsigned int probBaseUInt = (unsigned int) floor(rParams.probBase * cl_random_max());
+   for (int nbr=1; nbr<NUM_NEIGHBORHOOD; nbr++) {
+      assert(rand_state_size[nbr]==0 || rand_state[nbr]!=NULL);
+      for (size_t n=0; n<rand_state_size[nbr]; n++) {
+         rand_state[nbr][n] = cl_random_get(rand_state[nbr][n]);
+         getActivity()[border_indices[nbr][n]] = (rand_state[nbr][n].s0 < probBaseUInt) ? 1.0 : 0.0;
       }
-      activity_l += sy;
-      activity_r += sy;
    }
-
-   return 0;
+   return PV_SUCCESS;
 }
 
 int Retina::outputState(double time, bool last)
