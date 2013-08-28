@@ -1,3 +1,12 @@
+"""
+  File: test_build_cl.py
+
+  Read an OpenCL file and try to build it on the default device.
+
+  Should throw an exception if compile/build fails.  Error
+  Messages not particularly helpful in finding error in code.
+"""
+
 import sys
 import numpy
 import pyopencl as cl
