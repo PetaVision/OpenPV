@@ -122,6 +122,7 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
                "RescaleLayer",
                "SigmoidLayer",
              "LCALayer",
+             "LabelLayer",
              "TextStream",
 #ifdef PV_USE_SNDFILE
              "SoundStream",
@@ -130,7 +131,6 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
                "CreateMovies",
                "ImageCreator",
                "Movie",
-                  "LabelLayer",
                "Patterns",
              "LIF",
                 "LIFGap",

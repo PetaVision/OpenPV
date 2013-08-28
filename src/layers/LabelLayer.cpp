@@ -135,13 +135,14 @@ int LabelLayer::allocateDataStructures() {
          fprintf(stderr,"Current Label Integer: %d out of %d\n",currentLabel, maxLabel);
       }
 
+      // the following attempts to force an L2 norm of unity on the activity of the LabelLayer
       for (int i = 0; i<(labelLoc.nf*(labelLoc.nx+labelLoc.nb*2)*(labelLoc.ny+labelLoc.nb*2)); i++){
-         if (i%maxLabel == currentLabel){
-            labelData[i] = 1.0/(pow(maxLabel,0.5)/(maxLabel-1));
-         }
-         else{
-             labelData[i] = -1.0/(maxLabel-1)/(pow(maxLabel,0.5)/(maxLabel-1));
-         }
+    	  if (i%maxLabel == currentLabel){
+    		  labelData[i] = sqrt((maxLabel-1)/maxLabel);
+    	  }
+    	  else{
+    		  labelData[i] = -sqrt(1/((maxLabel-1)*maxLabel));
+    	  }
       }
    }
 
@@ -173,12 +174,12 @@ int LabelLayer::updateState(double time, double dt){
             fprintf(stderr,"Current Label Integer: %d out of %d\n",currentLabel, maxLabel);
          }
          for (int i = 0; i<(labelLoc.nf*(labelLoc.nx+labelLoc.nb*2)*(labelLoc.ny+labelLoc.nb*2)); i++){
-            if (i%maxLabel == currentLabel){
-               labelData[i] = 1.0/(pow(maxLabel,0.5)/(maxLabel-1));
-            }
-            else{
-               labelData[i] = -1.0/(maxLabel-1)/(pow(maxLabel,0.5)/(maxLabel-1));
-            }
+        	 if (i%maxLabel == currentLabel){
+                labelData[i] = sqrt((maxLabel-1)/maxLabel);
+             }
+             else{
+                labelData[i] = -sqrt(1/((maxLabel-1)*maxLabel));
+             }
          }
       }
 
