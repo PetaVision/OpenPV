@@ -94,8 +94,9 @@ int StochasticReleaseTestProbe::outputState(double timed) {
       int nExt = kIndexExtended(n, loc->nx, loc->ny, loc->nf, loc->nb);
       assert(activity[nExt]==0 || activity[nExt]==wgt);
    }
-   double mean = preact * numNeurons;
-   double stddev = sqrt(numNeurons*preact*(1-preact));
+   const int numGlobalNeurons = getTargetLayer()->getNumGlobalNeurons();
+   double mean = preact * numGlobalNeurons;
+   double stddev = sqrt(numGlobalNeurons*preact*(1-preact));
    double numStdDevs = stddev==0.0 && mean==nnz ? 0.0 : (nnz-mean)/stddev;
    HyPerCol * hc = getTargetLayer()->getParent();
    if (timed>0.0 && hc->columnId()==0) {
