@@ -268,6 +268,13 @@ runandecho $testname Debug/$testname $arglist
 mpirunandecho $testname Debug/$testname $arglist
 cd "$wd"
 
+testname=StochasticReleaseTest
+cd "$testname"
+arglist="-p input/StochasticReleaseTest.params"
+runandecho $testname Debug/$testname $arglist
+mpirunandecho $testname Debug/$testname $arglist
+cd "$wd"
+
 testname=WindowSystemTest
 cd "$testname"
 arglist="-p input/postTest.params" # parameter filename is in main()
