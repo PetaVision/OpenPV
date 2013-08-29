@@ -4,18 +4,18 @@ Get rid of Channel_Type enum and instead use preprocessor directives if needed
 
 Weight .pvp files shouldn't depend on the mpi configuration being used when writing.
 
-Each neuron (& weight?) its own reproducible rng (layer and conn can specify a seedIncrement) (done for retina and lif)
-
-No more activity buffer; things that write to activity only write to DataStore
+No more activity buffer; things that write to activity should only write to DataStore
 
 More graceful aborting from errors under mpi.  There's a pv_log but it's preprocessor directived to fprintf
 
 Add ffmpeg support
 
-PatternState.bin and .txt only writes the stuff being used
+PatternState.bin and .txt should only write the stuff being used
 
 params.pv should be params.xml, and include all parameters
 
 DONE! -- Use cmake to manage makefiles (done for PetaVision and system tests)
 
 DONE! -- Eliminate need for marginWidth parameter
+
+DONE! -- Each neuron (& weight?) its own reproducible rng  (For weights each data patch has its own rng)
