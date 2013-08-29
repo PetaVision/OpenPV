@@ -4,6 +4,7 @@
  *  Created on: Feb 12, 2010
  *      Author: manghel
  */
+#ifdef OBSOLETE // Marked obsolete Aug 28, 2013.  Use the Random class
 
 #ifndef RNG_H_
 #define RNG_H_
@@ -20,3 +21,5 @@ float box_muller(float,float);
 #endif
 
 #endif /* RNG_H_ */
+
+#endif // OBSOLETE

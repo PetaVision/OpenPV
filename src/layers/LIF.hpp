@@ -10,8 +10,8 @@
 #define LIF_HPP_
 
 #include "HyPerLayer.hpp"
+#include "../columns/Random.hpp"
 #include "../kernels/LIF_params.h"
-#include "../arch/opencl/pv_uint4.h"
 
 #ifdef PV_USE_OPENCL
 #include "../arch/opencl/CLBuffer.hpp"
@@ -72,14 +72,11 @@ public:
 
 
 protected:
-
-   // spikingFlag is member variable of HyPerLayer
-   // bool spikingFlag;    // specifies that layer is spiking
    LIF_params lParams;
-   uint4 * rand_state;  // state for random numbers
+   // uint4 * rand_state;  // state for random numbers
+   Random * randState;
 
    pvdata_t * Vth;      // threshold potential
-//   pvdata_t   VthRest;  // VthRest potential
    pvdata_t * G_E;      // excitatory conductance
    pvdata_t * G_I;      // inhibitory conductance
    pvdata_t * G_IB;

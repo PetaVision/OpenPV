@@ -118,7 +118,6 @@ int HyPerLayer::initialize_base() {
    this->labels = NULL;
    this->marginIndices = NULL;
    this->numMargin = 0;
-   this->numGlobalRNGs = 0;
    this->writeTime = 0;
    this->initialWriteTime = 0;
    this->phase = 0;
@@ -653,6 +652,7 @@ void HyPerLayer::readPhase(PVParams * params) {
 }
 
 void HyPerLayer::readWriteSparseActivity(PVParams * params) {
+   // Parameter spikingFlag was deprecated (except in Retina) on Jan 7, 2013
    // TODO: when satisfied that everyone has had the chance to change spikingFlag to writeSparseActivity
    // and remove writeNonspikingActivity, remove the checks below and replace with
    // writeSparseActivity = (bool) params->value(name, "writeSparseActivity", 0);
@@ -1465,7 +1465,7 @@ int HyPerLayer::recvSynapticInputFromPost(HyPerConn * conn, const PVLayerCube * 
       const PVLayerLoc * origPostLoc = targetToSourceConn->postSynapticLayer()->getLayerLoc();
       int kTargetOrigConnExt = kIndexExtended(kTargetRes, origPostLoc->nx, origPostLoc->ny, origPostLoc->nf, origPostLoc->nb);
       int kernelIndex = targetToSourceConn->patchToDataLUT(kTargetOrigConnExt);
-      uint4 * rngPtr = conn->getRnd_state(kTargetRes);
+      uint4 * rngPtr = conn->getRandState(kTargetRes);
       for (int ky = 0; ky < targetToSourceConn->yPatchSize(); ky++){
          float * activityY = &(activity->data[startSourceExt + ky*sy]);
          float * weightY = targetToSourceConn->get_wDataHead(arborID, kernelIndex) + ky*syp;
@@ -1526,7 +1526,7 @@ int HyPerLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activity
       // GTK: gSynPatchStart redefined as offset from start of gSyn buffer
       // TODO - unroll
       pvdata_t * data = conn->get_wData(arborID,kPre);
-      uint4 * rngPtr = conn->getRnd_state(kPre);
+      uint4 * rngPtr = conn->getRandState(kPre);
       for (int y = 0; y < ny; y++) {
          (conn->accumulateFunctionPointer)(nk, gSynPatchStart + y*sy, a, data + y*syw, rngPtr);
       }

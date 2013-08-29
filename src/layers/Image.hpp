@@ -10,8 +10,8 @@
 
 #include "HyPerLayer.hpp"
 #include "../columns/HyPerCol.hpp"
+#include "../columns/Random.hpp"
 #include "../io/imageio.hpp"
-#include "../utils/cl_random.h"
 #include <gdal.h>
 
 namespace PV {
@@ -42,6 +42,8 @@ protected:
    static inline int calcBandWeights(int numBands, float * bandweights, GDALColorInterp * colorbandtypes);
    static inline void equalBandWeights(int numBands, float * bandweights);
 
+   virtual int allocateV();
+
    virtual bool jitter();
    virtual int calcBias(int current_bias, int step, int sizeLength);
    virtual int calcNewBiases(int stepSize);
@@ -50,7 +52,6 @@ protected:
    static bool constrainPoint(int * point, int min_x, int max_x, int min_y, int max_y, int method);
    virtual bool constrainBiases();
    virtual bool constrainOffsets();
-   static double uniformRand01(uint4 * state);
 
 public:
    Image(const char * name, HyPerCol * hc, const char * filename);
@@ -158,7 +159,7 @@ protected:
    //Read pvp file frame number
    double frameNumber;
 
-   uint4 rand_state;
+   Random * randState;
 };
 
 }

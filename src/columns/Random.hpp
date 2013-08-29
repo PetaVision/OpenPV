@@ -45,6 +45,10 @@ public:
    void uniformRandom(float * values, int localIndex, int count=1) {for (int k=0; k<count; k++) values[k] = uniformRandom(localIndex+k);}
    void uniformRandom(float * values, int localIndex, int count, float min, float max) {for (int k=0; k<count; k++) values[k] = uniformRandom(localIndex+k,min,max);}
 
+   unsigned int randomUInt(int localIndex=0);
+   void randomUInt(unsigned int * values, int localIndex, int count=1) {for (int k=0; k<count; k++) values[k] = randomUInt(localIndex+k);}
+   static inline unsigned int randomUIntMax() {return CL_RANDOM_MAX;}
+
 protected:
    Random();
    int initialize(HyPerCol * hc, unsigned int numBlocks, unsigned int blockLength, unsigned int numGlobalBlocks, unsigned int globalBlockLength, unsigned int startIndex);

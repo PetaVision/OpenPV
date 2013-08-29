@@ -11,7 +11,6 @@
 #include "../include/pv_common.h"
 #include "../include/default_params.h"
 #include "../io/fileio.hpp"
-#include "../utils/cl_random.h"
 
 #include <assert.h>
 #include <float.h>
@@ -133,7 +132,7 @@ LIF::~LIF() {
       free(G_E);
    }
    free(Vth);
-   free(rand_state);
+   delete randState;
 
 #ifdef PV_USE_OPENCL
 //hyperlayer is destroying these:
@@ -154,7 +153,7 @@ LIF::~LIF() {
 }
 
 int LIF::initialize_base() {
-   rand_state = NULL;
+   randState = NULL;
    Vth = NULL;
    G_E = NULL;
    G_I = NULL;
@@ -387,29 +386,21 @@ int LIF::setActivity() {
 int LIF::communicateInitInfo() {
    int status = HyPerLayer::communicateInitInfo();
 
-   // // a random state variable is needed for every neuron/clthread
-   numGlobalRNGs = getNumGlobalNeurons();
-   rand_state = (uint4 *) malloc(getNumNeurons() * sizeof(uint4));
-   if (rand_state == NULL) {
-      fprintf(stderr, "LIF::initialize error.  Layer \"%s\" unable to allocate memory for random states.\n", getName());
-      exit(EXIT_FAILURE);
-   }
-   unsigned int seed = parent->getObjectSeed(getNumGlobalRNGs());
-   const PVLayerLoc * loc = getLayerLoc();
-   for (int y = 0; y<loc->ny; y++) {
-      int k_local = kIndex(0, y, 0, loc->nx, loc->ny, loc->nf);
-      int k_global = kIndex(loc->kx0, y+loc->ky0, 0, loc->nxGlobal, loc->nyGlobal, loc->nf);
-      cl_random_init(&rand_state[k_local], loc->nx * loc->nf, seed + k_global);
-   }
-
    return status;
 }
 
 int LIF::allocateDataStructures() {
    int status = HyPerLayer::allocateDataStructures();
 
+   // // a random state variable is needed for every neuron/clthread
+   randState = new Random(parent, getLayerLoc(), false/*isExtended*/);
+   if (randState == NULL) {
+      fprintf(stderr, "LIF::initialize error.  Layer \"%s\" unable to create object of Random class.\n", getName());
+      exit(EXIT_FAILURE);
+   }
+
    int numNeurons = getNumNeurons();
-   assert(Vth);
+   assert(Vth); // Allocated when HyPerLayer::allocateDataStructures() called allocateBuffers().
    for (size_t k = 0; k < numNeurons; k++){
       Vth[k] = lParams.VthRest; // lParams.VthRest is set in setLIFParams
    }
@@ -482,7 +473,7 @@ int LIF::checkpointRead(const char * cpDir, double * timef) {
 
    chars_needed = snprintf(filename, filenamesize, "%s/%s_rand_state.bin", cpDir, name);
    assert(chars_needed < filenamesize);
-   readRandState(filename, parent->icCommunicator(), rand_state, getLayerLoc());
+   readRandState(filename, parent->icCommunicator(), randState->getRNG(0), getLayerLoc()); // TODO Make a method in Random class
 
    free(filename);
    return PV_SUCCESS;
@@ -500,23 +491,23 @@ int LIF::checkpointWrite(const char * cpDir) {
 
    chars_needed = snprintf(filename, filenamesize, "%s/%s_Vth.pvp", cpDir, name);
    assert(chars_needed < filenamesize);
-   writeBufferFile(filename, icComm, timed, &Vth, 1, /*extended*/false, getLayerLoc()); // TODO contiguous=true
+   writeBufferFile(filename, icComm, timed, &Vth, 1, /*extended*/false, getLayerLoc());
 
    chars_needed = snprintf(filename, filenamesize, "%s/%s_G_E.pvp", cpDir, name);
    assert(chars_needed < filenamesize);
-   writeBufferFile(filename, icComm, timed, &G_E, 1, /*extended*/false, getLayerLoc()); // TODO contiguous=true
+   writeBufferFile(filename, icComm, timed, &G_E, 1, /*extended*/false, getLayerLoc());
 
    chars_needed = snprintf(filename, filenamesize, "%s/%s_G_I.pvp", cpDir, name);
    assert(chars_needed < filenamesize);
-   writeBufferFile(filename, icComm, timed, &G_I, 1, /*extended*/false, getLayerLoc()); // TODO contiguous=true
+   writeBufferFile(filename, icComm, timed, &G_I, 1, /*extended*/false, getLayerLoc());
 
    chars_needed = snprintf(filename, filenamesize, "%s/%s_G_IB.pvp", cpDir, name);
    assert(chars_needed < filenamesize);
-   writeBufferFile(filename, icComm, timed, &G_IB, 1, /*extended*/false, getLayerLoc()); // TODO contiguous=true
+   writeBufferFile(filename, icComm, timed, &G_IB, 1, /*extended*/false, getLayerLoc());
 
    chars_needed = snprintf(filename, filenamesize, "%s/%s_rand_state.bin", cpDir, name);
    assert(chars_needed < filenamesize);
-   writeRandState(filename, parent->icCommunicator(), rand_state, getLayerLoc());
+   writeRandState(filename, parent->icCommunicator(), randState->getRNG(0), getLayerLoc()); // TODO Make a method in Random class
 
    free(filename);
    return PV_SUCCESS;
@@ -626,15 +617,15 @@ int LIF::updateState(double time, double dt)
 
       switch (method) {
       case 'a':
-         LIF_update_state_arma(getNumNeurons(), time, dt, nx, ny, nf, nb, &lParams, rand_state, clayer->V, Vth,
+         LIF_update_state_arma(getNumNeurons(), time, dt, nx, ny, nf, nb, &lParams, randState->getRNG(0), clayer->V, Vth,
                G_E, G_I, G_IB, GSynHead, activity);
          break;
       case 'b':
-         LIF_update_state_beginning(getNumNeurons(), time, dt, nx, ny, nf, nb, &lParams, rand_state, clayer->V, Vth,
+         LIF_update_state_beginning(getNumNeurons(), time, dt, nx, ny, nf, nb, &lParams, randState->getRNG(0), clayer->V, Vth,
                G_E, G_I, G_IB, GSynHead, activity);
          break;
       case 'o':
-         LIF_update_state_original(getNumNeurons(), time, dt, nx, ny, nf, nb, &lParams, rand_state, clayer->V, Vth,
+         LIF_update_state_original(getNumNeurons(), time, dt, nx, ny, nf, nb, &lParams, randState->getRNG(0), clayer->V, Vth,
                G_E, G_I, G_IB, GSynHead, activity);
          break;
       default:

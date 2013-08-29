@@ -8,10 +8,11 @@
 #ifndef INITV_HPP_
 #define INITV_HPP_
 
+#include "../columns/Random.hpp"
+#include "../columns/GaussianRandom.hpp"
 #include "../include/default_params.h"
 #include "../include/pv_types.h"
 #include "../include/pv_common.h"
-#include "../utils/cl_random.h"
 #include "../layers/HyPerLayer.hpp"
 #include "../io/fileio.hpp"
 #include "../io/imageio.hpp"
@@ -42,10 +43,8 @@ protected:
 private:
    int initialize_base();
    int calcConstantV(pvdata_t * V, int numNeurons);
-   int calcGaussianRandomV(pvdata_t * V, const PVLayerLoc * loc, unsigned int seedBase);
-   int generateGaussianRand(pvdata_t * V, uint4 * rngArray, int nx, int nf);
-   int calcUniformRandomV(pvdata_t * V, const PVLayerLoc * loc, unsigned int seedBase);
-   int generateUnifRand(pvdata_t * V, uint4 * rngArray, int nx, int nf);
+   int calcGaussianRandomV(pvdata_t * V, const PVLayerLoc * loc, HyPerCol * hc);
+   int calcUniformRandomV(pvdata_t * V, const PVLayerLoc * loc, HyPerCol * hc);
    int calcVFromFile(pvdata_t * V, const PVLayerLoc * loc, InterColComm * icComm);
    int checkLoc(const PVLayerLoc * loc, int nx, int ny, int nf, int nxGlobal, int nyGlobal);
    int checkLocValue(int fromParams, int fromFile, const char * field);

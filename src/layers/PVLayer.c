@@ -297,22 +297,21 @@ int pvpatch_accumulate_stochastic(int nk, float* RESTRICT v, float a, float* RES
    int err = 0;
    int k;
    for (k = 0; k < nk; k++) {
-      uint4 rng = rngArray[k];
-      rng = cl_random_get(rng);
-      double p = (double) rng.s0;
-      v[k] = v[k] + (rng.s0<along)*w[k];
+      uint4 * rng = &rngArray[k];
+      *rng = cl_random_get(*rng);
+      v[k] = v[k] + (rng->s0 < along)*w[k];
    }
    return err;
 }
 
 int pvpatch_accumulate_stochastic_from_post(int nk, float * RESTRICT v, float * RESTRICT a, float * RESTRICT w, float dt_factor, void * auxPtr) {
    int status = 0;
-   uint4 rng = *(uint4 *) auxPtr;
+   uint4 * rng = (uint4 *) auxPtr;
    int k;
    float dv = 0.0f;
    for (k = 0; k < nk; k++) {
-      rng = cl_random_get(rng);
-      double p = (double) rng.s0/cl_random_max(); // 0.0 < p < 1.0
+      *rng = cl_random_get(*rng);
+      double p = (double) rng->s0/cl_random_max(); // 0.0 < p < 1.0
       dv += (p<a[k])*w[k];
    }
    *v = *v + dt_factor*dv;

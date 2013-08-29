@@ -397,7 +397,7 @@ int Movie::randomFrame()
 {
    assert(randomMovie); // randomMovieProb was set only if randomMovie is true
    for (int kex = 0; kex < clayer->numExtended; kex++) {
-      double p = uniformRand01(&rand_state);
+      double p = randState->uniformRandom();
       data[kex] = (p < randomMovieProb) ? 1: 0;
    }
    return 0;

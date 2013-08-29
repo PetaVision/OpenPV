@@ -164,8 +164,8 @@ HyPerConn::~HyPerConn()
    free(this->preLayerName);
    free(this->postLayerName);
 
-   delete weightInitializer; // The following comment is no longer operative. // weightInitializer should be deleted by whoever called the HyPerConn constructor
-
+   delete weightInitializer;
+   delete randState;
 }
 
 //!
@@ -247,6 +247,8 @@ int HyPerConn::initialize_base()
 
    this->initInfoCommunicatedFlag = false;
    this->dataStructuresAllocatedFlag = false;
+
+   this->randState = NULL;
 
 #ifdef USE_SHMGET
    shmget_flag = false;
@@ -1120,29 +1122,44 @@ int HyPerConn::allocateDataStructures() {
 
    if (pvpatchAccumulateType == ACCUMULATE_STOCHASTIC) {
       bool from_post = getUpdateGSynFromPostPerspective();
-      const PVLayerLoc * loc = (from_post ? post : pre)->getLayerLoc();
-      int nx = loc->nx;
-      int ny = loc->ny;
-      int nf = loc->nf;
-      if (!from_post) {
-         int nb2 = 2*loc->nb;
-         nx += nb2;
-         ny += nb2;
+      if (from_post) {
+         randState = new Random(parent, postSynapticLayer()->getLayerLoc(), false/*isExtended*/);
       }
-      int neededRNGSeeds = from_post ? post->getNumGlobalNeurons() : pre->getNumGlobalExtended();
-      rngSeedBase = parent->getObjectSeed(neededRNGSeeds);
-      rnd_state = (uint4 *) malloc((size_t)neededRNGSeeds*sizeof(uint4));
-      for (int y=0; y<ny; y++) {
-         int localIndex = kIndex(0,y,0,nx,ny,nf);
-         int globalIndex = globalIndexFromLocal(localIndex, *loc);
-         cl_random_init(&rnd_state[localIndex], nx*nf, rngSeedBase+(unsigned int) globalIndex);
+      else {
+         randState = new Random(parent, preSynapticLayer()->getLayerLoc(), true/*isExtended*/);
       }
+//      const PVLayerLoc * loc = (from_post ? post : pre)->getLayerLoc();
+//      int nx = loc->nx;
+//      int ny = loc->ny;
+//      int nf = loc->nf;
+//      if (!from_post) {
+//         int nb2 = 2*loc->nb;
+//         nx += nb2;
+//         ny += nb2;
+//      }
+//      int neededRNGSeeds = from_post ? post->getNumGlobalNeurons() : pre->getNumGlobalExtended();
+//      rngSeedBase = parent->getObjectSeed(neededRNGSeeds);
+//      rnd_state = (uint4 *) malloc((size_t)neededRNGSeeds*sizeof(uint4));
+//      for (int y=0; y<ny; y++) {
+//         int localIndex = kIndex(0,y,0,nx,ny,nf);
+//         int globalIndex = globalIndexFromLocal(localIndex, *loc);
+//         cl_random_init(&rnd_state[localIndex], nx*nf, rngSeedBase+(unsigned int) globalIndex);
+//      }
    }
 
    int status = constructWeights(filename);
 
    return status;
 }
+
+uint4 * HyPerConn::getRandState(int index) {
+   uint4 * state = NULL;
+   if (pvpatchAccumulateType==ACCUMULATE_STOCHASTIC) {
+      state = randState->getRNG(index);
+   }
+   return state;
+}
+
 
 InitWeights * HyPerConn::getDefaultInitWeightsMethod(const char * keyword) {
    fprintf(stderr, "weightInitType not set or unrecognized.  Using default method.\n");

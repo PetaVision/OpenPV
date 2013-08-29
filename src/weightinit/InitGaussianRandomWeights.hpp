@@ -10,7 +10,7 @@
 
 #include "InitRandomWeights.hpp"
 #include "InitGaussianRandomWeightsParams.hpp"
-#include "../utils/cl_random.h"
+#include "../columns/GaussianRandom.hpp"
 
 namespace PV {
 
@@ -22,11 +22,15 @@ public:
    virtual InitWeightsParams * createNewWeightParams(HyPerConn * callingConn);
 
 protected:
-   virtual int randomWeights(pvdata_t * patchDataStart, InitWeightsParams *weightParamPtr, uint4 * rnd_state);
+   virtual int initRNGs(HyPerConn * conn, bool isKernel);
+   virtual int randomWeights(pvdata_t * patchDataStart, InitWeightsParams *weightParamPtr, int patchIndex);
 
 private:
    int initialize_base();
 
+// Member variables
+protected:
+   GaussianRandom * gaussianRandState; // Use this instead of randState to use Box-Muller transformation.
 };
 
 } /* namespace PV */

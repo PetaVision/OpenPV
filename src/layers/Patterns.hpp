@@ -85,7 +85,6 @@ protected:
    float calcPosition(float pos, int step);
    virtual bool constrainBiases() {return false;}
    virtual bool constrainOffsets() {return false;}
-   double patternRand() {return uniformRand01(&patternRandState);}
 
    PatternType type;
    OrientationMode orientation;
@@ -134,7 +133,7 @@ protected:
    double nextDisplayTime; // time of next frame
    PV_Stream * patternsFile;
 
-   uint4 patternRandState; // RNG state for Patterns class.  Everything is done sequentially, so a single RNG should be reproducible
+   Random * patternRandState; // RNG state for Patterns class.  Everything is done sequentially, so a Random(parent, 1) should be reproducible
 
 private:
    float rotation;

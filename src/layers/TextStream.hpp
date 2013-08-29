@@ -10,7 +10,6 @@
 
 #include "HyPerLayer.hpp"
 #include "../columns/HyPerCol.hpp"
-#include "../utils/cl_random.h"
 
 #ifndef STAT_H
 #include <sys/stat.h>

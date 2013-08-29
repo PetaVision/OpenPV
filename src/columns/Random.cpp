@@ -92,7 +92,12 @@ int Random::initialize(HyPerCol * hc, unsigned int numBlocks, unsigned int block
 
 float Random::uniformRandom(int localIndex) {
    rngArray[localIndex] = cl_random_get(rngArray[localIndex]);
-   return rngArray[localIndex].s0/(float) cl_random_max();
+   return rngArray[localIndex].s0/(float) randomUIntMax();
+}
+
+unsigned int Random::randomUInt(int localIndex) {
+   rngArray[localIndex] = cl_random_get(rngArray[localIndex]);
+   return rngArray[localIndex].s0;
 }
 
 Random::~Random() {

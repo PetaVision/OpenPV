@@ -3,13 +3,13 @@
  *
  *  Created on: Aug 25, 2009
  *      Author: Shreyas
+ *
+ *  Updated for MPI and Random class 2013-08-28.  Hasn't been tested.
  */
 
 #include <cassert>
 
-#include "../io/tiff.h"
 #include "../include/pv_common.h"
-#include "../utils/pv_random.h"
 
 #include "ImageCreator.hpp"
 
@@ -21,10 +21,10 @@ ImageCreator::ImageCreator() {
 /** Constructor for ImageCreator class.
  * initialize_data() allocates memory for data;
  * data lives in an extended frame of size
- * (nx+2nPad)*(ny+2nPad)*nBands
+ * (nx+2nb)*(ny+2nb)*nf
  * initialize() allocates memory for drawBuffer;
  *  drawBuffer lives in a restricted frame
- * of size nx*ny*nBands
+ * of size nx*ny*nf
  */
 ImageCreator::ImageCreator(const char * name, HyPerCol * hc) {
    initialize_base();
@@ -33,11 +33,14 @@ ImageCreator::ImageCreator(const char * name, HyPerCol * hc) {
 
 ImageCreator::~ImageCreator() {
    free(drawBuffer);
+   delete drawBufferRNGs;
+   delete drawRandomShapeRNG;
 }
 
 int ImageCreator::initialize_base() {
    hc = NULL;
    drawBuffer = NULL;
+   drawBufferRNGs = NULL;
 
    return PV_SUCCESS;
 }
@@ -45,13 +48,6 @@ int ImageCreator::initialize_base() {
 int ImageCreator::initialize(const char * name, HyPerCol * hc) {
    Image::initialize(name, hc, NULL);
    this->hc = hc;
-
-   // Moved to allocateDataStructures
-   // const PVLayerLoc * loc = getLayerLoc();
-   // const int numItems = loc->nx * loc->ny * loc->nf;
-   //
-   // drawBuffer = (float *) calloc(sizeof(float), numItems);
-   // assert(drawBuffer != 0);
 
    return PV_SUCCESS;
 }
@@ -63,7 +59,11 @@ int ImageCreator::allocateDataStructures() {
    const int numItems = loc->nx * loc->ny * loc->nf;
 
    drawBuffer = (float *) calloc(sizeof(float), numItems);
-   assert(drawBuffer != 0);
+   assert(drawBuffer != NULL);
+
+   drawBufferRNGs = new Random(hc, loc, false);
+   drawRandomShapeRNG = new Random(hc, 1);
+
    return status;
 }
 
@@ -81,7 +81,7 @@ int ImageCreator::allocateDataStructures() {
  *
  * Return value: 0 if successful, else non-zero.
  *
- * NOTE: 1) drawBuffer lives in an restricted frame (no bundaries)
+ * NOTE: 1) drawBuffer lives in an restricted frame (no boundaries)
  *       2) THIS METHOD NEEDS TO BE DESIGNED FOR EACH EXPERIMENT!!!
  *
  */
@@ -101,16 +101,16 @@ bool ImageCreator::updateImage(float time_step, float dt)
       posx += threewaytoss(0.0, 1.0, 0.0); // go back, stay, go ahead
       if (posx < 0) {
          posx = 0;
-      } else if ((posx + lengtha) >= loc->nx) {
-         posx = (loc->nx - lengtha);
+      } else if ((posx + lengtha) >= loc->nxGlobal) {
+         posx = (loc->nxGlobal - lengtha);
       }
 
       posy += threewaytoss(0.0, 1.0, 0.0);
       if (posy < 0) {
          posy = 0;
       }
-      else if ((posy + lengthb) >= loc->ny) {
-         posy = (loc->ny - lengthb);//loc->ny-length?
+      else if ((posy + lengthb) >= loc->nyGlobal) {
+         posy = (loc->nyGlobal - lengthb);//loc->ny-length?
       }
    }
 
@@ -126,15 +126,15 @@ bool ImageCreator::updateImage(float time_step, float dt)
    //drawSquare(newpos, length, 0);
    drawRectangle(newpos,lengtha,lengthb,0);
 
-   if (modified) {
-      writeImageToFile(time_step, TXT | TIF | BIN);
-      modified = false;
-   }
-
    prevposx = posx;
    prevposy = posy;
 
    this->copyFromInteriorBuffer(drawBuffer, 1.0f);
+
+   if (modified) {
+      writeImageToFile(time_step, TXT | TIF | BIN);
+      modified = false;
+   }
 
    return true;
 }
@@ -193,14 +193,12 @@ int ImageCreator::createRandomImage()
    const int nx = loc->nx;
    const int ny = loc->ny;
 
-   assert(drawBuffer != NULL); //ToDo: Validation inadequate.
-                        //      Check for buf size > (nx * ny)
+   assert(drawBuffer != NULL);
 
-   for (int i = 0; i < nx; i++) {
-      for (int j = 0; j < ny; j++) {
-         drawBuffer[i + j * nx] = (float) (pv_random() % 2);
-      }
-         //Fill in all pixels randomly
+   int idx=0;
+   for (int i = 0; i < (nx * ny); i++) {
+      drawBuffer[i] = (float) (drawBufferRNGs->uniformRandom(i) > 0.5);
+      //Fill in all pixels randomly
    }
 
    return 0;
@@ -217,8 +215,8 @@ int ImageCreator::createRandomImage()
 int ImageCreator::drawMultipleRandomShapes(int n_images)
 {
    const PVLayerLoc * loc = getLayerLoc();
-   const int nx = loc->nx;
-   const int ny = loc->ny;
+   const int nx = loc->nxGlobal;
+   const int ny = loc->nyGlobal;
 
    clearImage();
    int posx; //random() % nx;
@@ -226,13 +224,8 @@ int ImageCreator::drawMultipleRandomShapes(int n_images)
    int length = 4; //nx / 8;
 
    for (int image = 0; image < n_images; image++) {
-      do {
-         posx = pv_random() % nx;
-      } while(posx < 0 || posx > (nx - length));
-
-      do{
-         posy = pv_random() % ny;
-      } while(posy < 0 || posy > (nx - length));
+      posx = (int) floor(drawRandomShapeRNG->uniformRandom()*(nx-length+1));
+      posy = (int) floor(drawRandomShapeRNG->uniformRandom()*(ny-length+1));
 
       Point2D newpos(posx, posy);
       drawSquare(newpos, length, 0);
@@ -263,8 +256,8 @@ int ImageCreator::drawLine(Point2D origin, unsigned int length, float theta)
     *  included in the line.
     */
 
-   if ((x1 < 0) || (y1 < 0) || (x2 >= loc->nx) || (y2 >= loc->ny)) {
-      std::cerr << "Error: Cannot draw line from (%d, %d) of length at an angle .\n";
+   if ((x1 < 0) || (y1 < 0) || (x2 >= loc->nxGlobal) || (y2 >= loc->nyGlobal)) {
+      std::cerr << "Error: Cannot draw line from (" << x1 << "," << y1 << ") of length " << length << " at an angle " << theta << ".\n";
       return 1;
    }
    return (drawBresenhamLine(x1, y1, x2, y2));
@@ -286,8 +279,8 @@ int ImageCreator::drawLine(Point2D pt1, Point2D pt2)
    int x2 = pt2.getX();
    int y2 = pt2.getY();
 
-   if ((x1 < 0) || (y1 < 0) || (x2 >= loc->nx) || (y2 >= loc->ny)) {
-      std::cerr << "Error: Cannot draw line between"; // << pt1 << " and "<< pt2 << ".\n";
+   if ((x1 < 0) || (y1 < 0) || (x2 >= loc->nxGlobal) || (y2 >= loc->nyGlobal)) {
+      std::cerr << "Error: Cannot draw line between (" << x1 << "," << y1 << ") and (" << x2 << "," << y2 << ").\n";
       return 1;
    }
    return (drawBresenhamLine(pt1.getX(), pt1.getY(), pt2.getX(), pt2.getY()));
@@ -331,8 +324,8 @@ int ImageCreator::drawRectangle(Point2D origin, unsigned int lengtha,
 {
    const PVLayerLoc * loc = getLayerLoc();
 
-   const int nx = loc->nx;
-   const int ny = loc->ny;
+   const int nx = loc->nxGlobal;
+   const int ny = loc->nyGlobal;
 
    int err = 0;
    int x1 = origin.getX();
@@ -396,8 +389,8 @@ int ImageCreator::drawQuadrilateral(Point2D pt1, Point2D pt2,
 {
    const PVLayerLoc * loc = getLayerLoc();
 
-   const int nx = loc->nx;
-   const int ny = loc->ny;
+   const int nx = loc->nxGlobal;
+   const int ny = loc->nyGlobal;
 
    int err = 0;
    int x1 = pt1.getX();
@@ -417,7 +410,7 @@ int ImageCreator::drawQuadrilateral(Point2D pt1, Point2D pt2,
        (x1 >= nx) || (x2 >= nx) || (x3 >= nx) || (x4 >= nx) ||
        (y1 >= ny) || (y2 >= ny) || (y3 >= ny) || (y4 >= ny)) {
 
-         std::cout << "ImageCreator: Error drawing 2D figure at ";// << pt1 << ".\n";
+         std::cout << "ImageCreator: Error drawing 2D figure at (" << x1 << "," << x2 << ").\n";
          return 1;
       }
 
@@ -436,8 +429,6 @@ int ImageCreator::drawQuadrilateral(Point2D pt1, Point2D pt2,
  *            (x2, y2): Point 2
  *
  * Return value: None
- *
- * ToDo: Rewrite
  */
 int ImageCreator::drawBresenhamLine(int x1, int y1, int x2, int y2) {
 
@@ -471,7 +462,7 @@ int ImageCreator::drawBresenhamLine(int x1, int y1, int x2, int y2) {
            xDraw = x;
            yDraw = y;
        }
-       mark(xDraw, yDraw, 1);
+       markGlobal(xDraw, yDraw, 1);
        if (E > 0) {
            E += (2 * deltay) - (2 * deltax);
            y = y + ystep;
@@ -496,6 +487,22 @@ int ImageCreator::drawBresenhamLine(int x1, int y1, int x2, int y2) {
 inline void ImageCreator::mark(unsigned int i, unsigned int j, int value)
 {
    drawBuffer[i + j * getLayerLoc()->nx] = (float) value;
+}
+
+/*
+ * Description: Marks pixels on 2D-buf given global coordinates
+ *
+ * Arguments: i: x coordinate of the point to be plotted, in global restricted coordinates
+ *            j: y coordinate of the point to be plotted, in global restricted coordinates
+ *            value: the value to be written to the image at (i, j).
+ */
+inline void ImageCreator::markGlobal(unsigned int i, unsigned int j, int value)
+{
+   if (i < getLayerLoc()->nxGlobal || j < getLayerLoc()->nyGlobal) return;
+   unsigned int iLocal = i - (unsigned int) getLayerLoc()->kx0;
+   unsigned int jLocal = j - (unsigned int) getLayerLoc()->ky0;
+   if (i >= getLayerLoc()->nx || j >= getLayerLoc()->ny) return;
+   mark(iLocal, jLocal, value);
 }
 
 /*
@@ -564,15 +571,42 @@ int ImageCreator::writeImageToFile(const float time, const unsigned char options
    if (istifon) {
       snprintf(tiffilename, 255, "%s/images/%s.tif", hc->getOutputPath(), basicfilename);
       //status |= tiff_write_file(tiffilename, data, loc->nx, loc->ny);
-      status |= tiff_write_file_drawBuffer(tiffilename, drawBuffer, loc->nx, loc->ny);
+      status |= write(tiffilename);
    }
    if (istxton) {
       snprintf(txtfilename, 255, "%s/images/%s.txt", hc->getOutputPath(), basicfilename);
       status |= writeImageToTxt(txtfilename);
    }
    if (isbinon) {
-      snprintf(binfilename, 255, "%s/images/%s.bin", hc->getOutputPath(), basicfilename);
+      snprintf(binfilename, 255, "%s/images/%s.pvp", hc->getOutputPath(), basicfilename);
       status |= writeImageToBin(binfilename);
+   }
+
+   return status;
+}
+
+/**
+ * Description: Writes image to .bin file.
+ *
+ * Arguments: filename - file to be written to.
+ *
+ * Return value: 0 if successful, non-zero otherwise.
+ */
+int ImageCreator::writeImageToBin(const char *filename)
+{
+   PV_Stream * binfile = NULL;
+   if (parent->columnId()==0) {
+      binfile = PV_fopen(filename, "wb");
+      if (binfile==NULL) {
+         fprintf(stderr, "ImageCreator \"%s\" error: Cannot open %s for writing image.\n", name, filename);
+         abort();
+      }
+   }
+
+   int status = gatherActivity(binfile, parent->icCommunicator(), 0, data, getLayerLoc(), true/*extended*/);
+
+   if (parent->columnId()==0) {
+      PV_fclose(binfile); binfile = NULL;
    }
 
    return status;
@@ -590,65 +624,126 @@ int ImageCreator::writeImageToFile(const float time, const unsigned char options
  */
 int ImageCreator::writeImageToTxt(const char *filename)
 {
-   PV_Stream * txtfile = NULL;
-   const PVLayerLoc * loc = getLayerLoc();
-   const int nx = loc->nx;
-   const int ny = loc->ny;
-
-   if ((txtfile = PV_fopen(filename, "w"))) {
-      for (int i = 0; i < nx; i++) {
-         for (int j = 0; j < ny; j++) {
-            fprintf(txtfile->fp, "%d ", (int) getmark(i, j));
-         }
-         fprintf(txtfile->fp, "\n");
-      }
-      PV_fclose(txtfile);
-      return 0;
-   }
-   else {
-      fprintf(stderr, "Error: Cannot open .txt for writing image.\n");
-      return 1;
-   }
-}
-
-/**
- * Description: Writes image to .bin file.
- *
- * Arguments: filename - file to be written to.
- *
- * getmark() returns information from drawBuffer which lives
- * in the restricted frame.
- *
- * Return value: 0 if successful, non-zero otherwise.
- */
-int ImageCreator::writeImageToBin(const char *filename)
-{
    PV_Stream * binfile = NULL;
-   const PVLayerLoc * loc = getLayerLoc();
-
-   const int nx = loc->nx;
-   const int ny = loc->ny;
-
-   if ((binfile = PV_fopen(filename, "wb"))) {
-      for (int i = 0; i < nx; i++) {
-         for (int j = 0; j < ny; j++) {
-            fprintf(binfile->fp, "%d ", (int) getmark(i, j));
-         }
-         fprintf(binfile->fp, "\n");
+   if (parent->columnId()==0) {
+      binfile = PV_fopen(filename, "wb");
+      if (binfile==NULL) {
+         fprintf(stderr, "ImageCreator \"%s\" error: Cannot open %s for writing image.\n", name, filename);
+         abort();
       }
-      PV_fclose(binfile);
-      return 0;
    }
-   else {
-      fprintf(stderr, "Error: Cannot open .bin for writing image.\n");
-      return 1;
+
+   int status = gatherActivity(binfile, parent->icCommunicator(), 0, data, getLayerLoc(), true/*extended*/);
+
+   if (parent->columnId()==0) {
+      PV_fclose(binfile); binfile = NULL;
    }
+
+   return status;
 }
 
+int ImageCreator::gatherActivityWriteText(PV_Stream * pvstream) {
+   // A clumsy copy of fileio.cpp's gatherActivity, adapted for writing text instead of raw binary values.
+   // In MPI when this process is called, all processes must call it.
+   // Only the root process uses the file pointer.
+   int status = PV_SUCCESS;
+
+   int numLocalNeurons = getLayerLoc()->nx * getLayerLoc()->ny * getLayerLoc()->nf;
+
+   int nb = getLayerLoc()->nb;
+   int xLineStart = nb;
+   int yLineStart = nb;
+   int xBufSize = getLayerLoc()->nx + 2*nb;
+   int yBufSize = getLayerLoc()->ny + 2*nb;
+
+   int linesize = getLayerLoc()->nx*getLayerLoc()->nf; // All values across x and f for a specific y are contiguous; do a single write for each y.
+   // read into a temporary buffer since data is extended but the file only contains the restricted part.
+   pvdata_t * temp_buffer = (pvdata_t *) calloc(numLocalNeurons, sizeof(pvdata_t));
+   if (temp_buffer==NULL) {
+      fprintf(stderr, "ImageCreator \"%s\" error: gatherActivityWriteText unable to allocate memory for temp_buffer.\n", name);
+      status = PV_FAILURE;
+      abort();
+   }
+   InterColComm * icComm = parent->icCommunicator();
+   int rank = icComm->commRank();
+   if (rank==0) {
+      if (pvstream == NULL) {
+         fprintf(stderr, "ImageCreator \"%s\" error: gatherActivityWriteText error: file pointer on root process is null.\n", name);
+         status = PV_FAILURE;
+         abort();
+      }
+      long startpos = getPV_StreamFilepos(pvstream);
+      if (startpos == -1) {
+         fprintf(stderr, "ImageCreator \"%s\" error: gatherActivityWriteText error when getting file position: %s\n", name, strerror(errno));
+         status = PV_FAILURE;
+         abort();
+      }
+      // Write zeroes to make sure the file is big enough since we'll write nonsequentially under MPI.  This may not be necessary.
+      int comm_size = icComm->commSize();
+      size_t dataentrysize = 6; // size of one entry in the file
+      for (int r=0; r<comm_size; r++) {
+         int numwritten = PV_fwrite(temp_buffer, dataentrysize, numLocalNeurons, pvstream);
+         if (numwritten != numLocalNeurons) {
+            fprintf(stderr, "ImageCreator \"%s\" error: gatherActivityWriteText error when writing: number of bytes attempted %d, number written %d\n", name, numwritten, numLocalNeurons);
+            status = PV_FAILURE;
+            abort();
+         }
+      }
+      int fseekstatus = PV_fseek(pvstream, startpos, SEEK_SET);
+      if (fseekstatus != 0) {
+         fprintf(stderr, "ImageCreator \"%s\" error: gatherActivityWriteText error when setting file position: %s\n", name, strerror(errno));
+         status = PV_FAILURE;
+         abort();
+      }
+
+      for (int r=0; r<comm_size; r++) {
+         if (r==0) {
+            for (int y=0; y<getLayerLoc()->ny; y++) {
+               int k_extended = kIndex(nb, y+yLineStart, 0, xBufSize, yBufSize, getLayerLoc()->nf);
+               int k_restricted = kIndex(0, y, 0, getLayerLoc()->nx, getLayerLoc()->ny, getLayerLoc()->nf);
+               memcpy(&temp_buffer[k_restricted], &data[k_extended], sizeof(pvdata_t)*linesize);
+            }
+         }
+         else {
+            MPI_Recv(temp_buffer, numLocalNeurons*(int) sizeof(pvdata_t), MPI_BYTE, r, 904+r/*tag*/, icComm->communicator(), MPI_STATUS_IGNORE);
+         }
+         // Data to be written is in temp_buffer, which is nonextended.
+         for (int y=0; y<getLayerLoc()->ny; y++) {
+            int ky0 = getLayerLoc()->ny*rowFromRank(r, icComm->numCommRows(), icComm->numCommColumns());
+            int kx0 = getLayerLoc()->nx*columnFromRank(r, icComm->numCommRows(), icComm->numCommColumns());
+            int k_local = kIndex(0, y, 0, getLayerLoc()->nx, getLayerLoc()->ny, getLayerLoc()->nf);
+            int k_global = kIndex(kx0, y+ky0, 0, getLayerLoc()->nxGlobal, getLayerLoc()->nyGlobal, getLayerLoc()->nf);
+            int fseekstatus = PV_fseek(pvstream, startpos + k_global*dataentrysize, SEEK_SET);
+            if (fseekstatus == 0) {
+               for (int k=0; k<linesize; k++) {
+                  // The width of the line should be constant, and agree with dataentrysize
+                  fprintf(pvstream->fp, "%-5d\n", (int) temp_buffer[k_local+k]); // Does it still make sense to cast to int?
+               }
+            }
+            else {
+               fprintf(stderr, "ImageCreator \"%s\" error: gatherActivityWriteText error when setting file position: %s\n", name, strerror(errno));
+               status = PV_FAILURE;
+               abort();
+            }
+         }
+      }
+      PV_fseek(pvstream, startpos+dataentrysize*numLocalNeurons*comm_size, SEEK_SET);
+   }
+   else {
+      // temp_buffer is a restricted buffer, but if extended is true, buffer is an extended buffer.
+      for (int y=0; y<getLayerLoc()->ny; y++) {
+         int k_extended = kIndex(nb, y+yLineStart, 0, xBufSize, yBufSize, getLayerLoc()->nf);
+         int k_restricted = kIndex(0, y, 0, getLayerLoc()->nx, getLayerLoc()->ny, getLayerLoc()->nf);
+         memcpy(&temp_buffer[k_restricted], &data[k_extended], sizeof(pvdata_t)*linesize);
+      }
+      MPI_Send(temp_buffer, numLocalNeurons*sizeof(pvdata_t), MPI_BYTE, 0, 904+rank/*tag*/, icComm->communicator());
+   }
+   return status;
+}
 
 /*
  * Description: Copy the data from buf maintained by ImageCreator class to
- *              the buffer pass as an argument.
+ *              the buffer passed as an argument.
  *
  * Arguments: targetbuf - the buffer to be written to.
  *
@@ -673,14 +768,14 @@ int ImageCreator::copyImage(pvdata_t * targetbuf)
  * Arguments: probBack - The probability of -1 being returned.
  *            probStay - The probability of 0 being returned.
  *            probForward - The probability of 1 being returned.
- *            The three values must be <=1 and their sum must add up to 1.
+ *            Assumes that the three values are >=0 and <=1 and that their sum is 1.
  *
  * Return value: -1, 0 or 1 with the probabilities passed as arguments.
  *               With illegal aruments, the behavior is undefined.
  */
 int ImageCreator::threewaytoss(double probBack, double probStay, double probForward)
 {
-   int decider = pv_random() % 100;
+   int decider = (int) floor(drawRandomShapeRNG->uniformRandom() * 100.0f);
    float total_prob = decider / 100.00;
 
    if ((total_prob >= 0) && (total_prob < probStay))
@@ -700,12 +795,15 @@ int ImageCreator::threewaytoss(double probBack, double probStay, double probForw
  *
  * ToDo: Convert to template if necessary.
  */
-void ImageCreator::swap(int &a, int &b)
+template <typename T> void ImageCreator::swap(T &a, T &b)
 {
-   int temp = a;
+   T temp = a;
    a = b;
    b = temp;
 }
+// Declare the instantiations of swap that occur in other .cpp files; otherwise you may get linker errors.
+template void ImageCreator::swap<int>(int &a, int &b);
+
 
 /*
  * Description: Utility function to convert degrees to radians.
@@ -716,7 +814,7 @@ void ImageCreator::swap(int &a, int &b)
  */
 inline double ImageCreator::deg2rad(int angleInDegrees)
 {
-   return (0.0174532925 * (angleInDegrees % 360));
+   return (0.017453292519943296 * (angleInDegrees % 360));
 }
 
 /*

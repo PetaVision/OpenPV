@@ -11,6 +11,7 @@
 #include "Image.hpp"
 #include "../include/pv_common.h"
 #include "../include/pv_types.h"
+#include "../columns/Random.hpp"
 
 #include <iostream>
 
@@ -75,6 +76,7 @@ public:
    void testImage();
 
    void mark(unsigned int i, unsigned int j, int value);
+   void markGlobal(unsigned int i, unsigned int j, int value);
    void mark(unsigned int i, int value);
    float getmark(unsigned int i, unsigned int j);
 
@@ -87,23 +89,26 @@ public:
 protected:
    ImageCreator();
    int initialize(const char * name, HyPerCol * hc);
+   int gatherActivityWriteText(PV_Stream * pvstream);
 
 private:
    HyPerCol * hc;
    bool modified;
 
    float * drawBuffer;
+   Random * drawBufferRNGs;
+   Random * drawRandomShapeRNG; // In MPI all processes must have an RNG in the same state so that drawMultipleRandomShapes is consistent across processes
 
    int initialize_base();
    int writeImageToTxt(const char *filename);
    int writeImageToBin(const char *filename);
    int           drawBresenhamLine(int x0, int y0, int x1, int y1);
-   void          swap(int &a, int &b);
    inline double deg2rad(int angleInDegrees);
    inline int    approx(double n);
-   int           threewaytoss(double probStay,
-         double probBack,
-         double probForward);
+   int           threewaytoss(double probStay,double probBack,double probForward);
+
+   template <typename T>
+   void          swap(T &a, T &b);
 };
 
 }

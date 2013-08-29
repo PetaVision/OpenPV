@@ -257,7 +257,6 @@ public:
    int getNumExtended()              {return clayer->numExtended;}
    int getNumGlobalNeurons()         {const PVLayerLoc * loc = getLayerLoc(); return loc->nxGlobal*loc->nyGlobal*loc->nf;}
    int getNumGlobalExtended()        {const PVLayerLoc * loc = getLayerLoc(); return (loc->nxGlobal+2*loc->nb)*(loc->nyGlobal+2*loc->nb)*loc->nf;}
-   int getNumGlobalRNGs()            {return numGlobalRNGs;}
    int getNumDelayLevels()           {return numDelayLevels;}
 
    int  getLayerId()                 {return layerId;}
@@ -356,8 +355,6 @@ protected:
 
    int * marginIndices;   // indices of neurons in margin
    int numMargin;         // number of neurons in margin
-   int numGlobalRNGs;     // The number of separate random number streams a layer needs.  E.g. stochastically spiking layers need one RNG for each neuron.
-                          // numGlobalRNGs should take into account the global layer, so that random number generation is reproducible in different MPI configurations.
    float maxRate;         // Maximum rate of activity.  HyPerLayer sets to 1/dt during initialize(); derived classes should override in their own initialize method after calling HyPerLayer's, if needed.
 
    unsigned int rngSeedBase; // The starting seed for rng.  The parent HyPerCol reserves {rngSeedbase, rngSeedbase+1,...rngSeedbase+neededRNGSeeds-1} for use by this layer

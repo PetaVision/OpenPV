@@ -132,15 +132,15 @@ int BIDSLayer::updateState(double time, double dt)
 
       switch (method) {
       case 'a':
-         LIF_update_state_arma(getNumNeurons(), time, dt, nx, ny, nf, nb, &lParams, rand_state, getV(), Vth,
+         LIF_update_state_arma(getNumNeurons(), time, dt, nx, ny, nf, nb, &lParams, randState->getRNG(0), getV(), Vth,
                G_E, G_I, G_IB, GSynHead, activity);
          break;
       case 'b':
-         LIF_update_state_beginning(getNumNeurons(), time, dt, nx, ny, nf, nb, &lParams, rand_state, getV(), Vth,
+         LIF_update_state_beginning(getNumNeurons(), time, dt, nx, ny, nf, nb, &lParams, randState->getRNG(0), getV(), Vth,
                G_E, G_I, G_IB, GSynHead, activity);
          break;
       case 'o':
-         LIF_update_state_original(getNumNeurons(), time, dt, nx, ny, nf, nb, &lParams, rand_state, getV(), Vth,
+         LIF_update_state_original(getNumNeurons(), time, dt, nx, ny, nf, nb, &lParams, randState->getRNG(0), getV(), Vth,
                G_E, G_I, G_IB, GSynHead, activity);
          break;
       default:

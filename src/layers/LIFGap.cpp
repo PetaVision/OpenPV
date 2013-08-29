@@ -9,7 +9,6 @@
 #include "../include/pv_common.h"
 #include "../include/default_params.h"
 #include "../io/fileio.hpp"
-#include "../utils/cl_random.h"
 
 #include <assert.h>
 #include <float.h>
@@ -324,15 +323,15 @@ int LIFGap::updateState(double time, double dt)
 
    switch (method) {
    case 'a':
-      LIFGap_update_state_arma(getNumNeurons(), time, dt, nx, ny, nf, nb, &lParams, rand_state, clayer->V, Vth, G_E,
+      LIFGap_update_state_arma(getNumNeurons(), time, dt, nx, ny, nf, nb, &lParams, randState->getRNG(0), clayer->V, Vth, G_E,
             G_I, G_IB, GSynHead, activity, sumGap);
    break;
    case 'b':
-      LIFGap_update_state_beginning(getNumNeurons(), time, dt, nx, ny, nf, nb, &lParams, rand_state, clayer->V, Vth, G_E,
+      LIFGap_update_state_beginning(getNumNeurons(), time, dt, nx, ny, nf, nb, &lParams, randState->getRNG(0), clayer->V, Vth, G_E,
             G_I, G_IB, GSynHead, activity, sumGap);
    break;
    case 'o':
-      LIFGap_update_state_original(getNumNeurons(), time, dt, nx, ny, nf, nb, &lParams, rand_state, clayer->V, Vth, G_E,
+      LIFGap_update_state_original(getNumNeurons(), time, dt, nx, ny, nf, nb, &lParams, randState->getRNG(0), clayer->V, Vth, G_E,
             G_I, G_IB, GSynHead, activity, sumGap);
       break;
    default:

@@ -316,12 +316,13 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * p
       abort();
    }
 
-   // As much as possible, we should be using cl_random.c/cl_random.h/cl_random.hcl routines for random number generation.
-   // However, there are still some routines using pv_random, which calls random(), so we need to seed the system RNG here.
+#ifdef OBSOLETE // Marked obsolete Aug 28, 2013.  Use the Random class
+   // There are still some routines using pv_random, which calls random(), so we need to seed the system RNG here.
    // Each MPI process will have its own seed, for independence, but the results will depend on MPI configuration, and
    // restarting from checkpoint cannot recover the previous state of the system RNG.
    unsigned long system_random_seed = random_seed / ((unsigned long) (2+columnId()));
    pv_srandom(system_random_seed); // initialize system random number generator
+#endif // OBSOLETE
 
    random_seed_obj = random_seed;
 

@@ -10,6 +10,7 @@
 
 #include "../columns/InterColComm.hpp"
 #include "../columns/HyPerCol.hpp"
+#include "../columns/Random.hpp"
 #include "../include/pv_common.h"
 #include "../include/pv_types.h"
 #include "../io/PVParams.hpp"
@@ -36,6 +37,7 @@ class InitWeights;
 class BaseConnectionProbe;
 class PVParams;
 class NormalizeBase;
+class Random;
 
 /**
  * A HyPerConn identifies a connection between two layers
@@ -325,7 +327,8 @@ public:
    bool getUseWindowPost(){return useWindowPost;}
    bool getUpdateGSynFromPostPerspective(){return updateGSynFromPostPerspective;}
 
-   uint4 * getRnd_state(int index) { return pvpatchAccumulateType==ACCUMULATE_STOCHASTIC ? &rnd_state[index] : NULL; }
+   // uint4 * getRnd_state(int index) { return pvpatchAccumulateType==ACCUMULATE_STOCHASTIC ? &rnd_state[index] : NULL; }
+   uint4 * getRandState(int index);
 
    int sumWeights(int nx, int ny, int offset, float* dataStart, double* sum,
          double* sum2, float* maxVal);
@@ -458,8 +461,9 @@ protected:
    bool combineWeightFiles;
    bool updateGSynFromPostPerspective;
 
-   unsigned int rngSeedBase; // The starting seed for rng.  The parent HyPerCol reserves {rngSeedbase, rngSeedbase+1,...rngSeedbase+neededRNGSeeds-1} for use by this layer
-   uint4 * rnd_state; // An array of RNGs.
+   // unsigned int rngSeedBase; // The starting seed for rng.  The parent HyPerCol reserves {rngSeedbase, rngSeedbase+1,...rngSeedbase+neededRNGSeeds-1} for use by this layer
+   // uint4 * rnd_state; // An array of RNGs.
+   Random * randState;
 
    bool initInfoCommunicatedFlag;
    bool dataStructuresAllocatedFlag;

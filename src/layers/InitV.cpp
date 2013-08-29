@@ -79,7 +79,6 @@ int InitV::calcV(HyPerLayer * layer) {
    int status = PV_SUCCESS;
    const PVLayerLoc * loc = layer->getLayerLoc();
    int numNeuronSites = loc->nx*loc->ny;
-   unsigned int seedBase = layer->getParent()->getObjectSeed(numNeuronSites);
    switch(initVTypeCode) {
    case UndefinedInitV:
       status = PV_FAILURE;
@@ -89,10 +88,10 @@ int InitV::calcV(HyPerLayer * layer) {
       status = calcConstantV(layer->getV(), layer->getNumNeurons());
       break;
    case UniformRandomV:
-      status = calcUniformRandomV(layer->getV(), loc, seedBase);
+      status = calcUniformRandomV(layer->getV(), loc, layer->getParent());
       break;
    case GaussianRandomV:
-      status = calcGaussianRandomV(layer->getV(), loc, seedBase);
+      status = calcGaussianRandomV(layer->getV(), loc, layer->getParent());
       break;
    case InitVFromFile:
       status = calcVFromFile(layer->getV(), layer->getLayerLoc(), layer->getParent()->icCommunicator());
@@ -110,80 +109,37 @@ int InitV::calcConstantV(pvdata_t * V, int numNeurons) {
    return PV_SUCCESS;
 }
 
-int InitV::calcGaussianRandomV(pvdata_t * V, const PVLayerLoc * loc, unsigned int seedBase) {
+int InitV::calcGaussianRandomV(pvdata_t * V, const PVLayerLoc * loc, HyPerCol * hc) {
    PVLayerLoc flatLoc;
    memcpy(&flatLoc, loc, sizeof(PVLayerLoc));
    flatLoc.nf = 1;
-   uint4 * rngArray = (uint4 *) malloc((size_t)(flatLoc.nx)*sizeof(uint4));
-   assert(rngArray!=NULL);
-   int ny = flatLoc.ny;
-   for (int y=0; y<ny; y++) {
-      int localIndex = kIndex(0,y,0,flatLoc.nx,flatLoc.ny,1);
-      int globalIndex = globalIndexFromLocal(localIndex,flatLoc);
-      cl_random_init(rngArray, (size_t) flatLoc.nx, seedBase+(unsigned int) globalIndex);
-      generateGaussianRand(&V[localIndex], rngArray, loc->nx, loc->nf);
-   }
-   free(rngArray); rngArray = NULL;
-   return PV_SUCCESS;
-}
-
-#define GENERATEGAUSSIANRAND_TWOPI (6.283185307179586f)
-int InitV::generateGaussianRand(pvdata_t * V, uint4 * rngArray, int nx, int nf) {
-   int nk = nx*nf;
-   int f = 0;
-   struct box_muller_state bm_state;
-
-   bm_state.state = rngArray;
-   bm_state.use_last = 0;
-
-   for (int k=0; k<nk; k++) {
-      V[k] = cl_box_muller(meanV, sigmaV, &bm_state);
-
-      f++;
-      if (f==nf) {
-         f = 0;
-         bm_state.state++;
-         bm_state.use_last = 0;
+   GaussianRandom * randState = new GaussianRandom(hc, &flatLoc, false/*isExtended*/);
+   const int nxny = flatLoc.nx*flatLoc.ny;
+   int index = 0;
+   for (int xy=0; xy<nxny; xy++) {
+      for (int f=0; f<loc->nf; f++) {
+         V[index] = randState->gaussianDist(xy, meanV, sigmaV);
+         index++;
       }
    }
-
+   delete randState;
    return PV_SUCCESS;
 }
 
-int InitV::calcUniformRandomV(pvdata_t * V, const PVLayerLoc * loc, unsigned int seedBase) {
+int InitV::calcUniformRandomV(pvdata_t * V, const PVLayerLoc * loc, HyPerCol * hc) {
    PVLayerLoc flatLoc;
    memcpy(&flatLoc, loc, sizeof(PVLayerLoc));
    flatLoc.nf = 1;
-   uint4 * rngArray = (uint4 *) malloc((size_t)(flatLoc.nx)*sizeof(uint4));
-   assert(rngArray!=NULL);
-   int ny = flatLoc.ny;
-   for (int y=0; y<ny; y++) {
-      int localIndex = kIndex(0,y,0,flatLoc.nx,flatLoc.ny,1);
-      int globalIndex = globalIndexFromLocal(localIndex,flatLoc);
-      cl_random_init(rngArray, (size_t) flatLoc.nx, seedBase+(unsigned int) globalIndex);
-      generateUnifRand(&V[localIndex], rngArray, loc->nx, loc->nf);
-   }
-   free(rngArray); rngArray = NULL;
-   return PV_SUCCESS;
-}
-
-int InitV::generateUnifRand(pvdata_t * V, uint4 * rngArray, int nx, int nf) {
-   int nk = nx*nf;
-   int f = 0;
-
-   uint4 * rngPtr = rngArray;
-
-   for (int k=0; k<nk; k++) {
-      *rngPtr = cl_random_get(*rngPtr);
-      V[k] = rngPtr->s0/cl_random_max();
-
-      f++;
-      if (f==nf) {
-         f = 0;
-         rngPtr++;
+   Random * randState = new Random(hc, &flatLoc, false/*isExtended*/);
+   const int nxny = flatLoc.nx*flatLoc.ny;
+   int index = 0;
+   for (int xy=0; xy<nxny; xy++) {
+      for (int f=0; f<loc->nf; f++) {
+         V[index] = randState->uniformRandom(xy, minV, maxV);
+         index++;
       }
    }
-
+   delete randState;
    return PV_SUCCESS;
 }
 

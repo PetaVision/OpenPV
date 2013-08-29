@@ -314,20 +314,21 @@ MovementType Patterns::readMovementType() {
 int Patterns::communicateInitInfo() {
    int status = Image::communicateInitInfo();
 
-   unsigned int seed = parent->getObjectSeed(1);
-   cl_random_init(&patternRandState, 1, seed);
-   // This should put the RNG into the same state across MPI, but let's check.
+   patternRandState = new Random(parent, 1);
 #ifndef NDEBUG
-   unsigned int check_seed = seed;
-   MPI_Bcast(&check_seed, 1, MPI_UNSIGNED, 0, parent->icCommunicator()->communicator());
-   assert(check_seed == seed);
+   // This should put the RNG into the same state across MPI, but let's check.
+   uint4 * state = patternRandState->getRNG(0);
+   uint4 checkState;
+   memcpy(&checkState, state, sizeof(uint4));
+   MPI_Bcast(&checkState, sizeof(uint4), MPI_CHAR, 0, parent->icCommunicator()->communicator());
+   assert(!memcmp(state, &checkState, sizeof(uint4)));
 #endif // NDEBUG
 
    const PVLayerLoc * loc = getLayerLoc();
    if(dropPosition == -1){
-      nextPosChangeFrame = nextDropFrame + dropPositionRandomMin + floor((dropPositionRandomMax - dropPositionRandomMin) * patternRand());
-      xPos = (int)floor(loc->nxGlobal * patternRand());
-      yPos = (int)floor(loc->nyGlobal * patternRand());
+      nextPosChangeFrame = nextDropFrame + dropPositionRandomMin + floor((dropPositionRandomMax - dropPositionRandomMin) * patternRandState->uniformRandom());
+      xPos = (int)floor(loc->nxGlobal * patternRandState->uniformRandom());
+      yPos = (int)floor(loc->nyGlobal * patternRandState->uniformRandom());
    }
    else if(dropPosition == 0){
       xPos = (int)floor((loc->nxGlobal - 1) / 2);
@@ -335,8 +336,8 @@ int Patterns::communicateInitInfo() {
    }
    else{
       nextPosChangeFrame = nextDropFrame + dropPosition;
-      xPos = (int)floor(loc->nxGlobal * patternRand());
-      yPos = (int)floor(loc->nyGlobal * patternRand());
+      xPos = (int)floor(loc->nxGlobal * patternRandState->uniformRandom());
+      yPos = (int)floor(loc->nyGlobal * patternRandState->uniformRandom());
    }
    MPI_Bcast(&nextDropFrame, 1, MPI_DOUBLE, 0, parent->icCommunicator()->communicator());
 
@@ -488,8 +489,8 @@ int Patterns::drawBars(OrientationMode ormode, pvdata_t * buf, int nx, int ny, f
 
 int Patterns::drawRectangles(float val) {
    int status = PV_SUCCESS;
-   int width  = (int)(minWidth  + (maxWidth  - minWidth)  * patternRand());
-   int height = (int)(minHeight + (maxHeight - minHeight) * patternRand());
+   int width  = (int)(minWidth  + (maxWidth  - minWidth)  * patternRandState->uniformRandom());
+   int height = (int)(minHeight + (maxHeight - minHeight) * patternRandState->uniformRandom());
    const PVLayerLoc * loc = getLayerLoc();
    const int nx = loc->nx + 2 * loc->nb;
    const int ny = loc->ny + 2 * loc->nb;
@@ -500,8 +501,8 @@ int Patterns::drawRectangles(float val) {
    const int half_h = height/2;
 
    // random center location
-   const int xc = (int)((nx-1) * patternRand());
-   const int yc = (int)((ny-1) * patternRand());
+   const int xc = (int)((nx-1) * patternRandState->uniformRandom());
+   const int yc = (int)((ny-1) * patternRandState->uniformRandom());
 
    const int x0 = (xc - half_w < 0) ? 0 : xc - half_w;
    const int y0 = (yc - half_h < 0) ? 0 : yc - half_h;
@@ -639,14 +640,14 @@ int Patterns::drawDrops() {
    //Change x and y position if needed
    if(framenumber >= nextPosChangeFrame && dropPosition != 0){
       if(dropPosition == -1){
-         nextPosChangeFrame += dropPositionRandomMin + floor((dropPositionRandomMax - dropPositionRandomMin) * patternRand());
-         xPos = (int)(floor(loc->nxGlobal * patternRand()));
-         yPos = (int)(floor(loc->nyGlobal * patternRand()));
+         nextPosChangeFrame += dropPositionRandomMin + floor((dropPositionRandomMax - dropPositionRandomMin) * patternRandState->uniformRandom());
+         xPos = (int)(floor(loc->nxGlobal * patternRandState->uniformRandom()));
+         yPos = (int)(floor(loc->nyGlobal * patternRandState->uniformRandom()));
       }
       else{
          nextPosChangeFrame += dropPosition;
-         xPos = (int)(floor(loc->nxGlobal * patternRand()));
-         yPos = (int)(floor(loc->nyGlobal * patternRand()));
+         xPos = (int)(floor(loc->nxGlobal * patternRandState->uniformRandom()));
+         yPos = (int)(floor(loc->nyGlobal * patternRandState->uniformRandom()));
       }
       //No need to communicate it since drop creator will decide where to drop
    }
@@ -654,7 +655,7 @@ int Patterns::drawDrops() {
    //Add new circles
    if(framenumber >= nextDropFrame && framenumber <= endFrame){
       if(dropPeriod == -1){
-         nextDropFrame = framenumber + dropPeriodRandomMin + floor((dropPeriodRandomMax - dropPeriodRandomMin) * patternRand());
+         nextDropFrame = framenumber + dropPeriodRandomMin + floor((dropPeriodRandomMax - dropPeriodRandomMin) * patternRandState->uniformRandom());
       }
       else{
          nextDropFrame = framenumber + dropPeriod;
@@ -663,7 +664,7 @@ int Patterns::drawDrops() {
       Drop newDrop;
       //Random drop speed
       if(dropSpeed == -1){
-         newDrop.speed = dropSpeedRandomMin + (dropSpeedRandomMax - dropSpeedRandomMin) * patternRand();
+         newDrop.speed = dropSpeedRandomMin + (dropSpeedRandomMax - dropSpeedRandomMin) * patternRandState->uniformRandom();
       }
       else{
          newDrop.speed = dropSpeed;
@@ -671,7 +672,7 @@ int Patterns::drawDrops() {
       newDrop.centerX = xPos;
       newDrop.centerY = yPos;
       //Random on/off input
-      if(patternRand() < .5){
+      if(patternRandState->uniformRandom() < .5){
          newDrop.on = true;
       }
       else{
@@ -682,7 +683,7 @@ int Patterns::drawDrops() {
       bool out;
       //Convert inOut into a scale between 0 and 1, where 0 maps to in and 1 maps to out
       float inOutChance = (inOut + 1)/2;
-      if(patternRand() < inOutChance){
+      if(patternRandState->uniformRandom() < inOutChance){
          out = true;
       }
       else{
@@ -745,7 +746,7 @@ int Patterns::updatePattern(double timef) {
    update_timer->start();
 
    // alternate between vertical and horizontal bars
-   double p = patternRand();
+   double p = patternRandState->uniformRandom();
    bool newPattern = false;
 
 
@@ -814,7 +815,7 @@ int Patterns::updatePattern(double timef) {
  */
 float Patterns::calcPosition(float pos, int step)
 {
-   double p = patternRand();
+   double p = patternRandState->uniformRandom();
 
    switch (movementType) {
    case MOVEFORWARD:
@@ -906,7 +907,7 @@ int Patterns::checkpointRead(const char * cpDir, double * timef) {
       int numdrops;
       if (parent->columnId()==0) {
          *savedtype = type;
-         *rstate = patternRandState;
+         memcpy(rstate, patternRandState->getRNG(0), sizeof(uint4));
          *om = orientation;
          floats[0] = position;
          doubles[0] = nextDisplayTime;
@@ -925,7 +926,7 @@ int Patterns::checkpointRead(const char * cpDir, double * timef) {
       else {
          MPI_Bcast(tempbuf, bufsize, MPI_CHAR, 0, parent->icCommunicator()->communicator());
          type = *savedtype;
-         patternRandState = *rstate;
+         memcpy(patternRandState->getRNG(0), rstate, sizeof(uint4));
          orientation = *om;
          position = floats[0];
          nextDisplayTime = doubles[0];
@@ -1024,7 +1025,8 @@ int Patterns::checkpointWrite(const char * cpDir) {
          fprintf(pvstream->fp, "Type = %d (DROP)\n", type);
          break;
       }
-      fprintf(pvstream->fp, "Random state = %u, %u, %u, %u\n", patternRandState.s0, patternRandState.state.s1, patternRandState.state.s2, patternRandState.state.s3);
+      uint4 * rng = patternRandState->getRNG(0);
+      fprintf(pvstream->fp, "Random state = %u, %u, %u, %u\n", rng->s0, rng->state.s1, rng->state.s2, rng->state.s3);
       fprintf(pvstream->fp, "Position = %f\n", position);
       fprintf(pvstream->fp, "nextDisplayTime = %f\n", nextDisplayTime);
       fprintf(pvstream->fp, "initPatternCntr = %d\n", initPatternCntr);

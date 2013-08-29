@@ -4,6 +4,7 @@
  *  Created on: Apr 2, 2010
  *      Author: Craig Rasmussen
  */
+#ifdef OBSOLETE // Marked obsolete Aug 28, 2013.  Use the Random class
 
 #ifndef PV_RANDOM_H_
 #define PV_RANDOM_H_
@@ -38,3 +39,5 @@ static inline double pv_random_prob()
 #endif
 
 #endif /* PV_RANDOM_H_ */
+
+#endif // OBSOLETE

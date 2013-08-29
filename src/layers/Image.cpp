@@ -244,17 +244,20 @@ void Image::readWritePosition(PVParams * params) {
 }
 
 int Image::communicateInitInfo() {
-   numGlobalRNGs = 1;
-   unsigned int seed = parent->getObjectSeed(getNumGlobalRNGs());
-   cl_random_init(&rand_state, 1UL, seed);
-   return PV_SUCCESS;
+   return HyPerLayer::communicateInitInfo();
 }
 
 int Image::allocateDataStructures() {
    int status = HyPerLayer::allocateDataStructures();
+   randState = new Random(parent, 1);
+   if (randState==NULL) {
+      fprintf(stderr, "%s \"%s\" error in rank %d process: unable to create object of class Random.\n", parent->parameters()->groupKeywordFromName(name), name, parent->columnId());
+      exit(EXIT_FAILURE);
+   }
 
-   free(clayer->V);
-   clayer->V = NULL;
+   // Moved to allocateV()
+   // free(clayer->V);
+   // clayer->V = NULL;
 
    data = clayer->activity->data;
 
@@ -310,6 +313,11 @@ int Image::allocateDataStructures() {
    exchange();
 
    return status;
+}
+
+int Image::allocateV() {
+   clayer->V = NULL;
+   return PV_SUCCESS;
 }
 
 int Image::initializeState() {
@@ -730,12 +738,12 @@ int Image::calcBias(int current_bias, int step, int sizeLength)
    double p;
    int dbias = 0;
    if (jitterType == RANDOM_WALK) {
-      p = uniformRand01(&rand_state);
+      p = randState->uniformRandom();
       dbias = p < 0.5 ? step : -step;
    } else if (jitterType == RANDOM_JUMP) {
-      p = uniformRand01(&rand_state);
+      p = randState->uniformRandom();
       dbias = (int) floor(p*(double) step) + 1;
-      p = uniformRand01(&rand_state);
+      p = randState->uniformRandom();
       if (p < 0.5) dbias = -dbias;
    }
    else {
@@ -755,13 +763,13 @@ int Image::calcNewBiases(int stepSize) {
       step_radius = stepSize;
       break;
    case RANDOM_JUMP:
-      step_radius = 1 + (int) floor(uniformRand01(&rand_state) * stepSize);
+      step_radius = 1 + (int) floor(randState->uniformRandom() * stepSize);
       break;
    default:
       assert(0); // Only allowable values of jitterType are RANDOM_WALK and RANDOM_JUMP
       break;
    }
-   double p = uniformRand01(&rand_state) * 2 * PI; // direction to step
+   double p = randState->uniformRandom() * 2 * PI; // direction to step
    int dx = (int) floor( step_radius * cos(p));
    int dy = (int) floor( step_radius * sin(p));
    assert(dx != 0 || dy != 0);
@@ -781,9 +789,9 @@ int Image::calcBiasedOffset(int bias, int current_offset, int step, int sizeLeng
 {
    assert(jitterFlag); // calcBiasedOffset should only be called when jitterFlag is true
    int new_offset;
-   double p = uniformRand01(&rand_state);
+   double p = randState->uniformRandom();
    int d_offset = (int) floor(p*(double) step) + 1;
-   p = uniformRand01(&rand_state);
+   p = randState->uniformRandom();
    if (p<0.5) d_offset = -d_offset;
    new_offset = current_offset + d_offset;
    new_offset = (new_offset < 0) ? -new_offset : new_offset;
@@ -797,14 +805,14 @@ bool Image::calcNewOffsets(int stepSize)
    assert(jitterFlag);
 
    bool needNewImage = false;
-   double p = uniformRand01(&rand_state);
+   double p = randState->uniformRandom();
 
    if (p > recurrenceProb) {
-      p = uniformRand01(&rand_state);
+      p = randState->uniformRandom();
       if (p > persistenceProb) {
          needNewImage = true;
-         int step_radius = 1 + (int) floor(uniformRand01(&rand_state) * stepSize);
-         double p = uniformRand01(&rand_state) * 2 * PI; // direction to step
+         int step_radius = 1 + (int) floor(randState->uniformRandom() * stepSize);
+         double p = randState->uniformRandom() * 2 * PI; // direction to step
          int dx = (int) round( step_radius * cos(p));
          int dy = (int) round( step_radius * sin(p));
          assert(dx != 0 || dy != 0);
@@ -902,11 +910,6 @@ bool Image::constrainBiases() {
 
 bool Image::constrainOffsets() {
    return constrainPoint(offsets, 0, imageLoc.nxGlobal - getLayerLoc()->nxGlobal, 0, imageLoc.nyGlobal - getLayerLoc()->nyGlobal - stepSize, biasConstraintMethod);
-}
-
-double Image::uniformRand01(uint4 * state) {
-   *state = cl_random_get(*state);
-   return ((double) state->s0)/(1.0+(double) UINT_MAX);
 }
 
 } // namespace PV

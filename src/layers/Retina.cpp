@@ -7,9 +7,9 @@
 
 #include "HyPerLayer.hpp"
 #include "Retina.hpp"
+#include "../columns/Random.hpp"
 #include "../io/io.h"
 #include "../include/default_params.h"
-#include "../utils/cl_random.h"
 
 #include <assert.h>
 #include <stdio.h>
@@ -78,19 +78,19 @@ Retina::Retina(const char * name, HyPerCol * hc) {
 
 Retina::~Retina()
 {
-      free(rand_state[0]);
- #ifdef PV_USE_OPENCL
+   for (int n=0; n<NUM_NEIGHBORHOOD; n++) delete randState[n];
+#ifdef PV_USE_OPENCL
    if((gpuAccelerateFlag)&&(spikingFlag)) {
       delete clRand;
    }
    // Moved to HyPerLayer since evList is a HyPerLayer member variable
 //    free(evList);
- #endif
+#endif
 }
 
 int Retina::initialize_base() {
    for (int nbr=0; nbr<NUM_NEIGHBORHOOD; nbr++) {
-      rand_state[nbr] = NULL;
+      randState[nbr] = NULL;
       rand_state_size[nbr] = 0UL;
       border_indices[nbr] = NULL;
    }
@@ -248,9 +248,9 @@ int Retina::allocateDataStructures() {
    assert(!parent->parameters()->presentAndNotBeenRead(name, "spikingFlag"));
    if (spikingFlag) {
       // // a random state variable is needed for every neuron/clthread
-      numGlobalRNGs = getNumGlobalExtended();
+      int numGlobalRNGs = getNumGlobalExtended();
 
-      unsigned int seed = parent->getObjectSeed(getNumGlobalRNGs());
+      unsigned int seed = parent->getObjectSeed(numGlobalRNGs);
       const PVLayerLoc * loc = getLayerLoc();
       unsigned int columnOffset = (unsigned int) kIndex(loc->kx0,loc->ky0,0,loc->nxGlobal,loc->nyGlobal,loc->nf);
       allocateRandStateRestricted(loc->nx, loc->ny, loc->nf, seed+columnOffset, loc->nxGlobal * loc->nf);
@@ -288,26 +288,21 @@ int Retina::allocateRandStateBorder(int neighbor, size_t xCount, size_t yCount, 
    if (!parent->icCommunicator()->hasNeighbor(neighbor)) {
       if (status == PV_SUCCESS) status = allocateRandState(neighbor, xCount, yCount, fCount, seedStart, seedStride);
       if (status == PV_SUCCESS) status = allocateBorderIndices(neighbor, xCount, yCount, fCount, indexStart, indexStride);
-
+   }
+   else {
+      parent->getObjectSeed(xCount*yCount*fCount); // Keep parent's random-seed management in sync across processes.
    }
    return status;
 }
 
 int Retina::allocateRandState(int neighbor, size_t xCount, size_t yCount, size_t fCount, unsigned int seedStart, unsigned int seedStride) {
-   assert(rand_state[neighbor]==NULL);
+   assert(randState[neighbor]==NULL);
    size_t count = xCount * yCount * fCount;
    rand_state_size[neighbor] = count;
-   rand_state[neighbor] = (uint4 *) malloc(count * sizeof(uint4));
-   if (rand_state[neighbor]==NULL) {
-      fprintf(stderr, "Retina::initialize error in rank %d.  Layer \"%s\" unable to allocate memory for random states.\n", parent->columnId(), getName());
+   randState[neighbor] = new Random(parent, count); // (uint4 *) malloc(count * sizeof(uint4));
+   if (randState[neighbor]==NULL) {
+      fprintf(stderr, "Retina::allocateRandState error in rank %d.  Layer \"%s\" unable to create object of class Random.\n", parent->columnId(), getName());
       exit(EXIT_FAILURE);
-   }
-   unsigned int seed = seedStart;
-   int kCount = xCount*fCount;
-   for (size_t y=0; y<yCount; y++) {
-      int k = kIndex(0, y, 0, (int) xCount, (int) yCount, (int) fCount);
-      cl_random_init(&rand_state[neighbor][k], kCount, seed);
-      seed += seedStride;
    }
 
    return PV_SUCCESS;
@@ -432,7 +427,7 @@ int Retina::checkpointRead(const char * cpDir, double * timef) {
       abort();
    }
    if (spikingFlag) {
-      int rand_state_status = readRandState(filename, parent->icCommunicator(), rand_state[0], getLayerLoc());
+      int rand_state_status = readRandState(filename, parent->icCommunicator(), randState[0]->getRNG(0), getLayerLoc());
       if (rand_state_status != PV_SUCCESS) status = rand_state_status;
    }
    return status;
@@ -451,7 +446,7 @@ int Retina::checkpointWrite(const char * cpDir) {
       abort();
    }
    if (spikingFlag) {
-      int rand_state_status = writeRandState(filename, parent->icCommunicator(), rand_state[0], getLayerLoc());
+      int rand_state_status = writeRandState(filename, parent->icCommunicator(), randState[0]->getRNG(0), getLayerLoc());
       if (rand_state_status != PV_SUCCESS) status = rand_state_status;
    }
    return status;
@@ -573,7 +568,7 @@ int Retina::updateState(double timed, double dt)
 
       if (spikingFlag == 1) {
          Retina_spiking_update_state(getNumNeurons(), timed, dt, nx, ny, nf, nb,
-                                     &rParams, rand_state[0],
+                                     &rParams, randState[0]->getRNG(0),
                                      GSynHead, activity, clayer->prevActivity);
       }
       else {
@@ -606,12 +601,12 @@ int Retina::updateBorder(double time, double dt)
    // wait for OpenCL data transfers to finish
    HyPerLayer::updateBorder(time, dt);
 
-   unsigned int probBaseUInt = (unsigned int) floor(rParams.probBase * cl_random_max());
+   unsigned int probBaseUInt = (unsigned int) floor(rParams.probBase * (float) Random::randomUIntMax());
    for (int nbr=1; nbr<NUM_NEIGHBORHOOD; nbr++) {
-      assert(rand_state_size[nbr]==0 || rand_state[nbr]!=NULL);
-      for (size_t n=0; n<rand_state_size[nbr]; n++) {
-         rand_state[nbr][n] = cl_random_get(rand_state[nbr][n]);
-         getActivity()[border_indices[nbr][n]] = (rand_state[nbr][n].s0 < probBaseUInt) ? 1.0 : 0.0;
+      size_t sz = rand_state_size[nbr];
+      assert(sz==0 || randState[nbr]!=NULL);
+      for (size_t n=0; n<sz; n++) {
+         getActivity()[border_indices[nbr][n]] = (randState[nbr]->randomUInt(n) < probBaseUInt) ? 1.0 : 0.0;
       }
    }
    return PV_SUCCESS;

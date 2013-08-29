@@ -10,7 +10,6 @@
 
 #include "InitRandomWeights.hpp"
 #include "InitUniformRandomWeightsParams.hpp"
-#include "../utils/cl_random.h"
 
 namespace PV {
 
@@ -22,8 +21,7 @@ public:
    virtual InitWeightsParams * createNewWeightParams(HyPerConn * callingConn);
 
 protected:
-   int randomWeights(pvdata_t * patchDataStart, InitWeightsParams *weightParams, uint4 * rnd_state);
-   unsigned int rand_ul(uint4 * state);
+   int randomWeights(pvdata_t * patchDataStart, InitWeightsParams *weightParams, int patchIndex);
 
 private:
    int initialize_base();
