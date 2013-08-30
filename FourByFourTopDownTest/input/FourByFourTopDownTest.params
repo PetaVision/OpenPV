@@ -43,9 +43,9 @@ ANNLayer "Slideshow" = {
     nyScale = 1;
     nf = 1;
     phase = 0;
-    marginWidth = 0;
     writeStep = -1;
-    mirrorBCflag = 0;
+    mirrorBCflag = false;
+    valueBC = 0.0;
     writeSparseActivity = false;
 
     InitVType = "ZeroV";
@@ -62,7 +62,6 @@ LogLatWTAGenLayer "Reconstructed Image" = {
     nyScale = 1;
     nf = 1;
     phase = 0;
-    marginWidth = 0;
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = 1;
@@ -88,7 +87,6 @@ ANNLayer "AnaRetina" = {
     nyScale = 1;
     nf = 1;
     phase = 0;
-    marginWidth = 0;
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = 1;
@@ -108,7 +106,6 @@ LogLatWTAGenLayer "Layer A" = {
     nyScale = 0.25;
     nf = 8;
     phase = 0;
-    marginWidth = 0;
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = 1;
@@ -134,7 +131,6 @@ PoolingANNLayer "Pooling AnaLayer A" = {
     nyScale = 0.25;
     nf = 8;
     phase = 0;
-    marginWidth = 0;
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = 1;
@@ -156,7 +152,6 @@ PoolingANNLayer "Arrow AnaLayer A" = {
     nyScale = 0.25;
     nf = 8;
     phase = 0;
-    marginWidth = 0;
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = 1;
@@ -178,7 +173,6 @@ ANNLayer "Flat AnaLayer A" = {
     nyScale = 0.25;
     nf = 8;
     phase = 0;
-    marginWidth = 0;
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = 1;
@@ -198,7 +192,6 @@ ANNLayer "CataLayer B" = {
     nyScale = 0.25;
     nf = 2;
     phase = 0;
-    marginWidth = 0;
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = 1;
@@ -220,7 +213,6 @@ TrainingLayer "Layer B" = {
     nyScale = 0.25;
     nf = 2;
     phase = 0;
-    marginWidth = 0;
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = 1;
@@ -242,7 +234,6 @@ PtwiseProductLayer "Energy AnaLayer A" = {
     nyScale = 0.25;
     nf = 8;
     phase = 0;
-    marginWidth = 0;
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = 1;
@@ -332,8 +323,9 @@ KernelConn "AnaRetina to Layer A" = {
     normalize = false;
     
     plasticityFlag = false;
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
     shrinkPatches = false;
+    updateGSynFromPostPerspective = false;
 };
 
 FeedbackConn "Layer A to AnaRetina Feedback" = {
@@ -346,9 +338,10 @@ FeedbackConn "Layer A to AnaRetina Feedback" = {
 
     delay = 0;
 
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
     preActivityIsNotRate = false;
     selfFlag = false;
+    updateGSynFromPostPerspective = false;
 };
 
 IdentConn "Layer A to Pooling AnaLayer A" = {
@@ -446,8 +439,9 @@ KernelConn "Arrow AnaLayer A to Layer B" = {
     normalize = false;
     
     plasticityFlag = false;
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
     shrinkPatches = false;
+    updateGSynFromPostPerspective = false;
 };
 
 CloneKernelConn "Layer A to CataLayer B" = {
@@ -463,9 +457,10 @@ CloneKernelConn "Layer A to CataLayer B" = {
 
     delay = 0;
 
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
     preActivityIsNotRate = false;
     selfFlag = false;
+    updateGSynFromPostPerspective = false;
 };
 
 TransposeConn "CataLayer B to Layer A" = {
@@ -481,9 +476,10 @@ TransposeConn "CataLayer B to Layer A" = {
 
     delay = 0;
     
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
     preActivityIsNotRate = false;
     selfFlag = false;
+    updateGSynFromPostPerspective = false;
 };
 
 CloneKernelConn "Layer B to Flat AnaLayer A" = {
@@ -499,9 +495,10 @@ CloneKernelConn "Layer B to Flat AnaLayer A" = {
     
     delay = 0;
 
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
     preActivityIsNotRate = false;
     selfFlag = false;
+    updateGSynFromPostPerspective = false;
 };
 
 IdentConn "Layer B to CataLayer B" = {
