@@ -81,6 +81,17 @@ Here is the procedure for installing and compiling the PetaVision repository on 
      Click "Import..." and navigate to PVCodeStyle.xml in the PetaVision directory of your workspace.
      Click Open and then OK
 
+  g. If you plan to use SoundStream objects you need the sndfile library.  Open the C/C++ Build submenu under properties
+     and sellect Settings.  Under the ToolSettings tab, select "MacOS X C++ Linker"  Add
+     " -lsndfile" (no quotes) to the end of the "Command" text field.
+     Then in both "GCC C++ Compiler" and "GCC C Compiler" add " -DPV_USE_SNDFILE" (no quotes)
+     to the end of the "Command" text field.
+     For each of the "GCC C++ Compiler" and "GCC C Compiler" menus, select the Includes item.
+     If the directory that contains sndfile.h is not in the "Include paths (-I)" pane, select
+     the "Add" icon above the pane (a document icon with a green plus sign) and enter the directory.
+     You will need to repeat step (g) for each project that uses the PetaVision library, whether or not that project
+     explicitly uses SoundStream objects themselves.
+
 6. Compile PetaVision.
   a. If you are using the mac-eclipse.cproject, do steps b-d and f-g.
      If you are using the mac-cmake.cproject, do steps e-g.
