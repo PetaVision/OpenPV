@@ -34,7 +34,6 @@ Retina "Retina" = {
     nxScale = 1;
     nyScale = 1;
     nf = 1;
-    marginWidth = 4;
     phase = 0;
     writeStep = 1.0;
     initialWriteTime = 0.0;
@@ -59,7 +58,6 @@ ANNLayer "L0" = {
     nxScale = 1;
     nyScale = 1;
     nf = 8;
-    marginWidth = 4;
     phase = 0;
     writeStep = 1.0;
     initialWriteTime = 0.0;
@@ -80,7 +78,6 @@ ANNLayer "L1" = {
     nxScale = 1;
     nyScale = 1;
     nf = 8;
-    marginWidth = 4;
     phase = 0;
     writeStep = 1.0;
     initialWriteTime = 0.0;
@@ -101,7 +98,6 @@ ANNLayer "L2" = {
     nxScale = 1;
     nyScale = 1;
     nf = 4;
-    marginWidth = 4;
     phase = 0;
     writeStep = 1.0;
     initialWriteTime = 0.0;
@@ -122,7 +118,6 @@ ANNLayer "L2" = {
 //     nxScale = 1;
 //     nyScale = 1;
 //     nf = 8;
-//     marginWidth = 4;
 //     phase = 0;
 //     writeStep = 1.0;
 //     initialWriteTime = 0.0;
@@ -143,7 +138,6 @@ ANNLayer "L2" = {
 //     nxScale = 1;
 //     nyScale = 1;
 //     nf = 8;
-//     marginWidth = 4;
 //     phase = 0;
 //     writeStep = 1.0;
 //     initialWriteTime = 0.0;
@@ -165,7 +159,6 @@ ANNLayer "L5" = {
     nxScale = 1;
     nyScale = 1;
     nf = 8;
-    marginWidth = 4;
     phase = 0;
     writeStep = 1.0;
     initialWriteTime = 0.0;
@@ -186,7 +179,6 @@ ANNLayer "L6" = {
     nxScale = 1;
     nyScale = 1;
     nf = 8;
-    marginWidth = 4;
     phase = 0;
     writeStep = 1.0;
     initialWriteTime = 0.0;
@@ -207,7 +199,6 @@ ANNLayer "L7" = {
     nxScale = 1;
     nyScale = 1;
     nf = 4;
-    marginWidth = 4;
     phase = 0;
     writeStep = 1.0;
     initialWriteTime = 0.0;
@@ -228,7 +219,6 @@ ANNLayer "L8" = {
     nxScale = 1;
     nyScale = 1;
     nf = 8;
-    marginWidth = 4;
     phase = 0;
     writeStep = 1.0;
     initialWriteTime = 0.0;
@@ -249,7 +239,6 @@ ANNLayer "L9" = {
     nxScale = 1;
     nyScale = 1;
     nf = 8;
-    marginWidth = 4;
     phase = 0;
     writeStep = 1.0;
     initialWriteTime = 0.0;
@@ -275,7 +264,7 @@ HyPerConn "Retina to L0" = {
    nyp = 9; 
    nfp = 8;
    
-   stochasticReleaseFlag = false;
+   pvpatchAccumulateType = "convolve";
    shrinkPatches = false;
    
    initFromLastFlag = 0;  // 1;  // restart
@@ -310,6 +299,7 @@ HyPerConn "Retina to L0" = {
    delay = 0;
    preActivityIsNotRate = false;
    selfFlag = false;
+   updateGSynFromPostPerspective = false;
 };
 
 HyPerConn "Retina to L1" = {
@@ -321,7 +311,7 @@ HyPerConn "Retina to L1" = {
    nyp = 9; 
    nfp = 8;
    
-   stochasticReleaseFlag = false;
+   pvpatchAccumulateType = "convolve";
    shrinkPatches = false;
    
    initFromLastFlag = 0;  // 1;  // restart
@@ -358,6 +348,7 @@ HyPerConn "Retina to L1" = {
    delay = 0;   
    preActivityIsNotRate = false;
    selfFlag = false;
+   updateGSynFromPostPerspective = false;
 };
 
 HyPerConn "Retina to L2" = {
@@ -369,7 +360,7 @@ HyPerConn "Retina to L2" = {
    nyp = 9; 
    nfp = 4;
    
-   stochasticReleaseFlag = false;
+   pvpatchAccumulateType = "convolve";
    shrinkPatches = false;
    
    initFromLastFlag = 0;  // 1;  // restart
@@ -391,6 +382,7 @@ HyPerConn "Retina to L2" = {
    delay = 0;   
    preActivityIsNotRate = false;
    selfFlag = false;
+   updateGSynFromPostPerspective = false;
 };
 
 // HyPerConn "Retina to L3" = {
@@ -402,7 +394,7 @@ HyPerConn "Retina to L2" = {
 //    nyp = 9; 
 //    nfp = 8;
 //    
-//    stochasticReleaseFlag = false;
+//    pvpatchAccumulateType = "convolve";
 //    shrinkPatches = false;
 // 
 //    initFromLastFlag = 0;  // 1;  // restart
@@ -446,6 +438,7 @@ HyPerConn "Retina to L2" = {
 // 
 //    preActivityIsNotRate = false;
 //    selfFlag = false;
+//   updateGSynFromPostPerspective = false;
 
 // };
 // 
@@ -458,7 +451,7 @@ HyPerConn "Retina to L2" = {
 //    nyp = 9; 
 //    nfp = 8;
 //    
-//    stochasticReleaseFlag = false;
+//    pvpatchAccumulateType = "convolve";
 //    shrinkPatches = false;
 //    
 //    initFromLastFlag = 0;  // 1;  // restart
@@ -501,6 +494,7 @@ HyPerConn "Retina to L2" = {
 //    delay = 0;   
 //    preActivityIsNotRate = false;
 //    selfFlag = false;
+//   updateGSynFromPostPerspective = false;
 // };
 
 // KernelConn connections: 
@@ -513,7 +507,7 @@ KernelConn "Retina to L5" = {
    nyp = 9; 
    nfp = 8;
    
-   stochasticReleaseFlag = false;
+   pvpatchAccumulateType = "convolve";
    shrinkPatches = false;
    
    initFromLastFlag = 0;  // 1;  // restart
@@ -546,6 +540,7 @@ KernelConn "Retina to L5" = {
    delay = 0;   
    preActivityIsNotRate = false;
    selfFlag = false;
+   updateGSynFromPostPerspective = false;
 };
 
 KernelConn "Retina to L6" = {
@@ -557,7 +552,7 @@ KernelConn "Retina to L6" = {
    nyp = 9; 
    nfp = 8;
   
-   stochasticReleaseFlag = false;
+   pvpatchAccumulateType = "convolve";
    shrinkPatches = false;
    
    initFromLastFlag = 0;  // 1;  // restart
@@ -594,6 +589,7 @@ KernelConn "Retina to L6" = {
    delay = 0;   
    preActivityIsNotRate = false;
    selfFlag = false;
+   updateGSynFromPostPerspective = false;
 };
 
 KernelConn "Retina to L7" = {
@@ -605,7 +601,7 @@ KernelConn "Retina to L7" = {
    nyp = 9; 
    nfp = 4;
 
-   stochasticReleaseFlag = false;
+   pvpatchAccumulateType = "convolve";
    shrinkPatches = false;
    
    initFromLastFlag = 0;  // 1;  // restart
@@ -620,6 +616,7 @@ KernelConn "Retina to L7" = {
    delay = 0;   
    preActivityIsNotRate = false;
    selfFlag = false;
+   updateGSynFromPostPerspective = false;
 };
 
 KernelConn "Retina to L8" = {
@@ -631,7 +628,7 @@ KernelConn "Retina to L8" = {
    nyp = 9; 
    nfp = 8;
 
-   stochasticReleaseFlag = false;
+   pvpatchAccumulateType = "convolve";
    shrinkPatches = false;
    
    initFromLastFlag = 0;  // 1;  // restart
@@ -671,6 +668,7 @@ KernelConn "Retina to L8" = {
    delay = 0;   
    preActivityIsNotRate = false;
    selfFlag = false;
+   updateGSynFromPostPerspective = false;
 };
 
 KernelConn "Retina to L9" = {
@@ -682,7 +680,7 @@ KernelConn "Retina to L9" = {
    nyp = 9; 
    nfp = 8;
 
-   stochasticReleaseFlag = false;
+   pvpatchAccumulateType = "convolve";
    shrinkPatches = false;
    
    initFromLastFlag = 0;  // 1;  // restart
@@ -721,6 +719,7 @@ KernelConn "Retina to L9" = {
    delay = 0;   
    preActivityIsNotRate = false;
    selfFlag = false;
+   updateGSynFromPostPerspective = false;
 };
 
 // HyperConnDebugInitWeights connections: 
@@ -733,7 +732,7 @@ HyperConnDebugInitWeights "Retina to L0 check" = {
    nyp = 9; 
    nfp = 8;
    
-   stochasticReleaseFlag = false;
+   pvpatchAccumulateType = "convolve";
    shrinkPatches = false;
    
    initFromLastFlag = 0;  // 1;  // restart
@@ -768,6 +767,7 @@ HyperConnDebugInitWeights "Retina to L0 check" = {
    delay = 0;
    preActivityIsNotRate = false;
    selfFlag = false;
+   updateGSynFromPostPerspective = false;
 };
 
 HyperConnDebugInitWeights "Retina to L1 check" = {
@@ -779,7 +779,7 @@ HyperConnDebugInitWeights "Retina to L1 check" = {
    nyp = 9; 
    nfp = 8;
    
-   stochasticReleaseFlag = false;
+   pvpatchAccumulateType = "convolve";
    shrinkPatches = false;
    
    initFromLastFlag = 0;  // 1;  // restart
@@ -816,6 +816,7 @@ HyperConnDebugInitWeights "Retina to L1 check" = {
    delay = 0;   
    preActivityIsNotRate = false;
    selfFlag = false;
+   updateGSynFromPostPerspective = false;
 };
 
 HyperConnDebugInitWeights "Retina to L2 check" = {
@@ -827,7 +828,7 @@ HyperConnDebugInitWeights "Retina to L2 check" = {
    nyp = 9; 
    nfp = 4;
    
-   stochasticReleaseFlag = false;
+   pvpatchAccumulateType = "convolve";
    shrinkPatches = false;
    
    initFromLastFlag = 0;  // 1;  // restart
@@ -849,6 +850,7 @@ HyperConnDebugInitWeights "Retina to L2 check" = {
    delay = 0;   
    preActivityIsNotRate = false;
    selfFlag = false;
+   updateGSynFromPostPerspective = false;
 };
 
 // HyperConnDebugInitWeights "Retina to L3 check" = {
@@ -860,7 +862,7 @@ HyperConnDebugInitWeights "Retina to L2 check" = {
 //    nyp = 9; 
 //    nfp = 8;
 //    
-//    stochasticReleaseFlag = false;
+//    pvpatchAccumulateType = "convolve";
 //    shrinkPatches = false;
 // 
 //    initFromLastFlag = 0;  // 1;  // restart
@@ -901,6 +903,7 @@ HyperConnDebugInitWeights "Retina to L2 check" = {
 //    delay = 0;   
 //    preActivityIsNotRate = false;
 //    selfFlag = false;
+//    updateGSynFromPostPerspective = false;
 // };
 // 
 // HyperConnDebugInitWeights "Retina to L4 check" = {
@@ -912,7 +915,7 @@ HyperConnDebugInitWeights "Retina to L2 check" = {
 //    nyp = 9; 
 //    nfp = 8;
 //    
-//    stochasticReleaseFlag = false;
+//    pvpatchAccumulateType = "convolve";
 //    shrinkPatches = false;
 //    
 //    initFromLastFlag = 0;  // 1;  // restart
@@ -953,6 +956,7 @@ HyperConnDebugInitWeights "Retina to L2 check" = {
 //    delay = 0;   
 //    preActivityIsNotRate = false;
 //    selfFlag = false;
+//    updateGSynFromPostPerspective = false;
 // };
 
 // KernelConnDebugInitWeights connections: 
@@ -965,7 +969,7 @@ KernelConnDebugInitWeights "Retina to L5 check" = {
    nyp = 9; 
    nfp = 8;
    
-   stochasticReleaseFlag = false;
+   pvpatchAccumulateType = "convolve";
    shrinkPatches = false;
    
    initFromLastFlag = 0;  // 1;  // restart
@@ -998,6 +1002,7 @@ KernelConnDebugInitWeights "Retina to L5 check" = {
    delay = 0;   
    preActivityIsNotRate = false;
    selfFlag = false;
+   updateGSynFromPostPerspective = false;
 };
 
 KernelConnDebugInitWeights "Retina to L6 check" = {
@@ -1009,7 +1014,7 @@ KernelConnDebugInitWeights "Retina to L6 check" = {
    nyp = 9; 
    nfp = 8;
   
-   stochasticReleaseFlag = false;
+   pvpatchAccumulateType = "convolve";
    shrinkPatches = false;
    
    initFromLastFlag = 0;  // 1;  // restart
@@ -1046,6 +1051,7 @@ KernelConnDebugInitWeights "Retina to L6 check" = {
    delay = 0;   
    preActivityIsNotRate = false;
    selfFlag = false;
+   updateGSynFromPostPerspective = false;
 };
 
 KernelConnDebugInitWeights "Retina to L7 check" = {
@@ -1057,7 +1063,7 @@ KernelConnDebugInitWeights "Retina to L7 check" = {
    nyp = 9; 
    nfp = 4;
 
-   stochasticReleaseFlag = false;
+   pvpatchAccumulateType = "convolve";
    shrinkPatches = false;
    
    initFromLastFlag = 0;  // 1;  // restart
@@ -1072,6 +1078,7 @@ KernelConnDebugInitWeights "Retina to L7 check" = {
    delay = 0;   
    preActivityIsNotRate = false;
    selfFlag = false;
+   updateGSynFromPostPerspective = false;
 };
 
 KernelConnDebugInitWeights "Retina to L8 check" = {
@@ -1083,7 +1090,7 @@ KernelConnDebugInitWeights "Retina to L8 check" = {
    nyp = 9; 
    nfp = 8;
 
-   stochasticReleaseFlag = false;
+   pvpatchAccumulateType = "convolve";
    shrinkPatches = false;
    
    initFromLastFlag = 0;  // 1;  // restart
@@ -1115,6 +1122,7 @@ KernelConnDebugInitWeights "Retina to L8 check" = {
    delay = 0;   
    preActivityIsNotRate = false;
    selfFlag = false;
+   updateGSynFromPostPerspective = false;
 };
 
 KernelConnDebugInitWeights "Retina to L9 check" = {
@@ -1126,7 +1134,7 @@ KernelConnDebugInitWeights "Retina to L9 check" = {
    nyp = 9; 
    nfp = 8;
 
-   stochasticReleaseFlag = false;
+   pvpatchAccumulateType = "convolve";
    shrinkPatches = false;
    
    initFromLastFlag = 0;  // 1;  // restart
@@ -1158,6 +1166,7 @@ KernelConnDebugInitWeights "Retina to L9 check" = {
    delay = 0;   
    preActivityIsNotRate = false;
    selfFlag = false;
+   updateGSynFromPostPerspective = false;
 };
 
 StatsProbe "Retina Stats File" = {
