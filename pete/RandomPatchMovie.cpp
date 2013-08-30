@@ -151,6 +151,8 @@ int RandomPatchMovie::initialize(const char * name, HyPerCol * hc, const char * 
    this->displayPeriod = params->value(name,"displayPeriod", displayPeriod);
    nextDisplayTime = hc->simulationTime() + this->displayPeriod;
 
+   unsigned int seed = parent->getObjectSeed(1);
+   cl_random_init(&rng, 1UL, seed);
    retrieveRandomPatch();
    readImage(filename,getOffsetX(),getOffsetY(), colorbandtypes);
 
@@ -196,7 +198,8 @@ int RandomPatchMovie::retrieveRandomPatch() {
             }
          }
          if( !finished ) {
-            double p = pv_random_prob();
+            rng = cl_random_get(rng);
+            double p = rng.s0/cl_random_max();
             if( p > skipLowContrastPatchProb ) {
                finished = true;
             }
@@ -278,9 +281,10 @@ char * RandomPatchMovie::getRandomFilename() {
 int RandomPatchMovie::getRandomOffsets(const PVLayerLoc * imgloc, int * offsetXptr, int * offsetYptr) {
    int xdimension = imgloc->nxGlobal - getLayerLoc()->nxGlobal;
    int ydimension = imgloc->nyGlobal - getLayerLoc()->nyGlobal;
-   double x = ((double)pv_random() * xdimension)/((double) pv_random_max());
+   rng = cl_random_get(rng);
+   double x = ((double)rng.s0 * xdimension)/((double) cl_random_max());
    *offsetXptr = (int) x;
-   double y = ((double)pv_random() * ydimension)/((double) pv_random_max());
+   double y = ((double)rng.s0 * ydimension)/((double) cl_random_max());
    *offsetYptr = (int) y;
    return PV_SUCCESS;
 }
@@ -289,7 +293,7 @@ int RandomPatchMovie::getRandomFileIndex() {
 #ifdef PV_USE_MPI
    assert(parent->icCommunicator()->commRank()==RANDOMPATCHMOVIE_ROOTPROC);
 #endif // PV_USE_MPI
-   double x = ((double)pv_random() * numImageFiles)/((double) pv_random_max());
+   double x = ((double)rng.s0 * numImageFiles)/((double) cl_random_max());
    int idx = (int) x;
    return idx;
 }

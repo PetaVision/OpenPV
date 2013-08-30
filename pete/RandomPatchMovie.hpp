@@ -8,7 +8,6 @@
 #define RANDOMPATCHMOVIE_HPP_
 
 #include <layers/Movie.hpp>
-#include <utils/pv_random.h>
 #include <io/imageio.hpp>
 #include <limits.h>
 
@@ -46,6 +45,7 @@ protected:
    FILE * patchposfile;
    float skipLowContrastPatchProb;
    float lowContrastThreshold;
+   uint4 rng;
 
 private:
    int initialize_base();
