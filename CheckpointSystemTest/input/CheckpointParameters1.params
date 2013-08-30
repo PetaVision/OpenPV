@@ -42,11 +42,11 @@ CPTestInputLayer "input" = {
     nyScale = 1;
     nf = 1;
     phase = 0;
-    marginWidth = 2;
     writeStep = 1.0;
     initialWriteTime = 0.0;
     writeSparseActivity = false;
     mirrorBCflag = false;
+    valueBC = 0.0;
     InitVType = "ZeroV";
     VMax = infinity;
     VMin = -infinity;
@@ -60,7 +60,6 @@ ANNLayer "output no delay" = {
     nyScale = 1;
     nf = 1;
     phase = 0;
-    marginWidth = 0;
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = 1;
@@ -80,7 +79,6 @@ ANNLayer "output with delay" = {
     nyScale = 1;
     nf = 1;
     phase = 0;
-    marginWidth = 0;
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = 1;
@@ -100,7 +98,6 @@ ANNLayer "output arbor" = {
     nyScale = 1;
     nf = 1;
     phase = 0;
-    marginWidth = 0;
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = 1;
@@ -120,7 +117,6 @@ ANNLayer "output from full hyperconn" = {
     nyScale = 1;
     nf = 1;
     phase = 0;
-    marginWidth = 0;
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = 1;
@@ -174,8 +170,9 @@ VaryingKernelConn "conn no delay" = {
     delay = 0;
 
     preActivityIsNotRate = false;
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
     shrinkPatches = false;
+    updateGSynFromPostPerspective = false;
 };
 
 VaryingKernelConn "conn with delay" = {
@@ -218,8 +215,9 @@ VaryingKernelConn "conn with delay" = {
     delay = 2;
 
     preActivityIsNotRate = false;
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
     shrinkPatches = false;
+    updateGSynFromPostPerspective = false;
 };
 
 KernelConn "input to output arbor" = {
@@ -227,6 +225,7 @@ KernelConn "input to output arbor" = {
     postLayerName = "output arbor";
     channelCode = 0;
     numAxonalArbors = 4;
+    useWindowPost = false;
     nxp = 3;
     nyp = 3;
     nfp = 1;
@@ -250,8 +249,9 @@ KernelConn "input to output arbor" = {
     normalizeFromPostPerspective = false;
 
     preActivityIsNotRate = false;
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
     shrinkPatches = false;
+    updateGSynFromPostPerspective = false;
 
     writeCompressedWeights = false;
     writeCompressedCheckpoints = false;
@@ -279,8 +279,9 @@ VaryingHyPerConn "full hyperconn" = {
     normalizeMethod = "none";
 
     preActivityIsNotRate = false;
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
     shrinkPatches = false;
+    updateGSynFromPostPerspective = false;
 
     writeCompressedWeights = false;
     writeCompressedCheckpoints = false;
