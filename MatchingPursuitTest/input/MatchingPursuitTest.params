@@ -89,8 +89,7 @@ MatchingPursuitResidual "residual" = {
     VMax                                = infinity;
     
     syncedMovie                         = "";   // If set to a movie layer, activity resets when the movie sets newImageFlag
-    inputLayer                          = "diff_gaussians"; // If syncedMovie is true, the layer that provides input.  Defaults to syncedMovie
-
+    refreshPeriod                       = -1;   // If not syncing to a movie, how often to reset activity, in the same units as column's dt.  <0 means never reset; 
 };
 
 FeedbackConn "residual to matching_pursuit_layer" = {
@@ -98,7 +97,7 @@ FeedbackConn "residual to matching_pursuit_layer" = {
     originalConnName                    = "matching_pursuit_layer to residual";
     delay                               = 0;
     updateGSynFromPostPerspective       = false;
-    pvpatchAccumulateType               = "";
+    pvpatchAccumulateType               = "convolve";
     preActivityIsNotRate                = false;
     writeStep                           = -1;
     // initialWriteTime;
@@ -146,6 +145,6 @@ L2NormProbe "residual L2 error" = {
     parentGenColProbe = "";
 };
 
-MatchingPursuitProbe2 "matching_pursuit_layer probe" = {
+MatchingPursuitProbe "matching_pursuit_layer probe" = {
     targetLayer = "matching_pursuit_layer";
 };

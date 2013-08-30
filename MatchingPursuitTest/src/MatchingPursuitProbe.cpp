@@ -32,7 +32,6 @@ int MatchingPursuitProbe::initMatchingPursuitProbe(const char * name, HyPerCol *
       MPI_Barrier(hc->icCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
-   const char * filename = hc->parameters()->stringValue(name, "probeOutputFile");
    const char * target_layer_name = hc->parameters()->stringValue(name, "targetLayer");
    if (target_layer_name==NULL) {
       if (hc->columnId()==0) {
@@ -49,7 +48,7 @@ int MatchingPursuitProbe::initMatchingPursuitProbe(const char * name, HyPerCol *
       MPI_Barrier(hc->icCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
-   initLayerProbe(filename, target_layer);
+   initLayerProbe(NULL, target_layer);
    return PV_SUCCESS;
 }
 
