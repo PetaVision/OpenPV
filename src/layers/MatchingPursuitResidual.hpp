@@ -28,6 +28,7 @@ protected:
    int initialize(const char * name, HyPerCol * hc);
    virtual int setParams(PVParams * params);
    virtual void readSyncedMovie(PVParams * params);
+   virtual void readRefreshPeriod(PVParams * params);
 
    inline bool updateGSynFlag(HyPerConn * conn);
    inline bool getNewImageFlag();
@@ -38,6 +39,9 @@ private:
 protected:
    char * syncedMovieName;        // If set to the name of a Movie layer, activity resets every time the movie's getNewImageFlag() returns true
    Movie * syncedMovie;           // The layer whose name is syncedMovieName
+   double refreshPeriod;          // If no syncedMovieName, activity resets every refreshPeriod.  Negative value means never refresh
+   double nextRefreshTime;        // The next time activity is reset.
+   bool excNeedsUpdate;
 
    bool gSynInited;               // Initially false; it is set to true the first time recvAllSynapticInput is called.
 };

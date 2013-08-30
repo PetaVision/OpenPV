@@ -287,9 +287,9 @@ int MatchingPursuitLayer::updateState(double timed, double dt) {
 }
 
 void MatchingPursuitLayer::updateMaxinfo(pvdata_t gsyn, int k) {
-      bool newmax = fabsf(maxinfo.maxval) < fabsf(gsyn);
-      maxinfo.maxloc = newmax ? k : maxinfo.maxloc;
-      maxinfo.maxval = newmax ? gsyn : maxinfo.maxval;
+   bool newmax = fabsf(maxinfo.maxval) < fabsf(gsyn);
+   maxinfo.maxloc = newmax ? k : maxinfo.maxloc;
+   maxinfo.maxval = newmax ? gsyn : maxinfo.maxval;
 }
 
 int MatchingPursuitLayer::outputState(double timed, bool last) {
