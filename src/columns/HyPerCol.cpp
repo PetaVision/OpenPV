@@ -13,7 +13,6 @@
 #include "../io/clock.h"
 #include "../io/imageio.hpp"
 #include "../io/io.h"
-#include "../utils/pv_random.h"
 
 #include <assert.h>
 #include <math.h>
