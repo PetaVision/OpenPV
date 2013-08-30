@@ -39,21 +39,23 @@ HyPerCol "column" = {
 
 Movie "Slideshow" = {
     imageListPath = "./input/filenames.txt";
+    readPvpFile = false;
 
     restart = 0;
     nxScale = 1;
     nyScale = 1;
     nf = 1;
     phase = 0;
-    marginWidth = 0;
     writeStep = -1;
     mirrorBCflag = false;
+    valueBC = false;
     writeSparseActivity = false;
     
     writeImages = 0;
     useImageBCflag = false;
     inverseFlag = false;
     normalizeLuminanceFlag = false;
+    autoResizeFlag = false;
     
     start_frame_index = 0;
     skip_frame_index = 0;
@@ -72,7 +74,6 @@ Retina "Retina" = {
     nyScale = 1;
     nf = 1;
     phase = 0;
-    marginWidth = 0;
     writeStep = -1;
     mirrorBCflag = 1;
     spikingFlag = false;
@@ -96,7 +97,6 @@ ANNLayer "AnaRetina" = {
     nyScale = 1;
     nf = 1;
     phase = 0;
-    marginWidth = 0;
     writeStep = -1;
     mirrorBCflag = 1;
     writeSparseActivity = 0;
@@ -115,7 +115,6 @@ LogLatWTAGenLayer "Layer A" = {
     nyScale = 0.25;
     nf = 8;
     phase = 0;
-    marginWidth = 0;
     writeStep = 1;
     initialWriteTime = 0;
     mirrorBCflag = 1;
@@ -141,7 +140,6 @@ PoolingANNLayer "Pooling AnaLayer A" = {
     nyScale = 0.25;
     nf = 8;
     phase = 0;
-    marginWidth = 0;
     writeStep = -1;
     mirrorBCflag = 1;
     writeSparseActivity = 0;
@@ -162,7 +160,6 @@ PoolingANNLayer "Arrow AnaLayer A" = {
     nyScale = 0.25;
     nf = 8;
     phase = 0;
-    marginWidth = 0;
     writeStep = -1;
     mirrorBCflag = 1;
     writeSparseActivity = 0;
@@ -183,7 +180,6 @@ ANNLayer "Flat AnaLayer A" = {
     nyScale = 0.25;
     nf = 8;
     phase = 0;
-    marginWidth = 0;
     writeStep = -1;
     mirrorBCflag = 1;
     writeSparseActivity = 0;
@@ -202,7 +198,6 @@ ANNLayer "CataLayer B" = {
     nyScale = 0.25;
     nf = 2;
     phase = 0;
-    marginWidth = 0;
     writeStep = -1;
     mirrorBCflag = 1;
     writeSparseActivity = 0;
@@ -223,7 +218,6 @@ TrainingLayer "Layer B" = {
     nyScale = 0.25;
     nf = 2;
     phase = 0;
-    marginWidth = 0;
     writeStep = -1;
     mirrorBCflag = 1;
     writeSparseActivity = 0;
@@ -244,7 +238,6 @@ PtwiseProductLayer "Energy AnaLayer A" = {
     nyScale = 0.25;
     nf = 8;
     phase = 0;
-    marginWidth = 0;
     writeStep = -1;
     mirrorBCflag = 1;
     writeSparseActivity = 0;
@@ -334,8 +327,9 @@ GenerativeConn "AnaRetina to Layer A" = {
     sparseFraction = 0.0;
     
     plasticityFlag = true;
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
     shrinkPatches = false;
+    updateGSynFromPostPerspective = false;
     preActivityIsNotRate = false;
     dWMax = 1.0;
 
@@ -364,9 +358,10 @@ FeedbackConn "Layer A to AnaRetina Feedback" = {
     writeCompressedCheckpoints = false;
 
     delay = 0;
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
     preActivityIsNotRate = false;
     selfFlag = false;
+    updateGSynFromPostPerspective = false;
 };
 
 IdentConn "Layer A to Pooling AnaLayer A" = {
@@ -467,8 +462,9 @@ PoolingGenConn "Arrow AnaLayer A to Layer B" = {
     plasticityFlag = true;
     dWMax = 1.0;
     slownessFlag = false;
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
     shrinkPatches = false;
+    updateGSynFromPostPerspective = false;
     preActivityIsNotRate = false;
 
     imprintingFlag = false;
@@ -502,7 +498,8 @@ CloneKernelConn "Layer A to CataLayer B" = {
 
     delay = 0;
     
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
+    updateGSynFromPostPerspective = false;
 };
 
 TransposeConn "CataLayer B to Layer A" = {
@@ -517,9 +514,10 @@ TransposeConn "CataLayer B to Layer A" = {
     writeCompressedCheckpoints = false;
 
     delay = 0;
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
     preActivityIsNotRate = false;
     selfFlag = false;
+    updateGSynFromPostPerspective = false;
 };
 
 CloneKernelConn "Layer B to Flat AnaLayer A" = {
@@ -537,7 +535,8 @@ CloneKernelConn "Layer B to Flat AnaLayer A" = {
     
     delay = 0;
     
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
+    updateGSynFromPostPerspective = false;
 };
 
 IdentConn "Layer B to CataLayer B" = {
