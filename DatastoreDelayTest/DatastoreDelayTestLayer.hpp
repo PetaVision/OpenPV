@@ -9,7 +9,6 @@
 #define DATASTOREDELAYTEST_HPP_
 
 #include "../PetaVision/src/layers/ANNLayer.hpp"
-#include "../PetaVision/src/utils/pv_random.h"
 
 namespace PV {
 
