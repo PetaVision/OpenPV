@@ -125,6 +125,8 @@ int HyPerLayer::initialize_base() {
    this->initInfoCommunicatedFlag = false;
    this->dataStructuresAllocatedFlag = false;
 
+   this->synchronizedMarginWidthLayers = NULL;
+
 #ifdef PV_USE_OPENCL
    this->krUpdate = NULL;
    this->clV = NULL;
@@ -352,6 +354,8 @@ HyPerLayer::~HyPerLayer()
       delete probes[i_probe];
    }
    free(probes);
+
+   free(synchronizedMarginWidthLayers);
 }
 
 int HyPerLayer::freeClayer() {
@@ -810,6 +814,45 @@ int HyPerLayer::openOutputStateFile() {
    return PV_SUCCESS;
 }
 
+void HyPerLayer::synchronizeMarginWidth(HyPerLayer * layer) {
+   assert(layer->getLayerLoc()!=NULL && this->getLayerLoc()!=NULL);
+   HyPerLayer ** newSynchronizedMarginWidthLayers = (HyPerLayer **) calloc(numSynchronizedMarginWidthLayers+1, sizeof(HyPerLayer *));
+   assert(newSynchronizedMarginWidthLayers);
+   if (numSynchronizedMarginWidthLayers>0) {
+      for (int k=0; k<numSynchronizedMarginWidthLayers; k++) {
+         newSynchronizedMarginWidthLayers[k] = synchronizedMarginWidthLayers[k];
+      }
+      free(synchronizedMarginWidthLayers);
+   }
+   else {
+      assert(synchronizedMarginWidthLayers==NULL);
+   }
+   synchronizedMarginWidthLayers = newSynchronizedMarginWidthLayers;
+   synchronizedMarginWidthLayers[numSynchronizedMarginWidthLayers] = layer;
+   numSynchronizedMarginWidthLayers++;
+
+   int thisnb = this->getLayerLoc()->nb;
+   int thatnb = layer->getLayerLoc()->nb;
+   int result = 0;
+   int status = PV_SUCCESS;
+   if (thisnb < thatnb) {
+      this->requireMarginWidth(thatnb, &result);
+      if (result != thatnb) status = PV_FAILURE;
+   }
+   else if (thisnb > thatnb) {
+      int result = thatnb;
+      layer->requireMarginWidth(thisnb, &result);
+      if (result != thisnb) status = PV_FAILURE;
+   }
+   if (status != PV_SUCCESS) {
+      fprintf(stderr, "%s \"%s\" error in rank %d process: unable to synchronize margin width with layer \"%s\"\n", parent->parameters()->groupKeywordFromName(name), name, parent->columnId(), layer->getName());;
+      exit(EXIT_FAILURE);
+   }
+   assert(this->getLayerLoc()->nb == layer->getLayerLoc()->nb);
+
+   return;
+}
+
 int HyPerLayer::allocateDataStructures()
 {
    // Once initialize and communicateInitInfo have been called, HyPerLayer has the
@@ -888,6 +931,16 @@ int HyPerLayer::requireMarginWidth(int marginWidthNeeded, int * marginWidthResul
       updateClayerMargin(clayer, margin);
    }
    *marginWidthResult = margin;
+   if (synchronizedMarginWidthLayers != NULL) {
+      for (int k=0; k<numSynchronizedMarginWidthLayers; k++) {
+         HyPerLayer * l = synchronizedMarginWidthLayers[k];
+         if (l->getLayerLoc()->nb < marginWidthNeeded) {
+            synchronizedMarginWidthLayers[k]->requireMarginWidth(marginWidthNeeded, marginWidthResult);
+            assert(*marginWidthResult == marginWidthNeeded);
+         }
+         assert(l->getLayerLoc()->nb == marginWidthNeeded);
+      }
+   }
    return PV_SUCCESS;
 }
 

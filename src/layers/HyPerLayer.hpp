@@ -167,6 +167,8 @@ public:
    virtual int communicateInitInfo();
    virtual int allocateDataStructures();
 
+   void synchronizeMarginWidth(HyPerLayer * layer);
+
    // TODO The two routines below shouldn't be public, but HyPerCol needs to call them, so for now they are.
    void setInitInfoCommunicatedFlag() {initInfoCommunicatedFlag = true;}
    void setDataStructuresAllocatedFlag() {dataStructuresAllocatedFlag = true;}
@@ -361,6 +363,9 @@ protected:
 
    bool initInfoCommunicatedFlag;
    bool dataStructuresAllocatedFlag;
+
+   HyPerLayer ** synchronizedMarginWidthLayers;
+   int numSynchronizedMarginWidthLayers;
 
 //   int feedforwardDelay;  // minimum delay required for a change in the input to potentially influence this layer
 //   int feedbackDelay;     // minimum delay required for a change in this layer to potentially influence itself via feedback loop

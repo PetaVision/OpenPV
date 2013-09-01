@@ -18,6 +18,7 @@ public:
    virtual int communicateInitInfo();
    virtual int allocateDataStructures();
    virtual int initializeState();
+   virtual int requireMarginWidth(int marginWidthNeeded, int * marginWidthResult);
    virtual ~CloneVLayer();
 
 protected:

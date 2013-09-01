@@ -65,6 +65,7 @@ int CloneVLayer::communicateInitInfo() {
       MPI_Barrier(parent->icCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
+   originalLayer->synchronizeMarginWidth(this);
    const PVLayerLoc * srcLoc = originalLayer->getLayerLoc();
    const PVLayerLoc * loc = getLayerLoc();
    assert(srcLoc != NULL && loc != NULL);
@@ -80,6 +81,13 @@ int CloneVLayer::communicateInitInfo() {
    }
    assert(srcLoc->nx==loc->nx && srcLoc->ny==loc->ny);
    return status;
+}
+
+int CloneVLayer::requireMarginWidth(int marginWidthNeeded, int * marginWidthResult) {
+   int result;
+   HyPerLayer::requireMarginWidth(marginWidthNeeded, &result);
+   originalLayer->requireMarginWidth(marginWidthNeeded, &result);
+   return PV_SUCCESS;
 }
 
 int CloneVLayer::allocateDataStructures() {
