@@ -19,7 +19,9 @@ class LabelLayer : public HyPerLayer {
 protected:
    LabelLayer();
    int initialize(const char * name, HyPerCol * hc, const char * movieLayerName);
-   int initClayer();
+   //int initClayer();
+   virtual void readNxScale(PVParams * params);
+   virtual void readNyScale(PVParams * params);
    char * movieLayerName;
    Movie * movie;
    pvdata_t * labelData;
