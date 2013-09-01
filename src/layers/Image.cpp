@@ -487,7 +487,7 @@ int Image::readImage(const char * filename, int offsetX, int offsetY, GDALColorI
 			  buf[k] -= image_ave;
 		  }
     	  // set std dev to 1
-    	  double image_std = sqrt(image_ave2);
+    	  double image_std = sqrt(image_ave2 - image_ave*image_ave);
     	  for (int k=0; k<n; k++) {
 			  buf[k] /= image_std;
 		  }
