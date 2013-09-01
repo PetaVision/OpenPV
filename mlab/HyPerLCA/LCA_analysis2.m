@@ -2,12 +2,18 @@
 clear all;
 close all;
 setenv("GNUTERM","X11")
+
+%% machine/run_type environment
 if ismac
   workspace_path = "/Users/garkenyon/workspace";
-  output_dir = "/Users/garkenyon/workspace/HyPerHLCA2/output_animal1200000_color_deep"; 
+  run_type = "MNIST"
+  output_dir = "/Users/garkenyon/workspace/MNIST/output_train_1stPass"
+  checkpoint_path = "/Users/garkenyon/workspace/MNIST/output_train_1stPass";
+  last_checkpoint_ndx = 32000000;
 elseif isunix
   workspace_path = "/home/gkenyon/workspace";
-  run_type = "noPulvinar"; %%
+  run_type = "MNIST";
+%%  run_type = "noPulvinar"; %%
 %%  run_type = "color_deep"; %%
 %%  run_type = "lateral"; %% 
   if strcmp(run_type, "color_deep")
@@ -18,14 +24,28 @@ elseif isunix
   elseif strcmp(run_type, "lateral")
     output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_12x12x128_lambda_05X2_lateral"; 
   endif
-endif
+endif %% isunix
 addpath([workspace_path, filesep, "/PetaVision/mlab/util"]);
-last_checkpoint_ndx = 0;  %% used to grab DoG weights, doesn't not have to be current
+
+%% default paths
+if ~exist("output_dir") || isempty(output_dir)
+  warning("using default output dir");
+  output_dir = pwd
+endif
+if ~exist("checkpoint_path") || isempty(checkpoint_path)
+  chechpoint_path = output_dir;
+endif
+if ~exist("last_checkpoint_ndx") || isempty(last_checkpoint_ndx)
+  last_checkpoint_ndx = 0;  %% if used to grab non-plastic weights, doesn't not have to be current
+endif
+
 checkpoint_path = [output_dir, filesep, "Checkpoints", filesep,  "Checkpoint", num2str(last_checkpoint_ndx, "%i")]; %% "Last"];%%
 %%output_dir = checkpoint_path;
 use_last_checkpoint_ndx = false; %%true;  %% flag to set whether to use last_checkpoint_ndx in determining the maximum frames index to analyze 
 layer_write_step = 200;  %% used to compute maximum frame index to process
 weight_write_step = 2000;
+plot_DoG_kernel = 0;
+max_patches = 128;
 
 %% plot Reconstructions
 plot_Recon = true;
@@ -97,6 +117,21 @@ if plot_Recon
     %% list of (previous) layers to sum with current layer
     sum_list = cell(num_Recon_list,1);
     sum_list{6} = 4;
+  elseif strcmp(run_type, "MNIST")
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% MNIST list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    plot_DoG_kernel = false;
+    Recon_list = ...
+	{["a0_"], ["Image"];
+	 ["a5_"], ["MovieRecon"]};
+    %% list of layers to unwhiten
+    num_Recon_list = size(Recon_list,1);
+    unwhiten_list = zeros(num_Recon_list,1);
+    %% list of layers to use as a normalization reference for unwhitening
+    normalize_list = 1:num_Recon_list;
+    %% list of (previous) layers to sum with current layer
+    sum_list = cell(num_Recon_list,1);
   elseif strcmp(run_type, "KITTI")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% KITTI list
@@ -127,7 +162,6 @@ if plot_Recon
   mkdir(Recon_dir);
   
   %% parse center/surround pre-processing filters
-  plot_DoG_kernel = 1;
   if plot_DoG_kernel
     if strcmp(run_type, "color_deep") || strcmp(run_type, "lateral") || strcmp(run_type, "noPulvinar")
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -165,12 +199,6 @@ if plot_Recon
   std_unwhitened_Recon = cell(num_Recon_list, 1);
   max_unwhitened_Recon = cell(num_Recon_list, 1);
   min_unwhitened_Recon = cell(num_Recon_list, 1);
-  %% get lowest frame number 
-  if use_last_checkpoint_ndx
-    min_tot_Recon_frames = fix(last_checkpoint_ndx / layer_write_step);  %% use to specify maximum frame to display
-  else
-    min_tot_Recon_frames = 10000000000000000;
-  endif
   for i_Recon = 1 : num_Recon_list
     Recon_file = [output_dir, filesep, Recon_list{i_Recon,1}, Recon_list{i_Recon,2}, ".pvp"]
     if ~exist(Recon_file, "file")
@@ -179,23 +207,20 @@ if plot_Recon
     Recon_fid(i_Recon) = fopen(Recon_file);
     Recon_hdr{i_Recon} = readpvpheader(Recon_fid(i_Recon));
     fclose(Recon_fid(i_Recon));
-    min_tot_Recon_frames = min(min_tot_Recon_frames, Recon_hdr{i_Recon}.nbands);
+    min_tot_Recon_frames = Recon_hdr{i_Recon}.nbands;
   endfor %% i_Recon
   for i_Recon = 1 : num_Recon_list
     Recon_file = [output_dir, filesep, Recon_list{i_Recon,1}, Recon_list{i_Recon,2}, ".pvp"]
     if ~exist(Recon_file, "file")
       error(["file does not exist: ", Recon_file]);
     endif
-    %%Recon_fid(i_Recon) = fopen(Recon_file);
-    %%Recon_hdr{i_Recon} = readpvpheader(Recon_fid(i_Recon));
-    %%fclose(Recon_fid(i_Recon));
-    tot_Recon_frames(i_Recon) = min_tot_Recon_frames; %%Recon_hdr{i_Recon}.nbands;
-    progress_step = ceil(min_tot_Recon_frames / 10);
+    tot_Recon_frames(i_Recon) = Recon_hdr{i_Recon}.nbands;
+    progress_step = ceil( tot_Recon_frames(i_Recon)/ 10);
     [Recon_struct, Recon_hdr_tmp] = ...
 	readpvpfile(Recon_file, ...
 		    progress_step, ...
-		    min_tot_Recon_frames, ... 
-		    min_tot_Recon_frames-num_Recon_frames(i_Recon)+1); 
+		    tot_Recon_frames(i_Recon), ... 
+		    tot_Recon_frames(i_Recon)-num_Recon_frames(i_Recon)+1); 
     Recon_fig(i_Recon) = figure;
     num_Recon_colors = Recon_hdr{i_Recon}.nf;
     mean_unwhitened_Recon{i_Recon,1} = zeros(num_Recon_colors,num_Recon_frames(i_Recon));
@@ -309,9 +334,9 @@ if plot_Recon
 endif %% plot_Recon
 
 %%keyboard;
-plot_StatsProbe_vs_time = true;
+plot_StatsProbe_vs_time = false;
 if plot_StatsProbe_vs_time
-  StatsProbe_plot_lines = 5000;
+  StatsProbe_plot_lines = 20000;
   if strcmp(run_type, "color_deep")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% deep list
@@ -345,6 +370,14 @@ if plot_StatsProbe_vs_time
 	 ["Error1_2"],["_Stats.txt"]; ...
 	 ["V1Infra"],["_Stats.txt"]; ...
 	 ["V1Intra"],["_Stats.txt"]};
+  elseif strcmp(run_type, "MNIST")
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% MNIST list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    StatsProbe_list = ...
+	{["LabelError"],["_Stats.txt"]; ...
+	 ["MovieError"],["_Stats.txt"]; ...
+	 ["V1"],["_Stats.txt"]};
   elseif strcmp(run_type, "KITTI")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% KITTI list
@@ -375,6 +408,12 @@ if plot_StatsProbe_vs_time
     %% lateral list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     StatsProbe_sigma_flag([2,4,6,7]) = 0;
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  elseif strcmp(run_type, "MNIST")
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% MNIST list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    StatsProbe_sigma_flag([3]) = 0;
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   endif %% run_type
   StatsProbe_nnz_flag = ~StatsProbe_sigma_flag;
@@ -467,6 +506,12 @@ if plot_Sparse
     Sparse_list = ...
 	{["a5_"], ["V1"]; ...
 	 ["a7_"], ["V2"]};
+  elseif strcmp(run_type, "MNIST")
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% MNIST list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    Sparse_list = ...
+	{["a4_"], ["V1"]};
   elseif strcmp(run_type, "KITTI")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% KITTI list
@@ -614,6 +659,17 @@ if plot_nonSparse
     nonSparse_skip(1) = 100;
     nonSparse_skip(2) = 100;
     nonSparse_skip(3) = 100;
+  elseif strcmp(run_type, "MNIST")
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% MNIST list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    nonSparse_list = ...
+	{["a2_"], ["MovieError"]; ...
+	 ["a3_"], ["LabelError"]};
+    num_nonSparse_list = size(nonSparse_list,1);
+    nonSparse_skip = repmat(1, num_nonSparse_list, 1);
+    nonSparse_skip(1) = 1;
+    nonSparse_skip(2) = 1;
   elseif strcmp(run_type, "KITTI")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% KITTI list
@@ -682,6 +738,9 @@ endif %% plot_nonSparse
 
 plot_weights = true;
 if plot_weights
+  labelWeights_list = {};
+  labels_list = {};
+  labelRecon_list = {};
   if strcmp(run_type, "color_deep")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% deep list
@@ -704,6 +763,19 @@ if plot_weights
     weights_list = ...
 	{["w5_"], ["V1ToError"]};
     sparse_ndx = [1];
+  elseif strcmp(run_type, "MNIST")
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% MNIST list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    weights_list = ...
+	{["w1_"], ["V1ToMovieError"]};
+    sparse_ndx = [1];
+    labelWeights_list = ...
+	{["w5_"], ["V1ToLabelError"]};
+    labels_list = ...
+	{["a1_"], ["labels"]};
+    labelRecon_list = ...
+	{["a6_"], ["labelRecon"]};
   elseif strcmp(run_type, "KITTI")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% KITTI list
@@ -742,7 +814,6 @@ if plot_weights
     if use_last_checkpoint_ndx
       tot_weights_frames = min(tot_weights_frames, fix(last_checkpoint_ndx / weight_write_step));  %% use to specify maximum frame to display
     endif
-
     num_weights = 1;
     progress_step = ceil(tot_weights_frames / 10);
     [weights_struct, weights_hdr_tmp] = ...
@@ -757,11 +828,39 @@ if plot_weights
       pre_hist_rank = (1:weights_hdr{i_weights}.nf);
     endif
 
+    if length(labelWeights_list) >= i_weights && ~isempty(labelWeights_list{i_weights})
+      labelWeights_file = ...
+	  [output_dir, filesep, labelWeights_list{i_weights,1}, labelWeights_list{i_weights,2}, ".pvp"]
+      if ~exist(labelWeights_file, "file")
+	error(["file does not exist: ", labelWeights_file]);
+      endif
+      labelWeights_fid = fopen(labelWeights_file);
+      labelWeights_hdr{i_weights} = readpvpheader(labelWeights_fid);    
+      fclose(labelWeights_fid);
+      num_labelWeights = 1;
+      labelWeights_filedata = dir(labelWeights_file);
+      labelWeights_framesize = ...
+	  labelWeights_hdr{i_weights}.recordsize * ...
+	  labelWeights_hdr{i_weights}.numrecords+labelWeights_hdr{i_weights}.headersize;
+      tot_labelWeights_frames = labelWeights_filedata(1).bytes/labelWeights_framesize;
+      [labelWeights_struct, labelWeights_hdr_tmp] = ...
+	  readpvpfile(labelWeights_file, ...
+		      progress_step, ...
+		      tot_labelWeights_frames, ...
+		      tot_labelWeights_frames-num_labelWeights+1);
+      labelWeight_vals = squeeze(labelWeights_struct{i_frame}.values{i_arbor});
+      labelWeights_time = squeeze(labelWeights_struct{i_frame}.time);
+    else
+      labelWeight_vals = [];
+      labelWeights_time = [];
+    endif
+
     %% make tableau of all patches
     %%keyboard;
     i_patch = 1;
     num_weights_dims = ndims(weight_vals);
     num_patches = size(weight_vals, num_weights_dims);
+    num_patches = min(num_patches, max_patches);
     num_patches_rows = floor(sqrt(num_patches));
     num_patches_cols = ceil(num_patches / num_patches_rows);
     num_weights_colors = 1;
@@ -782,7 +881,7 @@ if plot_weights
       min_patch = min(patch_tmp2(:));
       max_patch = max(patch_tmp2(:));
       patch_tmp2 = (patch_tmp2 - min_patch) * 255 / (max_patch - min_patch + ((max_patch - min_patch)==0));
-      patch_tmp2 = uint8(flipdim(permute(patch_tmp2, [2,1,3]),1));
+      patch_tmp2 = uint8(permute(patch_tmp2, [2,1,3])); %% uint8(flipdim(permute(patch_tmp2, [2,1,3]),1));
       imagesc(patch_tmp2); 
       if num_weights_colors == 1
 	colormap(gray);
@@ -790,27 +889,114 @@ if plot_weights
       box off
       axis off
       axis image
+      if ~isempty(labelWeight_vals) %% && ~isempty(labelWeights_time) %% could check label time with weight time
+	[~, max_label] = max(squeeze(labelWeight_vals(:,i_patch)));
+	text(size(weight_vals,1)/2, -size(weight_vals,2)/6, num2str(max_label-1), "color", [1 0 0]);
+      endif %% ~empty(labelWeight_vals)
       %%drawnow;
-    endfor
+    endfor  %% j_patch
     weights_dir = [output_dir, filesep, "weights"];
     mkdir(weights_dir);
-    saveas(weights_fig, [weights_dir, filesep, "Weights_", weights_list{i_weights,2}, "_", num2str(weight_time, "%07d")], "png");
-
+    saveas(weights_fig, ...
+	   [weights_dir, filesep, ...
+	    "Weights_", weights_list{i_weights,2}, "_", num2str(weight_time, "%07d")], "png");
 
     %% make histogram of all weights
     weights_hist_fig = figure;
     [weights_hist, weights_hist_bins] = hist(weight_vals(:), 100);
     bar(weights_hist_bins, log(weights_hist+1));
-    set(weights_hist_fig, "name", ["weights_Histogram_", weights_list{i_weights,2}, "_", num2str(weight_time, "%07d")]);
-    saveas(weights_hist_fig, [weights_dir, filesep, "weights_hist_", num2str(weight_time, "%07d")], "png");
+    set(weights_hist_fig, "name", ...
+	["weights_Histogram_", weights_list{i_weights,2}, "_", num2str(weight_time, "%07d")]);
+    saveas(weights_hist_fig, ...
+	   [weights_dir, filesep, "weights_hist_", num2str(weight_time, "%07d")], "png");
+
+    if ~isempty(labelWeight_vals) && ~isempty(labelWeights_time)
+
+      %% plot label weights as matrix of column vectors
+      [~, maxnum] = max(labelWeight_vals,[],1);
+      [maxnum,maxind] = sort(maxnum);
+      label_weights_fig = figure;
+      imagesc(labelWeight_vals(:,maxind))
+      label_weights_str = ...
+	  ["LabelWeights_", labelWeights_list{i_weights,2}, "_", num2str(labelWeights_time, "%07d")];
+      %%title(label_weights_fig, label_weights_str);
+      figure(label_weights_fig); title(label_weights_str);
+      saveas(label_weights_fig, [weights_dir, filesep, label_weights_str, ".png"] , "png");
+
+      %% Plot the average movie weights for a label %%
+      for label = 0 : size(labelWeight_vals,1)-1 %% anything 0:0
+	labeledWeights_fig = figure;
+	if num_weights_colors == 1
+	  imagesc(squeeze(mean(weight_vals(:,:,maxind(maxnum==(label+1))),3))')
+	endif
+	labeledWeights_str = ...
+	     ["labeledWeightsFig_", weights_list{i_weights,2}, "_", num2str(label, "%d"), "_", ...
+	     num2str(weight_time, "%07d")];
+	%%title(labeledWeights_fig, labeledWeights_str);
+	title(labeledWeights_str);
+	saveas(labeledWeights_fig,  [weights_dir, filesep, labeledWeights_str, ".png"], "png");
+      endfor %% label
+
+      num_labels = 1000;  %% number of label guesses to analyze
+      labels_file = ...
+	  [output_dir, filesep, labels_list{i_weights,1}, labels_list{i_weights,2}, ".pvp"]
+      if ~exist(labels_file, "file")
+	break;
+      endif
+      labels_fid = fopen(labels_file);
+      labels_hdr{i_weights} = readpvpheader(labels_fid);    
+      fclose(labels_fid);
+      tot_labels_frames =  labels_hdr{i_weights}.nbands;
+      progress_step = fix(tot_labels_frames / 10);
+      [labels_struct, labels_hdr_tmp] = ...
+	  readpvpfile(labels_file, ...
+		      progress_step, ...
+		      tot_labels_frames, ...
+		      tot_labels_frames-num_labels+1);
+      label_vals = zeros(labels_hdr{i_weights}.nf, num_labels,1);
+      label_time = zeros(labels_hdr{i_weights}.nf, num_labels,1);
+      for i_frame = 1:num_labels
+	label_vals(:,i_frame) = squeeze(labels_struct{i_frame}.values);
+	label_time(i_frame) = squeeze(labels_struct{i_frame}.time);
+      endfor
+      
+      labelRecon_file = ...
+	  [output_dir, filesep, labelRecon_list{i_weights,1}, labelRecon_list{i_weights,2}, ".pvp"]
+      if ~exist(labelRecon_file, "file")
+	break;
+      endif
+      labelRecon_fid = fopen(labelRecon_file);
+      labelRecon_hdr{i_weights} = readpvpheader(labelRecon_fid);    
+      fclose(labelRecon_fid);
+      tot_labelRecon_frames = labelRecon_hdr{i_weights}.nbands;
+      progress_step = fix(tot_labelRecon_frames / 10);
+      [labelRecon_struct, labelRecon_hdr_tmp] = ...
+	  readpvpfile(labelRecon_file, ...
+		      progress_step, ...
+		      tot_labelRecon_frames, ...
+		      tot_labelRecon_frames-num_labels+1);
+      labelRecon_vals = zeros(labelRecon_hdr{i_weights}.nf, num_labels,1);
+      labelRecon_time = zeros(labelRecon_hdr{i_weights}.nf, num_labels,1);
+      for i_frame = 1:num_labels
+	labelRecon_vals(:,i_frame) = squeeze(labelRecon_struct{i_frame}.values);
+	labelRecon_time(i_frame) = squeeze(labelRecon_struct{i_frame}.time);
+      endfor
+      
+      [max_label_vals, max_label_ndx] = max(label_vals);
+      [max_labelRecon_vals, max_labelRecon_ndx] = max(labelRecon_vals);
+      accuracy = sum(max_label_ndx==max_labelRecon_ndx) / numel(max_label_vals)
+
+      
+    endif  %% ~isempty(labelWeight_vals) && ~isempty(labelWeights_time)
 
   endfor %% i_weights
   
 endif  %% plot_weights
 
 
-plot_weights1_2 = true;
+plot_weights1_2 = (true && ~strcmp(run_type, "MNIST"));
 if plot_weights1_2
+  weights1_2_list = {};
   if strcmp(run_type, "color_deep")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% deep list
@@ -880,6 +1066,11 @@ if plot_weights1_2
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   endif %% run_type
 
+  num_weights1_2_list = size(weights1_2_list,1);
+  if num_weights1_2_list == 0
+    break;
+  endif
+
   %% get image header (to get image dimensions)
   i_image = 1;
   image_file = ...
@@ -891,7 +1082,6 @@ if plot_weights1_2
   image_hdr = readpvpheader(image_fid);
   fclose(image_fid);
 
-  num_weights1_2_list = size(weights1_2_list,1);
   weights1_2_hdr = cell(num_weights1_2_list,1);
   pre1_2_hdr = cell(num_weights1_2_list,1);
   post1_2_hdr = cell(num_weights1_2_list,1);
@@ -1110,3 +1300,6 @@ if plot_weights1_2
   endfor %% i_weights
   
 endif  %% plot_weights
+
+
+
