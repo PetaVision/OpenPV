@@ -652,46 +652,7 @@ void HyPerLayer::readPhase(PVParams * params) {
 }
 
 void HyPerLayer::readWriteSparseActivity(PVParams * params) {
-   // Parameter spikingFlag was deprecated (except in Retina) on Jan 7, 2013
-   // TODO: when satisfied that everyone has had the chance to change spikingFlag to writeSparseActivity
-   // and remove writeNonspikingActivity, remove the checks below and replace with
-   // writeSparseActivity = (bool) params->value(name, "writeSparseActivity", 0);
-   bool writeSparseActivityPresent = params->present(name, "writeSparseActivity");
-   if (!writeSparseActivityPresent) {
-      bool spikingFlagPresent = params->present(name, "spikingFlag");
-      if (spikingFlagPresent) {
-         if (parent->icCommunicator()->commRank()==0) {
-            Retina * retina = dynamic_cast<Retina *>(this);
-            if(retina) {
-               fprintf(stderr, "Warning in parameters for retina \"%s\"\n", name);
-               fprintf(stderr, "spikingFlag controls whether the dynamics of the retina is spiking, but\n");
-               fprintf(stderr, "no longer controls whether the activity file is sparse or not.\n");
-               fprintf(stderr, "Set writeSparseActivity to true or false to control the type of file created by outputState.\n");
-            }
-            else {
-               fprintf(stderr, "Warning in parameters for layer \"%s\": spikingFlag has been renamed to writeSparseActivity\n", name);
-            }
-         }
-         writeSparseActivity = (bool) params->value(name, "spikingFlag", 0);
-      }
-   }
-   else {
-      writeSparseActivity = (bool) params->value(name, "writeSparseActivity", 0);
-   }
-   bool writeNonspikingActivityPresent = params->present(name, "writeNonspikingActivity");
-   if (writeNonspikingActivityPresent) {
-      if (parent->icCommunicator()->commRank()==0) {
-         fprintf(stderr, "Warning in parameters for layer \"%s\": parameter writeNonspikingActivity has been deprecated.\n", name);
-         fprintf(stderr, "Instead, set writeStep<0 to prevent writing activity.\n");
-      }
-      if (params->value(name, "writeNonspikingActivity")==0 && writeStep>=0) {
-         writeStep=-1;
-         if (parent->icCommunicator()->commRank()==0) {
-            fprintf(stderr, "Since writeNonspikingActivity is false, writeStep has been changed to -1.  This behavior will change in the future.\n");
-         }
-      }
-   }
-   // end of checks for obsolete parameter calls.
+   writeSparseActivity = (bool) params->value(name, "writeSparseActivity", 0);
 }
 
 void HyPerLayer::readMirrorBCFlag(PVParams * params) {
