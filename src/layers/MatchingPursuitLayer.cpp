@@ -93,10 +93,28 @@ void MatchingPursuitLayer::readTracePursuit(PVParams * params) {
 
 void MatchingPursuitLayer::readPursuitFile(PVParams * params) {
    assert(!params->presentAndNotBeenRead(name, "tracePursuit"));
+   assert(traceFileName==NULL);
    if (tracePursuit) {
       const char * pursuit_file_name = params->stringValue(name, "traceFile", true);
       if (pursuit_file_name && pursuit_file_name[0]) {
-         traceFileName = strdup(pursuit_file_name);
+         if (pursuit_file_name[0]=='/') {
+            traceFileName = strdup(pursuit_file_name);
+         }
+         else { // Treat as path relative to outputPath
+            int traceFileNameLen = strlen(parent->getOutputPath())+1+strlen(pursuit_file_name)+1; // traceFileName will be <outputPath>/<pursuit_file_name><terminating NUL>
+            if (traceFileNameLen >= PV_PATH_MAX) {
+               if (parent->columnId()==0) {
+                  fprintf(stderr, "MatchingPursuitLayer \"%s\": path for tracePursuit file too long.\n", name);
+               }
+               MPI_Barrier(parent->icCommunicator()->communicator());
+               exit(EXIT_FAILURE);
+            }
+            traceFileName = (char *) malloc(traceFileNameLen*sizeof(char));
+            if (traceFileName!=NULL) {
+               int numchars = snprintf(traceFileName, traceFileNameLen+1, "%s/%s",parent->getOutputPath(), pursuit_file_name);
+               assert(numchars<=traceFileNameLen);
+            }
+         }
          if (traceFileName==NULL) {
             fprintf(stderr, "MatchingPursuitLayer \"%s\" error: rank %d process unable to copy traceFile param: %s\n", name, parent->columnId(), strerror(errno));
             abort();
