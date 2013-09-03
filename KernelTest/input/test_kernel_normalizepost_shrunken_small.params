@@ -7,6 +7,8 @@
 //  - input parameters for test_kernel.cpp for system level testing of kernels
 //
 
+debugParsing = false;
+
 HyPerCol "column" = {
    nx = 8;   
    ny = 8;
@@ -32,7 +34,6 @@ Retina "Retina" = {
     nxScale = 1;
     nyScale = 1;
     nf = 1;
-    marginWidth = 1;
     writeStep = 1.0;
     mirrorBCflag = 1;
     spikingFlag = 0;
@@ -55,13 +56,12 @@ ANNLayer "L0" = {
     nxScale = 1;
     nyScale = 1;
     nf = 1;
-    marginWidth = 2;
     writeStep = 1.0;
     mirrorBCflag = 1;
     writeSparseActivity = false;
 
-	InitVType = "ConstantV";
-	valueV = 0;
+    InitVType = "ConstantV";
+    valueV = 0;
     VThresh = -infinity;
     VMax = infinity;
     VMin = -infinity;
@@ -76,13 +76,12 @@ ANNLayer "Lx1" = {
     nxScale = 1;
     nyScale = 1;
     nf = 1;
-    marginWidth = 0;
     writeStep = 1.0;
     mirrorBCflag = 1;
     writeSparseActivity = false;
 
-	InitVType = "ConstantV";
-	valueV = 0;
+    InitVType = "ConstantV";
+    valueV = 0;
     VThresh = -infinity;
     VMax = infinity;
     VMin = -infinity;
@@ -112,7 +111,7 @@ KernelConn "Retina to L0" = {
     strength = 1.0;  // 1.0 x post->num_neurons / pre->num_neurons
     normalizeMethod = "normalizeSum";
     minSumTolerated = 0;
-	normalizeArborsIndividually = 0;
+    normalizeArborsIndividually = 0;
     normalize_cutoff = 0.0;
     normalizeFromPostPerspective = true;
     symmetrizeWeights = 0;
@@ -122,12 +121,13 @@ KernelConn "Retina to L0" = {
 
     delay = 0;
 
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
     shrinkPatches = false;
     
     preActivityIsNotRate = 0;
     writeCompressedCheckpoints = 0;
     selfFlag = 0;
+    updateGSynFromPostPerspective = false;
 };
 
 KernelConn "L0 to Lx1" = {
@@ -149,7 +149,7 @@ KernelConn "L0 to Lx1" = {
     strength = 1.0;  // 1.0 x post->num_neurons / pre->num_neurons
     normalizeMethod = "normalizeSum";
     minSumTolerated = 0;
-	normalizeArborsIndividually = 0;
+    normalizeArborsIndividually = 0;
     normalize_cutoff = 0.0;
     normalizeFromPostPerspective = true;
     symmetrizeWeights = 0;
@@ -159,34 +159,41 @@ KernelConn "L0 to Lx1" = {
 
     delay = 0;
 
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
     shrinkPatches = false;
     
     preActivityIsNotRate = 0;
     writeCompressedCheckpoints = 0;
     selfFlag = 0;
+    updateGSynFromPostPerspective = false;
 };
 
 
 KernelTestProbe "Retina Stats File" = {
     targetLayer = "Retina";
     probeOutputFile = "Retina_Stats.txt";
+    message = "Retina Stats File      ";
 };
 KernelTestProbe "L0 Stats File" = {
     targetLayer = "L0";
     probeOutputFile = "L0_Stats.txt";
+    message = "L0 Stats File          ";
 };
 KernelTestProbe "Lx1 Stats File" = {
     targetLayer = "Lx1";
     probeOutputFile = "Lx1_Stats.txt";
+    message = "Lx1 Stats File         ";
 };
 
 KernelTestProbe "Retina Stats Screen" = {
     targetLayer = "Retina";
+    message = "Retina Stats Screen    ";
 };
 KernelTestProbe "L0 Stats Screen" = {
     targetLayer = "L0";
+    message = "L0 Stats Screen        ";
 };
 KernelTestProbe "Lx1 Stats Screen" = {
     targetLayer = "Lx1";
+    message = "Lx1 Stats Screen       ";
 };
