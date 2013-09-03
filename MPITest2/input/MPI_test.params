@@ -7,6 +7,8 @@
 //  - input parameters for test_kernel.cpp for system level testing of kernels
 //
 
+debugParsing = false;
+
 HyPerCol "column" = {
    nx = 32;   
    ny = 32;
@@ -33,10 +35,10 @@ MPITestLayer "L0" = {
     nxScale = 1;
     nyScale = 1;
     nf = 4;
-    marginWidth = 4;
     phase = 0;
     writeStep = -1;
-    mirrorBCflag = 0;
+    mirrorBCflag = false;
+    valueBC = 0;
     writeSparseActivity = false;
     
     InitVType = "ConstantV";
@@ -54,10 +56,10 @@ ANNLayer "Lx1" = {
     nxScale = 1;
     nyScale = 1;
     nf = 4;
-    marginWidth = 0;
     phase = 0;
     writeStep = -1;
-    mirrorBCflag = 0;
+    mirrorBCflag = false;
+    valueBC = 0;
     writeSparseActivity = false;
     
     InitVType = "ZeroV";
@@ -74,10 +76,10 @@ ANNLayer "Lx2" = {
     nxScale = 2;
     nyScale = 2;
     nf = 8;
-    marginWidth = 0;
     phase = 0;
     writeStep = -1;
-    mirrorBCflag = 0;
+    mirrorBCflag = false;
+    valueBC = 0;
     writeSparseActivity = false;
     
     InitVType = "ZeroV";
@@ -94,10 +96,10 @@ ANNLayer "Lx4" = {
     nxScale = 4;
     nyScale = 4;
     nf = 16;
-    marginWidth = 0;
     phase = 0;
     writeStep = -1;
-    mirrorBCflag = 0;
+    mirrorBCflag = false;
+    valueBC = 0;
     writeSparseActivity = false;
     
     InitVType = "ZeroV";
@@ -115,10 +117,10 @@ ANNLayer "Lx1_2" = {
     nxScale = 0.5;
     nyScale = 0.5;
     nf = 2;
-    marginWidth = 0;
     phase = 0;
     writeStep = -1;
-    mirrorBCflag = 0;
+    mirrorBCflag = false;
+    valueBC = 0;
     writeSparseActivity = false;
     
     InitVType = "ZeroV";
@@ -136,10 +138,10 @@ ANNLayer "Lx1_4" = {
     nxScale = 0.25;
     nyScale = 0.25;
     nf = 1;
-    marginWidth = 0;
     phase = 0;
     writeStep = -1;
-    mirrorBCflag = 0;
+    mirrorBCflag = false;
+    valueBC = 0;
     writeSparseActivity = false;
     
     InitVType = "ZeroV";
@@ -194,10 +196,11 @@ KernelConn "L0 to Lx1" = {
 
     delay = 0;     
 
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
     shrinkPatches = false;
     preActivityIsNotRate = false;
     selfFlag = false;
+    updateGSynFromPostPerspective = false;
 };
 
 
@@ -240,10 +243,11 @@ KernelConn "L0 to Lx2" = {
 
     delay = 0;     
 
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
     shrinkPatches = false;
     preActivityIsNotRate = false;
     selfFlag = false;
+    updateGSynFromPostPerspective = false;
 };
 
 
@@ -286,10 +290,11 @@ KernelConn "L0 to Lx4" = {
 
     delay = 0;     
 
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
     shrinkPatches = false;
     preActivityIsNotRate = false;
     selfFlag = false;
+    updateGSynFromPostPerspective = false;
 };
 
 
@@ -332,10 +337,11 @@ KernelConn "L0 to Lx1_2" = {
 
     delay = 0;     
 
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
     shrinkPatches = false;
     preActivityIsNotRate = false;
     selfFlag = false;
+    updateGSynFromPostPerspective = false;
 };
 
 
@@ -377,10 +383,11 @@ KernelConn "L0 to Lx1_4" = {
 
     delay = 0;     
 
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
     shrinkPatches = false;
     preActivityIsNotRate = false;
     selfFlag = false;
+    updateGSynFromPostPerspective = false;
 };
 
 
