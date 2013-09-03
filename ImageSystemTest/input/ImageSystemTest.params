@@ -123,6 +123,6 @@ KernelConn "input to output" = {
 
     delay = 0;
 
-    stochasticReleaseFlag = false; //if it's true, then the connections between neurons will exist at a certain probability.
+    pvpatchAccumulateType = "convolve"; //if it's true, then the connections between neurons will exist at a certain probability.
     shrinkPatches = false; //if only a small part of connections whose weights are non-zero, then we could shrink the whole networks
 };
