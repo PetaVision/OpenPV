@@ -35,14 +35,15 @@ Image "input" = {
     nyScale = 1;
     imagePath = "input/sampleimage.png";
     nf = 1;
-    marginWidth = 3;
     phase = 0;
     writeStep = -1;
     writeSparseActivity = false;
     mirrorBCflag = false;
+    valueBC = 0.0;
     useImageBCflag = false;
     inverseFlag = false;
     normalizeLuminanceFlag = false;
+    autoResizeFlag = false;
     writeImages = false;
     offsetX = 0;
     offsetY = 0;
@@ -54,7 +55,6 @@ ANNLayer "output" = {
     nxScale = 1;
     nyScale = 1;
     nf = 1;
-    marginWidth = 0;
     phase = 0;
     writeStep = 1.0;
     initialWriteTime = 0.0;
@@ -74,7 +74,6 @@ ANNLayer "output1x1" = {
     nxScale = 1;
     nyScale = 1;
     nf = 1;
-    marginWidth = 0;
     phase = 0;
     writeStep = 1.0;
     initialWriteTime = 0.0;
@@ -94,7 +93,6 @@ ANNLayer "output3x3" = {
     nxScale = 1;
     nyScale = 1;
     nf = 1;
-    marginWidth = 1;
     phase = 0;
     writeStep = 1.0;
     initialWriteTime = 0.0;
@@ -114,7 +112,6 @@ ANNLayer "output5x5" = {
     nxScale = 1;
     nyScale = 1;
     nf = 1;
-    marginWidth = 2;
     phase = 0;
     writeStep = 1.0;
     initialWriteTime = 0.0;
@@ -134,7 +131,6 @@ ANNLayer "output7x7" = {
     nxScale = 1;
     nyScale = 1;
     nf = 1;
-    marginWidth = 3;
     phase = 0;
     writeStep = 1.0;
     initialWriteTime = 0.0;
@@ -154,7 +150,6 @@ ANNLayer "comparison1x1" = {
     nxScale = 1;
     nyScale = 1;
     nf = 1;
-    marginWidth = 0;
     phase = 0;
     writeStep = 1.0;
     initialWriteTime = 0.0;
@@ -174,7 +169,6 @@ ANNLayer "comparison3x3" = {
     nxScale = 1;
     nyScale = 1;
     nf = 1;
-    marginWidth = 0;
     phase = 0;
     writeStep = 1.0;
     initialWriteTime = 0.0;
@@ -194,7 +188,6 @@ ANNLayer "comparison5x5" = {
     nxScale = 1;
     nyScale = 1;
     nf = 1;
-    marginWidth = 0;
     phase = 0;
     writeStep = 1.0;
     initialWriteTime = 0.0;
@@ -214,7 +207,6 @@ ANNLayer "comparison7x7" = {
     nxScale = 1;
     nyScale = 1;
     nf = 1;
-    marginWidth = 0;
     phase = 0;
     writeStep = 1.0;
     initialWriteTime = 0.0;
@@ -249,10 +241,11 @@ KernelConn "input to output" = {
     plasticityFlag = false;
     shmget_flag = 1;
     selfFlag = false;
+    updateGSynFromPostPerspective = false;
 
     delay = 0;
 
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
     shrinkPatches = false;
     preActivityIsNotRate = false;
 };
@@ -277,10 +270,11 @@ KernelConn "input to output1x1" = {
     plasticityFlag = false;
     shmget_flag = 1;
     selfFlag = false;
+    updateGSynFromPostPerspective = false;
 
     delay = 0;
 
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
     shrinkPatches = false;
     preActivityIsNotRate = false;
 };
@@ -305,10 +299,11 @@ KernelConn "input to output3x3" = {
     plasticityFlag = false;
     shmget_flag = 1;
     selfFlag = false;
+    updateGSynFromPostPerspective = false;
 
     delay = 0;
 
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
     shrinkPatches = false;
     preActivityIsNotRate = false;
 };
@@ -333,10 +328,11 @@ KernelConn "input to output5x5" = {
     plasticityFlag = false;
     shmget_flag = 1;
     selfFlag = false;
+    updateGSynFromPostPerspective = false;
 
     delay = 0;
 
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
     shrinkPatches = false;
     preActivityIsNotRate = false;
 };
@@ -361,10 +357,11 @@ KernelConn "input to output7x7" = {
     plasticityFlag = false;
     shmget_flag = 1;
     selfFlag = false;
+    updateGSynFromPostPerspective = false;
 
     delay = 0;
 
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
     shrinkPatches = false;
     preActivityIsNotRate = false;
 };
