@@ -135,7 +135,7 @@ MatchingPursuitLayer "matching_pursuit_layer" = {
     activationThreshold                 = 0.0;  // Treat activations with absolute value below this value as zero.
     syncedMovie                         = "";   // If set to a movie layer, activity resets when the movie sets newImageFlag
     tracePursuit                        = true; // Whether to trace the progress of the matching pursuit
-    traceFile                           = "output/pursuit.txt"; // The file for the tracePursuit output.  If empty or absent, use standard output
+    traceFile                           = "pursuit.txt"; // The file for the tracePursuit output.  If empty or absent, use standard output.  A relative path is relative to outputPath directory
 };
 
 L2NormProbe "residual L2 error" = {
