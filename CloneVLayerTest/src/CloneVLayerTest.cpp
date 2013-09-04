@@ -27,6 +27,7 @@ int main(int argc, char * argv[]) {
 
    int status;
    status = buildandrun(cl_argc, cl_argv, NULL, &customexit, NULL);
+   free(cl_argv); cl_argv = NULL;
    return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
