@@ -939,7 +939,7 @@ int HyPerLayer::requireMarginWidth(int marginWidthNeeded, int * marginWidthResul
             synchronizedMarginWidthLayers[k]->requireMarginWidth(marginWidthNeeded, marginWidthResult);
             assert(*marginWidthResult == marginWidthNeeded);
          }
-         assert(l->getLayerLoc()->nb == marginWidthNeeded);
+         assert(l->getLayerLoc()->nb == getLayerLoc()->nb);
       }
    }
    return PV_SUCCESS;

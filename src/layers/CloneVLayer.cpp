@@ -84,9 +84,10 @@ int CloneVLayer::communicateInitInfo() {
 }
 
 int CloneVLayer::requireMarginWidth(int marginWidthNeeded, int * marginWidthResult) {
-   int result;
-   HyPerLayer::requireMarginWidth(marginWidthNeeded, &result);
-   originalLayer->requireMarginWidth(marginWidthNeeded, &result);
+   HyPerLayer::requireMarginWidth(marginWidthNeeded, marginWidthResult);
+   assert(*marginWidthResult >= marginWidthNeeded);
+   originalLayer->requireMarginWidth(marginWidthNeeded, marginWidthResult);
+   assert(*marginWidthResult>=marginWidthNeeded);
    return PV_SUCCESS;
 }
 
