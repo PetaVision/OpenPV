@@ -67,6 +67,16 @@ StatsProbe::StatsProbe()
 
 StatsProbe::~StatsProbe()
 {
+   int rank = getTargetLayer()->getParent()->columnId();
+   printf("Rank %d StatsProbe %s I/O  timer ", rank, msg); // Lack of \n is deliberate, elapsed_time() calls printf with \n.
+   iotimer->elapsed_time();
+   delete iotimer;
+   printf("Rank %d StatsProbe %s MPI  timer ", rank, msg);
+   mpitimer->elapsed_time();
+   delete mpitimer;
+   printf("Rank %d StatsProbe %s Comp timer ", rank, msg);
+   comptimer->elapsed_time();
+   delete comptimer;
    free(msg);
 }
 
@@ -80,6 +90,9 @@ int StatsProbe::initStatsProbe_base() {
    sigma = 0.0f;
    type = BufV;
    msg = NULL;
+   iotimer = NULL;
+   mpitimer = NULL;
+   comptimer = NULL;
    return PV_SUCCESS;
 }
 
@@ -97,6 +110,9 @@ int StatsProbe::initStatsProbe(const char * filename, HyPerLayer * layer, PVBufT
       status = initMessage(msg);
    }
    assert(status == PV_SUCCESS);
+   iotimer = new Timer();
+   mpitimer = new Timer();
+   comptimer = new Timer();
    return status;
 }
 
@@ -159,6 +175,7 @@ int StatsProbe::outputState(double timef)
          fprintf(outputstream->fp, "%sV buffer is NULL\n", msg);
          return 0;
       }
+      comptimer->start();
       for( int k=0; k<nk; k++ ) {
          pvdata_t a = buf[k];
          sum += a;
@@ -167,13 +184,15 @@ int StatsProbe::outputState(double timef)
          if (a < fMin) fMin = a;
          if (a > fMax) fMax = a;
       }
+      comptimer->stop();
       break;
    case BufActivity:
+      comptimer->start();
       buf = getTargetLayer()->getLayerData();
       assert(buf != NULL);
       for( int k=0; k<nk; k++ ) {
          const PVLayerLoc * loc = getTargetLayer()->getLayerLoc();
-         int kex = kIndexExtended(k, loc->nx, loc->ny, loc->nf, loc->nb);
+         int kex = kIndexExtended(k, loc->nx, loc->ny, loc->nf, loc->nb); // TODO: faster to use strides and a double-loop than compute kIndexExtended for every neuron?
          pvdata_t a = buf[kex];
          sum += a;
          sum2 += a*a;
@@ -181,6 +200,7 @@ int StatsProbe::outputState(double timef)
          if( a < fMin ) fMin = a;
          if( a > fMax ) fMax = a;
       }
+      comptimer->stop();
       break;
    default:
       assert(0);
@@ -188,6 +208,7 @@ int StatsProbe::outputState(double timef)
    }
 
 #ifdef PV_USE_MPI
+   mpitimer->start();
    int ierr;
    double reducedsum, reducedsum2;
    int reducednnz;
@@ -208,7 +229,9 @@ int StatsProbe::outputState(double timef)
    fMin = reducedmin;
    fMax = reducedmax;
    nk = totalNeurons;
+   mpitimer->stop();
 #endif // PV_USE_MPI
+   iotimer->start();
    avg = sum/nk;
    sigma = sqrt(sum2/nk - avg*avg);
    if ( type == BufActivity  && getTargetLayer()->getSpikingFlag() ) {
@@ -222,6 +245,7 @@ int StatsProbe::outputState(double timef)
    }
 
    fflush(outputstream->fp);
+   iotimer->stop();
 
    return 0;
 }

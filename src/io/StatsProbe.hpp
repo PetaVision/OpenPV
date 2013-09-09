@@ -31,6 +31,9 @@ protected:
    int nnz;
    float fMin, fMax;
    float avg, sigma;
+   Timer * iotimer;   // A timer for the i/o part of outputState
+   Timer * mpitimer;  // A timer for the MPI part of outputState
+   Timer * comptimer; // A timer for the basic computation of outputState
 
 private:
    int initStatsProbe_base();
