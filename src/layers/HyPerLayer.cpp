@@ -124,7 +124,8 @@ int HyPerLayer::initialize_base() {
 
    this->initInfoCommunicatedFlag = false;
    this->dataStructuresAllocatedFlag = false;
-
+   
+   this->numSynchronizedMarginWidthLayers = 0;
    this->synchronizedMarginWidthLayers = NULL;
 
 #ifdef PV_USE_OPENCL
