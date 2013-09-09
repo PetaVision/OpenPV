@@ -6,23 +6,29 @@ setenv("GNUTERM","X11")
 %% machine/run_type environment
 if ismac
   workspace_path = "/Users/garkenyon/workspace";
+<<<<<<< .mine
+=======
   run_type = "MNIST"
   output_dir = "/Users/garkenyon/workspace/MNIST/output_train_1stPass"
   checkpoint_path = "/Users/garkenyon/workspace/MNIST/output_train_1stPass";
   last_checkpoint_ndx = 32000000;
+>>>>>>> .r7644
 elseif isunix
   workspace_path = "/home/gkenyon/workspace";
   run_type = "MNIST";
 %%  run_type = "noPulvinar"; %%
-%%  run_type = "color_deep"; %%
-%%  run_type = "lateral"; %% 
+  %%run_type = "color_deep"; %%
+  %%run_type = "lateral"; %% 
   if strcmp(run_type, "color_deep")
-    %%output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_30/output_12x12x128_lambda_05X2_color_deep"; 
-    output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_12x12x128_lambda_05X2_color_noTopDown"; 
+    %%output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_30/output_2013_01_30_12x12x128_lambda_05X2_deep"; 
+    output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_2013_01_31_12x12x128_lambda_05X2_noTopDown"; 
+    checkpoint_dir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_2013_01_31_12x12x128_lambda_05X2_deep"; %%output_dir; 
   elseif strcmp(run_type, "noPulvinar")
-    output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_12x12x128_lambda_05X2_color_noPulvinar"; 
+    output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_2013_01_31_12x12x128_lambda_05X2_noPulvinar"; 
+    checkpoint_dir = output_dir;
   elseif strcmp(run_type, "lateral")
-    output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_12x12x128_lambda_05X2_lateral"; 
+    output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_2013_01_31_12x12x128_lambda_05X2_lateral"; 
+    checkpoint_dir =  output_dir;
   endif
 endif %% isunix
 addpath([workspace_path, filesep, "/PetaVision/mlab/util"]);
@@ -39,7 +45,7 @@ if ~exist("last_checkpoint_ndx") || isempty(last_checkpoint_ndx)
   last_checkpoint_ndx = 0;  %% if used to grab non-plastic weights, doesn't not have to be current
 endif
 
-checkpoint_path = [output_dir, filesep, "Checkpoints", filesep,  "Checkpoint", num2str(last_checkpoint_ndx, "%i")]; %% "Last"];%%
+checkpoint_path = [checkpoint_dir, filesep, "Checkpoints", filesep,  "Checkpoint", num2str(last_checkpoint_ndx, "%i")]; %% "Last"];%%
 %%output_dir = checkpoint_path;
 use_last_checkpoint_ndx = false; %%true;  %% flag to set whether to use last_checkpoint_ndx in determining the maximum frames index to analyze 
 layer_write_step = 200;  %% used to compute maximum frame index to process
@@ -425,7 +431,8 @@ if plot_StatsProbe_vs_time
   for i_StatsProbe = 1 : num_StatsProbe_list
     StatsProbe_file = [output_dir, filesep, StatsProbe_list{i_StatsProbe,1}, StatsProbe_list{i_StatsProbe,2}]
     if ~exist(StatsProbe_file,"file")
-      error(["StatsProbe_file does not exist: ", StatsProbe_file]);
+      warning(["StatsProbe_file does not exist: ", StatsProbe_file]);
+      continue;
     endif
     [status, wc_output] = system(["cat ",StatsProbe_file," | wc"], true, "sync");
     if status ~= 0
@@ -540,7 +547,7 @@ if plot_Sparse
     num_Sparse = tot_Sparse_frames;
     progress_step = ceil(tot_Sparse_frames / 10);
     [Sparse_struct, Sparse_hdr_tmp] = ...
-	readpvpfile(Sparse_file, progress_step, tot_Sparse_frames, tot_Sparse_frames-num_Sparse+1);
+	readpvpfile(Sparse_file, progress_step, tot_Sparse_frames, tot_Sparse_frames-fix(num_Sparse/1)+1,1); %%fix(tot_Sparse_frames/50),1); %%
     nx_Sparse = Sparse_hdr{i_Sparse}.nx;
     ny_Sparse = Sparse_hdr{i_Sparse}.ny;
     nf_Sparse = Sparse_hdr{i_Sparse}.nf;
@@ -632,9 +639,9 @@ if plot_nonSparse
          ["a10_"], ["Error1_2"]};
     num_nonSparse_list = size(nonSparse_list,1);
     nonSparse_skip = repmat(1, num_nonSparse_list, 1);
-    nonSparse_skip(1) = 100;
-    nonSparse_skip(2) = 100;
-    nonSparse_skip(3) = 100;
+    nonSparse_skip(1) = 10;
+    nonSparse_skip(2) = 10;
+    nonSparse_skip(3) = 10;
   elseif strcmp(run_type, "noPulvinar")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% noPulvinar
@@ -644,8 +651,8 @@ if plot_nonSparse
          ["a8_"], ["Error1_2"]};
     num_nonSparse_list = size(nonSparse_list,1);
     nonSparse_skip = repmat(1, num_nonSparse_list, 1);
-    nonSparse_skip(1) = 100;
-    nonSparse_skip(2) = 100;
+    nonSparse_skip(1) = 10;
+    nonSparse_skip(2) = 10;
   elseif strcmp(run_type, "lateral")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% lateral list
@@ -656,9 +663,9 @@ if plot_nonSparse
 	 ["a11_"], ["Error1_2"]};
     num_nonSparse_list = size(nonSparse_list,1);
     nonSparse_skip = repmat(1, num_nonSparse_list, 1);
-    nonSparse_skip(1) = 100;
-    nonSparse_skip(2) = 100;
-    nonSparse_skip(3) = 100;
+    nonSparse_skip(1) = 1;
+    nonSparse_skip(2) = 1;
+    nonSparse_skip(3) = 1;
   elseif strcmp(run_type, "MNIST")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% MNIST list
@@ -822,8 +829,10 @@ if plot_weights
     i_arbor = 1;
     weight_vals = squeeze(weights_struct{i_frame}.values{i_arbor});
     weight_time = squeeze(weights_struct{i_frame}.time);
-    if plot_Sparse
-      pre_hist_rank = Sparse_hist_rank{sparse_ndx(i_weights)};
+    tmp_ndx = sparse_ndx(i_weights);
+    tmp_rank = Sparse_hist_rank{tmp_ndx};
+    if plot_Sparse && ~isempty(tmp_rank)
+      pre_hist_rank = tmp_rank;
     else
       pre_hist_rank = (1:weights_hdr{i_weights}.nf);
     endif
@@ -1161,8 +1170,10 @@ if plot_weights1_2
     weights0_1_time = squeeze(weights0_1_struct{i_frame}.time);
     
     %% get rank order of presynaptic elements
-    if plot_Sparse
-      pre_hist_rank = Sparse_hist_rank{sparse_ndx(i_weights1_2)};
+    tmp_ndx = sparse_ndx(i_weights1_2);
+    tmp_rank = Sparse_hist_rank{tmp_ndx};
+    if plot_Sparse && ~isempty(tmp_rank)
+      pre_hist_rank = tmp_rank;
     else
       pre_hist_rank = (1:weights1_2_hdr{i_weights1_2}.nf);
     endif
