@@ -87,7 +87,13 @@ int MatchingPursuitResidual::resetGSynBuffers(double timed, double dt) {
       resetGSynFlag = syncedMovie->getNewImageFlag();
    }
    else {
-      resetGSynFlag = (refreshPeriod >= 0 && timed >= nextRefreshTime);
+      if (refreshPeriod >= 0 && timed >= nextRefreshTime) {
+         resetGSynFlag = true;
+         nextRefreshTime += refreshPeriod;
+      }
+      else {
+         resetGSynFlag = false;
+      }
    }
    if (resetGSynFlag) {
       status = ANNLayer::resetGSynBuffers(timed, dt);
@@ -99,6 +105,7 @@ int MatchingPursuitResidual::resetGSynBuffers(double timed, double dt) {
 int MatchingPursuitResidual::recvAllSynapticInput() {
    int status = ANNLayer::recvAllSynapticInput();
    gSynInited = true;
+   excNeedsUpdate = false;
    return status;
 }
 
