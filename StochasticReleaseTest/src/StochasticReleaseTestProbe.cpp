@@ -20,7 +20,7 @@ StochasticReleaseTestProbe::StochasticReleaseTestProbe() {
 
 int StochasticReleaseTestProbe::initialize_base() {
    conn = NULL;
-   for (int k=0; k<8; k++) {
+   for (int k=0; k<9; k++) {
       bins[k] = 0;
    }
    sumbins = 0;
