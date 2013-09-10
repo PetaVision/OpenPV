@@ -48,6 +48,7 @@ int MatchingPursuitLayer::initialize_base() {
    syncedMovie = NULL;
    tracePursuit = false;
    traceFile = NULL;
+   traceFileName = NULL;
    initializeMaxinfo();
    useWindowedSynapticInput = true;
    xWindowSize = 0;
