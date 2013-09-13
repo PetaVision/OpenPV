@@ -63,7 +63,6 @@ ANNLayer "output" = {
     nyScale = 1;
     nf = 8; // 8 outputs 
     phase = 1;
-    marginWidth = 4;
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = 1;
