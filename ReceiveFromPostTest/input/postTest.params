@@ -1,4 +1,4 @@
-debugParsing = true;
+debugParsing = false;
 
 HyPerCol "column" = {
     nx = 32; //1242;  // KITTI synced value
@@ -13,7 +13,7 @@ HyPerCol "column" = {
     filenamesContainConnectionNames = true;
     checkpointRead = false;
     checkpointWrite = false;
-    deleteOlderCheckpoints = false;
+    // deleteOlderCheckpoints = false;
     suppressLastOutput = false;
     writeProgressToErr = true;
 };
@@ -26,18 +26,19 @@ Image "image" = {
     imagePath = "input/sampleimage.png";
     nf = 1; //number of features.
     phase = 0; //phase defines an order in which layers should be executed.
-    marginWidth = 0;   
     writeStep = 1;  //-1 means doesn't write for log
     writeSparseActivity = false; //only write weights which are not 0
-    mirrorBCflag = false;    //board condition flag
+    mirrorBCflag = false;    //border condition flag
+    valueBC = 0.0; // Value in border if mirrorBCflag is false
     useImageBCflag = false;
     inverseFlag = false; 
     normalizeLuminanceFlag = false;
+    autoResizeFlag = false;
     writeImages = false;
     offsetX = 0;  // offset for crop, when the input size is smaller than the size of image
     offsetY = 0;
     jitterFlag = false; // moving around like an eyeball. our eyeballs are not still even when we are gazing at something.
-    frameNumber = 0;
+    // frameNumber = 0;
 };
 
 ANNLayer "input" = {
@@ -45,8 +46,8 @@ ANNLayer "input" = {
     nxScale = .5;
     nyScale = .5;
     nf = 1;
-    marginWidth = 0;
     writeStep = 1.0;
+    initialWriteTime = 0.0;
     mirrorBCflag = -1;
     writeSparseActivity = 0;
     //
@@ -64,8 +65,8 @@ ANNLayer "outputRecvPre" = {
     nxScale = 1;
     nyScale = 1;
     nf = 3;
-    marginWidth = 0;
     writeStep = 1.0;
+    initialWriteTime = 0.0;
     mirrorBCflag = -1;
     writeSparseActivity = 0;
     //
@@ -83,8 +84,8 @@ ANNLayer "outputRecvPost" = {
     nxScale = 1;
     nyScale = 1;
     nf = 3;
-    marginWidth = 0;
     writeStep = 1.0;
+    initialWriteTime = 0.0;
     mirrorBCflag = -1;
     writeSparseActivity = 0;
     //
@@ -102,8 +103,8 @@ ANNLayer "outputTest" = {
     nxScale = 1;
     nyScale = 1;
     nf = 3;
-    marginWidth = 0;
     writeStep = 1.0;
+    initialWriteTime = 0.0;
     mirrorBCflag = -1;
     writeSparseActivity = 0;
     //
@@ -129,12 +130,12 @@ KernelConn "ImageToInput" = {
     channelCode = 0;
 
     weightInitType = "Gauss2DWeight";
-    aspec = 1;
+    aspect = 1.0;
     sigma = 10000;
     rMax = 8;
     rMin = 0;
-    numOrientationsPre = 1;
-    numOrientationsPost = 1;
+    // numOrientationsPre = 1;
+    // numOrientationsPost = 1;
 
     strength = 1.0;  
     normalizeMethod = "normalizeSum";
@@ -148,7 +149,7 @@ KernelConn "ImageToInput" = {
     //writeCompressedWeights = 0.0;
     writeCompressedCheckpoints = false;
     plasticityFlag = 0;
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
      
     delay = 0;
      
@@ -169,8 +170,10 @@ KernelConn "origConn" = {
     numAxonalArbors = 5;
     initFromLastFlag = 0;  // 1;  // restart
     writeStep = 1;
+    initialWriteTime = 0.0;
+    writeCompressedWeights = false;
     
-    weightInitType = "UniformWeight";
+    weightInitType = "UniformRandomWeight";
     weightInit = 1.0;
     sparseFraction = 0;
         
@@ -179,14 +182,14 @@ KernelConn "origConn" = {
     minSumTolerated = 0;
     normalizeArborsIndividually = 1;
     normalize_cutoff = 0.0;
-    normalizeFromPostPerspective = true;
+    normalizeFromPostPerspective = false;
     symmetrizeWeights = false;
     
     shrinkPatches = false;
     //writeCompressedWeights = 0.0;
     writeCompressedCheckpoints = false;
     plasticityFlag = 0;
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
      
     delay = 0;
      
@@ -195,6 +198,7 @@ KernelConn "origConn" = {
     shmget_flag = false;
 
     updateGSynFromPostPerspective = false;
+    useWindowPost = false;
 };
 
 TransposeConn "transposeConn" = {
@@ -208,7 +212,7 @@ TransposeConn "transposeConn" = {
     writeCompressedCheckpoints = false;
     shmget_flag = false;
     delay = 0;
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
     updateGSynFromPostPerspective = false;
 };
 
@@ -219,12 +223,14 @@ TransposeConn "doubleTransposeConn" = {
     originalConnName = "transposeConn";
     selfFlag = false;
     preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
-    writeStep = 1;
+    writeStep = 1.0;
+    initialWriteTime = 0.0;
+    writeCompressedWeights = false;
     writeCompressedCheckpoints = false;
     shmget_flag = false;
     delay = 0;
-    stochasticReleaseFlag = false;
-    updateGSynFromPostPerspective = true;
+    pvpatchAccumulateType = "convolve";
+    updateGSynFromPostPerspective = false;
 };
 
 IdentConn "RecvPostTest" = {
