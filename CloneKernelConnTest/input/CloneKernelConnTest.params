@@ -54,12 +54,12 @@ Movie "input" = {
     writeImages = false;
 
     displayPeriod = 100;
-    start_frame_index = 0;
-    skip_frame_index = 0;
-    echoFramePathnameFlag = false;
-    jitterFlag = false;
     randomMovie = true;
     randomMovieProb = 0.25;
+    // start_frame_index = 0;
+    // skip_frame_index = 0;
+    // echoFramePathnameFlag = false;
+    jitterFlag = false;
     offsetX = 0;
     offsetY = 0;
 };
