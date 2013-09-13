@@ -304,7 +304,7 @@ KernelConn "AnaRetina to Layer A" = {
     
     nxp = 1;
     nyp = 1;
-    nfp = 8;
+    // nfp = 8; // nfp taken from initWeightsFile file, so not needed in params
     numAxonalArbors = 1;
 
     writeStep = -1;
@@ -320,7 +320,7 @@ KernelConn "AnaRetina to Layer A" = {
     initWeightsFile = "input/weightsA.pvp";
     useListOfArborFiles = false;
     combineWeightFiles = false;
-    normalize = false;
+    normalizeMethod = "none";
     
     plasticityFlag = false;
     pvpatchAccumulateType = "convolve";
@@ -420,7 +420,7 @@ KernelConn "Arrow AnaLayer A to Layer B" = {
     
     nxp = 1;
     nyp = 1;
-    nfp = 2;
+    // nfp = 2; // nfp read from initWeightsFile file
     numAxonalArbors = 1;
 
     writeStep = -1;
@@ -436,7 +436,7 @@ KernelConn "Arrow AnaLayer A to Layer B" = {
     initWeightsFile = "input/weightsB.pvp";
     useListOfArborFiles = false;
     combineWeightFiles = false;
-    normalize = false;
+    normalizeMethod = "none";
     
     plasticityFlag = false;
     pvpatchAccumulateType = "convolve";
