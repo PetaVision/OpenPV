@@ -324,7 +324,6 @@ KernelConn "OneToOneCenterFirst_Center" = {
     pvpatchAccumulateType = "convolve"; //if it's true, then the connections between neurons will fire with a certain probability.
     shrinkPatches = false; //if only a small part of connections whose weights are non-zero, then we could shrink the whole networks
     
-    useWindowPost = false;
     updateGSynFromPostPerspective = false;
 };
 
@@ -365,7 +364,6 @@ KernelConn "OneToOneCenterFirst_Surround" = {
     pvpatchAccumulateType = "convolve"; //if it's true, then the connections between neurons will fire with a certain probability.
     shrinkPatches = false; //if only a small part of connections whose weights are non-zero, then we could shrink the whole networks
 
-    useWindowPost = false;  
     updateGSynFromPostPerspective = false;
 };
 
@@ -406,7 +404,6 @@ KernelConn "OneToOneSurroundFirst_Surround" = {
     pvpatchAccumulateType = "convolve"; //if it's true, then the connections between neurons will fire with a certain probability.
     shrinkPatches = false; //if only a small part of connections whose weights are non-zero, then we could shrink the whole networks
 
-    useWindowPost = false;  
     updateGSynFromPostPerspective = false;
 };
 
@@ -447,7 +444,6 @@ KernelConn "OneToOneSurroundFirst_Center" = {
     pvpatchAccumulateType = "convolve"; //if it's true, then the connections between neurons will fire with a certain probability.
     shrinkPatches = false; //if only a small part of connections whose weights are non-zero, then we could shrink the whole networks
 
-    useWindowPost = false;  
     updateGSynFromPostPerspective = false;
 };
 
@@ -488,7 +484,6 @@ KernelConn "ManyToOneCenterFirst_Center" = {
     pvpatchAccumulateType = "convolve"; //if it's true, then the connections between neurons will fire with a certain probability.
     shrinkPatches = false; //if only a small part of connections whose weights are non-zero, then we could shrink the whole networks
     
-    useWindowPost = false;
     updateGSynFromPostPerspective = false;
 };
 
@@ -529,7 +524,6 @@ KernelConn "ManyToOneCenterFirst_Surround" = {
     pvpatchAccumulateType = "convolve"; //if it's true, then the connections between neurons will fire with a certain probability.
     shrinkPatches = false; //if only a small part of connections whose weights are non-zero, then we could shrink the whole networks
 
-    useWindowPost = false;  
     updateGSynFromPostPerspective = false;
 };
 
@@ -570,7 +564,6 @@ KernelConn "ManyToOneSurroundFirst_Surround" = {
     pvpatchAccumulateType = "convolve"; //if it's true, then the connections between neurons will fire with a certain probability.
     shrinkPatches = false; //if only a small part of connections whose weights are non-zero, then we could shrink the whole networks
 
-    useWindowPost = false;  
     updateGSynFromPostPerspective = false;
 };
 
@@ -611,7 +604,6 @@ KernelConn "ManyToOneSurroundFirst_Center" = {
     pvpatchAccumulateType = "convolve"; //if it's true, then the connections between neurons will fire with a certain probability.
     shrinkPatches = false; //if only a small part of connections whose weights are non-zero, then we could shrink the whole networks
 
-    useWindowPost = false;  
     updateGSynFromPostPerspective = false;
 };
 
@@ -652,7 +644,6 @@ KernelConn "OneToManyCenterFirst_Center" = {
     pvpatchAccumulateType = "convolve"; //if it's true, then the connections between neurons will fire with a certain probability.
     shrinkPatches = false; //if only a small part of connections whose weights are non-zero, then we could shrink the whole networks
     
-    useWindowPost = false;
     updateGSynFromPostPerspective = false;
 };
 
@@ -693,7 +684,6 @@ KernelConn "OneToManyCenterFirst_Surround" = {
     pvpatchAccumulateType = "convolve"; //if it's true, then the connections between neurons will fire with a certain probability.
     shrinkPatches = false; //if only a small part of connections whose weights are non-zero, then we could shrink the whole networks
 
-    useWindowPost = false;  
     updateGSynFromPostPerspective = false;
 };
 
@@ -734,7 +724,6 @@ KernelConn "OneToManySurroundFirst_Surround" = {
     pvpatchAccumulateType = "convolve"; //if it's true, then the connections between neurons will fire with a certain probability.
     shrinkPatches = false; //if only a small part of connections whose weights are non-zero, then we could shrink the whole networks
 
-    useWindowPost = false;  
     updateGSynFromPostPerspective = false;
 };
 
@@ -775,6 +764,5 @@ KernelConn "OneToManySurroundFirst_Center" = {
     pvpatchAccumulateType = "convolve"; //if it's true, then the connections between neurons will fire with a certain probability.
     shrinkPatches = false; //if only a small part of connections whose weights are non-zero, then we could shrink the whole networks
 
-    useWindowPost = false;  
     updateGSynFromPostPerspective = false;
 };
