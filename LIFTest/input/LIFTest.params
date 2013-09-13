@@ -189,9 +189,6 @@ GapLayer "GapTest" = {
     nyScale                         = 1; // Should this be 0.5 or 1?
     nf                              = 1;
     mirrorBCflag                    = true;
-
-    InitVType                       = "ConstantV";
-    valueV                          = -70.0;
     phase                           = 0;
 
     writeStep                       = -1;
