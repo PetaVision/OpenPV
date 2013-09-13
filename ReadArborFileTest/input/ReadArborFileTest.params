@@ -7,6 +7,8 @@
 //  Test the useListOfArborFiles functionality of FileWeight
 //
 
+debugParsing = false;
+
 HyPerCol "column" = {
    nx = 16;   
    ny = 16;
@@ -33,15 +35,16 @@ Image "input" = {
     nyScale = 1;
     imagePath = "input/singledot.png";
     nf = 1;
-    marginWidth = 1;
     phase = 0;
     writeStep = -1;
     writeSparseActivity = false;
     mirrorBCflag = false;
+    valueBC = 0.0;
     
     inverseFlag = false;
     normalizeLuminanceFlag = false;
     useImageBCflag = false;
+    autoResizeFlag = false;
     writeImages = false;
     offsetX = 0;
     offsetY = 0;
@@ -53,7 +56,6 @@ ANNLayer "output1" = {
     nxScale = 1;
     nyScale = 1;
     nf = 1;
-    marginWidth = 0;
     phase = 0;
     writeStep = 1.0;
     initialWriteTime = 0.0;
@@ -73,7 +75,6 @@ ANNLayer "output2" = {
     nxScale = 1;
     nyScale = 1;
     nf = 1;
-    marginWidth = 0;
     phase = 0;
     writeStep = 1.0;
     initialWriteTime = 0.0;
@@ -93,7 +94,6 @@ ANNLayer "comparison" = {
     nxScale = 1;
     nyScale = 1;
     nf = 1;
-    marginWidth = 0;
     phase = 0;
     writeStep = 1.0;
     initialWriteTime = 0.0;
@@ -132,10 +132,12 @@ KernelConn "all arbors at once" = {
 
     delay = 0;
 
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
     shrinkPatches = false;
     preActivityIsNotRate = false;
     selfFlag = false;
+    updateGSynFromPostPerspective = false;
+    useWindowPost = false;
 };
 
 KernelConn "arbors split into files" = {
@@ -162,10 +164,12 @@ KernelConn "arbors split into files" = {
 
     delay = 0;
 
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
     shrinkPatches = false;
     preActivityIsNotRate = false;
     selfFlag = false;
+    updateGSynFromPostPerspective = false;
+    useWindowPost = false;
 };
 
 IdentConn "output1 to comparison" = {
@@ -179,4 +183,3 @@ IdentConn "output2 to comparison" = {
     delay = 0;
     writeStep = -1;
 };
-
