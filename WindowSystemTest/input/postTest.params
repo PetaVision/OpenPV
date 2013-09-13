@@ -1,4 +1,4 @@
-debugParsing = true;
+debugParsing = false;
 
 HyPerCol "column" = {
     nx = 32; //1242;  // KITTI synced value
@@ -13,7 +13,7 @@ HyPerCol "column" = {
     filenamesContainConnectionNames = true;
     checkpointRead = false;
     checkpointWrite = false;
-    deleteOlderCheckpoints = false;
+    // deleteOlderCheckpoints = false;
     suppressLastOutput = false;
     writeProgressToErr = true;
 };
@@ -23,8 +23,8 @@ WindowTestLayer "input" = {
     nxScale = 1;
     nyScale = 1;
     nf = 1;
-    marginWidth = 5;
     writeStep = 1.0;
+    initialWriteTime = 0.0;
     mirrorBCflag = -1;
     writeSparseActivity = 0;
     //
@@ -46,8 +46,8 @@ WindowLCALayer "output" = {
     nxScale = .5;
     nyScale = .5;
     nf = 10;
-    marginWidth = 5;
     writeStep = 1.0;
+    initialWriteTime = 0.0;
     mirrorBCflag = -1;
     writeSparseActivity = 0;
     //
@@ -62,7 +62,7 @@ WindowLCALayer "output" = {
     numWindowX = 16;
     numWindowY = 1;
     windowSymX = true;
-    windowSymY = false;
+    // windowSymY = false;
 
     phase = 1; 
 };
@@ -77,12 +77,14 @@ KernelConn "outToIn" = {
     numAxonalArbors = 8;
     initFromLastFlag = 0;  // 1;  // restart
     writeStep = 1;
+    initialWriteTime = 0.0;
+    writeCompressedWeights = false;
     
     weightInitType = "ArborWeight";
     //weightInit = 1.0;
     //sparseFraction = 0;
         
-    strength = 1.0;  
+    //strength = 1.0;  
     normalizeMethod = "none";
     //minL2NormTolerated = 0;
     //normalizeArborsIndividually = 1;
@@ -94,7 +96,7 @@ KernelConn "outToIn" = {
     //writeCompressedWeights = 0.0;
     writeCompressedCheckpoints = false;
     plasticityFlag = 0;
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
      
     delay = 0;
      
@@ -117,7 +119,7 @@ TransposeConn "inToOut" = {
     writeCompressedCheckpoints = false;
     shmget_flag = false;
     delay = 0;
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
 
     useWindowPost = true;
     updateGSynFromPostPerspective = true;
