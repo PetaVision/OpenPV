@@ -34,11 +34,11 @@ PlasticConnTestLayer "pre" = {
     nxScale = 1;
     nyScale = 1;
     nf = 1;
-    marginWidth = 4;
     phase = 0;
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = false;
+    valueBC = 0.0;
     writeSparseActivity = false;
 
     InitVType = "ConstantV";
@@ -56,11 +56,11 @@ PlasticConnTestLayer "post" = {
     nxScale = 1;
     nyScale = 1;
     nf = 1;
-    marginWidth = 0;
     phase = 0;
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = false;
+    valueBC = 0.0;
     writeSparseActivity = false;
 
     InitVType = "ConstantV";
@@ -98,13 +98,14 @@ PlasticTestConn "pre to post" = {
 
     delay = 0;     
 
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
     shrinkPatches = false;
     preActivityIsNotRate = false;
     selfFlag = false;
     combine_dW_with_W_flag = false;
     dWMax = 1.0;
     keepKernelsSynchronized = true;
+    updateGSynFromPostPerspective = false;
 };
 
 // PlasticConnTestProbe "probe"
