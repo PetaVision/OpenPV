@@ -41,7 +41,6 @@ Image "input" = {
     useParamsImage              = false; //Load from checkpoint
     imagePath                   = "input/sampleimage.png";
     nf                          = 1;
-    marginWidth                 = 3;
     phase                       = 0;
     writeStep                   = -1;
     writeSparseActivity         = false;
@@ -50,6 +49,7 @@ Image "input" = {
     useImageBCflag              = false;
     inverseFlag                 = false;
     normalizeLuminanceFlag      = false;
+    autoResizeFlag              = false;
     jitterFlag                  = false;
     writeImages                 = false;
     offsetX                     = 0;
@@ -60,7 +60,6 @@ Retina "retina on" = {
     nxScale                     = 1;
     nyScale                     = 1;
     nf                          = 1;
-    marginWidth                 = 4;
     phase                       = 0;
     restart                     = false;
     
@@ -86,7 +85,6 @@ Retina "retina off" = {
     nxScale                     = 1;
     nyScale                     = 1;
     nf                          = 1;
-    marginWidth                 = 4;
     phase                       = 0;
     restart                     = false;
     
@@ -113,7 +111,6 @@ LIFGap "lif layer" = {
     nxScale                     = 1;
     nyScale                     = 1;
     nf                          = 1;
-    marginWidth                 = 1;
     phase                       = 0;
     writeSparseActivity         = true;
     writeStep                   = -1.0;
@@ -167,18 +164,19 @@ KernelConn "center on" = {
    combineWeightFiles           = false;
 
    normalizeMethod              = "normalizeSum";
+   minSumTolerated              = 0.0;
    normalizeFromPostPerspective = true;
    normalizeArborsIndividually  = false;
    normalize_cutoff             = false;
    symmetrizeWeights            = false;
    plasticityFlag               = false;
    shmget_flag                  = true;
-   stochasticReleaseFlag        = false;
+   pvpatchAccumulateType        = "convolve";
    writeCompressedCheckpoints   = false;
    selfFlag                     = false;
    shrinkPatches                = false;
    preActivityIsNotRate         = false;
-   minSumTolerated              = 0.0;
+   updateGSynFromPostPerspective = false;
 };
 
 KernelConn "surround on" = {
@@ -203,18 +201,19 @@ KernelConn "surround on" = {
    combineWeightFiles           = false;
 
    normalizeMethod              = "normalizeSum";
+   minSumTolerated              = 0.0;
    normalizeFromPostPerspective = true;
    normalizeArborsIndividually  = false;
    normalize_cutoff             = false;
    symmetrizeWeights            = false;
    plasticityFlag               = false;
    shmget_flag                  = true;
-   stochasticReleaseFlag        = false;
+   pvpatchAccumulateType        = "convolve";
    writeCompressedCheckpoints   = false;
    selfFlag                     = false;
    shrinkPatches                = false;
    preActivityIsNotRate         = false;
-   minSumTolerated              = 0.0;
+   updateGSynFromPostPerspective = false;
 };
 
 KernelConn "center off" = {
@@ -240,18 +239,19 @@ KernelConn "center off" = {
    combineWeightFiles           = false;
 
    normalizeMethod              = "normalizeSum";
+   minSumTolerated              = 0.0;
    normalizeFromPostPerspective = true;
    normalizeArborsIndividually  = false;
    normalize_cutoff             = false;
    symmetrizeWeights            = false;
    plasticityFlag               = false;
    shmget_flag                  = true;
-   stochasticReleaseFlag        = false;
+   pvpatchAccumulateType        = "convolve";
    writeCompressedCheckpoints   = false;
    selfFlag                     = false;
    shrinkPatches                = false;
    preActivityIsNotRate         = false;
-   minSumTolerated              = 0.0;
+   updateGSynFromPostPerspective = false;
 };
 
 KernelConn "surround off" = {
@@ -276,18 +276,19 @@ KernelConn "surround off" = {
    combineWeightFiles           = false;
 
    normalizeMethod              = "normalizeSum";
+   minSumTolerated              = 0.0;
    normalizeFromPostPerspective = true;
    normalizeArborsIndividually  = false;
    normalize_cutoff             = false;
    symmetrizeWeights            = false;
    plasticityFlag               = false;
    shmget_flag                  = true;
-   stochasticReleaseFlag        = false;
+   pvpatchAccumulateType        = "convolve";
    writeCompressedCheckpoints   = false;
    selfFlag                     = false;
    shrinkPatches                = false;
    preActivityIsNotRate         = false;
-   minSumTolerated              = 0.0;
+   updateGSynFromPostPerspective = false;
 };
 
 KernelConn "retina on to lif layer" = {
@@ -308,11 +309,12 @@ KernelConn "retina on to lif layer" = {
    normalizeMethod              = "none";
    plasticityFlag              = false;
    shmget_flag                 = true;
-   stochasticReleaseFlag       = false;
+   pvpatchAccumulateType        = "convolve";
    writeCompressedCheckpoints  = false;
    selfFlag                    = false;
    shrinkPatches               = false;
    preActivityIsNotRate        = false;
+   updateGSynFromPostPerspective = false;
 };
 
 KernelConn "retina off to lif layer" = {
@@ -333,10 +335,11 @@ KernelConn "retina off to lif layer" = {
    normalizeMethod              = "none";
    plasticityFlag              = false;
    shmget_flag                 = true;
-   stochasticReleaseFlag       = false;
+   pvpatchAccumulateType        = "convolve";
    writeCompressedCheckpoints  = false;
    selfFlag                    = false;
    shrinkPatches               = false;
    preActivityIsNotRate        = false;
+   updateGSynFromPostPerspective = false;
 };
 
