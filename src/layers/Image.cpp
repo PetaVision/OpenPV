@@ -449,7 +449,6 @@ int Image::readImage(const char * filename, int offsetX, int offsetY, GDALColorI
    }
    else if (loc->nf > 1 && imageLoc.nf == 1)
    {
-       delete buf;
        buf = copyGrayScaletoMultiBands(buf,loc->nx,loc->ny,loc->nf,colorbandtypes);
        n = loc->nx * loc->ny * loc->nf;
        
@@ -653,7 +652,7 @@ float * Image::convertToGrayScale(float * buf, int nx, int ny, int numBands, GDA
             }
 
         }
-
+        delete buf;
         return multiBandsBuf;
                 
     }
