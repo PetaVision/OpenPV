@@ -485,6 +485,7 @@ int HyPerConn::initialize(const char * name, HyPerCol * hc, const char * pre_lay
       break;
    default:
       assert(0);
+      break;
    }
 
    ioAppend = parent->getCheckpointReadFlag();
