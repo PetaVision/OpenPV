@@ -891,6 +891,7 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
          addedConn = (HyPerConn * ) new IdentConn(name, hc, preLayerName, postLayerName);
       }
    }
+#ifdef OBSOLETE // Marked obsolete July 3, 2013.  No longer pass HyPerLayers to the connections' constructors, but names
    if( !keywordMatched && !strcmp(classkeyword, "LCAConn") ) {
      keywordMatched = true;
      HyPerConn::getPreAndPostLayerNames(name, hc->parameters(), &preLayerName, &postLayerName);
@@ -900,6 +901,7 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
        addedConn = (HyPerConn * ) new LCAConn(name, hc, preLayerName, postLayerName, fileName, weightInitializer, movieLayerName );
      }
    }
+#endif // OBSOLETE
    if( !keywordMatched && !strcmp(classkeyword, "LCALIFLateralKernelConn") ) {
       keywordMatched = true;
       HyPerConn::getPreAndPostLayerNames(name, hc->parameters(), &preLayerName, &postLayerName);

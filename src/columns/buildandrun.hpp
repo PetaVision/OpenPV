@@ -72,7 +72,9 @@
 #include "../connections/GenerativeConn.hpp"
 #include "../connections/PoolingGenConn.hpp"
 #include "../connections/IdentConn.hpp"
+#ifdef OBSOLETE  // Marked obsolete Sept 16, 2013.  Learning rule for LCA is the same in KernelConn, so no need to subclass
 #include "../connections/LCAConn.hpp"
+#endif
 #include "../connections/LCALIFLateralKernelConn.hpp"
 #include "../connections/NoSelfKernelConn.hpp"
 #include "../connections/SiblingConn.hpp"
