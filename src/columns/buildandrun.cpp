@@ -153,7 +153,9 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
                  "GapConn",
                  "GenerativeConn",
                    "PoolingGenConn",
+#ifdef OBSOLETE  // Marked obsolete Sept 16, 2013.  Learning rule for LCA is the same in KernelConn, so no need to subclass
                  "LCAConn",
+#endif // OBSOLETE
                  "LCALIFLateralKernelConn",
                  "NoSelfKernelConn",
                    "SiblingConn",
@@ -891,7 +893,7 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
          addedConn = (HyPerConn * ) new IdentConn(name, hc, preLayerName, postLayerName);
       }
    }
-#ifdef OBSOLETE // Marked obsolete July 3, 2013.  No longer pass HyPerLayers to the connections' constructors, but names
+#ifdef OBSOLETE  // Marked obsolete Sept 16, 2013.  Learning rule for LCA is the same in KernelConn, so no need to subclass
    if( !keywordMatched && !strcmp(classkeyword, "LCAConn") ) {
      keywordMatched = true;
      HyPerConn::getPreAndPostLayerNames(name, hc->parameters(), &preLayerName, &postLayerName);
