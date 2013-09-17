@@ -17,16 +17,16 @@ HyPerCol "column" = {
    ny = 32;
    dt = 1.0;
    randomSeed = 1234567890;
-   numSteps = 54000000; //53000000;
+   numSteps = 1000000; //
    progressStep = 100;
-   outputPath = "output_train_2ndPass/";
+   outputPath = "/Users/garkenyon/workspace/MNIST/output_test_guess_10_5thPassPlus/";
    filenamesContainLayerNames = true;
    filenamesContainConnectionNames = true;
-   checkpointRead = true;
-   checkpointReadDir = "output_train_1stPass/Checkpoints";
-   checkpointReadDirIndex = 53000000;
+   checkpointRead = false;
+   checkpointReadDir = "/Users/garkenyon/workspace/MNIST/output_test_guess_2ndPass/Checkpoints";
+   checkpointReadDirIndex = 53927000;
    checkpointWrite = true;
-   checkpointWriteDir = "output_train_2ndPass/Checkpoints";
+   checkpointWriteDir = "/Users/garkenyon/workspace/MNIST/output_test_guess_10_5thPassPlus/Checkpoints";
    checkpointWriteStepInterval = 1000000;
    deleteOlderCheckpoints = true;
    suppressLastOutput = false;
@@ -42,10 +42,8 @@ Movie "Image" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
-    imageListPath = "/Users/garkenyon/workspace/MNIST/input/randorder.txt";
+    imageListPath = "/Users/garkenyon/workspace/MNIST/input/trainingtest_random.txt";
     nf = 1;
-    marginWidth = 1;
-    writeStep = -1;
     writeSparseActivity = false;
     displayPeriod = 1000;
     start_frame_index = 1;
@@ -58,6 +56,8 @@ Movie "Image" = {
     inverseFlag = false;
     normalizeLuminanceFlag = true;
     writeImages = false;
+    initialWriteTime = 998;
+    writeStep = 1000;    
     autoResizeFlag = true;
     offsetX = 0;
     offsetY = 0;
@@ -66,14 +66,20 @@ Movie "Image" = {
 };
 
 LabelLayer "labels" = {
+    restart = 0;
+    //nxScale = 0.03125;
+    //nyScale = 0.03125;
     nf = 10;
     labelStart = 32; // 31; // bcrocker == 31, gkenyon = 32
     labelLength = 1;
-    echoFramePathnameFlag = true;
+    echoLabelFlag = true;
     movieLayerName = "Image";
+    mirrorBCflag = 0;
+    valueBC = 0;
+    initialWriteTime = 998;
+    writeStep = 1000;    
     phase = 1;
-    marginWidth = 0;
-    writeStep = -1;    
+    writeSparseActivity = 0;
 };
 
 ANNLayer "movieError" = {
@@ -81,9 +87,10 @@ ANNLayer "movieError" = {
     nxScale = 1;
     nyScale = 1;
     nf = 1;
-    marginWidth = 6;
-    writeStep = -1;
+    writeStep = 1000;
+    initialWriteTime = 998;
     mirrorBCflag = 0;
+    valueBC = 0;
     writeSparseActivity = 0;
 
     InitVType = "ZeroV";
@@ -100,9 +107,10 @@ ANNLayer "labelError" = {
     nxScale = 0.03125;
     nyScale = 0.03125;
     nf = 10;
-    marginWidth = 0;
-    writeStep = -1;
+    writeStep = 1000;
+    initialWriteTime = 998;
     mirrorBCflag = 0;
+    valueBC = 0;
     writeSparseActivity = 0;
 
     InitVType = "ZeroV";
@@ -111,7 +119,7 @@ ANNLayer "labelError" = {
     VMin = -infinity;
     VShift = 0;
     
-    phase = 3;
+    phase = 2;
 };
 
 
@@ -121,24 +129,30 @@ HyPerLCALayer "V1" = {
     nxScale = 0.03125;
     nyScale = 0.03125;
     nf = 1400;
-    marginWidth = 0;
+    numChannels = 1;
     initialWriteTime = 998;
     writeStep = 1000;
-    mirrorBCflag = 1;
+    mirrorBCflag = 0;
+    valueBC = 0;
     writeSparseActivity = 1;
+    numWindowX = 1;
+    numWindowY = 1;
 
-    InitVType = "UniformRandomV";
-    minV = -1.0;
-    maxV = 0.01;
+    InitVType = "InitVFromFile";
+    //Vfilename = "/Users/garkenyon/workspace/MNIST/output_train_05_4thPass/Checkpoints/Checkpoint53927000/V1_V.pvp";
+    Vfilename = "/Users/garkenyon/workspace/MNIST/output_train_10_5thPassPlus/Checkpoints/Checkpoint5010000/V1_V.pvp";
+    //InitVType = "UniformRandomV";
+    //minV = -1.0;
+    //maxV = 0.05;
     
     timeConstantTau = 100.0;
     
-    VThresh = 0.04;
+    VThresh = 0.10; //0.06; // 0.05; //0.04;
     VMax = infinity;
     VMin = 0;
     VShift = 0.0;
 
-    phase = 4;
+    phase = 3;
 };
 
 ANNLayer "movieRecon" = {
@@ -146,10 +160,10 @@ ANNLayer "movieRecon" = {
     nxScale = 1;
     nyScale = 1;
     nf = 1;
-    marginWidth = 0;
     initialWriteTime = 998;
     writeStep = 1000;
-    mirrorBCflag = 1;
+    mirrorBCflag = 0;
+    valueBC = 0;
     writeSparseActivity = 0;
 
     InitVType = "ZeroV";
@@ -158,7 +172,7 @@ ANNLayer "movieRecon" = {
     VMin = -infinity;
     VShift = 0;
     
-    phase = 5;
+    phase = 4;
 };
 
 ANNLayer "labelRecon" = {
@@ -166,10 +180,10 @@ ANNLayer "labelRecon" = {
     nxScale = 0.03125;
     nyScale = 0.03125;
     nf = 10;
-    marginWidth = 0;
     initialWriteTime = 998;
     writeStep = 1000;
-    mirrorBCflag = 1;
+    mirrorBCflag = 0;
+    valueBC = 0;
     writeSparseActivity = 0;
 
     InitVType = "ZeroV";
@@ -178,7 +192,7 @@ ANNLayer "labelRecon" = {
     VMin = -infinity;
     VShift = 0;
     
-    phase = 6;
+    phase = 4;
 };
 
 
@@ -192,11 +206,20 @@ KernelConn "MovieToError" = {
     channelCode = 0;
     nxp = 1;
     nyp = 1;
+    nfp = 1;
     numAxonalArbors = 1;
     initFromLastFlag = 0;
     weightInitType = "UniformWeight";
-    weightInit = .03125;  // 1/sqrt(32*32);
+    weightInit = 0.0625; //0.03125;  // 1/sqrt(32*32);
     normalizeMethod = "none";
+    pvpatchAccumulateType = "convolve";
+    preActivityIsNotRate = false;  
+    plasticityFlag = false;
+    writeCompressedWeights = false;
+    writeCompressedCheckpoints = false;
+    updateGSynFromPostPerspective = false;
+    shrinkPatches = false;
+    selfFlag = false;
     delay = 0;
     writeStep = -1;
 };
@@ -212,33 +235,38 @@ KernelConn "V1ToMovieError" = {
     
     weightInitType = "FileWeight";
     //initWeightsFile = "/Users/garkenyon/workspace/MNIST/InitializedWeightFiles/w_imprintedweights.pvp";
-    initWeightsFile = "output_train_1stPass/Checkpoints/Checkpoint53000000/V1ToMovieError_W.pvp";
+    //initWeightsFile = "/Users/garkenyon/workspace/MNIST/output_train_10_4thPass/Checkpoints/Checkpoint53927000/V1ToMovieError_W.pvp";
+    initWeightsFile = "/Users/garkenyon/workspace/MNIST/output_train_10_5thPassPlus/Checkpoints/Checkpoint5010000/V1ToMovieError_W.pvp";
+    useListOfArborFiles = false;
+    combineWeightFiles = false;
 
     //weightInitType = "UniformRandomWeight";
     //wMinInit = -1.0;
     //wMaxInit = 1.0;
     //sparseFraction = 0.9;
    
-    strength = 0.5;  
+    strength = 1.0; //0.70711; //0.5;  
     normalizeMethod = "normalizeL2";
     minL2NormTolerated = 0;
     normalizeArborsIndividually = 0;
     normalize_cutoff = 0.0;
     normalizeFromPostPerspective = false;
     symmetrizeWeights = false;
-
-    preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
-    keepKernelsSynchronized = true; 
-    combine_dW_with_W_flag = false; 
+    pvpatchAccumulateType = "convolve";
+    preActivityIsNotRate = false;  
+    //keepKernelsSynchronized = true; 
+    //combine_dW_with_W_flag = false; 
 
     writeStep = 1000000;
     writeCompressedWeights = false;
     writeCompressedCheckpoints = false;
-    plasticityFlag = true;
-    weightUpdatePeriod = 1000.0;
-    initialWeightUpdateTime = 999.0;
+    updateGSynFromPostPerspective = false;
+    
+    plasticityFlag = false; //true;
+    //weightUpdatePeriod = 1000.0;
+    //initialWeightUpdateTime = 999.0;
     initialWriteTime = 0.0;
-    dWMax = 0.01; //0.0005;
+    //dWMax = 0.05; //0.0005;
     selfFlag = false;
     shmget_flag = false;
 
@@ -254,6 +282,8 @@ TransposeConn "MovieErrorToV1" = {
     
     originalConnName = "V1ToMovieError";
          
+    pvpatchAccumulateType = "convolve";
+    updateGSynFromPostPerspective = false;
     selfFlag = false;
     preActivityIsNotRate = false;	
     writeStep = -1;
@@ -264,14 +294,17 @@ TransposeConn "MovieErrorToV1" = {
 };
 
 CloneKernelConn "V1ToMovieRecon" = {
-   preLayerName = "V1";
-   postLayerName = "movieRecon";
-   channelCode = 0;
-   writeStep = -1;
-   originalConnName = "V1ToMovieError";
-   selfFlag = false;
-   delay = 0;
-   preActivityIsNotRate = false;
+    preLayerName = "V1";
+    postLayerName = "movieRecon";
+    channelCode = 0;
+    writeStep = -1;
+    originalConnName = "V1ToMovieError";
+    selfFlag = false;
+    delay = 0;
+    preActivityIsNotRate = false;
+    pvpatchAccumulateType = "convolve";
+    writeCompressedCheckpoints = false;
+    updateGSynFromPostPerspective = false;
 };
 
 
@@ -295,14 +328,17 @@ KernelConn "V1ToLabelError" = {
     
     weightInitType = "FileWeight";
     //initWeightsFile = "/Users/garkenyon/workspace/MNIST/InitializedWeightFiles/w_imprintedlabels.pvp";
-    initWeightsFile = "output_train_1stPass/Checkpoints/Checkpoint53000000/V1ToLabelError_W.pvp";
+    //initWeightsFile = "/Users/garkenyon/workspace/MNIST/output_train_05_4thPass/Checkpoints/Checkpoint53927000/V1ToLabelError_W.pvp";
+    initWeightsFile = "/Users/garkenyon/workspace/MNIST/output_train_10_5thPassPlus/Checkpoints/Checkpoint5010000/V1ToLabelError_W.pvp";
+    useListOfArborFiles = false;
+    combineWeightFiles = false;
 
     //weightInitType = "UniformRandomWeight";
     //wMinInit = -1.0;
     //wMaxInit = 1.0;
     //sparseFraction = 0;
    
-    strength = 0.5;  
+    strength = 0.70711; //0.5;  
     normalizeMethod = "normalizeL2";
     minL2NormTolerated = 0;
     normalizeArborsIndividually = 0;
@@ -310,18 +346,20 @@ KernelConn "V1ToLabelError" = {
     normalizeFromPostPerspective = false;
     symmetrizeWeights = false;
 
+    pvpatchAccumulateType = "convolve";
     preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
-    keepKernelsSynchronized = true; 
-    combine_dW_with_W_flag = false; 
+    //keepKernelsSynchronized = true; 
+    //combine_dW_with_W_flag = false; 
 
     writeStep = 1000000;
     writeCompressedWeights = false;
     writeCompressedCheckpoints = false;
-    plasticityFlag = true;
-    weightUpdatePeriod = 1000.0;
-    initialWeightUpdateTime = 999.0;
+    updateGSynFromPostPerspective = false;
+    plasticityFlag = false; //true;
+    //weightUpdatePeriod = 1000.0;
+    //initialWeightUpdateTime = 999.0;
     initialWriteTime = 0.0;
-    dWMax = 0.1; //0.0005;
+    //dWMax = 0.05; //0.0005;
     selfFlag = false;
     shmget_flag = false;
 
@@ -330,31 +368,36 @@ KernelConn "V1ToLabelError" = {
     shrinkPatches = false;
 };
 
-TransposeConn "LabelErrorToV1" = {
-    preLayerName = "labelError";
-    postLayerName = "V1";
-    channelCode = 0;
-    
-    originalConnName = "V1ToLabelError";
-         
-    selfFlag = false;
-    preActivityIsNotRate = false;	
-    writeStep = -1;
-    writeCompressedCheckpoints = false;
-    shmget_flag = false;
-    
-    delay = 0;
-};
+//TransposeConn "LabelErrorToV1" = {
+//    preLayerName = "labelError";
+//    postLayerName = "V1";
+//    channelCode = 0;
+//    
+//    originalConnName = "V1ToLabelError";
+//         
+//    pvpatchAccumulateType = "convolve";
+//    selfFlag = false;
+//    preActivityIsNotRate = false;	
+//    writeStep = -1;
+//    writeCompressedCheckpoints = false;
+//    updateGSynFromPostPerspective = false;
+//    shmget_flag = false;
+//    
+//    delay = 0;
+//};
 
 CloneKernelConn "V1ToLabelRecon" = {
-   preLayerName = "V1";
-   postLayerName = "labelRecon";
-   channelCode = 0;
-   writeStep = -1;
-   originalConnName = "V1ToLabelError";
-   selfFlag = false;
-   delay = 0;
-   preActivityIsNotRate = false;
+    preLayerName = "V1";
+    postLayerName = "labelRecon";
+    channelCode = 0;
+    pvpatchAccumulateType = "convolve";
+    writeStep = -1;
+    originalConnName = "V1ToLabelError";
+    selfFlag = false;
+    writeCompressedCheckpoints = false;
+    updateGSynFromPostPerspective = false;
+    delay = 0;
+    preActivityIsNotRate = false;
 };
 
 
@@ -363,21 +406,14 @@ CloneKernelConn "V1ToLabelRecon" = {
 // Probes
 
 
-
-//StatsProbe "LabelReconStats" = {
-//    targetLayer = "labelRecon";
+//StatsProbe "ImageStatsFile" = {
+//    targetLayer = "Image";
+//    probeOutputFile = "Image_Stats.txt";
 //};
-
-//StatsProbe "V1Stats" = {
-//    targetLayer = "V1";
-//};
-
-
-
-
-//StatsProbe "MovieReconStatsFile" = {
-//    targetLayer = "movieRecon";
-//    probeOutputFile = "MovieRecon_Stats.txt";
+//
+//StatsProbe "LabelsStatsFile" = {
+//    targetLayer = "labels";
+//    probeOutputFile = "Labels_Stats.txt";
 //};
 
 //StatsProbe "LabelReconStatsFile" = {
