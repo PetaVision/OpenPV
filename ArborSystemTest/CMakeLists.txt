@@ -2,7 +2,8 @@
 cmake_minimum_required(VERSION 2.6)
 
 #Set CMAKE_MODULE_PATH
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/../PetaVision/docs/cmake/Modules/")
+### CMAKE_CURRENT_SOURCE_DIR is the location of the cmakelist file currently in production
+#set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PV_WRKSPC_DIR}/PetaVision/docs/cmake/Modules/")
 
 set(CMAKE_C_FLAGS_DEBUG "-g3 -O0")
 set(CMAKE_CXX_FLAGS_DEBUG "-g3 -O0")
@@ -10,7 +11,7 @@ set(CMAKE_C_FLAGS_RELEASE "-g0 -O3")
 set(CMAKE_CXX_FLAGS_RELEASE "-g0 -O3")
 
 if (NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE Debug)
+    set(CMAKE_BUILD_TYPE Debug) # Shouldn't this be Release? -DP
 endif (NOT CMAKE_BUILD_TYPE)
 
 set(PV_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../PetaVision/src")

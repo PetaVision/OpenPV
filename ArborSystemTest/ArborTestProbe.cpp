@@ -6,7 +6,7 @@
  */
 
 #include "ArborTestProbe.hpp"
-#include "../PetaVision/src/include/pv_arch.h"
+#include "../PetaVision/src/include/pv_arch.h" 
 #include "../PetaVision/src/layers/HyPerLayer.hpp"
 #include <string.h>
 #include <assert.h>
