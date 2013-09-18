@@ -11,7 +11,7 @@ set(CMAKE_C_FLAGS_RELEASE "-g0 -O3")
 set(CMAKE_CXX_FLAGS_RELEASE "-g0 -O3")
 
 if (NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE Debug) # Shouldn't this be Release? -DP
+    set(CMAKE_BUILD_TYPE Debug)
 endif (NOT CMAKE_BUILD_TYPE)
 
 set(PV_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../PetaVision/src")
