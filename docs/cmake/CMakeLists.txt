@@ -6,6 +6,9 @@ project(PetaVision)
 # See http://www.cmake.org/Wiki/CMake_Useful_Variables for more variables to set
 cmake_minimum_required(VERSION 2.6)
 
+# Set variable for current working directory (workspace directory)
+set(PV_WRKSPC_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
+
 # The user may specify a non-standard compiler name for MPI
 #  For example, the user may type:
 #    cmake CMakeLists.txt -DCMAKE_C_COMPILER=openmpicc -DCMAKE_CXX_COMPILER=openmpic++
@@ -15,6 +18,5 @@ set(MPI_C_COMPILER_NAME "${CMAKE_C_COMPILER}")
 set(MPI_CXX_COMPILER_NAME "${CMAKE_CXX_COMPILER}")
 
 add_subdirectory(PetaVision)
-add_subdirectory(BasicSystemTest)
 # # Insert additional add_subdirectory commands to add other projects.
-#add_subdirectory(textAnalysis)
+#add_subdirectory(PVSystemTests/BasicSystemTest)
