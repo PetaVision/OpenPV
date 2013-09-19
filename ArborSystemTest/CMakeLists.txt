@@ -2,8 +2,7 @@
 cmake_minimum_required(VERSION 2.6)
 
 #Set CMAKE_MODULE_PATH
-### CMAKE_CURRENT_SOURCE_DIR is the location of the cmakelist file currently in production
-#set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PV_WRKSPC_DIR}/PetaVision/docs/cmake/Modules/")
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PV_WRKSPC_DIR}/PetaVision/docs/cmake/Modules/")
 
 set(CMAKE_C_FLAGS_DEBUG "-g3 -O0")
 set(CMAKE_CXX_FLAGS_DEBUG "-g3 -O0")
