@@ -55,13 +55,14 @@ int main(int argc, char * argv[]) {
    int num_cl_args;
    char ** cl_args;
    num_cl_args = argc + 2;
-   cl_args = (char **) malloc(num_cl_args*sizeof(char *));
+   cl_args = (char **) malloc((num_cl_args+1)*sizeof(char *));
    cl_args[0] = argv[0];
    cl_args[1] = strdup("-p");
    cl_args[2] = strdup("input/LayerRestartTest-Write.params");
    for( int k=1; k<argc; k++) {
       cl_args[k+2] = strdup(argv[k]);
    }
+   cl_args[num_cl_args] = NULL;
    if (rank==0) {
       printf("*** %s: running params file %s\n", cl_args[0], cl_args[2]);
    }
