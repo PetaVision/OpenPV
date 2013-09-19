@@ -148,7 +148,7 @@ int Communicator::commInit(int* argc, char*** argv)
    // the first HyPerCol; after running the first simulation the MPI environment will still exist and you
    // can run the second simulation, etc.
    MPI_Initialized(&mpi_initialized_on_entry);
-   if( !mpi_initialized_on_entry ) MPI_Init(argc, argv);
+   if( !mpi_initialized_on_entry ) MPI_Init(NULL, NULL); // MPI_Init(argc, argv); // null arguments bypass a bug in MPI 1.7
    MPI_Comm_rank(MPI_COMM_WORLD, &worldRank);
    MPI_Comm_size(MPI_COMM_WORLD, &worldSize);
 #else // PV_USE_MPI
