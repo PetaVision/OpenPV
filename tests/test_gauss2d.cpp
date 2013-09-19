@@ -22,10 +22,11 @@ int check_kernel_vs_hyper(HyPerConn * cHyPer, KernelConn * cKernel, int kPre,
 
 int main(int argc, char * argv[])
 {
-   char * cl_args[3];
+   char * cl_args[4];
    cl_args[0] = strdup(argv[0]);
    cl_args[1] = strdup("-p");
    cl_args[2] = strdup("input/test_gauss2d.params");
+   cl_args[3] = NULL;
    const char * pre_layer_name = "test_gauss2d pre";
    const char * post_layer_name = "test_gauss2d post";
    const char * pre2_layer_name = "test_gauss2d pre 2";
