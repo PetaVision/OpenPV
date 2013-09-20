@@ -101,6 +101,7 @@
 #include "../weightinit/InitRuleWeights.hpp"
 #include "../weightinit/InitSubUnitWeights.hpp"
 #include "../weightinit/InitOneToOneWeights.hpp"
+#include "../weightinit/InitOneToOneWeightsWithDelays.hpp"
 #include "../weightinit/InitIdentWeights.hpp"
 #include "../weightinit/InitUniformWeights.hpp"
 #include "../weightinit/InitByArborWeights.hpp"

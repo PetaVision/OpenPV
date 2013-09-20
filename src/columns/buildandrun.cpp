@@ -715,6 +715,9 @@ InitWeights *createInitWeightsObject(const char * name, HyPerCol * hc) {
    else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "OneToOneWeights"))) {
       weightInitializer = new InitOneToOneWeights();
    }
+   else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "OneToOneWeightsWithDelays"))) {
+      weightInitializer = new InitOneToOneWeightsWithDelays();
+   }
    else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "SpreadOverArborsWeight"))) {
       weightInitializer = new InitSpreadOverArborsWeights();
    }
