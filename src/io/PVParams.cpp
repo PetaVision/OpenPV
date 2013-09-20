@@ -135,7 +135,7 @@ int ParameterArray::pushValue(double value) {
          abort();
       }
       memcpy(new_values_dbl, valuesDbl, sizeof(double)*arraySize);
-      free(values); values = new_values;
+      free(valuesDbl); valuesDbl = new_values_dbl;
    }
    assert(arraySize<bufferSize);
    values[arraySize] = value;
