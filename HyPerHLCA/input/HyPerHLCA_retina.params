@@ -1,9 +1,12 @@
 // // HyPerHLCA_retina.params
-//
+// 09-20-2013
 // Modified version of HyPerHLCA_vine_color_deep.params
 // -Wesley Chavez
 //
-// Added Ganglion ON/OFF, Error ON/OFF, Recon ON/OFF layers, and excluded a few layers.
+//
+//
+// Added Ganglion ON/OFF, Error ON/OFF, Recon ON/OFF layers, and excluded a few layers.  Added delayed arbors 
+// from Image ON/OFF to Error ON/OFF.
 ///////////////////////////
 
 debugParsing = true;
@@ -13,17 +16,17 @@ HyPerCol "column" = {
     ny = 240;
     dt = 1.0;
     randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
-    numSteps = 322000; // 14005200; //8039600;// 4019800; //2009900;       // Depends on number of VINE video frames
-    progressStep = 100;
-    outputPath = "/nh/compneuro/Data/vine/LCA/2013_09_11/output_retina";
+    numSteps = 4000; // 14005200; //8039600;// 4019800; //2009900;       // Depends on number of VINE video frames
+    progressStep = 10;
+    outputPath = "~/Documents/workspace/HyPerHLCA/output/spikingTest";
     filenamesContainLayerNames = true;
     filenamesContainConnectionNames = true;
     checkpointRead = false;
-    //checkpointReadDir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_12x12x128_lambda_05X2_color_deep/Checkpoints";
+    //checkpointReadDir = "/nh/compneuro/Data/vine/LCA/2013_09_11/output_retina/Checkpoints/Checkpoint322000";
     //checkpointReadDirIndex = 14005200; //12639600; //8039600;
     checkpointWrite = true;
-    checkpointWriteDir = "/nh/compneuro/Data/vine/LCA/2013_09_11/output_retina/Checkpoints";
-    checkpointWriteStepInterval = 50000;
+    checkpointWriteDir = "~/Documents/workspace/HyPerHLCA/output/spikingTest/Checkpoints";
+    checkpointWriteStepInterval = 1000;
     deleteOlderCheckpoints = false;
     //suppressLastOutput = false;
     writeProgressToErr = true;
@@ -38,11 +41,11 @@ Movie "ImageON" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
-    imageListPath = "/nh/compneuro/Data/vine/list/2013_09_11/frame_filenamesON.txt";
+    imageListPath = "~/Documents/workspace/HyPerHLCA/input/frame_spikesON.txt";
     nf = 1;
     writeStep = -1;
     writeSparseActivity = false;
-    displayPeriod = 1000;
+    displayPeriod = 1;
     start_frame_index = 1;
     skip_frame_index = 1;
     echoFramePathnameFlag = true;
@@ -66,11 +69,11 @@ Movie "ImageOFF" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
-    imageListPath = "/nh/compneuro/Data/vine/list/2013_09_11/frame_filenamesOFF.txt";
+    imageListPath = "~/Documents/workspace/HyPerHLCA/input/frame_spikesOFF.txt";
     nf = 1;
     writeStep = -1;
     writeSparseActivity = false;
-    displayPeriod = 1000;
+    displayPeriod = 1;
     start_frame_index = 1;
     skip_frame_index = 1;
     echoFramePathnameFlag = true;
@@ -94,7 +97,7 @@ ANNErrorLayer "ErrorON" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
-    nf = 1;
+    nf = 16;
     initialWriteTime = 998.0;
     writeStep = 1000;
     mirrorBCflag = 0;
@@ -119,7 +122,7 @@ ANNErrorLayer "ErrorOFF" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
-    nf = 1;
+    nf = 16;
     initialWriteTime = 998.0;
     writeStep = 1000;
     mirrorBCflag = 0;
@@ -160,7 +163,7 @@ HyPerLCALayer "V1" = {
     timeConstantTauMinimum = 10.0;
     slopeErrorStd = 0.01;
     // 
-    VThresh = 0.1; //  // 0.05 works for animalDB
+    VThresh = 0.2; //  // 0.05 works for animalDB
     VMax = infinity;
     VMin = 0;
     VShift = 0.0;  // 0 -> hard threshold, 1 -> soft threshold
@@ -178,7 +181,7 @@ ANNLayer "ReconON" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
-    nf = 1;
+    nf = 16;
     initialWriteTime = 998.0;
     writeStep = 1000.0;
     mirrorBCflag = 0;
@@ -203,7 +206,7 @@ ANNLayer "ReconOFF" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
-    nf = 1;
+    nf = 16;
     initialWriteTime = 998.0;
     writeStep = 1000.0;
     mirrorBCflag = 0;
@@ -231,21 +234,67 @@ ANNLayer "ReconOFF" = {
 
 
 
-IdentConn "ImageONToErrorON" = {
+KernelConn "delayArborON" = {
     preLayerName = "ImageON";
     postLayerName = "ErrorON";
+    
     channelCode = 0;
-    delay = 0;
-    writeStep = -1;
+    nxp         = 1;
+    nyp         = 1;
+    nfp         = 16;
+    
+    //Set delay from 0 to 15
+    delay       = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
+    
+    numAxonalArbors  = 16;
+    useWindowPost    = false;
+    writeStep        = -1;
+    initFromLastFlag = 0;
+
+    weightInitType = "OneToOneWeightsWithDelays";
+    weightInit = 1.0;
+      
+    normalizeMethod        = "none";
+    plasticityFlag         = false;
+    pvpatchAccumulateType  = "convolve";
+    writeCompressedCheckpoints = true;
+    selfFlag               = false;
+    shrinkPatches          = false;
+    updateGSynFromPostPerspective = false;
+    preActivityIsNotRate   = false;
+    shmget_flag            = true;
 };
 
 
-IdentConn "ImageOFFToErrorOFF" = {
+KernelConn "delayArborOFF" = {
     preLayerName = "ImageOFF";
     postLayerName = "ErrorOFF";
+    
     channelCode = 0;
-    delay = 0;
-    writeStep = -1;
+    nxp         = 1;
+    nyp         = 1;
+    nfp         = 16;
+    
+    //Set delay from 0 to 15
+    delay       = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
+    
+    numAxonalArbors  = 16;
+    useWindowPost    = false;
+    writeStep        = -1;
+    initFromLastFlag = 0;
+
+    weightInitType = "OneToOneWeightsWithDelays";
+    weightInit = 1.0;
+      
+    normalizeMethod        = "none";
+    plasticityFlag         = false;
+    pvpatchAccumulateType  = "convolve";
+    writeCompressedCheckpoints = true;
+    selfFlag               = false;
+    shrinkPatches          = false;
+    updateGSynFromPostPerspective = false;
+    preActivityIsNotRate   = false;
+    shmget_flag            = true;
 };
 
 
@@ -255,7 +304,7 @@ KernelConn "V1ToErrorON" = {
     channelCode = 1;
     nxp = 12;
     nyp = 12;
-    nfp = 1;
+    nfp = 16;
     numAxonalArbors = 1;
     initFromLastFlag = 0;
     //
@@ -306,7 +355,7 @@ KernelConn "V1ToErrorOFF" = {
     channelCode = 1;
     nxp = 12;
     nyp = 12;
-    nfp = 1;
+    nfp = 16;
     numAxonalArbors = 1;
     initFromLastFlag = 0;
     //
