@@ -8,7 +8,7 @@
 #ifndef ArborTestProbe_HPP_
 #define ArborTestProbe_HPP_
 
-#include "../PetaVision/src/io/StatsProbe.hpp"
+#include <io/StatsProbe.hpp>
 
 namespace PV {
 

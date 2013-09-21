@@ -3,7 +3,7 @@
  *
  */
 
-#include "../PetaVision/src/columns/buildandrun.hpp"
+#include <columns/buildandrun.hpp>
 #include "ArborTestProbe.hpp"
 #include "ArborTestForOnesProbe.hpp"
 
