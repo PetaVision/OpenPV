@@ -4,7 +4,7 @@
  */
 
 
-#include "../PetaVision/src/columns/buildandrun.hpp"
+#include <columns/buildandrun.hpp>
 #include "CPTestInputLayer.hpp"
 #include "VaryingKernelConn.hpp"
 #include "VaryingHyPerConn.hpp"

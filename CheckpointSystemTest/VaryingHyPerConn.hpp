@@ -8,7 +8,7 @@
 #ifndef VARYINGHYPERCONN_HPP_
 #define VARYINGHYPERCONN_HPP_
 
-#include "../PetaVision/src/connections/HyPerConn.hpp"
+#include <connections/HyPerConn.hpp>
 
 namespace PV {
 

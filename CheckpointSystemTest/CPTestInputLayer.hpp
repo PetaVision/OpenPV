@@ -8,7 +8,7 @@
 #ifndef CPTESTINPUTLAYER_HPP_
 #define CPTESTINPUTLAYER_HPP_
 
-#include "../PetaVision/src/layers/ANNLayer.hpp"
+#include <layers/ANNLayer.hpp>
 
 namespace PV {
 

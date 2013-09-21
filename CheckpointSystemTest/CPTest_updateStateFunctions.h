@@ -11,7 +11,7 @@
 #define CPTEST_UPDATESTATEFUNCTIONS_H_
 
 #ifndef PV_USE_OPENCL
-#include "../PetaVision/src/layers/updateStateFunctions.h"
+#include <layers/updateStateFunctions.h>
 #else
 #define pvdata_t float
 #define max_pvdata_t FLT_MAX

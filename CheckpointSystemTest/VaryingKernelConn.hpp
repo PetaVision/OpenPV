@@ -8,7 +8,7 @@
 #ifndef VARYINGKERNELCONN_HPP_
 #define VARYINGKERNELCONN_HPP_
 
-#include "../PetaVision/src/connections/KernelConn.hpp"
+#include <connections/KernelConn.hpp>
 
 namespace PV {
 

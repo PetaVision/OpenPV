@@ -1,4 +1,4 @@
-#include "../PetaVision/src/layers/updateStateFunctions.h"
+#include <layers/updateStateFunctions.h>
 #include "CPTest_updateStateFunctions.h"
 
 #ifndef PV_USE_OPENCL
