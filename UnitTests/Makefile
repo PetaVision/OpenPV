@@ -123,19 +123,15 @@ TESTS = test_kg \
         test_nearby_neighbor \
         test_delta_pos test_extend_border \
         test_patch_head test_delta \
-        test_sign test_borders \
-        test_datatypes test_post_weights \
+        test_sign test_post_weights \
         test_gauss2d test_cocirc \
         test_mirror_BCs \
         test_border_activity
 #	test_margin_width
 
-CL_TESTS = test_cl_random test_cl_lif test_cl_all
+# CL_TESTS = 
 
-MPI_TESTS = test_mpi_specifyrowscolumns #test_read_header test_image_io test_weights_io test_constant_input
-
-DEPRECATED_TESTS = test_decode_msg \
-                   test_layer_direct     # fixme
+MPI_TESTS = test_mpi_specifyrowscolumns
 
 .SUFFIXES: .cpp .c .o
 
@@ -160,27 +156,6 @@ $(BUILDDIR)/%.o: %.c
 all: make-in-subdirs $(CLASS_OBJS) $(TESTS) $(MPI_TESTS)
 
 check: runtests
-
-test_read_header: $(BUILDDIR)/test_read_header.o $(PVLIB)
-	$(CPP) -o $@ $< $(LIBS)
-
-test_constant_input: $(BUILDDIR)/test_constant_input.o $(BUILDDIR)/TestImage.o $(PVLIB)
-	$(CPP) -o $@ $< $(BUILDDIR)/TestImage.o $(LIBS)
-
-test_image_io: $(BUILDDIR)/test_image_io.o $(PVLIB)
-	$(CPP) -o $@ $< $(LIBS)
-
-test_cl_random: $(BUILDDIR)/test_cl_random.o $(PVLIB)
-	$(CPP) -o $@ $< $(LIBS)
-
-test_cl_lif: $(BUILDDIR)/test_cl_lif.o $(PVLIB)
-	$(CPP) -o $@ $< $(LIBS)
-	
-test_cl_all: $(BUILDDIR)/test_cl_all.o $(PVLIB)
-	$(CPP) -o $@ $< $(LIBS)
-
-test_weights_io: $(BUILDDIR)/test_weights_io.o $(PVLIB)
-	$(CPP) -o $@ $< $(LIBS)
 
 test_kg: $(BUILDDIR)/test_kg.o $(PVLIB)
 	$(CC) -o $@ $< $(LIBS)
@@ -209,23 +184,14 @@ test_gauss2d: $(BUILDDIR)/test_gauss2d.o $(PVLIB) $(CLASS_OBJS)
 test_cocirc: $(BUILDDIR)/test_cocirc.o $(PVLIB) $(CLASS_OBJS)
 	$(CPP) -o $@ $< $(LIBS) $(CLASS_OBJS)
 
-test_decode_msg: $(BUILDDIR)/test_decode_msg.o $(PVLIB)
-	$(CC) -o $@ $< $(LIBS)
-
 test_extend_border: $(BUILDDIR)/test_extend_border.o $(PVLIB)
 	$(CC) -o $@ $< $(LIBS)
-
-test_borders: $(BUILDDIR)/test_borders.o $(PVLIB) $(CLASS_OBJS)
-	$(CPP) -o $@ $< $(LIBS) $(CLASS_OBJS)
 
 test_border_activity: $(BUILDDIR)/test_border_activity.o $(PVLIB)
 	$(CPP) -o $@ $< $(LIBS)
 
 test_mirror_BCs: $(BUILDDIR)/test_mirror_BCs.o $(PVLIB) $(CLASS_OBJS)
 	$(CPP) -o $@ $< $(LIBS) $(CLASS_OBJS)
-
-test_datatypes: $(BUILDDIR)/test_datatypes.o $(PVLIB)
-	$(CPP) -o $@ $< $(LIBS)
 
 test_patch_head: $(BUILDDIR)/test_patch_head.o $(PVLIB)
 	$(CPP) -o $@ $< $(LIBS)
@@ -246,34 +212,6 @@ runMPItests: make-in-subdirs $(MPI_TESTS)
 	@rm -rf output/*.pvp
 	@echo "Running test_mpi_specifyrowscolumns with 6 nodes ..."
 	@if $(MPIRUN) -np 6 ./test_mpi_specifyrowscolumns -p input/test_mpi_specifyrowscolumns.params; then echo "test_mpi_specifyrowscolumns passed."; else echo "test_mpi_specifyrowscolumns FAILED."; fi
-#	@echo "Running test_read_header with 1 node ..."
-#	@./test_read_header -n 1 -p $(INPARAMS)
-#	@echo "Running test_read_header with 2 nodes ..."
-#	@openmpirun -np 2 test_read_header -n 1 -p $(INPARAMS)
-#	@echo "Running test_read_header with 4 nodes ..."
-#	@openmpirun -np 4 test_read_header -n 1 -p $(INPARAMS)
-#	@rm -rf output/*.pvp
-#	@rm -rf output/*.tif
-#	@echo "Running test_image_io with 1 node ..."
-#	@./test_image_io -n 1 -p $(INPARAMS)
-#	@echo "Running test_image_io with 2 nodes ..."
-#	@openmpirun -np 2 test_image_io -n 1 -p $(INPARAMS)
-#	@echo "Running test_image_io with 4 nodes ..."
-#	@openmpirun -np 4 test_image_io -n 1 -p $(INPARAMS)
-#	@echo "Running test_image_io with 6 nodes ..."
-#	@openmpirun -np 6 test_image_io -n 1 -p $(INPARAMS)
-#	@echo "Running test_weights_io with 1 node ..."
-#	@./test_weights_io -n 1 -p $(INPARAMS)
-#	@echo "Running test_weights_io with 2 nodes ..."
-#	@openmpirun -np 2 test_weights_io -n 1 -p $(INPARAMS)
-#	@echo "Running test_weights_io with 4 nodes ..."
-#	@openmpirun -np 4 test_weights_io -n 1 -p $(INPARAMS)
-#	@echo "Running test_weights_io with 6 nodes ..."
-#	@openmpirun -np 6 test_weights_io -n 1 -p $(INPARAMS)
-#	@echo "Running test_constant_input with 2 nodes ..."
-#	@openmpirun -np 2 test_constant_input -p $(INPARAMS)
-#	@echo "Running test_constant_input with 4 nodes ..."
-#	@openmpirun -np 4 test_constant_input -p $(INPARAMS)
 
 runtests: make-in-subdirs $(TESTS)
 	@rm -rf output/*.pvp
@@ -309,10 +247,6 @@ runtests: make-in-subdirs $(TESTS)
 	@if ./test_mirror_BCs; then echo "test_mirror_BCs passed."; else echo "test_mirror_BCs passed."; fi
 	@echo "Running test_border_activity ..."
 	@if ./test_border_activity; then echo "test_border_activity passed."; else echo "test_border_activity FAILED"; fi
-#	@echo "Running test_constant_input with 1 node ..."
-#	@if ./test_constant_input -p $(INPARAMS) then echo "test_constant_input passed."; else echo "test_constant_input FAILED"; fi
-#	@echo "Running test_borders ..."
-#	@if test_borders -p $(INPARAMS) then echo "test_constant_input passed."; else echo "test_constant_input FAILED"; fi
 #	@echo "Running test_transpose_transpose ..."
 #	@if ./test_transpose_transpose -p $(INPARAMS); then echo "test_transpose_transpose passed."; else echo "test_transpose_transpose FAILED"; fi
 #	@echo "Running test_marginwidth ..."
