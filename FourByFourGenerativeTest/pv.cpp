@@ -3,8 +3,8 @@
  *
  */
 
-#include "../PetaVision/src/columns/buildandrun.hpp"
-#include "../PetaVision/src/io/io.c"
+#include <columns/buildandrun.hpp>
+#include <io/io.c>
 
 int checkweights(HyPerCol * hc, int argc, char * argv[]);
 
