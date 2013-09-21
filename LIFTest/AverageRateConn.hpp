@@ -8,7 +8,7 @@
 #ifndef AVERAGERATECONN_HPP_
 #define AVERAGERATECONN_HPP_
 
-#include "../PetaVision/src/connections/IdentConn.hpp"
+#include <connections/IdentConn.hpp>
 
 namespace PV {
 

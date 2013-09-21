@@ -8,8 +8,8 @@
 #ifndef LIFTESTPROBE_HPP_
 #define LIFTESTPROBE_HPP_
 
-#include "../PetaVision/src/io/StatsProbe.hpp"
-#include "../PetaVision/src/layers/HyPerLayer.hpp"
+#include <io/StatsProbe.hpp>
+#include <layers/HyPerLayer.hpp>
 
 namespace PV {
 
