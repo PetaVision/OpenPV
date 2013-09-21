@@ -8,7 +8,7 @@
 #ifndef GPUTestForOnesProbe_HPP_
 #define GPUTestForOnesProbe_HPP_
 
-#include "../PetaVision/src/io/StatsProbe.hpp"
+#include <io/StatsProbe.hpp>
 
 namespace PV {
 

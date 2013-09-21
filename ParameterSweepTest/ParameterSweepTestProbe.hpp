@@ -8,8 +8,8 @@
 #ifndef PARAMETERSWEEPTESTPROBE_HPP_
 #define PARAMETERSWEEPTESTPROBE_HPP_
 
-#include "../PetaVision/src/io/StatsProbe.hpp"
-#include "../PetaVision/src/layers/HyPerLayer.hpp"
+#include <io/StatsProbe.hpp>
+#include <layers/HyPerLayer.hpp>
 #include <assert.h>
 #include <math.h>
 

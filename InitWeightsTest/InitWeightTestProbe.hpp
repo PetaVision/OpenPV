@@ -8,7 +8,7 @@
 #ifndef InitWeightTestProbe_HPP_
 #define InitWeightTestProbe_HPP_
 
-#include "../PetaVision/src/io/StatsProbe.hpp"
+#include <io/StatsProbe.hpp>
 
 namespace PV {
 

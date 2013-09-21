@@ -3,7 +3,7 @@
  *
  */
 
-#include "../PetaVision/src/columns/buildandrun.hpp"
+#include <columns/buildandrun.hpp>
 #include "HyperConnDebugInitWeights.hpp"
 #include "KernelConnDebugInitWeights.hpp"
 #include "InitWeightTestProbe.hpp"

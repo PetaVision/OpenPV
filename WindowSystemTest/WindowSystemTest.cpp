@@ -7,7 +7,7 @@
  */
 
 
-#include "../PetaVision/src/columns/buildandrun.hpp"
+#include <columns/buildandrun.hpp>
 #include "WindowTestLayer.hpp"
 #include "WindowLCALayer.hpp"
 #include "WindowProbe.hpp"

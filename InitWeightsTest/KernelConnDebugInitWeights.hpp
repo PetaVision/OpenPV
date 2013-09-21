@@ -8,7 +8,7 @@
 #ifndef KERNELCONNDEBUGINITWEIGHTS_HPP_
 #define KERNELCONNDEBUGINITWEIGHTS_HPP_
 
-#include "../PetaVision/src/connections/KernelConn.hpp"
+#include <connections/KernelConn.hpp>
 
 namespace PV {
 

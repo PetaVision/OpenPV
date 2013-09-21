@@ -7,7 +7,7 @@
  */
 
 
-#include "../PetaVision/src/columns/buildandrun.hpp"
+#include <columns/buildandrun.hpp>
 #include "ImageTestProbe.hpp"
 #include "MovieTestProbe.hpp"
 

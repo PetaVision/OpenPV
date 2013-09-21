@@ -8,7 +8,7 @@
 #ifndef DATASTOREDELAYTEST_HPP_
 #define DATASTOREDELAYTEST_HPP_
 
-#include "../PetaVision/src/layers/ANNLayer.hpp"
+#include <layers/ANNLayer.hpp>
 
 namespace PV {
 

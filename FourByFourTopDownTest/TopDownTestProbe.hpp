@@ -8,8 +8,8 @@
 #ifndef TOPDOWNTESTPROBE_HPP_
 #define TOPDOWNTESTPROBE_HPP_
 
-#include "../PetaVision/src/io/StatsProbe.hpp"
-#include "../PetaVision/src/layers/HyPerLayer.hpp"
+#include <io/StatsProbe.hpp>
+#include <layers/HyPerLayer.hpp>
 
 namespace PV {
 

@@ -4,9 +4,9 @@
  */
 
 #include "ImageTestProbe.hpp"
-#include "../PetaVision/src/include/pv_arch.h"
-#include "../PetaVision/src/layers/HyPerLayer.hpp"
-#include "../PetaVision/src/layers/Image.hpp"
+#include <include/pv_arch.h>
+#include <layers/HyPerLayer.hpp>
+#include <layers/Image.hpp>
 #include <assert.h>
 #include <string.h>
 

@@ -8,7 +8,7 @@
 #ifndef MPITESTLAYER_HPP_
 #define MPITESTLAYER_HPP_
 
-#include "../PetaVision/src/layers/ANNLayer.hpp"
+#include <layers/ANNLayer.hpp>
 
 namespace PV {
 

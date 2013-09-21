@@ -13,8 +13,8 @@
 //
 // The output layer should therefore be all zeros.
 
-#include "../PetaVision/src/columns/buildandrun.hpp"
-#include "../PetaVision/src/io/io.c"
+#include <columns/buildandrun.hpp>
+#include <io/io.c>
 #include "DatastoreDelayTestLayer.hpp"
 #include "DatastoreDelayTestProbe.hpp"
 #include <assert.h>

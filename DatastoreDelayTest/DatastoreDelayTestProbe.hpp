@@ -8,9 +8,9 @@
 #ifndef DATASTOREDELAYTESTPROBE_HPP_
 #define DATASTOREDELAYTESTPROBE_HPP_
 
-#include "../PetaVision/src/io/StatsProbe.hpp"
-#include "../PetaVision/src/columns/HyPerCol.hpp"
-#include "../PetaVision/src/include/pv_common.h"
+#include <io/StatsProbe.hpp>
+#include <columns/HyPerCol.hpp>
+#include <include/pv_common.h>
 
 namespace PV {
 

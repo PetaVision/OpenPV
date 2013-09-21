@@ -14,8 +14,8 @@ if (NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Debug)
 endif (NOT CMAKE_BUILD_TYPE)
 
-set(PV_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../PetaVision/src")
-set(PV_BINARY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../PetaVision/lib")
+set(PV_SOURCE_DIR "${PV_WRKSPC_DIR}/PetaVision/src")
+set(PV_BINARY_DIR "${PV_WRKSPC_DIR}/PetaVision/lib")
 set(PROJECT_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}") # should we move source files to a src directory?
 set(PROJECT_BINARY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/${CMAKE_BUILD_TYPE}")
 

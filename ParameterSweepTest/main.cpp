@@ -4,7 +4,7 @@
  */
 
 
-#include "../PetaVision/src/columns/buildandrun.hpp"
+#include <columns/buildandrun.hpp>
 #include "ParameterSweepTestProbe.hpp"
 
 void * customgroups(const char * keyword, const char * name, HyPerCol * hc);

@@ -8,7 +8,7 @@
 #ifndef PLASTICCONNTESTPROBE_HPP_
 #define PLASTICCONNTESTPROBE_HPP_
 
-#include "../PetaVision/src/io/KernelProbe.hpp"
+#include <io/KernelProbe.hpp>
 
 namespace PV {
 

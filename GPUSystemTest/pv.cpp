@@ -3,7 +3,7 @@
  *
  */
 
-#include "../PetaVision/src/columns/buildandrun.hpp"
+#include <columns/buildandrun.hpp>
 #include "GPUTestProbe.hpp"
 #include "GPUTestForOnesProbe.hpp"
 #include "GPUTestForTwosProbe.hpp"

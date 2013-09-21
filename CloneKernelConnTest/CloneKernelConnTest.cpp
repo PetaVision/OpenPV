@@ -5,7 +5,7 @@
  */
 
 
-#include "../PetaVision/src/columns/buildandrun.hpp"
+#include <columns/buildandrun.hpp>
 #include "CloneKernelConnTestProbe.hpp"
 
 #define MAIN_USES_CUSTOMGROUP

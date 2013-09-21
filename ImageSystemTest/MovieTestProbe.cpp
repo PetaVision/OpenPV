@@ -4,9 +4,9 @@
  */
 
 #include "MovieTestProbe.hpp"
-#include "../PetaVision/src/include/pv_arch.h"
-#include "../PetaVision/src/layers/HyPerLayer.hpp"
-#include "../PetaVision/src/layers/Movie.hpp"
+#include <include/pv_arch.h>
+#include <layers/HyPerLayer.hpp>
+#include <layers/Movie.hpp>
 #include <assert.h>
 #include <string.h>
 

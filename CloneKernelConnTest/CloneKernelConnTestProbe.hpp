@@ -8,7 +8,7 @@
 #ifndef CLONEKERNELCONNTESTPROBE_HPP_
 #define CLONEKERNELCONNTESTPROBE_HPP_
 
-#include "../PetaVision/src/io/StatsProbe.hpp"
+#include <io/StatsProbe.hpp>
 
 namespace PV {
 

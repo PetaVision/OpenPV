@@ -8,7 +8,7 @@
 #ifndef PLASTICTESTCONN_HPP_
 #define PLASTICTESTCONN_HPP_
 
-#include "../PetaVision/src/connections/KernelConn.hpp"
+#include <connections/KernelConn.hpp>
 
 namespace PV {
 

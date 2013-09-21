@@ -6,7 +6,7 @@
  */
 
 #include "HyperConnDebugInitWeights.hpp"
-#include "../PetaVision/src/normalizers/NormalizeBase.hpp"
+#include <normalizers/NormalizeBase.hpp>
 
 
 namespace PV {

@@ -4,7 +4,7 @@
  */
 
 
-#include "../PetaVision/src/columns/buildandrun.hpp"
+#include <columns/buildandrun.hpp>
 #include "KernelTestProbe.hpp"
 
 #undef MAIN_USES_ADDCUSTOM

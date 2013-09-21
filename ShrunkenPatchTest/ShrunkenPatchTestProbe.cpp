@@ -6,9 +6,9 @@
  */
 
 #include "ShrunkenPatchTestProbe.hpp"
-#include "../PetaVision/src/include/pv_arch.h"
-#include "../PetaVision/src/layers/HyPerLayer.hpp"
-#include "../PetaVision/src/io/PVParams.hpp"
+#include <include/pv_arch.h>
+#include <layers/HyPerLayer.hpp>
+#include <io/PVParams.hpp>
 #include <string.h>
 #include <assert.h>
 

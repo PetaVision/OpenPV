@@ -4,9 +4,9 @@
  */
 
 #include "WindowProbe.hpp"
-#include "../PetaVision/src/include/pv_arch.h"
-#include "../PetaVision/src/layers/HyPerLayer.hpp"
-#include "../PetaVision/src/layers/HyPerLCALayer.hpp"
+#include <include/pv_arch.h>
+#include <layers/HyPerLayer.hpp>
+#include <layers/HyPerLCALayer.hpp>
 #include <assert.h>
 #include <string.h>
 

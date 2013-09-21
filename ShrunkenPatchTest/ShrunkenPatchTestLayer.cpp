@@ -6,7 +6,7 @@
  */
 
 #include "ShrunkenPatchTestLayer.hpp"
-#include "../PetaVision/src/utils/conversions.h"
+#include <utils/conversions.h>
 
 namespace PV {
 

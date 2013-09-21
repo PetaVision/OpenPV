@@ -8,7 +8,7 @@
 #ifndef MPITESTPROBE_HPP_
 #define MPITESTPROBE_HPP_
 
-#include "../PetaVision/src/io/StatsProbe.hpp"
+#include <io/StatsProbe.hpp>
 
 namespace PV {
 

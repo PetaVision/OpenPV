@@ -24,12 +24,12 @@
  *
  */
 
-#include "../PetaVision/src/columns/buildandrun.hpp"
-#include "../PetaVision/src/io/io.c"
+#include <columns/buildandrun.hpp>
+#include <io/io.c>
 #ifdef PV_USE_MPI
 #  include <mpi.h>
 #else
-#  include "../PetaVision/src/include/mpi_stubs.h"
+#  include <include/mpi_stubs.h>
 #endif // PV_USE_MPI
 
 int checkComparisonZero(HyPerCol * hc, int argc, char * argv[]);

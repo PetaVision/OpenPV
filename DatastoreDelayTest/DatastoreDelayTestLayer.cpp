@@ -6,7 +6,7 @@
  */
 
 #include "DatastoreDelayTestLayer.hpp"
-#include "../PetaVision/src/include/pv_arch.h"
+#include <include/pv_arch.h>
 
 namespace PV {
 

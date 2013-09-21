@@ -10,8 +10,8 @@
 // equal to thier global position
 // MPITestProbe checks whether he above suppositions are satisfied
 
-#include "../PetaVision/src/columns/buildandrun.hpp"
-#include "../PetaVision/src/io/io.c"
+#include <columns/buildandrun.hpp>
+#include <io/io.c>
 #include "MPITestProbe.hpp"
 #include "MPITestLayer.hpp"
 #include <assert.h>

@@ -6,7 +6,7 @@
  */
 
 #include "WindowLCALayer.hpp"
-#include "../PetaVision/src/layers/ANNLayer.cpp"
+#include <layers/ANNLayer.cpp>
 
 namespace PV {
 

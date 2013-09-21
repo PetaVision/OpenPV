@@ -8,8 +8,8 @@
 #ifndef WINDOWTESTLAYER_HPP_
 #define WINDOWTESTLAYER_HPP_
 
-#include "../PetaVision/src/layers/ANNLayer.hpp"
-#include "../PetaVision/src/layers/HyPerLCALayer.hpp"
+#include <layers/ANNLayer.hpp>
+#include <layers/HyPerLCALayer.hpp>
 
 namespace PV {
 

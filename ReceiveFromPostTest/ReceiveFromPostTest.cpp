@@ -5,7 +5,7 @@
  */
 
 
-#include "../PetaVision/src/columns/buildandrun.hpp"
+#include <columns/buildandrun.hpp>
 #include "ReceiveFromPostProbe.hpp"
 
 #define MAIN_USES_CUSTOMGROUPS

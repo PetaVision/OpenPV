@@ -8,7 +8,7 @@
 #ifndef PLASTICCONNTESTLAYER_HPP_
 #define PLASTICCONNTESTLAYER_HPP_
 
-#include "../PetaVision/src/layers/ANNLayer.hpp"
+#include <layers/ANNLayer.hpp>
 
 namespace PV {
 

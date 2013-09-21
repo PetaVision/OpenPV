@@ -8,7 +8,7 @@
 #ifndef WINDOWLCALAYER_HPP_
 #define WINDOWLCALAYER_HPP_
 
-#include "../PetaVision/src/layers/HyPerLCALayer.hpp"
+#include <layers/HyPerLCALayer.hpp>
 
 namespace PV {
 

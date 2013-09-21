@@ -6,8 +6,8 @@
  */
 
 #include "InitWeightTestProbe.hpp"
-#include "../PetaVision/src/include/pv_arch.h"
-#include "../PetaVision/src/layers/HyPerLayer.hpp"
+#include <include/pv_arch.h>
+#include <layers/HyPerLayer.hpp>
 #include <string.h>
 #include <assert.h>
 

@@ -8,7 +8,7 @@
 #ifndef SHRUNKENPATCHTESTPROBE_HPP_
 #define SHRUNKENPATCHTESTPROBE_HPP_
 
-#include "../PetaVision/src/io/StatsProbe.hpp"
+#include <io/StatsProbe.hpp>
 
 namespace PV {
 
