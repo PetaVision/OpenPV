@@ -1,6 +1,6 @@
 ///////////////////////////////////////////////
 ///////////////////////////////////////////////
-// // HyPerHLCA.params
+// // HyPerHLCA_ducks.params
 //
 // created by peteschultz, Sept 27, 2012; modified garkenyon, 1/20/13;
 // modified further by dpaiton 9/17/13
@@ -20,7 +20,7 @@ HyPerCol "column" = {
    dt = 1.0;
                              //
    randomSeed   = 1234567890;// Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
-   numSteps     = 2399300;   // Depends on number of duck video frames
+   numSteps     = 2399970;   // Depends on number of duck video frames
    progressStep = 1000;
                              //
    //outputPath = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_16x16x1024_Overlap_lambda_05X2";
@@ -375,11 +375,6 @@ StatsProbe "GanglionStatsFile" = {
     probeOutputFile = "Ganglion_Stats.txt";
 };
 
-StatsProbe "ReconStatsFile" = {
-    targetLayer = "Recon";
-    probeOutputFile = "Recon_Stats.txt";
-};
-
 StatsProbe "ErrorStatsFile" = {
     targetLayer = "Error";
     probeOutputFile = "Error_Stats.txt";
@@ -390,3 +385,7 @@ StatsProbe "V1StatsFile" = {
     probeOutputFile = "V1_Stats.txt";
 };
 
+StatsProbe "ReconStatsFile" = {
+    targetLayer = "Recon";
+    probeOutputFile = "Recon_Stats.txt";
+};
