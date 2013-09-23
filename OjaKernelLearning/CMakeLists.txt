@@ -1,6 +1,8 @@
 ## See http://www.cmake.org/Wiki/CMake_Useful_Variables for more variables to set
 cmake_minimum_required(VERSION 2.6)
 
+#Set CMAKE_MODULE_PATH
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PV_WRKSPC_DIR}/PetaVision/docs/cmake/Modules/")
 
 set(CMAKE_C_FLAGS_DEBUG "-g3 -O0")
 set(CMAKE_CXX_FLAGS_DEBUG "-g3 -O0")
@@ -14,8 +16,8 @@ if (BUILD_TYPE_OJAKERNELLEARNING)
     set(CMAKE_BUILD_TYPE ${BUILD_TYPE_OJAKERNELLEARNING}) #Can be: None, Debug, Release, RelWithDebInfo, MinSizeRel
 endif (BUILD_TYPE_OJAKERNELLEARNING)
 
-set(PV_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../PetaVision/src")
-set(PV_BINARY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../PetaVision/lib")
+set(PV_SOURCE_DIR "${PV_WRKSPC_DIR}/PetaVision/src")
+set(PV_BINARY_DIR "${PV_WRKSPC_DIR}/PetaVision/lib")
 set(PROJECT_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
 set(PROJECT_BINARY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/${CMAKE_BUILD_TYPE}")
 
@@ -28,33 +30,10 @@ endif (NOT GDAL_FOUND)
 if (NOT MPI_C_FOUND OR NOT MPI_CXX_FOUND)
     find_package(MPI REQUIRED)
 endif (NOT MPI_C_FOUND OR NOT MPI_CXX_FOUND)
-include_directories(${MPI_CXX_INCLUDE_PATH})
-include_directories(${MPI_C_INCLUDE_PATH})
 
-SET(LIBSndFile_FIND_REQUIRED FALSE)
-IF (NOT LIBSNDFILE_FOUND)
-    # Base Io build system
-    # Written by Jeremy Tregunna <jeremy.tregunna@me.com>
-    #
-    # Find libsndfile.
-    FIND_PATH(LIBSNDFILE_INCLUDE_DIR sndfile.h)
-
-    SET(LIBSNDFILE_NAMES ${LIBSNDFILE_NAMES} sndfile libsndfile)
-    FIND_LIBRARY(LIBSNDFILE_LIBRARY NAMES ${LIBSNDFILE_NAMES} PATH)
-
-    IF(LIBSNDFILE_INCLUDE_DIR AND LIBSNDFILE_LIBRARY)
-        SET(LIBSNDFILE_FOUND TRUE CACHE INTERNAL "")
-    ENDIF(LIBSNDFILE_INCLUDE_DIR AND LIBSNDFILE_LIBRARY)
-
-    IF(LIBSNDFILE_FOUND)
-        MESSAGE(STATUS "Found LibSndFile: ${LIBSNDFILE_LIBRARY}")
-        #Add compiler definition PV_USE_SNDFILE
-        ADD_DEFINITIONS(-DPV_USE_SNDFILE)
-    ELSE(LIBSNDFILE_FOUND)
-        MESSAGE(STATUS "Skipping Sndfile library")
-        REMOVE_DEFINITIONS(-DPV_USE_SNDFILE)
-    ENDIF (LIBSNDFILE_FOUND)
-ENDIF (NOT LIBSNDFILE_FOUND)
+if (NOT LIBSNDFILE_FOUND)
+    find_package(LIBSNDFILE)
+endif (NOT LIBSNDFILE_FOUND)
 
 # Header files
 include_directories(${PV_SOURCE_DIR})
