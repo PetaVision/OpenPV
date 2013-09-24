@@ -20,7 +20,7 @@ TransposeConn::TransposeConn(const char * name, HyPerCol * hc, const char * pre_
 }  // TransposeConn::TransposeConn(const char * name, HyPerCol * hc, HyPerLayer *, HyPerLayer *, ChannelType, KernelConn *)
 
 TransposeConn::~TransposeConn() {
-
+   free(originalConnName); originalConnName = NULL;
 }  // TransposeConn::~TransposeConn()
 
 int TransposeConn::initialize_base() {
@@ -244,6 +244,14 @@ int TransposeConn::setPatchSize() {
 
    int xscaleDiff = pre->getXScale() - post->getXScale();
    int nxp_orig = originalConn->xPatchSize();
+   int nyp_orig = originalConn->yPatchSize();
+   if (nxp_orig != originalConn->getNxpShrunken() || nyp_orig != originalConn->getNypShrunken()) {
+      if (parent->columnId()==0) {
+         fprintf(stderr, "%s \"%s\" error: Transpose has not been implemented for shrunken patches.\n", parent->parameters()->groupKeywordFromName(name), name);
+      }
+      MPI_Barrier(parent->icCommunicator()->communicator());
+      exit(EXIT_FAILURE);
+   }
    nxp = nxp_orig;
    if(xscaleDiff > 0 ) {
       nxp *= (int) pow( 2, xscaleDiff );
@@ -254,7 +262,6 @@ int TransposeConn::setPatchSize() {
    }
 
    int yscaleDiff = pre->getYScale() - post->getYScale();
-   int nyp_orig = originalConn->yPatchSize();
    nyp = nyp_orig;
    if(yscaleDiff > 0 ) {
       nyp *= (int) pow( 2, yscaleDiff );
