@@ -536,22 +536,26 @@ int HyPerConn::setName(const char * name) {
 int HyPerConn::setPreLayerName(const char * pre_name) {
    assert(parent!=NULL);
    assert(this->preLayerName==NULL);
-   this->preLayerName = strdup(pre_name);
-   if (this->preLayerName==NULL) {
-      fprintf(stderr, "Connection \"%s\" error in rank %d process: unable to allocate memory for name of presynaptic layer \"%s\": %s\n",
-            name, parent->columnId(), pre_name, strerror(errno));
-      exit(EXIT_FAILURE);
+   if (pre_name != NULL) {
+      this->preLayerName = strdup(pre_name);
+      if (this->preLayerName==NULL) {
+         fprintf(stderr, "Connection \"%s\" error in rank %d process: unable to allocate memory for name of presynaptic layer \"%s\": %s\n",
+               name, parent->columnId(), pre_name, strerror(errno));
+         exit(EXIT_FAILURE);
+      }
    }
    return PV_SUCCESS;
 }
 
 int HyPerConn::setPostLayerName(const char * post_name) {
    assert(this->postLayerName==NULL);
-   this->postLayerName = strdup(post_name);
-   if (this->postLayerName==NULL) {
-      fprintf(stderr, "Connection \"%s\" error in rank %d process: unable to allocate memory for name of postsynaptic layer \"%s\": %s\n",
-            name, parent->columnId(), post_name, strerror(errno));
-      exit(EXIT_FAILURE);
+   if (post_name != NULL) {
+      this->postLayerName = strdup(post_name);
+      if (this->postLayerName==NULL) {
+         fprintf(stderr, "Connection \"%s\" error in rank %d process: unable to allocate memory for name of postsynaptic layer \"%s\": %s\n",
+               name, parent->columnId(), post_name, strerror(errno));
+         exit(EXIT_FAILURE);
+      }
    }
    return PV_SUCCESS;
 }
@@ -585,7 +589,6 @@ int HyPerConn::setWeightInitializer(InitWeights * weightInit) {
 
 int HyPerConn::getPreAndPostLayerNames(const char * name, PVParams * params, char ** preLayerNamePtr, char ** postLayerNamePtr) {
    // Retrieves preLayerName and postLayerName from parameter group whose name is given in the functions first argument.
-   // If BOTH of these params are absent, and the connection name has the form "ABC to XYZ", then pre will be ABC and post will be XYZ.
    // This routine uses strdup to fill *{pre,post}LayerNamePtr, so the routine calling this one is responsible for freeing them.
    int status = PV_SUCCESS;
    *preLayerNamePtr = NULL;
@@ -596,50 +599,85 @@ int HyPerConn::getPreAndPostLayerNames(const char * name, PVParams * params, cha
       *preLayerNamePtr = strdup(preLayerNameParam);
       *postLayerNamePtr = strdup(postLayerNameParam);
    }
-   if( preLayerNameParam == NULL && postLayerNameParam == NULL ) {
-      // Check to see if the string " to " appears exactly once in name
-      // If so, use part preceding " to " as pre-layer, and part after " to " as post.
-      const char * separator = " to ";
-      const char * locto = strstr(name, separator);
-      if( locto != NULL ) {
-         const char * nextto = strstr(locto+1, separator); // Make sure " to " doesn't appear again.
-         if( nextto == NULL ) {
-            int seplen = strlen(separator);
+   else if (preLayerNameParam==NULL && postLayerNameParam!=NULL) {
+      status = PV_FAILURE;
+      if (params->getInterColComm()->commRank()==0) {
+         fprintf(stderr, "Connection \"%s\" error: if postLayerName is specified, preLayerName must be specified as well.\n", name);
+      }
+   }
+   else if (preLayerNameParam!=NULL && postLayerNameParam==NULL) {
+      status = PV_FAILURE;
+      if (params->getInterColComm()->commRank()==0) {
+         fprintf(stderr, "Connection \"%s\" error: if preLayerName is specified, postLayerName must be specified as well.\n", name);
+      }
+   }
+   else {
+      assert(preLayerNameParam==NULL && postLayerNameParam==NULL);
+      if (params->getInterColComm()->commRank()==0) {
+         printf("Connection \"%s\": preLayerName and postLayerName will be inferred in the communicateInitInfo stage.\n", name);
+      }
+   }
+   MPI_Barrier(params->getInterColComm()->communicator());
+   if (status != PV_SUCCESS) {
+      exit(EXIT_FAILURE);
+   }
+   return status;
+}
 
-            int pre_len = locto - name;
-            *preLayerNamePtr = (char *) malloc((size_t) (pre_len + 1));
-            if( *preLayerNamePtr==NULL) {
-               fprintf(stderr, "Error: unable to allocate memory for preLayerName in connection \"%s\": %s\n", name, strerror(errno));
-               exit(EXIT_FAILURE);
-            }
-            const char * preInConnName = name;
-            memcpy(*preLayerNamePtr, preInConnName, pre_len);
-            (*preLayerNamePtr)[pre_len] = 0;
+int HyPerConn::handleMissingPreAndPostLayerNames() {
+   return inferPreAndPostFromConnName(name, parent->parameters(), &preLayerName, &postLayerName);
+}
 
-            int post_len = strlen(name)-pre_len-seplen;
-            *postLayerNamePtr = (char *) malloc((size_t) (post_len + 1));
-            if( *postLayerNamePtr==NULL) {
-               fprintf(stderr, "Error: unable to allocate memory for postLayerName in connection \"%s\": %s\n", name, strerror(errno));
-               exit(EXIT_FAILURE);
-            }
-            const char * postInConnName = &name[pre_len+seplen];
-            memcpy(*postLayerNamePtr, postInConnName, post_len);
-            (*postLayerNamePtr)[post_len] = 0;
+int HyPerConn::inferPreAndPostFromConnName(const char * name, PVParams * params, char ** preLayerNamePtr, char ** postLayerNamePtr) {
+   // If the connection name has the form "ABC to XYZ", then pre will be ABC and post will be XYZ.
+   // If either of the intended pre- or post-layer names contains the string " to ", this method cannot be used to infer them.
+   // This routine uses malloc to fill *{pre,post}LayerNamePtr, so the routine calling this one is responsible for freeing them.
+
+   int status = PV_SUCCESS;
+   // Check to see if the string " to " appears exactly once in name
+   // If so, use part preceding " to " as pre-layer, and part after " to " as post.
+   const char * separator = " to ";
+   const char * locto = strstr(name, separator);
+   if( locto != NULL ) {
+      const char * nextto = strstr(locto+1, separator); // Make sure " to " doesn't appear again.
+      if( nextto == NULL ) {
+         int seplen = strlen(separator);
+
+         int pre_len = locto - name;
+         *preLayerNamePtr = (char *) malloc((size_t) (pre_len + 1));
+         if( *preLayerNamePtr==NULL) {
+            fprintf(stderr, "Error: unable to allocate memory for preLayerName in connection \"%s\": %s\n", name, strerror(errno));
+            exit(EXIT_FAILURE);
+         }
+         const char * preInConnName = name;
+         memcpy(*preLayerNamePtr, preInConnName, pre_len);
+         (*preLayerNamePtr)[pre_len] = 0;
+
+         int post_len = strlen(name)-pre_len-seplen;
+         *postLayerNamePtr = (char *) malloc((size_t) (post_len + 1));
+         if( *postLayerNamePtr==NULL) {
+            fprintf(stderr, "Error: unable to allocate memory for postLayerName in connection \"%s\": %s\n", name, strerror(errno));
+            exit(EXIT_FAILURE);
+         }
+         const char * postInConnName = &name[pre_len+seplen];
+         memcpy(*postLayerNamePtr, postInConnName, post_len);
+         (*postLayerNamePtr)[post_len] = 0;
+      }
+      else {
+         status = PV_FAILURE;
+         if (params->getInterColComm()->commRank()==0) {
+            fprintf(stderr, "Unable to infer pre and post from connection name \"%s\":\n", name);
+            fprintf(stderr, "The string \" to \" cannot appear in the name more than once.\n");
          }
       }
    }
-   if( *preLayerNamePtr == NULL ) {
-      fprintf(stderr, "Parameter string \"preLayerName\" missing from group \"%s\"\n",name);
+   else {
       status = PV_FAILURE;
-   }
-   if( *postLayerNamePtr == NULL ) {
-      fprintf(stderr, "Parameter string \"postLayerName\" missing from group \"%s\"\n",name);
-      status = PV_FAILURE;
-   }
-   if (status != PV_SUCCESS) {
-      fprintf(stderr, "If the connection name has a name of the form \"ABC to XYZ\", where\n");
-      fprintf(stderr, "neither ABC nor XYZ contains the string \" to \", the pre and post layers\n");
-      fprintf(stderr, "will be inferred if both preLayerName and postLayerName are absent.\n");
+      if (params->getInterColComm()->commRank()==0) {
+         fprintf(stderr, "Unable to infer pre and post from connection name \"%s\".\n", name);
+         fprintf(stderr, "The connection name must have the form \"ABC to XYZ\", to infer the names,\n");
+         fprintf(stderr, "but the string \" to \" does not appear.\n");
+      }
    }
    return status;
 }
@@ -995,6 +1033,18 @@ int HyPerConn::communicateInitInfo() {
 
    int status = PV_SUCCESS;
 
+   if (preLayerName==NULL) {
+      assert(postLayerName==NULL);
+      status = handleMissingPreAndPostLayerNames();
+   }
+   MPI_Barrier(parent->icCommunicator()->communicator());
+   if (status != PV_SUCCESS) {
+      assert(preLayerName==NULL && postLayerName==NULL);
+      if (parent->columnId()==0) {
+         fprintf(stderr, "%s \"%s\" error: Unable to determine pre- and post-layer names.  Exiting.\n", parent->parameters()->groupKeywordFromName(name), name);
+      }
+      exit(EXIT_FAILURE);
+   }
    this->pre = parent->getLayerFromName(preLayerName);
    this->post = parent->getLayerFromName(postLayerName);
    if (this->pre==NULL) {

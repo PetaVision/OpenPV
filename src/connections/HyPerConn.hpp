@@ -351,6 +351,8 @@ public:
          NULL, int* kf = NULL);
    static int decodeChannel(int channel_code, ChannelType * channel_type);
    static int getPreAndPostLayerNames(const char * name, PVParams * params, char ** preLayerNamePtr, char ** postLayerNamePtr);
+   static int inferPreAndPostFromConnName(const char * name, PVParams * params, char ** preLayerNamePtr, char ** postLayerNamePtr);
+   virtual int handleMissingPreAndPostLayerNames();
 
 #ifdef USE_SHMGET
    virtual bool getShmgetFlag(){

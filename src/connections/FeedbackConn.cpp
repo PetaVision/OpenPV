@@ -23,19 +23,29 @@ int FeedbackConn::initialize_base() {
 }
 
 int FeedbackConn::initialize(const char * name, HyPerCol *hc, const char * feedforwardConnName) {
-   char * pre_layer_name;
-   char * post_layer_name;
-   int status = getPreAndPostLayerNames(feedforwardConnName, hc->parameters(), &post_layer_name, &pre_layer_name);
-   if (status != PV_SUCCESS) {
-      fprintf(stderr, "FeedbackConn \"%s\" error in rank %d process: unable to get pre- and post-synaptic layer names from originalConnName \"%s\".\n",
-            name, hc->columnId(), feedforwardConnName);
-      exit(EXIT_SUCCESS);
+   int status = PV_SUCCESS;
+   if (hc->parameters()->stringPresent(name, "preLayerName") || hc->parameters()->stringPresent(name, "postLayerName")) {
+      if (parent->columnId()==0) {
+         fprintf(stderr, "%s \"%s\": FeedbackConn does not use preLayerName or postLayerName.\n", hc->parameters()->groupKeywordFromName(name), name);
+      }
+      status = PV_FAILURE;
    }
-   assert(pre_layer_name!=NULL && post_layer_name!=NULL);
+   MPI_Barrier(hc->icCommunicator()->communicator());
+   if (status != PV_SUCCESS) exit(EXIT_FAILURE);
 
-   TransposeConn::initialize(name, hc, pre_layer_name, post_layer_name, feedforwardConnName);
-   free(pre_layer_name);
-   free(post_layer_name);
+   TransposeConn::initialize(name, hc, NULL, NULL, feedforwardConnName);
+   return status;
+}
+
+int FeedbackConn::handleMissingPreAndPostLayerNames() {
+   assert(originalConn && originalConn->getInitInfoCommunicatedFlag());
+   assert(originalConn->getPreLayerName() && originalConn->getPostLayerName());
+   preLayerName = strdup(originalConn->getPostLayerName());
+   postLayerName = strdup(originalConn->getPreLayerName());
+   if (preLayerName==NULL || postLayerName==NULL) {
+      fprintf(stderr, "Error in rank %d process: FeedbackConn \"%s\" unable to allocate memory for pre and post layer names: %s", parent->columnId(), name, strerror(errno));
+      exit(EXIT_FAILURE);
+   }
    return PV_SUCCESS;
 }
 

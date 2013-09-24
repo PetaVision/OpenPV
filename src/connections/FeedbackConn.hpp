@@ -28,6 +28,7 @@ public:
 protected:
     PVPatch *** initializeWeights(PVPatch *** arbors, pvdata_t ** dataStart, int numPatches,
           const char * filename);
+    virtual int handleMissingPreAndPostLayerNames();
 };
 
 }  // end of block for namespace PV
