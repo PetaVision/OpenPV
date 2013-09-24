@@ -1,0 +1,364 @@
+// TransposeConnTest.params
+
+debugParsing = false;
+
+HyPerCol "column" = {
+    nx                                  = 32;
+    ny                                  = 32;
+    dt                                  = 1.0;
+    randomSeed                          = 570934122;
+    numSteps                            = 0;
+    progressStep                        = 1;
+    writeProgressToErr                  = false;
+    outputPath                          = "output/";
+    filenamesContainLayerNames          = 2;
+    filenamesContainConnectionNames     = 2;
+    checkpointRead                      = false;
+    // checkpointReadDir;
+    // checkpointReadDirIndex;
+    checkpointWrite                     = false;
+    // checkpointWriteDir;
+    // checkpointWriteStepInterval;
+    // checkpointWriteTimeInterval;
+    // deleteOlderCheckpoints;
+    suppressLastOutput                  = false;
+};
+
+ANNLayer "Layer A" = {
+    restart                             = false;
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 4;
+    phase                               = 1;
+    writeStep                           = -1;
+    // initialWriteTime;
+    // writeSparseActivity;
+    mirrorBCflag                        = false;
+    valueBC                             = 0.0;
+    // GPUAccelerate;
+    
+    InitVType                           = "ZeroV";
+
+    VThresh                             = -infinity;
+    VMin                                = -infinity;
+    VShift                              = 0.0;
+    VMax                                = infinity;
+};
+
+ANNLayer "Layer B One to One" = {
+    restart                             = false;
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 4;
+    phase                               = 1;
+    writeStep                           = -1;
+    // initialWriteTime;
+    // writeSparseActivity;
+    mirrorBCflag                        = false;
+    valueBC                             = 0.0;
+    // GPUAccelerate;
+    
+    InitVType                           = "ZeroV";
+
+    VThresh                             = -infinity;
+    VMin                                = -infinity;
+    VShift                              = 0.0;
+    VMax                                = infinity;
+};
+
+ANNLayer "Layer B Many to One" = {
+    restart                             = false;
+    nxScale                             = 0.25;
+    nyScale                             = 0.25;
+    nf                                  = 8;
+    phase                               = 1;
+    writeStep                           = -1;
+    // initialWriteTime;
+    // writeSparseActivity;
+    mirrorBCflag                        = false;
+    valueBC                             = 0.0;
+    // GPUAccelerate;
+    
+    InitVType                           = "ZeroV";
+
+    VThresh                             = -infinity;
+    VMin                                = -infinity;
+    VShift                              = 0.0;
+    VMax                                = infinity;
+};
+
+ANNLayer "Layer B One to Many" = {
+    restart                             = false;
+    nxScale                             = 4;
+    nyScale                             = 4;
+    nf                                  = 2;
+    phase                               = 1;
+    writeStep                           = -1;
+    // initialWriteTime;
+    // writeSparseActivity;
+    mirrorBCflag                        = false;
+    valueBC                             = 0.0;
+    // GPUAccelerate;
+    
+    InitVType                           = "ZeroV";
+
+    VThresh                             = -infinity;
+    VMin                                = -infinity;
+    VShift                              = 0.0;
+    VMax                                = infinity;
+};
+
+KernelConn "Original Map for One to One Test" = {
+    preLayerName                        = "Layer A";
+    postLayerName                       = "Layer B One to One";
+    channelCode                         = 0;
+    nxp                                 = 7;
+    nyp                                 = 7;
+    nxpShrunken                         = 7;
+    nypShrunken                         = 7;
+    nfp                                 = 4;
+    numAxonalArbors                     = 1;
+    // useWindowPost;
+    delay                               = 0;
+    shrinkPatches                       = false;
+    updateGSynFromPostPerspective       = false;
+    plasticityFlag                      = false;
+    pvpatchAccumulateType               = "convolve";
+    preActivityIsNotRate                = false;
+    writeStep                           = -1;
+    // initialWriteTime;
+    // writeCompressedWeights;
+    writeCompressedCheckpoints          = false;
+    selfFlag                            = false;
+
+    weightInitType                      = "UniformRandomWeight";
+    wMinInit                            = 0.0;
+    wMaxInit                            = 1.0;
+    sparseFraction                      = 0.0;
+    
+    normalizeMethod                     = "none";
+    
+    shmget_flag                         = false;
+};
+
+TransposeConn "Transpose for One to One Test of TransposeConn" = {
+    preLayerName                        = "Layer B One to One";
+    postLayerName                       = "Layer A";
+    channelCode                         = 0;
+    originalConnName                    = "Original Map for One to One Test";
+    delay                               = 0;
+    updateGSynFromPostPerspective       = false;
+    pvpatchAccumulateType               = "convolve";
+    preActivityIsNotRate                = false;
+    writeStep                           = -1;
+    writeCompressedCheckpoints          = false;
+    selfFlag                            = false;
+};
+
+TransposeConn "Transpose of Transpose for One to One Test of TransposeConn" = {
+    preLayerName                        = "Layer A";
+    postLayerName                       = "Layer B One to One";
+    channelCode                         = 1;
+    originalConnName                    = "Transpose for One to One Test of TransposeConn";
+    delay                               = 0;
+    updateGSynFromPostPerspective       = false;
+    pvpatchAccumulateType               = "convolve";
+    preActivityIsNotRate                = false;
+    writeStep                           = -1;
+    writeCompressedCheckpoints          = false;
+    selfFlag                            = false;
+};
+
+FeedbackConn "Transpose for One to One Test of FeedbackConn" = {
+    channelCode                         = 0;
+    originalConnName                    = "Original Map for One to One Test";
+    delay                               = 0;
+    updateGSynFromPostPerspective       = false;
+    pvpatchAccumulateType               = "convolve";
+    preActivityIsNotRate                = false;
+    writeStep                           = -1;
+    writeCompressedCheckpoints          = false;
+    selfFlag                            = false;
+};
+
+FeedbackConn "Transpose of Transpose for One to One Test of FeedbackConn" = {
+    channelCode                         = 1;
+    originalConnName                    = "Transpose for One to One Test of FeedbackConn";
+    delay                               = 0;
+    updateGSynFromPostPerspective       = false;
+    pvpatchAccumulateType               = "convolve";
+    preActivityIsNotRate                = false;
+    writeStep                           = -1;
+    writeCompressedCheckpoints          = false;
+    selfFlag                            = false;
+};
+
+KernelConn "Original Map for Many to One Test" = {
+    preLayerName                        = "Layer A";
+    postLayerName                       = "Layer B Many to One";
+    channelCode                         = 0;
+    nxp                                 = 7;
+    nyp                                 = 7;
+    nxpShrunken                         = 7;
+    nypShrunken                         = 7;
+    nfp                                 = 8;
+    numAxonalArbors                     = 1;
+    // useWindowPost;
+    delay                               = 0;
+    shrinkPatches                       = false;
+    updateGSynFromPostPerspective       = false;
+    plasticityFlag                      = false;
+    pvpatchAccumulateType               = "convolve";
+    preActivityIsNotRate                = false;
+    writeStep                           = -1;
+    // initialWriteTime;
+    // writeCompressedWeights;
+    writeCompressedCheckpoints          = false;
+    selfFlag                            = false;
+
+    weightInitType                      = "UniformRandomWeight";
+    wMinInit                            = 0.0;
+    wMaxInit                            = 1.0;
+    sparseFraction                      = 0.0;
+    
+    normalizeMethod                     = "none";
+    
+    shmget_flag                         = false;
+};
+
+TransposeConn "Transpose for Many to One Test of TransposeConn" = {
+    preLayerName                        = "Layer B Many to One";
+    postLayerName                       = "Layer A";
+    channelCode                         = 0;
+    originalConnName                    = "Original Map for Many to One Test";
+    delay                               = 0;
+    updateGSynFromPostPerspective       = false;
+    pvpatchAccumulateType               = "convolve";
+    preActivityIsNotRate                = false;
+    writeStep                           = -1;
+    writeCompressedCheckpoints          = false;
+    selfFlag                            = false;
+};
+
+TransposeConn "Transpose of Transpose for Many to One Test of TransposeConn" = {
+    preLayerName                        = "Layer A";
+    postLayerName                       = "Layer B Many to One";
+    channelCode                         = 1;
+    originalConnName                    = "Transpose for Many to One Test of TransposeConn";
+    delay                               = 0;
+    updateGSynFromPostPerspective       = false;
+    pvpatchAccumulateType               = "convolve";
+    preActivityIsNotRate                = false;
+    writeStep                           = -1;
+    writeCompressedCheckpoints          = false;
+    selfFlag                            = false;
+};
+
+FeedbackConn "Transpose for Many to One Test of FeedbackConn" = {
+    channelCode                         = 0;
+    originalConnName                    = "Original Map for Many to One Test";
+    delay                               = 0;
+    updateGSynFromPostPerspective       = false;
+    pvpatchAccumulateType               = "convolve";
+    preActivityIsNotRate                = false;
+    writeStep                           = -1;
+    writeCompressedCheckpoints          = false;
+    selfFlag                            = false;
+};
+
+FeedbackConn "Transpose of Transpose for Many to One Test of FeedbackConn" = {
+    channelCode                         = 1;
+    originalConnName                    = "Transpose for Many to One Test of FeedbackConn";
+    delay                               = 0;
+    updateGSynFromPostPerspective       = false;
+    pvpatchAccumulateType               = "convolve";
+    preActivityIsNotRate                = false;
+    writeStep                           = -1;
+    writeCompressedCheckpoints          = false;
+    selfFlag                            = false;
+};
+
+KernelConn "Original Map for One to Many Test" = {
+    preLayerName                        = "Layer A";
+    postLayerName                       = "Layer B One to Many";
+    channelCode                         = 0;
+    nxp                                 = 28;
+    nyp                                 = 28;
+    nxpShrunken                         = 28;
+    nypShrunken                         = 28;
+    nfp                                 = 2;
+    numAxonalArbors                     = 1;
+    // useWindowPost;
+    delay                               = 0;
+    shrinkPatches                       = false;
+    updateGSynFromPostPerspective       = false;
+    plasticityFlag                      = false;
+    pvpatchAccumulateType               = "convolve";
+    preActivityIsNotRate                = false;
+    writeStep                           = -1;
+    // initialWriteTime;
+    // writeCompressedWeights;
+    writeCompressedCheckpoints          = false;
+    selfFlag                            = false;
+
+    weightInitType                      = "UniformRandomWeight";
+    wMinInit                            = 0.0;
+    wMaxInit                            = 1.0;
+    sparseFraction                      = 0.0;
+    
+    normalizeMethod                     = "none";
+    
+    shmget_flag                         = false;
+};
+
+TransposeConn "Transpose for One to Many Test of TransposeConn" = {
+    preLayerName                        = "Layer B One to Many";
+    postLayerName                       = "Layer A";
+    channelCode                         = 0;
+    originalConnName                    = "Original Map for One to Many Test";
+    delay                               = 0;
+    updateGSynFromPostPerspective       = false;
+    pvpatchAccumulateType               = "convolve";
+    preActivityIsNotRate                = false;
+    writeStep                           = -1;
+    writeCompressedCheckpoints          = false;
+    selfFlag                            = false;
+};
+
+TransposeConn "Transpose of Transpose for One to Many Test of TransposeConn" = {
+    preLayerName                        = "Layer A";
+    postLayerName                       = "Layer B One to Many";
+    channelCode                         = 1;
+    originalConnName                    = "Transpose for One to Many Test of TransposeConn";
+    delay                               = 0;
+    updateGSynFromPostPerspective       = false;
+    pvpatchAccumulateType               = "convolve";
+    preActivityIsNotRate                = false;
+    writeStep                           = -1;
+    writeCompressedCheckpoints          = false;
+    selfFlag                            = false;
+};
+
+FeedbackConn "Transpose for One to Many Test of FeedbackConn" = {
+    channelCode                         = 0;
+    originalConnName                    = "Original Map for One to Many Test";
+    delay                               = 0;
+    updateGSynFromPostPerspective       = false;
+    pvpatchAccumulateType               = "convolve";
+    preActivityIsNotRate                = false;
+    writeStep                           = -1;
+    writeCompressedCheckpoints          = false;
+    selfFlag                            = false;
+};
+
+FeedbackConn "Transpose of Transpose for One to Many Test of FeedbackConn" = {
+    channelCode                         = 1;
+    originalConnName                    = "Transpose for One to Many Test of FeedbackConn";
+    delay                               = 0;
+    updateGSynFromPostPerspective       = false;
+    pvpatchAccumulateType               = "convolve";
+    preActivityIsNotRate                = false;
+    writeStep                           = -1;
+    writeCompressedCheckpoints          = false;
+    selfFlag                            = false;
+};
