@@ -1997,6 +1997,7 @@ int HyPerLayer::writeDataStoreToFile(const char * filename, InterColComm * comm,
       fprintf(stderr, "HyPerLayer::writeBufferFile error writing \"%s\"\n", filename);
       abort();
    }
+   free(params);
    DataStore * datastore = comm->publisherStore(getLayerId());
    for (int l=0; l<numlevels; l++) {
       if (writeFile != NULL) { // Root process has writeFile set to non-null; other processes to NULL.

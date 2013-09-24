@@ -1102,6 +1102,7 @@ int writeActivity(PV_Stream * pvstream, Communicator * comm, double timed, PVLay
          assert(params && params[1]==NUM_BIN_PARAMS);
          int numParams = params[1];
          status = pvp_write_header(pvstream, comm, params, numParams);
+         free(params);
       }
       // HyPerLayer::writeActivity calls HyPerLayer::incrementNBands, which maintains the value of numbands in the header.
 
