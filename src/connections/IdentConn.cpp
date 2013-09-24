@@ -81,8 +81,7 @@ void IdentConn::readWriteCompressedCheckpoints(PVParams * params) {
 }
 
 void IdentConn::readSelfFlag(PVParams * params) {
-   assert(preLayerName!=NULL && postLayerName!=NULL);
-   selfFlag = strcmp(preLayerName,postLayerName)==0;
+   selfFlag = false;
 }
 
 void IdentConn::readCombine_dW_with_W_flag(PVParams * params) {
