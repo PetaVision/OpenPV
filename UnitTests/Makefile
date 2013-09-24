@@ -127,7 +127,6 @@ TESTS = test_kg \
         test_gauss2d test_cocirc \
         test_mirror_BCs \
         test_border_activity
-#	test_margin_width
 
 # CL_TESTS = 
 
@@ -202,9 +201,6 @@ test_delta: $(BUILDDIR)/test_delta.o $(PVLIB)
 test_sign: $(BUILDDIR)/test_sign.o $(PVLIB)
 	$(CC) -o $@ $<
 
-# test_marginwidth: $(BUILDDIR)/test_marginwidth.o $(PVLIB)
-#	$(CPP) -o $@ $< $(LIBS)
-
 test_mpi_specifyrowscolumns: $(BUILDDIR)/test_mpi_specifyrowscolumns.o $(PVLIB)
 	$(CPP) -o $@ $< $(LIBS)
 
@@ -247,10 +243,6 @@ runtests: make-in-subdirs $(TESTS)
 	@if ./test_mirror_BCs; then echo "test_mirror_BCs passed."; else echo "test_mirror_BCs passed."; fi
 	@echo "Running test_border_activity ..."
 	@if ./test_border_activity; then echo "test_border_activity passed."; else echo "test_border_activity FAILED"; fi
-#	@echo "Running test_transpose_transpose ..."
-#	@if ./test_transpose_transpose -p $(INPARAMS); then echo "test_transpose_transpose passed."; else echo "test_transpose_transpose FAILED"; fi
-#	@echo "Running test_marginwidth ..."
-#	@if ./test_marginwidth; then echo "test_marginwidth passed."; else echo "test_marginwidth FAILED"; fi 
 
 make-in-subdirs: force
 	@for subdir in $(SUBDIRS); do \
