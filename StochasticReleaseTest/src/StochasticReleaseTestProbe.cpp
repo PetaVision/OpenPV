@@ -44,18 +44,23 @@ int StochasticReleaseTestProbe::initStochasticReleaseTestProbe(const char * name
    getLayerFunctionProbeParameters(name, classkeyword, hc, &targetlayer, &message, &filename);
    int status = initStatsProbe(filename, targetlayer, BufActivity, message);
 
-   const int numconns = hc->numberOfConnections();
-   for (int c=0; c<numconns; c++) {
-      if (!strcmp(hc->getConnection(c)->getPostLayerName(),getTargetLayer()->getName())) {
-         assert(conn==NULL);
-         conn = hc->getConnection(c);
-      }
-   }
-   assert(conn!=NULL);
    return PV_SUCCESS;
 }
 
 int StochasticReleaseTestProbe::outputState(double timed) {
+   // Set conn.  Can't do that in initStochasticReleaseTestProbe because we need to search for a conn with the given post, and connections' postLayerName is not necessarily set.
+   if (conn==NULL) {
+      HyPerCol * hc = getTargetLayer()->getParent();
+      PVParams * params = hc->parameters();
+      int numconns = hc->numberOfConnections();
+      for (int c=0; c<numconns; c++) {
+         if (!strcmp(hc->getConnection(c)->getPostLayerName(),getTargetLayer()->getName())) {
+            assert(conn==NULL); // Only one connection can go to this layer for this probe to work
+            conn = hc->getConnection(c);
+         }
+      }
+      assert(conn!=NULL);
+   }
    int status = StatsProbe::outputState(timed);
    assert(status==PV_SUCCESS);
 
