@@ -127,7 +127,8 @@ Communicator::~Communicator()
    MPI_Barrier(MPI_COMM_WORLD);
 #endif // PV_USE_MPI
 
-   commFinalize();
+   MPI_Comm_free(&icComm);
+   commFinalize(); // calls MPI_Finalize
 
    // delete timers
    //

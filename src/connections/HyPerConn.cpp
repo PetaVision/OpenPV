@@ -115,6 +115,7 @@ HyPerConn::HyPerConn(const char * name, HyPerCol * hc, const char * pre_layer_na
 
 HyPerConn::~HyPerConn()
 {
+   delete normalizer;
    if (parent->columnId() == 0) {
       printf("%32s: total time in %6s %10s: ", name, "conn", "io     ");
       io_timer->elapsed_time();
