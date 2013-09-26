@@ -275,9 +275,16 @@ runandecho $testname Debug/$testname $arglist
 mpirunandecho $testname Debug/$testname $arglist
 cd "$wd"
 
+testname=TransposeConnTest
+cd "$testname"
+arglist="" # parameter filename is in main()
+runandecho $testname Debug/$testname $arglist
+mpirunandecho $testname Debug/$testname $arglist
+cd "$wd"
+
 testname=WindowSystemTest
 cd "$testname"
-arglist="-p input/postTest.params" # parameter filename is in main()
+arglist="-p input/postTest.params"
 runandecho $testname Debug/$testname $arglist
 mpirunandecho $testname Debug/$testname $arglist
 cd "$wd"
