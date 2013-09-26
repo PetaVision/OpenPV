@@ -32,6 +32,7 @@ protected:
    virtual void readFrameNumber(PVParams * params);
    virtual void readJitterFlag(PVParams * params);
    virtual void readJitterType(PVParams * params);
+   virtual void readJitterRefractoryPeriod(PVParams * params);
    virtual void readStepSize(PVParams * params);
    virtual void readPersistenceProb(PVParams * params);
    virtual void readRecurrenceProb(PVParams * params);

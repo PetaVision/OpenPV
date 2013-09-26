@@ -112,6 +112,7 @@ int Image::setParams(PVParams * params) {
    // Although Image itself does not use jitter, both Movie and Patterns do, so jitterFlag is read in Image.
    readJitterFlag(params);
    readJitterType(params);
+   readJitterRefractoryPeriod(params);
    readStepSize(params);
    readPersistenceProb(params);
    readRecurrenceProb(params);
@@ -179,6 +180,13 @@ void Image::readJitterType(PVParams * params) {
    assert(!params->presentAndNotBeenRead(name, "jitterFlag"));
    if (jitterFlag) {
       jitterType = params->value(name, "jitterType", jitterType);
+   }
+}
+
+void Image::readJitterRefractoryPeriod(PVParams * params) {
+   assert(!params->presentAndNotBeenRead(name, "jitterFlag"));
+   if (jitterFlag) {
+      jitterRefractoryPeriod = params->value(name, "jitterRefractoryPeriod", jitterRefractoryPeriod);
    }
 }
 
