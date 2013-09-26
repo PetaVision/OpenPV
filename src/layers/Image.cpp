@@ -119,6 +119,7 @@ int Image::setParams(PVParams * params) {
    readBiasChangeTime(params);
    readBiasConstraintMethod(params);
    readOffsetConstraintMethod(params);
+   readWritePosition(params);
 
    return status;
 }
