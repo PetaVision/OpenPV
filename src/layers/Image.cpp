@@ -51,6 +51,8 @@ int Image::initialize_base() {
    offsets[1] = 0;
    jitterFlag = false;
    jitterType = RANDOM_WALK;
+   timeSinceLastJitter = 0;
+   jitterRefractoryPeriod = 0;
    stepSize = 0;
    persistenceProb = 0.0;
    recurrenceProb = 1.0;
@@ -200,6 +202,7 @@ void Image::readRecurrenceProb(PVParams * params) {
       recurrenceProb = params->value(name, "recurrenceProb", recurrenceProb);
    }
 }
+
 
 void Image::readBiasChangeTime(PVParams * params) {
    assert(!params->presentAndNotBeenRead(name, "jitterFlag"));
@@ -782,7 +785,7 @@ int Image::calcNewBiases(int stepSize) {
  * Perform a
  * random jump of maximum length equal to step.
  * The routine returns the resulting offset.
- * (The recurenceProb test has been moved to the calling routine jitter() )
+ * (The recurrenceProb test has been moved to the calling routine jitter() )
  */
 int Image::calcBiasedOffset(int bias, int current_offset, int step, int sizeLength)
 {
@@ -805,25 +808,28 @@ bool Image::calcNewOffsets(int stepSize)
 
    bool needNewImage = false;
    double p = randState->uniformRandom();
-
-   if (p > recurrenceProb) {
-      p = randState->uniformRandom();
-      if (p > persistenceProb) {
-         needNewImage = true;
-         int step_radius = 1 + (int) floor(randState->uniformRandom() * stepSize);
-         double p = randState->uniformRandom() * 2 * PI; // direction to step
-         int dx = (int) round( step_radius * cos(p));
-         int dy = (int) round( step_radius * sin(p));
-         assert(dx != 0 || dy != 0);
-         offsets[0] += dx;
-         offsets[1] += dy;
+   if (timeSinceLastJitter >= jitterRefractoryPeriod) {
+      if (p > recurrenceProb) {
+         p = randState->uniformRandom();
+         if (p > persistenceProb) {
+            needNewImage = true;
+           int step_radius = 1 + (int) floor(randState->uniformRandom() * stepSize);
+           double p = randState->uniformRandom() * 2 * PI; // direction to step
+           int dx = (int) round( step_radius * cos(p));
+           int dy = (int) round( step_radius * sin(p));
+           assert(dx != 0 || dy != 0);
+           offsets[0] += dx;
+           offsets[1] += dy;
+           timeSinceLastJitter = 0;
+         }
+      }
+      else {
+            assert(sizeof(*offsets) == sizeof(*biases));
+            memcpy(offsets, biases, 2*sizeof(offsets));
+            timeSinceLastJitter = 0;
       }
    }
-   else {
-      assert(sizeof(*offsets) == sizeof(*biases));
-      memcpy(offsets, biases, 2*sizeof(offsets));
-   }
-
+   timeSinceLastJitter++;
    return needNewImage;
 }
 

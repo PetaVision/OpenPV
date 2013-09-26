@@ -151,7 +151,8 @@ protected:
    int writePosition;     // If using jitter, write positions to input/image-pos.txt
    PV_Stream * fp_pos;    // If writePosition is true, write the positions to this file
    long biasChangeTime;    // If using jitter, time period for recalculating bias position
-
+   int jitterRefractoryPeriod; // After jitter, minimum amount of time until next jitter
+   int timeSinceLastJitter; // Keeps track of timesteps since last jitter
    int jitterType;       // If using jitter, specify type of jitter (random walk or random jump)
    const static int RANDOM_WALK = 0;  // const denoting jitter is a random walk
    const static int RANDOM_JUMP = 1;  // const denoting jitter is a random jump
