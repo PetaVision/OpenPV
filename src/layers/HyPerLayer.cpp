@@ -1875,6 +1875,7 @@ int HyPerLayer::readDataStoreFromFile(const char * filename, InterColComm * comm
       if (status1 != PV_SUCCESS) status = PV_FAILURE;
    }
    assert(status == PV_SUCCESS);
+   pvp_close_file(readFile, comm);
    return status;
 }
 

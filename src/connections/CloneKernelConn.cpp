@@ -220,6 +220,7 @@ int CloneKernelConn::deleteWeights() {
 }
 
 CloneKernelConn::~CloneKernelConn() {
+   free(originalConnName);
    deleteWeights();
 }
 

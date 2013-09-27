@@ -19,6 +19,7 @@ TrainingLayer::TrainingLayer(const char * name, HyPerCol * hc, const char * file
 }
 
 TrainingLayer::~TrainingLayer() {
+   free(filename);
    free(trainingLabels);
 }
 

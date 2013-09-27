@@ -76,6 +76,10 @@ HyPerCol::~HyPerCol()
 
    free(connections);
    free(layers);
+   for (int k=0; k<numProbes; k++) {
+      delete probes[k];
+   }
+   free(probes);
    free(name);
    free(outputPath);
    free(outputNamesOfLayersAndConns);

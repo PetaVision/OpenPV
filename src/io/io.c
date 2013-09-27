@@ -119,6 +119,11 @@ int pv_getopt_unsigned(int argc, char * argv[], const char * opt, unsigned int *
  */
 int pv_getopt_str(int argc, char * argv[], const char * opt, char ** sVal)
 {
+   // sVal can be NULL.  If sVal is not null and the option is found,
+   // the value of the option is put into sVal and the calling routine is
+   // responsible for freeing it.
+   // Example: if argv[1] is "-p" and argv[2] is "params.pv", and opt is "-p",
+   // *sVal will be "params.pv".
    int i;
    for (i = 1; i < argc; i += 1) {
       if (i+1 < argc && strcmp(argv[i], opt) == 0) {
@@ -126,6 +131,7 @@ int pv_getopt_str(int argc, char * argv[], const char * opt, char ** sVal)
          return 0;
       }
    }
+   if (sVal != NULL) *sVal = NULL;
    return -1;  // not found
 }
 

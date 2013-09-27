@@ -212,4 +212,9 @@ int PoolingGenConn::updateWeights(int axonID) {
     return PV_SUCCESS;
 }
 
+PoolingGenConn::~PoolingGenConn() {
+   free(preLayerName2); preLayerName2 = NULL;
+   free(postLayerName2); postLayerName2 = NULL;
+}
+
 }  // end namespace PV
