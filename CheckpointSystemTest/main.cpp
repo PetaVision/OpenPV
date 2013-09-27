@@ -113,6 +113,8 @@ void * customgroup(const char * keyword, const char * name, HyPerCol * hc) {
          addedGroup = (void * ) new VaryingHyPerConn(name, hc, preLayerName, postLayerName, fileName, weightInitializer);
       }
    }
+   free(preLayerName); preLayerName = NULL;
+   free(postLayerName); postLayerName = NULL;
    return addedGroup;
 }
 
