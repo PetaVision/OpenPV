@@ -150,6 +150,7 @@ int customexit(HyPerCol * hc, int argc, char * argv[]) {
          // going on.
          status = PV_FAILURE;
       }
+      free(shellcommand); shellcommand = NULL;
    }
 #ifdef PV_USE_MPI
    MPI_Bcast(&status, 1, MPI_INT, rootproc, hc->icCommunicator()->communicator());
