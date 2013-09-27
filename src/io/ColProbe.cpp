@@ -28,6 +28,7 @@ ColProbe::~ColProbe() {
    if (stream != NULL && stream->isfile) {
       PV_fclose(stream);
    }
+   free(colProbeName);
 }
 
 int ColProbe::initialize_base() {
@@ -48,7 +49,7 @@ int ColProbe::initialize_path(const char * filename, HyPerCol * hc) {
       if( filename != NULL ) {
          char * path;
          const char * output_path = hc->getOutputPath();
-         size_t len = strlen(output_path) + strlen(filename) + 1;
+         size_t len = strlen(output_path) + strlen(filename) + 2; // One char for slash; one for string terminator
          path = (char *) malloc( len * sizeof(char) );
          sprintf(path, "%s/%s", output_path, filename);
          stream = PV_fopen(path, "w");
