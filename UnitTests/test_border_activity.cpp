@@ -41,7 +41,7 @@ int main(int argc, char * argv[])
    cl_args[0] = strdup(argv[0]);
    cl_args[1] = strdup("-p");
    cl_args[2] = strdup("input/test_border_activity.pv");
-   cl_args[3] = NULL;
+   cl_args[ARGC] = NULL;
    HyPerCol * hc = new HyPerCol("column", ARGC, cl_args);
    for( int k=0; k<ARGC; k++ )
    {
