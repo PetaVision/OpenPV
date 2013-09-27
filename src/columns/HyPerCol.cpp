@@ -82,6 +82,9 @@ HyPerCol::~HyPerCol()
    if (checkpointWriteFlag) {
       free(checkpointWriteDir); checkpointWriteDir = NULL;
    }
+   if (checkpointReadFlag) {
+      free(checkpointReadDir); checkpointReadDir = NULL;
+   }
 }
 
 int HyPerCol::initFinish(void)
@@ -682,6 +685,7 @@ int HyPerCol::run(long int nTimeSteps)
 //            abort();
 //         }
 //      }
+      free(cpDir);
    }
    else {
       for ( int l=0; l<numLayers; l++ ) {

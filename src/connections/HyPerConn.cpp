@@ -1727,6 +1727,7 @@ int HyPerConn::checkpointRead(const char * cpDir, double * timef) {
    assert(status==PV_SUCCESS);
    InitWeights * weightsInitObject = new InitWeights();
    weightsInitObject->initializeWeights(wPatches, get_wDataStart(), path, this, timef);
+   free(weightsInitObject); weightsInitObject = NULL;
 
    status = parent->readScalarFromFile(cpDir, getName(), "nextWrite", &writeTime, writeTime);
    assert(status == PV_SUCCESS);
