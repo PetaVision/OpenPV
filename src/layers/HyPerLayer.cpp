@@ -1632,7 +1632,7 @@ int HyPerLayer::insertProbe(LayerProbe * p)
    for (int i = 0; i < numProbes; i++) {
       tmp[i] = probes[i];
    }
-   delete probes;
+   free(probes);
 
    probes = tmp;
    probes[numProbes] = p;

@@ -690,7 +690,7 @@ int Communicator::freeDatatypes(MPI_Datatype * mpi_datatypes) {
       for ( int n=0; n<NUM_NEIGHBORHOOD; n++ ) {
          MPI_Type_free(&mpi_datatypes[n]);
       }
-      delete mpi_datatypes;
+      delete[] mpi_datatypes;
    }
 #endif // PV_USE_MPI
    return PV_SUCCESS;

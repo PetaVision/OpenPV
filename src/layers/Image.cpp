@@ -456,7 +456,7 @@ int Image::readImage(const char * filename, int offsetX, int offsetY, GDALColorI
    assert(status == PV_SUCCESS);
    if( loc->nf == 1 && imageLoc.nf > 1 ) {
       float * graybuf = convertToGrayScale(buf,loc->nx,loc->ny,imageLoc.nf, colorbandtypes);
-      delete buf;
+      delete[] buf;
       buf = graybuf;
       //Redefine n for grayscale images
       n = loc->nx * loc->ny;
@@ -530,7 +530,7 @@ int Image::readImage(const char * filename, int offsetX, int offsetY, GDALColorI
 
    if( status == PV_SUCCESS ) copyFromInteriorBuffer(buf, 1.0f);
 
-   delete buf;
+   delete[] buf;
 
    if(useImageBCflag){ //Restore non-extended dimensions
       loc->nx = loc->nx - 2*loc->nb;
