@@ -28,6 +28,7 @@ Image::~Image() {
    free(filename);
    filename = NULL;
    Communicator::freeDatatypes(mpi_datatypes); mpi_datatypes = NULL;
+   delete randState; randState = NULL;
 
    if(writePosition){
       if (getParent()->icCommunicator()->commRank()==0 && fp_pos != NULL && fp_pos->isfile) {
@@ -62,6 +63,7 @@ int Image::initialize_base() {
    biases[0]   = getOffsetX();
    biases[1]   = getOffsetY();
    frameNumber = 0;
+   randState = NULL;
    return PV_SUCCESS;
 }
 

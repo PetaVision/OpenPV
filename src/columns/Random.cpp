@@ -101,6 +101,7 @@ unsigned int Random::randomUInt(int localIndex) {
 }
 
 Random::~Random() {
+   free(rngArray); rngArray = NULL;
 }
 
 } /* namespace PV */
