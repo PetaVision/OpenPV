@@ -304,6 +304,13 @@ runandecho $testname Debug/$testname $arglist
 mpirunandecho $testname Debug/$testname $arglist
 cd "$wd"
 
+testname=TransposeConnTest
+cd "$testname"
+arglist=""
+runandecho $testname Debug/$testname $arglist
+mpirunandecho $testname Debug/$testname $arglist
+cd "$wd"
+
 testname=WindowSystemTest
 cd "$testname"
 arglist="-p input/postTest.params" # parameter filename is in main()
@@ -369,7 +376,7 @@ else
 fi
 
 testname="test_gauss2d"
-if ./$testname &> ${testname}_1.log
+if $PV_MPIRUN -np 1 ./$testname &> ${testname}_1.log
 then
     echo "$testname passed."
 else
@@ -378,7 +385,7 @@ else
 fi
 
 testname="test_cocirc"
-if ./$testname -p input/test_cocirc.params &> ${testname}_1.log
+if $PV_MPIRUN -np 1 ./$testname -p input/test_cocirc.params &> ${testname}_1.log
 then
     echo "$testname passed."
 else
@@ -432,7 +439,7 @@ else
 fi
 
 testname="test_mirror_BCs"
-if ./$testname &> ${testname}_1.log
+if $PV_MPIRUN -np 1 ./$testname &> ${testname}_1.log
 then
     echo "$testname passed."
 else
@@ -441,7 +448,7 @@ else
 fi
 
 testname="test_border_activity"
-if ./$testname &> ${testname}_1.log
+if $PV_MPIRUN -np 1 ./$testname &> ${testname}_1.log
 then
     echo "$testname passed."
 else
@@ -454,7 +461,7 @@ fi
 if test $usempi -ne 0
 then
     testname="test_mpi_specifyrowscolumns"
-    if openmpirun -np 6 ./$testname -p input/test_mpi_specifyrowscolumns.params &> ${testname}_6.log
+    if $PV_MPIRUN -np 6 ./$testname -p input/test_mpi_specifyrowscolumns.params &> ${testname}_6.log
     then
         echo "$testname passed."
     else
