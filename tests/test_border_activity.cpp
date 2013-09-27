@@ -37,10 +37,11 @@ int main(int argc, char * argv[])
 
    const char * image_file = "input/const_one_64x64.tif";
 
-   char * cl_args[ARGC];
+   char * cl_args[ARGC+1];
    cl_args[0] = strdup(argv[0]);
    cl_args[1] = strdup("-p");
    cl_args[2] = strdup("input/test_border_activity.pv");
+   cl_args[ARGC] = NULL;
    HyPerCol * hc = new HyPerCol("column", ARGC, cl_args);
    for( int k=0; k<ARGC; k++ )
    {
