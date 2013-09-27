@@ -32,6 +32,7 @@ if (NOT LIBSNDFILE_FOUND)
     find_package(LIBSNDFILE)
 endif (NOT LIBSNDFILE_FOUND)
 
+# Header files
 include_directories(${PV_SOURCE_DIR})
 include_directories(${GDAL_INCLUDE_DIR})
 include_directories(${MPI_C_INCLUDE_PATH})
