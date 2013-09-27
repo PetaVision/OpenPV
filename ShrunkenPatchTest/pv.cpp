@@ -34,13 +34,14 @@ int main(int argc, char * argv[]) {
    char ** cl_args;
    if( paramfileabsent ) {
       num_cl_args = argc + 2;
-      cl_args = (char **) malloc(num_cl_args*sizeof(char *));
+      cl_args = (char **) malloc((num_cl_args+1)*sizeof(char *));
       cl_args[0] = argv[0];
       cl_args[1] = strdup("-p");
       cl_args[2] = strdup("input/ShrunkenPatchTest.params");
       for( int k=1; k<argc; k++) {
          cl_args[k+2] = strdup(argv[k]);
       }
+      cl_args[num_cl_args] = NULL;
    }
    else {
       num_cl_args = argc;
