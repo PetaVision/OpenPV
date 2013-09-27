@@ -10,7 +10,7 @@ int customexit(HyPerCol * hc, int argc, char * argv[]);
 
 int main(int argc, char * argv[]) {
    char * param_file = NULL;
-   int paramfilestatus = pv_getopt_str(argc, argv, "-p", &param_file);
+   int paramfilestatus = pv_getopt_str(argc, argv, "-p", NULL);
    int cl_argc = argc + (paramfilestatus!=0 ? 2 : 0);
    char ** cl_argv = (char **) malloc((size_t) (cl_argc+1) * sizeof(char *));
    assert(cl_argv!=NULL);
@@ -28,6 +28,9 @@ int main(int argc, char * argv[]) {
 
    int status;
    status = buildandrun(cl_argc, cl_argv, NULL, &customexit, NULL);
+   for (int a=0; a<argc; a++) {
+      free(cl_argv[a]);
+   }
    free(cl_argv); cl_argv = NULL;
    return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }
