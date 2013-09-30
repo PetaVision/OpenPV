@@ -1,5 +1,5 @@
 function [DoG_weights] = get_DoG_weights(DoG_center_path, DoG_surround_path)
-
+  global plot_flag
   DoG_weights = [];
   if ~exist("DoG_center_path") || isempty(DoG_center_path)
     return;
@@ -32,14 +32,19 @@ function [DoG_weights] = get_DoG_weights(DoG_center_path, DoG_surround_path)
   DoG_row_stop = size_DoG_weights(1)-DoG_pad(1);
   DoG_col_start = DoG_pad(2)+1;
   DoG_col_stop = size_DoG_weights(2)-DoG_pad(2);
-  DoG_fig = figure;
-  set(DoG_fig, "name", "DoG Weights");
+  if plot_flag
+    DoG_fig = figure;
+    set(DoG_fig, "name", "DoG Weights");
+  endif
   for i_pre_color = 1 : num_pre_colors
     for i_post_color = 1 : num_post_colors
       DoG_center_padded(DoG_row_start:DoG_row_stop, DoG_col_start:DoG_col_stop) = ...
 	  DoG_center_weights(:,:, i_pre_color, i_post_color);
       DoG_weights = ...
 	  DoG_center_padded - DoG_surround_weights(:, :, i_pre_color, i_post_color);
+      if ~plot_flag 
+	continue
+      endif
       subplot(num_pre_colors, num_post_colors, (i_pre_color - 1) * num_post_colors + i_post_color);
       patch_tmp = DoG_weights;
       patch_tmp2 = patch_tmp; %% imresize(patch_tmp, 12);
@@ -54,3 +59,4 @@ function [DoG_weights] = get_DoG_weights(DoG_center_path, DoG_surround_path)
   endfor
   drawnow;
   %%saveas(DoG_fig, [DoG_surround_path, filesep, "DoG_weights.png"]);
+endfunction
