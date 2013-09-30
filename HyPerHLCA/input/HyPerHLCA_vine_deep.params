@@ -136,6 +136,7 @@ ANNErrorLayer "Error" = {
     initialWriteTime = 1998.0;
     writeStep = 2000;
     mirrorBCflag = 0;
+    valueBC = 0;
     writeSparseActivity = 0;
     //
     InitVType = "ZeroV";
@@ -157,9 +158,12 @@ HyPerLCALayer "V1" = {
     nyScale = 0.25;
     nf = 128; //256;
     numChannels = 1; // should be 1
+    numWindowX = 1;
+    numWindowY = 1;
     initialWriteTime = 199.0;
     writeStep = 200.0;
     mirrorBCflag = 0;
+    valueBC = 0;
     writeSparseActivity = 1;
     //
     InitVType = "UniformRandomV";
@@ -189,6 +193,7 @@ ANNLayer "Recon" = {
     initialWriteTime = 1998.0;
     writeStep = 2000.0;
     mirrorBCflag = 0;
+    valueBC = 0;
     writeSparseActivity = 0;
     //
     InitVType = "ZeroV";
@@ -212,6 +217,7 @@ ANNErrorLayer "Error2" = {
     initialWriteTime = 1998.0;
     writeStep = 2000;
     mirrorBCflag = 0;
+    valueBC = 0;
     writeSparseActivity = 0;
     //
     InitVType = "ZeroV";
@@ -233,10 +239,13 @@ HyPerLCALayer "V2" = {
     nyScale = 0.125;
     nf = 128; //256;
     numChannels = 1;  // should be 1
+    numWindowX = 1;
+    numWindowY = 1;
     // 
     initialWriteTime = 199.0;
     writeStep = 200.0;
     mirrorBCflag = 0;
+    valueBC = 0;
     writeSparseActivity = 1;
     //
     InitVType = "UniformRandomV";
@@ -266,6 +275,7 @@ ANNLayer "Recon2" = {
     initialWriteTime = 1998.0;
     writeStep = 2000.0;
     mirrorBCflag = 0;
+    valueBC = 0;
     writeSparseActivity = 0;
     //
     InitVType = "ZeroV";
@@ -290,6 +300,7 @@ ANNErrorLayer "Error1_2" = {
     initialWriteTime = 9999.0;
     writeStep = 10000;
     mirrorBCflag = 0;
+    valueBC = 0;
     writeSparseActivity = 0;
     //
     InitVType = "ZeroV";
@@ -313,6 +324,7 @@ ANNLayer "V1Infra" = {
     initialWriteTime = 1998.0;
     writeStep = 2000.0;
     mirrorBCflag = 0;
+    valueBC = 0;
     writeSparseActivity = 1;
     //
     InitVType = "ZeroV";
@@ -336,6 +348,7 @@ ANNLayer "ReconInfra" = {
     initialWriteTime = 1998.0;
     writeStep = 2000.0;
     mirrorBCflag = 0;
+    valueBC = 0;
     writeSparseActivity = 0;
     //
     InitVType = "ZeroV";
@@ -362,6 +375,7 @@ IdentConn "MovieToRetina" = {
     channelCode = 0;
     delay = 0;
     writeStep = -1;
+    writeCompressedCheckpoints = false;
 };
 
 
@@ -375,6 +389,7 @@ KernelConn "RetinaToBipolarCenter" = {
     numAxonalArbors = 1;
     initFromLastFlag = 0;  // 1;  // restart
     writeStep = -1;
+    writeCompressedCheckpoints = false;
     
     weightInitType = "Gauss2DWeight";
     aspect = 1;
@@ -396,7 +411,8 @@ KernelConn "RetinaToBipolarCenter" = {
     //writeCompressedWeights = 0.0;
     writeCompressedCheckpoints = false;
     plasticityFlag = 0;
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
+    updateGSynFromPostPerspective = false;     
      
     delay = 0;
      
@@ -416,6 +432,7 @@ KernelConn "BipolarToGanglionCenter" = {
     numAxonalArbors = 1;
     initFromLastFlag = 0;  // 1;  // restart
     writeStep = -1;
+    writeCompressedCheckpoints = false;
     
     weightInitType = "Gauss2DWeight";
     aspect = 1;
@@ -437,7 +454,8 @@ KernelConn "BipolarToGanglionCenter" = {
     //writeCompressedWeights = 0.0;
     writeCompressedCheckpoints = false;
     plasticityFlag = 0;
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
+    updateGSynFromPostPerspective = false;     
      
     delay = 0;
      
@@ -457,6 +475,7 @@ KernelConn "BipolarToGanglionSurround" = {
     numAxonalArbors = 1;
     initFromLastFlag = 0;  // 1;  // restart
     writeStep = -1;
+    writeCompressedCheckpoints = false;
     
     weightInitType = "Gauss2DWeight";
     aspect = 1;
@@ -478,7 +497,8 @@ KernelConn "BipolarToGanglionSurround" = {
     //writeCompressedWeights = 0.0;
     writeCompressedCheckpoints = false;
     plasticityFlag = 0;
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
+    updateGSynFromPostPerspective = false;     
      
     delay = 0;
      
@@ -494,6 +514,7 @@ IdentConn "GanglionToError" = {
     channelCode = 0;
     delay = 0;
     writeStep = -1;
+    writeCompressedCheckpoints = false;
 };
 
 
@@ -541,7 +562,8 @@ KernelConn "V1ToError" = {
     //
     delay = 0;
     //
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
+    updateGSynFromPostPerspective = false;     
     shrinkPatches = false;
 };
 
@@ -557,7 +579,8 @@ TransposeConn "ErrorToV1" = {
     writeCompressedCheckpoints = false;
     shmget_flag = false;
     delay = 0;
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
+    updateGSynFromPostPerspective = false;     
 };
 
 CloneKernelConn "V1ToRecon" = {
@@ -567,7 +590,8 @@ CloneKernelConn "V1ToRecon" = {
     writeStep = -1;
     originalConnName = "V1ToError";
     selfFlag = false;
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
+    updateGSynFromPostPerspective = false;     
     delay = 0;
     preActivityIsNotRate = false;
 };
@@ -583,6 +607,7 @@ KernelConn "ReconToError2" = {
     nfp = 3;
     numAxonalArbors = 1;
     writeStep = -1;
+    writeCompressedCheckpoints = false;
     initFromLastFlag = 0;
     
     weightInitType = "Gauss2DWeight";
@@ -605,7 +630,8 @@ KernelConn "ReconToError2" = {
     //writeCompressedWeights = 0.0;
     writeCompressedCheckpoints = false;
     plasticityFlag = 0;
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
+    updateGSynFromPostPerspective = false;     
      
     delay = 0;
      
@@ -657,7 +683,8 @@ KernelConn "V2ToError2" = {
     //
     delay = 0;
     //
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
+    updateGSynFromPostPerspective = false;     
     shrinkPatches = false;
 };
 
@@ -672,7 +699,8 @@ TransposeConn "Error2ToV2" = {
     writeCompressedCheckpoints = false;
     shmget_flag = false;
     delay = 0;
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
+    updateGSynFromPostPerspective = false;     
 };
 
 
@@ -681,9 +709,11 @@ CloneKernelConn "V2ToRecon2" = {
    postLayerName = "Recon2";
    channelCode = 0;
    writeStep = -1;
+   writeCompressedCheckpoints = false;
    originalConnName = "V2ToError2";
    selfFlag = false;
-   stochasticReleaseFlag = false;
+   pvpatchAccumulateType = "convolve";
+   updateGSynFromPostPerspective = false;     
    delay = 0;
    preActivityIsNotRate = false;
 };
@@ -698,6 +728,7 @@ IdentConn "V1ToError1_2" = {
     channelCode = 0;
     delay = 0;
     writeStep = -1;
+    writeCompressedWeights = false;
 };
 
 
@@ -745,7 +776,8 @@ KernelConn "V2ToError1_2" = {
     //
     delay = 0;
     //
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
+    updateGSynFromPostPerspective = false;     
     shrinkPatches = false;
 };
 
@@ -760,7 +792,8 @@ TransposeConn "Error1_2ToV2" = {
     writeCompressedCheckpoints = false;
     shmget_flag = false;
     delay = 0;
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
+    updateGSynFromPostPerspective = false;     
 };
 
 
@@ -769,10 +802,12 @@ CloneKernelConn "V2ToV1Infra" = {
     postLayerName = "V1Infra";
     channelCode = 0;
     writeStep = -1;
+    writeCompressedCheckpoints = false;
     originalConnName = "V2ToError1_2"; //"V2ToV1";  //
     //writeCompressedWeights = 0.0;
     selfFlag = false;
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
+    updateGSynFromPostPerspective = false;     
     delay = 0;
     preActivityIsNotRate = false;
 };
@@ -784,6 +819,7 @@ IdentConn "ReconInfraToError" = {
     channelCode = 1;
     delay = 0;
     writeStep = -1;
+    writeCompressedCheckpoints = false;
 };
 
 
@@ -792,10 +828,12 @@ CloneKernelConn "V1InfraToReconInfra" = {
     postLayerName = "ReconInfra";
     channelCode = 0;
     writeStep = -1;
+    writeCompressedCheckpoints = false;
     originalConnName = "V1ToError";
     //writeCompressedWeights = 0.0;
     selfFlag = false;
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
+    updateGSynFromPostPerspective = false;     
     delay = 0;
     preActivityIsNotRate = false;
 };

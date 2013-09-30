@@ -15,16 +15,16 @@ HyPerCol "column" = {
     ny = 480;
     dt = 1.0;
     randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
-    numSteps = 14005200; //8039600; // 27290000; //24725600; // 21488000; //18674000; // 
+    numSteps = 14005200; //46584000; //31956400; //30517200; //27290000; //24725600; // 21488000; //18674000; // 14005200; //8039600; 
     progressStep = 1000;
-    outputPath = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_2013_01_31_12x12x128_lambda_05X2_lateral";
+    outputPath = "/nh/compneuro/Data/vine/LCA/2013_01_30/output_2013_01_30_12x12x128_lambda_05X2_lateral";
     filenamesContainLayerNames = true;
     filenamesContainConnectionNames = true;
     checkpointRead = true;
     checkpointReadDir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_2013_01_31_12x12x128_lambda_05X2_lateral/Checkpoints";
-    checkpointReadDirIndex = 8039600; //24725600; //21488000; //18674000; //100000; //14005200; //
+    checkpointReadDirIndex = 8039600; //30517200; // 27290000; // 24725600; //21488000; //18674000; //14005200; //8039600; 
     checkpointWrite = true;
-    checkpointWriteDir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_2013_01_31_12x12x128_lambda_05X2_lateral/Checkpoints";
+    checkpointWriteDir = "/nh/compneuro/Data/vine/LCA/2013_01_30/output_2013_01_30_12x12x128_lambda_05X2_lateral/Checkpoints";
     checkpointWriteStepInterval = 100000;
     deleteOlderCheckpoints = false;
     //suppressLastOutput = false;
@@ -40,7 +40,7 @@ Movie "Image" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
-    imageListPath = "/nh/compneuro/Data/vine/list/2013_01_31/fileList_2013_01_31.txt";
+    imageListPath = "/nh/compneuro/Data/vine/list/2013_01_30/fileList_2013_01_30.txt";
     nf = 3;
     writeStep = -1;
     writeSparseActivity = false;
@@ -137,6 +137,7 @@ ANNErrorLayer "Error" = {
     initialWriteTime = 1999.0;
     writeStep = 2000;
     mirrorBCflag = 0;
+    valueBC = 0;
     writeSparseActivity = 0;
     //
     InitVType = "ZeroV";
@@ -158,9 +159,12 @@ HyPerLCALayer "V1" = {
     nyScale = 0.25;
     nf = 128; //256;
     numChannels = 1; // should be 1
+    numWindowX = 1;
+    numWindowY = 1;
     initialWriteTime = 199.0;
     writeStep = 200.0;
     mirrorBCflag = 0;
+    valueBC = 0;
     writeSparseActivity = 1;
     //
     InitVType = "UniformRandomV";
@@ -190,6 +194,7 @@ ANNTriggerUpdateOnNewImageLayer "Recon" = {
     initialWriteTime = 1999.0;
     writeStep = 2000.0;
     mirrorBCflag = 0;
+    valueBC = 0;
     writeSparseActivity = 0;
     //
     movieLayerName = "Image";
@@ -214,6 +219,7 @@ ANNErrorLayer "Error2" = {
     initialWriteTime = 1999.0;
     writeStep = 2000;
     mirrorBCflag = 0;
+    valueBC = 0;
     writeSparseActivity = 0;
     //
     InitVType = "ZeroV";
@@ -235,6 +241,8 @@ HyPerLCALayer "V2" = {
     nyScale = 0.25;
     nf = 128; //256;
     numChannels = 1;  // should be 1
+    numWindowX = 1;
+    numWindowY = 1;
     // 
     initialWriteTime = 199.0;
     writeStep = 200.0;
@@ -267,7 +275,8 @@ ANNTriggerUpdateOnNewImageLayer "Recon2" = {
     nf = 3;
     initialWriteTime = 1999.0;
     writeStep = 2000.0;
-    mirrorBCflag = 1;
+    mirrorBCflag = 0;
+    valueBC = 0;
     writeSparseActivity = 0;
     //
     movieLayerName = "Image";
@@ -292,6 +301,7 @@ ANNTriggerUpdateOnNewImageLayer "V1Intra" = {
     initialWriteTime = 1999.0;
     writeStep = 2000.0;
     mirrorBCflag = 0;
+    valueBC = 0;
     writeSparseActivity = 1;
     //
     movieLayerName = "Image";
@@ -316,6 +326,7 @@ ANNErrorLayer "Error1_2" = {
     initialWriteTime = 9999.0;
     writeStep = 10000;
     mirrorBCflag = 0;
+    valueBC = 0;
     writeSparseActivity = 0;
     //
     InitVType = "ZeroV";
@@ -339,6 +350,7 @@ ANNTriggerUpdateOnNewImageLayer "ReconInfra" = {
     initialWriteTime = 1999.0;
     writeStep = 2000.0;
     mirrorBCflag = 0;
+    valueBC = 0;
     writeSparseActivity = 0;
     //
     movieLayerName = "Image";
@@ -363,6 +375,7 @@ ANNTriggerUpdateOnNewImageLayer "V1Infra" = {
     initialWriteTime = 1999.0;
     writeStep = 2000.0;
     mirrorBCflag = 0;
+    valueBC = 0;
     writeSparseActivity = 1;
     //
     movieLayerName = "Image";
@@ -390,6 +403,7 @@ IdentConn "MovieToRetina" = {
     channelCode = 0;
     delay = 0;
     writeStep = -1;
+    writeCompressedCheckpoints = false;
 };
 
 
@@ -403,6 +417,7 @@ KernelConn "RetinaToBipolarCenter" = {
     numAxonalArbors = 1;
     initFromLastFlag = 0;  // 1;  // restart
     writeStep = -1;
+    writeCompressedCheckpoints = false;
     
     weightInitType = "Gauss2DWeight";
     aspect = 1;
@@ -422,9 +437,9 @@ KernelConn "RetinaToBipolarCenter" = {
     
     shrinkPatches = false;
     //writeCompressedWeights = 0.0;
-    writeCompressedCheckpoints = false;
     plasticityFlag = 0;
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
+    updateGSynFromPostPerspective = false;     
      
     delay = 0;
      
@@ -444,6 +459,7 @@ KernelConn "BipolarToGanglionCenter" = {
     numAxonalArbors = 1;
     initFromLastFlag = 0;  // 1;  // restart
     writeStep = -1;
+    writeCompressedCheckpoints = false;
     
     weightInitType = "Gauss2DWeight";
     aspect = 1;
@@ -463,9 +479,9 @@ KernelConn "BipolarToGanglionCenter" = {
     
     shrinkPatches = false;
     //writeCompressedWeights = 0.0;
-    writeCompressedCheckpoints = false;
     plasticityFlag = 0;
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
+    updateGSynFromPostPerspective = false;     
      
     delay = 0;
      
@@ -485,6 +501,7 @@ KernelConn "BipolarToGanglionSurround" = {
     numAxonalArbors = 1;
     initFromLastFlag = 0;  // 1;  // restart
     writeStep = -1;
+    writeCompressedCheckpoints = false;
     
     weightInitType = "Gauss2DWeight";
     aspect = 1;
@@ -504,9 +521,9 @@ KernelConn "BipolarToGanglionSurround" = {
     
     shrinkPatches = false;
     //writeCompressedWeights = 0.0;
-    writeCompressedCheckpoints = false;
     plasticityFlag = 0;
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
+    updateGSynFromPostPerspective = false;     
      
     delay = 0;
      
@@ -522,6 +539,7 @@ IdentConn "GanglionToError" = {
     channelCode = 0;
     delay = 0;
     writeStep = -1;
+    writeCompressedCheckpoints = false;
 };
 
 
@@ -567,7 +585,8 @@ KernelConn "V1ToError" = {
     //
     delay = 0;
     //
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
+    updateGSynFromPostPerspective = false;     
     shrinkPatches = false;
 };
 
@@ -583,7 +602,8 @@ TransposeConn "ErrorToV1" = {
     writeCompressedCheckpoints = false;
     shmget_flag = false;
     delay = 0;
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
+    updateGSynFromPostPerspective = false;     
 };
 
 CloneKernelConn "V1ToRecon" = {
@@ -591,9 +611,11 @@ CloneKernelConn "V1ToRecon" = {
     postLayerName = "Recon";
     channelCode = 0;
     writeStep = -1;
+    writeCompressedCheckpoints = false;
     originalConnName = "V1ToError";
     selfFlag = false;
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
+    updateGSynFromPostPerspective = false;     
     delay = 0;
     preActivityIsNotRate = false;
 };
@@ -607,6 +629,7 @@ IdentConn "V1ToError2" = {
 	channelCode = 0;
     delay = 0;
     writeStep = -1;
+    writeCompressedCheckpoints = false;
 };
 
 // for learning intra-column connections (top-down input)
@@ -652,9 +675,10 @@ KernelConn "V2ToError2" = {
     //
     delay = 0;
     //
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
+    updateGSynFromPostPerspective = false;     
     shrinkPatches = false;
-\};
+};
 
 TransposeConn "Error2ToV2" = {
     preLayerName = "Error2";
@@ -667,7 +691,8 @@ TransposeConn "Error2ToV2" = {
     writeCompressedCheckpoints = false;
     shmget_flag = false;
     delay = 0;
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
+    updateGSynFromPostPerspective = false;     
 };
 
 
@@ -676,9 +701,11 @@ CloneKernelConn "V2ToV1Intra" = {
    postLayerName = "V1Intra";
    channelCode = 0;
    writeStep = -1;
+   writeCompressedCheckpoints = false;
    originalConnName = "V2ToError2";
    selfFlag = false;
-   stochasticReleaseFlag = false;
+   pvpatchAccumulateType = "convolve";
+   updateGSynFromPostPerspective = false;     
    delay = 0;
    preActivityIsNotRate = false;
 };
@@ -689,9 +716,11 @@ CloneKernelConn "V1IntraToRecon2" = {
    postLayerName = "Recon2";
    channelCode = 0;
    writeStep = -1;
+   writeCompressedCheckpoints = false;
    originalConnName = "V1ToError";
    selfFlag = false;
-   stochasticReleaseFlag = false;
+   pvpatchAccumulateType = "convolve";
+   updateGSynFromPostPerspective = false;     
    delay = 0;
    preActivityIsNotRate = false;
 };
@@ -707,6 +736,7 @@ IdentConn "V1ToError1_2" = {
     channelCode = 0;
     delay = 0;
     writeStep = -1;
+    writeCompressedWeights = false;
 };
 
 // long-range lateral
@@ -754,7 +784,8 @@ KernelConn "V2ToError1_2" = {
     //
     delay = 0;
     //
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
+    updateGSynFromPostPerspective = false;     
     shrinkPatches = false;
 };
 
@@ -769,7 +800,8 @@ TransposeConn "Error1_2ToV2" = {
     writeCompressedCheckpoints = false;
     shmget_flag = false;
     delay = 0;
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
+    updateGSynFromPostPerspective = false;     
 };
 
 
@@ -778,10 +810,12 @@ CloneKernelConn "V2ToV1Infra" = {
     postLayerName = "V1Infra";
     channelCode = 0;
     writeStep = -1;
+    writeCompressedCheckpoints = false;
     originalConnName = "V2ToError1_2"; //"V2ToV1";  //
     //writeCompressedWeights = 0.0;
     selfFlag = false;
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
+    updateGSynFromPostPerspective = false;     
     delay = 0;
     preActivityIsNotRate = false;
 };
@@ -792,10 +826,12 @@ CloneKernelConn "V1InfraToReconInfra" = {
     postLayerName = "ReconInfra";
     channelCode = 0;
     writeStep = -1;
+    writeCompressedCheckpoints = false;
     originalConnName = "V1ToError";
     //writeCompressedWeights = 0.0;
     selfFlag = false;
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
+    updateGSynFromPostPerspective = false;     
     delay = 0;
     preActivityIsNotRate = false;
 };
