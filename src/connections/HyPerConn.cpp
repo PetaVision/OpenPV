@@ -164,6 +164,7 @@ HyPerConn::~HyPerConn()
    free(this->probes);
    free(this->preLayerName);
    free(this->postLayerName);
+   free(this->filename);
 
    delete weightInitializer;
    delete randState;
