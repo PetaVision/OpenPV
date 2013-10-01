@@ -78,7 +78,10 @@ Retina::Retina(const char * name, HyPerCol * hc) {
 
 Retina::~Retina()
 {
-   for (int n=0; n<NUM_NEIGHBORHOOD; n++) delete randState[n];
+   for (int n=0; n<NUM_NEIGHBORHOOD; n++) {
+      delete randState[n];
+      if (n!=0) free(border_indices[n]);
+   }
 #ifdef PV_USE_OPENCL
    if((gpuAccelerateFlag)&&(spikingFlag)) {
       delete clRand;
