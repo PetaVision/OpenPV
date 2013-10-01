@@ -245,13 +245,6 @@ int TransposeConn::setPatchSize() {
    int xscaleDiff = pre->getXScale() - post->getXScale();
    int nxp_orig = originalConn->xPatchSize();
    int nyp_orig = originalConn->yPatchSize();
-   if (nxp_orig != originalConn->getNxpShrunken() || nyp_orig != originalConn->getNypShrunken()) {
-      if (parent->columnId()==0) {
-         fprintf(stderr, "%s \"%s\" error: Transpose has not been implemented for shrunken patches.\n", parent->parameters()->groupKeywordFromName(name), name);
-      }
-      MPI_Barrier(parent->icCommunicator()->communicator());
-      exit(EXIT_FAILURE);
-   }
    nxp = nxp_orig;
    if(xscaleDiff > 0 ) {
       nxp *= (int) pow( 2, xscaleDiff );
