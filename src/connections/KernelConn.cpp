@@ -759,8 +759,7 @@ int KernelConn::writeWeights(const char * filename) {
 }
 
 int KernelConn::checkpointRead(const char * cpDir, double * timef) {
-   // Only difference from HyPerConn::checkpointRead() is first argument to weightsInitObject->initializeWeights.
-   // Can we juggle things so that KernelConn::checkpointWrite is unnecessary?
+   // Can't inherit from HyPerConn::checkpointRead because first argument to weightsInitObject->initializeWeights must be different.
    clearWeights(get_wDataStart(), getNumDataPatches(), nxp, nyp, nfp);
 
    char path[PV_PATH_MAX];
@@ -769,6 +768,10 @@ int KernelConn::checkpointRead(const char * cpDir, double * timef) {
    InitWeights * weightsInitObject = new InitWeights();
    weightsInitObject->initializeWeights(NULL, get_wDataStart(), path, this, timef);
    delete weightsInitObject;
+   status = parent->readScalarFromFile(cpDir, getName(), "lastUpdateTime", &lastUpdateTime, lastUpdateTime);
+   assert(status == PV_SUCCESS);
+   status = parent->readScalarFromFile(cpDir, getName(), "weightUpdateTime", &weightUpdateTime, weightUpdateTime);
+   assert(status == PV_SUCCESS);
    return PV_SUCCESS;
 }
 
@@ -783,6 +786,10 @@ int KernelConn::checkpointWrite(const char * cpDir) {
       }
    }
 #endif // PV_USE_MPI
+   status = parent->writeScalarToFile(cpDir, getName(), "lastUpdateTime", lastUpdateTime);
+   assert(status==PV_SUCCESS);
+   status = parent->writeScalarToFile(cpDir, getName(), "weightUpdateTime", weightUpdateTime);
+   assert(status==PV_SUCCESS);
    return HyPerConn::writeWeights(NULL, get_wDataStart(), getNumDataPatches(), filename, parent->simulationTime(), writeCompressedCheckpoints, /*last*/true);
 }
 
