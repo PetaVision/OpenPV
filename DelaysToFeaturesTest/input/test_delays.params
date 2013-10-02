@@ -1,0 +1,129 @@
+//
+// test_delays.params
+//
+// created by wchavez: October 1, 2013
+//
+
+//  - input parameters for DelaysToFeaturesTest
+//
+
+debugParsing = true;
+
+HyPerCol "column" = {
+   nx = 32;   
+   ny = 32;
+   dt = 1.0;
+   randomSeed = 17406293508;  // if not set here,  clock time is used to generate seed
+   numSteps = 17; 
+   writeProgressToErr = false;
+   progressStep = 1;
+   outputPath = "output/";
+   filenamesContainLayerNames = true;
+   filenamesContainConnectionNames = true;
+   checkpointRead = false;
+   checkpointWrite = false;
+   // checkpointWriteDir = "Checkpoints";
+   // checkpointWriteStepInterval = 1;
+   suppressLastOutput = false;
+};
+
+//
+// layers
+//
+
+
+Movie "Image" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    imageListPath = "~/Documents/workspace/DelaysToFeaturesTest/input/files.txt";
+    nf = 1;
+    writeStep = -1;
+    writeSparseActivity = false;
+    displayPeriod = 1;
+    start_frame_index = 1;
+    skip_frame_index = 1;
+    echoFramePathnameFlag = true;
+    mirrorBCflag = true;
+    jitterFlag = 0;
+    useImageBCflag = false;
+    inverseFlag = false;
+    normalizeLuminanceFlag = false;
+    writeImages = false;
+    offsetX = 0;
+    offsetY = 0;
+    randomMovie = 0;
+    autoResizeFlag = true;
+    readPvpFile = false;
+    phase = 0;
+    //useParamsImage = true;
+};
+
+
+
+ANNErrorLayer "Error" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 16;
+    initialWriteTime = 98.0;
+    writeStep = 100;
+    mirrorBCflag = 0;
+    writeSparseActivity = 0;
+
+    InitVType = "ZeroV";
+
+    VThresh = -infinity;
+    VMax =  infinity;
+    VMin = -infinity;
+    VShift = 0;
+    valueBC = 0;
+    
+    //
+    phase = 1;
+};
+
+
+
+
+
+//  connections: 
+
+
+KernelConn "delayArbor" = {
+    preLayerName = "Image";
+    postLayerName = "Error";
+    
+    channelCode = 0;
+    nxp         = 1;
+    nyp         = 1;
+    nfp         = 16;
+    
+    //Set delay from 0 to 15
+    delay       = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
+    
+    numAxonalArbors  = 16;
+    useWindowPost    = false;
+    writeStep        = 100;
+    initFromLastFlag = 0;
+
+    weightInitType = "OneToOneWeightsWithDelays";
+    weightInit = 1.0;
+      
+    normalizeMethod        = "none";
+    plasticityFlag         = false;
+    pvpatchAccumulateType  = "convolve";
+    writeCompressedCheckpoints = true;
+    selfFlag               = false;
+    shrinkPatches          = false;
+    updateGSynFromPostPerspective = false;
+    preActivityIsNotRate   = false;
+    shmget_flag            = true;
+};
+
+    DelayTestProbe "Error Stats File" = {
+    targetLayer = "Error";
+    probeOutputFile = "Error_Stats.txt";
+    message = "Error Stats File              ";
+};
+
