@@ -337,6 +337,14 @@ int KernelConn::allocateDataStructures() {
    assert(!params->presentAndNotBeenRead(name, "plasticityFlag"));
    if (plasticityFlag) {
       assert(!params->presentAndNotBeenRead(name, "initialWeightUpdateTime"));
+      assert(!params->presentAndNotBeenRead(name, "weightUpdatePeriod"));
+      if (weightUpdateTime<parent->simulationTime() && parent->getCheckpointReadFlag()==false) {
+         weightUpdateTime = parent->simulationTime()+weightUpdatePeriod;
+         if (parent->columnId()==0) {
+            fprintf(stderr, "Warning: initialWeightUpdateTime of %s \"%s\" less than simulation start time.  Adjusting weightUpdateTime to %f\n",
+                  params->groupKeywordFromName(name), name, weightUpdateTime);
+         }
+      }
       lastUpdateTime = weightUpdateTime - parent->getDeltaTime();
    }
 #ifdef PV_USE_MPI
