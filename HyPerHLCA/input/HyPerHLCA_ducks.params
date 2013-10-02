@@ -20,7 +20,7 @@ HyPerCol "column" = {
    dt = 1.0;
                              //
    randomSeed   = 1234567890;// Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
-   numSteps     = 2399970;   // Depends on number of duck video frames
+   numSteps     = 7981620;   // Depends on number of duck video frames
    progressStep = 1000;
                              //
    //outputPath = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_16x16x1024_Overlap_lambda_05X2";
@@ -37,7 +37,7 @@ HyPerCol "column" = {
    checkpointWrite             = true;
    //checkpointWriteDir        = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_16x16x1024_Overlap_lambda_05X2/Checkpoints";
    checkpointWriteDir          = "/Users/dpaiton/Documents/Workspace/HyPerHLCA/output/Checkpoints/";
-   checkpointWriteStepInterval = 100000;
+   checkpointWriteStepInterval = 500000;
                              //
    deleteOlderCheckpoints = false;
    //suppressLastOutput   = false;
@@ -57,7 +57,7 @@ Movie "Movie" = {
     nyScale = 1;
     nf      = 1;
                              //
-    imageListPath       = "/Users/dpaiton/Documents/Workspace/HyPerHLCA/input/fileOfDuckFrames.txt";
+    imageListPath       = "/Users/dpaiton/Documents/Workspace/HyPerHLCA/input/fileOfDuckFramesLong.txt";
     writeStep           = 30;
     initialWriteTime    = 29;
     displayPeriod       = 30;
@@ -133,8 +133,8 @@ HyPerLCALayer "V1" = {
     nf      = 128; //1024;
                              //
     numChannels         = 1;
-    writeStep           = 300.0;
-    initialWriteTime    = 299.0;
+    writeStep           = 30.0;
+    initialWriteTime    = 29.0;
     mirrorBCflag        = 0;
     valueBC             = 0;
     writeSparseActivity = 1;
@@ -145,13 +145,13 @@ HyPerLCALayer "V1" = {
     //InitVType = "InitVFromFile";
     //Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_31/output/Checkpoints/Checkpoint6000000/V1_V.pvp";
                              //
-    timeConstantTau        = 200.0;
-    timeConstantTauMinimum = 10.0;
-    slopeErrorStd          = 0.01;
-    numWindowX             = 1;
-    numWindowY             = 1;
+    timeConstantTau        = 200.0; //tauMax - membrane voltage decay time constant
+    timeConstantTauMinimum = 10.0;  //tauMin
+    slopeErrorStd          = 0.01;  //?? - rate of decay? or maybe d(rate)/dt?
+    numWindowX             = 1;     //??
+    numWindowY             = 1;     //??
                              //
-    VThresh = 0.1;
+    VThresh = 0.4; //0.1;
     VMax    = infinity;
     VMin    = 0;
     VShift  = 0.0;           // 0 -> hard threshold, 1 -> soft threshold
@@ -247,7 +247,7 @@ KernelConn "MovieToGanglionSurround" = {
    aspect         = 1;
    sigma          = 5;
    rMax           = 11;
-   rMin           = 0;
+   rMin           = 1;
                              //
    strength                      = 1.0;  
    normalizeMethod               = "normalizeSum";
@@ -271,20 +271,36 @@ KernelConn "MovieToGanglionSurround" = {
    shmget_flag = false;
 };
 
-
 IdentConn "GanglionToError" = {
     preLayerName  = "Ganglion";
     postLayerName = "Error";
-    channelCode   = 0;
+    channelCode   = 0;       //Excitatory
     delay         = 0;
     writeStep     = -1;
 };
 
+TransposeConn "ErrorToV1" = {
+	preLayerName  = "Error";
+	postLayerName = "V1";
+	channelCode   = 0;
+                             //
+	originalConnName = "V1ToError";
+                             //
+	selfFlag             = false;
+	preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
+                             //
+	writeStep   = -1;
+	shmget_flag = false;
+	delay       = 0;
+                             //
+	writeCompressedCheckpoints = false;
+    pvpatchAccumulateType      = "convolve";
+};
 
 KernelConn "V1ToError" = {
     preLayerName  = "V1";
     postLayerName = "Error";
-    channelCode   = 1;
+    channelCode   = 1;       // Inhibitory
                              //
     nxp         = 24;
     nyp         = 24;
@@ -330,24 +346,6 @@ KernelConn "V1ToError" = {
                              //
     pvpatchAccumulateType = "convolve";
     shrinkPatches         = false;
-};
-
-TransposeConn "ErrorToV1" = {
-	preLayerName  = "Error";
-	postLayerName = "V1";
-	channelCode   = 0;
-                             //
-	originalConnName = "V1ToError";
-                             //
-	selfFlag             = false;
-	preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
-                             //
-	writeStep   = -1;
-	shmget_flag = false;
-	delay       = 0;
-                             //
-	writeCompressedCheckpoints = false;
-    pvpatchAccumulateType      = "convolve";
 };
 
 CloneKernelConn "V1ToRecon" = {
