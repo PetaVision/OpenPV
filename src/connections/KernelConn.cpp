@@ -780,6 +780,14 @@ int KernelConn::checkpointRead(const char * cpDir, double * timef) {
    assert(status == PV_SUCCESS);
    status = parent->readScalarFromFile(cpDir, getName(), "weightUpdateTime", &weightUpdateTime, weightUpdateTime);
    assert(status == PV_SUCCESS);
+   if (weightUpdateTime<parent->simulationTime() && parent->getCheckpointReadFlag()==false) {
+      // simulationTime() may have been changed by HyPerCol::checkpoint, so this repeats the sanity check on weightUpdateTime in allocateDataStructures
+      weightUpdateTime = parent->simulationTime()+weightUpdatePeriod;
+      if (parent->columnId()==0) {
+         fprintf(stderr, "Warning: initialWeightUpdateTime of %s \"%s\" less than simulation start time.  Adjusting weightUpdateTime to %f\n",
+               parent->parameters()->groupKeywordFromName(name), name, weightUpdateTime);
+      }
+   }
    return PV_SUCCESS;
 }
 
