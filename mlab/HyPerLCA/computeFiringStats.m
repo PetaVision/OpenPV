@@ -65,7 +65,7 @@
 
         for y = 1 : 1 : hdr.ny
             for x = 1 : 1 : hdr.nx
-                [co,lags] = xcorr(squeeze(full_mat(yx1,:,:)));
+                [co,lags] = xcorr(squeeze(full_mat(y,x,:,:)));
 
                 correlations.corrs = co;
                 correlations.lags = lags;
