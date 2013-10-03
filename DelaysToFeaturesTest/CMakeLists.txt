@@ -47,16 +47,16 @@ link_directories(${PV_BINARY_DIR})
 # Add executable
 file(GLOB libSrcCPP ${PROJECT_SOURCE_DIR}/*.cpp)
 file(GLOB libSrcC ${PROJECT_SOURCE_DIR}/*.c)
-add_executable(DelaysToFesturesTest ${libSrcCPP} ${libSrcC})
+add_executable(DelaysToFeaturesTest ${libSrcCPP} ${libSrcC})
 
 # Link executable to PV 
-target_link_libraries(DelaysToFesturesTest pv)
+target_link_libraries(DelaysToFeaturesTest pv)
 
 # Link executable to external libraries
-target_link_libraries(DelaysToFesturesTest ${GDAL_LIBRARY})
-target_link_libraries(DelaysToFesturesTest ${MPI_C_LIBRARIES})
-target_link_libraries(DelaysToFesturesTest ${MPI_CXX_LIBRARIES})
+target_link_libraries(DelaysToFeaturesTest ${GDAL_LIBRARY})
+target_link_libraries(DelaysToFeaturesTest ${MPI_C_LIBRARIES})
+target_link_libraries(DelaysToFeaturesTest ${MPI_CXX_LIBRARIES})
 IF(LIBSNDFILE_FOUND)
-   target_link_libraries(DelaysToFesturesTest ${LIBSNDFILE_LIBRARY})
+   target_link_libraries(DelaysToFeaturesTest ${LIBSNDFILE_LIBRARY})
 ENDIF(LIBSNDFILE_FOUND)
 
