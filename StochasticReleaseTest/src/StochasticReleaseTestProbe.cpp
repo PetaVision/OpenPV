@@ -43,7 +43,7 @@ int StochasticReleaseTestProbe::initStochasticReleaseTestProbe(const char * name
    const char * filename;
    getLayerFunctionProbeParameters(name, classkeyword, hc, &targetlayer, &message, &filename);
    int status = initStatsProbe(filename, targetlayer, BufActivity, message);
-   free(message); message = NULL; // getLayerFunctionProbeParameters uses strdup; initStatsProbe copies message, so we're done with it.
+   free(message); message = NULL; // getLayerFunctionProbeParameters uses strdup; ParameterSweepTestProbe copies message, so we're done with it.
 
    return PV_SUCCESS;
 }
