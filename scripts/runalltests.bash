@@ -290,7 +290,7 @@ mpirunandecho $testname Debug/$testname $arglist
 cd "$wd"
 
 testname=DelaysToFeaturesTest
-arglist="-p input/test_delay.params"
+arglist="-p input/test_delays.params"
 cd "$testname"
 runandecho $testname Debug/$testname $arglist
 mpirunandecho $testname Debug/$testname $arglist
