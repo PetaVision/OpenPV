@@ -142,7 +142,7 @@ void TransposeConn::readKeepKernelsSynchronized(PVParams * params) {
 }
 
 void TransposeConn::readWeightUpdatePeriod(PVParams * params) {
-   weightUpdatePeriod = 0.0f;  // Ensures that every timestep updateState calls updateWeights, which will compare lastUpdateTime to originalConn's lastUpdateTime
+   weightUpdatePeriod = parent->getDeltaTime();  // Ensures that every timestep updateState calls updateWeights, which will compare lastUpdateTime to originalConn's lastUpdateTime
 }
 
 void TransposeConn::readInitialWeightUpdateTime(PVParams * params) {
