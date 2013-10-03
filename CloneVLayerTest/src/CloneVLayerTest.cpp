@@ -28,7 +28,7 @@ int main(int argc, char * argv[]) {
 
    int status;
    status = buildandrun(cl_argc, cl_argv, NULL, &customexit, NULL);
-   for (int a=0; a<argc; a++) {
+   for (int a=0; a<cl_argc; a++) {
       free(cl_argv[a]);
    }
    free(cl_argv); cl_argv = NULL;

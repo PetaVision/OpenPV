@@ -114,6 +114,7 @@ int dumpweights(HyPerCol * hc, int argc, char * argv[]) {
    else {
       printf("Rank %d: %s succeeded.\n", rank, paramsfilename);
    }
+   free(paramsfilename);
    return status;
 }
 

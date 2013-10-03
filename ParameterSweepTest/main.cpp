@@ -29,6 +29,7 @@ void * customgroups(const char * keyword, const char * name, HyPerCol * hc) {
       }
       assert(targetlayer);
       ParameterSweepTestProbe * new_probe = new ParameterSweepTestProbe(filename, targetlayer, message);
+      free(message); message = NULL; // getLayerFunctionProbeParameters uses strdup; ParameterSweepTestProbe copies message, so we're done with it.
       checknewobject((void *) new_probe, keyword, name, hc);
       return (void *) new_probe;
    }
