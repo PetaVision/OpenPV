@@ -263,6 +263,8 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * p
       exit(EXIT_FAILURE);
    }
 
+   simTime = params->value(name, "startTime", simTime);
+
    // set how often advanceTime() prints a message indicating progress
    progressStep       = (long int) params->value(name, "progressStep",progressStep);
    writeProgressToErr = params->value(name, "writeProgressToErr",writeProgressToErr)!=0;
@@ -1088,11 +1090,17 @@ int HyPerCol::checkpointRead(const char * cpDir) {
    double checkTime;
    for( int l=0; l<numLayers; l++ ) {
       layers[l]->checkpointRead(cpDir, &checkTime);
-      assert(checkTime==simTime);
+      if (checkTime!=simTime && columnId()==0) {
+         fprintf(stderr, "Warning: layer \"%s\" checkpoint has timestamp %f instead of the HyPerCol timestamp %f.\n",
+               layers[l]->getName(), checkTime, simTime);
+      }
    }
    for( int c=0; c<numConnections; c++ ) {
       connections[c]->checkpointRead(cpDir, &checkTime);
-      assert(checkTime==simTime);
+      if (checkTime!=simTime && columnId()==0) {
+         fprintf(stderr, "Warning: connection \"%s\" checkpoint has timestamp %f instead of the HyPerCol timestamp %f.\n",
+               connections[c]->getName(), checkTime, simTime);
+      }
    }
    if(checkpointWriteFlag) {
       if( cpWriteStepInterval > 0) {
