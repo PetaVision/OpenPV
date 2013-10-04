@@ -1,4 +1,4 @@
-function checkpoints_list = getCheckpointList(checkpoint_parent, checkpoint_children)
+function [checkpoints_list] = getCheckpointList(checkpoint_parent, checkpoint_children)
       num_child_checkpoints = size(checkpoint_children,1);
       checkpoints_list = {};
       for i_child_checkpoint = 1 : num_child_checkpoints

@@ -1,8 +1,10 @@
 
 clear all;
 close all;
-global plot_flag
+global plot_flag %% if true, plot graphical output to screen, else do not generate graphical outputy
 plot_flag = true;
+global load_flag %% if true, then load "saved" data structures rather than computing them 
+load_flag = true;
 if plot_flag
   setenv("GNUTERM","X11")
 endif
@@ -17,24 +19,40 @@ if ismac
 elseif isunix
   workspace_path = "/home/gkenyon/workspace";
   %%run_type = "noPulvinar"; %%
-  run_type = "color_deep"; %%
-  %%run_type = "lateral"; %% 
-  run_type = "V1";
+  %%run_type = "color_deep"; %%
+  %%run_type = "noTopDown"; %%
+  run_type = "lateral"; %% 
+  %%run_type = "V1";
   if strcmp(run_type, "color_deep")
     output_dir = "/nh/compneuro/Data/vine/LCA/2013_02_01/output_2013_02_01_12x12x128_lambda_05X2_deep"; 
-    %%output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_28/output_2013_01_28_12x12x128_lambda_05X2_noTopDown"; 
     %%output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_24/output_2013_01_24_how2catchSquirrel_12x12x128_lambda_05X4_deep";
     checkpoint_dir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_2013_01_31_12x12x128_lambda_05X2_deep"; %%output_dir; 
     checkpoint_parent = "/nh/compneuro/Data/vine/LCA";
     checkpoint_children = {"2013_01_31/output_2013_01_31_12x12x128_lambda_05X2_deep"; ...
-			   "2013_01_31/output_2013_01_30_12x12x128_lambda_05X2_deep"; ...
-			   "2013_01_31/output_2013_01_29_12x12x128_lambda_05X2_deep"; ...
-			   "2013_01_31/output_2013_01_28_12x12x128_lambda_05X2_deep"; ...
-			   "2013_01_31/output_2013_01_27_12x12x128_lambda_05X2_deep"; ...
-			   "2013_01_31/output_2013_01_26_12x12x128_lambda_05X2_deep"; ...
-			   "2013_01_31/output_2013_01_25_12x12x128_lambda_05X2_deep"; ...
-			   "2013_01_31/output_2013_01_24_12x12x128_lambda_05X2_deep"; ...
+			   "2013_01_30/output_2013_01_30_12x12x128_lambda_05X2_deep"; ...
+			   "2013_01_29/output_2013_01_29_12x12x128_lambda_05X2_deep"; ...
+			   "2013_01_28/output_2013_01_28_12x12x128_lambda_05X2_deep"; ...
+			   "2013_01_27/output_2013_01_27_12x12x128_lambda_05X2_deep"; ...
+			   "2013_01_26/output_2013_01_26_12x12x128_lambda_05X2_deep"; ...
+			   "2013_01_25/output_2013_01_25_12x12x128_lambda_05X2_deep"; ...
+			   "2013_01_24/output_2013_01_24_12x12x128_lambda_05X2_deep"; ...
 			   "2013_02_01/output_2013_02_01_12x12x128_lambda_05X2_deep"};
+    last_checkpoint_ndx = 46583999;
+  elseif strcmp(run_type, "noTopDown")
+    output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_26/output_2013_01_26_12x12x128_lambda_05X2_noTopDown"; 
+    %%output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_24/output_2013_01_24_how2catchSquirrel_12x12x128_lambda_05X4_noTopDown";
+    checkpoint_dir = output_dir;%%"/nh/compneuro/Data/vine/LCA/2013_01_26/output_2013_01_26_12x12x128_lambda_05X2_noTopDown"; %% 
+    checkpoint_parent = "/nh/compneuro/Data/vine/LCA";
+    checkpoint_children = {"2013_01_31/output_2013_01_31_12x12x128_lambda_05X2_noTopDown"; ...
+			   "2013_01_30/output_2013_01_30_12x12x128_lambda_05X2_noTopDown"; ...
+			   "2013_01_29/output_2013_01_29_12x12x128_lambda_05X2_noTopDown"; ...
+			   "2013_01_28/output_2013_01_28_12x12x128_lambda_05X2_noTopDown"; ...
+			   "2013_01_27/output_2013_01_27_12x12x128_lambda_05X2_noTopDown"}; %% ...
+			   "2013_01_26/output_2013_01_26_12x12x128_lambda_05X2_noTopDown"; ...
+			   %%"2013_01_25/output_2013_01_25_12x12x128_lambda_05X2_noTopDown"; ...
+			   %%"2013_01_24/output_2013_01_24_12x12x128_lambda_05X2_noTopDown"; ...
+			   %%"2013_02_01/output_2013_02_01_12x12x128_lambda_05X2_noTopDown"};
+    last_checkpoint_ndx = 25784199; %%24725600;%% 46583999;
   elseif strcmp(run_type, "V1")
     output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_2013_01_31_12x12x160_lambda_05X2_V1"; 
     checkpoint_dir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_2013_01_31_12x12x160_lambda_05X2_V1"; %%output_dir; 
@@ -46,6 +64,8 @@ elseif isunix
   elseif strcmp(run_type, "lateral")
     output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_2013_01_31_12x12x128_lambda_05X2_lateral"; 
     checkpoint_dir =  output_dir;
+    checkpoint_parent = "/nh/compneuro/Data/vine/LCA";
+    checkpoint_children = {"2013_01_31/output_2013_01_31_12x12x128_lambda_05X2_lateral"};
   endif
 endif %% isunix
 addpath([workspace_path, filesep, "/PetaVision/mlab/util"]);
@@ -72,10 +92,10 @@ max_patches = 128;  %% maximum number of weight patches to plot, typically order
 checkpoint_weights_movie = true; %% make movie of weights over time using list of checkpoint folders getCheckpointList(checkpoint_parent, checkpoint_children)
 
 %% plot Reconstructions
-plot_Recon = true;
+plot_Recon = false;
 if plot_Recon
   num_Recon_default = 4;
-  if strcmp(run_type, "color_deep")
+  if strcmp(run_type, "color_deep") || strcmp(run_type, "noTopDown")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% deep list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -208,7 +228,7 @@ if plot_Recon
   
   %% parse center/surround pre-processing filters
   if plot_DoG_kernel
-    if strcmp(run_type, "color_deep") || strcmp(run_type, "lateral") || strcmp(run_type, "noPulvinar")
+    if strcmp(run_type, "color_deep") || strcmp(run_type, "lateral") || strcmp(run_type, "noPulvinar") || strcmp(run_type, "noTopDown")
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       %% deep/lateral/noPulvinar list
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -313,7 +333,7 @@ if plot_Recon
       std_Recon_tmp = std(Recon_vals{i_Recon}{i_frame}(:));
       Recon_mean(i_Recon) = Recon_mean(i_Recon) + mean_Recon_tmp;
       Recon_std(i_Recon) = Recon_std(i_Recon) + std_Recon_tmp;
-      Recon_fig_name{i_Recon} = [Recon_fig_name{i_Recon}, "_", num2str(Recon_time{i_Recon}(i_frame), "%07d")];
+      Recon_fig_name{i_Recon} = [Recon_fig_name{i_Recon}, "_", num2str(Recon_time{i_Recon}(i_frame), "%08d")];
       Recon_vals_tmp = ...
 	  permute(Recon_vals{i_Recon}{i_frame},[2,1,3]);
       Recon_vals_tmp = ...
@@ -422,7 +442,7 @@ endif %% plot_Recon
 plot_StatsProbe_vs_time = false;
 if plot_StatsProbe_vs_time && plot_flag
   StatsProbe_plot_lines = 20000;
-  if strcmp(run_type, "color_deep")
+  if strcmp(run_type, "color_deep") || strcmp(run_type, "noTopDown")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% deep list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -578,7 +598,7 @@ if plot_StatsProbe_vs_time && plot_flag
 	set(StatsProbe_vs_time_fig(i_StatsProbe), "name", [StatsProbe_list{i_StatsProbe,1}, " nnz"]);
 	saveas(StatsProbe_vs_time_fig(i_StatsProbe), ...
 	       [StatsProbe_vs_time_dir, filesep, StatsProbe_list{i_StatsProbe,1}, ...
-		"_nnz_vs_time_", num2str(StatsProbe_time_vals(end), "%07d")], "png");
+		"_nnz_vs_time_", num2str(StatsProbe_time_vals(end), "%08d")], "png");
 	else
 	  %% don't know how to imwrite a scatter plot
 	endif
@@ -589,10 +609,14 @@ if plot_StatsProbe_vs_time && plot_flag
 	set(StatsProbe_vs_time_fig(i_StatsProbe), "name", [StatsProbe_list{i_StatsProbe,1}, " sigma"]);
 	saveas(StatsProbe_vs_time_fig(i_StatsProbe), ...
 	       [StatsProbe_vs_time_dir, filesep, StatsProbe_list{i_StatsProbe,1}, ...
-		"_sigma_vs_time_", num2str(StatsProbe_time_vals(end), "%07d")], "png");
+		"_sigma_vs_time_", num2str(StatsProbe_time_vals(end), "%08d")], "png");
       else
 	%% don't know how to imwrite a scatter plot
       endif
+      save("-mat", ...
+	   [StatsProbe_vs_time_dir, filesep, StatsProbe_list{i_StatsProbe,1}, ...
+	    "_sigma_vs_time_", num2str(StatsProbe_time_vals(end), "%08d"), ".mat"], ...
+	   "StatsProbe_time_vals", "StatsProbe_sigma_vals");
     endif %% 
     drawnow;
   endfor %% i_StatsProbe
@@ -600,7 +624,7 @@ endif  %% plot_StatsProbe_vs_time
 
 plot_Sparse = true;
 if plot_Sparse
-  if strcmp(run_type, "color_deep") || strcmp(run_type, "lateral")
+  if strcmp(run_type, "color_deep") || strcmp(run_type, "lateral") || strcmp(run_type, "noTopDown")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% deep/lateral list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -654,22 +678,27 @@ if plot_Sparse
     endif
     num_Sparse = tot_Sparse_frames;  %% number of activity frames to analyze, counting backward from last frame, maximum is tot_Sparse_frames
     progress_step = ceil(tot_Sparse_frames / 10);
-    [Sparse_struct, Sparse_hdr_tmp] = ...
-	readpvpfile(Sparse_file, progress_step, tot_Sparse_frames, tot_Sparse_frames-fix(num_Sparse/1)+1,1); %%fix(tot_Sparse_frames/50),1); %%
+    if ~load_flag
+      [Sparse_struct, Sparse_hdr_tmp] = ...
+	  readpvpfile(Sparse_file, progress_step, tot_Sparse_frames, tot_Sparse_frames-fix(num_Sparse/1)+1,1); %%fix(tot_Sparse_frames/50),1); %%
+    else %% just read last frame
+      [Sparse_struct, Sparse_hdr_tmp] = ...
+	  readpvpfile(Sparse_file, progress_step, tot_Sparse_frames, tot_Sparse_frames,1); %%fix(tot_Sparse_f    endif
+    endif
     nx_Sparse = Sparse_hdr{i_Sparse}.nx;
     ny_Sparse = Sparse_hdr{i_Sparse}.ny;
     nf_Sparse = Sparse_hdr{i_Sparse}.nf;
     n_Sparse = nx_Sparse * ny_Sparse * nf_Sparse;
-    num_frames = size(Sparse_struct,1);
+    num_Sparse_frames = size(Sparse_struct,1);
     Sparse_hist = zeros(nf_Sparse+1,1);
     Sparse_hist_edges = [0:1:nf_Sparse]+0.5;
     Sparse_current = zeros(n_Sparse,1);
-    Sparse_abs_change = zeros(num_frames,1);
-    Sparse_percent_change = zeros(num_frames,1);
+    Sparse_abs_change = zeros(num_Sparse_frames,1);
+    Sparse_percent_change = zeros(num_Sparse_frames,1);
     Sparse_current_active = 0;
-    Sparse_tot_active = zeros(num_frames,1);
-    Sparse_times = zeros(num_frames,1);
-    for i_frame = 1 : 1 : num_frames
+    Sparse_tot_active = zeros(num_Sparse_frames,1);
+    Sparse_times = zeros(num_Sparse_frames,1);
+    for i_frame = 1 : 1 : num_Sparse_frames
       Sparse_times(i_frame) = squeeze(Sparse_struct{i_frame}.time);
       Sparse_active_ndx = squeeze(Sparse_struct{i_frame}.values);
       Sparse_previous = Sparse_current;
@@ -689,48 +718,91 @@ if plot_Sparse
       endif
       Sparse_hist = Sparse_hist + Sparse_hist_frame;
     endfor %% i_frame
-    Sparse_hist = Sparse_hist(1:nf_Sparse);
-    Sparse_hist = Sparse_hist / (num_frames * nx_Sparse * ny_Sparse); %% (sum(Sparse_hist(:)) + (nnz(Sparse_hist)==0));
-    [Sparse_hist_sorted, Sparse_hist_rank{i_Sparse}] = sort(Sparse_hist, 1, "descend");
-    
-    if plot_flag 
-      Sparse_hist_fig = figure;
+    Sparse_percent_active = Sparse_tot_active/n_Sparse;
+    if ~load_flag
+      Sparse_hist = Sparse_hist(1:nf_Sparse);
+      Sparse_hist = Sparse_hist / (num_Sparse_frames * nx_Sparse * ny_Sparse); %% (sum(Sparse_hist(:)) + (nnz(Sparse_hist)==0));
+      [Sparse_hist_sorted, Sparse_hist_rank{i_Sparse}] = sort(Sparse_hist, 1, "descend");
       Sparse_hist_bins = 1:nf_Sparse;
+      save("-mat", ...
+	   [Sparse_dir, filesep, "Sparse_hist_bins_", Sparse_list{i_Sparse,2}, "_", ...
+	    num2str(Sparse_times(num_Sparse_frames), "%08d"), ".mat"], ...
+	   "Sparse_hist_bins");
+      save("-mat", ...
+	   [Sparse_dir, filesep, "Sparse_hist_sorted_", Sparse_list{i_Sparse,2}, "_", ...
+	    num2str(Sparse_times(num_Sparse_frames), "%08d"), ".mat"], ...
+	   "Sparse_hist_sorted");
+      save("-mat", ...
+	   [Sparse_dir, filesep, "Sparse_hist_rank_", Sparse_list{i_Sparse,2}, "_", ...
+	    num2str(Sparse_times(num_Sparse_frames), "%08d"), ".mat"], ...
+	   "Sparse_hist_rank");
+      save("-mat", ...
+	   [Sparse_dir, filesep, "Sparse_percent_change_", Sparse_list{i_Sparse,2}, "_", ...
+	    num2str(Sparse_times(num_Sparse_frames), "%08d"), ".mat"], ...
+	   "Sparse_times", "Sparse_percent_change");    
+      save("-mat", ...
+	   [Sparse_dir, filesep, "Sparse_percent_active_", Sparse_list{i_Sparse,2}, "_", ...
+	    num2str(Sparse_times(num_Sparse_frames), "%08d"), ".mat"], ...
+	   "Sparse_times", "Sparse_percent_active");	 
+    else
+      Sparse_hist_bins_str = ...
+	  [Sparse_dir, filesep, "Sparse_hist_bins_", Sparse_list{i_Sparse,2}, "_", "*", ".mat"];
+      Sparse_hist_bins_glob = glob(Sparse_hist_bins_str);
+      num_Sparse_hist_bins_glob = length(Sparse_hist_bins_glob);
+      load("-mat", Sparse_hist_bins_glob{num_Sparse_hist_bins_glob});
+      Sparse_hist_sorted_str = ...
+	  [Sparse_dir, filesep, "Sparse_hist_sorted_", Sparse_list{i_Sparse,2}, "_", "*", ".mat"];
+      Sparse_hist_sorted_glob = glob(Sparse_hist_sorted_str);
+      num_Sparse_hist_sorted_glob = length(Sparse_hist_sorted_glob);
+      load("-mat", Sparse_hist_sorted_glob{num_Sparse_hist_sorted_glob});
+      Sparse_percent_change_str = ...
+	  [Sparse_dir, filesep, "Sparse_percent_change_", Sparse_list{i_Sparse,2}, "_", "*", ".mat"];
+      Sparse_percent_change_glob = glob(Sparse_percent_change_str);
+      num_Sparse_percent_change_glob = length(Sparse_percent_change_glob);
+      load("-mat", Sparse_percent_change_glob{num_Sparse_percent_change_glob});
+      Sparse_percent_active_str = ...
+	  [Sparse_dir, filesep, "Sparse_percent_active_", Sparse_list{i_Sparse,2}, "_", "*", ".mat"];
+      Sparse_percent_active_glob = glob(Sparse_percent_active_str);
+      num_Sparse_percent_active_glob = length(Sparse_percent_active_glob);
+      load("-mat", Sparse_percent_active_glob{num_Sparse_percent_active_glob});
+    endif
+    if plot_flag %%&& ~load_flag
+      Sparse_hist_fig = figure;
       Sparse_hist_hndl = bar(Sparse_hist_bins, Sparse_hist_sorted); axis tight;
-      set(Sparse_hist_fig, "name", ["Hist_", Sparse_list{i_Sparse,2}, "_", num2str(Sparse_times(num_frames), "%i")]);
+      set(Sparse_hist_fig, "name", ["Hist_", Sparse_list{i_Sparse,2}, "_", num2str(Sparse_times(num_Sparse_frames), "%i")]);
       saveas(Sparse_hist_fig, ...
 	     [Sparse_dir, filesep, ...
-	      "Hist_", Sparse_list{i_Sparse,2}, "_", num2str(Sparse_times(num_frames), "%i")], "png");
+	      "Hist_", Sparse_list{i_Sparse,2}, "_", num2str(Sparse_times(num_Sparse_frames), "%i")], "png");
       
-      Sparse_abs_change_fig = figure;
-      Sparse_abs_change_hndl = plot(Sparse_times, Sparse_abs_change); axis tight;
-      set(Sparse_abs_change_fig, "name", ["abs_change_", Sparse_list{i_Sparse,2}, "_", num2str(Sparse_times(num_frames), "%i")]);
-      saveas(Sparse_abs_change_fig, ...
-	     [Sparse_dir, filesep, "abs_change_", Sparse_list{i_Sparse,2}, "_", num2str(Sparse_times(num_frames), "%i")], "png");
+%%      Sparse_abs_change_fig = figure;
+%%      Sparse_abs_change_hndl = plot(Sparse_times, Sparse_abs_change); axis tight;
+%%      set(Sparse_abs_change_fig, "name", ["abs_change_", Sparse_list{i_Sparse,2}, "_", num2str(Sparse_times(num_Sparse_frames), "%i")]);
+%%      saveas(Sparse_abs_change_fig, ...
+%%	     [Sparse_dir, filesep, "abs_change_", Sparse_list{i_Sparse,2}, "_", num2str(Sparse_times(num_Sparse_frames), "%i")], "png");
       
       Sparse_percent_change_fig = figure;
       Sparse_percent_change_hndl = plot(Sparse_times, Sparse_percent_change); axis tight;
       set(Sparse_percent_change_fig, ...
-	  "name", ["percent_change_", Sparse_list{i_Sparse,2}, "_", num2str(Sparse_times(num_frames), "%07d")]);
+	  "name", ["percent_change_", Sparse_list{i_Sparse,2}, "_", num2str(Sparse_times(num_Sparse_frames), "%08d")]);
       saveas(Sparse_percent_change_fig, ...
 	     [Sparse_dir, filesep, ...
-	      "percent_change_", Sparse_list{i_Sparse,2}, "_", num2str(Sparse_times(num_frames), "%07d")], "png");
+	      "percent_change_", Sparse_list{i_Sparse,2}, "_", num2str(Sparse_times(num_Sparse_frames), "%08d")], "png");
       
-      Sparse_tot_active_fig = figure;
-      Sparse_tot_active_hndl = plot(Sparse_times, Sparse_tot_active/n_Sparse); axis tight;
-      set(Sparse_tot_active_fig, "name", ["tot_active_", Sparse_list{i_Sparse,2}, "_", ...
-					  num2str(Sparse_times(num_frames), "%07d")]);
-      saveas(Sparse_tot_active_fig, ...
-	     [Sparse_dir, filesep, "tot_active_", Sparse_list{i_Sparse,2}, "_", ...
-	      num2str(Sparse_times(num_frames), "%07d")], "png");
+      Sparse_percent_active_fig = figure;
+      Sparse_percent_active_hndl = plot(Sparse_times, Sparse_percent_active); axis tight;
+      set(Sparse_percent_active_fig, "name", ["percent_active_", Sparse_list{i_Sparse,2}, "_", ...
+					  num2str(Sparse_times(num_Sparse_frames), "%08d")]);
+      saveas(Sparse_percent_active_fig, ...
+	     [Sparse_dir, filesep, "percent_active_", Sparse_list{i_Sparse,2}, "_", ...
+	      num2str(Sparse_times(num_Sparse_frames), "%08d")], "png");
     endif
-    
-    Sparse_median_active = median(Sparse_tot_active(:)/n_Sparse);
-    disp([Sparse_list{i_Sparse,2}, "_", num2str(Sparse_times(num_frames), "%i"), ...
+
+    Sparse_median_active = median(Sparse_percent_active(:));
+    disp([Sparse_list{i_Sparse,2}, "_", num2str(Sparse_times(num_Sparse_frames), "%i"), ...
 	  " median_active = ", num2str(Sparse_median_active)]);
     
     Sparse_mean_percent_change = mean(Sparse_percent_change(:));
-    disp([Sparse_list{i_Sparse,2}, "_", num2str(Sparse_times(num_frames), "%i"), ...
+    disp([Sparse_list{i_Sparse,2}, "_", num2str(Sparse_times(num_Sparse_frames), "%i"), ...
 	  " mean_percent_change = ", num2str(Sparse_mean_percent_change)]);
   endfor  %% i_Sparse
 endif %% plot_Sparse
@@ -739,7 +811,7 @@ endif %% plot_Sparse
 
 plot_nonSparse = true;
 if plot_nonSparse && plot_flag
-  if strcmp(run_type, "color_deep")
+  if strcmp(run_type, "color_deep") || strcmp(run_type, "noTopDown")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% deep list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -752,6 +824,10 @@ if plot_nonSparse && plot_flag
     nonSparse_skip(1) = 1;
     nonSparse_skip(2) = 1;
     nonSparse_skip(3) = 1;
+    nonSparse_norm_list = ...
+        {["a3_"], ["Ganglion"]; ...
+         ["a9_"], ["Recon2"]; ...
+         [], []};
   elseif strcmp(run_type, "noPulvinar")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% noPulvinar
@@ -785,6 +861,10 @@ if plot_nonSparse && plot_flag
     nonSparse_skip(1) = 1;
     nonSparse_skip(2) = 1;
     nonSparse_skip(3) = 1;
+    nonSparse_norm_list = ...
+        {["a3_"], ["Ganglion"]; ...
+         ["a9_"], ["Recon2"]; ...
+         [], []};
   elseif strcmp(run_type, "MNIST")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% MNIST list
@@ -828,47 +908,83 @@ if plot_nonSparse && plot_flag
     [nonSparse_struct, nonSparse_hdr_tmp] = ...
 	readpvpfile(nonSparse_file, progress_step, tot_nonSparse_frames, tot_nonSparse_frames-num_nonSparse+1, ...
 		    nonSparse_skip(i_nonSparse));
-    nx_nonSparse = nonSparse_hdr{i_nonSparse}.nx;
-    ny_nonSparse = nonSparse_hdr{i_nonSparse}.ny;
-    nf_nonSparse = nonSparse_hdr{i_nonSparse}.nf;
-    n_nonSparse = nx_nonSparse * ny_nonSparse * nf_nonSparse;
-    num_frames = size(nonSparse_struct,1);
-    nonSparse_times = zeros(num_frames,1);
-    nonSparse_RMS = zeros(num_frames,1);
-    for i_frame = 1 : 1 : num_frames
+    %%nx_nonSparse = nonSparse_hdr{i_nonSparse}.nx;
+    %%ny_nonSparse = nonSparse_hdr{i_nonSparse}.ny;
+    %%nf_nonSparse = nonSparse_hdr{i_nonSparse}.nf;
+    %%n_nonSparse = nx_nonSparse * ny_nonSparse * nf_nonSparse;
+    num_nonSparse_frames = size(nonSparse_struct,1);
+    nonSparse_times = zeros(num_nonSparse_frames,1);
+    nonSparse_RMS = zeros(num_nonSparse_frames,1);
+
+    if ~isempty(nonSparse_norm_list{i_nonSparse,1}) && ~isempty(nonSparse_norm_list{i_nonSparse,2})
+      nonSparse_norm_file = [output_dir, filesep, nonSparse_norm_list{i_nonSparse,1}, nonSparse_norm_list{i_nonSparse,2}, ".pvp"]
+      if ~exist(nonSparse_norm_file, "file")
+	warning(["file does not exist: ", nonSparse_norm_file]);
+	continue;
+      endif
+      nonSparse_norm_fid = fopen(nonSparse_norm_file);
+      nonSparse_norm_hdr{i_nonSparse} = readpvpheader(nonSparse_norm_fid);
+      fclose(nonSparse_norm_fid);
+      tot_nonSparse_norm_frames = nonSparse_norm_hdr{i_nonSparse}.nbands;
+      if use_last_checkpoint_ndx
+	tot_nonSparse_norm_frames = min(tot_nonSparse_norm_frames, fix(last_checkpoint_ndx / layer_write_step));  %% use to specify maximum frame to display
+      endif	       
+      if tot_nonSparse_norm_frames ~= tot_nonSparse_frames
+	warning(["tot_nonSparse_norm_frames ~= tot_nonSparse_frames"]);
+	continue;
+      endif
+      num_nonSparse_norm = tot_nonSparse_norm_frames;
+      progress_step = ceil(tot_nonSparse_norm_frames / 10);
+      [nonSparse_norm_struct, nonSparse_norm_hdr_tmp] = ...
+	  readpvpfile(nonSparse_norm_file, progress_step, tot_nonSparse_frames, tot_nonSparse_frames-num_nonSparse+1, ...
+		      nonSparse_skip(i_nonSparse));
+      num_nonSparse_norm_frames = size(nonSparse_norm_struct,1);
+      nonSparse_norm_times = zeros(num_nonSparse_frames,1);
+      nonSparse_norm_RMS = zeros(num_nonSparse_frames,1);
+    else
+      nonSparse_norm_RMS = ones(num_nonSparse_frames,1);
+      nonSparse_norm_struct = [];
+    endif
+
+    for i_frame = 1 : 1 : num_nonSparse_frames
       if ~isempty(nonSparse_struct{i_frame})
 	nonSparse_times(i_frame) = squeeze(nonSparse_struct{i_frame}.time);
 	nonSparse_vals = squeeze(nonSparse_struct{i_frame}.values);
 	nonSparse_RMS(i_frame) = std(nonSparse_vals(:));
+	if ~isempty(nonSparse_norm_struct)
+	  nonSparse_norm_times(i_frame) = squeeze(nonSparse_norm_struct{i_frame}.time);
+	  nonSparse_norm_vals = squeeze(nonSparse_norm_struct{i_frame}.values);
+	  nonSparse_norm_RMS(i_frame) = std(nonSparse_norm_vals(:));
+	endif
       else
-	num_frames = i_frame - 1;
-	nonSparse_times = nonSparse_times(1:num_frames);
-	nonSparse_RMS = nonSparse_RMS(1:num_frames);
+	num_nonSparse_frames = i_frame - 1;
+	nonSparse_times = nonSparse_times(1:num_nonSparse_frames);
+	nonSparse_RMS = nonSparse_RMS(1:num_nonSparse_frames);
 	break;
       endif
     endfor %% i_frame
     if plot_flag
       nonSparse_RMS_fig = figure;
-      nonSparse_RMS_hndl = plot(nonSparse_times, nonSparse_RMS); axis tight;
-      set(nonSparse_RMS_fig, "name", ["RMS_", nonSparse_list{i_nonSparse,2}, "_", num2str(nonSparse_times(num_frames), "%07d")]);
+      nonSparse_RMS_hndl = plot(nonSparse_times, (nonSparse_RMS ./ nonSparse_norm_RMS)); axis tight;
+      set(nonSparse_RMS_fig, "name", ["RMS_", nonSparse_list{i_nonSparse,2}, "_", num2str(nonSparse_times(num_nonSparse_frames), "%08d")]);
       saveas(nonSparse_RMS_fig, ...
 	     [nonSparse_dir, filesep, ...
-	      "RMS_", nonSparse_list{i_nonSparse,2}, "_", num2str(nonSparse_times(num_frames), "%07d")], "png");
+	      "RMS_", nonSparse_list{i_nonSparse,2}, "_", num2str(nonSparse_times(num_nonSparse_frames), "%08d")], "png");
     endif
     nonSparse_median_RMS = median(nonSparse_RMS(:));
-    disp([nonSparse_list{i_nonSparse,2}, "_", num2str(nonSparse_times(num_frames), "%i"), ...
+    disp([nonSparse_list{i_nonSparse,2}, "_", num2str(nonSparse_times(num_nonSparse_frames), "%i"), ...
 	  " median RMS = ", num2str(nonSparse_median_RMS)]);
   endfor  %% i_nonSparse
 endif %% plot_nonSparse
 
-
-
+%%keyboard;
 plot_weights = true;
 if plot_weights
+  weights_list = {};
   labelWeights_list = {};
   labels_list = {};
   labelRecon_list = {};
-  if strcmp(run_type, "color_deep")
+  if strcmp(run_type, "color_deep") || strcmp(run_type, "noTopDown")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% deep list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -903,9 +1019,17 @@ if plot_weights
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% lateral list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    weights_list = ...
-	{["w5_"], ["V1ToError"]};
     sparse_ndx = [1];
+    if ~checkpoint_weights_movie
+      weights_list = ...
+          {["w5_"], ["V1ToError"]};
+      checkpoints_list = {output_dir};
+    else
+      weights_list = ...
+          {["V1ToError"], "_W"};
+      checkpoints_list = getCheckpointList(checkpoint_parent, checkpoint_children);
+    endif %% checkpoint_weights_movie
+    num_checkpoints = size(checkpoints_list,1);
   elseif strcmp(run_type, "MNIST")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% MNIST list
@@ -950,7 +1074,7 @@ if plot_weights
   for i_weights = 1 : num_weights_list
     for i_checkpoint = 1 : num_checkpoints
       checkpoint_dir = checkpoints_list{i_checkpoint,:};
-      weights_file = [checkpoint_dir, filesep, weights_list{i_weights,1}, weights_list{i_weights,2}, ".pvp"]
+      weights_file = [checkpoint_dir, filesep, weights_list{i_weights,1}, weights_list{i_weights,2}, ".pvp"];
       if ~exist(weights_file, "file")
 	warning(["file does not exist: ", weights_file]);
 	continue;
@@ -1020,15 +1144,15 @@ if plot_weights
       if num_weights_dims == 4
 	num_weights_colors = size(weight_vals,3);
       endif
-      weights_name =  ["Weights_", weights_list{i_weights,2}, "_", num2str(weight_time, "%07d")];
-      if plot_flag && i_checkpoint == 1
+      weights_name =  [weights_list{i_weights,1}, weights_list{i_weights,2}, "_", num2str(weight_time, "%08d")];
+      if plot_flag && i_checkpoint == num_checkpoints
 	weights_fig = figure;
 	set(weights_fig, "name", weights_name);
       endif
       weight_patch_array = [];
       for j_patch = 1  : num_patches
 	i_patch = pre_hist_rank(j_patch);
-	if plot_flag && i_checkpoint == 1
+	if plot_flag && i_checkpoint == num_checkpoints
 	  subplot(num_patches_rows, num_patches_cols, j_patch); 
 	endif
 	if num_weights_colors == 1
@@ -1041,7 +1165,7 @@ if plot_weights
 	max_patch = max(patch_tmp2(:));
 	patch_tmp2 = (patch_tmp2 - min_patch) * 255 / (max_patch - min_patch + ((max_patch - min_patch)==0));
 	patch_tmp2 = uint8(permute(patch_tmp2, [2,1,3])); %% uint8(flipdim(permute(patch_tmp2, [2,1,3]),1));
-	if plot_flag && i_checkpoint == 1
+	if plot_flag && i_checkpoint == num_checkpoints
 	  imagesc(patch_tmp2); 
 	  if num_weights_colors == 1
 	    colormap(gray);
@@ -1061,27 +1185,28 @@ if plot_weights
 	endif
 	col_ndx = 1 + mod(j_patch-1, num_patches_cols);
 	row_ndx = 1 + floor((j_patch-1) / num_patches_cols);
-	weight_patch_array(row_ndx:row_ndx+size(patch_tmp2,1), col_ndx:col_ndx+size(patch_tmp2,2),:) = ...
+	weight_patch_array(((row_ndx-1)*size(patch_tmp2,1)+1):row_ndx*size(patch_tmp2,1), ...
+			   ((col_ndx-1)*size(patch_tmp2,2)+1):col_ndx*size(patch_tmp2,2),:) = ...
 	    patch_tmp2;
       endfor  %% j_patch
       %%weights_dir = [output_dir, filesep, "weights"];
       %%mkdir(weights_dir);
-      if plot_flag && i_checkpoint == 1
+      if plot_flag && i_checkpoint == num_checkpoints
 	saveas(weights_fig, [weights_dir, filesep, weights_name, ".png"], "png");
       endif
-      imwrite(weight_patch_array, [weights_dir, filesep, weights_name, ".png"], "png");
+      imwrite(uint8(weight_patch_array), [weights_dir, filesep, weights_name, ".png"], "png");
       %% make histogram of all weights
-      if plot_flag && i_checkpoint == 1
+      if plot_flag && i_checkpoint == num_checkpoints
 	weights_hist_fig = figure;
 	[weights_hist, weights_hist_bins] = hist(weight_vals(:), 100);
 	bar(weights_hist_bins, log(weights_hist+1));
 	set(weights_hist_fig, "name", ...
-	    ["weights_Histogram_", weights_list{i_weights,2}, "_", num2str(weight_time, "%07d")]);
+	    ["Hist_",  weights_list{i_weights,1}, weights_list{i_weights,2}, "_", num2str(weight_time, "%08d")]);
 	saveas(weights_hist_fig, ...
-	       [weights_dir, filesep, "weights_hist_", num2str(weight_time, "%07d")], "png");
+	       [weights_dir, filesep, "weights_hist_", num2str(weight_time, "%08d")], "png");
       endif
 
-      if ~isempty(labelWeight_vals) && ~isempty(labelWeights_time) && plot_flag && i_checkpoint == 1
+      if ~isempty(labelWeight_vals) && ~isempty(labelWeights_time) && plot_flag && i_checkpoint == num_checkpoints
 
 	%% plot label weights as matrix of column vectors
 	[~, maxnum] = max(labelWeight_vals,[],1);
@@ -1089,7 +1214,7 @@ if plot_weights
 	label_weights_fig = figure;
 	imagesc(labelWeight_vals(:,maxind))
 	label_weights_str = ...
-	    ["LabelWeights_", labelWeights_list{i_weights,2}, "_", num2str(labelWeights_time, "%07d")];
+	    ["LabelWeights_", labelWeights_list{i_weights,2}, "_", num2str(labelWeights_time, "%08d")];
 	%%title(label_weights_fig, label_weights_str);
 	figure(label_weights_fig); title(label_weights_str);
 	saveas(label_weights_fig, [weights_dir, filesep, label_weights_str, ".png"] , "png");
@@ -1101,8 +1226,8 @@ if plot_weights
 	    imagesc(squeeze(mean(weight_vals(:,:,maxind(maxnum==(label+1))),3))')
 	  endif
 	  labeledWeights_str = ...
-	      ["labeledWeightsFig_", weights_list{i_weights,2}, "_", num2str(label, "%d"), "_", ...
-	       num2str(weight_time, "%07d")];
+	      ["labeledWeightsFig_", weights_list{i_weights,1}, weights_list{i_weights,2}, "_", num2str(label, "%d"), "_", ...
+	       num2str(weight_time, "%08d")];
 	  %%title(labeledWeights_fig, labeledWeights_str);
 	  title(labeledWeights_str);
 	  saveas(labeledWeights_fig,  [weights_dir, filesep, labeledWeights_str, ".png"], "png");
@@ -1157,20 +1282,17 @@ if plot_weights
 	[max_labelRecon_vals, max_labelRecon_ndx] = max(labelRecon_vals);
 	accuracy = sum(max_label_ndx==max_labelRecon_ndx) / numel(max_label_vals)
 
-	
       endif  %% ~isempty(labelWeight_vals) && ~isempty(labelWeights_time)
-
     endfor %% i_checkpoint
-
   endfor %% i_weights
-  
 endif  %% plot_weights
+
 
 
 plot_weights1_2 = (true && ~strcmp(run_type, "MNIST"));
 if plot_weights1_2
   weights1_2_list = {};
-  if strcmp(run_type, "color_deep")
+  if strcmp(run_type, "color_deep") || strcmp(run_type, "noTopDown")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% deep list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1188,7 +1310,7 @@ if plot_weights1_2
           {["a1_"], ["Retina"]};
     else
       checkpoints_list = getCheckpointList(checkpoint_parent, checkpoint_children);
-      weights_list = ...
+      weights1_2_list = ...
           {["V2ToError1_2"], "_W"};
       post1_2_list = ...
           {["V1"], ["_A"]};
@@ -1196,7 +1318,9 @@ if plot_weights1_2
       weights0_1_list = ...
           {["V1ToError"], ["_W"]};
       image_list = ...
-          {["Retina"], ["_A"]};
+          {["a1_"], ["Retina"]};
+%%      image_list = ...
+%%          {["Retina"], ["_A"]};
     endif %% checkpoint_weights_movie
     %% list of indices for reading rank order of presynaptic neuron as function of activation frequency
     sparse_ndx = [2];
@@ -1228,24 +1352,37 @@ if plot_weights1_2
     %% lateral list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% list of weights from layer2 to layer1
-    weights1_2_list = ...
-	{["w9_"], ["V2ToError2"];...
-	 ["w14_"], ["V2ToError1_2"]};
-    %%     {["V2ToError1_2"], ["_W"]};
-    post1_2_list = ...
-	{["a5_"], ["V1"]; ...
-	 ["a5_"], ["V1"]};
-    %%      {["V1"], ["_A"]};
-    %% list of weights from layer1 to image
-    weights0_1_list = ...
-	{["w5_"], ["V1ToError"]; ...
-	 ["w5_"], ["V1ToError"]};
-    %%      {["V1ToError"], ["_W"]};
-    image_list = ...
-	{["a1_"], ["Retina"]; ...
-	 ["a1_"], ["Retina"]};
-    %%      {["Retina"], ["_A"]};
-    %% list of indices for reading rank order of presynaptic neuron as function of activation frequency
+    if ~checkpoint_weights_movie
+      checkpoints_list = {output_dir};
+      weights1_2_list = ...
+	  {["w9_"], ["V2ToError2"];...
+	   ["w14_"], ["V2ToError1_2"]};
+      post1_2_list = ...
+	  {["a5_"], ["V1"]; ...
+	   ["a5_"], ["V1"]};
+      %% list of weights from layer1 to image
+      weights0_1_list = ...
+	  {["w5_"], ["V1ToError"]; ...
+	   ["w5_"], ["V1ToError"]};
+      image_list = ...
+	  {["a1_"], ["Retina"]; ...
+	   ["a1_"], ["Retina"]};
+    else
+      checkpoints_list = getCheckpointList(checkpoint_parent, checkpoint_children);
+      weights1_2_list = ...
+          {["V2ToError2"], ["_W"]; ...
+	   ["V2ToError1_2"], ["_W"]};
+      post1_2_list = ...
+          {["V1"], ["_A"]; ...
+	   ["V1"], ["_A"]};
+      %% list of weights from layer1 to image
+      weights0_1_list = ...
+          {["V1ToError"], ["_W"]; ...
+	   ["V1ToError"], ["_W"]};
+      image_list = ...
+          {["a1_"], ["Retina"]; ...
+	   ["a1_"], ["Retina"]};
+    endif %% checkpoint_weights_movie
     sparse_ndx = [2,2];
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   endif %% run_type
@@ -1382,8 +1519,8 @@ if plot_weights1_2
       %% for one to many connections: dimensions of weights1_2 are:
       %% weights1_2(nxp, nyp, nf_post, nf_pre)
       weights1_2_name = ...
-	  ["Weights1_2_", weights1_2_list{i_weights1_2,2}, "_", num2str(weights1_2_time, "%07d")];
-      if plot_flag && i_checkpoint == 1
+	  [weights1_2_list{i_weights1_2,1}, weights1_2_list{i_weights1_2,2}, "_", num2str(weights1_2_time, "%08d")];
+      if plot_flag && i_checkpoint == num_checkpoints
 	weights1_2_fig = figure;
 	set(weights1_2_fig, "name", weights1_2_name);
       endif
@@ -1391,7 +1528,7 @@ if plot_weights1_2
       weight_patch0_2_array = [];
       for kf_pre1_2_rank = 1  : num_patches1_2
 	kf_pre1_2 = pre_hist_rank(kf_pre1_2_rank);
-	if plot_flag && i_checkpoint == 1
+	if plot_flag && i_checkpoint == num_checkpoints
 	  subplot(num_patches1_2_rows, num_patches1_2_cols, kf_pre1_2_rank); 
 	endif
 	if ndims(weights1_2_vals) == 4
@@ -1472,7 +1609,7 @@ if plot_weights1_2
 	max_patch = max(patch_tmp3(:));
 	patch_tmp5 = uint8((flipdim(patch_tmp3,1) - min_patch) * 255 / (max_patch - min_patch + ((max_patch - min_patch)==0)));
 	
-	if plot_flag && i_checkpoint == 1
+	if plot_flag && i_checkpoint == num_checkpoints
 	  imagesc(patch_tmp5); 
 	  if weights0_1_nfp == 1
 	    colormap(gray);
@@ -1488,24 +1625,25 @@ if plot_weights1_2
 	endif
 	col_ndx = 1 + mod(kf_pre1_2_rank-1, num_patches1_2_cols);
 	row_ndx = 1 + floor((kf_pre1_2_rank-1) / num_patches1_2_cols);
-	weight_patch0_2_array(row_ndx:row_ndx+weights0_2_nyp_shrunken, col_ndx:col_ndx+weights0_2_nxp_shrunken,:) = ...
+	weight_patch0_2_array((1+(row_ndx-1)*weights0_2_nyp_shrunken):(row_ndx*weights0_2_nyp_shrunken), ...
+			      (1+(col_ndx-1)*weights0_2_nxp_shrunken):(col_ndx*weights0_2_nxp_shrunken),:) = ...
 	    patch_tmp5;
       endfor %% kf_pre1_2_ank
-      if plot_flag && i_checkpoint == 1
+      if plot_flag && i_checkpoint == num_checkpoints
 	saveas(weights1_2_fig, [weights1_2_dir, filesep, weights1_2_name, ".png"], "png");
       endif
-      imwrite(weight_patch0_2_array, [weights1_2_dir, filesep, weights1_2_name, ".png"], "png");
+      imwrite(uint8(weight_patch0_2_array), [weights1_2_dir, filesep, weights1_2_name, ".png"], "png");
 
 
       %% make histogram of all weights
-      if plot_flag && i_checkpoint == 1
+      if plot_flag && i_checkpoint == num_checkpoints
 	weights1_2_hist_fig = figure;
 	[weights1_2_hist, weights1_2_hist_bins] = hist(weights1_2_vals(:), 100);
 	bar(weights1_2_hist_bins, log(weights1_2_hist+1));
-	set(weights1_2_hist_fig, "name", ["weights1_2_Histogram_", weights1_2_list{i_weights1_2,2}, "_", ...
-					  num2str(weights1_2_time, "%07d")]);
+	set(weights1_2_hist_fig, "name", ["Hist_", weights1_2_list{i_weights1_2,1}, weights1_2_list{i_weights1_2,2}, "_", ...
+					  num2str(weights1_2_time, "%08d")]);
 	saveas(weights1_2_hist_fig, [weights1_2_dir, filesep, "weights1_2_hist_", weights1_2_list{i_weights1_2,2}, "_", ...
-				     num2str(weights1_2_time, "%07d")], "png");
+				     num2str(weights1_2_time, "%08d")], "png");
       endif
     endfor %% i_checkpoint
 
