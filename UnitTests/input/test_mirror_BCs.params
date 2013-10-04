@@ -8,6 +8,7 @@ HyPerCol "test_mirror_BCs column" = {
    nx = 8;
    ny = 8;
    outputPath = "output/";
+   startTime = 0.0;
    numSteps = 1;
    filenamesContainLayerNames = false;
 };

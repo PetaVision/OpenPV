@@ -10,6 +10,7 @@ HyPerCol "column" = {
     ny = 16;
     dt = 1;
     randomSeed = 1328498006;
+    startTime = 0.0;
     numSteps = 5;
     progressStep = 1000;
     writeProgressToErr = false;

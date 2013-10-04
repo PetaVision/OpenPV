@@ -13,6 +13,7 @@ HyPerCol "column" = {
    ny = 256;   // size of the global layer in the y-direction
    dt = 1.0;  //time step in ms.	     
    randomSeed = 1149986818;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
+   startTime = 0.0;
    numSteps = 1;  
    progressStep = 1; //Program will output its progress at each progressStep
    writeProgressToErr = false;  

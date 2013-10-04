@@ -3,6 +3,7 @@ debugParsing=false;
 HyPerCol "column" = {
    nx = 32;
    ny = 32;
+   startTime = 0.0;
    numSteps = 1;
    progressStep = 1;
    writeProgressToErr = false;

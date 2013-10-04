@@ -17,6 +17,7 @@ HyPerCol "column" = {
    ny = 8;
    dt = 1.0;
    randomSeed = 1860277205;  // if not set here,  clock time is used to generate seed
+   startTime = 0.0;
    numSteps = 50;
    progressStep = 10;
    writeProgressToErr = false;
