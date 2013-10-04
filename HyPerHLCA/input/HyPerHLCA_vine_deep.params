@@ -15,16 +15,16 @@ HyPerCol "column" = {
     ny = 480;
     dt = 1.0;
     randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
-    numSteps = 46584000; //31956400; //30517200; //27290000; //24725600; // 21488000; //18674000; // 14005200; //8039600; 
+    numSteps = 8039600; // 46584000; //31956400; //30517200; //27290000; //24725600; // 21488000; //18674000; // 14005200; //
     progressStep = 1000;
-    outputPath = "/nh/compneuro/Data/vine/LCA/2013_02_01/output_2013_02_01_12x12x128_lambda_05X2_deep";
+    outputPath = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_2013_01_31_12x12x128_lambda_05X2_deep";
     filenamesContainLayerNames = true;
     filenamesContainConnectionNames = true;
-    checkpointRead = true;
-    checkpointReadDir = "/nh/compneuro/Data/vine/LCA/2013_01_24/output_2013_01_24_12x12x128_lambda_05X2_deep/Checkpoints";
-    checkpointReadDirIndex = 31956400; //30517200; // 27290000; // 24725600; //21488000; //18674000; //14005200; //8039600; 
+    checkpointRead = false;
+    checkpointReadDir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_2013_01_31_12x12x128_lambda_05X2_deep/Checkpoints";
+    checkpointReadDirIndex = 8039600; 
     checkpointWrite = true;
-    checkpointWriteDir = "/nh/compneuro/Data/vine/LCA/2013_02_01/output_2013_02_01_12x12x128_lambda_05X2_deep/Checkpoints";
+    checkpointWriteDir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_2013_01_31_12x12x128_lambda_05X2_deep/Checkpoints";
     checkpointWriteStepInterval = 100000;
     deleteOlderCheckpoints = false;
     //suppressLastOutput = false;
@@ -40,7 +40,7 @@ Movie "Image" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
-    imageListPath = "/nh/compneuro/Data/vine/list/2013_02_01/fileList_2013_02_01.txt";
+    imageListPath = "/nh/compneuro/Data/vine/list/2013_01_31/fileList_2013_01_31.txt";
     nf = 3;
     writeStep = -1;
     writeSparseActivity = false;
@@ -63,27 +63,27 @@ Movie "Image" = {
     //useParamsImage = true;
 };
 
-Retina "Retina" = {
-    restart = 0;
-    nxScale = 1;
-    nyScale = 1;
-    nf = 3;
-    writeStep = 2000.0;
-    initialWriteTime = 1998.0;
-    mirrorBCflag = 1;
-    spikingFlag = 0;
-    writeSparseActivity = 0;
-
-    foregroundRate = 1000;
-    backgroundRate = 0;
-    burstFreq = 1;
-    burstDuration = 1000;
-
-    beginStim = 0;
-    endStim = 1000000000;
-    
-    phase = 1;
-};
+//Retina "Retina" = {
+//    restart = 0;
+//    nxScale = 1;
+//    nyScale = 1;
+//    nf = 3;
+//    writeStep = 2000.0;
+//    initialWriteTime = 1998.0;
+//    mirrorBCflag = 1;
+//    spikingFlag = 0;
+//    writeSparseActivity = 0;
+//
+//    foregroundRate = 1000;
+//    backgroundRate = 0;
+//    burstFreq = 1;
+//    burstDuration = 1000;
+//
+//    beginStim = 0;
+//    endStim = 1000000000;
+//    
+//    phase = 1;
+//};
 
 
 ANNTriggerUpdateOnNewImageLayer "Bipolar" = {
@@ -369,18 +369,18 @@ ANNLayer "ReconInfra" = {
 // connections
 
 
-IdentConn "MovieToRetina" = {
+//IdentConn "MovieToBipolar" = {
+//    preLayerName = "Image";
+//    postLayerName = "Bipolar";
+//    channelCode = 0;
+//    delay = 0;
+//    writeStep = -1;
+//    writeCompressedCheckpoints = false;
+//};
+
+
+KernelConn "ImageToBipolarCenter" = {
     preLayerName = "Image";
-    postLayerName = "Retina";
-    channelCode = 0;
-    delay = 0;
-    writeStep = -1;
-    writeCompressedCheckpoints = false;
-};
-
-
-KernelConn "RetinaToBipolarCenter" = {
-    preLayerName = "Retina";
     postLayerName = "Bipolar";
     channelCode = 0;
     nxp = 3; 
@@ -409,7 +409,6 @@ KernelConn "RetinaToBipolarCenter" = {
     
     shrinkPatches = false;
     //writeCompressedWeights = 0.0;
-    writeCompressedCheckpoints = false;
     plasticityFlag = 0;
     pvpatchAccumulateType = "convolve";
     updateGSynFromPostPerspective = false;     
@@ -452,7 +451,6 @@ KernelConn "BipolarToGanglionCenter" = {
     
     shrinkPatches = false;
     //writeCompressedWeights = 0.0;
-    writeCompressedCheckpoints = false;
     plasticityFlag = 0;
     pvpatchAccumulateType = "convolve";
     updateGSynFromPostPerspective = false;     
@@ -495,7 +493,6 @@ KernelConn "BipolarToGanglionSurround" = {
     
     shrinkPatches = false;
     //writeCompressedWeights = 0.0;
-    writeCompressedCheckpoints = false;
     plasticityFlag = 0;
     pvpatchAccumulateType = "convolve";
     updateGSynFromPostPerspective = false;     
@@ -628,7 +625,6 @@ KernelConn "ReconToError2" = {
     
     shrinkPatches = false;
     //writeCompressedWeights = 0.0;
-    writeCompressedCheckpoints = false;
     plasticityFlag = 0;
     pvpatchAccumulateType = "convolve";
     updateGSynFromPostPerspective = false;     
@@ -844,8 +840,8 @@ CloneKernelConn "V1InfraToReconInfra" = {
 
 // Probes
 
-//StatsProbe "RetinaStats" = {
-//    targetLayer = "Retina";
+//StatsProbe "ImageStats" = {
+//    targetLayer = "Image";
 //};
 //
 //StatsProbe "GanglionStats" = {
@@ -864,9 +860,9 @@ CloneKernelConn "V1InfraToReconInfra" = {
 //    targetLayer = "V1";
 //};
 //
-//StatsProbe "RetinaStatsFile" = {
-//    targetLayer = "Retina";
-//    probeOutputFile = "Retina_Stats.txt";
+//StatsProbe "ImageStatsFile" = {
+//    targetLayer = "Image";
+//    probeOutputFile = "Image_Stats.txt";
 //};
 //
 //StatsProbe "GanglionStatsFile" = {
