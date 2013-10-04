@@ -200,7 +200,17 @@ void STDPConn::readWMin(PVParams * params) {
 
 void STDPConn::read_dWMax(PVParams * params) {
    assert(!params->presentAndNotBeenRead(name, "stdpFlag"));
-   if(stdpFlag) HyPerConn::read_dWMax(params);
+   if(stdpFlag) {
+      HyPerConn::read_dWMax(params);
+   }
+   else {
+      if (params->present(name, "dWMax")) {
+         params->value(name, "dWMax");
+         if (parent->columnId()==0) {
+            fprintf(stderr, "%s \"%s\" warning: dWMax is not used if stdpFlag is false.\n", params->groupKeywordFromName(name), name);
+         }
+      }
+   }
 }
 
 void STDPConn::readSynscalingFlag(PVParams * params) {

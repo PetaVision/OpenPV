@@ -615,6 +615,9 @@ protected:
    virtual void readUseListOfArborFiles(PVParams * params);
    virtual void readCombineWeightFiles(PVParams * params);
    virtual void readUpdateGSynFromPostPerspective(PVParams * params);
+   void handleUnnecessaryIntParameter(const char * paramName, int correctValue);
+   void handleUnnecessaryFloatingPointParameter(const char * paramName, double correctValue);
+   void handleUnnecessaryParameterString(const char * paramName, const char * correctValue, bool case_insensitive=false);
 
 #ifdef PV_USE_OPENCL
    virtual void initIgnoreGPUFlag(); // sets the ignoreGPUFlag parameter.  virtual so that a class can make it always false or always true
@@ -649,9 +652,9 @@ private:
          int nf);
    int deleteWeights();
 
+// static member functions
+//
 public:
-   // static member functions
-   //
    static PVPatch** createPatches(int nPatches, int nx, int ny) {
       PVPatch** patchpointers = (PVPatch**) (calloc(nPatches, sizeof(PVPatch*)));
       PVPatch* patcharray = (PVPatch*) (calloc(nPatches, sizeof(PVPatch)));

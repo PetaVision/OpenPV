@@ -54,105 +54,67 @@ int TransposeConn::initialize(const char * name, HyPerCol * hc, const char * pre
    return status;
 }
 
+// We override many read-methods because TransposeConn will determine
+// the associated parameters from the originalConn's values.
+// communicateInitInfo will check if those parameters exist in params for
+// the CloneKernelConn group, and whether they are consistent with the
+// originalConn parameters.
+// If consistent, issue a warning that the param is unnecessary and continue.
+// If inconsistent, issue an error and quit.
+// We can't do that in the read-method because we can't be sure originalConn
+// has set its own parameter yet (or even if it's been instantiated),
+// and in theory originalConn could be a subclass that determines
+// the parameter some way other than reading its own parameter
+// group's param directly.
+
 void TransposeConn::readNumAxonalArbors(PVParams * params) {
-   // numAxonalArbors will be copied from originalConn.
-   // However, readNumAxonalArbors is called during initialize,
-   // and originalConn is set during communicate, so we have to wait.
-   // Need to override so that numAxonalArbors doesn't get read from params.
+   // During the communication phase, numAxonalArbors will be copied from originalConn
 }
 
 int TransposeConn::readPatchSize(PVParams * params) {
    // During the communication phase, nxp, nyp, nxpShrunken, nypShrunken will be determined from originalConn
    return PV_SUCCESS;
 }
-/*
-int TransposeConn::readPatchSize(PVParams * params) {
-   // If originalConn is many-to-one, the transpose connection is one-to-many; then xscaleDiff > 0.
-   // Similarly, if originalConn is one-to-many, xscaleDiff < 0.
-
-   // Since this is called before pre, post and originalConn are set up, we have to load nxp,nyp
-   // and compute the scale differences instead of grabbing them from the object.
-   // The problem with waiting until after pre, post and originalConn are defined (in communicateInitInfo())
-   // is that some of the things in communicateInitInfo()  (e.g. requireMarginWidth) use nxp and nyp
-   // before communicate gets called.
-
-   // Some of the code duplication might be eliminated by adding some functions to convert.h
-
-   char * origPreName = NULL;
-   char * origPostName = NULL;
-   HyPerConn::getPreAndPostLayerNames(originalConnName, params, &origPreName, &origPostName);
-   if(origPreName==NULL || origPostName==NULL) {
-      exit(EXIT_FAILURE); // getPreAndPostLayerNames printed error messages
-   }
-
-   float origXScalePre = params->value(origPreName, "nxScale", 1.0f);
-   float origXScalePost = params->value(origPostName, "nxScale", 1.0f);
-   int xscaleDiff = (int) nearbyint(-log2( (double) (origXScalePost))) - (int) nearbyint(-log2( (double) (origXScalePre))); // post-pre because the feedback connection goes the other way.
-   int nxp_orig = params->value(originalConnName, "nxp", 1);
-   nxp = nxp_orig;
-   if(xscaleDiff > 0 ) {
-      nxp *= (int) pow( 2, xscaleDiff );
-   }
-   else if(xscaleDiff < 0) {
-      nxp /= (int) pow(2,-xscaleDiff);
-      assert(nxp_orig==nxp*pow( 2, (float) (-xscaleDiff) ));
-   }
-
-   float origYScalePre = params->value(origPreName, "nyScale", 1.0f);
-   float origYScalePost = params->value(origPostName, "nyScale", 1.0f);
-   int yscaleDiff = (int) nearbyint(-log2( (double) (origYScalePost))) - (int) nearbyint(-log2( (double) (origYScalePre)));
-   int nyp_orig = params->value(originalConnName, "nyp", 1);
-   nyp = nyp_orig;
-   if(yscaleDiff > 0 ) {
-      nyp *= (int) pow( 2, (float) yscaleDiff );
-   }
-   else if(yscaleDiff < 0) {
-      nyp /= (int) pow(2,-yscaleDiff);
-      assert(nyp_orig==nyp*pow( 2, (float) (-yscaleDiff) ));
-   }
-
-   free(origPreName);
-   free(origPostName);
-
-   nxpShrunken = nxp;
-   nypShrunken = nyp;
-   return PV_SUCCESS;
-}
-*/
 
 int TransposeConn::readNfp(PVParams * params) {
-   // Empty override since nfp will be inferred from originalConn
+   // During the communication phase, nfp will be inferred from originalConn
    return PV_SUCCESS;
 }
 
 void TransposeConn::readPlasticityFlag(PVParams * params) {
-   // Empty override since plasticityFlag will be copied from originalConn
+   // During the communication phase, plasticityFlag will be copied from originalConn
 }
 
 void TransposeConn::readCombine_dW_with_W_flag(PVParams * params) {
    combine_dW_with_W_flag = false;
+   handleUnnecessaryIntParameter("combine_dW_with_W_flag", combine_dW_with_W_flag);
 }
 
 void TransposeConn::read_dWMax(PVParams * params) {
    dWMax = 1.0;
+   handleUnnecessaryIntParameter("dWMax", dWMax);
 }
 
 void TransposeConn::readKeepKernelsSynchronized(PVParams * params) {
    keepKernelsSynchronized_flag = false;
+   handleUnnecessaryIntParameter("keepKernelsSynchronized", keepKernelsSynchronized_flag);
 }
 
 void TransposeConn::readWeightUpdatePeriod(PVParams * params) {
    weightUpdatePeriod = parent->getDeltaTime();  // Ensures that every timestep updateState calls updateWeights, which will compare lastUpdateTime to originalConn's lastUpdateTime
+   handleUnnecessaryIntParameter("weightUpdatePeriod", weightUpdatePeriod);
 }
 
 void TransposeConn::readInitialWeightUpdateTime(PVParams * params) {
    weightUpdateTime = parent->simulationTime();
+   handleUnnecessaryIntParameter("initialWeightUpdateTime", weightUpdateTime);
 }
 
 void TransposeConn::readShrinkPatches(PVParams * params) {
    // Will check that originalConn has shrinkPatches set to false in communicate phase, once originalConn is set.
    // Need to override here since overridden method reads shrinkPatches from params.
    shrinkPatches_flag = false;
+   handleUnnecessaryIntParameter("shrinkPatches", shrinkPatches_flag);
 }
 
 InitWeights * TransposeConn::handleMissingInitWeights(PVParams * params) {
@@ -213,8 +175,10 @@ int TransposeConn::communicateInitInfo() {
 
 
    numAxonalArborLists = originalConn->numberOfAxonalArborLists();
+   handleUnnecessaryIntParameter("numAxonalArbors", numAxonalArborLists);
 
    plasticityFlag = originalConn->getPlasticityFlag();
+   handleUnnecessaryIntParameter("plasticityFlag", plasticityFlag);
 
    if(originalConn->getShrinkPatches_flag()) {
       if (parent->columnId()==0) {
@@ -269,6 +233,11 @@ int TransposeConn::setPatchSize() {
 
    nxpShrunken = nxp;
    nypShrunken = nyp;
+   handleUnnecessaryIntParameter("nxp", nxp);
+   handleUnnecessaryIntParameter("nyp", nyp);
+   handleUnnecessaryIntParameter("nxpShrunken", nxpShrunken);
+   handleUnnecessaryIntParameter("nypShrunken", nypShrunken);
+   handleUnnecessaryIntParameter("nfp", nfp);
    return PV_SUCCESS;
 
 }

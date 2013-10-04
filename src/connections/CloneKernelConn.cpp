@@ -118,6 +118,18 @@ PVPatch *** CloneKernelConn::initializeWeights(PVPatch *** patches, pvdata_t ** 
    // nothing to be done as the weight patches point to originalConn's space.
 }
 
+// We override many read-methods because CloneKernelConn will use
+// originalConn's values.  communicateInitInfo will check if the associated
+// parameters exist in params for theCloneKernelConn group, and whether they
+// are consistent with the originalConn parameters.
+// If consistent, issue a warning that the param is unnecessary and continue.
+// If inconsistent, issue an error and quit.
+// We can't do that in the read-method because we can't be sure originalConn
+// has set its own parameter yet (or even if it's been instantiated),
+// and in theory originalConn could be a subclass that determines
+// the parameter some way other than reading its own parameter
+// group's param directly.
+
 void CloneKernelConn::readShrinkPatches(PVParams * params) {
    // During the communication phase, shrinkPatches_flag will be copied from originalConn
 }
@@ -132,6 +144,7 @@ void CloneKernelConn::readNumAxonalArbors(PVParams * params) {
 
 void CloneKernelConn::readPlasticityFlag(PVParams * params) {
    plasticityFlag = false; // CloneKernelConn updates automatically, since it's done using pointer magic.
+   handleUnnecessaryIntParameter("plasticityFlag", plasticityFlag);
 }
 
 int CloneKernelConn::readPatchSize(PVParams * params) {
@@ -157,8 +170,15 @@ int CloneKernelConn::communicateInitInfo() {
             name, parent->columnId(), originalConnName);
    }
 
+   // Copy some parameters from originalConn.  Check if parameters exist is
+   // the clone's param group, and issue a warning (if the param has the right
+   // value) or an error (if it has the wrong value).
+   int status = PV_SUCCESS;
+   PVParams * params = parent->parameters();
+   const char * classname = params->groupKeywordFromName(name);
    numAxonalArborLists = originalConn->numberOfAxonalArborLists();
-   int status = KernelConn::communicateInitInfo();
+   handleUnnecessaryIntParameter("numAxonalArbors", numAxonalArborLists);
+   status = KernelConn::communicateInitInfo();
    if (status != PV_SUCCESS) return status;
 
    // Presynaptic layers of the CloneKernelConn and its original conn must have the same size, or the patches won't line up with each other.
@@ -175,9 +195,10 @@ int CloneKernelConn::communicateInitInfo() {
       abort();
    }
 
-   //Redudent read in case it's a clone of a clone
+   //Redudant read in case it's a clone of a clone
    numAxonalArborLists = originalConn->numberOfAxonalArborLists();
    shrinkPatches_flag = originalConn->getShrinkPatches_flag();
+   handleUnnecessaryIntParameter("shrinkPatches", shrinkPatches_flag);
 
    return status;
 }
@@ -189,6 +210,11 @@ int CloneKernelConn::setPatchSize() {
    nxpShrunken = originalConn->getNxpShrunken();
    nypShrunken = originalConn->getNypShrunken();
    nfp = originalConn->fPatchSize();
+   handleUnnecessaryIntParameter("nxp", nxp);
+   handleUnnecessaryIntParameter("nyp", nyp);
+   handleUnnecessaryIntParameter("nxpShrunken", nxpShrunken);
+   handleUnnecessaryIntParameter("nypShrunken", nypShrunken);
+   handleUnnecessaryIntParameter("nfp", nfp);
    return PV_SUCCESS;
 }
 

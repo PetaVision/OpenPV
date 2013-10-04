@@ -45,6 +45,7 @@ int GapConn::initialize(const char * name, HyPerCol * hc,
 
 void GapConn::readChannelCode(PVParams * params) {
    channel = CHANNEL_GAP;
+   handleUnnecessaryIntParameter("channelCode", (int) CHANNEL_GAP);
 }
 
 

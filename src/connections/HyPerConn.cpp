@@ -1224,6 +1224,90 @@ InitWeights * HyPerConn::handleMissingInitWeights(PVParams * params) {
    return new InitWeights();
 }
 
+// TODO: use templates and std::cerr for handleUnnecessary*Parameter functions
+void HyPerConn::handleUnnecessaryIntParameter(const char * paramName, int correctValue) {
+   int status = PV_SUCCESS;
+   PVParams * params = parent->parameters();
+   const char * classname = params->groupKeywordFromName(name);
+   if (params->present(name, paramName)) {
+      if (parent->columnId()==0) {
+         fprintf(stderr, "Connection \"%s\" warning: class \"%s\" does not use parameter %s but determines from other param(s).\n",
+               name, classname, paramName);
+      }
+      if ((int) params->value(name, paramName)!=correctValue) {
+         status = PV_FAILURE;
+         if (parent->columnId()==0) {
+            fprintf(stderr, "    Value %d is inconsistent with correct value %d.  Exiting.\n",
+                  (int) params->value(name, paramName), correctValue);
+         }
+      }
+   }
+   MPI_Barrier(parent->icCommunicator()->communicator());
+   if (status != PV_SUCCESS) exit(EXIT_FAILURE);
+}
+
+void HyPerConn::handleUnnecessaryFloatingPointParameter(const char * paramName, double correctValue) {
+   int status = PV_SUCCESS;
+   PVParams * params = parent->parameters();
+   const char * classname = params->groupKeywordFromName(name);
+   if (params->present(name, paramName)) {
+      if (parent->columnId()==0) {
+         fprintf(stderr, "Connection \"%s\" warning: class \"%s\" does not use parameter %s but determines it from other param(s).\n",
+               name, classname, paramName);
+      }
+      if (params->value(name, paramName)!=correctValue) {
+         status = PV_FAILURE;
+         if (parent->columnId()==0) {
+            fprintf(stderr, "    Value %f is inconsistent with correct value %f.  Exiting.\n",
+                  params->value(name, paramName), correctValue);
+         }
+      }
+   }
+   MPI_Barrier(parent->icCommunicator()->communicator());
+   if (status != PV_SUCCESS) exit(EXIT_FAILURE);
+}
+
+void HyPerConn::handleUnnecessaryParameterString(const char * paramName, const char * correctValue, bool case_insensitive) {
+   int status = PV_SUCCESS;
+   PVParams * params = parent->parameters();
+   const char * classname = params->groupKeywordFromName(name);
+   if (params->stringPresent(name, paramName)) {
+      char * param_value = strdup(params->stringValue(name, paramName)); // need mutable strings if case-insensitive;
+      if (param_value == NULL) {
+         fprintf(stderr, "%s \"%s\" error: Rank %d process unable to copy parameter string value: %s.\n", classname, name, parent->columnId(), strerror(errno));
+         exit(EXIT_FAILURE);
+      }
+      char * correct_value = strdup(correctValue); // more convenient to use same string even if case-sensitive.
+      if (correct_value == NULL) {
+         fprintf(stderr, "%s \"%s\" error: Rank %d process unable to correct string value: %s.\n", classname, name, parent->columnId(), strerror(errno));
+         exit(EXIT_FAILURE);
+      }
+      if (case_insensitive) {
+         for (char * c = param_value; *c!='\0'; c++) {
+            *c = (char) tolower((int) *c);
+         }
+         for (char * c = correct_value; *c!='\0'; c++) {
+            *c = (char) tolower((int) *c);
+         }
+      }
+      if (parent->columnId()==0) {
+         fprintf(stderr, "Connection \"%s\" warning: class \"%s\" does not use string parameter %s but determines it from other param(s).\n",
+               name, classname, paramName);
+      }
+      if (strcmp(param_value,correct_value)) {
+         status = PV_FAILURE;
+         if (parent->columnId()==0) {
+            fprintf(stderr, "    Value \"%s\" is inconsistent with correct value \"%s\".  Exiting.\n",
+                  params->stringValue(name, paramName), correct_value);
+         }
+      }
+      free(param_value);
+      free(correct_value);
+   }
+   MPI_Barrier(parent->icCommunicator()->communicator());
+   if (status != PV_SUCCESS) exit(EXIT_FAILURE);
+}
+
 #ifdef PV_USE_OPENCL
 void HyPerConn::initIgnoreGPUFlag() {
    PVParams * params = parent->parameters();
