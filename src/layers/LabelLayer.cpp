@@ -5,9 +5,12 @@
  * It is meant to be used together with a Movie layer.
  *
  * This layer takes a label from the filepath of the names of the images.  It has a layer with nf =
- * number of categories.  For every new image, the layer will adjust its activity such that all
+ * number of categories.  
+ * [deprecated] For every new image, the layer will adjust its activity such that all
  * neurons have an activity of 0 except those with the feature corresponding to your image, which
  * will have an activity of 1.
+ * LabelLayer is now normalized to unit L2 norm at each x,y location.
+ * 
  *
  * Additional Params:
  * movieLayerName - the name of the movie layer, where images are defined in categories
@@ -18,12 +21,15 @@
  * labelLength - the number of digits in the labels
  *
  * Other notes:
+ * [deprecated] 
  * The label layer will automatically determine the nxscale and nyscale in order to have the smallest
  * number of neurons per layer possible.  You can specify an nxscale or nyscale, but these values will
  * be ignored.
+ * The user can now specify a label layer of arbitray nx and ny
  *
  *  Created on: Jul 9, 2013
  *      Author: bcrocker
+ *      modified: garkenyon
  */
 
 #include "LabelLayer.hpp"
@@ -129,7 +135,8 @@ int LabelLayer::allocateDataStructures() {
 
    if (currentLabel == -1){
       status = PV_FAILURE;
-   }
+      fprintf(stderr,"Current Label Integer: %d out of %d\n",currentLabel, maxLabel);
+  }
    else{
       if (echoLabelFlag){
          fprintf(stderr,"Current Label Integer: %d out of %d\n",currentLabel, maxLabel);
@@ -176,12 +183,12 @@ int LabelLayer::updateState(double time, double dt){
             fprintf(stderr,"Current Label Integer: %d out of %d\n",currentLabel, maxLabel);
          }
          for (int i = 0; i<(labelLoc.nf*(labelLoc.nx+labelLoc.nb*2)*(labelLoc.ny+labelLoc.nb*2)); i++){
-        	 if (i%maxLabel == currentLabel){
-                labelData[i] = sqrt(maxLabel-1)/sqrt(maxLabel);
-             }
-             else{
-                labelData[i] = -1/sqrt((maxLabel-1)*maxLabel);
-             }
+	   if (i%maxLabel == currentLabel){
+	     labelData[i] = sqrt(maxLabel-1)/sqrt(maxLabel);
+	   }
+	   else{
+	     labelData[i] = -1/sqrt((maxLabel-1)*maxLabel);
+	   }
          }
       }
 
@@ -200,23 +207,23 @@ int LabelLayer::outputState(double time, bool last){
 }
 
 
-void LabelLayer::readNxScale(PVParams * params) {
-	int minX = this->parent->getNxGlobal();
-	nxScale = 1.0;
-	while (minX%2 == 0){
-		minX /= 2;
-		nxScale /=2;
-	}
-}
+//void LabelLayer::readNxScale(PVParams * params) {
+//	int minX = this->parent->getNxGlobal();
+//	nxScale = 1.0;
+//	while (minX%2 == 0){
+//		minX /= 2;
+//		nxScale /=2;
+//	}
+//}
 
-void LabelLayer::readNyScale(PVParams * params) {
-	int minY = this->parent->getNyGlobal();
-	nyScale = 1.0;
-	while (minY%2 == 0){
-		minY /= 2;
-		nyScale /=2;
-	}
-}
+//void LabelLayer::readNyScale(PVParams * params) {
+//	int minY = this->parent->getNyGlobal();
+//	nyScale = 1.0;
+//	while (minY%2 == 0){
+//		minY /= 2;
+//		nyScale /=2;
+//	}
+//}
 
 
 
