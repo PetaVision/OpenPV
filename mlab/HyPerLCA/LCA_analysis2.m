@@ -4,7 +4,7 @@ close all;
 global plot_flag %% if true, plot graphical output to screen, else do not generate graphical outputy
 plot_flag = true;
 global load_flag %% if true, then load "saved" data structures rather than computing them 
-load_flag = true;
+load_flag = false;
 if plot_flag
   setenv("GNUTERM","X11")
 endif
@@ -12,10 +12,12 @@ endif
 %% machine/run_type environment
 if ismac
   workspace_path = "/Users/garkenyon/workspace";
-  run_type = "MNIST"
-  output_dir = "/Users/garkenyon/workspace/MNIST/output_train_1stPass"
-  checkpoint_path = "/Users/garkenyon/workspace/MNIST/output_train_1stPass";
-  last_checkpoint_ndx = 32000000;
+  run_type = "CIFAR"
+  output_dir = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR/data_batch_3"
+  checkpoint_dir = output_dir;
+  checkpoint_parent = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR";
+  checkpoint_children = {"data_batch_1"; "data_batch_2"; "data_batch_3"};
+  last_checkpoint_ndx = 2000000;
 elseif isunix
   workspace_path = "/home/gkenyon/workspace";
   %%run_type = "noPulvinar"; %%
@@ -87,12 +89,12 @@ checkpoint_path = [checkpoint_dir, filesep, "Checkpoints", filesep,  "Checkpoint
 use_last_checkpoint_ndx = false; %%true;  %% flag to set whether to use last_checkpoint_ndx in determining the maximum frames index to analyze 
 layer_write_step = 200;  %% used to compute maximum frame index to process
 weight_write_step = 2000;
-plot_DoG_kernel = 1;  %% set to true if DoG filtering used and dewhitening of reconstructions is desired
+plot_DoG_kernel = 0;  %% set to true if DoG filtering used and dewhitening of reconstructions is desired
 max_patches = 128;  %% maximum number of weight patches to plot, typically ordered from most to least active if Sparse_flag == true
 checkpoint_weights_movie = true; %% make movie of weights over time using list of checkpoint folders getCheckpointList(checkpoint_parent, checkpoint_children)
 
 %% plot Reconstructions
-plot_Recon = false;
+plot_Recon = true;
 if plot_Recon
   num_Recon_default = 4;
   if strcmp(run_type, "color_deep") || strcmp(run_type, "noTopDown")
@@ -182,14 +184,17 @@ if plot_Recon
     %% list of (previous) layers to sum with current layer
     sum_list = cell(num_Recon_list,1);
     sum_list{6} = 4;
-  elseif strcmp(run_type, "MNIST")
+  elseif strcmp(run_type, "MNIST") || strcmp(run_type, "CIFAR")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %% MNIST list
+    %% MNIST/CIFAR list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     plot_DoG_kernel = false;
     Recon_list = ...
 	{["a0_"], ["Image"];
-	 ["a5_"], ["MovieRecon"]};
+	 ["a5_"], ["Recon"];
+	 ["a8_"], ["Recon2"];
+	 ["a11_"], ["ReconInfra"];
+	 ["a11_"], ["ReconInfra"]};
     %% list of layers to unwhiten
     num_Recon_list = size(Recon_list,1);
     unwhiten_list = zeros(num_Recon_list,1);
@@ -197,6 +202,7 @@ if plot_Recon
     normalize_list = 1:num_Recon_list;
     %% list of (previous) layers to sum with current layer
     sum_list = cell(num_Recon_list,1);
+    sum_list{5} = 2;
   elseif strcmp(run_type, "KITTI")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% KITTI list
@@ -482,14 +488,17 @@ if plot_StatsProbe_vs_time && plot_flag
 	 ["Error1_2"],["_Stats.txt"]; ...
 	 ["V1Infra"],["_Stats.txt"]; ...
 	 ["V1Intra"],["_Stats.txt"]};
-  elseif strcmp(run_type, "MNIST")
+  elseif strcmp(run_type, "MNIST") || strcmp(run_type, "CIFAR")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %% MNIST list
+    %% MNIST/CIFAR list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     StatsProbe_list = ...
 	{["LabelError"],["_Stats.txt"]; ...
-	 ["MovieError"],["_Stats.txt"]; ...
-	 ["V1"],["_Stats.txt"]};
+	 ["Error"],["_Stats.txt"]; ...
+	 ["Error2"],["_Stats.txt"]; ...
+	 ["Error1_2"],["_Stats.txt"]; ...
+	 ["V1"],["_Stats.txt"];...
+	 ["V2"],["_Stats.txt"]};
   elseif strcmp(run_type, "KITTI")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% KITTI list
@@ -526,11 +535,12 @@ if plot_StatsProbe_vs_time && plot_flag
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     StatsProbe_sigma_flag([2,4,6,7]) = 0;
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  elseif strcmp(run_type, "MNIST")
+  elseif strcmp(run_type, "MNIST") || strcmp(run_type, "CIFAR")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %% MNIST list
+    %% MNIST/CIFAR list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    StatsProbe_sigma_flag([3]) = 0;
+    StatsProbe_sigma_flag([5]) = 0;
+    StatsProbe_sigma_flag([6]) = 0;
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   endif %% run_type
   StatsProbe_nnz_flag = ~StatsProbe_sigma_flag;
@@ -644,12 +654,13 @@ if plot_Sparse
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     Sparse_list = ...
 	{["a4_"], ["V1"]};
-  elseif strcmp(run_type, "MNIST")
+  elseif strcmp(run_type, "MNIST") || strcmp(run_type, "CIFAR")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %% MNIST list
+    %% MNIST/CIFAR list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     Sparse_list = ...
-	{["a4_"], ["V1"]};
+	{["a4_"], ["V1"]; ...
+	 ["a7_"], ["V2"]};
   elseif strcmp(run_type, "KITTI")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% KITTI list
@@ -862,20 +873,27 @@ if plot_nonSparse && plot_flag
     nonSparse_skip(2) = 1;
     nonSparse_skip(3) = 1;
     nonSparse_norm_list = ...
-        {["a3_"], ["Ganglion"]; ...
-         ["a9_"], ["Recon2"]; ...
+        {["a5_"], ["Recon"]; ...
+         ["a8_"], ["Recon2"]; ...
          [], []};
-  elseif strcmp(run_type, "MNIST")
+  elseif strcmp(run_type, "MNIST") || strcmp(run_type, "CIFAR")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %% MNIST list
+    %% MNIST/CIFAR list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     nonSparse_list = ...
-	{["a2_"], ["MovieError"]; ...
-	 ["a3_"], ["LabelError"]};
+	{["a2_"], ["Error"]; ...
+	 ["a3_"], ["LabelError"]; ...
+	 ["a6_"], ["Error2"]; ...
+	 ["a9_"], ["Error1_2"]};
     num_nonSparse_list = size(nonSparse_list,1);
     nonSparse_skip = repmat(1, num_nonSparse_list, 1);
     nonSparse_skip(1) = 1;
     nonSparse_skip(2) = 1;
+    nonSparse_norm_list = ...
+        {["a5_"], ["Recon"]; ...
+	 [], []
+         ["a9_"], ["Recon2"]; ...
+         [], []};
   elseif strcmp(run_type, "KITTI")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% KITTI list
@@ -1030,19 +1048,31 @@ if plot_weights
       checkpoints_list = getCheckpointList(checkpoint_parent, checkpoint_children);
     endif %% checkpoint_weights_movie
     num_checkpoints = size(checkpoints_list,1);
-  elseif strcmp(run_type, "MNIST")
+  elseif strcmp(run_type, "MNIST") || strcmp(run_type, "CIFAR")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %% MNIST list
+    %% MNIST/CIFAR list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    weights_list = ...
-	{["w1_"], ["V1ToMovieError"]};
-    sparse_ndx = [1];
-    labelWeights_list = ...
-	{["w5_"], ["V1ToLabelError"]};
-    labels_list = ...
-	{["a1_"], ["labels"]};
-    labelRecon_list = ...
-	{["a6_"], ["labelRecon"]};
+    sparse_ndx = [1; 2];
+    if ~checkpoint_weights_movie
+      weights_list = ...
+          {};
+      checkpoints_list = {output_dir};
+    else
+      weights_list = ...
+          {["V1ToError"], "_W"; ...
+           ["V2ToError2"], "_W"};
+      labelWeights_list = ...
+	  {[], []; ...
+	   ["V2ToLabelError"], ["_W"], };
+      labels_list = ...
+	  {[], []; ...
+	   ["a1_"], ["Labels"]};
+      labelRecon_list = ...
+	  {[], []; ...
+	   ["a12_"], ["LabelRecon"]};
+      checkpoints_list = getCheckpointList(checkpoint_parent, checkpoint_children);
+    endif %% checkpoint_weights_movie
+    num_checkpoints = size(checkpoints_list,1);
   elseif strcmp(run_type, "KITTI")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% KITTI list
@@ -1224,6 +1254,8 @@ if plot_weights
 	  labeledWeights_fig = figure;
 	  if num_weights_colors == 1
 	    imagesc(squeeze(mean(weight_vals(:,:,maxind(maxnum==(label+1))),3))')
+	  else
+	    imagesc(permute(squeeze(mean(weight_vals(:,:,:,maxind(maxnum==(label+1))),4)),[2,1,3]));
 	  endif
 	  labeledWeights_str = ...
 	      ["labeledWeightsFig_", weights_list{i_weights,1}, weights_list{i_weights,2}, "_", num2str(label, "%d"), "_", ...
@@ -1235,7 +1267,7 @@ if plot_weights
 
 	num_labels = 1000;  %% number of label guesses to analyze
 	labels_file = ...
-	    [checkpoint_dir, filesep, labels_list{i_weights,1}, labels_list{i_weights,2}, ".pvp"]
+	    [output_dir, filesep, labels_list{i_weights,1}, labels_list{i_weights,2}, ".pvp"]
 	if ~exist(labels_file, "file")
 	  break;
 	endif
@@ -1251,8 +1283,14 @@ if plot_weights
 			tot_labels_frames-num_labels+1);
 	label_vals = zeros(labels_hdr{i_weights}.nf, num_labels,1);
 	label_time = zeros(labels_hdr{i_weights}.nf, num_labels,1);
-	for i_frame = 1:num_labels
-	  label_vals(:,i_frame) = squeeze(labels_struct{i_frame}.values);
+	num_labels_frames = length(labels_struct);
+	for i_frame = num_labels_frames:-1:num_labels_frames-num_labels+1
+	  tmp = squeeze(labels_struct{i_frame}.values);
+	  if ndims(tmp) > 2
+	    label_vals(:,i_frame) = squeeze(tmp(1,1,:));
+	  else
+	    label_vals(:,i_frame) = squeeze(tmp);
+	  endif
 	  label_time(i_frame) = squeeze(labels_struct{i_frame}.time);
 	endfor
 	
@@ -1273,8 +1311,14 @@ if plot_weights
 			tot_labelRecon_frames-num_labels+1);
 	labelRecon_vals = zeros(labelRecon_hdr{i_weights}.nf, num_labels,1);
 	labelRecon_time = zeros(labelRecon_hdr{i_weights}.nf, num_labels,1);
-	for i_frame = 1:num_labels
-	  labelRecon_vals(:,i_frame) = squeeze(labelRecon_struct{i_frame}.values);
+	num_labelRecon_frames = length(labelRecon_struct);
+	for i_frame = num_labelRecon_frames:-1:num_labelRecon_frames-num_labels+1
+	  tmp = squeeze(labelRecon_struct{i_frame}.values);
+	  if ndims(tmp) > 2
+	    labelRecon_vals(:,i_frame) = squeeze(tmp(1,1,:));
+	  else
+	    labelRecon_vals(:,i_frame) = squeeze(tmp);
+	  endif
 	  labelRecon_time(i_frame) = squeeze(labelRecon_struct{i_frame}.time);
 	endfor
 	
@@ -1385,6 +1429,39 @@ if plot_weights1_2
     endif %% checkpoint_weights_movie
     sparse_ndx = [2,2];
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  elseif strcmp(run_type, "MNIST") || strcmp(run_type, "CIFAR")
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% MNIST/CIFAR
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% list of weights from layer2 to layer1
+    if ~checkpoint_weights_movie
+      checkpoints_list = {output_dir};
+      weights1_2_list = ...
+          {[], []};
+      post1_2_list = ...
+          {[], []};
+      %% list of weights from layer1 to image
+      weights0_1_list = ...
+          {[], []};
+      image_list = ...
+          {[""], [""]};
+    else
+      checkpoints_list = getCheckpointList(checkpoint_parent, checkpoint_children);
+      weights1_2_list = ...
+          {["V2ToError1_2"], "_W"};
+      post1_2_list = ...
+          {["V1"], ["_A"]};
+      %% list of weights from layer1 to image
+      weights0_1_list = ...
+          {["V1ToError"], ["_W"]};
+      image_list = ...
+          {["a0_"], ["Image"]};
+%%      image_list = ...
+%%          {["Image"], ["_A"]};
+    endif %% checkpoint_weights_movie
+    %% list of indices for reading rank order of presynaptic neuron as function of activation frequency
+    sparse_ndx = [2];
+    num_checkpoints = size(checkpoints_list,1);
   endif %% run_type
 
   num_weights1_2_list = size(weights1_2_list,1);
@@ -1397,8 +1474,12 @@ if plot_weights1_2
   image_file = ...
       [output_dir, filesep, image_list{i_image,1}, image_list{i_image,2}, ".pvp"]
   if ~exist(image_file, "file")
-    warning(["file does not exist: ", image_file]);
-    continue;
+    i_checkpoint = 1;
+    image_file = ...
+	[checkpoints_list{i_checkpoint,:}, filesep, image_list{i_image,1}, image_list{i_image,2}, ".pvp"]
+  endif
+  if ~exist(image_file, "file")
+    error(["file does not exist: ", image_file]);
   endif
   image_fid = fopen(image_file);
   image_hdr = readpvpheader(image_fid);
