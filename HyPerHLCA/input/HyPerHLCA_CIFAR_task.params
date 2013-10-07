@@ -15,16 +15,16 @@ HyPerCol "column" = {
     ny = 32;
     dt = 1.0;
     randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
-    numSteps = 6000000;  //10,000 images * displayPeriod  
+    numSteps = 8000000;  //10,000 images * displayPeriod  
     progressStep = 1000;
-    outputPath = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR/data_batch_3";
+    outputPath = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR/data_batch_4";
     filenamesContainLayerNames = true;
     filenamesContainConnectionNames = true;
     checkpointRead = true;
-    checkpointReadDir = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR/data_batch_2/Checkpoints";
-    checkpointReadDirIndex = 4000000; 
+    checkpointReadDir = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR/data_batch_3/Checkpoints";
+    checkpointReadDirIndex = 6000000; 
     checkpointWrite = true;
-    checkpointWriteDir = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR/data_batch_3/Checkpoints";
+    checkpointWriteDir = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR/data_batch_4/Checkpoints";
     checkpointWriteStepInterval = 100000;
     deleteOlderCheckpoints = false;
     //suppressLastOutput = false;
@@ -396,7 +396,7 @@ ANNTriggerUpdateOnNewImageLayer "LabelRecon" = {
     VMin = -infinity;
     VShift = 0;
     
-    phase = 7;
+    phase = 1;
 };
 
 
@@ -780,7 +780,6 @@ IdentConn "V1ToError1_2" = {
     channelCode = 0;
     delay = 0;
     writeStep = -1;
-    writeCompressedWeights = false;
 };
 
 
@@ -871,7 +870,6 @@ IdentConn "ReconInfraToError" = {
     channelCode = 1;
     delay = 0;
     writeStep = -1;
-    writeCompressedCheckpoints = false;
 };
 
 
