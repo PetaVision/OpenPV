@@ -37,11 +37,15 @@ int DelayTestProbe::outputState(double timed)
    }
 #endif // PV_USE_MPI
    const PVLayerLoc * loc = getTargetLayer()->getLayerLoc();
+   const int rows = getTargetLayer()->getParent()->icCommunicator()->numCommRows();
+   const int cols = getTargetLayer()->getParent()->icCommunicator()->numCommColumns();
 
       int nx = loc->nx;
       int ny = loc->ny;
       int nf = loc->nf;
-      assert((avg == timed/nf)&&(avg == double(nnz)/(nx*ny*nf)));
+
+      assert((avg == timed/nf)&&(avg == double(nnz)/((nx*rows)*(ny*cols)*nf)));
+
       return status;
 }
 
