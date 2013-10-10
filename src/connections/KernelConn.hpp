@@ -40,9 +40,9 @@ public:
    virtual int writeWeights(const char * filename);
 
    bool getPlasticityFlag() {return plasticityFlag;}
-   float getWeightUpdatePeriod() {return weightUpdatePeriod;}
-   float getWeightUpdateTime() {return weightUpdateTime;}
-   float getLastUpdateTime() {return lastUpdateTime;}
+   double getWeightUpdatePeriod() {return weightUpdatePeriod;}
+   double getWeightUpdateTime() {return weightUpdateTime;}
+   double getLastUpdateTime() {return lastUpdateTime;}
 
 
    virtual int checkpointWrite(const char * cpDir);
@@ -58,9 +58,9 @@ public:
 
 
 protected:
-   float weightUpdatePeriod;
-   float weightUpdateTime;
-   float lastUpdateTime;
+   double weightUpdatePeriod;
+   double weightUpdateTime;
+   double lastUpdateTime;
    bool symmetrizeWeightsFlag;
 
 
@@ -104,7 +104,7 @@ protected:
 
    virtual int updateState(double time, double dt);
    virtual int updateWeights(int arborId);
-   virtual float computeNewWeightUpdateTime(double time, double currentUpdateTime);
+   virtual double computeNewWeightUpdateTime(double time, double currentUpdateTime);
 #ifdef PV_USE_MPI
    virtual int reduceKernels(int arborID);
 #else

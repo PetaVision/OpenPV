@@ -75,8 +75,8 @@ protected:
    pvdata_t * outputFiringRate; // outputFiringRate[output neuron (in restricted space)]
    MPI_Datatype * mpi_datatype;   // Used to mirror the inputFiringRateCubes
    float alphaMultiplier;
-   float dWUpdatePeriod;
-   float dWUpdateTime;
+   double dWUpdatePeriod;
+   double dWUpdateTime;
 };
 
 } /* namespace PV */

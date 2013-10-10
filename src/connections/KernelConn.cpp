@@ -568,7 +568,7 @@ int KernelConn::updateWeights(int arbor_ID){
    return PV_BREAK;
 }
 
-float KernelConn::computeNewWeightUpdateTime(double time, double currentUpdateTime) {
+double KernelConn::computeNewWeightUpdateTime(double time, double currentUpdateTime) {
    // Is only called by KernelConn::updateState if plasticityFlag is true
    weightUpdateTime += weightUpdatePeriod;
    return weightUpdateTime;
