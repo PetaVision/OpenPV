@@ -13,10 +13,20 @@ endif
 if ismac
   workspace_path = "/Users/garkenyon/workspace";
   run_type = "CIFAR"
-  output_dir = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR/data_batch_3"
+  output_dir = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR_RGB/data_batch_3"
   checkpoint_dir = output_dir;
-  checkpoint_parent = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR";
-  checkpoint_children = {"data_batch_1"; "data_batch_2"; "data_batch_3"};
+  checkpoint_parent = "/Users/garkenyon/workspace/HyPerHLCA";
+%%  checkpoint_children = ...
+%%      {"CIFAR/data_batch_1"; ...
+%%       "CIFAR/data_batch_2"; ...
+%%       "CIFAR/data_batch_3"; ...
+%%       "CIFAR/data_batch_4"; ...
+%%       "CIFAR/data_batch_5"; ...
+%%       "CIFAR_RGB/data_batch_5"};
+  checkpoint_children = ...
+      {"CIFAR_RGB/data_batch_1"; ...
+       "CIFAR_RGB/data_batch_2"; ...
+       "CIFAR_RGB/data_batch_3"};
   last_checkpoint_ndx = 2000000;
 elseif isunix
   workspace_path = "/home/gkenyon/workspace";
@@ -1269,7 +1279,6 @@ if plot_weights
 	  saveas(labeledWeights_fig,  [weights_dir, filesep, labeledWeights_str, ".png"], "png");
 	endfor %% label
 
-	num_labels = 1000;  %% number of label guesses to analyze
 	labels_file = ...
 	    [output_dir, filesep, labels_list{i_weights,1}, labels_list{i_weights,2}, ".pvp"]
 	if ~exist(labels_file, "file")
@@ -1279,19 +1288,20 @@ if plot_weights
 	labels_hdr{i_weights} = readpvpheader(labels_fid);    
 	fclose(labels_fid);
 	tot_labels_frames =  labels_hdr{i_weights}.nbands;
+	num_labels = min(tot_labels_frames, 1000);  %% number of label guesses to analyze
 	progress_step = fix(tot_labels_frames / 10);
 	[labels_struct, labels_hdr_tmp] = ...
 	    readpvpfile(labels_file, ...
 			progress_step, ...
 			tot_labels_frames, ...
 			tot_labels_frames-num_labels+1);
-	label_vals = zeros(labels_hdr{i_weights}.nf, num_labels,1);
-	label_time = zeros(labels_hdr{i_weights}.nf, num_labels,1);
+	label_vals = zeros(labels_hdr{i_weights}.nf, num_labels);
+	label_time = zeros(num_labels,1);
 	num_labels_frames = length(labels_struct);
 	for i_frame = num_labels_frames:-1:num_labels_frames-num_labels+1
 	  tmp = squeeze(labels_struct{i_frame}.values);
 	  if ndims(tmp) > 2
-	    label_vals(:,i_frame) = squeeze(tmp(1,1,:));
+	    label_vals(:,i_frame) = squeeze(tmp(fix(size(tmp,1)/2),fix(size(tmp,2)/2),:));
 	  else
 	    label_vals(:,i_frame) = squeeze(tmp);
 	  endif
@@ -1313,22 +1323,26 @@ if plot_weights
 			progress_step, ...
 			tot_labelRecon_frames, ...
 			tot_labelRecon_frames-num_labels+1);
-	labelRecon_vals = zeros(labelRecon_hdr{i_weights}.nf, num_labels,1);
-	labelRecon_time = zeros(labelRecon_hdr{i_weights}.nf, num_labels,1);
+	labelRecon_vals = zeros(labelRecon_hdr{i_weights}.nf, num_labels);
+	labelRecon_time = zeros(num_labels,1);
 	num_labelRecon_frames = length(labelRecon_struct);
 	for i_frame = num_labelRecon_frames:-1:num_labelRecon_frames-num_labels+1
 	  tmp = squeeze(labelRecon_struct{i_frame}.values);
 	  if ndims(tmp) > 2
-	    labelRecon_vals(:,i_frame) = squeeze(tmp(1,1,:));
+	    labelRecon_vals(:,i_frame) = squeeze(tmp(fix(size(tmp,1)/2),fix(size(tmp,2)/2),:));
 	  else
 	    labelRecon_vals(:,i_frame) = squeeze(tmp);
 	  endif
 	  labelRecon_time(i_frame) = squeeze(labelRecon_struct{i_frame}.time);
 	endfor
-	
+	delta_frames = 1;
 	[max_label_vals, max_label_ndx] = max(label_vals);
 	[max_labelRecon_vals, max_labelRecon_ndx] = max(labelRecon_vals);
-	accuracy = sum(max_label_ndx==max_labelRecon_ndx) / numel(max_label_vals)
+	for i_shift = 1
+	  accuracy = ...
+	      sum(max_label_ndx(1:end-i_shift)==max_labelRecon_ndx(i_shift+1:end)) / ...
+	      (numel(max_label_vals)-i_shift)
+	endfor
 
       endif  %% ~isempty(labelWeight_vals) && ~isempty(labelWeights_time)
     endfor %% i_checkpoint
@@ -1337,7 +1351,7 @@ endif  %% plot_weights
 
 
 
-plot_weights1_2 = (true && ~strcmp(run_type, "MNIST"));
+plot_weights1_2 = true %%(true && ~strcmp(run_type, "MNIST"));
 if plot_weights1_2
   weights1_2_list = {};
   if strcmp(run_type, "color_deep") || strcmp(run_type, "noTopDown")
