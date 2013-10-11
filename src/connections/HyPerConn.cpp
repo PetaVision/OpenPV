@@ -2182,6 +2182,9 @@ int HyPerConn::adjustAxonalArbors(int arborId)
 {
    // activity is extended into margins
    //
+   // Sets patches' offsets, ny, nx based on shrinking due to edge of the layer, and n{x,y}pShrunken
+   // Doesn't do the shrinking turned on or off by the shrinkPatches parameter; that's handled by shrinkPatches().
+#ifdef OBSOLETE // Marked obsolete Oct 10, 2013
    int numPatches = getNumWeightPatches();
 
    int dxPatchHead, dyPatchHead;
@@ -2270,6 +2273,161 @@ int HyPerConn::adjustAxonalArbors(int arborId)
 
       // adjust patch dimensions
       pvpatch_adjust(getWeights(kex,arborId), sxp, syp, nxPatch, nyPatch, dx, dy);
+
+   } // loop over patches
+#endif // OBSOLETE
+
+   const int nxPre = pre->getLayerLoc()->nx;
+   const int nyPre = pre->getLayerLoc()->ny;
+   const int nfPre = pre->getLayerLoc()->nf;
+   const int nbPre = pre->getLayerLoc()->nb;
+   const int nxPost = post->getLayerLoc()->nx;
+   const int nyPost = post->getLayerLoc()->ny;
+   const int nfPost = post->getLayerLoc()->nf;
+   const int nbPost = post->getLayerLoc()->nb;
+
+   const int xPostNeuronsPerPreNeuron = nxPre < nxPost ? nxPost/nxPre : 1;
+   assert(nxPre>=nxPost || nxPre*xPostNeuronsPerPreNeuron==nxPost);
+   const int xPreNeuronsPerPostNeuron = nxPre > nxPost ? nxPre/nxPost : 1;
+   assert(nxPre<=nxPost || nxPost*xPreNeuronsPerPostNeuron==nxPre);
+   const int yPostNeuronsPerPreNeuron = nyPre < nyPost ? nyPost/nyPre : 1;
+   assert(nyPre>=nyPost || nyPre*yPostNeuronsPerPreNeuron==nyPost);
+   const int yPreNeuronsPerPostNeuron = nyPre > nyPost ? nyPre/nyPost : 1;
+   assert(nyPre<=nyPost || nyPost*yPreNeuronsPerPostNeuron==nyPre);
+
+   int xPatchHead = (nxp-nxpShrunken)/2;
+   assert(2*xPatchHead == nxp-nxpShrunken);
+   int yPatchHead = (nyp-nypShrunken)/2;
+   assert(2*yPatchHead == nyp-nypShrunken);
+   offsetShrunken = kIndex(xPatchHead, yPatchHead, 0, nxp, nyp, nfp);
+
+   for (int kex=0; kex<getNumWeightPatches(); kex++) {
+      // calculate xPostStart, xPostStop, xPatchStart, xPatchStop
+      int xHalfLength = (nxpShrunken-xPostNeuronsPerPreNeuron)/2;
+      assert(2*xHalfLength+xPostNeuronsPerPreNeuron==nxpShrunken);
+      int xPre = kxPos(kex, nxPre+2*nbPre, nyPre+2*nbPre, nfPre)-nbPre; // x-coordinate of presynaptic neuron tied to patch kex, in restricted coordinates.
+      // xCellStartInPostCoords will be the x-coordinate of the first neuron in the unit cell pre-synaptic site xPre,
+      // in postsynaptic restricted coordinates (i.e. leftmost restricted neuron is at x=0; rightmost is at x=post->getLayerLoc()->nx - 1.
+      // For a 1-1 connection, this is the same as xPre, but for 1-many or many-1 connections, we have to multiply or divide by "many".
+      int xCellStartInPostCoords = xPre;
+      if (xPostNeuronsPerPreNeuron>1) {
+         xCellStartInPostCoords *= xPostNeuronsPerPreNeuron;
+      }
+      else if (xPreNeuronsPerPostNeuron>1) {
+         // For a many-to-one connection, need to divide by "many", and discard the remainder,
+         // but in the left boundary region xPre is negative, so xPre/xPreNeuronsPerPostNeuron is not what we want.
+         if (xCellStartInPostCoords>=0) {
+            xCellStartInPostCoords /= xPreNeuronsPerPostNeuron;
+         }
+         else {
+            xCellStartInPostCoords = -(-xCellStartInPostCoords-1)/xPreNeuronsPerPostNeuron - 1;
+         }
+      }
+      int xPostStart = xCellStartInPostCoords - xHalfLength;
+      int xPostStop = xPostStart + nxpShrunken;
+      int xPatchStart = xPatchHead;
+      int xPatchStop = xPatchStart + nxpShrunken;
+
+      if (xPostStart < 0) {
+         int shrinkamount = -xPostStart;
+         xPatchStart += shrinkamount;
+         xPostStart = 0;
+      }
+      if (xPostStart > nxPost) { // This can happen if the pre-layer's boundary region is big and the patch size is small
+         int shrinkamount = xPostStart - nxPost;
+         xPatchStart -= shrinkamount;
+         xPostStart = nxPost;
+      }
+      if (xPostStop > nxPost) {
+         int shrinkamount = xPostStop - nxPost;
+         xPatchStop -= shrinkamount;
+         xPostStop = nxPost;
+      }
+      if (xPostStop < 0) {
+         int shrinkamount = -xPostStop;
+         xPatchStop += shrinkamount;
+         xPostStop = 0;
+      }
+      if (xPatchStart < 0) {
+         assert(xPatchStart==xPatchStop);
+         xPatchStart = 0;
+         xPatchStop = 0;
+      }
+      if (xPatchStop > (nxp+nxpShrunken)/2) {
+         assert(xPatchStart==xPatchStop);
+         xPatchStop = (nxp+nxpShrunken)/2;
+         xPatchStart = xPatchStop;
+      }
+      assert(xPostStop-xPostStart==xPatchStop-xPatchStart);
+
+      int nx = xPatchStop - xPatchStart;
+      assert(nx>=0 && nx<=nxpShrunken);
+      assert(xPatchStart>=0 && (xPatchStart<nxp || (nx==0 && xPatchStart==nxp)));
+
+      // calculate yPostStart, yPostStop, yPatchStart, yPatchStop
+      int yHalfLength = (nypShrunken-yPostNeuronsPerPreNeuron)/2;
+      assert(2*yHalfLength+yPostNeuronsPerPreNeuron==nypShrunken);
+      int yPre = kyPos(kex, nxPre+2*nbPre, nyPre+2*nbPre, nfPre)-nbPre;
+      int yCellStartInPostCoords = yPre;
+      if (yPostNeuronsPerPreNeuron>1) {
+         yCellStartInPostCoords *= yPostNeuronsPerPreNeuron;
+      }
+      else if (yPreNeuronsPerPostNeuron>1) {
+         // For a many-to-one connection, need to divide by "many", and discard the remainder,
+         // but in the top boundary region yPre is negative, so yPre/yPreNeuronsPerPostNeuron is not what we want.
+         if (yCellStartInPostCoords>=0) {
+            yCellStartInPostCoords /= yPreNeuronsPerPostNeuron;
+         }
+         else {
+            yCellStartInPostCoords = -(-yCellStartInPostCoords-1)/yPreNeuronsPerPostNeuron - 1;
+         }
+      }
+      int yPostStart = yCellStartInPostCoords - yHalfLength;
+      int yPostStop = yPostStart + nypShrunken;
+      int yPatchStart = yPatchHead;
+      int yPatchStop = yPatchStart + nypShrunken;
+
+      if (yPostStart < 0) {
+         int shrinkamount = -yPostStart;
+         yPatchStart += shrinkamount;
+         yPostStart = 0;
+      }
+      if (yPostStart > nyPost) { // This can happen if the pre-layer's boundary region is big and the patch size is small
+         int shrinkamount = yPostStart - nyPost;
+         yPatchStart -= shrinkamount;
+         yPostStart = nyPost;
+      }
+      if (yPostStop > nyPost) {
+         int shrinkamount = yPostStop - nyPost;
+         yPatchStop -= shrinkamount;
+         yPostStop = nyPost;
+      }
+      if (yPostStop < 0) {
+         int shrinkamount = -yPostStop;
+         yPatchStop += shrinkamount;
+         yPostStop = 0;
+      }
+      if (yPatchStart < 0) {
+         assert(yPatchStart==yPatchStop);
+         yPatchStart = 0;
+         yPatchStop = 0;
+      }
+      if (yPatchStop > (nyp+nypShrunken)/2) {
+         assert(yPatchStart==yPatchStop);
+         yPatchStop = (nyp+nypShrunken)/2;
+         yPatchStart = yPatchStop;
+      }
+      assert(yPostStop-yPostStart==yPatchStop-yPatchStart);
+
+      int ny = yPatchStop - yPatchStart;
+      assert(ny>=0 && ny<=nypShrunken);
+      assert(yPatchStart>=0 && (yPatchStart<nxp || (ny==0 && yPatchStart==nyp)));
+
+      gSynPatchStart[arborId][kex] = (size_t) kIndex(xPostStart,yPostStart,0,nxPost,nyPost,nfPost);
+      aPostOffset[arborId][kex] = (size_t) kIndex(xPostStart+nbPost,yPostStart+nbPost,0,nxPost+2*nbPost,nyPost+2*nbPost,nfPost);
+      PVPatch * w = getWeights(kex, arborId);
+      assert(w->offset==0);
+      pvpatch_adjust(w, sxp, syp, nx, ny, xPatchStart, yPatchStart);
 
    } // loop over patches
 
@@ -3262,6 +3420,7 @@ int HyPerConn::normalizeWeights(PVPatch ** patches, pvdata_t ** dataStart, int n
 } // normalizeWeights
 #endif // OBSOLETE
 
+#ifdef OBSOLETE // Marked obsolete Oct 10, 2013
 int HyPerConn::calcPatchSize(int arbor_index, int kex,
                              int * kl_out, int * offset_out,
                              int * nxPatch_out, int * nyPatch_out,
@@ -3386,6 +3545,7 @@ int HyPerConn::calcPatchSize(int arbor_index, int kex,
 
    return status;
 }
+#endif // OBSOLETE
 
 int HyPerConn::patchSizeFromFile(const char * filename) {
    // use patch dimensions from file if (filename != NULL)
