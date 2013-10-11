@@ -40,13 +40,16 @@ fails=""
 function runandecho() {
     testname=$1
     shift
-    if $PV_MPIRUN -np 1 $* &> ${testname}_1.log ## 1> /dev/null 2>/dev/null
+    logfilebasename=$1
+    shift
+    if $PV_MPIRUN -np 1 $* &> ${logfilebasename}_1.log
     then
-        echo "$testname passed"
+        result=passed
     else
-        echo "$testname FAILED"
-        fails="$fails $testname"
+        result=FAILED
+        fails="$fails $testname/${logfilebasename}_1.log"
     fi
+    echo "$testname $result (output in ${logfilebasename}_1.log"
 }
 
 # Check for --nompi option.
@@ -61,21 +64,24 @@ else
     function mpirunandecho() {
         testname=$1
         shift
-        if $PV_MPIRUN -np 2 $* &> ${testname}_2.log ## 1> /dev/null 2>/dev/null
+        logfilebasename=$1
+        shift
+        if $PV_MPIRUN -np 2 $* &> ${logfilebasename}_2.log
         then
-            echo "$testname with two processes passed"
+            result=passed
         else
-            echo "$testname with two processes FAILED"
-            fails="$fails $testname(2 procs)"
+            result=FAILED
+            fails="$fails $testname/${logfilebasename}_2.log"
         fi
-        if $PV_MPIRUN -np 4 $* &> ${testname}_4.log ## 1> /dev/null 2>/dev/null
+        echo "$testname with two processes $result (output in ${logfilebasename}_2.log)"
+        if $PV_MPIRUN -np 4 $* &> ${logfilebasename}_4.log
         then
-            echo "$testname with four processes passed"
+            result=passed
         else
-            echo "$testname with four processes FAILED"
-            fails="$fails $testname(4 procs)"
+            result=FAILED
+            fails="$fails $testname/${logfilebasename}_4.log"
         fi
-
+        echo "$testname with two processes $result (output in ${logfilebasename}_4.log)"
     }
 fi
 
@@ -83,218 +89,220 @@ fi
 testname=BasicSystemTest
 arglist="-p input/BasicSystemTest.params"
 cd "$testname"
-runandecho $testname Debug/$testname $arglist
-mpirunandecho $testname Debug/$testname $arglist
+runandecho $testname $testname Debug/$testname $arglist
+mpirunandecho $testname $testname Debug/$testname $arglist
 cd $wd
 
 testname=ArborSystemTest
 arglist="-p input/test_arbors.params"
 cd "$testname"
-runandecho $testname Debug/$testname $arglist
-mpirunandecho $testname Debug/$testname $arglist
+runandecho $testname $testname Debug/$testname $arglist
+mpirunandecho $testname $testname Debug/$testname $arglist
 cd $wd
 
 testname=CheckpointSystemTest
 arglist=""
 cd "$testname"
-runandecho $testname Debug/$testname $arglist
-mpirunandecho $testname Debug/$testname $arglist
+runandecho $testname $testname Debug/$testname $arglist
+mpirunandecho $testname $testname Debug/$testname $arglist
 cd $wd
 
 testname=CloneKernelConnTest
 arglist="-p input/CloneKernelConnTest.params"
 cd "$testname"
-runandecho $testname Debug/$testname $arglist
-mpirunandecho $testname Debug/$testname $arglist
+runandecho $testname $testname Debug/$testname $arglist
+mpirunandecho $testname $testname Debug/$testname $arglist
 cd $wd
 
 testname=CloneVLayerTest
 arglist=""
 cd "$testname"
-runandecho $testname Debug/$testname $arglist
-mpirunandecho $testname Debug/$testname $arglist
+runandecho $testname $testname Debug/$testname $arglist
+mpirunandecho $testname $testname Debug/$testname $arglist
 cd $wd
 
 testname=DatastoreDelayTest
 arglist="-p input/DatastoreDelayTest.params"
 cd "$testname"
-runandecho $testname Debug/$testname $arglist
-mpirunandecho $testname Debug/$testname $arglist
+runandecho $testname $testname Debug/$testname $arglist
+mpirunandecho $testname $testname Debug/$testname $arglist
+cd $wd
+
+testname=DelaysToFeaturesTest
+arglist="-p input/test_delays.params"
+cd "$testname"
+runandecho $testname $testname Debug/$testname $arglist
+mpirunandecho $testname $testname Debug/$testname $arglist
 cd $wd
 
 testname=FourByFourGenerativeTest
 arglist=""
 cd "$testname"
-runandecho $testname Debug/$testname $arglist
+runandecho $testname $testname Debug/$testname $arglist
 cd $wd
 
 testname=FourByFourTopDownTest
 arglist=""
 cd "$testname"
-runandecho $testname Debug/$testname $arglist
+runandecho $testname $testname Debug/$testname $arglist
 cd $wd
 
 testname=GenerativeConnTest
 arglist=""
 cd "$testname"
-runandecho $testname Debug/$testname $arglist
-mpirunandecho $testname Debug/$testname $arglist
+runandecho $testname $testname Debug/$testname $arglist
+mpirunandecho $testname $testname Debug/$testname $arglist
 cd $wd
 
 #testname=GPUSystemTest
 #cd "$testname"
 #arglist="-d 0 -p input/test_gpu.params"
-#runandecho $testname Debug/$testname $arglist
-#mpirunandecho $testname Debug/$testname $arglist
+#runandecho $testname $testname Debug/$testname $arglist
+#mpirunandecho $testname $testname Debug/$testname $arglist
 #cd "$wd"
 echo "TODO: fix GPUSystemTest and maybe implement GPUs"
 
 testname=ImageSystemTest
 arglist="-p input/multiframe_SystemTest.params"
 cd "$testname"
-runandecho $testname Debug/$testname $arglist
-mpirunandecho $testname Debug/$testname $arglist
+runandecho $testname $testname Debug/$testname $arglist
+mpirunandecho $testname $testname Debug/$testname $arglist
 cd $wd
 
 testname=InitWeightsTest
 arglist="-p input/test_initweights.params"
 cd "$testname"
-runandecho $testname Debug/$testname $arglist
-mpirunandecho $testname Debug/$testname $arglist
+runandecho $testname $testname Debug/$testname $arglist
+mpirunandecho $testname $testname Debug/$testname $arglist
 cd $wd
 
 testname=KernelTest
+logfilebasename=test_kernel
 arglist="-p input/test_kernel.params"
 cd "$testname"
-runandecho $testname Debug/$testname $arglist
-mpirunandecho $testname Debug/$testname $arglist
+runandecho $testname $logfilebasename Debug/$testname $arglist
+mpirunandecho $testname $logfilebasename Debug/$testname $arglist
 cd $wd
 
 testname=KernelTest
+logfilebasename=test_kernel_normalizepost_shrunken
 arglist="-p input/test_kernel_normalizepost_shrunken.params"
 cd "$testname"
-runandecho $testname Debug/$testname $arglist
-mpirunandecho $testname Debug/$testname $arglist
+runandecho $testname $logfilebasename Debug/$testname $arglist
+mpirunandecho $testname $logfilebasename Debug/$testname $arglist
 cd $wd
 
 testname=LayerPhaseTest
 arglist="-p input/LayerPhaseTest.params"
 cd "$testname"
-runandecho $testname Debug/$testname $arglist
-mpirunandecho $testname Debug/$testname $arglist
+runandecho $testname $testname Debug/$testname $arglist
+mpirunandecho $testname $testname Debug/$testname $arglist
 cd $wd
 
 testname=LayerRestartTest
 arglist=""
 cd "$testname"
-runandecho $testname Debug/$testname $arglist
-mpirunandecho $testname Debug/$testname $arglist
+runandecho $testname $testname Debug/$testname $arglist
+mpirunandecho $testname $testname Debug/$testname $arglist
 cd $wd
 
 testname=LIFTest
 arglist="-p input/LIFTest.params"
 cd "$testname"
-runandecho $testname Debug/$testname $arglist
-mpirunandecho $testname Debug/$testname $arglist
+runandecho $testname $testname Debug/$testname $arglist
+mpirunandecho $testname $testname Debug/$testname $arglist
 cd $wd
 
 testname=MarginWidthTest
 arglist="-p input/MarginWidthTest.params"
 cd "$testname"
-runandecho $testname Debug/$testname $arglist
-mpirunandecho $testname Debug/$testname $arglist
+runandecho $testname $testname Debug/$testname $arglist
+mpirunandecho $testname $testname Debug/$testname $arglist
 cd $wd
 
 testname=MatchingPursuitTest
 arglist=""
 cd "$testname"
-runandecho $testname Debug/$testname $arglist
-mpirunandecho $testname Debug/$testname $arglist
+runandecho $testname $testname Debug/$testname $arglist
+mpirunandecho $testname $testname Debug/$testname $arglist
 cd $wd
 
 testname=MPITest2
 arglist="-p input/MPI_test.params -n 100"
 cd "$testname"
-runandecho $testname Debug/$testname $arglist
-mpirunandecho $testname Debug/$testname $arglist
+runandecho $testname $testname Debug/$testname $arglist
+mpirunandecho $testname $testname Debug/$testname $arglist
 cd $wd
 
 testname=NormalizeSystemTest
 arglist="-p input/NormalizeSystemTest.params"
 cd "$testname"
-runandecho $testname Debug/$testname $arglist
+runandecho $testname $testname Debug/$testname $arglist
 cd $wd
 
 testname=ParameterSweepTest
 cd "$testname"
 arglist="-p input/ParameterSweepTest.params"
-runandecho $testname Debug/$testname $arglist
-mpirunandecho $testname Debug/$testname $arglist
+runandecho $testname $testname Debug/$testname $arglist
+mpirunandecho $testname $testname Debug/$testname $arglist
 cd "$wd"
 
 
 testname=PlasticConnTest
 cd "$testname"
 arglist="-p input/PlasticConnTest.params"
-runandecho $testname Debug/$testname $arglist
-mpirunandecho $testname Debug/$testname $arglist
+runandecho $testname $testname Debug/$testname $arglist
+mpirunandecho $testname $testname Debug/$testname $arglist
 cd "$wd"
 
 testname=RandStateSystemTest
 cd "$testname"
 arglist="-p input/RandStateSystemTest.params"
-runandecho $testname Debug/$testname $arglist
-mpirunandecho $testname Debug/$testname $arglist
+runandecho $testname $testname Debug/$testname $arglist
+mpirunandecho $testname $testname Debug/$testname $arglist
 cd "$wd"
 
 testname=ReadArborFileTest
 cd "$testname"
 arglist="-p input/ReadArborFileTest.params"
-runandecho $testname Debug/$testname $arglist
-mpirunandecho $testname Debug/$testname $arglist
+runandecho $testname $testname Debug/$testname $arglist
+mpirunandecho $testname $testname Debug/$testname $arglist
 cd "$wd"
 
 testname=ReceiveFromPostTest
 cd "$testname"
 arglist="-p input/postTest.params"
-runandecho $testname Debug/$testname $arglist
-mpirunandecho $testname Debug/$testname $arglist
+runandecho $testname $testname Debug/$testname $arglist
+mpirunandecho $testname $testname Debug/$testname $arglist
 cd "$wd"
 
 testname=ShrunkenPatchTest
 cd "$testname"
 arglist="" # parameter filename is in main()
-runandecho $testname Debug/$testname $arglist
-mpirunandecho $testname Debug/$testname $arglist
+runandecho $testname $testname Debug/$testname $arglist
+mpirunandecho $testname $testname Debug/$testname $arglist
 cd "$wd"
 
 testname=StochasticReleaseTest
 cd "$testname"
 arglist="-p input/StochasticReleaseTest.params"
-runandecho $testname Debug/$testname $arglist
-mpirunandecho $testname Debug/$testname $arglist
+runandecho $testname $testname Debug/$testname $arglist
+mpirunandecho $testname $testname Debug/$testname $arglist
 cd "$wd"
 
 testname=TransposeConnTest
 cd "$testname"
 arglist="" # parameter filename is in main()
-runandecho $testname Debug/$testname $arglist
-mpirunandecho $testname Debug/$testname $arglist
+runandecho $testname $testname Debug/$testname $arglist
+mpirunandecho $testname $testname Debug/$testname $arglist
 cd "$wd"
 
 testname=WindowSystemTest
 cd "$testname"
 arglist="-p input/postTest.params"
-runandecho $testname Debug/$testname $arglist
-mpirunandecho $testname Debug/$testname $arglist
+runandecho $testname $testname Debug/$testname $arglist
+mpirunandecho $testname $testname Debug/$testname $arglist
 cd "$wd"
-
-testname=DelaysToFeaturesTest
-arglist="-p input/test_delays.params"
-cd "$testname"
-runandecho $testname Debug/$testname $arglist
-mpirunandecho $testname Debug/$testname $arglist
-cd $wd
 
 
 cd "./PetaVision/tests"
