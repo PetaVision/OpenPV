@@ -131,6 +131,44 @@ ANNLayer "Lx4_with_shrunken" = {
     VShift = 0.0;
 };
 
+ANNLayer "Lx4_with_shrunken_tall" = {
+    restart = 0;
+    nxScale = 4;
+    nyScale = 4;
+    nf = 16;
+    phase = 0;
+    writeStep = -1;
+    mirrorBCflag = 0;
+    valueBC = 0.0;
+    writeSparseActivity = false;
+    
+    InitVType = "ZeroV";
+
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+    VShift = 0.0;
+};
+
+ANNLayer "Lx4_with_shrunken_wide" = {
+    restart = 0;
+    nxScale = 4;
+    nyScale = 4;
+    nf = 16;
+    phase = 0;
+    writeStep = -1;
+    mirrorBCflag = 0;
+    valueBC = 0.0;
+    writeSparseActivity = false;
+    
+    InitVType = "ZeroV";
+
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+    VShift = 0.0;
+};
+
 
 //  connections: 
 
@@ -326,66 +364,143 @@ KernelConn "L0toLx4shrunken" = {
     updateGSynFromPostPerspective = false;
 };
 
-// 
-// StatsProbe "L0_Stats_File" = {
-//     targetLayer = "L0";
-//     probeOutputFile = "L0_Stats.txt";
-//     message = "L0_Stats_File           ";
-// };
-// ShrunkenPatchTestProbe "Lx2_Unshrunken_Stats_File" = {
-//     targetLayer = "Lx2_with_unshrunken";
-//     probeOutputFile = "Lx2_Unshrunken_Stats.txt";
-//     message = "Lx2_Unshrunken_Stats_File       ";
-//     nxpShrunken=10;
-//     nypShrunken=10;
-// };
-// ShrunkenPatchTestProbe "Lx4_Unshrunken_Stats_File" = {
-//     targetLayer = "Lx4_with_unshrunken";
-//     probeOutputFile = "Lx4_Unshrunken_Stats.txt";
-//     message = "Lx4_Unshrunken_Stats_File       ";
-//     nxpShrunken=20;
-//     nypShrunken=20;
-// };
-// ShrunkenPatchTestProbe "Lx2_Shrunken_Stats_File" = {
-//     targetLayer = "Lx2_with_shrunken";
-//     probeOutputFile = "Lx2_Shrunken_Stats.txt";
-//     message = "Lx2_Shrunken_Stats_File         ";
-//     nxpShrunken=8;
-//     nypShrunken=8;
-// };
-// ShrunkenPatchTestProbe "Lx4_Shrunken_Stats_File" = {
-//     targetLayer = "Lx4_with_shrunken";
-//     probeOutputFile = "Lx4_Shrunken_Stats.txt";
-//     message = "Lx4_Shrunken_Stats_File         ";
-//     nxpShrunken=16;
-//     nypShrunken=16;
-// };
+KernelConn "L0toLx4shrunken_tall" = {
+    preLayerName = "L0";
+    postLayerName = "Lx4_with_shrunken_tall";
+    channelCode = 0;
+    nxp = 20;
+    nyp = 20;
+    nxpShrunken = 8;
+    nypShrunken = 16;
+    nfp = 16;
+    numAxonalArbors = 1;
+    writeStep = -1;
+    initFromLastFlag = 0;
+    
+    weightInitType = "Gauss2DWeight";
+    aspect = 1; //4;
+    sigma = infinity;
+    rMax  = infinity;
+    rMin = 0.0;
+    // deltaThetaMax = 6.2832;
+    // thetaMax = 1;
+    // bowtieFlag = 0;
+    // numFlanks = 1;
+    // flankShift = 0;
+    // rotate = 1;
+    numOrientationsPre = 4;
+    numOrientationsPost = 16;
+      
+    strength = 64.0; // 1.0 x post->num_neurons / pre->num_neurons
+    normalizeMethod = "normalizeSum";
+    normalize_cutoff = false;
+    symmetrizeWeights = false;
+    normalizeFromPostPerspective = false;
+    normalizeArborsIndividually = false;
+    minSumTolerated = 0.0;
+
+    writeCompressedCheckpoints = false;
+    plasticityFlag = 0;
+    shmget_flag = 1;
+
+    delay = 0;     
+
+    pvpatchAccumulateType = "convolve";
+    shrinkPatches = false;
+    preActivityIsNotRate = false;
+    selfFlag = false;
+    updateGSynFromPostPerspective = false;
+};
+
+KernelConn "L0toLx4shrunken_wide" = {
+    preLayerName = "L0";
+    postLayerName = "Lx4_with_shrunken_wide";
+    channelCode = 0;
+    nxp = 20;
+    nyp = 20;
+    nxpShrunken = 16;
+    nypShrunken = 8;
+    nfp = 16;
+    numAxonalArbors = 1;
+    writeStep = -1;
+    initFromLastFlag = 0;
+    
+    weightInitType = "Gauss2DWeight";
+    aspect = 1; //4;
+    sigma = infinity;
+    rMax  = infinity;
+    rMin = 0.0;
+    // deltaThetaMax = 6.2832;
+    // thetaMax = 1;
+    // bowtieFlag = 0;
+    // numFlanks = 1;
+    // flankShift = 0;
+    // rotate = 1;
+    numOrientationsPre = 4;
+    numOrientationsPost = 16;
+      
+    strength = 64.0; // 1.0 x post->num_neurons / pre->num_neurons
+    normalizeMethod = "normalizeSum";
+    normalize_cutoff = false;
+    symmetrizeWeights = false;
+    normalizeFromPostPerspective = false;
+    normalizeArborsIndividually = false;
+    minSumTolerated = 0.0;
+
+    writeCompressedCheckpoints = false;
+    plasticityFlag = 0;
+    shmget_flag = 1;
+
+    delay = 0;     
+
+    pvpatchAccumulateType = "convolve";
+    shrinkPatches = false;
+    preActivityIsNotRate = false;
+    selfFlag = false;
+    updateGSynFromPostPerspective = false;
+};
+
+
+//  connections: 
+
 
 StatsProbe "L0_Stats_Screen" = {
     targetLayer = "L0";
-    message = "L0_Stats_Screen         ";
+    message = "L0_Stats_Screen               ";
 };
 ShrunkenPatchTestProbe "Lx2_Stats_Screen" = {
     targetLayer = "Lx2_with_unshrunken";
-    message = "Lx2_Stats_Screen        ";
+    message = "Lx2_Stats_Screen              ";
     nxpShrunken=10;
     nypShrunken=10;
 };
 ShrunkenPatchTestProbe "Lx4_Stats_Screen" = {
     targetLayer = "Lx4_with_unshrunken";
-    message = "Lx4_Stats_Screen        ";
+    message = "Lx4_Stats_Screen              ";
     nxpShrunken=20;
     nypShrunken=20;
 };
-ShrunkenPatchTestProbe "Lx1_2_Stats_Screen" = {
+ShrunkenPatchTestProbe "Lx2_Stats_Screen_Shrunken" = {
     targetLayer = "Lx2_with_shrunken";
-    message = "Lx1_Stats_Screen        ";
+    message = "Lx1_Stats_Screen              ";
     nxpShrunken=8;
     nypShrunken=8;
 };
-ShrunkenPatchTestProbe "Lx1_4_Stats_Screen" = {
+ShrunkenPatchTestProbe "Lx4_Stats_Screen_Shrunken" = {
     targetLayer = "Lx4_with_shrunken";
-    message = "Lx1_4_Stats_Screen      ";
+    message = "Lx4_Stats_Screen_Shrunken     ";
     nxpShrunken=16;
     nypShrunken=16;
+};
+ShrunkenPatchTestProbe "Lx4_Stats_Screen_Shrunken_tall" = {
+    targetLayer = "Lx4_with_shrunken_tall";
+    message = "Lx4_Stats_Screen_Shrunken_tall";
+    nxpShrunken=8;
+    nypShrunken=16;
+};
+ShrunkenPatchTestProbe "Lx4_Stats_Screen_Shrunken_wide" = {
+    targetLayer = "Lx4_with_shrunken_tall";
+    message = "Lx4_Stats_Screen_Shrunken_wide";
+    nxpShrunken=16;
+    nypShrunken=8;
 };
