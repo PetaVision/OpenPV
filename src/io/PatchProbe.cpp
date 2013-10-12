@@ -45,7 +45,8 @@ int PatchProbe::initialize_base() {
 int PatchProbe::initialize(const char * probename, HyPerCol * hc) {
    BaseConnectionProbe::initialize(probename, hc);
    PVParams * params = hc->parameters();
-   getPatchID();
+   int status = getPatchID();
+   assert(status == PV_SUCCESS);
    arborID = params->value(name, "arborID");
    outputWeights = params->value(name, "outputWeights", true);
    outputPlasticIncr = params->value(name, "outputPlasticIncr", false);
@@ -60,11 +61,11 @@ int PatchProbe::getPatchID() {
    int coordmethod = params->present(name, "kxPre") && params->present(name,"kyPre") && params->present(name,"kfPre");
    if( indexmethod && coordmethod ) {
       fprintf(stderr, "PatchProbe \"%s\": Ambiguous definition with both kPre and (kxPre,kyPre,kfPre) defined\n", name);
-      return NULL;
+      return PV_FAILURE;
    }
    if( !indexmethod && !coordmethod ) {
       fprintf(stderr, "PatchProbe \"%s\": Exactly one of kPre and (kxPre,kyPre,kfPre) must be defined\n", name);
-      return NULL;
+      return PV_FAILURE;
    }
    if (indexmethod) {
       this->kPre = params->present(name, "kPre");

@@ -48,11 +48,11 @@ int OjaConnProbe::initialize(const char * probename, HyPerCol * hc)
    int coordmethod = params->present(name, "kxPost") && params->present(name,"kyPost") && params->present(name,"kfPost");
    if( indexmethod && coordmethod ) {
       fprintf(stderr, "OjaConnProbe \"%s\": Ambiguous definition with both kPost and (kxPost,kyPost,kfPost) defined\n", name);
-      return NULL;
+      exit(PV_FAILURE);
    }
    if( !indexmethod && !coordmethod ) {
       fprintf(stderr, "OjaConnProbe \"%s\": Exactly one of kPost and (kxPost,kyPost,kfPost) must be defined\n", name);
-      return NULL;
+      exit(PV_FAILURE);
    }
    if( indexmethod ) {
       int kPost = params->value(name, "kPost");

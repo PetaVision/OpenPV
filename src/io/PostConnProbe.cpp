@@ -32,6 +32,7 @@ PostConnProbe::~PostConnProbe()
 
 int PostConnProbe::initialize(const char * probename, HyPerCol * hc) {
    int status = PatchProbe::initialize(probename, hc);
+   assert(status==PV_SUCCESS);
    this->image = NULL;
    this->wPrev = NULL;
    this->wActiv = NULL;
@@ -45,11 +46,11 @@ int PostConnProbe::getPatchID() {
    int coordmethod = params->present(name, "kxPost") && params->present(name,"kyPost") && params->present(name,"kfPost");
    if( indexmethod && coordmethod ) {
       fprintf(stderr, "PatchProbe \"%s\": Ambiguous definition with both kPost and (kxPost,kyPost,kfPost) defined\n", name);
-      return NULL;
+      return PV_FAILURE;
    }
    if( !indexmethod && !coordmethod ) {
       fprintf(stderr, "PatchProbe \"%s\": Exactly one of kPost and (kxPost,kyPost,kfPost) must be defined\n", name);
-      return NULL;
+      return PV_FAILURE;
    }
    if (indexmethod) {
       this->kPost = params->value(name, "kPost");
