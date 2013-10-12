@@ -13,20 +13,16 @@ endif
 if ismac
   workspace_path = "/Users/garkenyon/workspace";
   run_type = "CIFAR"
-  output_dir = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR_RGB/data_batch_3"
+  output_dir = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR_RGB/data_batch_all2"
   checkpoint_dir = output_dir;
   checkpoint_parent = "/Users/garkenyon/workspace/HyPerHLCA";
-%%  checkpoint_children = ...
-%%      {"CIFAR/data_batch_1"; ...
-%%       "CIFAR/data_batch_2"; ...
-%%       "CIFAR/data_batch_3"; ...
-%%       "CIFAR/data_batch_4"; ...
-%%       "CIFAR/data_batch_5"; ...
-%%       "CIFAR_RGB/data_batch_5"};
   checkpoint_children = ...
-      {"CIFAR_RGB/data_batch_1"; ...
-       "CIFAR_RGB/data_batch_2"; ...
-       "CIFAR_RGB/data_batch_3"};
+      {"CIFAR_RGB/data_batch_all2"}; %% ...
+       %%"CIFAR_RGB/data_batch_1"; ...
+       %%"CIFAR_RGB/data_batch_2"; ...
+       %%"CIFAR_RGB/data_batch_3"; ...
+       %%"CIFAR_RGB/data_batch_4"; ...
+       %%"CIFAR_RGB/data_batch_5"};
   last_checkpoint_ndx = 2000000;
 elseif isunix
   workspace_path = "/home/gkenyon/workspace";
@@ -716,11 +712,11 @@ if plot_Sparse
     if use_last_checkpoint_ndx
       tot_Sparse_frames = min(tot_Sparse_frames, fix(last_checkpoint_ndx / layer_write_step));  %% use to specify maximum frame to display
     endif
-    num_Sparse = tot_Sparse_frames;  %% number of activity frames to analyze, counting backward from last frame, maximum is tot_Sparse_frames
+    num_Sparse = fix(tot_Sparse_frames/1);  %% number of activity frames to analyze, counting backward from last frame, maximum is tot_Sparse_frames
     progress_step = ceil(tot_Sparse_frames / 10);
     if ~load_flag
       [Sparse_struct, Sparse_hdr_tmp] = ...
-	  readpvpfile(Sparse_file, progress_step, tot_Sparse_frames, tot_Sparse_frames-fix(num_Sparse/1)+1,1); %%fix(tot_Sparse_frames/50),1); %%
+	  readpvpfile(Sparse_file, progress_step, tot_Sparse_frames, tot_Sparse_frames-num_Sparse+1,1); %%fix(tot_Sparse_frames/50),1); %%
     else %% just read last frame
       [Sparse_struct, Sparse_hdr_tmp] = ...
 	  readpvpfile(Sparse_file, progress_step, tot_Sparse_frames, tot_Sparse_frames,1); %%fix(tot_Sparse_f    endif
@@ -933,7 +929,7 @@ if plot_nonSparse && plot_flag
     nonSparse_norm_list = ...
         {["a5_"], ["Recon"]; ...
 	 [], []
-         ["a9_"], ["Recon2"]; ...
+         ["a8_"], ["Recon2"]; ...
          [], []};
   elseif strcmp(run_type, "KITTI")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1008,13 +1004,13 @@ if plot_nonSparse && plot_flag
     endfor %% i_frame
     if plot_flag
       nonSparse_RMS_fig = figure;
-      nonSparse_RMS_hndl = plot(nonSparse_times, (nonSparse_RMS ./ nonSparse_norm_RMS)); axis tight;
+      nonSparse_RMS_hndl = plot(nonSparse_times, (nonSparse_RMS(:) ./ nonSparse_norm_RMS(:))); axis tight;
       set(nonSparse_RMS_fig, "name", ["RMS_", nonSparse_list{i_nonSparse,2}, "_", num2str(nonSparse_times(num_nonSparse_frames), "%08d")]);
       saveas(nonSparse_RMS_fig, ...
 	     [nonSparse_dir, filesep, ...
 	      "RMS_", nonSparse_list{i_nonSparse,2}, "_", num2str(nonSparse_times(num_nonSparse_frames), "%08d")], "png");
     endif
-    nonSparse_median_RMS = median(nonSparse_RMS(:));
+    nonSparse_median_RMS = median(nonSparse_RMS(:) ./ nonSparse_norm_RMS(:));
     disp([nonSparse_list{i_nonSparse,2}, "_", num2str(nonSparse_times(num_nonSparse_frames), "%i"), ...
 	  " median RMS = ", num2str(nonSparse_median_RMS)]);
   endfor  %% i_nonSparse
@@ -1166,7 +1162,11 @@ if plot_weights
       weight_vals = squeeze(weights_struct{i_frame}.values{i_arbor});
       weight_time = squeeze(weights_struct{i_frame}.time);
       tmp_ndx = sparse_ndx(i_weights);
-      tmp_rank = Sparse_hist_rank{tmp_ndx};
+      if plot_Sparse
+	tmp_rank = Sparse_hist_rank{tmp_ndx};
+      else
+	tmp_rank = [];
+      endif
       if plot_Sparse && ~isempty(tmp_rank)
 	pre_hist_rank = tmp_rank;
       else
@@ -1261,7 +1261,7 @@ if plot_weights
       %%weights_dir = [output_dir, filesep, "weights"];
       %%mkdir(weights_dir);
       if plot_flag && i_checkpoint == num_checkpoints
-	saveas(weights_fig, [weights_dir, filesep, weights_name, ".png"], "png");
+	saveas(weights_fig, [weights_dir, filesep, [weights_name,"_labeled"], ".png"], "png");
       endif
       imwrite(uint8(weight_patch_array), [weights_dir, filesep, weights_name, ".png"], "png");
       %% make histogram of all weights
@@ -1363,7 +1363,7 @@ if plot_weights
 	delta_frames = 1;
 	[max_label_vals, max_label_ndx] = max(label_vals);
 	[max_labelRecon_vals, max_labelRecon_ndx] = max(labelRecon_vals);
-	for i_shift = 1
+	for i_shift = 0:2 %% correct i_shift should be 1 but if simulation is running during analysis could be off
 	  accuracy = ...
 	      sum(max_label_ndx(1:end-i_shift)==max_labelRecon_ndx(i_shift+1:end)) / ...
 	      (numel(max_label_vals)-i_shift)
@@ -1377,7 +1377,7 @@ endif  %% plot_weights
 
 
 
-plot_weights1_2 = (true && ~strcmp(run_type, "MNIST"));
+plot_weights1_2 = true; %%(true && ~strcmp(run_type, "MNIST"));
 if plot_weights1_2
   weights1_2_list = {};
   if strcmp(run_type, "color_deep") || strcmp(run_type, "noTopDown")
