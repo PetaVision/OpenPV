@@ -15,16 +15,16 @@ HyPerCol "column" = {
     ny = 32;
     dt = 1.0;
     randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
-    numSteps = 54000000;  //10,000 images * displayPeriod  
+    numSteps = 20000000;  //10,000 images * displayPeriod  
     progressStep = 1000;
-    outputPath = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR_RGB/data_batch_all3";
+    outputPath = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB/data_batch_all2";
     filenamesContainLayerNames = true;
     filenamesContainConnectionNames = true;
     checkpointRead = true;
-    checkpointReadDir = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR_RGB/data_batch_all2/Checkpoints";
-    checkpointReadDirIndex = 44000000; 
+    checkpointReadDir = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB/data_batch_all/Checkpoints";
+    checkpointReadDirIndex = 10000000; 
     checkpointWrite = true;
-    checkpointWriteDir = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR_RGB/data_batch_all3/Checkpoints";
+    checkpointWriteDir = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB/data_batch_all2/Checkpoints";
     checkpointWriteStepInterval = 100000;
     deleteOlderCheckpoints = false;
     //suppressLastOutput = false;
@@ -80,48 +80,6 @@ LabelLayer "Labels" = {
     phase = 1;
 };
 
-
-//ANNTriggerUpdateOnNewImageLayer "Bipolar" = {
-//    restart = 0;
-//    nxScale = 1;
-//    nyScale = 1;
-//    nf = 3;
-//    writeStep = 200.0;
-//    initialWriteTime = 198.0;
-//    mirrorBCflag = 1;
-//    writeSparseActivity = 0;
-//
-//    movieLayerName = "Image";
-//    InitVType = "ZeroV";
-//
-//    VThresh = -infinity;
-//    VMax = infinity;
-//    VMin = -infinity;
-//    VShift = 0;
-//    
-//    phase = 2;
-//};
-
-//ANNTriggerUpdateOnNewImageLayer "Ganglion" = {
-//    restart = 0;
-//    nxScale = 1;
-//    nyScale = 1;
-//    nf = 3;
-//    writeStep = 200.0;
-//    initialWriteTime = 198.0;
-//    mirrorBCflag = 1;
-//    writeSparseActivity = 0;
-//    //
-//    movieLayerName = "Image";
-//    InitVType = "ZeroV";
-//    //
-//    VThresh = -infinity;
-//    VMax = infinity;
-//    VMin = -infinity;
-//    VShift = 0;
-//    // 
-//    phase = 3;
-//};
 
 ANNErrorLayer "Error" = {
     restart = 0;
@@ -191,7 +149,7 @@ HyPerLCALayer "V1" = {
     timeConstantTauMinimum = 10.0;
     slopeErrorStd = 0.01;
     // 
-    VThresh = 0.1; //  
+    VThresh = 0.1; //   0.1 -> 0.5% median activation
     VMax = infinity;
     VMin = 0;
     VShift = 0.0;  // 0 -> hard threshold, 1 -> soft threshold
@@ -252,7 +210,7 @@ HyPerLCALayer "V2" = {
     restart = 0;
     nxScale = 0.125;
     nyScale = 0.125;
-    nf = 128; //256;
+    nf = 256;
     numChannels = 1;  // should be 1
     numWindowX = 1;
     numWindowY = 1;
@@ -273,36 +231,12 @@ HyPerLCALayer "V2" = {
     timeConstantTauMinimum = 10.0;
     slopeErrorStd = 0.01;
     // 
-    VThresh = 0.5; // 0.1 -> ~7% active
+    VThresh = 0.1;
     VMax = infinity;
     VMin = 0;
     VShift = 0.0;  // 0 -> hard threshold, 1 -> soft threshold
     //
     phase = 6;
-};
-
-
-ANNLayer "Recon2" = {
-    restart = 0;
-    nxScale = 0.5;
-    nyScale = 0.5;
-    nf = 3;
-    initialWriteTime = 1998.0;
-    writeStep = 2000.0;
-    mirrorBCflag = 0;
-    valueBC = 0;
-    writeSparseActivity = 0;
-    //
-    InitVType = "ZeroV";
-    //InitVType = "InitVFromFile";
-    //Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_31/output/Checkpoints/Checkpoint6000000/Recon_V.pvp";
-    //
-    VThresh = -infinity;
-    VMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
-    VMin = -infinity; 
-    VShift = 0;
-    // 
-    phase = 7; 
 };
 
 
@@ -330,7 +264,7 @@ ANNErrorLayer "Error1_2" = {
 };
 
 
-ANNLayer "V1Infra" = {
+ANNTriggerUpdateOnNewImageLayer "V1Infra" = {
     restart = 0;
     nxScale = 0.25;
     nyScale = 0.25;
@@ -340,6 +274,7 @@ ANNLayer "V1Infra" = {
     mirrorBCflag = 0;
     valueBC = 0;
     writeSparseActivity = 1;
+    movieLayerName = "Image";
     //
     InitVType = "ZeroV";
     //InitVType = "InitVFromFile";
@@ -350,11 +285,11 @@ ANNLayer "V1Infra" = {
     VMin = 0.0; // use V1's VMin
     VShift = 0;
     // 
-    phase = 7; 
+    phase = 1; 
 };
 
 
-ANNLayer "ReconInfra" = {
+ANNTriggerUpdateOnNewImageLayer "ReconInfra" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
@@ -364,6 +299,7 @@ ANNLayer "ReconInfra" = {
     mirrorBCflag = 0;
     valueBC = 0;
     writeSparseActivity = 0;
+    movieLayerName = "Image";
     //
     InitVType = "ZeroV";
     //InitVType = "InitVFromFile";
@@ -374,7 +310,7 @@ ANNLayer "ReconInfra" = {
     VMin = -infinity; 
     VShift = 0;
     // 
-    phase = 8; 
+    phase = 2; 
 };
 
 
@@ -435,140 +371,6 @@ KernelConn "ImageToError" = {
 };
 
 
-//KernelConn "ImageToBipolarCenter" = {
-//    preLayerName = "Image";
-//    postLayerName = "Bipolar";
-//    channelCode = 0;
-//    nxp = 3; 
-//    nyp = 3; 
-//    nfp = 3;
-//    numAxonalArbors = 1;
-//    initFromLastFlag = 0;  // 1;  // restart
-//    writeStep = -1;
-//    writeCompressedCheckpoints = false;
-//    
-//    weightInitType = "Gauss2DWeight";
-//    aspect = 1;
-//    sigma = 0.5;
-//    rMax  = 3;
-//    rMin = 0;
-//    numOrientationsPre = 1;
-//    numOrientationsPost = 1;
-//        
-//    strength = 1.0;  
-//    normalizeMethod = "normalizeSum";
-//    minSumTolerated = 0;
-//    normalizeArborsIndividually = 0;
-//    normalize_cutoff = 0.0;
-//    normalizeFromPostPerspective = true;
-//    symmetrizeWeights = false;
-//    
-//    shrinkPatches = false;
-//    //writeCompressedWeights = 0.0;
-//    plasticityFlag = 0;
-//    pvpatchAccumulateType = "convolve";
-//    updateGSynFromPostPerspective = false;     
-//     
-//    delay = 0;
-//     
-//    preActivityIsNotRate = false;
-//    selfFlag = false;
-//    shmget_flag = false;
-//};
-
-
-//KernelConn "BipolarToGanglionCenter" = {
-//    preLayerName = "Bipolar";
-//    postLayerName = "Ganglion";
-//    channelCode = 0;
-//    nxp = 1; 
-//    nyp = 1; 
-//    nfp = 3;
-//    numAxonalArbors = 1;
-//    initFromLastFlag = 0;  // 1;  // restart
-//    writeStep = -1;
-//    writeCompressedCheckpoints = false;
-//    
-//    weightInitType = "Gauss2DWeight";
-//    aspect = 1;
-//    sigma = 1;
-//    rMax  = 3;
-//    rMin = 0;
-//    numOrientationsPre = 1;
-//    numOrientationsPost = 1;
-//        
-//    strength = 1.0;  
-//    normalizeMethod = "normalizeSum";
-//    minSumTolerated = 0;
-//    normalizeArborsIndividually = 0;
-//    normalize_cutoff = 0.0;
-//    normalizeFromPostPerspective = true;
-//    symmetrizeWeights = false;
-//    
-//    shrinkPatches = false;
-//    //writeCompressedWeights = 0.0;
-//    plasticityFlag = 0;
-//    pvpatchAccumulateType = "convolve";
-//    updateGSynFromPostPerspective = false;     
-//     
-//    delay = 0;
-//     
-//    preActivityIsNotRate = false;
-//    selfFlag = false;
-//    shmget_flag = false;
-//};
-
-
-//KernelConn "BipolarToGanglionSurround" = {
-//    preLayerName = "Bipolar";
-//    postLayerName = "Ganglion";
-//    channelCode = 1;
-//    nxp = 11; 
-//    nyp = 11; 
-//    nfp = 3;
-//    numAxonalArbors = 1;
-//    initFromLastFlag = 0;  // 1;  // restart
-//    writeStep = -1;
-//    writeCompressedCheckpoints = false;
-//    
-//    weightInitType = "Gauss2DWeight";
-//    aspect = 1;
-//    sigma = 5.5;
-//    rMax  = 7.5;
-//    rMin = 0.5;
-//    numOrientationsPre = 1;
-//    numOrientationsPost = 1;
-//               
-//    strength = 1.0;  
-//    normalizeMethod = "normalizeSum";
-//    minSumTolerated = 0;
-//    normalizeArborsIndividually = 0;
-//    normalize_cutoff = 0.0;
-//    normalizeFromPostPerspective = true;
-//    symmetrizeWeights = false;
-//    
-//    shrinkPatches = false;
-//    //writeCompressedWeights = 0.0;
-//    plasticityFlag = 0;
-//    pvpatchAccumulateType = "convolve";
-//    updateGSynFromPostPerspective = false;     
-//     
-//    delay = 0;
-//     
-//    preActivityIsNotRate = false;
-//    selfFlag = false;
-//    shmget_flag = false;
-//};
-
-
-//IdentConn "GanglionToError" = {
-//    preLayerName = "Ganglion";
-//    postLayerName = "Error";
-//    channelCode = 0;
-//    delay = 0;
-//    writeStep = -1;
-//    writeCompressedCheckpoints = false;
-//};
 
 
 KernelConn "V1ToError" = {
@@ -650,128 +452,6 @@ CloneKernelConn "V1ToRecon" = {
 };
 
 
-// downsampling
-KernelConn "ReconToError2" = {
-    preLayerName = "Recon";
-    postLayerName = "Error2";
-    channelCode = 0;
-    nxp = 1;
-    nyp = 1;
-    nfp = 3;
-    numAxonalArbors = 1;
-    writeStep = -1;
-    writeCompressedCheckpoints = false;
-    initFromLastFlag = 0;
-    
-    weightInitType = "Gauss2DWeight";
-    aspect = 1;
-    sigma = 2000;
-    rMax  = 3;
-    rMin = 0;
-    numOrientationsPre = 1;
-    numOrientationsPost = 1;
-        
-    strength = 1.0;  
-    normalizeMethod = "normalizeSum";
-    minSumTolerated = 0;
-    normalizeArborsIndividually = 0;
-    normalize_cutoff = 0.0;
-    normalizeFromPostPerspective = true;
-    symmetrizeWeights = false;
-    
-    shrinkPatches = false;
-    //writeCompressedWeights = 0.0;
-    plasticityFlag = 0;
-    pvpatchAccumulateType = "convolve";
-    updateGSynFromPostPerspective = false;     
-     
-    delay = 0;
-     
-    preActivityIsNotRate = false;
-    selfFlag = false;
-    shmget_flag = false;
-};
-
-
-KernelConn "V2ToError2" = {
-    preLayerName = "V2";
-    postLayerName = "Error2";
-    channelCode = 1;
-    nxp = 12;
-    nyp = 12;
-    nfp = 3;
-    numAxonalArbors = 1;
-    initFromLastFlag = 0;
-    //
-    //weightInitType = "FileWeight";
-    //initWeightsFile = "/Users/garkenyon/workspace/HyPerHLCA2/output_animal1200000_color/Checkpoints/Checkpoint1200000/V1ToError_W.pvp";
-    weightInitType = "UniformRandomWeight";
-    wMinInit = -1.0;
-    wMaxInit = 1.0;
-    sparseFraction = .90;
-    //
-    strength = 0.57735;
-    normalizeMethod = "normalizeL2";
-    minL2NormTolerated = 0;
-    normalizeArborsIndividually = 0;
-    normalize_cutoff = 0.0;
-    normalizeFromPostPerspective = false;
-    symmetrizeWeights = false;
-    //
-    preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
-    keepKernelsSynchronized = true; 
-    combine_dW_with_W_flag = false; 
-    //
-    writeStep = 2000000;
-    writeCompressedWeights = false;
-    writeCompressedCheckpoints = false;
-    plasticityFlag = true;
-    weightUpdatePeriod = 200.0;
-    initialWeightUpdateTime = 199.0;
-    initialWriteTime = 0.0;
-    dWMax = 0.25; //0.02; 
-    selfFlag = false;
-    shmget_flag = false;
-    //
-    delay = 0;
-    //
-    pvpatchAccumulateType = "convolve";
-    updateGSynFromPostPerspective = false;     
-    shrinkPatches = false;
-};
-
-TransposeConn "Error2ToV2" = {
-    preLayerName = "Error2";
-    postLayerName = "V2";
-    channelCode = 0;
-    originalConnName = "V2ToError2";
-    selfFlag = false;
-    preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt	
-    writeStep = -1;
-    writeCompressedCheckpoints = false;
-    shmget_flag = false;
-    delay = 0;
-    pvpatchAccumulateType = "convolve";
-    updateGSynFromPostPerspective = false;     
-};
-
-
-CloneKernelConn "V2ToRecon2" = {
-   preLayerName = "V2";
-   postLayerName = "Recon2";
-   channelCode = 0;
-   writeStep = -1;
-   writeCompressedCheckpoints = false;
-   originalConnName = "V2ToError2";
-   selfFlag = false;
-   pvpatchAccumulateType = "convolve";
-   updateGSynFromPostPerspective = false;     
-   delay = 0;
-   preActivityIsNotRate = false;
-};
-
-
-
 // Generative connections
 
 IdentConn "V1ToError1_2" = {
@@ -802,7 +482,7 @@ KernelConn "V2ToError1_2" = {
     wMaxInit = 1.0;
     sparseFraction = .90;
     //
-    strength = 0.57735;
+    strength = 0.70711;
     normalizeMethod = "normalizeL2";
     minL2NormTolerated = 0;
     normalizeArborsIndividually = 0;
@@ -864,15 +544,6 @@ CloneKernelConn "V2ToV1Infra" = {
 };
 
 
-IdentConn "ReconInfraToError" = {
-    preLayerName = "ReconInfra";
-    postLayerName = "Error";
-    channelCode = 1;
-    delay = 0;
-    writeStep = -1;
-};
-
-
 CloneKernelConn "V1InfraToReconInfra" = {
     preLayerName = "V1Infra";
     postLayerName = "ReconInfra";
@@ -917,7 +588,7 @@ KernelConn "V2ToLabelError" = {
     wMaxInit = 1.0;
     sparseFraction = 0;
     // 0.86603 = sqrt(3/4); 0.70711 == sqrt(1/2); 0.57735 = sqrt(1/3)
-    strength = 0.57735;
+    strength = 0.70711;
     normalizeMethod = "normalizeL2";
     minL2NormTolerated = 0;
     normalizeArborsIndividually = 0;
