@@ -338,7 +338,7 @@ int KernelConn::allocateDataStructures() {
    if (plasticityFlag) {
       assert(!params->presentAndNotBeenRead(name, "initialWeightUpdateTime"));
       assert(!params->presentAndNotBeenRead(name, "weightUpdatePeriod"));
-      if (parent->getCheckpointReadFlag()==false) {
+      if (parent->getCheckpointReadFlag()==false && weightUpdateTime < parent->simulationTime()) {
          while(weightUpdateTime <= parent->simulationTime()) {weightUpdateTime += weightUpdatePeriod;}
          if (parent->columnId()==0) {
             fprintf(stderr, "Warning: initialWeightUpdateTime of %s \"%s\" less than simulation start time.  Adjusting weightUpdateTime to %f\n",
