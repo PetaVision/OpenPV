@@ -22,22 +22,22 @@ if ismac
   last_checkpoint_ndx = 2000000;
 elseif isunix
   workspace_path = "/home/gkenyon/workspace";
-  %%run_type = "noPulvinar"; %%
+  run_type = "noPulvinar"; %%
   %%run_type = "color_deep"; %%
-  run_type = "noTopDown"; %%
+  %%run_type = "noTopDown"; %%
   %%run_type = "lateral"; %% 
   %%run_type = "V1";
   if strcmp(run_type, "color_deep")
-    output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_28/output_2013_01_28_12x12x128_lambda_05X2_deep"; 
+    output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_26/output_2013_01_26_12x12x128_lambda_05X2_deep"; 
     %%output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_24/output_2013_01_24_how2catchSquirrel_12x12x128_lambda_05X4_deep";
     checkpoint_dir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_2013_01_31_12x12x128_lambda_05X2_deep"; %%output_dir; 
     checkpoint_parent = "/nh/compneuro/Data/vine/LCA";
     checkpoint_children = {"2013_01_31/output_2013_01_31_12x12x128_lambda_05X2_deep"; ...
 			   "2013_01_30/output_2013_01_30_12x12x128_lambda_05X2_deep"; ...
 			   "2013_01_29/output_2013_01_29_12x12x128_lambda_05X2_deep"; ... 
-			   "2013_01_28/output_2013_01_28_12x12x128_lambda_05X2_deep"};%%"; ...
-			   %%"2013_01_27/output_2013_01_27_12x12x128_lambda_05X2_deep"; ...
-			   %%"2013_01_26/output_2013_01_26_12x12x128_lambda_05X2_deep"; ...
+			   "2013_01_28/output_2013_01_28_12x12x128_lambda_05X2_deep"; ...
+			   "2013_01_27/output_2013_01_27_12x12x128_lambda_05X2_deep"; ...
+			   "2013_01_26/output_2013_01_26_12x12x128_lambda_05X2_deep"};%%""; ...
 			   %%"2013_01_25/output_2013_01_25_12x12x128_lambda_05X2_deep"; ...
 			   %%"2013_01_24/output_2013_01_24_12x12x128_lambda_05X2_deep"; ...
 			   %%"2013_02_01/output_2013_02_01_12x12x128_lambda_05X2_deep"};
@@ -63,13 +63,13 @@ elseif isunix
     checkpoint_parent = "/nh/compneuro/Data/vine/LCA";
     checkpoint_children = {"2013_01_31/output_2013_01_31_12x12x160_lambda_05X2_V1"};
   elseif strcmp(run_type, "noPulvinar")
-    output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_2013_01_31_12x12x128_lambda_05X2_noPulvinar"; 
+    output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_29/output_2013_01_29_12x12x128_lambda_05X2_noPulvinar"; 
     %%output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_24/output_2013_01_24_how2catchSquirrel_12x12x128_lambda_05X4_noPulvinar";
-    checkpoint_dir = output_dir;%%"/nh/compneuro/Data/vine/LCA/2013_01_31/output_2013_01_31_12x12x128_lambda_05X2_noPulvinar"; %% 
+    checkpoint_dir = output_dir;
     checkpoint_parent = "/nh/compneuro/Data/vine/LCA";
-    checkpoint_children = {"2013_01_31/output_2013_01_31_12x12x128_lambda_05X2_noPulvinar"}; %% ; ...
-			   %%"2013_01_30/output_2013_01_30_12x12x128_lambda_05X2_noPulvinar"; ...
-			   %%"2013_01_29/output_2013_01_29_12x12x128_lambda_05X2_noPulvinar"; ...
+    checkpoint_children = {"2013_01_31/output_2013_01_31_12x12x128_lambda_05X2_noPulvinar"; ...
+			   "2013_01_30/output_2013_01_30_12x12x128_lambda_05X2_noPulvinar"; ...
+			   "2013_01_29/output_2013_01_29_12x12x128_lambda_05X2_noPulvinar"}; %%; ...
 			   %%"2013_01_28/output_2013_01_28_12x12x128_lambda_05X2_noPulvinar"; ...
 			   %%"2013_01_27/output_2013_01_27_12x12x128_lambda_05X2_noPulvinar"; ...
 			   %%"2013_01_26/output_2013_01_26_12x12x128_lambda_05X2_noPulvinar"; ...
@@ -633,7 +633,7 @@ endif  %% plot_StatsProbe_vs_time
 
 
 
-plot_Sparse = true;
+plot_Sparse = false;
 if plot_Sparse
   if strcmp(run_type, "color_deep") || strcmp(run_type, "lateral") || strcmp(run_type, "noTopDown")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -727,6 +727,7 @@ if plot_Sparse
       Sparse_hist = Sparse_hist + Sparse_hist_frame;
     endfor %% i_frame
     Sparse_percent_active = Sparse_tot_active/n_Sparse;
+    keyboard;
     if ~load_flag
       Sparse_hist = Sparse_hist(1:nf_Sparse);
       Sparse_hist = Sparse_hist / (num_Sparse_frames * nx_Sparse * ny_Sparse); 
@@ -1112,9 +1113,6 @@ if plot_ReconError && plot_flag
     ReconError_hdr{i_ReconError} = readpvpheader(ReconError_fid);
     fclose(ReconError_fid);
     tot_ReconError_frames = ReconError_hdr{i_ReconError}.nbands;
-    if use_last_checkpoint_ndx
-      tot_ReconError_frames = min(tot_ReconError_frames, fix(last_checkpoint_ndx / layer_write_step));  %% use to specify maximum frame to display
-    endif	       
     num_ReconError = tot_ReconError_frames;
     progress_step = ceil(tot_ReconError_frames / 10);
     [ReconError_struct, ReconError_hdr_tmp] = ...
@@ -1131,9 +1129,15 @@ if plot_ReconError && plot_flag
 	warning(["file does not exist: ", ReconError_norm_file]);
 	continue;
       endif
-      progress_step = ceil(tot_ReconError_frames / 10);
+      ReconError_norm_fid = fopen(ReconError_norm_file);
+      ReconError_norm_hdr{i_ReconError} = readpvpheader(ReconError_norm_fid);
+      fclose(ReconError_norm_fid);
+      tot_ReconError_norm_frames = ReconError_norm_hdr{i_ReconError}.nbands;
+      num_ReconError_norm = tot_ReconError_norm_frames;
+      progress_step = ceil(tot_ReconError_norm_frames / 10);
       [ReconError_norm_struct, ReconError_norm_hdr_tmp] = ...
-	  readpvpfile(ReconError_norm_file, progress_step, tot_ReconError_frames, tot_ReconError_frames-num_ReconError+1, ...
+	  readpvpfile(ReconError_norm_file, progress_step, tot_ReconError_norm_frames, ...
+		      tot_ReconError_norm_frames-num_ReconError_norm+1, ...
 		      ReconError_skip(i_ReconError));
       num_ReconError_norm_frames = size(ReconError_norm_struct,1);
     else
@@ -1146,7 +1150,23 @@ if plot_ReconError && plot_flag
 	ReconError_times(i_frame) = squeeze(ReconError_struct{i_frame}.time);
 	ReconError_vals = squeeze(ReconError_struct{i_frame}.values);
 	if ~isempty(ReconError_norm_struct)
-	  ReconError_norm_vals = squeeze(ReconError_norm_struct{i_frame}.values);
+	  ReconError_norm_time = ReconError_norm_struct{i_frame}.time;
+	  ReconError_time_shift = 0;
+	  while ReconError_norm_time > ReconError_times(i_frame)
+	    ReconError_time_shift = ReconError_time_shift + 1;
+	    if (i_frame-ReconError_time_shift) < 1
+	      break;
+	    endif
+	    ReconError_norm_time = ReconError_norm_struct{i_frame-ReconError_time_shift}.time;
+	  endwhile
+	  while ReconError_norm_time < ReconError_times(i_frame)
+	    ReconError_time_shift = ReconError_time_shift - 1;
+	    if (i_frame-ReconError_time_shift) > num_ReconError_norm_frames
+	      break;
+	    endif
+	    ReconError_norm_time = ReconError_norm_struct{i_frame-ReconError_time_shift}.time;
+	  endwhile
+	  ReconError_norm_vals = squeeze(ReconError_norm_struct{i_frame-ReconError_time_shift}.values);
 	endif
 	ReconError_RMS(i_frame) = ...
 	    std(ReconError_vals(:) - ReconError_norm_vals(:)) / ...
@@ -1158,10 +1178,13 @@ if plot_ReconError && plot_flag
 	break;
       endif
     endfor %% i_frame
+    ReconError_RMS = ReconError_RMS(1:i_frame);
+    ReconError_times = ReconError_times(1:i_frame);
     if plot_flag
       ReconError_RMS_fig = figure;
       ReconError_RMS_hndl = plot(ReconError_times, ReconError_RMS); axis tight;
-      set(ReconError_RMS_fig, "name", ["RMS_", ReconError_list{i_ReconError,2}, "_", num2str(ReconError_times(num_ReconError_frames), "%08d")]);
+      set(ReconError_RMS_fig, "name", ...
+	  ["RMS_", ReconError_list{i_ReconError,2}, "_", num2str(ReconError_times(num_ReconError_frames), "%08d")]);
       saveas(ReconError_RMS_fig, ...
 	     [ReconError_dir, filesep, ...
 	      "RMS_", ReconError_list{i_ReconError,2}, "_", num2str(ReconError_times(num_ReconError_frames), "%08d")], "png");
@@ -1435,7 +1458,6 @@ if plot_weights
 	    ~isempty(labelWeights_time) && ...
 	    plot_flag && ...
 	    i_checkpoint == max_checkpoint
-
 	%% plot label weights as matrix of column vectors
 	[~, maxnum] = max(labelWeights_vals,[],1);
 	[maxnum,maxind] = sort(maxnum);
@@ -1462,8 +1484,8 @@ if plot_weights
 	  title(labeledWeights_str);
 	  saveas(labeledWeights_fig,  [weights_dir, filesep, labeledWeights_str, ".png"], "png");
 	endfor %% label
-
       endif  %% ~isempty(labelWeights_vals) && ~isempty(labelWeights_time)
+
     endfor %% i_checkpoint
   endfor %% i_weights
 endif  %% plot_weights
@@ -1472,7 +1494,7 @@ endif  %% plot_weights
 
 
 %%keyboard;
-plot_labelRecon = true;
+plot_labelRecon = false;
 if plot_labelRecon
   labels_list = {};
   labelRecon_list = {};
@@ -1558,8 +1580,7 @@ if plot_labelRecon
 endif  %% plot_weightLabels
 
 
-
-
+%%keyboard;
 plot_weights1_2 = true; %%(true && ~strcmp(run_type, "MNIST"));
 if plot_weights1_2
   weights1_2_list = {};
