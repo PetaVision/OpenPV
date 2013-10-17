@@ -14,11 +14,11 @@ endif
 if ismac
   workspace_path = "/Users/garkenyon/workspace";
   run_type = "CIFAR"
-  output_dir = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB/data_batch_all2"
+  output_dir = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB/data_batch_all3"
   checkpoint_dir = output_dir;
   checkpoint_parent = "/Users/garkenyon/workspace/HyPerHLCA";
   checkpoint_children = ...
-      {"CIFAR256_RGB/data_batch_all"; "CIFAR256_RGB/data_batch_all2"}; %% ...
+      {"CIFAR256_RGB/data_batch_all3"}; %% ...
   last_checkpoint_ndx = 2000000;
 elseif isunix
   workspace_path = "/home/gkenyon/workspace";
@@ -212,28 +212,6 @@ if plot_Recon
     %% list of (previous) layers to sum with current layer
     sum_list = cell(num_Recon_list,1);
     sum_list{5} = 2;
-  elseif strcmp(run_type, "KITTI")
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %% KITTI list
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %%  Recon_list = ...
-    %%      {["a1_"], ["LeftRetina"];
-    %%       ["a3_"], ["LeftGanglion"];
-    %%       ["a5_"], ["LeftRecon"];
-    %%       ["a7_"], ["RightRetina"];
-    %%       ["a9_"], ["RightGanglion"];
-    %%       ["a11_"], ["RightRecon"]};
-    %%%% list of layers to unwhiten
-    %%  num_Recon_list = size(Recon_list,1);
-    %%  unwhiten_list = zeros(num_Recon_list,1);
-    %%  unwhiten_list([2,3,5,6]) = 1;
-    %%%% list of layers to use as a normalization reference for unwhitening
-    %%  normalize_list = 1:num_Recon_list;
-    %%  normalize_list(3) = 2;
-    %%  normalize_list(6) = 5;
-    %%%% list of (previous) layers to sum with current layer
-    %%  sum_list = cell(num_Recon_list,1);
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   endif %% run_type
   num_Recon_frames = repmat(num_Recon_default, 1, num_Recon_list);
   
@@ -684,13 +662,6 @@ if plot_Sparse
     Sparse_list = ...
 	{["a4_"], ["V1"]; ...
 	 ["a7_"], ["V2"]};
-  elseif strcmp(run_type, "KITTI")
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %% KITTI list
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %%  Sparse_list = ...
-    %%      {["a12_"], ["BinocularV1"]};
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   endif %% run_type
   num_Sparse_list = size(Sparse_list,1);
   Sparse_hdr = cell(num_Sparse_list,1);
@@ -836,12 +807,6 @@ if plot_Sparse
 	     [Sparse_dir, filesep, ...
 	      "Hist_", Sparse_list{i_Sparse,2}, "_", num2str(Sparse_times(num_Sparse_frames), "%i")], "png");
       
-%%      Sparse_abs_change_fig = figure;
-%%      Sparse_abs_change_hndl = plot(Sparse_times, Sparse_abs_change); axis tight;
-%%      set(Sparse_abs_change_fig, "name", ["abs_change_", Sparse_list{i_Sparse,2}, "_", num2str(Sparse_times(num_Sparse_frames), "%i")]);
-%%      saveas(Sparse_abs_change_fig, ...
-%%	     [Sparse_dir, filesep, "abs_change_", Sparse_list{i_Sparse,2}, "_", num2str(Sparse_times(num_Sparse_frames), "%i")], "png");
-      
       Sparse_percent_change_fig = figure;
       Sparse_percent_change_hndl = plot(Sparse_times, Sparse_percent_change); axis tight;
       set(Sparse_percent_change_fig, ...
@@ -955,13 +920,6 @@ if plot_nonSparse && plot_flag
         {["a5_"], ["Recon"]; ...
 	 [], []
          [], []};
-  elseif strcmp(run_type, "KITTI")
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %% KITTI list
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %%  nonSparse_list = ...
-    %%      {["a4_"], ["LeftError"]; ...
-    %%       ["a10_"], ["RightError"]};
     %%%%%%%%%%%%%%%%%%%%%%%%e%%%%%%%%%%%%%%%%%%%%
   endif %% run_type
 
@@ -1347,7 +1305,8 @@ if plot_weights
       weights_hdr{i_weights} = readpvpheader(weights_fid);    
       fclose(weights_fid);
       weights_filedata = dir(weights_file);
-      weights_framesize = weights_hdr{i_weights}.recordsize*weights_hdr{i_weights}.numrecords+weights_hdr{i_weights}.headersize;
+      weights_framesize = ...
+	  weights_hdr{i_weights}.recordsize*weights_hdr{i_weights}.numrecords+weights_hdr{i_weights}.headersize;
       tot_weights_frames = weights_filedata(1).bytes/weights_framesize;
       num_weights = 1;
       progress_step = ceil(tot_weights_frames / 10);
@@ -1808,7 +1767,7 @@ if plot_weights1_2
 
       weight1_2_time = weights1_2_hdr{i_weights1_2}.time;
       if weight1_2_time > max_weight1_2_time
-	max_weight1_2_time = weight_time;
+	max_weight1_2_time = weight1_2_time;
 	max_checkpoint = i_checkpoint;
       endif
     endfor %% i_checkpoint
@@ -1829,16 +1788,14 @@ if plot_weights1_2
       weights1_2_framesize = ...
 	  weights1_2_hdr{i_weights1_2}.recordsize*weights1_2_hdr{i_weights1_2}.numrecords+weights1_2_hdr{i_weights1_2}.headersize;
       tot_weights1_2_frames = weights1_2_filedata(1).bytes/weights1_2_framesize;
-      if use_last_checkpoint_ndx
-	tot_weights1_2_frames = min(tot_weights1_2_frames, fix(last_checkpoint_ndx / weight_write_step));  %% use to specify maximum frame to display
-      endif
       weights1_2_nxp = weights1_2_hdr{i_weights1_2}.additional(1);
       weights1_2_nyp = weights1_2_hdr{i_weights1_2}.additional(2);
       weights1_2_nfp = weights1_2_hdr{i_weights1_2}.additional(3);
 
       %% get weight 1->0 file
       i_weights0_1 = i_weights1_2;
-      weights0_1_file = [checkpoint_dir, filesep, weights0_1_list{i_weights0_1,1}, weights0_1_list{i_weights0_1,2}, ".pvp"]
+      weights0_1_file = ...
+	  [checkpoint_dir, filesep, weights0_1_list{i_weights0_1,1}, weights0_1_list{i_weights0_1,2}, ".pvp"]
       if ~exist(weights0_1_file, "file")
 	warning(["file does not exist: ", weights0_1_file]);
 	continue;
@@ -1850,9 +1807,6 @@ if plot_weights1_2
       weights0_1_framesize = ...
 	  weights0_1_hdr{i_weights0_1}.recordsize*weights0_1_hdr{i_weights0_1}.numrecords+weights0_1_hdr{i_weights0_1}.headersize;
       tot_weights0_1_frames = weights0_1_filedata(1).bytes/weights0_1_framesize;
-      if use_last_checkpoint_ndx
-	tot_weights0_1_frames = min(tot_weights0_1_frames, fix(last_checkpoint_ndx / weight_write_step));  %% use to specify maximum frame to display
-      endif
       weights0_1_nxp = weights0_1_hdr{i_weights0_1}.additional(1);
       weights0_1_nyp = weights0_1_hdr{i_weights0_1}.additional(2);
       weights0_1_nfp = weights0_1_hdr{i_weights0_1}.additional(3);
@@ -1891,7 +1845,11 @@ if plot_weights1_2
       
       %% get rank order of presynaptic elements
       tmp_ndx = sparse_ndx(i_weights1_2);
-      tmp_rank = Sparse_hist_rank{tmp_ndx};
+      if plot_Sparse
+	tmp_rank = Sparse_hist_rank{tmp_ndx};
+      else
+	tmp_rank = [];
+      endif
       if plot_Sparse && ~isempty(tmp_rank)
 	pre_hist_rank = tmp_rank;
       else
@@ -2102,7 +2060,7 @@ if plot_weights1_2
 	endif %%  ~isempty(labelWeights_vals) 
 
       endif
-      imwrite(uint8(weight_patch0_2_array), [weights1_2_dir, filesep, weights1_2_name, ".png"], "png");
+      imwrite(uint8(weight_patch0_2_array), [weights1_2_movie_dir, filesep, weights1_2_name, ".png"], "png");
 
 
       %% make histogram of all weights
