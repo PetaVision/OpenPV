@@ -49,7 +49,7 @@ function runandecho() {
         result=FAILED
         fails="$fails $testname/${logfilebasename}_1.log"
     fi
-    echo "$testname $result (output in ${logfilebasename}_1.log"
+    echo "$testname $result (output in ${logfilebasename}_1.log)"
 }
 
 # Check for --nompi option.
