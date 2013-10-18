@@ -103,6 +103,7 @@ int Image::setParams(PVParams * params) {
 
    readOffsets(params);
    readWriteImagesFlag(params);
+   readWriteImagesExtension(params);
 
    readUseImageBCflag(params);
    readAutoResizeFlag(params);
