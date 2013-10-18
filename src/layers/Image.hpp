@@ -159,7 +159,7 @@ protected:
    const static int RANDOM_JUMP = 1;  // const denoting jitter is a random jump
 
    //Read pvp file frame number
-   double frameNumber;
+   int frameNumber;
 
    Random * randState;
 };
