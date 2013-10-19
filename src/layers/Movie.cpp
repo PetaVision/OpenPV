@@ -418,39 +418,44 @@ const char * Movie::getNextFileName()
    InterColComm * icComm = getParent()->icCommunicator();
    if( icComm->commRank()==0 ) {
       int c;
-      size_t len = PV_PATH_MAX;
+      size_t maxlen = PV_PATH_MAX;
 
       //TODO: add recovery procedure to handle case where access to file is temporarily unavailable
       // use stat to verify status of filepointer, keep running tally of current frame index so that file can be reopened and advanced to current frame
 
 
       // if at end of file (EOF), rewind
-      if ((c = fgetc(filenamestream->fp)) == EOF) {
-         PV_fseek(filenamestream, 0L, SEEK_SET);
-         fprintf(stderr, "Movie %s: EOF reached, rewinding file \"%s\"\n", name, filename);
-      }
-      else {
-         ungetc(c, filenamestream->fp);
-      }
+      bool lineisblank = true;
+      while(lineisblank) {
+         if ((c = fgetc(filenamestream->fp)) == EOF) {
+            PV_fseek(filenamestream, 0L, SEEK_SET);
+            fprintf(stderr, "Movie %s: EOF reached, rewinding file \"%s\"\n", name, filename);
+         }
+         else {
+            ungetc(c, filenamestream->fp);
+         }
 
-      char * path = fgets(inputfile, len, filenamestream->fp);
-      if (path) {
-         filenamestream->filepos += strlen(path)+1;
-      }
-
-      if (echoFramePathnameFlag){
-         fprintf(stderr, "%s", path);
-      }
-
-
-      if (path != NULL) {
-         path[PV_PATH_MAX-1] = '\0';
-         len = strlen(path);
-         if (len > 1) {
-            if (path[len-1] == '\n') {
-               path[len-1] = '\0';
+         char * path = fgets(inputfile, maxlen, filenamestream->fp);
+         if (path != NULL) {
+            filenamestream->filepos += strlen(path);
+            path[PV_PATH_MAX-1] = '\0';
+            size_t len = strlen(path);
+            if (len > 0) {
+               if (path[len-1] == '\n') {
+                  path[len-1] = '\0';
+                  len--;
+               }
+            }
+            for (int j=0; j<len; j++) {
+               if (!isblank(c)) {
+                  lineisblank = false;
+                  break;
+               }
             }
          }
+      }
+      if (echoFramePathnameFlag){
+         fprintf(stderr, "%s\n", inputfile);
       }
    }
 #ifdef PV_USE_MPI
