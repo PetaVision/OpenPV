@@ -15,16 +15,16 @@ HyPerCol "column" = {
     ny = 480;
     dt = 1.0;
     randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
-    numSteps = 8039600; //14005200; //46584000; //31956400; //30517200; //27290000; //24725600; // 21488000; //18674000; // 14005200; //
+    numSteps = 14005200; //8039600; //46584000; //31956400; //30517200; //27290000; //24725600; // 21488000; //18674000; // 
     progressStep = 1000;
-    outputPath = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_2013_01_31_12x12x128_lambda_05X2_lateral";
+    outputPath = "/nh/compneuro/Data/vine/LCA/2013_01_30/output_2013_01_30_12x12x128_lambda_05X2_lateral";
     filenamesContainLayerNames = true;
     filenamesContainConnectionNames = true;
     checkpointRead = true;
     checkpointReadDir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_2013_01_31_12x12x128_lambda_05X2_lateral/Checkpoints";
-    checkpointReadDirIndex = 5200000; //8039600; //30517200; // 27290000; // 24725600; //21488000; //18674000; //14005200; //
+    checkpointReadDirIndex = 8039600; //5900000; //30517200; // 27290000; // 24725600; //21488000; //18674000; //14005200; //
     checkpointWrite = true;
-    checkpointWriteDir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_2013_01_31_12x12x128_lambda_05X2_lateral/Checkpoints";
+    checkpointWriteDir = "/nh/compneuro/Data/vine/LCA/2013_01_30/output_2013_01_30_12x12x128_lambda_05X2_lateral/Checkpoints";
     checkpointWriteStepInterval = 100000;
     deleteOlderCheckpoints = false;
     //suppressLastOutput = false;
@@ -40,9 +40,10 @@ Movie "Image" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
-    imageListPath = "/nh/compneuro/Data/vine/list/2013_01_31/fileList_2013_01_31.txt";
+    imageListPath = "/nh/compneuro/Data/vine/list/2013_01_30/fileList_2013_01_30.txt";
     nf = 3;
-    writeStep = -1;
+    writeStep = 2000.0;
+    initialWriteTime = 1999.0;
     writeSparseActivity = false;
     displayPeriod = 200;
     start_frame_index = 1;
@@ -112,7 +113,6 @@ ANNTriggerUpdateOnNewImageLayer "Ganglion" = {
     nxScale = 1;
     nyScale = 1;
     nf = 3;
-    marginWidth = 0;
     writeStep = 2000.0;
     initialWriteTime = 1999.0;
     mirrorBCflag = 1;
@@ -177,10 +177,10 @@ HyPerLCALayer "V1" = {
     timeConstantTauMinimum = 10.0;
     slopeErrorStd = 0.01;
     // 
-    VThresh = 0.1; //  // 0.05 works for animalDB
+    VThresh = 0.05; //  // 0.05 works for animalDB
     VMax = infinity;
     VMin = 0;
-    VShift = 0.0;  // 0 -> hard threshold, 1 -> soft threshold
+    VShift = 0.025;  // 0 -> hard threshold, 1 -> soft threshold
     //
     phase = 5;
 };
@@ -216,8 +216,8 @@ ANNErrorLayer "Error2" = {
     nxScale = 0.25;
     nyScale = 0.25;
     nf = 128;
-    initialWriteTime = 1999.0;
-    writeStep = 2000;
+    initialWriteTime = 9998.0;
+    writeStep = 10000;
     mirrorBCflag = 0;
     valueBC = 0;
     writeSparseActivity = 0;
@@ -259,10 +259,10 @@ HyPerLCALayer "V2" = {
     timeConstantTauMinimum = 10.0;
     slopeErrorStd = 0.01;
     // 
-    VThresh = 0.1; //0.05;
+    VThresh = 0.05; //0.05;
     VMax = infinity;
     VMin = 0;
-    VShift = 0.0;  // 0 -> hard threshold, 1 -> soft threshold
+    VShift = 0.025;  // 0 -> hard threshold, 1 -> soft threshold
     //
     phase = 8;
 };
@@ -298,11 +298,11 @@ ANNTriggerUpdateOnNewImageLayer "V1Intra" = {
     nxScale = 0.25;
     nyScale = 0.25;
     nf = 128;
-    initialWriteTime = 1999.0;
-    writeStep = 2000.0;
+    initialWriteTime = 9998.0;
+    writeStep = 10000.0;
     mirrorBCflag = 0;
     valueBC = 0;
-    writeSparseActivity = 1;
+    writeSparseActivity = 0;
     //
     movieLayerName = "Image";
     InitVType = "ZeroV";
@@ -323,7 +323,7 @@ ANNErrorLayer "Error1_2" = {
     nxScale = 0.25;
     nyScale = 0.25;
     nf = 128;
-    initialWriteTime = 9999.0;
+    initialWriteTime = 9998.0;
     writeStep = 10000;
     mirrorBCflag = 0;
     valueBC = 0;
@@ -372,11 +372,11 @@ ANNTriggerUpdateOnNewImageLayer "V1Infra" = {
     nxScale = 0.25;
     nyScale = 0.25;
     nf = 128;
-    initialWriteTime = 1999.0;
-    writeStep = 2000.0;
+    initialWriteTime = 9998.0;
+    writeStep = 10000.0;
     mirrorBCflag = 0;
     valueBC = 0;
-    writeSparseActivity = 1;
+    writeSparseActivity = 0;
     //
     movieLayerName = "Image";
     InitVType = "ZeroV";
@@ -539,7 +539,6 @@ IdentConn "GanglionToError" = {
     channelCode = 0;
     delay = 0;
     writeStep = -1;
-    writeCompressedCheckpoints = false;
 };
 
 
@@ -629,7 +628,6 @@ IdentConn "V1ToError2" = {
 	channelCode = 0;
     delay = 0;
     writeStep = -1;
-    writeCompressedCheckpoints = false;
 };
 
 // for learning intra-column connections (top-down input)
@@ -736,7 +734,6 @@ IdentConn "V1ToError1_2" = {
     channelCode = 0;
     delay = 0;
     writeStep = -1;
-    writeCompressedWeights = false;
 };
 
 // long-range lateral
