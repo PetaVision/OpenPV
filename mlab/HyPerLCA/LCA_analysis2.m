@@ -633,7 +633,7 @@ endif  %% plot_StatsProbe_vs_time
 
 
 
-plot_Sparse = false;
+plot_Sparse = true;
 if plot_Sparse
   if strcmp(run_type, "color_deep") || strcmp(run_type, "lateral") || strcmp(run_type, "noTopDown")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -727,7 +727,6 @@ if plot_Sparse
       Sparse_hist = Sparse_hist + Sparse_hist_frame;
     endfor %% i_frame
     Sparse_percent_active = Sparse_tot_active/n_Sparse;
-    keyboard;
     if ~load_flag
       Sparse_hist = Sparse_hist(1:nf_Sparse);
       Sparse_hist = Sparse_hist / (num_Sparse_frames * nx_Sparse * ny_Sparse); 
@@ -918,9 +917,12 @@ if plot_nonSparse && plot_flag
     nonSparse_skip(2) = 1;
     nonSparse_skip(3) = 1;
     nonSparse_norm_list = ...
-        {["a5_"], ["Recon"]; ...
-	 [], []
-         [], []};
+        {["a0_"], ["Image"]; ...
+	 ["a1_"], ["Labels"]
+         ["a9_"], ["V1Infra"]};
+    nonSparse_norm_strength = ones(num_nonSparse_list,1);
+    nonSparse_norm_strength = ...
+	[1/sqrt(32*32); 1.0; 1.0];
     %%%%%%%%%%%%%%%%%%%%%%%%e%%%%%%%%%%%%%%%%%%%%
   endif %% run_type
 
@@ -947,7 +949,8 @@ if plot_nonSparse && plot_flag
     num_nonSparse = tot_nonSparse_frames;
     progress_step = ceil(tot_nonSparse_frames / 10);
     [nonSparse_struct, nonSparse_hdr_tmp] = ...
-	readpvpfile(nonSparse_file, progress_step, tot_nonSparse_frames, tot_nonSparse_frames-num_nonSparse+2, ...
+	readpvpfile(nonSparse_file, progress_step, ...
+		    tot_nonSparse_frames, tot_nonSparse_frames-num_nonSparse+2, ...
 		    nonSparse_skip(i_nonSparse));
     num_nonSparse_frames = size(nonSparse_struct,1);
     nonSparse_times = zeros(num_nonSparse_frames,1);
@@ -972,22 +975,51 @@ if plot_nonSparse && plot_flag
     endif
 
     for i_frame = 1 : 1 : num_nonSparse_frames
+
       if ~isempty(nonSparse_struct{i_frame})
 	nonSparse_times(i_frame) = squeeze(nonSparse_struct{i_frame}.time);
 	nonSparse_vals = squeeze(nonSparse_struct{i_frame}.values);
 	nonSparse_RMS(i_frame) = std(nonSparse_vals(:));
+
 	if ~isempty(nonSparse_norm_struct)
-	  nonSparse_norm_times(i_frame) = squeeze(nonSparse_norm_struct{i_frame}.time);
-	  nonSparse_norm_vals = squeeze(nonSparse_norm_struct{i_frame}.values);
-	  nonSparse_norm_RMS(i_frame) = std(nonSparse_norm_vals(:));
-	endif
-      else
+	  nonSparse_norm_time = nonSparse_norm_struct{i_frame}.time;
+	  nonSparse_time_shift = 0;
+	  while nonSparse_norm_time > nonSparse_times(i_frame)
+	    nonSparse_time_shift = nonSparse_time_shift + 1;
+	    if (i_frame-nonSparse_time_shift) < 1
+	      break;
+	    endif
+	    nonSparse_norm_time = nonSparse_norm_struct{i_frame-nonSparse_time_shift}.time;
+	  endwhile
+	  while nonSparse_norm_time < nonSparse_times(i_frame)
+	    nonSparse_time_shift = nonSparse_time_shift - 1;
+	    if (i_frame-nonSparse_time_shift) > num_nonSparse_norm_frames
+	      break;
+	    endif
+	    nonSparse_norm_time = nonSparse_norm_struct{i_frame-nonSparse_time_shift}.time;
+	  endwhile
+	  if (i_frame-nonSparse_time_shift) < 1 || (i_frame-nonSparse_time_shift) > num_nonSparse_norm_frames
+	    last_frame = i_frame - 1;
+	    num_nonSparse_frames = i_frame - 1;
+	    nonSparse_times = nonSparse_times(1:num_nonSparse_frames);
+	    nonSparse_RMS = nonSparse_RMS(1:num_nonSparse_frames);
+	    nonSparse_norm_RMS = nonSparse_norm_RMS(1:num_nonSparse_frames);
+	    break;
+	  else
+	    nonSparse_norm_vals = squeeze(nonSparse_norm_struct{i_frame-nonSparse_time_shift}.values);
+	    nonSparse_norm_RMS(i_frame) = std(nonSparse_norm_strength(i_nonSparse) * nonSparse_norm_vals(:));
+	  endif
+	endif %% ~isempty(nonSparse_norm_struct)
+
+      else %% ~isempty(nonSparse_struct{i_frame})
 	num_nonSparse_frames = i_frame - 1;
 	nonSparse_times = nonSparse_times(1:num_nonSparse_frames);
 	nonSparse_RMS = nonSparse_RMS(1:num_nonSparse_frames);
 	break;
-      endif
+      endif %% ~isempty(nonSparse_struct{i_frame})
+
     endfor %% i_frame
+
     if plot_flag
       nonSparse_RMS_fig = figure;
       nonSparse_RMS_hndl = plot(nonSparse_times, (nonSparse_RMS ./ (nonSparse_norm_RMS + (nonSparse_norm_RMS==0)))); 
@@ -1030,6 +1062,7 @@ if plot_ReconError && plot_flag
     ReconError_norm_list = ...
         {["a2_"], ["Ganglion"]; ...
          ["a2_"], ["Ganglion"]};
+    ReconError_norm_strength = ones(num_ReconError_list,1);
   elseif strcmp(run_type, "noPulvinar")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% noPulvinar
@@ -1044,6 +1077,7 @@ if plot_ReconError && plot_flag
     ReconError_norm_list = ...
         {["a2_"], ["Ganglion"]; ...
          ["a2_"], ["Ganglion"]};
+    ReconError_norm_strength = ones(num_ReconError_list,1);
   elseif strcmp(run_type, "V1")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% V1
@@ -1055,6 +1089,8 @@ if plot_ReconError && plot_flag
     ReconError_skip(1) = 1;
     ReconError_norm_list = ...
         {["a2_"], ["Ganglion"]};
+    ReconError_norm_strength = ones(num_ReconError_list,1);
+    ReconError_norm_strength = ones(num_ReconError_list,1);
   elseif strcmp(run_type, "lateral")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% lateral list
@@ -1078,7 +1114,7 @@ if plot_ReconError && plot_flag
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     ReconError_list = ...
 	{["a5_"], ["Recon"]; ...
-	 ["a11_"], ["ReconInfra"]};
+	 ["a10_"], ["ReconInfra"]};
     num_ReconError_list = size(ReconError_list,1);
     ReconError_skip = repmat(1, num_ReconError_list, 1);
     ReconError_skip(1) = 1;
@@ -1086,13 +1122,9 @@ if plot_ReconError && plot_flag
     ReconError_norm_list = ...
         {["a0_"], ["Image"]; ...
 	 ["a0_"], ["Image"]};
-  elseif strcmp(run_type, "KITTI")
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %% KITTI list
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %%  ReconError_list = ...
-    %%      {["a4_"], ["LeftError"]; ...
-    %%       ["a10_"], ["RightError"]};
+    ReconError_norm_strength = ones(num_ReconError_list,1);
+    ReconError_norm_strength = ...
+	[1/sqrt(32*32); 1/sqrt(32*32)];
     %%%%%%%%%%%%%%%%%%%%%%%%e%%%%%%%%%%%%%%%%%%%%
   endif %% run_type
 
@@ -1104,7 +1136,8 @@ if plot_ReconError && plot_flag
     warning(["mkdir(", ReconError_dir, ")", " msg = ", msg]);
   endif 
   for i_ReconError = 1 : num_ReconError_list
-    ReconError_file = [output_dir, filesep, ReconError_list{i_ReconError,1}, ReconError_list{i_ReconError,2}, ".pvp"]
+    ReconError_file = [output_dir, filesep, ...
+		       ReconError_list{i_ReconError,1}, ReconError_list{i_ReconError,2}, ".pvp"]
     if ~exist(ReconError_file, "file")
       warning(["file does not exist: ", ReconError_file]);
       continue;
@@ -1116,7 +1149,8 @@ if plot_ReconError && plot_flag
     num_ReconError = tot_ReconError_frames;
     progress_step = ceil(tot_ReconError_frames / 10);
     [ReconError_struct, ReconError_hdr_tmp] = ...
-	readpvpfile(ReconError_file, progress_step, tot_ReconError_frames, tot_ReconError_frames-num_ReconError+1, ...
+	readpvpfile(ReconError_file, progress_step, ...
+		    tot_ReconError_frames, tot_ReconError_frames-num_ReconError+1, ...
 		    ReconError_skip(i_ReconError));
     num_ReconError_frames = size(ReconError_struct,1);
     ReconError_times = zeros(num_ReconError_frames,1);
@@ -1124,7 +1158,9 @@ if plot_ReconError && plot_flag
 
     if ~isempty(ReconError_norm_list{i_ReconError,1}) && ~isempty(ReconError_norm_list{i_ReconError,2})
       ReconError_norm_file = ...
-	  [output_dir, filesep, ReconError_norm_list{i_ReconError,1}, ReconError_norm_list{i_ReconError,2}, ".pvp"]
+	  [output_dir, filesep, ...
+	   ReconError_norm_list{i_ReconError,1}, ...
+	   ReconError_norm_list{i_ReconError,2}, ".pvp"]
       if ~exist(ReconError_norm_file, "file")
 	warning(["file does not exist: ", ReconError_norm_file]);
 	continue;
@@ -1169,8 +1205,9 @@ if plot_ReconError && plot_flag
 	  ReconError_norm_vals = squeeze(ReconError_norm_struct{i_frame-ReconError_time_shift}.values);
 	endif
 	ReconError_RMS(i_frame) = ...
-	    std(ReconError_vals(:) - ReconError_norm_vals(:)) / ...
-	    (std(ReconError_norm_vals(:))+(std(ReconError_norm_vals(:))==0));
+	    std(ReconError_vals(:) - ReconError_norm_strength(i_ReconError) * ReconError_norm_vals(:)) / ...
+	    (std(ReconError_norm_strength(i_ReconError) * ReconError_norm_vals(:)) + ...
+	     (std(ReconError_norm_strength(i_ReconError) * ReconError_norm_vals(:))==0));
       else
 	num_ReconError_frames = i_frame - 1;
 	ReconError_times = ReconError_times(1:num_ReconError_frames);
@@ -1178,6 +1215,7 @@ if plot_ReconError && plot_flag
 	break;
       endif
     endfor %% i_frame
+
     ReconError_RMS = ReconError_RMS(1:i_frame);
     ReconError_times = ReconError_times(1:i_frame);
     if plot_flag
