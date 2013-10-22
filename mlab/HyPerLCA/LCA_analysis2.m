@@ -14,12 +14,12 @@ no_clobber = true;
 %% machine/run_type environment
 if ismac
   workspace_path = "/Users/garkenyon/workspace";
-  run_type = "CIFAR"
-  output_dir = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB/data_batch_all3"
+  run_type = "CIFAR_noTask"; %%"CIFAR" %%
+  output_dir = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB/data_batch_all4"
   checkpoint_dir = output_dir;
   checkpoint_parent = "/Users/garkenyon/workspace/HyPerHLCA";
   checkpoint_children = ...
-      {"CIFAR256_RGB/data_batch_all3"}; %% ...
+     {"CIFAR256_RGB/data_batch_all4"}; %% ...
   last_checkpoint_ndx = 2000000;
 elseif isunix
   workspace_path = "/home/gkenyon/workspace";
@@ -197,15 +197,22 @@ if plot_Recon
     %% list of (previous) layers to sum with current layer
     sum_list = cell(num_Recon_list,1);
     sum_list{5} = 4;
-  elseif strcmp(run_type, "MNIST") || strcmp(run_type, "CIFAR")
+  elseif strcmp(run_type, "MNIST") || strcmp(run_type, "CIFAR") || strcmp(run_type, "CIFAR_noTask") 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% MNIST/CIFAR list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     plot_DoG_kernel = false;
-    Recon_list = ...
-	{["a0_"], ["Image"];
-	 ["a5_"], ["Recon"];
-	 ["a10_"], ["ReconInfra"]};
+    if strcmp(run_type, "CIFAR_noTask") 
+      Recon_list = ...
+	  {["a0_"], ["Image"];
+	   ["a3_"], ["Recon"];
+	   ["a8_"], ["ReconInfra"]};
+    else
+      Recon_list = ...
+	  {["a0_"], ["Image"];
+	   ["a5_"], ["Recon"];
+	   ["a10_"], ["ReconInfra"]};
+    endif
     %% list of layers to unwhiten
     num_Recon_list = size(Recon_list,1);
     unwhiten_list = zeros(num_Recon_list,1);
@@ -485,7 +492,7 @@ if plot_StatsProbe_vs_time && plot_flag
 	 ["Error1_2"],["_Stats.txt"]; ...
 	 ["V1Infra"],["_Stats.txt"]; ...
 	 ["V1Intra"],["_Stats.txt"]};
-  elseif strcmp(run_type, "MNIST") || strcmp(run_type, "CIFAR")
+  elseif strcmp(run_type, "MNIST") || strcmp(run_type, "CIFAR") || strcmp(run_type, "CIFAR_noTask")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% MNIST/CIFAR list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -535,7 +542,7 @@ if plot_StatsProbe_vs_time && plot_flag
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     StatsProbe_sigma_flag([2,4,6,7]) = 0;
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  elseif strcmp(run_type, "MNIST") || strcmp(run_type, "CIFAR")
+  elseif strcmp(run_type, "MNIST") || strcmp(run_type, "CIFAR") || strcmp(run_type, "CIFAR_noTask")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% MNIST/CIFAR list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -657,7 +664,7 @@ if plot_Sparse
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     Sparse_list = ...
 	{["a4_"], ["V1"]};
-  elseif strcmp(run_type, "MNIST") || strcmp(run_type, "CIFAR")
+  elseif strcmp(run_type, "MNIST") || strcmp(run_type, "CIFAR") || strcmp(run_type, "CIFAR_noTask")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% MNIST/CIFAR list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -874,6 +881,7 @@ if plot_nonSparse && plot_flag
          ["a8_"], ["Recon2"]; ...
          ["a10_"], ["V1Infra"]};
     nonSparse_norm_strength = ones(num_nonSparse_list,1);
+    %%%%%%%%%%%%%%%%%%%%%%%%e%%%%%%%%%%%%%%%%%%%%
   elseif strcmp(run_type, "noPulvinar")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% noPulvinar
@@ -888,6 +896,7 @@ if plot_nonSparse && plot_flag
     nonSparse_norm_list = ...
         {["a2_"], ["Ganglion"]; ...
          ["a8_"], ["V1Infra"]};
+    %%%%%%%%%%%%%%%%%%%%%%%%e%%%%%%%%%%%%%%%%%%%%
   elseif strcmp(run_type, "V1")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% V1
@@ -914,6 +923,7 @@ if plot_nonSparse && plot_flag
         {["a2_"], ["Ganglion"]; ...
          ["a8_"], ["Recon2"]; ...
          ["a12_"], ["V1Infra"]};
+    %%%%%%%%%%%%%%%%%%%%%%%%e%%%%%%%%%%%%%%%%%%%%
   elseif strcmp(run_type, "MNIST") || strcmp(run_type, "CIFAR")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% MNIST/CIFAR list
@@ -934,6 +944,24 @@ if plot_nonSparse && plot_flag
     nonSparse_norm_strength = ones(num_nonSparse_list,1);
     nonSparse_norm_strength = ...
 	[1/sqrt(32*32); 1.0; 1.0];
+    %%%%%%%%%%%%%%%%%%%%%%%%e%%%%%%%%%%%%%%%%%%%%
+  elseif strcmp(run_type, "CIFAR_noTask")
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% MNIST_noTask list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    nonSparse_list = ...
+	{["a1_"], ["Error"]; ...
+	 ["a6_"], ["Error1_2"]};
+    num_nonSparse_list = size(nonSparse_list,1);
+    nonSparse_skip = repmat(1, num_nonSparse_list, 1);
+    nonSparse_skip(1) = 1;
+    nonSparse_skip(3) = 1;
+    nonSparse_norm_list = ...
+        {["a0_"], ["Image"]; ...
+         ["a7_"], ["V1Infra"]};
+    nonSparse_norm_strength = ones(num_nonSparse_list,1);
+    nonSparse_norm_strength = ...
+	[1/sqrt(32*32); 1.0];
     %%%%%%%%%%%%%%%%%%%%%%%%e%%%%%%%%%%%%%%%%%%%%
   endif %% run_type
 
@@ -1206,13 +1234,19 @@ if plot_ReconError && plot_flag
         {["a2_"], ["Ganglion"]; ...
 	 ["a2_"], ["Ganglion"]; ...
 	 ["a2_"], ["Ganglion"]};
-  elseif strcmp(run_type, "MNIST") || strcmp(run_type, "CIFAR")
+  elseif strcmp(run_type, "MNIST") || strcmp(run_type, "CIFAR") || strcmp(run_type, "CIFAR_noTask")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% MNIST/CIFAR list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    ReconError_list = ...
-	{["a5_"], ["Recon"]; ...
-	 ["a10_"], ["ReconInfra"]};
+    if strcmp(run_type, "CIFAR_noTask")
+      ReconError_list = ...
+	  {["a3_"], ["Recon"]; ...
+	   ["a8_"], ["ReconInfra"]};
+    else
+      ReconError_list = ...
+	  {["a5_"], ["Recon"]; ...
+	   ["a10_"], ["ReconInfra"]};
+    endif
     num_ReconError_list = size(ReconError_list,1);
     ReconError_skip = repmat(1, num_ReconError_list, 1);
     ReconError_skip(1) = 1;
@@ -1399,7 +1433,7 @@ if plot_weights
       checkpoints_list = getCheckpointList(checkpoint_parent, checkpoint_children);
     endif %% checkpoint_weights_movie
     num_checkpoints = size(checkpoints_list,1);
-  elseif strcmp(run_type, "MNIST") || strcmp(run_type, "CIFAR")
+  elseif strcmp(run_type, "MNIST") || strcmp(run_type, "CIFAR")  || strcmp(run_type, "CIFAR_noTask") 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% MNIST/CIFAR list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1635,7 +1669,7 @@ plot_labelRecon = false;
 if plot_labelRecon
   labels_list = {};
   labelRecon_list = {};
-  if strcmp(run_type, "MNIST") || strcmp(run_type, "CIFAR")
+  if strcmp(run_type, "MNIST") || strcmp(run_type, "CIFAR") 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% MNIST/CIFAR list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1829,7 +1863,7 @@ if plot_weights1_2
     sparse_ndx = [2,2];
     num_checkpoints = size(checkpoints_list,1);
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  elseif strcmp(run_type, "MNIST") || strcmp(run_type, "CIFAR")
+  elseif strcmp(run_type, "MNIST") || strcmp(run_type, "CIFAR") || strcmp(run_type, "CIFAR_noTask")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% MNIST/CIFAR
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1860,8 +1894,13 @@ if plot_weights1_2
           {["a0_"], ["Image"]};
 %%      image_list = ...
 %%          {["Image"], ["_A"]};
-      labelWeights_list = ...
-	  {["V2ToLabelError"], ["_W"]};
+      if strcmp(run_type, "CIFAR_noTask")
+	labelWeights_list = ...
+	    {[], []};
+      else
+	labelWeights_list = ...
+	    {["V2ToLabelError"], ["_W"]};
+      endif
     endif %% checkpoint_weights_movie
     %% list of indices for reading rank order of presynaptic neuron as function of activation frequency
     sparse_ndx = [2];
