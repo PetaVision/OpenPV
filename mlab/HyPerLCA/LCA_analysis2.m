@@ -49,15 +49,16 @@ elseif isunix
     %%output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_24/output_2013_01_24_how2catchSquirrel_12x12x128_lambda_05X4_noTopDown";
     checkpoint_dir = output_dir;%%"/nh/compneuro/Data/vine/LCA/2013_01_31/output_2013_01_31_12x12x128_lambda_05X2_noTopDown"; %% 
     checkpoint_parent = "/nh/compneuro/Data/vine/LCA";
-    checkpoint_children = {"2013_01_31/output_2013_01_31_12x12x128_lambda_05X2_noTopDown"; ...
-			   "2013_01_30/output_2013_01_30_12x12x128_lambda_05X2_noTopDown"; ...
-			   "2013_01_29/output_2013_01_29_12x12x128_lambda_05X2_noTopDown"}; %%"; ...
-			   %%"2013_01_28/output_2013_01_28_12x12x128_lambda_05X2_noTopDown"; ...
-			   %%"2013_01_27/output_2013_01_27_12x12x128_lambda_05X2_noTopDown"; ...
-			   %%"2013_01_26/output_2013_01_26_12x12x128_lambda_05X2_noTopDown"; ...
-			   %%"2013_01_25/output_2013_01_25_12x12x128_lambda_05X2_noTopDown"; ...
-			   %%"2013_01_24/output_2013_01_24_12x12x128_lambda_05X2_noTopDown"; ...
-			   %%"2013_02_01/output_2013_02_01_12x12x128_lambda_05X2_noTopDown"};
+    checkpoint_children = {"2013_01_29/output_2013_01_29_12x12x128_lambda_05X2_noTopDown"};
+%%    checkpoint_children = {"2013_01_31/output_2013_01_31_12x12x128_lambda_05X2_noTopDown"; ...
+%%			   "2013_01_30/output_2013_01_30_12x12x128_lambda_05X2_noTopDown"; ...
+%%			   "2013_01_29/output_2013_01_29_12x12x128_lambda_05X2_noTopDown"}; %%"; ...
+%%			   %%"2013_01_28/output_2013_01_28_12x12x128_lambda_05X2_noTopDown"; ...
+%%			   %%"2013_01_27/output_2013_01_27_12x12x128_lambda_05X2_noTopDown"; ...
+%%			   %%"2013_01_26/output_2013_01_26_12x12x128_lambda_05X2_noTopDown"; ...
+%%			   %%"2013_01_25/output_2013_01_25_12x12x128_lambda_05X2_noTopDown"; ...
+%%			   %%"2013_01_24/output_2013_01_24_12x12x128_lambda_05X2_noTopDown"; ...
+%%			   %%"2013_02_01/output_2013_02_01_12x12x128_lambda_05X2_noTopDown"};
     last_checkpoint_ndx = 2800000;
   elseif strcmp(run_type, "V1")
     output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_2013_01_31_12x12x160_lambda_05X2_V1"; 
@@ -80,10 +81,10 @@ elseif isunix
 			   %%"2013_02_01/output_2013_02_01_12x12x128_lambda_05X2_noPulvinar"};
     last_checkpoint_ndx = 2700000;
   elseif strcmp(run_type, "lateral")
-    output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_2013_01_31_12x12x128_lambda_05X2_lateral"; 
+    output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_30/output_2013_01_30_12x12x128_lambda_05X2_lateral"; 
     checkpoint_dir =  output_dir;
     checkpoint_parent = "/nh/compneuro/Data/vine/LCA";
-    checkpoint_children = {"2013_01_31/output_2013_01_31_12x12x128_lambda_05X2_lateral"};
+    checkpoint_children = {"2013_01_30/output_2013_01_30_12x12x128_lambda_05X2_lateral"};
   endif
 endif %% isunix
 addpath([workspace_path, filesep, "/PetaVision/mlab/util"]);
@@ -180,7 +181,8 @@ if plot_Recon
     %% lateral list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     Recon_list = ...
-	{["a2_"], ["Ganglion"];
+	{["a0_"], ["Image"];
+	 ["a2_"], ["Ganglion"];
 	 ["a5_"], ["Recon"];
 	 ["a8_"], ["Recon2"];
 	 ["a11_"], ["ReconInfra"];
@@ -196,7 +198,7 @@ if plot_Recon
     normalize_list(5) = 1;
     %% list of (previous) layers to sum with current layer
     sum_list = cell(num_Recon_list,1);
-    sum_list{5} = 4;
+    sum_list{6} = 4;
   elseif strcmp(run_type, "MNIST") || strcmp(run_type, "CIFAR") || strcmp(run_type, "CIFAR_noTask") 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% MNIST/CIFAR list
@@ -896,6 +898,7 @@ if plot_nonSparse && plot_flag
     nonSparse_norm_list = ...
         {["a2_"], ["Ganglion"]; ...
          ["a8_"], ["V1Infra"]};
+    nonSparse_norm_strength = ones(num_nonSparse_list,1);
     %%%%%%%%%%%%%%%%%%%%%%%%e%%%%%%%%%%%%%%%%%%%%
   elseif strcmp(run_type, "V1")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -923,6 +926,7 @@ if plot_nonSparse && plot_flag
         {["a2_"], ["Ganglion"]; ...
          ["a8_"], ["Recon2"]; ...
          ["a12_"], ["V1Infra"]};
+    nonSparse_norm_strength = ones(num_nonSparse_list,1);
     %%%%%%%%%%%%%%%%%%%%%%%%e%%%%%%%%%%%%%%%%%%%%
   elseif strcmp(run_type, "MNIST") || strcmp(run_type, "CIFAR")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1106,13 +1110,12 @@ if plot_ErrorVsSparse
     [second_Sparse_ndx, ~, second_Sparse_diff] = find(Sparse_times - second_nonSparse_time >= 0, 1, "first");
     if max(Sparse_times(:)) >= last_nonSparse_time
       [last_Sparse_ndx, ~, last_Sparse_diff] = find(Sparse_times - last_nonSparse_time >= 0, 1, "first");
-      last_nonSparse_ndx = num_nonSparse_frames;
+      %%last_nonSparse_ndx = num_nonSparse_frames;
     else
-      [last_nonSparse_ndx, ~, last_nonSparse_diff] = find(nonSparse_times - Sparse_times(end) < 0, 1, "last");
+      %%[last_nonSparse_ndx, ~, last_nonSparse_diff] = find(nonSparse_times - Sparse_times(end) < 0, 1, "last");
       last_Sparse_ndx = length(Sparse_times);
     endif
     skip_Sparse_ndx = max(second_Sparse_ndx - first_Sparse_ndx, 1);
-    Sparse_times_matched = Sparse_times(first_Sparse_ndx:skip_Sparse_ndx:last_Sparse_ndx);
     Sparse_vals = 1-Sparse_percent_active(first_Sparse_ndx:skip_Sparse_ndx:last_Sparse_ndx);
     num_Sparse_vals = length(Sparse_vals);
     num_Sparse_bins = 20;
@@ -1129,6 +1132,7 @@ if plot_ErrorVsSparse
     Sparse_bin_ndx(Sparse_bin_ndx > num_Sparse_bins) = num_Sparse_bins;
     mean_nonSparse_RMS = zeros(num_Sparse_bins, 1); 
     std_nonSparse_RMS = zeros(num_Sparse_bins, 1); 
+    last_nonSparse_ndx = length(Sparse_vals);
     for i_Sparse_bin = 1 : num_Sparse_bins
       if ~isempty(nonSparse_norm_RMS(Sparse_bin_ndx == i_Sparse_bin))
 	mean_nonSparse_RMS(i_Sparse_bin) = ...
@@ -1147,7 +1151,7 @@ if plot_ErrorVsSparse
 	       nonSparse_RMS(1:last_nonSparse_ndx) ./ ...
 	       (nonSparse_norm_RMS(1:last_nonSparse_ndx) + (nonSparse_norm_RMS(1:last_nonSparse_ndx) == 0)), ...
 	       "."); 
-      axis tight;
+      axis([0.95 1.0 0 1.0]);
       hold on
       eh = errorbar(Sparse_bins+skip_Sparse_val/2, mean_nonSparse_RMS, std_nonSparse_RMS);
       set(eh, "color", [0 0 0]);
@@ -1235,6 +1239,7 @@ if plot_ReconError && plot_flag
         {["a2_"], ["Ganglion"]; ...
 	 ["a2_"], ["Ganglion"]; ...
 	 ["a2_"], ["Ganglion"]};
+    ReconError_norm_strength = ones(num_ReconError_list,1);
   elseif strcmp(run_type, "MNIST") || strcmp(run_type, "CIFAR") || strcmp(run_type, "CIFAR_noTask")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% MNIST/CIFAR list
