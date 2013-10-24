@@ -183,7 +183,7 @@ int PV_fseek(PV_Stream * pvstream, long offset, int whence) {
       fprintf(stderr, "PV_fseek failure for \"%s\": MAX_FILESYSTEMCALL_TRIES = %d exceeded\n", pvstream->name, MAX_FILESYSTEMCALL_TRIES);
    }
    else if (fseekcounts>0) {
-      fprintf(stderr, "PV_fseek succeeded for \"%s\" on attempt %d", pvstream->name, fseekcounts+1);
+      fprintf(stderr, "PV_fseek succeeded for \"%s\" on attempt %d\n", pvstream->name, fseekcounts+1);
    }
    if (pvstream->mode[0] != 'a') {
       switch(whence) {
