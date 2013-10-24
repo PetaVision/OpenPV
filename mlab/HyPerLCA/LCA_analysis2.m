@@ -15,11 +15,11 @@ no_clobber = true;
 if ismac
   workspace_path = "/Users/garkenyon/workspace";
   run_type = "CIFAR_noTask"; %%"CIFAR" %%
-  output_dir = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB/data_batch_all4"
+  output_dir = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB_generative/data_batch_all"
   checkpoint_dir = output_dir;
   checkpoint_parent = "/Users/garkenyon/workspace/HyPerHLCA";
   checkpoint_children = ...
-     {"CIFAR256_RGB/data_batch_all4"}; %% ...
+     {"CIFAR256_RGB_generative/data_batch_all"}; %% ...
   last_checkpoint_ndx = 2000000;
 elseif isunix
   workspace_path = "/home/gkenyon/workspace";
@@ -669,8 +669,8 @@ if plot_Sparse
     %% MNIST/CIFAR list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     Sparse_list = ...
-	{["a4_"], ["V1"]; ...
-	 ["a7_"], ["V2"]};
+	{["a2_"], ["V1"]; ...
+	 ["a5_"], ["V2"]};
   endif %% run_type
   num_Sparse_list = size(Sparse_list,1);
   Sparse_hdr = cell(num_Sparse_list,1);
@@ -1139,6 +1139,7 @@ if plot_ErrorVsSparse
 		nonSparse_norm_RMS(Sparse_bin_ndx == i_Sparse_bin));
       endif
     endfor %% i_Sparse_bin
+    last_nonSparse_ndx = length(Sparse_vals);
     if plot_flag
       ErrorVsSparse_fig = figure;
       ErrorVsSparse_hndl = ...
@@ -1510,6 +1511,10 @@ if plot_weights
       i_arbor = 1;
       weight_vals = squeeze(weights_struct{i_frame}.values{i_arbor});
       weight_time = squeeze(weights_struct{i_frame}.time);
+      weights_name =  [weights_list{i_weights,1}, weights_list{i_weights,2}, "_", num2str(weight_time, "%08d")];
+      if no_clobber && exist([weights_movie_dir, filesep, weights_name, ".png"]) && i_checkpoint ~= max_checkpoint
+	continue;
+      endif
       tmp_ndx = sparse_ndx(i_weights);
       if plot_Sparse
 	tmp_rank = Sparse_hist_rank_array{tmp_ndx};
@@ -1565,7 +1570,6 @@ if plot_weights
       if num_weights_dims == 4
 	num_weights_colors = size(weight_vals,3);
       endif
-      weights_name =  [weights_list{i_weights,1}, weights_list{i_weights,2}, "_", num2str(weight_time, "%08d")];
       if plot_flag && i_checkpoint == max_checkpoint
 	weights_fig = figure;
 	set(weights_fig, "name", weights_name);
@@ -2001,7 +2005,7 @@ if plot_weights1_2
       weights1_2_name = ...
 	  [weights1_2_list{i_weights1_2,1}, weights1_2_list{i_weights1_2,2}, "_", num2str(weights1_2_time, "%08d")];
       if no_clobber && exist([weights1_2_movie_dir, filesep, weights1_2_name, ".png"]) && i_checkpoint ~= max_checkpoint
-	break;
+	continue;
       endif
       
       %% get weight 1->0 file
