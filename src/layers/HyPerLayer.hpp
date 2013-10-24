@@ -294,6 +294,9 @@ public:
    const PVLayerLoc * getLayerLoc()  { return &(clayer->loc); }
    bool isExtended()                 { return true; }
 
+   // Layers that don't update every timestep should manage lastUpdateTime and override getLastUpdateTime()
+   virtual double getLastUpdateTime();
+
    virtual int gatherToInteriorBuffer(unsigned char * buf);
 
    virtual int label(int k);
@@ -366,6 +369,7 @@ protected:
 
    HyPerLayer ** synchronizedMarginWidthLayers;
    int numSynchronizedMarginWidthLayers;
+   double lastUpdateTime; // The most recent time that the layer's activity is updated, used as a cue for publisher to exchange borders
 
 //   int feedforwardDelay;  // minimum delay required for a change in the input to potentially influence this layer
 //   int feedbackDelay;     // minimum delay required for a change in this layer to potentially influence itself via feedback loop

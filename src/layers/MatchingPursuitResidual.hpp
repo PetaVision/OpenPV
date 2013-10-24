@@ -22,6 +22,7 @@ public:
    virtual int recvSynapticInput(HyPerConn * conn, const PVLayerCube * activity, int arborID);
    virtual int recvSynapticInputFromPost(HyPerConn * conn, const PVLayerCube * activity, int arborID);
    virtual ~MatchingPursuitResidual();
+   virtual double getLastUpdateTime() {return lastUpdateTime;}
 
 protected:
    MatchingPursuitResidual();
@@ -31,7 +32,7 @@ protected:
    virtual void readRefreshPeriod(PVParams * params);
 
    inline bool updateGSynFlag(HyPerConn * conn);
-   inline bool getNewImageFlag();
+   // inline bool getNewImageFlag();
 
 private:
    int initialize_base();

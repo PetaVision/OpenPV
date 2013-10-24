@@ -84,7 +84,7 @@ int MatchingPursuitResidual::resetGSynBuffers(double timed, double dt) {
    int status = PV_SUCCESS;
    bool resetGSynFlag;
    if (syncedMovie) {
-      resetGSynFlag = syncedMovie->getNewImageFlag();
+      resetGSynFlag = syncedMovie->getLastUpdateTime()>lastUpdateTime;
    }
    else {
       if (refreshPeriod >= 0 && timed >= nextRefreshTime) {
@@ -97,6 +97,7 @@ int MatchingPursuitResidual::resetGSynBuffers(double timed, double dt) {
    }
    if (resetGSynFlag) {
       status = ANNLayer::resetGSynBuffers(timed, dt);
+      lastUpdateTime = parent->simulationTime();
       excNeedsUpdate = true;
    }
    return status;
@@ -129,9 +130,9 @@ bool MatchingPursuitResidual::updateGSynFlag(HyPerConn * conn) {
    return !gSynInited || conn->getChannel()!=CHANNEL_EXC || excNeedsUpdate;
 }
 
-bool MatchingPursuitResidual::getNewImageFlag() {
-   return syncedMovie && syncedMovie->getNewImageFlag();
-}
+// bool MatchingPursuitResidual::getNewImageFlag() {
+//    return syncedMovie && syncedMovie->getLastUpdateTime()>lastUpdateTime;
+// }
 
 MatchingPursuitResidual::~MatchingPursuitResidual() {
 }

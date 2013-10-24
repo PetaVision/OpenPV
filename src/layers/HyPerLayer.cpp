@@ -120,6 +120,7 @@ int HyPerLayer::initialize_base() {
    this->numMargin = 0;
    this->writeTime = 0;
    this->initialWriteTime = 0;
+   this->lastUpdateTime = 0.0;
    this->phase = 0;
 
    this->initInfoCommunicatedFlag = false;
@@ -177,42 +178,6 @@ int HyPerLayer::initialize(const char * name, HyPerCol * hc, int numChannels) {
 
    initClayer();
 
-   // Moved to allocateDataStructures
-   //   // If not mirroring, fill nonrestricted part of extended activity values
-   //   // Since we calloc'ed, we only need to do this if valueBC is nonzero
-   //   if (!useMirrorBCs() && getValueBC()!=0.0f) {
-   //      const PVLayerLoc * loc = getLayerLoc();
-   //      int nx = loc->nx;
-   //      int ny = loc->ny;
-   //      int nf = loc->nf;
-   //      int nb = loc->nb;
-   //      int idx = 0;
-   //      for (int b=0; b<getLayerLoc()->nb; b++) {
-   //         for(int k=0; k<(nx+2*nb)*nf; k++) {
-   //            clayer->activity->data[idx] = getValueBC();
-   //            idx++;
-   //         }
-   //      }
-   //      for (int y=0; y<ny; y++) {
-   //         for(int k=0; k<nb*nf; k++) {
-   //            clayer->activity->data[idx] = getValueBC();
-   //            idx++;
-   //         }
-   //         idx += nx;
-   //         for(int k=0; k<nb*nf; k++) {
-   //            clayer->activity->data[idx] = getValueBC();
-   //            idx++;
-   //         }
-   //      }
-   //      for (int b=0; b<getLayerLoc()->nb; b++) {
-   //         for(int k=0; k<(nx+2*nb)*nf; k++) {
-   //            clayer->activity->data[idx] = getValueBC();
-   //            idx++;
-   //         }
-   //      }
-   //      assert(idx==getNumExtended());
-   //   }
-
    // must set ioAppend before addLayer is called (addLayer causes activity file to be opened using layerid)
    ioAppend = parent->getCheckpointReadFlag() ? 1 : 0;
 
@@ -220,14 +185,7 @@ int HyPerLayer::initialize(const char * name, HyPerCol * hc, int numChannels) {
 
    status = openOutputStateFile();
 
-   // allocate storage for the input conductance arrays
-   //
-   // status = allocateBuffers(); // Moved to allocateDataStructures
-   // assert(status == PV_SUCCESS);
-
-   // // labels are not extended
-   // labels = (int *) calloc(getNumNeurons(), sizeof(int));
-   // assert(labels != NULL);
+   lastUpdateTime = parent->simulationTime();
 
 #ifdef PV_USE_OPENCL
    initUseGPUFlag();
@@ -953,6 +911,21 @@ int HyPerLayer::requireChannel(int channelNeeded, int * numChannelsResult) {
       fprintf(stderr, "Layer \"%s\": Channel %d does not exist, last allowable channel index is %d.\n", name, channelNeeded, numChannels-1);
    }
    return status;
+}
+
+// getLastUpdateTime() method for base class.
+// Default behavior is to update every timestep.  For layers that update less frequently, they should
+// save parent->simulationTime() to lastUpdateTime whenever they do update, and override getLastUpdateTime
+// to return lastUpdateTime without setting it to parent->simulationTime().
+//
+// Publisher calls getLastUpdateTime and compares it to simulationTime() before doing border exchanges over MPI, so managing
+// lastUpdateTime can save a lot of MPI traffic.
+//
+// One wrinkle is that all layers call updateState before any layers call publish, so lastUpdateTime could be one timestep behind
+// if you depend on getLastUpdateTime to set lastUpdateTime.  If this is an issue, lastUpdateTime should be set in updateState.
+double HyPerLayer::getLastUpdateTime() {
+   lastUpdateTime=parent->simulationTime();
+   return lastUpdateTime;
 }
 
 /**
@@ -1717,6 +1690,7 @@ int HyPerLayer::checkpointRead(const char * cpDir, double * timed) {
       fprintf(stderr, "Warning: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, filetime, *timed);
    }
 
+   parent->readScalarFromFile(cpDir, getName(), "lastUpdateTime", &lastUpdateTime, lastUpdateTime);
    parent->readScalarFromFile(cpDir, getName(), "nextWrite", &writeTime, writeTime);
 
    if (ioAppend) {
@@ -1938,6 +1912,7 @@ int HyPerLayer::checkpointWrite(const char * cpDir) {
    assert(chars_needed < PV_PATH_MAX);
    writeDataStoreToFile(filename, icComm, timed);
 
+   parent->writeScalarToFile(cpDir, getName(), "lastUpdateTime", lastUpdateTime);
    parent->writeScalarToFile(cpDir, getName(), "nextWrite", writeTime);
 
    if (parent->columnId()==0) {

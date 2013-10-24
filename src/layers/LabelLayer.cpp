@@ -160,7 +160,7 @@ int LabelLayer::updateState(double time, double dt){
    update_timer->start();
 
    int status = PV_SUCCESS;
-   bool update = movie->getNewImageFlag();
+   bool update = (movie->getLastUpdateTime()>lastUpdateTime);
 
    if (update){
 
@@ -191,6 +191,7 @@ int LabelLayer::updateState(double time, double dt){
 	   }
          }
       }
+      lastUpdateTime = parent->simulationTime();
 
    }
 

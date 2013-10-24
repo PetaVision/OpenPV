@@ -19,6 +19,7 @@ public:
 	ANNTriggerUpdateOnNewImageLayer(const char * name, HyPerCol * hc, const char * movieLayerName);
 	virtual int recvAllSynapticInput();
 	virtual ~ANNTriggerUpdateOnNewImageLayer();
+	virtual double getLastUpdateTime() {return lastUpdateTime;}
 protected:
    ANNTriggerUpdateOnNewImageLayer();
    int initialize(const char * name, HyPerCol * hc, int numChannels, const char * movieLayerName);

@@ -190,7 +190,9 @@ int Publisher::publish(HyPerLayer* pub,
    //
    memcpy(recvBuf, sendBuf, dataSize);
 
-   exchangeBorders(neighbors, numNeighbors, &cube->loc, 0);
+   if (pub->getLastUpdateTime() >= pub->getParent()->simulationTime()) {
+      exchangeBorders(neighbors, numNeighbors, &cube->loc, 0);
+   }
 
    return PV_SUCCESS;
 }

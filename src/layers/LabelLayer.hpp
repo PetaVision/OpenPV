@@ -42,6 +42,7 @@ public:
    virtual int updateState(double time, double dt);
    virtual int outputState(double time, bool last);
    virtual ~LabelLayer();
+   virtual double getLastUpdateTime() { return lastUpdateTime;}
 
 private:
    int initialize_base();

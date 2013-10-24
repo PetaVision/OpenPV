@@ -51,10 +51,10 @@ public:
 
 private:
 
-   pvdata_t * recvBuffer(int neighborId)
-         {return (pvdata_t *) store->buffer(neighborId);}
-   pvdata_t * recvBuffer(int neighborId, int delay)
-         {return (pvdata_t *) store->buffer(neighborId, delay);}
+   pvdata_t * recvBuffer(int bufferId)
+         {return (pvdata_t *) store->buffer(bufferId);}
+   pvdata_t * recvBuffer(int bufferId, int delay)
+         {return (pvdata_t *) store->buffer(bufferId, delay);}
 
    int pubId;
    int numSubscribers;

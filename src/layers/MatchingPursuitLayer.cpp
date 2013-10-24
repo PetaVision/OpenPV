@@ -236,8 +236,9 @@ bool MatchingPursuitLayer::inWindowGlobalRes(int neuronIdxRes, const PVLayerLoc 
 int MatchingPursuitLayer::updateState(double timed, double dt) {
    update_timer->start();
    PVLayerLoc loc = *getLayerLoc();
-   if (syncedMovie && syncedMovie->getNewImageFlag()) {
+   if (syncedMovie && syncedMovie->getLastUpdateTime() > lastUpdateTime) {
       memset(getV(),0,(size_t) getNumNeurons()*sizeof(pvdata_t));
+      lastUpdateTime = parent->simulationTime();
    }
    if (getCLayer()->numActive) {
       int kLocal = localIndexFromGlobal(getCLayer()->activeIndices[0], loc);

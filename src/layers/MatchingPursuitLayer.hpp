@@ -28,6 +28,7 @@ public:
    virtual int outputState(double timed, bool last=false);
 
    pvdata_t getActivationThreshold() {return activationThreshold;}
+   virtual double getLastUpdateTime() {return lastUpdateTime;}
 
 protected:
    MatchingPursuitLayer();

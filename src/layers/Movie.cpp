@@ -42,7 +42,7 @@ int Movie::initialize_base() {
    fileOfFileNames = NULL;
    frameNumber = 0;
    numFrames = 0;
-   newImageFlag = false;
+   // newImageFlag = false;
    return PV_SUCCESS;
 }
 
@@ -228,7 +228,7 @@ int Movie::allocateDataStructures() {
    // exchange border information
    exchange();
 
-   newImageFlag = true;
+   // newImageFlag = true;
    return status;
 }
 
@@ -325,11 +325,12 @@ bool Movie::updateImage(double time, double dt)
             fprintf(stderr, "Movie %s: Error reading file \"%s\"\n", name, filename);
             abort();
          }
-         newImageFlag = true;
+         // newImageFlag = true;
+         lastUpdateTime = parent->simulationTime();
       }
-      else{
-         if (time>0.0) newImageFlag = false;
-      }
+      // else{
+      //    if (time>0.0) newImageFlag = false;
+      // }
    } // randomMovie
 
    // exchange border information
@@ -464,9 +465,9 @@ const char * Movie::getNextFileName()
    return inputfile;
 }
 
-bool Movie::getNewImageFlag(){
-   return newImageFlag;
-}
+// bool Movie::getNewImageFlag(){
+//    return newImageFlag;
+// }
 
 const char * Movie::getCurrentImage(){
    return inputfile;
