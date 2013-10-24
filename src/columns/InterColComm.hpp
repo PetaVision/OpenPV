@@ -41,7 +41,7 @@ public:
    int deliver(HyPerCol * hc, int numNeighbors, int numBorders);
 #endif // OBSOLETE
    int exchangeBorders(int neighbors[], int numNeighbors, const PVLayerLoc * loc, int delay=0);
-   int wait(int numRemote);
+   int wait();
 
    static int borderStoreIndex(int i, int numNeighbors)  {return i+numNeighbors;}
 
@@ -66,6 +66,7 @@ private:
 
    Communicator * comm;
 
+   int            numRequests;
    MPI_Request    requests[NUM_NEIGHBORHOOD-1];
    MPI_Datatype * neighborDatatypes;
 };

@@ -107,8 +107,7 @@ int InterColComm::exchangeBorders(int pubId, const PVLayerLoc * loc, int delay/*
  */
 int InterColComm::wait(int pubId)
 {
-   const int numRemote = numNeighbors - 1;  // numNeighbors includes LOCAL
-   return publishers[pubId]->wait(numRemote);
+   return publishers[pubId]->wait();
 }
 
 #ifdef OBSOLETE // Marked obsolete July 25, 2013.  recvSynapticInput is now called by recvAllSynapticInput, called by HyPerCol, so deliver andtriggerReceive aren't needed.
@@ -160,6 +159,7 @@ Publisher::Publisher(int pubId, HyPerCol * hc, int numItems, PVLayerLoc loc, int
    for (int i = 0; i < subscriberArraySize; i++) {
       this->connection[i] = NULL;
    }
+   numRequests = 0;
 }
 
 Publisher::~Publisher()
@@ -206,7 +206,7 @@ int Publisher::exchangeBorders(int neighbors[], int numNeighbors, const PVLayerL
    MPI_Comm mpiComm = comm->communicator();
 
    // don't send interior
-   int nreq = 0;
+   numRequests = 0;
    for (int n = 1; n < NUM_NEIGHBORHOOD; n++) {
       if (neighbors[n] == icRank) continue;  // don't send interior to self
       pvdata_t * recvBuf = recvBuffer(LOCAL, delay) + comm->recvOffset(n, loc);
@@ -226,12 +226,12 @@ int Publisher::exchangeBorders(int neighbors[], int numNeighbors, const PVLayerL
       fflush(stdout);
 #endif //DEBUG_OUTPUT
       MPI_Irecv(recvBuf, 1, neighborDatatypes[n], neighbors[n], comm->getTag(n), mpiComm,
-                &requests[nreq++]);
+                &requests[numRequests++]);
       int status = MPI_Send( sendBuf, 1, neighborDatatypes[n], neighbors[n], comm->getTag(n), mpiComm);
       assert(status==0);
 
    }
-   assert(nreq == comm->numberOfNeighbors() - 1);
+   assert(numRequests == comm->numberOfNeighbors() - 1);
 #endif // PV_USE_MPI
 
    return status;
@@ -240,18 +240,17 @@ int Publisher::exchangeBorders(int neighbors[], int numNeighbors, const PVLayerL
 /**
  * wait until all outstanding published messages have arrived
  */
-int Publisher::wait(int numRemote)
+int Publisher::wait()
 {
-   //
-   // Everyone publishes border region to neighbors even if no subscribers.
-   // This means that everyone should wait as well.
-   //
 #ifdef PV_USE_MPI
 # ifdef DEBUG_OUTPUT
    fprintf(stderr, "[%2d]: waiting for data, num_requests==%d\n", comm->commRank(), numRemote); fflush(stdout);
 # endif // DEBUG_OUTPUT
 
-   MPI_Waitall(numRemote, requests, MPI_STATUSES_IGNORE);
+   if (numRequests != 0) {
+      MPI_Waitall(numRequests, requests, MPI_STATUSES_IGNORE);
+      numRequests = 0;
+   }
 #endif // PV_USE_MPI
 
    return 0;
