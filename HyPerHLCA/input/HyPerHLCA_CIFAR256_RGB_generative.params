@@ -17,14 +17,14 @@ HyPerCol "column" = {
     randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
     numSteps = 20000000;  //10,000 images * displayPeriod  
     progressStep = 1000;
-    outputPath = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB/data_batch_all5";
+    outputPath = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB_generative/data_batch_all";
     filenamesContainLayerNames = true;
     filenamesContainConnectionNames = true;
     checkpointRead = false;
-    checkpointReadDir = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB/data_batch_all5/Checkpoints";
+    checkpointReadDir = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB_generative/data_batch_all/Checkpoints";
     checkpointReadDirIndex = 20000000; 
     checkpointWrite = true;
-    checkpointWriteDir = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB/data_batch_all5/Checkpoints";
+    checkpointWriteDir = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB_generative/data_batch_all/Checkpoints";
     checkpointWriteStepInterval = 100000;
     deleteOlderCheckpoints = false;
     //suppressLastOutput = false;
@@ -139,11 +139,11 @@ HyPerLCALayer "V1" = {
     valueBC = 0;
     writeSparseActivity = 1;
     //
-    //InitVType = "UniformRandomV";
-    //minV = -1.0;
-    //maxV = .15; //0.05 above VThresh
-    InitVType = "InitVFromFile";
-    Vfilename = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB/data_batch_all4/Checkpoints/Checkpoint20000000/V1_V.pvp";
+    InitVType = "UniformRandomV";
+    minV = -1.0;
+    maxV = .05; //0.05 above VThresh
+    //InitVType = "InitVFromFile";
+    //Vfilename = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB/data_batch_all3/Checkpoints/Checkpoint10800000/V1_V.pvp";
     // 
     timeConstantTau = 200.0;
     timeConstantTauMinimum = 10.0;
@@ -194,7 +194,6 @@ ANNTriggerUpdateOnNewImageLayer "Recon" = {
 //    valueBC = 0;
 //    writeSparseActivity = 0;
 //    //
-//
 //    InitVType = "ZeroV";
 //    //InitVType = "InitVFromFile";
 //    //Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_31/output/Checkpoints/Checkpoint6000000/Error_V.pvp";
@@ -223,11 +222,11 @@ HyPerLCALayer "V2" = {
     valueBC = 0;
     writeSparseActivity = 1;
     //
-    //InitVType = "UniformRandomV";
-    //minV = -1.0;
-    //maxV = .15; //0.05 above VThresh
-    InitVType = "InitVFromFile";
-    Vfilename = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB/data_batch_all4/Checkpoints/Checkpoint20000000/V2_V.pvp";
+    InitVType = "UniformRandomV";
+    minV = -1.0;
+    maxV = .05; //0.05 above VThresh
+    //InitVType = "InitVFromFile";
+    //Vfilename = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB/data_batch_all3/Checkpoints/Checkpoint10800000/V2_V.pvp";
     // 
     timeConstantTau = 200.0;
     timeConstantTauMinimum = 10.0;
@@ -385,14 +384,14 @@ KernelConn "V1ToError" = {
     numAxonalArbors = 1;
     initFromLastFlag = 0;
     //
-    weightInitType = "FileWeight";
-    initWeightsFile = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB/data_batch_all4/Checkpoints/Checkpoint20000000/V1ToError_W.pvp";
-    useListOfArborFiles = false;
-    combineWeightFiles = false;
-    //weightInitType = "UniformRandomWeight";
-    //wMinInit = -1.0;
-    //wMaxInit = 1.0;
-    //sparseFraction = .90;
+    //weightInitType = "FileWeight";
+    //initWeightsFile = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB/data_batch_all3/Checkpoints/Checkpoint10800000/V1ToError_W.pvp";
+    //useListOfArborFiles = false;
+    //combineWeightFiles = false;
+    weightInitType = "UniformRandomWeight";
+    wMinInit = -1.0;
+    wMaxInit = 1.0;
+    sparseFraction = .90;
     //
     strength = 1.0;  
     normalizeMethod = "normalizeL2";
@@ -477,14 +476,14 @@ KernelConn "V2ToError1_2" = {
     numAxonalArbors = 1;
     initFromLastFlag = 0;
     //
-    weightInitType = "FileWeight";
-    initWeightsFile = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB/data_batch_all4/Checkpoints/Checkpoint20000000/V2ToError1_2_W.pvp";
-    useListOfArborFiles = false;
-    combineWeightFiles = false;
-    //weightInitType = "UniformRandomWeight";
-    //wMinInit = -1.0;
-    //wMaxInit = 1.0;
-    //sparseFraction = .90;
+    //weightInitType = "FileWeight";
+    //initWeightsFile = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB/data_batch_all2/Checkpoints/Checkpoint20000000/V2ToError1_2_W.pvp";
+    //useListOfArborFiles = false;
+    //combineWeightFiles = false;
+    weightInitType = "UniformRandomWeight";
+    wMinInit = -1.0;
+    wMaxInit = 1.0;
+    sparseFraction = .90;
     //
     strength = 1.0; //0.70711;
     normalizeMethod = "normalizeL2";
@@ -562,6 +561,39 @@ CloneKernelConn "V1InfraToReconInfra" = {
     delay = 0;
     preActivityIsNotRate = false;
 };
+
+
+KernelConn "Error1_2ToV1" = {
+    preLayerName = "Error1_2";
+    postLayerName = "V1";
+    channelCode = 0;
+    nxp = 1; 
+    nyp = 1; 
+    nfp = -1;
+    numAxonalArbors = 1;
+    initFromLastFlag = 0;  // 1;  // restart
+    writeStep = -1;
+    writeCompressedCheckpoints = false;
+    
+    weightInitType = "OneToOneWeights"; //"UniformWeight";
+    weightInit = -1;  // 1/sqrt(32*32);
+    normalizeMethod = "none";
+    
+    shrinkPatches = false;
+    //writeCompressedWeights = 0.0;
+    plasticityFlag = 0;
+    pvpatchAccumulateType = "convolve";
+    updateGSynFromPostPerspective = false;     
+     
+    delay = 0;
+     
+    preActivityIsNotRate = false;
+    selfFlag = false;
+    shmget_flag = false;
+};
+
+
+
 
 //IdentConn "Error1_2ToV1" = {
 //    preLayerName = "Error1_2";

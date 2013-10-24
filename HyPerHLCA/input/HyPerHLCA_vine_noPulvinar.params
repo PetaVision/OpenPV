@@ -202,7 +202,7 @@ ANNTriggerUpdateOnNewImageLayer "Recon" = {
     VMin = -infinity; 
     VShift = 0;
     // 
-    phase = 6; 
+    phase = 4; 
 };
 
 
@@ -327,7 +327,7 @@ ANNTriggerUpdateOnNewImageLayer "V1Infra" = {
     VMin = 0.0; // use V1's VMin
     VShift = 0;
     // 
-    phase = 9; 
+    phase = 2; 
 };
 
 
@@ -351,7 +351,7 @@ ANNTriggerUpdateOnNewImageLayer "ReconInfra" = {
     VMin = -infinity; 
     VShift = 0;
     // 
-    phase = 10; 
+    phase = 3; 
 };
 
 
