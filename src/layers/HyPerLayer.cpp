@@ -1690,7 +1690,7 @@ int HyPerLayer::checkpointRead(const char * cpDir, double * timed) {
       fprintf(stderr, "Warning: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, filetime, *timed);
    }
 
-   parent->readScalarFromFile(cpDir, getName(), "lastUpdateTime", &lastUpdateTime, lastUpdateTime);
+   parent->readScalarFromFile(cpDir, getName(), "lastUpdateTime", &lastUpdateTime, parent->simulationTime()-parent->getDeltaTime());
    parent->readScalarFromFile(cpDir, getName(), "nextWrite", &writeTime, writeTime);
 
    if (ioAppend) {
