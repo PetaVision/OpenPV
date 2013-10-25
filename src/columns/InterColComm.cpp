@@ -206,7 +206,7 @@ int Publisher::exchangeBorders(int neighbors[], int numNeighbors, const PVLayerL
    MPI_Comm mpiComm = comm->communicator();
 
    // don't send interior
-   numRequests = 0;
+   assert(numRequests == 0);
    for (int n = 1; n < NUM_NEIGHBORHOOD; n++) {
       if (neighbors[n] == icRank) continue;  // don't send interior to self
       pvdata_t * recvBuf = recvBuffer(LOCAL, delay) + comm->recvOffset(n, loc);
