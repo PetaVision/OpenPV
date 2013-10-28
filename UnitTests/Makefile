@@ -1,6 +1,8 @@
-SRCDIR = ../src
 BUILDDIR = build
-PVDIR = ../../PetaVision
+
+ifeq ($(origin PVDIR), undefined)
+   PVDIR = ../../PetaVision
+endif
 LIBPV = $(PVDIR)/lib/libpv.a
 INCPV = $(PVDIR)/src
 
