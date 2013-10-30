@@ -1,4 +1,4 @@
-// // HyPerHLCA.params
+// // Hyperhlca.params
 //
 // created by peteschultz: Sept 27, 2012, modified garkenyon, 1/20/13
 //
@@ -15,16 +15,16 @@ HyPerCol "column" = {
     ny = 480;
     dt = 1.0;
     randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
-    numSteps = 18674000; // 8039600; //46584000; //31956400; //30517200; //27290000; //24725600; // 21488000; // 14005200; //
+    numSteps = 21488000; // 18674000; // 8039600; //46584000; //31956400; //30517200; //27290000; //24725600; // 14005200; //
     progressStep = 1000;
-    outputPath = "/nh/compneuro/Data/vine/LCA/2013_01_29/output_2013_01_29_12x12x128_lambda_05X2_noTopDown";
+    outputPath = "/nh/compneuro/Data/vine/LCA/2013_01_28/output_2013_01_28_12x12x128_lambda_05X2_noTopDown";
     filenamesContainLayerNames = true;
     filenamesContainConnectionNames = true;
     checkpointRead = true;
-    checkpointReadDir = "/nh/compneuro/Data/vine/LCA/2013_01_30/output_2013_01_30_12x12x128_lambda_05X2_noTopDown/Checkpoints";
-    checkpointReadDirIndex = 14005200; //3800000; //8039600;// 
+    checkpointReadDir = "/nh/compneuro/Data/vine/LCA/2013_01_29/output_2013_01_29_12x12x128_lambda_05X2_noTopDown/Checkpoints";
+    checkpointReadDirIndex = 18674000; // 18005200; //14005200; //3800000; //8039600;// 
     checkpointWrite = true;
-    checkpointWriteDir = "/nh/compneuro/Data/vine/LCA/2013_01_29/output_2013_01_29_12x12x128_lambda_05X2_noTopDown/Checkpoints";
+    checkpointWriteDir = "/nh/compneuro/Data/vine/LCA/2013_01_28/output_2013_01_28_12x12x128_lambda_05X2_noTopDown/Checkpoints";
     checkpointWriteStepInterval = 100000;
     deleteOlderCheckpoints = false;
     //suppressLastOutput = false;
@@ -40,7 +40,7 @@ Movie "Image" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
-    imageListPath = "/nh/compneuro/Data/vine/list/2013_01_29/fileList_2013_01_29.txt";
+    imageListPath = "/nh/compneuro/Data/vine/list/2013_01_28/fileList_2013_01_28.txt";
     nf = 3;
     writeStep = 2000.0;
     initialWriteTime = 1999.0;
@@ -546,7 +546,7 @@ KernelConn "V1ToError" = {
     keepKernelsSynchronized = true; 
     combine_dW_with_W_flag = false; 
     //
-    writeStep = 2000;
+    writeStep = 100000;
     writeCompressedWeights = false;
     writeCompressedCheckpoints = false;
     plasticityFlag = true;
@@ -667,7 +667,7 @@ KernelConn "V2ToError2" = {
     keepKernelsSynchronized = true; 
     combine_dW_with_W_flag = false; 
     //
-    writeStep = 2000;
+    writeStep = 100000;
     writeCompressedWeights = false;
     writeCompressedCheckpoints = false;
     plasticityFlag = true;
@@ -760,7 +760,7 @@ KernelConn "V2ToError1_2" = {
     keepKernelsSynchronized = true; 
     combine_dW_with_W_flag = false; 
     //
-    writeStep = 2000;
+    writeStep = 100000;
     writeCompressedWeights = false;
     writeCompressedCheckpoints = false;
     plasticityFlag = true;

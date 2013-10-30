@@ -22,7 +22,7 @@ HyPerCol "column" = {
     filenamesContainConnectionNames = true;
     checkpointRead = false;
     checkpointReadDir = "/nh/compneuro/Data/vine/LCA/2013_01_28/output_2013_01_28_12x12x128_lambda_05X2_noTopDown/Checkpoints";
-    checkpointReadDirIndex = 21488000; 
+    checkpointReadDirIndex = 20574000; //20574000; 
     checkpointWrite = false;
     checkpointWriteDir = "/nh/compneuro/Data/vine/LCA/2013_01_24/output_2013_01_24_how2catchSquirrel_12x12x128_noTopDown/Checkpoints";
     checkpointWriteStepInterval = 100000;
@@ -62,29 +62,6 @@ Movie "Image" = {
     phase = 0;
     //useParamsImage = true;
 };
-
-Retina "Retina" = {
-    restart = 0;
-    nxScale = 1;
-    nyScale = 1;
-    nf = 3;
-    writeStep = 1000.0;
-    initialWriteTime = 999.0;
-    mirrorBCflag = 1;
-    spikingFlag = 0;
-    writeSparseActivity = 0;
-
-    foregroundRate = 1000;
-    backgroundRate = 0;
-    burstFreq = 1;
-    burstDuration = 1000;
-
-    beginStim = 0;
-    endStim = 1000000000;
-    
-    phase = 1;
-};
-
 
 ANNTriggerUpdateOnNewImageLayer "Bipolar" = {
     restart = 0;
@@ -141,7 +118,7 @@ ANNErrorLayer "Error" = {
     //
     //InitVType = "ZeroV";
     InitVType = "InitVFromFile";
-    Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_28/output_2013_01_28_12x12x128_lambda_05X2_noTopDown/Checkpoints/Checkpoint21488000/Error_V.pvp";
+    Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_28/output_2013_01_28_12x12x128_lambda_05X2_noTopDown/Checkpoints/Checkpoint20574000/Error_V.pvp";
     //
     VThresh = 0.005;
     VMax =  infinity;
@@ -170,7 +147,7 @@ HyPerLCALayer "V1" = {
     //minV = -1.0;
     //maxV = .15; //0.05 above VThresh
     InitVType = "InitVFromFile";
-    Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_28/output_2013_01_28_12x12x128_lambda_05X2_noTopDown/Checkpoints/Checkpoint21488000/V1_V.pvp";
+    Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_28/output_2013_01_28_12x12x128_lambda_05X2_noTopDown/Checkpoints/Checkpoint20574000/V1_V.pvp";
     // 
     timeConstantTau = 1000.0;
     timeConstantTauMinimum = 10.0;
@@ -198,7 +175,7 @@ ANNLayer "Recon" = {
     //
     //InitVType = "ZeroV";
     InitVType = "InitVFromFile";
-    Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_28/output_2013_01_28_12x12x128_lambda_05X2_noTopDown/Checkpoints/Checkpoint21488000/Recon_V.pvp";
+    Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_28/output_2013_01_28_12x12x128_lambda_05X2_noTopDown/Checkpoints/Checkpoint20574000/Recon_V.pvp";
     //
     VThresh = -infinity;
     VMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
@@ -222,7 +199,7 @@ ANNErrorLayer "Error2" = {
     //
     //InitVType = "ZeroV";
     InitVType = "InitVFromFile";
-    Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_28/output_2013_01_28_12x12x128_lambda_05X2_noTopDown/Checkpoints/Checkpoint21488000/Error2_V.pvp";
+    Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_28/output_2013_01_28_12x12x128_lambda_05X2_noTopDown/Checkpoints/Checkpoint20574000/Error2_V.pvp";
     //
     VThresh = 0.005;
     VMax =  infinity;
@@ -252,7 +229,7 @@ HyPerLCALayer "V2" = {
     //minV = -1.0;
     //maxV = .15; //0.05 above VThresh
     InitVType = "InitVFromFile";
-    Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_28/output_2013_01_28_12x12x128_lambda_05X2_noTopDown/Checkpoints/Checkpoint21488000/V2_V.pvp";
+    Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_28/output_2013_01_28_12x12x128_lambda_05X2_noTopDown/Checkpoints/Checkpoint20574000/V2_V.pvp";
     // 
     timeConstantTau = 1000.0;
     timeConstantTauMinimum = 10.0;
@@ -281,7 +258,7 @@ ANNTriggerUpdateOnNewImageLayer "Recon2" = {
    //
     //InitVType = "ZeroV";
     InitVType = "InitVFromFile";
-    Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_28/output_2013_01_28_12x12x128_lambda_05X2_noTopDown/Checkpoints/Checkpoint21488000/Recon2_V.pvp";
+    Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_28/output_2013_01_28_12x12x128_lambda_05X2_noTopDown/Checkpoints/Checkpoint20574000/Recon2_V.pvp";
     //
     VThresh = -infinity;
     VMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
@@ -305,7 +282,7 @@ ANNErrorLayer "Error1_2" = {
     //
     //InitVType = "ZeroV";
     InitVType = "InitVFromFile";
-    Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_28/output_2013_01_28_12x12x128_lambda_05X2_noTopDown/Checkpoints/Checkpoint21488000/Error1_2_V.pvp";
+    Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_28/output_2013_01_28_12x12x128_lambda_05X2_noTopDown/Checkpoints/Checkpoint20574000/Error1_2_V.pvp";
     //
     VThresh = 0.005;
     VMax =  infinity;
@@ -330,7 +307,7 @@ ANNTriggerUpdateOnNewImageLayer "V1Infra" = {
     //
     //InitVType = "ZeroV";
     InitVType = "InitVFromFile";
-    Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_28/output_2013_01_28_12x12x128_lambda_05X2_noTopDown/Checkpoints/Checkpoint21488000/V1Infra_V.pvp";
+    Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_28/output_2013_01_28_12x12x128_lambda_05X2_noTopDown/Checkpoints/Checkpoint20574000/V1Infra_V.pvp";
     //
     VThresh = 0.005; // using V1's VThresh might be unstable, trying Error1_2 thresh
     VMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
@@ -355,7 +332,7 @@ ANNTriggerUpdateOnNewImageLayer "ReconInfra" = {
     //
     //InitVType = "ZeroV";
     InitVType = "InitVFromFile";
-    Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_28/output_2013_01_28_12x12x128_lambda_05X2_noTopDown/Checkpoints/Checkpoint21488000/ReconInfra_V.pvp";
+    Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_28/output_2013_01_28_12x12x128_lambda_05X2_noTopDown/Checkpoints/Checkpoint20574000/ReconInfra_V.pvp";
     //
     VThresh = -infinity;
     VMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
@@ -367,21 +344,39 @@ ANNTriggerUpdateOnNewImageLayer "ReconInfra" = {
 
 
 
+//Movie "Noise" = {
+//    restart = 0;
+//    nxScale = 1;
+//    nyScale = 1;
+//    imageListPath = "/nh/compneuro/Data/HyPerPursuit/VineVideo/input/noise.pvp";
+//    // echoFramePathnameFlag = true;
+//    nf = 3;
+//    writeStep = -1;
+//    writeSparseActivity = false;
+//    displayPeriod = 1000;
+//    start_frame_index = 1;
+//    skip_frame_index = 1;
+//    mirrorBCflag = true;
+//    jitterFlag = 0;
+//    useImageBCflag = false;
+//    inverseFlag = false;
+//    normalizeLuminanceFlag = false;
+//    writeImages = false;
+//    offsetX = 0;
+//    offsetY = 0;
+//    randomMovie = 0;
+//    autoResizeFlag = false;
+//    readPvpFile = true;
+//    phase = 0;
+//};
+
+
 
 // connections
 
 
-IdentConn "MovieToRetina" = {
+KernelConn "ImageToBipolarCenter" = {
     preLayerName = "Image";
-    postLayerName = "Retina";
-    channelCode = 0;
-    delay = 0;
-    writeStep = -1;
-};
-
-
-KernelConn "RetinaToBipolarCenter" = {
-    preLayerName = "Retina";
     postLayerName = "Bipolar";
     channelCode = 0;
     nxp = 3; 
@@ -411,7 +406,7 @@ KernelConn "RetinaToBipolarCenter" = {
     shrinkPatches = false;
     //writeCompressedWeights = 0.0;
     plasticityFlag = 0;
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
      
     delay = 0;
      
@@ -452,7 +447,7 @@ KernelConn "BipolarToGanglionCenter" = {
     shrinkPatches = false;
     //writeCompressedWeights = 0.0;
     plasticityFlag = 0;
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
      
     delay = 0;
      
@@ -493,7 +488,7 @@ KernelConn "BipolarToGanglionSurround" = {
     shrinkPatches = false;
     //writeCompressedWeights = 0.0;
     plasticityFlag = 0;
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
      
     delay = 0;
      
@@ -509,7 +504,7 @@ IdentConn "GanglionToError" = {
     channelCode = 0;
     delay = 0;
     writeStep = -1;
-    writeCompressedCheckpoints = false;
+    writeCompressedCheckpoints = true;
 };
 
 
@@ -526,7 +521,7 @@ KernelConn "V1ToError" = {
     //weightInitType = "FileWeight";
     //initWeightsFile = "/nh/compneuro/Data/vine/LCA/2013_01_31/output/Checkpoints/Checkpoint6000000/V1ToError_W.pvp";
     weightInitType = "FileWeight";
-    initWeightsFile = "/nh/compneuro/Data/vine/LCA/2013_01_28/output_2013_01_28_12x12x128_lambda_05X2_noTopDown/Checkpoints/Checkpoint21488000/V1ToError_W.pvp";
+    initWeightsFile = "/nh/compneuro/Data/vine/LCA/2013_01_28/output_2013_01_28_12x12x128_lambda_05X2_noTopDown/Checkpoints/Checkpoint20574000/V1ToError_W.pvp";
     //weightInitType = "UniformRandomWeight";
     //wMinInit = -1.0;
     //wMaxInit = 1.0;
@@ -557,7 +552,7 @@ KernelConn "V1ToError" = {
     //
     delay = 0;
     //
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
     shrinkPatches = false;
 };
 
@@ -573,7 +568,7 @@ TransposeConn "ErrorToV1" = {
     writeCompressedCheckpoints = false;
     shmget_flag = false;
     delay = 0;
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
 };
 
 CloneKernelConn "V1ToRecon" = {
@@ -584,7 +579,7 @@ CloneKernelConn "V1ToRecon" = {
     writeCompressedCheckpoints = false;
     originalConnName = "V1ToError";
     selfFlag = false;
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
     delay = 0;
     preActivityIsNotRate = false;
 };
@@ -622,7 +617,7 @@ KernelConn "ReconToError2" = {
     shrinkPatches = false;
     //writeCompressedWeights = 0.0;
     plasticityFlag = 0;
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
      
     delay = 0;
      
@@ -643,7 +638,7 @@ KernelConn "V2ToError2" = {
     initFromLastFlag = 0;
     //
     weightInitType = "FileWeight";
-    initWeightsFile = "/nh/compneuro/Data/vine/LCA/2013_01_28/output_2013_01_28_12x12x128_lambda_05X2_noTopDown/Checkpoints/Checkpoint21488000/V2ToError2_W.pvp";
+    initWeightsFile = "/nh/compneuro/Data/vine/LCA/2013_01_28/output_2013_01_28_12x12x128_lambda_05X2_noTopDown/Checkpoints/Checkpoint20574000/V2ToError2_W.pvp";
     //weightInitType = "UniformRandomWeight";
     //wMinInit = -1.0;
     //wMaxInit = 1.0;
@@ -674,7 +669,7 @@ KernelConn "V2ToError2" = {
     //
     delay = 0;
     //
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
     shrinkPatches = false;
 };
 
@@ -689,7 +684,7 @@ TransposeConn "Error2ToV2" = {
     writeCompressedCheckpoints = false;
     shmget_flag = false;
     delay = 0;
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
 };
 
 
@@ -701,7 +696,7 @@ CloneKernelConn "V2ToRecon2" = {
    writeCompressedCheckpoints = false;
    originalConnName = "V2ToError2";
    selfFlag = false;
-   stochasticReleaseFlag = false;
+   pvpatchAccumulateType = "convolve";
    delay = 0;
    preActivityIsNotRate = false;
 };
@@ -716,7 +711,7 @@ IdentConn "V1ToError1_2" = {
     channelCode = 0;
     delay = 0;
     writeStep = -1;
-    writeCompressedCheckpoints = false;
+    writeCompressedCheckpoints = true;
 };
 
 
@@ -733,7 +728,7 @@ KernelConn "V2ToError1_2" = {
     initFromLastFlag = 0;
     //
     weightInitType = "FileWeight";
-    initWeightsFile = "/nh/compneuro/Data/vine/LCA/2013_01_28/output_2013_01_28_12x12x128_lambda_05X2_noTopDown/Checkpoints/Checkpoint21488000/V2ToError1_2_W.pvp";
+    initWeightsFile = "/nh/compneuro/Data/vine/LCA/2013_01_28/output_2013_01_28_12x12x128_lambda_05X2_noTopDown/Checkpoints/Checkpoint20574000/V2ToError1_2_W.pvp";
     //weightInitType = "UniformRandomWeight";
     //wMinInit = -1.0;
     //wMaxInit = 1.0;
@@ -764,7 +759,7 @@ KernelConn "V2ToError1_2" = {
     //
     delay = 0;
     //
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
     shrinkPatches = false;
 };
 
@@ -779,7 +774,7 @@ TransposeConn "Error1_2ToV2" = {
     writeCompressedCheckpoints = false;
     shmget_flag = false;
     delay = 0;
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
 };
 
 
@@ -792,7 +787,7 @@ CloneKernelConn "V2ToV1Infra" = {
     originalConnName = "V2ToError1_2"; //"V2ToV1";  //
     //writeCompressedWeights = 0.0;
     selfFlag = false;
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
     delay = 0;
     preActivityIsNotRate = false;
 };
@@ -816,10 +811,50 @@ CloneKernelConn "V1InfraToReconInfra" = {
     originalConnName = "V1ToError";
     //writeCompressedWeights = 0.0;
     selfFlag = false;
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
     delay = 0;
     preActivityIsNotRate = false;
 };
+
+
+//KernelConn "NoiseToBipolar" = {
+//    preLayerName = "Noise";
+//    postLayerName = "Bipolar";
+//    channelCode = 0;
+//    delay = 0;
+//    writeStep = -1;
+//    nxp = 1;
+//    nyp = 1;
+//    numAxonalArbors = 1;
+//    initFromLastFlag = 0;
+//    weightInitType = "Gauss2DWeight";
+//    aspect = 1;
+//    sigma = 0.5;
+//    rMax = 10;
+//    rMin = 0;
+//    numOrientationsPre = 1;
+//    numOrientationsPost = 1;
+//    // strength = 1.0; // ParameterSweep
+//    normalizeMethod = "normalizeSum";
+//    minSumTolerated = 0;
+//    normalizeArborsIndividually = 0;
+//    normalize_cutoff = 0.0;
+//    normalizeFromPostPerspective = true;
+//    symmetrizeWeights = false;
+//
+//    shrinkPatches = false;
+//    //writeCompressedWeights = 0.0;
+//    writeCompressedCheckpoints = false;
+//    plasticityFlag = 0;
+//    pvpatchAccumulateType = "convolve";
+//    updateGSynFromPostPerspective = false;
+//
+//    preActivityIsNotRate = false;
+//    selfFlag = false;
+//    shmget_flag = false;
+//};
+
+
 
 
 // parameter sweep
@@ -832,10 +867,10 @@ ParameterSweep "V2":VThresh = {
 };
 
 ParameterSweep "column":outputPath = {
-    "/nh/compneuro/Data/vine/LCA/2013_01_28/output_2013_01_28_how2catchSquirrel_12x12x128_lambda_05X1_noTopDown/";
-    "/nh/compneuro/Data/vine/LCA/2013_01_28/output_2013_01_28_how2catchSquirrel_12x12x128_lambda_05X2_noTopDown/";
-    "/nh/compneuro/Data/vine/LCA/2013_01_28/output_2013_01_28_how2catchSquirrel_12x12x128_lambda_05X3_noTopDown/";
-    "/nh/compneuro/Data/vine/LCA/2013_01_28/output_2013_01_28_how2catchSquirrel_12x12x128_lambda_05X4_noTopDown/";
+    "/nh/compneuro/Data/vine/LCA/2013_01_24/output_2013_01_24_how2catchSquirrel_12x12x128_lambda_05X1_noTopDown/";
+    "/nh/compneuro/Data/vine/LCA/2013_01_24/output_2013_01_24_how2catchSquirrel_12x12x128_lambda_05X2_noTopDown/";
+    "/nh/compneuro/Data/vine/LCA/2013_01_24/output_2013_01_24_how2catchSquirrel_12x12x128_lambda_05X3_noTopDown/";
+    "/nh/compneuro/Data/vine/LCA/2013_01_24/output_2013_01_24_how2catchSquirrel_12x12x128_lambda_05X4_noTopDown/";
 };
 
 

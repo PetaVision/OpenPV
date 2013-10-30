@@ -15,16 +15,16 @@ HyPerCol "column" = {
     ny = 480;
     dt = 1.0;
     randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
-    numSteps = 21488000; //18674000; // 14005200; //8039600; //46584000; //31956400; //30517200; //27290000; //24725600; // 
+    numSteps = 30517200; //27290000; // 24725600; //21488000; //18674000; // 14005200; //8039600; //46584000; //31956400; //
     progressStep = 1000;
-    outputPath = "/nh/compneuro/Data/vine/LCA/2013_01_28/output_2013_01_28_12x12x128_lambda_05X2_noPulvinar";
+    outputPath = "/nh/compneuro/Data/vine/LCA/2013_01_25/output_2013_01_25_12x12x128_lambda_05X2_noPulvinar";
     filenamesContainLayerNames = true;
     filenamesContainConnectionNames = true;
     checkpointRead = true;
-    checkpointReadDir = "/nh/compneuro/Data/vine/LCA/2013_01_29/output_2013_01_29_12x12x128_lambda_05X2_noPulvinar/Checkpoints";
-    checkpointReadDirIndex = 18674000; // 14005200; //8039600; //3600000; //
+    checkpointReadDir = "/nh/compneuro/Data/vine/LCA/2013_01_26/output_2013_01_26_12x12x128_lambda_05X2_noPulvinar/Checkpoints";
+    checkpointReadDirIndex = 27290000; // 24725600; //22788000; //21488000; //18674000; // 14005200; //8039600; //3600000; //
     checkpointWrite = true;
-    checkpointWriteDir = "/nh/compneuro/Data/vine/LCA/2013_01_28/output_2013_01_28_12x12x128_lambda_05X2_noPulvinar/Checkpoints";
+    checkpointWriteDir = "/nh/compneuro/Data/vine/LCA/2013_01_25/output_2013_01_25_12x12x128_lambda_05X2_noPulvinar/Checkpoints";
     checkpointWriteStepInterval = 100000;
     deleteOlderCheckpoints = false;
     //suppressLastOutput = false;
@@ -40,7 +40,7 @@ Movie "Image" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
-    imageListPath = "/nh/compneuro/Data/vine/list/2013_01_28/fileList_2013_01_28.txt";
+    imageListPath = "/nh/compneuro/Data/vine/list/2013_01_25/fileList_2013_01_25.txt";
     nf = 3;
     writeStep = 2000.0;
     initialWriteTime = 1999.0;
@@ -400,7 +400,7 @@ KernelConn "ImageToBipolarCenter" = {
     //writeCompressedWeights = 0.0;
     writeCompressedCheckpoints = false;
     plasticityFlag = 0;
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
      
     delay = 0;
      
@@ -441,7 +441,7 @@ KernelConn "BipolarToGanglionCenter" = {
     //writeCompressedWeights = 0.0;
     writeCompressedCheckpoints = false;
     plasticityFlag = 0;
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
      
     delay = 0;
      
@@ -482,7 +482,7 @@ KernelConn "BipolarToGanglionSurround" = {
     //writeCompressedWeights = 0.0;
     writeCompressedCheckpoints = false;
     plasticityFlag = 0;
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
      
     delay = 0;
      
@@ -530,7 +530,7 @@ KernelConn "V1ToError" = {
     keepKernelsSynchronized = true; 
     combine_dW_with_W_flag = false; 
     //
-    writeStep = 2000;
+    writeStep = 100000;
     writeCompressedWeights = false;
     writeCompressedCheckpoints = false;
     plasticityFlag = true;
@@ -543,7 +543,7 @@ KernelConn "V1ToError" = {
     //
     delay = 0;
     //
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
     shrinkPatches = false;
 };
 
@@ -559,7 +559,7 @@ TransposeConn "ErrorToV1" = {
     writeCompressedCheckpoints = false;
     shmget_flag = false;
     delay = 0;
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
 };
 
 CloneKernelConn "V1ToRecon" = {
@@ -569,7 +569,7 @@ CloneKernelConn "V1ToRecon" = {
     writeStep = -1;
     originalConnName = "V1ToError";
     selfFlag = false;
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
     delay = 0;
     preActivityIsNotRate = false;
 };
@@ -607,7 +607,7 @@ CloneKernelConn "V1ToRecon" = {
 //    //writeCompressedWeights = 0.0;
 //    writeCompressedCheckpoints = false;
 //    plasticityFlag = 0;
-//    stochasticReleaseFlag = false;
+//    pvpatchAccumulateType = "convolve";
 //     
 //    delay = 0;
 //     
@@ -659,7 +659,7 @@ CloneKernelConn "V1ToRecon" = {
 //    //
 //    delay = 0;
 //    //
-//    stochasticReleaseFlag = false;
+//    pvpatchAccumulateType = "convolve";
 //    shrinkPatches = false;
 //};
 
@@ -674,7 +674,7 @@ CloneKernelConn "V1ToRecon" = {
 //    writeCompressedCheckpoints = false;
 //    shmget_flag = false;
 //    delay = 0;
-//    stochasticReleaseFlag = false;
+//    pvpatchAccumulateType = "convolve";
 //};
 
 
@@ -685,7 +685,7 @@ CloneKernelConn "V1ToRecon" = {
 //   writeStep = -1;
 //   originalConnName = "V2ToError2";
 //   selfFlag = false;
-//   stochasticReleaseFlag = false;
+//   pvpatchAccumulateType = "convolve";
 //   delay = 0;
 //   preActivityIsNotRate = false;
 //};
@@ -734,7 +734,7 @@ KernelConn "V2ToError1_2" = {
     keepKernelsSynchronized = true; 
     combine_dW_with_W_flag = false; 
     //
-    writeStep = 2000;
+    writeStep = 100000;
     writeCompressedWeights = false;
     writeCompressedCheckpoints = false;
     plasticityFlag = true;
@@ -747,7 +747,7 @@ KernelConn "V2ToError1_2" = {
     //
     delay = 0;
     //
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
     shrinkPatches = false;
 };
 
@@ -762,7 +762,7 @@ TransposeConn "Error1_2ToV2" = {
     writeCompressedCheckpoints = false;
     shmget_flag = false;
     delay = 0;
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
 };
 
 
@@ -774,7 +774,7 @@ CloneKernelConn "V2ToV1Infra" = {
     originalConnName = "V2ToError1_2"; //"V2ToV1";  //
     //writeCompressedWeights = 0.0;
     selfFlag = false;
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
     delay = 0;
     preActivityIsNotRate = false;
 };
@@ -797,7 +797,7 @@ CloneKernelConn "V1InfraToReconInfra" = {
     originalConnName = "V1ToError";
     //writeCompressedWeights = 0.0;
     selfFlag = false;
-    stochasticReleaseFlag = false;
+    pvpatchAccumulateType = "convolve";
     delay = 0;
     preActivityIsNotRate = false;
 };
