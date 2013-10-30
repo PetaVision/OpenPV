@@ -935,6 +935,8 @@ if plot_nonSparse && plot_flag
          ["a6_"], ["Recon2"]; ...
          ["a8_"], ["V1Infra"]};
     nonSparse_norm_strength = ones(num_nonSparse_list,1);
+    nonSparse_norm_strength(1) = ...
+	1/sqrt(32*32);
   elseif strcmp(run_type, "noPulvinar")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% noPulvinar
