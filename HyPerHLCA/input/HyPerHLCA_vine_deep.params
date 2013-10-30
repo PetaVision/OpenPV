@@ -268,7 +268,7 @@ HyPerLCALayer "V2" = {
 };
 
 
-ANNLayer "Recon2" = {
+ANNTriggerUpdateOnNewImageLayer "Recon2" = {
     restart = 0;
     nxScale = 0.5;
     nyScale = 0.5;
@@ -278,6 +278,7 @@ ANNLayer "Recon2" = {
     mirrorBCflag = 0;
     valueBC = 0;
     writeSparseActivity = 0;
+    movieLayerName = "Image";
     //
     InitVType = "ZeroV";
     //InitVType = "InitVFromFile";
@@ -288,7 +289,7 @@ ANNLayer "Recon2" = {
     VMin = -infinity; 
     VShift = 0;
     // 
-    phase = 9; 
+    phase = 2; 
 };
 
 
