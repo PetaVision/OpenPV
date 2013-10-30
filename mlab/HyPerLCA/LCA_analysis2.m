@@ -14,12 +14,12 @@ no_clobber = true;
 %% machine/run_type environment
 if ismac
   workspace_path = "/Users/garkenyon/workspace";
-  run_type = "CIFAR_noTask"; %%"CIFAR" %%
-  output_dir = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB_generative/data_batch_all"
+  run_type = "CIFAR_noTask_deep"; %%"CIFAR_noTask"; %%"CIFAR" %%
+  output_dir = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB_deep/data_batch_all"
   checkpoint_dir = output_dir;
   checkpoint_parent = "/Users/garkenyon/workspace/HyPerHLCA";
   checkpoint_children = ...
-     {"CIFAR256_RGB_generative/data_batch_all"}; %% ...
+     {"CIFAR256_RGB_deep/data_batch_all"}; %% ...
   last_checkpoint_ndx = 2000000;
 elseif isunix
   workspace_path = "/home/gkenyon/workspace";
@@ -141,6 +141,28 @@ if plot_Recon
     %% list of (previous) layers to sum with current layer
     sum_list = cell(num_Recon_list,1);
     sum_list{6} = 3;
+  elseif strcmp(run_type, "CIFAR_noTask_deep") 
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% CIFAR_noTask_deep list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    Recon_list = ...
+	{["a0_"], ["Image"];
+	 ["a3_"], ["Recon"];
+	 ["a6_"], ["Recon2"];
+	 ["a9_"], ["ReconInfra"];
+	 ["a9_"], ["ReconInfra"]};
+    %% list of layers to unwhiten
+    num_Recon_list = size(Recon_list,1);
+    unwhiten_list = zeros(num_Recon_list,1);
+    unwhiten_list([2,3,5,6]) = 1;
+    %% list of layers to use as a normalization reference for unwhitening
+    normalize_list = 1:num_Recon_list;
+    normalize_list(2) = 1;
+    normalize_list(4) = 1;
+    normalize_list(5) = 1;
+    %% list of (previous) layers to sum with current layer
+    sum_list = cell(num_Recon_list,1);
+    sum_list{5} = 2;
   elseif strcmp(run_type, "noPulvinar")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% noPulvinar list
@@ -211,7 +233,7 @@ if plot_Recon
       Recon_list = ...
 	  {["a0_"], ["Image"];
 	   ["a3_"], ["Recon"];
-	   ["a8_"], ["ReconInfra"]};
+	   ["a7_"], ["ReconInfra"]};
     else
       Recon_list = ...
 	  {["a0_"], ["Image"];
@@ -656,6 +678,13 @@ if plot_Sparse
     Sparse_list = ...
 	{["a4_"], ["V1"]; ...
 	 ["a7_"], ["V2"]};
+  elseif strcmp(run_type, "CIFAR_noTask_deep") 
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% CIFAR_noTask_deep list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    Sparse_list = ...
+	{["a2_"], ["V1"]; ...
+	 ["a5_"], ["V2"]};
   elseif strcmp(run_type, "noPulvinar")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% noPulvinar list
@@ -675,7 +704,7 @@ if plot_Sparse
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     Sparse_list = ...
 	{["a2_"], ["V1"]; ...
-	 ["a5_"], ["V2"]};
+	 ["a4_"], ["V2"]};
   endif %% run_type
   num_Sparse_list = size(Sparse_list,1);
   Sparse_hdr = cell(num_Sparse_list,1);
@@ -888,6 +917,24 @@ if plot_nonSparse && plot_flag
          ["a10_"], ["V1Infra"]};
     nonSparse_norm_strength = ones(num_nonSparse_list,1);
     %%%%%%%%%%%%%%%%%%%%%%%%e%%%%%%%%%%%%%%%%%%%%
+  elseif strcmp(run_type, "CIFAR_noTask_deep") 
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% CIFAR_noTask_deep list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    nonSparse_list = ...
+        {["a1_"], ["Error"]; ...
+         ["a4_"], ["Error2"]; ...
+         ["a7_"], ["Error1_2"]};
+    num_nonSparse_list = size(nonSparse_list,1);
+    nonSparse_skip = repmat(1, num_nonSparse_list, 1);
+    nonSparse_skip(1) = 1;
+    nonSparse_skip(2) = 1;
+    nonSparse_skip(3) = 1;
+    nonSparse_norm_list = ...
+        {["a0_"], ["Image"]; ...
+         ["a6_"], ["Recon2"]; ...
+         ["a8_"], ["V1Infra"]};
+    nonSparse_norm_strength = ones(num_nonSparse_list,1);
   elseif strcmp(run_type, "noPulvinar")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% noPulvinar
@@ -959,14 +1006,14 @@ if plot_nonSparse && plot_flag
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     nonSparse_list = ...
 	{["a1_"], ["Error"]; ...
-	 ["a6_"], ["Error1_2"]};
+	 ["a5_"], ["Error1_2"]};
     num_nonSparse_list = size(nonSparse_list,1);
     nonSparse_skip = repmat(1, num_nonSparse_list, 1);
     nonSparse_skip(1) = 1;
-    nonSparse_skip(3) = 1;
+    nonSparse_skip(2) = 1;
     nonSparse_norm_list = ...
         {["a0_"], ["Image"]; ...
-         ["a7_"], ["V1Infra"]};
+         ["a6_"], ["V1Infra"]};
     nonSparse_norm_strength = ones(num_nonSparse_list,1);
     nonSparse_norm_strength = ...
 	[1/sqrt(32*32); 1.0];
@@ -992,9 +1039,6 @@ if plot_nonSparse && plot_flag
     nonSparse_hdr{i_nonSparse} = readpvpheader(nonSparse_fid);
     fclose(nonSparse_fid);
     tot_nonSparse_frames = nonSparse_hdr{i_nonSparse}.nbands;
-    if use_last_checkpoint_ndx
-      tot_nonSparse_frames = min(tot_nonSparse_frames, fix(last_checkpoint_ndx / layer_write_step));  %% use to specify maximum frame to display
-    endif	       
     num_nonSparse = tot_nonSparse_frames;
     progress_step = ceil(tot_nonSparse_frames / 10);
     [nonSparse_struct, nonSparse_hdr_tmp] = ...
@@ -1006,7 +1050,9 @@ if plot_nonSparse && plot_flag
     nonSparse_RMS = zeros(num_nonSparse_frames,1);
 
     if ~isempty(nonSparse_norm_list{i_nonSparse,1}) && ~isempty(nonSparse_norm_list{i_nonSparse,2})
-      nonSparse_norm_file = [output_dir, filesep, nonSparse_norm_list{i_nonSparse,1}, nonSparse_norm_list{i_nonSparse,2}, ".pvp"]
+      nonSparse_norm_file = ...
+	  [output_dir, filesep, nonSparse_norm_list{i_nonSparse,1}, ...
+	   nonSparse_norm_list{i_nonSparse,2}, ".pvp"]
       if ~exist(nonSparse_norm_file, "file")
 	warning(["file does not exist: ", nonSparse_norm_file]);
 	continue;
@@ -1021,10 +1067,12 @@ if plot_nonSparse && plot_flag
     else
       nonSparse_norm_RMS = ones(num_nonSparse_frames,1);
       nonSparse_norm_struct = [];
-    endif
+    endif %% ~isempty(nonSparse_norm_list{i_nonSparse,1})
 
+    frame_diff = ...
+	(nonSparse_struct{num_nonSparse_frames}.time - nonSparse_struct{1}.time) / ...
+	num_nonSparse_frames;
     for i_frame = 1 : 1 : num_nonSparse_frames
-
       if ~isempty(nonSparse_struct{i_frame})
 	nonSparse_times(i_frame) = squeeze(nonSparse_struct{i_frame}.time);
 	nonSparse_vals = squeeze(nonSparse_struct{i_frame}.values);
@@ -1033,14 +1081,14 @@ if plot_nonSparse && plot_flag
 	if ~isempty(nonSparse_norm_struct)
 	  nonSparse_norm_time = nonSparse_norm_struct{i_frame}.time;
 	  nonSparse_time_shift = 0;
-	  while nonSparse_norm_time > nonSparse_times(i_frame)
+	  while (nonSparse_norm_time - nonSparse_times(i_frame)) > frame_diff
 	    nonSparse_time_shift = nonSparse_time_shift + 1;
 	    if (i_frame-nonSparse_time_shift) < 1
 	      break;
 	    endif
 	    nonSparse_norm_time = nonSparse_norm_struct{i_frame-nonSparse_time_shift}.time;
 	  endwhile
-	  while nonSparse_norm_time < nonSparse_times(i_frame)
+	  while (nonSparse_norm_time - nonSparse_times(i_frame)) < frame_diff
 	    nonSparse_time_shift = nonSparse_time_shift - 1;
 	    if (i_frame-nonSparse_time_shift) > num_nonSparse_norm_frames
 	      break;
@@ -1066,9 +1114,11 @@ if plot_nonSparse && plot_flag
 	nonSparse_RMS = nonSparse_RMS(1:num_nonSparse_frames);
 	break;
       endif %% ~isempty(nonSparse_struct{i_frame})
-
     endfor %% i_frame
 
+    if num_nonSparse_frames <= 0
+      continue;
+    endif
     if plot_flag
       nonSparse_RMS_fig(i_nonSparse) = figure;
       normalized_nonSparse_RMS = nonSparse_RMS ./ (nonSparse_norm_RMS + (nonSparse_norm_RMS==0));
@@ -1215,6 +1265,21 @@ if plot_ReconError && plot_flag
         {["a2_"], ["Ganglion"]; ...
          ["a2_"], ["Ganglion"]};
     ReconError_norm_strength = ones(num_ReconError_list,1);
+  elseif strcmp(run_type, "CIFAR_noTask_deep") 
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% CIFAR_noTask_deep list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    ReconError_list = ...
+        {["a3_"], ["Recon"]; ...
+         ["a9_"], ["ReconInfra"]};
+    num_ReconError_list = size(ReconError_list,1);
+    ReconError_skip = repmat(1, num_ReconError_list, 1);
+    ReconError_skip(1) = 1;
+    ReconError_skip(2) = 1;
+    ReconError_norm_list = ...
+        {["a0_"], ["Image"]; ...
+         ["a0_"], ["Image"]};
+    ReconError_norm_strength = ones(num_ReconError_list,1);
     ReconError_nonSparse_ndx = [1 1];
   elseif strcmp(run_type, "noPulvinar")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1269,7 +1334,7 @@ if plot_ReconError && plot_flag
     if strcmp(run_type, "CIFAR_noTask")
       ReconError_list = ...
 	  {["a3_"], ["Recon"]; ...
-	   ["a8_"], ["ReconInfra"]};
+	   ["a7_"], ["ReconInfra"]};
     else
       ReconError_list = ...
 	  {["a5_"], ["Recon"]; ...
@@ -1431,6 +1496,23 @@ if plot_weights
       checkpoints_list = getCheckpointList(checkpoint_parent, checkpoint_children);
     endif %% checkpoint_weights_movie
     num_checkpoints = size(checkpoints_list,1);
+  elseif strcmp(run_type, "CIFAR_noTask_deep") 
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% CIFAR_noTask_deep list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    sparse_ndx = [1; 2];
+    if ~checkpoint_weights_movie
+      weights_list = ...
+          {["w1_"], ["V1ToError"]; ...
+           ["w5_"], ["V2ToError2"]};
+      checkpoints_list = {output_dir};
+    else
+      weights_list = ...
+          {["V1ToError"], "_W"; ...
+           ["V2ToError2"], "_W"};
+      checkpoints_list = getCheckpointList(checkpoint_parent, checkpoint_children);
+    endif %% checkpoint_weights_movie
+    num_checkpoints = size(checkpoints_list,1);
   elseif strcmp(run_type, "noPulvinar")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% noPulvinar list
@@ -1475,7 +1557,7 @@ if plot_weights
     sparse_ndx = [1];
     if ~checkpoint_weights_movie
       weights_list = ...
-          {["w4_"], ["V1ToError"]};
+          {["w1_"], ["V1ToError"]};
       checkpoints_list = {output_dir};
     else
       weights_list = ...
@@ -1822,6 +1904,40 @@ if plot_weights1_2
 %%          {["a1_"], ["Image"]};
       image_list = ...
           {["Bipolar"], ["_A"]};
+    endif %% checkpoint_weights_movie
+    %% list of indices for reading rank order of presynaptic neuron as function of activation frequency
+    sparse_ndx = [2];
+    num_checkpoints = size(checkpoints_list,1);
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  elseif strcmp(run_type, "CIFAR_noTask_deep") 
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% CIFAR_noTask_deep list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% list of weights from layer2 to layer1
+    if ~checkpoint_weights_movie
+      checkpoints_list = {output_dir};
+      weights1_2_list = ...
+          {["w9_"], ["V2ToError1_2"]};
+      post1_2_list = ...
+          {["a2_"], ["V1"]};
+      %% list of weights from layer1 to image
+      weights0_1_list = ...
+          {["w1_"], ["V1ToError"]};
+      image_list = ...
+          {["a0_"], ["Image"]};
+    else
+      checkpoints_list = getCheckpointList(checkpoint_parent, checkpoint_children);
+      weights1_2_list = ...
+          {["V2ToError1_2"], "_W"};
+      post1_2_list = ...
+          {["V1"], ["_A"]};
+      %% list of weights from layer1 to image
+      weights0_1_list = ...
+          {["V1ToError"], ["_W"]};
+%%      image_list = ...
+%%          {["a1_"], ["Image"]};
+      image_list = ...
+          {["Image"], ["_A"]};
     endif %% checkpoint_weights_movie
     %% list of indices for reading rank order of presynaptic neuron as function of activation frequency
     sparse_ndx = [2];
