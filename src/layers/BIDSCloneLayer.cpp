@@ -65,6 +65,12 @@ int BIDSCloneLayer::setParams(PVParams * params) {
 
 void BIDSCloneLayer::readWriteSparseActivity(PVParams * params) {
    this->writeSparseActivity = true;
+   handleUnnecessaryBoolParameter("writeSparseActivity", writeSparseActivity);
+}
+
+void BIDSCloneLayer::readWriteSparseValues(PVParams * params) {
+   this->writeSparseActivity = false;
+   handleUnnecessaryBoolParameter("writeSparseValues", writeSparseValues);
 }
 
 void BIDSCloneLayer::readJitterSource(PVParams * params) {

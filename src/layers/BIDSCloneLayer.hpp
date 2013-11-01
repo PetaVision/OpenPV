@@ -34,6 +34,7 @@ protected:
    int initialize(const char * name, HyPerCol * hc);
    virtual int setParams(PVParams * params);
    virtual void readWriteSparseActivity(PVParams * params);
+   virtual void readWriteSparseValues(PVParams * params);
    virtual void readJitterSource(PVParams * params);
    unsigned int * getSourceActiveIndices() {return originalLayer->getCLayer()->activeIndices;}
    unsigned int getSourceNumActive() {return originalLayer->getCLayer()->numActive;}

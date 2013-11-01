@@ -344,20 +344,20 @@ bool Movie::updateImage(double time, double dt)
  * we call writeActivitySparse(time) in order to write the "activity" in the image.
  *
  */
-int Movie::outputState(double time, bool last)
+int Movie::outputState(double timed, bool last)
 {
    if (writeImages) {
       char basicFilename[PV_PATH_MAX + 1];
-      snprintf(basicFilename, PV_PATH_MAX, "%s/Movie_%.2f.%s", movieOutputPath, time, writeImagesExtension);
+      snprintf(basicFilename, PV_PATH_MAX, "%s/Movie_%.2f.%s", movieOutputPath, timed, writeImagesExtension);
       write(basicFilename);
    }
 
    int status = PV_SUCCESS;
    if (randomMovie != 0) {
-      status = writeActivitySparse(time);
+      status = writeActivitySparse(timed, false/*includeValues*/);
    }
    else {
-      status = HyPerLayer::outputState(time, last);
+      status = HyPerLayer::outputState(timed, last);
    }
 
    return status;

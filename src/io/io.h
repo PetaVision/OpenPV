@@ -33,12 +33,14 @@
 #define PV_BYTE_TYPE       1
 #define PV_INT_TYPE        2
 #define PV_FLOAT_TYPE      3
+#define PV_SPARSEVALUES_TYPE 4 // Ddata is a list of (location, data) pairs; used by nonspiking layers with sparse activity
 
 #define PVP_FILE_TYPE      1 // File type of the *_V_last.pvp and *_A_last.pvp files
-#define PVP_ACT_FILE_TYPE  2 // File type of the a%d.pvp for spiking layers
+#define PVP_ACT_FILE_TYPE  2 // File type of the a%d.pvp for spiking layers (activity is sparse and values are only 1 or 0)
 #define PVP_WGT_FILE_TYPE  3 // File type of the w%d.pvp, w%d_last.pvp, and checkpoint files for non-KernelConn connections
-#define PVP_NONSPIKING_ACT_FILE_TYPE  4 // File type of the a%d.pvp files for spiking layers and checkpoint files for all layers
+#define PVP_NONSPIKING_ACT_FILE_TYPE  4 // File type of the a%d.pvp files for nonspiking layers and checkpoint files for all layers
 #define PVP_KERNEL_FILE_TYPE 5 // File type of the w%d.pvp, w%d_last.pvp, and checkpoint files for KernelConns
+#define PVP_ACT_SPARSEVALUES_FILE_TYPE 6 // File type for sparse layers where activity is sparse but continuously valued
 
 #define INDEX_HEADER_SIZE  0
 #define INDEX_NUM_PARAMS   1

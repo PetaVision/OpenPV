@@ -133,9 +133,11 @@ protected:
    virtual void readInitialWriteTime(PVParams * params);
    virtual void readPhase(PVParams * params);
    virtual void readWriteSparseActivity(PVParams * params);
+   virtual void readWriteSparseValues(PVParams * params);
    virtual void readMirrorBCFlag(PVParams * params);
    virtual void readValueBC(PVParams * params);
    virtual void readRestart(PVParams * params);
+   void handleUnnecessaryBoolParameter(const char * paramName, int correctValue);
 
    int freeClayer();
 
@@ -233,7 +235,7 @@ public:
    virtual int readState (double * timef);
    virtual int outputState(double timef, bool last=false);
    virtual int writeActivity(double timed);
-   virtual int writeActivitySparse(double timed);
+   virtual int writeActivitySparse(double timed, bool includeValues);
 
    virtual int insertProbe(LayerProbe * probe);
 
@@ -354,7 +356,8 @@ protected:
    double writeTime;             // time of next output
    float writeStep;             // output time interval
 
-   bool writeSparseActivity;
+   bool writeSparseActivity; // if true, only nonzero activities are saved; if false, all values are saved.
+   bool writeSparseValues; // if true, writeSparseActivity writes index-value pairs.  if false, writeSparseActivity writes indices only and values are assumed to be 1.  Not used if writeSparseActivity is false
    int writeActivityCalls;      // Number of calls to writeActivity (written to nbands in the header of the a%d.pvp file)
    int writeActivitySparseCalls; // Number of calls to writeActivitySparse (written to nbands in the header of the a%d.pvp file)
 

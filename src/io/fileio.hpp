@@ -20,6 +20,12 @@
 
 #include <unistd.h>
 
+// index/value pairs used by writeActivitySparseNonspiking()
+typedef struct indexvaluepair_ {
+    unsigned int index;
+    pvdata_t value;
+} indexvaluepair;
+
 namespace PV {
 
 void timeToParams(double time, void * params);
@@ -66,7 +72,9 @@ int pvp_read_time(PV_Stream * pvstream, Communicator * comm, int root_process, d
 
 int writeActivity(PV_Stream * pvstream, Communicator * comm, double time, PVLayer * l);
 
-int writeActivitySparse(PV_Stream * pvstream, Communicator * comm, double time, PVLayer * l);
+int writeActivitySparse(PV_Stream * pvstream, Communicator * comm, double time, PVLayer * l, bool includeValues);
+
+int writeActivitySparseValues(PV_Stream * pvstream, Communicator * comm, double time, PVLayer * l);
 
 int readWeights(PVPatch *** patches, pvdata_t ** dataStart, int numArbors, int numPatches, const char * filename,
                 Communicator * comm, double * timed, const PVLayerLoc * loc, bool * shmget_owner = NULL, bool shmget_flag = false);

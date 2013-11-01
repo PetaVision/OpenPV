@@ -562,6 +562,7 @@ int HyPerLayer::setParams(PVParams * inputParams)
    readWriteStep(inputParams);
    readPhase(inputParams);
    readWriteSparseActivity(inputParams);
+   readWriteSparseValues(inputParams);
    readMirrorBCFlag(inputParams);
    readValueBC(inputParams);
    readRestart(inputParams);
@@ -618,6 +619,12 @@ void HyPerLayer::readWriteSparseActivity(PVParams * params) {
    writeSparseActivity = (bool) params->value(name, "writeSparseActivity", 0);
 }
 
+void HyPerLayer::readWriteSparseValues(PVParams * params) {
+   assert(!params->presentAndNotBeenRead(name, "writeSparseActivity"));
+   if (writeSparseActivity)
+      writeSparseValues = params->value(name, "writeSparseValues", 0/*default*/, true/*warnIfAbsent*/) != 0;
+}
+
 void HyPerLayer::readMirrorBCFlag(PVParams * params) {
    mirrorBCflag = (bool) params->value(name, "mirrorBCflag", mirrorBCflag);
 }
@@ -631,6 +638,28 @@ void HyPerLayer::readValueBC(PVParams * params) {
 
 void HyPerLayer::readRestart(PVParams * params) {
    restartFlag = params->value(name, "restart", 0.0f) != 0.0f;
+}
+
+// TODO: use templates and std::cerr for handleUnnecessary*Parameter functions
+void HyPerLayer::handleUnnecessaryBoolParameter(const char * paramName, int correctValue) {
+   int status = PV_SUCCESS;
+   PVParams * params = parent->parameters();
+   const char * classname = params->groupKeywordFromName(name);
+   if (params->present(name, paramName)) {
+      if (parent->columnId()==0) {
+         fprintf(stderr, "Layer \"%s\" warning: class \"%s\" does not read parameter %s but determines it from other param(s).\n",
+               name, classname, paramName);
+      }
+      if ((bool) params->value(name, paramName)!=correctValue) {
+         status = PV_FAILURE;
+         if (parent->columnId()==0) {
+            fprintf(stderr, "    Value %d is inconsistent with correct value %d.  Exiting.\n",
+                  (int) params->value(name, paramName), correctValue);
+         }
+      }
+   }
+   MPI_Barrier(parent->icCommunicator()->communicator());
+   if (status != PV_SUCCESS) exit(EXIT_FAILURE);
 }
 
 #ifdef PV_USE_OPENCL
@@ -1627,7 +1656,7 @@ int HyPerLayer::outputState(double timef, bool last)
    if (timef >= writeTime && writeStep >= 0) {
       writeTime += writeStep;
       if (writeSparseActivity) {
-         status = writeActivitySparse(timef);
+         status = writeActivitySparse(timef, writeSparseValues);
       }
       else {
          status = writeActivity(timef);
@@ -2041,9 +2070,9 @@ int HyPerLayer::readState(double * timef)
    return checkpointRead(last_dir, timef);
 }
 
-int HyPerLayer::writeActivitySparse(double timed)
+int HyPerLayer::writeActivitySparse(double timed, bool includeValues)
 {
-   int status = PV::writeActivitySparse(clayer->activeFP, parent->icCommunicator(), timed, clayer);
+   int status = PV::writeActivitySparse(clayer->activeFP, parent->icCommunicator(), timed, clayer, includeValues);
    incrementNBands(&writeActivitySparseCalls);
    return status;
 }
