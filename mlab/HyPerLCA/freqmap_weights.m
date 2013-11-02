@@ -49,8 +49,8 @@ num_weight_dims = ndims(weight_vals);
 num_patches     = size(weight_vals, num_weight_dims);
 num_patches     = min(num_patches, max_patches);
 
-num_patches_rows  = floor(sqrt(num_patches));
-num_patches_cols  = ceil(num_patches / num_patches_rows);
+%num_patches_rows  = floor(sqrt(num_patches));
+%num_patches_cols  = ceil(num_patches / num_patches_rows);
 num_weight_colors = 1;
 if num_weight_dims == 4
     num_weight_colors = size(weight_vals,3);
@@ -60,7 +60,9 @@ end
 
 sum_weight_colors = true;
 
-for i_patch = 1:1%num_patches
+bin_vals = zeros(num_patches,size(weight_vals,1));
+
+for i_patch = 1:5%num_patches
     if num_weight_colors == 1
         patch_tmp = squeeze(weight_vals(:,:,i_patch));
     else
@@ -75,7 +77,6 @@ for i_patch = 1:1%num_patches
     center = floor(size(patch_tmp,1)/2);
     [Y,X] = meshgrid(1:size(patch_tmp,1));
 
-    bin_vals = zeros(1,size(patch_tmp,1));
     i=1;
     for radius = 0:size(patch_tmp,1)
         mask1 = sqrt((Y-center).^2+(X-center).^2)<=radius;
@@ -84,8 +85,9 @@ for i_patch = 1:1%num_patches
 
         masked_fft = patch_fft .* mask;
 
-        bin_vals(i) = sum(real(masked_fft(:)).^2);
+        bin_vals(i_patch,i) = sum(real(masked_fft(:)).^2);
 
         i = i + 1;
     end
 end
+
