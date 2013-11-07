@@ -19,16 +19,16 @@ HyPerCol "column" = {
     ny = 240;
     dt = 1.0;
     randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
-    numSteps = 135240;
+    numSteps = 192882;
     progressStep = 100;
-    outputPath = "/nh/compneuro/Data/vine/retina/output_spikerun";
+    outputPath = "/nh/compneuro/Data/vine/retina/output_spikerun1";
     filenamesContainLayerNames = true;
     filenamesContainConnectionNames = true;
     checkpointRead = true;
-    checkpointReadDir = "/nh/compneuro/Data/vine/retina/output_spikerun";
-    checkpointReadDirIndex = 128800;
-    checkpointWrite = true;
-    checkpointWriteDir = "/nh/compneuro/Data/vine/retina/output_spikerun";
+    checkpointReadDir = "/nh/compneuro/Data/vine/retina/output_spikerun1";
+    checkpointReadDirIndex = 173610;
+    checkpointWrite =true;
+    checkpointWriteDir = "/nh/compneuro/Data/vine/retina/output_spikerun1";
     checkpointWriteStepInterval = 10000;
     deleteOlderCheckpoints = false;
     //suppressLastOutput = false;
@@ -44,7 +44,7 @@ Movie "ImageON" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
-    imageListPath = "/nh/compneuro/Data/vine/list/spikes/filenames_CatVineON.txt";
+    imageListPath = "/nh/compneuro/Data/vine/list/spikes/filenames_catfishmodeltoddlertrampolineSpikesON.txt";
     nf = 1;
     writeStep = -1;
     writeSparseActivity = false;
@@ -71,7 +71,7 @@ Movie "ImageOFF" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
-    imageListPath = "/nh/compneuro/Data/vine/list/spikes/filenames_CatVineOFF.txt";
+    imageListPath = "/nh/compneuro/Data/vine/list/spikes/filenames_catfishmodeltoddlertrampolineSpikesOFF.txt";
     nf = 1;
     writeStep = -1;
     writeSparseActivity = false;
@@ -136,7 +136,7 @@ HyPerLCALayer "V1" = {
     restart = 0;
     nxScale = 0.25;
     nyScale = 0.25;
-    nf = 128;
+    nf = 512;
     numChannels = 1;
     initialWriteTime = 998.0;
     writeStep = 1000.0;
@@ -148,7 +148,7 @@ HyPerLCALayer "V1" = {
     timeConstantTau = 200.0;
     timeConstantTauMinimum = 10.0;
     slopeErrorStd = 0.01;
-    VThresh = 0.2;
+    VThresh = 0.05;
     VMax = infinity;
     VMin = 0;
     VShift = 0.0;  // 0 -> hard threshold, 1 -> soft threshold
@@ -159,42 +159,42 @@ HyPerLCALayer "V1" = {
 };
 
 
-//ANNLayer "ReconON" = {
-//    restart = 0;
-//    nxScale = 1;
-//    nyScale = 1;
-//    nf = 16;
-//    initialWriteTime = 998.0;
-//    writeStep = 1000.0;
-//    mirrorBCflag = 0;
-//    writeSparseActivity = 0;
-//    InitVType = "ZeroV";    
-//    VThresh = -infinity;
-//    VMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
-//    VMin = -infinity;
-//    VShift = 0;
-//    valueBC = 0;   
-//    phase = 4;
-//};
+ANNLayer "ReconON" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 16;
+    initialWriteTime = 998.0;
+    writeStep = 1000.0;
+    mirrorBCflag = 0;
+    writeSparseActivity = 0;
+    InitVType = "ZeroV";    
+    VThresh = -infinity;
+    VMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
+    VMin = -infinity;
+    VShift = 0;
+    valueBC = 0;   
+    phase = 4;
+};
 
 
-//ANNLayer "ReconOFF" = {
-//    restart = 0;
-//    nxScale = 1;
-//    nyScale = 1;
-//    nf = 16;
-//    initialWriteTime = 998.0;
-//    writeStep = 1000.0;
-//    mirrorBCflag = 0;
-//    writeSparseActivity = 0;
-//    InitVType = "ZeroV";
-//    VThresh = -infinity;
-//    VMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
-//    VMin = -infinity;
-//    VShift = 0;
-//    valueBC = 0;
-//    phase = 4;
-//};
+ANNLayer "ReconOFF" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 16;
+    initialWriteTime = 998.0;
+    writeStep = 1000.0;
+    mirrorBCflag = 0;
+    writeSparseActivity = 0;
+    InitVType = "ZeroV";
+    VThresh = -infinity;
+    VMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
+    VMin = -infinity;
+    VShift = 0;
+    valueBC = 0;
+    phase = 4;
+};
 
 
 
@@ -382,61 +382,61 @@ TransposeConn "ErrorOFFToV1" = {
 };
 
 
-//CloneKernelConn "V1ToReconON" = {
-//    preLayerName = "V1";
-//    postLayerName = "ReconON";
-//    channelCode = 0;
-//    writeStep = -1;
-//    originalConnName = "V1ToErrorON";
-//    selfFlag = false;
-//   pvpatchAccumulateType = "convolve";
-//    delay = 0;
-//    preActivityIsNotRate = false;
-//    updateGSynFromPostPerspective = 0;
-//    writeCompressedCheckpoints = 0;
-//};
+CloneKernelConn "V1ToReconON" = {
+    preLayerName = "V1";
+    postLayerName = "ReconON";
+    channelCode = 0;
+    writeStep = -1;
+    originalConnName = "V1ToErrorON";
+    selfFlag = false;
+   pvpatchAccumulateType = "convolve";
+    delay = 0;
+    preActivityIsNotRate = false;
+    updateGSynFromPostPerspective = 0;
+    writeCompressedCheckpoints = 0;
+};
 
 
-//CloneKernelConn "V1ToReconOFF" = {
-//    preLayerName = "V1";
-//    postLayerName = "ReconOFF";
-//    channelCode = 0;
-//    writeStep = -1;
-//    originalConnName = "V1ToErrorOFF";
-//    selfFlag = false;
-//    pvpatchAccumulateType = "convolve";
-//    delay = 0;
-//    preActivityIsNotRate = false;
-//    updateGSynFromPostPerspective = 0;
-//    writeCompressedCheckpoints = 0;
-//};
+CloneKernelConn "V1ToReconOFF" = {
+    preLayerName = "V1";
+    postLayerName = "ReconOFF";
+    channelCode = 0;
+    writeStep = -1;
+    originalConnName = "V1ToErrorOFF";
+    selfFlag = false;
+    pvpatchAccumulateType = "convolve";
+    delay = 0;
+    preActivityIsNotRate = false;
+    updateGSynFromPostPerspective = 0;
+    writeCompressedCheckpoints = 0;
+};
 
 
 
 // Probes
 
 
-//StatsProbe "ErrorONStatsFile" = {
-//    targetLayer = "ErrorON";
-//    probeOutputFile = "Error_StatsON.txt";
-//};
+StatsProbe "ErrorONStatsFile" = {
+    targetLayer = "ErrorON";
+    probeOutputFile = "Error_StatsON.txt";
+};
 
-//StatsProbe "ErrorOFFStatsFile" = {
-//    targetLayer = "ErrorOFF";
-//    probeOutputFile = "Error_StatsOFF.txt";
-//};
+StatsProbe "ErrorOFFStatsFile" = {
+    targetLayer = "ErrorOFF";
+    probeOutputFile = "Error_StatsOFF.txt";
+};
 
-//StatsProbe "V1StatsFile" = {
-//    targetLayer = "V1";
-//    probeOutputFile = "V1_Stats.txt";
-//};
+StatsProbe "V1StatsFile" = {
+    targetLayer = "V1";
+    probeOutputFile = "V1_Stats.txt";
+};
 
-//StatsProbe "ReconONStatsFile" = {
-//    targetLayer = "ReconON";
-//    probeOutputFile = "Recon_StatsON.txt";
-//};
+StatsProbe "ReconONStatsFile" = {
+    targetLayer = "ReconON";
+    probeOutputFile = "Recon_StatsON.txt";
+};
 
-//StatsProbe "ReconOFFStatsFile" = {
-//    targetLayer = "ReconOFF";
-//    probeOutputFile = "Recon_StatsOFF.txt";
-//};
+StatsProbe "ReconOFFStatsFile" = {
+    targetLayer = "ReconOFF";
+    probeOutputFile = "Recon_StatsOFF.txt";
+};
