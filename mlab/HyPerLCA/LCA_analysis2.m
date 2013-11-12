@@ -5,11 +5,11 @@ close all;
 global plot_flag %% if true, plot graphical output to screen, else do not generate graphical outputy
 plot_flag = true;
 global load_flag %% if true, then load "saved" data structures rather than computing them 
-load_flag = false;
+load_flag = true;
 if plot_flag
   setenv("GNUTERM","X11")
 endif
-no_clobber = true;
+no_clobber = false;
 
 %% machine/run_type environment
 if ismac
@@ -25,14 +25,14 @@ elseif isunix
   workspace_path = "/home/gkenyon/workspace";
   %%run_type = "noPulvinar"; %%
   %%run_type = "color_deep"; %%
-  run_type = "noTopDown"; %%
-  %%run_type = "lateral"; %% 
+  %%run_type = "noTopDown"; %%
+  run_type = "lateral"; %% 
   %%run_type = "deep_plus_noise";%%
   %%run_type = "V1";
   if strcmp(run_type, "color_deep")
-    %%output_dir = "/nh/compneuro/Data/vine/LCA/2013_02_01/output_2013_02_01_12x12x128_lambda_05X2_deep"; 
-    output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_24/output_2013_01_24_how2catchSquirrel_12x12x128_lambda_05X4_deep";
-    checkpoint_dir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_2013_01_31_12x12x128_lambda_05X2_deep"; %%output_dir; 
+    %%output_dir = "/nh/compneuro/Data/vine/LCA/2013_02_01/output_2013_02_01_12x12x128_lambda_05X1_deep"; 
+    output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_24/output_2013_01_24_how2catchSquirrel_12x12x128_lambda_05X2_realtime_deep";
+    checkpoint_dir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_2013_01_31_12x12x128_lambda_05X2_noise_05_deep"; %%output_dir; 
     checkpoint_parent = "/nh/compneuro/Data/vine/LCA";
     checkpoint_children = {"2013_01_24/output_2013_01_24_how2catchSquirrel_12x12x128_lambda_05X4_deep"}; 
 %%    checkpoint_children = {"2013_02_01/output_2013_02_01_12x12x128_lambda_05X2_deep"}; 
@@ -48,10 +48,10 @@ elseif isunix
     last_checkpoint_ndx = 7000000;
   elseif strcmp(run_type, "noTopDown")
     %%output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_28/output_2013_01_28_12x12x128_lambda_05X2_noTopDown"; 
-    output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_24/output_2013_01_24_how2catchSquirrel_12x12x128_lambda_05X1_noTopDown";
+    output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_24/output_2013_01_24_how2catchSquirrel_12x12x128_lambda_05X4_noTopDown";
     checkpoint_dir = output_dir;%%"/nh/compneuro/Data/vine/LCA/2013_01_31/output_2013_01_31_12x12x128_lambda_05X2_noTopDown"; %% 
     checkpoint_parent = "/nh/compneuro/Data/vine/LCA";
-    checkpoint_children = {"2013_01_28/output_2013_01_24_how2catchSquirrel_12x12x128_lambda_05X1_noTopDown"};
+    checkpoint_children = {"2013_01_24/output_2013_01_24_how2catchSquirrel_12x12x128_lambda_05X4_noTopDown"};
 %%    checkpoint_children = {"2013_01_31/output_2013_01_31_12x12x128_lambda_05X2_noTopDown"; ...
 %%			   "2013_01_30/output_2013_01_30_12x12x128_lambda_05X2_noTopDown"; ...
 %%			   "2013_01_29/output_2013_01_29_12x12x128_lambda_05X2_noTopDown"}; %%"; ...
@@ -68,26 +68,29 @@ elseif isunix
     checkpoint_parent = "/nh/compneuro/Data/vine/LCA";
     checkpoint_children = {"2013_01_31/output_2013_01_31_12x12x160_lambda_05X2_V1"};
   elseif strcmp(run_type, "noPulvinar")
-    output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_26/output_2013_01_26_12x12x128_lambda_05X2_noPulvinar"; 
-    %%output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_24/output_2013_01_24_how2catchSquirrel_12x12x128_lambda_05X4_noPulvinar";
+    %%output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_25/output_2013_01_25_12x12x128_lambda_05X2_noPulvinar"; 
+    %%output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_24/output_2013_01_24_how2catchSquirrel_12x12x128_lambda_05X2_noPulvinar";
+    output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_24/output_2013_01_24_how2catchSquirrel_12x12x128_lambda_05X1_noPulvinar";
     checkpoint_dir = output_dir;
     checkpoint_parent = "/nh/compneuro/Data/vine/LCA";
-    checkpoint_children = {"2013_01_26/output_2013_01_26_12x12x128_lambda_05X2_noPulvinar"}; ...
+    checkpoint_children = {"2013_01_24/output_2013_01_24_how2catchSquirrel_12x12x128_lambda_05X1_noPulvinar"}; 
+    %%checkpoint_children = {"2013_01_24/output_2013_01_24_12x12x128_lambda_05X2_noPulvinar"}; ...
+%%    checkpoint_children = {"2013_01_24/output_2013_01_24_how2catchSquirrel_12x12x128_lambda_05X4_noPulvinar"}; ...
 %%    checkpoint_children = {"2013_01_31/output_2013_01_31_12x12x128_lambda_05X2_noPulvinar"; ...
 %%			   "2013_01_30/output_2013_01_30_12x12x128_lambda_05X2_noPulvinar"; ...
 %%			   "2013_01_29/output_2013_01_29_12x12x128_lambda_05X2_noPulvinar"; ...
-%%			   "2013_01_28/output_2013_01_28_12x12x128_lambda_05X2_noPulvinar"}; %%; ...
-%%			   %%"2013_01_27/output_2013_01_27_12x12x128_lambda_05X2_noPulvinar"; ...
-%%			   %%"2013_01_26/output_2013_01_26_12x12x128_lambda_05X2_noPulvinar"; ...
-%%			   %%"2013_01_25/output_2013_01_25_12x12x128_lambda_05X2_noPulvinar"; ...
+%%			   "2013_01_28/output_2013_01_28_12x12x128_lambda_05X2_noPulvinar"; ...
+%%			   "2013_01_27/output_2013_01_27_12x12x128_lambda_05X2_noPulvinar"; ...
+%%			   "2013_01_26/output_2013_01_26_12x12x128_lambda_05X2_noPulvinar"; ...
+%%			   "2013_01_25/output_2013_01_25_12x12x128_lambda_05X2_noPulvinar"}; %%; ...
 %%			   %%"2013_01_24/output_2013_01_24_12x12x128_lambda_05X2_noPulvinar"; ...
 %%			   %%"2013_02_01/output_2013_02_01_12x12x128_lambda_05X2_noPulvinar"};
     last_checkpoint_ndx = 2700000;
   elseif strcmp(run_type, "lateral")
-    output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_30/output_2013_01_30_12x12x128_lambda_05X2_lateral"; 
+    output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_2013_01_31_12x12x128_3x3_9x9x256_lambda_05X1_lateral"; 
     checkpoint_dir =  output_dir;
     checkpoint_parent = "/nh/compneuro/Data/vine/LCA";
-    checkpoint_children = {"2013_01_30/output_2013_01_30_12x12x128_lambda_05X2_lateral"};
+    checkpoint_children = {"2013_01_31/output_2013_01_31_12x12x128_3x3_9x9x256_lambda_05X1_lateral"};
   endif
 endif %% isunix
 addpath([workspace_path, filesep, "/PetaVision/mlab/util"]);
@@ -116,31 +119,34 @@ checkpoint_weights_movie = true; %% make movie of weights over time using list o
 %% plot Reconstructions
 plot_Recon = true;
 if plot_Recon
-  num_Recon_default = 4; %%196;
+  num_Recon_default = 4; %%196; %%5880; %%
   if strcmp(run_type, "color_deep") || strcmp(run_type, "noTopDown")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% deep list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%    Recon_list = ...
+%%	{["a1_"], ["Bipolar"];
+%%	 ["a2_"], ["Ganglion"];
+%%	 ["a5_"], ["Recon"];
+%%	 ["a8_"], ["Recon2"];
+%%	 ["a11_"], ["ReconInfra"];
+%%	 ["a11_"], ["ReconInfra"]};
     Recon_list = ...
-	{["a1_"], ["Bipolar"];
-	 ["a2_"], ["Ganglion"];
-	 ["a5_"], ["Recon"];
-	 ["a8_"], ["Recon2"];
-	 ["a11_"], ["ReconInfra"];
+	{["a5_"], ["Recon"]; ...
 	 ["a11_"], ["ReconInfra"]};
     %% list of layers to unwhiten
     num_Recon_list = size(Recon_list,1);
     unwhiten_list = zeros(num_Recon_list,1);
-    unwhiten_list([2,3,5,6]) = 1;
+    %%unwhiten_list([2,3,5,6]) = 1;
     %% list of layers to use as a normalization reference for unwhitening
     normalize_list = 1:num_Recon_list;
-    normalize_list(2) = 1;
-    normalize_list(3) = 1;
-    normalize_list(5) = 1;
-    normalize_list(6) = 1;
+    %%normalize_list(2) = 1;
+    %%normalize_list(3) = 1;
+    %%normalize_list(5) = 1;
+    %%normalize_list(6) = 1;
     %% list of (previous) layers to sum with current layer
     sum_list = cell(num_Recon_list,1);
-    sum_list{6} = 3;
+    sum_list{2} = 1;
   elseif strcmp(run_type, "CIFAR_noTask_deep") 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% CIFAR_noTask_deep list
@@ -167,10 +173,13 @@ if plot_Recon
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% noPulvinar list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%    Recon_list = ...
+%%	{["a1_"], ["Bipolar"];
+%%	 ["a2_"], ["Ganglion"];
+%%	 ["a5_"], ["Recon"];
+%%	 ["a9_"], ["ReconInfra"]};
     Recon_list = ...
-	{["a0_"], ["Image"];
-	 ["a2_"], ["Ganglion"];
-	 ["a5_"], ["Recon"];
+	{["a5_"], ["Recon"];
 	 ["a9_"], ["ReconInfra"]};
     %% list of layers to unwhiten
     num_Recon_list = size(Recon_list,1);
@@ -855,7 +864,8 @@ if plot_Sparse
       
       Sparse_percent_change_fig = figure;
       Sparse_percent_change_hndl = plot(Sparse_times, Sparse_percent_change); 
-      axis([Sparse_times(1) Sparse_times(num_Sparse_frames) 0 1]); %%axis tight;
+      set(Sparse_percent_change_hndl, "linewidth", 1.5);
+      axis([Sparse_times(1) Sparse_times(end) 0 1]); %%axis tight;
       set(Sparse_percent_change_fig, ...
 	  "name", ["percent_change_", Sparse_list{i_Sparse,2}, "_", num2str(Sparse_times(num_Sparse_frames), "%08d")]);
       saveas(Sparse_percent_change_fig, ...
@@ -864,6 +874,7 @@ if plot_Sparse
       
       Sparse_percent_active_fig = figure;
       Sparse_percent_active_hndl = plot(Sparse_times, Sparse_percent_active); axis tight;
+      set(Sparse_percent_active_hndl, "linewidth", 1.5);
       set(Sparse_percent_active_fig, "name", ["percent_active_", Sparse_list{i_Sparse,2}, "_", ...
 					  num2str(Sparse_times(num_Sparse_frames), "%08d")]);
       saveas(Sparse_percent_active_fig, ...
@@ -905,16 +916,19 @@ if plot_nonSparse && plot_flag
     nonSparse_list = ...
         {["a3_"], ["Error"]; ...
          ["a6_"], ["Error2"]; ...
-         ["a9_"], ["Error1_2"]};
+         ["a9_"], ["Error1_2"]; ...
+	 ["a15_"], ["NoiselessError"]};
     num_nonSparse_list = size(nonSparse_list,1);
     nonSparse_skip = repmat(1, num_nonSparse_list, 1);
     nonSparse_skip(1) = 1;
     nonSparse_skip(2) = 1;
     nonSparse_skip(3) = 1;
+    nonSparse_skip(4) = 1;
     nonSparse_norm_list = ...
         {["a2_"], ["Ganglion"]; ...
          ["a8_"], ["Recon2"]; ...
-         ["a10_"], ["V1Infra"]};
+         ["a10_"], ["V1Infra"]; ...
+         ["a14_"], ["NoiselessGanglion"]};
     nonSparse_norm_strength = ones(num_nonSparse_list,1);
     %%%%%%%%%%%%%%%%%%%%%%%%e%%%%%%%%%%%%%%%%%%%%
   elseif strcmp(run_type, "CIFAR_noTask_deep") 
@@ -943,14 +957,21 @@ if plot_nonSparse && plot_flag
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     nonSparse_list = ...
         {["a3_"], ["Error"]; ...
-         ["a7_"], ["Error1_2"]};
+         ["a7_"], ["Error1_2"]; ...
+	 ["a13_"], ["NoiselessError"]};
+%%    nonSparse_list = ...
+%%        {["a3_"], ["Error"]};
     num_nonSparse_list = size(nonSparse_list,1);
     nonSparse_skip = repmat(1, num_nonSparse_list, 1);
     nonSparse_skip(1) = 1;
     nonSparse_skip(2) = 1;
+    nonSparse_skip(3) = 1;
     nonSparse_norm_list = ...
         {["a2_"], ["Ganglion"]; ...
-         ["a8_"], ["V1Infra"]};
+         ["a8_"], ["V1Infra"]; ...
+         ["a12_"], ["NoiselessGanglion"]};
+%%    nonSparse_norm_list = ...
+%%        {[], []};
     nonSparse_norm_strength = ones(num_nonSparse_list,1);
     %%%%%%%%%%%%%%%%%%%%%%%%e%%%%%%%%%%%%%%%%%%%%
   elseif strcmp(run_type, "V1")
@@ -1031,6 +1052,9 @@ if plot_nonSparse && plot_flag
   if status ~= 1
     warning(["mkdir(", nonSparse_dir, ")", " msg = ", msg]);
   endif 
+  nonSparse_RMS_fig = zeros(num_nonSparse_list,1);
+  max_nonSparse_RMS = zeros(num_nonSparse_list,1);
+  min_nonSparse_RMS = zeros(num_nonSparse_list,1);
   for i_nonSparse = 1 : num_nonSparse_list
     nonSparse_file = [output_dir, filesep, nonSparse_list{i_nonSparse,1}, nonSparse_list{i_nonSparse,2}, ".pvp"]
     if ~exist(nonSparse_file, "file")
@@ -1051,6 +1075,7 @@ if plot_nonSparse && plot_flag
     nonSparse_times = zeros(num_nonSparse_frames,1);
     nonSparse_RMS = zeros(num_nonSparse_frames,1);
 
+    num_nonSparse_norm_frames = 0;
     if ~isempty(nonSparse_norm_list{i_nonSparse,1}) && ~isempty(nonSparse_norm_list{i_nonSparse,2})
       nonSparse_norm_file = ...
 	  [output_dir, filesep, nonSparse_norm_list{i_nonSparse,1}, ...
@@ -1071,9 +1096,12 @@ if plot_nonSparse && plot_flag
       nonSparse_norm_struct = [];
     endif %% ~isempty(nonSparse_norm_list{i_nonSparse,1})
 
-    frame_diff = ...
-	(nonSparse_struct{num_nonSparse_frames}.time - nonSparse_struct{1}.time) / ...
-	num_nonSparse_frames;
+    frame_diff = 0;
+    if num_nonSparse_norm_frames > 0
+      frame_diff = ...
+	  max((nonSparse_struct{num_nonSparse_frames}.time - nonSparse_norm_struct{num_nonSparse_norm_frames}.time), ...
+	      1);
+    endif
     for i_frame = 1 : 1 : num_nonSparse_frames
       if ~isempty(nonSparse_struct{i_frame})
 	nonSparse_times(i_frame) = squeeze(nonSparse_struct{i_frame}.time);
@@ -1090,7 +1118,7 @@ if plot_nonSparse && plot_flag
 	    endif
 	    nonSparse_norm_time = nonSparse_norm_struct{i_frame-nonSparse_time_shift}.time;
 	  endwhile
-	  while (nonSparse_norm_time - nonSparse_times(i_frame)) < frame_diff
+	  while (nonSparse_norm_time - nonSparse_times(i_frame)) < -frame_diff
 	    nonSparse_time_shift = nonSparse_time_shift - 1;
 	    if (i_frame-nonSparse_time_shift) > num_nonSparse_norm_frames
 	      break;
@@ -1125,15 +1153,18 @@ if plot_nonSparse && plot_flag
       nonSparse_RMS_fig(i_nonSparse) = figure;
       normalized_nonSparse_RMS = nonSparse_RMS ./ (nonSparse_norm_RMS + (nonSparse_norm_RMS==0));
       nonSparse_RMS_hndl = plot(nonSparse_times, normalized_nonSparse_RMS); 
+      set(nonSparse_RMS_hndl, "linewidth", 1.5);
       max_nonSparse_RMS(i_nonSparse) = max(normalized_nonSparse_RMS(:));
       min_nonSparse_RMS(i_nonSparse) = min(normalized_nonSparse_RMS(:));
 %%      axis(nonSparse_times(1) nonSparse_times(num_nonSparse_frames) ...
 %%	   min_nonSparse_RMS(i_nonSparse) max_nonSparse_RMS(i_nonSparse));
-      set(nonSparse_RMS_fig, "name", ...
-	  ["RMS_", nonSparse_list{i_nonSparse,2}, "_", num2str(nonSparse_times(num_nonSparse_frames), "%08d")]);
+      set(nonSparse_RMS_fig(i_nonSparse), "name", ...
+	  ["RMS_", nonSparse_list{i_nonSparse,2}, "_", nonSparse_norm_list{i_nonSparse,2}, "_", ...
+	   num2str(nonSparse_times(num_nonSparse_frames), "%08d")]);
       saveas(nonSparse_RMS_fig(i_nonSparse), ...
 	     [nonSparse_dir, filesep, ...
-	      "RMS_", nonSparse_list{i_nonSparse,2}, "_", num2str(nonSparse_times(num_nonSparse_frames), "%08d")], "png");
+	      "RMS_", nonSparse_list{i_nonSparse,2}, "_", nonSparse_norm_list{i_nonSparse,2}, "_", ...
+	      num2str(nonSparse_times(num_nonSparse_frames), "%08d")], "png");
     endif
     nonSparse_median_RMS = median(nonSparse_RMS(:) ./ (nonSparse_norm_RMS + (nonSparse_norm_RMS==0)));
     disp([nonSparse_list{i_nonSparse,2}, "_", num2str(nonSparse_times(num_nonSparse_frames), "%i"), ...
@@ -1141,6 +1172,7 @@ if plot_nonSparse && plot_flag
     nonSparse_times_array{i_nonSparse} = nonSparse_times;
     nonSparse_RMS_array{i_nonSparse} = nonSparse_RMS;
     nonSparse_norm_RMS_array{i_nonSparse} = nonSparse_norm_RMS;
+    %%keyboard;
   endfor  %% i_nonSparse
 endif %% plot_nonSparse
 
@@ -1152,7 +1184,7 @@ endif %% plot_nonSparse
 
 plot_ErrorVsSparse = true && plot_Sparse && plot_nonSparse;
 if plot_ErrorVsSparse
-  Sparse_axis_index = [1,2,2];
+  Sparse_axis_index = [1,2,2,1];
   for i_nonSparse = 1 : num_nonSparse_list
     i_Sparse = Sparse_axis_index(i_nonSparse);
     nonSparse_times = nonSparse_times_array{i_nonSparse};
@@ -1220,13 +1252,14 @@ if plot_ErrorVsSparse
 	       normalized_nonSparse_RMS, ...
 	       "."); 
       if max_nonSparse_RMS <= 1.0
-	axis([0.95 1.0 0 1.0]);
+	axis([min(min_Sparse_val,0.90) 1.0 0 1.0]);
       else
-	axis([0.95 1.0 0 max_nonSparse_RMS]);
+	axis([min(min_Sparse_val,0.90) 1.0 0 max_nonSparse_RMS]);
       endif
       hold on
       eh = errorbar(Sparse_bins+skip_Sparse_val/2, mean_nonSparse_RMS, std_nonSparse_RMS);
       set(eh, "color", [0 0 0]);
+      set(eh, "linewidth", 1.5);
       set(ErrorVsSparse_fig, "name", ...
 	  ["ErrorVsSparse_", nonSparse_list{i_nonSparse,2}, "_", ...
 	   num2str(nonSparse_times(num_nonSparse_frames), "%08d")]);
@@ -1236,7 +1269,7 @@ if plot_ErrorVsSparse
 	      num2str(nonSparse_times(num_nonSparse_frames), "%08d")], "png");
     endif %% plot_flag
     save("-mat", ...
-	 [nonSparse_dir, filesep, "ErrorVsSparse__", nonSparse_list{i_nonSparse,2}, "_", ...
+	 [nonSparse_dir, filesep, "ErrorVsSparse_", nonSparse_list{i_nonSparse,2}, "_", ...
 	  num2str(nonSparse_times(num_nonSparse_frames), "%08d"), ".mat"], ...
 	 "nonSparse_times", "Sparse_vals", "nonSparse_RMS", "nonSparse_norm_RMS", ...
 	 "Sparse_bins", "mean_nonSparse_RMS", "std_nonSparse_RMS");	 
@@ -1258,6 +1291,8 @@ if plot_ReconError && plot_flag
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     ReconError_list = ...
         {["a5_"], ["Recon"]; ...
+         ["a11_"], ["ReconInfra"]; ...
+	 ["a5_"], ["Recon"]; ...
          ["a11_"], ["ReconInfra"]};
     num_ReconError_list = size(ReconError_list,1);
     ReconError_skip = repmat(1, num_ReconError_list, 1);
@@ -1265,8 +1300,11 @@ if plot_ReconError && plot_flag
     ReconError_skip(2) = 1;
     ReconError_norm_list = ...
         {["a2_"], ["Ganglion"]; ...
-         ["a2_"], ["Ganglion"]};
+         ["a2_"], ["Ganglion"]; ...
+	 ["a14_"], ["NoiselessGanglion"]; ...
+         ["a14_"], ["NoiselessGanglion"]};
     ReconError_norm_strength = ones(num_ReconError_list,1);
+    ReconError_nonSparse_ndx = [1 1 4 4];
   elseif strcmp(run_type, "CIFAR_noTask_deep") 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% CIFAR_noTask_deep list
@@ -1289,15 +1327,22 @@ if plot_ReconError && plot_flag
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     ReconError_list = ...
         {["a5_"], ["Recon"]; ...
+         ["a9_"], ["ReconInfra"]; ...
+	 ["a5_"], ["Recon"]; ...
          ["a9_"], ["ReconInfra"]};
     num_ReconError_list = size(ReconError_list,1);
     ReconError_skip = repmat(1, num_ReconError_list, 1);
     ReconError_skip(1) = 1;
     ReconError_skip(2) = 1;
+
     ReconError_norm_list = ...
         {["a2_"], ["Ganglion"]; ...
-         ["a2_"], ["Ganglion"]};
+         ["a2_"], ["Ganglion"]; ...
+	 ["a12_"], ["NoiselessGanglion"]; ...
+         ["a12_"], ["NoiselessGanglion"]};
+%%    ReconError_norm_list = {[],[]};
     ReconError_norm_strength = ones(num_ReconError_list,1);
+    ReconError_nonSparse_ndx = [1 1 3 3];
   elseif strcmp(run_type, "V1")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% V1
@@ -1329,6 +1374,7 @@ if plot_ReconError && plot_flag
 	 ["a2_"], ["Ganglion"]; ...
 	 ["a2_"], ["Ganglion"]};
     ReconError_norm_strength = ones(num_ReconError_list,1);
+    ReconError_nonSparse_ndx = [1 2 2];
   elseif strcmp(run_type, "MNIST") || strcmp(run_type, "CIFAR") || strcmp(run_type, "CIFAR_noTask")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% MNIST/CIFAR list
@@ -1352,8 +1398,10 @@ if plot_ReconError && plot_flag
     ReconError_norm_strength = ones(num_ReconError_list,1);
     ReconError_norm_strength = ...
 	[1/sqrt(32*32); 1/sqrt(32*32)];
+    ReconError_nonSparse_ndx = [1 1];
     %%%%%%%%%%%%%%%%%%%%%%%%e%%%%%%%%%%%%%%%%%%%%
   endif %% run_type
+  ReconError_colormap = jet(num_ReconError_list+1);
 
   %% num frames to skip between stored frames, default is 
   ReconError_hdr = cell(num_ReconError_list,1);
@@ -1383,6 +1431,7 @@ if plot_ReconError && plot_flag
     ReconError_times = zeros(num_ReconError_frames,1);
     ReconError_RMS = zeros(num_ReconError_frames,1);
 
+    num_ReconError_norm_frames = 0;
     if ~isempty(ReconError_norm_list{i_ReconError,1}) && ~isempty(ReconError_norm_list{i_ReconError,2})
       ReconError_norm_file = ...
 	  [output_dir, filesep, ...
@@ -1408,6 +1457,12 @@ if plot_ReconError && plot_flag
       ReconError_norm_struct = [];
     endif
 
+    frame_diff = 0;
+    if num_ReconError_norm_frames > 0
+      frame_diff = ...
+	  max((ReconError_struct{num_ReconError_frames}.time - ReconError_norm_struct{num_ReconError_norm_frames}.time), ...
+	      1);
+    endif
     for i_frame = 1 : 1 : num_ReconError_frames
       if ~isempty(ReconError_struct{i_frame})
 	ReconError_times(i_frame) = squeeze(ReconError_struct{i_frame}.time);
@@ -1415,14 +1470,14 @@ if plot_ReconError && plot_flag
 	if ~isempty(ReconError_norm_struct)
 	  ReconError_norm_time = ReconError_norm_struct{i_frame}.time;
 	  ReconError_time_shift = 0;
-	  while ReconError_norm_time > ReconError_times(i_frame)
+	  while ReconError_norm_time - ReconError_times(i_frame) > frame_diff
 	    ReconError_time_shift = ReconError_time_shift + 1;
 	    if (i_frame-ReconError_time_shift) < 1
 	      break;
 	    endif
 	    ReconError_norm_time = ReconError_norm_struct{i_frame-ReconError_time_shift}.time;
 	  endwhile
-	  while ReconError_norm_time < ReconError_times(i_frame)
+	  while ReconError_norm_time - ReconError_times(i_frame) < -frame_diff
 	    ReconError_time_shift = ReconError_time_shift - 1;
 	    if (i_frame-ReconError_time_shift) > num_ReconError_norm_frames
 	      break;
@@ -1431,10 +1486,17 @@ if plot_ReconError && plot_flag
 	  endwhile
 	  ReconError_norm_vals = squeeze(ReconError_norm_struct{i_frame-ReconError_time_shift}.values);
 	endif
-	ReconError_RMS(i_frame) = ...
-	    std(ReconError_vals(:) - ReconError_norm_strength(i_ReconError) * ReconError_norm_vals(:)) / ...
-	    (std(ReconError_norm_strength(i_ReconError) * ReconError_norm_vals(:)) + ...
-	     (std(ReconError_norm_strength(i_ReconError) * ReconError_norm_vals(:))==0));
+	if (i_frame-ReconError_time_shift) < 1 || (i_frame-ReconError_time_shift) > num_ReconError_norm_frames
+  	  num_ReconError_frames = i_frame - 1;
+  	  ReconError_times = ReconError_times(1:num_ReconError_frames);
+	  ReconError_RMS = ReconError_RMS(1:num_ReconError_frames);
+	  break;
+	else
+	  ReconError_RMS(i_frame) = ...
+	      std(ReconError_vals(:) - ReconError_norm_strength(i_ReconError) * ReconError_norm_vals(:)) / ...
+	      (std(ReconError_norm_strength(i_ReconError) * ReconError_norm_vals(:)) + ...
+	       (std(ReconError_norm_strength(i_ReconError) * ReconError_norm_vals(:))==0));
+	endif
       else
 	num_ReconError_frames = i_frame - 1;
 	ReconError_times = ReconError_times(1:num_ReconError_frames);
@@ -1455,11 +1517,18 @@ if plot_ReconError && plot_flag
       figure(ReconError_RMS_fig(i_ReconError));
       hold on
       ReconError_RMS_hndl = plot(ReconError_times, ReconError_RMS); 
-      set(ReconError_RMS_fig, "name", ...
-	  ["RMS_", ReconError_list{i_ReconError,2}, "_", num2str(ReconError_times(num_ReconError_frames), "%08d")]);
-      saveas(ReconError_RMS_fig, ...
+      set(ReconError_RMS_hndl, "linewidth", 1.5);
+      set(ReconError_RMS_hndl, "color", ReconError_colormap(i_ReconError+1,:));
+      set(ReconError_RMS_fig(i_ReconError), "name", ...
+	  ["RMS_", ReconError_list{i_ReconError,2}, "_", ReconError_norm_list{i_ReconError,2}, "_", ...
+	   num2str(ReconError_times(num_ReconError_frames), "%08d")]);
+      saveas(ReconError_RMS_fig(i_ReconError), ...
 	     [ReconError_dir, filesep, ...
-	      "RMS_", ReconError_list{i_ReconError,2}, "_", num2str(ReconError_times(num_ReconError_frames), "%08d")], "png");
+	      "RMS_", ...
+	      ReconError_list{i_ReconError,2}, "_", ReconError_norm_list{i_ReconError,2}, ...
+	      "_", ...
+	      num2str(ReconError_times(num_ReconError_frames), "%08d"), ...
+	      ], "png");
     endif
     ReconError_median_RMS = median(ReconError_RMS(:));
     disp([ReconError_list{i_ReconError,2}, "_", num2str(ReconError_times(num_ReconError_frames), "%i"), ...
@@ -1733,7 +1802,11 @@ if plot_weights
 	    patch_tmp2;
       endfor  %% j_patch
       if plot_flag && i_checkpoint == max_checkpoint
-	saveas(weights_fig, [weights_dir, filesep, [weights_name,"_labeled"], ".png"], "png");
+	if ~isempty(labelWeights_vals)
+	  saveas(weights_fig, [weights_dir, filesep, [weights_name,"_labeled"], ".png"], "png");
+	else
+	  saveas(weights_fig, [weights_dir, filesep, weights_name, ".png"], "png");
+	endif
       endif
       imwrite(uint8(weight_patch_array), [weights_movie_dir, filesep, weights_name, ".png"], "png");
       %% make histogram of all weights
