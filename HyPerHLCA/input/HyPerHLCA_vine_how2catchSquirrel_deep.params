@@ -17,7 +17,7 @@ HyPerCol "column" = {
     randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
     numSteps = 196000;
     progressStep = 1000;
-    outputPath = "/nh/compneuro/Data/vine/LCA/2013_01_24/output_2013_01_24_how2catchSquirrel_12x12x128_deep";
+    outputPath = "/nh/compneuro/Data/vine/LCA/2013_01_24/output_2013_01_24_how2catchSquirrel_12x12x128_noise2_deep";
     filenamesContainLayerNames = true;
     filenamesContainConnectionNames = true;
     checkpointRead = false;
@@ -341,32 +341,99 @@ ANNLayer "ReconInfra" = {
 };
 
 
-//Movie "Noise" = {
-//    restart = 0;
-//    nxScale = 1;
-//    nyScale = 1;
-//    imageListPath = "/nh/compneuro/Data/HyPerPursuit/VineVideo/input/noise.pvp";
-//    // echoFramePathnameFlag = true;
-//    nf = 3;
-//    writeStep = -1;
-//    writeSparseActivity = false;
-//    displayPeriod = 1000;
-//    start_frame_index = 1;
-//    skip_frame_index = 1;
-//    mirrorBCflag = true;
-//    jitterFlag = 0;
-//    useImageBCflag = false;
-//    inverseFlag = false;
-//    normalizeLuminanceFlag = false;
-//    writeImages = false;
-//    offsetX = 0;
-//    offsetY = 0;
-//    randomMovie = 0;
-//    autoResizeFlag = false;
-//    readPvpFile = true;
-//    phase = 0;
-//};
+Movie "Noise" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    imageListPath = "/nh/compneuro/Data/HyPerPursuit/VineVideo/input/noise.pvp";
+    // echoFramePathnameFlag = true;
+    nf = 3;
+    writeStep = -1;
+    writeSparseActivity = false;
+    displayPeriod = 1000;
+    start_frame_index = 1;
+    skip_frame_index = 1;
+    mirrorBCflag = true;
+    jitterFlag = 0;
+    useImageBCflag = false;
+    inverseFlag = false;
+    normalizeLuminanceFlag = false;
+    writeImages = false;
+    offsetX = 0;
+    offsetY = 0;
+    randomMovie = 0;
+    autoResizeFlag = false;
+    readPvpFile = true;
+    phase = 0;
+};
 
+
+
+ANNTriggerUpdateOnNewImageLayer "NoiselessBipolar" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 3;
+    writeStep = 1000.0;
+    initialWriteTime = 999.0;
+    mirrorBCflag = 1;
+    writeSparseActivity = 0;
+
+    movieLayerName = "Image";
+    InitVType = "ZeroV";
+
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+    VShift = 0;
+    
+    phase = 2;
+};
+
+ANNTriggerUpdateOnNewImageLayer "NoiselessGanglion" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 3;
+    writeStep = 1000.0;
+    initialWriteTime = 999.0;
+    mirrorBCflag = 1;
+    writeSparseActivity = 0;
+    //
+    movieLayerName = "Image";
+    InitVType = "ZeroV";
+    //
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+    VShift = 0;
+    // 
+    phase = 3;
+};
+
+ANNTriggerUpdateOnNewImageLayer "NoiselessError" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 3;
+    initialWriteTime = 999.0;
+    writeStep = 1000;
+    mirrorBCflag = 0;
+    valueBC = 0;
+    writeSparseActivity = 0;
+    movieLayerName = "Image";
+    //
+    //InitVType = "ZeroV";
+    InitVType = "InitVFromFile";
+    Vfilename = "/nh/compneuro/Data/vine/LCA/2013_02_01/output_2013_02_01_12x12x128_lambda_05X2_deep/Checkpoints/Checkpoint46584000/Error_V.pvp";
+    //
+    VThresh = -infinity;
+    VMax =  infinity;
+    VMin = -infinity;
+    VShift = 0;
+    //
+    phase = 4;  
+};
 
 
 // connections
@@ -824,63 +891,222 @@ CloneKernelConn "V1InfraToReconInfra" = {
 };
 
 
-//KernelConn "NoiseToBipolar" = {
-//    preLayerName = "Noise";
-//    postLayerName = "Bipolar";
-//    channelCode = 0;
-//    delay = 0;
-//    writeStep = -1;
-//    nxp = 1;
-//    nyp = 1;
-//    numAxonalArbors = 1;
-//    initFromLastFlag = 0;
-//    weightInitType = "Gauss2DWeight";
-//    aspect = 1;
-//    sigma = 0.5;
-//    rMax = 10;
-//    rMin = 0;
-//    numOrientationsPre = 1;
-//    numOrientationsPost = 1;
-//    // strength = 1.0; // ParameterSweep
-//    normalizeMethod = "normalizeSum";
-//    minSumTolerated = 0;
-//    normalizeArborsIndividually = 0;
-//    normalize_cutoff = 0.0;
-//    normalizeFromPostPerspective = true;
-//    symmetrizeWeights = false;
-//
-//    shrinkPatches = false;
-//    //writeCompressedWeights = 0.0;
-//    writeCompressedCheckpoints = false;
-//    plasticityFlag = 0;
-//    pvpatchAccumulateType = "convolve";
-//    updateGSynFromPostPerspective = false;
-//
-//    preActivityIsNotRate = false;
-//    selfFlag = false;
-//    shmget_flag = false;
-//};
+//noise connections
+
+KernelConn "NoiseToBipolar" = {
+    preLayerName = "Noise";
+    postLayerName = "Bipolar";
+    channelCode = 0;
+    delay = 0;
+    writeStep = -1;
+    nxp = 1;
+    nyp = 1;
+    numAxonalArbors = 1;
+    initFromLastFlag = 0;
+    weightInitType = "Gauss2DWeight";
+    aspect = 1;
+    sigma = 0.5;
+    rMax = 10;
+    rMin = 0;
+    numOrientationsPre = 1;
+    numOrientationsPost = 1;
+    // strength = 1.0; // ParameterSweep
+    normalizeMethod = "normalizeSum";
+    minSumTolerated = 0;
+    normalizeArborsIndividually = 0;
+    normalize_cutoff = 0.0;
+    normalizeFromPostPerspective = true;
+    symmetrizeWeights = false;
+
+    shrinkPatches = false;
+    //writeCompressedWeights = 0.0;
+    writeCompressedCheckpoints = false;
+    plasticityFlag = 0;
+    pvpatchAccumulateType = "convolve";
+    updateGSynFromPostPerspective = false;
+
+    preActivityIsNotRate = false;
+    selfFlag = false;
+    shmget_flag = false;
+};
+
+
+KernelConn "ImageToNoiselessBipolarCenter" = {
+    preLayerName = "Image";
+    postLayerName = "NoiselessBipolar";
+    channelCode = 0;
+    nxp = 3; 
+    nyp = 3; 
+    nfp = 3;
+    numAxonalArbors = 1;
+    initFromLastFlag = 0;  // 1;  // restart
+    writeStep = -1;
+    
+    weightInitType = "Gauss2DWeight";
+    aspect = 1;
+    sigma = 0.5;
+    rMax  = 3;
+    rMin = 0;
+    numOrientationsPre = 1;
+    numOrientationsPost = 1;
+        
+    strength = 1.0;  
+    normalizeMethod = "normalizeSum";
+    minSumTolerated = 0;
+    normalizeArborsIndividually = 0;
+    normalize_cutoff = 0.0;
+    normalizeFromPostPerspective = true;
+    symmetrizeWeights = false;
+    
+    shrinkPatches = false;
+    //writeCompressedWeights = 0.0;
+    writeCompressedCheckpoints = false;
+    plasticityFlag = 0;
+    pvpatchAccumulateType = "convolve";
+    updateGSynFromPostPerspective = false;     
+
+    delay = 0;
+     
+    preActivityIsNotRate = false;
+    selfFlag = false;
+    shmget_flag = false;
+};
+
+
+KernelConn "NoiselessBipolarToNoiselessGanglionCenter" = {
+    preLayerName = "NoiselessBipolar";
+    postLayerName = "NoiselessGanglion";
+    channelCode = 0;
+    nxp = 1; 
+    nyp = 1; 
+    nfp = 3;
+    numAxonalArbors = 1;
+    initFromLastFlag = 0;  // 1;  // restart
+    writeStep = -1;
+    
+    weightInitType = "Gauss2DWeight";
+    aspect = 1;
+    sigma = 1;
+    rMax  = 3;
+    rMin = 0;
+    numOrientationsPre = 1;
+    numOrientationsPost = 1;
+        
+    strength = 1.0;  
+    normalizeMethod = "normalizeSum";
+    minSumTolerated = 0;
+    normalizeArborsIndividually = 0;
+    normalize_cutoff = 0.0;
+    normalizeFromPostPerspective = true;
+    symmetrizeWeights = false;
+    
+    shrinkPatches = false;
+    //writeCompressedWeights = 0.0;
+    writeCompressedCheckpoints = false;
+    plasticityFlag = 0;
+    pvpatchAccumulateType = "convolve";
+    updateGSynFromPostPerspective = false;     
+     
+    delay = 0;
+     
+    preActivityIsNotRate = false;
+    selfFlag = false;
+    shmget_flag = false;
+};
+
+
+KernelConn "NoiselessBipolarToNoiselessGanglionSurround" = {
+    preLayerName = "NoiselessBipolar";
+    postLayerName = "NoiselessGanglion";
+    channelCode = 1;
+    nxp = 11; 
+    nyp = 11; 
+    nfp = 3;
+    numAxonalArbors = 1;
+    initFromLastFlag = 0;  // 1;  // restart
+    writeStep = -1;
+    
+    weightInitType = "Gauss2DWeight";
+    aspect = 1;
+    sigma = 5.5;
+    rMax  = 7.5;
+    rMin = 0.5;
+    numOrientationsPre = 1;
+    numOrientationsPost = 1;
+               
+    strength = 1.0;  
+    normalizeMethod = "normalizeSum";
+    minSumTolerated = 0;
+    normalizeArborsIndividually = 0;
+    normalize_cutoff = 0.0;
+    normalizeFromPostPerspective = true;
+    symmetrizeWeights = false;
+    
+    shrinkPatches = false;
+    //writeCompressedWeights = 0.0;
+    writeCompressedCheckpoints = false;
+    plasticityFlag = 0;
+    pvpatchAccumulateType = "convolve";
+    updateGSynFromPostPerspective = false;     
+     
+    delay = 0;
+     
+    preActivityIsNotRate = false;
+    selfFlag = false;
+    shmget_flag = false;
+};
+
+
+IdentConn "NoiselessGanglionToNoiselessError" = {
+    preLayerName = "NoiselessGanglion";
+    postLayerName = "NoiselessError";
+    channelCode = 0;
+    delay = 0;
+    writeStep = -1;
+};
+
+
+CloneKernelConn "V1ToNoiselessError" = {
+    preLayerName = "V1";
+    postLayerName = "NoiselessError";
+    channelCode = 1;
+    writeStep = -1;
+    originalConnName = "V1ToError";
+    selfFlag = false;
+    pvpatchAccumulateType = "convolve";
+    delay = 0;
+    preActivityIsNotRate = false;
+    updateGSynFromPostPerspective = false;     
+};
 
 
 
 
 // parameter sweep
-ParameterSweep "V1":VThresh = {
-    0.05; 0.1; 0.15; 0.2;
-};
+//ParameterSweep "V1":VThresh = {
+//    0.05; 0.1; 0.15; 0.2;
+//};
 
-ParameterSweep "V2":VThresh = {
-    0.05; 0.1; 0.15; 0.2;
+//ParameterSweep "V2":VThresh = {
+//    0.05; 0.1; 0.15; 0.2;
+//};
+
+//ParameterSweep "column":outputPath = {
+//    "/nh/compneuro/Data/vine/LCA/2013_01_24/output_2013_01_24_how2catchSquirrel_12x12x128_lambda_05X1_deep/";
+//    "/nh/compneuro/Data/vine/LCA/2013_01_24/output_2013_01_24_how2catchSquirrel_12x12x128_lambda_05X2_deep/";
+//    "/nh/compneuro/Data/vine/LCA/2013_01_24/output_2013_01_24_how2catchSquirrel_12x12x128_lambda_05X3_deep/";
+//    "/nh/compneuro/Data/vine/LCA/2013_01_24/output_2013_01_24_how2catchSquirrel_12x12x128_lambda_05X4_deep/";
+//};
+
+ParameterSweep "NoiseToBipolar":strength = {
+    0.5; 1.0; 2.0;
 };
 
 ParameterSweep "column":outputPath = {
-    "/nh/compneuro/Data/vine/LCA/2013_01_24/output_2013_01_24_how2catchSquirrel_12x12x128_lambda_05X1_deep/";
-    "/nh/compneuro/Data/vine/LCA/2013_01_24/output_2013_01_24_how2catchSquirrel_12x12x128_lambda_05X2_deep/";
-    "/nh/compneuro/Data/vine/LCA/2013_01_24/output_2013_01_24_how2catchSquirrel_12x12x128_lambda_05X3_deep/";
-    "/nh/compneuro/Data/vine/LCA/2013_01_24/output_2013_01_24_how2catchSquirrel_12x12x128_lambda_05X4_deep/";
+    "/nh/compneuro/Data/vine/LCA/2013_01_24/output_2013_01_24_how2catchSquirrel_12x12x128_lambda_05X2_noise_05_deep/";
+    "/nh/compneuro/Data/vine/LCA/2013_01_24/output_2013_01_24_how2catchSquirrel_12x12x128_lambda_05X2_noise_10_deep/";
+    "/nh/compneuro/Data/vine/LCA/2013_01_24/output_2013_01_24_how2catchSquirrel_12x12x128_lambda_05X2_noise_20_deep/";
 };
-
-
 
 // Probes
 

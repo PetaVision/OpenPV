@@ -167,20 +167,20 @@ HyPerLCALayer "V1" = {
     valueBC = 0;
     writeSparseActivity = 1;
     //
-    InitVType = "UniformRandomV";
-    minV = -1.0;
-    maxV = .15; //0.05 above VThresh
-    //InitVType = "InitVFromFile";
-    //Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_31/output/Checkpoints/Checkpoint6000000/V1_V.pvp";
+    //InitVType = "UniformRandomV";
+    //minV = -1.0;
+    //maxV = .15; //0.05 above VThresh
+    InitVType = "InitVFromFile";
+    Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_30/output/Checkpoints/Checkpoint6000000/V1_V.pvp";
     // 
     timeConstantTau = 200.0;
     timeConstantTauMinimum = 10.0;
     slopeErrorStd = 0.01;
     // 
-    VThresh = 0.1; //  // 0.05 works for animalDB
+    VThresh = 0.05; //  // 0.05 works for animalDB
     VMax = infinity;
     VMin = 0;
-    VShift = 0.0;  // 0 -> hard threshold, 1 -> soft threshold
+    VShift = 0.025;  // 0 -> hard threshold, 1 -> soft threshold
     //
     phase = 5;
 };
