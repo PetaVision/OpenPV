@@ -776,7 +776,7 @@ int pvp_read_header(const char * filename, Communicator * comm, double * time,
        if (pvstream == NULL) {
           fprintf(stderr, "[%2d]: pvp_read_header: pvp_open_read_file failed to open file \"%s\"\n",
                   comm->commRank(), filename);
-          return -1;
+          exit(EXIT_FAILURE);
        }
 
        status = pvp_read_header(pvstream, time, filetype, datatype, params, numParams);
