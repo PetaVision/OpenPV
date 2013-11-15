@@ -69,9 +69,11 @@ HyPerCol::~HyPerCol()
       icComm->clearPublishers();
    }
 
-   printf("%32s: total time in %6s %10s: ", name, "column", "run    ");
-   runTimer->elapsed_time();
-   fflush(stdout);
+   if (columnId()==0) {
+      printf("%32s: total time in %6s %10s: ", name, "column", "run    ");
+      runTimer->elapsed_time();
+      fflush(stdout);
+   }
    delete runTimer;
 
    free(connections);
