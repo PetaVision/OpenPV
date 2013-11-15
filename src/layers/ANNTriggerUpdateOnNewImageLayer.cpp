@@ -74,7 +74,7 @@ int ANNTriggerUpdateOnNewImageLayer::communicateInitInfo() {
 
 int ANNTriggerUpdateOnNewImageLayer::recvAllSynapticInput(){
 	int status = PV_SUCCESS;
-	if (movieLayer->getLastUpdateTime() > lastUpdateTime){
+	if (checkIfUpdateNeeded()){
 		status = ANNLayer::recvAllSynapticInput();
 		// doUpdateState will also need to check movieLayer->getLastUpdateTime() against lastUpdateTime,
 		// so wait until then to update lastUpdateTime.
@@ -89,12 +89,23 @@ int ANNTriggerUpdateOnNewImageLayer::doUpdateState(double time, double dt, const
 {
    update_timer->start();
    int status = PV_SUCCESS;
-   if (movieLayer->getLastUpdateTime() > lastUpdateTime){
+   if (checkIfUpdateNeeded()){
 	   status = ANNLayer::doUpdateState(time,  dt, loc, A, V, num_channels, gSynHead, spiking, active_indices, num_active);
 	   lastUpdateTime = parent->simulationTime();
    }
    update_timer->stop();
    return status;
+}
+
+bool ANNTriggerUpdateOnNewImageLayer::checkIfUpdateNeeded() {
+   bool needsUpdate = false;
+   if (getPhase() > movieLayer->getPhase()) {
+      needsUpdate = movieLayer->getLastUpdateTime() >= lastUpdateTime;
+   }
+   else {
+      needsUpdate = movieLayer->getLastUpdateTime() > lastUpdateTime;
+   }
+   return needsUpdate;
 }
 
 } /* namespace PV */
