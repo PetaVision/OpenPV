@@ -121,7 +121,6 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
                "GapLayer",
                "RescaleLayer",
                "SigmoidLayer",
-             "LCALayer",
              "LabelLayer",
              "TextStream",
 #ifdef PV_USE_SNDFILE
@@ -469,10 +468,6 @@ HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPe
          fprintf(stderr, "Rank %d process: HyPerLCALayer \"%s\" requires 1 or 2 channels, numChannels = %i\n", hc->columnId(), name, numChannels);
          status = PV_FAILURE;
      }
-   }
-   if( !strcmp(classkeyword, "LCALayer") ) {
-     keywordMatched = true;
-     addedLayer = (HyPerLayer *) new LCALayer(name, hc);
    }
    if( !strcmp(classkeyword, "ANNErrorLayer") ) {
      keywordMatched = true;
@@ -1244,37 +1239,6 @@ LayerProbe * addLayerProbeToColumn(const char * classkeyword, const char * name,
      }
      assert(targetlayer);
      return addedProbe;
-   }
-   if( !strcmp(classkeyword, "LCAProbe") ) {
-     LCAProbe * addedProbe = NULL;
-     HyPerLayer * targetlayer = NULL;
-     char * message = NULL;
-     const char * filename = NULL;
-     int status = getLayerFunctionProbeParameters(name, classkeyword, hc, &targetlayer, &message, &filename);
-     int errorFound = status!=PV_SUCCESS;
-     int xLoc, yLoc, fLoc;
-     PVParams * params = targetlayer->getParent()->parameters();
-     if( !errorFound ) {
-       xLoc = params->value(name, "xLoc", -1);
-       yLoc = params->value(name, "yLoc", -1);
-       fLoc = params->value(name, "fLoc", -1);
-       if( xLoc <= -1 || yLoc <= -1 || fLoc <= -1) {
-	 fprintf(stderr, "Group \"%s\": Class %s requires xLoc, yLoc, and fLoc be set\n", name, classkeyword);
-	 errorFound = true;
-       }
-     }
-     if( !errorFound ) {
-       if( filename ) {
-	 addedProbe = new LCAProbe(filename, targetlayer, xLoc, yLoc, fLoc, message);
-       }
-       else {
-	 addedProbe = new LCAProbe(targetlayer, xLoc, yLoc, fLoc, message);
-       }
-       if( !addedProbe ) {
-	 fprintf(stderr, "Group \"%s\": Unable to create probe\n", name);
-	 errorFound = true;
-       }
-     }
    }
    if( !strcmp(classkeyword, "PointLIFProbe") ) {
       status = getLayerFunctionProbeParameters(name, classkeyword, hc, &targetlayer, &message, &filename);
