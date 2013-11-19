@@ -1293,7 +1293,7 @@ int HyPerLayer::calcActiveIndices() {
 
    for (int k = 0; k < getNumNeurons(); k++) {
       const int kex = kIndexExtended(k, loc.nx, loc.ny, loc.nf, loc.nb);
-      if (activity[kex] > 0.0) {
+      if (activity[kex] != 0.0) {
          clayer->activeIndices[numActive++] = globalIndexFromLocal(k, loc);
       }
    }
