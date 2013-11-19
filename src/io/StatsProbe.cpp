@@ -68,14 +68,16 @@ StatsProbe::StatsProbe()
 StatsProbe::~StatsProbe()
 {
    int rank = getTargetLayer()->getParent()->columnId();
-   printf("Rank %d StatsProbe %s I/O  timer ", rank, msg); // Lack of \n is deliberate, elapsed_time() calls printf with \n.
-   iotimer->elapsed_time();
+   if (rank==0) {
+      printf("StatsProbe %s I/O  timer ", msg); // Lack of \n is deliberate, elapsed_time() calls printf with \n.
+      iotimer->elapsed_time();
+      printf("StatsProbe %s MPI  timer ", msg);
+      mpitimer->elapsed_time();
+      printf("StatsProbe %s Comp timer ", msg);
+      comptimer->elapsed_time();
+   }
    delete iotimer;
-   printf("Rank %d StatsProbe %s MPI  timer ", rank, msg);
-   mpitimer->elapsed_time();
    delete mpitimer;
-   printf("Rank %d StatsProbe %s Comp timer ", rank, msg);
-   comptimer->elapsed_time();
    delete comptimer;
    free(msg);
 }
