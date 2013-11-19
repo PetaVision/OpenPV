@@ -81,7 +81,7 @@ else
             result=FAILED
             fails="$fails $testname/${logfilebasename}_4.log"
         fi
-        echo "$testname with two processes $result (output in ${logfilebasename}_4.log)"
+        echo "$testname with four processes $result (output in ${logfilebasename}_4.log)"
     }
 fi
 
