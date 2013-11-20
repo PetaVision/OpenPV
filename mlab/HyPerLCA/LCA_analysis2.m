@@ -14,12 +14,12 @@ no_clobber = false;
 %% machine/run_type environment
 if ismac
   workspace_path = "/Users/garkenyon/workspace";
-  run_type = "CIFAR_noTask_deep"; %%"CIFAR_noTask"; %%"CIFAR" %%
-  output_dir = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB_deep/data_batch_all"
+  run_type = "CIFAR_deep"; %%"CIFAR_noTask_deep"; %%"CIFAR_noTask"; %%"CIFAR" %%
+  output_dir = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB_deep_task/data_batch_all"
   checkpoint_dir = output_dir;
   checkpoint_parent = "/Users/garkenyon/workspace/HyPerHLCA";
   checkpoint_children = ...
-     {"CIFAR256_RGB_deep/data_batch_all"}; %% ...
+     {"CIFAR256_RGB_deep_task/data_batch_all"}; %% ...
   last_checkpoint_ndx = 2000000;
 elseif isunix
   workspace_path = "/home/gkenyon/workspace";
@@ -147,7 +147,7 @@ if plot_Recon
     %% list of (previous) layers to sum with current layer
     sum_list = cell(num_Recon_list,1);
     sum_list{2} = 1;
-  elseif strcmp(run_type, "CIFAR_noTask_deep") 
+  elseif strcmp(run_type, "CIFAR_noTask_deep") || strcmp(run_type, "CIFAR_deep") 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% CIFAR_noTask_deep list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -156,7 +156,8 @@ if plot_Recon
 	 ["a3_"], ["Recon"];
 	 ["a6_"], ["Recon2"];
 	 ["a9_"], ["ReconInfra"];
-	 ["a9_"], ["ReconInfra"]};
+	 ["a9_"], ["ReconInfra"];
+	 ["a14_"], ["ReconInfra4"]};
     %% list of layers to unwhiten
     num_Recon_list = size(Recon_list,1);
     unwhiten_list = zeros(num_Recon_list,1);
@@ -528,7 +529,7 @@ if plot_StatsProbe_vs_time && plot_flag
 	 ["Error1_2"],["_Stats.txt"]; ...
 	 ["V1Infra"],["_Stats.txt"]; ...
 	 ["V1Intra"],["_Stats.txt"]};
-  elseif strcmp(run_type, "MNIST") || strcmp(run_type, "CIFAR") || strcmp(run_type, "CIFAR_noTask")
+  elseif strcmp(run_type, "MNIST") || strcmp(run_type, "CIFAR") || strcmp(run_type, "CIFAR_noTask") || strcmp(run_type, "CIFAR_deep")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% MNIST/CIFAR list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -537,8 +538,10 @@ if plot_StatsProbe_vs_time && plot_flag
 	 ["Error"],["_Stats.txt"]; ...
 	 ["Error2"],["_Stats.txt"]; ...
 	 ["Error1_2"],["_Stats.txt"]; ...
+	 ["Error2_4"],["_Stats.txt"]; ...
 	 ["V1"],["_Stats.txt"];...
-	 ["V2"],["_Stats.txt"]};
+	 ["V2"],["_Stats.txt"];...
+	 ["V4"],["_Stats.txt"]};
   elseif strcmp(run_type, "KITTI")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% KITTI list
@@ -578,12 +581,13 @@ if plot_StatsProbe_vs_time && plot_flag
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     StatsProbe_sigma_flag([2,4,6,7]) = 0;
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  elseif strcmp(run_type, "MNIST") || strcmp(run_type, "CIFAR") || strcmp(run_type, "CIFAR_noTask")
+  elseif strcmp(run_type, "MNIST") || strcmp(run_type, "CIFAR") || strcmp(run_type, "CIFAR_noTask")  || strcmp(run_type, "CIFAR_deep") 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% MNIST/CIFAR list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    StatsProbe_sigma_flag([5]) = 0;
     StatsProbe_sigma_flag([6]) = 0;
+    StatsProbe_sigma_flag([7]) = 0;
+    StatsProbe_sigma_flag([8]) = 0;
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   endif %% run_type
   StatsProbe_nnz_flag = ~StatsProbe_sigma_flag;
@@ -687,13 +691,14 @@ if plot_Sparse
     Sparse_list = ...
 	{["a4_"], ["V1"]; ...
 	 ["a7_"], ["V2"]};
-  elseif strcmp(run_type, "CIFAR_noTask_deep") 
+  elseif strcmp(run_type, "CIFAR_noTask_deep")  || strcmp(run_type, "CIFAR_deep")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% CIFAR_noTask_deep list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     Sparse_list = ...
 	{["a2_"], ["V1"]; ...
-	 ["a5_"], ["V2"]};
+	 ["a5_"], ["V2"]; ...
+	 ["a10_"], ["V4"]};
   elseif strcmp(run_type, "noPulvinar")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% noPulvinar list
@@ -721,6 +726,7 @@ if plot_Sparse
   Sparse_times_array = cell(num_Sparse_list,1);
   Sparse_percent_active_array = cell(num_Sparse_list,1);
   Sparse_percent_change_array = cell(num_Sparse_list,1);
+  Sparse_std_array = cell(num_Sparse_list,1);
   Sparse_dir = [output_dir, filesep, "Sparse"]
   [status, msg, msgid] = mkdir(Sparse_dir);
   if status ~= 1
@@ -758,19 +764,26 @@ if plot_Sparse
     Sparse_current = zeros(n_Sparse,1);
     Sparse_abs_change = zeros(num_Sparse_frames,1);
     Sparse_percent_change = zeros(num_Sparse_frames,1);
+    Sparse_std = ones(num_Sparse_frames,1);
     Sparse_current_active = 0;
     Sparse_tot_active = zeros(num_Sparse_frames,1);
     Sparse_times = zeros(num_Sparse_frames,1);
     for i_frame = 1 : 1 : num_Sparse_frames
       Sparse_times(i_frame) = squeeze(Sparse_struct{i_frame}.time);
-      Sparse_active_ndx = squeeze(Sparse_struct{i_frame}.values);
+      Sparse_values_tmp = squeeze(Sparse_struct{i_frame}.values);
+      Sparse_active_ndx = Sparse_values_tmp(:,1);
       Sparse_previous = Sparse_current;
-      Sparse_current = full(sparse(Sparse_active_ndx+1,1,1,n_Sparse,1,n_Sparse));
-      Sparse_abs_change(i_frame) = sum(Sparse_current(:) ~= Sparse_previous(:));
+      if columns(Sparse_values_tmp) == 2
+	Sparse_active_vals = Sparse_values_tmp(:,2);
+      else
+	Sparse_active_vals = ones(size(Sparse_active_ndx));
+      endif
+      Sparse_current = full(sparse(Sparse_active_ndx+1,1,Sparse_active_vals,n_Sparse,1,n_Sparse));
+      Sparse_abs_change(i_frame) = sum((Sparse_current(:)~=0) ~= (Sparse_previous(:)~=0));
       Sparse_previous_active = Sparse_current_active;
       Sparse_current_active = nnz(Sparse_current(:));
       Sparse_tot_active(i_frame) = Sparse_current_active;
-      Sparse_OR_active = sum(Sparse_current(:) | Sparse_previous(:));
+      Sparse_OR_active = sum((Sparse_current(:)~=0) | (Sparse_previous(:)~=0));
       Sparse_percent_change(i_frame) = ...
 	  Sparse_abs_change(i_frame) / (Sparse_OR_active + (Sparse_OR_active==0));
       Sparse_active_kf = mod(Sparse_active_ndx, nf_Sparse) + 1;
@@ -780,6 +793,7 @@ if plot_Sparse
 	Sparse_hist_frame = zeros(nf_Sparse+1,1);
       endif
       Sparse_hist = Sparse_hist + Sparse_hist_frame;
+      Sparse_std(i_frame) = std(Sparse_current);
     endfor %% i_frame
     Sparse_percent_active = Sparse_tot_active/n_Sparse;
     if ~load_flag
@@ -807,6 +821,10 @@ if plot_Sparse
 	   [Sparse_dir, filesep, "Sparse_percent_active_", Sparse_list{i_Sparse,2}, "_", ...
 	    num2str(Sparse_times(num_Sparse_frames), "%08d"), ".mat"], ...
 	   "Sparse_times", "Sparse_percent_active");	 
+      save("-mat", ...
+	   [Sparse_dir, filesep, "Sparse_std_", Sparse_list{i_Sparse,2}, "_", ...
+	    num2str(Sparse_times(num_Sparse_frames), "%08d"), ".mat"], ...
+	   "Sparse_times", "Sparse_std");	 
     else
       Sparse_hist_bins_str = ...
 	  [Sparse_dir, filesep, "Sparse_hist_bins_", Sparse_list{i_Sparse,2}, "_", "*", ".mat"];
@@ -853,7 +871,17 @@ if plot_Sparse
 	break;
       endif
       load("-mat", Sparse_percent_active_glob{num_Sparse_percent_active_glob});
+      Sparse_std_str = ...
+	  [Sparse_dir, filesep, "Sparse_std_", Sparse_list{i_Sparse,2}, "_", "*", ".mat"];
+      Sparse_std_glob = glob(Sparse_std_str);
+      num_Sparse_std_glob = length(Sparse_std_glob);
+      if num_Sparse_std_glob <= 0
+	warning(["load_flag is true but no files to load in: ", Sparse_std_str]);
+	break;
+      endif
+      load("-mat", Sparse_std_glob{num_Sparse_std_glob});
     endif %% load_flag
+    num_Sparse_frames = length(Sparse_times);
     if plot_flag %%&& ~load_flag
       Sparse_hist_fig = figure;
       Sparse_hist_hndl = bar(Sparse_hist_bins, Sparse_hist_sorted); axis tight;
@@ -861,7 +889,6 @@ if plot_Sparse
       saveas(Sparse_hist_fig, ...
 	     [Sparse_dir, filesep, ...
 	      "Hist_", Sparse_list{i_Sparse,2}, "_", num2str(Sparse_times(num_Sparse_frames), "%i")], "png");
-      
       Sparse_percent_change_fig = figure;
       Sparse_percent_change_hndl = plot(Sparse_times, Sparse_percent_change); 
       set(Sparse_percent_change_hndl, "linewidth", 1.5);
@@ -893,6 +920,7 @@ if plot_Sparse
     Sparse_times_array{i_Sparse} = Sparse_times;
     Sparse_percent_active_array{i_Sparse} = Sparse_percent_active;
     Sparse_percent_change_array{i_Sparse} = Sparse_percent_change;
+    Sparse_std_array{i_Sparse} = Sparse_std;
 
   endfor  %% i_Sparse
 endif %% plot_Sparse
@@ -931,14 +959,15 @@ if plot_nonSparse && plot_flag
          ["a14_"], ["NoiselessGanglion"]};
     nonSparse_norm_strength = ones(num_nonSparse_list,1);
     %%%%%%%%%%%%%%%%%%%%%%%%e%%%%%%%%%%%%%%%%%%%%
-  elseif strcmp(run_type, "CIFAR_noTask_deep") 
+  elseif strcmp(run_type, "CIFAR_noTask_deep") || strcmp(run_type, "CIFAR_deep") 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% CIFAR_noTask_deep list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     nonSparse_list = ...
         {["a1_"], ["Error"]; ...
          ["a4_"], ["Error2"]; ...
-         ["a7_"], ["Error1_2"]};
+         ["a7_"], ["Error1_2"]; ...
+         ["a11_"], ["Error2_4"]};
     num_nonSparse_list = size(nonSparse_list,1);
     nonSparse_skip = repmat(1, num_nonSparse_list, 1);
     nonSparse_skip(1) = 1;
@@ -947,10 +976,12 @@ if plot_nonSparse && plot_flag
     nonSparse_norm_list = ...
         {["a0_"], ["Image"]; ...
          ["a6_"], ["Recon2"]; ...
-         ["a8_"], ["V1Infra"]};
+         ["a2_"], ["V1"]; ...
+         ["a5_"], ["V2"]};
     nonSparse_norm_strength = ones(num_nonSparse_list,1);
     nonSparse_norm_strength(1) = ...
 	1/sqrt(32*32);
+    Sparse_std_ndx = [0 0 1 2];
   elseif strcmp(run_type, "noPulvinar")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% noPulvinar
@@ -1042,6 +1073,9 @@ if plot_nonSparse && plot_flag
 	[1/sqrt(32*32); 1.0];
     %%%%%%%%%%%%%%%%%%%%%%%%e%%%%%%%%%%%%%%%%%%%%
   endif %% run_type
+  if ~exist(Sparse_std_ndx)
+    Sparse_std_ndx = zeros(num_nonSparse_list,1);
+  endif
 
   nonSparse_times_array = cell(num_nonSparse_list,1);
   nonSparse_RMS_array = cell(num_nonSparse_list,1);
@@ -1056,7 +1090,8 @@ if plot_nonSparse && plot_flag
   max_nonSparse_RMS = zeros(num_nonSparse_list,1);
   min_nonSparse_RMS = zeros(num_nonSparse_list,1);
   for i_nonSparse = 1 : num_nonSparse_list
-    nonSparse_file = [output_dir, filesep, nonSparse_list{i_nonSparse,1}, nonSparse_list{i_nonSparse,2}, ".pvp"]
+    nonSparse_file = ...
+	[output_dir, filesep, nonSparse_list{i_nonSparse,1}, nonSparse_list{i_nonSparse,2}, ".pvp"]
     if ~exist(nonSparse_file, "file")
       warning(["file does not exist: ", nonSparse_file]);
       continue;
@@ -1086,13 +1121,21 @@ if plot_nonSparse && plot_flag
       endif
       progress_step = ceil(tot_nonSparse_frames / 10);
       [nonSparse_norm_struct, nonSparse_norm_hdr_tmp] = ...
-	  readpvpfile(nonSparse_norm_file, progress_step, tot_nonSparse_frames, tot_nonSparse_frames-num_nonSparse+5, ...
+	  readpvpfile(nonSparse_norm_file, ...
+		      progress_step, tot_nonSparse_frames, tot_nonSparse_frames-num_nonSparse+5, ...
 		      nonSparse_skip(i_nonSparse));
       num_nonSparse_norm_frames = size(nonSparse_norm_struct,1);
       nonSparse_norm_times = zeros(num_nonSparse_frames,1);
       nonSparse_norm_RMS = zeros(num_nonSparse_frames,1);
+    elseif Sparse_std_ndx(i_nonSparse) > 0
+      num_nonSparse_norm_frames = length(Sparse_times_array{Sparse_std_ndx(i_nonSparse)});
+      nonSparse_norm_struct = cell(num_nonSparse_norm_frames,1);
+      for i_frame = 1 : 1 : num_nonSparse_norm_frames
+	nonSparse_norm_struct{i_frame}.time = Sparse_times_array{Sparse_std_ndx(i_nonSparse)}(i_frame);
+      endfor
     else
       nonSparse_norm_RMS = ones(num_nonSparse_frames,1);
+      nonSparse_norm_times = zeros(num_nonSparse_frames,1);
       nonSparse_norm_struct = [];
     endif %% ~isempty(nonSparse_norm_list{i_nonSparse,1})
 
@@ -1111,18 +1154,14 @@ if plot_nonSparse && plot_flag
 	if ~isempty(nonSparse_norm_struct)
 	  nonSparse_norm_time = nonSparse_norm_struct{i_frame}.time;
 	  nonSparse_time_shift = 0;
-	  while (nonSparse_norm_time - nonSparse_times(i_frame)) > frame_diff
+	  while (nonSparse_norm_time - nonSparse_times(i_frame)) > frame_diff && ...
+		(i_frame-(nonSparse_time_shift+1)) >= 1
 	    nonSparse_time_shift = nonSparse_time_shift + 1;
-	    if (i_frame-nonSparse_time_shift) < 1
-	      break;
-	    endif
 	    nonSparse_norm_time = nonSparse_norm_struct{i_frame-nonSparse_time_shift}.time;
 	  endwhile
-	  while (nonSparse_norm_time - nonSparse_times(i_frame)) < -frame_diff
+	  while (nonSparse_norm_time - nonSparse_times(i_frame)) < -frame_diff && ...
+		(i_frame-(nonSparse_time_shift-1)) <= num_nonSparse_norm_frames
 	    nonSparse_time_shift = nonSparse_time_shift - 1;
-	    if (i_frame-nonSparse_time_shift) > num_nonSparse_norm_frames
-	      break;
-	    endif
 	    nonSparse_norm_time = nonSparse_norm_struct{i_frame-nonSparse_time_shift}.time;
 	  endwhile
 	  if (i_frame-nonSparse_time_shift) < 1 || (i_frame-nonSparse_time_shift) > num_nonSparse_norm_frames
@@ -1133,8 +1172,13 @@ if plot_nonSparse && plot_flag
 	    nonSparse_norm_RMS = nonSparse_norm_RMS(1:num_nonSparse_frames);
 	    break;
 	  else
-	    nonSparse_norm_vals = squeeze(nonSparse_norm_struct{i_frame-nonSparse_time_shift}.values);
-	    nonSparse_norm_RMS(i_frame) = std(nonSparse_norm_strength(i_nonSparse) * nonSparse_norm_vals(:));
+	    if Sparse_std_ndx(i_nonSparse) == 0
+	      nonSparse_norm_vals = squeeze(nonSparse_norm_struct{i_frame-nonSparse_time_shift}.values);
+	      nonSparse_norm_RMS(i_frame) = std(nonSparse_norm_strength(i_nonSparse) * nonSparse_norm_vals(:));
+	    else
+	      nonSparse_norm_RMS(i_frame) = ...
+		  Sparse_std_array{Sparse_std_ndx(i_nonSparse)(i_frame-nonSparse_time_shift)};
+	    endif
 	  endif
 	endif %% ~isempty(nonSparse_norm_struct)
 
@@ -1147,6 +1191,7 @@ if plot_nonSparse && plot_flag
     endfor %% i_frame
 
     if num_nonSparse_frames <= 0
+      disp(["num_nonSparse_frames = ", num2str(num_nonSparse_frames)]);
       continue;
     endif
     if plot_flag
@@ -1159,12 +1204,12 @@ if plot_nonSparse && plot_flag
 %%      axis(nonSparse_times(1) nonSparse_times(num_nonSparse_frames) ...
 %%	   min_nonSparse_RMS(i_nonSparse) max_nonSparse_RMS(i_nonSparse));
       set(nonSparse_RMS_fig(i_nonSparse), "name", ...
-	  ["RMS_", nonSparse_list{i_nonSparse,2}, "_", nonSparse_norm_list{i_nonSparse,2}, "_", ...
-	   num2str(nonSparse_times(num_nonSparse_frames), "%08d")]);
-      saveas(nonSparse_RMS_fig(i_nonSparse), ...
+	  ["RMS_", nonSparse_list{i_nonSparse,1}, nonSparse_list{i_nonSparse,2}, ...
+	   "_", num2str(nonSparse_times(num_nonSparse_frames), "%08d")]);
+     saveas(nonSparse_RMS_fig(i_nonSparse), ...
 	     [nonSparse_dir, filesep, ...
-	      "RMS_", nonSparse_list{i_nonSparse,2}, "_", nonSparse_norm_list{i_nonSparse,2}, "_", ...
-	      num2str(nonSparse_times(num_nonSparse_frames), "%08d")], "png");
+	      "RMS_", nonSparse_list{i_nonSparse,1}, nonSparse_list{i_nonSparse,2}, ...
+	      "_", num2str(nonSparse_times(num_nonSparse_frames), "%08d")], "png");
     endif
     nonSparse_median_RMS = median(nonSparse_RMS(:) ./ (nonSparse_norm_RMS + (nonSparse_norm_RMS==0)));
     disp([nonSparse_list{i_nonSparse,2}, "_", num2str(nonSparse_times(num_nonSparse_frames), "%i"), ...
@@ -1182,9 +1227,12 @@ endif %% plot_nonSparse
 
 
 
-plot_ErrorVsSparse = true && plot_Sparse && plot_nonSparse;
+plot_ErrorVsSparse = false && plot_Sparse && plot_nonSparse;
 if plot_ErrorVsSparse
-  Sparse_axis_index = [1,2,2,1];
+  Sparse_axis_index = ones(num_nonSparse,1);
+  Sparse_axis_index(2) = 2;
+  Sparse_axis_index(3) = 2;
+  Sparse_axis_index(4) = 3;
   for i_nonSparse = 1 : num_nonSparse_list
     i_Sparse = Sparse_axis_index(i_nonSparse);
     nonSparse_times = nonSparse_times_array{i_nonSparse};
@@ -1305,7 +1353,7 @@ if plot_ReconError && plot_flag
          ["a14_"], ["NoiselessGanglion"]};
     ReconError_norm_strength = ones(num_ReconError_list,1);
     ReconError_nonSparse_ndx = [1 1 4 4];
-  elseif strcmp(run_type, "CIFAR_noTask_deep") 
+  elseif strcmp(run_type, "CIFAR_noTask_deep") || strcmp(run_type, "CIFAR_deep") 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% CIFAR_noTask_deep list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1457,12 +1505,9 @@ if plot_ReconError && plot_flag
       ReconError_norm_struct = [];
     endif
 
-    frame_diff = 0;
-    if num_ReconError_norm_frames > 0
-      frame_diff = ...
-	  max((ReconError_struct{num_ReconError_frames}.time - ReconError_norm_struct{num_ReconError_norm_frames}.time), ...
-	      1);
-    endif
+    frame_diff = ...
+	(ReconError_struct{num_ReconError_frames}.time - ReconError_struct{1}.time) / ...
+	num_ReconError_frames;
     for i_frame = 1 : 1 : num_ReconError_frames
       if ~isempty(ReconError_struct{i_frame})
 	ReconError_times(i_frame) = squeeze(ReconError_struct{i_frame}.time);
@@ -1470,25 +1515,21 @@ if plot_ReconError && plot_flag
 	if ~isempty(ReconError_norm_struct)
 	  ReconError_norm_time = ReconError_norm_struct{i_frame}.time;
 	  ReconError_time_shift = 0;
-	  while ReconError_norm_time - ReconError_times(i_frame) > frame_diff
+	  while ReconError_norm_time - ReconError_times(i_frame) > frame_diff && ...
+		(i_frame-(ReconError_time_shift+1)) >= 1
 	    ReconError_time_shift = ReconError_time_shift + 1;
-	    if (i_frame-ReconError_time_shift) < 1
-	      break;
-	    endif
 	    ReconError_norm_time = ReconError_norm_struct{i_frame-ReconError_time_shift}.time;
 	  endwhile
-	  while ReconError_norm_time - ReconError_times(i_frame) < -frame_diff
+	  while ReconError_norm_time - ReconError_times(i_frame) < -frame_diff && ...
+		(i_frame-(ReconError_time_shift-1)) <= num_ReconError_norm_frames
 	    ReconError_time_shift = ReconError_time_shift - 1;
-	    if (i_frame-ReconError_time_shift) > num_ReconError_norm_frames
-	      break;
-	    endif
 	    ReconError_norm_time = ReconError_norm_struct{i_frame-ReconError_time_shift}.time;
 	  endwhile
 	  ReconError_norm_vals = squeeze(ReconError_norm_struct{i_frame-ReconError_time_shift}.values);
 	endif
 	if (i_frame-ReconError_time_shift) < 1 || (i_frame-ReconError_time_shift) > num_ReconError_norm_frames
-  	  num_ReconError_frames = i_frame - 1;
-  	  ReconError_times = ReconError_times(1:num_ReconError_frames);
+	  num_ReconError_frames = i_frame - 1;
+	  ReconError_times = ReconError_times(1:num_ReconError_frames);
 	  ReconError_RMS = ReconError_RMS(1:num_ReconError_frames);
 	  break;
 	else
@@ -1544,7 +1585,7 @@ endif %% plot_ReconError
 
 
 %%keyboard;
-plot_weights = true;
+plot_weights = false;
 if plot_weights
   weights_list = {};
   labelWeights_list = {};
@@ -1567,7 +1608,7 @@ if plot_weights
       checkpoints_list = getCheckpointList(checkpoint_parent, checkpoint_children);
     endif %% checkpoint_weights_movie
     num_checkpoints = size(checkpoints_list,1);
-  elseif strcmp(run_type, "CIFAR_noTask_deep") 
+  elseif strcmp(run_type, "CIFAR_noTask_deep") || strcmp(run_type, "CIFAR_deep") 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% CIFAR_noTask_deep list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1844,7 +1885,8 @@ if plot_weights
 	    imagesc(permute(squeeze(mean(weight_vals(:,:,:,maxind(maxnum==(label+1))),4)),[2,1,3]));
 	  endif
 	  labeledWeights_str = ...
-	      ["labeledWeightsFig_", weights_list{i_weights,1}, weights_list{i_weights,2}, "_", num2str(label, "%d"), "_", ...
+	      ["labeledWeightsFig_", ...
+	       weights_list{i_weights,1}, weights_list{i_weights,2}, "_", num2str(label, "%d"), "_", ...
 	       num2str(weight_time, "%08d")];
 	  %%title(labeledWeights_fig, labeledWeights_str);
 	  title(labeledWeights_str);
@@ -1860,89 +1902,89 @@ endif  %% plot_weights
 
 
 %%keyboard;
-plot_labelRecon = false;
+plot_labelRecon = true;
+labels_list = {};
+labelRecon_list = {};
 if plot_labelRecon
-  labels_list = {};
-  labelRecon_list = {};
-  if strcmp(run_type, "MNIST") || strcmp(run_type, "CIFAR") 
+  if strcmp(run_type, "MNIST") || strcmp(run_type, "CIFAR") || strcmp(run_type, "CIFAR_deep") 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% MNIST/CIFAR list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     labels_list = ...
-	{["a1_"], ["Labels"]};
+	{["a15_"], ["Labels"]};
     labelRecon_list = ...
-	{["a11_"], ["LabelRecon"]};
+	{["a17_"], ["LabelRecon"]};
   endif %% run_type
-  if isempty(labels_list)
-    break;
-  endif
+endif
+i_label = 1;
+if plot_labelRecon && ~isempty(labels_list) && ~isempty(labelRecon_list)
   labels_file = ...
-      [output_dir, filesep, labels_list{i_weights,1}, labels_list{i_weights,2}, ".pvp"]
+      [output_dir, filesep, labels_list{i_label,1}, labels_list{i_label,2}, ".pvp"]
   if ~exist(labels_file, "file")
     warning(["does not exist: ", labels_file]);
-    break;
-  endif
-  labels_fid = fopen(labels_file);
-  labels_hdr{i_weights} = readpvpheader(labels_fid);    
-  fclose(labels_fid);
-  tot_labels_frames =  labels_hdr{i_weights}.nbands;
-  num_labels = min(tot_labels_frames, 1000);  %% number of label guesses to analyze
-  progress_step = fix(tot_labels_frames / 10);
-  [labels_struct, labels_hdr_tmp] = ...
-      readpvpfile(labels_file, ...
-		  progress_step, ...
-		  tot_labels_frames, ...
-		  tot_labels_frames-num_labels+1);
-  label_vals = zeros(labels_hdr{i_weights}.nf, num_labels);
-  label_time = zeros(num_labels,1);
-  num_labels_frames = length(labels_struct);
-  for i_frame = num_labels_frames:-1:num_labels_frames-num_labels+1
-    tmp = squeeze(labels_struct{i_frame}.values);
-    if ndims(tmp) > 2
-      label_vals(:,i_frame) = squeeze(tmp(fix(size(tmp,1)/2),fix(size(tmp,2)/2),:));
-    else
-      label_vals(:,i_frame) = squeeze(tmp);
+  else
+    labels_fid = fopen(labels_file);
+    labels_hdr{i_label} = readpvpheader(labels_fid);    
+    fclose(labels_fid);
+    tot_labels_frames =  labels_hdr{i_label}.nbands;
+    num_labels = min(tot_labels_frames, 1000);  %% number of label guesses to analyze
+    progress_step = fix(tot_labels_frames / 10);
+    [labels_struct, labels_hdr_tmp] = ...
+	readpvpfile(labels_file, ...
+		    progress_step, ...
+		    tot_labels_frames, ...
+		    tot_labels_frames-num_labels+1);
+    label_vals = zeros(labels_hdr{i_label}.nf, num_labels);
+    label_time = zeros(num_labels,1);
+    num_labels_frames = length(labels_struct);
+    for i_frame = num_labels_frames:-1:num_labels_frames-num_labels+1
+      tmp = squeeze(labels_struct{i_frame}.values);
+      if ndims(tmp) > 2
+	label_vals(:,i_frame) = squeeze(tmp(fix(size(tmp,1)/2),fix(size(tmp,2)/2),:));
+      else
+	label_vals(:,i_frame) = squeeze(tmp);
+      endif
+      label_time(i_frame) = squeeze(labels_struct{i_frame}.time);
+    endfor
+    
+    labelRecon_file = ...
+	[output_dir, filesep, labelRecon_list{i_label,1}, labelRecon_list{i_label,2}, ".pvp"]
+    if ~exist(labelRecon_file, "file")
+      warning(["does not exist: ", labelRecon_file]);
+      break;
     endif
-    label_time(i_frame) = squeeze(labels_struct{i_frame}.time);
-  endfor
-  
-  labelRecon_file = ...
-      [output_dir, filesep, labelRecon_list{i_weights,1}, labelRecon_list{i_weights,2}, ".pvp"]
-  if ~exist(labelRecon_file, "file")
-    warning(["does not exist: ", labelRecon_file]);
-    break;
+    labelRecon_fid = fopen(labelRecon_file);
+    labelRecon_hdr{i_label} = readpvpheader(labelRecon_fid);    
+    fclose(labelRecon_fid);
+    tot_labelRecon_frames = labelRecon_hdr{i_label}.nbands;
+    progress_step = fix(tot_labelRecon_frames / 10);
+    [labelRecon_struct, labelRecon_hdr_tmp] = ...
+	readpvpfile(labelRecon_file, ...
+		    progress_step, ...
+		    tot_labelRecon_frames, ...
+		    tot_labelRecon_frames-num_labels+1);
+    labelRecon_vals = zeros(labelRecon_hdr{i_label}.nf, num_labels);
+    labelRecon_time = zeros(num_labels,1);
+    num_labelRecon_frames = length(labelRecon_struct);
+    for i_frame = num_labelRecon_frames:-1:num_labelRecon_frames-num_labels+1
+      tmp = squeeze(labelRecon_struct{i_frame}.values);
+      if ndims(tmp) > 2
+	labelRecon_vals(:,i_frame) = squeeze(tmp(fix(size(tmp,1)/2),fix(size(tmp,2)/2),:));
+      else
+	labelRecon_vals(:,i_frame) = squeeze(tmp);
+      endif
+      labelRecon_time(i_frame) = squeeze(labelRecon_struct{i_frame}.time);
+    endfor
+    delta_frames = 1;
+    [max_label_vals, max_label_ndx] = max(label_vals);
+    [max_labelRecon_vals, max_labelRecon_ndx] = max(labelRecon_vals);
+    for i_shift = 0:2 %% correct i_shift should be 1 but if simulation is running during analysis could be off
+      accuracy = ...
+	  sum(max_label_ndx(1:end-i_shift)==max_labelRecon_ndx(i_shift+1:end)) / ...
+	  (numel(max_label_vals)-i_shift)
+    endfor
+    
   endif
-  labelRecon_fid = fopen(labelRecon_file);
-  labelRecon_hdr{i_weights} = readpvpheader(labelRecon_fid);    
-  fclose(labelRecon_fid);
-  tot_labelRecon_frames = labelRecon_hdr{i_weights}.nbands;
-  progress_step = fix(tot_labelRecon_frames / 10);
-  [labelRecon_struct, labelRecon_hdr_tmp] = ...
-      readpvpfile(labelRecon_file, ...
-		  progress_step, ...
-		  tot_labelRecon_frames, ...
-		  tot_labelRecon_frames-num_labels+1);
-  labelRecon_vals = zeros(labelRecon_hdr{i_weights}.nf, num_labels);
-  labelRecon_time = zeros(num_labels,1);
-  num_labelRecon_frames = length(labelRecon_struct);
-  for i_frame = num_labelRecon_frames:-1:num_labelRecon_frames-num_labels+1
-    tmp = squeeze(labelRecon_struct{i_frame}.values);
-    if ndims(tmp) > 2
-      labelRecon_vals(:,i_frame) = squeeze(tmp(fix(size(tmp,1)/2),fix(size(tmp,2)/2),:));
-    else
-      labelRecon_vals(:,i_frame) = squeeze(tmp);
-    endif
-    labelRecon_time(i_frame) = squeeze(labelRecon_struct{i_frame}.time);
-  endfor
-  delta_frames = 1;
-  [max_label_vals, max_label_ndx] = max(label_vals);
-  [max_labelRecon_vals, max_labelRecon_ndx] = max(labelRecon_vals);
-  for i_shift = 0:2 %% correct i_shift should be 1 but if simulation is running during analysis could be off
-    accuracy = ...
-	sum(max_label_ndx(1:end-i_shift)==max_labelRecon_ndx(i_shift+1:end)) / ...
-	(numel(max_label_vals)-i_shift)
-	endfor
-
 endif  %% plot_weightLabels
 
 
@@ -1984,7 +2026,7 @@ if plot_weights1_2
     sparse_ndx = [2];
     num_checkpoints = size(checkpoints_list,1);
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  elseif strcmp(run_type, "CIFAR_noTask_deep") 
+  elseif strcmp(run_type, "CIFAR_noTask_deep")  || strcmp(run_type, "CIFAR_deep") 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% CIFAR_noTask_deep list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2288,7 +2330,7 @@ if plot_weights1_2
 	pre_hist_rank = (1:weights1_2_hdr{i_weights1_2}.nf);
       endif
 
-      if length(labelWeights_list) >= i_weights1_2 && ...
+      if exist("labelWeights_list") && length(labelWeights_list) >= i_weights1_2 && ...
 	    ~isempty(labelWeights_list{i_weights1_2}) && ...
 	    plot_flag && ...
 	    i_checkpoint == max_checkpoint
@@ -2529,6 +2571,623 @@ if plot_weights1_2
     endfor %% i_checkpoint
 
   endfor %% i_weights
+  
+endif  %% plot_weights
+
+
+
+
+
+
+
+
+
+%%keyboard;
+weightsN_Nplus1_list = {};
+if strcmp(run_type, "color_deep") || strcmp(run_type, "noTopDown")
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  %% deep list
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+elseif strcmp(run_type, "CIFAR_noTask_deep")  || strcmp(run_type, "CIFAR_deep") 
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  %% CIFAR_noTask_deep list
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  %% list of weights from layerN to layer0 (Image)
+  if ~checkpoint_weights_movie
+    checkpoints_list = {output_dir};
+    weightsN_Nplus1_list = ...
+        {["w15_"], ["V4ToError2_4"], ["w9_"], ["V2ToError1_2"], ["w1_"], ["V1ToError"]};
+    layersN_Nplus1_list = ...
+        {["a10_"], ["V4"], ["a4_"], ["V2"], ["a2_"], ["V1"], ["a0_"], ["Image"]};
+    labelWeights_list = ...
+	{["w21_"], ["V4ToLabelError"]};
+  else
+    checkpoints_list = getCheckpointList(checkpoint_parent, checkpoint_children);
+    weightsN_Nplus1_list = ...
+        {["V4ToError2_4"], ["_W"], ["V2ToError1_2"], ["_W"], ["V1ToError"], ["_W"]};
+    layersN_Nplus1_list = ...
+        {["V4"], ["_A"], ["V2"], ["_A"], ["V1"], ["_A"], ["Image"], ["_A"]};
+    labelWeights_list = ...
+	{["V4ToLabelError"], ["_W"]};
+  endif %% checkpoint_weights_movie
+  %% list of indices for reading rank order of presynaptic neuron as function of activation frequency
+  sparse_ndx = [3];
+  num_checkpoints = size(checkpoints_list,1);
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+elseif strcmp(run_type, "noPulvinar")
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  %% noPulvinar
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+elseif strcmp(run_type, "lateral")
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  %% lateral list
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+elseif strcmp(run_type, "MNIST") || strcmp(run_type, "CIFAR") || strcmp(run_type, "CIFAR_noTask")
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  %% MNIST/CIFAR
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+endif %% run_type
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+plot_weightsN_Nplus1 = true;
+num_weightsN_Nplus1_list = size(weightsN_Nplus1_list,1);
+num_layersN_Nplus1_list = size(layersN_Nplus1_list,2)/2;
+if size(weightsN_Nplus1_list,2)/2 ~= num_layersN_Nplus1_list-1
+  error(["num_weightsN_Nplus1_list ~= num_layersN_Nplus1_list-1", ...
+	 ", num_weightsN_Nplus1_list = ", num2str(num_weightsN_Nplus1_list), ...
+	 ", num_layersN_Nplus1_list = ", num2str(num_layersN_Nplus1_list)]);
+endif
+if num_weightsN_Nplus1_list == 0
+  plot_weightsN_Nplus1 = false;
+endif
+
+if plot_weightsN_Nplus1
+  weightsN_Nplus1_vals = cell(num_weightsN_Nplus1_list, num_layersN_Nplus1_list-1);
+  weightsN_Nplus1_hdr = cell(num_weightsN_Nplus1_list, num_layersN_Nplus1_list-1);
+  weightsN_Nplus1_framesize = zeros(num_weightsN_Nplus1_list, num_layersN_Nplus1_list-1);
+  weightsN_Nplus1_nxp = zeros(num_weightsN_Nplus1_list, num_layersN_Nplus1_list-1);
+  weightsN_Nplus1_nyp = zeros(num_weightsN_Nplus1_list, num_layersN_Nplus1_list-1);
+  weightsN_Nplus1_nfp = zeros(num_weightsN_Nplus1_list, num_layersN_Nplus1_list-1);
+  layersN_Nplus1_hdr = cell(num_weightsN_Nplus1_list, num_layersN_Nplus1_list);
+  layersN_Nplus1_nx = zeros(num_weightsN_Nplus1_list, num_layersN_Nplus1_list);
+  layersN_Nplus1_ny = zeros(num_weightsN_Nplus1_list, num_layersN_Nplus1_list);
+  layersN_Nplus1_nf = zeros(num_weightsN_Nplus1_list, num_layersN_Nplus1_list);
+
+  if checkpoint_weights_movie
+    weightsN_Nplus1_movie_dir = [output_dir, filesep, "weightsN_Nplus1_movie"]
+    [status, msg, msgid] = mkdir(weightsN_Nplus1_movie_dir);
+    if status ~= 1
+      warning(["mkdir(", weightsN_Nplus1_movie_dir, ")", " msg = ", msg]);
+    endif 
+  endif
+  weightsN_Nplus1_dir = [output_dir, filesep, "weightsN_Nplus1"]
+  [status, msg, msgid] = mkdir(weightsN_Nplus1_dir);
+  if status ~= 1
+    warning(["mkdir(", weightsN_Nplus1_dir, ")", " msg = ", msg]);
+  endif 
+  for i_weightN_Nplus1 = 1 : num_weightsN_Nplus1_list
+
+    %% find last (most recent) checkpoint
+    max_weightN_Nplus1_time = 0;
+    max_checkpoint = 0;
+    for i_checkpoint = 1 : num_checkpoints
+      checkpoint_dir = checkpoints_list{i_checkpoint,:};
+
+      %% get weight N->N+1 file
+      weightsN_Nplus1_file = ...
+	  [checkpoint_dir, filesep, ...
+	   weightsN_Nplus1_list{i_weightN_Nplus1,1}, ...
+	   weightsN_Nplus1_list{i_weightN_Nplus1,2}, ".pvp"]
+      if ~exist(weights1_2_file, "file")
+	warning(["file does not exist: ", weightsN_Nplus1_file]);
+	continue;
+      endif
+      weightsN_Nplus1_fid = fopen(weightsN_Nplus1_file);
+      weightsN_Nplus1_hdr{i_weights1_2} = readpvpheader(weightsN_Nplus1_fid);    
+      fclose(weightsN_Nplus1_fid);
+
+      weightN_Nplus1_time = weightsN_Nplus1_hdr{i_weightN_Nplus1}.time;
+      if weightN_Nplus1_time > max_weightN_Nplus1_time
+	max_weightN_Nplus1_time = weightN_Nplus1_time;
+	max_checkpoint = i_checkpoint;
+      endif
+    endfor %% i_checkpoint
+
+
+    %% get weights headers
+    i_layerN_Nplus1 = 1;
+    for i_layerN_Nplus1 = 1 : num_layersN_Nplus1_list-1
+      weightsN_Nplus1_file = ...
+	  [checkpoint_dir, filesep, ...
+	   weightsN_Nplus1_list{i_weightN_Nplus1, i_layerN_Nplus1*2-1}, ...
+	   weightsN_Nplus1_list{i_weightN_Nplus1, i_layerN_Nplus1*2}, ".pvp"]
+      if ~exist(weightsN_Nplus1_file, "file")
+	warning(["file does not exist: ", weightsN_Nplus1_file]);
+	continue;
+      endif
+      weightsN_Nplus1_fid = fopen(weightsN_Nplus1_file);
+      weightsN_Nplus1_hdr{i_weightN_Nplus1, i_layerN_Nplus1} = readpvpheader(weightsN_Nplus1_fid);    
+      fclose(weightsN_Nplus1_fid);
+      weightsN_Nplus1_filedata = dir(weightsN_Nplus1_file);
+      weightsN_Nplus1_framesize = ...
+	  weightsN_Nplus1_hdr{i_weightN_Nplus1, i_layerN_Nplus1}.recordsize * ...
+	  weightsN_Nplus1_hdr{i_weightN_Nplus1, i_layerN_Nplus1}.numrecords + ...
+	  weightsN_Nplus1_hdr{i_weightN_Nplus1, i_layerN_Nplus1}.headersize;
+      weightsN_Nplus1_totframes(i_weightN_Nplus1, i_layerN_Nplus1) = ...
+	  weightsN_Nplus1_filedata(1).bytes/weightsN_Nplus1_framesize;
+      weightsN_Nplus1_nxp(i_weightN_Nplus1, i_layerN_Nplus1) = ...
+	  weightsN_Nplus1_hdr{i_weightN_Nplus1, i_layerN_Nplus1}.additional(1);
+      weightsN_Nplus1_nyp(i_weightN_Nplus1, i_layerN_Nplus1) = ...
+	  weightsN_Nplus1_hdr{i_weightN_Nplus1, i_layerN_Nplus1}.additional(2);
+      weightsN_Nplus1_nfp(i_weightN_Nplus1, i_layerN_Nplus1) = ...
+	  weightsN_Nplus1_hdr{i_weightN_Nplus1, i_layerN_Nplus1}.additional(3);
+    endfor %% i_layerN_Nplus1
+    
+    %% get layer headers
+    checkpoint_dir = checkpoints_list{max_checkpoint,:};
+    for i_layerN_Nplus1 = 1 : num_layersN_Nplus1_list
+      layersN_Nplus1_file = ...
+	  [checkpoint_dir, filesep, ...
+	   layersN_Nplus1_list{i_weightN_Nplus1, i_layerN_Nplus1*2-1}, ...
+	   layersN_Nplus1_list{i_weightN_Nplus1, i_layerN_Nplus1*2}, ...
+	   ".pvp"]
+      if ~exist(layersN_Nplus1_file, "file")
+	warning(["file does not exist: ", layersN_Nplus1_file]);
+	continue;
+      endif
+      layersN_Nplus1_fid = fopen(layersN_Nplus1_file);
+      layersN_Nplus1_hdr{i_weightN_Nplus1, i_layerN_Nplus1} = readpvpheader(layersN_Nplus1_fid);
+      fclose(layersN_Nplus1_fid);
+      layersN_Nplus1_nx(i_weightN_Nplus1, i_layerN_Nplus1) = ...
+	  layersN_Nplus1_hdr{i_weightN_Nplus1, i_layerN_Nplus1}.nx;
+      layersN_Nplus1_ny(i_weightN_Nplus1, i_layerN_Nplus1) = ...
+	  layersN_Nplus1_hdr{i_weightN_Nplus1, i_layerN_Nplus1}.ny;
+      layersN_Nplus1_nf(i_weightN_Nplus1, i_layerN_Nplus1) = ...
+	  layersN_Nplus1_hdr{i_weightN_Nplus1, i_layerN_Nplus1}.nf;
+    endfor %% i_layerN_Nplus1
+
+    %% labels (if present)
+    if length(labelWeights_list) >= i_weightN_Nplus1 && ...
+	  ~isempty(labelWeights_list{i_weightN_Nplus1}) && ...
+	  plot_flag 
+      labelWeights_file = ...
+	  [checkpoint_dir, filesep, ...
+	   labelWeights_list{i_weightN_Nplus1,1}, labelWeights_list{i_weightN_Nplus1,2}, ".pvp"]
+      if ~exist(labelWeights_file, "file")
+	warning(["file does not exist: ", labelWeights_file]);
+	continue;
+      endif
+      labelWeights_fid = fopen(labelWeights_file);
+      labelWeights_hdr{i_weightN_Nplus1} = readpvpheader(labelWeights_fid);    
+      fclose(labelWeights_fid);
+      num_labelWeights = 1;
+      labelWeights_filedata = dir(labelWeights_file);
+      labelWeights_framesize = ...
+	  labelWeights_hdr{i_weightN_Nplus1}.recordsize * ...
+	  labelWeights_hdr{i_weightN_Nplus1}.numrecords+labelWeights_hdr{i_weightN_Nplus1}.headersize;
+      tot_labelWeights_frames = labelWeights_filedata(1).bytes/labelWeights_framesize;
+      [labelWeights_struct, labelWeights_hdr_tmp] = ...
+	  readpvpfile(labelWeights_file, ...
+		      progress_step, ...
+		      tot_labelWeights_frames, ...
+		      tot_labelWeights_frames-num_labelWeights+1);
+      labelWeights_vals = squeeze(labelWeights_struct{i_frame}.values{i_arbor});
+      labelWeights_time = squeeze(labelWeights_struct{i_frame}.time);
+      labeledWeightsNminus1_Nplus1 = cell(size(labelWeights_vals,1),1);
+    else
+      labelWeights_vals = [];
+      labelWeights_time = [];
+    endif %% labels
+    
+
+
+    %% loop over checkpoints
+    for i_checkpoint = max_checkpoint %% 1 : num_checkpoints
+      checkpoint_dir = checkpoints_list{i_checkpoint,:};
+
+      %% read the top layer of weights to initialize weightsN_Nplus1_vals
+      i_layerN_Nplus1 = 1;
+      weightsN_Nplus1_file = ...
+	  [checkpoint_dir, filesep, ...
+	   weightsN_Nplus1_list{i_weightN_Nplus1, i_layerN_Nplus1*2-1}, ...
+	   weightsN_Nplus1_list{i_weightN_Nplus1, i_layerN_Nplus1*2}, ".pvp"]
+      if ~exist(weightsN_Nplus1_file, "file")
+	warning(["file does not exist: ", weightsN_Nplus1_file]);
+	continue;
+      endif      
+      num_weightsN_Nplus1 = 1;
+      tot_weightsN_Nplus1_frames = weightsN_Nplus1_totframes(i_weightN_Nplus1, i_layerN_Nplus1);
+      progress_step = ceil( tot_weightsN_Nplus1_frames/ 10);
+      [weightsN_Nplus1_struct, weightsN_Nplus1_hdr_tmp] = ...
+	  readpvpfile(weightsN_Nplus1_file, progress_step, ...
+		      tot_weightsN_Nplus1_frames, ...
+		      tot_weightsN_Nplus1_frames-num_weightsN_Nplus1+1);
+      i_frame = num_weightsN_Nplus1;
+      i_arbor = 1;
+      weightsN_Nplus1_vals{i_weightN_Nplus1, i_layerN_Nplus1} = ...
+	  squeeze(weightsN_Nplus1_struct{i_frame}.values{i_arbor});
+      if ndims(weightsN_Nplus1_vals{i_weightN_Nplus1, i_layerN_Nplus1}) == 4
+	weightsN_Nplus1_vals{i_weightN_Nplus1, i_layerN_Nplus1} = ...
+	    permute(weightsN_Nplus1_vals{i_weightN_Nplus1, i_layerN_Nplus1}, [2,1,3,4]);
+      else
+	weightsN_Nplus1_vals{i_weightN_Nplus1, i_layerN_Nplus1} = ...
+	    permute(weightsN_Nplus1_vals{i_weightN_Nplus1, i_layerN_Nplus1}, [2,1,3]);
+      endif
+      weightsN_Nplus1_time = squeeze(weightsN_Nplus1_struct{i_frame}.time);
+      weightsN_Nplus1_name = ...
+	  [weightsN_Nplus1_list{i_weightN_Nplus1, i_layerN_Nplus1*2-1}, ...
+	   weightsN_Nplus1_list{i_weightN_Nplus1, i_layerN_Nplus1*2}, ...
+	   "_", num2str(weightsN_Nplus1_time, "%08d")];
+      if no_clobber && ...
+	    exist([weightsN_Nplus1_movie_dir, filesep, weightsN_Nplus1_name, ".png"]) && ...
+	    i_checkpoint ~= max_checkpoint
+	continue;
+      endif
+      num_weightsN_Nplus1_dims = ...
+	  ndims(weightsN_Nplus1_vals{i_weightN_Nplus1, i_layerN_Nplus1});
+      num_patchesN_Nplus1 = ...
+	  size(weightsN_Nplus1_vals{i_weightN_Nplus1, i_layerN_Nplus1}, num_weightsN_Nplus1_dims);
+      %% algorithms assumes weights1_2 are one to many
+      num_patchesN_Nplus1_rows = floor(sqrt(min(num_patchesN_Nplus1, max_patches)));
+      num_patchesN_Nplus1_cols = ceil(min(num_patchesN_Nplus1, max_patches) / num_patchesN_Nplus1_rows);
+      
+      %% get rank order of presynaptic elements
+      tmp_ndx = sparse_ndx(i_weightN_Nplus1);
+      if plot_Sparse
+	tmp_rank = Sparse_hist_rank_array{tmp_ndx};
+      else
+	tmp_rank = [];
+      endif
+      if plot_Sparse && ~isempty(tmp_rank)
+	pre_hist_rank = tmp_rank;
+      else
+	pre_hist_rank = (1:weightsN_Nplus1_hdr{i_weightN_Nplus1, i_layerN_Nplus1}.nf);
+      endif
+
+      %% loop over lower layers
+      for i_layerN_Nplus1 = 1 : num_layersN_Nplus1_list - 2  %% last layer is image
+
+	weightsN_Nplus1_nyp(i_weightN_Nplus1, i_layerN_Nplus1) = ...
+	    size(weightsN_Nplus1_vals{i_weightN_Nplus1, i_layerN_Nplus1},1);
+	weightsN_Nplus1_nxp(i_weightN_Nplus1, i_layerN_Nplus1) = ...
+	    size(weightsN_Nplus1_vals{i_weightN_Nplus1, i_layerN_Nplus1},2);
+	weightsN_Nplus1_nfp(i_weightN_Nplus1, i_layerN_Nplus1) = ...
+	    size(weightsN_Nplus1_vals{i_weightN_Nplus1, i_layerN_Nplus1},3);
+
+	weightsNminus1_Nplus1_name = ...
+	    [checkpoint_dir, filesep, ...
+	     weightsN_Nplus1_list{i_weightN_Nplus1, (i_layerN_Nplus1+1)*2-1}, ...
+	     weightsN_Nplus1_list{i_weightN_Nplus1, (i_layerN_Nplus1+1)*2}, ...
+	     ".pvp"]
+
+	%% get weight N-1->N file (next set of weights in hierarchy)
+	weightsNminus1_N_file = ...
+	    [checkpoint_dir, filesep, ...
+	     weightsN_Nplus1_list{i_weightN_Nplus1, (i_layerN_Nplus1+1)*2-1}, ...
+	     weightsN_Nplus1_list{i_weightN_Nplus1, (i_layerN_Nplus1+1)*2}, ...
+	     ".pvp"]
+	if ~exist(weightsNminus1_N_file, "file")
+	  warning(["file does not exist: ", weightsNminus1_N_file]);
+	  continue;
+	endif
+	num_weightsNminus1_N = 1;
+	tot_weightsNminus1_N_frames = weightsN_Nplus1_totframes(i_weightN_Nplus1, i_layerN_Nplus1+1);
+	progress_step = ceil(tot_weightsNminus1_N_frames / 10);
+	[weightsNminus1_N_struct, weightsNminus1_N_hdr_tmp] = ...
+	    readpvpfile(weightsNminus1_N_file, progress_step, ...
+			tot_weightsNminus1_N_frames, ...
+			tot_weightsNminus1_N_frames-num_weightsNminus1_N+1);
+	i_frame = num_weightsNminus1_N;
+	i_arbor = 1;
+	weightsNminus1_N_vals = squeeze(weightsNminus1_N_struct{i_frame}.values{i_arbor});
+	if ndims(weightsNminus1_N_vals) == 4
+	  weightsNminus1_N_vals = permute(weightsNminus1_N_vals, [2,1,3,4]);
+	else
+	  weightsNminus1_N_vals = permute(weightsNminus1_N_vals, [2,1,3]);
+	endif
+	weightsNminus1_N_time = squeeze(weightsNminus1_N_struct{i_frame}.time);
+	weightsNminus1_N_nyp = size(weightsNminus1_N_vals,1);
+	weightsNminus1_N_nxp = size(weightsNminus1_N_vals,2);
+	weightsNminus1_N_nfp = size(weightsNminus1_N_vals,3);
+	
+	%% compute layer N+1 -> N-1 patch size
+	Nminus1_N_nx_ratio = ...
+	    layersN_Nplus1_hdr{i_weightN_Nplus1, i_layerN_Nplus1+2}.nxGlobal / ...
+	    layersN_Nplus1_hdr{i_weightN_Nplus1, i_layerN_Nplus1+1}.nxGlobal;
+	Nminus1_N_ny_ratio = ...
+	    layersN_Nplus1_hdr{i_weightN_Nplus1, i_layerN_Nplus1+2}.nyGlobal / ...
+	    layersN_Nplus1_hdr{i_weightN_Nplus1, i_layerN_Nplus1+1}.nyGlobal;
+	weightsNminus1_N_overlapp_x = ...
+	    weightsN_Nplus1_nxp(i_weightN_Nplus1, i_layerN_Nplus1+1) - Nminus1_N_nx_ratio;
+	weightsNminus1_N_overlapp_y = ...
+	    weightsN_Nplus1_nyp(i_weightN_Nplus1, i_layerN_Nplus1+1) - Nminus1_N_ny_ratio;
+	weightsNminus1_Nplus1_nxp = ...
+	    weightsN_Nplus1_nxp(i_weightN_Nplus1, i_layerN_Nplus1+1) + ...
+	    (weightsN_Nplus1_nxp(i_weightN_Nplus1, i_layerN_Nplus1) - 1) * ...
+	    (weightsN_Nplus1_nxp(i_weightN_Nplus1, i_layerN_Nplus1+1) - weightsNminus1_N_overlapp_x); 
+	weightsNminus1_Nplus1_nyp = ...
+	    weightsN_Nplus1_nyp(i_weightN_Nplus1, i_layerN_Nplus1+1) + ...
+	    (weightsN_Nplus1_nyp(i_weightN_Nplus1, i_layerN_Nplus1) - 1) * ...
+	    (weightsN_Nplus1_nyp(i_weightN_Nplus1, i_layerN_Nplus1+1) - weightsNminus1_N_overlapp_y); 
+	weightsNminus1_Nplus1_nfp = ...
+	    layersN_Nplus1_hdr{i_weightN_Nplus1, i_layerN_Nplus1+2}.nf;
+
+
+	%% make tableau of all patches
+	%% for one to many connections: dimensions of weightsN_Nplus1 are:
+	%% weightsN_Nplus1_vals{i_weightN_Nplus1, i_layersN_Nplus}(nxp, nyp, nf_post, nf_pre)
+	if plot_flag && ...
+	      i_checkpoint == max_checkpoint && ...
+	      i_layerN_Nplus1 == num_layersN_Nplus1_list-2 
+	  weightsNminus1_Nplus1_fig = figure;
+	  set(weightsNminus1_Nplus1_fig, "name", weightsNminus1_Nplus1_name);
+	endif %% plot_flag
+
+	max_shrinkage = 8; %% 
+	%% storage for next iteration of deconvolved weights
+	weightsNminus1_Nplus1_array = [];
+	%% plot weights in rank order
+	for kf_preN_Nplus1_rank = 1  : num_patchesN_Nplus1
+	  kf_preN_Nplus1 = pre_hist_rank(kf_preN_Nplus1_rank);
+
+	  plotNminus1_Nplus1_flag = ...
+	      plot_flag && ...
+	      i_layerN_Nplus1 == num_layersN_Nplus1_list-2 && ...
+	      i_checkpoint == max_checkpoint && ...
+	      kf_preN_Nplus1_rank <= max_patches;
+	  if plotNminus1_Nplus1_flag
+	    subplot(num_patchesN_Nplus1_rows, num_patchesN_Nplus1_cols, kf_preN_Nplus1_rank); 
+	  endif
+
+	  if num_weightsN_Nplus1_dims == 4
+	    patchN_Nplus1_tmp = ...
+		squeeze(weightsN_Nplus1_vals{i_weightN_Nplus1, i_layerN_Nplus1}(:,:,:,kf_preN_Nplus1));
+	  elseif num_weightsN_Nplus1_dims <= 3
+	    patchN_Nplus1_tmp = ...
+		squeeze(weightsN_Nplus1_vals{i_weightN_Nplus1, i_layerN_Nplus1}(:,:,kf_preN_Nplus1));
+	    patchN_Nplus1_tmp = ...
+		reshape(patchN_Nplus1_tmp, ...
+			[weightsN_Nplus1_nyp(i_weightN_Nplus1, i_layerN_Nplus1), ...
+			 weightsN_Nplus1_nxp(i_weightN_Nplus1, i_layerN_Nplus1), ...
+			 1]);
+	  endif
+
+	  %% patchNminus1_Nplus1_array stores the sum over all patches, given by 
+	  %% weightsNminus1_Nplus1_vals, for every neuron in layer i_layerN_Nplus1+1 
+	  %% that is postsynaptic to layer i_layerN_Nplus1 as denoted by
+	  %% weightsN_Nplus1_vals{i_weightN_Nplus1, i_layerN_Nplus1}.
+	  %% In other words, for the presynaptic neuron in layer i_layerN_Nplus1
+	  %% specified by feature index kf_preN_Nplus1,
+	  %% we deconvolve each of its postsynaptic  targets in layer i_layerN_Nplus1+1,
+	  %% specified by weightsN_Nplus1_vals{i_weightN_Nplus1, i_layerN_Nplus1},
+	  %% with each of its targets in layer i_layerN_Nplus1+2, 
+	  %% specified by weightsNminus1_Nplus1_vals.
+	  patchNminus1_Nplus1_array = ...
+	      cell(weightsN_Nplus1_nyp(i_weightN_Nplus1, i_layerN_Nplus1), ...
+		   weightsN_Nplus1_nxp(i_weightN_Nplus1, i_layerN_Nplus1));
+	  %% patchNminus1_Nplus1 stores the complete image patch of the layer 
+	  %% i_layerN_Nplus1 neuron kf_preN_Nplus1
+	  patchNminus1_Nplus1 = ...
+	      zeros(weightsNminus1_Nplus1_nyp, ...
+		    weightsNminus1_Nplus1_nxp, ...
+		    weightsNminus1_Nplus1_nfp);
+	  %% loop over weightsN_Nplus1 rows and columns
+	  for N_Nplus1_patch_row = 1 : weightsN_Nplus1_nyp(i_weightN_Nplus1, i_layerN_Nplus1)
+	    for N_Nplus1_patch_col = 1 : weightsN_Nplus1_nxp(i_weightN_Nplus1, i_layerN_Nplus1)
+
+	      patchNminus1_Nplus1_array{N_Nplus1_patch_row, N_Nplus1_patch_col} = ...
+		  zeros([weightsN_Nplus1_nyp(i_weightN_Nplus1, i_layerN_Nplus1+1), ...
+			 weightsN_Nplus1_nxp(i_weightN_Nplus1, i_layerN_Nplus1+1), ...
+			 weightsN_Nplus1_nfp(i_weightN_Nplus1, i_layerN_Nplus1+1)]);
+
+	      %% accumulate weightsNminus1_N patches for each post feature separately 
+	      %% for each weightsN_Nplus1 column 
+	      for kf_postN_Nplus1 = 1 : layersN_Nplus1_nf(i_weightN_Nplus1,i_layerN_Nplus1+1)
+		patchN_Nplus1_weight = ...
+		    patchN_Nplus1_tmp(N_Nplus1_patch_row, N_Nplus1_patch_col, kf_postN_Nplus1);
+		if patchN_Nplus1_weight == 0
+		  continue;
+		endif
+		if weightsNminus1_N_nfp == 1
+		  weightsNminus1_N_patch = squeeze(weightsNminus1_N_vals(:,:,kf_postN_Nplus1));
+		else
+		  weightsNminus1_N_patch = squeeze(weightsNminus1_N_vals(:,:,:,kf_postN_Nplus1));
+		endif
+		%%  store weightsNminus1_N_patch by column
+		patchNminus1_Nplus1_array{N_Nplus1_patch_row, N_Nplus1_patch_col} = ...
+		    patchNminus1_Nplus1_array{N_Nplus1_patch_row, N_Nplus1_patch_col} + ...
+		    patchN_Nplus1_weight .* ...
+		    weightsNminus1_N_patch;
+	      endfor %% kf_postN_Nplus1
+	      Nminus1_Nplus1_row_start = 1+Nminus1_N_ny_ratio*(N_Nplus1_patch_row-1);
+	      Nminus1_Nplus1_row_end = Nminus1_N_ny_ratio*(N_Nplus1_patch_row-1)+weightsNminus1_N_nyp;
+	      Nminus1_Nplus1_col_start = 1+Nminus1_N_nx_ratio*(N_Nplus1_patch_col-1);
+	      Nminus1_Nplus1_col_end = Nminus1_N_nx_ratio*(N_Nplus1_patch_col-1)+weightsNminus1_N_nxp;
+	      patchNminus1_Nplus1(Nminus1_Nplus1_row_start:Nminus1_Nplus1_row_end, ...
+				  Nminus1_Nplus1_col_start:Nminus1_Nplus1_col_end, :) = ...
+		  patchNminus1_Nplus1(Nminus1_Nplus1_row_start:Nminus1_Nplus1_row_end, ...
+				      Nminus1_Nplus1_col_start:Nminus1_Nplus1_col_end, :) + ...
+		  patchNminus1_Nplus1_array{N_Nplus1_patch_row, N_Nplus1_patch_col};
+	    endfor %% N_Nplus1_patch_col
+	  endfor %% N_Nplus1_patch_row
+
+	  %% get shrunken patch (if last level, but only do once)
+	  if 1 %%i_layerN_Nplus1 < num_layersN_Nplus1_list-2
+	    patch_tmp3 = patchNminus1_Nplus1;
+	    weightsNminus1_Nplus1_nyp_shrunken = weightsNminus1_Nplus1_nyp;
+	    weightsNminus1_Nplus1_nxp_shrunken = weightsNminus1_Nplus1_nxp;
+	  elseif kf_preN_Nplus1_rank == 1 
+	    patch_tmp3 = patchNminus1_Nplus1;
+	    weightsNminus1_Nplus1_nyp_shrunken = size(patch_tmp3, 1);
+	    patch_tmp4 = patch_tmp3(1, :, :);
+	    while ~any(patch_tmp4(:)) %% && ((weights0_2_nyp - weights0_2_nyp_shrunken) <= max_shrinkage/2)
+	      weightsNminus1_Nplus1_nyp_shrunken = weightsNminus1_Nplus1_nyp_shrunken - 1;
+	      patch_tmp3 = patch_tmp3(2:weightsNminus1_Nplus1_nyp_shrunken, :, :);
+	      patch_tmp4 = patch_tmp3(1, :, :);
+	    endwhile
+	    weightsNminus1_Nplus1_nyp_shrunken = size(patch_tmp3, 1);
+	    patch_tmp4 = patch_tmp3(weightsNminus1_Nplus1_nyp_shrunken, :, :);
+	    while ~any(patch_tmp4(:))
+	      weightsNminus1_Nplus1_nyp_shrunken = weightsNminus1_Nplus1_nyp_shrunken - 1;
+	      patch_tmp3 = patch_tmp3(1:weightsNminus1_Nplus1_nyp_shrunken, :, :);
+	      patch_tmp4 = patch_tmp3(weightsNminus1_Nplus1_nyp_shrunken, :, :);
+	    endwhile
+	    weightsNminus1_Nplus1_nxp_shrunken = size(patch_tmp3, 2);
+	    patch_tmp4 = patch_tmp3(:, 1, :);
+	    while ~any(patch_tmp4(:)) %% && ((weightsNminus1_Nplus1_nyp - weightsNminus1_Nplus1_nyp_shrunken) <= max_shrinkage/2)
+	      weightsNminus1_Nplus1_nxp_shrunken = weightsNminus1_Nplus1_nxp_shrunken - 1;
+	      patch_tmp3 = patch_tmp3(:, 2:weightsNminus1_Nplus1_nxp_shrunken, :);
+	      patch_tmp4 = patch_tmp3(:, 1, :);
+	    endwhile
+	    weightsNminus1_Nplus1_nxp_shrunken = size(patch_tmp3, 2);
+	    patch_tmp4 = patch_tmp3(:, weightsNminus1_Nplus1_nxp_shrunken, :);
+	    while ~any(patch_tmp4(:))
+	      weightsNminus1_Nplus1_nxp_shrunken = weightsNminus1_Nplus1_nxp_shrunken - 1;
+	      patch_tmp3 = patch_tmp3(:, 1:weightsNminus1_Nplus1_nxp_shrunken, :);
+	      patch_tmp4 = patch_tmp3(:, weightsNminus1_Nplus1_nxp_shrunken, :);
+	    endwhile
+	  else
+	    nyp_shift = floor((weightsNminus1_Nplus1_nyp - weightsNminus1_Nplus1_nyp_shrunken)/2);
+	    nxp_shift = floor((weightsNminus1_Nplus1_nxp - weightsNminus1_Nplus1_nxp_shrunken)/2);
+	    patch_tmp3 = ...
+		patchNminus1_Nplus1(nyp_shift+1:weightsNminus1_Nplus1_nyp_shrunken, ...
+				    nxp_shift+1:weightsNminus1_Nplus1_nxp_shrunken, :);
+	  endif  %% kf_preN_Nplus1_rank == 1
+
+	  %% rescale patch
+	  min_patch = min(patch_tmp3(:));
+	  max_patch = max(patch_tmp3(:));
+	  patch_tmp5 = ...
+	      uint8((flipdim(patch_tmp3,1) - min_patch) * 255 / ...
+		    (max_patch - min_patch + ((max_patch - min_patch)==0)));
+	  
+	  if plotNminus1_Nplus1_flag
+	    imagesc(patch_tmp5); 
+	    if weightsNminus1_N_nfp == 1
+	      colormap(gray);
+	    endif
+	    box off
+	    axis off
+	    axis image
+	    if ~isempty(labelWeights_vals) %% && ~isempty(labelWeights_time) 
+	      [~, max_label] = max(squeeze(labelWeights_vals(:,kf_preN_Nplus1)));
+	      text(weightsNminus1_Nplus1_nyp_shrunken/2, ...
+		   -weightsNminus1_Nplus1_nxp_shrunken/6, ...
+		   num2str(max_label-1), "color", [1 0 0]);
+	    endif %% ~empty(labelWeights_vals)
+	    %%drawnow;
+	  endif %% plotNminus1_Nplus1_flag 
+
+	  if isempty(weightsNminus1_Nplus1_array)
+	    weightsNminus1_Nplus1_array = ...
+		zeros(num_patchesN_Nplus1_rows*weightsNminus1_Nplus1_nyp_shrunken, ...
+		      num_patchesN_Nplus1_cols*weightsNminus1_Nplus1_nxp_shrunken, ...
+		      weightsNminus1_N_nfp);
+	    weightsN_Nplus1_vals{i_weightN_Nplus1, i_layerN_Nplus1+1} = ...
+		zeros(weightsNminus1_Nplus1_nyp_shrunken, ...
+		      weightsNminus1_Nplus1_nxp_shrunken, ...
+		      weightsNminus1_N_nfp, ...
+		      num_patchesN_Nplus1);
+	  endif
+	  if  kf_preN_Nplus1_rank <= max_patches
+	    col_ndx = 1 + mod(kf_preN_Nplus1_rank-1, num_patchesN_Nplus1_cols);
+	    row_ndx = 1 + floor((kf_preN_Nplus1_rank-1) / num_patchesN_Nplus1_cols);
+	    weightsNminus1_Nplus1_array((1+(row_ndx-1)*weightsNminus1_Nplus1_nyp_shrunken):...
+					(row_ndx*weightsNminus1_Nplus1_nyp_shrunken), ...
+					(1+(col_ndx-1)*weightsNminus1_Nplus1_nxp_shrunken): ...
+					(col_ndx*weightsNminus1_Nplus1_nxp_shrunken),:) = ...
+		patch_tmp5;
+	  endif
+
+	  %% set weightsN_Nplus1_vals to patch_tmp3
+	  weightsN_Nplus1_vals{i_weightN_Nplus1, i_layerN_Nplus1+1}(:, :, :, kf_preN_Nplus1_rank) = ...
+	      patch_tmp3;
+
+	  %% Plot the average movie weights for each label %%
+	  if ~isempty(labelWeights_vals) && ...
+		plot_flag && ...
+		i_checkpoint == max_checkpoint && ...
+		i_layerN_Nplus1 == num_layersN_Nplus1_list-2 
+	    if ~isempty(labeledWeightsNminus1_Nplus1{max_label})
+	      labeledWeightsNminus1_Nplus1{max_label} = ...
+		  labeledWeightsNminus1_Nplus1{max_label} + double(patch_tmp5);
+	    else
+	      labeledWeightsNminus1_Nplus1{max_label} = double(patch_tmp5);
+	    endif
+	  endif %%  ~isempty(labelWeights_vals) 
+
+	endfor %% kf_preN_Nplus1_rank
+
+	if plot_flag && ...
+	      i_checkpoint == max_checkpoint && ...
+	      i_layerN_Nplus1 == num_layersN_Nplus1_list-2 
+	  saveas(weightsNminus1_Nplus1_fig, [weightsN_Nplus1_dir, filesep, weightsN_Nplus1_name, ".png"], "png");
+	  if ~isempty(labelWeights_vals) 
+	    for label = 1:size(labelWeights_vals,1)
+	      labeledWeights_str = ...
+		  ["labeledWeightsFig_", ...
+		   weightsN_Nplus1_list{i_weightN_Nplus1,1}, weightsN_Nplus1_list{i_weightN_Nplus1,2}, ...
+		   "_", num2str(label, "%d"), "_", ...
+		   num2str(weightsN_Nplus1_time, "%08d")];
+	      labeledWeights_fig = figure;
+	      title(labeledWeights_str);
+	      imagesc(squeeze(labeledWeightsNminus1_Nplus1{label}));
+	      saveas(labeledWeights_fig,  [weightsN_Nplus1_dir, filesep, labeledWeights_str, ".png"], "png");
+	    endfor %% label = 1:size(labelWeights_vals,1)
+	  endif %%  ~isempty(labelWeights_vals) 
+	endif
+	imwrite(uint8(weightsNminus1_Nplus1_array), ...
+		[weightsN_Nplus1_movie_dir, filesep, weightsN_Nplus1_name, ".png"], "png");
+	
+
+	%% make histogram of all weights
+	if plot_flag && ...
+	      i_checkpoint == max_checkpoint && ...
+	      i_layerN_Nplus1 == num_layersN_Nplus1_list-2 
+	  weightsNminus_Nplus1_hist_fig = figure;
+	  [weightsN_Nplus1_hist, weightsN_Nplus1_hist_bins] = ...
+	      hist(weightsN_Nplus1_vals{i_weightN_Nplus1, i_layerN_Nplus1+1}(:), 100);
+	  bar(weightsN_Nplus1_hist_bins, log(weightsN_Nplus1_hist+1));
+	  set(weightsN_Nplus1_hist_fig, "name", ...
+	      ["Hist_", ...
+	       weightsN_Nplus1_list{i_weightN_Nplus1,1}, weightsN_Nplus1_list{i_weightN_Nplus1,2}, "_", ...
+	       num2str(weightsN_Nplus1_time, "%08d")]);
+	  saveas(weightsN_Nplus1_hist_fig, ...
+		 [weightsN_Nplus1_dir, filesep, "weightsN_Nplus1_hist_", ...
+		  weightsN_Nplus1_list{i_weightN_Nplus1,1}, weightsN_Nplus1_list{i_weightN_Nplus1,2}, "_", ...
+		  num2str(weightsN_Nplus1_time, "%08d")], "png");
+	endif %% plotNminus1_Nplus1_flag
+
+	%% plot average labelWeights for each label
+	if ~isempty(labelWeights_vals) && ...
+	      ~isempty(labelWeights_time) && ...
+	      plot_flag && ...
+	      i_checkpoint == max_checkpoint && ...
+	      i_layerN_Nplus1 == num_layersN_Nplus1_list-2 
+
+	  %% plot label weights as matrix of column vectors
+	  ranked_labelWeights = labelWeights_vals(:, pre_hist_rank(1:num_patchesN_Nplus1));
+	  [~, max_label] = max(ranked_labelWeights,[],1);
+	  [max_label_sorted, max_label_ndx] = sort(max_label);
+	  label_weights_fig = figure;
+	  imagesc(ranked_labelWeights(:,max_label_ndx))
+	  label_weights_str = ...
+	      ["LabelWeights_", ...
+	       weightsN_Nplus1_list{i_weightN_Nplus1,1}, labelWeights_list{i_weightN_Nplus1,2}, "_", ...
+	       num2str(labelWeights_time, "%08d")];
+	  %%title(label_weights_fig, label_weights_str);
+	  figure(label_weights_fig); title(label_weights_str);
+	  saveas(label_weights_fig, [weightsN_Nplus1_dir, filesep, label_weights_str, ".png"] , "png");
+	endif  %% ~isempty(labelWeights_vals) && ~isempty(labelWeights_time)
+
+      endfor %% i_checkpoint
+
+    endfor %% i_layerN_Nplus1
+
+  endfor %% i_weightN_Nplus1
   
 endif  %% plot_weights
 
