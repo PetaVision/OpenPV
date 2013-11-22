@@ -17,14 +17,14 @@ HyPerCol "column" = {
     randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
     numSteps = 10000000;  //10,000 images * displayPeriod  
     progressStep = 1000;
-    outputPath = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB_deep_task/data_batch_all2";
+    outputPath = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB_deep_task/data_batch_all3";
     filenamesContainLayerNames = true;
     filenamesContainConnectionNames = true;
     checkpointRead = false;
     checkpointReadDir = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB_deep_task/data_batch_all/Checkpoints";
     checkpointReadDirIndex = 1000000; 
     checkpointWrite = true;
-    checkpointWriteDir = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB_deep_task/data_batch_all2/Checkpoints";
+    checkpointWriteDir = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB_deep_task/data_batch_all3/Checkpoints";
     checkpointWriteStepInterval = 100000;
     deleteOlderCheckpoints = false;
     //suppressLastOutput = false;
@@ -105,7 +105,7 @@ HyPerLCALayer "V1" = {
     //minV = -1.0;
     //maxV = .15; //0.05 above VThresh
     InitVType = "InitVFromFile";
-    Vfilename = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB_deep_task/data_batch_all/Checkpoints/Checkpoint10000000/V1_V.pvp";
+    Vfilename = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB_deep_task/data_batch_all2/Checkpoints/Checkpoint10000000/V1_V.pvp";
     // 
     timeConstantTau = 200.0;
     timeConstantTauMinimum = 10.0;
@@ -191,7 +191,7 @@ HyPerLCALayer "V2" = {
     //minV = -1.0;//
     //maxV = .15; //0.05 above VThresh
     InitVType = "InitVFromFile";
-    Vfilename = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB_deep_task/data_batch_all/Checkpoints/Checkpoint10000000/V2_V.pvp";
+    Vfilename = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB_deep_task/data_batch_all2/Checkpoints/Checkpoint10000000/V2_V.pvp";
     // 
     timeConstantTau = 200.0;
     timeConstantTauMinimum = 10.0;
@@ -325,11 +325,11 @@ HyPerLCALayer "V4" = {
     writeSparseActivity = 1;
     writeSparseValues = 1; 
     //
-    InitVType = "UniformRandomV";
-    minV = -1.0;//
-    maxV = .05; //0.05 above VThresh
+    //InitVType = "UniformRandomV";
+    //minV = -1.0;//
+    //maxV = .05; //0.05 above VThresh
     InitVType = "InitVFromFile";
-    Vfilename = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB_deep_task/data_batch_all/Checkpoints/Checkpoint10000000/V4_V.pvp";
+    Vfilename = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB_deep_task/data_batch_all2/Checkpoints/Checkpoint10000000/V4_V.pvp";
     // 
     timeConstantTau = 200.0;
     timeConstantTauMinimum = 10.0;
@@ -555,7 +555,7 @@ KernelConn "V1ToError" = {
     initFromLastFlag = 0;
     //
     weightInitType = "FileWeight";
-    initWeightsFile = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB_deep_task/data_batch_all/Checkpoints/Checkpoint10000000/V1ToError_W.pvp";
+    initWeightsFile = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB_deep_task/data_batch_all2/Checkpoints/Checkpoint10000000/V1ToError_W.pvp";
     useListOfArborFiles = false;
     combineWeightFiles = false;
     //weightInitType = "UniformRandomWeight";
@@ -677,7 +677,7 @@ KernelConn "V2ToError2" = {
     initFromLastFlag = 0;
     //
     weightInitType = "FileWeight";
-    initWeightsFile = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB_deep_task/data_batch_all/Checkpoints/Checkpoint10000000/V2ToError2_W.pvp";
+    initWeightsFile = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB_deep_task/data_batch_all2/Checkpoints/Checkpoint10000000/V2ToError2_W.pvp";
     useListOfArborFiles = false;
     combineWeightFiles = false;
     //weightInitType = "UniformRandomWeight";
@@ -771,7 +771,7 @@ KernelConn "V2ToError1_2" = {
     initFromLastFlag = 0;
     //
     weightInitType = "FileWeight";
-    initWeightsFile = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB_deep_task/data_batch_all/Checkpoints/Checkpoint10000000/V2ToError1_2_W.pvp";
+    initWeightsFile = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB_deep_task/data_batch_all2/Checkpoints/Checkpoint10000000/V2ToError1_2_W.pvp";
     useListOfArborFiles = false;
     combineWeightFiles = false;
     //weightInitType = "UniformRandomWeight";
@@ -890,7 +890,7 @@ KernelConn "V4ToError2_4" = {
     initFromLastFlag = 0;
     //
     weightInitType = "FileWeight";
-    initWeightsFile = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB_deep_task/data_batch_all/Checkpoints/Checkpoint10000000/V4ToError2_4_W.pvp";
+    initWeightsFile = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB_deep_task/data_batch_all2/Checkpoints/Checkpoint10000000/V4ToError2_4_W.pvp";
     useListOfArborFiles = false;
     combineWeightFiles = false;
     //weightInitType = "UniformRandomWeight";
@@ -1025,7 +1025,7 @@ KernelConn "V4ToLabelError" = {
     initFromLastFlag = 0;
     
     weightInitType = "FileWeight";
-    initWeightsFile = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB_task/data_batch_all/Checkpoints/Checkpoint10000000/V4ToLabelError_W.pvp";
+    initWeightsFile = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB_deep_task/data_batch_all2/Checkpoints/Checkpoint10000000/V4ToLabelError_W.pvp";
     useListOfArborFiles = false;
     combineWeightFiles = false;
 
