@@ -5,7 +5,7 @@ close all;
 global plot_flag %% if true, plot graphical output to screen, else do not generate graphical outputy
 plot_flag = true;
 global load_flag %% if true, then load "saved" data structures rather than computing them 
-load_flag = true;
+load_flag = false;
 if plot_flag
   setenv("GNUTERM","X11")
 endif
@@ -15,11 +15,11 @@ no_clobber = false;
 if ismac
   workspace_path = "/Users/garkenyon/workspace";
   run_type = "CIFAR_deep"; %%"CIFAR_noTask_deep"; %%"CIFAR_noTask"; %%"CIFAR" %%
-  output_dir = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB_deep_task/data_batch_all"
+  output_dir = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB_deep_task/test_batch3"
   checkpoint_dir = output_dir;
   checkpoint_parent = "/Users/garkenyon/workspace/HyPerHLCA";
   checkpoint_children = ...
-     {"CIFAR256_RGB_deep_task/data_batch_all"}; %% ...
+     {"CIFAR256_RGB_deep_task/test_batch3"}; %% ...
   last_checkpoint_ndx = 2000000;
 elseif isunix
   workspace_path = "/home/gkenyon/workspace";
@@ -967,7 +967,8 @@ if plot_nonSparse && plot_flag
         {["a1_"], ["Error"]; ...
          ["a4_"], ["Error2"]; ...
          ["a7_"], ["Error1_2"]; ...
-         ["a11_"], ["Error2_4"]};
+         ["a11_"], ["Error2_4"]; ...
+	 ["a16_"], ["LabelError"]};
     num_nonSparse_list = size(nonSparse_list,1);
     nonSparse_skip = repmat(1, num_nonSparse_list, 1);
     nonSparse_skip(1) = 1;
@@ -977,11 +978,12 @@ if plot_nonSparse && plot_flag
         {["a0_"], ["Image"]; ...
          ["a6_"], ["Recon2"]; ...
          ["a2_"], ["V1"]; ...
-         ["a5_"], ["V2"]};
+         ["a5_"], ["V2"]; ...
+         ["a15_"], ["Labels"]};
     nonSparse_norm_strength = ones(num_nonSparse_list,1);
     nonSparse_norm_strength(1) = ...
 	1/sqrt(32*32);
-    Sparse_std_ndx = [0 0 1 2];
+    Sparse_std_ndx = [0 0 1 2 0];
   elseif strcmp(run_type, "noPulvinar")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% noPulvinar
@@ -1073,7 +1075,7 @@ if plot_nonSparse && plot_flag
 	[1/sqrt(32*32); 1.0];
     %%%%%%%%%%%%%%%%%%%%%%%%e%%%%%%%%%%%%%%%%%%%%
   endif %% run_type
-  if ~exist(Sparse_std_ndx)
+  if ~exist("Sparse_std_ndx")
     Sparse_std_ndx = zeros(num_nonSparse_list,1);
   endif
 
@@ -1142,7 +1144,8 @@ if plot_nonSparse && plot_flag
     frame_diff = 0;
     if num_nonSparse_norm_frames > 0
       frame_diff = ...
-	  max((nonSparse_struct{num_nonSparse_frames}.time - nonSparse_norm_struct{num_nonSparse_norm_frames}.time), ...
+	  max((nonSparse_struct{num_nonSparse_frames}.time - ...
+	       nonSparse_norm_struct{num_nonSparse_norm_frames}.time), ...
 	      1);
     endif
     for i_frame = 1 : 1 : num_nonSparse_frames
@@ -1173,11 +1176,13 @@ if plot_nonSparse && plot_flag
 	    break;
 	  else
 	    if Sparse_std_ndx(i_nonSparse) == 0
-	      nonSparse_norm_vals = squeeze(nonSparse_norm_struct{i_frame-nonSparse_time_shift}.values);
-	      nonSparse_norm_RMS(i_frame) = std(nonSparse_norm_strength(i_nonSparse) * nonSparse_norm_vals(:));
+	      nonSparse_norm_vals = ...
+		  squeeze(nonSparse_norm_struct{i_frame-nonSparse_time_shift}.values);
+	      nonSparse_norm_RMS(i_frame) = ...
+		  std(nonSparse_norm_strength(i_nonSparse) * nonSparse_norm_vals(:));
 	    else
 	      nonSparse_norm_RMS(i_frame) = ...
-		  Sparse_std_array{Sparse_std_ndx(i_nonSparse)(i_frame-nonSparse_time_shift)};
+		  Sparse_std_array{Sparse_std_ndx(i_nonSparse)}(i_frame-nonSparse_time_shift);
 	    endif
 	  endif
 	endif %% ~isempty(nonSparse_norm_struct)
@@ -1227,7 +1232,7 @@ endif %% plot_nonSparse
 
 
 
-plot_ErrorVsSparse = false && plot_Sparse && plot_nonSparse;
+plot_ErrorVsSparse = true && plot_Sparse && plot_nonSparse;
 if plot_ErrorVsSparse
   Sparse_axis_index = ones(num_nonSparse,1);
   Sparse_axis_index(2) = 2;
@@ -1989,7 +1994,7 @@ endif  %% plot_weightLabels
 
 
 %%keyboard;
-plot_weights1_2 = true; %%(true && ~strcmp(run_type, "MNIST"));
+plot_weights1_2 = false; %%(true && ~strcmp(run_type, "MNIST"));
 if plot_weights1_2
   weights1_2_list = {};
   if strcmp(run_type, "color_deep") || strcmp(run_type, "noTopDown")
@@ -2583,6 +2588,7 @@ endif  %% plot_weights
 
 
 %%keyboard;
+plot_weightsN_Nplus1 = false;
 weightsN_Nplus1_list = {};
 if strcmp(run_type, "color_deep") || strcmp(run_type, "noTopDown")
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2632,7 +2638,6 @@ elseif strcmp(run_type, "MNIST") || strcmp(run_type, "CIFAR") || strcmp(run_type
 endif %% run_type
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-plot_weightsN_Nplus1 = true;
 num_weightsN_Nplus1_list = size(weightsN_Nplus1_list,1);
 num_layersN_Nplus1_list = size(layersN_Nplus1_list,2)/2;
 if size(weightsN_Nplus1_list,2)/2 ~= num_layersN_Nplus1_list-1
@@ -2923,7 +2928,7 @@ if plot_weightsN_Nplus1
 	      i_checkpoint == max_checkpoint && ...
 	      i_layerN_Nplus1 == num_layersN_Nplus1_list-2 
 	  weightsNminus1_Nplus1_fig = figure;
-	  set(weightsNminus1_Nplus1_fig, "name", weightsNminus1_Nplus1_name);
+	  set(weightsNminus1_Nplus1_fig, "name", weightsN_Nplus1_name);
 	endif %% plot_flag
 
 	max_shrinkage = 8; %% 
@@ -3147,15 +3152,15 @@ if plot_weightsN_Nplus1
 	if plot_flag && ...
 	      i_checkpoint == max_checkpoint && ...
 	      i_layerN_Nplus1 == num_layersN_Nplus1_list-2 
-	  weightsNminus_Nplus1_hist_fig = figure;
+	  weightsNminus1_Nplus1_hist_fig = figure;
 	  [weightsN_Nplus1_hist, weightsN_Nplus1_hist_bins] = ...
 	      hist(weightsN_Nplus1_vals{i_weightN_Nplus1, i_layerN_Nplus1+1}(:), 100);
 	  bar(weightsN_Nplus1_hist_bins, log(weightsN_Nplus1_hist+1));
-	  set(weightsN_Nplus1_hist_fig, "name", ...
+	  set(weightsNminus1_Nplus1_hist_fig, "name", ...
 	      ["Hist_", ...
 	       weightsN_Nplus1_list{i_weightN_Nplus1,1}, weightsN_Nplus1_list{i_weightN_Nplus1,2}, "_", ...
 	       num2str(weightsN_Nplus1_time, "%08d")]);
-	  saveas(weightsN_Nplus1_hist_fig, ...
+	  saveas(weightsNminus1_Nplus1_hist_fig, ...
 		 [weightsN_Nplus1_dir, filesep, "weightsN_Nplus1_hist_", ...
 		  weightsN_Nplus1_list{i_weightN_Nplus1,1}, weightsN_Nplus1_list{i_weightN_Nplus1,2}, "_", ...
 		  num2str(weightsN_Nplus1_time, "%08d")], "png");
