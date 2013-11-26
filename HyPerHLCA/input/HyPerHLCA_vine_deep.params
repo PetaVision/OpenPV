@@ -17,8 +17,7 @@ HyPerCol "column" = {
     randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
     numSteps = 46584000; //31956400; //30517200; //27290000; //24725600; // 21488000; //18674000; // 14005200; //8039600; // 
     progressStep = 1000;
-    outputPath = "/nh/compneuro/Data/vine/LCA/2013_02_01/output_2013_02_01_12x12x128_lambda_05X2_deep";
-    filenamesContainLayerNames = true;
+    outputPath = "/nh/compneuro/Data/vine/LCA/2013_01_24_2013_02_01/output_2013_01_24_2013_02_01_12x12x128_3x3_9x9x256_lambda_05X1_deep_lateral"    filenamesContainLayerNames = true;
     filenamesContainConnectionNames = true;
     checkpointRead = true;
     checkpointReadDir = "/nh/compneuro/Data/vine/LCA/2013_02_01/output_2013_02_01_12x12x128_lambda_05X2_deep/Checkpoints";
