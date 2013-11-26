@@ -9,17 +9,17 @@ load_flag = false;
 if plot_flag
   setenv("GNUTERM","X11")
 endif
-no_clobber = false;
+no_clobber = true;
 
 %% machine/run_type environment
 if ismac
   workspace_path = "/Users/garkenyon/workspace";
   run_type = "CIFAR_deep"; %%"CIFAR_noTask_deep"; %%"CIFAR_noTask"; %%"CIFAR" %%
-  output_dir = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB_deep_task/test_batch3"
+  output_dir = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB_deep_task/data_batch_all4"
   checkpoint_dir = output_dir;
   checkpoint_parent = "/Users/garkenyon/workspace/HyPerHLCA";
   checkpoint_children = ...
-     {"CIFAR256_RGB_deep_task/test_batch3"}; %% ...
+      {"CIFAR256_RGB_deep_task/data_batch_all4"}; %%
   last_checkpoint_ndx = 2000000;
 elseif isunix
   workspace_path = "/home/gkenyon/workspace";
@@ -1154,7 +1154,7 @@ if plot_nonSparse && plot_flag
 	nonSparse_vals = squeeze(nonSparse_struct{i_frame}.values);
 	nonSparse_RMS(i_frame) = std(nonSparse_vals(:));
 
-	if ~isempty(nonSparse_norm_struct)
+	if ~isempty(nonSparse_norm_struct) && i_frame <= num_nonSparse_norm_frames
 	  nonSparse_norm_time = nonSparse_norm_struct{i_frame}.time;
 	  nonSparse_time_shift = 0;
 	  while (nonSparse_norm_time - nonSparse_times(i_frame)) > frame_diff && ...
@@ -1590,7 +1590,7 @@ endif %% plot_ReconError
 
 
 %%keyboard;
-plot_weights = false;
+plot_weights = true;
 if plot_weights
   weights_list = {};
   labelWeights_list = {};
@@ -1994,7 +1994,7 @@ endif  %% plot_weightLabels
 
 
 %%keyboard;
-plot_weights1_2 = false; %%(true && ~strcmp(run_type, "MNIST"));
+plot_weights1_2 = true; %%(true && ~strcmp(run_type, "MNIST"));
 if plot_weights1_2
   weights1_2_list = {};
   if strcmp(run_type, "color_deep") || strcmp(run_type, "noTopDown")
@@ -2588,7 +2588,7 @@ endif  %% plot_weights
 
 
 %%keyboard;
-plot_weightsN_Nplus1 = false;
+plot_weightsN_Nplus1 = true;
 weightsN_Nplus1_list = {};
 if strcmp(run_type, "color_deep") || strcmp(run_type, "noTopDown")
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2701,17 +2701,15 @@ if plot_weightsN_Nplus1
       endif
     endfor %% i_checkpoint
 
-
     %% get weights headers
-    i_layerN_Nplus1 = 1;
+    checkpoint_dir = checkpoints_list{max_checkpoint,:};
     for i_layerN_Nplus1 = 1 : num_layersN_Nplus1_list-1
       weightsN_Nplus1_file = ...
 	  [checkpoint_dir, filesep, ...
 	   weightsN_Nplus1_list{i_weightN_Nplus1, i_layerN_Nplus1*2-1}, ...
 	   weightsN_Nplus1_list{i_weightN_Nplus1, i_layerN_Nplus1*2}, ".pvp"]
       if ~exist(weightsN_Nplus1_file, "file")
-	warning(["file does not exist: ", weightsN_Nplus1_file]);
-	continue;
+	error(["file does not exist: ", weightsN_Nplus1_file]);
       endif
       weightsN_Nplus1_fid = fopen(weightsN_Nplus1_file);
       weightsN_Nplus1_hdr{i_weightN_Nplus1, i_layerN_Nplus1} = readpvpheader(weightsN_Nplus1_fid);    
@@ -2730,7 +2728,7 @@ if plot_weightsN_Nplus1
       weightsN_Nplus1_nfp(i_weightN_Nplus1, i_layerN_Nplus1) = ...
 	  weightsN_Nplus1_hdr{i_weightN_Nplus1, i_layerN_Nplus1}.additional(3);
     endfor %% i_layerN_Nplus1
-    
+
     %% get layer headers
     checkpoint_dir = checkpoints_list{max_checkpoint,:};
     for i_layerN_Nplus1 = 1 : num_layersN_Nplus1_list
@@ -2755,6 +2753,7 @@ if plot_weightsN_Nplus1
     endfor %% i_layerN_Nplus1
 
     %% labels (if present)
+    checkpoint_dir = checkpoints_list{max_checkpoint,:};
     if length(labelWeights_list) >= i_weightN_Nplus1 && ...
 	  ~isempty(labelWeights_list{i_weightN_Nplus1}) && ...
 	  plot_flag 
@@ -2788,11 +2787,53 @@ if plot_weightsN_Nplus1
     endif %% labels
     
 
+      %% get rank order of presynaptic elements
+    i_layerN_Nplus1 = 1;
+    tmp_ndx = sparse_ndx(i_weightN_Nplus1);
+    if plot_Sparse
+      tmp_rank = Sparse_hist_rank_array{tmp_ndx};
+    else
+      tmp_rank = [];
+    endif
+    if plot_Sparse && ~isempty(tmp_rank)
+      pre_hist_rank = tmp_rank;
+    else
+      pre_hist_rank = (1:weightsN_Nplus1_hdr{i_weightN_Nplus1, i_layerN_Nplus1}.nf);
+    endif
+
 
     %% loop over checkpoints
-    for i_checkpoint = max_checkpoint %% 1 : num_checkpoints
+    for i_checkpoint = 1 : num_checkpoints
       checkpoint_dir = checkpoints_list{i_checkpoint,:};
 
+      %% re-initialize patch sizes throughout hierarchy since these are modified during recursive deconvolution
+      for i_layerN_Nplus1 = 1 : num_layersN_Nplus1_list-1
+	weightsN_Nplus1_file = ...
+	    [checkpoint_dir, filesep, ...
+	     weightsN_Nplus1_list{i_weightN_Nplus1, i_layerN_Nplus1*2-1}, ...
+	     weightsN_Nplus1_list{i_weightN_Nplus1, i_layerN_Nplus1*2}, ".pvp"]
+	if ~exist(weightsN_Nplus1_file, "file")
+	  warning(["file does not exist: ", weightsN_Nplus1_file]);
+	  continue;
+	endif
+	weightsN_Nplus1_fid = fopen(weightsN_Nplus1_file);
+	weightsN_Nplus1_hdr{i_weightN_Nplus1, i_layerN_Nplus1} = readpvpheader(weightsN_Nplus1_fid);    
+	fclose(weightsN_Nplus1_fid);
+	weightsN_Nplus1_filedata = dir(weightsN_Nplus1_file);
+	weightsN_Nplus1_framesize = ...
+	    weightsN_Nplus1_hdr{i_weightN_Nplus1, i_layerN_Nplus1}.recordsize * ...
+	    weightsN_Nplus1_hdr{i_weightN_Nplus1, i_layerN_Nplus1}.numrecords + ...
+	    weightsN_Nplus1_hdr{i_weightN_Nplus1, i_layerN_Nplus1}.headersize;
+	weightsN_Nplus1_totframes(i_weightN_Nplus1, i_layerN_Nplus1) = ...
+	    weightsN_Nplus1_filedata(1).bytes/weightsN_Nplus1_framesize;
+	weightsN_Nplus1_nxp(i_weightN_Nplus1, i_layerN_Nplus1) = ...
+	    weightsN_Nplus1_hdr{i_weightN_Nplus1, i_layerN_Nplus1}.additional(1);
+	weightsN_Nplus1_nyp(i_weightN_Nplus1, i_layerN_Nplus1) = ...
+	    weightsN_Nplus1_hdr{i_weightN_Nplus1, i_layerN_Nplus1}.additional(2);
+	weightsN_Nplus1_nfp(i_weightN_Nplus1, i_layerN_Nplus1) = ...
+	    weightsN_Nplus1_hdr{i_weightN_Nplus1, i_layerN_Nplus1}.additional(3);
+      endfor %% i_layerN_Nplus1
+    
       %% read the top layer of weights to initialize weightsN_Nplus1_vals
       i_layerN_Nplus1 = 1;
       weightsN_Nplus1_file = ...
@@ -2835,26 +2876,13 @@ if plot_weightsN_Nplus1
 	  ndims(weightsN_Nplus1_vals{i_weightN_Nplus1, i_layerN_Nplus1});
       num_patchesN_Nplus1 = ...
 	  size(weightsN_Nplus1_vals{i_weightN_Nplus1, i_layerN_Nplus1}, num_weightsN_Nplus1_dims);
-      %% algorithms assumes weights1_2 are one to many
       num_patchesN_Nplus1_rows = floor(sqrt(min(num_patchesN_Nplus1, max_patches)));
       num_patchesN_Nplus1_cols = ceil(min(num_patchesN_Nplus1, max_patches) / num_patchesN_Nplus1_rows);
-      
-      %% get rank order of presynaptic elements
-      tmp_ndx = sparse_ndx(i_weightN_Nplus1);
-      if plot_Sparse
-	tmp_rank = Sparse_hist_rank_array{tmp_ndx};
-      else
-	tmp_rank = [];
-      endif
-      if plot_Sparse && ~isempty(tmp_rank)
-	pre_hist_rank = tmp_rank;
-      else
-	pre_hist_rank = (1:weightsN_Nplus1_hdr{i_weightN_Nplus1, i_layerN_Nplus1}.nf);
-      endif
 
       %% loop over lower layers
       for i_layerN_Nplus1 = 1 : num_layersN_Nplus1_list - 2  %% last layer is image
 
+	%% reset patch sizes to reflect most recent deconvolution
 	weightsN_Nplus1_nyp(i_weightN_Nplus1, i_layerN_Nplus1) = ...
 	    size(weightsN_Nplus1_vals{i_weightN_Nplus1, i_layerN_Nplus1},1);
 	weightsN_Nplus1_nxp(i_weightN_Nplus1, i_layerN_Nplus1) = ...
