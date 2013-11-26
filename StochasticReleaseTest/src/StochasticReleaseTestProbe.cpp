@@ -20,19 +20,8 @@ StochasticReleaseTestProbe::StochasticReleaseTestProbe() {
 
 int StochasticReleaseTestProbe::initialize_base() {
    conn = NULL;
-   for (int k=0; k<9; k++) {
-      bins[k] = 0;
-   }
-   sumbins = 0;
-   binprobs[0] = 0.00023262907903552502; // erfc(3.5/sqrt(2))/2
-   binprobs[1] = 0.005977036246740614; // (erfc(2.5/sqrt(2))-erfc(3.5/sqrt(2)))/2
-   binprobs[2] = 0.06059753594308195; // (erfc(1.5/sqrt(2))-erfc(2.5/sqrt(2)))/2
-   binprobs[3] = 0.24173033745712885; // (erfc(0.5/sqrt(2))-erfc(1.5/sqrt(2)))/2
-   binprobs[4] = 0.3829249225480262; // erf(0.5/sqrt(2)
-   binprobs[5] = 0.24173033745712885; // (erfc(0.5/sqrt(2))-erfc(1.5/sqrt(2)))/2
-   binprobs[6] = 0.06059753594308195; // (erfc(1.5/sqrt(2))-erfc(2.5/sqrt(2)))/2
-   binprobs[7] = 0.005977036246740614; // (erfc(2.5/sqrt(2))-erfc(3.5/sqrt(2)))/2
-   binprobs[8] = 0.00023262907903552502; // erfc(3.5/sqrt(2))/2
+   pvalues = NULL;
+
    return PV_SUCCESS;
 }
 
@@ -45,7 +34,25 @@ int StochasticReleaseTestProbe::initStochasticReleaseTestProbe(const char * name
    int status = initStatsProbe(filename, targetlayer, BufActivity, message);
    free(message); message = NULL; // getLayerFunctionProbeParameters uses strdup; ParameterSweepTestProbe copies message, so we're done with it.
 
+   pvalues = (double *) calloc(getTargetLayer()->getParent()->numberOfTimeSteps()*getTargetLayer()->getLayerLoc()->nf, sizeof(double));
+   if (pvalues == NULL) {
+      fprintf(stderr, "StochasticReleaseTestProbe error: unable to allocate memory for pvalues: %s\n", strerror(errno));
+      exit(EXIT_FAILURE);
+   }
+
    return PV_SUCCESS;
+}
+
+int compar(const void * a, const void * b) {
+   // routine for sorting p-values.
+   // If the theoretical variance is zero and the observed mean is correct, the p-value will be not-a-number.
+   // If the theoretical variance is zero and the observed mean is incorrect, the p-value will by plus or minus infinity
+   // Sort so that all the nan's are at the end; they won't be included in the Holm-Bonferroni test.
+   double aval=*(double *) a;
+   double bval=*(double *) b;
+   if (isnan(aval)) return 1;
+   if (isnan(bval)) return -1;
+   return aval < bval ? -1 : aval > bval ? 1 : 0;
 }
 
 int StochasticReleaseTestProbe::outputState(double timed) {
@@ -62,22 +69,56 @@ int StochasticReleaseTestProbe::outputState(double timed) {
       }
       assert(conn!=NULL);
    }
-   int status = StatsProbe::outputState(timed);
-   assert(status==PV_SUCCESS);
-
    assert(conn->numberOfAxonalArborLists()==1);
-   assert(conn->getNumDataPatches()==1);
    assert(conn->xPatchSize()==1);
    assert(conn->yPatchSize()==1);
-   assert(conn->fPatchSize()==1);
-   pvdata_t wgt = *conn->get_wDataStart(0);
+   assert(conn->getNumDataPatches()==conn->fPatchSize());
+   int status = StatsProbe::outputState(timed);
+   assert(status==PV_SUCCESS);
+   HyPerLayer * l = getTargetLayer();
+   HyPerCol * hc = l->getParent();
+   int nf = l->getLayerLoc()->nf;
+   if (timed>0.0) {
+      for (int f=0; f < nf; f++) {
+         if (computePValues(hc->getCurrentStep(), f)!=PV_SUCCESS) status = PV_FAILURE;
+      }
+      assert(status == PV_SUCCESS);
+      if (hc->columnId()==0 && hc->simulationTime()+hc->getDeltaTime()/2>=hc->getStopTime()) {
+         // This is the last timestep
+         // sort the p-values and apply Holm-Bonferroni method since there is one for each timestep and each feature.
+         long int N = hc->numberOfTimeSteps() * nf;
+         qsort(pvalues, (size_t) N, sizeof(*pvalues), compar);
+         while(N>0 && isnan(pvalues[N-1])) {
+            N--;
+         }
+         for (long int k=0; k<N; k++) {
+            if (pvalues[k]*(N-k)<0.05) {
+               fprintf(stderr, "layer \"%s\" FAILED: p-value %ld out of %ld (ordered by size) with Holm-Bonferroni correction = %f\n", getTargetLayer()->getName(), k, N, pvalues[k]*(N-k));
+               status = PV_FAILURE;
+            }
+         }
+      }
+
+   }
+   assert(status==PV_SUCCESS);
+   return status;
+}
+
+int StochasticReleaseTestProbe::computePValues(long int step, int f) {
+   int status = PV_SUCCESS;
+   assert(step >=0 && step < INT_MAX);
+   int nf = getTargetLayer()->getLayerLoc()->nf;
+   assert(f >= 0 && f < nf);
+   int idx = (step-1)*nf + f;
+   pvdata_t wgt = conn->get_wDataStart(0)[f*(nf+1)]; // weights should be one-to-one weights
+
    HyPerLayer * pre = conn->preSynapticLayer();
    const pvdata_t * preactPtr = pre->getLayerData();
    const PVLayerLoc * preLoc = pre->getLayerLoc();
    const int numPreNeurons = pre->getNumNeurons();
    bool found=false;
    pvdata_t preact = 0.0f;
-   for (int n=0; n<numPreNeurons; n++) {
+   for (int n=f; n<numPreNeurons; n+=nf) {
       int nExt = kIndexExtended(n, preLoc->nx, preLoc->ny, preLoc->nf, preLoc->nb);
       pvdata_t a = preactPtr[nExt];
       if (a!=0.0f) {
@@ -93,89 +134,27 @@ int StochasticReleaseTestProbe::outputState(double timed) {
    if (preact < 0.0f) preact = 0.0f;
    if (preact > 1.0f) preact = 1.0f;
 
-   const int numNeurons = getTargetLayer()->getNumNeurons();
    const PVLayerLoc * loc = getTargetLayer()->getLayerLoc();
    const pvdata_t * activity = getTargetLayer()->getLayerData();
-   for (int n=0; n<numNeurons; n++) {
+   int nnzf = 0;
+   const int numNeurons = getTargetLayer()->getNumNeurons();
+   for (int n=f; n<numNeurons; n+=nf) {
       int nExt = kIndexExtended(n, loc->nx, loc->ny, loc->nf, loc->nb);
       assert(activity[nExt]==0 || activity[nExt]==wgt);
+      if (activity[nExt]!=0) nnzf++;
    }
-   const int numGlobalNeurons = getTargetLayer()->getNumGlobalNeurons();
-   double mean = preact * numGlobalNeurons;
-   double stddev = sqrt(numGlobalNeurons*preact*(1-preact));
-   double numStdDevs = stddev==0.0 && mean==nnz ? 0.0 : (nnz-mean)/stddev;
-   HyPerCol * hc = getTargetLayer()->getParent();
-   if (timed>0.0 && hc->columnId()==0) {
-      fprintf(outputstream->fp, "    t=%f, number of standard deviations = %f\n", timed, numStdDevs);
-      int bin = numStdDevs < -3.5 ? 0 :
-                numStdDevs < -2.5 ? 1 :
-                numStdDevs < -1.5 ? 2 :
-                numStdDevs < -0.5 ? 3 :
-                numStdDevs <= 0.5 ? 4 :
-                numStdDevs <= 1.5 ? 5 :
-                numStdDevs <= 2.5 ? 6 :
-                numStdDevs <= 3.5 ? 7 : 8;
-      bins[bin]++;
-      sumbins++;
-      if (hc->simulationTime()+hc->getDeltaTime()>=hc->getStopTime()) {
-         fprintf(outputstream->fp, "    Histogram:  ");
-         for (int k=0; k<9; k++) {
-            fprintf(outputstream->fp, " %7d", bins[k]);
-         }
-         fprintf(outputstream->fp, "\n");
-
-         int minallowed[9];
-         int maxallowed[9];
-
-         if (stddev==0) {
-            for (int k=0; k<9; k++) {
-               minallowed[k] = (k==4 ? sumbins : 0);
-               maxallowed[k] = (k==4 ? sumbins : 0);
-               assert(bins[k]==(k==4 ? sumbins : 0));
-            }
-         }
-         else {
-            assert(preact<1.0f && preact>0.0f);
-            for (int k=0; k<9; k++) {
-               // find first m for which prob(bins[k]<m) >= 0.005
-               double p = binprobs[k];
-               double outcomeprob = pow(1-p,sumbins);
-               double cumulativeprob = outcomeprob;
-               double m=0;
-               printf("m=%10.4f, outcomeprob=%.20f, cumulativeprob=%.20f\n", m, outcomeprob, cumulativeprob);
-               while(cumulativeprob < 0.005 && m <= sumbins) {
-                  m++;
-                  outcomeprob *= (sumbins+1-m)/m*p/(1-p);
-                  cumulativeprob += outcomeprob;
-                  printf("m=%10.4f, outcomeprob=%.20f, cumulativeprob=%.20f\n", m, outcomeprob, cumulativeprob);
-               }
-               minallowed[k] = m;
-               if (bins[k]<minallowed[k]) status = PV_FAILURE;
-
-               // find first m for which prob(bins[k]<m) < 0.995
-               while(cumulativeprob <= 0.995 && sumbins) {
-                  m++;
-                  outcomeprob *= (sumbins+1-m)/m*p/(1-p);
-                  cumulativeprob += outcomeprob;
-                  printf("m=%10.4f, outcomeprob=%.20f, cumulativeprob=%.20f\n", m, outcomeprob, cumulativeprob);
-               }
-               maxallowed[k] = m;
-               if (bins[k]>maxallowed[k]) status = PV_FAILURE;
-            }
-            fprintf(outputstream->fp, "    Min allowed:");
-            for (int k=0; k<9; k++) {
-               fprintf(outputstream->fp, " %7d", minallowed[k]);
-            }
-            fprintf(outputstream->fp, "\n");
-            fprintf(outputstream->fp, "    Max allowed:");
-            for (int k=0; k<9; k++) {
-               fprintf(outputstream->fp, " %7d", maxallowed[k]);
-            }
-            fprintf(outputstream->fp, "\n");
-            assert(status==PV_SUCCESS);
-         }
-      }
+   HyPerLayer * l = getTargetLayer();
+   HyPerCol * hc = l->getParent();
+   MPI_Allreduce(MPI_IN_PLACE, &nnzf, 1, MPI_INT, MPI_SUM, hc->icCommunicator()->communicator());
+   if (hc->columnId()==0) {
+      const int neuronsPerFeature = l->getNumGlobalNeurons()/nf;
+      double mean = preact * neuronsPerFeature;
+      double stddev = sqrt(neuronsPerFeature*preact*(1-preact));
+      pvalues[idx] = erfc(fabs(nnzf-mean)/sqrt(2)/stddev);
+      fprintf(outputstream->fp, "    Feature %d, nnz=%5d, expectation=%7.1f, std.dev.=%5.1f, p-value %f\n",
+              f, nnzf, mean, stddev, pvalues[idx]);
    }
+   assert(status==PV_SUCCESS);
    return status;
 }
 

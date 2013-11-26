@@ -58,7 +58,7 @@ int MatchingPursuitProbe::outputState(double timed) {
    if (timed>0.0) {
       for (int k=0; k<getTargetLayer()->getNumNeurons(); k++) {
          int kGlobal = globalIndexFromLocal(k, *loc);
-         pvdata_t correctValue = nearbyint((double)kGlobal + timed)==255 ? (pvdata_t) kGlobal/255.0f : 0.0f;
+         pvdata_t correctValue = nearbyint((double)kGlobal + timed)==256.0 ? (pvdata_t) kGlobal/255.0f : 0.0f;
          int kExtended = kIndexExtended(k, loc->nx, loc->ny, loc->nf, loc->nb);
          pvdata_t observed = getTargetLayer()->getLayerData()[kExtended];
          pvdata_t relerr = fabs(observed-correctValue)/correctValue;

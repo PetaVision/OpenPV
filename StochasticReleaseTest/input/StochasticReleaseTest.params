@@ -6,10 +6,10 @@
 
 // A test for stochastic release.
 // There are six input layers, with constant values 0, 0.2, 0.4, 0.6, 0.8, 1.0
-// There are six output layers, one per input layer.  The each connection
-// is a one-to-one conn with strength 0.473, using stochastic release set.
+// There are six output layers, one per input layer.  Each connection
+// is a one-to-one conn with strength 0.473, using stochastic release.
 // Hence an output layer should have only values 0.473 or zero, with probability
-// of 0.473 being the input value.
+// of 0.473*(input value) being the input value.
 //
 // The input layers are ANNLayers that use InitV to initialize, to maintain the
 // the values we have an IdentConn going from each layer to itself on channel 0.
@@ -37,18 +37,19 @@ HyPerCol "column" = {
 // Layers
 //
 
-Image "input_0_0" = {
+Image "input" = {
     restart = 0;
     nxScale = 1; 
     nyScale = 1;
-    nf = 1;
+    nf = 6;
     phase = 0;
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = true;
     writeSparseActivity = false;
 
-    imagePath = "input/input_0_0.png";
+    imagePath = "input/input.pvp";
+    frameNumber = 0;
     offsetX = 0;
     offsetY = 0;
     writeImages = false;
@@ -59,236 +60,12 @@ Image "input_0_0" = {
     jitterFlag = false;
 };
 
-Image "input_0_2" = {
+ANNLayer "output" = {
     restart = 0;
     nxScale = 1; 
     nyScale = 1;
-    nf = 1;
-    phase = 0;
-    writeStep = 1.0;
-    initialWriteTime = 0.0;
-    mirrorBCflag = true;
-    writeSparseActivity = false;
-
-    imagePath = "input/input_0_2.png";
-    offsetX = 0;
-    offsetY = 0;
-    writeImages = false;
-    useImageBCflag = false;
-    autoResizeFlag = false;
-    inverseFlag = false;
-    normalizeLuminanceFlag = false;
-    jitterFlag = false;
-};
-
-Image "input_0_4" = {
-    restart = 0;
-    nxScale = 1; 
-    nyScale = 1;
-    nf = 1;
-    phase = 0;
-    writeStep = 1.0;
-    initialWriteTime = 0.0;
-    mirrorBCflag = true;
-    writeSparseActivity = false;
-
-    imagePath = "input/input_0_4.png";
-    offsetX = 0;
-    offsetY = 0;
-    writeImages = false;
-    useImageBCflag = false;
-    autoResizeFlag = false;
-    inverseFlag = false;
-    normalizeLuminanceFlag = false;
-    jitterFlag = false;
-};
-
-Image "input_0_6" = {
-    restart = 0;
-    nxScale = 1; 
-    nyScale = 1;
-    nf = 1;
-    phase = 0;
-    writeStep = 1.0;
-    initialWriteTime = 0.0;
-    mirrorBCflag = true;
-    writeSparseActivity = false;
-
-    imagePath = "input/input_0_6.png";
-    offsetX = 0;
-    offsetY = 0;
-    writeImages = false;
-    useImageBCflag = false;
-    autoResizeFlag = false;
-    inverseFlag = false;
-    normalizeLuminanceFlag = false;
-    jitterFlag = false;
-};
-
-Image "input_0_8" = {
-    restart = 0;
-    nxScale = 1; 
-    nyScale = 1;
-    nf = 1;
-    phase = 0;
-    writeStep = 1.0;
-    initialWriteTime = 0.0;
-    mirrorBCflag = true;
-    writeSparseActivity = false;
-
-    imagePath = "input/input_0_8.png";
-    offsetX = 0;
-    offsetY = 0;
-    writeImages = false;
-    useImageBCflag = false;
-    autoResizeFlag = false;
-    inverseFlag = false;
-    normalizeLuminanceFlag = false;
-    jitterFlag = false;
-};
-
-Image "input_1_0" = {
-    restart = 0;
-    nxScale = 1; 
-    nyScale = 1;
-    nf = 1;
-    phase = 0;
-    writeStep = 1.0;
-    initialWriteTime = 0.0;
-    mirrorBCflag = true;
-    writeSparseActivity = false;
-
-    imagePath = "input/input_1_0.png";
-    offsetX = 0;
-    offsetY = 0;
-    writeImages = false;
-    useImageBCflag = false;
-    autoResizeFlag = false;
-    inverseFlag = false;
-    normalizeLuminanceFlag = false;
-    jitterFlag = false;
-};
-
-ANNLayer "output_0_0" = {
-    restart = 0;
-    nxScale = 1; 
-    nyScale = 1;
-    nf = 1;
+    nf = 6;
     phase = 1;
-    writeStep = 1.0;
-    initialWriteTime = 0.0;
-    mirrorBCflag = true;
-    writeSparseActivity = false;
-
-    InitVType = "ZeroV";
-
-    VThresh = -infinity;   
-    VMax = infinity;
-    VMin = -infinity;
-    VShift = 0.0;
-};
-
-ANNLayer "output_0_2" = {
-    restart = 0;
-    nxScale = 1; 
-    nyScale = 1;
-    nf = 1;
-    phase = 1;
-    writeStep = 1.0;
-    initialWriteTime = 0.0;
-    mirrorBCflag = true;
-    writeSparseActivity = false;
-
-    InitVType = "ZeroV";
-
-    VThresh = -infinity;   
-    VMax = infinity;
-    VMin = -infinity;
-    VShift = 0.0;
-};
-
-ANNLayer "output_0_4" = {
-    restart = 0;
-    nxScale = 1; 
-    nyScale = 1;
-    nf = 1;
-    phase = 1;
-    writeStep = 1.0;
-    initialWriteTime = 0.0;
-    mirrorBCflag = true;
-    writeSparseActivity = false;
-
-    InitVType = "ZeroV";
-
-    VThresh = -infinity;   
-    VMax = infinity;
-    VMin = -infinity;
-    VShift = 0.0;
-};
-
-ANNLayer "output_0_6" = {
-    restart = 0;
-    nxScale = 1; 
-    nyScale = 1;
-    nf = 1;
-    phase = 1;
-    writeStep = 1.0;
-    initialWriteTime = 0.0;
-    mirrorBCflag = true;
-    writeSparseActivity = false;
-
-    InitVType = "ZeroV";
-
-    VThresh = -infinity;   
-    VMax = infinity;
-    VMin = -infinity;
-    VShift = 0.0;
-};
-
-ANNLayer "output_0_8" = {
-    restart = 0;
-    nxScale = 1; 
-    nyScale = 1;
-    nf = 1;
-    phase = 1;
-    writeStep = 1.0;
-    initialWriteTime = 0.0;
-    mirrorBCflag = true;
-    writeSparseActivity = false;
-
-    InitVType = "ZeroV";
-
-    VThresh = -infinity;   
-    VMax = infinity;
-    VMin = -infinity;
-    VShift = 0.0;
-};
-
-ANNLayer "output_1_0" = {
-    restart = 0;
-    nxScale = 1; 
-    nyScale = 1;
-    nf = 1;
-    phase = 1;
-    writeStep = 1.0;
-    initialWriteTime = 0.0;
-    mirrorBCflag = true;
-    writeSparseActivity = false;
-
-    InitVType = "ZeroV";
-
-    VThresh = -infinity;   
-    VMax = infinity;
-    VMin = -infinity;
-    VShift = 0.0;
-};
-
-ANNLayer "dummy_layer" = {
-    restart = 0;
-    nxScale = 1; 
-    nyScale = 1;
-    nf = 1;
-    phase = 2;
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = true;
@@ -306,17 +83,17 @@ ANNLayer "dummy_layer" = {
 // Connections
 //
 
-KernelConn "output_0_0 to dummy_layer" = {
+KernelConn "input to output" = {
     channelCode = 0;
 
     nxp = 1;
     nyp = 1;
-    nfp = 1; 
+    nfp = 6; 
     numAxonalArbors = 1;
     writeStep = -1;
     initFromLastFlag = 0;
     
-    weightInitType = "UniformWeight";
+    weightInitType = "OneToOneWeights";
     weightInit = 0.473; // A constant weight unlikely to result from a wrong computation by accident.
       
     normalizeMethod = "none";
@@ -329,255 +106,13 @@ KernelConn "output_0_0 to dummy_layer" = {
     delay = 0;
 
     preActivityIsNotRate = false;
-    pvpatchAccumulateType = "Convolve"; // "Convolve", "Stochastic", or "Maxpooling" (case-insensitive)
+    pvpatchAccumulateType = "Stochastic"; // "Convolve", "Stochastic", or "Maxpooling" (case-insensitive)
     shrinkPatches = false; //if only a small part of connections whose weights are non-zero, then we could shrink the whole networks
     updateGSynFromPostPerspective = false; // Whether receiving synaptic input should loop over pre-synaptic neurons (false) or post-synaptic neurons (true)
 };
 
-KernelConn "output_0_2 to dummy_layer" = {
-    channelCode = 0;
-
-    nxp = 1;
-    nyp = 1;
-    nfp = 1; 
-    numAxonalArbors = 1;
-    writeStep = -1;
-    initFromLastFlag = 0;
-    
-    weightInitType = "UniformWeight";
-    weightInit = 0.473; // A constant weight unlikely to result from a wrong computation by accident.
-      
-    normalizeMethod = "none";
-
-    writeCompressedCheckpoints = false;
-    plasticityFlag = false;
-    selfFlag = false;  // connect to itself
-    shmget_flag = true; //shared memory
-
-    delay = 0;
-
-    preActivityIsNotRate = false;
-    pvpatchAccumulateType = "Convolve"; // "Convolve", "Stochastic", or "Maxpooling" (case-insensitive)
-    shrinkPatches = false; //if only a small part of connections whose weights are non-zero, then we could shrink the whole networks
-    updateGSynFromPostPerspective = false; // Whether receiving synaptic input should loop over pre-synaptic neurons (false) or post-synaptic neurons (true)
-};
-
-KernelConn "output_0_4 to dummy_layer" = {
-    channelCode = 0;
-
-    nxp = 1;
-    nyp = 1;
-    nfp = 1; 
-    numAxonalArbors = 1;
-    writeStep = -1;
-    initFromLastFlag = 0;
-    
-    weightInitType = "UniformWeight";
-    weightInit = 0.473; // A constant weight unlikely to result from a wrong computation by accident.
-      
-    normalizeMethod = "none";
-
-    writeCompressedCheckpoints = false;
-    plasticityFlag = false;
-    selfFlag = false;  // connect to itself
-    shmget_flag = true; //shared memory
-
-    delay = 0;
-
-    preActivityIsNotRate = false;
-    pvpatchAccumulateType = "Convolve"; // "Convolve", "Stochastic", or "Maxpooling" (case-insensitive)
-    shrinkPatches = false; //if only a small part of connections whose weights are non-zero, then we could shrink the whole networks
-    updateGSynFromPostPerspective = false; // Whether receiving synaptic input should loop over pre-synaptic neurons (false) or post-synaptic neurons (true)
-};
-
-KernelConn "output_0_6 to dummy_layer" = {
-    channelCode = 0;
-
-    nxp = 1;
-    nyp = 1;
-    nfp = 1; 
-    numAxonalArbors = 1;
-    writeStep = -1;
-    initFromLastFlag = 0;
-    
-    weightInitType = "UniformWeight";
-    weightInit = 0.473; // A constant weight unlikely to result from a wrong computation by accident.
-      
-    normalizeMethod = "none";
-
-    writeCompressedCheckpoints = false;
-    plasticityFlag = false;
-    selfFlag = false;  // connect to itself
-    shmget_flag = true; //shared memory
-
-    delay = 0;
-
-    preActivityIsNotRate = false;
-    pvpatchAccumulateType = "Convolve"; // "Convolve", "Stochastic", or "Maxpooling" (case-insensitive)
-    shrinkPatches = false; //if only a small part of connections whose weights are non-zero, then we could shrink the whole networks
-    updateGSynFromPostPerspective = false; // Whether receiving synaptic input should loop over pre-synaptic neurons (false) or post-synaptic neurons (true)
-};
-
-KernelConn "output_0_8 to dummy_layer" = {
-    channelCode = 0;
-
-    nxp = 1;
-    nyp = 1;
-    nfp = 1; 
-    numAxonalArbors = 1;
-    writeStep = -1;
-    initFromLastFlag = 0;
-    
-    weightInitType = "UniformWeight";
-    weightInit = 0.473; // A constant weight unlikely to result from a wrong computation by accident.
-      
-    normalizeMethod = "none";
-
-    writeCompressedCheckpoints = false;
-    plasticityFlag = false;
-    selfFlag = false;  // connect to itself
-    shmget_flag = true; //shared memory
-
-    delay = 0;
-
-    preActivityIsNotRate = false;
-    pvpatchAccumulateType = "Convolve"; // "Convolve", "Stochastic", or "Maxpooling" (case-insensitive)
-    shrinkPatches = false; //if only a small part of connections whose weights are non-zero, then we could shrink the whole networks
-    updateGSynFromPostPerspective = false; // Whether receiving synaptic input should loop over pre-synaptic neurons (false) or post-synaptic neurons (true)
-};
-
-KernelConn "output_1_0 to dummy_layer" = {
-    channelCode = 0;
-
-    nxp = 1;
-    nyp = 1;
-    nfp = 1; 
-    numAxonalArbors = 1;
-    writeStep = -1;
-    initFromLastFlag = 0;
-    
-    weightInitType = "UniformWeight";
-    weightInit = 0.473; // A constant weight unlikely to result from a wrong computation by accident.
-      
-    normalizeMethod = "none";
-
-    writeCompressedCheckpoints = false;
-    plasticityFlag = false;
-    selfFlag = false;  // connect to itself
-    shmget_flag = true; //shared memory
-
-    delay = 0;
-
-    preActivityIsNotRate = false;
-    pvpatchAccumulateType = "Convolve"; // "Convolve", "Stochastic", or "Maxpooling" (case-insensitive)
-    shrinkPatches = false; //if only a small part of connections whose weights are non-zero, then we could shrink the whole networks
-    updateGSynFromPostPerspective = false; // Whether receiving synaptic input should loop over pre-synaptic neurons (false) or post-synaptic neurons (true)
-};
-
-TransposeConn "input_0_0 to output_0_0" = {
-    channelCode = 0;
-    originalConnName = "output_0_0 to dummy_layer";
-    delay = 0;
-    writeStep = -1;
-    writeCompressedCheckpoints = false;
-    selfFlag = false;
-    preActivityIsNotRate = false;
-    pvpatchAccumulateType = "Stochastic";
-    updateGSynFromPostPerspective = true; // Whether receiving synaptic input should loop over pre-synaptic neurons (false) or post-synaptic neurons (true)
-};
-
-TransposeConn "input_0_2 to output_0_2" = {
-    channelCode = 0;
-    originalConnName = "output_0_2 to dummy_layer";
-    delay = 0;
-    writeStep = -1;
-    writeCompressedCheckpoints = false;
-    selfFlag = false;
-    preActivityIsNotRate = false;
-    pvpatchAccumulateType = "Stochastic";
-    updateGSynFromPostPerspective = true; // Whether receiving synaptic input should loop over pre-synaptic neurons (false) or post-synaptic neurons (true)
-};
-
-TransposeConn "input_0_4 to output_0_4" = {
-    channelCode = 0;
-    originalConnName = "output_0_4 to dummy_layer";
-    delay = 0;
-    writeStep = -1;
-    writeCompressedCheckpoints = false;
-    selfFlag = false;
-    preActivityIsNotRate = false;
-    pvpatchAccumulateType = "Stochastic";
-    updateGSynFromPostPerspective = true; // Whether receiving synaptic input should loop over pre-synaptic neurons (false) or post-synaptic neurons (true)
-};
-
-TransposeConn "input_0_6 to output_0_6" = {
-    channelCode = 0;
-    originalConnName = "output_0_6 to dummy_layer";
-    delay = 0;
-    writeStep = -1;
-    writeCompressedCheckpoints = false;
-    selfFlag = false;
-    preActivityIsNotRate = false;
-    pvpatchAccumulateType = "Stochastic";
-    updateGSynFromPostPerspective = true; // Whether receiving synaptic input should loop over pre-synaptic neurons (false) or post-synaptic neurons (true)
-};
-
-TransposeConn "input_0_8 to output_0_8" = {
-    channelCode = 0;
-    originalConnName = "output_0_8 to dummy_layer";
-    delay = 0;
-    writeStep = -1;
-    writeCompressedCheckpoints = false;
-    selfFlag = false;
-    preActivityIsNotRate = false;
-    pvpatchAccumulateType = "Stochastic";
-    updateGSynFromPostPerspective = true; // Whether receiving synaptic input should loop over pre-synaptic neurons (false) or post-synaptic neurons (true)
-};
-
-TransposeConn "input_1_0 to output_1_0" = {
-    channelCode = 0;
-    originalConnName = "output_1_0 to dummy_layer";
-    delay = 0;
-    writeStep = -1;
-    writeCompressedCheckpoints = false;
-    selfFlag = false;
-    preActivityIsNotRate = false;
-    pvpatchAccumulateType = "Stochastic";
-    updateGSynFromPostPerspective = true; // Whether receiving synaptic input should loop over pre-synaptic neurons (false) or post-synaptic neurons (true)
-};
-
-StochasticReleaseTestProbe "output_0_0 Probe" = {
-    targetLayer = "output_0_0";
-    message = "output_0_0 stats  ";
-    probeOutputFile = "output_0_0_probe.txt";    
-};
-
-StochasticReleaseTestProbe "output_0_2 Probe" = {
-    targetLayer = "output_0_2";
-    message = "output_0_2 stats  ";
-    probeOutputFile = "output_0_2_probe.txt";    
-};
-
-StochasticReleaseTestProbe "output_0_4 Probe" = {
-    targetLayer = "output_0_4";
-    message = "output_0_4 stats  ";
-    probeOutputFile = "output_0_4_probe.txt";    
-};
-
-StochasticReleaseTestProbe "output_0_6 Probe" = {
-    targetLayer = "output_0_6";
-    message = "output_0_6 stats  ";
-    probeOutputFile = "output_0_6_probe.txt";    
-};
-
-StochasticReleaseTestProbe "output_0_8 Probe" = {
-    targetLayer = "output_0_8";
-    message = "output_0_8 stats  ";
-    probeOutputFile = "output_0_8_probe.txt";    
-};
-
-StochasticReleaseTestProbe "output_1_0 Probe" = {
-    targetLayer = "output_1_0";
-    message = "output_1_0 stats  ";
-    probeOutputFile = "output_1_0_probe.txt";    
+StochasticReleaseTestProbe "output Probe" = {
+    targetLayer = "output";
+    message = "output stats  ";
+    probeOutputFile = "output_probe.txt";    
 };
