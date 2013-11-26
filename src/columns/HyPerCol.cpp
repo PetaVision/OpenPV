@@ -683,16 +683,6 @@ int HyPerCol::run(long int nTimeSteps)
       char * cpDir = (char *) malloc( str_size*sizeof(char) );
       snprintf(cpDir, str_size, "%s/Checkpoint%ld", checkpointReadDir, cpReadDirIndex);
       checkpointRead(cpDir);
-      // Lines below commented out 2012-10-20.  We shouldn't delete the checkpoint we read from, for archival purposes
-//      if (checkpointWriteFlag && deleteOlderCheckpoints) {
-//         int chars_needed = snprintf(lastCheckpointDir, PV_PATH_MAX, "%s", cpDir);
-//         if (chars_needed >= PV_PATH_MAX) {
-//            if (icComm->commRank()==0) {
-//               fprintf(stderr, "checkpointRead error: path \"%s\" is too long.\n", cpDir);
-//            }
-//            abort();
-//         }
-//      }
       free(cpDir);
    }
    else {
@@ -716,11 +706,13 @@ int HyPerCol::run(long int nTimeSteps)
    }
 
    // output initial conditions
-   for (int c = 0; c < numConnections; c++) {
-      connections[c]->outputState(simTime);
-   }
-   for (int l = 0; l < numLayers; l++) {
-      layers[l]->outputState(simTime);
+   if (!checkpointReadFlag) {
+      for (int c = 0; c < numConnections; c++) {
+         connections[c]->outputState(simTime);
+      }
+      for (int l = 0; l < numLayers; l++) {
+         layers[l]->outputState(simTime);
+      }
    }
 
    if (runDelegate) {
@@ -743,14 +735,6 @@ int HyPerCol::run(long int nTimeSteps)
                printf("Checkpointing, simTime = %f\n", simulationTime());
             }
 
-            // Commented out Nov 4, 2012
-            // if( currentStep >= HYPERCOL_DIRINDEX_MAX+1 ) {
-            //    if( icComm->commRank() == 0 ) {
-            //       fflush(stdout);
-            //       fprintf(stderr, "Column \"%s\": step number exceeds maximum value %d.  Exiting\n", name, HYPERCOL_DIRINDEX_MAX);
-            //    }
-            //    exit(EXIT_FAILURE);
-            // }
             char cpDir[PV_PATH_MAX];
             int chars_printed = snprintf(cpDir, PV_PATH_MAX, "%s/Checkpoint%ld", checkpointWriteDir, currentStep);
             if(chars_printed >= PV_PATH_MAX) {
@@ -919,7 +903,6 @@ int HyPerCol::initPublishers() {
 
 int HyPerCol::advanceTime(double sim_time)
 {
-#ifdef TIMESTEP_OUTPUT
    if (currentStep%progressStep == 0 && columnId() == 0) {
       if (writeProgressToErr) {
          fprintf(stderr, "   [%d]: time==%f\n", columnId(), sim_time);
@@ -929,9 +912,12 @@ int HyPerCol::advanceTime(double sim_time)
          printf("   [%d]: time==%f\n", columnId(), sim_time);
       }
    }
-#endif
 
    runTimer->start();
+
+   // make sure simTime is updated even if HyPerCol isn't running time loop
+   simTime = sim_time + deltaTime;
+   currentStep++;
 
    // At this point all activity from the previous time step has
    // been delivered to the data store.
@@ -943,13 +929,13 @@ int HyPerCol::advanceTime(double sim_time)
    // update the connections (weights)
    //
    for (int c = 0; c < numConnections; c++) {
-      status = connections[c]->updateState(sim_time, deltaTime);
+      status = connections[c]->updateState(simTime, deltaTime);
       if (!exitAfterUpdate) {
 		  exitAfterUpdate = status == PV_EXIT_NORMALLY;
       }
    }
    for (int c = 0; c < numConnections; c++) {
-      connections[c]->outputState(sim_time);
+      connections[c]->outputState(simTime);
    }
 
    // Each layer's phase establishes a priority for updating
@@ -958,7 +944,7 @@ int HyPerCol::advanceTime(double sim_time)
       // clear GSyn buffers
       for(int l = 0; l < numLayers; l++) {
          if (layers[l]->getPhase() != phase) continue;
-         layers[l]->resetGSynBuffers(sim_time, deltaTime);
+         layers[l]->resetGSynBuffers(simTime, deltaTime);
          layers[l]->recvAllSynapticInput();
       }
       //    for (int l = 0; l < numLayers; l++) {
@@ -974,7 +960,7 @@ int HyPerCol::advanceTime(double sim_time)
       // recvSynapticInput uses the datastore to compute GSyn.
       for(int l = 0; l < numLayers; l++) {
          if (layers[l]->getPhase() != phase) continue;
-         status = layers[l]->updateState(sim_time, deltaTime);
+         status = layers[l]->updateState(simTime, deltaTime);
 		 if (!exitAfterUpdate) {
 			 exitAfterUpdate = status == PV_EXIT_NORMALLY;
 		 }
@@ -988,7 +974,7 @@ int HyPerCol::advanceTime(double sim_time)
          if (layers[l]->getPhase() != phase) continue;
          // after updateBorder completes all necessary data has been
          // copied from the device (GPU) to the host (CPU)
-         layers[l]->updateBorder(sim_time, deltaTime); // TODO rename updateBorder?
+         layers[l]->updateBorder(simTime, deltaTime); // TODO rename updateBorder?
 
          // TODO - move this to layer
          // Advance time level so we have a new place in data store
@@ -999,7 +985,7 @@ int HyPerCol::advanceTime(double sim_time)
          // to last time level and level is advanced only after wait.
          icComm->increaseTimeLevel(layers[l]->getLayerId());
 
-         layers[l]->publish(icComm, sim_time);
+         layers[l]->publish(icComm, simTime);
          //    }
          //
          //    // wait for all published data to arrive
@@ -1010,22 +996,17 @@ int HyPerCol::advanceTime(double sim_time)
          //
          //    // also calls layer probes
          //    for (int l = 0; l < numLayers; l++) {
-         layers[l]->outputState(sim_time);
+         layers[l]->outputState(simTime);
       }
 
    }
 
-   // make sure simTime is updated even if HyPerCol isn't running time loop
-
-   double outputTime = simTime; // so that outputState is called with the correct time
-                               // but doesn't effect runTimer
-
-   simTime = sim_time + deltaTime;
-   currentStep++;
+   // double outputTime = simTime; // so that outputState is called with the correct time
+   //                             // but doesn't effect runTimer
 
    runTimer->stop();
 
-   outputState(outputTime);
+   outputState(simTime);
 
    if (exitAfterUpdate) {
 	   status = PV_EXIT_NORMALLY;

@@ -598,7 +598,7 @@ void HyPerLayer::readWriteStep(PVParams * params) {
    writeStep = params->value(name, "writeStep", parent->getDeltaTime());
    if (writeStep>=0.0f) {
       readInitialWriteTime(params);
-      writeTime = initialWriteTime-writeStep;
+      writeTime = initialWriteTime;
    }
 
 }
