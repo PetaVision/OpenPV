@@ -98,6 +98,7 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
            "_Start_HyPerLayers_",
              "HyPerLayer",
              "ANNLayer",
+               "AccumulateLayer",
                "ANNSquaredLayer",
                "ANNWhitenedLayer",
                "ANNDivInhLayer",
@@ -337,6 +338,10 @@ HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPe
       keywordMatched = true;
       addedLayer = (HyPerLayer *) new ANNLayer(name, hc);
    }
+   if( !strcmp(classkeyword, "AccumulateLayer") ) {
+      keywordMatched = true;
+      addedLayer = (HyPerLayer *) new AccumulateLayer(name, hc);
+   }
    if( !strcmp(classkeyword, "BIDSMovieCloneMap") ) {
       keywordMatched = true;
       addedLayer = (HyPerLayer *) new BIDSMovieCloneMap(name, hc);
@@ -456,26 +461,23 @@ HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPe
       addedLayer = (HyPerLayer *) new GapLayer(name, hc);
    }
    if( !strcmp(classkeyword, "HyPerLCALayer") ) {
-     keywordMatched = true;
-     int numChannels = hc->parameters()->value(name, "numChannels", 1, true);
-     if (numChannels == 1){
-    	 addedLayer = (HyPerLayer *) new HyPerLCALayer(name, hc, numChannels);
-     }
-     else if (numChannels == 2){
-    	 addedLayer = (HyPerLayer *) new HyPerLCALayer(name, hc, numChannels);
-     }
-     else{
+      keywordMatched = true;
+      int numChannels = hc->parameters()->value(name, "numChannels", 1, true);
+      if (numChannels == 1 || numChannels == 2){
+         addedLayer = (HyPerLayer *) new HyPerLCALayer(name, hc, numChannels);
+      }
+      else{
          fprintf(stderr, "Rank %d process: HyPerLCALayer \"%s\" requires 1 or 2 channels, numChannels = %i\n", hc->columnId(), name, numChannels);
          status = PV_FAILURE;
-     }
+      }
    }
    if( !strcmp(classkeyword, "ANNErrorLayer") ) {
-     keywordMatched = true;
-     addedLayer = (HyPerLayer *) new ANNErrorLayer(name, hc);
+      keywordMatched = true;
+      addedLayer = (HyPerLayer *) new ANNErrorLayer(name, hc);
    }
    if( !strcmp(classkeyword, "ANNLabelLayer") ) {
-     keywordMatched = true;
-     addedLayer = (HyPerLayer *) new ANNLabelLayer(name, hc);
+      keywordMatched = true;
+      addedLayer = (HyPerLayer *) new ANNLabelLayer(name, hc);
    }
    if( !strcmp(classkeyword, "ANNTriggerUpdateOnNewImageLayer") ) {
       keywordMatched = true;
