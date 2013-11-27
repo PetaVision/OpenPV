@@ -44,7 +44,7 @@ int LeakyIntegrator::updateState(double timed, double dt) {
    int nb = getLayerLoc()->nb;
    pvdata_t * A = getActivity();
    int status = setActivity_HyPerLayer(getNumNeurons(), A, V, nx, ny, nf, nb);
-   if( status == PV_SUCCESS ) status = applyVThresh_ANNLayer(getNumNeurons(), V, VMin, VThresh, VShift, A, nx, ny, nf, nb);
+   if( status == PV_SUCCESS ) status = applyVThresh_ANNLayer(getNumNeurons(), V, VMin, VThresh, VShift, VWidth, A, nx, ny, nf, nb);
    if( status == PV_SUCCESS ) status = applyVMax_ANNLayer(getNumNeurons(), V, VMax, A, nx, ny, nf, nb);
    return status;
 }

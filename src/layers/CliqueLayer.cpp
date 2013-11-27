@@ -326,7 +326,7 @@ int CliqueLayer::updateStateClique(double timef, double dt, const PVLayerLoc * l
    // resetGSynBuffers called by HyPerCol
    resetGSynBuffers_HyPerLayer(num_neurons, getNumChannels(), gSynHead);
    setActivity_HyPerLayer(num_neurons, A, V, nx, ny, nf, loc->nb); // setActivity();
-   applyVThresh_ANNLayer(num_neurons, V, VMin, VThresh, 0.0f, A, nx, ny, nf, loc->nb); // applyVThresh();
+   applyVThresh_ANNLayer(num_neurons, V, VMin, VThresh, 0.0f/*VShift*/, 0.0f/*VWidth*/, A, nx, ny, nf, loc->nb); // applyVThresh();
    applyVMax_ANNLayer(num_neurons, V, VMax, A, nx, ny, nf, loc->nb); // applyVMax();
    updateActiveIndices();
 

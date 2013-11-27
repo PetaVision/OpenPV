@@ -36,6 +36,7 @@ protected:
    pvdata_t VShift;  // shift potential, values above VThresh are shifted downward by this amount
                      // VShift == 0, hard threshold condition
                      // VShift == VThresh, soft threshold condition
+   pvdata_t VWidth;  // The thresholding occurs linearly over the region [VThresh,VThresh+VWidth].  VWidth=0,VShift=0 is standard hard-thresholding
 #ifdef PV_USE_OPENCL
    virtual int getNumCLEvents() {return numEvents;}
    virtual const char * getKernelName() { return "ANNLayer_update_state"; }

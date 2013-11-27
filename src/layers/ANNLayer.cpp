@@ -24,6 +24,7 @@ void ANNLayer_update_state(
     const float VMax,
     const float VMin,
     const float VShift,
+    const float VWidth,
     int num_channels,
     float * GSynHead,
     float * activity);
@@ -152,13 +153,26 @@ int ANNLayer::readVThreshParams(PVParams * params) {
    VMin = params->value(name, "VMin", VThresh);
    VMax = params->value(name, "VMax", max_pvdata_t);
    VShift = params->value(name, "VShift", 0.0);
+   VWidth = params->value(name, "VWidth", 0.0);
+   if (VWidth<0) {
+      VThresh += VWidth;
+      VWidth = -VWidth;
+      if (parent->columnId()==0) {
+         fprintf(stderr, "Warning: interpreting negative VWidth as setting VThresh=%f and VWidth=%f\n", VThresh, VWidth);
+      }
+   }
 
-   pvdata_t limfromright = VThresh-VShift;
+   pvdata_t limfromright = VThresh+VWidth-VShift;
    if (VMax < limfromright) limfromright = VMax;
 
    if (VMin > limfromright) {
       if (parent->columnId()==0) {
-         fprintf(stderr, "Warning: ANNLayer \"%s\" has a nonmonotonic transfer function, jumping from %f to %f at Vthresh=%f\n", name, VMin, limfromright, VThresh);
+         if (VWidth==0) {
+            fprintf(stderr, "Warning: ANNLayer \"%s\" has a nonmonotonic transfer function, jumping from %f to %f at Vthresh=%f\n", name, VMin, limfromright, VThresh);
+         }
+         else {
+            fprintf(stderr, "Warning: ANNLayer \"%s\" has a nonmonotonic transfer function, changing from %f to %f as V goes from VThresh=%f to VThresh+VWidth=%f\n", name, VMin, limfromright, VThresh, VThresh+VWidth);
+         }
       }
    }
    return PV_SUCCESS;
@@ -193,7 +207,7 @@ int ANNLayer::doUpdateState(double time, double dt, const PVLayerLoc * loc, pvda
       int ny = loc->ny;
       int nf = loc->nf;
       int num_neurons = nx*ny*nf;
-      ANNLayer_update_state(num_neurons, nx, ny, nf, loc->nb, V, VThresh, VMax, VMin, VShift, num_channels, gSynHead, A);
+      ANNLayer_update_state(num_neurons, nx, ny, nf, loc->nb, V, VThresh, VMax, VMin, VShift, VWidth, num_channels, gSynHead, A);
       if (this->writeSparseActivity){
          updateActiveIndices();  // added by GTK to allow for sparse output, can this be made an inline function???
       }
@@ -214,7 +228,7 @@ int ANNLayer::setActivity() {
    int num_neurons = nx*ny*nf;
    int status;
    status = setActivity_HyPerLayer(num_neurons, getCLayer()->activity->data, getV(), nx, ny, nf, nb);
-   if( status == PV_SUCCESS ) status = applyVThresh_ANNLayer(num_neurons, getV(), VMin, VThresh, VShift, getCLayer()->activity->data, nx, ny, nf, nb);
+   if( status == PV_SUCCESS ) status = applyVThresh_ANNLayer(num_neurons, getV(), VMin, VThresh, VShift, VWidth, getCLayer()->activity->data, nx, ny, nf, nb);
    if( status == PV_SUCCESS ) status = applyVMax_ANNLayer(num_neurons, getV(), VMax, getCLayer()->activity->data, nx, ny, nf, nb);
    return status;
 }
