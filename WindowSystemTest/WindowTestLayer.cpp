@@ -67,7 +67,7 @@ int WindowTestLayer::allocateDataStructures() {
 int WindowTestLayer::setActivitytoOne(){
    //Make sure window layer is the same size as current layer
    //const PVLayerLoc * windowLoc = windowLayer->getLayerLoc();
-   const PVLayerLoc * thisLoc = this->getLayerLoc();
+   //const PVLayerLoc * thisLoc = this->getLayerLoc();
    //if(windowLoc->nx != thisLoc->nx || windowLoc->ny != thisLoc->ny || windowLoc->nf != thisLoc->nf || windowLoc->nb != thisLoc->nb){
    //   fprintf(stderr, "WindowTestLayer \"%s\" error: Size (including margins) must equal to the window layer.\n", name);
    //   abort();
