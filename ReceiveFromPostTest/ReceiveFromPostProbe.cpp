@@ -24,8 +24,7 @@ ReceiveFromPostProbe::ReceiveFromPostProbe(HyPerLayer * layer, const char * msg)
 
 int ReceiveFromPostProbe::outputState(double timed){
    int status = StatsProbe::outputState(timed);
-   const pvdata_t * actLayer = getTargetLayer()->getLayerData();
-   const PVLayerLoc * loc = getTargetLayer()->getLayerLoc(); 
+   // const PVLayerLoc * loc = getTargetLayer()->getLayerLoc();
    int numExtNeurons = getTargetLayer()->getNumExtended();
    const pvdata_t * A = getTargetLayer()->getLayerData();
    for (int i = 0; i < numExtNeurons; i++){
