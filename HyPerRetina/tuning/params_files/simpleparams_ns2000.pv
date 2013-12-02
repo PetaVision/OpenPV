@@ -1,0 +1,598 @@
+//
+// Simple parameter file for outer retina.
+// By wchavez, gkenyon
+
+debugParsing = true;       // If error occurs, put this on true in param file and re-run to debug. 
+
+HyPerCol "column" = {
+   nx                           = 128;  //Input image dimensions
+   ny                           = 128;  //Input image dimensions
+   dt                            = 1.;           
+
+   numSteps                          = 2000;
+   progressStep                    = 100;  // How often (in number of timesteps) to update display during run.
+   writeProgressToErr         = 1;
+
+   outputPath                        = "/Users/wchavez/Documents/workspace/HyPerRetina/output/spots/p0/ns2000"; 
+   printParamsFilename     = "/Users/wchavez/Documents/workspace/HyPerRetina/output/spots/p0/ns2000/params_filename.pv";
+   suppressLastOutput        = false;
+
+   filenamesContainLayerNames   =  true;
+   filenamesContainConnectionNames = true;
+};
+
+//---------------- Image Layer ---------------------//
+
+disable = false;
+Movie "Movie" = {
+    
+    imageListPath           = "/Users/wchavez/Documents/workspace/HyPerRetina/input/filenames_graywhiteblackspots.txt"; //Filenames of input images in the order they are presented to retina.
+    restart                          = 0;
+    nxScale                      = 1;
+    nyScale                      = 1;
+    nf                                 = 1;
+    mirrorBCflag             = 1;
+    writeImages              = 0;
+    displayPeriod           = 100; // Number of timesteps each image is presented to retina.
+    jitterFlag                    = 0;
+    randomMovie             = 0;
+    offsetX                 = 0;
+    offsetY                 = 0;
+    start_frame_index       = 0.0;
+    skip_frame_index        = 0.0;
+    echoFramePathnameFlag   = true;
+    useImageBCflag          = false;
+    inverseFlag             = false;
+    normalizeLuminanceFlag  = false;
+    writeSparseActivity     = false;
+    writeStep               = 1;
+    writePosition	    = 1;
+    initialWriteTime        = 0;
+    autoResizeFlag          = 1;
+    biasConstraintMethod    = 0;
+    offsetConstraintMethod  = 0;
+    readPvpFile             = 0;
+    phase		    = 0;
+};
+     
+disable = false;
+ANNLayer "ImageBuffer" = {
+    
+    restart              = 0;
+    nxScale              = 1;
+    nyScale              = 1;
+    nf                   = 1;
+    mirrorBCflag         = 1;
+    InitVType            = "ConstantV";
+    valueV               = -55;
+    VThresh              = -55;
+    VMax                 = -35;
+    VMin                 = -55;
+    writeSparseActivity  = 0;
+    writeStep            = -1.0;
+    phase                = 1;
+    VShift	         = 0;
+};
+
+disable = false;
+ANNLayer "ConstantVrest" = {          //Offset cone input to -55mV for black spot (no input)
+    
+    restart              = 0;
+    nxScale              = 1;
+    nyScale              = 1;
+    nf                   = 1;
+    mirrorBCflag         = 1;
+    InitVType            = "ConstantV";
+    valueV               = -55;
+    VThresh              = -55.;
+    VMax                 = -55.;
+    VMin                 = -55.;
+    writeSparseActivity  = 0;
+    writeStep            = -1.0;
+    phase		 = 0;
+    VShift		 = 0;
+};
+
+
+
+//-----------------  Cone Layer --------------------//
+
+
+disable = false;
+LIFGap "Cone" = {       // 1 //
+    
+    nxScale             = 1.;
+    nyScale             = 1.;
+    nf                  = 1;       // one feature for now
+    mirrorBCflag        = 1.0;     // mirroring boundary conditions
+    InitVType           = "ConstantV";
+    method              = "arma"; // Chooses a method for integrating equations for membrane potential
+    valueV              = -10;
+    Vrest               = -10;    // Cone adjusted as per discussion with Garrett // Cone
+    restart             = 0.0;     // from graylast
+    Vexc                = 0.0;     // reversal potential 
+    Vinh                = -75.0;   // chloride channel
+    VinhB               = -90.0;   // potassium reversal
+    tau                 = 10.0;    // intrinsic leak membrane time constant (max)
+    tauE                = 2.0;     // how long glutamine stays bound
+    tauI                = 5.0;     // how long GABA stays bound
+    tauIB               = 10.0;    // inhibitory potassium channel 
+    VthRest             = 100000.0;// firing threshold disabled
+    tauVth              = 10.0;    // relative refractory period
+    deltaVth            = 0.0;     // jump of threshold when firing
+    noiseAmpE           = 0.5;     // 1 means conductance is equal to lead conductance               <======== no noise  
+    noiseAmpI           = 0.5;     // "twice as easy for the membrane capacitance to discharge"
+    noiseAmpIB          = 0.0.;    // no noise here 
+    noiseFreqE          =   0.;    // spontaneous transmitter release/channel openings
+    noiseFreqI          =   0.;    // correlation to time step size !!!
+    noiseFreqIB         =   0.;    // should be scaled by the time constant - look at LIF model
+    writeSparseActivity = 0;       // specified sparse output
+    writeStep           = -1.0;
+    phase		= 2;
+};
+
+disable = false;
+SigmoidLayer "ConeSigmoid" = {  // 2 introduced to have a more symmetric connection to the Horizontal than to the Bipolar cells
+    
+    nxScale             = 1.;
+    nyScale             = 1.;
+    nf                  = 1;
+    originalLayerName   = "Cone";
+    InitVType           = "ConstantV";
+    valueV              = -45; 
+    Vrest               = -55; 
+    VthRest             = -35;                     
+    mirrorBCflag        = 1.0; 
+    InverseFlag         = 0.0;
+    restart             = 0.0;
+    SigmoidFlag         = 1;
+    SigmoidAlpha        = 0.10;
+    writeSparseActivity = 0.0;
+    writeStep           = -1;
+    phase		= 3;
+};
+
+
+//---------------- Horizontal Cell Layer --------------------//
+
+disable = false;
+LIFGap "Horizontal" = {         //6
+
+    nxScale             = 0.25;    // 5/18 discussion with Garrett
+    nyScale             = 0.25;    // there are fewer horizontal 
+    nf                  = 1;       // one feature for now
+    mirrorBCflag        = 1.0;     // mirroring boundary conditions
+    InitVType           = "ConstantV";
+    method              = "arma"; // Chooses a method for integrating equations for membrane potential
+    valueV              = -65;
+    Vrest               = -65; // adjusted for gap of 0.025// Horizontal	
+    restart             = 0.0;     // from graylast
+    Vexc                = 0.0;     // reversal potential 
+    Vinh                = -75.0;   // chloride channel
+    VinhB               = -90.0;   // potassium reversal
+    tau                 = 10.0;    // intrinsic leak membrane time constant (max)
+    tauE                = 1.0;     // how long glutamine stays bound
+    tauI                = 5.0;     // how long GABA stays bound
+    tauIB               = 10.0;    // inhibitory potassium channel 
+    VthRest             = 100000.0;// firing threshold disabled
+    tauVth              = 10.0;    // relative refractory period
+    deltaVth            = 5.0;     // jump of threshold when firing
+    noiseAmpE           = 0.5;     // 1 means conductance is equal to lead conductance               <======== no noise  
+    noiseAmpI           = 0.5;     // "twice as easy for the membrane capacitance to discharge"
+    noiseAmpIB          = 0.0;     // no noise here 
+    noiseFreqE          =  0.;     // spontaneous transmitter release/channel openings
+    noiseFreqI          =  0.;     // correlation to time step size !!!
+    noiseFreqIB         =  0.;    // should be scaled by the time constant - look at LIF model
+    writeSparseActivity = 0;       //  
+    writeStep           = -1;
+    phase		= 4;
+};
+
+disable = false;
+GapLayer "HorizontalGap" = {                // 7
+
+    originalLayerName   = "Horizontal";
+    nxScale             = 0.25;         // 5/18 discussion with Garrett
+    nyScale             = 0.25;         // there are fewer horizontal 
+    nf                  = 1;
+    mirrorBCflag        = 1.0;        
+    restart             = 0.0;
+    InitVType           = "ConstantV";
+    ampSpikelet         = 150.0;
+    valueV              = -45;
+    writeSparseActivity = 0.0;
+    writeStep           = -1;
+    phase		= 5;
+};
+
+disable = false;
+SigmoidLayer "HorizontalSigmoid" = {        // 8
+
+    originalLayerName   = "Horizontal";
+    nxScale             = 0.25;         // 5/18 discussion with Garrett
+    nyScale             = 0.25;         // three are fewer horizontal 
+    InitVType           = "ConstantV";
+    valueV              = -45;
+    Vrest               = -55; 
+    VthRest             = -35;
+    mirrorBCflag        = 1.0;
+    restart             = 0.0;
+    nf                  = 1;
+    InverseFlag         = 0.0;
+    SigmoidFlag         = 1;
+    SigmoidAlpha        = 0.1;
+    writeSparseActivity = 0.0;
+    writeStep           = -1;
+    phase		= 5;
+};
+
+
+//-------------- Bipolar Layer ------------------------//
+
+disable = false;
+LIF "Bipolar" = {	            // 4
+
+    nxScale             = 1.;
+    nyScale             = 1.;
+    nf                  = 1;       // one feature for now
+    mirrorBCflag        = 1.0;     // mirroring boundary conditions
+    InitVType           = "ConstantV";
+    method              = "arma"; // Chooses a method for integrating equations for membrane potential
+    valueV              = -70.;
+    Vrest               = -70.;    // BipolarON
+    restart             = 0.0;     // from graylast
+    Vexc                = 0.0;     // reversal potential 
+    Vinh                = -75.0;   // chloride channel
+    VinhB               = -90.0;   // potassium reversal
+    tau                 = 10.0;    // intrinsic leak membrane time constant (max)
+    tauE                = 1.0;     // how long glutamine stays bound
+    tauI                = 5; //10.0;     // how long GABA stays bound
+    tauIB               = 10.0;    // inhibitory potassium channel 
+    VthRest             = 100000.0;// firing threshold disabled                           <=============== disabled
+    tauVth              = 10.0;    // relative refractory period
+    deltaVth            = 5.0;     // jump of threshold when firing
+    noiseAmpE           = 0.5;     // 1 means conductance is equal to lead conductance               <======== no noise  
+    noiseAmpI           = 0.5;     // "twice as easy for the membrane capacitance to discharge"
+    noiseAmpIB          = 0.0;     // no noise here 
+    noiseFreqE          = 0.;      // spontaneous transmitter release/channel openings
+    noiseFreqI          = 0.;      // correlation to time step size !!!
+    noiseFreqIB         = 0.;      // should be scaled by the time constant - look at LIF model
+    writeSparseActivity = 0; 
+    writeStep           = -1;
+    phase		= 5;
+};
+
+disable = false;
+SigmoidLayer "BipolarSigmoid" = {     //5
+
+    originalLayerName   = "Bipolar";
+    nxScale             = 1.;
+    nyScale             = 1.;
+    InitVType           = "ConstantV";
+    valueV              = -40;
+    Vrest               = -40;
+    VthRest             = -30;
+    mirrorBCflag        = 1.0;           // Margin boundaries are mirrored
+    restart             = 0.0; 
+    nf                  = 1;
+    InverseFlag         = 0.0;
+    SigmoidFlag         = 1;
+    SigmoidAlpha        = 0.1;
+    writeSparseActivity = 0.0;
+    writeStep           = -1;
+    phase		= 6;
+};
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////
+//   Connections Connections Connections Connections  Connections Connections Connections
+//   Connections Connections Connections Connections  Connections Connections Connections
+//   Connections Connections Connections Connections  Connections Connections Connections
+//   Connections Connections Connections Connections  Connections Connections Connections
+//   Connections Connections Connections Connections  Connections Connections Connections
+//   Connections Connections Connections Connections  Connections Connections Connections
+//   Connections Connections Connections Connections  Connections Connections Connections
+//   Connections Connections Connections Connections  Connections Connections Connections
+//   Connections Connections Connections Connections  Connections Connections Connections
+//   Connections Connections Connections Connections  Connections Connections Connections
+//   Connections Connections Connections Connections  Connections Connections Connections
+//////////////////////////////////////////////////////////////////////////////////////////
+
+disable = false;
+
+KernelConn "MovieToImageBuffer" = {
+   
+    preLayerName           = "Movie";
+    postLayerName          = "ImageBuffer";
+    channelCode            = 0;    // forward
+    nxp                    = 1;
+    nyp                    = 1;
+    nfp                    = 1;
+    numAxonalArbors        = 1;
+    shrinkPatches          = 0.0;
+    delay                  = 0.0;  // in time steps, additional to the one you always get
+
+    weightInitType         = "UniformWeight";
+    weightInit             = 20;
+    normalizeMethod        = "none";
+    selfFlag               = 0.0;
+    pvpatchAccumulateType  = "convolve";
+    preActivityIsNotRate   = 0;
+    plasticityFlag         = 0.0;
+    updateGSynFromPostPerspective = 0;
+
+    writeStep              = -1.0; // do not write these out
+    writeCompressedCheckpoints = 0;
+};
+
+disable = false;
+KernelConn "ConstantVrestToImageBuffer" = {   
+
+    preLayerName           = "ConstantVrest";
+    postLayerName          = "ImageBuffer";
+    channelCode            = 0;
+    nxp                    = 1;
+    nyp                    = 1;
+    nfp                    = 1;
+    numAxonalArbors        = 1;
+    shrinkPatches          = 0.0;
+    delay                  = 0.0;  // in time steps, additional to the one you always get
+
+    weightInitType         = "UniformWeight";
+    weightInit             = 1;
+    normalizeMethod        = "none";
+    pvpatchAccumulateType  = "convolve";
+    selfFlag               = 0.0;
+    preActivityIsNotRate   = 0;
+    plasticityFlag         = 0.0;
+    updateGSynFromPostPerspective = 0;
+
+    writeStep              = -1.0; // do not write these out
+    writeCompressedCheckpoints = 0;
+};
+
+disable = false;
+GapConn "ImageBufferToCone" = {          // 0
+
+    preLayerName           = "ImageBuffer";
+    postLayerName          = "Cone";
+    nxp                    = 1;
+    nyp                    = 1;
+    nfp                    = 1;
+    numAxonalArbors        = 1;
+    shrinkPatches          = 0.0;
+    delay                  = 0.0;       // in time steps, additional to the one you always get
+
+    weightInitType         = "UniformWeight";
+    weightInit             = 6;
+    normalizeMethod        = "normalizeSum";    
+    strength               = 6;
+    normalize_cutoff       = 0;
+    symmetrizeWeights      = 0.0;
+    selfFlag               = 0.0;
+    pvpatchAccumulateType  = "convolve";
+    preActivityIsNotRate   = 0;  // gap junction connection, so already scaled correctly
+    normalizeFromPostPerspective = 1; // not used for UniformWeight init method
+    plasticityFlag         = 0.0;
+    updateGSynFromPostPerspective = 0;
+
+    writeStep              = -1.0;      // do not write these out
+    writeCompressedCheckpoints   = 0;
+    normalizeArborsIndividually  = 0;
+    minSumTolerated	   = 0;
+};
+
+
+//--------- Cone ---------------------//
+
+
+disable = false;
+KernelConn "ConeSigmoidToBipolar" = {        // 1
+
+    preLayerName           = "ConeSigmoid";
+    postLayerName          = "Bipolar";
+    channelCode            = 0;       // forward
+    nxp                    = 3;
+    nyp                    = 3;
+    nfp                    = 1.0;     // should fit the feature number of post synaptic layer
+    numAxonalArbors        = 1;
+    shrinkPatches          = 0.0;
+    delay                  = 0.0;     // in time steps, additional to the one you always get
+
+    weightInitType         = "Gauss2DWeight";
+    normalizeMethod        = "normalizeSum";
+    normalize_cutoff       = 0.0;
+    strength               = 1;
+    aspect                 = 1.0;
+    sigma                  = 0.5;
+    rMax                   = 256.;    // maximum distance of connection    	
+    rMin                   = 0.0;
+    selfFlag               = 0.0;
+    symmetrizeWeights      = 0.0;
+    pvpatchAccumulateType  = "convolve";
+    preActivityIsNotRate   = 1;
+    normalizeFromPostPerspective = 1;
+    plasticityFlag         = 0.0;
+    updateGSynFromPostPerspective = 0;
+
+    writeStep              = -1.0;    // do not write these out
+    writeCompressedCheckpoints   = 0;
+    normalizeArborsIndividually  = 0;
+    minSumTolerated	   = 0;
+};
+
+
+disable = false;
+KernelConn "ConeSigmoidToHorizontal" = {      // 2
+
+    preLayerName           = "ConeSigmoid";
+    postLayerName          = "Horizontal";
+    channelCode            = 0;                   // forward
+    nxp                    = 3;                   // odd times 1 because of scale factor
+    nyp                    = 3;
+    nfp                    = 1;
+    numAxonalArbors        = 1;
+    shrinkPatches          = 0.0;
+    delay                  = 0.0;                 // in time steps, additional to the one you always get
+
+    weightInitType         = "Gauss2DWeight";
+    normalizeMethod        = "normalizeSum";
+    strength               = .5;
+    normalize_cutoff       = 0.0;
+    aspect                 = 1.0;
+    sigma                  = 2.0;
+    rMax                   = 256.;                // maximum distance of connection was 1.4
+    rMin                   = 0.0;
+    symmetrizeWeights      = 0.0;
+    pvpatchAccumulateType  = "convolve";
+    selfFlag               = 0.0;
+    preActivityIsNotRate   = 1;
+    normalizeFromPostPerspective = 1;
+    plasticityFlag         = 0.0;
+    updateGSynFromPostPerspective = 0;
+
+    writeStep              = -1;                  // do not write these out
+    writeCompressedCheckpoints   = 0;
+    normalizeArborsIndividually  = 0;
+    minSumTolerated	   = 0;
+};
+
+
+//--------- Horizontal ---------------------//
+
+
+disable = false;
+GapConn "HorizontalGapToHorizontal" = {        // 3  gap junction, watch the strength
+
+    preLayerName           = "HorizontalGap";
+    postLayerName          = "Horizontal";
+    nxp                    = 3;           // not to itself !!
+    nyp                    = 3;
+    nfp                    = 1;
+    numAxonalArbors        = 1;
+    shrinkPatches          = 0.0;
+
+    weightInitType         = "Gauss2DWeight";
+    normalizeMethod        = "normalizeSum";
+    strength               = 3;
+    normalize_cutoff       = 0.0;
+    aspect                 = 1.0;
+    delay                  = 0.0;         // in time steps, additional to the one you always get
+    sigma                  = 1.0;
+    rMax                   = 256.;        // maximum distance of connection
+    rMin                   = 0.1;         // take out the self connection
+    symmetrizeWeights      = 0.0;
+    selfFlag               = 0.0;
+    normalizeFromPostPerspective = 1;
+    pvpatchAccumulateType  = "convolve";
+    preActivityIsNotRate   = 0;           // input via gap
+    plasticityFlag         = 0.0;
+    updateGSynFromPostPerspective = 0;
+
+    writeStep              = -1.0;        // do not write these out
+    writeCompressedCheckpoints   = 0;
+    normalizeArborsIndividually  = 0;
+    minSumTolerated	   = 0;
+};
+
+disable = false;
+KernelConn "HorizontalSigmoidToCone" = {        // 4
+
+    preLayerName           = "HorizontalSigmoid";
+    postLayerName          = "Cone";
+    channelCode            = 1;               // inhibitory   feedback
+    nxp                    = 12;               // odd times 2 because of scale factor
+    nyp                    = 12;
+    nfp                    = 1;
+    numAxonalArbors        = 1;
+    shrinkPatches          = 0.0;
+    delay                  = 0.0;             // in time steps, additional to the one you always get
+    	
+    weightInitType         = "Gauss2DWeight";
+    normalizeMethod        = "normalizeSum";
+    strength               = 2;
+    normalize_cutoff       = 0.0;
+    symmetrizeWeights      = 0.0;
+    selfFlag               = 0.0;
+    aspect                 = 1.0;
+    sigma                  = 0.75;
+    rMax                   = 256.;            // maximum distance of connection
+    rMin                   = 0.0;
+    normalizeFromPostPerspective = 1;
+    pvpatchAccumulateType  = "convolve";
+    preActivityIsNotRate   = 1;
+    plasticityFlag         = 0.0;
+    updateGSynFromPostPerspective = 0;
+
+    writeStep              = -1.0;            // do not write these out
+    writeCompressedCheckpoints   = 0;
+    normalizeArborsIndividually  = 0;
+    minSumTolerated	   = 0;
+};
+
+
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////
+//   Probes Probes Probes Probes Probes Probes Probes Probes  Probes Probes Probes Probes 
+//   Probes Probes Probes Probes Probes Probes Probes Probes  Probes Probes Probes Probes 
+//   Probes Probes Probes Probes Probes Probes Probes Probes  Probes Probes Probes Probes 
+//   Probes Probes Probes Probes Probes Probes Probes Probes  Probes Probes Probes Probes 
+//   Probes Probes Probes Probes Probes Probes Probes Probes  Probes Probes Probes Probes 
+//   Probes Probes Probes Probes Probes Probes Probes Probes  Probes Probes Probes Probes 
+//   Probes Probes Probes Probes Probes Probes Probes Probes  Probes Probes Probes Probes 
+//   Probes Probes Probes Probes Probes Probes Probes Probes  Probes Probes Probes Probes 
+//   Probes Probes Probes Probes Probes Probes Probes Probes  Probes Probes Probes Probes 
+//   Probes Probes Probes Probes Probes Probes Probes Probes  Probes Probes Probes Probes 
+//   Probes Probes Probes Probes Probes Probes Probes Probes  Probes Probes Probes Probes 
+//////////////////////////////////////////////////////////////////////////////////////////
+
+
+disable = false;
+
+PointProbe "ImageBuffer Probe" = {
+   targetLayer = "ImageBuffer";
+   probeOutputFile = "ptImageBuffer.txt";
+   xLoc = 64;
+   yLoc = 64;
+   fLoc = 0;
+};
+
+disable = false;
+
+PointLIFProbe "Cone Probe" = {
+   targetLayer = "Cone";
+   probeOutputFile = "ptCone.txt";
+   xLoc = 64;
+   yLoc = 64;
+   fLoc = 0;
+};
+
+disable = false;
+
+PointLIFProbe "Horizontal Probe" = {
+   targetLayer = "Horizontal";
+   probeOutputFile = "ptHorizontal.txt";
+   xLoc = 16;
+   yLoc = 16;
+   fLoc = 0;
+};
+
+disable = false;
+
+PointLIFProbe "Bipolar Probe" = {
+   targetLayer = "Bipolar";
+//   msg = "Bipolar       ";
+   probeOutputFile = "ptBipolar.txt";
+   xLoc = 64;
+   yLoc = 64;
+   fLoc = 0;
+};
+
+
