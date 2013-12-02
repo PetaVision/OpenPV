@@ -115,6 +115,7 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
                "MaxPooling",
                "HyPerLCALayer",
                "ANNErrorLayer",
+               "LabelErrorLayer",
                "ANNLabelLayer",
                "ANNTriggerUpdateOnNewImageLayer",
              "CloneVLayer",
@@ -474,6 +475,10 @@ HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPe
    if( !strcmp(classkeyword, "ANNErrorLayer") ) {
       keywordMatched = true;
       addedLayer = (HyPerLayer *) new ANNErrorLayer(name, hc);
+   }
+   if( !strcmp(classkeyword, "LabelErrorLayer") ) {
+      keywordMatched = true;
+      addedLayer = (HyPerLayer *) new LabelErrorLayer(name, hc);
    }
    if( !strcmp(classkeyword, "ANNLabelLayer") ) {
       keywordMatched = true;

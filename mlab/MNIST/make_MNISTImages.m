@@ -1,9 +1,9 @@
 
 train_flag = 1;
 resize_factor = 1;
-nominal_ndx = 1:10;
+nominal_ndx = 1:6000;
 MNIST_path = "~/Pictures/MNIST/";
-for digit_id = 6
+for digit_id = 0:9
   [MNIST_images] = ...
       getMNIST(digit_id, ...
 	       train_flag, ...

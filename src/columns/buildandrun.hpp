@@ -60,6 +60,7 @@
 #include "../layers/LCALIFLayer.hpp"
 #include "../layers/HyPerLCALayer.hpp"
 #include "../layers/ANNErrorLayer.hpp"
+#include "../layers/LabelErrorLayer.hpp"
 #include "../layers/ANNLabelLayer.hpp"
 #include "../layers/ANNTriggerUpdateOnNewImageLayer.hpp"
 #include "../connections/HyPerConn.hpp"
