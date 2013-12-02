@@ -40,7 +40,7 @@ int StochasticReleaseTestProbe::initStochasticReleaseTestProbe(const char * name
       exit(EXIT_FAILURE);
    }
 
-   return PV_SUCCESS;
+   return status;
 }
 
 int compar(const void * a, const void * b) {
@@ -59,7 +59,6 @@ int StochasticReleaseTestProbe::outputState(double timed) {
    // Set conn.  Can't do that in initStochasticReleaseTestProbe because we need to search for a conn with the given post, and connections' postLayerName is not necessarily set.
    if (conn==NULL) {
       HyPerCol * hc = getTargetLayer()->getParent();
-      PVParams * params = hc->parameters();
       int numconns = hc->numberOfConnections();
       for (int c=0; c<numconns; c++) {
          if (!strcmp(hc->getConnection(c)->getPostLayerName(),getTargetLayer()->getName())) {
