@@ -104,7 +104,7 @@ int AccumulateLayer::setActivity() {
    int nf = loc->nf;
    int nb = loc->nb;
    int num_neurons = nx*ny*nf;
-   int status;
+   int status = PV_SUCCESS;
    memset(clayer->activity->data, 0, sizeof(pvdata_t)*getNumExtended());
    if( status == PV_SUCCESS ) status = applyVThresh_ANNLayer(num_neurons, getV(), VMin, VThresh, VShift, VWidth, getCLayer()->activity->data, nx, ny, nf, nb);
    if( status == PV_SUCCESS ) status = applyVMax_ANNLayer(num_neurons, getV(), VMax, getCLayer()->activity->data, nx, ny, nf, nb);
