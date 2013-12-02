@@ -24,10 +24,25 @@ cd $wd
 # PetaVision must be compiled before any projects that depend on it
 echo ; echo ======== Building PetaVision ========
 cd PetaVision
-make -j4 all
-if test "$?" -ne 0
+if test -f Makefile
 then
-    fails="$fails PetaVision"
+    hasmake=1
+elif test -f lib/Makefile
+then
+    hasmake=1
+    cd lib
+else
+    hasmake=0
+fi
+if test $hasmake -eq 1
+then
+    make -j4 all
+    if test "$?" -ne 0
+    then
+        fails="$fails PetaVision"
+    fi
+else
+    nomakefile="$nomakefile $k"
 fi
 cd $wd
 
