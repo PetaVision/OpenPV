@@ -195,7 +195,7 @@ int ImageCreator::createRandomImage()
 
    assert(drawBuffer != NULL);
 
-   int idx=0;
+   // int idx=0;
    for (int i = 0; i < (nx * ny); i++) {
       drawBuffer[i] = (float) (drawBufferRNGs->uniformRandom(i) > 0.5);
       //Fill in all pixels randomly
@@ -557,7 +557,7 @@ inline float ImageCreator::getmark(unsigned int i, unsigned int j)
 int ImageCreator::writeImageToFile(const float time, const unsigned char options)
 {
    int status = 0;
-   const PVLayerLoc * loc = getLayerLoc();
+   // const PVLayerLoc * loc = getLayerLoc();
    unsigned int istxton = 0, istifon = 0, isbinon = 0;
 
    char basicfilename[128] = { 0 };

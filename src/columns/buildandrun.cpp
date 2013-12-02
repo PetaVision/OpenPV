@@ -130,7 +130,6 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
 #endif
              "Image",
                "CreateMovies",
-               "ImageCreator",
                "Movie",
                "Patterns",
              "LIF",
@@ -428,10 +427,6 @@ HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPe
    if( !strcmp(classkeyword, "CreateMovies") ) {
       keywordMatched = true;
       addedLayer = (HyPerLayer *) new CreateMovies(name, hc);
-   }
-   if( !strcmp(classkeyword, "ImageCreator") ) {
-      keywordMatched = true;
-      addedLayer = (HyPerLayer *) new ImageCreator(name, hc);
    }
    if( !strcmp(classkeyword, "Movie") ) {
       keywordMatched = true;
@@ -1148,7 +1143,7 @@ void insertColProbe(ColProbe * colProbe, HyPerCol * hc, const char * classkeywor
 
 BaseConnectionProbe * addBaseConnectionProbeToColumn(const char * classkeyword, const char * name, HyPerCol * hc) {
    BaseConnectionProbe * addedProbe = NULL;
-   PVParams * params = hc->parameters();
+   // PVParams * params = hc->parameters();
    bool keywordMatched = false;
    int status = PV_SUCCESS;
    if( !strcmp(classkeyword, "ReciprocalEnergyProbe") ) {
@@ -1484,10 +1479,10 @@ int checknewobject(void * object, const char * kw, const char * name, HyPerCol *
    int rank = hc->icCommunicator()->commRank();
    if( object == NULL ) {
       fprintf(stderr, "Rank %d process: Group \"%s\" unable to add object of class %s\n", rank, name, kw);
-      return PV_FAILURE;
+      status = PV_FAILURE;
    }
    else {
       if( rank==0 ) printf("Added %s \"%s\"\n", kw, name);
-      return PV_SUCCESS;
    }
+   return status;
 }
