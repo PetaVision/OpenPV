@@ -55,14 +55,14 @@ int OjaConnProbe::initialize(const char * probename, HyPerCol * hc)
       exit(PV_FAILURE);
    }
    if( indexmethod ) {
-      int kPost = params->value(name, "kPost");
+      kPost = params->value(name, "kPost");
       patchIDMethod = INDEX_METHOD;
    }
    else {
       assert(coordmethod);
-      int kxPost = params->value(name, "kxPost");
-      int kyPost = params->value(name, "kyPost");
-      int kfPost = params->value(name, "kfPost");
+      kxPost = params->value(name, "kxPost");
+      kyPost = params->value(name, "kyPost");
+      kfPost = params->value(name, "kfPost");
       patchIDMethod = COORDINATE_METHOD;
    }
    return PV_SUCCESS;

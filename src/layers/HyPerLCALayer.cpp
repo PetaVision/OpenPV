@@ -143,7 +143,7 @@ int HyPerLCALayer::initialize(const char * name, HyPerCol * hc, int num_channels
    if(numWindowY != 1){
       windowSymY = (bool)params->value(name, "windowSymY", windowSymY);
    }
-   int windowXNeeded;
+   // int windowXNeeded;
 
    if ((tauMax - tauMin) > 1.0){
 	   slopeErrorStd = params->value(name, "slopeErrorStd", slopeErrorStd, true);

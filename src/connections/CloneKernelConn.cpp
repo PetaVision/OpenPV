@@ -187,8 +187,8 @@ int CloneKernelConn::communicateInitInfo() {
 
    if (preLoc->nx != origPreLoc->nx || preLoc->ny != origPreLoc->ny || preLoc->nf != origPreLoc->nf || preLoc->nb != origPreLoc->nb ) {
       if (parent->icCommunicator()->commRank()==0) {
-         fprintf(stderr, "CloneKernelConn \"%s\" error in rank %d process: CloneKernelConn and originalConn \"%s\" must have presynaptic layers with the same geometry (including margin width).\n",
-               name, parent->columnId(), originalConn->getName());
+         fprintf(stderr, "%s \"%s\" error in rank %d process: CloneKernelConn and originalConn \"%s\" must have presynaptic layers with the same geometry (including margin width).\n",
+               classname, name, parent->columnId(), originalConn->getName());
          fprintf(stderr, "{nx=%d, ny=%d, nf=%d, nb=%d} versus {nx=%d, ny=%d, nf=%d, nb=%d}\n",
                  preLoc->nx, preLoc->ny, preLoc->nf, preLoc->nb, origPreLoc->nx, origPreLoc->ny, origPreLoc->nf, origPreLoc->nb);
       }

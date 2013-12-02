@@ -891,7 +891,7 @@ int HyPerCol::connAllocateDataStructures(int c) {
 
 int HyPerCol::initPublishers() {
    for( int l=0; l<numLayers; l++ ) {
-      PVLayer * clayer = layers[l]->getCLayer();
+      // PVLayer * clayer = layers[l]->getCLayer();
       icComm->addPublisher(layers[l], layers[l]->getNumExtended(), layers[l]->getNumDelayLevels());
    }
    for( int c=0; c<numConnections; c++ ) {

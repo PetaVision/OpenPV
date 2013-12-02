@@ -115,13 +115,13 @@ void ShuffleLayer::randomShuffle(){
 
 int ShuffleLayer::updateState(double timef, double dt) {
    int status = PV_SUCCESS;
-   int numNeurons = sourceLayer->getNumNeurons();
-   int kext;
+   // int numNeurons = sourceLayer->getNumNeurons();
+   //  kext;
    //sourceData is extended
-   const pvdata_t * sourceData = sourceLayer->getLayerData();
+   // const pvdata_t * sourceData = sourceLayer->getLayerData();
    const PVLayerLoc * loc = getLayerLoc();
    const PVLayerLoc * sourceLoc = sourceLayer->getLayerLoc();
-	int comm_size = parent->icCommunicator()->commSize();
+   // int comm_size = parent->icCommunicator()->commSize();
 	int rank = parent->icCommunicator()->commRank();
    int rootproc = 0;
    

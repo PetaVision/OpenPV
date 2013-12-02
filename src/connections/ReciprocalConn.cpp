@@ -109,7 +109,6 @@ void ReciprocalConn::readSlownessFlag(PVParams * params) {
 }
 
 int ReciprocalConn::readSlownessPre(PVParams * params) {
-   int status = PV_SUCCESS;
    assert(!params->presentAndNotBeenRead(name, "slownessFlag"));
    return getLayerName(params, "slownessPre", &slownessPreName, NULL);
 }
@@ -182,7 +181,7 @@ int ReciprocalConn::setParameterLayer(const char * paramname, const char * layer
 }
 
 int ReciprocalConn::initNormalize() {
-   PVParams * params = parent->parameters();
+   // PVParams * params = parent->parameters();
    nxUnitCellPost = zUnitCellSize(postSynapticLayer()->getXScale(), preSynapticLayer()->getXScale());
    nyUnitCellPost = zUnitCellSize(postSynapticLayer()->getYScale(), preSynapticLayer()->getYScale());
    nfUnitCellPost = fPatchSize();

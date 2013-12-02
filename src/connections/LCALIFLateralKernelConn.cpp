@@ -115,11 +115,10 @@ int LCALIFLateralKernelConn::allocateDataStructures() {
    }
 
    const PVLayerLoc * preloc = pre->getLayerLoc();
-   const PVLayerLoc * postloc = post->getLayerLoc();
-   int nxpre = preloc->nx; int nxpost = postloc->nx;
-   int nypre = preloc->ny; int nypost = postloc->ny;
-   int nfpre = preloc->nf; int nfpost = postloc->nf;
-   int nbpre = preloc->nb; int nbpost = postloc->nb;
+   int nxpre = preloc->nx;
+   int nypre = preloc->ny;
+   int nfpre = preloc->nf;
+   int nbpre = preloc->nb;
 
    int nExt = pre->getNumExtended();
    int sya = getPostExtStrides()->sy;

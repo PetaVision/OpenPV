@@ -143,7 +143,7 @@ int IdentConn::communicateInitInfo() {
       exit(EXIT_FAILURE);
    }
    handleUnnecessaryIntParameter("nfp", nfp); // nfp is set during call to KernelConn::communicateInitInfo, so don't check for unnecessary int parameter until after that.
-   return PV_SUCCESS;
+   return status;
 }
 
 int IdentConn::initNormalize() {

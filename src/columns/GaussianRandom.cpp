@@ -110,8 +110,7 @@ int GaussianRandom::initialize(HyPerCol * hc, unsigned int numBlocks, unsigned i
 //         return( m + y1 * s );
 // }
 float GaussianRandom::gaussianDist(int localIndex) {
-   float x1, x2, w, y;
-   uint4 rng = rngArray[localIndex];
+   float x1, x2, y;
    struct box_muller_data bmdata = heldValues[localIndex];
    if (bmdata.hasHeldValue) {
       y = bmdata.heldValue;

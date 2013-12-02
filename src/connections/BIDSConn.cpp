@@ -64,8 +64,8 @@ int BIDSConn::setPatchSize()
 
    bool patchSizeSet = false;
    if( filename != NULL ) {
-      assert(!parent->parameters()->presentAndNotBeenRead(name, "useListOfArborFiles"));
-      assert(!parent->parameters()->presentAndNotBeenRead(name, "combineWeightFiles"));
+      assert(!inputParams->presentAndNotBeenRead(name, "useListOfArborFiles"));
+      assert(!inputParams->presentAndNotBeenRead(name, "combineWeightFiles"));
       if( !useListOfArborFiles && !combineWeightFiles) {
          status = patchSizeFromFile(filename);
          if (status == PV_SUCCESS) patchSizeSet = true;

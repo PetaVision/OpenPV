@@ -2994,7 +2994,6 @@ int HyPerConn::writePostSynapticWeights(double timef, bool last) {
    char path[PV_PATH_MAX];
 
    const PVLayerLoc * preLoc = pre->getLayerLoc();
-   const PVLayerLoc * postLoc = post->getLayerLoc();
 
    float minVal = FLT_MAX;
    float maxVal = -FLT_MAX;
@@ -3035,12 +3034,12 @@ int HyPerConn::writePostSynapticWeights(double timef, bool last) {
 	  break;
    }
 
-   const PVLayerLoc * loc  = post->getLayerLoc();
+   const PVLayerLoc * postLoc = post->getLayerLoc();
    Communicator * comm = parent->icCommunicator();
 
    bool append = (last) ? false : ioAppend;
 
-	status = PV::writeWeights(path, comm, (double) timef, append, loc,
+	status = PV::writeWeights(path, comm, (double) timef, append, postLoc,
 			nxPostPatch, nyPostPatch, nfPostPatch, minVal, maxVal, wPostPatches,
 			wPostDataStart, numPostPatches, numberOfAxonalArborLists(),
 			writeCompressedWeights, fileType);

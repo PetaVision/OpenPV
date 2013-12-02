@@ -28,7 +28,7 @@ int PoolingGenConn::initialize(const char * name, HyPerCol * hc,
       const char * pre_layer_name2, const char * post_layer_name2,
       const char * filename, InitWeights *weightInit) {
    int status;
-   PVParams * params = hc->parameters();
+   // PVParams * params = hc->parameters();
    preLayerName2 = strdup(pre_layer_name2);
    postLayerName2 = strdup(post_layer_name2);
    status = GenerativeConn::initialize(name, hc, pre_layer_name, post_layer_name, filename, weightInit);

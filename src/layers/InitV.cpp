@@ -78,7 +78,7 @@ InitV::~InitV() {free(this->groupName);}
 int InitV::calcV(HyPerLayer * layer) {
    int status = PV_SUCCESS;
    const PVLayerLoc * loc = layer->getLayerLoc();
-   int numNeuronSites = loc->nx*loc->ny;
+   // int numNeuronSites = loc->nx*loc->ny;
    switch(initVTypeCode) {
    case UndefinedInitV:
       status = PV_FAILURE;
