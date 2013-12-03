@@ -21,8 +21,8 @@ HyPerCol "column" = {
     filenamesContainLayerNames = true;
     filenamesContainConnectionNames = true;
     checkpointRead = false;
-    checkpointReadDir = "/nh/compneuro/Data/vine/LCA/2013_01_25/output_2013_01_25_12x12x128_lambda_05X2_noPulvinar/Checkpoints";
-    checkpointReadDirIndex = 30517200; //20574000; //20574000; 
+    checkpointReadDir = "/nh/compneuro/Data/vine/LCA/2013_02_01/output_2013_02_01_12x12x128_lambda_05X2_noPulvinar/Checkpoints";
+    checkpointReadDirIndex = 46584000; //20574000; //20574000; 
     checkpointWrite = false;
     checkpointWriteDir = "/nh/compneuro/Data/vine/LCA/2013_01_24/output_2013_01_24_how2catchSquirrel_12x12x128_noPulvinar/Checkpoints";
     checkpointWriteStepInterval = 100000;
@@ -42,7 +42,7 @@ Movie "Image" = {
     nyScale = 1;
     imageListPath = "/nh/compneuro/Data/HyPerPursuit/VineVideo/input/VineVideoFrames.txt";
     nf = 3;
-    writeStep = -1;
+    writeStep = 1000;
     writeSparseActivity = false;
     displayPeriod = 1000;
     start_frame_index = 0;
@@ -118,7 +118,7 @@ ANNErrorLayer "Error" = {
     //
     //InitVType = "ZeroV";
     InitVType = "InitVFromFile";
-    Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_25/output_2013_01_25_12x12x128_lambda_05X2_noPulvinar/Checkpoints/Checkpoint30517200/Error_V.pvp";
+    Vfilename = "/nh/compneuro/Data/vine/LCA/2013_02_01/output_2013_02_01_12x12x128_lambda_05X2_noPulvinar/Checkpoints/Checkpoint46584000/Error_V.pvp";
     //
     VThresh = 0.005;
     VMax =  infinity;
@@ -142,12 +142,13 @@ HyPerLCALayer "V1" = {
     mirrorBCflag = 0;
     valueBC = 0;
     writeSparseActivity = 1;
+    writeSparseValues = 1;
     //
     //InitVType = "UniformRandomV";
     //minV = -1.0;
     //maxV = .15; //0.05 above VThresh
     InitVType = "InitVFromFile";
-    Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_25/output_2013_01_25_12x12x128_lambda_05X2_noPulvinar/Checkpoints/Checkpoint30517200/V1_V.pvp";
+    Vfilename = "/nh/compneuro/Data/vine/LCA/2013_02_01/output_2013_02_01_12x12x128_lambda_05X2_noPulvinar/Checkpoints/Checkpoint46584000/V1_V.pvp";
     // 
     timeConstantTau = 1000.0;
     timeConstantTauMinimum = 10.0;
@@ -176,7 +177,7 @@ ANNTriggerUpdateOnNewImageLayer "Recon" = {
     //
     //InitVType = "ZeroV";
     InitVType = "InitVFromFile";
-    Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_25/output_2013_01_25_12x12x128_lambda_05X2_noPulvinar/Checkpoints/Checkpoint30517200/Recon_V.pvp";
+    Vfilename = "/nh/compneuro/Data/vine/LCA/2013_02_01/output_2013_02_01_12x12x128_lambda_05X2_noPulvinar/Checkpoints/Checkpoint46584000/Recon_V.pvp";
     //
     VThresh = -infinity;
     VMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
@@ -200,7 +201,7 @@ ANNTriggerUpdateOnNewImageLayer "Recon" = {
 //    //
 //    //InitVType = "ZeroV";
 //    InitVType = "InitVFromFile";
-//    Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_25/output_2013_01_25_12x12x128_lambda_05X2_noPulvinar/Checkpoints/Checkpoint30517200/Error2_V.pvp";
+//    Vfilename = "/nh/compneuro/Data/vine/LCA/2013_02_01/output_2013_02_01_12x12x128_lambda_05X2_noPulvinar/Checkpoints/Checkpoint46584000/Error2_V.pvp";
 //    //
 //    VThresh = 0.005;
 //    VMax =  infinity;
@@ -225,12 +226,13 @@ HyPerLCALayer "V2" = {
     mirrorBCflag = 0;
     valueBC = 0;
     writeSparseActivity = 1;
+    writeSparseValues = 1;
     //
     //InitVType = "UniformRandomV";
     //minV = -1.0;
     //maxV = .15; //0.05 above VThresh
     InitVType = "InitVFromFile";
-    Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_25/output_2013_01_25_12x12x128_lambda_05X2_noPulvinar/Checkpoints/Checkpoint30517200/V2_V.pvp";
+    Vfilename = "/nh/compneuro/Data/vine/LCA/2013_02_01/output_2013_02_01_12x12x128_lambda_05X2_noPulvinar/Checkpoints/Checkpoint46584000/V2_V.pvp";
     // 
     timeConstantTau = 1000.0;
     timeConstantTauMinimum = 10.0;
@@ -259,7 +261,7 @@ HyPerLCALayer "V2" = {
 //   //
 //    //InitVType = "ZeroV";
 //    InitVType = "InitVFromFile";
-//    Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_25/output_2013_01_25_12x12x128_lambda_05X2_noPulvinar/Checkpoints/Checkpoint30517200/Recon2_V.pvp";
+//    Vfilename = "/nh/compneuro/Data/vine/LCA/2013_02_01/output_2013_02_01_12x12x128_lambda_05X2_noPulvinar/Checkpoints/Checkpoint46584000/Recon2_V.pvp";
 //    //
 //    VThresh = -infinity;
 //    VMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
@@ -283,7 +285,7 @@ ANNErrorLayer "Error1_2" = {
     //
     //InitVType = "ZeroV";
     InitVType = "InitVFromFile";
-    Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_25/output_2013_01_25_12x12x128_lambda_05X2_noPulvinar/Checkpoints/Checkpoint30517200/Error1_2_V.pvp";
+    Vfilename = "/nh/compneuro/Data/vine/LCA/2013_02_01/output_2013_02_01_12x12x128_lambda_05X2_noPulvinar/Checkpoints/Checkpoint46584000/Error1_2_V.pvp";
     //
     VThresh = 0.005;
     VMax =  infinity;
@@ -308,7 +310,7 @@ ANNTriggerUpdateOnNewImageLayer "V1Infra" = {
     //
     //InitVType = "ZeroV";
     InitVType = "InitVFromFile";
-    Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_25/output_2013_01_25_12x12x128_lambda_05X2_noPulvinar/Checkpoints/Checkpoint30517200/V1Infra_V.pvp";
+    Vfilename = "/nh/compneuro/Data/vine/LCA/2013_02_01/output_2013_02_01_12x12x128_lambda_05X2_noPulvinar/Checkpoints/Checkpoint46584000/V1Infra_V.pvp";
     //
     VThresh = 0.005; // using V1's VThresh might be unstable, trying Error1_2 thresh
     VMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
@@ -333,7 +335,7 @@ ANNTriggerUpdateOnNewImageLayer "ReconInfra" = {
     //
     //InitVType = "ZeroV";
     InitVType = "InitVFromFile";
-    Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_25/output_2013_01_25_12x12x128_lambda_05X2_noPulvinar/Checkpoints/Checkpoint30517200/ReconInfra_V.pvp";
+    Vfilename = "/nh/compneuro/Data/vine/LCA/2013_02_01/output_2013_02_01_12x12x128_lambda_05X2_noPulvinar/Checkpoints/Checkpoint46584000/ReconInfra_V.pvp";
     //
     VThresh = -infinity;
     VMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
@@ -429,7 +431,7 @@ ANNTriggerUpdateOnNewImageLayer "ReconInfra" = {
 //    //
 //    //InitVType = "ZeroV";
 //    InitVType = "InitVFromFile";
-//    Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_25/output_2013_01_25_12x12x128_lambda_05X2_noPulvinar/Checkpoints/Checkpoint30517200/Error_V.pvp";
+//    Vfilename = "/nh/compneuro/Data/vine/LCA/2013_02_01/output_2013_02_01_12x12x128_lambda_05X2_noPulvinar/Checkpoints/Checkpoint46584000/Error_V.pvp";
 //    //
 //    VThresh = -infinity;
 //    VMax =  infinity;
@@ -588,7 +590,7 @@ KernelConn "V1ToError" = {
     //weightInitType = "FileWeight";
     //initWeightsFile = "/nh/compneuro/Data/vine/LCA/2013_01_31/output/Checkpoints/Checkpoint6000000/V1ToError_W.pvp";
     weightInitType = "FileWeight";
-    initWeightsFile = "/nh/compneuro/Data/vine/LCA/2013_01_25/output_2013_01_25_12x12x128_lambda_05X2_noPulvinar/Checkpoints/Checkpoint30517200/V1ToError_W.pvp";
+    initWeightsFile = "/nh/compneuro/Data/vine/LCA/2013_02_01/output_2013_02_01_12x12x128_lambda_05X2_noPulvinar/Checkpoints/Checkpoint46584000/V1ToError_W.pvp";
     //weightInitType = "UniformRandomWeight";
     //wMinInit = -1.0;
     //wMaxInit = 1.0;
@@ -705,7 +707,7 @@ CloneKernelConn "V1ToRecon" = {
 //    initFromLastFlag = 0;
 //    //
 //    weightInitType = "FileWeight";
-//    initWeightsFile = "/nh/compneuro/Data/vine/LCA/2013_01_25/output_2013_01_25_12x12x128_lambda_05X2_noPulvinar/Checkpoints/Checkpoint30517200/V2ToError2_W.pvp";
+//    initWeightsFile = "/nh/compneuro/Data/vine/LCA/2013_02_01/output_2013_02_01_12x12x128_lambda_05X2_noPulvinar/Checkpoints/Checkpoint46584000/V2ToError2_W.pvp";
 //    //weightInitType = "UniformRandomWeight";
 //    //wMinInit = -1.0;
 //    //wMaxInit = 1.0;
@@ -795,7 +797,7 @@ KernelConn "V2ToError1_2" = {
     initFromLastFlag = 0;
     //
     weightInitType = "FileWeight";
-    initWeightsFile = "/nh/compneuro/Data/vine/LCA/2013_01_25/output_2013_01_25_12x12x128_lambda_05X2_noPulvinar/Checkpoints/Checkpoint30517200/V2ToError1_2_W.pvp";
+    initWeightsFile = "/nh/compneuro/Data/vine/LCA/2013_02_01/output_2013_02_01_12x12x128_lambda_05X2_noPulvinar/Checkpoints/Checkpoint46584000/V2ToError1_2_W.pvp";
     //weightInitType = "UniformRandomWeight";
     //wMinInit = -1.0;
     //wMaxInit = 1.0;

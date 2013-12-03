@@ -173,7 +173,7 @@ ANNErrorLayer "C1ErrorLocal" = {
   nxScale = 0.25;
   nyScale = 0.25;
   nf = 128;
-  initialWriteTime = 1039.0;
+  initialWriteTime = 9999.0;
   writeStep = 10000;
   mirrorBCflag = 0;
   valueBC = 0;
@@ -197,7 +197,7 @@ ANNErrorLayer "C1ErrorLateral" = {
   nxScale = 0.25;
   nyScale = 0.25;
   nf = 128;
-  initialWriteTime = 1039.0;
+  initialWriteTime = 9999.0;
   writeStep = 10000;
   mirrorBCflag = 0;
   valueBC = 0;
@@ -379,7 +379,7 @@ ANNErrorLayer "C2ErrorLocal" = {
   nxScale = 0.1250;
   nyScale = 0.1250;
   nf = 256;
-  initialWriteTime = 1039.0;
+  initialWriteTime = 9999.0;
   writeStep = 10000;
   mirrorBCflag = 0;
   valueBC = 0;
@@ -403,7 +403,7 @@ ANNErrorLayer "C2ErrorLateral" = {
   nxScale = 0.1250;
   nyScale = 0.1250;
   nf = 256;
-  initialWriteTime = 1039.0;
+  initialWriteTime = 9999.0;
   writeStep = 10000;
   mirrorBCflag = 0;
   valueBC = 0;
@@ -491,7 +491,7 @@ HyPerLCALayer "H2" = {
 };
 
 // Thalamic layer for V4
-ANNTriggerUpdateOnNewImageLayer "V4Pulvinar" = {
+ANNLayer "V4Pulvinar" = {
   restart = 0;
   nxScale = 0.250;
   nyScale = 0.250;
@@ -502,7 +502,211 @@ ANNTriggerUpdateOnNewImageLayer "V4Pulvinar" = {
   valueBC = 0;
   writeSparseActivity = 0;
   //
-  movieLayerName = "Image";
+  //movieLayerName = "Image";
+  InitVType = "ZeroV";
+  //InitVType = "InitVFromFile";
+  //Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_31/output/Checkpoints/Checkpoint6000000/Recon_V.pvp";
+  //
+  VThresh = -infinity;
+  VMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
+  VMin = -infinity; 
+  VShift = 0;
+  // 
+  phase = 13; 
+};
+
+
+
+
+//  V4 //
+
+// inter-cortical V2<->V4 reconstructino error
+ANNErrorLayer "S4Error" = {
+  restart = 0;
+  nxScale = 0.1250;
+  nyScale = 0.1250;
+  nf = 256;
+  initialWriteTime = 1039.0;
+  writeStep = 10000;
+  mirrorBCflag = 0;
+  valueBC = 0;
+  writeSparseActivity = 0;
+  //
+  InitVType = "ZeroV";
+  //InitVType = "InitVFromFile";
+  //Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_31/output/Checkpoints/Checkpoint6000000/Error_V.pvp";
+  //
+  VThresh = 0.005;
+  VMax =  infinity;
+  VMin = 0;
+  VShift = 0;
+  //
+  phase = 8;  
+};
+
+HyPerLCALayer "S4" = {
+  restart = 0;
+  nxScale = 0.06250;
+  nyScale = 0.06250;
+  nf = 512;
+  numChannels = 1; // should be 1
+  numWindowX = 1;
+  numWindowY = 1;
+  initialWriteTime = 39.0;
+  writeStep = 40.0;
+  mirrorBCflag = 0;
+  valueBC = 0;
+  writeSparseActivity = 1;
+  writeSparseValues = 1;
+  //
+  InitVType = "UniformRandomV";
+  minV = -1.0;
+  maxV = .15; //0.05 above VThresh
+  //InitVType = "InitVFromFile";
+  //Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_2013_01_31_12x12x128_3x3_9x9x128_lambda_05X1_lateral/Checkpoints/Checkpoint8039600/V1_V.pvp";
+  // 
+  timeConstantTau = 200.0;
+  timeConstantTauMinimum = 10.0;
+  slopeErrorStd = 0.01;
+  // 
+  VThresh = 0.05; //  // 0.05 works for animalDB
+  VMax = infinity;
+  VMin = 0;
+  VShift = 0.025;  // 0 -> hard threshold, 1 -> soft threshold
+  //
+  phase = 9;
+};
+
+// use for intra-column connections
+ANNErrorLayer "C4ErrorLocal" = {
+  restart = 0;
+  nxScale = 0.06250;
+  nyScale = 0.06250;
+  nf = 512;
+  initialWriteTime = 9999.0;
+  writeStep = 10000;
+  mirrorBCflag = 0;
+  valueBC = 0;
+  writeSparseActivity = 0;
+  //
+  InitVType = "ZeroV";
+  //InitVType = "InitVFromFile";
+  //Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_31/output/Checkpoints/Checkpoint6000000/Error_V.pvp";
+  //
+  VThresh = 0.005;
+  VMax =  infinity;
+  VMin =  0;
+  VShift = 0;
+  //
+  phase = 10;  
+};
+
+// long-range lateral interactions
+ANNErrorLayer "C4ErrorLateral" = {
+  restart = 0;
+  nxScale = 0.06250;
+  nyScale = 0.06250;
+  nf = 256;
+  initialWriteTime = 9999.0;
+  writeStep = 10000;
+  mirrorBCflag = 0;
+  valueBC = 0;
+  writeSparseActivity = 0;
+  //
+  InitVType = "ZeroV";
+  //InitVType = "InitVFromFile";
+  //Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_31/output/Checkpoints/Checkpoint6000000/Error_V.pvp";
+  //
+  VThresh = 0.005;
+  VMax =  infinity;
+  VMin = 0;
+  VShift = 0;
+  //
+  phase = 10;  
+};
+
+// V2 layers II-III (complex cells with lateral interactions)
+HyPerLCALayer "C2" = {
+  restart = 0;
+  nxScale = 0.1250;
+  nyScale = 0.1250;
+  nf = 256;
+  numChannels = 1;  // should be 1
+  numWindowX = 1;
+  numWindowY = 1;
+  // 
+  initialWriteTime = 39.0;
+  writeStep = 40.0;
+  mirrorBCflag = 0;
+  writeSparseActivity = 1;
+  writeSparseValues = 1;
+  //
+  InitVType = "UniformRandomV";
+  minV = -1.0;
+  maxV = .15; //0.05 above VThresh
+  //InitVType = "InitVFromFile";
+  //Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_2013_01_31_12x12x128_3x3_9x9x128_lambda_05X1_lateral/Checkpoints/Checkpoint8039600/V1_V.pvp";
+  // 
+  timeConstantTau = 200.0;
+  timeConstantTauMinimum = 10.0;
+  slopeErrorStd = 0.01;
+  // 
+  VThresh = 0.05; //0.05;
+  VMax = infinity;
+  VMin = 0;
+  VShift = 0.025;  // 0 -> hard threshold, 1 -> soft threshold
+  //
+  phase = 11;
+};
+
+
+// HyPerComplex "H-cell" layer: reconstructions from inter and intra column and top-down connections
+HyPerLCALayer "H2" = {
+  restart = 0;
+  nxScale = 0.1250;
+  nyScale = 0.1250;
+  nf = 256;
+  numChannels = 1; // should be 1
+  numWindowX = 1;
+  numWindowY = 1;
+  initialWriteTime = 39.0;
+  writeStep = 40.0;
+  mirrorBCflag = 0;
+  valueBC = 0;
+  writeSparseActivity = 1;
+  writeSparseValues = 1;
+  //
+  InitVType = "UniformRandomV";
+  minV = -1.0;
+  maxV = .15; //0.05 above VThresh
+  //InitVType = "InitVFromFile";
+  //Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_2013_01_31_12x12x128_3x3_9x9x128_lambda_05X1_lateral/Checkpoints/Checkpoint8039600/V1_V.pvp";
+  // 
+  timeConstantTau = 200.0;
+  timeConstantTauMinimum = 10.0;
+  slopeErrorStd = 0.01;
+  // 
+  VThresh = 0.05; //  // 0.05 works for animalDB
+  VMax = infinity;
+  VMin = 0;
+  VShift = 0.025;  // 0 -> hard threshold, 1 -> soft threshold
+  //
+  phase = 12;
+};
+
+// Thalamic layer for V4
+ANNLayer "V4Pulvinar" = {
+  restart = 0;
+  nxScale = 0.250;
+  nyScale = 0.250;
+  nf = 128;
+  initialWriteTime = 2039.0;
+  writeStep = 2000.0;
+  mirrorBCflag = 0;
+  valueBC = 0;
+  writeSparseActivity = 0;
+  //
+  //movieLayerName = "Image";
   InitVType = "ZeroV";
   //InitVType = "InitVFromFile";
   //Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_31/output/Checkpoints/Checkpoint6000000/Recon_V.pvp";
