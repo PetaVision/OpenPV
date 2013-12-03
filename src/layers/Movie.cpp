@@ -288,7 +288,7 @@ bool Movie::updateImage(double time, double dt)
             //Loop when frame number reaches numFrames
             if (frameNumber >= numFrames){
                if( icComm->commRank()==0 ) {
-                  fprintf(stderr, "Movie %s: EOF reached, rewinding file \"%s\"\n", name, filename);
+                  fprintf(stderr, "Movie %s: EOF reached, rewinding file \"%s\"\n", name, fileOfFileNames);
                }
                frameNumber = 0;
             }
@@ -425,12 +425,13 @@ const char * Movie::getNextFileName()
       // use stat to verify status of filepointer, keep running tally of current frame index so that file can be reopened and advanced to current frame
 
 
-      // if at end of file (EOF), rewind
+      // Ignore blank lines
       bool lineisblank = true;
       while(lineisblank) {
+         // if at end of file (EOF), rewind
          if ((c = fgetc(filenamestream->fp)) == EOF) {
             PV_fseek(filenamestream, 0L, SEEK_SET);
-            fprintf(stderr, "Movie %s: EOF reached, rewinding file \"%s\"\n", name, filename);
+            fprintf(stderr, "Movie %s: EOF reached, rewinding file \"%s\"\n", name, fileOfFileNames);
          }
          else {
             ungetc(c, filenamestream->fp);
@@ -447,8 +448,8 @@ const char * Movie::getNextFileName()
                   len--;
                }
             }
-            for (int j=0; j<len; j++) {
-               if (!isblank(c)) {
+            for (size_t n=0; n<len; n++) {
+               if (!isblank(path[n])) {
                   lineisblank = false;
                   break;
                }
