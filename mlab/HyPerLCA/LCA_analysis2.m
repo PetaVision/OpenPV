@@ -23,10 +23,10 @@ if ismac
   last_checkpoint_ndx = 2000000;
 elseif isunix
   workspace_path = "/home/gkenyon/workspace";
-  %%run_type = "noPulvinar"; %%
+  run_type = "noPulvinar"; %%
   %%run_type = "color_deep"; %%
   %%run_type = "noTopDown"; %%
-  run_type = "lateral"; %% 
+  %%run_type = "lateral"; %% 
   %%run_type = "deep_plus_noise";%%
   %%run_type = "V1";
   if strcmp(run_type, "color_deep")
@@ -62,29 +62,23 @@ elseif isunix
 %%			   %%"2013_01_24/output_2013_01_24_12x12x128_lambda_05X2_noTopDown"; ...
 %%			   %%"2013_02_01/output_2013_02_01_12x12x128_lambda_05X2_noTopDown"};
     last_checkpoint_ndx = 2800000;
-  elseif strcmp(run_type, "V1")
-    output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_2013_01_31_12x12x160_lambda_05X2_V1"; 
-    checkpoint_dir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_2013_01_31_12x12x160_lambda_05X2_V1"; %%output_dir; 
-    checkpoint_parent = "/nh/compneuro/Data/vine/LCA";
-    checkpoint_children = {"2013_01_31/output_2013_01_31_12x12x160_lambda_05X2_V1"};
   elseif strcmp(run_type, "noPulvinar")
-    output_dir = "/nh/compneuro/Data/vine/LCA/2013_02_01/output_2013_02_01_12x12x128_lambda_05X2_noPulvinar"; 
-    %%output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_24/output_2013_01_24_how2catchSquirrel_12x12x128_lambda_05X2_noPulvinar";
-    %%output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_24/output_2013_01_24_how2catchSquirrel_12x12x128_lambda_05X1_noPulvinar";
+    %%output_dir = "/nh/compneuro/Data/vine/LCA/2013_02_01/output_2013_02_01_12x12x128_lambda_05X2_noPulvinar"; 
+    output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_24/output_2013_01_24_how2catchSquirrel_12x12x128_lambda_05X4_noPulvinar";
     checkpoint_dir = output_dir;
     checkpoint_parent = "/nh/compneuro/Data/vine/LCA";
-    %%checkpoint_children = {"2013_01_24/output_2013_01_24_how2catchSquirrel_12x12x128_lambda_05X1_noPulvinar"}; 
+    checkpoint_children = {"2013_01_24/output_2013_01_24_how2catchSquirrel_12x12x128_lambda_05X4_noPulvinar"}; 
     %%checkpoint_children = {"2013_01_24/output_2013_01_24_12x12x128_lambda_05X2_noPulvinar"}; ...
 %%    checkpoint_children = {"2013_01_24/output_2013_01_24_how2catchSquirrel_12x12x128_lambda_05X4_noPulvinar"}; ...
-    checkpoint_children = {"2013_01_31/output_2013_01_31_12x12x128_lambda_05X2_noPulvinar"; ...
-			   "2013_01_30/output_2013_01_30_12x12x128_lambda_05X2_noPulvinar"; ...
-			   "2013_01_29/output_2013_01_29_12x12x128_lambda_05X2_noPulvinar"; ...
-			   "2013_01_28/output_2013_01_28_12x12x128_lambda_05X2_noPulvinar"; ...
-			   "2013_01_27/output_2013_01_27_12x12x128_lambda_05X2_noPulvinar"; ...
-			   "2013_01_26/output_2013_01_26_12x12x128_lambda_05X2_noPulvinar"; ...
-			   "2013_01_25/output_2013_01_25_12x12x128_lambda_05X2_noPulvinar"; ...
-			   "2013_01_24/output_2013_01_24_12x12x128_lambda_05X2_noPulvinar"; ...
-			   "2013_02_01/output_2013_02_01_12x12x128_lambda_05X2_noPulvinar"};
+%%    checkpoint_children = {"2013_01_31/output_2013_01_31_12x12x128_lambda_05X2_noPulvinar"; ...
+%%			   "2013_01_30/output_2013_01_30_12x12x128_lambda_05X2_noPulvinar"; ...
+%%			   "2013_01_29/output_2013_01_29_12x12x128_lambda_05X2_noPulvinar"; ...
+%%			   "2013_01_28/output_2013_01_28_12x12x128_lambda_05X2_noPulvinar"; ...
+%%			   "2013_01_27/output_2013_01_27_12x12x128_lambda_05X2_noPulvinar"; ...
+%%			   "2013_01_26/output_2013_01_26_12x12x128_lambda_05X2_noPulvinar"; ...
+%%			   "2013_01_25/output_2013_01_25_12x12x128_lambda_05X2_noPulvinar"; ...
+%%			   "2013_01_24/output_2013_01_24_12x12x128_lambda_05X2_noPulvinar"; ...
+%%			   "2013_02_01/output_2013_02_01_12x12x128_lambda_05X2_noPulvinar"};
    last_checkpoint_ndx = 2700000;
   elseif strcmp(run_type, "lateral")
     output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_30/output_2013_01_30_12x12x128_3x3_9x9x128_lambda_05X1_lateral";
@@ -144,7 +138,7 @@ if plot_Recon
     %%normalize_list(6) = 1;
     %% list of (previous) layers to sum with current layer
     sum_list = cell(num_Recon_list,1);
-    sum_list{2} = 1;
+    sum_list{6} = 3;
   elseif strcmp(run_type, "CIFAR_deep") 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% CIFAR_deep list
@@ -173,14 +167,14 @@ if plot_Recon
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% noPulvinar list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %%    Recon_list = ...
-    %%	{["a1_"], ["Bipolar"];
-    %%	 ["a2_"], ["Ganglion"];
-    %%	 ["a5_"], ["Recon"];
-    %%	 ["a9_"], ["ReconInfra"]};
-    Recon_list = ...
-	{["a5_"], ["Recon"];
-	 ["a9_"], ["ReconInfra"]};
+        Recon_list = ...
+    	{["a1_"], ["Bipolar"];
+    	 ["a2_"], ["Ganglion"];
+    	 ["a5_"], ["Recon"];
+    	 ["a9_"], ["ReconInfra"]};
+%%    Recon_list = ...
+%%	{["a5_"], ["Recon"];
+%%	 ["a9_"], ["ReconInfra"]};
     %% list of layers to unwhiten
     num_Recon_list = size(Recon_list,1);
     unwhiten_list = zeros(num_Recon_list,1);
@@ -640,6 +634,7 @@ endif  %% plot_StatsProbe_vs_time
 
 
 plot_Sparse = true;
+begin_Sparse_analysis = 0.0; %%
 if plot_Sparse
   if strcmp(run_type, "color_deep") || strcmp(run_type, "lateral") || strcmp(run_type, "noTopDown")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -705,28 +700,28 @@ if plot_Sparse
     nf_Sparse = Sparse_hdr{i_Sparse}.nf;
     n_Sparse = nx_Sparse * ny_Sparse * nf_Sparse;
     num_Sparse_frames = size(Sparse_struct,1);
+    begin_Sparse_frame = fix(begin_Sparse_analysis*num_Sparse_frames)+1;
     Sparse_hist = zeros(nf_Sparse+1,1);
     Sparse_hist_edges = [0:1:nf_Sparse]+0.5;
     Sparse_current = zeros(n_Sparse,1);
-    Sparse_abs_change = zeros(num_Sparse_frames,1);
-    Sparse_percent_change = zeros(num_Sparse_frames,1);
-    Sparse_std = ones(num_Sparse_frames,1);
+    Sparse_abs_change = zeros(num_Sparse_frames-begin_Sparse_frame+1,1);
+    Sparse_percent_change = zeros(num_Sparse_frames-begin_Sparse_frame+1,1);
+    Sparse_std = ones(num_Sparse_frames-begin_Sparse_frame+1,1);
     Sparse_current_active = 0;
-    Sparse_tot_active = zeros(num_Sparse_frames,1);
-    Sparse_times = zeros(num_Sparse_frames,1);
-    begin_Sparse_frame = fix(.9*num_Sparse_frames);
+    Sparse_tot_active = zeros(num_Sparse_frames-begin_Sparse_frame+1,1);
+    Sparse_times = zeros(num_Sparse_frames-begin_Sparse_frame+1,1);
     skip_Sparse_frame = 1;
     for i_frame = begin_Sparse_frame : skip_Sparse_frame : num_Sparse_frames
       if isempty(Sparse_struct{i_frame}.values)
 	num_Sparse_frames = i_frame - 1;
-	Sparse_times = Sparse_times(1:num_Sparse_frames);
-	Sparse_tot_active = Sparse_tot_active(1:num_Sparse_frames);
-	Sparse_abs_change = Sparse_abs_change(1:num_Sparse_frames);
-	Sparse_percent_change = Sparse_percent_change(1:num_Sparse_frames);
-	Sparse_std = Sparse_std(1:num_Sparse_frames);
+	Sparse_times = Sparse_times(1:num_Sparse_frames-begin_Sparse_frame+1);
+	Sparse_tot_active = Sparse_tot_active(1:num_Sparse_frames-begin_Sparse_frame+1);
+	Sparse_abs_change = Sparse_abs_change(1:num_Sparse_frames-begin_Sparse_frame+1);
+	Sparse_percent_change = Sparse_percent_change(1:num_Sparse_frames-begin_Sparse_frame+1);
+	Sparse_std = Sparse_std(1:num_Sparse_frames-begin_Sparse_frame+1);
 	break;
       endif
-      Sparse_times(i_frame) = squeeze(Sparse_struct{i_frame}.time);
+      Sparse_times(i_frame-begin_Sparse_frame+1) = squeeze(Sparse_struct{i_frame}.time);
       Sparse_values_tmp = squeeze(Sparse_struct{i_frame}.values);
       Sparse_active_ndx = Sparse_values_tmp(:,1);
       Sparse_previous = Sparse_current;
@@ -736,13 +731,13 @@ if plot_Sparse
 	Sparse_active_vals = ones(size(Sparse_active_ndx));
       endif
       Sparse_current = full(sparse(Sparse_active_ndx+1,1,Sparse_active_vals,n_Sparse,1,n_Sparse));
-      Sparse_abs_change(i_frame) = sum((Sparse_current(:)~=0) ~= (Sparse_previous(:)~=0));
+      Sparse_abs_change(i_frame-begin_Sparse_frame+1) = sum((Sparse_current(:)~=0) ~= (Sparse_previous(:)~=0));
       Sparse_previous_active = Sparse_current_active;
       Sparse_current_active = nnz(Sparse_current(:));
-      Sparse_tot_active(i_frame) = Sparse_current_active;
+      Sparse_tot_active(i_frame-begin_Sparse_frame+1) = Sparse_current_active;
       Sparse_OR_active = sum((Sparse_current(:)~=0) | (Sparse_previous(:)~=0));
-      Sparse_percent_change(i_frame) = ...
-	  Sparse_abs_change(i_frame) / (Sparse_OR_active + (Sparse_OR_active==0));
+      Sparse_percent_change(i_frame-begin_Sparse_frame+1) = ...
+	  Sparse_abs_change(i_frame-begin_Sparse_frame+1) / (Sparse_OR_active + (Sparse_OR_active==0));
       Sparse_active_kf = mod(Sparse_active_ndx, nf_Sparse) + 1;
       if Sparse_current_active > 0
 	Sparse_hist_frame = histc(Sparse_active_kf, Sparse_hist_edges);
@@ -750,37 +745,37 @@ if plot_Sparse
 	Sparse_hist_frame = zeros(nf_Sparse+1,1);
       endif
       Sparse_hist = Sparse_hist + Sparse_hist_frame;
-      Sparse_std(i_frame) = sqrt(mean(Sparse_current.^2));
+      Sparse_std(i_frame-begin_Sparse_frame+1) = sqrt(mean(Sparse_current.^2));
     endfor %% i_frame
     Sparse_percent_active = Sparse_tot_active/n_Sparse;
     if ~load_flag
       Sparse_hist = Sparse_hist(1:nf_Sparse);
-      Sparse_hist = Sparse_hist / (num_Sparse_frames * nx_Sparse * ny_Sparse); 
+      Sparse_hist = Sparse_hist / ((num_Sparse_frames-begin_Sparse_frame+1) * nx_Sparse * ny_Sparse); 
       [Sparse_hist_sorted, Sparse_hist_rank] = sort(Sparse_hist, 1, "descend");
       Sparse_hist_bins = 1:nf_Sparse;
       save("-mat", ...
 	   [Sparse_dir, filesep, "Sparse_hist_bins_", Sparse_list{i_Sparse,2}, "_", ...
-	    num2str(Sparse_times(num_Sparse_frames), "%08d"), ".mat"], ...
+	    num2str(Sparse_times(num_Sparse_frames-begin_Sparse_frame+1), "%08d"), ".mat"], ...
 	   "Sparse_hist_bins");
       save("-mat", ...
 	   [Sparse_dir, filesep, "Sparse_hist_sorted_", Sparse_list{i_Sparse,2}, "_", ...
-	    num2str(Sparse_times(num_Sparse_frames), "%08d"), ".mat"], ...
+	    num2str(Sparse_times(num_Sparse_frames-begin_Sparse_frame+1), "%08d"), ".mat"], ...
 	   "Sparse_hist_sorted");
       save("-mat", ...
 	   [Sparse_dir, filesep, "Sparse_hist_rank_", Sparse_list{i_Sparse,2}, "_", ...
-	    num2str(Sparse_times(num_Sparse_frames), "%08d"), ".mat"], ...
+	    num2str(Sparse_times(num_Sparse_frames-begin_Sparse_frame+1), "%08d"), ".mat"], ...
 	   "Sparse_hist_rank");
       save("-mat", ...
 	   [Sparse_dir, filesep, "Sparse_percent_change_", Sparse_list{i_Sparse,2}, "_", ...
-	    num2str(Sparse_times(num_Sparse_frames), "%08d"), ".mat"], ...
+	    num2str(Sparse_times(num_Sparse_frames-begin_Sparse_frame+1), "%08d"), ".mat"], ...
 	   "Sparse_times", "Sparse_percent_change");    
       save("-mat", ...
 	   [Sparse_dir, filesep, "Sparse_percent_active_", Sparse_list{i_Sparse,2}, "_", ...
-	    num2str(Sparse_times(num_Sparse_frames), "%08d"), ".mat"], ...
+	    num2str(Sparse_times(num_Sparse_frames-begin_Sparse_frame+1), "%08d"), ".mat"], ...
 	   "Sparse_times", "Sparse_percent_active");	 
       save("-mat", ...
 	   [Sparse_dir, filesep, "Sparse_std_", Sparse_list{i_Sparse,2}, "_", ...
-	    num2str(Sparse_times(num_Sparse_frames), "%08d"), ".mat"], ...
+	    num2str(Sparse_times(num_Sparse_frames-begin_Sparse_frame+1), "%08d"), ".mat"], ...
 	   "Sparse_times", "Sparse_std");	 
     else
       Sparse_hist_bins_str = ...
@@ -893,6 +888,7 @@ endif %% plot_Sparse
 
 
 plot_nonSparse = true;
+begin_nonSparse_analysis = 0.0; %%0.9;
 if plot_nonSparse && plot_flag
   if strcmp(run_type, "color_deep") || strcmp(run_type, "noTopDown")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -915,6 +911,7 @@ if plot_nonSparse && plot_flag
          ["a4_"], ["V1"]}; ...
 %%         ["a14_"], ["NoiselessGanglion"]};
     nonSparse_norm_strength = ones(num_nonSparse_list,1);
+    Sparse_std_ndx = [0 0 1];
     %%%%%%%%%%%%%%%%%%%%%%%%e%%%%%%%%%%%%%%%%%%%%
   elseif strcmp(run_type, "CIFAR_deep") 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -949,21 +946,18 @@ if plot_nonSparse && plot_flag
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     nonSparse_list = ...
         {["a3_"], ["Error"]; ...
-         ["a7_"], ["Error1_2"]; ...
-	 ["a13_"], ["NoiselessError"]};
-%%    nonSparse_list = ...
-%%        {["a3_"], ["Error"]};
+         ["a7_"], ["Error1_2"]};
     num_nonSparse_list = size(nonSparse_list,1);
     nonSparse_skip = repmat(1, num_nonSparse_list, 1);
     nonSparse_skip(1) = 1;
-    nonSparse_skip(2) = 10;
+    nonSparse_skip(2) = 1;
     nonSparse_skip(3) = 1;
     nonSparse_norm_list = ...
         {["a2_"], ["Ganglion"]; ...
-         ["a8_"], ["V1Infra"]; ...
-         ["a12_"], ["NoiselessGanglion"]};
+         ["a4_"], ["V1"]};
 %%    nonSparse_norm_list = ...
 %%        {[], []};
+    Sparse_std_ndx = [0 1];
     nonSparse_norm_strength = ones(num_nonSparse_list,1);
     %%%%%%%%%%%%%%%%%%%%%%%%e%%%%%%%%%%%%%%%%%%%%
   elseif strcmp(run_type, "lateral")
@@ -1020,8 +1014,9 @@ if plot_nonSparse && plot_flag
 		    tot_nonSparse_frames, tot_nonSparse_frames-num_nonSparse+5, ...
 		    nonSparse_skip(i_nonSparse));
     num_nonSparse_frames = size(nonSparse_struct,1);
-    nonSparse_times = zeros(num_nonSparse_frames,1);
-    nonSparse_RMS = zeros(num_nonSparse_frames,1);
+    begin_nonSparse_frame = fix(begin_nonSparse_analysis*num_nonSparse_frames)+1;
+    nonSparse_times = zeros((num_nonSparse_frames-begin_nonSparse_frame+1),1);
+    nonSparse_RMS = zeros((num_nonSparse_frames-begin_nonSparse_frame+1),1);
 
     num_nonSparse_norm_frames = 0;
     if ~isempty(nonSparse_norm_list{i_nonSparse,1}) && ~isempty(nonSparse_norm_list{i_nonSparse,2})
@@ -1038,8 +1033,8 @@ if plot_nonSparse && plot_flag
 		      progress_step, tot_nonSparse_frames, tot_nonSparse_frames-num_nonSparse+5, ...
 		      nonSparse_skip(i_nonSparse));
       num_nonSparse_norm_frames = size(nonSparse_norm_struct,1);
-      nonSparse_norm_times = zeros(num_nonSparse_frames,1);
-      nonSparse_norm_RMS = zeros(num_nonSparse_frames,1);
+      nonSparse_norm_times = zeros((num_nonSparse_frames-begin_nonSparse_frame+1),1);
+      nonSparse_norm_RMS = zeros((num_nonSparse_frames-begin_nonSparse_frame+1),1);
     elseif Sparse_std_ndx(i_nonSparse) > 0
       num_nonSparse_norm_frames = length(Sparse_times_array{Sparse_std_ndx(i_nonSparse)});
       nonSparse_norm_struct = cell(num_nonSparse_norm_frames,1);
@@ -1047,8 +1042,8 @@ if plot_nonSparse && plot_flag
 	nonSparse_norm_struct{i_frame}.time = Sparse_times_array{Sparse_std_ndx(i_nonSparse)}(i_frame);
       endfor
     else
-      nonSparse_norm_RMS = ones(num_nonSparse_frames,1);
-      nonSparse_norm_times = zeros(num_nonSparse_frames,1);
+      nonSparse_norm_RMS = ones((num_nonSparse_frames-begin_nonSparse_frame+1),1);
+      nonSparse_norm_times = zeros((num_nonSparse_frames-begin_nonSparse_frame+1),1);
       nonSparse_norm_struct = [];
     endif %% ~isempty(nonSparse_norm_list{i_nonSparse,1})
 
@@ -1059,22 +1054,21 @@ if plot_nonSparse && plot_flag
 	       nonSparse_norm_struct{num_nonSparse_norm_frames-1}.time), ...
 	      1);
     endif
-    begin_nonSparse_frame = fix(.9*num_nonSparse_frames);
-    for i_frame = being_nonSparse_frame : 1 : num_nonSparse_frames
+    for i_frame = begin_nonSparse_frame : 1 : num_nonSparse_frames
       if ~isempty(nonSparse_struct{i_frame})
-	nonSparse_times(i_frame) = squeeze(nonSparse_struct{i_frame}.time);
+	nonSparse_times(i_frame-begin_nonSparse_frame+1) = squeeze(nonSparse_struct{i_frame}.time);
 	nonSparse_vals = squeeze(nonSparse_struct{i_frame}.values);
-	nonSparse_RMS(i_frame) = std(nonSparse_vals(:));
+	nonSparse_RMS(i_frame-begin_nonSparse_frame+1) = std(nonSparse_vals(:));
 
 	if ~isempty(nonSparse_norm_struct) && i_frame <= num_nonSparse_norm_frames
 	  nonSparse_norm_time = nonSparse_norm_struct{i_frame}.time;
 	  nonSparse_time_shift = 0;
-	  while (nonSparse_norm_time - nonSparse_times(i_frame)) > frame_diff && ...
+	  while (nonSparse_norm_time - nonSparse_times(i_frame-begin_nonSparse_frame+1)) > frame_diff && ...
 		(i_frame-(nonSparse_time_shift+1)) >= 1
 	    nonSparse_time_shift = nonSparse_time_shift + 1;
 	    nonSparse_norm_time = nonSparse_norm_struct{i_frame-nonSparse_time_shift}.time;
 	  endwhile
-	  while (nonSparse_norm_time - nonSparse_times(i_frame)) < -frame_diff && ...
+	  while (nonSparse_norm_time - nonSparse_times(i_frame-begin_nonSparse_frame+1)) < -frame_diff && ...
 		(i_frame-(nonSparse_time_shift-1)) <= num_nonSparse_norm_frames
 	    nonSparse_time_shift = nonSparse_time_shift - 1;
 	    nonSparse_norm_time = nonSparse_norm_struct{i_frame-nonSparse_time_shift}.time;
@@ -1082,18 +1076,18 @@ if plot_nonSparse && plot_flag
 	  if (i_frame-nonSparse_time_shift) < 1 || (i_frame-nonSparse_time_shift) > num_nonSparse_norm_frames
 	    last_frame = i_frame - 1;
 	    num_nonSparse_frames = i_frame - 1;
-	    nonSparse_times = nonSparse_times(1:num_nonSparse_frames);
-	    nonSparse_RMS = nonSparse_RMS(1:num_nonSparse_frames);
-	    nonSparse_norm_RMS = nonSparse_norm_RMS(1:num_nonSparse_frames);
+	    nonSparse_times = nonSparse_times(1:(num_nonSparse_frames-begin_nonSparse_frame+1));
+	    nonSparse_RMS = nonSparse_RMS(1:(num_nonSparse_frames-begin_nonSparse_frame+1));
+	    nonSparse_norm_RMS = nonSparse_norm_RMS(1:(num_nonSparse_frames-begin_nonSparse_frame+1));
 	    break;
 	  else
 	    if Sparse_std_ndx(i_nonSparse) == 0
 	      nonSparse_norm_vals = ...
 		  squeeze(nonSparse_norm_struct{i_frame-nonSparse_time_shift}.values);
-	      nonSparse_norm_RMS(i_frame) = ...
+	      nonSparse_norm_RMS(i_frame-begin_nonSparse_frame+1) = ...
 		  sqrt(mean(nonSparse_norm_strength(i_nonSparse).^2 * nonSparse_norm_vals(:).^2));
 	    else
-	      nonSparse_norm_RMS(i_frame) = ...
+	      nonSparse_norm_RMS(i_frame-begin_nonSparse_frame+1) = ...
 		  Sparse_std_array{Sparse_std_ndx(i_nonSparse)}(i_frame-nonSparse_time_shift);
 	    endif
 	  endif
@@ -1101,12 +1095,12 @@ if plot_nonSparse && plot_flag
 
       else %% ~isempty(nonSparse_struct{i_frame})
 	num_nonSparse_frames = i_frame - 1;
-	nonSparse_times = nonSparse_times(1:num_nonSparse_frames);
-	nonSparse_RMS = nonSparse_RMS(1:num_nonSparse_frames);
+	nonSparse_times = nonSparse_times(1:(num_nonSparse_frames-begin_nonSparse_frame+1));
+	nonSparse_RMS = nonSparse_RMS(1:(num_nonSparse_frames-begin_nonSparse_frame+1));
 	break;
       endif %% ~isempty(nonSparse_struct{i_frame})
     endfor %% i_frame
-
+    num_nonSparse_frames = size(nonSparse_times,1);
     if num_nonSparse_frames <= 0
       disp(["num_nonSparse_frames = ", num2str(num_nonSparse_frames)]);
       continue;
@@ -1120,8 +1114,9 @@ if plot_nonSparse && plot_flag
       set(nonSparse_RMS_hndl, "linewidth", 1.5);
       max_nonSparse_RMS(i_nonSparse) = median(normalized_nonSparse_RMS(:)) + 2*std(normalized_nonSparse_RMS(:));
       min_nonSparse_RMS(i_nonSparse) = 0.0; %%min(normalized_nonSparse_RMS(:));
-      axis([nonSparse_times(1) nonSparse_times(num_nonSparse_frames) ...
-	   min_nonSparse_RMS(i_nonSparse) max_nonSparse_RMS(i_nonSparse)]);
+      %%axis([nonSparse_times(1) nonSparse_times(num_nonSparse_frames) ...
+      %%   min_nonSparse_RMS(i_nonSparse) max_nonSparse_RMS(i_nonSparse)]);
+      hold on
       set(nonSparse_RMS_fig(i_nonSparse), "name", ...
 	  ["RMS_", nonSparse_list{i_nonSparse,1}, nonSparse_list{i_nonSparse,2}, ...
 	   "_", num2str(nonSparse_times(num_nonSparse_frames), "%08d")]);
@@ -1148,14 +1143,246 @@ endif %% plot_nonSparse
 
 
 
+plot_ReconError = true && plot_nonSparse;
+ReconError_nonSparse_ndx = [];
+if plot_ReconError && plot_flag
+  if strcmp(run_type, "color_deep") || strcmp(run_type, "noTopDown")
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% deep list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    ReconError_list = ...
+        {["a5_"], ["Recon"]; ...
+         ["a11_"], ["ReconInfra"]};
+    num_ReconError_list = size(ReconError_list,1);
+    ReconError_skip = repmat(1, num_ReconError_list, 1);
+    ReconError_skip(1) = 1;
+    ReconError_skip(2) = 1;
+    ReconError_norm_list = ...
+        {["a2_"], ["Ganglion"]; ...
+         ["a2_"], ["Ganglion"]};
+    ReconError_norm_strength = ones(num_ReconError_list,1);
+    ReconError_nonSparse_ndx = [1 1];  %% causes recon error to be overlaid on specified  nonSparse (Error) figure
+  elseif strcmp(run_type, "CIFAR_deep") 
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% CIFAR_deep list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    ReconError_list = ...
+        {["a3_"],  ["Recon"]; ...
+         ["a9_"],  ["ReconInfra"]; ...
+         ["a16_"], ["ReconInfra4"]};
+    num_ReconError_list = size(ReconError_list,1);
+    ReconError_skip = repmat(1, num_ReconError_list, 1);
+    ReconError_skip(1) = 1;
+    ReconError_skip(2) = 1;
+    ReconError_skip(3) = 1;
+    ReconError_norm_list = ...
+        {["a0_"], ["Image"]; ...
+         ["a0_"], ["Image"]; ...
+         ["a0_"], ["Image"]};
+    ReconError_norm_strength = ones(num_ReconError_list,1);
+    ReconError_norm_strength = ...
+	[1/sqrt(32*32); 1/sqrt(32*32); 1/sqrt(32*32)];
+    ReconError_nonSparse_ndx = [1 1 1];
+  elseif strcmp(run_type, "noPulvinar")
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% noPulvinar
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    ReconError_list = ...
+        {["a5_"], ["Recon"]; ...
+         ["a9_"], ["ReconInfra"]}; %%; ...
+%%	 ["a5_"], ["Recon"]; ...
+%%         ["a9_"], ["ReconInfra"]};
+    num_ReconError_list = size(ReconError_list,1);
+    ReconError_skip = repmat(1, num_ReconError_list, 1);
+    ReconError_skip(1) = 1;
+    ReconError_skip(2) = 1;
+    ReconError_norm_list = ...
+        {["a2_"], ["Ganglion"]; ...
+         ["a2_"], ["Ganglion"]}; %%; ...
+%%	 ["a12_"], ["NoiselessGanglion"]; ...
+%%         ["a12_"], ["NoiselessGanglion"]};
+    %%    ReconError_norm_list = {[],[]};
+    ReconError_norm_strength = ones(num_ReconError_list,1);
+    ReconError_nonSparse_ndx = [1 1]; %% 3 3]; %% causes recon error to be overlaid on specified  nonSparse (Error) figure
+    %%%%%%%%%%%%%%%%%%%%%%%%e%%%%%%%%%%%%%%%%%%%%
+  elseif strcmp(run_type, "lateral")
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% lateral list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    ReconError_list = ...
+        {["a5_"], ["Recon"]; ...
+         ["a8_"], ["Recon2"]; ...
+         ["a11_"], ["ReconInfra"]};
+    num_ReconError_list = size(ReconError_list,1);
+    ReconError_skip = repmat(1, num_ReconError_list, 1);
+    ReconError_skip(1) = 10;
+    ReconError_skip(2) = 10;
+    ReconError_skip(3) = 10;
+    ReconError_norm_list = ...
+        {["a2_"], ["Ganglion"]; ...
+	 ["a2_"], ["Ganglion"]; ...
+	 ["a2_"], ["Ganglion"]};
+    ReconError_norm_strength = ones(num_ReconError_list,1);
+    ReconError_nonSparse_ndx = [1 2 2];
+  endif %% run_type
+  ReconError_colormap = jet(num_ReconError_list+1);
+
+  %% num frames to skip between stored frames, default is 
+  ReconError_hdr = cell(num_ReconError_list,1);
+  ReconError_dir = [output_dir, filesep, "ReconError"]
+  [status, msg, msgid] = mkdir(ReconError_dir);
+  if status ~= 1
+    warning(["mkdir(", ReconError_dir, ")", " msg = ", msg]);
+  endif 
+  for i_ReconError = 1 : num_ReconError_list
+    ReconError_file = [output_dir, filesep, ...
+		       ReconError_list{i_ReconError,1}, ReconError_list{i_ReconError,2}, ".pvp"]
+    if ~exist(ReconError_file, "file")
+      warning(["file does not exist: ", ReconError_file]);
+      continue;
+    endif
+    ReconError_fid = fopen(ReconError_file);
+    ReconError_hdr{i_ReconError} = readpvpheader(ReconError_fid);
+    fclose(ReconError_fid);
+    tot_ReconError_frames = ReconError_hdr{i_ReconError}.nbands;
+    num_ReconError = tot_ReconError_frames;
+    progress_step = ceil(tot_ReconError_frames / 10);
+    [ReconError_struct, ReconError_hdr_tmp] = ...
+	readpvpfile(ReconError_file, progress_step, ...
+		    tot_ReconError_frames, tot_ReconError_frames-num_ReconError+5, ...
+		    ReconError_skip(i_ReconError));
+    num_ReconError_frames = size(ReconError_struct,1);
+    ReconError_times = zeros(num_ReconError_frames,1);
+    ReconError_RMS = zeros(num_ReconError_frames,1);
+
+    num_ReconError_norm_frames = 0;
+    if ~isempty(ReconError_norm_list{i_ReconError,1}) && ~isempty(ReconError_norm_list{i_ReconError,2})
+      ReconError_norm_file = ...
+	  [output_dir, filesep, ...
+	   ReconError_norm_list{i_ReconError,1}, ...
+	   ReconError_norm_list{i_ReconError,2}, ".pvp"]
+      if ~exist(ReconError_norm_file, "file")
+	warning(["file does not exist: ", ReconError_norm_file]);
+	continue;
+      endif
+      ReconError_norm_fid = fopen(ReconError_norm_file);
+      ReconError_norm_hdr{i_ReconError} = readpvpheader(ReconError_norm_fid);
+      fclose(ReconError_norm_fid);
+      tot_ReconError_norm_frames = ReconError_norm_hdr{i_ReconError}.nbands;
+      num_ReconError_norm = tot_ReconError_norm_frames;
+      progress_step = ceil(tot_ReconError_norm_frames / 10);
+      [ReconError_norm_struct, ReconError_norm_hdr_tmp] = ...
+	  readpvpfile(ReconError_norm_file, progress_step, tot_ReconError_norm_frames, ...
+		      tot_ReconError_norm_frames-num_ReconError_norm+5, ...
+		      ReconError_skip(i_ReconError));
+      num_ReconError_norm_frames = size(ReconError_norm_struct,1);
+    else
+      ReconError_norm_vals = zeros(num_ReconError_frames,1);
+      ReconError_norm_struct = [];
+    endif
+
+    frame_diff = ...
+	(ReconError_struct{num_ReconError_frames}.time - ReconError_norm_struct{num_ReconError_norm_frames}.time);
+    for i_frame = 1 : 1 : num_ReconError_frames
+      if ~isempty(ReconError_struct{i_frame})
+	ReconError_times(i_frame) = squeeze(ReconError_struct{i_frame}.time);
+	ReconError_vals = squeeze(ReconError_struct{i_frame}.values);
+	if ~isempty(ReconError_norm_struct)
+	  ReconError_norm_time = ReconError_norm_struct{i_frame}.time;
+	  ReconError_time_shift = 0;
+	  while ReconError_norm_time - ReconError_times(i_frame) > frame_diff && ...
+		(i_frame-(ReconError_time_shift+1)) >= 1
+	    ReconError_time_shift = ReconError_time_shift + 1;
+	    ReconError_norm_time = ReconError_norm_struct{i_frame-ReconError_time_shift}.time;
+	  endwhile
+	  while ReconError_norm_time - ReconError_times(i_frame) < -frame_diff && ...
+		(i_frame-(ReconError_time_shift-1)) <= num_ReconError_norm_frames
+	    ReconError_time_shift = ReconError_time_shift - 1;
+	    ReconError_norm_time = ReconError_norm_struct{i_frame-ReconError_time_shift}.time;
+	  endwhile
+	  ReconError_norm_vals = squeeze(ReconError_norm_struct{i_frame-ReconError_time_shift}.values);
+	endif
+	if (i_frame-ReconError_time_shift) < 1 || (i_frame-ReconError_time_shift) > num_ReconError_norm_frames
+	  num_ReconError_frames = i_frame - 1;
+	  ReconError_times = ReconError_times(1:num_ReconError_frames);
+	  ReconError_RMS = ReconError_RMS(1:num_ReconError_frames);
+	  break;
+	else
+	  ReconError_RMS(i_frame) = ...
+	      std(ReconError_vals(:) - ReconError_norm_strength(i_ReconError) * ReconError_norm_vals(:)) / ...
+	      sqrt(mean(ReconError_norm_strength(i_ReconError).^2 * ...
+			(ReconError_norm_vals(:).^2 + (ReconError_norm_vals(:)==0).^2)));
+	endif
+      else
+	num_ReconError_frames = i_frame - 1;
+	ReconError_times = ReconError_times(1:num_ReconError_frames);
+	ReconError_RMS = ReconError_RMS(1:num_ReconError_frames);
+	break;
+      endif
+    endfor %% i_frame
+
+    ReconError_RMS = ReconError_RMS(1:i_frame);
+    ReconError_times = ReconError_times(1:i_frame);
+    if plot_flag
+      if ~isempty(ReconError_nonSparse_ndx)
+	ReconError_RMS_fig(i_ReconError) = nonSparse_RMS_fig(ReconError_nonSparse_ndx(i_ReconError));
+      else 
+	ReconError_RMS_fig(i_ReconError) = figure;
+	axis tight;
+      endif
+      figure(ReconError_RMS_fig(i_ReconError));
+      gca;
+      hold on
+      ReconError_RMS_hndl = plot(ReconError_times, ReconError_RMS); 
+      set(ReconError_RMS_hndl, "linewidth", 1.5);
+      set(ReconError_RMS_hndl, "color", ReconError_colormap(i_ReconError+1,:));
+      set(ReconError_RMS_fig(i_ReconError), "name", ...
+	  ["RMS_", ReconError_list{i_ReconError,2}, "_", ReconError_norm_list{i_ReconError,2}, "_", ...
+	   num2str(ReconError_times(num_ReconError_frames), "%08d")]);
+      saveas(ReconError_RMS_fig(i_ReconError), ...
+	     [ReconError_dir, filesep, ...
+	      "RMS_", ...
+	      ReconError_list{i_ReconError,2}, "_", ReconError_norm_list{i_ReconError,2}, ...
+	      "_", ...
+	      num2str(ReconError_times(num_ReconError_frames), "%08d"), ...
+	      ], "png");
+    endif
+    ReconError_median_RMS = median(ReconError_RMS(:));
+    disp([ReconError_list{i_ReconError,2}, "_", num2str(ReconError_times(num_ReconError_frames), "%i"), ...
+	  " median RMS = ", num2str(ReconError_median_RMS)]);
+
+    nonSparse_times_array{num_nonSparse_list+i_ReconError} = ReconError_times;
+    nonSparse_RMS_array{num_nonSparse_list+i_ReconError} = ReconError_RMS;
+    nonSparse_norm_RMS_array{num_nonSparse_list+i_ReconError} = ones(size(ReconError_RMS));
+  endfor  %% i_ReconError
+endif %% plot_ReconError
+
+
+
+
+
+
+
+
+
 plot_ErrorVsSparse = true && plot_Sparse && plot_nonSparse;
 if plot_ErrorVsSparse
-  Sparse_axis_index = ones(num_nonSparse,1);
-  Sparse_axis_index(2) = 2;
-  Sparse_axis_index(3) = 2;
-  Sparse_axis_index(4) = 3;
-  Sparse_axis_index(5) = 3;
-  Sparse_axis_index(6) = 3;
+  ErrorVsSparse_list = [nonSparse_list; ReconError_list];
+  num_nonSparse_list = size(ErrorVsSparse_list,1);
+  Sparse_axis_index = ones(num_nonSparse_list,1);
+  if strcmp(run_type, "color_deep") || strcmp(run_type, "noTopDown") || strcmp(run_type, "noPulvinar")
+    Sparse_axis_index(2) = 2;
+    Sparse_axis_index(3) = 2;
+    Sparse_axis_index(4) = 2;
+    Sparse_axis_index(5) = 2;
+    Sparse_axis_index(6) = 2;
+  elseif strcmp(run_type, "CIFAR_deep")
+    Sparse_axis_index(2) = 2;
+    Sparse_axis_index(3) = 2;
+    Sparse_axis_index(4) = 3;
+    Sparse_axis_index(5) = 3;
+    Sparse_axis_index(6) = 3;
+  endif
   for i_nonSparse = 1 : num_nonSparse_list
     i_Sparse = Sparse_axis_index(i_nonSparse);
     nonSparse_times = nonSparse_times_array{i_nonSparse};
@@ -1235,15 +1462,15 @@ if plot_ErrorVsSparse
       set(eh, "color", [0 0 0]);
       set(eh, "linewidth", 1.5);
       set(ErrorVsSparse_fig, "name", ...
-	  ["ErrorVsSparse_", nonSparse_list{i_nonSparse,2}, "_", ...
+	  ["ErrorVsSparse_", ErrorVsSparse_list{i_nonSparse,2}, "_", ...
 	   num2str(nonSparse_times(num_nonSparse_frames), "%08d")]);
       saveas(ErrorVsSparse_fig, ...
 	     [nonSparse_dir, filesep, ...
-	      "ErrorVsSparse_", nonSparse_list{i_nonSparse,2}, "_", ...
+	      "ErrorVsSparse_", ErrorVsSparse_list{i_nonSparse,2}, "_", ...
 	      num2str(nonSparse_times(num_nonSparse_frames), "%08d")], "png");
     endif %% plot_flag
     save("-mat", ...
-	 [nonSparse_dir, filesep, "ErrorVsSparse_", nonSparse_list{i_nonSparse,2}, "_", ...
+	 [nonSparse_dir, filesep, "ErrorVsSparse_", ErrorVsSparse_list{i_nonSparse,2}, "_", ...
 	  num2str(nonSparse_times(num_nonSparse_frames), "%08d"), ".mat"], ...
 	 "nonSparse_times", "Sparse_vals", "nonSparse_RMS", "nonSparse_norm_RMS", ...
 	 "Sparse_bins", "mean_nonSparse_RMS", "std_nonSparse_RMS");	 
@@ -1255,230 +1482,8 @@ endif %% plot_ErrorVsSparse
 
 
 
-
-plot_ReconError = true && plot_nonSparse;
-ReconError_nonSparse_ndx = [];
-if plot_ReconError && plot_flag
-  if strcmp(run_type, "color_deep") || strcmp(run_type, "noTopDown")
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %% deep list
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    ReconError_list = ...
-        {["a5_"], ["Recon"]; ...
-         ["a11_"], ["ReconInfra"]; ...
-	 ["a5_"], ["Recon"]; ...
-         ["a11_"], ["ReconInfra"]};
-    num_ReconError_list = size(ReconError_list,1);
-    ReconError_skip = repmat(1, num_ReconError_list, 1);
-    ReconError_skip(1) = 1;
-    ReconError_skip(2) = 1;
-    ReconError_norm_list = ...
-        {["a2_"], ["Ganglion"]; ...
-         ["a2_"], ["Ganglion"]; ...
-	 ["a14_"], ["NoiselessGanglion"]; ...
-         ["a14_"], ["NoiselessGanglion"]};
-    ReconError_norm_strength = ones(num_ReconError_list,1);
-    ReconError_nonSparse_ndx = [1 1 4 4];
-  elseif strcmp(run_type, "CIFAR_deep") 
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %% CIFAR_deep list
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    ReconError_list = ...
-        {["a3_"],  ["Recon"]; ...
-         ["a9_"],  ["ReconInfra"]; ...
-         ["a16_"], ["ReconInfra4"]};
-    num_ReconError_list = size(ReconError_list,1);
-    ReconError_skip = repmat(1, num_ReconError_list, 1);
-    ReconError_skip(1) = 1;
-    ReconError_skip(2) = 1;
-    ReconError_skip(3) = 1;
-    ReconError_norm_list = ...
-        {["a0_"], ["Image"]; ...
-         ["a0_"], ["Image"]; ...
-         ["a0_"], ["Image"]};
-    ReconError_norm_strength = ones(num_ReconError_list,1);
-    ReconError_norm_strength = ...
-	[1/sqrt(32*32); 1/sqrt(32*32); 1/sqrt(32*32)];
-    ReconError_nonSparse_ndx = [1 1 1];
-  elseif strcmp(run_type, "noPulvinar")
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %% noPulvinar
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    ReconError_list = ...
-        {["a5_"], ["Recon"]; ...
-         ["a9_"], ["ReconInfra"]}; %%; ...
-%%	 ["a5_"], ["Recon"]; ...
-%%         ["a9_"], ["ReconInfra"]};
-    num_ReconError_list = size(ReconError_list,1);
-    ReconError_skip = repmat(1, num_ReconError_list, 1);
-    ReconError_skip(1) = 10;
-    ReconError_skip(2) = 10;
-    ReconError_norm_list = ...
-        {["a2_"], ["Ganglion"]; ...
-         ["a2_"], ["Ganglion"]}; %%; ...
-%%	 ["a12_"], ["NoiselessGanglion"]; ...
-%%         ["a12_"], ["NoiselessGanglion"]};
-    %%    ReconError_norm_list = {[],[]};
-    ReconError_norm_strength = ones(num_ReconError_list,1);
-    ReconError_nonSparse_ndx = [1 1]; %% 3 3];
-    %%%%%%%%%%%%%%%%%%%%%%%%e%%%%%%%%%%%%%%%%%%%%
-  elseif strcmp(run_type, "lateral")
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %% lateral list
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    ReconError_list = ...
-        {["a5_"], ["Recon"]; ...
-         ["a8_"], ["Recon2"]; ...
-         ["a11_"], ["ReconInfra"]};
-    num_ReconError_list = size(ReconError_list,1);
-    ReconError_skip = repmat(1, num_ReconError_list, 1);
-    ReconError_skip(1) = 10;
-    ReconError_skip(2) = 10;
-    ReconError_skip(3) = 10;
-    ReconError_norm_list = ...
-        {["a2_"], ["Ganglion"]; ...
-	 ["a2_"], ["Ganglion"]; ...
-	 ["a2_"], ["Ganglion"]};
-    ReconError_norm_strength = ones(num_ReconError_list,1);
-    ReconError_nonSparse_ndx = [1 2 2];
-  endif %% run_type
-  ReconError_colormap = jet(num_ReconError_list+1);
-
-  %% num frames to skip between stored frames, default is 
-  ReconError_hdr = cell(num_ReconError_list,1);
-  ReconError_dir = [output_dir, filesep, "ReconError"]
-  [status, msg, msgid] = mkdir(ReconError_dir);
-  if status ~= 1
-    warning(["mkdir(", ReconError_dir, ")", " msg = ", msg]);
-  endif 
-  for i_ReconError = 1 : num_ReconError_list
-    ReconError_file = [output_dir, filesep, ...
-		       ReconError_list{i_ReconError,1}, ReconError_list{i_ReconError,2}, ".pvp"]
-    if ~exist(ReconError_file, "file")
-      warning(["file does not exist: ", ReconError_file]);
-      continue;
-    endif
-    ReconError_fid = fopen(ReconError_file);
-    ReconError_hdr{i_ReconError} = readpvpheader(ReconError_fid);
-    fclose(ReconError_fid);
-    tot_ReconError_frames = ReconError_hdr{i_ReconError}.nbands;
-    num_ReconError = tot_ReconError_frames;
-    progress_step = ceil(tot_ReconError_frames / 10);
-    [ReconError_struct, ReconError_hdr_tmp] = ...
-	readpvpfile(ReconError_file, progress_step, ...
-		    tot_ReconError_frames, tot_ReconError_frames-num_ReconError+5, ...
-		    ReconError_skip(i_ReconError));
-    num_ReconError_frames = size(ReconError_struct,1);
-    ReconError_times = zeros(num_ReconError_frames,1);
-    ReconError_RMS = zeros(num_ReconError_frames,1);
-
-    num_ReconError_norm_frames = 0;
-    if ~isempty(ReconError_norm_list{i_ReconError,1}) && ~isempty(ReconError_norm_list{i_ReconError,2})
-      ReconError_norm_file = ...
-	  [output_dir, filesep, ...
-	   ReconError_norm_list{i_ReconError,1}, ...
-	   ReconError_norm_list{i_ReconError,2}, ".pvp"]
-      if ~exist(ReconError_norm_file, "file")
-	warning(["file does not exist: ", ReconError_norm_file]);
-	continue;
-      endif
-      ReconError_norm_fid = fopen(ReconError_norm_file);
-      ReconError_norm_hdr{i_ReconError} = readpvpheader(ReconError_norm_fid);
-      fclose(ReconError_norm_fid);
-      tot_ReconError_norm_frames = ReconError_norm_hdr{i_ReconError}.nbands;
-      num_ReconError_norm = tot_ReconError_norm_frames;
-      progress_step = ceil(tot_ReconError_norm_frames / 10);
-      [ReconError_norm_struct, ReconError_norm_hdr_tmp] = ...
-	  readpvpfile(ReconError_norm_file, progress_step, tot_ReconError_norm_frames, ...
-		      tot_ReconError_norm_frames-num_ReconError_norm+5, ...
-		      ReconError_skip(i_ReconError));
-      num_ReconError_norm_frames = size(ReconError_norm_struct,1);
-    else
-      ReconError_norm_vals = zeros(num_ReconError_frames,1);
-      ReconError_norm_struct = [];
-    endif
-
-    frame_diff = ...
-	(ReconError_struct{num_ReconError_frames}.time - ReconError_struct{1}.time) / ...
-	num_ReconError_frames;
-    for i_frame = 1 : 1 : num_ReconError_frames
-      if ~isempty(ReconError_struct{i_frame})
-	ReconError_times(i_frame) = squeeze(ReconError_struct{i_frame}.time);
-	ReconError_vals = squeeze(ReconError_struct{i_frame}.values);
-	if ~isempty(ReconError_norm_struct)
-	  ReconError_norm_time = ReconError_norm_struct{i_frame}.time;
-	  ReconError_time_shift = 0;
-	  while ReconError_norm_time - ReconError_times(i_frame) > frame_diff && ...
-		(i_frame-(ReconError_time_shift+1)) >= 1
-	    ReconError_time_shift = ReconError_time_shift + 1;
-	    ReconError_norm_time = ReconError_norm_struct{i_frame-ReconError_time_shift}.time;
-	  endwhile
-	  while ReconError_norm_time - ReconError_times(i_frame) < -frame_diff && ...
-		(i_frame-(ReconError_time_shift-1)) <= num_ReconError_norm_frames
-	    ReconError_time_shift = ReconError_time_shift - 1;
-	    ReconError_norm_time = ReconError_norm_struct{i_frame-ReconError_time_shift}.time;
-	  endwhile
-	  ReconError_norm_vals = squeeze(ReconError_norm_struct{i_frame-ReconError_time_shift}.values);
-	endif
-	if (i_frame-ReconError_time_shift) < 1 || (i_frame-ReconError_time_shift) > num_ReconError_norm_frames
-	  num_ReconError_frames = i_frame - 1;
-	  ReconError_times = ReconError_times(1:num_ReconError_frames);
-	  ReconError_RMS = ReconError_RMS(1:num_ReconError_frames);
-	  break;
-	else
-	  ReconError_RMS(i_frame) = ...
-	      std(ReconError_vals(:) - ReconError_norm_strength(i_ReconError) * ReconError_norm_vals(:)) / ...
-	      (std(ReconError_norm_strength(i_ReconError) * ReconError_norm_vals(:)) + ...
-	       (std(ReconError_norm_strength(i_ReconError) * ReconError_norm_vals(:))==0));
-	endif
-      else
-	num_ReconError_frames = i_frame - 1;
-	ReconError_times = ReconError_times(1:num_ReconError_frames);
-	ReconError_RMS = ReconError_RMS(1:num_ReconError_frames);
-	break;
-      endif
-    endfor %% i_frame
-
-    ReconError_RMS = ReconError_RMS(1:i_frame);
-    ReconError_times = ReconError_times(1:i_frame);
-    if plot_flag
-      if ~isempty(ReconError_nonSparse_ndx)
-	ReconError_RMS_fig(i_ReconError) = nonSparse_RMS_fig(ReconError_nonSparse_ndx(i_ReconError));
-      else 
-	ReconError_RMS_fig(i_ReconError) = figure;
-	axis tight;
-      endif
-      figure(ReconError_RMS_fig(i_ReconError));
-      hold on
-      ReconError_RMS_hndl = plot(ReconError_times, ReconError_RMS); 
-      set(ReconError_RMS_hndl, "linewidth", 1.5);
-      set(ReconError_RMS_hndl, "color", ReconError_colormap(i_ReconError+1,:));
-      set(ReconError_RMS_fig(i_ReconError), "name", ...
-	  ["RMS_", ReconError_list{i_ReconError,2}, "_", ReconError_norm_list{i_ReconError,2}, "_", ...
-	   num2str(ReconError_times(num_ReconError_frames), "%08d")]);
-      saveas(ReconError_RMS_fig(i_ReconError), ...
-	     [ReconError_dir, filesep, ...
-	      "RMS_", ...
-	      ReconError_list{i_ReconError,2}, "_", ReconError_norm_list{i_ReconError,2}, ...
-	      "_", ...
-	      num2str(ReconError_times(num_ReconError_frames), "%08d"), ...
-	      ], "png");
-    endif
-    ReconError_median_RMS = median(ReconError_RMS(:));
-    disp([ReconError_list{i_ReconError,2}, "_", num2str(ReconError_times(num_ReconError_frames), "%i"), ...
-	  " median RMS = ", num2str(ReconError_median_RMS)]);
-  endfor  %% i_ReconError
-endif %% plot_ReconError
-
-
-
-
-
-
-
-
 %%keyboard;
-plot_weights = true;
+plot_weights = false;
 if plot_weights
   weights_list = {};
   labelWeights_list = {};
@@ -1859,7 +1864,7 @@ endif  %% plot_weightLabels
 
 
 %%keyboard;
-plot_weights1_2 = true; %%(true && ~strcmp(run_type, "MNIST"));
+plot_weights1_2 = false; %%(true && ~strcmp(run_type, "MNIST"));
 if plot_weights1_2
   weights1_2_list = {};
   if strcmp(run_type, "color_deep") || strcmp(run_type, "noTopDown")
@@ -2462,9 +2467,12 @@ endif %% run_type
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 num_weightsN_Nplus1_list = size(weightsN_Nplus1_list,1);
-num_layersN_Nplus1_list = size(layersN_Nplus1_list,2)/2;
-if size(weightsN_Nplus1_list,2)/2 ~= num_layersN_Nplus1_list-1
-  error(["num_weightsN_Nplus1_list ~= num_layersN_Nplus1_list-1", ...
+if num_weightsN_Nplus1_list == 0
+  plot_weightsN_Nplus1 = false;
+  warning(["num_weightsN_Nplus1_list == 0"]);  
+elseif size(weightsN_Nplus1_list,2)/2 ~= num_layersN_Nplus1_list-1
+  plot_weightsN_Nplus1 = false;
+  warning(["num_weightsN_Nplus1_list ~= num_layersN_Nplus1_list-1", ...
 	 ", num_weightsN_Nplus1_list = ", num2str(num_weightsN_Nplus1_list), ...
 	 ", num_layersN_Nplus1_list = ", num2str(num_layersN_Nplus1_list)]);
 endif

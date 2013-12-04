@@ -13,13 +13,19 @@ elseif isunix
   mkdir(output_path);
   output_dir_root = "/nh/compneuro/Data/vine/LCA/2013_01_24/output_2013_01_24_how2catchSquirrel_12x12x128_lambda_05X";
   %%output_dir_root = "/nh/compneuro/Data/vine/LCA/2013_01_24/output_2013_01_24_how2catchSquirrel_12x12x128_lambda_05X2";
-  threshold_vals = {"1"; "2"}%%; "3"; "4"};
+  threshold_vals = {"1"; "2"; "3"; "4"};
   %%threshold_vals = {""; "_noise_05"; "_noise_10"};%%; "_noise_20"};
 endif %% isunix
 
 %% default paths
+%%nonSparse_list = ...
+%%    {["a9_"], ["Error1_2"]};
+%%nonSparse_list = ...
+%%    {["a11_"], ["ReconInfra"]};
 nonSparse_list = ...
-    {["a9_"], ["Error1_2"]};
+    {["a5_"], ["Recon"]};
+%%nonSparse_list = ...
+%%    {["a3_"], ["Error"]};
 length_nonSparse_list = size(nonSparse_list,1);
 Sparse_bins_array = cell( length(threshold_vals), length(run_type),length_nonSparse_list);
 Sparse_vals_array = cell( length(threshold_vals), length(run_type),length_nonSparse_list);
