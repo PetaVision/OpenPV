@@ -31,7 +31,7 @@ int main(int argc, char * argv[]) {
 
    // Don't call buildandrun because it will delete hc before returning. (I could use the customexit hook)
    HyPerCol * hc = build(argc, argv, NULL, params);
-   hc->run(0); // Weight values are initialized when run calls allocateDataStructures
+   hc->run(1); // Weight values are initialized when run calls allocateDataStructures
 
    int status = PV_SUCCESS;
 
