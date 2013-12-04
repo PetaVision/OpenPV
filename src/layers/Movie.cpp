@@ -79,7 +79,7 @@ int Movie::initialize(const char * name, HyPerCol * hc, const char * fileOfFileN
    PVParams * params = hc->parameters();
 
    assert(!params->presentAndNotBeenRead(name, "displayPeriod"));
-   nextDisplayTime = hc->simulationTime() + displayPeriod;
+   nextDisplayTime = hc->simulationTime() + displayPeriod + hc->getDeltaTime();
 
    assert(!params->presentAndNotBeenRead(name, "randomMovie")); // randomMovie should have been set in setParams
    if (randomMovie) return status; // Nothing else to be done until data buffer is allocated, in allocateDataStructures
