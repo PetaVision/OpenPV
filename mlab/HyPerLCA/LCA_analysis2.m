@@ -15,11 +15,11 @@ no_clobber = true;
 if ismac
   workspace_path = "/Users/garkenyon/workspace";
   run_type = "CIFAR_deep"; %%"CIFAR_noTask_deep"; %%"CIFAR_noTask"; %%"CIFAR" %%
-  output_dir = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB_deep_task/data_batch_all6"
+  output_dir = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB_deep_task/data_batch_all7"
   checkpoint_dir = output_dir;
   checkpoint_parent = "/Users/garkenyon/workspace/HyPerHLCA";
   checkpoint_children = ...
-      {"CIFAR256_RGB_deep_task/data_batch_all6"}; %%
+      {"CIFAR256_RGB_deep_task/data_batch_all7"}; %%
   last_checkpoint_ndx = 2000000;
 elseif isunix
   workspace_path = "/home/gkenyon/workspace";
@@ -437,7 +437,7 @@ endif %% plot_Recon
 
 
 %%keyboard;
-plot_StatsProbe_vs_time = false;
+plot_StatsProbe_vs_time = true;
 if plot_StatsProbe_vs_time && plot_flag
   StatsProbe_plot_lines = 20000;
   if strcmp(run_type, "color_deep") || strcmp(run_type, "noTopDown")
@@ -461,13 +461,6 @@ if plot_StatsProbe_vs_time && plot_flag
          ["V2"],["_Stats.txt"];
          ["Error1_2"],["_Stats.txt"]; ...
          ["V1Infra"],["_Stats.txt"]};
-  elseif strcmp(run_type, "V1")
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %% V1 list
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    StatsProbe_list = ...
-        {["Error"],["_Stats.txt"]; ...
-         ["V1"],["_Stats.txt"]};
   elseif strcmp(run_type, "lateral")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% lateral list
@@ -489,18 +482,11 @@ if plot_StatsProbe_vs_time && plot_flag
 	 ["Error"],["_Stats.txt"]; ...
 	 ["Error2"],["_Stats.txt"]; ...
 	 ["Error1_2"],["_Stats.txt"]; ...
+	 ["Error4"],["_Stats.txt"]; ...
 	 ["Error2_4"],["_Stats.txt"]; ...
 	 ["V1"],["_Stats.txt"];...
 	 ["V2"],["_Stats.txt"];...
 	 ["V4"],["_Stats.txt"]};
-  elseif strcmp(run_type, "KITTI")
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %% KITTI list
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %%  StatsProbe_list = ...
-    %%      {["LeftError"],["_Stats.txt"]; ...
-    %%       ["RightError"],["_Stats.txt"]; ...
-    %%       ["BinocularV1"],["_Stats.txt"]};
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   endif %% run_type
   StatsProbe_vs_time_dir = [output_dir, filesep, "StatsProbe_vs_time"]
@@ -521,11 +507,6 @@ if plot_StatsProbe_vs_time && plot_flag
     %% noPulvinar list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     StatsProbe_sigma_flag([2,3,5]) = 0;
-  elseif strcmp(run_type, "V1")
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %% V1 list
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    StatsProbe_sigma_flag([2]) = 0;
   elseif strcmp(run_type, "lateral")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% lateral list
@@ -536,9 +517,9 @@ if plot_StatsProbe_vs_time && plot_flag
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% MNIST/CIFAR list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    StatsProbe_sigma_flag([6]) = 0;
     StatsProbe_sigma_flag([7]) = 0;
     StatsProbe_sigma_flag([8]) = 0;
+    StatsProbe_sigma_flag([9]) = 0;
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   endif %% run_type
   StatsProbe_nnz_flag = ~StatsProbe_sigma_flag;
@@ -1323,9 +1304,11 @@ if plot_ReconError && plot_flag
 
     ReconError_RMS = ReconError_RMS(1:i_frame);
     ReconError_times = ReconError_times(1:i_frame);
+    original_name = "";
     if plot_flag
       if ~isempty(ReconError_nonSparse_ndx)
 	ReconError_RMS_fig(i_ReconError) = nonSparse_RMS_fig(ReconError_nonSparse_ndx(i_ReconError));
+	original_name = get(ReconError_RMS_fig(i_ReconError),"name");
       else 
 	ReconError_RMS_fig(i_ReconError) = figure;
 	axis tight;
@@ -1337,11 +1320,12 @@ if plot_ReconError && plot_flag
       set(ReconError_RMS_hndl, "linewidth", 1.5);
       set(ReconError_RMS_hndl, "color", ReconError_colormap(i_ReconError+1,:));
       set(ReconError_RMS_fig(i_ReconError), "name", ...
-	  ["RMS_", ReconError_list{i_ReconError,2}, "_", ReconError_norm_list{i_ReconError,2}, "_", ...
+	  [original_name, ...
+	   "RMS_", ReconError_list{i_ReconError,2}, "_", ReconError_norm_list{i_ReconError,2}, "_", ...
 	   num2str(ReconError_times(num_ReconError_frames), "%08d")]);
       saveas(ReconError_RMS_fig(i_ReconError), ...
 	     [ReconError_dir, filesep, ...
-	      "RMS_", ...
+	      original_name, "RMS_", ...
 	      ReconError_list{i_ReconError,2}, "_", ReconError_norm_list{i_ReconError,2}, ...
 	      "_", ...
 	      num2str(ReconError_times(num_ReconError_frames), "%08d"), ...
@@ -2967,7 +2951,9 @@ if plot_weightsN_Nplus1
 	  endif
 
 	  %% set weightsN_Nplus1_vals to patch_tmp3
-	  weightsN_Nplus1_vals{i_weightN_Nplus1, i_layerN_Nplus1+1}(:, :, :, kf_preN_Nplus1_rank) = ...
+%%	  weightsN_Nplus1_vals{i_weightN_Nplus1, i_layerN_Nplus1+1}(:, :, :, kf_preN_Nplus1_rank) = ...
+%%	      patch_tmp3;
+	  weightsN_Nplus1_vals{i_weightN_Nplus1, i_layerN_Nplus1+1}(:, :, :, kf_preN_Nplus1) = ...
 	      patch_tmp3;
 
 	  %% Plot the average movie weights for each label %%
