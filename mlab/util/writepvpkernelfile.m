@@ -40,16 +40,16 @@ function writepvpkernelfile(filename, data)
        wmax = max(data{frameno}.values{1}(:));
        wmin = min(data{frameno}.values{1}(:));
        for arbor=2:numarbors
-           arborsize = size(data{arbor}.values{arbor});
+           arborsize = size(data{frameno}.values{arbor});
            if ~isequal(arborsize,arbor1size)
                msgid='arborsunequalsizes';
                errmsg=sprintf('Frame %d has different sizes for arbors 1 and %d', frameno, arbor);
                errorpresent=1;
                break;
            end%if
-           wmaxarbor = max(data{arbor}.values{arbor}(:));
+           wmaxarbor = max(data{frameno}.values{arbor}(:));
            wmax = max(wmax,wmaxarbor);
-           wminarbor = min(data{arbor}.values{arbor}(:));
+           wminarbor = min(data{frameno}.values{arbor}(:));
            wmin = min(wmin,wminarbor);
        end%if
        if errorpresent, break; end%if
