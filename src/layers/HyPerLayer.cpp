@@ -1577,7 +1577,7 @@ int HyPerLayer::publish(InterColComm* comm, double time)
 {
    publish_timer->start();
 
-   if ( useMirrorBCs() ) {
+   if ( useMirrorBCs() && getLastUpdateTime() >= getParent()->simulationTime()) {
       for (int borderId = 1; borderId < NUM_NEIGHBORHOOD; borderId++){
          mirrorInteriorToBorder(borderId, clayer->activity, clayer->activity);
       }
