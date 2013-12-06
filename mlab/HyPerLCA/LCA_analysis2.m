@@ -31,10 +31,10 @@ elseif isunix
   %%run_type = "V1";
   if strcmp(run_type, "color_deep")
     %%output_dir = "/nh/compneuro/Data/vine/LCA/2013_02_01/output_2013_02_01_12x12x128_lambda_05X1_deep"; 
-    output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_24/output_2013_01_24_how2catchSquirrel_12x12x128_lambda_05X1_deep";
-    checkpoint_dir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_2013_01_31_12x12x128_lambda_05X2_noise_05_deep"; %%output_dir; 
+    output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_24/output_2013_01_24_how2catchSquirrel_12x12x128_lambda_05X4_deep";
+    checkpoint_dir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_2013_01_31_12x12x128_lambda_05X3_noise_05_deep"; 
     checkpoint_parent = "/nh/compneuro/Data/vine/LCA";
-    checkpoint_children = {"2013_01_24/output_2013_01_24_how2catchSquirrel_12x12x128_lambda_05X1_deep"}; 
+    checkpoint_children = {"2013_01_24/output_2013_01_24_how2catchSquirrel_12x12x128_lambda_05X4_deep"}; 
     %%    checkpoint_children = {"2013_02_01/output_2013_02_01_12x12x128_lambda_05X2_deep"}; 
     %%    checkpoint_children = {"2013_01_31/output_2013_01_31_12x12x128_lambda_05X2_deep"; ...
     %%			   "2013_01_30/output_2013_01_30_12x12x128_lambda_05X2_deep"; ...
@@ -81,11 +81,11 @@ elseif isunix
 %%			   "2013_02_01/output_2013_02_01_12x12x128_lambda_05X2_noPulvinar"};
    last_checkpoint_ndx = 2700000;
   elseif strcmp(run_type, "lateral")
-    output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_30/output_2013_01_30_12x12x128_3x3_9x9x128_lambda_05X1_lateral";
+    output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_2013_01_31_12x12x128_1x1_9x9x256_lambda_05X1_lateral";
     %%output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_30/output_2013_01_30_12x12x128_3x3_9x9x256_lambda_05X1_lateral"; 
     checkpoint_dir =  output_dir;
     checkpoint_parent = "/nh/compneuro/Data/vine/LCA";
-    checkpoint_children = {"2013_01_30/output_2013_01_30_12x12x128_3x3_9x9x128_lambda_05X1_lateral"};
+    checkpoint_children = {"2013_01_31/output_2013_01_31_12x12x128_1x1_9x9x256_lambda_05X1_lateral"};
   endif
 endif %% isunix
 addpath([workspace_path, filesep, "/PetaVision/mlab/util"]);
@@ -936,8 +936,6 @@ if plot_nonSparse && plot_flag
     nonSparse_norm_list = ...
         {["a2_"], ["Ganglion"]; ...
          ["a4_"], ["V1"]};
-%%    nonSparse_norm_list = ...
-%%        {[], []};
     Sparse_std_ndx = [0 1];
     nonSparse_norm_strength = ones(num_nonSparse_list,1);
     %%%%%%%%%%%%%%%%%%%%%%%%e%%%%%%%%%%%%%%%%%%%%
@@ -1127,7 +1125,7 @@ endif %% plot_nonSparse
 plot_ReconError = true && plot_nonSparse;
 ReconError_nonSparse_ndx = [];
 if plot_ReconError && plot_flag
-  if strcmp(run_type, "color_deep") || strcmp(run_type, "noTopDown")
+  if strcmp(run_type, "color_deep") || strcmp(run_type, "noTopDown") || strcmp(run_type, "noPulvinar")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% deep list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1164,28 +1162,6 @@ if plot_ReconError && plot_flag
     ReconError_norm_strength = ...
 	[1/sqrt(32*32); 1/sqrt(32*32); 1/sqrt(32*32)];
     ReconError_nonSparse_ndx = [1 1 1];
-  elseif strcmp(run_type, "noPulvinar")
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %% noPulvinar
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    ReconError_list = ...
-        {["a5_"], ["Recon"]; ...
-         ["a9_"], ["ReconInfra"]}; %%; ...
-%%	 ["a5_"], ["Recon"]; ...
-%%         ["a9_"], ["ReconInfra"]};
-    num_ReconError_list = size(ReconError_list,1);
-    ReconError_skip = repmat(1, num_ReconError_list, 1);
-    ReconError_skip(1) = 1;
-    ReconError_skip(2) = 1;
-    ReconError_norm_list = ...
-        {["a2_"], ["Ganglion"]; ...
-         ["a2_"], ["Ganglion"]}; %%; ...
-%%	 ["a12_"], ["NoiselessGanglion"]; ...
-%%         ["a12_"], ["NoiselessGanglion"]};
-    %%    ReconError_norm_list = {[],[]};
-    ReconError_norm_strength = ones(num_ReconError_list,1);
-    ReconError_nonSparse_ndx = [1 1]; %% 3 3]; %% causes recon error to be overlaid on specified  nonSparse (Error) figure
-    %%%%%%%%%%%%%%%%%%%%%%%%e%%%%%%%%%%%%%%%%%%%%
   elseif strcmp(run_type, "lateral")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% lateral list
@@ -1263,7 +1239,8 @@ if plot_ReconError && plot_flag
     endif
 
     frame_diff = ...
-	(ReconError_struct{num_ReconError_frames}.time - ReconError_norm_struct{num_ReconError_norm_frames}.time);
+	(ReconError_struct{1}.time - ReconError_norm_struct{1}.time);
+    %%keyboard;
     for i_frame = 1 : 1 : num_ReconError_frames
       if ~isempty(ReconError_struct{i_frame})
 	ReconError_times(i_frame) = squeeze(ReconError_struct{i_frame}.time);
@@ -1301,9 +1278,9 @@ if plot_ReconError && plot_flag
 	break;
       endif
     endfor %% i_frame
-
-    ReconError_RMS = ReconError_RMS(1:i_frame);
-    ReconError_times = ReconError_times(1:i_frame);
+    
+    ReconError_RMS = ReconError_RMS(1:num_ReconError_frames);
+    ReconError_times = ReconError_times(1:num_ReconError_frames);
     original_name = "";
     if plot_flag
       if ~isempty(ReconError_nonSparse_ndx)
@@ -1339,6 +1316,7 @@ if plot_ReconError && plot_flag
     nonSparse_RMS_array{num_nonSparse_list+i_ReconError} = ReconError_RMS;
     nonSparse_norm_RMS_array{num_nonSparse_list+i_ReconError} = ones(size(ReconError_RMS));
   endfor  %% i_ReconError
+  %%keyboard;
 endif %% plot_ReconError
 
 
@@ -1354,9 +1332,15 @@ if plot_ErrorVsSparse
   ErrorVsSparse_list = [nonSparse_list; ReconError_list];
   num_nonSparse_list = size(ErrorVsSparse_list,1);
   Sparse_axis_index = ones(num_nonSparse_list,1);
-  if strcmp(run_type, "color_deep") || strcmp(run_type, "noTopDown") || strcmp(run_type, "noPulvinar")
+  if strcmp(run_type, "color_deep") || strcmp(run_type, "noTopDown")
     Sparse_axis_index(2) = 2;
     Sparse_axis_index(3) = 2;
+    Sparse_axis_index(4) = 1;
+    Sparse_axis_index(5) = 2;
+    Sparse_axis_index(6) = 2;
+  elseif strcmp(run_type, "noPulvinar")
+    Sparse_axis_index(2) = 2;
+    Sparse_axis_index(3) = 1;
     Sparse_axis_index(4) = 2;
     Sparse_axis_index(5) = 2;
     Sparse_axis_index(6) = 2;
@@ -1467,7 +1451,7 @@ endif %% plot_ErrorVsSparse
 
 
 %%keyboard;
-plot_weights = false;
+plot_weights = true;
 if plot_weights
   weights_list = {};
   labelWeights_list = {};
@@ -1848,7 +1832,7 @@ endif  %% plot_weightLabels
 
 
 %%keyboard;
-plot_weights1_2 = false; %%(true && ~strcmp(run_type, "MNIST"));
+plot_weights1_2 = true; %%(true && ~strcmp(run_type, "MNIST"));
 if plot_weights1_2
   weights1_2_list = {};
   if strcmp(run_type, "color_deep") || strcmp(run_type, "noTopDown")
