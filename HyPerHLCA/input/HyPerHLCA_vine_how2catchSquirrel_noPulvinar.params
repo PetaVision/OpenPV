@@ -168,7 +168,7 @@ ANNTriggerUpdateOnNewImageLayer "Recon" = {
     nxScale = 1;
     nyScale = 1;
     nf = 3;
-    initialWriteTime = 999.0;
+    initialWriteTime = 1001.0;
     writeStep = 1000.0;
     mirrorBCflag = 0;
     valueBC = 0;
@@ -301,7 +301,7 @@ ANNTriggerUpdateOnNewImageLayer "V1Infra" = {
     nxScale = 0.25;
     nyScale = 0.25;
     nf = 128;
-    initialWriteTime = 999.0;
+    initialWriteTime = 1001.0;
     writeStep = 1000.0;
     mirrorBCflag = 0;
     valueBC = 0;
@@ -317,7 +317,7 @@ ANNTriggerUpdateOnNewImageLayer "V1Infra" = {
     VMin = 0.0; // use V1's VMin
     VShift = 0;
     // 
-    phase = 3; 
+    phase = 2; 
 };
 
 
@@ -326,7 +326,7 @@ ANNTriggerUpdateOnNewImageLayer "ReconInfra" = {
     nxScale = 1;
     nyScale = 1;
     nf = 3;
-    initialWriteTime = 999.0;
+    initialWriteTime = 1001.0;
     writeStep = 1000.0;
     mirrorBCflag = 0;
     valueBC = 0;
@@ -342,7 +342,7 @@ ANNTriggerUpdateOnNewImageLayer "ReconInfra" = {
     VMin = -infinity; 
     VShift = 0;
     // 
-    phase = 2; 
+    phase = 3; 
 };
 
 
