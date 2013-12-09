@@ -76,7 +76,6 @@ Movie "input" = {
 };
 
 ANNLayer "ganglion" = {
-// ANNTriggerUpdateOnNewImageLayer "ganglion" = {
     restart                          = false;
     nxScale                          = 1;
     nyScale                          = 1;
