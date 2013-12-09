@@ -5,7 +5,7 @@ close all;
 global plot_flag %% if true, plot graphical output to screen, else do not generate graphical outputy
 plot_flag = true;
 global load_flag %% if true, then load "saved" data structures rather than computing them 
-load_flag = false;
+load_Sparse_flag = false;
 if plot_flag
   setenv("GNUTERM","X11")
 endif
@@ -15,11 +15,11 @@ no_clobber = true;
 if ismac
   workspace_path = "/Users/garkenyon/workspace";
   run_type = "CIFAR_deep"; %%"CIFAR_noTask_deep"; %%"CIFAR_noTask"; %%"CIFAR" %%
-  output_dir = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB_deep_task/data_batch_all7"
+  output_dir = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB_deep_task/data_batch_all8"
   checkpoint_dir = output_dir;
   checkpoint_parent = "/Users/garkenyon/workspace/HyPerHLCA";
   checkpoint_children = ...
-      {"CIFAR256_RGB_deep_task/data_batch_all7"}; %%
+      {"CIFAR256_RGB_deep_task/data_batch_all8"}; %%
   last_checkpoint_ndx = 2000000;
 elseif isunix
   workspace_path = "/home/gkenyon/workspace";
@@ -437,7 +437,7 @@ endif %% plot_Recon
 
 
 %%keyboard;
-plot_StatsProbe_vs_time = true;
+plot_StatsProbe_vs_time = false;
 if plot_StatsProbe_vs_time && plot_flag
   StatsProbe_plot_lines = 20000;
   if strcmp(run_type, "color_deep") || strcmp(run_type, "noTopDown")
@@ -614,9 +614,8 @@ endif  %% plot_StatsProbe_vs_time
 
 
 
-plot_Sparse = true;
-begin_Sparse_analysis = 0.0; %%
-if plot_Sparse
+plot_Sparse_flag = true;
+if plot_Sparse_flag
   if strcmp(run_type, "color_deep") || strcmp(run_type, "lateral") || strcmp(run_type, "noTopDown")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% deep/lateral list
@@ -639,224 +638,27 @@ if plot_Sparse
     Sparse_list = ...
 	{["a4_"], ["V1"]; ...
 	 ["a6_"], ["V2"]};
-  elseif strcmp(run_type, "V1")
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %% V1 list
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    Sparse_list = ...
-	{["a4_"], ["V1"]};
   endif %% run_type
-  num_Sparse_list = size(Sparse_list,1);
-  Sparse_hdr = cell(num_Sparse_list,1);
-  Sparse_hist_rank_array = cell(num_Sparse_list,1);
-  Sparse_times_array = cell(num_Sparse_list,1);
-  Sparse_percent_active_array = cell(num_Sparse_list,1);
-  Sparse_percent_change_array = cell(num_Sparse_list,1);
-  Sparse_std_array = cell(num_Sparse_list,1);
-  Sparse_dir = [output_dir, filesep, "Sparse"]
-  [status, msg, msgid] = mkdir(Sparse_dir);
-  if status ~= 1
-    warning(["mkdir(", Sparse_dir, ")", " msg = ", msg]);
-  endif 
-  for i_Sparse = 1 : num_Sparse_list
-    Sparse_file = [output_dir, filesep, Sparse_list{i_Sparse,1}, Sparse_list{i_Sparse,2}, ".pvp"]
-    if ~exist(Sparse_file, "file")
-      warning(["file does not exist: ", Sparse_file]);
-    endif
-    Sparse_fid = fopen(Sparse_file);
-    Sparse_hdr{i_Sparse} = readpvpheader(Sparse_fid);
-    fclose(Sparse_fid);
-    tot_Sparse_frames = Sparse_hdr{i_Sparse}.nbands;
-    num_Sparse = fix(tot_Sparse_frames/1);  %% number of activity frames to analyze, counting backward from last frame, maximum is tot_Sparse_frames
-    progress_step = ceil(tot_Sparse_frames / 10);
-    if ~load_flag
-      [Sparse_struct, Sparse_hdr_tmp] = ...
-	  readpvpfile(Sparse_file, progress_step, tot_Sparse_frames, tot_Sparse_frames-num_Sparse+5,1);
-    else %% just read last frame
-      [Sparse_struct, Sparse_hdr_tmp] = ...
-	  readpvpfile(Sparse_file, progress_step, tot_Sparse_frames, tot_Sparse_frames,1); 
-    endif
-    nx_Sparse = Sparse_hdr{i_Sparse}.nx;
-    ny_Sparse = Sparse_hdr{i_Sparse}.ny;
-    nf_Sparse = Sparse_hdr{i_Sparse}.nf;
-    n_Sparse = nx_Sparse * ny_Sparse * nf_Sparse;
-    num_Sparse_frames = size(Sparse_struct,1);
-    begin_Sparse_frame = fix(begin_Sparse_analysis*num_Sparse_frames)+1;
-    Sparse_hist = zeros(nf_Sparse+1,1);
-    Sparse_hist_edges = [0:1:nf_Sparse]+0.5;
-    Sparse_current = zeros(n_Sparse,1);
-    Sparse_abs_change = zeros(num_Sparse_frames-begin_Sparse_frame+1,1);
-    Sparse_percent_change = zeros(num_Sparse_frames-begin_Sparse_frame+1,1);
-    Sparse_std = ones(num_Sparse_frames-begin_Sparse_frame+1,1);
-    Sparse_current_active = 0;
-    Sparse_tot_active = zeros(num_Sparse_frames-begin_Sparse_frame+1,1);
-    Sparse_times = zeros(num_Sparse_frames-begin_Sparse_frame+1,1);
-    skip_Sparse_frame = 1;
-    for i_frame = begin_Sparse_frame : skip_Sparse_frame : num_Sparse_frames
-      if isempty(Sparse_struct{i_frame}.values)
-	num_Sparse_frames = i_frame - 1;
-	Sparse_times = Sparse_times(1:num_Sparse_frames-begin_Sparse_frame+1);
-	Sparse_tot_active = Sparse_tot_active(1:num_Sparse_frames-begin_Sparse_frame+1);
-	Sparse_abs_change = Sparse_abs_change(1:num_Sparse_frames-begin_Sparse_frame+1);
-	Sparse_percent_change = Sparse_percent_change(1:num_Sparse_frames-begin_Sparse_frame+1);
-	Sparse_std = Sparse_std(1:num_Sparse_frames-begin_Sparse_frame+1);
-	break;
-      endif
-      Sparse_times(i_frame-begin_Sparse_frame+1) = squeeze(Sparse_struct{i_frame}.time);
-      Sparse_values_tmp = squeeze(Sparse_struct{i_frame}.values);
-      Sparse_active_ndx = Sparse_values_tmp(:,1);
-      Sparse_previous = Sparse_current;
-      if columns(Sparse_values_tmp) == 2
-	Sparse_active_vals = Sparse_values_tmp(:,2);
-      else
-	Sparse_active_vals = ones(size(Sparse_active_ndx));
-      endif
-      Sparse_current = full(sparse(Sparse_active_ndx+1,1,Sparse_active_vals,n_Sparse,1,n_Sparse));
-      Sparse_abs_change(i_frame-begin_Sparse_frame+1) = sum((Sparse_current(:)~=0) ~= (Sparse_previous(:)~=0));
-      Sparse_previous_active = Sparse_current_active;
-      Sparse_current_active = nnz(Sparse_current(:));
-      Sparse_tot_active(i_frame-begin_Sparse_frame+1) = Sparse_current_active;
-      Sparse_OR_active = sum((Sparse_current(:)~=0) | (Sparse_previous(:)~=0));
-      Sparse_percent_change(i_frame-begin_Sparse_frame+1) = ...
-	  Sparse_abs_change(i_frame-begin_Sparse_frame+1) / (Sparse_OR_active + (Sparse_OR_active==0));
-      Sparse_active_kf = mod(Sparse_active_ndx, nf_Sparse) + 1;
-      if Sparse_current_active > 0
-	Sparse_hist_frame = histc(Sparse_active_kf, Sparse_hist_edges);
-      else
-	Sparse_hist_frame = zeros(nf_Sparse+1,1);
-      endif
-      Sparse_hist = Sparse_hist + Sparse_hist_frame;
-      Sparse_std(i_frame-begin_Sparse_frame+1) = sqrt(mean(Sparse_current.^2));
-    endfor %% i_frame
-    Sparse_percent_active = Sparse_tot_active/n_Sparse;
-    if ~load_flag
-      Sparse_hist = Sparse_hist(1:nf_Sparse);
-      Sparse_hist = Sparse_hist / ((num_Sparse_frames-begin_Sparse_frame+1) * nx_Sparse * ny_Sparse); 
-      [Sparse_hist_sorted, Sparse_hist_rank] = sort(Sparse_hist, 1, "descend");
-      Sparse_hist_bins = 1:nf_Sparse;
-      save("-mat", ...
-	   [Sparse_dir, filesep, "Sparse_hist_bins_", Sparse_list{i_Sparse,2}, "_", ...
-	    num2str(Sparse_times(num_Sparse_frames-begin_Sparse_frame+1), "%08d"), ".mat"], ...
-	   "Sparse_hist_bins");
-      save("-mat", ...
-	   [Sparse_dir, filesep, "Sparse_hist_sorted_", Sparse_list{i_Sparse,2}, "_", ...
-	    num2str(Sparse_times(num_Sparse_frames-begin_Sparse_frame+1), "%08d"), ".mat"], ...
-	   "Sparse_hist_sorted");
-      save("-mat", ...
-	   [Sparse_dir, filesep, "Sparse_hist_rank_", Sparse_list{i_Sparse,2}, "_", ...
-	    num2str(Sparse_times(num_Sparse_frames-begin_Sparse_frame+1), "%08d"), ".mat"], ...
-	   "Sparse_hist_rank");
-      save("-mat", ...
-	   [Sparse_dir, filesep, "Sparse_percent_change_", Sparse_list{i_Sparse,2}, "_", ...
-	    num2str(Sparse_times(num_Sparse_frames-begin_Sparse_frame+1), "%08d"), ".mat"], ...
-	   "Sparse_times", "Sparse_percent_change");    
-      save("-mat", ...
-	   [Sparse_dir, filesep, "Sparse_percent_active_", Sparse_list{i_Sparse,2}, "_", ...
-	    num2str(Sparse_times(num_Sparse_frames-begin_Sparse_frame+1), "%08d"), ".mat"], ...
-	   "Sparse_times", "Sparse_percent_active");	 
-      save("-mat", ...
-	   [Sparse_dir, filesep, "Sparse_std_", Sparse_list{i_Sparse,2}, "_", ...
-	    num2str(Sparse_times(num_Sparse_frames-begin_Sparse_frame+1), "%08d"), ".mat"], ...
-	   "Sparse_times", "Sparse_std");	 
-    else
-      Sparse_hist_bins_str = ...
-	  [Sparse_dir, filesep, "Sparse_hist_bins_", Sparse_list{i_Sparse,2}, "_", "*", ".mat"];
-      Sparse_hist_bins_glob = glob(Sparse_hist_bins_str);
-      num_Sparse_hist_bins_glob = length(Sparse_hist_bins_glob);
-      if num_Sparse_hist_bins_glob <= 0
-	warning(["load_flag is true but no files to load in: ", Sparse_hist_bins_str]);
-	break;
-      endif
-      load("-mat", Sparse_hist_bins_glob{num_Sparse_hist_bins_glob});
-      Sparse_hist_sorted_str = ...
-	  [Sparse_dir, filesep, "Sparse_hist_sorted_", Sparse_list{i_Sparse,2}, "_", "*", ".mat"];
-      Sparse_hist_sorted_glob = glob(Sparse_hist_sorted_str);
-      num_Sparse_hist_sorted_glob = length(Sparse_hist_sorted_glob);
-      if num_Sparse_hist_sorted_glob <= 0
-	warning(["load_flag is true but no files to load in: ", Sparse_hist_sorted_str]);
-	break;
-      endif
-      load("-mat", Sparse_hist_sorted_glob{num_Sparse_hist_sorted_glob});
-      Sparse_hist_rank_str = ...
-	  [Sparse_dir, filesep, "Sparse_hist_rank_", Sparse_list{i_Sparse,2}, "_", "*", ".mat"];
-      Sparse_hist_rank_glob = glob(Sparse_hist_rank_str);
-      num_Sparse_hist_rank_glob = length(Sparse_hist_rank_glob);
-      if num_Sparse_hist_rank_glob <= 0
-	warning(["load_flag is true but no files to load in: ", Sparse_hist_rank_str]);
-	break;
-      endif
-      load("-mat", Sparse_hist_rank_glob{num_Sparse_hist_rank_glob});
-      Sparse_percent_change_str = ...
-	  [Sparse_dir, filesep, "Sparse_percent_change_", Sparse_list{i_Sparse,2}, "_", "*", ".mat"];
-      Sparse_percent_change_glob = glob(Sparse_percent_change_str);
-      num_Sparse_percent_change_glob = length(Sparse_percent_change_glob);
-      if num_Sparse_percent_change_glob <= 0
-	warning(["load_flag is true but no files to load in: ", Sparse_percent_change_str]);
-	break;
-      endif
-      load("-mat", Sparse_percent_change_glob{num_Sparse_percent_change_glob});
-      Sparse_percent_active_str = ...
-	  [Sparse_dir, filesep, "Sparse_percent_active_", Sparse_list{i_Sparse,2}, "_", "*", ".mat"];
-      Sparse_percent_active_glob = glob(Sparse_percent_active_str);
-      num_Sparse_percent_active_glob = length(Sparse_percent_active_glob);
-      if num_Sparse_percent_active_glob <= 0
-	warning(["load_flag is true but no files to load in: ", Sparse_percent_active_str]);
-	break;
-      endif
-      load("-mat", Sparse_percent_active_glob{num_Sparse_percent_active_glob});
-      Sparse_std_str = ...
-	  [Sparse_dir, filesep, "Sparse_std_", Sparse_list{i_Sparse,2}, "_", "*", ".mat"];
-      Sparse_std_glob = glob(Sparse_std_str);
-      num_Sparse_std_glob = length(Sparse_std_glob);
-      if num_Sparse_std_glob <= 0
-	warning(["load_flag is true but no files to load in: ", Sparse_std_str]);
-	break;
-      endif
-      load("-mat", Sparse_std_glob{num_Sparse_std_glob});
-    endif %% load_flag
-    num_Sparse_frames = length(Sparse_times);
-    if plot_flag %%&& ~load_flag
-      Sparse_hist_fig = figure;
-      Sparse_hist_hndl = bar(Sparse_hist_bins, Sparse_hist_sorted); axis tight;
-      set(Sparse_hist_fig, "name", ["Hist_", Sparse_list{i_Sparse,2}, "_", num2str(Sparse_times(num_Sparse_frames), "%i")]);
-      saveas(Sparse_hist_fig, ...
-	     [Sparse_dir, filesep, ...
-	      "Hist_", Sparse_list{i_Sparse,2}, "_", num2str(Sparse_times(num_Sparse_frames), "%i")], "png");
-      Sparse_percent_change_fig = figure;
-      Sparse_percent_change_hndl = plot(Sparse_times, Sparse_percent_change); 
-      set(Sparse_percent_change_hndl, "linewidth", 1.5);
-      axis([Sparse_times(1) Sparse_times(end) 0 1]); %%axis tight;
-      set(Sparse_percent_change_fig, ...
-	  "name", ["percent_change_", Sparse_list{i_Sparse,2}, "_", num2str(Sparse_times(num_Sparse_frames), "%08d")]);
-      saveas(Sparse_percent_change_fig, ...
-	     [Sparse_dir, filesep, ...
-	      "percent_change_", Sparse_list{i_Sparse,2}, "_", num2str(Sparse_times(num_Sparse_frames), "%08d")], "png");
-      
-      Sparse_percent_active_fig = figure;
-      Sparse_percent_active_hndl = plot(Sparse_times, Sparse_percent_active); axis tight;
-      set(Sparse_percent_active_hndl, "linewidth", 1.5);
-      set(Sparse_percent_active_fig, "name", ["percent_active_", Sparse_list{i_Sparse,2}, "_", ...
-					  num2str(Sparse_times(num_Sparse_frames), "%08d")]);
-      saveas(Sparse_percent_active_fig, ...
-	     [Sparse_dir, filesep, "percent_active_", Sparse_list{i_Sparse,2}, "_", ...
-	      num2str(Sparse_times(num_Sparse_frames), "%08d")], "png");
-    endif
 
-    Sparse_median_active = median(Sparse_percent_active(:));
-    disp([Sparse_list{i_Sparse,2}, "_", num2str(Sparse_times(num_Sparse_frames), "%i"), ...
-	  " median_active = ", num2str(Sparse_median_active)]);
-    
-    Sparse_mean_percent_change = mean(Sparse_percent_change(:));
-    disp([Sparse_list{i_Sparse,2}, "_", num2str(Sparse_times(num_Sparse_frames), "%i"), ...
-	  " mean_percent_change = ", num2str(Sparse_mean_percent_change)]);
-    Sparse_hist_rank_array{i_Sparse} = Sparse_hist_rank;
-    Sparse_times_array{i_Sparse} = Sparse_times;
-    Sparse_percent_active_array{i_Sparse} = Sparse_percent_active;
-    Sparse_percent_change_array{i_Sparse} = Sparse_percent_change;
-    Sparse_std_array{i_Sparse} = Sparse_std;
+  fraction_Sparse_frames_read = 1;
+  min_Sparse_skip = 1;
+  fraction_Sparse_progress = 10;
+  num_procs = 4;
+  [Sparse_hist_rank_array, ...
+   Sparse_times_array, ...
+   Sparse_percent_active_array, ...
+   Sparse_percent_change_array, ...
+   Sparse_std_array] = ...
+      plotSparsePVP(Sparse_list, ...
+		    output_dir, ...
+		    load_Sparse_flag, ...
+		    plot_Sparse_flag, ...
+		    fraction_Sparse_frames_read, ...
+		    min_Sparse_skip, ...
+		    fraction_Sparse_progress, ...
+		    num_procs);
 
-  endfor  %% i_Sparse
-endif %% plot_Sparse
+endif %% plot_Sparse_flag
 
 
 
@@ -1325,9 +1127,7 @@ endif %% plot_ReconError
 
 
 
-
-
-plot_ErrorVsSparse = true && plot_Sparse && plot_nonSparse;
+plot_ErrorVsSparse = true && plot_Sparse_flag && plot_nonSparse;
 if plot_ErrorVsSparse
   ErrorVsSparse_list = [nonSparse_list; ReconError_list];
   num_nonSparse_list = size(ErrorVsSparse_list,1);
@@ -1455,8 +1255,6 @@ plot_weights = true;
 if plot_weights
   weights_list = {};
   labelWeights_list = {};
-  labels_list = {};
-  labelRecon_list = {};
   if strcmp(run_type, "color_deep") || strcmp(run_type, "noTopDown")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% deep list
@@ -1490,6 +1288,10 @@ if plot_weights
           {["V1ToError"], "_W"; ...
            ["V2ToError2"], "_W"; ...
            ["V4ToError4"], "_W"};
+      labelWeights_list = ...
+	  {["V1ToLabelError"], ["_W"]; ...
+	   ["V2ToLabelError"], ["_W"]; ...
+	   ["V4ToLabelError"], ["_W"]};
       checkpoints_list = getCheckpointList(checkpoint_parent, checkpoint_children);
     endif %% checkpoint_weights_movie
     num_checkpoints = size(checkpoints_list,1);
@@ -1587,12 +1389,12 @@ if plot_weights
 	continue;
       endif
       tmp_ndx = sparse_ndx(i_weights);
-      if plot_Sparse
+      if plot_Sparse_flag
 	tmp_rank = Sparse_hist_rank_array{tmp_ndx};
       else
 	tmp_rank = [];
       endif
-      if plot_Sparse && ~isempty(tmp_rank)
+      if plot_Sparse_flag && ~isempty(tmp_rank)
 	pre_hist_rank = tmp_rank;
       else
 	pre_hist_rank = (1:weights_hdr{i_weights}.nf);
@@ -1725,7 +1527,7 @@ if plot_weights
 	  if num_weights_colors == 1
 	    imagesc(squeeze(mean(weight_vals(:,:,maxind(maxnum==(label+1))),3))')
 	  else
-	    imagesc(permute(squeeze(mean(weight_vals(:,:,:,maxind(maxnum==(label+1))),4)),[2,1,3]));
+	    imagesc(permute(squeeze(mean(weight_vals(:,:,:,1+mod(maxind(maxnum==(label+1))-1,size(weight_vals,4))),4)),[2,1,3]));
 	  endif
 	  labeledWeights_str = ...
 	      ["labeledWeightsFig_", ...
@@ -1898,6 +1700,8 @@ if plot_weights1_2
 %%          {["a1_"], ["Image"]};
       image_list = ...
           {["Image"], ["_A"]};
+      labelWeights_list = ...
+	  {["V2ToLabelError"], ["_W"]};
     endif %% checkpoint_weights_movie
     %% list of indices for reading rank order of presynaptic neuron as function of activation frequency
     sparse_ndx = [2];
@@ -2120,12 +1924,12 @@ if plot_weights1_2
       
       %% get rank order of presynaptic elements
       tmp_ndx = sparse_ndx(i_weights1_2);
-      if plot_Sparse
+      if plot_Sparse_flag
 	tmp_rank = Sparse_hist_rank_array{tmp_ndx};
       else
 	tmp_rank = [];
       endif
-      if plot_Sparse && ~isempty(tmp_rank)
+      if plot_Sparse_flag && ~isempty(tmp_rank)
 	pre_hist_rank = tmp_rank;
       else
 	pre_hist_rank = (1:weights1_2_hdr{i_weights1_2}.nf);
@@ -2435,10 +2239,11 @@ endif %% run_type
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 num_weightsN_Nplus1_list = size(weightsN_Nplus1_list,1);
+num_layersN_Nplus1_list = size(layersN_Nplus1_list,2)/2;
 if num_weightsN_Nplus1_list == 0
   plot_weightsN_Nplus1 = false;
   warning(["num_weightsN_Nplus1_list == 0"]);  
-elseif size(weightsN_Nplus1_list,2)/2 ~= num_layersN_Nplus1_list-1
+elseif size(weightsN_Nplus1_list,2)/2 ~= num_layersN_Nplus1_list-1;
   plot_weightsN_Nplus1 = false;
   warning(["num_weightsN_Nplus1_list ~= num_layersN_Nplus1_list-1", ...
 	 ", num_weightsN_Nplus1_list = ", num2str(num_weightsN_Nplus1_list), ...
@@ -2485,7 +2290,7 @@ if plot_weightsN_Nplus1
 	  [checkpoint_dir, filesep, ...
 	   weightsN_Nplus1_list{i_weightN_Nplus1,1}, ...
 	   weightsN_Nplus1_list{i_weightN_Nplus1,2}, ".pvp"]
-      if ~exist(weights1_2_file, "file")
+      if ~exist(weightsN_Nplus1_file, "file")
 	warning(["file does not exist: ", weightsN_Nplus1_file]);
 	continue;
       endif
@@ -2589,12 +2394,12 @@ if plot_weightsN_Nplus1
       %% get rank order of presynaptic elements
     i_layerN_Nplus1 = 1;
     tmp_ndx = sparse_ndx(i_weightN_Nplus1);
-    if plot_Sparse
+    if plot_Sparse_flag
       tmp_rank = Sparse_hist_rank_array{tmp_ndx};
     else
       tmp_rank = [];
     endif
-    if plot_Sparse && ~isempty(tmp_rank)
+    if plot_Sparse_flag && ~isempty(tmp_rank)
       pre_hist_rank = tmp_rank;
     else
       pre_hist_rank = (1:weightsN_Nplus1_hdr{i_weightN_Nplus1, i_layerN_Nplus1}.nf);
