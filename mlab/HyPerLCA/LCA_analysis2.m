@@ -2167,7 +2167,7 @@ if plot_weights1_2
 	label_weights_fig = figure;
 	imagesc(ranked_labelWeights(:,max_label_ndx))
 	label_weights_str = ...
-	    ["LabelWeights_", labelWeights_list{i_weights,2}, "_", num2str(labelWeights_time, "%08d")];
+	    ["LabelWeights_", labelWeights_list{i_weights1_2,2}, "_", num2str(labelWeights_time, "%08d")];
 	%%title(label_weights_fig, label_weights_str);
 	figure(label_weights_fig); title(label_weights_str);
 	saveas(label_weights_fig, [weights_dir, filesep, label_weights_str, ".png"] , "png");
