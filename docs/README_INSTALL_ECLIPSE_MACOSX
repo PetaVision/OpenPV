@@ -14,13 +14,17 @@ Here is the procedure for installing and compiling the PetaVision repository on 
 
 1. Launch eclipse.  If you get the "Welcome to Eclipse" screen, click Workbench in the top right corner.
 
+  a. If you get a JAVA SE runtime error go to:
+  https://www.macupdate.com/app/mac/39490/apple-java-for-os-x-lion/
+  download and install update that should fix it.
+  b. try again to Launch Eclipse
+  
 2. Install subclipse (the SVN plugin).  If subclipse is already installed, skip this step
   a. Help menu -> Install New Software… -> enter "http://subclipse.tigris.org/update_1.6.x" (no quotes) in the "Work with:" field, and press Enter.  Note: there is a version 1.8, but Ubuntu's SVN seems to be incompatible with the newest version.
 
-  b. Click Select All, and Next.  The Install Details window opens.
-
-  c. Uncheck "Subclipse Integration for Mylyn 3.x" and "Subversion Revision Graph".  These components don't seem to be on the tigris site where they're expected to be.  Then click Next.  A review page appears; click Next again.
-
+  b. Click Select All, double click the three libraries and then
+     uncheck "Subclipse Integration for Mylyn 3.x" and "Subversion Revision Graph".  These components don't seem to be on the tigris site where they're expected to be.  Then click Next.  A review page appears; click Next again.
+  c. Hit Next.  The Install Details window opens.
   d. The Review Licenses page appears.  Peruse all the license agreements thoroughly.  Do note that you're agreeing to pet-sit the subclipse developers' cats.  Then select "I accept" and click Finish.
 
   e. If an "unsigned content" warning appears, click OK.
