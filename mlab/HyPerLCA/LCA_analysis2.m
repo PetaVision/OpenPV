@@ -23,10 +23,10 @@ if ismac
   last_checkpoint_ndx = 2000000;
 elseif isunix
   workspace_path = "/home/gkenyon/workspace";
-  run_type = "noPulvinar"; %%
+  %%run_type = "noPulvinar"; %%
   %%run_type = "color_deep"; %%
   %%run_type = "noTopDown"; %%
-  %%run_type = "lateral"; %% 
+  run_type = "lateral"; %% 
   %%run_type = "deep_plus_noise";%%
   %%run_type = "V1";
   if strcmp(run_type, "color_deep")
@@ -81,11 +81,11 @@ elseif isunix
 %%			   "2013_02_01/output_2013_02_01_12x12x128_lambda_05X2_noPulvinar"};
    last_checkpoint_ndx = 2700000;
   elseif strcmp(run_type, "lateral")
-    output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_2013_01_31_12x12x128_1x1_9x9x256_lambda_05X1_lateral";
+    output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_24_2013_02_01/output_2013_01_24_2013_02_01_12x12x128_3x3_9x9x128_lambda_05X1_lateral";
     %%output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_30/output_2013_01_30_12x12x128_3x3_9x9x256_lambda_05X1_lateral"; 
     checkpoint_dir =  output_dir;
     checkpoint_parent = "/nh/compneuro/Data/vine/LCA";
-    checkpoint_children = {"2013_01_31/output_2013_01_31_12x12x128_1x1_9x9x256_lambda_05X1_lateral"};
+    checkpoint_children = {"2013_01_24_2013_02_01/output_2013_01_24_2013_02_01_12x12x128_3x3_9x9x128_lambda_05X1_lateral"};
   endif
 endif %% isunix
 addpath([workspace_path, filesep, "/PetaVision/mlab/util"]);
@@ -471,8 +471,8 @@ if plot_StatsProbe_vs_time && plot_flag
 	 ["Error2"],["_Stats.txt"]; ...
 	 ["V2"],["_Stats.txt"];
 	 ["Error1_2"],["_Stats.txt"]; ...
-	 ["V1Infra"],["_Stats.txt"]; ...
-	 ["V1Intra"],["_Stats.txt"]};
+	 ["V2"],["_Stats.txt"]; ...
+	 ["V2"],["_Stats.txt"]};
   elseif strcmp(run_type, "CIFAR_deep")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% MNIST/CIFAR list
@@ -756,8 +756,9 @@ if plot_nonSparse && plot_flag
     nonSparse_skip(3) = 10;
     nonSparse_norm_list = ...
         {["a2_"], ["Ganglion"]; ...
-         ["a8_"], ["Recon2"]; ...
-         ["a12_"], ["V1Infra"]};
+         ["a4_"], ["V1"]; ...
+         ["a4_"], ["V1"]};
+    Sparse_std_ndx = [0 1 1];
     nonSparse_norm_strength = ones(num_nonSparse_list,1);
     %%%%%%%%%%%%%%%%%%%%%%%%e%%%%%%%%%%%%%%%%%%%%
   endif %% run_type
