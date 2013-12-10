@@ -116,6 +116,20 @@ else
     dne="$dne $testname"
 fi
 
+testname=AdjustAxonalArborsTest
+arglist="-p input/AdjustAxonalArborsTest.params"
+cd "$testname"
+runandecho $testname Debug/$testname $arglist
+mpirunandecho $testname Debug/$testname $arglist
+cd $wd
+
+testname=ANNTriggerUpdateOnNewImageTest
+arglist="-p input/ANNTriggerUpdateOnNewImageTest.params"
+cd "$testname"
+runandecho $testname Debug/$testname $arglist
+mpirunandecho $testname Debug/$testname $arglist
+cd $wd
+
 testname=ArborSystemTest
 arglist="-p input/test_arbors.params"
 cd "$testname"
@@ -243,6 +257,13 @@ cd $wd
 
 testname=MatchingPursuitTest
 arglist=""
+cd "$testname"
+runandecho $testname Debug/$testname $arglist
+mpirunandecho $testname Debug/$testname $arglist
+cd $wd
+
+testname=MovieSystemTest
+arglist="-p input/MovieSystemTest.params"
 cd "$testname"
 runandecho $testname Debug/$testname $arglist
 mpirunandecho $testname Debug/$testname $arglist
