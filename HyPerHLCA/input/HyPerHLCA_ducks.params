@@ -126,7 +126,40 @@ ANNErrorLayer "Error" = {
     phase = 2;  
 };
 
-HyPerLCALayer "V1" = {
+HyPerLCALayer "V1_Physio" = {
+    restart = 0;
+    nxScale = 0.125;         // each neuron sees 16x16 image patches
+    nyScale = 0.125;         // 50% receptive field overlap
+    nf      = 1; //1024;
+                             //
+    numChannels         = 1;
+    writeStep           = 30.0;
+    initialWriteTime    = 29.0;
+    mirrorBCflag        = 0;
+    valueBC             = 0;
+    writeSparseActivity = 1;
+                             //
+    InitVType   = "UniformRandomV";
+    minV        = -1.0;
+    maxV        = .15;       //0.05 above VThresh
+    //InitVType = "InitVFromFile";
+    //Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_31/output/Checkpoints/Checkpoint6000000/V1_V.pvp";
+                             //
+    timeConstantTau        = 200.0; //tauMax - membrane voltage decay time constant
+    timeConstantTauMinimum = 10.0;  //tauMin
+    slopeErrorStd          = 0.01;  //?? - rate of decay? or maybe d(rate)/dt?
+    numWindowX             = 1;     //??
+    numWindowY             = 1;     //??
+                             //
+    VThresh = 0.4; //0.1;
+    VMax    = infinity;
+    VMin    = 0;
+    VShift  = 0.0;           // 0 -> hard threshold, 1 -> soft threshold
+                             //
+    phase = 3;
+};
+
+HyPerLCALayer "V1_Learned" = {
     restart = 0;
     nxScale = 0.125;         // each neuron sees 16x16 image patches
     nyScale = 0.125;         // 50% receptive field overlap
@@ -279,12 +312,12 @@ IdentConn "GanglionToError" = {
     writeStep     = -1;
 };
 
-TransposeConn "ErrorToV1" = {
+TransposeConn "ErrorToV1Learned" = {
 	preLayerName  = "Error";
-	postLayerName = "V1";
+	postLayerName = "V1_Learned";
 	channelCode   = 0;
                              //
-	originalConnName = "V1ToError";
+	originalConnName = "V1LearnedToError";
                              //
 	selfFlag             = false;
 	preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
@@ -297,8 +330,8 @@ TransposeConn "ErrorToV1" = {
     pvpatchAccumulateType      = "convolve";
 };
 
-KernelConn "V1ToError" = {
-    preLayerName  = "V1";
+KernelConn "V1LearnedToError" = {
+    preLayerName  = "V1_Learned";
     postLayerName = "Error";
     channelCode   = 1;       // Inhibitory
                              //
@@ -348,12 +381,96 @@ KernelConn "V1ToError" = {
     shrinkPatches         = false;
 };
 
-CloneKernelConn "V1ToRecon" = {
-   preLayerName     = "V1";
+TransposeConn "ErrorToV1Physio" = {
+	preLayerName  = "Error";
+	postLayerName = "V1_Physio";
+	channelCode   = 0;
+                             //
+	originalConnName = "V1PhysioToError";
+                             //
+	selfFlag             = false;
+	preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
+                             //
+	writeStep   = -1;
+	shmget_flag = false;
+	delay       = 0;
+                             //
+	writeCompressedCheckpoints = false;
+    pvpatchAccumulateType      = "convolve";
+};
+
+KernelConn "V1PhysioToError" = {
+    preLayerName  = "V1_Physio";
+    postLayerName = "Error";
+    channelCode   = 1;       // Inhibitory
+                             //
+    nxp         = 32;
+    nyp         = 32;
+    nfp         = 1;
+    //nxpShrunken = 16;
+    //nypShrunken = 16;
+                             //
+    numAxonalArbors  = 1;
+    initFromLastFlag = 0;
+                             //
+    weightInitType  = "FileWeight";
+    initWeightsFile = "/Users/dpaiton/Documents/workspace/PetaVision/mlab/PhysioMap/duckWeight.pvp";
+    //weightInitType    = "UniformRandomWeight";
+    //wMinInit          = -1.0;
+    //wMaxInit          = 1.0;
+
+    sparseFraction    = .90;
+                             //
+    strength                     = 1.0;  
+    normalizeMethod              = "normalizeL2";
+    minL2NormTolerated           = 0;
+    normalizeArborsIndividually  = 0;
+    normalize_cutoff             = 0.0;
+    normalizeFromPostPerspective = false;
+    symmetrizeWeights            = false;
+                             //
+    preActivityIsNotRate    = false;  // should help make response more indepenent of time step size dt
+    keepKernelsSynchronized = true; 
+    combine_dW_with_W_flag  = false; 
+                             //
+    writeStep                  = 100;
+    writeCompressedWeights     = false;
+    writeCompressedCheckpoints = false;
+    plasticityFlag             = false;
+                             //
+    weightUpdatePeriod      = 30.0;
+    initialWeightUpdateTime = 29.0;
+    dWMax                   = 5.0;
+                             //
+    initialWriteTime = 0.0;
+    selfFlag         = false;
+    shmget_flag      = false;
+    delay            = 0;
+                             //
+    pvpatchAccumulateType = "convolve";
+    shrinkPatches         = false;
+};
+
+CloneKernelConn "V1LearnedToRecon" = {
+   preLayerName     = "V1_Learned";
    postLayerName    = "Recon";
    channelCode      = 0;
    writeStep        = -1;
-   originalConnName = "V1ToError";
+   originalConnName = "V1LearnedToError";
+   selfFlag         = false;
+   delay            = 0;
+                             //
+   preActivityIsNotRate          = false;
+   writeCompressedCheckpoints    = false;
+   updateGSynFromPostPerspective = false;
+};
+
+CloneKernelConn "V1PhysioToRecon" = {
+   preLayerName     = "V1_Physio";
+   postLayerName    = "Recon";
+   channelCode      = 0;
+   writeStep        = -1;
+   originalConnName = "V1PhysioToError";
    selfFlag         = false;
    delay            = 0;
                              //
@@ -378,9 +495,14 @@ StatsProbe "ErrorStatsFile" = {
     probeOutputFile = "Error_Stats.txt";
 };
 
-StatsProbe "V1StatsFile" = {
-    targetLayer = "V1";
-    probeOutputFile = "V1_Stats.txt";
+StatsProbe "V1LearnedStatsFile" = {
+    targetLayer = "V1_Learned";
+    probeOutputFile = "V1Learned_Stats.txt";
+};
+
+StatsProbe "V1PhysioStatsFile" = {
+    targetLayer = "V1_Physio";
+    probeOutputFile = "V1Physio_Stats.txt";
 };
 
 StatsProbe "ReconStatsFile" = {
