@@ -18,14 +18,14 @@ HyPerCol "column" = {
     randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
     numSteps = 7313800; //196000; 
     progressStep = 1000;
-    outputPath = "/nh/compneuro/Data/vine/LCA/2013_01_24/output_2013_01_24_how2catchSquirrel_12x12x128_noTopDown";
+    outputPath = "/nh/compneuro/Data/vine/LCA/2013_02_01/output_2013_02_01_V1_only";
     filenamesContainLayerNames = true;
     filenamesContainConnectionNames = true;
     checkpointRead = false;
-    checkpointReadDir = "/nh/compneuro/Data/vine/LCA/2013_01_28/output_2013_01_28_12x12x128_lambda_05X2_noTopDown/Checkpoints";
+    checkpointReadDir = "/nh/compneuro/Data/vine/LCA/2013_02_01/output_2013_02_01_V1_only/Checkpoints";
     checkpointReadDirIndex = 20574000; //20574000; 
     checkpointWrite = false;
-    checkpointWriteDir = "/nh/compneuro/Data/vine/LCA/2013_01_24/output_2013_01_24_how2catchSquirrel_12x12x128_noTopDown/Checkpoints";
+    checkpointWriteDir = "/nh/compneuro/Data/vine/LCA/2013_02_01/output_2013_02_01_V1_only/Checkpoints";
     checkpointWriteStepInterval = 100000;
     deleteOlderCheckpoints = false;
     //suppressLastOutput = false;
@@ -45,7 +45,7 @@ Movie "Image" = {
     nf = 3;
     writeStep = -1;
     writeSparseActivity = false;
-    displayPeriod = 1000;
+    displayPeriod = 200;
     start_frame_index = 1;
     skip_frame_index = 1;
     echoFramePathnameFlag = true;
@@ -117,9 +117,9 @@ ANNErrorLayer "Error" = {
     valueBC = 0;
     writeSparseActivity = 0;
     //
-    //InitVType = "ZeroV";
-    InitVType = "InitVFromFile";
-    Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_28/output_2013_01_28_12x12x128_lambda_05X2_noTopDown/Checkpoints/Checkpoint20574000/Error_V.pvp";
+    InitVType = "ZeroV";
+    //InitVType = "InitVFromFile";
+    //Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_28/output_2013_01_28_12x12x128_lambda_05X2_noTopDown/Checkpoints/Checkpoint20574000/Error_V.pvp";
     //
     VThresh = 0.005;
     VMax =  infinity;
@@ -144,11 +144,11 @@ HyPerLCALayer "V1" = {
     valueBC = 0;
     writeSparseActivity = 1;
     //
-    //InitVType = "UniformRandomV";
-    //minV = -1.0;
-    //maxV = .15; //0.05 above VThresh
-    InitVType = "InitVFromFile";
-    Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_28/output_2013_01_28_12x12x128_lambda_05X2_noTopDown/Checkpoints/Checkpoint20574000/V1_V.pvp";
+    InitVType = "UniformRandomV";
+    minV = -1.0;
+    maxV = .15; //0.05 above VThresh
+    //InitVType = "InitVFromFile";
+    //Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_28/output_2013_01_28_12x12x128_lambda_05X2_noTopDown/Checkpoints/Checkpoint20574000/V1_V.pvp";
     // 
     timeConstantTau = 1000.0;
     timeConstantTauMinimum = 10.0;
@@ -174,9 +174,9 @@ ANNLayer "Recon" = {
     valueBC = 0;
     writeSparseActivity = 0;
     //
-    //InitVType = "ZeroV";
-    InitVType = "InitVFromFile";
-    Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_28/output_2013_01_28_12x12x128_lambda_05X2_noTopDown/Checkpoints/Checkpoint20574000/Recon_V.pvp";
+    InitVType = "ZeroV";
+    //InitVType = "InitVFromFile";
+    //Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_28/output_2013_01_28_12x12x128_lambda_05X2_noTopDown/Checkpoints/Checkpoint20574000/Recon_V.pvp";
     //
     VThresh = -infinity;
     VMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
@@ -334,13 +334,11 @@ KernelConn "V1ToError" = {
     initFromLastFlag = 0;
     //
     //weightInitType = "FileWeight";
-    //initWeightsFile = "/nh/compneuro/Data/vine/LCA/2013_01_31/output/Checkpoints/Checkpoint6000000/V1ToError_W.pvp";
-    weightInitType = "FileWeight";
-    initWeightsFile = "/nh/compneuro/Data/vine/LCA/2013_01_28/output_2013_01_28_12x12x128_lambda_05X2_noTopDown/Checkpoints/Checkpoint20574000/V1ToError_W.pvp";
-    //weightInitType = "UniformRandomWeight";
-    //wMinInit = -1.0;
-    //wMaxInit = 1.0;
-    //sparseFraction = .90;
+    //initWeightsFile = "/nh/compneuro/Data/vine/LCA/2013_01_28/output_2013_01_28_12x12x128_lambda_05X2_noTopDown/Checkpoints/Checkpoint20574000/V1ToError_W.pvp";
+    weightInitType = "UniformRandomWeight";
+    wMinInit = -1.0;
+    wMaxInit = 1.0;
+    sparseFraction = .90;
     //
     strength = 1.0;  
     normalizeMethod = "normalizeL2";
@@ -449,12 +447,12 @@ CloneKernelConn "V1ToRecon" = {
 //    targetLayer = "Error";
 //    probeOutputFile = "Error_Stats.txt";
 //};
-//
+
 StatsProbe "V1StatsFile" = {
     targetLayer = "V1";
     probeOutputFile = "V1_Stats.txt";
 };
-//
+
 StatsProbe "ReconStatsFile" = {
 //    targetLayer = "Recon";
 //    probeOutputFile = "Recon_Stats.txt";
