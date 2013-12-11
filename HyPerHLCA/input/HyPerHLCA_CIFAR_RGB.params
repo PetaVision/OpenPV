@@ -17,16 +17,16 @@ HyPerCol "column" = {
     randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
     numSteps = 10000000;  //10,000 images * displayPeriod  
     progressStep = 1000;
-    %outputPath = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR_RGB/data_batch_3";
+    //outputPath = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR_RGB/data_batch_3";
     outputPath = "/nh/compneuro/Data/Cifar/LCA/data_driven/pass0/";
     filenamesContainLayerNames = true;
     filenamesContainConnectionNames = true;
     checkpointRead = false;
-    %checkpointReadDir = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR_RGB/data_batch_2/Checkpoints";
+    //checkpointReadDir = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR_RGB/data_batch_2/Checkpoints";
     checkpointReadDir = "/nh/compneuro/Data/Cifar/LCA/data_driven/pass0/Checkpoints";
     checkpointReadDirIndex = 18000000; 
     checkpointWrite = true;
-    %checkpointWriteDir = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR_RGB/data_batch_3/Checkpoints";
+    //checkpointWriteDir = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR_RGB/data_batch_3/Checkpoints";
     checkpointWriteDir = "/nh/compneuro/Data/Cifar/LCA/data_driven/pass0/Checkpoints";
     checkpointWriteStepInterval = 100000;
     deleteOlderCheckpoints = false;
@@ -43,8 +43,8 @@ Movie "Image" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
-    %imageListPath = "/Users/garkenyon/Pictures/CIFAR/data_batch_3/randorder.txt";
-    imageListPath = "/nh/compneuro/Data/Cifar/images/CIFAR_training_images.txt;
+    //imageListPath = "/Users/garkenyon/Pictures/CIFAR/data_batch_3/randorder.txt";
+    imageListPath = "/nh/compneuro/Data/Cifar/images/CIFAR_train_images.txt";
     nf = 3;
     writeStep = 2000;
     initialWriteTime = 1998;
@@ -659,10 +659,6 @@ CloneKernelConn "V1InfraToReconInfra" = {
 //    targetLayer = "Image";
 //};
 //
-////StatsProbe "GanglionStats" = {
-////    targetLayer = "Ganglion";
-////};
-//
 //StatsProbe "ReconStats" = {
 //    targetLayer = "Recon";
 //};
@@ -679,11 +675,6 @@ CloneKernelConn "V1InfraToReconInfra" = {
 //    targetLayer = "Image";
 //    probeOutputFile = "Image_Stats.txt";
 //};
-//
-////StatsProbe "GanglionStatsFile" = {
-////    targetLayer = "Ganglion";
-////    probeOutputFile = "Ganglion_Stats.txt";
-////};
 //
 //StatsProbe "ErrorStatsFile" = {
 //    targetLayer = "Error";
