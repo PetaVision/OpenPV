@@ -1,6 +1,6 @@
 // // HyPerHLCA.params
 //
-// created by peteschultz: Sept 27, 2012, modified garkenyon, 1/20/13
+// created by peteschultz: Sept 27 2012, modified garkenyon: 1/20/13
 // modified dylanpaiton: Dec 8 2013
 //
 //
@@ -15,19 +15,25 @@ HyPerCol "column" = {
     nx = 480;  // vine value
     ny = 480;
     dt = 1.0;
+    //
     randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
+    startTime = 0;
     numSteps = 7313800; //196000; 
     progressStep = 1000;
+    //
     outputPath = "/nh/compneuro/Data/vine/LCA/2013_02_01/output_2013_02_01_V1_only";
     filenamesContainLayerNames = true;
     filenamesContainConnectionNames = true;
+    //
     checkpointRead = false;
     checkpointReadDir = "/nh/compneuro/Data/vine/LCA/2013_02_01/output_2013_02_01_V1_only/Checkpoints";
     checkpointReadDirIndex = 20574000; //20574000; 
+    //
     checkpointWrite = false;
     checkpointWriteDir = "/nh/compneuro/Data/vine/LCA/2013_02_01/output_2013_02_01_V1_only/Checkpoints";
     checkpointWriteStepInterval = 100000;
     deleteOlderCheckpoints = false;
+    //
     //suppressLastOutput = false;
     writeProgressToErr = true;
     outputNamesOfLayersAndConns = "LayerAndConnNames.txt";
@@ -73,15 +79,15 @@ ANNTriggerUpdateOnNewImageLayer "Bipolar" = {
     initialWriteTime = 999.0;
     mirrorBCflag = 1;
     writeSparseActivity = 0;
-
+    //
     movieLayerName = "Image";
     InitVType = "ZeroV";
-
+    //
     VThresh = -infinity;
     VMax = infinity;
     VMin = -infinity;
     VShift = 0;
-    
+    //    
     phase = 2;
 };
 
@@ -201,7 +207,7 @@ KernelConn "ImageToBipolarCenter" = {
     initFromLastFlag = 0;  // 1;  // restart
     writeStep = -1;
     writeCompressedCheckpoints = false;
-    
+    // 
     weightInitType = "Gauss2DWeight";
     aspect = 1;
     sigma = 0.5;
@@ -209,7 +215,7 @@ KernelConn "ImageToBipolarCenter" = {
     rMin = 0;
     numOrientationsPre = 1;
     numOrientationsPost = 1;
-        
+    //   
     strength = 1.0;  
     normalizeMethod = "normalizeSum";
     minSumTolerated = 0;
@@ -217,14 +223,14 @@ KernelConn "ImageToBipolarCenter" = {
     normalize_cutoff = 0.0;
     normalizeFromPostPerspective = true;
     symmetrizeWeights = false;
-    
+    // 
     shrinkPatches = false;
     //writeCompressedWeights = 0.0;
     plasticityFlag = 0;
     pvpatchAccumulateType = "convolve";
-     
+    // 
     delay = 0;
-     
+    // 
     preActivityIsNotRate = false;
     selfFlag = false;
     shmget_flag = false;
@@ -242,7 +248,7 @@ KernelConn "BipolarToGanglionCenter" = {
     initFromLastFlag = 0;  // 1;  // restart
     writeStep = -1;
     writeCompressedCheckpoints = false;
-    
+    // 
     weightInitType = "Gauss2DWeight";
     aspect = 1;
     sigma = 1;
@@ -250,7 +256,7 @@ KernelConn "BipolarToGanglionCenter" = {
     rMin = 0;
     numOrientationsPre = 1;
     numOrientationsPost = 1;
-        
+    //   
     strength = 1.0;  
     normalizeMethod = "normalizeSum";
     minSumTolerated = 0;
@@ -258,14 +264,14 @@ KernelConn "BipolarToGanglionCenter" = {
     normalize_cutoff = 0.0;
     normalizeFromPostPerspective = true;
     symmetrizeWeights = false;
-    
+    // 
     shrinkPatches = false;
     //writeCompressedWeights = 0.0;
     plasticityFlag = 0;
     pvpatchAccumulateType = "convolve";
-     
+    // 
     delay = 0;
-     
+    // 
     preActivityIsNotRate = false;
     selfFlag = false;
     shmget_flag = false;
@@ -283,7 +289,7 @@ KernelConn "BipolarToGanglionSurround" = {
     initFromLastFlag = 0;  // 1;  // restart
     writeStep = -1;
     writeCompressedCheckpoints = false;
-    
+    // 
     weightInitType = "Gauss2DWeight";
     aspect = 1;
     sigma = 5.5;
@@ -291,7 +297,7 @@ KernelConn "BipolarToGanglionSurround" = {
     rMin = 0.5;
     numOrientationsPre = 1;
     numOrientationsPost = 1;
-               
+    //          
     strength = 1.0;  
     normalizeMethod = "normalizeSum";
     minSumTolerated = 0;
@@ -299,14 +305,14 @@ KernelConn "BipolarToGanglionSurround" = {
     normalize_cutoff = 0.0;
     normalizeFromPostPerspective = true;
     symmetrizeWeights = false;
-    
+    // 
     shrinkPatches = false;
     //writeCompressedWeights = 0.0;
     plasticityFlag = 0;
     pvpatchAccumulateType = "convolve";
-     
+    // 
     delay = 0;
-     
+    // 
     preActivityIsNotRate = false;
     selfFlag = false;
     shmget_flag = false;
@@ -319,7 +325,6 @@ IdentConn "GanglionToError" = {
     channelCode = 0;
     delay = 0;
     writeStep = -1;
-    writeCompressedCheckpoints = true;
 };
 
 
