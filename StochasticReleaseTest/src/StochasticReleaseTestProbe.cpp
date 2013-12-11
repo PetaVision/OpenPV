@@ -158,6 +158,7 @@ int StochasticReleaseTestProbe::computePValues(long int step, int f) {
 }
 
 StochasticReleaseTestProbe::~StochasticReleaseTestProbe() {
+   free(pvalues);
 }
 
 } /* namespace PV */
