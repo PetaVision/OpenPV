@@ -53,21 +53,23 @@ int RescaleLayer::communicateInitInfo() {
    return status;
 }
 
-int RescaleLayer::allocateDataStructures() {
-   int status = CloneVLayer::allocateDataStructures();
-   free(clayer->V);
-   clayer->V = originalLayer->getV();
+// should inherit this method by default
+// !!!Error??? CloneVLayer::allocateDataStructures() sets clayer->V = originalLayer->getV(), so free(clayer->V) below would seem to free V of original layer
+// int RescaleLayer::allocateDataStructures() {
+//    int status = CloneVLayer::allocateDataStructures();
+//    free(clayer->V);
+//    clayer->V = originalLayer->getV();
 
-   // Should have been initialized with zero channels, so GSyn should be NULL and freeChannels() call should be unnecessary
-   assert(GSyn==NULL);
-   // // don't need conductance channels
-   // freeChannels();
+//    // Should have been initialized with zero channels, so GSyn should be NULL and freeChannels() call should be unnecessary
+//    assert(GSyn==NULL);
+//    // // don't need conductance channels
+//    // freeChannels();
 
-   return status;
-}
+//    return status;
+//}
 
 int RescaleLayer::setParams(PVParams * params){
-   readOriginalLayerName(params);
+  //readOriginalLayerName(params);  // done in CloneVLayer
    CloneVLayer::setParams(params);
    readRescaleMethod(params);
    if (strcmp(rescaleMethod, "maxmin") == 0){
@@ -86,19 +88,6 @@ int RescaleLayer::setParams(PVParams * params){
    return PV_SUCCESS;
 }
 
-// Handled by CloneVLayer
-// void RescaleLayer::readOriginalLayerName(PVParams * params) {
-//   const char * original_layer_name = params->stringValue(name, "originalLayerName");
-//   if( original_layer_name == NULL ) {
-//      fprintf(stderr, "RescaleLayer \"%s\": string parameter originalLayerName must be set\n", name);
-//      exit(EXIT_FAILURE);
-//   }
-//   originalLayerName = strdup(original_layer_name);
-//   if (originalLayerName==NULL) {
-//      fprintf(stderr, "RescaleLayer \"%s\" error: unable to copy originalLayerName \"%s\": %s\n", name, original_layer_name, strerror(errno));
-//      exit(EXIT_FAILURE);
-//   }
-//}
 
 void RescaleLayer::readTargetMax(PVParams * params){
    targetMax = params->value(name, "targetMax", targetMax);
@@ -125,61 +114,53 @@ int RescaleLayer::setActivity() {
    return 0;
 }
 
+  // GTK: changed to rescale activity instead of V
 int RescaleLayer::updateState(double timef, double dt) {
    int status = PV_SUCCESS;
    int numNeurons = originalLayer->getNumNeurons();
-   int kext;
-   pvdata_t * V = clayer->V; 
-   pvdata_t * A = getActivity();
+   pvdata_t * A = clayer->activity->data;
+   const pvdata_t * originalA = originalLayer->getCLayer()->activity->data;
    const PVLayerLoc * loc = getLayerLoc();
-   const PVLayerLoc * sourceLoc = originalLayer->getLayerLoc();
-
-   //Make sure layer loc and source layer loc is equivalent
-   if (V == NULL){
-      fprintf(stderr, "Rescale Layer %s: Source layer must have a V buffer to rescale. Exiting.\n",
-            name);
-      exit(PV_FAILURE);
-   }
-   assert(loc->nx == sourceLoc->nx);
-   assert(loc->ny == sourceLoc->ny);
-   assert(loc->nf == sourceLoc->nf);
-   assert(loc->nb == sourceLoc->nb); // Is it necessary for margins to be equivalent?
+   const PVLayerLoc * locOriginal = originalLayer->getLayerLoc();
 
    if (strcmp(rescaleMethod, "maxmin") == 0){
-      float maxV = -1000000000;
-      float minV = 1000000000;
-      //Find max and min of V
+      float maxA = -1000000000;
+      float minA = 1000000000;
+      //Find max and min of A
       for (int k = 0; k < numNeurons; k++){
-         if (V[k] > maxV){
-            maxV = V[k];
+         int kextOriginal = kIndexExtended(k, locOriginal->nx, locOriginal->ny, locOriginal->nf, locOriginal->nb);
+         if (originalA[kextOriginal] > maxA){
+            maxA = originalA[kextOriginal];
          }
-         if (V[k] < minV){
-            minV = V[k];
+         if (originalA[kextOriginal] < minA){
+            minA = originalA[kextOriginal];
          }
       }
 
 #ifdef PV_USE_MPI
-      MPI_Allreduce(MPI_IN_PLACE, &maxV, 1, MPI_FLOAT, MPI_MAX, parent->icCommunicator()->communicator());
-      MPI_Allreduce(MPI_IN_PLACE, &minV, 1, MPI_FLOAT, MPI_MIN, parent->icCommunicator()->communicator());
+      MPI_Allreduce(MPI_IN_PLACE, &maxA, 1, MPI_FLOAT, MPI_MAX, parent->icCommunicator()->communicator());
+      MPI_Allreduce(MPI_IN_PLACE, &minA, 1, MPI_FLOAT, MPI_MIN, parent->icCommunicator()->communicator());
 #endif // PV_USE_MPI
 
-      float rangeV = maxV - minV;
+      float rangeA = maxA - minA;
       for (int k = 0; k < numNeurons; k++){
-         kext = kIndexExtended(k, loc->nx, loc->ny, loc->nf, loc->nb);
-         if (rangeV != 0){
-            A[kext] = ((V[k] - minV)/rangeV) * (targetMax - targetMin) + targetMin;
+         int kext = kIndexExtended(k, loc->nx, loc->ny, loc->nf, loc->nb);
+         int kextOriginal = kIndexExtended(k, locOriginal->nx, locOriginal->ny, locOriginal->nf, locOriginal->nb);
+         if (rangeA != 0){
+            A[kext] = ((originalA[kextOriginal] - minA)/rangeA) * (targetMax - targetMin) + targetMin;
          }
          else{
-            A[kext] = V[k];
+            A[kext] = originalA[kextOriginal];
          }
       }
    }
    else if(strcmp(rescaleMethod, "meanstd") == 0){
       float sum = 0;
       float sumsq = 0;
-      //Find sum of V
+      //Find sum of originalA
       for (int k = 0; k < numNeurons; k++){
-         sum += V[k];
+         int kextOriginal = kIndexExtended(k, locOriginal->nx, locOriginal->ny, locOriginal->nf, locOriginal->nb);
+         sum += originalA[kextOriginal];
       }
 #ifdef PV_USE_MPI
       MPI_Allreduce(MPI_IN_PLACE, &sum, 1, MPI_FLOAT, MPI_SUM, parent->icCommunicator()->communicator());
@@ -187,9 +168,10 @@ int RescaleLayer::updateState(double timef, double dt) {
 
       float mean = sum / originalLayer->getNumGlobalNeurons();
 
-      //Find (val - mean)^2 of V
+      //Find (val - mean)^2 of originalA
       for (int k = 0; k < numNeurons; k++){
-         sumsq += (V[k] - mean) * (V[k] - mean);
+         int kextOriginal = kIndexExtended(k, locOriginal->nx, locOriginal->ny, locOriginal->nf, locOriginal->nb);
+         sumsq += (originalA[kextOriginal] - mean) * (originalA[kextOriginal] - mean);
       }
 #ifdef PV_USE_MPI
       MPI_Allreduce(MPI_IN_PLACE, &sumsq, 1, MPI_FLOAT, MPI_SUM, parent->icCommunicator()->communicator());
@@ -197,12 +179,13 @@ int RescaleLayer::updateState(double timef, double dt) {
       float std = sqrt(sumsq / originalLayer->getNumGlobalNeurons());
       //Normalize
       for (int k = 0; k < numNeurons; k++){
-         kext = kIndexExtended(k, loc->nx, loc->ny, loc->nf, loc->nb);
+         int kext = kIndexExtended(k, loc->nx, loc->ny, loc->nf, loc->nb);
+         int kextOriginal = kIndexExtended(k, locOriginal->nx, locOriginal->ny, locOriginal->nf, locOriginal->nb);
          if (std != 0){
-            A[kext] = ((V[k] - mean) * (targetStd/std) + targetMean);
+            A[kext] = ((originalA[kextOriginal] - mean) * (targetStd/std) + targetMean);
          }
          else{
-            A[kext] = V[k];
+            A[kext] = originalA[kextOriginal];
          }
       }
    }
