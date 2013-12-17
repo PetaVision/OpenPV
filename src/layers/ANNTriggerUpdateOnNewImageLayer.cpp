@@ -99,6 +99,11 @@ int ANNTriggerUpdateOnNewImageLayer::doUpdateState(double time, double dt, const
 
 bool ANNTriggerUpdateOnNewImageLayer::checkIfUpdateNeeded() {
    bool needsUpdate = false;
+   //Make sure it updates on initialization
+   assert(lastUpdateTime >= parent->getStartTime());
+   if (lastUpdateTime == parent->getStartTime()){
+       return true;
+   }
    if (getPhase() > movieLayer->getPhase()) {
       needsUpdate = movieLayer->getLastUpdateTime() >= lastUpdateTime;
    }

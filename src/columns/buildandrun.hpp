@@ -62,6 +62,7 @@
 #include "../layers/LabelErrorLayer.hpp"
 #include "../layers/ANNLabelLayer.hpp"
 #include "../layers/ANNTriggerUpdateOnNewImageLayer.hpp"
+#include "../layers/ConstantLayer.hpp"
 #include "../connections/HyPerConn.hpp"
 #include "../connections/BIDSConn.hpp"
 #include "../connections/KernelConn.hpp"
@@ -153,6 +154,7 @@ Movie * addMovie(const char * name, HyPerCol *hc);
 Patterns * addPatterns(const char * name, HyPerCol *hc);
 LabelLayer * addLabelLayer(const char * name, HyPerCol * hc);
 ANNTriggerUpdateOnNewImageLayer * addANNTriggerUpdateOnNewImageLayer(const char * name, HyPerCol * hc);
+ConstantLayer * addConstantLayer(const char * name, HyPerCol * hc);
 ShuffleLayer * addShuffleLayer(const char * name, HyPerCol * hc);
 InitWeights *createInitWeightsObject(const char * name, HyPerCol * hc);
 InitWeights * getDefaultInitWeightsMethod(const char * keyword);

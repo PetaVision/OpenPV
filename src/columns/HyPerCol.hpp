@@ -85,6 +85,7 @@ public:
 
    double getDeltaTime()                  {return deltaTime;}
    double simulationTime()                {return simTime;}
+   double getStartTime()                  {return startTime;}
    double getStopTime()                   {return stopTime;}
    long int getCurrentStep()              {return currentStep;}
    bool getCheckpointReadFlag()           {return checkpointReadFlag;}
@@ -199,6 +200,7 @@ private:
                             // If checkpointWriteFlag is false and this flag is true, no checkpoint is done on exit.
                             // The flag has no effect if checkpointWriteFlag is true (in which case a checkpoint is written on exit to the next directory in checkpointWriteDir
 
+   double startTime;
    double simTime;          // current time in milliseconds
    double stopTime;         // time to stop time
    double deltaTime;        // time step interval

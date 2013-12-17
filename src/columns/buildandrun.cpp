@@ -118,6 +118,7 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
                "LabelErrorLayer",
                "ANNLabelLayer",
                "ANNTriggerUpdateOnNewImageLayer",
+               "ConstantLayer",
              "CloneVLayer",
                "BIDSCloneLayer",
                "GapLayer",
@@ -484,6 +485,11 @@ HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPe
       addedLayer = (HyPerLayer *) addANNTriggerUpdateOnNewImageLayer(name, hc);
       status = checknewobject((void *) addedLayer, classkeyword, name, hc);
    }
+   if( !strcmp(classkeyword, "ConstantLayer") ) {
+      keywordMatched = true;
+      addedLayer = (HyPerLayer *) addConstantLayer(name, hc);
+      status = checknewobject((void *) addedLayer, classkeyword, name, hc);
+   }
    if( !strcmp(classkeyword, "SigmoidLayer") ) {
       keywordMatched = true;
       addedLayer = (HyPerLayer *) new SigmoidLayer(name, hc);
@@ -651,6 +657,11 @@ ANNTriggerUpdateOnNewImageLayer * addANNTriggerUpdateOnNewImageLayer(const char 
    }
    ANNTriggerUpdateOnNewImageLayer * addedLayer =
 		   new ANNTriggerUpdateOnNewImageLayer(name, hc, movieLayerName);
+   return addedLayer;
+}
+
+ConstantLayer* addConstantLayer(const char * name, HyPerCol * hc) {
+   ConstantLayer* addedLayer = new ConstantLayer(name, hc);
    return addedLayer;
 }
 

@@ -117,80 +117,97 @@ int RescaleLayer::setActivity() {
   // GTK: changed to rescale activity instead of V
 int RescaleLayer::updateState(double timef, double dt) {
    int status = PV_SUCCESS;
-   int numNeurons = originalLayer->getNumNeurons();
-   pvdata_t * A = clayer->activity->data;
-   const pvdata_t * originalA = originalLayer->getCLayer()->activity->data;
-   const PVLayerLoc * loc = getLayerLoc();
-   const PVLayerLoc * locOriginal = originalLayer->getLayerLoc();
 
-   if (strcmp(rescaleMethod, "maxmin") == 0){
-      float maxA = -1000000000;
-      float minA = 1000000000;
-      //Find max and min of A
-      for (int k = 0; k < numNeurons; k++){
-         int kextOriginal = kIndexExtended(k, locOriginal->nx, locOriginal->ny, locOriginal->nf, locOriginal->nb);
-         if (originalA[kextOriginal] > maxA){
-            maxA = originalA[kextOriginal];
-         }
-         if (originalA[kextOriginal] < minA){
-            minA = originalA[kextOriginal];
-         }
-      }
+   //Check if an update is needed
+   if(checkIfUpdateNeeded()){
+       int numNeurons = originalLayer->getNumNeurons();
+       pvdata_t * A = clayer->activity->data;
+       const pvdata_t * originalA = originalLayer->getCLayer()->activity->data;
+       const PVLayerLoc * loc = getLayerLoc();
+       const PVLayerLoc * locOriginal = originalLayer->getLayerLoc();
+
+       if (strcmp(rescaleMethod, "maxmin") == 0){
+          float maxA = -1000000000;
+          float minA = 1000000000;
+          //Find max and min of A
+          for (int k = 0; k < numNeurons; k++){
+             int kextOriginal = kIndexExtended(k, locOriginal->nx, locOriginal->ny, locOriginal->nf, locOriginal->nb);
+             if (originalA[kextOriginal] > maxA){
+                maxA = originalA[kextOriginal];
+             }
+             if (originalA[kextOriginal] < minA){
+                minA = originalA[kextOriginal];
+             }
+          }
 
 #ifdef PV_USE_MPI
-      MPI_Allreduce(MPI_IN_PLACE, &maxA, 1, MPI_FLOAT, MPI_MAX, parent->icCommunicator()->communicator());
-      MPI_Allreduce(MPI_IN_PLACE, &minA, 1, MPI_FLOAT, MPI_MIN, parent->icCommunicator()->communicator());
+          MPI_Allreduce(MPI_IN_PLACE, &maxA, 1, MPI_FLOAT, MPI_MAX, parent->icCommunicator()->communicator());
+          MPI_Allreduce(MPI_IN_PLACE, &minA, 1, MPI_FLOAT, MPI_MIN, parent->icCommunicator()->communicator());
 #endif // PV_USE_MPI
 
-      float rangeA = maxA - minA;
-      for (int k = 0; k < numNeurons; k++){
-         int kext = kIndexExtended(k, loc->nx, loc->ny, loc->nf, loc->nb);
-         int kextOriginal = kIndexExtended(k, locOriginal->nx, locOriginal->ny, locOriginal->nf, locOriginal->nb);
-         if (rangeA != 0){
-            A[kext] = ((originalA[kextOriginal] - minA)/rangeA) * (targetMax - targetMin) + targetMin;
-         }
-         else{
-            A[kext] = originalA[kextOriginal];
-         }
-      }
+          float rangeA = maxA - minA;
+          for (int k = 0; k < numNeurons; k++){
+             int kext = kIndexExtended(k, loc->nx, loc->ny, loc->nf, loc->nb);
+             int kextOriginal = kIndexExtended(k, locOriginal->nx, locOriginal->ny, locOriginal->nf, locOriginal->nb);
+             if (rangeA != 0){
+                A[kext] = ((originalA[kextOriginal] - minA)/rangeA) * (targetMax - targetMin) + targetMin;
+             }
+             else{
+                A[kext] = originalA[kextOriginal];
+             }
+          }
+       }
+       else if(strcmp(rescaleMethod, "meanstd") == 0){
+          float sum = 0;
+          float sumsq = 0;
+          //Find sum of originalA
+          for (int k = 0; k < numNeurons; k++){
+             int kextOriginal = kIndexExtended(k, locOriginal->nx, locOriginal->ny, locOriginal->nf, locOriginal->nb);
+             sum += originalA[kextOriginal];
+          }
+#ifdef PV_USE_MPI
+          MPI_Allreduce(MPI_IN_PLACE, &sum, 1, MPI_FLOAT, MPI_SUM, parent->icCommunicator()->communicator());
+#endif // PV_USE_MPI
+
+          float mean = sum / originalLayer->getNumGlobalNeurons();
+
+          //Find (val - mean)^2 of originalA
+          for (int k = 0; k < numNeurons; k++){
+             int kextOriginal = kIndexExtended(k, locOriginal->nx, locOriginal->ny, locOriginal->nf, locOriginal->nb);
+             sumsq += (originalA[kextOriginal] - mean) * (originalA[kextOriginal] - mean);
+          }
+#ifdef PV_USE_MPI
+          MPI_Allreduce(MPI_IN_PLACE, &sumsq, 1, MPI_FLOAT, MPI_SUM, parent->icCommunicator()->communicator());
+#endif // PV_USE_MPI
+          float std = sqrt(sumsq / originalLayer->getNumGlobalNeurons());
+          //Normalize
+          for (int k = 0; k < numNeurons; k++){
+             int kext = kIndexExtended(k, loc->nx, loc->ny, loc->nf, loc->nb);
+             int kextOriginal = kIndexExtended(k, locOriginal->nx, locOriginal->ny, locOriginal->nf, locOriginal->nb);
+             if (std != 0){
+                A[kext] = ((originalA[kextOriginal] - mean) * (targetStd/std) + targetMean);
+             }
+             else{
+                A[kext] = originalA[kextOriginal];
+             }
+          }
+       }
+       if( status == PV_SUCCESS ) status = updateActiveIndices();
+       //Update lastUpdateTime
+	   lastUpdateTime = parent->simulationTime();
    }
-   else if(strcmp(rescaleMethod, "meanstd") == 0){
-      float sum = 0;
-      float sumsq = 0;
-      //Find sum of originalA
-      for (int k = 0; k < numNeurons; k++){
-         int kextOriginal = kIndexExtended(k, locOriginal->nx, locOriginal->ny, locOriginal->nf, locOriginal->nb);
-         sum += originalA[kextOriginal];
-      }
-#ifdef PV_USE_MPI
-      MPI_Allreduce(MPI_IN_PLACE, &sum, 1, MPI_FLOAT, MPI_SUM, parent->icCommunicator()->communicator());
-#endif // PV_USE_MPI
-
-      float mean = sum / originalLayer->getNumGlobalNeurons();
-
-      //Find (val - mean)^2 of originalA
-      for (int k = 0; k < numNeurons; k++){
-         int kextOriginal = kIndexExtended(k, locOriginal->nx, locOriginal->ny, locOriginal->nf, locOriginal->nb);
-         sumsq += (originalA[kextOriginal] - mean) * (originalA[kextOriginal] - mean);
-      }
-#ifdef PV_USE_MPI
-      MPI_Allreduce(MPI_IN_PLACE, &sumsq, 1, MPI_FLOAT, MPI_SUM, parent->icCommunicator()->communicator());
-#endif // PV_USE_MPI
-      float std = sqrt(sumsq / originalLayer->getNumGlobalNeurons());
-      //Normalize
-      for (int k = 0; k < numNeurons; k++){
-         int kext = kIndexExtended(k, loc->nx, loc->ny, loc->nf, loc->nb);
-         int kextOriginal = kIndexExtended(k, locOriginal->nx, locOriginal->ny, locOriginal->nf, locOriginal->nb);
-         if (std != 0){
-            A[kext] = ((originalA[kextOriginal] - mean) * (targetStd/std) + targetMean);
-         }
-         else{
-            A[kext] = originalA[kextOriginal];
-         }
-      }
-   }
-   if( status == PV_SUCCESS ) status = updateActiveIndices();
    return status;
+}
+
+bool RescaleLayer::checkIfUpdateNeeded() {
+   bool needsUpdate = false;
+   if (getPhase() > originalLayer->getPhase()) {
+      needsUpdate = originalLayer->getLastUpdateTime() >= lastUpdateTime;
+   }
+   else {
+      needsUpdate = originalLayer->getLastUpdateTime() > lastUpdateTime;
+   }
+   return needsUpdate;
 }
 
 } // end namespace PV

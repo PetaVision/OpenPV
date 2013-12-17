@@ -138,6 +138,7 @@ int HyPerCol::initialize_base() {
    memset(lastCheckpointDir, 0, PV_PATH_MAX);
    suppressLastOutput = false;
    simTime = 0.0;
+   startTime = 0.0;
    stopTime = 0.0;
    deltaTime = DELTA_T;
    progressStep = 1L;
@@ -265,7 +266,8 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * p
       exit(EXIT_FAILURE);
    }
 
-   simTime = params->value(name, "startTime", simTime);
+   startTime = params->value(name, "startTime", startTime);
+   simTime = startTime;
 
    // set how often advanceTime() prints a message indicating progress
    progressStep       = (long int) params->value(name, "progressStep",progressStep);
