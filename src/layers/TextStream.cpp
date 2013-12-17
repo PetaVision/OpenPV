@@ -127,7 +127,7 @@ void TextStream::readUseCapitalization(PVParams * params) {
 }
 
 void TextStream::readTextInputPath(PVParams * params) {
-   filename = params->stringValue(name,"textInputPath",NULL);
+   filename = params->stringValue(name,"textInputPath","random");
 }
 
 void TextStream::readLoopInput(PVParams * params) {

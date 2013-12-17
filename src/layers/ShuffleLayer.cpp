@@ -80,7 +80,7 @@ void ShuffleLayer::readOriginalLayerName(PVParams * params) {
 }
 
 void ShuffleLayer::readShuffleMethod(PVParams * params){
-   shuffleMethod = strdup(params->stringValue(name, "shuffleMethod", NULL));
+   shuffleMethod = strdup(params->stringValue(name, "shuffleMethod", "random"));
 }
 
 int ShuffleLayer::allocateDataStructures() {
