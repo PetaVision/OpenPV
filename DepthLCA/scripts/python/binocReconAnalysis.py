@@ -12,26 +12,30 @@ import os
 #depthFileList = depthFileListDir + "depth_0" + str(eyeVal) + ".txt"
 #pvpFileName = "/nh/compneuro/Data/Depth/depth_data_1/pvp/depth_0" + str(eyeVal)+ ".pvp"
 #lastCheckpoint = 680000
-outputDir = "/nh/compneuro/Data/Depth/LCA/dataset01_binocular/"
+outputDir = "/nh/compneuro/Data/Depth/LCA/dataset01_binocular_pos/"
 #outputDir = "/nh/compneuro/Data/Depth/LCA/dataset02/"
 readFromCheckpoint = False
 layers = [
-      "a3_LeftGanglion1",
-      "a4_LeftGanglion2",
-      "a5_LeftDownsample1",
-      "a6_LeftDownsample2",
-      "a7_LeftRescale1",
-      "a8_LeftRescale2",
-      "a11_LeftRecon1",
-      "a12_LeftRecon2",
-      "a16_RightGanglion1",
-      "a17_RightGanglion2",
-      "a18_RightDownsample1",
-      "a19_RightDownsample2",
-      "a20_RightRescale1",
-      "a21_RightRescale2",
-      "a24_RightRecon1",
-      "a25_RightRecon2"
+      "a2_LeftGanglion1",
+      "a3_LeftGanglion2",
+      "a4_LeftDownsample1",
+      "a5_LeftDownsample2",
+      "a6_LeftRescale1",
+      "a7_LeftRescale2",
+      "a8_LeftError1",
+      "a9_LeftError2",
+      "a10_LeftRecon1",
+      "a11_LeftRecon2",
+      "a14_RightGanglion1",
+      "a15_RightGanglion2",
+      "a16_RightDownsample1",
+      #"a17_RightDownsample2",
+      "a18_RightRescale1",
+      "a19_RightRescale2",
+      "a20_RightError1",
+      "a21_RightError2",
+      "a22_RightRecon1",
+      "a23_RightRecon2"
       ]
 
 #checkpointDir = outputDir + "Checkpoints/Checkpoint"+str(lastCheckpoint)+"/"

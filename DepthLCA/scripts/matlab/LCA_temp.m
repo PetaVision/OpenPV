@@ -8,17 +8,19 @@ if ismac
   output_dir = "/Users/garkenyon/workspace/HyPerHLCA2/output_animal1200000_color_deep"; 
 elseif isunix
   workspace_path = "/home/slundquist/workspace";
-  output_dir = "/nh/compneuro/Data/Depth/LCA/dataset01_binocular/"; 
+  %output_dir = "/nh/compneuro/Data/Depth/LCA/dataset01_binocular_arbor/"; 
+  output_dir = "/nh/compneuro/Data/Depth/LCA/arbortest/"; 
 endif
 addpath([workspace_path, filesep, "/PetaVision/mlab/util"]);
-last_checkpoint_ndx = 200000;
+last_checkpoint_ndx = 0;
 checkpoint_path = [output_dir, filesep, "Checkpoints", filesep,  "Checkpoint", num2str(last_checkpoint_ndx, '%i')]; %% 
 max_history = 196000;
+numarbors = 8;
 
 %%keyboard;
-plot_StatsProbe_vs_time = 1;
+plot_StatsProbe_vs_time = 0;
 if plot_StatsProbe_vs_time
-  StatsProbe_plot_lines = 100000;
+  StatsProbe_plot_lines = 2000;
 %%  StatsProbe_list = ...
 %%      {["Error"],["_Stats.txt"]; ...
 %%       ["V1"],["_Stats.txt"]};
@@ -50,13 +52,18 @@ if plot_StatsProbe_vs_time
     StatsProbe_num_lines = str2num(wc_array{1});
     StatsProbe_fid = fopen(StatsProbe_file, "r");
     StatsProbe_line = fgets(StatsProbe_fid);
+    StatsProbe_time_vals = [];
     StatsProbe_sigma_vals = [];
     StatsProbe_nnz_vals = [];
+    skip_StatsProbe_line = 1; %%2000 per time update
     last_StatsProbe_line = StatsProbe_plot_lines; %% StatsProbe_num_lines - 2;
     first_StatsProbe_line = 1; %%max([(last_StatsProbe_line - StatsProbe_plot_lines), 1]);
-    StatsProbe_time_vals = zeros(1,StatsProbe_plot_lines);
-    StatsProbe_time_vals = zeros(1,StatsProbe_plot_lines);
-    StatsProbe_time_vals = zeros(1,StatsProbe_plot_lines);
+    num_lines = floor((last_StatsProbe_line - first_StatsProbe_line)/ skip_StatsProbe_line);
+
+    %StatsProbe_time_vals = zeros(1,StatsProbe_plot_lines);
+    %StatsProbe_time_vals = zeros(1,StatsProbe_plot_lines);
+    %StatsProbe_time_vals = zeros(1,StatsProbe_plot_lines);
+
     for i_line = 1:first_StatsProbe_line-1
       StatsProbe_line = fgets(StatsProbe_fid);
     endfor
@@ -65,23 +72,26 @@ if plot_StatsProbe_vs_time
     StatsProbe_N_ndx2 = strfind(StatsProbe_line, "Total==");
     StatsProbe_N_str = StatsProbe_line(StatsProbe_N_ndx1+3:StatsProbe_N_ndx2-2);
     StatsProbe_N = str2num(StatsProbe_N_str);
-    for i_line = first_StatsProbe_line:last_StatsProbe_line
-      StatsProbe_line = fgets(StatsProbe_fid);
+    for i_line = 1:num_lines
+      %Skip lines based on how many was skipped
+      for s_line = 1:skip_StatsProbe_line
+         StatsProbe_line = fgets(StatsProbe_fid);
+      endfor
       %% extract time
       StatsProbe_time_ndx1 = strfind(StatsProbe_line, "t==");
       StatsProbe_time_ndx2 = strfind(StatsProbe_line, "N==");
       StatsProbe_time_str = StatsProbe_line(StatsProbe_time_ndx1+3:StatsProbe_time_ndx2-2);
-      StatsProbe_time_vals(i_line-first_StatsProbe_line+1) = str2num(StatsProbe_time_str);
+      StatsProbe_time_vals(i_line) = str2num(StatsProbe_time_str);
       %% extract sigma
       StatsProbe_sigma_ndx1 = strfind(StatsProbe_line, "sigma==");
       StatsProbe_sigma_ndx2 = strfind(StatsProbe_line, "nnz==");
       StatsProbe_sigma_str = StatsProbe_line(StatsProbe_sigma_ndx1+7:StatsProbe_sigma_ndx2-2);
-      StatsProbe_sigma_vals(i_line-first_StatsProbe_line+1) = str2num(StatsProbe_sigma_str);
+      StatsProbe_sigma_vals(i_line) = str2num(StatsProbe_sigma_str);
       %% extract nnz
       StatsProbe_nnz_ndx1 = strfind(StatsProbe_line, "nnz==");
       StatsProbe_nnz_ndx2 = length(StatsProbe_line); 
       StatsProbe_nnz_str = StatsProbe_line(StatsProbe_nnz_ndx1+5:StatsProbe_nnz_ndx2-1);
-      StatsProbe_nnz_vals(i_line-first_StatsProbe_line+1) = str2num(StatsProbe_nnz_str);
+      StatsProbe_nnz_vals(i_line) = str2num(StatsProbe_nnz_str);
     endfor %%i_line
     fclose(StatsProbe_fid);
     StatsProbe_vs_time_fig(i_StatsProbe) = figure;
@@ -107,6 +117,7 @@ endif  %% plot_StatsProbe_vs_time
 %Prints weights from checkpoints
 plot_Sparse = 0;
 plot_weights = 1;
+
 if plot_weights
    weights_list = ...
        {
@@ -117,8 +128,8 @@ if plot_weights
         };
    pre_list = ...
        {["BinocularV1S1_A"]; ...
-        ["BinocularV1S2_A"];
-        ["BinocularV1S1_A"];
+        ["BinocularV1S2_A"]; ...
+        ["BinocularV1S1_A"]; ...
         ["BinocularV1S2_A"]};
    num_weights_list = size(weights_list, 1);
    weights_hdr = cell(num_weights_list, 1);
@@ -140,77 +151,78 @@ if plot_weights
       fclose(pre_fid);
       [weights_struct, weights_hdr_tmp] = ...
       readpvpfile(weights_file);
-      i_arbor = 1;
-      i_frame = 1;
-      if weights_hdr_tmp.nfp == 1
-         weight_vals = squeeze(weights_struct{i_frame}.values{i_arbor});
-      else
-         weight_vals = weights_struct{i_frame}.values{i_arbor};
-         %stepval = 1/weights_hdr_tmp.nfp;
-         %rangeval = stepval/2;
-         %[maxmat, idx] = max(weight_vals, [], 3);
-         %idx = squeeze(idx);
-         %weight_vals = (idx - 1) * stepval + rangeval;
-      endif
-      weight_time = squeeze(weights_struct{i_frame}.time);
-      if plot_Sparse
-        pre_hist_rank = Sparse_hist_rank{sparse_ndx};
-      else
-        pre_hist_rank = (1:pre_hdr{1}.nf);
-      endif
-    %% make tableau of all patches
-    %%keyboard;
-    i_patch = 1;
-    num_weights_dims = ndims(weight_vals);
-    num_patches = size(weight_vals, num_weights_dims);
-    num_patches_rows = floor(sqrt(num_patches));
-    num_patches_cols = ceil(num_patches / num_patches_rows);
-    num_weights_colors = 1;
-    if num_weights_dims == 4
-      num_weights_colors = size(weight_vals,3);
-    endif
-    weights_fig = figure;
-    set(weights_fig, "name", ["Weights_", weights_list{i_weights}, "_", num2str(weight_time)]);
-    for j_patch = 1  : num_patches
-      i_patch = pre_hist_rank(j_patch);
-      subplot(num_patches_rows, num_patches_cols, j_patch); 
-      if num_weights_colors == 1
-         patch_tmp = squeeze(weight_vals(:,:,i_patch));
-      else
-         patch_tmp = squeeze(weight_vals(:,:,:,i_patch));
-      endif
-      if weights_hdr_tmp.nfp == 1
-         patch_tmp2 = patch_tmp; %% imresize(patch_tmp, 12);
-         min_patch = min(patch_tmp2(:));
-         max_patch = max(patch_tmp2(:));
-         patch_tmp2 = (patch_tmp2 - min_patch) * 255 / (max_patch - min_patch + ((max_patch - min_patch)==0));
-         patch_tmp2 = uint8(flipdim(permute(patch_tmp2, [2,1,3]),1));
-         imagesc(patch_tmp2); 
-         if num_weights_colors == 1
-         colormap(gray);
+      %i_arbor = 1;
+      for i_arbor = 1:numarbors
+         i_frame = 1;
+         if weights_hdr_tmp.nfp == 1
+            weight_vals = squeeze(weights_struct{i_frame}.values{i_arbor});
+         else
+            weight_vals = weights_struct{i_frame}.values{i_arbor};
+            %stepval = 1/weights_hdr_tmp.nfp;
+            %rangeval = stepval/2;
+            %[maxmat, idx] = max(weight_vals, [], 3);
+            %idx = squeeze(idx);
+            %weight_vals = (idx - 1) * stepval + rangeval;
          endif
-         box off
-         axis off
-         axis image
-         %%drawnow;
-      else
-         plotme = weight_vals(:, :, :, j_patch); 
-         [x, y, z] = meshgrid(1:3, 1:3, 1:32);
-         scatter3(x(:), y(:), z(:), 3, plotme(:));
-      endif
-    endfor
-    weights_dir = [output_dir, filesep, "weights"];
-    mkdir(weights_dir);
-    saveas(weights_fig, [weights_dir, filesep, "Weights_", weights_list{i_weights}, "_", num2str(weight_time)], "png");
-    %% make histogram of all weights
-    weights_hist_fig = figure;
-    [weights_hist, weights_hist_bins] = hist(weight_vals(:), 100);
-    bar(weights_hist_bins, log(weights_hist+1));
-    set(weights_hist_fig, "name", ["weights_Histogram_", weights_list{i_weights}, "_", num2str(weight_time)]);
-    saveas(weights_hist_fig, [weights_dir, filesep, "weights_hist_", num2str(weight_time)], "png");
+         weight_time = squeeze(weights_struct{i_frame}.time);
+         if plot_Sparse
+           pre_hist_rank = Sparse_hist_rank{sparse_ndx};
+         else
+           pre_hist_rank = (1:pre_hdr{1}.nf);
+         endif
+       %% make tableau of all patches
+       %%keyboard;
+       i_patch = 1;
+       num_weights_dims = ndims(weight_vals);
+       num_patches = size(weight_vals, num_weights_dims);
+       num_patches_rows = floor(sqrt(num_patches));
+       num_patches_cols = ceil(num_patches / num_patches_rows);
+       num_weights_colors = 1;
+       if num_weights_dims == 4
+         num_weights_colors = size(weight_vals,3);
+       endif
+       weights_fig = figure;
+       set(weights_fig, "name", ["Weights_", weights_list{i_weights}, "_", num2str(i_arbor), "_", num2str(weight_time)]);
+       for j_patch = 1  : num_patches
+         i_patch = pre_hist_rank(j_patch);
+         subplot(num_patches_rows, num_patches_cols, j_patch); 
+         if num_weights_colors == 1
+            patch_tmp = squeeze(weight_vals(:,:,i_patch));
+         else
+            patch_tmp = squeeze(weight_vals(:,:,:,i_patch));
+         endif
+         if weights_hdr_tmp.nfp == 1
+            patch_tmp2 = patch_tmp; %% imresize(patch_tmp, 12);
+            min_patch = min(patch_tmp2(:));
+            max_patch = max(patch_tmp2(:));
+            patch_tmp2 = (patch_tmp2 - min_patch) * 255 / (max_patch - min_patch + ((max_patch - min_patch)==0));
+            patch_tmp2 = uint8(flipdim(permute(patch_tmp2, [2,1,3]),1));
+            imagesc(patch_tmp2); 
+            if num_weights_colors == 1
+            colormap(gray);
+            endif
+            box off
+            axis off
+            axis image
+            %%drawnow;
+         else
+            plotme = weight_vals(:, :, :, j_patch); 
+            [x, y, z] = meshgrid(1:3, 1:3, 1:32);
+            scatter3(x(:), y(:), z(:), 3, plotme(:));
+         endif
+       endfor
+       weights_dir = [output_dir, filesep, "weights"];
+       mkdir(weights_dir);
+       saveas(weights_fig, [weights_dir, filesep, "Weights_", weights_list{i_weights}, "_", num2str(i_arbor), "_", num2str(weight_time)], "png");
+       %% make histogram of all weights
+       weights_hist_fig = figure;
+       [weights_hist, weights_hist_bins] = hist(weight_vals(:), 100);
+       bar(weights_hist_bins, log(weights_hist+1));
+       set(weights_hist_fig, "name", ["weights_Histogram_", weights_list{i_weights}, "_", num2str(i_arbor), "_", num2str(weight_time)]);
+       saveas(weights_hist_fig, [weights_dir, filesep, "weights_hist_", weights_list{i_weights}, "_", num2str(i_arbor), "_", num2str(weight_time)], "png");
+    endfor %% i_arbors
   endfor %% i_weights
 endif  %% plot_weights
-
 
 %% plot Reconstructions
 plot_Recon = 0;

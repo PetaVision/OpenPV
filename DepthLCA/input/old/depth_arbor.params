@@ -16,16 +16,16 @@ HyPerCol "column" = {
     dt = 1.0;
     randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
     numSteps = 3000000;       // Depends on number of VINE video frames
-    progressStep = 2000;
-    outputPath = "/nh/compneuro/Data/Depth/LCA/dataset01";
+    progressStep = 1000;
+    outputPath = "/nh/compneuro/Data/Depth/LCA/dataset01_arbor";
     filenamesContainLayerNames = true;
     filenamesContainConnectionNames = true;
     checkpointRead = false; //true;
-    //checkpointReadDir = "/nh/compneuro/Data/Depth/LCA/2011_09_26_drive_0001_depth_test/Checkpoints";
-    //checkpointReadDirIndex = 1130000;
+    //checkpointReadDir = "/nh/compneuro/Data/Depth/LCA/dataset01_binocular/Checkpoints";
+    //checkpointReadDirIndex = 250000;
     checkpointWrite = true;
-    checkpointWriteDir = "/nh/compneuro/Data/Depth/LCA/dataset01/Checkpoints";
-    checkpointWriteStepInterval = 10000;
+    checkpointWriteDir = "/nh/compneuro/Data/Depth/LCA/dataset01_arbor/Checkpoints";
+    checkpointWriteStepInterval = 5000;
     deleteOlderCheckpoints = false;
     //suppressLastOutput = false;
     writeProgressToErr = true;
@@ -246,14 +246,14 @@ ANNErrorLayer "LeftError1" = {
     marginWidth = 4;
     writeStep = 2000;
     initialWriteTime = 1999.0;
-    mirrorBCflag = 1;
+    mirrorBCflag = 0;
     writeSparseActivity = 0;
     //
     InitVType = "ZeroV";
     //InitVType = "InitVFromFile";
     //Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_31/output/Checkpoints/Checkpoint6000000/Error_V.pvp";
     //
-    VThresh = 0.1;
+    VThresh = 0.05;
     VMax =  infinity;
     VMin = 0;
     VShift = 0;
@@ -269,14 +269,14 @@ ANNErrorLayer "LeftError2" = {
     marginWidth = 6;
     writeStep = 2000;
     initialWriteTime = 1999.0;
-    mirrorBCflag = 1;
+    mirrorBCflag = 0;
     writeSparseActivity = 0;
     //
     InitVType = "ZeroV";
     //InitVType = "InitVFromFile";
     //Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_31/output/Checkpoints/Checkpoint6000000/Error_V.pvp";
     //
-    VThresh = 0.1;
+    VThresh = 0.01;
     VMax =  infinity;
     VMin = 0;
     VShift = 0;
@@ -330,8 +330,10 @@ ANNLayer "LeftRecon2" = {
     phase = 8; 
 };
 
+////
+//// Left depth eye layers
+////
 //
-// Left depth eye layers
 //
 
 Movie "LeftDepthImage" = {
@@ -392,14 +394,14 @@ ANNErrorLayer "LeftDepthError" = {
     marginWidth = 1;
     writeStep = 2000;
     initialWriteTime = 1999.0;
-    mirrorBCflag = 1;
+    mirrorBCflag = 0;
     writeSparseActivity = 0;
     //
     InitVType = "ZeroV";
     //InitVType = "InitVFromFile";
     //Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_31/output/Checkpoints/Checkpoint6000000/Error_V.pvp";
     //
-    VThresh = 0.1;
+    VThresh = 0.01;
     VMax =  infinity;
     VMin = 0;
     VShift = 0;
@@ -642,14 +644,14 @@ ANNErrorLayer "RightError1" = {
     marginWidth = 4;
     writeStep = 2000;
     initialWriteTime = 1999.0;
-    mirrorBCflag = 1;
+    mirrorBCflag = 0;
     writeSparseActivity = 0;
     //
     InitVType = "ZeroV";
     //InitVType = "InitVFromFile";
     //Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_31/output/Checkpoints/Checkpoint6000000/Error_V.pvp";
     //
-    VThresh = 0.1;
+    VThresh = 0.05;
     VMax =  infinity;
     VMin = 0;
     VShift = 0;
@@ -665,14 +667,14 @@ ANNErrorLayer "RightError2" = {
     marginWidth = 6;
     writeStep = 2000;
     initialWriteTime = 1999.0;
-    mirrorBCflag = 1;
+    mirrorBCflag = 0;
     writeSparseActivity = 0;
     //
     InitVType = "ZeroV";
     //InitVType = "InitVFromFile";
     //Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_31/output/Checkpoints/Checkpoint6000000/Error_V.pvp";
     //
-    VThresh = 0.1;
+    VThresh = 0.01;
     VMax =  infinity;
     VMin = 0;
     VShift = 0;
@@ -788,14 +790,14 @@ ANNErrorLayer "RightDepthError" = {
     marginWidth = 1;
     writeStep = 2000;
     initialWriteTime = 1999.0;
-    mirrorBCflag = 1;
+    mirrorBCflag = 0;
     writeSparseActivity = 0;
     //
     InitVType = "ZeroV";
     //InitVType = "InitVFromFile";
     //Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_31/output/Checkpoints/Checkpoint6000000/Error_V.pvp";
     //
-    VThresh = 0.1;
+    VThresh = 0.01;
     VMax =  infinity;
     VMin = 0;
     VShift = 0;
@@ -832,7 +834,7 @@ HyPerLCALayer "BinocularV1S1" = {
     restart = 0;
     nxScale = 0.125;
     nyScale = 0.125;
-    nf = 1024; //2048 or 4096;
+    nf = 256; //2048 or 4096;
     numChannels = 2;
     marginWidth = 4;
     writeStep = 2000.0;
@@ -848,10 +850,14 @@ HyPerLCALayer "BinocularV1S1" = {
     // 
     timeConstantTau = 200.0;
     // 
-    VThresh = 1; //mean + 1 std of the positive input to error
+    VThresh = 1.5; //mean + 1 std of the positive input to error
     VMax = infinity;
     VMin = 0;
     VShift = 0.0;  // 0 -> hard threshold, 1 -> soft threshold
+    numWindowX = 4;
+    numWindowY = 1;
+    windowSymX = true;
+    windowSymY = false;
     //
     phase = 7;
 };
@@ -860,7 +866,7 @@ HyPerLCALayer "BinocularV1S2" = {
     restart = 0;
     nxScale = 0.125;
     nyScale = 0.125;
-    nf = 1024; //2048 or 4096;
+    nf = 128; //2048 or 4096;
     numChannels = 2;
     marginWidth = 6;
     writeStep = 2000.0;
@@ -876,10 +882,14 @@ HyPerLCALayer "BinocularV1S2" = {
     // 
     timeConstantTau = 200.0;
     // 
-    VThresh = 1; //mean + 1 std of the positive input to error
+    VThresh = 1.5; //mean + 1 std of the positive input to error
     VMax = infinity;
     VMin = 0;
     VShift = 0.0;  // 0 -> hard threshold, 1 -> soft threshold
+    numWindowX = 4;
+    numWindowY = 1;
+    windowSymX = true;
+    windowSymY = false;
     //
     phase = 7;
 };
@@ -935,6 +945,8 @@ KernelConn "LeftRetinaToLeftBipolarCenter" = {
     preActivityIsNotRate = false;
     selfFlag = false;
     shmget_flag = false;
+
+    updateGSynFromPostPerspective = false;
 };
 
 
@@ -976,6 +988,8 @@ KernelConn "LeftBipolarToLeftGanglion1Center" = {
     preActivityIsNotRate = false;
     selfFlag = false;
     shmget_flag = false;
+
+    updateGSynFromPostPerspective = false;
 };
 
 
@@ -1017,6 +1031,8 @@ KernelConn "LeftBipolarToLeftGanglion1Surround" = {
     preActivityIsNotRate = false;
     selfFlag = false;
     shmget_flag = false;
+
+    updateGSynFromPostPerspective = false;
 };
 
 KernelConn "LeftBipolarToLeftGanglion2Center" = {
@@ -1057,6 +1073,8 @@ KernelConn "LeftBipolarToLeftGanglion2Center" = {
     preActivityIsNotRate = false;
     selfFlag = false;
     shmget_flag = false;
+
+    updateGSynFromPostPerspective = false;
 };
 
 
@@ -1098,6 +1116,8 @@ KernelConn "LeftBipolarToLeftGanglion2Surround" = {
     preActivityIsNotRate = false;
     selfFlag = false;
     shmget_flag = false;
+
+    updateGSynFromPostPerspective = false;
 };
 
 KernelConn "LeftGanglion1ToLeftDownsample1" = {
@@ -1138,6 +1158,8 @@ KernelConn "LeftGanglion1ToLeftDownsample1" = {
     preActivityIsNotRate = false;
     selfFlag = false;
     shmget_flag = false;
+
+    updateGSynFromPostPerspective = false;
 };
 
 KernelConn "LeftGanglion2ToLeftDownsample2" = {
@@ -1178,6 +1200,8 @@ KernelConn "LeftGanglion2ToLeftDownsample2" = {
     preActivityIsNotRate = false;
     selfFlag = false;
     shmget_flag = false;
+
+    updateGSynFromPostPerspective = false;
 };
 
 IdentConn "LeftRescale1ToLeftError1" = {
@@ -1186,6 +1210,8 @@ IdentConn "LeftRescale1ToLeftError1" = {
     channelCode = 0;
     delay = 0;
     writeStep = -1;
+
+    updateGSynFromPostPerspective = false;
 };
 
 IdentConn "LeftRescale2ToLeftError2" = {
@@ -1194,6 +1220,8 @@ IdentConn "LeftRescale2ToLeftError2" = {
     channelCode = 0;
     delay = 0;
     writeStep = -1;
+
+    updateGSynFromPostPerspective = false;
 };
 
 // Left depth connections
@@ -1236,6 +1264,8 @@ KernelConn "LeftDepthMovieToLeftDepthDownsample" = {
     preActivityIsNotRate = false;
     selfFlag = false;
     shmget_flag = false;
+
+    updateGSynFromPostPerspective = false;
 };
 
 IdentConn "LeftDepthDownsampleToLeftDepthError" = {
@@ -1244,6 +1274,8 @@ IdentConn "LeftDepthDownsampleToLeftDepthError" = {
     channelCode = 0;
     delay = 0;
     writeStep = -1;
+
+    updateGSynFromPostPerspective = false;
 };
 
 // Right eye connections
@@ -1254,6 +1286,8 @@ IdentConn "RightMovieToRightRetina" = {
     channelCode = 0;
     delay = 0;
     writeStep = -1;
+
+    updateGSynFromPostPerspective = false;
 };
 
 KernelConn "RightRetinaToRightBipolarCenter" = {
@@ -1294,6 +1328,8 @@ KernelConn "RightRetinaToRightBipolarCenter" = {
     preActivityIsNotRate = false;
     selfFlag = false;
     shmget_flag = false;
+
+    updateGSynFromPostPerspective = false;
 };
 
 
@@ -1335,6 +1371,8 @@ KernelConn "RightBipolarToRightGanglion1Center" = {
     preActivityIsNotRate = false;
     selfFlag = false;
     shmget_flag = false;
+
+    updateGSynFromPostPerspective = false;
 };
 
 
@@ -1376,6 +1414,8 @@ KernelConn "RightBipolarToRightGanglion1Surround" = {
     preActivityIsNotRate = false;
     selfFlag = false;
     shmget_flag = false;
+
+    updateGSynFromPostPerspective = false;
 };
 
 KernelConn "RightBipolarToRightGanglion2Center" = {
@@ -1416,6 +1456,8 @@ KernelConn "RightBipolarToRightGanglion2Center" = {
     preActivityIsNotRate = false;
     selfFlag = false;
     shmget_flag = false;
+
+    updateGSynFromPostPerspective = false;
 };
 
 
@@ -1457,6 +1499,8 @@ KernelConn "RightBipolarToRightGanglion2Surround" = {
     preActivityIsNotRate = false;
     selfFlag = false;
     shmget_flag = false;
+
+    updateGSynFromPostPerspective = false;
 };
 
 KernelConn "RightGanglion1ToRightDownsample1" = {
@@ -1497,6 +1541,8 @@ KernelConn "RightGanglion1ToRightDownsample1" = {
     preActivityIsNotRate = false;
     selfFlag = false;
     shmget_flag = false;
+
+    updateGSynFromPostPerspective = false;
 };
 
 KernelConn "RightGanglion2ToRightDownsample2" = {
@@ -1537,6 +1583,8 @@ KernelConn "RightGanglion2ToRightDownsample2" = {
     preActivityIsNotRate = false;
     selfFlag = false;
     shmget_flag = false;
+
+    updateGSynFromPostPerspective = false;
 };
 
 IdentConn "RightRescale1ToRightError1" = {
@@ -1545,6 +1593,8 @@ IdentConn "RightRescale1ToRightError1" = {
     channelCode = 0;
     delay = 0;
     writeStep = -1;
+
+    updateGSynFromPostPerspective = false;
 };
 
 IdentConn "RightRescale2ToRightError2" = {
@@ -1553,6 +1603,8 @@ IdentConn "RightRescale2ToRightError2" = {
     channelCode = 0;
     delay = 0;
     writeStep = -1;
+
+    updateGSynFromPostPerspective = false;
 };
 
 //Right depth Connections
@@ -1595,6 +1647,8 @@ KernelConn "RightDepthMovieToRightDepthDownsample" = {
     preActivityIsNotRate = false;
     selfFlag = false;
     shmget_flag = false;
+
+    updateGSynFromPostPerspective = false;
 };
 
 IdentConn "RightDepthDownsampleToRightDepthError" = {
@@ -1603,6 +1657,8 @@ IdentConn "RightDepthDownsampleToRightDepthError" = {
     channelCode = 0;
     delay = 0;
     writeStep = -1;
+
+    updateGSynFromPostPerspective = false;
 };
 
 // binocular connections
@@ -1615,9 +1671,8 @@ KernelConn "BinocularV1S1ToLeftError1" = {
     nyp = 12;
     nfp = 1;
     shrinkPatches = false;
-    //nypShrunken = 8;
-
-    numAxonalArbors = 1;
+    //
+    numAxonalArbors = 2;
     initFromLastFlag = 0;
     //
     //weightInitType = "FileWeight";
@@ -1632,7 +1687,7 @@ KernelConn "BinocularV1S1ToLeftError1" = {
     strength = 0.25; 
     normalizeMethod = "normalizeL2";
     minL2NormTolerated = 0;
-    normalizeArborsIndividually = 0;
+    normalizeArborsIndividually = 1;
     normalize_cutoff = 0.0;
     normalizeFromPostPerspective = false;
     symmetrizeWeights = false;
@@ -1648,13 +1703,15 @@ KernelConn "BinocularV1S1ToLeftError1" = {
     weightUpdatePeriod = 50.0;
     initialWeightUpdateTime = 1999.0;
     initialWriteTime = 0.0;
-    dWMax = 0.1; // 200.0 used for initial training
+    dWMax = 0.005; // 200.0 used for initial training
     selfFlag = false;
     shmget_flag = false;
     //
     delay = 0;
     //
     stochasticReleaseFlag = false;
+    useWindowPost = false;
+    updateGSynFromPostPerspective = false;
 };
 
 KernelConn "BinocularV1S2ToLeftError2" = {
@@ -1664,7 +1721,7 @@ KernelConn "BinocularV1S2ToLeftError2" = {
     nxp = 13;
     nyp = 9;
     nfp = 1;
-    numAxonalArbors = 1;
+    numAxonalArbors = 2;
     initFromLastFlag = 0;
     //
     //weightInitType = "FileWeight";
@@ -1679,7 +1736,7 @@ KernelConn "BinocularV1S2ToLeftError2" = {
     strength = 0.25; //.25/2  
     normalizeMethod = "normalizeL2";
     minL2NormTolerated = 0;
-    normalizeArborsIndividually = 0;
+    normalizeArborsIndividually = 1;
     normalize_cutoff = 0.0;
     normalizeFromPostPerspective = false;
     symmetrizeWeights = false;
@@ -1695,7 +1752,7 @@ KernelConn "BinocularV1S2ToLeftError2" = {
     weightUpdatePeriod = 50.0;
     initialWeightUpdateTime = 1999.0;
     initialWriteTime = 0.0;
-    dWMax = 0.1; // 200.0 used for initial training
+    dWMax = 0.005; // 200.0 used for initial training
     selfFlag = false;
     shmget_flag = false;
     //
@@ -1703,6 +1760,8 @@ KernelConn "BinocularV1S2ToLeftError2" = {
     //
     stochasticReleaseFlag = false;
     shrinkPatches = false;
+    useWindowPost = false;
+    updateGSynFromPostPerspective = false;
 };
 
 TransposeConn "LeftError1ToBinocularV1S1" = {
@@ -1717,6 +1776,8 @@ TransposeConn "LeftError1ToBinocularV1S1" = {
     shmget_flag = false;
     delay = 0;
     stochasticReleaseFlag = false;
+    useWindowPost = true;
+    updateGSynFromPostPerspective = true;
 };
 
 TransposeConn "LeftError2ToBinocularV1S2" = {
@@ -1731,6 +1792,8 @@ TransposeConn "LeftError2ToBinocularV1S2" = {
     shmget_flag = false;
     delay = 0;
     stochasticReleaseFlag = false;
+    useWindowPost = true;
+    updateGSynFromPostPerspective = true;
 };
 
 CloneKernelConn "BinocularV1S1ToLeftRecon1" = {
@@ -1743,6 +1806,8 @@ CloneKernelConn "BinocularV1S1ToLeftRecon1" = {
     stochasticReleaseFlag = false;
     delay = 0;
     preActivityIsNotRate = false;
+    useWindowPost = false;
+    updateGSynFromPostPerspective = false;
 };
 
 CloneKernelConn "BinocularV1S2ToLeftRecon2" = {
@@ -1755,8 +1820,9 @@ CloneKernelConn "BinocularV1S2ToLeftRecon2" = {
     stochasticReleaseFlag = false;
     delay = 0;
     preActivityIsNotRate = false;
+    useWindowPost = false;
+    updateGSynFromPostPerspective = false;
 };
-
 
 KernelConn "BinocularV1S1ToRightError1" = {
     preLayerName = "BinocularV1S1";
@@ -1766,9 +1832,7 @@ KernelConn "BinocularV1S1ToRightError1" = {
     nyp = 12;
     nfp = 1;
     shrinkPatches = false;
-    //nypShrunken = 8;
-
-    numAxonalArbors = 1;
+    numAxonalArbors = 2;
     initFromLastFlag = 0;
     //
     //weightInitType = "FileWeight";
@@ -1783,7 +1847,7 @@ KernelConn "BinocularV1S1ToRightError1" = {
     strength = 0.25; // 0.25/2  
     normalizeMethod = "normalizeL2";
     minL2NormTolerated = 0;
-    normalizeArborsIndividually = 0;
+    normalizeArborsIndividually = 1;
     normalize_cutoff = 0.0;
     normalizeFromPostPerspective = false;
     symmetrizeWeights = false;
@@ -1799,13 +1863,15 @@ KernelConn "BinocularV1S1ToRightError1" = {
     weightUpdatePeriod = 50.0;
     initialWeightUpdateTime = 1999.0;
     initialWriteTime = 0.0;
-    dWMax = 0.1; // 200.0 used for initial training
+    dWMax = 0.005; // 200.0 used for initial training
     selfFlag = false;
     shmget_flag = false;
     //
     delay = 0;
     //
     stochasticReleaseFlag = false;
+    useWindowPost = false;
+    updateGSynFromPostPerspective = false;
 };
 
 KernelConn "BinocularV1S2ToRightError2" = {
@@ -1815,7 +1881,7 @@ KernelConn "BinocularV1S2ToRightError2" = {
     nxp = 13;
     nyp = 9;
     nfp = 1;
-    numAxonalArbors = 1;
+    numAxonalArbors = 2;
     initFromLastFlag = 0;
     //
     //weightInitType = "FileWeight";
@@ -1830,7 +1896,7 @@ KernelConn "BinocularV1S2ToRightError2" = {
     strength = 0.25; // 0.25/2  
     normalizeMethod = "normalizeL2";
     minL2NormTolerated = 0;
-    normalizeArborsIndividually = 0;
+    normalizeArborsIndividually = 1;
     normalize_cutoff = 0.0;
     normalizeFromPostPerspective = false;
     symmetrizeWeights = false;
@@ -1846,7 +1912,7 @@ KernelConn "BinocularV1S2ToRightError2" = {
     weightUpdatePeriod = 50.0;
     initialWeightUpdateTime = 1999.0;
     initialWriteTime = 0.0;
-    dWMax = 0.1; // 200.0 used for initial training
+    dWMax = 0.005;
     selfFlag = false;
     shmget_flag = false;
     //
@@ -1854,6 +1920,8 @@ KernelConn "BinocularV1S2ToRightError2" = {
     //
     stochasticReleaseFlag = false;
     shrinkPatches = false;
+    useWindowPost = false;
+    updateGSynFromPostPerspective = false;
 };
 
 TransposeConn "RightError1ToBinocularV1S1" = {
@@ -1868,6 +1936,8 @@ TransposeConn "RightError1ToBinocularV1S1" = {
     shmget_flag = false;
     delay = 0;
     stochasticReleaseFlag = false;
+    useWindowPost = true;
+    updateGSynFromPostPerspective = true;
 };
 
 TransposeConn "RightError2ToBinocularV1S2" = {
@@ -1882,6 +1952,8 @@ TransposeConn "RightError2ToBinocularV1S2" = {
     shmget_flag = false;
     delay = 0;
     stochasticReleaseFlag = false;
+    useWindowPost = true;
+    updateGSynFromPostPerspective = true;
 };
 
 CloneKernelConn "BinocularV1S1ToRightRecon1" = {
@@ -1894,6 +1966,8 @@ CloneKernelConn "BinocularV1S1ToRightRecon1" = {
     stochasticReleaseFlag = false;
     delay = 0;
     preActivityIsNotRate = false;
+    useWindowPost = false;
+    updateGSynFromPostPerspective = false;
 };
 
 CloneKernelConn "BinocularV1S2ToRightRecon2" = {
@@ -1906,6 +1980,8 @@ CloneKernelConn "BinocularV1S2ToRightRecon2" = {
     stochasticReleaseFlag = false;
     delay = 0;
     preActivityIsNotRate = false;
+    useWindowPost = false;
+    updateGSynFromPostPerspective = false;
 };
 
 // Depth Binocular Connections
@@ -1917,7 +1993,7 @@ KernelConn "BinocularV1S1ToLeftDepthError" = {
     nxp = 3; 
     nyp = 3; 
     nfp = 32;
-    numAxonalArbors = 1;
+    numAxonalArbors = 2;
     initFromLastFlag = 0;
     //
     //weightInitType = "FileWeight";
@@ -1932,7 +2008,7 @@ KernelConn "BinocularV1S1ToLeftDepthError" = {
     strength = 0.25; 
     normalizeMethod = "normalizeL2";
     minL2NormTolerated = 0;
-    normalizeArborsIndividually = 0;
+    normalizeArborsIndividually = 1;
     normalize_cutoff = 0.0;
     normalizeFromPostPerspective = false;
     symmetrizeWeights = false;
@@ -1948,7 +2024,7 @@ KernelConn "BinocularV1S1ToLeftDepthError" = {
     weightUpdatePeriod = 50.0;
     initialWeightUpdateTime = 1999.0;
     initialWriteTime = 0.0;
-    dWMax = 0.1; // 200.0 used for initial training
+    dWMax = 0.005; // 200.0 used for initial training
     selfFlag = false;
     shmget_flag = false;
     //
@@ -1956,6 +2032,8 @@ KernelConn "BinocularV1S1ToLeftDepthError" = {
     //
     stochasticReleaseFlag = false;
     shrinkPatches = false;
+    useWindowPost = false;
+    updateGSynFromPostPerspective = false;
 };
 
 KernelConn "BinocularV1S2ToLeftDepthError" = {
@@ -1965,7 +2043,7 @@ KernelConn "BinocularV1S2ToLeftDepthError" = {
     nxp = 3; 
     nyp = 3; 
     nfp = 32;
-    numAxonalArbors = 1;
+    numAxonalArbors = 2;
     initFromLastFlag = 0;
     //
     //weightInitType = "FileWeight";
@@ -1980,7 +2058,7 @@ KernelConn "BinocularV1S2ToLeftDepthError" = {
     strength = 0.25; 
     normalizeMethod = "normalizeL2";
     minL2NormTolerated = 0;
-    normalizeArborsIndividually = 0;
+    normalizeArborsIndividually = 1;
     normalize_cutoff = 0.0;
     normalizeFromPostPerspective = false;
     symmetrizeWeights = false;
@@ -1996,7 +2074,7 @@ KernelConn "BinocularV1S2ToLeftDepthError" = {
     weightUpdatePeriod = 50.0;
     initialWeightUpdateTime = 1999.0;
     initialWriteTime = 0.0;
-    dWMax = 0.1; // 200.0 used for initial training
+    dWMax = 0.005; // 200.0 used for initial training
     selfFlag = false;
     shmget_flag = false;
     //
@@ -2004,6 +2082,8 @@ KernelConn "BinocularV1S2ToLeftDepthError" = {
     //
     stochasticReleaseFlag = false;
     shrinkPatches = false;
+    useWindowPost = false;
+    updateGSynFromPostPerspective = false;
 };
 
 TransposeConn "LeftDepthErrorToBinocularV1S1" = {
@@ -2018,6 +2098,8 @@ TransposeConn "LeftDepthErrorToBinocularV1S1" = {
     shmget_flag = false;
     delay = 0;
     stochasticReleaseFlag = false;
+    useWindowPost = true;
+    updateGSynFromPostPerspective = true;
 };
 
 TransposeConn "LeftDepthErrorToBinocularV1S2" = {
@@ -2032,6 +2114,8 @@ TransposeConn "LeftDepthErrorToBinocularV1S2" = {
     shmget_flag = false;
     delay = 0;
     stochasticReleaseFlag = false;
+    useWindowPost = true;
+    updateGSynFromPostPerspective = true;
 };
 
 CloneKernelConn "BinocularV1S1ToLeftDepthRecon" = {
@@ -2044,6 +2128,8 @@ CloneKernelConn "BinocularV1S1ToLeftDepthRecon" = {
     stochasticReleaseFlag = false;
     delay = 0;
     preActivityIsNotRate = false;
+    useWindowPost = false;
+    updateGSynFromPostPerspective = false;
 };
 
 CloneKernelConn "BinocularV1S2ToLeftDepthRecon" = {
@@ -2056,6 +2142,8 @@ CloneKernelConn "BinocularV1S2ToLeftDepthRecon" = {
     stochasticReleaseFlag = false;
     delay = 0;
     preActivityIsNotRate = false;
+    useWindowPost = false;
+    updateGSynFromPostPerspective = false;
 };
 
 KernelConn "BinocularV1S1ToRightDepthError" = {
@@ -2065,7 +2153,7 @@ KernelConn "BinocularV1S1ToRightDepthError" = {
     nxp = 3;
     nyp = 3;
     nfp = 32;
-    numAxonalArbors = 1;
+    numAxonalArbors = 2;
     initFromLastFlag = 0;
     //
     //weightInitType = "FileWeight";
@@ -2080,7 +2168,7 @@ KernelConn "BinocularV1S1ToRightDepthError" = {
     strength = 0.25; 
     normalizeMethod = "normalizeL2";
     minL2NormTolerated = 0;
-    normalizeArborsIndividually = 0;
+    normalizeArborsIndividually = 1;
     normalize_cutoff = 0.0;
     normalizeFromPostPerspective = false;
     symmetrizeWeights = false;
@@ -2096,7 +2184,7 @@ KernelConn "BinocularV1S1ToRightDepthError" = {
     weightUpdatePeriod = 50.0;
     initialWeightUpdateTime = 1999.0;
     initialWriteTime = 0.0;
-    dWMax = 0.1; // 200.0 used for initial training
+    dWMax = 0.005; // 200.0 used for initial training
     selfFlag = false;
     shmget_flag = false;
     //
@@ -2104,6 +2192,8 @@ KernelConn "BinocularV1S1ToRightDepthError" = {
     //
     stochasticReleaseFlag = false;
     shrinkPatches = false;
+    useWindowPost = false;
+    updateGSynFromPostPerspective = false;
 };
 
 KernelConn "BinocularV1S2ToRightDepthError" = {
@@ -2113,7 +2203,7 @@ KernelConn "BinocularV1S2ToRightDepthError" = {
     nxp = 3;
     nyp = 3;
     nfp = 32;
-    numAxonalArbors = 1;
+    numAxonalArbors = 2;
     initFromLastFlag = 0;
     //
     //weightInitType = "FileWeight";
@@ -2128,7 +2218,7 @@ KernelConn "BinocularV1S2ToRightDepthError" = {
     strength = 0.25; 
     normalizeMethod = "normalizeL2";
     minL2NormTolerated = 0;
-    normalizeArborsIndividually = 0;
+    normalizeArborsIndividually = 1;
     normalize_cutoff = 0.0;
     normalizeFromPostPerspective = false;
     symmetrizeWeights = false;
@@ -2144,7 +2234,7 @@ KernelConn "BinocularV1S2ToRightDepthError" = {
     weightUpdatePeriod = 50.0;
     initialWeightUpdateTime = 1999.0;
     initialWriteTime = 0.0;
-    dWMax = 0.1; // 200.0 used for initial training
+    dWMax = 0.005; // 200.0 used for initial training
     selfFlag = false;
     shmget_flag = false;
     //
@@ -2152,6 +2242,8 @@ KernelConn "BinocularV1S2ToRightDepthError" = {
     //
     stochasticReleaseFlag = false;
     shrinkPatches = false;
+    useWindowPost = false;
+    updateGSynFromPostPerspective = false;
 };
 
 TransposeConn "RightDepthErrorToBinocularV1S1" = {
@@ -2166,6 +2258,8 @@ TransposeConn "RightDepthErrorToBinocularV1S1" = {
     shmget_flag = false;
     delay = 0;
     stochasticReleaseFlag = false;
+    useWindowPost = true;
+    updateGSynFromPostPerspective = true;
 };
 
 TransposeConn "RightDepthErrorToBinocularV1S2" = {
@@ -2180,6 +2274,8 @@ TransposeConn "RightDepthErrorToBinocularV1S2" = {
     shmget_flag = false;
     delay = 0;
     stochasticReleaseFlag = false;
+    useWindowPost = true;
+    updateGSynFromPostPerspective = true;
 };
 
 CloneKernelConn "BinocularV1S1ToRightDepthRecon" = {
@@ -2192,6 +2288,8 @@ CloneKernelConn "BinocularV1S1ToRightDepthRecon" = {
     stochasticReleaseFlag = false;
     delay = 0;
     preActivityIsNotRate = false;
+    useWindowPost = false;
+    updateGSynFromPostPerspective = false;
 };
 
 CloneKernelConn "BinocularV1S2ToRightDepthRecon" = {
@@ -2204,6 +2302,8 @@ CloneKernelConn "BinocularV1S2ToRightDepthRecon" = {
     stochasticReleaseFlag = false;
     delay = 0;
     preActivityIsNotRate = false;
+    useWindowPost = false;
+    updateGSynFromPostPerspective = false;
 };
 
 // Probes
