@@ -34,7 +34,8 @@ int StochasticReleaseTestProbe::initStochasticReleaseTestProbe(const char * name
    int status = initStatsProbe(filename, targetlayer, BufActivity, message);
    free(message); message = NULL; // getLayerFunctionProbeParameters uses strdup; ParameterSweepTestProbe copies message, so we're done with it.
 
-   pvalues = (double *) calloc(getTargetLayer()->getParent()->numberOfTimeSteps()*getTargetLayer()->getLayerLoc()->nf, sizeof(double));
+   long int num_steps = hc->getFinalStep() - hc->getInitialStep();
+   pvalues = (double *) calloc(num_steps*getTargetLayer()->getLayerLoc()->nf, sizeof(double));
    if (pvalues == NULL) {
       fprintf(stderr, "StochasticReleaseTestProbe error: unable to allocate memory for pvalues: %s\n", strerror(errno));
       exit(EXIT_FAILURE);
@@ -85,7 +86,8 @@ int StochasticReleaseTestProbe::outputState(double timed) {
       if (hc->columnId()==0 && hc->simulationTime()+hc->getDeltaTime()/2>=hc->getStopTime()) {
          // This is the last timestep
          // sort the p-values and apply Holm-Bonferroni method since there is one for each timestep and each feature.
-         long int N = hc->numberOfTimeSteps() * nf;
+         long int num_steps = hc->getFinalStep() - hc->getInitialStep();
+         long int N = num_steps * nf;
          qsort(pvalues, (size_t) N, sizeof(*pvalues), compar);
          while(N>0 && isnan(pvalues[N-1])) {
             N--;
