@@ -51,7 +51,7 @@ function writepvpkernelfile(filename, data)
            wmax = max(wmax,wmaxarbor);
            wminarbor = min(data{frameno}.values{arbor}(:));
            wmin = min(wmin,wminarbor);
-       end%if
+       end%for
        if errorpresent, break; end%if
        if numel(arbor1size<4)
            arbor1size=[arbor1size ones(1,4-numel(arbor1size))];
