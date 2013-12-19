@@ -17,8 +17,8 @@ HyPerCol "column" = {
    dt = 1.0;  //time step in ms.	     
    randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
    startTime = 0.0;
-   numSteps = 10;  
-   progressStep = 10; //Program will output its progress at each progressStep
+   stopTime = 10.0;  
+   progressInterval = 10.0; //Program will output its progress at each progressStep
    writeProgressToErr = false;  
    outputPath = "output/";
    filenamesContainLayerNames = false;  
@@ -77,6 +77,7 @@ ANNLayer "output" = {
     VMax = infinity;
     VMin = -infinity;
     VShift = 0.0;
+    VWidth = 0.0;
 };
 
 //this is a layer for connection
