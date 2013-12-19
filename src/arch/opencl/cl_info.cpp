@@ -1,8 +1,8 @@
 #include "CLDevice.hpp"
 
+#ifdef PV_USE_OPENCL
 int main(int argc, char * argv[])
 {
-#ifdef PV_USE_OPENCL
 
    PV::CLDevice * cld = new PV::CLDevice(CL_DEVICE_DEFAULT);
 
@@ -10,7 +10,6 @@ int main(int argc, char * argv[])
    //
    cld->query_device_info();
 
-#endif // PV_USE_OPENCL
-
    return 0;
 }
+#endif // PV_USE_OPENCL
