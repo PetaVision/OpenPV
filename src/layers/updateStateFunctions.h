@@ -56,7 +56,7 @@ static inline int updateV_AccumulateLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t
 static inline int updateV_ANNErrorLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * V,
 		CL_MEM_GLOBAL pvdata_t * GSynHead, CL_MEM_GLOBAL float * activity,
 		pvdata_t VMax, pvdata_t VMin, pvdata_t VThresh, pvdata_t VShift, int nx,
-		int ny, int nf, int nb);
+		int ny, int nf, int nb, float errScale);
 static inline int updateV_LabelErrorLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * V,
 		CL_MEM_GLOBAL pvdata_t * GSynHead, CL_MEM_GLOBAL float * activity,
 		pvdata_t VMax, pvdata_t VMin, pvdata_t VThresh, pvdata_t VShift, int nx,
@@ -362,10 +362,13 @@ static inline int updateV_HyPerLCALayer(int numNeurons, CL_MEM_GLOBAL pvdata_t *
 
 static inline int updateV_ANNErrorLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * V,
       CL_MEM_GLOBAL pvdata_t * GSynHead, CL_MEM_GLOBAL float * activity, pvdata_t VMax,
-      pvdata_t VMin, pvdata_t VThresh, pvdata_t VShift, int nx, int ny, int nf, int nb)
+      pvdata_t VMin, pvdata_t VThresh, pvdata_t VShift, int nx, int ny, int nf, int nb, float errScale)
 {
    int status;
    status = applyGSyn_HyPerLayer(numNeurons, V, GSynHead);
+   for(int i = 0; i < numNeurons; i++){
+       V[i] *= errScale;
+   }
    if(status == PV_SUCCESS) status = setActivity_HyPerLayer(numNeurons, activity, V, nx, ny, nf, nb);
    if( status == PV_SUCCESS ) status =
 		   applyVThresh_ANNErrorLayer(numNeurons, V, VMin, VThresh, VShift, activity, nx, ny, nf, nb);

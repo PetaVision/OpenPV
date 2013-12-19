@@ -24,7 +24,8 @@ void ANNErrorLayer_update_state(
     const float VMin,
     const float VShift,
     float * GSynHead,
-    float * activity);
+    float * activity,
+    float errScale);
 
 
 #ifdef __cplusplus
@@ -57,12 +58,21 @@ ANNErrorLayer::~ANNErrorLayer()
 
 int ANNErrorLayer::initialize_base()
 {
+   errScale = 1;
    return PV_SUCCESS;
 }
 
 int ANNErrorLayer::initialize(const char * name, HyPerCol * hc, int num_channels)
 {
-   return ANNLayer::initialize(name, hc, num_channels);
+   int status = ANNLayer::initialize(name, hc, num_channels);
+   PVParams * params = parent->parameters();
+   status |= readErrScale(params);
+   return status;
+}
+
+int ANNErrorLayer::readErrScale(PVParams * params){
+    errScale = params->value(name, "errScale", errScale);
+    return PV_SUCCESS;
 }
 
 int ANNErrorLayer::doUpdateState(double time, double dt, const PVLayerLoc * loc, pvdata_t * A,
@@ -82,7 +92,7 @@ int ANNErrorLayer::doUpdateState(double time, double dt, const PVLayerLoc * loc,
       int nf = loc->nf;
       int num_neurons = nx*ny*nf;
     	  ANNErrorLayer_update_state(num_neurons, nx, ny, nf, loc->nb, V, VThresh,
-    			  VMax, VMin, VShift, gSynHead, A);
+    			  VMax, VMin, VShift, gSynHead, A, errScale);
       if (this->writeSparseActivity){
          updateActiveIndices();  // added by GTK to allow for sparse output, can this be made an inline function???
       }

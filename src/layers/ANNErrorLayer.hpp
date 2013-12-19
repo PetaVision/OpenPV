@@ -23,8 +23,10 @@ protected:
    virtual int doUpdateState(double time, double dt, const PVLayerLoc * loc, pvdata_t * A,
          pvdata_t * V, int num_channels, pvdata_t * gSynHead, bool spiking,
          unsigned int * active_indices, unsigned int * num_active);
+   int readErrScale(PVParams * params);
 private:
    int initialize_base();
+   float errScale;
 };
 
 } /* namespace PV */
