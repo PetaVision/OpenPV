@@ -15,17 +15,18 @@ HyPerCol "column" = {
     ny = 32;
     dt = 1.0;
     randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
-    numSteps = 10000000;  //10,000 images * displayPeriod  
+    numSteps = 4000001;  //10,000 images * displayPeriod  
+    startTime = 0; //200000;
     progressStep = 1000;
-    outputPath = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB_deep_task/data_batch_all5";
+    outputPath = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB_deep_task/data_batch_all11";
     filenamesContainLayerNames = true;
     filenamesContainConnectionNames = true;
     checkpointRead = false;
     checkpointReadDir = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB_deep_task/data_batch_all/Checkpoints";
     checkpointReadDirIndex = 1000000; 
     checkpointWrite = true;
-    checkpointWriteDir = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB_deep_task/data_batch_all5/Checkpoints";
-    checkpointWriteStepInterval = 100000;
+    checkpointWriteDir = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB_deep_task/data_batch_all11/Checkpoints";
+    checkpointWriteStepInterval = 400000;
     deleteOlderCheckpoints = false;
     //suppressLastOutput = false;
     writeProgressToErr = true;
@@ -42,10 +43,10 @@ Movie "Image" = {
     nyScale = 1;
     imageListPath = "/Users/garkenyon/Pictures/CIFAR/data_batch_all/randorder.txt";
     nf = 3;
-    writeStep = 1000;
-    initialWriteTime = 1098;
+    writeStep = 4000;
+    initialWriteTime = 3999;
     writeSparseActivity = false;
-    displayPeriod = 100;
+    displayPeriod = 400;
     start_frame_index = 1;
     skip_frame_index = 1;
     echoFramePathnameFlag = true;
@@ -69,43 +70,44 @@ ANNErrorLayer "Error" = {
     nxScale = 1;
     nyScale = 1;
     nf = 3;
-    initialWriteTime = 1098.0;
-    writeStep = 1000;
+    initialWriteTime = 3999.0;
+    writeStep = 4000;
     mirrorBCflag = 0;
     valueBC = 0;
     writeSparseActivity = 0;
     //
     InitVType = "ZeroV";
     //InitVType = "InitVFromFile";
-    //Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_31/output/Checkpoints/Checkpoint6000000/Error_V.pvp";
+    //Vfilename = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB_deep_task/data_batch_all9/Checkpoints/Checkpoint2400000/Error_V.pvp";
     //
     VThresh = 0.005;
     VMax =  infinity;
     VMin = 0;
     VShift = 0;
+    VWidth = 0;
     //
     phase = 2;  
 };
 
 HyPerLCALayer "V1" = {
     restart = 0;
-    nxScale = 0.25;
-    nyScale = 0.25;
-    nf = 128; //256;
+    nxScale = 0.5;
+    nyScale = 0.5;
+    nf = 48; //256;
     numChannels = 1; // should be 1
     numWindowX = 1;
     numWindowY = 1;
-    initialWriteTime = 98.0;
-    writeStep = 100.0;
+    initialWriteTime = 399.0;
+    writeStep = 400.0;
     mirrorBCflag = 0;
     valueBC = 0;
     writeSparseActivity = 1;
     writeSparseValues = 1; 
-    //InitVType = "UniformRandomV";
-    //minV = -1.0;
-    //maxV = .15; //0.05 above VThresh
-    InitVType = "InitVFromFile";
-    Vfilename = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB_deep_task/data_batch_all4/Checkpoints/Checkpoint10000000/V1_V.pvp";
+    InitVType = "UniformRandomV";
+    minV = -1.0;
+    /maxV = .15; //0.05 above VThresh
+    //InitVType = "InitVFromFile";
+    //Vfilename = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB_deep_task/data_batch_all9/Checkpoints/Checkpoint2400000/V1_V.pvp";
     // 
     timeConstantTau = 200.0;
     timeConstantTauMinimum = 10.0;
@@ -114,105 +116,44 @@ HyPerLCALayer "V1" = {
     VThresh = 0.025; //   0.1 -> 0.5% median activation, 0.05 -> 1.57%
     VMax = infinity;
     VMin = 0;
-    VShift = 0.0125; //0 -> hard threshold, 1 -> soft threshold
+    VShift = 0.0; //0 -> hard threshold, 1 -> soft threshold
+    VWidth = 0.025; 
     //
     phase = 3;
 };
 
 
-//ANNTriggerUpdateOnNewImageLayer "Recon" = {
-ANNLayer "Recon" = {
+//RescaleLayer "RescaleV1" = {
+//    restart = 0;
+//    nxScale = 0.25;
+//    nyScale = 0.25;
+//    nf = 128; 
+//    numChannels = 0; // should be 1
+//    numWindowX = 1;
+//    numWindowY = 1;
+//    initialWriteTime = 399.0;
+//    writeStep = 400.0;
+//    mirrorBCflag = 0;
+//    valueBC = 0;
+//    writeSparseActivity = 1;
+//    writeSparseValues = 1; 
+//    InitVType = "ZeroV";
+//    originalLayerName = "V1";
+//    rescaleMethod = "meanstd";
+//    targetMean = 0;
+//    targetStd = 1;
+//    phase = 4;
+//};
+
+
+//ANNLayer "Recon" = {
+ANNTriggerUpdateOnNewImageLayer "Recon" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
     nf = 3;
-    initialWriteTime = 1098.0;
-    writeStep = 1000.0;
-    mirrorBCflag = 0;
-    valueBC = 0;
-    writeSparseActivity = 0;
-    //movieLayerName = "Image";
-    //
-    InitVType = "ZeroV";
-    //InitVType = "InitVFromFile";
-    //Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_31/output/Checkpoints/Checkpoint6000000/Recon_V.pvp";
-    //
-    VThresh = -infinity;
-    VMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
-    VMin = -infinity; 
-    VShift = 0;
-    // 
-    phase = 6; 
-};
-
-
-ANNErrorLayer "Error2" = {
-    restart = 0;
-    nxScale = 0.5;
-    nyScale = 0.5;
-    nf = 3;
-    initialWriteTime = 1098.0;
-    writeStep = 1000;
-    mirrorBCflag = 0;
-    valueBC = 0;
-    writeSparseActivity = 0;
-    //
-
-    InitVType = "ZeroV";
-    //InitVType = "InitVFromFile";
-    //Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_31/output/Checkpoints/Checkpoint6000000/Error_V.pvp";
-    //
-    VThresh = 0.005;
-    VMax =  infinity;
-    VMin =  0;
-    VShift = 0;
-    //
-    phase = 5;  
-};
-
-
-HyPerLCALayer "V2" = {
-    restart = 0;
-    nxScale = 0.125;
-    nyScale = 0.125;
-    nf = 256;
-    numChannels = 1;  // should be 1
-    numWindowX = 1;
-    numWindowY = 1;
-    // 
-    initialWriteTime = 98.0;
-    writeStep = 100.0;
-    mirrorBCflag = 0;
-    valueBC = 0;
-    writeSparseActivity = 1;
-    writeSparseValues = 1; 
-    //
-    //InitVType = "UniformRandomV";
-    //minV = -1.0;//
-    //maxV = .15; //0.05 above VThresh
-    InitVType = "InitVFromFile";
-    Vfilename = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB_deep_task/data_batch_all4/Checkpoints/Checkpoint10000000/V2_V.pvp";
-    // 
-    timeConstantTau = 200.0;
-    timeConstantTauMinimum = 10.0;
-    slopeErrorStd = 0.01;
-    // 
-    VThresh = 0.0125; // 0.1; 
-    VMax = infinity;
-    VMin = 0;
-    VShift = 0.00625;  // 0 -> hard threshold, VThresh -> soft threshold
-    //
-    phase = 6;
-};
-
-
-ANNTriggerUpdateOnNewImageLayer "Recon2" = {
-    restart = 0;
-    nxScale = 0.5;
-    nyScale = 0.5;
-    nf = 3;
-    initialWriteTime = 1198.0;
-    writeStep = 1000.0;
+    initialWriteTime = 4001.0;
+    writeStep = 4000.0;
     mirrorBCflag = 0;
     valueBC = 0;
     writeSparseActivity = 0;
@@ -220,161 +161,113 @@ ANNTriggerUpdateOnNewImageLayer "Recon2" = {
     //
     InitVType = "ZeroV";
     //InitVType = "InitVFromFile";
-    //Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_31/output/Checkpoints/Checkpoint6000000/Recon_V.pvp";
+    //Vfilename = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB_deep_task/data_batch_all9/Checkpoints/Checkpoint2400000/Recon_V.pvp";
     //
     VThresh = -infinity;
     VMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
     VMin = -infinity; 
     VShift = 0;
+    VWidth = 0.0; 
     // 
-    phase = 2; 
+    phase = 1; 
 };
 
 
 ANNErrorLayer "Error1_2" = {
     restart = 0;
-    nxScale = 0.25;
-    nyScale = 0.25;
-    nf = 128;
-    initialWriteTime = 10098.0;
-    writeStep = 10000;
+    nxScale = 0.5;
+    nyScale = 0.5;
+    nf = 48;
+    initialWriteTime = 39999.0;
+    writeStep = 40000;
     mirrorBCflag = 0;
     valueBC = 0;
     writeSparseActivity = 0;
     //
     InitVType = "ZeroV";
     //InitVType = "InitVFromFile";
-    //Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_31/output/Checkpoints/Checkpoint6000000/Error_V.pvp";
+    //Vfilename = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB_deep_task/data_batch_all9/Checkpoints/Checkpoint2400000/Error1_2_V.pvp";
     //
     VThresh = 0.005;
     VMax =  infinity;
     VMin = 0;
     VShift = 0;
+    VWidth = 0.0; 
     //
-    phase = 5;  
+    phase = 6;  
 };
 
 
-ANNLayer "V1Infra" = {
+ANNErrorLayer "Error2" = {
     restart = 0;
-    nxScale = 0.25;
-    nyScale = 0.25;
-    nf = 128;
-    initialWriteTime = 10098.0;
-    writeStep = 10000.0;
-    mirrorBCflag = 0;
-    valueBC = 0;
-    writeSparseActivity = 1;
-    writeSparseValues = 1; 
-    //movieLayerName = "Image";
-    //
-    InitVType = "ZeroV";
-    //InitVType = "InitVFromFile";
-    //Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_31/output/Checkpoints/Checkpoint6000000/Recon_V.pvp";
-    //
-    VThresh = 0.005; // using V1's VThresh might be unstable, trying Error1_2 thresh
-    VMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
-    VMin = 0.0; // use V1's VMin
-    VShift = 0;
-    // 
-    phase = 1; 
-};
-
-
-ANNLayer "ReconInfra" = {
-    restart = 0;
-    nxScale = 1;
-    nyScale = 1;
+    nxScale = 1.0; //0.5;
+    nyScale = 1.0; //0.5;
     nf = 3;
-    initialWriteTime = 1098.0;
-    writeStep = 1000.0;
+    initialWriteTime = 3999.0;
+    writeStep = 4000;
     mirrorBCflag = 0;
     valueBC = 0;
     writeSparseActivity = 0;
-    //movieLayerName = "Image";
     //
+
     InitVType = "ZeroV";
     //InitVType = "InitVFromFile";
-    //Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_31/output/Checkpoints/Checkpoint6000000/Recon_V.pvp";
+    //Vfilename = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB_deep_task/data_batch_all9/Checkpoints/Checkpoint2400000/Error_V.pvp";
     //
-    VThresh = -infinity;
-    VMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
-    VMin = -infinity; 
+    VThresh = 0.005;
+    VMax =  infinity;
+    VMin =  0;
     VShift = 0;
-    // 
-    phase = 2; 
+    VWidth = 0.0; 
+    //
+    phase = 6;  
 };
 
 
-// V4 layers
-
-
-HyPerLCALayer "V4" = {
+HyPerLCALayer "V2" = {
     restart = 0;
     nxScale = 0.03125;
     nyScale = 0.03125;
-    nf = 512;
-    numChannels = 1;  // should be 1
+    nf = 1024;  // must be 256*48 to be over complete
+    numChannels = 1;  // 
     numWindowX = 1;
     numWindowY = 1;
     // 
-    initialWriteTime = 98.0;
-    writeStep = 100.0;
+    initialWriteTime = 399.0;
+    writeStep = 400.0;
     mirrorBCflag = 0;
     valueBC = 0;
     writeSparseActivity = 1;
     writeSparseValues = 1; 
     //
-    //InitVType = "UniformRandomV";
-    //minV = -1.0;//
-    //maxV = .05; //0.05 above VThresh
-    InitVType = "InitVFromFile";
-    Vfilename = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB_deep_task/data_batch_all4/Checkpoints/Checkpoint10000000/V4_V.pvp";
+    InitVType = "UniformRandomV";
+    minV = -1.0;//
+    maxV = .05; //0.05 above VThresh
+    //InitVType = "InitVFromFile";
+    //Vfilename = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB_deep_task/data_batch_all9/Checkpoints/Checkpoint2400000/V2_V.pvp";
     // 
     timeConstantTau = 200.0;
     timeConstantTauMinimum = 10.0;
     slopeErrorStd = 0.01;
     // 
-    VThresh = 0.1; 
+    VThresh = 0.025; // 0.1; 
     VMax = infinity;
     VMin = 0;
-    VShift = 0.05; // 0 -> hard threshold, VThresh -> soft threshold
+    VShift = 0.0; //0 -> hard threshold, VThresh -> soft threshold
+    VWidth = 0.025; 
     //
-    phase = 7;
+    phase = 6;
 };
 
 
-ANNErrorLayer "Error2_4" = {
-    restart = 0;
-    nxScale = 0.125;
-    nyScale = 0.125;
-    nf = 256;
-    initialWriteTime = 10098.0;
-    writeStep = 10000;
-    mirrorBCflag = 0;
-    valueBC = 0;
-    writeSparseActivity = 0;
-    //
-    InitVType = "ZeroV";
-    //InitVType = "InitVFromFile";
-    //Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_31/output/Checkpoints/Checkpoint6000000/Error_V.pvp";
-    //
-    VThresh = 0.005;
-    VMax =  infinity;
-    VMin = 0;
-    VShift = 0;
-    //
-    phase = 8;  
-};
 
-
-ANNTriggerUpdateOnNewImageLayer "V2Infra4" = {
+ANNTriggerUpdateOnNewImageLayer "V1Infra" = {
     restart = 0;
-    nxScale = 0.125;
-    nyScale = 0.125;
-    nf = 256;
-    initialWriteTime = 10098.0;
-    writeStep = 10000.0;
+    nxScale = 0.5;
+    nyScale = 0.5;
+    nf = 48;
+    initialWriteTime = 40001.0;
+    writeStep = -1.0;
     mirrorBCflag = 0;
     valueBC = 0;
     writeSparseActivity = 1;
@@ -383,50 +276,25 @@ ANNTriggerUpdateOnNewImageLayer "V2Infra4" = {
     //
     InitVType = "ZeroV";
     //InitVType = "InitVFromFile";
-    //Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_31/output/Checkpoints/Checkpoint6000000/Recon_V.pvp";
+    //Vfilename = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB_deep_task/data_batch_all9/Checkpoints/Checkpoint2400000/V1Infra_V.pvp";
     //
-    VThresh = 0.005; // using V1's VThresh might be unstable, trying Error1_2 thresh
+    VThresh = 0.025; // use V1's VThresh 
     VMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
     VMin = 0.0; // use V1's VMin
     VShift = 0;
+    VWidth = 0.0; 
     // 
     phase = 1; 
 };
 
 
-ANNTriggerUpdateOnNewImageLayer "V1Infra4" = {
-    restart = 0;
-    nxScale = 0.25;
-    nyScale = 0.25;
-    nf = 128;
-    initialWriteTime = 10098.0;
-    writeStep = 10000.0;
-    mirrorBCflag = 0;
-    valueBC = 0;
-    writeSparseActivity = 1;
-    writeSparseValues = 1; 
-    movieLayerName = "Image";
-    //
-    InitVType = "ZeroV";
-    //InitVType = "InitVFromFile";
-    //Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_31/output/Checkpoints/Checkpoint6000000/Recon_V.pvp";
-    //
-    VThresh = 0.005; // using V1's VThresh might be unstable, trying Error1_2 thresh
-    VMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
-    VMin = 0.0; // use V1's VMin
-    VShift = 0;
-    // 
-    phase = 2; 
-};
-
-
-ANNTriggerUpdateOnNewImageLayer "ReconInfra4" = {
+ANNTriggerUpdateOnNewImageLayer "ReconInfra" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
     nf = 3;
-    initialWriteTime = 1198.0;
-    writeStep = 1000.0;
+    initialWriteTime = 4001.0;
+    writeStep = 4000.0;
     mirrorBCflag = 0;
     valueBC = 0;
     writeSparseActivity = 0;
@@ -434,15 +302,16 @@ ANNTriggerUpdateOnNewImageLayer "ReconInfra4" = {
     //
     InitVType = "ZeroV";
     //InitVType = "InitVFromFile";
-    //Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_31/output/Checkpoints/Checkpoint6000000/Recon_V.pvp";
+    //Vfilename = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB_deep_task/data_batch_all9/Checkpoints/Checkpoint2400000/ReconInfra_V.pvp";
     //
     VThresh = -infinity;
     VMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
     VMin = -infinity; 
     VShift = 0;
     // 
-    phase = 3; 
+    phase = 2; 
 };
+
 
 
 // Label layers
@@ -452,8 +321,8 @@ LabelLayer "Labels" = {
     nxScale = 0.03125;
     nyScale = 0.03125;
     nf = 10;
-    initialWriteTime = 1098;
-    writeStep = 1000;
+    initialWriteTime = 3999;
+    writeStep = 4000;
     labelStart = 45; // 
     labelLength = 1;
     echoLabelFlag = true;
@@ -464,13 +333,13 @@ LabelLayer "Labels" = {
 };
 
 
-ANNLayer "LabelError" = {
+LabelErrorLayer "LabelError" = {
     restart = 0;
     nxScale = 0.03125;
     nyScale = 0.03125;
     nf = 10;
-    initialWriteTime = 1098;
-    writeStep = 1000;
+    initialWriteTime = 3999;
+    writeStep = 4000;
     mirrorBCflag = 0;
     valueBC = 0;
     writeSparseActivity = 0;
@@ -480,6 +349,7 @@ ANNLayer "LabelError" = {
     VMax =  infinity;
     VMin = -infinity;
     VShift = 0;
+    VWidth = 0.0; 
     
     phase = 2;
 };
@@ -490,8 +360,8 @@ ANNTriggerUpdateOnNewImageLayer "LabelRecon" = {
     nxScale = 0.03125;
     nyScale = 0.03125;
     nf = 10;
-    initialWriteTime = 1198;
-    writeStep = 1000;
+    initialWriteTime = 4001;
+    writeStep = 4000;
     mirrorBCflag = 0;
     valueBC = 0;
     writeSparseActivity = 0;
@@ -502,6 +372,7 @@ ANNTriggerUpdateOnNewImageLayer "LabelRecon" = {
     VMax = infinity;
     VMin = -infinity;
     VShift = 0;
+    VWidth = 0.0; 
     
     phase = 1;
 };
@@ -525,7 +396,7 @@ KernelConn "ImageToError" = {
     writeCompressedCheckpoints = false;
     
     weightInitType = "OneToOneWeights"; //"UniformWeight";
-    weightInit = .03125;  // 1/sqrt(32*32);
+    weightInit = .03125;  // 1/sqrt(32*32);  // force unit L2 norm
     normalizeMethod = "none";
     
     shrinkPatches = false;
@@ -548,20 +419,22 @@ KernelConn "V1ToError" = {
     preLayerName = "V1";
     postLayerName = "Error";
     channelCode = 1;
-    nxp = 12;
-    nyp = 12;
+    nxp = 18;
+    nyp = 18;
+    nxpShrunken = 16;
+    nypShrunken = 16;
     nfp = 3;
     numAxonalArbors = 1;
     initFromLastFlag = 0;
     //
-    weightInitType = "FileWeight";
-    initWeightsFile = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB_deep_task/data_batch_all4/Checkpoints/Checkpoint10000000/V1ToError_W.pvp";
-    useListOfArborFiles = false;
-    combineWeightFiles = false;
-    //weightInitType = "UniformRandomWeight";
-    //wMinInit = -1.0;
-    //wMaxInit = 1.0;
-    //sparseFraction = .90;
+    //weightInitType = "FileWeight";
+    //initWeightsFile = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB_deep_task/data_batch_all9/Checkpoints/Checkpoint2400000/V1ToError_W.pvp";
+    //useListOfArborFiles = false;
+    //combineWeightFiles = false;
+    weightInitType = "UniformRandomWeight";
+    wMinInit = -1.0;
+    wMaxInit = 1.0;
+    sparseFraction = .90;
     //
     strength = 1.0;  
     normalizeMethod = "normalizeL2";
@@ -575,14 +448,14 @@ KernelConn "V1ToError" = {
     keepKernelsSynchronized = true; 
     combine_dW_with_W_flag = false; 
     //
-    writeStep = 1000000;
+    writeStep = -1;
     writeCompressedWeights = false;
     writeCompressedCheckpoints = false;
     plasticityFlag = true;
-    weightUpdatePeriod = 100.0;
-    initialWeightUpdateTime = 199.0;
+    weightUpdatePeriod = 400.0;
+    initialWeightUpdateTime = 399.0;
     initialWriteTime = 0.0;
-    dWMax = 5.0; //1.0; 
+    dWMax = 20.0; //1.0; 
     selfFlag = false;
     shmget_flag = false;
     //
@@ -623,130 +496,6 @@ CloneKernelConn "V1ToRecon" = {
 };
 
 
-// V2 downsampling/pulvinar connections
-KernelConn "ReconToError2" = {
-    preLayerName = "Recon";
-    postLayerName = "Error2";
-    channelCode = 0;
-    nxp = 1;
-    nyp = 1;
-    nfp = 3;
-    numAxonalArbors = 1;
-    writeStep = -1;
-    writeCompressedCheckpoints = false;
-    initFromLastFlag = 0;
-    
-    weightInitType = "Gauss2DWeight";
-    aspect = 1;
-    sigma = 2000;
-    rMax  = 3;
-    rMin = 0;
-    numOrientationsPre = 1;
-    numOrientationsPost = 1;
-        
-    strength = 1.0;  
-    normalizeMethod = "normalizeSum";
-    minSumTolerated = 0;
-    normalizeArborsIndividually = 0;
-    normalize_cutoff = 0.0;
-    normalizeFromPostPerspective = true;
-    symmetrizeWeights = false;
-    
-    shrinkPatches = false;
-    //writeCompressedWeights = 0.0;
-    plasticityFlag = 0;
-    pvpatchAccumulateType = "convolve";
-    updateGSynFromPostPerspective = false;     
-     
-    delay = 0;
-     
-    preActivityIsNotRate = false;
-    selfFlag = false;
-    shmget_flag = false;
-};
-
-
-KernelConn "V2ToError2" = {
-    preLayerName = "V2";
-    postLayerName = "Error2";
-    channelCode = 1;
-    nxp = 12;
-    nyp = 12;
-    nfp = 3;
-    numAxonalArbors = 1;
-    initFromLastFlag = 0;
-    //
-    weightInitType = "FileWeight";
-    initWeightsFile = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB_deep_task/data_batch_all4/Checkpoints/Checkpoint10000000/V2ToError2_W.pvp";
-    useListOfArborFiles = false;
-    combineWeightFiles = false;
-    //weightInitType = "UniformRandomWeight";
-    //wMinInit = -1.0;
-    //wMaxInit = 1.0;
-    //sparseFraction = .90;
-    //
-    strength = 0.70711; //0.5;  
-    normalizeMethod = "normalizeL2";
-    minL2NormTolerated = 0;
-    normalizeArborsIndividually = 0;
-    normalize_cutoff = 0.0;
-    normalizeFromPostPerspective = false;
-    symmetrizeWeights = false;
-    //
-    preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
-    keepKernelsSynchronized = true; 
-    combine_dW_with_W_flag = false; 
-    //
-    writeStep = 10000000;
-    writeCompressedWeights = false;
-    writeCompressedCheckpoints = false;
-    plasticityFlag = true;
-    weightUpdatePeriod = 100.0;
-    initialWeightUpdateTime = 199.0;
-    initialWriteTime = 0.0;
-    dWMax = 5.0; //0.02; 
-    selfFlag = false;
-    shmget_flag = false;
-    //
-    delay = 0;
-    //
-    pvpatchAccumulateType = "convolve";
-    updateGSynFromPostPerspective = false;     
-    shrinkPatches = false;
-};
-
-TransposeConn "Error2ToV2" = {
-    preLayerName = "Error2";
-    postLayerName = "V2";
-    channelCode = 0;
-    originalConnName = "V2ToError2";
-    selfFlag = false;
-    preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt	
-    writeStep = -1;
-    writeCompressedCheckpoints = false;
-    shmget_flag = false;
-    delay = 0;
-    pvpatchAccumulateType = "convolve";
-    updateGSynFromPostPerspective = false;     
-};
-
-
-CloneKernelConn "V2ToRecon2" = {
-   preLayerName = "V2";
-   postLayerName = "Recon2";
-   channelCode = 0;
-   writeStep = -1;
-   writeCompressedCheckpoints = false;
-   originalConnName = "V2ToError2";
-   selfFlag = false;
-   pvpatchAccumulateType = "convolve";
-   updateGSynFromPostPerspective = false;     
-   delay = 0;
-   preActivityIsNotRate = false;
-};
-
-
-
 // V2<->V1 connections
 
 IdentConn "V1ToError1_2" = {
@@ -762,23 +511,20 @@ KernelConn "V2ToError1_2" = {
     preLayerName = "V2";
     postLayerName = "Error1_2";
     channelCode = 1;
-    nxp =  6;
-    nyp =  6;
-    nxpShrunken = 4;
-    nypShrunken = 4;    
-    nfp = 128;
+    nxp =  16;
+    nyp =  16;
+    nfp = 48;
     numAxonalArbors = 1;
     initFromLastFlag = 0;
     //
-    weightInitType = "FileWeight";
-    initWeightsFile = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB_deep_task/data_batch_all4/Checkpoints/Checkpoint10000000/V2ToError1_2_W.pvp";
-    useListOfArborFiles = false;
-    combineWeightFiles = false;
-    //weightInitType = "UniformRandomWeight";
-    //wMinInit = -1.0;
-    //wMaxInit = 1.0;
-    //sparseFraction = .90;
-    //
+    //weightInitType = "FileWeight";
+    //initWeightsFile = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB_deep_task/data_batch_all9/Checkpoints/Checkpoint2400000/V2ToError1_2_W.pvp";
+    //useListOfArborFiles = false;
+    //combineWeightFiles = false;
+    weightInitType = "UniformRandomWeight";
+    wMinInit = -1.0;
+    wMaxInit = 1.0;
+    sparseFraction = .90;
     strength = 0.70711;
     normalizeMethod = "normalizeL2";
     minL2NormTolerated = 0;
@@ -791,14 +537,14 @@ KernelConn "V2ToError1_2" = {
     keepKernelsSynchronized = true; 
     combine_dW_with_W_flag = false; 
     //
-    writeStep = 1000000;
+    writeStep = -1;
     writeCompressedWeights = false;
     writeCompressedCheckpoints = false;
     plasticityFlag = true;
-    weightUpdatePeriod = 100.0;
-    initialWeightUpdateTime = 199.0;
+    weightUpdatePeriod = 400.0;
+    initialWeightUpdateTime = 399.0;
     initialWriteTime = 0.0;
-    dWMax = 5.0; //0.25; //0.02; 
+    dWMax = 0.1; 
     selfFlag = false;
     shmget_flag = false;
     //
@@ -841,15 +587,6 @@ CloneKernelConn "V2ToV1Infra" = {
 };
 
 
-IdentConn "ReconInfraToError" = {
-    preLayerName = "ReconInfra";
-    postLayerName = "Error";
-    channelCode = 1;
-    delay = 0;
-    writeStep = -1;
-};
-
-
 CloneKernelConn "V1InfraToReconInfra" = {
     preLayerName = "V1Infra";
     postLayerName = "ReconInfra";
@@ -866,147 +603,9 @@ CloneKernelConn "V1InfraToReconInfra" = {
 };
 
 
-// V4 & task driven connections
-
-IdentConn "V2ToError2_4" = {
-    preLayerName = "V2";
-    postLayerName = "Error2_4";
-    channelCode = 0;
-    delay = 0;
-    writeStep = -1;
-};
-
-
-KernelConn "V4ToError2_4" = {
-    preLayerName = "V4";
-    postLayerName = "Error2_4";
-    channelCode = 1;
-    nxp =  4;
-    nyp =  4;
-    //nxpShrunken = 4;
-    //nypShrunken = 4;    
-    nfp = 256;
-    numAxonalArbors = 1;
-    initFromLastFlag = 0;
-    //
-    weightInitType = "FileWeight";
-    initWeightsFile = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB_deep_task/data_batch_all4/Checkpoints/Checkpoint10000000/V4ToError2_4_W.pvp";
-    useListOfArborFiles = false;
-    combineWeightFiles = false;
-    //weightInitType = "UniformRandomWeight";
-    //wMinInit = -1.0;
-    //wMaxInit = 1.0;
-    //sparseFraction = .90;
-    //
-    strength = 0.86603; //0.70711;
-    normalizeMethod = "normalizeL2";
-    minL2NormTolerated = 0;
-    normalizeArborsIndividually = 0;
-    normalize_cutoff = 0.0;
-    normalizeFromPostPerspective = false;
-    symmetrizeWeights = false;
-    //
-    preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
-    keepKernelsSynchronized = true; 
-    combine_dW_with_W_flag = false; 
-    //
-    writeStep = 1000000;
-    writeCompressedWeights = false;
-    writeCompressedCheckpoints = false;
-    plasticityFlag = true;
-    weightUpdatePeriod = 100.0;
-    initialWeightUpdateTime = 199.0;
-    initialWriteTime = 0.0;
-    dWMax = 5.0; //0.25; //0.02; 
-    selfFlag = false;
-    shmget_flag = false;
-    //
-    delay = 0;
-    //
-    pvpatchAccumulateType = "convolve";
-    updateGSynFromPostPerspective = false;     
-    shrinkPatches = false;
-};
-
-TransposeConn "Error2_4ToV2" = {
-    preLayerName = "Error2_4";
-    postLayerName = "V4";
-    channelCode = 0;
-    originalConnName = "V4ToError2_4";
-    selfFlag = false;
-    preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
-    writeStep = -1;
-    writeCompressedCheckpoints = false;
-    shmget_flag = false;
-    delay = 0;
-    pvpatchAccumulateType = "convolve";
-    updateGSynFromPostPerspective = false;     
-};
-
-
-CloneKernelConn "V4ToV2Infra4" = {
-    preLayerName = "V4";
-    postLayerName = "V2Infra4";
-    channelCode = 0;
-    writeStep = -1;
-    writeCompressedCheckpoints = false;
-    originalConnName = "V4ToError2_4"; //"V2ToV1";  //
-    //writeCompressedWeights = 0.0;
-    selfFlag = false;
-    pvpatchAccumulateType = "convolve";
-    updateGSynFromPostPerspective = false;     
-    delay = 0;
-    preActivityIsNotRate = false;
-};
-
-
-CloneKernelConn "V2Infra4ToV1Infra4" = {
-    preLayerName = "V2Infra4";
-    postLayerName = "V1Infra4";
-    channelCode = 0;
-    writeStep = -1;
-    writeCompressedCheckpoints = false;
-    originalConnName = "V2ToError1_2";
-    //writeCompressedWeights = 0.0;
-    selfFlag = false;
-    pvpatchAccumulateType = "convolve";
-    updateGSynFromPostPerspective = false;     
-    delay = 0;
-    preActivityIsNotRate = false;
-};
-
-
-CloneKernelConn "V1Infra4ToReconInfra4" = {
-    preLayerName = "V1Infra4";
-    postLayerName = "ReconInfra4";
-    channelCode = 0;
-    writeStep = -1;
-    writeCompressedCheckpoints = false;
-    originalConnName = "V1ToError";
-    //writeCompressedWeights = 0.0;
-    selfFlag = false;
-    pvpatchAccumulateType = "convolve";
-    updateGSynFromPostPerspective = false;     
-    delay = 0;
-    preActivityIsNotRate = false;
-};
-
-
-// V4-mediated top-down competition
-//IdentConn "ReconInfra4ToError" = {
-//    preLayerName = "ReconInfra4";
-//    postLayerName = "Error";
-//    channelCode = 1;
-//    delay = 0;
-//    writeStep = -1;
-//};
-
-
-
-
 // label/task-driven connections
 
-IdentConn "LabeltoError" = {
+IdentConn "LabelstoLabelError" = {
     preLayerName = "Labels";
     postLayerName = "LabelError";
     channelCode = 0;
@@ -1014,8 +613,8 @@ IdentConn "LabeltoError" = {
     writeStep = -1;
 };
 
-KernelConn "V4ToLabelError" = {
-    preLayerName = "V4";
+KernelConn "V2ToLabelError" = {
+    preLayerName = "V2";
     postLayerName = "LabelError";
     channelCode = 1;
     nxp = 1;
@@ -1024,17 +623,15 @@ KernelConn "V4ToLabelError" = {
     numAxonalArbors = 1;
     initFromLastFlag = 0;
     
-    weightInitType = "FileWeight";
-    initWeightsFile = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB_deep_task/data_batch_all4/Checkpoints/Checkpoint10000000/V4ToLabelError_W.pvp";
-    useListOfArborFiles = false;
-    combineWeightFiles = false;
-
-    //weightInitType = "UniformRandomWeight";
-    //wMinInit = -1.0;
-    //wMaxInit = 1.0;
-    //sparseFraction = 0;
-    // 0.86603 = sqrt(3/4); 0.70711 == sqrt(1/2); 0.57735 = sqrt(1/3)
-    strength = 0.5; //0.70711;
+    //weightInitType = "FileWeight";
+    //initWeightsFile = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB_deep_task/data_batch_all9/Checkpoints/Checkpoint2400000/V2ToLabelError_W.pvp";
+    //useListOfArborFiles = false;
+    //combineWeightFiles = false;
+    weightInitType = "UniformRandomWeight";
+    wMinInit = -1.0;
+    wMaxInit = 1.0;
+    sparseFraction = 0;
+    strength = 0.70711; //
     normalizeMethod = "normalizeL2";
     minL2NormTolerated = 0;
     normalizeArborsIndividually = 0;
@@ -1047,15 +644,15 @@ KernelConn "V4ToLabelError" = {
     keepKernelsSynchronized = true; 
     combine_dW_with_W_flag = false; 
 
-    writeStep = 1000000;
+    writeStep = -1;
     writeCompressedWeights = false;
     writeCompressedCheckpoints = false;
     updateGSynFromPostPerspective = false;
     plasticityFlag = true;
-    weightUpdatePeriod = 200.0;
-    initialWeightUpdateTime = 199.0;
+    weightUpdatePeriod = 400.0;
+    initialWeightUpdateTime = 399.0;
     initialWriteTime = 0.0;
-    dWMax = 0.5; //0.0005;
+    dWMax = 0.01; 
     selfFlag = false;
     shmget_flag = false;
 
@@ -1064,12 +661,12 @@ KernelConn "V4ToLabelError" = {
     shrinkPatches = false;
 };
 
-TransposeConn "LabelErrorToV4" = {
+TransposeConn "LabelErrorToV2" = {
     preLayerName = "LabelError";
-    postLayerName = "V4";
+    postLayerName = "V2";
     channelCode = 0;
     
-    originalConnName = "V4ToLabelError";
+    originalConnName = "V2ToLabelError";
          
     pvpatchAccumulateType = "convolve";
     selfFlag = false;
@@ -1082,130 +679,78 @@ TransposeConn "LabelErrorToV4" = {
     delay = 0;
 };
 
-CloneKernelConn "V4ToLabelRecon" = {
-    preLayerName = "V4";
+CloneKernelConn "V2ToLabelRecon" = {
+    preLayerName = "V2";
     postLayerName = "LabelRecon";
     channelCode = 0;
     pvpatchAccumulateType = "convolve";
     writeStep = -1;
-    originalConnName = "V4ToLabelError";
+    originalConnName = "V2ToLabelError";
     selfFlag = false;
     delay = 0;
     preActivityIsNotRate = false;
 };
 
 
-// generative connections
-//IdentConn "Error1_2ToV1" = {
-//    preLayerName = "Error1_2";
-//    postLayerName = "V1";
-//    channelCode = 1;
-//    delay = 0;
-//    writeStep = -1;
-//};
-
-
-//IdentConn "Error2_4ToV2" = {
-//    preLayerName = "Error2_4";
-//    postLayerName = "V2";
-//    channelCode = 1;
-//    delay = 0;
-//    writeStep = -1;
-//};
 
 
 
 
 // Probes
 
-//StatsProbe "ImageStatsFile" = {
-//    targetLayer = "Image";
-//    probeOutputFile = "Image_Stats.txt";
-//};
+StatsProbe "ImageStatsFile" = {
+    targetLayer = "Image";
+    probeOutputFile = "Image_Stats.txt";
+};
 
-//StatsProbe "ErrorStatsFile" = {
-//    targetLayer = "Error";
-//    probeOutputFile = "Error_Stats.txt";
-//};
-//
-//StatsProbe "V1StatsFile" = {
-//    targetLayer = "V1";
-//    probeOutputFile = "V1_Stats.txt";
-//};
-//
-//StatsProbe "ReconStatsFile" = {
-//    targetLayer = "Recon";
-//    probeOutputFile = "Recon_Stats.txt";
-//};
-//
-//StatsProbe "Error2StatsFile" = {
-//    targetLayer = "Error2";
-//    probeOutputFile = "Error2_Stats.txt";
-//};
-//
-//StatsProbe "Error1_2StatsFile" = {
-//    targetLayer = "Error1_2";
-//    probeOutputFile = "Error1_2_Stats.txt";
-//};
-//
-//StatsProbe "V2StatsFile" = {
-//    targetLayer = "V2";
-//    probeOutputFile = "V2_Stats.txt";
-//};
-//
-//StatsProbe "Recon2StatsFile" = {
-//    targetLayer = "Recon2";
-//    probeOutputFile = "Recon2_Stats.txt";
-//};
-//
-//StatsProbe "V1InfraStatsFile" = {
-//    targetLayer = "V1Infra";
-//    probeOutputFile = "V1Infra_Stats.txt";
-//};
-//
-//StatsProbe "ReconInfraStatsFile" = {
-//    targetLayer = "ReconInfra";
-//    probeOutputFile = "ReconInfra_Stats.txt";
-//};
-//
-//StatsProbe "V4StatsFile" = {
-//    targetLayer = "V4";
-//    probeOutputFile = "V4_Stats.txt";
-//};
-//
-//StatsProbe "Error2_4StatsFile" = {
-//    targetLayer = "Error2_4";
-//    probeOutputFile = "Error2_4_Stats.txt";
-//};
-//
-//StatsProbe "ReconInfra4StatsFile" = {
-//    targetLayer = "ReconInfra4";
-//    probeOutputFile = "ReconInfra4_Stats.txt";
-//};
-//
-//StatsProbe "V2Infra4StatsFile" = {
-//    targetLayer = "V2Infra4";
-//    probeOutputFile = "V2Infra4_Stats.txt";
-//};
-//
-//StatsProbe "V1Infra4StatsFile" = {
-//    targetLayer = "V1Infra4";
-//    probeOutputFile = "V1Infra4_Stats.txt";
-//};
-//
-//StatsProbe "LabelsStatsFile" = {
-//    targetLayer = "Labels";
-//    probeOutputFile = "Labels_Stats.txt";
-//};
-//
-//StatsProbe "LabelErrorStatsFile" = {
-//    targetLayer = "LabelError";
-//    probeOutputFile = "LabelError_Stats.txt";
-//};
-//
-//StatsProbe "LabelReconStatsFile" = {
-//    targetLayer = "LabelRecon";
-//    probeOutputFile = "LabelRecon_Stats.txt";
-//};
+StatsProbe "ErrorStatsFile" = {
+    targetLayer = "Error";
+    probeOutputFile = "Error_Stats.txt";
+};
+
+StatsProbe "V1StatsFile" = {
+    targetLayer = "V1";
+    probeOutputFile = "V1_Stats.txt";
+};
+
+StatsProbe "ReconStatsFile" = {
+    targetLayer = "Recon";
+    probeOutputFile = "Recon_Stats.txt";
+};
+
+StatsProbe "Error1_2StatsFile" = {
+    targetLayer = "Error1_2";
+    probeOutputFile = "Error1_2_Stats.txt";
+};
+
+StatsProbe "V2StatsFile" = {
+    targetLayer = "V2";
+    probeOutputFile = "V2_Stats.txt";
+};
+
+StatsProbe "V1InfraStatsFile" = {
+    targetLayer = "V1Infra";
+    probeOutputFile = "V1Infra_Stats.txt";
+};
+
+StatsProbe "ReconInfraStatsFile" = {
+    targetLayer = "ReconInfra";
+    probeOutputFile = "ReconInfra_Stats.txt";
+};
+
+StatsProbe "LabelsStatsFile" = {
+    targetLayer = "Labels";
+    probeOutputFile = "Labels_Stats.txt";
+};
+
+StatsProbe "LabelErrorStatsFile" = {
+    targetLayer = "LabelError";
+    probeOutputFile = "LabelError_Stats.txt";
+};
+
+StatsProbe "LabelReconStatsFile" = {
+    targetLayer = "LabelRecon";
+    probeOutputFile = "LabelRecon_Stats.txt";
+};
 
 
