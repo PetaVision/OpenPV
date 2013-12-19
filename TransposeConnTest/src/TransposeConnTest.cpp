@@ -31,7 +31,7 @@ int main(int argc, char * argv[]) {
 
    // Don't call buildandrun because it will delete hc before returning. (I could use the customexit hook)
    HyPerCol * hc = build(argc, argv, NULL, params);
-   hc->run(1); // Weight values are initialized when run calls allocateDataStructures
+   hc->run(); // Weight values are initialized when run calls allocateDataStructures
 
    int status = PV_SUCCESS;
 
@@ -101,7 +101,7 @@ int manyToOneForTransposeConn(int argc, char * argv[]) {
    TransposeConn * transposeOfTransposeManyto1 = new TransposeConn(transposeOfTransposeConnName, hc, layerAname, layerB_ManyTo1Name, transposeConnName);
    assert(transposeOfTransposeManyto1);
 
-   hc->run(0); // Weight values are initialized when run calls allocateDataStructures
+   hc->run(); // Weight values are initialized when run calls allocateDataStructures
 
    int status = testTransposeOfTransposeWeights(originalMapManyto1, transposeManyto1, transposeOfTransposeManyto1, "Many-to-one case, TransposeConn");
    delete hc;
