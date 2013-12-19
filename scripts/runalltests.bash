@@ -249,7 +249,7 @@ mpirunandecho $testname $testname Debug/$testname $arglist
 cd $wd
 
 testname=MPITest2
-arglist="-p input/MPI_test.params -n 100"
+arglist="-p input/MPI_test.params"
 cd "$testname"
 runandecho $testname $testname Debug/$testname $arglist
 mpirunandecho $testname $testname Debug/$testname $arglist

@@ -47,8 +47,8 @@ public:
    int finalizeThreads();
 #endif //PV_USE_OPENCL
 
-   int run()  {return run(numSteps);}
-   int run(long int nTimeSteps);
+   int run()  {return run(startTime, stopTime, deltaTime);}
+   int run(double startTime, double stopTime, double dt);
 
    int advanceTime(double time);
    int exitRunLoop(bool exitOnFinish);
@@ -87,6 +87,8 @@ public:
    double simulationTime()                {return simTime;}
    double getStartTime()                  {return startTime;}
    double getStopTime()                   {return stopTime;}
+   long int getInitialStep()              {return initialStep;}
+   long int getFinalStep()                {return finalStep;}
    long int getCurrentStep()              {return currentStep;}
    bool getCheckpointReadFlag()           {return checkpointReadFlag;}
    bool getCheckpointWriteFlag()          {return checkpointWriteFlag;}
@@ -96,8 +98,6 @@ public:
    int includeConnectionName()            {return filenamesContainConnectionNames;}
 
    const char * inputFile()               {return image_file;}
-
-   long int numberOfTimeSteps()           {return numSteps;}
 
    int numberOfColumns();
 
@@ -174,8 +174,10 @@ private:
    int lCheckMarginWidth(HyPerLayer * layer, const char * dim, int layerSize, int layerGlobalSize, int prevStatus);
 #endif // OBSOLETE
 
-   long int numSteps;
+   long int numSteps; // deprecated Dec 12, 2013
    long int currentStep;
+   long int initialStep;
+   long int finalStep;
    size_t layerArraySize;
    int numLayers;
    int numPhases;
@@ -204,8 +206,10 @@ private:
    double simTime;          // current time in milliseconds
    double stopTime;         // time to stop time
    double deltaTime;        // time step interval
-   long int progressStep;       // How many timesteps between outputting progress
-   bool writeProgressToErr;// Whether to write progress step to standard error (True) or out (False) (default is out)
+   long int progressStep;       // How many timesteps between outputting progress (deprecated Dec 18, 2013)
+   double progressInterval; // Output progress after simTime increases by this amount.
+   double nextProgressTime; // Next time to output a progress message
+   bool writeProgressToErr;// Whether to write progress step to standard error (True) or standard output (False) (default is output)
 
    CLDevice * clDevice;    // object for running kernels on OpenCL device
 

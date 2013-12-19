@@ -61,7 +61,7 @@ int buildandrun1paramset(int argc, char * argv[],
       }
    }
 
-   if( status==PV_SUCCESS && hc->numberOfTimeSteps() > 0 ) {
+   if( status==PV_SUCCESS && hc->getInitialStep() < hc->getFinalStep() ) {
       status = hc->run();
       if( status != PV_SUCCESS ) {
          fprintf(stderr, "HyPerCol::run() returned with error code %d\n", status);

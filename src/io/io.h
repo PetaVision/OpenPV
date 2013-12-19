@@ -98,7 +98,7 @@ int    pv_close_binary(FILE * fp);
 // size_t pv_read_binary_record(FILE * pvstream, pvdata_t * buf, int nItems); // No function definition to go with this prototype
 
 int parse_options(int argc, char * argv[], char ** output_path,
-                  char ** param_file, long int * n_time_steps, int * opencl_device,
+                  char ** param_file, int * opencl_device,
                   unsigned int * random_seed, char ** working_dir);
 
 #ifdef __cplusplus

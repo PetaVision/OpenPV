@@ -22,10 +22,6 @@
 #include <unistd.h>
 #include <float.h>
 
-#define PV_MAX_NUMSTEPS (pow(2,DBL_MANT_DIG))
-// Commented out Nov 4, 2012.  With times declared as double instead of float, the x+1==x barrier shouldn't happen until x is somewhere in the quadrillions.
-// #define HYPERCOL_DIRINDEX_MAX 99999999
-
 namespace PV {
 
 HyPerCol::HyPerCol(const char * name, int argc, char * argv[], PVParams * params)
@@ -50,13 +46,8 @@ HyPerCol::~HyPerCol()
    }
 
    for (n = 0; n < numLayers; n++) {
-      // TODO: check to see if finalize called
       if (layers[n] != NULL) {
-         delete layers[n]; // will call *_finalize
-      }
-      else {
-         // TODO move finalize
-         // PVLayer_finalize(getCLayer(n));
+         delete layers[n];
       }
    }
 
@@ -105,11 +96,6 @@ int HyPerCol::initFinish(void)
       }
    }
 
-#ifdef OBSOLETE
-   // TODO - fix this to modern version?
-   log_parameters(numSteps, image_file);
-#endif
-
    isInitialized = true;
 
    return status;
@@ -141,7 +127,8 @@ int HyPerCol::initialize_base() {
    startTime = 0.0;
    stopTime = 0.0;
    deltaTime = DELTA_T;
-   progressStep = 1L;
+   progressStep = 1L; // deprecated Dec 18, 2013
+   progressInterval = 1.0;
    writeProgressToErr = false;
    clDevice = NULL;
    layers = NULL;
@@ -212,7 +199,7 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * p
    char * param_file = NULL;
    char * working_dir = NULL;
    parse_options(argc, argv, &outputPath, &param_file,
-                 &numSteps, &opencl_device, &random_seed, &working_dir);
+                 &opencl_device, &random_seed, &working_dir);
 
    if(working_dir) {
       int status = chdir(working_dir);
@@ -222,11 +209,6 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * p
          exit(status);
       }
    }
-
-   // path to working directory is no longer used
-   // path = (char *) malloc(1+PV_PATH_MAX);
-   // assert(path != NULL);
-   // path = getcwd(path, PV_PATH_MAX);
 
    ownsParams = params==NULL;
    if (ownsParams) {
@@ -251,26 +233,43 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * p
       exit(parsedStatus);
    }
 
-   // set number of steps from params file if it wasn't set on the command line
-   if( !numSteps ) {
-      if( params->present(name, "numSteps") ) {
-         numSteps = (long int) params->value(name, "numSteps");
-      }
-      else {
-         printf("Number of steps specified neither in the command line nor the params file.\n"
-                "Number of steps set to default %ld\n",numSteps);
-      }
-   }
-   if( (double) numSteps > PV_MAX_NUMSTEPS ) {
-      fprintf(stderr, "The number of time steps %ld is greater than %ld, the maximum allowed by floating point precision\n", numSteps, (long int) PV_MAX_NUMSTEPS);
-      exit(EXIT_FAILURE);
-   }
-
    startTime = params->value(name, "startTime", startTime);
-   simTime = startTime;
+   deltaTime = params->value(name, "dt", deltaTime, true);
+   stopTime = params->value(name, "stopTime", startTime+deltaTime);
+
+   initialStep = (long int) nearbyint(startTime/deltaTime);
+   finalStep = (long int) nearbyint(stopTime/deltaTime);
+   currentStep = initialStep;
+
+   // numSteps deprecated Dec. 12, 2013.  Instead of specifying numSteps in params,
+   // specify startTime, stopTime, and dt; PV will internally determine
+   // startStep = round(startTime/dt), and stopStep = round(stopTime/dt).
+   if (!params->present(name, "stopTime") && params->present(name, "numSteps")) {
+      numSteps = params->value(name, "numSteps", numSteps);
+      stopTime = simTime + numSteps * deltaTime;
+      finalStep = initialStep + numSteps;
+      if (columnId()==0) {
+         fprintf(stderr, "Warning: numSteps is deprecated.  Use startTime, stopTime and deltaTime instead.\n");
+         fprintf(stderr, "    stopTime set to %f\n", stopTime);
+         fprintf(stderr, "    finalStep set to %ld\n", finalStep);
+      }
+   }
 
    // set how often advanceTime() prints a message indicating progress
-   progressStep       = (long int) params->value(name, "progressStep",progressStep);
+   progressInterval = params->value(name, "progressInterval", progressInterval);
+
+   if (!params->present(name, "progressInterval") && params->present(name, "progressStep")) {
+      progressStep = (long int) params->value(name, "progressStep");
+      progressInterval = progressStep/deltaTime;
+      if (columnId()==0) {
+         fprintf(stderr, "Warning: progressStep is deprecated.  Use progressInterval instead.\n");
+         fprintf(stderr, "    progressInterval set to %f\n", progressInterval);
+      }
+
+   }
+
+   assert(!params->presentAndNotBeenRead(name, "startTime"));
+   nextProgressTime = startTime + progressInterval;
    writeProgressToErr = params->value(name, "writeProgressToErr",writeProgressToErr)!=0;
 
    // set output path from params file if it wasn't set on the command line
@@ -341,8 +340,6 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * p
    nxGlobal = (int) params->value(name, "nx");
    nyGlobal = (int) params->value(name, "ny");
 
-   deltaTime = params->value(name, "dt", deltaTime, true);
-
    runDelegate = NULL;
 
    numProbes = 0;
@@ -395,12 +392,6 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * p
          fflush(stdout);
          fprintf(stderr, "Rank %d: Column \"%s\": checkpointReadDirIndex must be nonnegative", rank, name);
       }
-// Commented out Nov 4, 2012
-//      if (cpReadDirIndex < 0 || cpReadDirIndex > HYPERCOL_DIRINDEX_MAX ) {
-//            fflush(stdout);
-//            fprintf(stderr, "Rank %d: Column \"%s\": checkpointReadDirIndex must be between 0 and %d, inclusive.  Exiting.\n", rank, name, HYPERCOL_DIRINDEX_MAX);
-//         exit(EXIT_FAILURE);
-//      }
    }
 
    checkpointWriteFlag = params->value(name, "checkpointWrite", false) != 0;
@@ -418,10 +409,10 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * p
       ensureDirExists(checkpointWriteDir);
 
       char cpDir[PV_PATH_MAX];
-      int chars_printed = snprintf(cpDir, PV_PATH_MAX, "%s/Checkpoint%ld", checkpointWriteDir, numSteps);
+      int chars_printed = snprintf(cpDir, PV_PATH_MAX, "%s/Checkpoint%ld", checkpointWriteDir, finalStep);
       if(chars_printed >= PV_PATH_MAX) {
          if (icComm->commRank()==0) {
-            fprintf(stderr,"HyPerCol::run error.  Checkpoint directory \"%s/Checkpoint%ld\" will be needed to hold the checkpoint at end of run, but this path is too long.\n", checkpointWriteDir, numSteps);
+            fprintf(stderr,"HyPerCol::run error.  Checkpoint directory \"%s/Checkpoint%ld\" will be needed to hold the checkpoint at end of run, but this path is too long.\n", checkpointWriteDir, finalStep);
             abort();
          }
       }
@@ -450,8 +441,9 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * p
          cpWriteTimeInterval = params->value(name, "checkpointWriteTimeInterval");
          cpWriteStepInterval = -1;
       }
-      nextCPWriteStep = 0;
-      nextCPWriteTime = 0;
+      assert(!params->presentAndNotBeenRead(name, "startTime"));
+      nextCPWriteStep = currentStep;
+      nextCPWriteTime = startTime;
 
       deleteOlderCheckpoints = params->value(name, "deleteOlderCheckpoints", false) != 0;
       if (deleteOlderCheckpoints) {
@@ -614,8 +606,12 @@ int HyPerCol::addConnection(HyPerConn * conn)
    return connId;
 }
 
-int HyPerCol::run(long int nTimeSteps)
+int HyPerCol::run(double start_time, double stop_time, double dt)
 {
+   startTime = start_time;
+   stopTime = stop_time;
+   deltaTime = dt;
+
    int (HyPerCol::*layerInitializationStage)(int) = NULL;
    int (HyPerCol::*connInitializationStage)(int) = NULL;
 
@@ -659,7 +655,6 @@ int HyPerCol::run(long int nTimeSteps)
       outputNamesStream = NULL;
    }
 
-   stopTime = simTime + nTimeSteps * deltaTime;
    const bool exitOnFinish = false;
 
    if (!isInitialized) {
@@ -667,8 +662,6 @@ int HyPerCol::run(long int nTimeSteps)
    }
 
    initPublishers(); // create the publishers and their data stores
-
-   numSteps = nTimeSteps;
 
 #ifdef DEBUG_OUTPUT
    if (columnId() == 0) {
@@ -905,13 +898,11 @@ int HyPerCol::initPublishers() {
 
 int HyPerCol::advanceTime(double sim_time)
 {
-   if (currentStep%progressStep == 0 && columnId() == 0) {
-      if (writeProgressToErr) {
-         fprintf(stderr, "   [%d]: time==%f\n", columnId(), sim_time);
-      }
-      else
-      {
-         printf("   [%d]: time==%f\n", columnId(), sim_time);
+   if (simTime >= nextProgressTime) {
+      nextProgressTime += progressInterval;
+      if (columnId() == 0) {
+         FILE * progressStream = writeProgressToErr ? stderr : stdout;
+         fprintf(progressStream, "   time==%f\n", sim_time);
       }
    }
 
@@ -1285,9 +1276,10 @@ int HyPerCol::outputParamsXML(PV_Stream * pvstream) {
    indentation++;
    outputParamInt(pvstream, "nx", nxGlobal, indentation);
    outputParamInt(pvstream, "ny", nyGlobal, indentation);
+   outputParamDouble(pvstream, "startTime", startTime, indentation);
+   outputParamDouble(pvstream, "stopTime", stopTime, indentation);
    outputParamDouble(pvstream, "dt", deltaTime, indentation);
    outputParamUnsignedLongInt(pvstream, "randomSeed", random_seed, indentation);
-   outputParamLongInt(pvstream, "numSteps", numSteps, indentation);
    outputParamLongInt(pvstream, "progressStep", progressStep, indentation);
    outputParamBoolean(pvstream, "writeProgressToErr", writeProgressToErr, indentation);
    outputParamFilename(pvstream, "outputPath", outputPath, indentation);

@@ -35,7 +35,7 @@ void usage()
  * @device
  */
 int parse_options(int argc, char * argv[], char ** output_path,
-                  char ** param_file, long int * n_time_steps, int * opencl_device,
+                  char ** param_file, int * opencl_device,
                   unsigned int * random_seed, char ** working_dir)
 {
    if (argc < 2) {
@@ -43,11 +43,12 @@ int parse_options(int argc, char * argv[], char ** output_path,
       return -1;
    }
 
-   // *n_time_steps = 1;
-   // parse_options should not set defaults; calling routine should set default
-   // before calling parse_options.
-
-   pv_getopt_long(argc, argv, "-n", n_time_steps);
+   // Dec 12, 2013.  Param numSteps is deprecated, and parse_options no longer sets numSteps
+   // Issue an error if "-n" was set on the command line.
+   if (pv_getopt_long(argc, argv, "-n", NULL)==0) {
+      fprintf(stderr, "Error: the -n option is no longer used.  Set startTime, endTime and dt in the params file.\n");
+      exit(EXIT_FAILURE);
+   }
    pv_getopt_int(argc, argv, "-d", opencl_device);
    pv_getopt_str(argc, argv, "-o", output_path);
    pv_getopt_str(argc, argv, "-p", param_file);
