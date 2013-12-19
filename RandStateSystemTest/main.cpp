@@ -70,7 +70,7 @@ int customexit(HyPerCol * hc, int argc, char * argv[]) {
    if (hc->columnId()==0) {
       std::string cmd("diff -r -q checkpoints*/Checkpoint");
       std::stringstream stepnumber;
-      stepnumber << hc->numberOfTimeSteps();
+      stepnumber << hc->getFinalStep();
       cmd += stepnumber.str();
       const char * cmdstr = cmd.c_str();
       status = system(cmdstr);
