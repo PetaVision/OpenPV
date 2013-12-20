@@ -604,7 +604,12 @@ void HyPerLayer::readWriteStep(PVParams * params) {
 }
 
 void HyPerLayer::readInitialWriteTime(PVParams * params) {
-   initialWriteTime = params->value(name, "initialWriteTime", parent->simulationTime());
+   double sim_time = parent->simulationTime();
+   initialWriteTime = params->value(name, "initialWriteTime", sim_time);
+   assert(initialWriteTime >= sim_time || !params->presentAndNotBeenRead(name, "writeStep"));
+   while (initialWriteTime < sim_time) {
+      initialWriteTime += writeStep;
+   }
 }
 
 void HyPerLayer::readPhase(PVParams * params) {
