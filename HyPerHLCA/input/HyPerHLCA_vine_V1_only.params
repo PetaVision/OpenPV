@@ -13,14 +13,14 @@
 debugParsing = true;
 
 HyPerCol "column" = {
-    nx                              = 480;  // vine value
-    ny                              = 480;
-    dt                              = 1.0;
+    nx = 480;  // vine value
+    ny = 480;
+    dt = 1.0;
     //
-    randomSeed                      = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
-    startTime                       = 0;
-    numSteps                        = 196000; 
-    progressStep                    = 1000;
+    randomSeed   = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
+    startTime    = 0;
+    numSteps     = 196000; 
+    progressStep = 1000;
     //
     outputPath                      = "/nh/compneuro/Data/vine/LCA/2013_01_24/output_2013_01_24_how2catchSquirrel_V1_only";
     filenamesContainLayerNames      = true;
@@ -82,127 +82,132 @@ Movie "Image" = {
 
 
 ANNTriggerUpdateOnNewImageLayer "Bipolar" = {
-    restart = 0;
-    nxScale = 1;
-    nyScale = 1;
-    nf = 3;
-    writeStep = 2000.0;
-    initialWriteTime = 1998.0;
-    mirrorBCflag = 1;
+    restart             = 0;
+    nxScale             = 1;
+    nyScale             = 1;
+    nf                  = 3;
+    writeStep           = 2000.0;
+    initialWriteTime    = 1998.0;
+    mirrorBCflag        = 1;
     writeSparseActivity = 0;
     //
-    movieLayerName = "Image";
-    InitVType = "ZeroV";
+    movieLayerName      = "Image";
+    InitVType           = "ZeroV";
     //
-    VThresh = -infinity;
-    VMax = infinity;
-    VMin = -infinity;
-    VShift = 0;
+    VThresh             = -infinity;
+    VMax                = infinity;
+    VMin                = -infinity;
+    VShift              = 0;
     //    
-    phase = 2;
+    phase               = 2;
 };
 
 
 ANNTriggerUpdateOnNewImageLayer "Ganglion" = {
-    restart = 0;
-    nxScale = 1;
-    nyScale = 1;
-    nf = 3;
-    writeStep = 2000.0;
-    initialWriteTime = 1998.0;
-    mirrorBCflag = 1;
+    restart             = 0;
+    nxScale             = 1;
+    nyScale             = 1;
+    nf                  = 3;
+    writeStep           = 2000.0;
+    initialWriteTime    = 1998.0;
+    mirrorBCflag        = 1;
     writeSparseActivity = 0;
     //
-    movieLayerName = "Image";
-    InitVType = "ZeroV";
+    movieLayerName      = "Image";
+    InitVType           = "ZeroV";
     //
-    VThresh = -infinity;
-    VMax = infinity;
-    VMin = -infinity;
-    VShift = 0;
+    VThresh             = -infinity;
+    VMax                = infinity;
+    VMin                = -infinity;
+    VShift              = 0;
     // 
-    phase = 3;
+    phase               = 3;
 };
 
 
 ANNErrorLayer "Error" = {
-    restart = 0;
-    nxScale = 1;
-    nyScale = 1;
-    nf = 3;
-    initialWriteTime = 1998.0;
-    writeStep = 2000;
-    mirrorBCflag = 0;
-    valueBC = 0;
+    restart             = 0;
+    nxScale             = 1;
+    nyScale             = 1;
+    nf                  = 3;
+    initialWriteTime    = 1998.0;
+    writeStep           = 2000;
+    mirrorBCflag        = 0;
+    valueBC             = 0;
     writeSparseActivity = 0;
     //
-    InitVType = "ZeroV";
-    //InitVType = "InitVFromFile";
-    //Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_28/output_2013_01_28_12x12x128_lambda_05X2_noTopDown/Checkpoints/Checkpoint20574000/Error_V.pvp";
+    InitVType           = "ZeroV";
+    //InitVType           = "InitVFromFile";
+    //Vfilename           = "/nh/compneuro/Data/vine/LCA/2013_01_28/output_2013_01_28_12x12x128_lambda_05X2_noTopDown/Checkpoints/Checkpoint20574000/Error_V.pvp";
     //
-    VThresh = 0.005;
-    VMax =  infinity;
-    VMin = 0;
-    VShift = 0;
+    VThresh             = 0.005;
+    VMax                =  infinity;
+    VMin                = 0;
+    VShift              = 0;
     //
-    phase = 4;  
+    phase               = 4;  
 };
 
 
 HyPerLCALayer "V1" = {
-    restart = 0;
-    nxScale = 0.25;
-    nyScale = 0.25;
-    nf = 128; //256;
-    numChannels = 1; // should be 1
-    numWindowX = 1;
-    numWindowY = 1;
-    initialWriteTime = 199.0;
-    writeStep = 200.0;
-    mirrorBCflag = 0;
-    valueBC = 0;
-    writeSparseActivity = 1;
+    restart                = 0;
+    nxScale                = 0.25;
+    nyScale                = 0.25;
+    nf                     = 128;
+    numChannels            = 1; // Only excitatory channel
+    numWindowX             = 1;
+    numWindowY             = 1;
+    initialWriteTime       = 199.0;
+    writeStep              = 200.0;
+    mirrorBCflag           = 0;
+    valueBC                = 0;
+    writeSparseActivity    = 1;
     //
-    //InitVType = "UniformRandomV";
-    //minV = -1.0;
-    //maxV = .15; //0.05 above VThresh
-    InitVType = "InitVFromFile";
-    Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_30/output/Checkpoints/Checkpoint6000000/V1_V.pvp";
+    //InitVType              = "UniformRandomV";
+    //minV                   = -1.0;
+    //maxV                   = .15; //0.05 above VThresh
+    InitVType              = "InitVFromFile"; // When initializing weights from file, it helps to also init V values to prevent startup artifacts
+    Vfilename              = "/nh/compneuro/Data/vine/LCA/2013_01_30/output/Checkpoints/Checkpoint6000000/V1_V.pvp";
     // 
-    timeConstantTau = 1000.0;
+    timeConstantTau        = 1000.0;
     timeConstantTauMinimum = 10.0;
-    slopeErrorStd = 0.01;
+    slopeErrorStd          = 0.01;
     // 
-    VThresh = 0.1; //  // 0.05 works for animalDB
-    VMax = infinity;
-    VMin = 0;
-    VShift = 0.0;  // 0 -> hard threshold, 1 -> soft threshold
+    VThresh                = 0.1; //  // 0.05 works for animalDB
+    VMax                   = infinity;
+    VMin                   = 0.0;
+    VShift                 = 0.0;  // 0 -> hard threshold, 1 -> soft threshold
     //
-    phase = 5;
-};
+    phase                  = 5;
+}
+
+
+CloneVLayer "V1_Clone" = {
+
+}
 
 
 ANNLayer "Recon" = {
-    restart = 0;
-    nxScale = 1;
-    nyScale = 1;
-    nf = 3;
-    initialWriteTime = 1998.0;
-    writeStep = 2000.0;
-    mirrorBCflag = 0;
-    valueBC = 0;
+    restart             = 0;
+    nxScale             = 1;
+    nyScale             = 1;
+    nf                  = 3;
+    initialWriteTime    = 1998.0;
+    writeStep           = 2000.0;
+    mirrorBCflag        = 0;
+    valueBC             = 0;
     writeSparseActivity = 0;
     //
-    InitVType = "ZeroV";
-    //InitVType = "InitVFromFile";
-    //Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_28/output_2013_01_28_12x12x128_lambda_05X2_noTopDown/Checkpoints/Checkpoint20574000/Recon_V.pvp";
+    InitVType           = "ZeroV";
+    //InitVType           = "InitVFromFile";
+    //Vfilename           = "/nh/compneuro/Data/vine/LCA/2013_01_28/output_2013_01_28_12x12x128_lambda_05X2_noTopDown/Checkpoints/Checkpoint20574000/Recon_V.pvp";
     //
-    VThresh = -infinity;
-    VMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
-    VMin = -infinity; 
-    VShift = 0;
+    VThresh             = -infinity;
+    VMax                = infinity;     // prevent reconstruction from exceeding reasonable bounds
+    VMin                = -infinity; 
+    VShift              = 0;
     // 
-    phase = 6; 
+    phase               = 6; 
 };
 
 
@@ -220,187 +225,188 @@ ANNLayer "Recon" = {
 
 
 KernelConn "ImageToBipolarCenter" = {
-    preLayerName = "Image";
-    postLayerName = "Bipolar";
-    channelCode = 0;
-    nxp = 3; 
-    nyp = 3; 
-    nfp = 3;
-    numAxonalArbors = 1;
-    initFromLastFlag = 0;  // 1;  // restart
-    writeStep = -1;
-    writeCompressedCheckpoints = false;
-    // 
-    weightInitType = "Gauss2DWeight";
-    aspect = 1;
-    sigma = 0.5;
-    rMax  = 3;
-    rMin = 0;
-    numOrientationsPre = 1;
+    preLayerName     = "Image";
+    postLayerName    = "Bipolar";
+    channelCode      = 0;
+    nxp              = 3; 
+    nyp              = 3; 
+    nfp              = 3;
+    numAxonalArbors  = 1;
+    initFromLastFlag = 0; 
+    writeStep        = -1;
+    //
+    weightInitType      = "Gauss2DWeight";
+    aspect              = 1;
+    sigma               = 0.5;
+    rMax                = 3;
+    rMin                = 0;
+    numOrientationsPre  = 1;
     numOrientationsPost = 1;
     //   
-    strength = 1.0;  
-    normalizeMethod = "normalizeSum";
-    minSumTolerated = 0;
-    normalizeArborsIndividually = 0;
-    normalize_cutoff = 0.0;
+    strength                     = 1.0;  
+    normalizeMethod              = "normalizeSum";
+    minSumTolerated              = 0;
+    normalizeArborsIndividually  = 0;
+    normalize_cutoff             = 0.0;
     normalizeFromPostPerspective = true;
-    symmetrizeWeights = false;
+    symmetrizeWeights            = false;
     // 
-    shrinkPatches = false;
-    //writeCompressedWeights = 0.0;
-    plasticityFlag = false;
-    pvpatchAccumulateType = "convolve";
+    shrinkPatches              = false;
+    //writeCompressedWeights     = false;
+    writeCompressedCheckpoints = false;
+    plasticityFlag             = false;
+    pvpatchAccumulateType      = "convolve";
     // 
     delay = 0;
     // 
     preActivityIsNotRate = false;
-    selfFlag = false;
-    shmget_flag = false;
+    selfFlag             = false;
+    shmget_flag          = false;
 };
 
 
 KernelConn "BipolarToGanglionCenter" = {
-    preLayerName = "Bipolar";
-    postLayerName = "Ganglion";
-    channelCode = 0;
-    nxp = 1; 
-    nyp = 1; 
-    nfp = 3;
+    preLayerName    = "Bipolar";
+    postLayerName   = "Ganglion";
+    channelCode     = 0;
+    nxp             = 1; 
+    nyp             = 1; 
+    nfp             = 3;
     numAxonalArbors = 1;
-    initFromLastFlag = 0;  // 1;  // restart
-    writeStep = -1;
-    writeCompressedCheckpoints = false;
+    //
+    initFromLastFlag = 0;
+    writeStep        = -1;
     // 
-    weightInitType = "Gauss2DWeight";
-    aspect = 1;
-    sigma = 1;
-    rMax  = 3;
-    rMin = 0;
-    numOrientationsPre = 1;
+    weightInitType      = "Gauss2DWeight";
+    aspect              = 1;
+    sigma               = 1;
+    rMax                = 3;
+    rMin                = 0;
+    numOrientationsPre  = 1;
     numOrientationsPost = 1;
     //   
-    strength = 1.0;  
-    normalizeMethod = "normalizeSum";
-    minSumTolerated = 0;
-    normalizeArborsIndividually = 0;
-    normalize_cutoff = 0.0;
+    strength                     = 1.0;  
+    normalizeMethod              = "normalizeSum";
+    minSumTolerated              = 0;
+    normalizeArborsIndividually  = 0;
+    normalize_cutoff             = 0.0;
     normalizeFromPostPerspective = true;
-    symmetrizeWeights = false;
+    symmetrizeWeights            = false;
     // 
-    shrinkPatches = false;
-    //writeCompressedWeights = false;
-    plasticityFlag = false;
-    pvpatchAccumulateType = "convolve";
+    shrinkPatches                 = false;
+    //writeCompressedWeights        = false;
+    writeCompressedCheckpoints    = false;
+    plasticityFlag                = false;
+    pvpatchAccumulateType         = "convolve";
     updateGSynFromPostPerspective = false;
     // 
     delay = 0;
     // 
     preActivityIsNotRate = false;
-    selfFlag = false;
-    shmget_flag = false;
+    selfFlag             = false;
+    shmget_flag          = false;
 };
 
 
 KernelConn "BipolarToGanglionSurround" = {
-    preLayerName = "Bipolar";
-    postLayerName = "Ganglion";
-    channelCode = 1;
-    nxp = 11; 
-    nyp = 11; 
-    nfp = 3;
-    numAxonalArbors = 1;
+    preLayerName     = "Bipolar";
+    postLayerName    = "Ganglion";
+    channelCode      = 1;
+    nxp              = 11; 
+    nyp              = 11; 
+    nfp              = 3;
+    numAxonalArbors  = 1;
     initFromLastFlag = 0;  // 1;  // restart
-    writeStep = -1;
-    writeCompressedCheckpoints = false;
+    writeStep        = -1;
     // 
-    weightInitType = "Gauss2DWeight";
-    aspect = 1;
-    sigma = 5.5;
-    rMax  = 7.5;
-    rMin = 0.5;
-    numOrientationsPre = 1;
+    weightInitType      = "Gauss2DWeight";
+    aspect              = 1;
+    sigma               = 5.5;
+    rMax                = 7.5;
+    rMin                = 0.5;
+    numOrientationsPre  = 1;
     numOrientationsPost = 1;
     //          
-    strength = 1.0;  
-    normalizeMethod = "normalizeSum";
-    minSumTolerated = 0;
-    normalizeArborsIndividually = false;
-    normalize_cutoff = false;
+    strength                     = 1.0;  
+    normalizeMethod              = "normalizeSum";
+    minSumTolerated              = 0;
+    normalizeArborsIndividually  = false;
+    normalize_cutoff             = false;
     normalizeFromPostPerspective = true;
-    symmetrizeWeights = false;
+    symmetrizeWeights            = false;
     // 
-    shrinkPatches = false;
-    //writeCompressedWeights = 0.0;
-    plasticityFlag = false;
-    pvpatchAccumulateType = "convolve";
+    shrinkPatches                 = false;
+    //writeCompressedWeights        = 0.0;
+    writeCompressedCheckpoints    = false;
+    plasticityFlag                = false;
+    pvpatchAccumulateType         = "convolve";
     updateGSynFromPostPerspective = false;     
     // 
     delay = 0;
     // 
     preActivityIsNotRate = false;
-    selfFlag = false;
-    shmget_flag = false;
+    selfFlag             = false;
+    shmget_flag          = false;
 };
 
 
 IdentConn "GanglionToError" = {
-    preLayerName = "Ganglion";
+    preLayerName  = "Ganglion";
     postLayerName = "Error";
-    channelCode = 0;
-    delay = 0;
-    writeStep = -1;
+    channelCode   = 0;
+    delay         = 0;
+    writeStep     = -1;
 };
 
 
 KernelConn "V1ToError" = {
-    preLayerName = "V1";
-    postLayerName = "Error";
-    channelCode = 1;
-    nxp = 12;
-    nyp = 12;
-    nfp = 3;
-    numAxonalArbors = 1;
+    preLayerName     = "V1";
+    postLayerName    = "Error";
+    channelCode      = 1;
+    nxp              = 12;
+    nyp              = 12;
+    nfp              = 3;
+    numAxonalArbors  = 1;
     initFromLastFlag = 0;
     //
-    weightInitType = "FileWeight";
+    weightInitType  = "FileWeight";
     initWeightsFile = "/nh/compneuro/Data/vine/LCA/2013_01_24_2013_02_01/output_2013_01_24_2013_02_01_12x12x128_lambda_05X2_noTopDown/w4_V1ToError.pvp";
     //
     //weightInitType = "UniformRandomWeight";
-    //wMinInit = -1.0;
-    //wMaxInit = 1.0;
+    //wMinInit       = -1.0;
+    //wMaxInit       = 1.0;
     //sparseFraction = .90;
     //
-    strength = 1.0;  
-    normalizeMethod = "normalizeL2";
-    minL2NormTolerated = 0;
-    normalizeArborsIndividually = 0;
-    normalize_cutoff = 0.0;
+    strength                     = 1.0;  
+    normalizeMethod              = "normalizeL2";
+    minL2NormTolerated           = 0;
+    normalizeArborsIndividually  = 0;
+    normalize_cutoff             = 0.0;
     normalizeFromPostPerspective = false;
-    symmetrizeWeights = false;
+    symmetrizeWeights            = false;
     //
-    preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
+    preActivityIsNotRate    = false;  // should help make response more indepenent of time step size dt
     keepKernelsSynchronized = true; 
-    combine_dW_with_W_flag = false; 
+    combine_dW_with_W_flag  = false; 
     //
-    writeStep = 100000;
-    writeCompressedWeights = false;
+    writeStep                  = 100000;
+    writeCompressedWeights     = false;
     writeCompressedCheckpoints = false;
     //
     plasticityFlag = false; 
     //
-    weightUpdatePeriod = 200.0;
+    weightUpdatePeriod      = 200.0;
     initialWeightUpdateTime = 199.0;
-    initialWriteTime = 0.0;
-    dWMax = 5.0; //1.0; 
-    selfFlag = false;
-    shmget_flag = false;
+    initialWriteTime        = 0.0;
+    dWMax                   = 5.0;
+    selfFlag                = false;
+    shmget_flag             = false;
     //
     delay = 0;
     //
-    pvpatchAccumulateType = "convolve";
+    pvpatchAccumulateType         = "convolve";
     updateGSynFromPostPerspective = false;     
-    shrinkPatches = false;
+    shrinkPatches                 = false;
 };
 
 
@@ -482,12 +488,12 @@ CloneKernelConn "V1ToRecon" = {
 //    targetLayer = "Error";
 //    probeOutputFile = "Error_Stats.txt";
 //};
-
-StatsProbe "V1StatsFile" = {
-    targetLayer = "V1";
-    probeOutputFile = "V1_Stats.txt";
-};
-
+//
+//StatsProbe "V1StatsFile" = {
+//    targetLayer = "V1";
+//    probeOutputFile = "V1_Stats.txt";
+//};
+//
 StatsProbe "ReconStatsFile" = {
 //    targetLayer = "Recon";
 //    probeOutputFile = "Recon_Stats.txt";
