@@ -369,16 +369,6 @@ IdentConn "GanglionToError" = {
     writeStep     = -1;
 };
 
-
-IdentConn "V1ToV1_Clone" = {
-    preLayerName  = "V1";
-    postLayerName = "V1_Clone";
-    channelCode   = 0;
-    delay         = 0;
-    writeStep     = -1;
-};
-
-
 KernelConn "V1ToError" = {
     preLayerName     = "V1";
     postLayerName    = "Error";
