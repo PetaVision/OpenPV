@@ -7,19 +7,25 @@ setenv("GNUTERM","X11")
 %% machine/run_type environment
 if ismac
 elseif isunix
-  run_type = {"deep"; "noPulvinar"}; %%; "noTopDown"}; %%
+  run_type = {"lateral"}; %%{"deep"; "noPulvinar"}; %%; "noTopDown"}; %%
   run_type_colormap = colormap("default");
-  output_path = "/nh/compneuro/Data/vine/LCA/2013_01_24/output_2013_01_24_how2catchSquirrel_12x12x128";
+  %%output_path = "/nh/compneuro/Data/vine/LCA/2013_01_24/output_2013_01_24_how2catchSquirrel_12x12x128";
+  output_path = "/nh/compneuro/Data/vine/LCA/2013_01_24/output_2013_01_24_how2catchSquirrel_12x12x128_3x3_9x9x128";
   mkdir(output_path);
-  output_dir_root = "/nh/compneuro/Data/vine/LCA/2013_01_24/output_2013_01_24_how2catchSquirrel_12x12x128_lambda_05X";
+  output_dir_root = "/nh/compneuro/Data/vine/LCA/2013_01_24/output_2013_01_24_how2catchSquirrel_12x12x128_3x3_9x9x128_lambda_001X";
+  %%output_dir_root = "/nh/compneuro/Data/vine/LCA/2013_01_24/output_2013_01_24_how2catchSquirrel_12x12x128_lambda_05X";
   %%output_dir_root = "/nh/compneuro/Data/vine/LCA/2013_01_24/output_2013_01_24_how2catchSquirrel_12x12x128_lambda_05X2";
-  threshold_vals = {"1"; "2"; "3"; "4"};
+  %%threshold_vals = {"1"; "2"; "3"; "4"};
+  threshold_vals = {"10"; "25"; "50"; "100"};
   %%threshold_vals = {""; "_noise_05"; "_noise_10"};%%; "_noise_20"};
 endif %% isunix
 
 %% default paths
 nonSparse_list = ...
-    {["a9_"], ["Error1_2"]};
+    {["a5_"], ["Recon"]; ...
+     ["a13_"], ["Recon2PlusReconInfra"]};
+%%nonSparse_list = ...
+%%    {["a9_"], ["Error1_2"]};
 %%nonSparse_list = ...
 %%    {["a11_"], ["ReconInfra"]};
 %%nonSparse_list = ...
@@ -34,8 +40,14 @@ std_nonSparse_RMS_array = cell( length(threshold_vals), length(run_type),length_
 nonSparse_RMS_array = cell( length(threshold_vals), length(run_type),length_nonSparse_list);
 nonSparse_norm_RMS_array = cell( length(threshold_vals), length(run_type),length_nonSparse_list);
 nonSparse_times_array = cell( length(threshold_vals), length(run_type),length_nonSparse_list);
-ErrorVsSparse_fig = zeros(length_nonSparse_list,1);
+%%ErrorVsSparse_fig = zeros(length_nonSparse_list,1);
+ErrorVsSparse_fig = figure;
+%%axis([0.95 1.0 0.1 0.5])
+hold on
 for i_nonSparse = 1 : length_nonSparse_list
+  nonSparse_color = ...
+      run_type_colormap(floor(1+length(run_type_colormap)*((i_nonSparse-1)/...
+							   (length_nonSparse_list+(length_nonSparse_list==1)))),:);
   for i_run_type = 1 : length(run_type)
     for i_thresh = 1:length(threshold_vals)
       ErrorVsSparse_dir = ...
@@ -76,15 +88,12 @@ for i_nonSparse = 1 : length_nonSparse_list
     endfor%% i_thresh
   endfor%% i_run_type
 
-  ErrorVsSparse_fig(i_nonSparse) = figure;
-  %%axis([0.95 1.0 0.1 0.5])
-  hold on
   for i_run_type = 1 : length(run_type)
     run_type_color = ...
 	run_type_colormap(floor(1+length(run_type_colormap)*((i_run_type-1)/...
-							     (length(run_type))+(length(run_type)==1))),:);
+							     (length(run_type)+(length(run_type)==1)))),:);
     for i_thresh = 1:length(threshold_vals)
-      run_type_color2 = ...
+      thresh_color = ...
 	  run_type_colormap(min(floor(length(run_type_colormap) * ...
 					(i_thresh / length(threshold_vals))),...
 				length(run_type_colormap)),:);
@@ -98,23 +107,27 @@ for i_nonSparse = 1 : length_nonSparse_list
 	  plot(Sparse_vals, ...
 	       normalized_nonSparse_RMS, ...
 	       "."); 
-      set(ErrorVsSparse_hndl, "color", run_type_color);
+      set(ErrorVsSparse_hndl, "color", nonSparse_color);
       Sparse_bins = Sparse_bins_array{i_thresh, i_run_type, i_nonSparse};
       skip_Sparse_val = (Sparse_bins(end) - Sparse_bins(1)) / length(Sparse_bins);
       mean_nonSparse_RMS = mean_nonSparse_RMS_array{i_thresh, i_run_type, i_nonSparse};
       std_nonSparse_RMS = std_nonSparse_RMS_array{i_thresh, i_run_type, i_nonSparse};
       eh(i_run_type) = errorbar(Sparse_bins+skip_Sparse_val/2, mean_nonSparse_RMS, std_nonSparse_RMS);
-      set(eh(i_run_type), "color", run_type_color);
+      set(eh(i_run_type), "color", nonSparse_color);
       set(eh(i_run_type), "linewidth", 1.5);
     endfor%% i_thresh
   endfor%% i_run_type
-  legend(eh, run_type)
-  set(ErrorVsSparse_fig(i_nonSparse), "name", ...
-      ["ErrorVsSparse_", nonSparse_list{i_nonSparse,2}]);
-  saveas(ErrorVsSparse_fig(i_nonSparse), ...
-	 [output_path, filesep, ...
-	  "ErrorVsSparse_", nonSparse_list{i_nonSparse,2}, ".png"], "png");
 endfor  %% i_nonSparse
+legend(eh, run_type)
+ErrorVsSparse_name = "ErrorVsSparse"; 
+for i_nonSparse = 1 : length_nonSparse_list 
+  ErrorVsSparse_name = [ErrorVsSparse_name, "_", nonSparse_list{i_nonSparse,2}];
+endfor
+set(ErrorVsSparse_fig, "name", ...
+    ErrorVsSparse_name);
+saveas(ErrorVsSparse_fig, ...
+       [output_path, filesep, ...
+	ErrorVsSparse_name, ".png"], "png");
 
 
 

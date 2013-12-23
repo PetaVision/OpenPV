@@ -78,6 +78,7 @@ function [Sparse_hist_rank_array, ...
     n_Sparse_cell{1} = n_Sparse;
     nf_Sparse_cell = cell(1);
     nf_Sparse_cell{1} = nf_Sparse;
+
     if num_procs == 1
       [Sparse_times_list, ...
        Sparse_percent_active_list, ...
@@ -104,18 +105,24 @@ function [Sparse_hist_rank_array, ...
 		     nf_Sparse_cell, ...
 		     "UniformOutput", false);
     endif
-    
+
     Sparse_times = zeros(num_Sparse_frames-1,1);
     Sparse_percent_active = zeros(num_Sparse_frames-1,1);
     Sparse_std = zeros(num_Sparse_frames-1,1);
     Sparse_percent_change = zeros(num_Sparse_frames-1,1);
     for i_frame = 1 : 1 : num_Sparse_frames-1
-      Sparse_hist = Sparse_hist + Sparse_hist_frames_list{i_frame};
+      if ~isempty(Sparse_hist_frames_list{i_frame})
+	Sparse_hist = Sparse_hist + Sparse_hist_frames_list{i_frame};
+      endif
       Sparse_times(i_frame) = Sparse_times_list{i_frame};
       Sparse_percent_active(i_frame) = Sparse_percent_active_list{i_frame};
       Sparse_std(i_frame) = Sparse_std_list{i_frame};
       Sparse_percent_change(i_frame) = Sparse_percent_change_list{i_frame};
     endfor %% i_frame
+    Sparse_times = Sparse_times(Sparse_times ~= nan);
+    Sparse_percent_active = Sparse_percent_active(Sparse_percent_active ~= nan);
+    Sparse_std = Sparse_std(Sparse_std ~= nan);
+    Sparse_percent_change = Sparse_percent_change(Sparse_percent_change ~= nan);
     Sparse_hist = Sparse_hist(1:nf_Sparse);
     Sparse_hist = Sparse_hist / ((num_Sparse_frames-1) * nx_Sparse * ny_Sparse); 
     [Sparse_hist_sorted, Sparse_hist_rank] = sort(Sparse_hist, 1, "descend");

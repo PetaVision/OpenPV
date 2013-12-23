@@ -11,10 +11,10 @@ function ...
   
   if isempty(Sparse_struct.values) 
     Sparse_time = nan;
-    Sparse_hist_frame = [];
-    Sparse_tot_active = nan;
-    Sparse_percent_change = nan;
+    Sparse_percent_active = nan;
     Sparse_std = nan;
+    Sparse_hist_frame = [];
+    Sparse_percent_change = nan;
     return;
   endif
 
