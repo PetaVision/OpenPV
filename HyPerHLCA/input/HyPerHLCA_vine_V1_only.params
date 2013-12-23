@@ -179,12 +179,23 @@ HyPerLCALayer "V1" = {
     VShift                 = 0.0;  // 0 -> hard threshold, 1 -> soft threshold
     //
     phase                  = 5;
-}
+};
 
 
 CloneVLayer "V1_Clone" = {
-
-}
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf      = 1;
+    //
+    originalLayerName = "V1";
+    writeStep         = 1;
+    initialWriteTime  = 0;
+    mirrorBCflag      = 0;
+    //
+    writeSparseActivity = true;
+    phase = 5;
+};
 
 
 ANNLayer "Recon" = {
@@ -359,6 +370,15 @@ IdentConn "GanglionToError" = {
 };
 
 
+IdentConn "V1ToV1_Clone" = {
+    preLayerName  = "V1";
+    postLayerName = "V1_Clone";
+    channelCode   = 0;
+    delay         = 0;
+    writeStep     = -1;
+};
+
+
 KernelConn "V1ToError" = {
     preLayerName     = "V1";
     postLayerName    = "Error";
@@ -494,7 +514,7 @@ CloneKernelConn "V1ToRecon" = {
 //    probeOutputFile = "V1_Stats.txt";
 //};
 //
-StatsProbe "ReconStatsFile" = {
+//StatsProbe "ReconStatsFile" = {
 //    targetLayer = "Recon";
 //    probeOutputFile = "Recon_Stats.txt";
 //};
