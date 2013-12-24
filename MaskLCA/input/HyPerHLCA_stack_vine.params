@@ -18,9 +18,9 @@ HyPerCol "column" = {
     //
     randomSeed       = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
     startTime        = 0;
-    stopTime         = 7840;
-    dt               = 1;
-    progressInterval = 250;
+    stopTime         = 7840;        // Display period * #frames
+    dt               = 1;           // in ms
+    progressInterval = 250;         // Print step
     //
     outputPath                      = "/nh/compneuro/Data/vine/LCA/2013_01_24/output_2013_01_24_how2catchSquirrel_V1_only";
     filenamesContainLayerNames      = true;
@@ -32,7 +32,7 @@ HyPerCol "column" = {
     //
     checkpointWrite                 = true;
     checkpointWriteDir              = "/nh/compneuro/Data/vine/LCA/2013_01_24/output_2013_01_24_how2catchSquirrel_V1_only/Checkpoints";
-    checkpointWriteStepInterval     = 50000;
+    checkpointWriteStepInterval     = 100000;
     deleteOlderCheckpoints          = false;
     //
     //suppressLastOutput            = false;
@@ -61,7 +61,7 @@ Movie "Image" = {
     writeStep              = 40;
     initialWriteTime       = 39;
     writeSparseActivity    = false;
-    displayPeriod          = 40;
+    displayPeriod          = 40; //Time spent on each frame
     start_frame_index      = 1;
     skip_frame_index       = 1;
     echoFramePathnameFlag  = true;
@@ -481,24 +481,24 @@ IdentConn "GanglionToError" = {
     writeStep     = -1;
 };
 
-KernelConn "V1ToError" = {
-    preLayerName     = "V1";
+KernelConn "V1_S2ToError" = {
+    preLayerName     = "V1_S2";
     postLayerName    = "Error";
     channelCode      = 1;
-    nxp              = 12;
-    nyp              = 12;
+    nxp              = 18;
+    nyp              = 18;
     numAxonalArbors  = 1;
     initFromLastFlag = 0;
     //
-    weightInitType      = "FileWeight";
-    initWeightsFile     = "/nh/compneuro/Data/vine/LCA/2013_01_24_2013_02_01/output_2013_01_24_2013_02_01_12x12x128_lambda_05X2_noTopDown/w4_V1ToError.pvp";
-    combineWeightFiles  = false;
-    useListOfArborFiles = false;
+    //weightInitType      = "FileWeight";
+    //initWeightsFile     = "/nh/compneuro/Data/vine/LCA/2013_01_24_2013_02_01/output_2013_01_24_2013_02_01_12x12x128_lambda_05X2_noTopDown/w4_V1ToError.pvp";
+    //combineWeightFiles  = false;
+    //useListOfArborFiles = false;
     //
-    //weightInitType = "UniformRandomWeight";
-    //wMinInit       = -1.0;
-    //wMaxInit       = 1.0;
-    //sparseFraction = .90;
+    weightInitType = "UniformRandomWeight";
+    wMinInit       = -1.0;
+    wMaxInit       = 1.0;
+    sparseFraction = .90;
     //
     strength                     = 1.0;  
     normalizeMethod              = "normalizeL2";
@@ -514,7 +514,7 @@ KernelConn "V1ToError" = {
     //writeCompressedWeights     = false;
     writeCompressedCheckpoints = false;
     //
-    plasticityFlag = false; 
+    plasticityFlag = true; 
     //
     //weightUpdatePeriod      = 200.0;
     //initialWeightUpdateTime = 199.0;
