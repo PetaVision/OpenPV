@@ -15,12 +15,12 @@ debugParsing = true;
 HyPerCol "column" = {
     nx = 480;  // vine value
     ny = 480;
-    dt = 1.0;
     //
-    randomSeed   = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
-    startTime    = 0;
-    numSteps     = 196000; 
-    progressStep = 100;
+    randomSeed       = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
+    startTime        = 0;
+    stopTime         = 7840;
+    dt               = 1;
+    progressInterval = 250;
     //
     outputPath                      = "/nh/compneuro/Data/vine/LCA/2013_01_24/output_2013_01_24_how2catchSquirrel_V1_only";
     filenamesContainLayerNames      = true;
@@ -32,7 +32,7 @@ HyPerCol "column" = {
     //
     checkpointWrite                 = true;
     checkpointWriteDir              = "/nh/compneuro/Data/vine/LCA/2013_01_24/output_2013_01_24_how2catchSquirrel_V1_only/Checkpoints";
-    checkpointWriteStepInterval     = 100000;
+    checkpointWriteStepInterval     = 50000;
     deleteOlderCheckpoints          = false;
     //
     //suppressLastOutput            = false;
@@ -58,10 +58,10 @@ Movie "Image" = {
     nyScale                = 1;
     imageListPath          = "/nh/compneuro/Data/vine/list/how2catchSquirrel.txt";
     nf                     = 3;
-    writeStep              = 2000.0;
-    initialWriteTime       = 1998.0;
+    writeStep              = 40;
+    initialWriteTime       = 39;
     writeSparseActivity    = false;
-    displayPeriod          = 200;
+    displayPeriod          = 40;
     start_frame_index      = 1;
     skip_frame_index       = 1;
     echoFramePathnameFlag  = true;
@@ -86,20 +86,21 @@ ANNTriggerUpdateOnNewImageLayer "Bipolar" = {
     nxScale             = 1;
     nyScale             = 1;
     nf                  = 3;
-    writeStep           = 2000.0;
-    initialWriteTime    = 1998.0;
+    writeStep           = -1; //2000.0;
+    //initialWriteTime    = 1998.0;
     mirrorBCflag        = 1;
     writeSparseActivity = 0;
     //
-    movieLayerName      = "Image";
-    InitVType           = "ZeroV";
+    movieLayerName = "Image";
+    InitVType      = "ZeroV";
     //
-    VThresh             = -infinity;
-    VMax                = infinity;
-    VMin                = -infinity;
-    VShift              = 0;
+    VThresh = -infinity;
+    VMax    = infinity;
+    VMin    = -infinity;
+    VShift  = 0;
+    VWidth  = 0;       // specify extra linear regime in transfer function (add additional piecewise linear portion)
     //    
-    phase               = 2;
+    phase = 2;
 };
 
 
@@ -108,20 +109,21 @@ ANNTriggerUpdateOnNewImageLayer "Ganglion" = {
     nxScale             = 1;
     nyScale             = 1;
     nf                  = 3;
-    writeStep           = 2000.0;
-    initialWriteTime    = 1998.0;
+    writeStep           = -1; //2000.0;
+    //initialWriteTime    = 1998.0;
     mirrorBCflag        = 1;
     writeSparseActivity = 0;
     //
-    movieLayerName      = "Image";
-    InitVType           = "ZeroV";
+    movieLayerName = "Image";
+    InitVType      = "ZeroV";
     //
-    VThresh             = -infinity;
-    VMax                = infinity;
-    VMin                = -infinity;
-    VShift              = 0;
+    VThresh = -infinity;
+    VMax    = infinity;
+    VMin    = -infinity;
+    VShift  = 0;
+    VWidth  = 0;       // specify extra linear regime in transfer function (add additional piecewise linear portion)
     // 
-    phase               = 3;
+    phase = 3;
 };
 
 
@@ -130,8 +132,9 @@ ANNErrorLayer "Error" = {
     nxScale             = 1;
     nyScale             = 1;
     nf                  = 3;
-    initialWriteTime    = 1998.0;
-    writeStep           = 2000;
+    //
+    writeStep           = 40;
+    initialWriteTime    = 39;
     mirrorBCflag        = 0;
     valueBC             = 0;
     writeSparseActivity = 0;
@@ -140,45 +143,49 @@ ANNErrorLayer "Error" = {
     //InitVType           = "InitVFromFile";
     //Vfilename           = "/nh/compneuro/Data/vine/LCA/2013_01_28/output_2013_01_28_12x12x128_lambda_05X2_noTopDown/Checkpoints/Checkpoint20574000/Error_V.pvp";
     //
-    VThresh             = 0.005;
-    VMax                =  infinity;
-    VMin                = 0;
-    VShift              = 0;
+    VThresh  = 0.005;
+    VMax     =  infinity;
+    VMin     = 0;
+    VShift   = 0;
+    VWidth   = 0;       // specify extra linear regime in transfer function (add additional piecewise linear portion)
+    errScale = 1;       // relative importance of all error layers that are connected to respective V1 layer
     //
-    phase               = 4;  
+    phase = 4;  
 };
 
 
 HyPerLCALayer "V1" = {
-    restart                = 0;
-    nxScale                = 0.25;
-    nyScale                = 0.25;
-    nf                     = 128;
-    numChannels            = 1; // Only excitatory channel
-    numWindowX             = 1;
-    numWindowY             = 1;
-    initialWriteTime       = 199.0;
-    writeStep              = 200.0;
-    mirrorBCflag           = 0;
-    valueBC                = 0;
-    writeSparseActivity    = 1;
+    restart             = 0;
+    nxScale             = 0.25;
+    nyScale             = 0.25;
+    nf                  = 128;
+    numChannels         = 1; // Only excitatory channel
+    numWindowX          = 1;
+    numWindowY          = 1;
+    writeStep           = -1; //200.0;
+    //initialWriteTime    = 199.0;
+    mirrorBCflag        = 0;
+    valueBC             = 0;
+    writeSparseActivity = 1;
+    writeSparseValues   = false;
     //
-    InitVType              = "UniformRandomV";
-    minV                   = -1.0;
-    maxV                   = .15; //0.05 above VThresh
-    //InitVType              = "InitVFromFile"; // When initializing weights from file, it helps to also init V values to prevent startup artifacts
-    //Vfilename              = "/nh/compneuro/Data/vine/LCA/2013_01_30/output/Checkpoints/Checkpoint6000000/V1_V.pvp";
+    //InitVType           = "UniformRandomV";
+    //minV                = -1.0;
+    //maxV                = .15; //0.05 above VThresh
+    InitVType           = "InitVFromFile"; // When initializing weights from file, it helps to also init V values to prevent startup artifacts
+    Vfilename           = "/nh/compneuro/Data/vine/LCA/2013_01_24/output_2013_01_24_how2catchSquirrel_V1_only/InitializationCheckpoints/Checkpoint100000/V1_V.pvp";
     // 
     timeConstantTau        = 1000.0;
     timeConstantTauMinimum = 10.0;
     slopeErrorStd          = 0.01;
     // 
-    VThresh                = 0.1; //  // 0.05 works for animalDB
-    VMax                   = infinity;
-    VMin                   = 0.0;
-    VShift                 = 0.0;  // 0 -> hard threshold, 1 -> soft threshold
+    VThresh = 0.1; //  // 0.05 works for animalDB
+    VMax    = infinity;
+    VMin    = 0.0;
+    VShift  = 0.0;     // 0 -> hard threshold, 1 -> soft threshold
+    VWidth  = 0;       // specify extra linear regime in transfer function (add additional piecewise linear portion)
     //
-    phase                  = 5;
+    phase = 5;
 };
 
 
@@ -192,31 +199,34 @@ CloneVLayer "V1_Clone" = {
     writeStep         = 1;
     initialWriteTime  = 0;
     mirrorBCflag      = 0;
+    valueBC           = 0;
     //
-    writeSparseActivity = true;
+    writeSparseActivity = false;
     phase = 5;
 };
 
 
-ANNLayer "Recon" = {
+ANNTriggerUpdateOnNewImageLayer "Recon" = {
     restart             = 0;
     nxScale             = 1;
     nyScale             = 1;
     nf                  = 3;
-    initialWriteTime    = 1998.0;
-    writeStep           = 2000.0;
+    writeStep           = 40;
+    initialWriteTime    = 41;    //Need to write out just as the image flips
     mirrorBCflag        = 0;
     valueBC             = 0;
     writeSparseActivity = 0;
+    movieLayerName      = "Image";
     //
-    InitVType           = "ZeroV";
-    //InitVType           = "InitVFromFile";
-    //Vfilename           = "/nh/compneuro/Data/vine/LCA/2013_01_28/output_2013_01_28_12x12x128_lambda_05X2_noTopDown/Checkpoints/Checkpoint20574000/Recon_V.pvp";
+    //InitVType           = "ZeroV";
+    InitVType           = "InitVFromFile";
+    Vfilename           = "/nh/compneuro/Data/vine/LCA/2013_01_24/output_2013_01_24_how2catchSquirrel_V1_only/InitializationCheckpoints/Checkpoint100000/Recon_V.pvp";
     //
     VThresh             = -infinity;
     VMax                = infinity;     // prevent reconstruction from exceeding reasonable bounds
     VMin                = -infinity; 
     VShift              = 0;
+    VWidth              = 0;            // specify extra linear regime in transfer function (add additional piecewise linear portion)
     // 
     phase               = 6; 
 };
@@ -254,13 +264,14 @@ KernelConn "ImageToBipolarCenter" = {
     numOrientationsPre  = 1;
     numOrientationsPost = 1;
     //   
-    strength                     = 1.0;  
-    normalizeMethod              = "normalizeSum";
-    minSumTolerated              = 0;
-    normalizeArborsIndividually  = 0;
-    normalize_cutoff             = 0.0;
-    normalizeFromPostPerspective = true;
-    symmetrizeWeights            = false;
+    strength                      = 1.0;  
+    normalizeMethod               = "normalizeSum";
+    minSumTolerated               = 0;
+    normalizeArborsIndividually   = 0;
+    normalize_cutoff              = 0.0;
+    normalizeFromPostPerspective  = true;
+    symmetrizeWeights             = false;
+    updateGSynFromPostPerspective = false;
     // 
     shrinkPatches              = false;
     //writeCompressedWeights     = false;
@@ -375,12 +386,13 @@ KernelConn "V1ToError" = {
     channelCode      = 1;
     nxp              = 12;
     nyp              = 12;
-    nfp              = 3;
     numAxonalArbors  = 1;
     initFromLastFlag = 0;
     //
-    weightInitType  = "FileWeight";
-    initWeightsFile = "/nh/compneuro/Data/vine/LCA/2013_01_24_2013_02_01/output_2013_01_24_2013_02_01_12x12x128_lambda_05X2_noTopDown/w4_V1ToError.pvp";
+    weightInitType      = "FileWeight";
+    initWeightsFile     = "/nh/compneuro/Data/vine/LCA/2013_01_24_2013_02_01/output_2013_01_24_2013_02_01_12x12x128_lambda_05X2_noTopDown/w4_V1ToError.pvp";
+    combineWeightFiles  = false;
+    useListOfArborFiles = false;
     //
     //weightInitType = "UniformRandomWeight";
     //wMinInit       = -1.0;
@@ -395,20 +407,20 @@ KernelConn "V1ToError" = {
     normalizeFromPostPerspective = false;
     symmetrizeWeights            = false;
     //
-    preActivityIsNotRate    = false;  // should help make response more indepenent of time step size dt
-    keepKernelsSynchronized = true; 
-    combine_dW_with_W_flag  = false; 
     //
-    writeStep                  = 100000;
-    writeCompressedWeights     = false;
+    writeStep                  = -1; //100000;
+    //initialWriteTime           = 0;
+    //writeCompressedWeights     = false;
     writeCompressedCheckpoints = false;
     //
     plasticityFlag = false; 
     //
-    weightUpdatePeriod      = 200.0;
-    initialWeightUpdateTime = 199.0;
-    initialWriteTime        = 0.0;
-    dWMax                   = 5.0;
+    //weightUpdatePeriod      = 200.0;
+    //initialWeightUpdateTime = 199.0;
+    //dWMax                   = 5.0;
+    //combine_dW_with_W_flag  = false; 
+    //keepKernelsSynchronized = true; 
+    preActivityIsNotRate    = false;  // should help make response more indepenent of time step size dt
     selfFlag                = false;
     shmget_flag             = false;
     //
@@ -421,31 +433,33 @@ KernelConn "V1ToError" = {
 
 
 TransposeConn "ErrorToV1" = {
-    preLayerName               = "Error";
-    postLayerName              = "V1";
-    channelCode                = 0;
-    originalConnName           = "V1ToError";
-    selfFlag                   = false;
-    preActivityIsNotRate       = false;  // should help make response more indepenent of time step size dt
-    writeStep                  = -1;
-    writeCompressedCheckpoints = false;
-    shmget_flag                = false;
-    delay                      = 0;
-    pvpatchAccumulateType      = "convolve";
+    preLayerName                  = "Error";
+    postLayerName                 = "V1";
+    channelCode                   = 0;
+    originalConnName              = "V1ToError";
+    selfFlag                      = false;
+    preActivityIsNotRate          = false;  // should help make response more indepenent of time step size dt
+    writeStep                     = -1;
+    writeCompressedCheckpoints    = false;
+    shmget_flag                   = false;
+    delay                         = 0;
+    pvpatchAccumulateType         = "convolve";
+    updateGSynFromPostPerspective = false;
 };
 
 
 CloneKernelConn "V1ToRecon" = {
-    preLayerName               = "V1";
-    postLayerName              = "Recon";
-    channelCode                = 0;
-    writeStep                  = -1;
-    writeCompressedCheckpoints = false;
-    originalConnName           = "V1ToError";
-    selfFlag                   = false;
-    pvpatchAccumulateType      = "convolve";
-    delay                      = 0;
-    preActivityIsNotRate       = false;
+    preLayerName                  = "V1";
+    postLayerName                 = "Recon";
+    channelCode                   = 0;
+    writeStep                     = -1;
+    writeCompressedCheckpoints    = false;
+    originalConnName              = "V1ToError";
+    selfFlag                      = false;
+    pvpatchAccumulateType         = "convolve";
+    delay                         = 0;
+    preActivityIsNotRate          = false;
+    updateGSynFromPostPerspective = false;
 };
 
 
