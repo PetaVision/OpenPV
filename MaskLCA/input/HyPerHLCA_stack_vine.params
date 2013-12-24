@@ -22,7 +22,8 @@ HyPerCol "column" = {
     dt               = 1;           // in ms
     progressInterval = 250;         // Print step
     //
-    outputPath                      = "/nh/compneuro/Data/vine/LCA/2013_01_24/output_2013_01_24_how2catchSquirrel_V1_only";
+    //outputPath                      = "/nh/compneuro/Data/vine/LCA/2013_01_24/output_2013_01_24_how2catchSquirrel_V1_only";
+    outputPath                      = "~/Documents/workspace/Output/";
     filenamesContainLayerNames      = true;
     filenamesContainConnectionNames = true;
     //
@@ -31,7 +32,7 @@ HyPerCol "column" = {
     //checkpointReadDirIndex          = 20574000;
     //
     checkpointWrite                 = true;
-    checkpointWriteDir              = "/nh/compneuro/Data/vine/LCA/2013_01_24/output_2013_01_24_how2catchSquirrel_V1_only/Checkpoints";
+    checkpointWriteDir              = "~/Documents/workspace/Output/Checkpoints";
     checkpointWriteStepInterval     = 100000;
     deleteOlderCheckpoints          = false;
     //
@@ -56,7 +57,8 @@ Movie "Image" = {
     restart                = 0;
     nxScale                = 1;
     nyScale                = 1;
-    imageListPath          = "/nh/compneuro/Data/vine/list/how2catchSquirrel.txt";
+    //imageListPath          = "/nh/compneuro/Data/vine/list/how2catchSquirrel.txt";
+    imageListPath          = "~/Documents/workspace/Output/how2catchSquirrel.txt";
     nf                     = 3;
     writeStep              = 40;
     initialWriteTime       = 39;
