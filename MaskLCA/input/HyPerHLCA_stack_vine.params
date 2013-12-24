@@ -509,18 +509,120 @@ KernelConn "V1_S2ToError" = {
     symmetrizeWeights            = false;
     //
     //
-    writeStep                  = -1; //100000;
+    writeStep                  = -1; //100000; //Dictionary
     //initialWriteTime           = 0;
     //writeCompressedWeights     = false;
     writeCompressedCheckpoints = false;
     //
     plasticityFlag = true; 
     //
-    //weightUpdatePeriod      = 200.0;
-    //initialWeightUpdateTime = 199.0;
-    //dWMax                   = 5.0;
-    //combine_dW_with_W_flag  = false; 
-    //keepKernelsSynchronized = true; 
+    weightUpdatePeriod      = 200.0;
+    initialWeightUpdateTime = 199.0;
+    dWMax                   = 5.0;
+    combine_dW_with_W_flag  = false; 
+    keepKernelsSynchronized = true; 
+    preActivityIsNotRate    = false;  // should help make response more indepenent of time step size dt
+    selfFlag                = false;
+    shmget_flag             = false;
+    //
+    delay = 0;
+    //
+    pvpatchAccumulateType         = "convolve";
+    updateGSynFromPostPerspective = false;     
+    shrinkPatches                 = false;
+};
+
+KernelConn "V1_S4ToError" = {
+    preLayerName     = "V1_S4";
+    postLayerName    = "Error";
+    channelCode      = 1;
+    nxp              = 36;
+    nyp              = 36;
+    numAxonalArbors  = 1;
+    initFromLastFlag = 0;
+    //
+    //weightInitType      = "FileWeight";
+    //initWeightsFile     = "/nh/compneuro/Data/vine/LCA/2013_01_24_2013_02_01/output_2013_01_24_2013_02_01_12x12x128_lambda_05X2_noTopDown/w4_V1ToError.pvp";
+    //combineWeightFiles  = false;
+    //useListOfArborFiles = false;
+    //
+    weightInitType = "UniformRandomWeight";
+    wMinInit       = -1.0;
+    wMaxInit       = 1.0;
+    sparseFraction = .90;
+    //
+    strength                     = 1.0;  
+    normalizeMethod              = "normalizeL2";
+    minL2NormTolerated           = 0;
+    normalizeArborsIndividually  = 0;
+    normalize_cutoff             = 0.0;
+    normalizeFromPostPerspective = false;
+    symmetrizeWeights            = false;
+    //
+    //
+    writeStep                  = -1; //100000; //Dictionary
+    //initialWriteTime           = 0;
+    //writeCompressedWeights     = false;
+    writeCompressedCheckpoints = false;
+    //
+    plasticityFlag = true; 
+    //
+    weightUpdatePeriod      = 200.0;
+    initialWeightUpdateTime = 199.0;
+    dWMax                   = 5.0;
+    combine_dW_with_W_flag  = false; 
+    keepKernelsSynchronized = true; 
+    preActivityIsNotRate    = false;  // should help make response more indepenent of time step size dt
+    selfFlag                = false;
+    shmget_flag             = false;
+    //
+    delay = 0;
+    //
+    pvpatchAccumulateType         = "convolve";
+    updateGSynFromPostPerspective = false;     
+    shrinkPatches                 = false;
+};
+
+KernelConn "V1_S8ToError" = {
+    preLayerName     = "V1_S8";
+    postLayerName    = "Error";
+    channelCode      = 1;
+    nxp              = 72;
+    nyp              = 72;
+    numAxonalArbors  = 1;
+    initFromLastFlag = 0;
+    //
+    //weightInitType      = "FileWeight";
+    //initWeightsFile     = "/nh/compneuro/Data/vine/LCA/2013_01_24_2013_02_01/output_2013_01_24_2013_02_01_12x12x128_lambda_05X2_noTopDown/w4_V1ToError.pvp";
+    //combineWeightFiles  = false;
+    //useListOfArborFiles = false;
+    //
+    weightInitType = "UniformRandomWeight";
+    wMinInit       = -1.0;
+    wMaxInit       = 1.0;
+    sparseFraction = .90;
+    //
+    strength                     = 1.0;  
+    normalizeMethod              = "normalizeL2";
+    minL2NormTolerated           = 0;
+    normalizeArborsIndividually  = 0;
+    normalize_cutoff             = 0.0;
+    normalizeFromPostPerspective = false;
+    symmetrizeWeights            = false;
+    //
+    //
+    writeStep                  = -1; //100000; //Dictionary
+    //initialWriteTime           = 0;
+    //writeCompressedWeights     = false;
+    writeCompressedCheckpoints = false;
+    //
+    plasticityFlag = true; 
+    //
+    weightUpdatePeriod      = 200.0;
+    initialWeightUpdateTime = 199.0;
+    dWMax                   = 5.0;
+    combine_dW_with_W_flag  = false; 
+    keepKernelsSynchronized = true; 
     preActivityIsNotRate    = false;  // should help make response more indepenent of time step size dt
     selfFlag                = false;
     shmget_flag             = false;
@@ -533,11 +635,43 @@ KernelConn "V1_S2ToError" = {
 };
 
 
-TransposeConn "ErrorToV1" = {
+
+
+TransposeConn "ErrorToV1_S2" = {
     preLayerName                  = "Error";
-    postLayerName                 = "V1";
+    postLayerName                 = "V1_S2";
     channelCode                   = 0;
-    originalConnName              = "V1ToError";
+    originalConnName              = "V1_S2ToError";
+    selfFlag                      = false;
+    preActivityIsNotRate          = false;  // should help make response more indepenent of time step size dt
+    writeStep                     = -1;
+    writeCompressedCheckpoints    = false;
+    shmget_flag                   = false;
+    delay                         = 0;
+    pvpatchAccumulateType         = "convolve";
+    updateGSynFromPostPerspective = false;
+};
+
+TransposeConn "ErrorToV1_S4" = {
+    preLayerName                  = "Error";
+    postLayerName                 = "V1_S4";
+    channelCode                   = 0;
+    originalConnName              = "V1_S4ToError";
+    selfFlag                      = false;
+    preActivityIsNotRate          = false;  // should help make response more indepenent of time step size dt
+    writeStep                     = -1;
+    writeCompressedCheckpoints    = false;
+    shmget_flag                   = false;
+    delay                         = 0;
+    pvpatchAccumulateType         = "convolve";
+    updateGSynFromPostPerspective = false;
+};
+
+TransposeConn "ErrorToV1_S8" = {
+    preLayerName                  = "Error";
+    postLayerName                 = "V1_S8";
+    channelCode                   = 0;
+    originalConnName              = "V1_S8ToError";
     selfFlag                      = false;
     preActivityIsNotRate          = false;  // should help make response more indepenent of time step size dt
     writeStep                     = -1;
@@ -549,19 +683,48 @@ TransposeConn "ErrorToV1" = {
 };
 
 
-CloneKernelConn "V1ToRecon" = {
-    preLayerName                  = "V1";
-    postLayerName                 = "Recon";
+CloneKernelConn "V1_S2ToRecon_S2" = {
+    preLayerName                  = "V1_S2";
+    postLayerName                 = "Recon_S2";
     channelCode                   = 0;
     writeStep                     = -1;
     writeCompressedCheckpoints    = false;
-    originalConnName              = "V1ToError";
+    originalConnName              = "V1_S2ToError";
     selfFlag                      = false;
     pvpatchAccumulateType         = "convolve";
     delay                         = 0;
     preActivityIsNotRate          = false;
     updateGSynFromPostPerspective = false;
 };
+
+CloneKernelConn "V1_S4ToRecon_S4" = {
+    preLayerName                  = "V1_S4";
+    postLayerName                 = "Recon_S4";
+    channelCode                   = 0;
+    writeStep                     = -1;
+    writeCompressedCheckpoints    = false;
+    originalConnName              = "V1_S4ToError";
+    selfFlag                      = false;
+    pvpatchAccumulateType         = "convolve";
+    delay                         = 0;
+    preActivityIsNotRate          = false;
+    updateGSynFromPostPerspective = false;
+};
+
+CloneKernelConn "V1_S8ToRecon_S8" = {
+    preLayerName                  = "V1_S8";
+    postLayerName                 = "Recon_S8";
+    channelCode                   = 0;
+    writeStep                     = -1;
+    writeCompressedCheckpoints    = false;
+    originalConnName              = "V1_S8ToError";
+    selfFlag                      = false;
+    pvpatchAccumulateType         = "convolve";
+    delay                         = 0;
+    preActivityIsNotRate          = false;
+    updateGSynFromPostPerspective = false;
+};
+
 
 
 // // Parameter sweep
