@@ -25,7 +25,6 @@ HyPerCol "column" = {
     //outputPath                      = "/nh/compneuro/Data/vine/LCA/2013_01_24/output_2013_01_24_how2catchSquirrel_V1_only";
     outputPath                      = "/nh/compneuro/Data/vine/LCA/2013_01_24_2013_02_01/output_stack_vine";
     //outputPath                      = "~/Documents/workspace/Output/";
-    outputPath                      = "
     filenamesContainLayerNames      = true;
     filenamesContainConnectionNames = true;
     //
