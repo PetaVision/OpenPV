@@ -18,12 +18,14 @@ HyPerCol "column" = {
     //
     randomSeed       = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
     startTime        = 0;
-    stopTime         = 7840;        // Display period * #frames
+    stopTime         = 4658400;        // Display period * #frames
     dt               = 1;           // in ms
-    progressInterval = 250;         // Print step
+    progressInterval = 250000;         // Print step
     //
     //outputPath                      = "/nh/compneuro/Data/vine/LCA/2013_01_24/output_2013_01_24_how2catchSquirrel_V1_only";
-    outputPath                      = "~/Documents/workspace/Output/";
+    outputPath                      = "/nh/compneuro/Data/vine/LCA/2013_01_24_2013_02_01/output_stack_vine";
+    //outputPath                      = "~/Documents/workspace/Output/";
+    outputPath                      = "
     filenamesContainLayerNames      = true;
     filenamesContainConnectionNames = true;
     //
@@ -32,8 +34,9 @@ HyPerCol "column" = {
     //checkpointReadDirIndex          = 20574000;
     //
     checkpointWrite                 = true;
-    checkpointWriteDir              = "~/Documents/workspace/Output/Checkpoints";
-    checkpointWriteStepInterval     = 100000;
+    //checkpointWriteDir              = "~/Documents/workspace/Output/Checkpoints";
+    checkpointWriteDir              = "/nh/compneuro/Data/vine/LCA/2013_01_24_2013_02_01/output_stack_vine/Checkpoints";
+    checkpointWriteStepInterval     = 1000000;
     deleteOlderCheckpoints          = false;
     //
     //suppressLastOutput            = false;
@@ -58,10 +61,11 @@ Movie "Image" = {
     nxScale                = 1;
     nyScale                = 1;
     //imageListPath          = "/nh/compneuro/Data/vine/list/how2catchSquirrel.txt";
-    imageListPath          = "~/Documents/workspace/Output/how2catchSquirrel.txt";
+    imageListPath          = "/nh/compneuro/Data/vine/list/2013_01_24_2013_02_01/fileList_2013_01_24_2013_02_01.txt";
+    //imageListPath          = "~/Documents/workspace/Output/how2catchSquirrel.txt";
     nf                     = 3;
     writeStep              = 40;
-    initialWriteTime       = 39;
+    initialWriteTime       = 40;
     writeSparseActivity    = false;
     displayPeriod          = 40; //Time spent on each frame
     start_frame_index      = 1;
@@ -136,7 +140,7 @@ ANNErrorLayer "Error" = {
     nf                  = 3;
     //
     writeStep           = 40;
-    initialWriteTime    = 39;
+    initialWriteTime    = 40;
     mirrorBCflag        = 0;
     valueBC             = 0;
     writeSparseActivity = 0;
@@ -164,11 +168,11 @@ HyPerLCALayer "V1_S2" = {
     numChannels         = 1; // Only excitatory channel
     numWindowX          = 1;
     numWindowY          = 1;
-    writeStep           = -1; //200.0;
-    //initialWriteTime    = 199.0;
+    writeStep           = 40.0;
+    initialWriteTime    = 40.0;
     mirrorBCflag        = 0;
     valueBC             = 0;
-    writeSparseActivity = 1;
+    writeSparseActivity = true;
     writeSparseValues   = false;
     //
     InitVType           = "UniformRandomV";
@@ -199,11 +203,11 @@ HyPerLCALayer "V1_S4" = {
     numChannels         = 1; // Only excitatory channel
     numWindowX          = 1;
     numWindowY          = 1;
-    writeStep           = -1; //200.0;
-    //initialWriteTime    = 199.0;
+    writeStep           = 40.0;
+    initialWriteTime    = 40.0;
     mirrorBCflag        = 0;
     valueBC             = 0;
-    writeSparseActivity = 1;
+    writeSparseActivity = true;
     writeSparseValues   = false;
     //
     InitVType           = "UniformRandomV";
@@ -233,11 +237,11 @@ HyPerLCALayer "V1_S8" = {
     numChannels         = 1; // Only excitatory channel
     numWindowX          = 1;
     numWindowY          = 1;
-    writeStep           = -1; //200.0;
-    //initialWriteTime    = 199.0;
+    writeStep           = 40;
+    initialWriteTime    = 40;
     mirrorBCflag        = 0;
     valueBC             = 0;
-    writeSparseActivity = 1;
+    writeSparseActivity = true;
     writeSparseValues   = false;
     //
     InitVType           = "UniformRandomV";
@@ -269,7 +273,7 @@ ANNTriggerUpdateOnNewImageLayer "Recon_S2" = {
     initialWriteTime    = 41;    //Need to write out just as the image flips
     mirrorBCflag        = 0;
     valueBC             = 0;
-    writeSparseActivity = 0;
+    writeSparseActivity = true;
     movieLayerName      = "Image";
     //
     InitVType           = "ZeroV";
@@ -294,7 +298,7 @@ ANNTriggerUpdateOnNewImageLayer "Recon_S4" = {
     initialWriteTime    = 41;    //Need to write out just as the image flips
     mirrorBCflag        = 0;
     valueBC             = 0;
-    writeSparseActivity = 0;
+    writeSparseActivity = true;
     movieLayerName      = "Image";
     //
     InitVType           = "ZeroV";
@@ -319,7 +323,7 @@ ANNTriggerUpdateOnNewImageLayer "Recon_S8" = {
     initialWriteTime    = 41;    //Need to write out just as the image flips
     mirrorBCflag        = 0;
     valueBC             = 0;
-    writeSparseActivity = 0;
+    writeSparseActivity = true;
     movieLayerName      = "Image";
     //
     InitVType           = "ZeroV";
@@ -511,15 +515,15 @@ KernelConn "V1_S2ToError" = {
     symmetrizeWeights            = false;
     //
     //
-    writeStep                  = -1; //100000; //Dictionary
-    //initialWriteTime           = 0;
+    writeStep                  = 40;
+    initialWriteTime           = 40;
     //writeCompressedWeights     = false;
     writeCompressedCheckpoints = false;
     //
     plasticityFlag = true; 
     //
-    weightUpdatePeriod      = 200.0;
-    initialWeightUpdateTime = 199.0;
+    weightUpdatePeriod      = 40;
+    initialWeightUpdateTime = 40;
     dWMax                   = 5.0;
     combine_dW_with_W_flag  = false; 
     keepKernelsSynchronized = true; 
@@ -562,15 +566,15 @@ KernelConn "V1_S4ToError" = {
     symmetrizeWeights            = false;
     //
     //
-    writeStep                  = -1; //100000; //Dictionary
-    //initialWriteTime           = 0;
+    writeStep                  = 40;
+    initialWriteTime           = 40;
     //writeCompressedWeights     = false;
     writeCompressedCheckpoints = false;
     //
     plasticityFlag = true; 
     //
-    weightUpdatePeriod      = 200.0;
-    initialWeightUpdateTime = 199.0;
+    weightUpdatePeriod      = 40;
+    initialWeightUpdateTime = 40;
     dWMax                   = 5.0;
     combine_dW_with_W_flag  = false; 
     keepKernelsSynchronized = true; 
@@ -613,15 +617,15 @@ KernelConn "V1_S8ToError" = {
     symmetrizeWeights            = false;
     //
     //
-    writeStep                  = -1; //100000; //Dictionary
-    //initialWriteTime           = 0;
+    writeStep                  = 40;
+    initialWriteTime           = 40;
     //writeCompressedWeights     = false;
     writeCompressedCheckpoints = false;
     //
     plasticityFlag = true; 
     //
-    weightUpdatePeriod      = 200.0;
-    initialWeightUpdateTime = 199.0;
+    weightUpdatePeriod      = 40;
+    initialWeightUpdateTime = 40;
     dWMax                   = 5.0;
     combine_dW_with_W_flag  = false; 
     keepKernelsSynchronized = true; 
@@ -635,9 +639,6 @@ KernelConn "V1_S8ToError" = {
     updateGSynFromPostPerspective = false;     
     shrinkPatches                 = false;
 };
-
-
-
 
 TransposeConn "ErrorToV1_S2" = {
     preLayerName                  = "Error";
