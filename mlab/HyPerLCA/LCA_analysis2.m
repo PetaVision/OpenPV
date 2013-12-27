@@ -28,7 +28,7 @@ elseif isunix
   %%run_type = "lateral"; %% 
   %%run_type = "deep_plus_noise";%%
   %%run_type = "V1";
-  run_type = "Heli_DPT";
+  %%run_type = "Heli_DPT";
   run_type = "Heli_D";
   if strcmp(run_type, "color_deep")
     %%output_dir = "/nh/compneuro/Data/vine/LCA/2013_02_01/output_2013_02_01_12x12x128_lambda_05X1_deep"; 
@@ -43,6 +43,12 @@ elseif isunix
     checkpoint_dir = output_dir;
     checkpoint_parent = "/nh/compneuro/Data/repo/neovision-programs-petavision/LCA/Heli";
     checkpoint_children = {"Training/output_18x18x48_10x10x96_lambda_001X50_DPT"};
+  elseif strcmp(run_type, "Heli_D")
+    output_dir = ...
+	"/nh/compneuro/Data/repo/neovision-programs-petavision/LCA/Heli/Training/output_18x18x48_10x10x96_lambda_001X50_D";
+    checkpoint_dir = output_dir;
+    checkpoint_parent = "/nh/compneuro/Data/repo/neovision-programs-petavision/LCA/Heli";
+    checkpoint_children = {"Training/output_18x18x48_10x10x96_lambda_001X50_D"};
   elseif strcmp(run_type, "noTopDown")
     output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_24_2013_02_01/output_2013_01_24_2013_02_01_12x12x128_lambda_05X2_noTopDown"; 
     %%output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_24/output_2013_01_24_how2catchSquirrel_12x12x128_lambda_05X4_noTopDown";
@@ -73,8 +79,8 @@ if ~exist("output_dir") || isempty(output_dir)
   warning("using default output dir");
   output_dir = pwd
 endif
-plot_DoG_kernel = 0;  %% set to true if DoG filtering used and dewhitening of reconstructions is desired
-if plot_DoG_kernel && ~exist("DoG_path") || isempty(DoG_path)
+plot_DoG_kernel = false;  %% set to true if DoG filtering used and dewhitening of reconstructions is desired
+if plot_DoG_kernel && (~exist("DoG_path") || isempty(DoG_path))
   DoG_path = output_dir;
 endif
 
@@ -128,6 +134,22 @@ if plot_Recon
     %% list of (previous) layers to sum with current layer
     sum_list = cell(num_Recon_list,1);
     sum_list{5} = 2;
+  elseif strcmp(run_type, "Heli_D") 
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% Heli_D list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    Recon_list = ...
+	{["a0_"], ["Image"];
+	 ["a3_"], ["Recon"];
+	 ["a7_"], ["ReconInfra"]};
+    %% list of layers to unwhiten
+    num_Recon_list = size(Recon_list,1);
+    unwhiten_list = zeros(num_Recon_list,1);
+    %%unwhiten_list([2,3,5,6]) = 1;
+    %% list of layers to use as a normalization reference for unwhitening
+    normalize_list = 1:num_Recon_list;
+    %% list of (previous) layers to sum with current layer
+    sum_list = cell(num_Recon_list,1);
   elseif strcmp(run_type, "CIFAR_deep") 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% CIFAR_deep list
@@ -608,6 +630,13 @@ if analyze_Sparse_flag
     Sparse_list = ...
 	{["a2_"], ["V1"]; ...
 	 ["a6_"], ["V2"]};
+    elseif strcmp(run_type, "Heli_D") 
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% Heli_D list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    Sparse_list = ...
+	{["a2_"], ["V1"]; ...
+	 ["a5_"], ["V2"]};
   elseif strcmp(run_type, "CIFAR_deep")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% CIFAR_deep list
@@ -681,7 +710,7 @@ if analyze_nonSparse_flag
     nonSparse_norm_strength = ones(num_nonSparse_list,1);
     Sparse_std_ndx = [0 0 1];
     %%%%%%%%%%%%%%%%%%%%%%%%e%%%%%%%%%%%%%%%%%%%%
-    elseif strcmp(run_type, "Heli_DPT") 
+  elseif strcmp(run_type, "Heli_DPT") 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% Heli_DPT
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -699,7 +728,28 @@ if analyze_nonSparse_flag
          ["a7_"], ["Recon2"]; ...
          ["a2_"], ["V1"]}; ...
     nonSparse_norm_strength = ones(num_nonSparse_list,1);
+    nonSparse_norm_strength(1) = ...
+	1/sqrt(32*32);
     Sparse_std_ndx = [0 0 1];
+    %%%%%%%%%%%%%%%%%%%%%%%%e%%%%%%%%%%%%%%%%%%%%
+  elseif strcmp(run_type, "Heli_D") 
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% Heli_D
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    nonSparse_list = ...
+        {["a1_"], ["Error"]; ...
+         ["a4_"], ["Error1_2"]}; %%; ...
+    num_nonSparse_list = size(nonSparse_list,1);
+    nonSparse_skip = repmat(1, num_nonSparse_list, 1);
+    nonSparse_skip(1) = 1;
+    nonSparse_skip(2) = 1;
+    nonSparse_norm_list = ...
+        {["a0_"], ["Image"]; ...
+         ["a2_"], ["V1"]}; ...
+    nonSparse_norm_strength = ones(num_nonSparse_list,1);
+    nonSparse_norm_strength(1) = ...
+	1/sqrt(32*32);
+    Sparse_std_ndx = [0 1];
     %%%%%%%%%%%%%%%%%%%%%%%%e%%%%%%%%%%%%%%%%%%%%
   elseif strcmp(run_type, "CIFAR_deep") 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -815,13 +865,29 @@ if plot_ReconError && plot_flag
          ["a2_"], ["Ganglion"]};
     ReconError_norm_strength = ones(num_ReconError_list,1);
     ReconError_nonSparse_ndx = [1 1];  %% causes recon error to be overlaid on specified  nonSparse (Error) figure
-    elseif strcmp(run_type, "Heli_DPT") 
+  elseif strcmp(run_type, "Heli_DPT") 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% Heli_DPT list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     ReconError_list = ...
         {["a3_"], ["Recon"]; ...
          ["a9_"], ["ReconInfra"]};
+    num_ReconError_list = size(ReconError_list,1);
+    ReconError_skip = repmat(1, num_ReconError_list, 1);
+    ReconError_skip(1) = 1;
+    ReconError_skip(2) = 1;
+    ReconError_norm_list = ...
+        {["a0_"], ["Image"]; ...
+         ["a0_"], ["Image"]};
+    ReconError_norm_strength = ones(num_ReconError_list,1);
+    ReconError_nonSparse_ndx = [1 1];  %% causes recon error to be overlaid on specified  nonSparse (Error) figure
+  elseif strcmp(run_type, "Heli_D") 
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% Heli_D list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    ReconError_list = ...
+        {["a3_"], ["Recon"]; ...
+         ["a7_"], ["ReconInfra"]};
     num_ReconError_list = size(ReconError_list,1);
     ReconError_skip = repmat(1, num_ReconError_list, 1);
     ReconError_skip(1) = 1;
