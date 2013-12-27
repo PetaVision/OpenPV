@@ -142,13 +142,16 @@ int LabelLayer::allocateDataStructures() {
          fprintf(stderr,"Current Label Integer: %d out of %d\n",currentLabel, maxLabel);
       }
 
-      // the following attempts to force an L2 norm of unity on the activity of the LabelLayer
+      // the firstlines below force an L2 norm of unity on the activity of the LabelLayer
+      // the second lines force a stddev of 1
       for (int i = 0; i<(labelLoc.nf*(labelLoc.nx+labelLoc.nb*2)*(labelLoc.ny+labelLoc.nb*2)); i++){
      	 if (i%maxLabel == currentLabel){
-             labelData[i] = sqrt(maxLabel-1)/sqrt(maxLabel);
+	   labelData[i] = sqrt(maxLabel-1)/sqrt(maxLabel);
+	   //labelData[i] = sqrt(maxLabel-1);
           }
           else{
-             labelData[i] = -1/sqrt((maxLabel-1)*maxLabel);
+	    labelData[i] = -1/sqrt((maxLabel-1)*maxLabel);
+	    //labelData[i] = -1/sqrt((maxLabel-1));
           }
       }
    }

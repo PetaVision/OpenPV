@@ -165,6 +165,7 @@ int RescaleLayer::updateState(double timef, double dt) {
              int kextOriginal = kIndexExtended(k, locOriginal->nx, locOriginal->ny, locOriginal->nf, locOriginal->nb);
              sum += originalA[kextOriginal];
           }
+
 #ifdef PV_USE_MPI
           MPI_Allreduce(MPI_IN_PLACE, &sum, 1, MPI_FLOAT, MPI_SUM, parent->icCommunicator()->communicator());
 #endif // PV_USE_MPI
@@ -176,6 +177,7 @@ int RescaleLayer::updateState(double timef, double dt) {
              int kextOriginal = kIndexExtended(k, locOriginal->nx, locOriginal->ny, locOriginal->nf, locOriginal->nb);
              sumsq += (originalA[kextOriginal] - mean) * (originalA[kextOriginal] - mean);
           }
+
 #ifdef PV_USE_MPI
           MPI_Allreduce(MPI_IN_PLACE, &sumsq, 1, MPI_FLOAT, MPI_SUM, parent->icCommunicator()->communicator());
 #endif // PV_USE_MPI
@@ -195,6 +197,7 @@ int RescaleLayer::updateState(double timef, double dt) {
        if( status == PV_SUCCESS ) status = updateActiveIndices();
        //Update lastUpdateTime
 	   lastUpdateTime = parent->simulationTime();
+
    }
    return status;
 }

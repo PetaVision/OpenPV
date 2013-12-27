@@ -15,11 +15,11 @@ no_clobber = false;
 if ismac
   workspace_path = "/Users/garkenyon/workspace";
   run_type = "CIFAR_deep"; %%"CIFAR_noTask_deep"; %%"CIFAR_noTask"; %%"CIFAR" %%
-  output_dir = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB_deep_task/data_batch_all8"
+  output_dir = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB_deep_task/data_batch_all15"
   checkpoint_dir = output_dir;
   checkpoint_parent = "/Users/garkenyon/workspace/HyPerHLCA";
   checkpoint_children = ...
-      {"CIFAR256_RGB_deep_task/data_batch_all8"}; %%
+      {"CIFAR256_RGB_deep_task/data_batch_all15"}; %%
 elseif isunix
   workspace_path = "/home/gkenyon/workspace";
   %%run_type = "noPulvinar"; %%
@@ -135,23 +135,14 @@ if plot_Recon
     Recon_list = ...
 	{["a0_"],  ["Image"];
 	 ["a3_"],  ["Recon"];
-	 ["a7_"],  ["Recon2"];
-	 ["a9_"],  ["ReconInfra"];
-	 ["a13_"], ["Recon4"];
-	 ["a16_"], ["ReconInfra4"];
-	 ["a16_"], ["ReconInfra4"]};
+	 ["a7_"],  ["ReconInfra"]};
     %% list of layers to unwhiten
     num_Recon_list = size(Recon_list,1);
     unwhiten_list = zeros(num_Recon_list,1);
-    unwhiten_list([2,3,5,6]) = 1;
     %% list of layers to use as a normalization reference for unwhitening
     normalize_list = 1:num_Recon_list;
-    normalize_list(2) = 1;
-    normalize_list(4) = 1;
-    normalize_list(5) = 1;
     %% list of (previous) layers to sum with current layer
     sum_list = cell(num_Recon_list,1);
-    sum_list{7} = [2,4];
   elseif strcmp(run_type, "noPulvinar")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% noPulvinar list
@@ -199,6 +190,9 @@ if plot_Recon
     sum_list = cell(num_Recon_list,1);
     sum_list{6} = 4;
   endif %% run_type
+
+
+
   num_Recon_frames = repmat(num_Recon_default, 1, num_Recon_list);
   
   %%keyboard;
@@ -426,7 +420,7 @@ endif %% plot_Recon
 
 
 %%keyboard;
-plot_StatsProbe_vs_time = false;
+plot_StatsProbe_vs_time = true;
 if plot_StatsProbe_vs_time && plot_flag
   StatsProbe_plot_lines = 20000;
   if strcmp(run_type, "color_deep") || strcmp(run_type, "noTopDown")
@@ -469,13 +463,9 @@ if plot_StatsProbe_vs_time && plot_flag
     StatsProbe_list = ...
 	{["LabelError"],["_Stats.txt"]; ...
 	 ["Error"],["_Stats.txt"]; ...
-	 ["Error2"],["_Stats.txt"]; ...
 	 ["Error1_2"],["_Stats.txt"]; ...
-	 ["Error4"],["_Stats.txt"]; ...
-	 ["Error2_4"],["_Stats.txt"]; ...
 	 ["V1"],["_Stats.txt"];...
-	 ["V2"],["_Stats.txt"];...
-	 ["V4"],["_Stats.txt"]};
+	 ["V2"],["_Stats.txt"]};
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   endif %% run_type
   StatsProbe_vs_time_dir = [output_dir, filesep, "StatsProbe_vs_time"]
@@ -502,13 +492,12 @@ if plot_StatsProbe_vs_time && plot_flag
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     StatsProbe_sigma_flag([2,4,6,7]) = 0;
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  elseif strcmp(run_type, "MNIST") || strcmp(run_type, "CIFAR") || strcmp(run_type, "CIFAR_noTask")  || strcmp(run_type, "CIFAR_deep") 
+  elseif  strcmp(run_type, "CIFAR_deep") 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% MNIST/CIFAR list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    StatsProbe_sigma_flag([7]) = 0;
-    StatsProbe_sigma_flag([8]) = 0;
-    StatsProbe_sigma_flag([9]) = 0;
+    StatsProbe_sigma_flag([4]) = 0;
+    StatsProbe_sigma_flag([5]) = 0;
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   endif %% run_type
   StatsProbe_nnz_flag = ~StatsProbe_sigma_flag;
@@ -603,8 +592,8 @@ endif  %% plot_StatsProbe_vs_time
 
 
 
-plot_Sparse_flag = true;
-if plot_Sparse_flag
+analyze_Sparse_flag = true;
+if analyze_Sparse_flag
   if strcmp(run_type, "color_deep") || strcmp(run_type, "lateral") || strcmp(run_type, "noTopDown")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% deep/lateral list
@@ -625,15 +614,14 @@ if plot_Sparse_flag
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     Sparse_list = ...
 	{["a2_"],  ["V1"]; ...
-	 ["a6_"],  ["V2"]; ...
-	 ["a12_"], ["V4"]};
+	 ["a5_"],  ["V2"]};
   elseif strcmp(run_type, "noPulvinar")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% noPulvinar list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     Sparse_list = ...
 	{["a4_"], ["V1"]; ...
-	 ["a6_"], ["V2"]};
+	 ["a5_"], ["V2"]};
   endif %% run_type
 
   fraction_Sparse_frames_read = 1;
@@ -644,15 +632,16 @@ if plot_Sparse_flag
   else
     num_procs = 4;
   endif
-  [Sparse_hist_rank_array, ...
+  [Sparse_hdr, ...
+   Sparse_hist_rank_array, ...
    Sparse_times_array, ...
    Sparse_percent_active_array, ...
    Sparse_percent_change_array, ...
    Sparse_std_array] = ...
-      plotSparsePVP(Sparse_list, ...
+      analyzeSparsePVP(Sparse_list, ...
 		    output_dir, ...
 		    load_Sparse_flag, ...
-		    plot_Sparse_flag, ...
+		    plot_flag, ...
 		    fraction_Sparse_frames_read, ...
 		    min_Sparse_skip, ...
 		    fraction_Sparse_progress, ...
@@ -670,9 +659,8 @@ endif %% plot_Sparse_flag
 
 
 
-plot_nonSparse = false;
-begin_nonSparse_analysis = 0.0; %%0.9;
-if plot_nonSparse && plot_flag
+analyze_nonSparse_flag = true;
+if analyze_nonSparse_flag
   if strcmp(run_type, "color_deep") || strcmp(run_type, "noTopDown")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% deep list
@@ -680,19 +668,16 @@ if plot_nonSparse && plot_flag
     nonSparse_list = ...
         {["a3_"], ["Error"]; ...
          ["a6_"], ["Error2"]; ...
-         ["a9_"], ["Error1_2"]}; %%; ...
-%%	 ["a15_"], ["NoiselessError"]};
+         ["a9_"], ["Error1_2"]};
     num_nonSparse_list = size(nonSparse_list,1);
     nonSparse_skip = repmat(1, num_nonSparse_list, 1);
     nonSparse_skip(1) = 1;
     nonSparse_skip(2) = 1;
     nonSparse_skip(3) = 1;
-%%    nonSparse_skip(4) = 1;
     nonSparse_norm_list = ...
         {["a2_"], ["Ganglion"]; ...
          ["a8_"], ["Recon2"]; ...
          ["a4_"], ["V1"]}; ...
-%%         ["a14_"], ["NoiselessGanglion"]};
     nonSparse_norm_strength = ones(num_nonSparse_list,1);
     Sparse_std_ndx = [0 0 1];
     %%%%%%%%%%%%%%%%%%%%%%%%e%%%%%%%%%%%%%%%%%%%%
@@ -722,11 +707,8 @@ if plot_nonSparse && plot_flag
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     nonSparse_list = ...
 	{["a1_"], ["Error"]; ...
-         ["a5_"], ["Error2"]; ...
          ["a4_"], ["Error1_2"]; ...
-         ["a10_"], ["Error4"]; ...
-         ["a11_"], ["Error2_4"]; ...
-	 ["a18_"], ["LabelError"]};
+	 ["a9_"], ["LabelError"]};
     num_nonSparse_list = size(nonSparse_list,1);
     nonSparse_skip = repmat(1, num_nonSparse_list, 1);
     nonSparse_skip(1) = 1;
@@ -734,15 +716,12 @@ if plot_nonSparse && plot_flag
     nonSparse_skip(3) = 1;
     nonSparse_norm_list = ...
         {["a0_"], ["Image"]; ...
-         ["a7_"], ["Recon2"]; ...
          ["a2_"], ["V1"]; ...
-         ["a13_"], ["Recon4"]; ...
-         ["a6_"], ["V2"]; ...
-         ["a17_"], ["Labels"]};
+         ["a8_"], ["Labels"]};
     nonSparse_norm_strength = ones(num_nonSparse_list,1);
     nonSparse_norm_strength(1) = ...
 	1/sqrt(32*32);
-    Sparse_std_ndx = [0 0 1 0 2 0];
+    Sparse_std_ndx = [0 1 0];
   elseif strcmp(run_type, "noPulvinar")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% noPulvinar
@@ -785,159 +764,31 @@ if plot_nonSparse && plot_flag
   if ~exist("Sparse_std_ndx")
     Sparse_std_ndx = zeros(num_nonSparse_list,1);
   endif
+  if ~exist("nonSparse_norm_strength")
+    nonSparse_norm_strength = ones(num_nonSparse_list,1);
+  endif
 
-  nonSparse_times_array = cell(num_nonSparse_list,1);
-  nonSparse_RMS_array = cell(num_nonSparse_list,1);
-  nonSparse_norm_RMS_array = cell(num_nonSparse_list,1);
-  nonSparse_hdr = cell(num_nonSparse_list,1);
-  nonSparse_dir = [output_dir, filesep, "nonSparse"]
-  [status, msg, msgid] = mkdir(nonSparse_dir);
-  if status ~= 1
-    warning(["mkdir(", nonSparse_dir, ")", " msg = ", msg]);
-  endif 
-  nonSparse_RMS_fig = zeros(num_nonSparse_list,1);
-  max_nonSparse_RMS = zeros(num_nonSparse_list,1);
-  min_nonSparse_RMS = zeros(num_nonSparse_list,1);
-  for i_nonSparse = 1 : num_nonSparse_list
-    nonSparse_file = ...
-	[output_dir, filesep, nonSparse_list{i_nonSparse,1}, nonSparse_list{i_nonSparse,2}, ".pvp"]
-    if ~exist(nonSparse_file, "file")
-      warning(["file does not exist: ", nonSparse_file]);
-      continue;
-    endif
-    nonSparse_fid = fopen(nonSparse_file);
-    nonSparse_hdr{i_nonSparse} = readpvpheader(nonSparse_fid);
-    fclose(nonSparse_fid);
-    tot_nonSparse_frames = nonSparse_hdr{i_nonSparse}.nbands;
-    num_nonSparse = tot_nonSparse_frames;
-    progress_step = ceil(tot_nonSparse_frames / 10);
-    [nonSparse_struct, nonSparse_hdr_tmp] = ...
-	readpvpfile(nonSparse_file, progress_step, ...
-		    tot_nonSparse_frames, tot_nonSparse_frames-num_nonSparse+5, ...
-		    nonSparse_skip(i_nonSparse));
-    num_nonSparse_frames = size(nonSparse_struct,1);
-    begin_nonSparse_frame = fix(begin_nonSparse_analysis*num_nonSparse_frames)+1;
-    nonSparse_times = zeros((num_nonSparse_frames-begin_nonSparse_frame+1),1);
-    nonSparse_RMS = zeros((num_nonSparse_frames-begin_nonSparse_frame+1),1);
+  fraction_nonSparse_frames_read = 1;
+  min_nonSparse_skip = 1;
+  fraction_nonSparse_progress = 10;
+  [nonSparse_times_array, ...
+   nonSparse_RMS_array, ...
+   nonSparse_norm_RMS_array, ...
+   nonSparse_RMS_fig] = ...
+      analyzeNonSparsePVP(nonSparse_list, ...
+		       nonSparse_skip, ...
+		       nonSparse_norm_list, ...
+		       nonSparse_norm_strength, ...
+		       Sparse_times_array, ...
+		       Sparse_std_array, ...
+		       Sparse_std_ndx, ...
+		       output_dir, ...
+		       plot_flag, ...
+		       fraction_nonSparse_frames_read, ...
+		       min_nonSparse_skip, ...
+		       fraction_nonSparse_progress);
 
-    num_nonSparse_norm_frames = 0;
-    if ~isempty(nonSparse_norm_list{i_nonSparse,1}) && ~isempty(nonSparse_norm_list{i_nonSparse,2})
-      nonSparse_norm_file = ...
-	  [output_dir, filesep, nonSparse_norm_list{i_nonSparse,1}, ...
-	   nonSparse_norm_list{i_nonSparse,2}, ".pvp"]
-      if ~exist(nonSparse_norm_file, "file")
-	warning(["file does not exist: ", nonSparse_norm_file]);
-	continue;
-      endif
-      progress_step = ceil(tot_nonSparse_frames / 10);
-      [nonSparse_norm_struct, nonSparse_norm_hdr_tmp] = ...
-	  readpvpfile(nonSparse_norm_file, ...
-		      progress_step, tot_nonSparse_frames, tot_nonSparse_frames-num_nonSparse+5, ...
-		      nonSparse_skip(i_nonSparse));
-      num_nonSparse_norm_frames = size(nonSparse_norm_struct,1);
-      nonSparse_norm_times = zeros((num_nonSparse_frames-begin_nonSparse_frame+1),1);
-      nonSparse_norm_RMS = zeros((num_nonSparse_frames-begin_nonSparse_frame+1),1);
-    elseif Sparse_std_ndx(i_nonSparse) > 0
-      num_nonSparse_norm_frames = length(Sparse_times_array{Sparse_std_ndx(i_nonSparse)});
-      nonSparse_norm_struct = cell(num_nonSparse_norm_frames,1);
-      for i_frame = 1 : 1 : num_nonSparse_norm_frames
-	nonSparse_norm_struct{i_frame}.time = Sparse_times_array{Sparse_std_ndx(i_nonSparse)}(i_frame);
-      endfor
-    else
-      nonSparse_norm_RMS = ones((num_nonSparse_frames-begin_nonSparse_frame+1),1);
-      nonSparse_norm_times = zeros((num_nonSparse_frames-begin_nonSparse_frame+1),1);
-      nonSparse_norm_struct = [];
-    endif %% ~isempty(nonSparse_norm_list{i_nonSparse,1})
-
-    frame_diff = 0;
-    if  ~isempty(nonSparse_norm_struct) && num_nonSparse_norm_frames > 0
-      frame_diff = ...
-	  max((nonSparse_struct{num_nonSparse_frames-1}.time - ...
-	       nonSparse_norm_struct{num_nonSparse_norm_frames-1}.time), ...
-	      1);
-    endif
-    for i_frame = begin_nonSparse_frame : 1 : num_nonSparse_frames
-      if ~isempty(nonSparse_struct{i_frame})
-	nonSparse_times(i_frame-begin_nonSparse_frame+1) = squeeze(nonSparse_struct{i_frame}.time);
-	nonSparse_vals = squeeze(nonSparse_struct{i_frame}.values);
-	nonSparse_RMS(i_frame-begin_nonSparse_frame+1) = std(nonSparse_vals(:));
-
-	if ~isempty(nonSparse_norm_struct) && i_frame <= num_nonSparse_norm_frames
-	  nonSparse_norm_time = nonSparse_norm_struct{i_frame}.time;
-	  nonSparse_time_shift = 0;
-	  while (nonSparse_norm_time - nonSparse_times(i_frame-begin_nonSparse_frame+1)) > frame_diff && ...
-		(i_frame-(nonSparse_time_shift+1)) >= 1
-	    nonSparse_time_shift = nonSparse_time_shift + 1;
-	    nonSparse_norm_time = nonSparse_norm_struct{i_frame-nonSparse_time_shift}.time;
-	  endwhile
-	  while (nonSparse_norm_time - nonSparse_times(i_frame-begin_nonSparse_frame+1)) < -frame_diff && ...
-		(i_frame-(nonSparse_time_shift-1)) <= num_nonSparse_norm_frames
-	    nonSparse_time_shift = nonSparse_time_shift - 1;
-	    nonSparse_norm_time = nonSparse_norm_struct{i_frame-nonSparse_time_shift}.time;
-	  endwhile
-	  if (i_frame-nonSparse_time_shift) < 1 || (i_frame-nonSparse_time_shift) > num_nonSparse_norm_frames
-	    last_frame = i_frame - 1;
-	    num_nonSparse_frames = i_frame - 1;
-	    nonSparse_times = nonSparse_times(1:(num_nonSparse_frames-begin_nonSparse_frame+1));
-	    nonSparse_RMS = nonSparse_RMS(1:(num_nonSparse_frames-begin_nonSparse_frame+1));
-	    nonSparse_norm_RMS = nonSparse_norm_RMS(1:(num_nonSparse_frames-begin_nonSparse_frame+1));
-	    break;
-	  else
-	    if Sparse_std_ndx(i_nonSparse) == 0
-	      nonSparse_norm_vals = ...
-		  squeeze(nonSparse_norm_struct{i_frame-nonSparse_time_shift}.values);
-	      nonSparse_norm_RMS(i_frame-begin_nonSparse_frame+1) = ...
-		  sqrt(mean(nonSparse_norm_strength(i_nonSparse).^2 * nonSparse_norm_vals(:).^2));
-	    else
-	      nonSparse_norm_RMS(i_frame-begin_nonSparse_frame+1) = ...
-		  Sparse_std_array{Sparse_std_ndx(i_nonSparse)}(i_frame-nonSparse_time_shift);
-	    endif
-	  endif
-	endif %% ~isempty(nonSparse_norm_struct)
-
-      else %% ~isempty(nonSparse_struct{i_frame})
-	num_nonSparse_frames = i_frame - 1;
-	nonSparse_times = nonSparse_times(1:(num_nonSparse_frames-begin_nonSparse_frame+1));
-	nonSparse_RMS = nonSparse_RMS(1:(num_nonSparse_frames-begin_nonSparse_frame+1));
-	break;
-      endif %% ~isempty(nonSparse_struct{i_frame})
-    endfor %% i_frame
-    num_nonSparse_frames = size(nonSparse_times,1);
-    if num_nonSparse_frames <= 0
-      disp(["num_nonSparse_frames = ", num2str(num_nonSparse_frames)]);
-      continue;
-    endif
-    if plot_flag
-      nonSparse_RMS_fig(i_nonSparse) = figure;
-      normalized_nonSparse_RMS = ...
-	  nonSparse_RMS(1:num_nonSparse_frames) ./ ...
-	  (nonSparse_norm_RMS(1:num_nonSparse_frames) + (nonSparse_norm_RMS(1:num_nonSparse_frames)==0));
-      nonSparse_RMS_hndl = plot(nonSparse_times, normalized_nonSparse_RMS); 
-      set(nonSparse_RMS_hndl, "linewidth", 1.5);
-      max_nonSparse_RMS(i_nonSparse) = median(normalized_nonSparse_RMS(:)) + 2*std(normalized_nonSparse_RMS(:));
-      min_nonSparse_RMS(i_nonSparse) = 0.0; %%min(normalized_nonSparse_RMS(:));
-      %%axis([nonSparse_times(1) nonSparse_times(num_nonSparse_frames) ...
-      %%   min_nonSparse_RMS(i_nonSparse) max_nonSparse_RMS(i_nonSparse)]);
-      hold on
-      set(nonSparse_RMS_fig(i_nonSparse), "name", ...
-	  ["RMS_", nonSparse_list{i_nonSparse,1}, nonSparse_list{i_nonSparse,2}, ...
-	   "_", num2str(nonSparse_times(num_nonSparse_frames), "%08d")]);
-     saveas(nonSparse_RMS_fig(i_nonSparse), ...
-	     [nonSparse_dir, filesep, ...
-	      "RMS_", nonSparse_list{i_nonSparse,1}, nonSparse_list{i_nonSparse,2}, ...
-	      "_", num2str(nonSparse_times(num_nonSparse_frames), "%08d")], "png");
-    endif
-    nonSparse_median_RMS = ...
-	 median(nonSparse_RMS(1:num_nonSparse_frames) ./ ...
-		(nonSparse_norm_RMS(1:num_nonSparse_frames) + (nonSparse_norm_RMS(1:num_nonSparse_frames)==0)));
-    disp([nonSparse_list{i_nonSparse,2}, "_", num2str(nonSparse_times(num_nonSparse_frames), "%i"), ...
-	  " median RMS = ", num2str(nonSparse_median_RMS)]);
-    nonSparse_times_array{i_nonSparse} = nonSparse_times;
-    nonSparse_RMS_array{i_nonSparse} = nonSparse_RMS;
-    nonSparse_norm_RMS_array{i_nonSparse} = nonSparse_norm_RMS;
-    %%keyboard;
-  endfor  %% i_nonSparse
-endif %% plot_nonSparse
+endif %% analyze_nonSparse_flag
 
 
 
@@ -945,7 +796,7 @@ endif %% plot_nonSparse
 
 
 
-plot_ReconError = true && plot_nonSparse;
+plot_ReconError = true && analyze_nonSparse_flag;
 ReconError_nonSparse_ndx = [];
 if plot_ReconError && plot_flag
   if strcmp(run_type, "color_deep") || strcmp(run_type, "noTopDown") || strcmp(run_type, "noPulvinar")
@@ -986,21 +837,17 @@ if plot_ReconError && plot_flag
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     ReconError_list = ...
         {["a3_"],  ["Recon"]; ...
-         ["a9_"],  ["ReconInfra"]; ...
-         ["a16_"], ["ReconInfra4"]};
+         ["a7_"],  ["ReconInfra"]};
     num_ReconError_list = size(ReconError_list,1);
     ReconError_skip = repmat(1, num_ReconError_list, 1);
     ReconError_skip(1) = 1;
     ReconError_skip(2) = 1;
-    ReconError_skip(3) = 1;
     ReconError_norm_list = ...
         {["a0_"], ["Image"]; ...
-         ["a0_"], ["Image"]; ...
          ["a0_"], ["Image"]};
-    ReconError_norm_strength = ones(num_ReconError_list,1);
     ReconError_norm_strength = ...
-	[1/sqrt(32*32); 1/sqrt(32*32); 1/sqrt(32*32)];
-    ReconError_nonSparse_ndx = [1 1 1];
+	[1/sqrt(32*32); 1/sqrt(32*32)];
+    ReconError_nonSparse_ndx = [1 1];
   elseif strcmp(run_type, "lateral")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% lateral list
@@ -1079,22 +926,24 @@ if plot_ReconError && plot_flag
       ReconError_norm_struct = [];
     endif
 
-    frame_diff = ...
-	(ReconError_struct{1}.time - ReconError_norm_struct{1}.time);
     %%keyboard;
-    for i_frame = 1 : 1 : num_ReconError_frames
+    frame_diff = ...
+	(ReconError_struct{1}.time - ReconError_norm_struct{1}.time)/2;
+    %%keyboard;
+    for i_frame = 1 : 1 : min(num_ReconError_frames,num_ReconError_norm_frames)
       if ~isempty(ReconError_struct{i_frame})
 	ReconError_times(i_frame) = squeeze(ReconError_struct{i_frame}.time);
 	ReconError_vals = squeeze(ReconError_struct{i_frame}.values);
 	if ~isempty(ReconError_norm_struct)
-	  ReconError_norm_time = ReconError_norm_struct{i_frame}.time;
+	  j_frame = min(i_frame, num_ReconError_norm_frames);
+	  ReconError_norm_time = ReconError_norm_struct{j_frame}.time;
 	  ReconError_time_shift = 0;
-	  while ReconError_norm_time - ReconError_times(i_frame) > frame_diff && ...
+	  while ReconError_norm_time - ReconError_times(i_frame) > abs(frame_diff) && ...
 		(i_frame-(ReconError_time_shift+1)) >= 1
 	    ReconError_time_shift = ReconError_time_shift + 1;
 	    ReconError_norm_time = ReconError_norm_struct{i_frame-ReconError_time_shift}.time;
 	  endwhile
-	  while ReconError_norm_time - ReconError_times(i_frame) < -frame_diff && ...
+	  while ReconError_norm_time - ReconError_times(i_frame) < -abs(frame_diff) && ...
 		(i_frame-(ReconError_time_shift-1)) <= num_ReconError_norm_frames
 	    ReconError_time_shift = ReconError_time_shift - 1;
 	    ReconError_norm_time = ReconError_norm_struct{i_frame-ReconError_time_shift}.time;
@@ -1166,7 +1015,7 @@ endif %% plot_ReconError
 
 
 
-plot_ErrorVsSparse = true && plot_Sparse_flag && plot_nonSparse;
+plot_ErrorVsSparse = true && analyze_Sparse_flag && analyze_nonSparse_flag;
 if plot_ErrorVsSparse
   ErrorVsSparse_list = [nonSparse_list; ReconError_list];
   num_nonSparse_list = size(ErrorVsSparse_list,1);
@@ -1192,10 +1041,14 @@ if plot_ErrorVsSparse
   elseif strcmp(run_type, "CIFAR_deep")
     Sparse_axis_index(2) = 2;
     Sparse_axis_index(3) = 2;
-    Sparse_axis_index(4) = 3;
-    Sparse_axis_index(5) = 3;
-    Sparse_axis_index(6) = 3;
+    Sparse_axis_index(4) = 1;
+    Sparse_axis_index(5) = 2;
   endif
+  ErrorVsSparse_dir = [output_dir, filesep, "ErrorVsSparse"]
+  [status, msg, msgid] = mkdir(ErrorVsSparse_dir);
+  if status ~= 1
+    warning(["mkdir(", ErrorVsSparse_dir, ")", " msg = ", msg]);
+  endif 
   for i_nonSparse = 1 : num_nonSparse_list
     i_Sparse = Sparse_axis_index(i_nonSparse);
     nonSparse_times = nonSparse_times_array{i_nonSparse};
@@ -1278,12 +1131,12 @@ if plot_ErrorVsSparse
 	  ["ErrorVsSparse_", ErrorVsSparse_list{i_nonSparse,2}, "_", ...
 	   num2str(nonSparse_times(num_nonSparse_frames), "%08d")]);
       saveas(ErrorVsSparse_fig, ...
-	     [nonSparse_dir, filesep, ...
+	     [ErrorVsSparse_dir, filesep, ...
 	      "ErrorVsSparse_", ErrorVsSparse_list{i_nonSparse,2}, "_", ...
 	      num2str(nonSparse_times(num_nonSparse_frames), "%08d")], "png");
     endif %% plot_flag
     save("-mat", ...
-	 [nonSparse_dir, filesep, "ErrorVsSparse_", ErrorVsSparse_list{i_nonSparse,2}, "_", ...
+	 [ErrorVsSparse_dir, filesep, "ErrorVsSparse_", ErrorVsSparse_list{i_nonSparse,2}, "_", ...
 	  num2str(nonSparse_times(num_nonSparse_frames), "%08d"), ".mat"], ...
 	 "nonSparse_times", "Sparse_vals", "nonSparse_RMS", "nonSparse_norm_RMS", ...
 	 "Sparse_bins", "mean_nonSparse_RMS", "std_nonSparse_RMS");	 
@@ -1321,22 +1174,15 @@ if plot_weights
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% CIFAR_noTask_deep list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    sparse_ndx = [1; 2; 3];
+    sparse_ndx = [1];
     if ~checkpoint_weights_movie
       weights_list = ...
-          {["w1_"], ["V1ToError"]; ...
-           ["w5_"], ["V2ToError2"]; ...
-           ["w22_"], ["V4ToError4"]};
+          {["w1_"], ["V1ToError"]};
       checkpoints_list = {output_dir};
     else
       weights_list = ...
-          {["V1ToError"], "_W"; ...
-           ["V2ToError2"], "_W"; ...
-           ["V4ToError4"], "_W"};
-      labelWeights_list = ...
-	  {["V1ToLabelError"], ["_W"]; ...
-	   ["V2ToLabelError"], ["_W"]; ...
-	   ["V4ToLabelError"], ["_W"]};
+          {["V1ToError"], "_W"};
+      labelWeights_list = {}; %%...
       checkpoints_list = getCheckpointList(checkpoint_parent, checkpoint_children);
     endif %% checkpoint_weights_movie
     num_checkpoints = size(checkpoints_list,1);
@@ -1434,12 +1280,12 @@ if plot_weights
 	continue;
       endif
       tmp_ndx = sparse_ndx(i_weights);
-      if plot_Sparse_flag
+      if analyze_Sparse_flag
 	tmp_rank = Sparse_hist_rank_array{tmp_ndx};
       else
 	tmp_rank = [];
       endif
-      if plot_Sparse_flag && ~isempty(tmp_rank)
+      if analyze_Sparse_flag && ~isempty(tmp_rank)
 	pre_hist_rank = tmp_rank;
       else
 	pre_hist_rank = (1:weights_hdr{i_weights}.nf);
@@ -1561,27 +1407,34 @@ if plot_weights
 	label_weights_fig = figure;
 	imagesc(labelWeights_vals(:,maxind))
 	label_weights_str = ...
-	    ["LabelWeights_", labelWeights_list{i_weights,2}, "_", num2str(labelWeights_time, "%08d")];
+	    ["LabelWeights_", labelWeights_list{i_weights,1}, labelWeights_list{i_weights,2}, ...
+	     "_", num2str(labelWeights_time, "%08d")];
 	%%title(label_weights_fig, label_weights_str);
-	figure(label_weights_fig); title(label_weights_str);
+	figure(label_weights_fig, "name", label_weights_str); title(label_weights_str);
 	saveas(label_weights_fig, [weights_dir, filesep, label_weights_str, ".png"] , "png");
 
 	%% Plot the average movie weights for a label %%
+	labeledWeights_str = ...
+	    ["labeledWeights_", ...
+	     weights_list{i_weights,1}, weights_list{i_weights,2}, "_", ...
+	     num2str(weight_time, "%08d")];
+	labeledWeights_fig = figure("name", labeledWeights_str);
+	title(labeledWeights_str);
+	rows_labeledWeights = ceil(sqrt(size(labelWeights_vals,1)));
+	cols_labeledWeights = ceil(size(labelWeights_vals,1) / rows_labeledWeights);
 	for label = 0 : size(labelWeights_vals,1)-1 %% anything 0:0
-	  labeledWeights_fig = figure;
+	  subplot(rows_labeledWeights, cols_labeledWeights, label+1);
 	  if num_weights_colors == 1
 	    imagesc(squeeze(mean(weight_vals(:,:,maxind(maxnum==(label+1))),3))')
 	  else
 	    imagesc(permute(squeeze(mean(weight_vals(:,:,:,1+mod(maxind(maxnum==(label+1))-1,size(weight_vals,4))),4)),[2,1,3]));
 	  endif
-	  labeledWeights_str = ...
-	      ["labeledWeightsFig_", ...
-	       weights_list{i_weights,1}, weights_list{i_weights,2}, "_", num2str(label, "%d"), "_", ...
-	       num2str(weight_time, "%08d")];
-	  %%title(labeledWeights_fig, labeledWeights_str);
-	  title(labeledWeights_str);
-	  saveas(labeledWeights_fig,  [weights_dir, filesep, labeledWeights_str, ".png"], "png");
+	  labeledWeights_subplot_str = ...
+	      [num2str(label, "%d")];
+	  title(labeledWeights_subplot_str);
+	  axis off
 	endfor %% label
+	saveas(labeledWeights_fig,  [weights_dir, filesep, labeledWeights_str, ".png"], "png");
       endif  %% ~isempty(labelWeights_vals) && ~isempty(labelWeights_time)
 
     endfor %% i_checkpoint
@@ -1601,9 +1454,9 @@ if plot_labelRecon
     %% MNIST/CIFAR list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     labels_list = ...
-	{["a17_"], ["Labels"]};
+	{["a8_"], ["Labels"]};
     labelRecon_list = ...
-	{["a19_"], ["LabelRecon"]};
+	{["a10_"], ["LabelRecon"]};
   endif %% run_type
 endif
 i_label = 1;
@@ -2003,12 +1856,12 @@ if plot_weights1_2
       
       %% get rank order of presynaptic elements
       tmp_ndx = sparse_ndx(i_weights1_2);
-      if plot_Sparse_flag
+      if analyze_Sparse_flag
 	tmp_rank = Sparse_hist_rank_array{tmp_ndx};
       else
 	tmp_rank = [];
       endif
-      if plot_Sparse_flag && ~isempty(tmp_rank)
+      if analyze_Sparse_flag && ~isempty(tmp_rank)
 	pre_hist_rank = tmp_rank;
       else
 	pre_hist_rank = (1:weights1_2_hdr{i_weights1_2}.nf);
@@ -2189,30 +2042,37 @@ if plot_weights1_2
 	    patch_tmp5;
 
 	%% Plot the average movie weights for a label %%
-	if ~isempty(labelWeights_vals) 
-	  if ~isempty(labeledWeights0_2{max_label})
-	    labeledWeights0_2{max_label} = labeledWeights0_2{max_label} + double(patch_tmp5);
-	  else
-	    labeledWeights0_2{max_label} = double(patch_tmp5);
-	  endif
-	endif %%  ~isempty(labelWeights_vals) 
+	if plot_flag && i_checkpoint == max_checkpoint
+	  if ~isempty(labelWeights_vals) 
+	    if ~isempty(labeledWeights0_2{max_label})
+	      labeledWeights0_2{max_label} = labeledWeights0_2{max_label} + double(patch_tmp5);
+	    else
+	      labeledWeights0_2{max_label} = double(patch_tmp5);
+	    endif
+	  endif %%  ~isempty(labelWeights_vals) 
+	endif %% plot_flag && i_checkpoint == max_checkpoint
 
       endfor %% kf_pre1_2_ank
 
       if plot_flag && i_checkpoint == max_checkpoint
 	saveas(weights1_2_fig, [weights1_2_dir, filesep, weights1_2_name, ".png"], "png");
 	if ~isempty(labelWeights_vals) 
+	  labeledWeights_str = ...
+	      ["labeledWeights_", ...
+	       weights1_2_list{i_weights1_2,1}, weights1_2_list{i_weights1_2,2}, ...
+	       "_", num2str(weight_time, "%08d")];
+	  labeledWeights_fig = figure("name", labeledWeights_str);
+	  rows_labeledWeights = ceil(sqrt(size(labelWeights_vals,1)));
+	  cols_labeledWeights = ceil(size(labelWeights_vals,1) / rows_labeledWeights);
 	  for label = 1:size(labelWeights_vals,1)
-	    labeledWeights_str = ...
-		["labeledWeightsFig_", ...
-		 weights1_2_list{i_weights1_2,1}, weights1_2_list{i_weights1_2,2}, ...
-		 "_", num2str(label, "%d"), "_", ...
-		 num2str(weight_time, "%08d")];
-	    labeledWeights_fig = figure;
-	    title(labeledWeights_str);
+	    subplot(rows_labeledWeights, cols_labeledWeights, label);
+	    labeledWeights_subplot_str = ...
+		[num2str(label, "%d")];
 	    imagesc(squeeze(labeledWeights0_2{label}));
-	    saveas(labeledWeights_fig,  [weights_dir, filesep, labeledWeights_str, ".png"], "png");
+	    axis off
+	    title(labeledWeights_subplot_str);
 	  endfor %% label = 1:size(labelWeights_vals,1)
+	  saveas(labeledWeights_fig,  [weights_dir, filesep, labeledWeights_str, ".png"], "png");
 	endif %%  ~isempty(labelWeights_vals) 
 
       endif
@@ -2245,9 +2105,11 @@ if plot_weights1_2
 	label_weights_fig = figure;
 	imagesc(ranked_labelWeights(:,max_label_ndx))
 	label_weights_str = ...
-	    ["LabelWeights_", labelWeights_list{i_weights1_2,2}, "_", num2str(labelWeights_time, "%08d")];
+	    ["LabelWeights_", labelWeights_list{i_weights1_2,1}, labelWeights_list{i_weights1_2,2}, ...
+	     "_", num2str(labelWeights_time, "%08d")];
 	%%title(label_weights_fig, label_weights_str);
-	figure(label_weights_fig); title(label_weights_str);
+	figure(label_weights_fig, "name", label_weights_str); 
+	title(label_weights_str);
 	saveas(label_weights_fig, [weights_dir, filesep, label_weights_str, ".png"] , "png");
 
       endif  %% ~isempty(labelWeights_vals) && ~isempty(labelWeights_time)
@@ -2267,7 +2129,7 @@ endif  %% plot_weights
 
 
 %%keyboard;
-plot_weightsN_Nplus1 = true;
+plot_weightsN_Nplus1 = false;
 weightsN_Nplus1_list = {};
 layersN_Nplus1_list = {};
 if strcmp(run_type, "color_deep") || strcmp(run_type, "noTopDown")
@@ -2285,7 +2147,7 @@ elseif strcmp(run_type, "CIFAR_deep")
     weightsN_Nplus1_list = ...
         {["w15_"], ["V4ToError2_4"], ["w9_"], ["V2ToError1_2"], ["w1_"], ["V1ToError"]};
     layersN_Nplus1_list = ...
-        {["a12_"], ["V4"], ["a6_"], ["V2"], ["a2_"], ["V1"], ["a0_"], ["Image"]};
+        {["a12_"], ["V4"], ["a5_"], ["V2"], ["a2_"], ["V1"], ["a0_"], ["Image"]};
     labelWeights_list = ...
 	{["w26_"], ["V4ToLabelError"]};
   else
@@ -2474,12 +2336,12 @@ if plot_weightsN_Nplus1
       %% get rank order of presynaptic elements
     i_layerN_Nplus1 = 1;
     tmp_ndx = sparse_ndx(i_weightN_Nplus1);
-    if plot_Sparse_flag
+    if analyze_Sparse_flag
       tmp_rank = Sparse_hist_rank_array{tmp_ndx};
     else
       tmp_rank = [];
     endif
-    if plot_Sparse_flag && ~isempty(tmp_rank)
+    if analyze_Sparse_flag && ~isempty(tmp_rank)
       pre_hist_rank = tmp_rank;
     else
       pre_hist_rank = (1:weightsN_Nplus1_hdr{i_weightN_Nplus1, i_layerN_Nplus1}.nf);
@@ -2845,17 +2707,23 @@ if plot_weightsN_Nplus1
 	      i_layerN_Nplus1 == num_layersN_Nplus1_list-2 
 	  saveas(weightsNminus1_Nplus1_fig, [weightsN_Nplus1_dir, filesep, weightsN_Nplus1_name, ".png"], "png");
 	  if ~isempty(labelWeights_vals) 
+	    labeledWeights_str = ...
+		["labeledWeights_", ...
+		 weightsN_Nplus1_list{i_weightN_Nplus1,1}, weightsN_Nplus1_list{i_weightN_Nplus1,2}, ...
+		   "_", num2str(weightsN_Nplus1_time, "%08d")];
+	    labeledWeights_fig = figure(labeledWeights_fig, "name", labeledWeights_str);
+	    title(labeledWeights_str);
+	    rows_labeledWeights = ceil(sqrt(size(labelWeights_vals,1)));
+	    cols_labeledWeights = ceil(size(labelWeights_vals,1) / rows_labeledWeights);
 	    for label = 1:size(labelWeights_vals,1)
-	      labeledWeights_str = ...
-		  ["labeledWeightsFig_", ...
-		   weightsN_Nplus1_list{i_weightN_Nplus1,1}, weightsN_Nplus1_list{i_weightN_Nplus1,2}, ...
-		   "_", num2str(label, "%d"), "_", ...
-		   num2str(weightsN_Nplus1_time, "%08d")];
-	      labeledWeights_fig = figure;
-	      title(labeledWeights_str);
+	      subplot(rows_labeledWeights, cols_labeledWeights, label);
+	      labeledWeights_subplot_str = ...
+		  [num2str(label, "%d")];
 	      imagesc(squeeze(labeledWeightsNminus1_Nplus1{label}));
-	      saveas(labeledWeights_fig,  [weightsN_Nplus1_dir, filesep, labeledWeights_str, ".png"], "png");
+	      title(labeledWeights_subplot_str);
+	      axis off
 	    endfor %% label = 1:size(labelWeights_vals,1)
+	    saveas(labeledWeights_fig,  [weightsN_Nplus1_dir, filesep, labeledWeights_str, ".png"], "png");
 	  endif %%  ~isempty(labelWeights_vals) 
 	endif
 	imwrite(uint8(weightsNminus1_Nplus1_array), ...
@@ -2890,15 +2758,15 @@ if plot_weightsN_Nplus1
 	  %% plot label weights as matrix of column vectors
 	  ranked_labelWeights = labelWeights_vals(:, pre_hist_rank(1:num_patchesN_Nplus1));
 	  [~, max_label] = max(ranked_labelWeights,[],1);
-	  [max_label_sorted, max_label_ndx] = sort(max_label);
-	  label_weights_fig = figure;
-	  imagesc(ranked_labelWeights(:,max_label_ndx))
+	  [max_label_sorted, max_label_ndx] = sort(max_label, "ascend");
 	  label_weights_str = ...
 	      ["LabelWeights_", ...
-	       weightsN_Nplus1_list{i_weightN_Nplus1,1}, labelWeights_list{i_weightN_Nplus1,2}, "_", ...
+	       labelWeights_list{i_weightN_Nplus1,1}, labelWeights_list{i_weightN_Nplus1,2}, "_", ...
 	       num2str(labelWeights_time, "%08d")];
+	  label_weights_fig = figure("name", label_weights_str);;
+	  imagesc(ranked_labelWeights(:,max_label_ndx))
 	  %%title(label_weights_fig, label_weights_str);
-	  figure(label_weights_fig); title(label_weights_str);
+	  title(label_weights_str);
 	  saveas(label_weights_fig, [weightsN_Nplus1_dir, filesep, label_weights_str, ".png"] , "png");
 	endif  %% ~isempty(labelWeights_vals) && ~isempty(labelWeights_time)
 
