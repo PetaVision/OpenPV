@@ -464,13 +464,20 @@ int scatterImageFilePVP(const char * filename, int xOffset, int yOffset,
 
    int rootproc = 0;
    int rank = comm->commRank();
-
-   PV_Stream * pvstream = PV::pvp_open_read_file(filename, comm);
+   PV_Stream * pvstream;
+   if(rank==rootproc){
+       pvstream = PV::pvp_open_read_file(filename, comm);
+   }
+   else{
+       pvstream = NULL;
+   }
    int numParams = NUM_BIN_PARAMS;
    int params[numParams];
    PV::pvp_read_header(pvstream, comm, params, &numParams);
+
    if (rank==rootproc) {
       PVLayerLoc fileloc;
+      int headerSize = params[INDEX_HEADER_SIZE];
       fileloc.nx = params[INDEX_NX];
       fileloc.ny = params[INDEX_NY];
       fileloc.nf = params[INDEX_NF];
@@ -493,7 +500,7 @@ int scatterImageFilePVP(const char * filename, int xOffset, int yOffset,
       double timed = 0.0;
       int filetype = params[INDEX_FILE_TYPE];
       int framesize;
-      unsigned int framepos;
+      long framepos;
       switch (filetype) {
       case PVP_FILE_TYPE:
          break;
@@ -505,8 +512,9 @@ int scatterImageFilePVP(const char * filename, int xOffset, int yOffset,
          break;
       case PVP_NONSPIKING_ACT_FILE_TYPE:
          framesize = recordsize*datasize*nxProcs*nyProcs+8;
-         framepos = framesize * frameNumber;
-         PV::PV_fseek(pvstream, framepos, SEEK_CUR);
+         framepos = (long)framesize * (long)frameNumber + (long)headerSize;
+         //ONLY READING TIME INFO HERE
+         PV::PV_fseek(pvstream, framepos, SEEK_SET);
          PV::PV_fread(&timed, sizeof(double), 1, pvstream);
          status = PV_SUCCESS;
          break;
