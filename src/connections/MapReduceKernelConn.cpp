@@ -122,6 +122,8 @@ int MapReduceKernelConn::initialize(const char * name, HyPerCol * hc,
 					<< dWeightsList[file_count] << std::endl;
 		} // file_count
 		this->dWeightsFilename = strdup(dWeightsList[dWeightFileIndex]);
+		std::cout << "dWeightFile[" << dWeightFileIndex << "] = "
+			  << dWeightsList[dWeightFileIndex] << std::endl;
 	} // commRank() == rootproc
 	return status;
 }
