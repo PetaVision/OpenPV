@@ -145,14 +145,14 @@ int LabelLayer::allocateDataStructures() {
       // the firstlines below force an L2 norm of unity on the activity of the LabelLayer
       // the second lines force a stddev of 1
       for (int i = 0; i<(labelLoc.nf*(labelLoc.nx+labelLoc.nb*2)*(labelLoc.ny+labelLoc.nb*2)); i++){
-     	 if (i%maxLabel == currentLabel){
-	   labelData[i] = sqrt(maxLabel-1)/sqrt(maxLabel);
-	   //labelData[i] = sqrt(maxLabel-1);
-          }
-          else{
-	    labelData[i] = -1/sqrt((maxLabel-1)*maxLabel);
-	    //labelData[i] = -1/sqrt((maxLabel-1));
-          }
+         if (i%maxLabel == currentLabel){
+            labelData[i] = sqrt(maxLabel-1)/sqrt(maxLabel);
+            //labelData[i] = sqrt(maxLabel-1);
+         }
+         else{
+            labelData[i] = -1/sqrt((maxLabel-1)*maxLabel);
+            //labelData[i] = -1/sqrt((maxLabel-1));
+         }
       }
    }
 
@@ -186,12 +186,12 @@ int LabelLayer::updateState(double time, double dt){
             fprintf(stderr,"Current Label Integer: %d out of %d\n",currentLabel, maxLabel);
          }
          for (int i = 0; i<(labelLoc.nf*(labelLoc.nx+labelLoc.nb*2)*(labelLoc.ny+labelLoc.nb*2)); i++){
-	   if (i%maxLabel == currentLabel){
-	     labelData[i] = sqrt(maxLabel-1)/sqrt(maxLabel);
-	   }
-	   else{
-	     labelData[i] = -1/sqrt((maxLabel-1)*maxLabel);
-	   }
+            if (i%maxLabel == currentLabel){
+               labelData[i] = sqrt(maxLabel-1)/sqrt(maxLabel);
+            }
+            else{
+               labelData[i] = -1/sqrt((maxLabel-1)*maxLabel);
+            }
          }
       }
       lastUpdateTime = parent->simulationTime();
@@ -212,21 +212,21 @@ int LabelLayer::outputState(double time, bool last){
 
 
 //void LabelLayer::readNxScale(PVParams * params) {
-//	int minX = this->parent->getNxGlobal();
-//	nxScale = 1.0;
-//	while (minX%2 == 0){
-//		minX /= 2;
-//		nxScale /=2;
-//	}
+//   int minX = this->parent->getNxGlobal();
+//   nxScale = 1.0;
+//   while (minX%2 == 0){
+//      minX /= 2;
+//      nxScale /=2;
+//   }
 //}
 
 //void LabelLayer::readNyScale(PVParams * params) {
-//	int minY = this->parent->getNyGlobal();
-//	nyScale = 1.0;
-//	while (minY%2 == 0){
-//		minY /= 2;
-//		nyScale /=2;
-//	}
+//   int minY = this->parent->getNyGlobal();
+//   nyScale = 1.0;
+//   while (minY%2 == 0){
+//      minY /= 2;
+//      nyScale /=2;
+//   }
 //}
 
 
