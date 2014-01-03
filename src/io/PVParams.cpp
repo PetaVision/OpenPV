@@ -138,7 +138,8 @@ int ParameterArray::pushValue(double value) {
       free(valuesDbl); valuesDbl = new_values_dbl;
    }
    assert(arraySize<bufferSize);
-   values[arraySize] = value;
+   valuesDbl[arraySize] = value;
+   values[arraySize] = (float) value;
    arraySize++;
    return arraySize;
 }
