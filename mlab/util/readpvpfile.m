@@ -127,7 +127,9 @@ if isempty(errorstring)
                 if exist('progressperiod','var')
                     if ~mod(f,progressperiod)
                         fprintf(1,'File %s: frame %d of %d\n',filename, f, numframes);
-                        fflush(1);
+                        if exist('fflush')
+                           fflush(1);
+                        end%if
                     end%if
                 end%if
                 if f < start_frame || mod(f,skip_frames)~=0
@@ -144,7 +146,9 @@ if isempty(errorstring)
                 if exist('progressperiod','var')
                     if ~mod(f,progressperiod)
                         fprintf(1,'File %s: frame %d of %d\n',filename, f, numframes);
-                        fflush(1);
+                        if exist('fflush')
+                           fflush(1);
+                        end%if
                     end%if
                 end%if
                 if f < start_frame || mod(f,skip_frames)~=0
@@ -209,7 +213,9 @@ if isempty(errorstring)
                 if exist('progressperiod','var')
                     if ~mod(f,progressperiod)
                         fprintf(1,'File %s: frame %d of %d\n',filename, f, numframes);
-                        fflush(1);
+                        if exist('fflush')
+                           fflush(1);
+                        end%if
                     end%if
                 end%if
                 if f < start_frame || mod(f,skip_frames)~=0
@@ -233,7 +239,9 @@ if isempty(errorstring)
                 if exist('progressperiod','var')
                     if ~mod(f,progressperiod)
                         fprintf(1,'File %s: frame %d of %d\n',filename, f, numframes);
-                        fflush(1);
+                        if exist('fflush')
+                           fflush(1);
+                        end%if
                     end%if
                 end%if
                 if f < start_frame || mod(f,skip_frames)~=0
@@ -290,7 +298,9 @@ if isempty(errorstring)
                 if exist('progressperiod','var')
                     if ~mod(f,progressperiod)
                         fprintf(1,'File %s: frame %d of %d\n',filename, f, numframes);
-                        fflush(1);
+                        if exist('fflush')
+                           fflush(1);
+                        end%if
                     end%if
                 end%if
                 if f < start_frame || mod(f,skip_frames)~=0
@@ -310,7 +320,9 @@ if isempty(errorstring)
                 if exist('progressperiod','var')
                     if ~mod(f,progressperiod)
                         fprintf(1,'File %s: frame %d of %d\n',filename, f, numframes);
-                        fflush(1);
+                        if exist('fflush')
+                           fflush(1);
+                        end%if
                     end%if
                 end%if
                 if f < start_frame || mod(f,skip_frames)~=0
