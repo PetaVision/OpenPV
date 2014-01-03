@@ -1,0 +1,21 @@
+#ifndef IMPORTPARAMSLAYER_HPP_ 
+#define IMPORTPARAMSLAYER_HPP_
+
+#include <layers/ANNLayer.hpp>
+
+namespace PV {
+
+class ImportParamsLayer: public PV::ANNLayer {
+public:
+	ImportParamsLayer(const char* name, HyPerCol * hc, int numChannels);
+	ImportParamsLayer(const char* name, HyPerCol * hc);
+   virtual int communicateInitInfo();
+	virtual int allocateDataStructures();
+
+private:
+    int initialize(const char * name, HyPerCol * hc, int numChannels);
+    int initialize_base();
+};
+
+} /* namespace PV */
+#endif
