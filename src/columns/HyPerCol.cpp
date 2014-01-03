@@ -240,7 +240,7 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * p
    initialStep = (long int) nearbyint(startTime/deltaTime);
    finalStep = (long int) nearbyint(stopTime/deltaTime);
    currentStep = initialStep;
-   simTime = initialStep * deltaTime; // GTK: added initialization of simTime
+   simTime = startTime;
 
    // numSteps deprecated Dec. 12, 2013.  Instead of specifying numSteps in params,
    // specify startTime, stopTime, and dt; PV will internally determine

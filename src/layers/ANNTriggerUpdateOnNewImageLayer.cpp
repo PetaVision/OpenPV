@@ -100,7 +100,7 @@ int ANNTriggerUpdateOnNewImageLayer::doUpdateState(double time, double dt, const
 bool ANNTriggerUpdateOnNewImageLayer::checkIfUpdateNeeded() {
    bool needsUpdate = false;
    //Make sure it updates on initialization
-   //assert(lastUpdateTime >= parent->getStartTime());
+   assert(lastUpdateTime >= parent->getStartTime());
    if (lastUpdateTime == parent->getStartTime()){
        return true;
    }
