@@ -41,6 +41,11 @@ function [ReconError_times_array, ...
     fraction_ReconError_progress = 10;
   endif
 
+  fraction_ReconError_norm_frames_read = fraction_ReconError_frames_read;
+  ReconError_norm_skip = ReconError_skip;
+  fraction_ReconError_norm_progress = fraction_ReconError_progress;      
+  min_ReconError_norm_skip = min_ReconError_skip;
+
   num_ReconError_list = size(ReconError_list,1);
   ReconError_colormap = jet(num_ReconError_list+1);
   if num_ReconError_list ==0
@@ -143,31 +148,16 @@ function [ReconError_times_array, ...
       fclose(ReconError_norm_fid);
       tot_ReconError_norm_frames = ReconError_norm_hdr{i_ReconError}.nbands;
 
-      fraction_ReconError_norm_frames_read = fraction_ReconError_frames_read;
-      ReconError_norm_skip = ReconError_skip;
-     
-      min_ReconError_norm_skip = min_ReconError_skip;
       num_ReconError_norm_skip = ...
 	  tot_ReconError_norm_frames - fix(tot_ReconError_norm_frames/fraction_ReconError_norm_frames_read);  
       num_ReconError_norm_skip = max(num_ReconError_norm_skip, min_ReconError_norm_skip);
-      progress_step = ceil(tot_ReconError_norm_frames / fraction_ReconError_progress);
+      progress_step = ceil(tot_ReconError_norm_frames / fraction_ReconError_norm_progress);
       [ReconError_norm_struct, ReconError_norm_hdr_tmp] = ...
 	  readpvpfile(ReconError_norm_file, ...
 		      progress_step, ...
 		      tot_ReconError_norm_frames, ...
 		      num_ReconError_norm_skip, ...
-		      ReconError_norm_skip(i_ReconError));
-      
-      num_ReconError_norm_frames = size(ReconError_norm_struct,1);
-      ReconError_norm_times = zeros((num_ReconError_frames),1);
-      ReconError_norm_RMS = zeros((num_ReconError_frames),1);
-
-      num_ReconError_norm = tot_ReconError_norm_frames;
-      progress_step = ceil(tot_ReconError_norm_frames / 10);
-      [ReconError_norm_struct, ReconError_norm_hdr_tmp] = ...
-	  readpvpfile(ReconError_norm_file, progress_step, tot_ReconError_norm_frames, ...
-		      tot_ReconError_norm_frames-num_ReconError_norm+5, ...
-		      ReconError_skip(i_ReconError));
+		      ReconError_norm_skip(i_ReconError));      
       num_ReconError_norm_frames = size(ReconError_norm_struct,1);
       while ~isstruct(ReconError_norm_struct{num_ReconError_norm_frames})
 	num_ReconError_norm_frames = num_ReconError_norm_frames - 1;
@@ -200,6 +190,7 @@ function [ReconError_times_array, ...
       frame_diff = frame_diff2(frame_diff_ndx);
     endif
 
+    %%keyboard;
     min_ReconError_frames = min(num_ReconError_frames,num_ReconError_norm_frames);
     ReconError_times = zeros((min_ReconError_frames),1);
     ReconError_RMS = zeros((min_ReconError_frames),1);

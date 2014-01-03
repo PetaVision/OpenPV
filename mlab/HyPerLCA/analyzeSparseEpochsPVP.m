@@ -171,16 +171,22 @@ function [Sparse_hdr, ...
     endif %% num_epochs
     
     num_Sparse_frames = size(Sparse_times_list,1);
+    while isempty(Sparse_hist_frames_list{num_Sparse_frames})
+      num_Sparse_frames = num_Sparse_frames - 1;
+    endwhile
+   
     Sparse_times = zeros(num_Sparse_frames,1);
     Sparse_percent_active = zeros(num_Sparse_frames,1);
     Sparse_std = zeros(num_Sparse_frames,1);
     Sparse_percent_change = zeros(num_Sparse_frames,1);
     for i_frame = 1 : 1 : num_Sparse_frames
-      Sparse_hist = Sparse_hist + Sparse_hist_frames_list{i_frame};
       Sparse_times(i_frame) = Sparse_times_list{i_frame};
       Sparse_percent_active(i_frame) = Sparse_percent_active_list{i_frame};
       Sparse_std(i_frame) = Sparse_std_list{i_frame};
       Sparse_percent_change(i_frame) = Sparse_percent_change_list{i_frame};
+      if ~isempty(Sparse_hist_frames_list{i_frame})
+	Sparse_hist = Sparse_hist + Sparse_hist_frames_list{i_frame};
+      endif
     endfor %% i_frame
     Sparse_hist = Sparse_hist(1:nf_Sparse);
     Sparse_hist = Sparse_hist / ((num_Sparse_frames) * nx_Sparse * ny_Sparse); 
