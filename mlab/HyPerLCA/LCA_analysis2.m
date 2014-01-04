@@ -29,8 +29,8 @@ elseif isunix
   %%run_type = "deep_plus_noise";%%
   %%run_type = "V1";
   %%run_type = "Heli_C1";
-  %%run_type = "Heli_DPT";
-  run_type = "Heli_D";
+  run_type = "Heli_DPT";
+  %%run_type = "Heli_D";
   if strcmp(run_type, "color_deep")
     %%output_dir = "/nh/compneuro/Data/vine/LCA/2013_02_01/output_2013_02_01_12x12x128_lambda_05X1_deep"; 
     output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_24/output_2013_01_24_how2catchSquirrel_12x12x128_lambda_05X4_deep";
@@ -904,7 +904,7 @@ if plot_ReconError
     ReconError_norm_strength = ones(num_ReconError_list,1);
     ReconError_norm_strength = ...
 	[1/sqrt(18*18); 1/sqrt(18*18)];
-    ReconError_nonSparse_ndx = [1 1];  %% causes recon error to be overlaid on specified  nonSparse (Error) figure
+    ReconError_RMS_fig_ndx = [1 1];  %% causes recon error to be overlaid on specified  nonSparse (Error) figure
   elseif strcmp(run_type, "CIFAR_deep") 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% CIFAR_deep list

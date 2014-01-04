@@ -55,23 +55,26 @@ function [ReconError_times_array, ...
   if ~exist("ReconError_skip") || isempty(ReconError_skip) || size(ReconError_skip,1) < num_ReconError_list
     ReconError_skip = ones(num_ReconError_list,1);
   endif
-  if ~exist("ReconError_RMS_fig") || ...
-	~exist("ReconError_RMS_fig_ndx") || ...
-	size(ReconError_RMS_fig_ndx,1) < num_ReconError_list
+
+  if ~exist("ReconError_RMS_fig") 
     ReconError_RMS_fig_ndx = zeros(num_ReconError_list,1);
-  else
-    for i_ReconError = 1 : num_ReconError_list
-      if ReconError_RMS_fig_ndx(i_ReconError) > 0
-	if ReconError_RMS_fig_ndx(i_ReconError) > size(ReconError_RMS_fig,1)
-	  warning(["ReconError_RMS_fig_ndx(i_ReconError) > size(ReconError_RMS_fig,1)", "\n", ...
-		   "i_ReconError = ", num2str(i_ReconError), "\n", ...
-		   "ReconError_RMS_fig_ndx = ", num2str(ReconError_RMS_fig_ndx(i_ReconError)), "\n", ...
-		   "size(ReconError_RMS_fig,1) = ", num2str(size(ReconError_RMS_fig,1))]);
-	  ReconError_RMS_fig_ndx(i_ReconError) = 0;
-	endif
-      endif
-    endfor
   endif
+  if ~exist("ReconError_RMS_fig_ndx") || isempty(ReconError_RMS_fig_ndx)
+    ReconError_RMS_fig_ndx = zeros(num_ReconError_list,1);
+  endif
+  num_ReconError_RMS_fig_ndx = size(ReconError_RMS_fig_ndx,1);
+  for i_ReconError = (num_ReconError_RMS_fig_ndx + 1) : num_ReconError_list
+    ReconError_RMS_fig_ndx(i_ReconError) = 0;
+  endfor
+  for i_ReconError = 1 : num_ReconError_list
+    if ReconError_RMS_fig_ndx(i_ReconError) > size(ReconError_RMS_fig,1)
+	warning(["ReconError_RMS_fig_ndx(i_ReconError) > size(ReconError_RMS_fig,1)", "\n", ...
+		 "i_ReconError = ", num2str(i_ReconError), "\n", ...
+		 "ReconError_RMS_fig_ndx = ", num2str(ReconError_RMS_fig_ndx(i_ReconError)), "\n", ...
+		 "size(ReconError_RMS_fig,1) = ", num2str(size(ReconError_RMS_fig,1))]);
+      ReconError_RMS_fig_ndx(i_ReconError) = 0;
+    endif
+  endfor
 
 
   init_ReconError_list = size(ReconError_RMS_array,1);
@@ -260,7 +263,9 @@ function [ReconError_times_array, ...
 
     original_name = "";
     if plot_ReconError_flag
-      if ~isempty(ReconError_RMS_fig(i_ReconError))
+      if ReconError_RMS_fig_ndx(i_ReconError) > 0 && ...
+	    ReconError_RMS_fig_ndx(i_ReconError) <= size(ReconError_RMS_fig,1) && ...
+	    i_ReconError <= size(ReconError_RMS_fig,1)
 	original_name = get(ReconError_RMS_fig(i_ReconError),"name");
 	ReconError_RMS_filename = [original_name, "_", ReconError_RMS_filename];
       else 
