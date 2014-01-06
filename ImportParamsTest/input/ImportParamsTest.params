@@ -47,6 +47,8 @@ ImportParamsLayer "orig" = {
     writeSparseActivity = false;
 
     InitVType = "ZeroV";
+    Vfilename = "/nh/compneuro/Data/a.pvp";
+    
 
     //define a linear relation between its input and output, with some hard cut-off.
     VThresh = -infinity;   
