@@ -1607,13 +1607,10 @@ void PVParams::action_parameter_string_def_overwrite(const char * id, const char
       fflush(stdout);
       exit(EXIT_FAILURE);
    }
-   std::cout << "here3\n";
    char * param_value = stripQuotationMarks(stringval);
    assert(param_value);
    //Set to new value
-   std::cout << "here4\n";
    currParam->setValue(param_value);
-   std::cout << "here5\n";
 }
 
 void PVParams::action_parameter_filename_def(const char * id, const char * stringval) {
@@ -1647,7 +1644,33 @@ void PVParams::action_parameter_filename_def_overwrite(const char * id, const ch
       printf("action_parameter_filename_def_overwrite: %s = %s\n", id, stringval);
       fflush(stdout);
    }
-
+   //Search through current parameters for the id
+   char * param_name = stripOverwriteTag(id);
+   ParameterString* currParam = NULL;
+   for (int i = 0; i < stringStack->size(); i++){
+      ParameterString* param = stringStack->peek(i);
+      assert(param);
+      if(strcmp(param->getName(), param_name) == 0){
+         currParam = param;
+      }
+   }
+   if(!currParam){
+      fflush(stdout);
+      printf("Overwrite error: %s is not an existing parameter to overwrite.\n", id);
+      fflush(stdout);
+      exit(EXIT_FAILURE);
+   }
+   char * param_value = stripQuotationMarks(stringval);
+   assert(param_value);
+   ParameterString * pstr = NULL;
+   char * filename = NULL;
+   if (param_value && param_value[0]=='~') {
+      filename = expandLeadingTilde(param_value);
+      currParam->setValue(filename);
+   }
+   else {
+      currParam->setValue(param_value);
+   }
 }
 
 void PVParams::action_include_directive(const char * stringval) {
@@ -1666,8 +1689,6 @@ void PVParams::action_include_directive(const char * stringval) {
    }
    //Grab the parameter value
    char * param_value = stripQuotationMarks(stringval);
-   std::cout << "stringval: " << param_value << "\n";
-
    //Grab the included group's ParameterGroup object
    ParameterGroup * includeGroup = NULL;
    for(int groupidx = 0; groupidx < numGroups; groupidx++){
