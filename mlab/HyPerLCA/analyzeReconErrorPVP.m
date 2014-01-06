@@ -9,7 +9,7 @@ function [ReconError_times_array, ...
 			   ReconError_times_array, ...
 			   ReconError_RMS_array, ...
 			   ReconError_norm_RMS_array, ...
-			   ReconError_RMS_fig, ...
+			   nonSparse_RMS_fig, ...
 			   ReconError_RMS_fig_ndx, ...
 			   output_dir, ...
 			   plot_ReconError_flag, ...
@@ -22,10 +22,10 @@ function [ReconError_times_array, ...
   %% ReconError_norm_list stores the list of original images
   %% Results are returned as a cell array, that may be appended to the cell arrays passed in as arguments
   %% Graphical output is produced if plot_ReconError_flag is true.
-  %% Plots can be overlaid on the figures whose handles are passed in using ReconError_RMS_fig depending
+  %% Plots can be overlaid on the figures whose handles are passed in using nonSparse_RMS_fig depending
   %% on whether ReconError_RMS_fig_ndx > 0.  
   %% ReconError_RMS_fig_ndx(i_ReconError = [1:size(ReconError_list,1)]), if nonzero, determines
-  %% on which ReconError_RMS_fig a given normalized reconstruction error is overlaid.
+  %% on which nonSparse_RMS_fig a given normalized reconstruction error is overlaid.
   
 
   if ~exist("plot_ReconError_flag") || isempty(plot_ReconError_flag)
@@ -56,7 +56,7 @@ function [ReconError_times_array, ...
     ReconError_skip = ones(num_ReconError_list,1);
   endif
 
-  if ~exist("ReconError_RMS_fig") || isempty(ReconError_RMS_fig) 
+  if ~exist("nonSparse_RMS_fig") || isempty(nonSparse_RMS_fig) 
     ReconError_RMS_fig_ndx = zeros(num_ReconError_list,1);
   endif
   if ~exist("ReconError_RMS_fig_ndx") || isempty(ReconError_RMS_fig_ndx)
@@ -67,7 +67,7 @@ function [ReconError_times_array, ...
     ReconError_RMS_fig_ndx(i_ReconError) = 0;
   endfor
   for i_ReconError = 1 : num_ReconError_list
-    if ReconError_RMS_fig_ndx(i_ReconError) > size(ReconError_RMS_fig,1)
+    if ReconError_RMS_fig_ndx(i_ReconError) > length(nonSparse_RMS_fig(:))
 	warning(["ReconError_RMS_fig_ndx(i_ReconError) > size(ReconError_RMS_fig,1)", "\n", ...
 		 "i_ReconError = ", num2str(i_ReconError), "\n", ...
 		 "ReconError_RMS_fig_ndx = ", num2str(ReconError_RMS_fig_ndx(i_ReconError)), "\n", ...
@@ -75,6 +75,8 @@ function [ReconError_times_array, ...
       ReconError_RMS_fig_ndx(i_ReconError) = 0;
     endif
   endfor
+  disp(["ReconError_RMS_fig_ndx = ", mat2str(ReconError_RMS_fig_ndx)]);
+  ReconError_RMS_fig = zeros(num_ReconError_list,1);
 
 
   init_ReconError_list = size(ReconError_RMS_array,1);
@@ -133,8 +135,8 @@ function [ReconError_times_array, ...
     %% assign defaults for no normalization of error
     ReconError_norm_file = "";
     num_ReconError_norm_frames = num_ReconError_frames;
-    ReconError_norm_RMS = ones((num_ReconError_frames),1);
-    ReconError_norm_times = zeros((num_ReconError_frames),1);
+    ReconError_norm_RMS = ones(num_ReconError_frames,1);
+    ReconError_norm_times = zeros(num_ReconError_frames,1);
     ReconError_norm_struct = [];
     if ~isempty(ReconError_norm_list{i_ReconError,1}) || ...
 	  ~isempty(ReconError_norm_list{i_ReconError,2})
@@ -265,10 +267,10 @@ function [ReconError_times_array, ...
     original_name = "";
     if plot_ReconError_flag
       if ReconError_RMS_fig_ndx(i_ReconError) > 0 && ...
-	    ReconError_RMS_fig_ndx(i_ReconError) <= size(ReconError_RMS_fig,1) && ...
-	    i_ReconError <= size(ReconError_RMS_fig,1)
-	original_name = get(ReconError_RMS_fig(i_ReconError),"name");
+	    ReconError_RMS_fig_ndx(i_ReconError) <= length(nonSparse_RMS_fig(:))
+	original_name = get(nonSparse_RMS_fig(ReconError_RMS_fig_ndx(i_ReconError)),"name");
 	ReconError_RMS_filename = [original_name, "_", ReconError_RMS_filename];
+	ReconError_RMS_fig(i_ReconError) = nonSparse_RMS_fig(ReconError_RMS_fig_ndx(i_ReconError));
       else 
 	ReconError_RMS_fig(i_ReconError) = figure;
 	axis tight;
