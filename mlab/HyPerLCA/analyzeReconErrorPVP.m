@@ -56,13 +56,13 @@ function [ReconError_times_array, ...
     ReconError_skip = ones(num_ReconError_list,1);
   endif
 
-  if ~exist("ReconError_RMS_fig") 
+  if ~exist("ReconError_RMS_fig") || isempty(ReconError_RMS_fig) 
     ReconError_RMS_fig_ndx = zeros(num_ReconError_list,1);
   endif
   if ~exist("ReconError_RMS_fig_ndx") || isempty(ReconError_RMS_fig_ndx)
     ReconError_RMS_fig_ndx = zeros(num_ReconError_list,1);
   endif
-  num_ReconError_RMS_fig_ndx = size(ReconError_RMS_fig_ndx,1);
+  num_ReconError_RMS_fig_ndx = length(ReconError_RMS_fig_ndx(:));
   for i_ReconError = (num_ReconError_RMS_fig_ndx + 1) : num_ReconError_list
     ReconError_RMS_fig_ndx(i_ReconError) = 0;
   endfor
@@ -261,6 +261,7 @@ function [ReconError_times_array, ...
 	 [ReconError_RMS_pathname, ".mat"], ...
 	 "ReconError_times", "ReconError_RMS");    
 
+    %%keyboard;
     original_name = "";
     if plot_ReconError_flag
       if ReconError_RMS_fig_ndx(i_ReconError) > 0 && ...

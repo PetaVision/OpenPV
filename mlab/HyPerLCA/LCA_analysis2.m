@@ -15,11 +15,11 @@ no_clobber = false;
 if ismac
   workspace_path = "/Users/garkenyon/workspace";
   run_type = "CIFAR_deep"; %%"CIFAR_noTask_deep"; %%"CIFAR_noTask"; %%"CIFAR" %%
-  output_dir = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB_deep_task/data_batch_all16"
+  output_dir = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB_deep_task/data_batch_all17"
   checkpoint_dir = output_dir;
   checkpoint_parent = "/Users/garkenyon/workspace/HyPerHLCA";
   checkpoint_children = ...
-      {"CIFAR256_RGB_deep_task/data_batch_all16"}; %%
+      {"CIFAR256_RGB_deep_task/data_batch_all17"}; %%
 elseif isunix
   workspace_path = "/home/gkenyon/workspace";
   %%run_type = "noPulvinar"; %%
