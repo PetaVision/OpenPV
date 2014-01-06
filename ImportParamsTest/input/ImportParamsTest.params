@@ -135,5 +135,4 @@ ImportParamsConn "copyConn" = {
    #include "origConn";
    @numAxonalArbors = 3;
    @delay = [3,4,5];
-   @notaparam = 2;
 };
