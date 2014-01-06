@@ -22,10 +22,18 @@ int ImportParamsLayer::initialize(const char * name, HyPerCol * hc, int num_chan
    ANNLayer::initialize(name, hc, num_channels);
 
    PVParams * params = parent->parameters();
-   //Test grabbed value
-   assert(params->value(name, "nxScale") == 1);
-   //Test grabbed string
-   assert(strcmp(params->stringValue(name, "InitVType"), "ZeroV") == 0);
+   if(strcmp(name, "orig") == 0){
+      //Test grabbed value
+      assert(params->value(name, "nxScale") == 1);
+      //Test grabbed string
+      assert(strcmp(params->stringValue(name, "InitVType"), "ZeroV") == 0);
+   }
+   else{
+      //Test overwritten value
+      assert(params->value(name, "nxScale") == 2);
+      //Test overwritten string
+      assert(strcmp(params->stringValue(name, "InitVType"), "ConstantV") == 0);
+   }
 
    return PV_SUCCESS;
 }

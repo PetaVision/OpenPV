@@ -57,12 +57,12 @@ ImportParamsLayer "orig" = {
 };
 
 //The layer doing the inclusion
-ImportParamsLayer "included" = {
+ImportParamsLayer "copy" = {
     #include "orig";
     //parameter_def test
-    @VShift = 1;
+    @nxScale = 2;
     //parameter_string_def test
-    @InitVType = "OneV";
+    @InitVType = "ConstantV";
     //parameter_filename_test test
     @Vfilename = "/nh/compneuro/Data/test.pvp";
 };
@@ -133,4 +133,7 @@ ImportParamsConn "origConn" = {
 
 ImportParamsConn "copyConn" = {
    #include "origConn";
+   @numAxonalArbors = 3;
+   @delay = [3,4,5];
+   @notaparam = 2;
 };

@@ -20,9 +20,17 @@ int ImportParamsConn::initialize(const char * name, HyPerCol * hc, const char * 
    //Test grabbed array value
    int size;
    const float * delayVals = params->arrayValues(name, "delay", &size);
-   assert(size == 2);
-   assert(delayVals[0] == 0);
-   assert(delayVals[1] == 1);
+   if(strcmp(name, "origConn") == 0){
+      assert(size == 2);
+      assert(delayVals[0] == 0);
+      assert(delayVals[1] == 1);
+   }
+   else{
+      assert(size == 3);
+      assert(delayVals[0] == 3);
+      assert(delayVals[1] == 4);
+      assert(delayVals[2] == 5);
+   }
 
    return PV_SUCCESS;
 }
