@@ -9,6 +9,13 @@
 %option noyyset_extra
 
 %%
+
+"#include" { return T_INCLUDE; }
+"@"[a-zA-Z][a-zA-Z0-9_]* {
+    yylval.sval = strdup(yytext);
+    return T_ID_OVERWRITE;
+}
+
 ([+]|[-])?(([0-9]+(\.[0-9]*)?)|([0-9]*\.[0-9]+)|([0-9](\.[0-9]*)?[Ee]([+]|[-])?[0-9]+)) {
    yylval.dval = strtod(yytext, NULL);
    return T_NUMBER;
@@ -37,7 +44,6 @@
 ";"        { return *yytext; }
 ":"        { return *yytext; }
 
-"#include" { return T_INCLUDE; }
 
 [//].*   /* ignore C++ style comments */
 

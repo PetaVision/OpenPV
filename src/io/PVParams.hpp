@@ -36,6 +36,7 @@ public:
    int outputParam(FILE * fp, int indentation);
    void clearHasBeenRead()    { hasBeenReadFlag = false; }
    void setValue(double v)  { paramValue = (float) v; paramDblValue = v;}
+   Parameter* copyParameter() {return new Parameter(paramName, paramDblValue);}
 
 private:
    char * paramName;
@@ -54,9 +55,12 @@ public:
    const float * getValues(int * sz) { hasBeenReadFlag = true; *sz = arraySize; return values;}
    const double * getValuesDbl(int * sz) { hasBeenReadFlag = true; *sz = arraySize; return valuesDbl;}
    int pushValue(double value);
+   void resetArraySize(){arraySize = 0;}
    bool hasBeenRead() { return hasBeenReadFlag; }
    void clearHasBeenRead() { hasBeenReadFlag = false; }
    int outputString(FILE * fp, int indentation);
+   double peek(int index)   { return valuesDbl[index]; }
+   ParameterArray* copyParameterArray();
 
 private:
    bool paramNameSet;
@@ -79,6 +83,7 @@ public:
    int outputString(FILE * fp, int indentation);
    void clearHasBeenRead()     { hasBeenReadFlag = false; }
    void setValue(const char * s) { free(paramValue); paramValue = strdup(s);}
+   ParameterString* copyParameterString() {return new ParameterString(paramName, paramValue);}
 
 private:
    char * paramName;
@@ -161,6 +166,9 @@ public:
    int pushString(ParameterString * param);
    int setValue(const char * param_name, double value);
    int setStringValue(const char * param_name, const char * svalue);
+   ParameterStack* copyStack();
+   ParameterArrayStack* copyArrayStack();
+   ParameterStringStack* copyStringStack();
 
 private:
    char * groupName;
@@ -229,12 +237,17 @@ public:
    int setSweepValues(int n);
 
    void action_pvparams_directive(char * id, double val);
-   void action_parameter_group(char * keyword, char * name);
+   void action_parameter_group_name(char * keyword, char * name);
+   void action_parameter_group();
    void action_parameter_def(char * id, double val);
+   void action_parameter_def_overwrite(char * id, double val);
    void action_parameter_array(char * id);
+   void action_parameter_array_overwrite(char * id);
    void action_parameter_array_value(double val);
    void action_parameter_string_def(const char * id, const char * stringval);
+   void action_parameter_string_def_overwrite(const char * id, const char * stringval);
    void action_parameter_filename_def(const char * id, const char * stringval);
+   void action_parameter_filename_def_overwrite(const char * id, const char * stringval);
    void action_include_directive(const char * stringval);
    void action_parameter_sweep(const char * id, const char * groupname, const char * paramname);
    void action_sweep_values_number(double val);
@@ -267,6 +280,9 @@ private:
    ParameterSweep * activeParamSweep;
    int sweepSize; // The number of parameter value sets in the sweep.  Each ParameterSweep group in the params file must contain the same number of values, which is sweepSize.
 
+   char* currGroupKeyword;
+   char* currGroupName;
+
    int initialize(size_t initialSize, InterColComm * icComm);
    int parsefile(const char * filename);
    int setSweepSize();
@@ -276,6 +292,7 @@ private:
    int newActiveParamSweep();
    int clearHasBeenReadFlags();
    static char * stripQuotationMarks(const char *s);
+   static char * stripOverwriteTag(const char *s);
    static char * expandLeadingTilde(char *path);
 };
 

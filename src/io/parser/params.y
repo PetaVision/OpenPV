@@ -146,6 +146,7 @@ int pv_parseParameters(PV::PVParams * action_handler, const char * paramBuffer, 
 %union {char * sval; double dval; }
 %token <sval> T_STRING
 %token <sval> T_ID
+%token <sval> T_ID_OVERWRITE
 %token <dval> T_NUMBER
 %token <sval> T_FILE_KEYWORD
 %token <sval> T_FILENAME
@@ -160,13 +161,23 @@ declarations : /* empty */
              | declarations parameter_sweep
              ;
 
+
 pvparams_directive : T_ID '=' T_NUMBER ';'
                          { handler->action_pvparams_directive($1, $3); }
+                   /*
+                   | T_ID_OVERWRITE '=' T_NUMBER ';'
+                         { handler->action_pvparams_directive_overwrite($1, $3); }
+                   */
                    ;
 
-parameter_group : T_ID T_STRING '=' '{' parameter_defs '}' ';'
-                      { handler->action_parameter_group($1, $2); }
-                  ;
+parameter_group_id : T_ID T_STRING '='
+                      { handler->action_parameter_group_name($1, $2); }
+                   ;
+
+parameter_group : parameter_group_id '{' parameter_defs '}' ';'
+                      { handler->action_parameter_group(); }
+                   ;
+
                 
 parameter_defs : /* empty */
                | parameter_defs parameter_def
@@ -177,6 +188,9 @@ parameter_defs : /* empty */
 
 parameter_array_def : T_ID '=' parameter_array ';'
                             { handler->action_parameter_array($1); }
+                    | T_ID_OVERWRITE '=' parameter_array ';'
+                            { handler->action_parameter_array_overwrite($1); }
+                    ;
 
 parameter_array : '[' parameter_array_values ']'
 
@@ -191,15 +205,22 @@ parameter_array_value : T_NUMBER
 
 parameter_def : T_ID '=' T_NUMBER ';'
                  { handler->action_parameter_def($1, $3); }
+              | T_ID_OVERWRITE '=' T_NUMBER ';'
+                 { handler->action_parameter_def_overwrite($1, $3); }
               ;
 
 parameter_string_def : T_ID '=' T_STRING ';'
                         { handler->action_parameter_string_def($1,$3); }
                      | T_ID '=' T_FILENAME ';'
                         { handler->action_parameter_filename_def($1,$3); }
+                     | T_ID_OVERWRITE '=' T_STRING ';'
+                        { handler->action_parameter_string_def_overwrite($1,$3); }
+                     | T_ID_OVERWRITE '=' T_FILENAME ';'
+                        { handler->action_parameter_filename_def_overwrite($1,$3); }
                      ;
 
-include_directive : T_INCLUDE T_ID ';'
+/*include_directive : T_INCLUDE T_ID ';'*/
+include_directive : T_INCLUDE T_STRING ';'
                         { handler->action_include_directive($2); }
                   ;
 

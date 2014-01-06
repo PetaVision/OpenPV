@@ -157,6 +157,14 @@ int ParameterArray::outputString(FILE * fp, int indentation) {
    return status;
 }
 
+ParameterArray* ParameterArray::copyParameterArray(){
+   ParameterArray* returnPA = new ParameterArray(bufferSize);
+   assert(returnPA->setName(paramName) == PV_SUCCESS);
+   for(int i = 0; i < arraySize; i++){
+      returnPA->pushValue(valuesDbl[i]);
+   }
+   return returnPA;
+}
 
 /**
  * @name
@@ -659,6 +667,39 @@ int ParameterGroup::setStringValue(const char * param_name, const char * svalue)
    return status;
 }
 
+/**
+ * A function to return a copy of the parameter group's stack.
+ */
+ParameterStack* ParameterGroup::copyStack(){
+   ParameterStack* returnStack = new ParameterStack(MAX_PARAMS);
+   for(int i = 0; i < stack->size(); i++){
+      returnStack->push(stack->peek(i)->copyParameter());
+   }
+   return returnStack;
+}
+
+/**
+ * A function to return a copy of the parameter group's stack.
+ */
+ParameterArrayStack* ParameterGroup::copyArrayStack(){
+   ParameterArrayStack* returnStack = new ParameterArrayStack(PARAMETERARRAYSTACK_INITIALCOUNT);
+   for(int i = 0; i < arrayStack->size(); i++){
+      returnStack->push(arrayStack->peek(i)->copyParameterArray());
+   }
+   return returnStack;
+}
+
+/**
+ * A function to return a copy of the parameter group's stack.
+ */
+ParameterStringStack* ParameterGroup::copyStringStack(){
+   ParameterStringStack* returnStack = new ParameterStringStack(PARAMETERSTRINGSTACK_INITIALCOUNT);
+   for(int i = 0; i < stringStack->size(); i++){
+      returnStack->push(stringStack->peek(i)->copyParameterString());
+   }
+   return returnStack;
+}
+
 
 ParameterSweep::ParameterSweep() {
    groupName = NULL;
@@ -919,6 +960,7 @@ int PVParams::parsefile(const char * filename) {
    }
 
    fflush(stdout);
+   //This is where it calls the scanner and parser
    parseStatus = pv_parseParameters(this, paramBuffer, bufferlen);
    if( parseStatus != 0 ) {
       fprintf(stderr, "Rank %d process: pv_parseParameters failed with return value %d\n", getRank(), parseStatus);
@@ -1382,7 +1424,17 @@ void PVParams::action_pvparams_directive(char * id, double val)
  * @keyword
  * @name
  */
-void PVParams::action_parameter_group(char * keyword, char * name)
+void PVParams::action_parameter_group()
+{
+   if (disable) return;
+   if(debugParsing && getRank()==0 ) {
+      printf("action_parameter_group: %s \"%s\" parsed successfully.\n", currGroupKeyword, currGroupName);
+      fflush(stdout);
+   }
+   // build a parameter group
+   addGroup(currGroupKeyword, currGroupName);
+}
+void PVParams::action_parameter_group_name(char * keyword, char * name)
 {
    if (disable) return;
    // remove surrounding quotes
@@ -1390,12 +1442,11 @@ void PVParams::action_parameter_group(char * keyword, char * name)
    name[len-1] = '\0';
 
    if(debugParsing && getRank()==0 ) {
-      printf("action_parameter_group: %s \"%s\" parsed successfully.\n", keyword, name);
+      printf("action_parameter_group_name: %s \"%s\" parsed successfully.\n", keyword, name);
       fflush(stdout);
    }
-
-   // build a parameter group
-   addGroup(keyword, name);
+   currGroupKeyword = keyword;
+   currGroupName = name;
 }
 
 /**
@@ -1415,6 +1466,41 @@ void PVParams::action_parameter_def(char * id, double val)
    stack->push(p);
 }
 
+void PVParams::action_parameter_def_overwrite(char * id, double val){
+   if (disable) return;
+   if (debugParsing && getRank() == 0) {
+      fflush(stdout);
+      printf("action_parameter_def_overwrite: %s = %lf\n", id, val);
+      fflush(stdout);
+   }
+   //Search through current parameters for the id
+   char * param_name = stripOverwriteTag(id);
+   Parameter* currParam = NULL;
+   for (int i = 0; i < stack->size(); i++){
+      Parameter* param = stack->peek(i);
+      if(strcmp(param->name(), param_name) == 0){
+         currParam = param;
+      }
+   }
+   if(!currParam){
+      for (int i = 0; i < arrayStack->size(); i++){
+         ParameterArray* arrayParam = arrayStack->peek(i);
+         if(strcmp(arrayParam->name(), param_name) == 0){
+            fflush(stdout);
+            printf("%s is defined as an array parameter. Overwriting array parameters with value parameters not implemented yet.\n", id);
+            fflush(stdout);
+            exit(EXIT_FAILURE);
+         }
+      }
+      fflush(stdout);
+      printf("Overwrite error: %s is not an existing parameter to overwrite.\n", id);
+      fflush(stdout);
+      exit(EXIT_FAILURE);
+   }
+   //Set to new value
+   currParam->setValue(val);
+}
+
 void PVParams::action_parameter_array(char * id)
 {
    if (disable) return;
@@ -1427,6 +1513,47 @@ void PVParams::action_parameter_array(char * id)
    assert(status==PV_SUCCESS);
    if( checkDuplicates(id) != PV_SUCCESS ) exit(EXIT_FAILURE);
    arrayStack->push(currentParamArray);
+   currentParamArray = new ParameterArray(PARAMETERARRAYSTACK_INITIALCOUNT);
+}
+
+void PVParams::action_parameter_array_overwrite(char * id){
+   if (disable) return;
+   if (debugParsing && getRank() == 0) {
+      fflush(stdout);
+      printf("action_parameter_array_overwrite: %s\n", id);
+      fflush(stdout);
+   }
+   //Search through current parameters for the id
+   char * param_name = stripOverwriteTag(id);
+   ParameterArray * origArray = NULL;
+   for (int i = 0; i < arrayStack->size(); i++){
+      ParameterArray* arrayParam = arrayStack->peek(i);
+      if(strcmp(arrayParam->name(), param_name) == 0){
+         origArray = arrayParam;
+      }
+   }
+   if(!origArray){
+      for (int i = 0; i < stack->size(); i++){
+         Parameter* param = stack->peek(i);
+         if(strcmp(param->name(), param_name) == 0){
+            fflush(stdout);
+            printf("%s is defined as a value parameter. Overwriting value parameters with array parameters not implemented yet.\n", id);
+            fflush(stdout);
+            exit(EXIT_FAILURE);
+         }
+      }
+      fflush(stdout);
+      printf("Overwrite error: %s is not an existing parameter to overwrite.\n", id);
+      fflush(stdout);
+      exit(EXIT_FAILURE);
+   }
+   //Set values of arrays
+   origArray->resetArraySize();
+   for(int i = 0; i < currentParamArray->getArraySize(); i++){ 
+      origArray->pushValue(currentParamArray->peek(i));
+   }
+   assert(origArray->getArraySize() == currentParamArray->getArraySize());
+   free(currentParamArray);
    currentParamArray = new ParameterArray(PARAMETERARRAYSTACK_INITIALCOUNT);
 }
 
@@ -1457,6 +1584,38 @@ void PVParams::action_parameter_string_def(const char * id, const char * stringv
    free(param_value);
 }
 
+void PVParams::action_parameter_string_def_overwrite(const char * id, const char * stringval){
+   if (disable) return;
+   if( debugParsing && getRank() == 0 ) {
+      fflush(stdout);
+      printf("action_parameter_string_def_overwrite: %s = %s\n", id, stringval);
+      fflush(stdout);
+   }
+   //Search through current parameters for the id
+   char * param_name = stripOverwriteTag(id);
+   ParameterString* currParam = NULL;
+   for (int i = 0; i < stringStack->size(); i++){
+      ParameterString* param = stringStack->peek(i);
+      assert(param);
+      if(strcmp(param->getName(), param_name) == 0){
+         currParam = param;
+      }
+   }
+   if(!currParam){
+      fflush(stdout);
+      printf("Overwrite error: %s is not an existing parameter to overwrite.\n", id);
+      fflush(stdout);
+      exit(EXIT_FAILURE);
+   }
+   std::cout << "here3\n";
+   char * param_value = stripQuotationMarks(stringval);
+   assert(param_value);
+   //Set to new value
+   std::cout << "here4\n";
+   currParam->setValue(param_value);
+   std::cout << "here5\n";
+}
+
 void PVParams::action_parameter_filename_def(const char * id, const char * stringval) {
    if (disable) return;
    if( debugParsing && getRank() == 0 ) {
@@ -1481,6 +1640,16 @@ void PVParams::action_parameter_filename_def(const char * id, const char * strin
    stringStack->push(pstr);
 }
 
+void PVParams::action_parameter_filename_def_overwrite(const char * id, const char * stringval){
+   if (disable) return;
+   if( debugParsing && getRank() == 0 ) {
+      fflush(stdout);
+      printf("action_parameter_filename_def_overwrite: %s = %s\n", id, stringval);
+      fflush(stdout);
+   }
+
+}
+
 void PVParams::action_include_directive(const char * stringval) {
    if (disable) return;
    if( debugParsing && getRank() == 0 ) {
@@ -1488,6 +1657,43 @@ void PVParams::action_include_directive(const char * stringval) {
       printf("action_include_directive: including %s\n", stringval);
       fflush(stdout);
    }
+   //The include directive must be the first parameter in the group if defined
+   if(stack->size() != 0 || arrayStack->size() != 0 || stringStack->size() != 0){
+      fflush(stdout);
+      printf("Import of %s must be the first parameter specified in the group.\n", stringval);
+      fflush(stdout);
+      exit(EXIT_FAILURE);
+   }
+   //Grab the parameter value
+   char * param_value = stripQuotationMarks(stringval);
+   std::cout << "stringval: " << param_value << "\n";
+
+   //Grab the included group's ParameterGroup object
+   ParameterGroup * includeGroup = NULL;
+   for(int groupidx = 0; groupidx < numGroups; groupidx++){
+      //If strings are matching
+      if(strcmp(groups[groupidx]->name(), param_value) == 0){
+         includeGroup = groups[groupidx];
+      }
+   }
+   //If group not found
+   if(!includeGroup){
+      fflush(stdout);
+      printf("Include error: include group %s is not defined.\n", param_value);
+      fflush(stdout);
+      exit(EXIT_FAILURE);
+   }
+   //Check keyword of group
+   if(strcmp(includeGroup->getGroupKeyword(), currGroupKeyword) != 0){
+      fflush(stdout);
+      printf("Include error: Cannot include group %s, which is a %s, into a %s. Group types must be the same.\n", param_value, includeGroup->getGroupKeyword(), currGroupKeyword);
+      fflush(stdout);
+      exit(EXIT_FAILURE);
+   }
+   //Load all stack values into current parameter group
+   stack = includeGroup->copyStack();
+   arrayStack = includeGroup->copyArrayStack();
+   stringStack = includeGroup->copyStringStack();
 }
 
 void PVParams::action_parameter_sweep(const char * id, const char * groupname, const char * paramname)
@@ -1605,6 +1811,18 @@ char * PVParams::stripQuotationMarks(const char * s) {
       noquotes[len-2] = '\0'; // Not strictly necessary since noquotes was calloc'ed
    }
    return noquotes;
+}
+
+char * PVParams::stripOverwriteTag(const char * s){
+   //Strips the @ tag to any overwritten params
+   int len = strlen(s);
+   char * notag = NULL;
+   if(len >= 1 && s[0]=='@'){
+      notag = (char *) calloc(len, sizeof(char));
+      memcpy(notag, s+1, len-1);
+      notag[len-1] = '\0';
+   }
+   return notag;
 }
 
 // If a filename begins with "~/" or is "~", presume the user means the home directory.
