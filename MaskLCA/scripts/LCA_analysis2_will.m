@@ -21,7 +21,7 @@ if ismac
   checkpoint_children = ...
       {"CIFAR256_RGB_deep_task/data_batch_all17"}; %%
 elseif isunix
-  workspace_path = "/home/gkenyon/workspace";
+  workspace_path = "/home/wshainin/workspace";
   %%run_type = "noPulvinar"; %%
   %%run_type = "color_deep"; %%
   %%run_type = "noTopDown"; %%
