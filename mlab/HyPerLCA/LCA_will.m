@@ -731,7 +731,7 @@ endif %% plot_Sparse_flag
 
 
 
-analyze_nonSparse_flag = true;
+analyze_nonSparse_flag = false;
 if analyze_nonSparse_flag
   if strcmp(run_type, "color_deep") || strcmp(run_type, "noTopDown")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -906,7 +906,7 @@ endif %% analyze_nonSparse_flag
 
 
 
-plot_ReconError = true && analyze_nonSparse_flag;
+plot_ReconError = false && analyze_nonSparse_flag;
 ReconError_RMS_fig_ndx = [];
 if plot_ReconError
   if strcmp(run_type, "color_deep") || strcmp(run_type, "noTopDown") || strcmp(run_type, "noPulvinar")
