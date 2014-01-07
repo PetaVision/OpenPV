@@ -63,8 +63,8 @@ Movie "Image" = {
     imageListPath          = "/nh/compneuro/Data/vine/list/2013_01_24_2013_02_01/fileList_2013_01_24_2013_02_01.txt";
     //imageListPath          = "~/Documents/workspace/Output/how2catchSquirrel.txt";
     nf                     = 3;
-    writeStep              = -1;
-    //initialWriteTime       = 40;
+    writeStep              = 4000;
+    initialWriteTime       = 4000;
     writeSparseActivity    = false;
     displayPeriod          = 40; //Time spent on each frame
     start_frame_index      = 1;
@@ -109,7 +109,7 @@ ANNErrorLayer "Error" = {
     VWidth   = 0;       // specify extra linear regime in transfer function (add additional piecewise linear portion)
     errScale = 1;       // relative importance of all error layers that are connected to respective V1 layer
     //
-    phase = 4;  
+    phase = 1;  
 };
 
 
@@ -144,7 +144,7 @@ HyPerLCALayer "V1_S2" = {
     VShift  = 0.0;     // 0 -> hard threshold, 1 -> soft threshold
     VWidth  = 0;       // specify extra linear regime in transfer function (add additional piecewise linear portion)
     //
-    phase = 5;
+    phase = 2;
 };
 
 
@@ -179,7 +179,7 @@ HyPerLCALayer "V1_S4" = {
     VShift  = 0.0;     // 0 -> hard threshold, 1 -> soft threshold
     VWidth  = 0;       // specify extra linear regime in transfer function (add additional piecewise linear portion)
     //
-    phase = 5;
+    phase = 2;
 };
 
 HyPerLCALayer "V1_S8" = {
@@ -213,7 +213,7 @@ HyPerLCALayer "V1_S8" = {
     VShift  = 0.0;     // 0 -> hard threshold, 1 -> soft threshold
     VWidth  = 0;       // specify extra linear regime in transfer function (add additional piecewise linear portion)
     //
-    phase = 5;
+    phase = 2;
 };
 
 
@@ -239,7 +239,7 @@ ANNTriggerUpdateOnNewImageLayer "Recon_S2" = {
     VShift              = 0;
     VWidth              = 0;            // specify extra linear regime in transfer function (add additional piecewise linear portion)
     // 
-    phase               = 6; 
+    phase               = 3; 
 };
 
 ANNTriggerUpdateOnNewImageLayer "Recon_S4" = {
@@ -264,7 +264,7 @@ ANNTriggerUpdateOnNewImageLayer "Recon_S4" = {
     VShift              = 0;
     VWidth              = 0;            // specify extra linear regime in transfer function (add additional piecewise linear portion)
     // 
-    phase               = 6; 
+    phase               = 3; 
 };
 
 ANNTriggerUpdateOnNewImageLayer "Recon_S8" = {
@@ -289,7 +289,7 @@ ANNTriggerUpdateOnNewImageLayer "Recon_S8" = {
     VShift              = 0;
     VWidth              = 0;            // specify extra linear regime in transfer function (add additional piecewise linear portion)
     // 
-    phase               = 6; 
+    phase               = 3; 
 };
 
 //////////////////////////////////////////////////////////////////
