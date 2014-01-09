@@ -510,6 +510,10 @@ HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPe
       keywordMatched = true;
       addedLayer = (HyPerLayer *) new BIDSLayer(name, hc);
    }
+   if( !strcmp(classkeyword, "ShuffleLayer") ) {
+      keywordMatched = true;
+      addedLayer = (HyPerLayer *) new ShuffleLayer(name, hc);
+   }
    if( !strcmp(classkeyword, "BIDSCloneLayer") ) {
       keywordMatched = true;
       addedLayer = (HyPerLayer *) new BIDSCloneLayer(name, hc);
