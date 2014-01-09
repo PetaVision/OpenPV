@@ -21,8 +21,8 @@ ShuffleLayer::ShuffleLayer(const char * name, HyPerCol * hc) {
 }
 
 ShuffleLayer::~ShuffleLayer(){
-   shuffleMethod = NULL;
    free(shuffleMethod);
+   shuffleMethod = NULL;
 }
 
 int ShuffleLayer::initialize_base() {
