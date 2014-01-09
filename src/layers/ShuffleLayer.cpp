@@ -1,11 +1,10 @@
 /*
  * ShuffleLayer.cpp
  *
- *  Created on: May 11, 2011
- *      Author: garkenyon
+ *  Created: July, 2013
+ *   Author: Sheng Lundquist, Will Shainin
  */
 
-#include "HyPerLayer.hpp"
 #include "ShuffleLayer.hpp"
 #include <stdio.h>
 
@@ -21,40 +20,25 @@ ShuffleLayer::ShuffleLayer(const char * name, HyPerCol * hc) {
    initialize(name, hc);
 }
 
-ShuffleLayer::~ShuffleLayer()
-{
-    clayer->V = NULL;
-    if (indexArray != NULL){
-       free(indexArray);
-    }
+ShuffleLayer::~ShuffleLayer(){
+   shuffleMethod = NULL;
+   free(shuffleMethod);
 }
 
 int ShuffleLayer::initialize_base() {
-   sourceLayer = NULL;
    shuffleMethod = NULL;
    return PV_SUCCESS;
 }
 
 int ShuffleLayer::initialize(const char * name, HyPerCol * hc) {
-   //int num_channels = sourceLayer->getNumChannels();
    int status_init = HyPerLayer::initialize(name, hc, 0);
-
-   // source layer name read in readOriginalLayer, called by setParams
-   // sourceLayer = clone;
-
-   // Moved to allocateDataStructures
-   // // don't need conductance channels
-   // freeChannels();
-   //
-   // int numGlobalNeurons = sourceLayer->getNumGlobalNeurons();
-   //
-   // indexArray = (int*) calloc(numGlobalNeurons, sizeof(int));
+   // don't need conductance channels
+   freeChannels(); // TODO: Does this need to be here?
    return status_init;
 }
 
 int ShuffleLayer::setParams(PVParams * params){
-   readOriginalLayerName(params);
-   HyPerLayer::setParams(params);
+   int status = CloneVLayer::setParams(params);
    readShuffleMethod(params);
    //Read additional parameters based on shuffle method
    if (strcmp(shuffleMethod, "random") == 0){
@@ -63,37 +47,11 @@ int ShuffleLayer::setParams(PVParams * params){
       fprintf(stderr, "Shuffle Layer: Shuffle method not recognized. Options are \"random\".\n");
       exit(PV_FAILURE);
    }
-   return PV_SUCCESS;
-}
-
-void ShuffleLayer::readOriginalLayerName(PVParams * params) {
-   const char * original_layer_name = params->stringValue(name, "originalLayerName");
-   if( original_layer_name == NULL ) {
-      fprintf(stderr, "RescaleLayer \"%s\": string parameter originalLayerName must be set\n", name);
-      exit(EXIT_FAILURE);
-   }
-   originalLayerName = strdup(original_layer_name);
-   if (originalLayerName==NULL) {
-      fprintf(stderr, "RescaleLayer \"%s\" error: unable to copy originalLayerName \"%s\": %s\n", name, original_layer_name, strerror(errno));
-      exit(EXIT_FAILURE);
-   }
+   return status;
 }
 
 void ShuffleLayer::readShuffleMethod(PVParams * params){
-   shuffleMethod = strdup(params->stringValue(name, "shuffleMethod", "random"));
-}
-
-int ShuffleLayer::allocateDataStructures() {
-   int status = HyPerLayer::allocateDataStructures();
-
-   // don't need conductance channels
-   freeChannels();
-
-   int numGlobalNeurons = sourceLayer->getNumGlobalNeurons();
-
-   indexArray = (int*) calloc(numGlobalNeurons, sizeof(int));
-
-   return status;
+   shuffleMethod = strdup(params->stringValue(name, "shuffleMethod", false));
 }
 
 int ShuffleLayer::setActivity() {
@@ -102,26 +60,48 @@ int ShuffleLayer::setActivity() {
    return 0;
 }
 
-void ShuffleLayer::randomShuffle(){
-   int numGlobalNeurons = sourceLayer->getNumGlobalNeurons();
-
-   //Take this out
-   for (int i = 0; i < numGlobalNeurons; i++){
-      indexArray[i] = i;
+void ShuffleLayer::randomShuffle(const pvdata_t * sourceData, pvdata_t * activity){
+   const PVLayerLoc * loc = getLayerLoc();
+   int nb    = loc->nb;
+   int nxExt = loc->nx + 2*nb;
+   int nyExt = loc->ny + 2*nb;
+   int nf    = loc->nf;
+   int numextended = getNumExtended();
+   assert(numextended == nxExt * nyExt * nf);
+   int rndIdx, rd;
+   for (int i = 0; i < numextended; i++) { //Zero activity array for shuffling activity
+      activity[i] = 0;
    }
-   std::cout << numGlobalNeurons << "\n";
-   //TODO:: make mapping of indexArray
+   //NOTE: The following code assumes that the active features are sparse. 
+   //      If the number of active features in sourceData is greater than 1/2 of nf, do..while will loop infinitely 
+   
+   for (int ky = 0; ky < nyExt; ky++){
+      for (int kx = 0; kx < nxExt; kx++){
+         for (int kf = 0; kf < nf; kf++){
+            int extIdx = kIndex(kx, ky, kf, nxExt, nyExt, nf);
+            float inData = sourceData[extIdx];
+            if (inData != 0) { //Features with 0 activity are not changed
+               do {
+                  rd = rand() % nf; //TODO: Improve PRNG
+                  rndIdx = kIndex(kx, ky, rd, nxExt, nyExt, nf);
+               } while(sourceData[rndIdx] || activity[rndIdx]); 
+               activity[rndIdx] = sourceData[extIdx];
+               activity[extIdx] = sourceData[rndIdx];
+            }
+         }
+      }
+   }
 }
 
 int ShuffleLayer::updateState(double timef, double dt) {
    int status = PV_SUCCESS;
-   // int numNeurons = sourceLayer->getNumNeurons();
-   //  kext;
+   int kext;
    //sourceData is extended
-   // const pvdata_t * sourceData = sourceLayer->getLayerData();
+   const pvdata_t * sourceData = originalLayer->getLayerData();
+   pvdata_t * A = getActivity();
    const PVLayerLoc * loc = getLayerLoc();
-   const PVLayerLoc * sourceLoc = sourceLayer->getLayerLoc();
-   // int comm_size = parent->icCommunicator()->commSize();
+   const PVLayerLoc * sourceLoc = originalLayer->getLayerLoc();
+	int comm_size = parent->icCommunicator()->commSize();
 	int rank = parent->icCommunicator()->commRank();
    int rootproc = 0;
    
@@ -132,10 +112,8 @@ int ShuffleLayer::updateState(double timef, double dt) {
    assert(loc->nb == sourceLoc->nb);
    
    //Create a one to one mapping of neuron to neuron
-   if (rank == rootproc){
-      if (strcmp(shuffleMethod, "random") == 0){
-         randomShuffle();
-      }
+   if (strcmp(shuffleMethod, "random") == 0){
+      randomShuffle(sourceData, A);
    }
 
    if( status == PV_SUCCESS ) status = updateActiveIndices();

@@ -1,45 +1,37 @@
 /*
  * ShuffleLayer.hpp
- * can be used to implement Sigmoid junctions
+ * Used to shuffle active features
+ * to build a psychophysical mask
  *
- *  Created on: May 11, 2011
- *      Author: garkenyon
+ *  Created: July, 2013
+ *   Author: Sheng Lundquist, Will Shainin
  */
 
 #ifndef SHUFFLELAYER_HPP_
 #define SHUFFLELAYER_HPP_
 
-#include "HyPerLayer.hpp"
+#include "CloneVLayer.hpp"
 
 namespace PV {
 
-// CloneLayer can be used to implement Sigmoid junctions between spiking neurons
-class ShuffleLayer: public HyPerLayer {
+class ShuffleLayer: public CloneVLayer {
 public:
    ShuffleLayer(const char * name, HyPerCol * hc);
    virtual ~ShuffleLayer();
-   virtual int allocateDataStructures();
    virtual int updateState(double timef, double dt);
-   HyPerLayer * sourceLayer;
    virtual int setActivity();
 protected:
    ShuffleLayer();
    int initialize(const char * name, HyPerCol * hc);
-   int setParams(PVParams * params);
-   void readOriginalLayerName(PVParams * params);
+   virtual int setParams(PVParams * params);
    void readShuffleMethod(PVParams * params);
-   void randomShuffle();
+   void randomShuffle(const pvdata_t * sourceData, pvdata_t * activity);
 
 private:
    int initialize_base();
-   char * originalLayerName;
-   HyPerLayer * originalLayer;
    char * shuffleMethod;
-   //Mapping of restricted global indicies
-   int * indexArray;
-
 };
 
 }
 
-#endif /* CLONELAYER_HPP_ */
+#endif /* ShuffleLayer.hpp */
