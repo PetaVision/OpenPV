@@ -1,0 +1,66 @@
+function writepvpactivityfile(filename, data)
+   %  writepvpactivityfile.m
+   %    Dylan Paiton
+   % 
+   % Usage: writepvpactivityfile(filename, data)
+   % filename is the pvp file to be created.  If the file already
+   % exists it will be clobbered.
+   %
+   % data is a cell structure representing the non-spiking neural activities, in the same
+   % format returned by readpvpfile:
+   %
+   % data{k} is a structure with two fields, time and values.
+   % data{k}.time is the timestamp of frame k.
+   % data{k}.values is a double array.
+   % data{k}.values(x,y,f) is the activity of the neuron at location (x,y,f)
+   
+   if ~ischar(filename) || ~isvector(filename) || size(filename,1)~=1
+       error('writepvpactivityfile:filenamenotstring', 'filename must be a string');
+   end%if
+   
+   if ~iscell(data)
+       error('writepvpactivityfile:datanotcell', 'data must be a cell array, one element per frame');
+   end%if
+   
+   fid = fopen(filename, 'w');
+   if fid < 0
+       error('writepvpactivityfile:fopenerror', 'unable to open %s', filename);
+   end%if
+   
+   errorpresent = 0;
+   hdr = zeros(26,1);
+   for frameno=1:size(data)
+       [nx ny nf] = size(data{frameno}.values);
+       amax = max(data{frameno}.values(:));
+       amin = min(data{frameno}.values(:));
+       % Each frame has its own header
+       hdr(1)  = 80;       % Number of bytes in header
+       hdr(2)  = 20;       % Number of 4-byte values in header
+       hdr(3)  = 4;        % File type for non-sparse activity pvp files 
+       hdr(4)  = nx;       % nx
+       hdr(5)  = ny;       % ny
+       hdr(6)  = nf;       % nf
+       hdr(7)  = 1;        % Number of records
+       hdr(8)  = nx*ny*nf; % Record size, the size of the layer in bytes 
+       hdr(9)  = 4;        % Data size: floats are four bytes
+       hdr(10) = 3;        % Types are 1=byte, 2=int, 3=float.  Type 1 is for compressed weights; type 2 isn't used for weight files
+       hdr(11) = 1;        % Number of processes in x-direction; no longer used
+       hdr(12) = 1;        % Number of processes in y-direction; no longer used
+       hdr(13) = nx;       % Presynaptic nxGlobal
+       hdr(14) = ny;       % Presynaptic nyGlobal
+       hdr(15) = 0;        % kx0, no longer used
+       hdr(16) = 0;        % ky0, no longer used
+       hdr(17) = 1;       % Presynaptic nb, not relevant for activity files
+       hdr(18) = length(data); % number of frames 
+       hdr(19:20) = typecast(double(data{frameno}.time),'uint32'); % timestamp
+       fwrite(fid,hdr,'uint32');
+       fwrite(fid,permute(data{frameno}.values(:,:,:),[3 1 2]),'single');
+   end%for
+   
+   fclose(fid); clear fid;
+   
+   if errorpresent
+       error(msgid, errmsg);
+   end%if
+   
+end%function 
