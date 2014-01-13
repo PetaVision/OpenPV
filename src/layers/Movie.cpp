@@ -42,6 +42,8 @@ int Movie::initialize_base() {
    fileOfFileNames = NULL;
    frameNumber = 0;
    numFrames = 0;
+   writeFrameToTimestamp = false;
+   timestampFile = NULL;
    // newImageFlag = false;
    return PV_SUCCESS;
 }
@@ -145,7 +147,21 @@ int Movie::initialize(const char * name, HyPerCol * hc, const char * fileOfFileN
       // }
       status = parent->ensureDirExists(movieOutputPath);
    }
-
+   if(writeFrameToTimestamp){
+      std::string timestampFilename = std::string(strdup(parent->getOutputPath()));
+      timestampFilename += "/timestamps/";
+      parent->ensureDirExists(timestampFilename.c_str());
+      timestampFilename += name;
+      timestampFilename += ".txt";
+      ////strcat(outFilename, "/timestamps/");
+      ////strcat(outFilename, name);
+      ////strcat(outFilename, ".txt");
+      //status = parent->ensureDirExists(timestampDir);
+      if(getParent()->icCommunicator()->commRank()==0){
+          timestampFile = PV::PV_fopen(timestampFilename.c_str(), "w");
+          assert(timestampFile);
+      }
+   }
    return PV_SUCCESS;
 }
 
@@ -178,6 +194,7 @@ int Movie::setParams(PVParams * params) {
                "movieOutputPath set to default \"%s\"\n",movieOutputPath);
       }
    }
+   writeFrameToTimestamp = (bool) params->value(name, "writeFrameToTimestamp", writeFrameToTimestamp);
    return status;
 }
 
@@ -191,6 +208,10 @@ Movie::~Movie()
       PV_fclose(filenamestream);
    }
    free(fileOfFileNames); fileOfFileNames = NULL;
+   if (getParent()->icCommunicator()->commRank()==0 && timestampFile != NULL && timestampFile->isfile) {
+       PV_fclose(timestampFile);
+   }
+
 }
 
 int Movie::allocateDataStructures() {
@@ -276,15 +297,15 @@ bool Movie::updateImage(double time, double dt)
       bool needNewImage = false;
       while (time >= nextDisplayTime) {
          needNewImage = true;
+         //If set to 0 or 1, normal frame
+         if (skipFrameIndex <= 1){
+            frameNumber += 1;
+         }
+         //Otherwise, skip based on skipFrameIndex
+         else{
+            frameNumber += skipFrameIndex;
+         }
          if (readPvpFile){
-            //If set to 0 or 1, normal frame
-            if (skipFrameIndex <= 1){
-               frameNumber += 1;
-            }
-            //Otherwise, skip based on skipFrameIndex
-            else{
-               frameNumber += skipFrameIndex;
-            }
             //Loop when frame number reaches numFrames
             if (frameNumber >= numFrames){
                if( icComm->commRank()==0 ) {
@@ -327,6 +348,14 @@ bool Movie::updateImage(double time, double dt)
          }
          // newImageFlag = true;
          lastUpdateTime = parent->simulationTime();
+         //Write to timestamp file here when updated
+         if( icComm->commRank()==0 ) {
+             //Only write if the parameter is set
+             if(timestampFile){
+                 fprintf(timestampFile->fp, "%d,%lf\n",frameNumber, lastUpdateTime);
+                 fflush(timestampFile->fp);
+             }
+         }
       }
       // else{
       //    if (time>0.0) newImageFlag = false;
@@ -432,6 +461,7 @@ const char * Movie::getNextFileName()
          if ((c = fgetc(filenamestream->fp)) == EOF) {
             PV_fseek(filenamestream, 0L, SEEK_SET);
             fprintf(stderr, "Movie %s: EOF reached, rewinding file \"%s\"\n", name, fileOfFileNames);
+            frameNumber = 0;
          }
          else {
             ungetc(c, filenamestream->fp);

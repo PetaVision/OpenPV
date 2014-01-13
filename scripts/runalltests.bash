@@ -183,6 +183,13 @@ runandecho $testname $testname Debug/$testname $arglist
 mpirunandecho $testname $testname Debug/$testname $arglist
 cd $wd
 
+testname=ImportParamsTest
+arglist="-p input/ImportParamsTest.params"
+cd "$testname"
+runandecho $testname $testname Debug/$testname $arglist
+mpirunandecho $testname $testname Debug/$testname $arglist
+cd $wd
+
 testname=InitWeightsTest
 arglist="-p input/test_initweights.params"
 cd "$testname"

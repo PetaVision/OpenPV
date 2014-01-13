@@ -68,6 +68,9 @@ private:
    char * fileOfFileNames;
 
    PV_Stream * filenamestream;
+
+   bool writeFrameToTimestamp;
+   PV_Stream * timestampFile;
 };
 
 }
