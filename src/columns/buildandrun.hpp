@@ -31,6 +31,7 @@
 #include "../layers/PtwiseProductLayer.hpp"
 #include "../layers/TrainingLayer.hpp"
 #include "../layers/CloneVLayer.hpp"
+#include "../layers/BinningLayer.hpp"
 #include "../layers/GapLayer.hpp"
 #include "../layers/MaxPooling.hpp"
 #include "../layers/TextStream.hpp"
