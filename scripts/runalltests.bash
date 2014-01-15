@@ -85,7 +85,6 @@ else
     }
 fi
 
-
 testname=BasicSystemTest
 arglist="-p input/BasicSystemTest.params"
 cd "$testname"
@@ -109,6 +108,13 @@ cd $wd
 
 testname=ArborSystemTest
 arglist="-p input/test_arbors.params"
+cd "$testname"
+runandecho $testname $testname Debug/$testname $arglist
+mpirunandecho $testname $testname Debug/$testname $arglist
+cd $wd
+
+testname=BinningLayerTest
+arglist="-p input/BinningLayerTest.params"
 cd "$testname"
 runandecho $testname $testname Debug/$testname $arglist
 mpirunandecho $testname $testname Debug/$testname $arglist
