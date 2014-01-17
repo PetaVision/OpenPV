@@ -1255,12 +1255,19 @@ bool HyPerLayer::needUpdate(double time, double dt){
    //If layer is a trigger flag, call the attached trigger layer's needUpdate
    if(triggerFlag){
       assert(triggerLayer);
-      //Account for phase by subtracting dt
+      if (getPhase() > triggerLayer->getPhase()) {
+         return triggerLayer->getLastUpdateTime() >= lastUpdateTime;
+      }
+      else {
+         return triggerLayer->getLastUpdateTime() > lastUpdateTime;
+      }
+      ////Account for phase by subtracting dt
       //if(getPhase() > triggerLayer->getPhase()){
-      //   return triggerLayer->needUpdate(time-dt, dt);
+      //   
+      //   //return triggerLayer->needUpdate(time-dt, dt);
       //}
       //else{
-         return triggerLayer->needUpdate(time, dt);
+      //   //return triggerLayer->needUpdate(time, dt);
       //}
    }
    //Otherwise, needs to update every timestep
