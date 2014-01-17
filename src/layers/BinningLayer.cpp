@@ -174,29 +174,35 @@ int BinningLayer::doUpdateState(double timed, double dt, const PVLayerLoc * orig
          float inVal = origData[origIdx];
          //A sigma of zero means only the centered bin value should get input
          int featureIdx = round((inVal-binMin)/stepSize);
-         if(binSigma == 0){
-            int currIdx = kIndex(iX, iY, featureIdx, nx+2*nb, ny+2*nb, numBins);
-            currA[currIdx] = 1;
-         }
-         else{
-            //Calculate center value for featureIdx (the bin that the value belongs to without a sigma) is binning
-            float mean = featureIdx * stepSize + (stepSize/2);
-            //Go through possible relative bins
-            int intSigma = ceil(binSigma);
-            for(int iSig = -intSigma; iSig <= intSigma; iSig++){
-               //Get absolute bin
-               int aBin = featureIdx + iSig;
-               //Check out of bounds
-               if(aBin < 0 || aBin >= numBins){
-                  continue;
+         for(int iF = 0; iF < numBins; iF++){
+            if(binSigma == 0){
+               int currIdx = kIndex(iX, iY, iF, nx+2*nb, ny+2*nb, numBins);
+               if(iF == featureIdx){
+                  currA[currIdx] = 1;
                }
-               //Get center of that aBin for the x pos of the normal dist
-               float xVal = aBin * stepSize + (stepSize/2);
-               //Calculate normal dist
-               float outVal = calcNormDist(xVal, mean, binSigma);
-               //Put into activity buffer
-               int currIdx = kIndex(iX, iY, aBin, nx+2*nb, ny+2*nb, numBins);
-               currA[currIdx] = outVal;
+               //Resetting value
+               else{
+                  currA[currIdx] = 0;
+               }
+            }
+            else{
+               //Calculate center value for featureIdx (the bin that the value belongs to without a sigma) is binning
+               float mean = featureIdx * stepSize + (stepSize/2);
+               //Possible bins
+               int intSigma = ceil(binSigma);
+               int currIdx = kIndex(iX, iY, iF, nx+2*nb, ny+2*nb, numBins);
+               if(iF >= featureIdx-intSigma && iF <= featureIdx+intSigma){
+                  //Get center of that aBin for the x pos of the normal dist
+                  float xVal = iF * stepSize + (stepSize/2);
+                  //Calculate normal dist
+                  float outVal = calcNormDist(xVal, mean, binSigma);
+                  //Put into activity buffer
+                  currA[currIdx] = outVal;
+               }
+               //Resetting value
+               else{
+                  currA[currIdx] = 0;
+               }
             }
          }
       }
