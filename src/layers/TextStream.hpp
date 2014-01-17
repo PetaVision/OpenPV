@@ -23,8 +23,10 @@ public:
 	TextStream(const char * name, HyPerCol * hc);
 	virtual ~TextStream();
 	virtual int allocateDataStructures();
+   virtual bool needUpdate(double time, double dt);
 	virtual int updateState(double time, double dt);
-	float lastUpdate()  { return lastUpdateTime; }
+   //TODO Is this being used?
+	//float lastUpdate()  { return lastUpdateTime; }
 
 private:
 	int initialize_base();
@@ -47,6 +49,8 @@ protected:
 	virtual void readTextOffset(PVParams * params);
 	virtual void readMirrorBCFlag(PVParams * params) {mirrorBCflag = false;} // Flag doesn't make sense for text
 	virtual void readTextBCFlag(PVParams * params);
+   //TestStream does not need trigger flag, since it's overwriting needUpdate
+   virtual void readTriggerFlag(PVParams * params){};
 
 	int scatterTextBuffer(PV::Communicator * comm, const PVLayerLoc * loc);
 	int readFileToBuffer(int offset, const PVLayerLoc * loc, int * buf);
@@ -64,7 +68,9 @@ protected:
 
 	double displayPeriod;     // Length of time a string 'frame' is displayed
 	double nextDisplayTime;
-	double lastUpdateTime;    // Time of last image update
+
+   //lastUpdateTime already exists in HyPerLayer
+	//double lastUpdateTime;    // Time of last image update
 
 	int textOffset;           // Starting point for run
 

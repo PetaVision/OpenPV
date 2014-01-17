@@ -28,7 +28,12 @@ public:
    virtual int outputState(double timed, bool last=false);
 
    pvdata_t getActivationThreshold() {return activationThreshold;}
+
+#ifdef OBSOLETE
+   //Obsolete Jan 15th, 2014 by slundquist
+   //getLastUpdateTime in HyPerLayer no loger updates lastUpdateTime, so no longer need to overwrite
    virtual double getLastUpdateTime() {return lastUpdateTime;}
+#endif
 
 protected:
    MatchingPursuitLayer();

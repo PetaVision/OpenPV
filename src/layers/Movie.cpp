@@ -44,6 +44,7 @@ int Movie::initialize_base() {
    numFrames = 0;
    writeFrameToTimestamp = false;
    timestampFile = NULL;
+   //updateThisTimestep = false;
    // newImageFlag = false;
    return PV_SUCCESS;
 }
@@ -269,11 +270,42 @@ PVLayerLoc Movie::getImageLoc()
    // getLayerLoc().  --pete 2011-07-10
 }
 
+bool Movie::needUpdate(double time, double dt){
+   InterColComm * icComm = getParent()->icCommunicator();
+   bool needNewImage = false;
+   //Always update on first timestep
+   if (time <= parent->getStartTime()){
+       needNewImage = true;
+   }
+   if(randomMovie){
+      needNewImage = true;
+   }
+   if( jitterFlag ) {
+      needNewImage = true;;
+   } // jitterFlag
+   if (time >= nextDisplayTime) {
+      needNewImage = true;
+   } // time >= nextDisplayTime
+
+
+   //if(time >= nextDisplayTime || updateThisTimestep) {
+   //} // time >= nextDisplayTime
+
+   return needNewImage;
+}
+
+int Movie::updateStateWrapper(double time, double dt){
+   HyPerLayer::updateStateWrapper(time, dt);
+   //Hack since timing issues with mirror bc, TODO
+   exchange();
+}
+
 int Movie::updateState(double time, double dt)
 {
    updateImage(time, dt);
-   return 0;
+   return PV_SUCCESS;
 }
+
 
 /**
  * - Update the image buffers
@@ -289,81 +321,69 @@ int Movie::updateState(double time, double dt)
  */
 bool Movie::updateImage(double time, double dt)
 {
+   if( jitterFlag ) {
+      jitter();
+   } // jitterFlag
    InterColComm * icComm = getParent()->icCommunicator();
    if(randomMovie){
       randomFrame();
-      lastUpdateTime = time;
+      //Moved to updateStateWrapper
+      //lastUpdateTime = time;
    } else {
-      bool needNewImage = false;
-      while (time >= nextDisplayTime) {
-         needNewImage = true;
-         //If set to 0 or 1, normal frame
-         if (skipFrameIndex <= 1){
-            frameNumber += 1;
-         }
-         //Otherwise, skip based on skipFrameIndex
-         else{
-            frameNumber += skipFrameIndex;
-         }
-         if (readPvpFile){
-            //Loop when frame number reaches numFrames
-            if (frameNumber >= numFrames){
-               if( icComm->commRank()==0 ) {
-                  fprintf(stderr, "Movie %s: EOF reached, rewinding file \"%s\"\n", name, fileOfFileNames);
-               }
-               frameNumber = 0;
+      if (skipFrameIndex <= 1){
+         frameNumber += 1;
+      }
+      //Otherwise, skip based on skipFrameIndex
+      else{
+         frameNumber += skipFrameIndex;
+      }
+      if (readPvpFile){
+         //Loop when frame number reaches numFrames
+         if (frameNumber >= numFrames){
+            if( icComm->commRank()==0 ) {
+               fprintf(stderr, "Movie %s: EOF reached, rewinding file \"%s\"\n", name, fileOfFileNames);
             }
-         }
-         else{
-            if (filename != NULL) free(filename);
-            filename = strdup(getNextFileName(skipFrameIndex));
-            assert(filename != NULL);
-         }
-         nextDisplayTime += displayPeriod;
-
-         if(writePosition && parent->icCommunicator()->commRank()==0){
-            fprintf(fp_pos->fp,"%f %s: \n",time,filename);
-         }
-         lastUpdateTime = time;
-      } // time >= nextDisplayTime
-
-      if( jitterFlag ) {
-         bool jittered = jitter();
-         needNewImage |= jittered;
-      } // jitterFlag
-
-      if( needNewImage ){
-         GDALColorInterp * colorbandtypes = NULL;
-         int status = getImageInfo(filename, parent->icCommunicator(), &imageLoc, &colorbandtypes);
-         if( status != PV_SUCCESS ) {
-            fprintf(stderr, "Movie %s: Error getting image info \"%s\"\n", name, filename);
-            abort();
-         }
-         //Set frame number (member variable in Image)
-         if( status == PV_SUCCESS ) status = readImage(filename, getOffsetX(), getOffsetY(), colorbandtypes);
-         free(colorbandtypes); colorbandtypes = NULL;
-         if( status != PV_SUCCESS ) {
-            fprintf(stderr, "Movie %s: Error reading file \"%s\"\n", name, filename);
-            abort();
-         }
-         // newImageFlag = true;
-         lastUpdateTime = parent->simulationTime();
-         //Write to timestamp file here when updated
-         if( icComm->commRank()==0 ) {
-             //Only write if the parameter is set
-             if(timestampFile){
-                 fprintf(timestampFile->fp, "%d,%lf\n",frameNumber, lastUpdateTime);
-                 fflush(timestampFile->fp);
-             }
+            frameNumber = 0;
          }
       }
-      // else{
-      //    if (time>0.0) newImageFlag = false;
-      // }
+      else{
+         if (filename != NULL) free(filename);
+         filename = strdup(getNextFileName(skipFrameIndex));
+         assert(filename != NULL);
+      }
+      if(writePosition && icComm->commRank()==0){
+         fprintf(fp_pos->fp,"%f %s: \n",time,filename);
+      }
+      while (time >= nextDisplayTime) {
+         nextDisplayTime += displayPeriod;
+      }
+
+      GDALColorInterp * colorbandtypes = NULL;
+      int status = getImageInfo(filename, parent->icCommunicator(), &imageLoc, &colorbandtypes);
+      if( status != PV_SUCCESS ) {
+         fprintf(stderr, "Movie %s: Error getting image info \"%s\"\n", name, filename);
+         abort();
+      }
+      //Set frame number (member variable in Image)
+      if( status == PV_SUCCESS ) status = readImage(filename, getOffsetX(), getOffsetY(), colorbandtypes);
+      free(colorbandtypes); colorbandtypes = NULL;
+      if( status != PV_SUCCESS ) {
+         fprintf(stderr, "Movie %s: Error reading file \"%s\"\n", name, filename);
+         abort();
+      }
+      //Write to timestamp file here when updated
+      if( icComm->commRank()==0 ) {
+          //Only write if the parameter is set
+          if(timestampFile){
+              fprintf(timestampFile->fp, "%d,%lf, %s\n",frameNumber, lastUpdateTime, filename);
+              fflush(timestampFile->fp);
+          }
+      }
    } // randomMovie
 
+   //lastUpdateTime = time;
    // exchange border information
-   exchange();
+   //exchange();
 
    return true;
 }

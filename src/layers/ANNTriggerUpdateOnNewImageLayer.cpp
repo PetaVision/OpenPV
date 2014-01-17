@@ -51,6 +51,8 @@ int ANNTriggerUpdateOnNewImageLayer::initialize(const char * name, HyPerCol * hc
 		exit(EXIT_FAILURE);
 	}
 	return ANNLayer::initialize(name, hc, num_channels);
+   //This layer is a trigger layer, so set flag
+   triggerFlag = 1;
 }
 
 int ANNTriggerUpdateOnNewImageLayer::communicateInitInfo() {
@@ -68,40 +70,46 @@ int ANNTriggerUpdateOnNewImageLayer::communicateInitInfo() {
     		  name, movieLayerName);
       return(EXIT_FAILURE);
    }
+   //Set the triggerLayer needed by HyPerLayer::needUpdate()
+   triggerLayer = origHyPerLayer;
+   
 
    return status;
 }
 
-int ANNTriggerUpdateOnNewImageLayer::recvAllSynapticInput(){
-	int status = PV_SUCCESS;
-	if (checkIfUpdateNeeded()){
-		status = ANNLayer::recvAllSynapticInput();
-		// doUpdateState will also need to check movieLayer->getLastUpdateTime() against lastUpdateTime,
-		// so wait until then to update lastUpdateTime.
-	}
-	return status;
-}
+//Done in HyPerLayer now
+//int ANNTriggerUpdateOnNewImageLayer::recvAllSynapticInput(){
+//	int status = PV_SUCCESS;
+//	if (checkIfUpdateNeeded()){
+//		status = ANNLayer::recvAllSynapticInput();
+//		// doUpdateState will also need to check movieLayer->getLastUpdateTime() against lastUpdateTime,
+//		// so wait until then to update lastUpdateTime.
+//	}
+//	return status;
+//}
 
 
-int ANNTriggerUpdateOnNewImageLayer::doUpdateState(double time, double dt, const PVLayerLoc * loc, pvdata_t * A,
-      pvdata_t * V, int num_channels, pvdata_t * gSynHead, bool spiking,
-      unsigned int * active_indices, unsigned int * num_active)
-{
-   update_timer->start();
-   int status = PV_SUCCESS;
-   if (checkIfUpdateNeeded()){
-	   status = ANNLayer::doUpdateState(time,  dt, loc, A, V, num_channels, gSynHead, spiking, active_indices, num_active);
-	   lastUpdateTime = parent->simulationTime();
-   }
-   update_timer->stop();
-   return status;
-}
+//Done in HyPerLayer now
+//int ANNTriggerUpdateOnNewImageLayer::doUpdateState(double time, double dt, const PVLayerLoc * loc, pvdata_t * A,
+//      pvdata_t * V, int num_channels, pvdata_t * gSynHead, bool spiking,
+//      unsigned int * active_indices, unsigned int * num_active)
+//{
+//   update_timer->start();
+//   int status = PV_SUCCESS;
+//   if (checkIfUpdateNeeded()){
+//	   status = ANNLayer::doUpdateState(time,  dt, loc, A, V, num_channels, gSynHead, spiking, active_indices, num_active);
+//	   lastUpdateTime = parent->simulationTime();
+//   }
+//   update_timer->stop();
+//   return status;
+//}
 
-bool ANNTriggerUpdateOnNewImageLayer::checkIfUpdateNeeded() {
+//bool ANNTriggerUpdateOnNewImageLayer::checkIfUpdateNeeded() {
+bool ANNTriggerUpdateOnNewImageLayer::needUpdate(double time, double dt) {
    bool needsUpdate = false;
    //Make sure it updates on initialization
-   assert(lastUpdateTime >= parent->getStartTime());
-   if (lastUpdateTime == parent->getStartTime()){
+   assert(time >= parent->getStartTime());
+   if (time == parent->getStartTime()){
        return true;
    }
    if (getPhase() > movieLayer->getPhase()) {

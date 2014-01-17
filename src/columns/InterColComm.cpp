@@ -191,6 +191,7 @@ int Publisher::publish(HyPerLayer* pub,
    memcpy(recvBuf, sendBuf, dataSize);
 
    if (pub->getLastUpdateTime() >= pub->getParent()->simulationTime()) {
+   //if (pub->needUpdate(pub->getParent()->simulationTime(), pub->getParent()->getDeltaTime())){
       exchangeBorders(neighbors, numNeighbors, &cube->loc, 0);
    }
 

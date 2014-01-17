@@ -22,7 +22,11 @@ public:
    virtual int recvSynapticInput(HyPerConn * conn, const PVLayerCube * activity, int arborID);
    virtual int recvSynapticInputFromPost(HyPerConn * conn, const PVLayerCube * activity, int arborID);
    virtual ~MatchingPursuitResidual();
+#ifdef OBSOLETE
+   //Obsolete Jan 15th, 2014 by slundquist
+   //getLastUpdateTime in HyPerLayer no loger updates lastUpdateTime, so no longer need to overwrite
    virtual double getLastUpdateTime() {return lastUpdateTime;}
+#endif
 
 protected:
    MatchingPursuitResidual();

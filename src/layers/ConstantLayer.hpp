@@ -16,17 +16,22 @@ class ConstantLayer: public PV::ANNLayer {
 public:
 	ConstantLayer(const char * name, HyPerCol * hc, int numChannels);
 	ConstantLayer(const char * name, HyPerCol * hc);
-	virtual int recvAllSynapticInput();
+	//virtual int recvAllSynapticInput();
 	virtual ~ConstantLayer();
+#ifdef OBSOLETE
+   //Obsolete Jan 15th, 2014 by slundquist
+   //getLastUpdateTime in HyPerLayer no loger updates lastUpdateTime, so no longer need to overwrite
 	virtual double getLastUpdateTime() {return lastUpdateTime;}
+#endif //OBSOLETE
+   virtual bool needUpdate(double time, double dt);
 protected:
    ConstantLayer();
    int initialize(const char * name, HyPerCol * hc, int numChannels);
    virtual int communicateInitInfo();
-   virtual int doUpdateState(double time, double dt, const PVLayerLoc * loc, pvdata_t * A,
-         pvdata_t * V, int num_channels, pvdata_t * gSynHead, bool spiking,
-         unsigned int * active_indices, unsigned int * num_active);
-   bool checkIfUpdateNeeded();
+   //virtual int doUpdateState(double time, double dt, const PVLayerLoc * loc, pvdata_t * A,
+   //      pvdata_t * V, int num_channels, pvdata_t * gSynHead, bool spiking,
+   //      unsigned int * active_indices, unsigned int * num_active);
+   //bool checkIfUpdateNeeded();
 
 private:
    int initialize_base();

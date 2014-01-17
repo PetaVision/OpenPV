@@ -40,6 +40,9 @@ protected:
    virtual void readBiasConstraintMethod(PVParams * params);
    virtual void readOffsetConstraintMethod(PVParams * params);
    virtual void readWritePosition(PVParams * params);
+   //Image does not need trigger flag, since it's overwriting needUpdate
+   virtual void readTriggerFlag(PVParams * params){};
+
    static inline int calcBandWeights(int numBands, float * bandweights, GDALColorInterp * colorbandtypes);
    static inline void equalBandWeights(int numBands, float * bandweights);
 
@@ -64,6 +67,7 @@ public:
    // primary layer interface
    //
    virtual int recvSynapticInput(HyPerConn * conn, const PVLayerCube * cube, int neighbor);
+   virtual bool needUpdate(double time, double dt);
    virtual int updateState(double time, double dt);
    virtual int outputState(double time, bool last=false);
 
@@ -75,7 +79,8 @@ public:
 
    virtual int  clearImage();
 
-   float lastUpdate()  { return lastUpdateTime; }
+   //This function isn't being used, and HyPerLayer::getLastUpdateTime() now returns lastUpdateTime
+   //float lastUpdate()  { return lastUpdateTime; }
 
    virtual pvdata_t * getImageBuffer() { return data; }
    virtual PVLayerLoc getImageLoc() {return imageLoc; }
@@ -137,7 +142,8 @@ protected:
    bool normalizeLuminanceFlag;
 
    //float lastPhase;
-   double lastUpdateTime; // time of last image update
+   //lastUpdateTime already defined in hyperlayer
+   //double lastUpdateTime; // time of last image update
 
    // Jitter parameters
    int jitterFlag;        // If true, use jitter

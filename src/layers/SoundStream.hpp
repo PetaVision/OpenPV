@@ -31,7 +31,6 @@ public:
 	virtual ~SoundStream();
 	virtual int allocateDataStructures();
 	virtual int updateState(double time, double dt);
-	float lastUpdate()  { return lastUpdateTime; }
 
 private:
 	int initialize_base();
@@ -53,7 +52,6 @@ protected:
 
 	double displayPeriod;     // Length of time a string 'frame' is displayed
 	double nextDisplayTime;
-	double lastUpdateTime;    // Time of last image update
 
 	const char * filename;    // Path to file if a file exists
 

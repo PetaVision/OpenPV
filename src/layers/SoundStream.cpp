@@ -117,6 +117,7 @@ int SoundStream::allocateDataStructures() {
 
 int SoundStream::updateState(double time, double dt){
    int status = PV_SUCCESS;
+   std::cout << "Not Implemented\n";
    return status;
 }
 

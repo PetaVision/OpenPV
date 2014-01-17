@@ -58,6 +58,12 @@ public:
    float getLastDisplayTime(){return lastDisplayTime;}
    float getNextDisplayTime(){return nextDisplayTime;}
 
+   //Image never updates, so needUpdate always returns false
+   //Overwriting Image's needUpdate to always update
+   //TODO see when this layer actually needs to update
+   virtual bool needUpdate(float time, float dt){return true;}
+
+   //TODO Pretty sure this function isn't being called from anywhere
    virtual bool updateImage(float time, float dt);
    virtual bool CreateImages();
 

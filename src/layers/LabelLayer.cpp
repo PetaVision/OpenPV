@@ -87,6 +87,9 @@ int LabelLayer::initialize(const char * name, HyPerCol * hc, const char * movieL
 
    int status = PV_SUCCESS;
 
+   //Set trigger flag on since LabelLayer is a trigger layer
+   triggerFlag = true;
+
    return status;
 
 }
@@ -105,6 +108,9 @@ int LabelLayer::communicateInitInfo() {
       fprintf(stderr, "LabelLayer \"%s\" error: movieLayerName \"%s\" is not a Movie or Movie-derived class.\n", name, movieLayerName);
       abort();
    }
+
+   //Set triggerLayer to this layer
+   triggerLayer = hyperlayer;
 
    return status;
 }
@@ -163,42 +169,41 @@ int LabelLayer::updateState(double time, double dt){
    update_timer->start();
 
    int status = PV_SUCCESS;
-   bool update = (movie->getLastUpdateTime()>lastUpdateTime);
 
-   if (update){
+   //Now done with triggerFlag
+   //bool update = (movie->getLastUpdateTime()>lastUpdateTime);
+   //if (update){
 
-      filename = movie->getCurrentImage();
-      char tmp[lenLabel];
-      for (int i=0; i<lenLabel; i++){
-         tmp[i] = filename[i + beginLabel];
-      }
-      using std::istringstream;
-      if ( ! (istringstream(tmp) >> currentLabel) ) currentLabel = -1;
-
-      if (currentLabel == -1){
-         status = PV_FAILURE;
-         fprintf(stderr, "LabelLayer::updateState: currentLabel = %d", currentLabel);
-         exit(PV_FAILURE);
-      }
-      else{
-
-         if(echoLabelFlag){
-            fprintf(stderr,"Current Label Integer: %d out of %d\n",currentLabel, maxLabel);
-         }
-         for (int i = 0; i<(labelLoc.nf*(labelLoc.nx+labelLoc.nb*2)*(labelLoc.ny+labelLoc.nb*2)); i++){
-            if (i%maxLabel == currentLabel){
-               labelData[i] = sqrt(maxLabel-1)/sqrt(maxLabel);
-            }
-            else{
-               labelData[i] = -1/sqrt((maxLabel-1)*maxLabel);
-            }
-         }
-      }
-      lastUpdateTime = parent->simulationTime();
-
+   filename = movie->getCurrentImage();
+   char tmp[lenLabel];
+   for (int i=0; i<lenLabel; i++){
+      tmp[i] = filename[i + beginLabel];
    }
+   using std::istringstream;
+   if ( ! (istringstream(tmp) >> currentLabel) ) currentLabel = -1;
 
+   if (currentLabel == -1){
+      status = PV_FAILURE;
+      fprintf(stderr, "LabelLayer::updateState: currentLabel = %d", currentLabel);
+      exit(PV_FAILURE);
+   }
+   else{
 
+      if(echoLabelFlag){
+         fprintf(stderr,"Current Label Integer: %d out of %d\n",currentLabel, maxLabel);
+      }
+      for (int i = 0; i<(labelLoc.nf*(labelLoc.nx+labelLoc.nb*2)*(labelLoc.ny+labelLoc.nb*2)); i++){
+         if (i%maxLabel == currentLabel){
+            labelData[i] = sqrt(maxLabel-1)/sqrt(maxLabel);
+         }
+         else{
+            labelData[i] = -1/sqrt((maxLabel-1)*maxLabel);
+         }
+      }
+   }
+   //Now done with triggerFlag
+   //lastUpdateTime = parent->simulationTime();
+   //}
 
    update_timer->stop();
 

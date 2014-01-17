@@ -954,7 +954,7 @@ int HyPerCol::advanceTime(double sim_time)
       // recvSynapticInput uses the datastore to compute GSyn.
       for(int l = 0; l < numLayers; l++) {
          if (layers[l]->getPhase() != phase) continue;
-         status = layers[l]->updateState(simTime, deltaTime);
+         status = layers[l]->updateStateWrapper(simTime, deltaTime);
 		 if (!exitAfterUpdate) {
 			 exitAfterUpdate = status == PV_EXIT_NORMALLY;
 		 }

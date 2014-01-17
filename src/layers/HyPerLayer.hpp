@@ -122,7 +122,9 @@ protected:
    int incrementNBands(int * numCalls);
    int writeDataStoreToFile(const char * filename, InterColComm * comm, double dtime);
    virtual int calcActiveIndices();
+public:
    pvdata_t * getActivity()          {return clayer->activity->data;}
+protected:
 
    virtual int setParams(PVParams * params);
    virtual void readNxScale(PVParams * params);
@@ -137,6 +139,7 @@ protected:
    virtual void readMirrorBCFlag(PVParams * params);
    virtual void readValueBC(PVParams * params);
    virtual void readRestart(PVParams * params);
+   virtual void readTriggerFlag(PVParams * params);
    void handleUnnecessaryBoolParameter(const char * paramName, int correctValue);
 
    int freeClayer();
@@ -205,7 +208,16 @@ public:
    virtual int getNumWindows(){return 1;};
    virtual int recvSynapticInput(HyPerConn * conn, const PVLayerCube * cube, int arborID);
    virtual int recvSynapticInputFromPost(HyPerConn * conn, const PVLayerCube * activity, int arborID);
+   //An update state wrapper that determines if updateState needs to be called
+   virtual int updateStateWrapper (double time, double dt);
    virtual int updateState (double time, double dt);
+   /**
+    * A virtual function to determine if updateState method needs to be called
+    * Default behaviour is dependent on the flag triggerFlag. If true, will call attached trigger layer's needUpdate
+    * If triggerFlag is false, this function will return true
+    * @return Returns if the update needs to happen
+    */
+   virtual bool needUpdate(double time, double dt);
    virtual int publish(InterColComm * comm, double time);
    virtual int resetGSynBuffers(double timef, double dt);
    // ************************************************************************************//
@@ -214,6 +226,7 @@ public:
    // public method for invoking synaptic communication network, cause all layers to send to all targets
    virtual int triggerReceive(InterColComm * comm);
 #endif // OBSOLETE
+
 
    // mpi public wait method to ensure all targets have received synaptic input before proceeding to next time step
    virtual int waitOnPublish(InterColComm * comm);
@@ -372,6 +385,13 @@ protected:
 
    HyPerLayer ** synchronizedMarginWidthLayers;
    int numSynchronizedMarginWidthLayers;
+
+   //A flag that determins if the layer is a trigger layer and needs to follow another layer's lastUpdateTime.
+   bool triggerFlag; 
+   char* triggerLayerName;
+   HyPerLayer* triggerLayer;
+   
+
    double lastUpdateTime; // The most recent time that the layer's activity is updated, used as a cue for publisher to exchange borders
 
 //   int feedforwardDelay;  // minimum delay required for a change in the input to potentially influence this layer

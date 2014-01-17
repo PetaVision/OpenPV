@@ -379,6 +379,11 @@ int Image::recvSynapticInput(HyPerConn * conn, const PVLayerCube * cube, int nei
    return 0;
 }
 
+bool Image::needUpdate(double time, double dt){
+   //Image should never need an update
+   return false;
+}
+
 /**
  * update the image buffers
  */

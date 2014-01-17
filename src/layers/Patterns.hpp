@@ -53,6 +53,7 @@ public:
    virtual ~Patterns();
    virtual int communicateInitInfo();
    virtual int allocateDataStructures();
+   virtual bool needUpdate(double timef, double dt);
    virtual int updateState(double timef, double dt);
 
    void setProbMove(float p)     {pMove = p;}

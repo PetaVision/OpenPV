@@ -116,6 +116,13 @@ int BIDSSensorLayer::allocateDataStructures() {
    return status;
 }
 
+//Image never updates, so needUpdate always returns false
+//Overwriting Image's needUpdate to always update
+//TODO see when this layer actually needs to update
+bool BIDSSensorLayer::needUpdate(double time, double dt){
+   return true;
+}
+
 int BIDSSensorLayer::updateState(double timef, double dt){
    pvdata_t * output = getCLayer()->V;
    pvdata_t * input = blayer->getCLayer()->activity->data;

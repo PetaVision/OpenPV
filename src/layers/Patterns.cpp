@@ -727,18 +727,29 @@ int Patterns::drawDrops() {
    return status;
 }
 
+bool Patterns::needUpdate(double timef, double dt){
+   framenumber = timef * dt;
+   bool needNewPattern = timef >= nextDisplayTime;
+   if (needNewPattern) {
+      nextDisplayTime += displayPeriod;
+   }
+   return needNewPattern;
+}
+
+
 /**
  * update the image buffers
  */
 int Patterns::updateState(double timef, double dt) {
    int status = PV_SUCCESS;
-   framenumber = timef * dt;
-   bool needNewPattern = timef >= nextDisplayTime;
-   if (needNewPattern) {
+   //Moved to needUpdate()
+   //framenumber = timef * dt;
+   //bool needNewPattern = timef >= nextDisplayTime;
+   //if (needNewPattern) {
 
-      nextDisplayTime += displayPeriod;
-      status = updatePattern(timef);
-   }
+   //   nextDisplayTime += displayPeriod;
+   status = updatePattern(timef);
+   //}
    return status;
 }
 

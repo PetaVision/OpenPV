@@ -42,7 +42,11 @@ public:
    virtual int updateState(double time, double dt);
    virtual int outputState(double time, bool last);
    virtual ~LabelLayer();
+#ifdef OBSOLETE
+   //Obsolete Jan 15th, 2014 by slundquist
+   //getLastUpdateTime in HyPerLayer no loger updates lastUpdateTime, so no longer need to overwrite
    virtual double getLastUpdateTime() { return lastUpdateTime;}
+#endif
 
 private:
    int initialize_base();

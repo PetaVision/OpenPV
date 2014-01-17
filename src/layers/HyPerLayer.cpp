@@ -120,6 +120,8 @@ int HyPerLayer::initialize_base() {
    this->numMargin = 0;
    this->writeTime = 0;
    this->initialWriteTime = 0;
+   this->triggerFlag = false; //Default to update every timestamp
+   this->triggerLayer = NULL;
    this->lastUpdateTime = 0.0;
    this->phase = 0;
 
@@ -315,6 +317,10 @@ HyPerLayer::~HyPerLayer()
    free(probes);
 
    free(synchronizedMarginWidthLayers);
+   if(triggerLayerName){
+      //free(triggerLayerName);
+      triggerLayerName = NULL;
+   }
 }
 
 int HyPerLayer::freeClayer() {
@@ -566,6 +572,7 @@ int HyPerLayer::setParams(PVParams * inputParams)
    readMirrorBCFlag(inputParams);
    readValueBC(inputParams);
    readRestart(inputParams);
+   readTriggerFlag(inputParams);
 #ifdef PV_USE_OPENCL
    readGPUAccelerate(inputParams);
 #endif // PV_USE_OPENCL
@@ -643,6 +650,25 @@ void HyPerLayer::readValueBC(PVParams * params) {
 
 void HyPerLayer::readRestart(PVParams * params) {
    restartFlag = params->value(name, "restart", 0.0f) != 0.0f;
+}
+
+void HyPerLayer::readTriggerFlag(PVParams * params) {
+   triggerFlag = (bool) params->value(name, "triggerFlag", triggerFlag);
+   if(triggerFlag){
+      const char * trigger_layer_name = params->stringValue(name, "triggerLayerName");
+      if(!triggerLayerName){
+         if (parent->columnId()==0) {
+            fprintf(stderr, "%s \"%s\" error: triggerLayerName must be defined if triggerFlag is set\n", parent->parameters()->groupKeywordFromName(name), name);;
+            exit(EXIT_FAILURE);
+         }
+      }
+      triggerLayerName = strdup(trigger_layer_name);
+      if (triggerLayerName ==NULL) {
+         fprintf(stderr, "%s \"%s\" error: rank %d process unable to copy triggerLayerName \"%s\": %s\n",
+                 parent->parameters()->groupKeywordFromName(name), name, parent->columnId(), trigger_layer_name, strerror(errno));
+         exit(EXIT_FAILURE);
+      }
+   }
 }
 
 // TODO: use templates and std::cerr for handleUnnecessary*Parameter functions
@@ -737,6 +763,17 @@ int HyPerLayer::communicateInitInfo()
    // Since all communicateInitInfo() methods are called before any allocateDataStructures()
    // methods, HyPerLayer knows its marginWidth before it has to allocate
    // anything.  So it no longer needs to be specified in params!
+   if(triggerFlag){
+      triggerLayer = parent->getLayerFromName(triggerLayerName);
+      if (triggerLayer==NULL) {
+         if (parent->columnId()==0) {
+            fprintf(stderr, "%s \"%s\" error: triggerLayer \"%s\" is not a layer in the HyPerCol.\n",
+                    parent->parameters()->groupKeywordFromName(name), name, triggerLayerName);
+         }
+         MPI_Barrier(parent->icCommunicator()->communicator());
+         exit(EXIT_FAILURE);
+      }
+   }
    int status = PV_SUCCESS;
 
    return status;
@@ -958,7 +995,8 @@ int HyPerLayer::requireChannel(int channelNeeded, int * numChannelsResult) {
 // One wrinkle is that all layers call updateState before any layers call publish, so lastUpdateTime could be one timestep behind
 // if you depend on getLastUpdateTime to set lastUpdateTime.  If this is an issue, lastUpdateTime should be set in updateState.
 double HyPerLayer::getLastUpdateTime() {
-   lastUpdateTime=parent->simulationTime();
+   //Taken out, now handled in updateStateWrapper
+   //lastUpdateTime=parent->simulationTime();
    return lastUpdateTime;
 }
 
@@ -1208,6 +1246,39 @@ int HyPerLayer::copyFromBuffer(const unsigned char * buf, pvdata_t * data,
    return 0;
 }
 
+
+bool HyPerLayer::needUpdate(double time, double dt){
+   //Always update on first timestep
+   if (time <= parent->getStartTime()){
+       return true;
+   }
+   //If layer is a trigger flag, call the attached trigger layer's needUpdate
+   if(triggerFlag){
+      assert(triggerLayer);
+      //Account for phase by subtracting dt
+      //if(getPhase() > triggerLayer->getPhase()){
+      //   return triggerLayer->needUpdate(time-dt, dt);
+      //}
+      //else{
+         return triggerLayer->needUpdate(time, dt);
+      //}
+   }
+   //Otherwise, needs to update every timestep
+   else{
+      return true;
+   }
+}
+
+int HyPerLayer::updateStateWrapper(double timef, double dt){
+   int status = PV_SUCCESS;
+   if(needUpdate(timef, dt)){
+      status = updateState(timef, dt);
+      lastUpdateTime=parent->simulationTime();
+      //Update lastUpdateTime
+   }
+   return status;
+}
+
 int HyPerLayer::updateState(double timef, double dt) {
    int status;
    pvdata_t * gSynHead = GSyn==NULL ? NULL : GSyn[0];
@@ -1365,34 +1436,37 @@ float HyPerLayer::getConvertToRateDeltaTimeFactor(HyPerConn* conn)
 
 int HyPerLayer::recvAllSynapticInput() {
    int status = PV_SUCCESS;
-   int numConnections = parent->numberOfConnections();
-   for (int c=0; c<numConnections; c++) {
-      HyPerConn * conn = parent->getConnection(c);
-      if (conn->postSynapticLayer()!=this) continue;
-      //Check if updating from post perspective
-      HyPerLayer * pre = conn->preSynapticLayer();
-      PVLayerCube cube;
-      memcpy(&cube.loc, pre->getLayerLoc(), sizeof(PVLayerLoc));
-      cube.numItems = pre->getNumExtended();
-      cube.size = sizeof(PVLayerCube);
-      DataStore * store = parent->icCommunicator()->publisherStore(pre->getLayerId());
-      int numArbors = conn->numberOfAxonalArborLists();
-      for (int arbor=0; arbor<numArbors; arbor++) {
-         int delay = conn->getDelay(arbor);
-         cube.data = (pvdata_t *) store->buffer(LOCAL, delay);
-         if(!conn->getUpdateGSynFromPostPerspective()){
-            status = recvSynapticInput(conn, &cube, arbor);
-         }
-         else{
-            //Source layer is pre layer in current connection, post layer in original connection
-            //Target layer is post layer in current connection, pre layer in original connection
-            //cube is activity buffer of source layer
-            //conn is source to target
-            status = recvSynapticInputFromPost(conn, &cube, arbor);
-         }
-         assert(status == PV_SUCCESS || status == PV_BREAK);
-         if (status == PV_BREAK){
-            break;
+   //Only recvAllSynapticInput if we need an update
+   if(needUpdate(parent->simulationTime(), parent->getDeltaTime())){
+      int numConnections = parent->numberOfConnections();
+      for (int c=0; c<numConnections; c++) {
+         HyPerConn * conn = parent->getConnection(c);
+         if (conn->postSynapticLayer()!=this) continue;
+         //Check if updating from post perspective
+         HyPerLayer * pre = conn->preSynapticLayer();
+         PVLayerCube cube;
+         memcpy(&cube.loc, pre->getLayerLoc(), sizeof(PVLayerLoc));
+         cube.numItems = pre->getNumExtended();
+         cube.size = sizeof(PVLayerCube);
+         DataStore * store = parent->icCommunicator()->publisherStore(pre->getLayerId());
+         int numArbors = conn->numberOfAxonalArborLists();
+         for (int arbor=0; arbor<numArbors; arbor++) {
+            int delay = conn->getDelay(arbor);
+            cube.data = (pvdata_t *) store->buffer(LOCAL, delay);
+            if(!conn->getUpdateGSynFromPostPerspective()){
+               status = recvSynapticInput(conn, &cube, arbor);
+            }
+            else{
+               //Source layer is pre layer in current connection, post layer in original connection
+               //Target layer is post layer in current connection, pre layer in original connection
+               //cube is activity buffer of source layer
+               //conn is source to target
+               status = recvSynapticInputFromPost(conn, &cube, arbor);
+            }
+            assert(status == PV_SUCCESS || status == PV_BREAK);
+            if (status == PV_BREAK){
+               break;
+            }
          }
       }
    }
@@ -1583,6 +1657,7 @@ int HyPerLayer::publish(InterColComm* comm, double time)
    publish_timer->start();
 
    if ( useMirrorBCs() && getLastUpdateTime() >= getParent()->simulationTime()) {
+   //if ( useMirrorBCs() && needUpdate(getParent()->simulationTime(), getParent()->getDeltaTime())){
       for (int borderId = 1; borderId < NUM_NEIGHBORHOOD; borderId++){
          mirrorInteriorToBorder(borderId, clayer->activity, clayer->activity);
       }

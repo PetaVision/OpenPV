@@ -163,40 +163,51 @@ int TextStream::allocateDataStructures() {
    return status;
 }
 
+bool TextStream::needUpdate(double time, double dt){
+   if (time >= nextDisplayTime) {
+      nextDisplayTime += displayPeriod*dt;
+      return true;
+   } // time >= nextDisplayTime
+   else{
+      return false;
+   }
+}
+
 int TextStream::updateState(double time, double dt)
 {
    int status = PV_SUCCESS;
 
    int rootproc = 0;
 
-   bool needNewText = false;
-   if (time >= nextDisplayTime) {
-      needNewText = true;
-      nextDisplayTime += displayPeriod*dt;
-      lastUpdateTime = time;
-   } // time >= nextDisplayTime
-
-   if (needNewText) {
-      if (parent->columnId() == rootproc) {
-         // if at end of file (EOF), exit normally or loop
-         int c = fgetc(fileStream->fp);
-         if (c == EOF) {
-            if (loopInput) {
-               PV_fseek(fileStream, 0L, SEEK_SET);
-               fprintf(stderr, "Text Input %s: EOF reached, rewinding file \"%s\".\n", name, filename);
-            }
-            else {
-               fprintf(stderr, "Text Input %s: EOF reached, exiting normally from file \"%s\".\n", name, filename);
-               return PV_EXIT_NORMALLY;
-            }
+   ////Moved to needUpdate function
+   //bool needNewText = false;
+   //if (time >= nextDisplayTime) {
+   //   needNewText = true;
+   //   nextDisplayTime += displayPeriod*dt;
+   //   lastUpdateTime = time;
+   //} // time >= nextDisplayTime
+   //
+   //if (needNewText) {
+   if (parent->columnId() == rootproc) {
+      // if at end of file (EOF), exit normally or loop
+      int c = fgetc(fileStream->fp);
+      if (c == EOF) {
+         if (loopInput) {
+            PV_fseek(fileStream, 0L, SEEK_SET);
+            fprintf(stderr, "Text Input %s: EOF reached, rewinding file \"%s\".\n", name, filename);
          }
          else {
-            ungetc(c, fileStream->fp);
+            fprintf(stderr, "Text Input %s: EOF reached, exiting normally from file \"%s\".\n", name, filename);
+            return PV_EXIT_NORMALLY;
          }
-      } // (parent->columnId() == rootproc)
+      }
+      else {
+         ungetc(c, fileStream->fp);
+      }
+   } // (parent->columnId() == rootproc)
 
-      status = scatterTextBuffer(parent->icCommunicator(),this->getLayerLoc());
-   }
+   status = scatterTextBuffer(parent->icCommunicator(),this->getLayerLoc());
+   //}
 
    return status;
 }

@@ -26,6 +26,7 @@ public:
    int initialize(const char * name, HyPerCol * hc, int numChannels=MAX_CHANNELS);
    virtual int communicateInitInfo();
    virtual int allocateDataStructures();
+   bool needUpdate(double time, double dt);
    int updateState(double timef, double dt);
 protected:
    BIDSSensorLayer();
