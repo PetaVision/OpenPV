@@ -99,17 +99,16 @@ int Movie::initialize(const char * name, HyPerCol * hc, const char * fileOfFileN
    }
 
    if (!randomMovie) {
+      if (startFrameIndex <= 1){
+         frameNumber = 0;
+      }
+      else{
+         frameNumber = startFrameIndex - 1;
+      }
       if(readPvpFile){
          //Set filename as param
          filename = strdup(fileOfFileNames);
          assert(filename != NULL);
-         //One indexed start_frame_index needs to be translated to zero indexed pvp file
-         if (startFrameIndex <= 1){
-            frameNumber = 0;
-         }
-         else{
-            frameNumber = startFrameIndex - 1;
-         }
          //Grab number of frames from header
          PV_Stream * pvstream = NULL;
          if (getParent()->icCommunicator()->commRank()==0) {
