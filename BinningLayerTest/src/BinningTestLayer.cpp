@@ -67,6 +67,7 @@ int BinningTestLayer::updateState(double timef, double dt){
          }
       }
    }
+   return PV_SUCCESS;
 }
 
 
