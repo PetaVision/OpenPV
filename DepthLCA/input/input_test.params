@@ -1,0 +1,283 @@
+// // HyPerHLCA.params
+//
+// created by peteschultz: Sept 27, 2012, modified garkenyon, 1/20/13
+//
+//
+// Implements the locally competitive algorithm described in
+// Rozell et al., "Sparse Coding via Thresholding and Local Cometition
+// in Neural Circuits," Neural Computation 20, 2526-2563 (2008).
+///////////////////////////
+
+debugParsing = true;
+
+HyPerCol "column" = {
+    nx = 1200; //1242;  // KITTI synced value
+    ny = 216;  //218;
+    dt = 1.0;
+    randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
+    startTime = 0;
+    numSteps = 340;       // Runs 3 times through entire dataset
+    progressStep = 1;
+    outputPath = "/nh/compneuro/Data/Depth/LCA/test/";
+    filenamesContainLayerNames = true;
+    filenamesContainConnectionNames = true;
+    checkpointRead = false; //true;
+    checkpointWrite = false;
+    deleteOlderCheckpoints = false;
+    //suppressLastOutput = false;
+    writeProgressToErr = true;
+    outputNamesOfLayersAndConns = "LayerAndConnNames.txt";
+};
+
+//
+// layers
+//
+
+// left eye layers
+
+Movie "LeftImage" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    readPvpFile = false;
+    imageListPath = "/nh/compneuro/Data/Depth/concat_data/image_00.txt";
+    nf = 1;
+    writeStep = -1;
+    writeSparseActivity = false;
+    displayPeriod = 1;
+    start_frame_index = 1;
+    skip_frame_index = 1;
+    echoFramePathnameFlag = false;
+    mirrorBCflag = true;
+    jitterFlag = 0;
+    useImageBCflag = false;
+    inverseFlag = false;
+    normalizeLuminanceFlag = false;
+    writeImages = false;
+    offsetX = 0;
+    offsetY = 0;
+    autoResizeFlag = 0;
+    randomMovie = 0;
+    phase = 0;
+    //useParamsImage = true;
+};
+
+//
+// Left depth eye layers
+//
+
+Movie "LeftDepthImage" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    readPvpFile = true; //Reading a pvp file
+    imageListPath = "/nh/compneuro/Data/Depth/concat_data/depth_00.pvp";
+    nf = 32;
+    writeStep = -1;
+    writeSparseActivity = false;
+    displayPeriod = 1;
+    start_frame_index = 1;
+    skip_frame_index = 1;
+    echoFramePathnameFlag = false;
+    mirrorBCflag = true;
+    jitterFlag = 0;
+    useImageBCflag = false;
+    inverseFlag = false;
+    normalizeLuminanceFlag = false;
+    writeImages = false;
+    offsetX = 0;
+    offsetY = 0;
+    randomMovie = 0;
+    autoResizeFlag = 0;
+    phase = 0;
+    //useParamsImage = true;
+};
+
+ANNLayer "LeftDepthDownsample" = {
+    restart = 0;
+    nxScale = .125;
+    nyScale = .125;
+    nf = 32;
+    writeStep = 1;
+    initialWriteTime = 0;
+    mirrorBCflag = 1;
+    writeSparseActivity = 0;
+    //
+    InitVType = "ZeroV";
+    //InitVType = "InitVFromFile";
+    //Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_31/output/Checkpoints/Checkpoint6000000/Error_V.pvp";
+    //
+    VThresh = -infinity;
+    VMax =  infinity;
+    VMin = -infinity;
+    VShift = 0;
+    VWidth = 0;
+    //
+    phase = 1;  
+};
+
+//
+// Right eye layers
+//
+
+Movie "RightImage" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    readPvpFile = false;
+    imageListPath = "/nh/compneuro/Data/Depth/concat_data/image_01.txt";
+    nf = 1;
+    writeStep = -1;
+    writeSparseActivity = false;
+    displayPeriod = 1;
+    start_frame_index = 1;
+    skip_frame_index = 1;
+    echoFramePathnameFlag = false;
+    mirrorBCflag = true;
+    jitterFlag = 0;
+    useImageBCflag = false;
+    inverseFlag = false;
+    normalizeLuminanceFlag = false;
+    writeImages = false;
+    offsetX = 0;
+    offsetY = 0;
+    randomMovie = 0;
+    phase = 0;
+    autoResizeFlag = 0;
+    //useParamsImage = true;
+};
+
+//
+// Right depth eye layers
+//
+
+Movie "RightDepthImage" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    readPvpFile = true; //Reading pvp file
+    imageListPath = "/nh/compneuro/Data/Depth/concat_data/depth_01.pvp";
+    nf = 32;
+    writeStep = -1;
+    writeSparseActivity = false;
+    displayPeriod = 1;
+    start_frame_index = 1;
+    skip_frame_index = 1;
+    echoFramePathnameFlag = false;
+    mirrorBCflag = true;
+    jitterFlag = 0;
+    useImageBCflag = false;
+    inverseFlag = false;
+    normalizeLuminanceFlag = false;
+    writeImages = false;
+    offsetX = 0;
+    offsetY = 0;
+    randomMovie = 0;
+    autoResizeFlag = 0;
+    phase = 0;
+    //useParamsImage = true;
+};
+
+ANNLayer "RightDepthDownsample" = {
+    restart = 0;
+    nxScale = .125;
+    nyScale = .125;
+    nf = 32;
+    writeStep = 1;
+    initialWriteTime = 0;
+    mirrorBCflag = 1;
+    writeSparseActivity = 0;
+    //
+    InitVType = "ZeroV";
+    //InitVType = "InitVFromFile";
+    //Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_31/output/Checkpoints/Checkpoint6000000/Error_V.pvp";
+    //
+    VThresh = -infinity;
+    VMax =  infinity;
+    VMin = -infinity;
+    VShift = 0;
+    VWidth = 0;
+    //
+    phase = 1;  
+};
+
+KernelConn "LeftDepthMovieToLeftDepthDownsample" = {
+    preLayerName = "LeftDepthImage";
+    postLayerName = "LeftDepthDownsample";
+    channelCode = 0;
+    nxp = 1;
+    nyp = 1;
+    nfp = 32;
+    numAxonalArbors = 1;
+    writeStep = -1;
+    initFromLastFlag = 0;
+    
+    weightInitType = "Gauss2DWeight";
+    aspect = 1;
+    sigma = 10000;
+    rMax  = 8;
+    rMin = 0;
+    numOrientationsPre = 1;
+    numOrientationsPost = 1;
+        
+    strength = 1.0;  
+    normalizeMethod = "normalizeSum";
+    minSumTolerated = 0;
+    normalizeArborsIndividually = 0;
+    normalize_cutoff = 0.0;
+    normalizeFromPostPerspective = true;
+    symmetrizeWeights = false;
+    
+    shrinkPatches = false;
+    //writeCompressedWeights = 0.0;
+    writeCompressedCheckpoints = false;
+    plasticityFlag = 0;
+     
+    delay = 0;
+     
+    preActivityIsNotRate = false;
+    selfFlag = false;
+    shmget_flag = false;
+
+    pvpatchAccumulateType = "convolve";
+};
+
+KernelConn "RightDepthMovieToRightDepthDownsample" = {
+    preLayerName = "RightDepthImage";
+    postLayerName = "RightDepthDownsample";
+    channelCode = 0;
+    nxp = 1;
+    nyp = 1;
+    nfp = 32;
+    numAxonalArbors = 1;
+    writeStep = -1;
+    initFromLastFlag = 0;
+    
+    weightInitType = "Gauss2DWeight";
+    aspect = 1;
+    sigma = 10000;
+    rMax  = 8;
+    rMin = 0;
+    numOrientationsPre = 1;
+    numOrientationsPost = 1;
+        
+    strength = 1.0;  
+    normalizeMethod = "normalizeSum";
+    minSumTolerated = 0;
+    normalizeArborsIndividually = 0;
+    normalize_cutoff = 0.0;
+    normalizeFromPostPerspective = true;
+    symmetrizeWeights = false;
+    
+    shrinkPatches = false;
+    //writeCompressedWeights = 0.0;
+    writeCompressedCheckpoints = false;
+    plasticityFlag = 0;
+     
+    delay = 0;
+     
+    preActivityIsNotRate = false;
+    selfFlag = false;
+    shmget_flag = false;
+    pvpatchAccumulateType = "convolve";
+};
