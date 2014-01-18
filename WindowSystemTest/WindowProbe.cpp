@@ -42,10 +42,8 @@ int WindowProbe::outputState(double timed){
       int windowId = windowLayer->calcWindow(kxGlobalExt, kyGlobalExt);
       float diff = abs(actLayer[kLocalExt] - windowId);
       if(diff != 0 && timed != 0){
-         std::cout << "Not Equal! layer: " << actLayer[kLocalExt] << " window: " << windowId << " diff: " << diff << "\n";
-         std::cout << "x: " << kxGlobalExt << " y: " << kyGlobalExt << "\n";
+         assert(actLayer[kLocalExt] == windowId);
       }
-      //assert(actLayer[kLocalExt] == windowId);
 
    }
 
