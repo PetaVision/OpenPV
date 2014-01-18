@@ -36,7 +36,8 @@ void LabelErrorLayer_update_state(
     const float VMin,
     const float VShift,
     CL_MEM_GLOBAL float * GSynHead,
-    CL_MEM_GLOBAL float * activity)
+    CL_MEM_GLOBAL float * activity,
+    const float errScale)
 {
-   updateV_LabelErrorLayer(numNeurons, V, GSynHead, activity, VMax, VMin, Vth, VShift, nx, ny, nf, nb);
+  updateV_LabelErrorLayer(numNeurons, V, GSynHead, activity, VMax, VMin, Vth, VShift, nx, ny, nf, nb, errScale);
 }

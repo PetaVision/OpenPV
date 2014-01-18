@@ -97,6 +97,9 @@ function [ReconError_times_array, ...
   endif
 
   %% num frames to skip between stored frames, default is 
+  if ~exist(output_dir,"dir")
+    error(["analyzeReconErrorPVP::output_dir does not exist: ", output_dir]);
+  endif
   ReconError_hdr = cell(num_ReconError_list,1);
   ReconError_dir = [output_dir, filesep, "ReconError"]
   [status, msg, msgid] = mkdir(ReconError_dir);

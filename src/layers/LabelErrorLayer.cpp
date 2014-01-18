@@ -24,7 +24,8 @@ void LabelErrorLayer_update_state(
     const float VMin,
     const float VShift,
     float * GSynHead,
-    float * activity);
+    float * activity,
+    float errScale);
 
 
 #ifdef __cplusplus
@@ -57,12 +58,18 @@ LabelErrorLayer::~LabelErrorLayer()
 
 int LabelErrorLayer::initialize_base()
 {
+   errScale = 1;
    return PV_SUCCESS;
 }
 
 int LabelErrorLayer::initialize(const char * name, HyPerCol * hc, int num_channels)
 {
    return ANNLayer::initialize(name, hc, num_channels);
+}
+
+int LabelErrorLayer::readErrScale(PVParams * params){
+    errScale = params->value(name, "errScale", errScale);
+    return PV_SUCCESS;
 }
 
 int LabelErrorLayer::doUpdateState(double time, double dt, const PVLayerLoc * loc, pvdata_t * A,
@@ -82,7 +89,7 @@ int LabelErrorLayer::doUpdateState(double time, double dt, const PVLayerLoc * lo
       int nf = loc->nf;
       int num_neurons = nx*ny*nf;
     	  LabelErrorLayer_update_state(num_neurons, nx, ny, nf, loc->nb, V, VThresh,
-    			  VMax, VMin, VShift, gSynHead, A);
+    			  VMax, VMin, VShift, gSynHead, A, errScale);
       if (this->writeSparseActivity){
          updateActiveIndices();  // added by GTK to allow for sparse output, can this be made an inline function???
       }
