@@ -94,7 +94,7 @@ ANNLayer "ganglion" = {
     VShift                           = 0.0;
     VWidth                           = 0.0;
     
-    movieLayerName                   = "input";
+    //movieLayerName                   = "input";
 };
 
 Movie "correctoutput" = {
