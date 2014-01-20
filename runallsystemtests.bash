@@ -137,6 +137,13 @@ runandecho $testname Debug/$testname $arglist
 mpirunandecho $testname Debug/$testname $arglist
 cd $wd
 
+testname=BinningLayerTest
+arglist="-p input/BinningLayerTest.params"
+cd "$testname"
+runandecho $testname Debug/$testname $arglist
+mpirunandecho $testname Debug/$testname $arglist
+cd $wd
+
 testname=CheckpointSystemTest
 arglist=""
 cd "$testname"
@@ -206,6 +213,13 @@ runandecho $testname Debug/$testname $arglist
 mpirunandecho $testname Debug/$testname $arglist
 cd $wd
 
+testname=ImportParamsTest
+arglist="-p input/importParamsTest.params"
+cd "$testname"
+runandecho $testname Debug/$testname $arglist
+mpirunandecho $testname Debug/$testname $arglist
+cd $wd
+
 testname=InitWeightsTest
 arglist="-p input/test_initweights.params"
 cd "$testname"
@@ -270,7 +284,7 @@ mpirunandecho $testname Debug/$testname $arglist
 cd $wd
 
 testname=MPITest2
-arglist="-p input/MPI_test.params -n 100"
+arglist="-p input/MPI_test.params"
 cd "$testname"
 runandecho $testname Debug/$testname $arglist
 mpirunandecho $testname Debug/$testname $arglist
