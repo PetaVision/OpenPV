@@ -95,15 +95,11 @@ void ShuffleLayer::randomShuffle(const pvdata_t * sourceData, pvdata_t * activit
 
 int ShuffleLayer::updateState(double timef, double dt) {
    int status = PV_SUCCESS;
-   int kext;
    //sourceData is extended
    const pvdata_t * sourceData = originalLayer->getLayerData();
    pvdata_t * A = getActivity();
    const PVLayerLoc * loc = getLayerLoc();
    const PVLayerLoc * sourceLoc = originalLayer->getLayerLoc();
-	int comm_size = parent->icCommunicator()->commSize();
-	int rank = parent->icCommunicator()->commRank();
-   int rootproc = 0;
    
    //Make sure layer loc and source layer loc is equivelent
    assert(loc->nx == sourceLoc->nx);
