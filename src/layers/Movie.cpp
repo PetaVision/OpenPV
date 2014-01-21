@@ -270,7 +270,6 @@ PVLayerLoc Movie::getImageLoc()
 }
 
 bool Movie::needUpdate(double time, double dt){
-   InterColComm * icComm = getParent()->icCommunicator();
    bool needNewImage = false;
    //Always update on first timestep
    if (time <= parent->getStartTime()){
@@ -297,6 +296,7 @@ int Movie::updateStateWrapper(double time, double dt){
    HyPerLayer::updateStateWrapper(time, dt);
    //Hack since timing issues with mirror bc, TODO
    exchange();
+   return PV_SUCCESS;
 }
 
 int Movie::updateState(double time, double dt)
