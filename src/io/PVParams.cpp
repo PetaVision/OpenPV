@@ -1662,7 +1662,6 @@ void PVParams::action_parameter_filename_def_overwrite(const char * id, const ch
    }
    char * param_value = stripQuotationMarks(stringval);
    assert(param_value);
-   ParameterString * pstr = NULL;
    char * filename = NULL;
    if (param_value && param_value[0]=='~') {
       filename = expandLeadingTilde(param_value);
