@@ -656,7 +656,7 @@ void HyPerLayer::readTriggerFlag(PVParams * params) {
    triggerFlag = (bool) params->value(name, "triggerFlag", triggerFlag);
    if(triggerFlag){
       const char * trigger_layer_name = params->stringValue(name, "triggerLayerName");
-      if(!triggerLayerName){
+      if(!trigger_layer_name){
          if (parent->columnId()==0) {
             fprintf(stderr, "%s \"%s\" error: triggerLayerName must be defined if triggerFlag is set\n", parent->parameters()->groupKeywordFromName(name), name);;
             exit(EXIT_FAILURE);
