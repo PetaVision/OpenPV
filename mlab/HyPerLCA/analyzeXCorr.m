@@ -29,7 +29,9 @@ function [iidx, jidx, finalCorr] = analyzeXCorr(xCorr_list, output_dir, plot_cor
       disp(['Calculating xcorr of ',pvpfile])
       [data,hdr] = readpvpfile(pvpfile);
       if(frames_calc > 0)
-         data = data(end-xCorr_frames_calc:end)
+         if(frames_calc < length(data))
+            data = data(end-frames_calc:end)
+         end%if
       end%if
       if(hdr.filetype ~= 2 && hdr.filetype ~=6)
          disp(['File type not supported, only sparse with activity pvp files accepted']);

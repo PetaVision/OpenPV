@@ -80,8 +80,12 @@ int RescaleLayer::setParams(PVParams * params){
       readTargetMean(params);
       readTargetStd(params);
    }
+   else if(strcmp(rescaleMethod, "pointmeanstd") == 0){
+      readTargetMean(params);
+      readTargetStd(params);
+   }
    else{
-      fprintf(stderr, "Rescale Layer %s: rescaleMethod does not exist. Current implemented methods are maxmin and meanstd.\n",
+      fprintf(stderr, "Rescale Layer %s: rescaleMethod does not exist. Current implemented methods are maxmin, meanstd, pointmeanstd.\n",
             name);
       exit(PV_FAILURE);
    }
@@ -119,12 +123,18 @@ int RescaleLayer::updateState(double timef, double dt) {
    int status = PV_SUCCESS;
 
    //Check if an update is needed
+   //TODO not needed anymore, done with needUpdate, although it would be nice to automatically trigger off orig layer
    if(checkIfUpdateNeeded()){
        int numNeurons = originalLayer->getNumNeurons();
        pvdata_t * A = clayer->activity->data;
        const pvdata_t * originalA = originalLayer->getCLayer()->activity->data;
        const PVLayerLoc * loc = getLayerLoc();
        const PVLayerLoc * locOriginal = originalLayer->getLayerLoc();
+       //Make sure all sizes match
+       assert(locOriginal->nb == loc->nb);
+       assert(locOriginal->nx == loc->nx);
+       assert(locOriginal->ny == loc->ny);
+       assert(locOriginal->nf == loc->nf);
 
        if (strcmp(rescaleMethod, "maxmin") == 0){
           float maxA = -1000000000;
@@ -191,6 +201,39 @@ int RescaleLayer::updateState(double timef, double dt) {
              }
              else{
                 A[kext] = originalA[kextOriginal];
+             }
+          }
+       }
+       else if(strcmp(rescaleMethod, "pointmeanstd") == 0){
+          int nx = locOriginal->nx;
+          int ny = locOriginal->ny;
+          int nf = locOriginal->nf;
+          int nb = locOriginal->nb;
+          //Loop through all nx and ny extended
+          for(int iY = 0; iY < ny+2*nb; iY++){ 
+             for(int iX = 0; iX < nx+2*nb; iX++){ 
+                //Find sum and sum sq in feature space
+                float sum = 0;
+                float sumsq = 0;
+                for(int iF = 0; iF < nf; iF++){
+                   int kext = kIndex(iX, iY, iF, nx+2*nb, ny+2*nb, nf);
+                   sum += originalA[kext];
+                }
+                float mean = sum/nf;
+                for(int iF = 0; iF < nf; iF++){
+                   int kext = kIndex(iX, iY, iF, nx+2*nb, ny+2*nb, nf);
+                   sumsq += (originalA[kext] - mean) * (originalA[kext] - mean);
+                }
+                float std = sqrt(sumsq/nf);
+                for(int iF = 0; iF < nf; iF++){
+                   int kext = kIndex(iX, iY, iF, nx+2*nb, ny+2*nb, nf);
+                   if (std != 0){
+                      A[kext] = ((originalA[kext] - mean) * (targetStd/std) + targetMean);
+                   }
+                   else{
+                      A[kext] = originalA[kext];
+                   }
+                }
              }
           }
        }

@@ -44,7 +44,7 @@ static inline int applyGSyn_HyPerLayer1Channel(int numNeurons,
 static inline int applyGSyn_HyPerLayer(int numNeurons,
 		CL_MEM_GLOBAL pvdata_t * V, CL_MEM_GLOBAL pvdata_t * GSynHead);
 static inline int applyGSyn_LabelErrorLayer(int numNeurons,
-		CL_MEM_GLOBAL pvdata_t * V, CL_MEM_GLOBAL pvdata_t * GSynHead);
+		CL_MEM_GLOBAL pvdata_t * V, CL_MEM_GLOBAL pvdata_t * GSynHead, int nx, int ny, int nf, int nb, int isBinary);
 static inline int updateV_ANNLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * V,
         int num_channels, CL_MEM_GLOBAL pvdata_t * GSynHead, CL_MEM_GLOBAL float * activity,
         pvdata_t VMax, pvdata_t VMin, pvdata_t VThresh, pvdata_t VShift, pvdata_t VWidth, int nx,
@@ -60,7 +60,7 @@ static inline int updateV_ANNErrorLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t *
 static inline int updateV_LabelErrorLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * V,
 		CL_MEM_GLOBAL pvdata_t * GSynHead, CL_MEM_GLOBAL float * activity,
 		pvdata_t VMax, pvdata_t VMin, pvdata_t VThresh, pvdata_t VShift, int nx,
-		int ny, int nf, int nb, float errScale);
+		int ny, int nf, int nb, float errScale, int isBinary);
 static inline int updateV_ANNLabelLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * V,
 		CL_MEM_GLOBAL pvdata_t * GSynHead, CL_MEM_GLOBAL float * activity,
 		pvdata_t VMax, pvdata_t VMin, pvdata_t VThresh, pvdata_t VShift, int nx,
@@ -159,6 +159,14 @@ static inline int setActivity_GapLayer(int numNeurons,
 static inline int resetGSynBuffers_HyPerLayer(int numNeurons, int num_channels, CL_MEM_GLOBAL pvdata_t * GSynHead);
 static inline int resetGSynBuffers_SigmoidLayer();
 
+//Gaussian function prototype TODO: maybe this can go somewhere else?
+//static inline float calcGausDist(float xVal, float height, float mean, float sigma);
+//
+//static inline float calcGausDist(float xVal, float height, float mean, float sigma){
+//   return height * exp(-(pow(xVal-mean, 2)/(2*pow(sigma, 2))));
+//}
+
+
 // Definitions
 static inline int applyGSyn_HyPerLayer1Channel(int numNeurons, CL_MEM_GLOBAL pvdata_t * V, CL_MEM_GLOBAL pvdata_t * GSynHead) {
    int k;
@@ -190,23 +198,64 @@ static inline int applyGSyn_HyPerLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * 
    return PV_SUCCESS;
 }
 
-static inline int applyGSyn_LabelErrorLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * V, CL_MEM_GLOBAL pvdata_t * GSynHead) {
+static inline int applyGSyn_LabelErrorLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * V, CL_MEM_GLOBAL pvdata_t * GSynHead, int nx, int ny, int nf, int nb, int isBinary) {
    int k;
    CL_MEM_GLOBAL pvdata_t * GSynExc = &GSynHead[CHANNEL_EXC*numNeurons];
    CL_MEM_GLOBAL pvdata_t * GSynInh = &GSynHead[CHANNEL_INH*numNeurons];
+   
+   if(isBinary > 0){
 #ifndef PV_USE_OPENCL
-   for( k=0; k<numNeurons; k++ )
+      for( k=0; k<numNeurons; k++ )
 #else
       k = get_global_id(0);
 #endif // PV_USE_OPENCL
-   {
-	   V[k] = GSynExc[k] - GSynInh[k];
-	   if (GSynExc[k]>0){ // target label is positive
-		   V[k] = V[k] > 0 ? V[k] : 0;
-	   }
-	   else {              // target label is negative
-		   V[k] = V[k] < 0 ? V[k] : 0;
-	   }
+      {
+         V[k] = GSynExc[k] - GSynInh[k];
+         if (GSynExc[k]>0){ // target label is positive
+            V[k] = V[k] > 0 ? V[k] : 0;
+         }
+         else {              // target label is negative
+            V[k] = V[k] < 0 ? V[k] : 0;
+         }
+      }
+   }
+   else{
+#ifndef PV_USE_OPENCL
+      for( k=0; k<numNeurons; k++ )
+#else
+      k = get_global_id(0);
+#endif // PV_USE_OPENCL
+      {
+         float ratio = 1;
+         //Need to find maximum value of target label
+         //If first feature, find ratio between target and guess feature val
+         int iF = featureIndex(k, nx+2*nb, ny+2*nb, nf);
+         if(iF == 0){
+            float maxTargetVal = GSynExc[k];
+            int maxIdx = k;
+            //Find max value in feature space
+            for(int iif = 1; iif < nf; iif++){
+               if(GSynExc[k+iif] > maxTargetVal){
+                  maxTargetVal = GSynExc[k+iif];
+                  maxIdx = k+iif;
+               }
+            }
+            //Find ratio
+            //if target label is positive and guess is over target
+            if(maxTargetVal > 0 && GSynInh[maxIdx] > maxTargetVal){
+               ratio = maxTargetVal / GSynInh[maxIdx];
+            }
+            else{
+               ratio = 1;
+            }
+         }
+         //Calculate V value based on target and rescaled guess
+         V[k] = GSynExc[k] - (GSynInh[k] * ratio);
+         //If target label is negative, and guess is lower than target label, err = 0
+         if (GSynExc[k] < 0){
+            V[k] = V[k] < 0 ? V[k] : 0;
+         }
+      }
    }
    return PV_SUCCESS;
 }
@@ -378,10 +427,10 @@ static inline int updateV_ANNErrorLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t *
 
 static inline int updateV_LabelErrorLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * V,
       CL_MEM_GLOBAL pvdata_t * GSynHead, CL_MEM_GLOBAL float * activity, pvdata_t VMax,
-      pvdata_t VMin, pvdata_t VThresh, pvdata_t VShift, int nx, int ny, int nf, int nb, float errScale)
+      pvdata_t VMin, pvdata_t VThresh, pvdata_t VShift, int nx, int ny, int nf, int nb, float errScale, int isBinary)
 {
    int status;
-   status = applyGSyn_LabelErrorLayer(numNeurons, V, GSynHead);
+   status = applyGSyn_LabelErrorLayer(numNeurons, V, GSynHead, nx, ny, nf, nb, isBinary);
    for(int i = 0; i < numNeurons; i++){
        V[i] *= errScale;
    }
