@@ -50,9 +50,9 @@ int ANNTriggerUpdateOnNewImageLayer::initialize(const char * name, HyPerCol * hc
 				name, this->movieLayerName, strerror(errno));
 		exit(EXIT_FAILURE);
 	}
-	return ANNLayer::initialize(name, hc, num_channels);
    //This layer is a trigger layer, so set flag
    triggerFlag = 1;
+	return ANNLayer::initialize(name, hc, num_channels);
 }
 
 int ANNTriggerUpdateOnNewImageLayer::communicateInitInfo() {
@@ -72,8 +72,6 @@ int ANNTriggerUpdateOnNewImageLayer::communicateInitInfo() {
    }
    //Set the triggerLayer needed by HyPerLayer::needUpdate()
    triggerLayer = origHyPerLayer;
-   
-
    return status;
 }
 
