@@ -1,5 +1,5 @@
 function writepvpkernelfile(filename, data)
-   % Usage: writepvpfile(filename, data)
+   % Usage: writepvpkernelfile(filename, data)
    % filename is the pvp file to be created.  If the file already
    % exists it will be clobbered.
    %
