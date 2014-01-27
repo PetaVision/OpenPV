@@ -67,8 +67,6 @@ int LabelErrorLayer::initialize_base()
 int LabelErrorLayer::initialize(const char * name, HyPerCol * hc, int num_channels)
 {
    int status = ANNLayer::initialize(name, hc, num_channels);
-   PVParams * params = parent->parameters();
-   status |= readErrScale(params);
    return status;
 }
 

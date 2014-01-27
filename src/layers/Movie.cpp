@@ -296,7 +296,7 @@ int Movie::updateStateWrapper(double time, double dt){
    int status = HyPerLayer::updateStateWrapper(time, dt);
    //Hack since timing issues with mirror bc, TODO
    exchange();
-   return PV_SUCCESS;
+   return status;
 }
 
 int Movie::updateState(double time, double dt)
