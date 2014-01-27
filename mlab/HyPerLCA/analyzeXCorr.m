@@ -30,7 +30,7 @@ function [iidx, jidx, finalCorr] = analyzeXCorr(xCorr_list, output_dir, plot_cor
       [data,hdr] = readpvpfile(pvpfile);
       if(frames_calc > 0)
          if(frames_calc < length(data))
-            data = data(end-frames_calc:end)
+            data = data(end-frames_calc:end);
          end%if
       end%if
       if(hdr.filetype ~= 2 && hdr.filetype ~=6)
