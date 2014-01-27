@@ -17,18 +17,18 @@ if ismac
   workspace_path = "/Users/garkenyon/workspace";
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   %%run_type = "CIFAR_deep"; 
-  %%output_dir = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB_deep_task/data_batch_all19"
+  %%output_dir = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB_deep_task/data_batch_all20"
   %%checkpoint_dir = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB_deep_task/data_batch_all"; %%output_dir;
   %%checkpoint_parent = "/Users/garkenyon/workspace/HyPerHLCA";
   %%checkpoint_children = ...
-  %%    {"CIFAR256_RGB_deep_task/data_batch_all19"}; %%
+  %%    {"CIFAR256_RGB_deep_task/data_batch_all20"}; %%
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   run_type = "CIFAR_C1"; 
-  output_dir = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR_C1_task/data_batch_all"
-  checkpoint_dir = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR_C1_task/data_batch_all"; %%output_dir;
+  output_dir = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR_C1_task/data_batch_all2"
+  checkpoint_dir = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR_C1_task/data_batch_all2"; %%output_dir;
   checkpoint_parent = "/Users/garkenyon/workspace/HyPerHLCA";
   checkpoint_children = ...
-      {"CIFAR_C1_task/data_batch_all"}; %%
+      {"CIFAR_C1_task/data_batch_all2"}; %%
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 elseif isunix
   workspace_path = "/home/gkenyon/workspace";
@@ -102,7 +102,7 @@ if unwhiten_flag && (~exist("DoG_path") || isempty(DoG_path))
   DoG_path = output_dir;
 endif
 
-max_patches = 160; %%256; %%1024; %%  %% maximum number of weight patches to plot, typically ordered from most to least active if Sparse_flag == true
+max_patches = 192; %%256; %%1024; %%  %% maximum number of weight patches to plot, typically ordered from most to least active if Sparse_flag == true
 checkpoint_weights_movie = true; %% make movie of weights over time using list of checkpoint folders getCheckpointList(checkpoint_parent, checkpoint_children)
 
 

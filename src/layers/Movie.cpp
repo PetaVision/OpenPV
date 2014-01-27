@@ -293,7 +293,7 @@ bool Movie::needUpdate(double time, double dt){
 }
 
 int Movie::updateStateWrapper(double time, double dt){
-   HyPerLayer::updateStateWrapper(time, dt);
+   int status = HyPerLayer::updateStateWrapper(time, dt);
    //Hack since timing issues with mirror bc, TODO
    exchange();
    return PV_SUCCESS;
