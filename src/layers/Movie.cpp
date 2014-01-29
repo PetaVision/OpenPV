@@ -42,7 +42,7 @@ int Movie::initialize_base() {
    fileOfFileNames = NULL;
    frameNumber = 0;
    numFrames = 0;
-   writeFrameToTimestamp = false;
+   writeFrameToTimestamp = true;
    timestampFile = NULL;
    //updateThisTimestep = false;
    // newImageFlag = false;
@@ -153,10 +153,6 @@ int Movie::initialize(const char * name, HyPerCol * hc, const char * fileOfFileN
       parent->ensureDirExists(timestampFilename.c_str());
       timestampFilename += name;
       timestampFilename += ".txt";
-      ////strcat(outFilename, "/timestamps/");
-      ////strcat(outFilename, name);
-      ////strcat(outFilename, ".txt");
-      //status = parent->ensureDirExists(timestampDir);
       if(getParent()->icCommunicator()->commRank()==0){
           timestampFile = PV::PV_fopen(timestampFilename.c_str(), "w");
           assert(timestampFile);
