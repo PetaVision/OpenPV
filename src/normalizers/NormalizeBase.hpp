@@ -22,11 +22,11 @@ public:
 
    virtual int normalizeWeights(HyPerConn * conn);
 
-   float getStrength() {return strength;}
-   float getNormalizeCutoff() {return normalize_cutoff;}
-   bool  getSymmetrizeWeightsFlag() {return symmetrizeWeightsFlag;}
-   bool  getNormalizeFromPostPerspectiveFlag() {return normalizeFromPostPerspective;}
-   bool  getNormalizeArborsIndividuallyFlag() {return normalizeArborsIndividually;}
+   const float getStrength() {return strength;}
+   const float getNormalizeCutoff() {return normalize_cutoff;}
+   const bool getSymmetrizeWeightsFlag() {return symmetrizeWeightsFlag;}
+   const bool  getNormalizeFromPostPerspectiveFlag() {return normalizeFromPostPerspective;}
+   const bool  getNormalizeArborsIndividuallyFlag() {return normalizeArborsIndividually;}
 
 protected:
    NormalizeBase();
