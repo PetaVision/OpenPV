@@ -50,13 +50,73 @@ int Movie::initialize_base() {
 }
 
 int Movie::checkpointRead(const char * cpDir, double * timef){
-   Image::checkpointRead(cpDir, timef);
+   int status = Image::checkpointRead(cpDir, timef);
 
    if (this->useParamsImage) { //Sets nextDisplayTime = simulationtime (i.e. effectively restarting)
       nextDisplayTime += parent->simulationTime();
    }
 
-   return PV_SUCCESS;
+   InterColComm * icComm = parent->icCommunicator();
+   int filenamesize = strlen(cpDir)+1+strlen(name)+18;
+   // The +1 is for the slash between cpDir and name; the +18 needs to be large enough to hold the suffix _PatternState.{bin,txt} plus the null terminator
+   char * filename = (char *) malloc( filenamesize*sizeof(char) );
+   assert(filename != NULL);
+   int chars_needed = snprintf(filename, filenamesize, "%s/%s_MovieState.bin", cpDir, name);
+   assert(chars_needed < filenamesize);
+   if( icComm->commRank() == 0 ) {
+      //Only read timestamp file pos if 
+      //1. There exists a timestampFile
+      //2. There exists a MovieState.bin (Run being checkpointed from could have not been printing out timestamp files
+      PV_Stream * pvstream = PV_fopen(filename, "r");
+      if (timestampFile && pvstream){
+         long timestampFilePos = 0L;
+         status |= PV_fread(&timestampFilePos, sizeof(long), 1, pvstream);
+         if (PV_fseek(timestampFile, timestampFilePos, SEEK_SET) != 0) {
+            fprintf(stderr, "MovieLayer::checkpointRead error: unable to recover initial file position in timestamp file for layer %s\n", name);
+            abort();
+         }
+
+         PV_fclose(pvstream);
+      }
+   }
+   return status;
+}
+
+int Movie::checkpointWrite(const char * cpDir){
+   int status = Image::checkpointWrite(cpDir);
+   //Only do a checkpoint write if there exists a timestamp file
+   if(timestampFile){
+      InterColComm * icComm = parent->icCommunicator();
+      int filenamesize = strlen(cpDir)+1+strlen(name)+18;
+      // The +1 is for the slash between cpDir and name; the +18 needs to be large enough to hold the suffix _PatternState.{bin,txt} plus the null terminator
+      char * filename = (char *) malloc( filenamesize*sizeof(char) );
+      assert(filename != NULL);
+      sprintf(filename, "%s/%s_MovieState.bin", cpDir, name);
+      if( icComm->commRank() == 0 ) {
+         //Get the file position of the timestamp file
+         long timestampFilePos = getPV_StreamFilepos(timestampFile);
+         PV_Stream * pvstream = PV_fopen(filename, "w");
+         if(pvstream != NULL){
+            status |= PV_fwrite(&timestampFilePos, sizeof(long), 1, pvstream);
+            PV_fclose(pvstream);
+         } 
+         else{
+            fprintf(stderr, "Unable to write to \"%s\"\n", filename);
+            status = PV_FAILURE;
+         }
+         sprintf(filename, "%s/%s_MovieState.txt", cpDir, name);
+         pvstream = PV_fopen(filename, "w");
+         if(pvstream != NULL){
+            fprintf(pvstream->fp, "timestampFilePos = %l", timestampFilePos);
+            PV_fclose(pvstream);
+         }
+         else{
+            fprintf(stderr, "Unable to write to \"%s\"\n", filename);
+            status = PV_FAILURE;
+         }
+      }
+   }
+   return status;
 }
 
 //
@@ -147,6 +207,7 @@ int Movie::initialize(const char * name, HyPerCol * hc, const char * fileOfFileN
       // }
       status = parent->ensureDirExists(movieOutputPath);
    }
+
    if(writeFrameToTimestamp){
       std::string timestampFilename = std::string(strdup(parent->getOutputPath()));
       timestampFilename += "/timestamps/";
@@ -154,7 +215,13 @@ int Movie::initialize(const char * name, HyPerCol * hc, const char * fileOfFileN
       timestampFilename += name;
       timestampFilename += ".txt";
       if(getParent()->icCommunicator()->commRank()==0){
-          timestampFile = PV::PV_fopen(timestampFilename.c_str(), "w");
+          //If checkpoint read is set, append, otherwise, clobber
+          if(getParent()->getCheckpointReadFlag()){
+             timestampFile = PV::PV_fopen(timestampFilename.c_str(), "r+");
+          }
+          else{
+             timestampFile = PV::PV_fopen(timestampFilename.c_str(), "w");
+          }
           assert(timestampFile);
       }
    }
@@ -370,8 +437,13 @@ bool Movie::updateImage(double time, double dt)
       if( icComm->commRank()==0 ) {
           //Only write if the parameter is set
           if(timestampFile){
-              fprintf(timestampFile->fp, "%d,%lf, %s\n",frameNumber, lastUpdateTime, filename);
-              fflush(timestampFile->fp);
+             std::ostringstream outStrStream;
+             outStrStream << frameNumber << "," << lastUpdateTime << "," << filename << "\n";
+             PV_fwrite(outStrStream.str().c_str(), sizeof(char), outStrStream.str().length(), timestampFile); 
+             //Flush buffer
+             fflush(timestampFile->fp);
+              //fprintf(timestampFile->fp, "%d,%lf, %s\n",frameNumber, lastUpdateTime, filename);
+              //fflush(timestampFile->fp);
           }
       }
    } // randomMovie

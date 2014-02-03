@@ -9,6 +9,7 @@
 #define MOVIE_HPP_
 
 #include "Image.hpp"
+#include <sstream>
 
 namespace PV {
 
@@ -24,6 +25,7 @@ public:
    virtual PVLayerLoc getImageLoc();
 
    virtual int checkpointRead(const char * cpDir, double * timef);
+   virtual int checkpointWrite(const char * cpDir);
    virtual int outputState(double time, bool last=false);
    virtual bool needUpdate(double time, double dt);
    virtual int updateStateWrapper(double time, double dt);
