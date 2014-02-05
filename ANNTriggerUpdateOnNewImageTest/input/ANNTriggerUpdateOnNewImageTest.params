@@ -59,7 +59,7 @@ Movie "input" = {
     skip_frame_index                 = 0;
 };
 
-ANNTriggerUpdateOnNewImageLayer "ganglion" = {
+ANNLayer "ganglion" = {
     restart                          = false;
     nxScale                          = 1;
     nyScale                          = 1;
@@ -78,7 +78,8 @@ ANNTriggerUpdateOnNewImageLayer "ganglion" = {
     VShift                           = 0.0;
     VWidth                           = 0.0;
     
-    movieLayerName                   = "input";
+    triggerFlag                      = true;
+    triggerLayerName                   = "input";
 };
 
 Movie "correctoutput" = {
