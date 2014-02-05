@@ -107,7 +107,7 @@ int Movie::checkpointWrite(const char * cpDir){
          sprintf(filename, "%s/%s_MovieState.txt", cpDir, name);
          pvstream = PV_fopen(filename, "w");
          if(pvstream != NULL){
-            fprintf(pvstream->fp, "timestampFilePos = %l", timestampFilePos);
+            fprintf(pvstream->fp, "timestampFilePos = %ld", timestampFilePos);
             PV_fclose(pvstream);
          }
          else{
