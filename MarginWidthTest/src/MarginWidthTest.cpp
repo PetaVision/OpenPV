@@ -7,7 +7,7 @@
  *
  */
 
-#include "../../PetaVision/src/columns/buildandrun.hpp"
+#include <columns/buildandrun.hpp>
 
 int custominit(HyPerCol * hc, int argc, char **argv);
 // custominit is for doing things after the HyPerCol has been built but before the run method is called.
