@@ -3609,7 +3609,7 @@ int HyPerConn::checkPatchSize(int patchSize, int scalePre, int scalePost, char d
       fprintf(stderr, "and postsynaptic n%cScale %f.\n",dim,pow(2,-scalePost));
       if( scaleDiff > 0) {
          int scaleFactor = (int) pow(2, (float) scaleDiff);
-         fprintf(stderr, "(postsynaptic scale) = %d * (postsynaptic scale);\n", scaleFactor);
+         fprintf(stderr, "(postsynaptic scale) = %d * (presynaptic scale);\n", scaleFactor);
          fprintf(stderr, "therefore compatible sizes are %d times an odd number.\n", scaleFactor);
       }
       else {
