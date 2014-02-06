@@ -17,7 +17,7 @@ HyPerCol "column" = {
     randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
     startTime = 0;
     stopTime = 46584000; //
-    progressStep = 1000;
+    progressInterval = 1000;
     outputPath = "/nh/compneuro/Data/vine/LCA/2013_01_24_2013_02_01/output_2013_01_24_2013_02_01_12x12x128_3x3_9x9x128_lambda_05X1_lateral";
     filenamesContainLayerNames = true;
     filenamesContainConnectionNames = true;
@@ -88,7 +88,7 @@ Movie "Image" = {
 //};
 
 
-ANNTriggerUpdateOnNewImageLayer "Bipolar" = {
+ANNLayer "Bipolar" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
@@ -98,7 +98,7 @@ ANNTriggerUpdateOnNewImageLayer "Bipolar" = {
     mirrorBCflag = 1;
     writeSparseActivity = 0;
 
-    movieLayerName = "Image";
+    triggerLayerName = "Image";
     InitVType = "ZeroV";
 
     VThresh = -infinity;
@@ -107,10 +107,11 @@ ANNTriggerUpdateOnNewImageLayer "Bipolar" = {
     VShift = 0;
     VWidth = 0;
     
+    triggerFlag = true;
     phase = 2;
 };
 
-ANNTriggerUpdateOnNewImageLayer "Ganglion" = {
+ANNLayer "Ganglion" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
@@ -120,7 +121,7 @@ ANNTriggerUpdateOnNewImageLayer "Ganglion" = {
     mirrorBCflag = 1;
     writeSparseActivity = 0;
     //
-    movieLayerName = "Image";
+    triggerLayerName = "Image";
     InitVType = "ZeroV";
     //
     VThresh = -infinity;
@@ -129,6 +130,7 @@ ANNTriggerUpdateOnNewImageLayer "Ganglion" = {
     VShift = 0;
     VWidth = 0;
     // 
+    triggerFlag = true;
     phase = 3;
 };
 
@@ -154,6 +156,7 @@ ANNErrorLayer "Error" = {
     VWidth = 0;
     errScale = 1.0;
     //
+    triggerFlag = false;
     phase = 4;  
 };
 
@@ -189,11 +192,12 @@ HyPerLCALayer "V1" = {
     VShift = 0.0;  // 0 -> hard threshold, 1 -> soft threshold
     VWidth = 0.05; // transition between soft and hard threshold
     //
+    triggerFlag = false;
     phase = 5;
 };
 
 // for visualization only, makes no output
-ANNTriggerUpdateOnNewImageLayer "Recon" = {
+ANNLayer "Recon" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
@@ -204,7 +208,7 @@ ANNTriggerUpdateOnNewImageLayer "Recon" = {
     valueBC = 0;
     writeSparseActivity = 0;
     //
-    movieLayerName = "Image";
+    triggerLayerName = "Image";
     //InitVType = "ZeroV";
     InitVType = "InitVFromFile";
     Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_30/output_2013_01_30_12x12x128_3x3_9x9x128_lambda_05X1_lateral/Checkpoints/Checkpoint13700000/Recon_V.pvp";
@@ -215,6 +219,7 @@ ANNTriggerUpdateOnNewImageLayer "Recon" = {
     VShift = 0;
     VWidth = 0;
     // 
+    triggerFlag = true;
     phase = 2;  // should be less than V1 phase
 };
 
@@ -241,6 +246,7 @@ ANNErrorLayer "Error2" = {
     VWidth = 0;
     errScale = 0.5;
     //
+    triggerFlag = false;
     phase = 7;  
 };
 
@@ -276,11 +282,12 @@ HyPerLCALayer "V2" = {
     VShift = 0.0;  // 0 -> hard threshold, 1 -> soft threshold
     VWidth = 0.05;
     //
+    triggerFlag = false;
     phase = 8;
 };
 
 // use for visualizing intra-column reconstructions, not pre-synaptic
-ANNTriggerUpdateOnNewImageLayer "Recon2" = {
+ANNLayer "Recon2" = {
     restart = 0;
     nxScale = 1.0;
     nyScale = 1.0;
@@ -291,7 +298,7 @@ ANNTriggerUpdateOnNewImageLayer "Recon2" = {
     valueBC = 0;
     writeSparseActivity = 0;
     //
-    movieLayerName = "Image";
+    triggerLayerName = "Image";
     //InitVType = "ZeroV";
     InitVType = "InitVFromFile";
     Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_30/output_2013_01_30_12x12x128_3x3_9x9x128_lambda_05X1_lateral/Checkpoints/Checkpoint13700000/Recon2_V.pvp";
@@ -302,11 +309,12 @@ ANNTriggerUpdateOnNewImageLayer "Recon2" = {
     VShift = 0;
     VWidth = 0;
     // 
+    triggerFlag = true;
     phase = 2; // should be less than V2 phase
 };
 
 // staging for visualizing reconstructions from intra column interactions
-ANNTriggerUpdateOnNewImageLayer "V1Intra" = {
+ANNLayer "V1Intra" = {
     restart = 0;
     nxScale = 0.25;
     nyScale = 0.25;
@@ -317,7 +325,7 @@ ANNTriggerUpdateOnNewImageLayer "V1Intra" = {
     valueBC = 0;
     writeSparseActivity = 0;
     //
-    movieLayerName = "Image";
+    triggerLayerName = "Image";
     //InitVType = "ZeroV";
     InitVType = "InitVFromFile";
     Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_30/output_2013_01_30_12x12x128_3x3_9x9x128_lambda_05X1_lateral/Checkpoints/Checkpoint13700000/V1Intra_V.pvp";
@@ -328,6 +336,7 @@ ANNTriggerUpdateOnNewImageLayer "V1Intra" = {
     VShift = 0;
     VWidth = 0;
     // 
+    triggerFlag = true;
     phase = 2; // should be less than Recon2 phase
 };
 
@@ -354,11 +363,12 @@ ANNErrorLayer "Error1_2" = {
     VWidth = 0;
     errScale = 0.5;
     //
+    triggerFlag = false;
     phase = 7;  
 };
 
 // use for visualizing long-range lateral reconstructions, not pre-synaptic
-ANNTriggerUpdateOnNewImageLayer "ReconInfra" = {
+ANNLayer "ReconInfra" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
@@ -369,7 +379,7 @@ ANNTriggerUpdateOnNewImageLayer "ReconInfra" = {
     valueBC = 0;
     writeSparseActivity = 0;
     //
-    movieLayerName = "Image";
+    triggerLayerName = "Image";
     //InitVType = "ZeroV";
     InitVType = "InitVFromFile";
     Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_30/output_2013_01_30_12x12x128_3x3_9x9x128_lambda_05X1_lateral/Checkpoints/Checkpoint13700000/ReconInfra_V.pvp";
@@ -380,11 +390,12 @@ ANNTriggerUpdateOnNewImageLayer "ReconInfra" = {
     VShift = 0;
     VWidth = 0;
     // 
+    triggerFlag = true;
     phase = 4; 
 };
 
 // staging for visualizing reconstructions from long-range lateral interactions
-ANNTriggerUpdateOnNewImageLayer "V1Infra" = {
+ANNLayer "V1Infra" = {
     restart = 0;
     nxScale = 0.25;
     nyScale = 0.25;
@@ -395,7 +406,7 @@ ANNTriggerUpdateOnNewImageLayer "V1Infra" = {
     valueBC = 0;
     writeSparseActivity = 0;
     //
-    movieLayerName = "Image";
+    triggerLayerName = "Image";
     //InitVType = "ZeroV";
     InitVType = "InitVFromFile";
     Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_30/output_2013_01_30_12x12x128_3x3_9x9x128_lambda_05X1_lateral/Checkpoints/Checkpoint13700000/V1Infra_V.pvp";
@@ -406,6 +417,7 @@ ANNTriggerUpdateOnNewImageLayer "V1Infra" = {
     VShift = 0;
     VWidth = 0;
     // 
+    triggerFlag = true;
     phase = 3; // should be less than Recon2 phase
 };
 
