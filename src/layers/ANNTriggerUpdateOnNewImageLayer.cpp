@@ -35,25 +35,29 @@ ANNTriggerUpdateOnNewImageLayer::~ANNTriggerUpdateOnNewImageLayer()
 
 int ANNTriggerUpdateOnNewImageLayer::initialize_base()
 {
-	movieLayerName = NULL;
-	movieLayer = NULL;
-	return PV_SUCCESS;
+   movieLayerName = NULL;
+   movieLayer = NULL;
+   return PV_SUCCESS;
 }
 
 int ANNTriggerUpdateOnNewImageLayer::initialize(const char * name, HyPerCol * hc,
 		int num_channels, const char * movieLayerName)
 {
-	this->movieLayerName = strdup(movieLayerName);
-	if (this->movieLayerName==NULL) {
-		fprintf(stderr,
-				"ANNTriggerUpdateOnNewImageLayer \"%s\" error: unable to copy movieLayerName \"%s\": %s\n",
-				name, this->movieLayerName, strerror(errno));
-		exit(EXIT_FAILURE);
-	}
-	int status = ANNLayer::initialize(name, hc, num_channels);
+   this->movieLayerName = strdup(movieLayerName);
+   if (this->movieLayerName==NULL) {
+      fprintf(stderr,
+            "ANNTriggerUpdateOnNewImageLayer \"%s\" error: unable to copy movieLayerName \"%s\": %s\n",
+            name, this->movieLayerName, strerror(errno));
+      exit(EXIT_FAILURE);
+   }
+   int status = ANNLayer::initialize(name, hc, num_channels);
    //This layer is a trigger layer, so set flag
    triggerFlag = 1;
    triggerLayerName = strdup(this->movieLayerName);
+   if (parent->columnId()==0) {
+      fprintf(stderr, "Layer \"%s\" warning:  ANNTriggerUpdateOnNewImageLayer is deprecated.\n", name);
+      fprintf(stderr, "Instead, use ANNLayer with triggerFlag set to true, and triggerLayerName instead of movieLayerName.\n");
+   }
    return status;
 }
 
