@@ -79,6 +79,17 @@ int Movie::checkpointRead(const char * cpDir, double * timef){
          PV_fclose(pvstream);
       }
    }
+
+   while (parent->simulationTime() >= nextDisplayTime) {
+      nextDisplayTime += displayPeriod;
+      //Follow dispPeriod for updating frame numbers and file names
+      updateFrameNum(skipFrameIndex);
+      if(!readPvpFile){
+         if (filename != NULL) free(filename);
+         filename = strdup(getNextFileName(skipFrameIndex));
+         assert(filename != NULL);
+      }
+   }
    return status;
 }
 
@@ -381,23 +392,8 @@ bool Movie::updateImage(double time, double dt)
       //Moved to updateStateWrapper
       //lastUpdateTime = time;
    } else {
-      if (skipFrameIndex <= 1){
-         frameNumber += 1;
-      }
-      //Otherwise, skip based on skipFrameIndex
-      else{
-         frameNumber += skipFrameIndex;
-      }
-      if (readPvpFile){
-         //Loop when frame number reaches numFrames
-         if (frameNumber >= numFrames){
-            if( icComm->commRank()==0 ) {
-               fprintf(stderr, "Movie %s: EOF reached, rewinding file \"%s\"\n", name, fileOfFileNames);
-            }
-            frameNumber = 0;
-         }
-      }
-      else{
+      updateFrameNum(skipFrameIndex);
+      if(!readPvpFile){
          if (filename != NULL) free(filename);
          filename = strdup(getNextFileName(skipFrameIndex));
          assert(filename != NULL);
@@ -505,6 +501,23 @@ int Movie::randomFrame()
    return 0;
 }
 
+//This function takes care of rewinding for pvp files
+void Movie::updateFrameNum(int n_skip){
+   InterColComm * icComm = getParent()->icCommunicator();
+   for(int i_skip = 0; i_skip < n_skip; i_skip++){
+      frameNumber += 1;
+      //numFrames only set if pvp file
+      if(readPvpFile){
+         if(frameNumber >= numFrames){
+            if(icComm->commRank()==0){
+               fprintf(stderr, "Movie %s: EOF reached, rewinding file \"%s\"\n", name, fileOfFileNames);
+            }
+            frameNumber = 0;
+         }
+      }
+   }
+}
+
 // skip n_skip lines before reading next frame
 const char * Movie::getNextFileName(int n_skip)
 {
@@ -514,7 +527,7 @@ const char * Movie::getNextFileName(int n_skip)
    return getNextFileName();
 }
 
-
+//This function takes care of rewinding for frame files
 const char * Movie::getNextFileName()
 {
    InterColComm * icComm = getParent()->icCommunicator();
