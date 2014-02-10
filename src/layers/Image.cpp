@@ -81,7 +81,7 @@ int Image::initialize(const char * name, HyPerCol * hc, const char * filename) {
 
    int status = PV_SUCCESS;
 
-   this->lastUpdateTime = 0.0;
+   this->lastUpdateTime = parent->getStartTime();
 
    PVParams * params = parent->parameters();
 
@@ -380,8 +380,13 @@ int Image::recvSynapticInput(HyPerConn * conn, const PVLayerCube * cube, int nei
 }
 
 bool Image::needUpdate(double time, double dt){
-   //Image should never need an update
-   return false;
+   //Image should never need an update unless jittered
+   if(jitterFlag){
+      return true;
+   }
+   else{
+      return false;
+   }
 }
 
 /**

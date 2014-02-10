@@ -185,13 +185,11 @@ int Publisher::publish(HyPerLayer* pub,
    pvdata_t * sendBuf = cube->data;
    pvdata_t * recvBuf = recvBuffer(LOCAL);  // only LOCAL buffer, neighbors copy into LOCAL extended buffer
 
-   // copy entire layer and let neighbors overwrite
-   // TODO - have layers use the data store directly then no need for extra copy
-   //
-   memcpy(recvBuf, sendBuf, dataSize);
-
    if (pub->getLastUpdateTime() >= pub->getParent()->simulationTime()) {
-   //if (pub->needUpdate(pub->getParent()->simulationTime(), pub->getParent()->getDeltaTime())){
+      // copy entire layer and let neighbors overwrite
+      // TODO - have layers use the data store directly then no need for extra copy
+      //Only memcopy if layer needs an update
+      memcpy(recvBuf, sendBuf, dataSize);
       exchangeBorders(neighbors, numNeighbors, &cube->loc, 0);
    }
 

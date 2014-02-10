@@ -1664,7 +1664,6 @@ int HyPerLayer::publish(InterColComm* comm, double time)
    publish_timer->start();
 
    if ( useMirrorBCs() && getLastUpdateTime() >= getParent()->simulationTime()) {
-   //if ( useMirrorBCs() && needUpdate(getParent()->simulationTime(), getParent()->getDeltaTime())){
       for (int borderId = 1; borderId < NUM_NEIGHBORHOOD; borderId++){
          mirrorInteriorToBorder(borderId, clayer->activity, clayer->activity);
       }
@@ -1858,6 +1857,10 @@ int HyPerLayer::checkpointRead(const char * cpDir, double * timed) {
          }
       }
    }
+   //Need to exchange border information since lastUpdateTime is being read from checkpoint, so no guarentee that publish will call exchange
+   status = icComm->exchangeBorders(this->getLayerId(), this->getLayerLoc());
+   status |= icComm->wait(this->getLayerId());
+   assert(status == PV_SUCCESS);
 
    return PV_SUCCESS;
 }

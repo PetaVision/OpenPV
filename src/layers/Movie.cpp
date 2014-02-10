@@ -309,10 +309,6 @@ int Movie::allocateDataStructures() {
       status = randomFrame();
    }
 
-   // exchange border information
-   exchange();
-
-   // newImageFlag = true;
    return status;
 }
 
@@ -353,13 +349,6 @@ bool Movie::needUpdate(double time, double dt){
    //} // time >= nextDisplayTime
 
    return needNewImage;
-}
-
-int Movie::updateStateWrapper(double time, double dt){
-   int status = HyPerLayer::updateStateWrapper(time, dt);
-   //Hack since timing issues with mirror bc, TODO
-   exchange();
-   return status;
 }
 
 int Movie::updateState(double time, double dt)
@@ -447,10 +436,6 @@ bool Movie::updateImage(double time, double dt)
           }
       }
    } // randomMovie
-
-   //lastUpdateTime = time;
-   // exchange border information
-   //exchange();
 
    return true;
 }

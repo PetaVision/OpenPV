@@ -28,7 +28,7 @@ public:
    virtual int checkpointWrite(const char * cpDir);
    virtual int outputState(double time, bool last=false);
    virtual bool needUpdate(double time, double dt);
-   virtual int updateStateWrapper(double time, double dt);
+   //virtual int updateStateWrapper(double time, double dt);
    virtual int updateState(double time, double dt);
    bool        updateImage(double time, double dt);
    // bool        getNewImageFlag();
