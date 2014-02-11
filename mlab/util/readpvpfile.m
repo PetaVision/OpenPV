@@ -1,9 +1,9 @@
-function [data,hdr] = readpvpfile(filename,progressperiod, num_frames, start_frame, skip_frames)
-% Usage:[data,hdr] = readpvpfile(filename,progressperiod, num_frames, start_frame)
+function [data,hdr] = readpvpfile(filename,progressperiod, last_frame, start_frame, skip_frames)
+% Usage:[data,hdr] = readpvpfile(filename,progressperiod, last_frame, start_frame)
 % filename is a pvp file (any type)
 % progressperiod is an optional integer argument.  A message is printed
 %     to the screen every progressperiod frames.
-% num_frames is the number of frames to read.  Default is all frames.
+% last_frame is the index of the last frame to read.  Default is all frames.
 % start_frame is the starting frame.  Default is 1.
 %
 % data is a cell array containing the data.
@@ -69,20 +69,20 @@ if (~exist('skip_frames','var') || isempty(skip_frames)) || skip_frames < 1
     skip_frames = 1;
 end
 %% allow user to override value of numframes
-if (exist('num_frames','var') && ~isempty(num_frames))
-    numframes = min(num_frames, numframes);
+if (exist('last_frame','var') && ~isempty(last_frame))
+    lastframe = min(last_frame, numframes);
 end%if
-tot_frames = ceil((numframes-start_frame+1)/skip_frames);
+tot_frames = ceil((lastframe-start_frame+1)/skip_frames);
 
 if isempty(errorstring)
-    if(numframes ~= round(numframes) || numframes <= 0)
+    if(lastframe ~= round(lastframe) || lastframe <= 0)
         errorident = 'readpvpfile:badfilelength';
         errorstring = sprintf('readpvpfile:File %s has file length inconsistent with header',filename);
     end%if
 end%if
 
 if isempty(errorstring)
-    %%data = cell(numframes-start_frame+1,1);
+    %%data = cell(lastframe-start_frame+1,1);
     data = cell(tot_frames,1);
     switch hdr.datatype
         case 1 % PV_BYTE_TYPE
@@ -101,7 +101,7 @@ if isempty(errorstring)
     switch hdr.filetype
         case 1 % PVP_FILE_TYPE, used in HyPerCol::exitRunLoop
             numvalues = hdr.recordsize/hdr.datasize;
-            for f=1:numframes
+            for f=1:lastframe
                 data_tmp = struct('time',hdr.time,'values',[]);
                 data_tmp.time = hdr.time;
                 Y = zeros(numvalues,hdr.numrecords);
@@ -126,7 +126,7 @@ if isempty(errorstring)
                 data_tmp.values = Z;
                 if exist('progressperiod','var')
                     if ~mod(f,progressperiod)
-                        fprintf(1,'File %s: frame %d of %d\n',filename, f, numframes);
+                        fprintf(1,'File %s: frame %d of %d\n',filename, f, lastframe);
                         if exist('fflush')
                            fflush(1);
                         end%if
@@ -136,16 +136,16 @@ if isempty(errorstring)
                     continue;
                 end%if
                 data{ceil((f - start_frame + 1)/skip_frames)} = data_tmp;
-            end  %% num_frames
+            end  %% last_frame
         case 2 % PVP_ACT_FILE_TYPE % Compressed for spiking
-            for f=1:numframes
-                data_tmp = struct('time',0,'values',[]);
+            data_tmp = struct('time',0,'values',[]);
+            for f=1:lastframe
                 data_tmp.time = fread(fid,1,'float64');
                 numactive = fread(fid,1,'uint32');
                 data_tmp.values = fread(fid,numactive,'uint32');
                 if exist('progressperiod','var')
                     if ~mod(f,progressperiod)
-                        fprintf(1,'File %s: frame %d of %d\n',filename, f, numframes);
+                        fprintf(1,'File %s: frame %d of %d\n',filename, f, lastframe);
                         if exist('fflush')
                            fflush(1);
                         end%if
@@ -155,11 +155,11 @@ if isempty(errorstring)
                     continue;
                 end%if
                 data{ceil((f - start_frame + 1)/skip_frames)} = data_tmp;
-            end%for %% num_frames
+            end%for %% last_frame
         case 3 % PVP_WGT_FILE_TYPE
             %fseek(fid,0,'bof');
             fseek(fid, (start_frame-1)*(data_size*hdr.recordsize + hdr.headersize + 8), 'bof');
-            for f=start_frame:numframes
+            for f=start_frame:lastframe
                 hdr = readpvpheader(fid,ftell(fid));
                 hdr = rmfield(hdr,'additional');
                 numextrabytes = hdr.headersize - 80;
@@ -212,7 +212,7 @@ if isempty(errorstring)
                 end  %% arbor
                 if exist('progressperiod','var')
                     if ~mod(f,progressperiod)
-                        fprintf(1,'File %s: frame %d of %d\n',filename, f, numframes);
+                        fprintf(1,'File %s: frame %d of %d\n',filename, f, lastframe);
                         if exist('fflush')
                            fflush(1);
                         end%if
@@ -222,10 +222,10 @@ if isempty(errorstring)
                     continue;
                 end%if
                 data{ceil((f - start_frame + 1)/skip_frames)} = data_tmp;
-            end  %% num_frames
+            end  %% last_frame
         case 4 % PVP_NONSPIKING_ACT_FILE_TYPE
             fseek(fid,(start_frame-1)*(hdr.recordsize*4 + 8), 'cof');
-            for f=start_frame:numframes
+            for f=start_frame:lastframe
                 data_tmp = struct('time',0,'values',zeros(hdr.nxGlobal,hdr.nyGlobal,hdr.nf));
                 data_tmp.time = fread(fid,1,'float64');
                 for y=1:nyprocs
@@ -238,7 +238,7 @@ if isempty(errorstring)
                 end%for
                 if exist('progressperiod','var')
                     if ~mod(f,progressperiod)
-                        fprintf(1,'File %s: frame %d of %d\n',filename, f, numframes);
+                        fprintf(1,'File %s: frame %d of %d\n',filename, f, lastframe);
                         if exist('fflush')
                            fflush(1);
                         end%if
@@ -248,14 +248,14 @@ if isempty(errorstring)
                     continue;
                 end%if
                 data{ceil((f - start_frame + 1)/skip_frames)} = data_tmp;
-            end%for %% numframes
+            end%for %% lastframe
         case 5 % PVP_KERNEL_FILE_TYPE
             %keyboard;
             fseek(fid, (start_frame-1)*framesize, 'bof');
-            for f=start_frame:numframes
+            for f=start_frame:lastframe
                 % fseek(fid,0,'bof'); % there's a header in every frame, unlike other file types
                 % So go back to the beginning and read the header in each frame.
-                % for f=1:numframes
+                % for f=1:lastframe
                 hdr = readpvpheader(fid,ftell(fid));
                 hdr = rmfield(hdr,'additional');
                 numextrabytes = hdr.headersize - 80;
@@ -297,7 +297,7 @@ if isempty(errorstring)
                 end%for
                 if exist('progressperiod','var')
                     if ~mod(f,progressperiod)
-                        fprintf(1,'File %s: frame %d of %d\n',filename, f, numframes);
+                        fprintf(1,'File %s: frame %d of %d\n',filename, f, lastframe);
                         if exist('fflush')
                            fflush(1);
                         end%if
@@ -307,9 +307,9 @@ if isempty(errorstring)
                     continue;
                 end%if
                 data{ceil((f - start_frame + 1)/skip_frames)} = data_tmp;
-            end%for %% num_frames
+            end%for %% last_frame
         case 6 % PVP_ACT_SPARSEVALUES_FILE_TYPE
-            for f=1:numframes
+            for f=1:lastframe
                 data_tmp = struct('time',0,'values',[]);
                 data_tmp.time = fread(fid,1,'float64');
                 numactive = fread(fid,1,'uint32');
@@ -319,7 +319,7 @@ if isempty(errorstring)
                 end
                 if exist('progressperiod','var')
                     if ~mod(f,progressperiod)
-                        fprintf(1,'File %s: frame %d of %d\n',filename, f, numframes);
+                        fprintf(1,'File %s: frame %d of %d\n',filename, f, lastframe);
                         if exist('fflush')
                            fflush(1);
                         end%if
@@ -329,7 +329,7 @@ if isempty(errorstring)
                     continue;
                 end%if
                 data{ceil((f - start_frame + 1)/skip_frames)} = data_tmp;
-            end%for %% num_frames
+            end%for %% last_frame
         otherwise
             assert(0); % This possibility should have been weeded out above
     end
