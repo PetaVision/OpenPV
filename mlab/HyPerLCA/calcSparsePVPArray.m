@@ -18,6 +18,23 @@ function ...
     return;
   endif
 
+  size_values = size(Sparse_struct.values);
+  if numel(size_values) > 2
+    %% convert to sparse, values has dimensions nx,ny,nf
+    nx = size_values(1);    
+    ny = size_values(2);    
+    nf = size_values(3);
+    if (nx * ny * nf ~= n_Sparse) || (nf ~= nf_Sparse)
+      error(["non-sparse array dimensions do not match input values"]);
+      return;
+    endif
+    [sparse_row_ndx, sparse_col_ndx, sparse_values] = find(Sparse_struct.values(:));
+    keyboard;
+    Sparse_struct.values = zeros(length(sparse_values(:)),2);
+    Sparse_struct.values(:,1) = sparse_row_ndx-1;
+    Sparse_struct.values(:,2) = sparse_values;
+  endif
+
   Sparse_hist_edges = [0:1:nf_Sparse]+0.5;
   Sparse_time = squeeze(Sparse_struct.time);
   Sparse_values_tmp = squeeze(Sparse_struct.values);
