@@ -146,6 +146,10 @@ int IdentConn::communicateInitInfo() {
    return status;
 }
 
+void IdentConn::handleDefaultSelfFlag() {
+   assert(selfFlag==false);
+}
+
 int IdentConn::initNormalize() {
    // normalize_flag = false; // Make sure that updateState doesn't call normalizeWeights
    return PV_SUCCESS;

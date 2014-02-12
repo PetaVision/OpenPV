@@ -886,10 +886,13 @@ void HyPerConn::readWriteCompressedCheckpoints(PVParams * params) {
 }
 
 void HyPerConn::readSelfFlag(PVParams * params) {
-   selfFlag = (pre == post);  // if true, this is a valid assignment, but there are cases where
-   //   selfFlag must be set to true even though the pre and post layers are instantiated separately.
-   //   For example, when learning under the control of a mask.
-   selfFlag = params->value(name, "selfFlag", selfFlag, true) != 0;
+   // The default for selfFlag should be whether pre and post are the same HyPerLayer object,
+   // but pre and post are not set until communicateInitInfo is called.
+   // So we check for a selfFlag parameter but do not warn if it is absent, and use false as the
+   // default.
+   // In communicateInitInfo(), we check if the selfFlag is present in the params, and if not,
+   // selfFlag becomes (pre == post)
+   selfFlag = params->value(name, "selfFlag", selfFlag, false) != 0;
 }
 
 void HyPerConn::readCombine_dW_with_W_flag(PVParams * params) {
@@ -1071,8 +1074,8 @@ int HyPerConn::communicateInitInfo() {
       exit(EXIT_FAILURE);
    }
 
-   // pre = parent->getLayerFromName(preLayerName);   // redundant lines; pre and post were set at the beginning of the this method
-   // post = parent->getLayerFromName(postLayerName);
+   handleDefaultSelfFlag(); // If selfFlag was not specified in params, it should be set to pre==post
+                            // but pre and post were not determined until now.
 
    // Find maximum delay over all the arbors and send it to the presynaptic layer
    int maxdelay = 0;
@@ -1135,6 +1138,15 @@ int HyPerConn::communicateInitInfo() {
    }
 
    return status;
+}
+
+void HyPerConn::handleDefaultSelfFlag() {
+   if (!parent->parameters()->present(name, "selfFlag")) {
+      selfFlag = (pre == post);
+   }
+   else {
+      // parameter was specified in params; use that value.
+   }
 }
 
 int HyPerConn::setPatchSize() {

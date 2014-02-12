@@ -571,6 +571,7 @@ protected:
    virtual int initPlasticityPatches();
    virtual int setPatchSize(); // Sets nxp, nyp, nfp if weights are loaded from file.  Subclasses override if they have specialized ways of setting patch size that needs to go in the communicate stage.
                                // (e.g. BIDSConn uses pre and post layer size to set nxp,nyp, but pre and post aren't set until communicateInitInfo().
+   virtual void handleDefaultSelfFlag();
    virtual PVPatch*** initializeWeights(PVPatch*** arbors, float** dataStart,
          int numPatches, const char* filename);
    virtual InitWeights* getDefaultInitWeightsMethod(const char* keyword);
