@@ -15,10 +15,11 @@
 
 int main(int argc, char * argv[])
 {
-   char * cl_args[3];
+   char * cl_args[4];
    cl_args[0] = strdup(argv[0]);
    cl_args[1] = strdup("-p");
    cl_args[2] = strdup("input/test_mirror_BCs.params");
+   cl_args[3] = NULL;
    PVLayerLoc sLoc, bLoc;
    PVLayerCube * sCube, * bCube;
 
