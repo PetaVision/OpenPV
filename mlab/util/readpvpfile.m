@@ -71,6 +71,8 @@ end
 %% allow user to override value of numframes
 if (exist('last_frame','var') && ~isempty(last_frame))
     lastframe = min(last_frame, numframes);
+else
+    lastframe = numframes;
 end%if
 tot_frames = ceil((lastframe-start_frame+1)/skip_frames);
 
