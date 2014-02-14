@@ -253,6 +253,9 @@ int main(int argc, char * argv[])
    sCube = bCube = NULL;
 
    delete hc;
+   free(cl_args[0]);
+   free(cl_args[1]);
+   free(cl_args[2]);
 
    return 0;
 }
