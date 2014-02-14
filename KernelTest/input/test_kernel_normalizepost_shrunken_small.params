@@ -10,20 +10,20 @@
 debugParsing = false;
 
 HyPerCol "column" = {
-   nx = 8;   
-   ny = 8;
+   nx = 32;   
+   ny = 32;
    dt = 1.0;
    randomSeed = 926268668;  // if not set here,  clock time is used to generate seed
    startTime = 0.0;
-   numSteps = 4;  // num images plus (num layers + 1) * delay
-   progressStep = 5;
+   stopTime = 4.0;  // num images plus (num layers + 1) * delay
+   progressInterval = 5.0;
+   writeProgressToErr = false;
    outputPath = "output/";
    filenamesContainLayerNames = 2;
-   writeProgressToErr = 0;
    filenamesContainConnectionNames = 0;
-   checkpointRead = 0;
-   checkpointWrite = 0;
-   suppressLastOutput = 0;
+   checkpointRead = false;
+   checkpointWrite = false;
+   suppressLastOutput = false;
 };
 
 //
@@ -35,10 +35,13 @@ Retina "Retina" = {
     nxScale = 1;
     nyScale = 1;
     nf = 1;
+    phase = 0;
+    triggerFlag = false;
     writeStep = 1.0;
-    mirrorBCflag = 1;
-    spikingFlag = 0;
+    initialWriteTime = 0.0;
     writeSparseActivity = false;
+    mirrorBCflag = true;
+    spikingFlag = false;
 
     foregroundRate = 1000;
     backgroundRate = 1000;
@@ -47,9 +50,6 @@ Retina "Retina" = {
 
     beginStim = 0;
     endStim = 1000;
-    
-    initialWriteTime = 0;
-    phase = 0;
 };
 
 ANNLayer "L0" = {
@@ -57,19 +57,21 @@ ANNLayer "L0" = {
     nxScale = 1;
     nyScale = 1;
     nf = 1;
+    phase = 1;
+    triggerFlag = false;
     writeStep = 1.0;
+    initialWriteTime = 0.0;
     mirrorBCflag = 1;
     writeSparseActivity = false;
 
     InitVType = "ConstantV";
     valueV = 0;
+
     VThresh = -infinity;
     VMax = infinity;
     VMin = -infinity;
-    
-    initialWriteTime = 0;
-    VShift = 0;
-    phase = 1;    
+    VShift = 0.0;
+    VWidth = 0.0;
 };
 
 ANNLayer "Lx1" = {
@@ -77,19 +79,21 @@ ANNLayer "Lx1" = {
     nxScale = 1;
     nyScale = 1;
     nf = 1;
+    phase = 2;
+    triggerFlag = false;
     writeStep = 1.0;
+    initialWriteTime = 0.0;
     mirrorBCflag = 1;
     writeSparseActivity = false;
 
     InitVType = "ConstantV";
     valueV = 0;
+
     VThresh = -infinity;
     VMax = infinity;
     VMin = -infinity;
-    
-    initialWriteTime = 0;
-    VShift = 0;
-    phase = 2;
+    VShift = 0.0;
+    VWidth = 0.0;
 };
 
 
@@ -104,18 +108,19 @@ KernelConn "Retina to L0" = {
     nfp = 1;
     numAxonalArbors = 1;
     writeStep = -1;
+    writeCompressedCheckpoints = false;
     initFromLastFlag = 0;
     
     weightInitType = "UniformWeight";
     weightInit = 1;
       
-    strength = 1.0;  // 1.0 x post->num_neurons / pre->num_neurons
+    strength = 1.0; // 1.0 x post->num_neurons / pre->num_neurons
     normalizeMethod = "normalizeSum";
-    minSumTolerated = 0;
     normalizeArborsIndividually = 0;
     normalize_cutoff = 0.0;
+    minSumTolerated = 0.0;
     normalizeFromPostPerspective = true;
-    symmetrizeWeights = 0;
+    symmetrizeWeights = false;
 
     plasticityFlag = 0;
     shmget_flag = 1;
@@ -124,10 +129,8 @@ KernelConn "Retina to L0" = {
 
     pvpatchAccumulateType = "convolve";
     shrinkPatches = false;
-    
-    preActivityIsNotRate = 0;
-    writeCompressedCheckpoints = 0;
-    selfFlag = 0;
+    preActivityIsNotRate = false;
+    selfFlag = false;
     updateGSynFromPostPerspective = false;
 };
 
@@ -142,18 +145,19 @@ KernelConn "L0 to Lx1" = {
     nfp = 1;
     numAxonalArbors = 1;
     writeStep = -1;
+    writeCompressedCheckpoints = false;
     initFromLastFlag = 0;
     
     weightInitType = "UniformWeight";
     weightInit = 1;
       
-    strength = 1.0;  // 1.0 x post->num_neurons / pre->num_neurons
+    strength = 1.0; // 1.0 x post->num_neurons / pre->num_neurons
     normalizeMethod = "normalizeSum";
-    minSumTolerated = 0;
     normalizeArborsIndividually = 0;
     normalize_cutoff = 0.0;
+    minSumTolerated = 0.0;
     normalizeFromPostPerspective = true;
-    symmetrizeWeights = 0;
+    symmetrizeWeights = false;
 
     plasticityFlag = 0;
     shmget_flag = 1;
@@ -162,10 +166,8 @@ KernelConn "L0 to Lx1" = {
 
     pvpatchAccumulateType = "convolve";
     shrinkPatches = false;
-    
-    preActivityIsNotRate = 0;
-    writeCompressedCheckpoints = 0;
-    selfFlag = 0;
+    preActivityIsNotRate = false;
+    selfFlag = false;
     updateGSynFromPostPerspective = false;
 };
 

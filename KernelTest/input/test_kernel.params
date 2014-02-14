@@ -15,8 +15,8 @@ HyPerCol "column" = {
    dt = 1.0;
    randomSeed = 926268668;  // if not set here,  clock time is used to generate seed
    startTime = 0.0;
-   numSteps = 4;  // num images plus (num layers + 1) * delay
-   progressStep = 5;
+   stopTime = 4.0;  // num images plus (num layers + 1) * delay
+   progressInterval = 5.0;
    writeProgressToErr = false;
    outputPath = "output/";
    filenamesContainLayerNames = 2;
@@ -36,11 +36,12 @@ Retina "Retina" = {
     nyScale = 1;
     nf = 1;
     phase = 0;
+    triggerFlag = false;
     writeStep = 1.0;
-    initialWriteTime = false;
-    mirrorBCflag = 1;
-    spikingFlag = false;
+    initialWriteTime = 0.0;
     writeSparseActivity = false;
+    mirrorBCflag = true;
+    spikingFlag = false;
 
     foregroundRate = 1000;
     backgroundRate = 1000;
@@ -51,18 +52,16 @@ Retina "Retina" = {
     endStim = 1000;
 };
 
-
-
-
 ANNLayer "L0" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
     nf = 4;
     phase = 0;
+    triggerFlag = false;
     writeStep = 1.0;
     initialWriteTime = 0.0;
-    mirrorBCflag = 1;
+    mirrorBCflag = true;
     writeSparseActivity = false;
 
     InitVType = "ConstantV";
@@ -72,8 +71,8 @@ ANNLayer "L0" = {
     VMax = infinity;
     VMin = -infinity;
     VShift = 0.0;
+    VWidth = 0.0;
 };
-
 
 ANNLayer "Lx1" = {
     restart = 0;
@@ -81,9 +80,10 @@ ANNLayer "Lx1" = {
     nyScale = 1;
     nf = 4;
     phase = 0;
+    triggerFlag = false;
     writeStep = 1.0;
     initialWriteTime = 0.0;
-    mirrorBCflag = 1;
+    mirrorBCflag = true;
     writeSparseActivity = false;
 
     InitVType = "ZeroV";
@@ -92,8 +92,8 @@ ANNLayer "Lx1" = {
     VMax = infinity;
     VMin = -infinity;
     VShift = 0.0;
+    VWidth = 0.0;
 };
-
 
 ANNLayer "Lx2" = {
     restart = 0;
@@ -101,9 +101,10 @@ ANNLayer "Lx2" = {
     nyScale = 2;
     nf = 8;
     phase = 0;
+    triggerFlag = false;
     writeStep = 1.0;
     initialWriteTime = 0.0;
-    mirrorBCflag = 1;
+    mirrorBCflag = true;
     writeSparseActivity = false;
 
     InitVType = "ZeroV";
@@ -112,8 +113,8 @@ ANNLayer "Lx2" = {
     VMax = infinity;
     VMin = -infinity;
     VShift = 0.0;
+    VWidth = 0.0;
 };
-
 
 ANNLayer "Lx4" = {
     restart = 0;
@@ -121,9 +122,10 @@ ANNLayer "Lx4" = {
     nyScale = 4;
     nf = 16;
     phase = 0;
+    triggerFlag = false;
     writeStep = 1.0;
     initialWriteTime = 0.0;
-    mirrorBCflag = 1;
+    mirrorBCflag = true;
     writeSparseActivity = false;
 
     InitVType = "ZeroV";
@@ -132,9 +134,8 @@ ANNLayer "Lx4" = {
     VMax = infinity;
     VMin = -infinity;
     VShift = 0.0;
+    VWidth = 0.0;
 };
-
-
 
 ANNLayer "Lx1_2" = {
     restart = 0;
@@ -142,9 +143,10 @@ ANNLayer "Lx1_2" = {
     nyScale = 0.5;
     nf = 2;
     phase = 0;
+    triggerFlag = false;
     writeStep = 1.0;
     initialWriteTime = 0.0;
-    mirrorBCflag = 1;
+    mirrorBCflag = true;
     writeSparseActivity = false;
 
     InitVType = "ZeroV";
@@ -153,9 +155,8 @@ ANNLayer "Lx1_2" = {
     VMax = infinity;
     VMin = -infinity;
     VShift = 0.0;
+    VWidth = 0.0;
 };
-
-
 
 ANNLayer "Lx1_4" = {
     restart = 0;
@@ -163,9 +164,10 @@ ANNLayer "Lx1_4" = {
     nyScale = 0.25;
     nf = 1;
     phase = 0;
+    triggerFlag = false;
     writeStep = 1.0;
     initialWriteTime = 0.0;
-    mirrorBCflag = 1;
+    mirrorBCflag = true;
     writeSparseActivity = false;
 
     InitVType = "ZeroV";
@@ -174,8 +176,8 @@ ANNLayer "Lx1_4" = {
     VMax = infinity;
     VMin = -infinity;
     VShift = 0.0;
+    VWidth = 0.0;
 };
-
 
 //  connections: 
 
@@ -188,6 +190,7 @@ KernelConn "Retina to L0" = {
     nfp = 4;
     numAxonalArbors = 1;
     writeStep = -1;
+    writeCompressedCheckpoints = false;
     initFromLastFlag = 0;
     
     weightInitType = "Gauss2DWeight";
@@ -201,11 +204,10 @@ KernelConn "Retina to L0" = {
     normalizeMethod = "normalizeSum";
     normalizeArborsIndividually = false;
     normalize_cutoff = 0.0;
-    symmetrizeWeights = false;
     minSumTolerated = 0.0;
     normalizeFromPostPerspective = false;
+    symmetrizeWeights = false;
 
-    writeCompressedCheckpoints = false;
     plasticityFlag = 0;
     shmget_flag = 1;
 
@@ -218,9 +220,6 @@ KernelConn "Retina to L0" = {
     updateGSynFromPostPerspective = false;
 };
 
-
-
-
 KernelConn "L0 to Lx1" = {
     preLayerName = "L0";
     postLayerName = "Lx1";
@@ -230,6 +229,7 @@ KernelConn "L0 to Lx1" = {
     nfp = 4;
     numAxonalArbors = 1;
     writeStep = -1;
+    writeCompressedCheckpoints = false;
     initFromLastFlag = 0;
     
     weightInitType = "Gauss2DWeight";
@@ -237,18 +237,17 @@ KernelConn "L0 to Lx1" = {
     sigma = infinity;
     rMax  = infinity;
     rMin = 0;
-    numOrientationsPost = 4;
     numOrientationsPre = 4;
-    
-    strength = 1.0;  // 1.0 x post->num_neurons / pre->num_neurons
+    numOrientationsPost = 4;
+
+    strength = 1.0; // 1.0 x post->num_neurons / pre->num_neurons
     normalizeMethod = "normalizeSum";
     normalizeArborsIndividually = false;
     normalize_cutoff = 0.0;
-    symmetrizeWeights = false;
     minSumTolerated = 0.0;
     normalizeFromPostPerspective = false;
+    symmetrizeWeights = false;
 
-    writeCompressedCheckpoints = false;
     plasticityFlag = 0;
     shmget_flag = 1;
 
@@ -261,7 +260,6 @@ KernelConn "L0 to Lx1" = {
     updateGSynFromPostPerspective = false;
 };
 
-
 KernelConn "L0 to Lx2" = {
     preLayerName = "L0";
     postLayerName = "Lx2";
@@ -271,6 +269,7 @@ KernelConn "L0 to Lx2" = {
     nfp = 8;
     numAxonalArbors = 1;
     writeStep = -1;
+    writeCompressedCheckpoints = false;
     initFromLastFlag = 0;
     
     weightInitType = "Gauss2DWeight";
@@ -291,11 +290,10 @@ KernelConn "L0 to Lx2" = {
     normalizeMethod = "normalizeSum";
     normalizeArborsIndividually = false;
     normalize_cutoff = 0.0;
-    symmetrizeWeights = false;
     minSumTolerated = 0.0;
     normalizeFromPostPerspective = false;
+    symmetrizeWeights = false;
 
-    writeCompressedCheckpoints = false;
     plasticityFlag = 0;
     shmget_flag = 1;
 
@@ -308,7 +306,6 @@ KernelConn "L0 to Lx2" = {
     updateGSynFromPostPerspective = false;
 };
 
-
 KernelConn "L0 to Lx4" = {
     preLayerName = "L0";
     postLayerName = "Lx4";
@@ -318,6 +315,7 @@ KernelConn "L0 to Lx4" = {
     nfp = 16;
     numAxonalArbors = 1;
     writeStep = -1;
+    writeCompressedCheckpoints = false;
     initFromLastFlag = 0;
     
     weightInitType = "Gauss2DWeight";
@@ -338,11 +336,10 @@ KernelConn "L0 to Lx4" = {
     normalizeMethod = "normalizeSum";
     normalizeArborsIndividually = false;
     normalize_cutoff = 0.0;
-    symmetrizeWeights = false;
     minSumTolerated = 0.0;
     normalizeFromPostPerspective = false;
+    symmetrizeWeights = false;
 
-    writeCompressedCheckpoints = false;
     plasticityFlag = 0;
     shmget_flag = 1;
 
@@ -355,7 +352,6 @@ KernelConn "L0 to Lx4" = {
     updateGSynFromPostPerspective = false;
 };
 
-
 KernelConn "L0 to Lx1_2" = {
     preLayerName = "L0";
     postLayerName = "Lx1_2";
@@ -365,6 +361,7 @@ KernelConn "L0 to Lx1_2" = {
     nfp = 2;
     numAxonalArbors = 1;
     writeStep = -1;
+    writeCompressedCheckpoints = false;
     initFromLastFlag = 0;
     
     weightInitType = "Gauss2DWeight";
@@ -385,11 +382,10 @@ KernelConn "L0 to Lx1_2" = {
     normalizeMethod = "normalizeSum";
     normalizeArborsIndividually = false;
     normalize_cutoff = 0.0;
-    symmetrizeWeights = false;
     minSumTolerated = 0.0;
     normalizeFromPostPerspective = false;
+    symmetrizeWeights = false;
 
-    writeCompressedCheckpoints = false;
     plasticityFlag = 0;
     shmget_flag = 1;
 
@@ -402,7 +398,6 @@ KernelConn "L0 to Lx1_2" = {
     updateGSynFromPostPerspective = false;
 };
 
-
 KernelConn "L0 to Lx1_4" = {
     preLayerName = "L0";
     postLayerName = "Lx1_4";
@@ -412,6 +407,7 @@ KernelConn "L0 to Lx1_4" = {
     nfp = 1;
     numAxonalArbors = 1;
     writeStep = -1;
+    writeCompressedCheckpoints = false;
     initFromLastFlag = 0;
     
     weightInitType = "Gauss2DWeight";
@@ -431,11 +427,10 @@ KernelConn "L0 to Lx1_4" = {
     normalizeMethod = "normalizeSum";
     normalizeArborsIndividually = false;
     normalize_cutoff = 0.0;
-    symmetrizeWeights = false;
     minSumTolerated = 0.0;
     normalizeFromPostPerspective = false;
+    symmetrizeWeights = false;
 
-    writeCompressedCheckpoints = false;
     plasticityFlag = 0;
     shmget_flag = 1;
 
@@ -447,8 +442,6 @@ KernelConn "L0 to Lx1_4" = {
     selfFlag = false;
     updateGSynFromPostPerspective = false;
 };
-
-
 
 KernelTestProbe "Retina Stats File" = {
     targetLayer = "Retina";
