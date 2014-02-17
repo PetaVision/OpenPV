@@ -450,6 +450,7 @@ protected:
    bool normalize_RMS_amp;
    float normalize_cutoff;
    bool shrinkPatches_flag;
+   float shrinkPatchesThresh;
    //This object handles calculating weights.  All the initialize weights methods for all connection classes
    //are being moved into subclasses of this object.  The default root InitWeights class will create
    //2D Gaussian weights.  If weight initialization type isn't created in a way supported by Buildandrun,

@@ -233,6 +233,7 @@ int HyPerConn::initialize_base()
    // this->normalize_flag = true; // replaced by testing whether normalizer!=NULL
    this->plasticityFlag = false;
    this->shrinkPatches_flag = false; // default value, overridden by params file parameter "shrinkPatches" in readShrinkPatches()
+   this->shrinkPatchesThresh = 0;
    this->normalizeArborsIndividually = true;
    this->normalize_max = false;
    this->normalize_zero_offset = false;
@@ -415,7 +416,7 @@ int HyPerConn::shrinkPatch(int kExt, int arborId /* PVAxonalArbor * arbor */) {
    for (int y = 0; y < ny; y++) {
       for (int x = 0; x < nx; x++) {
          for (int f = 0; f < nfp; f++) {
-            if(w[x * sxp + y * syp + f * sfp] != 0) {
+            if(abs(w[x * sxp + y * syp + f * sfp]) <= shrinkPatchesThresh) {
                nonZeroWeightFound=true;
                //pvdata_t weight = w[x * sxp + y * syp + f * sfp];
                maxnx = maxnx < x ? x : maxnx;
@@ -450,6 +451,9 @@ int HyPerConn::shrinkPatch(int kExt, int arborId /* PVAxonalArbor * arbor */) {
 
 void HyPerConn::readShrinkPatches(PVParams * params) {
    shrinkPatches_flag = params->value(name, "shrinkPatches", shrinkPatches_flag);
+   if(shrinkPatches_flag){
+      shrinkPatchesThresh = params->value(name, "shrinkPatchesThresh", shrinkPatchesThresh);
+   }
 }
 
 void HyPerConn::readUpdateGSynFromPostPerspective(PVParams * params){
