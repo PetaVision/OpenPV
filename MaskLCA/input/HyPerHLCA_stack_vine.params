@@ -28,9 +28,9 @@ HyPerCol "column" = {
     filenamesContainLayerNames      = true;
     filenamesContainConnectionNames = true;
     //
-    checkpointRead                  = true;
-    checkpointReadDir               = "/nh/compneuro/Data/vine/LCA/2013_01_24_2013_02_01/output_stack_vine_010714/Checkpoints";
-    checkpointReadDirIndex          = 800000;
+    checkpointRead                  = false;
+    checkpointReadDir               = "/nh/compneuro/Data/vine/LCA/2013_01_24_2013_02_01/output_stack_vine_021114/Checkpoints";
+    checkpointReadDirIndex          = 1600000;
     //
     checkpointWrite                 = true;
     //checkpointWriteDir              = "~/Documents/workspace/Output/Checkpoints";
@@ -83,6 +83,7 @@ Movie "Image" = {
     readPvpFile            = false;
     phase                  = 0;
     //useParamsImage       = true;
+    writeFrameToTimestamp  = false;
 };
 
 
@@ -98,9 +99,9 @@ ANNErrorLayer "Error" = {
     valueBC             = 0;
     writeSparseActivity = 0;
     //
-    InitVType           = "ZeroV";
-    //InitVType           = "InitVFromFile";
-    //Vfilename           = "/nh/compneuro/Data/vine/LCA/2013_01_28/output_2013_01_28_12x12x128_lambda_05X2_noTopDown/Checkpoints/Checkpoint20574000/Error_V.pvp";
+    //InitVType           = "ZeroV";
+    InitVType           = "InitVFromFile";
+    Vfilename           = "/nh/compneuro/Data/vine/LCA/2013_01_24_2013_02_01/output_stack_vine_021714/Checkpoints/Checkpoint2100000/Error_V.pvp";
     //
     VThresh  = 0.005;
     VMax     = infinity;
@@ -128,11 +129,11 @@ HyPerLCALayer "V1_S2" = {
     writeSparseActivity = true;
     writeSparseValues   = true;
     //
-    InitVType           = "UniformRandomV";
-    minV                = -1.0;
-    maxV                = .15; //0.05 above VThresh
-    //InitVType           = "InitVFromFile"; // When initializing weights from file, it helps to also init V values to prevent startup artifacts
-    //Vfilename           = "/nh/compneuro/Data/vine/LCA/2013_01_24/output_2013_01_24_how2catchSquirrel_V1_only/InitializationCheckpoints/Checkpoint100000/V1_V.pvp";
+    //InitVType           = "UniformRandomV";
+    //minV                = -1.0;
+    //maxV                = .15; //0.05 above VThresh
+    InitVType           = "InitVFromFile"; // When initializing weights from file, it helps to also init V values to prevent startup artifacts
+    Vfilename           = "/nh/compneuro/Data/vine/LCA/2013_01_24_2013_02_01/output_stack_vine_021714/Checkpoints/Checkpoint2100000/V1_S2_V.pvp";
     // 
     timeConstantTau        = 1000.0;
     timeConstantTauMinimum = 10.0;
@@ -163,11 +164,11 @@ HyPerLCALayer "V1_S4" = {
     writeSparseActivity = true;
     writeSparseValues   = true;
     //
-    InitVType           = "UniformRandomV";
-    minV                = -1.0;
-    maxV                = .15; //0.05 above VThresh
-    //InitVType           = "InitVFromFile"; // When initializing weights from file, it helps to also init V values to prevent startup artifacts
-    //Vfilename           = "/nh/compneuro/Data/vine/LCA/2013_01_24/output_2013_01_24_how2catchSquirrel_V1_only/InitializationCheckpoints/Checkpoint100000/V1_V.pvp";
+    //InitVType           = "UniformRandomV";
+    //minV                = -1.0;
+    //maxV                = .15; //0.05 above VThresh
+    InitVType           = "InitVFromFile"; // When initializing weights from file, it helps to also init V values to prevent startup artifacts
+    Vfilename           = "/nh/compneuro/Data/vine/LCA/2013_01_24_2013_02_01/output_stack_vine_021714/Checkpoints/Checkpoint2100000/V1_S4_V.pvp";
     // 
     timeConstantTau        = 1000.0;
     timeConstantTauMinimum = 10.0;
@@ -197,11 +198,11 @@ HyPerLCALayer "V1_S8" = {
     writeSparseActivity = true;
     writeSparseValues   = true;
     //
-    InitVType           = "UniformRandomV";
-    minV                = -1.0;
-    maxV                = .15; //0.05 above VThresh
-    //InitVType           = "InitVFromFile"; // When initializing weights from file, it helps to also init V values to prevent startup artifacts
-    //Vfilename           = "/nh/compneuro/Data/vine/LCA/2013_01_24/output_2013_01_24_how2catchSquirrel_V1_only/InitializationCheckpoints/Checkpoint100000/V1_V.pvp";
+    //InitVType           = "UniformRandomV";
+    //minV                = -1.0;
+    //maxV                = .15; //0.05 above VThresh
+    InitVType           = "InitVFromFile"; // When initializing weights from file, it helps to also init V values to prevent startup artifacts
+    Vfilename           = "/nh/compneuro/Data/vine/LCA/2013_01_24_2013_02_01/output_stack_vine_021714/Checkpoints/Checkpoint2100000/V1_S8_V.pvp";
     // 
     timeConstantTau        = 1000.0;
     timeConstantTauMinimum = 10.0;
@@ -346,15 +347,15 @@ KernelConn "V1_S2ToError" = {
     numAxonalArbors  = 1;
     initFromLastFlag = 0;
     //
-    //weightInitType      = "FileWeight";
-    //initWeightsFile     = "/nh/compneuro/Data/vine/LCA/2013_01_24_2013_02_01/output_2013_01_24_2013_02_01_12x12x128_lambda_05X2_noTopDown/w4_V1ToError.pvp";
-    //combineWeightFiles  = false;
-    //useListOfArborFiles = false;
+    weightInitType      = "FileWeight";
+    initWeightsFile     = "/nh/compneuro/Data/vine/LCA/2013_01_24_2013_02_01/output_stack_vine_021714/Checkpoints/Checkpoint2100000/V1_S2ToError_W.pvp";
+    combineWeightFiles  = false;
+    useListOfArborFiles = false;
     //
-    weightInitType = "UniformRandomWeight";
-    wMinInit       = -1.0;
-    wMaxInit       = 1.0;
-    sparseFraction = .90;
+    //weightInitType = "UniformRandomWeight";
+    //wMinInit       = -1.0;
+    //wMaxInit       = 1.0;
+    //sparseFraction = .90;
     //
     strength                     = 1.0;  
     normalizeMethod              = "normalizeL2";
@@ -374,7 +375,7 @@ KernelConn "V1_S2ToError" = {
     //
     weightUpdatePeriod      = 40;
     initialWeightUpdateTime = 40;
-    dWMax                   = 20.0;
+    dWMax                   = 10.0;
     combine_dW_with_W_flag  = false; 
     keepKernelsSynchronized = true; 
     preActivityIsNotRate    = false;  // should help make response more indepenent of time step size dt
@@ -397,15 +398,15 @@ KernelConn "V1_S4ToError" = {
     numAxonalArbors  = 1;
     initFromLastFlag = 0;
     //
-    //weightInitType      = "FileWeight";
-    //initWeightsFile     = "/nh/compneuro/Data/vine/LCA/2013_01_24_2013_02_01/output_2013_01_24_2013_02_01_12x12x128_lambda_05X2_noTopDown/w4_V1ToError.pvp";
-    //combineWeightFiles  = false;
-    //useListOfArborFiles = false;
+    weightInitType      = "FileWeight";
+    initWeightsFile     = "/nh/compneuro/Data/vine/LCA/2013_01_24_2013_02_01/output_stack_vine_021714/Checkpoints/Checkpoint2100000/V1_S4ToError_W.pvp";
+    combineWeightFiles  = false;
+    useListOfArborFiles = false;
     //
-    weightInitType = "UniformRandomWeight";
-    wMinInit       = -1.0;
-    wMaxInit       = 1.0;
-    sparseFraction = .90;
+    //weightInitType = "UniformRandomWeight";
+    //wMinInit       = -1.0;
+    //wMaxInit       = 1.0;
+    //sparseFraction = .90;
     //
     strength                     = 1.0;  
     normalizeMethod              = "normalizeL2";
@@ -425,7 +426,7 @@ KernelConn "V1_S4ToError" = {
     //
     weightUpdatePeriod      = 40;
     initialWeightUpdateTime = 40;
-    dWMax                   = 20.0;
+    dWMax                   = 10.0;
     combine_dW_with_W_flag  = false; 
     keepKernelsSynchronized = true; 
     preActivityIsNotRate    = false;  // should help make response more indepenent of time step size dt
@@ -448,15 +449,15 @@ KernelConn "V1_S8ToError" = {
     numAxonalArbors  = 1;
     initFromLastFlag = 0;
     //
-    //weightInitType      = "FileWeight";
-    //initWeightsFile     = "/nh/compneuro/Data/vine/LCA/2013_01_24_2013_02_01/output_2013_01_24_2013_02_01_12x12x128_lambda_05X2_noTopDown/w4_V1ToError.pvp";
-    //combineWeightFiles  = false;
-    //useListOfArborFiles = false;
+    weightInitType      = "FileWeight";
+    initWeightsFile     = "/nh/compneuro/Data/vine/LCA/2013_01_24_2013_02_01/output_stack_vine_021714/Checkpoints/Checkpoint2100000/V1_S8ToError_W.pvp";
+    combineWeightFiles  = false;
+    useListOfArborFiles = false;
     //
-    weightInitType = "UniformRandomWeight";
-    wMinInit       = -1.0;
-    wMaxInit       = 1.0;
-    sparseFraction = .90;
+    //weightInitType = "UniformRandomWeight";
+    //wMinInit       = -1.0;
+    //wMaxInit       = 1.0;
+    //sparseFraction = .90;
     //
     strength                     = 1.0;  
     normalizeMethod              = "normalizeL2";
@@ -476,7 +477,7 @@ KernelConn "V1_S8ToError" = {
     //
     weightUpdatePeriod      = 40;
     initialWeightUpdateTime = 40;
-    dWMax                   = 20.0;
+    dWMax                   = 10.0;
     combine_dW_with_W_flag  = false; 
     keepKernelsSynchronized = true; 
     preActivityIsNotRate    = false;  // should help make response more indepenent of time step size dt
