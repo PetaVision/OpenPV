@@ -426,10 +426,11 @@ int HyPerConn::shrinkPatch(int kExt, int arborId /* PVAxonalArbor * arbor */) {
          }
       }
    }
-
+   
    if(nonZeroWeightFound) {
-      int nxNew = maxnx - minnx;
-      int nyNew = maxny - minny;
+      //Plus one to capture all of the patch
+      int nxNew = maxnx+1 - minnx;
+      int nyNew = maxny+1 - minny;
       int dxNew = minnx;
       int dyNew = minny;
 
