@@ -122,6 +122,8 @@ int HyPerLayer::initialize_base() {
    this->initialWriteTime = 0;
    this->triggerFlag = false; //Default to update every timestamp
    this->triggerLayer = NULL;
+   this->triggerLayerName = NULL;
+   
    this->lastUpdateTime = 0.0;
    this->phase = 0;
 
