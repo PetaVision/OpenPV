@@ -63,8 +63,6 @@ private:
    int startFrameIndex;
    int skipFrameIndex; // skip this number of frames between each load
 
-   bool autoResizeFlag;
-
    char inputfile[PV_PATH_MAX];  // current input file name
    char * movieOutputPath;  // path to output file directory for movie frames
 
