@@ -266,7 +266,9 @@ function [ReconError_times_array, ...
 	 [ReconError_RMS_pathname, ".mat"], ...
 	 "ReconError_times", "ReconError_RMS");    
 
-    %%keyboard;
+    if i_ReconError > num_ReconError_list
+      keyboard;
+    endif
     original_name = "";
     if plot_ReconError_flag
       if ReconError_RMS_fig_ndx(i_ReconError) > 0 && ...
@@ -287,8 +289,13 @@ function [ReconError_times_array, ...
       set(ReconError_RMS_fig(i_ReconError), "name", ReconError_RMS_filename);
       ReconError_RMS_pathname2 = ... 
 	  [ReconError_dir, filesep, ReconError_RMS_filename];
+      local_pwd = pwd;
+      chdir(ReconError_dir);
+%%      saveas(ReconError_RMS_fig(i_ReconError), ...
+%%	     ReconError_RMS_pathname2, "png");
       saveas(ReconError_RMS_fig(i_ReconError), ...
-	     ReconError_RMS_pathname2, "png");
+	     ReconError_RMS_filename, "png");
+      chdir(local_pwd);
     endif
     ReconError_median_RMS = median(ReconError_RMS(:));
     disp([ReconError_RMS_filename, ...
@@ -296,7 +303,7 @@ function [ReconError_times_array, ...
 
     ReconError_times_array{init_ReconError_list+i_ReconError} = ReconError_times;
     ReconError_RMS_array{init_ReconError_list+i_ReconError} = ReconError_RMS;
-    ReconError_norm_RMS_array{init_ReconError_list+i_ReconError} = ones(size(ReconError_RMS));
+    ReconError_norm_RMS_array{init_ReconError_list+i_ReconError} = ReconError_norm_strength(i_ReconError)*ones(size(ReconError_RMS));
   endfor  %% i_ReconError
   %%keyboard;
 

@@ -6,7 +6,7 @@ more off
 global plot_flag %% if true, plot graphical output to screen, else do not generate graphical outputy
 plot_flag = true;
 global load_flag %% if true, then load "saved" data structures rather than computing them 
-load_Sparse_flag = false;
+load_Sparse_flag = true; %%false;
 if plot_flag
   setenv("GNUTERM","X11")
 endif
@@ -631,7 +631,7 @@ endif %% plot_Sparse_flag
 
 
 
-analyze_nonSparse_flag = true;
+analyze_nonSparse_flag = false; %%true;
 if analyze_nonSparse_flag
   if strcmp(run_type, "color_deep") || strcmp(run_type, "noTopDown")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1623,7 +1623,7 @@ endif  %% plot_weightLabels
 
 
 %%keyboard;
-plot_weights0_2 = true; %%(true && ~strcmp(run_type, "MNIST"));
+plot_weights0_2 = true 
 plot_weights0_2_flag = true;
 plot_labelWeights_flag = true;
 if plot_weights0_2
