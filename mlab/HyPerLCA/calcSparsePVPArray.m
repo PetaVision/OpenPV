@@ -51,9 +51,9 @@ function ...
   Sparse_std = sqrt(mean(Sparse_current.^2));
   Sparse_active_kf = mod(Sparse_active_ndx, nf_Sparse) + 1;
   if Sparse_current_active > 0
-    Sparse_hist_frame = histc(Sparse_active_kf, Sparse_hist_edges);
+    Sparse_hist_frame = histc(Sparse_active_kf, Sparse_hist_edges)';
   else
-    Sparse_hist_frame = zeros(nf_Sparse+1,1);
+    Sparse_hist_frame = zeros(1,nf_Sparse+1);
   endif
   
   if isempty(Sparse_previous_struct.values) 

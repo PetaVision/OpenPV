@@ -6,7 +6,7 @@ more off
 global plot_flag %% if true, plot graphical output to screen, else do not generate graphical outputy
 plot_flag = true;
 global load_flag %% if true, then load "saved" data structures rather than computing them 
-load_Sparse_flag = true; %%false;
+load_Sparse_flag = false;
 if plot_flag
   setenv("GNUTERM","X11")
 endif
@@ -18,17 +18,15 @@ if ismac
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   %%run_type = "CIFAR_deep"; 
   %%output_dir = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB_deep_task/data_batch_all20"
-  %%checkpoint_dir = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR256_RGB_deep_task/data_batch_all"; %%output_dir;
   %%checkpoint_parent = "/Users/garkenyon/workspace/HyPerHLCA";
   %%checkpoint_children = ...
   %%    {"CIFAR256_RGB_deep_task/data_batch_all20"}; %%
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   run_type = "CIFAR_C1"; 
-  output_dir = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR_C1_task/data_batch_all2"
-  checkpoint_dir = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR_C1_task/data_batch_all2"; %%output_dir;
+  output_dir = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR_C1_task/data_batch_all5"
   checkpoint_parent = "/Users/garkenyon/workspace/HyPerHLCA";
   checkpoint_children = ...
-      {"CIFAR_C1_task/data_batch_all2"}; %%
+      {"CIFAR_C1_task/data_batch_all5"}; %%
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 elseif isunix
   workspace_path = "/home/gkenyon/workspace";
@@ -46,32 +44,27 @@ elseif isunix
   if strcmp(run_type, "color_deep")
     %%output_dir = "/nh/compneuro/Data/vine/LCA/2013_02_01/output_2013_02_01_12x12x128_lambda_05X1_deep"; 
     output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_24/output_2013_01_24_how2catchSquirrel_12x12x128_lambda_05X1_deep";
-    checkpoint_dir = "/nh/compneuro/Data/vine/LCA/2013_01_31/output_2013_01_31_12x12x128_lambda_05X3_noise_05_deep"; 
     checkpoint_parent = "/nh/compneuro/Data/vine/LCA";
     checkpoint_children = {"2013_01_24/output_2013_01_24_how2catchSquirrel_12x12x128_lambda_05X1_deep"}; 
     %%    checkpoint_children = {"2013_02_01/output_2013_02_01_12x12x128_lambda_05X2_deep"}; 
   elseif strcmp(run_type, "Heli_DPT")
     output_dir = ...
 	"/nh/compneuro/Data/repo/neovision-programs-petavision/LCA/Heli/TrainingPlusFormative/output_18x18x48_10x10x96_lambda_001X50_DPT";
-    checkpoint_dir = output_dir;
     checkpoint_parent = "/nh/compneuro/Data/repo/neovision-programs-petavision/LCA/Heli";
     checkpoint_children = {"TrainingPlusFormative/output_18x18x48_10x10x96_lambda_001X50_DPT"};
   elseif strcmp(run_type, "Heli_C1")
     output_dir = ...
 	"/nh/compneuro/Data/repo/neovision-programs-petavision/LCA/Heli/TrainingPlusFormative/output_18x18x48_2x2_10x10x96_lambda_001X50_C1";
-    checkpoint_dir = output_dir;
     checkpoint_parent = "/nh/compneuro/Data/repo/neovision-programs-petavision/LCA/Heli";
     checkpoint_children = {"TrainingPlusFormative/output_18x18x48_2x2_10x10x96_lambda_001X50_C1"};
   elseif strcmp(run_type, "Heli_D")
     output_dir = ...
 	"/nh/compneuro/Data/repo/neovision-programs-petavision/LCA/Heli/TrainingPlusFormative/output_18x18x48_10x10x96_lambda_001X50_D";
-    checkpoint_dir = output_dir;
     checkpoint_parent = "/nh/compneuro/Data/repo/neovision-programs-petavision/LCA/Heli";
     checkpoint_children = {"TrainingPlusFormative/output_18x18x48_10x10x96_lambda_001X50_D"};
   elseif strcmp(run_type, "noTopDown")
     output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_24_2013_02_01/output_2013_01_24_2013_02_01_12x12x128_lambda_05X2_noTopDown"; 
     %%output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_24/output_2013_01_24_how2catchSquirrel_12x12x128_lambda_05X1_noTopDown";
-    checkpoint_dir = output_dir;%%"/nh/compneuro/Data/vine/LCA/2013_01_31/output_2013_01_31_12x12x128_lambda_05X2_noTopDown"; %% 
     checkpoint_parent = "/nh/compneuro/Data/vine/LCA";
     %%checkpoint_children = {"2013_01_24/output_2013_01_24_how2catchSquirrel_12x12x128_lambda_05X1_noTopDown"};
     checkpoint_children = {"2013_01_24_2013_02_01/output_2013_01_24_2013_02_01_12x12x128_lambda_05X2_noTopDown"};%% ...
@@ -92,14 +85,12 @@ elseif isunix
   elseif strcmp(run_type, "noPulvinar")
     %%output_dir = "/nh/compneuro/Data/vine/LCA/2013_02_01/output_2013_02_01_12x12x128_lambda_05X2_noPulvinar"; 
     output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_24/output_2013_01_24_how2catchSquirrel_12x12x128_lambda_05X4_noPulvinar";
-    checkpoint_dir = output_dir;
     checkpoint_parent = "/nh/compneuro/Data/vine/LCA";
     checkpoint_children = {"2013_01_24/output_2013_01_24_how2catchSquirrel_12x12x128_lambda_05X4_noPulvinar"}; 
     %%checkpoint_children = {"2013_01_24/output_2013_01_24_12x12x128_lambda_05X2_noPulvinar"}; ...
   elseif strcmp(run_type, "lateral")
     output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_24_2013_02_01/output_2013_01_24_2013_02_01_12x12x128_3x3_9x9x128_lambda_05X1_lateral";
 %%    output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_24/output_2013_01_24_how2catchSquirrel_12x12x128_3x3_9x9x128_lambda_001X100_lateral";
-    checkpoint_dir =  output_dir;
     checkpoint_parent = "/nh/compneuro/Data/vine/LCA";
 %%    checkpoint_children = {"2013_01_24/output_2013_01_24_how2catchSquirrel_12x12x128_3x3_9x9x128_lambda_001X100_lateral"};
     checkpoint_children = {"2013_01_24_2013_02_01/output_2013_01_24_2013_02_01_12x12x128_3x3_9x9x128_lambda_05X1_lateral"};
@@ -631,7 +622,7 @@ endif %% plot_Sparse_flag
 
 
 
-analyze_nonSparse_flag = false; %%true;
+analyze_nonSparse_flag = true;
 if analyze_nonSparse_flag
   if strcmp(run_type, "color_deep") || strcmp(run_type, "noTopDown")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -132,7 +132,17 @@ function [Sparse_hdr, ...
 			 "UniformOutput", false);
 	endif  %% num_procs
 
-      else %% num_epochs
+ 	Sparse_times = cell2mat(Sparse_times_list);
+	Sparse_percent_active = cell2mat(Sparse_percent_active_list);
+	Sparse_std = cell2mat(Sparse_std_list);
+	if ~isempty(Sparse_hist_frames_list)
+	  Sparse_hist_frames = cell2mat(Sparse_hist_frames_list);
+	else
+	  Sparse_hist_frames = zeros(1, nf_Sparse);
+	endif
+	Sparse_percent_change = cell2mat(Sparse_percent_change_list);
+
+     else %% num_epochs
 
 	num_frames_per_epoch = floor((tot_Sparse_frames-1)/num_epochs);
 	for i_epoch = 1 : num_epochs
@@ -174,46 +184,36 @@ function [Sparse_hdr, ...
 			   "UniformOutput", false);
 	  endif %% num_procs	
 	  if i_epoch == 1
-	    Sparse_times_list = Sparse_times_list_epoch;
-	    Sparse_percent_active_list = Sparse_percent_active_list_epoch;
-	    Sparse_std_list = Sparse_std_list_epoch;
-	    Sparse_hist_frames_list = Sparse_hist_frames_list_epoch;
-	    Sparse_percent_change_list = Sparse_percent_change_list_epoch;
+	    Sparse_times = cell2mat(Sparse_times_list_epoch);
+	    Sparse_percent_active = cell2mat(Sparse_percent_active_list_epoch);
+	    Sparse_std = cell2mat(Sparse_std_list_epoch);
+	    if ~isempty(Sparse_hist_frames_list_epoch)
+	      Sparse_hist_frames = cell2mat(Sparse_hist_frames_list_epoch); %%reshape(cell2mat(Sparse_hist_frames_list_epoch), [nf_Sparse, length(Sparse_times_list_epoch)]);
+	    else
+	      Sparse_hist_frames = zeros(length(Sparse_times), nf_Sparse+1);
+	    endif
+	    Sparse_percent_change = full(cell2mat(Sparse_percent_change_list_epoch));
 	  else
-	    Sparse_times_list = [Sparse_times_list; Sparse_times_list_epoch];
-	    Sparse_percent_active_list = [Sparse_percent_active_list; Sparse_percent_active_list_epoch];
-	    Sparse_std_list = [Sparse_std_list; Sparse_std_list_epoch];
-	    Sparse_hist_frames_list = [Sparse_hist_frames_list; Sparse_hist_frames_list_epoch];
-	    Sparse_percent_change_list = [Sparse_percent_change_list; Sparse_percent_change_list_epoch];
+	    Sparse_times = [Sparse_times; cell2mat(Sparse_times_list_epoch)];
+	    Sparse_percent_active = [Sparse_percent_active; cell2mat(Sparse_percent_active_list_epoch)];
+	    Sparse_std = [Sparse_std; cell2mat(Sparse_std_list_epoch)];
+	    if ~isempty(Sparse_hist_frames_list_epoch)
+	      Sparse_hist_frames = [Sparse_hist_frames; cell2mat(Sparse_hist_frames_list_epoch)]; %%reshape(cell2mat(Sparse_hist_frames_list_epoch), [nf_Sparse, length(Sparse_times_list_epoch)])];
+	    endif
+	    Sparse_percent_change = [Sparse_percent_change; full(cell2mat(Sparse_percent_change_list_epoch))];
 	  endif %% i_epoch == 1
 	endfor %% i_epoch
       endif %% num_epochs
       
-      num_Sparse_frames = size(Sparse_times_list,1);
-      while isempty(Sparse_hist_frames_list{num_Sparse_frames})
-	num_Sparse_frames = num_Sparse_frames - 1;
-      endwhile
-      
-      Sparse_times = zeros(num_Sparse_frames,1);
-      Sparse_percent_active = zeros(num_Sparse_frames,1);
-      Sparse_std = zeros(num_Sparse_frames,1);
-      Sparse_percent_change = zeros(num_Sparse_frames,1);
-      for i_frame = 1 : 1 : num_Sparse_frames
-	Sparse_times(i_frame) = Sparse_times_list{i_frame};
-	Sparse_percent_active(i_frame) = Sparse_percent_active_list{i_frame};
-	Sparse_std(i_frame) = Sparse_std_list{i_frame};
-	Sparse_percent_change(i_frame) = Sparse_percent_change_list{i_frame};
-	if ~isempty(Sparse_hist_frames_list{i_frame})
-	  Sparse_hist = Sparse_hist + Sparse_hist_frames_list{i_frame};
-	endif
-      endfor %% i_frame
-      Sparse_hist = Sparse_hist(1:nf_Sparse);
-      Sparse_hist = Sparse_hist / ((num_Sparse_frames) * nx_Sparse * ny_Sparse); 
-      [Sparse_hist_sorted, Sparse_hist_rank] = sort(Sparse_hist, 1, "descend");
+      num_Sparse_frames = size(Sparse_times,1);      
+      Sparse_hist = sum(Sparse_hist_frames,1);
+      Sparse_hist = Sparse_hist(1:nf_Sparse) / ((num_Sparse_frames) * nx_Sparse * ny_Sparse); 
+      [Sparse_hist_sorted, Sparse_hist_rank] = sort(Sparse_hist(:), 1, "descend");
       
       Sparse_filename_id = [Sparse_list{i_Sparse,2}, "_", ...
 			    num2str(Sparse_times(num_Sparse_frames), "%08d")];
 
+      %% return sepcified sparse activity
       if exist("Sparse_frames_list") && size(Sparse_frames_list,1) >= i_Sparse
 	Sparse_frames_times = Sparse_frames_list{i_Sparse};
 	num_Sparse_frames_times = length(Sparse_frames_times(:));
@@ -228,7 +228,11 @@ function [Sparse_hdr, ...
 	  [Sparse_intersect, Sparse_frames_ndx, Sparse_times_ndx] = ...
 	      intersect(Sparse_frames_times, Sparse_times);
 	endwhile
-	Sparse_struct_array{i_Sparse} = Sparse_struct(Sparse_times_ndx);
+	if num_epochs == 1
+	  Sparse_struct_array{i_Sparse} = Sparse_struct(Sparse_times_ndx);
+	else
+	  Sparse_struct_array{i_Sparse} = Sparse_struct_epoch(Sparse_times_ndx-((num_epochs-1)*num_frames_per_epoch));
+	endif
       endif %% size(Sparse_frames_list,1) >= i_Sparse
 
 
@@ -313,17 +317,17 @@ function [Sparse_hdr, ...
 			    num2str(Sparse_times(end), "%08d")];
 
     endif %% load_Sparse_flag
-    
+
     num_Sparse_frames = length(Sparse_times);
     if plot_Sparse_flag 
       Sparse_hist_fig = figure;
-      Sparse_hist_hndl = bar(Sparse_hist_bins, Sparse_hist_sorted); axis tight;
+      Sparse_hist_hndl = bar(Sparse_hist_bins(:), Sparse_hist_sorted(:)); axis tight;
       set(Sparse_hist_fig, "name", ["Hist_", Sparse_filename_id]);
       saveas(Sparse_hist_fig, ...
 	     [Sparse_dir, filesep, "Hist_", Sparse_filename_id], "png");
       
       Sparse_percent_change_fig = figure;
-      Sparse_percent_change_hndl = plot(Sparse_times, Sparse_percent_change); 
+      Sparse_percent_change_hndl = plot(Sparse_times, full(Sparse_percent_change)); 
       set(Sparse_percent_change_hndl, "linewidth", 1.5);
       axis([Sparse_times(1) Sparse_times(end) 0 1]); %%axis tight;
       set(Sparse_percent_change_fig, ...
