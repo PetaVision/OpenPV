@@ -20,6 +20,7 @@ public:
 
    //get-set methods:
    inline float getInitWeight()        {return initWeight;}
+   inline bool getConnectOnlySameFeatures()        {return connectOnlySameFeatures;}
 
 protected:
    virtual int initialize_base();
@@ -28,6 +29,8 @@ protected:
 
 private:
    float initWeight;
+   bool connectOnlySameFeatures;
+
 
 };
 

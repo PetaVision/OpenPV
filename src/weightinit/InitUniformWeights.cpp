@@ -38,8 +38,12 @@ int InitUniformWeights::calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, 
    }
 
    const float iWeight = weightParamPtr->getInitWeight();
+   const bool connectOnlySameFeatures = weightParamPtr->getConnectOnlySameFeatures();
 
-   uniformWeights(dataStart, iWeight, weightParamPtr);
+   const int nfp = weightParamPtr->getnfPatch_tmp(); //wp->nf;
+   const int kf = patchIndex % nfp;
+
+   uniformWeights(dataStart, iWeight, kf, weightParamPtr, connectOnlySameFeatures);
    return PV_SUCCESS; // return 1;
 }
 
@@ -47,7 +51,7 @@ int InitUniformWeights::calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, 
  * Initializes all weights to iWeight
  *
  */
-int InitUniformWeights::uniformWeights(/* PVPatch * wp */ pvdata_t * dataStart, float iWeight, InitUniformWeightsParams *weightParamPtr) {
+  int InitUniformWeights::uniformWeights(/* PVPatch * wp */ pvdata_t * dataStart, float iWeight, int kf, InitUniformWeightsParams *weightParamPtr, bool connectOnlySameFeatures) {
       // changed variable names to avoid confusion with data members this->wMin and this->wMax
    // pvdata_t * w = wp->data;
 
@@ -63,7 +67,12 @@ int InitUniformWeights::uniformWeights(/* PVPatch * wp */ pvdata_t * dataStart, 
    for (int y = 0; y < nyp; y++) {
       for (int x = 0; x < nxp; x++) {
          for (int f = 0; f < nfp; f++) {
-            dataStart[x * sxp + y * syp + f * sfp] = iWeight;
+	   if ((connectOnlySameFeatures) && (kf != f)){
+	     dataStart[x * sxp + y * syp + f * sfp] = 0;
+	   }
+	   else{
+	     dataStart[x * sxp + y * syp + f * sfp] = iWeight;
+	   }
          }
       }
    }

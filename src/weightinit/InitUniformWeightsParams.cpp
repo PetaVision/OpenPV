@@ -28,6 +28,7 @@ InitUniformWeightsParams::~InitUniformWeightsParams()
 int InitUniformWeightsParams::initialize_base() {
 
    initWeight = 0;
+   connectOnlySameFeatures = false;
    return 1;
 }
 
@@ -38,6 +39,7 @@ int InitUniformWeightsParams::initialize(HyPerConn * parentConn) {
    int status = PV_SUCCESS;
 
    initWeight = params->value(getName(), "weightInit", initWeight);
+   connectOnlySameFeatures = params->value(getName(), "connectOnlySameFeatures", connectOnlySameFeatures);
 
 
    return status;
