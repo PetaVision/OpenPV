@@ -423,6 +423,8 @@ bool Movie::updateImage(double time, double dt)
           //Only write if the parameter is set
           if(timestampFile){
              std::ostringstream outStrStream;
+             outStrStream.precision(15);
+             //outStrStream << std::fixed;
              outStrStream << frameNumber << "," << lastUpdateTime << "," << filename << "\n";
              PV_fwrite(outStrStream.str().c_str(), sizeof(char), outStrStream.str().length(), timestampFile); 
              //Flush buffer

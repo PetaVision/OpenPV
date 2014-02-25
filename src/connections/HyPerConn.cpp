@@ -417,6 +417,7 @@ int HyPerConn::shrinkPatch(int kExt, int arborId /* PVAxonalArbor * arbor */) {
       for (int x = 0; x < nx; x++) {
          for (int f = 0; f < nfp; f++) {
             if(abs(w[x * sxp + y * syp + f * sfp]) <= shrinkPatchesThresh) {
+               //w[x*sxp + y*syp + f*sfp] = 0;
                nonZeroWeightFound=true;
                //pvdata_t weight = w[x * sxp + y * syp + f * sfp];
                maxnx = maxnx < x ? x : maxnx;
