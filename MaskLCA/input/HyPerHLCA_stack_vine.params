@@ -28,9 +28,9 @@ HyPerCol "column" = {
     filenamesContainLayerNames      = true;
     filenamesContainConnectionNames = true;
     //
-    checkpointRead                  = false;
-    checkpointReadDir               = "/nh/compneuro/Data/vine/LCA/2013_01_24_2013_02_01/output_stack_vine_021114/Checkpoints";
-    checkpointReadDirIndex          = 1600000;
+    checkpointRead                  = true;
+    checkpointReadDir               = "/nh/compneuro/Data/vine/LCA/2013_01_24_2013_02_01/output_stack_vine_021814/Checkpoints";
+    checkpointReadDirIndex          = 100000;
     //
     checkpointWrite                 = true;
     //checkpointWriteDir              = "~/Documents/workspace/Output/Checkpoints";
@@ -101,7 +101,7 @@ ANNErrorLayer "Error" = {
     //
     //InitVType           = "ZeroV";
     InitVType           = "InitVFromFile";
-    Vfilename           = "/nh/compneuro/Data/vine/LCA/2013_01_24_2013_02_01/output_stack_vine_021714/Checkpoints/Checkpoint2100000/Error_V.pvp";
+    Vfilename           = "/nh/compneuro/Data/vine/LCA/2013_01_24_2013_02_01/output_stack_vine_021814/Checkpoints/Checkpoint100000/Error_V.pvp";
     //
     VThresh  = 0.005;
     VMax     = infinity;
@@ -110,6 +110,7 @@ ANNErrorLayer "Error" = {
     VWidth   = 0;       // specify extra linear regime in transfer function (add additional piecewise linear portion)
     errScale = 1;       // relative importance of all error layers that are connected to respective V1 layer
     //
+    triggerFlag = false;
     phase = 1;  
 };
 
@@ -133,18 +134,19 @@ HyPerLCALayer "V1_S2" = {
     //minV                = -1.0;
     //maxV                = .15; //0.05 above VThresh
     InitVType           = "InitVFromFile"; // When initializing weights from file, it helps to also init V values to prevent startup artifacts
-    Vfilename           = "/nh/compneuro/Data/vine/LCA/2013_01_24_2013_02_01/output_stack_vine_021714/Checkpoints/Checkpoint2100000/V1_S2_V.pvp";
+    Vfilename           = "/nh/compneuro/Data/vine/LCA/2013_01_24_2013_02_01/output_stack_vine_021814/Checkpoints/Checkpoint100000/V1_S2_V.pvp";
     // 
     timeConstantTau        = 1000.0;
     timeConstantTauMinimum = 10.0;
     slopeErrorStd          = 0.01;
     // 
-    VThresh = 0.05; //  // 0.05 works for animalDB
+    VThresh = 0.025; //  // 0.05 works for animalDB
     VMax    = infinity;
     VMin    = 0.0;
     VShift  = 0.0;     // 0 -> hard threshold, 1 -> soft threshold
-    VWidth  = 0;       // specify extra linear regime in transfer function (add additional piecewise linear portion)
+    VWidth  = 0.025;       // specify extra linear regime in transfer function (add additional piecewise linear portion)
     //
+    triggerFlag = false;
     phase = 2;
 };
 
@@ -168,18 +170,19 @@ HyPerLCALayer "V1_S4" = {
     //minV                = -1.0;
     //maxV                = .15; //0.05 above VThresh
     InitVType           = "InitVFromFile"; // When initializing weights from file, it helps to also init V values to prevent startup artifacts
-    Vfilename           = "/nh/compneuro/Data/vine/LCA/2013_01_24_2013_02_01/output_stack_vine_021714/Checkpoints/Checkpoint2100000/V1_S4_V.pvp";
+    Vfilename           = "/nh/compneuro/Data/vine/LCA/2013_01_24_2013_02_01/output_stack_vine_021814/Checkpoints/Checkpoint100000/V1_S4_V.pvp";
     // 
     timeConstantTau        = 1000.0;
     timeConstantTauMinimum = 10.0;
     slopeErrorStd          = 0.01;
     // 
-    VThresh = 0.05; //  // 0.05 works for animalDB
+    VThresh = 0.025; //  // 0.05 works for animalDB
     VMax    = infinity;
     VMin    = 0.0;
     VShift  = 0.0;     // 0 -> hard threshold, 1 -> soft threshold
-    VWidth  = 0;       // specify extra linear regime in transfer function (add additional piecewise linear portion)
+    VWidth  = 0.025;       // specify extra linear regime in transfer function (add additional piecewise linear portion)
     //
+    triggerFlag = false;
     phase = 2;
 };
 
@@ -202,23 +205,24 @@ HyPerLCALayer "V1_S8" = {
     //minV                = -1.0;
     //maxV                = .15; //0.05 above VThresh
     InitVType           = "InitVFromFile"; // When initializing weights from file, it helps to also init V values to prevent startup artifacts
-    Vfilename           = "/nh/compneuro/Data/vine/LCA/2013_01_24_2013_02_01/output_stack_vine_021714/Checkpoints/Checkpoint2100000/V1_S8_V.pvp";
+    Vfilename           = "/nh/compneuro/Data/vine/LCA/2013_01_24_2013_02_01/output_stack_vine_021814/Checkpoints/Checkpoint100000/V1_S8_V.pvp";
     // 
     timeConstantTau        = 1000.0;
     timeConstantTauMinimum = 10.0;
     slopeErrorStd          = 0.01;
     // 
-    VThresh = 0.05; //  // 0.05 works for animalDB
+    VThresh = 0.025; //  // 0.05 works for animalDB
     VMax    = infinity;
     VMin    = 0.0;
     VShift  = 0.0;     // 0 -> hard threshold, 1 -> soft threshold
-    VWidth  = 0;       // specify extra linear regime in transfer function (add additional piecewise linear portion)
+    VWidth  = 0.025;       // specify extra linear regime in transfer function (add additional piecewise linear portion)
     //
-    phase = 2;
+    triggerFlag = false;
+    phase       = 2;
 };
 
 
-ANNTriggerUpdateOnNewImageLayer "Recon_S2" = {
+ANNLayer "Recon_S2" = {
     restart             = 0;
     nxScale             = 1;
     nyScale             = 1;
@@ -228,7 +232,7 @@ ANNTriggerUpdateOnNewImageLayer "Recon_S2" = {
     mirrorBCflag        = 0;
     valueBC             = 0;
     writeSparseActivity = false;
-    movieLayerName      = "Image";
+    triggerLayerName      = "Image";
     //
     InitVType           = "ZeroV";
     //InitVType           = "InitVFromFile";
@@ -240,10 +244,11 @@ ANNTriggerUpdateOnNewImageLayer "Recon_S2" = {
     VShift              = 0;
     VWidth              = 0;            // specify extra linear regime in transfer function (add additional piecewise linear portion)
     // 
+    triggerFlag         = true;
     phase               = 3; 
 };
 
-ANNTriggerUpdateOnNewImageLayer "Recon_S4" = {
+ANNLayer "Recon_S4" = {
     restart             = 0;
     nxScale             = 1;
     nyScale             = 1;
@@ -253,7 +258,7 @@ ANNTriggerUpdateOnNewImageLayer "Recon_S4" = {
     mirrorBCflag        = 0;
     valueBC             = 0;
     writeSparseActivity = false;
-    movieLayerName      = "Image";
+    triggerLayerName      = "Image";
     //
     InitVType           = "ZeroV";
     //InitVType           = "InitVFromFile";
@@ -265,10 +270,11 @@ ANNTriggerUpdateOnNewImageLayer "Recon_S4" = {
     VShift              = 0;
     VWidth              = 0;            // specify extra linear regime in transfer function (add additional piecewise linear portion)
     // 
+    triggerFlag         = true;
     phase               = 3; 
 };
 
-ANNTriggerUpdateOnNewImageLayer "Recon_S8" = {
+ANNLayer "Recon_S8" = {
     restart             = 0;
     nxScale             = 1;
     nyScale             = 1;
@@ -278,7 +284,7 @@ ANNTriggerUpdateOnNewImageLayer "Recon_S8" = {
     mirrorBCflag        = 0;
     valueBC             = 0;
     writeSparseActivity = false;
-    movieLayerName      = "Image";
+    triggerLayerName      = "Image";
     //
     InitVType           = "ZeroV";
     //InitVType           = "InitVFromFile";
@@ -290,6 +296,7 @@ ANNTriggerUpdateOnNewImageLayer "Recon_S8" = {
     VShift              = 0;
     VWidth              = 0;            // specify extra linear regime in transfer function (add additional piecewise linear portion)
     // 
+    triggerFlag         = true;
     phase               = 3; 
 };
 
@@ -348,7 +355,7 @@ KernelConn "V1_S2ToError" = {
     initFromLastFlag = 0;
     //
     weightInitType      = "FileWeight";
-    initWeightsFile     = "/nh/compneuro/Data/vine/LCA/2013_01_24_2013_02_01/output_stack_vine_021714/Checkpoints/Checkpoint2100000/V1_S2ToError_W.pvp";
+    initWeightsFile     = "/nh/compneuro/Data/vine/LCA/2013_01_24_2013_02_01/output_stack_vine_021814/Checkpoints/Checkpoint100000/V1_S2ToError_W.pvp";
     combineWeightFiles  = false;
     useListOfArborFiles = false;
     //
@@ -399,7 +406,7 @@ KernelConn "V1_S4ToError" = {
     initFromLastFlag = 0;
     //
     weightInitType      = "FileWeight";
-    initWeightsFile     = "/nh/compneuro/Data/vine/LCA/2013_01_24_2013_02_01/output_stack_vine_021714/Checkpoints/Checkpoint2100000/V1_S4ToError_W.pvp";
+    initWeightsFile     = "/nh/compneuro/Data/vine/LCA/2013_01_24_2013_02_01/output_stack_vine_021814/Checkpoints/Checkpoint100000/V1_S4ToError_W.pvp";
     combineWeightFiles  = false;
     useListOfArborFiles = false;
     //
@@ -450,7 +457,7 @@ KernelConn "V1_S8ToError" = {
     initFromLastFlag = 0;
     //
     weightInitType      = "FileWeight";
-    initWeightsFile     = "/nh/compneuro/Data/vine/LCA/2013_01_24_2013_02_01/output_stack_vine_021714/Checkpoints/Checkpoint2100000/V1_S8ToError_W.pvp";
+    initWeightsFile     = "/nh/compneuro/Data/vine/LCA/2013_01_24_2013_02_01/output_stack_vine_021814/Checkpoints/Checkpoint100000/V1_S8ToError_W.pvp";
     combineWeightFiles  = false;
     useListOfArborFiles = false;
     //
