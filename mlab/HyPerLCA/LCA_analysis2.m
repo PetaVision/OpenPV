@@ -145,7 +145,26 @@ if analyze_Recon
     %% list of (previous) layers to sum with current layer
     Recon_sum_list = cell(num_Recon_list,1);
     Recon_sum_list{6} = 3;
-  elseif strcmp(run_type, "Heli_DPT")  || strcmp(run_type, "Heli_C1") 
+  elseif strcmp(run_type, "Heli_C1") 
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% Heli_DPT list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    Recon_list = ...
+	{["a0_"], ["Image"];
+	 ["a3_"], ["Recon"];
+	 ["a7_"], ["Recon2"];
+	 ["a9_"], ["ReconInfra"];
+	 ["a9_"], ["ReconInfra"]};
+    %% list of layers to unwhiten
+    num_Recon_list = size(Recon_list,1);
+    Recon_unwhiten_list = zeros(num_Recon_list,1);
+    %%Recon_unwhiten_list([2,3,5,6]) = 1;
+    %% list of layers to use as a normalization reference for unwhitening
+    Recon_normalize_list = 1:num_Recon_list;
+    %% list of (previous) layers to sum with current layer
+    Recon_sum_list = cell(num_Recon_list,1);
+    Recon_sum_list{5} = 3;
+  elseif strcmp(run_type, "Heli_DPT") 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% Heli_DPT list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -654,9 +673,9 @@ if analyze_nonSparse_flag
          ["a5_"], ["Error1_2"]}; %%; ...
     num_nonSparse_list = size(nonSparse_list,1);
     nonSparse_skip = repmat(1, num_nonSparse_list, 1);
-    nonSparse_skip(1) = 1;
-    nonSparse_skip(2) = 1;
-    nonSparse_skip(3) = 1;
+    nonSparse_skip(1) = 2;
+    nonSparse_skip(2) = 2;
+    nonSparse_skip(3) = 2;
     nonSparse_norm_list = ...
         {["a0_"], ["Image"]; ...
          ["a7_"], ["Recon2"]; ...
@@ -769,9 +788,9 @@ if analyze_nonSparse_flag
          ["a10_"], ["Error1_2"]};
     num_nonSparse_list = size(nonSparse_list,1);
     nonSparse_skip = repmat(1, num_nonSparse_list, 1);
-    nonSparse_skip(1) = 1;
-    nonSparse_skip(2) = 1;
-    nonSparse_skip(3) = 1;
+    nonSparse_skip(1) = 10;
+    nonSparse_skip(2) = 10;
+    nonSparse_skip(3) = 10;
     nonSparse_norm_list = ...
         {["a2_"], ["Ganglion"]; ...
          ["a4_"], ["V1"]; ...
@@ -872,8 +891,8 @@ if plot_ReconError
          ["a9_"], ["ReconInfra"]};
     num_ReconError_list = size(ReconError_list,1);
     ReconError_skip = repmat(1, num_ReconError_list, 1);
-    ReconError_skip(1) = 1;
-    ReconError_skip(2) = 1;
+    ReconError_skip(1) = 2;
+    ReconError_skip(2) = 2;
     ReconError_norm_list = ...
         {["a0_"], ["Image"]; ...
          ["a0_"], ["Image"]};
@@ -945,9 +964,9 @@ if plot_ReconError
 	 ["a16_"], ["ReconMaxPoolingV2X05"]};
     num_ReconError_list = size(ReconError_list,1);
     ReconError_skip = repmat(1, num_ReconError_list, 1);
-    ReconError_skip(1) = 1;
-    ReconError_skip(2) = 1;
-    ReconError_skip(3) = 1;
+    ReconError_skip(1) = 10;
+    ReconError_skip(2) = 10;
+    ReconError_skip(3) = 10;
     ReconError_norm_list = ...
         {["a2_"], ["Ganglion"]; ...
 	 ["a2_"], ["Ganglion"]; ...
@@ -1724,45 +1743,10 @@ if plot_weights0_2
       image_list = ...
           {["Image"], ["_A"]; ...
 	   ["Image"], ["_A"]};
+      weights1_2_pad_size = [8,0];
     endif %% checkpoint_weights_movie
     %% list of indices for reading rank order of presynaptic neuron as function of activation frequency
     sparse_ndx = [2, 2];
-    num_checkpoints = size(checkpoints_list,1);
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  elseif strcmp(run_type, "CIFAR_deep") 
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %% CIFAR_deep list
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %% list of weights from layer2 to layer1
-    if ~checkpoint_weights_movie
-      checkpoints_list = {output_dir};
-      weights1_2_list = ...
-          {["w9_"], ["V2ToError1_2"]};
-      post1_2_list = ...
-          {["a2_"], ["V1"]};
-      %% list of weights from layer1 to image
-      weights0_1_list = ...
-          {["w1_"], ["V1ToError"]};
-      image_list = ...
-          {["a0_"], ["Image"]};
-    else
-      checkpoints_list = getCheckpointList(checkpoint_parent, checkpoint_children);
-      weights1_2_list = ...
-          {["V2ToError1_2"], "_W"};
-      post1_2_list = ...
-          {["V1"], ["_A"]};
-      %% list of weights from layer1 to image
-      weights0_1_list = ...
-          {["V1ToError"], ["_W"]};
-%%      image_list = ...
-%%          {["a1_"], ["Image"]};
-      image_list = ...
-          {["Image"], ["_A"]};
-      labelWeights_list = ...
-	  {["V2ToLabelError"], ["_W"]};
-    endif %% checkpoint_weights_movie
-    %% list of indices for reading rank order of presynaptic neuron as function of activation frequency
-    sparse_ndx = [2];
     num_checkpoints = size(checkpoints_list,1);
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   elseif strcmp(run_type, "CIFAR_C1") 
@@ -1882,6 +1866,7 @@ if plot_weights0_2
     %% list of indices for reading rank order of presynaptic neuron as function of activation frequency
     sparse_ndx = [2,2];
     num_checkpoints = size(checkpoints_list,1);
+    weights1_2_pad_size = [12,0];
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   endif %% run_type
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1890,7 +1875,10 @@ if plot_weights0_2
   if num_weights1_2_list == 0
     break;
   endif
-
+  
+  if ~exist('weights1_2_pad_size') || length(weights1_2_pad_size(:)) < num_weights1_2_list
+    weights1_2_pad_size = zeros(1, num_weights1_2_list)
+  endif
   %% get image header (to get image dimensions)
   i_image = 1;
   image_file = ...
@@ -2185,12 +2173,27 @@ if plot_weights0_2
 	endwhile
 	min_patch = min(patch_tmp3(:));
 	max_patch = max(patch_tmp3(:));
+	%%patch_tmp5 = ...
+	%%    uint8((flipdim(patch_tmp3,1) - min_patch) * 255 / ...
+	%%	  (max_patch - min_patch + ((max_patch - min_patch)==0)));
 	patch_tmp5 = ...
-	    uint8((flipdim(patch_tmp3,1) - min_patch) * 255 / ...
-		  (max_patch - min_patch + ((max_patch - min_patch)==0)));
+	    uint8(127.5 + 127.5*(flipdim(patch_tmp3,1)) / ...
+		  (max(abs(patch_tmp3(:))) + (max(abs(patch_tmp3(:)))==0)));
 	
+	pad_size = weights1_2_pad_size(i_weights1_2);
+	padded_patch_size = size(patch_tmp5);
+	padded_patch_size(1) = padded_patch_size(1) + 2*pad_size;
+	padded_patch_size(2) = padded_patch_size(2) + 2*pad_size;
+	patch_tmp6 = repmat(uint8(128), padded_patch_size);
+	if ndims(patch_tmp5) == 3
+	  patch_tmp6(pad_size+1:padded_patch_size(1)-pad_size, pad_size+1:padded_patch_size(2)-pad_size,:) = uint8(patch_tmp5);
+	else
+	  patch_tmp6(pad_size+1:padded_patch_size(1)-pad_size, pad_size+1:padded_patch_size(2)-pad_size) = uint8(patch_tmp5);
+	endif
+
 	if plot_weights0_2_flag && i_checkpoint == max_checkpoint
-	  imagesc(patch_tmp5); 
+	  %% pad by 8 as test
+	  image(patch_tmp6); 
 	  if weights0_1_nfp == 1
 	    colormap(gray);
 	  endif
@@ -2208,14 +2211,14 @@ if plot_weights0_2
 
 	if isempty(weight_patch0_2_array)
 	  weight_patch0_2_array = ...
-	      zeros(num_patches0_2_rows*weights0_2_nyp_shrunken, ...
-		    num_patches0_2_cols*weights0_2_nxp_shrunken, weights0_1_nfp);
+	      zeros(num_patches0_2_rows*(weights0_2_nyp_shrunken+2*pad_size), ...
+		    num_patches0_2_cols*(weights0_2_nxp_shrunken+2*pad_size), weights0_1_nfp);
 	endif
 	col_ndx = 1 + mod(kf_pre1_2_rank-1, num_patches0_2_cols);
 	row_ndx = 1 + floor((kf_pre1_2_rank-1) / num_patches0_2_cols);
-	weight_patch0_2_array((1+(row_ndx-1)*weights0_2_nyp_shrunken):(row_ndx*weights0_2_nyp_shrunken), ...
-			      (1+(col_ndx-1)*weights0_2_nxp_shrunken):(col_ndx*weights0_2_nxp_shrunken),:) = ...
-	    patch_tmp5;
+	weight_patch0_2_array((1+(row_ndx-1)*(weights0_2_nyp_shrunken+2*pad_size)):(row_ndx*(weights0_2_nyp_shrunken+2*pad_size)), ...
+			      (1+(col_ndx-1)*(weights0_2_nxp_shrunken+2*pad_size)):(col_ndx*(weights0_2_nxp_shrunken+2*pad_size)),:) = ...
+	    patch_tmp6;
 
 	%% Plot the average movie weights for a label %%
 	if plot_labelWeights_flag && i_checkpoint == max_checkpoint
