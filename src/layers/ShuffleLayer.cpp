@@ -59,7 +59,7 @@ int ShuffleLayer::setParams(PVParams * params){
       readFreqCollectTime(params);
    }
    else{
-      fprintf(stderr, "Shuffle Layer: Shuffle method not recognized. Options are \"random\".\n");
+      fprintf(stderr, "Shuffle Layer: Shuffle method not recognized. Options are \"random\" or \"rejection\".\n");
       exit(PV_FAILURE);
    }
    return status;
@@ -124,8 +124,6 @@ void ShuffleLayer::rejectionShuffle(const pvdata_t * sourceData, pvdata_t * acti
       for (int i = 0; i < numextended; i++) { //Zero activity array for shuffling activity
          activity[i] = 0;
       }
-      //NOTE: The following code assumes that the active features are sparse. 
-      //      If the number of active features in sourceData is greater than 1/2 of nf, do..while will loop infinitely 
       for (int ky = 0; ky < nyExt; ky++){
          for (int kx = 0; kx < nxExt; kx++){
             for (int kf = 0; kf < nf; kf++){
