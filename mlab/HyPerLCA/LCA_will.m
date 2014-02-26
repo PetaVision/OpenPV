@@ -982,7 +982,7 @@ if plot_ReconError
          ["a0_"], ["Image"]};
     ReconError_norm_strength = ones(num_ReconError_list,1);
     ReconError_norm_strength = ...
-	[1/sqrt(18*18); 1/sqrt(18*18)];
+	[1/sqrt(18*18); 1/sqrt(18*18); 1/sqrt(18*18)];
     ReconError_RMS_fig_ndx = [1 1 1];  %% causes recon error to be overlaid on specified  nonSparse (Error) figure %%%%Added value. If broken, see Heli_D%%%%
   elseif strcmp(run_type, "CIFAR_deep") 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1623,7 +1623,7 @@ endif  %% plot_weights
 
 
 %%keyboard;
-plot_labelRecon = true;
+plot_labelRecon = false;
 labels_list = {};
 labelRecon_list = {};
 if plot_labelRecon
