@@ -23,13 +23,22 @@ public:
 protected:
    ShuffleLayer();
    int initialize(const char * name, HyPerCol * hc);
+   int communicateInitInfo();
+
+   void randomShuffle(const pvdata_t * sourceData, pvdata_t * activity);
+   void rejectionShuffle(const pvdata_t * sourceData, pvdata_t * activity);
+   void collectFreq(const pvdata_t * sourceData);
+
    virtual int setParams(PVParams * params);
    void readShuffleMethod(PVParams * params);
-   void randomShuffle(const pvdata_t * sourceData, pvdata_t * activity);
+   void readFreqCollectTime(PVParams * params);
 
 private:
    int initialize_base();
    char * shuffleMethod;
+   long * featureFreqCount;
+   long maxCount;
+   long freqCollectTime;
 };
 
 }
