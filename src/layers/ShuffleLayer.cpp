@@ -124,6 +124,8 @@ void ShuffleLayer::rejectionShuffle(const pvdata_t * sourceData, pvdata_t * acti
       for (int i = 0; i < numextended; i++) { //Zero activity array for shuffling activity
          activity[i] = 0;
       }
+      //NOTE: The following code assumes that the active features are sparse. 
+      //      If the number of active features in sourceData is greater than 1/2 of nf, while will loop infinitely 
       for (int ky = 0; ky < nyExt; ky++){
          for (int kx = 0; kx < nxExt; kx++){
             for (int kf = 0; kf < nf; kf++){
@@ -137,8 +139,9 @@ void ShuffleLayer::rejectionShuffle(const pvdata_t * sourceData, pvdata_t * acti
                while(rejectFlag){
                   //Grab random feature index
                   rdf = rand() % nf;
-                  //Reject if random feature is itself
-                  if(kf == rdf){
+                  rndIdx = kIndex(kx, ky, rdf, nxExt, nyExt, nf);
+                  //Reject if random feature is itself or is active
+                  if(sourceData[rndIdx] || activity[rndIdx]){
                      continue;
                   }
                   //Grab random index from 0 to 1
@@ -150,7 +153,7 @@ void ShuffleLayer::rejectionShuffle(const pvdata_t * sourceData, pvdata_t * acti
                   }
                }
                //rdf is now the random index to shuffle with
-               rndIdx = kIndex(kx, ky, rdf, nxExt, nyExt, nf);
+               activity[rndIdx] = sourceData[extIdx];
                activity[extIdx] = sourceData[rndIdx];
             }
          }
