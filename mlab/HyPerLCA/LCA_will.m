@@ -44,6 +44,7 @@ elseif isunix
   %%run_type = "Heli_DPT";
   %%run_type = "Heli_D";
   run_type = "Stack";
+  %%run_type = "Shuffle";
  
   if strcmp(run_type, "color_deep")
     %%output_dir = "/nh/compneuro/Data/vine/LCA/2013_02_01/output_2013_02_01_12x12x128_lambda_05X1_deep"; 
@@ -79,6 +80,13 @@ elseif isunix
     checkpoint_dir = output_dir;
     checkpoint_parent = "/nh/compneuro/Data/vine/LCA";
     checkpoint_children = {"2013_01_24_2013_02_01/output_stack_vine"};
+
+  elseif strcmp(run_type, "Shuffle")
+    output_dir = ...
+	"/nh/compneuro/Data/vine/LCA/2013_01_24_2013_02_01/output_stack_vine_shuffle";
+    checkpoint_dir = output_dir;
+    checkpoint_parent = "/nh/compneuro/Data/vine/LCA";
+    checkpoint_children = {"2013_01_24_2013_02_01/output_stack_vine_shuffle"};
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
   
@@ -211,6 +219,25 @@ if analyze_Recon
 	{["a5_"], ["Recon_S2"];
 	 ["a6_"], ["Recon_S4"];
 	 ["a7_"], ["Recon_S8"]};
+    %% list of layers to unwhiten
+    num_Recon_list = size(Recon_list,1);
+    Recon_unwhiten_list = zeros(num_Recon_list,1);
+    %%Recon_unwhiten_list([2,3,5,6]) = 1;
+    %% list of layers to use as a normalization reference for unwhitening
+    Recon_normalize_list = 1:num_Recon_list;
+    %% list of (previous) layers to sum with current layer
+    Recon_sum_list = cell(num_Recon_list,1);
+  elseif strcmp(run_type, "Shuffle") 
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% Shuffle list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    Recon_list = ...
+	{["a5_"], ["Recon_S2"];
+	 ["a6_"], ["Recon_S4"];
+	 ["a7_"], ["Recon_S8"];
+	 ["a11_"], ["Shuffle_Recon_S2"];
+	 ["a12_"], ["Shuffle_Recon_S4"];
+	 ["a13_"], ["Shuffle_Recon_S8"]};
     %% list of layers to unwhiten
     num_Recon_list = size(Recon_list,1);
     Recon_unwhiten_list = zeros(num_Recon_list,1);
@@ -880,7 +907,7 @@ endif %% analyze_nonSparse_flag
 
 
 
-plot_ReconError = true && analyze_nonSparse_flag;
+plot_ReconError = false && analyze_nonSparse_flag;
 ReconError_RMS_fig_ndx = [];
 if plot_ReconError
   if strcmp(run_type, "color_deep") || strcmp(run_type, "noTopDown") 
@@ -1298,6 +1325,17 @@ if plot_weights
           {["V1_S2ToError"], "_W"; ...
            ["V1_S4ToError"], "_W"; ...
            ["V1_S8ToError"], "_W"};
+    checkpoints_list = getCheckpointList(checkpoint_parent, checkpoint_children);
+    num_checkpoints = size(checkpoints_list,1);
+  elseif strcmp(run_type, "Shuffle")
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% deep list Shuffle 
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    sparse_ndx = [1; 2; 3];
+    weights_list = ...
+          {["ShuffleV1_S2ToError"], "_W"; ...
+           ["ShuffleV1_S4ToError"], "_W"; ...
+           ["ShuffleV1_S8ToError"], "_W"};
     checkpoints_list = getCheckpointList(checkpoint_parent, checkpoint_children);
     num_checkpoints = size(checkpoints_list,1);
   elseif strcmp(run_type, "Heli_C1") 
