@@ -185,15 +185,19 @@ int CloneKernelConn::communicateInitInfo() {
    const PVLayerLoc * preLoc = pre->getLayerLoc();
    const PVLayerLoc * origPreLoc = originalConn->preSynapticLayer()->getLayerLoc();
 
-   if (preLoc->nx != origPreLoc->nx || preLoc->ny != origPreLoc->ny || preLoc->nf != origPreLoc->nf || preLoc->nb != origPreLoc->nb ) {
+   if (preLoc->nx != origPreLoc->nx || preLoc->ny != origPreLoc->ny || preLoc->nf != origPreLoc->nf ) {
       if (parent->icCommunicator()->commRank()==0) {
-         fprintf(stderr, "%s \"%s\" error in rank %d process: CloneKernelConn and originalConn \"%s\" must have presynaptic layers with the same geometry (including margin width).\n",
+         fprintf(stderr, "%s \"%s\" error in rank %d process: CloneKernelConn and originalConn \"%s\" must have presynaptic layers with the same nx,ny,nf.\n",
                classname, name, parent->columnId(), originalConn->getName());
-         fprintf(stderr, "{nx=%d, ny=%d, nf=%d, nb=%d} versus {nx=%d, ny=%d, nf=%d, nb=%d}\n",
-                 preLoc->nx, preLoc->ny, preLoc->nf, preLoc->nb, origPreLoc->nx, origPreLoc->ny, origPreLoc->nf, origPreLoc->nb);
+         fprintf(stderr, "{nx=%d, ny=%d, nf=%d} versus {nx=%d, ny=%d, nf=%d}\n",
+                 preLoc->nx, preLoc->ny, preLoc->nf, origPreLoc->nx, origPreLoc->ny, origPreLoc->nf);
       }
       abort();
    }
+
+   // Make sure the original's and the clone's margin widths stay equal
+   originalConn->preSynapticLayer()->synchronizeMarginWidth(pre);
+   pre->synchronizeMarginWidth(originalConn->preSynapticLayer());
 
    //Redudant read in case it's a clone of a clone
    numAxonalArborLists = originalConn->numberOfAxonalArborLists();
