@@ -510,9 +510,16 @@ int HyPerLayer::updateClayerMargin(PVLayer * clayer, int new_margin) {
 }
 
 int HyPerLayer::allocateBuffers() {
-   // allocate memory for the input conductance arrays.
+   // allocate memory for input buffers.  For HyPerLayer, allocates GSyn
    // virtual so that subclasses can initialize additional buffers if needed.
    // Typically an overriding allocateBuffers should call HyPerLayer::allocateBuffers
+   // Specialized subclasses that don't use GSyn (e.g. CloneVLayer) should override
+   // allocateGSyn to do nothing.
+   
+   return allocateGSyn();
+}
+
+int HyPerLayer::allocateGSyn() {
    int status = PV_SUCCESS;
    GSyn = NULL;
    if (numChannels > 0) {

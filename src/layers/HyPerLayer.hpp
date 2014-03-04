@@ -109,6 +109,7 @@ protected:
    int setLayerLoc(PVLayerLoc * layerLoc, float nxScale, float nyScale, int nf);
    int updateClayerMargin(PVLayer * clayer, int new_margin);
    virtual int allocateBuffers();
+   virtual int allocateGSyn();
 
    template <typename T>
    int allocateBuffer(T ** buf, int bufsize, const char * bufname);

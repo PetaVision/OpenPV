@@ -131,7 +131,7 @@ int RescaleLayer::updateState(double timef, double dt) {
        const PVLayerLoc * loc = getLayerLoc();
        const PVLayerLoc * locOriginal = originalLayer->getLayerLoc();
        //Make sure all sizes match
-       assert(locOriginal->nb == loc->nb);
+       //assert(locOriginal->nb == loc->nb);
        assert(locOriginal->nx == loc->nx);
        assert(locOriginal->ny == loc->ny);
        assert(locOriginal->nf == loc->nf);
@@ -205,33 +205,35 @@ int RescaleLayer::updateState(double timef, double dt) {
           }
        }
        else if(strcmp(rescaleMethod, "pointmeanstd") == 0){
-          int nx = locOriginal->nx;
-          int ny = locOriginal->ny;
-          int nf = locOriginal->nf;
-          int nb = locOriginal->nb;
-          //Loop through all nx and ny extended
-          for(int iY = 0; iY < ny+2*nb; iY++){ 
-             for(int iX = 0; iX < nx+2*nb; iX++){ 
+          int nx = loc->nx;
+          int ny = loc->ny;
+          int nf = loc->nf;
+          int nb = loc->nb;
+          int nbOrig = locOriginal->nb;
+          //Loop through all nx and ny
+          for(int iY = 0; iY < ny; iY++){ 
+             for(int iX = 0; iX < nx; iX++){ 
                 //Find sum and sum sq in feature space
                 float sum = 0;
                 float sumsq = 0;
                 for(int iF = 0; iF < nf; iF++){
-                   int kext = kIndex(iX, iY, iF, nx+2*nb, ny+2*nb, nf);
-                   sum += originalA[kext];
+                   int kextOriginal = kIndex(iX+nbOrig, iY+nbOrig, iF, nx+2*nbOrig, ny+2*nbOrig, nf);
+                   sum += originalA[kextOriginal];
                 }
                 float mean = sum/nf;
                 for(int iF = 0; iF < nf; iF++){
-                   int kext = kIndex(iX, iY, iF, nx+2*nb, ny+2*nb, nf);
-                   sumsq += (originalA[kext] - mean) * (originalA[kext] - mean);
+                   int kextOriginal = kIndex(iX+nbOrig, iY+nbOrig, iF, nx+2*nbOrig, ny+2*nbOrig, nf);
+                   sumsq += (originalA[kextOriginal] - mean) * (originalA[kextOriginal] - mean);
                 }
                 float std = sqrt(sumsq/nf);
                 for(int iF = 0; iF < nf; iF++){
-                   int kext = kIndex(iX, iY, iF, nx+2*nb, ny+2*nb, nf);
+                   int kextOriginal = kIndex(iX+nbOrig, iY+nbOrig, iF, nx+2*nbOrig, ny+2*nbOrig, nf);
+                   int kext = kIndex(iX+nbOrig, iY+nbOrig, iF, nx+2*nb, ny+2*nb, nf);
                    if (std != 0){
-                      A[kext] = ((originalA[kext] - mean) * (targetStd/std) + targetMean);
+                      A[kext] = ((originalA[kextOriginal] - mean) * (targetStd/std) + targetMean);
                    }
                    else{
-                      A[kext] = originalA[kext];
+                      A[kext] = originalA[kextOriginal];
                    }
                 }
              }

@@ -80,14 +80,16 @@ int ShuffleLayer::setActivity() {
 }
 
 void ShuffleLayer::collectFreq(const pvdata_t * sourceData){
-   int nb    = getLayerLoc()->nb;
-   int nxExt = getLayerLoc()->nx + 2*nb;
-   int nyExt = getLayerLoc()->ny + 2*nb;
+   int nbOrig = originalLayer->getLayerLoc()->nb;
+   int nx = getLayerLoc()->nx;
+   int ny = getLayerLoc()->ny;
+   int nxExt = nx + 2*nbOrig;
+   int nyExt = ny + 2*nbOrig;
    int nf    = getLayerLoc()->nf;
-   for (int ky = 0; ky < nyExt; ky++){
-      for (int kx = 0; kx < nxExt; kx++){
+   for (int ky = 0; ky < nx; ky++){
+      for (int kx = 0; kx < nx; kx++){
          for (int kf = 0; kf < nf; kf++){
-            int extIdx = kIndex(kx, ky, kf, nxExt, nyExt, nf);
+            int extIdx = kIndex(kx+nbOrig, ky+nbOrig, kf, nxExt, nyExt, nf);
             float inData = sourceData[extIdx];
             //Really use 0? Or should there be a threshold parameter
             if(inData > 0){
@@ -109,13 +111,13 @@ void ShuffleLayer::collectFreq(const pvdata_t * sourceData){
 
 void ShuffleLayer::rejectionShuffle(const pvdata_t * sourceData, pvdata_t * activity){
    const PVLayerLoc * loc = getLayerLoc();
-   int nb    = loc->nb;
-   int nxExt = loc->nx + 2*nb;
-   int nyExt = loc->ny + 2*nb;
+   int nbOrig = originalLayer->getLayerLoc()->nb;
+   int nb = loc->nb;
+   int nx = loc->nx;
+   int ny = loc->ny;
    int nf    = loc->nf;
    int numextended = getNumExtended();
-   assert(numextended == nxExt * nyExt * nf);
-   int rndIdx, rdf;
+   int rndIdx, rndIdxOrig;
    if(parent->simulationTime() <= freqCollectTime){
       //Collect maxVActivity and featureFreq
       collectFreq(sourceData);
@@ -126,11 +128,13 @@ void ShuffleLayer::rejectionShuffle(const pvdata_t * sourceData, pvdata_t * acti
       }
       //NOTE: The following code assumes that the active features are sparse. 
       //      If the number of active features in sourceData is greater than 1/2 of nf, while will loop infinitely 
-      for (int ky = 0; ky < nyExt; ky++){
-         for (int kx = 0; kx < nxExt; kx++){
+      for (int ky = 0; ky < ny; ky++){
+         for (int kx = 0; kx < nx; kx++){
+            int extIdx = kIndex(kx+nb, ky+nb, 0, nx+2*nb, ny+2*nb, nf);
+            int extIdxOrig = kIndex(kx+nbOrig, ky+nbOrig, 0, nx+2*nbOrig, ny+2*nbOrig, nf);
+            // Assumes stride in features is 1 when computing indices for features other than kf=0
             for (int kf = 0; kf < nf; kf++){
-               int extIdx = kIndex(kx, ky, kf, nxExt, nyExt, nf);
-               float inData = sourceData[extIdx];
+               float inData = sourceData[extIdxOrig+kf];
                //If no activity, reject and continue
                if(inData <= 0){
                   continue;
@@ -138,10 +142,11 @@ void ShuffleLayer::rejectionShuffle(const pvdata_t * sourceData, pvdata_t * acti
                bool rejectFlag = true;
                while(rejectFlag){
                   //Grab random feature index
-                  rdf = rand() % nf;
-                  rndIdx = kIndex(kx, ky, rdf, nxExt, nyExt, nf);
+                  int rdf = rand() % nf;
+                  rndIdx = extIdx + rdf;
+                  rndIdxOrig = extIdxOrig + rdf;
                   //Reject if random feature is itself or is active
-                  if(sourceData[rndIdx] || activity[rndIdx]){
+                  if(sourceData[rndIdxOrig] || activity[rndIdx]){
                      continue;
                   }
                   //Grab random index from 0 to 1
@@ -153,8 +158,8 @@ void ShuffleLayer::rejectionShuffle(const pvdata_t * sourceData, pvdata_t * acti
                   }
                }
                //rdf is now the random index to shuffle with
-               activity[rndIdx] = sourceData[extIdx];
-               activity[extIdx] = sourceData[rndIdx];
+               activity[rndIdx] = sourceData[extIdxOrig+kf];
+               activity[extIdx+kf] = sourceData[rndIdx];
             }
          }
       }
@@ -163,31 +168,34 @@ void ShuffleLayer::rejectionShuffle(const pvdata_t * sourceData, pvdata_t * acti
 
 void ShuffleLayer::randomShuffle(const pvdata_t * sourceData, pvdata_t * activity){
    const PVLayerLoc * loc = getLayerLoc();
-   int nb    = loc->nb;
-   int nxExt = loc->nx + 2*nb;
-   int nyExt = loc->ny + 2*nb;
+   int nbOrig = originalLayer->getLayerLoc()->nb;
+   int nb = loc->nb;
+   int nx = loc->nx;
+   int ny = loc->ny;
    int nf    = loc->nf;
    int numextended = getNumExtended();
-   assert(numextended == nxExt * nyExt * nf);
-   int rndIdx, rd;
+   int rndIdx, rndIdxOrig;
    for (int i = 0; i < numextended; i++) { //Zero activity array for shuffling activity
       activity[i] = 0;
    }
    //NOTE: The following code assumes that the active features are sparse. 
    //      If the number of active features in sourceData is greater than 1/2 of nf, do..while will loop infinitely 
    
-   for (int ky = 0; ky < nyExt; ky++){
-      for (int kx = 0; kx < nxExt; kx++){
+   for (int ky = 0; ky < ny; ky++){
+      for (int kx = 0; kx < nx; kx++){
+         int extIdx = kIndex(kx+nb, ky+nb, 0, nx+2*nb, ny+2*nb, nf);
+         int extIdxOrig = kIndex(kx+nbOrig, ky+nbOrig, 0, nx+2*nbOrig, ny+2*nbOrig, nf);
+         // Assumes stride in features is 1 when computing indices for features other than kf=0
          for (int kf = 0; kf < nf; kf++){
-            int extIdx = kIndex(kx, ky, kf, nxExt, nyExt, nf);
-            float inData = sourceData[extIdx];
+            float inData = sourceData[extIdxOrig+kf];
             if (inData != 0) { //Features with 0 activity are not changed
                do {
-                  rd = rand() % nf; //TODO: Improve PRNG
-                  rndIdx = kIndex(kx, ky, rd, nxExt, nyExt, nf);
-               } while(sourceData[rndIdx] || activity[rndIdx]); 
-               activity[rndIdx] = sourceData[extIdx];
-               activity[extIdx] = sourceData[rndIdx];
+                  int rd = rand() % nf; //TODO: Improve PRNG
+                  rndIdx = extIdx + rd;
+                  rndIdxOrig = extIdxOrig + rd;
+               } while(sourceData[rndIdxOrig] || activity[rndIdx]); 
+               activity[rndIdx] = sourceData[extIdxOrig+kf];
+               activity[extIdx+kf] = sourceData[rndIdxOrig];
             }
          }
       }
@@ -206,7 +214,7 @@ int ShuffleLayer::updateState(double timef, double dt) {
    assert(loc->nx == sourceLoc->nx);
    assert(loc->ny == sourceLoc->ny);
    assert(loc->nf == sourceLoc->nf);
-   assert(loc->nb == sourceLoc->nb);
+   //assert(loc->nb == sourceLoc->nb);
    
    //Create a one to one mapping of neuron to neuron
    if (strcmp(shuffleMethod, "random") == 0){

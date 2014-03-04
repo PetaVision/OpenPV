@@ -17,6 +17,7 @@ public:
    CloneVLayer(const char * name, HyPerCol * hc);
    virtual int communicateInitInfo();
    virtual int allocateDataStructures();
+   virtual int allocateGSyn();
    virtual int initializeState();
    virtual int requireMarginWidth(int marginWidthNeeded, int * marginWidthResult);
    virtual ~CloneVLayer();

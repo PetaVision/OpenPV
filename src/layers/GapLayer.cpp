@@ -89,17 +89,6 @@ int GapLayer::communicateInitInfo() {
 
 int GapLayer::allocateDataStructures() {
    int status = CloneVLayer::allocateDataStructures();
-
-   // Handled by CloneVLayer::allocateV()
-   // free(clayer->V);
-   // clayer->V = sourceLayer->getV();
-
-   // Handled by CloneVLayer::initializeState()
-   // const PVLayerLoc * loc = getLayerLoc();
-   // // HyPerLayer::setActivity();
-   // setActivity_HyPerLayer(getNumNeurons(), getCLayer()->activity->data, getV(), loc->nx, loc->ny, loc->nf, loc->nb);
-   // // this copies the potential into the activity buffer for t=0
-
    return status;
 }
 
@@ -116,14 +105,13 @@ int GapLayer::updateState(double timef, double dt, const PVLayerLoc * loc, pvdat
    int nf = loc->nf;
    int num_neurons = nx*ny*nf;
    updateV_GapLayer();
-   setActivity_GapLayer(num_neurons, A, V, nx, ny, nf, loc->nb, checkActive, ampSpikelet);
-   // resetGSynBuffers(); // Since GapLayer uses sourceLayer's V, it doesn't seem to use the GSyn channels, so no need to blank them?
+   setActivity_GapLayer(num_neurons, A, V, nx, ny, nf, loc->nb, originalLayer->getLayerLoc()->nb, checkActive, ampSpikelet);
    return PV_SUCCESS;
 }
 
 int GapLayer::setActivity() {
    const PVLayerLoc * loc = getLayerLoc();
-   return setActivity_GapLayer(getNumNeurons(), getCLayer()->activity->data, getV(), loc->nx, loc->ny, loc->nf, loc->nb, getCLayer()->activity->data,ampSpikelet);
+   return setActivity_GapLayer(getNumNeurons(), getCLayer()->activity->data, getV(), loc->nx, loc->ny, loc->nf, loc->nb, originalLayer->getLayerLoc()->nb, getCLayer()->activity->data,ampSpikelet);
 }
 
 } // end namespace PV

@@ -150,9 +150,9 @@ static inline int setActivity_IncrementLayer(int numNeurons,
 		CL_MEM_GLOBAL pvdata_t * Vprev, int nx, int ny, int nf, int nb);
 static inline int setActivity_GapLayer(int numNeurons,
 		CL_MEM_GLOBAL pvdata_t * A, CL_MEM_GLOBAL pvdata_t * V, int nx, int ny,
-		int nf, int nb, CL_MEM_GLOBAL pvdata_t * active, float ampSpiklet);
+		int nf, int nb, int orig_nb, CL_MEM_GLOBAL pvdata_t * active, float ampSpiklet);
 //#ifndef PV_USE_OPENCL
-//static inline int setActivity_GapLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * A, CL_MEM_GLOBAL pvdata_t * V, int nx, int ny, int nf, int nb, const PVLayerLoc * src_loc, bool src_spiking, unsigned int src_num_active, unsigned int * src_active_indices);
+//static inline int setActivity_GapLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * A, CL_MEM_GLOBAL pvdata_t * V, int nx, int ny, int nf, int nb, int orig_nb, const PVLayerLoc * src_loc, bool src_spiking, unsigned int src_num_active, unsigned int * src_active_indices);
 //#endif //PV_USE_OPENCL
 
 
@@ -812,7 +812,7 @@ static inline int setActivity_IncrementLayer(int numNeurons, CL_MEM_GLOBAL pvdat
    return PV_SUCCESS;
 }
 
-static inline int setActivity_GapLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * A, CL_MEM_GLOBAL pvdata_t * V, int nx, int ny, int nf, int nb, CL_MEM_GLOBAL pvdata_t * checkActive, float ampSpikelet) {
+static inline int setActivity_GapLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * A, CL_MEM_GLOBAL pvdata_t * V, int nx, int ny, int nf, int nb, int orig_nb, CL_MEM_GLOBAL pvdata_t * checkActive, float ampSpikelet) {
    int k;
 #ifndef PV_USE_OPENCL
    for( k=0; k<numNeurons; k++ )
@@ -821,8 +821,9 @@ static inline int setActivity_GapLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * 
 #endif // PV_USE_OPENCL
    {
       int kex = kIndexExtended(k,nx,ny,nf,nb);
+      int kexorig = kIndexExtended(k,nx,ny,nf,orig_nb);
       A[kex] = V[k];
-      if( checkActive[kex] > 0.0) A[kex] += ampSpikelet; // checkActive must have the same marginWidth as A
+      if( checkActive[kexorig] > 0.0) A[kex] += ampSpikelet;
    }
    return PV_SUCCESS;
 }
