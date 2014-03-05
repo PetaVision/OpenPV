@@ -339,6 +339,13 @@ runandecho $testname Debug/$testname $arglist
 mpirunandecho $testname Debug/$testname $arglist
 cd "$wd"
 
+testname=ShrunkenPatchFlagTest
+cd "$testname"
+arglist="-p input/ShrunkenPatchFlagTest.params"
+runandecho $testname Debug/$testname $arglist
+mpirunandecho $testname Debug/$testname $arglist
+cd "$wd"
+
 testname=StochasticReleaseTest
 cd "$testname"
 arglist="-p input/StochasticReleaseTest.params"
