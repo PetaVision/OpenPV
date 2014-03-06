@@ -504,14 +504,10 @@ int KernelConn::defaultUpdate_dW(int arbor_ID) {
    }
 
    // Divide by numActiveFeature in this timestep
-   int prePostXScale = ceil((float)preLoc->nxGlobal/postLoc->nxGlobal);
-   int prePostYScale = ceil((float)preLoc->nyGlobal/postLoc->nyGlobal);
    int preNf = preLoc->nf;
-   int preToPostScale = prePostXScale * prePostYScale * preNf;
    for( int kernelindex=0; kernelindex<numKernelIndices; kernelindex++ ) {
       //Calculate pre feature index from patch index
-      int preiF = kernelindex % preToPostScale;
-      assert(preiF >= 0 && preiF < preNf);
+      int preiF = kernelindex % preNf;
       int divisor = numActiveFeature[preiF];
       if(divisor != 0){
          int numpatchitems = nxp*nyp*nfp;

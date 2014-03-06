@@ -46,22 +46,17 @@ function [iidx, jidx, finalCorr] = analyzeXCorr(xCorr_list, output_dir, plot_cor
       if (length(data) <= numprocs)
          inCellData = data;
       %If the length of data fits perfectly to numprocs
-      elseif (mod(length(data), numprocs) == 0)
+      else
          procSize = floor(length(data) / numprocs);
          for iProc = 1:numprocs
             beginIdx = (iProc - 1) * procSize + 1;
             endIdx = iProc * procSize;
-            inCellData{iProc} = data(beginIdx:endIdx);
+            if(iProc == numprocs)
+               inCellData{iProc} = data(beginIdx:end);
+            else
+               inCellData{iProc} = data(beginIdx:endIdx);
+            end
          end%for
-      else
-         procSize = floor(length(data) / (numprocs- 1));
-         for iProc = 1:numprocs-1
-            beginIdx = (iProc - 1) * procSize + 1;
-            endIdx = iProc * procSize;
-            inCellData{iProc} = data(beginIdx:endIdx);
-         end%for
-         beginIdx = (numprocs-1) * procSize + 1;
-         inCellData{numprocs} = data(beginIdx:end);
       end%if
 
       [sumAiAj, sumAi, sumAj, sumsqAi, sumsqAj] = parcellfun(numprocs, @corrOverFrame, inCellData, {hdr}, 'UniformOutput', false);

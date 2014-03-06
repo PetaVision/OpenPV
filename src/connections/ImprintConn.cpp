@@ -134,7 +134,13 @@ int ImprintConn::update_dW(int arbor_ID){
       //TODO this code is grabbing the first patch it can find. Make imprinting random so that it can grab other patches
       if (lastActiveTime[preFi] <= parent->simulationTime() - imprintTimeThresh){
          if(!imprinted[preFi]){
-            imprinted[preFi] = imprintFeature(arbor_ID, kExt);
+            //Random chance (one in 5) to imprint
+            if(rand() % 5 == 0){
+               imprinted[preFi] = imprintFeature(arbor_ID, kExt);
+            }
+            if(imprinted[preFi]){
+               std::cout << "Imprinted feature " << preFi << "\n";
+            }
          }
       }
 
@@ -175,14 +181,11 @@ int ImprintConn::update_dW(int arbor_ID){
    }
 
    // Divide by numActiveFeature in this timestep
-   int prePostXScale = ceil((float)preLoc->nxGlobal/postLoc->nxGlobal);
-   int prePostYScale = ceil((float)preLoc->nyGlobal/postLoc->nyGlobal);
    int preNf = preLoc->nf;
-   int preToPostScale = prePostXScale * prePostYScale * preNf;
    for( int kernelindex=0; kernelindex<numKernelIndices; kernelindex++ ) {
       //Calculate pre feature index from patch index
-      int preiF = kernelindex % preToPostScale;
-      assert(preiF >= 0 && preiF < preNf);
+      //kernelindex always spins over nf first, so just mod preNf to find out iF
+      int preiF = kernelindex % preNf;
       int divisor = numActiveFeature[preiF];
       if(divisor != 0){
          int numpatchitems = nxp*nyp*nfp;
