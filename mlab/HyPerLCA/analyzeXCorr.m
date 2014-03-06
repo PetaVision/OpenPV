@@ -66,11 +66,17 @@ function [iidx, jidx, finalCorr] = analyzeXCorr(xCorr_list, output_dir, plot_cor
 
       [sumAiAj, sumAi, sumAj, sumsqAi, sumsqAj] = parcellfun(numprocs, @corrOverFrame, inCellData, {hdr}, 'UniformOutput', false);
       %Sum over all cells of results
-      sumAiAj = sum(cat(2, sumAiAj{:}), 2);
-      sumAi   = sum(cat(2, sumAi{:}), 2);
-      sumAj   = sum(cat(2, sumAj{:}), 2);
-      sumsqAi = sum(cat(2, sumsqAi{:}), 2);
-      sumsqAj = sum(cat(2, sumsqAj{:}), 2);
+      try
+         sumAiAj = sum(cat(2, sumAiAj{:}), 2);
+         sumAi   = sum(cat(2, sumAi{:}), 2);
+         sumAj   = sum(cat(2, sumAj{:}), 2);
+         sumsqAi = sum(cat(2, sumsqAi{:}), 2);
+         sumsqAj = sum(cat(2, sumsqAj{:}), 2);
+      catch
+         disp('Error in cat')
+         keyboard
+      end
+
 
       %Calculate xCorr
       N = length(data) * hdr.nx * hdr.ny;

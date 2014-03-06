@@ -125,6 +125,7 @@ int HyPerLayer::initialize_base() {
    this->triggerLayerName = NULL;
    
    this->lastUpdateTime = 0.0;
+   //this->lastActiveTime = NULL;
    this->phase = 0;
 
    this->initInfoCommunicatedFlag = false;
@@ -323,6 +324,8 @@ HyPerLayer::~HyPerLayer()
       //free(triggerLayerName);
       triggerLayerName = NULL;
    }
+
+   //free(lastActiveTime);
 }
 
 int HyPerLayer::freeClayer() {
@@ -901,13 +904,14 @@ int HyPerLayer::allocateDataStructures()
 
    allocateClayerBuffers();
 
+   const PVLayerLoc * loc = getLayerLoc();
+   int nx = loc->nx;
+   int ny = loc->ny;
+   int nf = loc->nf;
+   int nb = loc->nb;
+
    // If not mirroring, fill the boundaries with the value in the valueBC param
    if (!useMirrorBCs() && getValueBC()!=0.0f) {
-      const PVLayerLoc * loc = getLayerLoc();
-      int nx = loc->nx;
-      int ny = loc->ny;
-      int nf = loc->nf;
-      int nb = loc->nb;
       int idx = 0;
       for (int b=0; b<getLayerLoc()->nb; b++) {
          for(int k=0; k<(nx+2*nb)*nf; k++) {
@@ -945,6 +949,13 @@ int HyPerLayer::allocateDataStructures()
       fprintf(stderr, "HyPerLayer \"%s\" error: rank %d unable to allocate memory for labels.\n", name, parent->columnId());
       exit(EXIT_FAILURE);
    }
+
+   //allocate lastActiveTime data structure
+   //lastActiveTime = (double*) malloc(nf * sizeof(double));
+   //Initialize with all different active values for imprinting
+   //for(int kf = 0; kf < nf; kf++){
+   //   lastActiveTime[kf] = -kf;
+   //};
 
    return status;
 }
@@ -1390,6 +1401,20 @@ int HyPerLayer::calcActiveIndices() {
       }
    }
    clayer->numActive = numActive;
+
+   ////TODO combine this for loop with the previous one
+   //for(int kex = 0; kex < getNumExtended(); kex++){
+   //   if (activity[kex] != 0.0){
+   //      int fi = featureIndex(kex, loc.nx+2*loc.nb, loc.ny+2*loc.nb, loc.nf);
+   //      //Update lastActiveTime
+   //      lastActiveTime[fi] = parent->simulationTime();
+   //   }
+   //}
+   //mpi reduce all to find maximum time active
+//#ifdef PV_USE_MPI
+//   //Collect over mpi
+//   MPI_Allreduce(MPI_IN_PLACE, lastActiveTime, loc.nf, MPI_LONG, MPI_MAX, parent->icCommunicator()->communicator());
+//#endif // PV_USE_MPI
    return PV_SUCCESS;
 }
 

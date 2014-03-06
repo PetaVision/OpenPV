@@ -62,6 +62,7 @@ protected:
    double weightUpdateTime;
    double lastUpdateTime;
    bool symmetrizeWeightsFlag;
+   int* numActiveFeature;
 
 
 private:

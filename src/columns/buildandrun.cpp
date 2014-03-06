@@ -152,6 +152,7 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
                  "CliqueConn",
                  "CloneKernelConn",
                  "IdentConn",
+                 "ImprintConn",
                  "GapConn",
                  "GenerativeConn",
                    "PoolingGenConn",
@@ -839,6 +840,12 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
       HyPerConn::getPreAndPostLayerNames(name, hc->parameters(), &preLayerName, &postLayerName);
       fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
       addedConn = (HyPerConn * ) new KernelConn(name, hc, preLayerName, postLayerName, fileName, weightInitializer);
+   }
+   if( !keywordMatched && !strcmp(classkeyword, "ImprintConn") ) {
+      keywordMatched = true;
+      HyPerConn::getPreAndPostLayerNames(name, hc->parameters(), &preLayerName, &postLayerName);
+      fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
+      addedConn = (HyPerConn * ) new ImprintConn(name, hc, preLayerName, postLayerName, fileName, weightInitializer);
    }
    if( !keywordMatched && !strcmp(classkeyword, "MapReduceKernelConn") ) {
       keywordMatched = true;

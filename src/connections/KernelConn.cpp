@@ -37,6 +37,7 @@ KernelConn::KernelConn(const char * name, HyPerCol * hc,
 
 KernelConn::~KernelConn() {
    deleteWeights();
+   free(numActiveFeature);
    #ifdef PV_USE_MPI
       free(mpiReductionBuffer);
    #endif // PV_USE_MPI
@@ -365,6 +366,13 @@ int KernelConn::allocateDataStructures() {
       }
    }
 #endif // PV_USE_MPI
+   const PVLayerLoc * preLoc = pre->getLayerLoc();
+   numActiveFeature = (int*) malloc(preLoc->nf * sizeof(int));
+   for(int fi = 0; fi < preLoc->nf; fi++){
+      numActiveFeature[fi] = 0;
+   }
+
+
    return PV_SUCCESS;
 }
 
@@ -442,20 +450,31 @@ int KernelConn::defaultUpdate_dW(int arbor_ID) {
    int nExt = preSynapticLayer()->getNumExtended();
    int numKernelIndices = getNumDataPatches();
    const pvdata_t * preactbuf = preSynapticLayer()->getLayerData(getDelay(arbor_ID));
-   const pvdata_t * postactbuf = postSynapticLayer()->getLayerData(); //getDelay(arbor_ID));  //delay is from pre to post, so use current post activity
+   const pvdata_t * postactbuf = postSynapticLayer()->getLayerData(); 
+   //getDelay(arbor_ID));  //delay is from pre to post, so use current post activity
 
    int sya = (post->getLayerLoc()->nf * (post->getLayerLoc()->nx + 2*post->getLayerLoc()->nb));
+
+   const PVLayerLoc * preLoc = pre->getLayerLoc();
+   const PVLayerLoc * postLoc = post->getLayerLoc();
+
+   //Reset numActiveFeature
+   for(int fi = 0; fi < preLoc->nf; fi++){
+      numActiveFeature[fi] = 0;
+   }
 
    for(int kExt=0; kExt<nExt;kExt++) {
       pvdata_t preact = preactbuf[kExt];
       if (skipPre(preact)) continue;
+      //update numActiveFeature
+      int featIdx = featureIndex(kExt, preLoc->nx+2*preLoc->nb, preLoc->ny+2*preLoc->nb, preLoc->nf);
+      numActiveFeature[featIdx]++;
+     
       //if (preact == 0.0f) continue;
       bool inWindow = true;
       // only check inWindow if number of arbors > 1
       if (this->numberOfAxonalArborLists()>1){
          if(useWindowPost){
-            const PVLayerLoc * preLoc = pre->getLayerLoc();
-            const PVLayerLoc * postLoc = post->getLayerLoc();
             int kPost = layerIndexExt(kExt, preLoc, postLoc);
             inWindow = post->inWindowExt(arbor_ID, kPost);
          }
@@ -484,16 +503,35 @@ int KernelConn::defaultUpdate_dW(int arbor_ID) {
       }
    }
 
-   // Divide by (numNeurons/numKernels)
-   int divisor = pre->getNumNeurons()/numKernelIndices;
-   assert( divisor*numKernelIndices == pre->getNumNeurons() );
+   // Divide by numActiveFeature in this timestep
+   int prePostXScale = ceil((float)preLoc->nxGlobal/postLoc->nxGlobal);
+   int prePostYScale = ceil((float)preLoc->nyGlobal/postLoc->nyGlobal);
+   int preNf = preLoc->nf;
+   int preToPostScale = prePostXScale * prePostYScale * preNf;
    for( int kernelindex=0; kernelindex<numKernelIndices; kernelindex++ ) {
-      int numpatchitems = nxp*nyp*nfp;
-      pvdata_t * dwpatchdata = get_dwDataHead(arbor_ID,kernelindex);
-      for( int n=0; n<numpatchitems; n++ ) {
-         dwpatchdata[n] /= divisor;
+      //Calculate pre feature index from patch index
+      int preiF = kernelindex % preToPostScale;
+      assert(preiF >= 0 && preiF < preNf);
+      int divisor = numActiveFeature[preiF];
+      if(divisor != 0){
+         int numpatchitems = nxp*nyp*nfp;
+         pvdata_t * dwpatchdata = get_dwDataHead(arbor_ID,kernelindex);
+         for( int n=0; n<numpatchitems; n++ ) {
+            dwpatchdata[n] /= divisor;
+         }
       }
    }
+
+   // Divide by (numNeurons/numKernels)
+   //int divisor = pre->getNumNeurons()/numKernelIndices;
+   //assert( divisor*numKernelIndices == pre->getNumNeurons() );
+   //for( int kernelindex=0; kernelindex<numKernelIndices; kernelindex++ ) {
+   //   int numpatchitems = nxp*nyp*nfp;
+   //   pvdata_t * dwpatchdata = get_dwDataHead(arbor_ID,kernelindex);
+   //   for( int n=0; n<numpatchitems; n++ ) {
+   //      dwpatchdata[n] /= divisor;
+   //   }
+   //}
 
    lastUpdateTime = parent->simulationTime();
 

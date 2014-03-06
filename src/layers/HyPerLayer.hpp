@@ -313,6 +313,8 @@ public:
    // Layers that don't update every timestep should manage lastUpdateTime and override getLastUpdateTime()
    virtual double getLastUpdateTime();
 
+   //double getLastActiveTime(int fi){assert(fi>=0 && fi<getLayerLoc()->nf); return lastActiveTime[fi];}
+
    virtual int gatherToInteriorBuffer(unsigned char * buf);
 
    virtual int label(int k);
@@ -394,6 +396,8 @@ protected:
    
 
    double lastUpdateTime; // The most recent time that the layer's activity is updated, used as a cue for publisher to exchange borders
+
+   //double * lastActiveTime; //A matrix that keeps track of when a given neuron was last active
 
 //   int feedforwardDelay;  // minimum delay required for a change in the input to potentially influence this layer
 //   int feedbackDelay;     // minimum delay required for a change in this layer to potentially influence itself via feedback loop
