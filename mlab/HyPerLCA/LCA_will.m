@@ -43,8 +43,8 @@ elseif isunix
   %%run_type = "Heli_C1";
   %%run_type = "Heli_DPT";
   %%run_type = "Heli_D";
-  run_type = "Stack";
-  %%run_type = "Shuffle";
+  %%run_type = "Stack";
+  run_type = "Shuffle";
  
   if strcmp(run_type, "color_deep")
     %%output_dir = "/nh/compneuro/Data/vine/LCA/2013_02_01/output_2013_02_01_12x12x128_lambda_05X1_deep"; 
@@ -575,7 +575,7 @@ endif  %% plot_StatsProbe_vs_time
 
 
 
-analyze_Sparse_flag = true;
+analyze_Sparse_flag = false;
 if analyze_Sparse_flag
   Sparse_frames_list = [];
   if strcmp(run_type, "color_deep") || strcmp(run_type, "noTopDown")
@@ -697,7 +697,7 @@ endif %% plot_Sparse_flag
 
 
 
-analyze_nonSparse_flag = true;
+analyze_nonSparse_flag = false;
 if analyze_nonSparse_flag
   if strcmp(run_type, "color_deep") || strcmp(run_type, "noTopDown")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1295,7 +1295,7 @@ endif %% plot_ErrorVsSparse
 
 
 %%keyboard;
-plot_weights = true;
+plot_weights = false;
 if plot_weights
   weights_list = {};
   labelWeights_list = {};
@@ -1749,8 +1749,8 @@ endif  %% plot_weightLabels
 
 %%keyboard;
 plot_weights0_2 = false; %%(true && ~strcmp(run_type, "MNIST"));
-plot_weights0_2_flag = true;
-plot_labelWeights_flag = true;
+plot_weights0_2_flag = false;
+plot_labelWeights_flag = false;
 if plot_weights0_2
   weights1_2_list = {};
   if strcmp(run_type, "color_deep") || strcmp(run_type, "noTopDown") 
