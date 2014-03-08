@@ -114,24 +114,21 @@ int ImprintConn::update_dW(int arbor_ID){
    // independent of the number of processors.
    int nExt = preSynapticLayer()->getNumExtended();
    int numKernelIndices = getNumDataPatches();
-   const pvdata_t * preactbuf = preSynapticLayer()->getLayerData(getDelay(arbor_ID));
-   const pvdata_t * postactbuf = postSynapticLayer()->getLayerData(); 
    const PVLayerLoc * preLoc = pre->getLayerLoc();
-   const PVLayerLoc * postLoc = post->getLayerLoc();
-   //getDelay(arbor_ID));  //delay is from pre to post, so use current post activity
-
-   int sya = (post->getLayerLoc()->nf * (post->getLayerLoc()->nx + 2*post->getLayerLoc()->nb));
+   const pvdata_t * preactbuf = preSynapticLayer()->getLayerData(getDelay(arbor_ID));
 
    for(int fi = 0; fi < preLoc->nf; fi++){
       imprinted[fi] = false;
-      //Reset numActiveFeature
-      numActiveFeature[fi] = 0;
    }
+   //Reset numKernelActivations
+   for(int ki = 0; ki < numKernelIndices; ki++){
+      numKernelActivations[ki] = 0;
+   }
+
    for(int kExt=0; kExt<nExt;kExt++) {
       pvdata_t preact = preactbuf[kExt];
       //Check imprinting
       int preFi = featureIndex(kExt, preLoc->nx + 2*preLoc->nb, preLoc->ny + 2*preLoc->nb, preLoc->nf); 
-      //TODO this code is grabbing the first patch it can find. Make imprinting random so that it can grab other patches
       if (lastActiveTime[preFi] <= parent->simulationTime() - imprintTimeThresh){
          if(!imprinted[preFi]){
             //Random chance (one in 5) to imprint
@@ -143,63 +140,31 @@ int ImprintConn::update_dW(int arbor_ID){
             }
          }
       }
-
-      if (skipPre(preact)) continue;
-
-      numActiveFeature[preFi]++;
-      lastActiveTime[preFi] = parent->simulationTime();
-
-      //if (preact == 0.0f) continue;
-      bool inWindow = true;
-      // only check inWindow if number of arbors > 1
-      if (this->numberOfAxonalArborLists()>1){
-         if(useWindowPost){
-            int kPost = layerIndexExt(kExt, preLoc, postLoc);
-            inWindow = post->inWindowExt(arbor_ID, kPost);
-         }
-         else{
-            inWindow = pre->inWindowExt(arbor_ID, kExt);
-         }
-         if(!inWindow) continue;
-      }
-      PVPatch * weights = getWeights(kExt,arbor_ID);
-      size_t offset = getAPostOffset(kExt, arbor_ID);
-      int ny = weights->ny;
-      int nk = weights->nx * nfp;
-      const pvdata_t * postactRef = &postactbuf[offset];
-      pvdata_t * dwdata = get_dwData(arbor_ID, kExt);
-      int lineoffsetw = 0;
-      int lineoffseta = 0;
-      for( int y=0; y<ny; y++ ) {
-         for( int k=0; k<nk; k++ ) {
-             pvdata_t aPost = postactRef[lineoffseta+k];
-             dwdata[lineoffsetw + k] += updateRule_dW(preact, aPost);
-         }
-         lineoffsetw += syp;
-         lineoffseta += sya;
-      }
+      //Default update rule
+      defaultUpdateInd_dW(arbor_ID, kExt);
    }
 
-   // Divide by numActiveFeature in this timestep
-   int preNf = preLoc->nf;
-   for( int kernelindex=0; kernelindex<numKernelIndices; kernelindex++ ) {
-      //Calculate pre feature index from patch index
-      //kernelindex always spins over nf first, so just mod preNf to find out iF
-      int preiF = kernelindex % preNf;
-      int divisor = numActiveFeature[preiF];
-      if(divisor != 0){
-         int numpatchitems = nxp*nyp*nfp;
-         pvdata_t * dwpatchdata = get_dwDataHead(arbor_ID,kernelindex);
-         for( int n=0; n<numpatchitems; n++ ) {
-            dwpatchdata[n] /= divisor;
-         }
-      }
-   }
+   normalize_dW(arbor_ID);
+
+   //// Divide by numKernelActivations in this timestep
+   //for( int kernelindex=0; kernelindex<numKernelIndices; kernelindex++ ) {
+   //   //Calculate pre feature index from patch index
+   //   //TODO right now it's dividing the divisor by nprocs. This is a hack. Proper fix is to update all connections overwriting
+   //   //update_dW to do dwNormalization in this way and take out the divide by nproc in reduceKernels.
+   //   const int nProcs = parent->icCommunicator()->numCommColumns() * parent->icCommunicator()->numCommRows();
+   //   double divisor = numKernelActivations[kernelindex]/nProcs;
+   //   if(divisor != 0){
+   //      int numpatchitems = nxp*nyp*nfp;
+   //      pvdata_t * dwpatchdata = get_dwDataHead(arbor_ID,kernelindex);
+   //      for( int n=0; n<numpatchitems; n++ ) {
+   //         dwpatchdata[n] /= divisor;
+   //      }
+   //   }
+   //}
 
    lastUpdateTime = parent->simulationTime();
 
    return PV_SUCCESS;
-
 }
 
 

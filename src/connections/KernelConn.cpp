@@ -37,7 +37,7 @@ KernelConn::KernelConn(const char * name, HyPerCol * hc,
 
 KernelConn::~KernelConn() {
    deleteWeights();
-   free(numActiveFeature);
+   free(numKernelActivations);
    #ifdef PV_USE_MPI
       free(mpiReductionBuffer);
    #endif // PV_USE_MPI
@@ -366,13 +366,11 @@ int KernelConn::allocateDataStructures() {
       }
    }
 #endif // PV_USE_MPI
-   const PVLayerLoc * preLoc = pre->getLayerLoc();
-   numActiveFeature = (int*) malloc(preLoc->nf * sizeof(int));
-   for(int fi = 0; fi < preLoc->nf; fi++){
-      numActiveFeature[fi] = 0;
+
+   numKernelActivations = (int*) malloc(getNumDataPatches() * sizeof(int));
+   for(int ki = 0; ki < getNumDataPatches(); ki++){
+      numKernelActivations[ki] = 0;
    }
-
-
    return PV_SUCCESS;
 }
 
@@ -443,72 +441,89 @@ int KernelConn::update_dW(int arbor_ID) {
    //return PV_SUCCESS;
 }
 
-int KernelConn::defaultUpdate_dW(int arbor_ID) {
-   // compute dW but don't add them to the weights yet.
-   // That takes place in reduceKernels, so that the output is
-   // independent of the number of processors.
-   int nExt = preSynapticLayer()->getNumExtended();
-   int numKernelIndices = getNumDataPatches();
+int KernelConn::defaultUpdateInd_dW(int arbor_ID, int kExt){
    const pvdata_t * preactbuf = preSynapticLayer()->getLayerData(getDelay(arbor_ID));
    const pvdata_t * postactbuf = postSynapticLayer()->getLayerData(); 
-   //getDelay(arbor_ID));  //delay is from pre to post, so use current post activity
-
-   int sya = (post->getLayerLoc()->nf * (post->getLayerLoc()->nx + 2*post->getLayerLoc()->nb));
-
    const PVLayerLoc * preLoc = pre->getLayerLoc();
    const PVLayerLoc * postLoc = post->getLayerLoc();
+   int sya = (post->getLayerLoc()->nf * (post->getLayerLoc()->nx + 2*post->getLayerLoc()->nb));
 
-   //Reset numActiveFeature
-   for(int fi = 0; fi < preLoc->nf; fi++){
-      numActiveFeature[fi] = 0;
+   pvdata_t preact = preactbuf[kExt];
+   if (skipPre(preact)) return PV_SUCCESS;
+   //update numKernelActivations
+
+   int kernelIndex = patchIndexToDataIndex(kExt);
+   //Only increment if kernelIndex is restricted
+   int nxExt = preLoc->nx + 2*preLoc->nb;
+   int nyExt = preLoc->ny + 2*preLoc->nb;
+   int nf = preLoc->nf;
+   int extX = kxPos(kExt, nxExt, nyExt, nf);
+   int extY = kyPos(kExt, nxExt, nyExt, nf);
+   if(extX >= preLoc->nb && extX < preLoc->nx + preLoc->nb &&
+      extY >= preLoc->nb && extY < preLoc->ny + preLoc->nb){
+      numKernelActivations[kernelIndex]++;
    }
 
-   for(int kExt=0; kExt<nExt;kExt++) {
-      pvdata_t preact = preactbuf[kExt];
-      if (skipPre(preact)) continue;
-      //update numActiveFeature
-      int featIdx = featureIndex(kExt, preLoc->nx+2*preLoc->nb, preLoc->ny+2*preLoc->nb, preLoc->nf);
-      numActiveFeature[featIdx]++;
-     
-      //if (preact == 0.0f) continue;
-      bool inWindow = true;
-      // only check inWindow if number of arbors > 1
-      if (this->numberOfAxonalArborLists()>1){
-         if(useWindowPost){
-            int kPost = layerIndexExt(kExt, preLoc, postLoc);
-            inWindow = post->inWindowExt(arbor_ID, kPost);
-         }
-         else{
-            inWindow = pre->inWindowExt(arbor_ID, kExt);
-         }
-         if(!inWindow) continue;
+   //if(kernelIndex == 0 &&
+   //      strcmp(name, "pre 16x16 singleband to post 16x16 singleband") == 0){
+   //   int nxExt = preLoc->nx + 2*preLoc->nb;
+   //   int nyExt = preLoc->ny + 2*preLoc->nb;
+   //   int nf = preLoc->nf;
+   //   int globX = kxPos(kExt, nxExt, nyExt, nf) + preLoc->kx0;
+   //   int globY = kyPos(kExt, nxExt, nyExt, nf) + preLoc->ky0;
+   //   int F = featureIndex(kExt, nxExt, nyExt, nf);
+   //   std::cout << "Incrementing [" << globX << "," << globY << "," << F << "] to " << numKernelActivations[kernelIndex] << "\n";
+   //}
+
+   //if (preact == 0.0f) continue;
+   bool inWindow = true;
+   // only check inWindow if number of arbors > 1
+   if (this->numberOfAxonalArborLists()>1){
+      if(useWindowPost){
+         int kPost = layerIndexExt(kExt, preLoc, postLoc);
+         inWindow = post->inWindowExt(arbor_ID, kPost);
       }
-      PVPatch * weights = getWeights(kExt,arbor_ID);
-      size_t offset = getAPostOffset(kExt, arbor_ID);
-      int ny = weights->ny;
-      int nk = weights->nx * nfp;
-      const pvdata_t * postactRef = &postactbuf[offset];
-      pvdata_t * dwdata = get_dwData(arbor_ID, kExt);
-      int lineoffsetw = 0;
-      int lineoffseta = 0;
-      for( int y=0; y<ny; y++ ) {
-         for( int k=0; k<nk; k++ ) {
-        	 pvdata_t aPost = postactRef[lineoffseta+k];
-//        	 if (aPost > 0){
-        		 dwdata[lineoffsetw + k] += updateRule_dW(preact, aPost);
-//        	 }
-         }
-         lineoffsetw += syp;
-         lineoffseta += sya;
+      else{
+         inWindow = pre->inWindowExt(arbor_ID, kExt);
       }
+      if(!inWindow) return PV_SUCCESS;
+   }
+   PVPatch * weights = getWeights(kExt,arbor_ID);
+   size_t offset = getAPostOffset(kExt, arbor_ID);
+   int ny = weights->ny;
+   int nk = weights->nx * nfp;
+   const pvdata_t * postactRef = &postactbuf[offset];
+   pvdata_t * dwdata = get_dwData(arbor_ID, kExt);
+   int lineoffsetw = 0;
+   int lineoffseta = 0;
+   for( int y=0; y<ny; y++ ) {
+      for( int k=0; k<nk; k++ ) {
+         pvdata_t aPost = postactRef[lineoffseta+k];
+         dwdata[lineoffsetw + k] += updateRule_dW(preact, aPost);
+      }
+      lineoffsetw += syp;
+      lineoffseta += sya;
    }
 
-   // Divide by numActiveFeature in this timestep
-   int preNf = preLoc->nf;
+
+   return PV_SUCCESS;
+}
+
+int KernelConn::normalize_dW(int arbor_ID){
+   int numKernelIndices = getNumDataPatches();
+
+   //Do mpi to update numKernelActivationss 
+#ifdef PV_USE_MPI
+   int ierr = MPI_Allreduce(MPI_IN_PLACE, numKernelActivations , numKernelIndices, MPI_INT, MPI_SUM, parent->icCommunicator()->communicator());
+#endif
+
+   // Divide by numKernelActivations in this timestep
    for( int kernelindex=0; kernelindex<numKernelIndices; kernelindex++ ) {
       //Calculate pre feature index from patch index
-      int preiF = kernelindex % preNf;
-      int divisor = numActiveFeature[preiF];
+      //TODO right now it's dividing the divisor by nprocs. This is a hack. Proper fix is to update all connections overwriting
+      //update_dW to do dwNormalization in this way and take out the divide by nproc in reduceKernels.
+      const int nProcs = parent->icCommunicator()->numCommColumns() * parent->icCommunicator()->numCommRows();
+      double divisor = numKernelActivations[kernelindex]/nProcs;
       if(divisor != 0){
          int numpatchitems = nxp*nyp*nfp;
          pvdata_t * dwpatchdata = get_dwDataHead(arbor_ID,kernelindex);
@@ -517,6 +532,47 @@ int KernelConn::defaultUpdate_dW(int arbor_ID) {
          }
       }
    }
+}
+
+int KernelConn::defaultUpdate_dW(int arbor_ID) {
+   // compute dW but don't add them to the weights yet.
+   // That takes place in reduceKernels, so that the output is
+   // independent of the number of processors.
+   int nExt = preSynapticLayer()->getNumExtended();
+   
+   int numKernelIndices = getNumDataPatches();
+
+   //Reset numKernelActivations
+   for(int ki = 0; ki < numKernelIndices; ki++){
+      numKernelActivations[ki] = 0;
+   }
+   
+   for(int kExt=0; kExt<nExt;kExt++) {
+      defaultUpdateInd_dW(arbor_ID, kExt);
+   }
+
+   normalize_dW(arbor_ID);
+
+//   //Do mpi to update numKernelActivationss 
+//#ifdef PV_USE_MPI
+//   int ierr = MPI_Allreduce(MPI_IN_PLACE, numKernelActivations , numKernelIndices, MPI_INT, MPI_SUM, parent->icCommunicator()->communicator());
+//#endif
+
+   //// Divide by numKernelActivations in this timestep
+   //for( int kernelindex=0; kernelindex<numKernelIndices; kernelindex++ ) {
+   //   //Calculate pre feature index from patch index
+   //   //TODO right now it's dividing the divisor by nprocs. This is a hack. Proper fix is to update all connections overwriting
+   //   //update_dW to do dwNormalization in this way and take out the divide by nproc in reduceKernels.
+   //   const int nProcs = parent->icCommunicator()->numCommColumns() * parent->icCommunicator()->numCommRows();
+   //   double divisor = numKernelActivations[kernelindex]/nProcs;
+   //   if(divisor != 0){
+   //      int numpatchitems = nxp*nyp*nfp;
+   //      pvdata_t * dwpatchdata = get_dwDataHead(arbor_ID,kernelindex);
+   //      for( int n=0; n<numpatchitems; n++ ) {
+   //         dwpatchdata[n] /= divisor;
+   //      }
+   //   }
+   //}
 
    // Divide by (numNeurons/numKernels)
    //int divisor = pre->getNumNeurons()/numKernelIndices;
@@ -595,7 +651,6 @@ int KernelConn::updateWeights(int arbor_ID){
 //#endif
 //
       for( int k=0; k<nxp*nyp*nfp*getNumDataPatches(); k++ ) {
-         //std::cout << "Arbor: " << kArbor << "    " << w_data_start[k] << " += " << get_dwDataStart(kArbor)[k] << "\n";
          w_data_start[k] += get_dwDataStart(kArbor)[k];
       }
    }
@@ -625,14 +680,51 @@ int KernelConn::reduceKernels(const int arborID) {
    const size_t localSize = numPatches * patchSize;
    const size_t arborSize = localSize * this->numberOfAxonalArborLists();
 
-
    ierr = MPI_Allreduce(MPI_IN_PLACE, this->get_dwDataStart(0), arborSize, MPI_FLOAT, MPI_SUM, mpi_comm);
    pvdata_t * dW_data = this->get_dwDataStart(0);
    for (int i_dW = 0; i_dW < arborSize; i_dW++){
 	   dW_data[i_dW] /= nProcs;
    }
 
+//#ifdef PV_USE_MPI
+//   //Reduce all of numKernelActivationss from all processors
+//   ierr = MPI_Allreduce(MPI_IN_PLACE, numKernelActivations , numPatches, MPI_INT, MPI_SUM, mpi_comm);
+//   //Reduce all of dw in each processor
+//   ierr = MPI_Allreduce(MPI_IN_PLACE, this->get_dwDataStart(0), arborSize, MPI_FLOAT, MPI_SUM, mpi_comm);
+//#endif
+//
+//   pvdata_t * dW_data = this->get_dwDataStart(0);
+//   //Arbor size is the localSize of each arbor * numArbors
+//   //So this is looping through patch size, numPatches, and arbors
+//   for (int i_dW = 0; i_dW < arborSize; i_dW++){
+//      int kernelIndex = ((int)i_dW/(int)patchSize) % numPatches;
+//      assert(kernelIndex >= 0 && kernelIndex < numPatches);
+//      //If defaultUpdate_dW is not called, everything in numActive should be 0
+//      //which will prevent this dw normalization
+//      if(numKernelActivations[kernelIndex] != 0){
+//         dW_data[i_dW] /= numKernelActivations[kernelIndex];
+//      }
+//   }
+//
+//
+//   //Reset numKernelActivations
+//   for(int ki = 0; ki < numPatches; ki++){
+//      numKernelActivations[ki] = 0;
+//   }
 
+//
+//   // Divide by numKernelActivations in this timestep
+//   for( int kernelindex=0; kernelindex<numKernelIndices; kernelindex++ ) {
+//      //Calculate pre feature index from patch index
+//      int divisor = numKernelActivations[kernelindex];
+//      if(divisor != 0){
+//         int numpatchitems = nxp*nyp*nfp;
+//         pvdata_t * dwpatchdata = get_dwDataHead(arbor_ID,kernelindex);
+//         for( int n=0; n<numpatchitems; n++ ) {
+//            dwpatchdata[n] /= divisor;
+//         }
+//      }
+//   }
 
    // Copy this column's weights into mpiReductionBuffer
    //TODO!!! should do mem copy here since weights stored in contiguous memory
@@ -829,13 +921,13 @@ int KernelConn::checkpointWrite(const char * cpDir) {
    char filename[PV_PATH_MAX];
    int status = checkpointFilename(filename, PV_PATH_MAX, cpDir);
    assert(status==PV_SUCCESS);
-#ifdef PV_USE_MPI
+//#ifdef PV_USE_MPI
    if (!keepKernelsSynchronized_flag) {
       for (int arbor_id = 0; arbor_id < this->numberOfAxonalArborLists(); arbor_id++) {
          reduceKernels(arbor_id);
       }
    }
-#endif // PV_USE_MPI
+//#endif // PV_USE_MPI
    status = parent->writeScalarToFile(cpDir, getName(), "lastUpdateTime", lastUpdateTime);
    assert(status==PV_SUCCESS);
    status = parent->writeScalarToFile(cpDir, getName(), "weightUpdateTime", weightUpdateTime);

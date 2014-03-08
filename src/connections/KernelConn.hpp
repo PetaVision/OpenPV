@@ -62,7 +62,7 @@ protected:
    double weightUpdateTime;
    double lastUpdateTime;
    bool symmetrizeWeightsFlag;
-   int* numActiveFeature;
+   int* numKernelActivations;
 
 
 private:
@@ -100,6 +100,8 @@ protected:
    virtual int clear_dW(int arborId);
    virtual int update_dW(int arborId);
    virtual int defaultUpdate_dW(int arborId);
+   virtual int defaultUpdateInd_dW(int arbor_ID, int kExt);
+   virtual int normalize_dW(int arbor_ID);
    virtual pvdata_t updateRule_dW(pvdata_t pre, pvdata_t post);
    virtual bool skipPre(pvdata_t preact){return preact == 0.0f;};
 
