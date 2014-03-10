@@ -449,7 +449,7 @@ int KernelConn::defaultUpdateInd_dW(int arbor_ID, int kExt){
    int sya = (post->getLayerLoc()->nf * (post->getLayerLoc()->nx + 2*post->getLayerLoc()->nb));
 
    pvdata_t preact = preactbuf[kExt];
-   if (skipPre(preact)) return PV_SUCCESS;
+   if (skipPre(preact)) return PV_CONTINUE;
    //update numKernelActivations
 
    int kernelIndex = patchIndexToDataIndex(kExt);
@@ -464,17 +464,6 @@ int KernelConn::defaultUpdateInd_dW(int arbor_ID, int kExt){
       numKernelActivations[kernelIndex]++;
    }
 
-   //if(kernelIndex == 0 &&
-   //      strcmp(name, "pre 16x16 singleband to post 16x16 singleband") == 0){
-   //   int nxExt = preLoc->nx + 2*preLoc->nb;
-   //   int nyExt = preLoc->ny + 2*preLoc->nb;
-   //   int nf = preLoc->nf;
-   //   int globX = kxPos(kExt, nxExt, nyExt, nf) + preLoc->kx0;
-   //   int globY = kyPos(kExt, nxExt, nyExt, nf) + preLoc->ky0;
-   //   int F = featureIndex(kExt, nxExt, nyExt, nf);
-   //   std::cout << "Incrementing [" << globX << "," << globY << "," << F << "] to " << numKernelActivations[kernelIndex] << "\n";
-   //}
-
    //if (preact == 0.0f) continue;
    bool inWindow = true;
    // only check inWindow if number of arbors > 1
@@ -486,7 +475,7 @@ int KernelConn::defaultUpdateInd_dW(int arbor_ID, int kExt){
       else{
          inWindow = pre->inWindowExt(arbor_ID, kExt);
       }
-      if(!inWindow) return PV_SUCCESS;
+      if(!inWindow) return PV_CONTINUE;
    }
    PVPatch * weights = getWeights(kExt,arbor_ID);
    size_t offset = getAPostOffset(kExt, arbor_ID);
@@ -532,6 +521,7 @@ int KernelConn::normalize_dW(int arbor_ID){
          }
       }
    }
+   return PV_SUCCESS;
 }
 
 int KernelConn::defaultUpdate_dW(int arbor_ID) {

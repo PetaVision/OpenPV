@@ -33,11 +33,11 @@ int ImprintConn::initialize_base() {
 int ImprintConn::allocateDataStructures() {
    int status = KernelConn::allocateDataStructures();
    const PVLayerLoc * loc = pre->getLayerLoc();
-   int nf = loc->nf;
-   imprinted = (bool*) calloc(nf, sizeof(bool));
-   lastActiveTime = (double*) malloc(nf * sizeof(double));
-   for(int fi = 0; fi < nf; fi++){
-      lastActiveTime[fi] = fi * weightUpdatePeriod;
+   int numKernelIndices = getNumDataPatches();
+   imprinted = (bool*) calloc(numKernelIndices, sizeof(bool));
+   lastActiveTime = (double*) malloc(numKernelIndices * sizeof(double));
+   for(int ki = 0; ki < numKernelIndices; ki++){
+      lastActiveTime[ki] = ki * weightUpdatePeriod;
    }
    return status;
 }
@@ -117,50 +117,41 @@ int ImprintConn::update_dW(int arbor_ID){
    const PVLayerLoc * preLoc = pre->getLayerLoc();
    const pvdata_t * preactbuf = preSynapticLayer()->getLayerData(getDelay(arbor_ID));
 
-   for(int fi = 0; fi < preLoc->nf; fi++){
-      imprinted[fi] = false;
-   }
    //Reset numKernelActivations
    for(int ki = 0; ki < numKernelIndices; ki++){
       numKernelActivations[ki] = 0;
+      imprinted[ki] = false;
    }
 
    for(int kExt=0; kExt<nExt;kExt++) {
       pvdata_t preact = preactbuf[kExt];
       //Check imprinting
-      int preFi = featureIndex(kExt, preLoc->nx + 2*preLoc->nb, preLoc->ny + 2*preLoc->nb, preLoc->nf); 
-      if (lastActiveTime[preFi] <= parent->simulationTime() - imprintTimeThresh){
-         if(!imprinted[preFi]){
+      int kernelIndex = patchIndexToDataIndex(kExt);
+
+      if (parent->simulationTime() - lastActiveTime[kernelIndex] > imprintTimeThresh){
+         if(!imprinted[kernelIndex]){
             //Random chance (one in 5) to imprint
             if(rand() % 5 == 0){
-               imprinted[preFi] = imprintFeature(arbor_ID, kExt);
+               imprinted[kernelIndex] = imprintFeature(arbor_ID, kExt);
             }
-            if(imprinted[preFi]){
-               std::cout << "Imprinted feature " << preFi << "\n";
+            if(imprinted[kernelIndex]){
+               std::cout << "Imprinted feature " << kernelIndex << "\n";
             }
          }
       }
       //Default update rule
-      defaultUpdateInd_dW(arbor_ID, kExt);
+      int status = defaultUpdateInd_dW(arbor_ID, kExt);
+      if(status == PV_SUCCESS){
+         lastActiveTime[kernelIndex] = parent->simulationTime();
+      }
    }
 
-   normalize_dW(arbor_ID);
+   //Do mpi to update lastActiveTime
+#ifdef PV_USE_MPI
+   int ierr = MPI_Allreduce(MPI_IN_PLACE, lastActiveTime, numKernelIndices, MPI_DOUBLE, MPI_MAX, parent->icCommunicator()->communicator());
+#endif
 
-   //// Divide by numKernelActivations in this timestep
-   //for( int kernelindex=0; kernelindex<numKernelIndices; kernelindex++ ) {
-   //   //Calculate pre feature index from patch index
-   //   //TODO right now it's dividing the divisor by nprocs. This is a hack. Proper fix is to update all connections overwriting
-   //   //update_dW to do dwNormalization in this way and take out the divide by nproc in reduceKernels.
-   //   const int nProcs = parent->icCommunicator()->numCommColumns() * parent->icCommunicator()->numCommRows();
-   //   double divisor = numKernelActivations[kernelindex]/nProcs;
-   //   if(divisor != 0){
-   //      int numpatchitems = nxp*nyp*nfp;
-   //      pvdata_t * dwpatchdata = get_dwDataHead(arbor_ID,kernelindex);
-   //      for( int n=0; n<numpatchitems; n++ ) {
-   //         dwpatchdata[n] /= divisor;
-   //      }
-   //   }
-   //}
+   normalize_dW(arbor_ID);
 
    lastUpdateTime = parent->simulationTime();
 
