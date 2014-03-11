@@ -10,7 +10,7 @@ load_Sparse_flag = false;
 if plot_flag
   setenv("GNUTERM","X11")
 endif
-no_clobber = true;
+no_clobber = false;
 
 %% machine/run_type environment
 if ismac
@@ -23,10 +23,10 @@ if ismac
   %%    {"CIFAR256_RGB_deep_task/data_batch_all20"}; %%
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   run_type = "CIFAR_C1"; 
-  output_dir = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR_C1_task/data_batch_all5"
+  output_dir = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR_C1_task/data_batch_all8"
   checkpoint_parent = "/Users/garkenyon/workspace/HyPerHLCA";
   checkpoint_children = ...
-      {"CIFAR_C1_task/data_batch_all5"}; %%
+      {"CIFAR_C1_task/data_batch_all8"}; %%
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 elseif isunix
   workspace_path = "/home/gkenyon/workspace";
@@ -145,26 +145,7 @@ if analyze_Recon
     %% list of (previous) layers to sum with current layer
     Recon_sum_list = cell(num_Recon_list,1);
     Recon_sum_list{6} = 3;
-  elseif strcmp(run_type, "Heli_C1") 
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %% Heli_DPT list
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    Recon_list = ...
-	{["a0_"], ["Image"];
-	 ["a3_"], ["Recon"];
-	 ["a7_"], ["Recon2"];
-	 ["a9_"], ["ReconInfra"];
-	 ["a9_"], ["ReconInfra"]};
-    %% list of layers to unwhiten
-    num_Recon_list = size(Recon_list,1);
-    Recon_unwhiten_list = zeros(num_Recon_list,1);
-    %%Recon_unwhiten_list([2,3,5,6]) = 1;
-    %% list of layers to use as a normalization reference for unwhitening
-    Recon_normalize_list = 1:num_Recon_list;
-    %% list of (previous) layers to sum with current layer
-    Recon_sum_list = cell(num_Recon_list,1);
-    Recon_sum_list{5} = 3;
-  elseif strcmp(run_type, "Heli_DPT") 
+  elseif strcmp(run_type, "Heli_DPT")  || strcmp(run_type, "Heli_C1") 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% Heli_DPT list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -221,7 +202,8 @@ if analyze_Recon
     Recon_list = ...
 	{["a0_"],  ["Image"];
 	 ["a3_"],  ["Recon"];
-	 ["a8_"],  ["ReconC1"]};
+	 ["a8_"],  ["ReconC1"];
+	 ["a13_"],  ["ReconS2";]};
     %% list of layers to unwhiten
     num_Recon_list = size(Recon_list,1);
     Recon_unwhiten_list = zeros(num_Recon_list,1);
@@ -326,7 +308,7 @@ if analyze_Recon
     [DoG_weights] = get_DoG_weights(DoG_center_path, DoG_surround_path);
   endif  %% unwhiten_flag
   
-  num_Recon_frames_per_layer = 2;
+  num_Recon_frames_per_layer = 4;
   Recon_LIFO_flag = true; %%false;
   [Recon_hdr, ...
    Recon_fig, ...
@@ -582,7 +564,8 @@ if analyze_Sparse_flag
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     Sparse_list = ...
 	{["a2_"],  ["S1"]; ...
-	 ["a6_"],  ["C1"]};
+	 ["a6_"],  ["C1"]; ...
+         ["a10_"], ["S2"]};
     Sparse_frames_list = cell(2,1);
     Sparse_frames_list{1} = Recon_time{2}(:);
     Sparse_frames_list{2} = Recon_time{3}(:);
@@ -673,9 +656,9 @@ if analyze_nonSparse_flag
          ["a5_"], ["Error1_2"]}; %%; ...
     num_nonSparse_list = size(nonSparse_list,1);
     nonSparse_skip = repmat(1, num_nonSparse_list, 1);
-    nonSparse_skip(1) = 2;
-    nonSparse_skip(2) = 2;
-    nonSparse_skip(3) = 2;
+    nonSparse_skip(1) = 1;
+    nonSparse_skip(2) = 1;
+    nonSparse_skip(3) = 1;
     nonSparse_norm_list = ...
         {["a0_"], ["Image"]; ...
          ["a7_"], ["Recon2"]; ...
@@ -732,20 +715,26 @@ if analyze_nonSparse_flag
     nonSparse_list = ...
 	{["a1_"], ["Error"]; ...
          ["a4_"], ["ErrorS1C1Local"]; ...
-	 ["a5_"], ["ErrorS1C1Lateral"]};
+	 ["a5_"], ["ErrorS1C1Lateral"]; ...
+	 ["a9_"], ["ErrorC1S2"]; ...
+	 ["a15_"], ["LabelError"]};
     num_nonSparse_list = size(nonSparse_list,1);
     nonSparse_skip = repmat(1, num_nonSparse_list, 1);
     nonSparse_skip(1) = 1;
     nonSparse_skip(2) = 1;
     nonSparse_skip(3) = 1;
+    nonSparse_skip(4) = 1;
+    nonSparse_skip(5) = 1;
     nonSparse_norm_list = ...
         {["a0_"], ["Image"]; ...
          ["a2_"], ["S1"]; ...
-         ["a2_"], ["S1"]};
+         ["a2_"], ["S1"]; ...
+         ["a6_"], ["C1"]; ...
+         ["a14_"], ["Labels"]};
     nonSparse_norm_strength = ones(num_nonSparse_list,1);
     nonSparse_norm_strength(1) = ...
 	1/sqrt(32*32);
-    Sparse_std_ndx = [0 1 1];
+    Sparse_std_ndx = [0 1 1 2 0];
   elseif strcmp(run_type, "noPulvinar") || strcmp(run_type, "TopDown")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% noPulvinar/TopDown
@@ -788,9 +777,9 @@ if analyze_nonSparse_flag
          ["a10_"], ["Error1_2"]};
     num_nonSparse_list = size(nonSparse_list,1);
     nonSparse_skip = repmat(1, num_nonSparse_list, 1);
-    nonSparse_skip(1) = 10;
-    nonSparse_skip(2) = 10;
-    nonSparse_skip(3) = 10;
+    nonSparse_skip(1) = 1;
+    nonSparse_skip(2) = 1;
+    nonSparse_skip(3) = 1;
     nonSparse_norm_list = ...
         {["a2_"], ["Ganglion"]; ...
          ["a4_"], ["V1"]; ...
@@ -891,8 +880,8 @@ if plot_ReconError
          ["a9_"], ["ReconInfra"]};
     num_ReconError_list = size(ReconError_list,1);
     ReconError_skip = repmat(1, num_ReconError_list, 1);
-    ReconError_skip(1) = 2;
-    ReconError_skip(2) = 2;
+    ReconError_skip(1) = 1;
+    ReconError_skip(2) = 1;
     ReconError_norm_list = ...
         {["a0_"], ["Image"]; ...
          ["a0_"], ["Image"]};
@@ -941,17 +930,19 @@ if plot_ReconError
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     ReconError_list = ...
         {["a3_"],  ["Recon"]; ...
-         ["a8_"],  ["ReconC1"]};
+         ["a8_"],  ["ReconC1"]; ...
+	 ["a13_"], ["ReconS2"]};
     num_ReconError_list = size(ReconError_list,1);
     ReconError_skip = repmat(1, num_ReconError_list, 1);
     ReconError_skip(1) = 1;
     ReconError_skip(2) = 1;
     ReconError_norm_list = ...
         {["a0_"], ["Image"]; ...
+         ["a0_"], ["Image"]; ...
          ["a0_"], ["Image"]};
     ReconError_norm_strength = ...
-	[1/sqrt(32*32); 1/sqrt(32*32)];
-    ReconError_RMS_fig_ndx = [1 1];
+	[1/sqrt(32*32); 1/sqrt(32*32); 1/sqrt(32*32)];
+    ReconError_RMS_fig_ndx = [1 1 1];
   elseif strcmp(run_type, "lateral")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% lateral list
@@ -964,9 +955,9 @@ if plot_ReconError
 	 ["a16_"], ["ReconMaxPoolingV2X05"]};
     num_ReconError_list = size(ReconError_list,1);
     ReconError_skip = repmat(1, num_ReconError_list, 1);
-    ReconError_skip(1) = 10;
-    ReconError_skip(2) = 10;
-    ReconError_skip(3) = 10;
+    ReconError_skip(1) = 1;
+    ReconError_skip(2) = 1;
+    ReconError_skip(3) = 1;
     ReconError_norm_list = ...
         {["a2_"], ["Ganglion"]; ...
 	 ["a2_"], ["Ganglion"]; ...
@@ -1743,7 +1734,6 @@ if plot_weights0_2
       image_list = ...
           {["Image"], ["_A"]; ...
 	   ["Image"], ["_A"]};
-      weights1_2_pad_size = [8,0];
     endif %% checkpoint_weights_movie
     %% list of indices for reading rank order of presynaptic neuron as function of activation frequency
     sparse_ndx = [2, 2];
@@ -1757,8 +1747,8 @@ if plot_weights0_2
     if ~checkpoint_weights_movie
       checkpoints_list = {output_dir};
       weights1_2_list = ...
-          {["w9_"], ["S2ToErrorS1C1Local"]; ...
-	   ["w9_"], ["S2ToErrorS1C1Lateral"]};
+          {["w9_"], ["C1ToErrorS1C1Local"]; ...
+	   ["w9_"], ["C1ToErrorS1C1Lateral"]};
       post1_2_list = ...
           {["a2_"], ["S1"]; ...
 	   ["a2_"], ["S1"]};
@@ -1792,6 +1782,7 @@ if plot_weights0_2
     %% list of indices for reading rank order of presynaptic neuron as function of activation frequency
     sparse_ndx = [2,2];
     num_checkpoints = size(checkpoints_list,1);
+    weights1_2_pad_size = [4, 0];
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   elseif strcmp(run_type, "noPulvinar") || strcmp(run_type, "TopDown")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1866,7 +1857,6 @@ if plot_weights0_2
     %% list of indices for reading rank order of presynaptic neuron as function of activation frequency
     sparse_ndx = [2,2];
     num_checkpoints = size(checkpoints_list,1);
-    weights1_2_pad_size = [12,0];
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   endif %% run_type
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1875,10 +1865,10 @@ if plot_weights0_2
   if num_weights1_2_list == 0
     break;
   endif
-  
-  if ~exist('weights1_2_pad_size') || length(weights1_2_pad_size(:)) < num_weights1_2_list
-    weights1_2_pad_size = zeros(1, num_weights1_2_list)
+  if ~exist("weights1_2_pad_size") || length(weights1_2_pad_size(:)) < num_weights1_2_list
+    weights1_2_pad_size = zeros(1, num_weights1_2_list);
   endif
+
   %% get image header (to get image dimensions)
   i_image = 1;
   image_file = ...
@@ -2177,22 +2167,20 @@ if plot_weights0_2
 	%%    uint8((flipdim(patch_tmp3,1) - min_patch) * 255 / ...
 	%%	  (max_patch - min_patch + ((max_patch - min_patch)==0)));
 	patch_tmp5 = ...
-	    uint8(127.5 + 127.5*(flipdim(patch_tmp3,1)) / ...
-		  (max(abs(patch_tmp3(:))) + (max(abs(patch_tmp3(:)))==0)));
-	
+	    uint8(127.5 + 127.5*(flipdim(patch_tmp3,1) ./ (max(abs(patch_tmp3(:))) + (max(abs(patch_tmp3(:)))==0))));
+		  
 	pad_size = weights1_2_pad_size(i_weights1_2);
 	padded_patch_size = size(patch_tmp5);
 	padded_patch_size(1) = padded_patch_size(1) + 2*pad_size;
 	padded_patch_size(2) = padded_patch_size(2) + 2*pad_size;
-	patch_tmp6 = repmat(uint8(128), padded_patch_size);
+	patch_tmp6 = repmat(uint8(128),padded_patch_size);
 	if ndims(patch_tmp5) == 3
-	  patch_tmp6(pad_size+1:padded_patch_size(1)-pad_size, pad_size+1:padded_patch_size(2)-pad_size,:) = uint8(patch_tmp5);
+	  patch_tmp6(pad_size+1:padded_patch_size(1)-pad_size,pad_size+1:padded_patch_size(2)-pad_size,:) = uint8(patch_tmp5);
 	else
-	  patch_tmp6(pad_size+1:padded_patch_size(1)-pad_size, pad_size+1:padded_patch_size(2)-pad_size) = uint8(patch_tmp5);
+	  patch_tmp6(pad_size+1:padded_patch_size(1)-pad_size,pad_size+1:padded_patch_size(2)-pad_size) = uint8(patch_tmp5);
 	endif
-
+	
 	if plot_weights0_2_flag && i_checkpoint == max_checkpoint
-	  %% pad by 8 as test
 	  image(patch_tmp6); 
 	  if weights0_1_nfp == 1
 	    colormap(gray);
@@ -2224,9 +2212,9 @@ if plot_weights0_2
 	if plot_labelWeights_flag && i_checkpoint == max_checkpoint
 	  if ~isempty(labelWeights_vals) 
 	    if ~isempty(labeledWeights0_2{max_label})
-	      labeledWeights0_2{max_label} = labeledWeights0_2{max_label} + double(patch_tmp5);
+	      labeledWeights0_2{max_label} = labeledWeights0_2{max_label} + double(patch_tmp6);
 	    else
-	      labeledWeights0_2{max_label} = double(patch_tmp5);
+	      labeledWeights0_2{max_label} = double(patch_tmp6);
 	    endif
 	  endif %%  ~isempty(labelWeights_vals) 
 	endif %% plot_weights0_2_flag && i_checkpoint == max_checkpoint
@@ -2308,7 +2296,7 @@ endif  %% plot_weights
 
 
 
-deRecon_flag = false; %%true && ~isempty(labelWeights_vals);
+deRecon_flag = true && ~isempty(labelWeights_vals);
 if deRecon_flag
   num_deRecon = 3;
   deRecon_sparse_ndx = 2;
@@ -2361,7 +2349,7 @@ endif %% deReconFlag
 
 
 %%keyboard;
-plot_weightsN_Nplus1 = false;
+plot_weightsN_Nplus1 = true;
 weightsN_Nplus1_list = {};
 layersN_Nplus1_list = {};
 if strcmp(run_type, "color_deep") || strcmp(run_type, "noTopDown")
@@ -2393,6 +2381,35 @@ elseif strcmp(run_type, "CIFAR_deep")
   endif %% checkpoint_weights_movie
   %% list of indices for reading rank order of presynaptic neuron as function of activation frequency
   sparse_ndx = [3];
+  num_checkpoints = size(checkpoints_list,1);
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+elseif strcmp(run_type, "CIFAR_C1") 
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  %% CIFAR_C1 list
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  %% list of weights from layerN to layer0 (Image)
+  if ~checkpoint_weights_movie
+    checkpoints_list = {output_dir};
+    weightsN_Nplus1_list = ...
+        {["w15_"], ["V4ToError2_4"], ["w9_"], ["V2ToError1_2"], ["w1_"], ["V1ToError"]};
+    layersN_Nplus1_list = ...
+        {["a12_"], ["V4"], ["a5_"], ["V2"], ["a2_"], ["V1"], ["a0_"], ["Image"]};
+    labelWeights_list = ...
+	{["w26_"], ["V4ToLabelError"]};
+  else
+    checkpoints_list = getCheckpointList(checkpoint_parent, checkpoint_children);
+    weightsN_Nplus1_list = ...
+        {["S2ToErrorC1S2"], ["_W"], ["C1ToErrorS1C1Lateral"], ["_W"], ["S1ToError"], ["_W"]; ...
+	 ["S2ToErrorC1S2"], ["_W"], ["C1ToErrorS1C1Local"], ["_W"], ["S1ToError"], ["_W"]};
+    layersN_Nplus1_list = ...
+        {["S2"], ["_A"], ["C1"], ["_A"], ["S1"], ["_A"], ["Image"], ["_A"]; ...
+	 ["S2"], ["_A"], ["C1"], ["_A"], ["S1"], ["_A"], ["Image"], ["_A"]};
+    labelWeights_list = ...
+	{["S2ToLabelError"], ["_W"]; ...
+	 ["S2ToLabelError"], ["_W"]};
+  endif %% checkpoint_weights_movie
+  %% list of indices for reading rank order of presynaptic neuron as function of activation frequency
+  sparse_ndx = [3,3];
   num_checkpoints = size(checkpoints_list,1);
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 elseif strcmp(run_type, "noPulvinar")
@@ -2469,7 +2486,7 @@ if plot_weightsN_Nplus1
 	continue;
       endif
       weightsN_Nplus1_fid = fopen(weightsN_Nplus1_file);
-      weightsN_Nplus1_hdr{i_weights1_2} = readpvpheader(weightsN_Nplus1_fid);    
+      weightsN_Nplus1_hdr{i_weightN_Nplus1} = readpvpheader(weightsN_Nplus1_fid);    
       fclose(weightsN_Nplus1_fid);
 
       weightN_Nplus1_time = weightsN_Nplus1_hdr{i_weightN_Nplus1}.time;
@@ -2934,17 +2951,21 @@ if plot_weightsN_Nplus1
 
 	endfor %% kf_preN_Nplus1_rank
 
+	weightsN_Nplus1_str = ...
+	    [weightsN_Nplus1_list{i_weightN_Nplus1,1}, weightsN_Nplus1_list{i_weightN_Nplus1,2}, ...
+	     "_", ...
+	     weightsN_Nplus1_list{i_weightN_Nplus1,3}, weightsN_Nplus1_list{i_weightN_Nplus1,4}, ...
+	     "_", num2str(weightsN_Nplus1_time, "%08d")];
 	if plot_flag && ...
 	      i_checkpoint == max_checkpoint && ...
 	      i_layerN_Nplus1 == num_layersN_Nplus1_list-2 
-	  saveas(weightsNminus1_Nplus1_fig, [weightsN_Nplus1_dir, filesep, weightsN_Nplus1_name, ".png"], "png");
+	  saveas(weightsNminus1_Nplus1_fig, [weightsN_Nplus1_dir, filesep, weightsN_Nplus1_str, ".png"], "png");
 	  if ~isempty(labelWeights_vals) 
-	    labeledWeights_str = ...
+	    labeledWeightsN_Nplus1_str = ...
 		["labeledWeights_", ...
-		 weightsN_Nplus1_list{i_weightN_Nplus1,1}, weightsN_Nplus1_list{i_weightN_Nplus1,2}, ...
-		   "_", num2str(weightsN_Nplus1_time, "%08d")];
-	    labeledWeights_fig = figure(labeledWeights_fig, "name", labeledWeights_str);
-	    title(labeledWeights_str);
+		 weightsN_Nplus1_str];
+	    labeledWeights_fig = figure("name", labeledWeightsN_Nplus1_str);
+	    title(labeledWeightsN_Nplus1_str);
 	    rows_labeledWeights = ceil(sqrt(size(labelWeights_vals,1)));
 	    cols_labeledWeights = ceil(size(labelWeights_vals,1) / rows_labeledWeights);
 	    for label = 1:size(labelWeights_vals,1)
@@ -2955,11 +2976,11 @@ if plot_weightsN_Nplus1
 	      title(labeledWeights_subplot_str);
 	      axis off
 	    endfor %% label = 1:size(labelWeights_vals,1)
-	    saveas(labeledWeights_fig,  [weightsN_Nplus1_dir, filesep, labeledWeights_str, ".png"], "png");
+	    saveas(labeledWeights_fig,  [weightsN_Nplus1_dir, filesep, labeledWeightsN_Nplus1_str, ".png"], "png");
 	  endif %%  ~isempty(labelWeights_vals) 
+	  imwrite(uint8(weightsNminus1_Nplus1_array), ...
+		  [weightsN_Nplus1_movie_dir, filesep, weightsN_Nplus1_str, ".png"], "png");
 	endif
-	imwrite(uint8(weightsNminus1_Nplus1_array), ...
-		[weightsN_Nplus1_movie_dir, filesep, weightsN_Nplus1_name, ".png"], "png");
 	
 
 	%% make histogram of all weights
@@ -2976,8 +2997,7 @@ if plot_weightsN_Nplus1
 	       num2str(weightsN_Nplus1_time, "%08d")]);
 	  saveas(weightsNminus1_Nplus1_hist_fig, ...
 		 [weightsN_Nplus1_dir, filesep, "weightsN_Nplus1_hist_", ...
-		  weightsN_Nplus1_list{i_weightN_Nplus1,1}, weightsN_Nplus1_list{i_weightN_Nplus1,2}, "_", ...
-		  num2str(weightsN_Nplus1_time, "%08d")], "png");
+		  weightsN_Nplus1_str], "png");
 	endif %% plotNminus1_Nplus1_flag
 
 	%% plot average labelWeights for each label
@@ -3009,6 +3029,58 @@ if plot_weightsN_Nplus1
   endfor %% i_weightN_Nplus1
   
 endif  %% plot_weights
+
+
+
+deRecon_flag = true && ~isempty(labelWeights_vals);
+if deRecon_flag
+  num_deRecon = 3;
+  deRecon_sparse_ndx = 3;
+  deRecon_struct = Sparse_struct_array{deRecon_sparse_ndx};
+  num_deRecon_frames = size(deRecon_struct,1);
+  Recon_dir = [output_dir, filesep, "Recon"];
+  for i_deRecon_frame = 1 : num_deRecon_frames
+    deRecon_time = deRecon_struct{i_deRecon_frame}.time
+    deRecon_indices = deRecon_struct{i_deRecon_frame}.values(:,1);
+    deRecon_vals = deRecon_struct{i_deRecon_frame}.values(:,2);
+    [deRecon_vals_sorted, deRecon_vals_rank] = sort(deRecon_vals, "descend");
+    deRecon_indices_sorted = deRecon_indices(deRecon_vals_rank)+1;
+    num_deRecon_indices = length(deRecon_indices(:));
+    deRecon_hist_rank = Sparse_hist_rank_array{deRecon_sparse_ndx}(:);
+    for i_deRecon_index = 1 : min(num_deRecon, num_deRecon_indices)
+      deRecon_rank = find(deRecon_hist_rank == deRecon_indices_sorted(i_deRecon_index))
+      if deRecon_rank > num_patchesN_Nplus1
+	continue;
+      endif
+      col_ndx = 1 + mod(deRecon_rank-1, num_patchesN_Nplus1_cols);
+      row_ndx = 1 + floor((deRecon_rank-1) / num_patchesN_Nplus1_cols);
+      row_indices = (1+(row_ndx-1)*weightsNminus1_Nplus1_nyp_shrunken):(row_ndx*weightsNminus1_Nplus1_nyp_shrunken);
+      col_indices = (1+(col_ndx-1)*weightsNminus1_Nplus1_nxp_shrunken):(col_ndx*weightsNminus1_Nplus1_nxp_shrunken);
+      deRecon_patch = weightsNminus1_Nplus1_array(row_indices, col_indices, :);
+      fh_deRecon = figure;
+      imagesc(deRecon_patch);
+      box off;
+      axis off;
+      deRecon_name = [Recon_list{3,2}, "_", num2str(deRecon_time, "%9i"), "_", num2str(i_deRecon_index)];
+      set(fh_deRecon, "name", deRecon_name);
+      saveas(fh_deRecon, [Recon_dir, filesep, deRecon_name, ".png"], "png");
+      fh_deRecon_label = figure;
+      bar(labelWeights_vals(:, deRecon_indices_sorted(i_deRecon_index)));
+      set(fh_deRecon_label, "name", [deRecon_name, "_", "bar"]);
+      saveas(fh_deRecon_label, [Recon_dir, filesep, deRecon_name, "_", "bar", ".png"], "png");
+    endfor %% i_deRecon_index
+%%    disp(mat2str(labelWeights_vals(:,deRecon_rank(1: min(num_deRecon, num_deRecon_indices))));
+    deRecon_labelWeights = labelWeights_vals(:,deRecon_indices_sorted);
+    deRecon_label_activity = repmat(deRecon_vals_sorted(:)',[size(labelWeights_vals,1),1]);
+    deRecon_label_prod = deRecon_labelWeights .* deRecon_label_activity;
+    deRecon_vals_sorted
+    sum_labelWeights = sum(deRecon_label_prod,2)
+  endfor %% i_deRecon
+endif %% deReconFlag
+
+
+
+
 
 
 
