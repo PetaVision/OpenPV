@@ -3,7 +3,7 @@ import numpy as np
 from readPvpFile import readHeaderFile, readData, toFrame
 from pylab import *
 
-def plotReconError(preErrLayers, postErrLayers, preToPostScale, outputDir, showPlots):
+def plotReconError(preErrLayers, postErrLayers, preToPostScale, outputDir, showPlots, skipFrames=0):
    if(len(preErrLayers) != len(postErrLayers)):
       print "Pre and post error layers not the same length"
       sys.exit();
@@ -37,9 +37,13 @@ def plotReconError(preErrLayers, postErrLayers, preToPostScale, outputDir, showP
          #Find average of error layer and add data point
          diff = np.std((preMat*scale) - postMat) / np.std(preMat*scale)
          datapts.append(np.mean(diff))
+         #Read a few extra for skipping frames
+         for i in range(skipFrames):
+            (preIdx, preMat) = readData(prePvpFile, shape, numPerFrame)
+            (postIdx, postMat) = readData(postPvpFile, shape, numPerFrame)
+            if(preIdx == -1 or postIdx == -1):
+                break
 
-         (preIdx, preMat) = readData(prePvpFile, shape, numPerFrame)
-         (postIdx, postMat) = readData(postPvpFile, shape, numPerFrame)
       #plot datapts
       figure()
       plot(idx, datapts)
