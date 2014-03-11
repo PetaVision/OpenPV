@@ -26,7 +26,7 @@ ImprintConn::~ImprintConn() {
 }
 
 int ImprintConn::initialize_base() {
-   imprintTimeThresh = 100;
+   imprintTimeThresh = -1;
    return PV_SUCCESS;
 }
 
@@ -45,7 +45,10 @@ int ImprintConn::allocateDataStructures() {
 int ImprintConn::setParams(PVParams * params) {
    int status = KernelConn::setParams(params);
    imprintTimeThresh = (double) params->value(name, "imprintTimeThresh", imprintTimeThresh);
-   if(imprintTimeThresh <= weightUpdateTime){
+   if(imprintTimeThresh == -1){
+      imprintTimeThresh = weightUpdateTime * 100; //Default value of 100 weight updates
+   }
+   else if(imprintTimeThresh <= weightUpdateTime){
       fprintf(stderr, "Warning: ImprintConn's imprintTimeThresh is smaller than weightUpdateTime. The algorithm will imprint on every weight update\n");
    }
    return status;
@@ -57,7 +60,6 @@ bool ImprintConn::imprintFeature(int arborId, int kExt){
    if(weights->nx != nxp || weights->ny != nyp){
       return false;
    }
-   //TODO random processor with broadcast
    //Only one processor doing imprinting
    //Making a synced random number based off of sim time and kExt
    long syncedRandNum = (parent->simulationTime()/weightUpdatePeriod)+kExt;
