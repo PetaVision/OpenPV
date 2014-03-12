@@ -104,7 +104,7 @@ for (int k = 0; k < nx*ny*nf; k++) {
    //
 
    // local param variables
-   float tau, Vrest, VthRest, Vexc, Vinh, VinhB, deltaVth;
+   float tau, Vrest, VthRest, Vexc, Vinh, VinhB, deltaVth, deltaGIB;
 
    // const float GMAX = 10.0;
 
@@ -144,6 +144,7 @@ for (int k = 0; k < nx*ny*nf; k++) {
 
    VthRest  = params->VthRest;
    deltaVth = params->deltaVth;
+   deltaGIB = params->deltaGIB;
 
    if (normalizeInputFlag && l_GSynNorm==0 && l_GSynExc != 0) {
       fprintf(stderr, "time = %f, k = %d, normalizeInputFlag is true but GSynNorm is zero and l_GSynExc = %f\n", timed, k, l_GSynExc);
@@ -229,11 +230,11 @@ for (int k = 0; k < nx*ny*nf; k++) {
    
    bool fired_flag = (l_V > l_Vth);
 
-   l_activ = fired_flag ? 1.0f             : 0.0f;
+   l_activ = fired_flag ? 1.0f                 : 0.0f;
    Vattained[k] = l_V; // Save the value of V before it drops due to the spike
-   l_V     = fired_flag ? Vrest            : l_V;
-   l_Vth   = fired_flag ? l_Vth + deltaVth : l_Vth;
-   l_G_IB  = fired_flag ? l_G_IB + 1.0f    : l_G_IB;
+   l_V     = fired_flag ? Vrest                : l_V;
+   l_Vth   = fired_flag ? l_Vth + deltaVth     : l_Vth;
+   l_G_IB  = fired_flag ? l_G_IB + deltaGIB    : l_G_IB;
 
 
    //integratedSpikeCount is the trace activity of the neuron, with an exponential decay

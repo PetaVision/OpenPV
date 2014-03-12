@@ -89,7 +89,7 @@ for (k = 0; k < nx*ny*nf; k++) {
    //
 
    // local param variables
-   float tau, Vrest, VthRest, Vexc, Vinh, VinhB, deltaVth;
+   float tau, Vrest, VthRest, Vexc, Vinh, VinhB, deltaVth, deltaGIB;
 
    const float GMAX = 10.0;
 
@@ -129,6 +129,7 @@ for (k = 0; k < nx*ny*nf; k++) {
 
    VthRest  = params->VthRest;
    deltaVth = params->deltaVth;
+   deltaGIB = params->deltaGIB;
 
    // add noise
    //
@@ -177,10 +178,10 @@ for (k = 0; k < nx*ny*nf; k++) {
 
    bool fired_flag = (l_V > l_Vth);
 
-   l_activ = fired_flag ? 1.0f             : 0.0f;
-   l_V     = fired_flag ? Vrest            : l_V;
-   l_Vth   = fired_flag ? l_Vth + deltaVth : l_Vth;
-   l_G_IB  = fired_flag ? l_G_IB + 1.0f    : l_G_IB;
+   l_activ = fired_flag ? 1.0f                 : 0.0f;
+   l_V     = fired_flag ? Vrest                : l_V;
+   l_Vth   = fired_flag ? l_Vth + deltaVth     : l_Vth;
+   l_G_IB  = fired_flag ? l_G_IB + deltaGIB    : l_G_IB;
 
    //
    // These actions must be done outside of kernel
@@ -258,7 +259,7 @@ for (k = 0; k < nx*ny*nf; k++) {
    //
 
    // local param variables
-   float tau, Vrest, VthRest, Vexc, Vinh, VinhB, deltaVth;
+   float tau, Vrest, VthRest, Vexc, Vinh, VinhB, deltaVth, deltaGIB;
 
    const float GMAX = 10.0;
 
@@ -297,6 +298,7 @@ for (k = 0; k < nx*ny*nf; k++) {
 
    VthRest  = params->VthRest;
    deltaVth = params->deltaVth;
+   deltaGIB = params->deltaGIB;
 
    // add noise
    //
@@ -353,10 +355,10 @@ for (k = 0; k < nx*ny*nf; k++) {
 
    bool fired_flag = (l_V > l_Vth);
 
-   l_activ = fired_flag ? 1.0f             : 0.0f;
-   l_V     = fired_flag ? Vrest            : l_V;
-   l_Vth   = fired_flag ? l_Vth + deltaVth : l_Vth;
-   l_G_IB  = fired_flag ? l_G_IB + 1.0f    : l_G_IB;
+   l_activ = fired_flag ? 1.0f                 : 0.0f;
+   l_V     = fired_flag ? Vrest                : l_V;
+   l_Vth   = fired_flag ? l_Vth + deltaVth     : l_Vth;
+   l_G_IB  = fired_flag ? l_G_IB + deltaGIB    : l_G_IB;
 
    //
    // These actions must be done outside of kernel
@@ -428,7 +430,7 @@ void LIF_update_state_arma(
       //
 
       // local param variables
-      float tau, Vrest, VthRest, Vexc, Vinh, VinhB, deltaVth;
+      float tau, Vrest, VthRest, Vexc, Vinh, VinhB, deltaVth, deltaGIB;
 
       const float GMAX = 10.0;
 
@@ -467,6 +469,7 @@ void LIF_update_state_arma(
 
       VthRest  = params->VthRest;
       deltaVth = params->deltaVth;
+      deltaGIB = params->deltaGIB;
 
       // add noise
       //
@@ -530,10 +533,10 @@ void LIF_update_state_arma(
 
       bool fired_flag = (l_V > l_Vth);
 
-      l_activ = fired_flag ? 1.0f             : 0.0f;
-      l_V     = fired_flag ? Vrest            : l_V;
-      l_Vth   = fired_flag ? l_Vth + deltaVth : l_Vth;
-      l_G_IB  = fired_flag ? l_G_IB + 1.0f    : l_G_IB;
+      l_activ = fired_flag ? 1.0f                 : 0.0f;
+      l_V     = fired_flag ? Vrest                : l_V;
+      l_Vth   = fired_flag ? l_Vth + deltaVth     : l_Vth;
+      l_G_IB  = fired_flag ? l_G_IB + deltaGIB    : l_G_IB;
 
       //
       // These actions must be done outside of kernel

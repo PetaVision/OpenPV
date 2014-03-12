@@ -336,6 +336,7 @@ int LIF::setParams(PVParams * p)
    lParams.tauIB     = p->value(name, "tauIB", TAU_INHB);
    lParams.tauVth    = p->value(name, "tauVth" , TAU_VTH);
    lParams.deltaVth  = p->value(name, "deltaVth" , DELTA_VTH);
+   lParams.deltaGIB  = p->value(name, "deltaGIB" , DELTA_G_INHB);
 
    // NOTE: in LIFDefaultParams, noise ampE, ampI, ampIB were
    // ampE=0*NOISE_AMP*( 1.0/TAU_EXC )
