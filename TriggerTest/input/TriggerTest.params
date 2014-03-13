@@ -1,0 +1,187 @@
+//
+// ANNTriggerUpdateOnNewImage.params
+//
+// created by peteschultz: Dec 9, 2013
+//
+// Similar to MovieTestParams, except the result of the 3x3 convolution
+// is held in an ANNTriggerUpdateOnNewImage layer.
+
+debugParsing = false;    // If true, debug the reading of this parameter file.
+
+HyPerCol "column" = {
+   nx                               = 8;
+   ny                               = 8;
+   dt                               = 1.0;
+   randomSeed                       = 1234567890;
+   startTime                        = 0.0;
+   numSteps                         = 320;
+   progressStep                     = 1000;
+   writeProgressToErr               = false;
+   outputPath                       = "output/";
+   filenamesContainLayerNames       = 2;
+   filenamesContainConnectionNames  = 2;
+   checkpointRead                   = false;
+   checkpointWrite                  = false;
+   // checkpointWriteDir               = "output/checkpoints";
+   // checkpointWriteStepInterval      = 10000;
+   // deleteOlderCheckpoints           = true;
+   suppressLastOutput               = false;
+};
+
+//
+// layers
+//
+
+Movie "input" = {
+    restart                          = false;
+    nxScale                          = 1;
+    nyScale                          = 1;
+    imageListPath                    = "input/dot.txt";
+    readPvpFile                      = false;
+    echoFramePathnameFlag            = true;
+    nf                               = 1;
+    phase                            = 0;
+    writeStep                        = -1;
+    // initialWriteTime
+    writeSparseActivity              = false;
+    mirrorBCflag                     = true;
+    useImageBCflag                   = false;
+    inverseFlag                      = false;
+    normalizeLuminanceFlag           = false;
+    autoResizeFlag                   = false;
+    writeImages                      = false;
+    offsetX                          = 0;
+    offsetY                          = 0;
+    jitterFlag                       = false;
+    randomMovie                      = false;
+    displayPeriod                    = 5;
+    start_frame_index                = 0;
+    skip_frame_index                 = 0;
+};
+
+TriggerTestLayer "notrigger" = {
+    restart                          = false;
+    nxScale                          = 1;
+    nyScale                          = 1;
+    nf                               = 1;
+    phase                            = 1;
+    writeStep                        = -1;
+    // initialWriteTime
+    mirrorBCflag                     = true;
+    writeSparseActivity              = false;
+
+    InitVType                        = "ZeroV";
+
+    VThresh                          = -infinity;
+    VMax                             = infinity;
+    VMin                             = -infinity;
+    VShift                           = 0.0;
+    VWidth                           = 0.0;
+    
+    triggerFlag                      = false;
+};
+
+TriggerTestLayer "trigger0" = {
+    restart                          = false;
+    nxScale                          = 1;
+    nyScale                          = 1;
+    nf                               = 1;
+    phase                            = 1;
+    writeStep                        = -1;
+    // initialWriteTime
+    mirrorBCflag                     = true;
+    writeSparseActivity              = false;
+
+    InitVType                        = "ZeroV";
+
+    VThresh                          = -infinity;
+    VMax                             = infinity;
+    VMin                             = -infinity;
+    VShift                           = 0.0;
+    VWidth                           = 0.0;
+    
+    triggerFlag                      = true;
+    triggerLayerName                   = "input";
+    triggerOffset                    = 0;
+};
+
+TriggerTestLayer "trigger1" = {
+    restart                          = false;
+    nxScale                          = 1;
+    nyScale                          = 1;
+    nf                               = 1;
+    phase                            = 1;
+    writeStep                        = -1;
+    // initialWriteTime
+    mirrorBCflag                     = true;
+    writeSparseActivity              = false;
+
+    InitVType                        = "ZeroV";
+
+    VThresh                          = -infinity;
+    VMax                             = infinity;
+    VMin                             = -infinity;
+    VShift                           = 0.0;
+    VWidth                           = 0.0;
+    
+    triggerFlag                      = true;
+    triggerLayerName                   = "input";
+    triggerOffset                    = 1;
+};
+
+TriggerTestLayer "trigger2" = {
+    restart                          = false;
+    nxScale                          = 1;
+    nyScale                          = 1;
+    nf                               = 1;
+    phase                            = 1;
+    writeStep                        = -1;
+    // initialWriteTime
+    mirrorBCflag                     = true;
+    writeSparseActivity              = false;
+
+    InitVType                        = "ZeroV";
+
+    VThresh                          = -infinity;
+    VMax                             = infinity;
+    VMin                             = -infinity;
+    VShift                           = 0.0;
+    VWidth                           = 0.0;
+    
+    triggerFlag                      = true;
+    triggerLayerName                   = "input";
+    triggerOffset                    = 2;
+};
+
+
+IdentConn "inputToNoTrigger" = {
+    preLayerName                     = "input";
+    postLayerName                    = "notrigger";
+    channelCode                      = 0;
+    delay                            = 0;
+    writeStep                        = -1;
+};
+
+IdentConn "inputToTrigger0" = {
+    preLayerName                     = "input";
+    postLayerName                    = "trigger0";
+    channelCode                      = 0;
+    delay                            = 0;
+    writeStep                        = -1;
+};
+
+IdentConn "inputToTrigger1" = {
+    preLayerName                     = "input";
+    postLayerName                    = "trigger1";
+    channelCode                      = 0;
+    delay                            = 0;
+    writeStep                        = -1;
+};
+
+IdentConn "inputToTrigger2" = {
+    preLayerName                     = "input";
+    postLayerName                    = "trigger2";
+    channelCode                      = 0;
+    delay                            = 0;
+    writeStep                        = -1;
+};

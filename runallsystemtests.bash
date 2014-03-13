@@ -123,12 +123,6 @@ runandecho $testname Debug/$testname $arglist
 mpirunandecho $testname Debug/$testname $arglist
 cd $wd
 
-testname=ANNTriggerUpdateOnNewImageTest
-arglist="-p input/ANNTriggerUpdateOnNewImageTest.params"
-cd "$testname"
-runandecho $testname Debug/$testname $arglist
-mpirunandecho $testname Debug/$testname $arglist
-cd $wd
 
 testname=ArborSystemTest
 arglist="-p input/test_arbors.params"
@@ -359,6 +353,13 @@ arglist=""
 runandecho $testname Debug/$testname $arglist
 mpirunandecho $testname Debug/$testname $arglist
 cd "$wd"
+
+testname=TriggerTest
+arglist="-p input/TriggerTest.params"
+cd "$testname"
+runandecho $testname Debug/$testname $arglist
+mpirunandecho $testname Debug/$testname $arglist
+cd $wd
 
 testname=WindowSystemTest
 cd "$testname"
