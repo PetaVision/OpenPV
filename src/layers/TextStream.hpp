@@ -23,7 +23,7 @@ public:
 	TextStream(const char * name, HyPerCol * hc);
 	virtual ~TextStream();
 	virtual int allocateDataStructures();
-   virtual bool needUpdate(double time, double dt);
+   //virtual bool needUpdate(double time, double dt);
 	virtual int updateState(double time, double dt);
    //TODO Is this being used?
 	//float lastUpdate()  { return lastUpdateTime; }
@@ -52,6 +52,8 @@ protected:
    //TestStream does not need trigger flag, since it's overwriting needUpdate
    virtual void readTriggerFlag(PVParams * params){};
 
+   virtual double getDeltaUpdateTime();
+
 	int scatterTextBuffer(PV::Communicator * comm, const PVLayerLoc * loc);
 	int readFileToBuffer(int offset, const PVLayerLoc * loc, int * buf);
 	int loadBufferIntoData(const PVLayerLoc * loc, int * buf);
@@ -67,7 +69,7 @@ protected:
 	pvdata_t * textData;      // Buffer containing image
 
 	double displayPeriod;     // Length of time a string 'frame' is displayed
-	double nextDisplayTime;
+	//double nextDisplayTime;
 
    //lastUpdateTime already exists in HyPerLayer
 	//double lastUpdateTime;    // Time of last image update

@@ -53,7 +53,7 @@ public:
    virtual ~Patterns();
    virtual int communicateInitInfo();
    virtual int allocateDataStructures();
-   virtual bool needUpdate(double timef, double dt);
+   //virtual bool needUpdate(double timef, double dt);
    virtual int updateState(double timef, double dt);
 
    void setProbMove(float p)     {pMove = p;}
@@ -86,6 +86,7 @@ protected:
    float calcPosition(float pos, int step);
    virtual bool constrainBiases() {return false;}
    virtual bool constrainOffsets() {return false;}
+   virtual double getDeltaUpdateTime();
 
    PatternType type;
    OrientationMode orientation;
@@ -131,7 +132,7 @@ protected:
    char * patternsOutputPath;  // path to output file directory for patterns
 
    double displayPeriod;   // length of time a frame is displayed
-   double nextDisplayTime; // time of next frame
+   //double nextDisplayTime; // time of next frame
    PV_Stream * patternsFile;
 
    Random * patternRandState; // RNG state for Patterns class.  Everything is done sequentially, so a Random(parent, 1) should be reproducible

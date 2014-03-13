@@ -35,7 +35,7 @@ protected:
    void readRescaleMethod(PVParams * params);
 private:
    int initialize_base();
-   bool checkIfUpdateNeeded();
+   //bool checkIfUpdateNeeded();
 
    // Handled by CloneVLayer
    // char * originalLayerName;

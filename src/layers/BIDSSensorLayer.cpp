@@ -116,12 +116,17 @@ int BIDSSensorLayer::allocateDataStructures() {
    return status;
 }
 
-//Image never updates, so needUpdate always returns false
-//Overwriting Image's needUpdate to always update
+
+
+//Image never updates, so getDeltaUpdateTime should return update on every timestep
 //TODO see when this layer actually needs to update
-bool BIDSSensorLayer::needUpdate(double time, double dt){
-   return true;
+double BIDSSensorLayer::getDeltaUpdateTime(){
+   return 1;
 }
+
+//bool BIDSSensorLayer::needUpdate(double time, double dt){
+//   return true;
+//}
 
 int BIDSSensorLayer::updateState(double timef, double dt){
    pvdata_t * output = getCLayer()->V;

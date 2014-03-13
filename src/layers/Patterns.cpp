@@ -218,7 +218,7 @@ int Patterns::initialize(const char * name, HyPerCol * hc, PatternType type) {
 
    displayPeriod = params->value(name,"displayPeriod", 0.0f);
    // displayPeriod = 0 means nextDisplayTime will always >= starting time and therefore the pattern will update every timestep
-   nextDisplayTime = hc->simulationTime() + displayPeriod;
+   //nextDisplayTime = hc->simulationTime() + displayPeriod;
 
    // Moved to allocateDataStructures()
    // drawPattern(maxVal);
@@ -727,14 +727,20 @@ int Patterns::drawDrops() {
    return status;
 }
 
-bool Patterns::needUpdate(double timef, double dt){
-   framenumber = timef * dt;
-   bool needNewPattern = timef >= nextDisplayTime;
-   if (needNewPattern) {
-      nextDisplayTime += displayPeriod;
-   }
-   return needNewPattern;
+//Image never updates, so getDeltaUpdateTime should return update on every timestep
+//TODO see when this layer actually needs to update
+double Patterns::getDeltaUpdateTime(){
+   return displayPeriod;
 }
+
+//bool Patterns::needUpdate(double timef, double dt){
+//   framenumber = timef * dt;
+//   bool needNewPattern = timef >= nextDisplayTime;
+//   if (needNewPattern) {
+//      nextDisplayTime += displayPeriod;
+//   }
+//   return needNewPattern;
+//}
 
 
 /**
@@ -878,7 +884,7 @@ int Patterns::checkpointRead(const char * cpDir, double * timef) {
          status = PV_fread(&patternRandState, sizeof(uint4), 1, pvstream) == 1 ? status : PV_FAILURE;
          status = PV_fread(&orientation, sizeof(OrientationMode), 1, pvstream) == 1 ? status : PV_FAILURE;
          status = PV_fread(&position, sizeof(float), 1, pvstream) ? status : PV_FAILURE;
-         status = PV_fread(&nextDisplayTime, sizeof(double), 1, pvstream) ? status : PV_FAILURE;
+         //status = PV_fread(&nextDisplayTime, sizeof(double), 1, pvstream) ? status : PV_FAILURE;
          status = PV_fread(&nextDropFrame, sizeof(double), 1, pvstream) ? status : PV_FAILURE;
          status = PV_fread(&nextPosChangeFrame, sizeof(double), 1, pvstream) ? status : PV_FAILURE;
          status = PV_fread(&initPatternCntr, sizeof(int), 1, pvstream) ? status : PV_FAILURE;
@@ -904,7 +910,7 @@ int Patterns::checkpointRead(const char * cpDir, double * timef) {
    // This will get bad if the number of member variables that need to be saved keeps increasing.
 #ifdef PV_USE_MPI
    if (parent->icCommunicator()->commSize()>1) {
-      int bufsize = (int) (sizeof(PatternType) + sizeof(uint4) + sizeof(OrientationMode) + 1*sizeof(float) + 3*sizeof(double) + 4*sizeof(int) + vDrops.size()*sizeof(Drop));
+      int bufsize = (int) (sizeof(PatternType) + sizeof(uint4) + sizeof(OrientationMode) + 1*sizeof(float) + 2*sizeof(double) + 4*sizeof(int) + vDrops.size()*sizeof(Drop));
       //Communicate buffer size to rest of processes
       MPI_Bcast(&bufsize, 1, MPI_INT, 0, parent->icCommunicator()->communicator());
       char tempbuf[bufsize];
@@ -921,7 +927,7 @@ int Patterns::checkpointRead(const char * cpDir, double * timef) {
          memcpy(rstate, patternRandState->getRNG(0), sizeof(uint4));
          *om = orientation;
          floats[0] = position;
-         doubles[0] = nextDisplayTime;
+         //doubles[0] = nextDisplayTime;
          doubles[1] = nextDropFrame;
          doubles[2] = nextPosChangeFrame;
          ints[0] = initPatternCntr;
@@ -940,7 +946,7 @@ int Patterns::checkpointRead(const char * cpDir, double * timef) {
          memcpy(patternRandState->getRNG(0), rstate, sizeof(uint4));
          orientation = *om;
          position = floats[0];
-         nextDisplayTime = doubles[0];
+         //nextDisplayTime = doubles[0];
          nextDropFrame = doubles[1];
          nextPosChangeFrame = doubles[2];
          initPatternCntr = ints[0];
@@ -978,7 +984,7 @@ int Patterns::checkpointWrite(const char * cpDir) {
          // For example, DROP doesn't use orientation and BARS doesn't use nextDropFrame
          status = PV_fwrite(&orientation, sizeof(OrientationMode), 1, pvstream) == 1 ? status : PV_FAILURE;
          status = PV_fwrite(&position, sizeof(float), 1, pvstream) == 1 ? status : PV_FAILURE;
-         status = PV_fwrite(&nextDisplayTime, sizeof(double), 1, pvstream) == 1 ? status : PV_FAILURE;
+         //status = PV_fwrite(&nextDisplayTime, sizeof(double), 1, pvstream) == 1 ? status : PV_FAILURE;
          status = PV_fwrite(&nextDropFrame, sizeof(double), 1, pvstream) == 1 ? status : PV_FAILURE;
          status = PV_fwrite(&nextPosChangeFrame, sizeof(double), 1, pvstream) == 1 ? status : PV_FAILURE;
          status = PV_fwrite(&initPatternCntr, sizeof(int), 1, pvstream) == 1 ? status : PV_FAILURE;
@@ -1039,7 +1045,7 @@ int Patterns::checkpointWrite(const char * cpDir) {
       uint4 * rng = patternRandState->getRNG(0);
       fprintf(pvstream->fp, "Random state = %u, %u, %u, %u\n", rng->s0, rng->state.s1, rng->state.s2, rng->state.s3);
       fprintf(pvstream->fp, "Position = %f\n", position);
-      fprintf(pvstream->fp, "nextDisplayTime = %f\n", nextDisplayTime);
+      //fprintf(pvstream->fp, "nextDisplayTime = %f\n", nextDisplayTime);
       fprintf(pvstream->fp, "initPatternCntr = %d\n", initPatternCntr);
       fprintf(pvstream->fp, "nextDropFrame = %f\n", nextDropFrame);
       fprintf(pvstream->fp, "nextPosChangeFrame = %f\n", nextPosChangeFrame);

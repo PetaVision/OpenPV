@@ -174,4 +174,10 @@ CloneVLayer::~CloneVLayer() {
    clayer->V = NULL;
 }
 
+double CloneVLayer::getDeltaUpdateTime(){
+   //Defer to original layer
+   return originalLayer->getDeltaUpdateTime();
+}
+
+
 } /* namespace PV */

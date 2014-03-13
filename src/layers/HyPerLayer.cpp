@@ -123,6 +123,8 @@ int HyPerLayer::initialize_base() {
    this->triggerFlag = false; //Default to update every timestamp
    this->triggerLayer = NULL;
    this->triggerLayerName = NULL;
+   this->triggerOffset = 0;
+   this->nextUpdateTime = 0;
    
    this->lastUpdateTime = 0.0;
    //this->lastActiveTime = NULL;
@@ -191,6 +193,7 @@ int HyPerLayer::initialize(const char * name, HyPerCol * hc, int numChannels) {
    status = openOutputStateFile();
 
    lastUpdateTime = parent->simulationTime();
+   
 
 #ifdef PV_USE_OPENCL
    initUseGPUFlag();
@@ -680,6 +683,7 @@ void HyPerLayer::readTriggerFlag(PVParams * params) {
                  parent->parameters()->groupKeywordFromName(name), name, parent->columnId(), trigger_layer_name, strerror(errno));
          exit(EXIT_FAILURE);
       }
+      triggerOffset = params->value(name, "triggerOffset", triggerOffset);
    }
 }
 
@@ -901,6 +905,14 @@ int HyPerLayer::allocateDataStructures()
    // information it needs to allocate the membrane potential buffer V, the
    // activity buffer activity->data, and the data store.
    int status = PV_SUCCESS;
+
+   //Doing this check here, since trigger layers are being set up in communicate init info
+   //If the magnitude of the trigger offset is bigger than the delta update time, then error
+   if(triggerOffset >= getDeltaUpdateTime()){ 
+      fprintf(stderr, "%s \"%s\" error in rank %d process: TriggerOffset (%f) must be lower than the change in update time (%f) \n", parent->parameters()->groupKeywordFromName(name), name, parent->columnId(), triggerOffset, getDeltaUpdateTime());
+      exit(EXIT_FAILURE);
+   }
+   updateNextUpdateTime();
 
    allocateClayerBuffers();
 
@@ -1272,27 +1284,54 @@ bool HyPerLayer::needUpdate(double time, double dt){
    if (time <= parent->getStartTime()){
        return true;
    }
+   //Never update flag
+   if(nextUpdateTime == -1){
+      return false;
+   }
+   //Check based on nextUpdateTime and triggerOffset
+   //Needs to be a equality check, so to account for roundoff errors, we check if it's within half the delta time
+   if(abs(parent->simulationTime() - (nextUpdateTime - triggerOffset)) < (dt/2)){
+      return true;
+   }
+   return false;
+
    //If layer is a trigger flag, call the attached trigger layer's needUpdate
+   //if(triggerFlag){
+   //   assert(triggerLayer);
+   //   if (getPhase() > triggerLayer->getPhase()) {
+   //      return triggerLayer->getLastUpdateTime() >= lastUpdateTime;
+   //   }
+   //   else {
+   //      return triggerLayer->getLastUpdateTime() > lastUpdateTime;
+   //   }
+   //}
+   ////Otherwise, needs to update every timestep
+   //else{
+   //   return true;
+   //}
+}
+
+int HyPerLayer::updateNextUpdateTime(){
+   double deltaUpdateTime = getDeltaUpdateTime();
+   if(deltaUpdateTime != -1){
+      while(parent->simulationTime() >= nextUpdateTime){
+         nextUpdateTime += deltaUpdateTime;
+      }
+   }
+   else{
+      //Never update
+      nextUpdateTime = -1;
+   }
+   return PV_SUCCESS;
+}
+
+double HyPerLayer::getDeltaUpdateTime(){
    if(triggerFlag){
       assert(triggerLayer);
-      if (getPhase() > triggerLayer->getPhase()) {
-         return triggerLayer->getLastUpdateTime() >= lastUpdateTime;
-      }
-      else {
-         return triggerLayer->getLastUpdateTime() > lastUpdateTime;
-      }
-      ////Account for phase by subtracting dt
-      //if(getPhase() > triggerLayer->getPhase()){
-      //   
-      //   //return triggerLayer->needUpdate(time-dt, dt);
-      //}
-      //else{
-      //   //return triggerLayer->needUpdate(time, dt);
-      //}
+      return triggerLayer->getDeltaUpdateTime();
    }
-   //Otherwise, needs to update every timestep
    else{
-      return true;
+      return 1;
    }
 }
 
@@ -1301,8 +1340,9 @@ int HyPerLayer::updateStateWrapper(double timef, double dt){
    if(needUpdate(timef, dt)){
       status = updateState(timef, dt);
       lastUpdateTime=parent->simulationTime();
-      //Update lastUpdateTime
    }
+   //Because of the triggerOffset, we need to check if we need to update nextUpdateTime every time
+   updateNextUpdateTime();
    return status;
 }
 
@@ -1840,6 +1880,7 @@ int HyPerLayer::checkpointRead(const char * cpDir, double * timed) {
    }
 
    parent->readScalarFromFile(cpDir, getName(), "lastUpdateTime", &lastUpdateTime, parent->simulationTime()-parent->getDeltaTime());
+   parent->readScalarFromFile(cpDir, getName(), "nextUpdateTime", &nextUpdateTime, parent->simulationTime()-parent->getDeltaTime());
    parent->readScalarFromFile(cpDir, getName(), "nextWrite", &writeTime, writeTime);
 
    if (ioAppend) {
@@ -2066,6 +2107,7 @@ int HyPerLayer::checkpointWrite(const char * cpDir) {
    writeDataStoreToFile(filename, icComm, timed);
 
    parent->writeScalarToFile(cpDir, getName(), "lastUpdateTime", lastUpdateTime);
+   parent->writeScalarToFile(cpDir, getName(), "nextUpdateTime", nextUpdateTime);
    parent->writeScalarToFile(cpDir, getName(), "nextWrite", writeTime);
 
    if (parent->columnId()==0) {

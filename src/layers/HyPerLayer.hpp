@@ -219,6 +219,14 @@ public:
     * @return Returns if the update needs to happen
     */
    virtual bool needUpdate(double time, double dt);
+   /**
+    * A function to update nextUpdateTime of the layer based on trigger
+    */
+   virtual int updateNextUpdateTime();
+   /**
+    * A function to compute the change in update time
+    */
+   virtual double getDeltaUpdateTime();
    virtual int publish(InterColComm * comm, double time);
    virtual int resetGSynBuffers(double timef, double dt);
    // ************************************************************************************//
@@ -392,10 +400,12 @@ protected:
    //A flag that determins if the layer is a trigger layer and needs to follow another layer's lastUpdateTime.
    bool triggerFlag; 
    char* triggerLayerName;
+   double triggerOffset;
    HyPerLayer* triggerLayer;
    
 
    double lastUpdateTime; // The most recent time that the layer's activity is updated, used as a cue for publisher to exchange borders
+   double nextUpdateTime; // The timestep to update next
 
    //double * lastActiveTime; //A matrix that keeps track of when a given neuron was last active
 

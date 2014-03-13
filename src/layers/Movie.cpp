@@ -52,9 +52,10 @@ int Movie::initialize_base() {
 int Movie::checkpointRead(const char * cpDir, double * timef){
    int status = Image::checkpointRead(cpDir, timef);
 
-   if (this->useParamsImage) { //Sets nextDisplayTime = simulationtime (i.e. effectively restarting)
-      nextDisplayTime += parent->simulationTime();
-   }
+   //Depreciated, nextUpdateTime now handeled in HyPerLayer checkpoint read/write
+   //if (this->useParamsImage) { //Sets nextDisplayTime = simulationtime (i.e. effectively restarting)
+   //   nextDisplayTime += parent->simulationTime();
+   //}
 
    InterColComm * icComm = parent->icCommunicator();
    int filenamesize = strlen(cpDir)+1+strlen(name)+18;
@@ -80,8 +81,10 @@ int Movie::checkpointRead(const char * cpDir, double * timef){
       }
    }
 
-   while (parent->simulationTime() >= nextDisplayTime) {
-      nextDisplayTime += displayPeriod;
+  // while (parent->simulationTime() >= nextDisplayTime) {
+   double tmpDisplayTime = parent->simulationTime();
+   while (parent->simulationTime() >= tmpDisplayTime) {
+      tmpDisplayTime += displayPeriod;
       //Follow dispPeriod for updating frame numbers and file names
       updateFrameNum(skipFrameIndex);
       if(!readPvpFile){
@@ -153,7 +156,7 @@ int Movie::initialize(const char * name, HyPerCol * hc, const char * fileOfFileN
    PVParams * params = hc->parameters();
 
    assert(!params->presentAndNotBeenRead(name, "displayPeriod"));
-   nextDisplayTime = hc->simulationTime() + displayPeriod + hc->getDeltaTime();
+   //nextDisplayTime = hc->simulationTime() + displayPeriod + hc->getDeltaTime();
 
    assert(!params->presentAndNotBeenRead(name, "randomMovie")); // randomMovie should have been set in setParams
    if (randomMovie) return status; // Nothing else to be done until data buffer is allocated, in allocateDataStructures
@@ -339,28 +342,42 @@ PVLayerLoc Movie::getImageLoc()
    // getLayerLoc().  --pete 2011-07-10
 }
 
-bool Movie::needUpdate(double time, double dt){
-   bool needNewImage = false;
-   //Always update on first timestep
-   if (time <= parent->getStartTime()){
-       needNewImage = true;
+double Movie::getDeltaUpdateTime(){
+   //If jitter or randomMovie, update every timestep
+   if( jitterFlag ){
+      return 1;
    }
    if(randomMovie){
-      needNewImage = true;
+      return 1;
    }
-   if( jitterFlag ) {
-      needNewImage = true;;
-   } // jitterFlag
-   if (time >= nextDisplayTime) {
-      needNewImage = true;
-   } // time >= nextDisplayTime
-
-
-   //if(time >= nextDisplayTime || updateThisTimestep) {
-   //} // time >= nextDisplayTime
-
-   return needNewImage;
+   return displayPeriod;
 }
+
+//Need update is now complety handeled in HyPerLayer based on getDeltaUpdateTime
+//bool Movie::needUpdate(double time, double dt){
+//   bool needNewImage = false;
+//   //Always update on first timestep
+//   if (time <= parent->getStartTime()){
+//       needNewImage = true;
+//   }
+//   if(randomMovie){
+//      needNewImage = true;
+//   }
+//   if( jitterFlag ) {
+//      needNewImage = true;;
+//   } // jitterFlag
+//
+//   //This is now handeled in HyPerLayer
+//   //if (time >= nextDisplayTime) {
+//   //   needNewImage = true;
+//   //} // time >= nextDisplayTime
+//
+//
+//   //if(time >= nextDisplayTime || updateThisTimestep) {
+//   //} // time >= nextDisplayTime
+//
+//   return needNewImage;
+//}
 
 int Movie::updateState(double time, double dt)
 {
@@ -401,9 +418,10 @@ bool Movie::updateImage(double time, double dt)
       if(writePosition && icComm->commRank()==0){
          fprintf(fp_pos->fp,"%f %s: \n",time,filename);
       }
-      while (time >= nextDisplayTime) {
-         nextDisplayTime += displayPeriod;
-      }
+      //nextDisplayTime depreciated, now using nextUpdateTime
+      //while (time >= nextDisplayTime) {
+      //   nextDisplayTime += displayPeriod;
+      //}
 
       GDALColorInterp * colorbandtypes = NULL;
       int status = getImageInfo(filename, parent->icCommunicator(), &imageLoc, &colorbandtypes);

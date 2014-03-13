@@ -27,7 +27,8 @@ public:
    virtual int checkpointRead(const char * cpDir, double * timef);
    virtual int checkpointWrite(const char * cpDir);
    virtual int outputState(double time, bool last=false);
-   virtual bool needUpdate(double time, double dt);
+   //virtual bool needUpdate(double time, double dt);
+   virtual double getDeltaUpdateTime();
    //virtual int updateStateWrapper(double time, double dt);
    virtual int updateState(double time, double dt);
    bool        updateImage(double time, double dt);
@@ -52,7 +53,7 @@ private:
    void updateFrameNum(int n_skip);
 
    double displayPeriod;   // length of time a frame is displayed
-   double nextDisplayTime; // time of next frame
+   //double nextDisplayTime; // time of next frame
 
    int randomMovie;       // these are used for performing a reverse correlation analysis
    float randomMovieProb;

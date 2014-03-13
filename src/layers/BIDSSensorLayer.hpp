@@ -26,7 +26,7 @@ public:
    int initialize(const char * name, HyPerCol * hc, int numChannels=MAX_CHANNELS);
    virtual int communicateInitInfo();
    virtual int allocateDataStructures();
-   bool needUpdate(double time, double dt);
+   //bool needUpdate(double time, double dt);
    int updateState(double timef, double dt);
 protected:
    BIDSSensorLayer();
@@ -34,6 +34,7 @@ protected:
    void writeCSV(std::string fname, int node_index);
    BIDSCoords * getCoords() {return blayer->getCoords();}
    int getNumNodes() {return blayer->getNumNodes();}
+   virtual double getDeltaUpdateTime();
 //   float perfectMatch();
    float** data;
    // BIDSCoords* coords; // Replaced with getNumNodes()

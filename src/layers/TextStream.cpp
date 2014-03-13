@@ -31,7 +31,7 @@ TextStream::~TextStream() {
 
 int TextStream::initialize_base() {
    displayPeriod = 1;
-   nextDisplayTime = 1;
+   //nextDisplayTime = 1;
    textOffset = 0;
    useCapitalization = true;
    loopInput = false;
@@ -83,7 +83,7 @@ int TextStream::initialize(const char * name, HyPerCol * hc) {
       }
    }
 
-   nextDisplayTime = hc->simulationTime();
+   //nextDisplayTime = hc->simulationTime();
 
    // Moved to allocateDataStructures()
    // status = updateState(0,hc->getDeltaTime());
@@ -163,15 +163,19 @@ int TextStream::allocateDataStructures() {
    return status;
 }
 
-bool TextStream::needUpdate(double time, double dt){
-   if (time >= nextDisplayTime) {
-      nextDisplayTime += displayPeriod*dt;
-      return true;
-   } // time >= nextDisplayTime
-   else{
-      return false;
-   }
+double TextStream::getDeltaUpdateTime(){
+   return displayPeriod;
 }
+
+//bool TextStream::needUpdate(double time, double dt){
+//   if (time >= nextDisplayTime) {
+//      nextDisplayTime += displayPeriod*dt;
+//      return true;
+//   } // time >= nextDisplayTime
+//   else{
+//      return false;
+//   }
+//}
 
 int TextStream::updateState(double time, double dt)
 {

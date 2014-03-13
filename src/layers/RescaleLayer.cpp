@@ -123,8 +123,8 @@ int RescaleLayer::updateState(double timef, double dt) {
    int status = PV_SUCCESS;
 
    //Check if an update is needed
-   //TODO not needed anymore, done with needUpdate, although it would be nice to automatically trigger off orig layer
-   if(checkIfUpdateNeeded()){
+   //Done in cloneVLayer
+   //if(checkIfUpdateNeeded()){
        int numNeurons = originalLayer->getNumNeurons();
        pvdata_t * A = clayer->activity->data;
        const pvdata_t * originalA = originalLayer->getCLayer()->activity->data;
@@ -243,20 +243,20 @@ int RescaleLayer::updateState(double timef, double dt) {
        //Update lastUpdateTime
 	   lastUpdateTime = parent->simulationTime();
 
-   }
+   //}
    return status;
 }
 
-bool RescaleLayer::checkIfUpdateNeeded() {
-   bool needsUpdate = false;
-   if (getPhase() > originalLayer->getPhase()) {
-      needsUpdate = originalLayer->getLastUpdateTime() >= lastUpdateTime;
-   }
-   else {
-      needsUpdate = originalLayer->getLastUpdateTime() > lastUpdateTime;
-   }
-   return needsUpdate;
-}
+//bool RescaleLayer::checkIfUpdateNeeded() {
+//   bool needsUpdate = false;
+//   if (getPhase() > originalLayer->getPhase()) {
+//      needsUpdate = originalLayer->getLastUpdateTime() >= lastUpdateTime;
+//   }
+//   else {
+//      needsUpdate = originalLayer->getLastUpdateTime() > lastUpdateTime;
+//   }
+//   return needsUpdate;
+//}
 
 } // end namespace PV
 

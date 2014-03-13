@@ -379,15 +379,25 @@ int Image::recvSynapticInput(HyPerConn * conn, const PVLayerCube * cube, int nei
    return 0;
 }
 
-bool Image::needUpdate(double time, double dt){
-   //Image should never need an update unless jittered
+double Image::getDeltaUpdateTime(){
    if(jitterFlag){
-      return true;
+      return 1;
    }
    else{
-      return false;
+      return -1; //Never update
    }
 }
+
+//Now handeled in HyPerLayer needUpdate, with getDeltaUpdateTime
+//bool Image::needUpdate(double time, double dt){
+//   //Image should never need an update unless jittered
+//   if(jitterFlag){
+//      return true;
+//   }
+//   else{
+//      return false;
+//   }
+//}
 
 /**
  * update the image buffers
