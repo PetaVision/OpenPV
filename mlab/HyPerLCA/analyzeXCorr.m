@@ -1,14 +1,19 @@
 %  A function to calculate the xCorr of data on feature space over all positions and time frames
-%  @param xCorr_list A cell array of pvp filenames to analyze
-%  @param output_dir The input and output directory of the pvp files to analyze, as well as where to store the plots
-%  @param plot_corr A flag saying if the plots should be saved
-%  @param frames_calc The number of frames to calculate. Will calculate the latest frames_calc frames. Will do all if 0.
-%  @param numprocs Specify the number of procs to use. If not specified, will use all avaliable
 %  iidx, jidx, and finalCorr are a cell array the length of xCorr_list. All 3 vectors are sorted based on correlation,
 %  excluding self correlation. iidx and ijdx define which 2 dictionary elements the finalCorr value is for.
 %  Note that iidx and jidx are not mirrored, so the correlation pair 1,2 may exist in iidx and jidx respectively, but not
 %  in jidx and iidx respectively
-function [iidx, jidx, finalCorr] = analyzeXCorr(xCorr_list, output_dir, plot_corr, frames_calc, numprocs)
+function [...
+   iidx,             ... % Cell array, length of xCorr_list, contains vectors of point a
+   jidx,             ... % Cell array, length of xCorr_list, contains vectors of point b
+   finalCorr         ... % Cell array, length of xCorr_list, contains the corr value between a and b, ranked from most to least corr not including self
+] = analyzeXCorr(...
+   xCorr_list,       ... % A list of activity files to calculate the correlation of 
+   output_dir,       ... % The parent output directory of pv
+   plot_corr,        ... % Flag that determines if a plot should be made
+   frames_calc,      ... % The number of frames to calculate. Will calculate the lastest frame_calc frames. 0 is all frames
+   numprocs          ... % The number of processes to use for parallization
+   )
 
    global isTest = false;
    if nargin == 4
@@ -27,7 +32,11 @@ function [iidx, jidx, finalCorr] = analyzeXCorr(xCorr_list, output_dir, plot_cor
    for iList = 1:length(xCorr_list)
       pvpfile = [output_dir, filesep, xCorr_list{iList}, '.pvp'];
       disp(['Calculating xcorr of ',pvpfile])
-      [data,hdr] = readpvpfile(pvpfile);
+      if(isTest)
+         [data,hdr] = readpvpfile(pvpfile, 0, 20, 1);
+      else
+         [data,hdr] = readpvpfile(pvpfile);
+      end
       if(frames_calc > 0)
          if(frames_calc < length(data))
             data = data(end-frames_calc:end);
