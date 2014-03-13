@@ -2,15 +2,15 @@
 cmake_minimum_required(VERSION 2.6)
 
 #Set default PV_WRKSPC_DIR if not already set
-if (NOT PV_WRKSPC_DIR)
-    set(PV_WRKSPC_DIR "..")
-    message("*** Setting PV_WRKSPC_DIR to default value \"${PV_WRKSPC_DIR}\".")
-    message("*** PV_WRKSPC_DIR must be the directory containing the PetaVision directory.")
-    message("*** Set PV_WRKSPC_DIR manually if PetaVision is in a different location.")
-endif (NOT PV_WRKSPC_DIR)
+#if (NOT PV_WRKSPC_DIR)
+#    set(PV_WRKSPC_DIR "..")
+#    message("*** Setting PV_WRKSPC_DIR to default value \"${PV_WRKSPC_DIR}\".")
+#    message("*** PV_WRKSPC_DIR must be the directory containing the PetaVision directory.")
+#    message("*** Set PV_WRKSPC_DIR manually if PetaVision is in a different location.")
+#endif (NOT PV_WRKSPC_DIR)
 
 #Set CMAKE_MODULE_PATH
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PV_WRKSPC_DIR}/PetaVision/docs/cmake/Modules/")
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PV_DIR}/docs/cmake/Modules/")
 
 set(CMAKE_C_FLAGS_DEBUG "-g3 -O0")
 set(CMAKE_CXX_FLAGS_DEBUG "-g3 -O0")
@@ -21,8 +21,8 @@ if (NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Debug)
 endif (NOT CMAKE_BUILD_TYPE)
 
-set(PV_SOURCE_DIR "${PV_WRKSPC_DIR}/PetaVision/src")
-set(PV_BINARY_DIR "${PV_WRKSPC_DIR}/PetaVision/lib")
+set(PV_SOURCE_DIR "${PV_DIR}/src")
+set(PV_BINARY_DIR "${PV_DIR}/lib")
 set(PROJECT_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
 set(PROJECT_BINARY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/${CMAKE_BUILD_TYPE}")
 

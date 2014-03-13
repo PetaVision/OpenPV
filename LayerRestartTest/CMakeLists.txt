@@ -1,10 +1,6 @@
 ## See http://www.cmake.org/Wiki/CMake_Useful_Variables for more variables to set
 cmake_minimum_required(VERSION 2.6)
 
-if (NOT PV_DIR)
-   set(PV_DIR "${PV_WRKSPC_DIR}/PetaVision")
-endif (NOT PV_DIR)
-
 #Set CMAKE_MODULE_PATH
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PV_DIR}/docs/cmake/Modules/")
 
