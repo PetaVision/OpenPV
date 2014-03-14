@@ -85,13 +85,6 @@ else
     }
 fi
 
-testname=ShrunkenPatchFlagTest
-cd "$testname"
-arglist="-p input/ShrunkenPatchFlagTest.params" # parameter filename is in main()
-runandecho $testname $testname Debug/$testname $arglist
-mpirunandecho $testname $testname Debug/$testname $arglist
-cd "$wd"
-
 testname=BasicSystemTest
 arglist="-p input/BasicSystemTest.params"
 cd "$testname"
@@ -306,6 +299,13 @@ cd "$wd"
 testname=ReceiveFromPostTest
 cd "$testname"
 arglist="-p input/postTest.params"
+runandecho $testname $testname Debug/$testname $arglist
+mpirunandecho $testname $testname Debug/$testname $arglist
+cd "$wd"
+
+testname=ShrunkenPatchFlagTest
+cd "$testname"
+arglist="-p input/ShrunkenPatchFlagTest.params" # parameter filename is in main()
 runandecho $testname $testname Debug/$testname $arglist
 mpirunandecho $testname $testname Debug/$testname $arglist
 cd "$wd"
