@@ -20,7 +20,7 @@ int TriggerTestLayer::updateStateWrapper(double time, double dt){
    }
    //Trigger with offset of 0, assuming display period is 5
    else if(strcmp(name, "trigger0") == 0){
-      if((int)time % 5 == 0){
+      if(((int)time-1) % 5 == 0){
          assert(needUpdate(time, dt) == true);
       }
       else{
@@ -29,7 +29,7 @@ int TriggerTestLayer::updateStateWrapper(double time, double dt){
    }
    //Trigger with offset of 1, assuming display period is 5
    else if(strcmp(name, "trigger1") == 0){
-      if(((int)time+1) % 5 == 0){
+      if(((int)time) % 5 == 0){
          assert(needUpdate(time, dt) == true);
       }
       else{
@@ -38,7 +38,7 @@ int TriggerTestLayer::updateStateWrapper(double time, double dt){
    }
    //Trigger with offset of 1, assuming display period is 5
    else if(strcmp(name, "trigger2") == 0){
-      if(((int)time+2) % 5 == 0){
+      if(((int)time+1) % 5 == 0){
          assert(needUpdate(time, dt) == true);
       }
       else{
