@@ -124,7 +124,7 @@ int HyPerLayer::initialize_base() {
    this->triggerLayer = NULL;
    this->triggerLayerName = NULL;
    this->triggerOffset = 0;
-   this->nextUpdateTime = 0;
+   this->nextUpdateTime = 1;
    
    this->lastUpdateTime = 0.0;
    //this->lastActiveTime = NULL;
@@ -557,6 +557,10 @@ int HyPerLayer::initializeState() {
    if( restartFlag ) {
       double timef;
       status = readState(&timef);
+      if(!parent->getCheckpointReadFlag()){
+         nextUpdateTime = 1;
+         //updateNextUpdateTime();
+      }
    }
    else {
       if (this->getV()!=NULL) {
@@ -913,7 +917,7 @@ int HyPerLayer::allocateDataStructures()
       fprintf(stderr, "%s \"%s\" error in rank %d process: TriggerOffset (%f) must be lower than the change in update time (%f) \n", parent->parameters()->groupKeywordFromName(name), name, parent->columnId(), triggerOffset, deltaUpdateTime);
       exit(EXIT_FAILURE);
    }
-   updateNextUpdateTime();
+   //updateNextUpdateTime();
 
    allocateClayerBuffers();
 
@@ -1281,11 +1285,21 @@ int HyPerLayer::copyFromBuffer(const unsigned char * buf, pvdata_t * data,
 
 
 bool HyPerLayer::needUpdate(double time, double dt){
+
+   //return true;
+
+
    //Always update on first timestep
-   if (time <= parent->getStartTime()){
-       return true;
+   //if (time <= parent->getStartTime()){
+   //    return true;
+   //}
+
+   //This function needs to return true if the layer was updated this timestep as well
+   if(abs(parent->simulationTime() - lastUpdateTime) < (dt/2)){
+      return true;
    }
    //Never update flag
+   //If nextUpdateTime is -1, the layer won't update
    if(nextUpdateTime == -1){
       return false;
    }
@@ -1296,7 +1310,9 @@ bool HyPerLayer::needUpdate(double time, double dt){
    }
    return false;
 
-   //If layer is a trigger flag, call the attached trigger layer's needUpdate
+
+
+   ////If layer is a trigger flag, call the attached trigger layer's needUpdate
    //if(triggerFlag){
    //   assert(triggerLayer);
    //   if (getPhase() > triggerLayer->getPhase()) {
@@ -1317,6 +1333,7 @@ int HyPerLayer::updateNextUpdateTime(){
    if(deltaUpdateTime != -1){
       while(parent->simulationTime() >= nextUpdateTime){
          nextUpdateTime += deltaUpdateTime;
+         //std::cout << "Next update time " << name << " to " << nextUpdateTime << "\n";
       }
    }
    else{
@@ -1520,6 +1537,7 @@ int HyPerLayer::recvAllSynapticInput() {
    int status = PV_SUCCESS;
    //Only recvAllSynapticInput if we need an update
    if(needUpdate(parent->simulationTime(), parent->getDeltaTime())){
+      //std::cout << "recvSynInput " << name << " on timestep " << parent->simulationTime() << " \n";
       int numConnections = parent->numberOfConnections();
       for (int c=0; c<numConnections; c++) {
          HyPerConn * conn = parent->getConnection(c);
@@ -1881,7 +1899,7 @@ int HyPerLayer::checkpointRead(const char * cpDir, double * timed) {
    }
 
    parent->readScalarFromFile(cpDir, getName(), "lastUpdateTime", &lastUpdateTime, parent->simulationTime()-parent->getDeltaTime());
-   parent->readScalarFromFile(cpDir, getName(), "nextUpdateTime", &nextUpdateTime, parent->simulationTime()-parent->getDeltaTime());
+   parent->readScalarFromFile(cpDir, getName(), "nextUpdateTime", &nextUpdateTime, parent->simulationTime()+1);
    parent->readScalarFromFile(cpDir, getName(), "nextWrite", &writeTime, writeTime);
 
    if (ioAppend) {

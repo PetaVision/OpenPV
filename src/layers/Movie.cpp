@@ -201,6 +201,10 @@ int Movie::initialize(const char * name, HyPerCol * hc, const char * fileOfFileN
       else{
          // echoFramePathnameFlag = params->value(name,"echoFramePathnameFlag", false);
          filename = strdup(getNextFileName(startFrameIndex));
+         //Movie is going to update on timestep 1, but we want it to reread the first frame here, so reset the filenamestream back to 0 in initialize
+         if( parent->icCommunicator()->commRank()==0 ) {
+            PV_fseek(filenamestream, 0L, SEEK_SET);
+         }
          assert(filename != NULL);
       }
    }
@@ -368,9 +372,9 @@ double Movie::getDeltaUpdateTime(){
 //   } // jitterFlag
 //
 //   //This is now handeled in HyPerLayer
-//   //if (time >= nextDisplayTime) {
-//   //   needNewImage = true;
-//   //} // time >= nextDisplayTime
+//   if (time >= nextDisplayTime) {
+//      needNewImage = true;
+//   } // time >= nextDisplayTime
 //
 //
 //   //if(time >= nextDisplayTime || updateThisTimestep) {
@@ -546,6 +550,8 @@ const char * Movie::getNextFileName(int n_skip)
    }
    return getNextFileName();
 }
+
+
 
 //This function takes care of rewinding for frame files
 const char * Movie::getNextFileName()
