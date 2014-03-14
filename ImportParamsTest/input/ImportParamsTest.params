@@ -46,8 +46,8 @@ ImportParamsLayer "orig" = {
     mirrorBCflag = 1;
     writeSparseActivity = false;
 
-    InitVType = "ZeroV";
-    Vfilename = "/nh/compneuro/Data/a.pvp";
+    InitVType = "InitVFromFile";
+    Vfilename = "input/a0.pvp";
     
 
     //define a linear relation between its input and output, with some hard cut-off.
@@ -63,10 +63,8 @@ ImportParamsLayer "copy" = {
     #include "orig";
     //parameter_def test
     @nxScale = 2;
-    //parameter_string_def test
-    @InitVType = "ConstantV";
     //parameter_filename_test test
-    @Vfilename = "/nh/compneuro/Data/test.pvp";
+    @Vfilename = "input/a1.pvp";
 };
 
 //An output layer for the connection tests
@@ -135,6 +133,9 @@ ImportParamsConn "origConn" = {
 
 ImportParamsConn "copyConn" = {
    #include "origConn";
+   //parameter_string_def test
+   @preLayerName = "copy";
    @numAxonalArbors = 3;
+   //parameter array test
    @delay = [3,4,5];
 };

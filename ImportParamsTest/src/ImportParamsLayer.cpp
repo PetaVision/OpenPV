@@ -25,16 +25,14 @@ int ImportParamsLayer::initialize(const char * name, HyPerCol * hc, int num_chan
    if(strcmp(name, "orig") == 0){
       //Test grabbed value
       assert(params->value(name, "nxScale") == 1);
-      //Test grabbed string
-      assert(strcmp(params->stringValue(name, "InitVType"), "ZeroV") == 0);
-      assert(strcmp(params->stringValue(name, "Vfilename"), "/nh/compneuro/Data/a.pvp") == 0);
+      //Test grabbed filename
+      assert(strcmp(params->stringValue(name, "Vfilename"), "input/a0.pvp") == 0);
    }
    else{
       //Test overwritten value
       assert(params->value(name, "nxScale") == 2);
-      //Test overwritten string
-      assert(strcmp(params->stringValue(name, "InitVType"), "ConstantV") == 0);
-      assert(strcmp(params->stringValue(name, "Vfilename"), "/nh/compneuro/Data/test.pvp") == 0);
+      //Test overwritten filename
+      assert(strcmp(params->stringValue(name, "Vfilename"), "input/a1.pvp") == 0);
    }
 
    return PV_SUCCESS;

@@ -24,12 +24,14 @@ int ImportParamsConn::initialize(const char * name, HyPerCol * hc, const char * 
       assert(size == 2);
       assert(delayVals[0] == 0);
       assert(delayVals[1] == 1);
+      assert(strcmp(pre_layer_name, "orig") == 0);
    }
    else{
       assert(size == 3);
       assert(delayVals[0] == 3);
       assert(delayVals[1] == 4);
       assert(delayVals[2] == 5);
+      assert(strcmp(pre_layer_name, "copy") == 0);
    }
 
    return PV_SUCCESS;
