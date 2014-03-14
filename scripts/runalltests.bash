@@ -106,13 +106,6 @@ runandecho $testname $testname Debug/$testname $arglist
 mpirunandecho $testname $testname Debug/$testname $arglist
 cd $wd
 
-testname=ANNTriggerUpdateOnNewImageTest
-arglist="-p input/ANNTriggerUpdateOnNewImageTest.params"
-cd "$testname"
-runandecho $testname $testname Debug/$testname $arglist
-mpirunandecho $testname $testname Debug/$testname $arglist
-cd $wd
-
 testname=ArborSystemTest
 arglist="-p input/test_arbors.params"
 cd "$testname"
@@ -331,6 +324,13 @@ arglist="-p input/StochasticReleaseTest.params"
 runandecho $testname $testname Debug/$testname $arglist
 mpirunandecho $testname $testname Debug/$testname $arglist
 cd "$wd"
+
+testname=TriggerTest
+arglist="-p input/TriggerTest.params"
+cd "$testname"
+runandecho $testname $testname Debug/$testname $arglist
+mpirunandecho $testname $testname Debug/$testname $arglist
+cd $wd
 
 testname=TransposeConnTest
 cd "$testname"
