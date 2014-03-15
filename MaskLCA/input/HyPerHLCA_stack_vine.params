@@ -20,7 +20,7 @@ HyPerCol "column" = {
     startTime        = 0;
     stopTime         = 4658400;        // Display period * #frames
     dt               = 1;           // in ms
-    progressInterval = 25000;         // Print step
+    progressInterval = 5000;         // Print step
     //
     //outputPath                      = "/nh/compneuro/Data/vine/LCA/2013_01_24/output_2013_01_24_how2catchSquirrel_V1_only";
     outputPath                      = "/nh/compneuro/Data/vine/LCA/2013_01_24_2013_02_01/output_stack_vine";
@@ -66,9 +66,9 @@ Movie "Image" = {
     writeStep              = 400;
     initialWriteTime       = 400;
     writeSparseActivity    = false;
-    displayPeriod          = 200; //Time spent on each frame
-    start_frame_index      = 75000;
-    skip_frame_index       = 3;
+    displayPeriod          = 40; //Time spent on each frame
+    start_frame_index      = 50000;
+    skip_frame_index       = 0;
     echoFramePathnameFlag  = true;
     mirrorBCflag           = true;
     jitterFlag             = 0;
@@ -101,7 +101,7 @@ ANNErrorLayer "Error" = {
     //
     //InitVType           = "ZeroV";
     InitVType           = "InitVFromFile";
-    Vfilename           = "/nh/compneuro/Data/vine/LCA/2013_01_24_2013_02_01/output_stack_vine_031114/Checkpoints/Checkpoint160000/Error_V.pvp";
+    Vfilename           = "/nh/compneuro/Data/vine/LCA/2013_01_24_2013_02_01/output_stack_vine_031414/Checkpoints/Checkpoint298000/Error_V.pvp";
     //
     VThresh  = 0.005;
     VMax     = infinity;
@@ -134,9 +134,9 @@ HyPerLCALayer "V1_S2" = {
     //minV                = -1.0;
     //maxV                = .15; //0.05 above VThresh
     InitVType           = "InitVFromFile"; // When initializing weights from file, it helps to also init V values to prevent startup artifacts
-    Vfilename           = "/nh/compneuro/Data/vine/LCA/2013_01_24_2013_02_01/output_stack_vine_031114/Checkpoints/Checkpoint160000/V1_S2_V.pvp";
+    Vfilename           = "/nh/compneuro/Data/vine/LCA/2013_01_24_2013_02_01/output_stack_vine_031414/Checkpoints/Checkpoint298000/V1_S2_V.pvp";
     // 
-    timeConstantTau        = 1000.0;
+    timeConstantTau        = 500.0;
     timeConstantTauMinimum = 10.0;
     slopeErrorStd          = 0.01;
     // 
@@ -170,9 +170,9 @@ HyPerLCALayer "V1_S4" = {
     //minV                = -1.0;
     //maxV                = .15; //0.05 above VThresh
     InitVType           = "InitVFromFile"; // When initializing weights from file, it helps to also init V values to prevent startup artifacts
-    Vfilename           = "/nh/compneuro/Data/vine/LCA/2013_01_24_2013_02_01/output_stack_vine_031114/Checkpoints/Checkpoint160000/V1_S4_V.pvp";
+    Vfilename           = "/nh/compneuro/Data/vine/LCA/2013_01_24_2013_02_01/output_stack_vine_031414/Checkpoints/Checkpoint298000/V1_S4_V.pvp";
     // 
-    timeConstantTau        = 1000.0;
+    timeConstantTau        = 500.0;
     timeConstantTauMinimum = 10.0;
     slopeErrorStd          = 0.01;
     // 
@@ -205,9 +205,9 @@ HyPerLCALayer "V1_S8" = {
     //minV                = -1.0;
     //maxV                = .15; //0.05 above VThresh
     InitVType           = "InitVFromFile"; // When initializing weights from file, it helps to also init V values to prevent startup artifacts
-    Vfilename           = "/nh/compneuro/Data/vine/LCA/2013_01_24_2013_02_01/output_stack_vine_031114/Checkpoints/Checkpoint160000/V1_S8_V.pvp";
+    Vfilename           = "/nh/compneuro/Data/vine/LCA/2013_01_24_2013_02_01/output_stack_vine_031414/Checkpoints/Checkpoint298000/V1_S8_V.pvp";
     // 
-    timeConstantTau        = 1000.0;
+    timeConstantTau        = 500.0;
     timeConstantTauMinimum = 10.0;
     slopeErrorStd          = 0.01;
     // 
@@ -355,7 +355,7 @@ KernelConn "V1_S2ToError" = {
     initFromLastFlag = 0;
     //
     weightInitType      = "FileWeight";
-    initWeightsFile     = "/nh/compneuro/Data/vine/LCA/2013_01_24_2013_02_01/output_stack_vine_031114/Checkpoints/Checkpoint160000/V1_S2ToError_W.pvp";
+    initWeightsFile     = "/nh/compneuro/Data/vine/LCA/2013_01_24_2013_02_01/output_stack_vine_031414/Checkpoints/Checkpoint298000/V1_S2ToError_W.pvp";
     combineWeightFiles  = false;
     useListOfArborFiles = false;
     //
@@ -406,7 +406,7 @@ KernelConn "V1_S4ToError" = {
     initFromLastFlag = 0;
     //
     weightInitType      = "FileWeight";
-    initWeightsFile     = "/nh/compneuro/Data/vine/LCA/2013_01_24_2013_02_01/output_stack_vine_031114/Checkpoints/Checkpoint160000/V1_S4ToError_W.pvp";
+    initWeightsFile     = "/nh/compneuro/Data/vine/LCA/2013_01_24_2013_02_01/output_stack_vine_031414/Checkpoints/Checkpoint298000/V1_S4ToError_W.pvp";
     combineWeightFiles  = false;
     useListOfArborFiles = false;
     //
@@ -457,7 +457,7 @@ KernelConn "V1_S8ToError" = {
     initFromLastFlag = 0;
     //
     weightInitType      = "FileWeight";
-    initWeightsFile     = "/nh/compneuro/Data/vine/LCA/2013_01_24_2013_02_01/output_stack_vine_031114/Checkpoints/Checkpoint160000/V1_S8ToError_W.pvp";
+    initWeightsFile     = "/nh/compneuro/Data/vine/LCA/2013_01_24_2013_02_01/output_stack_vine_031414/Checkpoints/Checkpoint298000/V1_S8ToError_W.pvp";
     combineWeightFiles  = false;
     useListOfArborFiles = false;
     //
@@ -484,7 +484,7 @@ KernelConn "V1_S8ToError" = {
     //
     weightUpdatePeriod      = 40;
     initialWeightUpdateTime = 40;
-    dWMax                   = 1.0;
+    dWMax                   = 2.0;
     combine_dW_with_W_flag  = false; 
     keepKernelsSynchronized = true; 
     preActivityIsNotRate    = false;  // should help make response more indepenent of time step size dt
