@@ -551,11 +551,12 @@ int pvp_check_file_header(Communicator * comm, const PVLayerLoc * loc, int param
          status = PV_SUCCESS; // kernels can be used regardless of layer size
       }
    }
-   if (loc->nf != params[INDEX_NF]) {status = PV_FAILURE; tmp_status = INDEX_NF;}
-   if (tmp_status == INDEX_NF) {
-         fprintf(stderr, "nBands = %d != params[%d]==%d ", loc->nf, INDEX_NF, params[INDEX_NF]);
-         fprintf(stderr, "\n");
-   }
+   // TODO: Fix the following check for the patch size.
+   //if (loc->nf != params[INDEX_NF]) {status = PV_FAILURE; tmp_status = INDEX_NF;}
+   //if (tmp_status == INDEX_NF) {
+   //      fprintf(stderr, "nBands = %d != params[%d]==%d ", loc->nf, INDEX_NF, params[INDEX_NF]);
+   //      fprintf(stderr, "\n");
+   //}
    if (loc->nxGlobal != params[INDEX_NX_GLOBAL]) {status = PV_FAILURE; tmp_status = INDEX_NX_GLOBAL;}
    if (tmp_status == INDEX_NX_GLOBAL) {
       if (params[INDEX_FILE_TYPE] != PVP_KERNEL_FILE_TYPE){
@@ -606,11 +607,12 @@ int pvp_check_file_header(Communicator * comm, const PVLayerLoc * loc, int param
          status = PV_SUCCESS; // kernels can be used regardless of margin size
       }
    }
-   if (loc->nf != params[INDEX_NF]) {status = PV_FAILURE; tmp_status = INDEX_NF;}
-   if (tmp_status == INDEX_NF) {
-         fprintf(stderr, "nBands = %d != params[%d]==%d ", loc->nf, INDEX_NF, params[INDEX_NF]);
-      fprintf(stderr, "\n");
-   }
+   //TODO: remove? Duplicated check from above.
+   //if (loc->nf != params[INDEX_NF]) {status = PV_FAILURE; tmp_status = INDEX_NF;}
+   //if (tmp_status == INDEX_NF) {
+   //      fprintf(stderr, "nBands = %d != params[%d]==%d ", loc->nf, INDEX_NF, params[INDEX_NF]);
+   //   fprintf(stderr, "\n");
+   //}
 
    // (kx0,ky0) is for node 0 only (can be calculated otherwise)
    //

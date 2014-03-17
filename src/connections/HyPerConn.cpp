@@ -3294,6 +3294,9 @@ int HyPerConn::initNormalize() {
          normalizer = new NormalizeContrastZeroMean(name, params);
       }
       else if (!strcmp(normalizeMethod, "normalizeScale")) {
+         if (plasticityFlag) {
+             fprintf(stdout, "HyPerConn:: Warning: Connection %s: Setting both plastic weights and normalization by scaling. The weights will be multiplied by a factor strength after each learning step. Generally not a good idea. Make sure you know what you are doing!\n",name);
+         }
          normalizer = new NormalizeScale(name, params);
       }
       else if (!strcmp(normalizeMethod, "none")) {
