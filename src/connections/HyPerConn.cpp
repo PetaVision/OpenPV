@@ -23,6 +23,7 @@
 #include "../normalizers/NormalizeBase.hpp"
 #include "../normalizers/NormalizeSum.hpp"
 #include "../normalizers/NormalizeL2.hpp"
+#include "../normalizers/NormalizeScale.hpp"
 #include "../normalizers/NormalizeMax.hpp"
 #include "../normalizers/NormalizeContrastZeroMean.hpp"
 #ifdef USE_SHMGET
@@ -3259,7 +3260,7 @@ int HyPerConn::initNormalize() {
             fprintf(stderr, "Please use the string parameter normalizeMethod.\n");
             fprintf(stderr, "'normalize = false;' should be replaced by 'normalizeMethod = \"none\"';\n");
             fprintf(stderr, "and 'normalize = true;' should be replaced by setting normalizeMethod to one of\n");
-            fprintf(stderr, "\"normalizeSum\", \"normalizeL2\", \"normalizeMax\", or \"normalizeContrastZeroMean\".\n");
+            fprintf(stderr, "\"normalizeSum\", \"normalizeL2\", \"normalizeScale\" ,\"normalizeMax\", or \"normalizeContrastZeroMean\".\n");
          }
       }
       bool normalize_flag = params->value(name, "normalize", true/*default*/);
@@ -3291,6 +3292,9 @@ int HyPerConn::initNormalize() {
       }
       else if (!strcmp(normalizeMethod, "normalizeContrastZeroMean")) {
          normalizer = new NormalizeContrastZeroMean(name, params);
+      }
+      else if (!strcmp(normalizeMethod, "normalizeScale")) {
+         normalizer = new NormalizeScale(name, params);
       }
       else if (!strcmp(normalizeMethod, "none")) {
          normalizer = NULL;
