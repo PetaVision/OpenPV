@@ -2102,7 +2102,7 @@ bool HyPerConn::needUpdate(double time, double dt){
          return false;
       }
       //Check for equality
-      if(abs(time - (nextUpdateTime - triggerOffset)) < (dt/2)){
+      if(fabs(time - (nextUpdateTime - triggerOffset)) < (dt/2)){
          return true;
       }
       //If it gets to this point, don't update

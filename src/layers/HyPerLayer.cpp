@@ -124,7 +124,7 @@ int HyPerLayer::initialize_base() {
    this->triggerLayer = NULL;
    this->triggerLayerName = NULL;
    this->triggerOffset = 0;
-   this->nextUpdateTime = 1;
+   this->nextUpdateTime = 0;
    
    this->lastUpdateTime = 0.0;
    //this->lastActiveTime = NULL;
@@ -193,6 +193,7 @@ int HyPerLayer::initialize(const char * name, HyPerCol * hc, int numChannels) {
    status = openOutputStateFile();
 
    lastUpdateTime = parent->simulationTime();
+   nextUpdateTime = parent->getDeltaTime();
    
 
 #ifdef PV_USE_OPENCL
@@ -558,7 +559,7 @@ int HyPerLayer::initializeState() {
       double timef;
       status = readState(&timef);
       if(!parent->getCheckpointReadFlag()){
-         nextUpdateTime = 1;
+         nextUpdateTime = parent->getDeltaTime();
          //updateNextUpdateTime();
       }
    }
@@ -1297,7 +1298,7 @@ bool HyPerLayer::needUpdate(double time, double dt){
    //}
 
    //This function needs to return true if the layer was updated this timestep as well
-   if(abs(parent->simulationTime() - lastUpdateTime) < (dt/2)){
+   if(fabs(parent->simulationTime() - lastUpdateTime) < (dt/2)){
       return true;
    }
    //Never update flag
@@ -1307,7 +1308,7 @@ bool HyPerLayer::needUpdate(double time, double dt){
    }
    //Check based on nextUpdateTime and triggerOffset
    //Needs to be a equality check, so to account for roundoff errors, we check if it's within half the delta time
-   if(abs(time - (nextUpdateTime - triggerOffset)) < (dt/2)){
+   if(fabs(time - (nextUpdateTime - triggerOffset)) < (dt/2)){
       return true;
    }
    return false;
@@ -1332,10 +1333,10 @@ bool HyPerLayer::needUpdate(double time, double dt){
 
 int HyPerLayer::updateNextUpdateTime(){
    double deltaUpdateTime = getDeltaUpdateTime();
+   assert(deltaUpdateTime != 0);
    if(deltaUpdateTime != -1){
       while(parent->simulationTime() >= nextUpdateTime){
          nextUpdateTime += deltaUpdateTime;
-         //std::cout << "Next update time " << name << " to " << nextUpdateTime << "\n";
       }
    }
    else{
@@ -1351,7 +1352,7 @@ double HyPerLayer::getDeltaUpdateTime(){
       return triggerLayer->getDeltaUpdateTime();
    }
    else{
-      return 1;
+      return parent->getDeltaTime();
    }
 }
 

@@ -349,10 +349,10 @@ PVLayerLoc Movie::getImageLoc()
 double Movie::getDeltaUpdateTime(){
    //If jitter or randomMovie, update every timestep
    if( jitterFlag ){
-      return 1;
+      return parent->getDeltaTime();
    }
    if(randomMovie){
-      return 1;
+      return parent->getDeltaTime();
    }
    return displayPeriod;
 }
