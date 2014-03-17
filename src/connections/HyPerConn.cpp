@@ -168,6 +168,14 @@ HyPerConn::~HyPerConn()
 
    delete weightInitializer;
    delete randState;
+
+   if(triggerLayerName){
+      //free(triggerLayerName);
+      triggerLayerName = NULL;
+   }
+   //if(triggerLayer){
+   //   free(triggerLayer);
+   //}
 }
 
 //!
@@ -252,6 +260,11 @@ int HyPerConn::initialize_base()
    this->dataStructuresAllocatedFlag = false;
 
    this->randState = NULL;
+
+   this->triggerFlag = false; //Default to update every timestamp
+   this->triggerLayer = NULL;
+   this->triggerLayerName = NULL;
+   this->triggerOffset = 0;
 
 #ifdef USE_SHMGET
    shmget_flag = false;
@@ -731,6 +744,8 @@ int HyPerConn::setParams(PVParams * inputParams)
    readChannelCode(inputParams);
    readNumAxonalArbors(inputParams);
    readPlasticityFlag(inputParams);
+   readWeightUpdatePeriod(inputParams);
+   readInitialWeightUpdateTime(inputParams);
    readPvpatchAccumulateType(inputParams);
    readPreActivityIsNotRate(inputParams);
    readWriteStep(inputParams);
@@ -744,9 +759,30 @@ int HyPerConn::setParams(PVParams * inputParams)
    readNfp(inputParams);
    readShrinkPatches(inputParams); // Sets shrinkPatches_flag; derived-class methods that override readShrinkPatches must also set shrinkPatches_flag
    readUpdateGSynFromPostPerspective(inputParams);
+   readTriggerFlag(inputParams);
    return PV_SUCCESS;
 
    return 0;
+}
+
+void HyPerConn::readTriggerFlag(PVParams * params) {
+   triggerFlag = (bool) params->value(name, "triggerFlag", triggerFlag);
+   if(triggerFlag){
+      const char * trigger_layer_name = params->stringValue(name, "triggerLayerName");
+      if(!trigger_layer_name){
+         if (parent->columnId()==0) {
+            fprintf(stderr, "%s \"%s\" error: triggerLayerName must be defined if triggerFlag is set\n", parent->parameters()->groupKeywordFromName(name), name);;
+            exit(EXIT_FAILURE);
+         }
+      }
+      triggerLayerName = strdup(trigger_layer_name);
+      if (triggerLayerName ==NULL) {
+         fprintf(stderr, "%s \"%s\" error: rank %d process unable to copy triggerLayerName \"%s\": %s\n",
+                 parent->parameters()->groupKeywordFromName(name), name, parent->columnId(), trigger_layer_name, strerror(errno));
+         exit(EXIT_FAILURE);
+      }
+      triggerOffset = params->value(name, "triggerOffset", triggerOffset);
+   }
 }
 
 void HyPerConn::readChannelCode(PVParams * params) {
@@ -798,6 +834,22 @@ void HyPerConn::readNumAxonalArbors(PVParams * params) {
 
 void HyPerConn::readPlasticityFlag(PVParams * params) {
    plasticityFlag = params->value(name, "plasticityFlag", plasticityFlag, true) != 0;
+}
+
+void HyPerConn::readWeightUpdatePeriod(PVParams * params) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
+   weightUpdatePeriod = 1.0f;
+   if (plasticityFlag) {
+      weightUpdatePeriod = params->value(name, "weightUpdatePeriod", weightUpdatePeriod);
+   }
+}
+
+void HyPerConn::readInitialWeightUpdateTime(PVParams * params) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
+   weightUpdateTime = 0.0f;
+   if (plasticityFlag) {
+      weightUpdateTime = params->value(name, "initialWeightUpdateTime", weightUpdateTime);
+   }
 }
 
 void HyPerConn::readPvpatchAccumulateType(PVParams * params) {
@@ -1143,6 +1195,36 @@ int HyPerConn::communicateInitInfo() {
       fprintf(stderr,"Margin Failure for layer %s.  Received margin is %d, but required margin is %d",name,receivedmargin,margin);
    }
 
+   //Trigger stuff
+   if(triggerFlag){
+      triggerLayer = parent->getLayerFromName(triggerLayerName);
+      if (triggerLayer==NULL) {
+         if (parent->columnId()==0) {
+            fprintf(stderr, "%s \"%s\" error: triggerLayer \"%s\" is not a layer in the HyPerCol.\n",
+                    parent->parameters()->groupKeywordFromName(name), name, triggerLayerName);
+         }
+         MPI_Barrier(parent->icCommunicator()->communicator());
+         exit(EXIT_FAILURE);
+      }
+      //Use either triggering or weightUpdatePeriod
+      //If not default values, print warning
+      if(weightUpdatePeriod != 1 || weightUpdateTime != 0){
+         std::cout << "Warning: Connection " << name << " trigger flag is set, ignoring weightUpdatePeriod and initialWeightUpdateTime\n";
+      }
+      //Although weightUpdatePeriod and weightUpdateTime is being set here, if trigger flag is set, they are not being used
+      //Only updating for backwards compatibility
+      //getDeltaUpdateTime can return -1 (if it never updates), so set placisity flag off if so
+      weightUpdatePeriod = triggerLayer->getDeltaUpdateTime();
+      if(weightUpdatePeriod <= 0){
+         if(plasticityFlag == true){
+            std::cout << "Warning: Connection " << name << "triggered layer " << triggerLayerName << " never updates, turning placisity flag off\n";
+            plasticityFlag = false;
+         }
+      }
+      weightUpdateTime = 1;
+   }
+
+
    return status;
 }
 
@@ -1220,6 +1302,17 @@ int HyPerConn::allocateDataStructures() {
 //         int globalIndex = globalIndexFromLocal(localIndex, *loc);
 //         cl_random_init(&rnd_state[localIndex], nx*nf, rngSeedBase+(unsigned int) globalIndex);
 //      }
+   }
+
+   if (plasticityFlag) {
+      if (parent->getCheckpointReadFlag()==false && weightUpdateTime < parent->simulationTime()) {
+         while(weightUpdateTime <= parent->simulationTime()) {weightUpdateTime += weightUpdatePeriod;}
+         if (parent->columnId()==0) {
+            fprintf(stderr, "Warning: initialWeightUpdateTime of %s \"%s\" less than simulation start time.  Adjusting weightUpdateTime to %f\n",
+                  parent->parameters()->groupKeywordFromName(name), name, weightUpdateTime);
+         }
+      }
+      lastUpdateTime = weightUpdateTime - parent->getDeltaTime();
    }
 
    int status = constructWeights(filename);
@@ -1836,6 +1929,19 @@ int HyPerConn::checkpointRead(const char * cpDir, double * timef) {
    weightsInitObject->initializeWeights(wPatches, get_wDataStart(), path, this, timef);
    free(weightsInitObject); weightsInitObject = NULL;
 
+   status = parent->readScalarFromFile(cpDir, getName(), "lastUpdateTime", &lastUpdateTime, lastUpdateTime);
+   assert(status == PV_SUCCESS);
+   status = parent->readScalarFromFile(cpDir, getName(), "weightUpdateTime", &weightUpdateTime, weightUpdateTime);
+   assert(status == PV_SUCCESS);
+   if (this->plasticityFlag &&  weightUpdateTime<parent->simulationTime()) {
+      // simulationTime() may have been changed by HyPerCol::checkpoint, so this repeats the sanity check on weightUpdateTime in allocateDataStructures
+      while(weightUpdateTime <= parent->simulationTime()) {weightUpdateTime += weightUpdatePeriod;}
+      if (parent->columnId()==0) {
+         fprintf(stderr, "Warning: initialWeightUpdateTime of %s \"%s\" less than simulation start time.  Adjusting weightUpdateTime to %f\n",
+               parent->parameters()->groupKeywordFromName(name), name, weightUpdateTime);
+      }
+   }
+
    status = parent->readScalarFromFile(cpDir, getName(), "nextWrite", &writeTime, writeTime);
    assert(status == PV_SUCCESS);
 
@@ -1849,6 +1955,10 @@ int HyPerConn::checkpointWrite(const char * cpDir) {
    status = writeWeights(wPatches, wDataStart, getNumWeightPatches(), filename, parent->simulationTime(), writeCompressedCheckpoints, /*last*/true);
    assert(status==PV_SUCCESS);
    status = parent->writeScalarToFile(cpDir, getName(), "nextWrite", writeTime);
+   assert(status==PV_SUCCESS);
+   status = parent->writeScalarToFile(cpDir, getName(), "lastUpdateTime", lastUpdateTime);
+   assert(status==PV_SUCCESS);
+   status = parent->writeScalarToFile(cpDir, getName(), "weightUpdateTime", weightUpdateTime);
    assert(status==PV_SUCCESS);
    return status;
 }
@@ -1975,6 +2085,60 @@ int HyPerConn::outputState(double timef, bool last)
    return status;
 }
 
+bool HyPerConn::needUpdate(double time, double dt){
+   if( !plasticityFlag ) {
+      return false;
+   }
+   if(triggerFlag){
+      assert(triggerLayer);
+      //Never update on timestep 1 if triggered
+      if(time == dt){
+         return false;
+      }
+      double nextUpdateTime = triggerLayer->getNextUpdateTime();
+      //never update flag
+      if(nextUpdateTime == -1){
+         return false;
+      }
+      //Check for equality
+      if(abs(time - (nextUpdateTime - triggerOffset)) < (dt/2)){
+         return true;
+      }
+      //If it gets to this point, don't update
+      return false;
+   }
+   //If no trigger, use weightUpdateTime
+   else{
+      if( time >= weightUpdateTime) {
+         return true;
+      }
+      return false;
+   }
+}
+
+
+int HyPerConn::updateStateWrapper(double time, double dt){
+   int status = PV_SUCCESS;
+
+   if(needUpdate(time, dt)){
+      //std::cout << "Connection " << name << " updating on timestep " << time << "\n";
+      status = updateState(time, dt);
+      //Update lastUpdateTime
+      lastUpdateTime = time;
+      computeNewWeightUpdateTime(time, weightUpdateTime);
+
+      //Sanity check, take this out once convinced layer's nextUpdateTime is the same as weightUpdateTime
+      //No way to make this assertion, cause nextUpdateTime/weightUpdateTime updates happen at different times
+      //if(triggerFlag){
+      //   if(weightUpdateTime != triggerLayer->getNextUpdateTime()){
+      //      std::cout << "Layer " << name << ": weightUpdateTime (" << weightUpdateTime << ") and layer's getNextUpdateTime (" << triggerLayer->getNextUpdateTime() << ") mismatch\n";
+      //   }
+      //   //assert(weightUpdateTime == triggerLayer->getNextUpdateTime());
+      //}
+   }
+   return status;
+}
+
 int HyPerConn::updateState(double time, double dt)
 {
    int status = PV_SUCCESS;
@@ -2005,6 +2169,14 @@ int HyPerConn::calc_dW(int arborId) {
 int HyPerConn::updateWeights(int arborId)
 {
    return 0;
+}
+
+double HyPerConn::computeNewWeightUpdateTime(double time, double currentUpdateTime) {
+   //Only called if placisity flag is set
+   while(time >= weightUpdateTime){
+      weightUpdateTime += weightUpdatePeriod;
+   }
+   return weightUpdateTime;
 }
 
 float HyPerConn::minWeight(int arborId)

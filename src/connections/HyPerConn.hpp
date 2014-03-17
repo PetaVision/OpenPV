@@ -77,7 +77,10 @@ public:
    virtual int checkpointWrite(const char * cpDir);
    virtual int insertProbe(BaseConnectionProbe* p);
    virtual int outputState(double time, bool last = false);
+   int updateStateWrapper(double time, double dt);
    virtual int updateState(double time, double dt);
+   virtual bool needUpdate(double time, double dt);
+   virtual double computeNewWeightUpdateTime(double time, double currentUpdateTime);
    virtual int updateWeights(int arborId = 0);
    virtual int writeWeights(double time, bool last = false);
    virtual int writeWeights(const char* filename);
@@ -96,6 +99,10 @@ public:
    int (*accumulateFunctionPointer)(int nk, float* v, float a, float* w, void* auxPtr);
    int (*accumulateFunctionFromPostPointer)(int nk, float* v, float* a, float* w, float dt_factor, void* auxPtr);
    inline bool preSynapticActivityIsNotRate() {return preActivityIsNotRate;}
+
+   double getWeightUpdatePeriod() {return weightUpdatePeriod;}
+   double getWeightUpdateTime() {return weightUpdateTime;}
+   double getLastUpdateTime() {return lastUpdateTime;}
 
    // TODO make a get-method to return this.
    virtual PVLayerCube* getPlasticityDecrement() {
@@ -401,6 +408,10 @@ private:
    int defaultDelay; //added to save params file defined delay...
    const float* fDelayArray;
    int delayArraySize;
+   bool triggerFlag; 
+   char* triggerLayerName;
+   double triggerOffset;
+   HyPerLayer* triggerLayer;
 
 protected:
    bool useWindowPost;
@@ -463,6 +474,10 @@ protected:
    bool useListOfArborFiles;
    bool combineWeightFiles;
    bool updateGSynFromPostPerspective;
+
+   double weightUpdatePeriod;
+   double weightUpdateTime;
+   double lastUpdateTime;
 
    // unsigned int rngSeedBase; // The starting seed for rng.  The parent HyPerCol reserves {rngSeedbase, rngSeedbase+1,...rngSeedbase+neededRNGSeeds-1} for use by this layer
    // uint4 * rnd_state; // An array of RNGs.
@@ -598,9 +613,12 @@ protected:
    void connOutOfMemory(const char* funcname);
 
    virtual int setParams(PVParams* params);
+   void readTriggerFlag(PVParams * params);
    virtual void readChannelCode(PVParams * params);
    virtual void readNumAxonalArbors(PVParams * params);
    virtual void readPlasticityFlag(PVParams * params);
+   virtual void readWeightUpdatePeriod(PVParams * params);
+   virtual void readInitialWeightUpdateTime(PVParams * params);
    virtual void readPvpatchAccumulateType(PVParams * params);
    virtual void readPreActivityIsNotRate(PVParams * params);
    virtual void readWriteCompressedWeights(PVParams * params);

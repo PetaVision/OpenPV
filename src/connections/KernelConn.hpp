@@ -40,9 +40,11 @@ public:
    virtual int writeWeights(const char * filename);
 
    bool getPlasticityFlag() {return plasticityFlag;}
-   double getWeightUpdatePeriod() {return weightUpdatePeriod;}
-   double getWeightUpdateTime() {return weightUpdateTime;}
-   double getLastUpdateTime() {return lastUpdateTime;}
+
+   //Moved to HyPerConn
+   //double getWeightUpdatePeriod() {return weightUpdatePeriod;}
+   //double getWeightUpdateTime() {return weightUpdateTime;}
+   //double getLastUpdateTime() {return lastUpdateTime;}
 
 
    virtual int checkpointWrite(const char * cpDir);
@@ -58,9 +60,10 @@ public:
 
 
 protected:
-   double weightUpdatePeriod;
-   double weightUpdateTime;
-   double lastUpdateTime;
+   //Moved to HyPerConn
+   //double weightUpdatePeriod;
+   //double weightUpdateTime;
+   //double lastUpdateTime;
    bool symmetrizeWeightsFlag;
    int* numKernelActivations;
 
@@ -107,7 +110,8 @@ protected:
 
    virtual int updateState(double time, double dt);
    virtual int updateWeights(int arborId);
-   virtual double computeNewWeightUpdateTime(double time, double currentUpdateTime);
+   //Moved to HyPerConn
+   //virtual double computeNewWeightUpdateTime(double time, double currentUpdateTime);
 #ifdef PV_USE_MPI
    virtual int reduceKernels(int arborID);
 #else
@@ -120,8 +124,9 @@ protected:
    virtual int setParams(PVParams* params);
    virtual void readShmget_flag(PVParams * params);
    virtual void readKeepKernelsSynchronized(PVParams * params);
-   virtual void readWeightUpdatePeriod(PVParams * params);
-   virtual void readInitialWeightUpdateTime(PVParams * params);
+   //Moved to HyPerConn
+   //virtual void readWeightUpdatePeriod(PVParams * params);
+   //virtual void readInitialWeightUpdateTime(PVParams * params);
    virtual void readUseWindowPost(PVParams * params);
 
 private:

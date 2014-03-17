@@ -128,21 +128,22 @@ void KernelConn::readKeepKernelsSynchronized(PVParams * params) {
    }
 }
 
-void KernelConn::readWeightUpdatePeriod(PVParams * params) {
-   assert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
-   weightUpdatePeriod = 1.0f;
-   if (plasticityFlag) {
-      weightUpdatePeriod = params->value(name, "weightUpdatePeriod", weightUpdatePeriod);
-   }
-}
-
-void KernelConn::readInitialWeightUpdateTime(PVParams * params) {
-   assert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
-   weightUpdateTime = 0.0f;
-   if (plasticityFlag) {
-      weightUpdateTime = params->value(name, "initialWeightUpdateTime", weightUpdateTime);
-   }
-}
+//Moved to HyPerConn
+//void KernelConn::readWeightUpdatePeriod(PVParams * params) {
+//   assert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
+//   weightUpdatePeriod = 1.0f;
+//   if (plasticityFlag) {
+//      weightUpdatePeriod = params->value(name, "weightUpdatePeriod", weightUpdatePeriod);
+//   }
+//}
+//
+//void KernelConn::readInitialWeightUpdateTime(PVParams * params) {
+//   assert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
+//   weightUpdateTime = 0.0f;
+//   if (plasticityFlag) {
+//      weightUpdateTime = params->value(name, "initialWeightUpdateTime", weightUpdateTime);
+//   }
+//}
 
 void KernelConn::readUseWindowPost(PVParams * params){
    assert(!parent->parameters()->presentAndNotBeenRead(name, "numAxonalArbors"));
@@ -335,19 +336,21 @@ int KernelConn::initNormalize() {
 int KernelConn::allocateDataStructures() {
    HyPerConn::allocateDataStructures();
    PVParams * params = parent->parameters();
-   assert(!params->presentAndNotBeenRead(name, "plasticityFlag"));
-   if (plasticityFlag) {
-      assert(!params->presentAndNotBeenRead(name, "initialWeightUpdateTime"));
-      assert(!params->presentAndNotBeenRead(name, "weightUpdatePeriod"));
-      if (parent->getCheckpointReadFlag()==false && weightUpdateTime < parent->simulationTime()) {
-         while(weightUpdateTime <= parent->simulationTime()) {weightUpdateTime += weightUpdatePeriod;}
-         if (parent->columnId()==0) {
-            fprintf(stderr, "Warning: initialWeightUpdateTime of %s \"%s\" less than simulation start time.  Adjusting weightUpdateTime to %f\n",
-                  parent->parameters()->groupKeywordFromName(name), name, weightUpdateTime);
-         }
-      }
-      lastUpdateTime = weightUpdateTime - parent->getDeltaTime();
-   }
+
+   //Moved to HyPerConn
+   //assert(!params->presentAndNotBeenRead(name, "plasticityFlag"));
+   //if (plasticityFlag) {
+   //   assert(!params->presentAndNotBeenRead(name, "initialWeightUpdateTime"));
+   //   assert(!params->presentAndNotBeenRead(name, "weightUpdatePeriod"));
+   //   if (parent->getCheckpointReadFlag()==false && weightUpdateTime < parent->simulationTime()) {
+   //      while(weightUpdateTime <= parent->simulationTime()) {weightUpdateTime += weightUpdatePeriod;}
+   //      if (parent->columnId()==0) {
+   //         fprintf(stderr, "Warning: initialWeightUpdateTime of %s \"%s\" less than simulation start time.  Adjusting weightUpdateTime to %f\n",
+   //               parent->parameters()->groupKeywordFromName(name), name, weightUpdateTime);
+   //      }
+   //   }
+   //   lastUpdateTime = weightUpdateTime - parent->getDeltaTime();
+   //}
 #ifdef PV_USE_MPI
    // preallocate buffer for MPI_Allreduce call in reduceKernels
    // Should only call reduceKernels if plasticityFlag is set, so only allocate if it is set.
@@ -575,7 +578,8 @@ int KernelConn::defaultUpdate_dW(int arbor_ID) {
    //   }
    //}
 
-   lastUpdateTime = parent->simulationTime();
+   //Moved to HyPerConn
+   //lastUpdateTime = parent->simulationTime();
 
    return PV_SUCCESS;
 }
@@ -590,8 +594,10 @@ int KernelConn::updateState(double timef, double dt) {
       return status;
    }
    update_timer->start();
-   if( timef >= weightUpdateTime) {
-      computeNewWeightUpdateTime(timef, weightUpdateTime);
+
+   //Now done in HyPerConn
+   //if( timef >= weightUpdateTime) {
+   //   computeNewWeightUpdateTime(timef, weightUpdateTime);
 
       for(int arborID=0;arborID<numberOfAxonalArborLists();arborID++) {
          status = calc_dW(arborID);  // calculate changes in weights
@@ -618,7 +624,7 @@ int KernelConn::updateState(double timef, double dt) {
          assert(status == PV_SUCCESS);
       }
       normalizeWeights();
-   } // time > weightUpdateTime
+   //} // time > weightUpdateTime
 
    update_timer->stop();
    return PV_SUCCESS;
@@ -647,11 +653,12 @@ int KernelConn::updateWeights(int arbor_ID){
    return PV_BREAK;
 }
 
-double KernelConn::computeNewWeightUpdateTime(double time, double currentUpdateTime) {
-   // Is only called by KernelConn::updateState if plasticityFlag is true
-   weightUpdateTime += weightUpdatePeriod;
-   return weightUpdateTime;
-}
+//Moved to HyPerConn
+//double KernelConn::computeNewWeightUpdateTime(double time, double currentUpdateTime) {
+//   // Is only called by KernelConn::updateState if plasticityFlag is true
+//   weightUpdateTime += weightUpdatePeriod;
+//   return weightUpdateTime;
+//}
 
 #ifdef PV_USE_MPI
 int KernelConn::reduceKernels(const int arborID) {
@@ -892,18 +899,19 @@ int KernelConn::checkpointRead(const char * cpDir, double * timef) {
    InitWeights * weightsInitObject = new InitWeights();
    weightsInitObject->initializeWeights(NULL, get_wDataStart(), path, this, timef);
    delete weightsInitObject;
-   status = parent->readScalarFromFile(cpDir, getName(), "lastUpdateTime", &lastUpdateTime, lastUpdateTime);
-   assert(status == PV_SUCCESS);
-   status = parent->readScalarFromFile(cpDir, getName(), "weightUpdateTime", &weightUpdateTime, weightUpdateTime);
-   assert(status == PV_SUCCESS);
-   if (this->plasticityFlag &&  weightUpdateTime<parent->simulationTime()) {
-      // simulationTime() may have been changed by HyPerCol::checkpoint, so this repeats the sanity check on weightUpdateTime in allocateDataStructures
-      while(weightUpdateTime <= parent->simulationTime()) {weightUpdateTime += weightUpdatePeriod;}
-      if (parent->columnId()==0) {
-         fprintf(stderr, "Warning: initialWeightUpdateTime of %s \"%s\" less than simulation start time.  Adjusting weightUpdateTime to %f\n",
-               parent->parameters()->groupKeywordFromName(name), name, weightUpdateTime);
-      }
-   }
+   //Moved to HyPerConn
+   //status = parent->readScalarFromFile(cpDir, getName(), "lastUpdateTime", &lastUpdateTime, lastUpdateTime);
+   //assert(status == PV_SUCCESS);
+   //status = parent->readScalarFromFile(cpDir, getName(), "weightUpdateTime", &weightUpdateTime, weightUpdateTime);
+   //assert(status == PV_SUCCESS);
+   //if (this->plasticityFlag &&  weightUpdateTime<parent->simulationTime()) {
+   //   // simulationTime() may have been changed by HyPerCol::checkpoint, so this repeats the sanity check on weightUpdateTime in allocateDataStructures
+   //   while(weightUpdateTime <= parent->simulationTime()) {weightUpdateTime += weightUpdatePeriod;}
+   //   if (parent->columnId()==0) {
+   //      fprintf(stderr, "Warning: initialWeightUpdateTime of %s \"%s\" less than simulation start time.  Adjusting weightUpdateTime to %f\n",
+   //            parent->parameters()->groupKeywordFromName(name), name, weightUpdateTime);
+   //   }
+   //}
    return PV_SUCCESS;
 }
 
@@ -918,10 +926,11 @@ int KernelConn::checkpointWrite(const char * cpDir) {
       }
    }
 //#endif // PV_USE_MPI
-   status = parent->writeScalarToFile(cpDir, getName(), "lastUpdateTime", lastUpdateTime);
-   assert(status==PV_SUCCESS);
-   status = parent->writeScalarToFile(cpDir, getName(), "weightUpdateTime", weightUpdateTime);
-   assert(status==PV_SUCCESS);
+   //Moved to HyPerConn
+   //status = parent->writeScalarToFile(cpDir, getName(), "lastUpdateTime", lastUpdateTime);
+   //assert(status==PV_SUCCESS);
+   //status = parent->writeScalarToFile(cpDir, getName(), "weightUpdateTime", weightUpdateTime);
+   //assert(status==PV_SUCCESS);
    return HyPerConn::writeWeights(NULL, get_wDataStart(), getNumDataPatches(), filename, parent->simulationTime(), writeCompressedCheckpoints, /*last*/true);
 }
 

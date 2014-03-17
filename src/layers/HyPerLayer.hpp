@@ -318,8 +318,9 @@ public:
    const PVLayerLoc * getLayerLoc()  { return &(clayer->loc); }
    bool isExtended()                 { return true; }
 
-   // Layers that don't update every timestep should manage lastUpdateTime and override getLastUpdateTime()
+   //TODO don't make this virtual
    virtual double getLastUpdateTime();
+   double getNextUpdateTime() { return nextUpdateTime;}
 
    //double getLastActiveTime(int fi){assert(fi>=0 && fi<getLayerLoc()->nf); return lastActiveTime[fi];}
 

@@ -923,7 +923,7 @@ int HyPerCol::advanceTime(double sim_time)
    // update the connections (weights)
    //
    for (int c = 0; c < numConnections; c++) {
-      status = connections[c]->updateState(simTime, deltaTime);
+      status = connections[c]->updateStateWrapper(simTime, deltaTime);
       if (!exitAfterUpdate) {
 		  exitAfterUpdate = status == PV_EXIT_NORMALLY;
       }

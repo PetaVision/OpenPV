@@ -1305,7 +1305,7 @@ bool HyPerLayer::needUpdate(double time, double dt){
    }
    //Check based on nextUpdateTime and triggerOffset
    //Needs to be a equality check, so to account for roundoff errors, we check if it's within half the delta time
-   if(abs(parent->simulationTime() - (nextUpdateTime - triggerOffset)) < (dt/2)){
+   if(abs(time - (nextUpdateTime - triggerOffset)) < (dt/2)){
       return true;
    }
    return false;
@@ -1356,6 +1356,7 @@ double HyPerLayer::getDeltaUpdateTime(){
 int HyPerLayer::updateStateWrapper(double timef, double dt){
    int status = PV_SUCCESS;
    if(needUpdate(timef, dt)){
+      //std::cout << "Layer " << name << " updating on timestep " << timef << "\n";
       status = updateState(timef, dt);
       lastUpdateTime=parent->simulationTime();
    }

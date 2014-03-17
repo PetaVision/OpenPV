@@ -54,8 +54,9 @@ int CliqueConn::updateState(double time, double dt)
    if( !plasticityFlag ) {
       return status;
    }
-   if( time >= weightUpdateTime) {
-      computeNewWeightUpdateTime(time, weightUpdateTime);
+   //Check moved to HyPerConn
+   //if( time >= weightUpdateTime) {
+   //   computeNewWeightUpdateTime(time, weightUpdateTime);
       for(int axonID=0;axonID<numberOfAxonalArborLists();axonID++) {
          status = update_dW(axonID);  // don't clear dW, just accumulate changes
          if (status == PV_BREAK) {break;}
@@ -82,7 +83,7 @@ int CliqueConn::updateState(double time, double dt)
          }
       } //
 
-   } // time > weightUpdateTime
+   //} // time > weightUpdateTime
 
    update_timer->stop();
    return PV_SUCCESS;
