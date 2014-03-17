@@ -1902,7 +1902,7 @@ int HyPerLayer::checkpointRead(const char * cpDir, double * timed) {
    }
 
    parent->readScalarFromFile(cpDir, getName(), "lastUpdateTime", &lastUpdateTime, parent->simulationTime()-parent->getDeltaTime());
-   parent->readScalarFromFile(cpDir, getName(), "nextUpdateTime", &nextUpdateTime, parent->simulationTime()+1);
+   parent->readScalarFromFile(cpDir, getName(), "nextUpdateTime", &nextUpdateTime, parent->simulationTime()+parent->getDeltaTime());
    parent->readScalarFromFile(cpDir, getName(), "nextWrite", &writeTime, writeTime);
 
    if (ioAppend) {

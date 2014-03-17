@@ -174,10 +174,11 @@ CloneVLayer::~CloneVLayer() {
    clayer->V = NULL;
 }
 
-double CloneVLayer::getDeltaUpdateTime(){
-   //Defer to original layer
-   return originalLayer->getDeltaUpdateTime();
-}
+//CloneVLayer should be able to trigger off of other stuff
+//double CloneVLayer::getDeltaUpdateTime(){
+//   //Defer to original layer
+//   return originalLayer->getDeltaUpdateTime();
+//}
 
 
 } /* namespace PV */
