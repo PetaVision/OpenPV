@@ -6,6 +6,7 @@
 
 #include <columns/buildandrun.hpp>
 #include "TriggerTestLayer.hpp"
+#include "TriggerTestConn.hpp"
 
 void * addcustomgroup(const char * keyword, const char * groupname, HyPerCol * hc);
 
@@ -16,15 +17,21 @@ int main(int argc, char * argv[]) {
 }
 
 void * addcustomgroup(const char * keyword, const char * groupname, HyPerCol * hc) {
-   HyPerLayer * addedLayer= NULL;
+   void* addedGroup= NULL;
 
    if ( !strcmp(keyword, "TriggerTestLayer") ) {
-      addedLayer = new TriggerTestLayer(groupname, hc);
+      addedGroup = new TriggerTestLayer(groupname, hc);
    }
-   if (!addedLayer) {
+   if ( !strcmp(keyword, "TriggerTestConn") ) {
+      char * preLayerName = NULL;
+      char * postLayerName = NULL;
+      HyPerConn::getPreAndPostLayerNames(groupname, hc->parameters(), &preLayerName, &postLayerName);
+      addedGroup = new TriggerTestConn(groupname, hc, preLayerName, postLayerName);
+   }
+   if (!addedGroup) {
       fprintf(stderr, "Group \"%s\": Unable to create %s\n", groupname, keyword);
       exit(EXIT_SUCCESS);
    }
-   checknewobject((void *) addedLayer, keyword, groupname, hc);
-   return addedLayer;
+   checknewobject((void *) addedGroup, keyword, groupname, hc);
+   return addedGroup;
 }

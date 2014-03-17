@@ -154,34 +154,339 @@ TriggerTestLayer "trigger2" = {
 };
 
 
-IdentConn "inputToNoTrigger" = {
+TriggerTestConn "inputToNoTrigger" = {
     preLayerName                     = "input";
     postLayerName                    = "notrigger";
-    channelCode                      = 0;
-    delay                            = 0;
-    writeStep                        = -1;
+    channelCode = 0;
+// we have a 32*32 image, an input layer with nf = 1 and an output layer with nf = 8. So we have 32*32*8 outputs.
+// the connection layer defines nxp * nyp (i.e. 7*7) edges from each pixel in input layer to 7*7 vertexs of 1 out of 8 images
+// and these vertexs are chosen from the nearest ones around the pixel
+    nxp = 1;
+    nyp = 1;
+    nfp = 1; 
+    numAxonalArbors = 1;
+    writeStep = -1;
+    initFromLastFlag = 0;
+    
+    weightInitType = "IdentWeight";
+      
+    strength = 1.0;  // 1.0 x post->num_neurons / pre->num_neurons
+    normalizeMethod = "none";
+    normalizeArborsIndividually = false;
+    normalize_cutoff = 0;
+    symmetrizeWeights = 0;
+    preActivityIsNotRate = false;
+    minSumTolerated = 0.0;
+    normalizeFromPostPerspective = false;
+
+    writeCompressedCheckpoints = false;
+    plasticityFlag = true;
+    selfFlag = false;  // conntect to itself
+    shmget_flag = true; //shared memory
+
+    delay = 0;
+
+    pvpatchAccumulateType = "Convolve"; // "Convolve", "Stochastic", or "Maxpooling" (case-insensitive)
+    shrinkPatches = false; // If only a small part of connections whose weights are non-zero, then we could shrink the whole networks
+    updateGSynFromPostPerspective = false; // Whether receiving synaptic input should loop over pre-synaptic neurons (false) or post-synaptic neurons (true)
+
+    //Triggering
+    triggerFlag = false;
 };
 
-IdentConn "inputToTrigger0" = {
+
+TriggerTestConn "inputToTrigger0" = {
     preLayerName                     = "input";
     postLayerName                    = "trigger0";
-    channelCode                      = 0;
-    delay                            = 0;
-    writeStep                        = -1;
+    channelCode = 0;
+// we have a 32*32 image, an input layer with nf = 1 and an output layer with nf = 8. So we have 32*32*8 outputs.
+// the connection layer defines nxp * nyp (i.e. 7*7) edges from each pixel in input layer to 7*7 vertexs of 1 out of 8 images
+// and these vertexs are chosen from the nearest ones around the pixel
+    nxp = 1;
+    nyp = 1;
+    nfp = 1; 
+    numAxonalArbors = 1;
+    writeStep = -1;
+    initFromLastFlag = 0;
+    
+    weightInitType = "IdentWeight";
+      
+    strength = 1.0;  // 1.0 x post->num_neurons / pre->num_neurons
+    normalizeMethod = "none";
+    normalizeArborsIndividually = false;
+    normalize_cutoff = 0;
+    symmetrizeWeights = 0;
+    preActivityIsNotRate = false;
+    minSumTolerated = 0.0;
+    normalizeFromPostPerspective = false;
+
+    writeCompressedCheckpoints = false;
+    plasticityFlag = true;
+    selfFlag = false;  // conntect to itself
+    shmget_flag = true; //shared memory
+
+    delay = 0;
+
+    pvpatchAccumulateType = "Convolve"; // "Convolve", "Stochastic", or "Maxpooling" (case-insensitive)
+    shrinkPatches = false; // If only a small part of connections whose weights are non-zero, then we could shrink the whole networks
+    updateGSynFromPostPerspective = false; // Whether receiving synaptic input should loop over pre-synaptic neurons (false) or post-synaptic neurons (true)
+
+    //Triggering
+    triggerFlag                      = true;
+    triggerLayerName                 = "input";
+    triggerOffset                    = 0;
 };
 
-IdentConn "inputToTrigger1" = {
+TriggerTestConn "inputToTrigger1" = {
     preLayerName                     = "input";
     postLayerName                    = "trigger1";
-    channelCode                      = 0;
-    delay                            = 0;
-    writeStep                        = -1;
+    channelCode = 0;
+// we have a 32*32 image, an input layer with nf = 1 and an output layer with nf = 8. So we have 32*32*8 outputs.
+// the connection layer defines nxp * nyp (i.e. 7*7) edges from each pixel in input layer to 7*7 vertexs of 1 out of 8 images
+// and these vertexs are chosen from the nearest ones around the pixel
+    nxp = 1;
+    nyp = 1;
+    nfp = 1; 
+    numAxonalArbors = 1;
+    writeStep = -1;
+    initFromLastFlag = 0;
+    
+    weightInitType = "IdentWeight";
+      
+    strength = 1.0;  // 1.0 x post->num_neurons / pre->num_neurons
+    normalizeMethod = "none";
+    normalizeArborsIndividually = false;
+    normalize_cutoff = 0;
+    symmetrizeWeights = 0;
+    preActivityIsNotRate = false;
+    minSumTolerated = 0.0;
+    normalizeFromPostPerspective = false;
+
+    writeCompressedCheckpoints = false;
+    plasticityFlag = true;
+    selfFlag = false;  // conntect to itself
+    shmget_flag = true; //shared memory
+
+    delay = 0;
+
+    pvpatchAccumulateType = "Convolve"; // "Convolve", "Stochastic", or "Maxpooling" (case-insensitive)
+    shrinkPatches = false; // If only a small part of connections whose weights are non-zero, then we could shrink the whole networks
+    updateGSynFromPostPerspective = false; // Whether receiving synaptic input should loop over pre-synaptic neurons (false) or post-synaptic neurons (true)
+
+    //Triggering
+    triggerFlag                      = true;
+    triggerLayerName                 = "input";
+    triggerOffset                    = 1;
 };
 
-IdentConn "inputToTrigger2" = {
+TriggerTestConn "inputToTrigger2" = {
     preLayerName                     = "input";
     postLayerName                    = "trigger2";
-    channelCode                      = 0;
-    delay                            = 0;
-    writeStep                        = -1;
+    channelCode = 0;
+// we have a 32*32 image, an input layer with nf = 1 and an output layer with nf = 8. So we have 32*32*8 outputs.
+// the connection layer defines nxp * nyp (i.e. 7*7) edges from each pixel in input layer to 7*7 vertexs of 1 out of 8 images
+// and these vertexs are chosen from the nearest ones around the pixel
+    nxp = 1;
+    nyp = 1;
+    nfp = 1; 
+    numAxonalArbors = 1;
+    writeStep = -1;
+    initFromLastFlag = 0;
+    
+    weightInitType = "IdentWeight";
+      
+    strength = 1.0;  // 1.0 x post->num_neurons / pre->num_neurons
+    normalizeMethod = "none";
+    normalizeArborsIndividually = false;
+    normalize_cutoff = 0;
+    symmetrizeWeights = 0;
+    preActivityIsNotRate = false;
+    minSumTolerated = 0.0;
+    normalizeFromPostPerspective = false;
+
+    writeCompressedCheckpoints = false;
+    plasticityFlag = true;
+    selfFlag = false;  // conntect to itself
+    shmget_flag = true; //shared memory
+
+    delay = 0;
+
+    pvpatchAccumulateType = "Convolve"; // "Convolve", "Stochastic", or "Maxpooling" (case-insensitive)
+    shrinkPatches = false; // If only a small part of connections whose weights are non-zero, then we could shrink the whole networks
+    updateGSynFromPostPerspective = false; // Whether receiving synaptic input should loop over pre-synaptic neurons (false) or post-synaptic neurons (true)
+
+    //Triggering
+    triggerFlag                      = true;
+    triggerLayerName                 = "input";
+    triggerOffset                    = 2;
+};
+
+TriggerTestConn "inputToNoPeriod" = {
+    preLayerName                     = "input";
+    postLayerName                    = "notrigger";
+    channelCode = 0;
+// we have a 32*32 image, an input layer with nf = 1 and an output layer with nf = 8. So we have 32*32*8 outputs.
+// the connection layer defines nxp * nyp (i.e. 7*7) edges from each pixel in input layer to 7*7 vertexs of 1 out of 8 images
+// and these vertexs are chosen from the nearest ones around the pixel
+    nxp = 1;
+    nyp = 1;
+    nfp = 1; 
+    numAxonalArbors = 1;
+    writeStep = -1;
+    initFromLastFlag = 0;
+    
+    weightInitType = "IdentWeight";
+      
+    strength = 1.0;  // 1.0 x post->num_neurons / pre->num_neurons
+    normalizeMethod = "none";
+    normalizeArborsIndividually = false;
+    normalize_cutoff = 0;
+    symmetrizeWeights = 0;
+    preActivityIsNotRate = false;
+    minSumTolerated = 0.0;
+    normalizeFromPostPerspective = false;
+
+    writeCompressedCheckpoints = false;
+    plasticityFlag = true;
+    selfFlag = false;  // conntect to itself
+    shmget_flag = true; //shared memory
+
+    delay = 0;
+
+    pvpatchAccumulateType = "Convolve"; // "Convolve", "Stochastic", or "Maxpooling" (case-insensitive)
+    shrinkPatches = false; // If only a small part of connections whose weights are non-zero, then we could shrink the whole networks
+    updateGSynFromPostPerspective = false; // Whether receiving synaptic input should loop over pre-synaptic neurons (false) or post-synaptic neurons (true)
+
+    //Triggering
+    triggerFlag = false;
+};
+
+
+TriggerTestConn "inputToPeriod0" = {
+    preLayerName                     = "input";
+    postLayerName                    = "trigger0";
+    channelCode = 0;
+// we have a 32*32 image, an input layer with nf = 1 and an output layer with nf = 8. So we have 32*32*8 outputs.
+// the connection layer defines nxp * nyp (i.e. 7*7) edges from each pixel in input layer to 7*7 vertexs of 1 out of 8 images
+// and these vertexs are chosen from the nearest ones around the pixel
+    nxp = 1;
+    nyp = 1;
+    nfp = 1; 
+    numAxonalArbors = 1;
+    writeStep = -1;
+    initFromLastFlag = 0;
+    
+    weightInitType = "IdentWeight";
+      
+    strength = 1.0;  // 1.0 x post->num_neurons / pre->num_neurons
+    normalizeMethod = "none";
+    normalizeArborsIndividually = false;
+    normalize_cutoff = 0;
+    symmetrizeWeights = 0;
+    preActivityIsNotRate = false;
+    minSumTolerated = 0.0;
+    normalizeFromPostPerspective = false;
+
+    writeCompressedCheckpoints = false;
+    plasticityFlag = true;
+    selfFlag = false;  // conntect to itself
+    shmget_flag = true; //shared memory
+
+    delay = 0;
+
+    pvpatchAccumulateType = "Convolve"; // "Convolve", "Stochastic", or "Maxpooling" (case-insensitive)
+    shrinkPatches = false; // If only a small part of connections whose weights are non-zero, then we could shrink the whole networks
+    updateGSynFromPostPerspective = false; // Whether receiving synaptic input should loop over pre-synaptic neurons (false) or post-synaptic neurons (true)
+
+    //Triggering
+    triggerFlag                      = false;
+
+    weightUpdatePeriod               = 5;
+    initialWeightUpdateTime          = 1;
+};
+
+TriggerTestConn "inputToPeriod1" = {
+    preLayerName                     = "input";
+    postLayerName                    = "trigger1";
+    channelCode = 0;
+// we have a 32*32 image, an input layer with nf = 1 and an output layer with nf = 8. So we have 32*32*8 outputs.
+// the connection layer defines nxp * nyp (i.e. 7*7) edges from each pixel in input layer to 7*7 vertexs of 1 out of 8 images
+// and these vertexs are chosen from the nearest ones around the pixel
+    nxp = 1;
+    nyp = 1;
+    nfp = 1; 
+    numAxonalArbors = 1;
+    writeStep = -1;
+    initFromLastFlag = 0;
+    
+    weightInitType = "IdentWeight";
+      
+    strength = 1.0;  // 1.0 x post->num_neurons / pre->num_neurons
+    normalizeMethod = "none";
+    normalizeArborsIndividually = false;
+    normalize_cutoff = 0;
+    symmetrizeWeights = 0;
+    preActivityIsNotRate = false;
+    minSumTolerated = 0.0;
+    normalizeFromPostPerspective = false;
+
+    writeCompressedCheckpoints = false;
+    plasticityFlag = true;
+    selfFlag = false;  // conntect to itself
+    shmget_flag = true; //shared memory
+
+    delay = 0;
+
+    pvpatchAccumulateType = "Convolve"; // "Convolve", "Stochastic", or "Maxpooling" (case-insensitive)
+    shrinkPatches = false; // If only a small part of connections whose weights are non-zero, then we could shrink the whole networks
+    updateGSynFromPostPerspective = false; // Whether receiving synaptic input should loop over pre-synaptic neurons (false) or post-synaptic neurons (true)
+
+    //Triggering
+    triggerFlag                      = false;
+
+    weightUpdatePeriod               = 5;
+    initialWeightUpdateTime          = 5;
+};
+
+TriggerTestConn "inputToPeriod2" = {
+    preLayerName                     = "input";
+    postLayerName                    = "trigger2";
+    channelCode = 0;
+// we have a 32*32 image, an input layer with nf = 1 and an output layer with nf = 8. So we have 32*32*8 outputs.
+// the connection layer defines nxp * nyp (i.e. 7*7) edges from each pixel in input layer to 7*7 vertexs of 1 out of 8 images
+// and these vertexs are chosen from the nearest ones around the pixel
+    nxp = 1;
+    nyp = 1;
+    nfp = 1; 
+    numAxonalArbors = 1;
+    writeStep = -1;
+    initFromLastFlag = 0;
+    
+    weightInitType = "IdentWeight";
+      
+    strength = 1.0;  // 1.0 x post->num_neurons / pre->num_neurons
+    normalizeMethod = "none";
+    normalizeArborsIndividually = false;
+    normalize_cutoff = 0;
+    symmetrizeWeights = 0;
+    preActivityIsNotRate = false;
+    minSumTolerated = 0.0;
+    normalizeFromPostPerspective = false;
+
+    writeCompressedCheckpoints = false;
+    plasticityFlag = true;
+    selfFlag = false;  // conntect to itself
+    shmget_flag = true; //shared memory
+
+    delay = 0;
+
+    pvpatchAccumulateType = "Convolve"; // "Convolve", "Stochastic", or "Maxpooling" (case-insensitive)
+    shrinkPatches = false; // If only a small part of connections whose weights are non-zero, then we could shrink the whole networks
+    updateGSynFromPostPerspective = false; // Whether receiving synaptic input should loop over pre-synaptic neurons (false) or post-synaptic neurons (true)
+
+    //Triggering
+    triggerFlag                      = false;
+
+    weightUpdatePeriod               = 5;
+    initialWeightUpdateTime          = 4;
 };
