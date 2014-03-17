@@ -912,10 +912,12 @@ int HyPerLayer::allocateDataStructures()
 
    //Doing this check here, since trigger layers are being set up in communicate init info
    //If the magnitude of the trigger offset is bigger than the delta update time, then error
-   double deltaUpdateTime = getDeltaUpdateTime();
-   if(deltaUpdateTime != -1 && triggerOffset >= deltaUpdateTime){ 
-      fprintf(stderr, "%s \"%s\" error in rank %d process: TriggerOffset (%f) must be lower than the change in update time (%f) \n", parent->parameters()->groupKeywordFromName(name), name, parent->columnId(), triggerOffset, deltaUpdateTime);
-      exit(EXIT_FAILURE);
+   if(triggerFlag){
+      double deltaUpdateTime = getDeltaUpdateTime();
+      if(deltaUpdateTime != -1 && triggerOffset >= deltaUpdateTime){ 
+         fprintf(stderr, "%s \"%s\" error in rank %d process: TriggerOffset (%f) must be lower than the change in update time (%f) \n", parent->parameters()->groupKeywordFromName(name), name, parent->columnId(), triggerOffset, deltaUpdateTime);
+         exit(EXIT_FAILURE);
+      }
    }
    //updateNextUpdateTime();
 

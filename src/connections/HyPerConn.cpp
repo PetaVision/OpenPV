@@ -1221,6 +1221,10 @@ int HyPerConn::communicateInitInfo() {
             plasticityFlag = false;
          }
       }
+      if(weightUpdatePeriod != -1 && triggerOffset >= weightUpdatePeriod){
+         fprintf(stderr, "%s \"%s\" error in rank %d process: TriggerOffset (%f) must be lower than the change in update time (%f) of the attached trigger layer\n", parent->parameters()->groupKeywordFromName(name), name, parent->columnId(), triggerOffset, weightUpdatePeriod);
+         exit(EXIT_FAILURE);
+      }
       weightUpdateTime = 1;
    }
 
@@ -2091,10 +2095,6 @@ bool HyPerConn::needUpdate(double time, double dt){
    }
    if(triggerFlag){
       assert(triggerLayer);
-      //Never update on timestep 1 if triggered
-      if(time == dt){
-         return false;
-      }
       double nextUpdateTime = triggerLayer->getNextUpdateTime();
       //never update flag
       if(nextUpdateTime == -1){
