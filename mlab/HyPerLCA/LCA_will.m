@@ -10,7 +10,7 @@ load_Sparse_flag = false;
 if plot_flag
   setenv("GNUTERM","X11")
 endif
-no_clobber = true;
+no_clobber = false;
 
 %% machine/run_type environment
 if ismac
@@ -43,8 +43,8 @@ elseif isunix
   %%run_type = "Heli_C1";
   %%run_type = "Heli_DPT";
   %%run_type = "Heli_D";
-  %%run_type = "Stack";
-  run_type = "Shuffle";
+  run_type = "Stack";
+  %%run_type = "Shuffle";
  
   if strcmp(run_type, "color_deep")
     %%output_dir = "/nh/compneuro/Data/vine/LCA/2013_02_01/output_2013_02_01_12x12x128_lambda_05X1_deep"; 
@@ -374,7 +374,7 @@ if analyze_Recon
     [DoG_weights] = get_DoG_weights(DoG_center_path, DoG_surround_path);
   endif  %% unwhiten_flag
   
-  num_Recon_frames_per_layer = 2;
+  num_Recon_frames_per_layer = 4;
   Recon_LIFO_flag = true; %%false;
   [Recon_hdr, ...
    Recon_fig, ...
@@ -575,7 +575,7 @@ endif  %% plot_StatsProbe_vs_time
 
 
 
-analyze_Sparse_flag = false;
+analyze_Sparse_flag = true;
 if analyze_Sparse_flag
   Sparse_frames_list = [];
   if strcmp(run_type, "color_deep") || strcmp(run_type, "noTopDown")
@@ -697,7 +697,7 @@ endif %% plot_Sparse_flag
 
 
 
-analyze_nonSparse_flag = false;
+analyze_nonSparse_flag = true;
 if analyze_nonSparse_flag
   if strcmp(run_type, "color_deep") || strcmp(run_type, "noTopDown")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1295,7 +1295,7 @@ endif %% plot_ErrorVsSparse
 
 
 %%keyboard;
-plot_weights = false;
+plot_weights = true;
 if plot_weights
   weights_list = {};
   labelWeights_list = {};
@@ -3140,6 +3140,5 @@ if plot_weightsN_Nplus1
   endfor %% i_weightN_Nplus1
   
 endif  %% plot_weights
-
 
 
