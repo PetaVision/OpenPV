@@ -16,17 +16,17 @@ HyPerCol "column" = {
     dt = 1.0;
     randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
     startTime = 0;
-    numSteps = 1350000;       // Runs 1 times through entire dataset
-    progressStep = 200;
-    outputPath = "/nh/compneuro/Data/Depth/LCA/binoc_test";
+    numSteps = 200000000;
+    progressStep = 1000;
+    outputPath = "/nh/compneuro/Data/Depth/LCA/depth_log_scale";
     filenamesContainLayerNames = true;
     filenamesContainConnectionNames = true;
     checkpointRead = false; //true;
-    //checkpointReadDir = "/nh/compneuro/Data/Depth/LCA/dataset01_binocular/Checkpoints";
-    //checkpointReadDirIndex = 250000;
-    checkpointWrite = false;
-    checkpointWriteDir = "/nh/compneuro/Data/Depth/LCA/binoc_test/Checkpoints";
-    checkpointWriteStepInterval = 5000;
+    //checkpointReadDir = "/nh/compneuro/Data/Depth/LCA/depth_log_scale/Checkpoints";
+    //checkpointReadDirIndex = ;
+    checkpointWrite = true;
+    checkpointWriteDir = "/nh/compneuro/Data/Depth/LCA/depth_log_scale/Checkpoints";
+    checkpointWriteStepInterval = 10000;
     deleteOlderCheckpoints = false;
     //suppressLastOutput = false;
     writeProgressToErr = true;
@@ -44,12 +44,13 @@ Movie "LeftImage" = {
     nxScale = 1;
     nyScale = 1;
     readPvpFile = false;
-    imageListPath = "/nh/compneuro/Data/Depth/concat_data/image_00.txt";
+    imageListPath = "/nh/compneuro/Data/newDepth/image_02.txt";
+    writeFrameToTimestamp = true;
     nf = 1;
     writeStep = -1;
     writeSparseActivity = false;
-    displayPeriod = 200;
-    start_frame_index = 1;
+    displayPeriod = 500;
+    start_frame_index = 2100;
     skip_frame_index = 1;
     echoFramePathnameFlag = false;
     mirrorBCflag = true;
@@ -64,60 +65,6 @@ Movie "LeftImage" = {
     randomMovie = 0;
     phase = 0;
     //useParamsImage = true;
-};
-
-ANNLayer "LeftBipolar" = {
-    restart = 0;
-    nxScale = 1;
-    nyScale = 1;
-    nf = 1;
-    writeStep = -1; //Change based on display period
-    initialWriteTime = 999.0; //Change based on display period 
-    mirrorBCflag = 1;
-    writeSparseActivity = 0;
-
-    //movieLayerName = "LeftImage";
-    InitVType = "ZeroV";
-
-    VThresh = -infinity;
-    VMax = infinity;
-    VMin = -infinity;
-    VShift = 0;
-    VWidth = 0;
-    
-    phase = 1;
-
-    triggerFlag = true;
-    triggerLayerName = "LeftImage";
-};
-
-ANNLayer "LeftGanglion1" = {
-    restart = 0;
-    nxScale = 1;
-    nyScale = 1;
-    nf = 1;
-    writeStep = -1.0;
-    initialWriteTime = 999.0;
-    mirrorBCflag = 1;
-    writeSparseActivity = 0;
-    //
-    //movieLayerName = "LeftImage";
-    InitVType = "ZeroV";
-    //
-    VThresh = -infinity;
-    VMax = infinity;
-    VMin = -infinity;
-    VShift = 0;
-    VWidth = 0;
-    // 
-    phase = 2;
-
-    triggerFlag = true;
-    triggerLayerName = "LeftImage";
-};
-
-ANNLayer "LeftGanglion2" = {
-    #include "LeftGanglion1";
 };
 
 ANNLayer "LeftDownsample1" = {
@@ -141,7 +88,7 @@ ANNLayer "LeftDownsample1" = {
     VShift = 0;
     VWidth = 0;
     //
-    phase = 3;  
+    phase = 1;  
 
     triggerFlag = true;
     triggerLayerName = "LeftImage";
@@ -153,16 +100,98 @@ ANNLayer "LeftDownsample2" = {
     @nyScale = .25;
 };
 
+ANNLayer "LeftDownsample3" = {
+    #include "LeftDownsample1";
+    @nxScale = .125;
+    @nyScale = .125;
+};
+
+ANNLayer "LeftBipolar1" = {
+    restart = 0;
+    nxScale = .5;
+    nyScale = .5;
+    nf = 1;
+    writeStep = -1; //Change based on display period
+    initialWriteTime = 999.0; //Change based on display period 
+    mirrorBCflag = 1;
+    writeSparseActivity = 0;
+    //
+    //movieLayerName = "LeftImage";
+    InitVType = "ZeroV";
+    //
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+    VShift = 0;
+    VWidth = 0;
+    // 
+    phase = 2;
+
+    triggerFlag = true;
+    triggerLayerName = "LeftImage";
+};
+
+ANNLayer "LeftBipolar2" = {
+   #include "LeftBipolar1";
+   @nxScale = .25;
+   @nyScale = .25;
+};
+
+ANNLayer "LeftBipolar3" = {
+   #include "LeftBipolar1";
+   @nxScale = .125;
+   @nyScale = .125;
+};
+
+ANNLayer "LeftGanglion1" = {
+    restart = 0;
+    nxScale = .5;
+    nyScale = .5;
+    nf = 1;
+    writeStep = -1;
+    initialWriteTime = 999.0;
+    mirrorBCflag = 1;
+    writeSparseActivity = 0;
+    //
+    //movieLayerName = "LeftImage";
+    InitVType = "ZeroV";
+    //InitVType = "InitVFromFile";
+    //Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_31/output/Checkpoints/Checkpoint6000000/Error_V.pvp";
+    //
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+    VShift = 0;
+    VWidth = 0;
+    // 
+    phase = 3;
+
+    triggerFlag = true;
+    triggerLayerName = "LeftImage";
+};
+
+ANNLayer "LeftGanglion2" = {
+    #include "LeftGanglion1";
+    @nxScale = .25;
+    @nyScale = .25;
+};
+
+ANNLayer "LeftGanglion3" = {
+    #include "LeftGanglion1";
+    @nxScale = .125;
+    @nyScale = .125;
+};
+
 RescaleLayer "LeftRescale1" = {
     restart                         = false;
-    originalLayerName               = "LeftDownsample1";
+    originalLayerName               = "LeftGanglion1";
     nxScale                         = .5; 
     nyScale                         = .5; 
     nf                              = 1;
     mirrorBCflag                    = true;
     //
-    writeStep                       = 200;
-    initialWriteTime                = 199;
+    writeStep                       = 1000;
+    initialWriteTime                = 999;
     writeSparseActivity             = false;
     //
     rescaleMethod                   = "meanstd"; //Can be either meanstd or maxmin
@@ -179,9 +208,16 @@ RescaleLayer "LeftRescale1" = {
 
 RescaleLayer "LeftRescale2" = {
     #include "LeftRescale1";
-    @originalLayerName               = "LeftDownsample2";
+    @originalLayerName               = "LeftGanglion2";
     @nxScale                         = .25; 
     @nyScale                         = .25; 
+};
+
+RescaleLayer "LeftRescale3" = {
+    #include "LeftRescale1";
+    @originalLayerName               = "LeftGanglion3";
+    @nxScale                         = .125; 
+    @nyScale                         = .125; 
 };
 
 ANNErrorLayer "LeftError1" = {
@@ -194,9 +230,9 @@ ANNErrorLayer "LeftError1" = {
     mirrorBCflag = 0;
     writeSparseActivity = 0;
     //
-    InitVType = "ZeroV";
-    //InitVType = "InitVFromFile";
-    //Vfilename = "/nh/compneuro/Data/Depth/LCA/newErrSavedCheckpoint/LeftError1_V.pvp";
+    //InitVType = "ZeroV";
+    InitVType = "InitVFromFile";
+    Vfilename = "/nh/compneuro/Data/Depth/LCA/saved_log_scale/LeftError1_V.pvp";
     //
     VThresh = 0.001; //Change this for efficiency
     VMax =  infinity;
@@ -205,7 +241,7 @@ ANNErrorLayer "LeftError1" = {
     VWidth = 0;
     valueBC = 0;
     //
-    errScale = .461892; //Normal is .2
+    errScale = .425; //Normal is .2
     //
     phase = 5;  
 };
@@ -215,7 +251,16 @@ ANNErrorLayer "LeftError2" = {
     @nxScale = .25;
     @nyScale = .25;
     //@InitVType = "ZeroV";
-    //@Vfilename = "/nh/compneuro/Data/Depth/LCA/newErrSavedCheckpoint/LeftError2_V.pvp";
+    @Vfilename = "/nh/compneuro/Data/Depth/LCA/saved_log_scale/LeftError2_V.pvp";
+    //
+};
+
+ANNErrorLayer "LeftError3" = {
+    #include "LeftError1";
+    @nxScale = .125;
+    @nyScale = .125;
+    //@InitVType = "ZeroV";
+    @Vfilename = "/nh/compneuro/Data/Depth/LCA/saved_log_scale/LeftError3_V.pvp";
     //
 };
 
@@ -225,8 +270,8 @@ ANNLayer "LeftRecon1" = {
     nxScale = .5;
     nyScale = .5;
     nf = 1;
-    initialWriteTime = 201.0; //1 + writestep
-    writeStep = 200.0;
+    writeStep = 1000.0;
+    initialWriteTime = 1001.0; //1 + writestep
     mirrorBCflag = 0;
     writeSparseActivity = 0;
     //
@@ -254,23 +299,28 @@ ANNLayer "LeftRecon2" = {
     @nyScale = .25;
 };
 
+ANNLayer "LeftRecon3" = {
+    #include "LeftRecon1";
+    @nxScale = .125;
+    @nyScale = .125;
+};
+
 //
 // Left depth eye layers
 //
-//Although the images are in, there is no error layer. This is for comparison purposes only
 
 Movie "LeftDepthImage" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
     readPvpFile = false; 
-    imageListPath = "/nh/compneuro/Data/Depth/concat_data/depth_00.txt";
+    imageListPath = "/nh/compneuro/Data/newDepth/depth_02.txt";
     writeFrameToTimestamp = true;
     nf = 1;
     writeStep = -1;
     writeSparseActivity = false;
-    displayPeriod = 200;
-    start_frame_index = 1;
+    displayPeriod = 500;
+    start_frame_index = 2100;
     skip_frame_index = 1;
     echoFramePathnameFlag = false;
     mirrorBCflag = true;
@@ -367,8 +417,8 @@ RescaleLayer "LeftDepthRescale" = {
     nf                              = 32;
     mirrorBCflag                    = true;
     //
-    writeStep                       = 200;
-    initialWriteTime                = 199;
+    writeStep                       = 1000;
+    initialWriteTime                = 999;
     writeSparseActivity             = false;
     //
     rescaleMethod                   = "pointmeanstd"; //Can be either meanstd or maxmin
@@ -383,16 +433,44 @@ RescaleLayer "LeftDepthRescale" = {
     triggerLayerName = "LeftDepthImage";
 };
 
+LabelErrorLayer "LeftDepthError" = {
+    restart = 0;
+    nxScale = .125;
+    nyScale = .125;
+    nf = 32;
+    writeStep = -1;
+    initialWriteTime = 199.0;
+    mirrorBCflag = 0;
+    writeSparseActivity = 0;
+    //
+    //InitVType = "ZeroV";
+    InitVType = "InitVFromFile";
+    Vfilename = "/nh/compneuro/Data/Depth/LCA/saved_log_scale/LeftDepthError_V.pvp";
+    //
+    VThresh = 0.001;
+    VMax =  infinity;
+    VMin = 0;
+    VShift = 0;
+    VWidth = 0;
+    valueBC = 0;
+    //
+    errScale = .05; //Normal is .2
+    isBinary = 0; //Depth isn't binary label
+    //
+    phase = 5;  
+};
+
 ANNLayer "LeftDepthRecon" = {
     restart = 0;
     nxScale = .125;
     nyScale = .125;
     nf = 32;
-    writeStep = 200.0;
-    initialWriteTime = 199.0;
+    writeStep = 1000.0;
+    initialWriteTime = 1001.0;
     mirrorBCflag = 0;
     writeSparseActivity = 0;
     //
+    //movieLayerName = "LeftDepthImage";
     InitVType = "ZeroV";
     //InitVType = "InitVFromFile";
     //Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_31/output/Checkpoints/Checkpoint6000000/Recon_V.pvp";
@@ -402,19 +480,48 @@ ANNLayer "LeftDepthRecon" = {
     VMin = -infinity; 
     VShift = 0;
     // 
-    phase = 8; 
+    phase = 2; 
+    //
+    triggerFlag = true;
+    triggerLayerName = "LeftDepthImage";
 };
 
 //
 // Right eye layers
 //
+
 Movie "RightImage" = {
     #include "LeftImage";
-    @imageListPath = "/nh/compneuro/Data/Depth/concat_data/image_01.txt";
+    @imageListPath = "/nh/compneuro/Data/newDepth/image_03.txt";
 };
 
-ANNLayer "RightBipolar" = {
-    #include "LeftBipolar";
+ANNLayer "RightDownsample1" = {
+    #include "LeftDownsample1";
+    @triggerLayerName = "RightImage";
+};
+
+ANNLayer "RightDownsample2" = {
+    #include "LeftDownsample2";
+    @triggerLayerName = "RightImage";
+};
+
+ANNLayer "RightDownsample3" = {
+    #include "LeftDownsample3";
+    @triggerLayerName = "RightImage";
+};
+
+ANNLayer "RightBipolar1" = {
+    #include "LeftBipolar1";
+    @triggerLayerName = "RightImage";
+};
+
+ANNLayer "RightBipolar2" = {
+    #include "LeftBipolar2";
+    @triggerLayerName = "RightImage";
+};
+
+ANNLayer "RightBipolar3" = {
+    #include "LeftBipolar3";
     @triggerLayerName = "RightImage";
 };
 
@@ -428,38 +535,45 @@ ANNLayer "RightGanglion2" = {
     @triggerLayerName = "RightImage";
 };
 
-ANNLayer "RightDownsample1" = {
-    #include "LeftDownsample1";
-    @triggerLayerName = "RightImage";
-};
-
-ANNLayer "RightDownsample2" = {
-    #include "LeftDownsample2";
+ANNLayer "RightGanglion3" = {
+    #include "LeftGanglion3";
     @triggerLayerName = "RightImage";
 };
 
 RescaleLayer "RightRescale1" = {
     #include "LeftRescale1";
-    @originalLayerName = "RightDownsample1";
+    @originalLayerName = "RightGanglion1";
     @triggerLayerName = "RightImage";
 };
 
 RescaleLayer "RightRescale2" = {
     #include "LeftRescale2";
-    @originalLayerName = "RightDownsample2";
+    @originalLayerName = "RightGanglion2";
+    @triggerLayerName = "RightImage";
+};
+
+RescaleLayer "RightRescale3" = {
+    #include "LeftRescale3";
+    @originalLayerName = "RightGanglion3";
     @triggerLayerName = "RightImage";
 };
 
 ANNErrorLayer "RightError1" = {
     #include "LeftError1";
     //@InitVType = "ZeroV";
-    //@Vfilename = "/nh/compneuro/Data/Depth/LCA/newErrSavedCheckpoint/RightError1_V.pvp";
+    @Vfilename = "/nh/compneuro/Data/Depth/LCA/saved_log_scale/RightError1_V.pvp";
 };
 
 ANNErrorLayer "RightError2" = {
     #include "LeftError2";
     //@InitVType = "ZeroV";
-    //@Vfilename = "/nh/compneuro/Data/Depth/LCA/newErrSavedCheckpoint/RightError2_V.pvp";
+    @Vfilename = "/nh/compneuro/Data/Depth/LCA/saved_log_scale/RightError2_V.pvp";
+};
+
+ANNErrorLayer "RightError3" = {
+    #include "LeftError3";
+    //@InitVType = "ZeroV";
+    @Vfilename = "/nh/compneuro/Data/Depth/LCA/saved_log_scale/RightError3_V.pvp";
 };
 
 // for visualization only, makes no output
@@ -473,12 +587,18 @@ ANNLayer "RightRecon2" = {
     @triggerLayerName = "RightImage";
 };
 
+ANNLayer "RightRecon3" = {
+    #include "LeftRecon3";
+    @triggerLayerName = "RightImage";
+};
+
 //
 // Right depth eye layers
 //
+
 Movie "RightDepthImage" = {
     #include "LeftDepthImage";
-    @imageListPath = "/nh/compneuro/Data/Depth/concat_data/depth_01.txt";
+    @imageListPath = "/nh/compneuro/Data/newDepth/depth_03.txt";
 };
 
 ANNLayer "RightDepthDownsample" = {
@@ -503,8 +623,15 @@ RescaleLayer "RightDepthRescale" = {
    @triggerLayerName = "RightDepthImage";
 };
 
+LabelErrorLayer "RightDepthError" = {
+    #include "LeftDepthError";
+    //@InitVType = "ZeroV";
+    @Vfilename = "/nh/compneuro/Data/Depth/LCA/saved_log_scale/RightDepthError_V.pvp";
+};
+
 ANNLayer "RightDepthRecon" = {
     #include "LeftDepthRecon";
+    @triggerLayerName = "RightDepthImage";
 };
 
 //Position layers
@@ -512,7 +639,7 @@ Image "Position" = {
     restart = 0;  // make only a certain layer restart
     nxScale = 1;  
     nyScale = 1; 
-    imagePath = "/nh/compneuro/Data/Depth/pos.pvp";
+    imagePath = "/nh/compneuro/Data/newDepth/pos.pvp";
     nf = 5; 
     writeStep = -1;  //-1 means doesn't write for log
     writeSparseActivity = false;
@@ -531,8 +658,8 @@ ANNLayer "PosDownsample" = {
     nxScale = .125;
     nyScale = .125;
     nf = 5;
-    writeStep = 200;
-    initialWriteTime = 199.0;
+    writeStep = 1000;
+    initialWriteTime = 999.0;
     mirrorBCflag = 1;
     writeSparseActivity = 0;
     //
@@ -551,7 +678,31 @@ ANNLayer "PosDownsample" = {
     triggerLayerName = "Position";
 };
 
-ANNErrorLayer "PosError" = {
+RescaleLayer "PosRescale" = {
+    restart                         = false;
+    originalLayerName               = "PosDownsample";
+    nxScale                         = .125; 
+    nyScale                         = .125; 
+    nf                              = 5;
+    mirrorBCflag                    = true;
+    //
+    writeStep                       = 1000;
+    initialWriteTime                = 999;
+    writeSparseActivity             = false;
+    //
+    rescaleMethod                   = "pointmeanstd"; //Can be either meanstd or maxmin
+    targetMean                      = 0;
+    targetStd                       = 1;
+    //
+    valueBC = 0;
+    //
+    phase                           = 4;
+
+    triggerFlag = true;
+    triggerLayerName = "Position";
+};
+
+LabelErrorLayer "PosError" = {
     restart = 0;
     nxScale = .125;
     nyScale = .125;
@@ -561,16 +712,17 @@ ANNErrorLayer "PosError" = {
     mirrorBCflag = 0;
     writeSparseActivity = 0;
     //
-    InitVType = "ZeroV";
-    //InitVType = "InitVFromFile";
-    //Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_31/output/Checkpoints/Checkpoint6000000/Error_V.pvp";
+    //InitVType = "ZeroV";
+    InitVType = "InitVFromFile";
+    Vfilename = "/nh/compneuro/Data/Depth/LCA/saved_log_scale/PosError_V.pvp";
     //
     VThresh = 0.001; //Change this for efficiency
     VMax =  infinity;
     VMin = 0;
     VShift = 0;
     //
-    errScale = .07621218; //Same ratio minus 2 other inputs to v1
+    errScale = .05; //Normal is .2
+    isBinary = 0;
     //
     phase = 5;  
 };
@@ -582,8 +734,8 @@ ANNLayer "PosRecon" = {
     nxScale = .125;
     nyScale = .125;
     nf = 5;
-    initialWriteTime = 201.0; //1 + writestep
-    writeStep = 200.0;
+    writeStep = 1000.0;
+    initialWriteTime = 1001.0; //1 + writestep
     mirrorBCflag = 0;
     writeSparseActivity = 0;
     //
@@ -614,27 +766,27 @@ HyPerLCALayer "BinocularV1S1" = {
     numChannels = 1;
     numWindowX = 1;
     numWindowY = 1;
-    writeStep = 200.0;
-    initialWriteTime = 199.0;
+    writeStep = 1000.0;
+    initialWriteTime = 999.0;
     mirrorBCflag = 0;
     writeSparseActivity = 1;
     writeSparseValues   = 1;
     //
-    InitVType = "UniformRandomV";
-    minV = -1.0;
-    maxV = .15; //0.05 above VThresh
-    //InitVType = "InitVFromFile";
-    //Vfilename = "/nh/compneuro/Data/Depth/LCA/newErrSavedCheckpoint/BinocularV1S1_V.pvp";
+    //InitVType = "UniformRandomV";
+    //minV = -1.0;
+    //maxV = .15; //0.05 above VThresh
+    InitVType = "InitVFromFile";
+    Vfilename = "/nh/compneuro/Data/Depth/LCA/saved_log_scale/BinocularV1S1_V.pvp";
     // 
     timeConstantTau = 200.0;
     timeConstantTauMinimum = 10.0;
     slopeErrorStd = 0.01;
     // 
-    VThresh = 0.1; //mean + 1 std of the positive input to error
+    VThresh = 0.08; //mean + 1 std of the positive input to error
     VMax = infinity;
     VMin = 0;
     VShift = 0.0;  // 0 -> hard threshold, 1 -> soft threshold
-    VWidth = 0.1; //Same as VThresh
+    VWidth = 0.08; //Same as VThresh
     //
     phase = 6;
 };
@@ -643,18 +795,81 @@ HyPerLCALayer "BinocularV1S2" = {
     #include "BinocularV1S1";
     @nxScale = .125;
     @nyScale = .125;
-    @VThresh = 0.11;
-    @VWidth = 0.11;
-    //@Vfilename = "/nh/compneuro/Data/Depth/LCA/newErrSavedCheckpoint/BinocularV1S2_V.pvp";
+    @VThresh = 0.07;
+    @VWidth = 0.07;
+    @Vfilename = "/nh/compneuro/Data/Depth/LCA/saved_log_scale/BinocularV1S2_V.pvp";
+};
+
+HyPerLCALayer "BinocularV1S3" = {
+    #include "BinocularV1S1";
+    @nxScale = .125;
+    @nyScale = .125;
+    @VThresh = 0.07;
+    @VWidth = 0.07;
+    @Vfilename = "/nh/compneuro/Data/Depth/LCA/saved_log_scale/BinocularV1S3_V.pvp";
 };
 
 // connections
 
 // Left eye connections
 
-KernelConn "LeftImageToLeftBipolarCenter" = {
+KernelConn "LeftImageToLeftDownsample1" = {
     preLayerName = "LeftImage";
-    postLayerName = "LeftBipolar";
+    postLayerName = "LeftDownsample1";
+    channelCode = 0;
+    nxp = 1;
+    nyp = 1;
+    nfp = 1;
+    numAxonalArbors = 1;
+    writeStep = -1;
+    initFromLastFlag = 0;
+    
+    weightInitType = "Gauss2DWeight";
+    aspect = 1;
+    sigma = 10000;
+    rMax  = 3;
+    rMin = 0;
+    numOrientationsPre = 1;
+    numOrientationsPost = 1;
+        
+    strength = 1.0;  
+    normalizeMethod = "normalizeSum";
+    minSumTolerated = 0;
+    normalizeArborsIndividually = 0;
+    normalize_cutoff = 0.0;
+    normalizeFromPostPerspective = true;
+    symmetrizeWeights = false;
+    
+    shrinkPatches = false;
+    //writeCompressedWeights = 0.0;
+    writeCompressedCheckpoints = false;
+    plasticityFlag = 0;
+     
+    delay = 0;
+     
+    preActivityIsNotRate = false;
+    selfFlag = false;
+    shmget_flag = false;
+
+    updateGSynFromPostPerspective = false;
+    pvpatchAccumulateType = "convolve";
+};
+
+KernelConn "LeftImageToLeftDownsample2" = {
+    #include "LeftImageToLeftDownsample1";
+    @postLayerName = "LeftDownsample2";
+    @rMax  = 8;
+};
+
+KernelConn "LeftImageToLeftDownsample3" = {
+    #include "LeftImageToLeftDownsample1";
+    @postLayerName = "LeftDownsample3";
+    @rMax  = 8;
+};
+
+KernelConn "LeftDownsample1ToLeftBipolar1" = {
+    preLayerName = "LeftDownsample1";
+    postLayerName = "LeftBipolar1";
     channelCode = 0;
     nxp = 3; 
     nyp = 3; 
@@ -694,9 +909,20 @@ KernelConn "LeftImageToLeftBipolarCenter" = {
     pvpatchAccumulateType = "convolve";
 };
 
+KernelConn "LeftDownsample2ToLeftBipolar2" = {
+   #include "LeftDownsample1ToLeftBipolar1";
+   @preLayerName = "LeftDownsample2";
+   @postLayerName = "LeftBipolar2";
+};
 
-KernelConn "LeftBipolarToLeftGanglion1Center" = {
-    preLayerName = "LeftBipolar";
+KernelConn "LeftDownsample3ToLeftBipolar3" = {
+   #include "LeftDownsample1ToLeftBipolar1";
+   @preLayerName = "LeftDownsample3";
+   @postLayerName = "LeftBipolar3";
+};
+
+KernelConn "LeftBipolar1ToLeftGanglion1Center" = {
+    preLayerName = "LeftBipolar1";
     postLayerName = "LeftGanglion1";
     channelCode = 0;
     nxp = 1; 
@@ -738,8 +964,8 @@ KernelConn "LeftBipolarToLeftGanglion1Center" = {
 };
 
 
-KernelConn "LeftBipolarToLeftGanglion1Surround" = {
-    preLayerName = "LeftBipolar";
+KernelConn "LeftBipolar1ToLeftGanglion1Surround" = {
+    preLayerName = "LeftBipolar1";
     postLayerName = "LeftGanglion1";
     channelCode = 1;
     nxp = 11; 
@@ -780,73 +1006,43 @@ KernelConn "LeftBipolarToLeftGanglion1Surround" = {
     pvpatchAccumulateType = "convolve";
 };
 
-KernelConn "LeftBipolarToLeftGanglion2Center" = {
-    #include "LeftBipolarToLeftGanglion1Center";
+KernelConn "LeftBipolar2ToLeftGanglion2Center" = {
+    #include "LeftBipolar1ToLeftGanglion1Center";
+    @preLayerName = "LeftBipolar2";
     @postLayerName = "LeftGanglion2";
-    @nxp = 3; 
-    @nyp = 3; 
-    @sigma = 3;
+    //@nxp = 3; 
+    //@nyp = 3; 
+    //@sigma = 3;
 };
 
-
-KernelConn "LeftBipolarToLeftGanglion2Surround" = {
-    #include "LeftBipolarToLeftGanglion1Surround";
+KernelConn "LeftBipolar2ToLeftGanglion2Surround" = {
+    #include "LeftBipolar1ToLeftGanglion1Surround";
+    @preLayerName = "LeftBipolar2";
     @postLayerName = "LeftGanglion2";
-    @nxp = 33; 
-    @nyp = 33; 
-
-    @sigma = 15.5;
-    @rMax  = 23;
+    //@nxp = 33; 
+    //@nyp = 33; 
+    //@sigma = 15.5;
+    //@rMax  = 23;
 };
 
-KernelConn "LeftGanglion1ToLeftDownsample1" = {
-    preLayerName = "LeftGanglion1";
-    postLayerName = "LeftDownsample1";
-    channelCode = 0;
-    nxp = 1;
-    nyp = 1;
-    nfp = 1;
-    numAxonalArbors = 1;
-    writeStep = -1;
-    initFromLastFlag = 0;
-    
-    weightInitType = "Gauss2DWeight";
-    aspect = 1;
-    sigma = 10000;
-    rMax  = 3;
-    rMin = 0;
-    numOrientationsPre = 1;
-    numOrientationsPost = 1;
-        
-    strength = 1.0;  
-    normalizeMethod = "normalizeSum";
-    minSumTolerated = 0;
-    normalizeArborsIndividually = 0;
-    normalize_cutoff = 0.0;
-    normalizeFromPostPerspective = true;
-    symmetrizeWeights = false;
-    
-    shrinkPatches = false;
-    //writeCompressedWeights = 0.0;
-    writeCompressedCheckpoints = false;
-    plasticityFlag = 0;
-     
-    delay = 0;
-     
-    preActivityIsNotRate = false;
-    selfFlag = false;
-    shmget_flag = false;
-
-    updateGSynFromPostPerspective = false;
-    pvpatchAccumulateType = "convolve";
+KernelConn "LeftBipolar3ToLeftGanglion3Center" = {
+    #include "LeftBipolar1ToLeftGanglion1Center";
+    @preLayerName = "LeftBipolar3";
+    @postLayerName = "LeftGanglion3";
+    //@nxp = 3; 
+    //@nyp = 3; 
+    //@sigma = 3;
 };
 
-KernelConn "LeftGanglion2ToLeftDownsample2" = {
-    #include "LeftGanglion1ToLeftDownsample1";
-    @preLayerName = "LeftGanglion2";
-    @postLayerName = "LeftDownsample2";
 
-    @rMax  = 8;
+KernelConn "LeftBipolar3ToLeftGanglion3Surround" = {
+    #include "LeftBipolar1ToLeftGanglion1Surround";
+    @preLayerName = "LeftBipolar3";
+    @postLayerName = "LeftGanglion3";
+    //@nxp = 33; 
+    //@nyp = 33; 
+    //@sigma = 15.5;
+    //@rMax  = 23;
 };
 
 KernelConn "LeftRescale1ToLeftError1" = {
@@ -882,6 +1078,14 @@ KernelConn "LeftRescale2ToLeftError2" = {
     @preLayerName = "LeftRescale2";
     @postLayerName = "LeftError2";
 };
+
+KernelConn "LeftRescale3ToLeftError3" = {
+    #include "LeftRescale1ToLeftError1";
+    @preLayerName = "LeftRescale3";
+    @postLayerName = "LeftError3";
+    @weightInit = .0588;  // 1/sqrt(17*17);
+};
+
 
 // Left depth connections
 
@@ -935,48 +1139,107 @@ IdentConn "LeftDepthBinToLeftDepthBuffer" = {
     delay = 0;
 };
 
+KernelConn "LeftDepthRescaleToLeftDepthError" = {
+    preLayerName = "LeftDepthRescale";
+    postLayerName = "LeftDepthError";
+    channelCode = 0;
+    nxp = 1; 
+    nyp = 1; 
+    numAxonalArbors = 1;
+    initFromLastFlag = 0;  // 1;  // restart
+    writeStep = -1;
+    writeCompressedCheckpoints = false;
+    
+    weightInitType = "OneToOneWeights"; //"UniformWeight";
+    weightInit = .17677;  // 1/sqrt(1*1*32);
+    normalizeMethod = "none";
+    
+    shrinkPatches = false;
+    //writeCompressedWeights = 0.0;
+    plasticityFlag = 0;
+    pvpatchAccumulateType = "convolve";
+    updateGSynFromPostPerspective = false;     
+     
+    delay = 0;
+     
+    preActivityIsNotRate = false;
+    selfFlag = false;
+    shmget_flag = false;
+};
+
+
 // Right eye connections
 
-KernelConn "RightImageToRightBipolarCenter" = {
-    #include "LeftImageToLeftBipolarCenter";
+KernelConn "RightImageToRightDownsample1" = {
+    #include "LeftImageToLeftDownsample1";
     @preLayerName = "RightImage";
-    @postLayerName = "RightBipolar";
-};
-
-KernelConn "RightBipolarToRightGanglion1Center" = {
-    #include "LeftBipolarToLeftGanglion1Center";
-    @preLayerName = "RightBipolar";
-    @postLayerName = "RightGanglion1";
-};
-
-KernelConn "RightBipolarToRightGanglion1Surround" = {
-    #include "LeftBipolarToLeftGanglion1Surround";
-    @preLayerName = "RightBipolar";
-    @postLayerName = "RightGanglion1";
-};
-
-KernelConn "RightBipolarToRightGanglion2Center" = {
-    #include "LeftBipolarToLeftGanglion2Center";
-    @preLayerName = "RightBipolar";
-    @postLayerName = "RightGanglion2";
-};
-
-KernelConn "RightBipolarToRightGanglion2Surround" = {
-    #include "LeftBipolarToLeftGanglion2Surround";
-    @preLayerName = "RightBipolar";
-    @postLayerName = "RightGanglion2";
-};
-
-KernelConn "RightGanglion1ToRightDownsample1" = {
-    #include "LeftGanglion1ToLeftDownsample1";
-    @preLayerName = "RightGanglion1";
     @postLayerName = "RightDownsample1";
 };
 
-KernelConn "RightGanglion2ToRightDownsample2" = {
-    #include "LeftGanglion2ToLeftDownsample2";
-    @preLayerName = "RightGanglion2";
+KernelConn "RightImageToRightDownsample2" = {
+    #include "LeftImageToLeftDownsample2";
+    @preLayerName = "RightImage";
     @postLayerName = "RightDownsample2";
+};
+
+KernelConn "RightImageToRightDownsample3" = {
+    #include "LeftImageToLeftDownsample3";
+    @preLayerName = "RightImage";
+    @postLayerName = "RightDownsample3";
+};
+
+KernelConn "RightDownsample1ToRightBipolar1" = {
+    #include "LeftDownsample1ToLeftBipolar1";
+    @preLayerName = "RightDownsample1";
+    @postLayerName = "RightBipolar1";
+};
+
+KernelConn "RightDownsample2ToRightBipolar2" = {
+    #include "LeftDownsample2ToLeftBipolar2";
+    @preLayerName = "RightDownsample2";
+    @postLayerName = "RightBipolar2";
+};
+
+KernelConn "RightDownsample3ToRightBipolar3" = {
+    #include "LeftDownsample3ToLeftBipolar3";
+    @preLayerName = "RightDownsample3";
+    @postLayerName = "RightBipolar3";
+};
+
+KernelConn "RightBipolar1ToRightGanglion1Center" = {
+    #include "LeftBipolar1ToLeftGanglion1Center";
+    @preLayerName = "RightBipolar1";
+    @postLayerName = "RightGanglion1";
+};
+
+KernelConn "RightBipolar1ToRightGanglion1Surround" = {
+    #include "LeftBipolar1ToLeftGanglion1Surround";
+    @preLayerName = "RightBipolar1";
+    @postLayerName = "RightGanglion1";
+};
+
+KernelConn "RightBipolar2ToRightGanglion2Center" = {
+    #include "LeftBipolar2ToLeftGanglion2Center";
+    @preLayerName = "RightBipolar2";
+    @postLayerName = "RightGanglion2";
+};
+
+KernelConn "RightBipolar2ToRightGanglion2Surround" = {
+    #include "LeftBipolar2ToLeftGanglion2Surround";
+    @preLayerName = "RightBipolar2";
+    @postLayerName = "RightGanglion2";
+};
+
+KernelConn "RightBipolar3ToRightGanglion3Center" = {
+    #include "LeftBipolar3ToLeftGanglion3Center";
+    @preLayerName = "RightBipolar3";
+    @postLayerName = "RightGanglion3";
+};
+
+KernelConn "RightBipolar3ToRightGanglion3Surround" = {
+    #include "LeftBipolar3ToLeftGanglion3Surround";
+    @preLayerName = "RightBipolar3";
+    @postLayerName = "RightGanglion3";
 };
 
 KernelConn "RightRescale1ToRightError1" = {
@@ -991,6 +1254,13 @@ KernelConn "RightRescale2ToRightError2" = {
     @postLayerName = "RightError2";
 };
 
+KernelConn "RightRescale3ToRightError3" = {
+    #include "LeftRescale3ToLeftError3";
+    @preLayerName = "RightRescale3";
+    @postLayerName = "RightError3";
+};
+
+
 //Right depth Connections
 
 KernelConn "RightDepthMovieToRightDepthDownsample" = {
@@ -1003,6 +1273,12 @@ IdentConn "RightDepthBinToRightDepthBuffer" = {
    #include "LeftDepthBinToLeftDepthBuffer";
    @preLayerName = "RightDepthBin";
    @postLayerName = "RightDepthBuffer";
+};
+
+KernelConn "RightDepthRescaleToRightDepthError" = {
+    #include "LeftDepthRescaleToLeftDepthError";
+    @preLayerName = "RightDepthRescale";
+    @postLayerName = "RightDepthError";
 };
 
 //Pos connections
@@ -1048,8 +1324,8 @@ KernelConn "PositionToPosDownsample" = {
     pvpatchAccumulateType = "convolve";
 };
 
-KernelConn "PosDownsampleToPosError" = {
-    preLayerName = "PosDownsample";
+KernelConn "PosRescaleToPosError" = {
+    preLayerName = "PosRescale";
     postLayerName = "PosError";
     channelCode = 0;
     nxp = 1; 
@@ -1079,7 +1355,7 @@ KernelConn "PosDownsampleToPosError" = {
 
 // binocular connections
 
-KernelConn "BinocularV1S1ToLeftError1" = {
+ImprintConn "BinocularV1S1ToLeftError1" = {
     preLayerName = "BinocularV1S1";
     postLayerName = "LeftError1";
     channelCode = 1;
@@ -1094,7 +1370,7 @@ KernelConn "BinocularV1S1ToLeftError1" = {
     initFromLastFlag = 0;
     //
     weightInitType = "FileWeight";
-    initWeightsFile = "/nh/compneuro/Data/Depth/LCA/savedCheckpoint/BinocularV1S1ToLeftError1_W.pvp";
+    initWeightsFile = "/nh/compneuro/Data/Depth/LCA/saved_log_scale/BinocularV1S1ToLeftError1_W.pvp";
     //weightInitType = "UniformRandomWeight";
     //wMinInit = -1.0;
     //wMaxInit = 1.0;
@@ -1114,14 +1390,14 @@ KernelConn "BinocularV1S1ToLeftError1" = {
     keepKernelsSynchronized = true; 
     combine_dW_with_W_flag = false; 
     //
-    writeStep = 200;
+    writeStep = 1000;
     writeCompressedWeights = false;
     writeCompressedCheckpoints = false;
-    plasticityFlag = false;
-    weightUpdatePeriod = 200.0;
-    initialWeightUpdateTime = 199.0;
+    plasticityFlag = true;
+    weightUpdatePeriod = 500.0;
+    initialWeightUpdateTime = 499.0;
     initialWriteTime = 0.0;
-    dWMax = 15; // 200.0 used for initial training
+    dWMax = 1; // 200.0 used for initial training
     selfFlag = false;
     shmget_flag = false;
     //
@@ -1130,14 +1406,27 @@ KernelConn "BinocularV1S1ToLeftError1" = {
     useWindowPost = false;
     updateGSynFromPostPerspective = false;
     pvpatchAccumulateType = "convolve";
+    imprintTimeThresh = 500000; //Imprint if element has not been active in 1000 frames
 };
 
-KernelConn "BinocularV1S2ToLeftError2" = {
+ImprintConn "BinocularV1S2ToLeftError2" = {
     #include "BinocularV1S1ToLeftError1";
     @preLayerName = "BinocularV1S2";
     @postLayerName = "LeftError2";
     //
-    @initWeightsFile = "/nh/compneuro/Data/Depth/LCA/savedCheckpoint/BinocularV1S2ToLeftError2_W.pvp";
+    @initWeightsFile = "/nh/compneuro/Data/Depth/LCA/saved_log_scale/BinocularV1S2ToLeftError2_W.pvp";
+};
+
+ImprintConn "BinocularV1S3ToLeftError3" = {
+    #include "BinocularV1S1ToLeftError1";
+    @preLayerName = "BinocularV1S3";
+    @postLayerName = "LeftError3";
+    @nxp = 17;
+    @nyp = 17;
+    @nxpShrunken = 17;
+    @nypShrunken = 17;
+    //
+    @initWeightsFile = "/nh/compneuro/Data/Depth/LCA/saved_log_scale/BinocularV1S3ToLeftError3_W.pvp";
 };
 
 TransposeConn "LeftError1ToBinocularV1S1" = {
@@ -1162,6 +1451,13 @@ TransposeConn "LeftError2ToBinocularV1S2" = {
     @originalConnName = "BinocularV1S2ToLeftError2";
 };
 
+TransposeConn "LeftError3ToBinocularV1S3" = {
+    #include "LeftError1ToBinocularV1S1";
+    @preLayerName = "LeftError3";
+    @postLayerName = "BinocularV1S3";
+    @originalConnName = "BinocularV1S3ToLeftError3";
+};
+
 CloneKernelConn "BinocularV1S1ToLeftRecon1" = {
     preLayerName = "BinocularV1S1";
     postLayerName = "LeftRecon1";
@@ -1183,17 +1479,31 @@ CloneKernelConn "BinocularV1S2ToLeftRecon2" = {
     @originalConnName = "BinocularV1S2ToLeftError2";
 };
 
-KernelConn "BinocularV1S1ToRightError1" = {
-    #include "BinocularV1S1ToLeftError1";
-    @postLayerName = "RightError1";
-    @initWeightsFile = "/nh/compneuro/Data/Depth/LCA/savedCheckpoint/BinocularV1S1ToRightError1_W.pvp";
+CloneKernelConn "BinocularV1S3ToLeftRecon3" = {
+    #include "BinocularV1S1ToLeftRecon1";
+    @preLayerName = "BinocularV1S3";
+    @postLayerName = "LeftRecon3";
+    @originalConnName = "BinocularV1S3ToLeftError3";
 };
 
-KernelConn "BinocularV1S2ToRightError2" = {
+ImprintConn "BinocularV1S1ToRightError1" = {
+    #include "BinocularV1S1ToLeftError1";
+    @postLayerName = "RightError1";
+    @initWeightsFile = "/nh/compneuro/Data/Depth/LCA/saved_log_scale/BinocularV1S1ToRightError1_W.pvp";
+};
+
+ImprintConn "BinocularV1S2ToRightError2" = {
     #include "BinocularV1S2ToLeftError2";
     @preLayerName = "BinocularV1S2";
     @postLayerName = "RightError2";
-    @initWeightsFile = "/nh/compneuro/Data/Depth/LCA/savedCheckpoint/BinocularV1S2ToRightError2_W.pvp";
+    @initWeightsFile = "/nh/compneuro/Data/Depth/LCA/saved_log_scale/BinocularV1S2ToRightError2_W.pvp";
+};
+
+ImprintConn "BinocularV1S3ToRightError3" = {
+    #include "BinocularV1S3ToLeftError3";
+    @preLayerName = "BinocularV1S3";
+    @postLayerName = "RightError3";
+    @initWeightsFile = "/nh/compneuro/Data/Depth/LCA/saved_log_scale/BinocularV1S3ToRightError3_W.pvp";
 };
 
 TransposeConn "RightError1ToBinocularV1S1" = {
@@ -1208,6 +1518,12 @@ TransposeConn "RightError2ToBinocularV1S2" = {
     @originalConnName = "BinocularV1S2ToRightError2";
 };
 
+TransposeConn "RightError3ToBinocularV1S3" = {
+    #include "LeftError3ToBinocularV1S3";
+    @preLayerName = "RightError3";
+    @originalConnName = "BinocularV1S3ToRightError3";
+};
+
 CloneKernelConn "BinocularV1S1ToRightRecon1" = {
     #include "BinocularV1S1ToLeftRecon1";
     @postLayerName = "RightRecon1";
@@ -1220,11 +1536,17 @@ CloneKernelConn "BinocularV1S2ToRightRecon2" = {
     @originalConnName = "BinocularV1S2ToRightError2";
 };
 
+CloneKernelConn "BinocularV1S3ToRightRecon3" = {
+    #include "BinocularV1S3ToLeftRecon3";
+    @postLayerName = "RightRecon3";
+    @originalConnName = "BinocularV1S3ToRightError3";
+};
+
 // Depth Binocular Connections
 
-KernelConn "BinocularV1S1ToLeftDepthRecon" = {
+ImprintConn "BinocularV1S1ToLeftDepthError" = {
     preLayerName = "BinocularV1S1";
-    postLayerName = "LeftDepthRecon";
+    postLayerName = "LeftDepthError";
     channelCode = 1;
     nxp = 1; 
     nyp = 1; 
@@ -1232,33 +1554,33 @@ KernelConn "BinocularV1S1ToLeftDepthRecon" = {
     numAxonalArbors = 1;
     initFromLastFlag = 0;
     //
-    weightInitType = "FileWeight";
-    initWeightsFile = "/nh/compneuro/Data/Depth/LCA/savedCheckpoint/BinocularV1S1ToLeftDepthError_W.pvp";
-    //weightInitType = "UniformRandomWeight";
-    //wMinInit = -1.0;
-    //wMaxInit = 1.0;
-    //sparseFraction = 0;
+    //weightInitType = "FileWeight";
+    initWeightsFile = "/nh/compneuro/Data/Depth/LCA/saved_log_scale/BinocularV1S1ToLeftDepthError_W.pvp";
+    weightInitType = "UniformRandomWeight";
+    wMinInit = -1.0;
+    wMaxInit = 1.0;
+    sparseFraction = 0;
     //
     strength = 1; 
-    //normalizeMethod = "normalizeL2";
-    //minL2NormTolerated = 0;
-    //normalizeArborsIndividually = 0;
-    //normalize_cutoff = 0.0;
-    //normalizeFromPostPerspective = false;
-    //symmetrizeWeights = false;
+    normalizeMethod = "normalizeL2";
+    minL2NormTolerated = 0;
+    normalizeArborsIndividually = 0;
+    normalize_cutoff = 0.0;
+    normalizeFromPostPerspective = false;
+    symmetrizeWeights = false;
     //
-    //preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
-    //keepKernelsSynchronized = true; 
-    //combine_dW_with_W_flag = false; 
+    preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
+    keepKernelsSynchronized = true; 
+    combine_dW_with_W_flag = false; 
     //
-    writeStep = 200;
+    writeStep = 1000;
     writeCompressedWeights = false;
     writeCompressedCheckpoints = false;
-    plasticityFlag = false;
-    weightUpdatePeriod = 200.0;
-    initialWeightUpdateTime = 199.0;
+    plasticityFlag = true;
+    weightUpdatePeriod = 500.0;
+    initialWeightUpdateTime = 499.0;
     initialWriteTime = 0.0;
-    dWMax = 5; // 200.0 used for initial training
+    dWMax = .5; // 200.0 used for initial training
     selfFlag = false;
     shmget_flag = false;
     //
@@ -1267,29 +1589,130 @@ KernelConn "BinocularV1S1ToLeftDepthRecon" = {
     shrinkPatches = false;
     useWindowPost = false;
     pvpatchAccumulateType = "convolve";
+    imprintTimeThresh = 500000; //Imprint if element has not been active in 100 frames
 };
 
-KernelConn "BinocularV1S2ToLeftDepthRecon" = {
+ImprintConn "BinocularV1S2ToLeftDepthError" = {
+    #include "BinocularV1S1ToLeftDepthError";
+    @preLayerName = "BinocularV1S2";
+    @initWeightsFile = "/nh/compneuro/Data/Depth/LCA/saved_log_scale/BinocularV1S2ToLeftDepthError_W.pvp";
+};
+
+ImprintConn "BinocularV1S3ToLeftDepthError" = {
+    #include "BinocularV1S1ToLeftDepthError";
+    @preLayerName = "BinocularV1S3";
+    @initWeightsFile = "/nh/compneuro/Data/Depth/LCA/saved_log_scale/BinocularV1S3ToLeftDepthError_W.pvp";
+};
+
+TransposeConn "LeftDepthErrorToBinocularV1S1" = {
+    preLayerName = "LeftDepthError";
+    postLayerName = "BinocularV1S1";
+    channelCode = 0;
+    originalConnName = "BinocularV1S1ToLeftDepthError";
+    selfFlag = false;
+    preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
+    writeStep = -1;
+    writeCompressedCheckpoints = false;
+    shmget_flag = false;
+    delay = 0;
+    useWindowPost = true;
+    pvpatchAccumulateType = "convolve";
+};
+
+TransposeConn "LeftDepthErrorToBinocularV1S2" = {
+    #include "LeftDepthErrorToBinocularV1S1";
+    @postLayerName = "BinocularV1S2";
+    @originalConnName = "BinocularV1S2ToLeftDepthError";
+};
+
+TransposeConn "LeftDepthErrorToBinocularV1S3" = {
+    #include "LeftDepthErrorToBinocularV1S1";
+    @postLayerName = "BinocularV1S3";
+    @originalConnName = "BinocularV1S3ToLeftDepthError";
+};
+
+CloneKernelConn "BinocularV1S1ToLeftDepthRecon" = {
+    preLayerName = "BinocularV1S1";
+    postLayerName = "LeftDepthRecon";
+    channelCode = 0;
+    writeStep = -1;
+    originalConnName = "BinocularV1S1ToLeftDepthError";
+    selfFlag = false;
+    delay = 0;
+    preActivityIsNotRate = false;
+    useWindowPost = false;
+    pvpatchAccumulateType = "convolve";
+};
+
+CloneKernelConn "BinocularV1S2ToLeftDepthRecon" = {
     #include "BinocularV1S1ToLeftDepthRecon";
     @preLayerName = "BinocularV1S2";
-    @initWeightsFile = "/nh/compneuro/Data/Depth/LCA/savedCheckpoint/BinocularV1S2ToLeftDepthError_W.pvp";
+    @originalConnName = "BinocularV1S2ToLeftDepthError";
 };
 
-KernelConn "BinocularV1S1ToRightDepthRecon" = {
+CloneKernelConn "BinocularV1S3ToLeftDepthRecon" = {
+    #include "BinocularV1S1ToLeftDepthRecon";
+    @preLayerName = "BinocularV1S3";
+    @originalConnName = "BinocularV1S3ToLeftDepthError";
+};
+
+ImprintConn "BinocularV1S1ToRightDepthError" = {
+    #include "BinocularV1S1ToLeftDepthError";
+    @postLayerName = "RightDepthError";
+    @initWeightsFile = "/nh/compneuro/Data/Depth/LCA/saved_log_scale/BinocularV1S1ToRightDepthError_W.pvp";
+};
+
+ImprintConn "BinocularV1S2ToRightDepthError" = {
+    #include "BinocularV1S2ToLeftDepthError";
+    @postLayerName = "RightDepthError";
+    @initWeightsFile = "/nh/compneuro/Data/Depth/LCA/saved_log_scale/BinocularV1S2ToRightDepthError_W.pvp";
+};
+
+ImprintConn "BinocularV1S3ToRightDepthError" = {
+    #include "BinocularV1S3ToLeftDepthError";
+    @postLayerName = "RightDepthError";
+    @initWeightsFile = "/nh/compneuro/Data/Depth/LCA/saved_log_scale/BinocularV1S3ToRightDepthError_W.pvp";
+};
+
+TransposeConn "RightDepthErrorToBinocularV1S1" = {
+    #include "LeftDepthErrorToBinocularV1S1";
+    @preLayerName = "RightDepthError";
+    @originalConnName = "BinocularV1S1ToRightDepthError";
+};
+
+TransposeConn "RightDepthErrorToBinocularV1S2" = {
+    #include "LeftDepthErrorToBinocularV1S2";
+    @preLayerName = "RightDepthError";
+    @originalConnName = "BinocularV1S2ToRightDepthError";
+};
+
+TransposeConn "RightDepthErrorToBinocularV1S3" = {
+    #include "LeftDepthErrorToBinocularV1S3";
+    @preLayerName = "RightDepthError";
+    @originalConnName = "BinocularV1S3ToRightDepthError";
+};
+
+CloneKernelConn "BinocularV1S1ToRightDepthRecon" = {
     #include "BinocularV1S1ToLeftDepthRecon";
     @postLayerName = "RightDepthRecon";
-    @initWeightsFile = "/nh/compneuro/Data/Depth/LCA/savedCheckpoint/BinocularV1S1ToRightDepthError_W.pvp";
+    @originalConnName = "BinocularV1S1ToRightDepthError";
 };
 
-KernelConn "BinocularV1S2ToRightDepthRecon" = {
+CloneKernelConn "BinocularV1S2ToRightDepthRecon" = {
     #include "BinocularV1S2ToLeftDepthRecon";
     @postLayerName = "RightDepthRecon";
-    @initWeightsFile = "/nh/compneuro/Data/Depth/LCA/savedCheckpoint/BinocularV1S2ToRightDepthError_W.pvp";
+    @originalConnName = "BinocularV1S2ToRightDepthError";
+};
+
+CloneKernelConn "BinocularV1S3ToRightDepthRecon" = {
+    #include "BinocularV1S3ToLeftDepthRecon";
+    @postLayerName = "RightDepthRecon";
+    @originalConnName = "BinocularV1S3ToRightDepthError";
 };
 
 //Position connections
 
-KernelConn "BinocularV1S1ToPosError" = {
+ImprintConn "BinocularV1S1ToPosError" = {
     preLayerName = "BinocularV1S1";
     postLayerName = "PosError";
     channelCode = 1;
@@ -1302,7 +1725,7 @@ KernelConn "BinocularV1S1ToPosError" = {
     initFromLastFlag = 0;
     //
     weightInitType = "FileWeight";
-    initWeightsFile = "/nh/compneuro/Data/Depth/LCA/savedCheckpoint/BinocularV1S1ToPosError_W.pvp";
+    initWeightsFile = "/nh/compneuro/Data/Depth/LCA/saved_log_scale/BinocularV1S1ToPosError_W.pvp";
     //weightInitType = "UniformRandomWeight";
     //wMinInit = -1.0;
     //wMaxInit = 1.0;
@@ -1322,14 +1745,14 @@ KernelConn "BinocularV1S1ToPosError" = {
     keepKernelsSynchronized = true; 
     combine_dW_with_W_flag = false; 
     //
-    writeStep = 200;
+    writeStep = 1000;
     writeCompressedWeights = false;
     writeCompressedCheckpoints = false;
-    plasticityFlag = false;
-    weightUpdatePeriod = 200.0;
-    initialWeightUpdateTime = 199.0;
+    plasticityFlag = true;
+    weightUpdatePeriod = 500.0;
+    initialWeightUpdateTime = 499.0;
     initialWriteTime = 0.0;
-    dWMax = 2; // 200.0 used for initial training
+    dWMax = .25; // 200.0 used for initial training
     selfFlag = false;
     shmget_flag = false;
     //
@@ -1338,6 +1761,7 @@ KernelConn "BinocularV1S1ToPosError" = {
     useWindowPost = false;
     updateGSynFromPostPerspective = false;
     pvpatchAccumulateType = "convolve";
+    imprintTimeThresh = 500000; //Imprint if element has not been active in 100 frames
 };
 
 
@@ -1370,12 +1794,11 @@ CloneKernelConn "BinocularV1S1ToPosRecon" = {
     pvpatchAccumulateType = "convolve";
 };
 
-KernelConn "BinocularV1S2ToPosError" = {
+ImprintConn "BinocularV1S2ToPosError" = {
     #include "BinocularV1S1ToPosError";
     @preLayerName = "BinocularV1S2";
-    @initWeightsFile = "/nh/compneuro/Data/Depth/LCA/savedCheckpoint/BinocularV1S2ToPosError_W.pvp";
+    @initWeightsFile = "/nh/compneuro/Data/Depth/LCA/saved_log_scale/BinocularV1S2ToPosError_W.pvp";
 };
-
 
 TransposeConn "PosErrorToBinocularV1S2" = {
     #include "PosErrorToBinocularV1S1";
@@ -1389,8 +1812,26 @@ CloneKernelConn "BinocularV1S2ToPosRecon" = {
     @originalConnName = "BinocularV1S2ToPosError";
 };
 
-// Probes
-//
+ImprintConn "BinocularV1S3ToPosError" = {
+    #include "BinocularV1S1ToPosError";
+    @preLayerName = "BinocularV1S3";
+    @initWeightsFile = "/nh/compneuro/Data/Depth/LCA/saved_log_scale/BinocularV1S3ToPosError_W.pvp";
+};
+
+TransposeConn "PosErrorToBinocularV1S3" = {
+    #include "PosErrorToBinocularV1S1";
+    @postLayerName = "BinocularV1S3";
+    @originalConnName = "BinocularV1S3ToPosError";
+};
+
+CloneKernelConn "BinocularV1S3ToPosRecon" = {
+    #include "BinocularV1S1ToPosRecon";
+    @preLayerName = "BinocularV1S3";
+    @originalConnName = "BinocularV1S3ToPosError";
+};
+
+//// Probes
+////
 //StatsProbe "LeftGanglion1StatsFile" = {
 //    targetLayer = "LeftGanglion1";
 //    probeOutputFile = "LeftGanglion1_Stats.txt";
@@ -1431,6 +1872,11 @@ CloneKernelConn "BinocularV1S2ToPosRecon" = {
 //    probeOutputFile = "LeftError2_Stats.txt";
 //};
 //
+//StatsProbe "LeftError3StatsFile" = {
+//    targetLayer = "LeftError3";
+//    probeOutputFile = "LeftError3_Stats.txt";
+//};
+//
 //StatsProbe "LeftRecon1StatsFile" = {
 //    targetLayer = "LeftRecon1";
 //    probeOutputFile = "LeftRecon1_Stats.txt";
@@ -1444,6 +1890,21 @@ CloneKernelConn "BinocularV1S2ToPosRecon" = {
 //StatsProbe "LeftDepthDownsampleStatsFile" = {
 //   targetLayer = "LeftDepthDownsample";
 //   probeOutputFile = "LeftDepthDownsample_Stats.txt";
+//};
+//
+//StatsProbe "LeftDepthBinStatsFile" = {
+//   targetLayer = "LeftDepthBin";
+//   probeOutputFile = "LeftDepthBin_Stats.txt";
+//};
+//
+//StatsProbe "LeftDepthRescaleStatsFile" = {
+//   targetLayer = "LeftDepthRescale";
+//   probeOutputFile = "LeftDepthRescale_Stats.txt";
+//};
+//
+//StatsProbe "LeftDepthBufferStatsFile" = {
+//   targetLayer = "LeftDepthBuffer";
+//   probeOutputFile = "LeftDepthBuffer_Stats.txt";
 //};
 //
 //StatsProbe "LeftDepthErrorStatsFile" = {
@@ -1496,6 +1957,11 @@ CloneKernelConn "BinocularV1S2ToPosRecon" = {
 //    probeOutputFile = "RightError2_Stats.txt";
 //};
 //
+//StatsProbe "RightError3StatsFile" = {
+//    targetLayer = "RightError3";
+//    probeOutputFile = "RightError3_Stats.txt";
+//};
+//
 //StatsProbe "RightRecon1StatsFile" = {
 //    targetLayer = "RightRecon1";
 //    probeOutputFile = "RightRecon1_Stats.txt";
@@ -1509,6 +1975,21 @@ CloneKernelConn "BinocularV1S2ToPosRecon" = {
 //StatsProbe "RightDepthDownsampleStatsFile" = {
 //   targetLayer = "RightDepthDownsample";
 //   probeOutputFile = "RightDepthDownsample_Stats.txt";
+//};
+//
+//StatsProbe "RightDepthBinStatsFile" = {
+//   targetLayer = "RightDepthBin";
+//   probeOutputFile = "RightDepthBin_Stats.txt";
+//};
+//
+//StatsProbe "RightDepthRescaleStatsFile" = {
+//   targetLayer = "RightDepthRescale";
+//   probeOutputFile = "RightDepthRescale_Stats.txt";
+//};
+//
+//StatsProbe "RightDepthBufferStatsFile" = {
+//   targetLayer = "RightDepthBuffer";
+//   probeOutputFile = "RightDepthBuffer_Stats.txt";
 //};
 //
 //StatsProbe "RightDepthErrorStatsFile" = {
@@ -1531,9 +2012,19 @@ CloneKernelConn "BinocularV1S2ToPosRecon" = {
 //    probeOutputFile = "BinocularV1S2_Stats.txt";
 //};
 //
+//StatsProbe "BinocularV1S3StatsFile" = {
+//    targetLayer = "BinocularV1S3";
+//    probeOutputFile = "BinocularV1S3_Stats.txt";
+//};
+//
 //StatsProbe "PosDownsampleStatsFile" = {
 //    targetLayer = "PosDownsample";
 //    probeOutputFile = "PosDownsample_Stats.txt";
+//};
+//
+//StatsProbe "PosRescaleStatsFile" = {
+//    targetLayer = "PosRescale";
+//    probeOutputFile = "PosRescale_Stats.txt";
 //};
 //
 //StatsProbe "PosErrorStatsFile" = {

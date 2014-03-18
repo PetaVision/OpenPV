@@ -11,22 +11,20 @@
 function velodyne(base_dir_param, out_dir_param, numFrame_param)
     %clear all; close all; dbstop error; clc;
 
-    addpath(genpath('devkit/'));
-
-    disp('======= KITTI Depth Generator =======');
-
     % options (modify this to select your sequence)
     %global base_dir; base_dir  = '/nh/compneuro/Data/KITTI/2011_09_26/2011_09_26_drive_0011_sync';
     global base_dir; base_dir  = base_dir_param;
     global calib_dir; calib_dir = '/nh/compneuro/Data/KITTI/2011_09_26';
     %global out_dir; out_dir = '/nh/compneuro/Data/Depth/depth_data_11';
-    global out_dir; out_dir = out_dir_param
+    global out_dir; out_dir = out_dir_param;
     global pixBorder; pixBorder = 50; %Pixel border for better interpolation
     global vertCutOffset; vertCutOffset = 30;
+    global horLineWidth; horLineWidth = 200;
+    global maxThreshPercent; maxThreshPercent = 0; %Remove top 10% of data and set to max distance
     verboseLevel = 2; %verbose level for parcellfun
 
     %numFrame     = 232; % 0-based index
-    numFrame = numFrame_param
+    numFrame = numFrame_param;
     %Multithreading
     %numproc = 1;
     %numproc = nproc()
@@ -70,11 +68,12 @@ function generateInput(frames)
   global pixBorder;
   global vertCutOffset;
   global out_dir;
+  global maxThreshPercent;
   %For frames
   parfor i=1:size(frames,2)
     frame = frames(i);
     %For the two cameras
-    for cam=0:1
+    for cam=2:3
       depthOutDir = sprintf('%s/depth_%02d', out_dir, cam);
       imgOutDir = sprintf('%s/image_%02d', out_dir, cam);
       if ~exist(depthOutDir, 'dir')
@@ -93,11 +92,21 @@ function generateInput(frames)
       R_cam_to_rect(1:3,1:3) = calib.R_rect{1};
       P_velo_to_img = calib.P_rect{cam+1}*R_cam_to_rect*Tr_velo_to_cam;
 
+
+      %Check that both files exist
+      inFile = sprintf('%s/image_%02d/data/%010d.png',base_dir,cam,frame);
+      velFile = sprintf('%s/velodyne_points/data/%010d.bin',base_dir,frame);
+      disp(inFile)
+      if (exist(inFile) == 0) | (exist(velFile) == 0)
+         disp([inFile, ' does not exist, skipping']);
+         continue;
+      end%if
+
       % load and display image
-      img = imread(sprintf('%s/image_%02d/data/%010d.png',base_dir,cam,frame));
+      img = imread(inFile);
 
       % load velodyne points
-      fid = fopen(sprintf('%s/velodyne_points/data/%010d.bin',base_dir,frame),'rb');
+      fid = fopen(velFile,'rb');
       velo = fread(fid,[4 inf],'single')';
       %velo = velo(1:5:end,:); % remove every 5th point for display speed
       fclose(fid);
@@ -121,6 +130,22 @@ function generateInput(frames)
       Y = Y(idxs);
       Z = Z(idxs);
 
+      %Add new datapoints at the middle of the image to prevent weird interpolations at the center (infinity) 
+      %yPoint = round(size(img, 1) / 2)-vertCutOffset;
+      %xCenter = round(size(img, 2) / 2);
+      %%Use maximum depth value that was in the dataset
+      %zVal = max(Z);
+      %%Make the column vector of new points
+      %offsets = -round(horLineWidth/2):round(horLineWidth/2)';
+      %offsets = offsets';
+      %addX = xCenter + offsets;
+      %addY = repmat(yPoint, length(offsets), 1);
+      %addZ = repmat(zVal, length(offsets), 1);
+      %%Add the points
+      %X = [X;addX];
+      %Y = [Y;addY];
+      %Z = [Z;addZ];
+      
       %plot3(X,Y,Z,'.')
 
       %Interpololate data
@@ -133,14 +158,28 @@ function generateInput(frames)
 
       %Cut image in half vertically
       ZI = ZI(round(size(img, 1)/2) - vertCutOffset:end, :);
-      newImg = img(round(size(img, 1)/2) - vertCutOffset:end, :);
+      newImg = img(round(size(img, 1)/2) - vertCutOffset:end, :, :);
       %newRImg = rImg(round(size(lImg, 1)/2) - vertCutOffset:end, :);
 
-      %Normalize ZI
-      nZI = (ZI - min(ZI(:)))/(max(ZI(:)) - min(ZI(:)));
+      %Set ZI to log scale
+      nZI = log(ZI/6.5)/log(8.5);
 
-      imwrite(nZI, sprintf('%s/depth_%03d.png', depthOutDir, frame));
-      imwrite(newImg, sprintf('%s/img_%03d.png', imgOutDir, frame));
+      %Normalize ZI
+      %nZI = (ZI - mean(ZI(:))).*(1./std(ZI(:)));
+      %nZI = (ZI - min(ZI(:)))/(max(ZI(:)) - min(ZI(:)));
+
+      %Set all NaN's to black
+      nZI(isnan(nZI)) = 0;
+
+      %Bin up last few values to be 1 to prevent weird interpolations at infinity
+      threshval = 1-maxThreshPercent;
+      nZI(find(nZI >= threshval)) = 1;
+
+      keyboard
+
+      %imwrite is trunkatin the data to be between 0 and 1
+      imwrite(nZI, sprintf('%s/%04d.png', depthOutDir, frame));
+      imwrite(newImg, sprintf('%s/%04d.png', imgOutDir, frame));
     end %end cam loop
   end %end frames loop
 end %end function

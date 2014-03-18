@@ -17,50 +17,49 @@ outputDir = "/nh/compneuro/Data/Depth/LCA/depth/"
 #outputDir = "/nh/compneuro/Data/Depth/LCA/dataset02/"
 readFromCheckpoint = False
 lastCheckpoint = 200000
-skipFrames = 1 #Only print every 20th frame
-startFrame = 10000
+skipFrames = 20 #Only print every 20th frame
 layers = [
-   "a0_LeftImage",
-   "a1_LeftBipolar",
-   "a2_LeftGanglion1",
-   "a3_LeftGanglion2",
-   "a4_LeftDownsample1",
-   "a5_LeftDownsample2",
+   #"a0_LeftImage",
+   #"a1_LeftBipolar",
+   #"a2_LeftGanglion1",
+   #"a3_LeftGanglion2",
+   #"a4_LeftDownsample1",
+   #"a5_LeftDownsample2",
    "a6_LeftRescale1",
    "a7_LeftRescale2",
-   "a8_LeftError1",
-   "a9_LeftError2",
+   #"a8_LeftError1",
+   #"a9_LeftError2",
    "a10_LeftRecon1",
    "a11_LeftRecon2",
-   "a12_LeftDepthImage",
-   "a13_LeftDepthDownsample",
-   "a14_LeftDepthBin",
-   "a15_LeftDepthBuffer",
+   #"a12_LeftDepthImage",
+   #"a13_LeftDepthDownsample",
+   #"a14_LeftDepthBin",
+   #"a15_LeftDepthBuffer",
    "a16_LeftDepthRescale",
-   "a17_LeftDepthError",
+   #"a17_LeftDepthError",
    "a18_LeftDepthRecon",
-   "a19_RightImage",
-   "a20_RightBipolar",
-   "a21_RightGanglion1",
-   "a22_RightGanglion2",
-   "a23_RightDownsample1",
-   "a24_RightDownsample2",
+   #"a19_RightImage",
+   #"a20_RightBipolar",
+   #"a21_RightGanglion1",
+   #"a22_RightGanglion2",
+   #"a23_RightDownsample1",
+   #"a24_RightDownsample2",
    "a25_RightRescale1",
    "a26_RightRescale2",
-   "a27_RightError1",
-   "a28_RightError2",
+   #"a27_RightError1",
+   #"a28_RightError2",
    "a29_RightRecon1",
    "a30_RightRecon2",
-   "a31_RightDepthImage",
-   "a32_RightDepthDownsample",
-   "a33_RightDepthBin",
-   "a34_RightDepthBuffer",
+   #"a31_RightDepthImage",
+   #"a32_RightDepthDownsample",
+   #"a33_RightDepthBin",
+   #"a34_RightDepthBuffer",
    "a35_RightDepthRescale",
-   "a36_RightDepthError",
+   #"a36_RightDepthError",
    "a37_RightDepthRecon",
    #"a38_Position",
    "a39_PosDownsample",
-   "a40_PosError",
+   #"a40_PosError",
    "a41_PosRecon"
    #"a42_BinocularV1S1",
    #"a43_BinocularV1S2"
@@ -126,9 +125,6 @@ for layername in layers:
          img = scaleMat(mat)
       imsave(reconDir + layername + ".png", img)
    else:
-      #Skip start frame
-      #toFrame(startFrame, pvpFile, numPerFrame, header["headersize"])
-
       #Read until errors out (EOF)
       (idx, mat) = readData(pvpFile, shape, numPerFrame)
       #While not eof

@@ -1,0 +1,68 @@
+// // HyPerHLCA.params
+//
+// created by peteschultz: Sept 27, 2012, modified garkenyon, 1/20/13
+//
+//
+// Implements the locally competitive algorithm described in
+// Rozell et al., "Sparse Coding via Thresholding and Local Cometition
+// in Neural Circuits," Neural Computation 20, 2526-2563 (2008).
+///////////////////////////
+
+debugParsing = true;
+
+HyPerCol "column" = {
+    nx = 1200; //1242;  // KITTI synced value
+    ny = 216;  //218;
+    dt = 1.0;
+    randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
+    startTime = 9999999;
+    numSteps = 100000000;
+    progressStep = 10;
+    outputPath = "/nh/compneuro/Data/Depth/LCA/test";
+    filenamesContainLayerNames = true;
+    filenamesContainConnectionNames = true;
+    checkpointRead = false; //true;
+    checkpointReadDir = "/nh/compneuro/Data/Depth/LCA/test/Checkpoints";
+    checkpointReadDirIndex = 100;
+    checkpointWrite = true;
+    checkpointWriteDir = "/nh/compneuro/Data/Depth/LCA/test/Checkpoints";
+    checkpointWriteStepInterval = 10;
+    deleteOlderCheckpoints = false;
+    //suppressLastOutput = false;
+    writeProgressToErr = true;
+    outputNamesOfLayersAndConns = "LayerAndConnNames.txt";
+};
+
+//
+// layers
+//
+
+// left eye layers
+
+Movie "LeftImage" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    readPvpFile = false;
+    imageListPath = "/nh/compneuro/Data/newDepth/image_02.txt";
+    writeFrameToTimestamp = true;
+    nf = 1;
+    writeStep = -1;
+    writeSparseActivity = false;
+    displayPeriod = 10;
+    start_frame_index = 1;
+    skip_frame_index = 1;
+    echoFramePathnameFlag = true;
+    mirrorBCflag = true;
+    jitterFlag = 0;
+    useImageBCflag = false;
+    inverseFlag = false;
+    normalizeLuminanceFlag = false;
+    writeImages = false;
+    offsetX = 0;
+    offsetY = 0;
+    autoResizeFlag = 0;
+    randomMovie = 0;
+    phase = 0;
+    //useParamsImage = true;
+};
