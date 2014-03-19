@@ -1,6 +1,11 @@
 ## See http://www.cmake.org/Wiki/CMake_Useful_Variables for more variables to set
 cmake_minimum_required(VERSION 2.6)
 
+# Set variable for current working directory (workspace directory)
+if(NOT PV_DIR)
+   set(PV_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../PetaVision CACHE FILEPATH "The base petavision directory")
+endif (NOT PV_DIR)
+
 #Set CMAKE_MODULE_PATH
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PV_DIR}/docs/cmake/Modules/")
 
