@@ -17,38 +17,12 @@ LinearAverageProbe::LinearAverageProbe() {
    // Derived classes should call initLinearAverageProbe during their own initialization
 }
 
-/**
- * @hc
- * @dim
- * @f
- * @gifFile
- */
-LinearAverageProbe::LinearAverageProbe(HyPerLayer * layer, PVDimType dim, int f, const char * gifFile)
-   : LinearActivityProbe()
-{
-   initLinearAverageProbe_base();
-   initLinearAverageProbe(NULL, layer, dim, f, gifFile);
-}
-
-/**
- * @filename
- * @hc
- * @dim
- * @f
- * @char
- */
-LinearAverageProbe::LinearAverageProbe(const char * filename, HyPerLayer * layer, PVDimType dim, int f, const char * gifFile)
-    : LinearActivityProbe()
-{
-   initLinearAverageProbe_base();
-   initLinearAverageProbe(filename, layer, dim, f, gifFile);
-}
-
 LinearAverageProbe::~LinearAverageProbe()
 {
    if (gifFileStream != NULL) {
       PV_fclose(gifFileStream);
    }
+   free(gifFilename); gifFilename = NULL;
 }
 
 int LinearAverageProbe::initLinearAverageProbe_base() {
@@ -57,12 +31,20 @@ int LinearAverageProbe::initLinearAverageProbe_base() {
    return PV_SUCCESS;
 }
 
-int LinearAverageProbe::initLinearAverageProbe(const char * filename, HyPerLayer * layer, PVDimType dim, int f, const char * gifFile) {
+int LinearAverageProbe::initLinearAverageProbe(const char * probeName, HyPerCol * hc) {
+   int status = initLinearActivityProbe(probeName, hc);
+   this->gifFileStream = NULL;
+   return status;
+}
 
-   initLinearActivityProbe(filename, layer, dim, 0, f);
-   this->gifFilename = strdup(gifFile);
-   this->gifFileStream   = NULL;
-   return PV_SUCCESS;
+int LinearAverageProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = LinearActivityProbe::ioParamsFillGroup(ioFlag);
+   ioParam_gifFile(ioFlag);
+   return status;
+}
+
+void LinearAverageProbe::ioParam_gifFile(enum ParamsIOFlag ioFlag) {
+   getParentCol()->ioParamString(ioFlag, getProbeName(), "gifFile", &this->gifFilename, NULL);
 }
 
 /**

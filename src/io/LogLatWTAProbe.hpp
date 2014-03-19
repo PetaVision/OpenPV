@@ -17,13 +17,13 @@ namespace PV {
 
 class LogLatWTAProbe : public LayerFunctionProbe {
 public:
-   LogLatWTAProbe(HyPerLayer * layer, const char * msg);
-   LogLatWTAProbe(const char * filename, HyPerLayer * layer, const char * msg);
+   LogLatWTAProbe(const char * probeName, HyPerCol * hc);
    virtual ~LogLatWTAProbe();
 
 protected:
    LogLatWTAProbe();
-   int initLogLatWTAProbe(const char * filename, HyPerLayer * layer, const char * msg);
+   int initLogLatWTAProbe(const char * probeName, HyPerCol * hc);
+   void initFunction();
    virtual int writeState(double timed, HyPerLayer * l, pvdata_t value);
 
 private:

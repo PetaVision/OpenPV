@@ -39,9 +39,9 @@ ANNLayer::ANNLayer() {
    initialize_base();
 }
 
-ANNLayer::ANNLayer(const char * name, HyPerCol * hc, int numChannels) {
+ANNLayer::ANNLayer(const char * name, HyPerCol * hc) {
    initialize_base();
-   initialize(name, hc, numChannels);
+   initialize(name, hc);
 #ifdef PV_USE_OPENCL
    if(gpuAccelerateFlag)
       initializeGPU();
@@ -54,16 +54,49 @@ int ANNLayer::initialize_base() {
    return PV_SUCCESS;
 }
 
-int ANNLayer::initialize(const char * name, HyPerCol * hc, int numChannels) {
-   int status = HyPerLayer::initialize(name, hc, numChannels);
+int ANNLayer::initialize(const char * name, HyPerCol * hc) {
+   int status = HyPerLayer::initialize(name, hc);
    assert(status == PV_SUCCESS);
-   PVParams * params = parent->parameters();
 
-   status |= readVThreshParams(params);
+   status |= checkVThreshParams(parent->parameters());
 #ifdef PV_USE_OPENCL
    numEvents=NUM_ANN_EVENTS;
 #endif
    return status;
+}
+
+int ANNLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = HyPerLayer::ioParamsFillGroup(ioFlag);
+   ioParam_VThresh(ioFlag);
+   ioParam_VMin(ioFlag);
+   ioParam_VMax(ioFlag);
+   ioParam_VShift(ioFlag);
+   ioParam_VWidth(ioFlag);
+
+   if (ioFlag == PARAMS_IO_READ) {
+      status = checkVThreshParams(parent->parameters());
+   }
+   return status;
+}
+
+void ANNLayer::ioParam_VThresh(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "VThresh", &VThresh, -max_pvdata_t);
+}
+
+void ANNLayer::ioParam_VMin(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "VMin", &VMin, VThresh);
+}
+
+void ANNLayer::ioParam_VMax(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "VMax", &VMax, max_pvdata_t);
+}
+
+void ANNLayer::ioParam_VShift(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "VShift", &VShift, (pvdata_t) 0);
+}
+
+void ANNLayer::ioParam_VWidth(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "VWidth", &VWidth, (pvdata_t) 0);
 }
 
 #ifdef PV_USE_OPENCL
@@ -148,17 +181,13 @@ int ANNLayer::updateStateOpenCL(double time, double dt)
 }
 #endif
 
-int ANNLayer::readVThreshParams(PVParams * params) {
-   VThresh = params->value(name, "VThresh", -max_pvdata_t);
-   VMin = params->value(name, "VMin", VThresh);
-   VMax = params->value(name, "VMax", max_pvdata_t);
-   VShift = params->value(name, "VShift", 0.0);
-   VWidth = params->value(name, "VWidth", 0.0);
+int ANNLayer::checkVThreshParams(PVParams * params) {
    if (VWidth<0) {
       VThresh += VWidth;
       VWidth = -VWidth;
       if (parent->columnId()==0) {
-         fprintf(stderr, "Warning: interpreting negative VWidth as setting VThresh=%f and VWidth=%f\n", VThresh, VWidth);
+         fprintf(stderr, "%s \"%s\" warning: interpreting negative VWidth as setting VThresh=%f and VWidth=%f\n",
+               parent->parameters()->groupKeywordFromName(name), name, VThresh, VWidth);
       }
    }
 
@@ -168,10 +197,12 @@ int ANNLayer::readVThreshParams(PVParams * params) {
    if (VMin > limfromright) {
       if (parent->columnId()==0) {
          if (VWidth==0) {
-            fprintf(stderr, "Warning: ANNLayer \"%s\" has a nonmonotonic transfer function, jumping from %f to %f at Vthresh=%f\n", name, VMin, limfromright, VThresh);
+            fprintf(stderr, "%s \"%s\" warning: nonmonotonic transfer function, jumping from %f to %f at Vthresh=%f\n",
+                  parent->parameters()->groupKeywordFromName(name), name, VMin, limfromright, VThresh);
          }
          else {
-            fprintf(stderr, "Warning: ANNLayer \"%s\" has a nonmonotonic transfer function, changing from %f to %f as V goes from VThresh=%f to VThresh+VWidth=%f\n", name, VMin, limfromright, VThresh, VThresh+VWidth);
+            fprintf(stderr, "%s \"%s\" warning: nonmonotonic transfer function, changing from %f to %f as V goes from VThresh=%f to VThresh+VWidth=%f\n",
+                  parent->parameters()->groupKeywordFromName(name), name, VMin, limfromright, VThresh, VThresh+VWidth);
          }
       }
    }

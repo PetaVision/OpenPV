@@ -55,7 +55,8 @@ do
         hascmake=1
         cd $k
         rm -rf CMakeFiles
-        cmake -DCMAKE_C_COMPILER=openmpicc -DCMAKE_CXX_COMPILER=openmpic++ -DMPI_C_COMPILER=openmpicc -DMPI_CXX_COMPILER=openmpic++ -DCMAKE_BUILD_TYPE=Debug -DPV_WRKSPC_DIR=../       
+        # TODO: A command line argument should be able to override the setting for PV_DIR
+        cmake -DCMAKE_C_COMPILER=openmpicc -DCMAKE_CXX_COMPILER=openmpic++ -DMPI_C_COMPILER=openmpicc -DMPI_CXX_COMPILER=openmpic++ -DCMAKE_BUILD_TYPE=Debug -DPV_DIR=$PWD/../PetaVision
         make clean
         make -j4 all
         if test "$?" -ne 0

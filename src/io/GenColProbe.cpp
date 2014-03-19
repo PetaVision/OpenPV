@@ -7,16 +7,19 @@
 
 #include "GenColProbe.hpp"
 #include "ConnFunctionProbe.hpp"
+#include "LayerFunctionProbe.hpp"
 
 namespace PV {
 
-GenColProbe::GenColProbe(const char * probename) : ColProbe() {
+GenColProbe::GenColProbe() : ColProbe() { // Default constructor to be called by derived classes.
+   // They should call GenColProbe::initialize from their own initialization routine
+   // instead of calling a non-default constructor.
    initialize_base();
 }  // end GenColProbe::GenColProbe(const char *)
 
-GenColProbe::GenColProbe(const char * probename, const char * filename, HyPerCol * hc) : ColProbe() {
+GenColProbe::GenColProbe(const char * probename, HyPerCol * hc) : ColProbe() {
    initialize_base();
-   initializeGenColProbe(probename, filename, hc);
+   initializeGenColProbe(probename, hc);
 }  // end GenColProbe::GenColProbe(const char *, const char *, HyPerCol *)
 
 GenColProbe::~GenColProbe() {
@@ -34,8 +37,8 @@ int GenColProbe::initialize_base() {
    return PV_SUCCESS;
 }
 
-int GenColProbe::initializeGenColProbe(const char * probename, const char * filename, HyPerCol * hc) {
-   return ColProbe::initialize(probename, filename, hc);
+int GenColProbe::initializeGenColProbe(const char * probename, HyPerCol * hc) {
+   return ColProbe::initialize(probename, hc);
 }
 
 int GenColProbe::addLayerTerm(LayerFunctionProbe * p, HyPerLayer * l, pvdata_t coeff) {

@@ -21,55 +21,33 @@
 
 namespace PV {
 
+InitBIDSLateral::InitBIDSLateral(HyPerConn * conn){
+   initialize_base();
+   initialize(conn);
+}
+
 InitBIDSLateral::InitBIDSLateral(){
    initialize_base();
 }
 
 InitBIDSLateral::~InitBIDSLateral(){
-   // TODO Auto-generated destructor stub
 }
 
-/*This method does the three steps involved in initializing weights.  Subclasses shouldn't touch this method.
- * Subclasses should only generate their own versions of calcWeights to do their own type of weight initialization.
- *
- * This method initializes the full unshrunken patch.
- */
-int InitBIDSLateral::initializeWeights(PVPatch *** patches, pvdata_t ** dataStart, const char * filename, HyPerConn * callingConn, double * timef /*default NULL*/){
-   PVParams * inputParams = callingConn->getParent()->parameters();
-   movieLayer = (BIDSMovieCloneMap*)(callingConn->getParent()->getLayerFromName("BIDS_Movie"));
-   int initFromLastFlag = inputParams->value(callingConn->getName(), "initFromLastFlag", 0.0f, false) != 0;
-   InitWeightsParams *weightParams = NULL;
-   int numArbors = callingConn->numberOfAxonalArborLists();
-   if( initFromLastFlag ) {
-      char nametmp[PV_PATH_MAX];
-      snprintf(nametmp, PV_PATH_MAX-1, "%s/w%1.1d_last.pvp", callingConn->getParent()->getOutputPath(), callingConn->getConnectionId());
-      readWeights(patches, dataStart, callingConn->getNumDataPatches(), nametmp, callingConn);
-   }
-   else if( filename != NULL ) {
-      readWeights(patches, dataStart, callingConn->getNumDataPatches(), filename, callingConn, timef);
-   }
-   else {
-      weightParams = createNewWeightParams(callingConn);
-      for( int arbor=0; arbor<numArbors; arbor++ ) {
-         for (int dataPatchIndex = 0; dataPatchIndex < callingConn->getNumDataPatches(); dataPatchIndex++) {
-            int successFlag = calcWeightsBIDS(callingConn->get_wDataHead(arbor, dataPatchIndex), dataPatchIndex, arbor, weightParams, callingConn);
-            if (successFlag != PV_SUCCESS) {
-               fprintf(stderr, "Failed to create weights for %s! Exiting...\n", callingConn->getName());
-               exit(PV_FAILURE);
-            }
-         }
-      }
-      delete(weightParams);
-   }
+int InitBIDSLateral::initialize_base() {
    return PV_SUCCESS;
 }
 
-InitWeightsParams * InitBIDSLateral::createNewWeightParams(HyPerConn * callingConn){
+int InitBIDSLateral::initialize(HyPerConn * conn) {
+   int status = InitWeights::initialize(conn);
+   return status;
+}
+
+InitWeightsParams * InitBIDSLateral::createNewWeightParams(){
    InitWeightsParams * tempPtr = new InitBIDSLateralParams(callingConn);
    return tempPtr;
 }
 
-int InitBIDSLateral::calcWeightsBIDS(/* PVPatch * patch */ pvdata_t * dataStart, int dataPatchIndex, int arborId, InitWeightsParams *weightParams, HyPerConn * conn){
+int InitBIDSLateral::calcWeights(pvdata_t * dataStart, int dataPatchIndex, int arborId){
     InitBIDSLateralParams *weightParamPtr = dynamic_cast<InitBIDSLateralParams*> (weightParams);
 
     if(weightParamPtr==NULL) {
@@ -81,24 +59,18 @@ int InitBIDSLateral::calcWeightsBIDS(/* PVPatch * patch */ pvdata_t * dataStart,
     weightParamPtr->calcOtherParams(dataPatchIndex);
 
     //calculate the weights:
-    BIDSLateralCalcWeights(dataPatchIndex, dataStart, weightParamPtr, conn);
+    BIDSLateralCalcWeights(dataPatchIndex, dataStart, weightParamPtr);
 
 
     return PV_SUCCESS;
 }
-
-int InitBIDSLateral::initialize_base() {
-   return PV_SUCCESS;
-}
-
-
 
 /**
  * calculate gaussian weights between oriented line segments
  * WARNING - assumes weight and GSyn patches from task same size
  *           assumes jitterX = jitterY and patchSizex = patchSizey
 */
-int InitBIDSLateral::BIDSLateralCalcWeights(/* PVPatch * patch */ int kPre, pvdata_t * dataStart, InitBIDSLateralParams * weightParamPtr, HyPerConn * conn) {
+int InitBIDSLateral::BIDSLateralCalcWeights(int kPre, pvdata_t * dataStart, InitBIDSLateralParams * weightParamPtr) {
 
    //i wonder if it is possible to use ->getNXScale()??
    int nxBids = weightParamPtr->getPre()->getLayerLoc()->nx;
@@ -106,9 +78,7 @@ int InitBIDSLateral::BIDSLateralCalcWeights(/* PVPatch * patch */ int kPre, pvda
    int nfBids = weightParamPtr->getPre()->getLayerLoc()->nf;
    int nbBids = weightParamPtr->getPre()->getLayerLoc()->nb;
 
-   //std::cout << kPre << "\n";
    int kPreRes = kIndexRestricted(kPre, nxBids, nyBids, nfBids, nbBids);
-//   std::cout << kPreRes << "\n";
    if(kPreRes == -1){
       return 0;
    }
@@ -118,7 +88,7 @@ int InitBIDSLateral::BIDSLateralCalcWeights(/* PVPatch * patch */ int kPre, pvda
 
    int arborID = 0;
    assert(arborID >= 0);
-   PVPatch * weights = conn->getWeights(kPre, arborID);
+   PVPatch * weights = callingConn->getWeights(kPre, arborID);
 
 #ifdef DEBUG_OUTPUT
    int rank;
@@ -129,119 +99,96 @@ int InitBIDSLateral::BIDSLateralCalcWeights(/* PVPatch * patch */ int kPre, pvda
 #endif
 
 
-//      std::cout <<"InitBIDSLateral: nxy, nyp: " << nxp << ", " << nyp << "\n";
-      int nxGlobal = conn->getParent()->getNxGlobal();
-      int nyGlobal = conn->getParent()->getNyGlobal();
-      int patchSizex = nxGlobal / nxBids;
-      int patchSizey = nyGlobal / nyBids;
+   int nxGlobal = callingConn->getParent()->getNxGlobal();
+   int nyGlobal = callingConn->getParent()->getNyGlobal();
+   int patchSizex = nxGlobal / nxBids;
+   int patchSizey = nyGlobal / nyBids;
 
-      //BIDS space
-      int nxp  = conn->fPatchSize() * weights->nx;
-      int nyp  = conn->fPatchSize() * weights->ny;
+   //BIDS space
+   int nxp  = callingConn->fPatchSize() * weights->nx;
+   int nyp  = callingConn->fPatchSize() * weights->ny;
 
-//      std::cout << "InitBIDSLat: (" << nxp << ", " << nyp << ")\n";
+   //the principle node's physical position (HyPerCol space)
+   int preCoordy = coords[kPreRes].yCoord;
+   int preCoordx = coords[kPreRes].xCoord;
 
-      //the principle node's physical position (HyPerCol space)
-      int preCoordy = coords[kPreRes].yCoord;
-      int preCoordx = coords[kPreRes].xCoord;
+   //the principle node's mathematical position (BIDS space)
+   int kPreResy = kyPos(kPreRes, nxBids, nyBids, nfBids);
+   int kPreResx = kxPos(kPreRes, nxBids, nyBids, nfBids);
 
-//      std::cout << "InitBIDSLateral: Index " << kPreRes << ": (" << preCoordx << ", " << preCoordy << ")\n";
+   //the principle node's mathematical position (HyPerCol space)
+   int patchCenterx = (kPreResx * patchSizex) + (patchSizex / 2);
+   int patchCentery = (kPreResy * patchSizey) + (patchSizey / 2);
 
-      //the principle node's mathematical position (BIDS space)
-      int kPreResy = kyPos(kPreRes, nxBids, nyBids, nfBids);
-      int kPreResx = kxPos(kPreRes, nxBids, nyBids, nfBids);
+   const char * jitterSourceName = weightParamPtr->getJitterSource();
+   int jitter = weightParamPtr->getJitter();
+   //Divide by patch size to convert to BIDS units
+   int principleJittDiffx = (jitter - abs(preCoordx - patchCenterx)) / patchSizex;
+   int principleJittDiffy = (jitter - abs(preCoordy - patchCentery)) / patchSizey;
 
-      //the principle node's mathematical position (HyPerCol space)
-      int patchCenterx = (kPreResx * patchSizex) + (patchSizex / 2);
-      int patchCentery = (kPreResy * patchSizey) + (patchSizey / 2);
+   int sy  = callingConn->getPostNonextStrides()->sy;       // stride in layer
+   int sx  = callingConn->getPostNonextStrides()->sx;       // generally the # of features
+   int syw = callingConn->yPatchStride(); //weights->sy;    // stride in patch
 
-      const char * jitterSourceName = conn->getParent()->parameters()->stringValue(conn->getName(), "jitterSource");
-      int jitter = (int)weightParamPtr->getPre()->getParent()->parameters()->value(jitterSourceName, "jitter");
-      //Divide by patch size to convert to BIDS units
-      int principleJittDiffx = (jitter - abs(preCoordx - patchCenterx)) / patchSizex;
-      int principleJittDiffy = (jitter - abs(preCoordy - patchCentery)) / patchSizey;
-/*
-      std::cout << "principleJittDiffx = " << principleJittDiffx << " :(jitter - abs(preCoordx - patchCenterx))/patchSizex : (" << jitter <<" - abs(" << preCoordx << " - " << patchCenterx << ")) / " << patchSizex << "\n";
-      std::cout << "principleJittDiffy = " << principleJittDiffy << " :(jitter - abs(preCoordy - patchCentery))/patchSizey : (" << jitter <<" - abs(" << preCoordy << " - " << patchCentery << ")) / " << patchSizey << "\n";
-*/
-      int sy  = conn->getPostNonextStrides()->sy;       // stride in layer
-      int sx  = conn->getPostNonextStrides()->sx;       // generally the # of features
-      int syw = conn->yPatchStride(); //weights->sy;    // stride in patch
-      // pvdata_t * channel = conn->getPost()->getChannel(conn->getChannel());
+   int radius = weightParamPtr->getLateralRadius();
 
-//      std::cout << "Loop: " << principleJittDiffy << " to " << nyp - principleJittDiffy << "\n";
-//      std::cout << "Loop: " << principleJittDiffx << " to " << nxp - principleJittDiffx << "\n";
-//      std::cout << "pre: (" << preCoordx << ", " << preCoordy << ")\n";
-      //Search patches in jitter
-//      int maxindex = 0;
-      for (int delY = principleJittDiffy; delY < nyp - principleJittDiffy; delY++) {
-         float * RESTRICT w = dataStart + delY * syw; //stride gets correct weight vector
-         for (int delX = principleJittDiffx; delX < nxp - principleJittDiffx; delX++) {
-//            pvdata_t * memLoc = conn->getGSynPatchStart(kPre, arborID) + delY * sy + delX * sx + 0 * 1;
-//            int index = memLoc - channel;
-            int index = conn->getGSynPatchStart(kPre, arborID) + delY * sy + delX * sx + 0 * 1;
-            /*
-            if (index >= maxindex){
-               maxindex = index;
-            }
-            */
-            int postcoordx = coords[index].xCoord;
-            int postcoordy = coords[index].yCoord;
- //           std::cout << "\tpost: (" << postcoordx << "," << postcoordy << ")\n";
+   //Search patches in jitter
+   for (int delY = principleJittDiffy; delY < nyp - principleJittDiffy; delY++) {
+      float * RESTRICT w = dataStart + delY * syw; //stride gets correct weight vector
+      for (int delX = principleJittDiffx; delX < nxp - principleJittDiffx; delX++) {
+         int index = callingConn->getGSynPatchStart(kPre, arborID) + delY * sy + delX * sx + 0 * 1;
+         int postcoordx = coords[index].xCoord;
+         int postcoordy = coords[index].yCoord;
+
+         //Test for ranges
+         int range = 2 * (radius + 2 * jitter) + 1;
+
+         if(abs(preCoordx - postcoordx) > range || abs(preCoordy - postcoordy) > range){
+            std::cout << "ERROR!  ";
+            std::cout << "pre " << kPreRes << ": (" << preCoordx << ", " << preCoordy << ")  ";
+            std::cout << "post " << index << ": (" << postcoordx << "," << postcoordy << ")  ";
+            std::cout << "range: " << range << "\n";
+            exit(-1);
+         }
 
 
+         float deltaX = fabs(postcoordx - preCoordx);
+         float deltaY = fabs(postcoordy - preCoordy);
+         float distance = sqrt((deltaX * deltaX) + (deltaY * deltaY));
+         if (distance == 0){
+            continue;
+         }
 
-            //Test for ranges
-            int radius = (int)conn->getParent()->parameters()->value(conn->getName(), "lateralRadius");
-            int range = 2 * (radius + 2 * jitter) + 1;
-
-            if(abs(preCoordx - postcoordx) > range || abs(preCoordy - postcoordy) > range){
-               std::cout << "ERROR!  ";
-               std::cout << "pre " << kPreRes << ": (" << preCoordx << ", " << preCoordy << ")  ";
-               std::cout << "post " << index << ": (" << postcoordx << "," << postcoordy << ")  ";
-               std::cout << "range: " << range << "\n";
-               exit(-1);
-            }
-
-
-            float deltaX = fabs(postcoordx - preCoordx);
-            float deltaY = fabs(postcoordy - preCoordy);
-            float distance = sqrt((deltaX * deltaX) + (deltaY * deltaY));
-            if (distance == 0){
-               continue;
-            }
-
-            //the falloff rate of the conncection is determined by the params file and is chosen here
-            if(strcmp("Gaussian", weightParamPtr->getFalloffType()) == 0){
-               //Gaussian fall off rate
-               float variance = 1000;
-               float mean = 0;
-               float a = 1;
-               float b = mean;
-               float c = sqrt(variance);
-               float x = distance;
-               w[delX] = a*exp(-(pow(x - b,2) / (2 * pow(c,2)))) * weightParamPtr->getStrength();
-            }
-            else if(strcmp("radSquared", weightParamPtr->getFalloffType()) == 0){
-               //Inverse square fall off rate
-               w[delX] = (1 / (distance * distance + 1)) * weightParamPtr->getStrength();
-            }
-            else if(strcmp("Log", weightParamPtr->getFalloffType()) == 0){
-               int lateralRad = (int)conn->getParent()->parameters()->value(conn->getName(), "lateralRadius");
-               float connDist2 = 2*lateralRad*lateralRad;
-               float w_tmp = ((1 / (distance * distance + 1)) / (1 / (connDist2 + 1)));
-               if (w_tmp > 1.0f){
-                  w[delX] = log10(w_tmp) * weightParamPtr->getStrength();
-               }
-               else{
-                  w[delX] = 0;
-               }
+         //the falloff rate of the conncection is determined by the params file and is chosen here
+         if(strcmp("Gaussian", weightParamPtr->getFalloffType()) == 0){
+            //Gaussian fall off rate
+            float variance = 1000;
+            float mean = 0;
+            float a = 1;
+            float b = mean;
+            float c = sqrt(variance);
+            float x = distance;
+            w[delX] = a*exp(-(pow(x - b,2) / (2 * pow(c,2)))) * weightParamPtr->getStrength();
+         }
+         else if(strcmp("radSquared", weightParamPtr->getFalloffType()) == 0){
+            //Inverse square fall off rate
+            w[delX] = (1 / (distance * distance + 1)) * weightParamPtr->getStrength();
+         }
+         else if(strcmp("Log", weightParamPtr->getFalloffType()) == 0){
+            float connDist2 = 2*radius*radius;
+            float w_tmp = ((1 / (distance * distance + 1)) / (1 / (connDist2 + 1)));
+            if (w_tmp > 1.0f){
+               w[delX] = log10(w_tmp) * weightParamPtr->getStrength();
             }
             else{
-               printf("Improper falloff type specified in the params file\n");
+               w[delX] = 0;
             }
          }
+         else{
+            printf("Improper falloff type specified in the params file\n");
+         }
       }
+   }
 
    return 0;
 }

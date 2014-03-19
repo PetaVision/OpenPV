@@ -7,7 +7,7 @@
 
 #include "GapConn.hpp"
 #include "../layers/LIFGap.hpp"
-#include "../normalizers/NormalizeBase.hpp"
+#include "../normalizers/NormalizeGap.hpp"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -20,12 +20,9 @@ GapConn::GapConn()
    initialize_base();
 }
 
-GapConn::GapConn(const char * name, HyPerCol * hc,
-      const char * pre_layer_name, const char * post_layer_name,
-      const char * filename, InitWeights *weightInit) {
-   // No channel argument to constructor because GapConn must always use CHANNEL_GAP
+GapConn::GapConn(const char * name, HyPerCol * hc) {
    initialize_base();
-   GapConn::initialize(name, hc, pre_layer_name, post_layer_name, filename, weightInit);
+   GapConn::initialize(name, hc);
 }
 
 GapConn::~GapConn()
@@ -37,54 +34,55 @@ int GapConn::initialize_base(){
    return PV_SUCCESS;
 }
 
-int GapConn::initialize(const char * name, HyPerCol * hc,
-      const char * pre_layer_name, const char * post_layer_name,
-      const char * filename, InitWeights *weightInit){
-   return KernelConn::initialize(name, hc, pre_layer_name, post_layer_name, filename, weightInit);
+int GapConn::initialize(const char * name, HyPerCol * hc) {
+   int status = KernelConn::initialize(name, hc);
+   assert(dynamic_cast<NormalizeGap *>(normalizer));
+   assert(normalizer->getNormalizeFromPostPerspectiveFlag());
+   return status;
 }
 
-void GapConn::readChannelCode(PVParams * params) {
-   channel = CHANNEL_GAP;
-   handleUnnecessaryIntParameter("channelCode", (int) CHANNEL_GAP);
-}
-
-
-int GapConn::initNormalize(){
-   int status = KernelConn::initNormalize();
-   if (normalizer==NULL) {
-      if (parent->columnId()==0) {
-         fprintf(stderr, "GapConn::initNormalize error in connection \"%s\".  normalizeMethod cannot be \"none\".\n", name);
-      }
-#ifdef PV_USE_MPI
-      MPI_Barrier(parent->icCommunicator()->communicator());
-#endif // PV_USE_MPI
-      exit(PV_FAILURE);
+void GapConn::ioParam_channelCode(enum ParamsIOFlag ioFlag) {
+   if (ioFlag==PARAMS_IO_READ) {
+      channel = CHANNEL_GAP;
+      parent->parameters()->handleUnnecessaryParameter(name, "channelCode", (int) CHANNEL_GAP);
    }
-   assert(normalizer);
-   if (!normalizer->getNormalizeFromPostPerspectiveFlag()) {
+}
+
+void GapConn::ioParam_normalizeMethod(enum ParamsIOFlag ioFlag) {
+   if (ioFlag == PARAMS_IO_READ) {
+      parent->parameters()->handleUnnecessaryStringParameter(name, "normalizeMethod", "normalizeSum", false);
+      normalizer = new NormalizeGap(this);
+   }
+}
+
+int GapConn::allocateDataStructures() {
+   // We have to wait until postsynaptic LIFGap has called its allocateDataStructures before we call its addGapStrength method,
+   // because LIFGap sets sumGap to zero in allocateDataStructures.  It may be possible to have LIFGap set sumGap to zero in
+   // initialize_base, and move this code to GapConn::communicateInitInfo where it really belongs.
+   if (!post->getDataStructuresAllocatedFlag()) {
       if (parent->columnId()==0) {
-         fprintf(stderr, "GapConn::initNormalize error in connection \"%s\".  normalizeFromPostPerspective must be true for GapConns.\n", name);
+         const char * connectiontype = parent->parameters()->groupKeywordFromName(name);
+         printf("%s \"%s\" must wait until post-synaptic layer \"%s\" has finished its allocateDataStructures stage.\n", connectiontype, name, post->getName());
       }
-#ifdef PV_USE_MPI
-      MPI_Barrier(parent->icCommunicator()->communicator());
-#endif // PV_USE_MPI
-      exit(PV_FAILURE);
+      return PV_POSTPONE;
    }
    HyPerLayer * postHyPerLayer = this->postSynapticLayer();
-   LIFGap * postLIFGap = NULL;
-   postLIFGap = dynamic_cast <LIFGap*> (postHyPerLayer);
-   assert(postLIFGap != NULL);
-   //   fprintf(stdout,"This is connection %i with flag %i \n",this->getConnectionId(),initNormalizeFlag);
-   if (this->initNormalizeFlag == false){
-      initNormalizeFlag = true;
-      pvdata_t gap_strength;
-      //TODO!!! terrible hack here: should compute sum of gap junctions connection strengths into each post synaptic cell
-      // instead, we check that normalize is true as a stop gap
-      assert(this->normalizer);
-      gap_strength = normalizer->getStrength(); // normalizer->getStrength() / this->postSynapticLayer()->getNumNeurons() * this->preSynapticLayer()->getNumNeurons();
-      //      fprintf(stdout,"This is connection %i, setting initNormalizeFlag to true and adding gap_strength %f \n",this->getConnectionId(),gap_strength);
-      postLIFGap->addGapStrength(gap_strength);
+   LIFGap * postLIFGap = dynamic_cast <LIFGap*> (postHyPerLayer);
+   if (postLIFGap == NULL) {
+      if (parent->columnId()==0) {
+         fprintf(stderr, "%s \"%s\" error: postsynaptic layer must be a LIFGap or LIFGap-derived layer.\n",
+               parent->parameters()->groupKeywordFromName(name), name);
+      }
+      MPI_Barrier(parent->icCommunicator()->communicator());
+      exit(EXIT_FAILURE);
    }
+   int status = KernelConn::allocateDataStructures();
+   //TODO!!! terrible hack here: should compute sum of gap junctions connection strengths into each post synaptic cell
+   // instead, we check that normalize is true as a stop gap
+   assert(this->normalizer->getNormalizeFromPostPerspectiveFlag());
+   float gap_strength = normalizer->getStrength(); // normalizer->getStrength() / this->postSynapticLayer()->getNumNeurons() * this->preSynapticLayer()->getNumNeurons();
+   postLIFGap->addGapStrength(gap_strength);
+
    return status;
 }
 

@@ -9,9 +9,9 @@
 
 namespace PV {
 
-AccumulateLayer::AccumulateLayer(const char * name, HyPerCol * hc, int numChannels) {
+AccumulateLayer::AccumulateLayer(const char * name, HyPerCol * hc) {
    initialize_base();
-   initialize(name, hc, numChannels);
+   initialize(name, hc);
 }
 
 AccumulateLayer::AccumulateLayer() {
@@ -24,25 +24,18 @@ int AccumulateLayer::initialize_base() {
    return PV_SUCCESS;
 }
 
-int AccumulateLayer::initialize(const char * name, HyPerCol * hc, int numChannels) {
-   return ANNLayer::initialize(name, hc, numChannels);
+int AccumulateLayer::initialize(const char * name, HyPerCol * hc) {
+   return ANNLayer::initialize(name, hc);
 }
 
-int AccumulateLayer::setParams(PVParams * inputParams) {
-   int status = ANNLayer::setParams(inputParams);
-   readSyncedInputLayer(inputParams);
+int AccumulateLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = ANNLayer::ioParamsFillGroup(ioFlag);
+   ioParam_syncedInputLayer(ioFlag);
    return status;
 }
 
-void AccumulateLayer::readSyncedInputLayer(PVParams * params) {
-   const char * synced_input_layer_name = params->stringValue(name, "syncedInputLayer");
-   if (synced_input_layer_name != NULL) {
-      syncedInputLayerName = strdup(synced_input_layer_name);
-      if (syncedInputLayerName == NULL) {
-         fprintf(stderr, "%s \"%s\": unable to allocate memory for syncedInputLayer: %s\n", params->groupKeywordFromName(name), name, strerror(errno));
-         exit(EXIT_FAILURE);
-      }
-   }
+void AccumulateLayer::ioParam_syncedInputLayer(enum ParamsIOFlag ioFlag) {
+   parent->ioParamString(ioFlag, name, "syncedInputLayer", &syncedInputLayerName, NULL);
 }
 
 int AccumulateLayer::communicateInitInfo() {

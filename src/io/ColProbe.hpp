@@ -15,20 +15,23 @@ namespace PV {
 
 class ColProbe {
 public:
-    ColProbe(const char * filename, HyPerCol * hc);
-    ColProbe(const char * probeName, const char * filename, HyPerCol * hc);
+    ColProbe(const char * probeName, HyPerCol * hc);
     virtual ~ColProbe();
 
+    int ioParams(enum ParamsIOFlag ioFlag);
     virtual int outputState(double time, HyPerCol * hc) {return PV_SUCCESS;}
     const char * getColProbeName() { return colProbeName; }
 
 protected:
+    HyPerCol * parentCol;
     PV_Stream * stream;
     char * colProbeName;
 
     ColProbe();
-    int initialize(const char * probeName, const char * filename, HyPerCol * hc);
-    int initialize_path(const char * filename, HyPerCol * hc);
+    int initialize(const char * probeName, HyPerCol * hc);
+    int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+    void ioParam_probeOutputFile(enum ParamsIOFlag ioFlag);
+    int initialize_stream(const char * filename);
     int setColProbeName(const char * name);
 
 private:

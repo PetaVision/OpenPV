@@ -21,7 +21,7 @@ public:
    int findFlag(int numMatrixCol, int numMatrixRow);
 protected:
   BIDSLayer();
-  int initialize(const char * name, HyPerCol * hc, PVLayerType type, int num_channels, const char * kernel_name);
+  int initialize(const char * name, HyPerCol * hc, PVLayerType type, const char * kernel_name);
   // other methods and member variables
 private:
   // other methods and member variables

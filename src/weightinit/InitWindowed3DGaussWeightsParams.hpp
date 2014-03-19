@@ -17,13 +17,17 @@ public:
    InitWindowed3DGaussWeightsParams();
    InitWindowed3DGaussWeightsParams(HyPerConn * parentConn);
    virtual ~InitWindowed3DGaussWeightsParams();
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
 
    inline float getWindowShift()        {return windowShift;}
    inline float getWindowShiftT()        {return windowShiftT;}
 
 protected:
-   virtual int initialize_base();
+   int initialize_base();
    int initialize(HyPerConn * parentConn);
+   virtual void ioParam_windowShiftT(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_windowShift(enum ParamsIOFlag ioFlag);
+
 
 
 private:

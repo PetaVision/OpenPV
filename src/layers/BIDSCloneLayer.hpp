@@ -32,10 +32,10 @@ public:
 protected:
    BIDSCloneLayer();
    int initialize(const char * name, HyPerCol * hc);
-   virtual int setParams(PVParams * params);
-   virtual void readWriteSparseActivity(PVParams * params);
-   virtual void readWriteSparseValues(PVParams * params);
-   virtual void readJitterSource(PVParams * params);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_writeSparseActivity(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_writeSparseValues(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_jitterSource(enum ParamsIOFlag ioFlag);
    unsigned int * getSourceActiveIndices() {return originalLayer->getCLayer()->activeIndices;}
    unsigned int getSourceNumActive() {return originalLayer->getCLayer()->numActive;}
    int numNodes;

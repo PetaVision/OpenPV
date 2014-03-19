@@ -16,14 +16,10 @@ namespace PV {
 class CloneKernelConn : public KernelConn {
 
 public:
-   CloneKernelConn();
-   CloneKernelConn(const char * name, HyPerCol * hc,
-      const char * pre_layer_name, const char * post_layer_name,
-      const char * original_kernelconn_name);
+   CloneKernelConn(const char * name, HyPerCol * hc);
    virtual ~CloneKernelConn();
 
    virtual int communicateInitInfo();
-   // virtual int setPatchSize(const char * filename); // Now a protected method.
 
    virtual int updateState(double time, double dt);
 
@@ -33,22 +29,27 @@ public:
    virtual int checkpointRead(const char * cpDir, double *timef){return PV_SUCCESS;};
 
 protected:
-   int initialize(const char * name, HyPerCol * hc,
-         const char * pre_layer_name, const char * post_layer_name,
-         const char * original_kernelconn_name);
+   CloneKernelConn();
+   int initialize(const char * name, HyPerCol * hc);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_weightInitType(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_normalizeMethod(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_shrinkPatches(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_plasticityFlag(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_nxp(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_nyp(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_nxpShrunken(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_nypShrunken(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_nfp(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_originalConnName(enum ParamsIOFlag ioFlag);
+   virtual int setWeightInitializer();
    virtual PVPatch *** initializeWeights(PVPatch *** patches, pvdata_t ** dataStart, int numPatches,
             const char * filename);
-   virtual int constructWeights(const char * filename);
+   virtual int constructWeights();
    void constructWeightsOutOfMemory();
    virtual int createAxonalArbors(int arborId);
-   virtual int initNormalize();
 
-   virtual int setParams(PVParams * params);
-   virtual void readNumAxonalArbors(PVParams * params);
-   virtual void readPlasticityFlag(PVParams * params);
-   virtual void readShrinkPatches(PVParams * params);
-   virtual int  readPatchSize(PVParams * params);
-   virtual int  readNfp(PVParams * params);
    virtual int  setPatchSize(); // virtual int setPatchSize(const char * filename); // filename is now a member variable.
 
    char * originalConnName;

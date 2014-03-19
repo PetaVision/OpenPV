@@ -38,17 +38,11 @@ namespace PV{
         initialize_base();
     }
     
-    ANNLabelLayer::ANNLabelLayer(const char * name, HyPerCol * hc, int num_channels)
-    {
-        initialize_base();
-        assert(num_channels == 2);
-        initialize(name, hc, num_channels);
-    }
-
     ANNLabelLayer::ANNLabelLayer(const char * name, HyPerCol * hc)
     {
         initialize_base();
-        initialize(name, hc, 2);
+        assert(numChannels == 2);
+        initialize(name, hc);
     }
 
     ANNLabelLayer::~ANNLabelLayer()
@@ -60,9 +54,9 @@ namespace PV{
         return PV_SUCCESS;
     }
 
-    int ANNLabelLayer::initialize(const char * name, HyPerCol * hc, int num_channels)
+    int ANNLabelLayer::initialize(const char * name, HyPerCol * hc)
     {
-        ANNLayer::initialize(name, hc, num_channels);
+        ANNLayer::initialize(name, hc);
         return PV_SUCCESS;
     }
 

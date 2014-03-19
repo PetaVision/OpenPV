@@ -14,21 +14,25 @@ namespace PV {
 
 class TextStreamProbe: public PV::LayerProbe {
 public:
-   TextStreamProbe(const char * filename, HyPerLayer * layer, pvdata_t display_period);
+   TextStreamProbe(const char * probeName, HyPerCol * hc);
    virtual ~TextStreamProbe();
+
+   virtual int communicateInitInfo();
 
    virtual int outputState(double timef);
 
 protected:
    TextStreamProbe();
-   int initTextStreamProbe(const char * filename, HyPerLayer * layer, pvdata_t display_period);
+   int initTextStreamProbe(const char * probeName, HyPerCol * hc);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_displayPeriod(enum ParamsIOFlag ioFlag);
    void featureNumberToCharacter(int code, char ** cbufptr, char * bufstart, int buflen);
 
 private:
    int initTextStreamProbe_base();
 
    bool useCapitalization;
-   pvdata_t displayPeriod;
+   double displayPeriod;
    double nextDisplayTime;
 };
 

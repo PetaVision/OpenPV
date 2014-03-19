@@ -18,20 +18,19 @@ class ShuffleLayer: public CloneVLayer {
 public:
    ShuffleLayer(const char * name, HyPerCol * hc);
    virtual ~ShuffleLayer();
+   int communicateInitInfo();
    virtual int updateState(double timef, double dt);
    virtual int setActivity();
 protected:
    ShuffleLayer();
    int initialize(const char * name, HyPerCol * hc);
-   int communicateInitInfo();
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_shuffleMethod(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_freqCollectTime(enum ParamsIOFlag ioFlag);
 
    void randomShuffle(const pvdata_t * sourceData, pvdata_t * activity);
    void rejectionShuffle(const pvdata_t * sourceData, pvdata_t * activity);
    void collectFreq(const pvdata_t * sourceData);
-
-   virtual int setParams(PVParams * params);
-   void readShuffleMethod(PVParams * params);
-   void readFreqCollectTime(PVParams * params);
 
 private:
    int initialize_base();

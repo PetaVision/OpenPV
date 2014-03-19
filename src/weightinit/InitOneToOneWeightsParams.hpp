@@ -17,19 +17,22 @@
 
 namespace PV {
 
+// TODO make InitOneToOneWeightsParams a derived class of InitUniformWeightsParams
 class InitOneToOneWeightsParams: public PV::InitWeightsParams {
 public:
    InitOneToOneWeightsParams();
    InitOneToOneWeightsParams(HyPerConn * parentConn);
    virtual ~InitOneToOneWeightsParams();
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    void calcOtherParams(int patchIndex);
 
    //get/set methods:
    inline float getInitWeight()        {return initWeight;}
 
 protected:
-   virtual int initialize_base();
+   int initialize_base();
    int initialize(HyPerConn * parentConn);
+   virtual void ioParam_weightInit(enum ParamsIOFlag ioFlag);
 
 private:
    float initWeight;

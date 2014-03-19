@@ -15,15 +15,20 @@ namespace PV {
 class BIDSConn : public PV::HyPerConn {
 
 public:
-   BIDSConn(const char * name, HyPerCol * hc, const char * pre_layer_name, const char * post_layer_name,
-             const char * filename, InitWeights *weightInit);
+   BIDSConn(const char * name, HyPerCol * hc);
    ~BIDSConn();
 
 protected:
-   virtual int setParams(PVParams * params);
-   virtual void readLateralRadius(PVParams * inputParams);
-   virtual void readJitterSource(PVParams * inputParams);
-   virtual void readJitter(PVParams * inputParams);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+
+   virtual void ioParam_lateralRadius(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_nxp(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_nyp(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_nxpShrunken(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_nypShrunken(enum ParamsIOFlag ioFlag);
+
+   virtual void ioParam_jitterSource(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_jitter(enum ParamsIOFlag ioFlag);
    virtual int setPatchSize();
 
 private:

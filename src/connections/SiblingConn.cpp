@@ -9,27 +9,30 @@
 
 namespace PV {
 
-SiblingConn::SiblingConn(const char * name, HyPerCol * hc,
-      const char * pre_layer_name, const char * post_layer_name,
-      const char * filename, InitWeights *weightInit,
-      const char *sibling_conn_name) {
+SiblingConn::SiblingConn(const char * name, HyPerCol * hc) {
    SiblingConn::initialize_base();
-   SiblingConn::initialize(name, hc, pre_layer_name, post_layer_name, filename, weightInit,
-         sibling_conn_name);
+   SiblingConn::initialize(name, hc);
    // HyPerConn::initialize is not virtual
 }
 
-int SiblingConn::initialize(const char * name, HyPerCol * hc,
-      const char * pre_layer_name, const char * post_layer_name,
-      const char * filename, InitWeights *weightInit,
-      const char *sibling_conn_name) {
-   siblingConnName = strdup(sibling_conn_name);
-   if (siblingConnName==NULL) {
-      fprintf(stderr, "SiblingConn \"%s\" error: unable to allocate memory for siblingConnName \"%s\".\n", name, sibling_conn_name);
-      exit(EXIT_FAILURE);
-   }
-   isNormalized = false;
-   return KernelConn::initialize(name, hc, pre_layer_name, post_layer_name, filename, weightInit);
+int SiblingConn::initialize(const char * name, HyPerCol * hc) {
+   isNormalized = false; // TODO: check that isNormalized is set and cleared properly.
+   return KernelConn::initialize(name, hc);
+}
+
+int SiblingConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   ioParam_siblingConnName(ioFlag);
+   int status = KernelConn::ioParamsFillGroup(ioFlag);
+   return status;
+}
+
+void SiblingConn::ioParam_siblingConnName(enum ParamsIOFlag ioFlag) {
+   parent->ioParamStringRequired(ioFlag, name, "siblingConnName", &siblingConnName);
+}
+
+void SiblingConn::ioParam_normalizeMethod(enum ParamsIOFlag ioFlag) {
+   KernelConn::ioParam_normalizeMethod(ioFlag);
+   isNormalized = true; // TODO: check that isNormalized is set and cleared properly.
 }
 
 int SiblingConn::communicateInitInfo() {
@@ -40,12 +43,6 @@ int SiblingConn::communicateInitInfo() {
       siblingConn->setSiblingConn(this);
    }
    return status;
-}
-
-int SiblingConn::initNormalize() {
-   KernelConn::initNormalize();
-   isNormalized = true;
-   return PV_BREAK;
 }
 
 bool SiblingConn::getIsNormalized() {

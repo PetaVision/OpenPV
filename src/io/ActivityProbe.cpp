@@ -29,10 +29,10 @@ ActivityProbe::ActivityProbe() {
    initActivityProbe_base();
 }
 
-ActivityProbe::ActivityProbe(const char * filename, HyPerLayer * layer)
+ActivityProbe::ActivityProbe(const char * probeName, HyPerCol * hc)
 {
    initActivityProbe_base();
-   initActivityProbe(filename, layer);
+   initActivityProbe(probeName, hc);
 }
 
 ActivityProbe::~ActivityProbe()
@@ -49,16 +49,19 @@ int ActivityProbe::initActivityProbe_base() {
    return PV_SUCCESS;
 }
 
-int ActivityProbe::initActivityProbe(const char * filename, HyPerLayer * layer) {
-   if (layer->getParent()->icCommunicator()->commSize()>1) {
-      fprintf(stderr, "ActivityProbe error for layer \"%s\": ActivityProbe is not compatible with MPI.\n", layer->getName());
+int ActivityProbe::initActivityProbe(const char * probeName, HyPerCol * hc) {
+   if (hc->icCommunicator()->commSize()>1) {
+      if (hc->columnId()==0) {
+         fprintf(stderr, "ActivityProbe \"%s\" error: ActivityProbe is not compatible with MPI.\n", probeName);
+      }
+      MPI_Barrier(hc->icCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
-   return initLayerProbe(filename, layer);
+   return initLayerProbe(probeName, hc);
 }
 
-int ActivityProbe::initOutputStream(const char * filename, HyPerLayer * layer) {
-   outputstream = pv_tiff_open_frame(filename, layer->getLayerLoc(), &outBuf, &outFrame);
+int ActivityProbe::initOutputStream(const char * filename) {
+   outputstream = pv_tiff_open_frame(filename, getTargetLayer()->getLayerLoc(), &outBuf, &outFrame);
    return PV_SUCCESS;
 }
 

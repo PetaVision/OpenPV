@@ -20,20 +20,25 @@ typedef enum {
 
 class LinearActivityProbe: public PV::LayerProbe {
 public:
-   LinearActivityProbe(HyPerLayer * layer, PVDimType dim, int linePos, int f);
-   LinearActivityProbe(const char * filename, HyPerLayer * layer, PVDimType dim, int linePos, int f);
+   LinearActivityProbe(const char * filename, HyPerCol * hc);
+   ~LinearActivityProbe();
 
    virtual int outputState(double timef);
 
 protected:
    LinearActivityProbe();
-   int initLinearActivityProbe(const char * filename, HyPerLayer * layer, PVDimType dim, int linePos, int f);
+   int initLinearActivityProbe(const char * filename, HyPerCol * hc);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_dim(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_linePos(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_f(enum ParamsIOFlag ioFlag);
 
 private:
    int initLinearActivityProbe_base();
 
 protected:
    HyPerCol * hc;
+   char * dimString;
    PVDimType dim;
    int linePos;
    int f;

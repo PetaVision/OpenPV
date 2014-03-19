@@ -46,27 +46,27 @@ int InitGaborWeightsParams::initialize_base() {
 }
 
 int InitGaborWeightsParams::initialize(HyPerConn * parentConn) {
-   InitGauss2DWeightsParams::initialize(parentConn);
+   return InitGauss2DWeightsParams::initialize(parentConn);
+}
 
-   PVParams * params = parent->parameters();
-   int status = PV_SUCCESS;
-
-//   aspect = params->value(name, "aspect", aspect);
-//   sigma = params->value(name, "sigma", sigma);
-//   rMax = params->value(name, "rMax", rMax);
-   lambda   = (int)params->value(name, "lambda", lambda);
-//   strength = params->value(name, "strength", strength);
-   phi = params->value(name, "phi", phi);
-//   double rMaxd = (double) rMax;
-//   r2Max = rMaxd * rMaxd;
-//
-//   shift = params->value(name, "flankShift", shift);
-   //rotate = params->value(name, "rotate", rotate);
-//   setRotate(params->value(name, "rotate", getRotate()));
-   invert = (bool)params->value(name, "invert", invert);
-
+int InitGaborWeightsParams::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = InitGauss2DWeightsParams::ioParamsFillGroup(ioFlag);
+   ioParam_lambda(ioFlag);
+   ioParam_phi(ioFlag);
+   ioParam_invert(ioFlag);
    return status;
+}
 
+void InitGaborWeightsParams::ioParam_lambda(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "lambda", &lambda, lambda);
+}
+
+void InitGaborWeightsParams::ioParam_phi(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "phi", &phi, phi);
+}
+
+void InitGaborWeightsParams::ioParam_invert(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "invert", &invert, invert);
 }
 
 void InitGaborWeightsParams::calcOtherParams(int patchIndex) {

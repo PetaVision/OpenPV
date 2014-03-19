@@ -35,11 +35,14 @@ public:
 protected:
    PoolingANNLayer();
    int initialize(const char * name, HyPerCol * hc);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_bias(enum ParamsIOFlag ioFlag);
    /* static */ int updateState(double timef, double dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels, pvdata_t * gSynHead, pvdata_t biasa, pvdata_t biasb, unsigned int * active_indices, unsigned int * num_active);
    // int updateV();
 
 private:
    int initialize_base();
+   pvdata_t bias;
    pvdata_t biasa;
    pvdata_t biasb;
 };

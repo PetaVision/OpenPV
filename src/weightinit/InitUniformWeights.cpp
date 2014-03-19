@@ -10,6 +10,12 @@
 
 namespace PV {
 
+InitUniformWeights::InitUniformWeights(HyPerConn * conn)
+{
+   initialize_base();
+   initialize(conn);
+}
+
 InitUniformWeights::InitUniformWeights()
 {
    initialize_base();
@@ -23,13 +29,17 @@ int InitUniformWeights::initialize_base() {
    return PV_SUCCESS;
 }
 
-InitWeightsParams * InitUniformWeights::createNewWeightParams(HyPerConn * callingConn) {
+int InitUniformWeights::initialize(HyPerConn * conn) {
+   int status = InitWeights::initialize(conn);
+   return status;
+}
+
+InitWeightsParams * InitUniformWeights::createNewWeightParams() {
    InitWeightsParams * tempPtr = new InitUniformWeightsParams(callingConn);
    return tempPtr;
 }
 
-int InitUniformWeights::calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, int arborId,
-      InitWeightsParams *weightParams) {
+int InitUniformWeights::calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, int arborId) {
    InitUniformWeightsParams *weightParamPtr = dynamic_cast<InitUniformWeightsParams*>(weightParams);
 
    if(weightParamPtr==NULL) {
@@ -40,7 +50,7 @@ int InitUniformWeights::calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, 
    const float iWeight = weightParamPtr->getInitWeight();
    const bool connectOnlySameFeatures = weightParamPtr->getConnectOnlySameFeatures();
 
-   const int nfp = weightParamPtr->getnfPatch_tmp(); //wp->nf;
+   const int nfp = weightParamPtr->getnfPatch();
    const int kf = patchIndex % nfp;
 
    uniformWeights(dataStart, iWeight, kf, weightParamPtr, connectOnlySameFeatures);
@@ -51,17 +61,17 @@ int InitUniformWeights::calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, 
  * Initializes all weights to iWeight
  *
  */
-  int InitUniformWeights::uniformWeights(/* PVPatch * wp */ pvdata_t * dataStart, float iWeight, int kf, InitUniformWeightsParams *weightParamPtr, bool connectOnlySameFeatures) {
+  int InitUniformWeights::uniformWeights(pvdata_t * dataStart, float iWeight, int kf, InitUniformWeightsParams *weightParamPtr, bool connectOnlySameFeatures) {
       // changed variable names to avoid confusion with data members this->wMin and this->wMax
    // pvdata_t * w = wp->data;
 
-   const int nxp = weightParamPtr->getnxPatch_tmp(); // wp->nx;
-   const int nyp = weightParamPtr->getnyPatch_tmp(); // wp->ny;
-   const int nfp = weightParamPtr->getnfPatch_tmp(); //wp->nf;
+   const int nxp = weightParamPtr->getnxPatch(); // wp->nx;
+   const int nyp = weightParamPtr->getnyPatch(); // wp->ny;
+   const int nfp = weightParamPtr->getnfPatch(); //wp->nf;
 
-   const int sxp = weightParamPtr->getsx_tmp(); //wp->sx;
-   const int syp = weightParamPtr->getsy_tmp(); //wp->sy;
-   const int sfp = weightParamPtr->getsf_tmp(); //wp->sf;
+   const int sxp = weightParamPtr->getsx(); //wp->sx;
+   const int syp = weightParamPtr->getsy(); //wp->sy;
+   const int sfp = weightParamPtr->getsf(); //wp->sf;
 
    // loop over all post-synaptic cells in patch
    for (int y = 0; y < nyp; y++) {

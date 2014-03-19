@@ -19,16 +19,10 @@ CliqueLayer::CliqueLayer()
    initialize_base();
 }
 
-CliqueLayer::CliqueLayer(const char * name, HyPerCol * hc, int numChannels)
-{
-   initialize_base();
-   initialize(name, hc, numChannels);
-}
-
 CliqueLayer::CliqueLayer(const char * name, HyPerCol * hc)
 {
    initialize_base();
-   initialize(name, hc, MAX_CHANNELS);
+   initialize(name, hc);
 }
 
 CliqueLayer::~CliqueLayer()
@@ -40,14 +34,25 @@ int CliqueLayer::initialize_base()
    return PV_SUCCESS;
 }
 
-int CliqueLayer::initialize(const char * name, HyPerCol * hc, int numChannels)
+int CliqueLayer::initialize(const char * name, HyPerCol * hc)
 {
-   ANNLayer::initialize(name, hc, numChannels);
-   PVParams * params = parent->parameters();
-   Voffset = params->value(name, "Voffset", 0.0f, true);
-   Vgain = params->value(name, "Vgain", 2.0f, true);
-   //cliqueSize = params->value(name, "cliqueSize", 1, true);
+   ANNLayer::initialize(name, hc);
    return PV_SUCCESS;
+}
+
+int CliqueLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = ANNLayer::ioParamsFillGroup(ioFlag);
+   ioParam_Voffset(ioFlag);
+   ioParam_Vgain(ioFlag);
+   return status;
+}
+
+void CliqueLayer::ioParam_Voffset(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "Voffset", &Voffset, (pvdata_t) 0, true);
+}
+
+void CliqueLayer::ioParam_Vgain(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "Vgain", &Vgain, (pvdata_t) 2, true);
 }
 
 int CliqueLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activity,

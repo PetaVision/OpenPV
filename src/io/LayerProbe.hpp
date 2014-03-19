@@ -25,28 +25,49 @@ class LayerProbe {
 
 // Methods
 public:
-   LayerProbe(const char * filename, HyPerLayer * layer);
+   LayerProbe(const char * probeName, HyPerCol * hc);
    virtual ~LayerProbe();
+
+   int ioParams(enum ParamsIOFlag ioFlag);
+
+   virtual int communicateInitInfo();
 
    virtual int outputState(double timef) = 0;
 
+   const char * getProbeName() {return probeName;}
    HyPerLayer * getTargetLayer() {return targetLayer;}
 
 protected:
    LayerProbe();
-   int initLayerProbe(const char * filename, HyPerLayer * layer);
-   virtual int initOutputStream(const char * filename, HyPerLayer * layer);
+   int initLayerProbe(const char * probeName, HyPerCol * hc);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_targetLayer(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_message(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_probeOutputFile(enum ParamsIOFlag ioFlag);
+   virtual int initOutputStream(const char * filename);
+
+   HyPerCol * getParentCol() {return parentCol;}
+   const char * getMessage() {return msgstring;}
+   virtual int initMessage(const char * msg);
 
 private:
    int initLayerProbe_base();
-   void setTargetLayer(HyPerLayer * l) {targetLayer = l;}
+   void setParentCol(HyPerCol * hc) {parentCol = hc;}
+   int setProbeName(const char * probeName);
+   int setTargetLayer(const char * layerName);
 
 // Member variables
 protected:
    PV_Stream * outputstream;
 
 private:
+   char * probeName;
+   HyPerCol * parentCol;
+   char * targetLayerName;
    HyPerLayer * targetLayer;
+   char * msgparams; // the message parameter in the params
+   char * msgstring; // the string that gets printed by outputState ("" if message is empty or null; message + ":" if nonempty
+   char * probeOutputFilename;
 };
 
 }

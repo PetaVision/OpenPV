@@ -9,61 +9,45 @@
 #define INITBIDSLATERALPARAMS_HPP_
 
 #include "InitWeightsParams.hpp"
-#include "InitGauss2DWeightsParams.hpp"
 #include "../layers/BIDSLayer.hpp"
 #include "../layers/BIDSMovieCloneMap.hpp"
 
 namespace PV {
 
-class InitBIDSLateralParams: public PV::InitGauss2DWeightsParams {
+class InitBIDSLateralParams: public PV::InitWeightsParams {
 public:
    InitBIDSLateralParams();
    InitBIDSLateralParams(HyPerConn * parentConn);
    virtual ~InitBIDSLateralParams();
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual int communicateParamsInfo();
    void calcOtherParams(int patchIndex);
-   bool isSameLocOrSelf(float xDelta, float yDelta, int fPost);
-   bool checkBowtieAngle(float xp, float yp);
 
    //get-set methods:
-   inline float getaspect()        {return aspect;}
-   inline float getshift()        {return shift;}
-   inline int getnxp()             {return nxp;}
-   inline int getnyp()             {return nyp;}
-   inline int getnumFlanks()        {return numFlanks;}
-   inline float getsigma()        {return sigma;}
-   inline double getr2Max()        {return r2Max;}
-   inline double getr2Min()        {return r2Min;}
    inline BIDSCoords *getCoords()  {return coords;}
    inline const char * getFalloffType()  {return falloffType;}
+   inline const char * getJitterSource() {return jitterSource;}
    inline int getLateralRadius()   {return lateralRadius;}
-   inline HyPerConn * getParentConn() {return parentConn;}
    inline float getStrength() {return strength;}
+   inline int getJitter() {return jitter;}
 
 protected:
-   virtual int initialize_base();
+   int initialize_base();
    int initialize(HyPerConn * parentConn);
+   virtual void ioParam_strength(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_falloffType(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_lateralRadius(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_jitterSource(enum ParamsIOFlag ioFlag);
 
 private:
 
    //params file values:
-   float aspect; // circular (not line oriented)
-   float sigma;
-   float rMax;
-   float rMin;  // minimum radius for any connection
    float strength;
-   int nxp;
-   int nyp;
-   int numFlanks;
-   float shift;
-   bool bowtieFlag;  // flag for setting bowtie angle
-   float bowtieAngle;  // bowtie angle
    BIDSCoords * coords; //structure array pointer that holds the randomly generated corrdinates for the specified number of BIDS nodes
-   const char * falloffType;
+   char * falloffType;
+   char * jitterSource;
    int lateralRadius;
-   //calculated values;
-   double r2Max;
-   double r2Min;
-   bool self;
+   int jitter;
 };
 
 } /* namespace PV */

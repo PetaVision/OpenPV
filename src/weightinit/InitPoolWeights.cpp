@@ -10,6 +10,12 @@
 
 namespace PV {
 
+InitPoolWeights::InitPoolWeights(HyPerConn * conn)
+{
+   initialize_base();
+   initialize(conn);
+}
+
 InitPoolWeights::InitPoolWeights()
 {
    initialize_base();
@@ -17,20 +23,23 @@ InitPoolWeights::InitPoolWeights()
 
 InitPoolWeights::~InitPoolWeights()
 {
-   // TODO Auto-generated destructor stub
 }
 
 int InitPoolWeights::initialize_base() {
    return PV_SUCCESS;
 }
 
-InitWeightsParams * InitPoolWeights::createNewWeightParams(HyPerConn * callingConn) {
+int InitPoolWeights::initialize(HyPerConn * conn) {
+   int status = InitGauss2DWeights::initialize(conn);
+   return status;
+}
+
+InitWeightsParams * InitPoolWeights::createNewWeightParams() {
    InitWeightsParams * tempPtr = new InitPoolWeightsParams(callingConn);
    return tempPtr;
 }
 
-int InitPoolWeights::calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, int arborId,
-                                   InitWeightsParams *weightParams) {
+int InitPoolWeights::calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, int arborId) {
 
    InitPoolWeightsParams *weightParamPtr = dynamic_cast<InitPoolWeightsParams*>(weightParams);
 
@@ -50,13 +59,13 @@ int InitPoolWeights::calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int
 }
 
 int InitPoolWeights::poolWeights(/* PVPatch * patch */ pvdata_t * dataStart, InitPoolWeightsParams * weightParamPtr) {
-   int nfPatch_tmp = weightParamPtr->getnfPatch_tmp();
-   int nyPatch_tmp = weightParamPtr->getnyPatch_tmp();
-   int nxPatch_tmp = weightParamPtr->getnxPatch_tmp();
+   int nfPatch_tmp = weightParamPtr->getnfPatch();
+   int nyPatch_tmp = weightParamPtr->getnyPatch();
+   int nxPatch_tmp = weightParamPtr->getnxPatch();
    float strength=weightParamPtr->getStrength();
-   int sx_tmp=weightParamPtr->getsx_tmp();
-   int sy_tmp=weightParamPtr->getsy_tmp();
-   int sf_tmp=weightParamPtr->getsf_tmp();
+   int sx_tmp=weightParamPtr->getsx();
+   int sy_tmp=weightParamPtr->getsy();
+   int sf_tmp=weightParamPtr->getsf();
 
    // pvdata_t * w_tmp = patch->data;
 

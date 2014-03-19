@@ -13,26 +13,26 @@ NormalizeMax::NormalizeMax() {
    initialize_base();
 }
 
-NormalizeMax::NormalizeMax(const char * name, PVParams * params) {
-   initialize(name, params);
+NormalizeMax::NormalizeMax(HyPerConn * callingConn) {
+   initialize(callingConn);
 }
 
 int NormalizeMax::initialize_base() {
    return PV_SUCCESS;
 }
 
-int NormalizeMax::initialize(const char * name, PVParams * params) {
-   return NormalizeBase::initialize(name, params);
+int NormalizeMax::initialize(HyPerConn * callingConn) {
+   return NormalizeBase::initialize(callingConn);
 }
 
-int NormalizeMax::setParams() {
-   int status = NormalizeBase::setParams();
-   readMinMaxTolerated();
+int NormalizeMax::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = NormalizeBase::ioParamsFillGroup(ioFlag);
+   ioParam_minMaxTolerated(ioFlag);
    return status;
 }
 
-void NormalizeMax::readMinMaxTolerated() {
-   minMaxTolerated = params->value(name, "minMaxTolerated", 0.0f, true/*warnIfAbsent*/);
+void NormalizeMax::ioParam_minMaxTolerated(enum ParamsIOFlag ioFlag) {
+   parent()->ioParamValue(ioFlag, name, "minMaxTolerated", &minMaxTolerated, 0.0f, true/*warnIfAbsent*/);
 }
 
 int NormalizeMax::normalizeWeights(HyPerConn * conn) {

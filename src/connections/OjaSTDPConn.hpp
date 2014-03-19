@@ -21,9 +21,7 @@ namespace PV {
 class OjaSTDPConn: public HyPerConn {
 public:
    OjaSTDPConn();
-   OjaSTDPConn(const char * name, HyPerCol * hc,
-         const char * pre_layer_name, const char * post_layer_name,
-         const char * filename=NULL, InitWeights *weightInit=NULL);
+   OjaSTDPConn(const char * name, HyPerCol * hc);
    virtual ~OjaSTDPConn();
 
    virtual int communicateInitInfo();
@@ -58,27 +56,23 @@ public:
 protected:
 
    int initialize_base();
-   int initialize(const char * name, HyPerCol * hc,
-         const char * pre_layer_name, const char * post_layer_name,
-         const char * filename, InitWeights *weightInit);
-   virtual int setParams(PVParams * params);
-
-   virtual void read_dWMax(PVParams * params) {HyPerConn::read_dWMax(params);}
-   virtual void readAmpLTP(PVParams * params) {ampLTP = params->value(getName(), "ampLTP", ampLTP);}
-   virtual void readInitAmpLTD(PVParams * params) {initAmpLTD = params->value(getName(), "initAmpLTD", initAmpLTD);}
-   virtual void readTauLTP(PVParams * params) {tauLTP = params->value(getName(), "tauLTP", tauLTP);}
-   virtual void readTauLTD(PVParams * params) {tauLTD = params->value(getName(), "tauLTD", tauLTD);}
-   virtual void readTauOja(PVParams * params) {tauOja = params->value(getName(), "tauOja", tauOja);}
-   virtual void readTauTHR(PVParams * params) {tauTHR = params->value(getName(), "tauTHR", tauTHR);}
-   virtual void readTauO(PVParams * params) {tauO = params->value(getName(), "tauO", tauO);}
-   virtual void readTargetPostRate(PVParams * params) {targetPostRateHz = params->value(getName(), "targetPostRate", targetPostRateHz);}
-   virtual void readOjaFlag(PVParams * params) {ojaFlag = params->value(getName(), "ojaFlag", ojaFlag);}
-   virtual void readSynscalingFlag(PVParams * params) {synscalingFlag = params->value(getName(), "synscalingFlag", synscalingFlag);}
-   virtual void readSynscaling_v(PVParams * params) {synscaling_v = params->value(getName(), "synscaling_v", synscaling_v);}
-   virtual void readWMax(PVParams * params);
-   virtual void readWMin(PVParams * params);
-   virtual void readWeightScale(PVParams * params) {weightScale = params->value(getName(), "weightScale", weightScale);}
-   virtual void readLTDscale(PVParams * params);
+   int initialize(const char * name, HyPerCol * hc);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_ampLTP(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_initAmpLTD(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_tauLTP(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_tauLTD(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_tauOja(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_tauTHR(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_tauO(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_targetPostRate(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_ojaFlag(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_synscalingFlag(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_synscaling_v(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_wMax(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_wMin(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_weightScale(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_LTDscale(enum ParamsIOFlag ioFlag);
 
    virtual int initPlasticityPatches();
 #ifdef PV_USE_OPENCL

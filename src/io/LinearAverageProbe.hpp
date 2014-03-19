@@ -14,21 +14,22 @@ namespace PV {
 
 class LinearAverageProbe: public PV::LinearActivityProbe {
 public:
-   LinearAverageProbe(HyPerLayer * layer, PVDimType dim, int f, const char * gifFile);
-   LinearAverageProbe(const char * filename, HyPerLayer * layer, PVDimType dim, int f, const char * gifFile);
+   LinearAverageProbe(const char * probeName, HyPerCol * hc);
    virtual ~LinearAverageProbe();
 
    virtual int outputState(double timef);
 
 protected:
    LinearAverageProbe();
-   int initLinearAverageProbe(const char * filename, HyPerLayer * layer, PVDimType dim, int f, const char * gifFile);
+   int initLinearAverageProbe(const char * probeName, HyPerCol * hc);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_gifFile(enum ParamsIOFlag ioFlag);
 
 private:
    int initLinearAverageProbe_base();
 
 protected:
-   const char * gifFilename;
+   char * gifFilename;
    PV_Stream * gifFileStream;
 };
 

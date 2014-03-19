@@ -81,7 +81,8 @@ protected:
    pvdata_t * G_I;      // inhibitory conductance
    pvdata_t * G_IB;
 
-   char method;
+   char * methodString; // 'arma', 'before', or 'original'
+   char method;         // 'a', 'b', or 'o', the first character of methodString
 
 #ifdef PV_USE_OPENCL
    virtual int initializeThreadBuffers(const char * kernelName);
@@ -109,9 +110,27 @@ protected:
 
 protected:
    LIF();
-   int initialize(const char * name, HyPerCol * hc, PVLayerType type, int num_channels, const char * kernel_name);
-   virtual int setParams(PVParams * p);
-   virtual void readMethod(PVParams * params);
+   int initialize(const char * name, HyPerCol * hc, PVLayerType type, const char * kernel_name);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_Vrest(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_Vexc(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_Vinh(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_VinhB(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_VthRest(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_tau(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_tauE(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_tauI(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_tauIB(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_tauVth(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_deltaVth(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_deltaGIB(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_noiseAmpE(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_noiseAmpI(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_noiseAmpIB(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_noiseFreqE(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_noiseFreqI(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_noiseFreqIB(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_method(enum ParamsIOFlag ioFlag);
    virtual int allocateBuffers();
    virtual int allocateConductances(int num_channels);
 

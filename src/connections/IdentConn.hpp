@@ -18,8 +18,7 @@ class InitIdentWeights;
 
 class IdentConn : public KernelConn {
 public:
-   IdentConn(const char * name, HyPerCol *hc,
-         const char * pre_layer_name, const char * post_layer_name);
+   IdentConn(const char * name, HyPerCol *hc);
 
    virtual int communicateInitInfo();
    virtual int updateWeights(int axonID) {return PV_SUCCESS;}
@@ -27,27 +26,32 @@ public:
 protected:
    IdentConn();
    int initialize_base();
-   int initialize(const char * name, HyPerCol * hc,
-         const char * pre_layer_name, const char * post_layer_name,
-         const char * filename);
-   virtual int initNormalize();
+   int initialize(const char * name, HyPerCol *hc);
 
-   virtual int setParams(PVParams * inputParams);
-   virtual void readNumAxonalArbors(PVParams * params);
-   virtual void readPlasticityFlag(PVParams * params);
-   virtual void readPvpatchAccumulateType(PVParams * params);
-   virtual void readPreActivityIsNotRate(PVParams * params);
-   virtual void readShrinkPatches(PVParams * params);
-   virtual void readWriteCompressedWeights(PVParams * params);
-   virtual void readWriteCompressedCheckpoints(PVParams * params);
-   virtual void readSelfFlag(PVParams * params);
-   virtual void readCombine_dW_with_W_flag(PVParams * params);
-   virtual int  readPatchSize(PVParams * params);
-   virtual int  readNfp(PVParams * params);
-   virtual void readKeepKernelsSynchronized(PVParams * params);
-   virtual void readWeightUpdatePeriod(PVParams * params);
-   virtual void readInitialWeightUpdateTime(PVParams * params);
-   virtual void readUpdateGSynFromPostPerspective(PVParams * params);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_weightInitType(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_normalizeMethod(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_plasticityFlag(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_pvpatchAccumulateType(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_preActivityIsNotRate(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_writeCompressedWeights(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_writeCompressedCheckpoints(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_selfFlag(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_combine_dW_with_W_flag(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_nxp(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_nxpShrunken(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_nyp(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_nypShrunken(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_nfp(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_shrinkPatches(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_updateGSynFromPostPerspective(enum ParamsIOFlag ioFlag);
+
+   void ioParam_keepKernelsSynchronized(enum ParamsIOFlag ioFlag);
+   void ioParam_weightUpdatePeriod(enum ParamsIOFlag ioFlag);
+   void ioParam_initialWeightUpdateTime(enum ParamsIOFlag ioFlag);
+
+   virtual int setWeightInitializer();
 
    virtual void handleDefaultSelfFlag();
 };

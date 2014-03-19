@@ -14,9 +14,9 @@ TextStreamProbe::TextStreamProbe() {
    initTextStreamProbe_base();
 }
 
-TextStreamProbe::TextStreamProbe(const char * filename, HyPerLayer * layer, pvdata_t display_period) {
+TextStreamProbe::TextStreamProbe(const char * probeName, HyPerCol * hc) {
    initTextStreamProbe_base();
-   initTextStreamProbe(filename, layer, display_period);
+   initTextStreamProbe(probeName, hc);
 }
 
 TextStreamProbe::~TextStreamProbe() {
@@ -26,11 +26,25 @@ int TextStreamProbe::initTextStreamProbe_base() {
    return PV_SUCCESS;
 }
 
-int TextStreamProbe::initTextStreamProbe(const char * filename, HyPerLayer * layer, pvdata_t display_period) {
-   int status = LayerProbe::initLayerProbe(filename, layer);
-   displayPeriod = display_period;
-   nextDisplayTime = 0.0f;
-   int nf = layer->getLayerLoc()->nf;
+int TextStreamProbe::initTextStreamProbe(const char * probeName, HyPerCol * hc) {
+   int status = LayerProbe::initLayerProbe(probeName, hc);
+   nextDisplayTime = getParentCol()->getStartTime();
+   return status;
+}
+
+int TextStreamProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = LayerProbe::ioParamsFillGroup(ioFlag);
+   ioParam_displayPeriod(ioFlag);
+   return status;
+}
+
+void TextStreamProbe::ioParam_displayPeriod(enum ParamsIOFlag ioFlag) {
+   getParentCol()->ioParamValue(ioFlag, getProbeName(), "displayPeriod", &displayPeriod, 1.0);
+}
+
+int TextStreamProbe::communicateInitInfo() {
+   int status = LayerProbe::communicateInitInfo();
+   int nf = getTargetLayer()->getLayerLoc()->nf;
    switch(nf) {
    case 97:
       useCapitalization = true;
@@ -40,6 +54,7 @@ int TextStreamProbe::initTextStreamProbe(const char * filename, HyPerLayer * lay
       break;
    default:
       fprintf(stderr, "TextStreamProbe error: layer \"%s\" must have either 97 or 71 features.\n", getTargetLayer()->getName());
+      exit(EXIT_FAILURE);
       break;
    }
    return status;

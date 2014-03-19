@@ -20,15 +20,19 @@ class InitWindowed3DGaussWeightsParams;
 
 class InitWindowed3DGaussWeights: public PV::Init3DGaussWeights {
 public:
-   InitWindowed3DGaussWeights();
+   InitWindowed3DGaussWeights(HyPerConn * conn);
    virtual ~InitWindowed3DGaussWeights();
 
-   virtual int calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, int arborId,
-         InitWeightsParams *weightParams);
-   virtual InitWeightsParams * createNewWeightParams(HyPerConn * callingConn);
+   virtual int calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, int arborId);
+   virtual InitWeightsParams * createNewWeightParams();
+
+protected:
+   InitWindowed3DGaussWeights();
+   int initialize(HyPerConn * conn);
 
 private:
-   int windowWeights(/* PVPatch * patch */ pvdata_t * dataStart, InitWindowed3DGaussWeightsParams * weightParamPtr);
+   int initialize_base();
+   int windowWeights(pvdata_t * dataStart, InitWindowed3DGaussWeightsParams * weightParamPtr);
 
 
 };

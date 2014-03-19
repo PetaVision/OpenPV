@@ -15,25 +15,22 @@ LogLatWTAProbe::LogLatWTAProbe() : LayerFunctionProbe() {
    initLogLatWTAProbe_base();
 }
 
-LogLatWTAProbe::LogLatWTAProbe(HyPerLayer * layer, const char * msg)
+LogLatWTAProbe::LogLatWTAProbe(const char * probeName, HyPerCol * hc)
    : LayerFunctionProbe()
 {
    initLogLatWTAProbe_base();
-   initLogLatWTAProbe(NULL, layer, msg);
-}
-LogLatWTAProbe::LogLatWTAProbe(const char * filename, HyPerLayer * layer, const char * msg)
-   : LayerFunctionProbe()
-{
-   initLogLatWTAProbe_base();
-   initLogLatWTAProbe(filename, layer, msg);
+   initLogLatWTAProbe(probeName, hc);
 }
 
 LogLatWTAProbe::~LogLatWTAProbe() {
 }
 
-int LogLatWTAProbe::initLogLatWTAProbe(const char * filename, HyPerLayer * layer, const char * msg) {
-   LogLatWTAFunction * loglat = new LogLatWTAFunction(msg);
-   return initLayerFunctionProbe(filename, layer, msg, loglat);
+int LogLatWTAProbe::initLogLatWTAProbe(const char * probeName, HyPerCol * hc) {
+   return initLayerFunctionProbe(probeName, hc);
+}
+
+void LogLatWTAProbe::initFunction() {
+   setFunction(new LogLatWTAFunction(getProbeName()));
 }
 
 int LogLatWTAProbe::writeState(double timed, HyPerLayer * l, pvdata_t value) {
@@ -42,7 +39,7 @@ int LogLatWTAProbe::writeState(double timed, HyPerLayer * l, pvdata_t value) {
    assert(l->getParent()->icCommunicator()->commRank() == 0);
 #endif // PV_USE_MPI
    int nk = l->getNumGlobalNeurons();
-   fprintf(outputstream->fp, "%st = %6.3f numNeurons = %8d Lateral Competition Penalty = %f\n", msg, timed, nk, value);
+   fprintf(outputstream->fp, "%st = %6.3f numNeurons = %8d Lateral Competition Penalty = %f\n", getMessage(), timed, nk, value);
 
    return PV_SUCCESS;
 }

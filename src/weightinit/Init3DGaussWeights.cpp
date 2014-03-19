@@ -10,6 +10,12 @@
 
 namespace PV {
 
+Init3DGaussWeights::Init3DGaussWeights(HyPerConn * conn)
+{
+   initialize_base();
+   initialize(conn);
+}
+
 Init3DGaussWeights::Init3DGaussWeights()
 {
    initialize_base();
@@ -17,37 +23,35 @@ Init3DGaussWeights::Init3DGaussWeights()
 
 Init3DGaussWeights::~Init3DGaussWeights()
 {
-   // TODO Auto-generated destructor stub
 }
 
 int Init3DGaussWeights::initialize_base() {
    return PV_SUCCESS;
 }
 
-InitWeightsParams * Init3DGaussWeights::createNewWeightParams(HyPerConn * callingConn) {
+int Init3DGaussWeights::initialize(HyPerConn * conn) {
+   int status = InitGauss2DWeights::initialize(conn);
+   return status;
+}
+
+InitWeightsParams * Init3DGaussWeights::createNewWeightParams() {
    InitWeightsParams * tempPtr = new Init3DGaussWeightsParams(callingConn);
    return tempPtr;
 }
 
-int Init3DGaussWeights::calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, int arborId,
-                                   InitWeightsParams *weightParams) {
+int Init3DGaussWeights::calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, int arborId) {
 
    Init3DGaussWeightsParams *weightParamPtr = dynamic_cast<Init3DGaussWeightsParams*>(weightParams);
-
 
    if(weightParamPtr==NULL) {
       fprintf(stderr, "Failed to recast pointer to weightsParam!  Exiting...");
       exit(1);
    }
 
-
    weightParamPtr->calcOtherParams(patchIndex);
    weightParamPtr->setTime(arborId);
 
    gauss3DWeights(dataStart, weightParamPtr);
-
-   //PVAxonalArbor * arbor = weightParamPtr->getParentConn()->axonalArbor(patchIndex, arborId);
-   //arbor->delay = weightParamPtr->getTime();
 
    return PV_SUCCESS;
 
@@ -58,26 +62,21 @@ int Init3DGaussWeights::calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, 
  */
 int Init3DGaussWeights::gauss3DWeights(/* PVPatch * patch */ pvdata_t * w_tmp, Init3DGaussWeightsParams * weightParamPtr) {
    //load necessary params:
-   int nfPatch_tmp = weightParamPtr->getnfPatch_tmp();
-   int nyPatch_tmp = weightParamPtr->getnyPatch_tmp();
-   int nxPatch_tmp = weightParamPtr->getnxPatch_tmp();
+   int nfPatch_tmp = weightParamPtr->getnfPatch();
+   int nyPatch_tmp = weightParamPtr->getnyPatch();
+   int nxPatch_tmp = weightParamPtr->getnxPatch();
    float taspect=weightParamPtr->getTAspect();
    float yaspect=weightParamPtr->getYAspect();
    float shift=weightParamPtr->getShift();
    float shiftT=weightParamPtr->getShiftT();
    int numFlanks=weightParamPtr->getNumFlanks();
    float sigma=weightParamPtr->getSigma();
-   int sx_tmp=weightParamPtr->getsx_tmp();
-   int sy_tmp=weightParamPtr->getsy_tmp();
-   int sf_tmp=weightParamPtr->getsf_tmp();
-   double r2Max=weightParamPtr->getR2Max();
+   int sx_tmp=weightParamPtr->getsx();
+   int sy_tmp=weightParamPtr->getsy();
+   int sf_tmp=weightParamPtr->getsf();
+   double r2Max=weightParamPtr->getr2Max();
    float time = (float)-weightParamPtr->getTime();
    float thetaXT = weightParamPtr->getThetaXT();
-   //float strength = weightParamPtr->getStrength();
-
-   // pvdata_t * w_tmp = patch->data;
-
-
 
    // loop over all post-synaptic cells in temporary patch
    for (int fPost = 0; fPost < nfPatch_tmp; fPost++) {
@@ -103,37 +102,11 @@ int Init3DGaussWeights::gauss3DWeights(/* PVPatch * patch */ pvdata_t * w_tmp, I
             // include shift to flanks
             double d2 = xp * xp + (yaspect * (ytp - shift) * yaspect * (ytp - shift)) + (taspect * (tp-shiftT) * taspect * (tp-shiftT));
 
-//            if(((xDelta>-2)&&(xDelta<2))&&((yDelta>-2)&&(yDelta<2))){
-//               printf("d2  %f xDelta %f, xp %f, yDelta %f, yp %f, ytp %f, tp %f\n", d2, xDelta, xp, yDelta, yp, ytp, tp);
-//               printf("xp*xp %f\n", xp*xp);
-//               printf("ytp*ytp %f\n", ytp*ytp);
-//               printf("yaspect*yaspect*ytp*ytp %f\n", yaspect*yaspect*ytp*ytp);
-//               printf("(tp-shiftT)*(tp-shiftT) %f\n", (tp-shiftT)*(tp-shiftT));
-//               printf("(taspect * (tp-shiftT) * taspect * (tp-shiftT)) %f\n", (taspect * (tp-shiftT) * taspect * (tp-shiftT)));
-//               printf("-d2 / (2.0f * sigma * sigma) %f\n", -d2 / (2.0f * sigma * sigma));
-//               printf("expf(-d2 / (2.0f * sigma * sigma) %f\n", expf(-d2 / (2.0f * sigma * sigma)));
-//            }
-
-
             int index = iPost * sx_tmp + jPost * sy_tmp + fPost * sf_tmp;
             w_tmp[index] = 0;
             if (d2 <= r2Max) {
                w_tmp[index] += expf(-d2 / (2.0f * sigma * sigma));
-//               if(((xDelta>-2)&&(xDelta<2))&&((yDelta>-2)&&(yDelta<2))){
-//                  printf("index %d\n", index);
-//                  printf("w_tmp[index] %f\n", w_tmp[index]);
-//               }
             }
-//            else {
-//               if(((xDelta>-5)&&(xDelta<5))&&((yDelta>-5)&&(yDelta<5))){
-//                  printf("d2 is too big %f xDelta %f, xp %f, yDelta %f, yp %f, ytp %f, tp %f\n", d2, xDelta, xp, yDelta, yp, ytp, tp);
-//                  printf("xp*xp %f\n", xp*xp);
-//                  printf("ytp*ytp %f\n", ytp*ytp);
-//                  printf("yaspect*yaspect*ytp*ytp %f\n", yaspect*yaspect*ytp*ytp);
-//                  printf("(tp-shiftT)*(tp-shiftT) %f\n", (tp-shiftT)*(tp-shiftT));
-//                  printf("(taspect * (tp-shiftT) * taspect * (tp-shiftT)) %f\n", (taspect * (tp-shiftT) * taspect * (tp-shiftT)));
-//               }
-//            }
             if (numFlanks > 1) {
                // shift in opposite direction
                d2 = xp * xp + (yaspect * (ytp + shift) * yaspect * (ytp + shift)) + (taspect * (tp-shiftT) * taspect * (tp-shiftT));

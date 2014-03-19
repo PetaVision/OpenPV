@@ -50,47 +50,140 @@ int InitGauss2DWeightsParams::initialize(HyPerConn * parentConn) {
    PVParams * params = parent->parameters();
    int status = PV_SUCCESS;
 
-   aspect   = params->value(getName(), "aspect", aspect);
-   sigma    = params->value(getName(), "sigma", sigma);
-   rMax     = params->value(getName(), "rMax", rMax);
-   rMin     = params->value(getName(), "rMin", rMin);
-   strength = params->value(getName(), "strength", strength);
-   if (this->post->getLayerLoc()->nf > 1){
-		numOrientationsPost = (int) params->value(getName(),
-				"numOrientationsPost", this->post->getLayerLoc()->nf);
-   }
-	if (this->pre->getLayerLoc()->nf > 1) {
-		numOrientationsPre = (int) params->value(getName(),
-				"numOrientationsPre", this->pre->getLayerLoc()->nf);
-	}
-   if (aspect != 1.0 && ((this->numOrientationsPre <= 1)||(this->numOrientationsPost <= 1))) {
-      setDeltaThetaMax(params->value(getName(), "deltaThetaMax", getDeltaThetaMax()));
-      setThetaMax(params->value(getName(), "thetaMax", getThetaMax()));
-      numFlanks = (int) params->value(getName(), "numFlanks", (float) numFlanks);
-      shift = params->value(getName(), "flankShift", shift);
-      setRotate(params->value(getName(), "rotate", getRotate()));
-      bowtieFlag = (bool)params->value(getName(), "bowtieFlag", bowtieFlag);
-      if (bowtieFlag == 1.0f) {
-         bowtieAngle = params->value(getName(), "bowtieAngle", bowtieAngle);
-      }
-   }
-
-   double r2Maxd = (double) rMax;
-   r2Max = r2Maxd*r2Maxd;
-   double r2Mind = (double) rMin;
-   r2Min = r2Mind*r2Mind;
-
-
-//calculate other values:
-   self = (pre != post);
    return status;
 
 }
 
+int InitGauss2DWeightsParams::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = InitWeightsParams::ioParamsFillGroup(ioFlag);
+   ioParam_aspect(ioFlag);
+   ioParam_sigma(ioFlag);
+   ioParam_rMax(ioFlag);
+   ioParam_rMin(ioFlag);
+   ioParam_strength(ioFlag);
+   if (ioFlag != PARAMS_IO_READ) {
+      // numOrientationsPost and numOrientationsPre are only meaningful if
+      // relevant layers have nf>1, so reading those params and params that
+      // depend on them is delayed until communicateParamsInfo, so that
+      // pre&post will have been defined.
+      ioParam_numOrientationsPost(ioFlag);
+      ioParam_numOrientationsPre(ioFlag);
+      ioParam_aspectRelatedParams(ioFlag);
+   }
+   return status;
+}
+
+void InitGauss2DWeightsParams::ioParam_aspect(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "aspect", &aspect, aspect);
+}
+
+void InitGauss2DWeightsParams::ioParam_sigma(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "sigma", &sigma, sigma);
+}
+
+void InitGauss2DWeightsParams::ioParam_rMax(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "rMax", &rMax, rMax);
+   if (ioFlag==PARAMS_IO_READ) {
+      double rMaxd = (double) rMax;
+      r2Max = rMaxd*rMaxd;
+   }
+}
+
+void InitGauss2DWeightsParams::ioParam_rMin(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "rMin", &rMin, rMin);
+   if (ioFlag==PARAMS_IO_READ) {
+      double rMind = (double) rMin;
+      r2Min = rMind*rMind;
+   }
+}
+
+void InitGauss2DWeightsParams::ioParam_strength(enum ParamsIOFlag ioFlag) {
+   parentConn->ioParam_strength(ioFlag, &strength, true/*warnIfAbsent*/);
+}
+
+void InitGauss2DWeightsParams::ioParam_numOrientationsPost(enum ParamsIOFlag ioFlag) {
+   if (post->getLayerLoc()->nf > 1) {
+      parent->ioParamValue(ioFlag, name, "numOrientationsPost", &numOrientationsPost, this->post->getLayerLoc()->nf);
+   }
+}
+
+void InitGauss2DWeightsParams::ioParam_numOrientationsPre(enum ParamsIOFlag ioFlag) {
+   if (pre->getLayerLoc()->nf > 1) {
+      parent->ioParamValue(ioFlag, name, "numOrientationsPre", &numOrientationsPre, this->pre->getLayerLoc()->nf);
+   }
+}
+
+void InitGauss2DWeightsParams::ioParam_deltaThetaMax(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "deltaThetaMax", &deltaThetaMax, getDeltaThetaMax());
+}
+
+void InitGauss2DWeightsParams::ioParam_thetaMax(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "thetaMax", &thetaMax, getThetaMax());
+}
+
+void InitGauss2DWeightsParams::ioParam_numFlanks(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "numFlanks", &numFlanks, numFlanks);
+}
+
+void InitGauss2DWeightsParams::ioParam_flankShift(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "flankShift", &shift, shift);
+}
+
+void InitGauss2DWeightsParams::ioParam_rotate(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "rotate", &rotate, rotate);
+}
+
+void InitGauss2DWeightsParams::ioParam_bowtieFlag(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "bowtieFlag", &bowtieFlag, bowtieFlag);
+}
+
+void InitGauss2DWeightsParams::ioParam_bowtieAngle(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "bowtieFlag"));
+   if (bowtieFlag) {
+      parent->ioParamValue(ioFlag, name, "bowtieAngle", &bowtieAngle, bowtieAngle);
+   }
+}
+
+void InitGauss2DWeightsParams::ioParam_aspectRelatedParams(enum ParamsIOFlag ioFlag) {
+   if (needAspectParams()) {
+      ioParam_deltaThetaMax(ioFlag);
+      ioParam_thetaMax(ioFlag);
+      ioParam_numFlanks(ioFlag);
+      ioParam_flankShift(ioFlag);
+      ioParam_rotate(ioFlag);
+      ioParam_bowtieFlag(ioFlag);
+      ioParam_bowtieAngle(ioFlag);
+   }
+}
+
+bool InitGauss2DWeightsParams::needAspectParams() {
+   assert(pre && post);
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "aspect"));
+   if (post->getLayerLoc()->nf>1) {
+      assert(!parent->parameters()->presentAndNotBeenRead(name, "numOrientationsPost"));
+   }
+   if (pre->getLayerLoc()->nf>1) {
+      assert(!parent->parameters()->presentAndNotBeenRead(name, "numOrientationsPre"));
+   }
+   return (aspect != 1.0f && ((this->numOrientationsPre <= 1)||(this->numOrientationsPost <= 1)));
+}
+
+int InitGauss2DWeightsParams::communicateParamsInfo() {
+   int status = InitWeightsParams::communicateParamsInfo();
+   // Handle params that use pre and post to determine if they
+   // need to be read
+   ioParam_numOrientationsPost(PARAMS_IO_READ);
+   ioParam_numOrientationsPre(PARAMS_IO_READ);
+   ioParam_aspectRelatedParams(PARAMS_IO_READ);
+   //calculate other values:
+   self = (pre != post);
+   return status;
+}
+
 void InitGauss2DWeightsParams::calcOtherParams(int patchIndex) {
-	InitWeightsParams::calcOtherParams(patchIndex);
-	const int kfPre_tmp = this->kernelIndexCalculations(patchIndex);
-	this->calculateThetas(kfPre_tmp, patchIndex);
+   this->getcheckdimensionsandstrides();
+   const int kfPre_tmp = this->kernelIndexCalculations(patchIndex);
+   this->calculateThetas(kfPre_tmp, patchIndex);
 }
 
 

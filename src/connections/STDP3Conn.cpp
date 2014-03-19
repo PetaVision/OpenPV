@@ -15,13 +15,10 @@
 
 namespace PV {
 
-STDP3Conn::STDP3Conn(const char * name, HyPerCol * hc,
-      const char * pre_layer_name, const char * post_layer_name,
-      const char * filename, bool stdpFlag,
-      InitWeights *weightInit) : HyPerConn()
+STDP3Conn::STDP3Conn(const char * name, HyPerCol * hc) : HyPerConn()
 {
    initialize_base();
-   initialize(name, hc, pre_layer_name, post_layer_name, filename, stdpFlag, weightInit);
+   initialize(name, hc);
 }
 
 STDP3Conn::~STDP3Conn()
@@ -30,7 +27,7 @@ STDP3Conn::~STDP3Conn()
 }
 
 int STDP3Conn::initialize_base() {
-   // Default STDP parameters for modifying weights; defaults are overridden in setParams().
+   // Default STDP parameters for modifying weights; defaults are overridden in ioParams().
    // this->dwPatches = NULL;
    this->post_tr = NULL;
    this->post2_tr = NULL;
@@ -46,22 +43,10 @@ int STDP3Conn::initialize_base() {
    return PV_SUCCESS;
 }
 
-int STDP3Conn::initialize(const char * name, HyPerCol * hc,
-      const char * pre_layer_name, const char * post_layer_name,
-      const char * filename, bool stdpFlag, InitWeights *weightInit)
+int STDP3Conn::initialize(const char * name, HyPerCol * hc)
 {
-   this->stdpFlag = stdpFlag; //needs to be before call to HyPerConn::initialize since it calls overridden methods that depend on stdpFlag being set.
-   int status = HyPerConn::initialize(name, hc, pre_layer_name, post_layer_name, filename, weightInit);
-
-   // status |= setParams(hc->parameters()); // called by HyPerConn::initialize since setParams is virtual
-   // status |= initPlasticityPatches();     // called by HyPerConn::constructWeights since initPlasticityPatches is virtual
-
-   // Moved to allocateDataStructures since point2PreSynapticWeights allocates post patches
-   // if(synscalingFlag){
-   //    point2PreSynapticWeights();
-   // }
-   status |= setParams(hc->parameters()); // needs to be called after HyPerConn::initialize since it depends on post being set
-
+   int status = HyPerConn::initialize(name, hc);
+   if (status == PV_SUCCESS) status = ioParams(PARAMS_IO_READ); // needs to be called after HyPerConn::initialize since it depends on post being set
    return status;
 }
 
@@ -127,88 +112,76 @@ PVLayerCube * STDP3Conn::getPlasticityDecrement()
  * to a pointer to a derived class (LIF). This way I do not need to define a virtual
  * function getWmax() in HyPerLayer which only returns a NULL pointer in the base class.
  */
-int STDP3Conn::setParams(PVParams * params)
+int STDP3Conn::ioParamsFillGroup(enum ParamsIOFlag ioFlag)
 {
-   // stdpFlag is now set by constructor
-   // stdpFlag = (bool) filep->value(getName(), "stdpFlag", (float) stdpFlag);
-   HyPerConn::setParams(params);
-
-   readAmpLTP(params);
-   readAmpLTD(params);
-   readTauLTP(params);
-   readTauLTD(params);
-   readTauY(params);
-   readWMax(params);
-   readWMin(params);
-   read_dWMax(params);
-   readSynscalingFlag(params);
-   readSynscaling_v(params);
-
-   //   if (stdpFlag) {
-   //      ampLTP = params->value(getName(), "ampLTP", ampLTP);
-   //      ampLTD = params->value(getName(), "ampLTD", ampLTD);
-   //      tauLTP = params->value(getName(), "tauLTP", tauLTP);
-   //      tauLTD = params->value(getName(), "tauLTD", tauLTD);
-   //      tauY = params->value(getName(), "tauY", tauY);
-   //
-   //      wMax = params->value(getName(), "wMax", wMax);
-   //      wMin = params->value(getName(), "wMin", wMin);
-   //      // dWMax = params->value(getName(), "dWMax", dWMax); // dWMax is set in HyPerConn::setParams, called above.
-   //      synscalingFlag = params->value(getName(), "synscalingFlag", synscalingFlag);
-   //      synscaling_v = params->value(getName(), "synscaling_v", synscaling_v);
-   //   }
+   HyPerConn::ioParams(ioFlag);
+   ioParam_stdpFlag(ioFlag);
+   ioParam_ampLTP(ioFlag);
+   ioParam_ampLTD(ioFlag);
+   ioParam_tauLTP(ioFlag);
+   ioParam_tauLTD(ioFlag);
+   ioParam_tauY(ioFlag);
+   ioParam_wMax(ioFlag);
+   ioParam_wMin(ioFlag);
+   ioParam_dWMax(ioFlag);
+   ioParam_synscalingFlag(ioFlag);
+   ioParam_synscaling_v(ioFlag);
 
    return 0;
 }
 
-void STDP3Conn::readAmpLTP(PVParams * params) {
-   assert(!params->presentAndNotBeenRead(name, "stdpFlag"));
-   if(stdpFlag) ampLTP = params->value(getName(), "ampLTP", ampLTP);
+void STDP3Conn::ioParam_stdpFlag(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "stdpFlag", &stdpFlag, true/*default value*/, true/*warnIfAbsent*/);
 }
 
-void STDP3Conn::readAmpLTD(PVParams * params) {
-   assert(!params->presentAndNotBeenRead(name, "stdpFlag"));
-   if(stdpFlag) ampLTD = params->value(getName(), "ampLTD", ampLTD);
+void STDP3Conn::ioParam_ampLTP(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "stdpFlag"));
+   if(stdpFlag) parent->ioParamValue(ioFlag, name, "ampLTP", &ampLTP, ampLTP);
 }
 
-void STDP3Conn::readTauLTP(PVParams * params) {
-   assert(!params->presentAndNotBeenRead(name, "stdpFlag"));
-   if(stdpFlag) tauLTP = params->value(getName(), "tauLTP", tauLTP);
+void STDP3Conn::ioParam_ampLTD(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "stdpFlag"));
+   if(stdpFlag) parent->ioParamValue(ioFlag, name, "ampLTD", &ampLTD, ampLTD);
 }
 
-void STDP3Conn::readTauLTD(PVParams * params) {
-   assert(!params->presentAndNotBeenRead(name, "stdpFlag"));
-   if(stdpFlag) tauLTD = params->value(getName(), "tauLTD", tauLTD);
+void STDP3Conn::ioParam_tauLTP(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "stdpFlag"));
+   if(stdpFlag)  parent->ioParamValue(ioFlag, name, "tauLTP", &tauLTP, tauLTP);
 }
 
-void STDP3Conn::readTauY(PVParams * params) {
-   assert(!params->presentAndNotBeenRead(name, "stdpFlag"));
-   if(stdpFlag) tauY = params->value(getName(), "tauY", tauY);
+void STDP3Conn::ioParam_tauLTD(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "stdpFlag"));
+   if(stdpFlag) parent->ioParamValue(ioFlag, name, "tauLTD", &tauLTD, tauLTD);
 }
 
-void STDP3Conn::readWMax(PVParams * params) {
-   assert(!params->presentAndNotBeenRead(name, "stdpFlag"));
-   if(stdpFlag) wMax = params->value(getName(), "wMax", wMax);
+void STDP3Conn::ioParam_tauY(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "stdpFlag"));
+   if(stdpFlag) parent->ioParamValue(ioFlag, name, "tauY", &tauY, tauY);
 }
 
-void STDP3Conn::readWMin(PVParams * params) {
-   assert(!params->presentAndNotBeenRead(name, "stdpFlag"));
-   if(stdpFlag) wMin = params->value(getName(), "wMin", wMin);
+void STDP3Conn::ioParam_wMax(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "stdpFlag"));
+   if(stdpFlag) parent->ioParamValue(ioFlag, name, "wMax", &wMax, wMax);
 }
 
-void STDP3Conn::read_dWMax(PVParams * params) {
-   assert(!params->presentAndNotBeenRead(name, "stdpFlag"));
-   if(stdpFlag) HyPerConn::read_dWMax(params);
+void STDP3Conn::ioParam_wMin(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "stdpFlag"));
+   if(stdpFlag) parent->ioParamValue(ioFlag, name, "wMin", &wMin, wMin);
 }
 
-void STDP3Conn::readSynscalingFlag(PVParams * params) {
-   assert(!params->presentAndNotBeenRead(name, "stdpFlag"));
-   if(stdpFlag) synscalingFlag = params->value(getName(), "synscalingFlag", synscalingFlag);
+void STDP3Conn::ioParam_dwMax(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "stdpFlag"));
+   if(stdpFlag) HyPerConn::ioParam_dWMax(ioFlag);
 }
 
-void STDP3Conn::readSynscaling_v(PVParams * params) {
-   assert(!params->presentAndNotBeenRead(name, "stdpFlag"));
-   if(stdpFlag) synscaling_v = params->value(getName(), "synscaling_v", synscaling_v);
+void STDP3Conn::ioParam_synscalingFlag(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "stdpFlag"));
+   if(stdpFlag) parent->ioParamValue(ioFlag, name, "ampLTP", &ampLTP, ampLTP);
+}
+
+void STDP3Conn::ioParam_synscaling_v(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "stdpFlag"));
+   if(stdpFlag) parent->ioParamValue(ioFlag, name, "ampLTP", &ampLTP, ampLTP);
 }
 
 int STDP3Conn::allocateDataStructures() {

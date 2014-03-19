@@ -13,11 +13,10 @@ TransposeConn::TransposeConn() {
    initialize_base();
 }  // TransposeConn::~TransposeConn()
 
-TransposeConn::TransposeConn(const char * name, HyPerCol * hc, const char * pre_layer_name, const char * post_layer_name, const char * originalConnName) {
+TransposeConn::TransposeConn(const char * name, HyPerCol * hc) {
    initialize_base();
-   int status = initialize(name, hc, pre_layer_name, post_layer_name, originalConnName);
-   assert(status == PV_SUCCESS);
-}  // TransposeConn::TransposeConn(const char * name, HyPerCol * hc, HyPerLayer *, HyPerLayer *, ChannelType, KernelConn *)
+   int status = initialize(name, hc);
+}
 
 TransposeConn::~TransposeConn() {
    free(originalConnName); originalConnName = NULL;
@@ -38,23 +37,19 @@ int TransposeConn::initialize_base() {
    return PV_SUCCESS;
 }  // TransposeConn::initialize_base()
 
-int TransposeConn::initialize(const char * name, HyPerCol * hc, const char * pre_layer_name, const char * post_layer_name, const char * originalConnName) {
+int TransposeConn::initialize(const char * name, HyPerCol * hc) {
    int status = PV_SUCCESS;
-   status = KernelConn::initialize(name, hc, pre_layer_name, post_layer_name, NULL, NULL);
-   if (originalConnName == NULL) {
-      fprintf(stderr, "TransposeConn \"%s\" error in rank %d: originalConnName must be set.\n", name, parent->columnId());
-      status = PV_FAILURE;
-      return status;
-   }
-   this->originalConnName = strdup(originalConnName);
-   if (originalConnName == NULL) {
-      fprintf(stderr, "TransposeConn \"%s\" error in rank %d: unable to allocate memory for originalConnName \"%s\": %s\n",
-            name, parent->columnId(), originalConnName, strerror(errno));
-   }
+   if (status == PV_SUCCESS) status = KernelConn::initialize(name, hc);
    return status;
 }
 
-// We override many read-methods because TransposeConn will determine
+int TransposeConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = KernelConn::ioParamsFillGroup(ioFlag);
+   ioParam_originalConnName(ioFlag);
+   return status;
+}
+
+// We override many ioParam-methods because TransposeConn will determine
 // the associated parameters from the originalConn's values.
 // communicateInitInfo will check if those parameters exist in params for
 // the CloneKernelConn group, and whether they are consistent with the
@@ -67,54 +62,101 @@ int TransposeConn::initialize(const char * name, HyPerCol * hc, const char * pre
 // the parameter some way other than reading its own parameter
 // group's param directly.
 
-void TransposeConn::readNumAxonalArbors(PVParams * params) {
+void TransposeConn::ioParam_weightInitType(enum ParamsIOFlag ioFlag) {
+   // TransposeConn doesn't use a weight initializer
+   if (ioFlag==PARAMS_IO_READ) {
+      parent->parameters()->handleUnnecessaryStringParameter(name, "weightInitType", NULL);
+   }
+}
+
+void TransposeConn::ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag) {
    // During the communication phase, numAxonalArbors will be copied from originalConn
 }
 
-int TransposeConn::readPatchSize(PVParams * params) {
-   // During the communication phase, nxp, nyp, nxpShrunken, nypShrunken will be determined from originalConn
-   return PV_SUCCESS;
-}
-
-int TransposeConn::readNfp(PVParams * params) {
-   // During the communication phase, nfp will be inferred from originalConn
-   return PV_SUCCESS;
-}
-
-void TransposeConn::readPlasticityFlag(PVParams * params) {
+void TransposeConn::ioParam_plasticityFlag(enum ParamsIOFlag ioFlag) {
    // During the communication phase, plasticityFlag will be copied from originalConn
 }
 
-void TransposeConn::readCombine_dW_with_W_flag(PVParams * params) {
-   combine_dW_with_W_flag = false;
-   handleUnnecessaryIntParameter("combine_dW_with_W_flag", combine_dW_with_W_flag);
+void TransposeConn::ioParam_combine_dW_with_W_flag(enum ParamsIOFlag ioFlag) {
+   if (ioFlag==PARAMS_IO_READ) {
+      combine_dW_with_W_flag = false;
+      parent->parameters()->handleUnnecessaryParameter(name, "combine_dW_with_W_flag", combine_dW_with_W_flag);
+   }
 }
 
-void TransposeConn::read_dWMax(PVParams * params) {
-   dWMax = 1.0;
-   handleUnnecessaryIntParameter("dWMax", dWMax);
+void TransposeConn::ioParam_nxp(enum ParamsIOFlag ioFlag) {
+   // TransposeConn determines nxp from originalConn, during communicateInitInfo
 }
 
-void TransposeConn::readKeepKernelsSynchronized(PVParams * params) {
-   keepKernelsSynchronized_flag = false;
-   handleUnnecessaryIntParameter("keepKernelsSynchronized", keepKernelsSynchronized_flag);
+void TransposeConn::ioParam_nyp(enum ParamsIOFlag ioFlag) {
+   // TransposeConn determines nyp from originalConn, during communicateInitInfo
 }
 
-void TransposeConn::readWeightUpdatePeriod(PVParams * params) {
-   weightUpdatePeriod = parent->getDeltaTime();  // Ensures that every timestep updateState calls updateWeights, which will compare lastUpdateTime to originalConn's lastUpdateTime
-   handleUnnecessaryIntParameter("weightUpdatePeriod", weightUpdatePeriod);
+void TransposeConn::ioParam_nxpShrunken(enum ParamsIOFlag ioFlag) {
+   // TransposeConn doesn't use nxpShrunken
 }
 
-void TransposeConn::readInitialWeightUpdateTime(PVParams * params) {
-   weightUpdateTime = parent->simulationTime();
-   handleUnnecessaryIntParameter("initialWeightUpdateTime", weightUpdateTime);
+void TransposeConn::ioParam_nypShrunken(enum ParamsIOFlag ioFlag) {
+   // TransposeConn doesn't use nypShrunken
 }
 
-void TransposeConn::readShrinkPatches(PVParams * params) {
-   // Will check that originalConn has shrinkPatches set to false in communicate phase, once originalConn is set.
-   // Need to override here since overridden method reads shrinkPatches from params.
-   shrinkPatches_flag = false;
-   handleUnnecessaryIntParameter("shrinkPatches", shrinkPatches_flag);
+void TransposeConn::ioParam_nfp(enum ParamsIOFlag ioFlag) {
+   // TransposeConn determines nfp from originalConn, during communicateInitInfo
+}
+
+void TransposeConn::ioParam_dWMax(enum ParamsIOFlag ioFlag) {
+   if (ioFlag == PARAMS_IO_READ) {
+      dWMax = 1.0;
+      parent->parameters()->handleUnnecessaryParameter(name, "dWMax", dWMax);
+   }
+}
+
+void TransposeConn::ioParam_keepKernelsSynchronized(enum ParamsIOFlag ioFlag) {
+   if (ioFlag == PARAMS_IO_READ) {
+      keepKernelsSynchronized_flag = false;
+      parent->parameters()->handleUnnecessaryParameter(name, "keepKernelsSynchronized", keepKernelsSynchronized_flag);
+   }
+}
+
+void TransposeConn::ioParam_weightUpdatePeriod(enum ParamsIOFlag ioFlag) {
+   if (ioFlag == PARAMS_IO_READ) {
+      weightUpdatePeriod = parent->getDeltaTime();  // Ensures that every timestep updateState calls updateWeights, which will compare lastUpdateTime to originalConn's lastUpdateTime
+      parent->parameters()->handleUnnecessaryParameter(name, "weightUpdatePeriod", weightUpdatePeriod);
+   }
+}
+
+void TransposeConn::ioParam_initialWeightUpdateTime(enum ParamsIOFlag ioFlag) {
+   if (ioFlag == PARAMS_IO_READ) {
+      initialWeightUpdateTime = parent->getStartTime();
+      parent->parameters()->handleUnnecessaryParameter(name, "initialWeightUpdateTime", initialWeightUpdateTime);
+      weightUpdateTime = initialWeightUpdateTime;
+   }
+}
+
+void TransposeConn::ioParam_useWindowPost(enum ParamsIOFlag ioFlag) {
+   if (ioFlag == PARAMS_IO_READ) {
+      useWindowPost = false;
+      parent->parameters()->handleUnnecessaryParameter(name, "useWindowPost");
+   }
+}
+
+void TransposeConn::ioParam_shrinkPatches(enum ParamsIOFlag ioFlag) {
+   if (ioFlag == PARAMS_IO_READ) {
+      shrinkPatches_flag = false;
+      parent->parameters()->handleUnnecessaryParameter(name, "shrinkPatches", shrinkPatches_flag);
+   }
+}
+
+void TransposeConn::ioParam_normalizeMethod(enum ParamsIOFlag ioFlag) {
+   if (ioFlag == PARAMS_IO_READ) {
+      normalizer = NULL;
+      normalizeMethod = strdup("none");
+      parent->parameters()->handleUnnecessaryStringParameter(name, "normalizeMethod", "none");
+   }
+}
+
+void TransposeConn::ioParam_originalConnName(enum ParamsIOFlag ioFlag) {
+   parent->ioParamStringRequired(ioFlag, name, "originalConnName", &originalConnName);
 }
 
 InitWeights * TransposeConn::handleMissingInitWeights(PVParams * params) {
@@ -175,10 +217,10 @@ int TransposeConn::communicateInitInfo() {
 
 
    numAxonalArborLists = originalConn->numberOfAxonalArborLists();
-   handleUnnecessaryIntParameter("numAxonalArbors", numAxonalArborLists);
+   parent->parameters()->handleUnnecessaryParameter(name, "numAxonalArbors", numAxonalArborLists);
 
    plasticityFlag = originalConn->getPlasticityFlag();
-   handleUnnecessaryIntParameter("plasticityFlag", plasticityFlag);
+   parent->parameters()->handleUnnecessaryParameter(name, "plasticityFlag", plasticityFlag);
 
    if(originalConn->getShrinkPatches_flag()) {
       if (parent->columnId()==0) {
@@ -233,11 +275,11 @@ int TransposeConn::setPatchSize() {
 
    nxpShrunken = nxp;
    nypShrunken = nyp;
-   handleUnnecessaryIntParameter("nxp", nxp);
-   handleUnnecessaryIntParameter("nyp", nyp);
-   handleUnnecessaryIntParameter("nxpShrunken", nxpShrunken);
-   handleUnnecessaryIntParameter("nypShrunken", nypShrunken);
-   handleUnnecessaryIntParameter("nfp", nfp);
+   parent->parameters()->handleUnnecessaryParameter(name, "nxp", nxp);
+   parent->parameters()->handleUnnecessaryParameter(name, "nyp", nyp);
+   parent->parameters()->handleUnnecessaryParameter(name, "nxpShrunken", nxpShrunken);
+   parent->parameters()->handleUnnecessaryParameter(name, "nypShrunken", nypShrunken);
+   parent->parameters()->handleUnnecessaryParameter(name, "nfp", nfp);
    return PV_SUCCESS;
 
 }
@@ -257,22 +299,15 @@ int TransposeConn::allocateDataStructures() {
    return PV_SUCCESS;
 }
 
-PVPatch *** TransposeConn::initializeWeights(PVPatch *** arbors, pvdata_t ** dataStart, int numPatches, const char * filename) {
-   if( filename ) {
-      return KernelConn::initializeWeights(arbors, dataStart, numPatches, filename);
+PVPatch*** TransposeConn::initializeWeights(PVPatch*** patches, float** dataStart,
+      int numPatches) {
+   assert(originalConn->getDataStructuresAllocatedFlag()); // originalConn->dataStructurenAllocatedFlag checked in TransposeConn::allocateDataStructures()
+   for (int arbor=0; arbor<numAxonalArborLists; arbor++) {
+      transposeKernels(arbor);
    }
-   else {
-      for(int arborId = 0; arborId < numAxonalArborLists; arborId++){
-         transposeKernels(arborId);
-      }
-   }
-   return arbors;
-}  // TransposeConn::initializeWeights(PVPatch **, int, const char *)
+   return patches;
+}
 
-// int TransposeConn::initNormalize() {
-//    normalize_flag = false;
-//    return PV_SUCCESS;
-// }
 
 int TransposeConn::updateWeights(int axonID) {
    int status;
@@ -286,8 +321,6 @@ int TransposeConn::updateWeights(int axonID) {
    return status;
 }  // end of TransposeConn::updateWeights(int);
 
-// TODO reorganize transposeKernels():  Loop over kernelNumberFB on outside, call transposeOneKernel(kpFB, kernelnumberFB), which handles all the cases.
-// This would play better with Kris's initWeightsMethod.
 int TransposeConn::transposeKernels(int arborId) {
    // compute the transpose of originalConn->kernelPatches and
    // store into this->kernelPatches

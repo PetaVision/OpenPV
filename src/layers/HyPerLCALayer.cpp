@@ -45,17 +45,10 @@ HyPerLCALayer::HyPerLCALayer()
    initialize_base();
 }
 
-HyPerLCALayer::HyPerLCALayer(const char * name, HyPerCol * hc, int num_channels)
-{
-   initialize_base();
-   assert(num_channels <= 2);
-   initialize(name, hc, num_channels);
-}
-
 HyPerLCALayer::HyPerLCALayer(const char * name, HyPerCol * hc)
 {
    initialize_base();
-   initialize(name, hc, 1);
+   initialize(name, hc);
 }
 
 HyPerLCALayer::~HyPerLCALayer()
@@ -64,6 +57,7 @@ HyPerLCALayer::~HyPerLCALayer()
 
 int HyPerLCALayer::initialize_base()
 {
+   numChannels = 1; // If a connection connects to this layer on inhibitory channel, HyPerLayer::requireChannel will add necessary channel
    tauMax = 1.0;
    tauMin = tauMax;
    errorStd = 1.0;
@@ -129,26 +123,74 @@ int HyPerLCALayer::getNumWindows(){
    return windowsX * windowsY;
 }
 
-int HyPerLCALayer::initialize(const char * name, HyPerCol * hc, int num_channels)
+int HyPerLCALayer::initialize(const char * name, HyPerCol * hc)
 {
-   ANNLayer::initialize(name, hc, num_channels);
-   PVParams * params = parent->parameters();
-   tauMax = params->value(name, "timeConstantTau", tauMax, true);
-   tauMin = params->value(name, "timeConstantTauMinimum", tauMax, false); // default to no adaptation
-   numWindowX = params->value(name, "numWindowX", numWindowX);
-   numWindowY = params->value(name, "numWindowY", numWindowX);
-   if(numWindowX != 1){
-      windowSymX = (bool)params->value(name, "windowSymX", windowSymX);
-   }
-   if(numWindowY != 1){
-      windowSymY = (bool)params->value(name, "windowSymY", windowSymY);
-   }
-   // int windowXNeeded;
-
-   if ((tauMax - tauMin) > 1.0){
-	   slopeErrorStd = params->value(name, "slopeErrorStd", slopeErrorStd, true);
-   }
+   ANNLayer::initialize(name, hc);
    return PV_SUCCESS;
+}
+
+int HyPerLCALayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = ANNLayer::ioParamsFillGroup(ioFlag);
+   ioParam_numChannels(ioFlag);
+   ioParam_timeConstantTau(ioFlag);
+   ioParam_timeConstantTauMinimum(ioFlag);
+   ioParam_numWindowX(ioFlag);
+   ioParam_numWindowY(ioFlag);
+   ioParam_windowSymX(ioFlag);
+   ioParam_windowSymY(ioFlag);
+   ioParam_slopeErrorStd(ioFlag);
+   return status;
+}
+
+void HyPerLCALayer::ioParam_numChannels(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "numChannels", &numChannels, numChannels, true/*warnIfAbsent*/);
+   if (numChannels != 1 && numChannels != 2){
+      if (parent->columnId()==0) {
+         fprintf(stderr, "%s \"%s\" requires 1 or 2 channels, numChannels = %d\n",
+               parent->parameters()->groupKeywordFromName(name), name, numChannels);
+      }
+      MPI_Barrier(parent->icCommunicator()->communicator());
+      exit(EXIT_FAILURE);
+   }
+}
+
+void HyPerLCALayer::ioParam_timeConstantTau(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "timeConstantTau", &tauMax, tauMax, true/*warnIfAbsent*/);
+}
+
+void HyPerLCALayer::ioParam_timeConstantTauMinimum(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "timeConstantTau"));
+   parent->ioParamValue(ioFlag, name, "timeConstantTauMinimum", &tauMin, tauMax, false/*warnIfAbsent*/);
+}
+
+void HyPerLCALayer::ioParam_numWindowX(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "numWindowX", &numWindowX, numWindowX);
+   if(numWindowX != 1) {
+      parent->ioParamValue(ioFlag, name, "windowSymX", &windowSymX, windowSymX);
+   }
+}
+
+void HyPerLCALayer::ioParam_numWindowY(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "numWindowY", &numWindowY, numWindowY);
+   if(numWindowY != 1) {
+      parent->ioParamValue(ioFlag, name, "windowSymY", &windowSymY, windowSymY);
+   }
+}
+
+void HyPerLCALayer::ioParam_windowSymX(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "numWindowX"));
+
+}
+void HyPerLCALayer::ioParam_windowSymY(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "numWindowY"));
+}
+
+void HyPerLCALayer::ioParam_slopeErrorStd(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "timeConstantTau"));
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "timeConstantTauMinimum"));
+   if ((tauMax - tauMin) > 1.0) {
+      parent->ioParamValue(ioFlag, name, "slopeErrorStd", &slopeErrorStd, slopeErrorStd, true/*warnIfAbsent*/);
+   }
 }
 
 int HyPerLCALayer::doUpdateState(double time, double dt, const PVLayerLoc * loc, pvdata_t * A,
@@ -169,9 +211,9 @@ int HyPerLCALayer::doUpdateState(double time, double dt, const PVLayerLoc * loc,
       int num_neurons = nx*ny*nf;
       dtTau = dt;
       double error_mean = 0;
-    	  HyPerLCALayer_update_state(num_neurons, nx, ny, nf, loc->nb, numChannels,
-    			  V, VThresh, VMax, VMin, VShift, VWidth, tauMax, tauMin, slopeErrorStd,
-    			  &dtTau, gSynHead, A, &error_mean, &errorStd);
+      HyPerLCALayer_update_state(num_neurons, nx, ny, nf, loc->nb, numChannels,
+            V, VThresh, VMax, VMin, VShift, VWidth, tauMax, tauMin, slopeErrorStd,
+            &dtTau, gSynHead, A, &error_mean, &errorStd);
       if (this->writeSparseActivity){
          updateActiveIndices();  // added by GTK to allow for sparse output, can this be made an inline function???
       }

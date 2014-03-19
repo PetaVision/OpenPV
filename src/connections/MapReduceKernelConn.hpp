@@ -17,15 +17,16 @@ class MapReduceKernelConn: public PV::KernelConn {
 public:
 	MapReduceKernelConn();
 	virtual ~MapReduceKernelConn();
-	MapReduceKernelConn(const char * name, HyPerCol * hc,
-			const char * pre_layer_name, const char * post_layer_name,
-			const char * filename = NULL, InitWeights *weightInit = NULL, const char * movieLayerName = NULL);
+    MapReduceKernelConn(const char * name, HyPerCol * hc);
     static const int MAX_WEIGHT_FILES = 1024;  // arbitrary limit...
 
 protected:
-	int initialize(const char * name, HyPerCol * hc,
-	        const char * pre_layer_name, const char * post_layer_name,
-	        const char * filename, InitWeights *weightInit, const char * movieLayerName);
+    int initialize(const char * name, HyPerCol * hc);
+    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+    virtual void ioParam_movieLayerName(enum ParamsIOFlag ioFlag);
+    virtual void ioParam_dWeightsListName(enum ParamsIOFlag ioFlag);
+    virtual void ioParam_num_dWeightFiles(enum ParamsIOFlag ioFlag);
+    virtual void ioParam_dWeightFileIndex(enum ParamsIOFlag ioFlag);
 	virtual int communicateInitInfo();
 	virtual int reduceKernels(int arborID);
 private:

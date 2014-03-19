@@ -14,18 +14,16 @@ namespace PV {
 
 class LabelErrorLayer: public PV::ANNLayer {
 public:
-   LabelErrorLayer(const char * name, HyPerCol * hc, int numChannels);
    LabelErrorLayer(const char * name, HyPerCol * hc);
    virtual ~LabelErrorLayer();
 protected:
    LabelErrorLayer();
-   int initialize(const char * name, HyPerCol * hc, int numChannels);
+   int initialize(const char * name, HyPerCol * hc);
    virtual int doUpdateState(double time, double dt, const PVLayerLoc * loc, pvdata_t * A,
          pvdata_t * V, int num_channels, pvdata_t * gSynHead, bool spiking,
          unsigned int * active_indices, unsigned int * num_active);
-   int setParams(PVParams * params);
-   int readErrScale(PVParams * params);
-   int readIsBinary(PVParams * params);
+   void ioParam_errScale(enum ParamsIOFlag ioFlag);
+   void ioParam_isBinary(enum ParamsIOFlag ioFlag);
 private:
    int initialize_base();
    float errScale;

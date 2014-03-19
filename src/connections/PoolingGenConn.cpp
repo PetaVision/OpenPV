@@ -8,14 +8,10 @@
 #include "PoolingGenConn.hpp"
 
 namespace PV {
-PoolingGenConn::PoolingGenConn(const char * name, HyPerCol * hc,
-      const char * pre_layer_name, const char * post_layer_name,
-      const char * pre_layer_name2, const char * post_layer_name2,
-      const char * filename, InitWeights *weightInit) {
+PoolingGenConn::PoolingGenConn(const char * name, HyPerCol * hc) {
    initialize_base();
-   initialize(name, hc, pre_layer_name, post_layer_name, pre_layer_name2, post_layer_name2, filename, weightInit);
-}  // end of PoolingGenConn::PoolingGenConn(const char *, HyPerCol *,
-   //   HyPerLayer *, HyPerLayer *, HyPerLayer *, HyPerLayer *, int, const char *)
+   initialize(name, hc);
+}  // end of PoolingGenConn::PoolingGenConn(const char *, HyPerCol *)
 
 int PoolingGenConn::initialize_base() {
     pre2 = NULL;
@@ -23,44 +19,41 @@ int PoolingGenConn::initialize_base() {
     return PV_SUCCESS;
 }
 
-int PoolingGenConn::initialize(const char * name, HyPerCol * hc,
-      const char * pre_layer_name, const char * post_layer_name,
-      const char * pre_layer_name2, const char * post_layer_name2,
-      const char * filename, InitWeights *weightInit) {
-   int status;
-   // PVParams * params = hc->parameters();
-   preLayerName2 = strdup(pre_layer_name2);
-   postLayerName2 = strdup(post_layer_name2);
-   status = GenerativeConn::initialize(name, hc, pre_layer_name, post_layer_name, filename, weightInit);
-   return status;
-}  // end of PoolingGenConn::initialize(const char *, HyPerCol *,
-   //   HyPerLayer *, HyPerLayer *, HyPerLayer *, HyPerLayer *, int, const char *, InitWeights *)
-
-int PoolingGenConn::setParams(PVParams * params) {
-   int status = GenerativeConn::setParams(params);
-   readSlownessFlag(params);
-   if (status == PV_SUCCESS) status = readSlownessPre(params);
-   if (status == PV_SUCCESS) status = readSlownessPost(params);
-   if (status != PV_SUCCESS) {
-      abort();
-   }
+int PoolingGenConn::initialize(const char * name, HyPerCol * hc) {
+   int status = GenerativeConn::initialize(name, hc);
    return status;
 }
 
-void PoolingGenConn::readSlownessFlag(PVParams * params) {
-   slownessFlag = params->value(name, "slownessFlag", 0.0/*default is false*/, true/*warn if absent*/);
-}
-
-int PoolingGenConn::readSlownessPre(PVParams * params) {
-   assert(!params->presentAndNotBeenRead(name, "slownessFlag"));
-   int status = slownessFlag ? getSlownessLayer(&slownessPre, "slownessPre") : PV_SUCCESS;
+int PoolingGenConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = GenerativeConn::ioParamsFillGroup(ioFlag);
+   ioParam_secondaryPreLayerName(ioFlag);
+   ioParam_secondaryPostLayerName(ioFlag);
+   ioParam_slownessFlag(ioFlag);
+   ioParam_slownessPre(ioFlag);
+   ioParam_slownessPost(ioFlag);
    return status;
 }
 
-int PoolingGenConn::readSlownessPost(PVParams * params) {
-   assert(!params->presentAndNotBeenRead(name, "slownessFlag"));
-   int status = slownessFlag ? getSlownessLayer(&slownessPost, "slownessPost") : PV_SUCCESS;
-   return status;
+void PoolingGenConn::ioParam_secondaryPreLayerName(enum ParamsIOFlag ioFlag) {
+   parent->ioParamStringRequired(ioFlag, name, "secondaryPreLayerName", &preLayerName2);
+}
+
+void PoolingGenConn::ioParam_secondaryPostLayerName(enum ParamsIOFlag ioFlag) {
+   parent->ioParamStringRequired(ioFlag, name, "secondaryPostLayerName", &postLayerName2);
+}
+
+void PoolingGenConn::ioParam_slownessFlag(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "slownessFlag", &slownessFlag, false/*default value*/, true/*warnIfAbsent*/);
+}
+
+void PoolingGenConn::ioParam_slownessPre(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "slownessFlag"));
+   if (slownessFlag) parent->ioParamStringRequired(ioFlag, name, "slownessPre", &slownessPreName);
+}
+
+void PoolingGenConn::ioParam_slownessPost(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "slownessFlag"));
+   if (slownessFlag) parent->ioParamStringRequired(ioFlag, name, "slownessPost", &slownessPostName);
 }
 
 int PoolingGenConn::communicateInitInfo() {
@@ -74,12 +67,21 @@ int PoolingGenConn::communicateInitInfo() {
    else {
       status = PV_FAILURE;
    }
-   if( status == PV_SUCCESS ) {
-      slownessFlag = parent->parameters()->value(name, "slownessFlag", 0.0/*default is false*/);
-   }
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "slownessFlag"));
    if( slownessFlag ) {
-      status = getSlownessLayer(&slownessPre, "slownessPre");
-      status = getSlownessLayer(&slownessPost, "slownessPost")==PV_SUCCESS ? status : PV_FAILURE;
+      slownessPre = parent->getLayerFromName(slownessPreName);
+      slownessPost = parent->getLayerFromName(slownessPostName);
+      if (slownessPre==NULL || slownessPost==NULL) {
+         status = PV_FAILURE;
+         if (slownessPre==NULL && parent->columnId()==0) {
+            fprintf(stderr, "%s \"%s\" error: slownessPre layer \"%s\" is not a layer in the column.\n",
+                  parent->parameters()->groupKeywordFromName(name), name, slownessPreName);
+         }
+         if (slownessPost==NULL && parent->columnId()==0) {
+            fprintf(stderr, "%s \"%s\" error: slownessPost layer \"%s\" is not a layer in the column.\n",
+                  parent->parameters()->groupKeywordFromName(name), name, slownessPostName);
+         }
+      }
    }
    if( slownessFlag && status == PV_SUCCESS ) {
       status = checkLayersCompatible(pre, slownessPre) ? status : PV_FAILURE;
@@ -114,7 +116,7 @@ bool PoolingGenConn::checkLayersCompatible(HyPerLayer * layer1, HyPerLayer * lay
     return result;
 }  // end of PoolingGenConn::PoolingGenConn(HyPerLayer *, HyPerLayer *)
 
-int PoolingGenConn::getSlownessLayer(HyPerLayer ** l, const char * paramname) {
+int PoolingGenConn::getSlownessLayerName(char ** l, const char * paramname) {
    int status = PV_SUCCESS;
    assert(slownessFlag);
    const char * slownessLayerName = parent->parameters()->stringValue(name, paramname, false);
@@ -123,10 +125,11 @@ int PoolingGenConn::getSlownessLayer(HyPerLayer ** l, const char * paramname) {
       fprintf(stderr, "PoolingGenConn \"%s\": if slownessFlag is set, parameter \"%s\" must be set\n", name, paramname);
    }
    if( status == PV_SUCCESS ) {
-      *l = parent->getLayerFromName(slownessLayerName);
+      *l = strdup(slownessLayerName);
       if( *l == NULL ) {
          status = PV_FAILURE;
-         fprintf(stderr, "PoolingGenConn \"%s\": %s layer \"%s\" was not found\n", name, paramname, slownessLayerName);
+         fprintf(stderr, "%s \"%s\": error allocating memory for %s: %s\n",
+               parent->parameters()->groupKeywordFromName(name), name, paramname, strerror(errno));
       }
    }
    return status;

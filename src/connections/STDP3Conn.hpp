@@ -16,11 +16,7 @@ namespace PV {
 
 class STDP3Conn : HyPerConn {
 public:
-   STDP3Conn();
-   STDP3Conn(const char * name, HyPerCol * hc,
-             const char * pre_layer_name, const char * post_layer_name,
-             const char * filename=NULL, bool stdpFlag=true,
-             InitWeights *weightInit=NULL);
+   STDP3Conn(const char * name, HyPerCol * hc);
    virtual ~STDP3Conn();
 
 #ifdef PV_USE_OPENCL
@@ -42,22 +38,21 @@ public:
    virtual PVLayerCube * getPlasticityDecrement();
 
 protected:
-
+   STDP3Conn();
    int initialize_base();
-   int initialize(const char * name, HyPerCol * hc,
-                  const char * pre_layer_name, const char * post_layer_name,
-                  const char * filename, bool stdpFlag, InitWeights *weightInit);
-   int setParams(PVParams * params);
-   void readAmpLTP(PVParams * params);
-   void readAmpLTD(PVParams * params);
-   void readTauLTP(PVParams * params);
-   void readTauLTD(PVParams * params);
-   void readTauY(PVParams * params);
-   void readWMax(PVParams * params);
-   void readWMin(PVParams * params);
-   void read_dWMax(PVParams * params);
-   void readSynscalingFlag(PVParams * params);
-   void readSynscaling_v(PVParams * params);
+   int initialize(const char * name, HyPerCol * hc);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_stdpFlag(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_ampLTP(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_ampLTD(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_tauLTP(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_tauLTD(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_tauY(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_wMax(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_wMin(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_dwMax(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_synscalingFlag(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_synscaling_v(enum ParamsIOFlag ioFlag);
 
    virtual int initPlasticityPatches();
 

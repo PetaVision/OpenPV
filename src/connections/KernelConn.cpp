@@ -21,18 +21,9 @@ KernelConn::KernelConn()
    initialize_base();
 }
 
-
-KernelConn::KernelConn(const char * name, HyPerCol * hc,
-      const char * pre_layer_name, const char * post_layer_name,
-      const char * filename, InitWeights *weightInit) : HyPerConn()
-{
+KernelConn::KernelConn(const char * name, HyPerCol * hc) : HyPerConn() {
    KernelConn::initialize_base();
-   KernelConn::initialize(name, hc, pre_layer_name, post_layer_name, filename, weightInit);
-   // HyPerConn::initialize is not virtual
-#ifdef PV_USE_OPENCL
-   if(gpuAccelerateFlag)
-      initializeGPU();
-#endif
+   KernelConn::initialize(name, hc);
 }
 
 KernelConn::~KernelConn() {
@@ -68,11 +59,8 @@ int KernelConn::communicateInitInfo(){
    return status;
 }
 
-int KernelConn::initialize(const char * name, HyPerCol * hc,
-      const char * pre_layer_name, const char * post_layer_name,
-      const char * filename, InitWeights *weightInit)
-{
-   HyPerConn::initialize(name, hc, pre_layer_name, post_layer_name, filename, weightInit);
+int KernelConn::initialize(const char * name, HyPerCol * hc) {
+   HyPerConn::initialize(name, hc);
 #ifdef PV_USE_OPENCL
 //   //don't support GPU accelleration in kernelconn yet
 //   ignoreGPUflag=false;
@@ -83,72 +71,50 @@ int KernelConn::initialize(const char * name, HyPerCol * hc,
    return PV_SUCCESS;
 }
 
-int KernelConn::setParams(PVParams * params) {
-   int status = HyPerConn::setParams(params);
-   read_dWMax(params);
-   readShmget_flag(params);
-   readKeepKernelsSynchronized(params);
-   readWeightUpdatePeriod(params);
-   readInitialWeightUpdateTime(params);
-   readUseWindowPost(params);
+int KernelConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = HyPerConn::ioParamsFillGroup(ioFlag);
+   ioParam_dWMax(ioFlag);
+   ioParam_shmget_flag(ioFlag);
+   ioParam_keepKernelsSynchronized(ioFlag);
+   ioParam_useWindowPost(ioFlag);
    return status;
 }
 
-void KernelConn::readShmget_flag(PVParams * params) {
+void KernelConn::ioParam_shmget_flag(enum ParamsIOFlag ioFlag) {
 #ifdef USE_SHMGET
-    assert(!params->presentAndNotBeenRead(name, "plasticityFlag"));
-    shmget_flag = params->value(name, "shmget_flag", shmget_flag, true);
-//#ifdef PV_USE_MPI
-//  if (parent->icCommunicator() != NULL
-//          && parent->icCommunicator()->numCommColumns()
-//                  * parent->icCommunicator()->numCommRows() > 1
-//          && shmget_flag) {
-//      std::cout << "warning: in KernelConn::initialize: " << this->name
-//              << ", shmget_flag parameter specified as true but only 1 process"
-//              << std::endl;
-//  }
-//#endif
-    if (plasticityFlag && shmget_flag) {
-        shmget_flag = false;
-        std::cout << "in KernelConn::initialize: " << this->name
-                << ", shmget_flag parameter specified as true, reset to false because plasticity_flag is true"
-                << std::endl;
-    }
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
+   parent->ioParamValue(ioFlag, name, "shmget_flag", &shmget_flag, shmget_flag, true/*warnIfAbsent*/);
+   if (plasticityFlag && shmget_flag) {
+       shmget_flag = false;
+       if (parent->columnId()==0) {
+          std::cout << "in KernelConn::initialize: " << this->name
+                    << ", shmget_flag parameter specified as true, reset to false because plasticity_flag is true"
+                    << std::endl;
+
+       }
+   }
 #else
-    params->value(name, "shmget_flag", false, false); // mark as read so that shmget_flag doesn't get an unread-parameter warning.  This way the same params file can be used with USE_SHMGET on or off.
+   if (ioFlag == PARAMS_IO_READ) {
+      // mark as read so that shmget_flag doesn't get an unread-parameter warning.
+      // This way the same params file can be used with USE_SHMGET on or off.
+      parent->parameters()->value(name, "shmget_flag", false, false);
+   }
 #endif // USE_SHMGET
 }
 
-void KernelConn::readKeepKernelsSynchronized(PVParams * params) {
-   assert(!params->presentAndNotBeenRead(name, "plasticityFlag"));
-   if( getPlasticityFlag() ) {
-#ifdef PV_USE_MPI
-      keepKernelsSynchronized_flag = getParent()->parameters()->value(name, "keepKernelsSynchronized", keepKernelsSynchronized_flag, true);
-#endif
+void KernelConn::ioParam_keepKernelsSynchronized(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
+   if (plasticityFlag) {
+      parent->ioParamValue(ioFlag, name, "keepKernelsSynchronized", &keepKernelsSynchronized_flag, keepKernelsSynchronized_flag, true/*warnIfAbsent*/);
    }
 }
 
-//Moved to HyPerConn
-//void KernelConn::readWeightUpdatePeriod(PVParams * params) {
-//   assert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
-//   weightUpdatePeriod = 1.0f;
-//   if (plasticityFlag) {
-//      weightUpdatePeriod = params->value(name, "weightUpdatePeriod", weightUpdatePeriod);
-//   }
-//}
-//
-//void KernelConn::readInitialWeightUpdateTime(PVParams * params) {
-//   assert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
-//   weightUpdateTime = 0.0f;
-//   if (plasticityFlag) {
-//      weightUpdateTime = params->value(name, "initialWeightUpdateTime", weightUpdateTime);
-//   }
-//}
-
-void KernelConn::readUseWindowPost(PVParams * params){
+void KernelConn::ioParam_useWindowPost(enum ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(name, "numAxonalArbors"));
-   if (numAxonalArborLists>1) {
-      useWindowPost = (bool)params->value(name, "useWindowPost", useWindowPost);
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
+   if (plasticityFlag && numAxonalArborLists>1) {
+      initialWeightUpdateTime = 1.0;
+      parent->ioParamValue(ioFlag, name, "useWindowPost", &useWindowPost, useWindowPost);
    }
 }
 
@@ -294,22 +260,13 @@ int KernelConn::deleteWeights()
 
 }
 
-PVPatch ***  KernelConn::initializeWeights(PVPatch *** patches, pvdata_t ** dataStart, int numPatches,
-      const char * filename)
+PVPatch ***  KernelConn::initializeWeights(PVPatch *** patches, pvdata_t ** dataStart, int numPatches)
 {
    //int arbor = 0;
    int numKernelPatches = getNumDataPatches();
-   HyPerConn::initializeWeights(NULL, dataStart, numKernelPatches, filename);
+   HyPerConn::initializeWeights(NULL, dataStart, numKernelPatches);
    return patches;
 }
-
-//PVPatch ** KernelConn::readWeights(PVPatch ** patches, int numPatches,
-//      const char * filename)
-//{
-//   //HyPerConn::readWeights(patches, numPatches, filename);
-//
-//   return patches;
-//}
 
 int KernelConn::initNumDataPatches()
 {
@@ -321,21 +278,10 @@ int KernelConn::initNumDataPatches()
    return PV_SUCCESS;
 }
 
-
-#ifdef OBSOLETE // Marked obsolete April 15, 2013.  Implementing the new NormalizeBase class hierarchy
-int KernelConn::initNormalize() {
-   int status = HyPerConn::initNormalize();
-   assert(!parent->parameters()->presentAndNotBeenRead(name, "normalize"));
-   if (normalize_flag){
-      symmetrizeWeightsFlag = parent->parameters()->value(name, "symmetrizeWeights", false);
-   }
-   return status;
-}
-#endif // OBSOLETE
-
 int KernelConn::allocateDataStructures() {
    HyPerConn::allocateDataStructures();
    PVParams * params = parent->parameters();
+   assert(!params->presentAndNotBeenRead(name, "plasticityFlag"));
 
    //Moved to HyPerConn
    //assert(!params->presentAndNotBeenRead(name, "plasticityFlag"));
@@ -595,7 +541,7 @@ int KernelConn::updateState(double timef, double dt) {
    }
    update_timer->start();
 
-   //Now done in HyPerConn
+   //Now done in HyPerConn::updateStateWrapper
    //if( timef >= weightUpdateTime) {
    //   computeNewWeightUpdateTime(timef, weightUpdateTime);
 
@@ -896,8 +842,8 @@ int KernelConn::checkpointRead(const char * cpDir, double * timef) {
    char path[PV_PATH_MAX];
    int status = checkpointFilename(path, PV_PATH_MAX, cpDir);
    assert(status==PV_SUCCESS);
-   InitWeights * weightsInitObject = new InitWeights();
-   weightsInitObject->initializeWeights(NULL, get_wDataStart(), path, this, timef);
+   InitWeights * weightsInitObject = new InitWeights(this);
+   weightsInitObject->readWeights(NULL, get_wDataStart(), getNumDataPatches(), path, timef);
    delete weightsInitObject;
    //Moved to HyPerConn
    //status = parent->readScalarFromFile(cpDir, getName(), "lastUpdateTime", &lastUpdateTime, lastUpdateTime);

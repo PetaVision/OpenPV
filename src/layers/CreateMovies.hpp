@@ -49,7 +49,6 @@ public:
    CreateMovies(const char * name, HyPerCol * hc);
    virtual ~CreateMovies();
    virtual int allocateDataStructures();
-   virtual int setMovieParams(PVParams * params, CreateMovies_Params * p);
 
    virtual int Rotate(const float DAngle, const int centerx = 0, const int centery = 0);
    virtual int Shift(const int Dx,const int Dy = 0)  {return Transform(0,Dx,Dy);}
@@ -70,7 +69,8 @@ public:
 protected:
    CreateMovies();
    int initialize(const char * name, HyPerCol * hc);
-
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_imagePath(enum ParamsIOFlag ioFlag);
 private:
    int initialize_base();
 

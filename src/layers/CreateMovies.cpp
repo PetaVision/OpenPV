@@ -65,11 +65,11 @@ int CreateMovies::initialize_base() {
 }
 
 int CreateMovies::initialize(const char * name, HyPerCol * hc) {
-   Image::initialize(name, hc, NULL);
+   Image::initialize(name, hc);
 
    PVParams * pvparams = hc->parameters();
    // setMovieParams(pvparams, &DefaultCMParams); // Duplicated below
-   displayPeriod = pvparams->value(name, "displayPeriod", 20.0);
+
    lastDisplayTime = hc->simulationTime();
    nextDisplayTime = hc->simulationTime() + displayPeriod;
 
@@ -77,25 +77,6 @@ int CreateMovies::initialize(const char * name, HyPerCol * hc) {
    flagy = 1;
    flagr = 1;
 
-   setMovieParams(pvparams, &DefaultCMParams);
-   CreateMovies_Params * cp = (CreateMovies_Params *) CMParams;
-
-   PVLayerLoc * loc = & clayer->loc;
-   loc->nx = cp->nx;
-   loc->ny = cp->ny;
-   loc->nf = 1;
-   loc->nb = (int)pvparams->value(name, "marginWidth", 0);
-   loc->halo.lt = loc->halo.rt = loc->halo.dn = loc->halo.up = loc->nb;
-
-   // Moved to allocateDataStructures()
-   // free(data);
-   // size_t dn = loc->nf * (loc->nx + loc->halo.lt + loc->halo.rt)
-   //                                * (loc->ny + loc->halo.dn + loc->halo.up) * sizeof(pvdata_t);
-   // data = (pvdata_t *) malloc(dn);
-   // assert(data != NULL);
-   // memset((pvdata_t *)data, (int)(cp->backgroundval), dn);
-   // Transform(0, 0, 0);
-   //
 #ifdef DEBUG_OUTPUTIMAGES
    double T = parent->simulationTime() ;
    char title[1000];
@@ -121,33 +102,33 @@ int CreateMovies::allocateDataStructures() {
    return status;
 }
 
-int CreateMovies::setMovieParams(PVParams * params, CreateMovies_Params * p)
-{
+int CreateMovies::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = Image::ioParamsFillGroup(ioFlag);
+   parent->ioParamValue(ioFlag, name, "nx", &CMParams->nx, CMParams->nx);
+   parent->ioParamValue(ioFlag, name, "ny", &CMParams->ny, CMParams->ny);
+   parent->ioParamValue(ioFlag, name, "foregroundval", &CMParams->foregroundval, CMParams->foregroundval);
+   parent->ioParamValue(ioFlag, name, "backgroundval", &CMParams->backgroundval, CMParams->backgroundval);
+   parent->ioParamValue(ioFlag, name, "isgray", &CMParams->isgray, CMParams->isgray);
+   parent->ioParamValue(ioFlag, name, "rotateangle", &CMParams->rotateangle, CMParams->rotateangle);
+   parent->ioParamValue(ioFlag, name, "centerx", &CMParams->centerx, CMParams->centerx);
+   parent->ioParamValue(ioFlag, name, "centery", &CMParams->centery, CMParams->centery);
+   parent->ioParamValue(ioFlag, name, "period", &CMParams->period, CMParams->period);
+   parent->ioParamValue(ioFlag, name, "linewidth", &CMParams->linewidth, CMParams->linewidth);
+   parent->ioParamValue(ioFlag, name, "vx", &CMParams->vx, CMParams->vx);
+   parent->ioParamValue(ioFlag, name, "vy", &CMParams->vy, CMParams->vy);
+   parent->ioParamValue(ioFlag, name, "vr", &CMParams->vr, CMParams->vr);
+   parent->ioParamValue(ioFlag, name, "isshiftx", &CMParams->isshiftx, CMParams->isshiftx);
+   parent->ioParamValue(ioFlag, name, "isshifty", &CMParams->isshifty, CMParams->isshifty);
+   parent->ioParamValue(ioFlag, name, "isrotate", &CMParams->isrotate, CMParams->isrotate);
+   parent->ioParamValue(ioFlag, name, "displayPeriod", &displayPeriod, 20.0f);
+   return status;
+}
 
-   CMParams = (CreateMovies_Params *) malloc(sizeof(*p));
-   assert(CMParams != NULL);
-   memcpy(CMParams, p, sizeof(CreateMovies_Params));
-
-   CreateMovies_Params * cp = CMParams;
-
-   if (params->present(name, "nx"))  			cp->nx  = (int)params->value(name, "nx");
-   if (params->present(name, "ny"))  			cp->ny = (int)params->value(name, "ny");
-   if (params->present(name, "foregroundval"))  cp->foregroundval = params->value(name, "foregroundval");
-   if (params->present(name, "backgroundval"))  cp->backgroundval = params->value(name, "backgroundval");
-   if (params->present(name, "isgray"))    		cp->isgray  = params->value(name, "isgray");
-   if (params->present(name, "rotateangle"))    cp->rotateangle  = params->value(name, "rotateangle");
-   if (params->present(name, "centerx"))      	cp->centerx = (int)params->value(name, "centerx");
-   if (params->present(name, "centery"))  		cp->centery  = (int)params->value(name, "centery");
-   if (params->present(name, "period")) 		cp->period  = (int)params->value(name, "period");
-   if (params->present(name, "linewidth")) 		cp->linewidth  = (int)params->value(name, "linewidth");
-   if (params->present(name, "vx")) 			cp->vx  = (int)params->value(name, "vx");
-   if (params->present(name, "vy")) 			cp->vy  = (int)params->value(name, "vy");
-   if (params->present(name, "vr")) 			cp->vr  = params->value(name, "vr");
-   if (params->present(name, "isshiftx")) 		cp->isshiftx  = (int)params->value(name, "isshiftx");
-   if (params->present(name, "isshifty")) 		cp->isshifty  = (int)params->value(name, "isshifty");
-   if (params->present(name, "isrotate")) 		cp->isrotate  = (int)params->value(name, "isrotate");
-
-   return 0;
+void CreateMovies::ioParam_imagePath(enum ParamsIOFlag ioFlag) {
+   if (ioFlag == PARAMS_IO_READ) {
+      filename = NULL;
+      parent->parameters()->handleUnnecessaryStringParameter(name, "imageList", NULL);
+   }
 }
 
 

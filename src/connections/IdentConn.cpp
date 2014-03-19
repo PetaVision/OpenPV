@@ -14,119 +14,172 @@ IdentConn::IdentConn() {
     initialize_base();
 }
 
-IdentConn::IdentConn(const char * name, HyPerCol *hc,
-      const char * pre_layer_name, const char * post_layer_name) {
+IdentConn::IdentConn(const char * name, HyPerCol * hc) {
    initialize_base();
-   initialize(name, hc, pre_layer_name, post_layer_name, NULL);
-}  // end of IdentConn::IdentConn(const char *, HyPerCol *, HyPerLayer *, HyPerLayer *, ChannelType)
+   initialize(name, hc);
+}
 
 int IdentConn::initialize_base() {
    // no IdentConn-specific data members to initialize
    return PV_SUCCESS;
 }  // end of IdentConn::initialize_base()
 
-int IdentConn::initialize( const char * name, HyPerCol * hc, const char * pre_layer_name, const char * post_layer_name, const char * filename ) {
-   InitIdentWeights * weightInit = new InitIdentWeights;
-   if( weightInit == NULL ) {
-      fprintf(stderr, "IdentConn \"%s\": Rank %d process unable to create InitIdentWeights object.  Exiting.\n", name, hc->icCommunicator()->commRank());
-      exit(EXIT_FAILURE);
+int IdentConn::initialize(const char * name, HyPerCol * hc) {
+   int status = KernelConn::initialize(name, hc);
+   return status;
+}
+
+int IdentConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = KernelConn::ioParamsFillGroup(ioFlag);
+
+   return status;
+}
+
+void IdentConn::ioParam_weightInitType(enum ParamsIOFlag ioFlag) {
+   if (ioFlag==PARAMS_IO_READ) {
+      weightInitializer = new InitIdentWeights(this);
+      parent->parameters()->handleUnnecessaryStringParameter(name, "weightInitType", NULL);
    }
-#ifdef PV_USE_MPI
-   mpiReductionBuffer = NULL;
-#endif // PV_USE_MPI
-   int status = KernelConn::initialize(name, hc, pre_layer_name, post_layer_name, NULL, weightInit);
-   return status;
 }
 
-int IdentConn::setParams(PVParams * inputParams) {
-   int status = KernelConn::setParams(inputParams);
-
-   return status;
+void IdentConn::ioParam_normalizeMethod(enum ParamsIOFlag ioFlag) {
+   normalizer = NULL;
 }
 
-void IdentConn::readNumAxonalArbors(PVParams * params) {
-   numAxonalArborLists=1;
-   handleUnnecessaryIntParameter("numAxonalArbors", numAxonalArborLists);
+void IdentConn::ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag) {
+   if (ioFlag == PARAMS_IO_READ) {
+      numAxonalArborLists = 1;
+      parent->parameters()->handleUnnecessaryParameter(name, "numAxonalArbors", numAxonalArborLists);
+   }
 }
 
-void IdentConn::readPlasticityFlag(PVParams * params) {
-   plasticityFlag = false;
-   handleUnnecessaryIntParameter("plasticityFlag", plasticityFlag);
+void IdentConn::ioParam_plasticityFlag(enum ParamsIOFlag ioFlag) {
+   if (ioFlag == PARAMS_IO_READ) {
+      plasticityFlag = false;
+      parent->parameters()->handleUnnecessaryParameter(name, "plasticityFlag", plasticityFlag);
+   }
 }
 
-void IdentConn::readKeepKernelsSynchronized(PVParams * params) {
-   keepKernelsSynchronized_flag = true;
-   handleUnnecessaryIntParameter("keepKernelsSynchronized", keepKernelsSynchronized_flag);
+void IdentConn::ioParam_pvpatchAccumulateType(enum ParamsIOFlag ioFlag) {
+   if (ioFlag == PARAMS_IO_READ) {
+      pvpatchAccumulateTypeString = strdup("convolve");
+      pvpatchAccumulateType = ACCUMULATE_CONVOLVE;
+      parent->parameters()->handleUnnecessaryStringParameter(name, "pvpatchAccumulateType", "convolve", true/*case insensitive*/);
+   }
 }
 
-void IdentConn::readWeightUpdatePeriod(PVParams * params) {
-   weightUpdatePeriod = 1.0f;
-   handleUnnecessaryFloatingPointParameter("weightUpdatePeriod", weightUpdatePeriod);
+void IdentConn::ioParam_preActivityIsNotRate(enum ParamsIOFlag ioFlag) {
+   if (ioFlag == PARAMS_IO_READ) {
+      preActivityIsNotRate = false;
+      parent->parameters()->handleUnnecessaryParameter(name, "preActivityIsNotRate", preActivityIsNotRate);
+   }
+}
+void IdentConn::ioParam_writeCompressedWeights(enum ParamsIOFlag ioFlag) {
+   if (ioFlag == PARAMS_IO_READ) {
+      writeCompressedWeights = true;
+      parent->parameters()->handleUnnecessaryParameter(name, "writeCompressedWeights", writeCompressedWeights);
+   }
+}
+void IdentConn::ioParam_writeCompressedCheckpoints(enum ParamsIOFlag ioFlag) {
+   if (ioFlag == PARAMS_IO_READ) {
+      writeCompressedCheckpoints = true;
+      parent->parameters()->handleUnnecessaryParameter(name, "writeCompressedCheckpoints", writeCompressedCheckpoints);
+   }
 }
 
-void IdentConn::readInitialWeightUpdateTime(PVParams * params) {
-   weightUpdateTime = 0.0f;
-   handleUnnecessaryFloatingPointParameter("initialWeightUpdateTime", weightUpdateTime);
+void IdentConn::ioParam_selfFlag(enum ParamsIOFlag ioFlag) {
+   if (ioFlag == PARAMS_IO_READ) {
+      selfFlag = false;
+      parent->parameters()->handleUnnecessaryParameter(name, "selfFlag", selfFlag);
+   }
 }
 
-void IdentConn::readPvpatchAccumulateType(PVParams * params) {
-   pvpatchAccumulateType = ACCUMULATE_CONVOLVE;
-   handleUnnecessaryParameterString("pvpatchAccumulateType", "convolve", true/*case insensitive*/);
-}
-
-void IdentConn::readPreActivityIsNotRate(PVParams * params) {
-   preActivityIsNotRate = false;
-   handleUnnecessaryIntParameter("preActivityIsNotRate", preActivityIsNotRate);
-}
-
-void IdentConn::readWriteCompressedWeights(PVParams * params) {
-   writeCompressedWeights = true;
-   handleUnnecessaryIntParameter("writeCompressedWeights", writeCompressedWeights);
-}
-
-void IdentConn::readWriteCompressedCheckpoints(PVParams * params) {
-   writeCompressedCheckpoints = true;
-   handleUnnecessaryIntParameter("writeCompressedCheckpoints", writeCompressedCheckpoints);
-}
-
-void IdentConn::readSelfFlag(PVParams * params) {
-   selfFlag = false;
-   handleUnnecessaryIntParameter("selfFlag", selfFlag);
-}
-
-void IdentConn::readCombine_dW_with_W_flag(PVParams * params) {
+void IdentConn::ioParam_combine_dW_with_W_flag(enum ParamsIOFlag ioFlag) {
    assert(plasticityFlag==false);
    // readCombine_dW_with_W_flag only used if when plasticityFlag is true, which it never is for IdentConn
+   if (ioFlag == PARAMS_IO_READ) {
+      parent->parameters()->handleUnnecessaryParameter(name, "combine_dW_with_W_flag", combine_dW_with_W_flag);
+   }
    return;
 }
 
-int IdentConn::readPatchSize(PVParams * params) {
-   nxp = 1;
-   nyp = 1;
-   nxpShrunken = 1;
-   nypShrunken = 1;
-   handleUnnecessaryIntParameter("nxp", nxp);
-   handleUnnecessaryIntParameter("nyp", nyp);
-   handleUnnecessaryIntParameter("nxpShrunken", nxpShrunken);
-   handleUnnecessaryIntParameter("nypShrunken", nypShrunken);
+void IdentConn::ioParam_keepKernelsSynchronized(enum ParamsIOFlag ioFlag) {
+   if (ioFlag == PARAMS_IO_READ) {
+      keepKernelsSynchronized_flag = true;
+      parent->parameters()->handleUnnecessaryParameter(name, "keepKernelsSynchronized", keepKernelsSynchronized_flag);
+   }
+}
+
+void IdentConn::ioParam_weightUpdatePeriod(enum ParamsIOFlag ioFlag) {
+   if (ioFlag == PARAMS_IO_READ) {
+      weightUpdatePeriod = 1.0f;
+      parent->parameters()->handleUnnecessaryParameter(name, "weightUpdatePeriod", weightUpdatePeriod);
+   }
+}
+
+void IdentConn::ioParam_initialWeightUpdateTime(enum ParamsIOFlag ioFlag) {
+   if (ioFlag == PARAMS_IO_READ) {
+      initialWeightUpdateTime = 0.0f;
+      parent->parameters()->handleUnnecessaryParameter(name, "initialWeightUpdateTime", initialWeightUpdateTime);
+      weightUpdateTime = initialWeightUpdateTime;
+   }
+}
+
+void IdentConn::ioParam_nxp(enum ParamsIOFlag ioFlag) {
+   if (ioFlag == PARAMS_IO_READ) {
+      nxp = 1;
+      parent->parameters()->handleUnnecessaryParameter(name, "nxp", 1);
+   }
+}
+
+void IdentConn::ioParam_nxpShrunken(enum ParamsIOFlag ioFlag) {
+   if (ioFlag == PARAMS_IO_READ) {
+      nxpShrunken = 1;
+      parent->parameters()->handleUnnecessaryParameter(name, "nxpShrunken", 1);
+   }
+}
+
+void IdentConn::ioParam_nyp(enum ParamsIOFlag ioFlag) {
+   if (ioFlag == PARAMS_IO_READ) {
+      nyp = 1;
+      parent->parameters()->handleUnnecessaryParameter(name, "nyp", 1);
+   }
+}
+
+void IdentConn::ioParam_nypShrunken(enum ParamsIOFlag ioFlag) {
+   if (ioFlag == PARAMS_IO_READ) {
+      nypShrunken = 1;
+      parent->parameters()->handleUnnecessaryParameter(name, "nypShrunken", 1);
+   }
+}
+
+void IdentConn::ioParam_nfp(enum ParamsIOFlag ioFlag) {
+   if (ioFlag == PARAMS_IO_READ) {
+      parent->parameters()->handleUnnecessaryParameter(name, "nfp", -1);
+   }
+}
+
+void IdentConn::ioParam_shrinkPatches(enum ParamsIOFlag ioFlag) {
+   if (ioFlag == PARAMS_IO_READ) {
+      shrinkPatches_flag = false;
+      parent->parameters()->handleUnnecessaryParameter(name, "shrinkPatches", shrinkPatches_flag);
+   }
+}
+
+void IdentConn::ioParam_updateGSynFromPostPerspective(enum ParamsIOFlag ioFlag){
+   if (ioFlag == PARAMS_IO_READ) {
+      updateGSynFromPostPerspective = false;
+      parent->parameters()->handleUnnecessaryParameter(name, "updateGSynFromPostPerspective", updateGSynFromPostPerspective);
+   }
+}
+
+int IdentConn::setWeightInitializer() {
+   weightInitializer = (InitWeights *) new InitIdentWeights(this);
+   if( weightInitializer == NULL ) {
+      fprintf(stderr, "IdentConn \"%s\": Rank %d process unable to create InitIdentWeights object.  Exiting.\n", name, parent->icCommunicator()->commRank());
+      exit(EXIT_FAILURE);
+   }
    return PV_SUCCESS;
-}
-
-int IdentConn::readNfp(PVParams * params) {
-   nfp = -1;
-   // nfp is set in HyPerConn::communicateInitInfo(), where it is copied from postsynaptic layer's nf.
-   warnDefaultNfp = false;
-   return PV_SUCCESS;
-}
-
-void IdentConn::readShrinkPatches(PVParams * params) {
-   shrinkPatches_flag = false;
-   handleUnnecessaryIntParameter("shrinkPatches", shrinkPatches_flag);
-}
-
-void IdentConn::readUpdateGSynFromPostPerspective(PVParams * params){
-   updateGSynFromPostPerspective = false;
-   handleUnnecessaryIntParameter("updateGSynFromPostPerspective", updateGSynFromPostPerspective);
 }
 
 int IdentConn::communicateInitInfo() {
@@ -142,17 +195,12 @@ int IdentConn::communicateInitInfo() {
       }
       exit(EXIT_FAILURE);
    }
-   handleUnnecessaryIntParameter("nfp", nfp); // nfp is set during call to KernelConn::communicateInitInfo, so don't check for unnecessary int parameter until after that.
+   parent->parameters()->handleUnnecessaryParameter(name, "nfp", nfp); // nfp is set during call to KernelConn::communicateInitInfo, so don't check for unnecessary int parameter until after that.
    return status;
 }
 
 void IdentConn::handleDefaultSelfFlag() {
    assert(selfFlag==false);
-}
-
-int IdentConn::initNormalize() {
-   // normalize_flag = false; // Make sure that updateState doesn't call normalizeWeights
-   return PV_SUCCESS;
 }
 
 }  // end of namespace PV block

@@ -21,14 +21,12 @@ InitSpreadOverArborsWeightsParams::InitSpreadOverArborsWeightsParams(HyPerConn *
 
 InitSpreadOverArborsWeightsParams::~InitSpreadOverArborsWeightsParams()
 {
-   // TODO Auto-generated destructor stub
 }
 
 
 int InitSpreadOverArborsWeightsParams::initialize_base() {
 
    initWeight = 1;
-   numArbors = 1;
    setDeltaThetaMax(0.0f);
    setThetaMax(0.0f);
    setRotate(0.0f);
@@ -36,20 +34,17 @@ int InitSpreadOverArborsWeightsParams::initialize_base() {
 }
 
 int InitSpreadOverArborsWeightsParams::initialize(HyPerConn * parentConn) {
-   InitWeightsParams::initialize(parentConn);
+   return InitWeightsParams::initialize(parentConn);
+}
 
-   PVParams * params = parent->parameters();
-   int status = PV_SUCCESS;
-
-   numArbors = parentConn->numberOfAxonalArborLists();
-   initWeight = params->value(getName(), "weightInit", initWeight);
-   // initWeight /= numArbors;
-   setDeltaThetaMax(params->value(getName(), "deltaThetaMax", getDeltaThetaMax()));
-   setThetaMax(params->value(getName(), "thetaMax", getThetaMax()));
-   setRotate(params->value(getName(), "rotate", getRotate()));
-
+int InitSpreadOverArborsWeightsParams::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = InitGauss2DWeightsParams::ioParamsFillGroup(ioFlag);
+   ioParam_weightInit(ioFlag);
    return status;
+}
 
+void InitSpreadOverArborsWeightsParams::ioParam_weightInit(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "weightInit", &initWeight, initWeight);
 }
 
 void InitSpreadOverArborsWeightsParams::calcOtherParams(int patchIndex) {

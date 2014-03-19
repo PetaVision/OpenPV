@@ -22,7 +22,7 @@ public:
             InitWeights *weightInit=NULL);
    virtual ~STDPConn();
 
-   int setParams(PVParams * params);
+   int ioParams(enum ParamsIOFlag ioFlag);
 
    virtual int initializeThreadBuffers();
    virtual int initializeThreadKernels();

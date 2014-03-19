@@ -34,55 +34,27 @@ int GapLayer::initialize_base() {
 int GapLayer::initialize(const char * name, HyPerCol * hc)
 {
    int status_init = CloneVLayer::initialize(name, hc);
-   if (originalLayerName == NULL) {
-      fprintf(stderr, "GapLayer \"%s\" error: originalLayerName must be set.\n", name);
-      abort();
-   }
-   // this->sourceLayerName = strdup(originalLayerName);
-   // if (this->sourceLayerName==NULL) {
-   //    fprintf(stderr, "GapLayer \"%s\" error: unable to copy originalLayerName \"%s\": %s\n", name, originalLayerName, strerror(errno));
-   //    abort();
-   // }
+   assert(originalLayerName != NULL);
 
    this->clayer->layerType = TypeNonspiking;
-
-   // Moved to readAmpSpikelet
-   // ampSpikelet = parent->parameters()->value(name,"ampSpikelet",ampSpikelet);
 
    return status_init;
 }
 
-int GapLayer::setParams(PVParams * params) {
-   int status = CloneVLayer::setParams(params);
-   readAmpSpikelet(params);
+int GapLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = CloneVLayer::ioParamsFillGroup(ioFlag);
+   ioParam_ampSpikelet(ioFlag);
    return status;
 }
 
-void GapLayer::readAmpSpikelet(PVParams * params) {
-   ampSpikelet = parent->parameters()->value(name,"ampSpikelet",ampSpikelet);
+void GapLayer::ioParam_ampSpikelet(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "ampSpikelet", &ampSpikelet, ampSpikelet);
 }
 
 int GapLayer::communicateInitInfo() {
    int status = CloneVLayer::communicateInitInfo();
 
    // Handled by CloneVLayer
-   // assert(sourceLayerName);
-   // HyPerLayer * hyperlayer = parent->getLayerFromName(sourceLayerName);
-   // if (hyperlayer == NULL) {
-   //    fprintf(stderr, "GapLayer \"%s\" error: originalLayerName \"%s\" is not a layer in the HyPerCol.\n", name, sourceLayerName);
-   //    abort();
-   // }
-   // sourceLayer = dynamic_cast<LIFGap *>(originalLayer);
-   // if (sourceLayer == NULL) {
-   //    fprintf(stderr, "GapLayer \"%s\" error: originalLayerName \"%s\" is not a LIFGap or LIFGap-derived class.\n", name, originalLayerName);
-   //    abort();
-   // }
-   // const PVLayerLoc * sourceLoc = sourceLayer->getLayerLoc();
-   // const PVLayerLoc * thisLoc = getLayerLoc();
-   // if (sourceLoc->nx != thisLoc->nx || sourceLoc->ny != thisLoc->ny || sourceLoc->nf != thisLoc->nf) {
-   //    fprintf(stderr, "GapLayer \"%s\" must have the same dimensions as source layer \"%s\".\n", name, sourceLayer->getName());
-   //    abort();
-   // }
 
    return status;
 }

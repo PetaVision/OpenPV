@@ -9,6 +9,12 @@
 
 namespace PV {
 
+InitMTWeights::InitMTWeights(HyPerConn * conn)
+{
+   initialize_base();
+   initialize(conn);
+}
+
 InitMTWeights::InitMTWeights()
 {
    initialize_base();
@@ -16,20 +22,23 @@ InitMTWeights::InitMTWeights()
 
 InitMTWeights::~InitMTWeights()
 {
-   // TODO Auto-generated destructor stub
 }
 
 int InitMTWeights::initialize_base() {
    return PV_SUCCESS;
 }
 
-InitWeightsParams * InitMTWeights::createNewWeightParams(HyPerConn * callingConn) {
+int InitMTWeights::initialize(HyPerConn * conn) {
+   int status = InitGauss2DWeights::initialize(conn);
+   return status;
+}
+
+InitWeightsParams * InitMTWeights::createNewWeightParams() {
    InitWeightsParams * tempPtr = new InitMTWeightsParams(callingConn);
    return tempPtr;
 }
 
-int InitMTWeights::calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, int arborId,
-                                   InitWeightsParams *weightParams) {
+int InitMTWeights::calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, int arborId) {
 
    InitMTWeightsParams *weightParamPtr = dynamic_cast<InitMTWeightsParams*>(weightParams);
 
@@ -54,16 +63,16 @@ int InitMTWeights::calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int p
  */
 int InitMTWeights::calculateMTWeights(/* PVPatch * patch */ pvdata_t * dataStart, InitMTWeightsParams * weightParamPtr) {
    //load necessary params:
-   int nfPatch_tmp = weightParamPtr->getnfPatch_tmp();
+   int nfPatch_tmp = weightParamPtr->getnfPatch();
    //for MT cells, the patch size must be 1!  We are connecting to the V1 outputs
    //from the cells directly underneath.
-   int nyPatch_tmp = weightParamPtr->getnyPatch_tmp();
+   int nyPatch_tmp = weightParamPtr->getnyPatch();
    assert(nyPatch_tmp==1);
-   int nxPatch_tmp = weightParamPtr->getnxPatch_tmp();
+   int nxPatch_tmp = weightParamPtr->getnxPatch();
    assert(nxPatch_tmp==1);
    //int sx_tmp=weightParamPtr->getsx_tmp();
    //int sy_tmp=weightParamPtr->getsy_tmp();
-   int sf_tmp=weightParamPtr->getsf_tmp();
+   int sf_tmp=weightParamPtr->getsf();
 
    ChannelType channel = weightParamPtr->getParentConn()->getChannel();
 

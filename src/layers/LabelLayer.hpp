@@ -18,10 +18,12 @@ class LabelLayer : public HyPerLayer {
 
 protected:
    LabelLayer();
-   int initialize(const char * name, HyPerCol * hc, const char * movieLayerName);
-   //int initClayer();
-   //virtual void readNxScale(PVParams * params);
-   //virtual void readNyScale(PVParams * params);
+   int initialize(const char * name, HyPerCol * hc);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_movieLayerName(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_labelStart(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_labelLength(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_echoLabelFlag(enum ParamsIOFlag ioFlag);
    char * movieLayerName;
    Movie * movie;
    pvdata_t * labelData;
@@ -36,7 +38,7 @@ protected:
 
 
 public:
-   LabelLayer(const char * name, HyPerCol * hc, const char * movieLayerName);
+   LabelLayer(const char * name, HyPerCol * hc);
    virtual int communicateInitInfo();
    virtual int allocateDataStructures();
    virtual int updateState(double time, double dt);
@@ -44,9 +46,9 @@ public:
    virtual ~LabelLayer();
 #ifdef OBSOLETE
    //Obsolete Jan 15th, 2014 by slundquist
-   //getLastUpdateTime in HyPerLayer no loger updates lastUpdateTime, so no longer need to overwrite
+   //getLastUpdateTime in HyPerLayer no longer updates lastUpdateTime, so no longer need to override
    virtual double getLastUpdateTime() { return lastUpdateTime;}
-#endif
+#endif // OBSOLETE
 
 private:
    int initialize_base();

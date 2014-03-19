@@ -14,10 +14,9 @@ LCALIFLateralConn::LCALIFLateralConn()
    initialize_base();
 }
 
-LCALIFLateralConn::LCALIFLateralConn(const char * name, HyPerCol * hc, const char * pre_layer_name, const char * post_layer_name,
-      const char * filename, InitWeights *weightInit) {
+LCALIFLateralConn::LCALIFLateralConn(const char * name, HyPerCol * hc) {
    initialize_base();
-   initialize(name, hc, pre_layer_name, post_layer_name, filename, weightInit);
+   initialize(name, hc);
 }
 
 LCALIFLateralConn::~LCALIFLateralConn()
@@ -33,21 +32,38 @@ int LCALIFLateralConn::initialize_base() {
    return PV_SUCCESS;
 }
 
-int LCALIFLateralConn::initialize(const char * name, HyPerCol * hc, const char * pre_layer_name, const char * post_layer_name,
-      const char * filename, InitWeights * weightInit) {
-   int status = HyPerConn::initialize(name, hc, pre_layer_name, post_layer_name, filename, weightInit);
-   // Everything else moved to allocateDataStructures.
+int LCALIFLateralConn::initialize(const char * name, HyPerCol * hc) {
+   return HyPerConn::initialize(name, hc);
+}
+
+int LCALIFLateralConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = HyPerConn::ioParamsFillGroup(ioFlag);
+   PVParams * params = parent->parameters();
+   ioParam_integrationTimeConstant(ioFlag);
+   ioParam_inhibitionTimeConstant(ioFlag);
+   ioParam_targetRate(ioFlag);
+   ioParam_coorThresh(ioFlag);
+   ioParam_dWMax(ioFlag);
    return status;
 }
 
-int LCALIFLateralConn::setParams(PVParams * params) {
-   int status = HyPerConn::setParams(params);
-   readIntegrationTimeConstant();
-   readInhibitionTimeConstant();
-   readTargetRate();
-   readCorrThresh();
-   read_dWMax(params);
-   return status;
+void LCALIFLateralConn::ioParam_integrationTimeConstant(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "integrationTimeConstant", &integrationTimeConstant, 1.0f);
+}
+
+void LCALIFLateralConn::ioParam_inhibitionTimeConstant(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "inhibitionTimeConstant", &inhibitionTimeConstant, 1.0f);
+}
+
+void LCALIFLateralConn::ioParam_targetRate(enum ParamsIOFlag ioFlag) {
+   float target_rate_hertz;
+   if (ioFlag==PARAMS_IO_WRITE) target_rate_hertz = 1000.0f * targetRateKHz;
+   parent->ioParamValue(ioFlag, name, "targetRate", &target_rate_hertz, 1.0f);
+   if (ioFlag==PARAMS_IO_READ) targetRateKHz = 0.001*target_rate_hertz;
+}
+
+void LCALIFLateralConn::ioParam_coorThresh(enum ParamsIOFlag ioFlag) { // Should it be coorThresh or corrThresh?
+   parent->ioParamValue(ioFlag, name, "coorThresh", &corrThresh, corrThresh);
 }
 
 int LCALIFLateralConn::communicateInitInfo() {

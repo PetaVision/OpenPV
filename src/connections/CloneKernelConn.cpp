@@ -12,11 +12,9 @@ CloneKernelConn::CloneKernelConn(){
    initialize_base();
 }
 
-CloneKernelConn::CloneKernelConn(const char * name, HyPerCol * hc,
-      const char * pre_layer_name, const char * post_layer_name,
-      const char * original_kernelconn_name) {
+CloneKernelConn::CloneKernelConn(const char * name, HyPerCol * hc) {
    initialize_base();
-   initialize(name, hc, pre_layer_name, post_layer_name, original_kernelconn_name);
+   initialize(name, hc);
 }
 
 int CloneKernelConn::initialize_base() {
@@ -24,51 +22,42 @@ int CloneKernelConn::initialize_base() {
    return PV_SUCCESS;
 }
 
-int CloneKernelConn::initialize(const char * name, HyPerCol * hc,
-      const char * pre_layer_name, const char * post_layer_name,
-      const char * original_kernelconn_name) {
-   InitCloneKernelWeights * weightInit = new InitCloneKernelWeights();
-   assert(weightInit != NULL);
-   int status = KernelConn::initialize(name, hc, pre_layer_name, post_layer_name, NULL, weightInit);
-   if (original_kernelconn_name==NULL) {
-      fprintf(stderr, "CloneKernelConn \"%s\" error in rank %d process: originalConnName must be set.\n",
-            name, hc->columnId());
-      abort();
-   }
-   originalConnName = strdup(original_kernelconn_name);
-   if (originalConnName == NULL) {
-      fprintf(stderr, "CloneKernelConn \"%s\" error in rank %d process: unable to allocate memory for originalConnName \"%s\": %s\n",
-            name, hc->columnId(), original_kernelconn_name, strerror(errno));
-      abort();
-   }
+int CloneKernelConn::initialize(const char * name, HyPerCol * hc) {
+   int status = KernelConn::initialize(name, hc);
    return status;
 }
 
-//int CloneKernelConn::setPatchSize(const char * filename) {
-//   // nxp, nyp, nfp were set by the read-methods called by HyPerConn::setParams
-//   assert(filename == NULL);
-//   int xScalePre = pre->getXScale();
-//   int xScalePost = post->getXScale();
-//   int status = checkPatchSize(nxp, xScalePre, xScalePost, 'x');
-//   if( status == PV_SUCCESS) {
-//      int yScalePre = pre->getYScale();
-//      int yScalePost = post->getYScale();
-//      status = checkPatchSize(nyp, yScalePre, yScalePost, 'y');
-//   }
-//   return status;
-//}
+int CloneKernelConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = KernelConn::ioParamsFillGroup(ioFlag);
+   ioParam_originalConnName(ioFlag);
+   return status;
+}
 
-int CloneKernelConn::initNormalize() {
-   normalizer = NULL;
-   // normalize_flag = false; // replaced by testing whether normalizer!=NULL
+void CloneKernelConn::ioParam_weightInitType(enum ParamsIOFlag ioFlag) {
+   if (ioFlag==PARAMS_IO_READ) {
+      parent->parameters()->handleUnnecessaryStringParameter(name, "weightInitType", NULL);
+   }
+}
+
+void CloneKernelConn::ioParam_normalizeMethod(enum ParamsIOFlag ioFlag) {
+   if (ioFlag == PARAMS_IO_READ) {
+      parent->parameters()->handleUnnecessaryStringParameter(name, "normalizeMethod", NULL);
+   }
+}
+
+void CloneKernelConn::ioParam_originalConnName(enum ParamsIOFlag ioFlag) {
+   parent->ioParamStringRequired(ioFlag, name, "originalConnName", &originalConnName);
+}
+
+int CloneKernelConn::setWeightInitializer() {
+   weightInitializer = new InitCloneKernelWeights();
    return PV_SUCCESS;
 }
 
-int CloneKernelConn::constructWeights(const char * filename) {
+int CloneKernelConn::constructWeights() {
    int status = PV_SUCCESS;
 
-   // CloneKernelConn::readShrinkPatches does nothing; shrinkPatches_flag is set in communicateInitInfo()
-   // if( status == PV_SUCCESS ) readShrinkPatches(parent->parameters());
+   // CloneKernelConn::ioParam_shrinkPatches does nothing; shrinkPatches_flag is set in communicateInitInfo()
 
    // if( status == PV_SUCCESS ) status = setPatchSize(NULL);
    if( status == PV_SUCCESS ) status = setPatchStrides();
@@ -78,15 +67,6 @@ int CloneKernelConn::constructWeights(const char * filename) {
    gSynPatchStart = this->originalConn->getGSynPatchStart();
    aPostOffset = this->originalConn->getAPostOffset();
    dwDataStart = this->originalConn->get_dwDataStart();
-
-//   for( int arbor=0; arbor<numberOfAxonalArborLists(); arbor++) {
-//      get_wDataStart()[arbor] = originalConn->get_wDataStart(arbor);
-//      get_wPatches()[arbor] = originalConn->weights(arbor);
-//      // this->setKernelPatches(originalConn->getKernelPatches(arbor),arbor);
-//      if( status == PV_SUCCESS )
-//         status = createAxonalArbors(arbor); // sets gSynPatchStart[arbor][*] and aPostOffset[arbor][*]
-//      if( status != PV_SUCCESS ) break;
-//   }
 
    // Don't call initPlasticityPatches since plasticityFlag is always false.
    // Don't call shrinkPatches() since the original connection will have already shrunk patches
@@ -98,17 +78,6 @@ void CloneKernelConn::constructWeightsOutOfMemory() {
 }
 
 int CloneKernelConn::createAxonalArbors(int arborId) {
-//   int numPatches = getNumWeightPatches();
-//   for( int kex = 0; kex < numPatches; kex++ ) {
-//      // kex is in extended frame, this makes transformations more difficult
-//      int kl, offset, nxPatch, nyPatch, dx, dy;
-//      calcPatchSize(arborId, kex, &kl, &offset, &nxPatch, &nyPatch, &dx, &dy);
-//      pvdata_t * gSyn = post->getChannel(channel) + kl;
-//      getGSynPatchStart()[arborId][kex] = gSyn;
-//      getAPostOffset()[arborId][kex] = offset;
-//      // Don't call pvpatch_adjust because weight patches point to the
-//      // original conn's weight patches, which were already shrunk.
-//   }
    return PV_SUCCESS;
 }
 
@@ -130,31 +99,36 @@ PVPatch *** CloneKernelConn::initializeWeights(PVPatch *** patches, pvdata_t ** 
 // the parameter some way other than reading its own parameter
 // group's param directly.
 
-void CloneKernelConn::readShrinkPatches(PVParams * params) {
+void CloneKernelConn::ioParam_shrinkPatches(enum ParamsIOFlag ioFlag) {
    // During the communication phase, shrinkPatches_flag will be copied from originalConn
 }
 
-int CloneKernelConn::setParams(PVParams * params) {
-   return KernelConn::setParams(params);
-}
-
-void CloneKernelConn::readNumAxonalArbors(PVParams * params) {
+void CloneKernelConn::ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag) {
    // During the communication phase, numAxonalArbors will be copied from originalConn
 }
 
-void CloneKernelConn::readPlasticityFlag(PVParams * params) {
-   plasticityFlag = false; // CloneKernelConn updates automatically, since it's done using pointer magic.
-   handleUnnecessaryIntParameter("plasticityFlag", plasticityFlag);
+void CloneKernelConn::ioParam_plasticityFlag(enum ParamsIOFlag ioFlag) {
+   if (ioFlag == PARAMS_IO_READ) {
+      plasticityFlag = false; // CloneKernelConn updates automatically, since it's done using pointer magic.
+      parent->parameters()->handleUnnecessaryParameter(name, "plasticityFlag", plasticityFlag);
+   }
 }
 
-int CloneKernelConn::readPatchSize(PVParams * params) {
-   // During the communication phase, nxp, nyp, nxpShrunken, nypShrunken will be copied from originalConn
-   return PV_SUCCESS;
+void CloneKernelConn::ioParam_nxp(enum ParamsIOFlag ioFlag) {
+   // During the communication phase, nxp will be copied from originalConn
+}
+void CloneKernelConn::ioParam_nyp(enum ParamsIOFlag ioFlag) {
+   // During the communication phase, nyp will be copied from originalConn
+}
+void CloneKernelConn::ioParam_nxpShrunken(enum ParamsIOFlag ioFlag) {
+   // CloneKernelConn does not use nxpShrunken
+}
+void CloneKernelConn::ioParam_nypShrunken(enum ParamsIOFlag ioFlag) {
+   // CloneKernelConn does not use nypShrunken
 }
 
-int CloneKernelConn::readNfp(PVParams * params) {
+void CloneKernelConn::ioParam_nfp(enum ParamsIOFlag ioFlag) {
    // During the communication phase, nfp will be copied from originalConn
-   return PV_SUCCESS;
 }
 
 int CloneKernelConn::communicateInitInfo() {
@@ -177,7 +151,7 @@ int CloneKernelConn::communicateInitInfo() {
    PVParams * params = parent->parameters();
    const char * classname = params->groupKeywordFromName(name);
    numAxonalArborLists = originalConn->numberOfAxonalArborLists();
-   handleUnnecessaryIntParameter("numAxonalArbors", numAxonalArborLists);
+   parent->parameters()->handleUnnecessaryParameter(name, "numAxonalArbors", numAxonalArborLists);
    status = KernelConn::communicateInitInfo();
    if (status != PV_SUCCESS) return status;
 
@@ -202,7 +176,7 @@ int CloneKernelConn::communicateInitInfo() {
    //Redudant read in case it's a clone of a clone
    numAxonalArborLists = originalConn->numberOfAxonalArborLists();
    shrinkPatches_flag = originalConn->getShrinkPatches_flag();
-   handleUnnecessaryIntParameter("shrinkPatches", shrinkPatches_flag);
+   parent->parameters()->handleUnnecessaryParameter(name, "shrinkPatches", shrinkPatches_flag);
 
    return status;
 }
@@ -214,11 +188,11 @@ int CloneKernelConn::setPatchSize() {
    nxpShrunken = originalConn->getNxpShrunken();
    nypShrunken = originalConn->getNypShrunken();
    nfp = originalConn->fPatchSize();
-   handleUnnecessaryIntParameter("nxp", nxp);
-   handleUnnecessaryIntParameter("nyp", nyp);
-   handleUnnecessaryIntParameter("nxpShrunken", nxpShrunken);
-   handleUnnecessaryIntParameter("nypShrunken", nypShrunken);
-   handleUnnecessaryIntParameter("nfp", nfp);
+   parent->parameters()->handleUnnecessaryParameter(name, "nxp", nxp);
+   parent->parameters()->handleUnnecessaryParameter(name, "nyp", nyp);
+   parent->parameters()->handleUnnecessaryParameter(name, "nxpShrunken", nxpShrunken);
+   parent->parameters()->handleUnnecessaryParameter(name, "nypShrunken", nypShrunken);
+   parent->parameters()->handleUnnecessaryParameter(name, "nfp", nfp);
    return PV_SUCCESS;
 }
 

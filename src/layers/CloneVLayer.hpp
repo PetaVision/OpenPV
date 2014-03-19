@@ -18,16 +18,16 @@ public:
    virtual int communicateInitInfo();
    virtual int allocateDataStructures();
    virtual int allocateGSyn();
-   virtual int initializeState();
    virtual int requireMarginWidth(int marginWidthNeeded, int * marginWidthResult);
    virtual ~CloneVLayer();
 
 protected:
    CloneVLayer();
    int initialize(const char * name, HyPerCol * hc);
-   int setParams(PVParams * params);
-   void readOriginalLayerName(PVParams * params);
-   int allocateV();
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_originalLayerName(enum ParamsIOFlag ioFlag);
+   virtual int allocateV();
+   virtual int initializeV();
    virtual int checkpointRead(const char * cpDir, double * timed);
    virtual int checkpointWrite(const char * cpDir);
    virtual int doUpdateState(double timed, double dt, const PVLayerLoc * loc, pvdata_t * A,

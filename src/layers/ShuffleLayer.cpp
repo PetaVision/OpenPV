@@ -35,7 +35,7 @@ int ShuffleLayer::initialize_base() {
 }
 
 int ShuffleLayer::initialize(const char * name, HyPerCol * hc) {
-   int status_init = HyPerLayer::initialize(name, hc, 0);
+   int status_init = HyPerLayer::initialize(name, hc);
    // don't need conductance channels
    freeChannels(); // TODO: Does this need to be here?
    return status_init;
@@ -49,28 +49,32 @@ int ShuffleLayer::communicateInitInfo() {
    return status;
 }
 
-int ShuffleLayer::setParams(PVParams * params){
-   int status = CloneVLayer::setParams(params);
-   readShuffleMethod(params);
+int ShuffleLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag){
+   int status = CloneVLayer::ioParamsFillGroup(ioFlag);
    //Read additional parameters based on shuffle method
-   if (strcmp(shuffleMethod, "random") == 0){
+   ioParam_shuffleMethod(ioFlag);
+   ioParam_freqCollectTime(ioFlag);
+   return status;
+}
+
+void ShuffleLayer::ioParam_shuffleMethod(enum ParamsIOFlag ioFlag){
+   parent->ioParamString(ioFlag, name, "shuffleMethod", &shuffleMethod, "random", false/*warnIfAbsent*/);
+
+   if (ioFlag==PARAMS_IO_READ && strcmp(shuffleMethod, "random") == 0){
    }
    else if (strcmp(shuffleMethod, "rejection") == 0){
-      readFreqCollectTime(params);
    }
    else{
       fprintf(stderr, "Shuffle Layer: Shuffle method not recognized. Options are \"random\" or \"rejection\".\n");
       exit(PV_FAILURE);
    }
-   return status;
 }
 
-void ShuffleLayer::readShuffleMethod(PVParams * params){
-   shuffleMethod = strdup(params->stringValue(name, "shuffleMethod", false));
-}
-
-void ShuffleLayer::readFreqCollectTime(PVParams * params){
-   freqCollectTime = params->value(name, "freqCollectTime", freqCollectTime);
+void ShuffleLayer::ioParam_freqCollectTime(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "shuffleMethod"));
+   if (strcmp(shuffleMethod, "rejection") == 0){
+      parent->ioParamValue(ioFlag, name, "freqCollectTime", &freqCollectTime, freqCollectTime);
+   }
 }
 
 int ShuffleLayer::setActivity() {

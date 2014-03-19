@@ -37,61 +37,35 @@ int BIDSCloneLayer::initialize_base() {
 int BIDSCloneLayer::initialize(const char * name, HyPerCol * hc) {
    int status_init = CloneVLayer::initialize(name, hc);
 
-   // this->writeSparseActivity = true; // Instead override readWriteSparseActivity
-
-   // Handled by CloneVLayer::initialize()
-   // if (origLayerName==NULL) {
-   //    fprintf(stderr, "BIDSCloneLayer \"%s\" error: origLayerName must be set.\n", name);
-   //    exit(EXIT_FAILURE);
-   // }
-   // sourceLayerName = strdup(origLayerName);
-   // if (sourceLayerName==NULL) {
-   //    fprintf(stderr, "BIDSCloneLayer \"%s\" error: unable to copy origLayerName \"%s\": %s.\n", name, origLayerName, strerror(errno));
-   //    exit(EXIT_FAILURE);
-   // }
-
-   // Moved to readJitterSource()
-   // const char * jitter_source_name = parent->parameters()->stringValue(name, "jitterSource");
-   // jitterSourceName = strdup(jitter_source_name);
-
    return status_init;
 }
 
-int BIDSCloneLayer::setParams(PVParams * params) {
-   int status = CloneVLayer::setParams(params);
-   readJitterSource(params);
+int BIDSCloneLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = CloneVLayer::ioParamsFillGroup(ioFlag);
+   ioParam_jitterSource(ioFlag);
    return status;
 }
 
-void BIDSCloneLayer::readWriteSparseActivity(PVParams * params) {
-   this->writeSparseActivity = true;
-   handleUnnecessaryBoolParameter("writeSparseActivity", writeSparseActivity);
+void BIDSCloneLayer::ioParam_writeSparseActivity(enum ParamsIOFlag ioFlag) {
+   if (ioFlag == PARAMS_IO_READ) {
+      writeSparseActivity = true;
+      parent->parameters()->handleUnnecessaryParameter(name, "writeSparseActivity", writeSparseActivity);
+   }
 }
 
-void BIDSCloneLayer::readWriteSparseValues(PVParams * params) {
-   this->writeSparseActivity = false;
-   handleUnnecessaryBoolParameter("writeSparseValues", writeSparseValues);
+void BIDSCloneLayer::ioParam_writeSparseValues(enum ParamsIOFlag ioFlag) {
+   if (ioFlag == PARAMS_IO_READ) {
+      writeSparseValues = false;
+      parent->parameters()->handleUnnecessaryParameter(name, "writeSparseValues", writeSparseValues);
+   }
 }
 
-void BIDSCloneLayer::readJitterSource(PVParams * params) {
-   const char * jitter_source_name = params->stringValue(name, "jitterSource");
-   jitterSourceName = strdup(jitter_source_name);
+void BIDSCloneLayer::ioParam_jitterSource(enum ParamsIOFlag ioFlag) {
+   parent->ioParamStringRequired(ioFlag, name, "jitterSource", &jitterSourceName);
 }
 
 int BIDSCloneLayer::communicateInitInfo() {
    int status = CloneVLayer::communicateInitInfo();
-
-   // Handled by CloneVLayer::communicateInitInfo()
-   // HyPerLayer * origHyPerLayer = parent->getLayerFromName(sourceLayerName);
-   // if (origHyPerLayer==NULL) {
-   //    fprintf(stderr, "SigmoidLayer \"%s\" error: originalLayerName \"%s\" is not a layer in the HyPerCol.\n", name, sourceLayerName);
-   //    return(EXIT_FAILURE);
-   // }
-   // sourceLayer = dynamic_cast<LIF *>(origHyPerLayer);
-   // if (origHyPerLayer==NULL) {
-   //    fprintf(stderr, "SigmoidLayer \"%s\" error: originalLayerName \"%s\" is not a LIF or LIF-derived layer in the HyPerCol.\n", name, sourceLayerName);
-   //    return(EXIT_FAILURE);
-   // }
 
    return status;
 }
@@ -99,14 +73,7 @@ int BIDSCloneLayer::communicateInitInfo() {
 int BIDSCloneLayer::allocateDataStructures() {
    int status = CloneVLayer::allocateDataStructures();
 
-   // Handled by CloneVLayer::allocateV()
-   // free(clayer->V);
-   // clayer->V = sourceLayer->getV();
-
-   // Should have been initialized with zero channels, so GSyn should be NULL and freeChannels() call should be unnecessary
    assert(GSyn==NULL);
-   // // don't need conductance channels
-   // freeChannels();
 
    BIDSMovieCloneMap *blayer = dynamic_cast<BIDSMovieCloneMap*> (originalLayer->getParent()->getLayerFromName(jitterSourceName));
    if (blayer==NULL) {

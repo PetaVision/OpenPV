@@ -10,29 +10,12 @@
 namespace PV {
 
 /**
- * @layer
- * @dim
- * @kLoc
- * @f
+ * @probeName
+ * @hc
  */
-LinearActivityProbe::LinearActivityProbe(HyPerLayer * layer, PVDimType dim, int linePos, int f)
-   : LayerProbe()
-{
-   initLinearActivityProbe(NULL, layer, dim, linePos, f);
-}
-
-/**
- * @filename
- * @layer
- * @dim
- * @kLoc
- * @f
- */
-LinearActivityProbe::LinearActivityProbe(const char * filename, HyPerLayer * layer, PVDimType dim, int linePos, int f)
-    : LayerProbe()
-{
+LinearActivityProbe::LinearActivityProbe(const char * probeName, HyPerCol * hc) {
    initLinearActivityProbe_base();
-   initLinearActivityProbe(filename, layer, dim, linePos, f);
+   initLinearActivityProbe(probeName, hc);
 }
 
 LinearActivityProbe::LinearActivityProbe() {
@@ -40,25 +23,59 @@ LinearActivityProbe::LinearActivityProbe() {
    // Derived classes should call initLinearActivityProbe
 }
 
+LinearActivityProbe::~LinearActivityProbe() {
+   free(dimString); dimString = NULL;
+}
+
 int LinearActivityProbe::initLinearActivityProbe_base() {
    hc = NULL;
+   dimString = NULL;
    dim = DimX;
    linePos = 0;
    f = 0;
    return PV_SUCCESS;
 }
 
-int LinearActivityProbe::initLinearActivityProbe(const char * filename, HyPerLayer * layer, PVDimType dim, int linePos, int f) {
-   if (layer->getParent()->icCommunicator()->commSize()>1) {
-      fprintf(stderr, "LinearActivityProbe error for layer \"%s\": LinearActivityProbe is not compatible with MPI.\n", layer->getName());
-      exit(EXIT_FAILURE);
+int LinearActivityProbe::initLinearActivityProbe(const char * probeName, HyPerCol * hc) {
+   int status = initLayerProbe(probeName, hc);
+   return status;
+}
+
+int LinearActivityProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = LayerProbe::ioParamsFillGroup(ioFlag);
+   ioParam_dim(ioFlag);
+   ioParam_linePos(ioFlag);
+   ioParam_f(ioFlag);
+   return status;
+}
+
+void LinearActivityProbe::ioParam_dim(enum ParamsIOFlag ioFlag) {
+   getParentCol()->ioParamString(ioFlag, getProbeName(), "dim", &dimString, "DimX");
+   if (ioFlag == PARAMS_IO_READ) {
+      assert(dimString!=NULL);
+      if (!strcmp(dimString, "DimX")) {
+         dim = DimX;
+      }
+      else if (!strcmp(dimString, "DimY")) {
+         dim = DimY;
+      }
+      else {
+         if (getParentCol()->columnId()==0) {
+            fprintf(stderr, "%s \"%s\" error: parameter \"dim\" must be either \"DimX\" or \"DimY\".\n",
+                  getParentCol()->parameters()->groupKeywordFromName(getProbeName()), getProbeName());
+         }
+         MPI_Barrier(getParentCol()->icCommunicator()->communicator());
+         exit(EXIT_FAILURE);
+      }
    }
-   initLayerProbe(filename, layer);
-   this->hc = layer->getParent();
-   this->dim = dim;
-   this->linePos = linePos;
-   this->f   = f;
-   return PV_SUCCESS;
+}
+
+void LinearActivityProbe::ioParam_linePos(enum ParamsIOFlag ioFlag) {
+   getParentCol()->ioParamValue(ioFlag, getProbeName(), "linePos", &linePos, linePos);
+}
+
+void LinearActivityProbe::ioParam_f(enum ParamsIOFlag ioFlag) {
+   getParentCol()->ioParamValue(ioFlag, getProbeName(), "f", &f, f);
 }
 
 /**

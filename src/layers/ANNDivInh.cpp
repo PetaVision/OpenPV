@@ -39,15 +39,6 @@ ANNDivInh::ANNDivInh()
    initialize_base();
 }
 
-ANNDivInh::ANNDivInh(const char * name, HyPerCol * hc, int numChannels) {
-   initialize_base();
-   initialize(name, hc, numChannels);
-#ifdef PV_USE_OPENCL
-   if(gpuAccelerateFlag)
-      initializeGPU();
-#endif
-}
-
 ANNDivInh::ANNDivInh(const char * name, HyPerCol * hc) {
    initialize_base();
    initialize(name, hc);
@@ -59,15 +50,14 @@ ANNDivInh::ANNDivInh(const char * name, HyPerCol * hc) {
 
 ANNDivInh::~ANNDivInh()
 {
-   // TODO Auto-generated destructor stub
 }
 
 int ANNDivInh::initialize_base() {
    return PV_SUCCESS;
 }
 
-int ANNDivInh::initialize(const char * name, HyPerCol * hc, int numChannels/*Default=MAX_CHANNELS*/) {
-   int status = ANNLayer::initialize(name, hc, numChannels);
+int ANNDivInh::initialize(const char * name, HyPerCol * hc) {
+   int status = ANNLayer::initialize(name, hc);
 #ifdef PV_USE_OPENCL
    numEvents=NUM_ANNDV_EVENTS;
 #endif

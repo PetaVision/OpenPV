@@ -15,14 +15,9 @@ namespace PV {
 
 class GenerativeConn : public KernelConn {
 public:
-   GenerativeConn(const char * name, HyPerCol * hc,
-         const char * pre_layer_name, const char * post_layer_name,
-         const char * filename=NULL, InitWeights *weightInit=NULL);
+   GenerativeConn(const char * name, HyPerCol * hc);
 
    int initialize_base();
-   int initialize(const char * name, HyPerCol * hc,
-         const char * pre_layer_name, const char * post_layer_name,
-         const char * filename, InitWeights *weightInit);
    virtual int allocateDataStructures();
    virtual int updateWeights(int axonID);
    inline float getRelaxation() { return relaxation; }
@@ -30,17 +25,15 @@ public:
 
 protected:
    GenerativeConn();
-   virtual int setParams(PVParams * params);
-   virtual void readNumAxonalArbors(PVParams * params);
-   virtual void readRelaxation(PVParams * params);
-   virtual void readNonnegConstraintFlag(PVParams * params);
-   virtual void readImprintingFlag(PVParams * params);
-   virtual void readWeightDecayFlag(PVParams * params);
-   virtual void readWeightDecayRate(PVParams * params);
-   virtual void readWeightNoiseLevel(PVParams * params);
-#ifdef OBSOLETE // Marked obsolete April 16, 2013.  Implementing the new NormalizeBase class hierarchy
-   virtual int initNormalize();
-#endif // OBSOLETE
+   int initialize(const char * name, HyPerCol * hc);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_relaxation(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_nonnegConstraintFlag(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_imprintingFlag(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_weightDecayFlag(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_weightDecayRate(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_weightNoiseLevel(enum ParamsIOFlag ioFlag);
    virtual int update_dW(int axonID);
 
    float relaxation;

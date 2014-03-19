@@ -10,19 +10,20 @@ public:
    BinningLayer(const char * name, HyPerCol * hc);
    virtual int communicateInitInfo();
    virtual int allocateDataStructures();
-   virtual int initializeState();
    virtual int requireMarginWidth(int marginWidthNeeded, int * marginWidthResult);
    virtual ~BinningLayer();
 
 protected:
    BinningLayer();
    int initialize(const char * name, HyPerCol * hc);
-   int setParams(PVParams * params);
-   void readOriginalLayerName(PVParams * params);
-   void readBinMaxMin(PVParams * params);
-   void readDelay(PVParams * params);
-   void readBinSigma(PVParams * params);
+   int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   void ioParam_originalLayerName(enum ParamsIOFlag ioFlag);
+   void ioParam_binMaxMin(enum ParamsIOFlag ioFlag);
+   void ioParam_delay(enum ParamsIOFlag ioFlag);
+   void ioParam_binSigma(enum ParamsIOFlag ioFlag);
    int allocateV();
+   int initializeV();
+   virtual int initializeActivity();
    virtual int updateState(double timef, double dt);
    virtual int doUpdateState(double timed, double dt, const PVLayerLoc * origLoc,
          const PVLayerLoc * currLoc, const pvdata_t * origData, pvdata_t * currV, float binMax, float binMin);

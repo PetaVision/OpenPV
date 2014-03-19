@@ -20,7 +20,6 @@ InitRuleWeightsParams::InitRuleWeightsParams(HyPerConn * parentConn)
 }
 InitRuleWeightsParams::~InitRuleWeightsParams()
 {
-   // TODO Auto-generated destructor stub
 }
 
 int InitRuleWeightsParams::initialize_base() {
@@ -30,14 +29,7 @@ int InitRuleWeightsParams::initialize_base() {
 }
 
 int InitRuleWeightsParams::initialize(HyPerConn * parentConn) {
-   InitWeightsParams::initialize(parentConn);
-
-   PVParams * params = parent->parameters();
-   int status = PV_SUCCESS;
-
-   strength = params->value(name, "strength", strength);
-   return status;
-
+   return InitGauss2DWeightsParams::initialize(parentConn);
 }
 
 void InitRuleWeightsParams::calcOtherParams(int patchIndex) {

@@ -18,19 +18,20 @@ class InitSubUnitWeightsParams;
 
 class InitSubUnitWeights: public PV::InitWeights {
 public:
-   InitSubUnitWeights();
+   InitSubUnitWeights(HyPerConn * conn);
    virtual ~InitSubUnitWeights();
 
-   virtual int calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, int arborId,
-         InitWeightsParams *weightParams);
-   virtual InitWeightsParams * createNewWeightParams(HyPerConn * callingConn);
+   virtual int calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, int arborId);
+   virtual InitWeightsParams * createNewWeightParams();
    // void calcOtherParams(PVPatch * patch, int patchIndex);
 
 
 protected:
-   virtual int initialize_base();
+   InitSubUnitWeights();
+   int initialize(HyPerConn * conn);
 
 private:
+   int initialize_base();
    int subUnitWeights(/* PVPatch * patch */ pvdata_t * dataStart, InitSubUnitWeightsParams * weightParamPtr);
 };
 

@@ -39,7 +39,7 @@ public:
 protected:
 
    LIFGap();
-   int initialize(const char * name, HyPerCol * hc, PVLayerType type, int num_channels, const char * kernel_name);
+   int initialize(const char * name, HyPerCol * hc, PVLayerType type, const char * kernel_name);
    virtual int allocateConductances(int num_channels);
 
    // pvdata_t * G_Gap; // Commented out May 15, 2013

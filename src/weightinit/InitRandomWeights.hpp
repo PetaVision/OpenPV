@@ -15,13 +15,14 @@ namespace PV {
 
 class InitRandomWeights: public PV::InitWeights {
 public:
-   InitRandomWeights();
    virtual int calcWeights(/* PVPatch * patch */pvdata_t * dataStart,
-         int patchIndex, int arborId, InitWeightsParams *weightParams);
+         int patchIndex, int arborId);
    virtual ~InitRandomWeights();
 
 protected:
-   virtual int initRNGs(HyPerConn * conn, bool isKernel);
+   InitRandomWeights();
+   int initialize(HyPerConn * conn);
+   virtual int initRNGs(bool isKernel);
    virtual int randomWeights(pvdata_t * patchDataStart, InitWeightsParams *weightParams, int patchIndex) = 0;
    // Subclasses must implement randomWeights.
    // patchDataStart is a pointer to the beginning of a data patch.

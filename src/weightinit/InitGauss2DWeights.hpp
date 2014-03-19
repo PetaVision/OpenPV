@@ -15,22 +15,24 @@ namespace PV {
 
 class InitGauss2DWeights: public PV::InitWeights {
 public:
-	InitGauss2DWeights();
+	InitGauss2DWeights(HyPerConn * conn);
 	virtual ~InitGauss2DWeights();
 
-	virtual InitWeightsParams * createNewWeightParams(HyPerConn * callingConn);
+	virtual InitWeightsParams * createNewWeightParams();
 
 	virtual int calcWeights(/* PVPatch * wp */pvdata_t * dataStart,
-			int patchIndex, int arborId, InitWeightsParams *weightParams);
+			int patchIndex, int arborId);
 
 protected:
+    InitGauss2DWeights();
 	int initialize_base();
+	int initialize(HyPerConn * conn);
 
 private:
 	int gauss2DCalcWeights(pvdata_t * dataStart,
 			InitGauss2DWeightsParams *weightParamPtr);
 
-}; // calss InitGauss2DWeights
+}; // class InitGauss2DWeights
 
 } /* namespace PV */
 #endif /* INITGAUSS2DWEIGHTS_HPP_ */

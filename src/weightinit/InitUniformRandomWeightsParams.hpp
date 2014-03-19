@@ -8,15 +8,16 @@
 #ifndef INITUNIVORMRANDOMWEIGHTSPARAMS_HPP_
 #define INITUNIVORMRANDOMWEIGHTSPARAMS_HPP_
 
-#include "InitWeightsParams.hpp"
+#include "InitRandomWeightsParams.hpp"
 
 namespace PV {
 
-class InitUniformRandomWeightsParams: public PV::InitWeightsParams {
+class InitUniformRandomWeightsParams: public PV::InitRandomWeightsParams {
 public:
    InitUniformRandomWeightsParams();
    InitUniformRandomWeightsParams(HyPerConn * parentConn);
    virtual ~InitUniformRandomWeightsParams();
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
 
    //get-set methods:
    inline float getWMin()        {return wMin;}
@@ -26,6 +27,9 @@ public:
 protected:
    int initialize_base();
    int initialize(HyPerConn * parentConn);
+   virtual void ioParam_wMinInit(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_wMaxInit(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_sparseFraction(enum ParamsIOFlag ioFlag);
 
 
 private:

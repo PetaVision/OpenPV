@@ -30,21 +30,47 @@ GenerativeLayer::~GenerativeLayer() {
 }
 
 int GenerativeLayer::initialize_base() {
+   numChannels = 3;
    dV = NULL;
    sparsitytermderivative = NULL;
    return PV_SUCCESS;
 }
 
 int GenerativeLayer::initialize(const char * name, HyPerCol * hc) {
-   ANNLayer::initialize(name, hc, MAX_CHANNELS);
-   PVParams * params = parent->parameters();
-   relaxation = params->value(name, "relaxation", 1.0f);
-   activityThreshold = params->value(name, "activityThreshold", 0.0f);
-   auxChannelCoeff = params->value(name, "auxChannelCoeff", 0.0f);
-   sparsityTermCoeff = params->value(name, "sparsityTermCoefficient", 1.0f);
-   persistence = params->value(name, "persistence", 0.0f);
+   int status = ANNLayer::initialize(name, hc);
+   assert(numChannels == 3);
+   return status;
+}
+
+int GenerativeLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = ANNLayer::ioParamsFillGroup(ioFlag);
+   ioParam_relaxation(ioFlag);
+   ioParam_activityThreshold(ioFlag);
+   ioParam_auxChannelCoeff(ioFlag);
+   ioParam_sparsityTermCoefficient(ioFlag);
+   ioParam_persistence(ioFlag);
    return PV_SUCCESS;
 }  // end of GenerativeLayer::initialize()
+
+void GenerativeLayer::ioParam_relaxation(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "relaxation", &relaxation, 1.0f/*default value*/);
+}
+
+void GenerativeLayer::ioParam_activityThreshold(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "activityThreshold", &activityThreshold, 0.0f/*default value*/);
+}
+
+void GenerativeLayer::ioParam_auxChannelCoeff(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "auxChannelCoeff", &auxChannelCoeff, 0.0f/*default value*/);
+}
+
+void GenerativeLayer::ioParam_sparsityTermCoefficient(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "sparsityTermCoefficient", &sparsityTermCoeff, 1.0f/*default value*/);
+}
+
+void GenerativeLayer::ioParam_persistence(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "persistence", &persistence, 0.0f/*default value*/);
+}
 
 int GenerativeLayer::allocateDataStructures() {
    int status = ANNLayer::allocateDataStructures();
@@ -63,12 +89,12 @@ int GenerativeLayer::updateState(double timef, double dt) {
 }
 
 int GenerativeLayer::updateState(double timef, double dt,
-		const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels,
-		pvdata_t * gSynHead, pvdata_t * sparsitytermderivative, pvdata_t * dV,
-		pvdata_t VMax, pvdata_t VMin, pvdata_t VThresh, pvdata_t VShift, pvdata_t VWidth,
-		pvdata_t relaxation, pvdata_t auxChannelCoeff, pvdata_t sparsityTermCoeff,
-		pvdata_t persistence, pvdata_t activity_threshold, bool spiking,
-		unsigned int * active_indices, unsigned int * num_active) {
+      const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels,
+      pvdata_t * gSynHead, pvdata_t * sparsitytermderivative, pvdata_t * dV,
+      pvdata_t VMax, pvdata_t VMin, pvdata_t VThresh, pvdata_t VShift, pvdata_t VWidth,
+      pvdata_t relaxation, pvdata_t auxChannelCoeff, pvdata_t sparsityTermCoeff,
+      pvdata_t persistence, pvdata_t activity_threshold, bool spiking,
+      unsigned int * active_indices, unsigned int * num_active) {
    int nx = loc->nx;
    int ny = loc->ny;
    int nf = loc->nf;
@@ -76,10 +102,10 @@ int GenerativeLayer::updateState(double timef, double dt,
    pvdata_t relax_remaining = relaxation;
    while(relax_remaining > 0) {
       updateSparsityTermDeriv_GenerativeLayer(num_neurons, V, sparsitytermderivative);
-		update_dV_GenerativeLayer(num_neurons, V, gSynHead,
-				sparsitytermderivative, dV, VMax, VMin, VThresh,
-				relax_remaining, auxChannelCoeff, sparsityTermCoeff,
-				persistence);
+      update_dV_GenerativeLayer(num_neurons, V, gSynHead,
+            sparsitytermderivative, dV, VMax, VMin, VThresh,
+            relax_remaining, auxChannelCoeff, sparsityTermCoeff,
+            persistence);
       pvdata_t trunc_rel = reduce_relaxation(num_neurons, V, dV, relax_remaining);
       updateV_GenerativeLayer(num_neurons, V, dV, A, VMax, VMin, VThresh, VShift, VWidth, trunc_rel, nx, ny, nf, loc->nb);
       relax_remaining -=trunc_rel;

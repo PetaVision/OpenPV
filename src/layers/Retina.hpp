@@ -37,7 +37,6 @@ public:
    virtual ~Retina();
    virtual int communicateInitInfo();
    virtual int allocateDataStructures();
-   virtual int initializeState();
 
    int setRetinaParams(PVParams * p);
 
@@ -55,11 +54,23 @@ public:
 protected:
    Retina();
    int initialize(const char * name, HyPerCol * hc, PVLayerType type);
-   int allocateV();
+   int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_spikingFlag(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_foregroundRate(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_backgroundRate(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_beginStim(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_endStim(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_burstFreq(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_burstDuration(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_refractoryPeriod(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_absRefractoryPeriod(enum ParamsIOFlag ioFlag);
+   virtual int allocateV();
    int allocateRandStateRestricted(size_t xCount, size_t yCount, size_t fCount, unsigned int seedStart, unsigned int seedStride);
    int allocateRandStateBorder(int neighbor, size_t xCount, size_t yCount, size_t fCount, unsigned int seedStart, unsigned int seedStride, int indexStart, int indexStride);
    int allocateRandState(int neighbor, size_t xCount, size_t yCount, size_t fCount, unsigned int seedStart, unsigned int seedStride);
    int allocateBorderIndices(int neighbor, size_t xCount, size_t yCount, size_t fCount, int indexStart, int indexStride);
+   virtual int initializeV();
+   virtual int initializeActivity();
 #ifdef PV_USE_OPENCL
    //int initializeGPU();  //right now there's no use for a Retina specific version
    virtual int getNumCLEvents() {return numEvents;}
@@ -79,6 +90,8 @@ protected:
    // uint4 * rand_state[NUM_NEIGHBORHOOD];      // state for random numbers // rand_state[0] for the restricted region; rand_state[1] for northwest corner for background activity, etc.
    size_t rand_state_size[NUM_NEIGHBORHOOD]; // Size of each rand_state pointer.  rand_state_size[0]=numNeurons (local); rand_state_size[NORTHWEST]=nb*nb*nf if the column is in the northwest corner, etc.
    int * border_indices[NUM_NEIGHBORHOOD];
+   float probStimParam;
+   float probBaseParam;
 
 private:
 

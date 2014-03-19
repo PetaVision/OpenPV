@@ -20,38 +20,25 @@ CloneVLayer::CloneVLayer() {
 }
 
 int CloneVLayer::initialize_base() {
+   numChannels = 0;
    originalLayerName = NULL;
    originalLayer = NULL;
    return PV_SUCCESS;
 }
 
 int CloneVLayer::initialize(const char * name, HyPerCol * hc) {
-   int status = HyPerLayer::initialize(name, hc, 0);
+   int status = HyPerLayer::initialize(name, hc);
    return status;
 }
 
-int CloneVLayer::setParams(PVParams * params) {
-   int status = HyPerLayer::setParams(params);
-   readOriginalLayerName(params);
+int CloneVLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = HyPerLayer::ioParamsFillGroup(ioFlag);
+   ioParam_originalLayerName(ioFlag);
    return status;
 }
 
-void CloneVLayer::readOriginalLayerName(PVParams * params) {
-   const char * original_layer_name = params->stringValue(name, "originalLayerName");
-   if (original_layer_name==NULL || original_layer_name[0]=='\0') {
-      if (parent->columnId()==0) {
-         fprintf(stderr, "%s \"%s\" error: originalLayerName must be set.\n",
-                 parent->parameters()->groupKeywordFromName(name), name);
-      }
-      MPI_Barrier(parent->icCommunicator()->communicator());
-      exit(EXIT_FAILURE);
-   }
-   originalLayerName = strdup(original_layer_name);
-   if (originalLayerName==NULL) {
-      fprintf(stderr, "%s \"%s\" error: rank %d process unable to copy originalLayerName \"%s\": %s\n",
-              parent->parameters()->groupKeywordFromName(name), name, parent->columnId(), original_layer_name, strerror(errno));
-      exit(EXIT_FAILURE);
-   }
+void CloneVLayer::ioParam_originalLayerName(enum ParamsIOFlag ioFlag) {
+   parent->ioParamStringRequired(ioFlag, name, "originalLayerName", &originalLayerName);
 }
 
 int CloneVLayer::communicateInitInfo() {
@@ -120,22 +107,11 @@ int CloneVLayer::allocateGSyn() {
    return PV_SUCCESS;
 }
 
-int CloneVLayer::initializeState() {
-   int status = PV_SUCCESS;
-   PVParams * params = parent->parameters();
-   assert(!params->presentAndNotBeenRead(name, "restart"));
-   // readRestart(params);
-   if( restartFlag ) {
-      double timef;
-      status = readState(&timef);
-   }
-   else {
-      // TODO Need to make sure that original layer's initializeState has been called before this layer's V.
-      status = setActivity();
-      if (status == PV_SUCCESS) status = updateActiveIndices();
-   }
-   return status;
+int CloneVLayer::initializeV() {
+   // TODO Need to make sure that original layer's initializeState has been called before this layer's V.
+   return PV_SUCCESS;
 }
+
 int CloneVLayer::checkpointRead(const char * cpDir, double * timed) {
    // If we just call HyPerLayer, we checkpoint V since it is non-null.  This is redundant since V is a clone.
    // So we temporarily set clayer->V to NULL to fool HyPerLayer::checkpointRead into not reading it.

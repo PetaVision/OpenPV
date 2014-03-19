@@ -18,16 +18,18 @@ class InitSpreadOverArborsWeightsParams;
 
 class InitSpreadOverArborsWeights: public PV::InitGauss2DWeights {
 public:
-   InitSpreadOverArborsWeights();
+   InitSpreadOverArborsWeights(HyPerConn * conn);
    virtual ~InitSpreadOverArborsWeights();
-   virtual InitWeightsParams * createNewWeightParams(HyPerConn * callingConn);
+   virtual InitWeightsParams * createNewWeightParams();
 
-   virtual int calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, int arborId, InitWeightsParams *weightParams);
+   virtual int calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, int arborId);
 
 protected:
-   int initialize_base();
+   InitSpreadOverArborsWeights();
+   int initialize(HyPerConn * conn);
 
 private:
+   int initialize_base();
    int spreadOverArborsWeights(/* PVPatch * patch */ pvdata_t * dataStart, int arborId,
          InitSpreadOverArborsWeightsParams * weightParamPtr);
 };

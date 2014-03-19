@@ -40,17 +40,10 @@ LabelErrorLayer::LabelErrorLayer()
    initialize_base();
 }
 
-LabelErrorLayer::LabelErrorLayer(const char * name, HyPerCol * hc, int num_channels)
-{
-   initialize_base();
-   assert(num_channels == 2);
-   initialize(name, hc, num_channels);
-}
-
 LabelErrorLayer::LabelErrorLayer(const char * name, HyPerCol * hc)
 {
    initialize_base();
-   initialize(name, hc, 2);
+   initialize(name, hc);
 }
 
 LabelErrorLayer::~LabelErrorLayer()
@@ -59,32 +52,25 @@ LabelErrorLayer::~LabelErrorLayer()
 
 int LabelErrorLayer::initialize_base()
 {
+   numChannels = 2;
    errScale = 1;
    isBinary = 1;
    return PV_SUCCESS;
 }
 
-int LabelErrorLayer::initialize(const char * name, HyPerCol * hc, int num_channels)
+int LabelErrorLayer::initialize(const char * name, HyPerCol * hc)
 {
-   int status = ANNLayer::initialize(name, hc, num_channels);
+   int status = ANNLayer::initialize(name, hc);
+   assert(numChannels==2);
    return status;
 }
 
-int LabelErrorLayer::setParams(PVParams * params){
-   int status = ANNLayer::setParams(params);
-   status |= readErrScale(params);
-   status |= readIsBinary(params);
-   return status;
+void LabelErrorLayer::ioParam_errScale(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "errScale", &errScale, errScale);
 }
 
-int LabelErrorLayer::readErrScale(PVParams * params){
-    errScale = params->value(name, "errScale", errScale);
-    return PV_SUCCESS;
-}
-
-int LabelErrorLayer::readIsBinary(PVParams * params){
-    isBinary = params->value(name, "isBinary", isBinary);
-    return PV_SUCCESS;
+void LabelErrorLayer::ioParam_isBinary(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "isBinary", &isBinary, isBinary);
 }
 
 int LabelErrorLayer::doUpdateState(double time, double dt, const PVLayerLoc * loc, pvdata_t * A,

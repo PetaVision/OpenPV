@@ -19,36 +19,79 @@ NormalizeBase::~NormalizeBase() {
 
 int NormalizeBase::initialize_base() {
    name = NULL;
-   params = NULL;
+   callingConn = NULL;
+   strength = 1.0f;
+   rMinX = 0.0f;
+   rMinY = 0.0f;
+   normalize_cutoff = 0.0f;
+   symmetrizeWeightsFlag = false;
+   normalizeFromPostPerspective = false;
+   normalizeArborsIndividually = false;
    return PV_SUCCESS;
 }
 
 // NormalizeBase does not directly call initialize since it is an abstract base class.
 // Subclasses should call NormalizeBase::initialize from their own initialize routine
 // This allows virtual methods called from initialize to be aware of which class's constructor was called.
-int NormalizeBase::initialize(const char * name, PVParams * params) {
+int NormalizeBase::initialize(HyPerConn * callingConn) {
    // name is the name of a group in the PVParams object.  Parameters related to normalization should be in the indicated group.
    int status = PV_SUCCESS;
-   if (params->group(name)) {
-      this->name = strdup(name);
-      this->params = params;
-      setParams();
-   }
-   else {
-      fprintf(stderr, "NormalizeBase error: group \"%s\" does not exist in given params file.\n", name);
-      status = PV_FAILURE;
-   }
+   this->name = strdup(callingConn->getName());
+   this->callingConn = callingConn;
    return status;
 }
 
-int NormalizeBase::setParams() {
-   readStrength();
-   readRMin();
-   readNormalizeCutoff();
-   readSymmetrizeWeights();
-   readNormalizeFromPostPerspective();
-   readNormalizeArborsIndividually();
+int NormalizeBase::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   ioParam_strength(ioFlag);
+   ioParam_rMinX(ioFlag);
+   ioParam_rMinY(ioFlag);
+   ioParam_normalize_cutoff(ioFlag);
+   ioParam_symmetrizeWeights(ioFlag);
+   ioParam_normalizeFromPostPerspective(ioFlag);
+   ioParam_normalizeArborsIndividually(ioFlag);
    return PV_SUCCESS;
+}
+
+void NormalizeBase::ioParam_strength(enum ParamsIOFlag ioFlag) {
+   callingConn->ioParam_strength(ioFlag, &strength, true/*warnIfAbsent*/);
+}
+
+void NormalizeBase::ioParam_rMinX(enum ParamsIOFlag ioFlag) {
+   parent()->ioParamValue(ioFlag, name, "rMinX", &rMinX, rMinX);
+}
+
+void NormalizeBase::ioParam_rMinY(enum ParamsIOFlag ioFlag) {
+   parent()->ioParamValue(ioFlag, name, "rMinY", &rMinY, rMinY);
+}
+
+void NormalizeBase::ioParam_normalize_cutoff(enum ParamsIOFlag ioFlag) {
+   parent()->ioParamValue(ioFlag, name, "normalize_cutoff", &normalize_cutoff, normalize_cutoff);
+}
+
+void NormalizeBase::ioParam_symmetrizeWeights(enum ParamsIOFlag ioFlag) {
+   parent()->ioParamValue(ioFlag, name, "symmetrizeWeights", &symmetrizeWeightsFlag, false);
+}
+
+void NormalizeBase::ioParam_normalizeFromPostPerspective(enum ParamsIOFlag ioFlag) {
+   if (ioFlag==PARAMS_IO_READ && !parent()->parameters()->present(name, "normalizeFromPostPerspective") && parent()->parameters()->present(name, "normalize_arbors_individually")) {
+      if (parent()->columnId()==0) {
+         fprintf(stderr, "Normalizer \"%s\": parameter name normalizeTotalToPost is deprecated.  Use normalizeFromPostPerspective.\n", name);
+      }
+      normalizeFromPostPerspective = parent()->parameters()->value(name, "normalizeTotalToPost");
+      return;
+   }
+   parent()->ioParamValue(ioFlag, name, "normalizeFromPostPerspective", &normalizeFromPostPerspective, false/*default value*/, true/*warnIfAbsent*/);
+}
+
+void NormalizeBase::ioParam_normalizeArborsIndividually(enum ParamsIOFlag ioFlag) {
+   if (ioFlag==PARAMS_IO_READ && !parent()->parameters()->present(name, "normalizeArborsIndividually") && parent()->parameters()->present(name, "normalize_arbors_individually")) {
+      if (parent()->columnId()==0) {
+         fprintf(stderr, "Normalizer \"%s\": parameter name normalize_arbors_individually is deprecated.  Use normalizeArborsIndividually.\n", name);
+      }
+      normalizeArborsIndividually = parent()->parameters()->value(name, "normalize_arbors_individually");
+      return;
+   }
+   parent()->ioParamValue(ioFlag, name, "normalizeArborsIndividually", &normalizeArborsIndividually, false/*default*/, true/*warnIfAbsent*/);
 }
 
 int NormalizeBase::normalizeWeights(HyPerConn * conn) {
@@ -301,43 +344,9 @@ void NormalizeBase::normalizePatch(pvdata_t * dataStartPatch, int weights_per_pa
    for (int k=0; k<weights_per_patch; k++) dataStartPatch[k] *= multiplier;
 }
 
-void NormalizeBase::readStrength() {
-   strength = params->value(name, "strength", 1.0f, true/*warnIfAbsent*/);
+HyPerCol * NormalizeBase::parent() {
+   return callingConn->getParent();
 }
-
-void NormalizeBase::readRMin() {
-   rMinX = params->value(name, "rMinX", 0.0f, false/*warnIfAbsent*/);
-   rMinY = params->value(name, "rMinY", 0.0f, false/*warnIfAbsent*/);
-}
-
-void NormalizeBase::readNormalizeCutoff() {
-   normalize_cutoff = params->value(name, "normalize_cutoff", 0.0f, true/*warnIfAbsent*/);
-}
-
-void NormalizeBase::readSymmetrizeWeights() {
-   symmetrizeWeightsFlag = params->value(name, "symmetrizeWeights", false/*default value*/, true/*warnIfAbsent*/);
-}
-
-void NormalizeBase::readNormalizeFromPostPerspective() {
-   if (!params->present(name, "normalizeFromPostPerspective") && params->present(name, "normalizeTotalToPost")) {
-      fprintf(stderr, "Normalizer \"%s\": parameter name normalizeTotalToPost is deprecated.  Use normalizeFromPostPerspective.\n", name);
-      normalizeFromPostPerspective = params->value(name, "normalizeTotalToPost");
-   }
-   else {
-      normalizeFromPostPerspective = params->value(name, "normalizeFromPostPerspective", false/*default value*/, true/*warnIfAbsent*/);
-   }
-}
-
-void NormalizeBase::readNormalizeArborsIndividually() {
-   if (!params->present(name, "normalizeArborsIndividually") && params->present(name, "normalize_arbors_individually")) {
-      fprintf(stderr, "Normalizer \"%s\": parameter name normalize_arbors_individually is deprecated.  Use normalizeArborsIndividually.\n", name);
-      normalizeArborsIndividually = params->value(name, "normalize_arbors_individually");
-   }
-   else {
-      normalizeArborsIndividually = params->value(name, "normalizeArborsIndividually", false/*default value*/, true/*warnIfAbsent*/);
-   }
-}
-// virtual void readNormalizeArborsIndividually() {normalizeArborsIndividually = params->value(name, "normalizeArborsIndividually", false/*default value*/, true/*warnIfAbsent*/);}
 
 } // end namespace PV
 

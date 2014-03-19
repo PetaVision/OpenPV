@@ -13,9 +13,9 @@ IncrementLayer::IncrementLayer() {
    initialize_base();
 }
 
-IncrementLayer::IncrementLayer(const char* name, HyPerCol * hc, int numChannels) {
+IncrementLayer::IncrementLayer(const char* name, HyPerCol * hc) {
    initialize_base();
-   initialize(name, hc, numChannels);
+   initialize(name, hc);
 }
 
 IncrementLayer::~IncrementLayer() {
@@ -30,11 +30,11 @@ int IncrementLayer::initialize_base() {
    return PV_SUCCESS;
 }
 
-int IncrementLayer::initialize(const char* name, HyPerCol * hc, int numChannels) {
-   int status = ANNLayer::initialize(name, hc, numChannels);
-   displayPeriod = parent->parameters()->value(name, "displayPeriod", parent->getDeltaTime());
-   firstUpdateTime = parent->parameters()->value(name, "firstUpdateTime", parent->simulationTime());
+int IncrementLayer::initialize(const char* name, HyPerCol * hc) {
+   int status = ANNLayer::initialize(name, hc);
    nextUpdateTime = firstUpdateTime+displayPeriod;
+
+   // Why isn't this in allocateDataStructures()?
    Vprev = (pvdata_t *) calloc(getNumNeurons(),sizeof(pvdata_t));
    if( Vprev == NULL ) {
       fprintf(stderr, "Unable to allocate Vprev buffer for IncrementLayer \"%s\"\n", name);
@@ -47,14 +47,44 @@ int IncrementLayer::initialize(const char* name, HyPerCol * hc, int numChannels)
    return status;
 }
 
-int IncrementLayer::readVThreshParams(PVParams * params) {
-   // Threshold paramaters are not used, as updateState does not call applyVMax or applyVThresh
-   // Override ANNLayer::readVThreshParams so that the threshold params are not read from the
-   // params file, thereby creating an unnecessary warning.
-   VMax = max_pvdata_t;
-   VThresh = -max_pvdata_t;
-   VMin = VThresh;
-   return PV_SUCCESS;
+int IncrementLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = ANNLayer::ioParamsFillGroup(ioFlag);
+   ioParam_displayPeriod(ioFlag);
+   ioParam_firstUpdateTime(ioFlag);
+   return status;
+}
+
+void IncrementLayer::ioParam_displayPeriod(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "displayPeriod", &displayPeriod, parent->getDeltaTime());
+}
+
+void IncrementLayer::ioParam_firstUpdateTime(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "firstUpdateTime", &firstUpdateTime, parent->simulationTime());
+}
+
+// Threshold paramaters are not used, as updateState does not call applyVMax or applyVThresh
+// Override relevant ANNLayer::ioParam_* methods so that the threshold params are not read
+// from the params file, thereby creating an unnecessary warning.
+
+void IncrementLayer::ioParam_VThresh(enum ParamsIOFlag ioFlag) {
+   if (ioFlag==PARAMS_IO_READ) VMax = max_pvdata_t;
+}
+
+void IncrementLayer::ioParam_VMin(enum ParamsIOFlag ioFlag) {
+   if (ioFlag==PARAMS_IO_READ) VMax = -max_pvdata_t;
+}
+
+void IncrementLayer::ioParam_VMax(enum ParamsIOFlag ioFlag) {
+   if (ioFlag==PARAMS_IO_READ) VMax = -max_pvdata_t;
+}
+
+void IncrementLayer::ioParam_VShift(enum ParamsIOFlag ioFlag) {
+   if (ioFlag==PARAMS_IO_READ) VShift = (pvdata_t) 0;
+
+}
+
+void IncrementLayer::ioParam_VWidth(enum ParamsIOFlag ioFlag) {
+   if (ioFlag==PARAMS_IO_READ) VWidth = (pvdata_t) 0;
 }
 
 int IncrementLayer::allocateDataStructures() {
@@ -74,6 +104,7 @@ int IncrementLayer::allocateDataStructures() {
 
 int IncrementLayer::updateState(double timef, double dt) {
    int status;
+   assert(numChannels>=2);  // updateState uses gSynExc and gSynInh
    status = updateState(timef, dt, &VInited, &nextUpdateTime, firstUpdateTime, displayPeriod, getLayerLoc(), getCLayer()->activity->data, getV(), getVprev(), getNumChannels(), GSyn[0], getCLayer()->activeIndices, &getCLayer()->numActive);
    if( status == PV_SUCCESS ) status = updateActiveIndices();
    return status;
@@ -149,7 +180,7 @@ int IncrementLayer::checkpointWrite(const char * cpDir) {
    assert(filename != NULL);
    int chars_needed = snprintf(filename, filenamesize, "%s/%s_Vprev.pvp", cpDir, name);
    assert(chars_needed < filenamesize);
-   writeBufferFile(filename, icComm, timed, &Vprev, 1, /*extended*/false, getLayerLoc()); // TODO contiguous=true
+   writeBufferFile(filename, icComm, timed, &Vprev, 1, /*extended*/false, getLayerLoc());
    free(filename);
    return PV_SUCCESS;
 }

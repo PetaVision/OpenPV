@@ -14,7 +14,6 @@ namespace PV {
 
 class HyPerLCALayer: public PV::ANNLayer {
 public:
-   HyPerLCALayer(const char * name, HyPerCol * hc, int numChannels);
    HyPerLCALayer(const char * name, HyPerCol * hc);
    virtual ~HyPerLCALayer();
 
@@ -26,7 +25,16 @@ public:
    int calcWindow(int globalExtX, int globalExtY);
 protected:
    HyPerLCALayer();
-   int initialize(const char * name, HyPerCol * hc, int numChannels);
+   int initialize(const char * name, HyPerCol * hc);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_numChannels(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_timeConstantTau(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_timeConstantTauMinimum(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_numWindowX(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_numWindowY(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_windowSymX(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_windowSymY(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_slopeErrorStd(enum ParamsIOFlag ioFlag);
    virtual int doUpdateState(double time, double dt, const PVLayerLoc * loc, pvdata_t * A,
          pvdata_t * V, int num_channels, pvdata_t * gSynHead, bool spiking,
          unsigned int * active_indices, unsigned int * num_active);

@@ -13,35 +13,31 @@ SparsityTermProbe::SparsityTermProbe() {
    initSparsityTermProbe_base();
 }
 
-SparsityTermProbe::SparsityTermProbe(HyPerLayer * layer, const char * msg)
+SparsityTermProbe::SparsityTermProbe(const char * probeName, HyPerCol * hc)
    : LayerFunctionProbe()
 {
    initSparsityTermProbe_base();
-   initSparsityTermProbe(NULL, layer, msg);
-}
-
-SparsityTermProbe::SparsityTermProbe(const char * filename, HyPerLayer * layer, const char * msg)
-   : LayerFunctionProbe()
-{
-   initSparsityTermProbe_base();
-   initSparsityTermProbe(filename, layer, msg);
+   initSparsityTermProbe(probeName, hc);
 }
 
 SparsityTermProbe::~SparsityTermProbe() {
 }
 
-int SparsityTermProbe::initSparsityTermProbe(const char * filename, HyPerLayer * layer, const char * msg) {
-   SparsityTermFunction * sparsity = new SparsityTermFunction(msg);
-   return initLayerFunctionProbe(filename, layer, msg, sparsity);
+int SparsityTermProbe::initSparsityTermProbe(const char * probeName, HyPerCol * hc) {
+   return initLayerFunctionProbe(probeName, hc);
+}
+
+void SparsityTermProbe::initFunction() {
+   setFunction(new SparsityTermFunction(getProbeName()));
 }
 
 int SparsityTermProbe::outputState(double timef) {
    HyPerLayer * l = getTargetLayer();
    int nk = l->getNumNeurons();
-   pvdata_t sum = function->evaluate(timef, l);
+   pvdata_t sum = getFunction()->evaluate(timef, l);
 
    if (outputstream && outputstream->fp) {
-      fprintf(outputstream->fp, "%st = %6.3f numNeurons = %8d Sparsity Penalty = %f\n", msg, timef, nk, sum);
+      fprintf(outputstream->fp, "%st = %6.3f numNeurons = %8d Sparsity Penalty = %f\n", getMessage(), timef, nk, sum);
       fflush(outputstream->fp);
    }
 

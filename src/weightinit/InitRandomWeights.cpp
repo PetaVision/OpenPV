@@ -18,7 +18,12 @@ int InitRandomWeights::initialize_base() {
    return PV_SUCCESS;
 }
 
-int InitRandomWeights::calcWeights(pvdata_t * dataStart, int dataPatchIndex, int arborId, InitWeightsParams *weightParams) {
+int InitRandomWeights::initialize(HyPerConn * conn) {
+   int status = InitWeights::initialize(conn);
+   return status;
+}
+
+int InitRandomWeights::calcWeights(pvdata_t * dataStart, int dataPatchIndex, int arborId) {
    return randomWeights(dataStart, weightParams, dataPatchIndex); // RNG depends on dataPatchIndex but not on arborId.
 }
 
@@ -30,17 +35,17 @@ int InitRandomWeights::calcWeights(pvdata_t * dataStart, int dataPatchIndex, int
  *     Patches on different processes with the same global pre-synaptic index will have the same seed and therefore
  *     will be identical.  Hence this implementation is independent of the MPI configuration.
  */
-int InitRandomWeights::initRNGs(HyPerConn * conn, bool isKernel) {
+int InitRandomWeights::initRNGs(bool isKernel) {
    assert(randState==NULL);
    int status = PV_SUCCESS;
    if (isKernel) {
-      randState = new Random(conn->getParent(), conn->getNumDataPatches());
+      randState = new Random(callingConn->getParent(), callingConn->getNumDataPatches());
    }
    else {
-      randState = new Random(conn->getParent(), conn->preSynapticLayer()->getLayerLoc(), true/*isExtended*/);
+      randState = new Random(callingConn->getParent(), callingConn->preSynapticLayer()->getLayerLoc(), true/*isExtended*/);
    }
    if (randState == NULL) {
-      fprintf(stderr, "InitRandomWeights error in rank %d process: unable to create object of class Random.\n", conn->getParent()->columnId());
+      fprintf(stderr, "InitRandomWeights error in rank %d process: unable to create object of class Random.\n", callingConn->getParent()->columnId());
       exit(EXIT_FAILURE);
    }
    return status;

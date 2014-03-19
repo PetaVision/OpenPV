@@ -25,12 +25,12 @@ public:
 protected:
    SigmoidLayer();
    int initialize(const char * name, HyPerCol * hc);
-   virtual int setParams(PVParams * params);
-   virtual void readVrest(PVParams * params);
-   virtual void readVthRest(PVParams * params);
-   virtual void readInverseFlag(PVParams * params);
-   virtual void readSigmoidFlag(PVParams * params);
-   virtual void readSigmoidAlpha(PVParams * params);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_Vrest(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_VthRest(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_InverseFlag(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_SigmoidFlag(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_SigmoidAlpha(enum ParamsIOFlag ioFlag);
    /* static */ int updateState(double timef, double dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels, pvdata_t * gSynHead, float Vth, float V0, float sigmoid_alpha, bool sigmoid_flag, bool inverse_flag, unsigned int * active_indices, unsigned int * num_active);
 private:
    int initialize_base();

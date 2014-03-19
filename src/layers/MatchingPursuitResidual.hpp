@@ -24,16 +24,16 @@ public:
    virtual ~MatchingPursuitResidual();
 #ifdef OBSOLETE
    //Obsolete Jan 15th, 2014 by slundquist
-   //getLastUpdateTime in HyPerLayer no loger updates lastUpdateTime, so no longer need to overwrite
+   //getLastUpdateTime in HyPerLayer no longer updates lastUpdateTime, so no longer need to override
    virtual double getLastUpdateTime() {return lastUpdateTime;}
-#endif
+#endif // OBSOLETE
 
 protected:
    MatchingPursuitResidual();
    int initialize(const char * name, HyPerCol * hc);
-   virtual int setParams(PVParams * params);
-   virtual void readSyncedMovie(PVParams * params);
-   virtual void readRefreshPeriod(PVParams * params);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_syncedMovie(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_refreshPeriod(enum ParamsIOFlag ioFlag);
 
    inline bool updateGSynFlag(HyPerConn * conn);
    // inline bool getNewImageFlag();

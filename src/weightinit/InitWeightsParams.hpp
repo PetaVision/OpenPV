@@ -25,31 +25,35 @@ public:
    InitWeightsParams(HyPerConn * pConn);
    virtual ~InitWeightsParams();
 
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual int communicateParamsInfo();
+
    //get-set methods:
-   inline const char * getName()                       {return name;}
+   inline const char * getName()                {return name;}
    inline void setName(const char * name)    {free(this->name); this->name = strdup(name);}
-   inline HyPerCol * getParent()                     {return parent;}
-   inline HyPerLayer * getPre()                        {return pre;}
-   inline HyPerLayer * getPost()                       {return post;}
-   inline HyPerConn * getParentConn()                 {return parentConn;}
-   inline ChannelType getChannel()                 {return channel;}
+   inline HyPerCol * getParent()                {return parent;}
+   inline HyPerLayer * getPre()                 {return pre;}
+   inline HyPerLayer * getPost()                {return post;}
+   inline HyPerConn * getParentConn()           {return parentConn;}
+   inline ChannelType getChannel()              {return channel;}
+   inline const char * getFilename()            {return filename;}
+   inline bool getUseListOfArborFiles()         {return useListOfArborFiles;}
+   inline bool getCombineWeightFiles()          {return combineWeightFiles;}
+   inline int getNumWeightFiles()               {return numWeightFiles;}
 
    virtual void calcOtherParams(int patchIndex);
    float calcYDelta(int jPost);
    float calcXDelta(int iPost);
+   float calcDelta(int post, float dPost, float distHeadPreUnits);
 
    //get/set:
-   int getnfPatch_tmp(); //       {
-      //int nf= parentConn->fPatchSize();
-//      return 0;
-//   }
-   int getnyPatch_tmp();//        {return parentConn->yPatchSize();}
-   int getnxPatch_tmp();    //    {return 0; } //parentConn->xPatchSize();}
-   int getPatchSize_tmp();//      {return 0; } //parentConn->fPatchSize()*
-         //parentConn->xPatchSize()*parentConn->yPatchSize();}
-   int getsx_tmp();//        {return 0; } //parentConn->xPatchStride();}
-   int getsy_tmp();//        {return 0; } //parentConn->yPatchStride();}
-   int getsf_tmp();//        {return 0; } //parentConn->fPatchStride();}
+   int getnfPatch();
+   int getnyPatch();
+   int getnxPatch();
+   int getPatchSize();
+   int getsx();
+   int getsy();
+   int getsf();
 
 protected:
    int initialize_base();
@@ -62,10 +66,17 @@ protected:
    HyPerCol       * parent;
    HyPerConn      * parentConn;
    ChannelType channel;    // which channel of the post to update (e.g. inhibit)
+   char * filename;
+   bool useListOfArborFiles;
+   bool combineWeightFiles;
+   int numWeightFiles;
 
    void getcheckdimensionsandstrides();
    int kernelIndexCalculations(int patchIndex);
-
+   virtual void ioParam_initWeightsFile(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_useListOfArborFiles(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_combineWeightFiles(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_numWeightFiles(enum ParamsIOFlag ioFlag);
    //more get/set
    inline float getxDistHeadPreUnits()        {return xDistHeadPreUnits;}
    inline float getyDistHeadPreUnits()        {return yDistHeadPreUnits;}
@@ -78,8 +89,6 @@ public:
    float xDistHeadPreUnits;
    float yDistHeadPreUnits;
 
-
-   float calcDelta(int post, float dPost, float distHeadPreUnits);
 };
 
 } /* namespace PV */

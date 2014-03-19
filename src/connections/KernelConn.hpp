@@ -21,12 +21,9 @@ class KernelConn: public HyPerConn {
 
 public:
 
-   KernelConn();
    virtual ~KernelConn();
 
-   KernelConn(const char * name, HyPerCol * hc, const char * pre_layer_name,
-         const char * post_layer_name, const char * filename = NULL,
-         InitWeights *weightInit = NULL);
+   KernelConn(const char * name, HyPerCol * hc);
    virtual int allocateDataStructures();
 
    virtual float minWeight(int arborId = 0);
@@ -63,6 +60,7 @@ protected:
    //Moved to HyPerConn
    //double weightUpdatePeriod;
    //double weightUpdateTime;
+   //double initialWeightUpdateTime;
    //double lastUpdateTime;
    bool symmetrizeWeightsFlag;
    int* numKernelActivations;
@@ -82,10 +80,9 @@ protected:
    bool keepKernelsSynchronized_flag;
 #endif // PV_USE_MPI
 
+   KernelConn();
    int initialize_base();
-   int initialize(const char * name, HyPerCol * hc,
-                  const char * pre_layer_name, const char * post_layer_name,
-                  const char * filename, InitWeights *weightInit=NULL);
+   int initialize(const char * name, HyPerCol * hc);
    virtual int communicateInitInfo();
    virtual int createArbors();
    virtual int initPlasticityPatches();
@@ -93,11 +90,8 @@ protected:
    //      int nyPatch, int nfPatch, int arborId);
    virtual pvdata_t * allocWeights(int nPatches, int nxPatch, int nyPatch, int nfPatch);
    int initNumDataPatches();
-#ifdef OBSOLETE // Marked obsolete April 15, 2013.  Implementing the new NormalizeBase class hierarchy
-   virtual int initNormalize();
-#endif // OBSOLETE
    virtual PVPatch *** initializeWeights(PVPatch *** arbors, pvdata_t ** dataStart,
-         int numPatches, const char * filename);
+         int numPatches);
 
    virtual int calc_dW(int arborId);
    virtual int clear_dW(int arborId);
@@ -121,13 +115,13 @@ protected:
 //                                     const char * filename);
    int getReciprocalWgtCoordinates(int kx, int ky, int kf, int kernelidx, int * kxRecip, int * kyRecip, int * kfRecip, int * kernelidxRecip);
 
-   virtual int setParams(PVParams* params);
-   virtual void readShmget_flag(PVParams * params);
-   virtual void readKeepKernelsSynchronized(PVParams * params);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_shmget_flag(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_keepKernelsSynchronized(enum ParamsIOFlag ioFlag);
    //Moved to HyPerConn
-   //virtual void readWeightUpdatePeriod(PVParams * params);
-   //virtual void readInitialWeightUpdateTime(PVParams * params);
-   virtual void readUseWindowPost(PVParams * params);
+   //virtual void ioParam_weightUpdatePeriod(enum ParamsIOFlag ioFlag);
+   //virtual void ioParam_initialWeightUpdateTime(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_useWindowPost(enum ParamsIOFlag ioFlag);
 
 private:
    int deleteWeights();

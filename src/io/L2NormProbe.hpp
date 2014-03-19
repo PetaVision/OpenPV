@@ -14,14 +14,14 @@
 namespace PV {
 class L2NormProbe : public LayerFunctionProbe {
 public:
-   L2NormProbe(HyPerLayer * layer, const char * msg);
-   L2NormProbe(const char * filename, HyPerLayer * layer, const char * msg);
+   L2NormProbe(const char * probeName, HyPerCol * hc);
    virtual ~L2NormProbe();
    pvdata_t evaluate();
 
 protected:
    L2NormProbe();
-   int initL2NormProbe(const char * filename, HyPerLayer * layer, const char * msg);
+   int initL2NormProbe(const char * probeName, HyPerCol * hc);
+   virtual void initFunction();
    virtual int writeState(double timed, HyPerLayer * l, pvdata_t value);
 
 private:

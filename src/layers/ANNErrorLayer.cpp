@@ -39,17 +39,10 @@ ANNErrorLayer::ANNErrorLayer()
    initialize_base();
 }
 
-ANNErrorLayer::ANNErrorLayer(const char * name, HyPerCol * hc, int num_channels)
-{
-   initialize_base();
-   assert(num_channels == 2);
-   initialize(name, hc, num_channels);
-}
-
 ANNErrorLayer::ANNErrorLayer(const char * name, HyPerCol * hc)
 {
    initialize_base();
-   initialize(name, hc, 2);
+   initialize(name, hc);
 }
 
 ANNErrorLayer::~ANNErrorLayer()
@@ -62,17 +55,20 @@ int ANNErrorLayer::initialize_base()
    return PV_SUCCESS;
 }
 
-int ANNErrorLayer::initialize(const char * name, HyPerCol * hc, int num_channels)
+int ANNErrorLayer::initialize(const char * name, HyPerCol * hc)
 {
-   int status = ANNLayer::initialize(name, hc, num_channels);
-   PVParams * params = parent->parameters();
-   status |= readErrScale(params);
+   int status = ANNLayer::initialize(name, hc);
    return status;
 }
 
-int ANNErrorLayer::readErrScale(PVParams * params){
-    errScale = params->value(name, "errScale", errScale);
-    return PV_SUCCESS;
+int ANNErrorLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = ANNLayer::ioParamsFillGroup(ioFlag);
+   ioParam_errScale(ioFlag);
+   return status;
+}
+
+void ANNErrorLayer::ioParam_errScale(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "errScale", &errScale, errScale, true/*warnIfAbsent*/);
 }
 
 int ANNErrorLayer::doUpdateState(double time, double dt, const PVLayerLoc * loc, pvdata_t * A,
@@ -91,8 +87,8 @@ int ANNErrorLayer::doUpdateState(double time, double dt, const PVLayerLoc * loc,
       int ny = loc->ny;
       int nf = loc->nf;
       int num_neurons = nx*ny*nf;
-    	  ANNErrorLayer_update_state(num_neurons, nx, ny, nf, loc->nb, V, VThresh,
-    			  VMax, VMin, VShift, gSynHead, A, errScale);
+         ANNErrorLayer_update_state(num_neurons, nx, ny, nf, loc->nb, V, VThresh,
+               VMax, VMin, VShift, gSynHead, A, errScale);
       if (this->writeSparseActivity){
          updateActiveIndices();  // added by GTK to allow for sparse output, can this be made an inline function???
       }

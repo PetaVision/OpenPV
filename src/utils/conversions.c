@@ -76,7 +76,7 @@ int zPatchHead(int kzPre, int nzPatch, int zScaleLog2Pre, int zScaleLog2Post)
  *
  * distance can be positive or negative
  *
- * also computes  kzPost, which is local x (or y) index of nearest cell in post layer
+ * returns kzPost, which is local x (or y) index of nearest cell in post layer
  *
  * @log2ScalePre
  * @log2ScalePost
@@ -106,7 +106,7 @@ int dist2NearestCell(int kzPre, int log2ScalePre, int log2ScalePost,
       *distPost = *distPre / scaleFac;
       kzPost = kzPre / scaleFac;
    }
-   return kzPre;
+   return kzPost;
 }
 
 
@@ -170,54 +170,3 @@ int layerIndexToUnitCellIndex(int patchIndex, const PVLayerLoc * preLoc, int nxU
    }
    return unitCellIndex;
 }
-
-
-#define DEPRECATED_FEATURES
-#ifdef DEPRECATED_FEATURES
-// deprecated
-/*
- * returns global x,y position of patchhead and of presynaptic cell
- * requires kPre >= 0 in restricted space
- */
-int posPatchHead(const int kPre, const int xScaleLog2Pre,
-      const int yScaleLog2Pre, const PVLayerLoc locPre, float * xPreGlobal,
-      float * yPreGlobal, const int xScaleLog2Post, const int yScaleLog2Post,
-      const PVLayerLoc locPost, const PVPatch * wp, float * xPatchHeadGlobal,
-      float * yPatchHeadGlobal)
-{
-   // get global index and location of presynaptic cell
-   const int nxPre = locPre.nx;
-   const int nyPre = locPre.ny;
-   const int nfPre = locPre.nf;
-   const int nxPreGlobal = locPre.nxGlobal;
-   const int nyPreGlobal = locPre.nyGlobal;
-   const int kPreGlobal = globalIndexFromLocal(kPre, locPre);
-   *xPreGlobal = xPosGlobal(kPreGlobal, xScaleLog2Pre, nxPreGlobal,
-         nyPreGlobal, nfPre);
-   *yPreGlobal = yPosGlobal(kPreGlobal, yScaleLog2Pre, nxPreGlobal,
-         nyPreGlobal, nfPre);
-
-   // get global index of postsynaptic patchhead
-   const int kxPre = (int) kxPos(kPre, nxPre, nyPre, nfPre);
-   const int kyPre = (int) kyPos(kPre, nxPre, nyPre, nfPre);
-   const int kxPatchHead = zPatchHead(kxPre, wp->nx, xScaleLog2Pre, xScaleLog2Post);
-   const int kyPatchHead = zPatchHead(kyPre, wp->ny, yScaleLog2Pre, yScaleLog2Post);
-   const int nxPost = locPost.nx;
-   const int nyPost = locPost.ny;
-   const int nfPost = locPost.nf;
-   const int kPatchHead = kIndex(kxPatchHead, kyPatchHead, 0, nxPost, nyPost, nfPost);
-   const int kPatchHeadGlobal = globalIndexFromLocal(kPatchHead, locPost);
-
-   // get global x,y position of patchhead
-   const float nxPostGlobal = locPost.nxGlobal;
-   const float nyPostGlobal = locPost.nyGlobal;
-   *xPatchHeadGlobal = xPosGlobal(kPatchHeadGlobal, xScaleLog2Post,
-         nxPostGlobal, nyPostGlobal, nfPost);
-   *yPatchHeadGlobal = yPosGlobal(kPatchHeadGlobal, yScaleLog2Post,
-         nxPostGlobal, nyPostGlobal, nfPost);
-
-   return 0;
-}
-
-
-#endif /* DEPRECATED_FEATURES */

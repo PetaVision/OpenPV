@@ -17,14 +17,13 @@ namespace PV {
 
 class ANNSquaredLayer: public PV::ANNLayer {
 public:
-   ANNSquaredLayer(const char* name, HyPerCol * hc, int numChannels);
    ANNSquaredLayer(const char* name, HyPerCol * hc);
    virtual ~ANNSquaredLayer();
    virtual int updateState(double time, double dt);
 
 protected:
    ANNSquaredLayer();
-   int initialize(const char * name, HyPerCol * hc, int numChannels=MAX_CHANNELS);
+   int initialize(const char * name, HyPerCol * hc);
 
 #ifdef PV_USE_OPENCL
    virtual int getNumCLEvents() {return numEvents;}

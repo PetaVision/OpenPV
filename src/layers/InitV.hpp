@@ -34,6 +34,7 @@ class InitV {
 public:
    InitV(HyPerCol * hc, const char * groupName);
    virtual ~InitV();
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    virtual int calcV(HyPerLayer * layer);
 
 protected:
@@ -50,7 +51,9 @@ private:
    int checkLocValue(int fromParams, int fromFile, const char * field);
    int printerr(const char * fmtstring, ...);
 
+   HyPerCol * parent;
    char * groupName;
+   char * initVTypeString;
    InitVType initVTypeCode;
    pvdata_t constantValue; // Defined only for initVTypeCode=ConstantV
    pvdata_t minV, maxV; // Defined only for initVTypeCode=UniformRandomV
@@ -58,7 +61,7 @@ private:
    pvdata_t meanV, sigmaV; // Defined only for initVTypeCode=GaussianRandomV
       // if valueIsBeingHeld is true, heldValue is normally distributed random number with mean meanV, st.dev. sigmaV
       // if valueIsBeingHeld is false, heldValue is undefined
-   const char * filename; // Defined only for initVTypeCode=InitVFromFile
+   char * filename; // Defined only for initVTypeCode=InitVFromFile
    bool useStderr; // If true, printerr passes message to stderr.  If false, printerr does nothing.
 
 }; // end class InitV

@@ -21,27 +21,26 @@ InitOneToOneWeightsWithDelaysParams::InitOneToOneWeightsWithDelaysParams(HyPerCo
 
 InitOneToOneWeightsWithDelaysParams::~InitOneToOneWeightsWithDelaysParams()
 {
-   // TODO Auto-generated destructor stub
 }
 
 int InitOneToOneWeightsWithDelaysParams::initialize_base() {
 
    initWeight = 1;
-   numArbors = 1;
    return 1;
 }
 
 int InitOneToOneWeightsWithDelaysParams::initialize(HyPerConn * parentConn) {
-   InitWeightsParams::initialize(parentConn);
+   return InitWeightsParams::initialize(parentConn);
+}
 
-   PVParams * params = parent->parameters();
-   int status = PV_SUCCESS;
-
-   initWeight = params->value(getName(), "weightInit", initWeight);
-   numArbors = parentConn->numberOfAxonalArborLists();
-
+int InitOneToOneWeightsWithDelaysParams::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = InitWeightsParams::ioParamsFillGroup(ioFlag);
+   ioParam_weightInit(ioFlag);
    return status;
+}
 
+void InitOneToOneWeightsWithDelaysParams::ioParam_weightInit(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, getName(), "weightInit", &initWeight, initWeight);
 }
 
 void InitOneToOneWeightsWithDelaysParams::calcOtherParams(int patchIndex) {

@@ -20,20 +20,20 @@ NormalizeScale::NormalizeScale() {
    initialize_base();
 }
 
-NormalizeScale::NormalizeScale(const char * name, PVParams * params) {
-   initialize(name, params);
+NormalizeScale::NormalizeScale(HyPerConn * callingConn) {
+   initialize(callingConn);
 }
 
 int NormalizeScale::initialize_base() {
    return PV_SUCCESS;
 }
 
-int NormalizeScale::initialize(const char * name, PVParams * params) {
-   return NormalizeBase::initialize(name, params);
+int NormalizeScale::initialize(HyPerConn * callingConn) {
+   return NormalizeBase::initialize(callingConn);
 }
 
-int NormalizeScale::setParams() {
-   int status = NormalizeBase::setParams();
+int NormalizeScale::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = NormalizeBase::ioParamsFillGroup(ioFlag);
    return status;
 }
 

@@ -12,12 +12,10 @@ ImprintConn::ImprintConn(){
    initialize_base();
 }
 
-ImprintConn::ImprintConn(const char * name, HyPerCol * hc,
-      const char * pre_layer_name, const char * post_layer_name,
-      const char * filename, InitWeights *weightInit) : KernelConn()
+ImprintConn::ImprintConn(const char * name, HyPerCol * hc) : KernelConn()
 {
    initialize_base();
-   initialize(name, hc, pre_layer_name, post_layer_name, filename, weightInit);
+   initialize(name, hc);
 }
 
 ImprintConn::~ImprintConn() {
@@ -42,16 +40,22 @@ int ImprintConn::allocateDataStructures() {
    return status;
 }
 
-int ImprintConn::setParams(PVParams * params) {
-   int status = KernelConn::setParams(params);
-   imprintTimeThresh = (double) params->value(name, "imprintTimeThresh", imprintTimeThresh);
-   if(imprintTimeThresh == -1){
-      imprintTimeThresh = weightUpdateTime * 100; //Default value of 100 weight updates
-   }
-   else if(imprintTimeThresh <= weightUpdateTime){
-      fprintf(stderr, "Warning: ImprintConn's imprintTimeThresh is smaller than weightUpdateTime. The algorithm will imprint on every weight update\n");
-   }
+int ImprintConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = KernelConn::ioParamsFillGroup(ioFlag);
+   ioParam_imprintTimeThresh(ioFlag);
    return status;
+}
+
+void ImprintConn::ioParam_imprintTimeThresh(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "imprintTimeThresh", &imprintTimeThresh, imprintTimeThresh);
+   if (ioFlag==PARAMS_IO_READ) {
+      if (imprintTimeThresh==-1) {
+         imprintTimeThresh = weightUpdateTime * 100; //Default value of 100 weight updates
+      }
+      else if(imprintTimeThresh <= weightUpdateTime && parent->columnId()==0){
+         fprintf(stderr, "Warning: ImprintConn's imprintTimeThresh is smaller than weightUpdateTime. The algorithm will imprint on every weight update\n");
+      }
+   }
 }
 
 bool ImprintConn::imprintFeature(int arborId, int kExt){

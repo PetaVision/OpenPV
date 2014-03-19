@@ -21,7 +21,6 @@ InitMTWeightsParams::InitMTWeightsParams(HyPerConn * parentConn)
 
 InitMTWeightsParams::~InitMTWeightsParams()
 {
-   // TODO Auto-generated destructor stub
 }
 
 int InitMTWeightsParams::initialize_base() {
@@ -40,26 +39,53 @@ int InitMTWeightsParams::initialize_base() {
    return 1;
 }
 int InitMTWeightsParams::initialize(HyPerConn * parentConn) {
-   InitWeightsParams::initialize(parentConn);
+   return InitWeightsParams::initialize(parentConn);
+}
 
-   PVParams * params = parent->parameters();
-   int status = PV_SUCCESS;
-
-   tunedSpeed = params->value(getName(), "tunedSpeed", tunedSpeed);
-   inputV1Speed = params->value(getName(), "inputV1Speed", inputV1Speed);
-   setRotate(params->value(getName(), "rotate", getRotate()));
-   inputV1Rotate = params->value(getName(), "inputV1Rotate", inputV1Rotate);
-
-
-   if (parentConn->fPatchSize() > 1) {
-      setDeltaThetaMax(params->value(getName(), "deltaThetaMax", getDeltaThetaMax()));
-      setThetaMax(params->value(getName(), "thetaMax", getThetaMax()));
-      inputV1ThetaMax = params->value(getName(), "inputV1ThetaMax", inputV1ThetaMax);
+int InitMTWeightsParams::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = InitGauss2DWeightsParams::ioParamsFillGroup(ioFlag);
+   ioParam_tunedSpeed(ioFlag);
+   ioParam_inputV1Speed(ioFlag);
+   ioParam_inputV1Rotate(ioFlag);
+   if (ioFlag != PARAMS_IO_READ) {
+      ioParam_nfpRelatedParams(ioFlag);
    }
-
-
    return status;
+}
 
+int InitMTWeightsParams::communicateParamsInfo() {
+   int status = InitGauss2DWeightsParams::communicateParamsInfo();
+   // deltaThetaMax, thetaMax and inputV1ThetaMax are meaningful
+   // only if the connection has nfp > 1
+   ioParam_nfpRelatedParams(PARAMS_IO_READ);
+   return status;
+}
+
+void InitMTWeightsParams::ioParam_tunedSpeed(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "tunedSpeed", &tunedSpeed, tunedSpeed);
+}
+
+void InitMTWeightsParams::ioParam_inputV1Speed(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "inputV1Speed", &inputV1Speed, inputV1Speed);
+}
+
+void InitMTWeightsParams::ioParam_inputV1Rotate(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "inputV1Rotate", &inputV1Rotate, inputV1Rotate);
+}
+
+void InitMTWeightsParams::ioParam_nfpRelatedParams(enum ParamsIOFlag ioFlag) {
+   // Fix this: on output, deltaThetaMax and thetaMax may get printed twice
+   // since the ioParam routines get called by ioParam_aspectRelatedParams()
+   // and ioParam_nfpRelatedParams()
+   if (parentConn->fPatchSize()>1) {
+      ioParam_deltaThetaMax(ioFlag);
+      ioParam_thetaMax(ioFlag);
+      ioParam_inputV1ThetaMax(ioFlag);
+   }
+}
+
+void InitMTWeightsParams::ioParam_inputV1ThetaMax(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "inputV1ThetaMax", &inputV1ThetaMax, inputV1ThetaMax);
 }
 
 float InitMTWeightsParams::calcDthPre() {

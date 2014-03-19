@@ -31,37 +31,105 @@ InitWeightsParams::~InitWeightsParams()
    free(this->name);
 }
 
-
 int InitWeightsParams::initialize_base() {
    this->parent = NULL;
    this->pre = NULL;
    this->post = NULL;
    this->channel = CHANNEL_EXC;
    this->name = strdup("Unknown");
+   this->filename = NULL;
+   this->useListOfArborFiles = false;
+   this->combineWeightFiles = false;
    return PV_SUCCESS;
 }
-int InitWeightsParams::getnfPatch_tmp()        {return parentConn->fPatchSize();}
-int InitWeightsParams::getnyPatch_tmp() {
+
+int InitWeightsParams::getnfPatch() {
+   return parentConn->fPatchSize();
+}
+
+int InitWeightsParams::getnyPatch() {
    return parentConn->yPatchSize();
 }
-int InitWeightsParams::getnxPatch_tmp()        {return parentConn->xPatchSize();}
-int InitWeightsParams::getPatchSize_tmp()      {return parentConn->fPatchSize()*
-      parentConn->xPatchSize()*parentConn->yPatchSize();}
-int InitWeightsParams::getsx_tmp()        {return parentConn->xPatchStride();}
-int InitWeightsParams::getsy_tmp()        {return parentConn->yPatchStride();}
-int InitWeightsParams::getsf_tmp()        {return parentConn->fPatchStride();}
+
+int InitWeightsParams::getnxPatch() {
+   return parentConn->xPatchSize();
+}
+
+int InitWeightsParams::getPatchSize() {
+   return parentConn->fPatchSize()*parentConn->xPatchSize()*parentConn->yPatchSize();
+}
+
+int InitWeightsParams::getsx() {
+   return parentConn->xPatchStride();
+}
+
+int InitWeightsParams::getsy() {
+   return parentConn->yPatchStride();
+}
+
+int InitWeightsParams::getsf() {
+   return parentConn->fPatchStride();
+}
 
 int InitWeightsParams::initialize(HyPerConn * pConn) {
    int status = PV_SUCCESS;
 
    this->parentConn = pConn;
    this->parent = parentConn->getParent();
-   this->pre = parentConn->getPre();
-   this->post = parentConn->getPost();
-   this->channel = parentConn->getChannel();
    this->setName(parentConn->getName());
 
    return status;
+}
+
+int InitWeightsParams::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   // Read/write any params from the params file, typically
+   // parent->ioParamValue(ioFlag, name, "param_name", &param, default_value);
+   ioParam_initWeightsFile(ioFlag);
+   ioParam_useListOfArborFiles(ioFlag);
+   ioParam_combineWeightFiles(ioFlag);
+   ioParam_numWeightFiles(ioFlag);
+   return PV_SUCCESS;
+}
+
+void InitWeightsParams::ioParam_initWeightsFile(enum ParamsIOFlag ioFlag) {
+   parent->ioParamString(ioFlag, name, "initWeightsFile", &filename, NULL, false/*warnIfAbsent*/);
+}
+
+void InitWeightsParams::ioParam_useListOfArborFiles(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "initWeightsFile"));
+   if (filename!=NULL) {
+      parent->ioParamValue(ioFlag, name, "useListOfArborFiles", &useListOfArborFiles, false/*default*/, true/*warnIfAbsent*/);
+   }
+}
+
+void InitWeightsParams::ioParam_combineWeightFiles(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "initWeightsFile"));
+   if (filename!=NULL) {
+      parent->ioParamValue(ioFlag, name, "combineWeightFiles", &combineWeightFiles, false/*default*/, true/*warnIfAbsent*/);
+   }
+}
+
+void InitWeightsParams::ioParam_numWeightFiles(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "initWeightsFile"));
+   if (filename!=NULL) {
+      assert(!parent->parameters()->presentAndNotBeenRead(name, "combineWeightFiles"));
+      if (combineWeightFiles) {
+         int max_weight_files = 1;  // arbitrary limit...
+         parent->ioParamValue(ioFlag, name, "numWeightFiles", &numWeightFiles, max_weight_files, true/*warnIfAbsent*/);
+      }
+   }
+}
+
+int InitWeightsParams::communicateParamsInfo() {
+   // to be called during communicateInitInfo stage;
+   // set any member variables that depend on other objects
+   // having been initialized or communicateInitInfo'd
+   this->pre = parentConn->getPre();
+   this->post = parentConn->getPost();
+   assert(this->pre && this->post);
+   this->channel = parentConn->getChannel();
+
+   return PV_SUCCESS;
 }
 
 void InitWeightsParams::calcOtherParams(int dataPatchIndex) {

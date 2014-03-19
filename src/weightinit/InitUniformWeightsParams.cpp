@@ -22,7 +22,6 @@ InitUniformWeightsParams::InitUniformWeightsParams(HyPerConn * parentConn)
 
 InitUniformWeightsParams::~InitUniformWeightsParams()
 {
-   // TODO Auto-generated destructor stub
 }
 
 int InitUniformWeightsParams::initialize_base() {
@@ -33,17 +32,23 @@ int InitUniformWeightsParams::initialize_base() {
 }
 
 int InitUniformWeightsParams::initialize(HyPerConn * parentConn) {
-   InitWeightsParams::initialize(parentConn);
-
-   PVParams * params = parent->parameters();
-   int status = PV_SUCCESS;
-
-   initWeight = params->value(getName(), "weightInit", initWeight);
-   connectOnlySameFeatures = params->value(getName(), "connectOnlySameFeatures", connectOnlySameFeatures);
-
-
-   return status;
-
+   return InitWeightsParams::initialize(parentConn);
 }
+
+int InitUniformWeightsParams::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = InitWeightsParams::ioParamsFillGroup(ioFlag);
+   ioParam_weightInit(ioFlag);
+   ioParam_connectOnlySameFeatures(ioFlag);
+   return status;
+}
+
+void InitUniformWeightsParams::ioParam_weightInit(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "weightInit", &initWeight, initWeight);
+}
+
+void InitUniformWeightsParams::ioParam_connectOnlySameFeatures(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "connectOnlySameFeatures", &connectOnlySameFeatures, connectOnlySameFeatures);
+}
+
 
 } /* namespace PV */

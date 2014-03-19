@@ -49,7 +49,7 @@ typedef struct _Drop{
 
 class Patterns : public PV::Image {
 public:
-   Patterns(const char * name, HyPerCol * hc, PatternType type);
+   Patterns(const char * name, HyPerCol * hc);
    virtual ~Patterns();
    virtual int communicateInitInfo();
    virtual int allocateDataStructures();
@@ -72,10 +72,41 @@ public:
 protected:
 
    Patterns();
-   int initialize(const char * name, HyPerCol * hc, PatternType type);
-   OrientationMode readOrientation();
+   int initialize(const char * name, HyPerCol * hc);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_imagePath(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_patternType(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_orientation(enum ParamsIOFlag ioFlag);
    int setOrientation(OrientationMode ormode);
-   MovementType readMovementType();
+   virtual void ioParam_pMove(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_pSwitch(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_movementType(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_movementSpeed(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_writePosition(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_maxValue(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_width(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_height(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_wavelengthVert(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_wavelengthHoriz(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_rotation(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_dropSpeed(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_dropSpeedRandomMax(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_dropSpeedRandomMin(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_dropPeriod(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_dropPeriodRandomMax(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_dropPeriodRandomMin(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_dropPosition(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_dropPositionRandomMax(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_dropPositionRandomMin(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_halfNeutral(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_minValue(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_inOut(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_startFrame(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_endFrame(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_patternsOutputPath(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_displayPeriod(enum ParamsIOFlag ioFlag);
+
+   int stringMatch(const char ** allowed_values, const char * stopstring, const char * string_to_match);
    int drawPattern(float val);
    int drawBars(OrientationMode ormode, pvdata_t * buf, int nx, int ny, float val);
    int drawRectangles(float val);
@@ -89,8 +120,11 @@ protected:
    virtual double getDeltaUpdateTime();
 
    PatternType type;
+   char * typeString;
    OrientationMode orientation;
+   char * orientationString;
    OrientationMode lastOrientation;
+   char * movementTypeString;
    MovementType movementType; //save the type of movement
                               //(random walk, horizontal or vertical drift
                               //or random jumping)

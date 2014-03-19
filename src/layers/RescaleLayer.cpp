@@ -68,48 +68,68 @@ int RescaleLayer::communicateInitInfo() {
 //    return status;
 //}
 
-int RescaleLayer::setParams(PVParams * params){
+int RescaleLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag){
   //readOriginalLayerName(params);  // done in CloneVLayer
-   CloneVLayer::setParams(params);
-   readRescaleMethod(params);
+   CloneVLayer::ioParamsFillGroup(ioFlag);
+   ioParam_rescaleMethod(ioFlag);
    if (strcmp(rescaleMethod, "maxmin") == 0){
-      readTargetMax(params);
-      readTargetMin(params);
+      ioParam_targetMax(ioFlag);
+      ioParam_targetMin(ioFlag);
    }
    else if(strcmp(rescaleMethod, "meanstd") == 0){
-      readTargetMean(params);
-      readTargetStd(params);
+      ioParam_targetMean(ioFlag);
+      ioParam_targetStd(ioFlag);
    }
    else if(strcmp(rescaleMethod, "pointmeanstd") == 0){
-      readTargetMean(params);
-      readTargetStd(params);
+      ioParam_targetMean(ioFlag);
+      ioParam_targetStd(ioFlag);
    }
    else{
-      fprintf(stderr, "Rescale Layer %s: rescaleMethod does not exist. Current implemented methods are maxmin, meanstd, pointmeanstd.\n",
+      fprintf(stderr, "RescaleLayer \"%s\": rescaleMethod does not exist. Current implemented methods are maxmin, meanstd, pointmeanstd.\n",
             name);
       exit(PV_FAILURE);
    }
    return PV_SUCCESS;
 }
 
-
-void RescaleLayer::readTargetMax(PVParams * params){
-   targetMax = params->value(name, "targetMax", targetMax);
+void RescaleLayer::ioParam_rescaleMethod(enum ParamsIOFlag ioFlag){
+   parent->ioParamString(ioFlag, name, "rescaleMethod", &rescaleMethod, rescaleMethod);
+   if (strcmp(rescaleMethod, "maxmin")!=0 || strcmp(rescaleMethod, "meanstd")) {
+      if (parent->columnId()==0) {
+         fprintf(stderr, "RescaleLayer \"%s\": rescaleMethod \"%s\" does not exist. Current implemented methods are maxmin and meanstd.\n",
+               name, rescaleMethod);
+      }
+      MPI_Barrier(parent->icCommunicator()->communicator());
+      exit(PV_FAILURE);
+   }
 }
 
-void RescaleLayer::readTargetMin(PVParams * params){
-   targetMin = params->value(name, "targetMin", targetMin);
+void RescaleLayer::ioParam_targetMax(enum ParamsIOFlag ioFlag){
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "rescaleMethod"));
+   if (strcmp(rescaleMethod, "maxmin")==0) {
+      parent->ioParamValue(ioFlag, name, "targetMax", &targetMax, targetMax);
+   }
 }
 
-void RescaleLayer::readTargetMean(PVParams * params){
-   targetMean = params->value(name, "targetMean", targetMean);
-}
-void RescaleLayer::readTargetStd(PVParams * params){
-   targetStd = params->value(name, "targetStd", targetStd);
+void RescaleLayer::ioParam_targetMin(enum ParamsIOFlag ioFlag){
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "rescaleMethod"));
+   if (strcmp(rescaleMethod, "maxmin")==0) {
+      parent->ioParamValue(ioFlag, name, "targetMin", &targetMin, targetMin);
+   }
 }
 
-void RescaleLayer::readRescaleMethod(PVParams * params){
-   rescaleMethod = strdup(params->stringValue(name, "rescaleMethod", rescaleMethod));
+void RescaleLayer::ioParam_targetMean(enum ParamsIOFlag ioFlag){
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "rescaleMethod"));
+   if (strcmp(rescaleMethod, "meanstd")==0) {
+      parent->ioParamValue(ioFlag, name, "targetMean", &targetMean, targetMean);
+   }
+}
+
+void RescaleLayer::ioParam_targetStd(enum ParamsIOFlag ioFlag){
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "rescaleMethod"));
+   if (strcmp(rescaleMethod, "meanstd")==0) {
+      parent->ioParamValue(ioFlag, name, "targetStd", &targetStd, targetStd);
+   }
 }
 
 int RescaleLayer::setActivity() {
@@ -217,23 +237,23 @@ int RescaleLayer::updateState(double timef, double dt) {
                 float sum = 0;
                 float sumsq = 0;
                 for(int iF = 0; iF < nf; iF++){
-                   int kextOriginal = kIndex(iX+nbOrig, iY+nbOrig, iF, nx+2*nbOrig, ny+2*nbOrig, nf);
-                   sum += originalA[kextOriginal];
+                   int kext = kIndex(iX, iY, iF, nx+2*nbOrig, ny+2*nbOrig, nf);
+                   sum += originalA[kext];
                 }
                 float mean = sum/nf;
                 for(int iF = 0; iF < nf; iF++){
-                   int kextOriginal = kIndex(iX+nbOrig, iY+nbOrig, iF, nx+2*nbOrig, ny+2*nbOrig, nf);
-                   sumsq += (originalA[kextOriginal] - mean) * (originalA[kextOriginal] - mean);
+                   int kext = kIndex(iX, iY, iF, nx+2*nbOrig, ny+2*nbOrig, nf);
+                   sumsq += (originalA[kext] - mean) * (originalA[kext] - mean);
                 }
                 float std = sqrt(sumsq/nf);
                 for(int iF = 0; iF < nf; iF++){
-                   int kextOriginal = kIndex(iX+nbOrig, iY+nbOrig, iF, nx+2*nbOrig, ny+2*nbOrig, nf);
-                   int kext = kIndex(iX+nbOrig, iY+nbOrig, iF, nx+2*nb, ny+2*nb, nf);
+                   int kextOrig = kIndex(iX, iY, iF, nx+2*nbOrig, ny+2*nbOrig, nf);
+                   int kext = kIndex(iX, iY, iF, nx+2*nb, ny+2*nb, nf);
                    if (std != 0){
-                      A[kext] = ((originalA[kextOriginal] - mean) * (targetStd/std) + targetMean);
+                      A[kext] = ((originalA[kextOrig] - mean) * (targetStd/std) + targetMean);
                    }
                    else{
-                      A[kext] = originalA[kextOriginal];
+                      A[kext] = originalA[kextOrig];
                    }
                 }
              }
@@ -241,7 +261,7 @@ int RescaleLayer::updateState(double timef, double dt) {
        }
        if( status == PV_SUCCESS ) status = updateActiveIndices();
        //Update lastUpdateTime
-	   lastUpdateTime = parent->simulationTime();
+       lastUpdateTime = parent->simulationTime();
 
    //}
    return status;

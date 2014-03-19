@@ -13,27 +13,36 @@ FeedbackConn::FeedbackConn() {
     initialize_base();
 }
 
-FeedbackConn::FeedbackConn(const char * name, HyPerCol * hc, const char * feedforwardConnName) {
-    initialize_base();
-    initialize(name, hc, feedforwardConnName);
-}  // end of FeedbackConn::FeedbackConn(const char *, HyPerCol *, int, GenerativeConn *)
+FeedbackConn::FeedbackConn(const char * name, HyPerCol * hc) {
+   initialize_base();
+   initialize(name, hc);
+}
 
 int FeedbackConn::initialize_base() {
    return PV_SUCCESS;
 }
 
-int FeedbackConn::initialize(const char * name, HyPerCol *hc, const char * feedforwardConnName) {
+int FeedbackConn::initialize(const char * name, HyPerCol * hc) {
    int status = PV_SUCCESS;
-   if (hc->parameters()->stringPresent(name, "preLayerName") || hc->parameters()->stringPresent(name, "postLayerName")) {
+   return TransposeConn::initialize(name, hc);
+}
+
+// FeedbackConn doesn't use preLayerName or postLayerName
+// If they're present, errors are handled byy setPreAndPostLayerNames
+void FeedbackConn::ioParam_preLayerName(enum ParamsIOFlag ioFlag) {}
+void FeedbackConn::ioParam_postLayerName(enum ParamsIOFlag ioFlag) {}
+
+int FeedbackConn::setPreAndPostLayerNames() {
+   int status = PV_SUCCESS;
+   PVParams * params = parent->parameters();
+   if (params->stringPresent(name, "preLayerName") || params->stringPresent(name, "postLayerName")) {
       if (parent->columnId()==0) {
-         fprintf(stderr, "%s \"%s\": FeedbackConn does not use preLayerName or postLayerName.\n", hc->parameters()->groupKeywordFromName(name), name);
+         fprintf(stderr, "%s \"%s\": FeedbackConn does not use preLayerName or postLayerName.\n", params->groupKeywordFromName(name), name);
       }
       status = PV_FAILURE;
    }
-   MPI_Barrier(hc->icCommunicator()->communicator());
+   MPI_Barrier(parent->icCommunicator()->communicator());
    if (status != PV_SUCCESS) exit(EXIT_FAILURE);
-
-   TransposeConn::initialize(name, hc, NULL, NULL, feedforwardConnName);
    return status;
 }
 
@@ -48,16 +57,6 @@ int FeedbackConn::handleMissingPreAndPostLayerNames() {
    }
    return PV_SUCCESS;
 }
-
-PVPatch *** FeedbackConn::initializeWeights(PVPatch *** arbors, pvdata_t ** dataStart, int numPatches,
-      const char * filename) {
-    if( filename ) return KernelConn::initializeWeights(arbors, dataStart, numPatches, filename);
-
-    for(int arborId = 0; arborId < numAxonalArborLists; arborId++){
-       transposeKernels(arborId);
-    }
-    return arbors;
-}  // end of FeedbackConn::initializeWeights
 
 }  // end of namespace PV block
 

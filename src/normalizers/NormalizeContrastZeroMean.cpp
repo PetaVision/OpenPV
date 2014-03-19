@@ -13,22 +13,38 @@ NormalizeContrastZeroMean::NormalizeContrastZeroMean() {
    initialize_base();
 }
 
-NormalizeContrastZeroMean::NormalizeContrastZeroMean(const char * name, PVParams * params) {
-   initialize(name, params);
+NormalizeContrastZeroMean::NormalizeContrastZeroMean(HyPerConn * callingConn) {
+   initialize(callingConn);
 }
 
 int NormalizeContrastZeroMean::initialize_base() {
    return PV_SUCCESS;
 }
 
-int NormalizeContrastZeroMean::initialize(const char * name, PVParams * params) {
-   return NormalizeBase::initialize(name, params);
+int NormalizeContrastZeroMean::initialize(HyPerConn * callingConn) {
+   return NormalizeBase::initialize(callingConn);
 }
 
-int NormalizeContrastZeroMean::setParams() {
-   int status = NormalizeBase::setParams();
-   readMinSumTolerated();
+int NormalizeContrastZeroMean::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = NormalizeBase::ioParamsFillGroup(ioFlag);
+   ioParam_minSumTolerated(ioFlag);
    return status;
+}
+
+void NormalizeContrastZeroMean::ioParam_minSumTolerated(enum ParamsIOFlag ioFlag) {
+   parent()->ioParamValue(ioFlag, name, "minSumTolerated", &minSumTolerated, 0.0f, true/*warnIfAbsent*/);
+}
+
+void NormalizeContrastZeroMean::ioParam_normalizeFromPostPerspective(enum ParamsIOFlag ioFlag) {
+   if (ioFlag == PARAMS_IO_READ) {
+      if (parent()->parameters()->present(name, "normalizeFromPostPerspective")) {
+         if (parent()->columnId()==0) {
+            fprintf(stderr, "%s \"%s\": normalizeMethod \"normalizeContrastZeroMean\" doesn't use normalizeFromPostPerspective parameter.\n",
+                  parent()->parameters()->groupKeywordFromName(name), name);
+         }
+         parent()->parameters()->value(name, "normalizeFromPostPerspective"); // marks param as having been read
+      }
+   }
 }
 
 int NormalizeContrastZeroMean::normalizeWeights(HyPerConn * conn) {

@@ -17,22 +17,17 @@ namespace PV {
 
 class InhibSTDPConn: public PV::OjaSTDPConn {
 public:
-   InhibSTDPConn(const char * name, HyPerCol * hc,
-         const char * pre_layer_name, const char * post_layer_name,
-         const char * filename=NULL, InitWeights *weightInit=NULL);
+   InhibSTDPConn(const char * name, HyPerCol * hc);
 
    virtual int updateWeights(int axonID);
 
 protected:
-   int initialize(const char * name, HyPerCol * hc,
-         const char * pre_layer_name, const char * post_layer_name,
-         const char * filename, InitWeights *weightInit);
+   int initialize(const char * name, HyPerCol * hc);
 
-   int setParams(PVParams * params);
-
-   virtual void readTauOja(PVParams * params) {}
-   virtual void readOjaFlag(PVParams * params) {}
-   virtual void readWMax(PVParams * params) {}
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_tauO(enum ParamsIOFlag ioFlag) {}
+   virtual void ioParam_ojaFlag(enum ParamsIOFlag ioFlag) {}
+   virtual void ioParam_wMax(enum ParamsIOFlag ioFlag) {}
 };
 
 }

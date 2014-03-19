@@ -19,13 +19,15 @@ Patterns::Patterns() {
    initialize_base();
 }
 
-Patterns::Patterns(const char * name, HyPerCol * hc, PatternType type) {
+Patterns::Patterns(const char * name, HyPerCol * hc) {
    initialize_base();
-   initialize(name, hc, type);
+   initialize(name, hc);
 }
 
 Patterns::~Patterns()
 {
+   free(typeString);
+   free(orientationString);
    free(patternsOutputPath);
    vDrops.clear();
 
@@ -36,6 +38,8 @@ Patterns::~Patterns()
 }
 
 int Patterns::initialize_base() {
+   typeString = NULL;
+   orientationString = NULL;
    writePosition = 0;
    patternsOutputPath = NULL;
    patternsFile = NULL;
@@ -48,109 +52,21 @@ int Patterns::initialize_base() {
    return PV_SUCCESS;
 }
 
-int Patterns::initialize(const char * name, HyPerCol * hc, PatternType type) {
-   Image::initialize(name, hc, NULL);
+int Patterns::initialize(const char * name, HyPerCol * hc) {
+   Image::initialize(name, hc);
    assert(getLayerLoc()->nf == 1);
-   this->type = type;
+   // this->type is set in Patterns::ioParams, called by HyPerLayer::initialize
    PVParams * params = hc->parameters();
    const PVLayerLoc * loc = getLayerLoc();
 
-   // Moved to communicateInitInfo()
-   // unsigned int seed = parent->getObjectSeed(1);
-   // cl_random_init(&patternRandState, 1, seed);
-   // // This should put the RNG into the same state across MPI, but let's check.
-// #ifndef NDEBUG
-//    unsigned int check_seed = seed;
-//    MPI_Bcast(&check_seed, 1, MPI_UNSIGNED, 0, parent->icCommunicator()->communicator());
-//    assert(check_seed == seed);
-// #endif // NDEBUG
-
    if (type==BARS) {
-      orientation = readOrientation();
-      setOrientation(orientation);
-      pMove   = params->value(name, "pMove", 0.0);
-      pSwitch = params->value(name, "pSwitch", 0.0);
-      movementType = readMovementType();
-      movementSpeed = params->value(name, "movementSpeed", 1);
-      writePosition = (int) params->value(name,"writePosition", 0);
-      maxVal = params->value(name,"maxValue", PATTERNS_MAXVAL);
-      maxWidth  = params->value(name, "width", loc->nx); // width of bar when bar is vertical
-      maxHeight = params->value(name, "height", loc->ny); // height of bar when bar is horizontal
-      wavelengthVert = params->value(name, "wavelengthVert", 2*maxWidth);
-      wavelengthHoriz = params->value(name, "wavelengthHoriz", 2*maxHeight);
       position = 0;
-   }
-   if (type==RECTANGLES) {
-      maxVal = params->value(name,"maxValue", PATTERNS_MAXVAL);
-      maxWidth  = params->value(name, "maxWidth", loc->nx);
-      maxHeight = params->value(name, "maxHeight", loc->ny);
-      minWidth = params->value(name, "minWidth", maxWidth);
-      minHeight = params->value(name, "minWeight", maxHeight);
-      movementType = readMovementType();
-      movementSpeed = params->value(name, "movementSpeed", 1);
-      writePosition = (int) params->value(name,"writePosition", 0);
-   }
-   if (type==SINEWAVE || type==COSWAVE || type==SINEV || type==COSV) {
-      orientation = readOrientation();
-      setOrientation(orientation);
-      pMove   = params->value(name, "pMove", 0.0);
-      pSwitch = params->value(name, "pSwitch", 0.0);
-      maxVal = params->value(name,"maxValue", PATTERNS_MAXVAL);
-      maxWidth  = params->value(name, "width", loc->nx); // width of bar when bar is vertical
-      maxHeight = params->value(name, "height", loc->ny); // height of bar when bar is horizontal
-      wavelengthVert = params->value(name, "wavelengthVert", 2*maxWidth);
-      wavelengthHoriz = params->value(name, "wavelengthHoriz", 2*maxHeight);
-      rotation = params->value(name, "rotation", 0.0);
-      writePosition = (int) params->value(name,"writePosition", 0);
    }
    if (type==IMPULSE) {
       initPatternCntr = 0;
    }
    if (type==DROP) {
-      //(pixels/dt) Radius expands dropSpeed pixles per timestep; 0 for rand
-      dropSpeed = params->value(name, "dropSpeed", 1);
-      if (dropSpeed==-1) {
-		  dropSpeedRandomMax = params->value(name, "dropSpeedRandomMax", 3);
-		  dropSpeedRandomMin = params->value(name, "dropSpeedRandomMin", 1);
-      }
-
-      //(dt) -1 for random period, otherwise, number of frames in between drops
-      //TODO: What does dropPeriod of 0 represent? If nothing - why not have 0 be random?
-      dropPeriod = params->value(name, "dropPeriod", 10);
-      if (dropPeriod==-1) {
-		  dropPeriodRandomMax = params->value(name, "dropPeriodRandomMax", 20);
-		  dropPeriodRandomMin = params->value(name, "dropPeriodRandomMin", 5);
-      }
-
-      //Random position is -1 for random number of drops from pos, 0 for drop from center, otherwise
-      //number of timesteps in which the drop stays at the position
-      dropPosition = params->value(name, "dropPosition", 0);
-      if (dropPosition==-1) {
-		  dropPositionRandomMax = params->value(name, "dropPositionRandomMax", 20);
-		  dropPositionRandomMin = params->value(name, "dropPositionRandomMin", 5);
-      }
-
-      maxVal = params->value(name,"maxValue", PATTERNS_MAXVAL);
-      onOffFlag = params->value(name, "halfNeutral", 0);
-      inOut = params->value(name, "inOut", 1);
-
-      //inOut must be between -1 and 1
-      if (inOut < -1 || inOut > 1){
-         fprintf(stderr, "Patterns:: inOut must be -1 for all in drops, 0 for random, or 1 for all out drops, or anything in between ");
-         abort();
-      }
-
-      if(onOffFlag){
-         minVal = params->value(name,"minValue", PATTERNS_MINVAL);
-      }
-      else {
-         minVal = maxVal;
-      }
-
-      startFrame = params->value(name, "startFrame", 0);
-      endFrame = params->value(name, "endFrame", -1);
-      if (endFrame < 0) endFrame = INT_MAX;
-      //Assign first drop
+     //Assign first drop
       //radius.push_back(0);
       //Assign next drop
       if(dropPeriod == -1){
@@ -160,40 +76,8 @@ int Patterns::initialize(const char * name, HyPerCol * hc, PatternType type) {
          nextDropFrame = dropPeriod;
       }
 
-      // Moved to communicateInitInfo() since iti uses the RNG
-      // if(dropPosition == -1){
-      //    nextPosChangeFrame = nextDropFrame + dropPositionRandomMin + floor((dropPositionRandomMax - dropPositionRandomMin) * patternRand());
-      //    xPos = (int)floor(loc->nxGlobal * patternRand());
-      //    yPos = (int)floor(loc->nyGlobal * patternRand());
-      // }
-      // else if(dropPosition == 0){
-      //    xPos = (int)floor((loc->nxGlobal - 1) / 2);
-      //    yPos = (int)floor((loc->nyGlobal - 1) / 2);
-      // }
-      // else{
-      //    nextPosChangeFrame = nextDropFrame + dropPosition;
-      //    xPos = (int)floor(loc->nxGlobal * patternRand());
-      //    yPos = (int)floor(loc->nyGlobal * patternRand());
-      // }
-      // MPI_Bcast(&nextDropFrame, 1, MPI_DOUBLE, 0, parent->icCommunicator()->communicator());
    }
 
-   // set parameters that controls writing of new images
-   writeImages = (int)params->value(name, "writeImages", 0.0);
-   // set output path for movie frames
-   if(writeImages){
-      if ( params->stringPresent(name, "patternsOutputPath") ) {
-         patternsOutputPath = strdup(params->stringValue(name, "patternsOutputPath"));
-         assert(patternsOutputPath != NULL);
-         hc->ensureDirExists(patternsOutputPath);
-      }
-      else {
-         patternsOutputPath = strdup( hc->getOutputPath());
-         assert(patternsOutputPath != NULL);
-         printf("patternsOutputPath is not specified in params file.\n"
-               "Patterns output path set to default \"%s\"\n",patternsOutputPath);
-      }
-   }
    if(writePosition){
       char file_name[PV_PATH_MAX];
 
@@ -215,53 +99,119 @@ int Patterns::initialize(const char * name, HyPerCol * hc, PatternType type) {
       }
    }
 
-
-   displayPeriod = params->value(name,"displayPeriod", 0.0f);
    // displayPeriod = 0 means nextDisplayTime will always >= starting time and therefore the pattern will update every timestep
    //nextDisplayTime = hc->simulationTime() + displayPeriod;
-
-   // Moved to allocateDataStructures()
-   // drawPattern(maxVal);
 
    return PV_SUCCESS;
 }
 
-OrientationMode Patterns::readOrientation() {
+void Patterns::ioParam_imagePath(enum ParamsIOFlag ioFlag) {
+   if (ioFlag == PARAMS_IO_READ) {
+      filename = NULL;
+      parent->parameters()->handleUnnecessaryStringParameter(name, "imageList", NULL);
+   }
+}
+
+int Patterns::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = Image::ioParamsFillGroup(ioFlag);
+   ioParam_patternType(ioFlag);
+   ioParam_orientation(ioFlag);
+   ioParam_pMove(ioFlag);
+   ioParam_pSwitch(ioFlag);
+   ioParam_movementType(ioFlag);
+   ioParam_movementSpeed(ioFlag);
+   ioParam_writePosition(ioFlag);
+   ioParam_maxValue(ioFlag);
+   ioParam_width(ioFlag);
+   ioParam_height(ioFlag);
+   ioParam_wavelengthVert(ioFlag);
+   ioParam_wavelengthHoriz(ioFlag);
+   ioParam_rotation(ioFlag);
+   ioParam_dropSpeed(ioFlag);
+   ioParam_dropSpeedRandomMax(ioFlag);
+   ioParam_dropSpeedRandomMin(ioFlag);
+   ioParam_dropPeriod(ioFlag);
+   ioParam_dropPeriodRandomMax(ioFlag);
+   ioParam_dropPeriodRandomMin(ioFlag);
+   ioParam_dropPosition(ioFlag);
+   ioParam_dropPositionRandomMax(ioFlag);
+   ioParam_dropPositionRandomMin(ioFlag);
+   ioParam_halfNeutral(ioFlag);
+   ioParam_minValue(ioFlag);
+   ioParam_inOut(ioFlag);
+   ioParam_startFrame(ioFlag);
+   ioParam_endFrame(ioFlag);
+   ioParam_patternsOutputPath(ioFlag);
+   ioParam_displayPeriod(ioFlag);
+   return status;
+}
+
+int Patterns::stringMatch(const char ** allowed_values, const char * stopstring, const char * string_to_match) {
+   int match = -1;
+   for( int i=0; strcmp(allowed_values[i], stopstring); i++ ) {
+      const char * current_string = allowed_values[i];
+      if( !strcmp(string_to_match, current_string) ) {
+         match = i;
+         break;
+      }
+   }
+   return match;
+}
+
+void Patterns::ioParam_patternType(enum ParamsIOFlag ioFlag) {
+   parent->ioParamStringRequired(ioFlag, name, "patternType", &typeString);
+   if (ioFlag==PARAMS_IO_READ) {
+      const char * allowed_pattern_types[] = { // these strings should correspond to the types in enum PatternType in Patterns.hpp
+            "BARS",
+            "RECTANGLES",
+            "SINEWAVE",
+            "COSWAVE",
+            "IMPULSE",
+            "SINEV",
+            "COSV",
+            "DROP",
+            "_End_allowedPatternTypes"  // Keep this string; it allows the string matching loop to know when to stop.
+      };
+      int match = stringMatch(allowed_pattern_types, "_End_allowedPatternTypes", typeString);
+      if( match < 0 ) {
+         if (parent->columnId()==0) {
+            fprintf(stderr, "Group \"%s\": Pattern type \"%s\" not recognized.\n", name, typeString);
+         }
+         MPI_Barrier(parent->icCommunicator()->communicator());
+         exit(EXIT_FAILURE);
+      }
+   }
+}
+
+void Patterns::ioParam_orientation(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "patternType"));
+   if (!(type==BARS || type==SINEWAVE || type==COSWAVE || type==SINEV || type==COSV)) {
+      return;
+   }
+   parent->ioParamString(ioFlag, name, "orientation", &orientationString, "VERTICAL");
+   if (ioFlag != PARAMS_IO_READ) {
+      return;
+   }
    const char * allowedOrientationModes[] = { // these strings should correspond to the types in enum PatternType in Patterns.hpp
          "HORIZONTAL",
          "VERTICAL",
          "MIXED",
          "_End_allowedOrientationTypes"  // Keep this string; it allows the string matching loop to know when to stop.
    };
-   OrientationMode ormode = vertical;
-   //if the orientation isn't set, use vertical as the default...
-   const char * orientationModeStr = parent->parameters()->stringValue(name, "orientation");
-   if( ! orientationModeStr ) {
-      ormode = vertical; // PVParams::stringValue will print a warning message if absent
-   }
-   else {
-      int orientationModeMatch = false;
-      for( int i=0; strcmp(allowedOrientationModes[i],"_End_allowedOrientationTypes"); i++ ) {
-         const char * thisorientationmode = allowedOrientationModes[i];
-         if( !strcmp(orientationModeStr, thisorientationmode) ) {
-            ormode = (OrientationMode) i;
-            orientationModeMatch = true;
-            break;
-         }
+   int match = stringMatch(allowedOrientationModes, "_End_allowedOrientationTypes", orientationString);
+   if (match < 0) {
+      if (parent->columnId()==0) {
+         fprintf(stderr, "Group \"%s\": Orientation mode \"%s\" not recognized.\n", name, orientationString);
       }
-      if( !orientationModeMatch ) { //if the set orientation isn't recognized, use vertical as default
-         if (parent->columnId()==0) {
-            fprintf(stderr, "Warning: orientation mode \"%s\" not recognized.  Using VERTICAL.\n", orientationModeStr);
-         }
-         ormode = vertical;
-      }
+      MPI_Barrier(parent->icCommunicator()->communicator());
+      exit(EXIT_FAILURE);
    }
-   return ormode;
+   setOrientation((OrientationMode) match);
 }
 
 int Patterns::setOrientation(OrientationMode ormode) {
    orientation = ormode;
-   switch(ormode) {
+   switch(orientation) {
    case vertical:
       positionBound = wavelengthVert;
       break;
@@ -276,39 +226,259 @@ int Patterns::setOrientation(OrientationMode ormode) {
    return PV_SUCCESS;
 }
 
-MovementType Patterns::readMovementType() {
-   //set movement type (random walk is default)
-   MovementType movement_type = RANDOMWALK;
-   const char * allowedMovementTypes[] = { // these strings should correspond to the types in enum PatternType in Patterns.hpp
-         "RANDOMWALK",
-         "MOVEFORWARD",
-         "MOVEBACKWARD",
-         "RANDOMJUMP",
-         "_End_allowedPatternTypes"  // Keep this string; it allows the string matching loop to know when to stop.
-   };
-   //if the movement type isn't set, use random walk as the default...
-   const char * movementTypeStr = parent->parameters()->stringValue(name, "movementType");
-   if( ! movementTypeStr ) {
-      movement_type = RANDOMWALK; // PVParams::stringValue will print a warning message if absent
+void Patterns::ioParam_pMove(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "patternType"));
+   if (type==BARS || type==SINEWAVE || type==COSWAVE || type==SINEV || type==COSV) {
+      parent->ioParamValue(ioFlag, name, "pMove", &pMove, 0.0f);
+   }
+}
+
+void Patterns::ioParam_pSwitch(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "patternType"));
+   if (type==BARS || type==SINEWAVE || type==COSWAVE || type==SINEV || type==COSV) {
+      parent->ioParamValue(ioFlag, name, "pSwitch", &pSwitch, 0.0f);
+   }
+}
+
+void Patterns::ioParam_movementType(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "patternType"));
+   if (type==BARS || type==RECTANGLES) {
+      parent->ioParamString(ioFlag, name, "movementType", &movementTypeString, "RANDOMWALK"/*default value*/);
+      if (ioFlag!=PARAMS_IO_READ) {
+         return;
+      }
+      const char * allowedMovementTypes[] = { // these strings should correspond to the types in enum PatternType in Patterns.hpp
+            "RANDOMWALK",
+            "MOVEFORWARD",
+            "MOVEBACKWARD",
+            "RANDOMJUMP",
+            "_End_allowedMovementTypes"  // Keep this string; it allows the string matching loop to know when to stop.
+      };
+      int match = stringMatch(allowedMovementTypes, "_End_allowedMovementTypes", movementTypeString);
+      if (match < 0) {
+         if (parent->columnId()==0) {
+            fprintf(stderr, "Group \"%s\": movementType \"%s\" not recognized.\n", name, movementTypeString);
+         }
+         MPI_Barrier(parent->icCommunicator()->communicator());
+         exit(EXIT_FAILURE);
+      }
+      movementType = (MovementType) match;
+   }
+}
+
+void Patterns::ioParam_movementSpeed(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "patternType"));
+   if (type==BARS || type==RECTANGLES) {
+      parent->ioParamValue(ioFlag, name, "movementSpeed", &movementSpeed, 1.0f);
+   }
+}
+
+void Patterns::ioParam_writePosition(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "patternType"));
+   if (type==BARS || type==RECTANGLES || type==SINEWAVE || type==COSWAVE || type==SINEV || type==COSV) {
+      parent->ioParamValue(ioFlag, name, "writePosition", &writePosition, 1);
    }
    else {
-      int movementTypeMatch = false;
-      for( int i=0; strcmp(allowedMovementTypes[i],"_End_allowedPatternTypes"); i++ ) {
-         const char * thisMovementType = allowedMovementTypes[i];
-         if( !strcmp(movementTypeStr, thisMovementType) ) {
-            movement_type = (MovementType) i;
-            movementTypeMatch = true;
-            break;
-         }
-      }
-      if( !movementTypeMatch ) { //if the set movement type isn't recognized, use random walk as default
-         if (parent->columnId()==0) {
-            fprintf(stderr, "Warning: movement type \"%s\" not recognized.  Using RANDOMWALK.\n", movementTypeStr);
-         }
-         movement_type = RANDOMWALK;
+      writePosition = false;
+   }
+}
+
+void Patterns::ioParam_maxValue(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "patternType"));
+   if (type==BARS || type==RECTANGLES || type==SINEWAVE || type==COSWAVE || type==SINEV || type==COSV || type==DROP) {
+      parent->ioParamValue(ioFlag, name, "maxValue", &maxVal, PATTERNS_MAXVAL);
+   }
+}
+
+void Patterns::ioParam_width(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "patternType"));
+   if (type==BARS || type==RECTANGLES || type==SINEWAVE || type==COSWAVE || type==SINEV || type==COSV) {
+      parent->ioParamValue(ioFlag, name, "width", &maxWidth, getLayerLoc()->nx);
+   }
+}
+
+void Patterns::ioParam_height(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "patternType"));
+   if (type==BARS || type==RECTANGLES || type==SINEWAVE || type==COSWAVE || type==SINEV || type==COSV) {
+      parent->ioParamValue(ioFlag, name, "height", &maxHeight, getLayerLoc()->ny);
+   }
+}
+
+void Patterns::ioParam_wavelengthVert(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "patternType"));
+   if (type==BARS || type==SINEWAVE || type==COSWAVE || type==SINEV || type==COSV) {
+      assert(!parent->parameters()->presentAndNotBeenRead(name, "width"));
+      parent->ioParamValue(ioFlag, name, "wavelengthVert", &wavelengthVert, 2*maxWidth);
+   }
+}
+
+void Patterns::ioParam_wavelengthHoriz(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "patternType"));
+   if (type==BARS || type==SINEWAVE || type==COSWAVE || type==SINEV || type==COSV) {
+      assert(!parent->parameters()->presentAndNotBeenRead(name, "height"));
+      parent->ioParamValue(ioFlag, name, "wavelengthHoriz", &wavelengthHoriz, 2*maxHeight);
+   }
+}
+
+void Patterns::ioParam_rotation(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "patternType"));
+   if (type==SINEWAVE || type==COSWAVE || type==SINEV || type==COSV) {
+      parent->ioParamValue(ioFlag, name, "rotation", &rotation, 0.0f);
+   }
+}
+
+void Patterns::ioParam_dropSpeed(enum ParamsIOFlag ioFlag) {
+   //(pixels/dt) Radius expands dropSpeed pixles per timestep
+   // -1 for random speed: see dropSpeedRandomMax and dropSpeedRandomMin
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "patternType"));
+   if (type==DROP) {
+       parent->ioParamValue(ioFlag, name, "dropSpeed", &dropSpeed, 1.0f);
+   }
+}
+
+void Patterns::ioParam_dropSpeedRandomMax(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "patternType"));
+   if (type==DROP) {
+      assert(!parent->parameters()->presentAndNotBeenRead(name, "dropSpeed"));
+      if (dropSpeed==-1.0f) {
+         parent->ioParamValue(ioFlag, name, "dropSpeedRandomMax", &dropSpeedRandomMax, 3.0f);
       }
    }
-   return movement_type;
+}
+
+void Patterns::ioParam_dropSpeedRandomMin(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "patternType"));
+   if (type==DROP) {
+      assert(!parent->parameters()->presentAndNotBeenRead(name, "dropSpeed"));
+      if (dropSpeed==-1.0f) {
+         parent->ioParamValue(ioFlag, name, "dropSpeedRandomMin", &dropSpeedRandomMin, 1.0f);
+      }
+   }
+}
+
+void Patterns::ioParam_dropPeriod(enum ParamsIOFlag ioFlag) {
+   //(dt) -1 for random period, otherwise, number of frames in between drops
+   //TODO: What does dropPeriod of 0 represent? If nothing - why not have 0 be random?
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "patternType"));
+   if (type==DROP) {
+       parent->ioParamValue(ioFlag, name, "dropPeriod", &dropPeriod, 1);
+   }
+}
+
+void Patterns::ioParam_dropPeriodRandomMax(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "patternType"));
+   if (type==DROP) {
+      assert(!parent->parameters()->presentAndNotBeenRead(name, "dropPeriod"));
+      if (dropPeriod==-1) {
+         parent->ioParamValue(ioFlag, name, "dropPeriodRandomMax", &dropPeriodRandomMax, 20);
+      }
+   }
+}
+
+void Patterns::ioParam_dropPeriodRandomMin(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "patternType"));
+   if (type==DROP) {
+      assert(!parent->parameters()->presentAndNotBeenRead(name, "dropPeriod"));
+      if (dropPeriod==-1) {
+         parent->ioParamValue(ioFlag, name, "dropPeriodRandomMin", &dropPeriodRandomMin, 5);
+      }
+   }
+}
+
+void Patterns::ioParam_dropPosition(enum ParamsIOFlag ioFlag) {
+   //Random position is -1 for random number of drops from pos, 0 for drop from center, otherwise
+   //number of timesteps in which the drop stays at the position
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "patternType"));
+   if (type==DROP) {
+       parent->ioParamValue(ioFlag, name, "dropPosition", &dropPosition, 1);
+   }
+}
+
+void Patterns::ioParam_dropPositionRandomMax(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "patternType"));
+   if (type==DROP) {
+      assert(!parent->parameters()->presentAndNotBeenRead(name, "dropPosition"));
+      if (dropPosition==-1) {
+         parent->ioParamValue(ioFlag, name, "dropPositionRandomMax", &dropPositionRandomMax, 20);
+      }
+   }
+}
+
+void Patterns::ioParam_dropPositionRandomMin(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "patternType"));
+   if (type==DROP) {
+      assert(!parent->parameters()->presentAndNotBeenRead(name, "dropPosition"));
+      if (dropPosition==-1) {
+         parent->ioParamValue(ioFlag, name, "dropPositionRandomMin", &dropPositionRandomMin, 5);
+      }
+   }
+}
+
+void Patterns::ioParam_halfNeutral(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "patternType"));
+   if (type==DROP) {
+      parent->ioParamValue(ioFlag, name, "halfNeutral", &onOffFlag, 0);
+   }
+}
+
+void Patterns::ioParam_minValue(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "patternType"));
+   if (type==DROP) {
+      assert(!parent->parameters()->presentAndNotBeenRead(name, "halfNeutral"));
+      if(onOffFlag){
+         parent->ioParamValue(ioFlag, name, "minValue", &minVal, PATTERNS_MINVAL);
+      }
+      else {
+         if (ioFlag==PARAMS_IO_READ) minVal = maxVal;
+      }
+   }
+   else {
+      minVal = maxVal;
+   }
+}
+
+void Patterns::ioParam_inOut(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "patternType"));
+   if (type==DROP) {
+      parent->ioParamValue(ioFlag, name, "inOut", &inOut, 1.0f);
+      //inOut must be between -1 and 1
+      if (inOut < -1 || inOut > 1){
+         fprintf(stderr, "Patterns:: inOut must be -1 for all in drops, 0 for random, or 1 for all out drops, or anything in between ");
+         abort();
+      }
+   }
+}
+
+void Patterns::ioParam_startFrame(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "patternType"));
+   if (type==DROP) {
+      parent->ioParamValue(ioFlag, name, "startFrame", &startFrame, 0.0);
+   }
+}
+
+void Patterns::ioParam_endFrame(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "patternType"));
+   if (type==DROP) {
+      parent->ioParamValue(ioFlag, name, "endFrame", &endFrame, -1.0);
+      if (ioFlag == PARAMS_IO_READ && endFrame < 0) {
+         endFrame = INT_MAX;
+      }
+   }
+}
+
+void Patterns::ioParam_patternsOutputPath(enum ParamsIOFlag ioFlag) {
+   // set output path for movie frames
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "writeImages"));
+   if (writeImages) {
+      parent->ioParamString(ioFlag, name, "patternsOutputPath", &patternsOutputPath, parent->getOutputPath());
+      if (ioFlag == PARAMS_IO_READ) {
+         parent->ensureDirExists(patternsOutputPath);
+      }
+   }
+}
+
+void Patterns::ioParam_displayPeriod(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "displayPeriod", &displayPeriod, 0.0);
 }
 
 int Patterns::communicateInitInfo() {

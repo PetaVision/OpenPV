@@ -15,14 +15,13 @@ InitUniformRandomWeightsParams::InitUniformRandomWeightsParams()
 }
 
 InitUniformRandomWeightsParams::InitUniformRandomWeightsParams(HyPerConn * parentConn)
-                     : InitWeightsParams() {
+{
    initialize_base();
    initialize(parentConn);
 }
 
 InitUniformRandomWeightsParams::~InitUniformRandomWeightsParams()
 {
-   // TODO Auto-generated destructor stub
 }
 
 int InitUniformRandomWeightsParams::initialize_base() {
@@ -34,21 +33,28 @@ int InitUniformRandomWeightsParams::initialize_base() {
 }
 
 int InitUniformRandomWeightsParams::initialize(HyPerConn * parentConn) {
-   InitWeightsParams::initialize(parentConn);
-
-   PVParams * params = parent->parameters();
-   int status = PV_SUCCESS;
-
-   // minWeight and maxWeight require arborId, use default values instead if wMinInit, wMaxInit not provided by user
-   //wMin = (float) parentConn->minWeight();
-   //wMax = (float) parentConn->maxWeight();
-   wMin = params->value(getName(), "wMinInit", wMin);
-   wMax = params->value(getName(), "wMaxInit", wMax);
-   sparseFraction = params->value(getName(), "sparseFraction", sparseFraction);
-
-
-   return status;
-
+   return InitWeightsParams::initialize(parentConn);
 }
+
+int InitUniformRandomWeightsParams::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = InitRandomWeightsParams::ioParamsFillGroup(ioFlag);
+   ioParam_wMinInit(ioFlag);
+   ioParam_wMaxInit(ioFlag);
+   ioParam_sparseFraction(ioFlag);
+   return status;
+}
+
+void InitUniformRandomWeightsParams::ioParam_wMinInit(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "wMinInit", &wMin, wMin);
+}
+
+void InitUniformRandomWeightsParams::ioParam_wMaxInit(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "wMaxInit", &wMax, wMax);
+}
+
+void InitUniformRandomWeightsParams::ioParam_sparseFraction(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "sparseFraction", &sparseFraction, sparseFraction);
+}
+
 
 } /* namespace PV */

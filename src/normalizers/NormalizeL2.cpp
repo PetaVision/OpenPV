@@ -13,26 +13,26 @@ NormalizeL2::NormalizeL2() {
    initialize_base();
 }
 
-NormalizeL2::NormalizeL2(const char * name, PVParams * params) {
-   initialize(name, params);
+NormalizeL2::NormalizeL2(HyPerConn * callingConn) {
+   initialize(callingConn);
 }
 
 int NormalizeL2::initialize_base() {
    return PV_SUCCESS;
 }
 
-int NormalizeL2::initialize(const char * name, PVParams * params) {
-   return NormalizeBase::initialize(name, params);
+int NormalizeL2::initialize(HyPerConn * callingConn) {
+   return NormalizeBase::initialize(callingConn);
 }
 
-int NormalizeL2::setParams() {
-   int status = NormalizeBase::setParams();
-   readMinL2NormTolerated();
+int NormalizeL2::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = NormalizeBase::ioParamsFillGroup(ioFlag);
+   ioParam_minL2NormTolerated(ioFlag);
    return status;
 }
 
-void NormalizeL2::readMinL2NormTolerated() {
-   minL2NormTolerated = params->value(name, "minL2NormTolerated", 0.0f, true/*warnIfAbsent*/);
+void NormalizeL2::ioParam_minL2NormTolerated(enum ParamsIOFlag ioFlag) {
+   parent()->ioParamValue(ioFlag, name, "minL2NormTolerated", &minL2NormTolerated, 0.0f, true/*warnIfAbsent*/);
 }
 
 int NormalizeL2::normalizeWeights(HyPerConn * conn) {

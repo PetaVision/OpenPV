@@ -12,7 +12,8 @@ namespace PV {
 
 Example::Example(const char * name, HyPerCol * hc)
 {
-   initialize(name, hc, 1);
+   numChannels = 1;
+   initialize(name, hc);
 }
 
 #ifdef PV_USE_OPENCL

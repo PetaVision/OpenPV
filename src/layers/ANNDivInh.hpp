@@ -18,7 +18,6 @@ namespace PV {
 
 class ANNDivInh: public PV::ANNLayer {
 public:
-   ANNDivInh(const char* name, HyPerCol * hc, int numChannels);
    ANNDivInh(const char* name, HyPerCol * hc);
    virtual ~ANNDivInh();
 
@@ -27,7 +26,7 @@ public:
 
 protected:
    ANNDivInh();
-   int initialize(const char * name, HyPerCol * hc, int numChannels=MAX_CHANNELS);
+   int initialize(const char * name, HyPerCol * hc);
 
 #ifdef PV_USE_OPENCL
    virtual int getNumCLEvents() {return numEvents;}

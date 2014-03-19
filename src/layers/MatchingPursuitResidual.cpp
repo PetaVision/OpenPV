@@ -29,32 +29,29 @@ int MatchingPursuitResidual::initialize_base() {
 }
 
 int MatchingPursuitResidual::initialize(const char * name, HyPerCol * hc) {
-   return ANNLayer::initialize(name, hc);
-}
-
-int MatchingPursuitResidual::setParams(PVParams * params) {
-   int status = HyPerLayer::setParams(params);
-   readSyncedMovie(params);
-   readRefreshPeriod(params);
+   int status = ANNLayer::initialize(name, hc);
+   if (refreshPeriod>=0) nextRefreshTime = parent->simulationTime();
    return status;
 }
 
-void MatchingPursuitResidual::readSyncedMovie(PVParams * params) {
-   const char * synced_movie_name = params->stringValue(name, "syncedMovie", true);
-   if (synced_movie_name && synced_movie_name[0]) {
-      syncedMovieName = strdup(synced_movie_name);
-      if (syncedMovieName==NULL) {
-         fprintf(stderr, "MatchingPursuitLayer \"%s\" error: rank %d process unable to copy syncedMovie param: %s\n", name, parent->columnId(), strerror(errno));
-         abort();
-      }
-   }
+int MatchingPursuitResidual::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = ANNLayer::ioParamsFillGroup(ioFlag);
+   PVParams * params = parent->parameters();
+   ioParam_syncedMovie(ioFlag);
+   ioParam_refreshPeriod(ioFlag);
+   return status;
 }
 
-void MatchingPursuitResidual::readRefreshPeriod(PVParams * params) {
-   assert(!params->presentAndNotBeenRead(name, "syncedMovie"));
+void MatchingPursuitResidual::ioParam_syncedMovie(enum ParamsIOFlag ioFlag) {
+   parent->ioParamString(ioFlag, name, "syncedMovie", &syncedMovieName, NULL);
+}
+
+void MatchingPursuitResidual::ioParam_refreshPeriod(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "syncedMovie"));
    if (syncedMovieName==NULL || syncedMovieName[0]=='\0') {
-      refreshPeriod = params->value(name, "refreshPeriod", parent->getDeltaTime());
-      if (refreshPeriod>=0) nextRefreshTime = parent->simulationTime();
+      free(syncedMovieName);
+      syncedMovieName = NULL;
+      parent->ioParamValue(ioFlag, name, "refreshPeriod", &refreshPeriod, parent->getDeltaTime());
    }
 }
 

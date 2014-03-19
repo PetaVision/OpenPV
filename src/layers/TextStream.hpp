@@ -20,65 +20,66 @@ namespace PV {
 class TextStream : public HyPerLayer{
 
 public:
-	TextStream(const char * name, HyPerCol * hc);
-	virtual ~TextStream();
-	virtual int allocateDataStructures();
+   TextStream(const char * name, HyPerCol * hc);
+   virtual ~TextStream();
+   virtual int allocateDataStructures();
    //virtual bool needUpdate(double time, double dt);
-	virtual int updateState(double time, double dt);
+   virtual int updateState(double time, double dt);
    //TODO Is this being used?
-	//float lastUpdate()  { return lastUpdateTime; }
+   //float lastUpdate()  { return lastUpdateTime; }
 
 private:
-	int initialize_base();
-	int encodedChar;
+   int initialize_base();
+   int encodedChar;
 
 protected:
-	TextStream();
-	int initialize(const char * name, HyPerCol * hc);
-	int getCharEncoding(const unsigned char * printableASCIIChar);
-	char getCharType(int encodedChar);
+   TextStream();
+   int initialize(const char * name, HyPerCol * hc);
+   int getCharEncoding(const unsigned char * printableASCIIChar);
+   char getCharType(int encodedChar);
 
-	virtual int setParams(PVParams * params);
-	virtual void readNxScale(PVParams * params); // Override from HyPerLayer - will just set nxScale now instead of reading
-	virtual void readNyScale(PVParams * params); // Override from HyPerLayer - will just set nyScale now instead of reading
-	virtual void readNf(PVParams * params);      // Override from HyPerLayer - will just set NF now instead of reading
-	virtual void readUseCapitalization(PVParams * params);
-	virtual void readLoopInput(PVParams * params);
-	virtual void readDisplayPeriod(PVParams * params);
-	virtual void readTextInputPath(PVParams * params);
-	virtual void readTextOffset(PVParams * params);
-	virtual void readMirrorBCFlag(PVParams * params) {mirrorBCflag = false;} // Flag doesn't make sense for text
-	virtual void readTextBCFlag(PVParams * params);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_nxScale(enum ParamsIOFlag ioFlag); // Override from HyPerLayer - will just set nxScale now instead of reading
+   virtual void ioParam_nyScale(enum ParamsIOFlag ioFlag); // Override from HyPerLayer - will just set nyScale now instead of reading
+   virtual void ioParam_nf(enum ParamsIOFlag ioFlag);      // Override from HyPerLayer - will just set NF now instead of reading
+   virtual void ioParam_useCapitalization(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_loopInput(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_displayPeriod(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_textInputPath(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_textOffset(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_mirrorBCflag(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_textBCFlag(enum ParamsIOFlag ioFlag);
    //TestStream does not need trigger flag, since it's overwriting needUpdate
-   virtual void readTriggerFlag(PVParams * params){};
+   virtual void ioParam_triggerFlag(enum ParamsIOFlag ioFlag) {}
+   virtual void ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {}
 
    virtual double getDeltaUpdateTime();
 
-	int scatterTextBuffer(PV::Communicator * comm, const PVLayerLoc * loc);
-	int readFileToBuffer(int offset, const PVLayerLoc * loc, int * buf);
-	int loadBufferIntoData(const PVLayerLoc * loc, int * buf);
+   int scatterTextBuffer(PV::Communicator * comm, const PVLayerLoc * loc);
+   int readFileToBuffer(int offset, const PVLayerLoc * loc, int * buf);
+   int loadBufferIntoData(const PVLayerLoc * loc, int * buf);
 
 
-	MPI_Datatype * mpi_datatypes;  // MPI datatypes for boundary exchange
+   MPI_Datatype * mpi_datatypes;  // MPI datatypes for boundary exchange
 
-	PV_Stream * fileStream;
+   PV_Stream * fileStream;
 
-	const char * filename;    // Path to file if a file exists
+   char * filename;          // Path to file if a file exists
 
-	PVLayerLoc textLoc;       // Size/location of actual image in global context
-	pvdata_t * textData;      // Buffer containing image
+   PVLayerLoc textLoc;       // Size/location of actual image in global context
+   pvdata_t * textData;      // Buffer containing image
 
-	double displayPeriod;     // Length of time a string 'frame' is displayed
-	//double nextDisplayTime;
+   double displayPeriod;     // Length of time a string 'frame' is displayed
+   //double nextDisplayTime;
 
    //lastUpdateTime already exists in HyPerLayer
-	//double lastUpdateTime;    // Time of last image update
+   //double lastUpdateTime;    // Time of last image update
 
-	int textOffset;           // Starting point for run
+   int textOffset;           // Starting point for run
 
-	bool useCapitalization;   // Should mapping account for capital letters
-	bool loopInput;           // Should the algorithm loop through the text file until specified total run time is completed or exit gracefully
-	bool textBCFlag;          // Grab text in either direction
+   bool useCapitalization;   // Should mapping account for capital letters
+   bool loopInput;           // Should the algorithm loop through the text file until specified total run time is completed or exit gracefully
+   bool textBCFlag;          // Grab text in either direction
 };
 }
 

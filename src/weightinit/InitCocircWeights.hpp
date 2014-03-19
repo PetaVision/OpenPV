@@ -21,23 +21,19 @@ class InitCocircWeightsParams;
 
 class InitCocircWeights: public PV::InitGauss2DWeights {
 public:
-   InitCocircWeights();
-//   InitCocircWeights(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
-//         ChannelType channel);
+   InitCocircWeights(HyPerConn * conn);
    virtual ~InitCocircWeights();
 
-   virtual int calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, int arborId,
-         InitWeightsParams *weightParams);
-   virtual InitWeightsParams * createNewWeightParams(HyPerConn * callingConn);
+   virtual int calcWeights(pvdata_t * dataStart, int patchIndex, int arborId);
+   virtual InitWeightsParams * createNewWeightParams();
 
 
 protected:
-   int initialize_base();
-//   int initialize(const char * name, HyPerCol * hc,
-//                  HyPerLayer * pre, HyPerLayer * post,
-//                  ChannelType channel);
+   InitCocircWeights();
+   int initialize(HyPerConn * conn);
 
 private:
+   int initialize_base();
    bool calcDistChordCocircKurvePreNKurvePost(
             float xDelta, float yDelta, int kfPost, InitCocircWeightsParams *weightParamPtr, float thPost);
    int cocircCalcWeights(pvdata_t * w_tmp, InitCocircWeightsParams * weightParamPtr);

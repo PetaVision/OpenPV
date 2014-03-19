@@ -32,6 +32,7 @@ SoundStream::~SoundStream() {
 }
 
 int SoundStream::initialize_base() {
+   numChannels = 0;
    displayPeriod = 1;
    nextDisplayTime = 1;
    filename = NULL;
@@ -42,7 +43,7 @@ int SoundStream::initialize_base() {
 
 int SoundStream::initialize(const char * name, HyPerCol * hc) {
    int status = PV_SUCCESS;
-   HyPerLayer::initialize(name, hc, 0);
+   HyPerLayer::initialize(name, hc);
 
    // Moved to allocateDataStructures
    // free(clayer->V);
@@ -66,20 +67,20 @@ int SoundStream::initialize(const char * name, HyPerCol * hc) {
    assert(fileStream != NULL);
    std::cout << "SOUNDSTREAM INITIALIZE!\n";
    //if( getParent()->icCommunicator()->commRank()==0 ) { // Only rank 0 should open the file pointer
-   //	filename = strdup(filename);
-   //	assert(filename!=NULL );
+   //   filename = strdup(filename);
+   //   assert(filename!=NULL );
 
-   //	fileStream = PV_fopen(filename, "r");
-   //	if( fileStream->fp == NULL ) {
-   //		fprintf(stderr, "TextStream::initialize error opening \"%s\": %s\n", filename, strerror(errno));
-   //		status = PV_FAILURE;
-   //		abort();
-   //	}
+   //   fileStream = PV_fopen(filename, "r");
+   //   if( fileStream->fp == NULL ) {
+   //      fprintf(stderr, "TextStream::initialize error opening \"%s\": %s\n", filename, strerror(errno));
+   //      status = PV_FAILURE;
+   //      abort();
+   //   }
 
-   //	// Nav to offset if specified
-   //	if (textOffset > 0) {
-   //		status = PV_fseek(fileStream,textOffset,SEEK_SET);
-   //	}
+   //   // Nav to offset if specified
+   //   if (textOffset > 0) {
+   //      status = PV_fseek(fileStream,textOffset,SEEK_SET);
+   //   }
    //}
 
    nextDisplayTime = hc->simulationTime();
@@ -90,16 +91,16 @@ int SoundStream::initialize(const char * name, HyPerCol * hc) {
    return status;
 }
 
-int SoundStream::setParams(PVParams * params){
-   readSoundInputPath(params);
+int SoundStream::ioParams(enum ParamsIOFlag ioFlag){
+   ioParam_soundInputPath(ioFlag);
 
-   int status = HyPerLayer::setParams(params);
+   int status = HyPerLayer::ioParams(ioFlag);
    return status;
 
 }
 
-void SoundStream::readSoundInputPath(PVParams * params) {
-   filename = params->stringValue(name,"soundInputPath",NULL);
+void SoundStream::ioParam_soundInputPath(enum ParamsIOFlag ioFlag) {
+   parent->ioParamString(ioFlag, name, "soundInputPath", &filename, NULL, false/*warnIfAbsent*/);
 }
 
 int SoundStream::allocateDataStructures() {

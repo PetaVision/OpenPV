@@ -290,7 +290,7 @@ int PV_fclose(PV_Stream * pvstream) {
    int status = PV_SUCCESS;
    if (pvstream) {
       if (pvstream->fp && pvstream->isfile) {
-         status = fclose(pvstream->fp);
+         status = fclose(pvstream->fp); pvstream->fp = NULL;
          if (status!=0) {
             fprintf(stderr, "fclose failure for \"%s\": %s", pvstream->name, strerror(errno));
          }

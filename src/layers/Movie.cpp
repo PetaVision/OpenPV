@@ -22,14 +22,9 @@ Movie::Movie() {
    initialize_base();
 }
 
-Movie::Movie(const char * name, HyPerCol * hc, const char * fileOfFileNames) {
+Movie::Movie(const char * name, HyPerCol * hc) {
    initialize_base();
-   initialize(name, hc, fileOfFileNames, DISPLAY_PERIOD);
-}
-
-Movie::Movie(const char * name, HyPerCol * hc, const char * fileOfFileNames, float defaultDisplayPeriod) {
-   initialize_base();
-   initialize(name, hc, fileOfFileNames, defaultDisplayPeriod);
+   initialize(name, hc);
 }
 
 int Movie::initialize_base() {
@@ -52,7 +47,7 @@ int Movie::initialize_base() {
 int Movie::checkpointRead(const char * cpDir, double * timef){
    int status = Image::checkpointRead(cpDir, timef);
 
-   //Depreciated, nextUpdateTime now handeled in HyPerLayer checkpoint read/write
+   //Deprecated, nextUpdateTime now handeled in HyPerLayer checkpoint read/write
    //if (this->useParamsImage) { //Sets nextDisplayTime = simulationtime (i.e. effectively restarting)
    //   nextDisplayTime += parent->simulationTime();
    //}
@@ -129,6 +124,7 @@ int Movie::checkpointWrite(const char * cpDir){
             status = PV_FAILURE;
          }
       }
+      free(filename);
    }
    return status;
 }
@@ -138,32 +134,23 @@ int Movie::checkpointWrite(const char * cpDir){
  * Notes:
  * - writeImages, offsetX, offsetY are initialized by Image::initialize()
  */
-int Movie::initialize(const char * name, HyPerCol * hc, const char * fileOfFileNames, float defaultDisplayPeriod) {
-   displayPeriod = defaultDisplayPeriod; // Will be replaced with params value when setParams is called.
-   int status = Image::initialize(name, hc, NULL);
+int Movie::initialize(const char * name, HyPerCol * hc) {
+   int status = Image::initialize(name, hc);
    if (status != PV_SUCCESS) {
       fprintf(stderr, "Image::initialize failed on Movie layer \"%s\".  Exiting.\n", name);
       exit(PV_FAILURE);
    }
 
-   if (fileOfFileNames != NULL) {
-      this->fileOfFileNames = strdup(fileOfFileNames);
-      if (this->fileOfFileNames==NULL) {
-         fprintf(stderr, "Movie::initialize error in layer \"%s\": unable to copy fileOfFileNames: %s\n", name, strerror(errno));
-      }
-   }
+   //nextDisplayTime = hc->simulationTime() + displayPeriod + hc->getDeltaTime();
 
    PVParams * params = hc->parameters();
 
-   assert(!params->presentAndNotBeenRead(name, "displayPeriod"));
-   //nextDisplayTime = hc->simulationTime() + displayPeriod + hc->getDeltaTime();
-
-   assert(!params->presentAndNotBeenRead(name, "randomMovie")); // randomMovie should have been set in setParams
+   assert(!params->presentAndNotBeenRead(name, "randomMovie")); // randomMovie should have been set in ioParams
    if (randomMovie) return status; // Nothing else to be done until data buffer is allocated, in allocateDataStructures
 
-   assert(!params->presentAndNotBeenRead(name, "readPvpFile")); // readPvpFile should have been set in setParams
 
    //If not pvp file, open fileOfFileNames 
+   assert(!params->presentAndNotBeenRead(name, "readPvpFile")); // readPvpFile should have been set in ioParams
    if( getParent()->icCommunicator()->commRank()==0 && !readPvpFile) {
       filenamestream = PV_fopen(fileOfFileNames, "r");
       if( filenamestream == NULL ) {
@@ -199,7 +186,6 @@ int Movie::initialize(const char * name, HyPerCol * hc, const char * fileOfFileN
          numFrames = params[INDEX_NBANDS];
       }
       else{
-         // echoFramePathnameFlag = params->value(name,"echoFramePathnameFlag", false);
          filename = strdup(getNextFileName(startFrameIndex));
          //Movie is going to update on timestep 1, but we want it to reread the first frame here, so reset the filenamestream back to 0 in initialize
          if( parent->icCommunicator()->commRank()==0 ) {
@@ -209,25 +195,13 @@ int Movie::initialize(const char * name, HyPerCol * hc, const char * fileOfFileN
       }
    }
 
-   // getImageInfo/constrainOffsets/readImage calls moved to Movie::allocateDataStructures
-
    // set output path for movie frames
    if(writeImages){
-      // if ( params->stringPresent(name, "movieOutputPath") ) {
-      //    movieOutputPath = strdup(params->stringValue(name, "movieOutputPath"));
-      //    assert(movieOutputPath != NULL);
-      // }
-      // else {
-      //    movieOutputPath = strdup( hc->getOutputPath());
-      //    assert(movieOutputPath != NULL);
-      //    printf("movieOutputPath is not specified in params file.\n"
-      //          "movieOutputPath set to default \"%s\"\n",movieOutputPath);
-      // }
       status = parent->ensureDirExists(movieOutputPath);
    }
 
    if(writeFrameToTimestamp){
-      std::string timestampFilename = std::string(strdup(parent->getOutputPath()));
+      std::string timestampFilename = std::string(parent->getOutputPath());
       timestampFilename += "/timestamps/";
       parent->ensureDirExists(timestampFilename.c_str());
       timestampFilename += name;
@@ -246,37 +220,96 @@ int Movie::initialize(const char * name, HyPerCol * hc, const char * fileOfFileN
    return PV_SUCCESS;
 }
 
-int Movie::setParams(PVParams * params) {
-   int status = Image::setParams(params);
-   displayPeriod = params->value(name,"displayPeriod", displayPeriod);
-   randomMovie = (int) params->value(name,"randomMovie",0);
-   if (randomMovie) {
-      randomMovieProb   = params->value(name,"randomMovieProb", 0.05);  // 100 Hz
-   }
-   else {
-      readPvpFile = (bool)params->value(name, "readPvpFile", 0);
-      if (!readPvpFile) {
-         echoFramePathnameFlag = params->value(name,"echoFramePathnameFlag", false);
-      }
-      startFrameIndex = params->value(name,"start_frame_index", 0);
-      skipFrameIndex = params->value(name,"skip_frame_index", 0);
-      autoResizeFlag = (bool)params->value(name,"autoResizeFlag",false);
-   }
-   assert(!params->presentAndNotBeenRead(name, "writeImages"));
-   if(writeImages){
-      if ( params->stringPresent(name, "movieOutputPath") ) {
-         movieOutputPath = strdup(params->stringValue(name, "movieOutputPath"));
-         assert(movieOutputPath != NULL);
-      }
-      else {
-         movieOutputPath = strdup( parent->getOutputPath());
-         assert(movieOutputPath != NULL);
-         printf("movieOutputPath is not specified in params file.\n"
-               "movieOutputPath set to default \"%s\"\n",movieOutputPath);
-      }
-   }
-   writeFrameToTimestamp = (bool) params->value(name, "writeFrameToTimestamp", writeFrameToTimestamp);
+int Movie::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = Image::ioParamsFillGroup(ioFlag);
+   ioParam_imageListPath(ioFlag);
+   ioParam_displayPeriod(ioFlag);
+   ioParam_randomMovie(ioFlag);
+   ioParam_randomMovieProb(ioFlag);
+   ioParam_readPvpFile(ioFlag);
+   ioParam_echoFramePathnameFlag(ioFlag);
+   ioParam_start_frame_index(ioFlag);
+   ioParam_skip_frame_index(ioFlag);
+   ioParam_movieOutputPath(ioFlag);
+   ioParam_writeFrameToTimestamp(ioFlag);
    return status;
+}
+
+void Movie::ioParam_imagePath(enum ParamsIOFlag ioFlag) {
+   if (ioFlag == PARAMS_IO_READ) {
+      filename = NULL;
+      parent->parameters()->handleUnnecessaryStringParameter(name, "imageList");
+   }
+}
+
+void Movie::ioParam_frameNumber(enum ParamsIOFlag ioFlag) {
+   // Image uses frameNumber to pick the frame of a pvp file, but
+   // Movie uses start_frame_index to pick the starting frame.
+   if (ioFlag == PARAMS_IO_READ) {
+      filename = NULL;
+      parent->parameters()->handleUnnecessaryParameter(name, "frameNumber");
+   }
+}
+
+void Movie::ioParam_imageListPath(enum ParamsIOFlag ioFlag) {
+   parent->ioParamStringRequired(ioFlag, name, "imageListPath", &fileOfFileNames);
+}
+
+void Movie::ioParam_displayPeriod(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "displayPeriod", &displayPeriod, displayPeriod);
+}
+
+void Movie::ioParam_randomMovie(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "randomMovie", &randomMovie, 0/*default value*/);
+}
+
+void Movie::ioParam_randomMovieProb(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "randomMovie"));
+   if (randomMovie) {
+      parent->ioParamValue(ioFlag, name, "randomMovieProb", &randomMovieProb, 0.05f);
+   }
+}
+
+void Movie::ioParam_readPvpFile(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "randomMovie"));
+   if (!randomMovie) {
+      parent->ioParamValue(ioFlag, name, "readPvpFile", &readPvpFile, false/*default value*/);
+   }
+}
+
+void Movie::ioParam_echoFramePathnameFlag(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "randomMovie"));
+   if (!randomMovie) {
+      assert(!parent->parameters()->presentAndNotBeenRead(name, "readPvpFile"));
+      if (!readPvpFile) {
+         parent->ioParamValue(ioFlag, name, "echoFramePathnameFlag", &echoFramePathnameFlag, false/*default value*/);
+      }
+   }
+}
+
+void Movie::ioParam_start_frame_index(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "randomMovie"));
+   if (!randomMovie) {
+      parent->ioParamValue(ioFlag, name, "start_frame_index", &startFrameIndex, 0/*default value*/);
+   }
+}
+
+void Movie::ioParam_skip_frame_index(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "randomMovie"));
+   if (!randomMovie) {
+      parent->ioParamValue(ioFlag, name, "skip_frame_index", &skipFrameIndex, 0/*default value*/);
+   }
+}
+
+void Movie::ioParam_movieOutputPath(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "writeImages"));
+   if (writeImages){
+      parent->ioParamString(ioFlag, name, "movieOutputPath", &movieOutputPath, parent->getOutputPath());
+   }
+}
+
+void Movie::ioParam_writeFrameToTimestamp(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "writeFrameToTimestamp", &writeFrameToTimestamp, writeFrameToTimestamp);
 }
 
 Movie::~Movie()
@@ -301,9 +334,6 @@ int Movie::allocateDataStructures() {
    if (!randomMovie) {
       assert(!parent->parameters()->presentAndNotBeenRead(name, "start_frame_index"));
       assert(!parent->parameters()->presentAndNotBeenRead(name, "skip_frame_index"));
-      // skip to start_frame_index if provided
-      // int start_frame_index = params->value(name,"start_frame_index", 0);
-      // skipFrameIndex = params->value(name,"skip_frame_index", 0);
 
       // get size info from image so that data buffer can be allocated
       GDALColorInterp * colorbandtypes = NULL;
@@ -324,6 +354,9 @@ int Movie::allocateDataStructures() {
       free(colorbandtypes); colorbandtypes = NULL;
    }
    else {
+      if (randState==NULL) {
+         initRandState();
+      }
       status = randomFrame();
    }
 
@@ -422,7 +455,7 @@ bool Movie::updateImage(double time, double dt)
       if(writePosition && icComm->commRank()==0){
          fprintf(fp_pos->fp,"%f %s: \n",time,filename);
       }
-      //nextDisplayTime depreciated, now using nextUpdateTime
+      //nextDisplayTime deprecated, now using nextUpdateTime
       //while (time >= nextDisplayTime) {
       //   nextDisplayTime += displayPeriod;
       //}
@@ -550,8 +583,6 @@ const char * Movie::getNextFileName(int n_skip)
    }
    return getNextFileName();
 }
-
-
 
 //This function takes care of rewinding for frame files
 const char * Movie::getNextFileName()

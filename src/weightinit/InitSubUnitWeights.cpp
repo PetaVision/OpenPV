@@ -10,6 +10,12 @@
 
 namespace PV {
 
+InitSubUnitWeights::InitSubUnitWeights(HyPerConn * conn)
+{
+   initialize_base();
+   initialize(conn);
+}
+
 InitSubUnitWeights::InitSubUnitWeights()
 {
    initialize_base();
@@ -17,20 +23,23 @@ InitSubUnitWeights::InitSubUnitWeights()
 
 InitSubUnitWeights::~InitSubUnitWeights()
 {
-   // TODO Auto-generated destructor stub
 }
 
 int InitSubUnitWeights::initialize_base() {
    return PV_SUCCESS;
 }
 
-InitWeightsParams * InitSubUnitWeights::createNewWeightParams(HyPerConn * callingConn) {
+int InitSubUnitWeights::initialize(HyPerConn * conn) {
+   int status = InitWeights::initialize(conn);
+   return status;
+}
+
+InitWeightsParams * InitSubUnitWeights::createNewWeightParams() {
    InitWeightsParams * tempPtr = new InitSubUnitWeightsParams(callingConn);
    return tempPtr;
 }
 
-int InitSubUnitWeights::calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, int arborId,
-                                   InitWeightsParams *weightParams) {
+int InitSubUnitWeights::calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, int arborId) {
 
    InitSubUnitWeightsParams *weightParamPtr = dynamic_cast<InitSubUnitWeightsParams*>(weightParams);
 
@@ -57,12 +66,12 @@ int InitSubUnitWeights::calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, 
 int InitSubUnitWeights::subUnitWeights(/* PVPatch * patch */ pvdata_t * dataStart, InitSubUnitWeightsParams * weightParamPtr) {
    assert(weightParamPtr->getPost()->clayer->loc.nf == 4*16);
 
-   int nfPatch_tmp = weightParamPtr->getnfPatch_tmp();
-   int nyPatch_tmp = weightParamPtr->getnyPatch_tmp();
-   int nxPatch_tmp = weightParamPtr->getnxPatch_tmp();
-   int sx_tmp=weightParamPtr->getsx_tmp();
-   int sy_tmp=weightParamPtr->getsy_tmp();
-   int sf_tmp=weightParamPtr->getsf_tmp();
+   int nfPatch_tmp = weightParamPtr->getnfPatch();
+   int nyPatch_tmp = weightParamPtr->getnyPatch();
+   int nxPatch_tmp = weightParamPtr->getnxPatch();
+   int sx_tmp=weightParamPtr->getsx();
+   int sy_tmp=weightParamPtr->getsy();
+   int sf_tmp=weightParamPtr->getsf();
 
    // pvdata_t * w_tmp = patch->data;
 

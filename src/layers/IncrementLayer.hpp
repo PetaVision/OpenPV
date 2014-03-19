@@ -16,7 +16,7 @@ namespace PV {
 
 class IncrementLayer: public PV::ANNLayer {
 public:
-   IncrementLayer(const char * name, HyPerCol * hc, int numChannels=MAX_CHANNELS);
+   IncrementLayer(const char * name, HyPerCol * hc);
    virtual ~IncrementLayer();
    int checkpointRead(const char * cpDir, double * timef);
    int checkpointWrite(const char * cpDir);
@@ -27,8 +27,15 @@ public:
 
 protected:
    IncrementLayer();
-   int initialize(const char * name, HyPerCol * hc, int numChannels);
-   virtual int readVThreshParams(PVParams * params);
+   int initialize(const char * name, HyPerCol * hc);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_displayPeriod(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_firstUpdateTime(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_VThresh(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_VMin(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_VMax(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_VShift(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_VWidth(enum ParamsIOFlag ioFlag);
    /* static */ int updateState(double timef, double dt, bool * inited, double * next_update_time,
          double first_update_time, double display_period, const PVLayerLoc * loc, pvdata_t * A,
          pvdata_t * V, pvdata_t * Vprev, int num_channels, pvdata_t * gSynHead, unsigned int * active_indices, unsigned int * num_active);

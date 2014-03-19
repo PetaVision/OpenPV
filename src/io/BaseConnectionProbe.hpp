@@ -22,6 +22,7 @@ public:
    virtual int communicate();
    virtual int allocateProbe();
    virtual int outputState(double timed) = 0;
+   int ioParams(enum ParamsIOFlag ioFlag);
 
    const char * getName()                  {return name;}
    const char * getTargetConnName()        {return targetConnName;}
@@ -30,12 +31,15 @@ public:
 protected:
    BaseConnectionProbe(); // Default constructor, can only be called by derived classes
    int initialize(const char * probename, HyPerCol * hc);
-   int initialize_base();
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_probeOutputFile(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_targetConnection(enum ParamsIOFlag ioFlag);
 
    HyPerCol * getParent()                  {return parent;}
    PV_Stream * getStream()                 {return stream;}
 
 private:
+   int initialize_base();
 
 // Member Variables
 protected:
@@ -44,6 +48,7 @@ protected:
    PV_Stream * stream; // pointer to output file; NULL except for root process.  If filename is NULL, fp will be stdout.
    char * targetConnName; // The name of the connection being probed.
    HyPerConn * targetConn; // The connection itself.
+   char * probeOutputFile;
 };
 
 }  // end of namespace PV block

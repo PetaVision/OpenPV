@@ -8,11 +8,9 @@
 #include "OjaKernelConn.hpp"
 
 namespace PV {
-OjaKernelConn::OjaKernelConn(const char * name, HyPerCol * hc,
-      const char * pre_layer_name, const char * post_layer_name,
-      const char * filename, InitWeights *weightInit) {
+OjaKernelConn::OjaKernelConn(const char * name, HyPerCol * hc) {
    initialize_base();
-   initialize(name, hc, pre_layer_name, post_layer_name, filename, weightInit);
+   initialize(name, hc);
 }
 
 OjaKernelConn::OjaKernelConn()
@@ -42,27 +40,55 @@ int OjaKernelConn::initialize_base() {
    return PV_SUCCESS;
 }
 
-int OjaKernelConn::initialize(const char * name, HyPerCol * hc,
-      const char * pre_layer_name, const char * post_layer_name,
-      const char * filename, InitWeights *weightInit) {
-   int status = KernelConn::initialize(name, hc, pre_layer_name, post_layer_name, filename, weightInit);
+int OjaKernelConn::initialize(const char * name, HyPerCol * hc) {
+   int status = KernelConn::initialize(name, hc);
    return status;
 }
 
-int OjaKernelConn::setParams(PVParams * params) {
-   int status = KernelConn::setParams(params);
-   readLearningTime(params);
-   readInputTargetRate(params);
-   readOutputTargetRate(params);
-   readIntegrationTime(params);
-   readAlphaMultiplier(params);
-   read_dWUpdatePeriod(params);
+int OjaKernelConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = KernelConn::ioParamsFillGroup(ioFlag);
+   ioParam_learningTime(ioFlag);
+   ioParam_inputTargetRate(ioFlag);
+   ioParam_outputTargetRate(ioFlag);
+   ioParam_integrationTime(ioFlag);
+   ioParam_alphaMultiplier(ioFlag);
+   ioParam_dWUpdatePeriod(ioFlag);
    return status;
 }
 
-void OjaKernelConn::readInitialWeightUpdateTime(PVParams * params) {
-   KernelConn::readInitialWeightUpdateTime(params);
-   dWUpdateTime = weightUpdateTime;
+void OjaKernelConn::ioParam_initialWeightUpdateTime(enum ParamsIOFlag ioFlag) {
+   KernelConn::ioParam_initialWeightUpdateTime(ioFlag);
+   if (ioFlag==PARAMS_IO_READ) {
+      dWUpdateTime = weightUpdateTime;
+   }
+}
+
+void OjaKernelConn::ioParam_learningTime(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "learningTime", &learningTime, 1.0f);
+}
+
+void OjaKernelConn::ioParam_inputTargetRate(enum ParamsIOFlag ioFlag) {
+   float rateInHertz = 1000.0f * inputTargetRate;
+   parent->ioParamValue(ioFlag, name, "inputTargetRate", &rateInHertz, 1.0f);
+   if (ioFlag == PARAMS_IO_READ) inputTargetRate = 0.001f * rateInHertz;
+}
+
+void OjaKernelConn::ioParam_outputTargetRate(enum ParamsIOFlag ioFlag) {
+   float rateInHertz = 1000.0f * outputTargetRate;
+   parent->ioParamValue(ioFlag, name, "outputTargetRate", &rateInHertz, 1.0f);
+   if (ioFlag == PARAMS_IO_READ) outputTargetRate = 0.001f * rateInHertz;
+}
+
+void OjaKernelConn::ioParam_integrationTime(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "integrationTime", &integrationTime, 1.0f);
+}
+
+void OjaKernelConn::ioParam_alphaMultiplier(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "alphaMultiplier", &alphaMultiplier, 1.0f);
+}
+
+void OjaKernelConn::ioParam_dWUpdatePeriod(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "dWUpdatePeriod", &dWUpdatePeriod, 1.0);
 }
 
 int OjaKernelConn::allocateDataStructures() {

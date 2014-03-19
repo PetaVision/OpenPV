@@ -75,9 +75,6 @@
 #include "../connections/GenerativeConn.hpp"
 #include "../connections/PoolingGenConn.hpp"
 #include "../connections/IdentConn.hpp"
-#ifdef OBSOLETE  // Marked obsolete Sept 16, 2013.  Learning rule for LCA is the same in KernelConn, so no need to subclass
-#include "../connections/LCAConn.hpp"
-#endif
 #include "../connections/LCALIFLateralKernelConn.hpp"
 #include "../connections/NoSelfKernelConn.hpp"
 #include "../connections/SiblingConn.hpp"
@@ -146,30 +143,11 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
 
 HyPerCol * addHyPerColToColumn(const char * classkeyword, const char * name, HyPerCol * hc);
 HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPerCol * hc);
-TrainingLayer * addTrainingLayer(const char * name, HyPerCol *hc);
-TextStream * addTextStream(const char * name, HyPerCol *hc);
-#ifdef PV_USE_SNDFILE
-SoundStream * addSoundStream(const char * name, HyPerCol *hc);
-#endif
-Image * addImage(const char * name, HyPerCol *hc);
-Movie * addMovie(const char * name, HyPerCol *hc);
-Patterns * addPatterns(const char * name, HyPerCol *hc);
-LabelLayer * addLabelLayer(const char * name, HyPerCol * hc);
-ANNTriggerUpdateOnNewImageLayer * addANNTriggerUpdateOnNewImageLayer(const char * name, HyPerCol * hc);
-ConstantLayer * addConstantLayer(const char * name, HyPerCol * hc);
-ShuffleLayer * addShuffleLayer(const char * name, HyPerCol * hc);
-InitWeights *createInitWeightsObject(const char * name, HyPerCol * hc);
-InitWeights * getDefaultInitWeightsMethod(const char * keyword);
 HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerCol * hc);
-PoolingGenConn * addPoolingGenConn(const char * name, HyPerCol * hc, const char * pre_layer_name, const char * post_layer_name, const char * filename, InitWeights *weightInit);
 ColProbe * addColProbeToColumn(const char * classkeyword, const char * name, HyPerCol * hc);
-void insertColProbe(ColProbe * colProbe, HyPerCol * hc, const char * classkeyword);
+void insertColProbe(ColProbe * colProbe, HyPerCol * hc);
 BaseConnectionProbe * addBaseConnectionProbeToColumn(const char * classkeyword, const char * name, HyPerCol * hc);
 const char * getStringValueFromParameterGroup(const char * groupName, PVParams * params, const char * parameterString, bool warnIfAbsent);
-#ifdef OBSOLETE // Marked obsolete July 3, 2013.  No longer pass HyPerLayers to the connections' constructors, but names
-                // of the layers.  Accordingly, use HyPerConn::getPreAndPostLayerNames() instead.
-int getPreAndPostLayers(const char * name, HyPerCol * hc, HyPerLayer ** preLayerPtr, HyPerLayer **postLayer);
-#endif // OBSOLETE
 HyPerLayer * getLayerFromParameterGroup(const char * groupName, HyPerCol * hc, const char * parameterStringName, bool warnIfAbsent=true);
 HyPerConn * getConnFromParameterGroup(const char * groupName, HyPerCol * hc, const char * parameterStringName, bool warnIfAbesnt=true);
 LayerProbe * addLayerProbeToColumn(const char * classkeyword, const char * name, HyPerCol * hc);

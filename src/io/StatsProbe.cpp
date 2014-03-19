@@ -13,49 +13,12 @@
 namespace PV {
 
 /**
- * @filename
+ * @probeName
  * @hc
- * @msg
  */
-StatsProbe::StatsProbe(const char * filename, HyPerLayer * layer, const char * msg)
-   : LayerProbe()
-{
+StatsProbe::StatsProbe(const char * probeName, HyPerCol * hc) {
    initStatsProbe_base();
-   initStatsProbe(filename, layer, BufActivity, msg);
-}
-
-/**
- * @msg
- */
-StatsProbe::StatsProbe(HyPerLayer * layer, const char * msg)
-   : LayerProbe()
-{
-   initStatsProbe_base();
-   initStatsProbe(NULL, layer, BufActivity, msg);
-}
-
-/**
- * @filename
- * @hc
- * @type
- * @msg
- */
-StatsProbe::StatsProbe(const char * filename, HyPerLayer * layer, PVBufType type, const char * msg)
-   : LayerProbe()
-{
-   initStatsProbe_base();
-   initStatsProbe(filename, layer, type, msg);
-}
-
-/**
- * @type
- * @msg
- */
-StatsProbe::StatsProbe(HyPerLayer * layer, PVBufType type, const char * msg)
-   : LayerProbe()
-{
-   initStatsProbe_base();
-   initStatsProbe(NULL, layer, type, msg);
+   initStatsProbe(probeName, hc);
 }
 
 StatsProbe::StatsProbe()
@@ -69,17 +32,16 @@ StatsProbe::~StatsProbe()
 {
    int rank = getTargetLayer()->getParent()->columnId();
    if (rank==0) {
-      printf("StatsProbe %s I/O  timer ", msg); // Lack of \n is deliberate, elapsed_time() calls printf with \n.
+      printf("StatsProbe %s I/O  timer ", getProbeName()); // Lack of \n is deliberate, elapsed_time() calls printf with \n.
       iotimer->elapsed_time();
-      printf("StatsProbe %s MPI  timer ", msg);
+      printf("StatsProbe %s MPI  timer ", getProbeName());
       mpitimer->elapsed_time();
-      printf("StatsProbe %s Comp timer ", msg);
+      printf("StatsProbe %s Comp timer ", getProbeName());
       comptimer->elapsed_time();
    }
    delete iotimer;
    delete mpitimer;
    delete comptimer;
-   free(msg);
 }
 
 int StatsProbe::initStatsProbe_base() {
@@ -91,15 +53,14 @@ int StatsProbe::initStatsProbe_base() {
    avg = 0.0f;
    sigma = 0.0f;
    type = BufV;
-   msg = NULL;
    iotimer = NULL;
    mpitimer = NULL;
    comptimer = NULL;
    return PV_SUCCESS;
 }
 
-int StatsProbe::initStatsProbe(const char * filename, HyPerLayer * layer, PVBufType type, const char * msg) {
-   int status = initLayerProbe(filename, layer);
+int StatsProbe::initStatsProbe(const char * probeName, HyPerCol * hc) {
+   int status = initLayerProbe(probeName, hc);
    if( status == PV_SUCCESS ) {
       fMin = FLT_MAX;
       fMax = -FLT_MAX;
@@ -108,8 +69,6 @@ int StatsProbe::initStatsProbe(const char * filename, HyPerLayer * layer, PVBufT
       avg = 0.0f;
       sigma = 0.0f;
       nnz = 0;
-      this->type = type;
-      status = initMessage(msg);
    }
    assert(status == PV_SUCCESS);
    iotimer = new Timer();
@@ -118,36 +77,86 @@ int StatsProbe::initStatsProbe(const char * filename, HyPerLayer * layer, PVBufT
    return status;
 }
 
-int StatsProbe::initMessage(const char * msg) {
-   int status = PV_SUCCESS;
-   if( msg != NULL && msg[0] != '\0' ) {
-      size_t msglen = strlen(msg);
-      this->msg = (char *) calloc(msglen+2, sizeof(char)); // Allocate room for colon plus null terminator
-      if(this->msg) {
-         memcpy(this->msg, msg, msglen);
-         this->msg[msglen] = ':';
-         this->msg[msglen+1] = '\0';
+int StatsProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = LayerProbe::ioParamsFillGroup(ioFlag);
+   ioParam_buffer(ioFlag);
+   return status;
+}
+
+void StatsProbe::requireType(PVBufType requiredType) {
+   PVParams * params = getParentCol()->parameters();
+   if (params->stringPresent(getProbeName(), "buffer")) {
+      params->handleUnnecessaryStringParameter(getProbeName(), "buffer");
+      StatsProbe::ioParam_buffer(PARAMS_IO_READ);
+      if (type != requiredType) {
+         const char * requiredString = NULL;
+         switch (requiredType) {
+         case BufV:
+            requiredString = "\"MembranePotential\" or \"V\"";
+            break;
+         case BufActivity:
+            requiredString = "\"Activity\" or \"A\"";
+            break;
+         default:
+            assert(0);
+            break;
+         }
+         if (type != BufV) {
+            if (getParentCol()->columnId()==0) {
+               fprintf(stderr, "   Value \"%s\" is inconsistent with allowed values %s.\n",
+                     params->stringValue(getProbeName(), "buffer"), requiredString);
+            }
+         }
       }
    }
    else {
-      this->msg = (char *) calloc(1, sizeof(char));
-      if(this->msg) {
-         this->msg[0] = '\0';
+      type = requiredType;
+   }
+}
+
+void StatsProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
+   char * buffer = NULL;
+   if (ioFlag == PARAMS_IO_WRITE) {
+      switch(type) {
+      case BufV:
+         buffer = strdup("MembranePotential");
+         break;
+      case BufActivity:
+         buffer = strdup("Activity");
       }
    }
-   if( !this->msg ) {
-      fprintf(stderr, "StatsProbe: Unable to allocate memory for probe's message.\n");
-      status = PV_FAILURE;
+   getParentCol()->ioParamString(ioFlag, getProbeName(), "buffer", &buffer, "Activity", true/*warnIfAbsent*/);
+   if (ioFlag == PARAMS_IO_READ) {
+      assert(buffer);
+      size_t len = strlen(buffer);
+      for (size_t c=0; c<len; c++) {
+         buffer[c] = (char) tolower((int) buffer[c]);
+      }
+      if (!strcmp(buffer, "v") || !strcmp(buffer, "membranepotential")) {
+         type = BufV;
+      }
+      else if (!strcmp(buffer, "a") || !strcmp(buffer, "activity")) {
+         type = BufActivity;
+      }
+      else {
+         if (getParentCol()->columnId()==0) {
+            const char * bufnameinparams = getParentCol()->parameters()->stringValue(getProbeName(), "buffer");
+            assert(bufnameinparams);
+            fprintf(stderr, "%s \"%s\" error: buffer \"%s\" is not recognized.\n",
+                  getParentCol()->parameters()->groupKeywordFromName(getProbeName()), getProbeName(), bufnameinparams);
+         }
+         MPI_Barrier(getParentCol()->icCommunicator()->communicator());
+         exit(EXIT_FAILURE);
+      }
    }
-   assert(status == PV_SUCCESS);
-   return status;
+   free(buffer); buffer = NULL;
 }
 
 /**
  * @time
  * @l
  */
-int StatsProbe::outputState(double timef)
+int StatsProbe::outputState(double timed)
 {
 #ifdef PV_USE_MPI
    InterColComm * icComm = getTargetLayer()->getParent()->icCommunicator();
@@ -174,7 +183,7 @@ int StatsProbe::outputState(double timef)
 #ifdef PV_USE_MPI
          if( rank != rcvProc ) return 0;
 #endif // PV_USE_MPI
-         fprintf(outputstream->fp, "%sV buffer is NULL\n", msg);
+         fprintf(outputstream->fp, "%sV buffer is NULL\n", getMessage());
          return 0;
       }
       comptimer->start();
@@ -238,11 +247,11 @@ int StatsProbe::outputState(double timef)
    sigma = sqrt(sum2/nk - avg*avg);
    if ( type == BufActivity  && getTargetLayer()->getSpikingFlag() ) {
       float freq = 1000.0 * avg;
-      fprintf(outputstream->fp, "%st==%6.1f N==%d Total==%f Min==%f Avg==%f Hz (/dt ms) Max==%f sigma==%f nnz==%i\n", msg, timef,
+      fprintf(outputstream->fp, "%st==%6.1f N==%d Total==%f Min==%f Avg==%f Hz (/dt ms) Max==%f sigma==%f nnz==%i\n", getMessage(), timed,
               nk, (float)sum, fMin, freq, fMax, (float)sigma, nnz);
    }
    else {
-      fprintf(outputstream->fp, "%st==%6.1f N==%d Total==%f Min==%f Avg==%f Max==%f sigma==%f nnz==%i\n", msg, timef,
+      fprintf(outputstream->fp, "%st==%6.1f N==%d Total==%f Min==%f Avg==%f Max==%f sigma==%f nnz==%i\n", getMessage(), timed,
               nk, (float)sum, fMin, (float) avg, fMax, (float) sigma, nnz);
    }
 

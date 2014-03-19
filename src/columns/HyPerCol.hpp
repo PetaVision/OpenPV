@@ -8,8 +8,6 @@
 #ifndef HYPERCOL_HPP_
 #define HYPERCOL_HPP_
 
-#undef UNDERCONSTRUCTION
-
 #include "HyPerColRunDelegate.hpp"
 #include "InterColComm.hpp"
 #include "../layers/PVLayer.h"
@@ -22,8 +20,12 @@
 #include <time.h>
 #include <sys/stat.h>
 #include <fstream>
+#include <string>
+#include <sstream>
 
 #include "../arch/opencl/CLDevice.hpp"
+
+enum CheckpointWriteTriggerMode { CPWRITE_TRIGGER_STEP, CPWRITE_TRIGGER_TIME, CPWRITE_TRIGGER_CLOCK };
 
 namespace PV {
 
@@ -41,7 +43,6 @@ public:
    // HyPerCol(const char* name, int argc, char* argv[], const char * path); // Not defined in .cpp file
    virtual ~HyPerCol();
 
-   int initFinish(void); // call after all layers/connections have been added
    int initializeThreads(int device);
 #ifdef PV_USE_OPENCL
    int finalizeThreads();
@@ -78,6 +79,8 @@ public:
    CLDevice * getCLDevice()               {return clDevice;}
 
    InterColComm * icCommunicator()        {return icComm;}
+
+   PV_Stream * getPrintParamsStream()      {return printParamsStream;}
 
    PVParams * parameters()                {return params;}
 
@@ -124,6 +127,8 @@ public:
    void setDelegate(HyPerColRunDelegate * delegate)  {runDelegate = delegate;}
 
    int insertProbe(ColProbe * p);
+   int addLayerProbe(LayerProbe * p);
+   // int addBaseConnectionProbe(BaseConnectionProbe * p);
    int outputState(double time);
    int ensureDirExists(const char * dirname);
 
@@ -132,23 +137,50 @@ public:
    template <typename T>
    int readScalarFromFile(const char * cp_dir, const char * group_name, const char * val_name, T * val, T default_value=(T) 0);
 
-#ifdef UNDERCONSTRUCTION
-   static int outputParamGroup(PV_Stream * pvstream, const char * classname, const char * groupname, int indentation);
-   static int outputParamCloseGroup(PV_Stream * pvstream, const char * classname, int indentation);
-   static int outputParamInt(PV_Stream * pvstream, const char * paramName, int value, int indentation);
-   static int outputParamLongInt(PV_Stream * pvstream, const char * paramName, long int value, int indentation);
-   static int outputParamUnsignedLongInt(PV_Stream * pvstream, const char * paramName, unsigned long int value, int indentation);
-   static int outputParamFloat(PV_Stream * pvstream, const char * paramName, float value, int indentation);
-   static int outputParamDouble(PV_Stream * pvstream, const char * paramName, double value, int indentation);
-   static int outputParamBoolean(PV_Stream * pvstream, const char * paramName, bool value, int indentation);
-   static int outputParamFilename(PV_Stream * pvstream, const char * paramName, const char * value, int indentation);
-   static int outputParamString(PV_Stream * pvstream, const char * paramName, const char * value, int indentation);
-   static int indent(PV_Stream * pvstream, int indentation);
-#endif // UNDERCONSTRUCTION
+   int ioParamsStartGroup(enum ParamsIOFlag ioFlag, const char * group_name);
+   int ioParamsFinishGroup(enum ParamsIOFlag ioFlag);
+   template <typename T>
+   void ioParamValueRequired(enum ParamsIOFlag ioFlag, const char * group_name, const char * param_name, T * val);
+   template <typename T>
+   void ioParamValue(enum ParamsIOFlag ioFlag, const char * group_name, const char * param_name, T * val, T defaultValue, bool warnIfAbsent=true);
+   void ioParamString(enum ParamsIOFlag ioFlag, const char * group_name, const char * param_name, char ** value, const char * defaultValue, bool warnIfAbsent=true);
+   void ioParamStringRequired(enum ParamsIOFlag ioFlag, const char * group_name, const char * param_name, char ** value);
+   template <typename T>
+   void ioParamArray(enum ParamsIOFlag ioFlag, const char * group_name, const char * param_name, T ** value, int * arraysize);
+   template <typename T>
+   void writeParam(const char * param_name, T value);
+   void writeParamString(const char * param_name, const char * svalue);
+   template <typename T>
+   void writeParamArray(const char * param_name, const T * array, int arraysize);
 
 private:
    int initialize_base();
    int initialize(const char * name, int argc, char ** argv, PVParams * params);
+   int ioParams(enum ParamsIOFlag ioFlag);
+   int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_startTime(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_dt(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_stopTime(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_progressInterval(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_writeProgressToErr(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_outputPath(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_printParamsFilename(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_randomSeed(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_nx(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_ny(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_filenamesContainLayerNames(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_filenamesContainConnectionNames(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_checkpointRead(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_checkpointReadDir(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_checkpointReadDirIndex(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_checkpointWrite(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_checkpointWriteDir(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_checkpointWriteTriggerMode(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_checkpointWriteStepInterval(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_checkpointWriteTimeInterval(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_deleteOlderCheckpoints(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_suppressLastOutput(enum ParamsIOFlag ioFlag);
+
    int checkDirExists(const char * dirname, struct stat * pathstat);
 
    int doInitializationStage(int (HyPerCol::*layerInitializationStage)(int), int (HyPerCol::*connInitializationStage)(int), const char * stageName);
@@ -161,12 +193,7 @@ private:
    bool advanceCPWriteTime();
    int checkpointRead(const char * cpDir);
    int checkpointWrite(const char * cpDir);
-   int outputParams(const char * filename);
-#ifdef UNDERCONSTRUCTION // Plans to output the params, including those set to default values, as an XML file.
-   int outputParamsXML(const char * filename);
-   int outputParamsXML(PV_Stream * pvstream);
-   template <typename T> static int hexdump(PV_Stream * pvstream, T value);
-#endif // UNDERCONSTRUCTION
+   int outputParams();
 
 #ifdef OBSOLETE // Marked obsolete Aug 9, 2013.  Look, everybody, checkMarginWidths is obsolete!
    int checkMarginWidths();
@@ -174,7 +201,6 @@ private:
    int lCheckMarginWidth(HyPerLayer * layer, const char * dim, int layerSize, int layerGlobalSize, int prevStatus);
 #endif // OBSOLETE
 
-   long int numSteps; // deprecated Dec 12, 2013
    long int currentStep;
    long int initialStep;
    long int finalStep;
@@ -185,12 +211,13 @@ private:
    int numConnections;
 
    bool warmStart;
-   bool isInitialized;     // true when all initialization has been completed
    bool checkpointReadFlag;    // whether to load from a checkpoint directory
    bool checkpointWriteFlag;   // whether to write from a checkpoint directory
    char * checkpointReadDir;   // name of the directory to read an initializing checkpoint from
    long int cpReadDirIndex;  // checkpoint number within checkpointReadDir to read
    char * checkpointWriteDir; // name of the directory to write checkpoints to
+   enum CheckpointWriteTriggerMode checkpointWriteTriggerMode;
+   char * checkpointWriteTriggerModeString;
    long int cpWriteStepInterval;
    long int nextCPWriteStep;
    double cpWriteTimeInterval;
@@ -206,7 +233,6 @@ private:
    double simTime;          // current time in milliseconds
    double stopTime;         // time to stop time
    double deltaTime;        // time step interval
-   long int progressStep;       // How many timesteps between outputting progress (deprecated Dec 18, 2013)
    double progressInterval; // Output progress after simTime increases by this amount.
    double nextProgressTime; // Next time to output a progress message
    bool writeProgressToErr;// Whether to write progress step to standard error (True) or standard output (False) (default is output)
@@ -219,7 +245,9 @@ private:
    char * name;
    // char * path;
    char * outputPath;     // path to output file directory
-   char * outputNamesOfLayersAndConns;  // path to file for writing list of layer names and connection names
+   // char * outputNamesOfLayersAndConns;  // path to file for writing list of layer names and connection names
+   char * printParamsFilename; // filename for outputting the params, including defaults and excluding unread params
+   PV_Stream * printParamsStream; // file pointer associated with printParamsFilename
    char * image_file;
    int nxGlobal;
    int nyGlobal;
@@ -235,6 +263,12 @@ private:
 
    int numProbes;
    ColProbe ** probes;
+
+   int numLayerProbes;
+   LayerProbe ** layerProbes;
+
+   // int numConnProbes;
+   // BaseConnectionProbe ** connProbes;
 
    int filenamesContainLayerNames; // Controls the form of layers' clayer->activeFP
                                    // Value 0: layers have form a5.pvp

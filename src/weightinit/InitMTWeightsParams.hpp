@@ -18,6 +18,8 @@ public:
    InitMTWeightsParams();
    InitMTWeightsParams(HyPerConn * parentConn);
    virtual ~InitMTWeightsParams();
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual int communicateParamsInfo();
    void calcOtherParams(int patchIndex);
 
    virtual float calcDthPre();
@@ -25,14 +27,16 @@ public:
 
    //get-set methods:
    inline float getSpeed()        {return tunedSpeed;}
-   inline void setSpeed(float speed)        {tunedSpeed=speed;}
    inline float getV1Speed()        {return inputV1Speed;}
-   inline void setV1Speed(float speed)        {inputV1Speed=speed;}
-
 
 protected:
    int initialize_base();
    int initialize(HyPerConn * parentConn);
+   void ioParam_nfpRelatedParams(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_tunedSpeed(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_inputV1Speed(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_inputV1Rotate(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_inputV1ThetaMax(enum ParamsIOFlag ioFlag);
 
 private:
    float tunedSpeed;

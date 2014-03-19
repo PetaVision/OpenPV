@@ -20,33 +20,41 @@ class Image : public HyPerLayer {
 
 protected:
    Image();
-   int initialize(const char * name, HyPerCol * hc, const char * filename);
-   virtual int setParams(PVParams * params);
-   virtual int readOffsets(PVParams * params); // reads offsetX, offsetY from params.  Override with empty function if a derived class doesn't use these parameters (e.g. Patterns)
-   virtual void readWriteImagesFlag(PVParams * params);
-   virtual void readWriteImagesExtension(PVParams * params);
-   virtual void readUseImageBCflag(PVParams * params);
-   virtual void readAutoResizeFlag(PVParams * params);
-   virtual void readInverseFlag(PVParams * params);
-   virtual void readNormalizeLuminanceFlag(PVParams * params);
-   virtual void readFrameNumber(PVParams * params);
-   virtual void readJitterFlag(PVParams * params);
-   virtual void readJitterType(PVParams * params);
-   virtual void readJitterRefractoryPeriod(PVParams * params);
-   virtual void readStepSize(PVParams * params);
-   virtual void readPersistenceProb(PVParams * params);
-   virtual void readRecurrenceProb(PVParams * params);
-   virtual void readBiasChangeTime(PVParams * params);
-   virtual void readBiasConstraintMethod(PVParams * params);
-   virtual void readOffsetConstraintMethod(PVParams * params);
-   virtual void readWritePosition(PVParams * params);
+   int initialize(const char * name, HyPerCol * hc);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_imagePath(enum ParamsIOFlag ioFlag);
+   virtual int ioParam_offsets(enum ParamsIOFlag ioFlag); // reads offsetX, offsetY from params.  Override with empty function if a derived class doesn't use these parameters (e.g. Patterns)
+   virtual void ioParam_writeImages(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_writeImagesExtension(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_useImageBCflag(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_autoResizeFlag(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_inverseFlag(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_normalizeLuminanceFlag(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_frameNumber(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_jitterFlag(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_jitterType(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_jitterRefractoryPeriod(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_stepSize(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_persistenceProb(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_recurrenceProb(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_biasChangeTime(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_biasConstraintMethod(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_offsetConstraintMethod(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_writePosition(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_InitVType(enum ParamsIOFlag ioFlag);
    //Image does not need trigger flag, since it's overwriting needUpdate
-   virtual void readTriggerFlag(PVParams * params){};
+   virtual void ioParam_triggerFlag(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_triggerLayerName(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_useParamsImage(enum ParamsIOFlag ioFlag);
+
+   int initRandState();
 
    static inline int calcBandWeights(int numBands, float * bandweights, GDALColorInterp * colorbandtypes);
    static inline void equalBandWeights(int numBands, float * bandweights);
 
    virtual int allocateV();
+   virtual int initializeV();
+   virtual int initializeActivity();
 
    virtual bool jitter();
    virtual int calcBias(int current_bias, int step, int sizeLength);
@@ -58,10 +66,10 @@ protected:
    virtual bool constrainOffsets();
 
 public:
-   Image(const char * name, HyPerCol * hc, const char * filename);
+   Image(const char * name, HyPerCol * hc);
    virtual ~Image();
-   virtual int initializeState();
    virtual int communicateInitInfo();
+   virtual int requireChannel(int channelNeeded, int * numChannelsResult);
    virtual int allocateDataStructures();
 
    // primary layer interface
@@ -158,7 +166,8 @@ protected:
    float persistenceProb; // If using jitter, probability that offset stays the same
    int writePosition;     // If using jitter, write positions to input/image-pos.txt
    PV_Stream * fp_pos;    // If writePosition is true, write the positions to this file
-   long biasChangeTime;    // If using jitter, time period for recalculating bias position
+   double biasChangeTime;    // If using jitter, time period for recalculating bias position
+   double nextBiasChange;    // The next time biasChange will be called
    int jitterRefractoryPeriod; // After jitter, minimum amount of time until next jitter
    int timeSinceLastJitter; // Keeps track of timesteps since last jitter
    int jitterType;       // If using jitter, specify type of jitter (random walk or random jump)

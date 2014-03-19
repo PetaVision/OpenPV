@@ -6,11 +6,6 @@ BIDSSensorLayer::BIDSSensorLayer(){
    initialize_base();
 }
 
-BIDSSensorLayer::BIDSSensorLayer(const char * name, HyPerCol * hc, int numChannels){
-   initialize_base();
-   initialize(name, hc, numChannels);
-}
-
 BIDSSensorLayer::BIDSSensorLayer(const char * name, HyPerCol * hc){
    initialize_base();
    initialize(name, hc);
@@ -29,62 +24,53 @@ int BIDSSensorLayer::initialize_base(){
    return PV_SUCCESS;
 }
 
-int BIDSSensorLayer::initialize(const char * name, HyPerCol * hc, int numChannels){
-   HyPerLayer::initialize(name, hc, numChannels);
-
-   //Grab Parameters
-   // float nxScale = (float)(parent->parameters()->value(name, "nxScale"));
-   // float nyScale = (float)(parent->parameters()->value(name, "nyScale"));
-   int HyPerColx = (int)(parent->parameters()->value("column", "nx"));
-   int HyPerColy = (int)(parent->parameters()->value("column", "ny"));
-
-   freq = (float)(parent->parameters()->value(name, "frequency"));
-   ts = (double)1/((float)(parent->parameters()->value(name, "ts_per_period")) * freq);
-   buf_size = (int)(parent->parameters()->value(name, "buffer_size"));
-   neutral_val = (float)(parent->parameters()->value(name, "neutral_val"));
-   weight = (float)(parent->parameters()->value(name, "weight"));
-   const char * blayer_name = parent->parameters()->stringValue(name, "jitterSource");
-   if (blayer_name==NULL) {
-      fprintf(stderr, "BIDSSensorLayer \"%s\": jitterSource must be set.\n", name);
-   }
-   blayerName = strdup(blayer_name);
-   if (blayerName==NULL) {
-      fprintf(stderr, "BIDSSensorLayer \"%s\": error copying jitterSource name \"%s\": %s\n", name, blayer_name, strerror(errno));
-      abort();
-   }
-
-   //Moved to communicateInitInfo()
-   // //Grab coords
-   // blayer = dynamic_cast<BIDSMovieCloneMap*> (parent->getLayerFromName(blayerName));
-   // assert(blayer != NULL);
-
-   // Replaced with member functions getCoords() and getNumNodes()
-   // coords = blayer->getCoords();
-   // numNodes = blayer->getNumNodes();
-
+int BIDSSensorLayer::initialize(const char * name, HyPerCol * hc){
+   HyPerLayer::initialize(name, hc);
 
    //Set nx and ny
+   int HyPerColx = parent->getNxGlobal();
+   int HyPerColy = parent->getNyGlobal();
    nx = (int)(nxScale * HyPerColx);
    ny = (int)(nyScale * HyPerColy);
-   // Moved to communicateInitInfo()
-   // nf = blayer->getLayerLoc()->nf;
 
-   // Moved to allocateDataStructures()
-   // //Create data structure for data
-   // //data[Node_id][Buffer_id]
-   // float* datatemp = (float*)malloc(sizeof(float)*numNodes*buf_size);
-   // data = (float**)malloc(sizeof(float*)*numNodes);
-   //
-   // //Initialize data structure
-   // for(int i = 0; i < numNodes; i++){
-   //    data[i] = &datatemp[i*buf_size];
-   //    for(int j = 0; j < buf_size; j++){
-   //       data[i][j] = 0;
-   //    }
-   // }
-
-   //Get perfect match for match filter to normalize output
    return PV_SUCCESS;
+}
+
+int BIDSSensorLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = Image::ioParamsFillGroup(ioFlag);
+   ioParam_frequency(ioFlag);
+   ioParam_ts_per_period(ioFlag);
+   ioParam_buffer_size(ioFlag);
+   ioParam_neutral_val(ioFlag);
+   ioParam_weight(ioFlag);
+   ioParam_jitterSource(ioFlag);
+   return status;
+}
+
+void BIDSSensorLayer::ioParam_frequency(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValueRequired(ioFlag, name, "frequency", &freq);
+}
+
+void BIDSSensorLayer::ioParam_ts_per_period(enum ParamsIOFlag ioFlag) {
+   float ts_per_period = 0.0f;
+   parent->ioParamValueRequired(ioFlag, name, "ts_per_period", &ts_per_period);
+   ts = 1.0/(ts_per_period * freq);  // Is this correct?
+}
+
+void BIDSSensorLayer::ioParam_buffer_size(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValueRequired(ioFlag, name, "buffer_size", &buf_size);
+}
+
+void BIDSSensorLayer::ioParam_neutral_val(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValueRequired(ioFlag, name, "buffer_size", &buf_size);
+}
+
+void BIDSSensorLayer::ioParam_weight(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValueRequired(ioFlag, name, "buffer_size", &buf_size);
+}
+
+void BIDSSensorLayer::ioParam_jitterSource(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValueRequired(ioFlag, name, "buffer_size", &buf_size);
 }
 
 int BIDSSensorLayer::communicateInitInfo() {

@@ -17,6 +17,7 @@ public:
    InitUniformWeightsParams();
    InitUniformWeightsParams(HyPerConn * parentConn);
    virtual ~InitUniformWeightsParams();
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
 
    //get-set methods:
    inline float getInitWeight()        {return initWeight;}
@@ -25,12 +26,12 @@ public:
 protected:
    virtual int initialize_base();
    int initialize(HyPerConn * parentConn);
-
+   virtual void ioParam_weightInit(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_connectOnlySameFeatures(enum ParamsIOFlag ioFlag);
 
 private:
    float initWeight;
    bool connectOnlySameFeatures;
-
 
 };
 

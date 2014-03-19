@@ -22,7 +22,6 @@ InitPoolWeightsParams::InitPoolWeightsParams(HyPerConn * parentConn)
 
 InitPoolWeightsParams::~InitPoolWeightsParams()
 {
-   // TODO Auto-generated destructor stub
 }
 
 int InitPoolWeightsParams::initialize_base() {
@@ -32,14 +31,7 @@ int InitPoolWeightsParams::initialize_base() {
 }
 
 int InitPoolWeightsParams::initialize(HyPerConn * parentConn) {
-   InitWeightsParams::initialize(parentConn);
-
-   PVParams * params = parent->parameters();
-   int status = PV_SUCCESS;
-
-   strength = params->value(name, "strength", strength);
-   return status;
-
+   return InitGauss2DWeightsParams::initialize(parentConn);
 }
 
 void InitPoolWeightsParams::calcOtherParams(int patchIndex) {

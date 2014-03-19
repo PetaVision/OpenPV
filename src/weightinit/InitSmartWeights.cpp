@@ -9,66 +9,65 @@
 
 namespace PV {
 
-   InitSmartWeights::InitSmartWeights()
-   {
-      initialize_base();
-   }
-//   InitSmartWeights::InitSmartWeights(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
-//         ChannelType channel) : InitWeights() {
-//
-//      InitSmartWeights::initialize_base();
-//      InitSmartWeights::initialize(name, hc, pre, post, channel);
-//   }
+InitSmartWeights::InitSmartWeights(HyPerConn * conn) : InitWeights() {
 
-   InitSmartWeights::~InitSmartWeights()
-   {
-      // TODO Auto-generated destructor stub
-   }
+   InitSmartWeights::initialize_base();
+   InitSmartWeights::initialize(conn);
+}
 
-   int InitSmartWeights::initialize_base() {
-      return PV_SUCCESS;
-   }
-//   int InitSmartWeights::initialize(const char * name, HyPerCol * hc,
-//         HyPerLayer * pre, HyPerLayer * post, ChannelType channel) {
-//      InitWeights::initialize(name, hc, pre, post, channel);
-//      return PV_SUCCESS;
-//   }
+InitSmartWeights::InitSmartWeights()
+{
+   initialize_base();
+}
 
-   int InitSmartWeights::calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, int arborId, InitWeightsParams *weightParams) {
-      //smart weights doesn't have any params to load and is too simple to
-      //actually need to save anything to work on...
+InitSmartWeights::~InitSmartWeights()
+{
+}
 
-      smartWeights(dataStart, patchIndex, weightParams);
-      return PV_SUCCESS; // return 1;
-   }
+int InitSmartWeights::initialize_base() {
+   return PV_SUCCESS;
+}
 
-   InitWeightsParams * InitSmartWeights::createNewWeightParams(HyPerConn * callingConn) {
-      InitWeightsParams * tempPtr = new InitWeightsParams(callingConn);
-      return tempPtr;
-   }
+int InitSmartWeights::initialize(HyPerConn * conn) {
+   int status = InitWeights::initialize(conn);
+   return status;
+}
 
-   int InitSmartWeights::smartWeights(/* PVPatch * wp */ pvdata_t * dataStart, int k, InitWeightsParams *weightParams) {
-      // pvdata_t * w = wp->data;
+int InitSmartWeights::calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, int arborId) {
+   //smart weights doesn't have any params to load and is too simple to
+   //actually need to save anything to work on...
 
-      const int nxp = weightParams->getnxPatch_tmp(); // wp->nx;
-      const int nyp = weightParams->getnyPatch_tmp(); // wp->ny;
-      const int nfp = weightParams->getnfPatch_tmp(); //wp->nf;
+   smartWeights(dataStart, patchIndex, weightParams);
+   return PV_SUCCESS; // return 1;
+}
 
-      const int sxp = weightParams->getsx_tmp(); //wp->sx;
-      const int syp = weightParams->getsy_tmp(); //wp->sy;
-      const int sfp = weightParams->getsf_tmp(); //wp->sf;
+InitWeightsParams * InitSmartWeights::createNewWeightParams() {
+   InitWeightsParams * tempPtr = new InitWeightsParams(callingConn);
+   return tempPtr;
+}
 
-      // loop over all post-synaptic cells in patch
-      for (int y = 0; y < nyp; y++) {
-         for (int x = 0; x < nxp; x++) {
-            for (int f = 0; f < nfp; f++) {
-               dataStart[x * sxp + y * syp + f * sfp] = weightParams->getParentConn()->dataIndexToUnitCellIndex(k);
-            }
+int InitSmartWeights::smartWeights(/* PVPatch * wp */ pvdata_t * dataStart, int k, InitWeightsParams *weightParams) {
+   // pvdata_t * w = wp->data;
+
+   const int nxp = weightParams->getnxPatch(); // wp->nx;
+   const int nyp = weightParams->getnyPatch(); // wp->ny;
+   const int nfp = weightParams->getnfPatch(); //wp->nf;
+
+   const int sxp = weightParams->getsx(); //wp->sx;
+   const int syp = weightParams->getsy(); //wp->sy;
+   const int sfp = weightParams->getsf(); //wp->sf;
+
+   // loop over all post-synaptic cells in patch
+   for (int y = 0; y < nyp; y++) {
+      for (int x = 0; x < nxp; x++) {
+         for (int f = 0; f < nfp; f++) {
+            dataStart[x * sxp + y * syp + f * sfp] = weightParams->getParentConn()->dataIndexToUnitCellIndex(k);
          }
       }
-
-      return 0;
    }
+
+   return 0;
+}
 
 } /* namespace PV */
 

@@ -16,15 +16,15 @@ namespace PV {
 
 class AccumulateLayer: public PV::ANNLayer {
 public:
-   AccumulateLayer(const char* name, HyPerCol * hc, int numChannels=MAX_CHANNELS);
+   AccumulateLayer(const char* name, HyPerCol * hc);
    virtual int communicateInitInfo();
    virtual ~AccumulateLayer();
 
 protected:
    AccumulateLayer();
-   int initialize(const char * name, HyPerCol * hc, int numChannels);
-   virtual int setParams(PVParams * params);
-   virtual void readSyncedInputLayer(PVParams * params);
+   int initialize(const char * name, HyPerCol * hc);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_syncedInputLayer(enum ParamsIOFlag ioFlag);
    virtual int setActivity();
    virtual int doUpdateState(double time, double dt, const PVLayerLoc * loc, pvdata_t * A,
          pvdata_t * V, int num_channels, pvdata_t * gSynHead, bool spiking,

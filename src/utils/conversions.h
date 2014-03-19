@@ -26,12 +26,6 @@ extern "C"
 
    int zPatchHead(int kzPre, int nzPatch, int zScaleLog2Pre, int zScaleLog2Post);
 
-   int posPatchHead(const int kPre, const int xScaleLog2Pre,
-         const int yScaleLog2Pre, const PVLayerLoc locPre, float * xPreGlobal,
-         float * yPreGlobal, const int xScaleLog2Post, const int yScaleLog2Post,
-         const PVLayerLoc locPost, const PVPatch * wp, float * xPatchHeadGlobal,
-         float * yPatchHeadGlobal);
-
 /*
  * The following functions are simple, static inline functions.  They have been given the
  * compiler directive elemental (with same semantics as in Fortran).  The elemental functions are

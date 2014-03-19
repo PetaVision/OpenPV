@@ -15,9 +15,7 @@ namespace PV {
 class ReciprocalConn: public PV::KernelConn {
 public:
    // public methods
-   ReciprocalConn(const char * name, HyPerCol * hc,
-         const char * pre_layer_name, const char * post_layer_name,
-         const char * filename=NULL, InitWeights * weightInit=NULL);
+   ReciprocalConn(const char * name, HyPerCol * hc);
    virtual ~ReciprocalConn();
    virtual int communicateInitInfo();
 
@@ -29,28 +27,24 @@ public:
    const char * getReciprocalWgtsName()       {return reciprocalWgtsName;}
    float getReciprocalFidelityCoeff()         {return reciprocalFidelityCoeff;}
    bool getSlownessFlag()                     {return slownessFlag;}
-   int getSizeUnitCellPost()                  {return sizeUnitCellPost;}
 
    int setReciprocalWgts(const char * recipName);
 
 protected:
    // protected methods
    ReciprocalConn();
-   int initialize(const char * name, HyPerCol * hc,
-         const char * pre_layer_name, const char * post_layer_name,
-         const char * filename, InitWeights *weightInit=NULL);
-   virtual int setParams(PVParams * params);
-   virtual void readRelaxationRate(PVParams * params);
-   virtual void readReciprocalFidelityCoeff(PVParams * params);
-   virtual int readUpdateRulePre(PVParams * params);
-   virtual int readUpdateRulePost(PVParams * params);
-   virtual void readSlownessFlag(PVParams * params);
-   virtual int readSlownessPre(PVParams * params);
-   virtual int readSlownessPost(PVParams * params);
+   int initialize(const char * name, HyPerCol * hc);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_relaxationRate(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_reciprocalFidelityCoeff(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_updateRulePre(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_updateRulePost(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_slownessFlag(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_slownessPre(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_slownessPost(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_reciprocalWgts(enum ParamsIOFlag ioFlag);
    int getLayerName(PVParams * params, const char * parameter_name, char ** layer_name_ptr, const char * default_name=NULL);
-   virtual int readReciprocalWgts(PVParams * params);
    int setParameterLayer(const char * paramname, const char * layername, HyPerLayer ** layerPtr);
-   virtual int initNormalize();
    virtual int update_dW(int axonID);
    virtual int updateWeights(int axonId);
 
@@ -67,7 +61,7 @@ private:
    char * updateRulePostName;
    HyPerLayer * updateRulePre;
    HyPerLayer * updateRulePost;
-   const char * reciprocalWgtsName;
+   char * reciprocalWgtsName;
    ReciprocalConn * reciprocalWgts;
    float relaxationRate; // The coefficient eta in dW = eta * dE/dW, measured in the same units as HyPerCol's dt
    float reciprocalFidelityCoeff;
@@ -76,10 +70,6 @@ private:
    char * slownessPostName;
    HyPerLayer * slownessPre;
    HyPerLayer * slownessPost;
-   int nxUnitCellPost;
-   int nyUnitCellPost;
-   int nfUnitCellPost;
-   int sizeUnitCellPost;
 };
 
 } /* namespace PV */

@@ -11,31 +11,38 @@
 #include "StatsProbe.hpp"
 #include "../layers/HyPerLayer.hpp"
 #include "LayerFunction.hpp"
+#include "GenColProbe.hpp"
 
 namespace PV {
 
 class LayerFunctionProbe : public StatsProbe {
 public:
-   LayerFunctionProbe(HyPerLayer * layer, const char * msg);
-   LayerFunctionProbe(const char * filename, HyPerLayer * layer, const char * msg);
-   LayerFunctionProbe(HyPerLayer * layer, const char * msg, LayerFunction * F);
-   LayerFunctionProbe(const char * filename, HyPerLayer * layer, const char * msg, LayerFunction * F);
+   LayerFunctionProbe(const char * probeName, HyPerCol * hc);
    virtual ~LayerFunctionProbe();
 
+   virtual int communicateInitInfo();
+
    LayerFunction * getFunction() {return function;}
-   int setFunction(LayerFunction * f);
    virtual int outputState(double timef);
 
 protected:
    LayerFunctionProbe();
-   int initLayerFunctionProbe(const char * filename, HyPerLayer * layer, const char * msg, LayerFunction * F);
+   int initLayerFunctionProbe(const char * probeName, HyPerCol * hc);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_buffer(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_parentGenColProbe(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_coeff(enum ParamsIOFlag ioFlag);
+   virtual void initFunction();
+   void setFunction(LayerFunction * f) {function = f;}
    virtual int writeState(double timef, HyPerLayer * l, pvdata_t value);
 
 private:
    int initLayerFunctionProbe_base();
 
-protected:
+private:
    LayerFunction * function;
+   char * parentGenColProbeName; // The GenColProbe, if any, that the probe is attached to.
+   pvdata_t coeff; // The coefficient of this LayerFunction in the energy function of the GenColProbe
 };
 
 }  // end namespace PV

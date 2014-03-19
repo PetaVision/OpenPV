@@ -15,8 +15,7 @@ namespace PV {
 
 class Movie: public PV::Image {
 public:
-   Movie(const char * name, HyPerCol * hc, const char * fileOfFileNames);
-   Movie(const char * name, HyPerCol * hc, const char * fileOfFileNames, float displayPeriod);
+   Movie(const char * name, HyPerCol * hc);
    virtual ~Movie();
 
    virtual int allocateDataStructures();
@@ -41,12 +40,24 @@ public:
 
 protected:
    Movie();
-   int initialize(const char * name, HyPerCol * hc, const char * fileOfFileNames, float defaultDisplayPeriod);
-   virtual int setParams(PVParams * params);
+   int initialize(const char * name, HyPerCol * hc);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_imagePath(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_frameNumber(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_imageListPath(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_displayPeriod(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_randomMovie(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_randomMovieProb(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_readPvpFile(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_echoFramePathnameFlag(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_start_frame_index(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_skip_frame_index(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_movieOutputPath(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_writeFrameToTimestamp(enum ParamsIOFlag ioFlag);
+
 
 private:
    int initialize_base();
-   int initializeMovie(const char * name, HyPerCol * hc, const char * fileOfFileNames, float displayPeriod);
    int copyReducedImagePortion();
    const char * getNextFileName();
    const char * getNextFileName(int n_skip);
@@ -75,7 +86,6 @@ private:
 
    bool writeFrameToTimestamp;
    PV_Stream * timestampFile;
-   //bool updateThisTimestep;
 };
 
 }

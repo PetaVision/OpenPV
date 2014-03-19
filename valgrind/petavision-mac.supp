@@ -37,6 +37,13 @@
 }
 
 {
+   <suppress_leak_CPLCreateOrAcquireMutex>
+   Memcheck:Leak
+   ...
+   fun:CPLCreateOrAcquireMutex
+}
+
+{
    <suppress_uninitialized_bytes_MPI_Init>
    Memcheck:Param
    writev(vector[...])
@@ -56,4 +63,46 @@
    Memcheck:Leak
    ...
    fun:yyparse
+}
+
+{
+   <suppress_leak__dyld_start>
+   Memcheck:Leak
+   ...
+   fun:_dyld_start
+}
+
+{
+   <suppress_leak_printf>
+   Memcheck:Leak
+   ...
+   fun:printf
+}
+
+{
+   <suppress_leak_fprintf>
+   Memcheck:Leak
+   ...
+   fun:fprintf
+}
+
+{
+   <suppress_leak_ctime>
+   Memcheck:Leak
+   ...
+   fun:ctime
+}
+
+{
+   <suppress_leak_exit>
+   Memcheck:Leak
+   ...
+   fun:exit
+}
+
+{
+   <suppress_leak_moreglue>
+   Memcheck:Leak
+   fun:malloc
+   fun:moreglue
 }

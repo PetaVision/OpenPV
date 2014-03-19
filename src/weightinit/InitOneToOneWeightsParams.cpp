@@ -21,7 +21,6 @@ InitOneToOneWeightsParams::InitOneToOneWeightsParams(HyPerConn * parentConn)
 
 InitOneToOneWeightsParams::~InitOneToOneWeightsParams()
 {
-   // TODO Auto-generated destructor stub
 }
 
 int InitOneToOneWeightsParams::initialize_base() {
@@ -31,28 +30,21 @@ int InitOneToOneWeightsParams::initialize_base() {
 }
 
 int InitOneToOneWeightsParams::initialize(HyPerConn * parentConn) {
-   InitWeightsParams::initialize(parentConn);
+   return InitWeightsParams::initialize(parentConn);
+}
 
-   PVParams * params = parent->parameters();
-   int status = PV_SUCCESS;
-
-   initWeight = params->value(getName(), "weightInit", initWeight);
-
-
+int InitOneToOneWeightsParams::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = InitWeightsParams::ioParamsFillGroup(ioFlag);
+   ioParam_weightInit(ioFlag);
    return status;
+}
 
+void InitOneToOneWeightsParams::ioParam_weightInit(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, getName(), "weightInit", &initWeight, initWeight);
 }
 
 void InitOneToOneWeightsParams::calcOtherParams(int patchIndex) {
-
    this->getcheckdimensionsandstrides();
-
-   //const int kfPre_tmp = this->kernalIndexCalculations(patch, patchIndex);
-
-
-
-   //this->calculateThetas(kfPre_tmp, patchIndex);
-
 }
 
 

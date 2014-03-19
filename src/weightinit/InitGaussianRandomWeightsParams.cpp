@@ -15,35 +15,39 @@ InitGaussianRandomWeightsParams::InitGaussianRandomWeightsParams()
 }
 
 InitGaussianRandomWeightsParams::InitGaussianRandomWeightsParams(HyPerConn * parentConn)
-                     : InitWeightsParams() {
+{
    initialize_base();
    initialize(parentConn);
 }
 
 InitGaussianRandomWeightsParams::~InitGaussianRandomWeightsParams()
 {
-   // TODO Auto-generated destructor stub
 }
 
 int InitGaussianRandomWeightsParams::initialize_base() {
 
    wGaussMean = 0;
    wGaussStdev = 1;
-   return 1;
+   return PV_SUCCESS;
 }
 
 int InitGaussianRandomWeightsParams::initialize(HyPerConn * parentConn) {
-   InitWeightsParams::initialize(parentConn);
+   return InitRandomWeightsParams::initialize(parentConn);
+}
 
-   PVParams * params = parent->parameters();
-   int status = PV_SUCCESS;
-
-   wGaussMean = params->value(getName(), "wGaussMean", wGaussMean);
-   wGaussStdev = params->value(getName(), "wGaussStdev", wGaussStdev);
-
-
+int InitGaussianRandomWeightsParams::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = InitRandomWeightsParams::ioParamsFillGroup(ioFlag);
+   ioParam_wGaussMean(ioFlag);
+   ioParam_wGaussStdev(ioFlag);
    return status;
+}
 
+void InitGaussianRandomWeightsParams::ioParam_wGaussMean(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "wGaussMean", &wGaussMean, wGaussMean);
+}
+
+void InitGaussianRandomWeightsParams::ioParam_wGaussStdev(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "wGaussStdev", &wGaussStdev, wGaussStdev);
 }
 
 } /* namespace PV */

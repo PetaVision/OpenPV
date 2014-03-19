@@ -15,17 +15,17 @@ namespace PV {
 class NormalizeSum: public PV::NormalizeBase {
 // Member functions
 public:
-   NormalizeSum(const char * name, PVParams * params);
+   NormalizeSum(HyPerConn * callingConn);
    virtual ~NormalizeSum();
 
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    virtual int normalizeWeights(HyPerConn * conn);
 
 protected:
    NormalizeSum();
-   int initialize(const char * name, PVParams * params);
-   virtual int setParams();
+   int initialize(HyPerConn * callingConn);
 
-   virtual void readMinSumTolerated();
+   virtual void ioParam_minSumTolerated(enum ParamsIOFlag ioFlag);
 
 private:
    int initialize_base();

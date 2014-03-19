@@ -32,16 +32,6 @@ ANNSquaredLayer::ANNSquaredLayer() {
    initialize_base();
 }
 
-// This constructor allows derived classes to set an arbitrary number of channels, should equal 1 here
-ANNSquaredLayer::ANNSquaredLayer(const char * name, HyPerCol * hc, int numChannels) {
-   initialize_base();
-   initialize(name, hc, 1);
-#ifdef PV_USE_OPENCL
-   if(gpuAccelerateFlag)
-      initializeGPU();
-#endif
-}
-
 ANNSquaredLayer::ANNSquaredLayer(const char * name, HyPerCol * hc) {
    initialize_base();
    initialize(name, hc);
@@ -56,11 +46,13 @@ ANNSquaredLayer::~ANNSquaredLayer()
 }
 
 int ANNSquaredLayer::initialize_base() {
+   numChannels = 1; // ANNSquaredLayer only takes input on the excitatory channel
    return PV_SUCCESS;
 }
 
-int ANNSquaredLayer::initialize(const char * name, HyPerCol * hc, int numChannels/*Default=MAX_CHANNELS*/) {
-   int status = ANNLayer::initialize(name, hc, 1);
+int ANNSquaredLayer::initialize(const char * name, HyPerCol * hc) {
+   int status = ANNLayer::initialize(name, hc);
+   assert(numChannels==1);
 #ifdef PV_USE_OPENCL
    numEvents=NUM_ANNSQ_EVENTS;
 #endif

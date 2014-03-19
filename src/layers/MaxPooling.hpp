@@ -14,13 +14,12 @@ namespace PV {
 
 class MaxPooling: public PV::HyPerLayer {
 public:
-   MaxPooling(const char * name, HyPerCol * hc, int numChannels);
    MaxPooling(const char * name, HyPerCol * hc);
    virtual ~MaxPooling();
    virtual int recvSynapticInput(HyPerConn * conn, const PVLayerCube * activity, int axonId);
 protected:
    MaxPooling();
-   int initialize(const char * name, HyPerCol * hc, int numChannels);
+   int initialize(const char * name, HyPerCol * hc);
 private:
    int initialize_base();
 };

@@ -20,17 +20,18 @@ class InitMTWeightsParams;
 
 class InitMTWeights: public PV::InitGauss2DWeights {
 public:
-   InitMTWeights();
+   InitMTWeights(HyPerConn * conn);
    virtual ~InitMTWeights();
-   virtual int calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, int arborId,
-         InitWeightsParams *weightParams);
-   virtual InitWeightsParams * createNewWeightParams(HyPerConn * callingConn);
+   virtual int calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, int arborId);
+   virtual InitWeightsParams * createNewWeightParams();
 
 
 protected:
-   int initialize_base();
+   InitMTWeights();
+   int initialize(HyPerConn * conn);
 
 private:
+   int initialize_base();
    int calculateMTWeights(/* PVPatch * patch */ pvdata_t * dataStart, InitMTWeightsParams * weightParamPtr);
    int calculateVector(float theta, float speed, float &x, float &y, float &t);
    int calculateMTPlane(float theta, float speed, float &x, float &y, float &t);

@@ -17,19 +17,25 @@ namespace PV {
 
 class ANNLayer : public HyPerLayer {
 public:
-   ANNLayer(const char* name, HyPerCol * hc, int numChannels=MAX_CHANNELS);
+   ANNLayer(const char* name, HyPerCol * hc);
    virtual ~ANNLayer();
    pvdata_t getVThresh()        { return VThresh; }
    pvdata_t getVMax()           { return VMax; }
    pvdata_t getVMin()           { return VMin; }
 protected:
    ANNLayer();
-   int initialize(const char * name, HyPerCol * hc, int numChannels=MAX_CHANNELS);
+   int initialize(const char * name, HyPerCol * hc);
    virtual int doUpdateState(double time, double dt, const PVLayerLoc * loc, pvdata_t * A,
          pvdata_t * V, int num_channels, pvdata_t * gSynHead, bool spiking,
          unsigned int * active_indices, unsigned int * num_active);
    virtual int setActivity();
-   virtual int readVThreshParams(PVParams * params);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_VThresh(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_VMin(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_VMax(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_VShift(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_VWidth(enum ParamsIOFlag ioFlag);
+   virtual int checkVThreshParams(PVParams * params);
    pvdata_t VMax;  // maximum membrane potential, larger values are set to VMax
    pvdata_t VMin;  // minimum membrane potential, smaller values are set to VMin
    pvdata_t VThresh;  // threshold potential, values smaller than VThresh are set to VMin

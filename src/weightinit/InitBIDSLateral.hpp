@@ -25,20 +25,12 @@ class InitGauss2DWeightsParams;
 
 class InitBIDSLateral: public PV::InitWeights {
 public:
-   InitBIDSLateral();
+   InitBIDSLateral(HyPerConn * conn);
    virtual ~InitBIDSLateral();
 
-   /*
-    * THis is the top weight initializing method.  It will first call createUnShrunkenPatch to create a full sized patch,
-    * and then calcWeights to calculate the weights for the patch.  Finally it will call copyToOriginalPatch to copy the weights from
-    * the full sized patch to a possibly shrunken patch.
-    * This method is purposely not virtual!  Only calcWeights will be virtual and can be over ridden by sub
-    * initweights classes
-    */
-   virtual int initializeWeights(PVPatch *** patches, pvdata_t ** dataStart, const char * filename, HyPerConn * callingConn, double * timef=NULL);
-   virtual InitWeightsParams * createNewWeightParams(HyPerConn * callingConn);
+   virtual InitWeightsParams * createNewWeightParams();
 
-   virtual int calcWeightsBIDS(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, int arborId, InitWeightsParams *weightParams, HyPerConn * conn);
+   virtual int calcWeights(pvdata_t * dataStart, int patchIndex, int arborId);
 
 
    //get-set methods:
@@ -46,12 +38,12 @@ public:
 
 
 protected:
-   virtual int initialize_base();
-   BIDSMovieCloneMap * movieLayer;
+   InitBIDSLateral();
+   int initialize(HyPerConn * conn);
 
 private:
-
-   int BIDSLateralCalcWeights(/* PVPatch * patch */ int kPre, pvdata_t * dataStart, InitBIDSLateralParams * weightParamPtr, HyPerConn * conn);
+   int initialize_base();
+   int BIDSLateralCalcWeights(/* PVPatch * patch */ int kPre, pvdata_t * dataStart, InitBIDSLateralParams * weightParamPtr);
 };
 
 } /* namespace PV */

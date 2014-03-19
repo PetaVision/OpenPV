@@ -25,7 +25,7 @@
 namespace PV {
 
 HyPerCol::HyPerCol(const char * name, int argc, char * argv[], PVParams * params)
-         : warmStart(false), isInitialized(false)
+         : warmStart(false)
 {
    initialize_base();
    initialize(name, argc, argv, params);
@@ -75,36 +75,21 @@ HyPerCol::~HyPerCol()
    free(probes);
    free(name);
    free(outputPath);
-   free(outputNamesOfLayersAndConns);
+   free(printParamsFilename);
+   // free(outputNamesOfLayersAndConns);
    if (checkpointWriteFlag) {
       free(checkpointWriteDir); checkpointWriteDir = NULL;
+      free(checkpointWriteTriggerModeString); checkpointWriteTriggerModeString = NULL;
    }
    if (checkpointReadFlag) {
       free(checkpointReadDir); checkpointReadDir = NULL;
    }
 }
 
-int HyPerCol::initFinish(void)
-{
-   int status = 0;
-
-   for (int i = 0; i < this->numLayers; i++) {
-      status = layers[i]->initFinish();
-      if (status != 0) {
-         fprintf(stderr, "[%d]: HyPerCol::initFinish: ERROR condition, exiting...\n", this->columnId());
-         exit(status);
-      }
-   }
-
-   isInitialized = true;
-
-   return status;
-}
 
 #define DEFAULT_NUMSTEPS 1
 int HyPerCol::initialize_base() {
    // Initialize all member variables to safe values.  They will be set to their actual values in initialize()
-   numSteps = 0;
    currentStep = 0;
    layerArraySize = INITIAL_LAYER_ARRAY_SIZE;
    numLayers = 0;
@@ -116,6 +101,7 @@ int HyPerCol::initialize_base() {
    checkpointReadDir = NULL;
    cpReadDirIndex = -1L;
    checkpointWriteDir = NULL;
+   checkpointWriteTriggerMode = CPWRITE_TRIGGER_STEP;
    cpWriteStepInterval = -1L;
    nextCPWriteStep = 0L;
    cpWriteTimeInterval = -1.0;
@@ -127,7 +113,7 @@ int HyPerCol::initialize_base() {
    startTime = 0.0;
    stopTime = 0.0;
    deltaTime = DELTA_T;
-   progressStep = 1L; // deprecated Dec 18, 2013
+   // progressStep = 1L; // deprecated Dec 18, 2013
    progressInterval = 1.0;
    writeProgressToErr = false;
    clDevice = NULL;
@@ -135,7 +121,9 @@ int HyPerCol::initialize_base() {
    connections = NULL;
    name = NULL;
    outputPath = NULL;
-   outputNamesOfLayersAndConns = NULL;
+   // outputNamesOfLayersAndConns = NULL;
+   printParamsFilename = NULL;
+   printParamsStream = NULL;
    image_file = NULL;
    nxGlobal = 0;
    nyGlobal = 0;
@@ -147,6 +135,10 @@ int HyPerCol::initialize_base() {
    runTimer = NULL;
    numProbes = 0;
    probes = NULL;
+   numLayerProbes = 0;
+   layerProbes = NULL;
+   // numConnProbes = 0;
+   // connProbes = NULL;
    filenamesContainLayerNames = 0;
    filenamesContainConnectionNames = 0;
    random_seed = 0;
@@ -233,78 +225,35 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * p
       exit(parsedStatus);
    }
 
-   startTime = params->value(name, "startTime", startTime);
-   deltaTime = params->value(name, "dt", deltaTime, true);
-   stopTime = params->value(name, "stopTime", startTime+deltaTime);
+   ioParams(PARAMS_IO_READ);
 
-   initialStep = (long int) nearbyint(startTime/deltaTime);
-   finalStep = (long int) nearbyint(stopTime/deltaTime);
-   currentStep = initialStep;
-   simTime = startTime;
-
-   // numSteps deprecated Dec. 12, 2013.  Instead of specifying numSteps in params,
-   // specify startTime, stopTime, and dt; PV will internally determine
-   // startStep = round(startTime/dt), and stopStep = round(stopTime/dt).
-   if (!params->present(name, "stopTime") && params->present(name, "numSteps")) {
-      numSteps = params->value(name, "numSteps", numSteps);
-      stopTime = simTime + numSteps * deltaTime;
-      finalStep = initialStep + numSteps;
-      if (columnId()==0) {
-         fprintf(stderr, "Warning: numSteps is deprecated.  Use startTime, stopTime and deltaTime instead.\n");
-         fprintf(stderr, "    stopTime set to %f\n", stopTime);
-         fprintf(stderr, "    finalStep set to %ld\n", finalStep);
-      }
-   }
-
-   // set how often advanceTime() prints a message indicating progress
-   progressInterval = params->value(name, "progressInterval", progressInterval);
-
-   if (!params->present(name, "progressInterval") && params->present(name, "progressStep")) {
-      progressStep = (long int) params->value(name, "progressStep");
-      progressInterval = progressStep/deltaTime;
-      if (columnId()==0) {
-         fprintf(stderr, "Warning: progressStep is deprecated.  Use progressInterval instead.\n");
-         fprintf(stderr, "    progressInterval set to %f\n", progressInterval);
-      }
-
-   }
-
-   assert(!params->presentAndNotBeenRead(name, "startTime"));
-   nextProgressTime = startTime + progressInterval;
-   writeProgressToErr = params->value(name, "writeProgressToErr",writeProgressToErr)!=0;
-
-   // set output path from params file if it wasn't set on the command line
-   if (outputPath == NULL ) {
-      if( params->stringPresent(name, "outputPath") ) {
-         outputPath = strdup(params->stringValue(name, "outputPath"));
-         assert(outputPath != NULL);
-      }
-      else {
-         outputPath = strdup(OUTPUT_PATH);
-         assert(outputPath != NULL);
-         printf("Output path specified neither in command line nor in params file.\n"
-                "Output path set to default \"%s\"\n",OUTPUT_PATH);
-      }
-   }
    ensureDirExists(outputPath);
 
-   if (params->stringPresent(name, "printParamsFilename")) {
-      const char * printParamsFilename = params->stringValue(name, "printParamsFilename", false);
-      outputParams(printParamsFilename);
+   initialStep = (long int) nearbyint(startTime/deltaTime);
+   currentStep = initialStep;
+   finalStep = (long int) nearbyint(stopTime/deltaTime);
+   nextProgressTime = startTime + progressInterval;
+
+   if(checkpointWriteFlag && checkpointWriteTriggerMode == CPWRITE_TRIGGER_STEP) {
+      switch (checkpointWriteTriggerMode) {
+      case CPWRITE_TRIGGER_STEP:
+         nextCPWriteStep = initialStep;
+         nextCPWriteTime = startTime; // Should be unnecessary
+         cpWriteTimeInterval = -1;
+         break;
+      case CPWRITE_TRIGGER_TIME:
+         nextCPWriteStep = initialStep; // Should be unnecessary
+         nextCPWriteTime = startTime;
+         cpWriteStepInterval = -1;
+         break;
+      case CPWRITE_TRIGGER_CLOCK:
+         assert(0); // Using clock time to checkpoint has not been implemented yet.
+         break;
+      default:
+         assert(0); // All cases of checkpointWriteTriggerMode should have been covered above.
+         break;
+      }
    }
-   else {
-      outputParams("params.pv");
-   }
-#ifdef UNDERCONSTRUCTION // We plan to create an XML file containing all params whether specified in params or by default value
-              // The problem with doing that from within HyPerCol::initialize is that the layers and columns haven't been added yet.
-   if (params->stringPresent(name, "paramsXMLFilename")) {
-      const char * paramsXMLFilename = params->stringValue(name, "paramsXMLFilename", true);
-      outputParamsXML(paramsXMLFilename);
-   }
-   else {
-      outputParamsXML("params.xml");
-   }
-#endif // UNDERCONSTRUCTION
 
    // run only on GPU for now
 #ifdef PV_USE_OPENCL
@@ -312,152 +261,454 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * p
    clDevice->query_device_info();
 #endif
 
-   // set random seed if it wasn't set in the command line
-   // bool seedfromclock = false;
-   if( !random_seed ) {
-      if( params->present(name, "randomSeed") ) {
-         random_seed = (unsigned long) params->value(name, "randomSeed");
-      }
-      else {
-         random_seed = getRandomSeed();
-         // seedfromclock = true; // Commented out Nov. 28, 2012.  getRandomSeed prints the seed so seedfromclock isn't needed
-      }
-   }
-   if (random_seed < 10000000) {
-      fprintf(stderr, "Error: random seed %u is too small. Use a seed of at least 10000000.\n", random_seed);
-      abort();
-   }
-
-#ifdef OBSOLETE // Marked obsolete Aug 28, 2013.  Use the Random class
-   // There are still some routines using pv_random, which calls random(), so we need to seed the system RNG here.
-   // Each MPI process will have its own seed, for independence, but the results will depend on MPI configuration, and
-   // restarting from checkpoint cannot recover the previous state of the system RNG.
-   unsigned long system_random_seed = random_seed / ((unsigned long) (2+columnId()));
-   pv_srandom(system_random_seed); // initialize system random number generator
-#endif // OBSOLETE
-
-   random_seed_obj = random_seed;
-
-   nxGlobal = (int) params->value(name, "nx");
-   nyGlobal = (int) params->value(name, "ny");
-
    runDelegate = NULL;
 
-   numProbes = 0;
-   probes = NULL;
+   return PV_SUCCESS;
+}
 
-   filenamesContainLayerNames = (int)params->value(name, "filenamesContainLayerNames", 0);
+int HyPerCol::ioParams(enum ParamsIOFlag ioFlag) {
+   ioParamsStartGroup(ioFlag, name);
+   ioParamsFillGroup(ioFlag);
+   ioParamsFinishGroup(ioFlag);
+
+   return PV_SUCCESS;
+}
+
+int HyPerCol::ioParamsStartGroup(enum ParamsIOFlag ioFlag, const char * group_name) {
+   if (ioFlag == PARAMS_IO_WRITE && columnId()==0) {
+      assert(printParamsStream);
+      const char * keyword = params->groupKeywordFromName(group_name);
+      fprintf(printParamsStream->fp, "\n");
+      fprintf(printParamsStream->fp, "%s \"%s\" = {\n", keyword, group_name);
+   }
+   return PV_SUCCESS;
+}
+
+int HyPerCol::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   ioParam_startTime(ioFlag);
+   ioParam_dt(ioFlag);
+   ioParam_stopTime(ioFlag);
+   ioParam_progressInterval(ioFlag);
+   ioParam_writeProgressToErr(ioFlag);
+   ioParam_outputPath(ioFlag);
+   ioParam_printParamsFilename(ioFlag);
+   ioParam_randomSeed(ioFlag);
+   ioParam_nx(ioFlag);
+   ioParam_ny(ioFlag);
+   ioParam_filenamesContainLayerNames(ioFlag);
+   ioParam_filenamesContainConnectionNames(ioFlag);
+   ioParam_checkpointRead(ioFlag);
+   ioParam_checkpointReadDir(ioFlag);
+   ioParam_checkpointReadDirIndex(ioFlag);
+   ioParam_checkpointWrite(ioFlag);
+   ioParam_checkpointWriteDir(ioFlag);
+   ioParam_checkpointWriteTriggerMode(ioFlag);
+   ioParam_checkpointWriteStepInterval(ioFlag);
+   ioParam_checkpointWriteTimeInterval(ioFlag);
+   ioParam_deleteOlderCheckpoints(ioFlag);
+   ioParam_suppressLastOutput(ioFlag);
+   return PV_SUCCESS;
+}
+
+int HyPerCol::ioParamsFinishGroup(enum ParamsIOFlag ioFlag) {
+   if (ioFlag == PARAMS_IO_WRITE && columnId()==0) {
+      assert(printParamsStream);
+      fprintf(printParamsStream->fp, "};\n");
+   }
+   return PV_SUCCESS;
+}
+
+template <typename T>
+void HyPerCol::ioParamValueRequired(enum ParamsIOFlag ioFlag, const char * group_name, const char * param_name, T * value) {
+   switch(ioFlag) {
+   case PARAMS_IO_READ:
+      *value = params->value(group_name, param_name);
+      break;
+   case PARAMS_IO_WRITE:
+      writeParam(param_name, *value);
+      break;
+   }
+}
+// Declare the instantiations of readScalarToFile that occur in other .cpp files; otherwise you'll get linker errors.
+// template void HyPerCol::ioParamValueRequired<pvdata_t>(enum ParamsIOFlag ioFlag, const char * group_name, const char * param_name, pvdata_t * value);
+template void HyPerCol::ioParamValueRequired<float>(enum ParamsIOFlag ioFlag, const char * group_name, const char * param_name, float * value);
+template void HyPerCol::ioParamValueRequired<double>(enum ParamsIOFlag ioFlag, const char * group_name, const char * param_name, double * value);
+template void HyPerCol::ioParamValueRequired<int>(enum ParamsIOFlag ioFlag, const char * group_name, const char * param_name, int * value);
+template void HyPerCol::ioParamValueRequired<unsigned int>(enum ParamsIOFlag ioFlag, const char * group_name, const char * param_name, unsigned int * value);
+template void HyPerCol::ioParamValueRequired<bool>(enum ParamsIOFlag ioFlag, const char * group_name, const char * param_name, bool * value);
+
+template <typename T>
+void HyPerCol::ioParamValue(enum ParamsIOFlag ioFlag, const char * group_name, const char * param_name, T * value, T defaultValue, bool warnIfAbsent) {
+   switch(ioFlag) {
+   case PARAMS_IO_READ:
+      *value = params->value(group_name, param_name, defaultValue, warnIfAbsent);
+      break;
+   case PARAMS_IO_WRITE:
+      writeParam(param_name, *value);
+      break;
+   }
+}
+// Declare the instantiations of readScalarToFile that occur in other .cpp files; otherwise you'll get linker errors.
+// template void HyPerCol::ioParamValue<pvdata_t>(enum ParamsIOFlag ioFlag, const char * group_name, const char * param_name, pvdata_t * value, pvdata_t defaultValue, bool warnIfAbsent);
+template void HyPerCol::ioParamValue<float>(enum ParamsIOFlag ioFlag, const char * group_name, const char * param_name, float * value, float defaultValue, bool warnIfAbsent);
+template void HyPerCol::ioParamValue<double>(enum ParamsIOFlag ioFlag, const char * group_name, const char * param_name, double * value, double defaultValue, bool warnIfAbsent);
+template void HyPerCol::ioParamValue<int>(enum ParamsIOFlag ioFlag, const char * group_name, const char * param_name, int * value, int defaultValue, bool warnIfAbsent);
+template void HyPerCol::ioParamValue<unsigned int>(enum ParamsIOFlag ioFlag, const char * group_name, const char * param_name, unsigned int * value, unsigned int defaultValue, bool warnIfAbsent);
+template void HyPerCol::ioParamValue<bool>(enum ParamsIOFlag ioFlag, const char * group_name, const char * param_name, bool * value, bool defaultValue, bool warnIfAbsent);
+template void HyPerCol::ioParamValue<long>(enum ParamsIOFlag ioFlag, const char * group_name, const char * param_name, long * value, long defaultValue, bool warnIfAbsent);
+
+void HyPerCol::ioParamString(enum ParamsIOFlag ioFlag, const char * group_name, const char * param_name, char ** value, const char * defaultValue, bool warnIfAbsent) {
+   const char * param_string = NULL;
+   switch(ioFlag) {
+   case PARAMS_IO_READ:
+      param_string = params->stringValue(group_name, param_name, warnIfAbsent);
+      if (param_string==NULL && defaultValue !=NULL) {
+         if (columnId()==0 && warnIfAbsent==true) {
+            fprintf(stderr, "Using default value \"%s\" for string parameter \"%s\" in group \"%s\"\n", defaultValue, param_name, group_name);
+         }
+         param_string = defaultValue;
+      }
+      if (param_string!=NULL) {
+         *value = strdup(param_string);
+         if (*value==NULL) {
+            fprintf(stderr, "Rank %d process unable to copy param %s in group \"%s\": %s\n", columnId(), param_name, group_name, strerror(errno));
+            exit(EXIT_FAILURE);
+         }
+      }
+      else {
+         *value = NULL;
+      }
+      break;
+   case PARAMS_IO_WRITE:
+      writeParamString(param_name, *value);
+   }
+}
+
+void HyPerCol::ioParamStringRequired(enum ParamsIOFlag ioFlag, const char * group_name, const char * param_name, char ** value) {
+   const char * param_string = NULL;
+   switch(ioFlag) {
+   case PARAMS_IO_READ:
+      param_string = params->stringValue(group_name, param_name, false/*warnIfAbsent*/);
+      if (param_string!=NULL) {
+         *value = strdup(param_string);
+         if (*value==NULL) {
+            fprintf(stderr, "Rank %d process unable to copy param %s in group \"%s\": %s\n", columnId(), param_name, group_name, strerror(errno));
+            exit(EXIT_FAILURE);
+         }
+      }
+      else {
+         if (columnId()==0) {
+            fprintf(stderr, "%s \"%s\" error: string parameter \"%s\" is required.\n",
+                            params->groupKeywordFromName(group_name), group_name, param_name);
+         }
+         MPI_Barrier(icComm->communicator());
+         exit(EXIT_SUCCESS);
+      }
+      break;
+   case PARAMS_IO_WRITE:
+      writeParamString(param_name, *value);
+   }
+
+}
+
+template <typename T>
+void HyPerCol::ioParamArray(enum ParamsIOFlag ioFlag, const char * group_name, const char * param_name, T ** value, int * arraysize) {
+    if(ioFlag==PARAMS_IO_READ) {
+       const double * param_array = params->arrayValuesDbl(group_name, param_name, arraysize);
+       assert(*arraysize>=0);
+       if (*arraysize>0) {
+          *value = (T *) calloc((size_t) *arraysize, sizeof(T));
+          if (*value==NULL) {
+             fprintf(stderr, "%s \"%s\" error: rank %d process unable to copy array parameter %s: %s\n",
+                   parameters()->groupKeywordFromName(name), name, columnId(), param_name, strerror(errno));
+          }
+          for (int k=0; k<*arraysize; k++) {
+             (*value)[k] = (T) param_array[k];
+          }
+       }
+    }
+    else if (ioFlag==PARAMS_IO_WRITE) {
+       writeParamArray(param_name, *value, *arraysize);
+    }
+    else {
+       assert(0); // All possibilities for ioFlag handled above
+    }
+}
+template void HyPerCol::ioParamArray<float>(enum ParamsIOFlag ioFlag, const char * group_name, const char * param_name, float ** value, int * arraysize);
+
+void HyPerCol::ioParam_startTime(enum ParamsIOFlag ioFlag) {
+   ioParamValue(ioFlag, name, "startTime", &startTime, startTime);
+}
+
+void HyPerCol::ioParam_dt(enum ParamsIOFlag ioFlag) {
+   ioParamValue(ioFlag, name, "dt", &deltaTime, deltaTime);
+}
+
+void HyPerCol::ioParam_stopTime(enum ParamsIOFlag ioFlag) {
+   if (ioFlag==PARAMS_IO_READ && !params->present(name, "stopTime") && params->present(name, "numSteps")) {
+      assert(!params->presentAndNotBeenRead(name, "startTime"));
+      assert(!params->presentAndNotBeenRead(name, "deltaTime"));
+      long int numSteps = params->value(name, "numSteps");
+      stopTime = startTime + numSteps * deltaTime;
+      if (columnId()==0) {
+         fprintf(stderr, "Warning: numSteps is deprecated.  Use startTime, stopTime and deltaTime instead.\n");
+         fprintf(stderr, "    stopTime set to %f\n", stopTime);
+      }
+      return;
+   }
+   // numSteps was deprecated Dec 12, 2013
+   // When support for numSteps is removed entirely, remove the above if-statement and keep the ioParamValue call below.
+   ioParamValue(ioFlag, name, "stopTime", &stopTime, stopTime);
+}
+
+void HyPerCol::ioParam_progressInterval(enum ParamsIOFlag ioFlag) {
+   if (ioFlag==PARAMS_IO_READ && !params->present(name, "progressInterval") && params->present(name, "progressStep")) {
+      long int progressStep = (long int) params->value(name, "progressStep");
+      progressInterval = progressStep/deltaTime;
+      if (columnId()==0) {
+         fprintf(stderr, "Warning: progressStep is deprecated.  Use progressInterval instead.\n");
+         fprintf(stderr, "    progressInterval set to %f\n", progressInterval);
+      }
+      return;
+   }
+   // progressStep was deprecated Dec 18, 2013
+   // When support for progressStep is removed entirely, remove the above if-statement and keep the ioParamValue call below.
+   ioParamValue(ioFlag, name, "progressInterval", &progressInterval, progressInterval);
+}
+
+void HyPerCol::ioParam_writeProgressToErr(enum ParamsIOFlag ioFlag) {
+   ioParamValue(ioFlag, name, "writeProgressToErr", &writeProgressToErr, writeProgressToErr);
+}
+
+void HyPerCol::ioParam_outputPath(enum ParamsIOFlag ioFlag) {
+   // outputPath can be set on the command line.
+   switch(ioFlag) {
+   case PARAMS_IO_READ:
+      if (outputPath==NULL) {
+         if( params->stringPresent(name, "outputPath") ) {
+            outputPath = strdup(params->stringValue(name, "outputPath"));
+            assert(outputPath != NULL);
+         }
+         else {
+            outputPath = strdup(OUTPUT_PATH);
+            assert(outputPath != NULL);
+            printf("Output path specified neither in command line nor in params file.\n"
+                   "Output path set to default \"%s\"\n", OUTPUT_PATH);
+         }
+      }
+      break;
+   case PARAMS_IO_WRITE:
+      writeParamString("outputPath", outputPath);
+      break;
+   default:
+      assert(0);
+      break;
+   }
+}
+
+void HyPerCol::ioParam_printParamsFilename(enum ParamsIOFlag ioFlag) {
+   ioParamString(ioFlag, name, "printParamsFilename", &printParamsFilename, "pv.params");
+}
+
+void HyPerCol::ioParam_randomSeed(enum ParamsIOFlag ioFlag) {
+   switch(ioFlag) {
+   // randomSeed can be set on the command line, from the params file, or from the system clock
+   case PARAMS_IO_READ:
+      // set random seed if it wasn't set in the command line
+      // bool seedfromclock = false;
+      if( !random_seed ) {
+         if( params->present(name, "randomSeed") ) {
+            random_seed = (unsigned long) params->value(name, "randomSeed");
+         }
+         else {
+            random_seed = getRandomSeed();
+         }
+      }
+      if (random_seed < 10000000) {
+         fprintf(stderr, "Error: random seed %u is too small. Use a seed of at least 10000000.\n", random_seed);
+         abort();
+      }
+
+      random_seed_obj = random_seed;
+      break;
+   case PARAMS_IO_WRITE:
+      writeParam("randomSeed", random_seed);
+      break;
+   default:
+      assert(0);
+      break;
+   }
+}
+
+void HyPerCol::ioParam_nx(enum ParamsIOFlag ioFlag) {
+   ioParamValueRequired(ioFlag, name, "nx", &nxGlobal);
+}
+
+void HyPerCol::ioParam_ny(enum ParamsIOFlag ioFlag) {
+   ioParamValueRequired(ioFlag, name, "ny", &nyGlobal);
+}
+
+void HyPerCol::ioParam_filenamesContainLayerNames(enum ParamsIOFlag ioFlag) {
+   ioParamValue(ioFlag, name, "filenamesContainLayerNames", &filenamesContainLayerNames, 0);
    if(filenamesContainLayerNames < 0 || filenamesContainLayerNames > 2) {
       fprintf(stderr,"HyPerCol %s: filenamesContainLayerNames must have the value 0, 1, or 2.\n", name);
       abort();
    }
+}
 
-   filenamesContainConnectionNames = (int)params->value(name, "filenamesContainConnectionNames", 0);
+void HyPerCol::ioParam_filenamesContainConnectionNames(enum ParamsIOFlag ioFlag) {
+   ioParamValue(ioFlag, name, "filenamesContainConnectionNames", &filenamesContainConnectionNames, 0);
    if(filenamesContainConnectionNames < 0 || filenamesContainConnectionNames > 2) {
       fprintf(stderr,"HyPerCol %s: filenamesContainConnectionNames must have the value 0, 1, or 2.\n", name);
       abort();
    }
+}
 
-   const char * lcfilename = params->stringValue(name, "outputNamesOfLayersAndConns", false);
-   if( lcfilename != NULL && lcfilename[0] != 0 && rank==0 ) {
-      outputNamesOfLayersAndConns = (char *) malloc( (strlen(outputPath)+strlen(lcfilename)+2)*sizeof(char) );
-      if( !outputNamesOfLayersAndConns ) {
-         fprintf(stderr, "HyPerCol \"%s\": Unable to allocate memory for outputNamesOfLayersAndConns.  Exiting.\n", name);
-         exit(EXIT_FAILURE);
-      }
-      sprintf(outputNamesOfLayersAndConns, "%s/%s", outputPath, lcfilename);
+void HyPerCol::ioParam_checkpointRead(enum ParamsIOFlag ioFlag) {
+   ioParamValue(ioFlag, name, "checkpointRead", &checkpointReadFlag, false/*default value*/);
+}
+
+void HyPerCol::ioParam_checkpointReadDir(enum ParamsIOFlag ioFlag) {
+   assert(!params->presentAndNotBeenRead(name, "checkpointRead"));
+   if (checkpointReadFlag) {
+      ioParamStringRequired(ioFlag, name, "checkpointReadDir", &checkpointReadDir);
    }
    else {
-      outputNamesOfLayersAndConns = NULL;
+      checkpointReadDir = NULL;
    }
+}
 
-   checkpointReadFlag = params->value(name, "checkpointRead", false) != 0;
-   if(checkpointReadFlag) {
-      const char * cpreaddir = params->stringValue(name, "checkpointReadDir", true);
-      if( cpreaddir != NULL ) {
-         checkpointReadDir = strdup(cpreaddir);
-      }
-      else {
-         fprintf(stderr, "Rank %d: Column \"%s\": if checkpointRead is set, the string checkpointReadDir must be defined.  Exiting.\n", rank, name);
-         exit(EXIT_FAILURE);
-      }
-      struct stat checkpointReadDirStat;
-      int dirExistStatus = checkDirExists(checkpointReadDir, &checkpointReadDirStat);
-      if( dirExistStatus != 0 ) {
-         fprintf(stderr, "Rank %d: Column \"%s\": unable to read checkpointReadDir \"%s\": %s\n", rank, name, checkpointReadDir, strerror(dirExistStatus));
-         exit(EXIT_FAILURE);
-      }
-      cpReadDirIndex = (int) params->value(name, "checkpointReadDirIndex", -1, true);
-
-      if (cpReadDirIndex < 0) {
-         fflush(stdout);
-         fprintf(stderr, "Rank %d: Column \"%s\": checkpointReadDirIndex must be nonnegative", rank, name);
-      }
+void HyPerCol::ioParam_checkpointReadDirIndex(enum ParamsIOFlag ioFlag) {
+   assert(!params->presentAndNotBeenRead(name, "checkpointRead"));
+   if (checkpointReadFlag) {
+      ioParamValueRequired(ioFlag, name, "checkpointReadDirIndex", &cpReadDirIndex);
    }
+}
 
-   checkpointWriteFlag = params->value(name, "checkpointWrite", false) != 0;
-   if(checkpointWriteFlag) {
-      const char * cpwritedir = params->stringValue(name, "checkpointWriteDir", true);
-      if( cpwritedir != NULL ) {
-         checkpointWriteDir = strdup(cpwritedir);
-      }
-      else {
-         if( rank == 0 ) {
-            fprintf(stderr, "Column \"%s\": if checkpointWrite is set, the string checkpointWriteDir must be defined.  Exiting.\n", name);
-         }
-         exit(EXIT_FAILURE);
-      }
-      ensureDirExists(checkpointWriteDir);
+void HyPerCol::ioParam_checkpointWrite(enum ParamsIOFlag ioFlag) {
+   ioParamValue(ioFlag, name, "checkpointWrite", &checkpointWriteFlag, false/*default value*/);
+}
 
-      char cpDir[PV_PATH_MAX];
-      int chars_printed = snprintf(cpDir, PV_PATH_MAX, "%s/Checkpoint%ld", checkpointWriteDir, finalStep);
-      if(chars_printed >= PV_PATH_MAX) {
-         if (icComm->commRank()==0) {
-            fprintf(stderr,"HyPerCol::run error.  Checkpoint directory \"%s/Checkpoint%ld\" will be needed to hold the checkpoint at end of run, but this path is too long.\n", checkpointWriteDir, finalStep);
-            abort();
-         }
-      }
-
-      bool usingWriteStep = params->present(name, "checkpointWriteStepInterval") && params->value(name, "checkpointWriteStepInterval")>0;
-      bool usingWriteTime = params->present(name, "checkpointWriteTimeInterval") && params->value(name, "checkpointWriteTimeInterval")>0;
-      if( !usingWriteStep && !usingWriteTime ) {
-         if( rank == 0 ) {
-            fflush(stdout);
-            fprintf(stderr,"If checkpointWrite is set, one of checkpointWriteStepInterval or checkpointWriteTimeInterval must be positive.\n");
-         }
-         exit(EXIT_FAILURE);
-      }
-      if( usingWriteStep && usingWriteTime ) {
-         if( rank == 0 ) {
-            fflush(stdout);
-            fprintf(stderr,"If checkpointWrite is set, only one of checkpointWriteStepInterval or checkpointWriteTimeInterval can be positive.\n");
-         }
-         exit(EXIT_FAILURE);
-      }
-      if( usingWriteStep ) {
-         cpWriteStepInterval = (long int) params->value(name, "checkpointWriteStepInterval");
-         cpWriteTimeInterval = -1;
-      }
-      if( usingWriteTime ) {
-         cpWriteTimeInterval = params->value(name, "checkpointWriteTimeInterval");
-         cpWriteStepInterval = -1;
-      }
-      assert(!params->presentAndNotBeenRead(name, "startTime"));
-      nextCPWriteStep = currentStep;
-      nextCPWriteTime = startTime;
-
-      deleteOlderCheckpoints = params->value(name, "deleteOlderCheckpoints", false) != 0;
-      if (deleteOlderCheckpoints) {
-         memset(lastCheckpointDir, 0, PV_PATH_MAX);
-      }
+void HyPerCol::ioParam_checkpointWriteDir(enum ParamsIOFlag ioFlag) {
+   assert(!params->presentAndNotBeenRead(name, "checkpointWrite"));
+   if (checkpointWriteFlag) {
+      ioParamStringRequired(ioFlag, name, "checkpointWriteDir", &checkpointWriteDir);
    }
    else {
       checkpointWriteDir = NULL;
-      suppressLastOutput = params->value(name, "suppressLastOutput", false, true) != 0;
    }
-
-   return PV_SUCCESS;
 }
+
+void HyPerCol::ioParam_checkpointWriteTriggerMode(enum ParamsIOFlag ioFlag ) {
+   assert(!params->presentAndNotBeenRead(name, "checkpointWrite"));
+   if (checkpointWriteFlag) {
+      ioParamString(ioFlag, name, "checkpointWriteTriggerMode", &checkpointWriteTriggerModeString, "step");
+      if (ioFlag==PARAMS_IO_READ) {
+         assert(checkpointWriteTriggerModeString);
+         if (!strcmp(checkpointWriteTriggerModeString, "step") || !strcmp(checkpointWriteTriggerModeString, "Step") || !strcmp(checkpointWriteTriggerModeString, "STEP")) {
+            checkpointWriteTriggerMode = CPWRITE_TRIGGER_STEP;
+         }
+         else if (!strcmp(checkpointWriteTriggerModeString, "time") || !strcmp(checkpointWriteTriggerModeString, "Time") || !strcmp(checkpointWriteTriggerModeString, "TIME")) {
+            checkpointWriteTriggerMode = CPWRITE_TRIGGER_TIME;
+         }
+         else if (!strcmp(checkpointWriteTriggerModeString, "clock") || !strcmp(checkpointWriteTriggerModeString, "Clock") || !strcmp(checkpointWriteTriggerModeString, "CLOCK")) {
+            checkpointWriteTriggerMode = CPWRITE_TRIGGER_CLOCK;
+            if (columnId()==0) {
+               fprintf(stderr, "HyPerCol \"%s\": checkpointWriteTriggerMode \"clock\" has not been implemented yet.\n", name);
+            }
+            MPI_Barrier(icCommunicator()->communicator());
+            exit(EXIT_FAILURE);
+         }
+         else {
+            if (columnId()==0) {
+               fprintf(stderr, "HyPerCol \"%s\": checkpointWriteTriggerMode \"%s\" is not recognized.\n", name, checkpointWriteTriggerModeString);
+            }
+            MPI_Barrier(icCommunicator()->communicator());
+            exit(EXIT_FAILURE);
+         }
+      }
+   }
+}
+
+void HyPerCol::ioParam_checkpointWriteStepInterval(enum ParamsIOFlag ioFlag) {
+   assert(!params->presentAndNotBeenRead(name, "checkpointWrite"));
+   assert(!params->presentAndNotBeenRead(name, "checkpointWriteTriggerMode"));
+   if(checkpointWriteFlag && checkpointWriteTriggerMode == CPWRITE_TRIGGER_STEP) {
+      ioParamValue(ioFlag, name, "checkpointWriteStepInterval", &cpWriteStepInterval, 1L);
+   }
+}
+
+void HyPerCol::ioParam_checkpointWriteTimeInterval(enum ParamsIOFlag ioFlag) {
+   assert(!params->presentAndNotBeenRead(name, "checkpointWrite"));
+   assert(!params->presentAndNotBeenRead(name, "checkpointWriteTriggerMode"));
+   if(checkpointWriteFlag && checkpointWriteTriggerMode == CPWRITE_TRIGGER_TIME) {
+      ioParamValue(ioFlag, name, "checkpointWriteTimeInterval", &cpWriteTimeInterval, deltaTime);
+   }
+}
+
+void HyPerCol::ioParam_deleteOlderCheckpoints(enum ParamsIOFlag ioFlag) {
+   assert(!params->presentAndNotBeenRead(name, "checkpointWrite"));
+   if (checkpointWriteFlag) {
+      ioParamValue(ioFlag, name, "deleteOlderCheckpoints", &deleteOlderCheckpoints, false/*default value*/);
+   }
+}
+
+void HyPerCol::ioParam_suppressLastOutput(enum ParamsIOFlag ioFlag) {
+   assert(!params->presentAndNotBeenRead(name, "checkpointWrite"));
+   if (!checkpointWriteFlag) {
+      ioParamValue(ioFlag, name, "suppressLastOutput", &suppressLastOutput, false/*default value*/);
+   }
+}
+
+template <typename T>
+void HyPerCol::writeParam(const char * param_name, T value) {
+   if (columnId()==0) {
+      assert(printParamsStream && printParamsStream->fp);
+      std::stringstream vstr("");
+      if (typeid(value)==typeid(false)) {
+         vstr << (value ? "true" : "false");
+      }
+      else {
+         vstr << value;
+      }
+      fprintf(printParamsStream->fp, "    %-35s = %s;\n", param_name, vstr.str().c_str()); // Check: does vstr.str().c_str() work?
+   }
+}
+// Declare the instantiations of writeParam that occur in other .cpp files; otherwise you'll get linker errors.
+template void HyPerCol::writeParam<float>(const char * param_name, float value);
+template void HyPerCol::writeParam<int>(const char * param_name, int value);
+template void HyPerCol::writeParam<unsigned int>(const char * param_name, unsigned int value);
+template void HyPerCol::writeParam<bool>(const char * param_name, bool value);
+
+void HyPerCol::writeParamString(const char * param_name, const char * svalue) {
+   if (columnId()==0) {
+      assert(printParamsStream!=NULL && printParamsStream->fp!=NULL);
+      if (svalue!=NULL) {
+         fprintf(printParamsStream->fp, "    %-35s = \"%s\";\n", param_name, svalue);
+      }
+      else {
+         fprintf(printParamsStream->fp, "    // %-35s was set to (NULL);\n", param_name);
+      }
+   }
+}
+
+template <typename T>
+void HyPerCol::writeParamArray(const char * param_name, const T * array, int arraysize) {
+   if (columnId()==0) {
+      assert(printParamsStream!=NULL && printParamsStream->fp!=NULL && arraysize>=0);
+      assert(arraysize>=0);
+      if (arraysize>0) {
+         fprintf(printParamsStream->fp, "    %-35s = [", param_name);
+         for (int k=0; k<arraysize-1; k++) {
+            fprintf(printParamsStream->fp, "%f,", array[k]);
+         }
+         fprintf(printParamsStream->fp, "%f];\n", array[arraysize-1]);
+      }
+   }
+}
+// Declare the instantiations of writeParam that occur in other .cpp files; otherwise you'll get linker errors.
+template void HyPerCol::writeParamArray<float>(const char * param_name, const float * array, int arraysize);
+
 
 int HyPerCol::checkDirExists(const char * dirname, struct stat * pathstat) {
    // check if the given directory name exists for the rank zero process
@@ -621,6 +872,16 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
    connInitializationStage = &HyPerCol::connCommunicateInitInfo;
    doInitializationStage(layerInitializationStage, connInitializationStage, "communicateInitInfo");
 
+   // insert probes
+   for (int i=0; i<numLayerProbes; i++) {
+      LayerProbe * p = layerProbes[i];
+      p->communicateInitInfo();
+   }
+   //for (int i=0; i<numConnProbes; i++) {
+   //   BaseConnectionProbe * p = connProbes[i];
+   //   p->communicateInitInfo();
+   //}
+
    // allocateDataStructures stage
    layerInitializationStage = &HyPerCol::layerAllocateDataStructures;
    connInitializationStage = &HyPerCol::connAllocateDataStructures;
@@ -633,34 +894,7 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
    }
 #endif // OBSOLETE
 
-   if( outputNamesOfLayersAndConns ) {
-      assert( icComm->commRank() == 0 );
-      printf("Dumping layer and connection names to \"%s\"\n", outputNamesOfLayersAndConns);
-      PV_Stream * outputNamesStream = PV_fopen(outputNamesOfLayersAndConns,"w");
-      if( outputNamesStream == NULL ) {
-         fprintf(stderr, "HyPerCol \"%s\" unable to open \"%s\" for writing: error %d.  Exiting.\n", name, outputNamesOfLayersAndConns, errno);
-         exit(errno);
-      }
-      fprintf(outputNamesStream->fp, "Layers and Connections in HyPerCol \"%s\"\n\n", name);
-      for( int k=0; k<numLayers; k++ ) {
-         fprintf(outputNamesStream->fp, "    Layer % 4d: %s\n", k, layers[k]->getName());
-      }
-      fprintf(outputNamesStream->fp, "\n");
-      for( int k=0; k<numConnections; k++ ) {
-         fprintf(outputNamesStream->fp, "    Conn. % 4d: %s\n", k, connections[k]->getName());
-      }
-      int fcloseStatus = PV_fclose(outputNamesStream);
-      if( fcloseStatus != 0 ) {
-         fprintf(stderr, "Warning: Attempting to close output file \"%s\" generated an error.\n", outputNamesOfLayersAndConns);
-      }
-      outputNamesStream = NULL;
-   }
-
    const bool exitOnFinish = false;
-
-   if (!isInitialized) {
-      initFinish();
-   }
 
    initPublishers(); // create the publishers and their data stores
 
@@ -688,6 +922,7 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
    }
 
    parameters()->warnUnread();
+   if (printParamsFilename!=NULL) outputParams();
 
    // publish initial conditions
    //
@@ -803,7 +1038,7 @@ int HyPerCol::doInitializationStage(int (HyPerCol::*layerInitializationStage)(in
                if (columnId()==0) printf("Layer \"%s\": %s postponed.\n", layers[l]->getName(), stageName);
                break;
             case PV_FAILURE:
-               exit(EXIT_FAILURE); // Error message printed in HyPerLayer::communicateInitInfo().
+               exit(EXIT_FAILURE); // Any error message should be printed by layerInitializationStage function.
                break;
             default:
                assert(0); // This shouldn't be possible
@@ -1097,20 +1332,8 @@ int HyPerCol::checkpointRead(const char * cpDir) {
 }
 
 int HyPerCol::checkpointWrite(const char * cpDir) {
-   if (icCommunicator()->commRank()==0) {
-      printf("Checkpointing to directory \"%s\" at simTime = %f\n", cpDir, simTime);
-   }
-
-   // Commented out Nov 4, 2012.
-   // if( currentStep >= HYPERCOL_DIRINDEX_MAX+1 ) {
-   //    if( icComm->commRank() == 0 ) {
-   //       fflush(stdout);
-   //       fprintf(stderr, "Column \"%s\": step number exceeds maximum value %d.  Exiting\n", name, HYPERCOL_DIRINDEX_MAX);
-   //   }
-   //    exit(EXIT_FAILURE);
-   // }
-
    if (columnId()==0) {
+      printf("Checkpointing to directory \"%s\" at simTime = %f\n", cpDir, simTime);
       struct stat timeinfostat;
       char timeinfofilename[PV_PATH_MAX];
       int chars_needed = snprintf(timeinfofilename, PV_PATH_MAX, "%s/timeinfo.bin", cpDir);
@@ -1188,221 +1411,96 @@ int HyPerCol::checkpointWrite(const char * cpDir) {
    return PV_SUCCESS;
 }
 
-int HyPerCol::outputParams(const char * filename) {
+int HyPerCol::outputParams() {
    int status = PV_SUCCESS;
 #ifdef PV_USE_MPI
    int rank=icComm->commRank();
 #else
    int rank=0;
 #endif
-   if( rank==0 && filename != NULL && filename[0] != '\0' ) {
-      char printParamsPath[PV_PATH_MAX];
-      int len;
-      if (filename[0] == '/') { // filename is absolute path
-         len = snprintf(printParamsPath, PV_PATH_MAX, "%s", filename);
+   assert(printParamsStream==NULL);
+   char printParamsPath[PV_PATH_MAX];
+   if( rank == 0 && printParamsFilename != NULL && printParamsFilename[0] != '\0' ) {
+      int len = 0;
+      if (printParamsFilename[0] == '/') { // filename is absolute path
+         len = snprintf(printParamsPath, PV_PATH_MAX, "%s", printParamsFilename);
       }
       else { // filename is relative path from outputPath
-         len = snprintf(printParamsPath, PV_PATH_MAX, "%s/%s", outputPath, filename);
+         len = snprintf(printParamsPath, PV_PATH_MAX, "%s/%s", outputPath, printParamsFilename);
       }
-      if( len < PV_PATH_MAX ) {
-         PV_Stream * pvstream = PV_fopen(printParamsPath, "w");
-         if( pvstream != NULL ) {
-            status = params->outputParams(pvstream->fp);
-            if( status != PV_SUCCESS ) {
-               fprintf(stderr, "outputParams: Error copying params to \"%s\"\n", printParamsPath);
-            }
-            PV_fclose(pvstream); pvstream = NULL;
-         }
-         else {
+      if( len >= PV_PATH_MAX ) {
+         fprintf(stderr, "outputParams: ");
+         if (printParamsFilename[0] != '/') fprintf(stderr, "outputPath + ");
+         fprintf(stderr, "printParamsFilename gives too long a filename.  Parameters will not be printed.\n");
+      }
+      else {
+         printParamsStream = PV_fopen(printParamsPath, "w");
+         if( printParamsStream == NULL ) {
             status = errno;
             fprintf(stderr, "outputParams error opening \"%s\" for writing: %s\n", printParamsPath, strerror(errno));
          }
       }
-      else {
-         fprintf(stderr, "outputParams: ");
-         if (filename[0] != '/') fprintf(stderr, "outputPath + ");
-         fprintf(stderr, "printParamsFilename gives too long a filename.  Parameters will not be printed.\n");
-      }
    }
-   return status;
-}
-
-#ifdef UNDERCONSTRUCTION // The plan is to output all params, whether they were set in the params file or not.
-int HyPerCol::outputParamsXML(const char * filename) {
-   int status = PV_SUCCESS;
+   if (printParamsStream != NULL) {
+      time_t t = time(NULL);
+      fprintf(printParamsStream->fp, "// PetaVision version something-point-something run at %s", ctime(&t)); // newline is included in output of ctime
 #ifdef PV_USE_MPI
-   int rank=icComm->commRank();
-#else
-   int rank=0;
-#endif
-   if( rank==0 && filename != NULL && filename[0] != '\0' ) {
-      char printParamsPath[PV_PATH_MAX];
-      int len;
-      if (filename[0] == '/') { // filename is absolute path
-         len = snprintf(printParamsPath, PV_PATH_MAX, "%s", filename);
-      }
-      else { // filename is relative path from outputPath
-         len = snprintf(printParamsPath, PV_PATH_MAX, "%s/%s", outputPath, filename);
-      }
-      if( len < PV_PATH_MAX ) {
-         PV_Stream * pvstream = PV_fopen(printParamsPath, "w");
-         if( pvstream != NULL ) {
-            status = outputParamsXML(pvstream);
-            if( status != PV_SUCCESS ) {
-               fprintf(stderr, "outputParamsXML: Error copying params to \"%s\"\n", printParamsPath);
-            }
-            PV_fclose(pvstream); pvstream = NULL;
-         }
-         else {
-            status = errno;
-            fprintf(stderr, "outputParamsXML error opening \"%s\" for writing: %s\n", printParamsPath, strerror(errno));
-         }
-      }
-      else {
-         fprintf(stderr, "outputParams: ");
-         if (filename[0] != '/') fprintf(stderr, "outputPath + ");
-         fprintf(stderr, "paramsXMLFilename gives too long a filename.  Parameters will not be printed.\n");
+      fprintf(printParamsStream->fp, "// Compiled with MPI and run using %d rows and %d columns.\n", icComm->numCommRows(), icComm->numCommColumns());
+#else // PV_USE_MPI
+      fprintf(printParamsStream->fp, "// Compiled without MPI.\n");
+#endif // PV_USE_MPI
+   }
+   // Parent HyPerCol params
+   status = ioParams(PARAMS_IO_WRITE);
+   if( status != PV_SUCCESS ) {
+      fprintf(stderr, "outputParams: Error copying params to \"%s\"\n", printParamsPath);
+      exit(EXIT_FAILURE);
+   }
+
+   // HyPerLayer params
+   for (int l=0; l<numLayers; l++) {
+      HyPerLayer * layer = layers[l];
+      status = layer->ioParams(PARAMS_IO_WRITE);
+      if( status != PV_SUCCESS ) {
+         fprintf(stderr, "outputParams: Error copying params to \"%s\"\n", printParamsPath);
+         exit(EXIT_FAILURE);
       }
    }
+
+   // HyPerConn params
+   for (int c=0; c<numConnections; c++) {
+      HyPerConn * connection = connections[c];
+      status = connection->ioParams(PARAMS_IO_WRITE);
+      if( status != PV_SUCCESS ) {
+         fprintf(stderr, "outputParams: Error copying params to \"%s\"\n", printParamsPath);
+         exit(EXIT_FAILURE);
+      }
+   }
+
+   // Probe params
+
+   // ColProbes
+   for (int p=0; p<numProbes; p++) {
+      probes[p]->ioParams(PARAMS_IO_WRITE);
+   }
+
+   // LayerProbes
+   for (int l=0; l<numLayers; l++) {
+      layers[l]->outputProbeParams();
+   }
+
+   // BaseConnectionProbes
+   for (int c=0; c<numConnections; c++) {
+      connections[c]->outputProbeParams();
+   }
+
+   if (printParamsStream) {
+      PV_fclose(printParamsStream);
+      printParamsStream = NULL;
+   }
+
    return status;
 }
-
-int HyPerCol::outputParamsXML(PV_Stream * pvstream) {
-   assert(pvstream!=NULL && pvstream->fp!=NULL);
-   FILE * fp = pvstream->fp;
-   fprintf(fp, "<?xml version='1.0' encoding=\"UTF-8\"?>\n");
-   fprintf(fp, "<params>\n");
-   int indentation=1;
-   outputParamGroup(pvstream, "HyPerCol", name, indentation);
-   indentation++;
-   outputParamInt(pvstream, "nx", nxGlobal, indentation);
-   outputParamInt(pvstream, "ny", nyGlobal, indentation);
-   outputParamDouble(pvstream, "startTime", startTime, indentation);
-   outputParamDouble(pvstream, "stopTime", stopTime, indentation);
-   outputParamDouble(pvstream, "dt", deltaTime, indentation);
-   outputParamUnsignedLongInt(pvstream, "randomSeed", random_seed, indentation);
-   outputParamLongInt(pvstream, "progressStep", progressStep, indentation);
-   outputParamBoolean(pvstream, "writeProgressToErr", writeProgressToErr, indentation);
-   outputParamFilename(pvstream, "outputPath", outputPath, indentation);
-   outputParamFilename(pvstream, "paramsXMLFilename", pvstream->name, indentation);
-   outputParamInt(pvstream, "filenamesContainLayerNames", filenamesContainLayerNames, indentation);
-   outputParamInt(pvstream, "filenamesContainConnectionNames", filenamesContainConnectionNames, indentation);
-   outputParamBoolean(pvstream, "checkpointRead", checkpointReadFlag, indentation);
-   outputParamFilename(pvstream, "checkpointReadDir", checkpointReadDir, indentation);
-   outputParamLongInt(pvstream, "checkpointReadDirIndex", cpReadDirIndex, indentation);
-   outputParamBoolean(pvstream, "checkpointWrite", checkpointWriteFlag, indentation);
-   outputParamFilename(pvstream, "checkpointWriteDir", checkpointWriteDir, indentation);
-   outputParamLongInt(pvstream, "checkpointWriteStepInterval", cpWriteStepInterval, indentation);
-   outputParamDouble(pvstream, "chekpointWriteTimeInterval", cpWriteTimeInterval, indentation);
-   outputParamBoolean(pvstream, "deleteOlderCheckpoints", deleteOlderCheckpoints, indentation);
-   outputParamBoolean(pvstream, "suppressLastOutput", suppressLastOutput, indentation);
-   indentation--;
-   for (int l=0; l<numLayers; l++) {
-      // layers[l]->outputParamsXML(pvstream); // Need to add to HyPerLayer
-   }
-   for (int c=0; c<numConnections; c++) {
-      // connections[l]->outputParamsXML(pvstream); // Need to add to HyPerConnection
-   }
-   outputParamCloseGroup(pvstream, "HyPerCol", indentation);
-   fprintf(fp, "</params>\n");
-   return PV_SUCCESS;
-}
-
-int HyPerCol::outputParamGroup(PV_Stream * pvstream, const char * classname, const char * groupname, int indentation) {
-   indent(pvstream, indentation);
-   fprintf(pvstream->fp, "<%s name=\"%s\">\n", classname, groupname);
-   return PV_SUCCESS;
-}
-
-int HyPerCol::outputParamCloseGroup(PV_Stream * pvstream, const char * classname, int indentation) {
-   indent(pvstream, indentation);
-   fprintf(pvstream->fp, "</%s>\n", classname);
-   return PV_SUCCESS;
-}
-
-int HyPerCol::outputParamInt(PV_Stream * pvstream, const char * paramname, int value, int indentation) {
-   indent(pvstream, indentation);
-   fprintf(pvstream->fp, "<param name=\"%s\" type=\"int\">%d</param>\n", paramname, value);
-   return PV_SUCCESS;
-}
-
-int HyPerCol::outputParamLongInt(PV_Stream * pvstream, const char * paramname, long int value, int indentation) {
-   indent(pvstream, indentation);
-   fprintf(pvstream->fp, "<param name=\"%s\" type=\"long int\">%ld</param>\n", paramname, value);
-   return PV_SUCCESS;
-}
-
-int HyPerCol::outputParamUnsignedLongInt(PV_Stream * pvstream, const char * paramname, unsigned long int value, int indentation) {
-   indent(pvstream, indentation);
-   fprintf(pvstream->fp, "<param name=\"%s\" type=\"unsigned long int\">%lu</param>\n", paramname, value);
-   return PV_SUCCESS;
-}
-
-int HyPerCol::outputParamFloat(PV_Stream * pvstream, const char * paramname, float value, int indentation) {
-   indent(pvstream, indentation);
-   fprintf(pvstream->fp, "<param name=\"%s\" type=\"float\">%f (", paramname, value);
-   hexdump(pvstream, value);
-   fprintf(pvstream->fp, ")</param>\n");
-   return PV_SUCCESS;
-}
-
-int HyPerCol::outputParamDouble(PV_Stream * pvstream, const char * paramname, double value, int indentation) {
-   indent(pvstream, indentation);
-   fprintf(pvstream->fp, "<param name=\"%s\" type=\"double\">%f (", paramname, value);
-   hexdump(pvstream, value);
-   fprintf(pvstream->fp, ")</param>\n");
-   return PV_SUCCESS;
-}
-
-template <typename T> int HyPerCol::hexdump(PV_Stream * pvstream, T value) {
-   size_t sz = sizeof(value);
-   unsigned char c[sz];
-   memcpy(c, &value, sz);
-   fprintf(pvstream->fp, "0x");
-   for (size_t j=sz; j>0;) {
-      fprintf(pvstream->fp, "%02x", c[--j]);
-   }
-   return PV_SUCCESS;
-}
-template int HyPerCol::hexdump<float>(PV_Stream * pvstream, float value);
-template int HyPerCol::hexdump<double>(PV_Stream * pvstream, double value);
-
-int HyPerCol::outputParamBoolean(PV_Stream * pvstream, const char * paramname, bool value, int indentation) {
-   indent(pvstream, indentation);
-   const char * truestring = "true";
-   const char * falsestring = "false";
-   fprintf(pvstream->fp, "<param name=\"%s\" type=\"boolean\">%s</param>\n", paramname, value?truestring:falsestring);
-   return PV_SUCCESS;
-}
-
-int HyPerCol::outputParamFilename(PV_Stream * pvstream, const char * paramname, const char * value, int indentation) {
-   indent(pvstream, indentation);
-   fprintf(pvstream->fp, "<param name=\"%s\" type=\"filename\">\"", paramname);
-   if (value) fprintf(pvstream->fp, "%s", value);
-   fprintf(pvstream->fp, "\"</param>\n");
-   return PV_SUCCESS;
-}
-
-int HyPerCol::outputParamString(PV_Stream * pvstream, const char * paramname, const char * value, int indentation) {
-   indent(pvstream, indentation);
-   fprintf(pvstream->fp, "<param name=\"%s\" type=\"filename\">\"", paramname);
-   if (value) fprintf(pvstream->fp, "%s", value);
-   fprintf(pvstream->fp, "\"</param>\n");
-   return PV_SUCCESS;
-}
-
-int HyPerCol::indent(PV_Stream * pvstream, int indentation) {
-   const char indentstring[] = "   ";
-   int printed = 0;
-   for (int k=0; k<indentation; k++) {
-      int fprintstatus = fprintf(pvstream->fp, indentstring);
-      assert(fprintstatus = strlen(indentstring));
-      printed += fprintstatus;
-   }
-   assert(indentation<0 || printed==indentation*(int)strlen(indentstring));
-   return printed;
-}
-#endif // UNDERCONSTRUCTION
 
 int HyPerCol::exitRunLoop(bool exitOnFinish)
 {
@@ -1485,6 +1583,36 @@ int HyPerCol::insertProbe(ColProbe * p)
    return ++numProbes;
 }
 
+//int HyPerCol::addBaseConnectionProbe(BaseConnectionProbe * p) {
+//   BaseConnectionProbe ** newprobes;
+//   newprobes = (BaseConnectionProbe **) malloc( ((size_t) (numConnProbes + 1)) * sizeof(BaseConnectionProbe *) );
+//   assert(newprobes != NULL);
+//
+//   for (int i=0; i<numConnProbes; i++) {
+//      newprobes[i] = connProbes[i];
+//   }
+//   delete connProbes;
+//   connProbes = newprobes;
+//   connProbes[numConnProbes] = p;
+//
+//   return ++numConnProbes;
+//}
+
+int HyPerCol::addLayerProbe(LayerProbe * p) {
+   LayerProbe ** newprobes;
+   newprobes = (LayerProbe **) malloc( ((size_t) (numLayerProbes + 1)) * sizeof(LayerProbe *) );
+   assert(newprobes != NULL);
+
+   for (int i=0; i<numLayerProbes; i++) {
+      newprobes[i] = layerProbes[i];
+   }
+   delete layerProbes;
+   layerProbes = newprobes;
+   layerProbes[numLayerProbes] = p;
+
+   return ++numLayerProbes;
+}
+
 int HyPerCol::outputState(double time)
 {
    for( int n = 0; n < numProbes; n++ ) {
@@ -1549,11 +1677,6 @@ unsigned int HyPerCol::getRandomSeed() {
 int HyPerCol::checkMarginWidths() {
    // For each connection, make sure that the pre-synaptic margin width is
    // large enough for the patch size.
-
-   // TODO instead of having marginWidth supplied to HyPerLayers in the
-   // params.pv file, calculate them based on the patch sizes here.
-   // Hard part:  numExtended-sized quantities (e.g. clayer->activity) can't
-   // be allocated and initialized until after nPad is determined.
 
    int status = PV_SUCCESS;
    int status1, status2;

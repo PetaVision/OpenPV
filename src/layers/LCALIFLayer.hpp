@@ -32,6 +32,13 @@ public:
    const pvdata_t * getVattained() {return Vattained;}
    const pvdata_t * getVmeminf() {return Vmeminf;}
 protected:
+   LCALIFLayer();
+   int initialize(const char * name, HyPerCol * hc, const char * kernel_name);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_tauTHR(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_targetRate(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_normalizeInput(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_Vscale(enum ParamsIOFlag ioFlag);
 #ifdef PV_USE_OPENCL
 
    // OpenCL buffers
@@ -65,11 +72,9 @@ protected:
    float * Vattained; // Membrane potential before testing to see if a spike resets it to resting potential.  Output in checkpoints for diagnostic purposes but not otherwise used.
    float * Vmeminf;  // Asymptotic value of the membrane potential.  Output in checkpoints for diagnostic purposes but not otherwise used.
    bool normalizeInputFlag;
-   LCALIFLayer();
-   int initialize(const char * name, HyPerCol * hc, int num_channels, const char * kernel_name);
-   int initialize_base();
   // other methods and member variables
 private:
+   int initialize_base();
   // other methods and member variables
 };
 }

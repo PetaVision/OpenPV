@@ -21,7 +21,6 @@ InitCocircWeightsParams::InitCocircWeightsParams(HyPerConn * parentConn)
 
 InitCocircWeightsParams::~InitCocircWeightsParams()
 {
-   // TODO Auto-generated destructor stub
 }
 
 int InitCocircWeightsParams::initialize_base() {
@@ -43,7 +42,7 @@ int InitCocircWeightsParams::initialize_base() {
    sigma_kurve = 1.0; // fraction of delta_radius_curvature
 
    // sigma_chord = % of PI * R, where R == radius of curvature (1/curvature)
-   sigma_chord = 0.5;
+   // sigma_chord = 0.5;
 
    setDeltaThetaMax(PI / 2.0);
 
@@ -62,54 +61,72 @@ int InitCocircWeightsParams::initialize_base() {
 }
 
 int InitCocircWeightsParams::initialize(HyPerConn * parentConn) {
-   InitWeightsParams::initialize(parentConn);
+   InitGauss2DWeightsParams::initialize(parentConn);
 
    PVParams * params = parent->parameters();
    int status = PV_SUCCESS;
 
-   aspect = params->value(name, "aspect", aspect);
-   sigma = params->value(name, "sigma", sigma);
-   rMax = params->value(name, "rMax", rMax);
-   strength = params->value(name, "strength", strength);
-   double rMaxd = (double) rMax;
-   r2Max = rMaxd * rMaxd;
+   return status;
+}
 
-   numFlanks = (int) params->value(name, "numFlanks", numFlanks);
-   shift = params->value(name, "flankShift", shift);
-   setRotate(params->value(name, "rotate", getRotate()));
+int InitCocircWeightsParams::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = InitGauss2DWeightsParams::ioParamsFillGroup(ioFlag);
+   ioParam_sigmaCocirc(ioFlag);
+   ioParam_sigmaKurve(ioFlag);
+   // ioParam_sigmaChord(ioFlag);
+   ioParam_cocircSelf(ioFlag);
+   ioParam_deltaRadiusCurvature(ioFlag);
+   return status;
+}
 
-   int noPreTmp = pre->getLayerLoc()->nf;
-   noPreTmp = (int) params->value(name, "noPre", noPreTmp);
-   assert(noPreTmp > 0);
-   assert(noPreTmp <= pre->getLayerLoc()->nf);
-   setNoPre(noPreTmp);
+void InitCocircWeightsParams::ioParam_sigmaCocirc(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "sigmaCocirc", &sigma_cocirc, sigma_cocirc);
+}
 
-//
-   int noPostTmp = post->getLayerLoc()->nf;
-   noPostTmp = (int) params->value(name, "noPost", noPostTmp);
-   assert(noPostTmp > 0);
-   assert(noPostTmp <= post->getLayerLoc()->nf);
-   setNoPost(noPostTmp);
+void InitCocircWeightsParams::ioParam_sigmaKurve(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "sigmaKurve", &sigma_kurve, sigma_kurve);
+}
 
-   sigma_cocirc = params->value(name, "sigmaCocirc", sigma_cocirc);
+// void InitCocircWeightsParams::ioParam_sigmaChord(enum ParamsIOFlag ioFlag) {
+//    parent->ioParamValue(ioFlag, name, "sigmaChord", &sigma_chord, sigma_chord);
+// }
 
-   sigma_kurve = params->value(name, "sigmaKurve", sigma_kurve);
+void InitCocircWeightsParams::ioParam_cocircSelf(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "cocircSelf", &cocirc_self, cocirc_self);
+}
 
-   // sigma_chord = % of PI * R, where R == radius of curvature (1/curvature)
-   sigma_chord = params->value(name, "sigmaChord", sigma_chord);
-
-   float delta_theta_max_tmp = params->value(name, "deltaThetaMax", getDeltaThetaMax());
-   setDeltaThetaMax(delta_theta_max_tmp);
-   cocirc_self = params->value(name, "cocircSelf", cocirc_self);
-
+void InitCocircWeightsParams::ioParam_deltaRadiusCurvature(enum ParamsIOFlag ioFlag) {
    // from pv_common.h
    // // DK (1.0/(6*(NK-1)))   /*1/(sqrt(DX*DX+DY*DY)*(NK-1))*/         //  change in curvature
-   delta_radius_curvature = params->value(name, "deltaRadiusCurvature",
-         delta_radius_curvature);
+   parent->ioParamValue(ioFlag, name, "deltaRadiusCurvature", &delta_radius_curvature, delta_radius_curvature);
+}
 
+void InitCocircWeightsParams::ioParam_numOrientationsPre(enum ParamsIOFlag ioFlag) {
+   // noPre and noPost were deprecated as parameter names Feb 25, 2014
+   assert(post);
+   const char * paramname = "numOrientationsPre";
+   if (ioFlag==PARAMS_IO_READ && parent->parameters()->present(name, "noPre")) {
+      paramname = "noPre";
+      if (parent->columnId()==0) {
+         fprintf(stderr, "%s \"%s\" warning: noPre is deprecated.  Use numOrientationsPre instead.\n",
+               parent->parameters()->groupKeywordFromName(name), name);
+      }
+   }
+   parent->ioParamValue(ioFlag, name, paramname, &numOrientationsPre, pre->getLayerLoc()->nf);
+}
 
-   return status;
-
+void InitCocircWeightsParams::ioParam_numOrientationsPost(enum ParamsIOFlag ioFlag) {
+   // noPre and noPost were deprecated as parameter names Feb 25, 2014
+   assert(post);
+   const char * paramname = "numOrientationsPost";
+   if (ioFlag==PARAMS_IO_READ && parent->parameters()->present(name, "noPost")) {
+      paramname = "noPost";
+      if (parent->columnId()==0) {
+         fprintf(stderr, "%s \"%s\" warning: noPost is deprecated.  Use numOrientationsPost instead.\n",
+               parent->parameters()->groupKeywordFromName(name), name);
+      }
+   }
+   parent->ioParamValue(ioFlag, name, paramname, &numOrientationsPost, post->getLayerLoc()->nf);
 }
 
 void InitCocircWeightsParams::calcOtherParams(int patchIndex) {
@@ -119,19 +136,21 @@ void InitCocircWeightsParams::calcOtherParams(int patchIndex) {
    nKurvePre = pre->getLayerLoc()->nf / getNoPre();
    nKurvePost = post->getLayerLoc()->nf / getNoPost();
    this->calculateThetas(kfPre_tmp, patchIndex);
-   float radKurvPre = this->calcKurvePreAndSigmaKurvePre();
+   // float radKurvPre = this->calcKurvePreAndSigmaKurvePre();
 
-   sigma_chord *= PI * radKurvPre;
+   // sigma_chord *= PI * radKurvPre; // This is broken.
+   // calcOtherParams is called once for every presynaptic cell, and sigma_chord gets changed each time.
+   // Commented out instead of fixed because sigma_chord is ultimately not used in calculating the weights.  -pete 2014-03-14
 
 }
-float InitCocircWeightsParams::calcKurvePreAndSigmaKurvePre() {
-   int iKvPre = this->getFPre() % nKurvePre;
-   float radKurvPre = calcKurveAndSigmaKurve(iKvPre, nKurvePre,
-         sigma_kurve_pre, kurvePre,
-         iPosKurvePre, iSaddlePre);
-   sigma_kurve_pre2 = 2 * sigma_kurve_pre * sigma_kurve_pre;
-   return radKurvPre;
-}
+//float InitCocircWeightsParams::calcKurvePreAndSigmaKurvePre() {
+//   int iKvPre = this->getFPre() % nKurvePre;
+//   float radKurvPre = calcKurveAndSigmaKurve(iKvPre, nKurvePre,
+//         sigma_kurve_pre, kurvePre,
+//         iPosKurvePre, iSaddlePre);
+//   sigma_kurve_pre2 = 2 * sigma_kurve_pre * sigma_kurve_pre;
+//   return radKurvPre;
+//}
 float InitCocircWeightsParams::calcKurvePostAndSigmaKurvePost(int kfPost) {
    int iKvPost = kfPost % nKurvePost;
    float radKurvPost = calcKurveAndSigmaKurve(iKvPost, nKurvePost,
@@ -228,7 +247,7 @@ void InitCocircWeightsParams::updateCocircNChord(
    const int noPre = getNoPre();
    const int noPost = getNoPost();
    const float sigma_cocirc2 = 2 * getSigma_cocirc() * getSigma_cocirc();
-   const float sigma_chord2 = 2.0 * getSigma_chord() * getSigma_chord();
+   // const float sigma_chord2 = 2.0 * getSigma_chord() * getSigma_chord();
    const int nKurvePre = (int)getnKurvePre();
 
    float atanx2_shift = thetaPre + 2. * atan2f(dyP_shift, dxP); // preferred angle (rad)
@@ -244,11 +263,11 @@ void InitCocircWeightsParams::updateCocircNChord(
             / sigma_cocirc2) : expf(-chi_shift * chi_shift / sigma_cocirc2)
             - 1.0;
    }
-   // compute distance along contour
-   float d_chord_shift = (cocircKurve_shift != 0.0f) ? atanx2_shift
-         / cocircKurve_shift : sqrt(d2_shift);
-   gChord = (nKurvePre > 1) ? expf(-powf(d_chord_shift, 2) / sigma_chord2)
-         : 1.0;
+   // compute distance along contour. // Broken because of sigma_chord bug. Commented out because gChord ultimately is not used.  -pete 2014-03-14
+   // float d_chord_shift = (cocircKurve_shift != 0.0f) ? atanx2_shift
+   //       / cocircKurve_shift : sqrt(d2_shift);
+   // gChord = (nKurvePre > 1) ? expf(-powf(d_chord_shift, 2) / sigma_chord2)
+   //       : 1.0;
 
 }
 
@@ -269,7 +288,7 @@ void InitCocircWeightsParams::updategKurvePreNgKurvePost(float cocircKurve_shift
 
 void InitCocircWeightsParams::initializeDistChordCocircKurvePreAndKurvePost() {
    gDist = 0.0;
-   gChord = 1.0; //not used!
+   // gChord = 1.0; //not used!
    gCocirc = 1.0;
    gKurvePre = 1.0;
    gKurvePost = 1.0;

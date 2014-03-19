@@ -17,16 +17,10 @@ NaiveBayesLayer::NaiveBayesLayer()
    initialize_base();
 }
 
-NaiveBayesLayer::NaiveBayesLayer(const char * name, HyPerCol * hc, int numChannels)
-{
-   initialize_base();
-   initialize(name, hc, numChannels);
-}
-
 NaiveBayesLayer::NaiveBayesLayer(const char * name, HyPerCol * hc)
 {
    initialize_base();
-   initialize(name, hc, MAX_CHANNELS);
+   initialize(name, hc);
 }
 
 NaiveBayesLayer::~NaiveBayesLayer()
@@ -35,25 +29,13 @@ NaiveBayesLayer::~NaiveBayesLayer()
 
 int NaiveBayesLayer::initialize_base()
 {
+   numChannels = 3;
    return PV_SUCCESS;
 }
 
-int NaiveBayesLayer::initialize(const char * name, HyPerCol * hc, int numChannels)
+int NaiveBayesLayer::initialize(const char * name, HyPerCol * hc)
 {
-   HyPerLayer::initialize(name, hc, numChannels);
-   //PVParams * params = parent->parameters();
-   //Voffset = params->value(name, "Voffset", 0.0f, true);
-
-   // Moved to allocateDataStructures
-   // inClassCount = (long *) calloc(this->getCLayer()->numNeurons, sizeof(long));
-   // assert(inClassCount != NULL);
-   // outClassCount = (long *) calloc(this->getCLayer()->numNeurons, sizeof(long));
-   // assert(outClassCount != NULL);
-   // inClassSum = (double *) calloc(this->getCLayer()->numNeurons, sizeof(double));
-   // assert(inClassSum != NULL);
-   // outClassSum = (double *) calloc(this->getCLayer()->numNeurons, sizeof(double));
-   // assert(outClassSum != NULL);
-   return PV_SUCCESS;
+   return HyPerLayer::initialize(name, hc);
 }
 
 int NaiveBayesLayer::allocateDataStructures() {

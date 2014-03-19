@@ -15,17 +15,19 @@ namespace PV {
 
 class InitUniformWeights: public PV::InitWeights {
 public:
-   InitUniformWeights();
+   InitUniformWeights(HyPerConn * conn);
    virtual ~InitUniformWeights();
-   virtual InitWeightsParams * createNewWeightParams(HyPerConn * callingConn);
+   virtual InitWeightsParams * createNewWeightParams();
 
-  virtual int calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, int arborId, InitWeightsParams *weightParams);
+   virtual int calcWeights(pvdata_t * dataStart, int patchIndex, int arborId);
 
 protected:
-   virtual int initialize_base();
+   InitUniformWeights();
+   int initialize_base();
+   int initialize(HyPerConn * conn);
 
 private:
-  int uniformWeights(/* PVPatch * patch */ pvdata_t * dataStart, float iWeight, int kf, InitUniformWeightsParams *weightParamPtr, bool connectOnlySameFeatures = false);
+  int uniformWeights(pvdata_t * dataStart, float iWeight, int kf, InitUniformWeightsParams *weightParamPtr, bool connectOnlySameFeatures = false);
 
 };
 

@@ -43,6 +43,7 @@ MatchingPursuitLayer::~MatchingPursuitLayer() {
 }
 
 int MatchingPursuitLayer::initialize_base() {
+   numChannels = 2;
    activationThreshold = 0.0f;
    syncedMovieName = NULL;
    syncedMovie = NULL;
@@ -57,74 +58,100 @@ int MatchingPursuitLayer::initialize_base() {
 }
 
 int MatchingPursuitLayer::initialize(const char * name, HyPerCol * hc) {
-   int status = HyPerLayer::initialize(name, hc, MAX_CHANNELS);
+   int status = HyPerLayer::initialize(name, hc);
 
    if (status == PV_SUCCESS) status = openPursuitFile();
 
    return status;
 }
 
-int MatchingPursuitLayer::setParams(PVParams * params) {
-   int status = HyPerLayer::setParams(params);
-   readActivationThreshold(params);
-   readSyncedMovie(params);
-   readTracePursuit(params);
-   readPursuitFile(params);
+int MatchingPursuitLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = HyPerLayer::ioParamsFillGroup(ioFlag);
+   ioParam_activationThreshold(ioFlag);
+   ioParam_syncedMovie(ioFlag);
+   ioParam_tracePursuit(ioFlag);
+   ioParam_traceFile(ioFlag);
    return status;
 }
 
-void MatchingPursuitLayer::readActivationThreshold(PVParams * params) {
-   activationThreshold = params->value(name, "activationThreshold", activationThreshold, true);
+void MatchingPursuitLayer::ioParam_activationThreshold(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "activationThreshold", &activationThreshold, activationThreshold);
 }
 
-void MatchingPursuitLayer::readSyncedMovie(PVParams * params) {
-   const char * synced_movie_name = params->stringValue(name, "syncedMovie", true);
-   if (synced_movie_name && synced_movie_name[0]) {
-      syncedMovieName = strdup(synced_movie_name);
-      if (syncedMovieName==NULL) {
-         fprintf(stderr, "MatchingPursuitLayer \"%s\" error: rank %d process unable to copy syncedMovie param: %s\n", name, parent->columnId(), strerror(errno));
-         abort();
-      }
+void MatchingPursuitLayer::ioParam_syncedMovie(enum ParamsIOFlag ioFlag) {
+   parent->ioParamString(ioFlag, name, "syncedMovie", &syncedMovieName, NULL);
+   if (syncedMovieName && syncedMovieName[0]=='\0') {
+      free(syncedMovieName);
+      syncedMovieName = NULL;
    }
 }
 
-void MatchingPursuitLayer::readTracePursuit(PVParams * params) {
-   tracePursuit = params->value(name, "tracePursuit", tracePursuit, true/* warnIfAbsent */);
+void MatchingPursuitLayer::ioParam_tracePursuit(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "tracePursuit", &tracePursuit, tracePursuit);
 }
 
-void MatchingPursuitLayer::readPursuitFile(PVParams * params) {
-   assert(!params->presentAndNotBeenRead(name, "tracePursuit"));
-   assert(traceFileName==NULL);
+void MatchingPursuitLayer::ioParam_traceFile(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "tracePursuit"));
    if (tracePursuit) {
-      const char * pursuit_file_name = params->stringValue(name, "traceFile", true);
-      if (pursuit_file_name && pursuit_file_name[0]) {
-         if (pursuit_file_name[0]=='/') {
-            traceFileName = strdup(pursuit_file_name);
-         }
-         else { // Treat as path relative to outputPath
-            int traceFileNameLen = strlen(parent->getOutputPath())+1+strlen(pursuit_file_name)+1; // traceFileName will be <outputPath>/<pursuit_file_name><terminating NUL>
-            if (traceFileNameLen >= PV_PATH_MAX) {
-               if (parent->columnId()==0) {
-                  fprintf(stderr, "MatchingPursuitLayer \"%s\": path for tracePursuit file too long.\n", name);
-               }
-               MPI_Barrier(parent->icCommunicator()->communicator());
-               exit(EXIT_FAILURE);
-            }
-            traceFileName = (char *) malloc(traceFileNameLen*sizeof(char));
-            if (traceFileName!=NULL) {
-               int numchars = snprintf(traceFileName, traceFileNameLen+1, "%s/%s",parent->getOutputPath(), pursuit_file_name);
-               assert(numchars<=traceFileNameLen);
-            }
-         }
-         if (traceFileName==NULL) {
-            fprintf(stderr, "MatchingPursuitLayer \"%s\" error: rank %d process unable to copy traceFile param: %s\n", name, parent->columnId(), strerror(errno));
-            abort();
-         }
-      }
+      parent->ioParamString(ioFlag, name, "traceFile", &traceFileName, NULL);
    }
 }
 
 int MatchingPursuitLayer::openPursuitFile() {
+   if (parent->columnId()!=0) return PV_SUCCESS;
+   if (traceFileName && traceFileName[0]) {
+      size_t tracePathLen = strlen(traceFileName);
+      if (traceFileName[0] != '/') {
+         tracePathLen += strlen(parent->getOutputPath()) + (size_t) 1; // traceFileName will be <outputPath>/<pursuit_file_name>
+      }
+      char * tracePath = (char *) malloc(tracePathLen + (size_t) 1); // tracePath plus string terminator
+      if(tracePath == NULL) {
+         fprintf(stderr, "%s \"%s\" error: Unable to allocate memory for traceFile path: %s\n",
+               parent->parameters()->groupKeywordFromName(name), name, strerror(errno));
+         exit(EXIT_FAILURE);
+      }
+      if (traceFileName[0] != '/') {
+         int charswritten = snprintf(tracePath, tracePathLen+(size_t) 1, "%s/%s", parent->getOutputPath(), traceFileName);
+         assert(charswritten==tracePathLen);
+      }
+      else {
+         memcpy(tracePath, traceFileName, tracePathLen);
+         tracePath[tracePathLen] = '\0';
+      }
+      traceFile = PV_fopen(tracePath, "w");
+      free(tracePath); tracePath = NULL;
+   }
+   else {
+      traceFile = PV_stdout();
+   }
+   return PV_SUCCESS;
+
+
+   if (traceFileName && traceFileName[0] && traceFileName[0] != '/') {
+      int traceFileNameLen = strlen(parent->getOutputPath())+1+strlen(traceFileName)+1; // traceFileName will be <outputPath>/<pursuit_file_name><terminating NUL>
+      if (traceFileNameLen >= PV_PATH_MAX) {
+         if (parent->columnId()==0) {
+            fprintf(stderr, "%s \"%s\": path for tracePursuit file too long.\n",
+                  parent->parameters()->groupKeywordFromName(name), name);
+         }
+         MPI_Barrier(parent->icCommunicator()->communicator());
+         exit(EXIT_FAILURE);
+      }
+      char * new_traceFileName = (char *) malloc(traceFileNameLen*sizeof(char));
+      if (new_traceFileName==NULL) {
+         fprintf(stderr, "%s \"%s\" error: rank %d process unable to copy traceFile param: %s\n",
+               parent->parameters()->groupKeywordFromName(name), name, parent->columnId(), strerror(errno));
+         exit(EXIT_FAILURE);
+      }
+      int numchars = snprintf(new_traceFileName, traceFileNameLen+1, "%s/%s",parent->getOutputPath(), traceFileName);
+      assert(numchars<=traceFileNameLen);
+      free(traceFileName);
+      traceFileName = new_traceFileName;
+   }
+
+
+
+
    if (traceFileName!=NULL && parent->columnId()==0) {
       assert(traceFileName[0] != '\0');
       traceFile = PV_fopen(traceFileName,"w");

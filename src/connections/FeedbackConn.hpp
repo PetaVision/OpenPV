@@ -19,15 +19,16 @@ namespace PV {
 
 class FeedbackConn : public TransposeConn {
 public:
-    FeedbackConn();
-    FeedbackConn(const char * name, HyPerCol * hc, const char * feedforwardConnName);
-
-    int initialize_base();
-    int initialize(const char * name, HyPerCol * hc, const char * feedforwardConnName);
+    FeedbackConn(const char * name, HyPerCol * hc);
 
 protected:
-    PVPatch *** initializeWeights(PVPatch *** arbors, pvdata_t ** dataStart, int numPatches,
-          const char * filename);
+    FeedbackConn();
+    int initialize_base();
+    int initialize(const char * name, HyPerCol * hc);
+    void ioParam_preLayerName(enum ParamsIOFlag ioFlag);
+    void ioParam_postLayerName(enum ParamsIOFlag ioFlag);
+
+    virtual int setPreAndPostLayerNames();
     virtual int handleMissingPreAndPostLayerNames();
 };
 

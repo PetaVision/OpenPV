@@ -20,46 +20,13 @@ PointLIFProbe::PointLIFProbe() : PointProbe()
 }
 
 /**
- * @filename
- * @layer
- * @xLoc
- * @yLoc
- * @fLoc
- * @msg
+ * @probeName
+ * @hc
  */
-PointLIFProbe::PointLIFProbe(const char * filename, HyPerLayer * layer, int xLoc, int yLoc, int fLoc,
-      const char * msg) : PointProbe()
+PointLIFProbe::PointLIFProbe(const char * probeName, HyPerCol * hc) : PointProbe()
 {
    initPointLIFProbe_base();
-   initPointLIFProbe(filename, layer, xLoc, yLoc, fLoc, msg);
-}
-
-/**
- * @xLoc
- * @yLoc
- * @fLoc
- * @msg
- */
-PointLIFProbe::PointLIFProbe(HyPerLayer * layer, int xLoc, int yLoc, int fLoc, const char * msg) :
-   PointProbe()
-{
-   double write_step = 10.0;
-   initPointLIFProbe_base();
-   initPointLIFProbe(NULL, layer, xLoc, yLoc, fLoc, write_step, msg);
-}
-
-PointLIFProbe::PointLIFProbe(const char * filename, HyPerLayer * layer, int xLoc, int yLoc, int fLoc,
-      float writeStep, const char * msg) : PointProbe()
-{
-   initPointLIFProbe_base();
-   initPointLIFProbe(filename, layer, xLoc, yLoc, fLoc, writeStep, msg);
-}
-
-PointLIFProbe::PointLIFProbe(HyPerLayer * layer, int xLoc, int yLoc, int fLoc, float writeStep, const char * msg) :
-   PointProbe(layer, xLoc, yLoc, fLoc, msg)
-{
-   initPointLIFProbe_base();
-   initPointLIFProbe(NULL, layer, xLoc, yLoc, fLoc, writeStep, msg);
+   initPointLIFProbe(probeName, hc);
 }
 
 int PointLIFProbe::initPointLIFProbe_base() {
@@ -68,16 +35,21 @@ int PointLIFProbe::initPointLIFProbe_base() {
    return PV_SUCCESS;
 }
 
-int PointLIFProbe::initPointLIFProbe(const char * filename, HyPerLayer * layer, int xLoc, int yLoc, int fLoc, float writeStep, const char * msg) {
-   int status = initPointProbe(filename, layer, xLoc, yLoc, fLoc, msg);
-   writeTime = 0.0;
-   this->writeStep = writeStep;
+int PointLIFProbe::initPointLIFProbe(const char * probeName, HyPerCol * hc) {
+   int status = initPointProbe(probeName, hc);
+   writeTime = getParentCol()->getStartTime();
    return status;
 }
 
-int PointLIFProbe::initPointLIFProbe(const char * filename, HyPerLayer * layer, int xLoc, int yLoc, int fLoc, const char * msg) {
-   double write_step = layer->getParent()->getDeltaTime();  // Marian, don't change this default behavior
-   return initPointLIFProbe(filename, layer, xLoc, yLoc, fLoc, write_step, msg);
+int PointLIFProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = PointProbe::ioParamsFillGroup(ioFlag);
+   ioParam_writeStep(ioFlag);
+   return status;
+}
+
+void PointLIFProbe::ioParam_writeStep(enum ParamsIOFlag ioFlag) {
+   writeStep = getParentCol()->getDeltaTime();  // Marian, don't change this default behavior
+   getParentCol()->ioParamValue(ioFlag, getProbeName(), "writeStep", &writeStep, writeStep, true/*warnIfAbsent*/);
 }
 
 /**

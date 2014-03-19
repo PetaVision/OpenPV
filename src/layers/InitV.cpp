@@ -22,79 +22,88 @@ InitV::InitV(HyPerCol * hc, const char * groupName) {
 
 int InitV::initialize_base() {
    groupName = NULL;
+   initVTypeString = NULL;
    initVTypeCode = UndefinedInitV;
    filename = NULL;
    return PV_SUCCESS;
 }
 
 int InitV::initialize(HyPerCol * hc, const char * groupName) {
-   int status = PV_SUCCESS;
+   this->parent = hc;
    this->groupName = strdup(groupName);
-   PVParams * params = hc->parameters();
-   useStderr = hc->icCommunicator()->commRank()==0;
-   const char * initVType = params->stringValue(groupName, "InitVType", true);
-   if( initVType == NULL ) {
+   return PV_SUCCESS;
+}
+
+InitV::~InitV() {
+   free(this->groupName);
+   free(this->initVTypeString);
+   free(this->filename);
+}
+
+int InitV::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = PV_SUCCESS;
+   useStderr = parent->icCommunicator()->commRank()==0;
+   parent->ioParamString(ioFlag, groupName, "InitVType", &initVTypeString, "ConstantV", true/*warnIfAbsent*/);
+   if( !strcmp(initVTypeString, "ConstantV") ) {
       initVTypeCode = ConstantV;
-      constantValue = params->value(groupName, "valueV", V_REST);
-      printerr("Using InitVType = \"ConstantV\" with valueV = %f\n", groupName, constantValue);
+      parent->ioParamValue(ioFlag, groupName, "valueV", &constantValue, (pvdata_t) V_REST);
    }
-   else if( !strcmp(initVType, "ConstantV") ) {
-      initVTypeCode = ConstantV;
-      constantValue = params->value(groupName, "valueV", V_REST);
-   }
-   else if( !strcmp(initVType, "ZeroV")) {
+   else if( !strcmp(initVTypeString, "ZeroV")) {
       initVTypeCode = ConstantV;
       constantValue = 0.0f;
    }
-   else if( !strcmp(initVType, "UniformRandomV") ) {
-      minV = params->value(groupName, "minV", 0.0f);
-      maxV = params->value(groupName, "maxV", minV+1.0f);
+   else if( !strcmp(initVTypeString, "UniformRandomV") ) {
       initVTypeCode = UniformRandomV;
+      parent->ioParamValue(ioFlag, groupName, "minV", &minV, 0.0f);
+      parent->ioParamValue(ioFlag, groupName, "maxV", &maxV, minV + 1.0f);
    }
-   else if( !strcmp(initVType, "GaussianRandomV") ) {
-      meanV = params->value(groupName, "meanV", 0.0f);
-      sigmaV = params->value(groupName, "sigmaV", 1.0f);
+   else if( !strcmp(initVTypeString, "GaussianRandomV") ) {
       initVTypeCode = GaussianRandomV;
+      parent->ioParamValue(ioFlag, groupName, "meanV", &meanV, 0.0f);
+      parent->ioParamValue(ioFlag, groupName, "sigmaV", &sigmaV, 1.0f);
    }
-   else if( !strcmp(initVType, "InitVFromFile") ) {
-      filename = params->stringValue(groupName, "Vfilename", true);
+   else if( !strcmp(initVTypeString, "InitVFromFile") ) {
+      initVTypeCode = InitVFromFile;
+      parent->ioParamString(ioFlag, groupName, "Vfilename", &filename, NULL, true/*warnIfAbsent*/);
       if( filename == NULL ) {
          initVTypeCode = UndefinedInitV;
          printerr("InitV::initialize, group \"%s\": for InitVFromFile, string parameter \"Vfilename\" must be defined.  Exiting\n", groupName);
          abort();
       }
-      initVTypeCode = InitVFromFile;
    }
    else {
       initVTypeCode = UndefinedInitV;
-      printerr("InitV::initialize, group \"%s\": InitVType \"%s\" not recognized.\n", groupName, initVType);
+      printerr("InitV::initialize, group \"%s\": InitVType \"%s\" not recognized.\n", groupName, initVTypeString);
       abort();
    }
    return status;
 }
 
-InitV::~InitV() {free(this->groupName);}
-
 int InitV::calcV(HyPerLayer * layer) {
    int status = PV_SUCCESS;
    const PVLayerLoc * loc = layer->getLayerLoc();
-   // int numNeuronSites = loc->nx*loc->ny;
+   pvdata_t * V = layer->getV();
+   if (V == NULL) {
+      fprintf(stderr, "%s \"%s\" error: InitV called but membrane potential V is null.\n",
+            layer->getParent()->parameters()->groupKeywordFromName(layer->getName()), layer->getName());
+      exit(EXIT_FAILURE);
+   }
    switch(initVTypeCode) {
    case UndefinedInitV:
       status = PV_FAILURE;
       printerr("InitV::calcV: InitVType was undefined.\n");
       break;
    case ConstantV:
-      status = calcConstantV(layer->getV(), layer->getNumNeurons());
+      status = calcConstantV(V, layer->getNumNeurons());
       break;
    case UniformRandomV:
-      status = calcUniformRandomV(layer->getV(), loc, layer->getParent());
+      status = calcUniformRandomV(V, loc, layer->getParent());
       break;
    case GaussianRandomV:
-      status = calcGaussianRandomV(layer->getV(), loc, layer->getParent());
+      status = calcGaussianRandomV(V, loc, layer->getParent());
       break;
    case InitVFromFile:
-      status = calcVFromFile(layer->getV(), layer->getLayerLoc(), layer->getParent()->icCommunicator());
+      status = calcVFromFile(V, layer->getLayerLoc(), layer->getParent()->icCommunicator());
       break;
    default:
       status = PV_FAILURE;

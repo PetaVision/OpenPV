@@ -21,13 +21,11 @@ Init3DGaussWeightsParams::Init3DGaussWeightsParams(HyPerConn * parentConn)
 
 Init3DGaussWeightsParams::~Init3DGaussWeightsParams()
 {
-   // TODO Auto-generated destructor stub
 }
 
 int Init3DGaussWeightsParams::initialize_base() {
 
    // default values (chosen for center on cell of one pixel)
-   //int noPost = parentConn->fPatchSize();
    yaspect = 1.0; // circular (not line oriented)
    taspect = 10.0; // circular (not line oriented)
    sigma = 0.8;
@@ -49,47 +47,41 @@ int Init3DGaussWeightsParams::initialize_base() {
    return 1;
 }
 int Init3DGaussWeightsParams::initialize(HyPerConn * parentConn) {
-   InitWeightsParams::initialize(parentConn);
+   return InitGauss2DWeightsParams::initialize(parentConn);
+}
 
-   PVParams * params = parent->parameters();
-   int status = PV_SUCCESS;
-
-   yaspect   = params->value(getName(), "yaspect", yaspect);
-   taspect   = params->value(getName(), "taspect", taspect);
-   sigma    = params->value(getName(), "sigma", sigma);
-   rMax     = params->value(getName(), "rMax", rMax);
-   strength = params->value(getName(), "strength", strength);
-   dT = (double)params->value(getName(), "dT", dT);
-   shiftT = params->value(getName(), "shiftT", shiftT);
-   float flowSpeed = params->value(getName(), "flowSpeed", 1.0f); //pixels per time step
-
-   thetaXT = atanf(flowSpeed);
-   setRotate(params->value(getName(), "rotate", getRotate()));
-
-   numFlanks = (int) params->value(getName(), "numFlanks", (float) numFlanks);
-   shift = params->value(getName(), "flankShift", shift);
-
-   if (parentConn->fPatchSize() > 1) {
-      //noPost = (int) params->value(post->getName(), "no", parentConn->fPatchSize());
-      setDeltaThetaMax(params->value(getName(), "deltaThetaMax", getDeltaThetaMax()));
-      setThetaMax(params->value(getName(), "thetaMax", getThetaMax()));
-
-      bowtieFlag = (bool)params->value(getName(), "bowtieFlag", bowtieFlag);
-      if (bowtieFlag == 1.0f) {
-         bowtieAngle = params->value(getName(), "bowtieAngle", bowtieAngle);
-      }
-   }
-
-   double r2Maxd = (double) rMax;
-   r2Max = r2Maxd*r2Maxd;
-
-
-//calculate other values:
-   self = (pre != post);
-
-
+int Init3DGaussWeightsParams::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = InitGauss2DWeightsParams::ioParamsFillGroup(ioFlag);
+   ioParam_yaspect(ioFlag);
+   ioParam_taspect(ioFlag);
+   ioParam_dT(ioFlag);
+   ioParam_shiftT(ioFlag);
+   ioParam_flowSpeed(ioFlag);
    return status;
+}
 
+void Init3DGaussWeightsParams::ioParam_yaspect(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "yaspect", &yaspect, yaspect);
+}
+
+void Init3DGaussWeightsParams::ioParam_taspect(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "taspect", &taspect, taspect);
+}
+
+void Init3DGaussWeightsParams::ioParam_dT(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "dT", &dT, dT);
+}
+
+void Init3DGaussWeightsParams::ioParam_shiftT(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "shiftT", &shiftT, shiftT);
+}
+
+void Init3DGaussWeightsParams::ioParam_flowSpeed(enum ParamsIOFlag ioFlag) {
+   float flowSpeed = 1.0f;
+   parent->ioParamValue(ioFlag, name, "flowSpeed", &flowSpeed, flowSpeed);
+   if (ioFlag == PARAMS_IO_READ) {
+      thetaXT = atanf(flowSpeed);
+   }
 }
 
 void Init3DGaussWeightsParams::calcOtherParams(int patchIndex) {
@@ -98,10 +90,7 @@ void Init3DGaussWeightsParams::calcOtherParams(int patchIndex) {
 
    const int kfPre_tmp = this->kernelIndexCalculations(patchIndex);
 
-
-
    this->calculateThetas(kfPre_tmp, patchIndex);
-
 }
 
 

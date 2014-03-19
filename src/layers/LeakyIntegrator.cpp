@@ -19,15 +19,26 @@ LeakyIntegrator::LeakyIntegrator() {
 }
 
 int LeakyIntegrator::initialize_base() {
+   numChannels = 1;
    integrationTime = FLT_MAX;
    return PV_SUCCESS;
 }
 
 int LeakyIntegrator::initialize(const char * name, HyPerCol * hc) {
    PVParams * params = hc->parameters();
-   integrationTime = params->value(name, "integrationTime", integrationTime);
-   ANNLayer::initialize(name, hc, 1);
-   return PV_SUCCESS;
+   int status = ANNLayer::initialize(name, hc);
+   assert(numChannels==1);
+   return status;
+}
+
+int LeakyIntegrator::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = ANNLayer::ioParamsFillGroup(ioFlag);
+   ioParam_integrationTime(ioFlag);
+   return status;
+}
+
+void LeakyIntegrator::ioParam_integrationTime(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "integrationTime", &integrationTime, integrationTime);
 }
 
 int LeakyIntegrator::updateState(double timed, double dt) {

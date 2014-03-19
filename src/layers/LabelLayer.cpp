@@ -46,9 +46,9 @@ LabelLayer::LabelLayer(){
    initialize_base();
 }
 
-LabelLayer::LabelLayer(const char * name, HyPerCol * hc, const char * movieLayerName){
+LabelLayer::LabelLayer(const char * name, HyPerCol * hc){
    initialize_base();
-   initialize(name, hc, movieLayerName);
+   initialize(name, hc);
 }
 
 LabelLayer::~LabelLayer(){
@@ -56,6 +56,7 @@ LabelLayer::~LabelLayer(){
 }
 
 int LabelLayer::initialize_base(){
+   numChannels = 0;
    movieLayerName = NULL;
    movie = NULL;
    labelData = NULL;
@@ -69,19 +70,8 @@ int LabelLayer::initialize_base(){
    return PV_SUCCESS;
 }
 
-int LabelLayer::initialize(const char * name, HyPerCol * hc, const char * movieLayerName) {
-
-   HyPerLayer::initialize(name, hc, 0);
-
-   if (movieLayerName==NULL) {
-      fprintf(stderr, "LabelLayer \"%s\" error: movieLayerName must be set.\n", name);
-      abort();
-   }
-   this->movieLayerName = strdup(movieLayerName);
-   if (this->movieLayerName==NULL) {
-      fprintf(stderr, "LabelLayer \"%s\" error: unable to copy movieLayerName: %s\n", name, strerror(errno));
-      abort();
-   }
+int LabelLayer::initialize(const char * name, HyPerCol * hc) {
+   HyPerLayer::initialize(name, hc);
 
    this->labelLoc = * getLayerLoc();
 
@@ -92,6 +82,31 @@ int LabelLayer::initialize(const char * name, HyPerCol * hc, const char * movieL
 
    return status;
 
+}
+
+int LabelLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = HyPerLayer::ioParamsFillGroup(ioFlag);
+   ioParam_movieLayerName(ioFlag);
+   ioParam_labelStart(ioFlag);
+   ioParam_labelLength(ioFlag);
+   ioParam_echoLabelFlag(ioFlag);
+   return status;
+}
+
+void LabelLayer::ioParam_movieLayerName(enum ParamsIOFlag ioFlag) {
+   parent->ioParamStringRequired(ioFlag, name, "movieLayerName", &movieLayerName);
+}
+
+void LabelLayer::ioParam_labelStart(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "labelStart", &beginLabel, beginLabel);
+}
+
+void LabelLayer::ioParam_labelLength(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "labelLength", &lenLabel, lenLabel);
+}
+
+void LabelLayer::ioParam_echoLabelFlag(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "echoLabelFlag", &echoLabelFlag, echoLabelFlag);
 }
 
 int LabelLayer::communicateInitInfo() {
@@ -121,13 +136,7 @@ int LabelLayer::allocateDataStructures() {
    free(clayer->V);
    clayer->V = NULL;
 
-   PVParams * params = parent->parameters();
-
-   this->beginLabel = params->value(name, "labelStart", beginLabel);
-   this->maxLabel = params->value(name,"nf",maxLabel);
-   this->lenLabel = params->value(name,"labelLength",lenLabel);
-   this->echoLabelFlag = params->value(name,"echoLabelFlag",echoLabelFlag);
-
+   maxLabel = this->labelLoc.nf;
    labelData = clayer->activity->data;
 
    filename = movie->getCurrentImage();

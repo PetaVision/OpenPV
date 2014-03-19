@@ -92,6 +92,7 @@ Retina::~Retina()
 }
 
 int Retina::initialize_base() {
+   numChannels = NUM_RETINA_CHANNELS;
    for (int nbr=0; nbr<NUM_NEIGHBORHOOD; nbr++) {
       randState[nbr] = NULL;
       rand_state_size[nbr] = 0UL;
@@ -110,7 +111,7 @@ int Retina::initialize_base() {
 }
 
 int Retina::initialize(const char * name, HyPerCol * hc, PVLayerType type) {
-   int status = HyPerLayer::initialize(name, hc, NUM_RETINA_CHANNELS);
+   int status = HyPerLayer::initialize(name, hc);
 
    clayer->layerType = type;
 
@@ -335,66 +336,128 @@ int Retina::allocateV() {
    return PV_SUCCESS;
 }
 
-int Retina::initializeState() {
-
-   PVParams * params = parent->parameters();
-   assert(!params->presentAndNotBeenRead(name, "restart"));
-   if( restartFlag ) {
-      double timef;
-      readState(&timef);
-   }
-   else {
-      updateState(parent->simulationTime(), parent->getDeltaTime());
-   }
-
+int Retina::initializeV() {
+   assert(getV() == NULL);
    return PV_SUCCESS;
 }
 
+int Retina::initializeActivity() {
+   return updateState(parent->simulationTime(), parent->getDeltaTime());
+}
+
+int Retina::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = HyPerLayer::ioParamsFillGroup(ioFlag);
+   ioParam_spikingFlag(ioFlag);
+   ioParam_foregroundRate(ioFlag);
+   ioParam_backgroundRate(ioFlag);
+   ioParam_beginStim(ioFlag);
+   ioParam_endStim(ioFlag);
+   ioParam_burstFreq(ioFlag);
+   ioParam_burstDuration(ioFlag);
+   ioParam_refractoryPeriod(ioFlag);
+   ioParam_absRefractoryPeriod(ioFlag);
+
+   return status;
+}
+
+void Retina::ioParam_spikingFlag(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "spikingFlag", &spikingFlag, true);
+}
+
+void Retina::ioParam_foregroundRate(enum ParamsIOFlag ioFlag) {
+   PVParams * params = parent->parameters();
+   if (ioFlag==PARAMS_IO_READ && !params->present(name, "foregroundRate")) {
+      if (params->present(name, "noiseOnFreq")) {
+         probStimParam = params->value(name, "noiseOnFreq");
+         if (parent->columnId()==0) {
+            fprintf(stderr, "Warning: noiseOnFreq is deprecated.  Use foregroundRate instead.\n");
+         }
+         return;
+      }
+      if (params->present(name, "poissonEdgeProb")) {
+         probStimParam = params->value(name, "poissonEdgeProb");
+         if (parent->columnId()==0) {
+            fprintf(stderr, "Warning: poissonEdgeProb is deprecated.  Use foregroundRate instead.\n");
+         }
+         return;
+      }
+   }
+   // noiseOnFreq and poissonEdgeProb were deprecated Jan 24, 2013
+   // When support for noiseOnFreq and poissonEdgeProb is removed entirely, remove the above if-statement and keep the ioParamValue call below.
+   parent->ioParamValue(ioFlag, name, "foregroundRate", &probStimParam, 1.0f);
+}
+
+void Retina::ioParam_backgroundRate(enum ParamsIOFlag ioFlag) {
+   PVParams * params = parent->parameters();
+   if (ioFlag==PARAMS_IO_READ && !params->present(name, "backgroundRate")) {
+      if (params->present(name, "noiseOffFreq")) {
+         probBaseParam = params->value(name, "noiseOffFreq");
+         if (parent->columnId()==0) {
+            fprintf(stderr, "Warning: noiseOffFreq is deprecated.  Use backgroundRate instead.\n");
+         }
+         return;
+      }
+      if (params->present(name, "poissonBlankProb")) {
+         probBaseParam = params->value(name, "poissonBlankProb");
+         if (parent->columnId()==0) {
+            fprintf(stderr, "Warning: poissonEdgeProb is deprecated.  Use backgroundRate instead.\n");
+         }
+         return;
+      }
+   }
+   // noiseOffFreq and poissonBlankProb was deprecated Jan 24, 2013
+   // When support for noiseOnFreq and poissonEdgeProb is removed entirely, remove the above if-statement and keep the ioParamValue call below.
+   parent->ioParamValue(ioFlag, name, "backgroundRate", &probBaseParam, 0.0f);
+   if (ioFlag==PARAMS_IO_READ) {
+      assert(!parent->parameters()->presentAndNotBeenRead(name, "foregroundRate"));
+      if (probBaseParam > probStimParam) {
+         fprintf(stderr, "Error in %s \"%s\": backgroundRate cannot be greater than foregroundRate.\n",
+               parent->parameters()->groupKeywordFromName(name), name);
+         exit(EXIT_FAILURE);
+      }
+   }
+}
+
+void Retina::ioParam_beginStim(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "beginStim", &rParams.beginStim, 0.0);
+}
+
+void Retina::ioParam_endStim(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "endStim", &rParams.endStim, (double) FLT_MAX);
+   if (ioFlag == PARAMS_IO_READ && rParams.endStim < 0) rParams.endStim = FLT_MAX;
+}
+
+void Retina::ioParam_burstFreq(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "burstFreq", &rParams.burstFreq, 1.0f);
+}
+
+void Retina::ioParam_burstDuration(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "burstDuration", &rParams.burstDuration, 1000.0f);
+}
+
+void Retina::ioParam_refractoryPeriod(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "spikingFlag"));
+   if (spikingFlag){
+      parent->ioParamValue(ioFlag, name, "refractoryPeriod", &rParams.refractory_period, (float) REFRACTORY_PERIOD);
+   }
+}
+
+void Retina::ioParam_absRefractoryPeriod(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "spikingFlag"));
+   if (spikingFlag){
+      parent->ioParamValue(ioFlag, name, "absRefractoryPeriod", &rParams.abs_refractory_period, (float) ABS_REFRACTORY_PERIOD);
+   }
+}
+
+
 int Retina::setRetinaParams(PVParams * p)
 {
-   double dt_sec = parent->getDeltaTime() * .001;  // seconds
-
-   // margin is adjusted automatically in communicateInitInfo, and correct value of loc.nb isn't needed until after that.
-   // clayer->loc.nb = (int) p->value(name, "marginWidth", 0.0);
-
    clayer->params = &rParams;
 
-   spikingFlag = (int) p->value(name, "spikingFlag", 1);
-
-   float probStim = 1.0f;
-   float probBase = 0.0f;
-   if (p->present(name, "noiseOnFreq")) {
-      fprintf(stderr, "Warning for retina layer \"%s\": parameter noiseOnFreq has been replaced by foregroundRate.\n", name);
-      probStim = p->value(name, "noiseOnFreq");
-   }
-   else if (p->present(name, "poissonEdgeProb")) {
-      fprintf(stderr, "Error in retina layer \"%s\": parameter poissonEdgeProb has been replaced by foregroundRate.\n", name);
-      exit(EXIT_FAILURE);
-      probStim = p->value(name, "poissonEdgeProb");
-   }
-   else {
-      probStim = p->value(name, "foregroundRate", probStim);
-   }
-   if (p->present(name, "noiseOffFreq")) {
-      fprintf(stderr, "Warning for retina layer \"%s\": parameter noiseOffFreq has been replaced by backgroundRate.\n", name);
-      probBase = p->value(name, "noiseOffFreq");
-   }
-   else if (p->present(name, "poissonBlankProb")) {
-      fprintf(stderr, "Error in retina layer \"%s\": parameter poissonBlankProb has been replaced by backgroundRate.\n", name);
-      exit(EXIT_FAILURE);
-      probBase = p->value(name, "poissonBlankProb");
-   }
-   else {
-      probBase = p->value(name, "backgroundRate", probBase);
-   }
-
-   if (probBase > probStim) {
-      fprintf(stderr, "Error in retina layer \"%s\": background rate should not be greater than foreground rate.\n", name);
-      exit(EXIT_FAILURE);
-   }
-   probStim *= dt_sec;
+   double dt_sec = parent->getDeltaTime() * .001;  // seconds
+   float probStim = probStimParam * dt_sec;
    if (probStim > 1.0) probStim = 1.0f;
-   probBase *= dt_sec;
+   float probBase = probBaseParam * dt_sec;
    if (probBase > 1.0) probBase = 1.0f;
 
    maxRate = probStim/dt_sec;
@@ -403,16 +466,6 @@ int Retina::setRetinaParams(PVParams * p)
    //
    rParams.probStim  = probStim;
    rParams.probBase  = probBase;
-   rParams.beginStim = p->value(name, "beginStim", 0.0f);
-   rParams.endStim   = p->value(name, "endStim"  , FLT_MAX);
-   if (rParams.endStim < 0) rParams.endStim = FLT_MAX;
-   rParams.burstFreq = p->value(name, "burstFreq", 1);         // frequency of bursts
-   rParams.burstDuration = p->value(name, "burstDuration", 1000); // duration of each burst, <=0 -> sinusoidal
-   if (spikingFlag){
-      rParams.refractory_period = p->value(name, "refractoryPeriod", REFRACTORY_PERIOD);
-      rParams.abs_refractory_period = p->value(name, "absRefractoryPeriod",
-            ABS_REFRACTORY_PERIOD);
-   }
 
    return 0;
 }

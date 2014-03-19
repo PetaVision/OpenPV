@@ -13,11 +13,9 @@ NoSelfKernelConn::NoSelfKernelConn()
 {
 }
 
-NoSelfKernelConn::NoSelfKernelConn(const char * name, HyPerCol * hc,
-            const char * pre_layer_name, const char * post_layer_name,
-            const char * filename, InitWeights *weightInit) {
-   KernelConn::initialize(name, hc, pre_layer_name, post_layer_name, filename, weightInit);
-};
+NoSelfKernelConn::NoSelfKernelConn(const char * name, HyPerCol * hc) {
+   KernelConn::initialize(name, hc);
+}
 
 int NoSelfKernelConn::normalizeWeights() {
    zeroSelfWeights(getNumDataPatches(), 0);

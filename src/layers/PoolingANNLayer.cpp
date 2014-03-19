@@ -32,11 +32,21 @@ int PoolingANNLayer::initialize_base() {
 }
 
 int PoolingANNLayer::initialize(const char * name, HyPerCol * hc) {
-   ANNLayer::initialize(name, hc, 2);
-   PVParams * params = parent->parameters();
-   setBias((pvdata_t) params->value(name, "bias", 0.0));
-   return PV_SUCCESS;
+   return ANNLayer::initialize(name, hc);
 }  // end of PoolingANNLayer::initialize()
+
+int PoolingANNLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = ANNLayer::ioParamsFillGroup(ioFlag);
+   ioParam_bias(ioFlag);
+   return status;
+}
+
+void PoolingANNLayer::ioParam_bias(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "bias", &bias, (pvdata_t) 0);
+   if (ioFlag == PARAMS_IO_READ) {
+      setBias(bias);
+   }
+}
 
 int PoolingANNLayer::updateState(double timef, double dt) {
    int status;

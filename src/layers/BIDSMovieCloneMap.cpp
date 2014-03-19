@@ -6,17 +6,13 @@ BIDSMovieCloneMap::BIDSMovieCloneMap(){
    initialize_base();
 }
 
-BIDSMovieCloneMap::BIDSMovieCloneMap(const char * name, HyPerCol * hc, int numChannels){
-   initialize_base();
-   initialize(name, hc, numChannels);
-}
-
 BIDSMovieCloneMap::BIDSMovieCloneMap(const char * name, HyPerCol * hc){
    initialize_base();
    initialize(name, hc);
 }
 
 int BIDSMovieCloneMap::initialize_base(){
+   numChannels = 0;
    originalMovie = NULL;
    coords = NULL;
    nxPost = 0;
@@ -24,57 +20,39 @@ int BIDSMovieCloneMap::initialize_base(){
    return PV_SUCCESS;
 }
 
-int BIDSMovieCloneMap::initialize(const char * name, HyPerCol * hc, int numChannels){
-   HyPerLayer::initialize(name, hc, numChannels);
-
-   //Grab Orig Movie
-   const char * original_movie_name = parent->parameters()->stringValue(name, "originalMovie");
-   originalMovieName = strdup(original_movie_name);
-   if (originalMovieName==NULL) {
-      fprintf(stderr, "BIDSMovieCloneMap \"%s\" error: originalMovie must be set.\n", name);
-      exit(EXIT_FAILURE);
-   }
-
-   // Moved to communicateInitInfo()
-   // originalMovie = getParent()->getLayerFromName(originalMovieName);
-
-   // nbPre, nxPre, nyPre, nf replaced with member functions getNbOrig, getNxOrig, getNyOrig, getNfOrig
-   // nbPre = originalMovie->getLayerLoc()->nb;
-   // nxPre = originalMovie->getLayerLoc()->nx;
-   // nyPre = originalMovie->getLayerLoc()->ny;
-   // nf = originalMovie->getLayerLoc()->nf;
-
-   // Moved to allocateDataStructures()
-   // //Grab params
-   // float nxScale = (float)(parent->parameters()->value(name, "nxScale"));
-   // float nyScale = (float)(parent->parameters()->value(name, "nyScale"));
-   // int HyPerColx = (int)(parent->parameters()->value("column", "nx"));
-   // int HyPerColy = (int)(parent->parameters()->value("column", "ny"));
-
-   // nxPost = (int)(nxScale * HyPerColx);
-   // nyPost = (int)(nyScale * HyPerColy);
-   jitter = (int)(parent->parameters()->value(name, "jitter"));
+int BIDSMovieCloneMap::initialize(const char * name, HyPerCol * hc){
+   HyPerLayer::initialize(name, hc);
 
    //Check jitter
 //   assert(2 * jitter < nbPre);
-   assert(jitter >= 0); //jitter cannot be below zero
-
-   // Moved to allocateDataStructures()
-   // int numNodes = nxPost * nyPost;
-   // coords = (BIDSCoords*)malloc(sizeof(BIDSCoords) * numNodes);
-
-   //Apply jitter
-   // setCoords(jitter, nxScale, nyScale, HyPerColx, HyPerColy);
+   if(jitter < 0) {
+      fprintf(stderr, "Error in BIDSMovieCloneMap \"%s\": jitter cannot be below zero.\n", name);
+      abort();
+   }
 
    return PV_SUCCESS;
+}
+
+int BIDSMovieCloneMap::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   ioParam_originalMovie(ioFlag);
+   ioParam_jitter(ioFlag);
+   return PV_SUCCESS;
+}
+
+void BIDSMovieCloneMap::ioParam_originalMovie(enum ParamsIOFlag ioFlag) {
+   parent->ioParamStringRequired(ioFlag, name, "originalMovie", &originalMovieName);
+}
+
+void BIDSMovieCloneMap::ioParam_jitter(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValueRequired(ioFlag, name, "jitter", &jitter);
 }
 
 int BIDSMovieCloneMap::communicateInitInfo() {
    int status = HyPerLayer::communicateInitInfo();
    originalMovie = getParent()->getLayerFromName(originalMovieName);
 
-   int HyPerColx = (int)(parent->parameters()->value("column", "nx"));
-   int HyPerColy = (int)(parent->parameters()->value("column", "ny"));
+   int HyPerColx = parent->getNxGlobal();
+   int HyPerColy = parent->getNyGlobal();
    nxPost = (int)(nxScale * HyPerColx);
    nyPost = (int)(nyScale * HyPerColy);
 
@@ -84,8 +62,8 @@ int BIDSMovieCloneMap::communicateInitInfo() {
 int BIDSMovieCloneMap::allocateDataStructures() {
    int status = HyPerLayer::allocateDataStructures();
    //Grab params
-   int HyPerColx = (int)(parent->parameters()->value("column", "nx"));
-   int HyPerColy = (int)(parent->parameters()->value("column", "ny"));
+   int HyPerColx = parent->getNxGlobal();
+   int HyPerColy = parent->getNyGlobal();
 
    int numNodes = nxPost * nyPost;
    coords = (BIDSCoords*)malloc(sizeof(BIDSCoords) * numNodes);

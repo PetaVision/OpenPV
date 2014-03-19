@@ -14,18 +14,17 @@ namespace PV {
 
 class InitByArborWeights: public PV::InitWeights {
 public:
-   InitByArborWeights();
+   InitByArborWeights(HyPerConn * conn);
    virtual ~InitByArborWeights();
 
-   //virtual InitWeightsParams * createNewWeightParams(HyPerConn * callingConn);
-
-   virtual int calcWeights(/* PVPatch * wp */ pvdata_t * dataStart, int patchIndex, int arborId, InitWeightsParams *weightParams);
+   virtual int calcWeights(pvdata_t * dataStart, int patchIndex, int arborId);
 
 protected:
-   int initialize_base();
+   InitByArborWeights();
+   int initialize(HyPerConn * conn);
 
 private:
-   //int uniformWeights(/* PVPatch * wp */ pvdata_t * dataStart, float minwgt, float maxwgt, float sparseFraction, InitUniformRandomWeightsParams *weightParamPtr);
+   int initialize_base();
 };
 
 } /* namespace PV */

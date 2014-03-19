@@ -10,38 +10,35 @@
 
 namespace PV {
 
+InitCocircWeights::InitCocircWeights(HyPerConn * conn) {
+   initialize_base();
+   initialize(conn);
+}
+
 InitCocircWeights::InitCocircWeights()
 {
    initialize_base();
 }
-//InitCocircWeights::InitCocircWeights(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
-//      ChannelType channel) : InitWeights(){
-//
-//   InitCocircWeights::initialize_base();
-//   InitCocircWeights::initialize(name, hc, pre, post, channel);
-//}
 
 InitCocircWeights::~InitCocircWeights()
 {
-   // TODO Auto-generated destructor stub
 }
 
 int InitCocircWeights::initialize_base() {
    return PV_SUCCESS;
 }
-//int InitCocircWeights::initialize(const char * name, HyPerCol * hc,
-//      HyPerLayer * pre, HyPerLayer * post, ChannelType channel) {
-//   InitWeights::initialize(name, hc, pre, post, channel);
-//   return PV_SUCCESS;
-//}
 
-InitWeightsParams * InitCocircWeights::createNewWeightParams(HyPerConn * callingConn) {
+int InitCocircWeights::initialize(HyPerConn * conn) {
+   int status = InitGauss2DWeights::initialize(conn);
+   return status;
+}
+
+InitWeightsParams * InitCocircWeights::createNewWeightParams() {
    InitWeightsParams * tempPtr = new InitCocircWeightsParams(callingConn);
    return tempPtr;
 }
 
-int InitCocircWeights::calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, int arborId,
-                                   InitWeightsParams *weightParams) {
+int InitCocircWeights::calcWeights(pvdata_t * dataStart, int patchIndex, int arborId) {
 
    InitCocircWeightsParams *weightParamPtr = dynamic_cast<InitCocircWeightsParams*>(weightParams);
 
@@ -60,15 +57,15 @@ int InitCocircWeights::calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, i
 
 }
 
-int InitCocircWeights::cocircCalcWeights(/* PVPatch * patch */ pvdata_t * w_tmp, InitCocircWeightsParams * weightParamPtr) {
+int InitCocircWeights::cocircCalcWeights(pvdata_t * w_tmp, InitCocircWeightsParams * weightParamPtr) {
 
    //load stored params:
-   int nfPatch_tmp = weightParamPtr->getnfPatch_tmp();
-   int nyPatch_tmp = weightParamPtr->getnyPatch_tmp();
-   int nxPatch_tmp = weightParamPtr->getnxPatch_tmp();
-   int sx_tmp=weightParamPtr->getsx_tmp();
-   int sy_tmp=weightParamPtr->getsy_tmp();
-   int sf_tmp=weightParamPtr->getsf_tmp();
+   int nfPatch_tmp = weightParamPtr->getnfPatch();
+   int nyPatch_tmp = weightParamPtr->getnyPatch();
+   int nxPatch_tmp = weightParamPtr->getnxPatch();
+   int sx_tmp=weightParamPtr->getsx();
+   int sy_tmp=weightParamPtr->getsy();
+   int sf_tmp=weightParamPtr->getsf();
    float min_weight=weightParamPtr->getmin_weight();
 
    // pvdata_t * w_tmp = patch->data;
@@ -112,12 +109,12 @@ int InitCocircWeights::cocircCalcWeights(/* PVPatch * patch */ pvdata_t * w_tmp,
 
 bool InitCocircWeights::calcDistChordCocircKurvePreNKurvePost(
          float xDelta, float yDelta, int kfPost, InitCocircWeightsParams *weightParamPtr, float thPost) {
-   const float aspect = weightParamPtr->getaspect();
-   const float shift = weightParamPtr->getshift();
-   const float sigma = weightParamPtr->getsigma();
+   const float aspect = weightParamPtr->getAspect();
+   const float shift = weightParamPtr->getShift();
+   const float sigma = weightParamPtr->getSigma();
    const float sigma2 = 2 * sigma * sigma;
    const double r2Max = weightParamPtr->getr2Max();
-   const int numFlanks = weightParamPtr->getnumFlanks();
+   const int numFlanks = weightParamPtr->getNumFlanks();
    float thetaPre = weightParamPtr->getthPre();
 
    // rotate the reference frame by th

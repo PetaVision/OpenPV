@@ -18,20 +18,19 @@ public:
    InitSpreadOverArborsWeightsParams();
    InitSpreadOverArborsWeightsParams(HyPerConn * parentConn);
    virtual ~InitSpreadOverArborsWeightsParams();
+   int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    void calcOtherParams(int patchIndex);
 
    //get-set methods:
    inline float getInitWeight()        {return initWeight;}
-   inline int getNumArbors()        {return numArbors;}
 
 
 protected:
    int initialize_base();
    int initialize(HyPerConn * parentConn);
-
+   void ioParam_weightInit(enum ParamsIOFlag ioFlag);
 
 private:
-   int numArbors;
    float initWeight;
 
 };

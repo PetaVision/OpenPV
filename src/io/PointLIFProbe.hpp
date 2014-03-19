@@ -14,18 +14,15 @@ namespace PV {
 
 class PointLIFProbe: public PointProbe {
 public:
-   PointLIFProbe(const char * filename, HyPerLayer * layer, int xLoc, int yLoc, int fLoc, const char * msg);
-   PointLIFProbe(const char * filename, HyPerLayer * layer, int xLoc, int yLoc, int fLoc, float writeStep, const char * msg);
-
-   PointLIFProbe(HyPerLayer * layer, int xLoc, int yLoc, int fLoc, const char * msg);
-   PointLIFProbe(HyPerLayer * layer, int xLoc, int yLoc, int fLoc, float writeStep, const char * msg);
+   PointLIFProbe(const char * probeName, HyPerCol * hc);
 
    virtual int writeState(double timed, HyPerLayer * l, int k, int kex);
 
 protected:
    PointLIFProbe();
-   int initPointLIFProbe(const char * filename, HyPerLayer * layer, int xLoc, int yLoc, int fLoc, float writeStep, const char * msg);
-   int initPointLIFProbe(const char * filename, HyPerLayer * layer, int xLoc, int yLoc, int fLoc, const char * msg);
+   int initPointLIFProbe(const char * probeName, HyPerCol * hc);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_writeStep(enum ParamsIOFlag ioFlag);
 
 private:
    int initPointLIFProbe_base();

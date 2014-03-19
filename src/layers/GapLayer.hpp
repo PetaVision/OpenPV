@@ -31,8 +31,8 @@ protected:
    GapLayer();
    int initialize(const char * name, HyPerCol * hc);
       // use LIFGap as source layer instead (LIFGap updates gap junctions more accurately)
-   virtual int setParams(PVParams * params);
-   virtual void readAmpSpikelet(PVParams * params);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_ampSpikelet(enum ParamsIOFlag ioFlag);
 
    /* static */ int updateState(double timef, double dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, pvdata_t * checkActive);
    virtual int setActivity();

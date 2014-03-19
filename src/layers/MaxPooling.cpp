@@ -14,16 +14,10 @@ MaxPooling::MaxPooling()
    initialize_base();
 }
 
-MaxPooling::MaxPooling(const char * name, HyPerCol * hc, int numChannels)
-{
-   initialize_base();
-   initialize(name, hc, numChannels);
-}
-
 MaxPooling::MaxPooling(const char * name, HyPerCol * hc)
 {
    initialize_base();
-   initialize(name, hc, 1);
+   initialize(name, hc);
 }
 
 MaxPooling::~MaxPooling()
@@ -31,12 +25,13 @@ MaxPooling::~MaxPooling()
 }
 
 int MaxPooling::initialize_base(){
+   numChannels = 1;
    return PV_SUCCESS;
 }
 
-int MaxPooling::initialize(const char * name, HyPerCol * hc, int numChannels)
+int MaxPooling::initialize(const char * name, HyPerCol * hc)
 {
-   return HyPerLayer::initialize(name, hc, numChannels);
+   return HyPerLayer::initialize(name, hc);
 }
 
 int MaxPooling::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activity,

@@ -26,13 +26,13 @@ public:
 protected:
    RescaleLayer();
    int initialize(const char * name, HyPerCol * hc);
-   int setParams(PVParams * params);
-   // void readOriginalLayerName(PVParams * params); // Handled by CloneVLayer
-   void readTargetMax(PVParams * params);
-   void readTargetMin(PVParams * params);
-   void readTargetMean(PVParams * params);
-   void readTargetStd(PVParams * params);
-   void readRescaleMethod(PVParams * params);
+   int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+
+   void ioParam_targetMax(enum ParamsIOFlag ioFlag);
+   void ioParam_targetMin(enum ParamsIOFlag ioFlag);
+   void ioParam_targetMean(enum ParamsIOFlag ioFlag);
+   void ioParam_targetStd(enum ParamsIOFlag ioFlag);
+   void ioParam_rescaleMethod(enum ParamsIOFlag ioFlag);
 private:
    int initialize_base();
    //bool checkIfUpdateNeeded();

@@ -17,9 +17,10 @@ namespace PV {
 class NormalizeBase {
 // Member functions
 public:
-   // no public method; only subclasses can be constructed directly
+   // no public constructor; only subclasses can be constructed directly
    virtual ~NormalizeBase() = 0;
 
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    virtual int normalizeWeights(HyPerConn * conn);
 
    const float getStrength() {return strength;}
@@ -30,15 +31,15 @@ public:
 
 protected:
    NormalizeBase();
-   int initialize(const char * name, PVParams * params);
-   virtual int setParams();
+   int initialize(HyPerConn * callingConn);
 
-   virtual void readStrength();
-   virtual void readRMin();
-   virtual void readNormalizeCutoff();
-   virtual void readSymmetrizeWeights();
-   virtual void readNormalizeFromPostPerspective();
-   virtual void readNormalizeArborsIndividually();
+   virtual void ioParam_strength(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_rMinX(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_rMinY(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_normalize_cutoff(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_symmetrizeWeights(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_normalizeFromPostPerspective(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_normalizeArborsIndividually(enum ParamsIOFlag ioFlag);
 
    int accumulateSum(pvdata_t * dataPatchStart, int weights_in_patch, double * sum);
    int accumulateSumShrunken(pvdata_t * dataPatchStart, double * sum,
@@ -52,6 +53,7 @@ protected:
 			int nxp, int nyp, int xPatchStride, int yPatchStride);
    int symmetrizeWeights(HyPerConn * conn); // may be used by several subclasses
    static void normalizePatch(pvdata_t * dataStart, int weights_per_patch, float multiplier);
+   HyPerCol * parent();
 
 private:
    int initialize_base();
@@ -59,7 +61,7 @@ private:
 // Member variables
 protected:
    char * name;
-   PVParams * params;
+   HyPerConn * callingConn;
    float strength;                    // Value to normalize to; precise interpretation depends on normalization method
    float rMinX, rMinY;                // zero all weights within rectangle rMinxY, rMInY aligned with center of patch
    float normalize_cutoff;            // If true, weights with abs(w)<max(abs(w))*normalize_cutoff are truncated to zero.

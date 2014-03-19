@@ -8,15 +8,16 @@
 #ifndef INITGAUSSIANRANDOMWEIGHTSPARAMS_HPP_
 #define INITGAUSSIANRANDOMWEIGHTSPARAMS_HPP_
 
-#include "InitWeightsParams.hpp"
+#include "InitRandomWeightsParams.hpp"
 
 namespace PV {
 
-class InitGaussianRandomWeightsParams: public PV::InitWeightsParams {
+class InitGaussianRandomWeightsParams: public PV::InitRandomWeightsParams {
 public:
    InitGaussianRandomWeightsParams();
    InitGaussianRandomWeightsParams(HyPerConn * parentConn);
    virtual ~InitGaussianRandomWeightsParams();
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
 
    //get-set methods:
    inline float getMean()        {return wGaussMean;}
@@ -25,6 +26,8 @@ public:
 protected:
    virtual int initialize_base();
    int initialize(HyPerConn * parentConn);
+   void ioParam_wGaussMean(enum ParamsIOFlag ioFlag);
+   void ioParam_wGaussStdev(enum ParamsIOFlag ioFlag);
 
 
 private:

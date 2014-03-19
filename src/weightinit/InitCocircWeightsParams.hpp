@@ -18,25 +18,21 @@ public:
    InitCocircWeightsParams();
    InitCocircWeightsParams(HyPerConn * parentConn);
    virtual ~InitCocircWeightsParams();
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    void calcOtherParams(int patchIndex);
 
    //get/set methods:
-   inline float getaspect()        {return aspect;}
-   inline float getshift()        {return shift;}
-   inline int getnumFlanks()        {return numFlanks;}
-   inline double getr2Max()        {return r2Max;}
-   inline float getsigma()        {return sigma;}
    inline float getSigma_cocirc()        {return sigma_cocirc;}
    inline float getSigma_kurve()        {return sigma_kurve;}
    inline float getSigma_kurve_pre()        {return sigma_kurve_pre;}
    inline float getSigma_kurve_pre2()        {return sigma_kurve_pre2;}
    inline float getSigma_kurve_post2()        {return sigma_kurve_post2;}
-   inline float getSigma_chord()        {return sigma_chord;}
+   // inline float getSigma_chord()        {return sigma_chord;}
    inline float getmin_weight()        {return min_weight;}
    inline float getnKurvePre()        {return nKurvePre;}
    inline float getGDist()        {return gDist;}
 
-   float calcKurvePreAndSigmaKurvePre();
+   // float calcKurvePreAndSigmaKurvePre();
    float calcKurvePostAndSigmaKurvePost(int kfPost);
    float calcKurveAndSigmaKurve(int kf, int &nKurve,
          float &sigma_kurve_temp, float &kurve_tmp,
@@ -54,7 +50,13 @@ public:
 protected:
    int initialize_base();
    int initialize(HyPerConn * parentConn);
-
+   virtual void ioParam_sigmaCocirc(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_sigmaKurve(enum ParamsIOFlag ioFlag);
+   // virtual void ioParam_sigmaChord(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_cocircSelf(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_deltaRadiusCurvature(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_numOrientationsPre(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_numOrientationsPost(enum ParamsIOFlag ioFlag);
 
 
 private:
@@ -71,7 +73,7 @@ private:
    //int noPost;
    float sigma_cocirc;
    float sigma_kurve; // fraction of delta_radius_curvature
-   float sigma_chord;
+   // float sigma_chord; // Handling of sigma_chord is broken, but sigma_chord is ultimately not used, so commented out. -pete 2014-03-14
    //float delta_theta_max;
    float cocirc_self;
    float delta_radius_curvature; // 1 = minimum radius of curvature
@@ -97,7 +99,7 @@ private:
 
    //used for calculating weights:
    float gDist;
-   float gChord; //not used!
+   // float gChord; //not used!
    float gCocirc;
    float gKurvePre;
    float gKurvePost;

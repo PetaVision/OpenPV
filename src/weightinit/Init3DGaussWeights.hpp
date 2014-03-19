@@ -20,16 +20,17 @@ namespace PV {
 
 class Init3DGaussWeights: public PV::InitGauss2DWeights {
 public:
-   Init3DGaussWeights();
+   Init3DGaussWeights(HyPerConn * conn);
    virtual ~Init3DGaussWeights();
 
-   virtual int calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, int arborId,
-         InitWeightsParams *weightParams);
-   virtual InitWeightsParams * createNewWeightParams(HyPerConn * callingConn);
+   virtual int calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, int arborId);
+   virtual InitWeightsParams * createNewWeightParams();
 
 
 protected:
+   Init3DGaussWeights();
    int initialize_base();
+   int initialize(HyPerConn * conn);
 
 //private:
    int gauss3DWeights(/*PVPatch * patch */ pvdata_t * dataStart, Init3DGaussWeightsParams * weightParamPtr);

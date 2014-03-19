@@ -10,6 +10,11 @@
 
 namespace PV {
 
+InitGaussianRandomWeights::InitGaussianRandomWeights(HyPerConn * conn) {
+   initialize_base();
+   initialize(conn);
+}
+
 InitGaussianRandomWeights::InitGaussianRandomWeights() {
    initialize_base();
 }
@@ -23,22 +28,27 @@ int InitGaussianRandomWeights::initialize_base() {
    return PV_SUCCESS;
 }
 
-InitWeightsParams * InitGaussianRandomWeights::createNewWeightParams(HyPerConn * callingConn) {
+int InitGaussianRandomWeights::initialize(HyPerConn * conn) {
+   int status = InitRandomWeights::initialize(conn);
+   return status;
+}
+
+InitWeightsParams * InitGaussianRandomWeights::createNewWeightParams() {
    InitWeightsParams * tempPtr = new InitGaussianRandomWeightsParams(callingConn);
    return tempPtr;
 }
 
-int InitGaussianRandomWeights::initRNGs(HyPerConn * conn, bool isKernel) {
+int InitGaussianRandomWeights::initRNGs(bool isKernel) {
    assert(randState==NULL && gaussianRandState==NULL);
    int status = PV_SUCCESS;
    if (isKernel) {
-      gaussianRandState = new GaussianRandom(conn->getParent(), conn->getNumDataPatches());
+      gaussianRandState = new GaussianRandom(callingConn->getParent(), callingConn->getNumDataPatches());
    }
    else {
-      gaussianRandState = new GaussianRandom(conn->getParent(), conn->preSynapticLayer()->getLayerLoc(), true/*isExtended*/);
+      gaussianRandState = new GaussianRandom(callingConn->getParent(), callingConn->preSynapticLayer()->getLayerLoc(), true/*isExtended*/);
    }
    if (randState == NULL) {
-      fprintf(stderr, "InitRandomWeights error in rank %d process: unable to create object of class Random.\n", conn->getParent()->columnId());
+      fprintf(stderr, "InitRandomWeights error in rank %d process: unable to create object of class Random.\n", callingConn->getParent()->columnId());
       exit(EXIT_FAILURE);
    }
    randState = (Random *) gaussianRandState;
@@ -60,9 +70,9 @@ int InitGaussianRandomWeights::randomWeights(pvdata_t * patchDataStart, InitWeig
    const float mean = weightParamPtr->getMean();
    const float stdev = weightParamPtr->getStDev();
 
-   const int nxp = weightParamPtr->getnxPatch_tmp();
-   const int nyp = weightParamPtr->getnyPatch_tmp();
-   const int nfp = weightParamPtr->getnfPatch_tmp();
+   const int nxp = weightParamPtr->getnxPatch();
+   const int nyp = weightParamPtr->getnyPatch();
+   const int nfp = weightParamPtr->getnfPatch();
 
    const int patchSize = nxp*nyp*nfp;
    for (int n=0; n<patchSize; n++) {

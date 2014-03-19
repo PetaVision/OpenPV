@@ -15,13 +15,9 @@ ColProbe::ColProbe() { // Default constructor to be called by derived classes.
    initialize_base();
 }
 
-ColProbe::ColProbe(const char * filename, HyPerCol * hc) { // Kept for backward compatibility
+ColProbe::ColProbe(const char * probeName, HyPerCol * hc) {
    initialize_base();
-   initialize("ColProbe", filename, hc);
-}
-
-ColProbe::ColProbe(const char * probeName, const char * filename, HyPerCol * hc) {
-    initialize(probeName, filename, hc);
+   initialize(probeName, hc);
 }
 
 ColProbe::~ColProbe() {
@@ -32,23 +28,46 @@ ColProbe::~ColProbe() {
 }
 
 int ColProbe::initialize_base() {
+   parentCol = NULL;
    stream = NULL;
    colProbeName = NULL;
    return PV_SUCCESS;
 }
 
-int ColProbe::initialize(const char * probeName, const char * filename, HyPerCol * hc) {
-   initialize_path(filename, hc);
-   setColProbeName(probeName);
+int ColProbe::initialize(const char * probeName, HyPerCol * hc) {
+   parentCol = hc;
+   int status = setColProbeName(probeName);
+   if (status==PV_SUCCESS) {
+      status = ioParamsFillGroup(PARAMS_IO_READ);
+   }
+   return status;
+}
+
+int ColProbe::ioParams(enum ParamsIOFlag ioFlag) {
+   parentCol->ioParamsStartGroup(ioFlag, colProbeName);
+   ioParamsFillGroup(ioFlag);
+   parentCol->ioParamsFinishGroup(ioFlag);
    return PV_SUCCESS;
 }
 
-int ColProbe::initialize_path(const char * filename, HyPerCol * hc) {
-   if (hc->columnId()==0)
+int ColProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   ioParam_probeOutputFile(ioFlag);
+   return PV_SUCCESS;
+}
+
+void ColProbe::ioParam_probeOutputFile(enum ParamsIOFlag ioFlag) {
+   char * filename = NULL;
+   parentCol->ioParamString(ioFlag, colProbeName, "probeOutputFile", &filename, NULL, false/*warnIfAbsent*/);
+   initialize_stream(filename);
+   free(filename); filename = NULL;
+}
+
+int ColProbe::initialize_stream(const char * filename) {
+   if (parentCol->columnId()==0)
    {
       if( filename != NULL ) {
          char * path;
-         const char * output_path = hc->getOutputPath();
+         const char * output_path = parentCol->getOutputPath();
          size_t len = strlen(output_path) + strlen(filename) + 2; // One char for slash; one for string terminator
          path = (char *) malloc( len * sizeof(char) );
          sprintf(path, "%s/%s", output_path, filename);

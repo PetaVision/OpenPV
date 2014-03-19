@@ -10,6 +10,11 @@
 
 namespace PV {
 
+InitSpreadOverArborsWeights::InitSpreadOverArborsWeights(HyPerConn * conn) {
+   initialize_base();
+   initialize(conn);
+}
+
 InitSpreadOverArborsWeights::InitSpreadOverArborsWeights()
 {
    initialize_base();
@@ -23,13 +28,17 @@ int InitSpreadOverArborsWeights::initialize_base() {
    return PV_SUCCESS;
 }
 
-InitWeightsParams * InitSpreadOverArborsWeights::createNewWeightParams(HyPerConn * callingConn) {
+int InitSpreadOverArborsWeights::initialize(HyPerConn * conn) {
+   int status = InitGauss2DWeights::initialize(conn);
+   return status;
+}
+
+InitWeightsParams * InitSpreadOverArborsWeights::createNewWeightParams() {
    InitWeightsParams * tempPtr = new InitSpreadOverArborsWeightsParams(callingConn);
    return tempPtr;
 }
 
-int InitSpreadOverArborsWeights::calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, int arborId,
-      InitWeightsParams *weightParams) {
+int InitSpreadOverArborsWeights::calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, int arborId) {
    InitSpreadOverArborsWeightsParams *weightParamPtr = dynamic_cast<InitSpreadOverArborsWeightsParams*>(weightParams);
 
    if(weightParamPtr==NULL) {
@@ -54,15 +63,15 @@ int InitSpreadOverArborsWeights::spreadOverArborsWeights(/* PVPatch * patch */ p
 
 
    //load necessary params:
-   int nfPatch_tmp = weightParamPtr->getnfPatch_tmp();
-   int nyPatch_tmp = weightParamPtr->getnyPatch_tmp();
-   int nxPatch_tmp = weightParamPtr->getnxPatch_tmp();
-   int sx_tmp=weightParamPtr->getsx_tmp();
-   int sy_tmp=weightParamPtr->getsy_tmp();
-   int sf_tmp=weightParamPtr->getsf_tmp();
+   int nfPatch_tmp = weightParamPtr->getnfPatch();
+   int nyPatch_tmp = weightParamPtr->getnyPatch();
+   int nxPatch_tmp = weightParamPtr->getnxPatch();
+   int sx_tmp=weightParamPtr->getsx();
+   int sy_tmp=weightParamPtr->getsy();
+   int sf_tmp=weightParamPtr->getsf();
 
    const float iWeight = weightParamPtr->getInitWeight();
-   const int nArbors = weightParamPtr->getNumArbors();
+   const int nArbors = callingConn->numberOfAxonalArborLists();
 
 
    // pvdata_t * w_tmp = patch->data;

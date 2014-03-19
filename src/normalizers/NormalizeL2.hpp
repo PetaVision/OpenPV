@@ -15,17 +15,17 @@ namespace PV {
 class NormalizeL2: public PV::NormalizeBase {
    // Member functions
    public:
-      NormalizeL2(const char * name, PVParams * params);
+      NormalizeL2(HyPerConn * callingConn);
       virtual ~NormalizeL2();
 
+      virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
       virtual int normalizeWeights(HyPerConn * conn);
 
    protected:
       NormalizeL2();
-      int initialize(const char * name, PVParams * params);
-      virtual int setParams();
+      int initialize(HyPerConn * callingConn);
 
-      virtual void readMinL2NormTolerated();
+      virtual void ioParam_minL2NormTolerated(enum ParamsIOFlag ioFlag);
 
    private:
       int initialize_base();

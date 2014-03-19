@@ -23,20 +23,17 @@ public:
    InitDistributedWeightsParams();
    InitDistributedWeightsParams(HyPerConn * parentConn);
    virtual ~InitDistributedWeightsParams();
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
 
    //get-set methods:
-   inline float getWMin()        {return wMin;}
-   inline float getWMax()        {return wMax;}
    inline float getNumNodes()    {return numNodes;}
 
 protected:
-   virtual int initialize_base();
+   int initialize_base();
    int initialize(HyPerConn * parentConn);
 
 
 private:
-   float wMin;
-   float wMax;
    float numNodes;
 };
 

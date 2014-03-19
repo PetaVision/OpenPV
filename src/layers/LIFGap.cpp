@@ -108,7 +108,7 @@ LIFGap::LIFGap() {
 
 LIFGap::LIFGap(const char * name, HyPerCol * hc) {
    initialize_base();
-   initialize(name, hc, TypeLIFGap, MAX_CHANNELS+1, "LIFGap_update_state");
+   initialize(name, hc, TypeLIFGap, "LIFGap_update_state");
 #ifdef PV_USE_OPENCL
    if(gpuAccelerateFlag)
       initializeGPU();
@@ -117,7 +117,7 @@ LIFGap::LIFGap(const char * name, HyPerCol * hc) {
 
 LIFGap::LIFGap(const char * name, HyPerCol * hc, PVLayerType type) {
    initialize_base();
-   initialize(name, hc, type, MAX_CHANNELS+1, "LIFGap_update_state");
+   initialize(name, hc, type, "LIFGap_update_state");
 #ifdef PV_USE_OPENCL
    if(gpuAccelerateFlag)
       initializeGPU();
@@ -138,7 +138,7 @@ LIFGap::~LIFGap()
 }
 
 int LIFGap::initialize_base() {
-
+   numChannels = 4;
 #ifdef PV_USE_OPENCL
    clG_Gap = NULL;
    clGSynGap = NULL;
@@ -151,19 +151,8 @@ int LIFGap::initialize_base() {
 /*
  *
  */
-int LIFGap::initialize(const char * name, HyPerCol * hc, PVLayerType type, int num_channels, const char * kernel_name) {
-   int status = LIF::initialize(name, hc, type, num_channels, kernel_name);
-
-   // Initialization of method moved to LIF::setParams
-   // PVParams * params = hc->parameters();
-   // const char * methodstring = params->stringValue(name, "method", true);
-   // method = methodstring ? methodstring[0] : 'o';
-   // if (method != 'o' && method != 'b') {
-   //    if (hc->icCommunicator()->commRank()==0) {
-   //       fprintf(stderr, "LIFGap::initialize error.  Layer \"%s\" has method \"%s\".  Allowable values are \"beginning\" and \"original\".", name, methodstring);
-   //    }
-   //    abort();
-   // }
+int LIFGap::initialize(const char * name, HyPerCol * hc, PVLayerType type, const char * kernel_name) {
+   int status = LIF::initialize(name, hc, type, kernel_name);
 
 #ifdef PV_USE_OPENCL
    numEvents=NUM_LIFGAP_EVENTS;

@@ -17,9 +17,7 @@ class OjaKernelConn: public PV::KernelConn {
 // Methods
 public:
    // Public constructor, called when creating a new OjaKernelConn object
-   OjaKernelConn(const char * name, HyPerCol * hc,
-                 const char * pre_layer_name, const char * post_layer_name,
-                 const char * filename = NULL, InitWeights *weightInit = NULL);
+   OjaKernelConn(const char * name, HyPerCol * hc);
 
    virtual ~OjaKernelConn();
 
@@ -40,26 +38,19 @@ public:
 
 protected:
    OjaKernelConn(); // Called by derived classes' constructors
-   int initialize(const char * name, HyPerCol * hc,
-                  const char * pre_layer_name, const char * post_layer_name,
-                  const char * filename, InitWeights *weightInit);
+   int initialize(const char * name, HyPerCol * hc);
    virtual int calc_dW(int axonId);
    virtual int update_dW(int axonId);
    virtual int updateWeights(int axonId);
 
-   virtual int setParams(PVParams * params);
-   // Load member variables from params.  Virtual so that derived classes can deactivate a param if it isn't needed.
-   virtual void readLearningTime(PVParams * params) {learningTime = params->value(name, "learningTime", 1.0);}
-
-   // params file specifies target rates in hertz; convert to KHz since times are in ms
-   virtual void readInputTargetRate(PVParams * params) {inputTargetRate = 0.001*params->value(name, "inputTargetRate", 1.0);}
-   virtual void readOutputTargetRate(PVParams * params) {outputTargetRate = 0.001*params->value(name, "outputTargetRate", 1.0);}
-
-   virtual void readIntegrationTime(PVParams * params) {integrationTime = params->value(name, "integrationTime", 1.0);}
-   virtual void readAlphaMultiplier(PVParams * params) {alphaMultiplier = params->value(name, "alphaMultiplier", 1.0);}
-
-   virtual void read_dWUpdatePeriod(PVParams * params) {dWUpdatePeriod = params->value(name, "dWUpdatePeriod", 1.0);}
-   virtual void readInitialWeightUpdateTime(PVParams * params);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_initialWeightUpdateTime(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_learningTime(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_inputTargetRate(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_outputTargetRate(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_integrationTime(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_alphaMultiplier(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_dWUpdatePeriod(enum ParamsIOFlag ioFlag);
 
 private:
    int initialize_base();

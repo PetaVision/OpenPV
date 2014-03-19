@@ -15,18 +15,18 @@ namespace PV {
 class NormalizeContrastZeroMean: public PV::NormalizeBase {
    // Member functions
 public:
-   NormalizeContrastZeroMean(const char * name, PVParams * params);
+   NormalizeContrastZeroMean(HyPerConn * callingConn);
    virtual ~NormalizeContrastZeroMean();
 
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    virtual int normalizeWeights(HyPerConn * conn);
 
 protected:
    NormalizeContrastZeroMean();
-   int initialize(const char * name, PVParams * params);
-   virtual int setParams();
+   int initialize(HyPerConn * callingConn);
 
-   virtual void readMinSumTolerated() {minSumTolerated = params->value(name, "minSumTolerated", 0.0f, true/*warnIfAbsent*/);}
-   virtual void readNormalizeFromPostPerspective() {return;}
+   virtual void ioParam_minSumTolerated(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_normalizeFromPostPerspective(enum ParamsIOFlag ioFlag);
 
    static void subtractOffsetAndNormalize(pvdata_t * dataStartPatch, int weights_per_patch, float offset, float normalizer);
    int accumulateSumAndSumSquared(pvdata_t * dataPatchStart, int weights_in_patch, double * sum, double * sumsq);

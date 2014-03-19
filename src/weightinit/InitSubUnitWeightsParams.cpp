@@ -21,11 +21,10 @@ InitSubUnitWeightsParams::InitSubUnitWeightsParams(HyPerConn * parentConn)
 
 InitSubUnitWeightsParams::~InitSubUnitWeightsParams()
 {
-   // TODO Auto-generated destructor stub
 }
 
 int InitSubUnitWeightsParams::initialize_base() {
-   return 1;
+   return PV_SUCCESS;
 }
 
 int InitSubUnitWeightsParams::initialize(HyPerConn * parentConn) {

@@ -13,6 +13,7 @@ BinningLayer::BinningLayer() {
 }
 
 int BinningLayer::initialize_base() {
+   numChannels = 0;
    originalLayerName = NULL;
    originalLayer = NULL;
    delay = 0;
@@ -23,22 +24,23 @@ int BinningLayer::initialize_base() {
 }
 
 int BinningLayer::initialize(const char * name, HyPerCol * hc) {
-   int status = HyPerLayer::initialize(name, hc, 1);
+   int status = HyPerLayer::initialize(name, hc);
    return status;
 }
 
-int BinningLayer::setParams(PVParams * params) {
-   int status = HyPerLayer::setParams(params);
-   readOriginalLayerName(params);
-   readBinMaxMin(params);
-   readDelay(params);
-   readBinSigma(params);
+int BinningLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = HyPerLayer::ioParamsFillGroup(ioFlag);
+   ioParam_originalLayerName(ioFlag);
+   ioParam_binMaxMin(ioFlag);
+   ioParam_delay(ioFlag);
+   ioParam_binSigma(ioFlag);
    return status;
 }
 
-void BinningLayer::readOriginalLayerName(PVParams * params) {
-   const char * original_layer_name = params->stringValue(name, "originalLayerName");
-   if (original_layer_name==NULL || original_layer_name[0]=='\0') {
+void BinningLayer::ioParam_originalLayerName(enum ParamsIOFlag ioFlag) {
+   parent->ioParamStringRequired(ioFlag, name, "originalLayerName", &originalLayerName);
+   assert(originalLayerName);
+   if (ioFlag==PARAMS_IO_READ && originalLayerName[0]=='\0') {
       if (parent->columnId()==0) {
          fprintf(stderr, "%s \"%s\" error: originalLayerName must be set.\n",
                  parent->parameters()->groupKeywordFromName(name), name);
@@ -46,18 +48,12 @@ void BinningLayer::readOriginalLayerName(PVParams * params) {
       MPI_Barrier(parent->icCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
-   originalLayerName = strdup(original_layer_name);
-   if (originalLayerName==NULL) {
-      fprintf(stderr, "%s \"%s\" error: rank %d process unable to copy originalLayerName \"%s\": %s\n",
-              parent->parameters()->groupKeywordFromName(name), name, parent->columnId(), original_layer_name, strerror(errno));
-      exit(EXIT_FAILURE);
-   }
 }
 
-void BinningLayer::readBinMaxMin(PVParams * params) {
-   binMax = params->value(name, "binMax", binMax);
-   binMin = params->value(name, "binMin", binMin);
-   if(binMax <= binMin){
+void BinningLayer::ioParam_binMaxMin(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "binMax", &binMax, binMax);
+   parent->ioParamValue(ioFlag, name, "binMin", &binMin, binMin);
+   if(ioFlag == PARAMS_IO_READ && binMax <= binMin){
       if (parent->columnId()==0) {
          fprintf(stderr, "%s \"%s\" error: binMax (%f) must be greater than binMin (%f).\n",
             parent->parameters()->groupKeywordFromName(name), name, binMax, binMin);
@@ -67,12 +63,12 @@ void BinningLayer::readBinMaxMin(PVParams * params) {
    }
 }
 
-void BinningLayer::readBinSigma(PVParams * params) {
-   binSigma = params->value(name, "binSigma", binSigma);
+void BinningLayer::ioParam_binSigma(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "binSigma", &binSigma, binSigma);
 }
 
-void BinningLayer::readDelay(PVParams * params) {
-   delay = (int) params->value(name, "delay", delay);
+void BinningLayer::ioParam_delay(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "delay", &delay, delay);
 }
 
 //TODO read params for gaussian over features
@@ -129,26 +125,19 @@ int BinningLayer::allocateV(){
    return PV_SUCCESS;
 }
 
-int BinningLayer::initializeState() {
-   int status = PV_SUCCESS;
-   PVParams * params = parent->parameters();
-   assert(!params->presentAndNotBeenRead(name, "restart"));
-   // readRestart(params);
-   if( restartFlag ) {
-      double timef;
-      status = readState(&timef);
-   }
-   else {
-      //status = setActivity();
-      //if (status == PV_SUCCESS) status = updateActiveIndices();
-   }
-   return status;
+int BinningLayer::initializeV() {
+   assert(getV() == NULL);
+   return PV_SUCCESS;
+}
+
+int BinningLayer::initializeActivity() {
+   return PV_SUCCESS;
 }
 
 int BinningLayer::updateState(double timef, double dt) {
    int status;
-   pvdata_t * gSynHead = GSyn==NULL ? NULL : GSyn[0];
-   assert(getNumChannels() == 1);
+   assert(GSyn==NULL);
+   pvdata_t * gSynHead = NULL;
 
    status = doUpdateState(timef, dt, originalLayer->getLayerLoc(), getLayerLoc(), originalLayer->getLayerData(delay), getActivity(), binMax, binMin);
    if(status == PV_SUCCESS) status = updateActiveIndices();

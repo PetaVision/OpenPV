@@ -9,8 +9,13 @@
 
 namespace PV {
 
+InitGauss2DWeights::InitGauss2DWeights(HyPerConn * conn) {
+   initialize_base();
+   initialize(conn);
+}
+
 InitGauss2DWeights::InitGauss2DWeights() {
-	   initialize_base();
+   initialize_base();
 }
 
 InitGauss2DWeights::~InitGauss2DWeights() {
@@ -20,15 +25,19 @@ int InitGauss2DWeights::initialize_base() {
    return PV_SUCCESS;
 }
 
+int InitGauss2DWeights::initialize(HyPerConn * conn) {
+   int status = InitWeights::initialize(conn);
+   return status;
+}
 
-InitWeightsParams * InitGauss2DWeights::createNewWeightParams(HyPerConn * callingConn) {
+
+InitWeightsParams * InitGauss2DWeights::createNewWeightParams() {
    InitWeightsParams * tempPtr = new InitGauss2DWeightsParams(callingConn);
    return tempPtr;
 }
 
 
-int InitGauss2DWeights::calcWeights(pvdata_t * dataStart, int dataPatchIndex, int arborId,
-                               InitWeightsParams *weightParams) {
+int InitGauss2DWeights::calcWeights(pvdata_t * dataStart, int dataPatchIndex, int arborId) {
 
     InitGauss2DWeightsParams *weightParamPtr = dynamic_cast<InitGauss2DWeightsParams*> (weightParams);
 
@@ -52,17 +61,17 @@ int InitGauss2DWeights::calcWeights(pvdata_t * dataStart, int dataPatchIndex, in
 int InitGauss2DWeights::gauss2DCalcWeights(pvdata_t * dataStart, InitGauss2DWeightsParams * weightParamPtr) {
 
    //load necessary params:
-   int nfPatch_tmp = weightParamPtr->getnfPatch_tmp();
-   int nyPatch_tmp = weightParamPtr->getnyPatch_tmp();
-   int nxPatch_tmp = weightParamPtr->getnxPatch_tmp();
+   int nfPatch_tmp = weightParamPtr->getnfPatch();
+   int nyPatch_tmp = weightParamPtr->getnyPatch();
+   int nxPatch_tmp = weightParamPtr->getnxPatch();
    float strength=weightParamPtr->getStrength();
-   float aspect=weightParamPtr->getaspect();
-   float shift=weightParamPtr->getshift();
-   int numFlanks=weightParamPtr->getnumFlanks();
-   float sigma=weightParamPtr->getsigma();
-   int sx_tmp=weightParamPtr->getsx_tmp();
-   int sy_tmp=weightParamPtr->getsy_tmp();
-   int sf_tmp=weightParamPtr->getsf_tmp();
+   float aspect=weightParamPtr->getAspect();
+   float shift=weightParamPtr->getShift();
+   int numFlanks=weightParamPtr->getNumFlanks();
+   float sigma=weightParamPtr->getSigma();
+   int sx_tmp=weightParamPtr->getsx();
+   int sy_tmp=weightParamPtr->getsy();
+   int sf_tmp=weightParamPtr->getsf();
    double r2Max=weightParamPtr->getr2Max();
    double r2Min=weightParamPtr->getr2Min();
 

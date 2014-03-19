@@ -14,10 +14,7 @@ namespace PV {
 
 class PoolingGenConn : public GenerativeConn {
 public:
-   PoolingGenConn(const char * name, HyPerCol * hc,
-         const char * pre_layer_name, const char * post_layer_name,
-         const char * pre_layer_name2, const char * post_layer_name2,
-         const char * filename=NULL, InitWeights *weightInit=NULL);
+   PoolingGenConn(const char * name, HyPerCol * hc);
    virtual ~PoolingGenConn();
 
    HyPerLayer * getPre2() { return pre2; }
@@ -28,19 +25,20 @@ public:
 
 protected:
    int initialize_base();
-   int initialize(const char * name, HyPerCol * hc,
-         const char * pre_layer_name, const char * post_layer_name,
-         const char * pre_layer_name2, const char * post_layer_name2,
-         const char * filename=NULL, InitWeights *weightInit=NULL);
-   int setParams(PVParams * params);
-   void readSlownessFlag(PVParams * params);
-   int readSlownessPre(PVParams * params);
-   int readSlownessPost(PVParams * params);
+   int initialize(const char * name, HyPerCol * hc);
+   int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_secondaryPreLayerName(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_secondaryPostLayerName(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_slownessFlag(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_slownessPre(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_slownessPost(enum ParamsIOFlag ioFlag);
    bool checkLayersCompatible(HyPerLayer * layer1, HyPerLayer * layer2);
-   int getSlownessLayer(HyPerLayer ** l, const char * paramname);
+   int getSlownessLayerName(char ** l, const char * paramname);
 
    char * preLayerName2;
    char * postLayerName2;
+   char * slownessPreName;
+   char * slownessPostName;
    HyPerLayer * pre2;
    HyPerLayer * post2;
    bool slownessFlag;

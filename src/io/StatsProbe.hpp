@@ -14,19 +14,18 @@ namespace PV {
 
 class StatsProbe: public PV::LayerProbe {
 public:
-   StatsProbe(const char * filename, HyPerLayer * layer, const char * msg);
-   StatsProbe(HyPerLayer * layer, const char * msg);
-   StatsProbe(const char * filename, HyPerLayer * layer, PVBufType type, const char * msg);
-   StatsProbe(HyPerLayer * layer, PVBufType type, const char * msg);
+   StatsProbe(const char * probeName, HyPerCol * hc);
    virtual ~StatsProbe();
 
    virtual int outputState(double timef);
 
 protected:
    StatsProbe();
-   int initStatsProbe(const char * filename, HyPerLayer * layer, PVBufType type, const char * msg);
-   PV::PVBufType type;
-   char * msg;
+   int initStatsProbe(const char * probeName, HyPerCol * hc);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_buffer(enum ParamsIOFlag ioFlag);
+   void requireType(PVBufType requiredType);
+   PVBufType type;
    double sum, sum2;
    int nnz;
    float fMin, fMax;
@@ -37,7 +36,6 @@ protected:
 
 private:
    int initStatsProbe_base();
-   int initMessage(const char * msg);
 };
 
 }

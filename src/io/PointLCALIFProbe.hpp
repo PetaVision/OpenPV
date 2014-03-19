@@ -14,13 +14,13 @@ namespace PV {
 
 class PointLCALIFProbe: public PV::PointLIFProbe {
 public:
-   PointLCALIFProbe(const char * filename, HyPerLayer * layer, int xLoc, int yLoc, int fLoc, const char * msg);
+   PointLCALIFProbe(const char * probeName, HyPerCol * hc);
    virtual ~PointLCALIFProbe();
    virtual int writeState(double timed, HyPerLayer * l, int k, int kex);
 
 protected:
    PointLCALIFProbe();
-   int initPointLCALIFProbe(const char * filename, HyPerLayer * layer, int xLoc, int yLoc, int fLoc, const char * msg);
+   int initPointLCALIFProbe(const char * probeName, HyPerCol * hc);
 
 private:
    int initPointLCALIFProbe_base();

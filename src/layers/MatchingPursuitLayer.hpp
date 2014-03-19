@@ -31,19 +31,19 @@ public:
 
 #ifdef OBSOLETE
    //Obsolete Jan 15th, 2014 by slundquist
-   //getLastUpdateTime in HyPerLayer no loger updates lastUpdateTime, so no longer need to overwrite
+   //getLastUpdateTime in HyPerLayer no longer updates lastUpdateTime, so no longer need to override
    virtual double getLastUpdateTime() {return lastUpdateTime;}
-#endif
+#endif // OBSOLETE
 
 protected:
    MatchingPursuitLayer();
    int initialize(const char * name, HyPerCol * hc);
    int openPursuitFile();
-   virtual int setParams(PVParams * params);
-   virtual void readActivationThreshold(PVParams * params);
-   virtual void readSyncedMovie(PVParams * params);
-   virtual void readTracePursuit(PVParams * params);
-   virtual void readPursuitFile(PVParams * params);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_activationThreshold(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_syncedMovie(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_tracePursuit(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_traceFile(enum ParamsIOFlag ioFlag);
 
    inline void initializeMaxinfo(int rank=-1);
    inline void updateMaxinfo(pvdata_t gsyn, int k);

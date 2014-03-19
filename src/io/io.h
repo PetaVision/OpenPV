@@ -71,6 +71,8 @@
 #define INDEX_WGT_MAX        4
 #define INDEX_WGT_NUMPATCHES 5
 
+enum ParamsIOFlag { PARAMS_IO_READ, PARAMS_IO_WRITE };
+
 #ifdef __cplusplus
 extern "C"
 {

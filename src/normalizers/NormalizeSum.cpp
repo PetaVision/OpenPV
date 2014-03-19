@@ -13,26 +13,27 @@ NormalizeSum::NormalizeSum() {
    initialize_base();
 }
 
-NormalizeSum::NormalizeSum(const char * name, PVParams * params) {
-   initialize(name, params);
+NormalizeSum::NormalizeSum(HyPerConn * callingConn) {
+   initialize_base();
+   initialize(callingConn);
 }
 
 int NormalizeSum::initialize_base() {
    return PV_SUCCESS;
 }
 
-int NormalizeSum::initialize(const char * name, PVParams * params) {
-   return NormalizeBase::initialize(name, params);
+int NormalizeSum::initialize(HyPerConn * callingConn) {
+   return NormalizeBase::initialize(callingConn);
 }
 
-int NormalizeSum::setParams() {
-   int status = NormalizeBase::setParams();
-   readMinSumTolerated();
+int NormalizeSum::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = NormalizeBase::ioParamsFillGroup(ioFlag);
+   ioParam_minSumTolerated(ioFlag);
    return status;
 }
 
-void NormalizeSum::readMinSumTolerated() {
-   minSumTolerated = params->value(name, "minSumTolerated", 0.0f, true/*warnIfAbsent*/);
+void NormalizeSum::ioParam_minSumTolerated(enum ParamsIOFlag ioFlag) {
+   parent()->ioParamValue(ioFlag, name, "minSumTolerated", &minSumTolerated, 0.0f, true/*warnIfAbsent*/);
 }
 
 int NormalizeSum::normalizeWeights(HyPerConn * conn) {

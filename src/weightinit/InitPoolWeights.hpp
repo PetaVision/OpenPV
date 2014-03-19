@@ -18,19 +18,20 @@ class InitPoolWeightsParams;
 
 class InitPoolWeights: public PV::InitGauss2DWeights {
 public:
-   InitPoolWeights();
+   InitPoolWeights(HyPerConn * conn);
    virtual ~InitPoolWeights();
 
-   virtual int calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, int arborId,
-         InitWeightsParams *weightParams);
-   virtual InitWeightsParams * createNewWeightParams(HyPerConn * callingConn);
+   virtual int calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, int arborId);
+   virtual InitWeightsParams * createNewWeightParams();
    // void calcOtherParams(PVPatch * patch, int patchIndex);
 
 
 protected:
-   int initialize_base();
+   InitPoolWeights();
+   int initialize(HyPerConn * conn);
 
 private:
+   int initialize_base();
    int poolWeights(/* PVPatch * patch */ pvdata_t * dataStart, InitPoolWeightsParams * weightParamPtr);
 };
 

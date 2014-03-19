@@ -19,9 +19,9 @@ Image::Image() {
    initialize_base();
 }
 
-Image::Image(const char * name, HyPerCol * hc, const char * filename) {
+Image::Image(const char * name, HyPerCol * hc) {
    initialize_base();
-   initialize(name, hc, filename);
+   initialize(name, hc);
 }
 
 Image::~Image() {
@@ -38,6 +38,7 @@ Image::~Image() {
 }
 
 int Image::initialize_base() {
+   numChannels = 0;
    mpi_datatypes = NULL;
    data = NULL;
    filename = NULL;
@@ -57,7 +58,7 @@ int Image::initialize_base() {
    stepSize = 0;
    persistenceProb = 0.0;
    recurrenceProb = 1.0;
-   biasChangeTime = LONG_MAX;
+   biasChangeTime = FLT_MAX;
    writePosition = 0;
    fp_pos = NULL;
    biases[0]   = getOffsetX();
@@ -67,19 +68,9 @@ int Image::initialize_base() {
    return PV_SUCCESS;
 }
 
-int Image::initialize(const char * name, HyPerCol * hc, const char * filename) {
-   if (filename != NULL) {
-      this->filename = strdup(filename);
-      assert( this->filename != NULL);
-   }
-   else {
-      this->filename = NULL;
-   }
-
-   HyPerLayer::initialize(name, hc, 0);
+int Image::initialize(const char * name, HyPerCol * hc) {
+   int status = HyPerLayer::initialize(name, hc);
    // Much of the functionality that was previously here has been moved to either read-methods, communicateInitInfo, or allocateDataStructures
-
-   int status = PV_SUCCESS;
 
    this->lastUpdateTime = parent->getStartTime();
 
@@ -93,168 +84,181 @@ int Image::initialize(const char * name, HyPerCol * hc, const char * filename) {
       biases[1] = getOffsetY();
    }
 
-   // TODO - Add option to use image size to determine layer size and column size
-
    return status;
 }
 
-int Image::setParams(PVParams * params) {
-   int status = HyPerLayer::setParams(params);
+int Image::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = HyPerLayer::ioParamsFillGroup(ioFlag);
 
-   readOffsets(params);
-   readWriteImagesFlag(params);
-   readWriteImagesExtension(params);
+   ioParam_imagePath(ioFlag);
+   ioParam_offsets(ioFlag);
+   ioParam_writeImages(ioFlag);
+   ioParam_writeImagesExtension(ioFlag);
 
-   readUseImageBCflag(params);
-   readAutoResizeFlag(params);
-   readInverseFlag(params);
-   readNormalizeLuminanceFlag(params);
+   ioParam_useImageBCflag(ioFlag);
+   ioParam_autoResizeFlag(ioFlag);
+   ioParam_inverseFlag(ioFlag);
+   ioParam_normalizeLuminanceFlag(ioFlag);
 
-   readFrameNumber(params);
+   ioParam_frameNumber(ioFlag);
 
    // Although Image itself does not use jitter, both Movie and Patterns do, so jitterFlag is read in Image.
-   readJitterFlag(params);
-   readJitterType(params);
-   readJitterRefractoryPeriod(params);
-   readStepSize(params);
-   readPersistenceProb(params);
-   readRecurrenceProb(params);
-   readBiasChangeTime(params);
-   readBiasConstraintMethod(params);
-   readOffsetConstraintMethod(params);
-   readWritePosition(params);
+   ioParam_jitterFlag(ioFlag);
+   ioParam_jitterType(ioFlag);
+   ioParam_jitterRefractoryPeriod(ioFlag);
+   ioParam_stepSize(ioFlag);
+   ioParam_persistenceProb(ioFlag);
+   ioParam_recurrenceProb(ioFlag);
+   ioParam_biasChangeTime(ioFlag);
+   ioParam_biasConstraintMethod(ioFlag);
+   ioParam_offsetConstraintMethod(ioFlag);
+   ioParam_writePosition(ioFlag);
+   ioParam_useParamsImage(ioFlag);
 
    return status;
 }
 
-int Image::readOffsets(PVParams * params) {
+void Image::ioParam_imagePath(enum ParamsIOFlag ioFlag) {
+   parent->ioParamStringRequired(ioFlag, name, "imagePath", &filename);
+}
 
-   offsets[0]      = (int) params->value(name,"offsetX", offsets[0]);
-   offsets[1]      = (int) params->value(name,"offsetY", offsets[1]);
+int Image::ioParam_offsets(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "offsetX", &offsets[0], offsets[0]);
+   parent->ioParamValue(ioFlag, name, "offsetY", &offsets[1], offsets[1]);
 
    return PV_SUCCESS;
 }
 
-void Image::readWriteImagesFlag(PVParams * params) {
-   this->writeImages = params->value(name, "writeImages", writeImages) != 0;
+void Image::ioParam_writeImages(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "writeImages", &writeImages, writeImages);
 }
 
-void Image::readWriteImagesExtension(PVParams * params) {
-   assert(!params->presentAndNotBeenRead(name, "writeImages"));
-   if (this->writeImages) {
-      if (params->stringPresent(name, "writeImagesExtension")) {
-         writeImagesExtension = strdup(params->stringValue(name, "writeImagesExtension", false));
-      }
-      else {
-         writeImagesExtension = strdup("tif");
-         if (parent->columnId()==0) {
-            fprintf(stderr, "Using default value \"tif\" for parameter \"writeImagesExtension\" in group %s\n", name);
-         }
-      }
+void Image::ioParam_writeImagesExtension(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "writeImages"));
+   if (writeImages) {
+      parent->ioParamString(ioFlag, name, "writeImagesExtension", &writeImagesExtension, "tif");
    }
 }
 
-void Image::readUseImageBCflag(PVParams * params) {
-   this->useImageBCflag = (bool) params->value(name, "useImageBCflag", useImageBCflag);
+void Image::ioParam_useImageBCflag(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "useImageBCflag", &useImageBCflag, useImageBCflag);
 }
 
-void Image::readAutoResizeFlag(PVParams * params) {
-   this->autoResizeFlag = (bool) params->value(name, "autoResizeFlag", autoResizeFlag);
+void Image::ioParam_autoResizeFlag(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "autoResizeFlag", &autoResizeFlag, autoResizeFlag);
 }
 
-void Image::readInverseFlag(PVParams * params) {
-   this->inverseFlag = (bool) params->value(name, "inverseFlag", inverseFlag);
+void Image::ioParam_inverseFlag(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "inverseFlag", &inverseFlag, inverseFlag);
 }
 
-void Image::readNormalizeLuminanceFlag(PVParams * params) {
-   this->normalizeLuminanceFlag = (bool) params->value(name, "normalizeLuminanceFlag", normalizeLuminanceFlag);
+void Image::ioParam_normalizeLuminanceFlag(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "normalizeLuminanceFlag", &normalizeLuminanceFlag, normalizeLuminanceFlag);
 }
 
-void Image::readFrameNumber(PVParams * params) {
+void Image::ioParam_frameNumber(enum ParamsIOFlag ioFlag) {
    if (filename!=NULL && getFileType(filename)==PVP_FILE_TYPE) {
-      this->frameNumber = params->value(name, "frameNumber", frameNumber);
+      parent->ioParamValue(ioFlag, name, "frameNumber", &frameNumber, frameNumber);
    }
 }
 
-void Image::readJitterFlag(PVParams * params) {
-   jitterFlag = params->value(name, "jitterFlag", 0) != 0;
+void Image::ioParam_jitterFlag(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "jitterFlag", &jitterFlag, jitterFlag);
 }
 
-void Image::readJitterType(PVParams * params) {
-   assert(!params->presentAndNotBeenRead(name, "jitterFlag"));
+void Image::ioParam_jitterType(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "jitterFlag"));
    if (jitterFlag) {
-      jitterType = params->value(name, "jitterType", jitterType);
+      parent->ioParamValue(ioFlag, name, "jitterType", &jitterType, jitterType);
    }
 }
 
-void Image::readJitterRefractoryPeriod(PVParams * params) {
-   assert(!params->presentAndNotBeenRead(name, "jitterFlag"));
+void Image::ioParam_jitterRefractoryPeriod(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "jitterFlag"));
    if (jitterFlag) {
-      jitterRefractoryPeriod = params->value(name, "jitterRefractoryPeriod", jitterRefractoryPeriod);
+      parent->ioParamValue(ioFlag, name, "jitterRefractoryPeriod", &jitterRefractoryPeriod, jitterRefractoryPeriod);
    }
 }
 
-void Image::readStepSize(PVParams * params) {
-   assert(!params->presentAndNotBeenRead(name, "jitterFlag"));
+void Image::ioParam_stepSize(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "jitterFlag"));
    if (jitterFlag) {
-      stepSize = params->value(name, "stepSize", stepSize);
+      parent->ioParamValue(ioFlag, name, "stepSize", &stepSize, stepSize);
    }
 }
 
-void Image::readPersistenceProb(PVParams * params) {
-   assert(!params->presentAndNotBeenRead(name, "jitterFlag"));
+void Image::ioParam_persistenceProb(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "jitterFlag"));
    if (jitterFlag) {
-      persistenceProb = params->value(name, "persistenceProb", persistenceProb);
+      parent->ioParamValue(ioFlag, name, "persistenceProb", &persistenceProb, persistenceProb);
    }
 }
 
-void Image::readRecurrenceProb(PVParams * params) {
-   assert(!params->presentAndNotBeenRead(name, "jitterFlag"));
+void Image::ioParam_recurrenceProb(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "jitterFlag"));
    if (jitterFlag) {
-      recurrenceProb = params->value(name, "recurrenceProb", recurrenceProb);
+      parent->ioParamValue(ioFlag, name, "recurrenceProb", &recurrenceProb, recurrenceProb);
    }
 }
 
 
-void Image::readBiasChangeTime(PVParams * params) {
-   assert(!params->presentAndNotBeenRead(name, "jitterFlag"));
+void Image::ioParam_biasChangeTime(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "jitterFlag"));
    if (jitterFlag) {
-      double biasChangeTimeParam = params->value(name, "biasChangeTime", biasChangeTime);
-      if (biasChangeTimeParam==FLT_MAX || biasChangeTimeParam < 0) {
-         biasChangeTime = LONG_MAX;
+      parent->ioParamValue(ioFlag, name, "biasChangeTime", &biasChangeTime, biasChangeTime);
+      if (ioFlag == PARAMS_IO_READ) {
+         if (biasChangeTime < 0) {
+            biasChangeTime = FLT_MAX;
+         }
+         nextBiasChange = parent->getStartTime() + biasChangeTime;
       }
-      else {
-         biasChangeTime = (long) biasChangeTimeParam;
-      }
    }
 }
 
-void Image::readBiasConstraintMethod(PVParams * params) {
-   assert(!params->presentAndNotBeenRead(name, "jitterFlag"));
+void Image::ioParam_biasConstraintMethod(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "jitterFlag"));
    if (jitterFlag) {
-      biasConstraintMethod = params->value(name, "biasConstraintMethod", biasConstraintMethod);
-      if (biasConstraintMethod <0 || biasConstraintMethod >3) {
-         fprintf(stderr, "Image layer \"%s\": biasConstraintMethod allowed values are 0 (ignore), 1 (mirror BC), 2 (threshold), 3 (circular BC)\n", getName());
+      parent->ioParamValue(ioFlag, name, "biasConstraintMethod", &biasConstraintMethod, biasConstraintMethod);
+      if (ioFlag == PARAMS_IO_READ && (biasConstraintMethod <0 || biasConstraintMethod >3)) {
+         fprintf(stderr, "%s \"%s\": biasConstraintMethod allowed values are 0 (ignore), 1 (mirror BC), 2 (threshold), 3 (circular BC)\n",
+               parent->parameters()->groupKeywordFromName(getName()), getName());
          exit(EXIT_FAILURE);
       }
    }
 }
 
-void Image::readOffsetConstraintMethod(PVParams * params) {
-   assert(!params->presentAndNotBeenRead(name, "jitterFlag"));
+void Image::ioParam_offsetConstraintMethod(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "jitterFlag"));
    if (jitterFlag) {
-      offsetConstraintMethod = params->value(name, "offsetConstraintMethod",0);
-      if (offsetConstraintMethod <0 || offsetConstraintMethod >3) {
+      parent->ioParamValue(ioFlag, name, "offsetConstraintMethod", &offsetConstraintMethod, 0/*default*/);
+      if (ioFlag == PARAMS_IO_READ && (offsetConstraintMethod <0 || offsetConstraintMethod >3) ) {
          fprintf(stderr, "Image layer \"%s\": offsetConstraintMethod allowed values are 0 (ignore), 1 (mirror BC), 2 (threshold), 3 (circular BC)\n", getName());
          exit(EXIT_FAILURE);
       }
    }
 }
 
-void Image::readWritePosition(PVParams * params) {
-   assert(!params->presentAndNotBeenRead(name, "jitterFlag"));
+void Image::ioParam_writePosition(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "jitterFlag"));
    if (jitterFlag) {
-      writePosition     = (int) params->value(name,"writePosition", writePosition);
+      parent->ioParamValue(ioFlag, name, "writePosition", &writePosition, writePosition);
+   }
+}
+
+void Image::ioParam_InitVType(enum ParamsIOFlag ioFlag) {
+   assert(this->initVObject == NULL);
+   return;
+}
+
+void Image::ioParam_triggerFlag(enum ParamsIOFlag ioFlag) {
+}
+
+void Image::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {
+}
+
+void Image::ioParam_useParamsImage(enum ParamsIOFlag ioFlag) {
+   if (parent->getCheckpointReadFlag()) {
+      parent->ioParamValue(ioFlag, name, "useParamsImage", &useParamsImage, false/*default value*/, true/*warnIfAbsent*/);
    }
 }
 
@@ -262,17 +266,20 @@ int Image::communicateInitInfo() {
    return HyPerLayer::communicateInitInfo();
 }
 
+int Image::requireChannel(int channelNeeded, int * numChannelsResult) {
+   if (parent->columnId()==0) {
+      fprintf(stderr, "%s \"%s\" cannot be a post-synaptic layer.\n",
+            parent->parameters()->groupKeywordFromName(name), name);
+   }
+   *numChannelsResult = 0;
+   return PV_FAILURE;
+}
+
 int Image::allocateDataStructures() {
    int status = HyPerLayer::allocateDataStructures();
-   randState = new Random(parent, 1);
-   if (randState==NULL) {
-      fprintf(stderr, "%s \"%s\" error in rank %d process: unable to create object of class Random.\n", parent->parameters()->groupKeywordFromName(name), name, parent->columnId());
-      exit(EXIT_FAILURE);
+   if (jitterFlag) {
+      status = initRandState();
    }
-
-   // Moved to allocateV()
-   // free(clayer->V);
-   // clayer->V = NULL;
 
    data = clayer->activity->data;
 
@@ -330,21 +337,30 @@ int Image::allocateDataStructures() {
    return status;
 }
 
+// TODO: checkpointWrite and checkpointRead need to handle nextBiasChange
+
+int Image::initRandState() {
+   assert(randState==NULL);
+   randState = new Random(parent, 1);
+   if (randState==NULL) {
+      fprintf(stderr, "%s \"%s\" error in rank %d process: unable to create object of class Random.\n", parent->parameters()->groupKeywordFromName(name), name, parent->columnId());
+      exit(EXIT_FAILURE);
+   }
+   return PV_SUCCESS;
+}
+
 int Image::allocateV() {
    clayer->V = NULL;
    return PV_SUCCESS;
 }
 
-int Image::initializeState() {
-   int status = PV_SUCCESS;
+int Image::initializeV() {
+   assert(getV()==NULL);
+   return PV_SUCCESS;
+}
 
-   PVParams * params = parent->parameters();
-   assert(!params->presentAndNotBeenRead(name, "restart"));
-   if( restartFlag ) {
-      double timef;
-      status = readState(&timef);
-   }
-   return status;
+int Image::initializeActivity() {
+   return PV_SUCCESS;
 }
 
 #ifdef PV_USE_OPENCL
@@ -425,7 +441,6 @@ int Image::outputState(double time, bool last)
 int Image::checkpointRead(const char * cpDir, double * timef){
 
    PVParams * params = parent->parameters();
-   this->useParamsImage      = (int) params->value(name,"useParamsImage", 0);
    if (this->useParamsImage) {
       fprintf(stderr,"Initializing image from params file location ! \n");
       * timef = parent->simulationTime(); // fakes the pvp time stamp
@@ -516,30 +531,30 @@ int Image::readImage(const char * filename, int offsetX, int offsetY, GDALColorI
       //TODO!!! obviously should be passed as Image param or change normalizeLuminanceFlag to an int to specify different behaviors
       bool normalize_standard_dev = true;
       if (normalize_standard_dev){
-    	  // set mean to zero
-    	  for (int k=0; k<n; k++) {
-			  buf[k] -= image_ave;
-		  }
-    	  // set std dev to 1
-    	  double image_std = sqrt(image_ave2 - image_ave*image_ave);
-    	  for (int k=0; k<n; k++) {
-			  buf[k] /= image_std;
-		  }
+         // set mean to zero
+         for (int k=0; k<n; k++) {
+            buf[k] -= image_ave;
+         }
+         // set std dev to 1
+         double image_std = sqrt(image_ave2 - image_ave*image_ave);
+         for (int k=0; k<n; k++) {
+            buf[k] /= image_std;
+         }
       } // normalize_standard_dev
       else{
-    	  if (image_max > image_min){
-    		  float image_stretch = 1.0f / (image_max - image_min);
-    		  for (int k=0; k<n; k++) {
-    			  buf[k] -= image_min;
-    			  buf[k] *= image_stretch;
-    		  }
-    	  }
-    	  else{ // image_max == image_min
-    		  float image_shift = 0.5f - image_ave;
-    		  for (int k=0; k<n; k++) {
-    			  buf[k] += image_shift;
-    		  }
-    	  }
+         if (image_max > image_min){
+            float image_stretch = 1.0f / (image_max - image_min);
+            for (int k=0; k<n; k++) {
+               buf[k] -= image_min;
+               buf[k] *= image_stretch;
+            }
+         }
+         else{ // image_max == image_min
+            float image_shift = 0.5f - image_ave;
+            for (int k=0; k<n; k++) {
+               buf[k] += image_shift;
+            }
+         }
       }  // normalize_standard_dev
    } // normalizeLuminanceFlag
 
@@ -744,9 +759,10 @@ void Image::equalBandWeights(int numBands, float * bandweight) {
 bool Image::jitter() {
    // move bias
    double timed = parent->simulationTime();
-   if( timed > 0 && !( ((long)timed) % biasChangeTime ) ){  // Needs to be changed: dt is not always 1.
+   if( timed > parent->getStartTime() && timed >= nextBiasChange ){
       calcNewBiases(stepSize);
       constrainBiases();
+      nextBiasChange += biasChangeTime;
    }
 
    // move offset
@@ -791,6 +807,7 @@ int Image::calcBias(int current_bias, int step, int sizeLength)
 }
 
 int Image::calcNewBiases(int stepSize) {
+   assert(jitterFlag);
    int step_radius = 0; // distance to step
    switch (jitterType) {
    case RANDOM_WALK:

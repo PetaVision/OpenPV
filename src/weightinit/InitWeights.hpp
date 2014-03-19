@@ -25,32 +25,50 @@ class InitWeightsParams;
 
 class InitWeights {
 public:
-   InitWeights();
+   InitWeights(HyPerConn * conn);
    virtual ~InitWeights();
 
-   /*
-    * Although initializeWeights is virtual, in general it should be possible for subclasses
-    * to inherit InitWeights::initializeWeights, and only override calcWeights.
-    * The method is nevertheless virtual to allow special cases (e.g. BIDS)
-    */
-   virtual int initializeWeights(PVPatch *** patches, pvdata_t ** dataStart,
-			const char * filename, HyPerConn * callingConn,
-			double * timef = NULL);
-   virtual InitWeightsParams * createNewWeightParams(HyPerConn * callingConn);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual int communicateParamsInfo();
 
-   virtual int calcWeights(/* PVPatch * patch */pvdata_t * dataStart,
-			int patchIndex, int arborId, InitWeightsParams *weightParams);
+   /*
+    * initializeWeights is not virtual.  It checks initFromLastFlag and then
+    * filename, loading weights from a file if appropriate.  Otherwise
+    * it calls calcWeights with no arguments.
+    * For most InitWeights objects, calcWeights(void) does not have to be
+    * overridden but calcWeights(dataStart, patchIndex, arborId) should be.
+    * For a few InitWeights classes (e.g. InitDistributedWeights),
+    * calcWeights(void) is overridden: a fixed number of weights is active,
+    * so it is more convenient and efficient to handle all the weights
+    * together than to call one patch at a time.
+    */
+   int initializeWeights(PVPatch *** patches, pvdata_t ** dataStart,
+			double * timef = NULL);
+   virtual InitWeightsParams * createNewWeightParams();
+
+   virtual int calcWeights();
+   virtual int calcWeights(pvdata_t * dataStart,
+			int patchIndex, int arborId);
 
    virtual int readWeights(PVPatch *** patches, pvdata_t ** dataStart, int numPatches,
-                           const char * filename, HyPerConn * callingConn, double * time=NULL);
-
-   virtual int zeroWeightsOutsideShrunkenPatch(PVPatch *** patches, HyPerConn * callingConn);
+                           const char * filename, double * time=NULL);
 
 protected:
-   virtual int initRNGs(HyPerConn * conn, bool isKernel) { return PV_SUCCESS; }
+   InitWeights();
+   int initialize(HyPerConn * conn);
+   virtual int initRNGs(bool isKernel) { return PV_SUCCESS; }
+   virtual int zeroWeightsOutsideShrunkenPatch(PVPatch *** patches);
+   int readListOfArborFiles(PVPatch *** patches, pvdata_t ** dataStart,int numPatches,
+         const char * listOfArborsFilename, double * timef=NULL);
+   int readCombinedWeightFiles(PVPatch *** patches, pvdata_t ** dataStart,int numPatches,
+         const char * fileOfWeightFiles, double * timef=NULL);
 
 private:
    int initialize_base();
+
+protected:
+   HyPerConn * callingConn;
+   InitWeightsParams * weightParams;
 
 };
 

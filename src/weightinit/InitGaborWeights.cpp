@@ -10,6 +10,12 @@
 
 namespace PV {
 
+InitGaborWeights::InitGaborWeights(HyPerConn * conn)
+{
+   initialize_base();
+   initialize(conn);
+}
+
 InitGaborWeights::InitGaborWeights()
 {
    initialize_base();
@@ -17,20 +23,23 @@ InitGaborWeights::InitGaborWeights()
 
 InitGaborWeights::~InitGaborWeights()
 {
-   // TODO Auto-generated destructor stub
 }
 
 int InitGaborWeights::initialize_base() {
    return PV_SUCCESS;
 }
 
-InitWeightsParams * InitGaborWeights::createNewWeightParams(HyPerConn * callingConn) {
+int InitGaborWeights::initialize(HyPerConn * conn) {
+   int status = InitGauss2DWeights::initialize(conn);
+   return status;
+}
+
+InitWeightsParams * InitGaborWeights::createNewWeightParams() {
    InitWeightsParams * tempPtr = new InitGaborWeightsParams(callingConn);
    return tempPtr;
 }
 
-int InitGaborWeights::calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, int arborId,
-                                   InitWeightsParams *weightParams) {
+int InitGaborWeights::calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, int arborId) {
 
    InitGaborWeightsParams *weightParamPtr = dynamic_cast<InitGaborWeightsParams*>(weightParams);
 
@@ -51,19 +60,19 @@ int InitGaborWeights::calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, in
 
 int InitGaborWeights::gaborWeights(/* PVPatch * patch */ pvdata_t * dataStart, InitGaborWeightsParams * weightParamPtr) {
    //load necessary params:
-   int nfPatch_tmp = weightParamPtr->getnfPatch_tmp();
-   int nyPatch_tmp = weightParamPtr->getnyPatch_tmp();
-   int nxPatch_tmp = weightParamPtr->getnxPatch_tmp();
-   float aspect=weightParamPtr->getaspect();
-   float shift=weightParamPtr->getshift();
+   int nfPatch_tmp = weightParamPtr->getnfPatch();
+   int nyPatch_tmp = weightParamPtr->getnyPatch();
+   int nxPatch_tmp = weightParamPtr->getnxPatch();
+   float aspect=weightParamPtr->getAspect();
+   float shift=weightParamPtr->getShift();
    float lambda=weightParamPtr->getlambda();
    float phi=weightParamPtr->getphi();
    bool invert=weightParamPtr->getinvert();
    //int numFlanks=weightParamPtr->getnumFlanks();
-   float sigma=weightParamPtr->getsigma();
-   int sx_tmp=weightParamPtr->getsx_tmp();
-   int sy_tmp=weightParamPtr->getsy_tmp();
-   int sf_tmp=weightParamPtr->getsf_tmp();
+   float sigma=weightParamPtr->getSigma();
+   int sx_tmp=weightParamPtr->getsx();
+   int sy_tmp=weightParamPtr->getsy();
+   int sf_tmp=weightParamPtr->getsf();
    double r2Max=weightParamPtr->getr2Max();
 
    // pvdata_t * w_tmp = patch->data;

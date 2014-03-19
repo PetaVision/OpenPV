@@ -26,106 +26,110 @@ int MapReduceKernelConn::initialize_base() {
 	return PV_SUCCESS;
 }
 
-MapReduceKernelConn::MapReduceKernelConn(const char * name, HyPerCol * hc,
-		const char * pre_layer_name, const char * post_layer_name,
-		const char * filename, InitWeights *weightInit,
-		const char * movieLayerName) {
-	MapReduceKernelConn::initialize_base();
-	MapReduceKernelConn::initialize(name, hc, pre_layer_name, post_layer_name,
-			filename, weightInit, movieLayerName);
+MapReduceKernelConn::MapReduceKernelConn(const char * name, HyPerCol *hc) {
+   MapReduceKernelConn::initialize_base();
+   MapReduceKernelConn::initialize(name, hc);
 }
 
-int MapReduceKernelConn::initialize(const char * name, HyPerCol * hc,
-		const char * pre_layer_name, const char * post_layer_name,
-		const char * filename, InitWeights *weightInit = NULL,
-		const char * movieLayerName = NULL) {
-	// TODO::use movie layer to derive dW weight file name and contents of dW list when not passed in directly by user
-	this->movieLayerName = strdup(movieLayerName);
-	if (this->movieLayerName == NULL) {
-		fprintf(stderr,
-				"ANNTriggerUpdateOnNewImageLayer \"%s\" error: unable to copy movieLayerName \"%s\": %s\n",
-				name, this->movieLayerName, strerror(errno));
-		exit(EXIT_FAILURE);
-	} // this->movieLayerName == NULL
-	int status = KernelConn::initialize(name, hc, pre_layer_name,
-			post_layer_name, filename, weightInit);
-	// input argument "filename" associated with init weight method refers to actual weights, not dW weights
-	PVParams * inputParams = parent->parameters();
-	dWeightsListName = strdup(inputParams->stringValue(name, "dWeightsListName", true));
-	if (this->dWeightsListName == NULL) {
-#ifdef PV_USE_MPI
-		fprintf(stderr,
-				"Error (process %d): connection \"%s\": MapReduceKernelConn requires parameter \"dWeightsListName\".  "
-						"Exiting.\n", hc->icCommunicator()->commRank(), name);
-#else
-		fprintf(stderr, "Error: connection \"%s\": MapReduceKernelConn requires parameter \"dWeightsListName\".  "
-				"Exiting.\n", name);
-#endif // PV_USE_MPI
-		exit(EXIT_FAILURE);
-	} // this->dWeightsListName == NULL
-	num_dWeightFiles = inputParams->value(name, "num_dWeightFiles", num_dWeightFiles,
-			true);
-	assert(num_dWeightFiles > 0);
-	dWeightFileIndex = inputParams->value(name, "dWeightFileIndex",
-			dWeightFileIndex, true);
-	assert(dWeightFileIndex >= 0);
-	InterColComm *icComm = parent->icCommunicator();
-	int rootproc = 0;
-	int file_count = 0;
-	PV_Stream * dWeightstream = pvp_open_read_file(this->dWeightsListName,
-			icComm);
-	if ((dWeightstream == NULL) && (icComm->commRank() == rootproc)) {
-		fprintf(stderr,
-				"MapReduceKernelConn::initialize: Cannot open list of dWeight files \"%s\".  Exiting.\n",
-				filename);
-		exit(EXIT_FAILURE);
-	} // dWeightstream == NULL
+int MapReduceKernelConn::initialize(const char * name, HyPerCol * hc) {
+   int status = KernelConn::initialize(name, hc);
+   // if (status==PV_SUCCESS) status = setMovieLayerName();
+   InterColComm *icComm = parent->icCommunicator();
+   int rootproc = 0;
+   int file_count = 0;
+   PV_Stream * dWeightstream = pvp_open_read_file(this->dWeightsListName,
+           icComm);
+   if ((dWeightstream == NULL) && (icComm->commRank() == rootproc)) {
+       fprintf(stderr,
+             "MapReduceKernelConn::initialize: Cannot open list of dWeight files \"%s\".  Exiting.\n",
+             this->dWeightsListName); // CHECK THIS! // CHECK THIS! this->dWeightsListName was filename but filename is no more
+       exit(EXIT_FAILURE);
+   } // dWeightstream == NULL
 
-	if (icComm->commRank() == rootproc) {
-		for (file_count = 0; file_count < num_dWeightFiles; file_count++) {
-/*
-			for (int i_char = 0; i_char < PV_PATH_MAX; i_char++) {
-				dWeightsList[file_count][i_char] = 0;
-			}
-*/
-			char * fgetsstatus = fgets(dWeightsList[file_count], PV_PATH_MAX,
-					dWeightstream->fp);
-			if (fgetsstatus == NULL) {
-				bool endoffile = feof(dWeightstream->fp) != 0;
-				if (endoffile) {
-					fprintf(stderr,
-							"MapReduceKernelConn::initialize: "
-									"File of weight files \"%s\" reached end of file before all %d weight files were read.  "
-									"Exiting.\n", filename, num_dWeightFiles);
-					exit(EXIT_FAILURE);
-				} else {
-					int error = ferror(dWeightstream->fp);
-					assert(error);
-					fprintf(stderr,
-							"MapReduceKernelConn::initialize: File of weight files: error %d while reading.  "
-									"Exiting.\n", error);
-					exit(error);
-				}
-			} else {
-				// Remove linefeed from end of string
-				dWeightsList[file_count][PV_PATH_MAX - 1] = '\0';
-				int len = strlen(dWeightsList[file_count]);
-				if (len > 1) {
-					if (dWeightsList[file_count][len - 1] == '\n') {
-						dWeightsList[file_count][len - 1] = '\0';
-					}
-				}
-			} // fgetsstatus == NULL
-		} // file_count
-		for (file_count = 0; file_count < num_dWeightFiles; file_count++) {
-			std::cout << "dWeightFile[" << file_count << "] = "
-					<< dWeightsList[file_count] << std::endl;
-		} // file_count
-		this->dWeightsFilename = strdup(dWeightsList[dWeightFileIndex]);
-		std::cout << "dWeightFile[" << dWeightFileIndex << "] = "
-			  << dWeightsList[dWeightFileIndex] << std::endl;
-	} // commRank() == rootproc
-	return status;
+   if (icComm->commRank() == rootproc) {
+      for (file_count = 0; file_count < num_dWeightFiles; file_count++) {
+         /*
+         for (int i_char = 0; i_char < PV_PATH_MAX; i_char++) {
+            dWeightsList[file_count][i_char] = 0;
+         }
+         */
+
+         char * fgetsstatus = fgets(dWeightsList[file_count], PV_PATH_MAX, dWeightstream->fp);
+         if (fgetsstatus == NULL) {
+            bool endoffile = feof(dWeightstream->fp) != 0;
+            if (endoffile) {
+               fprintf(stderr,
+                       "MapReduceKernelConn::initialize: "
+                               "File of weight files \"%s\" reached end of file before all %d weight files were read.  "
+                               "Exiting.\n", dWeightstream->name, num_dWeightFiles); // CHECK THIS! dWeightstream->name was filename but filename is no more
+               exit(EXIT_FAILURE);
+            }
+            else {
+               int error = ferror(dWeightstream->fp);
+               assert(error);
+               fprintf(stderr,
+                     "MapReduceKernelConn::initialize: File of weight files error reading:%s.  Exiting.\n", strerror(error));
+               exit(error);
+            }
+         }
+         else {
+            // Remove linefeed from end of string
+            dWeightsList[file_count][PV_PATH_MAX - 1] = '\0';
+            int len = strlen(dWeightsList[file_count]);
+            if (len > 1) {
+               if (dWeightsList[file_count][len - 1] == '\n') {
+                  dWeightsList[file_count][len - 1] = '\0';
+               }
+            }
+         } // fgetsstatus == NULL
+     } // file_count
+     this->dWeightsFilename = strdup(dWeightsList[dWeightFileIndex]);
+     std::cout << "dWeightFile[" << dWeightFileIndex << "] = "
+           << dWeightsList[dWeightFileIndex] << std::endl;
+   } // commRank() == rootproc
+   return status;
+}
+
+int MapReduceKernelConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = KernelConn::ioParamsFillGroup(ioFlag);
+   ioParam_movieLayerName(ioFlag);
+   ioParam_dWeightsListName(ioFlag);
+   ioParam_num_dWeightFiles(ioFlag);
+   ioParam_dWeightFileIndex(ioFlag);
+   // TODO::use movie layer to derive dW weight file name and contents of dW list when not passed in directly by user
+   return status;
+}
+
+void MapReduceKernelConn::ioParam_movieLayerName(enum ParamsIOFlag ioFlag) {
+   parent->ioParamStringRequired(ioFlag, name, "movieLayerName", &movieLayerName);
+}
+
+void MapReduceKernelConn::ioParam_dWeightsListName(enum ParamsIOFlag ioFlag) {
+   parent->ioParamStringRequired(ioFlag, name, "dWeightsListName", &dWeightsListName);
+}
+
+void MapReduceKernelConn::ioParam_num_dWeightFiles(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "num_dWeightFiles", &num_dWeightFiles, num_dWeightFiles, true/*warnIfAbsent*/);
+   if (ioFlag == PARAMS_IO_READ && num_dWeightFiles <= 0) { // Should the error be on < 0 or should the message say 'greater than zero'?
+      if (parent->columnId()==0) {
+         fprintf(stderr, "%s \"%s\": num_dWeightFiles must be greater than or equal to zero.\n",
+               parent->parameters()->groupKeywordFromName(name), name);
+      }
+      MPI_Barrier(parent->icCommunicator()->communicator());
+      exit(EXIT_FAILURE);
+   }
+}
+
+void MapReduceKernelConn::ioParam_dWeightFileIndex(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "dWeightFileIndex", &dWeightFileIndex, dWeightFileIndex, true/*warnIfAbsent*/);
+   if (dWeightFileIndex < 0) {
+      if (parent->columnId()==0) {
+         fprintf(stderr, "%s \"%s\": dWeightFileIndex must be greater than zero.\n",
+               parent->parameters()->groupKeywordFromName(name), name);
+      }
+      MPI_Barrier(parent->icCommunicator()->communicator());
+      exit(EXIT_FAILURE);
+   }
 }
 
 int MapReduceKernelConn::communicateInitInfo() {
@@ -192,7 +196,7 @@ int MapReduceKernelConn::reduceKernels(const int arborID) {
 			} // while
 			if (num_attempts > MAX_ATTEMPTS) {
 				fprintf(stderr,
-						"PV::InitWeights::readWeights: problem reading arbor file %s, SHUTTING DOWN\n",
+						"PV::MapReduceKernelConn::reduceKernels: problem reading arbor file %s, SHUTTING DOWN\n",
 						dWeightsList[file_count]);
 				status = EXIT_FAILURE;
 				exit(EXIT_FAILURE);

@@ -56,47 +56,6 @@ int BaseConnectionProbe::initialize(const char * probename, HyPerCol * hc) {
       exit(EXIT_FAILURE);
    }
 
-   if (hc->columnId()==0) {
-      const char * filename = hc->parameters()->stringValue(name, "probeOutputFile");
-      if( filename != NULL ) {
-         char * outputdir = hc->getOutputPath();
-         char * path = (char *) malloc(strlen(outputdir)+1+strlen(filename)+1);
-         sprintf(path, "%s/%s", outputdir, filename);
-         stream = PV_fopen(path, "w");
-         if( !stream ) {
-            fprintf(stderr, "BaseConnectionProbe error opening \"%s\" for writing: %s\n", path, strerror(errno));
-            exit(EXIT_FAILURE);
-         }
-         free(path);
-      }
-      else {
-         stream = PV_stdout();
-         if( !stream ) {
-            exit(EXIT_FAILURE);
-         }
-      }
-   }
-
-   const char * target_conn_name = hc->parameters()->stringValue(name, "targetConnection");
-   if (target_conn_name==NULL) {
-      fprintf(stderr, "BaseConnectionProbe \"%s\" error in rank %d process: targetConnection cannot be null.\n", probename, hc->columnId());
-      status = PV_FAILURE;
-   }
-   MPI_Barrier(hc->icCommunicator()->communicator());
-   if (status!=PV_SUCCESS) {
-      exit(EXIT_FAILURE);
-   }
-
-   targetConnName = strdup(target_conn_name);
-   if (target_conn_name==NULL) {
-      fprintf(stderr, "BaseConnectionProbe \"%s\" error in rank %d process: unable to allocate memory for name of target connection.\n", probename, hc->columnId());
-      status = PV_FAILURE;
-   }
-   MPI_Barrier(hc->icCommunicator()->communicator());
-   if (status!=PV_SUCCESS) {
-      exit(EXIT_FAILURE);
-   }
-
    return status;
 }
 
@@ -117,6 +76,52 @@ int BaseConnectionProbe::communicate() {
 
 int BaseConnectionProbe::allocateProbe() {
    return PV_SUCCESS;
+}
+
+
+int BaseConnectionProbe::ioParams(enum ParamsIOFlag ioFlag) {
+   parent->ioParamsStartGroup(ioFlag, name);
+   ioParamsFillGroup(ioFlag);
+   parent->ioParamsFinishGroup(ioFlag);
+   return PV_SUCCESS;
+}
+
+int BaseConnectionProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   ioParam_probeOutputFile(ioFlag);
+   ioParam_targetConnection(ioFlag);
+   return PV_SUCCESS;
+}
+
+void BaseConnectionProbe::ioParam_probeOutputFile(enum ParamsIOFlag ioFlag) {
+   parent->ioParamString(ioFlag, name, "probeOutputFile", &probeOutputFile, probeOutputFile, NULL);
+   if (ioFlag == PARAMS_IO_READ && parent->columnId()==0) {
+      if( probeOutputFile != NULL && probeOutputFile[0] != '\0') {
+         if (probeOutputFile[0] == '/') {
+            stream = PV_fopen(probeOutputFile, "w");
+         }
+         else {
+            char * outputdir = parent->getOutputPath();
+            char * path = (char *) malloc(strlen(outputdir)+1+strlen(probeOutputFile)+1);
+            sprintf(path, "%s/%s", outputdir, probeOutputFile);
+            stream = PV_fopen(path, "w");
+            if( !stream ) {
+               fprintf(stderr, "BaseConnectionProbe error opening \"%s\" for writing: %s\n", path, strerror(errno));
+               exit(EXIT_FAILURE);
+            }
+            free(path);
+         }
+      }
+      else {
+         stream = PV_stdout();
+         if( !stream ) {
+            exit(EXIT_FAILURE);
+         }
+      }
+   }
+}
+
+void BaseConnectionProbe::ioParam_targetConnection(enum ParamsIOFlag ioFlag) {
+   parent->ioParamStringRequired(ioFlag, name, "targetConnection", &targetConnName);
 }
 
 }  // end of namespace PV

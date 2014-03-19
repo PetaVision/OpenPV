@@ -21,7 +21,6 @@ InitWindowed3DGaussWeightsParams::InitWindowed3DGaussWeightsParams(HyPerConn * p
 
 InitWindowed3DGaussWeightsParams::~InitWindowed3DGaussWeightsParams()
 {
-   // TODO Auto-generated destructor stub
 }
 
 int InitWindowed3DGaussWeightsParams::initialize_base() {
@@ -33,17 +32,22 @@ int InitWindowed3DGaussWeightsParams::initialize_base() {
    return 1;
 }
 int InitWindowed3DGaussWeightsParams::initialize(HyPerConn * parentConn) {
-   Init3DGaussWeightsParams::initialize(parentConn);
+   return Init3DGaussWeightsParams::initialize(parentConn);
+}
 
-   PVParams * params = parent->parameters();
-   int status = PV_SUCCESS;
-
-   windowShiftT = params->value(getName(), "windowShiftT", windowShiftT);
-   windowShift = params->value(getName(), "windowShift", windowShift);
-
-
+int InitWindowed3DGaussWeightsParams::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = Init3DGaussWeightsParams::ioParamsFillGroup(ioFlag);
+   ioParam_windowShiftT(ioFlag);
+   ioParam_windowShift(ioFlag);
    return status;
+}
 
+void InitWindowed3DGaussWeightsParams::ioParam_windowShiftT(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValueRequired(ioFlag, name, "windowShiftT", &windowShiftT);
+}
+
+void InitWindowed3DGaussWeightsParams::ioParam_windowShift(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValueRequired(ioFlag, name, "windowShift", &windowShift);
 }
 
 } /* namespace PV */

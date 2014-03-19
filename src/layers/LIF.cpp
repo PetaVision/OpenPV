@@ -101,7 +101,7 @@ LIF::LIF() {
 
 LIF::LIF(const char * name, HyPerCol * hc) {
    initialize_base();
-   initialize(name, hc, TypeLIFSimple, MAX_CHANNELS, "LIF_update_state");
+   initialize(name, hc, TypeLIFSimple, "LIF_update_state");
 #ifdef PV_USE_OPENCL
    if(gpuAccelerateFlag)
       initializeGPU();
@@ -110,7 +110,7 @@ LIF::LIF(const char * name, HyPerCol * hc) {
 
 LIF::LIF(const char * name, HyPerCol * hc, PVLayerType type) {
    initialize_base();
-   initialize(name, hc, type, MAX_CHANNELS, "LIF_update_state");
+   initialize(name, hc, type, "LIF_update_state");
 #ifdef PV_USE_OPENCL
    if(gpuAccelerateFlag)
       initializeGPU();
@@ -119,7 +119,7 @@ LIF::LIF(const char * name, HyPerCol * hc, PVLayerType type) {
 
 LIF::LIF(const char * name, HyPerCol * hc, PVLayerType type, int num_channels) {
    initialize_base();
-   initialize(name, hc, type, numChannels, "LIF_update_state");
+   initialize(name, hc, type, "LIF_update_state");
 #ifdef PV_USE_OPENCL
    if(gpuAccelerateFlag)
       initializeGPU();
@@ -133,6 +133,7 @@ LIF::~LIF() {
    }
    free(Vth);
    delete randState;
+   free(methodString);
 
 #ifdef PV_USE_OPENCL
 //hyperlayer is destroying these:
@@ -153,11 +154,13 @@ LIF::~LIF() {
 }
 
 int LIF::initialize_base() {
+   numChannels = 3;
    randState = NULL;
    Vth = NULL;
    G_E = NULL;
    G_I = NULL;
    G_IB = NULL;
+   methodString = NULL;
 
 #ifdef PV_USE_OPENCL
    clRand = NULL;
@@ -171,37 +174,10 @@ int LIF::initialize_base() {
 }
 
 // Initialize this class
-int LIF::initialize(const char * name, HyPerCol * hc, PVLayerType type, int num_channels, const char * kernel_name) {
-   HyPerLayer::initialize(name, hc, num_channels);
-   // setLIFParams(hc->parameters()); // renamed setParams, so it is called by HyPerLayer::initialize
+int LIF::initialize(const char * name, HyPerCol * hc, PVLayerType type, const char * kernel_name) {
+   HyPerLayer::initialize(name, hc);
    clayer->params = &lParams;
    clayer->layerType = type;
-   // Moved to allocateDataStructures since Vth isn't allocated until then.
-   // const size_t numNeurons = getNumNeurons();
-   //
-   // for (size_t k = 0; k < numNeurons; k++){
-   //    Vth[k] = lParams.VthRest; // lParams.VthRest is set in setLIFParams
-   // }
-
-   // Commented out Nov. 28, 2012
-   // // random seed should be different for different layers
-   // unsigned int seed = (unsigned int) (parent->getRandomSeed() + getLayerId());
-
-   // Moved to communicateInitInfo
-   // // a random state variable is needed for every neuron/clthread
-   // numGlobalRNGs = getNumGlobalNeurons();
-   // rand_state = (uint4 *) malloc(getNumNeurons() * sizeof(uint4));
-   // if (rand_state == NULL) {
-   //    fprintf(stderr, "LIF::initialize error.  Layer \"%s\" unable to allocate memory for random states.\n", getName());
-   //    exit(EXIT_FAILURE);
-   // }
-   // unsigned int seed = parent->getObjectSeed(getNumGlobalRNGs());
-   // const PVLayerLoc * loc = getLayerLoc();
-   // for (int y = 0; y<loc->ny; y++) {
-   //    int k_local = kIndex(0, y, 0, loc->nx, loc->ny, loc->nf);
-   //    int k_global = kIndex(loc->kx0, y+loc->ky0, 0, loc->nxGlobal, loc->nyGlobal, loc->nf);
-   //    cl_random_init(&rand_state[k_local], loc->nx * loc->nf, seed + k_global);
-   // }
 
    // initialize OpenCL parameters
    //
@@ -315,28 +291,24 @@ int LIF::initializeThreadKernels(const char * kernel_name)
 // Set Parameters
 //
 
-int LIF::setParams(PVParams * p)
+int LIF::ioParamsFillGroup(enum ParamsIOFlag ioFlag)
 {
-   HyPerLayer::setParams(p);
+   HyPerLayer::ioParamsFillGroup(ioFlag);
 
-   float dt_sec = .001 * parent->getDeltaTime();// seconds
+   // clayer->params = &lParams; // Moved to initialize, after HyPerLayer::initialize call, since clayer isn't initialized until after ioParams is called.
 
-   // clayer->params = &lParams; // Moved to initialize, after HyPerLayer::initialize call, since clayer isn't initialized until after setParams is called.
-
-   // writeSparseActivity is already set in HyPerLayer::initialize // writeSparseActivity = (int) p->value(name, "spikingFlag", 1);
-
-   lParams.Vrest     = p->value(name, "Vrest", V_REST);
-   lParams.Vexc      = p->value(name, "Vexc" , V_EXC);
-   lParams.Vinh      = p->value(name, "Vinh" , V_INH);
-   lParams.VinhB     = p->value(name, "VinhB", V_INHB);
-   lParams.VthRest   = p->value(name, "VthRest",VTH_REST);
-   lParams.tau       = p->value(name, "tau"  , TAU_VMEM);
-   lParams.tauE      = p->value(name, "tauE" , TAU_EXC);
-   lParams.tauI      = p->value(name, "tauI" , TAU_INH);
-   lParams.tauIB     = p->value(name, "tauIB", TAU_INHB);
-   lParams.tauVth    = p->value(name, "tauVth" , TAU_VTH);
-   lParams.deltaVth  = p->value(name, "deltaVth" , DELTA_VTH);
-   lParams.deltaGIB  = p->value(name, "deltaGIB" , DELTA_G_INHB);
+   ioParam_Vrest(ioFlag);
+   ioParam_Vexc(ioFlag);
+   ioParam_Vinh(ioFlag);
+   ioParam_VinhB(ioFlag);
+   ioParam_VthRest(ioFlag);
+   ioParam_tau(ioFlag);
+   ioParam_tauE(ioFlag);
+   ioParam_tauI(ioFlag);
+   ioParam_tauIB(ioFlag);
+   ioParam_tauVth(ioFlag);
+   ioParam_deltaVth(ioFlag);
+   ioParam_deltaGIB(ioFlag);
 
    // NOTE: in LIFDefaultParams, noise ampE, ampI, ampIB were
    // ampE=0*NOISE_AMP*( 1.0/TAU_EXC )
@@ -345,35 +317,82 @@ int LIF::setParams(PVParams * p)
    // ampIB=0*NOISE_AMP*1.0
    // 
 
-   lParams.noiseAmpE  = p->value(name, "noiseAmpE" , 0.0f);
-   lParams.noiseAmpI  = p->value(name, "noiseAmpI" , 0.0f);
-   lParams.noiseAmpIB = p->value(name, "noiseAmpIB", 0.0f);
+   ioParam_noiseAmpE(ioFlag);
+   ioParam_noiseAmpI(ioFlag);
+   ioParam_noiseAmpIB(ioFlag);
+   ioParam_noiseFreqE(ioFlag);
+   ioParam_noiseFreqI(ioFlag);
+   ioParam_noiseFreqIB(ioFlag);
 
-   lParams.noiseFreqE  = p->value(name, "noiseFreqE" , 250);
-   lParams.noiseFreqI  = p->value(name, "noiseFreqI" , 250);
-   lParams.noiseFreqIB = p->value(name, "noiseFreqIB", 250);
-   
-   if (dt_sec * lParams.noiseFreqE  > 1.0) lParams.noiseFreqE  = 1.0/dt_sec;
-   if (dt_sec * lParams.noiseFreqI  > 1.0) lParams.noiseFreqI  = 1.0/dt_sec;
-   if (dt_sec * lParams.noiseFreqIB > 1.0) lParams.noiseFreqIB = 1.0/dt_sec;
-
-   readMethod(p);
+   ioParam_method(ioFlag);
    return 0;
 }
+void LIF::ioParam_Vrest(enum ParamsIOFlag ioFlag) { parent->ioParamValue(ioFlag, name, "Vrest", &lParams.Vrest, (float) V_REST); }
+void LIF::ioParam_Vexc(enum ParamsIOFlag ioFlag) { parent->ioParamValue(ioFlag, name, "Vexc", &lParams.Vexc, (float) V_EXC); }
+void LIF::ioParam_Vinh(enum ParamsIOFlag ioFlag) { parent->ioParamValue(ioFlag, name, "Vinh", &lParams.Vinh, (float) V_INH); }
+void LIF::ioParam_VinhB(enum ParamsIOFlag ioFlag) { parent->ioParamValue(ioFlag, name, "VinhB", &lParams.VinhB, (float) V_INHB); }
+void LIF::ioParam_VthRest(enum ParamsIOFlag ioFlag) { parent->ioParamValue(ioFlag, name, "VthRest", &lParams.VthRest, (float) VTH_REST); }
+void LIF::ioParam_tau(enum ParamsIOFlag ioFlag) { parent->ioParamValue(ioFlag, name, "tau", &lParams.tau, (float) TAU_VMEM); }
+void LIF::ioParam_tauE(enum ParamsIOFlag ioFlag) { parent->ioParamValue(ioFlag, name, "tauE", &lParams.tauE, (float) TAU_EXC); }
+void LIF::ioParam_tauI(enum ParamsIOFlag ioFlag) { parent->ioParamValue(ioFlag, name, "tauI", &lParams.tauI, (float) TAU_INH); }
+void LIF::ioParam_tauIB(enum ParamsIOFlag ioFlag) { parent->ioParamValue(ioFlag, name, "tauIB", &lParams.tauIB, (float) TAU_INHB); }
+void LIF::ioParam_tauVth(enum ParamsIOFlag ioFlag) { parent->ioParamValue(ioFlag, name, "tauVth", &lParams.tauVth, (float) TAU_VTH); }
+void LIF::ioParam_deltaVth(enum ParamsIOFlag ioFlag) { parent->ioParamValue(ioFlag, name, "deltaVth", &lParams.deltaVth, (float) DELTA_VTH); }
+void LIF::ioParam_deltaGIB(enum ParamsIOFlag ioFlag) { parent->ioParamValue(ioFlag, name, "deltaGIB", &lParams.deltaGIB, (float) DELTA_G_INHB); }
+void LIF::ioParam_noiseAmpE(enum ParamsIOFlag ioFlag) { parent->ioParamValue(ioFlag, name, "noiseAmpE", &lParams.noiseAmpE, 0.0f); }
+void LIF::ioParam_noiseAmpI(enum ParamsIOFlag ioFlag) { parent->ioParamValue(ioFlag, name, "noiseAmpI", &lParams.noiseAmpI, 0.0f); }
+void LIF::ioParam_noiseAmpIB(enum ParamsIOFlag ioFlag) { parent->ioParamValue(ioFlag, name, "noiseAmpIB", &lParams.noiseAmpIB, 0.0f); }
 
-void LIF::readMethod(PVParams * params) {
+void LIF::ioParam_noiseFreqE(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "noiseFreqE", &lParams.noiseFreqE, 250.0f);
+   if (ioFlag==PARAMS_IO_READ) {
+      float dt_sec = .001 * parent->getDeltaTime();// seconds
+      if (dt_sec * lParams.noiseFreqE  > 1.0) lParams.noiseFreqE  = 1.0/dt_sec;
+   }
+}
+
+void LIF::ioParam_noiseFreqI(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "noiseFreqI", &lParams.noiseFreqI, 250.0f);
+   if (ioFlag==PARAMS_IO_READ) {
+      float dt_sec = .001 * parent->getDeltaTime();// seconds
+      if (dt_sec * lParams.noiseFreqI  > 1.0) lParams.noiseFreqI  = 1.0/dt_sec;
+   }
+}
+
+void LIF::ioParam_noiseFreqIB(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "noiseFreqIB", &lParams.noiseFreqIB, 250.0f);
+   if (ioFlag==PARAMS_IO_READ) {
+      float dt_sec = .001 * parent->getDeltaTime();// seconds
+      if (dt_sec * lParams.noiseFreqIB > 1.0) lParams.noiseFreqIB = 1.0/dt_sec;
+   }
+}
+
+void LIF::ioParam_method(enum ParamsIOFlag ioFlag) {
    // Read the integration method: one of 'arma' (preferred), 'beginning' (deprecated), or 'original' (deprecated).
-   const char * methodstring = params->stringValue(name, "method", true/*warnIfAbsent*/);
-   method = methodstring ? methodstring[0] : 'a'; // Default is ARMA; 'beginning' and 'original' are deprecated.
+   const char * default_method = "arma";
+   parent->ioParamString(ioFlag, name, "method", &methodString, default_method, true/*warnIfAbsent*/);
+   if (ioFlag != PARAMS_IO_READ) return;
+
+   assert(methodString);
+   if (methodString[0] == '\0') {
+      free(methodString);
+      methodString = strdup(default_method);
+      if (methodString==NULL) {
+         fprintf(stderr, "%s \"%s\" error: unable to set method string: %s\n", parent->parameters()->groupKeywordFromName(name), name, strerror(errno));
+         exit(EXIT_FAILURE);
+      }
+   }
+   method = methodString ? methodString[0] : 'a'; // Default is ARMA; 'beginning' and 'original' are deprecated.
    if (method != 'o' && method != 'b' && method != 'a') {
       if (getParent()->columnId()==0) {
-         fprintf(stderr, "LIF::setLIFParams error.  Layer \"%s\" has method \"%s\".  Allowable values are \"arma\", \"beginning\" and \"original\".", name, methodstring);
+         fprintf(stderr, "LIF::setLIFParams error.  Layer \"%s\" has method \"%s\".  Allowable values are \"arma\", \"beginning\" and \"original\".", name, methodString);
       }
-      abort();
+      MPI_Barrier(parent->icCommunicator()->communicator());
+      exit(EXIT_FAILURE);
    }
    if (method != 'a') {
       if (getParent()->columnId()==0) {
-         fprintf(stderr, "Warning: LIF layer \"%s\" integration method \"%s\" is deprecated.  Method \"arma\" is preferred.\n", name, methodstring);
+         fprintf(stderr, "Warning: LIF layer \"%s\" integration method \"%s\" is deprecated.  Method \"arma\" is preferred.\n", name, methodString);
       }
    }
 }
@@ -664,15 +683,15 @@ float LIF::getChannelTimeConst(enum ChannelType channel_type)
 }
 
 int LIF::findPostSynaptic(int dim, int maxSize, int col,
-// input: which layer, which neuron
-		HyPerLayer *lSource, float pos[],
+      // input: which layer, which neuron
+      HyPerLayer *lSource, float pos[],
 
-		// output: how many of our neurons are connected.
-		// an array with their indices.
-		// an array with their feature vectors.
-		int* nNeurons, int nConnectedNeurons[], float *vPos)
+      // output: how many of our neurons are connected.
+      // an array with their indices.
+      // an array with their feature vectors.
+      int* nNeurons, int nConnectedNeurons[], float *vPos)
 {
-	return 0;
+   return 0;
 }
 
 } // namespace PV

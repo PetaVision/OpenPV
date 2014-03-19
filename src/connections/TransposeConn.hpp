@@ -15,7 +15,7 @@ namespace PV {
 class TransposeConn: public KernelConn {
 public:
     TransposeConn();
-    TransposeConn(const char * name, HyPerCol * hc, const char * pre_layer_name, const char * post_layer_name, const char * originalConnName);
+    TransposeConn(const char * name, HyPerCol * hc);
     virtual ~TransposeConn();
     virtual int communicateInitInfo();
     virtual int allocateDataStructures();
@@ -25,21 +25,30 @@ public:
 
 protected:
     int initialize_base();
-    int initialize(const char * name, HyPerCol * hc, const char * pre_layer_name, const char * post_layer_name, const char * originalConnName);
-    virtual void readNumAxonalArbors(PVParams * params);
-    virtual int  readPatchSize(PVParams * params);
-    virtual int  readNfp(PVParams * params);
-    virtual void readPlasticityFlag(PVParams * params);
-    virtual void readCombine_dW_with_W_flag(PVParams * params);
-    virtual void read_dWMax(PVParams * params);
-    virtual void readKeepKernelsSynchronized(PVParams * params);
-    virtual void readWeightUpdatePeriod(PVParams * params);
-    virtual void readInitialWeightUpdateTime(PVParams * params);
-    virtual void readShrinkPatches(PVParams * params);
+    int initialize(const char * name, HyPerCol * hc);
+    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+    virtual void ioParam_weightInitType(enum ParamsIOFlag ioFlag);
+    virtual void ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag);
+    virtual void ioParam_plasticityFlag(enum ParamsIOFlag ioFlag);
+    virtual void ioParam_combine_dW_with_W_flag(enum ParamsIOFlag ioFlag);
+    virtual void ioParam_nxp(enum ParamsIOFlag ioFlag);
+    virtual void ioParam_nyp(enum ParamsIOFlag ioFlag);
+    virtual void ioParam_nxpShrunken(enum ParamsIOFlag ioFlag);
+    virtual void ioParam_nypShrunken(enum ParamsIOFlag ioFlag);
+    virtual void ioParam_nfp(enum ParamsIOFlag ioFlag);
+    virtual void ioParam_dWMax(enum ParamsIOFlag ioFlag);
+    virtual void ioParam_keepKernelsSynchronized(enum ParamsIOFlag ioFlag);
+    virtual void ioParam_weightUpdatePeriod(enum ParamsIOFlag ioFlag);
+    virtual void ioParam_initialWeightUpdateTime(enum ParamsIOFlag ioFlag);
+    virtual void ioParam_useWindowPost(enum ParamsIOFlag ioFlag);
+    virtual void ioParam_shrinkPatches(enum ParamsIOFlag ioFlag);
+    virtual void ioParam_normalizeMethod(enum ParamsIOFlag ioFlag);
+    virtual void ioParam_originalConnName(enum ParamsIOFlag ioFlag);
     virtual int setPatchSize();
     virtual int setNeededRNGSeeds() {return 0;}
-    virtual PVPatch *** initializeWeights(PVPatch *** arbors, pvdata_t ** dataStart, int numPatches, const char * filename);
     virtual InitWeights * handleMissingInitWeights(PVParams * params);
+    virtual PVPatch*** initializeWeights(PVPatch*** arbors, float** dataStart,
+          int numPatches);
     int transposeKernels(int arborId);
     virtual int calc_dW(int arborId){return PV_BREAK;};
     virtual int reduceKernels(int arborID);

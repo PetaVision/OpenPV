@@ -38,16 +38,10 @@ ANNWhitenedLayer::ANNWhitenedLayer()
    initialize_base();
 }
 
-ANNWhitenedLayer::ANNWhitenedLayer(const char * name, HyPerCol * hc, int numChannels)
-{
-   initialize_base();
-   initialize(name, hc, 3);
-}
-
 ANNWhitenedLayer::ANNWhitenedLayer(const char * name, HyPerCol * hc)
 {
    initialize_base();
-   initialize(name, hc, 3);
+   initialize(name, hc);
 }
 
 ANNWhitenedLayer::~ANNWhitenedLayer()
@@ -56,12 +50,14 @@ ANNWhitenedLayer::~ANNWhitenedLayer()
 
 int ANNWhitenedLayer::initialize_base()
 {
+   numChannels = 3; // applyGSyn_ANNWhitenedLayer uses 3 channels
    return PV_SUCCESS;
 }
 
-int ANNWhitenedLayer::initialize(const char * name, HyPerCol * hc, int numChannels)
+int ANNWhitenedLayer::initialize(const char * name, HyPerCol * hc)
 {
-   ANNLayer::initialize(name, hc, 3);
+   ANNLayer::initialize(name, hc);
+   assert(numChannels==3);
    return PV_SUCCESS;
 }
 

@@ -102,7 +102,7 @@ protected:
 
    // only subclasses can be constructed directly
    HyPerLayer();
-   int initialize(const char * name, HyPerCol * hc, int numChannels);
+   int initialize(const char * name, HyPerCol * hc);
    virtual int initClayer();
 
    virtual int allocateClayerBuffers();
@@ -119,6 +119,8 @@ protected:
    virtual int allocateActivity();
    virtual int allocateActiveIndices();
    virtual int allocatePrevActivity();
+   virtual int initializeV();
+   virtual int initializeActivity();
    int readDataStoreFromFile(const char * filename, InterColComm * comm, double * timed);
    int incrementNBands(int * numCalls);
    int writeDataStoreToFile(const char * filename, InterColComm * comm, double dtime);
@@ -127,26 +129,28 @@ public:
    pvdata_t * getActivity()          {return clayer->activity->data;}
 protected:
 
-   virtual int setParams(PVParams * params);
-   virtual void readNxScale(PVParams * params);
-   virtual void readNyScale(PVParams * params);
-   virtual void readNf(PVParams * params);
-   virtual void readMarginWidth(PVParams * params);
-   virtual void readWriteStep(PVParams * params);
-   virtual void readInitialWriteTime(PVParams * params);
-   virtual void readPhase(PVParams * params);
-   virtual void readWriteSparseActivity(PVParams * params);
-   virtual void readWriteSparseValues(PVParams * params);
-   virtual void readMirrorBCFlag(PVParams * params);
-   virtual void readValueBC(PVParams * params);
-   virtual void readRestart(PVParams * params);
-   virtual void readTriggerFlag(PVParams * params);
-   void handleUnnecessaryBoolParameter(const char * paramName, int correctValue);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_nxScale(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_nyScale(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_nf(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_marginWidth(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_phase(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_mirrorBCflag(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_valueBC(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_restart(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_InitVType(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_triggerFlag(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_triggerLayerName(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_triggerOffset(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_writeStep(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_initialWriteTime(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_writeSparseActivity(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_writeSparseValues(enum ParamsIOFlag ioFlag);
 
    int freeClayer();
 
 #ifdef PV_USE_OPENCL
-   virtual void readGPUAccelerateFlag(PVParams * params);
+   virtual void ioParam_GPUAccelerate(PVParams * params);
 #endif
 
 #ifdef OBSOLETE // Marked obsolete May 1, 2013.  Use HyPerCol template functions readScalarFromFile and writeScalarToFile instead
@@ -182,6 +186,8 @@ public:
    bool getInitInfoCommunicatedFlag() {return initInfoCommunicatedFlag;}
    bool getDataStructuresAllocatedFlag() {return dataStructuresAllocatedFlag;}
 
+   int ioParams(enum ParamsIOFlag ioFlag);
+
    static int copyToBuffer(pvdata_t * buf, const pvdata_t * data,
                            const PVLayerLoc * loc, bool extended, float scale);
    static int copyToBuffer(unsigned char * buf, const pvdata_t * data,
@@ -206,10 +212,10 @@ public:
    virtual bool inWindowExt(int windowId, int neuronIdxExt) {return true;};
    virtual bool inWindowRes(int windowId, int neuronIdxRes) {return true;}; 
    //Returns number of windows, with a default of 1 window for the entire layer
-   virtual int getNumWindows(){return 1;};
+   virtual int getNumWindows(){return 1;}
    virtual int recvSynapticInput(HyPerConn * conn, const PVLayerCube * cube, int arborID);
    virtual int recvSynapticInputFromPost(HyPerConn * conn, const PVLayerCube * activity, int arborID);
-   //An update state wrapper that determines if updateState needs to be called
+   //An updateState wrapper that determines if updateState needs to be called
    virtual int updateStateWrapper (double time, double dt);
    virtual int updateState (double time, double dt);
    /**
@@ -245,8 +251,6 @@ public:
    virtual int updateActiveIndices();
    int resetBuffer(pvdata_t * buf, int numItems);
 
-   int initFinish();
-
    int mirrorInteriorToBorder(int whichBorder, PVLayerCube * cube, PVLayerCube * borderCube);
 
    virtual int checkpointRead(const char * cpDir, double * timed);
@@ -260,6 +264,7 @@ public:
    virtual int writeActivitySparse(double timed, bool includeValues);
 
    virtual int insertProbe(LayerProbe * probe);
+   int outputProbeParams();
 
    /** returns the number of neurons in layer (for borderId=0) or a border region **/
    virtual int numberOfNeurons(int borderId);
@@ -290,7 +295,7 @@ public:
    void setLayerId(int id)           {layerId = id;}
    int increaseDelayLevels(int neededDelay);
    virtual int requireMarginWidth(int marginWidthNeeded, int * marginWidthResult);
-   int requireChannel(int channelNeeded, int * numChannelsResult);
+   virtual int requireChannel(int channelNeeded, int * numChannelsResult);
 
    PVLayer*  getCLayer()             {return clayer;}
    pvdata_t * getV()                 {return clayer->V;}           // name query
@@ -379,7 +384,7 @@ protected:
    int ioAppend;                // controls opening of binary files
    double initialWriteTime;             // time of next output
    double writeTime;             // time of next output
-   float writeStep;             // output time interval
+   double writeStep;             // output time interval
 
    bool writeSparseActivity; // if true, only nonzero activities are saved; if false, all values are saved.
    bool writeSparseValues; // if true, writeSparseActivity writes index-value pairs.  if false, writeSparseActivity writes indices only and values are assumed to be 1.  Not used if writeSparseActivity is false
@@ -394,16 +399,19 @@ protected:
 
    bool initInfoCommunicatedFlag;
    bool dataStructuresAllocatedFlag;
+   bool initialStateCompletedFlag;
+
+   InitV * initVObject;
 
    HyPerLayer ** synchronizedMarginWidthLayers;
    int numSynchronizedMarginWidthLayers;
 
-   //A flag that determins if the layer is a trigger layer and needs to follow another layer's lastUpdateTime.
-   bool triggerFlag; 
+   //A flag that determines if the layer is a trigger layer and needs to follow another layer's lastUpdateTime.
+   bool triggerFlag;
    char* triggerLayerName;
    double triggerOffset;
    HyPerLayer* triggerLayer;
-   
+
 
    double lastUpdateTime; // The most recent time that the layer's activity is updated, used as a cue for publisher to exchange borders
    double nextUpdateTime; // The timestep to update next

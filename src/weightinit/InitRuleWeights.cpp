@@ -10,6 +10,11 @@
 
 namespace PV {
 
+InitRuleWeights::InitRuleWeights(HyPerConn * conn) {
+   initialize_base();
+   initialize(conn);
+}
+
 InitRuleWeights::InitRuleWeights()
 {
    initialize_base();
@@ -17,21 +22,23 @@ InitRuleWeights::InitRuleWeights()
 
 InitRuleWeights::~InitRuleWeights()
 {
-   // TODO Auto-generated destructor stub
 }
-
 
 int InitRuleWeights::initialize_base() {
    return PV_SUCCESS;
 }
 
-InitWeightsParams * InitRuleWeights::createNewWeightParams(HyPerConn * callingConn) {
+int InitRuleWeights::initialize(HyPerConn * conn) {
+   int status = InitGauss2DWeights::initialize(conn);
+   return status;
+}
+
+InitWeightsParams * InitRuleWeights::createNewWeightParams() {
    InitWeightsParams * tempPtr = new InitRuleWeightsParams(callingConn);
    return tempPtr;
 }
 
-int InitRuleWeights::calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, int arborId,
-                                   InitWeightsParams *weightParams) {
+int InitRuleWeights::calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, int arborId) {
 
    InitRuleWeightsParams *weightParamPtr = dynamic_cast<InitRuleWeightsParams*>(weightParams);
 
@@ -51,13 +58,13 @@ int InitRuleWeights::calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int
 }
 
 int InitRuleWeights::ruleWeights(/* PVPatch * patch */ pvdata_t * dataStart, InitRuleWeightsParams * weightParamPtr) {
-   int nfPatch_tmp = weightParamPtr->getnfPatch_tmp();
-   int nyPatch_tmp = weightParamPtr->getnyPatch_tmp();
-   int nxPatch_tmp = weightParamPtr->getnxPatch_tmp();
+   int nfPatch_tmp = weightParamPtr->getnfPatch();
+   int nyPatch_tmp = weightParamPtr->getnyPatch();
+   int nxPatch_tmp = weightParamPtr->getnxPatch();
    float strength=weightParamPtr->getStrength();
-   int sx_tmp=weightParamPtr->getsx_tmp();
-   int sy_tmp=weightParamPtr->getsy_tmp();
-   int sf_tmp=weightParamPtr->getsf_tmp();
+   int sx_tmp=weightParamPtr->getsx();
+   int sy_tmp=weightParamPtr->getsy();
+   int sf_tmp=weightParamPtr->getsf();
    int fPre = weightParamPtr->getFPre();
 
    // pvdata_t * dataStart = patch->data;

@@ -20,18 +20,28 @@ namespace PV {
 class TrainingLayer : public ANNLayer {
 
 public:
-   TrainingLayer(const char * name, HyPerCol * hc, const char * filename);
+   TrainingLayer(const char * name, HyPerCol * hc);
    virtual ~TrainingLayer();
    virtual int allocateDataStructures();
    int readTrainingLabels(const char * filename, int ** trainingLabels);
-   virtual int initializeState();
-   virtual int updateState(double timef, double dt);
+   virtual bool needUpdate(double timed, double dt);
+   virtual int recvAllSynapticInput() {return PV_SUCCESS;}
+   virtual int updateState(double timed, double dt);
    virtual int checkpointRead(const char * cpDir, double * timef);
    virtual int checkpointWrite(const char * cpDir);
 
 protected:
    TrainingLayer();
-   int initialize(const char * name, HyPerCol * hc, const char * filename);
+   int initialize(const char * name, HyPerCol * hc);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_trainingLabelsPath(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_displayPeriod(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_distToData(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_strength(enum ParamsIOFlag ioFlag);
+   virtual int initializeV();
+
+   /* static */ int updateState(double timed, double dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int numTrainingLabels, int * trainingLabels, int traininglabelindex, int strength);
+
    char * filename;
    int numTrainingLabels;
    int * trainingLabels;
@@ -40,12 +50,6 @@ protected:
    float distToData;
    int nextLabelTime;
    pvdata_t strength;
-
-   /* static */ int updateState(double timef, double dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int numTrainingLabels, int * trainingLabels, int traininglabelindex, int strength);
-   // int setLabeledNeuronToValue(pvdata_t val);
-   // int setLabeledNeuron() {return setLabeledNeuronToValue(strength);}
-   // int clearLabeledNeuron() {return setLabeledNeuronToValue(0);}
-   // void sendBadNeuronMessage();
 
 private:
    int initialize_base();

@@ -28,32 +28,21 @@ InitDistributedWeightsParams::InitDistributedWeightsParams(HyPerConn * parentCon
 
 InitDistributedWeightsParams::~InitDistributedWeightsParams()
 {
-   // TODO Auto-generated destructor stub
 }
 
 int InitDistributedWeightsParams::initialize_base() {
-
-   wMin = 0;
-   wMax = 1;
    numNodes = 1;
    return 1;
 }
 
 int InitDistributedWeightsParams::initialize(HyPerConn * parentConn) {
-   InitWeightsParams::initialize(parentConn);
+   return InitWeightsParams::initialize(parentConn);
+}
 
-   PVParams * params = parent->parameters();
-   int status = PV_SUCCESS;
-
-   // minWeight and maxWeight require arborId, use default values instead if wMinInit, wMaxInit not provided by user
-   //wMin = (float) parentConn->minWeight();
-   //wMax = (float) parentConn->maxWeight();
-   wMin = params->value(getName(), "wMinInit", wMin);
-   wMax = params->value(getName(), "wMaxInit", wMax);
-   numNodes = params->value(getName(), "numNodes", numNodes);
-
+int InitDistributedWeightsParams::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = InitWeightsParams::ioParamsFillGroup(ioFlag);
+   parent->ioParamValue(ioFlag, name, "numNodes", &numNodes, numNodes);
    return status;
-
 }
 
 } /* namespace PV */

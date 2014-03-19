@@ -1187,7 +1187,7 @@ const float * PVParams::arrayValues(const char * groupName, const char * paramNa
    if (retval == NULL) {
       assert(*size==0);
       if (getRank()==0) {
-         fprintf(stderr, "Using default value for parameter \"%s\" in group \"%s\"\n", paramName, groupName);
+         fprintf(stderr, "Using empty array for parameter \"%s\" in group \"%s\"\n", paramName, groupName);
       }
    }
    return retval;
@@ -1211,7 +1211,7 @@ const double * PVParams::arrayValuesDbl(const char * groupName, const char * par
    if (retval == NULL) {
       assert(*size==0);
       if (getRank()==0) {
-         fprintf(stderr, "Using default value %f for parameter \"%s\" in group \"%s\"\n", *retval, paramName, groupName);
+         fprintf(stderr, "Using empty array for parameter \"%s\" in group \"%s\"\n", paramName, groupName);
       }
    }
    return retval;
@@ -1373,6 +1373,88 @@ int PVParams::clearHasBeenReadFlags() {
       }
    }
    return status;
+}
+
+void PVParams::handleUnnecessaryParameter(const char * group_name, const char * param_name) {
+   if (present(group_name, param_name)) {
+      if (getRank()==0) {
+         const char * class_name = groupKeywordFromName(group_name);
+         fprintf(stderr, "Group \"%s\" warning: class \"%s\" does not use parameter %s.\n",
+               group_name, class_name, param_name);
+      }
+      value(group_name, param_name); // marks param as read so that presentAndNotBeenRead doesn't trip up
+   }
+}
+
+template <typename T>
+void PVParams::handleUnnecessaryParameter(const char * group_name, const char * param_name, T correct_value) {
+   int status = PV_SUCCESS;
+   if (present(group_name, param_name)) {
+      if (getRank()==0) {
+         const char * class_name = groupKeywordFromName(group_name);
+         fprintf(stderr, "Group \"%s\" warning: class \"%s\" does not read parameter %s but determines it from other param(s).\n",
+               group_name, class_name, param_name);
+      }
+      T params_value = (T) value(group_name, param_name); // marks param as read so that presentAndNotBeenRead doesn't trip up
+      if (params_value != correct_value) {
+         status = PV_FAILURE;
+         if (getRank()==0) {
+            std::cerr << "   Value " << params_value << " is inconsistent with correct value " << correct_value;
+            std::cerr << std::endl; // This line is separate from above line to avoid an Eclipse bug that flags a nonexistent invalid overload
+         }
+      }
+   }
+   MPI_Barrier(icComm->communicator());
+   if (status != PV_SUCCESS) exit(EXIT_FAILURE);
+}
+// Declare the instantiations of allocateBuffer that occur in other .cpp files; otherwise you may get linker errors.
+template void PVParams::handleUnnecessaryParameter<bool>(const char * group_name, const char * param_name, bool correct_value);
+template void PVParams::handleUnnecessaryParameter<int>(const char * group_name, const char * param_name, int correct_value);
+template void PVParams::handleUnnecessaryParameter<float>(const char * group_name, const char * param_name, float correct_value);
+template void PVParams::handleUnnecessaryParameter<double>(const char * group_name, const char * param_name, double correct_value);
+
+void PVParams::handleUnnecessaryStringParameter(const char * group_name, const char * param_name, const char * correct_value, bool case_insensitive_flag) {
+   int status = PV_SUCCESS;
+   const char * class_name = groupKeywordFromName(group_name);
+   if (stringPresent(group_name, param_name)) {
+      if (getRank()==0) {
+         fprintf(stderr, "Group \"%s\" warning: class \"%s\" does not read string parameter %s but determines it from other param(s).\n",
+               group_name, class_name, param_name);
+      }
+      const char * params_value = stringValue(group_name, param_name, false/*warnIfAbsent*/); // marks param as read so that presentAndNotBeenRead doesn't trip up
+      assert(params_value);
+      if (correct_value != NULL) {
+         char * correct_value_i = strdup(correct_value); // need mutable strings for case-insensitive comparison
+         char * params_value_i = strdup(params_value); // need mutable strings for case-insensitive comparison
+         if (correct_value_i == NULL) {
+            fprintf(stderr, "%s \"%s\" error: Rank %d process unable to copy correct string value: %s.\n",
+                  groupKeywordFromName(group_name), group_name, getRank(), strerror(errno));
+            exit(EXIT_FAILURE);
+         }
+         if (params_value_i == NULL) {
+            fprintf(stderr, "%s \"%s\" error: Rank %d process unable to copy parameter string value: %s.\n",
+                  groupKeywordFromName(group_name), group_name, getRank(), strerror(errno));
+            exit(EXIT_FAILURE);
+         }
+         if (case_insensitive_flag) {
+            for (char * c = params_value_i; *c!='\0'; c++) {
+               *c = (char) tolower((int) *c);
+            }
+            for (char * c = correct_value_i; *c!='\0'; c++) {
+               *c = (char) tolower((int) *c);
+            }
+         }
+         if (strcmp(params_value_i, correct_value_i) != 0) {
+            status = PV_FAILURE;
+            if (getRank()==0) {
+               fprintf(stderr, "   Value \"%s\" is inconsistent with correct value \"%s\".  Exiting.\n",
+                     params_value, correct_value);
+            }
+         }
+      }
+   }
+   MPI_Barrier(icComm->communicator());
+   if (status != PV_SUCCESS) exit(EXIT_FAILURE);
 }
 
 int PVParams::outputParams(FILE * fp) {

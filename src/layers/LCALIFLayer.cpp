@@ -84,10 +84,11 @@ LCALIFLayer::LCALIFLayer() {
 
 LCALIFLayer::LCALIFLayer(const char * name, HyPerCol * hc) {
    initialize_base();
-   initialize(name, hc, MAX_CHANNELS + 2, "LCALIF_update_state");
+   initialize(name, hc, "LCALIF_update_state");
 }
 
 int LCALIFLayer::initialize_base(){
+   numChannels = 5;
    tauTHR = 1000;
    targetRateHz = 1;
    Vscale = DEFAULT_DYNVTHSCALE;
@@ -99,34 +100,50 @@ int LCALIFLayer::initialize_base(){
    return PV_SUCCESS;
 }
 
-int LCALIFLayer::initialize(const char * name, HyPerCol * hc, int num_channels, const char * kernel_name){
-   LIFGap::initialize(name, hc, TypeLCA, num_channels, kernel_name);
+int LCALIFLayer::initialize(const char * name, HyPerCol * hc, const char * kernel_name){
+   LIFGap::initialize(name, hc, TypeLCA, kernel_name);
    PVParams * params = hc->parameters();
-
-   tauTHR     = params->value(name, "tauTHR", tauTHR);
-   targetRateHz = params->value(name, "targetRate", targetRateHz);
-   normalizeInputFlag = params->value(name, "normalizeInput", (double) normalizeInputFlag);
 
    float defaultDynVthScale = lParams.VthRest-lParams.Vrest;
    Vscale = defaultDynVthScale > 0 ? defaultDynVthScale : DEFAULT_DYNVTHSCALE;
-   Vscale = params->value(name, "Vscale", Vscale);
    if (Vscale <= 0) {
       if (hc->columnId()==0) {
          fprintf(stderr,"LCALIFLayer \"%s\": Vscale must be positive (value in params is %f).\n", name, Vscale);
       }
       abort();
    }
-   
-   // Moved to allocateDataStructures()
-   // int numNeurons = getNumNeurons();
-   // for (int k=0; k<numNeurons; k++) {
-   //    integratedSpikeCount[k] = targetRateHz/1000; // Initialize integrated spikes to non-zero value
-   //    Vadpt[k]                = lParams.VthRest;   // Initialize integrated spikes to non-zero value
-   //    Vattained[k]            = lParams.Vrest;
-   //    Vmeminf[k]              = lParams.Vrest;
-   // }
 
    return PV_SUCCESS;
+}
+
+int LCALIFLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = LIFGap::ioParamsFillGroup(ioFlag);
+   ioParam_tauTHR(ioFlag);
+   ioParam_targetRate(ioFlag);
+   ioParam_normalizeInput(ioFlag);
+   ioParam_Vscale(ioFlag);
+   return status;
+}
+
+void LCALIFLayer::ioParam_tauTHR(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "tauTHR", &tauTHR, tauTHR);
+}
+
+void LCALIFLayer::ioParam_targetRate(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "targetRate", &targetRateHz, targetRateHz);
+}
+
+void LCALIFLayer::ioParam_normalizeInput(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "normalizeInput", &normalizeInputFlag, normalizeInputFlag);
+}
+
+void LCALIFLayer::ioParam_Vscale(enum ParamsIOFlag ioFlag) {
+   PVParams * p = parent->parameters();
+   assert(!p->presentAndNotBeenRead(name, "VthRest"));
+   assert(!p->presentAndNotBeenRead(name, "Vrest"));
+   float defaultDynVthScale = lParams.VthRest-lParams.Vrest;
+   Vscale = defaultDynVthScale > 0 ? defaultDynVthScale : DEFAULT_DYNVTHSCALE;
+   parent->ioParamValue(ioFlag, name, "Vscale", &Vscale, Vscale);
 }
 
 LCALIFLayer::~LCALIFLayer()

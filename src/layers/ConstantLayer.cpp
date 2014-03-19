@@ -14,17 +14,10 @@ ConstantLayer::ConstantLayer()
    initialize_base();
 }
 
-ConstantLayer::ConstantLayer(const char * name, HyPerCol * hc,
-		int num_channels)
-{
-   initialize_base();
-   initialize(name, hc, num_channels);
-}
-
 ConstantLayer::ConstantLayer(const char * name, HyPerCol * hc)
 {
    initialize_base();
-   initialize(name, hc, 2);
+   initialize(name, hc);
 }
 
 ConstantLayer::~ConstantLayer()
@@ -36,13 +29,18 @@ int ConstantLayer::initialize_base()
 	return PV_SUCCESS;
 }
 
-int ConstantLayer::initialize(const char * name, HyPerCol * hc,
-		int num_channels)
+int ConstantLayer::initialize(const char * name, HyPerCol * hc)
 {
-	int status = ANNLayer::initialize(name, hc, num_channels);
+	int status = ANNLayer::initialize(name, hc);
+	return status;
+}
+
+void ConstantLayer::ioParam_triggerFlag(enum ParamsIOFlag ioFlag) {
    //This layer is a trigger layer, so set flag
-   triggerFlag = 1;
-   return status;
+   if (ioFlag==PARAMS_IO_READ) {
+      triggerFlag = 1;
+      parent->parameters()->handleUnnecessaryParameter(name, "triggerFlag", true);
+   }
 }
 
 int ConstantLayer::communicateInitInfo() {
@@ -53,13 +51,13 @@ int ConstantLayer::communicateInitInfo() {
 
 //Done in HyPerLayer now
 //int ConstantLayer::recvAllSynapticInput(){
-//	int status = PV_SUCCESS;
-//	if (checkIfUpdateNeeded()){
-//		status = ANNLayer::recvAllSynapticInput();
-//		// doUpdateState will also need to check movieLayer->getLastUpdateTime() against lastUpdateTime,
-//		// so wait until then to update lastUpdateTime.
-//	}
-//	return status;
+//   int status = PV_SUCCESS;
+//   if (checkIfUpdateNeeded()){
+//      status = ANNLayer::recvAllSynapticInput();
+//      // doUpdateState will also need to check movieLayer->getLastUpdateTime() against lastUpdateTime,
+//      // so wait until then to update lastUpdateTime.
+//   }
+//   return status;
 //}
 
 //int ConstantLayer::doUpdateState(double time, double dt, const PVLayerLoc * loc, pvdata_t * A,

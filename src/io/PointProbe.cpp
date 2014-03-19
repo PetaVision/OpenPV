@@ -17,38 +17,18 @@ PointProbe::PointProbe() {
 }
 
 /**
- * @filename
- * @layer
- * @xLoc
- * @yLoc
- * @fLoc
- * @msg
+ * @probeName
+ * @hc
  */
-PointProbe::PointProbe(const char * filename, HyPerLayer * layer, int xLoc, int yLoc, int fLoc,
-      const char * msg) :
+PointProbe::PointProbe(const char * probeName, HyPerCol * hc) :
    LayerProbe()
 {
    initPointProbe_base();
-   initPointProbe(filename, layer, xLoc, yLoc, fLoc, msg);
-}
-
-/**
- * @layer
- * @xLoc
- * @yLoc
- * @fLoc
- * @msg
- */
-PointProbe::PointProbe(HyPerLayer * layer, int xLoc, int yLoc, int fLoc, const char * msg) :
-   LayerProbe()
-{
-   initPointProbe_base();
-   initPointProbe(NULL, layer, xLoc, yLoc, fLoc, msg);
+   initPointProbe(probeName, hc);
 }
 
 PointProbe::~PointProbe()
 {
-   free(msg);
 }
 
 int PointProbe::initPointProbe_base() {
@@ -59,38 +39,35 @@ int PointProbe::initPointProbe_base() {
    return PV_SUCCESS;
 }
 
-int PointProbe::initPointProbe(const char * filename, HyPerLayer * layer, int xLoc, int yLoc, int fLoc, const char * msg) {
-   int status = PV_SUCCESS;
-   const PVLayerLoc * loc = layer->getLayerLoc();
-   bool isRoot = layer->getParent()->icCommunicator()->commRank()==0;
-   if( (xLoc < 0 || xLoc > loc->nxGlobal) && isRoot ) {
-      fprintf(stderr, "PointProbe on layer %s: xLoc coordinate %d is out of bounds (layer has %d neurons in the x-direction.\n", layer->getName(), xLoc, loc->nxGlobal);
-      status = PV_FAILURE;
-   }
-   if( (yLoc < 0 || yLoc > loc->nyGlobal) && isRoot ) {
-      fprintf(stderr, "PointProbe on layer %s: yLoc coordinate %d is out of bounds (layer has %d neurons in the y-direction.\n", layer->getName(), xLoc, loc->nyGlobal);
-      status = PV_FAILURE;
-   }
-   if( (fLoc < 0 || fLoc > loc->nf) && isRoot ) {
-      fprintf(stderr, "PointProbe on layer %s: fLoc coordinate %d is out of bounds (layer has %d features.\n", layer->getName(), xLoc, loc->nf);
-      status = PV_FAILURE;
-   }
-   if( status != PV_SUCCESS ) abort();
-   this->xLoc = xLoc;
-   this->yLoc = yLoc;
-   this->fLoc = fLoc;
-   // this->sparseOutput = false;
-   status = initMessage(msg);
-   if (status != PV_SUCCESS) abort();
-   status = initLayerProbe(filename, layer);
-   if (status != PV_SUCCESS) abort();
+int PointProbe::initPointProbe(const char * probeName, HyPerCol * hc) {
+   int status = LayerProbe::initLayerProbe(probeName, hc);
    return status;
 }
 
-int PointProbe::initOutputStream(const char * filename, HyPerLayer * layer) {
+int PointProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = LayerProbe::ioParamsFillGroup(ioFlag);
+   ioParam_xLoc(ioFlag);
+   ioParam_yLoc(ioFlag);
+   ioParam_fLoc(ioFlag);
+   return status;
+}
+
+void PointProbe::ioParam_xLoc(enum ParamsIOFlag ioFlag) {
+   getParentCol()->ioParamValueRequired(ioFlag, getProbeName(), "xLoc", &xLoc);
+}
+
+void PointProbe::ioParam_yLoc(enum ParamsIOFlag ioFlag) {
+   getParentCol()->ioParamValueRequired(ioFlag, getProbeName(), "yLoc", &xLoc);
+}
+
+void PointProbe::ioParam_fLoc(enum ParamsIOFlag ioFlag) {
+   getParentCol()->ioParamValueRequired(ioFlag, getProbeName(), "fLoc", &xLoc);
+}
+
+int PointProbe::initOutputStream(const char * filename) {
    // Called by LayerProbe::initLayerProbe, which is called near the end of PointProbe::initPointProbe
    // So this->xLoc, yLoc, fLoc have been set.
-   const PVLayerLoc * loc = layer->getLayerLoc();
+   const PVLayerLoc * loc = getTargetLayer()->getLayerLoc();
 
    const int kx0 = loc->kx0;
    const int ky0 = loc->ky0;
@@ -101,7 +78,7 @@ int PointProbe::initOutputStream(const char * filename, HyPerLayer * layer) {
    bool pointInLocalFrame = xLocLocal >= 0 && xLocLocal < nx && yLocLocal >=0 && yLocLocal < ny;
    if (pointInLocalFrame) {
       if( filename != NULL ) {
-         char * outputdir = layer->getParent()->getOutputPath();
+         char * outputdir = getParentCol()->getOutputPath();
          char * path = (char *) malloc(strlen(outputdir)+1+strlen(filename)+1);
          sprintf(path, "%s/%s", outputdir, filename);
          outputstream = PV_fopen(path, "w");
@@ -121,28 +98,27 @@ int PointProbe::initOutputStream(const char * filename, HyPerLayer * layer) {
    return PV_SUCCESS;
 }
 
-//PointProbe::initMessage and StatsProbe::initMessage are identical.  Move to LayerProbe (even though LayerProbe doesn't use msg?)
-int PointProbe::initMessage(const char * msg) {
-   int status = PV_SUCCESS;
-   if( msg != NULL && msg[0] != '\0' ) {
-      size_t msglen = strlen(msg);
-      this->msg = (char *) calloc(msglen+2, sizeof(char)); // Allocate room for colon plus null terminator
-      if(this->msg) {
-         memcpy(this->msg, msg, msglen);
-         this->msg[msglen] = ':';
-         this->msg[msglen+1] = '\0';
-      }
-   }
-   else {
-      this->msg = (char *) calloc(1, sizeof(char));
-      if(this->msg) {
-         this->msg[0] = '\0';
-      }
-   }
-   if( !this->msg ) {
-      fprintf(stderr, "PointProbe: Unable to allocate memory for probe's message.\n");
+int PointProbe::communicateInitInfo() {
+   int status = LayerProbe::communicateInitInfo();
+   assert(getTargetLayer());
+   const PVLayerLoc * loc = getTargetLayer()->getLayerLoc();
+   bool isRoot = getParentCol()->icCommunicator()->commRank()==0;
+   if( (xLoc < 0 || xLoc > loc->nxGlobal) && isRoot ) {
+      fprintf(stderr, "PointProbe on layer %s: xLoc coordinate %d is out of bounds (layer has %d neurons in the x-direction.\n", getTargetLayer()->getName(), xLoc, loc->nxGlobal);
       status = PV_FAILURE;
    }
+   if( (yLoc < 0 || yLoc > loc->nyGlobal) && isRoot ) {
+      fprintf(stderr, "PointProbe on layer %s: yLoc coordinate %d is out of bounds (layer has %d neurons in the y-direction.\n", getTargetLayer()->getName(), xLoc, loc->nyGlobal);
+      status = PV_FAILURE;
+   }
+   if( (fLoc < 0 || fLoc > loc->nf) && isRoot ) {
+      fprintf(stderr, "PointProbe on layer %s: fLoc coordinate %d is out of bounds (layer has %d features.\n", getTargetLayer()->getName(), xLoc, loc->nf);
+      status = PV_FAILURE;
+   }
+   if( status != PV_SUCCESS ) abort();
+   this->xLoc = xLoc;
+   this->yLoc = yLoc;
+   this->fLoc = fLoc;
    return status;
 }
 

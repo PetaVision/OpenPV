@@ -112,7 +112,7 @@ int HyPerLayer::initialize_base() {
    this->margin = 0;
    this->numProbes = 0;
    this->ioAppend = 0;
-   this->numChannels = 0;
+   this->numChannels = 2;
    this->clayer = NULL;
    this->GSyn = NULL;
    this->labels = NULL;
@@ -123,6 +123,7 @@ int HyPerLayer::initialize_base() {
    this->triggerFlag = false; //Default to update every timestamp
    this->triggerLayer = NULL;
    this->triggerLayerName = NULL;
+   this->initVObject = NULL;
    this->triggerOffset = 0;
    this->nextUpdateTime = 0;
    
@@ -163,10 +164,9 @@ int HyPerLayer::initialize_base() {
 // to take advantage of virtual methods.  Note that the HyPerLayer constructor
 // does not call initialize.  This way, HyPerLayer::initialize can call virtual
 // methods and the derived class's method will be the one that gets called.
-int HyPerLayer::initialize(const char * name, HyPerCol * hc, int numChannels) {
+int HyPerLayer::initialize(const char * name, HyPerCol * hc) {
    this->name = strdup(name);
    setParent(hc); // Could this line and the parent->addLayer line be combined in a HyPerLayer method?
-   this->numChannels = numChannels;
 
    this->update_timer  = new Timer();
    this->recvsyn_timer = new Timer();
@@ -175,9 +175,10 @@ int HyPerLayer::initialize(const char * name, HyPerCol * hc, int numChannels) {
 
    PVParams * params = parent->parameters();
 
-   int status = setParams(params);
+   int status = ioParams(PARAMS_IO_READ);
    assert(status == PV_SUCCESS);
 
+   writeTime = initialWriteTime;
    writeActivityCalls = 0;
    writeActivitySparseCalls = 0;
    numDelayLevels = 1; // If a connection has positive delay so that more delay levels are needed, numDelayLevels is increased when HyPerConn::communicateInitInfo calls increaseDelayLevels
@@ -194,7 +195,6 @@ int HyPerLayer::initialize(const char * name, HyPerCol * hc, int numChannels) {
 
    lastUpdateTime = parent->simulationTime();
    nextUpdateTime = parent->getDeltaTime();
-   
 
 #ifdef PV_USE_OPENCL
    initUseGPUFlag();
@@ -290,6 +290,7 @@ HyPerLayer::~HyPerLayer()
    delete publish_timer;  publish_timer = NULL;
    delete io_timer;       io_timer      = NULL;
 
+   delete initVObject; initVObject = NULL;
    freeClayer();
    free(name); name = NULL;
    freeChannels();
@@ -325,7 +326,7 @@ HyPerLayer::~HyPerLayer()
 
    free(synchronizedMarginWidthLayers);
    if(triggerLayerName){
-      //free(triggerLayerName);
+      free(triggerLayerName);
       triggerLayerName = NULL;
    }
 
@@ -362,7 +363,7 @@ void HyPerLayer::freeChannels()
    }
 #endif
 
-   // Test on GSyn because numChannels gets set in initialize, but GSyn gets allocated in allocateDataStructures, and only if numChannels>0.
+   // GSyn gets allocated in allocateDataStructures, but only if numChannels>0.
    if (GSyn) {
       assert(numChannels>0);
       free(GSyn[0]);  // conductances allocated contiguously so frees all buffer storage
@@ -554,7 +555,6 @@ int HyPerLayer::initializeState() {
    int status = PV_SUCCESS;
    PVParams * params = parent->parameters();
    assert(!params->presentAndNotBeenRead(name, "restart"));
-   // readRestart(params);
    if( restartFlag ) {
       double timef;
       status = readState(&timef);
@@ -564,159 +564,177 @@ int HyPerLayer::initializeState() {
       }
    }
    else {
-      if (this->getV()!=NULL) {
-         InitV * initVObject = new InitV(parent, name);
-         if( initVObject == NULL ) {
-            fprintf(stderr, "HyPerLayer::initializeState error: layer %s unable to create InitV object\n", name);
-            abort();
-         }
-         status = initVObject->calcV(this);
-         delete initVObject;
-         setActivity();
-         if (status == PV_SUCCESS) status = updateActiveIndices();
-      }
+      status = initializeV();
+      if (status == PV_SUCCESS) initializeActivity();
    }
    return status;
 }
 
-int HyPerLayer::setParams(PVParams * inputParams)
+int HyPerLayer::initializeV() {
+   int status = PV_SUCCESS;
+   if (initVObject != NULL) {
+      status = initVObject->calcV(this);
+      setActivity();
+      if (status == PV_SUCCESS) status = updateActiveIndices();
+   }
+   return status;
+}
+
+int HyPerLayer::initializeActivity() {
+   int status = setActivity();
+   if (status == PV_SUCCESS) {
+      status = updateActiveIndices();
+   }
+   return status;
+}
+
+int HyPerLayer::ioParams(enum ParamsIOFlag ioFlag)
 {
-   readNxScale(inputParams);
-   readNyScale(inputParams);
-   readNf(inputParams);
-   readMarginWidth(inputParams);
-   readWriteStep(inputParams);
-   readPhase(inputParams);
-   readWriteSparseActivity(inputParams);
-   readWriteSparseValues(inputParams);
-   readMirrorBCFlag(inputParams);
-   readValueBC(inputParams);
-   readRestart(inputParams);
-   readTriggerFlag(inputParams);
-#ifdef PV_USE_OPENCL
-   readGPUAccelerate(inputParams);
-#endif // PV_USE_OPENCL
+   parent->ioParamsStartGroup(ioFlag, name);
+   ioParamsFillGroup(ioFlag);
+   parent->ioParamsFinishGroup(ioFlag);
 
    return PV_SUCCESS;
 }
 
-void HyPerLayer::readNxScale(PVParams * params) {
-   nxScale = params->value(name, "nxScale", nxScale);
+int HyPerLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   // Derived classes with new params behavior should override ioParamsFillGroup
+   // and the overriding method should call the base class's ioParamsFillGroup.
+   ioParam_nxScale(ioFlag);
+   ioParam_nyScale(ioFlag);
+   ioParam_nf(ioFlag);
+   ioParam_marginWidth(ioFlag);
+   ioParam_phase(ioFlag);
+   ioParam_mirrorBCflag(ioFlag);
+   ioParam_valueBC(ioFlag);
+   ioParam_restart(ioFlag);
+   ioParam_InitVType(ioFlag);
+   ioParam_triggerFlag(ioFlag);
+   ioParam_triggerLayerName(ioFlag);
+   ioParam_triggerOffset(ioFlag);
+   ioParam_writeStep(ioFlag);
+   ioParam_initialWriteTime(ioFlag);
+   ioParam_writeSparseActivity(ioFlag);
+   ioParam_writeSparseValues(ioFlag);
+#ifdef PV_USE_OPENCL
+   readGPUAccelerate(ioFlag);
+#endif // PV_USE_OPENCL
+   return PV_SUCCESS;
 }
 
-void HyPerLayer::readNyScale(PVParams * params) {
-   nyScale = params->value(name, "nyScale", nyScale);
+void HyPerLayer::ioParam_nxScale(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "nxScale", &nxScale, nxScale);
 }
 
-void HyPerLayer::readNf(PVParams * params) {
-   numFeatures = (int) params->value(name, "nf", numFeatures);
+void HyPerLayer::ioParam_nyScale(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "nyScale", &nyScale, nyScale);
 }
 
-void HyPerLayer::readMarginWidth(PVParams * params) {
-   if (params->present(name, "marginWidth")) {
-      margin = (int) params->value(name, "marginWidth");
+void HyPerLayer::ioParam_nf(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "nf", &numFeatures, numFeatures);
+}
+
+void HyPerLayer::ioParam_marginWidth(enum ParamsIOFlag ioFlag) {
+   // marginWidth parameter was deprecated July 25, 2013.  When support for marginWidth is removed entirely, this function should be deleted.
+   if (ioFlag==PARAMS_IO_READ && parent->parameters()->present(name, "marginWidth")) {
+      margin = (int) parent->parameters()->value(name, "marginWidth");
       if (parent->columnId()==0) {
          fprintf(stderr, "HyPerLayer \"%s\": margins are adjusted automatically; parameter marginWidth is deprecated.\n", name);
       }
    }
 }
 
-void HyPerLayer::readWriteStep(PVParams * params) {
-   writeStep = params->value(name, "writeStep", parent->getDeltaTime());
-   if (writeStep>=0.0f) {
-      readInitialWriteTime(params);
-      writeTime = initialWriteTime;
-   }
-
-}
-
-void HyPerLayer::readInitialWriteTime(PVParams * params) {
-   double sim_time = parent->simulationTime();
-   initialWriteTime = params->value(name, "initialWriteTime", sim_time);
-   assert(initialWriteTime >= sim_time || !params->presentAndNotBeenRead(name, "writeStep"));
-   while (initialWriteTime < sim_time) {
-      initialWriteTime += writeStep;
-   }
-}
-
-void HyPerLayer::readPhase(PVParams * params) {
-   phase = params->value(name, "phase", phase, true);
-   if (phase<0) {
+void HyPerLayer::ioParam_phase(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "phase", &phase, phase);
+   if (ioFlag == PARAMS_IO_READ && phase<0) {
       if (parent->columnId()==0) fprintf(stderr, "Error in layer \"%s\": phase must be >= 0 (given value was %d).\n", name, phase);
-      abort();
+      exit(EXIT_FAILURE);
    }
 }
 
-void HyPerLayer::readWriteSparseActivity(PVParams * params) {
-   writeSparseActivity = (bool) params->value(name, "writeSparseActivity", 0);
+void HyPerLayer::ioParam_mirrorBCflag(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "mirrorBCflag", &mirrorBCflag, mirrorBCflag);
 }
 
-void HyPerLayer::readWriteSparseValues(PVParams * params) {
-   assert(!params->presentAndNotBeenRead(name, "writeSparseActivity"));
-   if (writeSparseActivity)
-      writeSparseValues = params->value(name, "writeSparseValues", 0/*default*/, true/*warnIfAbsent*/) != 0;
-}
-
-void HyPerLayer::readMirrorBCFlag(PVParams * params) {
-   mirrorBCflag = (bool) params->value(name, "mirrorBCflag", mirrorBCflag);
-}
-
-void HyPerLayer::readValueBC(PVParams * params) {
-   assert(!params->presentAndNotBeenRead(name, "mirrorBCflag"));
+void HyPerLayer::ioParam_valueBC(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "mirrorBCflag"));
    if (!mirrorBCflag) {
-      valueBC = (pvdata_t) params->value(name, "valueBC", 0.0);
+      parent->ioParamValue(ioFlag, name, "valueBC", &valueBC, (pvdata_t) 0);
    }
 }
 
-void HyPerLayer::readRestart(PVParams * params) {
-   restartFlag = params->value(name, "restart", 0.0f) != 0.0f;
+void HyPerLayer::ioParam_restart(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "restart", &restartFlag, false/*default value*/);
 }
 
-void HyPerLayer::readTriggerFlag(PVParams * params) {
-   triggerFlag = (bool) params->value(name, "triggerFlag", triggerFlag);
-   if(triggerFlag){
-      const char * trigger_layer_name = params->stringValue(name, "triggerLayerName");
-      if(!trigger_layer_name){
+void HyPerLayer::ioParam_InitVType(enum ParamsIOFlag ioFlag) {
+   if (ioFlag == PARAMS_IO_READ) {
+      initVObject = new InitV(parent, name);
+      if( initVObject == NULL ) {
+         fprintf(stderr, "%s \"%s\" error: unable to create InitV object\n", parent->parameters()->groupKeywordFromName(name), name);
+         abort();
+      }
+   }
+   if (initVObject != NULL) {
+      initVObject->ioParamsFillGroup(ioFlag);
+   }
+}
+
+void HyPerLayer::ioParam_triggerFlag(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "triggerFlag", &triggerFlag, triggerFlag);
+}
+
+void HyPerLayer::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "triggerFlag"));
+   if (triggerFlag) {
+      parent->ioParamStringRequired(ioFlag, name, "triggerLayerName", &triggerLayerName);
+   }
+}
+
+void HyPerLayer::ioParam_triggerOffset(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "triggerFlag"));
+   if (triggerFlag) {
+      parent->ioParamValue(ioFlag, name, "triggerOffset", &triggerOffset, triggerOffset);
+   }
+}
+
+void HyPerLayer::ioParam_writeStep(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "writeStep", &writeStep, parent->getDeltaTime());
+}
+
+void HyPerLayer::ioParam_initialWriteTime(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "writeStep"));
+   if (writeStep>=0.0) {
+      double start_time = parent->getStartTime();
+      parent->ioParamValue(ioFlag, name, "initialWriteTime", &initialWriteTime, start_time);
+      if (ioFlag == PARAMS_IO_READ && writeStep > 0.0 && initialWriteTime < start_time) {
          if (parent->columnId()==0) {
-            fprintf(stderr, "%s \"%s\" error: triggerLayerName must be defined if triggerFlag is set\n", parent->parameters()->groupKeywordFromName(name), name);;
-            exit(EXIT_FAILURE);
+            fprintf(stderr, "%s \"%s\" warning: initialWriteTime is earlier than start time.  Adjusting initialWriteTime:\n",
+                  parent->parameters()->groupKeywordFromName(name), name);
+         }
+         while (initialWriteTime < start_time) {
+            initialWriteTime += writeStep;
+         }
+         if (parent->columnId()==0) {
+            fprintf(stderr, "    initialWriteTime adjusted to %f\n",initialWriteTime);
          }
       }
-      triggerLayerName = strdup(trigger_layer_name);
-      if (triggerLayerName ==NULL) {
-         fprintf(stderr, "%s \"%s\" error: rank %d process unable to copy triggerLayerName \"%s\": %s\n",
-                 parent->parameters()->groupKeywordFromName(name), name, parent->columnId(), trigger_layer_name, strerror(errno));
-         exit(EXIT_FAILURE);
-      }
-      triggerOffset = params->value(name, "triggerOffset", triggerOffset);
    }
 }
 
-// TODO: use templates and std::cerr for handleUnnecessary*Parameter functions
-void HyPerLayer::handleUnnecessaryBoolParameter(const char * paramName, int correctValue) {
-   int status = PV_SUCCESS;
-   PVParams * params = parent->parameters();
-   const char * classname = params->groupKeywordFromName(name);
-   if (params->present(name, paramName)) {
-      if (parent->columnId()==0) {
-         fprintf(stderr, "Layer \"%s\" warning: class \"%s\" does not read parameter %s but determines it from other param(s).\n",
-               name, classname, paramName);
-      }
-      if ((bool) params->value(name, paramName)!=correctValue) {
-         status = PV_FAILURE;
-         if (parent->columnId()==0) {
-            fprintf(stderr, "    Value %d is inconsistent with correct value %d.  Exiting.\n",
-                  (int) params->value(name, paramName), correctValue);
-         }
-      }
-   }
-   MPI_Barrier(parent->icCommunicator()->communicator());
-   if (status != PV_SUCCESS) exit(EXIT_FAILURE);
+void HyPerLayer::ioParam_writeSparseActivity(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "writeSparseActivity", &writeSparseActivity, false);
+}
+
+void HyPerLayer::ioParam_writeSparseValues(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "writeSparseActivity"));
+   if (writeSparseActivity)
+      parent->ioParamValue(ioFlag, name, "writeSparseValues", &writeSparseValues, false/*default value*/);
 }
 
 #ifdef PV_USE_OPENCL
-void HyPerLayer::readGPUAccelerate(PVParams * params) {
-   gpuAccelerateFlag = params->value(name, "GPUAccelerate", gpuAccelerateFlag);
+void HyPerLayer::ioParam_GPUAccelerate(enum ParamsIOFlag ioFlag) {
+   ioParamValue(ioFlag, name, "GPUAccelerate", &gpuAccelerateFlag, gpuAccelerateFlag);
 }
 
 /**
@@ -744,6 +762,8 @@ int HyPerLayer::initializeThreadBuffers(const char * kernel_name)
    // defer creation of clParams to derived classes (as it is class specific)
    clParams = NULL;
 
+   // !!! FIXME: numChannels is not set until communicateInitInfo, but this function is called by initialize
+   // !!! device->createBuffer probably to be in allocateDataStructures
    const size_t size_gsyn=getNumNeurons()*numChannels*sizeof(pvdata_t);
    //clGSyn = NULL;
    clGSyn = device->createBuffer(CL_MEM_COPY_HOST_PTR, size_gsyn, GSyn[0]);
@@ -766,11 +786,6 @@ int HyPerLayer::initializeThreadKernels(const char * kernel_name)
 }
 #endif
 
-int HyPerLayer::initFinish()
-{
-   return 0;
-}
-
 int HyPerLayer::communicateInitInfo()
 {
    // HyPerLayers need to tell the parent HyPerCol how many random number
@@ -789,7 +804,7 @@ int HyPerLayer::communicateInitInfo()
       if (triggerLayer==NULL) {
          if (parent->columnId()==0) {
             fprintf(stderr, "%s \"%s\" error: triggerLayer \"%s\" is not a layer in the HyPerCol.\n",
-                    parent->parameters()->groupKeywordFromName(name), name, triggerLayerName);
+                  parent->parameters()->groupKeywordFromName(name), name, triggerLayerName);
          }
          MPI_Barrier(parent->icCommunicator()->communicator());
          exit(EXIT_FAILURE);
@@ -1015,13 +1030,11 @@ int HyPerLayer::requireMarginWidth(int marginWidthNeeded, int * marginWidthResul
 }
 
 int HyPerLayer::requireChannel(int channelNeeded, int * numChannelsResult) {
-   // TODO - set numChannels based on calls to requireChannel calls, and not have a numChannels argument in the constructors
-   *numChannelsResult = numChannels;
-   int status = channelNeeded < numChannels ? PV_SUCCESS : PV_FAILURE;
-   if (status != PV_SUCCESS){
-      fprintf(stderr, "Layer \"%s\": Channel %d does not exist, last allowable channel index is %d.\n", name, channelNeeded, numChannels-1);
+   if (channelNeeded >= numChannels) {
+      numChannels = channelNeeded+1;
    }
-   return status;
+   *numChannelsResult = numChannels;
+   return PV_SUCCESS;
 }
 
 // getLastUpdateTime() method for base class.
@@ -1288,10 +1301,6 @@ int HyPerLayer::copyFromBuffer(const unsigned char * buf, pvdata_t * data,
 
 
 bool HyPerLayer::needUpdate(double time, double dt){
-
-   //return true;
-
-
    //Always update on first timestep
    //if (time <= parent->getStartTime()){
    //    return true;
@@ -1405,8 +1414,6 @@ int HyPerLayer::doUpdateState(double timef, double dt, const PVLayerLoc * loc, p
       applyGSyn_HyPerLayer(num_neurons, V, gSynHead);
    }
    setActivity_HyPerLayer(num_neurons, A, V, nx, ny, nf, loc->nb);
-   // moved to separate method to allow HyPerCol to control calling sequence
-   //resetGSynBuffers_HyPerLayer(num_neurons, getNumChannels(), gSynHead); // resetGSynBuffers();
 
    return PV_SUCCESS;
 }
@@ -1502,46 +1509,10 @@ float HyPerLayer::getConvertToRateDeltaTimeFactor(HyPerConn* conn)
    return dt_factor;
 }
 
-
-//int HyPerLayer::setActivity() {
-//   const int nx = getLayerLoc()->nx;
-//   const int ny = getLayerLoc()->ny;
-//   const int nf = getLayerLoc()->nf;
-//   const int nb = getLayerLoc()->nb;
-//   pvdata_t * activity = getCLayer()->activity->data;
-//   pvdata_t * V = getV();
-//   for( int k=0; k<getNumExtended(); k++ ) {
-//      activity[k] = 0; // Would it be faster to only do the margins?
-//   }
-//   for( int k=0; k<getNumNeurons(); k++ ) {
-//      int kex = kIndexExtended(k, nx, ny, nf, nb);
-//      activity[kex] = V[k];
-//   }
-//   return PV_SUCCESS;
-//}
-
-//int HyPerLayer::resetGSynBuffers() {
-//   int n = getNumNeurons();
-//   for( int k=0; k<numChannels; k++ ) {
-//      resetBuffer( getChannel((ChannelType) k), n );
-//   }
-//   // resetBuffer( getChannel(CHANNEL_EXC), n );
-//   // resetBuffer( getChannel(CHANNEL_INH), n );
-//   return PV_SUCCESS;
-//}
-//
-//int HyPerLayer::resetBuffer( pvdata_t * buf, int numItems ) {
-//   assert(buf);
-//   for( int k=0; k<numItems; k++ ) buf[k] = 0.0;
-//   return PV_SUCCESS;
-//}
-//
-
 int HyPerLayer::recvAllSynapticInput() {
    int status = PV_SUCCESS;
    //Only recvAllSynapticInput if we need an update
    if(needUpdate(parent->simulationTime(), parent->getDeltaTime())){
-      //std::cout << "recvSynInput " << name << " on timestep " << parent->simulationTime() << " \n";
       int numConnections = parent->numberOfConnections();
       for (int c=0; c<numConnections; c++) {
          HyPerConn * conn = parent->getConnection(c);
@@ -1709,7 +1680,7 @@ int HyPerLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activity
 
       float a = activity->data[kPre] * dt_factor;
       // Activity < 0 is used by generative models --pete
-      if (a == 0.0f) continue;  // TODO - assume activity is sparse so make this common branch
+      if (a == 0.0f) continue;
 
       PVPatch * weights = conn->getWeights(kPre, arborID);
 
@@ -1724,7 +1695,6 @@ int HyPerLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activity
       size_t gSynPatchStartIndex = conn->getGSynPatchStart(kPre, arborID);
       pvdata_t * gSynPatchStart = gSynPatchHead + gSynPatchStartIndex;
       // GTK: gSynPatchStart redefined as offset from start of gSyn buffer
-      // TODO - unroll
       pvdata_t * data = conn->get_wData(arborID,kPre);
       uint4 * rngPtr = conn->getRandState(kPre);
       for (int y = 0; y < ny; y++) {
@@ -1823,6 +1793,15 @@ int HyPerLayer::insertProbe(LayerProbe * p)
    probes[numProbes] = p;
 
    return ++numProbes;
+}
+
+int HyPerLayer::outputProbeParams() {
+   int status = PV_SUCCESS;
+   for (int p=0; p<numProbes; p++) {
+      int status1 = probes[p]->ioParams(PARAMS_IO_WRITE);
+      if (status1 != PV_SUCCESS) { status = PV_FAILURE; }
+   }
+   return status;
 }
 
 int HyPerLayer::outputState(double timef, bool last)
@@ -2252,7 +2231,7 @@ int HyPerLayer::readState(double * timef)
    int chars_needed = snprintf(last_dir, PV_PATH_MAX, "%s/Last", parent->getOutputPath());
    if (chars_needed >= PV_PATH_MAX) {
       if (parent->icCommunicator()->commRank()==0) {
-         fprintf(stderr, "HyPerLayer::initializeState error: path \"%s/Last\" too long.\n", parent->getOutputPath());
+         fprintf(stderr, "HyPerLayer::readState error: path \"%s/Last\" too long.\n", parent->getOutputPath());
       }
       abort();
    }

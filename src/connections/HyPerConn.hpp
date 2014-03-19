@@ -46,15 +46,8 @@ class Random;
 class HyPerConn {
 
 public:
-	friend class CloneKernelConn;
-   HyPerConn();
-   HyPerConn(const char * name, HyPerCol * hc, const char * pre_layer_name, const char * post_layer_name);
-   HyPerConn(const char * name, HyPerCol * hc, const char * pre_layer_name, const char * post_layer_name,
-             const char * filename);
-   HyPerConn(const char * name, HyPerCol * hc, const char * pre_layer_name, const char * post_layer_name,
-             const char * filename, InitWeights *weightInit);
-   HyPerConn(const char * name, HyPerCol * hc, const char * pre_layer_name, const char * post_layer_name,
-             InitWeights *weightInit);
+   friend class CloneKernelConn;
+   HyPerConn(const char * name, HyPerCol * hc);
    virtual ~HyPerConn();
 #ifdef PV_USE_OPENCL
    virtual int deliverOpenCL(Publisher * pub, const PVLayerCube * cube);
@@ -62,6 +55,7 @@ public:
 
    virtual int communicateInitInfo();
    virtual int allocateDataStructures();
+   int ioParams(enum ParamsIOFlag ioFlag);
 
    // TODO The two routines below shouldn't be public, but HyPerCol needs to call them, so for now they are.
    void setInitInfoCommunicatedFlag() {initInfoCommunicatedFlag = true;}
@@ -76,6 +70,7 @@ public:
    virtual int checkpointRead(const char * cpDir, double* timef);
    virtual int checkpointWrite(const char * cpDir);
    virtual int insertProbe(BaseConnectionProbe* p);
+   int outputProbeParams();
    virtual int outputState(double time, bool last = false);
    int updateStateWrapper(double time, double dt);
    virtual int updateState(double time, double dt);
@@ -360,6 +355,7 @@ public:
    static int getPreAndPostLayerNames(const char * name, PVParams * params, char ** preLayerNamePtr, char ** postLayerNamePtr);
    static int inferPreAndPostFromConnName(const char * name, PVParams * params, char ** preLayerNamePtr, char ** postLayerNamePtr);
    virtual int handleMissingPreAndPostLayerNames();
+   virtual void ioParam_strength(enum ParamsIOFlag, float * strength, bool warnIfAbsent=true);
 
 #ifdef USE_SHMGET
    virtual bool getShmgetFlag(){
@@ -379,7 +375,7 @@ protected:
    HyPerLayer* pre;
    HyPerLayer* post;
    HyPerCol* parent;
-   char * filename; // Filename if loading weights from a file
+   // char * filename; // Filename if loading weights from a file
    int fileparams[NUM_WGT_PARAMS]; // The header of the file named by the filename member variable
    int numWeightPatches; // Number of PVPatch structures in buffer pointed to by wPatches[arbor]
    int numDataPatches; // Number of blocks of pvdata_t's in buffer pointed to by wDataStart[arbor]
@@ -406,12 +402,13 @@ private:
    float** wDataStart; //now that data for all patches are allocated to one continuous block of memory, this pointer saves the starting address of that array
    float** dwDataStart; //now that data for all patches are allocated to one continuous block of memory, this pointer saves the starting address of that array
    int defaultDelay; //added to save params file defined delay...
-   const float* fDelayArray;
+   float * fDelayArray;
    int delayArraySize;
-   bool triggerFlag; 
+   bool triggerFlag;
    char* triggerLayerName;
    double triggerOffset;
    HyPerLayer* triggerLayer;
+   bool strengthParamHasBeenWritten;
 
 protected:
    bool useWindowPost;
@@ -439,6 +436,7 @@ protected:
    BaseConnectionProbe** probes; // probes used to output data
    bool ioAppend; // controls opening of binary files
    double wPostTime; // time of last conversion to wPostPatches
+   double initialWriteTime;
    double writeTime; // time of next output, initialized in params file parameter initialWriteTime
    double writeStep; // output time interval
    bool writeCompressedWeights; // if true, outputState writes weights with 8-bit precision; if false, write weights with float precision
@@ -451,7 +449,7 @@ protected:
    bool plasticityFlag;
    bool combine_dW_with_W_flag; // indicates that dwDataStart should be set equal to wDataStart, useful for saving memory when weights are not being learned but not used
    bool selfFlag; // indicates that connection is from a layer to itself (even though pre and post may be separately instantiated)
-   const char * normalizeMethod;
+   char * normalizeMethod;
    NormalizeBase * normalizer;
    // bool normalize_flag; // replaced by testing whether normalizer!=NULL
    float normalize_strength;
@@ -466,7 +464,9 @@ protected:
    //are being moved into subclasses of this object.  The default root InitWeights class will create
    //2D Gaussian weights.  If weight initialization type isn't created in a way supported by Buildandrun,
    //this class will try to read the weights from a file or will do a 2D Gaussian.
+   char * weightInitTypeString;
    InitWeights* weightInitializer;
+   char * pvpatchAccumulateTypeString;
    GSynAccumulateType pvpatchAccumulateType;
    bool preActivityIsNotRate; // TODO Rename this member variable
    bool normalizeTotalToPost; // if false, normalize the sum of weights from each presynaptic neuron.  If true, normalize the sum of weights into a postsynaptic neuron.
@@ -477,6 +477,7 @@ protected:
 
    double weightUpdatePeriod;
    double weightUpdateTime;
+   double initialWeightUpdateTime;
    double lastUpdateTime;
 
    // unsigned int rngSeedBase; // The starting seed for rng.  The parent HyPerCol reserves {rngSeedbase, rngSeedbase+1,...rngSeedbase+neededRNGSeeds-1} for use by this layer
@@ -491,6 +492,7 @@ protected:
    bool ignoreGPUflag;     // Don't use GPU (overrides gpuAccelerateFlag)
 #endif // PV_USE_OPENCL
 protected:
+   HyPerConn();
    virtual int initNumWeightPatches();
    virtual int initNumDataPatches();
 
@@ -569,77 +571,78 @@ protected:
    int calcPatchSize(int n, int kex, int* kl, int* offset, int* nxPatch,
          int* nyPatch, int* dx, int* dy);
 #endif // OBSOLETE
-   int patchSizeFromFile(const char* filename);
+   // int patchSizeFromFile(const char* filename);
    int initialize_base();
    virtual int createArbors();
    void createArborsOutOfMemory();
    int initializeDelays(const float * fDelayArray, int size);
-   virtual int constructWeights(const char* filename);
-   int initialize(const char* name, HyPerCol* hc, const char * pre_layer_name,
-         const char * post_layer_name, const char* filename,
-         InitWeights* weightInit = NULL);
+   virtual int constructWeights();
+   int initialize(const char * name, HyPerCol * hc);
+   virtual int setPreAndPostLayerNames();
+   virtual int setWeightInitializer();
+   virtual InitWeights * createInitWeightsObject(const char * weightInitTypeStr);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_preLayerName(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_postLayerName(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_channelCode(enum ParamsIOFlag ioFlag);
+   // virtual void ioParam_initWeightsFile(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_weightInitType(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_plasticityFlag(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_weightUpdatePeriod(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_initialWeightUpdateTime(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_triggerFlag(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_triggerLayerName(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_triggerOffset(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_pvpatchAccumulateType(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_preActivityIsNotRate(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_writeStep(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_initialWriteTime(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_writeCompressedWeights(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_writeCompressedCheckpoints(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_selfFlag(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_combine_dW_with_W_flag(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_delay(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_nxp(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_nyp(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_nxpShrunken(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_nypShrunken(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_nfp(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_shrinkPatches(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_shrinkPatchesThresh(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_updateGSynFromPostPerspective(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_dWMax(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_normalizeMethod(enum ParamsIOFlag ioFlag);
    int setParent(HyPerCol * hc);
    int setName(const char * name);
    int setPreLayerName(const char * pre_name);
    int setPostLayerName(const char * post_name);
-   int setFilename(const char * filename);
-   int setWeightInitializer(InitWeights * weightInit);
+//   int setFilename(const char * filename);
    virtual int initPlasticityPatches();
    virtual int setPatchSize(); // Sets nxp, nyp, nfp if weights are loaded from file.  Subclasses override if they have specialized ways of setting patch size that needs to go in the communicate stage.
                                // (e.g. BIDSConn uses pre and post layer size to set nxp,nyp, but pre and post aren't set until communicateInitInfo().
-   virtual void handleDefaultSelfFlag();
+   virtual void handleDefaultSelfFlag(); // If selfFlag was not set in params, set it in this function.
    virtual PVPatch*** initializeWeights(PVPatch*** arbors, float** dataStart,
-         int numPatches, const char* filename);
+         int numPatches);
    virtual InitWeights* getDefaultInitWeightsMethod(const char* keyword);
    virtual InitWeights* handleMissingInitWeights(PVParams* params);
    virtual int createWeights(PVPatch*** patches, int nWeightPatches, int nDataPatches, int nxPatch,
          int nyPatch, int nfPatch, int arborId);
    int createWeights(PVPatch*** patches, int arborId);
    virtual pvdata_t * allocWeights(int nPatches, int nxPatch, int nyPatch, int nfPatch);
-   //virtual pvdata_t * allocWeights(PVPatch *** patches, int nPatches, int nxPatch,
-   //      int nyPatch, int nfPatch, int arborId);
-   //PVPatch ** allocWeights(PVPatch ** patches);
    int clearWeights(float** dataStart, int numPatches, int nx, int ny, int nf);
-   virtual int initNormalize();
-   virtual int checkPVPFileHeader(Communicator* comm, const PVLayerLoc* loc,
-         int params[], int numParams);
-   virtual int checkWeightsHeader(const char* filename, const int wgtParams[]);
-   // virtual int deleteWeights(); // Changed to a private method.  Should not be virtual since it's called from the destructor.
+   // virtual int checkPVPFileHeader(Communicator* comm, const PVLayerLoc* loc,
+   //       int params[], int numParams);
+   // virtual int checkWeightsHeader(const char* filename, const int wgtParams[]);
    virtual int adjustAxonalArbors(int arborId);
    int checkpointFilename(char * cpFilename, int size, const char * cpDir);
-   // int writeScalarFloat(const char * cp_dir, const char * val_name, double val); // Replaced by HyPerCol::writeScalarToFile
 
    virtual int calc_dW(int arborId = 0);
    void connOutOfMemory(const char* funcname);
 
-   virtual int setParams(PVParams* params);
-   void readTriggerFlag(PVParams * params);
-   virtual void readChannelCode(PVParams * params);
-   virtual void readNumAxonalArbors(PVParams * params);
-   virtual void readPlasticityFlag(PVParams * params);
-   virtual void readWeightUpdatePeriod(PVParams * params);
-   virtual void readInitialWeightUpdateTime(PVParams * params);
-   virtual void readPvpatchAccumulateType(PVParams * params);
-   virtual void readPreActivityIsNotRate(PVParams * params);
-   virtual void readWriteCompressedWeights(PVParams * params);
-   virtual void readWriteCompressedCheckpoints(PVParams * params);
-   virtual void readSelfFlag(PVParams * params);
-   virtual void readCombine_dW_with_W_flag(PVParams * params);
-   virtual void read_dWMax(PVParams * params);
-   virtual void readShrinkPatches(PVParams * params);
-   virtual void readWriteStep(PVParams * params);
-   virtual void readInitialWriteTime(PVParams * params);
-   virtual void readDelay(PVParams * params);
-   virtual int readPatchSize(PVParams * params);
-   virtual int readPatchSizeFromFile(const char * filename);
-   virtual int checkShrunkenSize();
-   virtual int readNfp(PVParams * params);
-   virtual void readUseListOfArborFiles(PVParams * params);
-   virtual void readCombineWeightFiles(PVParams * params);
-   virtual void readUpdateGSynFromPostPerspective(PVParams * params);
-   void handleUnnecessaryIntParameter(const char * paramName, int correctValue);
-   void handleUnnecessaryFloatingPointParameter(const char * paramName, double correctValue);
-   void handleUnnecessaryParameterString(const char * paramName, const char * correctValue, bool case_insensitive=false);
+   // virtual int readPatchSizeFromFile(const char * filename);
+   // virtual void readUseListOfArborFiles(PVParams * params);
+   // virtual void readCombineWeightFiles(PVParams * params);
 
 #ifdef PV_USE_OPENCL
    virtual void initIgnoreGPUFlag(); // sets the ignoreGPUFlag parameter.  virtual so that a class can make it always false or always true

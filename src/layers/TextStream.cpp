@@ -30,6 +30,7 @@ TextStream::~TextStream() {
 }
 
 int TextStream::initialize_base() {
+   numChannels = 0;
    displayPeriod = 1;
    //nextDisplayTime = 1;
    textOffset = 0;
@@ -49,7 +50,7 @@ int TextStream::initialize(const char * name, HyPerCol * hc) {
    //TODO: Where can I put this?
    //assert(parent->numCommColumns()==1); // Can't split up by letters, only by words (rows, or y)
 
-   HyPerLayer::initialize(name, hc, 0);
+   HyPerLayer::initialize(name, hc);
 
    // Moved to allocateDataStructures()
    free(clayer->V);
@@ -91,56 +92,70 @@ int TextStream::initialize(const char * name, HyPerCol * hc) {
    return status;
 }
 
-int TextStream::setParams(PVParams * params) {
-   readUseCapitalization(params);
-   readLoopInput(params);
-   readTextInputPath(params);
-   readDisplayPeriod(params);
-   readTextOffset(params);
-   readTextBCFlag(params);
+int TextStream::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   PVParams * params = parent->parameters();
+   ioParam_useCapitalization(ioFlag); // This line needs to be before HyPerLayer::ioParamsFillGroup call, since numFeatures depends on useCapitalization
+   ioParam_loopInput(ioFlag);
+   ioParam_textInputPath(ioFlag);
+   ioParam_displayPeriod(ioFlag);
+   ioParam_textOffset(ioFlag);
+   ioParam_textBCFlag(ioFlag);
 
-   int status = HyPerLayer::setParams(params);
+   int status = HyPerLayer::ioParamsFillGroup(ioFlag);
 
    return status;
 }
 
-void TextStream::readNxScale(PVParams * params) {
-   nxScale = 1; // Layer size needs to equal column size
+void TextStream::ioParam_nxScale(enum ParamsIOFlag ioFlag) {
+   if (ioFlag == PARAMS_IO_READ) nxScale = 1; // Layer size needs to equal column size
 }
 
-void TextStream::readNyScale(PVParams * params) {
-   nyScale = 1; // Layer size needs to equal column size
+void TextStream::ioParam_nyScale(enum ParamsIOFlag ioFlag) {
+   if (ioFlag == PARAMS_IO_READ) nyScale = 1; // Layer size needs to equal column size
 }
 
-void TextStream::readNf(PVParams * params) {
+void TextStream::ioParam_nf(enum ParamsIOFlag ioFlag) {
    // useCapitalization  : (97) Number of printable ASCII characters + new line (\r,\n) + other
    // !useCapitalization : (71) Number of printable ASCII characters - capital letters + new line + other
-   numFeatures = useCapitalization ? 95+1+1 : 95-26+1+1;
+   if (ioFlag == PARAMS_IO_READ) {
+      assert(!parent->parameters()->presentAndNotBeenRead(name, "useCapitalization "));
+      numFeatures = useCapitalization ? 95+1+1 : 95-26+1+1;
+   }
 }
 
-void TextStream::readDisplayPeriod(PVParams * params) {
-   displayPeriod = params->value(name,"displayPeriod",displayPeriod);
+void TextStream::ioParam_displayPeriod(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "displayPeriod", &displayPeriod, displayPeriod);
 }
 
-void TextStream::readUseCapitalization(PVParams * params) {
-   useCapitalization = (bool) params->value(name, "useCapitalization", useCapitalization);
+void TextStream::ioParam_useCapitalization(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "useCapitalization", &useCapitalization, useCapitalization);
 }
 
-void TextStream::readTextInputPath(PVParams * params) {
-   filename = params->stringValue(name,"textInputPath","random");
+void TextStream::ioParam_textInputPath(enum ParamsIOFlag ioFlag) {
+   parent->ioParamString(ioFlag, name, "textInputPath", &filename, "random");
+   // filename = params->stringValue(name,"textInputPath","random");
+   // Presumably "random" was meant as a default value when passing it to PVParams::stringValue
+   // but PVParams::stringValue doesn't have default values (the third argument is bool warnIfAbsent).
 }
 
-void TextStream::readLoopInput(PVParams * params) {
-   loopInput = (bool) params->value(name,"loopInput",loopInput);
+void TextStream::ioParam_loopInput(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "loopInput", &loopInput, loopInput);
 }
 
-void TextStream::readTextOffset(PVParams * params) {
-   textOffset = params->value(name,"textOffset",textOffset);
+void TextStream::ioParam_textOffset(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "textOffset", &textOffset, textOffset);
 }
 
-void TextStream::readTextBCFlag(PVParams * params) {
-   textBCFlag = params->value(name,"textBCFlag",textBCFlag);
+void TextStream::ioParam_textBCFlag(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "textBCFlag", &textBCFlag, textBCFlag);
 }
+
+void TextStream::ioParam_mirrorBCflag(enum ParamsIOFlag ioFlag) {
+   if (ioFlag==PARAMS_IO_READ) {
+      mirrorBCflag = false;
+      parent->parameters()->handleUnnecessaryParameter(name, "mirrorBCflag", false);
+   }
+} // Flag doesn't make sense for text
 
 int TextStream::allocateDataStructures() {
    int status = HyPerLayer::allocateDataStructures();
@@ -229,12 +244,12 @@ int TextStream::scatterTextBuffer(PV::Communicator * comm, const PVLayerLoc * lo
 
    int numExtendedNeurons = loc_ny * loc_nx * loc->nf;
 
-   //	//TODO: Change to loc_ny?
-   //	if (loc->ny % comm_size != 0) { // Need to be able to devide the number of neurons in the y (words) direction by the number of procs
-   //		fprintf(stderr, "textStream: Number of processors must evenly devide into number of words. NumProcs=%d, NumWords=%d",comm_size,loc->ny);
-   //		status = PV_FAILURE;
-   //		abort();
-   //	}
+   //   //TODO: Change to loc_ny?
+   //   if (loc->ny % comm_size != 0) { // Need to be able to devide the number of neurons in the y (words) direction by the number of procs
+   //      fprintf(stderr, "textStream: Number of processors must evenly devide into number of words. NumProcs=%d, NumWords=%d",comm_size,loc->ny);
+   //      status = PV_FAILURE;
+   //      abort();
+   //   }
 
    //TODO: Would it be more efficient to move this to initialize?
    size_t datasize = sizeof(int);
@@ -482,21 +497,21 @@ int TextStream::loadBufferIntoData(const PVLayerLoc * loc, int * buf) {
       }
    }
 
-   //	std::cout<<"----- RANK = "<<parent->columnId()<<"-----\n";
-   //	locIdx = 0;
-   //	for (int idx=0; idx<loc_ny*loc_nx; idx++) {
-   //		for (int f=0; f<loc->nf; f++) {
-   //			if (buf[locIdx]!=0) {
-   //				std::cout<<f<<"  ";
-   //			}
-   //			if(textData[locIdx]!=0){
-   //				std::cout<<f<<"  ";
-   //			}
-   //			locIdx++;
-   //		}
-   //		std::cout<<"\n";
-   //	}
-   //	std::cout<<"\n\n\n";
+   //   std::cout<<"----- RANK = "<<parent->columnId()<<"-----\n";
+   //   locIdx = 0;
+   //   for (int idx=0; idx<loc_ny*loc_nx; idx++) {
+   //      for (int f=0; f<loc->nf; f++) {
+   //         if (buf[locIdx]!=0) {
+   //            std::cout<<f<<"  ";
+   //         }
+   //         if(textData[locIdx]!=0){
+   //            std::cout<<f<<"  ";
+   //         }
+   //         locIdx++;
+   //      }
+   //      std::cout<<"\n";
+   //   }
+   //   std::cout<<"\n\n\n";
 
    return PV_SUCCESS;
 }

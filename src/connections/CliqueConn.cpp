@@ -12,12 +12,9 @@ int pvpatch_update_clique2(int nk, float* RESTRICT v, float a, float* RESTRICT w
 
 namespace PV {
 
-CliqueConn::CliqueConn(const char * name, HyPerCol * hc, const char * pre_layer_name,
-      const char * post_layer_name, const char * filename,
-      InitWeights *weightInit)
-{
+CliqueConn::CliqueConn(const char * name, HyPerCol * hc) {
    CliqueConn::initialize_base();
-   CliqueConn::initialize(name, hc, pre_layer_name, post_layer_name, filename, weightInit);
+   CliqueConn::initialize(name, hc);
 }
 
 int CliqueConn::initialize_base(){
@@ -26,21 +23,18 @@ int CliqueConn::initialize_base(){
    return PV_SUCCESS;
 }
 
-int CliqueConn::initialize(const char * name, HyPerCol * hc,
-      const char * pre_layer_name, const char * post_layer_name,
-      const char * filename, InitWeights *weightInit){
-   KernelConn::initialize(name, hc, pre_layer_name, post_layer_name, filename, weightInit);
+int CliqueConn::initialize(const char * name, HyPerCol * hc) {
+   KernelConn::initialize(name, hc);
    return PV_SUCCESS;
 }
 
-int CliqueConn::setParams(PVParams * params) {
-   int status = KernelConn::setParams(params);
-   readCliqueSize(params);
+int CliqueConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = KernelConn::ioParamsFillGroup(ioFlag);
    return status;
 }
 
-void CliqueConn::readCliqueSize(PVParams * params) {
-   cliqueSize = (int)params->value(name, "cliqueSize", 1, true);
+void CliqueConn::ioParam_cliqueSize(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "cliqueSize", &cliqueSize, 1, true);
 }
 
 int CliqueConn::updateState(double time, double dt)

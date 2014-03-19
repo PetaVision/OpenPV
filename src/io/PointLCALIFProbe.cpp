@@ -18,11 +18,10 @@ PointLCALIFProbe::PointLCALIFProbe() {
    // Derived classes should use this PointLCALIFProb constructor, and should call initPointLCALIFProbe during their initialization
 }
 
-PointLCALIFProbe::PointLCALIFProbe(const char * filename, HyPerLayer * layer, int xLoc, int yLoc, int fLoc,
-      const char * msg) : PointLIFProbe()
+PointLCALIFProbe::PointLCALIFProbe(const char * probeName, HyPerCol * hc) : PointLIFProbe()
 {
    initPointLCALIFProbe_base();
-   initPointLCALIFProbe(filename, layer, xLoc, yLoc, fLoc, msg);
+   initPointLCALIFProbe(probeName, hc);
 }
 
 PointLCALIFProbe::~PointLCALIFProbe() {
@@ -32,8 +31,8 @@ int PointLCALIFProbe::initPointLCALIFProbe_base() {
    return PV_SUCCESS;
 }
 
-int PointLCALIFProbe::initPointLCALIFProbe(const char * filename, HyPerLayer * layer, int xLoc, int yLoc, int fLoc, const char * msg) {
-   return initPointLCALIFProbe(filename, layer, xLoc, yLoc, fLoc, msg);
+int PointLCALIFProbe::initPointLCALIFProbe(const char * probeName, HyPerCol * hc) {
+   return initPointLIFProbe(probeName, hc);
 }
 
 /**

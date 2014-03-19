@@ -20,16 +20,9 @@ public:
    virtual ~InitRuleWeightsParams();
    void calcOtherParams(int patchIndex);
 
-   //get/set methods:
-   inline float getStrength()        {return strength;}
-
 protected:
    int initialize_base();
    int initialize(HyPerConn * parentConn);
-
-private:
-   float strength;
-
 };
 
 } /* namespace PV */

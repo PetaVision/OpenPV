@@ -13,9 +13,9 @@ TrainingLayer::TrainingLayer() {
    initialize_base();
 }
 
-TrainingLayer::TrainingLayer(const char * name, HyPerCol * hc, const char * filename) {
+TrainingLayer::TrainingLayer(const char * name, HyPerCol * hc) {
    initialize_base();
-   initialize(name, hc, filename);
+   initialize(name, hc);
 }
 
 TrainingLayer::~TrainingLayer() {
@@ -24,40 +24,48 @@ TrainingLayer::~TrainingLayer() {
 }
 
 int TrainingLayer::initialize_base() {
+   numChannels = 0;
    trainingLabels = NULL;
    return PV_SUCCESS;
 }
 
-int TrainingLayer::initialize(const char * name, HyPerCol * hc, const char * filename) {
-   if (filename==NULL) {
-      fprintf(stderr, "TrainingLayer \"%s\" error: filename cannot be null.\n", name);
-      abort();
-   }
-   this->filename = strdup(filename);
-   if (this->filename==NULL) {
-      fprintf(stderr, "TrainingLayer \"%s\" error copying filename \"%s\": %s.\n", name, filename, strerror(errno));
-      abort();
-   }
-   int status = ANNLayer::initialize(name, hc, MAX_CHANNELS);
-   PVParams * params = hc->parameters();
-   this->displayPeriod = params->value(name, "displayPeriod", -1);
-   this->distToData = params->value(name, "distToData", -1);
+int TrainingLayer::initialize(const char * name, HyPerCol * hc) {
+   int status = ANNLayer::initialize(name, hc);
+
+   curTrainingLabelIndex = 0;
+   PVParams * params = parent->parameters();
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "displayPeriod"));
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "distToData"));
    if( displayPeriod < 0 || distToData < 0) {
       fprintf(stderr, "Constructor for TrainingLayer \"%s\" requires parameters displayPeriod and distToData to be set to nonnegative values in the params file.\n", name);
       exit(PV_FAILURE);
    }
-   strength = params->value(name, "strength", 1);
-   // errno = 0;
-   // numTrainingLabels = readTrainingLabels( filename, &this->trainingLabels ); // trainingLabelsFromFile allocated within this readTrainingLabels call
-   // if( this->trainingLabels == NULL) return PV_FAILURE;
-   // if( numTrainingLabels <= 0) {
-   //    fprintf(stderr, "Training Layer \"%s\": No training labels.  Exiting\n", name);
-   //    exit( errno ? errno : EXIT_FAILURE );
-   // }
-   curTrainingLabelIndex = 0;
-   this->nextLabelTime = displayPeriod + distToData;
-
+   nextLabelTime = displayPeriod + distToData;
    return status;
+}
+
+int TrainingLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = ANNLayer::ioParamsFillGroup(ioFlag);
+   ioParam_trainingLabelsPath(ioFlag);
+   ioParam_displayPeriod(ioFlag);
+   ioParam_distToData(ioFlag);
+   ioParam_strength(ioFlag);
+   return PV_SUCCESS;
+}
+void TrainingLayer::ioParam_trainingLabelsPath(enum ParamsIOFlag ioFlag) {
+   parent->ioParamString(ioFlag, name, "trainingLabelsPath", &filename, NULL, true/*warnIfAbsent*/);
+}
+
+void TrainingLayer::ioParam_displayPeriod(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "displayPeriod", &displayPeriod, -1.0f, true/*warnIfAbsent*/);
+}
+
+void TrainingLayer::ioParam_distToData(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "distToData", &distToData, -1.0f, true/*warnIfAbsent*/);
+}
+
+void TrainingLayer::ioParam_strength(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "strength", &strength, (pvdata_t) 1, true/*warnIfAbsent*/);
 }
 
 int TrainingLayer::allocateDataStructures() {
@@ -108,47 +116,32 @@ int TrainingLayer::readTrainingLabels(const char * filename, int ** trainingLabe
    return n;
 }
 
-int TrainingLayer::initializeState() {
-   int status = PV_SUCCESS;
-   PVParams * params = parent->parameters();
-   assert(!params->presentAndNotBeenRead(name, "restart"));
-   if (restartFlag) {
-      double timef;
-      status = readState(&timef);
-   }
-   else {
-      pvdata_t * V = getV();
-      for( int k=0; k < getNumNeurons(); k++ ) V[k] = 0;
-      // above line not necessary if V was allocated with calloc
-      getV()[trainingLabels[curTrainingLabelIndex]] = strength; // setLabeledNeuron();
-      const PVLayerLoc * loc = getLayerLoc();
-      status = setActivity_HyPerLayer(getNumNeurons(), getCLayer()->activity->data, getV(), loc->nx, loc->ny, loc->nf, loc->nb);
-      // needed because updateState won't call setActivity until the first update period has passed.
-      // setActivity();
-   }
-   return status;
+int TrainingLayer::initializeV() {
+   memset(getV(), 0, ((size_t) getNumNeurons())*sizeof(pvdata_t));
+   // above line not necessary if V was allocated with calloc
+   getV()[trainingLabels[curTrainingLabelIndex]] = strength;
+   return PV_SUCCESS;
 }
 
-int TrainingLayer::updateState(double timef, double dt) {
-   int status = PV_SUCCESS;
-   if(timef >= nextLabelTime) {
-      nextLabelTime += displayPeriod;
-      status = updateState(timef, dt, getLayerLoc(), getCLayer()->activity->data, getV(), numTrainingLabels, trainingLabels, curTrainingLabelIndex, strength);
-   }
+bool TrainingLayer::needUpdate(double timed, double dt) {
+   return timed >= nextLabelTime;
+}
+
+int TrainingLayer::updateState(double timed, double dt) {
+   nextLabelTime += displayPeriod;
+   int status = updateState(timed, dt, getLayerLoc(), getCLayer()->activity->data, getV(), numTrainingLabels, trainingLabels, curTrainingLabelIndex, strength);
    if( status == PV_SUCCESS ) status = updateActiveIndices();
    return status;
 }
 
-int TrainingLayer::updateState(double timef, double dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int numTrainingLabels, int * trainingLabels, int traininglabelindex, int strength) {
+int TrainingLayer::updateState(double timed, double dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int numTrainingLabels, int * trainingLabels, int traininglabelindex, int strength) {
    int nx = loc->nx;
    int ny = loc->ny;
    int nf = loc->nf;
    int num_neurons = nx*ny*nf;
    updateV_TrainingLayer(num_neurons, V, numTrainingLabels, trainingLabels, curTrainingLabelIndex, strength);
    curTrainingLabelIndex++;
-   setActivity_HyPerLayer(num_neurons, A, V, nx, ny, nf, loc->nb); // setActivity();
-   // resetGSynBuffers(); // Since V doesn't use GSyn when updating, no need to reset GSyn buffers
-      // return ANNLayer::updateState(time, dt);
+   setActivity_HyPerLayer(num_neurons, A, V, nx, ny, nf, loc->nb);
    return PV_SUCCESS;
 }
 

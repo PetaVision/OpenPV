@@ -22,15 +22,15 @@ namespace PV {
 class NormalizeScale: public PV::NormalizeBase {
    // Member functions
    public:
-      NormalizeScale(const char * name, PVParams * params);
+      NormalizeScale(HyPerConn * callingConn);
       virtual ~NormalizeScale();
 
       virtual int normalizeWeights(HyPerConn * conn);
 
    protected:
       NormalizeScale();
-      int initialize(const char * name, PVParams * params);
-      virtual int setParams();
+      int initialize(HyPerConn * callingConn);
+      virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
 
    private:
       int initialize_base();

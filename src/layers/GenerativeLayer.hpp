@@ -21,7 +21,6 @@ namespace PV {
 class GenerativeLayer : public ANNLayer {
 public:
    GenerativeLayer(const char * name, HyPerCol * hc);
-//   GenerativeLayer(const char * name, HyPerCol * hc, PVLayerType type);
    ~GenerativeLayer();
 
    virtual int allocateDataStructures();
@@ -34,6 +33,12 @@ public:
 protected:
    GenerativeLayer();
    int initialize(const char * name, HyPerCol * hc);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_relaxation(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_activityThreshold(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_auxChannelCoeff(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_sparsityTermCoefficient(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_persistence(enum ParamsIOFlag ioFlag);
    /* static */ int updateState(double timef, double dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels, pvdata_t * gSynHead, pvdata_t * sparsitytermderivative, pvdata_t * dAold, pvdata_t VMax, pvdata_t VMin, pvdata_t VThresh, pvdata_t VShift, pvdata_t VWidth, pvdata_t relaxation, pvdata_t auxChannelCoeff, pvdata_t sparsityTermCoeff, pvdata_t persistence, pvdata_t activity_threshold, bool spiking, unsigned int * active_indices, unsigned int * num_active);
    virtual int setActivity();
    static pvdata_t reduce_relaxation(int num_neurons, pvdata_t * V, pvdata_t * dV, pvdata_t relaxation);

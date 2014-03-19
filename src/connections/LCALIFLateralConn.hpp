@@ -19,7 +19,7 @@ class LCALIFLateralConn: public PV::HyPerConn {
 
 // Methods
 public:
-   LCALIFLateralConn(const char * name, HyPerCol * hc, const char * pre_layer_name, const char * post_layer_name, const char * filename, InitWeights * weightInit);
+   LCALIFLateralConn(const char * name, HyPerCol * hc);
    virtual ~LCALIFLateralConn();
    virtual int communicateInitInfo();
    virtual int allocateDataStructures();
@@ -31,21 +31,19 @@ public:
    float getTargetRateKHz() {return targetRateKHz;}
 
    virtual int outputState(double time, bool last=false);
-   virtual int setParams(PVParams * params); // Really should be protected
 
    virtual int checkpointWrite(const char * cpDir);
    virtual int checkpointRead(const char * cpDir, double * timef);
 
 protected:
    LCALIFLateralConn();
-   int initialize(const char * name, HyPerCol * hc, const char * pre_layer_name, const char * post_layer_name, const char * filename, InitWeights * weightInit);
+   int initialize(const char * name, HyPerCol * hc);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_integrationTimeConstant(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_inhibitionTimeConstant(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_targetRate(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_coorThresh(enum ParamsIOFlag ioFlag);
    virtual int calc_dW(int axonId = 0);
-
-   virtual void read_dWMax(PVParams * params) {HyPerConn::read_dWMax(params);}
-   virtual void readIntegrationTimeConstant() {integrationTimeConstant = getParent()->parameters()->value(name, "integrationTimeConstant", 1.0);}
-   virtual void readInhibitionTimeConstant() {inhibitionTimeConstant = getParent()->parameters()->value(name, "inhibitionTimeConstant", 1.0);}
-   virtual void readTargetRate() {targetRateKHz = 0.001 * getParent()->parameters()->value(name, "targetRate", 1.0);}
-   virtual void readCorrThresh() {corrThresh = getParent()->parameters()->value(name, "coorThresh", corrThresh);}
 
    virtual int updateIntegratedSpikeCount();
 

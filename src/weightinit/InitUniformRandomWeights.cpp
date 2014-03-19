@@ -10,6 +10,11 @@
 
 namespace PV {
 
+InitUniformRandomWeights::InitUniformRandomWeights(HyPerConn * conn) {
+   initialize_base();
+   initialize(conn);
+}
+
 InitUniformRandomWeights::InitUniformRandomWeights() {
    initialize_base();
 }
@@ -21,7 +26,12 @@ int InitUniformRandomWeights::initialize_base() {
    return PV_SUCCESS;
 }
 
-InitWeightsParams * InitUniformRandomWeights::createNewWeightParams(HyPerConn * callingConn) {
+int InitUniformRandomWeights::initialize(HyPerConn * conn) {
+   int status = InitRandomWeights::initialize(conn);
+   return status;
+}
+
+InitWeightsParams * InitUniformRandomWeights::createNewWeightParams() {
    InitWeightsParams * tempPtr = new InitUniformRandomWeightsParams(callingConn);
    return tempPtr;
 }
@@ -57,9 +67,9 @@ int InitUniformRandomWeights::randomWeights(pvdata_t * patchDataStart, InitWeigh
 
    // loop over all post-synaptic cells in patch
 
-   const int nxp = weightParamPtr->getnxPatch_tmp();
-   const int nyp = weightParamPtr->getnyPatch_tmp();
-   const int nfp = weightParamPtr->getnfPatch_tmp();
+   const int nxp = weightParamPtr->getnxPatch();
+   const int nyp = weightParamPtr->getnyPatch();
+   const int nfp = weightParamPtr->getnfPatch();
    const int patchSize = nxp*nyp*nfp;
    for (int n=0; n<patchSize; n++) {
       pvdata_t data = minwgt + (pvdata_t) (p * (double) randState->randomUInt(patchIndex));

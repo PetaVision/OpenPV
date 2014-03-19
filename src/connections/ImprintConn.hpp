@@ -15,9 +15,7 @@ class ImprintConn: public KernelConn {
 
 public:
    ImprintConn();
-   ImprintConn(const char * name, HyPerCol * hc,
-      const char * pre_layer_name, const char * post_layer_name,
-      const char * filename, InitWeights *weightInit);
+   ImprintConn(const char * name, HyPerCol * hc);
    virtual ~ImprintConn();
 
    //virtual int communicateInitInfo();
@@ -29,10 +27,9 @@ public:
    //virtual int updateWeights(int arbor_ID);
 
 protected:
-   //int initialize(const char * name, HyPerCol * hc,
-   //               const char * pre_layer_name, const char * post_layer_name,
-   //               const char * filename, InitWeights *weightInit=NULL);
-   virtual int setParams(PVParams * params);
+   //int initialize(const char * name, HyPerCol * hc);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_imprintTimeThresh(enum ParamsIOFlag ioFlag);
    bool imprintFeature(int arborId, int kExt);
    double imprintTimeThresh;
    double* lastActiveTime;

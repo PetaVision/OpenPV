@@ -43,11 +43,9 @@ ReciprocalConn::ReciprocalConn() {
 
 }
 
-ReciprocalConn::ReciprocalConn(const char * name, HyPerCol * hc,
-      const char * pre_layer_name, const char * post_layer_name,
-      const char * filename, InitWeights * weightInit) {
+ReciprocalConn::ReciprocalConn(const char * name, HyPerCol * hc) {
    initialize_base();
-   initialize(name, hc, pre_layer_name, post_layer_name, filename, weightInit);
+   initialize(name, hc);
 }
 
 int ReciprocalConn::initialize_base() {
@@ -64,60 +62,60 @@ int ReciprocalConn::initialize_base() {
    return PV_SUCCESS;
 }
 
-int ReciprocalConn::initialize(const char * name, HyPerCol * hc,
-      const char * pre_layer_name, const char * post_layer_name,
-      const char * filename, InitWeights * weightInit) {
-   int status = KernelConn::initialize(name, hc, pre_layer_name, post_layer_name, filename, weightInit);
-
+int ReciprocalConn::initialize(const char * name, HyPerCol * hc) {
+   int status = KernelConn::initialize(name, hc);
    return status;
 }
 
-int ReciprocalConn::setParams(PVParams * params) {
-   int status = KernelConn::setParams(params);
-   readRelaxationRate(params);
-   readReciprocalFidelityCoeff(params);
-   status = readUpdateRulePre(params)==PV_SUCCESS ? status : PV_FAILURE;
-   status = readUpdateRulePost(params)==PV_SUCCESS ? status : PV_FAILURE;
-   readSlownessFlag(params);
-   status = readSlownessPre(params)==PV_SUCCESS ? status : PV_FAILURE;
-   status = readSlownessPost(params)==PV_SUCCESS ? status : PV_FAILURE;
-   status = readReciprocalWgts(params)==PV_SUCCESS ? status : PV_FAILURE;
-   MPI_Barrier(parent->icCommunicator()->communicator());
-   if (status != PV_SUCCESS) exit(EXIT_FAILURE);
-   if( status != PV_SUCCESS ) abort();
+int ReciprocalConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = KernelConn::ioParamsFillGroup(ioFlag);
+   ioParam_relaxationRate(ioFlag);
+   ioParam_reciprocalFidelityCoeff(ioFlag);
+   ioParam_updateRulePre(ioFlag);
+   ioParam_updateRulePost(ioFlag);
+   ioParam_slownessFlag(ioFlag);
+   ioParam_slownessPre(ioFlag);
+   ioParam_slownessPost(ioFlag);
+   ioParam_reciprocalWgts(ioFlag);
    return status;
 }
 
-void ReciprocalConn::readRelaxationRate(PVParams * params) {
-   relaxationRate = params->value(name, "relaxationRate", 1.0f);
+void ReciprocalConn::ioParam_relaxationRate(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "relaxationRate", &relaxationRate, 1.0f);
 }
 
-void ReciprocalConn::readReciprocalFidelityCoeff(PVParams * params) {
-   reciprocalFidelityCoeff = params->value(name, "reciprocalFidelityCoeff", 1.0f);
+void ReciprocalConn::ioParam_reciprocalFidelityCoeff(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "reciprocalFidelityCoeff", &reciprocalFidelityCoeff, 1.0f);
 }
 
-int ReciprocalConn::readUpdateRulePre(PVParams * params) {
-   return getLayerName(params, "updateRulePre", &updateRulePreName, preLayerName);
+void ReciprocalConn::ioParam_updateRulePre(enum ParamsIOFlag ioFlag) {
+   parent->ioParamString(ioFlag, name, "updateRulePre", &updateRulePreName, preLayerName);
 }
 
-int ReciprocalConn::readUpdateRulePost(PVParams * params) {
-   return getLayerName(params, "updateRulePost", &updateRulePostName, postLayerName);
+void ReciprocalConn::ioParam_updateRulePost(enum ParamsIOFlag ioFlag) {
+   parent->ioParamString(ioFlag, name, "updateRulePost", &updateRulePostName, postLayerName);
 }
 
-void ReciprocalConn::readSlownessFlag(PVParams * params) {
-   slownessFlag = params->value(name, "slownessFlag", false)!=0;
+void ReciprocalConn::ioParam_slownessFlag(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "slownessFlag", &slownessFlag, false/*default value*/);
 }
 
-int ReciprocalConn::readSlownessPre(PVParams * params) {
-   assert(!params->presentAndNotBeenRead(name, "slownessFlag"));
-   return getLayerName(params, "slownessPre", &slownessPreName, NULL);
+void ReciprocalConn::ioParam_slownessPre(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "slownessFlag"));
+   if (slownessFlag) {
+      parent->ioParamString(ioFlag, name, "slownessPre", &slownessPreName, NULL);
+   }
 }
 
-int ReciprocalConn::readSlownessPost(PVParams * params) {
-   int status = PV_SUCCESS;
-   assert(!params->presentAndNotBeenRead(name, "slownessFlag"));
-   return getLayerName(params, "slownessPost", &slownessPostName, NULL);
-   return status;
+void ReciprocalConn::ioParam_slownessPost(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "slownessFlag"));
+   if (slownessFlag) {
+      parent->ioParamString(ioFlag, name, "slownessPost", &slownessPostName, NULL);
+   }
+}
+
+void ReciprocalConn::ioParam_reciprocalWgts(enum ParamsIOFlag ioFlag) {
+   parent->ioParamStringRequired(ioFlag, name, "reciprocalWgts", &reciprocalWgtsName);
 }
 
 int ReciprocalConn::getLayerName(PVParams * params, const char * parameter_name, char ** layer_name_ptr, const char * default_name) {
@@ -149,16 +147,6 @@ int ReciprocalConn::getLayerName(PVParams * params, const char * parameter_name,
    return status;
 }
 
-int ReciprocalConn::readReciprocalWgts(PVParams * params) {
-   reciprocalWgtsName = params->stringValue(name, "reciprocalWgts");
-   int status = PV_SUCCESS;
-   if( reciprocalWgtsName == NULL || reciprocalWgtsName[0] == '0') {
-      fprintf(stderr, "ReciprocalConn \"%s\": reciprocalWgts must be defined.\n", name);
-      status = PV_FAILURE;
-   }
-   return status;
-}
-
 int ReciprocalConn::communicateInitInfo() {
    int status = KernelConn::communicateInitInfo();
    status = setParameterLayer("updateRulePre", updateRulePreName, &updateRulePre)==PV_SUCCESS ? status : PV_FAILURE;
@@ -178,16 +166,6 @@ int ReciprocalConn::setParameterLayer(const char * paramname, const char * layer
       status = PV_FAILURE;
    }
    return status;
-}
-
-int ReciprocalConn::initNormalize() {
-   // PVParams * params = parent->parameters();
-   nxUnitCellPost = zUnitCellSize(postSynapticLayer()->getXScale(), preSynapticLayer()->getXScale());
-   nyUnitCellPost = zUnitCellSize(postSynapticLayer()->getYScale(), preSynapticLayer()->getYScale());
-   nfUnitCellPost = fPatchSize();
-   sizeUnitCellPost = nxUnitCellPost*nyUnitCellPost*nfUnitCellPost;
-
-   return PV_SUCCESS;
 }
 
 int ReciprocalConn::setReciprocalWgts(const char * recipName) {

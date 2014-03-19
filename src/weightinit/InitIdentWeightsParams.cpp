@@ -21,31 +21,19 @@ InitIdentWeightsParams::InitIdentWeightsParams(HyPerConn * parentConn)
 
 InitIdentWeightsParams::~InitIdentWeightsParams()
 {
-   // TODO Auto-generated destructor stub
 }
 
 int InitIdentWeightsParams::initialize_base() {
-   return 1;
+   return PV_SUCCESS;
 }
 
 int InitIdentWeightsParams::initialize(HyPerConn * parentConn) {
-   InitWeightsParams::initialize(parentConn);
-
-   int status = PV_SUCCESS;
-
-   return status;
-
+   return InitWeightsParams::initialize(parentConn);
 }
 
 void InitIdentWeightsParams::calcOtherParams(int patchIndex) {
 
    this->getcheckdimensionsandstrides();
-
-   //const int kfPre_tmp = this->kernalIndexCalculations(patch, patchIndex);
-
-
-
-   //this->calculateThetas(kfPre_tmp, patchIndex);
 
 }
 

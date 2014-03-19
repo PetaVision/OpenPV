@@ -18,16 +18,9 @@ OjaSTDPConn::OjaSTDPConn()
 	initialize_base();
 }
 
-OjaSTDPConn::OjaSTDPConn(const char * name, HyPerCol * hc,
-      const char * pre_layer_name, const char * post_layer_name,
-      const char * filename, InitWeights *weightInit)
-{
+OjaSTDPConn::OjaSTDPConn(const char * name, HyPerCol * hc) {
    initialize_base();
-   initialize(name, hc, pre_layer_name, post_layer_name, filename, weightInit);
-#ifdef PV_USE_OPENCL
-   if(gpuAccelerateFlag)
-      initializeGPU();
-#endif
+   initialize(name, hc);
 }
 
 OjaSTDPConn::~OjaSTDPConn()
@@ -61,7 +54,7 @@ int OjaSTDPConn::deleteWeights()
 
 
 int OjaSTDPConn::initialize_base() {
-   // Default STDP parameters for modifying weights; defaults are overridden in setParams().
+   // Default STDP parameters for modifying weights; defaults are overridden in ioParams().
    this->post_stdp_tr     = NULL;
    this->post_oja_tr      = NULL;
    this->post_int_tr      = NULL;
@@ -93,46 +86,8 @@ int OjaSTDPConn::initialize_base() {
    return PV_SUCCESS;
 }
 
-int OjaSTDPConn::initialize(const char * name, HyPerCol * hc,
-      const char * pre_layer_name, const char * post_layer_name,
-      const char * filename, InitWeights *weightInit)
-{
-
-   int status = HyPerConn::initialize(name, hc, pre_layer_name, post_layer_name, filename, weightInit);
-
-   // status |= initPlasticityPatches(); // called by HyPerConn::constructWeights since initPlasticityPatches is virtual
-
-   // point2PreSynapticWeights(); // Moved to allocateDataStructures since point2PreSynapticWeights allocates post patches
-
-   // Moved to communicate since postSynapticLayer won't be set until then.
-   //
-   // //Need to assert that the previous layer is a LIF layer.
-   // HyPerLayer * postHyPerLayer = this->postSynapticLayer();
-   // LIF * postLIF = NULL;
-   // postLIF = dynamic_cast <LIF*> (postHyPerLayer);
-   // assert(postLIF != NULL);
-
-   // //Grab VthRest from presynaptic LIF params // Commented out March 22, 2013, as VthRest is unused
-   // float VthRest;
-   // VthRest = postLIF->getLIFParams()->VthRest;
-
-   // Moved allocation of ampLTD to allocateDataStructures
-   // //allocate ampLTD and set to initial value
-   // //Restricted post
-   // ampLTD = (float *) calloc(post->getNumNeurons(), sizeof(float));
-   // for (int kRes = 0; kRes < post->getNumNeurons(); kRes++) {
-   //    ampLTD[kRes] = initAmpLTD;
-   // }
-
-
-   // Moved creation of mpi_datatype to allocateDataStructures
-   // mpi_datatype = Communicator::newDatatypes(pre->getLayerLoc());
-   // if (mpi_datatype==NULL) {
-   //    fprintf(stderr, "LCALIFLateralKernelConn \"%s\" error creating mpi_datatype\n", name);
-   //    abort();
-   // }
-
-   return status;
+int OjaSTDPConn::initialize(const char * name, HyPerCol * hc) {
+   return HyPerConn::initialize(name, hc);
 }
 
 // set member variables specified by user
@@ -141,55 +96,60 @@ int OjaSTDPConn::initialize(const char * name, HyPerCol * hc,
  * to a pointer to a derived class (LIF). This way I do not need to define a virtual
  * function getWmax() in HyPerLayer which only returns a NULL pointer in the base class.
  */
-int OjaSTDPConn::setParams(PVParams * params)
+int OjaSTDPConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag)
 {
-   HyPerConn::setParams(params);
+   int status = HyPerConn::ioParamsFillGroup(ioFlag);
+   ioParam_ampLTP(ioFlag);
+   ioParam_initAmpLTD(ioFlag);
+   ioParam_tauLTP(ioFlag);
+   ioParam_tauLTD(ioFlag);
+   ioParam_tauOja(ioFlag);
+   ioParam_tauTHR(ioFlag);
+   ioParam_tauO(ioFlag);
 
-   readAmpLTP(params);
-   readInitAmpLTD(params);
-   readTauLTP(params);
-   readTauLTD(params);
-   readTauOja(params);
-   readTauTHR(params);
-   readTauO(params);
+   ioParam_targetPostRate(ioFlag);
 
-   readTargetPostRate(params);
+   ioParam_ojaFlag(ioFlag);
+   ioParam_synscalingFlag(ioFlag);
+   ioParam_synscaling_v(ioFlag);
 
-   readOjaFlag(params);
-   readSynscalingFlag(params);
-   readSynscaling_v(params);
+   ioParam_dWMax(ioFlag);
 
-   read_dWMax(params);
+   ioParam_wMax(ioFlag);
+   ioParam_wMin(ioFlag);
+   ioParam_weightScale(ioFlag);
 
-   readWMax(params);
-   readWMin(params);
-   readWeightScale(params);
-
-   readLTDscale(params);
-
-   return 0;
+   ioParam_LTDscale(ioFlag);
+   return status;
 }
 
-void OjaSTDPConn::readWMax(PVParams * params) {
-   assert(!params->presentAndNotBeenRead(name, "ojaFlag"));
-   if (!ojaFlag) {
-      wMax = params->value(getName(), "wMax", wMax);
+void OjaSTDPConn::ioParam_ampLTP(enum ParamsIOFlag ioFlag) {parent->ioParamValue(ioFlag, name, "ampLTP", &ampLTP, ampLTP);}
+void OjaSTDPConn::ioParam_initAmpLTD(enum ParamsIOFlag ioFlag) {parent->ioParamValue(ioFlag, name, "initAmpLTD", &initAmpLTD, initAmpLTD);}
+void OjaSTDPConn::ioParam_tauLTP(enum ParamsIOFlag ioFlag) {parent->ioParamValue(ioFlag, name, "tauLTP", &tauLTP, tauLTP);}
+void OjaSTDPConn::ioParam_tauLTD(enum ParamsIOFlag ioFlag) {parent->ioParamValue(ioFlag, name, "tauLTD", &tauLTD, tauLTD);}
+void OjaSTDPConn::ioParam_tauOja(enum ParamsIOFlag ioFlag) {parent->ioParamValue(ioFlag, name, "tauOja", &tauOja, tauOja);}
+void OjaSTDPConn::ioParam_tauTHR(enum ParamsIOFlag ioFlag) {parent->ioParamValue(ioFlag, name, "tauTHR", &tauTHR, tauTHR);}
+void OjaSTDPConn::ioParam_tauO(enum ParamsIOFlag ioFlag) {parent->ioParamValue(ioFlag, name, "tauO", &tauO, tauO);}
+void OjaSTDPConn::ioParam_targetPostRate(enum ParamsIOFlag ioFlag) {parent->ioParamValue(ioFlag, name, "targetPostRate", &targetPostRateHz, targetPostRateHz);}
+void OjaSTDPConn::ioParam_ojaFlag(enum ParamsIOFlag ioFlag) {parent->ioParamValue(ioFlag, name, "ojaFlag", &ojaFlag, ojaFlag);}
+void OjaSTDPConn::ioParam_synscalingFlag(enum ParamsIOFlag ioFlag) {parent->ioParamValue(ioFlag, name, "synscalingFlag", &synscalingFlag, synscalingFlag);}
+void OjaSTDPConn::ioParam_synscaling_v(enum ParamsIOFlag ioFlag) {parent->ioParamValue(ioFlag, name, "synscaling_v", &synscaling_v, synscaling_v);}
+
+void OjaSTDPConn::ioParam_wMax(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "ojaFlag"));
+   if (ojaFlag) {
+      parent->ioParamValue(ioFlag, name, "wMax", &wMax, wMax);
    }
 }
 
-void OjaSTDPConn::readWMin(PVParams * params) {
-   wMin = params->value(getName(), "wMin", wMin);
+void OjaSTDPConn::ioParam_wMin(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "wMin", &wMin, wMin);
 }
 
-void OjaSTDPConn::readLTDscale(PVParams * params) {
-   //set LTDscale param (should default to ampLTP)
-   LTDscale = params->value(name, "LTDscale", LTDscale);
-   if (LTDscale < 0) {
-      if (parent->columnId()==0) {
-         fprintf(stderr,"OjaSTDPConn \"%s\": LTDscale must be positive (value in params is %f).\n", name, LTDscale);
-      }
-      abort();
-   }
+void OjaSTDPConn::ioParam_weightScale(enum ParamsIOFlag ioFlag) {parent->ioParamValue(ioFlag, name, "weightScale", &weightScale, weightScale);}
+
+void OjaSTDPConn::ioParam_LTDscale(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "LTDScale", &LTDscale, LTDscale);
 }
 
 int OjaSTDPConn::communicateInitInfo() {
@@ -666,7 +626,7 @@ int OjaSTDPConn::writeTextWeightsExtra(PV_Stream * pvstream, int k, int arborID)
 //
 // As of this update, the layer is treated as nx-by-ny with border nb.
 // On reading from a checkpoint, the border region is filled by calling
-// Communicator::exchange and (if mirrorBCFlag is set), mirroring to the
+// Communicator::exchange and (if mirrorBCflag is set), mirroring to the
 // exterior boundary.  This should make the trace files independent of
 // the MPI configuration, and should recover the border regions correctly.
 int OjaSTDPConn::checkpointWrite(const char * cpDir) {

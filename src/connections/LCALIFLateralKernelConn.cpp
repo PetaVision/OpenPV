@@ -14,10 +14,9 @@ LCALIFLateralKernelConn::LCALIFLateralKernelConn()
    initialize_base();
 }
 
-LCALIFLateralKernelConn::LCALIFLateralKernelConn(const char * name, HyPerCol * hc, const char * pre_layer_name, const char * post_layer_name,
-      const char * filename, InitWeights *weightInit) {
+LCALIFLateralKernelConn::LCALIFLateralKernelConn(const char * name, HyPerCol * hc) {
    initialize_base();
-   initialize(name, hc, pre_layer_name, post_layer_name, filename, weightInit);
+   initialize(name, hc);
 }
 
 LCALIFLateralKernelConn::~LCALIFLateralKernelConn()
@@ -36,25 +35,42 @@ int LCALIFLateralKernelConn::initialize_base() {
    return PV_SUCCESS;
 }
 
-int LCALIFLateralKernelConn::initialize(const char * name, HyPerCol * hc,
-      const char * pre_layer_name, const char * post_layer_name,
-      const char * filename, InitWeights * weightInit) {
-   int status = KernelConn::initialize(name, hc, pre_layer_name, post_layer_name, filename, weightInit);
+int LCALIFLateralKernelConn::initialize(const char * name, HyPerCol * hc) {
+   int status = KernelConn::initialize(name, hc);
    return status;
 }
 
-int LCALIFLateralKernelConn::setParams(PVParams * params) {
-   int status = KernelConn::setParams(params);
-   readIntegrationTimeConstant();
-   readInhibitionTimeConstant();
-   readTargetRate();
-   read_dWUpdatePeriod();
+int LCALIFLateralKernelConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = KernelConn::ioParamsFillGroup(ioFlag);
+   ioParam_integrationTimeConstant(ioFlag);
+   ioParam_inhibitionTimeConstant(ioFlag);
+   ioParam_targetRate(ioFlag);
+   ioParam_dWUpdatePeriod(ioFlag);
    return status;
 }
 
-void LCALIFLateralKernelConn::readInitialWeightUpdateTime(PVParams * params) {
-   KernelConn::readInitialWeightUpdateTime(params);
-   dWUpdateTime = weightUpdateTime;
+void LCALIFLateralKernelConn::ioParam_initialWeightUpdateTime(enum ParamsIOFlag ioFlag) {
+   KernelConn::ioParam_initialWeightUpdateTime(ioFlag);
+   if (ioFlag==PARAMS_IO_READ) {
+      dWUpdateTime = weightUpdateTime;
+   }
+}
+
+void LCALIFLateralKernelConn::ioParam_integrationTimeConstant(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "integrationTimeConstant", &integrationTimeConstant, 1.0f);
+}
+
+void LCALIFLateralKernelConn::ioParam_inhibitionTimeConstant(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "inhibitionTimeConstant", &inhibitionTimeConstant, 1.0f);
+}
+
+void LCALIFLateralKernelConn::ioParam_targetRate(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "targetRate", &targetRateHz, 1.0f);
+   if (ioFlag==PARAMS_IO_READ) targetRateKHz = 0.001 * targetRateHz;
+}
+
+void LCALIFLateralKernelConn::ioParam_dWUpdatePeriod(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "dWUpdatePeriod", &dWUpdatePeriod, 1.0);
 }
 
 int LCALIFLateralKernelConn::communicateInitInfo() {

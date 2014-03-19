@@ -233,6 +233,10 @@ public:
    int warnUnread();
    bool hasBeenRead(const char * group_name, const char * param_name);
    bool presentAndNotBeenRead(const char * group_name, const char * param_name);
+   void handleUnnecessaryParameter(const char * group_name, const char * param_name);
+   template <typename T>
+   void handleUnnecessaryParameter(const char * group_name, const char * param_name, T correct_value);
+   void handleUnnecessaryStringParameter(const char * group_name, const char * param_name, const char * correctValue=NULL, bool case_insensitive_flag=false);
    int outputParams(FILE *);
    int setSweepValues(int n);
 

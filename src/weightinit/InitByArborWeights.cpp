@@ -8,6 +8,12 @@
 
 namespace PV {
 
+InitByArborWeights::InitByArborWeights(HyPerConn * conn) : InitWeights() {
+
+   InitByArborWeights::initialize_base();
+   InitByArborWeights::initialize(conn);
+}
+
 InitByArborWeights::InitByArborWeights()
 {
    initialize_base();
@@ -21,21 +27,20 @@ int InitByArborWeights::initialize_base() {
    return PV_SUCCESS;
 }
 
-//InitWeightsParams * InitUniformRandomWeights::createNewWeightParams(HyPerConn * callingConn) {
-//   InitWeightsParams * tempPtr = new InitUniformRandomWeightsParams(callingConn);
-//   return tempPtr;
-//}
+int InitByArborWeights::initialize(HyPerConn * conn) {
+   int status = InitWeights::initialize(conn);
+   return status;
+}
 
-int InitByArborWeights::calcWeights(/* PVPatch * wp */ pvdata_t * dataStart, int patchIndex, int arborId,
-      InitWeightsParams *weightParams) {
+int InitByArborWeights::calcWeights(/* PVPatch * wp */ pvdata_t * dataStart, int patchIndex, int arborId) {
 
-   const int nxp = weightParams->getnxPatch_tmp(); // wp->nx;
-   const int nyp = weightParams->getnyPatch_tmp(); // wp->ny;
-   const int nfp = weightParams->getnfPatch_tmp(); //wp->nf;
+   const int nxp = weightParams->getnxPatch();
+   const int nyp = weightParams->getnyPatch();
+   const int nfp = weightParams->getnfPatch();
 
-   const int sxp = weightParams->getsx_tmp(); //wp->sx;
-   const int syp = weightParams->getsy_tmp(); //wp->sy;
-   const int sfp = weightParams->getsf_tmp(); //wp->sf;
+   const int sxp = weightParams->getsx();
+   const int syp = weightParams->getsy();
+   const int sfp = weightParams->getsf();
 
    // loop over all post-synaptic cells in patch
    for (int y = 0; y < nyp; y++) {
@@ -48,7 +53,7 @@ int InitByArborWeights::calcWeights(/* PVPatch * wp */ pvdata_t * dataStart, int
    }
 
 
-   return PV_SUCCESS; // return 1;
+   return PV_SUCCESS;
 }
 
 }

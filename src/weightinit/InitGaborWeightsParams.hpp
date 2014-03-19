@@ -18,13 +18,10 @@ public:
    InitGaborWeightsParams();
    InitGaborWeightsParams(HyPerConn * parentConn);
    virtual ~InitGaborWeightsParams();
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    void calcOtherParams(int patchIndex);
 
    //get/set methods:
-//   inline float getaspect()        {return aspect;}
-//   inline float getshift()        {return shift;}
-//   inline double getr2Max()        {return r2Max;}
-//   inline float getsigma()        {return sigma;}
    inline float getlambda()        {return lambda;}
    inline float getphi()        {return phi;}
    inline bool getinvert()        {return invert;}
@@ -32,17 +29,13 @@ public:
 protected:
    int initialize_base();
    int initialize(HyPerConn * parentConn);
+   virtual void ioParam_lambda(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_phi(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_invert(enum ParamsIOFlag ioFlag);
 
 private:
    //params variables:
-//   float aspect;
-//   float sigma;
-//   float rMax;
-//   double r2Max;
-//   float strength;
    int lambda;
-//   float shift;
-   //float rotate; // rotate so that axis isn't aligned
    float phi;
    bool invert;
 };

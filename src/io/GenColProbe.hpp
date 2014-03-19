@@ -13,12 +13,11 @@
 #include "ColProbe.hpp"
 #include "../columns/HyPerCol.hpp"
 #include "../layers/HyPerLayer.hpp"
-// #include "ConnFunctionProbe.hpp" // Moved to .cpp because of circular dependencies between GenColProbe and ConnFunctionProbe
-#include "LayerFunctionProbe.hpp"
 
 namespace PV {
 
 class ConnFunctionProbe;
+class LayerFunctionProbe;
 
 typedef struct gencolprobelayerterm_ {
    LayerFunctionProbe * function;
@@ -34,8 +33,7 @@ typedef struct gencolprobconnterm_ {
 
 class GenColProbe : public ColProbe {
 public:
-   GenColProbe(const char * name);
-   GenColProbe(const char * probename, const char * filename, HyPerCol * hc);
+   GenColProbe(const char * probename, HyPerCol * hc);
    ~GenColProbe();
 
    int addConnTerm(ConnFunctionProbe * p, HyPerConn * c, pvdata_t coeff);
@@ -43,7 +41,8 @@ public:
    virtual int outputState(double time, HyPerCol * hc);
 
 protected:
-   int initializeGenColProbe(const char * probename, const char * filename, HyPerCol * hc);
+   GenColProbe();
+   int initializeGenColProbe(const char * probename, HyPerCol * hc);
    virtual pvdata_t evaluate(double timef);
 
    int numLayerTerms;

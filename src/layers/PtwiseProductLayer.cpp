@@ -31,7 +31,7 @@ int PtwiseProductLayer::initialize_base() {
 }
 
 int PtwiseProductLayer::initialize(const char * name, HyPerCol * hc) {
-   return ANNLayer::initialize(name, hc, 2);
+   return ANNLayer::initialize(name, hc);
 }
 
 int PtwiseProductLayer::updateState(double timef, double dt) {

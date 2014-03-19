@@ -15,22 +15,19 @@ namespace PV {
 
 class InitSmartWeights: public PV::InitWeights {
 public:
+   InitSmartWeights(HyPerConn * conn);
    InitSmartWeights();
-//   InitSmartWeights(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
-//         ChannelType channel);
    virtual ~InitSmartWeights();
 
-   virtual InitWeightsParams * createNewWeightParams(HyPerConn * callingConn);
+   virtual InitWeightsParams * createNewWeightParams();
 
-   virtual int calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, int arborId, InitWeightsParams *weightParams);
+   virtual int calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, int arborId);
 
 protected:
-   virtual int initialize_base();
-//   int initialize(const char * name, HyPerCol * hc,
-//                  HyPerLayer * pre, HyPerLayer * post,
-//                  ChannelType channel);
+   int initialize(HyPerConn * conn);
 
 private:
+   int initialize_base();
    int smartWeights(/* PVPatch * patch */ pvdata_t * dataStart, int k, InitWeightsParams *weightParams);
 };
 

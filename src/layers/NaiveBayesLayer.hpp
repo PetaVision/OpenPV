@@ -20,14 +20,13 @@ namespace PV {
 
 class NaiveBayesLayer: public PV::HyPerLayer {
 public:
-   NaiveBayesLayer(const char * name, HyPerCol * hc, int numChannels);
    NaiveBayesLayer(const char * name, HyPerCol * hc);
    virtual ~NaiveBayesLayer();
    virtual int allocateDataStructures();
    virtual int updateState(double timef, double dt);
 protected:
    NaiveBayesLayer();
-   int initialize(const char * name, HyPerCol * hc, int numChannels);
+   int initialize(const char * name, HyPerCol * hc);
    /* static */
    int updateState(double timef, double dt, const PVLayerLoc * loc, pvdata_t * A,
          pvdata_t * V, int num_channels, pvdata_t * gSynHead, int columnID);

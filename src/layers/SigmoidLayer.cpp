@@ -36,15 +36,6 @@ int SigmoidLayer::initialize_base() {
 }
 
 int SigmoidLayer::initialize(const char * name, HyPerCol * hc) {
-   // if (origLayerName==NULL) {
-   //    fprintf(stderr, "SigmoidLayer \"%s\": originalLayerName must be set.\n", name);
-   //    exit(EXIT_FAILURE);
-   // }
-   // sourceLayerName = strdup(origLayerName);
-   // if (sourceLayerName == NULL) {
-   //    fprintf(stderr, "SigmoidLayer \"%s\" error: rank %d process unable to copy original layer name \"%s\": %s\n", name, parent->columnId(), origLayerName, strerror(errno));
-   //    exit(EXIT_FAILURE);
-   // }
    int status_init = CloneVLayer::initialize(name, hc);
 
    if (parent->columnId()==0) {
@@ -63,70 +54,42 @@ int SigmoidLayer::initialize(const char * name, HyPerCol * hc) {
    return status_init;
 }
 
-int SigmoidLayer::setParams(PVParams * params) {
-   int status = CloneVLayer::setParams(params);
-   readVrest(params);
-   readVthRest(params);
-   readInverseFlag(params);
-   readSigmoidFlag(params);
-   readSigmoidAlpha(params);
+int SigmoidLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = CloneVLayer::ioParamsFillGroup(ioFlag);
+   ioParam_Vrest(ioFlag);
+   ioParam_VthRest(ioFlag);
+   ioParam_InverseFlag(ioFlag);
+   ioParam_SigmoidFlag(ioFlag);
+   ioParam_SigmoidAlpha(ioFlag);
    return status;
 }
 
-void SigmoidLayer::readVrest(PVParams * params) {
-   V0 = params->value(name, "Vrest", V_REST);
+void SigmoidLayer::ioParam_Vrest(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "Vrest", &V0, (float) V_REST);
 }
-void SigmoidLayer::readVthRest(PVParams * params) {
-   Vth = params->value(name,"VthRest",VTH_REST);
+void SigmoidLayer::ioParam_VthRest(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "VthRest", &Vth, (float) VTH_REST);
 }
-void SigmoidLayer::readInverseFlag(PVParams * params) {
-   InverseFlag = params->value(name,"InverseFlag",INVERSEFLAG);
+void SigmoidLayer::ioParam_InverseFlag(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "InverseFlag", &InverseFlag, (bool) INVERSEFLAG);
 }
-void SigmoidLayer::readSigmoidFlag(PVParams * params) {
-   SigmoidFlag = params->value(name,"SigmoidFlag",SIGMOIDFLAG);
+void SigmoidLayer::ioParam_SigmoidFlag(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "SigmoidFlag", &SigmoidFlag, (bool) SIGMOIDFLAG);
 }
-void SigmoidLayer::readSigmoidAlpha(PVParams * params) {
-   SigmoidAlpha = params->value(name,"SigmoidAlpha",SIGMOIDALPHA);
+void SigmoidLayer::ioParam_SigmoidAlpha(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "SigmoidAlpha", &SigmoidAlpha, (float) SIGMOIDALPHA);
 }
 
 int SigmoidLayer::communicateInitInfo() {
    int status = CloneVLayer::communicateInitInfo();
-
-   // Handled by CloneVLayer::communicateInitInfo
-   // sourceLayer = parent->getLayerFromName(sourceLayerName);
-   // if (sourceLayer==NULL) {
-   //    if (parent->columnId()==0) {
-   //       fprintf(stderr, "SigmoidLayer \"%s\" error: originalLayerName \"%s\" is not a layer in the HyPerCol.\n",
-   //               name, sourceLayerName);
-   //    }
-   //    MPI_Barrier(parent->icCommunicator()->communicator());
-   //    exit(EXIT_FAILURE);
-   // }
-   // const PVLayerLoc * srcLoc = sourceLayer->getLayerLoc();
-   // const PVLayerLoc * loc = getLayerLoc();
-   // if (srcLoc->nxGlobal != loc->nxGlobal || srcLoc->nyGlobal != loc->nyGlobal || srcLoc->nf != loc->nf) {
-   //    if (parent->columnId()==0) {
-   //       fprintf(stderr, "SigmoidLayer \"%s\" error: original layer \"%s\" must have the same dimensions.\n", name, sourceLayerName);
-   //       fprintf(stderr, "    original: (x=%d, y=%d, f=%d), SigmoidLayer: (x=%d, y=%d, f=%d)\n",
-   //               srcLoc->nxGlobal, srcLoc->nyGlobal, srcLoc->nf, loc->nxGlobal, loc->nyGlobal, loc->nf);
-   //    }
-   //    MPI_Barrier(parent->icCommunicator()->communicator());
-   //    exit(EXIT_FAILURE);
-   // }
 
    return status;
 }
 
 int SigmoidLayer::allocateDataStructures() {
    int status = CloneVLayer::allocateDataStructures();
-   // Handled by CloneVLayer::allocateV
-   // free(clayer->V);
-   // clayer->V = sourceLayer->getV();
-
    // Should have been initialized with zero channels, so GSyn should be NULL and freeChannels() call should be unnecessary
    assert(GSyn==NULL);
-   // // don't need conductance channels
-   // freeChannels();
    return status;
 }
 

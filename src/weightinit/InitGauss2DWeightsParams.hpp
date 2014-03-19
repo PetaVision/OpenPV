@@ -17,6 +17,8 @@ public:
    InitGauss2DWeightsParams();
    InitGauss2DWeightsParams(HyPerConn * parentConn);
    virtual ~InitGauss2DWeightsParams();
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual int communicateParamsInfo();
    virtual void calcOtherParams(int patchIndex);
    bool isSameLocOrSelf(float xDelta, float yDelta, int fPost);
    bool checkBowtieAngle(float xp, float yp);
@@ -33,10 +35,10 @@ public:
    inline void setRotate(float rotateTmp)        {rotate=rotateTmp;}
    inline void setNoPre(int noPreTmp)        {numOrientationsPre=noPreTmp;}
    inline void setNoPost(int noPostTmp)        {numOrientationsPost=noPostTmp;}
-   inline float getaspect()        {return aspect;}
-   inline float getshift()        {return shift;}
-   inline int getnumFlanks()        {return numFlanks;}
-   inline float getsigma()        {return sigma;}
+   inline float getAspect()        {return aspect;}
+   inline float getShift()        {return shift;}
+   inline int getNumFlanks()        {return numFlanks;}
+   inline float getSigma()        {return sigma;}
    inline double getr2Max()        {return r2Max;}
    inline double getr2Min()        {return r2Min;}
    inline double getStrength()        {return strength;}
@@ -52,8 +54,29 @@ public:
 protected:
    int initialize_base();
    int initialize(HyPerConn * parentConn);
+
+   virtual void ioParam_aspect(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_sigma(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_rMax(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_rMin(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_strength(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_numOrientationsPost(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_numOrientationsPre(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_deltaThetaMax(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_thetaMax(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_numFlanks(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_flankShift(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_rotate(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_bowtieFlag(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_bowtieAngle(enum ParamsIOFlag ioFlag);
+   void ioParam_aspectRelatedParams(enum ParamsIOFlag ioFlag);
+   bool needAspectParams();
    void calculateThetas(int kfPre_tmp, int patchIndex);
 
+
+private:
+
+protected:
    int numOrientationsPost;
    float dthPost;
    float th0Post;
@@ -65,10 +88,6 @@ protected:
    float deltaThetaMax;  // max orientation in units of PI
    float deltaTheta;
 
-
-private:
-
-public:
    //params file values:
    float aspect; // set to 1 for circularly symmetric (not oriented)
    float sigma;

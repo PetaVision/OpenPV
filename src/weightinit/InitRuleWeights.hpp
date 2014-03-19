@@ -18,19 +18,20 @@ class InitRuleWeightsParams;
 
 class InitRuleWeights: public PV::InitGauss2DWeights {
 public:
-   InitRuleWeights();
+   InitRuleWeights(HyPerConn * conn);
    virtual ~InitRuleWeights();
 
-   virtual int calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, int arborId,
-         InitWeightsParams *weightParams);
-   virtual InitWeightsParams * createNewWeightParams(HyPerConn * callingConn);
+   virtual int calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, int arborId);
+   virtual InitWeightsParams * createNewWeightParams();
    // void calcOtherParams(PVPatch * patch, int patchIndex);
 
 
 protected:
-   int initialize_base();
+   InitRuleWeights();
+   int initialize(HyPerConn * conn);
 
 private:
+   int initialize_base();
    int ruleWeights(/* PVPatch * patch */ pvdata_t * dataStart, InitRuleWeightsParams * weightParamPtr);
 };
 

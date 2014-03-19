@@ -21,15 +21,16 @@ namespace PV {
 
 class InitDistributedWeights: public PV::InitWeights {
 public:
-   InitDistributedWeights();
+   InitDistributedWeights(HyPerConn * conn);
    virtual ~InitDistributedWeights();
-   virtual int initializeWeights(PVPatch *** patches, pvdata_t ** dataStart, const char * filename, HyPerConn * callingConn, double * timef=NULL);
 
-   virtual InitWeightsParams * createNewWeightParams(HyPerConn * callingConn);
+   virtual InitWeightsParams * createNewWeightParams();
+   virtual int calcWeights();
 
 protected:
-   virtual int initialize_base();
-
+   InitDistributedWeights();
+   int initialize_base();
+   int initialize(HyPerConn * conn);
 };
 
 } /* namespace PV */
