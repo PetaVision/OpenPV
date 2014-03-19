@@ -14,10 +14,10 @@ namespace PV {
  * @type
  * @msg
  */
-TopDownTestProbe::TopDownTestProbe(const char * filename, HyPerLayer * layer, const char * msg, float checkperiod)
+TopDownTestProbe::TopDownTestProbe(const char * probeName, HyPerCol * hc)
    : StatsProbe()
 {
-   initTopDownTestProbe(filename, layer, msg, checkperiod);
+   initTopDownTestProbe(probeName, hc);
 }
 
 TopDownTestProbe::~TopDownTestProbe() {
@@ -25,12 +25,30 @@ TopDownTestProbe::~TopDownTestProbe() {
    free(scores);
 }
 
-int TopDownTestProbe::initTopDownTestProbe(const char * filename, HyPerLayer * layer, const char * msg, float checkperiod) {
-   initStatsProbe(filename, layer, BufActivity, msg);
+int TopDownTestProbe::initTopDownTestProbe(const char * probeName, HyPerCol * hc) {
+   initStatsProbe(probeName, hc);
    imageLibrary = NULL;
    scores = NULL;
-   this->checkperiod = checkperiod;
    nextupdate = checkperiod;
+   return PV_SUCCESS;
+}
+
+int TopDownTestProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = StatsProbe::ioParamsFillGroup(ioFlag);
+   ioParam_checkPeriod(ioFlag);
+   return status;
+}
+
+void TopDownTestProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
+   requireType(BufActivity);
+}
+
+void TopDownTestProbe::ioParam_checkPeriod(enum ParamsIOFlag ioFlag) {
+   getParentCol()->ioParamValue(ioFlag, getProbeName(), "checkPeriod", &checkperiod, 0.0, true/*warnIfAbsent*/);
+}
+
+int TopDownTestProbe::communicateInitInfo() {
+   int status = StatsProbe::communicateInitInfo();
    const PVLayerLoc * newLoc = getTargetLayer()->getLayerLoc();
    assert(newLoc->nf == 1);
 
@@ -46,7 +64,7 @@ int TopDownTestProbe::initTopDownTestProbe(const char * filename, HyPerLayer * l
    scores = (pvdata_t *) malloc( numImages*sizeof(pvdata_t) );
    assert(scores != NULL);
    setImageLibrary();
-   return PV_SUCCESS;
+   return status;
 }
 
 /**
@@ -86,13 +104,13 @@ int TopDownTestProbe::outputState(double timed) {
       }
       assert(numatmin > 0);
       minscore = sqrtf(minscore);
-      fprintf(outputstream->fp,"%stime=%f, reconstruction within %f of image %d in L2",msg, timed, minscore, minidx);
+      fprintf(outputstream->fp,"%stime=%f, reconstruction within %f of image %d in L2",getMessage(), timed, minscore, minidx);
       if( numatmin > 1) {
          fprintf(outputstream->fp, " (as well as %d others)", numatmin-1);
       }
       fprintf(outputstream->fp,"\n");
       if( minscore > 0.1 ) {
-         fprintf(stderr, "%sLayer %s failed to converge to one of the target images.  Exiting.\n", msg, getTargetLayer()->getName());
+         fprintf(stderr, "%sLayer %s failed to converge to one of the target images.  Exiting.\n", getMessage(), getTargetLayer()->getName());
          exit(EXIT_FAILURE);
       }
       nextupdate += checkperiod;

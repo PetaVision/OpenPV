@@ -10,14 +10,10 @@
 
 namespace PV {
 
-WindowLCALayer::WindowLCALayer(const char * name, HyPerCol * hc, int num_channels)
-{
-   HyPerLCALayer::initialize(name, hc, num_channels);
-}
-
 WindowLCALayer::WindowLCALayer(const char * name, HyPerCol * hc)
 {
-   HyPerLCALayer::initialize(name, hc, 2);
+   int numChannels = 2;
+   HyPerLCALayer::initialize(name, hc);
 }
 
 WindowLCALayer::~WindowLCALayer()

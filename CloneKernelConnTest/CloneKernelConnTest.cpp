@@ -39,26 +39,7 @@ void * customgroup(const char * keyword, const char * name, HyPerCol * hc) {
 	   char * message = NULL;
 	   bool errorFound;
 	   if( !strcmp(keyword, "CloneKernelConnTestProbe") ) {
-	      status = getLayerFunctionProbeParameters(name, keyword, hc, &targetlayer, &message, &filename);
-	      errorFound = status!=PV_SUCCESS;
-	      if( !errorFound ) {
-	         PVBufType buf_type = BufV;
-	         if (targetlayer->getSpikingFlag()) {
-	            buf_type = BufActivity;
-	         }
-	         if( filename ) {
-	            addedProbe = (LayerProbe *) new CloneKernelConnTestProbe(filename, targetlayer, message);
-	         }
-	         else {
-	            addedProbe = (LayerProbe *) new CloneKernelConnTestProbe(targetlayer, message);
-	         }
-	         if( !addedProbe ) {
-	            fprintf(stderr, "Group \"%s\": Unable to create probe\n", name);
-	            errorFound = true;
-	         }
-	         if( !errorFound ) addedGroup = (void *) addedProbe;
-	      }
-	      free(message); message = NULL;
+          addedProbe = (LayerProbe *) new CloneKernelConnTestProbe(name, hc);
 	   }
 	   return addedGroup;
 }

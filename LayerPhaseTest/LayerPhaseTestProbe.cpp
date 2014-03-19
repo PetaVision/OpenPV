@@ -9,22 +9,37 @@
 
 namespace PV {
 
-LayerPhaseTestProbe::LayerPhaseTestProbe(const char * probename, const char * filename, HyPerLayer * layer, const char * msg)
-: StatsProbe(filename, layer, msg)
+LayerPhaseTestProbe::LayerPhaseTestProbe(const char * probeName, HyPerCol * hc)
+: StatsProbe()
 {
-   PVParams * params = layer->getParent()->parameters();
-   equilibriumValue = (pvdata_t) params->value(probename, "equilibriumValue", 0.0f, true);
-   equilibriumTime = params->value(probename, "equilibriumTime", 0.0f, true);
+   initLayerPhaseTestProbe_base();
+   initLayerPhaseTestProbe(probeName, hc);
 }
 
-LayerPhaseTestProbe::LayerPhaseTestProbe(const char * probename, HyPerLayer * layer, const char * msg)
-: StatsProbe(layer, msg)
-{
-   PVParams * params = layer->getParent()->parameters();
-   equilibriumValue = (pvdata_t) params->value(probename, "equilibriumValue", 0.0f, true);
-   equilibriumTime = params->value(probename, "equilibriumTime", 0.0f, true);
+int LayerPhaseTestProbe::initLayerPhaseTestProbe_base() { return PV_SUCCESS; }
+
+int LayerPhaseTestProbe::initLayerPhaseTestProbe(const char * probeName, HyPerCol * hc) {
+   return initStatsProbe(probeName, hc);
 }
 
+int LayerPhaseTestProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = StatsProbe::ioParamsFillGroup(ioFlag);
+   ioParam_equilibriumValue(ioFlag);
+   ioParam_equilibriumTime(ioFlag);
+   return status;
+}
+
+void LayerPhaseTestProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
+   requireType(BufV);
+}
+
+void LayerPhaseTestProbe::ioParam_equilibriumValue(enum ParamsIOFlag ioFlag) {
+   getParentCol()->ioParamValue(ioFlag, getProbeName(), "equilibriumValue", &equilibriumValue, 0.0f, true);
+}
+
+void LayerPhaseTestProbe::ioParam_equilibriumTime(enum ParamsIOFlag ioFlag) {
+   getParentCol()->ioParamValue(ioFlag, getProbeName(), "equilibriumTime", &equilibriumTime, 0.0, true);
+}
 
 int LayerPhaseTestProbe::outputState(double timed)
 {

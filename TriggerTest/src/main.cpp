@@ -23,10 +23,7 @@ void * addcustomgroup(const char * keyword, const char * groupname, HyPerCol * h
       addedGroup = new TriggerTestLayer(groupname, hc);
    }
    if ( !strcmp(keyword, "TriggerTestConn") ) {
-      char * preLayerName = NULL;
-      char * postLayerName = NULL;
-      HyPerConn::getPreAndPostLayerNames(groupname, hc->parameters(), &preLayerName, &postLayerName);
-      addedGroup = new TriggerTestConn(groupname, hc, preLayerName, postLayerName);
+      addedGroup = new TriggerTestConn(groupname, hc);
    }
    if (!addedGroup) {
       fprintf(stderr, "Group \"%s\": Unable to create %s\n", groupname, keyword);

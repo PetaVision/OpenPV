@@ -14,11 +14,16 @@ namespace PV {
 
 class DelayTestProbe: public PV::StatsProbe {
 public:
-   DelayTestProbe(const char * filename, HyPerLayer * layer, const char * msg);
-   DelayTestProbe(HyPerLayer * layer, const char * msg);
-	virtual ~DelayTestProbe();
+   DelayTestProbe(const char * probeName, HyPerCol * hc);
+   virtual ~DelayTestProbe();
 
-	virtual int outputState(double timed);
+   virtual int outputState(double timed);
+
+protected:
+   int initDelayTestProbe(const char * probeName, HyPerCol * hc);
+
+private:
+   int initDelayTestProbe_base();
 
 };
 

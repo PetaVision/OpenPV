@@ -13,18 +13,18 @@
 
 namespace PV {
 
-GPUTestProbe::GPUTestProbe(const char * filename, HyPerLayer * layer, const char * msg)
-: StatsProbe(filename, layer, msg)
-{
-}
-
-GPUTestProbe::GPUTestProbe(HyPerLayer * layer, const char * msg)
-: StatsProbe(layer, msg)
+GPUTestProbe::GPUTestProbe(const char * probeName, HyPerCol * hc)
+: StatsProbe()
 {
 }
 
 GPUTestProbe::~GPUTestProbe() {}
 
+int GPUTestProbe::initGPUTestProbe_base() { return PV_SUCCESS; }
+
+int GPUTestProbe::initGPUTestProbe(const char * probeName, HyPerCol * hc) {
+   return initStatsProbe(probeName, hc);
+}
 
 int GPUTestProbe::outputState(double timed)
 {

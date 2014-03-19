@@ -11,16 +11,21 @@
 #include <string.h>
 
 namespace PV {
-WindowProbe::WindowProbe(const char * filename, HyPerLayer * layer, const char * msg)
+WindowProbe::WindowProbe(const char * probeName, HyPerCol * hc)
    : StatsProbe()
 {
-   initStatsProbe(filename, layer, BufActivity, msg);
+   initWindowProbe_base();
+   initWindowProbe(probeName, hc);
 }
 
-WindowProbe::WindowProbe(HyPerLayer * layer, const char * msg)
-   : StatsProbe()
-{
-   initStatsProbe(NULL, layer, BufActivity, msg);
+int WindowProbe::initWindowProbe_base() { return PV_SUCCESS; }
+
+int WindowProbe::initWindowProbe(const char * probeName, HyPerCol * hc) {
+   return initStatsProbe(probeName, hc);
+}
+
+void WindowProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
+   requireType(BufActivity);
 }
 
 int WindowProbe::outputState(double timed){

@@ -9,18 +9,14 @@
 
 namespace PV {
 
-VaryingHyPerConn::VaryingHyPerConn(const char * name, HyPerCol * hc,
-      const char * pre_layer_name, const char * post_layer_name,
-      const char * filename, InitWeights *weightInit) : HyPerConn() {
-   initialize(name, hc, pre_layer_name, post_layer_name, filename, weightInit);
+VaryingHyPerConn::VaryingHyPerConn(const char * name, HyPerCol * hc) : HyPerConn() {
+   initialize(name, hc);
 }
 
 VaryingHyPerConn::~VaryingHyPerConn() {}
 
-int VaryingHyPerConn::initialize(const char * name, HyPerCol * hc,
-      const char * pre_layer_name, const char * post_layer_name,
-      const char * filename, InitWeights *weightInit) {
-   HyPerConn::initialize(name, hc, pre_layer_name, post_layer_name, filename, weightInit);
+int VaryingHyPerConn::initialize(const char * name, HyPerCol * hc) {
+   HyPerConn::initialize(name, hc);
 
    return PV_SUCCESS;
 }
@@ -68,9 +64,9 @@ int VaryingHyPerConn::updateWeights(int axonId) {
    return PV_SUCCESS;
 }
 
-int VaryingHyPerConn::setParams(PVParams * inputParams)
+int VaryingHyPerConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag)
 {
-   HyPerConn::setParams(inputParams);
+   HyPerConn::ioParamsFillGroup(ioFlag);
 
 #ifdef USE_SHMGET
    shmget_flag = false;

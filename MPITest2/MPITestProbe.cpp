@@ -14,26 +14,20 @@
 namespace PV {
 
 /**
- * @filename
- * @type
- * @msg
+ * @probeName
+ * @hc
  */
-MPITestProbe::MPITestProbe(const char * filename, HyPerLayer * layer, const char * msg)
+MPITestProbe::MPITestProbe(const char * probeName, HyPerCol * hc)
    : StatsProbe()
 {
-   initStatsProbe(filename, layer, BufActivity, msg);
+   initMPITestProbe(probeName, hc);
 }
 
-/**
- * @type
- * @msg
- */
-MPITestProbe::MPITestProbe(HyPerLayer * layer, const char * msg)
-   : StatsProbe()
-{
-   initStatsProbe(NULL, layer, BufActivity, msg);
-}
+int MPITestProbe::initMPITestProbe_base() { return PV_SUCCESS; }
 
+int MPITestProbe::initMPITestProbe(const char * probeName, HyPerCol * hc) {
+   return initStatsProbe(probeName, hc);
+}
 
 /**
  * @time
@@ -72,7 +66,7 @@ int MPITestProbe::outputState(double timed) {
 	float ave_global_xpos = (min_global_xpos + max_global_xpos) / 2.0f;
 
 	fprintf(outputstream->fp, "%s min_global_xpos==%f ave_global_xpos==%f max_global_xpos==%f \n",
-			msg, min_global_xpos, ave_global_xpos, max_global_xpos);
+			getMessage(), min_global_xpos, ave_global_xpos, max_global_xpos);
 	fflush(outputstream->fp);
 	if (timed > 3.0f) {
 		assert((fMin/min_global_xpos > (1 - tol)) && (fMin/min_global_xpos < (1 + tol)));

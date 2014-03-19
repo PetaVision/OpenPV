@@ -17,12 +17,17 @@ namespace PV {
 
 class ParameterSweepTestProbe : StatsProbe {
 public:
-	ParameterSweepTestProbe(const char * filename, HyPerLayer * layer, const char * msg);
+	ParameterSweepTestProbe(const char * probeName, HyPerCol * hc);
 	virtual ~ParameterSweepTestProbe();
 
 	virtual int outputState(double timed);
 protected:
-    int initParameterSweepTestProbe(const char * filename, HyPerLayer * layer, const char * msg);
+    int initParameterSweepTestProbe(const char * probeName, HyPerCol * hc);
+    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+    virtual void ioParam_buffer(enum ParamsIOFlag ioFlag);
+    virtual void ioParam_expectedSum(enum ParamsIOFlag ioFlag);
+    virtual void ioParam_expectedMin(enum ParamsIOFlag ioFlag);
+    virtual void ioParam_expectedMax(enum ParamsIOFlag ioFlag);
 
 private:
     double expectedSum;

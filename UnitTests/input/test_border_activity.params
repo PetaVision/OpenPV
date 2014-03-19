@@ -1,0 +1,135 @@
+debugParsing = false;
+
+HyPerCol "column" = {
+   nx = 64;
+   ny = 64;
+   startTime = 0.0;
+   stopTime = 3.0;
+   dt = 1.0;
+   progressInterval = 2000;
+   writeProgressToErr = false;
+   outputPath = "output/test_border_activity/";
+   printParamsFilename = "pv.params";
+   filenamesContainLayerNames = false;
+   filenamesContainConnectionNames = false;
+   checkpointRead = false;
+   checkpointWrite = false;
+   suppressLastOutput = false;
+};
+
+Image "test_border_activity image" = {
+   nxScale = 1;
+   nyScale = 1;
+   nf = 1;
+   phase = 0;
+   mirrorBCflag = false;
+   valueBC = 0.0;
+   writeStep = 1.0;
+   initialWriteTime = 0.0;
+   writeSparseActivity = false;
+   writeImages = false;
+   restart = false;
+
+   imagePath = "input/const_one_64x64.tif";
+   offsetX = 0;
+   offsetY = 0;
+   useImageBCflag = false;
+   autoResizeFlag = false;
+   inverseFlag = false;
+   normalizeLuminanceFlag = false;
+   jitterFlag = false;
+};
+
+Retina "test_border_activity retina" = {
+   nxScale = 1;
+   nyScale = 1;
+   nf = 1;
+   phase = 0;
+   triggerFlag = false;
+   mirrorBCflag = true;
+   spikingFlag = false;
+   writeStep = 1.0;
+   initialWriteTime = 0.0;
+   writeSparseActivity = false;
+   restart = false;
+
+   foregroundRate = 1000;
+   backgroundRate = 0;
+   beginStim = 0.0;
+   endStim = 1e8;
+   burstFreq = 40;
+   burstDuration = 20;
+};
+
+ANNLayer "test_border_activity layer" = {
+   nxScale = 1;
+   nyScale = 1;
+   nf = 1;
+   phase = 0;
+   triggerFlag = false;
+   mirrorBCflag = false;
+   valueBC = 0.0;
+   writeStep = 1.0;
+   initialWriteTime = 0.0;
+   writeSparseActivity = false;
+   restart = false;
+   InitVType = "ZeroV";
+   
+   VMax = infinity;
+   VMin = -infinity;
+   VThresh = -infinity;
+   VShift = 0.0;
+   VWidth = 0.0;
+};
+
+HyPerConn "test_border_activity connection 1" = {
+   preLayerName = "test_border_activity image";
+   postLayerName = "test_border_activity retina";
+   nxp = 1;
+   nxpShrunken = 1;
+   nyp = 1;
+   nypShrunken = 1;
+   nfp = 1;
+   numAxonalArbors = 1;
+   channelCode = 0;
+   delay = 0;
+   weightInitType = "UniformWeight";
+   weightInit = 1;   // all weight to constant (1)
+   plasticityFlag = false;
+   pvpatchAccumulateType = "convolve";
+   selfFlag = false;
+   shrinkPatches = false;
+   normalizeMethod = "none";
+   preActivityIsNotRate = false;
+   updateGSynFromPostPerspective = false;
+   writeStep = 1.0;
+   initialWriteTime = 0.0;   
+   writeCompressedWeights = true;
+   writeCompressedCheckpoints = false;
+};
+
+HyPerConn "test_border_activity connection 2" = {
+   preLayerName = "test_border_activity retina";
+   postLayerName = "test_border_activity layer";
+   nxp = 7;
+   nxpShrunken = 7;
+   nyp = 7;
+   nypShrunken = 7;
+   nfp = 1;
+   numAxonalArbors = 1;
+   channelCode = 0;
+   delay = 0;
+   weightInitType = "UniformWeight";
+   weightInit = 1;   // all weight to constant (1)
+   plasticityFlag = false;
+   pvpatchAccumulateType = "convolve";
+   selfFlag = false;
+   shrinkPatches = false;
+   normalizeMethod = "none";
+   preActivityIsNotRate = false;
+   updateGSynFromPostPerspective = false;
+   writeStep = 1.0;
+   initialWriteTime = 0.0;
+   writeCompressedWeights = true;
+   writeCompressedCheckpoints = false;
+};

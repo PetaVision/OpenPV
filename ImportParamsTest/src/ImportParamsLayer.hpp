@@ -7,13 +7,12 @@ namespace PV {
 
 class ImportParamsLayer: public PV::ANNLayer {
 public:
-	ImportParamsLayer(const char* name, HyPerCol * hc, int numChannels);
 	ImportParamsLayer(const char* name, HyPerCol * hc);
    virtual int communicateInitInfo();
 	virtual int allocateDataStructures();
 
 private:
-    int initialize(const char * name, HyPerCol * hc, int numChannels);
+    int initialize(const char * name, HyPerCol * hc);
     int initialize_base();
 };
 

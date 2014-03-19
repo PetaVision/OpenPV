@@ -9,23 +9,39 @@
 
 namespace PV {
 
-ParameterSweepTestProbe::ParameterSweepTestProbe(const char * filename, HyPerLayer * layer, const char * msg) {
-   initParameterSweepTestProbe(filename, layer, msg);
+ParameterSweepTestProbe::ParameterSweepTestProbe(const char * probeName, HyPerCol * hc) {
+   initParameterSweepTestProbe(probeName, hc);
 }
 
 ParameterSweepTestProbe::~ParameterSweepTestProbe() {
-   // TODO Auto-generated destructor stub
 }
 
-int ParameterSweepTestProbe::initParameterSweepTestProbe(const char * filename, HyPerLayer * layer, const char * msg) {
-   int status = initStatsProbe(filename, layer, BufActivity, msg);
-   HyPerLayer * l = getTargetLayer();
-   const char * lname = l->getName();
-   PVParams * params = l->getParent()->parameters();
-   expectedSum = (double) params->value(lname, "expectedSum", 0.0f);
-   expectedMin = params->value(lname, "expectedMin", 0.0f);
-   expectedMax = params->value(lname, "expectedMax", 0.0f);
+int ParameterSweepTestProbe::initParameterSweepTestProbe(const char * probeName, HyPerCol * hc) {
+   int status = initStatsProbe(probeName, hc);
    return status;
+}
+
+int ParameterSweepTestProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = StatsProbe::ioParamsFillGroup(ioFlag);
+   ioParam_expectedSum(ioFlag);
+   ioParam_expectedMin(ioFlag);
+   ioParam_expectedMax(ioFlag);
+   return status;
+}
+
+void ParameterSweepTestProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
+   requireType(BufActivity);
+}
+
+void ParameterSweepTestProbe::ioParam_expectedSum(enum ParamsIOFlag ioFlag) {
+   getParentCol()->ioParamValue(ioFlag, getProbeName(), "expectedSum", &expectedSum, 0.0);
+}
+void ParameterSweepTestProbe::ioParam_expectedMin(enum ParamsIOFlag ioFlag) {
+   getParentCol()->ioParamValue(ioFlag, getProbeName(), "expectedMin", &expectedMin, 0.0f);
+}
+
+void ParameterSweepTestProbe::ioParam_expectedMax(enum ParamsIOFlag ioFlag) {
+   getParentCol()->ioParamValue(ioFlag, getProbeName(), "expectedMax", &expectedMax, 0.0f);
 }
 
 int ParameterSweepTestProbe::outputState(double timed) {

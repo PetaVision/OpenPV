@@ -2,9 +2,9 @@
 
 namespace PV {
 
-ImportParamsConn::ImportParamsConn(const char * name, HyPerCol * hc, const char * pre_layer_name, const char* post_layer_name){
+ImportParamsConn::ImportParamsConn(const char * name, HyPerCol * hc){
    initialize_base();
-   initialize(name, hc, pre_layer_name, post_layer_name);
+   initialize(name, hc);
 }
 
 int ImportParamsConn::initialize_base()
@@ -12,9 +12,9 @@ int ImportParamsConn::initialize_base()
    return PV_SUCCESS;
 }
 
-int ImportParamsConn::initialize(const char * name, HyPerCol * hc, const char * pre_layer_name, const char * post_layer_name)
+int ImportParamsConn::initialize(const char * name, HyPerCol * hc)
 {
-   KernelConn::initialize(name, hc, pre_layer_name, post_layer_name, NULL, NULL);
+   KernelConn::initialize(name, hc);
 
    PVParams * params = parent->parameters();
    //Test grabbed array value
@@ -24,14 +24,14 @@ int ImportParamsConn::initialize(const char * name, HyPerCol * hc, const char * 
       assert(size == 2);
       assert(delayVals[0] == 0);
       assert(delayVals[1] == 1);
-      assert(strcmp(pre_layer_name, "orig") == 0);
+      assert(strcmp(preLayerName, "orig") == 0);
    }
    else{
       assert(size == 3);
       assert(delayVals[0] == 3);
       assert(delayVals[1] == 4);
       assert(delayVals[2] == 5);
-      assert(strcmp(pre_layer_name, "copy") == 0);
+      assert(strcmp(preLayerName, "copy") == 0);
    }
 
    return PV_SUCCESS;

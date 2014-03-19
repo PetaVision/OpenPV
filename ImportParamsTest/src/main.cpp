@@ -38,8 +38,7 @@ void * customgroup(const char * keyword, const char * name, HyPerCol * hc) {
    char * preLayerName = NULL;
    char * postLayerName = NULL;
    if (strcmp(keyword, "ImportParamsConn") == 0){
-      HyPerConn::getPreAndPostLayerNames(name, hc->parameters(), &preLayerName, &postLayerName);
-      HyPerConn * addedConn = (HyPerConn *) new ImportParamsConn(name, hc, preLayerName, postLayerName);
+      HyPerConn * addedConn = (HyPerConn *) new ImportParamsConn(name, hc);
       int status = checknewobject((void *) addedConn, keyword, name, hc); // checknewobject tests addedObject against null, and either prints error message to stderr or success message to stdout.
       assert(status == PV_SUCCESS);
       addedGroup = (void *) addedConn;

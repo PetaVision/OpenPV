@@ -26,35 +26,27 @@ int main(int argc, char * argv[])
    
    const char * preLayerName = "test_cocirc pre";
    const char * postLayerName = "test_cocirc post";
-   const char * pre2LayerName = "test_cocirc pre 2";
-   const char * post2LayerName = "test_cocirc post 2";
    
    PV::Example * pre = new PV::Example(preLayerName, hc);
    assert(pre);
    PV::Example * post = new PV::Example(postLayerName, hc);
    assert(post);
-   PV::HyPerConn * cHyPer = new HyPerConn("test_cocirc hyperconn", hc,
-                                          preLayerName, postLayerName);
+   PV::HyPerConn * cHyPer = new HyPerConn("test_cocirc hyperconn", hc);
    assert(cHyPer);
-   PV::KernelConn * cCocirc = new KernelConn("test_cocirc cocircconn", hc,
-                                             preLayerName, postLayerName);
+   PV::KernelConn * cCocirc = new KernelConn("test_cocirc cocircconn", hc);
    assert(cCocirc);
    
    PV::Example * pre2 = new PV::Example("test_cocirc pre 2", hc);
    assert(pre2);
    PV::Example * post2 = new PV::Example("test_cocirc post 2", hc);
    assert(post2);
-   PV::HyPerConn * cHyPer1to2 = new HyPerConn("test_cocirc hyperconn 1 to 2", hc,
-                                              preLayerName, post2LayerName);
+   PV::HyPerConn * cHyPer1to2 = new HyPerConn("test_cocirc hyperconn 1 to 2", hc);
    assert(cHyPer1to2);
-   PV::KernelConn * cCocirc1to2 = new KernelConn("test_cocirc cocircconn 1 to 2", hc,
-                                                 preLayerName, post2LayerName);
+   PV::KernelConn * cCocirc1to2 = new KernelConn("test_cocirc cocircconn 1 to 2", hc);
    assert(cCocirc1to2);
-   PV::HyPerConn * cHyPer2to1 = new HyPerConn("test_cocirc hyperconn 2 to 1", hc,
-                                              pre2LayerName, postLayerName);
+   PV::HyPerConn * cHyPer2to1 = new HyPerConn("test_cocirc hyperconn 2 to 1", hc);
    assert(cHyPer2to1);
-   PV::KernelConn * cCocirc2to1 = new KernelConn("test_cocirc cocircconn 2 to 1", hc,
-                                                 pre2LayerName, postLayerName);
+   PV::KernelConn * cCocirc2to1 = new KernelConn("test_cocirc cocircconn 2 to 1", hc);
    assert(cCocirc2to1);
    
    for (int l=0; l<hc->numberOfLayers(); l++) {

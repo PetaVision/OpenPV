@@ -90,28 +90,10 @@ void * customgroup(const char * keyword, const char * name, HyPerCol * hc) {
       addedGroup = (void *) new CPTestInputLayer(name, hc);
    }
    if( !strcmp(keyword, "VaryingKernelConn") ) {
-      HyPerConn::getPreAndPostLayerNames(name, params, &preLayerName, &postLayerName);
-      if( preLayerName && postLayerName ) {
-         InitWeights *weightInitializer;
-         weightInitializer = createInitWeightsObject(name, hc);
-         if( weightInitializer == NULL ) {
-            weightInitializer = getDefaultInitWeightsMethod(keyword);
-         }
-         const char * fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
-         addedGroup = (void * ) new VaryingKernelConn(name, hc, preLayerName, postLayerName, fileName, weightInitializer);
-      }
+      addedGroup = (void * ) new VaryingKernelConn(name, hc);
    }
    if( !strcmp(keyword, "VaryingHyPerConn") ) {
-      HyPerConn::getPreAndPostLayerNames(name, params, &preLayerName, &postLayerName);
-      if( preLayerName && postLayerName ) {
-         InitWeights *weightInitializer;
-         weightInitializer = createInitWeightsObject(name, hc);
-         if( weightInitializer == NULL ) {
-            weightInitializer = getDefaultInitWeightsMethod(keyword);
-         }
-         const char * fileName = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
-         addedGroup = (void * ) new VaryingHyPerConn(name, hc, preLayerName, postLayerName, fileName, weightInitializer);
-      }
+      addedGroup = (void * ) new VaryingHyPerConn(name, hc);
    }
    free(preLayerName); preLayerName = NULL;
    free(postLayerName); postLayerName = NULL;
@@ -123,7 +105,7 @@ int customexit(HyPerCol * hc, int argc, char * argv[]) {
    int rank = hc->icCommunicator()->commRank();
    int rootproc = 0;
    if( rank == rootproc ) {
-      int index = hc->parameters()->value("column", "numSteps");
+      int index = hc->getFinalStep()-hc->getInitialStep();
       const char * cpdir1 = hc->parameters()->stringValue("column", "checkpointReadDir");
       const char * cpdir2 = hc->parameters()->stringValue("column", "checkpointWriteDir");
       if(cpdir1 == NULL || cpdir2 == NULL) {

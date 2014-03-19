@@ -11,16 +11,20 @@
 #include <string.h>
 
 namespace PV {
-ImageTestProbe::ImageTestProbe(const char * filename, HyPerLayer * layer, const char * msg)
+ImageTestProbe::ImageTestProbe(const char * probeName, HyPerCol * hc)
    : StatsProbe()
 {
-   initStatsProbe(filename, layer, BufActivity, msg);
+   initImageTestProbe(probeName, hc);
 }
 
-ImageTestProbe::ImageTestProbe(HyPerLayer * layer, const char * msg)
-   : StatsProbe()
-{
-   initStatsProbe(NULL, layer, BufActivity, msg);
+int ImageTestProbe::initImageTestProbe_base() { return PV_SUCCESS; }
+
+int ImageTestProbe::initImageTestProbe(const char * probeName, HyPerCol * hc) {
+   return initStatsProbe(probeName, hc);
+}
+
+void ImageTestProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
+   requireType(BufActivity);
 }
 
 int ImageTestProbe::outputState(double timed){

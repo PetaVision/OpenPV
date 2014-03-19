@@ -19,48 +19,39 @@ namespace PV {
  * @type
  * @msg
  */
-ShrunkenPatchTestProbe::ShrunkenPatchTestProbe(const char * probename, const char * filename, HyPerLayer * layer, const char * msg)
+ShrunkenPatchTestProbe::ShrunkenPatchTestProbe(const char * probename, HyPerCol * hc)
 : StatsProbe()
 {
-   initShrunkenPatchTestProbe(probename, filename, layer, msg);
+   initShrunkenPatchTestProbe_base();
+   initShrunkenPatchTestProbe(probename, hc);
 }
 
-/**
- * @type
- * @msg
- */
-ShrunkenPatchTestProbe::ShrunkenPatchTestProbe(const char * probename, HyPerLayer * layer, const char * msg)
-: StatsProbe()
-{
-   initShrunkenPatchTestProbe(probename, NULL, layer, msg);
-}
+int ShrunkenPatchTestProbe::initShrunkenPatchTestProbe_base() { return PV_SUCCESS; }
 
-int ShrunkenPatchTestProbe::initShrunkenPatchTestProbe(const char * probename, const char * filename, HyPerLayer * layer, const char * msg) {
+int ShrunkenPatchTestProbe::initShrunkenPatchTestProbe(const char * probename, HyPerCol * hc) {
    correctValues = NULL;
-   int status = StatsProbe::initStatsProbe(filename, layer, BufActivity, msg);
-   if (probename==NULL) {
-      fprintf(stderr, "ShrunkenPatchTestProbe error in rank %d process: probename must be set.\n", layer->getParent()->columnId());
-      exit(EXIT_SUCCESS);
-   }
-   probeName = strdup(probename);
-   if (probeName==NULL) {
-      fprintf(stderr, "ShrunkenPatchTestProbe \"%s\" error in rank %d process: unable to copy probename.\n", probename, layer->getParent()->columnId());
-      exit(EXIT_SUCCESS);
-   }
-   PVParams * params = getTargetLayer()->getParent()->parameters();
-   readNxpShrunken(params);
-   readNypShrunken(params);
-
+   int status = StatsProbe::initStatsProbe(probename, hc);
    return status;
 }
 
-void ShrunkenPatchTestProbe::readNxpShrunken(PVParams * params) {
-   nxpShrunken=params->value(probeName, "nxpShrunken");
+int ShrunkenPatchTestProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = StatsProbe::ioParamsFillGroup(ioFlag);
+   ioParam_nxpShrunken(ioFlag);
+   ioParam_nypShrunken(ioFlag);
+   return status;
+}
+
+void ShrunkenPatchTestProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
+   requireType(BufActivity);
+}
+
+void ShrunkenPatchTestProbe::ioParam_nxpShrunken(enum ParamsIOFlag ioFlag) {
+   getParentCol()->ioParamValueRequired(ioFlag, getProbeName(), "nxpShrunken", &nxpShrunken);
    return;
 }
 
-void ShrunkenPatchTestProbe::readNypShrunken(PVParams * params) {
-   nypShrunken=params->value(probeName, "nypShrunken");
+void ShrunkenPatchTestProbe::ioParam_nypShrunken(enum ParamsIOFlag ioFlag) {
+   getParentCol()->ioParamValueRequired(ioFlag, getProbeName(), "nypShrunken", &nypShrunken);
    return;
 }
 

@@ -13,16 +13,20 @@
 
 namespace PV {
 
-InitWeightTestProbe::InitWeightTestProbe(const char * filename, HyPerLayer * layer, const char * msg)
+InitWeightTestProbe::InitWeightTestProbe(const char * probeName, HyPerCol * hc)
 : StatsProbe()
 {
-   initStatsProbe(filename, layer, BufActivity, msg);
+   initInitWeightTestProbe(probeName, hc);
 }
 
-InitWeightTestProbe::InitWeightTestProbe(HyPerLayer * layer, const char * msg)
-: StatsProbe()
-{
-   initStatsProbe(NULL, layer, BufActivity, msg);
+int InitWeightTestProbe::initInitWeightTestProbe_base() { return PV_SUCCESS; }
+
+int InitWeightTestProbe::initInitWeightTestProbe(const char * probeName, HyPerCol * hc) {
+   return initStatsProbe(probeName, hc);
+}
+
+void InitWeightTestProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
+   requireType(BufActivity);
 }
 
 

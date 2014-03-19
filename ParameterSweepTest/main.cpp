@@ -22,14 +22,7 @@ void * customgroups(const char * keyword, const char * name, HyPerCol * hc) {
    const char * filename;
    char * message;
    if( !strcmp( keyword, "ParameterSweepTestProbe") ) {
-      status = getLayerFunctionProbeParameters(name, keyword, hc, &targetlayer, &message, &filename);
-      if(status != PV_SUCCESS) {
-         fprintf(stderr, "Skipping params group \"%s\"\n", name);
-         return NULL;
-      }
-      assert(targetlayer);
-      ParameterSweepTestProbe * new_probe = new ParameterSweepTestProbe(filename, targetlayer, message);
-      free(message); message = NULL; // getLayerFunctionProbeParameters uses strdup; ParameterSweepTestProbe copies message, so we're done with it.
+      ParameterSweepTestProbe * new_probe = new ParameterSweepTestProbe(name, hc);
       checknewobject((void *) new_probe, keyword, name, hc);
       return (void *) new_probe;
    }

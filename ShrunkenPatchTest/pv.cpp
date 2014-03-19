@@ -74,12 +74,7 @@ void * customgroup(const char * keyword, const char * name, HyPerCol * hc) {
       addedGroup = (void *) addedLayer;
    }
    else if( !strcmp( keyword, "ShrunkenPatchTestProbe") ) {
-      ShrunkenPatchTestProbe * addedProbe = NULL;
-      int status = getLayerFunctionProbeParameters(name, keyword, hc, &targetLayer, &msg, &filename);
-      if( status == PV_SUCCESS ) {
-         addedProbe = new ShrunkenPatchTestProbe(name, filename, targetLayer, msg);
-      }
-      free(msg); msg=NULL; // message was alloc'ed in getLayerFunctionProbeParameters call
+      ShrunkenPatchTestProbe * addedProbe = new ShrunkenPatchTestProbe(name, hc);
       checknewobject((void *) addedProbe, keyword, name, hc);
       addedGroup = (void *) addedProbe;
    }

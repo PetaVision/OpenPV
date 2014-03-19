@@ -16,25 +16,15 @@ KernelConnDebugInitWeights::KernelConnDebugInitWeights()
    initialize_base();
 }
 
-KernelConnDebugInitWeights::KernelConnDebugInitWeights(const char * name, HyPerCol * hc,
-      const char * pre_layer_name, const char * post_layer_name,
-      HyPerConn *copiedConn) : KernelConn()
+KernelConnDebugInitWeights::KernelConnDebugInitWeights(const char * name, HyPerCol * hc) : KernelConn()
 {
    initialize_base();
-   KernelConnDebugInitWeights::initialize(name, hc, pre_layer_name, post_layer_name, copiedConn);
+   KernelConnDebugInitWeights::initialize(name, hc);
 }
 
 KernelConnDebugInitWeights::~KernelConnDebugInitWeights()
 {
-   // TODO Auto-generated destructor stub
-}
-
-int KernelConnDebugInitWeights::initialize(const char * name, HyPerCol * hc,
-      const char * pre_layer_name, const char * post_layer_name,
-      HyPerConn *copiedConn) {
-        KernelConn::initialize(name, hc, pre_layer_name, post_layer_name, NULL, new InitWeights());
-   otherConn=copiedConn;
-   return PV_SUCCESS;
+   free(otherConnName);
 }
 
 int KernelConnDebugInitWeights::initialize_base() {
@@ -42,6 +32,44 @@ int KernelConnDebugInitWeights::initialize_base() {
    return PV_SUCCESS;
 }
 
+int KernelConnDebugInitWeights::initialize(const char * name, HyPerCol * hc) {
+   KernelConn::initialize(name, hc);
+   return PV_SUCCESS;
+}
+
+int KernelConnDebugInitWeights::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = KernelConn::ioParamsFillGroup(ioFlag);
+   ioParam_copiedConn(ioFlag);
+   return status;
+}
+
+void KernelConnDebugInitWeights::ioParam_channelCode(enum ParamsIOFlag ioFlag) {
+   if (ioFlag == PARAMS_IO_READ) {
+      channel = CHANNEL_INH;
+      parent->parameters()->handleUnnecessaryParameter(name, "channelCode", (int) channel);
+   }
+}
+
+void KernelConnDebugInitWeights::ioParam_copiedConn(enum ParamsIOFlag ioFlag) {
+   parent->ioParamStringRequired(ioFlag, name, "copiedConn", &otherConnName);
+}
+
+int KernelConnDebugInitWeights::communicateInitInfo() {
+   KernelConn::communicateInitInfo();
+   HyPerConn * other_conn = parent->getConnFromName(otherConnName);
+   if (other_conn == NULL) {
+      fprintf(stderr, "KernelConnDebugInitWeights \"%s\" error in rank %d process: copiedConn \"%s\" is not a connection in the column.\n",
+            name, parent->columnId(), otherConnName);
+      exit(EXIT_FAILURE);
+   }
+   otherConn = dynamic_cast<KernelConn *>(other_conn);
+   if (otherConn == NULL) {
+      fprintf(stderr, "KernelConnDebugInitWeights \"%s\" error in rank %d process: copiedConn \"%s\" is not a KernelConn or KernelConn-derived class.\n",
+            name, parent->columnId(), otherConnName);
+      exit(EXIT_FAILURE);
+   }
+   return PV_SUCCESS;
+}
 
 PVPatch *** KernelConnDebugInitWeights::initializeWeights(PVPatch *** arbors, pvdata_t ** dataStart, int numPatches, const char * filename)
 {
@@ -98,7 +126,6 @@ PVPatch *** KernelConnDebugInitWeights::initializeWeights(PVPatch *** arbors, pv
 
    }
 
-   initNormalize(); // Sets normalizer; derived-class methods that override initNormalize must also set normalizer
    if (normalizer) {
       normalizer->normalizeWeights(this);
    }

@@ -14,13 +14,14 @@ debugParsing = false;    // Debug the reading of this parameter file.
 HyPerCol "column" = {
    nx = 256;   //size of the whole networks
    ny = 256;
+   startTime = 0.0;
+   stopTime = 10.0;
    dt = 1.0;  //time step in ms.	     
    randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
-   startTime = 0.0;
-   numSteps = 10;  
-   progressStep = 1; //Program will output its progress at each progressStep
+   progressInterval = 1.0; //Program will output its progress at each progressStep
    writeProgressToErr = false;  
    outputPath = "output/";
+   printParamsFilename = "pv.params";
    filenamesContainLayerNames = 2;  
    filenamesContainConnectionNames = 2;
    checkpointRead = false;  
@@ -64,6 +65,7 @@ ANNLayer "output" = {
     nyScale = 1;
     nf = 8; // 8 outputs 
     phase = 1;
+    triggerFlag = false;
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = 1;
@@ -76,6 +78,7 @@ ANNLayer "output" = {
     VMax = infinity;
     VMin = -infinity;
     VShift = 0.0;
+    VWidth = 0.0;
 };
 
 CloneVLayer "clone" = {
@@ -84,6 +87,7 @@ CloneVLayer "clone" = {
     nyScale = 1;
     nf = 8; // 8 outputs 
     phase = 2;
+    triggerFlag = false;
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = 1;
@@ -98,6 +102,7 @@ ANNLayer "check_clone" = {
     nyScale = 1;
     nf = 8; // 8 outputs 
     phase = 3;
+    triggerFlag = false;
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = 1;
@@ -110,6 +115,7 @@ ANNLayer "check_clone" = {
     VMax = infinity;
     VMin = -infinity;
     VShift = 0.0;
+    VWidth = 0.0;
 };
 
 SigmoidLayer "sigmoid" = {
@@ -118,6 +124,7 @@ SigmoidLayer "sigmoid" = {
     nyScale = 1;
     nf = 8; // 8 outputs 
     phase = 2;
+    triggerFlag = false;
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = 1;
@@ -138,6 +145,7 @@ ANNLayer "duplicate_sigmoid" = {
     nyScale = 1;
     nf = 8; // 8 outputs 
     phase = 2;
+    triggerFlag = false;
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = 1;
@@ -145,10 +153,11 @@ ANNLayer "duplicate_sigmoid" = {
 
     InitVType = "ZeroV";
 
-    VThresh = 1;   
+    VThresh = 1.0;   
     VMin = 0.0;
-    VMax = 1;
-    VShift = 1;
+    VMax = 1.0;
+    VShift = 1.0;
+    VWidth = 0.0;
 };
 
 ANNLayer "check_sigmoid" = {
@@ -157,6 +166,7 @@ ANNLayer "check_sigmoid" = {
     nyScale = 1;
     nf = 8; // 8 outputs 
     phase = 3;
+    triggerFlag = 0;
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = 1;
@@ -169,6 +179,7 @@ ANNLayer "check_sigmoid" = {
     VMax = infinity;
     VMin = -infinity;
     VShift = 0.0;
+    VWidth = 0.0;
 };
 
 //this is a layer for connection
@@ -183,6 +194,8 @@ KernelConn "input to output" = {
 // and these vertexs are chosen from the nearest ones around the pixel
     nxp = 7;
     nyp = 7;
+    nxpShrunken = 7;
+    nypShrunken = 7;
     nfp = 8; 
     numAxonalArbors = 1;
     writeStep = -1;
@@ -232,6 +245,8 @@ KernelConn "output to duplicate_sigmoid" = {
 // and these vertexs are chosen from the nearest ones around the pixel
     nxp = 1;
     nyp = 1;
+    nxpShrunken = 1;
+    nypShrunken = 1;
     nfp = 8; 
     numAxonalArbors = 1;
     writeStep = -1;

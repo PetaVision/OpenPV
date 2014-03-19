@@ -30,8 +30,7 @@ int main(int argc, char * argv[]) {
 void * customgroup(const char * keyword, const char * name, HyPerCol * hc) {
    void * addedGroup = NULL;
    if (strcmp(keyword, "ReceiveFromPostProbe") == 0){
-      addedGroup = new ReceiveFromPostProbe(hc->getLayerFromName(hc->parameters()->stringValue(name, "targetLayer")),
-            hc->parameters()->stringValue(name, "message"));
+      addedGroup = new ReceiveFromPostProbe(name, hc);
    }
    return addedGroup;
 }

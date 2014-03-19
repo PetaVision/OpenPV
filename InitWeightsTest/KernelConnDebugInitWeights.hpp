@@ -15,20 +15,19 @@ namespace PV {
 class KernelConnDebugInitWeights: public PV::KernelConn {
 public:
    KernelConnDebugInitWeights();
-   KernelConnDebugInitWeights(const char * name, HyPerCol * hc,
-         const char * pre_layer_name, const char * post_layer_name,
-         HyPerConn *copiedConn);
+   KernelConnDebugInitWeights(const char * name, HyPerCol * hc);
    virtual ~KernelConnDebugInitWeights();
 
-   virtual int initialize_base();
-   int initialize(const char * name, HyPerCol * hc,
-         const char * pre_layer_name, const char * post_layer_name,
-         HyPerConn *copiedConn);
+   virtual int communicateInitInfo();
    virtual PVPatch *** initializeWeights(PVPatch *** arbors, pvdata_t ** dataStart, int numPatches,
          const char * filename);
 
 
 protected:
+   int initialize(const char * name, HyPerCol * hc);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_channelCode(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_copiedConn(enum ParamsIOFlag ioFlag);
    virtual void readChannelCode(PVParams * params) { channel = CHANNEL_INH;}
    PVPatch ** initializeGaussian2DWeights(PVPatch ** patches, pvdata_t * dataStart, int numPatches);
    virtual int gauss2DCalcWeights(pvdata_t * dataStart, int kPre, int noPost,
@@ -48,7 +47,9 @@ protected:
    int copyToKernelPatch(PVPatch * sourcepatch, int arbor, int patchindex);
 
 private:
-   HyPerConn *otherConn;
+   virtual int initialize_base();
+   char * otherConnName;
+   KernelConn *otherConn;
 };
 
 } /* namespace PV */

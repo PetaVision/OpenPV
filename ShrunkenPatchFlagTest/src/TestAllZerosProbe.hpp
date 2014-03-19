@@ -9,14 +9,17 @@ namespace PV {
 
 class TestAllZerosProbe: public StatsProbe {
 public:
-   TestAllZerosProbe(const char * filename, HyPerLayer * layer, const char * msg);
-   TestAllZerosProbe(HyPerLayer * layer, const char * msg);
+   TestAllZerosProbe(const char * probeName, HyPerCol * hc);
    
    virtual int outputState(double timed);
 
 protected:
+   int initTestAllZerosProbe(const char * probeName, HyPerCol * hc);
+   virtual void ioParam_buffer(enum ParamsIOFlag ioFlag);
+
+private:
    int initTestAllZerosProbe_base() {return PV_SUCCESS;}
-   int initTestAllZerosProbe(const char * filename, HyPerLayer * layer, const char * msg);
+
 };
 
 } // namespace PV

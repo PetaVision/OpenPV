@@ -14,8 +14,7 @@ namespace PV {
 
 class PlasticTestConn : public KernelConn {
 public:
-	PlasticTestConn(const char * name, HyPerCol * hc, const char * pre_layer_name, const char * post_layer_name,
-		      const char * filename, InitWeights *weightInit);
+	PlasticTestConn(const char * name, HyPerCol * hc);
 	virtual ~PlasticTestConn();
 protected:
 	virtual int update_dW(int axonId);

@@ -28,37 +28,15 @@ int main(int argc, char * argv[]) {
 
 #ifdef MAIN_USES_CUSTOMGROUP
 void * customgroup(const char * keyword, const char * name, HyPerCol * hc) {
-   int status;
-   // PVParams * params = hc->parameters();
-   // HyPerLayer * preLayer;
-   // HyPerLayer * postLayer;
    LayerProbe * addedProbe;
    void * addedGroup = NULL;
-   const char * filename;
-   HyPerLayer * targetlayer;
-   char * message = NULL;
-   bool errorFound;
    if( !strcmp(keyword, "LayerPhaseTestProbe") ) {
-      status = getLayerFunctionProbeParameters(name, keyword, hc, &targetlayer, &message, &filename);
-      errorFound = status!=PV_SUCCESS;
-      if( !errorFound ) {
-         PVBufType buf_type = BufV;
-         if (targetlayer->getSpikingFlag()) {
-            buf_type = BufActivity;
-         }
-         if( filename ) {
-            addedProbe = (LayerProbe *) new LayerPhaseTestProbe(name, filename, targetlayer, message);
-         }
-         else {
-            addedProbe = (LayerProbe *) new LayerPhaseTestProbe(name, targetlayer, message);
-         }
-         if( !addedProbe ) {
-            fprintf(stderr, "Group \"%s\": Unable to create probe\n", name);
-            errorFound = true;
-         }
-         if( !errorFound ) addedGroup = (void *) addedProbe;
+      addedProbe = (LayerProbe *) new LayerPhaseTestProbe(name, hc);
+      if( !addedProbe ) {
+         fprintf(stderr, "Group \"%s\": Unable to create probe\n", name);
+         exit(EXIT_FAILURE);
       }
-      free(message); message = NULL;
+      addedGroup = (void *) addedProbe;
    }
    return addedGroup;
 }

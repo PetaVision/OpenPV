@@ -33,12 +33,10 @@ int main(int argc, char * argv[]) {
 void * customgroup(const char * keyword, const char * name, HyPerCol * hc) {
    void * addedGroup = NULL;
    if (strcmp(keyword, "ImageTestProbe") == 0){
-      addedGroup = new ImageTestProbe(hc->getLayerFromName(hc->parameters()->stringValue(name, "targetLayer")),
-            hc->parameters()->stringValue(name, "message"));
+      addedGroup = new ImageTestProbe(name, hc);
    }
    if (strcmp(keyword, "MovieTestProbe") == 0){
-      addedGroup = new MovieTestProbe(hc->getLayerFromName(hc->parameters()->stringValue(name, "targetLayer")),
-            hc->parameters()->stringValue(name, "message"));
+      addedGroup = new MovieTestProbe(name, hc);
    }
    return addedGroup;
 }

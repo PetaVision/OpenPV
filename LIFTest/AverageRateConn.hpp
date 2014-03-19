@@ -14,14 +14,15 @@ namespace PV {
 
 class AverageRateConn : public IdentConn {
 public:
-   AverageRateConn(const char * name, HyPerCol * hc, const char * pre_layer_name, const char * post_layer_name);
+   AverageRateConn(const char * name, HyPerCol * hc);
    virtual ~AverageRateConn();
-   virtual int setParams(PVParams * inputParams);
    virtual int updateState(double timed, double dt);
 
 protected:
    AverageRateConn();
-   int initialize(const char * name, HyPerCol * hc, const char * pre_layer_name, const char * post_layer_name);
+   int initialize(const char * name, HyPerCol * hc);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_plasticityFlag(enum ParamsIOFlag ioFlag);
 
 private:
    int initialize_base();

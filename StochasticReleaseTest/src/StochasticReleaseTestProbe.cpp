@@ -26,21 +26,23 @@ int StochasticReleaseTestProbe::initialize_base() {
 }
 
 int StochasticReleaseTestProbe::initStochasticReleaseTestProbe(const char * name, HyPerCol * hc) {
-   const char * classkeyword = hc->parameters()->groupKeywordFromName(name);
-   HyPerLayer * targetlayer = NULL;
-   char * message = NULL;
-   const char * filename;
-   getLayerFunctionProbeParameters(name, classkeyword, hc, &targetlayer, &message, &filename);
-   int status = initStatsProbe(filename, targetlayer, BufActivity, message);
-   free(message); message = NULL; // getLayerFunctionProbeParameters uses strdup; ParameterSweepTestProbe copies message, so we're done with it.
+   int status = initStatsProbe(name, hc);
+   return status;
+}
 
-   long int num_steps = hc->getFinalStep() - hc->getInitialStep();
+void StochasticReleaseTestProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
+   requireType(BufActivity);
+}
+
+int StochasticReleaseTestProbe::communicateInitInfo() {
+   int status = StatsProbe::communicateInitInfo();
+   assert(getTargetLayer());
+   long int num_steps = getParentCol()->getFinalStep() - getParentCol()->getInitialStep();
    pvalues = (double *) calloc(num_steps*getTargetLayer()->getLayerLoc()->nf, sizeof(double));
    if (pvalues == NULL) {
       fprintf(stderr, "StochasticReleaseTestProbe error: unable to allocate memory for pvalues: %s\n", strerror(errno));
       exit(EXIT_FAILURE);
    }
-
    return status;
 }
 

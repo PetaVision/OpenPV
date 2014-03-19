@@ -11,10 +11,17 @@ namespace PV{
 
 class ReceiveFromPostProbe : public PV::StatsProbe{
 public:
-   ReceiveFromPostProbe(const char * filename, HyPerLayer * layer, const char * msg);
-   ReceiveFromPostProbe(HyPerLayer * layer, const char * msg);
+   ReceiveFromPostProbe(const char * probeName, HyPerCol * hc);
 
    virtual int outputState(double timed);
+
+protected:
+   int initReceiveFromPostProbe(const char * probeName, HyPerCol * hc);
+   void ioParam_buffer(enum ParamsIOFlag ioFlag);
+
+private:
+   int initReceiveFromPostProbe_base();
+
 };
 
 }

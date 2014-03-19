@@ -14,11 +14,16 @@ namespace PV {
 
 class GPUTestForTwosProbe: public PV::StatsProbe {
 public:
-	GPUTestForTwosProbe(const char * filename, HyPerLayer * layer, const char * msg);
-	GPUTestForTwosProbe(HyPerLayer * layer, const char * msg);
+	GPUTestForTwosProbe(const char * probeName, HyPerCol * hc);
 	virtual ~GPUTestForTwosProbe();
 
 	virtual int outputState(double timed);
+
+protected:
+    int initGPUTestForTwosProbe(const char * probeName, HyPerCol * hc);
+
+private:
+    int initGPUTestForTwosProbe_base();
 
 };
 

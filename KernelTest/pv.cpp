@@ -35,9 +35,6 @@ int addcustom(HyPerCol * hc, int argc, char * argv[]) {
 
 void * customgroup(const char * keyword, const char * name, HyPerCol * hc) {
    int status;
-   // PVParams * params = hc->parameters();
-   // HyPerLayer * preLayer;
-   // HyPerLayer * postLayer;
    LayerProbe * addedProbe;
    void * addedGroup = NULL;
    const char * filename;
@@ -45,27 +42,13 @@ void * customgroup(const char * keyword, const char * name, HyPerCol * hc) {
    char * message = NULL;
    bool errorFound;
    if( !strcmp(keyword, "KernelTestProbe") ) {
-      status = getLayerFunctionProbeParameters(name, keyword, hc, &targetlayer, &message, &filename);
-      errorFound = status!=PV_SUCCESS;
-      if( !errorFound ) {
-         PVBufType buf_type = BufV;
-         if (targetlayer->getSpikingFlag()) {
-            buf_type = BufActivity;
-         }
-         if( filename ) {
-            addedProbe = (LayerProbe *) new KernelTestProbe(filename, targetlayer, message);
-         }
-         else {
-            addedProbe = (LayerProbe *) new KernelTestProbe(targetlayer, message);
-         }
-         free(message); message=NULL; // message was alloc'ed in getLayerFunctionProbeParameters call
-         if( !addedProbe ) {
-            fprintf(stderr, "Group \"%s\": Unable to create probe\n", name);
-            errorFound = true;
-         }
-         if( !errorFound ) addedGroup = (void *) addedProbe;
+      addedProbe = (LayerProbe *) new KernelTestProbe(name, hc);
+      if( !addedProbe ) {
+         fprintf(stderr, "Group \"%s\": Unable to create probe\n", name);
+         errorFound = true;
       }
    }
+   if( !errorFound ) addedGroup = (void *) addedProbe;
    return addedGroup;
 }
 

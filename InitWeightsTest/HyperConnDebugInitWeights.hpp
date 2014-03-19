@@ -1,5 +1,5 @@
 /*
- * HyperConnDebugInitWeights.hpp
+ * HyPerConnDebugInitWeights.hpp
  *
  *  Created on: Aug 16, 2011
  *      Author: kpeterson
@@ -12,23 +12,22 @@
 
 namespace PV {
 
-class HyperConnDebugInitWeights: public PV::HyPerConn {
+class HyPerConnDebugInitWeights: public PV::HyPerConn {
 public:
-   HyperConnDebugInitWeights();
-   HyperConnDebugInitWeights(const char * name, HyPerCol * hc,
-         const char * pre_layer_name, const char * post_layer_name,
-         HyPerConn *copiedConn);
-   virtual ~HyperConnDebugInitWeights();
+   HyPerConnDebugInitWeights();
+   HyPerConnDebugInitWeights(const char * name, HyPerCol * hc);
+   virtual ~HyPerConnDebugInitWeights();
 
-   virtual int initialize_base();
-   int initialize(const char * name, HyPerCol * hc,
-         const char * pre_layer_name, const char * post_layer_name,
-         HyPerConn *copiedConn);
+   virtual int communicateInitInfo();
    virtual PVPatch *** initializeWeights(PVPatch *** arbors, pvdata_t ** dataStart, int numPatches,
          const char * filename);
 
 
 protected:
+   int initialize(const char * name, HyPerCol * hc);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_channelCode(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_copiedConn(enum ParamsIOFlag ioFlag);
    virtual void readChannelCode(PVParams * params) { channel = CHANNEL_INH;}
 
    PVPatch ** initializeGaussian2DWeights(PVPatch ** patches, pvdata_t * dataStart, int numPatches);
@@ -49,6 +48,8 @@ protected:
    int copyToWeightPatch(PVPatch * sourcepatch, int arbor, int patchindex);
 
 private:
+   int initialize_base();
+   char * otherConnName;
    HyPerConn *otherConn;
 };
 

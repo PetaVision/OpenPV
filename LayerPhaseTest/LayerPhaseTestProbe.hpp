@@ -17,10 +17,20 @@ namespace PV {
 
 class LayerPhaseTestProbe: public PV::StatsProbe {
 public:
-   LayerPhaseTestProbe(const char * name, const char * filename, HyPerLayer * layer, const char * msg);
-   LayerPhaseTestProbe(const char * name, HyPerLayer * layer, const char * msg);
+   LayerPhaseTestProbe(const char * probeName, HyPerCol * hc);
 
    virtual int outputState(double timed);
+
+protected:
+   int initLayerPhaseTestProbe(const char * probeName, HyPerCol * hc);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_buffer(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_equilibriumValue(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_equilibriumTime(enum ParamsIOFlag ioFlag);
+
+private:
+   int initLayerPhaseTestProbe_base();
+
 protected:
    pvdata_t equilibriumValue;
    double equilibriumTime;

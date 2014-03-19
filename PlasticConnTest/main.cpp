@@ -73,17 +73,7 @@ void * customgroup(const char * keyword, const char * name, HyPerCol * hc) {
       addedGroup = (void *) addedLayer;
    }
    else if( !strcmp(keyword, "PlasticTestConn") ) {
-      HyPerConn::getPreAndPostLayerNames(name, hc->parameters(), &preLayerName, &postLayerName);
-      HyPerConn * addedConn = NULL;
-      if( preLayerName && postLayerName ) {
-         InitWeights * weightInitializer = createInitWeightsObject(name, hc);
-         if( weightInitializer == NULL ) {
-            weightInitializer = getDefaultInitWeightsMethod(keyword);
-         }
-         filename = getStringValueFromParameterGroup(name, params, "initWeightsFile", false);
-
-         addedConn = (HyPerConn * ) new PlasticTestConn(name, hc, preLayerName, postLayerName, filename, weightInitializer);
-      }
+      HyPerConn * addedConn = (HyPerConn * ) new PlasticTestConn(name, hc);
       checknewobject((void *) addedConn, keyword, name, hc);
       addedGroup = (void *) addedConn;
    }

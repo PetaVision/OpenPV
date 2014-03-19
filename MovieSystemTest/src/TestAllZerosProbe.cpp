@@ -11,14 +11,9 @@
 
 namespace PV {
 
-TestAllZerosProbe::TestAllZerosProbe(const char * filename, HyPerLayer * layer, const char * msg) {
+TestAllZerosProbe::TestAllZerosProbe(const char * probeName, HyPerCol * hc) {
    initTestAllZerosProbe_base();
-   initTestAllZerosProbe(filename, layer, msg);
-}
-
-TestAllZerosProbe::TestAllZerosProbe(HyPerLayer * layer, const char * msg) {
-   initTestAllZerosProbe_base();
-   initTestAllZerosProbe(NULL, layer, msg);
+   initTestAllZerosProbe(probeName, hc);
 }
 
 int TestAllZerosProbe::outputState(double timed) {
@@ -41,8 +36,12 @@ int TestAllZerosProbe::outputState(double timed) {
    return status;
 }
 
-int TestAllZerosProbe::initTestAllZerosProbe(const char * filename, HyPerLayer * layer, const char * msg) {
-   return StatsProbe::initStatsProbe(filename, layer, BufActivity, msg);
+int TestAllZerosProbe::initTestAllZerosProbe(const char * probeName, HyPerCol * hc) {
+   return StatsProbe::initStatsProbe(probeName, hc);
+}
+
+void TestAllZerosProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
+   requireType(BufActivity);
 }
 
 }; // namespace PV

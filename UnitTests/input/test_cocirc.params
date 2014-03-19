@@ -19,6 +19,8 @@ HyPerLayer "test_cocirc post" = {
 };
 
 HyPerConn "test_cocirc hyperconn" = {
+   preLayerName = "test_cocirc pre";
+   postLayerName = "test_cocirc post";
    nxp = 5;
    nyp = 5;
    channelCode = 0;
@@ -45,7 +47,9 @@ HyPerConn "test_cocirc hyperconn" = {
    cocircWeights = 1.0;
 };
 
-HyPerConn "test_cocirc cocircconn" = {
+KernelConn "test_cocirc cocircconn" = {
+   preLayerName = "test_cocirc pre";
+   postLayerName = "test_cocirc post";
    nxp = 5;
    nyp = 5;
    channelCode = 0;
@@ -87,6 +91,8 @@ HyPerLayer "test_cocirc post 2" = {
 };
 
 HyPerConn "test_cocirc hyperconn 1 to 2" = {
+   preLayerName = "test_cocirc pre";
+   postLayerName = "test_cocirc post 2";
    nxp = 10;  // must be scale factor times odd number
    nyp = 10;
    channelCode = 0;
@@ -110,7 +116,9 @@ HyPerConn "test_cocirc hyperconn 1 to 2" = {
    cocircWeights = 1.0;
 };
 
-HyPerConn "test_cocirc cocircconn 1 to 2" = {
+KernelConn "test_cocirc cocircconn 1 to 2" = {
+   preLayerName = "test_cocirc pre";
+   postLayerName = "test_cocirc post 2";
    nxp = 10;  // must be scale factor times odd number
    nyp = 10;
    channelCode = 0;
@@ -135,6 +143,8 @@ HyPerConn "test_cocirc cocircconn 1 to 2" = {
 };
 
 HyPerConn "test_cocirc hyperconn 2 to 1" = {
+   preLayerName = "test_cocirc pre 2";
+   postLayerName = "test_cocirc post";
    nxp = 5;  // must be odd number
    nyp = 5;
    channelCode = 0;
@@ -158,7 +168,9 @@ HyPerConn "test_cocirc hyperconn 2 to 1" = {
    cocircWeights = 1.0;
 };
 
-HyPerConn "test_cocirc cocircconn 2 to 1" = {
+KernelConn "test_cocirc cocircconn 2 to 1" = {
+   preLayerName = "test_cocirc pre 2";
+   postLayerName = "test_cocirc post";
    nxp = 5;  // must be odd number
    nyp = 5;
    channelCode = 0;

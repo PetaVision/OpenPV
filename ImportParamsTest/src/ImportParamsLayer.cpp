@@ -2,14 +2,9 @@
 
 namespace PV {
 
-ImportParamsLayer::ImportParamsLayer(const char * name, HyPerCol * hc, int numChannels) {
+ImportParamsLayer::ImportParamsLayer(const char * name, HyPerCol * hc) {
    initialize_base();
-   initialize(name, hc, numChannels);
-}
-
-ImportParamsLayer::ImportParamsLayer(const char * name, HyPerCol * hc){
-   initialize_base();
-   initialize(name, hc, MAX_CHANNELS);
+   initialize(name, hc);
 }
 
 int ImportParamsLayer::initialize_base()
@@ -17,9 +12,9 @@ int ImportParamsLayer::initialize_base()
    return PV_SUCCESS;
 }
 
-int ImportParamsLayer::initialize(const char * name, HyPerCol * hc, int num_channels)
+int ImportParamsLayer::initialize(const char * name, HyPerCol * hc)
 {
-   ANNLayer::initialize(name, hc, num_channels);
+   ANNLayer::initialize(name, hc);
 
    PVParams * params = parent->parameters();
    if(strcmp(name, "orig") == 0){

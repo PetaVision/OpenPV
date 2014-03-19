@@ -13,16 +13,18 @@
 
 namespace PV {
 
-CloneKernelConnTestProbe::CloneKernelConnTestProbe(const char * filename, HyPerLayer * layer, const char * msg)
-: StatsProbe(filename, layer, msg)
+CloneKernelConnTestProbe::CloneKernelConnTestProbe(const char * probeName, HyPerCol * hc)
+: StatsProbe()
 {
+   initCloneKernelConnTestProbe_base();
+   initCloneKernelConnTestProbe(probeName, hc);
 }
 
-CloneKernelConnTestProbe::CloneKernelConnTestProbe(HyPerLayer * layer, const char * msg)
-: StatsProbe(layer, msg)
-{
-}
+int CloneKernelConnTestProbe::initCloneKernelConnTestProbe_base() {return PV_SUCCESS;}
 
+int CloneKernelConnTestProbe::initCloneKernelConnTestProbe(const char * probeName, HyPerCol * hc) {
+   return initStatsProbe(probeName, hc);
+}
 
 int CloneKernelConnTestProbe::outputState(double timed)
 {

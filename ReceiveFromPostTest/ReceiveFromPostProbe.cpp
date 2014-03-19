@@ -10,16 +10,21 @@
 #include <string.h>
 
 namespace PV {
-ReceiveFromPostProbe::ReceiveFromPostProbe(const char * filename, HyPerLayer * layer, const char * msg)
+ReceiveFromPostProbe::ReceiveFromPostProbe(const char * probeName, HyPerCol * hc)
    : StatsProbe()
 {
-   initStatsProbe(filename, layer, BufActivity, msg);
+   initReceiveFromPostProbe_base();
+   initReceiveFromPostProbe(probeName, hc);
 }
 
-ReceiveFromPostProbe::ReceiveFromPostProbe(HyPerLayer * layer, const char * msg)
-   : StatsProbe()
-{
-   initStatsProbe(NULL, layer, BufActivity, msg);
+int ReceiveFromPostProbe::initReceiveFromPostProbe_base() { return PV_SUCCESS; }
+
+int ReceiveFromPostProbe::initReceiveFromPostProbe(const char * probeName, HyPerCol * hc) {
+   return initStatsProbe(probeName, hc);
+}
+
+void ReceiveFromPostProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
+   requireType(BufActivity);
 }
 
 int ReceiveFromPostProbe::outputState(double timed){

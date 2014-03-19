@@ -11,16 +11,20 @@
 #include <string.h>
 
 namespace PV {
-MovieTestProbe::MovieTestProbe(const char * filename, HyPerLayer * layer, const char * msg)
+MovieTestProbe::MovieTestProbe(const char * probeName, HyPerCol * hc)
    : StatsProbe()
 {
-   initStatsProbe(filename, layer, BufActivity, msg);
+   initMovieTestProbe(probeName, hc);
 }
 
-MovieTestProbe::MovieTestProbe(HyPerLayer * layer, const char * msg)
-   : StatsProbe()
-{
-   initStatsProbe(NULL, layer, BufActivity, msg);
+int MovieTestProbe::initMovieTestProbe_base() {return PV_SUCCESS;}
+
+int MovieTestProbe::initMovieTestProbe(const char * probeName, HyPerCol * hc) {
+   return initStatsProbe(probeName, hc);
+}
+
+void MovieTestProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
+   requireType(BufActivity);
 }
 
 int MovieTestProbe::outputState(double timed){

@@ -723,8 +723,8 @@ KernelConn "Retina to L9" = {
    updateGSynFromPostPerspective = false;
 };
 
-// HyperConnDebugInitWeights connections: 
-HyperConnDebugInitWeights "Retina to L0 check" = {
+// HyPerConnDebugInitWeights connections: 
+HyPerConnDebugInitWeights "Retina to L0 check" = {
    preLayerName = "Retina";
    postLayerName = "L0";
    copiedConn = "Retina to L0";
@@ -771,7 +771,7 @@ HyperConnDebugInitWeights "Retina to L0 check" = {
    updateGSynFromPostPerspective = false;
 };
 
-HyperConnDebugInitWeights "Retina to L1 check" = {
+HyPerConnDebugInitWeights "Retina to L1 check" = {
    preLayerName = "Retina";
    postLayerName = "L1";
    copiedConn = "Retina to L1";
@@ -820,7 +820,7 @@ HyperConnDebugInitWeights "Retina to L1 check" = {
    updateGSynFromPostPerspective = false;
 };
 
-HyperConnDebugInitWeights "Retina to L2 check" = {
+HyPerConnDebugInitWeights "Retina to L2 check" = {
    preLayerName = "Retina";
    postLayerName = "L2";
    copiedConn = "Retina to L2";
@@ -854,7 +854,7 @@ HyperConnDebugInitWeights "Retina to L2 check" = {
    updateGSynFromPostPerspective = false;
 };
 
-// HyperConnDebugInitWeights "Retina to L3 check" = {
+// HyPerConnDebugInitWeights "Retina to L3 check" = {
 //    preLayerName = "Retina";
 //    postLayerName = "L3";
 //    copiedConn = "Retina to L3";
@@ -907,7 +907,7 @@ HyperConnDebugInitWeights "Retina to L2 check" = {
 //    updateGSynFromPostPerspective = false;
 // };
 // 
-// HyperConnDebugInitWeights "Retina to L4 check" = {
+// HyPerConnDebugInitWeights "Retina to L4 check" = {
 //    preLayerName = "Retina";
 //    postLayerName = "L4";
 //    copiedConn = "Retina to L4";

@@ -15,17 +15,19 @@ namespace PV {
 
 class LIFTestProbe : public StatsProbe {
 public:
-   LIFTestProbe(const char * filename, HyPerLayer * layer, const char * msg, const char * probename);
-   LIFTestProbe(HyPerLayer * layer, const char * msg, const char * probename);
-   LIFTestProbe(const char * filename, HyPerLayer * layer, PVBufType type, const char * msg, const char * probename);
-   LIFTestProbe(HyPerLayer * layer, PVBufType type, const char * msg, const char * probename);
+   LIFTestProbe(const char * probeName, HyPerCol * hc);
    virtual ~LIFTestProbe();
+
+   virtual int communicateInitInfo();
 
    virtual int outputState(double timed);
 
 protected:
    LIFTestProbe();
-   int initLIFTestProbe(const char * filename, HyPerLayer * layer, PVBufType type, const char * msg, const char * probename);
+   int initLIFTestProbe(const char * probeName, HyPerCol * hc);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_endingTime(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_tolerance(enum ParamsIOFlag ioFlag);
 
 private:
    int initialize_base();

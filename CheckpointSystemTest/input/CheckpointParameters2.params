@@ -32,7 +32,7 @@ HyPerCol "column" = {
    checkpointWriteDir = "checkpoints2";
    checkpointWriteStepInterval = 4;
    deleteOlderCheckpoints = false;
-   printParamsFilename = "params.txt";
+   printParamsFilename = "pv2.params";
 };
 
 //

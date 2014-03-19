@@ -21,11 +21,14 @@ public:
    StochasticReleaseTestProbe(const char * name, HyPerCol * hc);
    virtual ~StochasticReleaseTestProbe();
 
+   virtual int communicateInitInfo();
+
    virtual int outputState(double timed);
 
 protected:
    StochasticReleaseTestProbe();
    int initStochasticReleaseTestProbe(const char * name, HyPerCol * hc);
+   virtual void ioParam_buffer(enum ParamsIOFlag ioFlag);
    int computePValues(long int step, int f);
 private:
    int initialize_base();

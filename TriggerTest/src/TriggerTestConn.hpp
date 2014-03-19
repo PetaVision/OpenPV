@@ -11,7 +11,7 @@ namespace PV{
 
 class TriggerTestConn: public PV::HyPerConn{
 public:
-   TriggerTestConn(const char * name, HyPerCol * hc, const char * pre_layer_name, const char * post_layer_name);
+   TriggerTestConn(const char * name, HyPerCol * hc);
    int virtual updateStateWrapper (double time, double dt);
 };
 

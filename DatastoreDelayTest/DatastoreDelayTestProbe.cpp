@@ -16,22 +16,23 @@ namespace PV {
  * @type
  * @msg
  */
-DatastoreDelayTestProbe::DatastoreDelayTestProbe(const char * probename, const char * filename, HyPerLayer * layer, const char * msg) : StatsProbe()
+DatastoreDelayTestProbe::DatastoreDelayTestProbe(const char * probename, HyPerCol * hc) : StatsProbe()
 {
-   initDatastoreDelayTestProbe(probename, filename, layer, msg);
+   initDatastoreDelayTestProbe(probename, hc);
 }
 
 
-int DatastoreDelayTestProbe::initDatastoreDelayTestProbe(const char * probename, const char * filename, HyPerLayer * layer, const char * msg) {
-   initStatsProbe(filename, layer, BufActivity, msg);
-   if( probename != NULL ) {
-      name = strdup(probename);
-   }
-   else {
-      name = NULL;
-   }
+int DatastoreDelayTestProbe::initDatastoreDelayTestProbe(const char * probename, HyPerCol * hc) {
+   initStatsProbe(probename, hc);
    return PV_SUCCESS;
 }
+
+void DatastoreDelayTestProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
+   if (ioFlag == PARAMS_IO_READ) {
+      requireType(BufActivity);
+   }
+}
+
 /**
  * @time
  * @l

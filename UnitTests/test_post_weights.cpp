@@ -38,17 +38,15 @@ int main(int argc, char * argv[])
    Example   * l2 = new Example(l2name, hc); assert(l2);
    Example   * l3 = new Example(l3name, hc); assert(l3);
 
-   InitWeights * initWeights = new InitUniformWeights();
-
-   HyPerConn * c1 = new HyPerConn("test_post_weights L1 to L1", hc, l1name, l1name, NULL, initWeights);
+   HyPerConn * c1 = new HyPerConn("test_post_weights L1 to L1", hc);
    assert(c1);
    assert(c1->numberOfAxonalArborLists() == 1);
 
-   HyPerConn * c2 = new HyPerConn("test_post_weights L2 to L3", hc, l2name, l3name, NULL, initWeights);
+   HyPerConn * c2 = new HyPerConn("test_post_weights L2 to L3", hc);
    assert(c2);
    assert(c2->numberOfAxonalArborLists() == 1);
 
-   HyPerConn * c3 = new HyPerConn("test_post_weights L3 to L2", hc, l3name, l2name, NULL, initWeights);
+   HyPerConn * c3 = new HyPerConn("test_post_weights L3 to L2", hc);
    assert(c3);
    assert(c3->numberOfAxonalArborLists() == 1);
 

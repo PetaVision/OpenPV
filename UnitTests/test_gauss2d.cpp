@@ -36,65 +36,31 @@ int main(int argc, char * argv[])
    assert(pre);
    PV::Example * post = new PV::Example(post_layer_name, hc);
    assert(post);
-/*
-   HyPerConn(const char * name, HyPerCol * hc, HyPerLayer * pre, HyPerLayer * post,
-             ChannelType channel, InitWeights *weightInit);
- */
-   InitWeights * weightInitializer = NULL;
-   
-   weightInitializer = new InitWeights();
-   PV::HyPerConn * cHyPer =
-         new HyPerConn("test_gauss2d hyperconn", hc,
-                       pre_layer_name, post_layer_name,
-                       weightInitializer);
 
-   weightInitializer = new InitWeights();
-   // Currently (as of 2013-07-03), HyPerConn takes ownership
-   // of weightInitializer, and deletes it when the connection
-   // is deleted.  This means that you can't use the same
-   // weightInitializer for more than one connection, as test_gauss2d
-   // did until now.  So, as a temporary patch, we create a new
-   // separate InitWeights object for each connection.
-   //
-   // What we should do, and will do eventually, is have
-   // HyPerConn read the weightInitType argument from the params
-   // and create its own object, which it then deletes.  Then
-   // the calling routine doesn't have to worry about InitWeights at all.
-   PV::KernelConn * cKernel =
-         new KernelConn("test_gauss2d kernelconn", hc,
-                        pre_layer_name, post_layer_name,
-                        NULL, weightInitializer);
+   
+   PV::HyPerConn * cHyPer = new HyPerConn("test_gauss2d hyperconn", hc);
+
+   PV::KernelConn * cKernel = new KernelConn("test_gauss2d kernelconn", hc);
+
    PV::Example * pre2 = new PV::Example(pre2_layer_name, hc);
    assert(pre2);
    PV::Example * post2 = new PV::Example(post2_layer_name, hc);
    assert(post2);
 
-   weightInitializer = new InitWeights();
    PV::HyPerConn * cHyPer1to2 =
-         new HyPerConn("test_gauss2d hyperconn 1 to 2", hc,
-                       pre_layer_name, post2_layer_name,
-                       weightInitializer);
+         new HyPerConn("test_gauss2d hyperconn 1 to 2", hc);
    assert(cHyPer1to2);
 
-   weightInitializer = new InitWeights();
    PV::KernelConn * cKernel1to2 =
-         new KernelConn("test_gauss2d kernelconn 1 to 2", hc,
-                        pre_layer_name, post2_layer_name,
-                        NULL, weightInitializer);
+         new KernelConn("test_gauss2d kernelconn 1 to 2", hc);
    assert(cKernel1to2);
 
-   weightInitializer = new InitWeights();
    PV::HyPerConn * cHyPer2to1 =
-         new HyPerConn("test_gauss2d hyperconn 2 to 1", hc,
-                       pre2_layer_name, post_layer_name,
-                       weightInitializer);
+         new HyPerConn("test_gauss2d hyperconn 2 to 1", hc);
    assert(cHyPer2to1);
 
-   weightInitializer = new InitWeights();
    PV::KernelConn * cKernel2to1 =
-         new KernelConn("test_gauss2d kernelconn 2 to 1", hc,
-                        pre2_layer_name, post_layer_name,
-                        NULL, weightInitializer);
+         new KernelConn("test_gauss2d kernelconn 2 to 1", hc);
    assert(cKernel2to1);
    
    int status = 0;

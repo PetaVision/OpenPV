@@ -13,18 +13,18 @@
 
 namespace PV {
 
-ArborTestProbe::ArborTestProbe(const char * filename, HyPerLayer * layer, const char * msg)
-: StatsProbe(filename, layer, msg)
-{
-}
-
-ArborTestProbe::ArborTestProbe(HyPerLayer * layer, const char * msg)
-: StatsProbe(layer, msg)
+ArborTestProbe::ArborTestProbe(const char * probeName, HyPerCol * hc)
+: StatsProbe()
 {
 }
 
 ArborTestProbe::~ArborTestProbe() {}
 
+int ArborTestProbe::initArborTestProbe_base() { return PV_SUCCESS;}
+
+int ArborTestProbe::initArborTestProbe(const char * probeName, HyPerCol * hc) {
+   return initStatsProbe(probeName, hc);
+}
 
 int ArborTestProbe::outputState(double timed)
 {

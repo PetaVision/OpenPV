@@ -1,49 +1,72 @@
 /*
- * HyperConnDebugInitWeights.cpp
+ * HyPerConnDebugInitWeights.cpp
  *
  *  Created on: Aug 16, 2011
  *      Author: kpeterson
  */
 
-#include "HyperConnDebugInitWeights.hpp"
+#include "HyPerConnDebugInitWeights.hpp"
 #include <normalizers/NormalizeBase.hpp>
 
 
 namespace PV {
 
-HyperConnDebugInitWeights::HyperConnDebugInitWeights()
+HyPerConnDebugInitWeights::HyPerConnDebugInitWeights()
 {
    initialize_base();
 }
 
-HyperConnDebugInitWeights::HyperConnDebugInitWeights(const char * name, HyPerCol * hc,
-      const char * pre_layer_name, const char * post_layer_name,
-      HyPerConn *copiedConn) : HyPerConn()
+HyPerConnDebugInitWeights::HyPerConnDebugInitWeights(const char * name, HyPerCol * hc) : HyPerConn()
 {
    initialize_base();
-   HyperConnDebugInitWeights::initialize(name, hc, pre_layer_name, post_layer_name, copiedConn);
+   HyPerConnDebugInitWeights::initialize(name, hc);
 }
 
-HyperConnDebugInitWeights::~HyperConnDebugInitWeights()
+HyPerConnDebugInitWeights::~HyPerConnDebugInitWeights()
 {
-   // TODO Auto-generated destructor stub
+   free(otherConnName);
 }
 
-int HyperConnDebugInitWeights::initialize(const char * name, HyPerCol * hc,
-      const char * pre_layer_name, const char * post_layer_name,
-      HyPerConn *copiedConn) {
-   HyPerConn::initialize(name, hc, pre_layer_name, post_layer_name, NULL, new InitWeights());
-   otherConn=copiedConn;
+int HyPerConnDebugInitWeights::initialize(const char * name, HyPerCol * hc) {
+   HyPerConn::initialize(name, hc);
    return PV_SUCCESS;
 }
 
-int HyperConnDebugInitWeights::initialize_base() {
+int HyPerConnDebugInitWeights::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = HyPerConn::ioParamsFillGroup(ioFlag);
+   ioParam_copiedConn(ioFlag);
+   return status;
+}
+
+void HyPerConnDebugInitWeights::ioParam_channelCode(enum ParamsIOFlag ioFlag) {
+   if (ioFlag == PARAMS_IO_READ) {
+      channel = CHANNEL_INH;
+      parent->parameters()->handleUnnecessaryParameter(name, "channelCode", (int) channel);
+   }
+}
+
+void HyPerConnDebugInitWeights::ioParam_copiedConn(enum ParamsIOFlag ioFlag) {
+   parent->ioParamStringRequired(ioFlag, name, "copiedConn", &otherConnName);
+}
+
+int HyPerConnDebugInitWeights::initialize_base() {
+   otherConnName = NULL;
    otherConn=NULL;
    return PV_SUCCESS;
 }
 
+int HyPerConnDebugInitWeights::communicateInitInfo() {
+   HyPerConn::communicateInitInfo();
+   otherConn = parent->getConnFromName(otherConnName);
+   if (otherConn == NULL) {
+      fprintf(stderr, "HyPerConnDebugInitWeights \"%s\" error in rank %d process: copiedConn \"%s\" is not a connection in the column.\n",
+            name, parent->columnId(), otherConnName);
+      exit(EXIT_FAILURE);
+   }
+   return PV_SUCCESS;
+}
 
-PVPatch *** HyperConnDebugInitWeights::initializeWeights(PVPatch *** arbors, pvdata_t ** dataStart, int numPatches, const char * filename)
+PVPatch *** HyPerConnDebugInitWeights::initializeWeights(PVPatch *** arbors, pvdata_t ** dataStart, int numPatches, const char * filename)
 {
    // TODO  Implement InitWeightsMethod class.  The constructor for HyPerConn would take an InitWeightsMethod
    //       instantiation as an argument.  The routines called below would be put into derived classes
@@ -100,14 +123,13 @@ PVPatch *** HyperConnDebugInitWeights::initializeWeights(PVPatch *** arbors, pvd
 
    }
 
-   initNormalize(); // Sets normalize_flag; derived-class methods that override initNormalize must also set normalize_flag
    if (normalizer) {
       normalizer->normalizeWeights(this);
    }
    return arbors;
 }
 
-PVPatch ** HyperConnDebugInitWeights::initializeSmartWeights(PVPatch ** patches, pvdata_t * dataStart, int numPatches)
+PVPatch ** HyPerConnDebugInitWeights::initializeSmartWeights(PVPatch ** patches, pvdata_t * dataStart, int numPatches)
 {
 
    for (int k = 0; k < numPatches; k++) {
@@ -115,7 +137,7 @@ PVPatch ** HyperConnDebugInitWeights::initializeSmartWeights(PVPatch ** patches,
    }
    return patches;
 }
-int HyperConnDebugInitWeights::smartWeights(PVPatch * wp, pvdata_t * dataStart, int k)
+int HyPerConnDebugInitWeights::smartWeights(PVPatch * wp, pvdata_t * dataStart, int k)
 {
    pvdata_t * w = dataStart; // wp->data;
 
@@ -139,7 +161,7 @@ int HyperConnDebugInitWeights::smartWeights(PVPatch * wp, pvdata_t * dataStart, 
    return 0;
 }
 
-PVPatch ** HyperConnDebugInitWeights::initializeCocircWeights(PVPatch ** patches, pvdata_t * dataStart, int numDataPatches)
+PVPatch ** HyPerConnDebugInitWeights::initializeCocircWeights(PVPatch ** patches, pvdata_t * dataStart, int numDataPatches)
 {
    PVParams * params = parent->parameters();
    float aspect = 1.0; // circular (not line oriented)
@@ -204,7 +226,7 @@ PVPatch ** HyperConnDebugInitWeights::initializeCocircWeights(PVPatch ** patches
 
    return patches;
 }
-int HyperConnDebugInitWeights::cocircCalcWeights(PVPatch * wp, pvdata_t * dataStart, int dataPatchIndex, int noPre, int noPost,
+int HyPerConnDebugInitWeights::cocircCalcWeights(PVPatch * wp, pvdata_t * dataStart, int dataPatchIndex, int noPre, int noPost,
       float sigma_cocirc, float sigma_kurve, float sigma_chord, float delta_theta_max,
       float cocirc_self, float delta_radius_curvature, int numFlanks, float shift,
       float aspect, float rotate, float sigma, float r2Max, float strength)
@@ -576,7 +598,7 @@ int HyperConnDebugInitWeights::cocircCalcWeights(PVPatch * wp, pvdata_t * dataSt
 
 }
 
-PVPatch ** HyperConnDebugInitWeights::initializeGaussian2DWeights(PVPatch ** patches, pvdata_t * dataStart, int numPatches)
+PVPatch ** HyPerConnDebugInitWeights::initializeGaussian2DWeights(PVPatch ** patches, pvdata_t * dataStart, int numPatches)
 {
    PVParams * params = parent->parameters();
 
@@ -623,7 +645,7 @@ PVPatch ** HyperConnDebugInitWeights::initializeGaussian2DWeights(PVPatch ** pat
 
    return patches;
 }
-int HyperConnDebugInitWeights::gauss2DCalcWeights(PVPatch * wp, pvdata_t * dataStart, int dataPatchIndex, int no, int numFlanks,
+int HyPerConnDebugInitWeights::gauss2DCalcWeights(PVPatch * wp, pvdata_t * dataStart, int dataPatchIndex, int no, int numFlanks,
       float shift, float rotate, float aspect, float sigma, float r2Max, float r2Min, float strength,
       float deltaThetaMax, float thetaMax, float bowtieFlag, float bowtieAngle)
 {
@@ -815,7 +837,7 @@ int HyperConnDebugInitWeights::gauss2DCalcWeights(PVPatch * wp, pvdata_t * dataS
    return 0;
 }
 
-PVPatch ** HyperConnDebugInitWeights::initializeGaborWeights(PVPatch ** patches, pvdata_t * dataStart, int numPatches)
+PVPatch ** HyPerConnDebugInitWeights::initializeGaborWeights(PVPatch ** patches, pvdata_t * dataStart, int numPatches)
 {
 
    const int xScale = post->getXScale() - pre->getXScale();
@@ -846,7 +868,7 @@ PVPatch ** HyperConnDebugInitWeights::initializeGaborWeights(PVPatch ** patches,
    return patches;
 }
 
-int HyperConnDebugInitWeights::gaborWeights(PVPatch * wp, pvdata_t * dataStart, int xScale, int yScale,
+int HyPerConnDebugInitWeights::gaborWeights(PVPatch * wp, pvdata_t * dataStart, int xScale, int yScale,
       float aspect, float sigma, float r2Max, float lambda, float strength, float phi)
 {
    PVParams * params = parent->parameters();
@@ -920,7 +942,7 @@ int HyperConnDebugInitWeights::gaborWeights(PVPatch * wp, pvdata_t * dataStart, 
 }
 
 /*
-int HyperConnDebugInitWeights::copyToWeightPatch(PVPatch * sourcepatch, int arbor, int patchindex) {
+int HyPerConnDebugInitWeights::copyToWeightPatch(PVPatch * sourcepatch, int arbor, int patchindex) {
    int status = PV_SUCCESS;
    assert(arbor >= 0 && arbor < this->numberOfAxonalArborLists());
    assert(patchindex >= 0 && patchindex < this->numWeightPatches());

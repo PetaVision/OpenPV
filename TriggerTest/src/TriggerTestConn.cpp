@@ -7,9 +7,9 @@
 #include <assert.h>
 
 namespace PV {
-TriggerTestConn::TriggerTestConn(const char * name, HyPerCol * hc, const char * pre_layer_name, const char * post_layer_name)
+TriggerTestConn::TriggerTestConn(const char * name, HyPerCol * hc)
 {
-   HyPerConn::initialize(name, hc, pre_layer_name, post_layer_name, NULL, NULL);
+   HyPerConn::initialize(name, hc);
 }
 
 int TriggerTestConn::updateStateWrapper(double time, double dt){
@@ -45,6 +45,6 @@ int TriggerTestConn::updateStateWrapper(double time, double dt){
          assert(needUpdate(time, dt) == false);
       }
    }
-   HyPerConn::updateStateWrapper(time, dt);
+   return HyPerConn::updateStateWrapper(time, dt);
 }
 }

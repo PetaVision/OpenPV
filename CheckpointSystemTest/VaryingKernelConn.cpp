@@ -9,18 +9,14 @@
 
 namespace PV {
 
-VaryingKernelConn::VaryingKernelConn(const char * name, HyPerCol * hc,
-      const char * pre_layer_name, const char * post_layer_name,
-      const char * filename, InitWeights *weightInit) : KernelConn() {
-   initialize(name, hc, pre_layer_name, post_layer_name, filename, weightInit);
+VaryingKernelConn::VaryingKernelConn(const char * name, HyPerCol * hc) : KernelConn() {
+   initialize(name, hc);
 }
 
 VaryingKernelConn::~VaryingKernelConn() {}
 
-int VaryingKernelConn::initialize(const char * name, HyPerCol * hc,
-      const char * pre_layer_name, const char * post_layer_name,
-      const char * filename, InitWeights *weightInit) {
-   return KernelConn::initialize(name, hc, pre_layer_name, post_layer_name, filename, weightInit);
+int VaryingKernelConn::initialize(const char * name, HyPerCol * hc) {
+   return KernelConn::initialize(name, hc);
 }
 
 int VaryingKernelConn::allocateDataStructures() {
@@ -48,9 +44,9 @@ int VaryingKernelConn::calc_dW(int axonId) {
    return PV_SUCCESS;
 }
 
-int VaryingKernelConn::setParams(PVParams * inputParams /*, PVConnParams * p*/)
+int VaryingKernelConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag)
 {
-   KernelConn::setParams(inputParams);
+   KernelConn::ioParamsFillGroup(ioFlag);
 
    return 0;
 }

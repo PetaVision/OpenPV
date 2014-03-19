@@ -10,14 +10,9 @@
 
 namespace PV {
 
-WindowTestLayer::WindowTestLayer(const char * name, HyPerCol * hc, int numChannels) {
-   initialize_base();
-   initialize(name, hc, numChannels);
-}
-
 WindowTestLayer::WindowTestLayer(const char * name, HyPerCol * hc){
    initialize_base();
-   initialize(name, hc, MAX_CHANNELS);
+   initialize(name, hc);
 }
 
 int WindowTestLayer::initialize_base()
@@ -27,9 +22,9 @@ int WindowTestLayer::initialize_base()
    return PV_SUCCESS;
 }
 
-int WindowTestLayer::initialize(const char * name, HyPerCol * hc, int num_channels)
+int WindowTestLayer::initialize(const char * name, HyPerCol * hc)
 {
-   ANNLayer::initialize(name, hc, num_channels);
+   ANNLayer::initialize(name, hc);
    //PVParams * params = parent->parameters();
    //windowLayerName = params->stringValue(name, "windowLayerName", NULL);
    //if (windowLayerName == NULL){

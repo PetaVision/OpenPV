@@ -68,20 +68,15 @@ void * customgroup(const char * keyword, const char * name, HyPerCol * hc) {
    const char * filename;
    if( !strcmp(keyword, "MPITestLayer") ) {
       HyPerLayer * addedLayer = (HyPerLayer *) new MPITestLayer(name, hc);
-      int status = checknewobject((void *) addedLayer, keyword, name, hc); // checknewobject tests addedObject against null, and either prints error message to stderr or success message to stdout.
-      assert(status == PV_SUCCESS);
       addedGroup = (void *) addedLayer;
    }
    else if( !strcmp( keyword, "MPITestProbe") ) {
-      MPITestProbe * addedProbe = NULL;
-      int status = getLayerFunctionProbeParameters(name, keyword, hc, &targetLayer, &msg, &filename);
-      if( status == PV_SUCCESS ) {
-         addedProbe = new MPITestProbe(filename, targetLayer, msg);
-      }
-      free(msg); msg=NULL; // message was alloc'ed in getLayerFunctionProbeParameters call
+      MPITestProbe * addedProbe = new MPITestProbe(name, hc);
       checknewobject((void *) addedProbe, keyword, name, hc);
       addedGroup = (void *) addedProbe;
    }
+   int status = checknewobject(addedGroup, keyword, name, hc); // checknewobject tests addedObject against null, and either prints error message to stderr or success message to stdout.
+   assert(status == PV_SUCCESS);
    return addedGroup;
 }
 

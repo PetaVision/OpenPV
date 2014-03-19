@@ -9,9 +9,8 @@
 
 namespace PV {
 
-PlasticTestConn::PlasticTestConn(const char * name, HyPerCol * hc, const char * pre_layer_name, const char * post_layer_name,
-      const char * filename, InitWeights *weightInit) : KernelConn(){
-   KernelConn::initialize(name, hc, pre_layer_name, post_layer_name, filename, weightInit);
+PlasticTestConn::PlasticTestConn(const char * name, HyPerCol * hc) : KernelConn(){
+   KernelConn::initialize(name, hc);
 }
 
 int PlasticTestConn::update_dW(int axonId) {

@@ -13,9 +13,9 @@ AverageRateConn::AverageRateConn() {
    initialize_base();
 }
 
-AverageRateConn::AverageRateConn(const char * name, HyPerCol * hc,  const char * pre_layer_name, const char * post_layer_name) {
+AverageRateConn::AverageRateConn(const char * name, HyPerCol * hc) {
    initialize_base();
-   initialize(name, hc, pre_layer_name, post_layer_name);
+   initialize(name, hc);
 }
 
 AverageRateConn::~AverageRateConn() {
@@ -25,15 +25,21 @@ int AverageRateConn::initialize_base() {
    return PV_SUCCESS;
 }
 
-int AverageRateConn::initialize(const char * name, HyPerCol * hc,  const char * pre_layer_name, const char * post_layer_name) {
-   int status = IdentConn::initialize(name, hc, pre_layer_name, post_layer_name, NULL);
+int AverageRateConn::initialize(const char * name, HyPerCol * hc) {
+   int status = IdentConn::initialize(name, hc);
    return status;
 }
 
-int AverageRateConn::setParams(PVParams * inputParams) {
-   int status = IdentConn::setParams(inputParams);
-   plasticityFlag = true;
+int AverageRateConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = IdentConn::ioParams(ioFlag);
    return status;
+}
+
+void AverageRateConn::ioParam_plasticityFlag(enum ParamsIOFlag ioFlag) {
+   if (ioFlag == PARAMS_IO_READ) {
+      plasticityFlag = true;
+      parent->parameters()->handleUnnecessaryParameter(name, "plasticityFlag", plasticityFlag);
+   }
 }
 
 int AverageRateConn::updateState(double timed, double dt) {

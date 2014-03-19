@@ -32,23 +32,7 @@ int MatchingPursuitProbe::initMatchingPursuitProbe(const char * name, HyPerCol *
       MPI_Barrier(hc->icCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
-   const char * target_layer_name = hc->parameters()->stringValue(name, "targetLayer");
-   if (target_layer_name==NULL) {
-      if (hc->columnId()==0) {
-         fprintf(stderr, "MatchingPursuitProbe \"%s\" error: targetLayer parameter must be set.\n", name);
-      }
-      MPI_Barrier(hc->icCommunicator()->communicator());
-      exit(EXIT_FAILURE);
-   }
-   HyPerLayer * target_layer = hc->getLayerFromName(target_layer_name);
-   if (target_layer==NULL) {
-      if (hc->columnId()==0) {
-         fprintf(stderr, "MatchingPursuitProbe \"%s\" error: targetLayer \"%s\" is not a valid HyPerLayer in the column.\n", name, target_layer_name);
-      }
-      MPI_Barrier(hc->icCommunicator()->communicator());
-      exit(EXIT_FAILURE);
-   }
-   initLayerProbe(NULL, target_layer);
+   initLayerProbe(name, hc);
    return PV_SUCCESS;
 }
 

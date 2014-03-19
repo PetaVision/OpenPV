@@ -43,11 +43,10 @@ void * customgroup(const char * keyword, const char * name, HyPerCol * hc) {
    char * msg = NULL;
    const char * filename;
    if( !strcmp( keyword, "TopDownTestProbe") ) {
-      TopDownTestProbe * addedProbe;
+      TopDownTestProbe * addedProbe = new TopDownTestProbe(name, hc);
       int status = getLayerFunctionProbeParameters(name, keyword, hc, &targetLayer, &msg, &filename);
       if( status == PV_SUCCESS ) {
          float checkperiod = hc->parameters()->value(name, "checkPeriod", 0, true);
-         addedProbe = new TopDownTestProbe(filename, targetLayer, msg, checkperiod);
       }
       free(msg); msg=NULL; // message was alloc'ed in getLayerFunctionProbeParameters call
       checknewobject((void *) addedProbe, keyword, name, hc);

@@ -93,12 +93,11 @@ int manyToOneForTransposeConn(int argc, char * argv[]) {
    new ANNLayer(layerB1toManyName, hc); // to cause the params to be read, so we don't get unused-parameter warnings.
 
    // Connections
-   InitWeights * initwgt = new InitUniformRandomWeights();
-   KernelConn * originalMapManyto1 = new KernelConn(originalConnName, hc, layerAname, layerB_ManyTo1Name, NULL, initwgt);
+   KernelConn * originalMapManyto1 = new KernelConn(originalConnName, hc);
    assert(originalMapManyto1);
-   TransposeConn * transposeManyto1 = new TransposeConn(transposeConnName, hc, layerB_ManyTo1Name, layerAname, originalConnName);
+   TransposeConn * transposeManyto1 = new TransposeConn(transposeConnName, hc);
    assert(transposeManyto1);
-   TransposeConn * transposeOfTransposeManyto1 = new TransposeConn(transposeOfTransposeConnName, hc, layerAname, layerB_ManyTo1Name, transposeConnName);
+   TransposeConn * transposeOfTransposeManyto1 = new TransposeConn(transposeOfTransposeConnName, hc);
    assert(transposeOfTransposeManyto1);
 
    hc->run(); // Weight values are initialized when run calls allocateDataStructures

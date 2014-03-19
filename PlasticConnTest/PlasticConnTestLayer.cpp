@@ -10,12 +10,8 @@
 
 namespace PV {
 
-PlasticConnTestLayer::PlasticConnTestLayer(const char * name, HyPerCol * hc, int numChannels) : ANNLayer(name, hc, numChannels) {
-   initialize(name, hc, numChannels);
-}
-
 PlasticConnTestLayer::PlasticConnTestLayer(const char * name, HyPerCol * hc) {
-   initialize(name, hc, MAX_CHANNELS);
+   initialize(name, hc);
 }
 
 // set V to global x/y/f position
@@ -46,8 +42,8 @@ int PlasticConnTestLayer::setActivitytoGlobalPos(){
 }
 
 
-int PlasticConnTestLayer::initialize(const char * name, HyPerCol * hc, int num_channels){
-   int status = ANNLayer::initialize(name, hc, num_channels);
+int PlasticConnTestLayer::initialize(const char * name, HyPerCol * hc){
+   int status = ANNLayer::initialize(name, hc);
 
    return status;
 }

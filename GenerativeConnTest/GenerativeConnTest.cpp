@@ -109,7 +109,7 @@ int dumpweights(HyPerCol * hc, int argc, char * argv[]) {
    char * paramsfilename;
    pv_getopt_str(argc, argv, "-p", &paramsfilename);
    if( status != PV_SUCCESS ) {
-      fprintf(stderr, "Rank %d: %s failed with return code.\n", rank, paramsfilename);
+      fprintf(stderr, "Rank %d: %s failed with return code %d.\n", rank, paramsfilename, status);
    }
    else {
       printf("Rank %d: %s succeeded.\n", rank, paramsfilename);

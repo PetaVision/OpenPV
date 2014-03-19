@@ -38,36 +38,11 @@ int customexit(HyPerCol * hc, int argc, char * argv[]) {
 void * customgroup(const char * keyword, const char * name, HyPerCol * hc) {
    void * addedGroup = NULL;
    if (!strcmp(keyword, "AverageRateConn") ) {
-      char * pre_layer_name = NULL;
-      char * post_layer_name = NULL;
-      AverageRateConn * g = NULL;
-      HyPerConn::getPreAndPostLayerNames(name, hc->parameters(), &pre_layer_name, &post_layer_name);
-      if( pre_layer_name && post_layer_name ) {
-         g = new AverageRateConn(name, hc, pre_layer_name, post_layer_name);
-      }
-      if (checknewobject((void *) g, keyword, name, hc) == PV_SUCCESS) {
-         addedGroup = (void *) g;
-      }
+      addedGroup = (void *) new AverageRateConn(name, hc);
    }
    if (!strcmp(keyword, "LIFTestProbe") ) {
-      LIFTestProbe * p = NULL;
-      HyPerLayer * target_layer;
-      char * message;
-      const char * filename;
-      int status = getLayerFunctionProbeParameters(name, keyword, hc, &target_layer, &message, &filename);
-      if( status == PV_SUCCESS ) {
-         PVBufType buf_type = BufV;
-         if( filename ) {
-            p = new LIFTestProbe(filename, target_layer, buf_type, message, name);
-         }
-         else {
-            p = new LIFTestProbe(target_layer, buf_type, message, name);
-         }
-         if (checknewobject((void *) p, keyword, name, hc) == PV_SUCCESS) {
-            addedGroup = (void *) p;
-         }
-      }
-      free(message); message=NULL; // message was alloc'ed in getLayerFunctionProbeParameters call
+      addedGroup = (void *) new LIFTestProbe(name, hc);
    }
+   checknewobject((void *) addedGroup, keyword, name, hc);
    return addedGroup;
 }

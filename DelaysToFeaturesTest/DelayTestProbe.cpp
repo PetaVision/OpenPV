@@ -13,22 +13,24 @@
 
 namespace PV {
 
-DelayTestProbe::DelayTestProbe(const char * filename, HyPerLayer * layer, const char * msg)
-: StatsProbe(filename, layer, msg)
+DelayTestProbe::DelayTestProbe(const char * probeName, HyPerCol * hc)
+: StatsProbe()
 {
-}
-
-DelayTestProbe::DelayTestProbe(HyPerLayer * layer, const char * msg)
-: StatsProbe(layer, msg)
-{
+   initDelayTestProbe_base();
+   initDelayTestProbe(probeName, hc);
 }
 
 DelayTestProbe::~DelayTestProbe() {}
 
+int DelayTestProbe::initDelayTestProbe_base() { return PV_SUCCESS; }
+
+int DelayTestProbe::initDelayTestProbe(const char * probeName, HyPerCol * hc) {
+   return initStatsProbe(probeName, hc);
+}
 
 int DelayTestProbe::outputState(double timed)
 {
-	int status = StatsProbe::outputState(timed);
+   int status = StatsProbe::outputState(timed);
 #ifdef PV_USE_MPI
    InterColComm * icComm = getTargetLayer()->getParent()->icCommunicator();
    const int rcvProc = 0;
@@ -40,18 +42,18 @@ int DelayTestProbe::outputState(double timed)
    const int rows = getTargetLayer()->getParent()->icCommunicator()->numCommRows();
    const int cols = getTargetLayer()->getParent()->icCommunicator()->numCommColumns();
 
-      int nx = loc->nx;
-      int ny = loc->ny;
-      int nf = loc->nf;
-    
-    if (timed==0) {
-        assert((avg == (timed)/nf)&&(avg == double(nnz)/((nx*rows)*(ny*cols)*nf)));
-    }
-    
-    else {
-        assert((avg == (timed-1)/nf)&&(avg == double(nnz)/((nx*rows)*(ny*cols)*nf)));
-    }
-      return status;
+   int nx = loc->nx;
+   int ny = loc->ny;
+   int nf = loc->nf;
+
+   if (timed==0) {
+      assert((avg == (timed)/nf)&&(avg == double(nnz)/((nx*rows)*(ny*cols)*nf)));
+   }
+
+   else {
+      assert((avg == (timed-1)/nf)&&(avg == double(nnz)/((nx*rows)*(ny*cols)*nf)));
+   }
+   return status;
 }
 
 

@@ -13,18 +13,22 @@
 
 namespace PV {
 
-KernelTestProbe::KernelTestProbe(const char * filename, HyPerLayer * layer, const char * msg)
+KernelTestProbe::KernelTestProbe(const char * probeName, HyPerCol * hc)
 : StatsProbe()
 {
-   initStatsProbe(filename, layer, BufActivity, msg);
+   initKernelTestProbe(probeName, hc);
 }
 
-KernelTestProbe::KernelTestProbe(HyPerLayer * layer, const char * msg)
-: StatsProbe()
+int KernelTestProbe::initKernelTestProbe_base() { return PV_SUCCESS; }
+
+int KernelTestProbe::initKernelTestProbe(const char * probeName, HyPerCol * hc)
 {
-   initStatsProbe(NULL, layer, BufActivity, msg);
+   return initStatsProbe(probeName, hc);
 }
 
+void KernelTestProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
+   requireType(BufActivity);
+}
 
 int KernelTestProbe::outputState(double timed)
 {

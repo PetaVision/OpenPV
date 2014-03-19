@@ -12,10 +12,16 @@ namespace PV{
 
 class WindowProbe : public PV::StatsProbe{
 public:
-   WindowProbe(const char * filename, HyPerLayer * layer, const char * msg);
-   WindowProbe(HyPerLayer * layer, const char * msg);
+   WindowProbe(const char * probeName, HyPerCol * hc);
 
    virtual int outputState(double timed);
+
+protected:
+   int initWindowProbe(const char * probeName, HyPerCol * hc);
+   virtual void ioParam_buffer(enum ParamsIOFlag ioFlag);
+
+private:
+   int initWindowProbe_base();
 };
 
 }

@@ -14,10 +14,15 @@ namespace PV {
 
 class MPITestProbe: public PV::StatsProbe {
 public:
-   MPITestProbe(const char * filename, HyPerLayer * layer, const char * msg);
-   MPITestProbe(HyPerLayer * layer, const char * msg);
+   MPITestProbe(const char * probeName, HyPerCol * hc);
 
    virtual int outputState(double timed);
+
+protected:
+   int initMPITestProbe(const char * probeName, HyPerCol * hc);
+
+private:
+   int initMPITestProbe_base();
 };
 
 }

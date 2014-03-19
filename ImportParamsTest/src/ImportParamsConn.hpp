@@ -7,12 +7,12 @@ namespace PV {
 
 class ImportParamsConn: public PV::KernelConn{
 public:
-	ImportParamsConn(const char* name, HyPerCol * hc, const char * pre_layer_name, const char * post_layer_name);
+   ImportParamsConn(const char* name, HyPerCol * hc);
    virtual int communicateInitInfo();
-	virtual int allocateDataStructures();
+   virtual int allocateDataStructures();
 
 private:
-   int initialize(const char * name, HyPerCol * hc, const char * pre_layer_name, const char * post_layer_name);
+   int initialize(const char * name, HyPerCol * hc);
    int initialize_base();
 };
 

@@ -11,10 +11,16 @@ namespace PV{
 
 class MovieTestProbe : public PV::StatsProbe{
 public:
-   MovieTestProbe(const char * filename, HyPerLayer * layer, const char * msg);
-   MovieTestProbe(HyPerLayer * layer, const char * msg);
+   MovieTestProbe(const char * probeName, HyPerCol * hc);
 
    virtual int outputState(double timed);
+
+protected:
+   int initMovieTestProbe(const char * probeName, HyPerCol * hc);
+   void ioParam_buffer(enum ParamsIOFlag ioFlag);
+
+private:
+   int initMovieTestProbe_base();
 };
 
 }
