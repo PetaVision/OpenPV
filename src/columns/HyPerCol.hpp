@@ -18,6 +18,7 @@
 #include "../utils/Timer.hpp"
 #include "../io/ColProbe.hpp"
 #include <time.h>
+#include <typeinfo>
 #include <sys/stat.h>
 #include <fstream>
 #include <string>
