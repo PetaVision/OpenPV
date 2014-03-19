@@ -1814,8 +1814,7 @@ int HyPerLayer::outputState(double timef, bool last)
       probes[i]->outputState(timef);
    }
 
-
-   if (timef >= writeTime && writeStep >= 0) {
+   if (timef >= (writeTime-(parent->getDeltaTime()/2)) && writeStep >= 0) {
       writeTime += writeStep;
       if (writeSparseActivity) {
          status = writeActivitySparse(timef, writeSparseValues);
