@@ -208,7 +208,7 @@ mpirunandecho $testname Debug/$testname $arglist
 cd $wd
 
 testname=ImportParamsTest
-arglist="-p input/importParamsTest.params"
+arglist="-p input/ImportParamsTest.params"
 cd "$testname"
 runandecho $testname Debug/$testname $arglist
 mpirunandecho $testname Debug/$testname $arglist
