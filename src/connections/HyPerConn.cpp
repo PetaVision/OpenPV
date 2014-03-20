@@ -896,7 +896,10 @@ void HyPerConn::ioParam_initialWeightUpdateTime(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerConn::ioParam_triggerFlag(enum ParamsIOFlag ioFlag){
-   parent->ioParamValue(ioFlag, name, "triggerFlag", &triggerFlag, triggerFlag);
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
+   if(plasticityFlag){
+      parent->ioParamValue(ioFlag, name, "triggerFlag", &triggerFlag, triggerFlag);
+   }
 }
 
 void HyPerConn::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {
