@@ -44,7 +44,7 @@ int LCALIFLateralProbe::initialize(const char * probename, HyPerCol * hc) {
       exit(EXIT_FAILURE);
    }
    if( !indexmethod && !coordmethod ) {
-      fprintf(stderr, "LCALIFLateralProbe \"%s\": Exactly one of kPost and (kxPost,kyPost,kfPost) must be defined\n", parent->parameters()->groupKeywordFromName(name), name);
+      fprintf(stderr, "%s \"%s\": Exactly one of kPost and (kxPost,kyPost,kfPost) must be defined\n", parent->parameters()->groupKeywordFromName(name), name);
       exit(EXIT_FAILURE);
    }
    if( indexmethod ) {
