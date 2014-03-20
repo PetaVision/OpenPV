@@ -83,7 +83,7 @@ function [img] = comb(in)  %% Input cell contains three full paths to each image
    movefile(in{2}, set_path);
    movefile(in{3}, set_path);
 
-   imwrite(img, [set_path, 'Recon_XA_', img_ID, ext]);
+   %%imwrite(img, [set_path, 'Recon_XA_', img_ID, ext]);
    img=(img-double(min(img(:))))*(255/((double(max(img(:)))-double(min(img(:))))+(double((max(img(:)))-double(min(img(:))))==0)));
    imwrite(img, [set_path, 'Recon_XN_', img_ID, ext]);
    
@@ -92,7 +92,7 @@ function [img] = comb(in)  %% Input cell contains three full paths to each image
       movefile(in{5}, set_path);
       movefile(in{6}, set_path);
       
-      imwrite(shuf_img, [set_path, 'Shuffle_Recon_XA_', img_ID, ext]);
+      %%imwrite(shuf_img, [set_path, 'Shuffle_Recon_XA_', img_ID, ext]);
       shuf_img=(shuf_img-double(min(shuf_img(:))))*(255/((double(max(shuf_img(:)))-double(min(shuf_img(:))))+(double((max(shuf_img(:)))-double(min(shuf_img(:))))==0)));
       imwrite(shuf_img, [set_path, 'Shuffle_Recon_XN_', img_ID, ext]);
    end
