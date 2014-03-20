@@ -116,9 +116,6 @@ int PointProbe::communicateInitInfo() {
       status = PV_FAILURE;
    }
    if( status != PV_SUCCESS ) abort();
-   this->xLoc = xLoc;
-   this->yLoc = yLoc;
-   this->fLoc = fLoc;
    return status;
 }
 

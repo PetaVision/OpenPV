@@ -341,7 +341,7 @@ template <typename T>
 void HyPerCol::ioParamValue(enum ParamsIOFlag ioFlag, const char * group_name, const char * param_name, T * value, T defaultValue, bool warnIfAbsent) {
    switch(ioFlag) {
    case PARAMS_IO_READ:
-      *value = params->value(group_name, param_name, defaultValue, warnIfAbsent);
+      *value = (T) params->value(group_name, param_name, defaultValue, warnIfAbsent);
       break;
    case PARAMS_IO_WRITE:
       writeParam(param_name, *value);
