@@ -93,6 +93,10 @@ int LabelLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    return status;
 }
 
+void LabelLayer::ioParam_InitVType(enum ParamsIOFlag ioFlag) {
+   assert(this->initVObject == NULL);
+}
+
 void LabelLayer::ioParam_movieLayerName(enum ParamsIOFlag ioFlag) {
    parent->ioParamStringRequired(ioFlag, name, "movieLayerName", &movieLayerName);
 }
@@ -133,8 +137,9 @@ int LabelLayer::communicateInitInfo() {
 int LabelLayer::allocateDataStructures() {
    int status = HyPerLayer::allocateDataStructures();
 
-   free(clayer->V);
-   clayer->V = NULL;
+   // HyPerLayer::allocateDataStructures calls allocateV(), which LabelLayer overrides to do nothing
+   // free(clayer->V);
+   // clayer->V = NULL;
 
    maxLabel = this->labelLoc.nf;
    labelData = clayer->activity->data;
@@ -172,6 +177,11 @@ int LabelLayer::allocateDataStructures() {
    }
 
    return status;
+}
+
+int LabelLayer::allocateV() {
+   assert(getV()==NULL);
+   return PV_SUCCESS;
 }
 
 int LabelLayer::updateState(double time, double dt){

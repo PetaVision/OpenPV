@@ -20,10 +20,12 @@ protected:
    LabelLayer();
    int initialize(const char * name, HyPerCol * hc);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_InitVType(enum ParamsIOFlag ioFlag);
    virtual void ioParam_movieLayerName(enum ParamsIOFlag ioFlag);
    virtual void ioParam_labelStart(enum ParamsIOFlag ioFlag);
    virtual void ioParam_labelLength(enum ParamsIOFlag ioFlag);
    virtual void ioParam_echoLabelFlag(enum ParamsIOFlag ioFlag);
+   virtual int allocateV();
    char * movieLayerName;
    Movie * movie;
    pvdata_t * labelData;
