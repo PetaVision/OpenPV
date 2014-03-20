@@ -19,6 +19,7 @@ BaseConnectionProbe::~BaseConnectionProbe() {
    if (stream->isfile) PV_fclose(stream);
    free(stream);
    free(targetConnName);
+   free(probeOutputFile);
 }
 
 int BaseConnectionProbe::initialize_base() {
@@ -26,6 +27,7 @@ int BaseConnectionProbe::initialize_base() {
    stream = NULL;
    targetConnName = NULL;
    targetConn = NULL;
+   probeOutputFile = NULL;
    return PV_SUCCESS;
 }
 
@@ -93,7 +95,7 @@ int BaseConnectionProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void BaseConnectionProbe::ioParam_probeOutputFile(enum ParamsIOFlag ioFlag) {
-   parent->ioParamString(ioFlag, name, "probeOutputFile", &probeOutputFile, probeOutputFile, NULL);
+   parent->ioParamString(ioFlag, name, "probeOutputFile", &probeOutputFile, NULL, true);
    if (ioFlag == PARAMS_IO_READ && parent->columnId()==0) {
       if( probeOutputFile != NULL && probeOutputFile[0] != '\0') {
          if (probeOutputFile[0] == '/') {
