@@ -40,6 +40,15 @@ public:
 protected:
    PatchProbe();
    int initialize(const char * probename, HyPerCol * hc);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_kPre(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_kxPre(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_kyPre(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_kfPre(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_arborID(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_outputWeights(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_outputPlasticIncr(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_outputPostIndices(enum ParamsIOFlag ioFlag);
    virtual int getPatchID();
 
 private:

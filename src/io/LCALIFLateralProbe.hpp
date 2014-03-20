@@ -27,7 +27,11 @@ public:
 
 protected:
    int initialize(const char * probename, HyPerCol * hc);
-   // int initialize(const char * probename, const char * filename, HyPerConn * conn, PatchIDMethod method, int preIndex, int kxPre, int kyPre, int kfPre, bool isPostProbe);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_kPost(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_kxPost(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_kyPost(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_kfPost(enum ParamsIOFlag ioFlag);
 
 private:
    int initialize_base();

@@ -22,10 +22,16 @@ public:
 
 protected:
    OjaKernelSpikeRateProbe();
-   int initialize_base();
+   int initialize(const char * probename, HyPerCol * hc);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_x(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_y(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_f(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_isInputRate(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_arbor(enum ParamsIOFlag ioFlag);
 
 private:
-   int initialize(const char * probename, HyPerCol * hc);
+   int initialize_base();
 
 protected:
    OjaKernelConn * targetOjaKernelConn;

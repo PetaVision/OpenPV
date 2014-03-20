@@ -26,6 +26,15 @@ public:
 
 protected:
    int initialize(const char * probename, HyPerCol * hc);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_kPre(enum ParamsIOFlag ioFlag) {return;}
+   virtual void ioParam_kxPre(enum ParamsIOFlag ioFlag) {return;}
+   virtual void ioParam_kyPre(enum ParamsIOFlag ioFlag) {return;}
+   virtual void ioParam_kfPre(enum ParamsIOFlag ioFlag) {return;}
+   virtual void ioParam_kPost(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_kxPost(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_kyPost(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_kfPost(enum ParamsIOFlag ioFlag);
    int getPatchID();
 
 protected:

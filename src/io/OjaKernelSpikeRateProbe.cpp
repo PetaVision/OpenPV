@@ -27,15 +27,40 @@ int OjaKernelSpikeRateProbe::initialize_base() {
 
 int OjaKernelSpikeRateProbe::initialize(const char * probename, HyPerCol * hc) {
    BaseConnectionProbe::initialize(probename, hc);
-   PVParams * params = hc->parameters();
-   xg = params->value(probename, "x");
-   yg = params->value(probename, "y");
-   feature = params->value(probename, "f", 0, /*warnIfAbsent*/true);
-   isInputRate = params->value(probename, "isInputRate") != 0.0;
-   if (isInputRate) {
-      arbor = params->value(probename, "arbor", 0, /*warnIfAbsent*/true);
-   }
    return PV_SUCCESS;
+}
+
+int OjaKernelSpikeRateProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = BaseConnectionProbe::ioParamsFillGroup(ioFlag);
+   ioParam_x(ioFlag);
+   ioParam_y(ioFlag);
+   ioParam_f(ioFlag);
+   ioParam_isInputRate(ioFlag);
+   ioParam_arbor(ioFlag);
+   return status;
+}
+
+void OjaKernelSpikeRateProbe::ioParam_x(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValueRequired(ioFlag, name, "x", &xg);
+}
+
+void OjaKernelSpikeRateProbe::ioParam_y(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValueRequired(ioFlag, name, "y", &yg);
+}
+
+void OjaKernelSpikeRateProbe::ioParam_f(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValueRequired(ioFlag, name, "f", &feature);
+}
+
+void OjaKernelSpikeRateProbe::ioParam_isInputRate(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "isInputRate", &isInputRate, false/*default value*/);
+}
+
+void OjaKernelSpikeRateProbe::ioParam_arbor(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "isInputRate"));
+   if (isInputRate) {
+      parent->ioParamValue(ioFlag, name, "arbor", &arbor, 0);
+   }
 }
 
 int OjaKernelSpikeRateProbe::allocateProbe() {

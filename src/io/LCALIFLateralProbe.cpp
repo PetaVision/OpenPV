@@ -37,29 +37,51 @@ int LCALIFLateralProbe::initialize(const char * probename, HyPerCol * hc) {
    BaseConnectionProbe::initialize(probename, hc);
    PVParams * params = hc->parameters();
    //Since it's a lateral conn, postConn shouldn't matter
-   int indexmethod = params->present(name, "kPost");
-   int coordmethod = params->present(name, "kxPost") && params->present(name,"kyPost") && params->present(name,"kfPost");
+   int indexmethod = kPost >= 0;
+   int coordmethod = kxPost >= 0 && kyPost >= 0 && kfPost >= 0;;
    if( indexmethod && coordmethod ) {
-      fprintf(stderr, "LCALIFLateralProbe \"%s\": Ambiguous definition with both kPost and (kxPost,kyPost,kfPost) defined\n", name);
+      fprintf(stderr, "%s \"%s\": Ambiguous definition with both kPost and (kxPost,kyPost,kfPost) defined\n", parent->parameters()->groupKeywordFromName(name), name);
       exit(EXIT_FAILURE);
    }
    if( !indexmethod && !coordmethod ) {
-      fprintf(stderr, "LCALIFLateralProbe \"%s\": Exactly one of kPost and (kxPost,kyPost,kfPost) must be defined\n", name);
+      fprintf(stderr, "LCALIFLateralProbe \"%s\": Exactly one of kPost and (kxPost,kyPost,kfPost) must be defined\n", parent->parameters()->groupKeywordFromName(name), name);
       exit(EXIT_FAILURE);
    }
    if( indexmethod ) {
-      kPost = params->value(name, "kPost");
       patchIDMethod = INDEX_METHOD;
    }
    else {
       assert(coordmethod);
-      kxPost = params->value(name, "kxPost");
-      kyPost = params->value(name, "kyPost");
-      kfPost = params->value(name, "kfPost");
       patchIDMethod = COORDINATE_METHOD;
    }
 
    return PV_SUCCESS;
+}
+
+int LCALIFLateralProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = BaseConnectionProbe::ioParamsFillGroup(ioFlag);
+   ioParam_kPost(ioFlag);
+   ioParam_kxPost(ioFlag);
+   ioParam_kyPost(ioFlag);
+   ioParam_kfPost(ioFlag);
+   return status;
+}
+
+// Since params can specify either kPost or (kxPost,kyPost,kfPost), use -1 as a flag that the value was not supplied
+void LCALIFLateralProbe::ioParam_kPost(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "kPost", &kPost, -1, false/*warnIfAbsent*/);
+}
+
+void LCALIFLateralProbe::ioParam_kxPost(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "kxPost", &kxPost, -1, false/*warnIfAbsent*/);
+}
+
+void LCALIFLateralProbe::ioParam_kyPost(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "kyPost", &kyPost, -1, false/*warnIfAbsent*/);
+}
+
+void LCALIFLateralProbe::ioParam_kfPost(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "kfPost", &kfPost, -1, false/*warnIfAbsent*/);
 }
 
 int LCALIFLateralProbe::allocateProbe() {

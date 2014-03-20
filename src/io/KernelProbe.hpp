@@ -25,6 +25,12 @@ public:
 protected:
    KernelProbe(); // Default constructor, can only be called by derived classes
    int initialize(const char * probename, HyPerCol * hc);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_kernelIndex(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_arborId(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_outputWeights(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_outputPlasticIncr(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_outputPatchIndices(enum ParamsIOFlag ioFlag);
    int patchIndices(KernelConn * kconn);
 
    int getKernelIndex() {return kernelIndex;}

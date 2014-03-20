@@ -6,7 +6,6 @@
  */
 
 #include "PostConnProbe.hpp"
-#include "../layers/LIF.hpp"
 #include <assert.h>
 
 namespace PV {
@@ -32,38 +31,62 @@ PostConnProbe::~PostConnProbe()
 
 int PostConnProbe::initialize(const char * probename, HyPerCol * hc) {
    int status = PatchProbe::initialize(probename, hc);
-   assert(status==PV_SUCCESS);
+   assert(status == PV_SUCCESS);
+   return PV_SUCCESS;
    this->image = NULL;
    this->wPrev = NULL;
    this->wActiv = NULL;
    return status;
 }
 
+int PostConnProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = PatchProbe::ioParamsFillGroup(ioFlag);
+   ioParam_kPost(ioFlag);
+   ioParam_kxPost(ioFlag);
+   ioParam_kyPost(ioFlag);
+   ioParam_kfPost(ioFlag);
+   return status;
+}
+
+void PostConnProbe::ioParam_kPost(enum ParamsIOFlag ioFlag) {
+   if (ioFlag==PARAMS_IO_READ || patchIDMethod == INDEX_METHOD) {
+      parent->ioParamValue(ioFlag, name, "kPost", &kPost, INT_MIN, false/*warnIfAbsent*/);
+   }
+}
+
+void PostConnProbe::ioParam_kxPost(enum ParamsIOFlag ioFlag) {
+   if (ioFlag==PARAMS_IO_READ || patchIDMethod == COORDINATE_METHOD) {
+      parent->ioParamValue(ioFlag, name, "kxPost", &kxPost, INT_MIN, false/*warnIfAbsent*/);
+   }
+}
+
+void PostConnProbe::ioParam_kyPost(enum ParamsIOFlag ioFlag) {
+   if (ioFlag==PARAMS_IO_READ || patchIDMethod == COORDINATE_METHOD) {
+      parent->ioParamValue(ioFlag, name, "kyPost", &kyPost, INT_MIN, false/*warnIfAbsent*/);
+   }
+}
+
+void PostConnProbe::ioParam_kfPost(enum ParamsIOFlag ioFlag) {
+   if (ioFlag==PARAMS_IO_READ || patchIDMethod == COORDINATE_METHOD) {
+      parent->ioParamValue(ioFlag, name, "kfPost", &kfPost, INT_MIN, false/*warnIfAbsent*/);
+   }
+}
+
 int PostConnProbe::getPatchID() {
-   assert(parent);
-   PVParams * params = parent->parameters();
-   int indexmethod = params->present(name, "kPost");
-   int coordmethod = params->present(name, "kxPost") && params->present(name,"kyPost") && params->present(name,"kfPost");
+   int indexmethod = kPost >= 0;
+   int coordmethod = kxPost >= 0 && kyPost >= 0 && kfPost >= 0;
    if( indexmethod && coordmethod ) {
-      fprintf(stderr, "PatchProbe \"%s\": Ambiguous definition with both kPost and (kxPost,kyPost,kfPost) defined\n", name);
+      fprintf(stderr, "%s \"%s\": Ambiguous definition with both kPost and (kxPost,kyPost,kfPost) defined\n", parent->parameters()->groupKeywordFromName(name), name);
       return PV_FAILURE;
    }
    if( !indexmethod && !coordmethod ) {
-      fprintf(stderr, "PatchProbe \"%s\": Exactly one of kPost and (kxPost,kyPost,kfPost) must be defined\n", name);
+      fprintf(stderr, "%s \"%s\": Exactly one of kPost and (kxPost,kyPost,kfPost) must be defined\n", parent->parameters()->groupKeywordFromName(name), name);
       return PV_FAILURE;
    }
    if (indexmethod) {
-      this->kPost = params->value(name, "kPost");
-      this->kxPost = INT_MIN;
-      this->kyPost = INT_MIN;
-      this->kfPost = INT_MIN;
       patchIDMethod = INDEX_METHOD;
    }
    else if (coordmethod) {
-      this->kPost = INT_MIN;
-      this->kxPost = params->present(name, "kxPost");
-      this->kyPost = params->present(name, "kyPost");
-      this->kfPost = params->present(name, "kfPost");
       patchIDMethod = COORDINATE_METHOD;
    }
    else assert(false);

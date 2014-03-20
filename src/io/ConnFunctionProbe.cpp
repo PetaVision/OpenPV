@@ -26,17 +26,19 @@ int ConnFunctionProbe::initialize_base() {
 }
 
 int ConnFunctionProbe::initialize(const char * probename, HyPerCol * hc) {
-   BaseConnectionProbe::initialize(probename, hc);
-   const char * parent_col_name = hc->parameters()->stringValue(name, "parentGenColProbe");
+   int status = BaseConnectionProbe::initialize(probename, hc);
+   return status;
+}
+
+int ConnFunctionProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = BaseConnectionProbe::ioParamsFillGroup(ioFlag);
+   ioParam_parentGenColProbe(ioFlag);
+   return status;
+}
+
+void ConnFunctionProbe::ioParam_parentGenColProbe(enum ParamsIOFlag ioFlag) {
+   parent->ioParamString(ioFlag, name, "parentGenColProbe", &parentGenColName, NULL);
    // There doesn't need to be a parent GenColProbe, so it's not an error if this returns null.
-   if (parent_col_name != NULL) {
-      parentGenColName = strdup(parent_col_name);
-      if (parentGenColName==NULL) {
-         fprintf(stderr, "ConnFunctionProbe error: unable to allocate memory for name of parent GenColProbe.\n");
-         exit(EXIT_FAILURE);
-      }
-   }
-   return PV_SUCCESS;
 }
 
 int ConnFunctionProbe::communicate() {

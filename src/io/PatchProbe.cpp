@@ -44,41 +44,80 @@ int PatchProbe::initialize_base() {
 
 int PatchProbe::initialize(const char * probename, HyPerCol * hc) {
    BaseConnectionProbe::initialize(probename, hc);
-   PVParams * params = hc->parameters();
    int status = getPatchID();
    assert(status == PV_SUCCESS);
-   arborID = params->value(name, "arborID");
-   outputWeights = params->value(name, "outputWeights", true);
-   outputPlasticIncr = params->value(name, "outputPlasticIncr", false);
-   outputPostIndices = params->value(name, "outputPostIndices", false);
    return PV_SUCCESS;
 }
 
+int PatchProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = BaseConnectionProbe::ioParamsFillGroup(ioFlag);
+   ioParam_arborID(ioFlag);
+   ioParam_kPre(ioFlag);
+   ioParam_kxPre(ioFlag);
+   ioParam_kyPre(ioFlag);
+   ioParam_kfPre(ioFlag);
+   ioParam_arborID(ioFlag);
+   ioParam_outputWeights(ioFlag);
+   ioParam_outputPlasticIncr(ioFlag);
+   ioParam_outputPostIndices(ioFlag);
+   return status;
+}
+
+void PatchProbe::ioParam_kPre(enum ParamsIOFlag ioFlag) {
+   if (ioFlag==PARAMS_IO_READ || patchIDMethod == INDEX_METHOD) {
+      parent->ioParamValue(ioFlag, name, "kPre", &kPre, INT_MIN, false/*warnIfAbsent*/);
+   }
+}
+
+void PatchProbe::ioParam_kxPre(enum ParamsIOFlag ioFlag) {
+   if (ioFlag==PARAMS_IO_READ || patchIDMethod == COORDINATE_METHOD) {
+      parent->ioParamValue(ioFlag, name, "kxPre", &kxPre, INT_MIN, false/*warnIfAbsent*/);
+   }
+}
+
+void PatchProbe::ioParam_kyPre(enum ParamsIOFlag ioFlag) {
+   if (ioFlag==PARAMS_IO_READ || patchIDMethod == COORDINATE_METHOD) {
+      parent->ioParamValue(ioFlag, name, "kyPre", &kyPre, INT_MIN, false/*warnIfAbsent*/);
+   }
+}
+
+void PatchProbe::ioParam_kfPre(enum ParamsIOFlag ioFlag) {
+   if (ioFlag==PARAMS_IO_READ || patchIDMethod == COORDINATE_METHOD) {
+      parent->ioParamValue(ioFlag, name, "kfPre", &kfPre, INT_MIN, false/*warnIfAbsent*/);
+   }
+}
+
+void PatchProbe::ioParam_arborID(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValueRequired(ioFlag, name, "arborID", &arborID);
+}
+
+void PatchProbe::ioParam_outputWeights(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "outputWeights", &outputWeights, true/*default value*/);
+}
+
+void PatchProbe::ioParam_outputPlasticIncr(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValueRequired(ioFlag, name, "outputPlasticIncr", &outputPlasticIncr);
+}
+
+void PatchProbe::ioParam_outputPostIndices(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValueRequired(ioFlag, name, "outputPostIndices", &outputPostIndices);
+}
+
 int PatchProbe::getPatchID() {
-   assert(parent);
-   PVParams * params = parent->parameters();
-   int indexmethod = params->present(name, "kPre");
-   int coordmethod = params->present(name, "kxPre") && params->present(name,"kyPre") && params->present(name,"kfPre");
+   int indexmethod = kPre >= 0;
+   int coordmethod = kxPre >= 0 && kyPre >= 0 && kfPre >= 0;
    if( indexmethod && coordmethod ) {
-      fprintf(stderr, "PatchProbe \"%s\": Ambiguous definition with both kPre and (kxPre,kyPre,kfPre) defined\n", name);
+      fprintf(stderr, "%s \"%s\": Ambiguous definition with both kPre and (kxPre,kyPre,kfPre) defined\n", parent->parameters()->groupKeywordFromName(name), name);
       return PV_FAILURE;
    }
    if( !indexmethod && !coordmethod ) {
-      fprintf(stderr, "PatchProbe \"%s\": Exactly one of kPre and (kxPre,kyPre,kfPre) must be defined\n", name);
+      fprintf(stderr, "%s \"%s\": Exactly one of kPre and (kxPre,kyPre,kfPre) must be defined\n", parent->parameters()->groupKeywordFromName(name), name);
       return PV_FAILURE;
    }
    if (indexmethod) {
-      this->kPre = params->present(name, "kPre");
-      this->kxPre = INT_MIN;
-      this->kyPre = INT_MIN;
-      this->kfPre = INT_MIN;
       patchIDMethod = INDEX_METHOD;
    }
    else if (coordmethod) {
-      this->kPre = INT_MIN;
-      this->kxPre = params->present(name, "kxPre");
-      this->kyPre = params->present(name, "kyPre");
-      this->kfPre = params->present(name, "kfPre");
       patchIDMethod = COORDINATE_METHOD;
    }
    else assert(false);
@@ -148,7 +187,7 @@ int PatchProbe::outputState(double timef)
       fprintf(stderr, "    value is %d\n (should be between %d and %d)\n", kfPre, 0, nf);
       errorFound = true;
    }
-   if( arborID < 0 || arborID >= numPatches ) {
+   if( arborID < 0 || arborID >= c->numberOfAxonalArborLists() ) {
       fprintf(stderr, "PatchProbe \"%s\" of connection \"%s\": arbor index is out of bounds\n", getName(), c->getName());
       fprintf(stderr, "    value is %d\n (should be between %d and %d)\n", arborID, 0, c->numberOfAxonalArborLists());
       errorFound = true;

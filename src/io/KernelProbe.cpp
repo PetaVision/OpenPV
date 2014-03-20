@@ -30,16 +30,38 @@ int KernelProbe::initialize_base() {
 int KernelProbe::initialize(const char * probename, HyPerCol * hc) {
    int status = BaseConnectionProbe::initialize(probename, hc);
    assert(name && parent);
-   if(status==PV_SUCCESS) {
-      PVParams * params = parent->parameters();
-      kernelIndex = params->value(name, "kernelIndex", 0);
-      arborID = params->value(name, "arborId", 0);
-      outputWeights = params->value(probename, "outputWeights", true) != 0.f;
-      outputPlasticIncr = params->value(probename, "outputPlasticIncr", false) != 0.f;
-      outputPatchIndices = params->value(probename, "outputPatchIndices", false) != 0.f;
-   }
 
    return status;
+}
+
+int KernelProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = BaseConnectionProbe::ioParamsFillGroup(ioFlag);
+   ioParam_kernelIndex(ioFlag);
+   ioParam_arborId(ioFlag);
+   ioParam_outputWeights(ioFlag);
+   ioParam_outputPlasticIncr(ioFlag);
+   ioParam_outputPatchIndices(ioFlag);
+   return status;
+}
+
+void KernelProbe::ioParam_kernelIndex(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "kernelIndex", &kernelIndex, 0);
+}
+
+void KernelProbe::ioParam_arborId(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "arborId", &arborID, 0);
+}
+
+void KernelProbe::ioParam_outputWeights(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "outputWeights", &outputWeights, true/*default value*/);
+}
+
+void KernelProbe::ioParam_outputPlasticIncr(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "outputPlasticIncr", &outputPlasticIncr, false/*default value*/);
+}
+
+void KernelProbe::ioParam_outputPatchIndices(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "outputPatchIndices", &outputPatchIndices, false/*default value*/);
 }
 
 int KernelProbe::communicate() {

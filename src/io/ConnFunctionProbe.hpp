@@ -26,6 +26,8 @@ public:
 protected:
    ConnFunctionProbe();
    int initialize(const char * probename, HyPerCol * hc);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_parentGenColProbe(enum ParamsIOFlag ioFlag);
 
 private:
    int initialize_base();
