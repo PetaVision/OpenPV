@@ -900,6 +900,10 @@ void HyPerConn::ioParam_triggerFlag(enum ParamsIOFlag ioFlag){
    if(plasticityFlag){
       parent->ioParamValue(ioFlag, name, "triggerFlag", &triggerFlag, triggerFlag);
    }
+   else {
+      triggerFlag = false;
+      parent->parameters()->handleUnnecessaryParameter(name, "triggerFlag", triggerFlag);
+   }
 }
 
 void HyPerConn::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {
