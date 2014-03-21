@@ -777,7 +777,6 @@ LayerProbe * addLayerProbeToColumn(const char * classkeyword, const char * name,
 
    LayerProbe * addedProbe;
    // char * probename;
-   HyPerLayer * targetlayer;
    char * message = NULL;
    const char * filename;
    PVParams * params = hc->parameters();
@@ -811,7 +810,6 @@ LayerProbe * addLayerProbeToColumn(const char * classkeyword, const char * name,
    if( !strcmp(classkeyword, "LogLatWTAProbe") ) {
       addedProbe = new LogLatWTAProbe(name, hc);
    }
-   assert(targetlayer);
    status = checknewobject((void *) addedProbe, classkeyword, name, hc); // checknewobject tests addedObject against null, and either prints error message to stderr or success message to stdout.
    assert( !(status == PV_SUCCESS && !addedProbe) );
    if( status != PV_SUCCESS ) {
