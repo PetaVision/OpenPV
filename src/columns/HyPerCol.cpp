@@ -229,6 +229,7 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * p
 
    ensureDirExists(outputPath);
 
+   simTime = startTime;
    initialStep = (long int) nearbyint(startTime/deltaTime);
    currentStep = initialStep;
    finalStep = (long int) nearbyint(stopTime/deltaTime);
