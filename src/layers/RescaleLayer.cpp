@@ -94,7 +94,7 @@ int RescaleLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag){
 
 void RescaleLayer::ioParam_rescaleMethod(enum ParamsIOFlag ioFlag){
    parent->ioParamString(ioFlag, name, "rescaleMethod", &rescaleMethod, rescaleMethod);
-   if (strcmp(rescaleMethod, "maxmin")!=0 || strcmp(rescaleMethod, "meanstd")) {
+   if (strcmp(rescaleMethod, "maxmin")!=0 && strcmp(rescaleMethod, "meanstd")!=0) {
       if (parent->columnId()==0) {
          fprintf(stderr, "RescaleLayer \"%s\": rescaleMethod \"%s\" does not exist. Current implemented methods are maxmin and meanstd.\n",
                name, rescaleMethod);
