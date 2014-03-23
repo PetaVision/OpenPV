@@ -16,6 +16,8 @@ namespace PV {
 
 // timeToParams and timeFromParams use memcpy instead of casting pointers
 // because casting pointers violates strict aliasing.
+
+
 void timeToParams(double time, void * params)
 {
    memcpy(params, &time, sizeof(double));
@@ -1863,7 +1865,7 @@ template int gatherActivity<unsigned char>(PV_Stream * pvstream, Communicator * 
 template int gatherActivity<pvdata_t>(PV_Stream * pvstream, Communicator * comm, int rootproc,  pvdata_t * buffer, const PVLayerLoc * layerLoc, bool extended);
 template int gatherActivity<uint4>(PV_Stream * pvstream, Communicator * comm, int rootproc,  uint4 * buffer, const PVLayerLoc * layerLoc, bool extended);
 
-template <typename T> int scatterActivity(PV_Stream * pvstream, Communicator * comm, int rootproc, T * buffer, const PVLayerLoc * layerLoc, bool extended, const PVLayerLoc * fileLoc, int offsetX, int offsetY) {
+template <typename T> int scatterActivity(PV_Stream * pvstream, Communicator * comm, int rootproc, T * buffer, const PVLayerLoc * layerLoc, bool extended, const PVLayerLoc * fileLoc, int offsetX, int offsetY, int filetype, int numActive) {
    // In MPI when this process is called, all processes must call it.
    // Only the root process uses the file pointer fp or the file PVLayerLoc fileLoc.
    //
@@ -1876,14 +1878,19 @@ template <typename T> int scatterActivity(PV_Stream * pvstream, Communicator * c
    // Detect when you can do a single read of the whole block instead of layerLoc->ny smaller reads of one line each
    // If nb=0, don't need to allocate a temporary buffer; can just read into buffer.
    int status = PV_SUCCESS;
-
+   int foo;
    int numLocalNeurons = layerLoc->nx * layerLoc->ny * layerLoc->nf;
-
+   size_t datasize;
    int xLineStart = 0;
    int yLineStart = 0;
    int xBufSize = layerLoc->nx;
    int yBufSize = layerLoc->ny;
    int nb = 0;
+   int kx0;
+   int ky0;
+   int * activeNeurons;
+   T * TBuff;
+   pvdata_t * TBuff1;
    if (extended) {
       nb = layerLoc->nb;
       xLineStart = nb;
@@ -1892,14 +1899,28 @@ template <typename T> int scatterActivity(PV_Stream * pvstream, Communicator * c
       yBufSize += 2*nb;
    }
    int linesize = layerLoc->nx * layerLoc->nf;
-   size_t datasize = sizeof(T);
-   // read into a temporary buffer since buffer may be extended but the file only contains the restricted part.
-   T * temp_buffer = (T *) calloc(numLocalNeurons, datasize);
-   if (temp_buffer==NULL) {
-      fprintf(stderr, "scatterActivity unable to allocate memory for temp_buffer.\n");
-      status = PV_FAILURE;
-      abort();
+   switch (filetype) {
+   case PVP_NONSPIKING_ACT_FILE_TYPE:
+      datasize = sizeof(T);
+      TBuff =  (T *) calloc(numLocalNeurons, datasize);
+      if (TBuff==NULL) {
+         fprintf(stderr, "scatterActivity unable to allocate memory for temp_buffer.\n");
+         status = PV_FAILURE;
+         abort();
+      }
+      break;
+   case PVP_ACT_FILE_TYPE:
+   case PVP_ACT_SPARSEVALUES_FILE_TYPE:
+      datasize = sizeof(pvdata_t);
+      TBuff1 =  (pvdata_t *) calloc(numLocalNeurons, datasize);
+      if (TBuff1==NULL) {
+         fprintf(stderr, "scatterActivity unable to allocate memory for temp_buffer.\n");
+         status = PV_FAILURE;
+         abort();
+      }
+      break;
    }
+
 
 #ifdef PV_USE_MPI
    int rank = comm->commRank();
@@ -1926,50 +1947,176 @@ template <typename T> int scatterActivity(PV_Stream * pvstream, Communicator * c
          abort();
       }
       int comm_size = comm->commSize();
-      for (int r=0; r<comm_size; r++) {
-         if (r==rootproc) continue; // Need to load root process last, or subsequent processes will clobber temp_buffer.
+      switch (filetype) {
+      case PVP_NONSPIKING_ACT_FILE_TYPE:
+
+         for (int r=0; r<comm_size; r++) {
+            if (r==rootproc) continue; // Need to load root process last, or subsequent processes will clobber temp_buffer.
+            for (int y=0; y<layerLoc->ny; y++) {
+               int ky0 = layerLoc->ny*rowFromRank(r, comm->numCommRows(), comm->numCommColumns());
+               int kx0 = layerLoc->nx*columnFromRank(r, comm->numCommRows(), comm->numCommColumns());
+               int k_inmemory = kIndex(0, y, 0, layerLoc->nx, layerLoc->ny, layerLoc->nf);
+               int k_infile = kIndex(offsetX+kx0, offsetY+ky0+y, 0, fileLoc->nxGlobal, fileLoc->nyGlobal, layerLoc->nf);
+               PV_fseek(pvstream, startpos + k_infile*(long) datasize, SEEK_SET);
+               int numread = PV_fread(&TBuff[k_inmemory], datasize, linesize, pvstream);
+               if (numread != linesize) {
+                  fprintf(stderr, "scatterActivity error when reading: number of bytes attempted %d, number read %d\n", numread, numLocalNeurons);
+                  abort();
+               }
+            }
+            MPI_Send(TBuff, numLocalNeurons*(int) datasize, MPI_BYTE, r, 171+r/*tag*/, comm->communicator());
+         }
          for (int y=0; y<layerLoc->ny; y++) {
-            int ky0 = layerLoc->ny*rowFromRank(r, comm->numCommRows(), comm->numCommColumns());
-            int kx0 = layerLoc->nx*columnFromRank(r, comm->numCommRows(), comm->numCommColumns());
+            int ky0 = layerLoc->ny*rowFromRank(rootproc, comm->numCommRows(), comm->numCommColumns());
+            int kx0 = layerLoc->nx*columnFromRank(rootproc, comm->numCommRows(), comm->numCommColumns());
             int k_inmemory = kIndex(0, y, 0, layerLoc->nx, layerLoc->ny, layerLoc->nf);
             int k_infile = kIndex(offsetX+kx0, offsetY+ky0+y, 0, fileLoc->nxGlobal, fileLoc->nyGlobal, layerLoc->nf);
             PV_fseek(pvstream, startpos + k_infile*(long) datasize, SEEK_SET);
-            int numread = PV_fread(&temp_buffer[k_inmemory], datasize, linesize, pvstream);
+            int numread = PV_fread(&TBuff[k_inmemory], datasize, linesize, pvstream);
             if (numread != linesize) {
-               fprintf(stderr, "scatterActivity error when reading: number of bytes attempted %d, number read %d\n", numread, numLocalNeurons);
+               fprintf(stderr, "scatterActivity error when reading: number of bytes attempted %d, number written %d\n", linesize, numread);
                abort();
             }
          }
-         MPI_Send(temp_buffer, numLocalNeurons*(int) datasize, MPI_BYTE, r, 171+r/*tag*/, comm->communicator());
+         PV_fseek(pvstream, startpos+numLocalNeurons*datasize*comm_size, SEEK_SET);
+         break;
+      case PVP_ACT_FILE_TYPE:
+
+         //Read list of active neurons
+         activeNeurons = (int *) calloc(numActive,datasize);
+         foo = PV_fread(activeNeurons, datasize, numActive, pvstream);
+         // Root process constructs buffers of other processes
+         for (int r=0; r<comm_size; r++) {
+            if (r==rootproc) continue; // Need to load root process last, or subsequent processes will clobber temp_buffer.
+            // Global X and Y coordinates of "top left" of process
+            ky0 = layerLoc->ny*rowFromRank(r, comm->numCommRows(), comm->numCommColumns());
+            kx0 = layerLoc->nx*columnFromRank(r, comm->numCommRows(), comm->numCommColumns());
+            // Loop through active neurons, calculate their global coordinates, if process contains a position of an active neuron,
+            // set its value = 1
+            for (int i = 0; i < numActive; i++) {
+               int xpos = kxPos(activeNeurons[i], fileLoc->nxGlobal, fileLoc->nyGlobal, layerLoc->nf);
+               int ypos = kyPos(activeNeurons[i], fileLoc->nxGlobal, fileLoc->nyGlobal, layerLoc->nf);
+                  if((xpos >= kx0) && (xpos < kx0+layerLoc->nx) && (ypos >= ky0) && (ypos < ky0 + layerLoc->ny)) {
+                     int fpos = featureIndex(activeNeurons[i], fileLoc->nxGlobal, fileLoc->nyGlobal, layerLoc->nf);
+                     TBuff1[(ypos-ky0)*linesize + (xpos-kx0)*layerLoc->nf + fpos] = 1;
+                  }
+            }
+            //Send buffer to appropriate mpi process
+            MPI_Send(TBuff1, numLocalNeurons*(int) datasize, MPI_BYTE, r, 171+r/*tag*/, comm->communicator());
+            //Clear the buffer so rootproc can calculate the next process's buffer.
+            for (int i = 0; i < numLocalNeurons; i++) {
+               TBuff1[i] = 0;
+            }
+         }
+         // Same thing for root process
+         ky0 = layerLoc->ny*rowFromRank(rootproc, comm->numCommRows(), comm->numCommColumns());
+         kx0 = layerLoc->nx*columnFromRank(rootproc, comm->numCommRows(), comm->numCommColumns());
+         for (int i = 0; i < numActive; i++) {
+             int xpos = kxPos(activeNeurons[i], fileLoc->nxGlobal, fileLoc->nyGlobal, layerLoc->nf);
+             int ypos = kyPos(activeNeurons[i], fileLoc->nxGlobal, fileLoc->nyGlobal, layerLoc->nf);
+                if((xpos >= kx0) && (xpos < kx0+layerLoc->nx) && (ypos >= ky0) && (ypos < ky0 + layerLoc->ny)) {
+                   int fpos = featureIndex(activeNeurons[i], fileLoc->nxGlobal, fileLoc->nyGlobal, layerLoc->nf);
+                   TBuff1[(ypos-ky0)*linesize + (xpos-kx0)*layerLoc->nf + fpos] = 1;
+                }
+          }
+         free(activeNeurons);
+         break;
+     case PVP_ACT_SPARSEVALUES_FILE_TYPE:
+         //Read list of active neurons and their values
+         activeNeurons = (int *) calloc(numActive,datasize);
+         pvdata_t * vals =  (pvdata_t *) calloc(numActive, datasize);
+         for (int i = 0; i < numActive; i++) {
+            foo = PV_fread(&activeNeurons[i], datasize, 1, pvstream);
+            foo = PV_fread(&vals[i], datasize, 1, pvstream);
+         }
+         // Root process constructs buffers of other processes
+         for (int r=0; r<comm_size; r++) {
+            if (r==rootproc) continue; // Need to load root process last, or subsequent processes will clobber temp_buffer.
+            // Global X and Y coordinates of "top left" of process
+            ky0 = layerLoc->ny*rowFromRank(r, comm->numCommRows(), comm->numCommColumns());
+            kx0 = layerLoc->nx*columnFromRank(r, comm->numCommRows(), comm->numCommColumns());
+            // Loop through active neurons, calculate their global coordinates, if process contains a position of an active neuron,
+            // set its value
+            for (int i = 0; i < numActive; i++) {
+               int xpos = kxPos(activeNeurons[i], fileLoc->nxGlobal, fileLoc->nyGlobal, layerLoc->nf);
+               int ypos = kyPos(activeNeurons[i], fileLoc->nxGlobal, fileLoc->nyGlobal, layerLoc->nf);
+                  if((xpos >= kx0) && (xpos < kx0+layerLoc->nx) && (ypos >= ky0) && (ypos < ky0 + layerLoc->ny)) {
+                     int fpos = featureIndex(activeNeurons[i], fileLoc->nxGlobal, fileLoc->nyGlobal, layerLoc->nf);
+                     TBuff1[(ypos-ky0)*linesize + (xpos-kx0)*layerLoc->nf + fpos] = vals[i];
+                  }
+            }
+            //Send buffer to appropriate mpi process
+            MPI_Send(TBuff1, numLocalNeurons*(int) datasize, MPI_BYTE, r, 171+r/*tag*/, comm->communicator());
+            //Clear the buffer so rootproc can calculate the next process's buffer.
+            for (int i = 0; i < numLocalNeurons; i++) {
+               TBuff1[i] = 0;
+            }
+         }
+         // Same thing for root process
+         ky0 = layerLoc->ny*rowFromRank(rootproc, comm->numCommRows(), comm->numCommColumns());
+         kx0 = layerLoc->nx*columnFromRank(rootproc, comm->numCommRows(), comm->numCommColumns());
+         for (int i = 0; i < numActive; i++) {
+            int xpos = kxPos(activeNeurons[i], fileLoc->nxGlobal, fileLoc->nyGlobal, layerLoc->nf);
+            int ypos = kyPos(activeNeurons[i], fileLoc->nxGlobal, fileLoc->nyGlobal, layerLoc->nf);
+               if((xpos >= kx0) && (xpos < kx0+layerLoc->nx) && (ypos >= ky0) && (ypos < ky0 + layerLoc->ny)) {
+                  int fpos = featureIndex(activeNeurons[i], fileLoc->nxGlobal, fileLoc->nyGlobal, layerLoc->nf);
+                  TBuff1[(ypos-ky0)*linesize + (xpos-kx0)*layerLoc->nf + fpos] = vals[i];
+               }
+         }
+         free(activeNeurons);
+         free(vals);
+         break;
+      }  //switch filetype
+   }  //rank==rootproc
+   else {
+      switch (filetype) {
+      case PVP_NONSPIKING_ACT_FILE_TYPE:
+         MPI_Recv(TBuff, sizeof(uint4)*numLocalNeurons, MPI_BYTE, rootproc, 171+rank/*tag*/, comm->communicator(), MPI_STATUS_IGNORE);
+         break;
+      case PVP_ACT_FILE_TYPE:
+      case PVP_ACT_SPARSEVALUES_FILE_TYPE:
+         //Receive buffers from rootproc
+         MPI_Recv(TBuff1, sizeof(uint4)*numLocalNeurons, MPI_BYTE, rootproc, 171+rank/*tag*/, comm->communicator(), MPI_STATUS_IGNORE);
+         break;
       }
+
+   }  //rank==rootproc
+#else // PV_USE_MPI
+   switch (filetype) {
+   case PVP_NONSPIKING_ACT_FILE_TYPE:
       for (int y=0; y<layerLoc->ny; y++) {
-         int ky0 = layerLoc->ny*rowFromRank(rootproc, comm->numCommRows(), comm->numCommColumns());
-         int kx0 = layerLoc->nx*columnFromRank(rootproc, comm->numCommRows(), comm->numCommColumns());
-         int k_inmemory = kIndex(0, y, 0, layerLoc->nx, layerLoc->ny, layerLoc->nf);
-         int k_infile = kIndex(offsetX+kx0, offsetY+ky0+y, 0, fileLoc->nxGlobal, fileLoc->nyGlobal, layerLoc->nf);
+         int k_inmemory = kIndex(xLineStart, y+yLineStart, 0, xBufSize, yBufSize, layerLoc->nf);
+         int k_infile = kIndex(offsetX, offsetY+y, 0, fileLoc->nxGlobal, fileLoc->nyGlobal, layerLoc->nf);
          PV_fseek(pvstream, startpos + k_infile*(long) datasize, SEEK_SET);
-         int numread = PV_fread(&temp_buffer[k_inmemory], datasize, linesize, pvstream);
+         int numread = PV_fread(&TBuff[k_inmemory], datasize, linesize, pvstream);
          if (numread != linesize) {
-            fprintf(stderr, "scatterActivity error when reading: number of bytes attempted %d, number written %d\n", linesize, numread);
+            fprintf(stderr, "scatterActivity error when reading: number of bytes attempted %d, number written %d\n", numread, numLocalNeurons);
             abort();
          }
       }
-      PV_fseek(pvstream, startpos+numLocalNeurons*datasize*comm_size, SEEK_SET);
-   }
-   else {
-      MPI_Recv(temp_buffer, sizeof(uint4)*numLocalNeurons, MPI_BYTE, rootproc, 171+rank/*tag*/, comm->communicator(), MPI_STATUS_IGNORE);
-   }
-#else // PV_USE_MPI
-   for (int y=0; y<layerLoc->ny; y++) {
-      int k_inmemory = kIndex(xLineStart, y+yLineStart, 0, xBufSize, yBufSize, layerLoc->nf);
-      int k_infile = kIndex(offsetX, offsetY+y, 0, fileLoc->nxGlobal, fileLoc->nyGlobal, layerLoc->nf);
-      PV_fseek(pvstream, startpos + k_infile*(long) datasize, SEEK_SET);
-      int numread = PV_fread(&temp_buffer[k_inmemory], datasize, linesize, pvstream);
-      if (numread != linesize) {
-         fprintf(stderr, "scatterActivity error when reading: number of bytes attempted %d, number written %d\n", numread, numLocalNeurons);
-         abort();
+      break;
+   case PVP_ACT_FILE_TYPE:
+   case PVP_ACT_SPARSEVALUES_FILE_TYPE:
+      for (int y=0; y<layerLoc->ny; y++) {
+         int k_inmemory = kIndex(xLineStart, y+yLineStart, 0, xBufSize, yBufSize, layerLoc->nf);
+         int k_infile = kIndex(offsetX, offsetY+y, 0, fileLoc->nxGlobal, fileLoc->nyGlobal, layerLoc->nf);
+         for (int i = k_infile; i < (k_infile + linesize); i++) {
+            for (int j = 0; j < numActive; j++) {
+               if (i == activeNeurons[j]) {
+                  if (filetype == PVP_ACT_FILE_TYPE) {
+                     TBuff1[k_inmemory + i - k_infile] = 1;
+                  }
+                  else if (filetype == PVP_ACT_SPARSEVALUES_FILE_TYPE) {
+                     TBuff1[k_inmemory + i - k_infile] = vals[j];
+                  }
+
+               }
+            }
+         }
       }
+      break;
    }
+
 #endif // PV_USE_MPI
    // At this point, each process has the data, as a restricted layer, in temp_buffer.
    // Each process now copies the data to buffer, which may be extended.
@@ -1977,19 +2124,44 @@ template <typename T> int scatterActivity(PV_Stream * pvstream, Communicator * c
       for (int y=0; y<layerLoc->ny; y++) {
          int k_extended = kIndex(xLineStart, y+yLineStart, 0, xBufSize, yBufSize, layerLoc->nf);
          int k_restricted = kIndex(0, y, 0, layerLoc->nx, layerLoc->ny, layerLoc->nf);
-         memcpy(&buffer[k_extended], &temp_buffer[k_restricted], (size_t)linesize*datasize);
+         switch (filetype) {
+         case PVP_NONSPIKING_ACT_FILE_TYPE:
+            memcpy(&buffer[k_extended], &TBuff[k_restricted], (size_t)linesize*datasize);
+            break;
+         case PVP_ACT_FILE_TYPE:
+         case PVP_ACT_SPARSEVALUES_FILE_TYPE:
+            memcpy(&buffer[k_extended], &TBuff1[k_restricted], (size_t)linesize*datasize);
+            break;
+         }
+
       }
    }
    else {
-      memcpy(buffer, temp_buffer, (size_t) numLocalNeurons*datasize);
+      switch (filetype) {
+      case PVP_NONSPIKING_ACT_FILE_TYPE:
+         memcpy(buffer, TBuff, (size_t) numLocalNeurons*datasize);
+         break;
+      case PVP_ACT_FILE_TYPE:
+      case PVP_ACT_SPARSEVALUES_FILE_TYPE:
+         memcpy(buffer, TBuff1, (size_t) numLocalNeurons*datasize);
+         break;
+      }
    }
-   free(temp_buffer); temp_buffer = NULL;
+   switch (filetype) {
+   case PVP_NONSPIKING_ACT_FILE_TYPE:
+      free(TBuff); TBuff = NULL;
+      break;
+   case PVP_ACT_FILE_TYPE:
+   case PVP_ACT_SPARSEVALUES_FILE_TYPE:
+      free(TBuff1); TBuff1 = NULL;
+      break;
+   }
 
    return status;
 }
 // Declare the instantiations of scatterActivity that occur in other .cpp files; otherwise you may get linker errors.
-template int scatterActivity<float>(PV_Stream * pvstream, Communicator * icComm, int rootproc, float * buffer, const PVLayerLoc * layerLoc, bool extended, const PVLayerLoc * fileLoc, int offsetX, int offsetY);
+template int scatterActivity<float>(PV_Stream * pvstream, Communicator * icComm, int rootproc, float * buffer, const PVLayerLoc * layerLoc, bool extended, const PVLayerLoc * fileLoc, int offsetX, int offsetY, int filetype, int numActive);
 // template int scatterActivity<pvdata_t>(PV_Stream * pvstream, Communicator * icComm, int rootproc, pvdata_t * buffer, const PVLayerLoc * layerLoc, bool extended, const PVLayerLoc * fileLoc, int offsetX, int offsetY); // duplicates float since pvdata_t is currently float, but this may in principle change
-template int scatterActivity<uint4>(PV_Stream * pvstream, Communicator * icComm, int rootproc, uint4 * buffer, const PVLayerLoc * layerLoc, bool extended, const PVLayerLoc * fileLoc, int offsetX, int offsetY);
+template int scatterActivity<uint4>(PV_Stream * pvstream, Communicator * icComm, int rootproc, uint4 * buffer, const PVLayerLoc * layerLoc, bool extended, const PVLayerLoc * fileLoc, int offsetX, int offsetY, int filetype, int numActive);
 
 } // namespace PV

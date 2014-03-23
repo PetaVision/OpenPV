@@ -101,11 +101,12 @@ int getImageInfoPVP(const char * filename, PV::Communicator * comm, PVLayerLoc *
    PV::PV_fclose(pvstream); pvstream = NULL;
 
    assert(numParams == NUM_PAR_BYTE_PARAMS);
-   assert(params[INDEX_FILE_TYPE] == PVP_NONSPIKING_ACT_FILE_TYPE);
+   //assert(params[INDEX_FILE_TYPE] == PVP_NONSPIKING_ACT_FILE_TYPE);
 
    const int dataSize = params[INDEX_DATA_SIZE];
    const int dataType = params[INDEX_DATA_TYPE];
-   assert( (dataType == PV_BYTE_TYPE && dataSize == 1) || (dataType == PV_FLOAT_TYPE && dataSize == 4));
+
+   //assert( (dataType == PV_BYTE_TYPE && dataSize == 1) || (dataType == PV_FLOAT_TYPE && dataSize == 4));
 
    loc->nx       = params[INDEX_NX];
    loc->ny       = params[INDEX_NY];
@@ -447,7 +448,7 @@ int gatherImageFileGDAL(const char * filename,
    return status;
 }
 
-int scatterImageFile(const char * filename, int xOffset, int yOffset,
+/*int scatterImageFile(const char * filename, int xOffset, int yOffset,
                      PV::Communicator * comm, const PVLayerLoc * loc, float * buf, int frameNumber, bool autoResizeFlag)
 {
    if (getFileType(filename) == PVP_FILE_TYPE) {
@@ -496,7 +497,9 @@ int scatterImageFilePVP(const char * filename, int xOffset, int yOffset,
           fprintf(stderr, "File \"%s\" appears to be in an obsolete version of the .pvp format.\n", filename);
           abort();
       }
-      bool spiking = false;
+
+
+      //bool spiking = false;
       double timed = 0.0;
       int filetype = params[INDEX_FILE_TYPE];
       int framesize;
@@ -505,7 +508,22 @@ int scatterImageFilePVP(const char * filename, int xOffset, int yOffset,
       case PVP_FILE_TYPE:
          break;
       case PVP_ACT_FILE_TYPE:
-         spiking = true;
+         //spiking = true;
+
+         //Where should I save values_start?
+         //If i haven't calculated values_start yet:
+         long findpos;
+         findpos = (long)headerSize;
+         int values_start[INDEX_NBANDS];
+         PV::PV_fseek(pvstream, framepos, SEEK_SET);
+         PV::PV_fread(&timed, sizeof(double), 1, pvstream);
+         for (int i = 0; i<INDEX_NBANDS; i++) {
+            PV::PV_fseek(pvstream, findpos, SEEK_SET);
+         }
+
+
+
+
          PV::PV_fread(&timed, sizeof(double), 1, pvstream);
          fprintf(stderr, "scatterImageFilePVP error opening \"%s\": Reading spiking PVP files into an Image layer hasn't been implemented yet.\n", filename);
          abort();
@@ -529,12 +547,12 @@ int scatterImageFilePVP(const char * filename, int xOffset, int yOffset,
          status = PV_FAILURE;
          break;
       }
-      scatterActivity(pvstream, comm, rootproc, buf, loc, false/*extended*/, &fileloc, xOffset, yOffset);
+      scatterActivity(pvstream, comm, rootproc, buf, loc, false, &fileloc, xOffset, yOffset);
       // buf is a nonextended layer.  Image layers copy the extended buffer data into buf by calling Image::copyToInteriorBuffer
       PV::PV_fclose(pvstream); pvstream = NULL;
    }
    else {
-      scatterActivity(pvstream, comm, rootproc, buf, loc, false/*extended*/, NULL, xOffset, yOffset);
+      scatterActivity(pvstream, comm, rootproc, buf, loc, false, NULL, xOffset, yOffset);
    }
    return status;
 }
@@ -817,6 +835,7 @@ fprintf(stderr, "[%2d]: scatterImageFileGDAL: sending to %d xSize==%d"
    }
    return status;
 }
+*/
 
 #ifdef OBSOLETE // Marked obsolete Dec 10, 2012.  No one calls either gather or writeWithBorders and they have TODO's that indicate that they're broken.
 

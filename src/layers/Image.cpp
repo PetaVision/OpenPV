@@ -13,6 +13,16 @@
 #include <assert.h>
 #include <string.h>
 
+#ifdef PV_USE_GDAL
+#  include <gdal_priv.h>
+#  include <ogr_spatialref.h>
+#else
+#  define GDAL_CONFIG_ERR_STR "PetaVision must be compiled with GDAL to use this file type\n"
+#endif // PV_USE_GDAL
+#include <gdal.h>
+
+
+
 namespace PV {
 
 Image::Image() {
@@ -26,6 +36,8 @@ Image::Image(const char * name, HyPerCol * hc) {
 
 Image::~Image() {
    free(filename);
+   free(frameStart);
+   free(count);
    filename = NULL;
    Communicator::freeDatatypes(mpi_datatypes); mpi_datatypes = NULL;
    delete randState; randState = NULL;
@@ -70,6 +82,12 @@ int Image::initialize_base() {
 
 int Image::initialize(const char * name, HyPerCol * hc) {
    int status = HyPerLayer::initialize(name, hc);
+
+   needFrameSizesForSpiking = true;
+
+
+
+
    // Much of the functionality that was previously here has been moved to either read-methods, communicateInitInfo, or allocateDataStructures
 
    this->lastUpdateTime = parent->getStartTime();
@@ -261,6 +279,440 @@ void Image::ioParam_useParamsImage(enum ParamsIOFlag ioFlag) {
       parent->ioParamValue(ioFlag, name, "useParamsImage", &useParamsImage, false/*default value*/, true/*warnIfAbsent*/);
    }
 }
+
+
+
+
+
+
+
+
+
+
+
+int Image::scatterImageFile(const char * filename, int xOffset, int yOffset, PV::Communicator * comm, const PVLayerLoc * loc, float * buf, int frameNumber, bool autoResizeFlag)
+{
+   if (getFileType(filename) == PVP_FILE_TYPE) {
+      return scatterImageFilePVP(filename, xOffset, yOffset, comm, loc, buf, frameNumber);
+   }
+   return scatterImageFileGDAL(filename, xOffset, yOffset, comm, loc, buf, autoResizeFlag);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+int Image::scatterImageFilePVP(const char * filename, int xOffset, int yOffset,
+                        PV::Communicator * comm, const PVLayerLoc * loc, float * buf, int frameNumber)
+{
+   // Read a PVP file and scatter it to the multiple processes.
+   int status = PV_SUCCESS;
+   int i;
+   int rootproc = 0;
+   int rank = comm->commRank();
+   PV_Stream * pvstream;
+   if(rank==rootproc){
+       pvstream = PV::pvp_open_read_file(filename, comm);
+   }
+   else{
+       pvstream = NULL;
+   }
+   long length = 0;
+   int numParams = NUM_BIN_PARAMS;
+   int params[numParams];
+   PV::pvp_read_header(pvstream, comm, params, &numParams);
+
+   if (rank==rootproc) {
+      PVLayerLoc fileloc;
+      int headerSize = params[INDEX_HEADER_SIZE];
+      fileloc.nx = params[INDEX_NX];
+      fileloc.ny = params[INDEX_NY];
+      fileloc.nf = params[INDEX_NF];
+      fileloc.nb = params[INDEX_NB];
+      fileloc.nxGlobal = params[INDEX_NX_GLOBAL];
+      fileloc.nyGlobal = params[INDEX_NY_GLOBAL];
+      fileloc.kx0 = params[INDEX_KX0];
+      fileloc.ky0 = params[INDEX_KY0];
+      int nxProcs = params[INDEX_NX_PROCS];
+      int nyProcs = params[INDEX_NY_PROCS];
+      int recordsize = params[INDEX_RECORD_SIZE];
+      int datasize = params[INDEX_DATA_SIZE];
+      if (fileloc.nx != fileloc.nxGlobal || fileloc.ny != fileloc.nyGlobal ||
+          nxProcs != 1 || nyProcs != 1 ||
+          fileloc.kx0 != 0 || fileloc.ky0 != 0) {
+          fprintf(stderr, "File \"%s\" appears to be in an obsolete version of the .pvp format.\n", filename);
+          abort();
+      }
+
+
+
+      bool spiking = false;
+      double timed = 0.0;
+      int filetype = params[INDEX_FILE_TYPE];
+      int framesize;
+      long framepos;
+      switch (filetype) {
+      case PVP_FILE_TYPE:
+         break;
+
+      case PVP_ACT_FILE_TYPE:
+      case PVP_ACT_SPARSEVALUES_FILE_TYPE:
+
+         //Allocate the byte positions in file where each frame's data starts and the number of active neurons in each frame
+         //Only need to do this once
+         if (needFrameSizesForSpiking) {
+            frameStart = (long *) calloc(params[INDEX_NBANDS],sizeof(long));
+            if (frameStart==NULL) {
+               fprintf(stderr, "scatterImageFilePVP unable to allocate memory for frameStart.\n");
+               status = PV_FAILURE;
+               abort();
+            }
+            count = (int *) calloc(params[INDEX_NBANDS],sizeof(int));
+            if (count==NULL) {
+               fprintf(stderr, "scatterImageFilePVP unable to allocate memory for frameLength.\n");
+               status = PV_FAILURE;
+               abort();
+            }
+            //Fseek past the header and first timestamp
+            PV::PV_fseek(pvstream, (long)8 + (long)headerSize, SEEK_SET);
+
+            for (i = 0; i<params[INDEX_NBANDS]; i++) {
+               //First byte position should always be 92
+               if (i == 0) {
+                  frameStart[i] = (long)92;
+               }
+               //Read in the number of active neurons for that frame and calculate byte position
+               else {
+                  PV::PV_fread(&count[i-1], sizeof(int), 1, pvstream);
+                  frameStart[i] = frameStart[i-1] + (long)count[i-1]*(long)datasize + (long)12;
+                  PV::PV_fseek(pvstream, frameStart[i] - (long)4, SEEK_SET);
+               }
+
+            }
+            //We still need the last count
+            PV::PV_fread(&count[i-1], sizeof(int), 1, pvstream);
+
+
+            //So we don't have to calculate frameStart and count again
+            needFrameSizesForSpiking = false;
+         }
+         framepos = (long)frameStart[frameNumber];
+         length = count[frameNumber];
+         PV::PV_fseek(pvstream, framepos, SEEK_SET);
+         status = PV_SUCCESS;
+         break;
+      case PVP_NONSPIKING_ACT_FILE_TYPE:
+         length = 0; //Don't need to compute this for nonspiking files.
+         framesize = recordsize*datasize*nxProcs*nyProcs+8;
+         framepos = (long)framesize * (long)frameNumber + (long)headerSize;
+         //ONLY READING TIME INFO HERE
+         PV::PV_fseek(pvstream, framepos, SEEK_SET);
+         PV::PV_fread(&timed, sizeof(double), 1, pvstream);
+         status = PV_SUCCESS;
+         break;
+      case PVP_WGT_FILE_TYPE:
+         fprintf(stderr, "scatterImageFilePVP error opening \"%s\": file is a weight file, not an image file.\n", filename);
+         break;
+      case PVP_KERNEL_FILE_TYPE:
+         fprintf(stderr, "scatterImageFilePVP error opening \"%s\": file is a weight file, not an image file.\n", filename);
+         break;
+
+      default:
+         fprintf(stderr, "scatterImageFilePVP error opening \"%s\": filetype %d is unrecognized.\n", filename ,filetype);
+         status = PV_FAILURE;
+         break;
+      }
+      scatterActivity(pvstream, comm, rootproc, buf, loc, false, &fileloc, xOffset, yOffset, params[INDEX_FILE_TYPE], length);
+      // buf is a nonextended layer.  Image layers copy the extended buffer data into buf by calling Image::copyToInteriorBuffer
+      PV::PV_fclose(pvstream); pvstream = NULL;
+   }
+   else {
+      if ((params[INDEX_FILE_TYPE] == PVP_ACT_FILE_TYPE) || (params[INDEX_FILE_TYPE] == PVP_ACT_SPARSEVALUES_FILE_TYPE)) {
+         scatterActivity(pvstream, comm, rootproc, buf, loc, false, NULL, xOffset, yOffset, params[INDEX_FILE_TYPE], length);
+      }
+
+      else if (params[INDEX_FILE_TYPE] == PVP_NONSPIKING_ACT_FILE_TYPE) {
+         scatterActivity(pvstream, comm, rootproc, buf, loc, false, NULL, xOffset, yOffset, params[INDEX_FILE_TYPE], length);
+      }
+
+   }
+   return status;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+int Image::scatterImageFileGDAL(const char * filename, int xOffset, int yOffset,
+                         PV::Communicator * comm, const PVLayerLoc * loc, float * buf, bool autoResizeFlag)
+{
+   int status = 0;
+
+#ifdef PV_USE_GDAL
+   // const int maxBands = 3;
+
+   const int nxProcs = comm->numCommColumns();
+   const int nyProcs = comm->numCommRows();
+
+   const int icRank = comm->commRank();
+
+   const int nx = loc->nx;
+   const int ny = loc->ny;
+
+   const int numBands = loc->nf;
+   int numTotal; // will be nx*ny*bandsInFile;
+
+#ifdef PV_USE_MPI
+   const MPI_Comm mpi_comm = comm->communicator();
+#endif // PV_USE_MPI
+
+   if (icRank > 0) {
+#ifdef PV_USE_MPI
+      const int src = 0;
+      const int tag = 13;
+
+      MPI_Bcast(&numTotal, 1, MPI_INT, 0, mpi_comm);
+#ifdef DEBUG_OUTPUT
+      fprintf(stderr, "[%2d]: scatterImageFileGDAL: received from 0, total number of bytes in buffer is %d\n", numTotal);
+#endif // DEBUG_OUTPUT
+      MPI_Recv(buf, numTotal, MPI_FLOAT, src, tag, mpi_comm, MPI_STATUS_IGNORE);
+#ifdef DEBUG_OUTPUT
+      int nf=numTotal/(nx*ny);
+      assert( nf*nx*ny == numTotal );
+      fprintf(stderr, "[%2d]: scatterImageFileGDAL: received from 0, nx==%d ny==%d nf==%d size==%d\n",
+              comm->commRank(), nx, ny, nf, numTotal);
+#endif // DEBUG_OUTPUT
+#endif // PV_USE_MPI
+   }
+   else {
+      GDALAllRegister();
+
+      GDALDataset * dataset = PV_GDALOpen(filename); // (GDALDataset *) GDALOpen(filename, GA_ReadOnly);
+      if (dataset==NULL) return 1; // PV_GDALOpen prints an error message.
+      int xImageSize = dataset->GetRasterXSize();
+      int yImageSize = dataset->GetRasterYSize();
+      const int bandsInFile = dataset->GetRasterCount();
+
+      numTotal = nx * ny * bandsInFile;
+#ifdef PV_USE_MPI
+#ifdef DEBUG_OUTPUT
+      fprintf(stderr, "[%2d]: scatterImageFileGDAL: broadcast from 0, total number of bytes in buffer is %d\n", numTotal);
+#endif // DEBUG_OUTPUT
+      MPI_Bcast(&numTotal, 1, MPI_INT, 0, mpi_comm);
+#endif // PV_USE_MPI
+
+      int xTotalSize = nx * nxProcs;
+      int yTotalSize = ny * nyProcs;
+
+      // if false, PetaVision will NOT automatically resize your images, so you had better
+      // choose the right offsets and sizes.
+      if (!autoResizeFlag){
+         if (xOffset + xTotalSize > xImageSize || yOffset + yTotalSize > yImageSize) {
+            fprintf(stderr, "[ 0]: scatterImageFile: image size too small, "
+                  "xTotalSize==%d xImageSize==%d yTotalSize==%d yImageSize==%d xOffset==%d yOffset==%d\n",
+                  xTotalSize, xImageSize, yTotalSize, yImageSize, xOffset, yOffset);
+            fprintf(stderr, "[ 0]: xSize==%d ySize==%d nxProcs==%d nyProcs==%d\n",
+                  nx, ny, nxProcs, nyProcs);
+            GDALClose(dataset);
+            return -1;
+         }
+      }
+      // if nf > bands of image, it will copy the gray image to each
+      //band of layer
+      assert(numBands == 1 || numBands == bandsInFile || (numBands > 1 && bandsInFile == 1));
+
+
+
+
+#ifdef PV_USE_MPI
+      int dest = -1;
+      const int tag = 13;
+
+      for( dest = 1; dest < nyProcs*nxProcs; dest++ ) {
+         int col = columnFromRank(dest,nyProcs,nxProcs);
+         int row = rowFromRank(dest,nyProcs,nxProcs);
+         int kx = nx * col;
+         int ky = ny * row;
+
+         //? For the auto resize flag, PV checks which side (x or y) is the shortest, relative to the
+         //? hypercolumn size specified.  Then it determines the largest chunk it can possibly take
+         //? from the image with the correct aspect ratio determined by hypercolumn.  It then
+         //? determines the offset needed in the long dimension to center the cropped image,
+         //? and reads in that portion of the image.  The offset can optionally be translated by
+         //? a random number between -offset and +offset (offset specified in params file) or
+         //? between the maximum translation possible, whichever is smaller.
+
+         if (autoResizeFlag){
+             using std::min;
+
+             if (xImageSize/(double)xTotalSize < yImageSize/(double)yTotalSize){
+                int new_y = int(round(ny*xImageSize/(double)xTotalSize));
+                int y_off = int(round((yImageSize - new_y*nyProcs)/2.0));
+
+                int jitter_y = 0;
+                if (yOffset > 0){
+                   srand(time(NULL));
+                   jitter_y = rand() % min(y_off*2,yOffset*2) - min(y_off,yOffset);
+                }
+
+                kx = xImageSize/nxProcs * col;
+                ky = new_y * row;
+
+                //fprintf(stderr, "kx = %d, ky = %d, nx = %d, new_y = %d", kx, ky, xImageSize/nxProcs, new_y);
+
+                dataset->RasterIO(GF_Read, kx, ky + y_off + jitter_y, xImageSize/nxProcs, new_y, buf, nx, ny,
+                                  GDT_Float32, bandsInFile, NULL, bandsInFile*sizeof(float),
+                                  bandsInFile*nx*sizeof(float), sizeof(float));
+             }
+             else{
+                int new_x = int(round(nx*yImageSize/(double)yTotalSize));
+                int x_off = int(round((xImageSize - new_x*nxProcs)/2.0));
+
+                int jitter_x = 0;
+                if (xOffset > 0){
+                   srand(time(NULL));
+                   jitter_x = rand() % min(x_off*2,xOffset*2) - min(x_off,xOffset);
+                }
+
+                kx = new_x * col;
+                ky = yImageSize/nyProcs * row;
+
+                //fprintf(stderr, "kx = %d, ky = %d, new_x = %d, ny = %d, x_off = %d", kx, ky, new_x, yImageSize/nyProcs, x_off);
+                dataset->RasterIO(GF_Read, kx + x_off + jitter_x, ky, new_x, yImageSize/nyProcs, buf, nx, ny,
+                                  GDT_Float32, bandsInFile, NULL, bandsInFile*sizeof(float),
+                                  bandsInFile*nx*sizeof(float),sizeof(float));
+             }
+          }
+         else {
+
+            //fprintf(stderr, "just checking");
+             dataset->RasterIO(GF_Read, kx+xOffset, ky+yOffset, nx, ny, buf,
+                               nx, ny, GDT_Float32, bandsInFile, NULL,
+                               bandsInFile*sizeof(float), bandsInFile*nx*sizeof(float), sizeof(float));
+
+         }
+#ifdef DEBUG_OUTPUT
+fprintf(stderr, "[%2d]: scatterImageFileGDAL: sending to %d xSize==%d"
+      " ySize==%d bandsInFile==%d size==%d total(over all procs)==%d\n",
+      comm->commRank(), dest, nx, ny, bandsInFile, numTotal,
+      nx*ny*comm->commSize());
+#endif // DEBUG_OUTPUT
+         MPI_Send(buf, numTotal, MPI_FLOAT, dest, tag, mpi_comm);
+      }
+#endif // PV_USE_MPI
+
+      // get local image portion
+
+      //? same logic as before, except this time we know that the row and column are 0
+
+      if (autoResizeFlag){
+         using std::min;
+
+         if (xImageSize/(double)xTotalSize < yImageSize/(double)yTotalSize){
+            int new_y = int(round(ny*xImageSize/(double)xTotalSize));
+            int y_off = int(round((yImageSize - new_y*nyProcs)/2.0));
+
+            int jitter_y = 0;
+            if (yOffset > 0){
+               srand(time(NULL));
+               jitter_y = rand() % min(y_off*2,yOffset*2) - min(y_off,yOffset);
+            }
+
+            //fprintf(stderr, "kx = %d, ky = %d, nx = %d, new_y = %d", 0, 0, xImageSize/nxProcs, new_y);
+            dataset->RasterIO(GF_Read, 0, y_off + jitter_y, xImageSize/nxProcs, new_y, buf, nx, ny,
+                              GDT_Float32, bandsInFile, NULL, bandsInFile*sizeof(float),
+                              bandsInFile*nx*sizeof(float), sizeof(float));
+         }
+         else{
+            int new_x = int(round(nx*yImageSize/(double)yTotalSize));
+            int x_off = int(round((xImageSize - new_x*nxProcs)/2.0));
+
+            int jitter_x = 0;
+            if (xOffset > 0){
+               srand(time(NULL));
+               jitter_x = rand() % min(x_off*2,xOffset*2) - min(x_off,xOffset);
+            }
+
+            //fprintf(stderr, "xImageSize = %d, xTotalSize = %d, yImageSize = %d, yTotalSize = %d", xImageSize, xTotalSize, yImageSize, yTotalSize);
+            //fprintf(stderr, "kx = %d, ky = %d, new_x = %d, ny = %d",
+            //0, 0, new_x, yImageSize/nyProcs);
+            dataset->RasterIO(GF_Read, x_off + jitter_x, 0, new_x, yImageSize/nyProcs, buf, nx, ny,
+                              GDT_Float32, bandsInFile, NULL, bandsInFile*sizeof(float),
+                              bandsInFile*nx*sizeof(float),sizeof(float));
+         }
+      }
+      else {
+
+         //fprintf(stderr,"just checking");
+          dataset->RasterIO(GF_Read, xOffset, yOffset, nx, ny, buf, nx, ny,
+                            GDT_Float32, bandsInFile, NULL, bandsInFile*sizeof(float), bandsInFile*nx*sizeof(float), sizeof(float));
+      }
+
+      GDALClose(dataset);
+   }
+#else
+   fprintf(stderr, GDAL_CONFIG_ERR_STR);
+   exit(1);
+#endif // PV_USE_GDAL
+
+   if (status == 0) {
+      // Workaround for gdal problem with binary images.
+      // If the all values are zero or 1, assume its a binary image and keep the values the same.
+      // If other values appear, divide by 255 to scale to [0,1]
+      bool isgrayscale = false;
+      for (int n=0; n<numTotal; n++) {
+         if (buf[n] != 0.0 && buf[n] != 1.0) {
+            isgrayscale = true;
+            break;
+         }
+      }
+      if (isgrayscale) {
+         float fac = 1.0f / 255.0f;  // normalize to 1.0
+         for( int n=0; n<numTotal; n++ ) {
+            buf[n] *= fac;
+         }
+      }
+   }
+   return status;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 int Image::communicateInitInfo() {
    return HyPerLayer::communicateInitInfo();

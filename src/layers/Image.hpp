@@ -118,6 +118,10 @@ public:
    const int * getBiases() { return biases; }
    double getFrameNumber() { return frameNumber; }
 
+   virtual int scatterImageFile(const char * filename, int xOffset, int yOffset, PV::Communicator * comm, const PVLayerLoc * loc, float * buf, int frameNumber, bool autoResizeFlag);
+   virtual int scatterImageFilePVP(const char * filename, int xOffset, int yOffset, PV::Communicator * comm, const PVLayerLoc * loc, float * buf, int frameNumber);
+   virtual int scatterImageFileGDAL(const char * filename, int xOffset, int yOffset, PV::Communicator * comm, const PVLayerLoc * loc, float * buf, bool autoResizeFlag);
+
 private:
    int initialize_base();
 
@@ -178,6 +182,11 @@ protected:
    int frameNumber;
 
    Random * randState;
+
+   long * frameStart;
+   int * count;
+   long length;
+   bool needFrameSizesForSpiking;
 };
 
 }

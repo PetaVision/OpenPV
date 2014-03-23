@@ -6,6 +6,7 @@
  */
 
 #include "InitV.hpp"
+#include "Image.hpp"
 
 namespace PV {
 InitV::InitV() {
@@ -211,7 +212,10 @@ int InitV::calcVFromFile(pvdata_t * V, const PVLayerLoc * loc, InterColComm * ic
          // error message produced by checkLoc
          abort();
       }
-      status = scatterImageFileGDAL(this->filename, 0, 0, icComm, loc, V, false);
+      HyPerLayer * layer = parent->getLayerFromName(groupName);
+      Image * image = dynamic_cast<Image *>(layer);
+      assert(image != NULL);
+      status = image->scatterImageFileGDAL(this->filename, 0, 0, icComm, loc, V, false);
       // scatterImageFileGDAL handles the scaling by 1/255.0
    }
    return status;

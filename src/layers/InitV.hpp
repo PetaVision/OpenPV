@@ -18,6 +18,7 @@
 #include "../io/imageio.hpp"
 #include "../io/io.h"
 #include <stdarg.h>
+#include "Image.hpp"
 
 namespace PV {
 
@@ -63,7 +64,6 @@ private:
       // if valueIsBeingHeld is false, heldValue is undefined
    char * filename; // Defined only for initVTypeCode=InitVFromFile
    bool useStderr; // If true, printerr passes message to stderr.  If false, printerr does nothing.
-
 }; // end class InitV
 
 }  // end namespace PV
