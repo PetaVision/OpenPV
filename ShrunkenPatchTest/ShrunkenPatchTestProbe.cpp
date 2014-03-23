@@ -136,7 +136,7 @@ int ShrunkenPatchTestProbe::outputState(double timed) {
 }
 
 ShrunkenPatchTestProbe::~ShrunkenPatchTestProbe() {
-   free(probeName);
+   //free(probeName);
    free(correctValues);
 }
 
