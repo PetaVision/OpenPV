@@ -230,6 +230,10 @@ public:
     */
    virtual int updateNextUpdateTime();
    /**
+    * A function to set nextUpdateTime to a specific time
+    */
+   virtual int setNextUpdateTime(double in){nextUpdateTime = in;}
+   /**
     * A function to compute the change in update time
     */
    virtual double getDeltaUpdateTime();

@@ -53,17 +53,17 @@ int Movie::checkpointRead(const char * cpDir, double * timef){
    //}
 
    InterColComm * icComm = parent->icCommunicator();
-   int filenamesize = strlen(cpDir)+1+strlen(name)+18;
-   // The +1 is for the slash between cpDir and name; the +18 needs to be large enough to hold the suffix _PatternState.{bin,txt} plus the null terminator
-   char * filename = (char *) malloc( filenamesize*sizeof(char) );
-   assert(filename != NULL);
-   int chars_needed = snprintf(filename, filenamesize, "%s/%s_MovieState.bin", cpDir, name);
+   int filenamesize = strlen(cpDir)+1+strlen(name)+21;
+   // The +1 is for the slash between cpDir and name; the +21 needs to be large enough to hold the suffix _TimestampState.{bin,txt} plus the null terminator
+   char * chkptfilename = (char *) malloc( filenamesize*sizeof(char) );
+   assert(chkptfilename != NULL);
+   int chars_needed = snprintf(chkptfilename, filenamesize, "%s/%s_TimestampState.bin", cpDir, name);
    assert(chars_needed < filenamesize);
    if( icComm->commRank() == 0 ) {
       //Only read timestamp file pos if 
       //1. There exists a timestampFile
       //2. There exists a MovieState.bin (Run being checkpointed from could have not been printing out timestamp files
-      PV_Stream * pvstream = PV_fopen(filename, "r");
+      PV_Stream * pvstream = PV_fopen(chkptfilename, "r");
       if (timestampFile && pvstream){
          long timestampFilePos = 0L;
          status |= PV_fread(&timestampFilePos, sizeof(long), 1, pvstream);
@@ -76,12 +76,36 @@ int Movie::checkpointRead(const char * cpDir, double * timef){
       }
    }
 
+   chars_needed = snprintf(chkptfilename, filenamesize, "%s/%s_FrameNumState.bin", cpDir, name);
+   assert(chars_needed < filenamesize);
+   if( icComm->commRank() == 0 ) {
+      PV_Stream * pvstream = PV_fopen(chkptfilename, "r");
+      if(pvstream != NULL){
+         status |= PV_fread(&frameNumber, sizeof(int), 1, pvstream);
+      }
+      else{
+         fprintf(stderr, "Unable to read from \"%s\"\n", chkptfilename);
+         status = PV_FAILURE;
+      }
+
+      PV_fclose(pvstream);
+   }
+
   // while (parent->simulationTime() >= nextDisplayTime) {
-   double tmpDisplayTime = parent->simulationTime();
-   while (parent->simulationTime() >= tmpDisplayTime) {
-      tmpDisplayTime += displayPeriod;
-      //Follow dispPeriod for updating frame numbers and file names
-      updateFrameNum(skipFrameIndex);
+   //double tmpDisplayTime = parent->simulationTime();
+   //while (parent->simulationTime() >= tmpDisplayTime) {
+   //   tmpDisplayTime += displayPeriod;
+   //   //Follow dispPeriod for updating frame numbers and file names
+   //   //updateFrameNum(skipFrameIndex);
+   //   if(!readPvpFile){
+   //      if (filename != NULL) free(filename);
+   //      filename = strdup(getNextFileName(skipFrameIndex));
+   //      assert(filename != NULL);
+   //   }
+   //}
+   
+   //2 ahead for some reason
+   for(int iFrame = 0; iFrame < frameNumber-2; iFrame++){
       if(!readPvpFile){
          if (filename != NULL) free(filename);
          filename = strdup(getNextFileName(skipFrameIndex));
@@ -94,38 +118,64 @@ int Movie::checkpointRead(const char * cpDir, double * timef){
 int Movie::checkpointWrite(const char * cpDir){
    int status = Image::checkpointWrite(cpDir);
    //Only do a checkpoint write if there exists a timestamp file
+   InterColComm * icComm = parent->icCommunicator();
+   int filenamesize = strlen(cpDir)+1+strlen(name)+21;
+   // The +1 is for the slash between cpDir and name; the +21 needs to be large enough to hold the suffix _FrameNumState.{bin,txt} plus the null terminator
+   char * chkptfilename = (char *) malloc( filenamesize*sizeof(char) );
+   assert(chkptfilename != NULL);
+   sprintf(chkptfilename, "%s/%s_FrameNumState.bin", cpDir, name);
+   if( icComm->commRank() == 0 ) {
+      PV_Stream * pvstream = PV_fopen(chkptfilename, "w");
+      if(pvstream != NULL){
+         status |= PV_fwrite(&frameNumber, sizeof(int), 1, pvstream);
+      }
+      else{
+         fprintf(stderr, "Unable to write to \"%s\"\n", chkptfilename);
+         status = PV_FAILURE;
+      }
+      sprintf(chkptfilename, "%s/%s_FrameNumState.txt", cpDir, name);
+      pvstream = PV_fopen(chkptfilename, "w");
+      if(pvstream != NULL){
+         fprintf(pvstream->fp, "frameNumber= %d", frameNumber);
+         PV_fclose(pvstream);
+      }
+      else{
+         fprintf(stderr, "Unable to write to \"%s\"\n", chkptfilename);
+         status = PV_FAILURE;
+      }
+   }
+
    if(timestampFile){
-      InterColComm * icComm = parent->icCommunicator();
-      int filenamesize = strlen(cpDir)+1+strlen(name)+18;
-      // The +1 is for the slash between cpDir and name; the +18 needs to be large enough to hold the suffix _PatternState.{bin,txt} plus the null terminator
-      char * filename = (char *) malloc( filenamesize*sizeof(char) );
-      assert(filename != NULL);
-      sprintf(filename, "%s/%s_MovieState.bin", cpDir, name);
+      // The +1 is for the slash between cpDir and name; the +21 needs to be large enough to hold the suffix _PatternState.{bin,txt} plus the null terminator
+      chkptfilename = (char *) malloc( filenamesize*sizeof(char) );
+      assert(chkptfilename != NULL);
+      sprintf(chkptfilename, "%s/%s_TimestampState.bin", cpDir, name);
       if( icComm->commRank() == 0 ) {
          //Get the file position of the timestamp file
          long timestampFilePos = getPV_StreamFilepos(timestampFile);
-         PV_Stream * pvstream = PV_fopen(filename, "w");
+         PV_Stream * pvstream = PV_fopen(chkptfilename, "w");
          if(pvstream != NULL){
             status |= PV_fwrite(&timestampFilePos, sizeof(long), 1, pvstream);
             PV_fclose(pvstream);
          } 
          else{
-            fprintf(stderr, "Unable to write to \"%s\"\n", filename);
+            fprintf(stderr, "Unable to write to \"%s\"\n", chkptfilename);
             status = PV_FAILURE;
          }
-         sprintf(filename, "%s/%s_MovieState.txt", cpDir, name);
-         pvstream = PV_fopen(filename, "w");
+         sprintf(chkptfilename, "%s/%s_TimestampState.txt", cpDir, name);
+         pvstream = PV_fopen(chkptfilename, "w");
          if(pvstream != NULL){
             fprintf(pvstream->fp, "timestampFilePos = %ld", timestampFilePos);
             PV_fclose(pvstream);
          }
          else{
-            fprintf(stderr, "Unable to write to \"%s\"\n", filename);
+            fprintf(stderr, "Unable to write to \"%s\"\n", chkptfilename);
             status = PV_FAILURE;
          }
       }
-      free(filename);
+      free(chkptfilename);
    }
+
    return status;
 }
 
@@ -141,7 +191,8 @@ int Movie::initialize(const char * name, HyPerCol * hc) {
       exit(PV_FAILURE);
    }
 
-   //nextDisplayTime = hc->simulationTime() + displayPeriod + hc->getDeltaTime();
+   //Update on first timestep
+   setNextUpdateTime(parent->simulationTime() + hc->getDeltaTime());
 
    PVParams * params = hc->parameters();
 
@@ -183,10 +234,12 @@ int Movie::initialize(const char * name, HyPerCol * hc) {
       }
       else{
          filename = strdup(getNextFileName(startFrameIndex));
-         //Movie is going to update on timestep 1, but we want it to reread the first frame here, so reset the filenamestream back to 0 in initialize
-         if( parent->icCommunicator()->commRank()==0 ) {
-            PV_fseek(filenamestream, 0L, SEEK_SET);
-         }
+         //if(startFrameIndex <= 1){
+         //   //Movie is going to update on timestep 1, but we want it to reread the first frame here, so reset the filenamestream back to 0 in initialize
+         //   if( parent->icCommunicator()->commRank()==0 ) {
+         //      PV_fseek(filenamestream, 0L, SEEK_SET);
+         //   }
+         //}
          assert(filename != NULL);
       }
    }
@@ -444,9 +497,13 @@ bool Movie::updateImage(double time, double dt)
    } else {
       updateFrameNum(skipFrameIndex);
       if(!readPvpFile){
-         if (filename != NULL) free(filename);
-         filename = strdup(getNextFileName(skipFrameIndex));
-         assert(filename != NULL);
+         //Only do this if it's not the first update timestep
+         //std::cout << "time: " << time << " startTime: " << parent->getStartTime() << " dt: " << dt << "\n";
+         if(fabs(time - (parent->getStartTime() + dt)) > (dt/2)){
+            if (filename != NULL) free(filename);
+            filename = strdup(getNextFileName(skipFrameIndex));
+            assert(filename != NULL);
+         }
       }
       if(writePosition && icComm->commRank()==0){
          fprintf(fp_pos->fp,"%f %s: \n",time,filename);

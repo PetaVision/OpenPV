@@ -35,9 +35,15 @@ Image::Image(const char * name, HyPerCol * hc) {
 }
 
 Image::~Image() {
-   free(filename);
-   free(frameStart);
-   free(count);
+   if(filename){
+      free(filename);
+   }
+   if(frameStart){
+      free(frameStart);
+   }
+   if(count){
+      free(count);
+   }
    filename = NULL;
    Communicator::freeDatatypes(mpi_datatypes); mpi_datatypes = NULL;
    delete randState; randState = NULL;
@@ -77,6 +83,8 @@ int Image::initialize_base() {
    biases[1]   = getOffsetY();
    frameNumber = 0;
    randState = NULL;
+   frameStart = NULL;
+   count = NULL;
    return PV_SUCCESS;
 }
 

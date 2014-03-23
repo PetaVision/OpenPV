@@ -695,6 +695,10 @@ void HyPerLayer::ioParam_triggerOffset(enum ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(name, "triggerFlag"));
    if (triggerFlag) {
       parent->ioParamValue(ioFlag, name, "triggerOffset", &triggerOffset, triggerOffset);
+      if(triggerOffset < 0){
+         fprintf(stderr, "%s \"%s\" error in rank %d process: TriggerOffset (%f) must be positive\n", parent->parameters()->groupKeywordFromName(name), name, parent->columnId(), triggerOffset);
+         exit(EXIT_FAILURE);
+      }
    }
 }
 
