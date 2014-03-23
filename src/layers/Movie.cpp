@@ -179,10 +179,6 @@ int Movie::initialize(const char * name, HyPerCol * hc) {
          int params[numParams];
          pvp_read_header(pvstream, getParent()->icCommunicator(), params, &numParams);
          PV::PV_fclose(pvstream); pvstream = NULL;
-         if(numParams != NUM_PAR_BYTE_PARAMS || params[INDEX_FILE_TYPE] != PVP_NONSPIKING_ACT_FILE_TYPE) {
-            fprintf(stderr, "Movie layer \"%s\" error: file \"%s\" is not a nonspiking-activity pvp file.\n", name, filename);
-            abort();
-         }
          numFrames = params[INDEX_NBANDS];
       }
       else{
