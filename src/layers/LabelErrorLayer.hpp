@@ -24,6 +24,7 @@ protected:
          unsigned int * active_indices, unsigned int * num_active);
    void ioParam_errScale(enum ParamsIOFlag ioFlag);
    void ioParam_isBinary(enum ParamsIOFlag ioFlag);
+   int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
 private:
    int initialize_base();
    float errScale;

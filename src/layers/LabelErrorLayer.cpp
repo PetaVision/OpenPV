@@ -65,6 +65,13 @@ int LabelErrorLayer::initialize(const char * name, HyPerCol * hc)
    return status;
 }
 
+int LabelErrorLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = ANNLayer::ioParamsFillGroup(ioFlag);
+   ioParam_errScale(ioFlag);
+   ioParam_isBinary(ioFlag);
+   return status;
+}
+
 void LabelErrorLayer::ioParam_errScale(enum ParamsIOFlag ioFlag) {
    parent->ioParamValue(ioFlag, name, "errScale", &errScale, errScale);
 }
