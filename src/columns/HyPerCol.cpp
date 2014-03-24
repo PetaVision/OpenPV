@@ -960,7 +960,7 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
    //
    long int step = 0;
    int status = PV_SUCCESS;
-   while (simTime < stopTime && status != PV_EXIT_NORMALLY) {
+   while (simTime < stopTime - deltaTime/2.0 && status != PV_EXIT_NORMALLY) {
       if( checkpointWriteFlag && advanceCPWriteTime() ) {
          if ( !checkpointReadFlag || strcmp(checkpointReadDir, checkpointWriteDir) || cpReadDirIndex!=currentStep ) {
             if (icComm->commRank()==0) {
