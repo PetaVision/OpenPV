@@ -20,9 +20,9 @@ void ANNWhitenedLayer_update_state(
 
     float * V,
     const float Vth,
-    const float VMax,
-    const float VMin,
-    const float VShift,
+    const float AMax,
+    const float AMin,
+    const float AShift,
     const float VWidth,
     float * GSynHead,
     float * activity);
@@ -77,7 +77,7 @@ int ANNWhitenedLayer::doUpdateState(double time, double dt, const PVLayerLoc * l
       int ny = loc->ny;
       int nf = loc->nf;
       int num_neurons = nx*ny*nf;
-      ANNWhitenedLayer_update_state(num_neurons, nx, ny, nf, loc->nb, V, VThresh, VMax, VMin, VShift, VWidth, gSynHead, A);
+      ANNWhitenedLayer_update_state(num_neurons, nx, ny, nf, loc->nb, V, VThresh, AMax, AMin, AShift, VWidth, gSynHead, A);
       if (this->writeSparseActivity){
          updateActiveIndices();  // added by GTK to allow for sparse output, can this be made an inline function???
       }

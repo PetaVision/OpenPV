@@ -32,9 +32,9 @@ void ANNLayer_update_state(
 
     CL_MEM_GLOBAL float * V,
     const float Vth,
-    const float VMax,
-    const float VMin,
-    const float VShift,
+    const float AMax,
+    const float AMin,
+    const float AShift,
     const float VWidth,
     int num_channels,
     CL_MEM_GLOBAL float * GSynHead,
@@ -42,7 +42,7 @@ void ANNLayer_update_state(
 //    CL_MEM_GLOBAL float * GSynInh,
     CL_MEM_GLOBAL float * activity)
 {
-   updateV_ANNLayer(numNeurons, V, num_channels, GSynHead, activity, VMax, VMin, Vth, VShift, VWidth, nx, ny, nf, nb);
+   updateV_ANNLayer(numNeurons, V, num_channels, GSynHead, activity, AMax, AMin, Vth, AShift, VWidth, nx, ny, nf, nb);
 //   setActivity_HyPerLayer(numNeurons, activity, V, nx, ny, nf, nb);
    // resetGSynBuffers_HyPerLayer(numNeurons, 2, GSynHead); // Called by HyPerCol
 }

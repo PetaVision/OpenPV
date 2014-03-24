@@ -67,19 +67,19 @@ void IncrementLayer::ioParam_firstUpdateTime(enum ParamsIOFlag ioFlag) {
 // from the params file, thereby creating an unnecessary warning.
 
 void IncrementLayer::ioParam_VThresh(enum ParamsIOFlag ioFlag) {
-   if (ioFlag==PARAMS_IO_READ) VMax = max_pvdata_t;
+   if (ioFlag==PARAMS_IO_READ) VThresh = max_pvdata_t;
 }
 
 void IncrementLayer::ioParam_VMin(enum ParamsIOFlag ioFlag) {
-   if (ioFlag==PARAMS_IO_READ) VMax = -max_pvdata_t;
+   if (ioFlag==PARAMS_IO_READ) AMin = -max_pvdata_t;
 }
 
 void IncrementLayer::ioParam_VMax(enum ParamsIOFlag ioFlag) {
-   if (ioFlag==PARAMS_IO_READ) VMax = -max_pvdata_t;
+   if (ioFlag==PARAMS_IO_READ) AMax = -max_pvdata_t;
 }
 
 void IncrementLayer::ioParam_VShift(enum ParamsIOFlag ioFlag) {
-   if (ioFlag==PARAMS_IO_READ) VShift = (pvdata_t) 0;
+   if (ioFlag==PARAMS_IO_READ) AShift = (pvdata_t) 0;
 
 }
 

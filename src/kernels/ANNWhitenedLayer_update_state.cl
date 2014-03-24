@@ -32,12 +32,12 @@ void ANNWhitenedLayer_update_state(
 
     CL_MEM_GLOBAL float * V,
     const float Vth,
-    const float VMax,
-    const float VMin,
-    const float VShift,
+    const float AMax,
+    const float AMin,
+    const float AShift,
     const float VWidth,
     CL_MEM_GLOBAL float * GSynHead,
     CL_MEM_GLOBAL float * activity)
 {
-   updateV_ANNWhitenedLayer(numNeurons, V, GSynHead, activity, VMax, VMin, Vth, VShift, VWidth, nx, ny, nf, nb);
+   updateV_ANNWhitenedLayer(numNeurons, V, GSynHead, activity, AMax, AMin, Vth, AShift, VWidth, nx, ny, nf, nb);
 }

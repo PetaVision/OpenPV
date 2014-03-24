@@ -13,6 +13,11 @@
 #define NUM_ANN_EVENTS   3
 #define EV_ANN_ACTIVITY  2
 
+// Old member variables deprecated on Mar 20, 2014
+#define VMin AMin
+#define VMax AMax
+#define VShift AShift
+
 namespace PV {
 
 class ANNLayer : public HyPerLayer {
@@ -20,8 +25,10 @@ public:
    ANNLayer(const char* name, HyPerCol * hc);
    virtual ~ANNLayer();
    pvdata_t getVThresh()        { return VThresh; }
-   pvdata_t getVMax()           { return VMax; }
-   pvdata_t getVMin()           { return VMin; }
+   pvdata_t getAMax()           { return AMax; }
+   pvdata_t getAMin()           { return AMin; }
+   pvdata_t getAShift()         { return AShift; }
+   pvdata_t getVWidth()         { return VWidth; }
 protected:
    ANNLayer();
    int initialize(const char * name, HyPerCol * hc);
@@ -36,13 +43,13 @@ protected:
    virtual void ioParam_VShift(enum ParamsIOFlag ioFlag);
    virtual void ioParam_VWidth(enum ParamsIOFlag ioFlag);
    virtual int checkVThreshParams(PVParams * params);
-   pvdata_t VMax;  // maximum membrane potential, larger values are set to VMax
-   pvdata_t VMin;  // minimum membrane potential, smaller values are set to VMin
-   pvdata_t VThresh;  // threshold potential, values smaller than VThresh are set to VMin
-   pvdata_t VShift;  // shift potential, values above VThresh are shifted downward by this amount
-                     // VShift == 0, hard threshold condition
-                     // VShift == VThresh, soft threshold condition
-   pvdata_t VWidth;  // The thresholding occurs linearly over the region [VThresh,VThresh+VWidth].  VWidth=0,VShift=0 is standard hard-thresholding
+   pvdata_t AMax;  // maximum membrane potential, larger values are set to AMax
+   pvdata_t AMin;  // minimum membrane potential, smaller values are set to AMin
+   pvdata_t VThresh;  // threshold potential, values smaller than VThresh are set to AMin
+   pvdata_t AShift;  // shift potential, values above VThresh are shifted downward by this amount
+                     // AShift == 0, hard threshold condition
+                     // AShift == VThresh, soft threshold condition
+   pvdata_t VWidth;  // The thresholding occurs linearly over the region [VThresh,VThresh+VWidth].  VWidth=0,AShift=0 is standard hard-thresholding
 #ifdef PV_USE_OPENCL
    virtual int getNumCLEvents() {return numEvents;}
    virtual const char * getKernelName() { return "ANNLayer_update_state"; }

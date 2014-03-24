@@ -184,6 +184,11 @@ int LabelLayer::allocateV() {
    return PV_SUCCESS;
 }
 
+int LabelLayer::initializeActivity() {
+   // Activity already initialized in allocateDateStructure
+   return PV_SUCCESS;
+}
+
 int LabelLayer::updateState(double time, double dt){
    update_timer->start();
 

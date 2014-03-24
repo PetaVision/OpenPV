@@ -35,16 +35,12 @@ Image::Image(const char * name, HyPerCol * hc) {
 }
 
 Image::~Image() {
-   if(filename){
-      free(filename);
-   }
-   if(frameStart){
-      free(frameStart);
-   }
-   if(count){
-      free(count);
-   }
+   free(filename); // It is not an error to pass NULL to free().
    filename = NULL;
+   free(frameStart);
+   frameStart = NULL;
+   free(count);
+   count = NULL;
    Communicator::freeDatatypes(mpi_datatypes); mpi_datatypes = NULL;
    delete randState; randState = NULL;
 
@@ -92,9 +88,6 @@ int Image::initialize(const char * name, HyPerCol * hc) {
    int status = HyPerLayer::initialize(name, hc);
 
    needFrameSizesForSpiking = true;
-
-
-
 
    // Much of the functionality that was previously here has been moved to either read-methods, communicateInitInfo, or allocateDataStructures
 

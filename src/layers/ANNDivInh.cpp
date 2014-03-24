@@ -20,8 +20,8 @@ void ANNDivLayer_update_state(
 
     float * V,
     const float Vth,
-    const float VMax,
-    const float VMin,
+    const float AMax,
+    const float AMin,
     float * GSynHead,
 //    float * GSynExc,
 //    float * GSynInh,
@@ -111,8 +111,8 @@ int ANNDivInh::initializeThreadKernels(const char * kernel_name)
 //
 //   status |= krUpdate->setKernelArg(argid++, clV);
 //   status |= krUpdate->setKernelArg(argid++, VThresh);
-//   status |= krUpdate->setKernelArg(argid++, VMax);
-//   status |= krUpdate->setKernelArg(argid++, VMin);
+//   status |= krUpdate->setKernelArg(argid++, AMax);
+//   status |= krUpdate->setKernelArg(argid++, AMin);
 //   status |= krUpdate->setKernelArg(argid++, getChannelCLBuffer());
 ////   status |= krUpdate->setKernelArg(argid++, getChannelCLBuffer(CHANNEL_EXC));
 ////   status |= krUpdate->setKernelArg(argid++, getChannelCLBuffer(CHANNEL_INH));
@@ -182,7 +182,7 @@ int ANNDivInh::updateState(double time, double dt)
       pvdata_t * V = getV();
       pvdata_t * activity = clayer->activity->data;
 
-      ANNDivLayer_update_state(getNumNeurons(), nx, ny, nf, nb, V, VThresh, VMax, VMin, GSynHead, activity);
+      ANNDivLayer_update_state(getNumNeurons(), nx, ny, nf, nb, V, VThresh, AMax, AMin, GSynHead, activity);
 #ifdef PV_USE_OPENCL
    }
 #endif

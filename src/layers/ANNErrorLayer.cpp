@@ -20,9 +20,9 @@ void ANNErrorLayer_update_state(
 
     float * V,
     const float Vth,
-    const float VMax,
-    const float VMin,
-    const float VShift,
+    const float AMax,
+    const float AMin,
+    const float AShift,
     float * GSynHead,
     float * activity,
     float errScale);
@@ -88,7 +88,7 @@ int ANNErrorLayer::doUpdateState(double time, double dt, const PVLayerLoc * loc,
       int nf = loc->nf;
       int num_neurons = nx*ny*nf;
          ANNErrorLayer_update_state(num_neurons, nx, ny, nf, loc->nb, V, VThresh,
-               VMax, VMin, VShift, gSynHead, A, errScale);
+               AMax, AMin, AShift, gSynHead, A, errScale);
       if (this->writeSparseActivity){
          updateActiveIndices();  // added by GTK to allow for sparse output, can this be made an inline function???
       }

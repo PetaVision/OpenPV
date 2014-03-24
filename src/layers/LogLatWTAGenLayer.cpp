@@ -26,12 +26,12 @@ int LogLatWTAGenLayer::initialize_base() {
 
 int LogLatWTAGenLayer::updateState(double timef, double dt) {
    int status;
-   status = updateState(timef, dt, getLayerLoc(), getCLayer()->activity->data, getV(), getNumChannels(), GSyn[0], sparsitytermderivative, dV, VMax, VMin, VThresh, VWidth, VShift, relaxation, auxChannelCoeff, sparsityTermCoeff, persistence, activityThreshold, getCLayer()->activeIndices, &getCLayer()->numActive);
+   status = updateState(timef, dt, getLayerLoc(), getCLayer()->activity->data, getV(), getNumChannels(), GSyn[0], sparsitytermderivative, dV, AMax, AMin, VThresh, VWidth, AShift, relaxation, auxChannelCoeff, sparsityTermCoeff, persistence, activityThreshold, getCLayer()->activeIndices, &getCLayer()->numActive);
    if( status == PV_SUCCESS ) status = updateActiveIndices();
    return status;
 }
 
-int LogLatWTAGenLayer::updateState(double timef, double dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels, pvdata_t * gSynHead, pvdata_t * sparsitytermderivative, pvdata_t * dAold, pvdata_t VMax, pvdata_t VMin, pvdata_t VThresh, pvdata_t VShift, pvdata_t VWidth, pvdata_t relaxation, pvdata_t auxChannelCoeff, pvdata_t sparsityTermCoeff, pvdata_t persistence, pvdata_t activity_threshold, unsigned int * active_indices, unsigned int * num_active) {
+int LogLatWTAGenLayer::updateState(double timef, double dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels, pvdata_t * gSynHead, pvdata_t * sparsitytermderivative, pvdata_t * dAold, pvdata_t AMax, pvdata_t AMin, pvdata_t VThresh, pvdata_t AShift, pvdata_t VWidth, pvdata_t relaxation, pvdata_t auxChannelCoeff, pvdata_t sparsityTermCoeff, pvdata_t persistence, pvdata_t activity_threshold, unsigned int * active_indices, unsigned int * num_active) {
    int nx = loc->nx;
    int ny = loc->ny;
    int nf = loc->nf;
@@ -40,9 +40,9 @@ int LogLatWTAGenLayer::updateState(double timef, double dt, const PVLayerLoc * l
    pvdata_t trunc_rel = relaxation;
    while(relax_remaining > 0 && trunc_rel > relaxation*1e-6) {
       updateSparsityTermDeriv_LogLatWTAGenLayer(num_neurons, getLayerLoc()->nf, V, sparsitytermderivative);
-      update_dV_GenerativeLayer(num_neurons, V, gSynHead, sparsitytermderivative, dAold, VMax, VMin, VThresh, relaxation, auxChannelCoeff, sparsityTermCoeff, persistence);
+      update_dV_GenerativeLayer(num_neurons, V, gSynHead, sparsitytermderivative, dAold, AMax, AMin, VThresh, relaxation, auxChannelCoeff, sparsityTermCoeff, persistence);
       trunc_rel = reduce_relaxation(num_neurons, V, dV, relax_remaining);
-      updateV_GenerativeLayer(num_neurons, V, dV, A, VMax, VMin, VThresh, VShift, VWidth, trunc_rel, nx, ny, nf, loc->nb);
+      updateV_GenerativeLayer(num_neurons, V, dV, A, AMax, AMin, VThresh, AShift, VWidth, trunc_rel, nx, ny, nf, loc->nb);
       relax_remaining -=trunc_rel;
    }
    setActivity_GenerativeLayer(num_neurons, A, V, nx, ny, nf, loc->nb, activity_threshold); // setActivity();

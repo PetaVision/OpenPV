@@ -26,6 +26,7 @@ protected:
    virtual void ioParam_labelLength(enum ParamsIOFlag ioFlag);
    virtual void ioParam_echoLabelFlag(enum ParamsIOFlag ioFlag);
    virtual int allocateV();
+   virtual int initializeActivity();
    char * movieLayerName;
    Movie * movie;
    pvdata_t * labelData;

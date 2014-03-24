@@ -284,7 +284,7 @@ int CliqueLayer::doUpdateState(double timef, double dt, const PVLayerLoc * loc, 
       unsigned int * active_indices, unsigned int * num_active)
 {
    return updateStateClique(timef, dt,loc, A, getV(),
-         num_channels, gSynHead, this->Voffset, this->Vgain, this->VMax, this->VMin,
+         num_channels, gSynHead, this->Voffset, this->Vgain, this->AMax, this->AMin,
          this->VThresh, parent->columnId());
 }
 
@@ -293,14 +293,14 @@ int CliqueLayer::doUpdateState(double timef, double dt, const PVLayerLoc * loc, 
 int CliqueLayer::updateState(double timef, double dt)
 {
    return updateStateClique(timef, dt, getLayerLoc(), getCLayer()->activity->data, getV(),
-         getNumChannels(), GSyn[0], this->Voffset, this->Vgain, this->VMax, this->VMin,
+         getNumChannels(), GSyn[0], this->Voffset, this->Vgain, this->AMax, this->AMin,
          this->VThresh, clayer->columnId);
 }
 */
 
 int CliqueLayer::updateStateClique(double timef, double dt, const PVLayerLoc * loc,
       pvdata_t * A, pvdata_t * V, int num_channels, pvdata_t * gSynHead, pvdata_t Voffset,
-      pvdata_t Vgain, pvdata_t VMax, pvdata_t VMin, pvdata_t VThresh, int columnID)
+      pvdata_t Vgain, pvdata_t AMax, pvdata_t AMin, pvdata_t VThresh, int columnID)
 {
    pv_debug_info("[%d]: CliqueLayer::updateState:", columnID);
 
@@ -331,8 +331,8 @@ int CliqueLayer::updateStateClique(double timef, double dt, const PVLayerLoc * l
    // resetGSynBuffers called by HyPerCol
    resetGSynBuffers_HyPerLayer(num_neurons, getNumChannels(), gSynHead);
    setActivity_HyPerLayer(num_neurons, A, V, nx, ny, nf, loc->nb); // setActivity();
-   applyVThresh_ANNLayer(num_neurons, V, VMin, VThresh, 0.0f/*VShift*/, 0.0f/*VWidth*/, A, nx, ny, nf, loc->nb); // applyVThresh();
-   applyVMax_ANNLayer(num_neurons, V, VMax, A, nx, ny, nf, loc->nb); // applyVMax();
+   applyVThresh_ANNLayer(num_neurons, V, AMin, VThresh, 0.0f/*AShift*/, 0.0f/*VWidth*/, A, nx, ny, nf, loc->nb); // applyVThresh();
+   applyVMax_ANNLayer(num_neurons, V, AMax, A, nx, ny, nf, loc->nb); // applyVMax();
    updateActiveIndices();
 
    return 0;

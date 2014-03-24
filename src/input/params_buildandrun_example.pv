@@ -71,8 +71,8 @@ ANNLayer "L1" = {
     Vrest = 0.0;
 
     VThresh = -infinity;  // infinity (no quotes) is translated to FLT_MAX
-    VMax = infinity;
-    VMin = -infinity;
+    AMax = infinity;
+    AMin = -infinity;
 };
 
 KernelConn "Image to Retina" = {

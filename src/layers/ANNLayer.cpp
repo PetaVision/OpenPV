@@ -21,9 +21,9 @@ void ANNLayer_update_state(
 
     float * V,
     const float Vth,
-    const float VMax,
-    const float VMin,
-    const float VShift,
+    const float AMax,
+    const float AMin,
+    const float AShift,
     const float VWidth,
     int num_channels,
     float * GSynHead,
@@ -83,16 +83,42 @@ void ANNLayer::ioParam_VThresh(enum ParamsIOFlag ioFlag) {
    parent->ioParamValue(ioFlag, name, "VThresh", &VThresh, -max_pvdata_t);
 }
 
+// Parameter VMin was deprecated in favor of AMin on Mar 20, 2014
 void ANNLayer::ioParam_VMin(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "VMin", &VMin, VThresh);
+   if (ioFlag==PARAMS_IO_READ && parent->parameters()->present(name, "VMin")) {
+      AMin = parent->parameters()->value(name, "VMin");
+      if (parent->columnId()==0) {
+         fprintf(stderr, "Warning: %s \"%s\" parameter \"VMin\" is deprecated.  Use AMin instead.\n",
+               parent->parameters()->groupKeywordFromName(name), name);
+      }
+      return;
+   }
+   parent->ioParamValue(ioFlag, name, "AMin", &AMin, VThresh);
 }
 
+// Parameter VMax was deprecated in favor of AMax on Mar 20, 2014
 void ANNLayer::ioParam_VMax(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "VMax", &VMax, max_pvdata_t);
+   if (ioFlag==PARAMS_IO_READ && parent->parameters()->present(name, "VMax")) {
+      AMax = parent->parameters()->value(name, "VMax");
+      if (parent->columnId()==0) {
+         fprintf(stderr, "Warning: %s \"%s\" parameter \"VMax\" is deprecated.  Use AMax instead.\n",
+               parent->parameters()->groupKeywordFromName(name), name);
+      }
+      return;
+   }
+   parent->ioParamValue(ioFlag, name, "AMax", &AMax, max_pvdata_t);
 }
 
 void ANNLayer::ioParam_VShift(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "VShift", &VShift, (pvdata_t) 0);
+   if (ioFlag==PARAMS_IO_READ && parent->parameters()->present(name, "VShift")) {
+      AShift = parent->parameters()->value(name, "VShift");
+      if (parent->columnId()==0) {
+         fprintf(stderr, "Warning: %s \"%s\" parameter \"VShift\" is deprecated.  Use AShift instead.\n",
+               parent->parameters()->groupKeywordFromName(name), name);
+      }
+      return;
+   }
+   parent->ioParamValue(ioFlag, name, "AShift", &AShift, (pvdata_t) 0);
 }
 
 void ANNLayer::ioParam_VWidth(enum ParamsIOFlag ioFlag) {
@@ -146,9 +172,9 @@ int ANNLayer::initializeThreadKernels(const char * kernel_name)
 
    status |= krUpdate->setKernelArg(argid++, clV);
    status |= krUpdate->setKernelArg(argid++, VThresh);
-   status |= krUpdate->setKernelArg(argid++, VMax);
-   status |= krUpdate->setKernelArg(argid++, VMin);
-   status |= krUpdate->setKernelArg(argid++, VShift);
+   status |= krUpdate->setKernelArg(argid++, AMax);
+   status |= krUpdate->setKernelArg(argid++, AMin);
+   status |= krUpdate->setKernelArg(argid++, AShift);
    status |= krUpdate->setKernelArg(argid++, getChannelCLBuffer());
 //   status |= krUpdate->setKernelArg(argid++, getChannelCLBuffer(CHANNEL_EXC));
 //   status |= krUpdate->setKernelArg(argid++, getChannelCLBuffer(CHANNEL_INH));
@@ -191,18 +217,18 @@ int ANNLayer::checkVThreshParams(PVParams * params) {
       }
    }
 
-   pvdata_t limfromright = VThresh+VWidth-VShift;
-   if (VMax < limfromright) limfromright = VMax;
+   pvdata_t limfromright = VThresh+VWidth-AShift;
+   if (AMax < limfromright) limfromright = AMax;
 
-   if (VMin > limfromright) {
+   if (AMin > limfromright) {
       if (parent->columnId()==0) {
          if (VWidth==0) {
             fprintf(stderr, "%s \"%s\" warning: nonmonotonic transfer function, jumping from %f to %f at Vthresh=%f\n",
-                  parent->parameters()->groupKeywordFromName(name), name, VMin, limfromright, VThresh);
+                  parent->parameters()->groupKeywordFromName(name), name, AMin, limfromright, VThresh);
          }
          else {
             fprintf(stderr, "%s \"%s\" warning: nonmonotonic transfer function, changing from %f to %f as V goes from VThresh=%f to VThresh+VWidth=%f\n",
-                  parent->parameters()->groupKeywordFromName(name), name, VMin, limfromright, VThresh, VThresh+VWidth);
+                  parent->parameters()->groupKeywordFromName(name), name, AMin, limfromright, VThresh, VThresh+VWidth);
          }
       }
    }
@@ -238,7 +264,7 @@ int ANNLayer::doUpdateState(double time, double dt, const PVLayerLoc * loc, pvda
       int ny = loc->ny;
       int nf = loc->nf;
       int num_neurons = nx*ny*nf;
-      ANNLayer_update_state(num_neurons, nx, ny, nf, loc->nb, V, VThresh, VMax, VMin, VShift, VWidth, num_channels, gSynHead, A);
+      ANNLayer_update_state(num_neurons, nx, ny, nf, loc->nb, V, VThresh, AMax, AMin, AShift, VWidth, num_channels, gSynHead, A);
       if (this->writeSparseActivity){
          updateActiveIndices();  // added by GTK to allow for sparse output, can this be made an inline function???
       }
@@ -259,39 +285,10 @@ int ANNLayer::setActivity() {
    int num_neurons = nx*ny*nf;
    int status;
    status = setActivity_HyPerLayer(num_neurons, getCLayer()->activity->data, getV(), nx, ny, nf, nb);
-   if( status == PV_SUCCESS ) status = applyVThresh_ANNLayer(num_neurons, getV(), VMin, VThresh, VShift, VWidth, getCLayer()->activity->data, nx, ny, nf, nb);
-   if( status == PV_SUCCESS ) status = applyVMax_ANNLayer(num_neurons, getV(), VMax, getCLayer()->activity->data, nx, ny, nf, nb);
+   if( status == PV_SUCCESS ) status = applyVThresh_ANNLayer(num_neurons, getV(), AMin, VThresh, AShift, VWidth, getCLayer()->activity->data, nx, ny, nf, nb);
+   if( status == PV_SUCCESS ) status = applyVMax_ANNLayer(num_neurons, getV(), AMax, getCLayer()->activity->data, nx, ny, nf, nb);
    return status;
 }
-
-
-//int ANNLayer::updateV() {
-//   HyPerLayer::updateV();
-//   applyVMax();
-//   applyVThresh();
-//   return PV_SUCCESS;
-//}
-
-//int ANNLayer::applyVMax() {
-//   if( VMax < FLT_MAX ) {
-//      pvdata_t * V = getV();
-//      for( int k=0; k<getNumNeurons(); k++ ) {
-//         if(V[k] > VMax) V[k] = VMax;
-//      }
-//   }
-//   return PV_SUCCESS;
-//}
-
-//int ANNLayer::applyVThresh() {
-//   if( VThresh > -FLT_MIN ) {
-//      pvdata_t * V = getV();
-//      for( int k=0; k<getNumNeurons(); k++ ) {
-//         if(V[k] < VThresh)
-//            V[k] = VMin;
-//      }
-//   }
-//   return PV_SUCCESS;
-//}
 
 
 }  // end namespace PV

@@ -78,7 +78,7 @@ int AccumulateLayer::doUpdateState(double time, double dt, const PVLayerLoc * lo
       int nf = loc->nf;
       int num_neurons = nx*ny*nf;
       updateV_AccumulateLayer(num_neurons, V, num_channels, gSynHead, A,
-              VMax, VMin, VThresh, VShift, VWidth, nx, ny, nf, loc->nb);
+              AMax, AMin, VThresh, AShift, VWidth, nx, ny, nf, loc->nb);
       if (this->writeSparseActivity){
          updateActiveIndices();  // added by GTK to allow for sparse output, can this be made an inline function???
       }
@@ -99,8 +99,8 @@ int AccumulateLayer::setActivity() {
    int num_neurons = nx*ny*nf;
    int status = PV_SUCCESS;
    memset(clayer->activity->data, 0, sizeof(pvdata_t)*getNumExtended());
-   if( status == PV_SUCCESS ) status = applyVThresh_ANNLayer(num_neurons, getV(), VMin, VThresh, VShift, VWidth, getCLayer()->activity->data, nx, ny, nf, nb);
-   if( status == PV_SUCCESS ) status = applyVMax_ANNLayer(num_neurons, getV(), VMax, getCLayer()->activity->data, nx, ny, nf, nb);
+   if( status == PV_SUCCESS ) status = applyVThresh_ANNLayer(num_neurons, getV(), AMin, VThresh, AShift, VWidth, getCLayer()->activity->data, nx, ny, nf, nb);
+   if( status == PV_SUCCESS ) status = applyVMax_ANNLayer(num_neurons, getV(), AMax, getCLayer()->activity->data, nx, ny, nf, nb);
    return status;
 }
 
