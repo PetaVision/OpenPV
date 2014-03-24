@@ -415,6 +415,9 @@ int InitWeights::readListOfArborFiles(PVPatch *** patches, pvdata_t ** dataStart
 #ifndef USE_SHMGET
          int status = PV::readWeights(patches ? &patches[arbor] : NULL, &dataStart[arbor], numArbors-arbor, numPatches, arborfilename, icComm, &timed, preLoc);
 #else
+         bool * shmget_owner = callingConn->getShmgetOwnerHead();
+         bool shmget_flag = callingConn->getShmgetFlag();
+
          int status = PV::readWeights(patches ? &patches[arbor] : NULL,
                  &dataStart[arbor], numArbors - arbor, numPatches,
                  arborfilename, icComm, &timed, preLoc, shmget_owner,
@@ -480,6 +483,8 @@ int InitWeights::readCombinedWeightFiles(PVPatch *** patches, pvdata_t ** dataSt
 #ifndef USE_SHMGET
       int status = PV::readWeights(patches, dataStart, numArbors, numPatches, weightsfilename, icComm, &timed, preLoc);
 #else
+      bool * shmget_owner = callingConn->getShmgetOwnerHead();
+      bool shmget_flag = callingConn->getShmgetFlag();
       int status = PV::readWeights(patches, dataStart, numArbors, numPatches, weightsfilename, icComm, &timed, preLoc, shmget_owner, shmget_flag);
 #endif
       if (status != PV_SUCCESS) {
