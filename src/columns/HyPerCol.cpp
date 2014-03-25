@@ -1344,7 +1344,7 @@ int HyPerCol::checkpointWrite(const char * cpDir) {
       }
       int statstatus = stat(timeinfofilename, &timeinfostat);
       if (statstatus == 0) {
-         fprintf(stderr, "Warning: Checkpoint directory \"%s\" has existing timeinfo.bin, which is now being deleted.\n", timeinfofilename);
+         fprintf(stderr, "Warning: Checkpoint directory \"%s\" has existing timeinfo.bin, which is now being deleted.\n", cpDir);
          int unlinkstatus = unlink(timeinfofilename);
          if (unlinkstatus != 0) {
             fprintf(stderr, "Error deleting \"%s\": %s\n", timeinfofilename, strerror(errno));
