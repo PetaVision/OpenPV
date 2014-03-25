@@ -845,11 +845,12 @@ int KernelConn::checkpointRead(const char * cpDir, double * timef) {
    InitWeights * weightsInitObject = new InitWeights(this);
    weightsInitObject->readWeights(NULL, get_wDataStart(), getNumDataPatches(), path, timef);
    delete weightsInitObject;
+   //Need these in KernelConn as well as HyPerConn since KernelConn::checkpointWrite doesn't call HyPerConn::checkpointWrite
+   status = parent->readScalarFromFile(cpDir, getName(), "lastUpdateTime", &lastUpdateTime, lastUpdateTime);
+   assert(status == PV_SUCCESS);
+   status = parent->readScalarFromFile(cpDir, getName(), "weightUpdateTime", &weightUpdateTime, weightUpdateTime);
+   assert(status == PV_SUCCESS);
    //Moved to HyPerConn
-   //status = parent->readScalarFromFile(cpDir, getName(), "lastUpdateTime", &lastUpdateTime, lastUpdateTime);
-   //assert(status == PV_SUCCESS);
-   //status = parent->readScalarFromFile(cpDir, getName(), "weightUpdateTime", &weightUpdateTime, weightUpdateTime);
-   //assert(status == PV_SUCCESS);
    //if (this->plasticityFlag &&  weightUpdateTime<parent->simulationTime()) {
    //   // simulationTime() may have been changed by HyPerCol::checkpoint, so this repeats the sanity check on weightUpdateTime in allocateDataStructures
    //   while(weightUpdateTime <= parent->simulationTime()) {weightUpdateTime += weightUpdatePeriod;}
@@ -872,11 +873,11 @@ int KernelConn::checkpointWrite(const char * cpDir) {
       }
    }
 //#endif // PV_USE_MPI
-   //Moved to HyPerConn
-   //status = parent->writeScalarToFile(cpDir, getName(), "lastUpdateTime", lastUpdateTime);
-   //assert(status==PV_SUCCESS);
-   //status = parent->writeScalarToFile(cpDir, getName(), "weightUpdateTime", weightUpdateTime);
-   //assert(status==PV_SUCCESS);
+   //Need these in KernelConn as well as HyPerConn since KernelConn::checkpointWrite doesn't call HyPerConn::checkpointWrite
+   status = parent->writeScalarToFile(cpDir, getName(), "lastUpdateTime", lastUpdateTime);
+   assert(status==PV_SUCCESS);
+   status = parent->writeScalarToFile(cpDir, getName(), "weightUpdateTime", weightUpdateTime);
+   assert(status==PV_SUCCESS);
    return HyPerConn::writeWeights(NULL, get_wDataStart(), getNumDataPatches(), filename, parent->simulationTime(), writeCompressedCheckpoints, /*last*/true);
 }
 
