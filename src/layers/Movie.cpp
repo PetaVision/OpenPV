@@ -56,23 +56,26 @@ int Movie::checkpointRead(const char * cpDir, double * timef){
    int filenamesize = strlen(cpDir)+1+strlen(name)+21;
    // The +1 is for the slash between cpDir and name; the +21 needs to be large enough to hold the suffix _TimestampState.{bin,txt} plus the null terminator
    char * chkptfilename = (char *) malloc( filenamesize*sizeof(char) );
+   int chars_needed;
    assert(chkptfilename != NULL);
-   int chars_needed = snprintf(chkptfilename, filenamesize, "%s/%s_TimestampState.bin", cpDir, name);
-   assert(chars_needed < filenamesize);
-   if( icComm->commRank() == 0 ) {
-      //Only read timestamp file pos if 
-      //1. There exists a timestampFile
-      //2. There exists a MovieState.bin (Run being checkpointed from could have not been printing out timestamp files
-      PV_Stream * pvstream = PV_fopen(chkptfilename, "r");
-      if (timestampFile && pvstream){
-         long timestampFilePos = 0L;
-         status |= PV_fread(&timestampFilePos, sizeof(long), 1, pvstream);
-         if (PV_fseek(timestampFile, timestampFilePos, SEEK_SET) != 0) {
-            fprintf(stderr, "MovieLayer::checkpointRead error: unable to recover initial file position in timestamp file for layer %s\n", name);
-            abort();
-         }
+   if (writeFrameToTimestamp) {
+      chars_needed = snprintf(chkptfilename, filenamesize, "%s/%s_TimestampState.bin", cpDir, name);
+      assert(chars_needed < filenamesize);
+      if( icComm->commRank() == 0 ) {
+         //Only read timestamp file pos if
+         //1. There exists a timestampFile
+         //2. There exists a MovieState.bin (Run being checkpointed from could have not been printing out timestamp files
+         PV_Stream * pvstream = PV_fopen(chkptfilename, "r");
+         if (timestampFile && pvstream){
+            long timestampFilePos = 0L;
+            status |= PV_fread(&timestampFilePos, sizeof(long), 1, pvstream);
+            if (PV_fseek(timestampFile, timestampFilePos, SEEK_SET) != 0) {
+               fprintf(stderr, "MovieLayer::checkpointRead error: unable to recover initial file position in timestamp file for layer %s\n", name);
+               abort();
+            }
 
-         PV_fclose(pvstream);
+            PV_fclose(pvstream);
+         }
       }
    }
 
