@@ -1,10 +1,10 @@
 BUILDDIR = build
 
-ifeq ($(origin PVDIR), undefined)
-   PVDIR = ../../PetaVision
+ifeq ($(origin PV_DIR), undefined)
+   PV_DIR = ../../PetaVision
 endif
-LIBPV = $(PVDIR)/lib/libpv.a
-INCPV = $(PVDIR)/src
+LIBPV = $(PV_DIR)/lib/libpv.a
+INCPV = $(PV_DIR)/src
 
 INPARAMS = input/params.test
 
