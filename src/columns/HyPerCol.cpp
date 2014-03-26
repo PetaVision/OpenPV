@@ -876,7 +876,14 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
    // insert probes
    for (int i=0; i<numLayerProbes; i++) {
       LayerProbe * p = layerProbes[i];
-      p->communicateInitInfo();
+      int pstatus = p->communicateInitInfo();
+      if (pstatus==PV_SUCCESS) {
+         if (columnId()==0) printf("Layer probe \"%s\" communicateInitInfo completed.\n", p->getProbeName());
+      }
+      else {
+         assert(pstatus == PV_FAILURE); // PV_POSTPONE etc. hasn't been implemented for probes yet.
+         exit(EXIT_FAILURE); // Any error message should be printed by probe's communicateInitInfo function
+      }
    }
    //for (int i=0; i<numConnProbes; i++) {
    //   BaseConnectionProbe * p = connProbes[i];
