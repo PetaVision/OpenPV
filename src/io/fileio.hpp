@@ -18,6 +18,8 @@
 #include "../columns/Communicator.hpp"
 #include "../arch/opencl/pv_uint4.h"
 
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <unistd.h>
 
 // index/value pairs used by writeActivitySparseNonspiking()
@@ -34,6 +36,7 @@ double timeFromParams(void * params);
 size_t pv_sizeof(int datatype);
 
 PV_Stream * PV_fopen(const char * path, const char * mode);
+int PV_stat(const char * path, struct stat * buf);
 long int getPV_StreamFilepos(PV_Stream * pvstream);
 long int updatePV_StreamFilepos(PV_Stream * pvstream);
 long int PV_ftell(PV_Stream * pvstream);

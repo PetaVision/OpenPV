@@ -93,28 +93,22 @@ int Movie::checkpointRead(const char * cpDir, double * timef){
 
       PV_fclose(pvstream);
    }
-
-  // while (parent->simulationTime() >= nextDisplayTime) {
-   //double tmpDisplayTime = parent->simulationTime();
-   //while (parent->simulationTime() >= tmpDisplayTime) {
-   //   tmpDisplayTime += displayPeriod;
-   //   //Follow dispPeriod for updating frame numbers and file names
-   //   //updateFrameNum(skipFrameIndex);
-   //   if(!readPvpFile){
-   //      if (filename != NULL) free(filename);
-   //      filename = strdup(getNextFileName(skipFrameIndex));
-   //      assert(filename != NULL);
-   //   }
-   //}
    
-   //2 ahead for some reason
-   for(int iFrame = 0; iFrame < frameNumber-2; iFrame++){
-      if(!readPvpFile){
-         if (filename != NULL) free(filename);
-         filename = strdup(getNextFileName(skipFrameIndex));
-         assert(filename != NULL);
+   if (!readPvpFile) {
+      int startFrame = frameNumber;
+      if (parent->columnId()==0) {
+         PV_fseek(filenamestream, 0L, SEEK_SET);
+         frameNumber = 0;
+      }
+      if (filename != NULL) free(filename);
+      filename = strdup(getNextFileName(startFrame)); // getNextFileName() will increment frameNumber by startFrame;
+      if (parent->columnId()==0) assert(frameNumber==startFrame);
+      if (parent->columnId()==0) {
+         printf("%s \"%s\" checkpointRead set frameNumber to %d and filename to \"%s\"\n",
+               parent->parameters()->groupKeywordFromName(name), name, frameNumber, filename);
       }
    }
+
    return status;
 }
 
@@ -130,7 +124,12 @@ int Movie::checkpointWrite(const char * cpDir){
    if( icComm->commRank() == 0 ) {
       PV_Stream * pvstream = PV_fopen(chkptfilename, "w");
       if(pvstream != NULL){
-         status |= PV_fwrite(&frameNumber, sizeof(int), 1, pvstream);
+         int numwritten = PV_fwrite(&frameNumber, sizeof(int), 1, pvstream);
+         if (numwritten != 1) {
+            fprintf(stderr, "Error writing to \"%s\"\n", chkptfilename);
+            status = PV_FAILURE;
+         }
+         PV_fclose(pvstream);
       }
       else{
          fprintf(stderr, "Unable to write to \"%s\"\n", chkptfilename);
@@ -139,7 +138,7 @@ int Movie::checkpointWrite(const char * cpDir){
       sprintf(chkptfilename, "%s/%s_FrameNumState.txt", cpDir, name);
       pvstream = PV_fopen(chkptfilename, "w");
       if(pvstream != NULL){
-         fprintf(pvstream->fp, "frameNumber= %d", frameNumber);
+         fprintf(pvstream->fp, "frameNumber= %d\n", frameNumber);
          PV_fclose(pvstream);
       }
       else{
@@ -168,7 +167,7 @@ int Movie::checkpointWrite(const char * cpDir){
          sprintf(chkptfilename, "%s/%s_TimestampState.txt", cpDir, name);
          pvstream = PV_fopen(chkptfilename, "w");
          if(pvstream != NULL){
-            fprintf(pvstream->fp, "timestampFilePos = %ld", timestampFilePos);
+            fprintf(pvstream->fp, "timestampFilePos = %ld\n", timestampFilePos);
             PV_fclose(pvstream);
          }
          else{
@@ -261,7 +260,15 @@ int Movie::initialize(const char * name, HyPerCol * hc) {
       if(getParent()->icCommunicator()->commRank()==0){
           //If checkpoint read is set, append, otherwise, clobber
           if(getParent()->getCheckpointReadFlag()){
-             timestampFile = PV::PV_fopen(timestampFilename.c_str(), "r+");
+             struct stat statbuf;
+             if (PV_stat(timestampFilename.c_str(), &statbuf) != 0) {
+                fprintf(stderr, "%s \"%s\" warning: timestamp file \"%s\" unable to be found.  Creating new file.\n",
+                      parent->parameters()->groupKeywordFromName(name), name, timestampFilename.c_str());
+                timestampFile = PV::PV_fopen(timestampFilename.c_str(), "w");
+             }
+             else {
+                timestampFile = PV::PV_fopen(timestampFilename.c_str(), "r+");
+             }
           }
           else{
              timestampFile = PV::PV_fopen(timestampFilename.c_str(), "w");
@@ -667,6 +674,7 @@ const char * Movie::getNextFileName()
          char * path = fgets(inputfile, maxlen, filenamestream->fp);
          if (path != NULL) {
             filenamestream->filepos += strlen(path);
+            frameNumber++;
             path[PV_PATH_MAX-1] = '\0';
             size_t len = strlen(path);
             if (len > 0) {

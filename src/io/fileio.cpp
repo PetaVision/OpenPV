@@ -9,7 +9,6 @@
 #include "../layers/HyPerLayer.hpp"
 
 #include <assert.h>
-#include <unistd.h>
 #undef DEBUG_OUTPUT
 
 namespace PV {
@@ -120,6 +119,31 @@ PV_Stream * PV_fopen(const char * path, const char * mode) {
       }
    }
    return streampointer;
+}
+
+int PV_stat(const char * path, struct stat * buf) {
+   // Call stat library function, trying up to MAX_FILESYSTEMCALL_TRIES times if an error is returned.
+   // If an error results on all MAX_FILESYSTEMCALL_TRIES times, returns -1 (the error return value) for stat()
+   // and errno is the error of the last attempt.
+   int attempt = 0;
+   int retval = -1;
+   while (retval != 0) {
+      errno = 0;
+      retval = stat(path, buf);
+      if (retval == 0) break;
+      attempt++;
+      fprintf(stderr, "stat() failure for \"%s\" on attempt %d: %s\n", path, attempt, strerror(errno));
+      if (attempt < MAX_FILESYSTEMCALL_TRIES) {
+         sleep(1);
+      }
+      else {
+         break;
+      }
+   }
+   if (retval != 0) {
+      fprintf(stderr, "PV_fopen error for \"%s\": MAX_FILESYSTEMCALL_TRIES = %d exceeded\n", path, MAX_FILESYSTEMCALL_TRIES);
+   }
+   return retval;
 }
 
 long int PV_ftell_primitive(PV_Stream * pvstream) {
