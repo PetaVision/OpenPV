@@ -2,7 +2,7 @@ function writepvpsparseactivityfile(filename, data, nx, ny, nf)
    %  writepvpsparseactivityfile.m
    %    Pete Schultz
    % 
-   % Usage: writepvpsparseactivityfile(filename, data)
+   % Usage: writepvpsparseactivityfile(filename, data, nx, ny, nf)
    % filename is the pvp file to be created.  If the file already
    % exists it will be clobbered.
    %
