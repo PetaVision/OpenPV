@@ -145,7 +145,9 @@ void StatsProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
             fprintf(stderr, "%s \"%s\" error: buffer \"%s\" is not recognized.\n",
                   getParentCol()->parameters()->groupKeywordFromName(getProbeName()), getProbeName(), bufnameinparams);
          }
+#if PV_USE_MPI
          MPI_Barrier(getParentCol()->icCommunicator()->communicator());
+#endif
          exit(EXIT_FAILURE);
       }
    }

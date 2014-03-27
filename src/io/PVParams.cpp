@@ -1404,7 +1404,9 @@ void PVParams::handleUnnecessaryParameter(const char * group_name, const char * 
          }
       }
    }
+#if PV_USE_MPI
    MPI_Barrier(icComm->communicator());
+#endif
    if (status != PV_SUCCESS) exit(EXIT_FAILURE);
 }
 // Declare the instantiations of allocateBuffer that occur in other .cpp files; otherwise you may get linker errors.
@@ -1453,7 +1455,9 @@ void PVParams::handleUnnecessaryStringParameter(const char * group_name, const c
          }
       }
    }
+#if PV_USE_MPI
    MPI_Barrier(icComm->communicator());
+#endif
    if (status != PV_SUCCESS) exit(EXIT_FAILURE);
 }
 
