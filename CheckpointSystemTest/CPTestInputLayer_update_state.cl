@@ -31,8 +31,8 @@ void CPTestInputLayer_update_state(
 
     CL_MEM_GLOBAL float * V,
     const float Vth,
-    const float VMax,
-    const float VMin,
+    const float AMax,
+    const float AMin,
     CL_MEM_GLOBAL float * GSynHead,
 //    CL_MEM_GLOBAL float * GSynExc,
 //    CL_MEM_GLOBAL float * GSynInh,
