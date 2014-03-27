@@ -54,7 +54,9 @@ int ActivityProbe::initActivityProbe(const char * probeName, HyPerCol * hc) {
       if (hc->columnId()==0) {
          fprintf(stderr, "ActivityProbe \"%s\" error: ActivityProbe is not compatible with MPI.\n", probeName);
       }
+#if PV_USE_MPI
       MPI_Barrier(hc->icCommunicator()->communicator());
+#endif
       exit(EXIT_FAILURE);
    }
    return initLayerProbe(probeName, hc);
