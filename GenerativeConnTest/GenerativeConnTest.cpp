@@ -37,11 +37,9 @@
 
 #include <columns/buildandrun.hpp>
 #include <io/io.c>
-#ifdef PV_USE_MPI
+#if PV_USE_MPI
 #  include <mpi.h>
-#else
-#  include <include/mpi_stubs.h>
-#endif // PV_USE_MPI
+#endif
 
 int runGenerativeConnTest(int argc, char * argv[]);
 int dumpweights(HyPerCol * hc, int argc, char * argv[]);
@@ -49,7 +47,7 @@ int dumponeweight(GenerativeConn * conn);
 
 int main(int argc, char * argv[]) {
    int status;
-#ifdef PV_USE_MPI
+#if PV_USE_MPI
    int mpi_initialized_on_entry;
    MPI_Initialized(&mpi_initialized_on_entry);
    if( !mpi_initialized_on_entry ) MPI_Init(&argc, &argv);
@@ -80,9 +78,9 @@ int main(int argc, char * argv[]) {
    else {
       status = runGenerativeConnTest(argc, argv);
    }
-#ifdef PV_USE_MPI
+#if PV_USE_MPI
    MPI_Finalize();
-#endif // PV_USE_MPI
+#endif
    return status;
 }
 

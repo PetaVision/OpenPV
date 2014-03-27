@@ -26,9 +26,8 @@ int main(int argc, char * argv[]) {
       fprintf(stderr, "%s: run without input arguments (except for --require-return); the necessary arguments are hardcoded.\n", argv[0]);
       exit(EXIT_FAILURE);
    }
-#ifdef PV_USE_MPI
+#if PV_USE_MPI
    MPI_Init(&argc, &argv);
-   int rank;
    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 #endif // PV_USE_MPI
 
@@ -41,10 +40,9 @@ int main(int argc, char * argv[]) {
       fflush(stdout);
       charhit = getc(stdin);
    }
-#ifdef PV_USE_MPI
-   int ierr;
-   ierr = MPI_Bcast(&charhit, 1, MPI_INT, 0, MPI_COMM_WORLD);
-#endif // PV_USE_MPI
+#if PV_USE_MPI
+   MPI_Bcast(&charhit, 1, MPI_INT, 0, MPI_COMM_WORLD);
+#endif
 #endif // REQUIRE_RETURN
 
    int status;
@@ -71,9 +69,9 @@ int main(int argc, char * argv[]) {
       fprintf(stderr, "%s: running with params file %s returned error %d.\n", cl_args[0], cl_args[2], status);
    }
 
-#ifdef PV_USE_MPI
+#if PV_USE_MPI
    MPI_Finalize();
-#endif // PV_USE_MPI
+#endif
 
    for (int i=0; i<cl_argc; i++) {
       free(cl_args[i]);
@@ -134,8 +132,8 @@ int customexit(HyPerCol * hc, int argc, char * argv[]) {
       }
       free(shellcommand); shellcommand = NULL;
    }
-#ifdef PV_USE_MPI
+#if PV_USE_MPI
    MPI_Bcast(&status, 1, MPI_INT, rootproc, hc->icCommunicator()->communicator());
-#endif // PV_USE_MPI
+#endif
    return status;
 }
