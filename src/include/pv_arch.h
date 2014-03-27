@@ -4,8 +4,8 @@
 /* define this for 64 bit architectures */
 #define PV_ARCH_64
 
-/* define this if using a vendor supplied MPI library */
-#define PV_USE_MPI
+/* define this to 1 if using a vendor supplied MPI library */
+#define PV_USE_MPI 1
 
 /* define this if using OpenCL for threads on CPU or GPU */
 #undef PV_USE_OPENCL
