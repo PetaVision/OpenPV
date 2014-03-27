@@ -149,7 +149,9 @@ void HyPerLCALayer::ioParam_numChannels(enum ParamsIOFlag ioFlag) {
          fprintf(stderr, "%s \"%s\" requires 1 or 2 channels, numChannels = %d\n",
                parent->parameters()->groupKeywordFromName(name), name, numChannels);
       }
+#if PV_USE_MPI
       MPI_Barrier(parent->icCommunicator()->communicator());
+#endif
       exit(EXIT_FAILURE);
    }
 }

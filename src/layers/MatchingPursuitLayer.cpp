@@ -134,7 +134,9 @@ int MatchingPursuitLayer::openPursuitFile() {
             fprintf(stderr, "%s \"%s\": path for tracePursuit file too long.\n",
                   parent->parameters()->groupKeywordFromName(name), name);
          }
+#if PV_USE_MPI
          MPI_Barrier(parent->icCommunicator()->communicator());
+#endif
          exit(EXIT_FAILURE);
       }
       char * new_traceFileName = (char *) malloc(traceFileNameLen*sizeof(char));
