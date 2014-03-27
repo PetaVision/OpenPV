@@ -270,6 +270,9 @@ public:
    virtual int insertProbe(LayerProbe * probe);
    int outputProbeParams();
 
+   int getNumProbes() { return numProbes; }
+   LayerProbe * getProbe(int n) { return (n>=0 && n<numProbes) ? probes[n] : NULL; }
+
    /** returns the number of neurons in layer (for borderId=0) or a border region **/
    virtual int numberOfNeurons(int borderId);
 
