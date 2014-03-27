@@ -588,7 +588,9 @@ int HyPerConn::setParent(HyPerCol * hc) {
    assert(parent==NULL);
    if(hc==NULL) {
       int rank = 0;
+#if PV_USE_MPI
       MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
       fprintf(stderr, "HyPerConn error in rank %d process: constructor called with HyPerCol set to the null pointer.\n", rank);
       exit(EXIT_FAILURE);
    }
@@ -678,7 +680,9 @@ int HyPerConn::getPreAndPostLayerNames(const char * name, PVParams * params, cha
          printf("Connection \"%s\": preLayerName and postLayerName will be inferred in the communicateInitInfo stage.\n", name);
       }
    }
+#if PV_USE_MPI
    MPI_Barrier(params->getInterColComm()->communicator());
+#endif
    if (status != PV_SUCCESS) {
       exit(EXIT_FAILURE);
    }
@@ -837,7 +841,9 @@ void HyPerConn::ioParam_channelCode(enum ParamsIOFlag ioFlag) {
             fprintf(stderr, "%s \"%s\": channelCode %d is not a valid channel.\n",
                   parent->parameters()->groupKeywordFromName(name), name,  ch);
          }
+#if PV_USE_MPI
          MPI_Barrier(parent->icCommunicator()->communicator());
+#endif
          exit(EXIT_FAILURE);
       }
    }
@@ -965,7 +971,9 @@ void HyPerConn::ioParam_pvpatchAccumulateType(enum ParamsIOFlag ioFlag) {
             fprintf(stderr, "%s \"%s\" error: pvpatchAccumulateType \"%s\" unrecognized.  Allowed values are \"convolve\", \"stochastic\", or \"maxpooling\"\n",
                   parent->parameters()->groupKeywordFromName(name), name, pvpatchAccumulateTypeString);
          }
+#if PV_USE_MPI
          MPI_Barrier(parent->icCommunicator()->communicator());
+#endif
          exit(EXIT_FAILURE);
       }
    }
@@ -1303,7 +1311,9 @@ int HyPerConn::communicateInitInfo() {
       assert(postLayerName==NULL);
       status = handleMissingPreAndPostLayerNames();
    }
+#if PV_USE_MPI
    MPI_Barrier(parent->icCommunicator()->communicator());
+#endif
    if (status != PV_SUCCESS) {
       assert(preLayerName==NULL && postLayerName==NULL);
       if (parent->columnId()==0) {
@@ -1326,7 +1336,9 @@ int HyPerConn::communicateInitInfo() {
       }
       status = PV_FAILURE;
    }
+#if PV_USE_MPI
    MPI_Barrier(parent->icCommunicator()->communicator());
+#endif
    if (status != PV_SUCCESS) {
       exit(EXIT_FAILURE);
    }
@@ -1363,7 +1375,9 @@ int HyPerConn::communicateInitInfo() {
          fprintf(stderr, "%s \"%s\" error: postsynaptic layer \"%s\" failed to add channel %d\n",
                parent->parameters()->groupKeywordFromName(name), name, post->getName(), (int) channel);
       }
+#if PV_USE_MPI
       MPI_Barrier(parent->icCommunicator()->communicator());
+#endif
       exit(EXIT_FAILURE);
    }
 
@@ -1382,7 +1396,9 @@ int HyPerConn::communicateInitInfo() {
          fprintf( stderr, "but %d features for post-synaptic layer %s\n",
                post->getCLayer()->loc.nf, post->getName() );
       }
+#if PV_USE_MPI
       MPI_Barrier(parent->icCommunicator()->communicator());
+#endif
       exit(PV_FAILURE);
    }
    // Currently, the only acceptable number for nfp is the number of post-synaptic features.
@@ -1409,7 +1425,9 @@ int HyPerConn::communicateInitInfo() {
             fprintf(stderr, "%s \"%s\" error: triggerLayer \"%s\" is not a layer in the HyPerCol.\n",
                     parent->parameters()->groupKeywordFromName(name), name, triggerLayerName);
          }
+#if PV_USE_MPI
          MPI_Barrier(parent->icCommunicator()->communicator());
+#endif
          exit(EXIT_FAILURE);
       }
       //Use either triggering or weightUpdatePeriod
@@ -1464,7 +1482,9 @@ PVPatch *** HyPerConn::initializeWeights(PVPatch *** patches, pvdata_t ** dataSt
    // insert synchronization barrier to ensure that all processes have finished loading portions of shared memory for which they
    // might be responsible
    //std::cout << "starting MPI_Barrier in HyPerConn::initializeWeights: " << this->name << ", rank = " << getParent()->icCommunicator()->commRank() << std::endl;
+#if PV_USE_MPI
    MPI_Barrier(getParent()->icCommunicator()->communicator());
+#endif
    //std::cout << "leaving MPI_Barrier in HyPerConn::initializeWeights: " << this->name << ", rank = " << getParent()->icCommunicator()->commRank() << std::endl;
 #endif // PV_USE_MPI
 #endif // USE_SHMGET
@@ -1999,8 +2019,10 @@ int HyPerConn::deliverOpenCL(Publisher * pub, const PVLayerCube * cube)
 int HyPerConn::deliver(Publisher * pub, const PVLayerCube * cube, int neighbor)
 {
 #ifdef DEBUG_OUTPUT
-   int rank;
+   int rank = 0;
+#if PV_USE_MPI
    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
    printf("[%d]: HyPerConn::deliver: neighbor=%d cube=%p post=%p this=%p\n", rank, neighbor, cube, post, this);
    fflush(stdout);
 #endif // DEBUG_OUTPUT
