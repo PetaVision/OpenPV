@@ -115,7 +115,9 @@ void MapReduceKernelConn::ioParam_num_dWeightFiles(enum ParamsIOFlag ioFlag) {
          fprintf(stderr, "%s \"%s\": num_dWeightFiles must be greater than or equal to zero.\n",
                parent->parameters()->groupKeywordFromName(name), name);
       }
+#if PV_USE_MPI
       MPI_Barrier(parent->icCommunicator()->communicator());
+#endif
       exit(EXIT_FAILURE);
    }
 }
@@ -127,7 +129,9 @@ void MapReduceKernelConn::ioParam_dWeightFileIndex(enum ParamsIOFlag ioFlag) {
          fprintf(stderr, "%s \"%s\": dWeightFileIndex must be greater than zero.\n",
                parent->parameters()->groupKeywordFromName(name), name);
       }
+#if PV_USE_MPI
       MPI_Barrier(parent->icCommunicator()->communicator());
+#endif
       exit(EXIT_FAILURE);
    }
 }
@@ -220,9 +224,9 @@ int MapReduceKernelConn::reduceKernels(const int arborID) {
 
 	// broadcast map-reduced dWeights to all non-root processes
 	MPI_Comm mpi_comm = icComm->communicator();
-	MPI_Bcast(this->get_wDataStart(0), arborSize, MPI_FLOAT, rootproc,
-			mpi_comm);
-
+#if PV_USE_MPI
+	MPI_Bcast(this->get_wDataStart(0), arborSize, MPI_FLOAT, rootproc, mpi_comm);
+#endif
 	return PV_BREAK;
 }
 

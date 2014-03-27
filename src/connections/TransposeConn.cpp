@@ -201,7 +201,9 @@ int TransposeConn::communicateInitInfo() {
          fprintf(stderr, "%s \"%s\" error: transpose's pre layer and original connection's post layer must have the same dimensions.\n", parent->parameters()->groupKeywordFromName(name), name);
          fprintf(stderr, "    (x=%d, y=%d, f=%d) versus (x=%d, y=%d, f=%d).\n", preLoc->nx, preLoc->ny, preLoc->nf, origPostLoc->nx, origPostLoc->ny, origPostLoc->nf);
       }
+#if PV_USE_MPI
       MPI_Barrier(parent->icCommunicator()->communicator());
+#endif
       exit(EXIT_FAILURE);
    }
    const PVLayerLoc * postLoc = pre->getLayerLoc();
@@ -211,7 +213,9 @@ int TransposeConn::communicateInitInfo() {
          fprintf(stderr, "%s \"%s\" error: transpose's post layer and original connection's pre layer must have the same dimensions.\n", parent->parameters()->groupKeywordFromName(name), name);
          fprintf(stderr, "    (x=%d, y=%d, f=%d) versus (x=%d, y=%d, f=%d).\n", postLoc->nx, postLoc->ny, postLoc->nf, origPreLoc->nx, origPreLoc->ny, origPreLoc->nf);
       }
+#if PV_USE_MPI
       MPI_Barrier(parent->icCommunicator()->communicator());
+#endif
       exit(EXIT_FAILURE);
    }
 
@@ -226,7 +230,9 @@ int TransposeConn::communicateInitInfo() {
       if (parent->columnId()==0) {
          fprintf(stderr, "TransposeConn \"%s\" error: original conn \"%s\" has shrinkPatches set to true.  TransposeConn has not been implemented for that case.\n", name, originalConn->getName());
       }
+#if PV_USE_MPI
       MPI_Barrier(parent->icCommunicator()->communicator());
+#endif
       exit(EXIT_FAILURE);
    }
 
