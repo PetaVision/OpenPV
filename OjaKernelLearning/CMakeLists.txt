@@ -2,7 +2,7 @@
 cmake_minimum_required(VERSION 2.6)
 
 #Set CMAKE_MODULE_PATH
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PV_WRKSPC_DIR}/PetaVision/docs/cmake/Modules/")
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PV_DIR}/docs/cmake/Modules/")
 
 set(CMAKE_C_FLAGS_DEBUG "-g3 -O0")
 set(CMAKE_CXX_FLAGS_DEBUG "-g3 -O0")
@@ -16,8 +16,8 @@ if (BUILD_TYPE_OJAKERNELLEARNING)
     set(CMAKE_BUILD_TYPE ${BUILD_TYPE_OJAKERNELLEARNING}) #Can be: None, Debug, Release, RelWithDebInfo, MinSizeRel
 endif (BUILD_TYPE_OJAKERNELLEARNING)
 
-set(PV_SOURCE_DIR "${PV_WRKSPC_DIR}/PetaVision/src")
-set(PV_BINARY_DIR "${PV_WRKSPC_DIR}/PetaVision/lib")
+set(PV_SOURCE_DIR "${PV_DIR}/src")
+set(PV_BINARY_DIR "${PV_DIR}/lib")
 set(PROJECT_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
 set(PROJECT_BINARY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/${CMAKE_BUILD_TYPE}")
 
