@@ -187,6 +187,7 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
                  "L2NormProbe",
                  "SparsityTermProbe",
                  "LogLatWTAProbe",
+               "RequireAllZeroActivityProbe",
            "_Stop_LayerProbes_",
            "_Start_BaseConnectionProbes_",
              "KernelProbe",
@@ -806,9 +807,12 @@ LayerProbe * addLayerProbeToColumn(const char * classkeyword, const char * name,
    }
    if( !strcmp(classkeyword, "SparsityTermProbe") ) {
       addedProbe = (LayerProbe *) new SparsityTermProbe(name, hc);
-  }
+   }
    if( !strcmp(classkeyword, "LogLatWTAProbe") ) {
       addedProbe = new LogLatWTAProbe(name, hc);
+   }
+   if( !strcmp(classkeyword, "RequireAllZeroActivityProbe") ) {
+      addedProbe = new RequireAllZeroActivityProbe(name, hc);
    }
    status = checknewobject((void *) addedProbe, classkeyword, name, hc); // checknewobject tests addedObject against null, and either prints error message to stderr or success message to stdout.
    assert( !(status == PV_SUCCESS && !addedProbe) );

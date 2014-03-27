@@ -125,8 +125,9 @@
 #include "../io/StatsProbe.hpp"
 #include "../io/L2NormProbe.hpp"
 #include "../io/SparsityTermProbe.hpp"
-#include "../io/GenColProbe.hpp"
 #include "../io/LogLatWTAProbe.hpp"
+#include "../io/RequireAllZeroActivityProbe.hpp"
+#include "../io/GenColProbe.hpp"
 
 using namespace PV;
 
