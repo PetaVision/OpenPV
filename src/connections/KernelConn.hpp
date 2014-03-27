@@ -75,10 +75,10 @@ protected:
 //   int nyKernel;
 //   int nfKernel;
 
-#ifdef PV_USE_MPI
+#if PV_USE_MPI
    pvdata_t * mpiReductionBuffer;
+#endif
    bool keepKernelsSynchronized_flag;
-#endif // PV_USE_MPI
 
    KernelConn();
    int initialize_base();

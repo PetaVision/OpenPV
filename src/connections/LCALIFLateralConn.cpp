@@ -83,7 +83,9 @@ int LCALIFLateralConn::communicateInitInfo() {
       }
       status = PV_FAILURE;
    }
+#if PV_USE_MPI
    MPI_Barrier(parent->icCommunicator()->communicator());
+#endif
    if (status!=PV_SUCCESS) {
       abort();
    }
