@@ -474,7 +474,9 @@ int HyPerLayer::setLayerLoc(PVLayerLoc * layerLoc, float nxScale, float nyScale,
       }
       status = PV_FAILURE;
    }
+#if PV_USE_MPI
    MPI_Barrier(icComm->communicator()); // If there is an error, make sure that MPI doesn't kill the run before process 0 reports the error.
+#endif
    if (status != PV_SUCCESS) {
       if (parent->columnId()==0) {
          fprintf(stderr, "Exiting.\n");
@@ -810,7 +812,9 @@ int HyPerLayer::communicateInitInfo()
             fprintf(stderr, "%s \"%s\" error: triggerLayer \"%s\" is not a layer in the HyPerCol.\n",
                   parent->parameters()->groupKeywordFromName(name), name, triggerLayerName);
          }
+#if PV_USE_MPI
          MPI_Barrier(parent->icCommunicator()->communicator());
+#endif
          exit(EXIT_FAILURE);
       }
    }
@@ -878,7 +882,9 @@ int HyPerLayer::openOutputStateFile() {
       }
    }
    InterColComm * icComm = parent->icCommunicator();
+#if PV_USE_MPI
    MPI_Bcast(&ioAppend, 1, MPI_INT, 0/*root*/, icComm->communicator());
+#endif
    clayer->activeFP = pvp_open_write_file(filename, icComm, ioAppend);
 
    return PV_SUCCESS;
@@ -1916,7 +1922,9 @@ int HyPerLayer::checkpointRead(const char * cpDir, double * timed) {
          statstatus[0] = stat(filename, &statbuffer);
          statstatus[1] = errno;
       }
+#if PV_USE_MPI
       MPI_Bcast(statstatus, 2, MPI_INT, 0/*root*/, icComm->communicator());
+#endif
 
       if (statstatus[0]==0) {
          parent->readScalarFromFile(cpDir, getName(), nfname, num_calls_ptr, 0);
@@ -1932,7 +1940,9 @@ int HyPerLayer::checkpointRead(const char * cpDir, double * timed) {
             if (icComm->commRank()==0) {
                fprintf(stderr, "checkpointRead error determining status of file \"%s\": %s", filename, strerror(errno));
             }
+#if PV_USE_MPI
             MPI_Barrier(icComm->communicator());
+#endif
             exit(EXIT_FAILURE);
          }
       }
