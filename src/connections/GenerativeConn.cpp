@@ -60,7 +60,9 @@ void GenerativeConn::ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag) {
       if (parent->columnId()==0) {
          fprintf(stderr, "GenerativeConn \"%s\" error: GenerativeConn has not been updated to support multiple arbors.\n", name);
       }
+#if PV_USE_MPI
       MPI_Barrier(parent->icCommunicator()->communicator());
+#endif
       exit(EXIT_FAILURE);
    }
 }
