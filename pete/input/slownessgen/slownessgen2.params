@@ -105,9 +105,9 @@ ANNLayer "AnaRetina" = {
     InitVType = "ConstantV";
     valueV = 0.0;
 
-    VMax = infinity;
+    AMax = infinity;
     VThresh = -infinity;
-    VMin = -infinity;
+    AMin = -infinity;
 };
 
 PoolingANNLayer "CataSimple Pooling 1" = {
@@ -124,9 +124,9 @@ PoolingANNLayer "CataSimple Pooling 1" = {
     InitVType = "ConstantV";
     valueV = 0.0;
 
-    VMax = infinity;
+    AMax = infinity;
     VThresh = -infinity;
-    VMin = -infinity;
+    AMin = -infinity;
     
     bias = 1;
 };
@@ -145,9 +145,9 @@ PoolingANNLayer "CataSimple Pooling 2" = {
     InitVType = "ConstantV";
     valueV = 0.0;
 
-    VMax = infinity;
+    AMax = infinity;
     VThresh = -infinity;
-    VMin = -infinity;
+    AMin = -infinity;
     
     bias = -1;
 };
@@ -166,9 +166,9 @@ ANNLayer "CataSimple Layer" = {
     InitVType = "ConstantV";
     valueV = 0.0;
 
-    VMax = infinity;
+    AMax = infinity;
     VThresh = -infinity;
-    VMin = -infinity;
+    AMin = -infinity;
 };
 
 LogLatWTAGenLayer "Simple Layer" = {
@@ -185,9 +185,9 @@ LogLatWTAGenLayer "Simple Layer" = {
     InitVType = "ConstantV";
     valueV = 0.0;
 
-    VMax = infinity;
+    AMax = infinity;
     VThresh = 0;
-    VMin = 0;
+    AMin = 0;
 
     relaxation = 1E-2;
     activityThreshold = 0;
@@ -229,9 +229,9 @@ ANNLayer "Simple Increment Post" = {
     InitVType = "ConstantV";
     valueV = 0.0;
 
-    VMax = infinity;
+    AMax = infinity;
     VThresh = -infinity;
-    VMin = -infinity;
+    AMin = -infinity;
 };
 
 ANNLayer "AnaSimple Layer" = {
@@ -248,9 +248,9 @@ ANNLayer "AnaSimple Layer" = {
     InitVType = "ConstantV";
     valueV = 0.0;
 
-    VMax = infinity;
+    AMax = infinity;
     VThresh = -infinity;
-    VMin = -infinity;
+    AMin = -infinity;
 };
 
 PoolingANNLayer "AnaSimple Pooling 1" = {
@@ -267,9 +267,9 @@ PoolingANNLayer "AnaSimple Pooling 1" = {
     InitVType = "ConstantV";
     valueV = 0.0;
 
-    VMax = infinity;
+    AMax = infinity;
     VThresh = -infinity;
-    VMin = -infinity;
+    AMin = -infinity;
     
     bias = 1;
 };
@@ -288,9 +288,9 @@ PoolingANNLayer "AnaSimple Pooling 2" = {
     InitVType = "ConstantV";
     valueV = 0.0;
 
-    VMax = infinity;
+    AMax = infinity;
     VThresh = -infinity;
-    VMin = -infinity;
+    AMin = -infinity;
     
     bias = -1;
 };
@@ -309,9 +309,9 @@ PoolingANNLayer "CataComplex Pooling 1" = {
     InitVType = "ConstantV";
     valueV = 0.0;
 
-    VMax = infinity;
+    AMax = infinity;
     VThresh = -infinity;
-    VMin = -infinity;
+    AMin = -infinity;
     
     bias = 1;
 };
@@ -330,9 +330,9 @@ PoolingANNLayer "CataComplex Pooling 2" = {
     InitVType = "ConstantV";
     valueV = 0.0;
 
-    VMax = infinity;
+    AMax = infinity;
     VThresh = -infinity;
-    VMin = -infinity;
+    AMin = -infinity;
     
     bias = -1;
 };
@@ -351,9 +351,9 @@ ANNLayer "CataComplex Layer" = {
     InitVType = "ConstantV";
     valueV = 0.0;
 
-    VMax = infinity;
+    AMax = infinity;
     VThresh = -infinity;
-    VMin = -infinity;
+    AMin = -infinity;
 };
 
 LogLatWTAGenLayer "Complex Layer" = {
@@ -370,9 +370,9 @@ LogLatWTAGenLayer "Complex Layer" = {
     InitVType = "ConstantV";
     valueV = 0.0;
     
-    VMax = infinity;
+    AMax = infinity;
     VThresh = 0;
-    VMin = 0;
+    AMin = 0;
 
     relaxation = 1E-2;
     activityThreshold = 0;
@@ -396,9 +396,9 @@ PtwiseProductLayer "Energy CataSimple Layer" = {
     InitVType = "ConstantV";
     valueV = 0.0;
 
-    VMax = infinity;
+    AMax = infinity;
     VThresh = -infinity;
-    VMin = -infinity;
+    AMin = -infinity;
 };
 
 PtwiseProductLayer "Energy AnaSimple Layer" = {
@@ -415,9 +415,9 @@ PtwiseProductLayer "Energy AnaSimple Layer" = {
     InitVType = "ConstantV";
     valueV = 0.0;
 
-    VMax = infinity;
+    AMax = infinity;
     VThresh = -infinity;
-    VMin = -infinity;
+    AMin = -infinity;
 };
 
 PtwiseProductLayer "Energy CataComplex Layer" = {
@@ -434,9 +434,9 @@ PtwiseProductLayer "Energy CataComplex Layer" = {
     InitVType = "ConstantV";
     valueV = 0.0;
 
-    VMax = infinity;
+    AMax = infinity;
     VThresh = -infinity;
-    VMin = -infinity;
+    AMin = -infinity;
 };
 
 

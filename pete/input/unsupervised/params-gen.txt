@@ -69,8 +69,8 @@ ANNLayer "AnaRetina" = {
     Vrest = 0.0;
 
     VThresh = -infinity;
-    VMax = infinity;
-    VMin = -infinity;
+    AMax = infinity;
+    AMin = -infinity;
 };
 
 LogLatWTAGenLayer "V1" = {
@@ -87,8 +87,8 @@ LogLatWTAGenLayer "V1" = {
     Vrest = 0.0;
 
     VThresh = 0;
-    VMax = infinity;
-    VMin = 0;
+    AMax = infinity;
+    AMin = 0;
 
     relaxation = 0.01;
     sparsesityTermCoefficient = 1.0;

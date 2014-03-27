@@ -101,9 +101,9 @@ ANNLayer "AnaRetina" = {
 
     Vrest = 0.0;
 
-    VMax = infinity;
+    AMax = infinity;
     VThresh = -infinity;
-    VMin = -infinity;
+    AMin = -infinity;
 };
 
 LogLatWTAGenLayer "Layer A" = {
@@ -118,9 +118,9 @@ LogLatWTAGenLayer "Layer A" = {
     writeNonspikingActivity = 1;
     Vrest = 0.0;
 
-    VMax = infinity;
+    AMax = infinity;
     VThresh = 0;
-    VMin = 0;
+    AMin = 0;
 
     relaxation = 1E-1;
     activityThreshold = 0;
@@ -143,9 +143,9 @@ PoolingANNLayer "Pooling AnaLayer A" = {
         
     Vrest = 0.0;        
 
-    VMax = infinity;
+    AMax = infinity;
     VThresh = -infinity;
-    VMin = -infinity;
+    AMin = -infinity;
     
     bias = 0;
 };
@@ -163,9 +163,9 @@ PoolingANNLayer "Arrow AnaLayer A" = {
         
     Vrest = 0.0;        
 
-    VMax = infinity;
+    AMax = infinity;
     VThresh = -infinity;
-    VMin = -infinity;
+    AMin = -infinity;
     
     bias = 1;
 };
@@ -183,9 +183,9 @@ ANNLayer "Flat AnaLayer A" = {
         
     Vrest = 0.0;        
 
-    VMax = infinity;
+    AMax = infinity;
     VThresh = -infinity;
-    VMin = -infinity;
+    AMin = -infinity;
 };
 
 ANNLayer "Flat CataLayer B" = {
@@ -201,9 +201,9 @@ ANNLayer "Flat CataLayer B" = {
         
     Vrest = 0.0;        
 
-    VMax = infinity;
+    AMax = infinity;
     VThresh = -infinity;
-    VMin = -infinity;
+    AMin = -infinity;
 };
 
 PoolingANNLayer "Arrow CataLayer B" = {
@@ -219,9 +219,9 @@ PoolingANNLayer "Arrow CataLayer B" = {
         
     Vrest = 0.0;        
 
-    VMax = infinity;
+    AMax = infinity;
     VThresh = -infinity;
-    VMin = -infinity;
+    AMin = -infinity;
     
     bias = 1;
 };
@@ -239,9 +239,9 @@ PoolingANNLayer "Pooling CataLayer B" = {
         
     Vrest = 0.0;        
 
-    VMax = infinity;
+    AMax = infinity;
     VThresh = -infinity;
-    VMin = -infinity;
+    AMin = -infinity;
     
     bias = 0;
 };
@@ -258,9 +258,9 @@ LogLatWTAGenLayer "Layer B" = {
     writeNonspikingActivity = 1;
     Vrest = 0.0;
 
-    VMax = infinity;
+    AMax = infinity;
     VThresh = 0;
-    VMin = 0;
+    AMin = 0;
 
     relaxation = 1E-1;
     activityThreshold = 0;
@@ -283,9 +283,9 @@ PoolingANNLayer "Pooling AnaLayer B" = {
         
     Vrest = 0.0;        
 
-    VMax = infinity;
+    AMax = infinity;
     VThresh = -infinity;
-    VMin = -infinity;
+    AMin = -infinity;
     
     bias = 0;
 };
@@ -303,9 +303,9 @@ PoolingANNLayer "Arrow AnaLayer B" = {
         
     Vrest = 0.0;        
 
-    VMax = infinity;
+    AMax = infinity;
     VThresh = -infinity;
-    VMin = -infinity;
+    AMin = -infinity;
     
     bias = 1;
 };
@@ -323,9 +323,9 @@ ANNLayer "Flat AnaLayer B" = {
         
     Vrest = 0.0;        
 
-    VMax = infinity;
+    AMax = infinity;
     VThresh = -infinity;
-    VMin = -infinity;
+    AMin = -infinity;
 };
 
 ANNLayer "Flat CataLayer C" = {
@@ -341,9 +341,9 @@ ANNLayer "Flat CataLayer C" = {
         
     Vrest = 0.0;        
 
-    VMax = infinity;
+    AMax = infinity;
     VThresh = -infinity;
-    VMin = -infinity;
+    AMin = -infinity;
 };
 
 PoolingANNLayer "Arrow CataLayer C" = {
@@ -359,9 +359,9 @@ PoolingANNLayer "Arrow CataLayer C" = {
         
     Vrest = 0.0;        
 
-    VMax = infinity;
+    AMax = infinity;
     VThresh = -infinity;
-    VMin = -infinity;
+    AMin = -infinity;
     
     bias = 1;
 };
@@ -379,9 +379,9 @@ PoolingANNLayer "Pooling CataLayer C" = {
         
     Vrest = 0.0;        
 
-    VMax = infinity;
+    AMax = infinity;
     VThresh = -infinity;
-    VMin = -infinity;
+    AMin = -infinity;
     
     bias = 0;
 };
@@ -398,9 +398,9 @@ LogLatWTAGenLayer "Layer C" = {
     writeNonspikingActivity = 1;
     Vrest = 0.0;
 
-    VMax = infinity;
+    AMax = infinity;
     VThresh = 0;
-    VMin = 0;
+    AMin = 0;
 
     relaxation = 1E-1;
     activityThreshold = 0;
@@ -423,9 +423,9 @@ PoolingANNLayer "Pooling AnaLayer C" = {
         
     Vrest = 0.0;        
 
-    VMax = infinity;
+    AMax = infinity;
     VThresh = -infinity;
-    VMin = -infinity;
+    AMin = -infinity;
     
     bias = 0;
 };
@@ -443,9 +443,9 @@ PoolingANNLayer "Arrow AnaLayer C" = {
         
     Vrest = 0.0;        
 
-    VMax = infinity;
+    AMax = infinity;
     VThresh = -infinity;
-    VMin = -infinity;
+    AMin = -infinity;
     
     bias = 1;
 };
@@ -463,9 +463,9 @@ ANNLayer "Flat AnaLayer C" = {
         
     Vrest = 0.0;        
 
-    VMax = infinity;
+    AMax = infinity;
     VThresh = -infinity;
-    VMin = -infinity;
+    AMin = -infinity;
 };
 
 ANNLayer "Flat CataLayer D" = {
@@ -481,9 +481,9 @@ ANNLayer "Flat CataLayer D" = {
         
     Vrest = 0.0;        
 
-    VMax = infinity;
+    AMax = infinity;
     VThresh = -infinity;
-    VMin = -infinity;
+    AMin = -infinity;
 };
 
 PoolingANNLayer "Arrow CataLayer D" = {
@@ -499,9 +499,9 @@ PoolingANNLayer "Arrow CataLayer D" = {
         
     Vrest = 0.0;        
 
-    VMax = infinity;
+    AMax = infinity;
     VThresh = -infinity;
-    VMin = -infinity;
+    AMin = -infinity;
     
     bias = 1;
 };
@@ -519,9 +519,9 @@ PoolingANNLayer "Pooling CataLayer D" = {
         
     Vrest = 0.0;        
 
-    VMax = infinity;
+    AMax = infinity;
     VThresh = -infinity;
-    VMin = -infinity;
+    AMin = -infinity;
     
     bias = 0;
 };
@@ -540,9 +540,9 @@ TrainingLayer "Layer D" = {
     writeNonspikingActivity = 1;
     Vrest = 0.0;
 
-    VMax = infinity;
+    AMax = infinity;
     VThresh = 0;
-    VMin = 0;
+    AMin = 0;
 
     displayPeriod = 500;
     distToData = 2;
@@ -561,9 +561,9 @@ PtwiseProductLayer "Energy AnaLayer A" = {
         
     Vrest = 0.0;        
 
-    VMax = infinity;
+    AMax = infinity;
     VThresh = -infinity;
-    VMin = -infinity;
+    AMin = -infinity;
 };
 
 PtwiseProductLayer "Energy CataLayer B" = {
@@ -579,9 +579,9 @@ PtwiseProductLayer "Energy CataLayer B" = {
         
     Vrest = 0.0;        
 
-    VMax = infinity;
+    AMax = infinity;
     VThresh = -infinity;
-    VMin = -infinity;
+    AMin = -infinity;
 };
 
 PtwiseProductLayer "Energy AnaLayer B" = {
@@ -597,9 +597,9 @@ PtwiseProductLayer "Energy AnaLayer B" = {
         
     Vrest = 0.0;        
 
-    VMax = infinity;
+    AMax = infinity;
     VThresh = -infinity;
-    VMin = -infinity;
+    AMin = -infinity;
 };
 
 PtwiseProductLayer "Energy CataLayer C" = {
@@ -615,9 +615,9 @@ PtwiseProductLayer "Energy CataLayer C" = {
         
     Vrest = 0.0;        
 
-    VMax = infinity;
+    AMax = infinity;
     VThresh = -infinity;
-    VMin = -infinity;
+    AMin = -infinity;
 };
 
 PtwiseProductLayer "Energy AnaLayer C" = {
@@ -633,9 +633,9 @@ PtwiseProductLayer "Energy AnaLayer C" = {
         
     Vrest = 0.0;        
 
-    VMax = infinity;
+    AMax = infinity;
     VThresh = -infinity;
-    VMin = -infinity;
+    AMin = -infinity;
 };
 
 PtwiseProductLayer "Energy CataLayer D" = {
@@ -651,9 +651,9 @@ PtwiseProductLayer "Energy CataLayer D" = {
         
     Vrest = 0.0;        
 
-    VMax = infinity;
+    AMax = infinity;
     VThresh = -infinity;
-    VMin = -infinity;
+    AMin = -infinity;
 };
 
 // 64 Connections:

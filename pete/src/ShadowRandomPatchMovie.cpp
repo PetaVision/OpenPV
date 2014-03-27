@@ -17,31 +17,44 @@ ShadowRandomPatchMovie::ShadowRandomPatchMovie() {
    initialize_base();
 }
 
-ShadowRandomPatchMovie::ShadowRandomPatchMovie(const char * name, HyPerCol * hc, const char * fileOfFileNames, float defaultDisplayPeriod) {
+ShadowRandomPatchMovie::ShadowRandomPatchMovie(const char * name, HyPerCol * hc) {
    initialize_base();
-   initialize(name, hc, fileOfFileNames, defaultDisplayPeriod);
+   initialize(name, hc);
 }
 
 ShadowRandomPatchMovie::~ShadowRandomPatchMovie() {
+   free(shadowedRandomPatchMovieName);
 }
 
 int ShadowRandomPatchMovie::initialize_base() {
+   shadowedRandomPatchMovieName = NULL;
    shadowedRandomPatchMovie = NULL;
    return PV_SUCCESS;
 }
 
-int ShadowRandomPatchMovie::initialize(const char * name, HyPerCol * hc, const char * fileOfFileNames, float defaultDisplayPeriod) {
+int ShadowRandomPatchMovie::initialize(const char * name, HyPerCol * hc) {
    assert( this->shadowedRandomPatchMovie == NULL );
-   int status = RandomPatchMovie::initialize(name, hc, fileOfFileNames, defaultDisplayPeriod);
-   const char * shadowedName = hc->parameters()->stringValue(name, "shadowedRandomPatchMovie", true);
-   if( shadowedName == NULL ) {
-      fprintf(stderr,"ShadowRandomPatchMovie \"%s\": the string parameter shadowedRandomPatchMovie must be set.  Exiting\n", name);
-      exit(EXIT_FAILURE);
-   }
-   HyPerLayer * shadowedLayer = hc->getLayerFromName(shadowedName);
+   int status = RandomPatchMovie::initialize(name, hc);
+   return status;
+}
+
+int ShadowRandomPatchMovie::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = RandomPatchMovie::ioParamsFillGroup(ioFlag);
+   ioParam_shadowedRandomPatchMovie(ioFlag);
+   return status;
+}
+
+void ShadowRandomPatchMovie::ioParam_shadowedRandomPatchMovie(enum ParamsIOFlag ioFlag) {
+   parent->ioParamStringRequired(ioFlag, name, "shadowedRandomPatchMovie", &shadowedRandomPatchMovieName);
+
+}
+
+int ShadowRandomPatchMovie::communicateInitInfo() {
+   int status = RandomPatchMovie::communicateInitInfo();
+   HyPerLayer * shadowedLayer = parent->getLayerFromName(shadowedRandomPatchMovieName);
    shadowedRandomPatchMovie = dynamic_cast<RandomPatchMovie *>(shadowedLayer);
    if( this->shadowedRandomPatchMovie == NULL ) {
-      fprintf(stderr, "ShadowRandomPatchMovie \"%s\": shadowed layer \"%s\" must be a RandomPatchMovie\n", name, shadowedName);
+      fprintf(stderr, "ShadowRandomPatchMovie \"%s\": shadowed layer \"%s\" must be a RandomPatchMovie\n", name, shadowedRandomPatchMovieName);
       exit(EXIT_FAILURE);
    }
    return status;

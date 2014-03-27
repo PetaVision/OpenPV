@@ -78,9 +78,9 @@ PoolingANNLayer "Retina Pooling 1" = {
     InitVType = "ConstantV";
     valueV = 0.0;
 
-    VMax = infinity;
+    AMax = infinity;
     VThresh = -infinity;
-    VMin = -infinity;
+    AMin = -infinity;
     
     bias = 1;
 };
@@ -99,9 +99,9 @@ PoolingANNLayer "Retina Pooling 2" = {
     InitVType = "ConstantV";
     valueV = 0.0;
 
-    VMax = infinity;
+    AMax = infinity;
     VThresh = -infinity;
-    VMin = -infinity;
+    AMin = -infinity;
     
     bias = -1;
 };
@@ -140,9 +140,9 @@ ANNLayer "AnaRetina" = {
     InitVType = "ConstantV";
     valueV = 0.0;
 
-    VMax = infinity;
+    AMax = infinity;
     VThresh = -infinity;
-    VMin = -infinity;
+    AMin = -infinity;
 };
 
 PoolingANNLayer "CataSimple Pooling 1" = {
@@ -159,9 +159,9 @@ PoolingANNLayer "CataSimple Pooling 1" = {
     InitVType = "ConstantV";
     valueV = 0.0;
 
-    VMax = infinity;
+    AMax = infinity;
     VThresh = -infinity;
-    VMin = -infinity;
+    AMin = -infinity;
     
     bias = 1;
 };
@@ -180,9 +180,9 @@ PoolingANNLayer "CataSimple Pooling 2" = {
     InitVType = "ConstantV";
     valueV = 0.0;
 
-    VMax = infinity;
+    AMax = infinity;
     VThresh = -infinity;
-    VMin = -infinity;
+    AMin = -infinity;
     
     bias = -1;
 };
@@ -201,9 +201,9 @@ ANNLayer "CataSimple Layer" = {
     InitVType = "ConstantV";
     valueV = 0.0;
 
-    VMax = infinity;
+    AMax = infinity;
     VThresh = -infinity;
-    VMin = -infinity;
+    AMin = -infinity;
 };
 
 LogLatWTAGenLayer "Simple Layer" = {
@@ -222,9 +222,9 @@ LogLatWTAGenLayer "Simple Layer" = {
     InitVType = "InitVFromFile";
     Vfilename = "input/generativesymmetry/correct_y.pvp";
 
-    VMax = infinity;
+    AMax = infinity;
     VThresh = 0;
-    VMin = 0;
+    AMin = 0;
 
     relaxation = 5E-2;
     activityThreshold = 0;
@@ -248,9 +248,9 @@ ANNLayer "AnaSimple Layer" = {
     InitVType = "ConstantV";
     valueV = 0.0;
 
-    VMax = infinity;
+    AMax = infinity;
     VThresh = -infinity;
-    VMin = -infinity;
+    AMin = -infinity;
 };
 
 PoolingANNLayer "AnaSimple Pooling 1" = {
@@ -267,9 +267,9 @@ PoolingANNLayer "AnaSimple Pooling 1" = {
     InitVType = "ConstantV";
     valueV = 0.0;
 
-    VMax = infinity;
+    AMax = infinity;
     VThresh = -infinity;
-    VMin = -infinity;
+    AMin = -infinity;
     
     bias = 1;
 };
@@ -288,9 +288,9 @@ PoolingANNLayer "AnaSimple Pooling 2" = {
     InitVType = "ConstantV";
     valueV = 0.0;
 
-    VMax = infinity;
+    AMax = infinity;
     VThresh = -infinity;
-    VMin = -infinity;
+    AMin = -infinity;
     
     bias = -1;
 };
@@ -309,9 +309,9 @@ PoolingANNLayer "CataComplex Pooling 1" = {
     InitVType = "ConstantV";
     valueV = 0.0;
 
-    VMax = infinity;
+    AMax = infinity;
     VThresh = -infinity;
-    VMin = -infinity;
+    AMin = -infinity;
     
     bias = 1;
 };
@@ -330,9 +330,9 @@ PoolingANNLayer "CataComplex Pooling 2" = {
     InitVType = "ConstantV";
     valueV = 0.0;
 
-    VMax = infinity;
+    AMax = infinity;
     VThresh = -infinity;
-    VMin = -infinity;
+    AMin = -infinity;
     
     bias = -1;
 };
@@ -351,9 +351,9 @@ ANNLayer "CataComplex Layer" = {
     InitVType = "ConstantV";
     valueV = 0.0;
 
-    VMax = infinity;
+    AMax = infinity;
     VThresh = -infinity;
-    VMin = -infinity;
+    AMin = -infinity;
 };
 
 TrainingLayer "Complex Layer" = {
@@ -371,9 +371,9 @@ TrainingLayer "Complex Layer" = {
     InitVType = "ConstantV";
     valueV = 0.0;
     
-    VMax = infinity;
+    AMax = infinity;
     VThresh = -infinity;
-    VMin = -infinity;
+    AMin = -infinity;
 
     displayPeriod = 1000;
     distToData = 2;
@@ -393,9 +393,9 @@ PtwiseProductLayer "Energy AnaRetina" = {
     InitVType = "ConstantV";
     valueV = 0.0;
 
-    VMax = infinity;
+    AMax = infinity;
     VThresh = -infinity;
-    VMin = -infinity;
+    AMin = -infinity;
 };
 
 PtwiseProductLayer "Energy CataSimple Layer" = {
@@ -412,9 +412,9 @@ PtwiseProductLayer "Energy CataSimple Layer" = {
     InitVType = "ConstantV";
     valueV = 0.0;
 
-    VMax = infinity;
+    AMax = infinity;
     VThresh = -infinity;
-    VMin = -infinity;
+    AMin = -infinity;
 };
 
 PtwiseProductLayer "Energy AnaSimple Layer" = {
@@ -431,9 +431,9 @@ PtwiseProductLayer "Energy AnaSimple Layer" = {
     InitVType = "ConstantV";
     valueV = 0.0;
 
-    VMax = infinity;
+    AMax = infinity;
     VThresh = -infinity;
-    VMin = -infinity;
+    AMin = -infinity;
 };
 
 PtwiseProductLayer "Energy CataComplex Layer" = {
@@ -450,9 +450,9 @@ PtwiseProductLayer "Energy CataComplex Layer" = {
     InitVType = "ConstantV";
     valueV = 0.0;
 
-    VMax = infinity;
+    AMax = infinity;
     VThresh = -infinity;
-    VMin = -infinity;
+    AMin = -infinity;
 };
 
 

@@ -16,7 +16,6 @@ namespace PV {
 class RandomPatchMovie : public Image {
 public:
    RandomPatchMovie(const char * name, HyPerCol * hc);
-   RandomPatchMovie(const char * name, HyPerCol * hc, const char * fileOfFileNames, float defaultDisplayPeriod = DISPLAY_PERIOD);
    virtual ~RandomPatchMovie();
    virtual int updateState(double timed, double dt);
    virtual int outputState(double timed, bool last=false);
@@ -29,7 +28,11 @@ public:
 
 protected:
    RandomPatchMovie();
-   int initialize(const char * name, HyPerCol * hc, const char * fileOfFileNames, float defaultDisplayPeriod);
+   int initialize(const char * name, HyPerCol * hc);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_imagePath(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_imageListPath(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_displayPeriod(enum ParamsIOFlag ioFlag);
    int readOffsets();
    int retrieveRandomPatch();
    virtual bool updateImage(double timed, double dt);
@@ -39,6 +42,7 @@ protected:
    float nextDisplayTime;
    int numImageFiles;
    int * imageFilenameIndices;
+   char * imageListPath;
    char * listOfImageFiles;
    int fileIndex;
    const char * patchposfilename;

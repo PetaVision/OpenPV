@@ -15,9 +15,9 @@ namespace PV {
 
 class RandomPatchMovieProbe : public LayerProbe {
 public:
-   RandomPatchMovieProbe(const char * filename, HyPerLayer * layer, const char * probename = NULL);
+   RandomPatchMovieProbe(const char * probename, HyPerCol * hc);
    virtual ~RandomPatchMovieProbe();
-   int initRandomPatchMovieProbe(const char * filename, HyPerLayer * layer, const char * probename);
+   int initRandomPatchMovieProbe(const char * probename, HyPerCol * hc);
    virtual int outputState(double timed);
 
 protected:

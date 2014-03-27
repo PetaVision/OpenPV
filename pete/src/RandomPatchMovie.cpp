@@ -15,21 +15,23 @@ RandomPatchMovie::RandomPatchMovie() {
    initialize_base();
 }
 
-RandomPatchMovie::RandomPatchMovie(const char * name, HyPerCol * hc, const char * fileOfFileNames, float displayPeriod) {
+RandomPatchMovie::RandomPatchMovie(const char * name, HyPerCol * hc) {
    initialize_base();
-   initialize(name, hc, fileOfFileNames, displayPeriod);
+   initialize(name, hc);
 }
 
 int RandomPatchMovie::initialize_base() {
+   displayPeriod = DISPLAY_PERIOD;
    numImageFiles = 0;
    imageFilenameIndices = NULL;
+   imageListPath = NULL;
    listOfImageFiles = NULL;
    patchposfile = NULL;
    return PV_SUCCESS;
 }
 
-int RandomPatchMovie::initialize(const char * name, HyPerCol * hc, const char * fileOfFileNames, float displayPeriod) {
-   Image::initialize(name, hc, NULL);
+int RandomPatchMovie::initialize(const char * name, HyPerCol * hc) {
+   Image::initialize(name, hc);
 #ifdef PV_USE_MPI
    int rank = parent->icCommunicator()->commRank();
 #else // PV_USE_MPI
@@ -39,42 +41,42 @@ int RandomPatchMovie::initialize(const char * name, HyPerCol * hc, const char * 
    PVParams * params = parent->parameters();
    int rootproc = 0;
    if( rank == rootproc) {
-      FILE * fp = fopen(fileOfFileNames, "rb");
+      FILE * fp = fopen(imageListPath, "rb");
       if( fp == NULL ) {
-         fprintf(stderr, "RandomPatchMovie \"%s\" error opening \"%s\" for reading: %s\n", name, fileOfFileNames, strerror(errno));
+         fprintf(stderr, "RandomPatchMovie \"%s\" error opening \"%s\" for reading: %s\n", name, imageListPath, strerror(errno));
          fprintf(stderr, "Error code %d\n", errno);
          exit(EXIT_FAILURE);
       }
       int status = fseek(fp, 0L, SEEK_END);
       if( status != 0 ) {
-         fprintf(stderr, "RandomPatchMovie \"%s\": unable to find end of file \"%s\"\n", name, fileOfFileNames);
+         fprintf(stderr, "RandomPatchMovie \"%s\": unable to find end of file \"%s\"\n", name, imageListPath);
          fclose(fp);
          exit(EXIT_FAILURE);
       }
       errno = 0;
       long int filelength = ftell(fp);
       if( filelength == -1L && errno ) {
-         fprintf(stderr, "RandomPatchMovie \"%s\": unable to determine length of file \"%s\"\n", name, fileOfFileNames);
+         fprintf(stderr, "RandomPatchMovie \"%s\": unable to determine length of file \"%s\"\n", name, imageListPath);
          exit(EXIT_FAILURE);
       }
       if( filelength < 0 || filelength > INT_MAX) {
-         fprintf(stderr, "RandomPatchMovie \"%s\": file \"%s\" is too long.\n", name, fileOfFileNames);
+         fprintf(stderr, "RandomPatchMovie \"%s\": file \"%s\" is too long.\n", name, imageListPath);
          exit(EXIT_FAILURE);
       }
       fseek(fp, 0L, SEEK_SET);
       size_t filesize = (size_t) filelength;
       if( filesize == 0 ) {
-         fprintf(stderr, "RandomPatchMovie \"%s\": file of filenames \"%s\" is empty.\n", name, fileOfFileNames);
+         fprintf(stderr, "RandomPatchMovie \"%s\": file of filenames \"%s\" is empty.\n", name, imageListPath);
          exit(EXIT_FAILURE);
       }
       listOfImageFiles = (char *) malloc( (filesize+1) * sizeof(char) );
       if( listOfImageFiles == NULL ) {
-         fprintf(stderr, "RandomPatchMovie \"%s\": unable to allocate memory to hold file \"%s\".\n", name, fileOfFileNames);
+         fprintf(stderr, "RandomPatchMovie \"%s\": unable to allocate memory to hold file \"%s\".\n", name, imageListPath);
          exit(EXIT_FAILURE);
       }
       size_t charsread = fread(listOfImageFiles, sizeof(char), filesize, fp);
       if( charsread != filesize ) {
-         fprintf(stderr, "RandomPatchMovie \"%s\": unable to read file \"%s\".\n", name, fileOfFileNames);
+         fprintf(stderr, "RandomPatchMovie \"%s\": unable to read file \"%s\".\n", name, imageListPath);
          exit(EXIT_FAILURE);
       }
       fclose(fp);
@@ -108,14 +110,14 @@ int RandomPatchMovie::initialize(const char * name, HyPerCol * hc, const char * 
             if( listOfImageFiles[n-1] != 0 ) numImageFiles++;
          }
       }
-      // Make sure the last file is null-terminated even if fileOfFileNames does not end with a linefeed.
+      // Make sure the last file is null-terminated even if imageListPath does not end with a linefeed.
       if( listOfImageFiles[filesize-1] != 0) {
          listOfImageFiles[filesize] = 0;
          numImageFiles++;
       }
       listOfImageFiles[filesize] = 0;
       if( numImageFiles == 0 ) {
-         fprintf(stderr, "RandomPatchMovie \"%s\": file \"%s\" has no non-empty lines.\n", name, fileOfFileNames);
+         fprintf(stderr, "RandomPatchMovie \"%s\": file \"%s\" has no non-empty lines.\n", name, imageListPath);
          exit(EXIT_FAILURE);
       }
       imageFilenameIndices = (int *) malloc(numImageFiles * sizeof(int) );
@@ -159,6 +161,28 @@ int RandomPatchMovie::initialize(const char * name, HyPerCol * hc, const char * 
    // exchange border information
    exchange();
    return PV_SUCCESS;
+}
+
+int RandomPatchMovie::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = Image::ioParamsFillGroup(ioFlag);
+   ioParam_imageListPath(ioFlag);
+   ioParam_displayPeriod(ioFlag);
+   return status;
+}
+
+void RandomPatchMovie::ioParam_imagePath(enum ParamsIOFlag ioFlag) {
+   if (ioFlag == PARAMS_IO_READ) {
+      filename = NULL;
+      parent->parameters()->handleUnnecessaryStringParameter(name, "imagePath");
+   }
+}
+
+void RandomPatchMovie::ioParam_imageListPath(enum ParamsIOFlag ioFlag) {
+   parent->ioParamStringRequired(ioFlag, name, "imageListPath", &imageListPath);
+}
+
+void RandomPatchMovie::ioParam_displayPeriod(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "displayPeriod", &displayPeriod, displayPeriod);
 }
 
 RandomPatchMovie::~RandomPatchMovie() {

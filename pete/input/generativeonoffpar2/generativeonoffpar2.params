@@ -50,8 +50,8 @@ ANNLayer "Small Radius Blur" = {
     Vrest = 0.0;
     
     VThresh = -infinity;
-    VMax = infinity;
-    VMin = -infinity;
+    AMax = infinity;
+    AMin = -infinity;
 };
 
 ANNLayer "Large Radius Blur" = {
@@ -68,8 +68,8 @@ ANNLayer "Large Radius Blur" = {
     Vrest = 0.0;
     
     VThresh = -infinity;
-    VMax = infinity;
-    VMin = -infinity;
+    AMax = infinity;
+    AMin = -infinity;
 };
 
 ANNLayer "Retina On" = {
@@ -86,8 +86,8 @@ ANNLayer "Retina On" = {
     Vrest = 0.0;
     
     VThresh = 0;
-    VMax = infinity;
-    VMin = 0;
+    AMax = infinity;
+    AMin = 0;
 };
 
 ANNLayer "Retina Off" = {
@@ -104,8 +104,8 @@ ANNLayer "Retina Off" = {
     Vrest = 0.0;
     
     VThresh = 0;
-    VMax = infinity;
-    VMin = 0;
+    AMax = infinity;
+    AMin = 0;
 };
 
 ANNLayer "AnaRetina On" = {
@@ -122,8 +122,8 @@ ANNLayer "AnaRetina On" = {
     Vrest = 0.0;
 
     VThresh = -infinity;
-    VMax = infinity;
-    VMin = -infinity;
+    AMax = infinity;
+    AMin = -infinity;
 };
 
 ANNLayer "AnaRetina Off" = {
@@ -140,8 +140,8 @@ ANNLayer "AnaRetina Off" = {
     Vrest = 0.0;
 
     VThresh = -infinity;
-    VMax = infinity;
-    VMin = -infinity;
+    AMax = infinity;
+    AMin = -infinity;
 };
 
 LogLatWTAGenLayer "V1" = {
@@ -158,8 +158,8 @@ LogLatWTAGenLayer "V1" = {
     Vrest = 0.0;
 
     VThresh = 0;
-    VMax = infinity;
-    VMin = 0;
+    AMax = infinity;
+    AMin = 0;
 
     relaxation = 0.0005;
     sparsesityTermCoefficient = 1.0;

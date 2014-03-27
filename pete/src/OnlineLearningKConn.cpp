@@ -13,11 +13,9 @@ OnlineLearningKConn::OnlineLearningKConn() {
    initialize_base();
 }
 
-OnlineLearningKConn::OnlineLearningKConn(const char * name, HyPerCol * hc,
-      const char * pre_layer_name, const char * post_layer_name,
-      const char * filename, InitWeights * weightInit) {
+OnlineLearningKConn::OnlineLearningKConn(const char * name, HyPerCol * hc) {
    initialize_base();
-   initialize(name, hc, pre_layer_name, post_layer_name, filename, weightInit);
+   initialize(name, hc);
 }
 
 
@@ -32,10 +30,8 @@ int OnlineLearningKConn::initialize_base() {
    return PV_SUCCESS;
 }
 
-int OnlineLearningKConn::initialize(const char * name, HyPerCol * hc,
-      const char * pre_layer_name, const char * post_layer_name,
-      const char * filename, InitWeights * weightInit) {
-   int status = KernelConn::initialize(name, hc, pre_layer_name, post_layer_name, filename, weightInit);
+int OnlineLearningKConn::initialize(const char * name, HyPerCol * hc) {
+   int status = KernelConn::initialize(name, hc);
 
    PVParams * params = getParent()->parameters(); // parent was during call to KernelConn::initialize
    const char * sourceLayerName = params->stringValue(name, "sourceLayer");

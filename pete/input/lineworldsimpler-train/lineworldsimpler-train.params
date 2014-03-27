@@ -88,9 +88,9 @@ ANNLayer "AnaRetina" = {
     InitVType = "ConstantV";
     valueV = 0.0;
 
-    VMax = infinity;
+    AMax = infinity;
     VThresh = -infinity;
-    VMin = -infinity;
+    AMin = -infinity;
 };
 
 LogLatWTAGenLayer "Simple Layer" = {
@@ -107,9 +107,9 @@ LogLatWTAGenLayer "Simple Layer" = {
     InitVType = "ConstantV";
     valueV = 0.0;
 
-    VMax = infinity;
+    AMax = infinity;
     VThresh = 0;
-    VMin = 0;
+    AMin = 0;
 
     relaxation = 2E-2;
     activityThreshold = 0;
@@ -133,9 +133,9 @@ ANNLayer "AnaSimple Layer" = {
     InitVType = "ConstantV";
     valueV = 0.0;
 
-    VMax = infinity;
+    AMax = infinity;
     VThresh = -infinity;
-    VMin = -infinity;
+    AMin = -infinity;
 };
 
 PoolingANNLayer "Pooling Term 1" = {
@@ -152,9 +152,9 @@ PoolingANNLayer "Pooling Term 1" = {
     InitVType = "ConstantV";
     valueV = 0.0;
 
-    VMax = infinity;
+    AMax = infinity;
     VThresh = -infinity;
-    VMin = -infinity;
+    AMin = -infinity;
     
     bias = 1;
 };
@@ -173,9 +173,9 @@ PoolingANNLayer "Pooling Term 2" = {
     InitVType = "ConstantV";
     valueV = 0.0;
 
-    VMax = infinity;
+    AMax = infinity;
     VThresh = -infinity;
-    VMin = -infinity;
+    AMin = -infinity;
     
     bias = -1;
 };
@@ -195,9 +195,9 @@ TrainingLayer "Complex Layer" = {
     InitVType = "ConstantV";
     valueV = 0.0;
     
-    VMax = infinity;
+    AMax = infinity;
     VThresh = -infinity;
-    VMin = -infinity;
+    AMin = -infinity;
 
     displayPeriod = 50;
     distToData = 2;
@@ -217,9 +217,9 @@ PtwiseProductLayer "Energy AnaSimple Layer" = {
     InitVType = "ConstantV";
     valueV = 0.0;
 
-    VMax = infinity;
+    AMax = infinity;
     VThresh = -infinity;
-    VMin = -infinity;
+    AMin = -infinity;
 };
 
 

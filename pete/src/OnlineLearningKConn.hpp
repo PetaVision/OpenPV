@@ -14,16 +14,12 @@ namespace PV {
 
 class OnlineLearningKConn: public PV::KernelConn {
 public:
-   OnlineLearningKConn(const char * name, HyPerCol * hc,
-         const char * pre_layer_name, const char * post_layer_name,
-         const char * filename = NULL, InitWeights * weightInit = NULL);
+   OnlineLearningKConn(const char * name, HyPerCol * hc);
    virtual ~OnlineLearningKConn();
 
 protected:
    OnlineLearningKConn();
-   int initialize(const char * name, HyPerCol * hc,
-         const char * pre_layer_name, const char * post_layer_name,
-         const char * filename = NULL, InitWeights * weightInit = NULL);
+   int initialize(const char * name, HyPerCol * hc);
 
 private:
    int initialize_base();

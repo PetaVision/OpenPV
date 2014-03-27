@@ -16,11 +16,17 @@ namespace PV {
 
 class ChannelProbe : public LayerProbe {
 public:
-    ChannelProbe(HyPerLayer * layer, ChannelType channel);
-    ChannelProbe(const char * filename, HyPerLayer * layer, ChannelType channel);
+    ChannelProbe(const char * probeName, HyPerCol * hc);
 
     virtual int outputState(double timed);
 protected:
+    int initChannelProbe(const char * probeName, HyPerCol * hc);
+    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+    virtual void ioParam_channelCode(enum ParamsIOFlag ioFlag);
+
+private:
+    int initChannelProbe_base();
+
     ChannelType pChannel;
 
 }; // end of class ChannelProbe

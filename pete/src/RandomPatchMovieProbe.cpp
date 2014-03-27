@@ -8,10 +8,10 @@
 
 namespace PV {
 
-RandomPatchMovieProbe::RandomPatchMovieProbe(const char * filename, HyPerLayer * layer, const char * probename /*default NULL*/)
+RandomPatchMovieProbe::RandomPatchMovieProbe(const char * probename, HyPerCol * hc)
       : LayerProbe()
 {
-   initRandomPatchMovieProbe(filename, layer, probename);
+   initRandomPatchMovieProbe(probename, hc);
 }  // end RandomPatchMovieProbe(const char *, HyPerCol *)
 
 RandomPatchMovieProbe::~RandomPatchMovieProbe()
@@ -19,13 +19,8 @@ RandomPatchMovieProbe::~RandomPatchMovieProbe()
    free(name);
 }  // end ~RandomPatchMovieProbe()
 
-int RandomPatchMovieProbe::initRandomPatchMovieProbe(const char * filename, HyPerLayer * layer, const char * probename) {
-   int status = initLayerProbe(filename, layer);
-   if( probename == NULL )
-      name = strdup("");
-   else
-      name = strdup(probename);
-   if( name == NULL ) status = PV_FAILURE;
+int RandomPatchMovieProbe::initRandomPatchMovieProbe(const char * probename, HyPerCol * hc) {
+   int status = initLayerProbe(probename, hc);
    return status;
 }
 

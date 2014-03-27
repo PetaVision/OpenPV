@@ -13,11 +13,9 @@ LateralGenConn::LateralGenConn() {
    initialize_base();
 }  // end of LateralGenConn::LateralGenConn()
 
-LateralGenConn::LateralGenConn(const char * name, HyPerCol *hc,
-      const char * pre_layer_name, const char * post_layer_name,
-      const char * filename) {
+LateralGenConn::LateralGenConn(const char * name, HyPerCol *hc) {
    initialize_base();
-   initialize(name, hc, pre_layer_name, post_layer_name, filename);
+   initialize(name, hc);
 }
 
 int LateralGenConn::initialize_base() {
@@ -25,19 +23,9 @@ int LateralGenConn::initialize_base() {
    return PV_SUCCESS;
 }  // end of LateralGenConn::initialize_base()
 
-int LateralGenConn::initialize(const char * name, HyPerCol * hc,
-      const char * pre_layer_name, const char * post_layer_name, const char * filename) {
+int LateralGenConn::initialize(const char * name, HyPerCol * hc) {
 
-   const PVLayerLoc * preLoc = hc->getLayerFromName(pre_layer_name)->getLayerLoc();
-   const PVLayerLoc * postLoc = hc->getLayerFromName(post_layer_name)->getLayerLoc();
-   if( preLoc->nx != postLoc->nx || preLoc->ny != postLoc->ny ||
-         preLoc->nf != postLoc->nf ) {
-      fprintf( stderr,
-            "LateralGenConn Error: %s and %s do not have the same dimensions\n",
-            pre_layer_name,post_layer_name );
-      exit(1);
-   }
-   GenerativeConn::initialize(name, hc, pre_layer_name, post_layer_name, filename, NULL);
+   GenerativeConn::initialize(name, hc);
    int prePad = pre->getLayerLoc()->nb;
    int xPatchHead = zPatchHead(0, nxp, 0, 0);
    int yPatchHead = zPatchHead(0, nyp, 0, 0);
@@ -51,6 +39,20 @@ int LateralGenConn::initialize(const char * name, HyPerCol * hc,
 
    return PV_SUCCESS;
 }  // end of LateralGenConn::initialize(const char *, HyPerCol *, HyPerLayer *, HyPerLayer *, ChannelType)
+
+int LateralGenConn::communicateInitInfo() {
+   int status = GenerativeConn::communicateInitInfo();
+   const PVLayerLoc * preLoc = pre->getLayerLoc();
+   const PVLayerLoc * postLoc = post->getLayerLoc();
+   if( preLoc->nx != postLoc->nx || preLoc->ny != postLoc->ny ||
+         preLoc->nf != postLoc->nf ) {
+      fprintf( stderr,
+            "%s \"%s\" Error: %s and %s do not have the same dimensions\n",
+            parent->parameters()->groupKeywordFromName(name), name, preLayerName, postLayerName );
+      exit(1);
+   }
+   return status;
+}
 
 int LateralGenConn::updateWeights(int axonID) {
    const PVLayerLoc * preLoc = pre->getLayerLoc();
