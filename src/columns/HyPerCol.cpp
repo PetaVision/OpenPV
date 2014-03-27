@@ -402,7 +402,9 @@ void HyPerCol::ioParamStringRequired(enum ParamsIOFlag ioFlag, const char * grou
             fprintf(stderr, "%s \"%s\" error: string parameter \"%s\" is required.\n",
                             params->groupKeywordFromName(group_name), group_name, param_name);
          }
+#if PV_USE_MPI
          MPI_Barrier(icComm->communicator());
+#endif
          exit(EXIT_SUCCESS);
       }
       break;
@@ -617,14 +619,18 @@ void HyPerCol::ioParam_checkpointWriteTriggerMode(enum ParamsIOFlag ioFlag ) {
             if (columnId()==0) {
                fprintf(stderr, "HyPerCol \"%s\": checkpointWriteTriggerMode \"clock\" has not been implemented yet.\n", name);
             }
+#if PV_USE_MPI
             MPI_Barrier(icCommunicator()->communicator());
+#endif
             exit(EXIT_FAILURE);
          }
          else {
             if (columnId()==0) {
                fprintf(stderr, "HyPerCol \"%s\": checkpointWriteTriggerMode \"%s\" is not recognized.\n", name, checkpointWriteTriggerModeString);
             }
+#if PV_USE_MPI
             MPI_Barrier(icCommunicator()->communicator());
+#endif
             exit(EXIT_FAILURE);
          }
       }
@@ -1677,7 +1683,9 @@ unsigned int HyPerCol::getRandomSeed() {
    if (columnId()==rootproc) {
        t = time((time_t *) NULL);
    }
+#if PV_USE_MPI
    MPI_Bcast(&t, 1, MPI_UNSIGNED, rootproc, icComm->communicator());
+#endif
    return t;
 }
 
