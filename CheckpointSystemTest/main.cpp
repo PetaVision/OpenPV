@@ -15,6 +15,7 @@ int customexit(HyPerCol * hc, int argc, char * argv[]);
 
 int main(int argc, char * argv[]) {
 
+   int rank;
    bool argerr = false;
    int reqrtn = 0;
    if (argc > 2) argerr = 2;
