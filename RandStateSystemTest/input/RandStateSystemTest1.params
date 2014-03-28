@@ -10,23 +10,25 @@
 debugParsing = false;
 
 HyPerCol "column" = {
-   nx                           = 256;   
-   ny                           = 256;
+   nx                           = 64;   
+   ny                           = 64;
    dt                           = 1.0;
    randomSeed                   = 1020304050;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
    startTime                    = 0.0;
-   numSteps                     = 50;
-   progressStep                 = 50;
+   stopTime                     = 50.0;
+   progressInterval             = 50.0;
    writeProgressToErr           = false;
    outputPath                   = "output1";
+   printParamsFilename          = "pv.params";
    filenamesContainLayerNames   = 2;
    filenamesContainConnectionNames = 2;
    checkpointRead               = false;
    // checkpointReadDir
    // checkpointReadDirIndex
    checkpointWrite              = true;
+   checkpointWriteTriggerMode   = "step";
    checkpointWriteDir           = "checkpoints1";
-   checkpointWriteStepInterval  = 1;
+   checkpointWriteStepInterval  = 5;
    deleteOlderCheckpoints       = false;
    // suppressLastOutput           = false;
 };
@@ -37,8 +39,8 @@ HyPerCol "column" = {
 
 Image "input" = {
     restart                     = 0;
-    nxScale                     = 1;
-    nyScale                     = 1;
+    nxScale                     = 4;
+    nyScale                     = 4;
     imagePath                   = "input/sampleimage.png";
     nf                          = 1;
     phase                       = 0;
@@ -56,17 +58,41 @@ Image "input" = {
     offsetY                     = 0;
 };
 
+ANNLayer "downsampled" = {
+    restart                     = false;
+    nxScale                     = 1;
+    nyScale                     = 1;
+    nf                          = 1;
+    phase                       = 0;
+    mirrorBCflag                = false;
+    valueBC                     = 0.0;
+    InitVType                   = "ZeroV";
+    triggerFlag                 = true;
+    triggerLayerName            = "input";
+    triggerOffset               = 0;
+    writeStep                   = -1;
+    initialWriteTime            = 0;
+    writeSparseActivity         = false;
+
+    VThresh                     = -infinity;
+    AMin                        = -infinity;
+    AMax                        = infinity;
+    AShift                      = 0;
+    VWidth                      = 0;
+};
+
 Retina "retina on" = {
     nxScale                     = 1;
     nyScale                     = 1;
     nf                          = 1;
     phase                       = 0;
+    triggerFlag                 = false;
     restart                     = false;
+    mirrorBCflag                = true;
+    spikingFlag                 = true;  // false (no quotes) is translated to 0
     
     writeSparseActivity         = true;
     writeStep                   = -1;
-    mirrorBCflag                = true;
-    spikingFlag                 = true;  // false (no quotes) is translated to 0
 
     foregroundRate              = 200;   // Hz // Max poisson spiking rate when input is 255
     backgroundRate              = 10;    // Hz // Min poisson spiking rate when input is 0
@@ -86,12 +112,14 @@ Retina "retina off" = {
     nyScale                     = 1;
     nf                          = 1;
     phase                       = 0;
+    triggerFlag                 = false;
     restart                     = false;
-    
-    writeSparseActivity         = true;
-    writeStep                   = -1;
     mirrorBCflag                = true;
     spikingFlag                 = true;  // false (no quotes) is translated to 0
+    
+    writeSparseActivity         = true;
+    writeSparseValues           = false; // spiking retinas have binary activities
+    writeStep                   = -1;
 
     foregroundRate              = 200;   // Hz // Max poisson spiking rate when input is 255
     backgroundRate              = 10;    // Hz // Min poisson spiking rate when input is 0
@@ -130,6 +158,7 @@ LIFGap "lif layer" = {
     VthRest                     = -55.0;   // firing threshold
     tauVth                      = 10.0;    // relative refractory period
     deltaVth                    = 5.0;     // jump of threshold when firing
+    deltaGIB                    = 1.0;     // jump of G_IB conductance when firing
     noiseAmpE                   = 0.5;     // 1 means conductance is equal to lead conductance               <======== no noise  
     noiseAmpI                   = 0.5;     // "twice as easy for the membrane capacitance to discharge"
     noiseAmpIB                  = 0.0;     // no noise here 
@@ -140,9 +169,41 @@ LIFGap "lif layer" = {
     method                      = "arma";
 };
 
+KernelConn "input to downsampled" = {
+   channelCode                  = 0;
+   nxp                          = 1;
+   nyp                          = 1;
+   nfp                          = 1;
+   numAxonalArbors              = 1;
+   delay                        = 0;
+
+   initFromLastFlag             = 0;
+   writeStep                    = -1;
+   // initialWriteTime             = 1;
+
+   weightInitType               = "UniformWeight";
+   weightInit                   = 1.0;
+
+   normalizeMethod              = "normalizeSum";
+   strength                     = 1.0;
+   minSumTolerated              = 0.0;
+   normalizeFromPostPerspective = true;
+   normalizeArborsIndividually  = false;
+   normalize_cutoff             = false;
+   symmetrizeWeights            = false;
+   plasticityFlag               = false;
+   shmget_flag                  = true;
+   pvpatchAccumulateType        = "convolve";
+   writeCompressedCheckpoints   = false;
+   selfFlag                     = false;
+   shrinkPatches                = false;
+   preActivityIsNotRate         = false;
+   updateGSynFromPostPerspective = false;
+};
+
 
 KernelConn "center on" = {
-   preLayerName                 = "input";
+   preLayerName                 = "downsampled";
    postLayerName                = "retina on";
    channelCode                  = 0;
    nxp                          = 1; 
@@ -179,7 +240,7 @@ KernelConn "center on" = {
 };
 
 KernelConn "surround on" = {
-   preLayerName                 = "input";
+   preLayerName                 = "downsampled";
    postLayerName                = "retina on";
    channelCode                  = 1;
    nxp                          = 3;
@@ -215,7 +276,7 @@ KernelConn "surround on" = {
 };
 
 KernelConn "center off" = {
-   preLayerName                 = "input";
+   preLayerName                 = "downsampled";
    postLayerName                = "retina off";
    channelCode                  = 1;
    nxp                          = 1; 
@@ -252,7 +313,7 @@ KernelConn "center off" = {
 };
 
 KernelConn "surround off" = {
-   preLayerName                 = "input";
+   preLayerName                 = "downsampled";
    postLayerName                = "retina off";
    channelCode                  = 0;
    nxp                          = 3;
