@@ -126,9 +126,7 @@ TESTS = test_kg \
         test_delta_pos test_extend_border \
         test_patch_head test_delta \
         test_sign test_post_weights \
-        test_gauss2d test_cocirc \
-        test_mirror_BCs \
-        test_border_activity
+        test_mirror_BCs
 
 # CL_TESTS = 
 
@@ -179,17 +177,8 @@ test_pos: $(BUILDDIR)/test_pos.o $(PVLIB)
 test_post_weights: $(BUILDDIR)/test_post_weights.o $(PVLIB) $(CLASS_OBJS)
 	$(CPP) -o $@ $< $(LIBS) $(CLASS_OBJS)
 
-test_gauss2d: $(BUILDDIR)/test_gauss2d.o $(PVLIB) $(CLASS_OBJS)
-	$(CPP) -o $@ $< $(LIBS) $(CLASS_OBJS)
-
-test_cocirc: $(BUILDDIR)/test_cocirc.o $(PVLIB) $(CLASS_OBJS)
-	$(CPP) -o $@ $< $(LIBS) $(CLASS_OBJS)
-
 test_extend_border: $(BUILDDIR)/test_extend_border.o $(PVLIB)
 	$(CC) -o $@ $< $(LIBS)
-
-test_border_activity: $(BUILDDIR)/test_border_activity.o $(PVLIB)
-	$(CPP) -o $@ $< $(LIBS)
 
 test_mirror_BCs: $(BUILDDIR)/test_mirror_BCs.o $(PVLIB) $(CLASS_OBJS)
 	$(CPP) -o $@ $< $(LIBS) $(CLASS_OBJS)
@@ -225,10 +214,6 @@ runtests: make-in-subdirs $(TESTS)
 	@if ./test_patch_head; then echo "test_patch_head passed."; else echo "test_patch_head FAILED."; fi
 	@echo "Running test_post_weights ..."
 	@if ./test_post_weights -p input/test_post_weights.params; then echo "test_post_weights passed."; else echo "test_post_weights FAILED."; fi
-	@echo "Running test_gauss2d ..."
-	@if ./test_gauss2d; then echo "test_gauss2d passed."; else echo "test_gauss2d FAILED."; fi
-	@echo "Running test_cocirc ..."
-	@if ./test_cocirc -p input/test_cocirc.params; then echo "test_cocirc passed."; else echo "test_cocirc FAILED."; fi
 #	@echo "Running test_pos ..."
 #	@if ./test_pos; then echo "test_pos passed."; else echo "test_pos FAILED."; fi
 	@echo "Running test_delta_pos ..."
@@ -243,8 +228,6 @@ runtests: make-in-subdirs $(TESTS)
 	@if ./test_sign; then echo "test_sign passed."; else echo "test_sign FAILED."; fi
 	@echo "Running test_mirror_BCs ..."
 	@if ./test_mirror_BCs; then echo "test_mirror_BCs passed."; else echo "test_mirror_BCs passed."; fi
-	@echo "Running test_border_activity ..."
-	@if ./test_border_activity; then echo "test_border_activity passed."; else echo "test_border_activity FAILED"; fi
 
 make-in-subdirs: force
 	@for subdir in $(SUBDIRS); do \
