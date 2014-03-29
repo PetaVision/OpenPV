@@ -342,7 +342,28 @@ cd "$wd"
 
 testname=StochasticReleaseTest
 cd "$testname"
-arglist="-p input/StochasticReleaseTest.params"
+arglist="-p StochasticReleaseTest.params"
+runandecho $testname Debug/$testname $arglist
+mpirunandecho $testname Debug/$testname $arglist
+cd "$wd"
+
+testname=test_border_activity
+cd "$testname"
+arglist=""
+runandecho $testname Debug/$testname $arglist
+mpirunandecho $testname Debug/$testname $arglist
+cd "$wd"
+
+testname=test_cocirc
+cd "$testname"
+arglist="-p input/test_cocirc.params"
+runandecho $testname Debug/$testname $arglist
+mpirunandecho $testname Debug/$testname $arglist
+cd "$wd"
+
+testname="test_gauss2d"
+cd "$testname"
+arglist=""
 runandecho $testname Debug/$testname $arglist
 mpirunandecho $testname Debug/$testname $arglist
 cd "$wd"
@@ -425,24 +446,6 @@ else
     fails="$fails $testname"
 fi
 
-testname="test_gauss2d"
-if $PV_MPIRUN -np 1 ./$testname &> ${testname}_1.log
-then
-    echo "$testname passed."
-else
-    echo "$testname FAILED."
-    fails="$fails $testname"
-fi
-
-testname="test_cocirc"
-if $PV_MPIRUN -np 1 ./$testname -p input/test_cocirc.params &> ${testname}_1.log
-then
-    echo "$testname passed."
-else
-    echo "$testname FAILED."
-    fails="$fails $testname"
-fi
-
 testname="test_delta_pos"
 if ./$testname &> ${testname}_1.log
 then
@@ -489,15 +492,6 @@ else
 fi
 
 testname="test_mirror_BCs"
-if $PV_MPIRUN -np 1 ./$testname &> ${testname}_1.log
-then
-    echo "$testname passed."
-else
-    echo "$testname FAILED."
-    fails="$fails $testname"
-fi
-
-testname="test_border_activity"
 if $PV_MPIRUN -np 1 ./$testname &> ${testname}_1.log
 then
     echo "$testname passed."
