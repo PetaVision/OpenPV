@@ -325,6 +325,27 @@ runandecho $testname $testname Debug/$testname $arglist
 mpirunandecho $testname $testname Debug/$testname $arglist
 cd "$wd"
 
+testname=test_border_activity
+cd "$testname"
+arglist=""
+runandecho $testname $testname Debug/$testname $arglist
+mpirunandecho $testname $testname Debug/$testname $arglist
+cd $wd
+
+testname=test_gauss2d
+cd "$testname"
+arglist=""
+runandecho $testname $testname Debug/$testname $arglist
+mpirunandecho $testname $testname Debug/$testname $arglist
+cd $wd
+
+testname=test_cocirc
+cd "$testname"
+arglist="-p input/test_cocirc.params"
+runandecho $testname $testname Debug/$testname $arglist
+mpirunandecho $testname $testname Debug/$testname $arglist
+cd $wd
+
 testname=TriggerTest
 arglist="-p input/TriggerTest.params"
 cd "$testname"
