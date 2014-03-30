@@ -102,7 +102,7 @@ int Movie::checkpointRead(const char * cpDir, double * timef){
       }
       if (filename != NULL) free(filename);
       filename = strdup(getNextFileName(startFrame)); // getNextFileName() will increment frameNumber by startFrame;
-      if (parent->columnId()==0) assert(frameNumber==startFrame);
+      if (parent->columnId()==0) assert(frameNumber==startFrame); //Can't assert this in case startFrame rewinds the mov
       if (parent->columnId()==0) {
          printf("%s \"%s\" checkpointRead set frameNumber to %d and filename to \"%s\"\n",
                parent->parameters()->groupKeywordFromName(name), name, frameNumber, filename);
@@ -213,13 +213,13 @@ int Movie::initialize(const char * name, HyPerCol * hc) {
    }
 
    if (!randomMovie) {
-      if (startFrameIndex <= 1){
-         frameNumber = 0;
-      }
-      else{
-         frameNumber = startFrameIndex - 1;
-      }
       if(readPvpFile){
+         if (startFrameIndex <= 1){
+            frameNumber = 0;
+         }
+         else{
+            frameNumber = startFrameIndex - 1;
+         }
          //Set filename as param
          filename = strdup(fileOfFileNames);
          assert(filename != NULL);
@@ -235,6 +235,7 @@ int Movie::initialize(const char * name, HyPerCol * hc) {
          numFrames = params[INDEX_NBANDS];
       }
       else{
+         //frameNumber Handeled here
          filename = strdup(getNextFileName(startFrameIndex));
          //if(startFrameIndex <= 1){
          //   //Movie is going to update on timestep 1, but we want it to reread the first frame here, so reset the filenamestream back to 0 in initialize
@@ -505,7 +506,6 @@ bool Movie::updateImage(double time, double dt)
       //Moved to updateStateWrapper
       //lastUpdateTime = time;
    } else {
-      updateFrameNum(skipFrameIndex);
       if(!readPvpFile){
          //Only do this if it's not the first update timestep
          //std::cout << "time: " << time << " startTime: " << parent->getStartTime() << " dt: " << dt << "\n";
@@ -514,6 +514,9 @@ bool Movie::updateImage(double time, double dt)
             filename = strdup(getNextFileName(skipFrameIndex));
             assert(filename != NULL);
          }
+      }
+      else{
+         updateFrameNum(skipFrameIndex);
       }
       if(writePosition && icComm->commRank()==0){
          fprintf(fp_pos->fp,"%f %s: \n",time,filename);
@@ -620,19 +623,22 @@ int Movie::randomFrame()
    return 0;
 }
 
+/**
+ * A function only called if readPvpFile is set
+ * Will update frameNumber
+ */
 //This function takes care of rewinding for pvp files
 void Movie::updateFrameNum(int n_skip){
+   assert(readPvpFile);
    InterColComm * icComm = getParent()->icCommunicator();
    for(int i_skip = 0; i_skip < n_skip; i_skip++){
       frameNumber += 1;
       //numFrames only set if pvp file
-      if(readPvpFile){
-         if(frameNumber >= numFrames){
-            if(icComm->commRank()==0){
-               fprintf(stderr, "Movie %s: EOF reached, rewinding file \"%s\"\n", name, fileOfFileNames);
-            }
-            frameNumber = 0;
+      if(frameNumber >= numFrames){
+         if(icComm->commRank()==0){
+            fprintf(stderr, "Movie %s: EOF reached, rewinding file \"%s\"\n", name, fileOfFileNames);
          }
+         frameNumber = 0;
       }
    }
 }
