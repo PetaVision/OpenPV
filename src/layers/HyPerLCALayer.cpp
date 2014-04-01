@@ -28,6 +28,7 @@ void HyPerLCALayer_update_state(
     const float tau_max,
     const float tau_min,
     const float slope_error_std,
+    bool selfInteract,
     float * dt_tau,
     float * GSynHead,
     float * activity,
@@ -67,6 +68,7 @@ int HyPerLCALayer::initialize_base()
    numWindowY = 1;
    windowSymX = false;
    windowSymY = false;
+   selfInteract = true;
    return PV_SUCCESS;
 }
 
@@ -139,6 +141,7 @@ int HyPerLCALayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_windowSymX(ioFlag);
    ioParam_windowSymY(ioFlag);
    ioParam_slopeErrorStd(ioFlag);
+   ioParam_selfInteract(ioFlag);
    return status;
 }
 
@@ -181,10 +184,14 @@ void HyPerLCALayer::ioParam_numWindowY(enum ParamsIOFlag ioFlag) {
 
 void HyPerLCALayer::ioParam_windowSymX(enum ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(name, "numWindowX"));
-
 }
+
 void HyPerLCALayer::ioParam_windowSymY(enum ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(name, "numWindowY"));
+}
+
+void HyPerLCALayer::ioParam_selfInteract(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "selfInteract", &selfInteract, selfInteract);
 }
 
 void HyPerLCALayer::ioParam_slopeErrorStd(enum ParamsIOFlag ioFlag) {
@@ -214,8 +221,8 @@ int HyPerLCALayer::doUpdateState(double time, double dt, const PVLayerLoc * loc,
       dtTau = dt;
       double error_mean = 0;
       HyPerLCALayer_update_state(num_neurons, nx, ny, nf, loc->nb, numChannels,
-            V, VThresh, AMax, AMin, AShift, VWidth, tauMax, tauMin, slopeErrorStd,
-            &dtTau, gSynHead, A, &error_mean, &errorStd);
+            V, VThresh, AMax, AMin, AShift, VWidth, tauMax, tauMin, slopeErrorStd, 
+            selfInteract, &dtTau, gSynHead, A, &error_mean, &errorStd);
       if (this->writeSparseActivity){
          updateActiveIndices();  // added by GTK to allow for sparse output, can this be made an inline function???
       }

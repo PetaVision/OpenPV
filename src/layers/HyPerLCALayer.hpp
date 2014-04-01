@@ -34,6 +34,7 @@ protected:
    virtual void ioParam_numWindowY(enum ParamsIOFlag ioFlag);
    virtual void ioParam_windowSymX(enum ParamsIOFlag ioFlag);
    virtual void ioParam_windowSymY(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_selfInteract(enum ParamsIOFlag ioFlag);
    virtual void ioParam_slopeErrorStd(enum ParamsIOFlag ioFlag);
    virtual int doUpdateState(double time, double dt, const PVLayerLoc * loc, pvdata_t * A,
          pvdata_t * V, int num_channels, pvdata_t * gSynHead, bool spiking,
@@ -50,6 +51,7 @@ private:
    int numWindowY;
    bool windowSymX;
    bool windowSymY;
+   bool selfInteract;
 };
 
 } /* namespace PV */

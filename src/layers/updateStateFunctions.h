@@ -67,11 +67,11 @@ static inline int updateV_ANNLabelLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t *
       int ny, int nf, int nb);
 static inline int applyGSyn_HyPerLCALayer(int numNeurons,
       CL_MEM_GLOBAL pvdata_t * V, CL_MEM_GLOBAL pvdata_t * GSynHead,
-      CL_MEM_GLOBAL pvdata_t * activity, pvdata_t dt_tau, int nx, int ny,
-      int nf, int nb);
+      CL_MEM_GLOBAL pvdata_t * activity, pvdata_t dt_tau, pvdata_t selfInteract, 
+      int nx, int ny, int nf, int nb);
 static inline int applyGSyn_HyPerLCALayer2(int numNeurons,
       CL_MEM_GLOBAL pvdata_t * V, CL_MEM_GLOBAL pvdata_t * GSynHead,
-      CL_MEM_GLOBAL pvdata_t * activity, pvdata_t dt_tau,
+      CL_MEM_GLOBAL pvdata_t * activity, pvdata_t dt_tau, pvdata_t selfInteract,
       int nx, int ny, int nf, int nb);
 static inline int applyGSyn_ANNWhitenedLayer(int numNeurons,
       CL_MEM_GLOBAL pvdata_t * V, CL_MEM_GLOBAL pvdata_t * GSynHead);
@@ -80,7 +80,7 @@ static inline int updateV_HyPerLCALayer(int numNeurons, CL_MEM_GLOBAL pvdata_t *
       CL_MEM_GLOBAL double * error_mean, CL_MEM_GLOBAL double * error_std, pvdata_t AMax,
       pvdata_t AMin, pvdata_t VThresh, pvdata_t AShift, pvdata_t VWidth,
       pvdata_t * dt_tau, pvdata_t tau_max, pvdata_t tau_min, pvdata_t slope_error_std,
-      int nx, int ny, int nf, int nb, int numChannels);
+      pvdata_t selfInteract, int nx, int ny, int nf, int nb, int numChannels);
 static inline int updateV_ANNWhitenedLayer(int numNeurons,
       CL_MEM_GLOBAL pvdata_t * V,
       CL_MEM_GLOBAL pvdata_t * GSynHead,
@@ -262,8 +262,8 @@ static inline int applyGSyn_LabelErrorLayer(int numNeurons, CL_MEM_GLOBAL pvdata
 
 static inline int applyGSyn_HyPerLCALayer(int numNeurons,
       CL_MEM_GLOBAL pvdata_t * V, CL_MEM_GLOBAL pvdata_t * GSynHead,
-      CL_MEM_GLOBAL pvdata_t * activity, pvdata_t dt_tau, int nx, int ny,
-      int nf, int nb) {
+      CL_MEM_GLOBAL pvdata_t * activity, pvdata_t dt_tau, pvdata_t selfInteract, 
+      int nx, int ny, int nf, int nb) {
    int k;
    float exp_tau = exp(-dt_tau);
    CL_MEM_GLOBAL pvdata_t * GSynError = &GSynHead[0 * numNeurons]; // weighted input
@@ -275,7 +275,10 @@ static inline int applyGSyn_HyPerLCALayer(int numNeurons,
    {
       int kex = kIndexExtended(k, nx, ny, nf, nb);
       //V[k] = V[k] + dt_tau * (GSynError[k] - V[k] + activity[kex]);
-      V[k] = exp_tau * V[k] + (1 - exp_tau) * (GSynError[k] + activity[kex]);
+      if (selfInteract){
+         V[k] = exp_tau * V[k] + (1 - exp_tau) * (GSynError[k] + activity[kex]);}
+      else {
+         V[k] = exp_tau * V[k] + (1 - exp_tau) * GSynError[k];}
    }
    return PV_SUCCESS;
 }
@@ -300,8 +303,8 @@ static inline int calcGSyn_Mean_StdDev(int numNeurons, CL_MEM_GLOBAL pvdata_t * 
 
 static inline int applyGSyn_HyPerLCALayer2(int numNeurons,
       CL_MEM_GLOBAL pvdata_t * V, CL_MEM_GLOBAL pvdata_t * GSynHead,
-      CL_MEM_GLOBAL pvdata_t * activity, pvdata_t dt_tau, int nx, int ny,
-      int nf, int nb) {
+      CL_MEM_GLOBAL pvdata_t * activity, pvdata_t dt_tau, pvdata_t selfInteract, 
+      int nx, int ny, int nf, int nb) {
    int k;
    float exp_tau = exp(-dt_tau);
    CL_MEM_GLOBAL pvdata_t * GSynError = &GSynHead[0 * numNeurons]; // weighted input
@@ -314,7 +317,10 @@ static inline int applyGSyn_HyPerLCALayer2(int numNeurons,
    {
       int kex = kIndexExtended(k, nx, ny, nf, nb);
       //V[k] = V[k] + dt_tau * (GSynError[k] - GSynError2[k] - V[k] + activity[kex]);
-      V[k] = exp_tau * V[k] + (1 - exp_tau) * (GSynError[k] - GSynError2[k] + activity[kex]);
+      if (selfInteract){
+         V[k] = exp_tau * V[k] + (1 - exp_tau) * (GSynError[k] - GSynError2[k] + activity[kex]);}
+      else {
+         V[k] = exp_tau * V[k] + (1 - exp_tau) * (GSynError[k]- GSynError2[k]);}
    }
    return PV_SUCCESS;
 }
@@ -379,7 +385,7 @@ static inline int updateV_HyPerLCALayer(int numNeurons, CL_MEM_GLOBAL pvdata_t *
       CL_MEM_GLOBAL double * error_mean, CL_MEM_GLOBAL double * error_std, pvdata_t AMax,
       pvdata_t AMin, pvdata_t VThresh, pvdata_t AShift, pvdata_t VWidth,
       pvdata_t * dt_tau, pvdata_t tau_max, pvdata_t tau_min, pvdata_t slope_error_std,
-      int nx, int ny, int nf, int nb, int numChannels)
+      pvdata_t selfInteract, int nx, int ny, int nf, int nb, int numChannels)
 {
    int status = PV_SUCCESS;
    pvdata_t tau_adapt = tau_max;
@@ -396,11 +402,11 @@ static inline int updateV_HyPerLCALayer(int numNeurons, CL_MEM_GLOBAL pvdata_t *
    *dt_tau = *dt_tau / tau_adapt;
    if (numChannels == 2){
       if( status == PV_SUCCESS ) status =
-            applyGSyn_HyPerLCALayer2(numNeurons, V, GSynHead, activity, *dt_tau, nx, ny, nf, nb);
+            applyGSyn_HyPerLCALayer2(numNeurons, V, GSynHead, activity, *dt_tau, selfInteract, nx, ny, nf, nb);
    }
    else if (numChannels == 1){
       if( status == PV_SUCCESS ) status =
-            applyGSyn_HyPerLCALayer(numNeurons, V, GSynHead, activity, *dt_tau, nx, ny, nf, nb);
+            applyGSyn_HyPerLCALayer(numNeurons, V, GSynHead, activity, *dt_tau, selfInteract, nx, ny, nf, nb);
    }
    if(status == PV_SUCCESS) status = setActivity_HyPerLayer(numNeurons, activity, V, nx, ny, nf, nb);
    if( status == PV_SUCCESS ) status =
