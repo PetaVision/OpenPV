@@ -342,7 +342,7 @@ cd "$wd"
 
 testname=StochasticReleaseTest
 cd "$testname"
-arglist="-p StochasticReleaseTest.params"
+arglist="-p input/StochasticReleaseTest.params"
 runandecho $testname Debug/$testname $arglist
 mpirunandecho $testname Debug/$testname $arglist
 cd "$wd"
