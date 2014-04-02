@@ -1821,7 +1821,7 @@ int HyPerLayer::outputState(double timef, bool last)
    io_timer->start();
 
    for (int i = 0; i < numProbes; i++) {
-      probes[i]->outputState(timef);
+      probes[i]->outputStateWrapper(timef, parent->getDeltaTime());
    }
 
    if (timef >= (writeTime-(parent->getDeltaTime()/2)) && writeStep >= 0) {

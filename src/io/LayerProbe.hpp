@@ -32,6 +32,8 @@ public:
 
    virtual int communicateInitInfo();
 
+   virtual bool needUpdate(double time, double dt);
+   virtual int outputStateWrapper(double timef, double dt);
    virtual int outputState(double timef) = 0;
 
    const char * getProbeName() {return probeName;}
@@ -44,6 +46,9 @@ protected:
    virtual void ioParam_targetLayer(enum ParamsIOFlag ioFlag);
    virtual void ioParam_message(enum ParamsIOFlag ioFlag);
    virtual void ioParam_probeOutputFile(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_triggerFlag(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_triggerLayerName(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_triggerOffset(enum ParamsIOFlag ioFlag);
    virtual int initOutputStream(const char * filename);
 
    HyPerCol * getParentCol() {return parentCol;}
@@ -59,6 +64,10 @@ private:
 // Member variables
 protected:
    PV_Stream * outputstream;
+   bool triggerFlag;
+   char* triggerLayerName;
+   HyPerLayer * triggerLayer;
+   double triggerOffset;
 
 private:
    char * probeName;
