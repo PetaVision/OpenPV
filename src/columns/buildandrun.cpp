@@ -183,6 +183,7 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
                   "PointLIFProbe",
                     "PointLCALIFProbe",
                "StatsProbe",
+               "SparsityLayerProbe",
                "LayerFunctionProbe",
                  "L2NormProbe",
                  "SparsityTermProbe",
@@ -801,6 +802,9 @@ LayerProbe * addLayerProbeToColumn(const char * classkeyword, const char * name,
    }
    if( !strcmp(classkeyword, "StatsProbe") ) {
       addedProbe = (LayerProbe *) new StatsProbe(name, hc);
+   }
+   if( !strcmp(classkeyword, "SparsityLayerProbe") ) {
+      addedProbe = (LayerProbe *) new SparsityLayerProbe(name, hc);
    }
    if( !strcmp(classkeyword, "L2NormProbe") ) {
       addedProbe = (LayerProbe *) new L2NormProbe(name, hc);

@@ -123,6 +123,7 @@
 #include "../io/PointLCALIFProbe.hpp"
 #include "../io/PointLIFProbe.hpp"
 #include "../io/StatsProbe.hpp"
+#include "../io/SparsityLayerProbe.hpp"
 #include "../io/L2NormProbe.hpp"
 #include "../io/SparsityTermProbe.hpp"
 #include "../io/LogLatWTAProbe.hpp"
