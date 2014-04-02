@@ -15,24 +15,25 @@ HyPerCol "column" = {
     ny = 32;
     dt = 1.0;
     randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
-    startTime =  160000000;  //10,000 images * displayPeriod * 2
-    stopTime = 180000001; //200000;
+    startTime =  0; //160000000;  //10,000 images * displayPeriod * 2
+    stopTime = 20000001; //180000001; //200000;
     progressInterval = 1000;
-    outputPath = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR_C1_task/data_batch_all9";
+    outputPath = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR_C1_task/data_batch_all15";
     filenamesContainLayerNames = true;
     filenamesContainConnectionNames = true;
-    checkpointRead = false; //true;
-    checkpointReadDir = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR_C1_task/data_batch_all9/Checkpoints";
-    checkpointReadDirIndex = 160000000; //144400000; //146400000; 
+    checkpointRead = true;
+    checkpointReadDir = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR_C1_task/data_batch_all15/Checkpoints";
+    checkpointReadDirIndex = 4000000;
     checkpointWrite = true;
-    checkpointWriteDir = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR_C1_task/data_batch_all9/Checkpoints";
+    //checkpointWriteTriggerMode = "step";
+    checkpointWriteDir = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR_C1_task/data_batch_all15/Checkpoints";
     checkpointWriteStepInterval = 400000;
     deleteOlderCheckpoints = false;
     //suppressLastOutput = false;
     writeProgressToErr = true;
     outputNamesOfLayersAndConns = "LayerAndConnNames.txt";
     suppressLastOutput = false;
-    printParamsFilename = "HyPerHLCA_CIFAR_C1_task_data_batch_all9.params";
+    printParamsFilename = "HyPerHLCA_CIFAR_C1_task_data_batch_all15.params";
 };
 
 //
@@ -50,7 +51,7 @@ Movie "Image" = {
     writeSparseActivity = false;
     displayPeriod = 400;
     start_frame_index = 1;
-    skip_frame_index = 1;
+    skip_frame_index = 0;
     echoFramePathnameFlag = true;
     writeFrameToTimestamp = true;
     mirrorBCflag = true;
@@ -64,7 +65,6 @@ Movie "Image" = {
     randomMovie = 0;
     autoResizeFlag = false;
     readPvpFile = false;
-    writeFrameToTimeStamp = true;
     phase = 0;
     //useParamsImage = true;
 };
@@ -82,7 +82,7 @@ ANNErrorLayer "Error" = {
     //
     //InitVType = "ZeroV";
     InitVType = "InitVFromFile";
-    Vfilename = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR_C1_task/data_batch_all8/Checkpoints/Checkpoint160000000/Error_V.pvp";
+    Vfilename = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR_C1_task/data_batch_all14/Checkpoints/Checkpoint4000000/Error_V.pvp";
     //
     VThresh = 0.001;
     VMax =  infinity;
@@ -113,7 +113,7 @@ HyPerLCALayer "S1" = {
     //minV = -1.0;
     //maxV = .15; //0.05 above VThresh
     InitVType = "InitVFromFile";
-    Vfilename = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR_C1_task/data_batch_all8/Checkpoints/Checkpoint160000000/S1_V.pvp";
+    Vfilename = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR_C1_task/data_batch_all15/Checkpoints/Checkpoint4000000/S1_V.pvp";
     // 
     timeConstantTau = 200.0;
     timeConstantTauMinimum = 10.0;
@@ -141,9 +141,9 @@ ANNLayer "Recon" = {
     valueBC = 0;
     writeSparseActivity = 0;
     //
-    InitVType = "ZeroV";
-    //InitVType = "InitVFromFile";
-    //Vfilename = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR_C1_task/data_batch_all8/Checkpoints/Checkpoint160000000/Recon_V.pvp";
+    //InitVType = "ZeroV";
+    InitVType = "InitVFromFile";
+    Vfilename = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR_C1_task/data_batch_all15/Checkpoints/Checkpoint4000000/Recon_V.pvp";
     //
     VThresh = -infinity;
     VMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
@@ -173,7 +173,7 @@ ANNErrorLayer "ErrorS1C1Local" = {
     //
     //InitVType = "ZeroV";
     InitVType = "InitVFromFile";
-    Vfilename = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR_C1_task/data_batch_all8/Checkpoints/Checkpoint160000000/ErrorS1C1Local_V.pvp";
+    Vfilename = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR_C1_task/data_batch_all15/Checkpoints/Checkpoint4000000/ErrorS1C1Local_V.pvp";
     //
     VThresh = 0.001;
     VMax =  infinity;
@@ -200,7 +200,7 @@ ANNErrorLayer "ErrorS1C1Lateral" = {
     //
     //InitVType = "ZeroV";
     InitVType = "InitVFromFile";
-    Vfilename = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR_C1_task/data_batch_all8/Checkpoints/Checkpoint160000000/ErrorS1C1Lateral_V.pvp";
+    Vfilename = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR_C1_task/data_batch_all15/Checkpoints/Checkpoint4000000/ErrorS1C1Lateral_V.pvp";
     //
     VThresh = 0.001;
     VMax =  infinity;
@@ -234,7 +234,7 @@ HyPerLCALayer "C1" = {
     //minV = -1.0;//
     //maxV = .025; //0.05 above VThresh
     InitVType = "InitVFromFile";
-    Vfilename = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR_C1_task/data_batch_all8/Checkpoints/Checkpoint160000000/C1_V.pvp";
+    Vfilename = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR_C1_task/data_batch_all15/Checkpoints/Checkpoint4000000/C1_V.pvp";
     // 
     timeConstantTau = 200.0;
     timeConstantTauMinimum = 10.0;
@@ -266,7 +266,7 @@ ANNLayer "ReconS1C1" = {
     //
     //InitVType = "ZeroV";
     InitVType = "InitVFromFile";
-    Vfilename = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR_C1_task/data_batch_all8/Checkpoints/Checkpoint160000000/ReconS1C1_V.pvp";
+    Vfilename = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR_C1_task/data_batch_all15/Checkpoints/Checkpoint4000000/ReconS1C1_V.pvp";
     //
     VThresh = 0.0025; // use V1's VThresh 
     VMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
@@ -294,7 +294,7 @@ ANNLayer "ReconC1" = {
     //
     //InitVType = "ZeroV";
     InitVType = "InitVFromFile";
-    Vfilename = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR_C1_task/data_batch_all8/Checkpoints/Checkpoint160000000/ReconC1_V.pvp";
+    Vfilename = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR_C1_task/data_batch_all15/Checkpoints/Checkpoint4000000/ReconC1_V.pvp";
     //
     VThresh = -infinity;
     VMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
@@ -327,14 +327,14 @@ ANNErrorLayer "ErrorC1S2" = {
     //
     //InitVType = "ZeroV";
     InitVType = "InitVFromFile";
-    Vfilename = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR_C1_task/data_batch_all8/Checkpoints/Checkpoint160000000/ErrorC1S2_V.pvp";
+    Vfilename = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR_C1_task/data_batch_all15/Checkpoints/Checkpoint4000000/ErrorC1S2_V.pvp";
     //
     VThresh = 0.001;
     VMax =  infinity;
     VMin = 0;
     VShift = 0;
     VWidth = 0.0; 
-    errScale = 0.9;
+    errScale = 0.95;
     //
     triggerFlag = false;
     phase = 6;  
@@ -361,7 +361,7 @@ HyPerLCALayer "S2" = {
     //minV = -1.0;//
     //maxV = .05; //0.05 above VThresh
     InitVType = "InitVFromFile";
-    Vfilename = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR_C1_task/data_batch_all8/Checkpoints/Checkpoint160000000/S2_V.pvp";
+    Vfilename = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR_C1_task/data_batch_all15/Checkpoints/Checkpoint4000000/S2_V.pvp";
     // 
     timeConstantTau = 200.0;
     timeConstantTauMinimum = 10.0;
@@ -393,7 +393,7 @@ ANNLayer "ReconC1S2" = {
     //
     //InitVType = "ZeroV";
     InitVType = "InitVFromFile";
-    Vfilename = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR_C1_task/data_batch_all8/Checkpoints/Checkpoint160000000/ReconC1S2_V.pvp";
+    Vfilename = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR_C1_task/data_batch_all15/Checkpoints/Checkpoint4000000/ReconC1S2_V.pvp";
     //
     VThresh = 0.0025; // use V1's VThresh 
     VMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
@@ -422,7 +422,7 @@ ANNLayer "ReconS1S2" = {
     //
     //InitVType = "ZeroV";
     InitVType = "InitVFromFile";
-    Vfilename = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR_C1_task/data_batch_all8/Checkpoints/Checkpoint160000000/ReconS1S2_V.pvp";
+    Vfilename = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR_C1_task/data_batch_all15/Checkpoints/Checkpoint4000000/ReconS1S2_V.pvp";
     //
     VThresh = 0.0025; // use V1's VThresh 
     VMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
@@ -450,7 +450,7 @@ ANNLayer "ReconS2" = {
     //
     //InitVType = "ZeroV";
     InitVType = "InitVFromFile";
-    Vfilename = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR_C1_task/data_batch_all8/Checkpoints/Checkpoint160000000/ReconS2_V.pvp";
+    Vfilename = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR_C1_task/data_batch_all15/Checkpoints/Checkpoint4000000/ReconS2_V.pvp";
     //
     VThresh = -infinity;
     VMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
@@ -476,7 +476,7 @@ LabelLayer "Labels" = {
     initialWriteTime = 4000;
     writeStep = 4000;
     writeSparseActivity = 0;
-    InitVType = "ZeroV";
+    //InitVType = "ZeroV";
     labelStart = 45; // 
     labelLength = 1;
     echoLabelFlag = true;
@@ -513,7 +513,7 @@ LabelErrorLayer "LabelError" = {
     //VMin = 0;
     //VShift = 0;
     //VWidth = 0.0; 
-    errScale = 0.1; //0.2;
+    errScale = 0.05; //0.1; //0.2;
     isBinary = true;
     triggerFlag = false;
     phase = 2;
@@ -595,7 +595,7 @@ KernelConn "S1ToError" = {
     initFromLastFlag = 0;
     //
     weightInitType = "FileWeight";
-    initWeightsFile = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR_C1_task/data_batch_all8/Checkpoints/Checkpoint160000000/S1ToError_W.pvp";
+    initWeightsFile = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR_C1_task/data_batch_all15/Checkpoints/Checkpoint4000000/S1ToError_W.pvp";
     useListOfArborFiles = false;
     combineWeightFiles = false;
     //weightInitType = "UniformRandomWeight";
@@ -623,7 +623,7 @@ KernelConn "S1ToError" = {
     initialWeightUpdateTime = 400.0;
     triggerLayerName = "Image";
     triggerFlag = true;
-    triggerOffset = -1;
+    triggerOffset = 1;
     imprintTimeThresh = 40000000.0;
     initialWriteTime = 0.0;
     dWMax = 0.1; //0.1; //20.0; //1.0; 
@@ -699,7 +699,7 @@ KernelConn "C1ToErrorS1C1Local" = {
     initFromLastFlag = 0;
     //
     weightInitType = "FileWeight";
-    initWeightsFile = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR_C1_task/data_batch_all8/Checkpoints/Checkpoint160000000/C1ToErrorS1C1Local_W.pvp";
+    initWeightsFile = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR_C1_task/data_batch_all15/Checkpoints/Checkpoint4000000/C1ToErrorS1C1Local_W.pvp";
     useListOfArborFiles = false;
     combineWeightFiles = false;
     //weightInitType = "UniformRandomWeight";
@@ -726,7 +726,7 @@ KernelConn "C1ToErrorS1C1Local" = {
     initialWeightUpdateTime = 400.0;
     triggerLayerName = "Image";
     triggerFlag = true;
-    triggerOffset = -1;
+    triggerOffset = 1;
     initialWriteTime = 0.0;
     imprintTimeThresh = 4000000.0;
     dWMax = 1.0; //0.1; //5.0; //0.1; 
@@ -755,7 +755,7 @@ KernelConn "C1ToErrorS1C1Lateral" = {
     initFromLastFlag = 0;
     //
     weightInitType = "FileWeight";
-    initWeightsFile = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR_C1_task/data_batch_all8/Checkpoints/Checkpoint160000000/C1ToErrorS1C1Lateral_W.pvp";
+    initWeightsFile = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR_C1_task/data_batch_all15/Checkpoints/Checkpoint4000000/C1ToErrorS1C1Lateral_W.pvp";
     useListOfArborFiles = false;
     combineWeightFiles = false;
     //weightInitType = "UniformRandomWeight";
@@ -782,7 +782,7 @@ KernelConn "C1ToErrorS1C1Lateral" = {
     initialWeightUpdateTime = 400.0;
     triggerLayerName = "Image";
     triggerFlag = true;
-    triggerOffset = -1;
+    triggerOffset = 1;
     initialWriteTime = 0.0;
     imprintTimeThresh = 4000000.0;
     dWMax = 1.0; //0.1; //5.0; //0.1; 
@@ -900,7 +900,7 @@ KernelConn "S2ToErrorC1S2" = {
     initFromLastFlag = 0;
     //
     weightInitType = "FileWeight";
-    initWeightsFile = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR_C1_task/data_batch_all8/Checkpoints/Checkpoint160000000/S2ToErrorC1S2_W.pvp";
+    initWeightsFile = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR_C1_task/data_batch_all15/Checkpoints/Checkpoint4000000/S2ToErrorC1S2_W.pvp";
     useListOfArborFiles = false;
     combineWeightFiles = false;
     //weightInitType = "UniformRandomWeight";
@@ -928,7 +928,7 @@ KernelConn "S2ToErrorC1S2" = {
     initialWriteTime = 0.0;
     triggerLayerName = "Image";
     triggerFlag = true;
-    triggerOffset = -1;
+    triggerOffset = 1;
     imprintTimeThresh = 4000000.0;
     dWMax = 1.0; //0.5; //0.1; 
     selfFlag = false;
@@ -1042,7 +1042,7 @@ KernelConn "S2ToLabelError" = {
     initFromLastFlag = 0;
     
     weightInitType = "FileWeight";
-    initWeightsFile = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR_C1_task/data_batch_all8/Checkpoints/Checkpoint160000000/S2ToLabelError_W.pvp";
+    initWeightsFile = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR_C1_task/data_batch_all15/Checkpoints/Checkpoint4000000/S2ToLabelError_W.pvp";
     useListOfArborFiles = false;
     combineWeightFiles = false;
     //weightInitType = "UniformRandomWeight";
@@ -1071,7 +1071,7 @@ KernelConn "S2ToLabelError" = {
     initialWeightUpdateTime = 400.0;
     triggerLayerName = "Image";
     triggerFlag = true;
-    triggerOffset = -1;
+    triggerOffset = 1;
     initialWriteTime = 0.0;
     imprintTimeThresh = 4000000.0;
     dWMax = 0.1; //0.05; //0.01; 
