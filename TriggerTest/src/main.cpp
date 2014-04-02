@@ -7,6 +7,7 @@
 #include <columns/buildandrun.hpp>
 #include "TriggerTestLayer.hpp"
 #include "TriggerTestConn.hpp"
+#include "TriggerTestLayerProbe.hpp"
 
 void * addcustomgroup(const char * keyword, const char * groupname, HyPerCol * hc);
 
@@ -24,6 +25,9 @@ void * addcustomgroup(const char * keyword, const char * groupname, HyPerCol * h
    }
    if ( !strcmp(keyword, "TriggerTestConn") ) {
       addedGroup = new TriggerTestConn(groupname, hc);
+   }
+   if ( !strcmp(keyword, "TriggerTestLayerProbe") ) {
+      addedGroup = new TriggerTestLayerProbe(groupname, hc);
    }
    if (!addedGroup) {
       fprintf(stderr, "Group \"%s\": Unable to create %s\n", groupname, keyword);

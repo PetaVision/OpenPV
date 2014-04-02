@@ -6,7 +6,7 @@
 // Similar to MovieTestParams, except the result of the 3x3 convolution
 // is held in an ANNTriggerUpdateOnNewImage layer.
 
-debugParsing = false;    // If true, debug the reading of this parameter file.
+debugParsing = true;    // If true, debug the reading of this parameter file.
 
 HyPerCol "column" = {
    nx                               = 8;
@@ -32,6 +32,7 @@ HyPerCol "column" = {
 // layers
 //
 
+//Test for trigger layers
 Movie "input" = {
     restart                          = false;
     nxScale                          = 1;
@@ -154,6 +155,7 @@ TriggerTestLayer "trigger2" = {
 };
 
 
+//Test for trigger connections
 TriggerTestConn "inputToNoTrigger" = {
     preLayerName                     = "input";
     postLayerName                    = "notrigger";
@@ -489,4 +491,32 @@ TriggerTestConn "inputToPeriod2" = {
 
     weightUpdatePeriod               = 5;
     initialWeightUpdateTime          = 4;
+};
+
+
+//Test for layer probes
+TriggerTestLayerProbe "notriggerlayerprobe" = {
+    targetLayer = "input";
+    triggerFlag = false;
+};
+
+TriggerTestLayerProbe "trigger0layerprobe" = {
+    targetLayer = "input";
+    triggerFlag                      = true;
+    triggerLayerName                 = "input";
+    triggerOffset                    = 0;
+};
+
+TriggerTestLayerProbe "trigger1layerprobe" = {
+    targetLayer = "input";
+    triggerFlag                      = true;
+    triggerLayerName                 = "input";
+    triggerOffset                    = 1;
+};
+
+TriggerTestLayerProbe "trigger2layerprobe" = {
+    targetLayer = "input";
+    triggerFlag                      = true;
+    triggerLayerName                 = "input";
+    triggerOffset                    = 2;
 };
