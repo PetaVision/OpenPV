@@ -1,0 +1,60 @@
+//
+// ANNTriggerUpdateOnNewImage.params
+//
+// created by peteschultz: Dec 9, 2013
+//
+// Similar to MovieTestParams, except the result of the 3x3 convolution
+// is held in an ANNTriggerUpdateOnNewImage layer.
+
+debugParsing = true;    // If true, debug the reading of this parameter file.
+
+HyPerCol "column" = {
+   nx                               = 8;
+   ny                               = 8;
+   dt                               = 1.0;
+   randomSeed                       = 1234567890;
+   startTime                        = 0.0;
+   numSteps                         = 100;
+   progressStep                     = 1;
+   writeProgressToErr               = false;
+   outputPath                       = "output/";
+   filenamesContainLayerNames       = 2;
+   filenamesContainConnectionNames  = 2;
+   checkpointRead                   = false;
+   checkpointWrite                  = false;
+   // checkpointWriteDir               = "output/checkpoints";
+   // checkpointWriteStepInterval      = 10000;
+   // deleteOlderCheckpoints           = true;
+   suppressLastOutput               = false;
+};
+
+//
+// layers
+//
+
+// this is a input layer
+Image "input" = {
+    restart = 0; 
+    nxScale = 1; 
+    nyScale = 1; 
+    imagePath = "input/input.png";
+    nf = 1;
+    phase = 0;
+    writeStep = -1;
+    writeSparseActivity = false;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+    useImageBCflag = false;
+    inverseFlag = false; 
+    normalizeLuminanceFlag = false;
+    autoResizeFlag = false;
+    writeImages = false;
+    offsetX = 0;
+    offsetY = 0;
+    jitterFlag = false;
+};
+
+SparsityProbeTest "sparseProbe" = {
+    targetLayer = "input";
+    triggerFlag = false;
+};
