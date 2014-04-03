@@ -360,6 +360,11 @@ int Retina::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    return status;
 }
 
+void Retina::ioParam_InitVType(enum ParamsIOFlag ioFlag) {
+   parent->parameters()->handleUnnecessaryParameter(name, "InitVType");
+   return;
+}
+
 void Retina::ioParam_spikingFlag(enum ParamsIOFlag ioFlag) {
    parent->ioParamValue(ioFlag, name, "spikingFlag", &spikingFlag, true);
 }
