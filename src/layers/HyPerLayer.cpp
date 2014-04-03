@@ -84,7 +84,6 @@ DerivedLayer::initialize(arguments) {
 #include "../io/io.h"
 #include <assert.h>
 #include <string.h>
-#include "Retina.hpp" // Only needed for the warning regarding spikingFlag; this #include can be removed when the warning is removed.
 
 namespace PV {
 
