@@ -59,9 +59,10 @@ protected:
 private:
    int initialize_base();
    int copyReducedImagePortion();
-   const char * getNextFileName();
+   const char * advanceFileName();
    const char * getNextFileName(int n_skip);
    void updateFrameNum(int n_skip);
+   void updateFrameNum();
 
    double displayPeriod;   // length of time a frame is displayed
    //double nextDisplayTime; // time of next frame

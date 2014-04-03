@@ -631,74 +631,33 @@ int Movie::randomFrame()
 void Movie::updateFrameNum(int n_skip){
    assert(readPvpFile);
    InterColComm * icComm = getParent()->icCommunicator();
-   for(int i_skip = 0; i_skip < n_skip; i_skip++){
-      frameNumber += 1;
-      //numFrames only set if pvp file
-      if(frameNumber >= numFrames){
-         if(icComm->commRank()==0){
-            fprintf(stderr, "Movie %s: EOF reached, rewinding file \"%s\"\n", name, fileOfFileNames);
-         }
-         frameNumber = 0;
+   for(int i_skip = 0; i_skip < n_skip-1; i_skip++){
+      updateFrameNum();
+   }
+   updateFrameNum();
+}
+
+void Movie::updateFrameNum() {
+   frameNumber += 1;
+   //numFrames only set if pvp file
+   if(frameNumber >= numFrames){
+      if(parent->columnId()==0){
+         fprintf(stderr, "Movie %s: EOF reached, rewinding file \"%s\"\n", name, fileOfFileNames);
       }
+      frameNumber = 0;
    }
 }
 
-// skip n_skip lines before reading next frame
-const char * Movie::getNextFileName(int n_skip)
-{
-   for (int i_skip = 0; i_skip < n_skip-1; i_skip++){
-      getNextFileName();
-   }
-   return getNextFileName();
-}
-
-//This function takes care of rewinding for frame files
-const char * Movie::getNextFileName()
-{
+// advance by n_skip lines through file of filenames, always advancing at least one line
+const char * Movie::getNextFileName(int n_skip) {
    InterColComm * icComm = getParent()->icCommunicator();
-   if( icComm->commRank()==0 ) {
-      int c;
-      size_t maxlen = PV_PATH_MAX;
-
-      //TODO: add recovery procedure to handle case where access to file is temporarily unavailable
-      // use stat to verify status of filepointer, keep running tally of current frame index so that file can be reopened and advanced to current frame
-
-
-      // Ignore blank lines
-      bool lineisblank = true;
-      while(lineisblank) {
-         // if at end of file (EOF), rewind
-         if ((c = fgetc(filenamestream->fp)) == EOF) {
-            PV_fseek(filenamestream, 0L, SEEK_SET);
-            fprintf(stderr, "Movie %s: EOF reached, rewinding file \"%s\"\n", name, fileOfFileNames);
-            frameNumber = 0;
-         }
-         else {
-            ungetc(c, filenamestream->fp);
-         }
-
-         char * path = fgets(inputfile, maxlen, filenamestream->fp);
-         if (path != NULL) {
-            filenamestream->filepos += strlen(path);
-            frameNumber++;
-            path[PV_PATH_MAX-1] = '\0';
-            size_t len = strlen(path);
-            if (len > 0) {
-               if (path[len-1] == '\n') {
-                  path[len-1] = '\0';
-                  len--;
-               }
-            }
-            for (size_t n=0; n<len; n++) {
-               if (!isblank(path[n])) {
-                  lineisblank = false;
-                  break;
-               }
-            }
-         }
+   if (icComm->commRank()==0) {
+      for (int i_skip = 0; i_skip < n_skip-1; i_skip++){
+         advanceFileName();
       }
+      advanceFileName();
       if (echoFramePathnameFlag){
-         fprintf(stderr, "%s\n", inputfile);
+         printf("%s\n", inputfile);
       }
    }
 #ifdef PV_USE_MPI
@@ -707,9 +666,48 @@ const char * Movie::getNextFileName()
    return inputfile;
 }
 
-// bool Movie::getNewImageFlag(){
-//    return newImageFlag;
-// }
+//This function takes care of rewinding for frame files
+const char * Movie::advanceFileName() {
+   // IMPORTANT!! This function should only be called by getNextFileName(int), and only by the root process
+   assert(parent->columnId()==0);
+   int c;
+   size_t maxlen = PV_PATH_MAX;
+
+   // Ignore blank lines
+   bool lineisblank = true;
+   while(lineisblank) {
+      // if at end of file (EOF), rewind
+      if ((c = fgetc(filenamestream->fp)) == EOF) {
+         PV_fseek(filenamestream, 0L, SEEK_SET);
+         fprintf(stderr, "Movie %s: EOF reached, rewinding file \"%s\"\n", name, fileOfFileNames);
+         frameNumber = 0;
+      }
+      else {
+         ungetc(c, filenamestream->fp);
+      }
+
+      char * path = fgets(inputfile, maxlen, filenamestream->fp);
+      if (path != NULL) {
+         filenamestream->filepos += strlen(path);
+         frameNumber++;
+         path[PV_PATH_MAX-1] = '\0';
+         size_t len = strlen(path);
+         if (len > 0) {
+            if (path[len-1] == '\n') {
+               path[len-1] = '\0';
+               len--;
+            }
+         }
+         for (size_t n=0; n<len; n++) {
+            if (!isblank(path[n])) {
+               lineisblank = false;
+               break;
+            }
+         }
+      }
+   }
+   return inputfile;
+}
 
 const char * Movie::getCurrentImage(){
    return inputfile;
