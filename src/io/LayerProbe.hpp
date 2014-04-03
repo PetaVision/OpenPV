@@ -68,12 +68,12 @@ protected:
    char* triggerLayerName;
    HyPerLayer * triggerLayer;
    double triggerOffset;
+   HyPerCol * parentCol;
+   char * probeName;
+   HyPerLayer * targetLayer;
 
 private:
-   char * probeName;
-   HyPerCol * parentCol;
    char * targetLayerName;
-   HyPerLayer * targetLayer;
    char * msgparams; // the message parameter in the params
    char * msgstring; // the string that gets printed by outputState ("" if message is empty or null; message + ":" if nonempty
    char * probeOutputFilename;

@@ -230,27 +230,23 @@ int LayerProbe::initMessage(const char * msg) {
 bool LayerProbe::needUpdate(double time, double dt){
    if(triggerFlag){
       assert(triggerLayer);
-
-      //Need to use choose between lastUpdateTime or nextUpdateTime, since nextUpdateTime will already be updated if offset is 0
-      double updateTime;
-      if(fabs(triggerLayer->getLastUpdateTime() - time) <= dt/2){
-         updateTime = triggerLayer->getLastUpdateTime();
+      //Update if trigger layer updated on this timestep
+      if(fabs(time - triggerLayer->getLastUpdateTime()) <= (dt/2)){
+         return true;
       }
-      else{
-         updateTime = triggerLayer->getNextUpdateTime();
-      }
+      double nextUpdateTime = triggerLayer->getNextUpdateTime();
       //never update flag
-      if(updateTime == -1){
+      if(nextUpdateTime == -1){
          return false;
       }
       //Check for equality
-      if(fabs(time - (updateTime - triggerOffset)) < (dt/2)){
+      if(fabs(time - (nextUpdateTime - triggerOffset)) < (dt/2)){
          return true;
       }
       //If it gets to this point, don't update
       return false;
    }
-   //If no trigger, weightUpdateTime
+   //If no trigger, update every timestep
    else{
       return true;
    }

@@ -26,8 +26,77 @@ SparsityLayerProbe::SparsityLayerProbe()
    // Derived classes should call initStatsProbe
 }
 
+SparsityLayerProbe::~SparsityLayerProbe()
+{
+   free(sparsityVals);
+   free(timeVals);
+}
+
+
 int SparsityLayerProbe::initSparsityLayerProbe_base() {
-   sparsityVal = 0;
+   sparsityVals = NULL;
+   timeVals = NULL;
+   bufIndex = -1; //-1 initialization since we're incrementing first before we put in data
+   bufSize = 0;
+   windowSize = 1000; //Default value of 1000, what should it be?
+   calcNNZ = true;
+   return PV_SUCCESS;
+}
+
+int SparsityLayerProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = LayerProbe::ioParamsFillGroup(ioFlag);
+   ioParam_windowSize(ioFlag);
+   ioParam_calcNNZ(ioFlag);
+
+   return status;
+}
+
+void SparsityLayerProbe::ioParam_windowSize(enum ParamsIOFlag ioFlag) {
+   parentCol->ioParamValue(ioFlag, probeName, "windowSize", &windowSize, windowSize);
+}
+
+void SparsityLayerProbe::ioParam_calcNNZ(enum ParamsIOFlag ioFlag) {
+   parentCol->ioParamValue(ioFlag, probeName, "calcNNZ", &calcNNZ, calcNNZ);
+}
+
+int SparsityLayerProbe::communicateInitInfo() {
+   int status = LayerProbe::communicateInitInfo();
+   //
+   //Need to calculate the buffer size, which is based off the deltatime of the triggerLayer, if it exists
+   if(triggerFlag){
+      assert(triggerLayer);
+      deltaUpdateTime = triggerLayer->getDeltaUpdateTime();
+      //Never update
+      if(deltaUpdateTime == -1){
+         bufSize = 1;
+      }
+      else{
+         double dBufSize = (float)windowSize/deltaUpdateTime;
+         if(dBufSize < 1){
+            fprintf(stderr, "SparsityLayerProbe %s: window size must be bigger than the trigger layer's delta update time (%f)", probeName, deltaUpdateTime);
+            exit(EXIT_FAILURE);
+         }
+         bufSize = ceil(dBufSize);
+      }
+   }
+   else{
+      bufSize = ceil((float)windowSize/parentCol->getDeltaTime());
+      deltaUpdateTime = parentCol->getDeltaTime();
+   }
+   //Allocate buffers
+   sparsityVals = (float*) calloc(bufSize, sizeof(float));
+   timeVals = (double*) calloc(bufSize, sizeof(double));
+   return status;
+}
+
+/**
+ * 2 buffers (sparsityVals and timeVals) are circular buffers
+ */
+void SparsityLayerProbe::updateBufIndex(){
+   bufIndex++;
+   if(bufIndex == bufSize){
+      bufIndex = 0;
+   }
 }
 
 /**
@@ -35,6 +104,7 @@ int SparsityLayerProbe::initSparsityLayerProbe_base() {
  */
 int SparsityLayerProbe::outputState(double timef)
 {
+   //Grab needed info
 #ifdef PV_USE_MPI
    InterColComm * icComm = getTargetLayer()->getParent()->icCommunicator();
    MPI_Comm comm = icComm->communicator();
@@ -43,22 +113,63 @@ int SparsityLayerProbe::outputState(double timef)
 #endif // PV_USE_MPI
    const pvdata_t * buf = getTargetLayer()->getLayerData();
    int nk = getTargetLayer()->getNumNeurons();
-   int nnz = 0;
    const PVLayerLoc * loc = getTargetLayer()->getLayerLoc();
-   for( int k=0; k<nk; k++ ) {
-      int kex = kIndexExtended(k, loc->nx, loc->ny, loc->nf, loc->nb);
-      pvdata_t a = buf[kex];
-      if(a > 0){
-         nnz++;
-      }
-   }
-#ifdef PV_USE_MPI
-   //Sum all nnz across processors
-   MPI_Allreduce(MPI_IN_PLACE, &nnz, 1, MPI_INT, MPI_SUM, comm);
-#endif // PV_USE_MPI
    int numTotNeurons = loc->nxGlobal * loc->nyGlobal * loc->nf;
-   sparsityVal = (float)nnz/numTotNeurons;
+   //Update index
+   updateBufIndex();
+   //Calculating nnz method
+   if (calcNNZ){
+      int nnz = 0;
+      for( int k=0; k<nk; k++ ) {
+         int kex = kIndexExtended(k, loc->nx, loc->ny, loc->nf, loc->nb);
+         pvdata_t a = buf[kex];
+         if(a > 0){
+            nnz++;
+         }
+      }
+#ifdef PV_USE_MPI
+      //Sum all nnz across processors
+      MPI_Allreduce(MPI_IN_PLACE, &nnz, 1, MPI_INT, MPI_SUM, comm);
+#endif // PV_USE_MPI
+      sparsityVals[bufIndex] = (float)nnz/numTotNeurons;
+   }
+   //Calculating mean of values method
+   else{
+      float sumVal = 0;
+      for( int k=0; k<nk; k++ ) {
+         int kex = kIndexExtended(k, loc->nx, loc->ny, loc->nf, loc->nb);
+         pvdata_t a = buf[kex];
+         sumVal += a;
+      }
+#ifdef PV_USE_MPI
+      //Sum all nnz across processors
+      MPI_Allreduce(MPI_IN_PLACE, &sumVal, 1, MPI_FLOAT, MPI_SUM, comm);
+#endif // PV_USE_MPI
+      sparsityVals[bufIndex] = sumVal/numTotNeurons;
+   }
+   //Save timestep
+   timeVals[bufIndex] = timef;
+
+   //Print out for testing
+   //for(int i = 0; i < bufSize; i++){
+   //   std::cout << timeVals[i] << ":" << sparsityVals[i] << "  ";
+   //}
+   //std::cout << "\n";
    return PV_SUCCESS;
+}
+
+//Getter functions for probe statstics
+float SparsityLayerProbe::getSparsity(){
+   //Find mean of entire buffer
+   float sum = 0;
+   for(int i = 0; i < bufSize; i++){
+      sum += sparsityVals[i];
+   }
+   return sum/bufSize;
+}
+
+double SparsityLayerProbe::getLastUpdateTime(){
+   return timeVals[bufIndex];
 }
 
 } // namespace PV

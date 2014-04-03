@@ -16,14 +16,27 @@ class SparsityLayerProbe: public PV::LayerProbe{
 // Methods
 public:
    SparsityLayerProbe(const char * probeName, HyPerCol * hc);
+   ~SparsityLayerProbe();
+   virtual int communicateInitInfo();
    virtual int outputState(double timef);
-   float getSparsity(){return sparsityVal;}
+   float getSparsity();
+   double getLastUpdateTime();
 protected:
    SparsityLayerProbe();
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   void ioParam_windowSize(enum ParamsIOFlag ioFlag);
+   void ioParam_calcNNZ(enum ParamsIOFlag ioFlag);
 
 private:
-   float sparsityVal;
+   void updateBufIndex();
+   float* sparsityVals;
+   double* timeVals;
    int initSparsityLayerProbe_base();
+   int bufIndex;
+   int bufSize;
+   bool calcNNZ;
+   double windowSize;
+   double deltaUpdateTime;
 };
 
 }
