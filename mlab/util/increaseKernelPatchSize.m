@@ -1,15 +1,16 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% 
-%% Increases the number of weight elements in a kernel (weights) pvp file
+%% Increases the number of weight elements in the feature dimension to NFP in a kernel (weights) pvp file
 %% 
-%%    Will Shainin
+%%    Will Shainin 
 %%    Mar 20, 2014
+%%    modified by Gar Kenyon ~April 3, 2014
 %%
-%% Input: pvpFile, newNF,  (wMinInit, wMaxInit, sparseFraction), (outFile)
+%% Input: pvpFile, newNFP,  (wMinInit, wMaxInit, sparseFraction), (outFile)
 %%
 %%   pvpFile         - Absolute path to input file (Only supports checkpoint weights).
-%%   newNF           - The new number of features. Weights will be added up to newNF.
+%%   newNFP           - The new number of features in patch. Weights will be added up to newNFP.
 %%  (wMinInit        - (wMinInit and wMaxInit determine the range of initialization 
 %%   wMaxInit           values (uniform random distribution). sparseFraction defines  
 %%   sparseFraction)    the sparsity (% non-zero). Must be passed together, if at all.) 
@@ -19,15 +20,15 @@
 %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function increaseNumFeatInFile(pvpFile, newNF, wMinInit, wMaxInit, sparseFraction, outFile)
+function increaseKernelPatchSize(pvpFile, newNFP, wMinInit, wMaxInit, sparseFraction, outFile)
    %addpath('/nh/home/wshainin/workspace/PetaVision/mlab/util');
-   addpath(pwd);
+   addpath(pwd)
 
    DEFAULT_wMinInit       = -1.00;
    DEFAULT_wMaxInit       =  1.00;
    DEFAULT_sparseFraction =   .90;
 
-   if nargin < 1 || ~exist(pvpFile,'file') || ~exist('newNF','var') || isempty(pvpFile) || isempty(newNF)
+   if nargin < 1 || ~exist(pvpFile,'file') || ~exist('newNFP','var')  || isempty(pvpFile) || isempty(newNFP)
       error('increaseNumFeatInFile:invalidinputarguments',...
          'pvpFile and newNF are required arguments.');
    end%if
@@ -45,14 +46,14 @@ function increaseNumFeatInFile(pvpFile, newNF, wMinInit, wMaxInit, sparseFractio
       sparseFraction  = DEFAULT_sparseFraction
    end%if
    if nargin < 6 || ~exist('outFile','var') || isempty(outFile)
-      [out_path,out_name,out_ext] = fileparts(outFile);
+     [out_path,out_name,out_ext] = fileparts(outFile);
       if ~exist(out_path, 'dir')
 	[path,name,ext] = fileparts(pvpFile);
 	name_id = name(1:strfind(name, '_W'));
-	outFile = [path, filesep, name_id, '_NF', num2str(newNF), '_W', ext]
+	outFile = [path, filesep, name_id, '_NFP', num2str(newNFP), '_W', ext]
 	warning('increaseNumFeatInFile:outputfilenotspecified',...
-		'Using default naming convention for output file: ', outFile);
-      end%if
+		'Using default naming convention for output file:', ' ', outFile);
+      end%if 
    end%if
 
    [data, hdr] = readpvpfile(pvpFile);
@@ -60,8 +61,8 @@ function increaseNumFeatInFile(pvpFile, newNF, wMinInit, wMaxInit, sparseFractio
 
    num_arbors = length(data{1,1}.values);
    for i_arbor = 1 : num_arbors
-   for i=(nf+1):newNF
-      for j=1:hdr.nfp
+   for i=1:nf
+      for j=hdr.nfp+1:newNFP
          init = unifrnd(wMinInit, wMaxInit, [hdr.nyp, hdr.nxp]);
          rnd  = unifrnd(0, 1, [hdr.nyp, hdr.nxp]);
          rej  = find(rnd < sparseFraction);
