@@ -367,15 +367,6 @@ runandecho $testname $testname Debug/$testname $arglist
 mpirunandecho $testname $testname Debug/$testname $arglist
 cd "$wd"
 
-
-cd "./PetaVision/tests"
-make runtests 2>/dev/null | egrep 'passed|FAILED'
-if test $usempi -eq 1
-then
-    make runMPItests 2>/dev/null | egrep 'passed|FAILED'
-fi
-cd $wd
-
 if test -n "$fails"
 then
     echo "The following tests failed: $fails"

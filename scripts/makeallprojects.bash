@@ -87,18 +87,6 @@ do
     cd $wd
 done
 
-# Compile the unit tests
-echo ; echo ======== Building PetaVision/tests ========
-cd PetaVision/tests
-make clean
-make -j4 all
-if test "$?" -ne 0
-then
-    fails="$fails tests"
-fi
-cd $wd
-echo cd $wd
-
 if test -n "$fails"
 then
     echo "The following projects failed to build:$fails"
