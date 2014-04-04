@@ -17,7 +17,7 @@
 # On neuro/anterior/etc.  Linux installs them as mpi*
 if test "$(uname)" = "Darwin"
 then
-    PV_MPIRUN=openmpirun
+    PV_MPIRUN=mpiexec-openmpi-mp
 elif test "$(uname)" = "Linux"
 then
     PV_MPIRUN=mpirun
@@ -33,9 +33,10 @@ echo cd $wd
 fails=""
 dne=""
 
-# # Open MPI 1.7 on Macs has a bug in MPI_Finalize that causes a crash on
+# # MacPorts openmpi has a bug in MPI_Finalize that causes a crash on
 # # exit if using GDAL if you run outside of openmpirun.  As a workaround,
 # # runandecho is defined differently depending on whether --nompi is used.
+# # (this seems to have been fixed when MacPorts switched to openmpi-default
 #function runandecho() {
 #    testname=$1
 #    shift
@@ -388,133 +389,6 @@ arglist="-p input/postTest.params" # parameter filename is in main()
 runandecho $testname Debug/$testname $arglist
 mpirunandecho $testname Debug/$testname $arglist
 cd "$wd"
-
-# # Unit tests
-cd UnitTests
-
-testname="test_kg"
-if ./$testname &> ${testname}_1.log
-then
-    echo "$testname passed."
-else
-    echo "$testname FAILED."
-    fails="$fails $testname"
-fi
-
-testname="test_kxpos"
-if ./$testname &> ${testname}_1.log
-then
-    echo "$testname passed."
-else
-    echo "$testname FAILED."
-    fails="$fails $testname"
-fi
-
-testname="test_kypos"
-if ./$testname &> ${testname}_1.log
-then
-    echo "$testname passed."
-else
-    echo "$testname FAILED."
-    fails="$fails $testname"
-fi
-
-testname="test_nearby_neighbor"
-if ./$testname &> ${testname}_1.log
-then
-    echo "$testname passed."
-else
-    echo "$testname FAILED."
-    fails="$fails $testname"
-fi
-
-testname="test_patch_head"
-if ./$testname &> ${testname}_1.log
-then
-    echo "$testname passed."
-else
-    echo "$testname FAILED."
-    fails="$fails $testname"
-fi
-
-testname="test_post_weights"
-if ./$testname -p input/test_post_weights.params &> ${testname}_1.log
-then
-    echo "$testname passed."
-else
-    echo "$testname FAILED."
-    fails="$fails $testname"
-fi
-
-testname="test_delta_pos"
-if ./$testname &> ${testname}_1.log
-then
-    echo "$testname passed."
-else
-    echo "$testname FAILED."
-    fails="$fails $testname"
-fi
-
-testname="test_extend_border"
-if ./$testname &> ${testname}_1.log
-then
-    echo "$testname passed."
-else
-    echo "$testname FAILED."
-    fails="$fails $testname"
-fi
-
-testname="test_patch_head"
-if ./$testname &> ${testname}_1.log
-then
-    echo "$testname passed."
-else
-    echo "$testname FAILED."
-    fails="$fails $testname"
-fi
-
-testname="test_delta"
-if ./$testname &> ${testname}_1.log
-then
-    echo "$testname passed."
-else
-    echo "$testname FAILED."
-    fails="$fails $testname"
-fi
-
-testname="test_sign"
-if ./$testname &> ${testname}_1.log
-then
-    echo "$testname passed."
-else
-    echo "$testname FAILED."
-    fails="$fails $testname"
-fi
-
-testname="test_mirror_BCs"
-if $PV_MPIRUN -np 1 ./$testname &> ${testname}_1.log
-then
-    echo "$testname passed."
-else
-    echo "$testname FAILED."
-    fails="$fails $testname"
-fi
-
-# MPI unit tests
-
-if test $usempi -ne 0
-then
-    testname="test_mpi_specifyrowscolumns"
-    if $PV_MPIRUN -np 6 ./$testname -p input/test_mpi_specifyrowscolumns.params &> ${testname}_6.log
-    then
-        echo "$testname passed."
-    else
-        echo "$testname FAILED."
-        fails="$fails $testname"
-    fi
-fi
-
-cd $wd
 
 status=0
 if test -n "$fails"
