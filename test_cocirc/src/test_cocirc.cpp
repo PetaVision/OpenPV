@@ -8,11 +8,10 @@
 #undef DEBUG_PRINT
 
 #include "Example.hpp"
-#include "../src/layers/HyPerLayer.hpp"
-#include "../src/connections/HyPerConn.hpp"
-#include "../src/connections/KernelConn.hpp"
-// #include "../src/connections/CocircConn.hpp" // Cocirc now implemented in KernelConn using initWeights
-#include "../src/io/io.h"
+#include <layers/HyPerLayer.hpp>
+#include <connections/HyPerConn.hpp>
+#include <connections/KernelConn.hpp>
+#include <io/io.h>
 #include <assert.h>
 
 using namespace PV;

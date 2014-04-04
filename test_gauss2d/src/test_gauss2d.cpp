@@ -7,10 +7,10 @@
 
 #undef DEBUG_PRINT
 
-#include "../src/layers/HyPerLayer.hpp"
-#include "../src/connections/HyPerConn.hpp"
-#include "../src/connections/KernelConn.hpp"
-#include "../src/io/io.h"
+#include <layers/HyPerLayer.hpp>
+#include <connections/HyPerConn.hpp>
+#include <connections/KernelConn.hpp>
+#include <io/io.h>
 #include <assert.h>
 
 #include "Example.hpp"

@@ -9,13 +9,13 @@
  * the post-synaptic layer.
  */
 
-#include "../src/columns/HyPerCol.hpp"
-#include "../src/layers/Image.hpp"
-#include "../src/layers/Retina.hpp"
-#include "../src/connections/HyPerConn.hpp"
-#include "../src/layers/ANNLayer.hpp"
-#include "../src/io/PointProbe.hpp"
-#include "../src/weightinit/InitUniformWeights.hpp"
+#include <columns/HyPerCol.hpp>
+#include <layers/Image.hpp>
+#include <layers/Retina.hpp>
+#include <connections/HyPerConn.hpp>
+#include <layers/ANNLayer.hpp>
+#include <io/PointProbe.hpp>
+#include <weightinit/InitUniformWeights.hpp>
 
 #include <assert.h>
 
