@@ -1,5 +1,5 @@
-#include "../src/utils/conversions.h"
-#include "../src/layers/PVLayer.h"
+#include <utils/conversions.h>
+#include <layers/PVLayer.h>
 #include <stdio.h>
 #include <stdlib.h>
 
