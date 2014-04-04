@@ -20,12 +20,16 @@ public:
    virtual int communicateInitInfo();
    virtual int outputState(double timef);
    float getSparsity();
-   double getLastUpdateTime();
+   double getUpdateTime();
+   float getInitSparsityVal(){return initSparsityVal;}
+   double getDeltaUpdateTime(){return deltaUpdateTime;}
+   double getWindowSize(){return windowSize;}
 protected:
    SparsityLayerProbe();
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
-   void ioParam_windowSize(enum ParamsIOFlag ioFlag);
-   void ioParam_calcNNZ(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_windowSize(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_calcNNZ(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_initSparsityVal(enum ParamsIOFlag ioFlag);
 
 private:
    void updateBufIndex();
@@ -37,6 +41,7 @@ private:
    bool calcNNZ;
    double windowSize;
    double deltaUpdateTime;
+   float initSparsityVal;
 };
 
 }

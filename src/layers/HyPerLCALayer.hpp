@@ -9,6 +9,7 @@
 #define HYPERLCALAYER_HPP_
 
 #include "ANNLayer.hpp"
+#include "../io/SparsityLayerProbe.hpp"
 
 namespace PV {
 
@@ -26,7 +27,9 @@ public:
 protected:
    HyPerLCALayer();
    int initialize(const char * name, HyPerCol * hc);
+   virtual int allocateDataStructures();
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_dVThresh(enum ParamsIOFlag ioFlag);
    virtual void ioParam_numChannels(enum ParamsIOFlag ioFlag);
    virtual void ioParam_timeConstantTau(enum ParamsIOFlag ioFlag);
    virtual void ioParam_timeConstantTauMinimum(enum ParamsIOFlag ioFlag);
@@ -41,6 +44,9 @@ protected:
          unsigned int * active_indices, unsigned int * num_active);
    virtual float getChannelTimeConst(enum ChannelType channel_type){return tauMax;};
 private:
+   float dVThresh;
+   float targetSparsity; //Grabbed from the attached probe
+   SparsityLayerProbe* sparseProbe;
    pvdata_t tauMax;
    pvdata_t tauMin;
    pvdata_t dtTau;

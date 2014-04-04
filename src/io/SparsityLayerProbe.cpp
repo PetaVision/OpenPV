@@ -40,6 +40,7 @@ int SparsityLayerProbe::initSparsityLayerProbe_base() {
    bufSize = 0;
    windowSize = 1000; //Default value of 1000, what should it be?
    calcNNZ = true;
+   initSparsityVal = .01;
    return PV_SUCCESS;
 }
 
@@ -47,7 +48,7 @@ int SparsityLayerProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = LayerProbe::ioParamsFillGroup(ioFlag);
    ioParam_windowSize(ioFlag);
    ioParam_calcNNZ(ioFlag);
-
+   ioParam_initSparsityVal(ioFlag);
    return status;
 }
 
@@ -57,6 +58,10 @@ void SparsityLayerProbe::ioParam_windowSize(enum ParamsIOFlag ioFlag) {
 
 void SparsityLayerProbe::ioParam_calcNNZ(enum ParamsIOFlag ioFlag) {
    parentCol->ioParamValue(ioFlag, probeName, "calcNNZ", &calcNNZ, calcNNZ);
+}
+
+void SparsityLayerProbe::ioParam_initSparsityVal(enum ParamsIOFlag ioFlag) {
+   parentCol->ioParamValue(ioFlag, probeName, "initSparsityVal", &initSparsityVal, initSparsityVal);
 }
 
 int SparsityLayerProbe::communicateInitInfo() {
@@ -86,6 +91,10 @@ int SparsityLayerProbe::communicateInitInfo() {
    //Allocate buffers
    sparsityVals = (float*) calloc(bufSize, sizeof(float));
    timeVals = (double*) calloc(bufSize, sizeof(double));
+   //Initialize sparsityVals
+   for(int i = 0; i < bufSize; i++){
+      sparsityVals[i] = initSparsityVal;
+   }
    return status;
 }
 
@@ -168,8 +177,8 @@ float SparsityLayerProbe::getSparsity(){
    return sum/bufSize;
 }
 
-double SparsityLayerProbe::getLastUpdateTime(){
-   return timeVals[bufIndex];
+double SparsityLayerProbe::getUpdateTime(){
+   return timeVals[bufIndex] + parentCol->getDeltaTime();
 }
 
 } // namespace PV
