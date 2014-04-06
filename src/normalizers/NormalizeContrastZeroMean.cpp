@@ -71,7 +71,7 @@ int NormalizeContrastZeroMean::normalizeWeights(HyPerConn * conn) {
    if (normalizeArborsIndividually) {
       for (int arborID = 0; arborID<nArbors; arborID++) {
          for (int patchindex = 0; patchindex<numDataPatches; patchindex++) {
-            pvdata_t * dataStartPatch = conn->get_wDataStart(arborID) + patchindex * weights_per_patch;
+            pvwdata_t * dataStartPatch = conn->get_wDataStart(arborID) + patchindex * weights_per_patch;
             double sum = 0.0;
             double sumsq = 0.0;
             accumulateSumAndSumSquared(dataStartPatch, weights_per_patch, &sum, &sumsq);
@@ -90,7 +90,7 @@ int NormalizeContrastZeroMean::normalizeWeights(HyPerConn * conn) {
          double sum = 0.0;
          double sumsq = 0.0;
          for (int arborID = 0; arborID<nArbors; arborID++) {
-            pvdata_t * dataStartPatch = conn->get_wDataStart(arborID)+patchindex*weights_per_patch;
+            pvwdata_t * dataStartPatch = conn->get_wDataStart(arborID)+patchindex*weights_per_patch;
             accumulateSumAndSumSquared(dataStartPatch, weights_per_patch, &sum, &sumsq);
          }
          if (fabs(sum) <= minSumTolerated) {
@@ -101,7 +101,7 @@ int NormalizeContrastZeroMean::normalizeWeights(HyPerConn * conn) {
          float mean = sum/count;
          float var = sumsq/count - mean*mean;
          for (int arborID = 0; arborID<nArbors; arborID++) {
-            pvdata_t * dataStartPatch = conn->get_wDataStart(arborID)+patchindex*weights_per_patch;
+            pvwdata_t * dataStartPatch = conn->get_wDataStart(arborID)+patchindex*weights_per_patch;
             subtractOffsetAndNormalize(dataStartPatch, weights_per_patch, mean, sqrt(var)/scale_factor);
          }
       }

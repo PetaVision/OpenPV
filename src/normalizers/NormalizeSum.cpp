@@ -74,7 +74,7 @@ int NormalizeSum::normalizeWeights(HyPerConn * conn) {
    if (normalizeArborsIndividually) {
 	  for (int arborID = 0; arborID<nArbors; arborID++) {
 		 for (int patchindex = 0; patchindex<numDataPatches; patchindex++) {
-			 pvdata_t * dataStartPatch = conn->get_wDataHead(arborID,patchindex);
+			 pvwdata_t * dataStartPatch = conn->get_wDataHead(arborID,patchindex);
 			double sum = 0.0;
 			if (offsetShrunken == 0){
 				accumulateSum(dataStartPatch, weights_per_patch, &sum);
@@ -94,7 +94,7 @@ int NormalizeSum::normalizeWeights(HyPerConn * conn) {
 	  if (testNormalizationFlag){
 		  for (int arborID = 0; arborID<nArbors; arborID++) {
 			 for (int patchindex = 0; patchindex<numDataPatches; patchindex++) {
-				 pvdata_t * dataStartPatch = conn->get_wDataHead(arborID,patchindex);
+				 pvwdata_t * dataStartPatch = conn->get_wDataHead(arborID,patchindex);
 				double sum = 0.0;
 				if (offsetShrunken == 0){
 					accumulateSum(dataStartPatch, weights_per_patch, &sum);
@@ -111,7 +111,7 @@ int NormalizeSum::normalizeWeights(HyPerConn * conn) {
       for (int patchindex = 0; patchindex<numDataPatches; patchindex++) {
          double sum = 0.0;
          for (int arborID = 0; arborID<nArbors; arborID++) {
-            pvdata_t * dataStartPatch = conn->get_wDataHead(arborID,patchindex);
+            pvwdata_t * dataStartPatch = conn->get_wDataHead(arborID,patchindex);
             if (offsetShrunken == 0){
             	accumulateSum(dataStartPatch, weights_per_patch, &sum);
             }
@@ -126,7 +126,7 @@ int NormalizeSum::normalizeWeights(HyPerConn * conn) {
 
          }
          for (int arborID = 0; arborID<nArbors; arborID++) {
-            pvdata_t * dataStartPatch = conn->get_wDataHead(arborID,patchindex);
+            pvwdata_t * dataStartPatch = conn->get_wDataHead(arborID,patchindex);
             normalizePatch(dataStartPatch, weights_per_patch, scale_factor/sum);
          }
       } // patchindex
@@ -136,7 +136,7 @@ int NormalizeSum::normalizeWeights(HyPerConn * conn) {
 		  for (int patchindex = 0; patchindex<numDataPatches; patchindex++) {
 			 double sum = 0.0;
 			 for (int arborID = 0; arborID<nArbors; arborID++) {
-				 pvdata_t * dataStartPatch = conn->get_wDataHead(arborID,patchindex);
+				 pvwdata_t * dataStartPatch = conn->get_wDataHead(arborID,patchindex);
 				 if (offsetShrunken == 0){
 					accumulateSum(dataStartPatch, weights_per_patch, &sum);
 				 }

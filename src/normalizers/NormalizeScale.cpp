@@ -66,7 +66,7 @@ int NormalizeScale::normalizeWeights(HyPerConn * conn) {
   
   for (int patchindex = 0; patchindex<numDataPatches; patchindex++) {
      for (int arborID = 0; arborID<nArbors; arborID++) {
-        pvdata_t * dataStartPatch = conn->get_wDataStart(arborID)+patchindex*weights_per_patch;
+        pvwdata_t * dataStartPatch = conn->get_wDataStart(arborID)+patchindex*weights_per_patch;
         normalizePatch(dataStartPatch, weights_per_patch, scale_factor);
      }
   }

@@ -111,7 +111,7 @@ int NormalizeBase::normalizeWeights(HyPerConn * conn) {
 	   int num_patches = conn->getNumDataPatches();
 	   int num_weights_in_patch = conn->xPatchSize()*conn->yPatchSize()*conn->fPatchSize();
        for (int arbor=0; arbor<num_arbors; arbor++) {
-          pvdata_t * dataPatchStart = conn->get_wDataStart(arbor);
+          pvwdata_t * dataPatchStart = conn->get_wDataStart(arbor);
           for (int patchindex=0; patchindex<num_patches; patchindex++) {
         	  applyRMin(dataPatchStart+patchindex*num_weights_in_patch, rMinX, rMinY,
         		  conn->xPatchSize(), conn->yPatchSize(), conn->xPatchStride(), conn->yPatchStride());
@@ -124,7 +124,7 @@ int NormalizeBase::normalizeWeights(HyPerConn * conn) {
       int num_weights_in_patch = conn->xPatchSize()*conn->yPatchSize()*conn->fPatchSize();
       if (normalizeArborsIndividually) {
          for (int arbor=0; arbor<num_arbors; arbor++) {
-            pvdata_t * dataStart = conn->get_wDataStart(arbor);
+            pvwdata_t * dataStart = conn->get_wDataStart(arbor);
             float max = 0.0f;
             for (int patchindex=0; patchindex<num_patches; patchindex++) {
                accumulateMax(dataStart+patchindex*num_weights_in_patch, num_weights_in_patch, &max);
@@ -138,11 +138,11 @@ int NormalizeBase::normalizeWeights(HyPerConn * conn) {
          for (int patchindex=0; patchindex<num_patches; patchindex++) {
             float max = 0.0f;
             for (int arbor=0; arbor<num_arbors; arbor++) {
-               pvdata_t * dataStart = conn->get_wDataStart(arbor);
+               pvwdata_t * dataStart = conn->get_wDataStart(arbor);
                accumulateMax(dataStart+patchindex*num_weights_in_patch, num_weights_in_patch, &max);
             }
             for (int arbor=0; arbor<num_arbors; arbor++) {
-               pvdata_t * dataStart = conn->get_wDataStart(arbor);
+               pvwdata_t * dataStart = conn->get_wDataStart(arbor);
                applyThreshold(dataStart+patchindex*num_weights_in_patch, num_weights_in_patch, max);
             }
          }
@@ -151,11 +151,12 @@ int NormalizeBase::normalizeWeights(HyPerConn * conn) {
    return status;
 }
 
-int NormalizeBase::accumulateSum(pvdata_t * dataPatchStart, int weights_in_patch, double * sum) {
+int NormalizeBase::accumulateSum(pvwdata_t * dataPatchStart, int weights_in_patch, double * sum) {
    // Do not call with sum uninitialized.
    // sum, sumsq, max are not cleared inside this routine so that you can accumulate the stats over several patches with multiple calls
    for (int k=0; k<weights_in_patch; k++) {
-      pvdata_t w = dataPatchStart[k];
+      pvwdata_t w = dataPatchStart[k];
+      //TODO-CER-2014.4.4 - weight conversion
       *sum += w;
    }
    return PV_SUCCESS;
@@ -301,7 +302,7 @@ int NormalizeBase::symmetrizeWeights(HyPerConn * conn) {
                   int kDf = kfSym - iSymKernel;
                   int iSymW = kfSym + nfp * kxSym + sy * kySym;
                   for (int iKernel = 0; iKernel < nfp; iKernel++) {
-                     pvdata_t * kerW = conn->get_wDataStart(arborID) + iKernel*nxp*nyp*nfp;
+                     pvwdata_t * kerW = conn->get_wDataStart(arborID) + iKernel*nxp*nyp*nfp;
                      int kfRot = iKernel + kDf;
                      if (kfRot < 0) {
                         kfRot = nfp + kfRot;
@@ -326,7 +327,7 @@ int NormalizeBase::symmetrizeWeights(HyPerConn * conn) {
       } // iKernel
       const int num_weights = nfp * nxp * nyp;
       for (int iKernel = 0; iKernel < numPatches; iKernel++) {
-         pvdata_t * kerW = conn->get_wDataStart(arborID)+iKernel*nxp*nyp*nfp;
+         pvwdata_t * kerW = conn->get_wDataStart(arborID)+iKernel*nxp*nyp*nfp;
          pvdata_t * symW = symPatches + iKernel*nxp*nyp*nfp;
          for (int iW = 0; iW < num_weights; iW++) {
             kerW[iW] = symW[iW];
