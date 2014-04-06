@@ -64,7 +64,7 @@ int checkoutput(HyPerCol * hc, int argc, char ** argv) {
    int patchSize = conn->xPatchSize()*conn->yPatchSize()*conn->fPatchSize();
    assert(conn->numberOfAxonalArborLists()==1);
    assert(conn->getNumDataPatches()==1);
-   pvdata_t * w = conn->get_wDataHead(0,0);
+   pvwdata_t * w = conn->get_wDataHead(0,0);
    for (int r=0; r<hc->icCommunicator()->commSize(); r++) {
       if (r==hc->columnId()) {
          printf("Rank %d, Weight values\n", r);
