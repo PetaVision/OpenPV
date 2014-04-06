@@ -49,7 +49,8 @@ int AverageRateConn::updateState(double timed, double dt) {
    assert(nfp==getNumDataPatches());
    assert(nxp==1 && nyp==1);
    for (int k = 0; k < getNumDataPatches(); k++) {
-      pvdata_t * p = get_wDataHead(arbor, k);
+      pvwdata_t * p = get_wDataHead(arbor, k);
+      //TODO-CER-2014.4.4 - weight conversion
       p[k] = w;
    }
    return PV_SUCCESS;
