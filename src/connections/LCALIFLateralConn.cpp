@@ -117,7 +117,7 @@ int LCALIFLateralConn::allocateDataStructures() {
          int nx_patch = p->nx;
          int ny_patch = p->ny;
 
-         pvdata_t * w_data = get_wData(axonId,kPre_extended);
+         pvwdata_t * w_data = get_wData(axonId,kPre_extended);
 
          const PVLayerLoc * postloc = post->getLayerLoc();
          int nxpost = postloc->nx;
@@ -211,14 +211,14 @@ int LCALIFLateralConn::updateWeights(int axonId) {
       for (int kPre_extended=0; kPre_extended<getNumWeightPatches(); kPre_extended++) {
          const PVPatch * p = getWeights(kPre_extended, axonId);
          pvdata_t * dw_data = get_dwData(axonId,kPre_extended);
-         pvdata_t * w_data = get_wData(axonId,kPre_extended);
+         pvwdata_t *  w_data = get_wData(axonId,kPre_extended);
          int nx_patch = p->nx;
          int ny_patch = p->ny;
          for (int ky_patch=0; ky_patch<ny_patch; ky_patch++) {
             for (int kx_patch=0; kx_patch<nx_patch; kx_patch++) {
                for (int kf_patch=0; kf_patch<nfp; kf_patch++) {
                   int k_patch = sxp*kx_patch + syp*ky_patch + sfp*kf_patch;
-                  pvdata_t w = w_data[k_patch] + dw_data[k_patch];
+                  pvwdata_t w = w_data[k_patch] + dw_data[k_patch];
                   if (w<0) w=0;
                   w_data[k_patch] = w;
                }
