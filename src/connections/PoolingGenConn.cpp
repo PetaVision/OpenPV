@@ -153,13 +153,13 @@ int PoolingGenConn::updateWeights(int axonID) {
         pvdata_t * postactRef = &(postSynapticLayer()->getCLayer()->activity->data[offset]);
         pvdata_t * postact2Ref = &(getPost2()->getCLayer()->activity->data[offset]);
         int sya = getPostNonextStrides()->sy;
-        pvdata_t * wtpatch = get_wData(axonID, kExt); // weights->data;
+        pvwdata_t * wtpatch = get_wData(axonID, kExt); // weights->data;
         int syw = syp;
         for( int y=0; y<nyp; y++ ) {
             int lineoffsetw = 0;
             int lineoffseta = 0;
             for( int k=0; k<nk; k++ ) {
-                float w = wtpatch[lineoffsetw + k] + relaxation*(preact*postactRef[lineoffseta + k]+preact2*postact2Ref[lineoffseta + k]);
+                pvdata_t w = wtpatch[lineoffsetw + k] + relaxation*(preact*postactRef[lineoffseta + k]+preact2*postact2Ref[lineoffseta + k]);
                 wtpatch[lineoffsetw + k] = w;
             }
             lineoffsetw += syw;
@@ -177,7 +177,7 @@ int PoolingGenConn::updateWeights(int axonID) {
            int nk = weights->nx * nfp;
            pvdata_t * postactRef = &(slownessPost->getCLayer()->activity->data[offset]);
            int sya = getPostNonextStrides()->sy;
-           pvdata_t * wtpatch = get_wData(axonID, kExt); // weights->data;
+           pvwdata_t * wtpatch = get_wData(axonID, kExt); // weights->data;
            int syw = syp;
            for( int y=0; y<nyp; y++ ) {
                int lineoffsetw = 0;
@@ -193,8 +193,8 @@ int PoolingGenConn::updateWeights(int axonID) {
     }
     if( nonnegConstraintFlag ) {
        for(int kPatch=0; kPatch<getNumDataPatches();kPatch++) {
-          // PVPatch * weights = this->getKernelPatch(axonID, kPatch);
-          pvdata_t * wtpatch = get_wDataHead(axonID, kPatch); // weights->data;
+           // PVPatch * weights = this->getKernelPatch(axonID, kPatch);
+           pvwdata_t * wtpatch = get_wDataHead(axonID, kPatch); // weights->data;
            int nk = nxp * nfp;
            int syw = nxp*nfp;
            for( int y=0; y < nyp; y++ ) {
