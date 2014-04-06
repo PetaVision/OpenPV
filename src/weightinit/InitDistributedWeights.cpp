@@ -77,7 +77,7 @@ int InitDistributedWeights::calcWeights() {
    }
    //the loop zeros out all the weights in the matrix
    for(int j = 0; j < numDataPatches; j++){
-      pvdata_t *weightptr = callingConn->get_wDataHead(arbor, j);
+      pvwdata_t *weightptr = callingConn->get_wDataHead(arbor, j);
       if (flag) {
          *weightptr = 0;
       }
@@ -90,7 +90,7 @@ int InitDistributedWeights::calcWeights() {
    //this loop receives a random index,then checks to see if it is a duplicate. If not, it sets the weight at that index to 1
    while(i < max) {
       int dataPatchIndex = (rand() % (upperb - lowerb)) + lowerb; //creates a random index in which to place a node based on the the upper and lower bounds
-      pvdata_t *weightptr = callingConn->get_wDataHead(arbor, dataPatchIndex);
+      pvwdata_t *weightptr = callingConn->get_wDataHead(arbor, dataPatchIndex);
       if (flag) {
          if(*weightptr == 0){
             *weightptr = 1;

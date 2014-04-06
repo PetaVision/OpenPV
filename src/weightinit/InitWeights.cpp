@@ -121,7 +121,7 @@ int InitWeights::zeroWeightsOutsideShrunkenPatch(PVPatch *** patches) {
     int nkPatch  = callingConn->fPatchSize() * nxPatch;
     int syPatch = callingConn->yPatchStride();                   // stride in patch
     int offsetPatch = 0;
-    pvdata_t * wData_head = NULL;
+    pvwdata_t * wData_head = NULL;
     int delta_offset = 0;
     for (int arborID = 0; arborID < numArbors; arborID++) {
         for (int kPre = 0; kPre < callingConn->getNumDataPatches(); kPre++) {
@@ -132,7 +132,7 @@ int InitWeights::zeroWeightsOutsideShrunkenPatch(PVPatch *** patches) {
                 nyPatch = weightPatch->ny;
                 offsetPatch = weightPatch->offset;
                 nkPatch  = callingConn->fPatchSize() * nxPatch;
-                pvdata_t * wData = callingConn->get_wData(arborID,kPre);
+                pvwdata_t * wData = callingConn->get_wData(arborID,kPre);
                 delta_offset = wData - wData_head;
             }
             else {  // callingConn is a KernelConn
