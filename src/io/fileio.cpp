@@ -347,7 +347,7 @@ PV_Stream * PV_stdout() {
 /**
  * Copy patches into an unsigned char buffer
  */
-int pvp_copy_patches(unsigned char * buf, PVPatch ** patches, pvdata_t * dataStart, int numDataPatches,
+int pvp_copy_patches(unsigned char * buf, PVPatch ** patches, pvwdata_t * dataStart, int numDataPatches,
                      int nxp, int nyp, int nfp, float minVal, float maxVal,
                      bool compressed=true) {
    // Copies data from patches and dataStart to buf.
@@ -371,7 +371,7 @@ int pvp_copy_patches(unsigned char * buf, PVPatch ** patches, pvdata_t * dataSta
          offset = p->offset;
       }
       // const pvdata_t * data = p->data;
-      const pvdata_t * data = dataStart + k*patchsize; // + offset; // Don't include offset as the entire patch will be copied
+      const pvwdata_t * data = dataStart + k*patchsize; // + offset; // Don't include offset as the entire patch will be copied
 
       // const int sxp = nfp; //p->sx;
       // const int syp = nfp * nxp; //p->sy;
@@ -406,7 +406,7 @@ int pvp_copy_patches(unsigned char * buf, PVPatch ** patches, pvdata_t * dataSta
 /**
  * Set patches given an unsigned char input buffer
  */
-int pvp_set_patches(unsigned char * buf, PVPatch ** patches, pvdata_t * dataStart, int numDataPatches,
+int pvp_set_patches(unsigned char * buf, PVPatch ** patches, pvwdata_t * dataStart, int numDataPatches,
                     int nxp, int nyp, int nfp, float minVal, float maxVal,
                     bool compress=true,
                     bool shmget_owner=true, bool shmget_flag=false)
@@ -437,7 +437,7 @@ int pvp_set_patches(unsigned char * buf, PVPatch ** patches, pvdata_t * dataStar
          offset = p->offset;
       }
       // pvdata_t * data = p->data;
-      pvdata_t * data = dataStart + k*patchsize; // + offset; // Don't include offset as entire patch will be read from buf
+      pvwdata_t * data = dataStart + k*patchsize; // + offset; // Don't include offset as entire patch will be read from buf
 #ifdef USE_SHMGET
       volatile pvdata_t * data_volatile = dataStart + k*patchsize;
 #endif
@@ -715,10 +715,14 @@ int pvp_read_header(PV_Stream * pvstream, Communicator * comm, int * params, int
       mpi_buffer[0] = status;
       mpi_buffer[1] = numParamsRead;
       memcpy(&mpi_buffer[2], params, sizeof(int)*(*numParams));
+#if PV_USE_MPI
       MPI_Bcast(mpi_buffer, 22, MPI_INT, 0/*root*/, comm->communicator());
+#endif
    } // comm->communicator()==0
    else {
+#if PV_USE_MPI
       MPI_Bcast(mpi_buffer, 22, MPI_INT, 0/*root*/, comm->communicator());
+#endif
       status = mpi_buffer[0];
       memcpy(params, &mpi_buffer[2], sizeof(int)*(*numParams));
    }
@@ -819,7 +823,9 @@ int pvp_read_header(const char * filename, Communicator * comm, double * time,
            comm->commRank(), *numParams);
 #endif // DEBUG_OUTPUT
 
+#if PV_USE_MPI
    status = MPI_Bcast(params, *numParams, MPI_INT, icRoot, comm->communicator());
+#endif
 
 #ifdef DEBUG_OUTPUT
    fprintf(stderr, "[%2d]: pvp_read_header: broadcast completed, numParams==%d\n",
@@ -1136,7 +1142,9 @@ int pvp_read_time(PV_Stream * pvstream, Communicator * comm, int root_process, d
       mpi_data.status = (numread == 1) ? PV_SUCCESS : PV_FAILURE;
       mpi_data.time = *timed;
    }
+#if PV_USE_MPI
    MPI_Bcast(&mpi_data, (int) sizeof(timeandstatus), MPI_CHAR, root_process, comm->communicator());
+#endif
    status = mpi_data.status;
    *timed = mpi_data.time;
    return status;
@@ -1367,7 +1375,7 @@ int writeActivitySparse(PV_Stream * pvstream, Communicator * comm, double timed,
 }
 
 
-int readWeights(PVPatch *** patches, pvdata_t ** dataStart, int numArbors, int numPatches,
+int readWeights(PVPatch *** patches, pvwdata_t ** dataStart, int numArbors, int numPatches,
       const char * filename, Communicator * comm, double * timed, const PVLayerLoc * loc,
       bool * shmget_owner, bool shmget_flag)
 {
@@ -1581,7 +1589,7 @@ int readWeights(PVPatch *** patches, pvdata_t ** dataStart, int numArbors, int n
 
 int writeWeights(const char * filename, Communicator * comm, double timed, bool append,
                  const PVLayerLoc * loc, int nxp, int nyp, int nfp, float minVal, float maxVal,
-                 PVPatch *** patches, pvdata_t ** dataStart, int numPatches, int numArbors, bool compress, int file_type)
+                 PVPatch *** patches, pvwdata_t ** dataStart, int numPatches, int numArbors, bool compress, int file_type)
 // compress has default of true, file_type has default value of PVP_WGT_FILE_TYPE
 // If file_type is PVP_WGT_FILE_TYPE (HyPerConn), the patches variable is consulted for the shrunken patch information.
 // If file_type is PVP_KERNEL_FILE_TYPE, patches is ignored and all patches are written with nx=nxp and ny=nyp
@@ -1945,8 +1953,6 @@ template <typename T> int scatterActivity(PV_Stream * pvstream, Communicator * c
       break;
    }
 
-
-#ifdef PV_USE_MPI
    int rank = comm->commRank();
    if (rank==rootproc) {
       if (pvstream == NULL) {
@@ -1988,7 +1994,9 @@ template <typename T> int scatterActivity(PV_Stream * pvstream, Communicator * c
                   abort();
                }
             }
+#if PV_USE_MPI
             MPI_Send(TBuff, numLocalNeurons*(int) datasize, MPI_BYTE, r, 171+r/*tag*/, comm->communicator());
+#endif
          }
          for (int y=0; y<layerLoc->ny; y++) {
             int ky0 = layerLoc->ny*rowFromRank(rootproc, comm->numCommRows(), comm->numCommColumns());
@@ -2026,7 +2034,9 @@ template <typename T> int scatterActivity(PV_Stream * pvstream, Communicator * c
                   }
             }
             //Send buffer to appropriate mpi process
+#if PV_USE_MPI
             MPI_Send(TBuff1, numLocalNeurons*(int) datasize, MPI_BYTE, r, 171+r/*tag*/, comm->communicator());
+#endif
             //Clear the buffer so rootproc can calculate the next process's buffer.
             for (int i = 0; i < numLocalNeurons; i++) {
                TBuff1[i] = 0;
@@ -2070,7 +2080,9 @@ template <typename T> int scatterActivity(PV_Stream * pvstream, Communicator * c
                   }
             }
             //Send buffer to appropriate mpi process
+#if PV_USE_MPI
             MPI_Send(TBuff1, numLocalNeurons*(int) datasize, MPI_BYTE, r, 171+r/*tag*/, comm->communicator());
+#endif
             //Clear the buffer so rootproc can calculate the next process's buffer.
             for (int i = 0; i < numLocalNeurons; i++) {
                TBuff1[i] = 0;
@@ -2095,17 +2107,24 @@ template <typename T> int scatterActivity(PV_Stream * pvstream, Communicator * c
    else {
       switch (filetype) {
       case PVP_NONSPIKING_ACT_FILE_TYPE:
+#if PV_USE_MPI
          MPI_Recv(TBuff, sizeof(uint4)*numLocalNeurons, MPI_BYTE, rootproc, 171+rank/*tag*/, comm->communicator(), MPI_STATUS_IGNORE);
+#endif
          break;
       case PVP_ACT_FILE_TYPE:
       case PVP_ACT_SPARSEVALUES_FILE_TYPE:
          //Receive buffers from rootproc
+#if PV_USE_MPI
          MPI_Recv(TBuff1, sizeof(uint4)*numLocalNeurons, MPI_BYTE, rootproc, 171+rank/*tag*/, comm->communicator(), MPI_STATUS_IGNORE);
+#endif
          break;
       }
 
    }  //rank==rootproc
-#else // PV_USE_MPI
+
+#ifdef OBSOLETE_PV_USE_MPI
+// C.Rasmussen (2014.3.26) removed as above should work without MPI
+// #else // PV_USE_MPI
    switch (filetype) {
    case PVP_NONSPIKING_ACT_FILE_TYPE:
       for (int y=0; y<layerLoc->ny; y++) {
@@ -2140,8 +2159,8 @@ template <typename T> int scatterActivity(PV_Stream * pvstream, Communicator * c
       }
       break;
    }
+#endif // OBSOLETE_PV_USE_MPI
 
-#endif // PV_USE_MPI
    // At this point, each process has the data, as a restricted layer, in temp_buffer.
    // Each process now copies the data to buffer, which may be extended.
    if (nb>0) {
