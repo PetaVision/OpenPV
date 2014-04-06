@@ -335,7 +335,7 @@ int OjaSTDPConn::updateWeights(int arborID)
    pvdata_t aPre;
    pvdata_t * pre_stdp_tr_m;    // Presynaptic trace matrix
    pvdata_t * pre_oja_tr_m;
-   pvdata_t * W;                // Weight matrix pointer
+   pvwdata_t * W;               // Weight matrix pointer
 
    //Restricted post vals
    const int postNx = post->getLayerLoc()->nx;
@@ -376,7 +376,7 @@ int OjaSTDPConn::updateWeights(int arborID)
       *pre_oja_tr_m  = decayOja * ((*pre_oja_tr_m)  + aPre);
    }
 
-   float * startAdd = this->get_wDataStart(arborID); // Address of first neuron in pre layer
+   pvwdata_t * startAdd = this->get_wDataStart(arborID); // Address of first neuron in pre layer
    //Loop through postsynaptic neurons (non-extended indices)
    for (int kPost = 0; kPost < post->getNumNeurons(); kPost++) { //Neuron indices
 	   //Post in extended space
@@ -385,7 +385,7 @@ int OjaSTDPConn::updateWeights(int arborID)
 	   }
 
 	   post_oja_tr_m  = &(post_oja_tr->data[kPost]); //Address of post trace in restricted space
-	   pvdata_t ** postData = getPostWeightsp(arborID,kPost); // Pointer array full of addresses pointing to the weights for all of the preNeurons connected to the given postNeuron's receptive field
+	   pvwdata_t ** postData = getPostWeightsp(arborID,kPost); // Pointer array full of addresses pointing to the weights for all of the preNeurons connected to the given postNeuron's receptive field
 	   for (int kPrePatch=0; kPrePatch < numPostPatch; kPrePatch++) { // Loop through all pre-neurons connected to given post-neuron
 		   float * kPreAdd = postData[kPrePatch];  // Address of preNeuron in receptive field of postNeuron
 		   assert(kPreAdd != NULL);
@@ -555,7 +555,7 @@ int OjaSTDPConn::scaleWeights() {
       //Loop through post-synaptic neurons (non-extended indices)
       for (int kPost = 0; kPost < post->getNumNeurons(); kPost++) {
 
-         pvdata_t ** postData = wPostDataStartp[arborID] + numPostPatch*kPost + 0;
+         pvwdata_t ** postData = wPostDataStartp[arborID] + numPostPatch*kPost + 0;
          for (int kp = 0; kp < numPostPatch; kp++) { //TODO: Scale only the weights non-extended space
             sumW += *(postData[kp]);
          }
@@ -568,9 +568,9 @@ int OjaSTDPConn::scaleWeights() {
    return PV_SUCCESS;
 }
 
-pvdata_t ** OjaSTDPConn::getPostWeightsp(int arborID, int kPost) {
+pvwdata_t ** OjaSTDPConn::getPostWeightsp(int arborID, int kPost) {
    const int numPostPatch = nxpPost * nypPost * nfpPost; // Post-synaptic weights are never shrunken
-   pvdata_t ** postData = wPostDataStartp[arborID] + numPostPatch*kPost + 0;
+   pvwdata_t ** postData = wPostDataStartp[arborID] + numPostPatch*kPost + 0;
 
    return postData;
 }

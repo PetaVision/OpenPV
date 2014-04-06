@@ -47,7 +47,7 @@ public:
    float getPreStdpTr(int kex,int arborID) {return pre_stdp_tr[arborID]->data[kex];}
    float getPreOjaTr(int kex,int arborID)  {return pre_oja_tr[arborID]->data[kex];}
 
-   pvdata_t ** getPostWeightsp(int axonID, int kPost);
+   pvwdata_t ** getPostWeightsp(int axonID, int kPost);
 
    int getNxpPost() {return nxpPost;}
    int getNypPost() {return nypPost;}

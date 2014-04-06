@@ -176,9 +176,10 @@ int OjaKernelConn::updateWeights(int axonId) {
    float timestepsPerUpdate = weightUpdatePeriod/parent->getDeltaTime(); // Number of timesteps between weight updates;
    // dw needs to be multiplied by this quantity since updateWeights is only called this often.
    for(int kAxon = 0; kAxon < this->numberOfAxonalArborLists(); kAxon++){
-      pvdata_t * w_data_start = get_wDataStart(kAxon);
+      pvwdata_t * w_data_start = get_wDataStart(kAxon);
       for( int k=0; k<nxp*nyp*nfp*getNumDataPatches(); k++ ) {
-         pvdata_t w = w_data_start[k];
+         //TODO-CER-2014.4.3 - weight conversion
+         pvwdata_t w = w_data_start[k];
          w += timestepsPerUpdate*get_dwDataStart(kAxon)[k];
          if (w < 0.0f) w = 0.0f;
          w_data_start[k] = w;
@@ -214,8 +215,8 @@ int OjaKernelConn::update_dW(int axonId) {
       int offset = getGSynPatchStart(kex,axonId); //-post->getChannel(channel);
       int ny = weights->ny;
       int nk = weights->nx * nfp;
-      pvdata_t * dwdata = get_dwData(axonId, kex);
-      const pvdata_t * wdata = get_wData(axonId, kex);
+      pvwdata_t * dwdata = get_dwData(axonId, kex);
+      const pvwdata_t * wdata = get_wData(axonId, kex);
       int lineoffsetw = 0;
       int lineoffsetg = 0;
       pvdata_t inputFR = input_rate[kex];
