@@ -895,11 +895,15 @@ int Image::checkpointRead(const char * cpDir, double * timef){
 
    PVParams * params = parent->parameters();
    if (this->useParamsImage) {
-      fprintf(stderr,"Initializing image from params file location ! \n");
+      if (parent->columnId()==0) {
+         fprintf(stderr,"Initializing image from params file location ! \n");
+      }
       * timef = parent->simulationTime(); // fakes the pvp time stamp
    }
    else {
-      fprintf(stderr,"Initializing image from checkpoint NOT from params file location! \n");
+      if (parent->columnId()==0) {
+         fprintf(stderr,"Initializing image from checkpoint NOT from params file location! \n");
+      }
       HyPerLayer::checkpointRead(cpDir, timef);
    }
 
