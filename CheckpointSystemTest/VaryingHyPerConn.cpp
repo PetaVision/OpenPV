@@ -52,7 +52,7 @@ int VaryingHyPerConn::updateWeights(int axonId) {
    for( int kPatch = 0; kPatch < getNumDataPatches(); kPatch++) {
       PVPatch * W = getWeights(kPatch, axonId);
       int nkPatch = fPatchSize() * W->nx;
-      float * Wdata = get_wData(axonId, kPatch); // W->data;
+      pvwdata_t * Wdata = get_wData(axonId, kPatch); // W->data;
       pvdata_t * dWdata = get_dwData(axonId, kPatch);
       for(int kyPatch = 0; kyPatch < W->ny; kyPatch++) {
          for(int kPatch = 0; kPatch < nkPatch; kPatch++) {
