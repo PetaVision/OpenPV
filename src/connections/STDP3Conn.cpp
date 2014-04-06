@@ -244,7 +244,7 @@ int STDP3Conn::updateWeights(int axonId)
    pvdata_t * post_tr_m;
    pvdata_t * post2_tr_m;
    pvdata_t * pre_tr_m; // Presynaptic trace matrix
-   pvdata_t * W;
+   pvwdata_t * W;
    int nk, ny;
 
    const int nkPost = post_tr->numItems;
@@ -330,7 +330,7 @@ int STDP3Conn::updateWeights(int axonId)
          // loop through post-synaptic neurons (non-extended indices)
          for (int kPost = 0; kPost < post_tr->numItems; kPost++) {
 
-            pvdata_t ** postData = wPostDataStartp[axonID] + numPostPatch*kPost + 0;
+            pvwdata_t ** postData = wPostDataStartp[axonID] + numPostPatch*kPost + 0;
             for (int kp = 0; kp < numPostPatch; kp++) {
                sumW += *(postData[kp]);
             }
