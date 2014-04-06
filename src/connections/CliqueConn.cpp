@@ -237,7 +237,7 @@ int CliqueConn::update_dW(int arborId)
          const float * aPost = &post->getLayerData()[postOffset];
 
          size_t dW_offset = wPatch->offset; // dWPatch->data - dW_head;
-         pvdata_t * dwData = get_dwData(arborNdx,kPreExt);
+         pvwdata_t * dwData = get_dwData(arborNdx,kPreExt);
          // WARNING - assumes weight and GSyn patches from task same size
          //         - assumes patch stride sf is 1
 

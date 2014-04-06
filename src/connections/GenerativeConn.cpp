@@ -118,8 +118,8 @@ int GenerativeConn::update_dW(int axonID) {
    status = defaultUpdate_dW(axonID);
    if(weightDecayFlag) {
       for(int p=0; p<getNumDataPatches(); p++) {
-         const pvdata_t * patch_wData = get_wDataHead(axonID, p);
-         pvdata_t * patch_dwData = get_dwDataHead(axonID, p);
+         const pvwdata_t * patch_wData = get_wDataHead(axonID, p);
+         pvwdata_t * patch_dwData = get_dwDataHead(axonID, p);
          for(int k=0; k<nxp*nyp*nfp; k++) {
             pvdata_t decayterm = patch_wData[k];
             patch_dwData[k] += -weightDecayRate * decayterm;
@@ -135,14 +135,14 @@ int GenerativeConn::updateWeights(int axonID) {
    if( imprintingFlag && imprintCount < nfp ) {
       assert(nxp==1 && nyp==1 && numberOfAxonalArborLists()==1);
       for( int p=0; p<numPatches; p++ ) {
-         pvdata_t * dataPatch = get_wDataHead(0,p);
+         pvwdata_t * dataPatch = get_wDataHead(0,p);
          dataPatch[imprintCount] = preSynapticLayer()->getLayerData(getDelays()[0])[p];
       }
       imprintCount++;
       return PV_SUCCESS;
    }
    for( int k=0; k<numPatches; k++ ) {
-      pvdata_t * wdata = get_wDataHead(axonID, k);
+      pvwdata_t * wdata = get_wDataHead(axonID, k);
       pvdata_t * dwdata = get_dwDataHead(axonID, k);
       for( int y = 0; y < nyp; y++ ) {
          for( int x = 0; x < nxp; x++ ) {
