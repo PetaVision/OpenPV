@@ -32,6 +32,13 @@
 #define max_pvdata_t FLT_MAX
 #define min_pvdata_t FLT_MIN
 
+/* Data type for weights and activity */
+#define pvwdata_t float
+#define pvadata_t float
+
+#define PV_WCAST  float
+#define PV_ACAST  float
+
 /* The common type for integer sizes (e.g. nxp patch size) */
 #define pvdim_t int
 
