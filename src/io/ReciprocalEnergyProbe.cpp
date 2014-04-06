@@ -54,12 +54,13 @@ double ReciprocalEnergyProbe::evaluate(double timed) {
    for( int arbor=0; arbor<targetRecipConn->numberOfAxonalArborLists(); arbor++) {
       for( int k=0; k<targetRecipConn->getNumDataPatches(); k++) {
          PVPatch * p = targetRecipConn->getWeights(k, arbor);
-         pvdata_t * wdata = targetRecipConn->get_wDataHead(arbor, k);
+         pvwdata_t * wdata = targetRecipConn->get_wDataHead(arbor, k);
          short int nx = p->nx;
          short int ny = p->ny;
          for( int n=0; n<nx*ny*targetRecipConn->fPatchSize(); n++ ) {
             int f = featureIndex(n,nx,ny,targetRecipConn->fPatchSize());
-            const pvdata_t * recipwdata = targetRecipConn->getReciprocalWgts()->get_wDataHead(arbor, f);
+            const pvwdata_t * recipwdata = targetRecipConn->getReciprocalWgts()->get_wDataHead(arbor, f);
+            //TODO-CER-2014.4.4 - convert weights here
             double wgtdiff = (wdata[n]/thisnfp - recipwdata[k]/recipnfp);
             energy += wgtdiff*wgtdiff;
          }

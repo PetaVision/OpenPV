@@ -115,8 +115,8 @@ int KernelProbe::outputState(double timed) {
    int nfp = getTargetKConn()->fPatchSize();
    int patchSize = nxp*nyp*nfp;
 
-   const pvdata_t * wdata = getTargetKConn()->get_wDataStart(arborID)+patchSize*kernelIndex;
-   const pvdata_t * dwdata = outputPlasticIncr ?
+   const pvwdata_t * wdata = getTargetKConn()->get_wDataStart(arborID)+patchSize*kernelIndex;
+   const pvwdata_t * dwdata = outputPlasticIncr ?
          getTargetKConn()->get_dwDataStart(arborID)+patchSize*kernelIndex : NULL;
    fprintf(stream->fp, "Time %f, KernelConn \"%s\", nxp=%d, nyp=%d, nfp=%d\n",
            timed, getTargetKConn()->getName(),nxp, nyp, nfp);
@@ -126,10 +126,10 @@ int KernelProbe::outputState(double timed) {
             int k = kIndex(x,y,f,nxp,nyp,nfp);
             fprintf(stream->fp, "    x=%d, y=%d, f=%d (index %d):", x, y, f, k);
             if(getOutputWeights()) {
-               fprintf(stream->fp, "  weight=%f", wdata[k]);
+               fprintf(stream->fp, "  weight=%f", (float)wdata[k]);
             }
             if(getOutputPlasticIncr()) {
-               fprintf(stream->fp, "  dw=%f", dwdata[k]);
+               fprintf(stream->fp, "  dw=%f", (float)dwdata[k]);
             }
             fprintf(stream->fp,"\n");
          }

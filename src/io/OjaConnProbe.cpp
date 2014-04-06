@@ -139,7 +139,7 @@ int OjaConnProbe::allocateProbe()
       // Allocate buffers for pre info
       preStdpTrs = (float *) calloc(numPostPatch*numArbors, sizeof(float));
       preOjaTrs  = (float *) calloc(numPostPatch*numArbors, sizeof(float));
-      preWeights = (float *) calloc(numPostPatch*numArbors, sizeof(float));
+      preWeights = (pvwdata_t *) calloc(numPostPatch*numArbors, sizeof(float));
 #ifdef DEBUG_POST
       preWeightsDebug = (float *) calloc(numPostPatch*numArbors, sizeof(float));
       assert (preWeightsDebug != NULL);
@@ -178,10 +178,10 @@ int OjaConnProbe::outputState(double timef)
       postWeights = ojaConn->getWPostData(arborID, kLocal);
 #endif
 
-      float * startAdd = ojaConn->get_wDataStart(arborID);                    // Address of first preNeuron in pre layer
+      pvwdata_t * startAdd = ojaConn->get_wDataStart(arborID);                    // Address of first preNeuron in pre layer
       for (int postKPatch=0; postKPatch<numPostPatch; postKPatch++)
       {
-         float * kPreAdd = postWeightsp[postKPatch];  // Address of first preNeuron in receptive field of postNeuron
+         pvwdata_t * kPreAdd = postWeightsp[postKPatch];  // Address of first preNeuron in receptive field of postNeuron
          assert(kPreAdd != NULL);
          int kPre = (kPreAdd-startAdd) / num_weights_in_patch;
 
@@ -221,7 +221,7 @@ int OjaConnProbe::outputState(double timef)
       for (int patchID=0; patchID < numPostPatch; patchID++) {
          fprintf(pvstream->fp, " prStdpTr_%d_%d=%-6.3f",arborID,patchID,preStdpTrs[weightIdx]);
          fprintf(pvstream->fp, " prOjaTr_%d_%d=%-6.3f",arborID,patchID,preOjaTrs[weightIdx]);
-         fprintf(pvstream->fp, " weight_%d_%d=%-6.3f",arborID,patchID,preWeights[weightIdx]);
+         fprintf(pvstream->fp, " weight_%d_%d=%-6.3f",arborID,patchID,(float)preWeights[weightIdx]);
 
          weightIdx++;
       }
