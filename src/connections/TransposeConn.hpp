@@ -47,8 +47,8 @@ protected:
     virtual int setPatchSize();
     virtual int setNeededRNGSeeds() {return 0;}
     virtual InitWeights * handleMissingInitWeights(PVParams * params);
-    virtual PVPatch*** initializeWeights(PVPatch*** arbors, float** dataStart,
-          int numPatches);
+    virtual PVPatch *** initializeWeights(PVPatch *** arbors, pvwdata_t ** dataStart,
+                                          int numPatches);
     int transposeKernels(int arborId);
     virtual int calc_dW(int arborId){return PV_BREAK;};
     virtual int reduceKernels(int arborID);
