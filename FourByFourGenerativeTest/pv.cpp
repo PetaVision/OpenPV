@@ -62,8 +62,8 @@ int checkweights(HyPerCol * hc, int argc, char * argv[]) {
    assert(connB->fPatchSize() == 2);
    assert(connB->getNumDataPatches() == 8);
 
-   float wgtA[8][16];
-   float wgtB[2][8];
+   pvwdata_t wgtA[8][16];
+   pvwdata_t wgtB[2][8];
 
    for(int f=0; f<8; f++) {
       for(int k=0; k<16; k++) {

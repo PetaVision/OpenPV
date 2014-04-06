@@ -136,13 +136,14 @@ int dumponeweight(GenerativeConn * conn) {
    float yFalloff = powf(2,yScaleDiff);
 
    for( int p=0; p<conn->getNumDataPatches(); p++ ) {
-      pvdata_t * wgtData = conn->get_wDataHead(0,p); // conn->getKernelPatch(0,p)->data;
+      pvwdata_t * wgtData = conn->get_wDataHead(0,p); // conn->getKernelPatch(0,p)->data;
       for( int f=0; f<nfp; f++ ) {
          for( int x=0; x<nxp; x++ ) {
             int xoffset = abs((int) floor((x-xcenter)*xFalloff));
             for( int y=0; y<nyp; y++ ) {
             int yoffset = abs((int) floor((y-ycenter)*yFalloff));
                int idx = kIndex(x, y, f, nxp, nyp, nfp);
+               //TODO-CER-2014.4.4 - weight conversion
                pvdata_t wgt = wgtData[idx];
                pvdata_t correct = usingMirrorBCs ? 1 : (nxpre-xoffset)*(nypre-yoffset)/((pvdata_t) (nxpre*nypre));
                if( fabs(wgt-correct)>1.0e-5 ) {
