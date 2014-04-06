@@ -216,7 +216,7 @@ int ReciprocalConn::update_dW(int axonID) {
       int nk = weights->nx * nfp;
       pvdata_t preact = preactbuf[kExt];
       const pvdata_t * postactRef = &postactbuf[offset];
-      pvdata_t * dwdata = get_dwData(axonID, kExt);
+      pvwdata_t * dwdata = get_dwData(axonID, kExt);
       int lineoffsetw = 0;
       int lineoffseta = 0;
       for( int y=0; y<ny; y++ ) {
@@ -243,13 +243,13 @@ int ReciprocalConn::update_dW(int axonID) {
    }
    if( reciprocalFidelityCoeff ) {
       for( int k=0; k<numKernelIndices; k++) {
-         const pvdata_t * wdata = get_wDataHead(axonID, k);
+         const pvwdata_t * wdata = get_wDataHead(axonID, k);
          pvdata_t * dwdata = get_dwDataHead(axonID, k);
          int n=0;
          for( int y=0; y<nyp; y++ ) { for( int x=0; x<nxp; x++) { for( int f=0; f<nfp; f++ ) {
             int xRecip, yRecip, fRecip, kRecip;
             getReciprocalWgtCoordinates(x, y, f, k, &xRecip, &yRecip, &fRecip, &kRecip);
-            const pvdata_t * recipwdata = reciprocalWgts->get_wDataHead(axonID, kRecip);
+            const pvwdata_t * recipwdata = reciprocalWgts->get_wDataHead(axonID, kRecip);
             int nRecip = kIndex(xRecip, yRecip, fRecip, reciprocalWgts->xPatchSize(), reciprocalWgts->yPatchSize(), reciprocalWgts->fPatchSize());
             dwdata[n] -= reciprocalFidelityCoeff/nfp*(wdata[n]/nfp-recipwdata[nRecip]/reciprocalWgts->fPatchSize());
             n++;
@@ -279,7 +279,7 @@ int ReciprocalConn::updateWeights(int arborID) {
       get_wDataStart(arborID)[k] += relaxationRate*parent->getDeltaTime()*get_dwDataStart(arborID)[k];
    }
    int status = PV_SUCCESS;
-   pvdata_t * arborstart = get_wDataStart(arborID);
+   pvwdata_t * arborstart = get_wDataStart(arborID);
    for( int k=0; k<nxp*nyp*nfp*getNumDataPatches(); k++ ) {
       if( arborstart[k] < 0 ) arborstart[k] = 0;
    }

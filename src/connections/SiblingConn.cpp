@@ -64,13 +64,13 @@ int SiblingConn::normalizeFamily() {
    // process that owns the local weight scales the sibling weight as well, even if not the owner of the sibling weight
    for (int kArbor = 0; kArbor < this->numberOfAxonalArborLists(); kArbor++) {
       for (int kPatch = 0; kPatch < num_kernels; kPatch++) {
-         pvdata_t * localWeights = get_wDataHead(kArbor, kPatch);
+         pvwdata_t * localWeights = get_wDataHead(kArbor, kPatch);
          assert(localWeights != NULL);
 #ifdef USE_SHMGET
-         volatile pvdata_t * siblingWeights = siblingConn->get_wDataHead(
+         volatile pvwdata_t * siblingWeights = siblingConn->get_wDataHead(
                kArbor, kPatch);
 #else
-         pvdata_t * siblingWeights = siblingConn->get_wDataHead(kArbor, kPatch);
+         pvwdata_t * siblingWeights = siblingConn->get_wDataHead(kArbor, kPatch);
 #endif
          assert(siblingWeights != NULL);
          for (int iWeight = 0; iWeight < nxp * nyp * nfp; iWeight++) {
@@ -123,13 +123,13 @@ int SiblingConn::normalizeFamily() {
    double sum_sibling = 0.0;
    for (int kArbor = 0; kArbor < this->numberOfAxonalArborLists(); kArbor++) {
       for (int kPatch = 0; kPatch < num_kernels; kPatch++) {
-         pvdata_t * localWeights = get_wDataHead(kArbor, kPatch);
+         pvwdata_t * localWeights = get_wDataHead(kArbor, kPatch);
          assert(localWeights != NULL);
 #ifdef USE_SHMGET
-         volatile pvdata_t * siblingWeights = siblingConn->get_wDataHead(
+         volatile pvwdata_t * siblingWeights = siblingConn->get_wDataHead(
                kArbor, kPatch);
 #else
-         pvdata_t * siblingWeights = siblingConn->get_wDataHead(kArbor, kPatch);
+         pvwdata_t * siblingWeights = siblingConn->get_wDataHead(kArbor, kPatch);
 #endif
          assert(siblingWeights != NULL);
          for (int iWeight = 0; iWeight < nxp * nyp * nfp; iWeight++) {
@@ -147,9 +147,9 @@ int SiblingConn::normalizeFamily() {
       if (shmget_flag && !shmget_owner[kArbor]) {
          continue;
       }
-      volatile pvdata_t * localWeights = this->get_wDataStart(kArbor);
+      volatile pvwdata_t * localWeights = this->get_wDataStart(kArbor);
 #else
-      pvdata_t * localWeights = this->get_wDataStart(kArbor);
+      pvwdata_t * localWeights = this->get_wDataStart(kArbor);
 #endif
       for (int iWeight = 0; iWeight < nxp * nyp * nfp; iWeight++) {
          localWeights[iWeight] *= scale_factor;
