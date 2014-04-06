@@ -39,7 +39,7 @@ Communicator::Communicator(int* argc, char*** argv)
 
    int commSize = numRows * numCols;
 
-#ifdef PV_USE_MPI
+#if PV_USE_MPI
    int exclsize = worldSize - commSize;
 
    if (exclsize == 0) {
@@ -91,7 +91,7 @@ Communicator::Communicator(int* argc, char*** argv)
 
    // some ranks are excluded if they don't fit in the processor quilt
    if (worldRank < commSize) {
-#ifdef PV_USE_MPI
+#if PV_USE_MPI
       MPI_Comm_rank(icComm, &icRank);
       MPI_Comm_size(icComm, &icSize);
 #else // PV_USE_MPI
@@ -113,9 +113,9 @@ Communicator::Communicator(int* argc, char*** argv)
       neighborInit();
    }
 
-#ifdef PV_USE_MPI
+#if PV_USE_MPI
    MPI_Barrier(MPI_COMM_WORLD);
-#endif // PV_USE_MPI
+#endif
 
    // install timers
    this->exchange_timer = new Timer();
@@ -123,11 +123,10 @@ Communicator::Communicator(int* argc, char*** argv)
 
 Communicator::~Communicator()
 {
-#ifdef PV_USE_MPI
+#if PV_USE_MPI
    MPI_Barrier(MPI_COMM_WORLD);
-#endif // PV_USE_MPI
-
    MPI_Comm_free(&icComm);
+#endif
    commFinalize(); // calls MPI_Finalize
 
    // delete timers
@@ -142,7 +141,7 @@ Communicator::~Communicator()
 
 int Communicator::commInit(int* argc, char*** argv)
 {
-#ifdef PV_USE_MPI
+#if PV_USE_MPI
    // If MPI wasn't initialized, initialize it.
    // Remember if it was initialized on entry; the destructor will only finalize if the constructor init'ed.
    // This way, you can do several simulations sequentially by initializing MPI before creating
@@ -169,9 +168,9 @@ int Communicator::commInit(int* argc, char*** argv)
 
 int Communicator::commFinalize()
 {
-#ifdef PV_USE_MPI
+#if PV_USE_MPI
    if( !mpi_initialized_on_entry ) MPI_Finalize();
-#endif // PV_USE_MPI
+#endif
    return 0;
 }
 
@@ -614,7 +613,7 @@ size_t Communicator::sendOffset(int n, const PVLayerLoc * loc)
  */
 MPI_Datatype * Communicator::newDatatypes(const PVLayerLoc * loc)
 {
-#ifdef PV_USE_MPI
+#if PV_USE_MPI
    int count, blocklength, stride;
 
    MPI_Datatype * comms = new MPI_Datatype [NUM_NEIGHBORHOOD];
@@ -685,7 +684,7 @@ MPI_Datatype * Communicator::newDatatypes(const PVLayerLoc * loc)
 
 /* Frees an MPI_Datatype array previously created with Communicator::newDatatypes */
 int Communicator::freeDatatypes(MPI_Datatype * mpi_datatypes) {
-#ifdef PV_USE_MPI
+#if PV_USE_MPI
    if(mpi_datatypes) {
       for ( int n=0; n<NUM_NEIGHBORHOOD; n++ ) {
          MPI_Type_free(&mpi_datatypes[n]);
@@ -705,7 +704,7 @@ int Communicator::exchange(pvdata_t * data,
                            const MPI_Datatype neighborDatatypes [],
                            const PVLayerLoc * loc)
 {
-#ifdef PV_USE_MPI
+#if PV_USE_MPI
    exchange_timer->start();
 
    // don't send interior
