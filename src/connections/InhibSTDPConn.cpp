@@ -54,7 +54,7 @@ int InhibSTDPConn::updateWeights(int arborID)
    const pvdata_t * preLayerData = pre->getLayerData(getDelay(arborID));
    pvdata_t aPre;
    pvdata_t * pre_stdp_tr_m;    // Presynaptic trace matrix
-   pvdata_t * W;                // Weight matrix pointer
+   pvwdata_t * W;               // Weight matrix pointer
 
    //Restricted post vals
    const int postNx = post->getLayerLoc()->nx;
@@ -79,7 +79,7 @@ int InhibSTDPConn::updateWeights(int arborID)
       *pre_stdp_tr_m = decayLTP * ((*pre_stdp_tr_m) + aPre);   //If spiked, minimum is 1. If no spike, minimum is 0.
    }
 
-   float * startAdd = this->get_wDataStart(arborID); // Address of first neuron in pre layer
+   pvwdata_t * startAdd = this->get_wDataStart(arborID); // Address of first neuron in pre layer
    //Loop through postsynaptic neurons (non-extended indices)
    for (int kPost = 0; kPost < post->getNumNeurons(); kPost++) { //Neuron indices
 	   //Post in extended space
