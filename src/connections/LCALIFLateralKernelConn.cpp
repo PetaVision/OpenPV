@@ -89,7 +89,9 @@ int LCALIFLateralKernelConn::communicateInitInfo() {
          fprintf(stderr, "  Pre:  nx=%d, ny=%d, nf=%d, nb=%d\n", nxpre, nypre, nfpre, nbpre);
          fprintf(stderr, "  Post: nx=%d, ny=%d, nf=%d, nb=%d\n", nxpost, nypost, nfpost, nbpost);
       }
+#if PV_USE_MPI
       MPI_Barrier(parent->icCommunicator()->communicator());
+#endif
       abort();
    }
   return PV_SUCCESS;
@@ -169,7 +171,10 @@ int LCALIFLateralKernelConn::allocateDataStructures() {
       }
    }
    int bufsize = numberOfAxonalArborLists() * getNumDataPatches() * nxp * nyp * nfp;
+// TODO-CER-2014.3.26 - Ensure that reduction is done when not using MPI
+#if PV_USE_MPI
    MPI_Allreduce(MPI_IN_PLACE, interiorCounts[0], bufsize, MPI_FLOAT, MPI_SUM, parent->icCommunicator()->communicator());
+#endif
 
    return status;
 }
@@ -248,13 +253,13 @@ int LCALIFLateralKernelConn::updateWeights(int axonId) {
       float normalizer = parent->getDeltaTime()/getInhibitionTimeConstant();
       for (int kernel=0; kernel<getNumDataPatches(); kernel++) {
          pvdata_t * dw_data = get_dwDataHead(axonId,kernel);
-         pvdata_t * w_data = get_wDataHead(axonId,kernel);
+         pvwdata_t * w_data = get_wDataHead(axonId,kernel);
          for (int y=0; y<nyp; y++) {
             for (int x=0; x<nxp; x++) {
                for (int f=0; f<nfp; f++) {
                   int idx = sxp*x + syp*y + sfp*f;
                   pvdata_t dw = dw_data[idx] * normalizer;
-                  pvdata_t w = w_data[idx] + (weightUpdatePeriod/parent->getDeltaTime())*dw;
+                  pvwdata_t w = w_data[idx] + (weightUpdatePeriod/parent->getDeltaTime())*dw;
                   if (w<0) w=0;
                   w_data[idx] = w;
                }
