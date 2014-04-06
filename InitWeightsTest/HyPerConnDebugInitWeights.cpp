@@ -948,12 +948,13 @@ int HyPerConnDebugInitWeights::copyToWeightPatch(PVPatch * sourcepatch, int arbo
    assert(patchindex >= 0 && patchindex < this->numWeightPatches());
    assert((int) sourcepatch->nx == nxp && (int) sourcepatch->ny == nyp);
    PVPatch * targetpatch = getWeights(patchindex, arbor);
-   pvdata_t * targetdata = get_wData(arbor, patchindex); // targetpatch->data;
+   pvwdata_t * targetdata = get_wData(arbor, patchindex); // targetpatch->data;
    const int unshrunkPatchSize = xPatchSize()*yPatchSize()*fPatchSize();
-   pvdata_t * wtop = get_wDataStart(arbor);
-   pvdata_t * data_head = (pvdata_t *) &wtop[unshrunkPatchSize*patchindex];
+   pvwdata_t * wtop = get_wDataStart(arbor);
+   //TODO-CER-2014.4.4 - weight conversion
+   pvwdata_t * data_head = (pvwdata_t *) &wtop[unshrunkPatchSize*patchindex];
    size_t data_offset = targetpatch - data_head;
-   pvdata_t * sourcedata = &sourcepatch->data[data_offset];
+   pvwdata_t * sourcedata = &sourcepatch->data[data_offset];
    int nk = targetpatch->nx * nfp;
    for (int ky = 0; ky < targetpatch->ny; ky++) {
       for (int iWeight = 0; iWeight < nk; iWeight++) {

@@ -931,8 +931,9 @@ int KernelConnDebugInitWeights::copyToKernelPatch(PVPatch * sourcepatch, int arb
    PVPatch * targetpatch = getKernelPatch(arbor, patchindex);
    pvdata_t * targetdata = targetpatch->data;
    const int unshrunkPatchSize = xPatchSize()*yPatchSize()*fPatchSize();
-   pvdata_t * wtop = get_wDataStart(arbor);
-   pvdata_t * data_head = (pvdata_t *) &wtop[unshrunkPatchSize*patchindex];
+   pvwdata_t * wtop = get_wDataStart(arbor);
+   //TODO-CER-2014.4.4 - weight conversion
+   pvwdata_t * data_head = (pvwdata_t *) &wtop[unshrunkPatchSize*patchindex];
    size_t data_offset = targetpatch->data - data_head;
    pvdata_t * sourcedata = &sourcepatch->data[data_offset];
    int nk = targetpatch->nx * nfp;
