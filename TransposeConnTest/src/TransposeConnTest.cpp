@@ -153,8 +153,8 @@ int testWeightsEqual(HyPerConn * conn1, HyPerConn * conn2) {
    assert(patchSize == conn2->xPatchSize()*conn2->yPatchSize()*conn2->fPatchSize());
    for (int arbor=0; arbor<numArbors; arbor++) {
       for (int dataindex = 0; dataindex < numDataPatches; dataindex++) {
-         pvdata_t * w1 = conn1->get_wDataStart(arbor)+patchSize*dataindex;
-         pvdata_t * w2 = conn2->get_wDataStart(arbor)+patchSize*dataindex;
+         pvwdata_t * w1 = conn1->get_wDataStart(arbor)+patchSize*dataindex;
+         pvwdata_t * w2 = conn2->get_wDataStart(arbor)+patchSize*dataindex;
          status = testDataPatchEqual(w1, w2, patchSize, conn1->getName(), conn2->getName(), status);
          if (status != PV_SUCCESS) break;
       }

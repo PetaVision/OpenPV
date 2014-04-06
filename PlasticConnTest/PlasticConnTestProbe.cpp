@@ -41,7 +41,7 @@ int PlasticConnTestProbe::outputState(double timed) {
    assert(getTargetKConn()!=NULL);
    FILE * fp = getStream()->fp;
    fprintf(fp, "    Time %f, connection \"%s\":\n", timed, getTargetConnName());
-   const pvdata_t * w = getTargetKConn()->get_wDataHead(getArbor(), getKernelIndex());
+   const pvwdata_t * w = getTargetKConn()->get_wDataHead(getArbor(), getKernelIndex());
    const pvdata_t * dw = getTargetKConn()->get_dwDataHead(getArbor(), getKernelIndex());
    if( getOutputPlasticIncr() && dw == NULL ) {
       fprintf(stderr, "PlasticConnTestProbe \"%s\": connection \"%s\" has dKernelData(%d,%d) set to null.\n", getName(), getTargetConnName(), getKernelIndex(), getArbor());

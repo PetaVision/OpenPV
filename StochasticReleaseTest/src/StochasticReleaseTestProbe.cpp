@@ -113,7 +113,7 @@ int StochasticReleaseTestProbe::computePValues(long int step, int f) {
    int nf = getTargetLayer()->getLayerLoc()->nf;
    assert(f >= 0 && f < nf);
    int idx = (step-1)*nf + f;
-   pvdata_t wgt = conn->get_wDataStart(0)[f*(nf+1)]; // weights should be one-to-one weights
+   pvwdata_t wgt = conn->get_wDataStart(0)[f*(nf+1)]; // weights should be one-to-one weights
 
    HyPerLayer * pre = conn->preSynapticLayer();
    const pvdata_t * preactPtr = pre->getLayerData();
