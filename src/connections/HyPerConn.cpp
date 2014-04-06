@@ -1432,12 +1432,12 @@ int HyPerConn::communicateInitInfo() {
       }
       //Use either triggering or weightUpdatePeriod
       //If not default values, print warning
-      if(weightUpdatePeriod != 1 || weightUpdateTime != 0){
+      if((weightUpdatePeriod != 1 || weightUpdateTime != 0) && parent->columnId()==0 ){
          std::cout << "Warning: Connection " << name << " trigger flag is set, ignoring weightUpdatePeriod and initialWeightUpdateTime\n";
       }
       //Although weightUpdatePeriod and weightUpdateTime is being set here, if trigger flag is set, they are not being used
       //Only updating for backwards compatibility
-      //getDeltaUpdateTime can return -1 (if it never updates), so set placisity flag off if so
+      //getDeltaUpdateTime can return -1 (if it never updates), so set plasticity flag off if so
       weightUpdatePeriod = triggerLayer->getDeltaUpdateTime();
       if(weightUpdatePeriod <= 0){
          if(plasticityFlag == true){
