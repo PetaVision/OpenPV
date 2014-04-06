@@ -224,7 +224,7 @@ static int set_weights_to_source_index(HyPerConn * c)
       const int syp = c->yPatchStride(); // p->sy;
       const int sfp = c->fPatchStride(); // p->sf;
 
-      pvdata_t * w = c->get_wData(arbor, kPre); // p->data;
+      pvwdata_t * w = c->get_wData(arbor, kPre); // p->data;
 
       for (int y = 0; y < nyp; y++) {
          for (int x = 0; x < nxp; x++) {
