@@ -51,7 +51,7 @@ int MaxPooling::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activity
       int syw = conn->yPatchStride();                   // stride in patch
       pvdata_t * gSynPatchHead = this->getChannel(conn->getChannel());
       pvdata_t * gSynPatchStart = gSynPatchHead + conn->getGSynPatchStart(kPre, arborID);
-      pvdata_t * data = conn->get_wData(arborID,kPre);
+      pvwdata_t * data = conn->get_wData(arborID,kPre);
       for (int y = 0; y < ny; y++) {
          pvpatch_max_pooling(nk, gSynPatchStart + y*sy, a, data + y*syw, NULL);
 //       if (err != 0) printf("  ERROR kPre = %d\n", kPre);

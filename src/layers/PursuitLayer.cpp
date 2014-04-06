@@ -260,7 +260,7 @@ int PursuitLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activi
       int syw = conn->yPatchStride();             // stride in patch
       pvdata_t * gSynPatchHead = this->getChannel(conn->getChannel());
       pvdata_t * gSynPatchStart = gSynPatchHead + conn->getGSynPatchStart(kPre, arborID);
-      pvdata_t * data = conn->get_wData(arborID,kPre);
+      pvwdata_t * data = conn->get_wData(arborID,kPre);
       for (int y = 0; y < ny; y++) {
          (conn->accumulateFunctionPointer)(nk, gSynPatchStart + y*sy, a, data + y*syw, NULL);
       }
@@ -277,10 +277,11 @@ int PursuitLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activi
    assert(conn->getNumDataPatches()==1);
 
    for (int kf=0; kf<nfp; kf++) {
-      pvdata_t * weight = conn->get_wDataHead(arborID, 0);
+      pvwdata_t * weight = conn->get_wDataHead(arborID, 0);
       pvdata_t sum = 0.0;
       for (int k=0; k<num_weights; k+=nfp) {
-         pvdata_t w = weight[k + kf]; // Assumes stride in features is 1.
+         pvwdata_t w = weight[k + kf]; // Assumes stride in features is 1.
+         //TODO-CER-2014.4.4 - convert weights
          sum += w*w;
       }
       wnormsq[kf] = sum;
