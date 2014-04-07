@@ -296,7 +296,7 @@ int HyPerConn::createArbors() {
       aPostOffset[k] = aPostOffsetBuffer
             + this->shrinkPatches_flag * k * preSynapticLayer()->getNumExtended();
    }
-   wDataStart = (pvdata_t **) calloc(numAxonalArborLists, sizeof(pvdata_t *));
+   wDataStart = (pvwdata_t **) calloc(numAxonalArborLists, sizeof(pvdata_t *));
    if( wDataStart == NULL ) {
       createArborsOutOfMemory();
       assert(false);
@@ -386,7 +386,7 @@ int HyPerConn::shrinkPatch(int kExt, int arborId /* PVAxonalArbor * arbor */) {
 
    PVPatch *weights = getWeights(kExt,arborId);
 
-   pvdata_t * w = &get_wDataStart(arborId)[kIndex*nxp*nyp*nfp+weights->offset];
+   pvwdata_t * w = &get_wDataStart(arborId)[kIndex*nxp*nyp*nfp+weights->offset];
    // pvdata_t * w = weights->data;
 
    int nx = weights->nx;
@@ -1474,7 +1474,7 @@ int HyPerConn::setPatchSize() {
 }
 
 // returns handle to initialized weight patches
-PVPatch *** HyPerConn::initializeWeights(PVPatch *** patches, pvdata_t ** dataStart, int numPatches)
+PVPatch *** HyPerConn::initializeWeights(PVPatch *** patches, pvwdata_t ** dataStart, int numPatches)
 {
    weightInitializer->initializeWeights(patches, dataStart);
 #ifdef USE_SHMGET
@@ -1606,7 +1606,7 @@ int HyPerConn::initializeThreadBuffers(const char * kernel_name)
    // create device buffers for weights
    //
    for (int arbor = 0; arbor < numAxonalArborLists; arbor++) {
-      pvdata_t * wBuf = get_wDataStart(arbor);
+      pvwdata_t * wBuf = get_wDataStart(arbor);
       clWeights[arbor] = device->createReadBuffer(size, (void*)wBuf);
    }
 
@@ -1735,7 +1735,7 @@ int HyPerConn::writeWeights(const char * filename) {
    return writeWeights(wPatches, wDataStart, getNumWeightPatches(), filename, parent->simulationTime(), writeCompressedWeights, true);
 }
 
-int HyPerConn::writeWeights(PVPatch *** patches, pvdata_t ** dataStart, int numPatches,
+int HyPerConn::writeWeights(PVPatch *** patches, pvwdata_t ** dataStart, int numPatches,
       const char * filename, double timef, bool compressWeights, bool last) {
    int status = PV_SUCCESS;
    char path[PV_PATH_MAX];
@@ -2153,7 +2153,7 @@ float HyPerConn::maxWeight(int arborId)
    const int num_data_patches = getNumDataPatches();
    float max_weight = -FLT_MAX;
    for (int i_weight = 0; i_weight < num_data_patches; i_weight++) {
-      pvdata_t * w_data = this->get_wData(arborId, i_weight);
+      pvwdata_t * w_data = this->get_wData(arborId, i_weight);
       PVPatch * w_patch = this->getWeights(i_weight, arborId);
       int num_weights = this->fPatchSize() * w_patch->nx * w_patch->ny;
       for (int iWeight = 0; iWeight < num_weights; iWeight++) {
@@ -2328,7 +2328,7 @@ float HyPerConn::minWeight(int arborId)
    const int num_data_patches = getNumDataPatches();
    float min_weight = FLT_MAX;
    for (int i_patch = 0; i_patch < num_data_patches; i_patch++) {
-      pvdata_t * w_data = this->get_wData(arborId, i_patch);
+      pvwdata_t * w_data = this->get_wData(arborId, i_patch);
       PVPatch * w_patch = this->getWeights(i_patch, arborId);
       int num_weights = this->fPatchSize() * w_patch->nx * w_patch->ny;
       for (int iWeight = 0; iWeight < num_weights; iWeight++) {
@@ -2384,7 +2384,7 @@ int HyPerConn::createWeights(PVPatch *** patches, int arborId)
    return status;
 }
 
-int HyPerConn::clearWeights(pvdata_t ** dataStart, int numPatches, int nxp, int nyp, int nfp) {
+int HyPerConn::clearWeights(pvwdata_t ** dataStart, int numPatches, int nxp, int nyp, int nfp) {
    int status = PV_SUCCESS;
    for( int arborID = 0; arborID<numAxonalArborLists; arborID++ ) {
       if( clearWeights(dataStart[arborID], numPatches, nxp, nyp, nfp)!=PV_SUCCESS ) status = PV_FAILURE;
@@ -2392,7 +2392,7 @@ int HyPerConn::clearWeights(pvdata_t ** dataStart, int numPatches, int nxp, int 
    return status;
 }
 
-int HyPerConn::clearWeights(pvdata_t * arborDataStart, int numPatches, int nxp, int nyp, int nfp) {
+int HyPerConn::clearWeights(pvwdata_t * arborDataStart, int numPatches, int nxp, int nyp, int nfp) {
    for( int w=0; w<numPatches*nxp*nyp*nfp; w++ ) {
       arborDataStart[w] = 0.0f;
    }
@@ -2819,7 +2819,8 @@ PVPatch *** HyPerConn::convertPreSynapticWeights(double time)
       wPostPatches = (PVPatch***) calloc(numAxonalArborLists, sizeof(PVPatch**));
       assert(wPostPatches!=NULL);
       assert(wPostDataStart == NULL);
-      wPostDataStart = (pvdata_t **) calloc(numAxonalArborLists, sizeof(pvdata_t *));
+      //TODO-CER-2014.4.3 - is the sizeof part correct???????????????????
+      wPostDataStart = (pvwdata_t **) calloc(numAxonalArborLists, sizeof(pvwdata_t *));
       assert(wPostDataStart!=NULL);
       wPostDataStart[0] = allocWeights(numPost, nxpPost, nypPost, nfpPost);
       assert(wPostDataStart[0] != NULL);
@@ -2856,7 +2857,7 @@ PVPatch *** HyPerConn::convertPreSynapticWeights(double time)
    //      int xShift = (ax - 1) - (kxPost + (int) (0.5f * ax)) % ax;
    //      int yShift = (ay - 1) - (kyPost + (int) (0.5f * ay)) % ay;
 
-         pvdata_t * postData = wPostDataStart[arborID] + nxpPost*nypPost*nfpPost*kPost + wPostPatches[arborID][kPost]->offset;
+         pvwdata_t * postData = wPostDataStart[arborID] + nxpPost*nypPost*nfpPost*kPost + wPostPatches[arborID][kPost]->offset;
          for (int kp = 0; kp < numPostPatch; kp++) {
 
             // calculate extended indices of presynaptic neuron {kPre, kzPre}
@@ -2921,7 +2922,7 @@ PVPatch *** HyPerConn::convertPreSynapticWeights(double time)
                kxPrePatch = kxPost - kxPostHead;
                kyPrePatch = kyPost - kyPostHead;
                int kPrePatch = kfPost * sfp + kxPrePatch * sxp + kyPrePatch * syp;
-               pvdata_t * preData = get_wDataStart(arborID) + nxp*nyp*nfp*kPre + getWeights(kPre,arborID)->offset;
+               pvwdata_t * preData = get_wDataStart(arborID) + nxp*nyp*nfp*kPre + getWeights(kPre,arborID)->offset;
                postData[kp] = preData[kPrePatch];
                // wPostPatches[arborID][kPost]->data[kp] = preData[kPrePatch];
 
@@ -2964,7 +2965,7 @@ PVPatch *** HyPerConn::convertPreSynapticWeights(double time)
 //   nxpPost = (int) (nxp * powXScale);
 //   nypPost = (int) (nyp * powYScale);
 //   nfpPost = lPre->loc.nf;
-//   float z = 0;
+//   pvwdata_t z = 0;
 //
 //   // the number of features is the end-point value (normally post-synaptic)
 //   const int numPostPatch = nxpPost * nypPost * nfpPost; // Post-synaptic weights are never shrunken
@@ -2975,7 +2976,7 @@ PVPatch *** HyPerConn::convertPreSynapticWeights(double time)
 //      wPostPatchesp = (PVPatch****) calloc(numAxonalArborLists, sizeof(PVPatch***));
 //      assert(wPostPatchesp!=NULL);
 //      assert(wPostDataStartp == NULL);
-//      wPostDataStartp = (pvdata_t ***) calloc(numAxonalArborLists, sizeof(pvdata_t **));
+//      wPostDataStartp = (pvwdata_t ***) calloc(numAxonalArborLists, sizeof(pvdata_t **));
 //      assert(wPostDataStartp!=NULL);
 //
 //      for(int arborID=0;arborID<numberOfAxonalArborLists();arborID++) {
@@ -2986,7 +2987,7 @@ PVPatch *** HyPerConn::convertPreSynapticWeights(double time)
 //         int sy = sx * nxpPost;
 //         int sp = sy * nypPost;
 //
-//         size_t patchSize = sp * sizeof(pvdata_t);
+//         size_t patchSize = sp * sizeof(pvwdata_t);
 //         size_t dataSize = numPost * patchSize;
 //
 //         wPostDataStartp[arborID] = (pvdata_t **) calloc(dataSize, sizeof(char*));
@@ -3036,7 +3037,7 @@ PVPatch **** HyPerConn::point2PreSynapticWeights()
    nxpPost = (int) (nxp * powXScale);
    nypPost = (int) (nyp * powYScale);
    nfpPost = preLoc->nf;
-   float z = 0;
+   pvwdata_t z = 0;
 
    // the number of features is the end-point value (normally post-synaptic)
    const int numPostPatch = nxpPost * nypPost * nfpPost; // Post-synaptic weights are never shrunken
@@ -3047,7 +3048,7 @@ PVPatch **** HyPerConn::point2PreSynapticWeights()
       wPostPatchesp = (PVPatch****) calloc(numAxonalArborLists, sizeof(PVPatch***));
       assert(wPostPatchesp!=NULL);
       assert(wPostDataStartp == NULL);
-      wPostDataStartp = (pvdata_t ***) calloc(numAxonalArborLists, sizeof(pvdata_t **));
+      wPostDataStartp = (pvwdata_t ***) calloc(numAxonalArborLists, sizeof(pvdata_t **));
       assert(wPostDataStartp!=NULL);
 
       for(int arborID=0;arborID<numberOfAxonalArborLists();arborID++) {
@@ -3058,10 +3059,10 @@ PVPatch **** HyPerConn::point2PreSynapticWeights()
          int sy = sx * nxpPost;
          int sp = sy * nypPost;
 
-         size_t patchSize = sp * sizeof(pvdata_t);
+         size_t patchSize = sp * sizeof(pvwdata_t);
          size_t dataSize = numPost * patchSize;
 
-         wPostDataStartp[arborID] = (pvdata_t **) calloc(dataSize, sizeof(char*));
+         wPostDataStartp[arborID] = (pvwdata_t **) calloc(dataSize, sizeof(char*));
 
 
          PVPatch** patcharray = (PVPatch**) (calloc(numPost, sizeof(PVPatch*)));
@@ -3097,7 +3098,7 @@ PVPatch **** HyPerConn::point2PreSynapticWeights()
    //      int yShift = (ay - 1) - (kyPost + (int) (0.5f * ay)) % ay;
 
          //Accessing by patch offset through wPostDataStart by x,y,and feature of a patch
-         pvdata_t ** postData = wPostDataStartp[arborID] + nxpPost*nypPost*nfpPost*kPost + 0;
+         pvwdata_t ** postData = wPostDataStartp[arborID] + nxpPost*nypPost*nfpPost*kPost + 0;
          for (int kp = 0; kp < numPostPatch; kp++) {
 
             // calculate extended indices of presynaptic neuron {kPre, kzPre}
@@ -3162,7 +3163,7 @@ PVPatch **** HyPerConn::point2PreSynapticWeights()
                kxPrePatch = kxPost - kxPostHead;
                kyPrePatch = kyPost - kyPostHead;
                int kPrePatch = kfPost * sfp + kxPrePatch * sxp + kyPrePatch * syp;
-               pvdata_t * preData = get_wDataStart(arborID) + nxp*nyp*nfp*kPre + getWeights(kPre,arborID)->offset;
+               pvwdata_t * preData = get_wDataStart(arborID) + nxp*nyp*nfp*kPre + getWeights(kPre,arborID)->offset;
                postData[kp] = &(preData[kPrePatch]);
                // wPostPatches[arborID][kPost]->data[kp] = preData[kPrePatch];
 
@@ -3391,10 +3392,11 @@ int HyPerConn::writePostSynapticWeights(double timef, bool last) {
    return PV_SUCCESS;
 }
 
-int HyPerConn::sumWeights(int nx, int ny, int offset, pvdata_t * dataStart, double * sum, double * sum2, pvdata_t * maxVal)
+int HyPerConn::sumWeights(int nx, int ny, int offset, pvwdata_t * dataStart, double * sum, double * sum2, pvdata_t * maxVal)
 {
    // assert(wp != NULL);
-   volatile pvdata_t * w = dataStart + offset;
+   // TODO CER - should make volatile conditional on GPU usage (this could be slow otherwise)?
+   volatile pvwdata_t * w = dataStart + offset;
    // assert(w != NULL);
    // const int nx = wp->nx;
    // const int ny = wp->ny;
@@ -3417,7 +3419,7 @@ int HyPerConn::sumWeights(int nx, int ny, int offset, pvdata_t * dataStart, doub
    return PV_SUCCESS;
 } // sumWeights
 
-int HyPerConn::scaleWeights(int nx, int ny, int offset, pvdata_t * dataStart, pvdata_t sum, pvdata_t sum2, pvdata_t maxVal)
+int HyPerConn::scaleWeights(int nx, int ny, int offset, pvwdata_t * dataStart, pvdata_t sum, pvdata_t sum2, pvdata_t maxVal)
 {
    // assert(wp != NULL);
    int num_weights = nx * ny * nfp; //wp->nf;
@@ -3451,7 +3453,7 @@ int HyPerConn::scaleWeights(int nx, int ny, int offset, pvdata_t * dataStart, pv
 	  return PV_FAILURE;
    }
 
-   pvdata_t * w = dataStart + offset;
+   pvwdata_t * w = dataStart + offset;
    assert(w != NULL);
    for (int ky = 0; ky < ny; ky++) {
       for(int iWeight = 0; iWeight < syp; iWeight++ ){
@@ -3498,7 +3500,7 @@ int HyPerConn::checkNormalizeWeights(float sum, float sum2, float sigma2, float 
 
 } // checkNormalizeWeights
 
-int HyPerConn::checkNormalizeArbor(PVPatch ** patches, pvdata_t ** dataStart, int numPatches, int arborId)
+int HyPerConn::checkNormalizeArbor(PVPatch ** patches, pvwdata_t ** dataStart, int numPatches, int arborId)
 {
    int status = PV_SUCCESS;
    int nx = nxp;
@@ -3801,15 +3803,15 @@ int HyPerConn::setPatchStrides() {
    return PV_SUCCESS;
 }
 
-//pvdata_t * HyPerConn::allocWeights(PVPatch *** patches, int nPatches, int nxPatch,
+//pvwdata_t * HyPerConn::allocWeights(PVPatch *** patches, int nPatches, int nxPatch,
 //      int nyPatch, int nfPatch, int arborId)
-pvdata_t * HyPerConn::allocWeights(int nPatches, int nxPatch, int nyPatch, int nfPatch)
+pvwdata_t * HyPerConn::allocWeights(int nPatches, int nxPatch, int nyPatch, int nfPatch)
 {
    int sx = nfPatch;
    int sy = sx * nxPatch;
    int sp = sy * nyPatch;
 
-   size_t patchSize = sp * sizeof(pvdata_t);
+   size_t patchSize = sp * sizeof(pvwdata_t);
    size_t dataSize = nPatches * patchSize;
    //if (arborId > 0){  // wDataStart already allocated
 	//   assert(this->get_wDataStart(0) != NULL);
@@ -3817,8 +3819,8 @@ pvdata_t * HyPerConn::allocWeights(int nPatches, int nxPatch, int nyPatch, int n
 	//}
    // arborID == 0
    size_t arborSize = dataSize * this->numberOfAxonalArborLists();
-   pvdata_t * dataPatches = NULL;
-   dataPatches = (pvdata_t *) calloc(arborSize, sizeof(char));
+   pvwdata_t * dataPatches = NULL;
+   dataPatches = (pvwdata_t *) calloc(arborSize, sizeof(char));
    assert(dataPatches != NULL);
    return dataPatches;
 }

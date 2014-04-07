@@ -79,7 +79,7 @@ public:
    virtual int updateWeights(int arborId = 0);
    virtual int writeWeights(double time, bool last = false);
    virtual int writeWeights(const char* filename);
-   virtual int writeWeights(PVPatch*** patches, float** dataStart,
+   virtual int writeWeights(PVPatch*** patches, pvwdata_t** dataStart,
          int numPatches, const char* filename, double timef, bool compressWeights, bool last);
    virtual int writeTextWeights(const char* filename, int k);
 
@@ -91,8 +91,8 @@ public:
    int readWeights(const char* filename);
     
    GSynAccumulateType getPvpatchAccumulateType() { return pvpatchAccumulateType; }
-   int (*accumulateFunctionPointer)(int nk, float* v, float a, float* w, void* auxPtr);
-   int (*accumulateFunctionFromPostPointer)(int nk, float* v, float* a, float* w, float dt_factor, void* auxPtr);
+   int (*accumulateFunctionPointer)(int nk, float* v, float a, pvwdata_t* w, void* auxPtr);
+   int (*accumulateFunctionFromPostPointer)(int nk, float* v, float* a, pvwdata_t* w, float dt_factor, void* auxPtr);
    inline bool preSynapticActivityIsNotRate() {return preActivityIsNotRate;}
 
    double getWeightUpdatePeriod() {return weightUpdatePeriod;}
@@ -210,7 +210,7 @@ public:
    virtual PVPatch* getWeights(int kPre, int arborId);
 
    // inline PVPatch * getPlasticIncr(int kPre, int arborId) {return plasticityFlag ? dwPatches[arborId][kPre] : NULL;}
-   inline float* getPlasticIncr(int kPre, int arborId) {
+   inline pvwdata_t* getPlasticIncr(int kPre, int arborId) {
       return
             plasticityFlag ?
                   &dwDataStart[arborId][kPre * nxp * nyp * nfp
@@ -226,28 +226,28 @@ public:
       return &postNonextStrides;
    }
 
-   inline float* get_wDataStart(int arborId) {
+   inline pvwdata_t* get_wDataStart(int arborId) {
       return wDataStart[arborId];
    }
 
-   inline float* get_wDataHead(int arborId, int dataIndex) {
+   inline pvwdata_t* get_wDataHead(int arborId, int dataIndex) {
       return &wDataStart[arborId][dataIndex * nxp * nyp * nfp];
    }
 
-   inline float* get_wData(int arborId, int patchIndex) {
+   inline pvwdata_t* get_wData(int arborId, int patchIndex) {
       return &wDataStart[arborId][patchToDataLUT(patchIndex) * nxp * nyp * nfp
             + wPatches[arborId][patchIndex]->offset];
    }
 
-   inline float* get_dwDataStart(int arborId) {
+   inline pvdata_t* get_dwDataStart(int arborId) {
       return dwDataStart[arborId];
    }
 
-   inline float* get_dwDataHead(int arborId, int dataIndex) {
+   inline pvdata_t* get_dwDataHead(int arborId, int dataIndex) {
       return &dwDataStart[arborId][dataIndex * nxp * nyp * nfp];
    }
 
-   inline float* get_dwData(int arborId, int patchIndex) {
+   inline pvdata_t* get_dwData(int arborId, int patchIndex) {
       return &dwDataStart[arborId][patchToDataLUT(patchIndex) * nxp * nyp * nfp
             + wPatches[arborId][patchIndex]->offset];
    }
@@ -256,12 +256,12 @@ public:
       return wPostPatches[arbor][patchIndex];
    }
 
-   inline float* getWPostData(int arbor, int patchIndex) {
+   inline pvwdata_t* getWPostData(int arbor, int patchIndex) {
       return &wPostDataStart[arbor][patchIndex * nxpPost * nypPost * nfpPost]
             + wPostPatches[arbor][patchIndex]->offset;
    }
 
-   inline float* getWPostData(int arbor) {
+   inline pvwdata_t* getWPostData(int arbor) {
       return wPostDataStart[arbor];
    }
 
@@ -332,12 +332,12 @@ public:
    // uint4 * getRnd_state(int index) { return pvpatchAccumulateType==ACCUMULATE_STOCHASTIC ? &rnd_state[index] : NULL; }
    uint4 * getRandState(int index);
 
-   int sumWeights(int nx, int ny, int offset, float* dataStart, double* sum,
+   int sumWeights(int nx, int ny, int offset, pvwdata_t* dataStart, double* sum,
          double* sum2, float* maxVal);
-   int scaleWeights(int nx, int ny, int offset, float* dataStart, float sum,
+   int scaleWeights(int nx, int ny, int offset, pvwdata_t* dataStart, float sum,
          float sum2, float maxVal);
    virtual int checkNormalizeWeights(float sum, float sum2, float sigma2, float maxVal);
-   virtual int checkNormalizeArbor(PVPatch** patches, float** dataStart,
+   virtual int checkNormalizeArbor(PVPatch** patches, pvwdata_t** dataStart,
          int numPatches, int arborId);
    virtual int normalizeWeights();
 
@@ -378,7 +378,7 @@ protected:
    // char * filename; // Filename if loading weights from a file
    int fileparams[NUM_WGT_PARAMS]; // The header of the file named by the filename member variable
    int numWeightPatches; // Number of PVPatch structures in buffer pointed to by wPatches[arbor]
-   int numDataPatches; // Number of blocks of pvdata_t's in buffer pointed to by wDataStart[arbor]
+   int numDataPatches;   // Number of blocks of pvwdata_t's in buffer pointed to by wDataStart[arbor]
 
    //these were moved to private to ensure use of get/set methods and made in 3D pointers:
    //PVPatch       ** wPatches[MAX_ARBOR_LIST]; // list of weight patches, one set per neighbor
@@ -390,17 +390,17 @@ protected:
 private:
    PVPatch*** wPatches; // list of weight patches, one set per arbor
    // GTK:: gSynPatchStart redefined as offset from start of associated gSynBuffer
-   //float*** gSynPatchStart; //  gSynPatchStart[arborId][kExt] is a pointer to the start of the patch in the post-synaptic GSyn buffer
+   //pvwdata_t*** gSynPatchStart; //  gSynPatchStart[arborId][kExt] is a pointer to the start of the patch in the post-synaptic GSyn buffer
    size_t** gSynPatchStart;  // gSynPatchStart[arborId][kExt] is the offset to the start of the patch from the beginning of the post-synaptic GSyn buffer for corresponding channel
-   //float** gSynPatchStartBuffer;
+   //pvwdata_t** gSynPatchStartBuffer;
    size_t * gSynPatchStartBuffer;
    size_t** aPostOffset; // aPostOffset[arborId][kExt] is the index of the start of a patch into an extended post-synaptic layer
    size_t* aPostOffsetBuffer;
    int* delays; // delays[arborId] is the delay in timesteps (not units of dt) of the arborId'th arbor
-   PVPatchStrides postExtStrides; // sx,sy,sf for a patch mapping into an extended post-synaptic layer
+   PVPatchStrides postExtStrides;    // sx,sy,sf for a patch mapping into an extended post-synaptic layer
    PVPatchStrides postNonextStrides; // sx,sy,sf for a patch mapping into a non-extended post-synaptic layer
-   float** wDataStart; //now that data for all patches are allocated to one continuous block of memory, this pointer saves the starting address of that array
-   float** dwDataStart; //now that data for all patches are allocated to one continuous block of memory, this pointer saves the starting address of that array
+   pvwdata_t** wDataStart;  //now that data for all patches are allocated to one continuous block of memory, this pointer saves the starting address of that array
+   pvdata_t** dwDataStart; //now that data for all patches are allocated to one continuous block of memory, this pointer saves the starting address of that array
    int defaultDelay; //added to save params file defined delay...
    float * fDelayArray;
    int delayArraySize;
@@ -422,10 +422,10 @@ protected:
    // PVPatch       *** dwPatches;      // list of weight patches for storing changes to weights
    int numAxonalArborLists; // number of axonal arbors (weight patches) for presynaptic layer
    PVPatch*** wPostPatches; // post-synaptic linkage of weights // This is being deprecated in favor of TransposeConn
-   float** wPostDataStart;
+   pvwdata_t** wPostDataStart;
 
    PVPatch**** wPostPatchesp; // Pointer to wPatches, but from the postsynaptic perspective
-   float*** wPostDataStartp; // Pointer to wDataStart, but from the postsynaptic perspective
+   pvwdata_t*** wPostDataStartp; // Pointer to wDataStart, but from the postsynaptic perspective
 
    int nxpPost, nypPost, nfpPost;
    int numParams;
@@ -504,7 +504,7 @@ protected:
       wPatches = patches;
    }
 
-//   inline float*** getGSynPatchStart() {
+//   inline pvwdata_t*** getGSynPatchStart() {
 //      return gSynPatchStart;
 //   }
 
@@ -512,7 +512,7 @@ protected:
       return gSynPatchStart;
    }
 
-//   inline void setGSynPatchStart(float*** patchstart) {
+//   inline void setGSynPatchStart(pvwdata_t*** patchstart) {
 //      gSynPatchStart = patchstart;
 //   }
 
@@ -528,27 +528,27 @@ protected:
       aPostOffset = postoffset;
    }
 
-   inline float** get_wDataStart() {
+   inline pvwdata_t** get_wDataStart() {
       return wDataStart;
    }
 
-   inline void set_wDataStart(float** datastart) {
+   inline void set_wDataStart(pvwdata_t** datastart) {
       wDataStart = datastart;
    }
 
-   inline void set_wDataStart(int arborId, float* pDataStart) {
+   inline void set_wDataStart(int arborId, pvwdata_t* pDataStart) {
       wDataStart[arborId] = pDataStart;
    }
 
-   inline float** get_dwDataStart() {
+   inline pvdata_t** get_dwDataStart() {
       return dwDataStart;
    }
 
-   inline void set_dwDataStart(float** datastart) {
+   inline void set_dwDataStart(pvdata_t** datastart) {
       dwDataStart = datastart;
    }
 
-   inline void set_dwDataStart(int arborId, float* pIncrStart) {
+   inline void set_dwDataStart(int arborId, pvdata_t* pIncrStart) {
       dwDataStart[arborId] = pIncrStart;
    }
 
@@ -622,15 +622,15 @@ protected:
    virtual int setPatchSize(); // Sets nxp, nyp, nfp if weights are loaded from file.  Subclasses override if they have specialized ways of setting patch size that needs to go in the communicate stage.
                                // (e.g. BIDSConn uses pre and post layer size to set nxp,nyp, but pre and post aren't set until communicateInitInfo().
    virtual void handleDefaultSelfFlag(); // If selfFlag was not set in params, set it in this function.
-   virtual PVPatch*** initializeWeights(PVPatch*** arbors, float** dataStart,
+   virtual PVPatch*** initializeWeights(PVPatch*** arbors, pvwdata_t** dataStart,
          int numPatches);
    virtual InitWeights* getDefaultInitWeightsMethod(const char* keyword);
    virtual InitWeights* handleMissingInitWeights(PVParams* params);
    virtual int createWeights(PVPatch*** patches, int nWeightPatches, int nDataPatches, int nxPatch,
          int nyPatch, int nfPatch, int arborId);
    int createWeights(PVPatch*** patches, int arborId);
-   virtual pvdata_t * allocWeights(int nPatches, int nxPatch, int nyPatch, int nfPatch);
-   int clearWeights(float** dataStart, int numPatches, int nx, int ny, int nf);
+   virtual pvwdata_t * allocWeights(int nPatches, int nxPatch, int nyPatch, int nfPatch);
+   int clearWeights(pvwdata_t** dataStart, int numPatches, int nx, int ny, int nf);
    // virtual int checkPVPFileHeader(Communicator* comm, const PVLayerLoc* loc,
    //       int params[], int numParams);
    // virtual int checkWeightsHeader(const char* filename, const int wgtParams[]);
@@ -673,7 +673,7 @@ protected:
 #endif // PV_USE_OPENCL
 
 private:
-   int clearWeights(float* arborDataStart, int numPatches, int nx, int ny,
+   int clearWeights(pvwdata_t* arborDataStart, int numPatches, int nx, int ny,
          int nf);
    int deleteWeights();
 
