@@ -9,6 +9,7 @@
 #define SPARSITYLAYERPROBE_HPP_
 
 #include "LayerProbe.hpp"
+#include "../layers/ANNLayer.hpp"
 
 namespace PV{
 
@@ -42,6 +43,7 @@ private:
    double windowSize;
    double deltaUpdateTime;
    float initSparsityVal;
+   ANNLayer * ANNTargetLayer;
 };
 
 }

@@ -41,6 +41,7 @@ int SparsityLayerProbe::initSparsityLayerProbe_base() {
    windowSize = 1000; //Default value of 1000, what should it be?
    calcNNZ = true;
    initSparsityVal = .01;
+   ANNTargetLayer = NULL;
    return PV_SUCCESS;
 }
 
@@ -95,6 +96,10 @@ int SparsityLayerProbe::communicateInitInfo() {
    for(int i = 0; i < bufSize; i++){
       sparsityVals[i] = initSparsityVal;
    }
+
+   //Check if attached layer is LCA for stats output
+   ANNTargetLayer = dynamic_cast<ANNLayer*>(getTargetLayer());
+   
    return status;
 }
 
@@ -111,7 +116,7 @@ void SparsityLayerProbe::updateBufIndex(){
 /**
  * @time
  */
-int SparsityLayerProbe::outputState(double timef)
+int SparsityLayerProbe::outputState(double timed)
 {
    //Grab needed info
 #ifdef PV_USE_MPI
@@ -157,7 +162,17 @@ int SparsityLayerProbe::outputState(double timef)
       sparsityVals[bufIndex] = sumVal/numTotNeurons;
    }
    //Save timestep
-   timeVals[bufIndex] = timef;
+   timeVals[bufIndex] = timed;
+   //Write out to file probe
+   if(rank == 0){
+      fprintf(outputstream->fp, "%st==%6.1f Sparsity==%f", getMessage(), timed, getSparsity());
+      if(ANNTargetLayer){
+         fprintf(outputstream->fp, " VThresh==%f", ANNTargetLayer->getVThresh());
+      }
+      fprintf(outputstream->fp, "\n");
+      fflush(outputstream->fp);
+   }
+
 
    //Print out for testing
    //for(int i = 0; i < bufSize; i++){

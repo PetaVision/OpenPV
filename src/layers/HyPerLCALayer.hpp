@@ -24,6 +24,7 @@ public:
    virtual bool inWindowRes(int windowId, int neuronIdxRes);
    //calcWindow used in WindowSystemTest, so needs to be public
    int calcWindow(int globalExtX, int globalExtY);
+
 protected:
    HyPerLCALayer();
    int initialize(const char * name, HyPerCol * hc);
