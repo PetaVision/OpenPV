@@ -209,7 +209,7 @@ int getImageInfoGDAL(const char * filename, PV::Communicator * comm, PVLayerLoc 
       }
       else {
          locBuf[0] = PV_FAILURE;
-         memset(&locBuf[1], 0, locSize*sizeof(int));
+         memset(&locBuf[1], 0, (locSize-1)*sizeof(int));
          if (colorbandtypes) *colorbandtypes = NULL;
       }
    }
