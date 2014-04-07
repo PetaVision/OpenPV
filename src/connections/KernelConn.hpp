@@ -86,11 +86,11 @@ protected:
    virtual int communicateInitInfo();
    virtual int createArbors();
    virtual int initPlasticityPatches();
-   //virtual pvdata_t * allocWeights(PVPatch *** patches, int nPatches, int nxPatch,
+   //virtual pvwdata_t * allocWeights(PVPatch *** patches, int nPatches, int nxPatch,
    //      int nyPatch, int nfPatch, int arborId);
-   virtual pvdata_t * allocWeights(int nPatches, int nxPatch, int nyPatch, int nfPatch);
+   virtual pvwdata_t * allocWeights(int nPatches, int nxPatch, int nyPatch, int nfPatch);
    int initNumDataPatches();
-   virtual PVPatch *** initializeWeights(PVPatch *** arbors, pvdata_t ** dataStart,
+   virtual PVPatch *** initializeWeights(PVPatch *** arbors, pvwdata_t ** dataStart,
          int numPatches);
 
    virtual int calc_dW(int arborId);

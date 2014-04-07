@@ -145,14 +145,15 @@ int KernelConn::initPlasticityPatches() {
 }
 
 // use shmget() to save memory on shared memory architectures
-//pvdata_t * KernelConn::allocWeights(PVPatch *** patches, int nPatches,
+//pvwdata_t * KernelConn::allocWeights(PVPatch *** patches, int nPatches,
 //		int nxPatch, int nyPatch, int nfPatch, int arbor_ID) {
-pvdata_t * KernelConn::allocWeights(int nPatches, int nxPatch, int nyPatch, int nfPatch){
+pvwdata_t * KernelConn::allocWeights(int nPatches, int nxPatch, int nyPatch, int nfPatch){
 
 	int sx = nfPatch;
 	int sy = sx * nxPatch;
 	int sp = sy * nyPatch;
 
+    //TODO-CER-2014.4.3 - is this size correct????
 	size_t patchSize = sp * sizeof(pvdata_t);
 	size_t dataSize = nPatches * patchSize;
 
@@ -170,11 +171,11 @@ pvdata_t * KernelConn::allocWeights(int nPatches, int nxPatch, int nyPatch, int 
 
 	// arbor_ID == 0
 	size_t arborSize = dataSize * this->numberOfAxonalArborLists();
-	pvdata_t * dataPatches = NULL; // (pvdata_t *) calloc(dataSize, sizeof(char));
+	pvwdata_t * dataPatches = NULL; // (pvwdata_t *) calloc(dataSize, sizeof(char));
 #ifdef USE_SHMGET
 	int arbor_ID = 0;
 	if (!shmget_flag) {
-		dataPatches = (pvdata_t *) calloc(arborSize, sizeof(char));
+		dataPatches = (pvwdata_t *) calloc(arborSize, sizeof(char));
 	} else {
 		shmget_owner[arbor_ID] = true;
 		// shmget diagnostics
@@ -241,10 +242,10 @@ pvdata_t * KernelConn::allocWeights(int nPatches, int nxPatch, int nyPatch, int 
 			perror("shmat: unable to map shared memory segment");
 			exit(1);
 		}
-		dataPatches = (pvdata_t *) segptr;
+		dataPatches = (pvwdata_t *) segptr;
 	}
 #else
-	dataPatches = (pvdata_t *) calloc(arborSize, sizeof(char));
+	dataPatches = (pvwdata_t *) calloc(arborSize, sizeof(char));
 #endif // USE_SHMGET
 	assert(dataPatches != NULL);
 
@@ -260,7 +261,7 @@ int KernelConn::deleteWeights()
 
 }
 
-PVPatch ***  KernelConn::initializeWeights(PVPatch *** patches, pvdata_t ** dataStart, int numPatches)
+PVPatch ***  KernelConn::initializeWeights(PVPatch *** patches, pvwdata_t ** dataStart, int numPatches)
 {
    //int arbor = 0;
    int numKernelPatches = getNumDataPatches();
@@ -303,6 +304,7 @@ int KernelConn::allocateDataStructures() {
    assert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
    if (plasticityFlag) {
       const int numPatches = getNumDataPatches();
+      //TODO-CER-2014.4.3 - is this size correct????
       const size_t patchSize = nxp*nyp*nfp*sizeof(pvdata_t);
       const size_t localSize = numPatches * patchSize;
       mpiReductionBuffer = (pvdata_t *) malloc(localSize*sizeof(pvdata_t));
@@ -329,7 +331,7 @@ float KernelConn::minWeight(int arborId)
    const int numWeights = nxp * nyp * nfp;
    float min_weight = FLT_MAX;
    for (int iKernel = 0; iKernel < numKernels; iKernel++) {
-      pvdata_t * kernelWeights = this->get_wDataHead(arborId, iKernel);
+      pvwdata_t * kernelWeights = this->get_wDataHead(arborId, iKernel);
       for (int iWeight = 0; iWeight < numWeights; iWeight++) {
          min_weight = (min_weight < kernelWeights[iWeight]) ? min_weight
                : kernelWeights[iWeight];
@@ -344,7 +346,7 @@ float KernelConn::maxWeight(int arborId)
    const int numWeights = nxp * nyp * nfp;
    float max_weight = -FLT_MAX;
    for (int iKernel = 0; iKernel < numKernels; iKernel++) {
-      pvdata_t * kernelWeights = this->get_wDataHead(arborId, iKernel);
+      pvwdata_t * kernelWeights = this->get_wDataHead(arborId, iKernel);
       for (int iWeight = 0; iWeight < numWeights; iWeight++) {
          max_weight = (max_weight > kernelWeights[iWeight]) ? max_weight
                : kernelWeights[iWeight];
@@ -366,7 +368,7 @@ int KernelConn::clear_dW(int arbor_ID) {
       for(int kKernel = 0; kKernel < getNumDataPatches(); kKernel++){
          int syPatch = syp;
          int nkPatch = nfp * nxp;
-         float * dWeights = get_dwDataHead(arbor_ID,kKernel);
+         pvdata_t * dWeights = get_dwDataHead(arbor_ID,kKernel);
          for(int kyPatch = 0; kyPatch < nyp; kyPatch++){
             for(int kPatch = 0; kPatch < nkPatch; kPatch++){
                dWeights[kPatch] = 0.0f;
@@ -587,9 +589,9 @@ int KernelConn::updateWeights(int arbor_ID){
 //#endif
    for(int kArbor = 0; kArbor < this->numberOfAxonalArborLists(); kArbor++){
 //#ifdef USE_SHMGET
-//      volatile pvdata_t * w_data_start = get_wDataStart(kArbor);
+//      volatile pvwdata_t * w_data_start = get_wDataStart(kArbor);
 //#else
-      pvdata_t * w_data_start = get_wDataStart(kArbor);
+      pvwdata_t * w_data_start = get_wDataStart(kArbor);
 //#endif
 //
       for( int k=0; k<nxp*nyp*nfp*getNumDataPatches(); k++ ) {
@@ -619,11 +621,14 @@ int KernelConn::reduceKernels(const int arborID) {
       return PV_BREAK;
    }
    const int numPatches = getNumDataPatches();
+   //TODO-CER-2014.4.3 - is this size correct????
    const size_t patchSize = nxp*nyp*nfp; // *sizeof(pvdata_t);
    const size_t localSize = numPatches * patchSize;
    const size_t arborSize = localSize * this->numberOfAxonalArborLists();
 
+#if PV_USE_MPI
    ierr = MPI_Allreduce(MPI_IN_PLACE, this->get_dwDataStart(0), arborSize, MPI_FLOAT, MPI_SUM, mpi_comm);
+#endif
    pvdata_t * dW_data = this->get_dwDataStart(0);
    for (int i_dW = 0; i_dW < arborSize; i_dW++){
 	   dW_data[i_dW] /= nProcs;
@@ -761,6 +766,7 @@ int KernelConn::symmetrizeWeights(pvdata_t * dataStart, int numPatches, int arbo
       printf("Entering KernelConn::symmetrizeWeights for connection \"%s\"\n", name);
    assert(pre->clayer->loc.nf==post->clayer->loc.nf);
 
+   //TODO-CER-2014.4.3 - is this size correct????
    pvdata_t * symPatches = (pvdata_t *) calloc(nxp*nyp*nfp*numPatches, sizeof(pvdata_t));
    assert(symPatches != NULL);
 
@@ -787,7 +793,7 @@ int KernelConn::symmetrizeWeights(pvdata_t * dataStart, int numPatches, int arbo
                int iSymW = kfSym + nfp * kxSym + sy * kySym;
                for (int iKernel = 0; iKernel < nfp; iKernel++) {
                   // PVPatch * kerWp = getKernelPatch(arborId, iKernel);
-                  pvdata_t * kerW = get_wDataStart(arborId) + iKernel*nxp*nyp*nfp;
+                  pvwdata_t * kerW = get_wDataStart(arborId) + iKernel*nxp*nyp*nfp;
                   int kfRot = iKernel + kDf;
                   if (kfRot < 0) {
                      kfRot = nfp + kfRot;
@@ -812,8 +818,8 @@ int KernelConn::symmetrizeWeights(pvdata_t * dataStart, int numPatches, int arbo
    } // iKernel
    const int num_weights = nfp * nxp * nyp;
    for (int iKernel = 0; iKernel < numPatches; iKernel++) {
-      pvdata_t * kerW = get_wDataStart(arborId)+iKernel*nxp*nyp*nfp;
-      pvdata_t * symW = symPatches + iKernel*nxp*nyp*nfp;
+      pvwdata_t * kerW = get_wDataStart(arborId)+iKernel*nxp*nyp*nfp;
+      pvdata_t  * symW = symPatches + iKernel*nxp*nyp*nfp;
       for (int iW = 0; iW < num_weights; iW++) {
          kerW[iW] = symW[iW];
       }
@@ -866,7 +872,7 @@ int KernelConn::checkpointWrite(const char * cpDir) {
    char filename[PV_PATH_MAX];
    int status = checkpointFilename(filename, PV_PATH_MAX, cpDir);
    assert(status==PV_SUCCESS);
-//#ifdef PV_USE_MPI
+//#if PV_USE_MPI
    if (!keepKernelsSynchronized_flag) {
       for (int arbor_id = 0; arbor_id < this->numberOfAxonalArborLists(); arbor_id++) {
          reduceKernels(arbor_id);
