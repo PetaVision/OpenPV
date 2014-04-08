@@ -47,52 +47,20 @@ int Movie::initialize_base() {
 int Movie::checkpointRead(const char * cpDir, double * timef){
    int status = Image::checkpointRead(cpDir, timef);
 
-   //Deprecated, nextUpdateTime now handeled in HyPerLayer checkpoint read/write
+   //nextUpdateTime now handeled in HyPerLayer checkpoint read/write
    //if (this->useParamsImage) { //Sets nextDisplayTime = simulationtime (i.e. effectively restarting)
    //   nextDisplayTime += parent->simulationTime();
    //}
 
-   InterColComm * icComm = parent->icCommunicator();
-   int filenamesize = strlen(cpDir)+1+strlen(name)+21;
-   // The +1 is for the slash between cpDir and name; the +21 needs to be large enough to hold the suffix _TimestampState.{bin,txt} plus the null terminator
-   char * chkptfilename = (char *) malloc( filenamesize*sizeof(char) );
-   int chars_needed;
-   assert(chkptfilename != NULL);
-   if (writeFrameToTimestamp) {
-      chars_needed = snprintf(chkptfilename, filenamesize, "%s/%s_TimestampState.bin", cpDir, name);
-      assert(chars_needed < filenamesize);
-      if( icComm->commRank() == 0 ) {
-         //Only read timestamp file pos if
-         //1. There exists a timestampFile
-         //2. There exists a MovieState.bin (Run being checkpointed from could have not been printing out timestamp files
-         PV_Stream * pvstream = PV_fopen(chkptfilename, "r");
-         if (timestampFile && pvstream){
-            long timestampFilePos = 0L;
-            status |= PV_fread(&timestampFilePos, sizeof(long), 1, pvstream);
-            if (PV_fseek(timestampFile, timestampFilePos, SEEK_SET) != 0) {
-               fprintf(stderr, "MovieLayer::checkpointRead error: unable to recover initial file position in timestamp file for layer %s\n", name);
-               abort();
-            }
-
-            PV_fclose(pvstream);
-         }
+   if (writeFrameToTimestamp && timestampFile) {
+      long timestampFilePos = 0L;
+      parent->readScalarFromFile(cpDir, getName(), "TimestampState", &timestampFilePos, timestampFilePos);
+      if (PV_fseek(timestampFile, timestampFilePos, SEEK_SET) != 0) {
+         fprintf(stderr, "MovieLayer::checkpointRead error: unable to recover initial file position in timestamp file for layer %s: %s\n", name, strerror(errno));
+         exit(EXIT_FAILURE);
       }
    }
-
-   chars_needed = snprintf(chkptfilename, filenamesize, "%s/%s_FrameNumState.bin", cpDir, name);
-   assert(chars_needed < filenamesize);
-   if( icComm->commRank() == 0 ) {
-      PV_Stream * pvstream = PV_fopen(chkptfilename, "r");
-      if(pvstream != NULL){
-         status |= PV_fread(&frameNumber, sizeof(int), 1, pvstream);
-      }
-      else{
-         fprintf(stderr, "Unable to read from \"%s\"\n", chkptfilename);
-         status = PV_FAILURE;
-      }
-
-      PV_fclose(pvstream);
-   }
+   parent->readScalarFromFile(cpDir, getName(), "FrameNumState", &frameNumber, frameNumber);
    
    if (!readPvpFile) {
       int startFrame = frameNumber;
@@ -102,7 +70,7 @@ int Movie::checkpointRead(const char * cpDir, double * timef){
       }
       if (filename != NULL) free(filename);
       filename = strdup(getNextFileName(startFrame)); // getNextFileName() will increment frameNumber by startFrame;
-      if (parent->columnId()==0) assert(frameNumber==startFrame); //Can't assert this in case startFrame rewinds the mov
+      if (parent->columnId()==0) assert(frameNumber==startFrame);
       if (parent->columnId()==0) {
          printf("%s \"%s\" checkpointRead set frameNumber to %d and filename to \"%s\"\n",
                parent->parameters()->groupKeywordFromName(name), name, frameNumber, filename);
@@ -114,68 +82,13 @@ int Movie::checkpointRead(const char * cpDir, double * timef){
 
 int Movie::checkpointWrite(const char * cpDir){
    int status = Image::checkpointWrite(cpDir);
-   //Only do a checkpoint write if there exists a timestamp file
-   InterColComm * icComm = parent->icCommunicator();
-   int filenamesize = strlen(cpDir)+1+strlen(name)+21;
-   // The +1 is for the slash between cpDir and name; the +21 needs to be large enough to hold the suffix _FrameNumState.{bin,txt} plus the null terminator
-   char * chkptfilename = (char *) malloc( filenamesize*sizeof(char) );
-   assert(chkptfilename != NULL);
-   sprintf(chkptfilename, "%s/%s_FrameNumState.bin", cpDir, name);
-   if( icComm->commRank() == 0 ) {
-      PV_Stream * pvstream = PV_fopen(chkptfilename, "w");
-      if(pvstream != NULL){
-         int numwritten = PV_fwrite(&frameNumber, sizeof(int), 1, pvstream);
-         if (numwritten != 1) {
-            fprintf(stderr, "Error writing to \"%s\"\n", chkptfilename);
-            status = PV_FAILURE;
-         }
-         PV_fclose(pvstream);
-      }
-      else{
-         fprintf(stderr, "Unable to write to \"%s\"\n", chkptfilename);
-         status = PV_FAILURE;
-      }
-      sprintf(chkptfilename, "%s/%s_FrameNumState.txt", cpDir, name);
-      pvstream = PV_fopen(chkptfilename, "w");
-      if(pvstream != NULL){
-         fprintf(pvstream->fp, "frameNumber= %d\n", frameNumber);
-         PV_fclose(pvstream);
-      }
-      else{
-         fprintf(stderr, "Unable to write to \"%s\"\n", chkptfilename);
-         status = PV_FAILURE;
-      }
-   }
 
-   if(timestampFile){
-      // The +1 is for the slash between cpDir and name; the +21 needs to be large enough to hold the suffix _PatternState.{bin,txt} plus the null terminator
-      chkptfilename = (char *) malloc( filenamesize*sizeof(char) );
-      assert(chkptfilename != NULL);
-      sprintf(chkptfilename, "%s/%s_TimestampState.bin", cpDir, name);
-      if( icComm->commRank() == 0 ) {
-         //Get the file position of the timestamp file
-         long timestampFilePos = getPV_StreamFilepos(timestampFile);
-         PV_Stream * pvstream = PV_fopen(chkptfilename, "w");
-         if(pvstream != NULL){
-            status |= PV_fwrite(&timestampFilePos, sizeof(long), 1, pvstream);
-            PV_fclose(pvstream);
-         } 
-         else{
-            fprintf(stderr, "Unable to write to \"%s\"\n", chkptfilename);
-            status = PV_FAILURE;
-         }
-         sprintf(chkptfilename, "%s/%s_TimestampState.txt", cpDir, name);
-         pvstream = PV_fopen(chkptfilename, "w");
-         if(pvstream != NULL){
-            fprintf(pvstream->fp, "timestampFilePos = %ld\n", timestampFilePos);
-            PV_fclose(pvstream);
-         }
-         else{
-            fprintf(stderr, "Unable to write to \"%s\"\n", chkptfilename);
-            status = PV_FAILURE;
-         }
-      }
-      free(chkptfilename);
+   parent->writeScalarToFile(cpDir, getName(), "FrameNumState", frameNumber);
+
+   //Only do a checkpoint TimestampState if there exists a timestamp file
+   if (timestampFile) {
+      long timestampFilePos = getPV_StreamFilepos(timestampFile);
+      parent->writeScalarToFile(cpDir, getName(), "TimestampState", timestampFilePos);
    }
 
    return status;
@@ -521,7 +434,7 @@ bool Movie::updateImage(double time, double dt)
       if(writePosition && icComm->commRank()==0){
          fprintf(fp_pos->fp,"%f %s: \n",time,filename);
       }
-      //nextDisplayTime deprecated, now using nextUpdateTime
+      //nextDisplayTime removed, now using nextUpdateTime in HyPerLayer
       //while (time >= nextDisplayTime) {
       //   nextDisplayTime += displayPeriod;
       //}

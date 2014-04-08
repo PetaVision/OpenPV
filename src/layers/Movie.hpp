@@ -65,7 +65,7 @@ private:
    void updateFrameNum();
 
    double displayPeriod;   // length of time a frame is displayed
-   //double nextDisplayTime; // time of next frame
+   //double nextDisplayTime; // time of next frame; now handled by HyPerLayer nextUpdateTime
 
    int randomMovie;       // these are used for performing a reverse correlation analysis
    float randomMovieProb;
