@@ -22,7 +22,7 @@ do
     else
         dne="$dne $baseproj"
     fi
-done <<< "$(find "$scriptdir" -d 1 -type d \! -path "$scriptdir/CMakeFiles")"
+done <<< "$(find "$scriptdir" -maxdepth 1 -type d \! -path "$scriptdir/CMakeFiles")"
 
 status=0
 if test -n "$fails"
