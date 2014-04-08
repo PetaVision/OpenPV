@@ -24,10 +24,12 @@ protected:
    int initStatsProbe(const char * probeName, HyPerCol * hc);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    virtual void ioParam_buffer(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_nnzThreshold(enum ParamsIOFlag ioFlag);
    void requireType(PVBufType requiredType);
    PVBufType type;
    double sum, sum2;
    int nnz;
+   pvdata_t nnzThreshold;
    float fMin, fMax;
    float avg, sigma;
    Timer * iotimer;   // A timer for the i/o part of outputState

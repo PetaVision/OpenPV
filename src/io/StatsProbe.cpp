@@ -50,6 +50,7 @@ int StatsProbe::initStatsProbe_base() {
    sum = 0.0f;
    sum2 = 0.0f;
    nnz = 0;
+   nnzThreshold = (pvdata_t) 0;
    avg = 0.0f;
    sigma = 0.0f;
    type = BufV;
@@ -80,6 +81,7 @@ int StatsProbe::initStatsProbe(const char * probeName, HyPerCol * hc) {
 int StatsProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = LayerProbe::ioParamsFillGroup(ioFlag);
    ioParam_buffer(ioFlag);
+   ioParam_nnzThreshold(ioFlag);
    return status;
 }
 
@@ -154,6 +156,10 @@ void StatsProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
    free(buffer); buffer = NULL;
 }
 
+void StatsProbe::ioParam_nnzThreshold(enum ParamsIOFlag ioFlag) {
+    getParentCol()->ioParamValue(ioFlag, getProbeName(), "nnzThreshold", &nnzThreshold, (pvdata_t) 0);
+}
+
 /**
  * @time
  * @l
@@ -193,6 +199,7 @@ int StatsProbe::outputState(double timed)
          pvdata_t a = buf[k];
          sum += a;
          sum2 += a*a;
+         if (fabs((double) a)>(double) nnzThreshold) {nnz++;} // Optimize for different datatypes of a?
          nnz += (int) (a>0);
          if (a < fMin) fMin = a;
          if (a > fMax) fMax = a;
@@ -209,7 +216,7 @@ int StatsProbe::outputState(double timed)
          pvdata_t a = buf[kex];
          sum += a;
          sum2 += a*a;
-         nnz += (int) (a>0);
+         if (fabs((double) a)>(double) nnzThreshold) {nnz++;} // Optimize for different datatypes of a?
          if( a < fMin ) fMin = a;
          if( a > fMax ) fMax = a;
       }
