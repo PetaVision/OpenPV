@@ -11,7 +11,7 @@
 #include "tiff.h"
 
 #include <assert.h>
-#include <float.h>	// FLT_MAX/MIN
+#include <float.h>  // FLT_MAX/MIN
 #include <math.h>
 #include <string.h>     // memcpy
 
@@ -19,11 +19,12 @@ void usage()
 {
    printf("\nUsage:\n");
    printf(" -p <parameters filename>\n");
-   printf(" [-n <number of timesteps>]\n");
+   // printf(" [-n <number of timesteps>]\n");
    printf(" [-o <output directory>\n");
    printf(" [-s <random number generator seed>]\n");
    printf(" [-d <OpenCL device>]\n");
    printf(" [-w <working directory>]\n");
+   printf(" [-r|-c <checkpoint directory>]\n");
 }
 
 /**
@@ -36,7 +37,7 @@ void usage()
  */
 int parse_options(int argc, char * argv[], char ** output_path,
                   char ** param_file, int * opencl_device,
-                  unsigned int * random_seed, char ** working_dir)
+                  unsigned int * random_seed, char ** working_dir, int * restart, char ** checkpointReadDir)
 {
    if (argc < 2) {
       usage();
@@ -54,8 +55,26 @@ int parse_options(int argc, char * argv[], char ** output_path,
    pv_getopt_str(argc, argv, "-p", param_file);
    pv_getopt_unsigned(argc, argv, "-s", random_seed);
    pv_getopt_str(argc, argv, "-w", working_dir);
+   if (pv_getopt(argc, argv, "-r") == 0) { *restart = 1; }
+   pv_getopt_str(argc, argv, "-c", checkpointReadDir);
 
    return 0;
+}
+
+/*
+ * @argc
+ * @argv
+ * @opt
+ */
+int pv_getopt(int argc, char * argv[], const char * opt)
+{
+   int i;
+   for (i = 1; i < argc; i++) {
+      if (strcmp(argv[i], opt)==0) {
+         return 0;
+      }
+   }
+   return -1;  // not found
 }
 
 /**

@@ -78,6 +78,7 @@ extern "C"
 {
 #endif // __cplusplus
 
+int pv_getopt(int argc, char * argv[], const char * opt);
 int pv_getopt_int(int argc, char * argv[], const char * opt, int *   iVal);
 int pv_getopt_str(int argc, char * argv[], const char * opt, char ** sVal);
 int pv_getopt_long(int argc, char * argv[], const char * opt, long int * ulVal);
@@ -101,7 +102,8 @@ int    pv_close_binary(FILE * fp);
 
 int parse_options(int argc, char * argv[], char ** output_path,
                   char ** param_file, int * opencl_device,
-                  unsigned int * random_seed, char ** working_dir);
+                  unsigned int * random_seed, char ** working_dir,
+                  int * restart, char ** checkpointReadDir);
 
 #ifdef __cplusplus
 }

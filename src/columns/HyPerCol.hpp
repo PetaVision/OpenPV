@@ -97,6 +97,7 @@ public:
    bool getCheckpointReadFlag()           {return checkpointReadFlag;}
    bool getCheckpointWriteFlag()          {return checkpointWriteFlag;}
    bool getSuppresLastOutputFlag()        {return suppressLastOutput;}
+   const char * getPrintParamsFilename()  {return printParamsFilename;}
 
    int includeLayerName()                 {return filenamesContainLayerNames;}
    int includeConnectionName()            {return filenamesContainConnectionNames;}
@@ -172,8 +173,6 @@ private:
    virtual void ioParam_filenamesContainLayerNames(enum ParamsIOFlag ioFlag);
    virtual void ioParam_filenamesContainConnectionNames(enum ParamsIOFlag ioFlag);
    virtual void ioParam_checkpointRead(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_checkpointReadDir(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_checkpointReadDirIndex(enum ParamsIOFlag ioFlag);
    virtual void ioParam_checkpointWrite(enum ParamsIOFlag ioFlag);
    virtual void ioParam_checkpointWriteDir(enum ParamsIOFlag ioFlag);
    virtual void ioParam_checkpointWriteTriggerMode(enum ParamsIOFlag ioFlag);
@@ -211,10 +210,11 @@ private:
    size_t connectionArraySize;
    int numConnections;
 
-   bool warmStart;
+   bool warmStart;             // whether to start from a checkpoint
    bool checkpointReadFlag;    // whether to load from a checkpoint directory
    bool checkpointWriteFlag;   // whether to write from a checkpoint directory
    char * checkpointReadDir;   // name of the directory to read an initializing checkpoint from
+   char * checkpointReadDirBase;   // name of the directory containing che checkpoint read from (used by deprecated params-based method for loading from checkpoint)
    long int cpReadDirIndex;  // checkpoint number within checkpointReadDir to read
    char * checkpointWriteDir; // name of the directory to write checkpoints to
    enum CheckpointWriteTriggerMode checkpointWriteTriggerMode;

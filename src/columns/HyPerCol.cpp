@@ -21,12 +21,14 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <float.h>
+#include <string>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fts.h>
 
 namespace PV {
 
-HyPerCol::HyPerCol(const char * name, int argc, char * argv[], PVParams * params)
-         : warmStart(false)
-{
+HyPerCol::HyPerCol(const char * name, int argc, char * argv[], PVParams * params) {
    initialize_base();
    initialize(name, argc, argv, params);
 }
@@ -83,6 +85,7 @@ HyPerCol::~HyPerCol()
    }
    if (checkpointReadFlag) {
       free(checkpointReadDir); checkpointReadDir = NULL;
+      free(checkpointReadDirBase); checkpointReadDirBase = NULL;
    }
 }
 
@@ -90,6 +93,7 @@ HyPerCol::~HyPerCol()
 #define DEFAULT_NUMSTEPS 1
 int HyPerCol::initialize_base() {
    // Initialize all member variables to safe values.  They will be set to their actual values in initialize()
+   warmStart = false;
    currentStep = 0;
    layerArraySize = INITIAL_LAYER_ARRAY_SIZE;
    numLayers = 0;
@@ -99,6 +103,7 @@ int HyPerCol::initialize_base() {
    checkpointReadFlag = false;
    checkpointWriteFlag = false;
    checkpointReadDir = NULL;
+   checkpointReadDirBase = NULL;
    cpReadDirIndex = -1L;
    checkpointWriteDir = NULL;
    checkpointWriteTriggerMode = CPWRITE_TRIGGER_STEP;
@@ -190,10 +195,11 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * p
    int opencl_device = 0;  // default to GPU for now
    char * param_file = NULL;
    char * working_dir = NULL;
+   int restart = 0;
    parse_options(argc, argv, &outputPath, &param_file,
-                 &opencl_device, &random_seed, &working_dir);
-
-   if(working_dir) {
+                 &opencl_device, &random_seed, &working_dir, &restart, &checkpointReadDir);
+   warmStart = (restart!=0);
+   if(working_dir && columnId()==0) {
       int status = chdir(working_dir);
       if(status) {
          fprintf(stderr, "Unable to switch directory to \"%s\"\n", working_dir);
@@ -256,6 +262,103 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * p
       }
    }
 
+   if (warmStart && checkpointReadDir) {
+      if (columnId()==0) {
+         fprintf(stderr, "%s error: cannot set both -r and -c.\n", argv[0]);
+      }
+#if PV_USE_MPI
+      MPI_Barrier(icComm->communicator());
+#endif // PV_USE_MPI
+      exit(EXIT_FAILURE);
+   }
+   if (warmStart) {
+      // parse_options() and ioParams() must have both been called at this point, so that we have the correct outputPath and checkpointWriteFlag
+      assert(checkpointReadDir==NULL);
+      checkpointReadDir = (char *) calloc(PV_PATH_MAX, sizeof(char));
+      if(checkpointReadDir==NULL) {
+         fprintf(stderr, "%s error: unable to allocate memory for path to checkpoint read directory.\n", argv[0]);
+         exit(EXIT_FAILURE);
+      }
+      if (columnId()==0) {
+         struct stat statbuf;
+         // Look for directory "Last" in outputPath directory
+         std::string cpDirString = outputPath;
+         cpDirString += "/";
+         cpDirString += "Last";
+         if (PV_stat(cpDirString.c_str(), &statbuf)==0) {
+            if (statbuf.st_mode & S_IFDIR) {
+               strncpy(checkpointReadDir, cpDirString.c_str(), PV_PATH_MAX);
+               if (checkpointReadDir[PV_PATH_MAX-1]) {
+                  fprintf(stderr, "%s error: checkpoint read directory \"%s\" too long.\n", argv[0], cpDirString.c_str());
+                  exit(EXIT_FAILURE);
+               }
+            }
+            else {
+               fprintf(stderr, "%s error: checkpoint read directory \"%s\" is not a directory.\n", argv[0], cpDirString.c_str());
+               exit(EXIT_FAILURE);
+            }
+         }
+         else if (checkpointWriteFlag) {
+            // Last directory didn't exist; now look for checkpointWriteDir
+            assert(checkpointWriteDir);
+            cpDirString = checkpointWriteDir;
+            if (cpDirString.c_str()[cpDirString.length()-1] != '/') {
+               cpDirString += "/";
+            }
+            int statstatus = PV_stat(cpDirString.c_str(), &statbuf);
+            if (statstatus==0) {
+               if (statbuf.st_mode & S_IFDIR) {
+                  char *dirs[] = {checkpointWriteDir, NULL};
+                  FTS * fts = fts_open(dirs, FTS_LOGICAL, NULL);
+                  FTSENT * ftsent = fts_read(fts);
+                  bool found = false;
+                  long int cp_index = LONG_MIN;
+                  for (ftsent = fts_children(fts, 0); ftsent!=NULL; ftsent=ftsent->fts_link) {
+                     if (ftsent->fts_statp->st_mode & S_IFDIR) {
+                        long int x;
+                        int k = sscanf(ftsent->fts_name, "Checkpoint%ld", &x);
+                        if (x>cp_index) {
+                           cp_index = x;
+                           found = true;
+                        }
+                     }
+                  }
+                  if (!found) {
+                     fprintf(stderr, "%s error: restarting but Last directory does not exist and checkpointWriteDir directory \"%s\" does not have any checkpoints\n",
+                           argv[0], checkpointWriteDir);
+                     exit(EXIT_FAILURE);
+                  }
+                  int pathlen=snprintf(checkpointReadDir, PV_PATH_MAX, "%sCheckpoint%ld", cpDirString.c_str(), cp_index);
+                  if (pathlen>PV_PATH_MAX) {
+                     fprintf(stderr, "%s error: checkpoint read directory \"%s\" too long.\n", argv[0], cpDirString.c_str());
+                     exit(EXIT_FAILURE);
+                  }
+
+               }
+               else {
+                  fprintf(stderr, "%s error: checkpoint read directory \"%s\" is not a directory.\n", argv[0], checkpointWriteDir);
+                  exit(EXIT_FAILURE);
+               }
+            }
+            else if (errno == ENOENT) {
+               fprintf(stderr, "%s error: restarting but neither Last nor checkpointWriteDir directory \"%s\" exists.\n", argv[0], checkpointWriteDir);
+               exit(EXIT_FAILURE);
+            }
+         }
+         else {
+            fprintf(stderr, "%s error: restarting but Last directory does not exist and checkpointWriteDir is not defined (checkpointWrite=false)\n", argv[0]);
+         }
+
+      }
+#if PV_USE_MPI
+      MPI_Bcast(checkpointReadDir, PV_PATH_MAX, MPI_CHAR, 0, icComm->communicator());
+#endif // PV_USE_MPI
+   }
+   if (checkpointReadDir) {
+      checkpointReadFlag = true;
+      printf("Rank %d process setting checkpointReadDir to %s.\n", columnId(), checkpointReadDir);
+   }
+
    // run only on GPU for now
 #ifdef PV_USE_OPENCL
    initializeThreads(opencl_device);
@@ -299,8 +402,6 @@ int HyPerCol::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_filenamesContainLayerNames(ioFlag);
    ioParam_filenamesContainConnectionNames(ioFlag);
    ioParam_checkpointRead(ioFlag);
-   ioParam_checkpointReadDir(ioFlag);
-   ioParam_checkpointReadDirIndex(ioFlag);
    ioParam_checkpointWrite(ioFlag);
    ioParam_checkpointWriteDir(ioFlag);
    ioParam_checkpointWriteTriggerMode(ioFlag);
@@ -568,23 +669,33 @@ void HyPerCol::ioParam_filenamesContainConnectionNames(enum ParamsIOFlag ioFlag)
 }
 
 void HyPerCol::ioParam_checkpointRead(enum ParamsIOFlag ioFlag) {
-   ioParamValue(ioFlag, name, "checkpointRead", &checkpointReadFlag, false/*default value*/);
-}
-
-void HyPerCol::ioParam_checkpointReadDir(enum ParamsIOFlag ioFlag) {
-   assert(!params->presentAndNotBeenRead(name, "checkpointRead"));
-   if (checkpointReadFlag) {
-      ioParamStringRequired(ioFlag, name, "checkpointReadDir", &checkpointReadDir);
-   }
-   else {
-      checkpointReadDir = NULL;
-   }
-}
-
-void HyPerCol::ioParam_checkpointReadDirIndex(enum ParamsIOFlag ioFlag) {
-   assert(!params->presentAndNotBeenRead(name, "checkpointRead"));
-   if (checkpointReadFlag) {
-      ioParamValueRequired(ioFlag, name, "checkpointReadDirIndex", &cpReadDirIndex);
+   // checkpointRead, checkpointReadDir, and checkpointReadDirIndex parameters were deprecated on Mar 27, 2014.
+   // Instead of setting checkpointRead=true; checkpointReadDir="foo"; checkpointReadDirIndex=100,
+   // pass the option <-c foo/Checkpoint100> on the command line.
+   // If "-c" was passed then checkpointReadDir will have been set by HyPerCol::initialize's call to parse_options.
+   // If "-r" was passed then restartFromCheckpoint will  have been set.
+   if (!checkpointReadDir && !warmStart) {
+      ioParamValue(ioFlag, name, "checkpointRead", &checkpointReadFlag, false/*default value*/, false/*warnIfAbsent*/);
+      if (checkpointReadFlag) {
+         ioParamStringRequired(ioFlag, name, "checkpointReadDir", &checkpointReadDirBase);
+         ioParamValueRequired(ioFlag, name, "checkpointReadDirIndex", &cpReadDirIndex);
+         if (ioFlag==PARAMS_IO_READ) {
+            int str_len = snprintf(NULL, 0, "%s/Checkpoint%ld", checkpointReadDirBase, cpReadDirIndex);
+            size_t str_size = (size_t) (str_len+1);
+            checkpointReadDir = (char *) malloc( str_size*sizeof(char) );
+            snprintf(checkpointReadDir, str_size, "%s/Checkpoint%ld", checkpointReadDirBase, cpReadDirIndex);
+         }
+      }
+      else {
+         checkpointReadDirBase = NULL;
+      }
+      if (ioFlag==PARAMS_IO_READ && columnId()==0 && params->present(name, "checkpointRead")) {
+         fprintf(stderr, "%s \"%s\" warning: checkpointRead parameter is deprecated.\n",
+               params->groupKeywordFromName(name), name);
+         if (params->value(name, "checkpointRead")!=0) {
+            fprintf(stderr, "    Instead, pass the option on the command line:  -c \"%s\".\n", checkpointReadDir);
+         }
+      }
    }
 }
 
@@ -922,12 +1033,7 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
    // This needs to happen after initPublishers so that we can initialize the values in the data stores,
    // and before the layers' publish calls so that the data in border regions gets copied correctly.
    if ( checkpointReadFlag ) {
-      int str_len = snprintf(NULL, 0, "%s/Checkpoint%ld", checkpointReadDir, cpReadDirIndex);
-      size_t str_size = (size_t) (str_len+1);
-      char * cpDir = (char *) malloc( str_size*sizeof(char) );
-      snprintf(cpDir, str_size, "%s/Checkpoint%ld", checkpointReadDir, cpReadDirIndex);
-      checkpointRead(cpDir);
-      free(cpDir);
+      checkpointRead(checkpointReadDir);
    }
    else {
       for ( int l=0; l<numLayers; l++ ) {
@@ -1463,6 +1569,9 @@ int HyPerCol::outputParams() {
 #else // PV_USE_MPI
       fprintf(printParamsStream->fp, "// Compiled without MPI.\n");
 #endif // PV_USE_MPI
+      if (checkpointReadFlag) {
+         fprintf(printParamsStream->fp, "// Started from checkpoint \"%s\"\n", checkpointReadDir);
+      }
    }
    // Parent HyPerCol params
    status = ioParams(PARAMS_IO_WRITE);
@@ -1568,17 +1677,6 @@ int HyPerCol::loadState()
 {
    return 0;
 }
-
-#ifdef OBSOLETE // Marked obsolete Nov 1, 2011.  Nobody calls this routine and it will be supplanted by checkpointWrite()
-int HyPerCol::writeState()
-{
-   for (int l = 0; l < numLayers; l++) {
-      layers[l]->writeState(simTime);
-   }
-   return 0;
-}
-#endif // OBSOLETE
-
 
 int HyPerCol::insertProbe(ColProbe * p)
 {
