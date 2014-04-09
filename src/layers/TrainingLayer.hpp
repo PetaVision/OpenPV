@@ -29,6 +29,7 @@ public:
    virtual int updateState(double timed, double dt);
    virtual int checkpointRead(const char * cpDir, double * timef);
    virtual int checkpointWrite(const char * cpDir);
+   virtual double getDeltaUpdateTime();
 
 protected:
    TrainingLayer();
@@ -46,9 +47,9 @@ protected:
    int numTrainingLabels;
    int * trainingLabels;
    int curTrainingLabelIndex;
-   float displayPeriod;
-   float distToData;
-   int nextLabelTime;
+   double displayPeriod;
+   double distToData;
+   // int nextLabelTime; // Now handled by HyPerLayer's nextUpdateTime
    pvdata_t strength;
 
 private:

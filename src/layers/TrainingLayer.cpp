@@ -40,7 +40,7 @@ int TrainingLayer::initialize(const char * name, HyPerCol * hc) {
       fprintf(stderr, "Constructor for TrainingLayer \"%s\" requires parameters displayPeriod and distToData to be set to nonnegative values in the params file.\n", name);
       exit(PV_FAILURE);
    }
-   nextLabelTime = displayPeriod + distToData;
+   nextUpdateTime = displayPeriod + distToData;
    return status;
 }
 
@@ -57,11 +57,11 @@ void TrainingLayer::ioParam_trainingLabelsPath(enum ParamsIOFlag ioFlag) {
 }
 
 void TrainingLayer::ioParam_displayPeriod(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "displayPeriod", &displayPeriod, -1.0f, true/*warnIfAbsent*/);
+   parent->ioParamValue(ioFlag, name, "displayPeriod", &displayPeriod, -1.0, true/*warnIfAbsent*/);
 }
 
 void TrainingLayer::ioParam_distToData(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "distToData", &distToData, -1.0f, true/*warnIfAbsent*/);
+   parent->ioParamValue(ioFlag, name, "distToData", &distToData, -1.0, true/*warnIfAbsent*/);
 }
 
 void TrainingLayer::ioParam_strength(enum ParamsIOFlag ioFlag) {
@@ -124,14 +124,17 @@ int TrainingLayer::initializeV() {
 }
 
 bool TrainingLayer::needUpdate(double timed, double dt) {
-   return timed >= nextLabelTime;
+   return timed >= nextUpdateTime;
 }
 
 int TrainingLayer::updateState(double timed, double dt) {
-   nextLabelTime += displayPeriod;
    int status = updateState(timed, dt, getLayerLoc(), getCLayer()->activity->data, getV(), numTrainingLabels, trainingLabels, curTrainingLabelIndex, strength);
    if( status == PV_SUCCESS ) status = updateActiveIndices();
    return status;
+}
+
+double TrainingLayer::getDeltaUpdateTime() {
+   return displayPeriod;
 }
 
 int TrainingLayer::updateState(double timed, double dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int numTrainingLabels, int * trainingLabels, int traininglabelindex, int strength) {
@@ -148,55 +151,14 @@ int TrainingLayer::updateState(double timed, double dt, const PVLayerLoc * loc, 
 int TrainingLayer::checkpointRead(const char * cpDir, double * timef) {
    int status = HyPerLayer::checkpointRead(cpDir, timef);
    assert(status == PV_SUCCESS);
-   InterColComm * icComm = parent->icCommunicator();
-   int rootProc = 0;
-   if (icComm->commRank() == rootProc) {
-      char curLabelIndexPath[PV_PATH_MAX];
-      int chars_needed = snprintf(curLabelIndexPath, PV_PATH_MAX, "%s/%s_currentLabelIndex.bin", cpDir, name);
-      if (chars_needed >= PV_PATH_MAX) {
-         fprintf(stderr, "TrainingLayer::checkpointRead error.  Path \"%s/%s_currentLabelIndex.bin\" is too long.\n", cpDir, name);
-         abort();
-      }
-      PV_Stream * curLabelIndexStream = PV_fopen(curLabelIndexPath, "r");
-      if (curLabelIndexStream == NULL) {
-         fprintf(stderr, "TrainingLayer::checkpointRead error opening \"%s\" for reading: %s\n", curLabelIndexPath, strerror(errno));
-         abort();
-      }
-      int numread = PV_fread(&curTrainingLabelIndex, sizeof(curTrainingLabelIndex), 1, curLabelIndexStream);
-      if (numread != 1) {
-         fprintf(stderr, "TrainingLayer::checkpointRead error.  Unable to read \"%s\".\n", curLabelIndexPath);
-         abort();
-      }
-      PV_fclose(curLabelIndexStream);
-   }
-#ifdef PV_USE_MPI
-   MPI_Bcast(&curTrainingLabelIndex, 1, MPI_INT, rootProc, icComm->communicator());
-#endif // PV_USE_MPI
+   parent->readScalarFromFile(cpDir, getName(), "currentLabelIndex", &curTrainingLabelIndex, curTrainingLabelIndex);
    return status;
 }
 
 int TrainingLayer::checkpointWrite(const char * cpDir) {
    int status = HyPerLayer::checkpointWrite(cpDir);
    assert(status == PV_SUCCESS);
-   if (parent->icCommunicator()->commRank()==0) {
-      char curLabelIndexPath[PV_PATH_MAX];
-      int chars_needed = snprintf(curLabelIndexPath, PV_PATH_MAX, "%s/%s_currentLabelIndex.bin", cpDir, name);
-      if (chars_needed >= PV_PATH_MAX) {
-         fprintf(stderr, "TrainingLayer::checkpointWrite error.  Path \"%s/%s_currentLabelIndex.bin\" is too long.\n", cpDir, name);
-         abort();
-      }
-      PV_Stream * curLabelIndexFile = PV_fopen(curLabelIndexPath, "w");
-      if (curLabelIndexFile == NULL) {
-         fprintf(stderr, "TrainingLayer::checkpointWrite error opening \"%s\" for writing: %s\n", curLabelIndexPath, strerror(errno));
-         abort();
-      }
-      int numread = PV_fwrite(&curTrainingLabelIndex, sizeof(curTrainingLabelIndex), 1, curLabelIndexFile);
-      if (numread != 1) {
-         fprintf(stderr, "TrainingLayer::checkpointWrite error.  Unable to write to \"%s\".\n", curLabelIndexPath);
-         abort();
-      }
-      PV_fclose(curLabelIndexFile);
-   }
+   parent->writeScalarToFile(cpDir, getName(), "currentLabelIndex", curTrainingLabelIndex);
    return status;
 }
 
