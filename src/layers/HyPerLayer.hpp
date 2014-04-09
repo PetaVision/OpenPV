@@ -153,17 +153,6 @@ protected:
    virtual void ioParam_GPUAccelerate(PVParams * params);
 #endif
 
-#ifdef OBSOLETE // Marked obsolete May 1, 2013.  Use HyPerCol template functions readScalarFromFile and writeScalarToFile instead
-   int readScalarFloat(const char * cp_dir, const char * val_name, double * val_ptr, double default_value=0.0f);
-   int writeScalarFloat(const char * cp_dir, const char * val_name, double value);
-
-   template <typename T>
-   int writeScalarToFile(const char * cp_dir, const char * val_name, T val);
-   template <typename T>
-   int readScalarFromFile(const char * cp_dir, const char * val_name, T * val, T default_value=(T) 0);
-#endif // OBSOLETE
-
-
 #ifdef PV_USE_OPENCL
    virtual int initializeThreadBuffers(const char * kernelName);
    virtual int initializeThreadKernels(const char * kernelName);

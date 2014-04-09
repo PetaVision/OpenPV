@@ -1837,25 +1837,12 @@ int HyPerLayer::outputState(double timef, bool last)
    return status;
 }
 
-#ifdef OBSOLETE // Marked obsolete Dec 18, 2012.  Nothing calls this function (probably obsoleted by move to checkpointRead/Write
-/**
- * Return a file name to be used for output file for layer data
- *
- * WARNING - assumes length of buf >= PV_PATH_MAX
- */
-const char * HyPerLayer::getOutputFilename(char * buf, const char * dataName, const char * term)
-{
-   snprintf(buf, PV_PATH_MAX-1, "%s/%s_%s%s.pvp", parent->getOutputPath(), getName(), dataName, term);
-   return buf;
-}
-#endif // OBSOLETE
-
 int HyPerLayer::checkpointRead(const char * cpDir, double * timed) {
    InterColComm * icComm = parent->icCommunicator();
    char basepath[PV_PATH_MAX];
    char filename[PV_PATH_MAX];
    int lenbase = snprintf(basepath, PV_PATH_MAX, "%s/%s", cpDir, name);
-   if (lenbase+strlen("_nextWrite.bin") >= PV_PATH_MAX) { // currently _nextWrite.bin is the longest suffix needed
+   if (lenbase+strlen("_Delays.pvp") >= PV_PATH_MAX) { // currently _Delays.pvp is the longest suffix needed
       if (icComm->commRank()==0) {
          fprintf(stderr, "HyPerLayer::checkpointRead error in layer \"%s\".  Base pathname \"%s/%s_\" too long.\n", name, cpDir, name);
       }
@@ -1913,38 +1900,7 @@ int HyPerLayer::checkpointRead(const char * cpDir, double * timed) {
          nfname = "numframes";
          num_calls_ptr = &writeActivityCalls;
       }
-      struct stat statbuffer;
-      int statstatus[2];
-      chars_needed = snprintf(filename, PV_PATH_MAX, "%s_%s.bin", basepath, nfname);
-      assert(chars_needed < PV_PATH_MAX);
-      if (parent->columnId()==0) {
-         statstatus[0] = stat(filename, &statbuffer);
-         statstatus[1] = errno;
-      }
-#if PV_USE_MPI
-      MPI_Bcast(statstatus, 2, MPI_INT, 0/*root*/, icComm->communicator());
-#endif
-
-      if (statstatus[0]==0) {
-         parent->readScalarFromFile(cpDir, getName(), nfname, num_calls_ptr, 0);
-      }
-      else {
-         if (statstatus[1] == ENOENT) {
-            *num_calls_ptr = 0;
-            if (icComm->commRank()==0) {
-               fprintf(stderr, "checkpointRead warning: file \"%s\" not found; will use %d for the value.\n", filename, *num_calls_ptr);
-            }
-         }
-         else {
-            if (icComm->commRank()==0) {
-               fprintf(stderr, "checkpointRead error determining status of file \"%s\": %s", filename, strerror(errno));
-            }
-#if PV_USE_MPI
-            MPI_Barrier(icComm->communicator());
-#endif
-            exit(EXIT_FAILURE);
-         }
-      }
+      parent->readScalarFromFile(cpDir, getName(), nfname, num_calls_ptr, 0);
    }
    //Need to exchange border information since lastUpdateTime is being read from checkpoint, so no guarentee that publish will call exchange
    status = icComm->exchangeBorders(this->getLayerId(), this->getLayerLoc());
@@ -2061,45 +2017,13 @@ int HyPerLayer::readDataStoreFromFile(const char * filename, InterColComm * comm
    return status;
 }
 
-#ifdef OBSOLETE // Marked obsolete May 1, 2013.  Use HyPerCol template function readScalarFromFile instead
-int HyPerLayer::readScalarFloat(const char * cp_dir, const char * val_name, double * val_ptr, double default_value) {
-   int status = PV_SUCCESS;
-   if( parent->icCommunicator()->commRank() == 0 ) {
-      char filename[PV_PATH_MAX];
-      int chars_needed;
-      chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_%s.bin", cp_dir, getName(), val_name);
-      if(chars_needed >= PV_PATH_MAX) {
-         fprintf(stderr, "HyPerLayer::readScalarFloat error: path %s/%s_%s.bin is too long.\n", cp_dir, getName(), val_name);
-         abort();
-      }
-      PV_Stream * pvstream = PV_fopen(filename, "r");
-      *val_ptr = default_value;
-      if (pvstream==NULL  && parent->icCommunicator()->commRank() == 0 ) {
-         fprintf(stderr, "HyPerLayer::readScalarFloat warning: unable to open path %s for reading.  writeTime will be %f\n", filename, default_value);
-      }
-      else {
-         int num_read = PV_fread(val_ptr, sizeof(*val_ptr), 1UL, pvstream);
-         if (num_read != 1) {
-            fprintf(stderr, "HyPerLayer::readScalarFloat warning: unable to read from %s.  writeTime will be %f\n", filename, default_value);
-         }
-      }
-      PV_fclose(pvstream);
-   }
-#ifdef PV_USE_MPI
-   MPI_Bcast(val_ptr, 1, MPI_DOUBLE, 0, getParent()->icCommunicator()->communicator());
-#endif // PV_USE_MPI
-
-   return status;
-}
-#endif // OBSOLETE
-
 int HyPerLayer::checkpointWrite(const char * cpDir) {
    // Writes checkpoint files for V, A, and datastore to files in working directory
    InterColComm * icComm = parent->icCommunicator();
    char basepath[PV_PATH_MAX];
    char filename[PV_PATH_MAX];
    int lenbase = snprintf(basepath, PV_PATH_MAX, "%s/%s", cpDir, name);
-   if (lenbase+strlen("_nextWrite.bin") >= PV_PATH_MAX) { // currently _nextWrite.bin is the longest suffix needed
+   if (lenbase+strlen("_Delays.pvp") >= PV_PATH_MAX) { // currently _Delays.pvp is the longest suffix needed
       if (icComm->commRank()==0) {
          fprintf(stderr, "HyPerLayer::checkpointWrite error in layer \"%s\".  Base pathname \"%s/%s_\" too long.\n", name, cpDir, name);
       }
@@ -2201,41 +2125,6 @@ int HyPerLayer::writeDataStoreToFile(const char * filename, InterColComm * comm,
    writeFile = NULL;
    return status;
 }
-
-#ifdef OBSOLETE // Marked obsolote April 23, 2013.  Use the template function writeScalarToFile instead
-int HyPerLayer::writeScalarFloat(const char * cp_dir, const char * val_name, double val) {
-   int status = PV_SUCCESS;
-   if (parent->columnId()==0)  {
-      char filename[PV_PATH_MAX];
-      int chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_%s.bin", cp_dir, name, val_name);
-      if (chars_needed >= PV_PATH_MAX) {
-         fprintf(stderr, "writeScalarFloat error: path %s/%s_%s.bin is too long.\n", cp_dir, name, val_name);
-         abort();
-      }
-      PV_Stream * pvstream = PV_fopen(filename, "w");
-      if (pvstream==NULL) {
-         fprintf(stderr, "HyPerLayer::checkpointWrite error: unable to open path %s for writing.\n", filename);
-         abort();
-      }
-      int num_written = PV_fwrite(&val, sizeof(val), 1, pvstream);
-      if (num_written != 1) {
-         fprintf(stderr, "HyPerLayer::checkpointWrite error while writing to %s.\n", filename);
-         abort();
-      }
-      PV_fclose(pvstream);
-      chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_%s.txt", cp_dir, name, val_name);
-      assert(chars_needed < PV_PATH_MAX);
-      pvstream = PV_fopen(filename, "w");
-      if (pvstream==NULL) {
-         fprintf(stderr, "HyPerLayer::checkpointWrite error: unable to open path %s for writing.\n", filename);
-         abort();
-      }
-      fprintf(pvstream->fp, "%f\n", val);
-      PV_fclose(pvstream);
-   }
-   return status;
-}
-#endif // OBSOLETE
 
 int HyPerLayer::readState(double * timef)
 {
