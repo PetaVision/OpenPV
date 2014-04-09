@@ -52,12 +52,15 @@ int Movie::checkpointRead(const char * cpDir, double * timef){
    //   nextDisplayTime += parent->simulationTime();
    //}
 
-   if (writeFrameToTimestamp && timestampFile) {
+   if (writeFrameToTimestamp) {
       long timestampFilePos = 0L;
       parent->readScalarFromFile(cpDir, getName(), "TimestampState", &timestampFilePos, timestampFilePos);
-      if (PV_fseek(timestampFile, timestampFilePos, SEEK_SET) != 0) {
-         fprintf(stderr, "MovieLayer::checkpointRead error: unable to recover initial file position in timestamp file for layer %s: %s\n", name, strerror(errno));
-         exit(EXIT_FAILURE);
+      if (timestampFile) {
+         assert(parent->columnId()==0);
+         if (PV_fseek(timestampFile, timestampFilePos, SEEK_SET) != 0) {
+            fprintf(stderr, "MovieLayer::checkpointRead error: unable to recover initial file position in timestamp file for layer %s: %s\n", name, strerror(errno));
+            exit(EXIT_FAILURE);
+         }
       }
    }
    parent->readScalarFromFile(cpDir, getName(), "FrameNumState", &frameNumber, frameNumber);
