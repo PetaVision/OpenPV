@@ -41,6 +41,8 @@ int KernelConn::initialize_base()
    plasticityFlag = false;
    normalizeArborsIndividually = false;
    symmetrizeWeightsFlag = false;
+   patch2datalookuptable = NULL;
+   numKernelActivations = NULL;
 #ifdef PV_USE_MPI
    keepKernelsSynchronized_flag = true;
    mpiReductionBuffer = NULL;

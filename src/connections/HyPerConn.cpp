@@ -205,8 +205,13 @@ int HyPerConn::initialize_base()
    this->writeCompressedCheckpoints = false;
    this->fileType = PVP_WGT_FILE_TYPE; // Subclass's initialize_base() gets called after HyPerConn's initialize_base(), so this can be changed in subclasses.
 
+   wDataStart = NULL;
+   dwDataStart = NULL;
    wPatches=NULL;
    aPostOffset = NULL;
+   aPostOffsetBuffer = NULL;
+   gSynPatchStart = NULL;
+   gSynPatchStartBuffer = NULL;
 
    this->selfFlag = false;  // specifies whether connection is from a layer to itself (i.e. a self-connection)
    this->combine_dW_with_W_flag = false;
@@ -243,6 +248,15 @@ int HyPerConn::initialize_base()
    this->triggerLayer = NULL;
    this->triggerLayerName = NULL;
    this->triggerOffset = 0;
+
+   /*
+   size_t** gSynPatchStart;  // gSynPatchStart[arborId][kExt] is the offset to the start of the patch from the beginning of the post-synaptic GSyn buffer for corresponding channel
+   size_t * gSynPatchStartBuffer;
+   size_t* aPostOffsetBuffer;
+   int* delays; // delays[arborId] is the delay in timesteps (not units of dt) of the arborId'th arbor
+   PVPatchStrides postExtStrides;    // sx,sy,sf for a patch mapping into an extended post-synaptic layer
+   PVPatchStrides postNonextStrides; // sx,sy,sf for a patch mapping into a non-extended post-synaptic layer
+    */
 
 #ifdef USE_SHMGET
    shmget_flag = false;
