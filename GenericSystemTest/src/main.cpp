@@ -126,6 +126,10 @@ int main(int argc, char * argv[]) {
    }
    free(pv_argv); pv_argv = NULL;
 
+#if PV_USE_MPI
+   MPI_Finalize();
+#endif // PV_USE_MPI
+
    return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
