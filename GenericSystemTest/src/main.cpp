@@ -92,7 +92,7 @@ int main(int argc, char * argv[]) {
    assert(generateFlag||testrunFlag||testcheckpointFlag||testioparamsFlag);
 
    int status = PV_SUCCESS;
-   if (generateFlag) {
+   if (status==PV_SUCCESS && generateFlag) {
       if (generate(pv_argc, pv_argv,rank)!=PV_SUCCESS) {
          status = PV_FAILURE;
          if (rank==0) {
@@ -100,7 +100,7 @@ int main(int argc, char * argv[]) {
          }
       }
    }
-   if (testrunFlag) {
+   if (status==PV_SUCCESS && testrunFlag) {
       if (testrun(pv_argc, pv_argv,rank)!=PV_SUCCESS) {
          status = PV_FAILURE;
          if (rank==0) {
@@ -108,7 +108,7 @@ int main(int argc, char * argv[]) {
          }
       }
    }
-   if (testcheckpointFlag) {
+   if (status==PV_SUCCESS && testcheckpointFlag) {
       if (testcheckpoint(pv_argc, pv_argv,rank)!=PV_SUCCESS) {
          status = PV_FAILURE;
          if (rank==0) {
@@ -116,7 +116,7 @@ int main(int argc, char * argv[]) {
          }
       }
    }
-   if (testioparamsFlag) {
+   if (status==PV_SUCCESS && testioparamsFlag) {
       if (testioparams(pv_argc, pv_argv,rank)!=PV_SUCCESS) {
          status = PV_FAILURE;
          if (rank==0) {
