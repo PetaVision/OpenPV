@@ -26,18 +26,24 @@ protected:
    int initialize(const char * name, HyPerCol * hc);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    virtual void ioParam_shuffleMethod(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_readFreqFromFile(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_freqFilename(enum ParamsIOFlag ioFlag);
    virtual void ioParam_freqCollectTime(enum ParamsIOFlag ioFlag);
 
    void randomShuffle(const pvdata_t * sourceData, pvdata_t * activity);
    void rejectionShuffle(const pvdata_t * sourceData, pvdata_t * activity);
    void collectFreq(const pvdata_t * sourceData);
+   void readFreq();
 
 private:
    int initialize_base();
    char * shuffleMethod;
+   char * freqFilename;
    long * featureFreqCount;
+   long * currFeatureFreqCount;
    long maxCount;
    long freqCollectTime;
+   bool readFreqFromFile;
 };
 
 }
