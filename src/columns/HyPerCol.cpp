@@ -21,10 +21,14 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <float.h>
+<<<<<<< .mine
+#include <time.h>
+=======
 #include <string>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fts.h>
+>>>>>>> .r8433
 
 namespace PV {
 
@@ -1258,7 +1262,10 @@ int HyPerCol::advanceTime(double sim_time)
       nextProgressTime += progressInterval;
       if (columnId() == 0) {
          FILE * progressStream = writeProgressToErr ? stderr : stdout;
-         fprintf(progressStream, "   time==%f\n", sim_time);
+         fprintf(progressStream, "   time==%f  ", sim_time);
+         time_t current_time;
+         time(&current_time);
+         std::cout << ctime(&current_time);
       }
    }
 
