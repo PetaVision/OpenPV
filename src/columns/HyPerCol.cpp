@@ -21,14 +21,11 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <float.h>
-<<<<<<< .mine
 #include <time.h>
-=======
 #include <string>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fts.h>
->>>>>>> .r8433
 
 namespace PV {
 
