@@ -68,7 +68,7 @@ int main(int argc, char * argv[]) {
 int customexit(HyPerCol * hc, int argc, char * argv[]) {
    int status = PV_SUCCESS;
    if (hc->columnId()==0) {
-      std::string cmd("diff -r -q checkpoints*/Checkpoint");
+      std::string cmd("diff -r -q -x timers.txt checkpoints*/Checkpoint");
       std::stringstream stepnumber;
       stepnumber << hc->getFinalStep();
       cmd += stepnumber.str();

@@ -113,7 +113,7 @@ int customexit(HyPerCol * hc, int argc, char * argv[]) {
       }
       char * shellcommand;
       char c;
-      const char * fmtstr = "diff -r -q %s/Checkpoint%d %s/Checkpoint%d";
+      const char * fmtstr = "diff -r -q -x timers.txt %s/Checkpoint%d %s/Checkpoint%d";
       int len = snprintf(&c, 1, fmtstr, cpdir1, index, cpdir2, index);
       shellcommand = (char *) malloc(len+1);
       if( shellcommand == NULL) {
