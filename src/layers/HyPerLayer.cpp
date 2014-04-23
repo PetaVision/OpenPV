@@ -167,10 +167,11 @@ int HyPerLayer::initialize(const char * name, HyPerCol * hc) {
    this->name = strdup(name);
    setParent(hc); // Could this line and the parent->addLayer line be combined in a HyPerLayer method?
 
-   this->update_timer  = new Timer();
-   this->recvsyn_timer = new Timer();
-   this->publish_timer = new Timer();
-   this->io_timer      = new Timer();
+   // Timers
+   this->update_timer =  new Timer(getName(), "layer", "update ");
+   this->recvsyn_timer = new Timer(getName(), "layer", "recvsyn");
+   this->publish_timer = new Timer(getName(), "layer", "publish");
+   this->io_timer =      new Timer(getName(), "layer", "io     ");
 
    PVParams * params = parent->parameters();
 
@@ -274,14 +275,10 @@ int HyPerLayer::initializeGPU() {
 HyPerLayer::~HyPerLayer()
 {
    if (parent->columnId() == 0) {
-      printf("%32s: total time in %6s %10s: ", name, "layer", "recvsyn");
-      recvsyn_timer->elapsed_time();
-      printf("%32s: total time in %6s %10s: ", name, "layer", "update ");
-      update_timer->elapsed_time();
-      printf("%32s: total time in %6s %10s: ", name, "layer", "publish");
-      publish_timer->elapsed_time();
-      printf("%32s: total time in %6s %10s: ", name, "layer", "io     ");
-      io_timer->elapsed_time();
+      recvsyn_timer->fprint_time(stdout);
+      update_timer->fprint_time(stdout);
+      publish_timer->fprint_time(stdout);
+      io_timer->fprint_time(stdout);
       fflush(stdout);
    }
    delete recvsyn_timer;  recvsyn_timer = NULL;
@@ -1932,7 +1929,7 @@ int HyPerLayer::readBufferFile(const char * filename, InterColComm * comm, doubl
          abort();
       }
       if (rank==0) {
-         fprintf(stderr,"HyPerLayer::readBufferFile error: filename \"%s\" is compressed spiking file, but this filetype has not yet been implemented in this case.\n", filename);
+         fprintf(stderr,"HyPerLayer::readBufferFile error: filename \"%s\" is a compressed spiking file, but this filetype has not yet been implemented in this case.\n", filename);
       }
       status = PV_FAILURE;
       break;
@@ -2124,6 +2121,17 @@ int HyPerLayer::writeDataStoreToFile(const char * filename, InterColComm * comm,
    pvp_close_file(writeFile, comm);
    writeFile = NULL;
    return status;
+}
+
+int HyPerLayer::checkpointTimers(PV_Stream * timerstream) {
+   update_timer->fprint_time(timerstream->fp);
+   recvsyn_timer->fprint_time(timerstream->fp);
+   publish_timer->fprint_time(timerstream->fp);
+   io_timer->fprint_time(timerstream->fp);
+   for (int p=0; p<getNumProbes(); p++) {
+      getProbe(p)->checkpointTimers(timerstream);
+   }
+   return PV_SUCCESS;
 }
 
 int HyPerLayer::readState(double * timef)

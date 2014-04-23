@@ -118,7 +118,7 @@ Communicator::Communicator(int* argc, char*** argv)
 #endif
 
    // install timers
-   this->exchange_timer = new Timer();
+   this->exchange_timer = new Timer("Communicator", " comm", "exchng ");
 }
 
 Communicator::~Communicator()
@@ -132,8 +132,7 @@ Communicator::~Communicator()
    // delete timers
    //
    if (commRank() == 0) {
-      printf("%32s: total time in %6s %10s: ", "Communicator", " comm", "exchng ");
-      exchange_timer->elapsed_time();
+      exchange_timer->fprint_time(stdout);
       fflush(stdout);
    }
    delete exchange_timer; exchange_timer = NULL;

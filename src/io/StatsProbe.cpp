@@ -32,12 +32,9 @@ StatsProbe::~StatsProbe()
 {
    int rank = getTargetLayer()->getParent()->columnId();
    if (rank==0) {
-      printf("StatsProbe %s I/O  timer ", getProbeName()); // Lack of \n is deliberate, elapsed_time() calls printf with \n.
-      iotimer->elapsed_time();
-      printf("StatsProbe %s MPI  timer ", getProbeName());
-      mpitimer->elapsed_time();
-      printf("StatsProbe %s Comp timer ", getProbeName());
-      comptimer->elapsed_time();
+      iotimer->fprint_time(stdout);
+      mpitimer->fprint_time(stdout);
+      comptimer->fprint_time(stdout);
    }
    delete iotimer;
    delete mpitimer;
@@ -72,9 +69,18 @@ int StatsProbe::initStatsProbe(const char * probeName, HyPerCol * hc) {
       nnz = 0;
    }
    assert(status == PV_SUCCESS);
-   iotimer = new Timer();
-   mpitimer = new Timer();
-   comptimer = new Timer();
+   size_t timermessagelen = strlen("StatsProbe ") + strlen(getProbeName()) + strlen(" Comp timer ");
+   char timermessage[timermessagelen+1];
+   int charsneeded;
+   charsneeded = snprintf(timermessage, timermessagelen+1, "StatsProbe %s I/O  timer ", getProbeName());
+   assert(charsneeded<=timermessagelen);
+   iotimer = new Timer(timermessage);
+   charsneeded = snprintf(timermessage, timermessagelen+1, "StatsProbe %s MPI  timer ", getProbeName());
+   assert(charsneeded<=timermessagelen);
+   mpitimer = new Timer(timermessage);
+   charsneeded = snprintf(timermessage, timermessagelen+1, "StatsProbe %s Comp timer ", getProbeName());
+   assert(charsneeded<=timermessagelen);
+   comptimer = new Timer(timermessage);
    return status;
 }
 
@@ -267,7 +273,14 @@ int StatsProbe::outputState(double timed)
    fflush(outputstream->fp);
    iotimer->stop();
 
-   return 0;
+   return PV_SUCCESS;
+}
+
+int StatsProbe::checkpointTimers(PV_Stream * timerstream) {
+   iotimer->fprint_time(timerstream->fp);
+   mpitimer->fprint_time(timerstream->fp);
+   comptimer->fprint_time(timerstream->fp);
+   return PV_SUCCESS;
 }
 
 }

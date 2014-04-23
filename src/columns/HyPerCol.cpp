@@ -64,8 +64,7 @@ HyPerCol::~HyPerCol()
    }
 
    if (columnId()==0) {
-      printf("%32s: total time in %6s %10s: ", name, "column", "run    ");
-      runTimer->elapsed_time();
+      runTimer->fprint_time(stdout);
       fflush(stdout);
    }
    delete runTimer;
@@ -188,7 +187,7 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * p
 #endif // PVP_DEBUG
 
    this->name = strdup(name);
-   this->runTimer = new Timer();
+   this->runTimer = new Timer(name, "column", "run    ");
 
    layers = (HyPerLayer **) malloc(layerArraySize * sizeof(HyPerLayer *));
    connections = (HyPerConn **) malloc(connectionArraySize * sizeof(HyPerConn *));
@@ -1483,9 +1482,28 @@ int HyPerCol::checkpointWrite(const char * cpDir) {
    for( int c=0; c<numConnections; c++ ) {
       connections[c]->checkpointWrite(cpDir);
    }
+   
+   // Timers
+   if (columnId()==0) {
+      std::string timerpathstring = cpDir;
+      timerpathstring += "/";
+      timerpathstring += "timers.txt";
+      const char * timerpath = timerpathstring.c_str();
+      PV_Stream * timerstream = PV_fopen(timerpath, "w");
+      assert(timerstream); // Lazy; do a proper error message.
+      runTimer->fprint_time(timerstream->fp);
+      icCommunicator()->fprintTime(timerstream->fp);
+      for (int l=0; l<numLayers; l++) {
+         layers[l]->checkpointTimers(timerstream);
+      }
+      for (int c=0; c<numConnections; c++) {
+         connections[c]->checkpointTimers(timerstream);
+      }
+      PV_fclose(timerstream); timerstream = NULL;
+   }
 
    // Note: timeinfo should be done at the end of the checkpointing, so that its presence serves as a flag that the checkpoint has completed.
-   if( icCommunicator()->commRank()==0 ) {
+   if( columnId()==0 ) {
       char timestamppath[PV_PATH_MAX];
       int chars_needed = snprintf(timestamppath, PV_PATH_MAX, "%s/timeinfo.bin", cpDir);
       assert(chars_needed < PV_PATH_MAX);

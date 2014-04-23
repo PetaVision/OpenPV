@@ -90,10 +90,8 @@ HyPerConn::~HyPerConn()
 {
    delete normalizer;
    if (parent->columnId() == 0) {
-      printf("%32s: total time in %6s %10s: ", name, "conn", "io     ");
-      io_timer->elapsed_time();
-      printf("%32s: total time in %6s %10s: ", name, "conn", "update ");
-      update_timer->elapsed_time();
+      io_timer->fprint_time(stdout);
+      update_timer->fprint_time(stdout);
       fflush(stdout);
    }
    delete io_timer;      io_timer     = NULL;
@@ -188,8 +186,8 @@ int HyPerConn::initialize_base()
    this->probes = NULL;
    this->numProbes = 0;
 
-   this->io_timer     = new Timer();
-   this->update_timer = new Timer();
+   this->io_timer     = NULL;
+   this->update_timer = NULL;
 
    this->wMin = 0.0;
    this->wMax = 1.0;
@@ -500,6 +498,10 @@ int HyPerConn::initialize(const char * name, HyPerCol * hc) {
 #endif
 
    this->connId = parent->addConnection(this);
+
+   this->io_timer     = new Timer(getName(), "conn", "io     ");
+   this->update_timer = new Timer(getName(), "conn", "update ");
+
    return status;
 }
 
@@ -2127,40 +2129,11 @@ int HyPerConn::checkpointFilename(char * cpFilename, int size, const char * cpDi
    return PV_SUCCESS;
 }
 
-#ifdef OBSOLETE // Marked obsolete May 1, 2013.  Use HyPerCol's writeScalarToFile instead
-int HyPerConn::writeScalarFloat(const char * cp_dir, const char * val_name, double val) {
-   int status = PV_SUCCESS;
-   if (parent->columnId()==0)  {
-      char filename[PV_PATH_MAX];
-      int chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_%s.bin", cp_dir, name, val_name);
-      if (chars_needed >= PV_PATH_MAX) {
-         fprintf(stderr, "writeScalarFloat error: path %s/%s_%s.bin is too long.\n", cp_dir, name, val_name);
-         abort();
-      }
-      PV_Stream * writeTimeStream = PV_fopen(filename, "w");
-      if (writeTimeStream==NULL) {
-         fprintf(stderr, "HyPerLayer::checkpointWrite error: unable to open path %s for writing.\n", filename);
-         abort();
-      }
-      int num_written = PV_fwrite(&val, sizeof(val), 1, writeTimeStream);
-      if (num_written != 1) {
-         fprintf(stderr, "HyPerLayer::checkpointWrite error while writing to %s.\n", filename);
-         abort();
-      }
-      PV_fclose(writeTimeStream);
-      chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_%s.txt", cp_dir, name, val_name);
-      assert(chars_needed < PV_PATH_MAX);
-      writeTimeStream = PV_fopen(filename, "w");
-      if (writeTimeStream==NULL) {
-         fprintf(stderr, "HyPerLayer::checkpointWrite error: unable to open path %s for writing: %s\n", filename, strerror(errno));
-         abort();
-      }
-      fprintf(writeTimeStream->fp, "%f\n", val);
-      PV_fclose(writeTimeStream);
-   }
-   return status;
+int HyPerConn::checkpointTimers(PV_Stream * timerstream) {
+   io_timer->fprint_time(timerstream->fp);
+   update_timer->fprint_time(timerstream->fp);
+   return PV_SUCCESS;
 }
-#endif // OBSOLETE
 
 float HyPerConn::maxWeight(int arborId)
 {

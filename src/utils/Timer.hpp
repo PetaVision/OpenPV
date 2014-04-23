@@ -9,7 +9,10 @@
 #ifndef TIMER_HPP_
 #define TIMER_HPP_
 
+#include <stdlib.h>
+#include <stdio.h>
 #include <stdint.h>
+#include <assert.h>
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -17,17 +20,21 @@ namespace PV {
    
    class Timer {
    public:
-      Timer();
+      Timer(double init_time=0.0);
+      Timer(const char * timermessage, double init_time=0.0);
+      Timer(const char * objname, const char * objtype, const char * timertype, double init_time=0.0);
       virtual ~Timer();
-      void reset();
+      void reset(double init_time=0.0);
 
       virtual double start();
       virtual double stop();
-      virtual double elapsed_time();
+      inline double elapsed_time();
+      int fprint_time(FILE * stream);
       
    protected:
       
       int rank;
+      char * message;
       
       uint64_t time_start, time_end;
       uint64_t time_elapsed;

@@ -5,10 +5,10 @@
 #ifndef COMMUNICATOR_HPP_
 #define COMMUNICATOR_HPP_
 
+#include <stdio.h>
 #include "../include/pv_arch.h"
 #include "../include/pv_types.h"
 #include "../utils/Timer.hpp"
-#include <stdlib.h>
 
 #ifdef PV_USE_MPI
 #  include <mpi.h>
@@ -70,6 +70,7 @@ public:
                 const PVLayerLoc * loc);
 
    int getTag(int neighbor) { return tags[neighbor]; }
+   double fprintTime(FILE * fp) {return exchange_timer->fprint_time(fp);}
 
 protected:
 

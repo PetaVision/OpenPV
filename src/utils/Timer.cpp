@@ -59,21 +59,44 @@ static double cpu_time_to_sec(uint64_t cpu_elapsed)
 
 namespace PV {
 
-Timer::Timer()
+Timer::Timer(double init_time)
 {
    rank = 0;
-   reset();
+   reset(init_time);
+   message = strdup("");
+}
+
+Timer::Timer(const char * timermessage, double init_time)
+{
+   rank = 0;
+   reset(init_time);
+   message = strdup(timermessage ? timermessage : "");
+}
+
+Timer::Timer(const char * objname, const char * objtype, const char * timertype, double init_time) {
+   rank = 0;
+   reset(init_time);
+   char dummy;
+   int charsneeded = snprintf(&dummy, 1, "%32s: total time in %6s %10s: ", objname, objtype, timertype);
+   message = (char *) malloc(charsneeded+1);
+   if (message==NULL) {
+      fprintf(stderr, "Timer::setMessage unable to allocate memory for Timer message: called with name=%s, objtype=%s, timertype=%s\n", objname, objtype, timertype);
+      exit(EXIT_FAILURE);
+   }
+   int chars_used = snprintf(message, charsneeded+1, "%32s: total time in %6s %10s: ", objname, objtype, timertype);
+   assert(chars_used<=charsneeded);
 }
 
 Timer::~Timer()
 {
+   free(message);
 }
 
-void Timer::reset()
+void Timer::reset(double init_time)
 {
    time_start   = get_cpu_time();
    time_end     = time_start;
-   time_elapsed = 0.0;
+   time_elapsed = init_time;
 }
 
 double Timer::start()
@@ -90,11 +113,15 @@ double Timer::stop()
 
 double Timer::elapsed_time()
 {
-   if (rank == 0) {
-      fprintf(stdout, "processor cycle time == %f\n", (float) cpu_time_to_sec(time_elapsed));
-      fflush(stdout);
-   }
    return (double) time_elapsed;
 }
-   
+
+int Timer::fprint_time(FILE * stream) {
+   if (rank == 0) {
+      fprintf(stream, "%sprocessor cycle time == %f\n", message, (float) cpu_time_to_sec(elapsed_time()));
+      fflush(stream);
+   }
+   return 0;
+}
+ 
 }  // namespace PV

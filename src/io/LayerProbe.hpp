@@ -35,6 +35,7 @@ public:
    virtual bool needUpdate(double time, double dt);
    virtual int outputStateWrapper(double timef, double dt);
    virtual int outputState(double timef) = 0;
+   virtual int checkpointTimers(PV_Stream * timerstream) {return PV_SUCCESS;}
 
    const char * getProbeName() {return probeName;}
    HyPerLayer * getTargetLayer() {return targetLayer;}
