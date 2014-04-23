@@ -1,8 +1,6 @@
 //
 // created by peteschultz: Dec 9, 2013
 //
-// Similar to MovieTestParams, except the result of the 3x3 convolution
-// is held in an ANNTriggerUpdateOnNewImage layer.
 
 debugParsing = false;    // If true, debug the reading of this parameter file.
 
