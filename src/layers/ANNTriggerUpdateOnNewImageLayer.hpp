@@ -5,6 +5,9 @@
  *      Author: gkenyon
  */
 
+#ifdef OBSOLETE // Marked obsolete April 23, 2014.
+// Use ANNLayer with triggerFlag set to true and triggerLayerName for the triggering layer
+
 #ifndef ANNTRIGGERUPDATEONNEWIMAGELAYER_HPP_
 #define ANNTRIGGERUPDATEONNEWIMAGELAYER_HPP_
 
@@ -45,3 +48,5 @@ private:
 
 } /* namespace PV */
 #endif /* ANNTRIGGERUPDATEONNEWIMAGELAYER_HPP_ */
+
+#endif // OBSOLETE

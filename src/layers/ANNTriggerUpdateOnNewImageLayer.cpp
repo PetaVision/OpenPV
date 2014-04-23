@@ -5,7 +5,9 @@
  *      Author: gkenyon
  */
 
-//#include "ANNLayer.hpp"
+#ifdef OBSOLETE // Marked obsolete April 23, 2014.
+// Use ANNLayer with triggerFlag set to true and triggerLayerName for the triggering layer
+
 #include "ANNTriggerUpdateOnNewImageLayer.hpp"
 
 namespace PV {
@@ -131,3 +133,4 @@ bool ANNTriggerUpdateOnNewImageLayer::needUpdate(double time, double dt) {
 
 } /* namespace PV */
 
+#endif // OBSOLETE

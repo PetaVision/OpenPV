@@ -62,7 +62,10 @@
 #include "../layers/ANNErrorLayer.hpp"
 #include "../layers/LabelErrorLayer.hpp"
 #include "../layers/ANNLabelLayer.hpp"
+#ifdef OBSOLETE // Marked obsolete April 23, 2014.
+// Use ANNLayer with triggerFlag set to true and triggerLayerName for the triggering layer
 #include "../layers/ANNTriggerUpdateOnNewImageLayer.hpp"
+#endif // OBSOLETE
 #include "../layers/ConstantLayer.hpp"
 #include "../connections/HyPerConn.hpp"
 #include "../connections/BIDSConn.hpp"

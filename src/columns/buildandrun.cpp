@@ -116,7 +116,10 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
                "ANNErrorLayer",
                "LabelErrorLayer",
                "ANNLabelLayer",
+#ifdef OBSOLETE // Marked obsolete April 23, 2014.
+// Use ANNLayer with triggerFlag set to true and triggerLayerName for the triggering layer
                "ANNTriggerUpdateOnNewImageLayer",
+#endif // OBSOLETE
                "ConstantLayer",
              "CloneVLayer",
                "BIDSCloneLayer",
@@ -480,10 +483,13 @@ HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPe
       keywordMatched = true;
       addedLayer = (HyPerLayer *) new ANNLabelLayer(name, hc);
    }
+#ifdef OBSOLETE // Marked obsolete April 23, 2014.
+// Use ANNLayer with triggerFlag set to true and triggerLayerName for the triggering layer
    if( !strcmp(classkeyword, "ANNTriggerUpdateOnNewImageLayer") ) {
       keywordMatched = true;
       addedLayer = (HyPerLayer *) new ANNTriggerUpdateOnNewImageLayer(name, hc);
    }
+#endif // OBSOLETE
    if( !strcmp(classkeyword, "ConstantLayer") ) {
       keywordMatched = true;
       addedLayer = (HyPerLayer *) new ConstantLayer(name, hc);
