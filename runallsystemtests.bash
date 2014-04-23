@@ -20,7 +20,7 @@ then
     PV_MPIRUN=mpiexec-openmpi-mp
 elif test "$(uname)" = "Linux"
 then
-    PV_MPIRUN=mpirun
+    PV_MPIRUN="mpirun"
 fi
 
 # Navigate to directory containing systems tests.
