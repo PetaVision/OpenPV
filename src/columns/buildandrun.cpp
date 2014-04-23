@@ -119,10 +119,8 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
                "MLPOutputLayer",
                "LabelErrorLayer",
                "ANNLabelLayer",
-#ifdef OBSOLETE // Marked obsolete April 23, 2014.
-// Use ANNLayer with triggerFlag set to true and triggerLayerName for the triggering layer
+// Leaving ANNTriggerUpdateOnNewImageLayer in for now, to provide a meaningful error message if someone tries to use it
                "ANNTriggerUpdateOnNewImageLayer",
-#endif // OBSOLETE
                "ConstantLayer",
              "CloneVLayer",
                "BIDSCloneLayer",
@@ -309,7 +307,7 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
       }
       else {
          fprintf(stderr,"%s \"%s\" in params: Keyword %s is unrecognized.\n", kw, name, kw);
-         // fprintf(stderr,"?? How did you get here? \n");
+         exit(EXIT_FAILURE);
       }
 
       if( !didAddObject && hc->icCommunicator()->commRank()==0 ) {
@@ -498,13 +496,18 @@ HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPe
       keywordMatched = true;
       addedLayer = (HyPerLayer *) new ANNLabelLayer(name, hc);
    }
-#ifdef OBSOLETE // Marked obsolete April 23, 2014.
 // Use ANNLayer with triggerFlag set to true and triggerLayerName for the triggering layer
    if( !strcmp(classkeyword, "ANNTriggerUpdateOnNewImageLayer") ) {
-      keywordMatched = true;
-      addedLayer = (HyPerLayer *) new ANNTriggerUpdateOnNewImageLayer(name, hc);
+      keywordMatched = false; // true;
+      // addedLayer = (HyPerLayer *) new ANNTriggerUpdateOnNewImageLayer(name, hc);
+      if (hc->columnId()==0) {
+         fprintf(stderr, "Error: ANNTriggerUpdateOnNewImageLayer is obsolete.\n");
+         fprintf(stderr, "    Use ANNLayer with parameter triggerFlag set to true\n");
+         fprintf(stderr, "    and triggerLayerName set to the triggering layer.\n");
+      }
+      MPI_Barrier(hc->icCommunicator()->communicator());
+      exit(EXIT_FAILURE);
    }
-#endif // OBSOLETE
    if( !strcmp(classkeyword, "ConstantLayer") ) {
       keywordMatched = true;
       addedLayer = (HyPerLayer *) new ConstantLayer(name, hc);
