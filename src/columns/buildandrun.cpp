@@ -114,6 +114,9 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
                "MaxPooling",
                "HyPerLCALayer",
                "ANNErrorLayer",
+               "MLPErrorLayer",
+               "MLPForwardLayer",
+               "MLPOutputLayer",
                "LabelErrorLayer",
                "ANNLabelLayer",
 #ifdef OBSOLETE // Marked obsolete April 23, 2014.
@@ -474,6 +477,18 @@ HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPe
    if( !strcmp(classkeyword, "ANNErrorLayer") ) {
       keywordMatched = true;
       addedLayer = (HyPerLayer *) new ANNErrorLayer(name, hc);
+   }
+   if( !strcmp(classkeyword, "MLPErrorLayer") ) {
+      keywordMatched = true;
+      addedLayer = (HyPerLayer *) new MLPErrorLayer(name, hc);
+   }
+   if( !strcmp(classkeyword, "MLPForwardLayer") ) {
+      keywordMatched = true;
+      addedLayer = (HyPerLayer *) new MLPForwardLayer(name, hc);
+   }
+   if( !strcmp(classkeyword, "MLPOutputLayer") ) {
+      keywordMatched = true;
+      addedLayer = (HyPerLayer *) new MLPOutputLayer(name, hc);
    }
    if( !strcmp(classkeyword, "LabelErrorLayer") ) {
       keywordMatched = true;

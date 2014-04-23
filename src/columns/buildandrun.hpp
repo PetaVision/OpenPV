@@ -60,6 +60,9 @@
 #include "../layers/LCALIFLayer.hpp"
 #include "../layers/HyPerLCALayer.hpp"
 #include "../layers/ANNErrorLayer.hpp"
+#include "../layers/MLPErrorLayer.hpp"
+#include "../layers/MLPForwardLayer.hpp"
+#include "../layers/MLPOutputLayer.hpp"
 #include "../layers/LabelErrorLayer.hpp"
 #include "../layers/ANNLabelLayer.hpp"
 #ifdef OBSOLETE // Marked obsolete April 23, 2014.
