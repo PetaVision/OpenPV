@@ -14,7 +14,7 @@ TriggerTestLayerProbe::TriggerTestLayerProbe(const char * name, HyPerCol * hc)
 
 int TriggerTestLayerProbe::outputStateWrapper(double time, double dt){
    //Time 0 is initialization, doesn't matter if it updates or not
-   if(time == 0){
+   if(time < dt/2){
       return LayerProbe::outputStateWrapper(time, dt);
    }
 

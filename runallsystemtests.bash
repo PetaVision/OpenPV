@@ -271,6 +271,13 @@ runandecho $testname Debug/$testname $arglist
 mpirunandecho $testname Debug/$testname $arglist
 cd $wd
 
+testname=MLPTest
+arglist=""
+cd "$testname"
+runandecho $testname Debug/$testname $arglist
+mpirunandecho $testname Debug/$testname $arglist
+cd $wd
+
 testname=MovieSystemTest
 arglist="-p input/MovieSystemTest.params"
 cd "$testname"
