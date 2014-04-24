@@ -146,6 +146,7 @@ int MLPForwardLayer::checkpointRead(const char * cpDir, double * timef){
    int chars_needed = snprintf(filename, PV_PATH_MAX, "%s_B.pvp", basepath);
    status |= readBias(filename);
    assert(chars_needed < PV_PATH_MAX);
+   return status;
 }
 
 int MLPForwardLayer::checkpointWrite(const char * cpDir){
