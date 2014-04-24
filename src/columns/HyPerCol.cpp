@@ -1265,9 +1265,11 @@ int HyPerCol::advanceTime(double sim_time)
          time(&current_time);
          char * c_time_string = ctime(&current_time);
          if (c_time_string == NULL) {
-            fprintf(progressStream, "Failure to convert the current time.");
+            fprintf(progressStream, "   time==%f  Failure to convert the current time.\n", sim_time);
          }
-         fprintf(progressStream, "   time==%f  %s", sim_time, c_time_string);
+         else {
+            fprintf(progressStream, "   time==%f  %s", sim_time, c_time_string);
+         }
       }
    }
 
