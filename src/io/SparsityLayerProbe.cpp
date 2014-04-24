@@ -118,11 +118,12 @@ void SparsityLayerProbe::updateBufIndex(){
  */
 int SparsityLayerProbe::outputState(double timed)
 {
+   int rank = 0;
    //Grab needed info
-#ifdef PV_USE_MPI
+#if PV_USE_MPI
    InterColComm * icComm = getTargetLayer()->getParent()->icCommunicator();
    MPI_Comm comm = icComm->communicator();
-   int rank = icComm->commRank();
+   rank = icComm->commRank();
    const int rcvProc = 0;
 #endif // PV_USE_MPI
    const pvdata_t * buf = getTargetLayer()->getLayerData();
@@ -141,7 +142,7 @@ int SparsityLayerProbe::outputState(double timed)
             nnz++;
          }
       }
-#ifdef PV_USE_MPI
+#if PV_USE_MPI
       //Sum all nnz across processors
       MPI_Allreduce(MPI_IN_PLACE, &nnz, 1, MPI_INT, MPI_SUM, comm);
 #endif // PV_USE_MPI
@@ -155,7 +156,7 @@ int SparsityLayerProbe::outputState(double timed)
          pvdata_t a = buf[kex];
          sumVal += a;
       }
-#ifdef PV_USE_MPI
+#if PV_USE_MPI
       //Sum all nnz across processors
       MPI_Allreduce(MPI_IN_PLACE, &sumVal, 1, MPI_FLOAT, MPI_SUM, comm);
 #endif // PV_USE_MPI
