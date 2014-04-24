@@ -308,7 +308,7 @@ int HyPerConn::createArbors() {
       aPostOffset[k] = aPostOffsetBuffer
             + this->shrinkPatches_flag * k * preSynapticLayer()->getNumExtended();
    }
-   wDataStart = (pvwdata_t **) calloc(numAxonalArborLists, sizeof(pvdata_t *));
+   wDataStart = (pvwdata_t **) calloc(numAxonalArborLists, sizeof(pvwdata_t *));
    if( wDataStart == NULL ) {
       createArborsOutOfMemory();
       assert(false);
