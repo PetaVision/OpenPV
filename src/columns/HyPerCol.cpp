@@ -118,6 +118,7 @@ int HyPerCol::initialize_base() {
    startTime = 0.0;
    stopTime = 0.0;
    deltaTime = DELTA_T;
+   deltaTimeBase = DELTA_T;
    // progressStep = 1L; // deprecated Dec 18, 2013
    progressInterval = 1.0;
    writeProgressToErr = false;
@@ -236,9 +237,9 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * p
    ensureDirExists(outputPath);
 
    simTime = startTime;
-   initialStep = (long int) nearbyint(startTime/deltaTime);
+   initialStep = (long int) nearbyint(startTime/deltaTimeBase);
    currentStep = initialStep;
-   finalStep = (long int) nearbyint(stopTime/deltaTime);
+   finalStep = (long int) nearbyint(stopTime/deltaTimeBase);
    nextProgressTime = startTime + progressInterval;
 
    if(checkpointWriteFlag && checkpointWriteTriggerMode == CPWRITE_TRIGGER_STEP) {
@@ -546,6 +547,7 @@ void HyPerCol::ioParam_startTime(enum ParamsIOFlag ioFlag) {
 
 void HyPerCol::ioParam_dt(enum ParamsIOFlag ioFlag) {
    ioParamValue(ioFlag, name, "dt", &deltaTime, deltaTime);
+   deltaTimeBase = deltaTime;  // use param value as base
 }
 
 void HyPerCol::ioParam_stopTime(enum ParamsIOFlag ioFlag) {
@@ -553,7 +555,7 @@ void HyPerCol::ioParam_stopTime(enum ParamsIOFlag ioFlag) {
       assert(!params->presentAndNotBeenRead(name, "startTime"));
       assert(!params->presentAndNotBeenRead(name, "deltaTime"));
       long int numSteps = params->value(name, "numSteps");
-      stopTime = startTime + numSteps * deltaTime;
+      stopTime = startTime + numSteps * deltaTimeBase;
       if (columnId()==0) {
          fprintf(stderr, "Warning: numSteps is deprecated.  Use startTime, stopTime and deltaTime instead.\n");
          fprintf(stderr, "    stopTime set to %f\n", stopTime);
@@ -568,7 +570,7 @@ void HyPerCol::ioParam_stopTime(enum ParamsIOFlag ioFlag) {
 void HyPerCol::ioParam_progressInterval(enum ParamsIOFlag ioFlag) {
    if (ioFlag==PARAMS_IO_READ && !params->present(name, "progressInterval") && params->present(name, "progressStep")) {
       long int progressStep = (long int) params->value(name, "progressStep");
-      progressInterval = progressStep/deltaTime;
+      progressInterval = progressStep/deltaTimeBase;
       if (columnId()==0) {
          fprintf(stderr, "Warning: progressStep is deprecated.  Use progressInterval instead.\n");
          fprintf(stderr, "    progressInterval set to %f\n", progressInterval);
@@ -760,7 +762,7 @@ void HyPerCol::ioParam_checkpointWriteTimeInterval(enum ParamsIOFlag ioFlag) {
    assert(!params->presentAndNotBeenRead(name, "checkpointWrite"));
    assert(!params->presentAndNotBeenRead(name, "checkpointWriteTriggerMode"));
    if(checkpointWriteFlag && checkpointWriteTriggerMode == CPWRITE_TRIGGER_TIME) {
-      ioParamValue(ioFlag, name, "checkpointWriteTimeInterval", &cpWriteTimeInterval, deltaTime);
+      ioParamValue(ioFlag, name, "checkpointWriteTimeInterval", &cpWriteTimeInterval, deltaTimeBase);
    }
 }
 
@@ -976,6 +978,7 @@ int HyPerCol::addConnection(HyPerConn * conn)
    return connId;
 }
 
+  // typically called by buildandrun via HyPerCol::run()
 int HyPerCol::run(double start_time, double stop_time, double dt)
 {
    startTime = start_time;
@@ -1267,8 +1270,38 @@ int HyPerCol::advanceTime(double sim_time)
 
    runTimer->start();
 
+   // adapt deltaTime
+   // query all layers to determine minimum timeScale > 0
+   // by default, HyPerLayer::getTimeScale returns -1
+   // initialize timeScaleMin to first returned timeScale > 0
+   // Movie returns timeScale = 1 when expecting to load a new frame 
+   // on next time step based on current value of deltaTime
+   deltaTime = deltaTimeBase;
+   double timeScale = 1.0;
+   double timeScaleMin = -1.0;
+   for(int l = 0; l < numLayers; l++) {
+     double timeScaleTmp = layers[l]->getTimeScale();
+     if (timeScaleTmp > 0.0){
+       if (timeScaleMin > 0.0){
+	 timeScaleMin = timeScaleTmp < timeScaleMin ? timeScaleTmp : timeScaleMin;
+       }
+       else{
+	 timeScaleMin = timeScaleTmp;
+       }
+     }
+   }
+   timeScale = timeScaleMin > 0.0 ? timeScaleMin : 1.0;
+   // deltaTimeAdapt is only used internally to set scale of each update step
+   double deltaTimeAdapt = timeScale * deltaTimeBase;
+   if (columnId() == 0) {
+     std::cout << "timeScale = " << timeScale << std::endl;
+   }
+
    // make sure simTime is updated even if HyPerCol isn't running time loop
-   simTime = sim_time + deltaTime;
+   // triggerOffset might fail if simTime does not advance uniformly because
+   // simTime could skip over tigger event
+   // !!!TODO: fix trigger layer to compute timeScale so as not to allow bypassing trigger event
+   simTime = sim_time + deltaTimeBase;
    currentStep++;
 
    // At this point all activity from the previous time step has
@@ -1281,7 +1314,7 @@ int HyPerCol::advanceTime(double sim_time)
    // update the connections (weights)
    //
    for (int c = 0; c < numConnections; c++) {
-      status = connections[c]->updateStateWrapper(simTime, deltaTime);
+      status = connections[c]->updateStateWrapper(simTime, deltaTimeBase);
       if (!exitAfterUpdate) {
 		  exitAfterUpdate = status == PV_EXIT_NORMALLY;
       }
@@ -1296,7 +1329,7 @@ int HyPerCol::advanceTime(double sim_time)
       // clear GSyn buffers
       for(int l = 0; l < numLayers; l++) {
          if (layers[l]->getPhase() != phase) continue;
-         layers[l]->resetGSynBuffers(simTime, deltaTime);
+         layers[l]->resetGSynBuffers(simTime, deltaTimeBase);  // deltaTimeAdapt is not used 
          layers[l]->recvAllSynapticInput();
       }
       //    for (int l = 0; l < numLayers; l++) {
@@ -1312,7 +1345,7 @@ int HyPerCol::advanceTime(double sim_time)
       // recvSynapticInput uses the datastore to compute GSyn.
       for(int l = 0; l < numLayers; l++) {
          if (layers[l]->getPhase() != phase) continue;
-         status = layers[l]->updateStateWrapper(simTime, deltaTime);
+         status = layers[l]->updateStateWrapper(simTime, deltaTimeAdapt);
 		 if (!exitAfterUpdate) {
 			 exitAfterUpdate = status == PV_EXIT_NORMALLY;
 		 }
@@ -1326,7 +1359,7 @@ int HyPerCol::advanceTime(double sim_time)
          if (layers[l]->getPhase() != phase) continue;
          // after updateBorder completes all necessary data has been
          // copied from the device (GPU) to the host (CPU)
-         layers[l]->updateBorder(simTime, deltaTime); // TODO rename updateBorder?
+         layers[l]->updateBorder(simTime, deltaTimeBase); // TODO rename updateBorder?  deltaTimeAdapt not used here
 
          // TODO - move this to layer
          // Advance time level so we have a new place in data store

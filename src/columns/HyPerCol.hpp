@@ -49,7 +49,7 @@ public:
    int finalizeThreads();
 #endif //PV_USE_OPENCL
 
-   int run()  {return run(startTime, stopTime, deltaTime);}
+   int run()  {return run(startTime, stopTime, deltaTimeBase);}
    int run(double startTime, double stopTime, double dt);
 
    int advanceTime(double time);
@@ -88,6 +88,7 @@ public:
    bool  warmStartup()                    {return warmStart;}
 
    double getDeltaTime()                  {return deltaTime;}
+   double getDeltaTimeBase()              {return deltaTimeBase;}
    double simulationTime()                {return simTime;}
    double getStartTime()                  {return startTime;}
    double getStopTime()                   {return stopTime;}
@@ -234,6 +235,7 @@ private:
    double simTime;          // current time in milliseconds
    double stopTime;         // time to stop time
    double deltaTime;        // time step interval
+   double deltaTimeBase;    // default time step interval
    double progressInterval; // Output progress after simTime increases by this amount.
    double nextProgressTime; // Next time to output a progress message
    bool writeProgressToErr;// Whether to write progress step to standard error (True) or standard output (False) (default is output)

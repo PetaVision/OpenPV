@@ -77,9 +77,9 @@ static inline int applyGSyn_ANNWhitenedLayer(int numNeurons,
       CL_MEM_GLOBAL pvdata_t * V, CL_MEM_GLOBAL pvdata_t * GSynHead);
 static inline int updateV_HyPerLCALayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * V,
       CL_MEM_GLOBAL pvdata_t * GSynHead, CL_MEM_GLOBAL float * activity,
-      CL_MEM_GLOBAL double * error_mean, CL_MEM_GLOBAL double * error_std, pvdata_t AMax,
+      pvdata_t AMax,
       pvdata_t AMin, pvdata_t VThresh, pvdata_t AShift, pvdata_t VWidth,
-      pvdata_t * dt_tau, pvdata_t tau_max, pvdata_t tau_min, pvdata_t slope_error_std,
+      pvdata_t dt_tau, 
       pvdata_t selfInteract, int nx, int ny, int nf, int nb, int numChannels);
 static inline int updateV_ANNWhitenedLayer(int numNeurons,
       CL_MEM_GLOBAL pvdata_t * V,
@@ -275,11 +275,11 @@ static inline int applyGSyn_HyPerLCALayer(int numNeurons,
    {
       int kex = kIndexExtended(k, nx, ny, nf, nb);
       //V[k] = V[k] + dt_tau * (GSynError[k] - V[k] + activity[kex]);
-      if (selfInteract){
-         V[k] = exp_tau * V[k] + (1 - exp_tau) * (GSynError[k] + activity[kex]);}
-      else {
-         V[k] = exp_tau * V[k] + (1 - exp_tau) * GSynError[k];}
-   }
+      //      if (selfInteract){
+         V[k] = exp_tau * V[k] + (1 - exp_tau) * (GSynError[k] + selfInteract * activity[kex]);}
+   //else {
+   //      V[k] = exp_tau * V[k] + (1 - exp_tau) * GSynError[k];}
+//}
    return PV_SUCCESS;
 }
 
@@ -317,11 +317,11 @@ static inline int applyGSyn_HyPerLCALayer2(int numNeurons,
    {
       int kex = kIndexExtended(k, nx, ny, nf, nb);
       //V[k] = V[k] + dt_tau * (GSynError[k] - GSynError2[k] - V[k] + activity[kex]);
-      if (selfInteract){
-         V[k] = exp_tau * V[k] + (1 - exp_tau) * (GSynError[k] - GSynError2[k] + activity[kex]);}
-      else {
-         V[k] = exp_tau * V[k] + (1 - exp_tau) * (GSynError[k]- GSynError2[k]);}
-   }
+      //if (selfInteract){
+         V[k] = exp_tau * V[k] + (1 - exp_tau) * (GSynError[k] - GSynError2[k] + selfInteract * activity[kex]);}
+   //else {
+   //      V[k] = exp_tau * V[k] + (1 - exp_tau) * (GSynError[k]- GSynError2[k]);}
+   //}
    return PV_SUCCESS;
 }
 
@@ -382,31 +382,19 @@ static inline int updateV_AccumulateLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t
 
 static inline int updateV_HyPerLCALayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * V,
       CL_MEM_GLOBAL pvdata_t * GSynHead, CL_MEM_GLOBAL float * activity,
-      CL_MEM_GLOBAL double * error_mean, CL_MEM_GLOBAL double * error_std, pvdata_t AMax,
+      pvdata_t AMax,
       pvdata_t AMin, pvdata_t VThresh, pvdata_t AShift, pvdata_t VWidth,
-      pvdata_t * dt_tau, pvdata_t tau_max, pvdata_t tau_min, pvdata_t slope_error_std,
+      pvdata_t dt_tau, 
       pvdata_t selfInteract, int nx, int ny, int nf, int nb, int numChannels)
 {
    int status = PV_SUCCESS;
-   pvdata_t tau_adapt = tau_max;
-   if ((tau_max - tau_min) > 1.0) {
-      double old_error_std = *error_std;
-      status = calcGSyn_Mean_StdDev(numNeurons, GSynHead, error_mean, error_std);
-      pvdata_t percent_change_error_std;
-      percent_change_error_std = (*error_std + old_error_std) != 0 ?
-            fabs(*error_std - old_error_std) / (*error_std + old_error_std) :
-            0.0;
-      tau_adapt = tau_max -
-            (tau_max - tau_min) * 2.0 / (1.0 + exp(percent_change_error_std / slope_error_std));
-   }
-   *dt_tau = *dt_tau / tau_adapt;
    if (numChannels == 2){
       if( status == PV_SUCCESS ) status =
-            applyGSyn_HyPerLCALayer2(numNeurons, V, GSynHead, activity, *dt_tau, selfInteract, nx, ny, nf, nb);
+            applyGSyn_HyPerLCALayer2(numNeurons, V, GSynHead, activity, dt_tau, selfInteract, nx, ny, nf, nb);
    }
    else if (numChannels == 1){
       if( status == PV_SUCCESS ) status =
-            applyGSyn_HyPerLCALayer(numNeurons, V, GSynHead, activity, *dt_tau, selfInteract, nx, ny, nf, nb);
+            applyGSyn_HyPerLCALayer(numNeurons, V, GSynHead, activity, dt_tau, selfInteract, nx, ny, nf, nb);
    }
    if(status == PV_SUCCESS) status = setActivity_HyPerLayer(numNeurons, activity, V, nx, ny, nf, nb);
    if( status == PV_SUCCESS ) status =

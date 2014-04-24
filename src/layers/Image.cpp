@@ -964,17 +964,16 @@ int Image::readImage(const char * filename, int offsetX, int offsetY, GDALColorI
    // now buf is loc->nf by loc->nx by loc->ny
 
    // if normalizeLuminanceFlag == true then force average luminance to be 0.5
+   //TODO!!! obviously normalize_standard_dev should be passed as Image param or change normalizeLuminanceFlag to an int to specify different behaviors
+   bool normalize_standard_dev = true;
    if(normalizeLuminanceFlag){
-      double image_sum = 0.0f;
-      double image_sum2 = 0.0f;
-      float image_max = -FLT_MAX;
-      float image_min = FLT_MAX;
-      for (int k=0; k<n; k++) {
+     if (normalize_standard_dev){
+       double image_sum = 0.0f;
+       double image_sum2 = 0.0f;
+       for (int k=0; k<n; k++) {
          image_sum += buf[k];
          image_sum2 += buf[k]*buf[k];
-         image_max = buf[k] > image_max ? buf[k] : image_max;
-         image_min = buf[k] < image_min ? buf[k] : image_min;
-      }
+       }
       double image_ave = image_sum / n;
       double image_ave2 = image_sum2 / n;
 #ifdef PV_USE_MPI
@@ -982,37 +981,42 @@ int Image::readImage(const char * filename, int offsetX, int offsetY, GDALColorI
       image_ave /= parent->icCommunicator()->commSize();
       MPI_Allreduce(MPI_IN_PLACE, &image_ave2, 1, MPI_DOUBLE, MPI_SUM, parent->icCommunicator()->communicator());
       image_ave2 /= parent->icCommunicator()->commSize();
+#endif
+      // set mean to zero
+      for (int k=0; k<n; k++) {
+	buf[k] -= image_ave;
+      }
+      // set std dev to 1
+      double image_std = sqrt(image_ave2 - image_ave*image_ave);
+      for (int k=0; k<n; k++) {
+	buf[k] /= image_std;
+      }
+     }
+     else{
+      float image_max = -FLT_MAX;
+      float image_min = FLT_MAX;
+      for (int k=0; k<n; k++) {
+         image_max = buf[k] > image_max ? buf[k] : image_max;
+         image_min = buf[k] < image_min ? buf[k] : image_min;
+      }
+#ifdef PV_USE_MPI
       MPI_Allreduce(MPI_IN_PLACE, &image_max, 1, MPI_FLOAT, MPI_MAX, parent->icCommunicator()->communicator());
       MPI_Allreduce(MPI_IN_PLACE, &image_min, 1, MPI_FLOAT, MPI_MIN, parent->icCommunicator()->communicator());
 #endif
-      //TODO!!! obviously should be passed as Image param or change normalizeLuminanceFlag to an int to specify different behaviors
-      bool normalize_standard_dev = true;
-      if (normalize_standard_dev){
-         // set mean to zero
-         for (int k=0; k<n; k++) {
-            buf[k] -= image_ave;
-         }
-         // set std dev to 1
-         double image_std = sqrt(image_ave2 - image_ave*image_ave);
-         for (int k=0; k<n; k++) {
-            buf[k] /= image_std;
-         }
-      } // normalize_standard_dev
-      else{
-         if (image_max > image_min){
-            float image_stretch = 1.0f / (image_max - image_min);
+      if (image_max > image_min){
+	float image_stretch = 1.0f / (image_max - image_min);
+	for (int k=0; k<n; k++) {
+	  buf[k] -= image_min;
+	  buf[k] *= image_stretch;
+	}
+      }
+      else{ // image_max == image_min, set to gray
+	//float image_shift = 0.5f - image_ave;
             for (int k=0; k<n; k++) {
-               buf[k] -= image_min;
-               buf[k] *= image_stretch;
+	      buf[k] += 0.5f; //image_shift;
             }
-         }
-         else{ // image_max == image_min
-            float image_shift = 0.5f - image_ave;
-            for (int k=0; k<n; k++) {
-               buf[k] += image_shift;
-            }
-         }
-      }  // normalize_standard_dev
+      }
+     }
    } // normalizeLuminanceFlag
 
    if( inverseFlag ) {

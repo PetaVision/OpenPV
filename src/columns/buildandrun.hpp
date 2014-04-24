@@ -60,6 +60,7 @@
 #include "../layers/LCALIFLayer.hpp"
 #include "../layers/HyPerLCALayer.hpp"
 #include "../layers/ANNErrorLayer.hpp"
+#include "../layers/ANNNormalizedErrorLayer.hpp"
 #include "../layers/MLPErrorLayer.hpp"
 #include "../layers/MLPForwardLayer.hpp"
 #include "../layers/MLPOutputLayer.hpp"

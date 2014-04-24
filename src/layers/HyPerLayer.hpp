@@ -127,6 +127,7 @@ protected:
    virtual int calcActiveIndices();
 public:
    pvdata_t * getActivity()          {return clayer->activity->data;}
+   virtual double getTimeScale()          {return -1.0;};
 protected:
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);

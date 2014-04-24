@@ -114,6 +114,7 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
                "MaxPooling",
                "HyPerLCALayer",
                "ANNErrorLayer",
+	         "ANNNormalizedErrorLayer",
                "MLPErrorLayer",
                "MLPForwardLayer",
                "MLPOutputLayer",
@@ -475,6 +476,10 @@ HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPe
    if( !strcmp(classkeyword, "ANNErrorLayer") ) {
       keywordMatched = true;
       addedLayer = (HyPerLayer *) new ANNErrorLayer(name, hc);
+   }
+   if( !strcmp(classkeyword, "ANNNormalizedErrorLayer") ) {
+      keywordMatched = true;
+      addedLayer = (HyPerLayer *) new ANNNormalizedErrorLayer(name, hc);
    }
    if( !strcmp(classkeyword, "MLPErrorLayer") ) {
       keywordMatched = true;

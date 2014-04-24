@@ -1373,7 +1373,8 @@ double HyPerLayer::getDeltaUpdateTime(){
 
 int HyPerLayer::updateStateWrapper(double timef, double dt){
    int status = PV_SUCCESS;
-   if(needUpdate(timef, dt)){
+   //   if(needUpdate(timef, dt)){
+   if(needUpdate(timef, parent->getDeltaTime())){
       //std::cout << "Layer " << name << " updating on timestep " << timef << "\n";
       status = updateState(timef, dt);
       lastUpdateTime=parent->simulationTime();
@@ -1713,7 +1714,7 @@ int HyPerLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activity
    return PV_SUCCESS;
 }
 
-#ifdef OBSOLETE // Marked obsolete July 25, 2013.  recvSynapticInput is now called by recvAllSynapticInput, called by HyPerCol, so deliver andtriggerReceive aren't needed.
+#ifdef OBSOLETE // Marked obsolete July 25, 2013.  recvSynapticInput is now called by recvAllSynapticInput, called by HyPerCol, so deliver and triggerReceive aren't needed.
 int HyPerLayer::triggerReceive(InterColComm* comm)
 {
    // deliver calls recvSynapticInput for all connections for which this layer is presynaptic (i.e. all connections made by this layer)

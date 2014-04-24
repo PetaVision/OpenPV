@@ -25,15 +25,10 @@ void HyPerLCALayer_update_state(
     const float AMin,
     const float AShift,
     const float VWidth,
-    const float tau_max,
-    const float tau_min,
-    const float slope_error_std,
-    bool selfInteract,
-    float * dt_tau,
+    const bool selfInteract,
+    const float dt,
     float * GSynHead,
-    float * activity,
-    double * error_mean,
-    double * error_std);
+    float * activity);
 
 #ifdef __cplusplus
 }
@@ -283,8 +278,6 @@ int HyPerLCALayer::doUpdateState(double time, double dt, const PVLayerLoc * loc,
       int ny = loc->ny;
       int nf = loc->nf;
       int num_neurons = nx*ny*nf;
-      dtTau = dt;
-      double error_mean = 0;
       //Only update when the probe updates
       //TODO put following VThresh update into kernel
       if(dVThresh){
@@ -299,10 +292,10 @@ int HyPerLCALayer::doUpdateState(double time, double dt, const PVLayerLoc * loc,
             //}
          }
       }
-
+      
       HyPerLCALayer_update_state(num_neurons, nx, ny, nf, loc->nb, numChannels,
-            V, VThresh, AMax, AMin, AShift, VWidth, tauMax, tauMin, slopeErrorStd, 
-            selfInteract, &dtTau, gSynHead, A, &error_mean, &errorStd);
+            V, VThresh, AMax, AMin, AShift, VWidth, 
+            selfInteract, dt/tauMax, gSynHead, A);
       if (this->writeSparseActivity){
          updateActiveIndices();  // added by GTK to allow for sparse output, can this be made an inline function???
       }

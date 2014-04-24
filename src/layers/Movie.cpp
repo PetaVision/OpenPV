@@ -392,6 +392,16 @@ double Movie::getDeltaUpdateTime(){
 //   return needNewImage;
 //}
 
+  // ensure that timeScale == 1 if new frame being loaded on NEXT time step
+  double Movie::getTimeScale(){
+    if(needUpdate(parent->simulationTime() + parent->getDeltaTime(), parent->getDeltaTime())){
+      return 1.0; 
+    }
+    else{
+      return HyPerLayer::getTimeScale();
+    }
+  }
+
 int Movie::updateState(double time, double dt)
 {
    updateImage(time, dt);
