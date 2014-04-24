@@ -505,7 +505,9 @@ HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPe
          fprintf(stderr, "    Use ANNLayer with parameter triggerFlag set to true\n");
          fprintf(stderr, "    and triggerLayerName set to the triggering layer.\n");
       }
+#if PV_USE_MPI
       MPI_Barrier(hc->icCommunicator()->communicator());
+#endif
       exit(EXIT_FAILURE);
    }
    if( !strcmp(classkeyword, "ConstantLayer") ) {
