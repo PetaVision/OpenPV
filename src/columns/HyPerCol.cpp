@@ -1261,10 +1261,13 @@ int HyPerCol::advanceTime(double sim_time)
       nextProgressTime += progressInterval;
       if (columnId() == 0) {
          FILE * progressStream = writeProgressToErr ? stderr : stdout;
-         fprintf(progressStream, "   time==%f  ", sim_time);
          time_t current_time;
          time(&current_time);
-         std::cout << ctime(&current_time);
+         char * c_time_string = ctime(&current_time);
+         if (c_time_string == NULL) {
+            fprintf(progressStream, "Failure to convert the current time.");
+         }
+         fprintf(progressStream, "   time==%f  %s", sim_time, c_time_string);
       }
    }
 
