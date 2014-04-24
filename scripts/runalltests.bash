@@ -279,6 +279,13 @@ runandecho $testname $testname Debug/$testname $arglist
 mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
 cd $wd
 
+testname=MLPTest
+arglist=""
+cd "$testname"
+runandecho $testname $testname Debug/$testname $arglist
+mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
+cd $wd
+
 testname=MPITest2
 arglist="-p input/MPI_test.params"
 cd "$testname"
