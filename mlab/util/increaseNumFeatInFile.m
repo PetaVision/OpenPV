@@ -20,8 +20,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function increaseNumFeatInFile(pvpFile, newNF, wMinInit, wMaxInit, sparseFraction, outFile)
-   %addpath('/nh/home/wshainin/workspace/PetaVision/mlab/util');
-   addpath(pwd);
+   %%addpath('/nh/home/wshainin/workspace/PetaVision/mlab/util');
 
    DEFAULT_wMinInit       = -1.00;
    DEFAULT_wMaxInit       =  1.00;
@@ -44,15 +43,11 @@ function increaseNumFeatInFile(pvpFile, newNF, wMinInit, wMaxInit, sparseFractio
       wMaxInit        = DEFAULT_wMaxInit
       sparseFraction  = DEFAULT_sparseFraction
    end%if
-   if nargin < 6 || ~exist('outFile','var') || isempty(outFile)
-      [out_path,out_name,out_ext] = fileparts(outFile);
-      if ~exist(out_path, 'dir')
-	[path,name,ext] = fileparts(pvpFile);
-	name_id = name(1:strfind(name, '_W'));
-	outFile = [path, filesep, name_id, '_NF', num2str(newNF), '_W', ext]
-	warning('increaseNumFeatInFile:outputfilenotspecified',...
-		'Using default naming convention for output file: ', outFile);
-      end%if
+   if nargin < 6 || ~exist(outFile,'file') || isempty(outFile)
+      warning('increaseNumFeatInFile:outputfilenotspecified',...
+         'Using default naming convention for output file:');
+      [path,name,ext] = fileparts(pvpFile);
+      outFile = [path, filesep, name, "_NF",num2str(newNF),ext]
    end%if
 
    [data, hdr] = readpvpfile(pvpFile);
