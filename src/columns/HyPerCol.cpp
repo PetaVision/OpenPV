@@ -1293,9 +1293,9 @@ int HyPerCol::advanceTime(double sim_time)
    timeScale = timeScaleMin > 0.0 ? timeScaleMin : 1.0;
    // deltaTimeAdapt is only used internally to set scale of each update step
    double deltaTimeAdapt = timeScale * deltaTimeBase;
-   if (columnId() == 0) {
-     std::cout << "timeScale = " << timeScale << std::endl;
-   }
+   // if (columnId() == 0) {
+   //   std::cout << "timeScale = " << timeScale << std::endl;
+   // }
 
    // make sure simTime is updated even if HyPerCol isn't running time loop
    // triggerOffset might fail if simTime does not advance uniformly because
