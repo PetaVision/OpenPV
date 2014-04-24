@@ -155,8 +155,7 @@ pvwdata_t * KernelConn::allocWeights(int nPatches, int nxPatch, int nyPatch, int
 	int sy = sx * nxPatch;
 	int sp = sy * nyPatch;
 
-    //TODO-CER-2014.4.3 - is this size correct????
-	size_t patchSize = sp * sizeof(pvdata_t);
+	size_t patchSize = sp * sizeof(pvwdata_t);
 	size_t dataSize = nPatches * patchSize;
 
 	//if (arbor_ID > 0) {  // wDataStart already allocated
