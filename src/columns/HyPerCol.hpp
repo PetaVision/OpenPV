@@ -89,6 +89,7 @@ public:
 
    double getDeltaTime()                  {return deltaTime;}
    double getDeltaTimeBase()              {return deltaTimeBase;}
+   double getTimeScale()                  {return timeScale;}
    double simulationTime()                {return simTime;}
    double getStartTime()                  {return startTime;}
    double getStopTime()                   {return stopTime;}
@@ -236,6 +237,7 @@ private:
    double stopTime;         // time to stop time
    double deltaTime;        // time step interval
    double deltaTimeBase;    // default time step interval
+   double timeScale;        // scale factor for deltaTimeBase, deltaTime = timeScale*deltaTimeBase
    double progressInterval; // Output progress after simTime increases by this amount.
    double nextProgressTime; // Next time to output a progress message
    bool writeProgressToErr;// Whether to write progress step to standard error (True) or standard output (False) (default is output)

@@ -119,6 +119,7 @@ int HyPerCol::initialize_base() {
    stopTime = 0.0;
    deltaTime = DELTA_T;
    deltaTimeBase = DELTA_T;
+   timeScale = 1.0;
    // progressStep = 1L; // deprecated Dec 18, 2013
    progressInterval = 1.0;
    writeProgressToErr = false;
@@ -1278,7 +1279,6 @@ int HyPerCol::advanceTime(double sim_time)
    // on next time step based on current value of deltaTime
    deltaTime = deltaTimeBase;
    double oldTimeScale = timeScale;
-   double timeScale = 1.0;
    double timeScaleMin = -1.0;
    const double timeScaleMax = 5.0;
    const double deltaTimeScaleMax = 0.25;
