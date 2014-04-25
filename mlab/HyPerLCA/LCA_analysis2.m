@@ -255,6 +255,22 @@ if analyze_Recon
     Recon_normalize_list = 1:num_Recon_list;
     %% list of (previous) layers to sum with current layer
     Recon_sum_list = cell(num_Recon_list,1);
+  elseif strcmp(run_type, "PASCAL") 
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% PASCAL list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    Recon_list = ...
+	{["a0_"],  ["Image"];
+	 ["a3_"],  ["Recon"]}; %%;
+	 %%["a8_"],  ["ReconC1"];
+	 %%["a13_"],  ["ReconS2";]};
+    %% list of layers to unwhiten
+    num_Recon_list = size(Recon_list,1);
+    Recon_unwhiten_list = zeros(num_Recon_list,1);
+    %% list of layers to use as a normalization reference for unwhitening
+    Recon_normalize_list = 1:num_Recon_list;
+    %% list of (previous) layers to sum with current layer
+    Recon_sum_list = cell(num_Recon_list,1);
   elseif strcmp(run_type, "CIFAR_gray") 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% CIFAR_gray list
@@ -624,6 +640,17 @@ if analyze_Sparse_flag
     Sparse_frames_list = cell(2,1);
     Sparse_frames_list{1} = Recon_time{2}(:);
     Sparse_frames_list{2} = Recon_time{3}(:);
+  elseif strcmp(run_type, "PASCAL")
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% PASCAL list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    Sparse_list = ...
+	{["a2_"],  ["S1"]};%%; ...
+	 %%["a6_"],  ["C1"]; ...
+         %%["a10_"], ["S2"]};
+    %%Sparse_frames_list = cell(2,1);
+    %%Sparse_frames_list{1} = Recon_time{2}(:);
+    %%Sparse_frames_list{2} = Recon_time{3}(:);
   elseif strcmp(run_type, "CIFAR_gray")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% CIFAR_gray list
@@ -788,27 +815,6 @@ if analyze_nonSparse_flag
 	1/sqrt(18*18);
     Sparse_std_ndx = [0 1];
     %%%%%%%%%%%%%%%%%%%%%%%%e%%%%%%%%%%%%%%%%%%%%
-  elseif strcmp(run_type, "CIFAR_deep") 
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %% CIFAR_deep list
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    nonSparse_list = ...
-	{["a1_"], ["Error"]; ...
-         ["a4_"], ["Error1_2"]; ...
-	 ["a9_"], ["LabelError"]};
-    num_nonSparse_list = size(nonSparse_list,1);
-    nonSparse_skip = repmat(1, num_nonSparse_list, 1);
-    nonSparse_skip(1) = 1;
-    nonSparse_skip(2) = 1;
-    nonSparse_skip(3) = 1;
-    nonSparse_norm_list = ...
-        {["a0_"], ["Image"]; ...
-         ["a2_"], ["V1"]; ...
-         ["a8_"], ["Labels"]};
-    nonSparse_norm_strength = ones(num_nonSparse_list,1);
-    nonSparse_norm_strength(1) = ...
-	1/sqrt(32*32);
-    Sparse_std_ndx = [0 1 0];
   elseif strcmp(run_type, "CIFAR_C1") 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% CIFAR_C1 list
@@ -836,6 +842,33 @@ if analyze_nonSparse_flag
     nonSparse_norm_strength(1) = ...
 	1/sqrt(32*32);
     Sparse_std_ndx = [0 1 1 2 0];
+  elseif strcmp(run_type, "PASCAL") 
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% PASCAL list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    nonSparse_list = ...
+	{["a1_"], ["Error"]}; %%; ...
+         %%["a4_"], ["ErrorS1C1Local"]; ...
+	 %%["a5_"], ["ErrorS1C1Lateral"]; ...
+	 %%["a9_"], ["ErrorC1S2"]; ...
+	 %%["a15_"], ["LabelError"]};
+    num_nonSparse_list = size(nonSparse_list,1);
+    nonSparse_skip = repmat(1, num_nonSparse_list, 1);
+    nonSparse_skip(1) = 1;
+    %%nonSparse_skip(2) = 1;
+    %%nonSparse_skip(3) = 1;
+    %%nonSparse_skip(4) = 1;
+    %%nonSparse_skip(5) = 1;
+    nonSparse_norm_list = ...
+        {["a0_"], ["Image"]};%%; ...
+         %%["a2_"], ["S1"]; ...
+         %%["a2_"], ["S1"]; ...
+         %%["a6_"], ["C1"]; ...
+         %%["a14_"], ["Labels"]};
+    nonSparse_norm_strength = ones(num_nonSparse_list,1);
+    nonSparse_norm_strength(1) = ...
+    1/sqrt(16*16);
+    Sparse_std_ndx = [0];%% 1 1 2 0];
   elseif strcmp(run_type, "CIFAR_gray") 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% CIFAR_gray list
@@ -1379,7 +1412,7 @@ if plot_weights
       checkpoints_list = getCheckpointList(checkpoint_parent, checkpoint_children);
     endif %% checkpoint_weights_movie
     num_checkpoints = size(checkpoints_list,1);
-  elseif strcmp(run_type, "CIFAR_C1") || strcmp(run_type, "CIFAR_gray") 
+  elseif strcmp(run_type, "CIFAR_C1") || strcmp(run_type, "CIFAR_gray") || strcmp(run_type, "PASCAL") 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% CIFAR_C1 list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
