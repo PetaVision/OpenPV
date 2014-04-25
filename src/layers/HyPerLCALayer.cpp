@@ -252,6 +252,9 @@ void HyPerLCALayer::ioParam_windowSymY(enum ParamsIOFlag ioFlag) {
 
 void HyPerLCALayer::ioParam_selfInteract(enum ParamsIOFlag ioFlag) {
    parent->ioParamValue(ioFlag, name, "selfInteract", &selfInteract, selfInteract);
+   if (parent->columnId() == 0) {
+     std::cout << "selfInteract = " << selfInteract << std::endl;
+   }   
 }
 
 void HyPerLCALayer::ioParam_slopeErrorStd(enum ParamsIOFlag ioFlag) {
@@ -291,6 +294,12 @@ int HyPerLCALayer::doUpdateState(double time, double dt, const PVLayerLoc * loc,
             //   std::cout << VThresh << " (target:" << targetSparsity << " actual:" << actualSp << ")\n";
             //}
          }
+      }
+
+      if (triggerLayer != NULL && triggerLayer->needUpdate(time, parent->getDeltaTime())){
+	for (int i = 0; i<num_neurons; i++){
+	  V[i]=0.0;
+	}
       }
       
       HyPerLCALayer_update_state(num_neurons, nx, ny, nf, loc->nb, numChannels,

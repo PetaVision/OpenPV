@@ -37,6 +37,7 @@ namespace PV {
   }
 
   double ANNNormalizedErrorLayer::getTimeScale(){
+    publish_timer->start();
     InterColComm * icComm = parent->icCommunicator();
     //int num_procs = icComm->numCommColumns() * icComm->numCommRows();
     int num_neurons = getNumNeurons();
@@ -56,6 +57,7 @@ namespace PV {
     //errorMag /= num_neurons * num_procs;
     //inputMag /= num_neurons * num_procs;
     timeScale = errorMag > 0 ? sqrt(inputMag / errorMag) : 1.0;
+    publish_timer->stop();
     return timeScale;
   }
 

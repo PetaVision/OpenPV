@@ -1261,15 +1261,10 @@ int HyPerCol::advanceTime(double sim_time)
       nextProgressTime += progressInterval;
       if (columnId() == 0) {
          FILE * progressStream = writeProgressToErr ? stderr : stdout;
+         fprintf(progressStream, "   time==%f  ", sim_time);
          time_t current_time;
          time(&current_time);
-         char * c_time_string = ctime(&current_time);
-         if (c_time_string == NULL) {
-            fprintf(progressStream, "   time==%f  Failure to convert the current time.\n", sim_time);
-         }
-         else {
-            fprintf(progressStream, "   time==%f  %s", sim_time, c_time_string);
-         }
+         std::cout << ctime(&current_time);
       }
    }
 
@@ -1282,8 +1277,11 @@ int HyPerCol::advanceTime(double sim_time)
    // Movie returns timeScale = 1 when expecting to load a new frame 
    // on next time step based on current value of deltaTime
    deltaTime = deltaTimeBase;
+   double oldTimeScale = timeScale;
    double timeScale = 1.0;
    double timeScaleMin = -1.0;
+   const double timeScaleMax = 5.0;
+   const double deltaTimeScaleMax = 0.25;
    for(int l = 0; l < numLayers; l++) {
      double timeScaleTmp = layers[l]->getTimeScale();
      if (timeScaleTmp > 0.0){
@@ -1295,12 +1293,15 @@ int HyPerCol::advanceTime(double sim_time)
        }
      }
    }
+   timeScaleMin = timeScaleMin < timeScaleMax ? timeScaleMin : timeScaleMax;
    timeScale = timeScaleMin > 0.0 ? timeScaleMin : 1.0;
+   double deltaTimeScale = timeScale - oldTimeScale;
+   timeScale = deltaTimeScale < deltaTimeScaleMax ? timeScale : oldTimeScale + deltaTimeScaleMax;
    // deltaTimeAdapt is only used internally to set scale of each update step
    double deltaTimeAdapt = timeScale * deltaTimeBase;
-   // if (columnId() == 0) {
-   //   std::cout << "timeScale = " << timeScale << std::endl;
-   // }
+   if (columnId() == 0) {
+     std::cout << "timeScale = " << timeScale << std::endl;
+   }
 
    // make sure simTime is updated even if HyPerCol isn't running time loop
    // triggerOffset might fail if simTime does not advance uniformly because
