@@ -58,7 +58,9 @@ int ColProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 void ColProbe::ioParam_probeOutputFile(enum ParamsIOFlag ioFlag) {
    char * filename = NULL;
    parentCol->ioParamString(ioFlag, colProbeName, "probeOutputFile", &filename, NULL, false/*warnIfAbsent*/);
-   initialize_stream(filename);
+   if (ioFlag==PARAMS_IO_READ) {
+      initialize_stream(filename);
+   }
    free(filename); filename = NULL;
 }
 

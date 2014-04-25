@@ -55,6 +55,7 @@ void LayerFunctionProbe::initFunction() {
 int LayerFunctionProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = StatsProbe::ioParamsFillGroup(ioFlag);
    ioParam_parentGenColProbe(ioFlag);
+   ioParam_coeff(ioFlag);
    return status;
 }
 
