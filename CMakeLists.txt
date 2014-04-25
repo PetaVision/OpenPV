@@ -56,15 +56,18 @@ configure_file (
 
 # Add external libraries 
 if (NOT GDAL_FOUND)
+    MESSAGE("-- Searching for GDAL library ...........")
     find_package(GDAL REQUIRED)
 endif (NOT GDAL_FOUND)
 include_directories(${GDAL_INCLUDE_DIR})
 
 if (NOT MPI_C_FOUND OR NOT MPI_CXX_FOUND)
+    MESSAGE("-- Searching for MPI library ............")
     find_package(MPI REQUIRED)
 endif (NOT MPI_C_FOUND OR NOT MPI_CXX_FOUND)
 
 if (NOT LIBSNDFILE_FOUND)
+    MESSAGE("-- Searching for SND library ............")
     find_package(LIBSNDFILE)
 endif (NOT LIBSNDFILE_FOUND)
 
