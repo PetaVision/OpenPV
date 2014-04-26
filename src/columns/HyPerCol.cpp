@@ -1281,7 +1281,7 @@ int HyPerCol::advanceTime(double sim_time)
    double oldTimeScale = timeScale;
    double timeScaleMin = -1.0;
    const double timeScaleMax = 5.0;
-   const double deltaTimeScaleMax = 0.25;
+   const double deltaTimeScaleMax = 0.05;
    for(int l = 0; l < numLayers; l++) {
      double timeScaleTmp = layers[l]->getTimeScale();
      if (timeScaleTmp > 0.0){
