@@ -120,6 +120,7 @@ int HyPerCol::initialize_base() {
    deltaTime = DELTA_T;
    deltaTimeBase = DELTA_T;
    timeScale = 1.0;
+   timeScaleTrue = 1.0;
    // progressStep = 1L; // deprecated Dec 18, 2013
    progressInterval = 1.0;
    writeProgressToErr = false;
@@ -1279,9 +1280,14 @@ int HyPerCol::advanceTime(double sim_time)
    // on next time step based on current value of deltaTime
    deltaTime = deltaTimeBase;
    double oldTimeScale = timeScale;
+   double oldTimeScaleTrue = timeScaleTrue;
    double timeScaleMin = -1.0;
-   const double timeScaleMax = 5.0;
-   const double deltaTimeScaleMax = 0.05;
+   const double timeScaleMax = 5.0;             // maxiumum value of timeScale
+   const double changeTimeScaleMax = 0.05;      // maximum change in timeScale from previous time step
+   const double changeTimeScaleTrueMax = 0.05;  // if change in timeScaleTrue exceeds changeTimeScaleMax, timeScale does not increase; 
+                                                // forces timeScale to remain constant if Error is changing too rapidly
+                                                // if change in timeScaleTrue is negative, revert to minimum timeScale 
+                                                // TODO?? add ability to revert all dynamical variables to previous values if Error increases?
    for(int l = 0; l < numLayers; l++) {
      double timeScaleTmp = layers[l]->getTimeScale();
      if (timeScaleTmp > 0.0){
@@ -1293,10 +1299,18 @@ int HyPerCol::advanceTime(double sim_time)
        }
      }
    }
+   timeScaleTrue = timeScaleMin;
    timeScaleMin = timeScaleMin < timeScaleMax ? timeScaleMin : timeScaleMax;
    timeScale = timeScaleMin > 0.0 ? timeScaleMin : 1.0;
-   double deltaTimeScale = timeScale - oldTimeScale;
-   timeScale = deltaTimeScale < deltaTimeScaleMax ? timeScale : oldTimeScale + deltaTimeScaleMax;
+   double changeTimeScale = timeScale - oldTimeScale;
+   timeScale = changeTimeScale < changeTimeScaleMax ? timeScale : oldTimeScale + changeTimeScaleMax;
+   double changeTimeScaleTrue = timeScaleTrue - oldTimeScaleTrue;
+   if (changeTimeScaleTrue > changeTimeScaleTrueMax){
+     timeScale = oldTimeScale;
+   }
+   if (changeTimeScaleTrue < 0){
+     timeScale = 0.25;
+   }
    // deltaTimeAdapt is only used internally to set scale of each update step
    double deltaTimeAdapt = timeScale * deltaTimeBase;
    if (columnId() == 0) {

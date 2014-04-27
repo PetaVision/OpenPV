@@ -238,6 +238,7 @@ private:
    double deltaTime;        // time step interval
    double deltaTimeBase;    // default time step interval
    double timeScale;        // scale factor for deltaTimeBase, deltaTime = timeScale*deltaTimeBase
+   double timeScaleTrue;    // true timeScale returned by min(HyPerLayer::getTimeScale) before adjustment
    double progressInterval; // Output progress after simTime increases by this amount.
    double nextProgressTime; // Next time to output a progress message
    bool writeProgressToErr;// Whether to write progress step to standard error (True) or standard output (False) (default is output)
