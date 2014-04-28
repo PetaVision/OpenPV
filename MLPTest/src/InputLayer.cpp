@@ -55,7 +55,7 @@ int InputLayer::updateState(double timef, double dt) {
    const PVLayerLoc * loc = getLayerLoc(); 
    assert(loc->nf == 2);
    //Set binary values of xor values
-   std::cout << timef << ": input val:" << iVal << "\n";
+   //std::cout << timef << ": input val:" << iVal << "\n";
    for(int ni = 0; ni < getNumNeurons(); ni++){
       int nExt = kIndexExtended(ni, loc->nx, loc->ny, loc->nf, loc->nb);
       int fi = featureIndex(nExt, loc->nx+2*loc->nb, loc->ny+2*loc->nb, loc->nf);

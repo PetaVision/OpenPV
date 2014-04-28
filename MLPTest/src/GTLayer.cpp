@@ -55,7 +55,7 @@ int GTLayer::updateState(double timef, double dt) {
    const PVLayerLoc * loc = getLayerLoc(); 
    assert(loc->nf == 1);
    //Set binary values of xor values
-   std::cout << timef << ": gt:" << iVal << "\n";
+   //std::cout << timef << ": gt:" << iVal << "\n";
    for(int ni = 0; ni < getNumNeurons(); ni++){
       int nExt = kIndexExtended(ni, loc->nx, loc->ny, loc->nf, loc->nb);
       switch(iVal){
