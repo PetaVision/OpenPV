@@ -88,8 +88,13 @@ public:
    bool  warmStartup()                    {return warmStart;}
 
    double getDeltaTime()                  {return deltaTime;}
+   bool  getDtAdaptFlag()                 {return dtAdaptFlag;}
    double getDeltaTimeBase()              {return deltaTimeBase;}
    double getTimeScale()                  {return timeScale;}
+   double getTimeScaleMax()               {return timeScaleMax;}
+   double getTimeScaleMin()               {return timeScaleMin;}
+   double getChangeTimeScaleMax()         {return changeTimeScaleMax;}
+   double getChangeTimeScaleMin()         {return changeTimeScaleMin;}
    double simulationTime()                {return simTime;}
    double getStartTime()                  {return startTime;}
    double getStopTime()                   {return stopTime;}
@@ -164,6 +169,11 @@ private:
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    virtual void ioParam_startTime(enum ParamsIOFlag ioFlag);
    virtual void ioParam_dt(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_dtAdaptFlag(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_dtScaleMax(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_dtScaleMin(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_dtChangeMax(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_dtChangeMin(enum ParamsIOFlag ioFlag);
    virtual void ioParam_stopTime(enum ParamsIOFlag ioFlag);
    virtual void ioParam_progressInterval(enum ParamsIOFlag ioFlag);
    virtual void ioParam_writeProgressToErr(enum ParamsIOFlag ioFlag);
@@ -196,6 +206,8 @@ private:
    int checkpointRead(const char * cpDir);
    int checkpointWrite(const char * cpDir);
    int outputParams();
+
+   virtual double adaptTimeScale();
 
 #ifdef OBSOLETE // Marked obsolete Aug 9, 2013.  Look, everybody, checkMarginWidths is obsolete!
    int checkMarginWidths();
@@ -236,9 +248,14 @@ private:
    double simTime;          // current time in milliseconds
    double stopTime;         // time to stop time
    double deltaTime;        // time step interval
-   double deltaTimeBase;    // default time step interval
+   bool   dtAdaptFlag;      // turns adaptive time step on/off
+   double deltaTimeBase;    // base time step interval if dtAdaptFlag == true, timeScale is applied to this value
    double timeScale;        // scale factor for deltaTimeBase, deltaTime = timeScale*deltaTimeBase
-   double timeScaleTrue;    // true timeScale returned by min(HyPerLayer::getTimeScale) before adjustment
+   double timeScaleTrue;    // true timeScale returned by min(HyPerLayer::getTimeScale) before MIN/MAX/CHANGE constraints applied
+   double timeScaleMax;     // maximum value of timeScale (prevents deltaTime from growing too large)
+   double timeScaleMin;     // minimum value of timeScale (not really a minimum, actually sets starting/iniital value of deltaTime)
+   double changeTimeScaleMax;     // maximum change in value of timeScale (prevents deltaTime from growing too quickly)
+   double changeTimeScaleMin;     // typically 0 or negative, maximum DECREASE in timeScale allowed before resetting timeScale -> timeScaleMin
    double progressInterval; // Output progress after simTime increases by this amount.
    double nextProgressTime; // Next time to output a progress message
    bool writeProgressToErr;// Whether to write progress step to standard error (True) or standard output (False) (default is output)

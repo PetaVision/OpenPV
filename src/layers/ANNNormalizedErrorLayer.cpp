@@ -56,7 +56,7 @@ namespace PV {
 #endif // PV_USE_MPI
     //errorMag /= num_neurons * num_procs;
     //inputMag /= num_neurons * num_procs;
-    timeScale = errorMag > 0 ? sqrt(inputMag / errorMag) : 1.0;
+    timeScale = errorMag > 0 ? sqrt(inputMag / errorMag) : parent->getTimeScaleMin();
     publish_timer->stop();
     return timeScale;
   }

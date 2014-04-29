@@ -8,9 +8,9 @@ plot_flag = true;
 global load_flag %% if true, then load "saved" data structures rather than computing them 
 load_Sparse_flag = false;
 if plot_flag
-  %%setenv("GNUTERM","X11")
+  setenv("GNUTERM","X11")
 endif
-no_clobber = true;
+no_clobber = false; %%true;
 
 %% machine/run_type environment
 if ismac
@@ -382,7 +382,7 @@ if analyze_Recon
     [DoG_weights] = get_DoG_weights(DoG_center_path, DoG_surround_path);
   endif  %% unwhiten_flag
   
-  num_Recon_frames_per_layer = 2;
+  num_Recon_frames_per_layer = 20;
   Recon_LIFO_flag = true; %%false;
   [Recon_hdr, ...
    Recon_fig, ...
@@ -681,7 +681,7 @@ if analyze_Sparse_flag
   if load_Sparse_flag
     num_procs = 1;
   else
-    num_procs = 8;
+    num_procs = 4;
   endif
   [Sparse_hdr, ...
    Sparse_hist_rank_array, ...
@@ -854,7 +854,7 @@ if analyze_nonSparse_flag
 	 %%["a15_"], ["LabelError"]};
     num_nonSparse_list = size(nonSparse_list,1);
     nonSparse_skip = repmat(1, num_nonSparse_list, 1);
-    nonSparse_skip(1) = 1;
+    nonSparse_skip(1) = 10;
     %%nonSparse_skip(2) = 1;
     %%nonSparse_skip(3) = 1;
     %%nonSparse_skip(4) = 1;
@@ -1103,7 +1103,7 @@ if plot_ReconError
 	 %%["a13_"], ["ReconS2"]};
     num_ReconError_list = size(ReconError_list,1);
     ReconError_skip = repmat(1, num_ReconError_list, 1);
-    ReconError_skip(1) = 1;
+    ReconError_skip(1) = 10;
     %%ReconError_skip(2) = 1;
     ReconError_norm_list = ...
         {["a0_"], ["Image"]};%%; ...

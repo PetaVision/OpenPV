@@ -30,6 +30,7 @@ protected:
    virtual void ioParam_autoResizeFlag(enum ParamsIOFlag ioFlag);
    virtual void ioParam_inverseFlag(enum ParamsIOFlag ioFlag);
    virtual void ioParam_normalizeLuminanceFlag(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_normalizeStdDev(enum ParamsIOFlag ioFlag);
    virtual void ioParam_frameNumber(enum ParamsIOFlag ioFlag);
    virtual void ioParam_jitterFlag(enum ParamsIOFlag ioFlag);
    virtual void ioParam_jitterType(enum ParamsIOFlag ioFlag);
@@ -152,7 +153,9 @@ protected:
    bool useImageBCflag;
    bool autoResizeFlag; // if true, PetaVision will automatically resize your images to the size specified by hypercolumn
    bool inverseFlag;
-   bool normalizeLuminanceFlag;
+   bool normalizeLuminanceFlag; // if true, normalize the input image as specified by normalizeStdDev
+   bool normalizeStdDev;        // if true and normalizeLuminanceFlag == true, normalize the standard deviation to 1 and mean = 0
+                                // if false and normalizeLuminanceFlag == true, nomalize max = 1, min = 0
 
    //float lastPhase;
    //lastUpdateTime already defined in hyperlayer

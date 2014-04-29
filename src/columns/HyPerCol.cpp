@@ -118,9 +118,14 @@ int HyPerCol::initialize_base() {
    startTime = 0.0;
    stopTime = 0.0;
    deltaTime = DELTA_T;
+   dtAdaptFlag = true;
    deltaTimeBase = DELTA_T;
    timeScale = 1.0;
    timeScaleTrue = 1.0;
+   timeScaleMax = 1.0;
+   timeScaleMin = 1.0;
+   changeTimeScaleMax = 0.0;
+   changeTimeScaleMin = 0.0;
    // progressStep = 1L; // deprecated Dec 18, 2013
    progressInterval = 1.0;
    writeProgressToErr = false;
@@ -394,6 +399,11 @@ int HyPerCol::ioParamsStartGroup(enum ParamsIOFlag ioFlag, const char * group_na
 int HyPerCol::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_startTime(ioFlag);
    ioParam_dt(ioFlag);
+   ioParam_dtAdaptFlag(ioFlag);
+   ioParam_dtScaleMax(ioFlag);
+   ioParam_dtScaleMin(ioFlag);
+   ioParam_dtChangeMax(ioFlag);
+   ioParam_dtChangeMin(ioFlag);
    ioParam_stopTime(ioFlag);
    ioParam_progressInterval(ioFlag);
    ioParam_writeProgressToErr(ioFlag);
@@ -550,6 +560,38 @@ void HyPerCol::ioParam_startTime(enum ParamsIOFlag ioFlag) {
 void HyPerCol::ioParam_dt(enum ParamsIOFlag ioFlag) {
    ioParamValue(ioFlag, name, "dt", &deltaTime, deltaTime);
    deltaTimeBase = deltaTime;  // use param value as base
+}
+
+void HyPerCol::ioParam_dtAdaptFlag(enum ParamsIOFlag ioFlag) {
+   ioParamValue(ioFlag, name, "dtAdaptFlag", &dtAdaptFlag, dtAdaptFlag);
+}
+
+void HyPerCol::ioParam_dtScaleMax(enum ParamsIOFlag ioFlag) {
+   assert(!params->presentAndNotBeenRead(name, "dtAdaptFlag"));
+   if (dtAdaptFlag) {
+     ioParamValue(ioFlag, name, "dtScaleMax", &timeScaleMax, timeScaleMax);
+   }
+}
+
+void HyPerCol::ioParam_dtScaleMin(enum ParamsIOFlag ioFlag) {
+   assert(!params->presentAndNotBeenRead(name, "dtAdaptFlag"));
+   if (dtAdaptFlag) {
+     ioParamValue(ioFlag, name, "dtScaleMin", &timeScaleMin, timeScaleMin);
+   }
+}
+
+void HyPerCol::ioParam_dtChangeMax(enum ParamsIOFlag ioFlag) {
+   assert(!params->presentAndNotBeenRead(name, "dtAdaptFlag"));
+   if (dtAdaptFlag) {
+     ioParamValue(ioFlag, name, "dtChangeMax", &changeTimeScaleMax, changeTimeScaleMax);
+   }
+}
+
+void HyPerCol::ioParam_dtChangeMin(enum ParamsIOFlag ioFlag) {
+   assert(!params->presentAndNotBeenRead(name, "dtAdaptFlag"));
+   if (dtAdaptFlag) {
+     ioParamValue(ioFlag, name, "dtChangeMin", &changeTimeScaleMin, changeTimeScaleMin);
+   }
 }
 
 void HyPerCol::ioParam_stopTime(enum ParamsIOFlag ioFlag) {
@@ -1257,6 +1299,50 @@ int HyPerCol::initPublishers() {
    return PV_SUCCESS;
 }
 
+  double HyPerCol::adaptTimeScale(){
+     // query all layers to determine minimum timeScale > 0
+     // by default, HyPerLayer::getTimeScale returns -1
+     // initialize timeScaleMin to first returned timeScale > 0
+     // Movie returns timeScale = 1 when expecting to load a new frame 
+     // on next time step based on current value of deltaTime
+     double oldTimeScale = timeScale;
+     double oldTimeScaleTrue = timeScaleTrue;
+     //double timeScaleMin = -1.0;
+     //const double timeScaleMax = 5.0;             // maxiumum value of timeScale
+     //const double changeTimeScaleMax = 0.05;      // maximum change in timeScale from previous time step
+     //const double changeTimeScaleTrueMax = 0.05;  // if change in timeScaleTrue exceeds changeTimeScaleMax, timeScale does not increase; 
+     // forces timeScale to remain constant if Error is changing too rapidly
+     // if change in timeScaleTrue is negative, revert to minimum timeScale 
+     // TODO?? add ability to revert all dynamical variables to previous values if Error increases?
+     double minTimeScaleTmp = -1;
+     for(int l = 0; l < numLayers; l++) {
+       double timeScaleTmp = layers[l]->getTimeScale();
+       if (timeScaleTmp > 0.0){
+	 if (minTimeScaleTmp > 0.0){
+	   minTimeScaleTmp = timeScaleTmp < minTimeScaleTmp ? timeScaleTmp : minTimeScaleTmp;
+	 }
+	 else{
+	   minTimeScaleTmp = timeScaleTmp;
+	 }
+       }
+     }
+     timeScaleTrue = minTimeScaleTmp;
+     minTimeScaleTmp = minTimeScaleTmp < timeScaleMax ? minTimeScaleTmp : timeScaleMax;
+     timeScale = minTimeScaleTmp > 0.0 ? minTimeScaleTmp : timeScaleMin;
+     double changeTimeScale = timeScale - oldTimeScale;
+     timeScale = changeTimeScale < changeTimeScaleMax ? timeScale : oldTimeScale + changeTimeScaleMax;
+     double changeTimeScaleTrue = timeScaleTrue - oldTimeScaleTrue;
+     if (changeTimeScaleTrue > changeTimeScaleMax){
+       timeScale = oldTimeScale;
+     }
+     if (changeTimeScaleTrue < changeTimeScaleMin){
+       timeScale = timeScaleMin;
+     }
+     // deltaTimeAdapt is only used internally to set scale of each update step
+     double deltaTimeAdapt = timeScale * deltaTimeBase;
+     return deltaTimeAdapt;
+  }
+
 int HyPerCol::advanceTime(double sim_time)
 {
    if (simTime >= nextProgressTime) {
@@ -1272,50 +1358,14 @@ int HyPerCol::advanceTime(double sim_time)
 
    runTimer->start();
 
-   // adapt deltaTime
-   // query all layers to determine minimum timeScale > 0
-   // by default, HyPerLayer::getTimeScale returns -1
-   // initialize timeScaleMin to first returned timeScale > 0
-   // Movie returns timeScale = 1 when expecting to load a new frame 
-   // on next time step based on current value of deltaTime
    deltaTime = deltaTimeBase;
-   double oldTimeScale = timeScale;
-   double oldTimeScaleTrue = timeScaleTrue;
-   double timeScaleMin = -1.0;
-   const double timeScaleMax = 5.0;             // maxiumum value of timeScale
-   const double changeTimeScaleMax = 0.05;      // maximum change in timeScale from previous time step
-   const double changeTimeScaleTrueMax = 0.05;  // if change in timeScaleTrue exceeds changeTimeScaleMax, timeScale does not increase; 
-                                                // forces timeScale to remain constant if Error is changing too rapidly
-                                                // if change in timeScaleTrue is negative, revert to minimum timeScale 
-                                                // TODO?? add ability to revert all dynamical variables to previous values if Error increases?
-   for(int l = 0; l < numLayers; l++) {
-     double timeScaleTmp = layers[l]->getTimeScale();
-     if (timeScaleTmp > 0.0){
-       if (timeScaleMin > 0.0){
-	 timeScaleMin = timeScaleTmp < timeScaleMin ? timeScaleTmp : timeScaleMin;
-       }
-       else{
-	 timeScaleMin = timeScaleTmp;
-       }
+   double deltaTimeAdapt = deltaTime;
+   if (dtAdaptFlag){ // adapt deltaTime
+     deltaTimeAdapt = adaptTimeScale();
+     if (columnId() == 0) {
+       std::cout << "timeScale = " << timeScale << ", " << "deltaTimeAdapt = " << deltaTimeAdapt << std::endl;
      }
-   }
-   timeScaleTrue = timeScaleMin;
-   timeScaleMin = timeScaleMin < timeScaleMax ? timeScaleMin : timeScaleMax;
-   timeScale = timeScaleMin > 0.0 ? timeScaleMin : 1.0;
-   double changeTimeScale = timeScale - oldTimeScale;
-   timeScale = changeTimeScale < changeTimeScaleMax ? timeScale : oldTimeScale + changeTimeScaleMax;
-   double changeTimeScaleTrue = timeScaleTrue - oldTimeScaleTrue;
-   if (changeTimeScaleTrue > changeTimeScaleTrueMax){
-     timeScale = oldTimeScale;
-   }
-   if (changeTimeScaleTrue < 0){
-     timeScale = 0.25;
-   }
-   // deltaTimeAdapt is only used internally to set scale of each update step
-   double deltaTimeAdapt = timeScale * deltaTimeBase;
-   if (columnId() == 0) {
-     std::cout << "timeScale = " << timeScale << std::endl;
-   }
+   } // dtAdaptFlag
 
    // make sure simTime is updated even if HyPerCol isn't running time loop
    // triggerOffset might fail if simTime does not advance uniformly because
@@ -1475,6 +1525,37 @@ int HyPerCol::checkpointRead(const char * cpDir) {
 #endif // PV_USE_MPI
    simTime = timestamp.time;
    currentStep = timestamp.step;
+   struct timescale_struct {
+      double timeScale; // timeScale factor for increasing/decreasing dt
+      double timeScaleTrue; // true timeScale as returned by HyPerLayer::getTimeScale() before applications of constraints
+   };
+   // read timeScale info
+   struct timescale_struct timescale;
+   size_t timescale_size = sizeof(struct timescale_struct);
+   assert(sizeof(struct timescale_struct) == sizeof(double) + sizeof(double));
+   if( icCommunicator()->commRank()==0 ) {
+      char timescalepath[PV_PATH_MAX];
+      int chars_needed = snprintf(timescalepath, PV_PATH_MAX, "%s/timescaleinfo.bin", cpDir);
+      if (chars_needed >= PV_PATH_MAX) {
+         fprintf(stderr, "HyPerCol::checkpointRead error: path \"%s/timescaleinfo.bin\" is too long.\n", cpDir);
+         abort();
+      }
+      PV_Stream * timescalefile = PV_fopen(timescalepath,"r");
+      if (timescalefile == NULL) {
+         fprintf(stderr, "HyPerCol::checkpointRead error: unable to open \"%s\" for reading.\n", timescalepath);
+         abort();
+      }
+      long int startpos = getPV_StreamFilepos(timescalefile);
+      PV_fread(&timescale,1,timescale_size,timescalefile);
+      long int endpos = getPV_StreamFilepos(timescalefile);
+      assert(endpos-startpos==(int)timescale_size);
+      PV_fclose(timescalefile);
+   }
+#ifdef PV_USE_MPI
+   MPI_Bcast(&timescale,(int) timescale_size,MPI_CHAR,0,icCommunicator()->communicator());
+#endif // PV_USE_MPI
+   timeScale = timescale.timeScale;
+   timeScaleTrue = timescale.timeScaleTrue;
    double checkTime;
    for( int l=0; l<numLayers; l++ ) {
       layers[l]->checkpointRead(cpDir, &checkTime);
@@ -1553,6 +1634,25 @@ int HyPerCol::checkpointWrite(const char * cpDir) {
          connections[c]->checkpointTimers(timerstream);
       }
       PV_fclose(timerstream); timerstream = NULL;
+   }
+
+   // write adaptive time step info if dtAdaptFlag == true
+   if( columnId()==0 && dtAdaptFlag == true) {
+      char timescalepath[PV_PATH_MAX];
+      int chars_needed = snprintf(timescalepath, PV_PATH_MAX, "%s/timescaleinfo.bin", cpDir);
+      assert(chars_needed < PV_PATH_MAX);
+      PV_Stream * timescalefile = PV_fopen(timescalepath,"w");
+      assert(timescalefile);
+      PV_fwrite(&timeScale,1,sizeof(double),timescalefile);
+      PV_fwrite(&timeScaleTrue,1,sizeof(double),timescalefile);
+      PV_fclose(timescalefile);
+      chars_needed = snprintf(timescalepath, PV_PATH_MAX, "%s/timescaleinfo.txt", cpDir);
+      assert(chars_needed < PV_PATH_MAX);
+      timescalefile = PV_fopen(timescalepath,"w");
+      assert(timescalefile);
+      fprintf(timescalefile->fp,"time = %g\n", timeScale);
+      fprintf(timescalefile->fp,"timeScaleTrue = %g\n", timeScaleTrue);
+      PV_fclose(timescalefile);
    }
 
    // Note: timeinfo should be done at the end of the checkpointing, so that its presence serves as a flag that the checkpoint has completed.

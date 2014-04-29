@@ -63,6 +63,7 @@ int Image::initialize_base() {
    writeImagesExtension = NULL;
    inverseFlag = false;
    normalizeLuminanceFlag = false;
+   normalizeStdDev = true;
    offsets[0] = 0;
    offsets[1] = 0;
    jitterFlag = false;
@@ -118,6 +119,7 @@ int Image::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_autoResizeFlag(ioFlag);
    ioParam_inverseFlag(ioFlag);
    ioParam_normalizeLuminanceFlag(ioFlag);
+   ioParam_normalizeStdDev(ioFlag);
 
    ioParam_frameNumber(ioFlag);
 
@@ -173,6 +175,13 @@ void Image::ioParam_inverseFlag(enum ParamsIOFlag ioFlag) {
 
 void Image::ioParam_normalizeLuminanceFlag(enum ParamsIOFlag ioFlag) {
    parent->ioParamValue(ioFlag, name, "normalizeLuminanceFlag", &normalizeLuminanceFlag, normalizeLuminanceFlag);
+}
+
+void Image::ioParam_normalizeStdDev(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "normalizeLuminanceFlag"));
+   if (normalizeLuminanceFlag) {
+     parent->ioParamValue(ioFlag, name, "normalizeStdDev", &normalizeStdDev, normalizeStdDev);
+   }
 }
 
 void Image::ioParam_frameNumber(enum ParamsIOFlag ioFlag) {
@@ -964,8 +973,7 @@ int Image::readImage(const char * filename, int offsetX, int offsetY, GDALColorI
    // now buf is loc->nf by loc->nx by loc->ny
 
    // if normalizeLuminanceFlag == true then force average luminance to be 0.5
-   //TODO!!! obviously normalize_standard_dev should be passed as Image param or change normalizeLuminanceFlag to an int to specify different behaviors
-   bool normalize_standard_dev = true;
+   bool normalize_standard_dev = normalizeStdDev;
    if(normalizeLuminanceFlag){
      if (normalize_standard_dev){
        double image_sum = 0.0f;
