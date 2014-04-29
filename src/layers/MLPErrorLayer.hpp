@@ -32,9 +32,12 @@ protected:
    virtual void ioParam_VthRest(enum ParamsIOFlag ioFlag);
    virtual void ioParam_SigmoidAlpha(enum ParamsIOFlag ioFlag);
    virtual void ioParam_ForwardLayername(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_symSigmoid(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_LinAlpha(enum ParamsIOFlag ioFlag);
    virtual int updateState(double time, double dt);
 private:
    int initialize_base();
+   bool symSigmoid;
    float * bias;
    float eta; //A sort of dw in mlp
    float Vrest;
@@ -42,6 +45,7 @@ private:
    float sigmoid_alpha;
    char * forwardLayername;
    MLPForwardLayer* forwardLayer;
+   float linAlpha;
 };
 
 } /* namespace PV */

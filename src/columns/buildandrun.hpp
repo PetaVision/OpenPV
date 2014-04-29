@@ -48,6 +48,7 @@
 #include "../layers/MatchingPursuitLayer.hpp"
 #include "../layers/Retina.hpp"
 #include "../layers/SigmoidLayer.hpp"
+#include "../layers/MLPSigmoidLayer.hpp"
 #include "../layers/RescaleLayer.hpp"
 #include "../layers/ShuffleLayer.hpp"
 #include "../layers/ANNSquaredLayer.hpp"

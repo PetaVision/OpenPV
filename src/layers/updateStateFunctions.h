@@ -859,6 +859,21 @@ static inline int setActivity_SigmoidLayer(int numNeurons, CL_MEM_GLOBAL pvdata_
    return PV_SUCCESS;
 }
 
+static inline int setActivity_MLPSigmoidLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * A, CL_MEM_GLOBAL pvdata_t * V, float linear_alpha, int nx, int ny, int nf, int nb, float dt) {
+   int k;
+#ifndef PV_USE_OPENCL
+   for( k=0; k<numNeurons; k++ )
+#else
+      k = get_global_id(0);
+#endif // PV_USE_OPENCL
+   {
+      int kex = kIndexExtended(k, nx, ny, nf, nb);
+      pvdata_t activity = 1.7159 * tanh(((float)2/3) * V[k]) + linear_alpha * V[k];
+      A[kex] = activity;
+   }
+   return PV_SUCCESS;
+}
+
 static inline int resetGSynBuffers_HyPerLayer(int numNeurons, int num_channels, CL_MEM_GLOBAL pvdata_t * GSynHead) {
    for( int ch = 0; ch < num_channels; ch ++ ) {
       CL_MEM_GLOBAL pvdata_t * channelStart = &GSynHead[ch*numNeurons];

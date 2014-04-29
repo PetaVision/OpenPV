@@ -50,12 +50,16 @@ MLPForwardLayer::MLPForwardLayer(const char * name, HyPerCol * hc)
 MLPForwardLayer::~MLPForwardLayer()
 {
    if(bias) free(bias);
+   if(randState) delete randState;
 }
 
 int MLPForwardLayer::initialize_base()
 {
+   randState = NULL;
    bias = NULL;
    initBiasType = NULL;
+   dropoutChance = 0;
+   normFactor = 1;
    return PV_SUCCESS;
 }
 
@@ -79,9 +83,21 @@ int MLPForwardLayer::communicateInitInfo(){
    return status;
 }
 
+int MLPForwardLayer::allocateDataStructures() {
+   int status = ANNLayer::allocateDataStructures();
+   // // a random state variable is needed for every neuron/clthread
+   randState = new Random(parent, getLayerLoc(), false/*isExtended*/);
+   if (randState == NULL) {
+      fprintf(stderr, "MLPForwardLayer::initialize error.  Layer \"%s\" unable to create object of Random class.\n", getName());
+      exit(EXIT_FAILURE);
+   }
+   return status;
+}
+
 int MLPForwardLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = ANNLayer::ioParamsFillGroup(ioFlag);
    ioParam_InitBiasType(ioFlag);
+   ioParam_NormFactor(ioFlag);
    return status;
 }
 
@@ -99,6 +115,18 @@ void MLPForwardLayer::ioParam_InitBiasType(enum ParamsIOFlag ioFlag) {
               parent->parameters()->groupKeywordFromName(name), name, initBiasType);
       exit(EXIT_FAILURE);
    }
+}
+
+void MLPForwardLayer::ioParam_DropoutChance(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "dropoutChance", &dropoutChance, dropoutChance);
+   if(dropoutChance < 0 || dropoutChance >= 1){
+      fprintf(stderr, "%s \"%s\": dropoutChance must be between 0 (inclusive) and 1 (exclusive).\n",
+            parent->parameters()->groupKeywordFromName(name), name);
+   }
+}
+
+void MLPForwardLayer::ioParam_NormFactor(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "normFactor", &normFactor, normFactor);
 }
 
 void MLPForwardLayer::ioParam_BiasFilename(enum ParamsIOFlag ioFlag) {
@@ -122,8 +150,28 @@ int MLPForwardLayer::updateState(double time, double dt)
 
    for(int ni = 0; ni < num_neurons; ni++){
       int next = kIndexExtended(ni, nx, ny, nf, loc->nb);
-      //Update V: GSynExt(channel 0) + bias
-      V[ni] = GSynExt[ni] + bias[ni];
+      //Normalize values based on size
+      //Dropout implemented here
+      //Warning: this code assumes 2 things:
+      //1. Given F as the activation function of MLP, F(-infinity) = 0;
+      //2. Given F as the activation function of MLP, F'(-infinity) = 0;
+      //If both f(V) and f'(V) are 0, both x and error of that node become 0, which prevents
+      //updating W and B.
+      double p = randState->uniformRandom();
+      //In case uniform random returns 0
+      if(p < dropoutChance || dropoutChance == 0){
+         //Update V: GSynExt(channel 0) + bias
+         V[ni] = GSynExt[ni] + bias[ni];
+         V[ni] /= normFactor;
+         //if(strcmp(name, "ForwardLayerFinal") == 0){
+         //   std::cout << "time:" << time << "  ni:" << ni << "  Ext:" << GSynExt[ni] << "  bias:" << bias[ni] << "  V:" << V[ni] << "\n";
+         //}
+      }
+      else{
+         //Set to negative infinity
+         //TODO no longer works with new sigmoid
+         V[ni] = -999999999;
+      }
    }
    //A never updated, TODO see if you can remove A buffer
    update_timer->stop();

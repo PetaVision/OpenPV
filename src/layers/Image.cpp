@@ -397,8 +397,10 @@ int Image::scatterImageFilePVP(const char * filename, int xOffset, int yOffset,
                status = PV_FAILURE;
                abort();
             }
+            
             //Fseek past the header and first timestamp
             PV::PV_fseek(pvstream, (long)8 + (long)headerSize, SEEK_SET);
+
 
             for (i = 0; i<params[INDEX_NBANDS]; i++) {
                //First byte position should always be 92
@@ -422,7 +424,11 @@ int Image::scatterImageFilePVP(const char * filename, int xOffset, int yOffset,
          }
          framepos = (long)frameStart[frameNumber];
          length = count[frameNumber];
-         PV::PV_fseek(pvstream, framepos, SEEK_SET);
+         PV::PV_fseek(pvstream, framepos-sizeof(double)-sizeof(float), SEEK_SET);
+         PV::PV_fread(&timed, sizeof(double), 1, pvstream);
+         float drop;
+         PV::PV_fread(&drop, sizeof(float), 1, pvstream);
+         //std::cout << "timestep:" << parent->simulationTime() << "  filetime:" << timed << "  framenumber:" << frameNumber << "\n";
          status = PV_SUCCESS;
          break;
       case PVP_NONSPIKING_ACT_FILE_TYPE:

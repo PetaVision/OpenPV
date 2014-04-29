@@ -84,6 +84,8 @@ int RescaleLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag){
       ioParam_targetMean(ioFlag);
       ioParam_targetStd(ioFlag);
    }
+   else if(strcmp(rescaleMethod, "zerotonegative") == 0){
+   }
    else{
       fprintf(stderr, "RescaleLayer \"%s\": rescaleMethod does not exist. Current implemented methods are maxmin, meanstd, pointmeanstd.\n",
             name);
@@ -97,7 +99,8 @@ void RescaleLayer::ioParam_rescaleMethod(enum ParamsIOFlag ioFlag){
    if (
          strcmp(rescaleMethod, "maxmin")!=0 &&
          strcmp(rescaleMethod, "meanstd")!=0 &&
-         strcmp(rescaleMethod, "pointmeanstd")!=0
+         strcmp(rescaleMethod, "pointmeanstd")!=0 &&
+         strcmp(rescaleMethod, "zerotonegative")!=0
       ) {
       if (parent->columnId()==0) {
          fprintf(stderr, "RescaleLayer \"%s\": rescaleMethod \"%s\" does not exist. Current implemented methods are maxmin, meanstd, and pointmeanstd.\n",
@@ -262,6 +265,15 @@ int RescaleLayer::updateState(double timef, double dt) {
                       A[kext] = originalA[kextOrig];
                    }
                 }
+             }
+          }
+       }
+       else if(strcmp(rescaleMethod, "zerotonegative") == 0){
+          for (int k = 0; k < numNeurons; k++){
+             int kextOriginal = kIndexExtended(k, locOriginal->nx, locOriginal->ny, locOriginal->nf, locOriginal->nb);
+             int kext = kIndexExtended(k, loc->nx, loc->ny, loc->nf, loc->nb);
+             if(originalA[kextOriginal] == 0){;
+                A[kext] = -1;
              }
           }
        }

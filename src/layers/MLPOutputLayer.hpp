@@ -5,11 +5,11 @@
 
 #ifndef MLPOUTPUTLAYER_HPP_ 
 #define MLPOUTPUTLAYER_HPP_ 
-#include "SigmoidLayer.hpp"
+#include "MLPSigmoidLayer.hpp"
 
 namespace PV{
 
-class MLPOutputLayer : public PV::SigmoidLayer{
+class MLPOutputLayer : public PV::MLPSigmoidLayer{
 public:
    MLPOutputLayer(const char * name, HyPerCol * hc);
    virtual ~MLPOutputLayer();
@@ -34,6 +34,8 @@ private:
    //Variables for stats
    int numRight;
    int numWrong;
+   int progressNumRight;
+   int progressNumWrong;
 };
 
 }

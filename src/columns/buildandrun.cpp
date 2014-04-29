@@ -128,6 +128,7 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
                "GapLayer",
                "RescaleLayer",
                "SigmoidLayer",
+               "MLPSigmoidLayer",
              "BinningLayer",
              "LabelLayer",
              "TextStream",
@@ -522,6 +523,10 @@ HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPe
    if( !strcmp(classkeyword, "SigmoidLayer") ) {
       keywordMatched = true;
       addedLayer = (HyPerLayer *) new SigmoidLayer(name, hc);
+   }
+   if( !strcmp(classkeyword, "MLPSigmoidLayer") ) {
+      keywordMatched = true;
+      addedLayer = (HyPerLayer *) new MLPSigmoidLayer(name, hc);
    }
    if( !strcmp(classkeyword, "RescaleLayer") ) {
       keywordMatched = true;

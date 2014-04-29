@@ -18,6 +18,7 @@ public:
    virtual ~MLPForwardLayer();
    float * getBias() {return bias;}
    virtual int communicateInitInfo();
+   virtual int allocateDataStructures();
    virtual int checkpointRead(const char * cpDir, double * timef);
    virtual int checkpointWrite(const char * cpDir);
 protected:
@@ -26,6 +27,8 @@ protected:
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    virtual void ioParam_InitBiasType(enum ParamsIOFlag ioFlag);
    virtual void ioParam_BiasFilename(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_DropoutChance(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_NormFactor(enum ParamsIOFlag ioFlag);
    virtual int updateState(double time, double dt);
 private:
    int readBias(const char * filename);
@@ -33,6 +36,9 @@ private:
    float * bias;
    char * initBiasType;
    char * biasFilename;
+   float dropoutChance;
+   Random * randState;
+   float normFactor;
 };
 
 } /* namespace PV */

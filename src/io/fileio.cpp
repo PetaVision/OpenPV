@@ -2074,10 +2074,10 @@ template <typename T> int scatterActivity(PV_Stream * pvstream, Communicator * c
             for (int i = 0; i < numActive; i++) {
                int xpos = kxPos(activeNeurons[i], fileLoc->nxGlobal, fileLoc->nyGlobal, layerLoc->nf);
                int ypos = kyPos(activeNeurons[i], fileLoc->nxGlobal, fileLoc->nyGlobal, layerLoc->nf);
-                  if((xpos >= kx0) && (xpos < kx0+layerLoc->nx) && (ypos >= ky0) && (ypos < ky0 + layerLoc->ny)) {
-                     int fpos = featureIndex(activeNeurons[i], fileLoc->nxGlobal, fileLoc->nyGlobal, layerLoc->nf);
-                     TBuff1[(ypos-ky0)*linesize + (xpos-kx0)*layerLoc->nf + fpos] = vals[i];
-                  }
+               if((xpos >= kx0) && (xpos < kx0+layerLoc->nx) && (ypos >= ky0) && (ypos < ky0 + layerLoc->ny)) {
+                  int fpos = featureIndex(activeNeurons[i], fileLoc->nxGlobal, fileLoc->nyGlobal, layerLoc->nf);
+                  TBuff1[(ypos-ky0)*linesize + (xpos-kx0)*layerLoc->nf + fpos] = vals[i];
+               }
             }
             //Send buffer to appropriate mpi process
 #if PV_USE_MPI
@@ -2094,10 +2094,10 @@ template <typename T> int scatterActivity(PV_Stream * pvstream, Communicator * c
          for (int i = 0; i < numActive; i++) {
             int xpos = kxPos(activeNeurons[i], fileLoc->nxGlobal, fileLoc->nyGlobal, layerLoc->nf);
             int ypos = kyPos(activeNeurons[i], fileLoc->nxGlobal, fileLoc->nyGlobal, layerLoc->nf);
-               if((xpos >= kx0) && (xpos < kx0+layerLoc->nx) && (ypos >= ky0) && (ypos < ky0 + layerLoc->ny)) {
-                  int fpos = featureIndex(activeNeurons[i], fileLoc->nxGlobal, fileLoc->nyGlobal, layerLoc->nf);
-                  TBuff1[(ypos-ky0)*linesize + (xpos-kx0)*layerLoc->nf + fpos] = vals[i];
-               }
+            if((xpos >= kx0) && (xpos < kx0+layerLoc->nx) && (ypos >= ky0) && (ypos < ky0 + layerLoc->ny)) {
+               int fpos = featureIndex(activeNeurons[i], fileLoc->nxGlobal, fileLoc->nyGlobal, layerLoc->nf);
+               TBuff1[(ypos-ky0)*linesize + (xpos-kx0)*layerLoc->nf + fpos] = vals[i];
+            }
          }
          free(activeNeurons);
          free(vals);
