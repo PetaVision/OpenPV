@@ -26,6 +26,8 @@ endif (NOT GDAL_FOUND)
 
 if (NOT MPI_C_FOUND OR NOT MPI_CXX_FOUND)
     find_package(MPI REQUIRED)
+set(CMAKE_C_COMPILER "${MPI_C_COMPILER}")
+set(CMAKE_CXX_COMPILER "${MPI_CXX_COMPILER}")
 endif (NOT MPI_C_FOUND OR NOT MPI_CXX_FOUND)
 
 if (NOT LIBSNDFILE_FOUND)
@@ -34,8 +36,6 @@ endif (NOT LIBSNDFILE_FOUND)
 
 include_directories(${PV_SOURCE_DIR})
 include_directories(${GDAL_INCLUDE_DIR})
-include_directories(${MPI_C_INCLUDE_PATH})
-include_directories(${MPI_CXX_INCLUDE_PATH})
 IF(LIBSNDFILE_FOUND)
     include_directories(${LIBSNDFILE_INCLUDE_DIR})
 ENDIF(LIBSNDFILE_FOUND)
@@ -54,8 +54,6 @@ target_link_libraries(FourByFourGenerativeTest pv)
 
 # Link executable to external libraries
 target_link_libraries(FourByFourGenerativeTest ${GDAL_LIBRARY})
-target_link_libraries(FourByFourGenerativeTest ${MPI_C_LIBRARIES})
-target_link_libraries(FourByFourGenerativeTest ${MPI_CXX_LIBRARIES})
 IF(LIBSNDFILE_FOUND)
    target_link_libraries(FourByFourGenerativeTest ${LIBSNDFILE_LIBRARY})
 ENDIF(LIBSNDFILE_FOUND)
