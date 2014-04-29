@@ -1542,14 +1542,16 @@ int HyPerCol::checkpointRead(const char * cpDir) {
       }
       PV_Stream * timescalefile = PV_fopen(timescalepath,"r");
       if (timescalefile == NULL) {
-         fprintf(stderr, "HyPerCol::checkpointRead error: unable to open \"%s\" for reading.\n", timescalepath);
-         abort();
+         fprintf(stderr, "HyPerCol::checkpointRead error: unable to open \"%s\" for reading: %s.\n", timescalepath, strerror(errno));
+         fprintf(stderr, "    will use default value of timeScale=%f, timeScaleTrue=%f\n", timescale.timeScale, timescale.timeScaleTrue);
       }
-      long int startpos = getPV_StreamFilepos(timescalefile);
-      PV_fread(&timescale,1,timescale_size,timescalefile);
-      long int endpos = getPV_StreamFilepos(timescalefile);
-      assert(endpos-startpos==(int)timescale_size);
-      PV_fclose(timescalefile);
+      else {
+         long int startpos = getPV_StreamFilepos(timescalefile);
+         PV_fread(&timescale,1,timescale_size,timescalefile);
+         long int endpos = getPV_StreamFilepos(timescalefile);
+         assert(endpos-startpos==(int)timescale_size);
+         PV_fclose(timescalefile);
+      }
    }
 #ifdef PV_USE_MPI
    MPI_Bcast(&timescale,(int) timescale_size,MPI_CHAR,0,icCommunicator()->communicator());
