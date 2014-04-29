@@ -8,7 +8,7 @@
 //This test is solving the xor problem
 //http://www.mind.ilstu.edu/curriculum/artificial_neural_net/xor_problem_and_solution.php?modGUI=239&compGUI=1286&itemGUI=2253
 
-debugParsing = true;    // Debug the reading of this parameter file.
+debugParsing = false;    // Debug the reading of this parameter file.
 
 HyPerCol "column" = {
    nx = 2;   //2 inputs
@@ -39,7 +39,7 @@ InputLayer "train" = {
     nf = 2;
     writeStep = -1;
     initialWriteTime = 0.0;
-    mirrorBCflag = 1;
+    mirrorBCflag = 0;
     writeSparseActivity = false;
     InitVType = "ZeroV";
     //define a linear relation between its input and output, with some hard cut-off.
@@ -56,10 +56,10 @@ MLPForwardLayer "ForwardLayer1" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
-    nf = 4;
+    nf = 2;
     writeStep = -1; //Change based on display period
     initialWriteTime = 0.0; //Change based on display period 
-    mirrorBCflag = 1;
+    mirrorBCflag = 0;
     writeSparseActivity = 0;
     InitVType = "ZeroV";
     InitBiasType = "File"; //Can be "Zero" or "File", more to be implemeneted later
@@ -69,23 +69,25 @@ MLPForwardLayer "ForwardLayer1" = {
     AMin = infinity;
     VShift = 0;
     VWidth = 0;
+    //normFactor = 2;
     phase = 1;
 };
 
-SigmoidLayer "HiddenLayer1" = {  // 2
+MLPSigmoidLayer "HiddenLayer1" = {  // 2
     nxScale           = 1.;
     nyScale           = 1.;
-    nf                = 4;
+    nf                = 2;
     originalLayerName = "ForwardLayer1";
     InitVType         = "ZeroV";
     valueV            = 0;
-    Vrest             = -1.5;    // 
-    VthRest           = 1.5;    // was -40. before moving the threshold in the middle                  
+    //Vrest             = -1.5;    // 
+    //VthRest           = 1.5;    // was -40. before moving the threshold in the middle                  
     mirrorBCflag      = 0.0; 
-    InverseFlag       = 0.0;
+    //InverseFlag       = 0.0;
     restart           = 0.0;      // from graylast
-    SigmoidFlag       = 1;
-    SigmoidAlpha      = 0.10;
+    //SigmoidFlag       = 1;
+    //SigmoidAlpha      = 0.10;
+    linAlpha            = 0.05;
     spikingFlag       = 0.0;
     writeStep         = -1;
     writeNonspikingActivity = false;
@@ -99,6 +101,7 @@ MLPForwardLayer "ForwardLayer2" = {
    @nf = 1;
    @phase = 3;
    @BiasFilename = "output/Last/ForwardLayer2_B.pvp";
+   //@normFactor = 2;
 };
 
 MLPOutputLayer "FinalLayer" = {  // 2
@@ -108,13 +111,15 @@ MLPOutputLayer "FinalLayer" = {  // 2
     originalLayerName = "ForwardLayer2";
     InitVType         = "ZeroV";
     valueV            = 0;
-    Vrest             = -1.5;    // 
-    VthRest           = 1.5;    // was -40. before moving the threshold in the middle                  
     mirrorBCflag      = 0.0; 
-    InverseFlag       = 0.0;
+    symSigmoid        = true;
+    //Vrest             = -1.5;    // 
+    //VthRest           = 1.5;    // was -40. before moving the threshold in the middle                  
+    //InverseFlag       = 0.0;
+    //SigmoidFlag       = 1;
+    //SigmoidAlpha      = 0.10;
+    linAlpha            = 0.05;
     restart           = 0.0;      // from graylast
-    SigmoidFlag       = 1;
-    SigmoidAlpha      = 0.10;
     spikingFlag       = 0.0;
     writeStep         = -1;
     writeNonspikingActivity = false;
@@ -129,7 +134,7 @@ GTLayer "gt" = {
     nf = 1;
     writeStep = -1;
     initialWriteTime = 0.0;
-    mirrorBCflag = 1;
+    mirrorBCflag = 0;
     writeSparseActivity = false;
     InitVType = "ZeroV";
     //define a linear relation between its input and output, with some hard cut-off.
@@ -167,7 +172,7 @@ KernelConn "W1" = {
     channelCode = 0; //On channel 0
     nxp = 1; 
     nyp = 1; 
-    nfp = 4;
+    nfp = 2;
     numAxonalArbors = 1;
     initFromLastFlag = 0;  // 1;  // restart
     writeStep = 1000;
@@ -188,7 +193,7 @@ KernelConn "W1" = {
     plasticityFlag = 0;
     weightUpdatePeriod = 1.0;
     initialWeightUpdateTime = 1.0;
-    dWMax = .1; // 200.0 used for initial training 
+    dWMax = .05; // 200.0 used for initial training 
     delay = 0;
      
     preActivityIsNotRate = false;

@@ -62,15 +62,15 @@ int InputLayer::updateState(double timef, double dt) {
       switch(iVal){
          case 0:
             if(fi == 0){
-               A[nExt] = 0;
+               A[nExt] = -1;
             }
             if(fi == 1){
-               A[nExt] = 0;
+               A[nExt] = -1;
             }
             break;
          case 1:
             if(fi == 0){
-               A[nExt] = 0;
+               A[nExt] = -1;
             }
             if(fi == 1){
                A[nExt] = 1;
@@ -81,7 +81,7 @@ int InputLayer::updateState(double timef, double dt) {
                A[nExt] = 1;
             }
             if(fi == 1){
-               A[nExt] = 0;
+               A[nExt] = -1;
             }
             break;
          case 3:
