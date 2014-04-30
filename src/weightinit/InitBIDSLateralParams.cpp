@@ -83,7 +83,7 @@ int InitBIDSLateralParams::communicateParamsInfo() {
          fprintf(stderr, "%s \"%s\" error: jitterSource \"%s\" is not a BIDSMovieCloneMap.\n",
                parent->parameters()->groupKeywordFromName(name), name, jitterSource);
       }
-#if PV_USE_MPI
+#ifdef PV_USE_MPI
       MPI_Barrier(parent->icCommunicator()->communicator());
 #endif
       exit(EXIT_FAILURE);
