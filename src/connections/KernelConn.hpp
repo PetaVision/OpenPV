@@ -75,7 +75,7 @@ protected:
 //   int nyKernel;
 //   int nfKernel;
 
-#if PV_USE_MPI
+#ifdef PV_USE_MPI
    pvdata_t * mpiReductionBuffer;
 #endif
    bool keepKernelsSynchronized_flag;

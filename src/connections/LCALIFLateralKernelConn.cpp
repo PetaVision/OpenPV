@@ -89,7 +89,7 @@ int LCALIFLateralKernelConn::communicateInitInfo() {
          fprintf(stderr, "  Pre:  nx=%d, ny=%d, nf=%d, nb=%d\n", nxpre, nypre, nfpre, nbpre);
          fprintf(stderr, "  Post: nx=%d, ny=%d, nf=%d, nb=%d\n", nxpost, nypost, nfpost, nbpost);
       }
-#if PV_USE_MPI
+#ifdef PV_USE_MPI
       MPI_Barrier(parent->icCommunicator()->communicator());
 #endif
       abort();
@@ -172,7 +172,7 @@ int LCALIFLateralKernelConn::allocateDataStructures() {
    }
    int bufsize = numberOfAxonalArborLists() * getNumDataPatches() * nxp * nyp * nfp;
 // TODO-CER-2014.3.26 - Ensure that reduction is done when not using MPI
-#if PV_USE_MPI
+#ifdef PV_USE_MPI
    MPI_Allreduce(MPI_IN_PLACE, interiorCounts[0], bufsize, MPI_FLOAT, MPI_SUM, parent->icCommunicator()->communicator());
 #endif
 

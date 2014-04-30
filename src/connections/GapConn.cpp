@@ -73,7 +73,7 @@ int GapConn::allocateDataStructures() {
          fprintf(stderr, "%s \"%s\" error: postsynaptic layer must be a LIFGap or LIFGap-derived layer.\n",
                parent->parameters()->groupKeywordFromName(name), name);
       }
-#if PV_USE_MPI
+#ifdef PV_USE_MPI
       MPI_Barrier(parent->icCommunicator()->communicator());
 #endif
       exit(EXIT_FAILURE);

@@ -627,7 +627,7 @@ int KernelConn::reduceKernels(const int arborID) {
    const size_t localSize = numPatches * patchSize;
    const size_t arborSize = localSize * this->numberOfAxonalArborLists();
 
-#if PV_USE_MPI
+#ifdef PV_USE_MPI
    ierr = MPI_Allreduce(MPI_IN_PLACE, this->get_dwDataStart(0), arborSize, MPI_FLOAT, MPI_SUM, mpi_comm);
 #endif
    pvdata_t * dW_data = this->get_dwDataStart(0);
@@ -873,7 +873,7 @@ int KernelConn::checkpointWrite(const char * cpDir) {
    char filename[PV_PATH_MAX];
    int status = checkpointFilename(filename, PV_PATH_MAX, cpDir);
    assert(status==PV_SUCCESS);
-//#if PV_USE_MPI
+//#ifdef PV_USE_MPI
    if (!keepKernelsSynchronized_flag) {
       for (int arbor_id = 0; arbor_id < this->numberOfAxonalArborLists(); arbor_id++) {
          reduceKernels(arbor_id);
