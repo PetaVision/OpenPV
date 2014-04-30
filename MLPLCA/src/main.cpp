@@ -3,7 +3,10 @@
  *
  */
 
-#include "../PetaVision/src/columns/buildandrun.hpp"
+#include <columns/buildandrun.hpp>
+#include "CIFARGTLayer.hpp"
+
+#define MAIN_USES_CUSTOMGROUPS
 
 #ifdef MAIN_USES_CUSTOMGROUPS
 void * customgroup(const char * name, const char * groupname, HyPerCol * hc);
@@ -24,5 +27,14 @@ int main(int argc, char * argv[]) {
 #ifdef MAIN_USES_CUSTOMGROUPS
 void * customgroup(const char * keyword, const char * name, HyPerCol * hc) {
    void * addedGroup = NULL;
+   if ( !strcmp(keyword, "CIFARGTLayer") ) {
+      addedGroup = new CIFARGTLayer(name, hc);
+   }
+   if (!addedGroup) {
+      fprintf(stderr, "Group \"%s\": Unable to create %s\n", name, keyword);
+      exit(EXIT_SUCCESS);
+   }
+   checknewobject((void *) addedGroup, keyword, name, hc);
    return addedGroup;
+}
 #endif

@@ -1,0 +1,284 @@
+//
+// MLPTest.params
+//
+// created by slundquist: Mar 21, 2014
+//
+
+//A params file to test PV implementation of a multilayer perceptron
+//This test is solving the xor problem
+//http://www.mind.ilstu.edu/curriculum/artificial_neural_net/xor_problem_and_solution.php?modGUI=239&compGUI=1286&itemGUI=2253
+
+debugParsing = false;    // Debug the reading of this parameter file.
+
+HyPerCol "column" = {
+   nx = 16;  
+   ny = 16;
+   dt = 1.0;  //time step in ms.	     
+   randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
+   startTime = 0.0;
+   stopTime = 10000; //180000001; //200000;
+   progressInterval = 100.0; //Program will output its progress at each progressStep
+   writeProgressToErr = false;  
+   outputPath = "/nh/compneuro/Data/MLPLCA/LCA/cifar_ontest_nodropout/";
+   filenamesContainLayerNames = true;  
+   filenamesContainConnectionNames = true;
+   checkpointRead = false;  
+   checkpointWrite = false;
+   checkpointWriteDir = "/nh/compneuro/Data/MLPLCA/LCA/cifar_ontest_nodropout/Checkpoints/";
+   checkpointWriteStepInterval = 10000;
+   deleteOlderCheckpoints = false;
+   outputNamesOfLayersAndConns = "LayerAndConnNames.txt";
+   suppressLastOutput = false;
+};
+
+//
+// layers
+//
+//The input layer of data
+Movie "InputS1" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    readPvpFile = true;
+    imageListPath = "/nh/compneuro/Data/CIFAR/LCA/data_batch_all15/a2_S1.pvp";
+    nf = 48;
+    writeStep = -1;
+    initialWriteTime = 1;
+    writeSparseActivity = false;
+    displayPeriod = 1;
+    start_frame_index = 40000;
+    skip_frame_index = 0;
+    echoFramePathnameFlag = true;
+    writeFrameToTimestamp = true;
+    mirrorBCflag = true;
+    jitterFlag = 0;
+    useImageBCflag = false;
+    inverseFlag = false;
+    normalizeLuminanceFlag = true;
+    writeImages = false;
+    offsetX = 0;
+    offsetY = 0;
+    randomMovie = 0;
+    autoResizeFlag = false;
+    phase = 0;
+    //useParamsImage = true;
+};
+
+Movie "InputC1" = {
+    restart = 0;
+    nxScale = .5;
+    nyScale = .5;
+    readPvpFile = true;
+    imageListPath = "/nh/compneuro/Data/CIFAR/LCA/data_batch_all15/a6_C1.pvp";
+    nf = 192;
+    writeStep = -1;
+    initialWriteTime = 1;
+    writeSparseActivity = false;
+    displayPeriod = 1;
+    start_frame_index = 40000;
+    skip_frame_index = 0;
+    echoFramePathnameFlag = true;
+    writeFrameToTimestamp = true;
+    mirrorBCflag = true;
+    jitterFlag = 0;
+    useImageBCflag = false;
+    inverseFlag = false;
+    normalizeLuminanceFlag = true;
+    writeImages = false;
+    offsetX = 0;
+    offsetY = 0;
+    randomMovie = 0;
+    autoResizeFlag = false;
+    phase = 0;
+    //useParamsImage = true;
+};
+
+MLPForwardLayer "ForwardLayer1" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 100;
+    writeStep = -1; //Change based on display period
+    initialWriteTime = 0.0; //Change based on display period 
+    mirrorBCflag = 1;
+    writeSparseActivity = 0;
+    InitVType = "ZeroV";
+    InitBiasType = "File"; //Can be "Zero" or "File", more to be implemeneted later
+    BiasFilename = "/nh/compneuro/Data/MLPLCA/LCA/cifar_training_nooutput/Last/ForwardLayer1.pvp";
+    VThresh = -infinity;
+    AMax = -infinity;
+    AMin = infinity;
+    VShift = 0;
+    VWidth = 0;
+    dropoutChance = 0;
+    phase = 1;
+};
+
+SigmoidLayer "HiddenLayer1" = {  // 2
+    nxScale           = 1.;
+    nyScale           = 1.;
+    nf                = 100;
+    originalLayerName = "ForwardLayer1";
+    InitVType         = "ZeroV";
+    valueV            = 0;
+    Vrest             = -.3;    // 
+    VthRest           = .3;    // was -40. before moving the threshold in the middle                  
+    mirrorBCflag      = 0.0; 
+    InverseFlag       = 0.0;
+    restart           = 0.0;      // from graylast
+    SigmoidFlag       = 1;
+    SigmoidAlpha      = 0.10;
+    spikingFlag       = 0.0;
+    writeStep         = -1;
+    writeNonspikingActivity = false;
+    phase = 2;
+};
+
+MLPForwardLayer "ForwardLayer2" = {
+   #include "ForwardLayer1";
+   @nxScale = .5;
+   @nyScale = .5;
+   @nf      = 50;
+   @phase = 3;
+   @BiasFilename = "/nh/compneuro/Data/MLPLCA/LCA/cifar_training_nooutput/Last/ForwardLayer2.pvp";
+};
+
+SigmoidLayer "HiddenLayer2" = {  // 2
+    nxScale           = .5;
+    nyScale           = .5;
+    nf                = 50;
+    originalLayerName = "ForwardLayer2";
+    InitVType         = "ZeroV";
+    valueV            = 0;
+    Vrest             = -.3;    // 
+    VthRest           = .3;    // was -40. before moving the threshold in the middle                  
+    mirrorBCflag      = 0.0; 
+    InverseFlag       = 0.0;
+    restart           = 0.0;      // from graylast
+    SigmoidFlag       = 1;
+    SigmoidAlpha      = 0.10;
+    spikingFlag       = 0.0;
+    writeStep         = -1;
+    writeNonspikingActivity = false;
+    phase = 4;
+};
+
+MLPForwardLayer "ForwardLayerFinal" = {
+   #include "ForwardLayer1";
+   @nxScale = .25;
+   @nyScale = .25;
+   @nf      = 10; //For 10 categories
+   @phase = 5;
+   @BiasFilename = "/nh/compneuro/Data/MLPLCA/LCA/cifar_training_nooutput/Last/ForwardLayerFinal.pvp";
+};
+
+MLPOutputLayer "OutputLayer" = {  // 2
+    nxScale           = .25; //Doing 2 by 2 since this will test multiprocess as well
+    nyScale           = .25;
+    nf                = 10;
+    originalLayerName = "ForwardLayerFinal";
+    InitVType         = "ZeroV";
+    valueV            = 0;
+    Vrest             = -.3;    // 
+    VthRest           = .3;    // was -40. before moving the threshold in the middle                  
+    mirrorBCflag      = 0.0; 
+    InverseFlag       = 0.0;
+    restart           = 0.0;      // from graylast
+    SigmoidFlag       = 1;
+    SigmoidAlpha      = 0.10;
+    spikingFlag       = 0.0;
+    writeStep         = 1;
+    writeNonspikingActivity = false;
+
+    //Local target in training will be different than local target in testing: this will test that each x/y network gets the same answer
+    localTarget = false; //Reducing across all output layers
+    statProgressPeriod = 100;
+    gtLayername = "GroundTruth";
+    phase = 6;
+};
+
+//This layer is still here for score taking, but does nothing for the network itself
+CIFARGTLayer "GroundTruth" = {
+    restart = 0;
+    nxScale = .25; 
+    nyScale = .25;
+    nf = 10;
+    writeStep = 1;
+    initialWriteTime = 0.0;
+    mirrorBCflag = 1;
+    writeSparseActivity = false;
+    InitVType = "ZeroV";
+    //define a linear relation between its input and output, with some hard cut-off.
+    VThresh = -infinity;   
+    AMax = 1;
+    AMin = 0;
+    VShift = 0.0;
+    VWidth = 0.0;
+    inFilename = "/nh/compneuro/Data/CIFAR/LCA/data_batch_all15/timestamps/Image.txt"; //Timestamp file of the run, will grab class from that file
+    phase = 6;
+};
+
+//Connections
+KernelConn "W1S1" = {
+    preLayerName = "InputS1";
+    postLayerName = "ForwardLayer1";
+    channelCode = 2; //Prev layer to next err is on inhib b
+    nxp = 1; 
+    nyp = 1; 
+    nfp = 100;
+    numAxonalArbors = 1;
+    initFromLastFlag = 0;  // 1;  // restart
+    writeStep = -1;
+    
+    weightInitType = "FileWeight";
+    initWeightsFile = "/nh/compneuro/Data/MLPLCA/LCA/cifar_training_nodropout/Last/W1S1_W.pvp"
+        
+    strength = 1.0;  
+    normalizeMethod = "none";
+    
+    shrinkPatches = false;
+    //writeCompressedWeights = 0.0;
+    writeCompressedCheckpoints = false;
+    plasticityFlag = 0; //No plasticity in testing
+    weightUpdatePeriod = 1.0;
+    initialWeightUpdateTime = 1.0;
+    dWMax = .1; // 200.0 used for initial training 
+    delay = 0;
+     
+    preActivityIsNotRate = false;
+    selfFlag = false;
+    shmget_flag = false;
+
+    updateGSynFromPostPerspective = false;
+    pvpatchAccumulateType = "convolve";
+};
+
+KernelConn "W1C1" = {
+   #include "W1S1";
+   @nxp = 2; 
+   @nyp = 2; 
+   @nfp = 100;
+   @preLayerName = "InputC1";
+   @postLayerName = "ForwardLayer1";
+   @initWeightsFile = "/nh/compneuro/Data/MLPLCA/LCA/cifar_training_nodropout/Last/W1C1_W.pvp"
+};
+
+KernelConn "W2" = {
+   #include "W1S1";
+   @nxp = 1;
+   @nyp = 1;
+   @nfp = 50;
+   @preLayerName = "HiddenLayer1";
+   @postLayerName = "ForwardLayer2";
+   @initWeightsFile = "/nh/compneuro/Data/MLPLCA/LCA/cifar_training_nodropout/Last/W2_W.pvp"
+};
+
+KernelConn "W3" = {
+   #include "W1S1";
+   @nxp = 1;
+   @nyp = 1;
+   @nfp = 10;
+   @preLayerName = "HiddenLayer2";
+   @postLayerName = "ForwardLayerFinal";
+   @initWeightsFile = "/nh/compneuro/Data/MLPLCA/LCA/cifar_training_nodropout/Last/W3_W.pvp"
+};
