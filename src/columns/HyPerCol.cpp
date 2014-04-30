@@ -274,7 +274,7 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * p
       if (columnId()==0) {
          fprintf(stderr, "%s error: cannot set both -r and -c.\n", argv[0]);
       }
-#if PV_USE_MPI
+#ifdef PV_USE_MPI
       MPI_Barrier(icComm->communicator());
 #endif // PV_USE_MPI
       exit(EXIT_FAILURE);
@@ -358,7 +358,7 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * p
          }
 
       }
-#if PV_USE_MPI
+#ifdef PV_USE_MPI
       MPI_Bcast(checkpointReadDir, PV_PATH_MAX, MPI_CHAR, 0, icComm->communicator());
 #endif // PV_USE_MPI
    }
@@ -516,7 +516,7 @@ void HyPerCol::ioParamStringRequired(enum ParamsIOFlag ioFlag, const char * grou
             fprintf(stderr, "%s \"%s\" error: string parameter \"%s\" is required.\n",
                             params->groupKeywordFromName(group_name), group_name, param_name);
          }
-#if PV_USE_MPI
+#ifdef PV_USE_MPI
          MPI_Barrier(icComm->communicator());
 #endif
          exit(EXIT_SUCCESS);
@@ -776,7 +776,7 @@ void HyPerCol::ioParam_checkpointWriteTriggerMode(enum ParamsIOFlag ioFlag ) {
             if (columnId()==0) {
                fprintf(stderr, "HyPerCol \"%s\": checkpointWriteTriggerMode \"clock\" has not been implemented yet.\n", name);
             }
-#if PV_USE_MPI
+#ifdef PV_USE_MPI
             MPI_Barrier(icCommunicator()->communicator());
 #endif
             exit(EXIT_FAILURE);
@@ -785,7 +785,7 @@ void HyPerCol::ioParam_checkpointWriteTriggerMode(enum ParamsIOFlag ioFlag ) {
             if (columnId()==0) {
                fprintf(stderr, "HyPerCol \"%s\": checkpointWriteTriggerMode \"%s\" is not recognized.\n", name, checkpointWriteTriggerModeString);
             }
-#if PV_USE_MPI
+#ifdef PV_USE_MPI
             MPI_Barrier(icCommunicator()->communicator());
 #endif
             exit(EXIT_FAILURE);
@@ -1958,7 +1958,7 @@ unsigned int HyPerCol::getRandomSeed() {
    if (columnId()==rootproc) {
        t = time((time_t *) NULL);
    }
-#if PV_USE_MPI
+#ifdef PV_USE_MPI
    MPI_Bcast(&t, 1, MPI_UNSIGNED, rootproc, icComm->communicator());
 #endif
    return t;
