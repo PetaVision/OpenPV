@@ -24,7 +24,7 @@ int main(int argc, char * argv[]) {
       fprintf(stderr, "%s: run without input arguments (except for --require-return); the necessary arguments are hardcoded.\n", argv[0]);
       exit(EXIT_FAILURE);
    }
-#if PV_USE_MPI
+#ifdef PV_USE_MPI
    MPI_Init(&argc, &argv);
    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 #endif // PV_USE_MPI
@@ -38,7 +38,7 @@ int main(int argc, char * argv[]) {
       fflush(stdout);
       charhit = getc(stdin);
    }
-#if PV_USE_MPI
+#ifdef PV_USE_MPI
    MPI_Bcast(&charhit, 1, MPI_INT, 0, MPI_COMM_WORLD);
 #endif
 #endif // REQUIRE_RETURN
@@ -67,7 +67,7 @@ int main(int argc, char * argv[]) {
       fprintf(stderr, "%s: running with params file %s returned error %d.\n", cl_args[0], cl_args[2], status);
    }
 
-#if PV_USE_MPI
+#ifdef PV_USE_MPI
    MPI_Finalize();
 #endif
 

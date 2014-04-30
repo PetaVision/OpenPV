@@ -26,7 +26,7 @@ void * customgroup(const char * name, const char * groupname, HyPerCol * hc);
 
 int main(int argc, char * argv[]) {
    int rank = 0;
-#if PV_USE_MPI
+#ifdef PV_USE_MPI
    MPI_Init(&argc, &argv);
    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 #endif // PV_USE_MPI
@@ -126,7 +126,7 @@ int main(int argc, char * argv[]) {
    }
    free(pv_argv); pv_argv = NULL;
 
-#if PV_USE_MPI
+#ifdef PV_USE_MPI
    MPI_Finalize();
 #endif // PV_USE_MPI
 

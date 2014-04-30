@@ -148,7 +148,7 @@ int StochasticReleaseTestProbe::computePValues(long int step, int f) {
    }
    HyPerLayer * l = getTargetLayer();
    HyPerCol * hc = l->getParent();
-#if PV_USE_MPI
+#ifdef PV_USE_MPI
    MPI_Allreduce(MPI_IN_PLACE, &nnzf, 1, MPI_INT, MPI_SUM, hc->icCommunicator()->communicator());
 #else
    // IMPORTANT NOTE: if the count (3rd argument above) differs from 1, must implement reduction here

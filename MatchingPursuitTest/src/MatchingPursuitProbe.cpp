@@ -29,7 +29,7 @@ int MatchingPursuitProbe::initMatchingPursuitProbe(const char * name, HyPerCol *
       if (hc->columnId()==0) {
          fprintf(stderr, "MatchingPursuitProbe error: argument \"name\" cannot be null.\n");
       }
-#if PV_USE_MPI
+#ifdef PV_USE_MPI
       MPI_Barrier(hc->icCommunicator()->communicator());
 #endif
       exit(EXIT_FAILURE);

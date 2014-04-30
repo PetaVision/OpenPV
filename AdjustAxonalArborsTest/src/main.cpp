@@ -30,7 +30,7 @@ int checkoutput(HyPerCol * hc, int argc, char ** argv) {
    assert(inLoc->nb==1 && inLayer->getNumGlobalExtended()==16);   
    
    fflush(stdout);
-#if PV_USE_MPI
+#ifdef PV_USE_MPI
    MPI_Barrier(hc->icCommunicator()->communicator());
 #endif
    for (int r=0; r<hc->icCommunicator()->commSize(); r++) {
@@ -53,7 +53,7 @@ int checkoutput(HyPerCol * hc, int argc, char ** argv) {
             }
          }
       }
-#if PV_USE_MPI
+#ifdef PV_USE_MPI
       MPI_Barrier(hc->icCommunicator()->communicator());
 #endif
    }
@@ -76,7 +76,7 @@ int checkoutput(HyPerCol * hc, int argc, char ** argv) {
             }
          }
       }
-#if PV_USE_MPI
+#ifdef PV_USE_MPI
       MPI_Barrier(hc->icCommunicator()->communicator());
 #endif
    }
@@ -110,7 +110,7 @@ int checkoutput(HyPerCol * hc, int argc, char ** argv) {
             }
          }
       }
-#if PV_USE_MPI
+#ifdef PV_USE_MPI
       MPI_Barrier(hc->icCommunicator()->communicator());
 #endif
    }
