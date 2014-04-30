@@ -106,7 +106,7 @@ void RescaleLayer::ioParam_rescaleMethod(enum ParamsIOFlag ioFlag){
          fprintf(stderr, "RescaleLayer \"%s\": rescaleMethod \"%s\" does not exist. Current implemented methods are maxmin, meanstd, and pointmeanstd.\n",
                name, rescaleMethod);
       }
-#if PV_USE_MPI
+#ifdef PV_USE_MPI
       MPI_Barrier(parent->icCommunicator()->communicator());
 #endif
       exit(PV_FAILURE);

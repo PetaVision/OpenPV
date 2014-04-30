@@ -78,7 +78,7 @@ int MLPErrorLayer::communicateInitInfo(){
          fprintf(stderr, "%s \"%s\" error: ForwardLayername \"%s\" is not a layer in the HyPerCol.\n",
                  parent->parameters()->groupKeywordFromName(name), name, forwardLayername);
       }
-#if PV_USE_MPI
+#ifdef PV_USE_MPI
       MPI_Barrier(parent->icCommunicator()->communicator());
 #endif
       exit(EXIT_FAILURE);
@@ -89,7 +89,7 @@ int MLPErrorLayer::communicateInitInfo(){
          fprintf(stderr, "%s \"%s\" error: ForwardLayername \"%s\" is not a MLPErrorLayer.\n",
                  parent->parameters()->groupKeywordFromName(name), name, forwardLayername);
       }
-#if PV_USE_MPI
+#ifdef PV_USE_MPI
       MPI_Barrier(parent->icCommunicator()->communicator());
 #endif
       exit(EXIT_FAILURE);
@@ -104,7 +104,7 @@ int MLPErrorLayer::communicateInitInfo(){
          fprintf(stderr, "    original (nx=%d, ny=%d, nf=%d) versus (nx=%d, ny=%d, nf=%d)\n",
                  srcLoc->nxGlobal, srcLoc->nyGlobal, srcLoc->nf, loc->nxGlobal, loc->nyGlobal, loc->nf);
       }
-#if PV_USE_MPI
+#ifdef PV_USE_MPI
       MPI_Barrier(parent->icCommunicator()->communicator());
 #endif
       exit(EXIT_FAILURE);

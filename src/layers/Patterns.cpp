@@ -177,7 +177,7 @@ void Patterns::ioParam_patternType(enum ParamsIOFlag ioFlag) {
          if (parent->columnId()==0) {
             fprintf(stderr, "Group \"%s\": Pattern type \"%s\" not recognized.\n", name, typeString);
          }
-#if PV_USE_MPI
+#ifdef PV_USE_MPI
          MPI_Barrier(parent->icCommunicator()->communicator());
 #endif
          exit(EXIT_FAILURE);
@@ -205,7 +205,7 @@ void Patterns::ioParam_orientation(enum ParamsIOFlag ioFlag) {
       if (parent->columnId()==0) {
          fprintf(stderr, "Group \"%s\": Orientation mode \"%s\" not recognized.\n", name, orientationString);
       }
-#if PV_USE_MPI
+#ifdef PV_USE_MPI
       MPI_Barrier(parent->icCommunicator()->communicator());
 #endif
       exit(EXIT_FAILURE);
@@ -263,7 +263,7 @@ void Patterns::ioParam_movementType(enum ParamsIOFlag ioFlag) {
          if (parent->columnId()==0) {
             fprintf(stderr, "Group \"%s\": movementType \"%s\" not recognized.\n", name, movementTypeString);
          }
-#if PV_USE_MPI
+#ifdef PV_USE_MPI
          MPI_Barrier(parent->icCommunicator()->communicator());
 #endif
          exit(EXIT_FAILURE);
@@ -496,7 +496,7 @@ int Patterns::communicateInitInfo() {
    uint4 * state = patternRandState->getRNG(0);
    uint4 checkState;
    memcpy(&checkState, state, sizeof(uint4));
-#if PV_USE_MPI
+#ifdef PV_USE_MPI
    MPI_Bcast(&checkState, sizeof(uint4), MPI_CHAR, 0, parent->icCommunicator()->communicator());
 #endif
    assert(!memcmp(state, &checkState, sizeof(uint4)));
@@ -517,7 +517,7 @@ int Patterns::communicateInitInfo() {
       xPos = (int)floor(loc->nxGlobal * patternRandState->uniformRandom());
       yPos = (int)floor(loc->nyGlobal * patternRandState->uniformRandom());
    }
-#if PV_USE_MPI
+#ifdef PV_USE_MPI
    MPI_Bcast(&nextDropFrame, 1, MPI_DOUBLE, 0, parent->icCommunicator()->communicator());
 #endif
 
@@ -881,7 +881,7 @@ int Patterns::drawDrops() {
       }
 
       //Communicate to rest of processors
-#if PV_USE_MPI
+#ifdef PV_USE_MPI
       MPI_Bcast(&nextDropFrame, 1, MPI_DOUBLE, 0, parent->icCommunicator()->communicator());
       MPI_Bcast(&newDrop, sizeof(Drop), MPI_BYTE, 0, parent->icCommunicator()->communicator());
 #endif

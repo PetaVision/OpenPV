@@ -145,7 +145,7 @@ int HyPerLCALayer::allocateDataStructures(){
             fprintf(stderr, "%s \"%s\" A SparsityLayerProbe must be attached to the layer for a dynamic VThresh (dVThresh != 0)\n",
                   parent->parameters()->groupKeywordFromName(name), name);
          }
-#if PV_USE_MPI
+#ifdef PV_USE_MPI
          MPI_Barrier(parent->icCommunicator()->communicator());
 #endif
          exit(EXIT_FAILURE);
@@ -156,7 +156,7 @@ int HyPerLCALayer::allocateDataStructures(){
             fprintf(stderr, "%s \"%s\" Target Sparsity (initSparsityVal in SparsityLayerProbe) cannot equal 0\n",
                   parent->parameters()->groupKeywordFromName(name), name);
          }
-#if PV_USE_MPI
+#ifdef PV_USE_MPI
          MPI_Barrier(parent->icCommunicator()->communicator());
 #endif
          exit(EXIT_FAILURE);
@@ -194,7 +194,7 @@ void HyPerLCALayer::ioParam_dVThresh(enum ParamsIOFlag ioFlag) {
 //                  fprintf(stderr, "%s \"%s\": dVThresh must be specified for targetSparsity\n",
 //                        parent->parameters()->groupKeywordFromName(name), name);
 //               }
-//#if PV_USE_MPI
+//#ifdef PV_USE_MPI
 //               MPI_Barrier(parent->icCommunicator()->communicator());
 //#endif
 //               exit(EXIT_FAILURE);
@@ -212,7 +212,7 @@ void HyPerLCALayer::ioParam_numChannels(enum ParamsIOFlag ioFlag) {
          fprintf(stderr, "%s \"%s\" requires 1 or 2 channels, numChannels = %d\n",
                parent->parameters()->groupKeywordFromName(name), name, numChannels);
       }
-#if PV_USE_MPI
+#ifdef PV_USE_MPI
       MPI_Barrier(parent->icCommunicator()->communicator());
 #endif
       exit(EXIT_FAILURE);

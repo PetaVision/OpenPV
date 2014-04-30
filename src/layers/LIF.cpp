@@ -387,7 +387,7 @@ void LIF::ioParam_method(enum ParamsIOFlag ioFlag) {
       if (getParent()->columnId()==0) {
          fprintf(stderr, "LIF::setLIFParams error.  Layer \"%s\" has method \"%s\".  Allowable values are \"arma\", \"beginning\" and \"original\".", name, methodString);
       }
-#if PV_USE_MPI
+#ifdef PV_USE_MPI
       MPI_Barrier(parent->icCommunicator()->communicator());
 #endif
       exit(EXIT_FAILURE);

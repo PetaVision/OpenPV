@@ -470,7 +470,7 @@ int HyPerLayer::setLayerLoc(PVLayerLoc * layerLoc, float nxScale, float nyScale,
       }
       status = PV_FAILURE;
    }
-#if PV_USE_MPI
+#ifdef PV_USE_MPI
    MPI_Barrier(icComm->communicator()); // If there is an error, make sure that MPI doesn't kill the run before process 0 reports the error.
 #endif
    if (status != PV_SUCCESS) {
@@ -808,7 +808,7 @@ int HyPerLayer::communicateInitInfo()
             fprintf(stderr, "%s \"%s\" error: triggerLayer \"%s\" is not a layer in the HyPerCol.\n",
                   parent->parameters()->groupKeywordFromName(name), name, triggerLayerName);
          }
-#if PV_USE_MPI
+#ifdef PV_USE_MPI
          MPI_Barrier(parent->icCommunicator()->communicator());
 #endif
          exit(EXIT_FAILURE);
@@ -878,7 +878,7 @@ int HyPerLayer::openOutputStateFile() {
       }
    }
    InterColComm * icComm = parent->icCommunicator();
-#if PV_USE_MPI
+#ifdef PV_USE_MPI
    MPI_Bcast(&ioAppend, 1, MPI_INT, 0/*root*/, icComm->communicator());
 #endif
    clayer->activeFP = pvp_open_write_file(filename, icComm, ioAppend);
