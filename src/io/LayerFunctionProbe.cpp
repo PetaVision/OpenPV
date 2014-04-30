@@ -87,7 +87,7 @@ int LayerFunctionProbe::communicateInitInfo() {
                fprintf(stderr, "%s \"%s\" error: parentGenColProbe \"%s\" is not a GenColProbe in the column.\n",
                      getParentCol()->parameters()->groupKeywordFromName(getProbeName()), getProbeName(), parentGenColProbeName);
             }
-#if PV_USE_MPI
+#ifdef PV_USE_MPI
             MPI_Barrier(getParentCol()->icCommunicator()->communicator());
 #endif
             exit(EXIT_FAILURE);

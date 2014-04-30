@@ -1404,7 +1404,7 @@ void PVParams::handleUnnecessaryParameter(const char * group_name, const char * 
          }
       }
    }
-#if PV_USE_MPI
+#ifdef PV_USE_MPI
    MPI_Barrier(icComm->communicator());
 #endif
    if (status != PV_SUCCESS) exit(EXIT_FAILURE);
@@ -1455,7 +1455,7 @@ void PVParams::handleUnnecessaryStringParameter(const char * group_name, const c
          }
       }
    }
-#if PV_USE_MPI
+#ifdef PV_USE_MPI
    MPI_Barrier(icComm->communicator());
 #endif
    if (status != PV_SUCCESS) exit(EXIT_FAILURE);

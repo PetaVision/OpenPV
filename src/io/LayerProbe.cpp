@@ -176,7 +176,7 @@ int LayerProbe::communicateInitInfo() {
             fprintf(stderr, "%s \"%s\" error: triggerLayer \"%s\" is not a layer in the HyPerCol.\n",
                   parentCol->parameters()->groupKeywordFromName(probeName), probeName, triggerLayerName);
          }
-#if PV_USE_MPI
+#ifdef PV_USE_MPI
          MPI_Barrier(parentCol->icCommunicator()->communicator());
 #endif
          exit(EXIT_FAILURE);
@@ -192,7 +192,7 @@ int LayerProbe::setTargetLayer(const char * layerName) {
          fprintf(stderr, "%s \"%s\" error: targetLayer \"%s\" is not a layer in the column.\n",
                parentCol->parameters()->groupKeywordFromName(probeName), probeName, targetLayerName);
       }
-#if PV_USE_MPI
+#ifdef PV_USE_MPI
       MPI_Barrier(parentCol->icCommunicator()->communicator());
 #endif
       exit(EXIT_FAILURE);

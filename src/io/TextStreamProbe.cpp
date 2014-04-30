@@ -89,7 +89,7 @@ int TextStreamProbe::outputState(double timef) {
             }
          }
          else {
-#if PV_USE_MPI
+#ifdef PV_USE_MPI
             MPI_Recv(buf, ny*nx*nf, MPI_FLOAT, proc, 157, mpi_comm, MPI_STATUS_IGNORE);
 #endif
          }
@@ -129,7 +129,7 @@ int TextStreamProbe::outputState(double timef) {
          int kex = kIndexExtended(y*nx*nf, nx, ny, nf, nb);
          memcpy(&buf[y*nx*nf], &getTargetLayer()->getLayerData()[kex], nx*nf*sizeof(pvdata_t));
       }
-#if PV_USE_MPI
+#ifdef PV_USE_MPI
       MPI_Send(buf, ny*nx*nf, MPI_FLOAT, rootproc, 157, mpi_comm);
 #endif
    }

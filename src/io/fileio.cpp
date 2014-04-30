@@ -715,12 +715,12 @@ int pvp_read_header(PV_Stream * pvstream, Communicator * comm, int * params, int
       mpi_buffer[0] = status;
       mpi_buffer[1] = numParamsRead;
       memcpy(&mpi_buffer[2], params, sizeof(int)*(*numParams));
-#if PV_USE_MPI
+#ifdef PV_USE_MPI
       MPI_Bcast(mpi_buffer, 22, MPI_INT, 0/*root*/, comm->communicator());
 #endif
    } // comm->communicator()==0
    else {
-#if PV_USE_MPI
+#ifdef PV_USE_MPI
       MPI_Bcast(mpi_buffer, 22, MPI_INT, 0/*root*/, comm->communicator());
 #endif
       status = mpi_buffer[0];
@@ -823,7 +823,7 @@ int pvp_read_header(const char * filename, Communicator * comm, double * time,
            comm->commRank(), *numParams);
 #endif // DEBUG_OUTPUT
 
-#if PV_USE_MPI
+#ifdef PV_USE_MPI
    status = MPI_Bcast(params, *numParams, MPI_INT, icRoot, comm->communicator());
 #endif
 
@@ -1142,7 +1142,7 @@ int pvp_read_time(PV_Stream * pvstream, Communicator * comm, int root_process, d
       mpi_data.status = (numread == 1) ? PV_SUCCESS : PV_FAILURE;
       mpi_data.time = *timed;
    }
-#if PV_USE_MPI
+#ifdef PV_USE_MPI
    MPI_Bcast(&mpi_data, (int) sizeof(timeandstatus), MPI_CHAR, root_process, comm->communicator());
 #endif
    status = mpi_data.status;
@@ -1994,7 +1994,7 @@ template <typename T> int scatterActivity(PV_Stream * pvstream, Communicator * c
                   abort();
                }
             }
-#if PV_USE_MPI
+#ifdef PV_USE_MPI
             MPI_Send(TBuff, numLocalNeurons*(int) datasize, MPI_BYTE, r, 171+r/*tag*/, comm->communicator());
 #endif
          }
@@ -2034,7 +2034,7 @@ template <typename T> int scatterActivity(PV_Stream * pvstream, Communicator * c
                   }
             }
             //Send buffer to appropriate mpi process
-#if PV_USE_MPI
+#ifdef PV_USE_MPI
             MPI_Send(TBuff1, numLocalNeurons*(int) datasize, MPI_BYTE, r, 171+r/*tag*/, comm->communicator());
 #endif
             //Clear the buffer so rootproc can calculate the next process's buffer.
@@ -2080,7 +2080,7 @@ template <typename T> int scatterActivity(PV_Stream * pvstream, Communicator * c
                }
             }
             //Send buffer to appropriate mpi process
-#if PV_USE_MPI
+#ifdef PV_USE_MPI
             MPI_Send(TBuff1, numLocalNeurons*(int) datasize, MPI_BYTE, r, 171+r/*tag*/, comm->communicator());
 #endif
             //Clear the buffer so rootproc can calculate the next process's buffer.
@@ -2107,14 +2107,14 @@ template <typename T> int scatterActivity(PV_Stream * pvstream, Communicator * c
    else {
       switch (filetype) {
       case PVP_NONSPIKING_ACT_FILE_TYPE:
-#if PV_USE_MPI
+#ifdef PV_USE_MPI
          MPI_Recv(TBuff, sizeof(uint4)*numLocalNeurons, MPI_BYTE, rootproc, 171+rank/*tag*/, comm->communicator(), MPI_STATUS_IGNORE);
 #endif
          break;
       case PVP_ACT_FILE_TYPE:
       case PVP_ACT_SPARSEVALUES_FILE_TYPE:
          //Receive buffers from rootproc
-#if PV_USE_MPI
+#ifdef PV_USE_MPI
          MPI_Recv(TBuff1, sizeof(uint4)*numLocalNeurons, MPI_BYTE, rootproc, 171+rank/*tag*/, comm->communicator(), MPI_STATUS_IGNORE);
 #endif
          break;

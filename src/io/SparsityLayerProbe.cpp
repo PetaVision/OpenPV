@@ -120,7 +120,7 @@ int SparsityLayerProbe::outputState(double timed)
 {
    int rank = 0;
    //Grab needed info
-#if PV_USE_MPI
+#ifdef PV_USE_MPI
    InterColComm * icComm = getTargetLayer()->getParent()->icCommunicator();
    MPI_Comm comm = icComm->communicator();
    rank = icComm->commRank();
@@ -142,7 +142,7 @@ int SparsityLayerProbe::outputState(double timed)
             nnz++;
          }
       }
-#if PV_USE_MPI
+#ifdef PV_USE_MPI
       //Sum all nnz across processors
       MPI_Allreduce(MPI_IN_PLACE, &nnz, 1, MPI_INT, MPI_SUM, comm);
 #endif // PV_USE_MPI
@@ -156,7 +156,7 @@ int SparsityLayerProbe::outputState(double timed)
          pvdata_t a = buf[kex];
          sumVal += a;
       }
-#if PV_USE_MPI
+#ifdef PV_USE_MPI
       //Sum all nnz across processors
       MPI_Allreduce(MPI_IN_PLACE, &sumVal, 1, MPI_FLOAT, MPI_SUM, comm);
 #endif // PV_USE_MPI

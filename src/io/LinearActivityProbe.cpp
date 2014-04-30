@@ -64,7 +64,7 @@ void LinearActivityProbe::ioParam_dim(enum ParamsIOFlag ioFlag) {
             fprintf(stderr, "%s \"%s\" error: parameter \"dim\" must be either \"DimX\" or \"DimY\".\n",
                   getParentCol()->parameters()->groupKeywordFromName(getProbeName()), getProbeName());
          }
-#if PV_USE_MPI
+#ifdef PV_USE_MPI
          MPI_Barrier(getParentCol()->icCommunicator()->communicator());
 #endif
          exit(EXIT_FAILURE);

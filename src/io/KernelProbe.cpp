@@ -72,7 +72,7 @@ int KernelProbe::communicate() {
       fprintf(stderr, "KernelProbe \"%s\": connection \"%s\" is not a KernelConn.\n", name, targetConn->getName());
       status = PV_FAILURE;
    }
-#if PV_USE_MPI
+#ifdef PV_USE_MPI
    MPI_Barrier(parent->icCommunicator()->communicator());
 #endif
    if (status != PV_SUCCESS) {

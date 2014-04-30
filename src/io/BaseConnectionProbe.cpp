@@ -43,7 +43,7 @@ int BaseConnectionProbe::initialize(const char * probename, HyPerCol * hc) {
       fprintf(stderr, "BaseConnectionProbe error in rank %d process: probename cannot be null.\n", hc->columnId());
       status = PV_FAILURE;
    }
-#if PV_USE_MPI
+#ifdef PV_USE_MPI
    MPI_Barrier(hc->icCommunicator()->communicator());
 #endif
    if (status!=PV_SUCCESS) {
@@ -55,7 +55,7 @@ int BaseConnectionProbe::initialize(const char * probename, HyPerCol * hc) {
       fprintf(stderr, "BaseConnectionProbe \"%s\" error in rank %d process: unable to allocate memory for name of probe.\n", probename, hc->columnId());
       status = PV_FAILURE;
    }
-#if PV_USE_MPI
+#ifdef PV_USE_MPI
    MPI_Barrier(hc->icCommunicator()->communicator());
 #endif
    if (status!=PV_SUCCESS) {
@@ -73,7 +73,7 @@ int BaseConnectionProbe::communicate() {
             name, getParent()->columnId(), getTargetConnName());
       status = PV_FAILURE;
    }
-#if PV_USE_MPI
+#ifdef PV_USE_MPI
    MPI_Barrier(getParent()->icCommunicator()->communicator());
 #endif
    if (status != PV_SUCCESS) {
