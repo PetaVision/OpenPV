@@ -38,7 +38,7 @@ int ConstantLayer::initialize(const char * name, HyPerCol * hc)
 void ConstantLayer::ioParam_triggerFlag(enum ParamsIOFlag ioFlag) {
    //This layer is a trigger layer, so set flag
    if (ioFlag==PARAMS_IO_READ) {
-      triggerFlag = 1;
+      triggerFlag = 0;
       parent->parameters()->handleUnnecessaryParameter(name, "triggerFlag", true);
    }
 }

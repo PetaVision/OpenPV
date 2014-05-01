@@ -163,6 +163,7 @@ int MLPOutputLayer::updateState(double timef, double dt) {
          }
 #endif // PV_USE_MPI
 
+         //Find max
          float estMaxF = -1000;
          int estMaxFi = -1;
          float actualMaxF = -1000;

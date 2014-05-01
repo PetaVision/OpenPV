@@ -54,6 +54,20 @@ void MLPSigmoidLayer::ioParam_LinAlpha(enum ParamsIOFlag ioFlag) {
 
 int MLPSigmoidLayer::communicateInitInfo() {
    int status = CloneVLayer::communicateInitInfo();
+   assert(originalLayer);
+   MLPForwardLayer * forwardLayer = dynamic_cast<MLPForwardLayer*>(originalLayer);
+   if(!forwardLayer){
+      if (parent->columnId()==0) {
+         fprintf(stderr, "%s \"%s\" error: Original layer \"%s\" need to be a MLPForwardLayer.\n",
+                 parent->parameters()->groupKeywordFromName(name), name, originalLayerName);
+      }
+#if PV_USE_MPI
+      MPI_Barrier(parent->icCommunicator()->communicator());
+#endif
+      exit(EXIT_FAILURE);
+   }
+   //Set pointer to forward layer's dropout buffer
+   dropout = forwardLayer->getDropout();
    return status;
 }
 
@@ -73,18 +87,18 @@ int MLPSigmoidLayer::setActivity() {
 
 int MLPSigmoidLayer::updateState(double timef, double dt) {
    int status;
-   status = updateState(timef, dt, getLayerLoc(), getCLayer()->activity->data, getV(), 0, NULL, linAlpha, getCLayer()->activeIndices, &getCLayer()->numActive);
+   status = updateState(timef, dt, getLayerLoc(), getCLayer()->activity->data, getV(), 0, NULL, linAlpha, dropout, getCLayer()->activeIndices, &getCLayer()->numActive);
    if( status == PV_SUCCESS ) status = updateActiveIndices();
    return status;
 }
 
-int MLPSigmoidLayer::updateState(double timef, double dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels, pvdata_t * gSynHead, float linear_alpha, unsigned int * active_indices, unsigned int * num_active) {
+int MLPSigmoidLayer::updateState(double timef, double dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels, pvdata_t * gSynHead, float linear_alpha, bool* dropout_buf, unsigned int * active_indices, unsigned int * num_active) {
    int nx = loc->nx;
    int ny = loc->ny;
    int nf = loc->nf;
    int num_neurons = nx*ny*nf;
    updateV_SigmoidLayer(); // Does nothing as sourceLayer is responsible for updating V.
-   setActivity_MLPSigmoidLayer(num_neurons, A, V, linear_alpha, nx, ny, nf, loc->nb, dt);
+   setActivity_MLPSigmoidLayer(num_neurons, A, V, linear_alpha, dropout_buf, nx, ny, nf, loc->nb, dt);
    // resetGSynBuffers(); // Since sourceLayer updates V, this->GSyn is not used
    return PV_SUCCESS;
 }

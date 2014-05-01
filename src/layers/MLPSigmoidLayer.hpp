@@ -10,6 +10,7 @@
 #define MLPSIGMOIDLAYER_HPP_
 
 #include "CloneVLayer.hpp"
+#include "MLPForwardLayer.hpp"
 
 namespace PV {
 
@@ -27,10 +28,11 @@ protected:
    int initialize(const char * name, HyPerCol * hc);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    virtual void ioParam_LinAlpha(enum ParamsIOFlag ioFlag);
-   /* static */ int updateState(double timef, double dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels, pvdata_t * gSynHead, float linear_alpha, unsigned int * active_indices, unsigned int * num_active);
+   /* static */ int updateState(double timef, double dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels, pvdata_t * gSynHead, float linear_alpha, bool* dropout_buf, unsigned int * active_indices, unsigned int * num_active);
 private:
    int initialize_base();
    float linAlpha;
+   bool* dropout;
 };
 
 }

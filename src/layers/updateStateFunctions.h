@@ -859,7 +859,7 @@ static inline int setActivity_SigmoidLayer(int numNeurons, CL_MEM_GLOBAL pvdata_
    return PV_SUCCESS;
 }
 
-static inline int setActivity_MLPSigmoidLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * A, CL_MEM_GLOBAL pvdata_t * V, float linear_alpha, int nx, int ny, int nf, int nb, float dt) {
+static inline int setActivity_MLPSigmoidLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * A, CL_MEM_GLOBAL pvdata_t * V, float linear_alpha, bool* dropout_buf, int nx, int ny, int nf, int nb, float dt) {
    int k;
 #ifndef PV_USE_OPENCL
    for( k=0; k<numNeurons; k++ )
@@ -869,7 +869,8 @@ static inline int setActivity_MLPSigmoidLayer(int numNeurons, CL_MEM_GLOBAL pvda
    {
       int kex = kIndexExtended(k, nx, ny, nf, nb);
       pvdata_t activity = 1.7159 * tanh(((float)2/3) * V[k]) + linear_alpha * V[k];
-      A[kex] = activity;
+      //Set explicitly to 0 if that neuron was dropped out
+      A[kex] = dropout_buf[k] ? 0 : activity;
    }
    return PV_SUCCESS;
 }

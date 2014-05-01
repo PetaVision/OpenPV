@@ -56,10 +56,8 @@ MLPErrorLayer::~MLPErrorLayer()
 
 int MLPErrorLayer::initialize_base()
 {
-   bias = NULL;
-   eta = 1; //What's a good default value here?
+   dropout = NULL;
    forwardLayername = NULL;
-   symSigmoid = true;
    linAlpha = 0;
    return PV_SUCCESS;
 }
@@ -110,8 +108,7 @@ int MLPErrorLayer::communicateInitInfo(){
       exit(EXIT_FAILURE);
    }
    assert(srcLoc->nx==loc->nx && srcLoc->ny==loc->ny);
-   //Grab forwardLayer's bias
-   bias = forwardLayer->getBias();
+   dropout = forwardLayer->getDropout();
    return status;
 }
 
@@ -166,43 +163,13 @@ int MLPErrorLayer::checkpointWrite(const char * cpDir) {
 
 int MLPErrorLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = ANNLayer::ioParamsFillGroup(ioFlag);
-   ioParam_eta(ioFlag);
    ioParam_ForwardLayername(ioFlag);
-   ioParam_symSigmoid(ioFlag);
-   if(!symSigmoid){
-      ioParam_Vrest(ioFlag);
-      ioParam_VthRest(ioFlag);
-      ioParam_SigmoidAlpha(ioFlag);
-   }
-   else{
-      ioParam_LinAlpha(ioFlag);
-   }
+   ioParam_LinAlpha(ioFlag);
    return status;
-}
-
-/**
- * Eta is the learning rate of the mlp
- */
-void MLPErrorLayer::ioParam_eta(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "eta", &eta, eta, true/*warnIfAbsent*/);
-}
-
-void MLPErrorLayer::ioParam_symSigmoid(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "symSigmoid", &symSigmoid, symSigmoid, true/*warnIfAbsent*/);
 }
 
 void MLPErrorLayer::ioParam_LinAlpha(enum ParamsIOFlag ioFlag) {
    parent->ioParamValue(ioFlag, name, "linAlpha", &linAlpha, linAlpha);
-}
-
-void MLPErrorLayer::ioParam_Vrest(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "Vrest", &Vrest, (float) V_REST);
-}
-void MLPErrorLayer::ioParam_VthRest(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "VthRest", &VthRest, (float) VTH_REST);
-}
-void MLPErrorLayer::ioParam_SigmoidAlpha(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "SigmoidAlpha", &sigmoid_alpha, (float) SIGMOIDALPHA);
 }
 
 void MLPErrorLayer::ioParam_ForwardLayername(enum ParamsIOFlag ioFlag) {
@@ -226,11 +193,6 @@ int MLPErrorLayer::updateState(double time, double dt)
    pvdata_t * GSynInhB = getChannel(CHANNEL_INHB);
 
    pvdata_t Vth, sig_scale;
-   if(!symSigmoid){
-      //Calculate constants for derivitive of sigmoid layer
-      Vth = (VthRest+Vrest)/2.0;
-      sig_scale = -logf(1.0f/sigmoid_alpha - 1.0f)/(Vth - Vrest);
-   }
    pvdata_t * A = getCLayer()->activity->data;
    pvdata_t * V = getV();
 
@@ -242,17 +204,8 @@ int MLPErrorLayer::updateState(double time, double dt)
       float errProp = GSynExt[ni] - GSynInh[ni];
       //float errProp = GSynInh[ni] - GSynExt[ni];
       float gradent;
-      if(symSigmoid){
-         gradent = 1.14393 * (1/(pow(cosh(((float)2/3) * V[ni]), 2))) + linAlpha;
-      }
-      //The derivitive of a sigmoid layer is -.5 * x * sech^2(sig_scale * (vth - x))
-      else{
-         gradent = -.5 * sig_scale * (1/(pow(cosh(sig_scale*(Vth - V[ni])), 2)));
-      }
-      A[next] = errProp * gradent;
-      //Update bias: bias += eta * activity
-      //Actually updating forward prop's bias
-      bias[ni] += eta * A[next];
+      gradent = 1.14393 * (1/(pow(cosh(((float)2/3) * V[ni]), 2))) + linAlpha;
+      A[next] = dropout[ni] ? 0 : errProp * gradent;
    }
 
    update_timer->stop();

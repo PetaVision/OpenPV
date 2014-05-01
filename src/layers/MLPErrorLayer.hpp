@@ -27,19 +27,12 @@ protected:
    virtual int checkpointRead(const char * cpDir, double * timed);
    virtual int checkpointWrite(const char * cpDir);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_eta(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_Vrest(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_VthRest(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_SigmoidAlpha(enum ParamsIOFlag ioFlag);
    virtual void ioParam_ForwardLayername(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_symSigmoid(enum ParamsIOFlag ioFlag);
    virtual void ioParam_LinAlpha(enum ParamsIOFlag ioFlag);
    virtual int updateState(double time, double dt);
 private:
    int initialize_base();
-   bool symSigmoid;
-   float * bias;
-   float eta; //A sort of dw in mlp
+   bool * dropout;
    float Vrest;
    float VthRest;
    float sigmoid_alpha;
