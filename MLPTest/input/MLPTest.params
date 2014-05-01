@@ -30,6 +30,22 @@ HyPerCol "column" = {
 //
 // layers
 //
+
+ConstantLayer "onesLayer" = {
+    restart = 0;
+    nxScale = 1; 
+    nyScale = 1;
+    nf = 1;
+    writeStep = -1;
+    initialWriteTime = 0.0;
+    mirrorBCflag = 0;
+    writeSparseActivity = false;
+    InitVType = "ConstantV";
+    valueV    = 1;
+    VThresh = -infinity;   
+    phase = 0;
+};
+
 //The input layer of data
 //Note that the layer name matches train.txt
 InputLayer "train" = {
@@ -44,10 +60,6 @@ InputLayer "train" = {
     InitVType = "ZeroV";
     //define a linear relation between its input and output, with some hard cut-off.
     VThresh = -infinity;   
-    AMax = 1;
-    AMin = 0;
-    VShift = 0.0;
-    VWidth = 0.0;
     inFilename = "input/test/input.txt";
     phase = 0;
 };
@@ -62,14 +74,7 @@ MLPForwardLayer "ForwardLayer1" = {
     mirrorBCflag = 0;
     writeSparseActivity = 0;
     InitVType = "ZeroV";
-    InitBiasType = "File"; //Can be "Zero" or "File", more to be implemeneted later
-    BiasFilename = "output/Last/ForwardLayer1_B.pvp";
     VThresh = -infinity;
-    AMax = -infinity;
-    AMin = infinity;
-    VShift = 0;
-    VWidth = 0;
-    //normFactor = 2;
     phase = 1;
 };
 
@@ -80,14 +85,9 @@ MLPSigmoidLayer "HiddenLayer1" = {  // 2
     originalLayerName = "ForwardLayer1";
     InitVType         = "ZeroV";
     valueV            = 0;
-    //Vrest             = -1.5;    // 
-    //VthRest           = 1.5;    // was -40. before moving the threshold in the middle                  
     mirrorBCflag      = 0.0; 
-    //InverseFlag       = 0.0;
     restart           = 0.0;      // from graylast
-    //SigmoidFlag       = 1;
-    //SigmoidAlpha      = 0.10;
-    linAlpha            = 0.05;
+    linAlpha            = 0;
     spikingFlag       = 0.0;
     writeStep         = -1;
     writeNonspikingActivity = false;
@@ -100,8 +100,6 @@ MLPForwardLayer "ForwardLayer2" = {
    @nyScale = 1;
    @nf = 1;
    @phase = 3;
-   @BiasFilename = "output/Last/ForwardLayer2_B.pvp";
-   //@normFactor = 2;
 };
 
 MLPOutputLayer "FinalLayer" = {  // 2
@@ -112,13 +110,7 @@ MLPOutputLayer "FinalLayer" = {  // 2
     InitVType         = "ZeroV";
     valueV            = 0;
     mirrorBCflag      = 0.0; 
-    symSigmoid        = true;
-    //Vrest             = -1.5;    // 
-    //VthRest           = 1.5;    // was -40. before moving the threshold in the middle                  
-    //InverseFlag       = 0.0;
-    //SigmoidFlag       = 1;
-    //SigmoidAlpha      = 0.10;
-    linAlpha            = 0.05;
+    linAlpha            = 0;
     restart           = 0.0;      // from graylast
     spikingFlag       = 0.0;
     writeStep         = -1;
@@ -137,14 +129,9 @@ GTLayer "gt" = {
     mirrorBCflag = 0;
     writeSparseActivity = false;
     InitVType = "ZeroV";
-    //define a linear relation between its input and output, with some hard cut-off.
     VThresh = -infinity;   
-    AMax = 1;
-    AMin = 0;
-    VShift = 0.0;
-    VWidth = 0.0;
     inFilename = "input/test/gt.txt";
-    phase = 4;
+    phase = 3;
 };
 
 ComparisonLayer "comparison" = {
@@ -158,10 +145,6 @@ ComparisonLayer "comparison" = {
     writeSparseActivity = 0;
     InitVType = "ZeroV";
     VThresh = -infinity;
-    VMax = infinity;
-    VMin = -infinity;
-    VShift = 0;
-    VWidth = 0;
     phase = 5;
 };
 
@@ -204,6 +187,44 @@ KernelConn "W1" = {
     pvpatchAccumulateType = "convolve";
 };
 
+KernelConn "B1" = {
+    preLayerName = "onesLayer";
+    postLayerName = "ForwardLayer1";
+    channelCode = 0; //Prev layer to next err is on inhib b
+    nxp = 1; 
+    nyp = 1; 
+    nfp = 2;
+    numAxonalArbors = 1;
+    initFromLastFlag = 0;  // 1;  // restart
+    writeStep = -1;
+    
+    weightInitType = "FileWeight";
+    initWeightsFile = "output/Last/B1_W.pvp";
+
+    //weightInitType = "UniformRandomWeight";
+    //wMinInit = -1.225; //sqrt(3/2);
+    //wMaxInit = 1.225;
+        
+    strength = 1.0;  
+    normalizeMethod = "none";
+    
+    shrinkPatches = false;
+    //writeCompressedWeights = 0.0;
+    writeCompressedCheckpoints = false;
+    plasticityFlag = 0;
+    weightUpdatePeriod = 1.0;
+    initialWeightUpdateTime = 1.0;
+    dWMax = .1; // 200.0 used for initial training 
+    delay = 0;
+     
+    preActivityIsNotRate = false;
+    selfFlag = false;
+    shmget_flag = false;
+
+    updateGSynFromPostPerspective = false;
+    pvpatchAccumulateType = "convolve";
+};
+
 KernelConn "W2" = {
    #include "W1";
    @nxp = 1;
@@ -212,6 +233,13 @@ KernelConn "W2" = {
    @preLayerName = "HiddenLayer1";
    @postLayerName = "ForwardLayer2";
    @initWeightsFile = "output/Last/W2_W.pvp";
+};
+
+KernelConn "B2" = {
+   #include "B1";
+   @postLayerName = "ForwardLayer2";
+   @nfp = 1;
+   @initWeightsFile = "output/Last/B2_W.pvp";
 };
 
 //GT on inh, estimated on excitatory

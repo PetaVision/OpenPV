@@ -30,6 +30,22 @@ HyPerCol "column" = {
 //
 // layers
 //
+
+ConstantLayer "onesLayer" = {
+    restart = 0;
+    nxScale = 1; 
+    nyScale = 1;
+    nf = 1;
+    writeStep = -1;
+    initialWriteTime = 0.0;
+    mirrorBCflag = 0;
+    writeSparseActivity = false;
+    InitVType = "ConstantV";
+    valueV    = 1;
+    VThresh = -infinity;   
+    phase = 0;
+};
+
 //The input layer of data
 //Note that the layer name matches train.txt
 InputLayer "train" = {
@@ -42,12 +58,7 @@ InputLayer "train" = {
     mirrorBCflag = 0;
     writeSparseActivity = false;
     InitVType = "ZeroV";
-    //define a linear relation between its input and output, with some hard cut-off.
     VThresh = -infinity;   
-    AMax = 1;
-    AMin = 0;
-    VShift = 0.0;
-    VWidth = 0.0;
     inFilename = "input/train/input.txt";
     phase = 0;
 };
@@ -62,13 +73,7 @@ MLPForwardLayer "ForwardLayer1" = {
     mirrorBCflag = 0;
     writeSparseActivity = 0;
     InitVType = "ZeroV";
-    InitBiasType = "Zero"; //Can be "Zero" or "File", more to be implemeneted later
     VThresh = -infinity;
-    AMax = -infinity;
-    AMin = infinity;
-    VShift = 0;
-    VWidth = 0;
-    //normFactor = 2;
     phase = 1;
 };
 
@@ -79,14 +84,9 @@ MLPSigmoidLayer "HiddenLayer1" = {  // 2
     originalLayerName = "ForwardLayer1";
     InitVType         = "ZeroV";
     valueV            = 0;
-    //Vrest             = -1.5;    // 
-    //VthRest           = 1.5;    // was -40. before moving the threshold in the middle                  
     mirrorBCflag      = 0.0; 
-    //InverseFlag       = 0.0;
     restart           = 0.0;      // from graylast
-    //SigmoidFlag       = 1;
-    //SigmoidAlpha      = 0.10;
-    linAlpha            = 0.05;
+    linAlpha            = 0;
     spikingFlag       = 0.0;
     writeStep         = -1;
     writeNonspikingActivity = false;
@@ -99,7 +99,6 @@ MLPForwardLayer "ForwardLayer2" = {
    @nyScale = 1;
    @nf = 1;
    @phase = 3;
-   //@normFactor = 2;
 };
 
 MLPOutputLayer "FinalLayer" = {  // 2
@@ -110,13 +109,7 @@ MLPOutputLayer "FinalLayer" = {  // 2
     InitVType         = "ZeroV";
     valueV            = 0;
     mirrorBCflag      = 0.0; 
-    symSigmoid        = true;
-    //Vrest             = -1.5;    // 
-    //VthRest           = 1.5;    // was -40. before moving the threshold in the middle                  
-    //InverseFlag       = 0.0;
-    //SigmoidFlag       = 1;
-    //SigmoidAlpha      = 0.10;
-    linAlpha            = 0.05;
+    linAlpha            = 0;
     restart           = 0.0;      // from graylast
     spikingFlag       = 0.0;
     writeStep         = -1;
@@ -136,14 +129,9 @@ GTLayer "gt" = {
     mirrorBCflag = 0;
     writeSparseActivity = false;
     InitVType = "ZeroV";
-    //define a linear relation between its input and output, with some hard cut-off.
     VThresh = -infinity;   
-    AMax = 1;
-    AMin = 0;
-    VShift = 0.0;
-    VWidth = 0.0;
     inFilename = "input/train/gt.txt";
-    phase = 4;
+    phase = 3;
 };
 
 MLPErrorLayer "Error1" = {
@@ -154,18 +142,10 @@ MLPErrorLayer "Error1" = {
     writeStep = -1; //Change based on display period
     mirrorBCflag = 0;
     writeSparseActivity = 0;
-    eta = .05; //Same as dwmax
-    symSigmoid = true;
-    //Vrest             = -1.5;    // 
-    //VthRest           = 1.5;    // was -40. before moving the threshold in the middle                  
-    //SigmoidAlpha      = 0.10;
+    linAlpha            = 0;
     ForwardLayername = "ForwardLayer1";
     InitVType = "ZeroV";
     VThresh = -infinity;
-    AMax = infinity;
-    AMin = -infinity;
-    VShift = 0;
-    VWidth = 0;
     phase = 6;
 };
 
@@ -191,8 +171,8 @@ KernelConn "W1" = {
     writeStep = -1;
     
     weightInitType = "UniformRandomWeight";
-    wMinInit = -1.0;
-    wMaxInit = 1.0;
+    wMinInit = -1.225; //sqrt(3/2);
+    wMaxInit = 1.225;
         
     strength = 1.0;  
     normalizeMethod = "none";
@@ -203,7 +183,7 @@ KernelConn "W1" = {
     plasticityFlag = 1;
     weightUpdatePeriod = 1.0;
     initialWeightUpdateTime = 1.0;
-    dWMax = .05; // 200.0 used for initial training 
+    dWMax = .1; // 200.0 used for initial training 
     delay = 0;
      
     preActivityIsNotRate = false;
@@ -228,6 +208,55 @@ CloneKernelConn "W1Clone" = {
     pvpatchAccumulateType = "convolve";
 };
 
+KernelConn "B1" = {
+    preLayerName = "onesLayer";
+    postLayerName = "Error1";
+    channelCode = 2; //Prev layer to next err is on inhib b
+    nxp = 1; 
+    nyp = 1; 
+    nfp = 2;
+    numAxonalArbors = 1;
+    initFromLastFlag = 0;  // 1;  // restart
+    writeStep = -1;
+    
+    weightInitType = "UniformRandomWeight";
+    wMinInit = -1.225; //sqrt(3/2);
+    wMaxInit = 1.225;
+        
+    strength = 1.0;  
+    normalizeMethod = "none";
+    
+    shrinkPatches = false;
+    //writeCompressedWeights = 0.0;
+    writeCompressedCheckpoints = false;
+    plasticityFlag = 1;
+    weightUpdatePeriod = 1.0;
+    initialWeightUpdateTime = 1.0;
+    dWMax = .1; // 200.0 used for initial training 
+    delay = 0;
+     
+    preActivityIsNotRate = false;
+    selfFlag = false;
+    shmget_flag = false;
+
+    updateGSynFromPostPerspective = false;
+    pvpatchAccumulateType = "convolve";
+};
+
+CloneKernelConn "B1Clone" = {
+    preLayerName = "onesLayer";
+    postLayerName = "ForwardLayer1";
+    channelCode = 0; //On exc channel
+    writeStep = -1;
+    originalConnName = "B1";
+    selfFlag = false;
+    delay = 0;
+    preActivityIsNotRate = false;
+    useWindowPost = false;
+    updateGSynFromPostPerspective = false;
+    pvpatchAccumulateType = "convolve";
+};
+
 KernelConn "W2" = {
    #include "W1";
    @nxp = 1;
@@ -235,6 +264,8 @@ KernelConn "W2" = {
    @nfp = 1;
    @preLayerName = "HiddenLayer1";
    @postLayerName = "FinalError";
+   @wMinInit = -1.732; //sqrt(3/1);
+   @wMaxInit = 1.732;
 };
 
 CloneKernelConn "W2Clone" = {
@@ -257,6 +288,20 @@ TransposeConn "W2T" = {
     delay = 0;
     pvpatchAccumulateType = "convolve";
     updateGSynFromPostPerspective = false;
+};
+
+KernelConn "B2" = {
+   #include "B1";
+   @postLayerName = "FinalError";
+   @nfp = 1;
+   @wMinInit = -1.732; //sqrt(3/1);
+   @wMaxInit = 1.732;
+};
+
+CloneKernelConn "B2Clone" = {
+   #include "B1Clone";
+   @postLayerName = "ForwardLayer2";
+   @originalConnName = "B2";
 };
 
 KernelConn "gtToFinalError" = {
