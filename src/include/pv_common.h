@@ -96,13 +96,8 @@
 #  define pv_debug_info(format, args...)
 #endif
 
-#ifdef ECLIPSE
-#  define INPUT_PATH  "src/input/"
-#  define OUTPUT_PATH "src/output/"
-#else
-#  define INPUT_PATH  "input/"
-#  define OUTPUT_PATH "output/"
-#endif
+#define INPUT_PATH  "input/"
+#define OUTPUT_PATH "output/"
 #define PARAMS_FILE "params.txt"
 
 #endif /* PV_COMMON_H */

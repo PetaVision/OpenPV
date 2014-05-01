@@ -37,9 +37,6 @@
 /* the maximum number of threads */
 #define MAX_THREADS 1
 
-/* For building using Eclipse */
-#undef ECLIPSE
-
 /* controls usage of the C99 restrict keyword */
 #ifndef RESTRICT
 #  define RESTRICT
