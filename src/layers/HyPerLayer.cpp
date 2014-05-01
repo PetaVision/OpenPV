@@ -153,6 +153,7 @@ int HyPerLayer::initialize_base() {
    this->update_timer  = NULL;
    this->recvsyn_timer = NULL;
    this->publish_timer = NULL;
+   this->timescale_timer = NULL;
    this->io_timer      = NULL;
 
    return PV_SUCCESS;
@@ -171,6 +172,7 @@ int HyPerLayer::initialize(const char * name, HyPerCol * hc) {
    this->update_timer =  new Timer(getName(), "layer", "update ");
    this->recvsyn_timer = new Timer(getName(), "layer", "recvsyn");
    this->publish_timer = new Timer(getName(), "layer", "publish");
+   this->timescale_timer = new Timer(getName(), "layer", "timescale");
    this->io_timer =      new Timer(getName(), "layer", "io     ");
 
    PVParams * params = parent->parameters();
@@ -278,12 +280,14 @@ HyPerLayer::~HyPerLayer()
       recvsyn_timer->fprint_time(stdout);
       update_timer->fprint_time(stdout);
       publish_timer->fprint_time(stdout);
+      timescale_timer->fprint_time(stdout);
       io_timer->fprint_time(stdout);
       fflush(stdout);
    }
    delete recvsyn_timer;  recvsyn_timer = NULL;
    delete update_timer;   update_timer  = NULL;
    delete publish_timer;  publish_timer = NULL;
+   delete timescale_timer;  timescale_timer = NULL;
    delete io_timer;       io_timer      = NULL;
 
    delete initVObject; initVObject = NULL;
@@ -2128,6 +2132,7 @@ int HyPerLayer::checkpointTimers(PV_Stream * timerstream) {
    update_timer->fprint_time(timerstream->fp);
    recvsyn_timer->fprint_time(timerstream->fp);
    publish_timer->fprint_time(timerstream->fp);
+   timescale_timer->fprint_time(timerstream->fp);
    io_timer->fprint_time(timerstream->fp);
    for (int p=0; p<getNumProbes(); p++) {
       getProbe(p)->checkpointTimers(timerstream);

@@ -37,28 +37,33 @@ namespace PV {
   }
 
   double ANNNormalizedErrorLayer::getTimeScale(){
-    publish_timer->start();
-    InterColComm * icComm = parent->icCommunicator();
-    //int num_procs = icComm->numCommColumns() * icComm->numCommRows();
-    int num_neurons = getNumNeurons();
-    double errorMag = 0;
-    double inputMag = 0;
-    pvdata_t * gSynExc = getChannel(CHANNEL_EXC);
-    pvdata_t * gSynInh = getChannel(CHANNEL_INH);
-    for (int i = 0; i < num_neurons; i++){
-      errorMag += (gSynExc[i] - gSynInh[i]) * (gSynExc[i] - gSynInh[i]);
-      inputMag += gSynExc[i] * gSynExc[i];
-    }
+    if (parent->getDtAdaptFlag()){
+      timescale_timer->start();
+      InterColComm * icComm = parent->icCommunicator();
+      //int num_procs = icComm->numCommColumns() * icComm->numCommRows();
+      int num_neurons = getNumNeurons();
+      double errorMag = 0;
+      double inputMag = 0;
+      pvdata_t * gSynExc = getChannel(CHANNEL_EXC);
+      pvdata_t * gSynInh = getChannel(CHANNEL_INH);
+      for (int i = 0; i < num_neurons; i++){
+	errorMag += (gSynExc[i] - gSynInh[i]) * (gSynExc[i] - gSynInh[i]);
+	inputMag += gSynExc[i] * gSynExc[i];
+      }
 #ifdef PV_USE_MPI
-    //Sum all errMag across processors
-    MPI_Allreduce(MPI_IN_PLACE, &errorMag, 1, MPI_DOUBLE, MPI_SUM, icComm->communicator());
-    MPI_Allreduce(MPI_IN_PLACE, &inputMag, 1, MPI_DOUBLE, MPI_SUM, icComm->communicator());
+      //Sum all errMag across processors
+      MPI_Allreduce(MPI_IN_PLACE, &errorMag, 1, MPI_DOUBLE, MPI_SUM, icComm->communicator());
+      MPI_Allreduce(MPI_IN_PLACE, &inputMag, 1, MPI_DOUBLE, MPI_SUM, icComm->communicator());
 #endif // PV_USE_MPI
-    //errorMag /= num_neurons * num_procs;
-    //inputMag /= num_neurons * num_procs;
-    timeScale = errorMag > 0 ? sqrt(inputMag / errorMag) : parent->getTimeScaleMin();
-    publish_timer->stop();
-    return timeScale;
+      //errorMag /= num_neurons * num_procs;
+      //inputMag /= num_neurons * num_procs;
+      timeScale = errorMag > 0 ? sqrt(inputMag / errorMag) : parent->getTimeScaleMin();
+      timescale_timer->stop();
+      return timeScale;
+    }
+    else{
+      return HyPerLayer::getTimeScale();
+    }
   }
 
 

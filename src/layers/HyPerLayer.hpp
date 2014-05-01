@@ -528,6 +528,7 @@ protected:
    Timer * update_timer;
    Timer * recvsyn_timer;
    Timer * publish_timer;
+   Timer * timescale_timer;
    Timer * io_timer;
 };
 

@@ -17,10 +17,10 @@ if ismac
   workspace_path = "/Users/gkenyon/workspace";
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   run_type = "PASCAL";
-  output_dir = "/Users/gkenyon/workspace/PASCAL_VOC/PASCAL_C1_task/VOC2007_train_landscape"
+  output_dir = "/Users/gkenyon/workspace/PASCAL_VOC/PASCAL_C1_task/VOC2007_train_landscape2"
   checkpoint_parent = "/Users/gkenyon/workspace/PASCAL_VOC/PASCAL_C1_task";
   checkpoint_children = ...
-      {"VOC2007_train_landscape"}; %%
+      {"VOC2007_train_landscape2"}; %%
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   %%run_type = "CIFAR_C1"; 
   %%output_dir = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR_C1_task/data_batch_all8"
