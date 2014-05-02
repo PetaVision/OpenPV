@@ -1803,7 +1803,7 @@ template <typename T> int gatherActivity(PV_Stream * pvstream, Communicator * co
       status = PV_FAILURE;
       abort();
    }
-#ifdef PV_USE_MPI
+
    int rank = comm->commRank();
    if (rank==rootproc) {
       if (pvstream == NULL) {
@@ -1848,7 +1848,9 @@ template <typename T> int gatherActivity(PV_Stream * pvstream, Communicator * co
             }
          }
          else {
+#ifdef PV_USE_MPI
             MPI_Recv(temp_buffer, numLocalNeurons*(int) datasize, MPI_BYTE, r, 171+r/*tag*/, comm->communicator(), MPI_STATUS_IGNORE);
+#endif
          }
 
          // Data to be written is in temp_buffer, which is nonextend.
@@ -1882,16 +1884,21 @@ template <typename T> int gatherActivity(PV_Stream * pvstream, Communicator * co
             int k_restricted = kIndex(0, y, 0, layerLoc->nx, layerLoc->ny, layerLoc->nf);
             memcpy(&temp_buffer[k_restricted], &buffer[k_extended], datasize*linesize);
          }
+#ifdef PV_USE_MPI
          MPI_Send(temp_buffer, numLocalNeurons*datasize, MPI_BYTE, rootproc, 171+rank/*tag*/, comm->communicator());
+#endif
       }
       else {
+#ifdef PV_USE_MPI
          MPI_Send(buffer, numLocalNeurons*datasize, MPI_BYTE, rootproc, 171+rank/*tag*/, comm->communicator());
+#endif
       }
    }
-#endif // PV_USE_MPI
+
    free(temp_buffer); temp_buffer = NULL;
    return status;
 }
+
 // Declare the instantiations of gatherActivity that occur in other .cpp files; otherwise you may get linker errors.
 template int gatherActivity<unsigned char>(PV_Stream * pvstream, Communicator * comm, int rootproc,  unsigned char * buffer, const PVLayerLoc * layerLoc, bool extended);
 template int gatherActivity<pvdata_t>(PV_Stream * pvstream, Communicator * comm, int rootproc,  pvdata_t * buffer, const PVLayerLoc * layerLoc, bool extended);
