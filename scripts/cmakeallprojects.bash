@@ -1,36 +1,42 @@
 #! /usr/bin/env bash
 
+# Runs CMake for PetaVision and all directories in the same directory as PetaVision/
+# (that is, it assumes projects are organized as in an Eclipse Workspace)
+# It assumes you want to run with MPI on.
+#
+# Set environment variables C_COMPILER and CXX_COMPILER to choose the compilers.
+# The default compilers are the results of the commands `which mpicc` and `which mpicxx`
+# If these compilers are not found and the compilers are not specified manually,
+# exits with an error.
+#
+# Set environment variable BUILD_TYPE to control the CMAKE_BUILD_TYPE variable.
+# Default is "Debug"
+
 # Set Open MPI commands
+status=0
 if test -z "$C_COMPILER"
 then
-    if test "$(uname)" = "Darwin"
+    C_COMPILER="$(which mpicc)"
+    if test -z "$C_COMPILER"
     then
-        C_COMPILER=mpicc-openmpi-mp
-    elif test "$(uname)" = "Linux"
-    then
-        C_COMPILER=mpicc
+        echo "$0 Error: mpicc not found.  Set environmental variable C_COMPILER to the full path to mpicc." > /dev/stderr
+        status=1
     fi
 fi
 if test -z "$CPP_COMPILER"
 then
-    if test "$(uname)" = "Darwin"
+    CPP_COMPILER="$(which mpicxx)"
+    if test -z "$C_COMPILER"
     then
-        CPP_COMPILER=mpicxx-openmpi-mp
-    elif test "$(uname)" = "Linux"
-    then
-        CPP_COMPILER=mpic++
+        echo "$0 Error: mpicxx not found.  Set environmental variable C_COMPILER to the full path to mpicxx." > /dev/stderr
+        status=1
     fi
 fi
-if test -z "$MPI_HOME"
+if test "$status" -ne 0
 then
-    if test "$(uname)" = "Darwin"
-    then
-        MPI_HOME=/opt/local
-    elif test "$(uname)" = "Linux"
-    then
-        MPI_HOME=/usr/lib64/openmpi
-    fi
+    exit "$status"
 fi
+
 if test -z "$BUILD_TYPE"
 then
     BUILD_TYPE="Debug"
@@ -38,8 +44,8 @@ fi
 
 function cmakecmd ()
 {
-    echo cmake -DCMAKE_C_COMPILER="$C_COMPILER" -DCMAKE_CXX_COMPILER="$CPP_COMPILER" -DMPI_C_COMPILER="$C_COMPILER" -DMPI_CXX_COMPILER="$CPP_COMPILER" $*
-    cmake -DCMAKE_C_COMPILER="$C_COMPILER" -DCMAKE_CXX_COMPILER="$CPP_COMPILER" -DMPI_C_COMPILER="$C_COMPILER" -DMPI_CXX_COMPILER="$CPP_COMPILER" $*
+    echo cmake -DMPI_C_COMPILER="$C_COMPILER" -DMPI_CXX_COMPILER="$CPP_COMPILER" $*
+    cmake -DMPI_C_COMPILER="$C_COMPILER" -DMPI_CXX_COMPILER="$CPP_COMPILER" $*
 }
 
 # If called from a directory other than PetaVision/scripts, change to PetaVision/scripts
