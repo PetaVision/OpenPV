@@ -30,6 +30,14 @@ int MLPOutputLayer::initialize_base()
    numWrong = 0;
    progressNumRight = 0;
    progressNumWrong = 0;
+   numTotPos = 0;
+   numTotNeg = 0;
+   truePos = 0;
+   trueNeg = 0;
+   progressNumTotPos = 0;
+   progressNumTotNeg = 0;
+   progressTruePos = 0;
+   progressTrueNeg = 0;
    statProgressPeriod = 0; //Never print progress
    nextStatProgress = 0;
    return PV_SUCCESS;
@@ -114,108 +122,177 @@ void MLPOutputLayer::ioParam_GTLayername(enum ParamsIOFlag ioFlag) {
    parent->ioParamStringRequired(ioFlag, name, "gtLayername", &gtLayername);
 }
 
-int MLPOutputLayer::updateState(double timef, double dt) {
-   int status = MLPSigmoidLayer::updateState(timef, dt);
-   //If not local, find mean of all output nodes and set to all nodes
-   //TODO is mean the right way to do this?
+void MLPOutputLayer::multiclassNonlocalStats(){
    const PVLayerLoc * loc = getLayerLoc();
    int nx = loc->nx;
    int ny = loc->ny;
    int nf = loc->nf;
    int numNeurons = getNumNeurons();
    pvdata_t * A = getCLayer()->activity->data;
+   pvdata_t * gtA = gtLayer->getCLayer()->activity->data;
+   float sumsq = 0;
+   //Winner take all in the output layer
+   int currNumRight = 0;
+   int currNumWrong = 0;
+   assert(classBuffer);
+   //Clear classBuffer
+   for(int i = 0; i < nf; i++){
+      classBuffer[i] = 0;
+   }
+   //Only go through restricted
+   //Calculate the sum squared error
+   for(int ni = 0; ni < numNeurons; ni++){
+      int nExt = kIndexExtended(ni, nx, ny, nf, loc->nb);
+      int fi = featureIndex(nExt, nx+2*loc->nb, ny+2*loc->nb, nf);
+      //Sum over x and y direction
+      classBuffer[fi] += A[nExt];
+      sumsq += pow(A[nExt] - gtA[nExt], 2);
+   }
+   //Normalize classBuffer to find mean
+   for(int i = 0; i < nf; i++){
+      classBuffer[i] /= nx*ny;
+   }
+   //Reduce all classBuffers through a mean
+#ifdef PV_USE_MPI
+   MPI_Allreduce(MPI_IN_PLACE, &sumsq, 1, MPI_FLOAT, MPI_SUM, parent->icCommunicator()->communicator());
+   MPI_Allreduce(MPI_IN_PLACE, classBuffer, nf, MPI_FLOAT, MPI_SUM, parent->icCommunicator()->communicator());
+   //Normalize classBuffer across processors
+   for(int i = 0; i < nf; i++){
+      classBuffer[i] /= parent->icCommunicator()->commSize();
+   }
+#endif // PV_USE_MPI
+   //Find max
+   float estMaxF = -1000;
+   int estMaxFi = -1;
+   float actualMaxF = -1000;
+   int actualMaxFi = -1;
+   for(int i = 0; i < nf; i++){
+      if(classBuffer[i] >= estMaxF){
+         estMaxF = classBuffer[i];
+         estMaxFi = i;
+      }
+      int nExt = kIndex(loc->nb, loc->nb, i, nx+2*loc->nb, ny+2*loc->nb, nf);
+      if(gtA[nExt] >= actualMaxF){
+         actualMaxF = gtA[nExt];
+         actualMaxFi = i;
+      }
+   }
+   //Calculate stats
+   //Found winning feature, compare to ground truth
+   if(estMaxFi == actualMaxFi){
+      currNumRight++;
+   }
+   else{
+      currNumWrong++;
+   }
+#ifdef PV_USE_MPI
+   MPI_Allreduce(MPI_IN_PLACE, &currNumRight, 1, MPI_INT, MPI_SUM, parent->icCommunicator()->communicator());
+   MPI_Allreduce(MPI_IN_PLACE, &currNumWrong, 1, MPI_INT, MPI_SUM, parent->icCommunicator()->communicator());
+#endif // PV_USE_MPI
+   numRight += currNumRight;
+   numWrong += currNumWrong;
+   progressNumRight += currNumRight;
+   progressNumWrong += currNumWrong;
+   //Print if need
+   float timef = parent->simulationTime();
+   if(timef >= nextStatProgress){
+      //Update nextStatProgress
+      nextStatProgress += statProgressPeriod;
+      if (parent->columnId()==0) {
+         float totalScore = 100*float(numRight)/float(numRight+numWrong);
+         float progressScore = 100*float(progressNumRight)/float(progressNumRight+progressNumWrong);
+         fprintf(stdout, "time:%f  layer:\"%s\"  total:%f%%  progressStep:%f%%  energy:%f\n", timef, name, totalScore, progressScore, sumsq/2);
+      }
+      //Reset progressStats
+      progressNumRight = 0;
+      progressNumWrong = 0;
+   }
+}
 
+void MLPOutputLayer::binaryLocalStats(){
+   const PVLayerLoc * loc = getLayerLoc();
+   int nx = loc->nx;
+   int ny = loc->ny;
+   int nf = loc->nf;
+   int numNeurons = getNumNeurons();
+   pvdata_t * A = getCLayer()->activity->data;
+   pvdata_t * gtA = gtLayer->getCLayer()->activity->data;
+   float sumsq = 0;
 
+   assert(nf == 1);
+   int currNumTotPos = 0;
+   int currNumTotNeg = 0;
+   int currTruePos = 0;
+   int currTrueNeg = 0;
+   for(int ni = 0; ni < numNeurons; ni++){
+      int nExt = kIndexExtended(ni, nx, ny, nf, loc->nb);
+      //DCR
+      if(gtA[nExt] == 0){
+         continue;
+         //Note that sumsq doesn't get updated in this case, so a dcr doesn't contribute to the score at all
+      }
+      //Negative
+      else if(gtA[nExt] == -1){
+         currNumTotNeg++;
+         if(A[nExt] < 0){
+            currTrueNeg++;
+         }
+      }
+      //Positive
+      else if(gtA[nExt] == 1){
+         currNumTotPos++;
+         if(A[nExt] > 0){
+            currTruePos++;
+         }
+      }
+      sumsq += pow(A[nExt] - gtA[nExt], 2);
+   }
+   //Do MPI
+#ifdef PV_USE_MPI
+   MPI_Allreduce(MPI_IN_PLACE, &currNumTotPos, 1, MPI_INT, MPI_SUM, parent->icCommunicator()->communicator());
+   MPI_Allreduce(MPI_IN_PLACE, &currNumTotNeg, 1, MPI_INT, MPI_SUM, parent->icCommunicator()->communicator());
+   MPI_Allreduce(MPI_IN_PLACE, &currTruePos, 1, MPI_INT, MPI_SUM, parent->icCommunicator()->communicator());
+   MPI_Allreduce(MPI_IN_PLACE, &currTrueNeg, 1, MPI_INT, MPI_SUM, parent->icCommunicator()->communicator());
+   MPI_Allreduce(MPI_IN_PLACE, &sumsq, 1, MPI_FLOAT, MPI_SUM, parent->icCommunicator()->communicator());
+#endif
+   numTotPos += currNumTotPos;
+   numTotNeg += currNumTotNeg;
+   truePos += currTruePos;
+   trueNeg += currTrueNeg;
+   progressNumTotPos += currNumTotPos;
+   progressNumTotNeg += currNumTotNeg;
+   progressTruePos += currTruePos;
+   progressTrueNeg += currTrueNeg;
+   //Print if need
+   float timef = parent->simulationTime();
+   if(timef >= nextStatProgress){
+      //Update nextStatProgress
+      nextStatProgress += statProgressPeriod;
+      if (parent->columnId()==0) {
+         float totalScore = 50*(float(truePos)/float(numTotPos) + float(trueNeg)/float(numTotNeg));
+         float progressScore = 50*(float(progressTruePos)/float(progressNumTotPos) + float(progressTrueNeg)/float(progressNumTotNeg));
+         fprintf(stdout, "time:%f  layer:\"%s\"  total:%f%%  progressStep:%f%%  energy:%f\n", timef, name, totalScore, progressScore, sumsq/2);
+      }
+      //Reset progressStats
+      progressNumTotPos = 0;
+      progressNumTotNeg = 0;
+      progressTruePos = 0;
+      progressTrueNeg = 0;
+   }
+}
+
+int MLPOutputLayer::updateState(double timef, double dt) {
+   int status = MLPSigmoidLayer::updateState(timef, dt);
    //Collect stats if needed
    if(statProgressPeriod > 0){
-      pvdata_t * gtA = gtLayer->getCLayer()->activity->data;
-      int currNumRight = 0;
-      int currNumWrong = 0;
-      float sumsq = 0;
-      //Winner take all in the output layer
+      //TODO add more if statements for different cases
       if(!localTarget){
-         assert(classBuffer);
-         //Clear classBuffer
-         for(int i = 0; i < nf; i++){
-            classBuffer[i] = 0;
-         }
-         //Only go through restricted
-         //Calculate the sum squared error
-         for(int ni = 0; ni < numNeurons; ni++){
-            int nExt = kIndexExtended(ni, nx, ny, nf, loc->nb);
-            int fi = featureIndex(nExt, nx+2*loc->nb, ny+2*loc->nb, nf);
-            //Sum over x and y direction
-            classBuffer[fi] += A[nExt];
-            sumsq += pow(A[nExt] - gtA[nExt], 2);
-         }
-         //Normalize classBuffer to find mean
-         for(int i = 0; i < nf; i++){
-            classBuffer[i] /= nx*ny;
-         }
-
-         //Reduce all classBuffers through a mean
-#ifdef PV_USE_MPI
-         MPI_Allreduce(MPI_IN_PLACE, &sumsq, 1, MPI_FLOAT, MPI_SUM, parent->icCommunicator()->communicator());
-         MPI_Allreduce(MPI_IN_PLACE, classBuffer, nf, MPI_FLOAT, MPI_SUM, parent->icCommunicator()->communicator());
-         //Normalize classBuffer across processors
-         for(int i = 0; i < nf; i++){
-            classBuffer[i] /= parent->icCommunicator()->commSize();
-         }
-#endif // PV_USE_MPI
-
-         //Find max
-         float estMaxF = -1000;
-         int estMaxFi = -1;
-         float actualMaxF = -1000;
-         int actualMaxFi = -1;
-         for(int i = 0; i < nf; i++){
-            if(classBuffer[i] >= estMaxF){
-               estMaxF = classBuffer[i];
-               estMaxFi = i;
-            }
-            int nExt = kIndex(loc->nb, loc->nb, i, nx+2*loc->nb, ny+2*loc->nb, nf);
-            if(gtA[nExt] >= actualMaxF){
-               actualMaxF = gtA[nExt];
-               actualMaxFi = i;
-            }
-         }
-         //Calculate stats
-         //Found winning feature, compare to ground truth
-         if(estMaxFi == actualMaxFi){
-            currNumRight++;
-         }
-         else{
-            currNumWrong++;
-         }
+         multiclassNonlocalStats();
       }
       else{
-         std::cout << "MLPOutputLayer: stats with local targets not implemented yet\n";
-         exit(EXIT_FAILURE);
+         binaryLocalStats();
       }
-#ifdef PV_USE_MPI
-      MPI_Allreduce(MPI_IN_PLACE, &currNumRight, 1, MPI_INT, MPI_SUM, parent->icCommunicator()->communicator());
-      MPI_Allreduce(MPI_IN_PLACE, &currNumWrong, 1, MPI_INT, MPI_SUM, parent->icCommunicator()->communicator());
-#endif // PV_USE_MPI
-      numRight += currNumRight;
-      numWrong += currNumWrong;
-      progressNumRight += currNumRight;
-      progressNumWrong += currNumWrong;
-      //Print if need
-      if(timef >= nextStatProgress){
-         //Update nextStatProgress
-         nextStatProgress += statProgressPeriod;
-         if (parent->columnId()==0) {
-            float totalScore = 100*float(numRight)/float(numRight+numWrong);
-            float progressScore = 100*float(progressNumRight)/float(progressNumRight+progressNumWrong);
-            fprintf(stdout, "time:%f  layer:\"%s\"  total:%f%%  progressStep:%f%%  energy:%f\n", timef, name, totalScore, progressScore, sumsq/2);
-         }
-         //Reset progressStats
-         progressNumRight = 0;
-         progressNumWrong = 0;
-      }
-      //Check progress period and print out score so far
    }
-
    //For testing purposes
    //for(int ni = 0; ni < getNumNeurons(); ni++){
    //   int nExt = kIndexExtended(ni, nx, ny, nf, loc->nb);

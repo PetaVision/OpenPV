@@ -46,8 +46,8 @@ int LeakyIntegrator::updateState(double timed, double dt) {
    pvdata_t * gSyn = GSyn[0];
    pvdata_t decayfactor = (pvdata_t) exp(-dt/integrationTime);
    for (int k=0; k<getNumNeurons(); k++) {
-      V[k] += gSyn[k];
       V[k] *= decayfactor;
+      V[k] += gSyn[k];
    }
    int nx = getLayerLoc()->nx;
    int ny = getLayerLoc()->ny;

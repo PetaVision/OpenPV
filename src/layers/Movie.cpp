@@ -499,12 +499,7 @@ int Movie::outputState(double timed, bool last)
    }
 
    int status = PV_SUCCESS;
-   if (randomMovie != 0) {
-      status = writeActivitySparse(timed, false/*includeValues*/);
-   }
-   else {
-      status = HyPerLayer::outputState(timed, last);
-   }
+   status = HyPerLayer::outputState(timed, last);
 
    return status;
 }

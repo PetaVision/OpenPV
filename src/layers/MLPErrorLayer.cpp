@@ -59,6 +59,9 @@ int MLPErrorLayer::initialize_base()
    dropout = NULL;
    forwardLayername = NULL;
    linAlpha = 0;
+   symSigmoid = true;
+   lossFunction = (char *)"squared"; //This should be hidden, but for backwards compatibility, default is squared
+   lastError = false;
    return PV_SUCCESS;
 }
 
@@ -164,22 +167,64 @@ int MLPErrorLayer::checkpointWrite(const char * cpDir) {
 int MLPErrorLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = ANNLayer::ioParamsFillGroup(ioFlag);
    ioParam_ForwardLayername(ioFlag);
-   ioParam_LinAlpha(ioFlag);
+   ioParam_LossFunction(ioFlag);
+   ioParam_lastError(ioFlag);
+   ioParam_symSigmoid(ioFlag);
+   if(!symSigmoid){
+      ioParam_Vrest(ioFlag);
+      ioParam_VthRest(ioFlag);
+      ioParam_SigmoidAlpha(ioFlag);
+   }
+   else{
+      ioParam_LinAlpha(ioFlag);
+   }
    return status;
+}
+
+void MLPErrorLayer::ioParam_symSigmoid(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "symSigmoid", &symSigmoid, symSigmoid, true/*warnIfAbsent*/);
 }
 
 void MLPErrorLayer::ioParam_LinAlpha(enum ParamsIOFlag ioFlag) {
    parent->ioParamValue(ioFlag, name, "linAlpha", &linAlpha, linAlpha);
 }
 
+void MLPErrorLayer::ioParam_Vrest(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "Vrest", &Vrest, (float) V_REST);
+}
+void MLPErrorLayer::ioParam_VthRest(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "VthRest", &VthRest, (float) VTH_REST);
+}
+void MLPErrorLayer::ioParam_SigmoidAlpha(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "SigmoidAlpha", &sigmoid_alpha, (float) SIGMOIDALPHA);
+}
+
 void MLPErrorLayer::ioParam_ForwardLayername(enum ParamsIOFlag ioFlag) {
    parent->ioParamStringRequired(ioFlag, name, "ForwardLayername", &forwardLayername);
+}
+
+void MLPErrorLayer::ioParam_lastError(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "lastError", &lastError, lastError, true/*warnIfAbsent*/);
+}
+
+void MLPErrorLayer::ioParam_LossFunction(enum ParamsIOFlag ioFlag) {
+   parent->ioParamString(ioFlag, name, "lossFunction", &lossFunction, lossFunction);
+   if(strcmp(lossFunction, "squared") == 0){
+   }
+   else if(strcmp(lossFunction, "entropy") == 0){
+   }
+   else if(strcmp(lossFunction, "hidden") == 0){
+   }
+   else{
+      fprintf(stderr, "%s \"%s\" error: Loss function not defined. Options are \"squared\", \"entropy\", or \"hidden\".\n",
+           parent->parameters()->groupKeywordFromName(name), name);
+   }
 }
 
 int MLPErrorLayer::updateState(double time, double dt)
 {
    update_timer->start();
-   assert(getNumChannels()>= 3);
+   //assert(getNumChannels()>= 3);
 
    const PVLayerLoc * loc = getLayerLoc();
 
@@ -190,9 +235,13 @@ int MLPErrorLayer::updateState(double time, double dt)
    //Reset pointer of gSynHead to point to the inhib channel
    pvdata_t * GSynExt = getChannel(CHANNEL_EXC);
    pvdata_t * GSynInh = getChannel(CHANNEL_INH);
-   pvdata_t * GSynInhB = getChannel(CHANNEL_INHB);
 
    pvdata_t Vth, sig_scale;
+   if(!symSigmoid){
+      //Calculate constants for derivitive of sigmoid layer
+      Vth = (VthRest+Vrest)/2.0;
+      sig_scale = -logf(1.0f/sigmoid_alpha - 1.0f)/(Vth - Vrest);
+   }
    pvdata_t * A = getCLayer()->activity->data;
    pvdata_t * V = getV();
 
@@ -201,13 +250,35 @@ int MLPErrorLayer::updateState(double time, double dt)
       //Update activity
       //f'(V)*(error)
       //error = gt - finalLayer iff error is last error
-      float errProp = GSynExt[ni] - GSynInh[ni];
-      //float errProp = GSynInh[ni] - GSynExt[ni];
-      float gradent;
-      gradent = 1.14393 * (1/(pow(cosh(((float)2/3) * V[ni]), 2))) + linAlpha;
-      A[next] = dropout[ni] ? 0 : errProp * gradent;
+      float errProp, gradient;
+      //exct is expected, inh is actual
+      if(lastError){
+         //0 is DCR
+         if(GSynExt[ni] == 0){
+            errProp = 0;
+         }
+      }
+      else{
+         if(strcmp(lossFunction, "squared") == 0){
+            //expected - actual
+            errProp = GSynExt[ni] - GSynInh[ni];
+         }
+         else if(strcmp(lossFunction, "entropy") == 0){
+            //expected/actual
+            errProp = GSynExt[ni]/GSynInh[ni];
+         }
+         else if(strcmp(lossFunction, "hidden") == 0){
+            errProp = GSynExt[ni];
+         }
+         if(symSigmoid){
+            gradient = 1.14393 * (1/(pow(cosh(((float)2/3) * V[ni]), 2))) + linAlpha;
+         }
+         else{
+            gradient = -.5 * sig_scale * (1/(pow(cosh(sig_scale*(Vth - V[ni])), 2)));
+         }
+      }
+      A[next] = dropout[ni] ? 0 : errProp * gradient;
    }
-
    update_timer->stop();
    return PV_SUCCESS;
 }

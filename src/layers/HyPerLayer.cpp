@@ -341,6 +341,11 @@ int HyPerLayer::freeClayer() {
       clayer->activeFP = NULL;
    }
 
+   if (clayer->posFP != NULL) {
+      PV_fclose(clayer->posFP);
+      clayer->posFP = NULL;
+   }
+
    free(clayer->activeIndices); clayer->activeIndices = NULL;
    free(clayer->prevActivity);  clayer->prevActivity = NULL;
    //free(clayer->activeIndices); clayer->activeIndices = NULL;
@@ -825,6 +830,7 @@ int HyPerLayer::communicateInitInfo()
 
 int HyPerLayer::openOutputStateFile() {
    char filename[PV_PATH_MAX];
+   char posFilename[PV_PATH_MAX];
    switch( parent->includeLayerName() ) {
    case 0:
       snprintf(filename, PV_PATH_MAX, "%s/a%d.pvp", parent->getOutputPath(), layerId);
@@ -838,6 +844,23 @@ int HyPerLayer::openOutputStateFile() {
    default:
       assert(0);
       break;
+   }
+
+   if(writeSparseActivity){
+      switch( parent->includeLayerName() ) {
+      case 0:
+         snprintf(posFilename, PV_PATH_MAX, "%s/a%d.pos", parent->getOutputPath(), layerId);
+         break;
+      case 1:
+         snprintf(posFilename, PV_PATH_MAX, "%s/a%d_%s.pos", parent->getOutputPath(), layerId, name);
+         break;
+      case 2:
+         snprintf(posFilename, PV_PATH_MAX, "%s/%s.pos", parent->getOutputPath(), name);
+         break;
+      default:
+         assert(0);
+         break;
+      }
    }
 
    // initialize writeActivityCalls and writeSparseActivityCalls
@@ -886,7 +909,9 @@ int HyPerLayer::openOutputStateFile() {
    MPI_Bcast(&ioAppend, 1, MPI_INT, 0/*root*/, icComm->communicator());
 #endif
    clayer->activeFP = pvp_open_write_file(filename, icComm, ioAppend);
-
+   if(writeSparseActivity){
+      clayer->posFP = pvp_open_write_file(posFilename, icComm, ioAppend);
+   }
    return PV_SUCCESS;
 }
 
@@ -2155,7 +2180,7 @@ int HyPerLayer::readState(double * timef)
 
 int HyPerLayer::writeActivitySparse(double timed, bool includeValues)
 {
-   int status = PV::writeActivitySparse(clayer->activeFP, parent->icCommunicator(), timed, clayer, includeValues);
+   int status = PV::writeActivitySparse(clayer->activeFP, clayer->posFP, parent->icCommunicator(), timed, clayer, includeValues);
    incrementNBands(&writeActivitySparseCalls);
    return status;
 }

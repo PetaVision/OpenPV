@@ -1185,7 +1185,7 @@ int writeActivity(PV_Stream * pvstream, Communicator * comm, double timed, PVLay
    return status;
 }
 
-int writeActivitySparse(PV_Stream * pvstream, Communicator * comm, double timed, PVLayer * l, bool includeValues)
+int writeActivitySparse(PV_Stream * pvstream, PV_Stream * posstream, Communicator * comm, double timed, PVLayer * l, bool includeValues)
 {
    int status = PV_SUCCESS;
 
@@ -1312,6 +1312,16 @@ int writeActivitySparse(PV_Stream * pvstream, Communicator * comm, double timed,
                  comm->commRank(), totalActive);
          return status;
       }
+      
+      //Write to seperate file this current file position
+      long filepos = pvstream->filepos;
+      status = (PV_fwrite(&filepos, sizeof(long), 1, posstream) != 1);
+      if (status != 0) {
+         fprintf(stderr, "[%2d]: writeActivitySparse: failed in fwrite(&filepos), filepos==%d\n",
+                 comm->commRank(), filepos);
+         return status;
+      }
+
       if (localActive > 0) {
          if (includeValues) {
             indexvaluepairs = (indexvaluepair *) malloc(localActive*sizeof(indexvaluepair));

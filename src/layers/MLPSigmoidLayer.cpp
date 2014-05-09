@@ -1,8 +1,6 @@
 /*
  * MLPSigmoidLayer.cpp
  *
- *  Created on: May 11, 2011
- *      Author: garkenyon
  */
 
 #include "MLPSigmoidLayer.hpp"
@@ -33,6 +31,7 @@ int MLPSigmoidLayer::initialize_base() {
    // sourceLayerName = NULL;
    // sourceLayer = NULL;
    linAlpha = 0;
+   symSigmoid = true;
    return PV_SUCCESS;
 }
 
@@ -44,12 +43,42 @@ int MLPSigmoidLayer::initialize(const char * name, HyPerCol * hc) {
 
 int MLPSigmoidLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = CloneVLayer::ioParamsFillGroup(ioFlag);
-   ioParam_LinAlpha(ioFlag);
+   ioParam_SymSigmoid(ioFlag);
+   if(symSigmoid){
+      ioParam_LinAlpha(ioFlag);
+   }
+   else{
+      ioParam_Vrest(ioFlag);
+      ioParam_VthRest(ioFlag);
+      ioParam_InverseFlag(ioFlag);
+      ioParam_SigmoidFlag(ioFlag);
+      ioParam_SigmoidAlpha(ioFlag);
+   }
    return status;
 }
 
 void MLPSigmoidLayer::ioParam_LinAlpha(enum ParamsIOFlag ioFlag) {
    parent->ioParamValue(ioFlag, name, "linAlpha", &linAlpha, linAlpha);
+}
+
+void MLPSigmoidLayer::ioParam_SymSigmoid(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "symSigmoid", &symSigmoid, symSigmoid);
+}
+
+void MLPSigmoidLayer::ioParam_Vrest(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "Vrest", &V0, (float) V_REST);
+}
+void MLPSigmoidLayer::ioParam_VthRest(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "VthRest", &Vth, (float) VTH_REST);
+}
+void MLPSigmoidLayer::ioParam_InverseFlag(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "InverseFlag", &InverseFlag, (bool) INVERSEFLAG);
+}
+void MLPSigmoidLayer::ioParam_SigmoidFlag(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "SigmoidFlag", &SigmoidFlag, (bool) SIGMOIDFLAG);
+}
+void MLPSigmoidLayer::ioParam_SigmoidAlpha(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "SigmoidAlpha", &SigmoidAlpha, (float) SIGMOIDALPHA);
 }
 
 int MLPSigmoidLayer::communicateInitInfo() {
@@ -87,18 +116,24 @@ int MLPSigmoidLayer::setActivity() {
 
 int MLPSigmoidLayer::updateState(double timef, double dt) {
    int status;
-   status = updateState(timef, dt, getLayerLoc(), getCLayer()->activity->data, getV(), 0, NULL, linAlpha, dropout, getCLayer()->activeIndices, &getCLayer()->numActive);
+   status = updateState(timef, dt, getLayerLoc(), getCLayer()->activity->data, getV(), 0, NULL, Vth, V0, SigmoidAlpha, SigmoidFlag, InverseFlag, linAlpha, dropout, getCLayer()->activeIndices, &getCLayer()->numActive);
    if( status == PV_SUCCESS ) status = updateActiveIndices();
    return status;
 }
 
-int MLPSigmoidLayer::updateState(double timef, double dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels, pvdata_t * gSynHead, float linear_alpha, bool* dropout_buf, unsigned int * active_indices, unsigned int * num_active) {
+int MLPSigmoidLayer::updateState(double timef, double dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels, pvdata_t * gSynHead, float Vth, float V0, float sigmoid_alpha, bool sigmoid_flag, bool inverse_flag, float linear_alpha, bool* dropout_buf, unsigned int * active_indices, unsigned int * num_active) {
    int nx = loc->nx;
    int ny = loc->ny;
    int nf = loc->nf;
    int num_neurons = nx*ny*nf;
    updateV_SigmoidLayer(); // Does nothing as sourceLayer is responsible for updating V.
-   setActivity_MLPSigmoidLayer(num_neurons, A, V, linear_alpha, dropout_buf, nx, ny, nf, loc->nb, dt);
+   if(symSigmoid){
+      setActivity_MLPSigmoidLayer(num_neurons, A, V, linear_alpha, dropout_buf, nx, ny, nf, loc->nb, dt);
+   }
+   else{
+      //TODO implement dropout here
+      setActivity_SigmoidLayer(num_neurons, A, V, nx, ny, nf, loc->nb, Vth, V0, sigmoid_alpha, sigmoid_flag, inverse_flag, dt);
+   }
    // resetGSynBuffers(); // Since sourceLayer updates V, this->GSyn is not used
    return PV_SUCCESS;
 }

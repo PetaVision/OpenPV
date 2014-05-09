@@ -24,6 +24,10 @@ protected:
    virtual void ioParam_StatProgressPeriod(enum ParamsIOFlag ioFlag);
    virtual void ioParam_GTLayername(enum ParamsIOFlag ioFlag);
 private:
+   //TODO add more
+   void multiclassNonlocalStats();
+   void binaryLocalStats();
+
    bool localTarget;
    pvdata_t * classBuffer;
    int initialize_base();
@@ -36,6 +40,15 @@ private:
    int numWrong;
    int progressNumRight;
    int progressNumWrong;
+   //Variables for local stats
+   int numTotPos;
+   int numTotNeg;
+   int truePos;
+   int trueNeg;
+   int progressNumTotPos;
+   int progressNumTotNeg;
+   int progressTruePos;
+   int progressTrueNeg;
 };
 
 }
