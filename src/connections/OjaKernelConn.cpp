@@ -236,7 +236,7 @@ int OjaKernelConn::update_dW(int axonId) {
    float scalefactor = parent->getDeltaTime()/getLearningTime()/(getInputTargetRate()*getOutputTargetRate())/((float) divisor);
    for( int kernelindex=0; kernelindex<numKernelIndices; kernelindex++ ) {
       int numpatchitems = nxp*nyp*nfp;
-      pvdata_t * dwpatchdata = get_dwDataHead(axonId,kernelindex);
+      pvwdata_t * dwpatchdata = get_dwDataHead(axonId,kernelindex);
       for( int n=0; n<numpatchitems; n++ ) {
          dwpatchdata[n] *= scalefactor;
       }

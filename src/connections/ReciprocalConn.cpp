@@ -244,7 +244,7 @@ int ReciprocalConn::update_dW(int axonID) {
    if( reciprocalFidelityCoeff ) {
       for( int k=0; k<numKernelIndices; k++) {
          const pvwdata_t * wdata = get_wDataHead(axonID, k);
-         pvdata_t * dwdata = get_dwDataHead(axonID, k);
+         pvwdata_t * dwdata = get_dwDataHead(axonID, k);
          int n=0;
          for( int y=0; y<nyp; y++ ) { for( int x=0; x<nxp; x++) { for( int f=0; f<nfp; f++ ) {
             int xRecip, yRecip, fRecip, kRecip;
@@ -262,7 +262,7 @@ int ReciprocalConn::update_dW(int axonID) {
    assert( divisor*numKernelIndices == pre->getNumNeurons() );
    for( int kernelindex=0; kernelindex<numKernelIndices; kernelindex++ ) {
       int numpatchitems = nxp * nyp * nfp;
-      pvdata_t * dwpatchdata = get_dwDataHead(axonID,kernelindex);
+      pvwdata_t * dwpatchdata = get_dwDataHead(axonID,kernelindex);
       for( int n=0; n<numpatchitems; n++ ) {
          dwpatchdata[n] /= divisor;
       }
