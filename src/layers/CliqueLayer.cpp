@@ -266,7 +266,7 @@ int CliqueLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activit
          for (int y = 0; y < nyPost; y++) {
             pvpatch_accumulate2(nkPost,
                   (float *) (gSynPatchHead + conn->getGSynPatchStart(kPreExt, arborNdx) + y * syPost),
-                  cliqueProd, (float *) (w_head + w_offset + y * sywPatch), // (w_patch->data + y * sywPatch),
+                  cliqueProd, (pvwdata_t *) (w_head + w_offset + y * sywPatch), // (w_patch->data + y * sywPatch),
                   (float *) (a_post_mask + w_offset + y * sywPatch));
          }
 

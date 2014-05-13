@@ -1675,7 +1675,7 @@ int HyPerLayer::recvSynapticInputFromPost(HyPerConn * conn, const PVLayerCube * 
       uint4 * rngPtr = conn->getRandState(kTargetRes);
       for (int ky = 0; ky < targetToSourceConn->yPatchSize(); ky++){
          float * activityY = &(activity->data[startSourceExt + ky*sy]);
-         float * weightY = targetToSourceConn->get_wDataHead(arborID, kernelIndex) + ky*syp;
+         pvwdata_t * weightY = targetToSourceConn->get_wDataHead(arborID, kernelIndex) + ky*syp;
          (conn->accumulateFunctionFromPostPointer)(numPerStride, gSynPatchPos, activityY, weightY, dt_factor, rngPtr);
       }
    }
@@ -1731,7 +1731,7 @@ int HyPerLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activity
       size_t gSynPatchStartIndex = conn->getGSynPatchStart(kPre, arborID);
       pvdata_t * gSynPatchStart = gSynPatchHead + gSynPatchStartIndex;
       // GTK: gSynPatchStart redefined as offset from start of gSyn buffer
-      pvdata_t * data = conn->get_wData(arborID,kPre);
+      pvwdata_t * data = conn->get_wData(arborID,kPre);
       uint4 * rngPtr = conn->getRandState(kPre);
       for (int y = 0; y < ny; y++) {
          (conn->accumulateFunctionPointer)(nk, gSynPatchStart + y*sy, a, data + y*syw, rngPtr);
