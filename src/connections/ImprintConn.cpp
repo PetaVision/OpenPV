@@ -79,7 +79,7 @@ bool ImprintConn::imprintFeature(int arborId, int kExt){
    int ny = weights->ny;
    int nk = weights->nx * nfp;
    const pvdata_t * postactRef = &postactbuf[offset];
-   pvdata_t * dwdata = get_dwData(arborId, kExt);
+   pvwdata_t * dwdata = get_dwData(arborId, kExt);
    int lineoffsetw = 0;
    int lineoffseta = 0;
 

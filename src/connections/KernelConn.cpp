@@ -369,7 +369,7 @@ int KernelConn::clear_dW(int arbor_ID) {
       for(int kKernel = 0; kKernel < getNumDataPatches(); kKernel++){
          int syPatch = syp;
          int nkPatch = nfp * nxp;
-         pvdata_t * dWeights = get_dwDataHead(arbor_ID,kKernel);
+         pvwdata_t * dWeights = get_dwDataHead(arbor_ID,kKernel);
          for(int kyPatch = 0; kyPatch < nyp; kyPatch++){
             for(int kPatch = 0; kPatch < nkPatch; kPatch++){
                dWeights[kPatch] = 0.0f;
@@ -434,7 +434,7 @@ int KernelConn::defaultUpdateInd_dW(int arbor_ID, int kExt){
    int ny = weights->ny;
    int nk = weights->nx * nfp;
    const pvdata_t * postactRef = &postactbuf[offset];
-   pvdata_t * dwdata = get_dwData(arbor_ID, kExt);
+   pvwdata_t * dwdata = get_dwData(arbor_ID, kExt);
    int lineoffsetw = 0;
    int lineoffseta = 0;
    for( int y=0; y<ny; y++ ) {
@@ -467,7 +467,7 @@ int KernelConn::normalize_dW(int arbor_ID){
       double divisor = numKernelActivations[kernelindex]/nProcs;
       if(divisor != 0){
          int numpatchitems = nxp*nyp*nfp;
-         pvdata_t * dwpatchdata = get_dwDataHead(arbor_ID,kernelindex);
+         pvwdata_t * dwpatchdata = get_dwDataHead(arbor_ID,kernelindex);
          for( int n=0; n<numpatchitems; n++ ) {
             dwpatchdata[n] /= divisor;
          }
@@ -630,7 +630,7 @@ int KernelConn::reduceKernels(const int arborID) {
 #ifdef PV_USE_MPI
    ierr = MPI_Allreduce(MPI_IN_PLACE, this->get_dwDataStart(0), arborSize, MPI_FLOAT, MPI_SUM, mpi_comm);
 #endif
-   pvdata_t * dW_data = this->get_dwDataStart(0);
+   pvwdata_t * dW_data = this->get_dwDataStart(0);
    for (int i_dW = 0; i_dW < arborSize; i_dW++){
 	   dW_data[i_dW] /= nProcs;
    }

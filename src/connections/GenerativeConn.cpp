@@ -121,7 +121,7 @@ int GenerativeConn::update_dW(int axonID) {
          const pvwdata_t * patch_wData = get_wDataHead(axonID, p);
          pvwdata_t * patch_dwData = get_dwDataHead(axonID, p);
          for(int k=0; k<nxp*nyp*nfp; k++) {
-            pvdata_t decayterm = patch_wData[k];
+            pvwdata_t decayterm = patch_wData[k];
             patch_dwData[k] += -weightDecayRate * decayterm;
             if (weightDecayFlag) patch_dwData[k] += weightNoiseLevel * noise->uniformRandom(0, -1.0f, -1.0f);
          }
@@ -143,7 +143,7 @@ int GenerativeConn::updateWeights(int axonID) {
    }
    for( int k=0; k<numPatches; k++ ) {
       pvwdata_t * wdata = get_wDataHead(axonID, k);
-      pvdata_t * dwdata = get_dwDataHead(axonID, k);
+      pvwdata_t * dwdata = get_dwDataHead(axonID, k);
       for( int y = 0; y < nyp; y++ ) {
          for( int x = 0; x < nxp; x++ ) {
             for( int f = 0; f < nfp; f++ ) {
