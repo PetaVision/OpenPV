@@ -213,7 +213,7 @@ int LCALIFLateralKernelConn::update_dW(int axonId) {
       pvdata_t preactrate = preactbuf[kExt]/integrationTimeConstant;
       int ny = weights->ny;
       int nk = weights->nx * nfp;
-      pvdata_t * dwdata = get_dwData(axonId, kExt);
+      pvwdata_t * dwdata = get_dwData(axonId, kExt);
       int lineoffsetw = 0;
       int lineoffseta = 0;
       for( int y=0; y<ny; y++ ) {
@@ -235,7 +235,7 @@ int LCALIFLateralKernelConn::update_dW(int axonId) {
    // and the multiplication by dt/tauINH needs to take place after the filter.
    int patch_size = nxp*nyp*nfp;
    for( int kernelindex=0; kernelindex<numKernelIndices; kernelindex++ ) {
-      pvdata_t * dwpatchdata = get_dwDataHead(axonId,kernelindex);
+      pvwdata_t * dwpatchdata = get_dwDataHead(axonId,kernelindex);
       float * divisorptr = &interiorCounts[axonId][kernelindex*patch_size];
       for( int n=0; n<patch_size; n++ ) {
          assert(divisorptr[n]>0 || dwpatchdata[n]==0);
@@ -252,7 +252,7 @@ int LCALIFLateralKernelConn::updateWeights(int axonId) {
    if (plasticityFlag) {
       float normalizer = parent->getDeltaTime()/getInhibitionTimeConstant();
       for (int kernel=0; kernel<getNumDataPatches(); kernel++) {
-         pvdata_t * dw_data = get_dwDataHead(axonId,kernel);
+         pvwdata_t * dw_data = get_dwDataHead(axonId,kernel);
          pvwdata_t * w_data = get_wDataHead(axonId,kernel);
          for (int y=0; y<nyp; y++) {
             for (int x=0; x<nxp; x++) {

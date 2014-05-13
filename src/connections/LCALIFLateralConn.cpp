@@ -174,7 +174,7 @@ int LCALIFLateralConn::calc_dW(int axonId) {
 //      int start_index_restricted = gSyn_patch_start - gSyn_buffer_start;
       int start_index_restricted = getGSynPatchStart(kPre_extended, axonId);
       const PVPatch * p = getWeights(kPre_extended, axonId);
-      pvdata_t * dw_data = get_dwData(axonId,kPre_extended);
+      pvwdata_t * dw_data = get_dwData(axonId,kPre_extended);
       int nx_patch = p->nx;
       int ny_patch = p->ny;
       for (int ky_patch=0; ky_patch<ny_patch; ky_patch++) {
@@ -210,7 +210,7 @@ int LCALIFLateralConn::updateWeights(int axonId) {
    if (plasticityFlag) {
       for (int kPre_extended=0; kPre_extended<getNumWeightPatches(); kPre_extended++) {
          const PVPatch * p = getWeights(kPre_extended, axonId);
-         pvdata_t * dw_data = get_dwData(axonId,kPre_extended);
+         pvwdata_t * dw_data = get_dwData(axonId,kPre_extended);
          pvwdata_t *  w_data = get_wData(axonId,kPre_extended);
          int nx_patch = p->nx;
          int ny_patch = p->ny;

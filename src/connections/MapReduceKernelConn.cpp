@@ -216,7 +216,7 @@ int MapReduceKernelConn::reduceKernels(const int arborID) {
 			} // status
 		} // file_count < numWeightFiles
 		  // average dW from map-reduce
-		pvdata_t * dW_data = this->get_dwDataStart(0);
+		pvwdata_t * dW_data = this->get_dwDataStart(0);
 		for (int i_dW = 0; i_dW < arborSize; i_dW++) {
 			dW_data[i_dW] /= num_dWeightFiles;
 		}
