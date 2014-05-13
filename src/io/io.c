@@ -334,7 +334,7 @@ int pv_close_binary(FILE * fp)
  * @fd
  * @patch
  */
-int pv_text_write_patch(PV_Stream * pvstream, PVPatch * patch, pvdata_t * data, int nf, int sx, int sy, int sf)
+int pv_text_write_patch(PV_Stream * pvstream, PVPatch * patch, pvwdata_t * data, int nf, int sx, int sy, int sf)
 {
    int f, i, j;
 

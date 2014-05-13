@@ -86,7 +86,7 @@ int pv_getopt_unsigned(int argc, char * argv[], const char * opt, unsigned int *
 
 int readFile(const char * filename, float * buf, int * nx, int * ny);
 
-int pv_text_write_patch(PV_Stream * pvstream, PVPatch * patch, pvdata_t * data, int nf, int sx, int sy, int sf);
+int pv_text_write_patch(PV_Stream * pvstream, PVPatch * patch, pvwdata_t * data, int nf, int sx, int sy, int sf);
 int pv_center_image(float * V, int nx0, int ny0, int nx, int ny);
 
 #ifdef OBSOLETE // Marked obsolete April 29, 2013.  Use fileio's pvp_open_read_file instead.
