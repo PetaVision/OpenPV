@@ -217,7 +217,7 @@ int pvpatch_inplace_delete(PVPatch* p)
 }
 
 #ifdef COMPRESS_PHI
-void pvpatch_accumulate(int nk, float* restrict v, float a, float* restrict w,
+void pvpatch_accumulate(int nk, float* restrict v, float a, pvwdata_t* restrict w,
                         float* restrict m)
 {
    const float scale = 33.3;
@@ -234,7 +234,7 @@ void pvpatch_accumulate(int nk, float* restrict v, float a, float* restrict w,
    }
 }
 #else
-int pvpatch_accumulate(int nk, float* RESTRICT v, float a, float* RESTRICT w, void * auxPtr)
+int pvpatch_accumulate(int nk, float* RESTRICT v, float a, pvwdata_t* RESTRICT w, void * auxPtr)
 {
    int k;
    int err = 0;
@@ -245,7 +245,7 @@ int pvpatch_accumulate(int nk, float* RESTRICT v, float a, float* RESTRICT w, vo
 }
 #endif
 
-int pvpatch_accumulate_from_post(int nk, float * RESTRICT v, float * RESTRICT a, float * RESTRICT w, float dt_factor, void * auxPtr) {
+int pvpatch_accumulate_from_post(int nk, float * RESTRICT v, float * RESTRICT a, pvwdata_t * RESTRICT w, float dt_factor, void * auxPtr) {
    int status = 0;
    int k;
    float dv = 0.0f;
@@ -256,7 +256,7 @@ int pvpatch_accumulate_from_post(int nk, float * RESTRICT v, float * RESTRICT a,
    return status;
 }
 
-int pvpatch_accumulate2(int nk, float* RESTRICT v, float a, float* RESTRICT w, float* RESTRICT m)
+int pvpatch_accumulate2(int nk, float* RESTRICT v, float a, pvwdata_t* RESTRICT w, float* RESTRICT m)
 {
    int k;
    int err = 0;
@@ -267,7 +267,7 @@ int pvpatch_accumulate2(int nk, float* RESTRICT v, float a, float* RESTRICT w, f
 }
 
 #ifdef OBSOLETE // Marked obsolete Aug 21, 2013.  Use cl_random instead of pv_random
-int pvpatch_accumulate_stochastic(int nk, float* RESTRICT v, float a, float* RESTRICT w, void * auxPtr)
+int pvpatch_accumulate_stochastic(int nk, float* RESTRICT v, float a, pvwdata_t* RESTRICT w, void * auxPtr)
 {
    int k;
    long along = (long) (a*pv_random_max());
@@ -278,7 +278,7 @@ int pvpatch_accumulate_stochastic(int nk, float* RESTRICT v, float a, float* RES
    return err;
 }
 
-int pvpatch_accumulate_stochastic_from_post(int nk, float * RESTRICT v, float * RESTRICT a, float * RESTRICT w, float dt_factor, void * auxPtr) {
+int pvpatch_accumulate_stochastic_from_post(int nk, float * RESTRICT v, float * RESTRICT a, pvwdata_t * RESTRICT w, float dt_factor, void * auxPtr) {
    int status = 0;
    int k;
    float dv = 0.0f;
@@ -290,7 +290,7 @@ int pvpatch_accumulate_stochastic_from_post(int nk, float * RESTRICT v, float * 
    return status;
 }
 #else
-int pvpatch_accumulate_stochastic(int nk, float* RESTRICT v, float a, float* RESTRICT w, void * auxPtr)
+int pvpatch_accumulate_stochastic(int nk, float* RESTRICT v, float a, pvwdata_t* RESTRICT w, void * auxPtr)
 {
    uint4 * rng = (uint4 *) auxPtr;
    long along = (long) (a*cl_random_max());
@@ -303,7 +303,7 @@ int pvpatch_accumulate_stochastic(int nk, float* RESTRICT v, float a, float* RES
    return err;
 }
 
-int pvpatch_accumulate_stochastic_from_post(int nk, float * RESTRICT v, float * RESTRICT a, float * RESTRICT w, float dt_factor, void * auxPtr) {
+int pvpatch_accumulate_stochastic_from_post(int nk, float * RESTRICT v, float * RESTRICT a, pvwdata_t * RESTRICT w, float dt_factor, void * auxPtr) {
    int status = 0;
    uint4 * rng = (uint4 *) auxPtr;
    int k;
@@ -320,7 +320,7 @@ int pvpatch_accumulate_stochastic_from_post(int nk, float * RESTRICT v, float * 
 
 #ifdef OBSOLETE // Marked obsolete Aug 19, 2013.  Nobody calls pvpatch_max and whatever WTACompressedLayer was, it's not in the code now.
 // Used by WTACompressedLayer
-int pvpatch_max(int nk, float * RESTRICT v, float a, float * RESTRICT w, int feature, int * RESTRICT maxloc) {
+int pvpatch_max(int nk, float * RESTRICT v, float a, pvwdata_t * RESTRICT w, int feature, int * RESTRICT maxloc) {
    int k;
    int err = 0;
    for (k = 0; k < nk; k++) {
@@ -337,7 +337,7 @@ int pvpatch_max(int nk, float * RESTRICT v, float a, float * RESTRICT w, int fea
 }
 #endif
 
-int pvpatch_max_pooling(int nk, float* RESTRICT v, float a, float* RESTRICT w, void * auxPtr)
+int pvpatch_max_pooling(int nk, float* RESTRICT v, float a, pvwdata_t* RESTRICT w, void * auxPtr)
 {
   int k;
   int err = 0;
@@ -347,7 +347,7 @@ int pvpatch_max_pooling(int nk, float* RESTRICT v, float a, float* RESTRICT w, v
   return err;
 }
 
-int pvpatch_max_pooling_from_post(int nk, float * RESTRICT v, float * RESTRICT a, float * RESTRICT w, float dt_factor, void * auxPtr) {
+int pvpatch_max_pooling_from_post(int nk, float * RESTRICT v, float * RESTRICT a, pvwdata_t * RESTRICT w, float dt_factor, void * auxPtr) {
    int status = 0;
    int k;
    float vmax = *v;
