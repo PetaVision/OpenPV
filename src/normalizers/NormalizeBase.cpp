@@ -162,15 +162,15 @@ int NormalizeBase::accumulateSum(pvwdata_t * dataPatchStart, int weights_in_patc
    return PV_SUCCESS;
 }
 
-int NormalizeBase::accumulateSumShrunken(pvdata_t * dataPatchStart, double * sum,
+int NormalizeBase::accumulateSumShrunken(pvwdata_t * dataPatchStart, double * sum,
 		int nxpShrunken, int nypShrunken, int offsetShrunken, int xPatchStride, int yPatchStride) {
    // Do not call with sumsq uninitialized.
    // sum, sumsq, max are not cleared inside this routine so that you can accumulate the stats over several patches with multiple calls
-	pvdata_t * dataPatchStartOffset = dataPatchStart + offsetShrunken;
+	pvwdata_t * dataPatchStartOffset = dataPatchStart + offsetShrunken;
 	int weights_in_row = xPatchStride * nxpShrunken;
 	for (int ky = 0; ky<nypShrunken; ky++){
 		for (int k=0; k<weights_in_row; k++) {
-			pvdata_t w = dataPatchStartOffset[k];
+			pvwdata_t w = dataPatchStartOffset[k];
 			*sum += w;
 		}
 		dataPatchStartOffset += yPatchStride;
@@ -178,25 +178,25 @@ int NormalizeBase::accumulateSumShrunken(pvdata_t * dataPatchStart, double * sum
    return PV_SUCCESS;
 }
 
-int NormalizeBase::accumulateSumSquared(pvdata_t * dataPatchStart, int weights_in_patch, double * sumsq) {
+int NormalizeBase::accumulateSumSquared(pvwdata_t * dataPatchStart, int weights_in_patch, double * sumsq) {
    // Do not call with sumsq uninitialized.
    // sum, sumsq, max are not cleared inside this routine so that you can accumulate the stats over several patches with multiple calls
    for (int k=0; k<weights_in_patch; k++) {
-      pvdata_t w = dataPatchStart[k];
+      pvwdata_t w = dataPatchStart[k];
       *sumsq += w*w;
    }
    return PV_SUCCESS;
 }
 
-int NormalizeBase::accumulateSumSquaredShrunken(pvdata_t * dataPatchStart, double * sumsq,
+int NormalizeBase::accumulateSumSquaredShrunken(pvwdata_t * dataPatchStart, double * sumsq,
 		int nxpShrunken, int nypShrunken, int offsetShrunken, int xPatchStride, int yPatchStride) {
    // Do not call with sumsq uninitialized.
    // sum, sumsq, max are not cleared inside this routine so that you can accumulate the stats over several patches with multiple calls
-	pvdata_t * dataPatchStartOffset = dataPatchStart + offsetShrunken;
+	pvwdata_t * dataPatchStartOffset = dataPatchStart + offsetShrunken;
 	int weights_in_row = xPatchStride * nxpShrunken;
 	for (int ky = 0; ky<nypShrunken; ky++){
 		for (int k=0; k<weights_in_row; k++) {
-			pvdata_t w = dataPatchStartOffset[k];
+			pvwdata_t w = dataPatchStartOffset[k];
 			*sumsq += w*w;
 		}
 		dataPatchStartOffset += yPatchStride;
@@ -204,17 +204,17 @@ int NormalizeBase::accumulateSumSquaredShrunken(pvdata_t * dataPatchStart, doubl
    return PV_SUCCESS;
 }
 
-int NormalizeBase::accumulateMax(pvdata_t * dataPatchStart, int weights_in_patch, float * max) {
+int NormalizeBase::accumulateMax(pvwdata_t * dataPatchStart, int weights_in_patch, float * max) {
    // Do not call with max uninitialized.
    // sum, sumsq, max are not cleared inside this routine so that you can accumulate the stats over several patches with multiple calls
    for (int k=0; k<weights_in_patch; k++) {
-      pvdata_t w = dataPatchStart[k];
+      pvwdata_t w = dataPatchStart[k];
       if (w>*max) *max=w;
    }
    return PV_SUCCESS;
 }
 
-int NormalizeBase::applyThreshold(pvdata_t * dataPatchStart, int weights_in_patch, float wMax) {
+int NormalizeBase::applyThreshold(pvwdata_t * dataPatchStart, int weights_in_patch, float wMax) {
    assert(normalize_cutoff>0); // Don't call this routine unless normalize_cutoff was set
    float threshold = wMax * normalize_cutoff;
    for (int k=0; k<weights_in_patch; k++) {
@@ -227,7 +227,7 @@ int NormalizeBase::applyThreshold(pvdata_t * dataPatchStart, int weights_in_patc
 // rMinX, rMinY are the minimum radii from the center of the patch,
 // all weights inside (non-inclusive) of this radius are set to zero
 // the diameter of the central exclusion region is truncated to the nearest integer value, which may be zero
-int NormalizeBase::applyRMin(pvdata_t * dataPatchStart, float rMinX, float rMinY,
+int NormalizeBase::applyRMin(pvwdata_t * dataPatchStart, float rMinX, float rMinY,
 		int nxp, int nyp, int xPatchStride, int yPatchStride) {
 	if(rMinX==0 && rMinY == 0) return PV_SUCCESS;
 	int fullWidthX = floor(2 * rMinX);
@@ -236,7 +236,7 @@ int NormalizeBase::applyRMin(pvdata_t * dataPatchStart, float rMinX, float rMinY
 	int offsetY = ceil((nyp - fullWidthY) / 2.0);
 	int widthX = nxp - 2 * offsetX;
 	int widthY = nyp - 2 * offsetY;
-	pvdata_t * rMinPatchStart = dataPatchStart + offsetY * yPatchStride + offsetX * xPatchStride;
+	pvwdata_t * rMinPatchStart = dataPatchStart + offsetY * yPatchStride + offsetX * xPatchStride;
 	int weights_in_row = xPatchStride * widthX;
 	for (int ky = 0; ky<widthY; ky++){
 		for (int k=0; k<weights_in_row; k++) {
@@ -341,7 +341,7 @@ int NormalizeBase::symmetrizeWeights(HyPerConn * conn) {
    return status;
 }
 
-void NormalizeBase::normalizePatch(pvdata_t * dataStartPatch, int weights_per_patch, float multiplier) {
+void NormalizeBase::normalizePatch(pvwdata_t * dataStartPatch, int weights_per_patch, float multiplier) {
    for (int k=0; k<weights_per_patch; k++) dataStartPatch[k] *= multiplier;
 }
 

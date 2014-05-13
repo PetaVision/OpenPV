@@ -25,7 +25,7 @@ public:
 
    const float getStrength() {return strength;}
    const float getNormalizeCutoff() {return normalize_cutoff;}
-   const bool getSymmetrizeWeightsFlag() {return symmetrizeWeightsFlag;}
+   const bool  getSymmetrizeWeightsFlag() {return symmetrizeWeightsFlag;}
    const bool  getNormalizeFromPostPerspectiveFlag() {return normalizeFromPostPerspective;}
    const bool  getNormalizeArborsIndividuallyFlag() {return normalizeArborsIndividually;}
 
@@ -41,18 +41,18 @@ protected:
    virtual void ioParam_normalizeFromPostPerspective(enum ParamsIOFlag ioFlag);
    virtual void ioParam_normalizeArborsIndividually(enum ParamsIOFlag ioFlag);
 
-   int accumulateSum(pvdata_t * dataPatchStart, int weights_in_patch, double * sum);
-   int accumulateSumShrunken(pvdata_t * dataPatchStart, double * sum,
+   int accumulateSum(pvwdata_t * dataPatchStart, int weights_in_patch, double * sum);
+   int accumulateSumShrunken(pvwdata_t * dataPatchStart, double * sum,
    		int nxpShrunken, int nypShrunken, int offsetShrunken, int xPatchStride, int yPatchStride);
-   int accumulateSumSquared(pvdata_t * dataPatchStart, int weights_in_patch, double * sumsq);
-   int accumulateSumSquaredShrunken(pvdata_t * dataPatchStart, double * sumsq,
+   int accumulateSumSquared(pvwdata_t * dataPatchStart, int weights_in_patch, double * sumsq);
+   int accumulateSumSquaredShrunken(pvwdata_t * dataPatchStart, double * sumsq,
    		int nxpShrunken, int nypShrunken, int offsetShrunken, int xPatchStride, int yPatchStride);
-   int accumulateMax(pvdata_t * dataPatchStart, int weights_in_patch, float * max);
-   int applyThreshold(pvdata_t * dataPatchStart, int weights_in_patch, float wMax); // weights less than normalize_cutoff*max(weights) are zeroed out
-   int applyRMin(pvdata_t * dataPatchStart, float rMinX, float rMinY,
+   int accumulateMax(pvwdata_t * dataPatchStart, int weights_in_patch, float * max);
+   int applyThreshold(pvwdata_t * dataPatchStart, int weights_in_patch, float wMax); // weights less than normalize_cutoff*max(weights) are zeroed out
+   int applyRMin(pvwdata_t * dataPatchStart, float rMinX, float rMinY,
 			int nxp, int nyp, int xPatchStride, int yPatchStride);
    int symmetrizeWeights(HyPerConn * conn); // may be used by several subclasses
-   static void normalizePatch(pvdata_t * dataStart, int weights_per_patch, float multiplier);
+   static void normalizePatch(pvwdata_t * dataStart, int weights_per_patch, float multiplier);
    HyPerCol * parent();
 
 private:
