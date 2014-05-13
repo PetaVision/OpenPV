@@ -1317,7 +1317,7 @@ int writeActivitySparse(PV_Stream * pvstream, PV_Stream * posstream, Communicato
       long filepos = pvstream->filepos;
       status = (PV_fwrite(&filepos, sizeof(long), 1, posstream) != 1);
       if (status != 0) {
-         fprintf(stderr, "[%2d]: writeActivitySparse: failed in fwrite(&filepos), filepos==%d\n",
+         fprintf(stderr, "[%2d]: writeActivitySparse: failed in fwrite(&filepos), filepos==%ld\n",
                  comm->commRank(), filepos);
          return status;
       }
