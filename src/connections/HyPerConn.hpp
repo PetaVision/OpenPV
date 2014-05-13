@@ -240,15 +240,15 @@ public:
             + wPatches[arborId][patchIndex]->offset];
    }
 
-   inline pvdata_t* get_dwDataStart(int arborId) {
+   inline pvwdata_t* get_dwDataStart(int arborId) {
       return dwDataStart[arborId];
    }
 
-   inline pvdata_t* get_dwDataHead(int arborId, int dataIndex) {
+   inline pvwdata_t* get_dwDataHead(int arborId, int dataIndex) {
       return &dwDataStart[arborId][dataIndex * nxp * nyp * nfp];
    }
 
-   inline pvdata_t* get_dwData(int arborId, int patchIndex) {
+   inline pvwdata_t* get_dwData(int arborId, int patchIndex) {
       return &dwDataStart[arborId][patchToDataLUT(patchIndex) * nxp * nyp * nfp
             + wPatches[arborId][patchIndex]->offset];
    }
@@ -401,7 +401,7 @@ private:
    PVPatchStrides postExtStrides;    // sx,sy,sf for a patch mapping into an extended post-synaptic layer
    PVPatchStrides postNonextStrides; // sx,sy,sf for a patch mapping into a non-extended post-synaptic layer
    pvwdata_t** wDataStart;  //now that data for all patches are allocated to one continuous block of memory, this pointer saves the starting address of that array
-   pvdata_t** dwDataStart; //now that data for all patches are allocated to one continuous block of memory, this pointer saves the starting address of that array
+   pvwdata_t** dwDataStart; //now that data for all patches are allocated to one continuous block of memory, this pointer saves the starting address of that array
    int defaultDelay; //added to save params file defined delay...
    float * fDelayArray;
    int delayArraySize;
@@ -541,15 +541,15 @@ protected:
       wDataStart[arborId] = pDataStart;
    }
 
-   inline pvdata_t** get_dwDataStart() {
+   inline pvwdata_t** get_dwDataStart() {
       return dwDataStart;
    }
 
-   inline void set_dwDataStart(pvdata_t** datastart) {
+   inline void set_dwDataStart(pvwdata_t** datastart) {
       dwDataStart = datastart;
    }
 
-   inline void set_dwDataStart(int arborId, pvdata_t* pIncrStart) {
+   inline void set_dwDataStart(int arborId, pvwdata_t* pIncrStart) {
       dwDataStart[arborId] = pIncrStart;
    }
 

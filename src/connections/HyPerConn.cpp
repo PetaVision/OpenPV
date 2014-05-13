@@ -313,7 +313,7 @@ int HyPerConn::createArbors() {
       createArborsOutOfMemory();
       assert(false);
    }
-   dwDataStart = (pvdata_t **) calloc(numAxonalArborLists, sizeof(pvdata_t *));
+   dwDataStart = (pvwdata_t **) calloc(numAxonalArborLists, sizeof(pvwdata_t *));
    if( dwDataStart == NULL ) {
       createArborsOutOfMemory();
       assert(false);
@@ -399,7 +399,7 @@ int HyPerConn::shrinkPatch(int kExt, int arborId /* PVAxonalArbor * arbor */) {
    PVPatch *weights = getWeights(kExt,arborId);
 
    pvwdata_t * w = &get_wDataStart(arborId)[kIndex*nxp*nyp*nfp+weights->offset];
-   // pvdata_t * w = weights->data;
+   // pvwdata_t * w = weights->data;
 
    int nx = weights->nx;
    int ny = weights->ny;
@@ -422,7 +422,7 @@ int HyPerConn::shrinkPatch(int kExt, int arborId /* PVAxonalArbor * arbor */) {
             if(abs(w[x * sxp + y * syp + f * sfp]) <= shrinkPatchesThresh) {
                //w[x*sxp + y*syp + f*sfp] = 0;
                nonZeroWeightFound=true;
-               //pvdata_t weight = w[x * sxp + y * syp + f * sfp];
+               //pvwdata_t weight = w[x * sxp + y * syp + f * sfp];
                maxnx = maxnx < x ? x : maxnx;
                minnx = minnx > x ? x : minnx;
                maxny = maxny < y ? y : maxny;
@@ -1609,7 +1609,7 @@ int HyPerConn::initializeThreadBuffers(const char * kernel_name)
 {
    int status = CL_SUCCESS;
 
-   const size_t size = getNumDataPatches() * nxp*nyp*nfp * sizeof(pvdata_t);
+   const size_t size = getNumDataPatches() * nxp*nyp*nfp * sizeof(pvwdata_t);
 
    CLDevice * device = parent->getCLDevice();
 
@@ -3035,7 +3035,7 @@ PVPatch **** HyPerConn::point2PreSynapticWeights()
       wPostPatchesp = (PVPatch****) calloc(numAxonalArborLists, sizeof(PVPatch***));
       assert(wPostPatchesp!=NULL);
       assert(wPostDataStartp == NULL);
-      wPostDataStartp = (pvwdata_t ***) calloc(numAxonalArborLists, sizeof(pvdata_t **));
+      wPostDataStartp = (pvwdata_t ***) calloc(numAxonalArborLists, sizeof(pvwdata_t **));
       assert(wPostDataStartp!=NULL);
 
       for(int arborID=0;arborID<numberOfAxonalArborLists();arborID++) {
