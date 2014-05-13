@@ -235,7 +235,7 @@ int PatchProbe::outputState(double timef)
       text_write_patch(fp, w->nx, w->ny, c->fPatchSize(), c->xPatchStride(), c->yPatchStride(), c->fPatchStride(), c->get_wData(arborID, kPre));
    }
    if( outputPlasticIncr ) {
-      pvdata_t * plasticPatch = c->getPlasticIncr(kPre,arborID);
+      pvwdata_t * plasticPatch = c->getPlasticIncr(kPre,arborID);
       if( plasticPatch )
          text_write_patch(fp, w->nx, w->ny, c->fPatchSize(), c->xPatchStride(), c->yPatchStride(), c->fPatchStride(), c->get_dwData(arborID, kPre));
    }
@@ -266,7 +266,7 @@ int PatchProbe::outputState(double timef)
    return PV_SUCCESS;
 }
 
-int PatchProbe::text_write_patch(FILE * fp, int nx, int ny, int nf, int sx, int sy, int sf, pvdata_t * data)
+int PatchProbe::text_write_patch(FILE * fp, int nx, int ny, int nf, int sx, int sy, int sf, pvwdata_t * data)
 {
    int f, i, j;
 

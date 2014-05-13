@@ -24,7 +24,7 @@ public:
 
    virtual int outputState(double timef);
 
-   static int text_write_patch(FILE * fd, int nx, int ny, int nf, int sx, int sy, int sf, float * data);
+   static int text_write_patch(FILE * fd, int nx, int ny, int nf, int sx, int sy, int sf, pvwdata_t * data);
    static int write_patch_indices(FILE * fp, PVPatch * patch,
                                   const PVLayerLoc * loc, int kx0, int ky0, int kf0);
 
