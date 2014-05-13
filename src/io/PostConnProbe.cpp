@@ -143,18 +143,18 @@ int PostConnProbe::outputState(double timef)
    const bool postFired = lPost->activity->data[kPostEx] > 0.0;
 
    w = wPost[getArborID()][kPost];
-   pvdata_t * wPostData = c->getWPostData(getArborID(),kPost);
+   pvwdata_t * wPostData = c->getWPostData(getArborID(),kPost);
 
    const int nw = w->nx * w->ny * nfPost; //w->nf;
 
    if (wPrev == NULL) {
-      wPrev = (pvdata_t *) calloc(nw, sizeof(pvdata_t));
+      wPrev = (pvwdata_t *) calloc(nw, sizeof(pvwdata_t));
       for (k = 0; k < nw; k++) {
          wPrev[k] = wPostData[k]; // This is broken if the patch is shrunken
       }
    }
    if (wActiv == NULL) {
-      wActiv = (pvdata_t *) calloc(nw, sizeof(pvdata_t));
+      wActiv = (pvwdata_t *) calloc(nw, sizeof(pvwdata_t));
    }
 
    k = 0;
@@ -204,7 +204,7 @@ int PostConnProbe::outputState(double timef)
 }
 
 int PostConnProbe::text_write_patch_extra(FILE * fp, PVPatch * patch,
-                                          pvdata_t * data, pvdata_t * prev, pvdata_t * activ, HyPerConn * parentConn)
+                                          pvwdata_t * data, pvwdata_t * prev, pvwdata_t * activ, HyPerConn * parentConn)
 {
    int f, i, j;
 

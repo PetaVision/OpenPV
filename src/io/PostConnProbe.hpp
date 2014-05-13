@@ -22,7 +22,7 @@ public:
    void setImage(Image * image)   {this->image = image;}
 
    int text_write_patch_extra(FILE * fp, PVPatch * patch,
-                              pvdata_t * data, pvdata_t * prev, pvdata_t * activ, HyPerConn * parentConn);
+                              pvwdata_t * data, pvwdata_t * prev, pvwdata_t * activ, HyPerConn * parentConn);
 
 protected:
    int initialize(const char * probename, HyPerCol * hc);
@@ -41,8 +41,8 @@ protected:
    int kPost;   // index of post-synaptic neuron
    int kxPost, kyPost, kfPost;
    Image * image;
-   pvdata_t * wPrev;
-   pvdata_t * wActiv;
+   pvwdata_t * wPrev;
+   pvwdata_t * wActiv;
    bool   outputIndices;
    bool   stdpVars;
 };
