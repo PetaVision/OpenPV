@@ -90,7 +90,7 @@ int MLPSigmoidLayer::communicateInitInfo() {
          fprintf(stderr, "%s \"%s\" error: Original layer \"%s\" need to be a MLPForwardLayer.\n",
                  parent->parameters()->groupKeywordFromName(name), name, originalLayerName);
       }
-#if PV_USE_MPI
+#ifdef PV_USE_MPI
       MPI_Barrier(parent->icCommunicator()->communicator());
 #endif
       exit(EXIT_FAILURE);
