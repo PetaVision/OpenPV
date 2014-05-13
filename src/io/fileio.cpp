@@ -370,7 +370,7 @@ int pvp_copy_patches(unsigned char * buf, PVPatch ** patches, pvwdata_t * dataSt
          ny = p->ny;
          offset = p->offset;
       }
-      // const pvdata_t * data = p->data;
+      // const pvwdata_t * data = p->data;
       const pvwdata_t * data = dataStart + k*patchsize; // + offset; // Don't include offset as the entire patch will be copied
 
       // const int sxp = nfp; //p->sx;
@@ -436,10 +436,10 @@ int pvp_set_patches(unsigned char * buf, PVPatch ** patches, pvwdata_t * dataSta
          ny = p->ny;
          offset = p->offset;
       }
-      // pvdata_t * data = p->data;
+      // pvwdata_t * data = p->data;
       pvwdata_t * data = dataStart + k*patchsize; // + offset; // Don't include offset as entire patch will be read from buf
 #ifdef USE_SHMGET
-      volatile pvdata_t * data_volatile = dataStart + k*patchsize;
+      volatile pvwdata_t * data_volatile = dataStart + k*patchsize;
 #endif
 
       unsigned short * nxny = (unsigned short *) cptr;
