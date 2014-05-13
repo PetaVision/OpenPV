@@ -39,11 +39,11 @@ private:
    int kLocalRes;
    int kLocalExt;
    int inBounds;
-   pvdata_t* postWeights;
+   pvwdata_t* postWeights;
 
    //output variables
    float postIntTr;
-   float * preWeights;
+   pvwdata_t * preWeights;
 
    PatchIDMethod patchIDMethod;
    int kPost;  // Index of patch

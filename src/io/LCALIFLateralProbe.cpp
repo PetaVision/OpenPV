@@ -136,7 +136,7 @@ int LCALIFLateralProbe::allocateProbe() {
       int numPrePatch = nxpPost * nypPost * nfpPost;
 
       // Allocate buffers for pre info
-      preWeights = (float *) calloc(numPrePatch*numArbors, sizeof(float));
+      preWeights = (pvwdata_t *) calloc(numPrePatch*numArbors, sizeof(pvwdata_t));
       assert(preWeights != NULL);
    }
    return PV_SUCCESS;
