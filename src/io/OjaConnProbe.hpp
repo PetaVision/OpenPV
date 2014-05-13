@@ -53,11 +53,11 @@ private:
    float ampLTD;
    float * preStdpTrs;
    float * preOjaTrs;
-   float * preWeights;
-   pvdata_t ** postWeightsp;
+   pvwdata_t * preWeights;
+   pvwdata_t ** postWeightsp;
 #ifdef DEBUG_POST
-   float * preWeightsDebug;
-   pvdata_t * postWeights;
+   pvwdata_t * preWeightsDebug;
+   pvwdata_t * postWeights;
 #endif
 
    PatchIDMethod patchIDMethod;

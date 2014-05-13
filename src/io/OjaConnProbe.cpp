@@ -139,9 +139,9 @@ int OjaConnProbe::allocateProbe()
       // Allocate buffers for pre info
       preStdpTrs = (float *) calloc(numPostPatch*numArbors, sizeof(float));
       preOjaTrs  = (float *) calloc(numPostPatch*numArbors, sizeof(float));
-      preWeights = (pvwdata_t *) calloc(numPostPatch*numArbors, sizeof(float));
+      preWeights = (pvwdata_t *) calloc(numPostPatch*numArbors, sizeof(pvwdata_t));
 #ifdef DEBUG_POST
-      preWeightsDebug = (float *) calloc(numPostPatch*numArbors, sizeof(float));
+      preWeightsDebug = (pvwdata_t *) calloc(numPostPatch*numArbors, sizeof(pvwdata_t));
       assert (preWeightsDebug != NULL);
 #endif
       assert(preStdpTrs != NULL);
