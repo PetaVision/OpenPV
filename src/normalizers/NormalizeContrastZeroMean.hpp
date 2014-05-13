@@ -28,8 +28,8 @@ protected:
    virtual void ioParam_minSumTolerated(enum ParamsIOFlag ioFlag);
    virtual void ioParam_normalizeFromPostPerspective(enum ParamsIOFlag ioFlag);
 
-   static void subtractOffsetAndNormalize(pvdata_t * dataStartPatch, int weights_per_patch, float offset, float normalizer);
-   int accumulateSumAndSumSquared(pvdata_t * dataPatchStart, int weights_in_patch, double * sum, double * sumsq);
+   static void subtractOffsetAndNormalize(pvwdata_t * dataStartPatch, int weights_per_patch, float offset, float normalizer);
+   int accumulateSumAndSumSquared(pvwdata_t * dataPatchStart, int weights_in_patch, double * sum, double * sumsq);
 
 private:
    int initialize_base();

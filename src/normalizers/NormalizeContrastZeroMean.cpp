@@ -117,14 +117,14 @@ int NormalizeContrastZeroMean::normalizeWeights(HyPerConn * conn) {
    return status;
 }
 
-void NormalizeContrastZeroMean::subtractOffsetAndNormalize(pvdata_t * dataStartPatch, int weights_per_patch, float offset, float normalizer) {
+void NormalizeContrastZeroMean::subtractOffsetAndNormalize(pvwdata_t * dataStartPatch, int weights_per_patch, float offset, float normalizer) {
    for (int k=0; k<weights_per_patch; k++) {
       dataStartPatch[k] -= offset;
       dataStartPatch[k] /= normalizer;
    }
 }
 
-int NormalizeContrastZeroMean::accumulateSumAndSumSquared(pvdata_t * dataPatchStart, int weights_in_patch, double * sum, double * sumsq) {
+int NormalizeContrastZeroMean::accumulateSumAndSumSquared(pvwdata_t * dataPatchStart, int weights_in_patch, double * sum, double * sumsq) {
    // Do not call with sum uninitialized.
    // sum, sumsq, max are not cleared inside this routine so that you can accumulate the stats over several patches with multiple calls
    for (int k=0; k<weights_in_patch; k++) {
