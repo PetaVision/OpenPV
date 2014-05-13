@@ -63,7 +63,7 @@ int InitWeights::communicateParamsInfo() {
  * For KernelConns, patches should be NULL.
  *
  */
-int InitWeights::initializeWeights(PVPatch *** patches, pvdata_t ** dataStart,
+int InitWeights::initializeWeights(PVPatch *** patches, pvwdata_t ** dataStart,
       double * timef /*default NULL*/) {
    PVParams * inputParams = callingConn->getParent()->parameters();
    int initFromLastFlag = inputParams->value(callingConn->getName(),
@@ -150,7 +150,7 @@ int InitWeights::zeroWeightsOutsideShrunkenPatch(PVPatch *** patches) {
             int dx_east = callingConn->xPatchSize() - nxPatch - dx_west;
             assert(dx_east >= 0); assert(dx_east <= callingConn->xPatchSize());
             // zero north border
-            pvdata_t * outside_weights = wData_head;
+            pvwdata_t * outside_weights = wData_head;
             for (int ky = 0; ky < dy_north; ky++){
                 for (int kPatch = 0; kPatch < syPatch; kPatch++){
                     outside_weights[kPatch] = 0;
@@ -225,7 +225,7 @@ int InitWeights::calcWeights() {
 }
 
 // Override this function to calculate the weights in a single patch, given the arbor index, patch index and the pointer to the data
-int InitWeights::calcWeights(pvdata_t * dataStart, int dataPatchIndex, int arborId) {
+int InitWeights::calcWeights(pvwdata_t * dataStart, int dataPatchIndex, int arborId) {
     return PV_SUCCESS;
 }
 
@@ -235,7 +235,7 @@ int InitWeights::initialize_base() {
    return PV_SUCCESS;
 }
 
-int InitWeights::readWeights(PVPatch *** patches, pvdata_t ** dataStart, int numPatches, const char * filename, double * timef/*default=NULL*/) {
+int InitWeights::readWeights(PVPatch *** patches, pvwdata_t ** dataStart, int numPatches, const char * filename, double * timef/*default=NULL*/) {
    InterColComm *icComm = callingConn->getParent()->icCommunicator();
    int numArbors = callingConn->numberOfAxonalArborLists();
    const PVLayerLoc *preLoc = callingConn->preSynapticLayer()->getLayerLoc();
@@ -370,7 +370,7 @@ int InitWeights::readWeights(PVPatch *** patches, pvdata_t ** dataStart, int num
    return PV_SUCCESS;
 }
 
-int InitWeights::readListOfArborFiles(PVPatch *** patches, pvdata_t ** dataStart, int numPatches, const char * listOfArborsFilename, double * timef) {
+int InitWeights::readListOfArborFiles(PVPatch *** patches, pvwdata_t ** dataStart, int numPatches, const char * listOfArborsFilename, double * timef) {
    int arbor=0;
    InterColComm *icComm = callingConn->getParent()->icCommunicator();
    int numArbors = callingConn->numberOfAxonalArborLists();
@@ -432,7 +432,7 @@ int InitWeights::readListOfArborFiles(PVPatch *** patches, pvdata_t ** dataStart
    return PV_SUCCESS;
 }
 
-int InitWeights::readCombinedWeightFiles(PVPatch *** patches, pvdata_t ** dataStart,int numPatches, const char * fileOfWeightFiles, double * timef) {
+int InitWeights::readCombinedWeightFiles(PVPatch *** patches, pvwdata_t ** dataStart,int numPatches, const char * fileOfWeightFiles, double * timef) {
    InterColComm *icComm = callingConn->getParent()->icCommunicator();
    int numArbors = callingConn->numberOfAxonalArborLists();
    const PVLayerLoc *preLoc = callingConn->preSynapticLayer()->getLayerLoc();

@@ -42,15 +42,15 @@ public:
     * so it is more convenient and efficient to handle all the weights
     * together than to call one patch at a time.
     */
-   int initializeWeights(PVPatch *** patches, pvdata_t ** dataStart,
+   int initializeWeights(PVPatch *** patches, pvwdata_t ** dataStart,
 			double * timef = NULL);
    virtual InitWeightsParams * createNewWeightParams();
 
    virtual int calcWeights();
-   virtual int calcWeights(pvdata_t * dataStart,
+   virtual int calcWeights(pvwdata_t * dataStart,
 			int patchIndex, int arborId);
 
-   virtual int readWeights(PVPatch *** patches, pvdata_t ** dataStart, int numPatches,
+   virtual int readWeights(PVPatch *** patches, pvwdata_t ** dataStart, int numPatches,
                            const char * filename, double * time=NULL);
 
 protected:
@@ -58,9 +58,9 @@ protected:
    int initialize(HyPerConn * conn);
    virtual int initRNGs(bool isKernel) { return PV_SUCCESS; }
    virtual int zeroWeightsOutsideShrunkenPatch(PVPatch *** patches);
-   int readListOfArborFiles(PVPatch *** patches, pvdata_t ** dataStart,int numPatches,
+   int readListOfArborFiles(PVPatch *** patches, pvwdata_t ** dataStart,int numPatches,
          const char * listOfArborsFilename, double * timef=NULL);
-   int readCombinedWeightFiles(PVPatch *** patches, pvdata_t ** dataStart,int numPatches,
+   int readCombinedWeightFiles(PVPatch *** patches, pvwdata_t ** dataStart,int numPatches,
          const char * fileOfWeightFiles, double * timef=NULL);
 
 private:
