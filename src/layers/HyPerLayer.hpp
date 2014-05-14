@@ -364,10 +364,6 @@ protected:
 
    bool restartFlag;
 
-#ifdef PV_USE_OPENCL
-   bool gpuAccelerateFlag;
-#endif
-
    int numProbes;
    LayerProbe ** probes;
 
