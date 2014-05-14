@@ -13,6 +13,8 @@
 #include "CLKernel.hpp"
 #include "CLDevice.hpp"
 
+#include "../../io/fileio.hpp"
+
 #include <assert.h>
 #include <stdio.h>
 #include <sys/stat.h>
@@ -174,16 +176,17 @@ int CLKernel::run(size_t gWorkSizeX, size_t gWorkSizeY, size_t lWorkSizeX, size_
    //
    cl_event startMark, endMark;
    if (profiling) {
-      int error = clEnqueueMarker(commands, &startMark);
+      //TODO - why not use clEnqueueBarrierWithWaitList
+      int error = clEnqueueMarkerWithWaitList(commands, nWait, waitList, &startMark);
       error |= clFinish(commands);
-      if(error) CLDevice::print_error_code(error);
+      if (error) CLDevice::print_error_code(error);
    }
    status = clEnqueueNDRangeKernel(commands, kernel, 2, NULL,
                                    global_work_size, local_work_size, nWait, waitList, ev);
    if (profiling) {
-      int error = clEnqueueMarker(commands, &endMark);
+      int error = clEnqueueMarkerWithWaitList(commands, nWait, waitList, &endMark);
       error |= clFinish(commands);
-      if(error) CLDevice::print_error_code(error);
+      if (error) CLDevice::print_error_code(error);
    }
    //clFinish(commands);
    if (status) {
