@@ -5,6 +5,9 @@
 
 #include <columns/buildandrun.hpp>
 #include "CIFARGTLayer.hpp"
+#include "HeliGTLayer.hpp"
+#include "ConstGTLayer.hpp"
+#include "ErrorMaskLayer.hpp"
 
 #define MAIN_USES_CUSTOMGROUPS
 
@@ -29,6 +32,15 @@ void * customgroup(const char * keyword, const char * name, HyPerCol * hc) {
    void * addedGroup = NULL;
    if ( !strcmp(keyword, "CIFARGTLayer") ) {
       addedGroup = new CIFARGTLayer(name, hc);
+   }
+   if ( !strcmp(keyword, "HeliGTLayer") ) {
+      addedGroup = new HeliGTLayer(name, hc);
+   }
+   if ( !strcmp(keyword, "ConstGTLayer") ) {
+      addedGroup = new ConstGTLayer(name, hc);
+   }
+   if ( !strcmp(keyword, "ErrorMaskLayer") ) {
+      addedGroup = new ErrorMaskLayer(name, hc);
    }
    if (!addedGroup) {
       fprintf(stderr, "Group \"%s\": Unable to create %s\n", name, keyword);

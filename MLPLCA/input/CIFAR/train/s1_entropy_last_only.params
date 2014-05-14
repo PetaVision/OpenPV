@@ -16,16 +16,16 @@ HyPerCol "column" = {
    dt = 1.0;  //time step in ms.	     
    randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
    startTime = 0.0;
-   stopTime = 5; //180000001; //200000;
+   stopTime = 40000; //180000001; //200000;
    progressInterval = 100.0; //Program will output its progress at each progressStep
    writeProgressToErr = false;  
-   outputPath = "/nh/compneuro/Data/MLPLCA/LCA/cifar_training_nodropout/";
+   outputPath = "/nh/compneuro/Data/MLPLCA/LCA/cifar_training_nodropout_entropy_lastonly/";
    filenamesContainLayerNames = true;  
    filenamesContainConnectionNames = true;
    checkpointRead = false;  
-   checkpointWrite = false;
-   checkpointWriteDir = "/nh/compneuro/Data/MLPLCA/LCA/cifar_training_nodropout/Checkpoints/";
-   checkpointWriteStepInterval = 1;
+   checkpointWrite = true;
+   checkpointWriteDir = "/nh/compneuro/Data/MLPLCA/LCA/cifar_training_nodropout_entropy_lastonly/Checkpoints/";
+   checkpointWriteStepInterval = 10000;
    deleteOlderCheckpoints = false;
    outputNamesOfLayersAndConns = "LayerAndConnNames.txt";
    suppressLastOutput = false;
@@ -34,6 +34,22 @@ HyPerCol "column" = {
 //
 // layers
 //
+
+ConstantLayer "onesLayer" = {
+    restart = 0;
+    nxScale = .0625; 
+    nyScale = .0625;
+    nf = 1;
+    writeStep = -1;
+    initialWriteTime = 0.0;
+    mirrorBCflag = 0;
+    writeSparseActivity = false;
+    InitVType = "ConstantV";
+    valueV    = 1;
+    VThresh = -infinity;   
+    phase = 0;
+};
+
 //The input layer of data
 Movie "InputS1" = {
     restart = 0;
@@ -147,12 +163,7 @@ MLPForwardLayer "ForwardLayer1" = {
     mirrorBCflag = 0;
     writeSparseActivity = 0;
     InitVType = "ZeroV";
-    InitBiasType = "Zero"; //Can be "Zero" or "File", more to be implemeneted later
     VThresh = -infinity;
-    AMax = -infinity;
-    AMin = infinity;
-    VShift = 0;
-    VWidth = 0;
     dropoutChance = 0;
     phase = 3;
 };
@@ -166,14 +177,7 @@ MLPSigmoidLayer "HiddenLayer1" = {  // 2
     valueV            = 0;
     mirrorBCflag      = 0.0; 
     restart           = 0.0;      // from graylast
-
-    //Vrest             = -2;    // 
-    //VthRest           = 2;    // was -40. before moving the threshold in the middle                  
-    //InverseFlag       = 0.0;
-    //SigmoidFlag       = 1;
-    //SigmoidAlpha      = 0.05;
     linAlpha            = 0.1;
-
     spikingFlag       = 0.0;
     writeStep         = -1;
     writeNonspikingActivity = false;
@@ -231,13 +235,22 @@ MLPOutputLayer "OutputLayer" = {  // 2
     valueV            = 0;
     mirrorBCflag      = 0.0; 
     restart           = 0.0;      // from graylast
-    linAlpha            = 0.1;
     spikingFlag       = 0.0;
+
+    symSigmoid = false;
+    //linAlpha            = 0.1;
+
+    VthRest = 1.5;
+    Vrest = -1.5;
+    SigmoidAlpha = .1;
+    SigmoidFlag = 1;
+    InverseFlag = 0;
+
     writeStep         = -1;
     writeNonspikingActivity = false;
     //Local target in training will be different than local target in testing: this will test that each x/y network gets the same answer
     localTarget = false; //Reducing across all output layers
-    statProgressPeriod = 1;
+    statProgressPeriod = 100;
     gtLayername = "GroundTruth";
     phase = 10;
 };
@@ -254,13 +267,10 @@ CIFARGTLayer "GroundTruth" = {
     InitVType = "ZeroV";
     //define a linear relation between its input and output, with some hard cut-off.
     VThresh = -infinity;   
-    AMax = 1;
-    AMin = -1;
-    VShift = 0.0;
-    VWidth = 0.0;
     startFrame = 1;
+    negativeGt = false; //Do zero for negative examples
     inFilename = "/nh/compneuro/Data/CIFAR/LCA/data_batch_all15/timestamps/Image.txt"; //Timestamp file of the run, will grab class from that file
-    phase = 10;
+    phase = 9;
 };
 
 MLPErrorLayer "ErrorFinal" = {
@@ -271,21 +281,18 @@ MLPErrorLayer "ErrorFinal" = {
     writeStep = -1; //Change based on display period
     mirrorBCflag = 0;
     writeSparseActivity = 0;
-    eta = .00087; //sqrt(75)/10000
-    symSigmoid        = true;
-    //Vrest             = -2;    // 
-    //VthRest           = 2;    // was -40. before moving the threshold in the middle                  
-    //SigmoidAlpha      = 0.05;
-    linAlpha            = 0.1;
     ForwardLayername = "ForwardLayerFinal";
+
+    symSigmoid = false;
+    //linAlpha            = 0.1;
+    lossFunction = "entropy";
+    VthRest = 1;
+    Vrest = -1;
+    SigmoidAlpha = .1;
+
     InitVType = "ZeroV";
     VThresh = -infinity;
-    AMax = infinity;
-    AMin = -infinity;
-    VShift = 0;
-    VWidth = 0;
     phase = 11;
-    plasticityFlag = 1;
 };
 
 MLPErrorLayer "Error3" = {
@@ -293,28 +300,28 @@ MLPErrorLayer "Error3" = {
    @nxScale = .0625;
    @nyScale = .0625;
    @nf = 75;
+   @symSigmoid = true;
+   linAlpha = 0.1;
+   @lossFunction = "hidden";
    @ForwardLayername = "ForwardLayer3";
-   @eta = .00158; //sqrt(250)/10000
    @phase = 12;
 };
 
 MLPErrorLayer "Error2" = {
-   #include "ErrorFinal";
+   #include "Error3";
    @nxScale = .0625;
    @nyScale = .0625;
    @nf = 250;
    @ForwardLayername = "ForwardLayer2";
-   @eta = .00316; //sqrt(1000)/10000
    @phase = 13;
 };
 
 MLPErrorLayer "Error1" = {
-   #include "ErrorFinal";
+   #include "Error3";
    @nxScale = .0625;
    @nyScale = .0625;
    @nf = 1000;
    @ForwardLayername = "ForwardLayer1";
-   @eta = .0111; //sqrt(12288)/10000
    @phase = 14;
 };
 
@@ -352,7 +359,7 @@ KernelConn "W1S1" = {
     plasticityFlag = 1;
     weightUpdatePeriod = 1.0;
     initialWeightUpdateTime = 1.0;
-    dWMax = .0111; //sqrt(12288)/10000
+    dWMax = .00111; //sqrt(12288)/100000
     delay = 0;
      
     preActivityIsNotRate = false;
@@ -393,6 +400,56 @@ CloneKernelConn "W1S1Clone" = {
 //   @originalConnName = "W1C1";
 //};
 
+KernelConn "B1S1" = {
+    preLayerName = "onesLayer";
+    postLayerName = "Error1";
+    channelCode = 2; //Prev layer to next err is on inhib b
+    nxp = 1; 
+    nyp = 1; 
+    nfp = 1000;
+    numAxonalArbors = 1;
+    initFromLastFlag = 0;  // 1;  // restart
+    writeStep = -1;
+    
+    weightInitType = "UniformRandomWeight";
+    //with uniform random weights, min/max is +-sqrt(3/m), where m is # of connections per post node
+    wMinInit = -.015625; //sqrt(3/12288)
+    wMaxInit = .015625;
+        
+    strength = 1.0;  
+    normalizeMethod = "none";
+    
+    shrinkPatches = false;
+    //writeCompressedWeights = 0.0;
+    writeCompressedCheckpoints = false;
+    plasticityFlag = 1;
+    weightUpdatePeriod = 1.0;
+    initialWeightUpdateTime = 1.0;
+    dWMax = .00111; //sqrt(12288)/100000
+    delay = 0;
+     
+    preActivityIsNotRate = false;
+    selfFlag = false;
+    shmget_flag = false;
+
+    updateGSynFromPostPerspective = false;
+    pvpatchAccumulateType = "convolve";
+};
+
+CloneKernelConn "B1S1Clone" = {
+    preLayerName = "onesLayer";
+    postLayerName = "ForwardLayer1";
+    channelCode = 0; //On exc channel
+    writeStep = -1;
+    originalConnName = "B1S1";
+    selfFlag = false;
+    delay = 0;
+    preActivityIsNotRate = false;
+    useWindowPost = false;
+    updateGSynFromPostPerspective = false;
+    pvpatchAccumulateType = "convolve";
+};
+
 KernelConn "W2" = {
    #include "W1S1";
    @nxp = 1;
@@ -402,7 +459,7 @@ KernelConn "W2" = {
    @postLayerName = "Error2";
    @wMinInit = -.05477; //sqrt(3/1000)
    @wMaxInit = .05477;
-   @dWMax = .00316; //sqrt(1000)/10000
+   @dWMax = .000316; //sqrt(1000)/100000
 };
 
 CloneKernelConn "W2Clone" = {
@@ -427,6 +484,25 @@ TransposeConn "W2T" = {
     updateGSynFromPostPerspective = false;
 };
 
+KernelConn "B2" = {
+   #include "B1S1";
+   @nxp = 1;
+   @nyp = 1;
+   @nfp = 250;
+   @preLayerName = "onesLayer";
+   @postLayerName = "Error2";
+   @wMinInit = -.05477; //sqrt(3/1000)
+   @wMaxInit = .05477;
+   @dWMax = .000316; //sqrt(1000)/100000
+};
+
+CloneKernelConn "B2Clone" = {
+   #include "B1S1Clone";
+   @preLayerName = "onesLayer";
+   @postLayerName = "ForwardLayer2";
+   @originalConnName = "B2";
+};
+
 KernelConn "W3" = {
    #include "W1S1";
    @nxp = 1;
@@ -436,7 +512,7 @@ KernelConn "W3" = {
    @postLayerName = "Error3";
    @wMinInit = -.11; //sqrt(3/250)
    @wMaxInit = .11;
-   @dWMax = .00158; //sqrt(250)/10000
+   @dWMax = .000158; //sqrt(250)/100000
 };
 
 CloneKernelConn "W3Clone" = {
@@ -453,6 +529,25 @@ TransposeConn "W3T" = {
     @originalConnName = "W3";
 };
 
+KernelConn "B3" = {
+   #include "B1S1";
+   @nxp = 1;
+   @nyp = 1;
+   @nfp = 75;
+   @preLayerName = "onesLayer";
+   @postLayerName = "Error3";
+   @wMinInit = -.11; //sqrt(3/250)
+   @wMaxInit = .11;
+   @dWMax = .000158; //sqrt(250)/100000
+};
+
+CloneKernelConn "B3Clone" = {
+   #include "B1S1Clone";
+   @preLayerName = "onesLayer";
+   @postLayerName = "ForwardLayer3";
+   @originalConnName = "B3";
+};
+
 KernelConn "W4" = {
    #include "W1S1";
    @nxp = 1;
@@ -462,7 +557,7 @@ KernelConn "W4" = {
    @postLayerName = "ErrorFinal";
    @wMinInit = -.2; //sqrt(3/75)
    @wMaxInit = .2;
-   @dWMax = .00087; //sqrt(75)/10000
+   @dWMax = .000087; //sqrt(75)/100000
 };
 
 CloneKernelConn "W4Clone" = {
@@ -477,6 +572,25 @@ TransposeConn "W4T" = {
     @preLayerName = "ErrorFinal";
     @postLayerName = "Error3";
     @originalConnName = "W4";
+};
+
+KernelConn "B4" = {
+   #include "B1S1";
+   @nxp = 1;
+   @nyp = 1;
+   @nfp = 10;
+   @preLayerName = "onesLayer";
+   @postLayerName = "ErrorFinal";
+   @wMinInit = -.2; //sqrt(3/75)
+   @wMaxInit = .2;
+   @dWMax = .000087; //sqrt(75)/100000
+};
+
+CloneKernelConn "B4Clone" = {
+   #include "B1S1Clone";
+   @preLayerName = "onesLayer";
+   @postLayerName = "ForwardLayerFinal";
+   @originalConnName = "B4";
 };
 
 IdentConn "GroundTruthToErrorFinal" = {

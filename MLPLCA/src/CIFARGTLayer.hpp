@@ -18,11 +18,13 @@ public:
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    void ioParam_inFilename(enum ParamsIOFlag ioFlag);
    void ioParam_StartFrame(enum ParamsIOFlag ioFlag);
+   void ioParam_NegativeGt(enum ParamsIOFlag ioFlag);
 private:
    std::string inputString;
    char* inFilename;
    std::ifstream inputfile;
    long startFrame; //Zero indexed
+   bool negativeGt;
 };
 
 }

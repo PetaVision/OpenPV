@@ -24,6 +24,7 @@ int CIFARGTLayer::initialize(const char * name, HyPerCol * hc) {
    //TODO make only root process do this
    //Is there a way to implement a test for mpi?
    int status = ANNLayer::initialize(name, hc);
+   negativeGt = true;
    //2 files are test and train, assuming name of the layer is either test or train
    //std::string filename = "input/" + std::string(name) + ".txt";
    inputfile.open(inFilename, std::ifstream::in);
@@ -46,6 +47,7 @@ int CIFARGTLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = ANNLayer::ioParamsFillGroup(ioFlag);
    ioParam_inFilename(ioFlag);
    ioParam_StartFrame(ioFlag);
+   ioParam_NegativeGt(ioFlag);
    return status;
 }
 
@@ -57,6 +59,10 @@ void CIFARGTLayer::ioParam_StartFrame(enum ParamsIOFlag ioFlag) {
    parent->ioParamValue(ioFlag, name, "startFrame", &startFrame, startFrame);
 }
 
+void CIFARGTLayer::ioParam_NegativeGt(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "negativeGt", &negativeGt, negativeGt);
+}
+
 int CIFARGTLayer::updateState(double timef, double dt) {
    pvdata_t * A = getCLayer()->activity->data;
    const PVLayerLoc * loc = getLayerLoc(); 
@@ -66,7 +72,7 @@ int CIFARGTLayer::updateState(double timef, double dt) {
    //CIFAR is 0 indexed
    char cVal = inputString.at(found-1);
    int iVal = cVal - '0';
-   std::cout << "time: " << parent->simulationTime() << " inputString:" << inputString << "  iVal:" << iVal << "\n";
+   //std::cout << "time: " << parent->simulationTime() << " inputString:" << inputString << "  iVal:" << iVal << "\n";
    assert(iVal >= 0 && iVal < 10);
    //NF must be 10, one for each class
    assert(loc->nf == 10);
@@ -78,7 +84,12 @@ int CIFARGTLayer::updateState(double timef, double dt) {
          A[nExt] = 1;
       }
       else{
-         A[nExt] = -1;
+         if(negativeGt){
+            A[nExt] = -1;
+         }
+         else{
+            A[nExt] = 0;
+         }
       }
    }
    return PV_SUCCESS;
