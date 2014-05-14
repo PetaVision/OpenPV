@@ -126,7 +126,8 @@ void * CLBuffer::map(cl_map_flags flags)
       exit(1);
    }
 
-   status = clEnqueueWaitForEvents (commands, 1, &event);
+   //TODO - or use Marker?
+   status = clEnqueueBarrierWithWaitList(commands, 0, NULL, &event);
 #ifdef PV_USE_TAU
    Tau_opencl_exit_memcpy_event(tau_id, MemcpyDtoH);
 #endif
@@ -181,7 +182,8 @@ int CLBuffer::unmap(void * mapped_ptr)
       exit(1);
    }
 
-   status = clEnqueueWaitForEvents (commands, 1, &event);
+   //TODO - or use Marker?
+   status = clEnqueueBarrierWithWaitList(commands, 0, NULL, &event);
 #ifdef PV_USE_TAU
    Tau_opencl_exit_memcpy_event(tau_id, MemcpyHtoD);
 #endif
