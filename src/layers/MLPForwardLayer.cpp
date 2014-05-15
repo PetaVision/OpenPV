@@ -125,9 +125,7 @@ int MLPForwardLayer::updateState(double time, double dt)
    //Reset pointer of gSynHead to point to the excitatory channel
    pvdata_t * GSynExt = getChannel(CHANNEL_EXC);
 
-   //Calculate constants for derivitive of sigmoid layer
    pvdata_t * V = getV();
-
    for(int ni = 0; ni < num_neurons; ni++){
       int next = kIndexExtended(ni, nx, ny, nf, loc->nb);
       double p = randState->uniformRandom();

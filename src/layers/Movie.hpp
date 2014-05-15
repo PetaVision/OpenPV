@@ -56,14 +56,16 @@ protected:
    virtual void ioParam_movieOutputPath(enum ParamsIOFlag ioFlag);
    virtual void ioParam_writeFrameToTimestamp(enum ParamsIOFlag ioFlag);
 
+   bool readPvpFile;
+   const char * getNextFileName(int n_skip);
+   void updateFrameNum(int n_skip);
+
 
 private:
    int initialize_base();
    int copyReducedImagePortion();
-   const char * advanceFileName();
-   const char * getNextFileName(int n_skip);
-   void updateFrameNum(int n_skip);
    void updateFrameNum();
+   const char * advanceFileName();
 
    double displayPeriod;   // length of time a frame is displayed
    //double nextDisplayTime; // time of next frame; now handled by HyPerLayer nextUpdateTime
@@ -81,7 +83,6 @@ private:
    char * movieOutputPath;  // path to output file directory for movie frames
 
    int numFrames; //Number of frames
-   bool readPvpFile;
    char * fileOfFileNames;
 
    PV_Stream * filenamestream;

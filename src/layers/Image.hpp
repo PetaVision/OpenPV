@@ -190,6 +190,7 @@ protected:
    int * count;
    long length;
    bool needFrameSizesForSpiking;
+   PV_Stream * posstream;
 };
 
 }
