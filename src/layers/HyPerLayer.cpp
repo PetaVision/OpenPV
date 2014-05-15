@@ -1628,6 +1628,9 @@ int HyPerLayer::recvSynapticInputFromPost(HyPerConn * conn, const PVLayerCube * 
 
    const PVLayerLoc * sourceLoc = sourceToTargetConn->preSynapticLayer()->getLayerLoc();
    const PVLayerLoc * targetLoc = getLayerLoc();
+#ifdef PV_USE_OPENMP_THREADS
+#pragma omp parallel for
+#endif
    for (int kTargetRes = 0; kTargetRes < numRestricted; kTargetRes++){
       //Change restricted to extended post neuron
       int kTargetExt = kIndexExtended(kTargetRes, targetLoc->nx, targetLoc->ny, targetLoc->nf, targetLoc->nb);
@@ -1703,6 +1706,11 @@ int HyPerLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activity
 
    float dt_factor = getConvertToRateDeltaTimeFactor(conn);
 
+//Testing for clobbering
+//TODO make sure to run system tests for this
+#ifdef PV_USE_OPENMP_THREADS
+#pragma omp parallel for
+#endif
    for (int kPre = 0; kPre < numExtended; kPre++) {
 
       bool inWindow; 

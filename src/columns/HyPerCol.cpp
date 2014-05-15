@@ -204,8 +204,22 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * p
    char * param_file = NULL;
    char * working_dir = NULL;
    int restart = 0;
+   int numthreads = 1; //Default to 1 thread
    parse_options(argc, argv, &outputPath, &param_file,
-                 &opencl_device, &random_seed, &working_dir, &restart, &checkpointReadDir);
+                 &opencl_device, &random_seed, &working_dir, &restart, &checkpointReadDir, &numthreads);
+
+#ifdef PV_USE_OPENMP_THREADS
+   if(numthreads == 0){
+      numthreads = omp_get_max_threads();
+   }
+   omp_set_num_threads(numthreads);
+#else
+   if(numthreads != 1){
+      std::cout << "PetaVision must be compiled with OpenMP to run with threads" << "\n";
+      exit(PV_FAILURE);
+   }
+#endif
+
    warmStart = (restart!=0);
    if(working_dir && columnId()==0) {
       int status = chdir(working_dir);

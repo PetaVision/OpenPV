@@ -13,6 +13,13 @@
 /* define this if using OpenGL library for online graphics */
 #undef PV_USE_OPENGL
 
+/*Defining use of open mp for threading*/
+#ifdef PV_USE_THREADS
+#define PV_USE_OPENMP_THREADS
+#else
+#undef PV_USE_OPENMP_THREADS
+#endif //PV_USE_THREADS
+
 /* define this if using GDAL library to read/write images */
 #define PV_USE_GDAL
 

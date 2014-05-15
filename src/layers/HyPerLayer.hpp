@@ -72,6 +72,10 @@ DerivedLayer::initialize(arguments) {
 #  define PV_USE_OPENCL
 #endif
 
+#ifdef PV_USE_OPENMP_THREADS
+#include <omp.h>
+#endif
+
 
 #ifdef PV_USE_OPENCL
 #define PV_CL_COPY_BUFFERS 0
@@ -82,6 +86,7 @@ DerivedLayer::initialize(arguments) {
 #define EV_HPL_PHI_E 0
 #define EV_HPL_PHI_I 1
 #endif
+
 
 // default constants
 #define HYPERLAYER_FEEDBACK_DELAY 1

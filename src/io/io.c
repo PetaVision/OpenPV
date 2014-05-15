@@ -37,7 +37,7 @@ void usage()
  */
 int parse_options(int argc, char * argv[], char ** output_path,
                   char ** param_file, int * opencl_device,
-                  unsigned int * random_seed, char ** working_dir, int * restart, char ** checkpointReadDir)
+                  unsigned int * random_seed, char ** working_dir, int * restart, char ** checkpointReadDir, int * numthreads)
 {
    if (argc < 2) {
       usage();
@@ -51,6 +51,7 @@ int parse_options(int argc, char * argv[], char ** output_path,
       exit(EXIT_FAILURE);
    }
    pv_getopt_int(argc, argv, "-d", opencl_device);
+   pv_getoptionalopt_int(argc, argv, "-t", numthreads, 0);
    pv_getopt_str(argc, argv, "-o", output_path);
    pv_getopt_str(argc, argv, "-p", param_file);
    pv_getopt_unsigned(argc, argv, "-s", random_seed);
@@ -89,6 +90,24 @@ int pv_getopt_int(int argc, char * argv[], const char * opt, int * iVal)
    for (i = 1; i < argc; i += 1) {
       if (i+1 < argc && strcmp(argv[i], opt) == 0) {
          if( iVal != NULL ) *iVal = atoi(argv[i+1]);
+         return 0;
+      }
+   }
+   return -1;  // not found
+}
+
+int pv_getoptionalopt_int(int argc, char * argv[], const char * opt, int * iVal, int defaultVal)
+{
+   int i;
+   for (i = 1; i < argc; i += 1) {
+      if(strcmp(argv[i], opt) == 0){
+         //Default parameter
+         if (i+1 >= argc || argv[i+1][0] == '-') {
+            if( iVal != NULL) *iVal = defaultVal;
+         }
+         else{
+            if( iVal != NULL ) *iVal = atoi(argv[i+1]);
+         }
          return 0;
       }
    }
