@@ -1456,17 +1456,16 @@ int HyPerCol::advanceTime(double sim_time)
          icComm->increaseTimeLevel(layers[l]->getLayerId());
 
          layers[l]->publish(icComm, simTime);
-         //    }
-         //
-         //    // wait for all published data to arrive
-         //    //
-         //    for (int l = 0; l < numLayers; l++) {
+     }
+
+     // wait for all published data to arrive
+     //
+     for (int l = 0; l < numLayers; l++) {
+         if (layers[l]->getPhase() != phase) continue;
          layers[l]->waitOnPublish(icComm);
-         //    }
          //
          //    // also calls layer probes
-         //    for (int l = 0; l < numLayers; l++) {
-         layers[l]->outputState(simTime);
+         layers[l]->outputState(simTime); // also calls layer probes' outputState
       }
 
    }
