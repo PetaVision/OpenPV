@@ -75,6 +75,7 @@ HyPerCol::~HyPerCol()
       delete probes[k];
    }
    free(probes);
+   free(layerProbes);
    free(name);
    free(outputPath);
    free(printParamsFilename);
@@ -1909,7 +1910,7 @@ int HyPerCol::addLayerProbe(LayerProbe * p) {
    for (int i=0; i<numLayerProbes; i++) {
       newprobes[i] = layerProbes[i];
    }
-   delete layerProbes;
+   free(layerProbes);
    layerProbes = newprobes;
    layerProbes[numLayerProbes] = p;
 
