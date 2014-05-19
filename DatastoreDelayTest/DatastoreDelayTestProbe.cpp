@@ -66,7 +66,6 @@ int DatastoreDelayTestProbe::outputState(double timed) {
 }
 
 DatastoreDelayTestProbe::~DatastoreDelayTestProbe() {
-   free(name);
 }
 
 }  // end of namespace PV block

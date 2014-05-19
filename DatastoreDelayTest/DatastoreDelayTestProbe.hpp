@@ -26,9 +26,6 @@ protected:
    int initDatastoreDelayTestProbe(const char * probename,  HyPerCol * hc);
    virtual void ioParam_buffer(enum ParamsIOFlag ioFlag);
 
-
-protected:
-   char * name;
 };
 
 }
