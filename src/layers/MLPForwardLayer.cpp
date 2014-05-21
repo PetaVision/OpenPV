@@ -126,8 +126,11 @@ int MLPForwardLayer::updateState(double time, double dt)
    pvdata_t * GSynExt = getChannel(CHANNEL_EXC);
 
    pvdata_t * V = getV();
+#ifdef PV_USE_OPENMP_THREADS
+#pragma omp parallel for
+#endif
    for(int ni = 0; ni < num_neurons; ni++){
-      int next = kIndexExtended(ni, nx, ny, nf, loc->nb);
+      //int next = kIndexExtended(ni, nx, ny, nf, loc->nb);
       double p = randState->uniformRandom();
       if(p <= dropoutChance){
          //Set dropout flag
@@ -137,6 +140,9 @@ int MLPForwardLayer::updateState(double time, double dt)
          dropout[ni] = false;
       }
       V[ni] = GSynExt[ni] * potentialScale;
+      //if(strcmp(name, "ForwardLayerFinal") == 0){
+      //   std::cout << "Neuron: " << ni << " V: " << V[ni] << "\n";
+      //}
    }
    //A never updated, TODO see if you can remove A buffer
    update_timer->stop();

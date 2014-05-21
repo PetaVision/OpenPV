@@ -205,7 +205,9 @@ int StatsProbe::outputState(double timed)
          pvdata_t a = buf[k];
          sum += a;
          sum2 += a*a;
-         if (fabs((double) a)>(double) nnzThreshold) {nnz++;} // Optimize for different datatypes of a?
+         if (fabs((double) a)>(double) nnzThreshold){
+            nnz++;
+         } // Optimize for different datatypes of a?
          nnz += (int) (a>0);
          if (a < fMin) fMin = a;
          if (a > fMax) fMax = a;
@@ -222,7 +224,9 @@ int StatsProbe::outputState(double timed)
          pvdata_t a = buf[kex];
          sum += a;
          sum2 += a*a;
-         if (fabs((double) a)>(double) nnzThreshold) {nnz++;} // Optimize for different datatypes of a?
+         if (fabs((double) a)>(double) nnzThreshold) {
+            nnz++; // Optimize for different datatypes of a?
+         }
          if( a < fMin ) fMin = a;
          if( a > fMax ) fMax = a;
       }

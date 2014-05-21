@@ -245,6 +245,9 @@ int MLPErrorLayer::updateState(double time, double dt)
    pvdata_t * A = getCLayer()->activity->data;
    pvdata_t * V = getV();
 
+#ifdef PV_USE_OPENMP_THREADS
+#pragma omp parallel for
+#endif
    for(int ni = 0; ni < num_neurons; ni++){
       int next = kIndexExtended(ni, nx, ny, nf, loc->nb);
       //Update activity

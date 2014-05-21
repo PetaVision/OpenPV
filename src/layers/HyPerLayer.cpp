@@ -1020,6 +1020,10 @@ int HyPerLayer::allocateDataStructures()
       exit(EXIT_FAILURE);
    }
 
+   //TODO Check if we need pre to post mapping
+   //if(needPreToPostMap()){
+   //}
+
    //allocate lastActiveTime data structure
    //lastActiveTime = (double*) malloc(nf * sizeof(double));
    //Initialize with all different active values for imprinting
@@ -1742,6 +1746,9 @@ int HyPerLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activity
       pvwdata_t * data = conn->get_wData(arborID,kPre);
       uint4 * rngPtr = conn->getRandState(kPre);
       for (int y = 0; y < ny; y++) {
+#ifdef PV_USE_OPENMP_THREADS
+#pragma omp critical
+#endif
          (conn->accumulateFunctionPointer)(nk, gSynPatchStart + y*sy, a, data + y*syw, rngPtr);
       }
    }
