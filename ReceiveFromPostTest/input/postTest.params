@@ -231,7 +231,8 @@ TransposeConn "doubleTransposeConn" = {
     shmget_flag = false;
     delay = 0;
     pvpatchAccumulateType = "convolve";
-    updateGSynFromPostPerspective = false;
+
+    updateGSynFromPostPerspective = true;
 };
 
 IdentConn "RecvPostTest" = {

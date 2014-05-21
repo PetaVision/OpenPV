@@ -218,4 +218,5 @@ IdentConn "correct_to_comparison" = {
 RequireAllZeroActivityProbe "comparison_test" = {
     targetLayer = "comparison";
     probeOutputFile = "comparison_test.txt";
+    nnzThreshold = 1e-6;
 };
