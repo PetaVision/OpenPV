@@ -13,6 +13,7 @@ HyPerCol "column" = {
    nx                               = 64;   
    ny                               = 64;
    dt                               = 0.25;
+   dtAdaptFlag                      = false;
    randomSeed                       = 1829107657; // if not set here,  clock time is used to generate seed
    startTime                        = 0.0;
    stopTime                         = 2000.0;
@@ -21,9 +22,6 @@ HyPerCol "column" = {
    outputPath                       = "output";
    filenamesContainLayerNames       = false;
    filenamesContainConnectionNames  = false;
-   checkpointRead                   = false;
-   // checkpointReadDir                = "Checkpoints";
-   // checkpointReadDirIndex           = 2000;
    checkpointWrite                  = false;
    // checkpointWriteDir               = "Checkpoints";
    // checkpointWriteStepInterval      = 4000;
@@ -70,9 +68,9 @@ ANNLayer "scaled input" = {
 
     InitVType                       = "ZeroV";
 
-    VMax                            = infinity;
-    VShift                          = 0;
-    VMin                            = -infinity;
+    AMax                            = infinity;
+    AShift                          = 0;
+    AMin                            = -infinity;
     VThresh                         = -infinity;
 };
 
@@ -112,9 +110,9 @@ GenerativeLayer "Retina Spike Counter" = {
     writeSparseActivity             = false;
     phase                           = 0;
 
-    VMax                            = infinity;
-    VShift                          = 0.0;
-    VMin                            = -infinity;
+    AMax                            = infinity;
+    AShift                          = 0.0;
+    AMin                            = -infinity;
     VThresh                         = -infinity;
     relaxation                      = 1;
     activityThreshold               = 0.0;
@@ -172,10 +170,11 @@ GenerativeLayer "LIFTest Spike Counter" = {
     writeStep                       = -1.0;
     phase                           = 0;
 
-    VMax                            = infinity;
-    VShift                          = 0;
-    VMin                            = -infinity;
+    AMax                            = infinity;
+    AShift                          = 0;
+    AMin                            = -infinity;
     VThresh                         = -infinity;
+    VWidth                          = 0.0;
     relaxation                      = 1;
     activityThreshold               = 0.0;
     auxChannelCoeff                 = 0.0;
@@ -247,9 +246,9 @@ GenerativeLayer "LIFGapTest Spike Counter" = {
     writeSparseActivity             = false;
     phase                           = 0;
 
-    VMax                            = infinity;
-    VShift                          = 0;
-    VMin                            = -infinity;
+    AMax                            = infinity;
+    AShift                          = 0;
+    AMin                            = -infinity;
     VThresh                         = -infinity;
     relaxation                      = 1;
     activityThreshold               = 0.0;
