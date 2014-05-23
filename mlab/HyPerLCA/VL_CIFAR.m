@@ -180,7 +180,7 @@ function [scores, imageEstClass, confus, conf, images, imageClass] = VL_CIFAR()
       pvp_hist_values = sum(pvp_hist_values, 1);
       pvp_hist_values = squeeze(pvp_hist_values);
       pvp_hist_values = pvp_hist_values(:);
-      hists_tmp{i_oracle_frame} = pvp_hist_values;
+      hists_tmp{i_oracle_frame} = sparse(pvp_hist_values);
 
       endparfor
 
@@ -254,6 +254,35 @@ function [scores, imageEstClass, confus, conf, images, imageClass] = VL_CIFAR()
      testing_label_vector = str2num(oracle_classID(selTest))+1  ;
      testing_instance_matrix =  (hists(:, selTest(:)-selTrain(1)+1))';          
      [predicted_label, accuracy, decision_values] = svmpredict(testing_label_vector, testing_instance_matrix, model); %% [, 'libsvm_options']);
+     confus = zeros(length(classes));
+     for oracle_classID = 1 : length(classes)
+	 num_classID = sum(testing_label_vector == oracle_classID);
+	 for predicted_classID = 1 : length(classes)
+	   confus(oracle_classID, predicted_classID) = ...
+	   sum(testing_label_vector == oracle_classID & predicted_label == predicted_classID) / (num_classID + (num_classID==0));
+         endfor
+     endfor
+     fh_confus = figure;
+     subplot(1,2,1);
+     imagesc(confus);
+     axis off;
+     axis image
+     title(["test = ", num2str(accuracy(1))]);
+
+     [predicted_label_train, accuracy_train, decision_values_train] = svmpredict(training_label_vector, training_instance_matrix, model); %% [, 'libsvm_options']);
+     confus_train = zeros(length(classes));
+     for oracle_classID = 1 : length(classes)
+	 num_classID = sum(testing_label_vector == oracle_classID);
+	 for predicted_classID = 1 : length(classes)
+	   confus_train(oracle_classID, predicted_classID) = ...
+	   sum(training_label_vector == oracle_classID & predicted_label_train == predicted_classID) / (num_classID + (num_classID==0));
+         endfor
+     endfor
+     subplot(1,2,2);
+     imagesc(confus_train);
+     axis off;
+     axis image
+     title(["train = ", num2str(accuracy_train(1))]);
      
      keyboard;
   else
