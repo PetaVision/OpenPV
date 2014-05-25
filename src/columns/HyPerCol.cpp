@@ -77,9 +77,12 @@ HyPerCol::~HyPerCol()
    free(probes);
    free(layerProbes);
    free(name);
-   free(outputPath);
    free(printParamsFilename);
    // free(outputNamesOfLayersAndConns);
+   free(outputPath);
+   if (srcPath) {
+      free(srcPath);
+   }
    if (checkpointWriteFlag) {
       free(checkpointWriteDir); checkpointWriteDir = NULL;
       free(checkpointWriteTriggerModeString); checkpointWriteTriggerModeString = NULL;
@@ -134,6 +137,7 @@ int HyPerCol::initialize_base() {
    layers = NULL;
    connections = NULL;
    name = NULL;
+   srcPath = NULL;
    outputPath = NULL;
    // outputNamesOfLayersAndConns = NULL;
    printParamsFilename = NULL;
@@ -209,6 +213,13 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * p
    parse_options(argc, argv, &outputPath, &param_file,
                  &opencl_device, &random_seed, &working_dir, &restart, &checkpointReadDir, &numthreads);
 
+#ifdef PV_USE_OPENCL
+   srcPath = (char *) calloc(PV_PATH_MAX, sizeof(char));
+   sprintf(srcPath, "%s", "/Users/rasmus/Documents/workspace-PV/PetaVision/src");   // hardcode for now
+   srcPath = getcwd(srcPath, PV_PATH_MAX);
+   printf("============================= srcPath is %s\n", srcPath);
+#endif
+
 #ifdef PV_USE_OPENMP_THREADS
    if(numthreads == 0){
       numthreads = omp_get_max_threads();
@@ -255,6 +266,10 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * p
    }
 
    ioParams(PARAMS_IO_READ);
+
+#ifdef PV_USE_OPENCL
+   ensureDirExists(srcPath);
+#endif
 
    ensureDirExists(outputPath);
 

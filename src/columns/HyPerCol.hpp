@@ -72,7 +72,7 @@ public:
    ColProbe * getColProbe(int which)      {return probes[which];}
 
    char * getName()                       {return name;}
-   // char * getPath()                       {return path;}
+   char * getSrcPath()                    {return srcPath;}
    char * getOutputPath()                 {return outputPath;}
    int getNxGlobal()                      {return nxGlobal;}
    int getNyGlobal()                      {return nyGlobal;}
@@ -266,7 +266,7 @@ private:
    HyPerConn  ** connections;
 
    char * name;
-   // char * path;
+   char * srcPath;        // path to PetaVision src directory (used to compile OpenCL kernels)
    char * outputPath;     // path to output file directory
    // char * outputNamesOfLayersAndConns;  // path to file for writing list of layer names and connection names
    char * printParamsFilename; // filename for outputting the params, including defaults and excluding unread params
