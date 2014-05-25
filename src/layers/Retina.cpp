@@ -199,8 +199,8 @@ int Retina::initializeThreadKernels(const char * kernel_name)
    CLDevice * device = parent->getCLDevice();
 
    const char * pvRelPath = "../PetaVision";
-   sprintf(kernelPath,  "%s/%s/src/kernels/Retina_update_state.cl", parent->getPath(), pvRelPath);
-   sprintf(kernelFlags, "-D PV_USE_OPENCL -cl-fast-relaxed-math -I %s/%s/src/kernels/", parent->getPath(), pvRelPath);
+   sprintf(kernelPath,  "%s/%s/src/kernels/Retina_update_state.cl", parent->getSrcPath(), pvRelPath);
+   sprintf(kernelFlags, "-D PV_USE_OPENCL -cl-fast-relaxed-math -I %s/%s/src/kernels/", parent->getSrcPath(), pvRelPath);
 
    // create kernels
    //
