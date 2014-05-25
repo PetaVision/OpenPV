@@ -111,7 +111,7 @@ int LCALIFLateralConn::allocateDataStructures() {
 
 //         pvdata_t * gSyn_patch_start = getGSynPatchStart(kPre_extended, axonId);
 //         int start_index_restricted = gSyn_patch_start - gSyn_buffer_start;
-          int start_index_restricted = getGSynPatchStart(kPre_extended, axonId);
+         int start_index_restricted = getGSynPatchStart(kPre_extended, axonId);
 
          const PVPatch * p = getWeights(kPre_extended, axonId);
          int nx_patch = p->nx;
@@ -127,7 +127,7 @@ int LCALIFLateralConn::allocateDataStructures() {
          for (int ky_patch=0; ky_patch<ny_patch; ky_patch++) {
             for (int kx_patch=0; kx_patch<nx_patch; kx_patch++) {
                for (int kf_patch=0; kf_patch<nfp; kf_patch++) {
-                  //Calculate indicies of post weights
+                  //Calculate indices of post weights
                   int kPost_restricted = start_index_restricted + sy_restricted*ky_patch + sx_restricted*kx_patch + sf*kf_patch;
                   int kPost_extended = kIndexExtended(kPost_restricted, nxpost, nypost, nfpost, nbpost);
                   int k_patch = sxp*kx_patch + syp*ky_patch + sfp*kf_patch;
