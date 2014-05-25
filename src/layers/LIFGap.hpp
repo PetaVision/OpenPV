@@ -42,7 +42,6 @@ protected:
    int initialize(const char * name, HyPerCol * hc, PVLayerType type, const char * kernel_name);
    virtual int allocateConductances(int num_channels);
 
-   // pvdata_t * G_Gap; // Commented out May 15, 2013
    pvdata_t sumGap;
 
 #ifdef PV_USE_OPENCL
