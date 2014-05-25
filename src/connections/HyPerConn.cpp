@@ -1658,8 +1658,8 @@ int HyPerConn::initializeThreadKernels(const char * kernel_name)
    CLDevice * device = parent->getCLDevice();
 
    const char * pvRelPath = "../PetaVision";
-   sprintf(kernelPath, "%s/%s/src/kernels/%s.cl", parent->getPath(), pvRelPath, kernel_name);
-   sprintf(kernelFlags, "-D PV_USE_OPENCL -cl-fast-relaxed-math -I %s/%s/src/kernels/", parent->getPath(), pvRelPath);
+   sprintf(kernelPath, "%s/%s/src/kernels/%s.cl", parent->getSrcPath(), pvRelPath, kernel_name);
+   sprintf(kernelFlags, "-D PV_USE_OPENCL -cl-fast-relaxed-math -I %s/%s/src/kernels/", parent->getSrcPath(), pvRelPath);
 
    // create kernels
    //
@@ -1923,7 +1923,7 @@ int HyPerConn::deliverOpenCL(Publisher * pub, const PVLayerCube * cube)
    int kx=nxex/2; int ky=nyex/2;
    //int kPre=ky*nxex+kx;
    int gstart=0;//post->getNumNeurons()*getChannel();
-   float *gTempBuf=(float*)calloc(sizeof(float), post->getNumNeurons());
+   float * gTempBuf= (float*) calloc(sizeof(float), post->getNumNeurons());
    int * lutpointer = getLUTpointer();
    const int numWeightPatches = getNumWeightPatches();
    bool freelutpointer=false;
@@ -1978,19 +1978,22 @@ int HyPerConn::deliverOpenCL(Publisher * pub, const PVLayerCube * cube)
 //   clReleaseEvent(tmpcopybackGevList);
    post->copyGSynFromDevice();
 
+#ifdef TODO_CRAIG
+//TODO 2014.5.24 - need to figure out type of getGSynPatchStart (see LCALIFLateralConn.cpp for usage)
+//               - is it like a weight or activity parameter?
    //copyChannelExcFromDevice();
-   float *gTempBuf2=getGSynPatchStart(0, arborId);
+   ptrdiff_t gTempBuf2=getGSynPatchStart(0, arborId);
 
    int errcnt=0;
-   for(int ix=0;ix<postLoc->nx; ix++) {
-      for(int iy=0;iy<postLoc->ny; iy++) {
-         if(fabs(gTempBuf[iy*postLoc->nx+ix]-gTempBuf2[iy*postLoc->nx+ix])>0.00001){
+   for (int ix=0;ix<postLoc->nx; ix++) {
+      for (int iy=0;iy<postLoc->ny; iy++) {
+         if (fabs(gTempBuf[iy*postLoc->nx+ix]-gTempBuf2[iy*postLoc->nx+ix])>0.00001) {
             printf("mismatch! C function version: %f \n",gTempBuf[iy*postLoc->nx+ix]);
             printf("opencl function version: %f \n",gTempBuf2[iy*postLoc->nx+ix]);
             printf("at loc x: %d y %d \n",ix, iy);
             printf("kpre %d \n",ix+preLoc->nb+ (iy+preLoc->nb)*(preLoc->nx*preLoc->nf + 2*preLoc->nb));
             errcnt++;
-            if(errcnt>10) exit(1);
+            if (errcnt>10) exit(1);
          }
 //         if(gTempBuf[iy*postLoc->nx+ix]==4){
 //            printf("value = 4! lutpointer: %f \n",gTempBuf[iy*postLoc->nx+ix]);
@@ -2025,6 +2028,8 @@ int HyPerConn::deliverOpenCL(Publisher * pub, const PVLayerCube * cube)
 //         }
       }
    }
+#endif // TODO_CRAIG
+
    free(gTempBuf);
 
    return status;
