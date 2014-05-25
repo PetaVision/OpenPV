@@ -135,7 +135,7 @@ public:
    virtual double getTimeScale()          {return -1.0;};
 protected:
 
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual int  ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    virtual void ioParam_nxScale(enum ParamsIOFlag ioFlag);
    virtual void ioParam_nyScale(enum ParamsIOFlag ioFlag);
    virtual void ioParam_nf(enum ParamsIOFlag ioFlag);
@@ -156,7 +156,7 @@ protected:
    int freeClayer();
 
 #ifdef PV_USE_OPENCL
-   virtual void ioParam_GPUAccelerate(PVParams * params);
+   virtual void ioParam_GPUAccelerate(enum ParamsIOFlag ioFlag);
 #endif
 
 #ifdef PV_USE_OPENCL

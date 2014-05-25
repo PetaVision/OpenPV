@@ -624,7 +624,7 @@ int HyPerLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_writeSparseActivity(ioFlag);
    ioParam_writeSparseValues(ioFlag);
 #ifdef PV_USE_OPENCL
-   readGPUAccelerate(ioFlag);
+   ioParam_GPUAccelerate(ioFlag);
 #endif // PV_USE_OPENCL
    return PV_SUCCESS;
 }
@@ -744,8 +744,9 @@ void HyPerLayer::ioParam_writeSparseValues(enum ParamsIOFlag ioFlag) {
 }
 
 #ifdef PV_USE_OPENCL
+
 void HyPerLayer::ioParam_GPUAccelerate(enum ParamsIOFlag ioFlag) {
-   ioParamValue(ioFlag, name, "GPUAccelerate", &gpuAccelerateFlag, gpuAccelerateFlag);
+   parent->ioParamValue(ioFlag, name, "GPUAccelerate", &gpuAccelerateFlag, gpuAccelerateFlag);
 }
 
 /**
