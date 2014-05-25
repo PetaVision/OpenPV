@@ -179,8 +179,6 @@ int LIFGap::initializeThreadBuffers(const char * kernel_name)
    // these buffers are shared between host and device
    //
 
-   // TODO - use constant memory ????  put what in constant memory???
-   clG_Gap = device->createBuffer(CL_MEM_COPY_HOST_PTR, size, G_Gap);
    clGSynGap = device->createBuffer(CL_MEM_COPY_HOST_PTR, size, getChannel(CHANNEL_GAP));
 
    return status;
