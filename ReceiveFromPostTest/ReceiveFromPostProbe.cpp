@@ -29,11 +29,17 @@ void ReceiveFromPostProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
 
 int ReceiveFromPostProbe::outputState(double timed){
    int status = StatsProbe::outputState(timed);
-   // const PVLayerLoc * loc = getTargetLayer()->getLayerLoc();
+   const PVLayerLoc * loc = getTargetLayer()->getLayerLoc();
    int numExtNeurons = getTargetLayer()->getNumExtended();
    const pvdata_t * A = getTargetLayer()->getLayerData();
+   std::cout << "nx: " << loc->nxGlobal << " ny: " << loc->nyGlobal << " nf: " << loc->nf << " nb: " << loc->nb << "\n";
    for (int i = 0; i < numExtNeurons; i++){
-      //std::cout<<A[i]<<"\n";
+      //if(A[i] >= 1e-5){
+      //   int xpos = kxPos(i, loc->nx+2*loc->nb, loc->ny+2*loc->nb, loc->nf);
+      //   int ypos = kyPos(i, loc->nx+2*loc->nb, loc->ny+2*loc->nb, loc->nf);
+      //   int fpos = featureIndex(i, loc->nx+2*loc->nb, loc->ny+2*loc->nb, loc->nf);
+      //   std::cout << "[" << xpos << "," << ypos << "," << fpos << "] = " << A[i] << "\n";
+      //}
       //For roundoff errors
       assert(abs(A[i]) < 1e-5);
    }

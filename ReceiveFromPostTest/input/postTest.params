@@ -6,7 +6,7 @@ HyPerCol "column" = {
     dt = 1.0;
     randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
     startTime = 0.0;
-    numSteps = 5;       // Depends on number of VINE video frames
+    numSteps = 1;       // Depends on number of VINE video frames
     progressStep = 1;
     //Change this
     outputPath = "output/";
@@ -44,8 +44,8 @@ Image "image" = {
 
 ANNLayer "input" = {
     restart = 0;
-    nxScale = .5;
-    nyScale = .5;
+    nxScale = 1;
+    nyScale = 1;
     nf = 1;
     writeStep = 1.0;
     initialWriteTime = 0.0;
@@ -63,8 +63,8 @@ ANNLayer "input" = {
 
 ANNLayer "outputRecvPre" = {
     restart = 0;
-    nxScale = 1;
-    nyScale = 1;
+    nxScale = .5;
+    nyScale = .5;
     nf = 3;
     writeStep = 1.0;
     initialWriteTime = 0.0;
@@ -82,8 +82,8 @@ ANNLayer "outputRecvPre" = {
 
 ANNLayer "outputRecvPost" = {
     restart = 0;
-    nxScale = 1;
-    nyScale = 1;
+    nxScale = .5;
+    nyScale = .5;
     nf = 3;
     writeStep = 1.0;
     initialWriteTime = 0.0;
@@ -101,8 +101,8 @@ ANNLayer "outputRecvPost" = {
 
 ANNLayer "outputTest" = {
     restart = 0;
-    nxScale = 1;
-    nyScale = 1;
+    nxScale = .5;
+    nyScale = .5;
     nf = 3;
     writeStep = 1.0;
     initialWriteTime = 0.0;
@@ -162,13 +162,13 @@ KernelConn "ImageToInput" = {
 };
 
 KernelConn "origConn" = {
-    preLayerName = "input";
-    postLayerName = "outputRecvPre";
-    channelCode = 0;
+    preLayerName = "outputRecvPost";
+    postLayerName = "input";
+    channelCode = 2; //Inhib b, doing nothing to input
     nxp = 6; 
     nyp = 6; 
-    nfp = 3;
-    numAxonalArbors = 5;
+    nfp = 1;
+    numAxonalArbors = 1;
     initFromLastFlag = 0;  // 1;  // restart
     writeStep = 1;
     initialWriteTime = 0.0;
@@ -202,28 +202,29 @@ KernelConn "origConn" = {
     useWindowPost = false;
 };
 
-TransposeConn "transposeConn" = {
-    preLayerName = "outputRecvPost";
-    postLayerName = "input";
-    channelCode = 2; //Does nothing to the input layer
+TransposeConn "preTransposeConn" = {
+    preLayerName = "input";
+    postLayerName = "outputRecvPre";
+    channelCode = 0; //Does nothing to the input layer
     originalConnName = "origConn";
     selfFlag = false;
-    preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
+    preActivityIsNotRate = false;
     writeStep = -1;
     writeCompressedCheckpoints = false;
     shmget_flag = false;
     delay = 0;
     pvpatchAccumulateType = "convolve";
+
     updateGSynFromPostPerspective = false;
 };
 
-TransposeConn "doubleTransposeConn" = {
+TransposeConn "postTransposeConn" = {
     preLayerName = "input";
     postLayerName = "outputRecvPost";
     channelCode = 0;
-    originalConnName = "transposeConn";
+    originalConnName = "origConn";
     selfFlag = false;
-    preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
+    preActivityIsNotRate = false;
     writeStep = 1.0;
     initialWriteTime = 0.0;
     writeCompressedWeights = false;
