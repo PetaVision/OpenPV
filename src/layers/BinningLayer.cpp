@@ -20,6 +20,7 @@ int BinningLayer::initialize_base() {
    binMax = 1;
    binMin = 0;
    binSigma = 0;
+   zeroNeg = true;
    return PV_SUCCESS;
 }
 
@@ -34,6 +35,7 @@ int BinningLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_binMaxMin(ioFlag);
    ioParam_delay(ioFlag);
    ioParam_binSigma(ioFlag);
+   ioParam_zeroNeg(ioFlag);
    return status;
 }
 
@@ -73,6 +75,10 @@ void BinningLayer::ioParam_binSigma(enum ParamsIOFlag ioFlag) {
 
 void BinningLayer::ioParam_delay(enum ParamsIOFlag ioFlag) {
    parent->ioParamValue(ioFlag, name, "delay", &delay, delay);
+}
+
+void BinningLayer::ioParam_zeroNeg(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "zeroNeg", &zeroNeg, zeroNeg);
 }
 
 //TODO read params for gaussian over features
@@ -179,7 +185,12 @@ int BinningLayer::doUpdateState(double timed, double dt, const PVLayerLoc * orig
                }
                //Resetting value
                else{
-                  currA[currIdx] = -1; //Hacked in, make a parameter to choose between 0 or -1
+                  if(zeroNeg){
+                     currA[currIdx] = 0;
+                  }
+                  else{
+                     currA[currIdx] = -1; //Hacked in, make a parameter to choose between 0 or -1
+                  }
                }
             }
             else{

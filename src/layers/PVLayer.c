@@ -238,8 +238,13 @@ int pvpatch_accumulate(int nk, float* RESTRICT v, float a, pvwdata_t* RESTRICT w
 {
    int k;
    int err = 0;
+   float accumval;
    for (k = 0; k < nk; k++) {
-      v[k] = v[k] + a*w[k];
+      accumval = a*w[k];
+#ifdef PV_USE_OPENMP_THREADS
+#pragma omp atomic 
+#endif
+      v[k] += accumval;
    }
    return err;
 }
@@ -260,8 +265,14 @@ int pvpatch_accumulate2(int nk, float* RESTRICT v, float a, pvwdata_t* RESTRICT 
 {
    int k;
    int err = 0;
+   float accumval;
    for (k = 0; k < nk; k++) {
-      v[k] = v[k] + a*w[k]*m[k];
+      accumval = a*w[k]*m[k];
+#ifdef PV_USE_OPENMP_THREADS
+#pragma omp atomic 
+#endif
+      v[k] += accumval;
+
    }
    return err;
 }
@@ -296,9 +307,14 @@ int pvpatch_accumulate_stochastic(int nk, float* RESTRICT v, float a, pvwdata_t*
    long along = (long) (a*cl_random_max());
    int err = 0;
    int k;
+   float accumval;
    for (k = 0; k < nk; k++) {
       *rng = cl_random_get(*rng);
-      v[k] = v[k] + (rng->s0 < along)*w[k];
+      accumval = (rng->s0 < along)*w[k];
+#ifdef PV_USE_OPENMP_THREADS
+#pragma omp atomic 
+#endif
+      v[k] += accumval;
    }
    return err;
 }
@@ -341,7 +357,11 @@ int pvpatch_max_pooling(int nk, float* RESTRICT v, float a, pvwdata_t* RESTRICT 
 {
   int k;
   int err = 0;
+  float compareval;
   for (k = 0; k < nk; k++) {
+#ifdef PV_USE_OPENMP_THREADS
+#pragma omp critical
+#endif
      v[k] = v[k] > a*w[k] ? v[k] : a*w[k];
   }
   return err;

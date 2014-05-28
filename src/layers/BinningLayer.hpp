@@ -21,6 +21,7 @@ protected:
    void ioParam_binMaxMin(enum ParamsIOFlag ioFlag);
    void ioParam_delay(enum ParamsIOFlag ioFlag);
    void ioParam_binSigma(enum ParamsIOFlag ioFlag);
+   void ioParam_zeroNeg(enum ParamsIOFlag ioFlag);
    int allocateV();
    int initializeV();
    virtual int initializeActivity();
@@ -36,6 +37,7 @@ private:
    float binMax;
    float binMin;
    float binSigma;
+   bool zeroNeg;
 
 protected:
    char * originalLayerName;

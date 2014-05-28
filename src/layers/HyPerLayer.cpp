@@ -1634,7 +1634,7 @@ int HyPerLayer::recvSynapticInputFromPost(HyPerConn * conn, const PVLayerCube * 
 
 
 #ifdef PV_USE_OPENMP_THREADS
-#pragma omp parallel for
+#pragma omp parallel for schedule(static)
 #endif
    for (int kTargetRes = 0; kTargetRes < numRestricted; kTargetRes++){
       //Change restricted to extended post neuron
@@ -1831,9 +1831,7 @@ int HyPerLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activity
       pvwdata_t * data = conn->get_wData(arborID,kPre);
       uint4 * rngPtr = conn->getRandState(kPre);
       for (int y = 0; y < ny; y++) {
-#ifdef PV_USE_OPENMP_THREADS
-#pragma omp critical
-#endif
+         //Individual accumulate functions have atomic operations in them
          (conn->accumulateFunctionPointer)(nk, gSynPatchStart + y*sy, a, data + y*syw, rngPtr);
       }
    }
