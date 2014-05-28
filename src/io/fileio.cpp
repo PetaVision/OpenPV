@@ -2045,9 +2045,9 @@ template <typename T> int scatterActivity(PV_Stream * pvstream, Communicator * c
             for (int i = 0; i < numActive; i++) {
                int xpos = kxPos(activeNeurons[i], fileLoc->nxGlobal, fileLoc->nyGlobal, layerLoc->nf);
                int ypos = kyPos(activeNeurons[i], fileLoc->nxGlobal, fileLoc->nyGlobal, layerLoc->nf);
-                  if((xpos >= kx0) && (xpos < kx0+layerLoc->nx) && (ypos >= ky0) && (ypos < ky0 + layerLoc->ny)) {
+                  if((xpos >= kx0+offsetX) && (xpos < kx0+layerLoc->nx+offsetX) && (ypos >= ky0+offsetY) && (ypos < ky0 + layerLoc->ny+offsetY)) {
                      int fpos = featureIndex(activeNeurons[i], fileLoc->nxGlobal, fileLoc->nyGlobal, layerLoc->nf);
-                     TBuff1[(ypos-ky0)*linesize + (xpos-kx0)*layerLoc->nf + fpos] = 1;
+                     TBuff1[(ypos-ky0-offsetY)*linesize + (xpos-kx0-offsetX)*layerLoc->nf + fpos] = 1;
                   }
             }
             //Send buffer to appropriate mpi process
@@ -2065,9 +2065,9 @@ template <typename T> int scatterActivity(PV_Stream * pvstream, Communicator * c
          for (int i = 0; i < numActive; i++) {
              int xpos = kxPos(activeNeurons[i], fileLoc->nxGlobal, fileLoc->nyGlobal, layerLoc->nf);
              int ypos = kyPos(activeNeurons[i], fileLoc->nxGlobal, fileLoc->nyGlobal, layerLoc->nf);
-                if((xpos >= kx0) && (xpos < kx0+layerLoc->nx) && (ypos >= ky0) && (ypos < ky0 + layerLoc->ny)) {
+                if((xpos >= kx0+offsetX) && (xpos < kx0+layerLoc->nx+offsetX) && (ypos >= ky0+offsetY) && (ypos < ky0 + layerLoc->ny+offsetY)) {
                    int fpos = featureIndex(activeNeurons[i], fileLoc->nxGlobal, fileLoc->nyGlobal, layerLoc->nf);
-                   TBuff1[(ypos-ky0)*linesize + (xpos-kx0)*layerLoc->nf + fpos] = 1;
+                   TBuff1[(ypos-ky0-offsetY)*linesize + (xpos-kx0-offsetX)*layerLoc->nf + fpos] = 1;
                 }
           }
          free(activeNeurons);
@@ -2091,9 +2091,9 @@ template <typename T> int scatterActivity(PV_Stream * pvstream, Communicator * c
             for (int i = 0; i < numActive; i++) {
                int xpos = kxPos(activeNeurons[i], fileLoc->nxGlobal, fileLoc->nyGlobal, layerLoc->nf);
                int ypos = kyPos(activeNeurons[i], fileLoc->nxGlobal, fileLoc->nyGlobal, layerLoc->nf);
-               if((xpos >= kx0) && (xpos < kx0+layerLoc->nx) && (ypos >= ky0) && (ypos < ky0 + layerLoc->ny)) {
+               if((xpos >= kx0+offsetX) && (xpos < kx0+layerLoc->nx+offsetX) && (ypos >= ky0+offsetY) && (ypos < ky0 + layerLoc->ny+offsetY)) {
                   int fpos = featureIndex(activeNeurons[i], fileLoc->nxGlobal, fileLoc->nyGlobal, layerLoc->nf);
-                  TBuff1[(ypos-ky0)*linesize + (xpos-kx0)*layerLoc->nf + fpos] = vals[i];
+                  TBuff1[(ypos-ky0-offsetY)*linesize + (xpos-kx0-offsetX)*layerLoc->nf + fpos] = vals[i];
                }
             }
             //Send buffer to appropriate mpi process
@@ -2108,12 +2108,14 @@ template <typename T> int scatterActivity(PV_Stream * pvstream, Communicator * c
          // Same thing for root process
          ky0 = layerLoc->ny*rowFromRank(rootproc, comm->numCommRows(), comm->numCommColumns());
          kx0 = layerLoc->nx*columnFromRank(rootproc, comm->numCommRows(), comm->numCommColumns());
+         std::cout << "numActive: " << numActive << " fileLoc: (" << fileLoc->nxGlobal << "," << fileLoc->nyGlobal << ")\n";
          for (int i = 0; i < numActive; i++) {
             int xpos = kxPos(activeNeurons[i], fileLoc->nxGlobal, fileLoc->nyGlobal, layerLoc->nf);
             int ypos = kyPos(activeNeurons[i], fileLoc->nxGlobal, fileLoc->nyGlobal, layerLoc->nf);
-            if((xpos >= kx0) && (xpos < kx0+layerLoc->nx) && (ypos >= ky0) && (ypos < ky0 + layerLoc->ny)) {
+            if((xpos >= kx0+offsetX) && (xpos < kx0+layerLoc->nx+offsetX) && (ypos >= ky0+offsetY) && (ypos < ky0 + layerLoc->ny+offsetY)) {
                int fpos = featureIndex(activeNeurons[i], fileLoc->nxGlobal, fileLoc->nyGlobal, layerLoc->nf);
-               TBuff1[(ypos-ky0)*linesize + (xpos-kx0)*layerLoc->nf + fpos] = vals[i];
+               //Testing this
+               TBuff1[(ypos-ky0-offsetY)*linesize + (xpos-kx0-offsetX)*layerLoc->nf + fpos] = vals[i];
             }
          }
          free(activeNeurons);
@@ -2142,6 +2144,7 @@ template <typename T> int scatterActivity(PV_Stream * pvstream, Communicator * c
 #ifdef OBSOLETE_PV_USE_MPI
 // C.Rasmussen (2014.3.26) removed as above should work without MPI
 // #else // PV_USE_MPI
+   std::cout << "\n\n\n\n OBSOLETE_PV_USE_MPI DEFINED \n\n\n\n\n";
    switch (filetype) {
    case PVP_NONSPIKING_ACT_FILE_TYPE:
       for (int y=0; y<layerLoc->ny; y++) {
