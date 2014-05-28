@@ -46,9 +46,12 @@ namespace PV {
       double inputMag = 0;
       pvdata_t * gSynExc = getChannel(CHANNEL_EXC);
       pvdata_t * gSynInh = getChannel(CHANNEL_INH);
+#ifdef PV_USE_OPENMP_THREADS
+#pragma omp parallel for reduction(+ : errorMag, inputMag)
+#endif
       for (int i = 0; i < num_neurons; i++){
-	errorMag += (gSynExc[i] - gSynInh[i]) * (gSynExc[i] - gSynInh[i]);
-	inputMag += gSynExc[i] * gSynExc[i];
+         errorMag += (gSynExc[i] - gSynInh[i]) * (gSynExc[i] - gSynInh[i]);
+         inputMag += gSynExc[i] * gSynExc[i];
       }
 #ifdef PV_USE_MPI
       //Sum all errMag across processors
