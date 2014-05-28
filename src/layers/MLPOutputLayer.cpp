@@ -122,6 +122,79 @@ void MLPOutputLayer::ioParam_GTLayername(enum ParamsIOFlag ioFlag) {
    parent->ioParamStringRequired(ioFlag, name, "gtLayername", &gtLayername);
 }
 
+void MLPOutputLayer::binaryNonlocalStats(){
+   const PVLayerLoc * loc = getLayerLoc();
+   int nx = loc->nx;
+   int ny = loc->ny;
+   int nf = loc->nf;
+   assert(nf == 1);
+   int numNeurons = getNumNeurons();
+   pvdata_t * A = getCLayer()->activity->data;
+   pvdata_t * gtA = gtLayer->getCLayer()->activity->data;
+   float sumsq = 0;
+   float sum = 0;
+   float gtSum = 0;
+   int currNumRight = 0;
+   int currNumWrong = 0;
+   int totNum = 0;
+
+   //Only go through restricted
+   //Calculate the sum squared error
+   for(int ni = 0; ni < numNeurons; ni++){
+      int nExt = kIndexExtended(ni, nx, ny, nf, loc->nb);
+      int fi = featureIndex(nExt, nx+2*loc->nb, ny+2*loc->nb, nf);
+      //Sum over x and y direction
+      sumsq += pow(A[nExt] - gtA[nExt], 2);
+      //Sum over activity to find mean
+      sum += A[nExt];
+      gtSum += gtA[nExt];
+   }
+
+#ifdef PV_USE_MPI
+   MPI_Allreduce(MPI_IN_PLACE, &sumsq, 1, MPI_FLOAT, MPI_SUM, parent->icCommunicator()->communicator());
+   MPI_Allreduce(MPI_IN_PLACE, &sum, 1, MPI_FLOAT, MPI_SUM, parent->icCommunicator()->communicator());
+   MPI_Allreduce(MPI_IN_PLACE, &gtSum, 1, MPI_FLOAT, MPI_SUM, parent->icCommunicator()->communicator());
+#endif // PV_USE_MPI
+   //Normalize sum to find mean
+   sum /= loc->nxGlobal * loc->nyGlobal;
+   gtSum /= loc->nxGlobal * loc->nyGlobal;
+   //gtSum should be the same as the values
+   assert(gtSum == gtA[0]);
+
+   //Calculate stats
+   if(sum < 0 && gtSum < 0){
+      currNumRight++;
+   }
+   else if(sum > 0 && gtSum > 0){
+      currNumRight++;
+   }
+   else{
+      currNumWrong++;
+   }
+#ifdef PV_USE_MPI
+   MPI_Allreduce(MPI_IN_PLACE, &currNumRight, 1, MPI_INT, MPI_SUM, parent->icCommunicator()->communicator());
+   MPI_Allreduce(MPI_IN_PLACE, &currNumWrong, 1, MPI_INT, MPI_SUM, parent->icCommunicator()->communicator());
+#endif // PV_USE_MPI
+   numRight += currNumRight;
+   numWrong += currNumWrong;
+   progressNumRight += currNumRight;
+   progressNumWrong += currNumWrong;
+   //Print if need
+   float timef = parent->simulationTime();
+   if(timef >= nextStatProgress){
+      //Update nextStatProgress
+      nextStatProgress += statProgressPeriod;
+      if (parent->columnId()==0) {
+         float totalScore = 100*float(numRight)/float(numRight+numWrong);
+         float progressScore = 100*float(progressNumRight)/float(progressNumRight+progressNumWrong);
+         fprintf(stdout, "time:%f  layer:\"%s\"  total:%f%%  progressStep:%f%%  energy:%f\n", timef, name, totalScore, progressScore, sumsq/2);
+      }
+      //Reset progressStats
+      progressNumRight = 0;
+      progressNumWrong = 0;
+   }
+}
+
 void MLPOutputLayer::multiclassNonlocalStats(){
    const PVLayerLoc * loc = getLayerLoc();
    int nx = loc->nx;
@@ -287,17 +360,31 @@ int MLPOutputLayer::updateState(double timef, double dt) {
    if(statProgressPeriod > 0){
       //TODO add more if statements for different cases
       if(!localTarget){
-         multiclassNonlocalStats();
+         if(getLayerLoc()->nf == 1){
+            binaryNonlocalStats();
+         }
+         else{
+            multiclassNonlocalStats();
+         }
       }
       else{
-         binaryLocalStats();
+         if(getLayerLoc()->nf == 1){
+            binaryLocalStats();
+         }
+         else{
+            std::cout << "Not implemented\n";
+            exit(EXIT_FAILURE);
+            //TODO
+            //multiclassNonlocalStats();
+         }
       }
    }
    //For testing purposes
-   //for(int ni = 0; ni < getNumNeurons(); ni++){
-   //   int nExt = kIndexExtended(ni, nx, ny, nf, loc->nb);
-   //   std::cout << timef <<":  ni: " << ni << "  A: " << A[ni] << "\n";
-   //}
+   pvdata_t * A = getCLayer()->activity->data;
+   for(int ni = 0; ni < getNumNeurons(); ni++){
+      //int nExt = kIndexExtended(ni, loc->nx, loc->ny, loc->nf, loc->nb);
+      std::cout << timef <<":  ni: " << ni << "  A: " << A[ni] << "\n";
+   }
    return PV_SUCCESS;
 }
 

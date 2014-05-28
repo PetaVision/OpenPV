@@ -26,6 +26,7 @@ protected:
 private:
    //TODO add more
    void multiclassNonlocalStats();
+   void binaryNonlocalStats();
    void binaryLocalStats();
 
    bool localTarget;

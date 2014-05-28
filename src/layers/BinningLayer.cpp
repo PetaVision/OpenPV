@@ -179,7 +179,7 @@ int BinningLayer::doUpdateState(double timed, double dt, const PVLayerLoc * orig
                }
                //Resetting value
                else{
-                  currA[currIdx] = 0;
+                  currA[currIdx] = -1; //Hacked in, make a parameter to choose between 0 or -1
                }
             }
             else{

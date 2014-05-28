@@ -123,6 +123,8 @@ public:
    virtual int scatterImageFilePVP(const char * filename, int xOffset, int yOffset, PV::Communicator * comm, const PVLayerLoc * loc, float * buf, int frameNumber);
    virtual int scatterImageFileGDAL(const char * filename, int xOffset, int yOffset, PV::Communicator * comm, const PVLayerLoc * loc, float * buf, bool autoResizeFlag);
 
+   float getPvpFileTime(){ return pvpFileTime;};
+
 private:
    int initialize_base();
 
@@ -183,11 +185,12 @@ protected:
 
    //Read pvp file frame number
    int frameNumber;
+   //Current pvp file time
+   float pvpFileTime;
 
    Random * randState;
 
    long * frameStart;
-   int * count;
    long length;
    bool needFrameSizesForSpiking;
    PV_Stream * posstream;

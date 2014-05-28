@@ -81,6 +81,7 @@ int Image::initialize_base() {
    frameNumber = 0;
    randState = NULL;
    posstream = NULL;
+   pvpFileTime = 0;
    return PV_SUCCESS;
 }
 
@@ -383,7 +384,7 @@ int Image::scatterImageFilePVP(const char * filename, int xOffset, int yOffset,
 
                int percent = 0;
                long frameStart;
-               int count;
+               long count;
                posstream = PV_fopen(posFilename, "w");
                assert(posstream);
                for (i = 0; i<params[INDEX_NBANDS]; i++) {
@@ -399,7 +400,7 @@ int Image::scatterImageFilePVP(const char * filename, int xOffset, int yOffset,
                   }
                   //Read in the number of active neurons for that frame and calculate byte position
                   else {
-                     PV::PV_fread(&count, sizeof(int), 1, pvstream);
+                     PV::PV_fread(&count, sizeof(unsigned int), 1, pvstream);
                      frameStart = frameStart + (long)count*(long)datasize + (long)12;
                      PV::PV_fseek(pvstream, frameStart - (long)4, SEEK_SET);
                   }
@@ -422,10 +423,10 @@ int Image::scatterImageFilePVP(const char * filename, int xOffset, int yOffset,
          PV::PV_fseek(posstream, frameNumber * sizeof(long), SEEK_SET);
          PV::PV_fread(&framepos, sizeof(long), 1, posstream);
          //Calculate where in position file to look at fileposition 
-         PV::PV_fseek(pvstream, framepos-sizeof(double)-sizeof(int), SEEK_SET);
+         PV::PV_fseek(pvstream, framepos-sizeof(double)-sizeof(unsigned int), SEEK_SET);
          PV::PV_fread(&timed, sizeof(double), 1, pvstream);
-         PV::PV_fread(&count, sizeof(int), 1, pvstream);
-         std::cout << "timestep:" << parent->simulationTime() << "  filetime:" << timed << "  framenumber:" << frameNumber << "\n";
+         PV::PV_fread(&length, sizeof(unsigned int), 1, pvstream);
+         std::cout << "length: " << length << "\n";
          status = PV_SUCCESS;
          break;
       case PVP_NONSPIKING_ACT_FILE_TYPE:
@@ -449,6 +450,10 @@ int Image::scatterImageFilePVP(const char * filename, int xOffset, int yOffset,
          status = PV_FAILURE;
          break;
       }
+
+      pvpFileTime = timed;
+      std::cout << "Reading pvpFileTime " << pvpFileTime << " with offset (" << xOffset << "," << yOffset << ")\n";
+
       scatterActivity(pvstream, comm, rootproc, buf, loc, false, &fileloc, xOffset, yOffset, params[INDEX_FILE_TYPE], length);
       // buf is a nonextended layer.  Image layers copy the extended buffer data into buf by calling Image::copyToInteriorBuffer
       PV::PV_fclose(pvstream); pvstream = NULL;
