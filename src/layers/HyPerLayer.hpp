@@ -419,6 +419,9 @@ protected:
 
 //   int feedforwardDelay;  // minimum delay required for a change in the input to potentially influence this layer
 //   int feedbackDelay;     // minimum delay required for a change in this layer to potentially influence itself via feedback loop
+private:
+   //Receive from post buffer for optimization
+   int * startSourceExtBuf;
 
    // OpenCL variables
    //
@@ -526,6 +529,7 @@ protected:
 
 #endif
 
+protected:
    Timer * update_timer;
    Timer * recvsyn_timer;
    Timer * publish_timer;

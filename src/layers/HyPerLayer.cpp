@@ -136,6 +136,8 @@ int HyPerLayer::initialize_base() {
    this->numSynchronizedMarginWidthLayers = 0;
    this->synchronizedMarginWidthLayers = NULL;
 
+   this->startSourceExtBuf = NULL;
+
 #ifdef PV_USE_OPENCL
    this->krUpdate = NULL;
    this->clV = NULL;
@@ -294,6 +296,11 @@ HyPerLayer::~HyPerLayer()
    freeClayer();
    free(name); name = NULL;
    freeChannels();
+
+   if(startSourceExtBuf){
+      free(startSourceExtBuf);
+      startSourceExtBuf = NULL;
+   }
 
 #ifdef PV_USE_OPENCL
    if(gpuAccelerateFlag) {
@@ -1604,13 +1611,12 @@ int HyPerLayer::recvSynapticInputFromPost(HyPerConn * conn, const PVLayerCube * 
    //update conn to original connection
    HyPerConn * targetToSourceConn = sourceToTargetConn->getOriginalConn();
    // Don't need TransposeConn to have the same pre and post as originalConn but flipped.  nx,ny,nf must be consistent, but that's checked in initialization.
-   // TODO remove this assertion
-    //Assert that the transpose is opposite of the original connection
-    if(targetToSourceConn->preSynapticLayer()->getLayerId() != sourceToTargetConn->postSynapticLayer()->getLayerId() ||
-       targetToSourceConn->postSynapticLayer()->getLayerId() != sourceToTargetConn->preSynapticLayer()->getLayerId()){
-       fprintf(stderr, "HyPerLayer \"%s\": Transpose connection %s must be the same connection in the oposite direction of %s.\n", name, sourceToTargetConn->getName(), conn->getName());
-       abort();
-    }
+    ////Assert that the transpose is opposite of the original connection
+    //if(targetToSourceConn->preSynapticLayer()->getLayerId() != sourceToTargetConn->postSynapticLayer()->getLayerId() ||
+    //   targetToSourceConn->postSynapticLayer()->getLayerId() != sourceToTargetConn->preSynapticLayer()->getLayerId()){
+    //   fprintf(stderr, "HyPerLayer \"%s\": Transpose connection %s must be the same connection in the oposite direction of %s.\n", name, sourceToTargetConn->getName(), conn->getName());
+    //   abort();
+    //}
 
    recvsyn_timer->start();
 
@@ -1628,149 +1634,95 @@ int HyPerLayer::recvSynapticInputFromPost(HyPerConn * conn, const PVLayerCube * 
 
    float dt_factor = getConvertToRateDeltaTimeFactor(sourceToTargetConn);
 
-   //Test, remove this later
-   const PVLayerLoc * sourceLoc = sourceToTargetConn->preSynapticLayer()->getLayerLoc();
-   const PVLayerLoc * targetLoc = getLayerLoc();
+   const PVLayerLoc * oSourceLoc = targetToSourceConn->postSynapticLayer()->getLayerLoc();
+   const PVLayerLoc * oTargetLoc = targetToSourceConn->preSynapticLayer()->getLayerLoc();
+   const PVLayerLoc * aSourceLoc = sourceToTargetConn->preSynapticLayer()->getLayerLoc();
+   const PVLayerLoc * aTargetLoc = getLayerLoc();
 
+   const int sourceNx = aSourceLoc->nx;
+   const int sourceNy = aSourceLoc->ny;
+   const int sourceNf = aSourceLoc->nf;
+   const int targetNx = aTargetLoc->nx;
+   const int targetNy = aTargetLoc->ny;
+   const int targetNf = aTargetLoc->nf;
+
+   const int aSourceNb = aSourceLoc->nb;
+   const int oSourceNb = oSourceLoc->nb;
+   const int aTargetNb = aTargetLoc->nb;
+   const int oTargetNb = oTargetLoc->nb;
+
+   //get source layer's extended y stride
+   int sy  = (sourceNx+2*aSourceNb)*sourceNf;
+   //get source layer's patch y stride
+   int syp = targetToSourceConn->yPatchStride(); // Should be correct even if targetToSourceConn points to a different layer than sourceToTargetConn's pre.
+   //Iterate through y patch
+   int numPerStride = targetToSourceConn->xPatchSize() * targetToSourceConn->fPatchSize();
+
+   //The start of the gsyn buffer
+   pvdata_t * gSynPatchHead = this->getChannel(sourceToTargetConn->getChannel());
+
+   //If the startSourceExt buffer doesn't exist, create it
+   if(startSourceExtBuf == NULL){
+      startSourceExtBuf = (int*)malloc(sizeof(int) * numRestricted);
+      //Fill buffer
+#ifdef PV_USE_OPENMP_THREADS
+#pragma omp parallel for schedule(static)
+#endif
+      for (int kTargetRes = 0; kTargetRes < numRestricted; kTargetRes++){
+         int okTargetExt = kIndexExtended(kTargetRes, targetNx, targetNy, targetNf, oTargetNb);
+         //Get start index of source from gsyn in restricted
+         // We have to use gSynPatchStart instead of aPostOffset because originalConn's post-synaptic layer's nb may not be the same as conn's pre-layer's nb.
+         int sourceRes = targetToSourceConn->getGSynPatchStart(okTargetExt, arborID);
+         int sourceExt= kIndexExtended(sourceRes, sourceNx, sourceNy, sourceNf, aSourceNb);
+         int sourceXExt = kxPos(sourceExt, sourceNx + 2*aSourceNb, sourceNy + 2*aSourceNb, sourceNf);
+         int sourceYExt = kyPos(sourceExt, sourceNx + 2*aSourceNb, sourceNy + 2*aSourceNb, sourceNf);
+         int sourceF = featureIndex(sourceExt, sourceNx + 2*aSourceNb, sourceNy + 2*aSourceNb, sourceNf);
+
+         //Grab patch given the post
+         PVPatch * shrunkenWeights = targetToSourceConn->getWeights(okTargetExt, arborID);
+         //Grab offset
+         int offset = shrunkenWeights->offset;
+         //Get x and y in patch space
+         //conn is target to source
+         int patchX = kxPos(offset, targetToSourceConn->xPatchSize(), targetToSourceConn->yPatchSize(), targetToSourceConn->fPatchSize());
+         int patchY = kyPos(offset, targetToSourceConn->xPatchSize(), targetToSourceConn->yPatchSize(), targetToSourceConn->fPatchSize());
+
+         //Move source X and Y to offset
+         sourceXExt -= patchX; 
+         sourceYExt -= patchY; 
+
+         //Change sourceExt back to extended source index, but unshrunken
+         //Store this value in a buffer to avoid recalculation
+         startSourceExtBuf[kTargetRes] = kIndex(sourceXExt, sourceYExt, sourceF, sourceNx + 2*aSourceNb, sourceNy + 2*aSourceNb, sourceNf);
+      }
+   }
 
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for schedule(static)
 #endif
-   for (int kTargetRes = 0; kTargetRes < numRestricted; kTargetRes++){
-      //Change restricted to extended post neuron
-      int kTargetExt = kIndexExtended(kTargetRes, targetLoc->nx, targetLoc->ny, targetLoc->nf, targetLoc->nb);
-      bool inWindow; 
-      inWindow = inWindowExt(arborID, kTargetExt);
-      if(!inWindow) continue;
-      //
-      //Get start index of source from gsyn in restricted
-      // We have to use gSynPatchStart instead of aPostOffset because originalConn's post-synaptic layer's nb may not be the same as conn's pre-layer's nb.
-      int sourceRes = targetToSourceConn->getGSynPatchStart(kTargetExt, arborID);
-      int sourceExt= kIndexExtended(sourceRes, sourceLoc->nx, sourceLoc->ny, sourceLoc->nf, sourceLoc->nb);
-      int sourceXExt = kxPos(sourceExt, sourceLoc->nx + 2*sourceLoc->nb, sourceLoc->ny + 2*sourceLoc->nb, sourceLoc->nf);
-      int sourceYExt = kyPos(sourceExt, sourceLoc->nx + 2*sourceLoc->nb, sourceLoc->ny + 2*sourceLoc->nb, sourceLoc->nf);
-      int sourceF = featureIndex(sourceExt, sourceLoc->nx + 2*sourceLoc->nb, sourceLoc->ny + 2*sourceLoc->nb, sourceLoc->nf);
+   for (int ky = 0; ky < targetToSourceConn->yPatchSize(); ky++){
+      for (int kTargetRes = 0; kTargetRes < numRestricted; kTargetRes++){
+         //Change restricted to extended post neuron
+         int akTargetExt = kIndexExtended(kTargetRes, targetNx, targetNy, targetNf, aTargetNb);
+         int okTargetExt = kIndexExtended(kTargetRes, targetNx, targetNy, targetNf, oTargetNb);
 
-      //Grab patch given the post
-      PVPatch * shrunkenWeights = targetToSourceConn->getWeights(kTargetExt, arborID);
-      //Grab offset
-      int offset = shrunkenWeights->offset;
-      //Get x and y in patch space
-      //conn is target to source
-      int patchX = kxPos(offset, targetToSourceConn->xPatchSize(), targetToSourceConn->yPatchSize(), targetToSourceConn->fPatchSize());
-      int patchY = kyPos(offset, targetToSourceConn->xPatchSize(), targetToSourceConn->yPatchSize(), targetToSourceConn->fPatchSize());
+         bool inWindow; 
+         inWindow = inWindowExt(arborID, akTargetExt);
+         if(!inWindow) continue;
 
-      //Move source X and Y to offset
-      sourceXExt -= patchX; 
-      sourceYExt -= patchY; 
+         //Read from buffer
+         int startSourceExt = startSourceExtBuf[kTargetRes];
 
-      //Change sourceExt back to extended source index, but unshrunken
-      int startSourceExt = kIndex(sourceXExt, sourceYExt, sourceF, sourceLoc->nx + 2*sourceLoc->nb, sourceLoc->ny + 2*sourceLoc->nb, sourceLoc->nf);
+         //Calculate target's start of gsyn
+         pvdata_t * gSynPatchPos = gSynPatchHead + kTargetRes;
 
-      //Calculate target's start of gsyn
-      pvdata_t * gSynPatchHead = this->getChannel(sourceToTargetConn->getChannel());
-      pvdata_t * gSynPatchPos = gSynPatchHead + kTargetRes;
-
-      //get source layer's extended y stride
-      int sy  = (sourceLoc->nx+2*sourceLoc->nb)*sourceLoc->nf;
-      //get source layer's patch y stride
-      int syp = targetToSourceConn->yPatchStride(); // Should be correct even if targetToSourceConn points to a different layer than sourceToTargetConn's pre.
-      //Iterate through y patch
-      int numPerStride = targetToSourceConn->xPatchSize() * targetToSourceConn->fPatchSize();
-      const PVLayerLoc * origPreLoc = targetToSourceConn->preSynapticLayer()->getLayerLoc();
-      int kTargetOrigConnExt = kIndexExtended(kTargetRes, origPreLoc->nx, origPreLoc->ny, origPreLoc->nf, origPreLoc->nb);
-      int kernelIndex = targetToSourceConn->patchToDataLUT(kTargetOrigConnExt);
-      uint4 * rngPtr = conn->getRandState(kTargetRes);
-      for (int ky = 0; ky < targetToSourceConn->yPatchSize(); ky++){
+         int kernelIndex = targetToSourceConn->patchToDataLUT(okTargetExt);
+         uint4 * rngPtr = conn->getRandState(kTargetRes);
          float * activityY = &(activity->data[startSourceExt + ky*sy]);
          pvwdata_t * weightY = targetToSourceConn->get_wDataHead(arborID, kernelIndex) + ky*syp;
          (conn->accumulateFunctionFromPostPointer)(numPerStride, gSynPatchPos, activityY, weightY, dt_factor, rngPtr);
       }
    }
-
-   ////These locs are based on the connection's locs
-   //const PVLayerLoc * origSourceLoc = targetToSourceConn->postSynapticLayer()->getLayerLoc();
-   //const PVLayerLoc * origTargetLoc = targetToSourceConn->preSynapticLayer()->getLayerLoc();
-   ////These locs are based on the actual connection's locs
-   //const PVLayerLoc * actualSourceLoc = sourceToTargetConn->preSynapticLayer()->getLayerLoc();
-   //const PVLayerLoc * actualTargetLoc = getLayerLoc();
-
-   //const int targetNx = actualTargetLoc->nx; 
-   //const int targetNy = actualTargetLoc->ny;
-   //const int targetNf = actualTargetLoc->nf;
-   //const int sourceNx = actualSourceLoc->nx;
-   //const int sourceNy = actualSourceLoc->ny;
-   //const int sourceNf = actualSourceLoc->nf;
-
-   ////Nbs are different
-   //const int atargetNb = actualTargetLoc->nb;
-   //const int otargetNb = origTargetLoc->nb;
-   //const int asourceNb = actualSourceLoc->nb;
-   //const int osourceNb = origTargetLoc->nb;
-
-   //for (int kTargetRes = 0; kTargetRes < numRestricted; kTargetRes++){
-   //   //Change restricted to extended post neuron
-   //   int akTargetExt = kIndexExtended(kTargetRes, targetNx, targetNy, targetNf, atargetNb);
-   //   int okTargetExt = kIndexExtended(kTargetRes, targetNx, targetNy, targetNf, otargetNb);
-
-   //   bool inWindow; 
-   //   inWindow = inWindowExt(arborID, akTargetExt);
-   //   if(!inWindow) continue;
-   //   //Get start index of source from gsyn in restricted
-   //   // We have to use gSynPatchStart instead of aPostOffset because originalConn's post-synaptic layer's nb may not be the same as conn's pre-layer's nb.
-   //   //sourceRes is an offset
-   //   int sourceRes = targetToSourceConn->getGSynPatchStart(akTargetExt, arborID);
-   //   //Offset in restricted space, need to be in  
-   //   int sourceExt= kIndexExtended(sourceRes, sourceNx, sourceNy, sourceNf, asourceNb);
-   //   int sourceXExt = kxPos(sourceExt, sourceNx + 2*asourceNb, sourceNy + 2*asourceNb, sourceNf);
-   //   int sourceYExt = kyPos(sourceExt, sourceNx + 2*asourceNb, sourceNy + 2*asourceNb, sourceNf);
-   //   int sourceF = featureIndex(sourceExt, sourceNx + 2*asourceNb, sourceNy + 2*asourceNb, sourceNf);
-   //   //Knows first cell that connects to target neuron
-
-   //   //Grab patch given the post
-   //   //Use orig
-   //   PVPatch * shrunkenWeights = targetToSourceConn->getWeights(akTargetExt, arborID);
-   //   //Grab offset
-   //   int offset = shrunkenWeights->offset;
-   //   //Get x and y in patch space
-   //   //conn is target to source
-   //   int patchX = kxPos(offset, targetToSourceConn->xPatchSize(), targetToSourceConn->yPatchSize(), targetToSourceConn->fPatchSize());
-   //   int patchY = kyPos(offset, targetToSourceConn->xPatchSize(), targetToSourceConn->yPatchSize(), targetToSourceConn->fPatchSize());
-
-   //   //Move source X and Y to offset
-   //   //Moving back to extended space
-   //   sourceXExt -= patchX; 
-   //   sourceYExt -= patchY; 
-
-   //   //Change sourceExt back to extended source index, but unshrunken
-   //   int startSourceExt = kIndex(sourceXExt, sourceYExt, sourceF, sourceNx + 2*asourceNb, sourceNy + 2*asourceNb, sourceNf);
-
-   //   //Calculate target's start of gsyn
-   //   pvdata_t * gSynPatchHead = this->getChannel(sourceToTargetConn->getChannel());
-   //   pvdata_t * gSynPatchPos = gSynPatchHead + kTargetRes;
-
-   //   //get source layer's extended y stride
-   //   //Use orig
-   //   int sy  = (sourceNx+2*osourceNb)*sourceNf;
-   //   //get source layer's patch y stride
-   //   int syp = targetToSourceConn->yPatchStride(); // Should be correct even if targetToSourceConn points to a different layer than sourceToTargetConn's pre.
-   //   //Iterate through y patch
-   //   int numPerStride = targetToSourceConn->xPatchSize() * targetToSourceConn->fPatchSize();
-
-   //   //const PVLayerLoc * origPreLoc = targetToSourceConn->preSynapticLayer()->getLayerLoc();
-   //   //int kTargetOrigConnExt = kIndexExtended(kTargetRes, origPreLoc->nx, origPreLoc->ny, origPreLoc->nf, origPreLoc->nb);
-   //   //int kTargetOrigConnExt = kIndexExtended(kTargetRes, targetLoc->nx, targetLoc->ny, targetLoc->nf, targetLoc->nb);
-
-   //   int kernelIndex = targetToSourceConn->patchToDataLUT(okTargetExt);
-   //   uint4 * rngPtr = conn->getRandState(kTargetRes);
-
-   //   for (int ky = 0; ky < targetToSourceConn->yPatchSize(); ky++){
-   //      float * activityY = &(activity->data[startSourceExt + ky*sy]);
-   //      //std::cout << "name: " << name << " ky: " << ky << " activity: " << *activityY << "\n";
-   //      pvwdata_t * weightY = targetToSourceConn->get_wDataHead(arborID, kernelIndex) + ky*syp;
-   //      (conn->accumulateFunctionFromPostPointer)(numPerStride, gSynPatchPos, activityY, weightY, dt_factor, rngPtr);
-   //   }
-   //}
    recvsyn_timer->stop();
    return PV_SUCCESS;
 }
