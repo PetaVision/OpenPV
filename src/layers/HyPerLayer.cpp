@@ -1700,6 +1700,7 @@ int HyPerLayer::recvSynapticInputFromPost(HyPerConn * conn, const PVLayerCube * 
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for schedule(static)
 #endif
+   //Looping through yPatchSize first for cache optimization
    for (int ky = 0; ky < targetToSourceConn->yPatchSize(); ky++){
       for (int kTargetRes = 0; kTargetRes < numRestricted; kTargetRes++){
          //Change restricted to extended post neuron
