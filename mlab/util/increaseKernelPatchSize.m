@@ -46,14 +46,11 @@ function increaseKernelPatchSize(pvpFile, newNFP, wMinInit, wMaxInit, sparseFrac
       sparseFraction  = DEFAULT_sparseFraction
    end%if
    if nargin < 6 || ~exist('outFile','var') || isempty(outFile)
-     [out_path,out_name,out_ext] = fileparts(outFile);
-      if ~exist(out_path, 'dir')
 	[path,name,ext] = fileparts(pvpFile);
-	name_id = name(1:strfind(name, '_W'));
+	name_id = name(1:strfind(name, '_W')-1);
 	outFile = [path, filesep, name_id, '_NFP', num2str(newNFP), '_W', ext]
 	warning('increaseNumFeatInFile:outputfilenotspecified',...
 		'Using default naming convention for output file:', ' ', outFile);
-      end%if 
    end%if
 
    [data, hdr] = readpvpfile(pvpFile);

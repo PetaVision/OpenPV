@@ -44,10 +44,11 @@ function increaseNumFeatInFile(pvpFile, newNF, wMinInit, wMaxInit, sparseFractio
       sparseFraction  = DEFAULT_sparseFraction
    end%if
    if nargin < 6 || ~exist(outFile,'file') || isempty(outFile)
-      warning('increaseNumFeatInFile:outputfilenotspecified',...
-         'Using default naming convention for output file:');
       [path,name,ext] = fileparts(pvpFile);
-      outFile = [path, filesep, name, "_NF",num2str(newNF),ext]
+      name_id = name(1:strfind(name, '_W')-1);
+      outFile = [path, filesep, name_id, '_NF', num2str(newNF), '_W', ext]
+      warning('increaseNumFeatInFile:outputfilenotspecified',...
+		'Using default naming convention for output file:', ' ', outFile);
    end%if
 
    [data, hdr] = readpvpfile(pvpFile);
