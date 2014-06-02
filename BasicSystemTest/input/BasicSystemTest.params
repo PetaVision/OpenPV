@@ -14,18 +14,19 @@ debugParsing = false;    // Debug the reading of this parameter file.
 HyPerCol "column" = {
    nx = 32;   //size of the whole networks
    ny = 32;
-   dt = 1.0;  //time step in ms.	     
+   dt = 1.0;  //time step in ms.
+   dtAdaptFlag = false;  // If true, layers can provide HyPerCol info on acceptable timesteps and dt can be adjusted accordingly 
    randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
    startTime = 0.0;
    stopTime = 10.0;  
    progressInterval = 10.0; //Program will output its progress at each progressStep
    writeProgressToErr = false;  
    outputPath = "output/";
+   printParamsFilename = "pv.params"; // A record of the parameters used, including defaults and excluding unused params, will be written to this file.
    filenamesContainLayerNames = false;  
    filenamesContainConnectionNames = false;
-   checkpointRead = false;  
    checkpointWrite = false;
-   suppressLastOutput = false; //Save the last output as checkpoint.
+   suppressLastOutput = false; //If true, save the last output as checkpoint.
 };
 
 //
@@ -65,6 +66,7 @@ ANNLayer "output" = {
     nyScale = 1;
     nf = 8; // 8 outputs 
     phase = 1;
+    triggerFlag = false; // If true, layer updates in response to another layer updating.
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = 1;
@@ -74,9 +76,9 @@ ANNLayer "output" = {
 
     //define a linear relation between its input and output, with some hard cut-off.
     VThresh = -infinity;   
-    VMax = infinity;
-    VMin = -infinity;
-    VShift = 0.0;
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0.0;
     VWidth = 0.0;
 };
 
