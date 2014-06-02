@@ -93,7 +93,7 @@ int writeRandState(const char * filename, Communicator * comm, uint4 * randState
 
 int readRandState(const char * filename, Communicator * comm, uint4 * randState, const PVLayerLoc * loc);
 
-template <typename T> int gatherActivity(PV_Stream * pvstream, Communicator * comm, int rootproc, T * buffer, const PVLayerLoc * layerLoc, bool extended);
+template <typename T> int gatherActivity(PV_Stream * pvstream, Communicator * comm, int rootproc, const T * buffer, const PVLayerLoc * layerLoc, bool extended);
 template <typename T> int scatterActivity(PV_Stream * pvstream, Communicator * comm, int rootproc, T * buffer, const PVLayerLoc * layerLoc, bool extended, const PVLayerLoc * fileLoc=NULL, int offsetX=0, int offsetY=0, int filetype=PVP_NONSPIKING_ACT_FILE_TYPE, int numActive=0);
 } // namespace PV
 
