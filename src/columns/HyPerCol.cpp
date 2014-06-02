@@ -11,7 +11,6 @@
 #include "HyPerCol.hpp"
 #include "InterColComm.hpp"
 #include "../io/clock.h"
-#include "../io/imageio.hpp"
 #include "../io/io.h"
 
 #include <assert.h>

@@ -6,7 +6,6 @@
  */
 
 #include "Movie.hpp"
-#include "../io/imageio.hpp"
 #include "../include/default_params.h"
 
 #include <assert.h>
