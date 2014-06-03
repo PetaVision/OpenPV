@@ -16,7 +16,7 @@ HyPerCol "column" = {
     dt = 1.0;
     randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
     startTime = 0;
-    numSteps = 200000000;
+    stopTime= 200000000;
     progressStep = 1000;
     outputPath = "/nh/compneuro/Data/Depth/LCA/scale_v2";
     filenamesContainLayerNames = true;
@@ -50,7 +50,7 @@ Movie "LeftImage" = {
     writeStep = -1;
     writeSparseActivity = false;
     displayPeriod = 500;
-    start_frame_index = 1;
+    start_frame_index = 980;
     skip_frame_index = 1;
     echoFramePathnameFlag = false;
     mirrorBCflag = true;
@@ -454,7 +454,7 @@ Movie "DepthImage" = {
     writeStep = -1;
     writeSparseActivity = false;
     displayPeriod = 500;
-    start_frame_index = 1;
+    start_frame_index = 980;
     skip_frame_index = 1;
     echoFramePathnameFlag = false;
     mirrorBCflag = true;
@@ -565,9 +565,9 @@ LabelErrorLayer "DepthError" = {
     mirrorBCflag = 0;
     writeSparseActivity = 0;
     //
-    InitVType = "ZeroV";
-    //InitVType = "InitVFromFile";
-    //Vfilename = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_v2/DepthError_V.pvp";
+    //InitVType = "ZeroV";
+    InitVType = "InitVFromFile";
+    Vfilename = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_v2/DepthError_V.pvp";
     VThresh = 0.001;
     VMax =  infinity;
     VMin = 0;
@@ -635,12 +635,14 @@ ANNErrorLayer "V2Error2" = {
    #include "V2Error1";
    @nxScale = .125;
    @nyScale = .125;
+   @Vfilename = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_v2/V2Error2_V.pvp";
 };
 
 ANNErrorLayer "V2Error3" = {
    #include "V2Error1";
    @nxScale = .125;
    @nyScale = .125;
+   @Vfilename = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_v2/V2Error3_V.pvp";
 };
 
 ANNLayer "V2Recon1" = {
@@ -685,7 +687,7 @@ ANNLayer "V2_1LeftRecon1" = {
     restart = 0;
     nxScale = .5;
     nyScale = .5;
-    nf = 64;
+    nf = 1;
     writeStep = 1000.0;
     initialWriteTime = 1000.0;
     mirrorBCflag = 0;
@@ -700,7 +702,7 @@ ANNLayer "V2_1LeftRecon1" = {
     VMin = -infinity; 
     VShift = 0;
     // 
-    phase = 7; 
+    phase = 8; 
     //
     triggerFlag = true;
     triggerLayerName = "LeftImage";
@@ -708,13 +710,13 @@ ANNLayer "V2_1LeftRecon1" = {
 };
 
 ANNLayer "V2_1LeftRecon2" = {
-   #include "V2Recon1";
+   #include "V2_1LeftRecon1";
    @nxScale = .25;
    @nyScale = .25;
 };
 
 ANNLayer "V2_1LeftRecon3" = {
-   #include "V2Recon1";
+   #include "V2_1LeftRecon1";
    @nxScale = .125;
    @nyScale = .125;
 };
@@ -730,10 +732,9 @@ ANNLayer "V2_1RightRecon2" = {
 };
 
 ANNLayer "V2_1RightRecon3" = {
-   #include "V2_1LeftRecon1";
+   #include "V2_1LeftRecon3";
    @triggerLayerName = "RightImage";
 };
-
 
 HyPerLCALayer "V2S1" = {
     restart = 0;
@@ -1384,13 +1385,13 @@ CloneKernelConn "V2Recon1ToV2_1RightRecon1" = {
 CloneKernelConn "V2Recon2ToV2_1RightRecon2" = {
     #include "V2Recon2ToV2_1LeftRecon2";
     @postLayerName = "V2_1RightRecon2";
-    @originalConnName = "V1S1ToRightError2";
+    @originalConnName = "V1S2ToRightError2";
 };
 
 CloneKernelConn "V2Recon3ToV2_1RightRecon3" = {
     #include "V2Recon3ToV2_1LeftRecon3";
     @postLayerName = "V2_1RightRecon3";
-    @originalConnName = "V1S1ToRightError3";
+    @originalConnName = "V1S3ToRightError3";
 };
 
 
@@ -1580,6 +1581,7 @@ ImprintConn "V2S2ToV2Error2" = {
     @postLayerName = "V2Error2";
     @nxp = 1;
     @nyp = 1;
+    @initWeightsFile = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_v2/V2S2ToV2Error2_W.pvp";
 };
 
 ImprintConn "V2S3ToV2Error3" = {
@@ -1588,6 +1590,7 @@ ImprintConn "V2S3ToV2Error3" = {
     @postLayerName = "V2Error3";
     @nxp = 1;
     @nyp = 1;
+    @initWeightsFile = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_v2/V2S3ToV2Error3_W.pvp";
 };
 
 TransposeConn "V2Error1ToV2S1" = {
@@ -1648,7 +1651,6 @@ CloneKernelConn "V2S3ToV2Recon3" = {
 };
 
 // Depth Binocular Connections
-
 KernelConn "V2S1ToDepthError" = {
     preLayerName = "V2S1";
     postLayerName = "DepthError";
@@ -1659,12 +1661,12 @@ KernelConn "V2S1ToDepthError" = {
     numAxonalArbors = 1;
     initFromLastFlag = 0;
     //
-    //weightInitType = "FileWeight";
-    //initWeightsFile = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_v2/V2S1ToDepthError_W.pvp";
-    weightInitType = "UniformRandomWeight";
-    wMinInit = -1.0;
-    wMaxInit = 1.0;
-    sparseFraction = 0;
+    weightInitType = "FileWeight";
+    initWeightsFile = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_v2/V2S1ToDepthError_W.pvp";
+    //weightInitType = "UniformRandomWeight";
+    //wMinInit = -1.0;
+    //wMaxInit = 1.0;
+    //sparseFraction = 0;
     //
     strength = 1; 
     normalizeMethod = "normalizeL2";
@@ -1708,7 +1710,7 @@ KernelConn "V2S2ToDepthError" = {
 KernelConn "V2S3ToDepthError" = {
     #include "V2S1ToDepthError";
     @preLayerName = "V2S3";
-    //@initWeightsFile = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_v2/V2S3ToDepthError_W.pvp";
+    @initWeightsFile = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_v2/V2S3ToDepthError_W.pvp";
 };
 
 TransposeConn "DepthErrorToV2S1" = {
