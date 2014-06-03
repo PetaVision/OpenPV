@@ -3,7 +3,7 @@
 #
 # Find libsndfile.
 
-FIND_PATH(LIBSNDFILE_INCLUDE_DIR sndfile.h)
+FIND_PATH(LIBSNDFILE_INCLUDE_DIR sndfile.h PATHS /usr/local/Cellar/libsndfile/include/)
 
 SET(LIBSNDFILE_NAMES ${LIBSNDFILE_NAMES} sndfile libsndfile)
 FIND_LIBRARY(LIBSNDFILE_LIBRARY NAMES ${LIBSNDFILE_NAMES} PATH)
