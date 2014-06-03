@@ -39,19 +39,20 @@ protected:
    SoundStream();
    int initialize(const char * name, HyPerCol * hc);
 
-   virtual int ioParams(enum ParamsIOFlag ioFlag);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    virtual void ioParam_soundInputPath(enum ParamsIOFlag ioFlag);
-   //virtual void readNxScale(PVParams * params); // Override from HyPerLayer - will just set nxScale now instead of reading
-   //virtual void readNyScale(PVParams * params); // Override from HyPerLayer - will just set nyScale now instead of reading
-   //virtual void readNf(PVParams * params);      // Override from HyPerLayer - will just set NF now instead of reading
+   virtual void ioParam_frameStart(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_InitVType(enum ParamsIOFlag ioFlag);
+   virtual double getDeltaUpdateTime();
+   virtual int setActivity();
 
-   //MPI_Datatype * mpi_datatypes;  // MPI datatypes for boundary exchange
    pvdata_t * soundData; //Buffer containing image
    SF_INFO* fileHeader;
    SNDFILE* fileStream;
+   float* soundBuf;
 
    double displayPeriod;     // Length of time a string 'frame' is displayed
-   double nextDisplayTime;
+   int frameStart;
 
    char * filename;          // Path to file if a file exists
 
