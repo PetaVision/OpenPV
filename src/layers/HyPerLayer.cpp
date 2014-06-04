@@ -1665,9 +1665,6 @@ int HyPerLayer::recvSynapticInputFromPost(HyPerConn * conn, const PVLayerCube * 
    if(startSourceExtBuf == NULL){
       startSourceExtBuf = (int*)malloc(sizeof(int) * numRestricted);
       //Fill buffer
-#ifdef PV_USE_OPENMP_THREADS
-#pragma omp parallel for schedule(static)
-#endif
       for (int kTargetRes = 0; kTargetRes < numRestricted; kTargetRes++){
          int okTargetExt = kIndexExtended(kTargetRes, targetNx, targetNy, targetNf, oTargetNb);
          //Get start index of source from gsyn in restricted
@@ -1697,11 +1694,11 @@ int HyPerLayer::recvSynapticInputFromPost(HyPerConn * conn, const PVLayerCube * 
       }
    }
 
+   //Looping through yPatchSize first for cache optimization
+   for (int ky = 0; ky < targetToSourceConn->yPatchSize(); ky++){
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for schedule(static)
 #endif
-   //Looping through yPatchSize first for cache optimization
-   for (int ky = 0; ky < targetToSourceConn->yPatchSize(); ky++){
       for (int kTargetRes = 0; kTargetRes < numRestricted; kTargetRes++){
          //Change restricted to extended post neuron
          int akTargetExt = kIndexExtended(kTargetRes, targetNx, targetNy, targetNf, aTargetNb);
