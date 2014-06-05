@@ -12,7 +12,7 @@ ImprintConn::ImprintConn(){
    initialize_base();
 }
 
-ImprintConn::ImprintConn(const char * name, HyPerCol * hc) : KernelConn()
+ImprintConn::ImprintConn(const char * name, HyPerCol * hc) : HyPerConn()
 {
    initialize_base();
    initialize(name, hc);
@@ -29,7 +29,7 @@ int ImprintConn::initialize_base() {
 }
 
 int ImprintConn::allocateDataStructures() {
-   int status = KernelConn::allocateDataStructures();
+   int status = HyPerConn::allocateDataStructures();
    const PVLayerLoc * loc = pre->getLayerLoc();
    int numKernelIndices = getNumDataPatches();
    imprinted = (bool*) calloc(numKernelIndices, sizeof(bool));
@@ -41,9 +41,18 @@ int ImprintConn::allocateDataStructures() {
 }
 
 int ImprintConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = KernelConn::ioParamsFillGroup(ioFlag);
+   int status = HyPerConn::ioParamsFillGroup(ioFlag);
    ioParam_imprintTimeThresh(ioFlag);
    return status;
+}
+
+// TODO: make sure code works in non-shared weight case
+void ImprintConn::ioParam_sharedWeights(enum ParamsIOFlag ioFlag) {
+   sharedWeights = true;
+   if (ioFlag == PARAMS_IO_READ) {
+      fileType = PVP_KERNEL_FILE_TYPE;
+      parent->parameters()->handleUnnecessaryParameter(name, "sharedWeights", true/*correctValue*/);
+   }
 }
 
 void ImprintConn::ioParam_imprintTimeThresh(enum ParamsIOFlag ioFlag) {

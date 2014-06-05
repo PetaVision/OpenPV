@@ -8,11 +8,11 @@
 #ifndef NOSELFKERNELCONN_HPP_
 #define NOSELFKERNELCONN_HPP_
 
-#include "KernelConn.hpp"
+#include "HyPerConn.hpp"
 
 namespace PV {
 
-class NoSelfKernelConn: public PV::KernelConn {
+class NoSelfKernelConn: public PV::HyPerConn {
 public:
    NoSelfKernelConn();
 
@@ -20,6 +20,9 @@ public:
    int zeroSelfWeights(int numPatches, int arborId);
    virtual int normalizeWeights();
    // virtual int normalizeWeights(PVPatch ** patches, pvdata_t ** dataStart, int numPatches, int arborId);
+
+protected:
+   virtual void ioParam_sharedWeights(enum ParamsIOFlag ioFlag);
 };
 
 } /* namespace PV */

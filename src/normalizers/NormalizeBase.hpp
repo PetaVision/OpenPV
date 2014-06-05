@@ -9,7 +9,6 @@
 #define NORMALIZEBASE_HPP_
 
 #include "../connections/HyPerConn.hpp"
-#include "../connections/KernelConn.hpp"
 #include <assert.h>
 
 namespace PV {

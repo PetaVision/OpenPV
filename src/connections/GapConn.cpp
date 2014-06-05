@@ -35,7 +35,7 @@ int GapConn::initialize_base(){
 }
 
 int GapConn::initialize(const char * name, HyPerCol * hc) {
-   int status = KernelConn::initialize(name, hc);
+   int status = HyPerConn::initialize(name, hc);
    assert(dynamic_cast<NormalizeGap *>(normalizer));
    assert(normalizer->getNormalizeFromPostPerspectiveFlag());
    return status;
@@ -45,6 +45,15 @@ void GapConn::ioParam_channelCode(enum ParamsIOFlag ioFlag) {
    if (ioFlag==PARAMS_IO_READ) {
       channel = CHANNEL_GAP;
       parent->parameters()->handleUnnecessaryParameter(name, "channelCode", (int) CHANNEL_GAP);
+   }
+}
+
+// TODO: make sure code works in non-shared weight case
+void GapConn::ioParam_sharedWeights(enum ParamsIOFlag ioFlag) {
+   sharedWeights = true;
+   if (ioFlag == PARAMS_IO_READ) {
+      fileType = PVP_KERNEL_FILE_TYPE;
+      parent->parameters()->handleUnnecessaryParameter(name, "sharedWeights", true/*correctValue*/);
    }
 }
 
@@ -78,7 +87,7 @@ int GapConn::allocateDataStructures() {
 #endif
       exit(EXIT_FAILURE);
    }
-   int status = KernelConn::allocateDataStructures();
+   int status = HyPerConn::allocateDataStructures();
    //TODO!!! terrible hack here: should compute sum of gap junctions connection strengths into each post synaptic cell
    // instead, we check that normalize is true as a stop gap
    assert(this->normalizer->getNormalizeFromPostPerspectiveFlag());

@@ -19,18 +19,27 @@ CliqueConn::CliqueConn(const char * name, HyPerCol * hc) {
 
 int CliqueConn::initialize_base(){
    cliqueSize = 1;
-   KernelConn::initialize_base();
+   HyPerConn::initialize_base();
    return PV_SUCCESS;
 }
 
 int CliqueConn::initialize(const char * name, HyPerCol * hc) {
-   KernelConn::initialize(name, hc);
+   HyPerConn::initialize(name, hc);
    return PV_SUCCESS;
 }
 
+// TODO: make sure code works in non-shared weight case
 int CliqueConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = KernelConn::ioParamsFillGroup(ioFlag);
+   int status = HyPerConn::ioParamsFillGroup(ioFlag);
    return status;
+}
+
+void CliqueConn::ioParam_sharedWeights(enum ParamsIOFlag ioFlag) {
+   sharedWeights = true;
+   if (ioFlag == PARAMS_IO_READ) {
+      fileType = PVP_KERNEL_FILE_TYPE;
+      parent->parameters()->handleUnnecessaryParameter(name, "sharedWeights", true/*correctValue*/);
+   }
 }
 
 void CliqueConn::ioParam_cliqueSize(enum ParamsIOFlag ioFlag) {
@@ -39,45 +48,37 @@ void CliqueConn::ioParam_cliqueSize(enum ParamsIOFlag ioFlag) {
 
 int CliqueConn::updateState(double time, double dt)
 {
-//   int status = KernelConn::updateState(time, dt);
-//   assert(status == PV_SUCCESS);
-//   return PV_SUCCESS;
-
    update_timer->start();
    int status = PV_SUCCESS;
    if( !plasticityFlag ) {
       return status;
    }
-   //Check moved to HyPerConn
-   //if( time >= weightUpdateTime) {
-   //   computeNewWeightUpdateTime(time, weightUpdateTime);
-      for(int axonID=0;axonID<numberOfAxonalArborLists();axonID++) {
-         status = update_dW(axonID);  // don't clear dW, just accumulate changes
-         if (status == PV_BREAK) {break;}
-         assert(status == PV_SUCCESS);
-      }
+   for(int axonID=0;axonID<numberOfAxonalArborLists();axonID++) {
+      status = update_dW(axonID);  // don't clear dW, just accumulate changes
+      if (status == PV_BREAK) {break;}
+      assert(status == PV_SUCCESS);
+   }
 
 #ifdef PV_USE_MPI
-      if (keepKernelsSynchronized_flag
-            || parent->simulationTime() >= parent->getStopTime()-parent->getDeltaTime()) {
-         for (int axonID = 0; axonID < numberOfAxonalArborLists(); axonID++) {
-            status = reduceKernels(axonID); // combine partial changes in each column
-            if (status == PV_BREAK) {
-               break;
-            }
-            assert(status == PV_SUCCESS);
+   if (keepKernelsSynchronized_flag
+         || parent->simulationTime() >= parent->getStopTime()-parent->getDeltaTime()) {
+      for (int axonID = 0; axonID < numberOfAxonalArborLists(); axonID++) {
+         status = reduceKernels(axonID); // combine partial changes in each column
+         if (status == PV_BREAK) {
+            break;
          }
+         assert(status == PV_SUCCESS);
       }
+   }
 #endif // PV_USE_MPI
 
-      // dW and W are the same so don't copy
-      if (parent->simulationTime() >= parent->getStopTime() - parent->getDeltaTime()) {
-         if (normalizer) {
-            normalizer->normalizeWeights(this);
-         }
-      } //
+   // dW and W are the same so don't copy
+   if (parent->simulationTime() >= parent->getStopTime() - parent->getDeltaTime()) {
+      if (normalizer) {
+         normalizer->normalizeWeights(this);
+      }
+   } //
 
-   //} // time > weightUpdateTime
 
    update_timer->stop();
    return PV_SUCCESS;
@@ -268,7 +269,7 @@ int CliqueConn::update_dW(int arborId)
 
 int CliqueConn::updateWeights(int arborId)
 {
-   int status = KernelConn::updateWeights(arborId);
+   int status = HyPerConn::updateWeights(arborId);
    assert((status == PV_SUCCESS) || (status == PV_BREAK));
    return PV_BREAK;
 

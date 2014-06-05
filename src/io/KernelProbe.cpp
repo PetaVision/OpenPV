@@ -23,7 +23,6 @@ KernelProbe::~KernelProbe() {
 }
 
 int KernelProbe::initialize_base() {
-   targetKConn = NULL;
    return PV_SUCCESS;
 }
 
@@ -67,9 +66,8 @@ void KernelProbe::ioParam_outputPatchIndices(enum ParamsIOFlag ioFlag) {
 int KernelProbe::communicate() {
    int status = PV_SUCCESS;
    assert(targetConn);
-   targetKConn = dynamic_cast<KernelConn *>(targetConn);
-   if(getTargetKConn() == NULL) {
-      fprintf(stderr, "KernelProbe \"%s\": connection \"%s\" is not a KernelConn.\n", name, targetConn->getName());
+   if(getTargetConn()->usingSharedWeights()==false) {
+      fprintf(stderr, "KernelProbe \"%s\": connection \"%s\" is not using shared weights.\n", name, targetConn->getName());
       status = PV_FAILURE;
    }
 #ifdef PV_USE_MPI
@@ -83,13 +81,13 @@ int KernelProbe::communicate() {
 
 int KernelProbe::allocateProbe() {
    int status = PV_SUCCESS;
-   assert(getTargetKConn());
-   if (getKernelIndex()<0 || getKernelIndex()>=getTargetKConn()->getNumDataPatches()) {
-      fprintf(stderr, "KernelProbe \"%s\": kernelIndex %d is out of bounds.  (min 0, max %d)\n", name, getKernelIndex(), getTargetKConn()->getNumDataPatches()-1);
+   assert(getTargetConn());
+   if (getKernelIndex()<0 || getKernelIndex()>=getTargetConn()->getNumDataPatches()) {
+      fprintf(stderr, "KernelProbe \"%s\": kernelIndex %d is out of bounds.  (min 0, max %d)\n", name, getKernelIndex(), getTargetConn()->getNumDataPatches()-1);
       exit(EXIT_FAILURE);
    }
-   if (getArbor()<0 || getArbor()>=getTargetKConn()->numberOfAxonalArborLists()) {
-      fprintf(stderr, "KernelProbe \"%s\": arborId %d is out of bounds. (min 0, max %d)\n", name, getArbor(), getTargetKConn()->numberOfAxonalArborLists()-1);
+   if (getArbor()<0 || getArbor()>=getTargetConn()->numberOfAxonalArborLists()) {
+      fprintf(stderr, "KernelProbe \"%s\": arborId %d is out of bounds. (min 0, max %d)\n", name, getArbor(), getTargetConn()->numberOfAxonalArborLists()-1);
       exit(EXIT_FAILURE);
    }
 
@@ -97,7 +95,7 @@ int KernelProbe::allocateProbe() {
       fprintf(stream->fp, "Probe \"%s\", kernel index %d, arbor index %d.\n", name, getKernelIndex(), getArbor());
    }
    if(getOutputPatchIndices()) {
-      patchIndices(getTargetKConn());
+      patchIndices(getTargetConn());
    }
 
    return status;
@@ -109,17 +107,17 @@ int KernelProbe::outputState(double timed) {
    const int rank = icComm->commRank();
    if( rank != 0 ) return PV_SUCCESS;
 #endif // PV_USE_MPI
-   assert(getTargetKConn()!=NULL);
-   int nxp = getTargetKConn()->xPatchSize();
-   int nyp = getTargetKConn()->yPatchSize();
-   int nfp = getTargetKConn()->fPatchSize();
+   assert(getTargetConn()!=NULL);
+   int nxp = getTargetConn()->xPatchSize();
+   int nyp = getTargetConn()->yPatchSize();
+   int nfp = getTargetConn()->fPatchSize();
    int patchSize = nxp*nyp*nfp;
 
-   const pvwdata_t * wdata = getTargetKConn()->get_wDataStart(arborID)+patchSize*kernelIndex;
+   const pvwdata_t * wdata = getTargetConn()->get_wDataStart(arborID)+patchSize*kernelIndex;
    const pvwdata_t * dwdata = outputPlasticIncr ?
-         getTargetKConn()->get_dwDataStart(arborID)+patchSize*kernelIndex : NULL;
-   fprintf(stream->fp, "Time %f, KernelConn \"%s\", nxp=%d, nyp=%d, nfp=%d\n",
-           timed, getTargetKConn()->getName(),nxp, nyp, nfp);
+         getTargetConn()->get_dwDataStart(arborID)+patchSize*kernelIndex : NULL;
+   fprintf(stream->fp, "Time %f, Conn \"%s\", nxp=%d, nyp=%d, nfp=%d\n",
+           timed, getTargetConn()->getName(),nxp, nyp, nfp);
    for(int f=0; f<nfp; f++) {
       for(int y=0; y<nyp; y++) {
          for(int x=0; x<nxp; x++) {
@@ -139,13 +137,13 @@ int KernelProbe::outputState(double timed) {
    return PV_SUCCESS;
 }
 
-int KernelProbe::patchIndices(KernelConn * kconn) {
-   int nxp = kconn->xPatchSize();
-   int nyp = kconn->yPatchSize();
-   int nfp = kconn->fPatchSize();
-   int nPreExt = kconn->getNumWeightPatches();
-   assert(nPreExt == kconn->preSynapticLayer()->getNumExtended());
-   const PVLayerLoc * loc = kconn->preSynapticLayer()->getLayerLoc();
+int KernelProbe::patchIndices(HyPerConn * conn) {
+   int nxp = conn->xPatchSize();
+   int nyp = conn->yPatchSize();
+   int nfp = conn->fPatchSize();
+   int nPreExt = conn->getNumWeightPatches();
+   assert(nPreExt == conn->preSynapticLayer()->getNumExtended());
+   const PVLayerLoc * loc = conn->preSynapticLayer()->getLayerLoc();
    int marginWidth = loc->nb;
    int nxPre = loc->nx;
    int nyPre = loc->ny;
@@ -153,14 +151,14 @@ int KernelProbe::patchIndices(KernelConn * kconn) {
    int nxPreExt = nxPre+2*marginWidth;
    int nyPreExt = nyPre+2*marginWidth;
    for( int kPre = 0; kPre < nPreExt; kPre++ ) {
-      PVPatch * w = kconn->getWeights(kPre,arborID);
+      PVPatch * w = conn->getWeights(kPre,arborID);
       int xOffset = kxPos(w->offset, nxp, nyp, nfp);
       int yOffset = kyPos(w->offset, nxp, nyp, nfp);
       int kxPre = kxPos(kPre,nxPreExt,nyPreExt,nfPre)-marginWidth;
       int kyPre = kyPos(kPre,nxPreExt,nyPreExt,nfPre)-marginWidth;
       int kfPre = featureIndex(kPre,nxPreExt,nyPreExt,nfPre);
       fprintf(stream->fp,"    presynaptic neuron %d (x=%d, y=%d, f=%d) uses kernel index %d, starting at x=%d, y=%d\n",
-            kPre, kxPre, kyPre, kfPre, kconn->patchIndexToDataIndex(kPre), xOffset, yOffset);
+            kPre, kxPre, kyPre, kfPre, conn->patchIndexToDataIndex(kPre), xOffset, yOffset);
    }
    return PV_SUCCESS;
 }

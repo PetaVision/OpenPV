@@ -63,12 +63,12 @@ int ReciprocalConn::initialize_base() {
 }
 
 int ReciprocalConn::initialize(const char * name, HyPerCol * hc) {
-   int status = KernelConn::initialize(name, hc);
+   int status = HyPerConn::initialize(name, hc);
    return status;
 }
 
 int ReciprocalConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = KernelConn::ioParamsFillGroup(ioFlag);
+   int status = HyPerConn::ioParamsFillGroup(ioFlag);
    ioParam_relaxationRate(ioFlag);
    ioParam_reciprocalFidelityCoeff(ioFlag);
    ioParam_updateRulePre(ioFlag);
@@ -78,6 +78,14 @@ int ReciprocalConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_slownessPost(ioFlag);
    ioParam_reciprocalWgts(ioFlag);
    return status;
+}
+
+void ReciprocalConn::ioParam_sharedWeights(enum ParamsIOFlag ioFlag) {
+   sharedWeights = true;
+   if (ioFlag == PARAMS_IO_READ) {
+      fileType = PVP_KERNEL_FILE_TYPE;
+      parent->parameters()->handleUnnecessaryParameter(name, "sharedWeights", true/*correctValue*/);
+   }
 }
 
 void ReciprocalConn::ioParam_relaxationRate(enum ParamsIOFlag ioFlag) {
@@ -148,7 +156,7 @@ int ReciprocalConn::getLayerName(PVParams * params, const char * parameter_name,
 }
 
 int ReciprocalConn::communicateInitInfo() {
-   int status = KernelConn::communicateInitInfo();
+   int status = HyPerConn::communicateInitInfo();
    status = setParameterLayer("updateRulePre", updateRulePreName, &updateRulePre)==PV_SUCCESS ? status : PV_FAILURE;
    status = setParameterLayer("updateRulePost", updateRulePostName, &updateRulePost)==PV_SUCCESS ? status : PV_FAILURE;
    status = setParameterLayer("slownessPre", slownessPreName, &slownessPre)==PV_SUCCESS ? status : PV_FAILURE;
@@ -291,6 +299,38 @@ ReciprocalConn::~ReciprocalConn() {
    free(updateRulePostName); updateRulePostName = NULL;
    free(slownessPreName);    slownessPreName = NULL;
    free(slownessPostName);   slownessPostName = NULL;
+}
+
+int ReciprocalConn::getReciprocalWgtCoordinates(int kx, int ky, int kf, int kernelidx, int * kxRecip, int * kyRecip, int * kfRecip, int * kernelidxRecip) {
+   int status = PV_SUCCESS;
+
+   assert( kx>=0 && kx<nxp && ky>=0 && ky<nyp && kf>=0 && kf<nfp && kernelidx>=0 && kernelidx<getNumDataPatches());
+   if( status == PV_SUCCESS ) {
+      int nxUnitCell = zUnitCellSize(pre->getXScale(), post->getXScale());
+      int nyUnitCell = zUnitCellSize(pre->getYScale(), post->getYScale());
+      int nfUnitCell = pre->getLayerLoc()->nf;
+
+      int nxUnitCellRecip = zUnitCellSize(post->getXScale(), pre->getXScale());
+      int nyUnitCellRecip = zUnitCellSize(post->getYScale(), pre->getYScale());
+      int nfUnitCellRecip = post->getLayerLoc()->nf;
+
+      double xScaleFactor = pow(2,pre->getXScale()-post->getXScale()); // many-to-one connections have xScaleFactor<1; one-to-many, >1.
+      double yScaleFactor = pow(2,pre->getYScale()-post->getYScale());
+
+      int kxKern = kxPos(kernelidx, nxUnitCell, nyUnitCell, nfUnitCell);
+      int kyKern = kyPos(kernelidx, nxUnitCell, nyUnitCell, nfUnitCell);
+      int kfKern = featureIndex(kernelidx, nxUnitCell, nyUnitCell, nfUnitCell);
+
+      int xInPostCell = kx % nxUnitCellRecip;
+      int yInPostCell = ky % nyUnitCellRecip;
+
+      *kxRecip = (int) ((nxp-1-kx)/xScaleFactor) + kxKern;
+      *kyRecip = (int) ((nyp-1-ky)/yScaleFactor) + kyKern;
+      *kfRecip = kfKern;
+      *kernelidxRecip = kIndex(xInPostCell, yInPostCell, kf, nxUnitCellRecip, nyUnitCellRecip, nfUnitCellRecip);
+   }
+
+   return status;
 }
 
 } /* namespace PV */

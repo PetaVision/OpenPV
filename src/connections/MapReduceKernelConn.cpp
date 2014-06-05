@@ -32,7 +32,7 @@ MapReduceKernelConn::MapReduceKernelConn(const char * name, HyPerCol *hc) {
 }
 
 int MapReduceKernelConn::initialize(const char * name, HyPerCol * hc) {
-   int status = KernelConn::initialize(name, hc);
+   int status = HyPerConn::initialize(name, hc);
    // if (status==PV_SUCCESS) status = setMovieLayerName();
    InterColComm *icComm = parent->icCommunicator();
    int rootproc = 0;
@@ -91,13 +91,22 @@ int MapReduceKernelConn::initialize(const char * name, HyPerCol * hc) {
 }
 
 int MapReduceKernelConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = KernelConn::ioParamsFillGroup(ioFlag);
+   int status = HyPerConn::ioParamsFillGroup(ioFlag);
    ioParam_movieLayerName(ioFlag);
    ioParam_dWeightsListName(ioFlag);
    ioParam_num_dWeightFiles(ioFlag);
    ioParam_dWeightFileIndex(ioFlag);
    // TODO::use movie layer to derive dW weight file name and contents of dW list when not passed in directly by user
    return status;
+}
+
+// TODO: make sure code works in non-shared weight case
+void MapReduceKernelConn::ioParam_sharedWeights(enum ParamsIOFlag ioFlag) {
+   sharedWeights = true;
+   if (ioFlag == PARAMS_IO_READ) {
+      fileType = PVP_KERNEL_FILE_TYPE;
+      parent->parameters()->handleUnnecessaryParameter(name, "sharedWeights", true/*correctValue*/);
+   }
 }
 
 void MapReduceKernelConn::ioParam_movieLayerName(enum ParamsIOFlag ioFlag) {
@@ -137,7 +146,7 @@ void MapReduceKernelConn::ioParam_dWeightFileIndex(enum ParamsIOFlag ioFlag) {
 }
 
 int MapReduceKernelConn::communicateInitInfo() {
-	int status = KernelConn::communicateInitInfo();
+	int status = HyPerConn::communicateInitInfo();
 
 	HyPerLayer * origHyPerLayer = parent->getLayerFromName(movieLayerName);
 	if (origHyPerLayer == NULL) {
@@ -159,7 +168,7 @@ int MapReduceKernelConn::communicateInitInfo() {
 }
 
 int MapReduceKernelConn::reduceKernels(const int arborID) {
-	int status = KernelConn::reduceKernels(arborID);
+	int status = HyPerConn::reduceKernels(arborID);
 	int rootproc = 0;
 	InterColComm *icComm = parent->icCommunicator();
 	const int numPatches = getNumDataPatches();

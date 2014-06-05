@@ -8,7 +8,7 @@
 #ifndef IDENTCONN_HPP_
 #define IDENTCONN_HPP_
 
-#include "KernelConn.hpp"
+#include "HyPerConn.hpp"
 #include <assert.h>
 #include <string.h>
 
@@ -16,7 +16,7 @@ namespace PV {
 
 class InitIdentWeights;
 
-class IdentConn : public KernelConn {
+class IdentConn : public HyPerConn {
 public:
    IdentConn(const char * name, HyPerCol *hc);
 
@@ -29,6 +29,7 @@ protected:
    int initialize(const char * name, HyPerCol *hc);
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_sharedWeights(enum ParamsIOFlag ioFlag);
    virtual void ioParam_weightInitType(enum ParamsIOFlag ioFlag);
    virtual void ioParam_normalizeMethod(enum ParamsIOFlag ioFlag);
    virtual void ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag);

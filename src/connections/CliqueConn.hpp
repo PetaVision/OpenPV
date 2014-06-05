@@ -8,11 +8,11 @@
 #ifndef CLIQUECONN_HPP_
 #define CLIQUECONN_HPP_
 
-#include "KernelConn.hpp"
+#include "HyPerConn.hpp"
 
 namespace PV {
 
-class CliqueConn: public KernelConn {
+class CliqueConn: public HyPerConn {
 public:
 
    CliqueConn(const char * name, HyPerCol * hc);
@@ -25,6 +25,7 @@ protected:
    int cliqueSize; // number of presynaptic cells in clique (traditional ANN uses 1)
    int initialize(const char * name, HyPerCol * hc);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_sharedWeights(enum ParamsIOFlag ioFlag);
    virtual void ioParam_cliqueSize(enum ParamsIOFlag ioFlag);
 
 private:

@@ -14,12 +14,21 @@ NoSelfKernelConn::NoSelfKernelConn()
 }
 
 NoSelfKernelConn::NoSelfKernelConn(const char * name, HyPerCol * hc) {
-   KernelConn::initialize(name, hc);
+   HyPerConn::initialize(name, hc);
+}
+
+// TODO: make sure code works in non-shared weight case
+void NoSelfKernelConn::ioParam_sharedWeights(enum ParamsIOFlag ioFlag) {
+   sharedWeights = true;
+   if (ioFlag == PARAMS_IO_READ) {
+      fileType = PVP_KERNEL_FILE_TYPE;
+      parent->parameters()->handleUnnecessaryParameter(name, "sharedWeights", true/*correctValue*/);
+   }
 }
 
 int NoSelfKernelConn::normalizeWeights() {
    zeroSelfWeights(getNumDataPatches(), 0);
-   return KernelConn::normalizeWeights();
+   return HyPerConn::normalizeWeights();
 }
 
 int NoSelfKernelConn::zeroSelfWeights(int numPatches, int arborId){
@@ -30,7 +39,7 @@ int NoSelfKernelConn::zeroSelfWeights(int numPatches, int arborId){
    assert(this->getPre()->getCLayer()->loc.nf == this->getPost()->getCLayer()->loc.nf);
    int num_kernels = this->getNumDataPatches();
 
-   // because the default return value/behavior of KernelConn::normalizeWeights is PV_BREAK,
+   // because the default return value/behavior of HyPerConn::normalizeWeights is PV_BREAK,
    // safest approach here is to zero self-interactions for all arbors
    assert(arborId == 0);  // necessary?  could execute this routine numAxonArbors times without apparent harm
    for (int axonIndex = 0; axonIndex < this->numberOfAxonalArborLists(); axonIndex++) {
@@ -46,15 +55,5 @@ int NoSelfKernelConn::zeroSelfWeights(int numPatches, int arborId){
    }  // axonIndex
    return PV_BREAK;
 }
-
-#ifdef OBSOLETE // Marked obsolete April 11, 2013.  Implementing the new NormalizeBase class hierarchy
-int NoSelfKernelConn::normalizeWeights(PVPatch ** patches, pvdata_t ** dataStart, int numPatches, int arborId)
-{
-   int status = zeroSelfWeights(numPatches, arborId);
-   assert( (status == PV_SUCCESS) || (status == PV_BREAK) );
-   return KernelConn::normalizeWeights(patches, dataStart, numPatches, arborId);  // parent class should return PV_BREAK
-}
-#endif // OBSOLETE
-
 
 } /* namespace PV */

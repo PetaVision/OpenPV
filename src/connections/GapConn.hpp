@@ -8,11 +8,11 @@
 #ifndef GAPCONN_HPP_
 #define GAPCONN_HPP_
 
-#include "KernelConn.hpp"
+#include "HyPerConn.hpp"
 
 namespace PV {
 
-class GapConn: public PV::KernelConn {
+class GapConn: public PV::HyPerConn {
 public:
    GapConn(const char * name, HyPerCol * hc);
    virtual ~GapConn();
@@ -20,6 +20,7 @@ public:
 protected:
    GapConn();
    void ioParam_channelCode(enum ParamsIOFlag ioFlag); // No channel argument in params because GapConn must always use CHANNEL_GAP
+   virtual void ioParam_sharedWeights(enum ParamsIOFlag ioFlag);
    void ioParam_normalizeMethod(enum ParamsIOFlag ioFlag);
 
    int initialize(const char * name, HyPerCol * hc);

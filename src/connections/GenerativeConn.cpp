@@ -37,14 +37,14 @@ int GenerativeConn::initialize_base() {
 }
 
 int GenerativeConn::initialize(const char * name, HyPerCol * hc) {
-   int status = KernelConn::initialize(name, hc);
+   int status = HyPerConn::initialize(name, hc);
    assert(!parent->parameters()->presentAndNotBeenRead(name, "imprintingFlag"));
    if( imprintingFlag ) imprintCount = 0;
    return status;
 }
 
 int GenerativeConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = KernelConn::ioParamsFillGroup(ioFlag);
+   int status = HyPerConn::ioParamsFillGroup(ioFlag);
    ioParam_relaxation(ioFlag);
    ioParam_nonnegConstraintFlag(ioFlag);
    ioParam_imprintingFlag(ioFlag);
@@ -54,8 +54,17 @@ int GenerativeConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    return status;
 }
 
+// TODO: make sure code works in non-shared weight case
+void GenerativeConn::ioParam_sharedWeights(enum ParamsIOFlag ioFlag) {
+   sharedWeights = true;
+   if (ioFlag == PARAMS_IO_READ) {
+      fileType = PVP_KERNEL_FILE_TYPE;
+      parent->parameters()->handleUnnecessaryParameter(name, "sharedWeights", true/*correctValue*/);
+   }
+}
+
 void GenerativeConn::ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag) {
-   KernelConn::ioParam_numAxonalArbors(ioFlag);
+   HyPerConn::ioParam_numAxonalArbors(ioFlag);
    if (ioFlag == PARAMS_IO_READ && numAxonalArborLists!=1) {
       if (parent->columnId()==0) {
          fprintf(stderr, "GenerativeConn \"%s\" error: GenerativeConn has not been updated to support multiple arbors.\n", name);
@@ -98,7 +107,7 @@ void GenerativeConn::ioParam_weightNoiseLevel(enum ParamsIOFlag ioFlag) {
 }
 
 int GenerativeConn::allocateDataStructures() {
-   int status = KernelConn::allocateDataStructures();
+   int status = HyPerConn::allocateDataStructures();
    if (weightDecayFlag) {
       // All processes should have the same seed.
       // We create a Random object with one RNG, seeded the same way.

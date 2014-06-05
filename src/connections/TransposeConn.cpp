@@ -26,10 +26,10 @@ int TransposeConn::initialize_base() {
    plasticityFlag = true; // Default value; override in params
    weightUpdatePeriod = 1;   // Default value; override in params
    // TransposeConn::initialize_base() gets called after
-   // KernelConn::initialize_base() so these default values override
-   // those in KernelConn::initialize_base().
+   // HyPerConn::initialize_base() so these default values override
+   // those in HyPerConn::initialize_base().
    // TransposeConn::initialize_base() gets called before
-   // KernelConn::initialize(), so these values still get overridden
+   // HyPerConn::initialize(), so these values still get overridden
    // by the params file values.
 
    originalConnName = NULL;
@@ -39,12 +39,12 @@ int TransposeConn::initialize_base() {
 
 int TransposeConn::initialize(const char * name, HyPerCol * hc) {
    int status = PV_SUCCESS;
-   if (status == PV_SUCCESS) status = KernelConn::initialize(name, hc);
+   if (status == PV_SUCCESS) status = HyPerConn::initialize(name, hc);
    return status;
 }
 
 int TransposeConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = KernelConn::ioParamsFillGroup(ioFlag);
+   int status = HyPerConn::ioParamsFillGroup(ioFlag);
    ioParam_originalConnName(ioFlag);
    return status;
 }
@@ -61,6 +61,15 @@ int TransposeConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 // and in theory originalConn could be a subclass that determines
 // the parameter some way other than reading its own parameter
 // group's param directly.
+
+void TransposeConn::ioParam_sharedWeights(enum ParamsIOFlag ioFlag) {
+   sharedWeights = true;
+   if (ioFlag == PARAMS_IO_READ) {
+      fileType = PVP_KERNEL_FILE_TYPE;
+      parent->parameters()->handleUnnecessaryParameter(name, "sharedWeights", true/*correctValue*/);
+   }
+}
+
 
 void TransposeConn::ioParam_weightInitType(enum ParamsIOFlag ioFlag) {
    // TransposeConn doesn't use a weight initializer
@@ -166,18 +175,17 @@ InitWeights * TransposeConn::handleMissingInitWeights(PVParams * params) {
 
 int TransposeConn::communicateInitInfo() {
    int status = PV_SUCCESS;
-   HyPerConn * c = parent->getConnFromName(originalConnName);
-   if (c == NULL) {
+   originalConn = parent->getConnFromName(originalConnName);
+   if (originalConn == NULL) {
       if (parent->columnId()==0) {
          fprintf(stderr, "TransposeConn \"%s\" error: originalConnName \"%s\" is not an existing connection.\n", name, originalConnName);
          status = PV_FAILURE;
       }
    }
    if (status != PV_SUCCESS) return status;
-   originalConn = dynamic_cast<KernelConn *>(c);
-   if (originalConn==NULL) {
+   if (originalConn->usingSharedWeights()==false) {
       if (parent->columnId()==0) {
-         fprintf(stderr, "TransposeConn \"%s\" error: originalConnName \"%s\" must be a KernelConn or a KernelConn-derived class.\n", name, originalConnName);
+         fprintf(stderr, "TransposeConn \"%s\" error: originalConnName \"%s\" must use shared weights.\n", name, originalConnName);
          status = PV_FAILURE;
       }
    }
@@ -191,7 +199,7 @@ int TransposeConn::communicateInitInfo() {
       return PV_POSTPONE;
    }
 
-   status = KernelConn::communicateInitInfo();
+   status = HyPerConn::communicateInitInfo();
    if (status != PV_SUCCESS) return status;
 
    const PVLayerLoc * preLoc = pre->getLayerLoc();
@@ -299,14 +307,13 @@ int TransposeConn::allocateDataStructures() {
       return PV_POSTPONE;
    }
 
-   KernelConn::allocateDataStructures();
+   HyPerConn::allocateDataStructures();
    normalizer = NULL;
    // normalize_flag = false; // replaced by testing whether normalizer!=NULL
    return PV_SUCCESS;
 }
 
-PVPatch*** TransposeConn::initializeWeights(PVPatch*** patches, pvwdata_t** dataStart,
-      int numPatches) {
+PVPatch*** TransposeConn::initializeWeights(PVPatch*** patches, pvwdata_t** dataStart) {
    assert(originalConn->getDataStructuresAllocatedFlag()); // originalConn->dataStructurenAllocatedFlag checked in TransposeConn::allocateDataStructures()
    for (int arbor=0; arbor<numAxonalArborLists; arbor++) {
       transposeKernels(arbor);

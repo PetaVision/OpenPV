@@ -250,9 +250,8 @@ int NormalizeBase::applyRMin(pvwdata_t * dataPatchStart, float rMinX, float rMin
 int NormalizeBase::symmetrizeWeights(HyPerConn * conn) {
    assert(symmetrizeWeightsFlag); // Don't call this routine unless symmetrizeWeights was set
    int status = PV_SUCCESS;
-   KernelConn * kconn = dynamic_cast<KernelConn *>(conn);
-   if (!kconn) {
-      fprintf(stderr, "NormalizeSum error for connection \"%s\": symmetrizeWeights is true but connection is not a KernelConn\n", conn->getName());
+   if (conn->usingSharedWeights()==false) {
+      fprintf(stderr, "NormalizeSum error for connection \"%s\": symmetrizeWeights is true but connection does not use shared weights\n", conn->getName());
       exit(EXIT_FAILURE);
    }
    HyPerLayer * pre = conn->preSynapticLayer();

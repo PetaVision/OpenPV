@@ -221,9 +221,8 @@ int PursuitLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activi
 
    assert(arborID >= 0);
 
-   KernelConn * kconn = dynamic_cast<KernelConn *>(conn);
-   if (kconn == NULL) {
-      fprintf(stderr, "Error: PursuitLayer can only be the postsynaptic layer of KernelConns, not HyPerConns (this condition should be removed eventually).\n");
+   if (conn->usingSharedWeights() == false) {
+      fprintf(stderr, "Error: PursuitLayer can only be the postsynaptic layer of a connection using shared weights (this condition should be removed eventually).\n");
       abort();
    }
 
@@ -266,7 +265,7 @@ int PursuitLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activi
       }
    }
 
-   // Set |w(:,:,f)|^2.  Since this is a one-to-one KernelConn with one presynaptic feature,
+   // Set |w(:,:,f)|^2.  Since this is a one-to-one connection with one presynaptic feature,
    // only have to do once for each feature of a single (x,y) site and then copy.
    int nxp = conn->xPatchSize();
    int nyp = conn->yPatchSize();

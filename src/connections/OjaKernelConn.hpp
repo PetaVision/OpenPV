@@ -8,11 +8,11 @@
 #ifndef OJAKERNELCONN_HPP_
 #define OJAKERNELCONN_HPP_
 
-#include "KernelConn.hpp"
+#include "HyPerConn.hpp"
 
 namespace PV {
 
-class OjaKernelConn: public PV::KernelConn {
+class OjaKernelConn: public PV::HyPerConn {
 
 // Methods
 public:
@@ -44,6 +44,7 @@ protected:
    virtual int updateWeights(int axonId);
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_sharedWeights(enum ParamsIOFlag ioFlag);
    virtual void ioParam_initialWeightUpdateTime(enum ParamsIOFlag ioFlag);
    virtual void ioParam_learningTime(enum ParamsIOFlag ioFlag);
    virtual void ioParam_inputTargetRate(enum ParamsIOFlag ioFlag);

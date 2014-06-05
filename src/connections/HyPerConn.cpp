@@ -148,6 +148,10 @@ HyPerConn::~HyPerConn()
       free(triggerLayerName);
       triggerLayerName = NULL;
    }
+   free(numKernelActivations);
+#ifdef PV_USE_MPI
+   free(mpiReductionBuffer);
+#endif // PV_USE_MPI
 }
 
 //!
@@ -247,14 +251,15 @@ int HyPerConn::initialize_base()
    this->triggerLayerName = NULL;
    this->triggerOffset = 0;
 
-   /*
-   size_t** gSynPatchStart;  // gSynPatchStart[arborId][kExt] is the offset to the start of the patch from the beginning of the post-synaptic GSyn buffer for corresponding channel
-   size_t * gSynPatchStartBuffer;
-   size_t* aPostOffsetBuffer;
-   int* delays; // delays[arborId] is the delay in timesteps (not units of dt) of the arborId'th arbor
-   PVPatchStrides postExtStrides;    // sx,sy,sf for a patch mapping into an extended post-synaptic layer
-   PVPatchStrides postNonextStrides; // sx,sy,sf for a patch mapping into a non-extended post-synaptic layer
-    */
+   lastUpdateTime = 0.f;
+   symmetrizeWeightsFlag = false;
+   patch2datalookuptable = NULL;
+   numKernelActivations = NULL;
+#ifdef PV_USE_MPI
+   keepKernelsSynchronized_flag = false;
+   mpiReductionBuffer = NULL;
+#endif // PV_USE_MPI
+
 
 #ifdef USE_SHMGET
    shmget_flag = false;
@@ -265,21 +270,28 @@ int HyPerConn::initialize_base()
 }
 
 int HyPerConn::createArbors() {
+#ifdef USE_SHMGET
+   if (shmget_flag){
+      assert(sharedWeights);
+      shmget_id = (int *) calloc(this->numberOfAxonalArborLists(),
+            sizeof(int));
+      assert(shmget_id != NULL);
+      shmget_owner = (bool *) calloc(this->numberOfAxonalArborLists(),
+            sizeof(bool));
+      assert(shmget_owner != NULL);
+   }
+#endif
    wPatches = (PVPatch***) calloc(numAxonalArborLists, sizeof(PVPatch**));
    if( wPatches == NULL ) {
       createArborsOutOfMemory();
       assert(false);
    }
    // GTK:  gSynPatchStart redefined as offset form beginning of gSyn buffer for the corresponding channel
-   //gSynPatchStart = (pvdata_t ***) calloc( numAxonalArborLists, sizeof(pvdata_t **) );
    gSynPatchStart = (size_t **) calloc( numAxonalArborLists, sizeof(size_t *) );
    if( gSynPatchStart == NULL ) {
       createArborsOutOfMemory();
       assert(false);
    }
-   //   gSynPatchStartBuffer = (pvdata_t **) calloc(
-   //         (this->shrinkPatches_flag ? numAxonalArborLists : 1)
-   //               * preSynapticLayer()->getNumExtended(), sizeof(pvdata_t *));
    gSynPatchStartBuffer = (size_t *) calloc(
 		   (this->shrinkPatches_flag ? numAxonalArborLists : 1)
 		   * preSynapticLayer()->getNumExtended(), sizeof(size_t));
@@ -349,7 +361,6 @@ int HyPerConn::constructWeights()
    //allocate the arbor arrays:
    createArbors();
 
-   // setPatchSize(filename); // moved to readPatchSize() so that nxp, nyp are set as early as possible
    setPatchStrides();
 
    //allocate weight patches and axonal arbors for each arbor
@@ -360,7 +371,6 @@ int HyPerConn::constructWeights()
       status = createWeights(wPatches, arborId);
       assert(wPatches[arborId] != NULL);
 
-      //wDataStart[arborId] = createWeights(wPatches, arborId);
       if (arborId > 0){  // wDataStart already allocated
          wDataStart[arborId] = (this->get_wDataStart(0) + sp * nPatches * arborId);
          assert(this->wDataStart[arborId] != NULL);
@@ -371,7 +381,7 @@ int HyPerConn::constructWeights()
    }  // arborId
 
    //initialize weights for patches:
-   status |= initializeWeights(wPatches, wDataStart, getNumDataPatches()) != NULL ? PV_SUCCESS : PV_FAILURE;
+   status |= initializeWeights(wPatches, wDataStart) != NULL ? PV_SUCCESS : PV_FAILURE;
    assert(status == 0);
    status |= initPlasticityPatches();
    assert(status == 0);
@@ -392,22 +402,16 @@ int HyPerConn::shrinkPatches(int arborId) {
    return 0;
 }
 
-int HyPerConn::shrinkPatch(int kExt, int arborId /* PVAxonalArbor * arbor */) {
+int HyPerConn::shrinkPatch(int kExt, int arborId) {
 
    int kIndex = patchToDataLUT(kExt);
 
    PVPatch *weights = getWeights(kExt,arborId);
 
    pvwdata_t * w = &get_wDataStart(arborId)[kIndex*nxp*nyp*nfp+weights->offset];
-   // pvwdata_t * w = weights->data;
 
    int nx = weights->nx;
    int ny = weights->ny;
-   //int nfp = weights->nf;
-
-   //int sxp = weights->sx;
-   //int syp = weights->sy;
-   //int sfp = weights->sf;
 
    int maxnx = INT_MIN;
    int minnx = INT_MAX;
@@ -420,9 +424,7 @@ int HyPerConn::shrinkPatch(int kExt, int arborId /* PVAxonalArbor * arbor */) {
       for (int x = 0; x < nx; x++) {
          for (int f = 0; f < nfp; f++) {
             if(abs(w[x * sxp + y * syp + f * sfp]) <= shrinkPatchesThresh) {
-               //w[x*sxp + y*syp + f*sfp] = 0;
                nonZeroWeightFound=true;
-               //pvwdata_t weight = w[x * sxp + y * syp + f * sfp];
                maxnx = maxnx < x ? x : maxnx;
                minnx = minnx > x ? x : minnx;
                maxny = maxny < y ? y : maxny;
@@ -443,9 +445,6 @@ int HyPerConn::shrinkPatch(int kExt, int arborId /* PVAxonalArbor * arbor */) {
       //
       pvpatch_adjust(weights, sxp, syp, nxNew, nyNew, dxNew, dyNew);
 
-      // adjust patch size (shrink) for the data to fit within interior of post-synaptic layer
-      //
-      // pvpatch_adjust(arbor->data, nxNew, nyNew, dxNew, dyNew);
       gSynPatchStart[arborId][kExt] += dxNew*getPostNonextStrides()->sx + dyNew*getPostNonextStrides()->sy;
       aPostOffset[arborId][kExt] += dxNew*getPostExtStrides()->sx + dyNew*getPostExtStrides()->sy; // Someone who uses these routines, please check that this is correct.
    }
@@ -769,12 +768,30 @@ int HyPerConn::initNumWeightPatches() {
 }
 
 int HyPerConn::initNumDataPatches() {
-   numDataPatches = getNumWeightPatches();
+   if (sharedWeights) {
+      int nxKernel = (pre->getXScale() < post->getXScale()) ? (int)pow(2,
+            post->getXScale() - pre->getXScale()) : 1;
+      int nyKernel = (pre->getYScale() < post->getYScale()) ? (int)pow(2,
+            post->getYScale() - pre->getYScale()) : 1;
+      numDataPatches = pre->getLayerLoc()->nf * nxKernel * nyKernel;
+      return PV_SUCCESS;
+   }
+   else {
+      numDataPatches = getNumWeightPatches();
+   }
    return PV_SUCCESS;
 }
 
 int HyPerConn::initPlasticityPatches()
 {
+// Copied over from KernelConn, but do we need it?
+//    assert(!parent->parameters()->presentAndNotBeenRead(name, "sharedWeights"));
+//    assert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
+// #ifdef PV_USE_MPI
+//    if( usingSharedWeights() && getPlasticityFlag() ) {
+//       assert(!parent->parameters()->presentAndNotBeenRead(name, "keepKernelsSynchronized"));
+//    }
+// #endif // PV_USE_MPI
    int sx = nfp;
    int sy = sx * nxp;
    int sp = sy * nyp;
@@ -805,6 +822,7 @@ int HyPerConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag)
    ioParam_postLayerName(ioFlag);
    ioParam_channelCode(ioFlag);
    // ioParam_initWeightsFile(ioFlag);
+   ioParam_sharedWeights(ioFlag);
    ioParam_weightInitType(ioFlag);
    if (weightInitializer != NULL) {
       weightInitializer->ioParamsFillGroup(ioFlag);
@@ -836,6 +854,10 @@ int HyPerConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag)
    if (normalizer != NULL) {
       normalizer->ioParamsFillGroup(ioFlag);
    }
+   ioParam_dWMax(ioFlag);
+   ioParam_shmget_flag(ioFlag);
+   ioParam_keepKernelsSynchronized(ioFlag);
+   ioParam_useWindowPost(ioFlag);
    return PV_SUCCESS;
 }
 
@@ -872,9 +894,12 @@ void HyPerConn::ioParam_channelCode(enum ParamsIOFlag ioFlag) {
    }
 }
 
-//void HyPerConn::ioParam_initWeightsFile(enum ParamsIOFlag ioFlag) {
-//   parent->ioParamString(ioFlag, name, "initWeightsFile", &filename, NULL, false/*warnIfAbsent*/);
-//}
+void HyPerConn::ioParam_sharedWeights(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "sharedWeights", &sharedWeights, false/*default*/, true/*warn if absent*/);
+   if (sharedWeights && ioFlag == PARAMS_IO_READ) {
+      fileType = PVP_KERNEL_FILE_TYPE;
+   }
+}
 
 void HyPerConn::ioParam_weightInitType(enum ParamsIOFlag ioFlag) {
    parent->ioParamString(ioFlag, name, "weightInitType", &weightInitTypeString, NULL, true/*warnIfAbsent*/);
@@ -1122,7 +1147,6 @@ void HyPerConn::ioParam_updateGSynFromPostPerspective(enum ParamsIOFlag ioFlag) 
 }
 
 void HyPerConn::ioParam_dWMax(enum ParamsIOFlag ioFlag) {
-   // Not used by HyPerConn per se, but is used by derived classes KernelConn and LCALIFLateralConn
    assert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
    if (plasticityFlag) {
       parent->ioParamValue(ioFlag, name, "dWMax", &dWMax, dWMax, true/*warnIfAbsent*/);
@@ -1213,6 +1237,47 @@ void HyPerConn::ioParam_strength(enum ParamsIOFlag ioFlag, float * strength, boo
    }
 }
 
+void HyPerConn::ioParam_shmget_flag(enum ParamsIOFlag ioFlag) {
+#ifdef USE_SHMGET
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "sharedWeights"));
+   if (!sharedWeights) return;
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
+   parent->ioParamValue(ioFlag, name, "shmget_flag", &shmget_flag, shmget_flag, true/*warnIfAbsent*/);
+   if (plasticityFlag && shmget_flag) {
+       shmget_flag = false;
+       if (parent->columnId()==0) {
+          std::cout << "in HyPerConn::initialize: " << this->name
+                    << ", shmget_flag parameter specified as true, reset to false because plasticity_flag is true"
+                    << std::endl;
+       }
+   }
+#else
+   if (ioFlag == PARAMS_IO_READ) {
+      // mark as read so that shmget_flag doesn't get an unread-parameter warning.
+      // This way the same params file can be used with USE_SHMGET on or off.
+      parent->parameters()->value(name, "shmget_flag", false, false);
+   }
+#endif // USE_SHMGET
+}
+
+void HyPerConn::ioParam_keepKernelsSynchronized(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "sharedWeights"));
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
+   if (sharedWeights && plasticityFlag) {
+      parent->ioParamValue(ioFlag, name, "keepKernelsSynchronized", &keepKernelsSynchronized_flag, sharedWeights, true/*warnIfAbsent*/);
+   }
+}
+
+void HyPerConn::ioParam_useWindowPost(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "sharedWeights"));
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "numAxonalArbors"));
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
+   if (sharedWeights && plasticityFlag && numAxonalArborLists>1) {
+      initialWeightUpdateTime = 1.0;
+      parent->ioParamValue(ioFlag, name, "useWindowPost", &useWindowPost, useWindowPost);
+   }
+}
+
 int HyPerConn::decodeChannel(int channel_code, ChannelType * channel_type) {
    int status = PV_SUCCESS;
    switch( channel_code ) {
@@ -1271,29 +1336,31 @@ int HyPerConn::initializeDelays(const float * fDelayArray, int size){
    return status;
 }
 
-//int HyPerConn::readPatchSizeFromFile(const char * filename) {
-//   assert(filename != NULL);
-//   int status = PV_SUCCESS;
-//   readUseListOfArborFiles(parent->parameters());
-//   readCombineWeightFiles(parent->parameters());
-//   if( !useListOfArborFiles && !combineWeightFiles) { // Should still get patch size from file if either of these flags is true
-//      status = patchSizeFromFile(filename);
-//   }
-//   // else {
-//   //    status = readPatchSizeFromParams(parent->parameters());
-//   // }
-//   return status;
-//}
-//
-//void HyPerConn::readUseListOfArborFiles(PVParams * params) {
-//   assert(filename!=NULL);
-//   useListOfArborFiles = params->value(name, "useListOfArborFiles", false)!=0;
-//}
-//
-//void HyPerConn::readCombineWeightFiles(PVParams * params) {
-//   assert(filename!=NULL);
-//   combineWeightFiles = params->value(name, "combineWeightFiles", false)!=0;
-//}
+#ifdef OBSOLETE // Marked obsolete Mar 19, 2014
+int HyPerConn::readPatchSizeFromFile(const char * filename) {
+   assert(filename != NULL);
+   int status = PV_SUCCESS;
+   readUseListOfArborFiles(parent->parameters());
+   readCombineWeightFiles(parent->parameters());
+   if( !useListOfArborFiles && !combineWeightFiles) { // Should still get patch size from file if either of these flags is true
+      status = patchSizeFromFile(filename);
+   }
+   // else {
+   //    status = readPatchSizeFromParams(parent->parameters());
+   // }
+   return status;
+}
+
+void HyPerConn::readUseListOfArborFiles(PVParams * params) {
+   assert(filename!=NULL);
+   useListOfArborFiles = params->value(name, "useListOfArborFiles", false)!=0;
+}
+
+void HyPerConn::readCombineWeightFiles(PVParams * params) {
+   assert(filename!=NULL);
+   combineWeightFiles = params->value(name, "combineWeightFiles", false)!=0;
+}
+#endif // OBSOLETE
 
 int HyPerConn::communicateInitInfo() {
    // HyPerConns need to tell the parent HyPerCol how many random number
@@ -1470,6 +1537,12 @@ int HyPerConn::communicateInitInfo() {
 
    if (weightInitializer) weightInitializer->communicateParamsInfo();
 
+   if (sharedWeights) {
+      if (pre->getNumWindows() != 1 && pre->getNumWindows() != this->numberOfAxonalArborLists()){
+         fprintf(stderr, "HyPerConn::Number of windows in %s is %d (calculated from symmetry), while number of arbors in %s is %d. Either some windows or arbors will not be used\n", pre->getName(), pre->getNumWindows(), name, this->numberOfAxonalArborLists());
+      }
+   }
+
    return status;
 }
 
@@ -1490,9 +1563,10 @@ int HyPerConn::setPatchSize() {
 }
 
 // returns handle to initialized weight patches
-PVPatch *** HyPerConn::initializeWeights(PVPatch *** patches, pvwdata_t ** dataStart, int numPatches)
+PVPatch *** HyPerConn::initializeWeights(PVPatch *** patches, pvwdata_t ** dataStart)
 {
-   weightInitializer->initializeWeights(patches, dataStart);
+   PVPatch *** patches_arg = sharedWeights ? NULL : patches;
+   weightInitializer->initializeWeights(patches_arg, dataStart);
 #ifdef USE_SHMGET
 #ifdef PV_USE_MPI
    // insert synchronization barrier to ensure that all processes have finished loading portions of shared memory for which they
@@ -1505,6 +1579,13 @@ PVPatch *** HyPerConn::initializeWeights(PVPatch *** patches, pvwdata_t ** dataS
 #endif // PV_USE_MPI
 #endif // USE_SHMGET
    normalizeWeights();
+#ifdef PV_USE_OPENCL
+// Copied over from KernelConn.
+//   //don't support GPU acceleration in kernelconn yet
+//   ignoreGPUflag=false;
+//   //tell the recieving layer to copy gsyn to the gpu, because kernelconn won't be calculating it
+//   post->copyChannelToDevice();
+#endif
    return patches;
 }
 
@@ -1522,23 +1603,6 @@ int HyPerConn::allocateDataStructures() {
       else {
          randState = new Random(parent, preSynapticLayer()->getLayerLoc(), true/*isExtended*/);
       }
-//      const PVLayerLoc * loc = (from_post ? post : pre)->getLayerLoc();
-//      int nx = loc->nx;
-//      int ny = loc->ny;
-//      int nf = loc->nf;
-//      if (!from_post) {
-//         int nb2 = 2*loc->nb;
-//         nx += nb2;
-//         ny += nb2;
-//      }
-//      int neededRNGSeeds = from_post ? post->getNumGlobalNeurons() : pre->getNumGlobalExtended();
-//      rngSeedBase = parent->getObjectSeed(neededRNGSeeds);
-//      rnd_state = (uint4 *) malloc((size_t)neededRNGSeeds*sizeof(uint4));
-//      for (int y=0; y<ny; y++) {
-//         int localIndex = kIndex(0,y,0,nx,ny,nf);
-//         int globalIndex = globalIndexFromLocal(localIndex, *loc);
-//         cl_random_init(&rnd_state[localIndex], nx*nf, rngSeedBase+(unsigned int) globalIndex);
-//      }
    }
 
    if (plasticityFlag) {
@@ -1554,7 +1618,46 @@ int HyPerConn::allocateDataStructures() {
 
    int status = constructWeights();
 
+   if (sharedWeights) {
+#ifdef PV_USE_MPI
+      if (plasticityFlag) {
+         const int numPatches = getNumDataPatches();
+         const size_t patchSize = nxp*nyp*nfp;
+         const size_t localSize = numPatches * patchSize;
+         mpiReductionBuffer = (pvwdata_t *) malloc(localSize*sizeof(pvwdata_t));
+         if(mpiReductionBuffer == NULL) {
+            fprintf(stderr, "Connection \"%s\" unable to allocate memory for mpiReductionBuffer in rank %d process: %s\n", getName(), getParent()->columnId(), strerror(errno));
+            exit(PV_FAILURE);
+         }
+      }
+#endif // PV_USE_MPI
+      numKernelActivations = (int *) malloc(getNumDataPatches() * sizeof(int));
+      if(numKernelActivations == NULL) {
+         fprintf(stderr, "Connection \"%s\" unable to allocate memory for numKernelActivations in rank %d process: %s\n", getName(), getParent()->columnId(), strerror(errno));
+         exit(PV_FAILURE);
+      }
+      for (int ki = 0; ki < getNumDataPatches(); ki++) {
+         numKernelActivations[ki] = 0;
+      }
+   }
+
    return status;
+}
+
+void HyPerConn::initPatchToDataLUT() {
+   assert(patch2datalookuptable==NULL);
+   if (sharedWeights) {
+      int numWeightPatches=getNumWeightPatches();
+
+      patch2datalookuptable=(int *) calloc(numWeightPatches, sizeof(int));
+      for(int i=0; i<numWeightPatches; i++) {
+         int kernelindex=patchIndexToDataIndex(i);
+         patch2datalookuptable[i]=kernelindex;
+      }
+   }
+   else {
+      // lookuptable just returns the patchindex
+   }
 }
 
 uint4 * HyPerConn::getRandState(int index) {
@@ -1703,60 +1806,61 @@ int HyPerConn::initializeThreadKernels(const char * kernel_name)
 }
 #endif // PV_USE_OPENCL
 
-//int HyPerConn::checkPVPFileHeader(Communicator * comm, const PVLayerLoc * loc, int params[], int numParams)
-//{
-//   // use default header checker
-//   //
-//   return pvp_check_file_header(comm, loc, params, numParams);
-//}
-//
-//int HyPerConn::checkWeightsHeader(const char * filename, const int * wgtParams)
-//{
-//   // extra weight parameters
-//   //
-//   const int nxpFile = wgtParams[NUM_BIN_PARAMS + INDEX_WGT_NXP];
-//   if (nxp != nxpFile) {
-//      fprintf(stderr,
-//              "ignoring nxp = %i in HyPerConn %s, using nxp = %i in binary file %s\n",
-//              nxp, name, nxpFile, filename);
-//      nxp = nxpFile;
-//   }
-//
-//   const int nypFile = wgtParams[NUM_BIN_PARAMS + INDEX_WGT_NYP];
-//   if (nyp != nypFile) {
-//      fprintf(stderr,
-//              "ignoring nyp = %i in HyPerConn %s, using nyp = %i in binary file %s\n",
-//              nyp, name, nypFile, filename);
-//      nyp = nypFile;
-//   }
-//
-//   nfp = wgtParams[NUM_BIN_PARAMS + INDEX_WGT_NFP];
-//   // const int nfpFile = wgtParams[NUM_BIN_PARAMS + INDEX_WGT_NFP];
-//   // if (nfp != nfpFile) {
-//   //    fprintf(stderr,
-//   //            "ignoring nfp = %i in HyPerConn %s, using nfp = %i in binary file %s\n",
-//   //            nfp, name, nfpFile, filename);
-//   //    nfp = nfpFile;
-//   // }
-//   return 0;
-//}
-
-int HyPerConn::writeWeights(double time, bool last)
+#ifdef OBSOLETE // Marked obsolete Mar 19, 2014
+int HyPerConn::checkPVPFileHeader(Communicator * comm, const PVLayerLoc * loc, int params[], int numParams)
 {
-   const int numPatches = getNumWeightPatches();
-   return writeWeights(wPatches, wDataStart, numPatches, NULL, time, writeCompressedWeights, last);
+   // use default header checker
+   //
+   return pvp_check_file_header(comm, loc, params, numParams);
+}
+
+int HyPerConn::checkWeightsHeader(const char * filename, const int * wgtParams)
+{
+   // extra weight parameters
+   //
+   const int nxpFile = wgtParams[NUM_BIN_PARAMS + INDEX_WGT_NXP];
+   if (nxp != nxpFile) {
+      fprintf(stderr,
+              "ignoring nxp = %i in HyPerConn %s, using nxp = %i in binary file %s\n",
+              nxp, name, nxpFile, filename);
+      nxp = nxpFile;
+   }
+
+   const int nypFile = wgtParams[NUM_BIN_PARAMS + INDEX_WGT_NYP];
+   if (nyp != nypFile) {
+      fprintf(stderr,
+              "ignoring nyp = %i in HyPerConn %s, using nyp = %i in binary file %s\n",
+              nyp, name, nypFile, filename);
+      nyp = nypFile;
+   }
+
+   nfp = wgtParams[NUM_BIN_PARAMS + INDEX_WGT_NFP];
+   // const int nfpFile = wgtParams[NUM_BIN_PARAMS + INDEX_WGT_NFP];
+   // if (nfp != nfpFile) {
+   //    fprintf(stderr,
+   //            "ignoring nfp = %i in HyPerConn %s, using nfp = %i in binary file %s\n",
+   //            nfp, name, nfpFile, filename);
+   //    nfp = nfpFile;
+   // }
+   return 0;
+}
+#endif // OBSOLETE
+
+int HyPerConn::writeWeights(double timed, bool last)
+{
+   PVPatch *** patches_arg = sharedWeights ? NULL : wPatches;
+   return writeWeights(patches_arg, get_wDataStart(), getNumDataPatches(), NULL, timed, writeCompressedWeights, last);
 }
 
 int HyPerConn::writeWeights(const char * filename) {
-   return writeWeights(wPatches, wDataStart, getNumWeightPatches(), filename, parent->simulationTime(), writeCompressedWeights, true);
+   PVPatch *** patches_arg = sharedWeights ? NULL : wPatches;
+   return writeWeights(patches_arg, get_wDataStart(), getNumDataPatches(), filename, parent->simulationTime(), writeCompressedWeights, true);
 }
 
 int HyPerConn::writeWeights(PVPatch *** patches, pvwdata_t ** dataStart, int numPatches,
-      const char * filename, double timef, bool compressWeights, bool last) {
+      const char * filename, double timed, bool compressWeights, bool last) {
    int status = PV_SUCCESS;
    char path[PV_PATH_MAX];
-
-   // if (patches == NULL) return PV_SUCCESS; // KernelConn::writeWeights will call with patches set to NULL.
 
    float minVal = FLT_MAX;
    float maxVal = -FLT_MAX;
@@ -1769,20 +1873,18 @@ int HyPerConn::writeWeights(PVPatch *** patches, pvwdata_t ** dataStart, int num
 
    const PVLayerLoc * loc = pre->getLayerLoc();
 
-   // Is "_last" obsolete?  The data that used to be written to the _last files are now handled by checkpointing.
-   const char * laststr = last ? "_last" : "";
    int chars_needed = 0;
    if (filename == NULL) {
       assert(parent->includeConnectionName()<=2 && parent->includeConnectionName()>=0);
       switch(parent->includeConnectionName()) {
       case 0:
-         chars_needed = snprintf(path, PV_PATH_MAX, "%s/w%d%s.pvp", parent->getOutputPath(), getConnectionId(), laststr);
+         chars_needed = snprintf(path, PV_PATH_MAX, "%s/w%d.pvp", parent->getOutputPath(), getConnectionId());
          break;
       case 1:
-         chars_needed = snprintf(path, PV_PATH_MAX, "%s/w%d_%s%s.pvp", parent->getOutputPath(), getConnectionId(), name, laststr);
+         chars_needed = snprintf(path, PV_PATH_MAX, "%s/w%d_%s.pvp", parent->getOutputPath(), getConnectionId(), name);
          break;
       case 2:
-         chars_needed = snprintf(path, PV_PATH_MAX, "%s/%s%s.pvp", parent->getOutputPath(), name, laststr);
+         chars_needed = snprintf(path, PV_PATH_MAX, "%s/%s.pvp", parent->getOutputPath(), name);
          break;
       default:
          assert(0);
@@ -1801,7 +1903,7 @@ int HyPerConn::writeWeights(PVPatch *** patches, pvwdata_t ** dataStart, int num
 
    bool append = last ? false : ioAppend;
 
-	status = PV::writeWeights(path, comm, (double) timef, append, loc, nxp, nyp,
+	status = PV::writeWeights(path, comm, (double) timed, append, loc, nxp, nyp,
 			nfp, minVal, maxVal, patches, dataStart, numPatches,
 			numberOfAxonalArborLists(), compressWeights, fileType);
    assert(status == 0);
@@ -1847,8 +1949,6 @@ int HyPerConn::writeTextWeights(const char * filename, int k)
            post->getLayerLoc()->nx, post->getLayerLoc()->ny, post->getLayerLoc()->nf);
    fprintf(fd, "\n");
 
-
-   //int arbor = 0;
    for(int arbor = 0; arbor<numberOfAxonalArborLists(); arbor++) {
       fprintf(fd, "displaying arbor %1.1d\n", arbor);
       // give a chance for derived classes to add extra information
@@ -2086,7 +2186,8 @@ int HyPerConn::checkpointRead(const char * cpDir, double * timef) {
    int status = checkpointFilename(path, PV_PATH_MAX, cpDir);
    assert(status==PV_SUCCESS);
    InitWeights * weightsInitObject = new InitWeights(this);
-   weightsInitObject->readWeights(wPatches, get_wDataStart(), getNumDataPatches(), path, timef);
+   PVPatch *** patches_arg = sharedWeights ? NULL : wPatches;
+   weightsInitObject->readWeights(patches_arg, get_wDataStart(), getNumDataPatches(), path, timef);
    delete weightsInitObject; weightsInitObject = NULL;
 
    status = parent->readScalarFromFile(cpDir, getName(), "lastUpdateTime", &lastUpdateTime, lastUpdateTime);
@@ -2112,7 +2213,15 @@ int HyPerConn::checkpointWrite(const char * cpDir) {
    char filename[PV_PATH_MAX];
    int status = checkpointFilename(filename, PV_PATH_MAX, cpDir);
    assert(status==PV_SUCCESS);
-   status = writeWeights(wPatches, wDataStart, getNumWeightPatches(), filename, parent->simulationTime(), writeCompressedCheckpoints, /*last*/true);
+#ifdef PV_USE_MPI
+   if (sharedWeights && plasticityFlag && !keepKernelsSynchronized_flag) {
+      for (int arbor_id = 0; arbor_id < this->numberOfAxonalArborLists(); arbor_id++) {
+         reduceKernels(arbor_id);
+      }
+   }
+#endif // PV_USE_MPI
+   PVPatch *** patches_arg = sharedWeights ? NULL : wPatches;
+   status = writeWeights(patches_arg, wDataStart, getNumDataPatches(), filename, parent->simulationTime(), writeCompressedCheckpoints, /*last*/true);
    assert(status==PV_SUCCESS);
    status = parent->writeScalarToFile(cpDir, getName(), "nextWrite", writeTime);
    assert(status==PV_SUCCESS);
@@ -2140,17 +2249,57 @@ int HyPerConn::checkpointTimers(PV_Stream * timerstream) {
    return PV_SUCCESS;
 }
 
+float HyPerConn::minWeight(int arborId)
+{
+   const int num_data_patches = getNumDataPatches();
+   float min_weight = FLT_MAX;
+   if (sharedWeights) {
+      const int numWeights = nxp * nyp * nfp;
+      for (int iKernel = 0; iKernel < num_data_patches; iKernel++) {
+         pvwdata_t * kernelWeights = this->get_wDataHead(arborId, iKernel);
+         for (int iWeight = 0; iWeight < numWeights; iWeight++) {
+            min_weight = (min_weight < kernelWeights[iWeight]) ? min_weight
+                  : kernelWeights[iWeight];
+         }
+      }
+   }
+   else {
+      for (int i_patch = 0; i_patch < num_data_patches; i_patch++) {
+         pvwdata_t * w_data = this->get_wData(arborId, i_patch);
+         PVPatch * w_patch = this->getWeights(i_patch, arborId);
+         int num_weights = this->fPatchSize() * w_patch->nx * w_patch->ny;
+         for (int iWeight = 0; iWeight < num_weights; iWeight++) {
+            min_weight = (min_weight < w_data[iWeight]) ? min_weight
+                  : w_data[iWeight];
+         }
+      }
+   }
+   return min_weight;
+}
+
 float HyPerConn::maxWeight(int arborId)
 {
    const int num_data_patches = getNumDataPatches();
    float max_weight = -FLT_MAX;
-   for (int i_weight = 0; i_weight < num_data_patches; i_weight++) {
-      pvwdata_t * w_data = this->get_wData(arborId, i_weight);
-      PVPatch * w_patch = this->getWeights(i_weight, arborId);
-      int num_weights = this->fPatchSize() * w_patch->nx * w_patch->ny;
-      for (int iWeight = 0; iWeight < num_weights; iWeight++) {
-         max_weight = (max_weight > w_data[iWeight]) ? max_weight
-               : w_data[iWeight];
+   if (sharedWeights) {
+      const int numWeights = nxp * nyp * nfp;
+      for (int iKernel = 0; iKernel < num_data_patches; iKernel++) {
+         pvwdata_t * kernelWeights = this->get_wDataHead(arborId, iKernel);
+         for (int iWeight = 0; iWeight < numWeights; iWeight++) {
+            max_weight = (max_weight > kernelWeights[iWeight]) ? max_weight
+                  : kernelWeights[iWeight];
+         }
+      }
+   }
+   else {
+      for (int i_weight = 0; i_weight < num_data_patches; i_weight++) {
+         pvwdata_t * w_data = this->get_wData(arborId, i_weight);
+         PVPatch * w_patch = this->getWeights(i_weight, arborId);
+         int num_weights = this->fPatchSize() * w_patch->nx * w_patch->ny;
+         for (int iWeight = 0; iWeight < num_weights; iWeight++) {
+            max_weight = (max_weight > w_data[iWeight]) ? max_weight
+                  : w_data[iWeight];
+         }
       }
    }
    return max_weight;
@@ -2283,28 +2432,222 @@ int HyPerConn::updateState(double time, double dt)
    }
    update_timer->start();
 
-   //const int arborId = 0;       // assume only one for now
+   clear_dW();
    for(int arborId=0;arborId<numberOfAxonalArborLists();arborId++) {
       status = calc_dW(arborId);        // Calculate changes in weights
-      // TODO error handling
-      status = updateWeights(arborId);  // Apply changes in weights
+      if (status==PV_BREAK) { break; }
+      assert(status == PV_SUCCESS);
    }
+
+#ifdef PV_USE_MPI
+   bool needSynchronizing = keepKernelsSynchronized_flag;
+   needSynchronizing |= sharedWeights && (parent->simulationTime() >= parent->getStopTime()-parent->getDeltaTime());
+   if (needSynchronizing) {
+      for (int arborID = 0; arborID < numberOfAxonalArborLists(); arborID++) {
+         status = reduceKernels(arborID); // combine partial changes in each column
+         if (status == PV_BREAK) {
+            break;
+         }
+         assert(status == PV_SUCCESS);
+      }
+   }
+#endif // PV_USE_MPI
+
+   for(int arborId=0;arborId<numberOfAxonalArborLists();arborId++){
+      status = updateWeights(arborId);  // Apply changes in weights
+      if (status==PV_BREAK) { break; }
+      assert(status==PV_SUCCESS);
+   }
+   normalizeWeights();
 
    update_timer->stop();
    return status;
 }
 
 int HyPerConn::calc_dW(int arborId) {
+   assert(plasticityFlag);
+   return update_dW(arborId);
+}
+
+int HyPerConn::clear_dW() {
+   // zero out all dW.
+   // This also zeroes out the unused parts of shrunken patches
+   for(int kArbor = 0; kArbor < numberOfAxonalArborLists(); kArbor++){
+      for(int kKernel = 0; kKernel < getNumDataPatches(); kKernel++){
+         int syPatch = syp;
+         int nkPatch = nfp * nxp;
+         pvwdata_t * dWeights = get_dwDataHead(kArbor,kKernel);
+         for(int kyPatch = 0; kyPatch < nyp; kyPatch++){
+            for(int kPatch = 0; kPatch < nkPatch; kPatch++){
+               dWeights[kPatch] = 0.0f;
+            }
+            dWeights += syPatch;
+         }
+      }
+   }
+   return PV_BREAK;
+}
+
+int HyPerConn::update_dW(int arbor_ID) {
+   // Typically override this method with a call to defaultUpdate_dW(arbor_ID)
+       int status = defaultUpdate_dW(arbor_ID);  // calculate new weights from changes
+   return status;
+}
+
+int HyPerConn::defaultUpdate_dW(int arbor_ID) {
+   // compute dW but don't add them to the weights yet.
+   // That takes place in reduceKernels, so that the output is
+   // independent of the number of processors.
+   int nExt = preSynapticLayer()->getNumExtended();
+
+   int numKernelIndices = getNumDataPatches();
+
+   if (sharedWeights) {
+      //Reset numKernelActivations
+      for(int ki = 0; ki < numKernelIndices; ki++){
+         numKernelActivations[ki] = 0;
+      }
+   }
+   for(int kExt=0; kExt<nExt;kExt++) {
+      defaultUpdateInd_dW(arbor_ID, kExt);
+   }
+
+   normalize_dW(arbor_ID);
+
    return PV_SUCCESS;
 }
 
-//
-/* M (m or pDecr->data) is an extended post-layer variable
- *
- */
+int HyPerConn::defaultUpdateInd_dW(int arbor_ID, int kExt){
+   const pvdata_t * preactbuf = preSynapticLayer()->getLayerData(getDelay(arbor_ID));
+   const pvdata_t * postactbuf = postSynapticLayer()->getLayerData();
+   const PVLayerLoc * preLoc = pre->getLayerLoc();
+   const PVLayerLoc * postLoc = post->getLayerLoc();
+   int sya = (post->getLayerLoc()->nf * (post->getLayerLoc()->nx + 2*post->getLayerLoc()->nb));
+
+   pvdata_t preact = preactbuf[kExt];
+   if (skipPre(preact)) return PV_CONTINUE;
+
+   if (sharedWeights) {
+      //update numKernelActivations
+      int kernelIndex = patchIndexToDataIndex(kExt);
+      //Only increment if kernelIndex is restricted
+      int nxExt = preLoc->nx + 2*preLoc->nb;
+      int nyExt = preLoc->ny + 2*preLoc->nb;
+      int nf = preLoc->nf;
+      int extX = kxPos(kExt, nxExt, nyExt, nf);
+      int extY = kyPos(kExt, nxExt, nyExt, nf);
+      if(extX >= preLoc->nb && extX < preLoc->nx + preLoc->nb &&
+            extY >= preLoc->nb && extY < preLoc->ny + preLoc->nb){
+         numKernelActivations[kernelIndex]++;
+      }
+   }
+
+   bool inWindow = true;
+   // only check inWindow if number of arbors > 1
+   if (this->numberOfAxonalArborLists()>1){
+      if(useWindowPost){
+         int kPost = layerIndexExt(kExt, preLoc, postLoc);
+         inWindow = post->inWindowExt(arbor_ID, kPost);
+      }
+      else{
+         inWindow = pre->inWindowExt(arbor_ID, kExt);
+      }
+      if(!inWindow) return PV_CONTINUE;
+   }
+   PVPatch * weights = getWeights(kExt,arbor_ID);
+   size_t offset = getAPostOffset(kExt, arbor_ID);
+   int ny = weights->ny;
+   int nk = weights->nx * nfp;
+   const pvdata_t * postactRef = &postactbuf[offset];
+   pvwdata_t * dwdata = get_dwData(arbor_ID, kExt);
+   int lineoffsetw = 0;
+   int lineoffseta = 0;
+   for( int y=0; y<ny; y++ ) {
+      for( int k=0; k<nk; k++ ) {
+         pvdata_t aPost = postactRef[lineoffseta+k];
+         dwdata[lineoffsetw + k] += updateRule_dW(preact, aPost);
+      }
+      lineoffsetw += syp;
+      lineoffseta += sya;
+   }
+
+
+   return PV_SUCCESS;
+}
+
+int HyPerConn::normalize_dW(int arbor_ID){
+   if (sharedWeights) {
+      int numKernelIndices = getNumDataPatches();
+
+      //Do mpi to update numKernelActivationss
+#ifdef PV_USE_MPI
+      int ierr = MPI_Allreduce(MPI_IN_PLACE, numKernelActivations , numKernelIndices, MPI_INT, MPI_SUM, parent->icCommunicator()->communicator());
+#endif
+
+      // Divide by numKernelActivations in this timestep
+      for( int kernelindex=0; kernelindex<numKernelIndices; kernelindex++ ) {
+         //Calculate pre feature index from patch index
+         //TODO right now it's dividing the divisor by nprocs. This is a hack. Proper fix is to update all connections overwriting
+         //update_dW to do dwNormalization in this way and take out the divide by nproc in reduceKernels.
+         const int nProcs = parent->icCommunicator()->numCommColumns() * parent->icCommunicator()->numCommRows();
+         double divisor = numKernelActivations[kernelindex]/nProcs;
+         if(divisor != 0){
+            int numpatchitems = nxp*nyp*nfp;
+            pvwdata_t * dwpatchdata = get_dwDataHead(arbor_ID,kernelindex);
+            for( int n=0; n<numpatchitems; n++ ) {
+               dwpatchdata[n] /= divisor;
+            }
+         }
+      }
+   }
+   return PV_SUCCESS;
+}
+
+pvdata_t HyPerConn::updateRule_dW(pvdata_t pre, pvdata_t post) {
+   return dWMax * pre * post;
+}
+
+#ifdef PV_USE_MPI
+int HyPerConn::reduceKernels(const int arborID) {
+   assert(sharedWeights && plasticityFlag && mpiReductionBuffer);
+   Communicator * comm = parent->icCommunicator();
+   const MPI_Comm mpi_comm = comm->communicator();
+   int ierr;
+   const int nxProcs = comm->numCommColumns();
+   const int nyProcs = comm->numCommRows();
+   const int nProcs = nxProcs * nyProcs;
+   if (nProcs == 1){
+      return PV_BREAK;
+   }
+   const int numPatches = getNumDataPatches();
+   const size_t patchSize = nxp*nyp*nfp;
+   const size_t localSize = numPatches * patchSize;
+   const size_t arborSize = localSize * this->numberOfAxonalArborLists();
+
+#ifdef PV_USE_MPI
+   ierr = MPI_Allreduce(MPI_IN_PLACE, this->get_dwDataStart(0), arborSize, MPI_FLOAT, MPI_SUM, mpi_comm);
+#endif
+   pvwdata_t * dW_data = this->get_dwDataStart(0);
+   for (int i_dW = 0; i_dW < arborSize; i_dW++){
+       dW_data[i_dW] /= nProcs;
+   }
+
+   return PV_BREAK;
+}
+#endif // PV_USE_MPI
+
 int HyPerConn::updateWeights(int arborId)
 {
-   return 0;
+   lastUpdateTime = parent->simulationTime();
+   // add dw to w
+   // never use shmget if plasticity flag == true
+   for(int kArbor = 0; kArbor < this->numberOfAxonalArborLists(); kArbor++){
+      pvwdata_t * w_data_start = get_wDataStart(kArbor);
+      for( int k=0; k<nxp*nyp*nfp*getNumDataPatches(); k++ ) {
+         w_data_start[k] += get_dwDataStart(kArbor)[k];
+      }
+   }
+   return PV_BREAK;
 }
 
 double HyPerConn::computeNewWeightUpdateTime(double time, double currentUpdateTime) {
@@ -2313,22 +2656,6 @@ double HyPerConn::computeNewWeightUpdateTime(double time, double currentUpdateTi
       weightUpdateTime += weightUpdatePeriod;
    }
    return weightUpdateTime;
-}
-
-float HyPerConn::minWeight(int arborId)
-{
-   const int num_data_patches = getNumDataPatches();
-   float min_weight = FLT_MAX;
-   for (int i_patch = 0; i_patch < num_data_patches; i_patch++) {
-      pvwdata_t * w_data = this->get_wData(arborId, i_patch);
-      PVPatch * w_patch = this->getWeights(i_patch, arborId);
-      int num_weights = this->fPatchSize() * w_patch->nx * w_patch->ny;
-      for (int iWeight = 0; iWeight < num_weights; iWeight++) {
-         min_weight = (min_weight < w_data[iWeight]) ? min_weight
-               : w_data[iWeight];
-      }
-   }
-   return min_weight;
 }
 
 PVPatch * HyPerConn::getWeights(int k, int arbor)
@@ -2485,6 +2812,7 @@ int HyPerConn::deleteWeights() {
 		free(aPostOffsetBuffer); // All aPostOffset[k]'s were allocated together in a single malloc call.
 		free(aPostOffset);
 	}
+	free(patch2datalookuptable); patch2datalookuptable = NULL;
 
 	return PV_SUCCESS;
 }
@@ -2811,7 +3139,8 @@ PVPatch *** HyPerConn::convertPreSynapticWeights(double time)
       wPostPatches = (PVPatch***) calloc(numAxonalArborLists, sizeof(PVPatch**));
       assert(wPostPatches!=NULL);
       assert(wPostDataStart == NULL);
-      //TODO-CER-2014.4.3 - is the sizeof part correct???????????????????
+      //TODO-CER-2014.4.3 - is the sizeof part correct??????????????????
+      //PFS-2014.6.4 - This looks correct; it's of the form "foo * x = (foo *) calloc(numfoos, sizeof(foo))"
       wPostDataStart = (pvwdata_t **) calloc(numAxonalArborLists, sizeof(pvwdata_t *));
       assert(wPostDataStart!=NULL);
       wPostDataStart[0] = allocWeights(numPost, nxpPost, nypPost, nfpPost);
@@ -3812,25 +4141,124 @@ pvwdata_t * HyPerConn::allocWeights(int nPatches, int nxPatch, int nyPatch, int 
    // arborID == 0
    size_t arborSize = dataSize * this->numberOfAxonalArborLists();
    pvwdata_t * dataPatches = NULL;
+#ifdef USE_SHMGET
+   int arbor_ID = 0;
+   if (!shmget_flag) {
+      dataPatches = (pvwdata_t *) calloc(arborSize, sizeof(char));
+   } else {
+      assert(sharedWeights);
+      shmget_owner[arbor_ID] = true;
+      // shmget diagnostics
+#define SHMGET_DEBUG
+#ifdef SHMGET_DEBUG
+      if (arbor_ID == 0 || arbor_ID == (this->numberOfAxonalArborLists()-1)) {
+         std::cout << "rank = " << parent->icCommunicator()->commRank();
+         std::cout << ", arbor_ID = " << arbor_ID;
+      }
+#endif // SHMGET_DEBUG
+      // dataSize must be a multiple of PAGE_SIZE
+      size_t shmget_dataSize = (floor(arborSize / PAGE_SIZE) + 1) * PAGE_SIZE;
+      key_t key = IPC_PRIVATE;
+      const int max_arbors = 8712;
+      key = 11 + (this->getConnectionId() + 1) * max_arbors + arbor_ID; //hopefully unique key identifier for all shared memory associated with this connection arbor
+      int shmflg = (IPC_CREAT | IPC_EXCL | 0666);
+      char *segptr;
+
+      // check for existing segment associated with this key, delete existing segment if present, then insert barrier to ensure
+      // all processes have completed this check before attempting to create new shared memory segment
+      int shmget_existing_ID = shmget(key, shmget_dataSize, 0666);
+      if (shmget_existing_ID != -1){
+         shmid_ds * shmget_ds = NULL;
+         int shmctl_status = shmctl(shmget_existing_ID, IPC_RMID,
+               shmget_ds);
+         std::cout << "shmctl_status = " << shmctl_status << std::endl;
+         //          assert(shmget_status==0);
+      }
+#ifdef PV_USE_MPI
+      MPI_Barrier(getParent()->icCommunicator()->communicator());
+#endif // PV_USE_MPI
+
+
+      /* Open the shared memory segment - create if necessary */
+      if ((shmget_id[arbor_ID] = shmget(key, shmget_dataSize, shmflg))
+            == -1) {
+         if (errno != EEXIST) {
+            std::cout << std::endl;
+            std::cout << "key = " << key << ", shmget_dataSize = "
+                  << shmget_dataSize << ", shmflg = "
+                  << shmflg << std::endl;
+            perror("shmget: unable to create shared memory segment");
+            exit(1);
+         }
+         /* Segment already exists - try as a client */
+         shmget_owner[arbor_ID] = false;
+         int shmget_flag2 = (IPC_CREAT | 0666);
+         if ((shmget_id[arbor_ID] = shmget(key, shmget_dataSize,
+               shmget_flag2)) == -1) {
+            perror(
+                  "shmget: unable to obtain id of existing shared memory segment");
+            exit(1);
+         }
+      }
+#ifdef SHMGET_DEBUG
+      if (arbor_ID == 0 || arbor_ID == (this->numberOfAxonalArborLists()-1)) {
+         std::cout << ", shmget_owner = " << shmget_owner[arbor_ID]
+                                                          << std::endl;
+      }
+#endif // SHMGET_DEBUG
+      /* Attach (map) the shared memory segment into the current process */
+      if ((segptr = (char *) shmat(shmget_id[arbor_ID], 0, 0))
+            == (char *) -1) {
+         perror("shmat: unable to map shared memory segment");
+         exit(1);
+      }
+      dataPatches = (pvwdata_t *) segptr;
+   }
+#else
    dataPatches = (pvwdata_t *) calloc(arborSize, sizeof(char));
-   assert(dataPatches != NULL);
+#endif // USE_SHMGET
+   if(dataPatches == NULL) {
+      fprintf(stderr, "Error allocating weights for connection \"%s\": %s\n", getName(), strerror(errno));
+      exit(EXIT_FAILURE);
+   }
    return dataPatches;
 }
 
 int HyPerConn::patchToDataLUT(int patchIndex) {
-   return patchIndex;
+   return sharedWeights ? patch2datalookuptable[patchIndex] : patchIndex;
 }
 
 int HyPerConn::patchIndexToDataIndex(int patchIndex, int * kx/*default=NULL*/, int * ky/*default=NULL*/, int * kf/*default=NULL*/) {
-   const PVLayerLoc * preLoc = pre->getLayerLoc();
-   if(kx) *kx = kxPos(patchIndex, preLoc->nx + 2*preLoc->nb, preLoc->ny + 2*preLoc->nb, preLoc->nf);
-   if(ky) *ky = kyPos(patchIndex, preLoc->nx + 2*preLoc->nb, preLoc->ny + 2*preLoc->nb, preLoc->nf);
-   if(kf) *kf = featureIndex(patchIndex, preLoc->nx + 2*preLoc->nb, preLoc->ny + 2*preLoc->nb, preLoc->nf);
-   return patchIndex;
+   int dataIndex;
+   if (sharedWeights) {
+      dataIndex = calcUnitCellIndex(patchIndex, kx, ky, kf);
+   }
+   else {
+      const PVLayerLoc * preLoc = pre->getLayerLoc();
+      if(kx) *kx = kxPos(patchIndex, preLoc->nx + 2*preLoc->nb, preLoc->ny + 2*preLoc->nb, preLoc->nf);
+      if(ky) *ky = kyPos(patchIndex, preLoc->nx + 2*preLoc->nb, preLoc->ny + 2*preLoc->nb, preLoc->nf);
+      if(kf) *kf = featureIndex(patchIndex, preLoc->nx + 2*preLoc->nb, preLoc->ny + 2*preLoc->nb, preLoc->nf);
+      dataIndex = patchIndex;
+   }
+   return dataIndex;
 }
 
 int HyPerConn::dataIndexToUnitCellIndex(int dataIndex, int * kx/*default=NULL*/, int * ky/*default=NULL*/, int * kf/*default=NULL*/) {
-   return calcUnitCellIndex(dataIndex, kx, ky, kf);
+   int unitCellIndex;
+   if (sharedWeights) {
+      int nfUnitCell = pre->getLayerLoc()->nf;
+      int nxUnitCell = zUnitCellSize(pre->getXScale(), post->getXScale());
+      int nyUnitCell = zUnitCellSize(pre->getYScale(), post->getYScale());
+      assert( dataIndex >= 0 && dataIndex < nxUnitCell*nyUnitCell*nfUnitCell );
+      if(kx) *kx = kxPos(dataIndex, nxUnitCell, nyUnitCell, nfUnitCell);
+      if(ky) *ky = kyPos(dataIndex, nxUnitCell, nyUnitCell, nfUnitCell);
+      if(kf) *kf = featureIndex(dataIndex, nxUnitCell, nyUnitCell, nfUnitCell);
+      unitCellIndex = dataIndex;
+   }
+   else {
+      unitCellIndex = calcUnitCellIndex(dataIndex, kx, ky, kf);
+   }
+   return unitCellIndex;
 }
 
 int HyPerConn::calcUnitCellIndex(int patchIndex, int * kxUnitCellIndex/*default=NULL*/, int * kyUnitCellIndex/*default=NULL*/, int * kfUnitCellIndex/*default=NULL*/) {

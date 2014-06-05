@@ -23,14 +23,23 @@ int CloneKernelConn::initialize_base() {
 }
 
 int CloneKernelConn::initialize(const char * name, HyPerCol * hc) {
-   int status = KernelConn::initialize(name, hc);
+   int status = HyPerConn::initialize(name, hc);
    return status;
 }
 
 int CloneKernelConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = KernelConn::ioParamsFillGroup(ioFlag);
+   int status = HyPerConn::ioParamsFillGroup(ioFlag);
    ioParam_originalConnName(ioFlag);
    return status;
+}
+
+// TODO: Merge with Sheng's changes for non-shared weight case
+void CloneKernelConn::ioParam_sharedWeights(enum ParamsIOFlag ioFlag) {
+   sharedWeights = true;
+   if (ioFlag == PARAMS_IO_READ) {
+      fileType = PVP_KERNEL_FILE_TYPE;
+      parent->parameters()->handleUnnecessaryParameter(name, "sharedWeights", true/*correctValue*/);
+   }
 }
 
 void CloneKernelConn::ioParam_weightInitType(enum ParamsIOFlag ioFlag) {
@@ -81,8 +90,7 @@ int CloneKernelConn::createAxonalArbors(int arborId) {
    return PV_SUCCESS;
 }
 
-PVPatch *** CloneKernelConn::initializeWeights(PVPatch *** patches, pvdata_t ** dataStart,
-      int numPatches, const char * filename) {
+PVPatch *** CloneKernelConn::initializeWeights(PVPatch *** patches, pvdata_t ** dataStart) {
    return patches;
    // nothing to be done as the weight patches point to originalConn's space.
 }
@@ -132,15 +140,14 @@ void CloneKernelConn::ioParam_nfp(enum ParamsIOFlag ioFlag) {
 }
 
 int CloneKernelConn::communicateInitInfo() {
-   // Need to set originalConn before calling KernelConn::communicate, since KernelConn::communicate calls setPatchSize, which needs originalConn.
-   HyPerConn * origHyPerConn = parent->getConnFromName(originalConnName);
-   if (origHyPerConn == NULL) {
+   // Need to set originalConn before calling HyPerConn::communicate, since HyPerConn::communicate calls setPatchSize, which needs originalConn.
+   originalConn = parent->getConnFromName(originalConnName);
+   if (originalConn == NULL) {
       fprintf(stderr, "CloneKernelConn \"%s\" error in rank %d process: originalConnName \"%s\" is not a connection in the column.\n",
             name, parent->columnId(), originalConnName);
    }
-   originalConn = dynamic_cast<KernelConn *>(origHyPerConn);
-   if (originalConn == NULL) {
-      fprintf(stderr, "CloneKernelConn \"%s\" error in rank %d process: originalConnName \"%s\" must be a KernelConn or a KernelConn-derived class.\n",
+   if (originalConn->usingSharedWeights() == false) {
+      fprintf(stderr, "CloneKernelConn \"%s\" error in rank %d process: originalConnName \"%s\" must use shared weights.\n",
             name, parent->columnId(), originalConnName);
    }
 
@@ -152,7 +159,7 @@ int CloneKernelConn::communicateInitInfo() {
    const char * classname = params->groupKeywordFromName(name);
    numAxonalArborLists = originalConn->numberOfAxonalArborLists();
    parent->parameters()->handleUnnecessaryParameter(name, "numAxonalArbors", numAxonalArborLists);
-   status = KernelConn::communicateInitInfo();
+   status = HyPerConn::communicateInitInfo();
    if (status != PV_SUCCESS) return status;
 
    // Presynaptic layers of the CloneKernelConn and its original conn must have the same size, or the patches won't line up with each other.
@@ -208,7 +215,7 @@ int CloneKernelConn::updateState(double time, double dt) {
 int CloneKernelConn::deleteWeights() {
    // Have to make sure not to free memory belonging to originalConn.
    // Set pointers that point into originalConn to NULL so that free() has no effect
-   // when KernelConn::deleteWeights or HyPerConn::deleteWeights is called
+   // when HyPerConn::deleteWeights or HyPerConn::deleteWeights is called
 	   wPatches = NULL;
 	   wDataStart = NULL;
 	   gSynPatchStart = NULL;

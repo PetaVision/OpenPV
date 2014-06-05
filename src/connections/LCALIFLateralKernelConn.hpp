@@ -8,13 +8,13 @@
 #ifndef LCALIFLATERALKERNELCONN_HPP_
 #define LCALIFLATERALKERNELCONN_HPP_
 
-#include "KernelConn.hpp"
+#include "HyPerConn.hpp"
 #include "../io/io.h"
 #include "../io/fileio.hpp"
 
 namespace PV {
 
-class LCALIFLateralKernelConn: public KernelConn {
+class LCALIFLateralKernelConn: public HyPerConn {
 
    // Methods
 public:
@@ -36,6 +36,7 @@ protected:
    LCALIFLateralKernelConn();
    int initialize(const char * name, HyPerCol * hc);
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_sharedWeights(enum ParamsIOFlag ioFlag);
    virtual void ioParam_initialWeightUpdateTime(enum ParamsIOFlag ioFlag);
    virtual void ioParam_integrationTimeConstant(enum ParamsIOFlag ioFlag);
    virtual void ioParam_inhibitionTimeConstant(enum ParamsIOFlag ioFlag);

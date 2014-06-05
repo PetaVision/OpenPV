@@ -8,10 +8,10 @@
 #ifndef IMPRINTCONN_HPP_
 #define IMPRINTCONN_HPP_
 
-#include "KernelConn.hpp"
+#include "HyPerConn.hpp"
 namespace PV {
 
-class ImprintConn: public KernelConn {
+class ImprintConn: public HyPerConn {
 
 public:
    ImprintConn();
@@ -29,6 +29,7 @@ public:
 protected:
    //int initialize(const char * name, HyPerCol * hc);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_sharedWeights(enum ParamsIOFlag ioFlag);
    virtual void ioParam_imprintTimeThresh(enum ParamsIOFlag ioFlag);
    bool imprintFeature(int arborId, int kExt);
    double imprintTimeThresh;

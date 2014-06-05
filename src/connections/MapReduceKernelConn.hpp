@@ -8,12 +8,12 @@
 #ifndef MAPREDUCEKERNELCONN_HPP_
 #define MAPREDUCEKERNELCONN_HPP_
 
-#include "KernelConn.hpp"
+#include "HyPerConn.hpp"
 #include "../layers/Movie.hpp"
 
 namespace PV {
 
-class MapReduceKernelConn: public PV::KernelConn {
+class MapReduceKernelConn: public PV::HyPerConn {
 public:
 	MapReduceKernelConn();
 	virtual ~MapReduceKernelConn();
@@ -23,6 +23,7 @@ public:
 protected:
     int initialize(const char * name, HyPerCol * hc);
     virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+    virtual void ioParam_sharedWeights(enum ParamsIOFlag ioFlag);
     virtual void ioParam_movieLayerName(enum ParamsIOFlag ioFlag);
     virtual void ioParam_dWeightsListName(enum ParamsIOFlag ioFlag);
     virtual void ioParam_num_dWeightFiles(enum ParamsIOFlag ioFlag);

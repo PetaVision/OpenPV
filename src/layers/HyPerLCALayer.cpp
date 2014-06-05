@@ -58,7 +58,7 @@ int HyPerLCALayer::initialize_base()
    tauMin = tauMax;
    errorStd = 1.0;
    slopeErrorStd = 1.0;
-   //Locality in KernelConn
+   //Locality in conn
    numWindowX = 1;
    numWindowY = 1;
    windowSymX = false;

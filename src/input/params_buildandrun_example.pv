@@ -75,11 +75,12 @@ ANNLayer "L1" = {
     AMin = -infinity;
 };
 
-KernelConn "Image to Retina" = {
+HyPerConn "Image to Retina" = {
     preLayerName = "Image";
     postLayerName = "Retina";
     channelCode = 0; // 0 for excitatory channel, 1 for inhibitory channel
     
+    sharedWeights = true;
     nxp = 1;
     nyp = 1;
     nfp = 1;
@@ -95,11 +96,12 @@ KernelConn "Image to Retina" = {
     writeStep = -1;
 };
 
-KernelConn "Retina to L1" = {
+HyPerConn "Retina to L1" = {
     preLayerName = "Retina";
     postLayerName = "L1";
     channelCode = 0;
     
+    sharedWeights = true;
     nxp = 7;
     nyp = 7;
     nfp = 8;

@@ -209,7 +209,7 @@ int PoolingGenConn::updateWeights(int axonID) {
            }
        }
     }
-    // normalizeWeights now called in KernelConn::updateState
+    // normalizeWeights now called in HyPerConn::updateState
     lastUpdateTime = parent->simulationTime();
 
     return PV_SUCCESS;

@@ -17,12 +17,12 @@ SiblingConn::SiblingConn(const char * name, HyPerCol * hc) {
 
 int SiblingConn::initialize(const char * name, HyPerCol * hc) {
    isNormalized = false; // TODO: check that isNormalized is set and cleared properly.
-   return KernelConn::initialize(name, hc);
+   return HyPerConn::initialize(name, hc);
 }
 
 int SiblingConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_siblingConnName(ioFlag);
-   int status = KernelConn::ioParamsFillGroup(ioFlag);
+   int status = HyPerConn::ioParamsFillGroup(ioFlag);
    return status;
 }
 
@@ -31,7 +31,7 @@ void SiblingConn::ioParam_siblingConnName(enum ParamsIOFlag ioFlag) {
 }
 
 void SiblingConn::ioParam_normalizeMethod(enum ParamsIOFlag ioFlag) {
-   KernelConn::ioParam_normalizeMethod(ioFlag);
+   HyPerConn::ioParam_normalizeMethod(ioFlag);
    isNormalized = true; // TODO: check that isNormalized is set and cleared properly.
 }
 

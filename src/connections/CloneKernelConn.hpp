@@ -8,12 +8,12 @@
 #ifndef CLONEKERNELCONN_HPP_
 #define CLONEKERNELCONN_HPP_
 
-#include "KernelConn.hpp"
+#include "HyPerConn.hpp"
 #include "../weightinit/InitCloneKernelWeights.hpp"
 
 namespace PV {
 
-class CloneKernelConn : public KernelConn {
+class CloneKernelConn : public HyPerConn {
 
 public:
    CloneKernelConn(const char * name, HyPerCol * hc);
@@ -32,6 +32,7 @@ protected:
    CloneKernelConn();
    int initialize(const char * name, HyPerCol * hc);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_sharedWeights(enum ParamsIOFlag ioFlag);
    virtual void ioParam_weightInitType(enum ParamsIOFlag ioFlag);
    virtual void ioParam_normalizeMethod(enum ParamsIOFlag ioFlag);
    virtual void ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag);
@@ -44,8 +45,7 @@ protected:
    virtual void ioParam_nfp(enum ParamsIOFlag ioFlag);
    virtual void ioParam_originalConnName(enum ParamsIOFlag ioFlag);
    virtual int setWeightInitializer();
-   virtual PVPatch *** initializeWeights(PVPatch *** patches, pvdata_t ** dataStart, int numPatches,
-            const char * filename);
+   virtual PVPatch *** initializeWeights(PVPatch *** patches, pvdata_t ** dataStart);
    virtual int constructWeights();
    void constructWeightsOutOfMemory();
    virtual int createAxonalArbors(int arborId);
@@ -53,7 +53,7 @@ protected:
    virtual int  setPatchSize(); // virtual int setPatchSize(const char * filename); // filename is now a member variable.
 
    char * originalConnName;
-   KernelConn * originalConn;
+   HyPerConn * originalConn;
 
 private:
    int initialize_base();

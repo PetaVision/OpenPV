@@ -9,7 +9,6 @@
 #define KERNELPROBE_HPP_
 
 #include "BaseConnectionProbe.hpp"
-#include "../connections/KernelConn.hpp"
 
 namespace PV {
 
@@ -31,14 +30,13 @@ protected:
    virtual void ioParam_outputWeights(enum ParamsIOFlag ioFlag);
    virtual void ioParam_outputPlasticIncr(enum ParamsIOFlag ioFlag);
    virtual void ioParam_outputPatchIndices(enum ParamsIOFlag ioFlag);
-   int patchIndices(KernelConn * kconn);
+   int patchIndices(HyPerConn * conn);
 
    int getKernelIndex() {return kernelIndex;}
    int getArbor()       {return arborID;}
    bool getOutputWeights() {return outputWeights;}
    bool getOutputPlasticIncr() {return outputPlasticIncr;}
    bool getOutputPatchIndices() {return outputPatchIndices;}
-   KernelConn * getTargetKConn() {return targetKConn;}
 
 private:
    int initialize_base();
@@ -50,7 +48,6 @@ private:
    bool outputWeights;      // whether to output W
    bool outputPlasticIncr;  // whether to output dW
    bool outputPatchIndices; // whether to output which presynaptic neurons using the given kernel index
-   KernelConn * targetKConn; // The target connection, dynamically cast to a KernelConn
 
 }; // end of class KernelProbe block
 

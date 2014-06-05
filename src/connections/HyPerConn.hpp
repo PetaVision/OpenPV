@@ -78,7 +78,7 @@ public:
    virtual bool needUpdate(double time, double dt);
    virtual double computeNewWeightUpdateTime(double time, double currentUpdateTime);
    virtual int updateWeights(int arborId = 0);
-   virtual int writeWeights(double time, bool last = false);
+   virtual int writeWeights(double timed, bool last = false);
    virtual int writeWeights(const char* filename);
    virtual int writeWeights(PVPatch*** patches, pvwdata_t** dataStart,
          int numPatches, const char* filename, double timef, bool compressWeights, bool last);
@@ -146,6 +146,10 @@ public:
 
    inline bool getSelfFlag() {
       return selfFlag;
+   }
+
+   inline bool usingSharedWeights() {
+      return sharedWeights;
    }
 
    inline bool getPlasticityFlag() {
@@ -346,7 +350,7 @@ public:
 #ifdef PV_USE_OPENCL
    virtual int * getLUTpointer() {return NULL;}
 #endif // PV_USE_OPENCL
-   virtual void initPatchToDataLUT(){};
+   virtual void initPatchToDataLUT();
    virtual int patchToDataLUT(int patchIndex);
    virtual int patchIndexToDataIndex(int patchIndex, int* kx = NULL, int* ky =
          NULL, int* kf = NULL);
@@ -360,14 +364,14 @@ public:
 
 #ifdef USE_SHMGET
    virtual bool getShmgetFlag(){
-     return shmget_flag;
-  };
+      return shmget_flag;
+   };
    virtual bool getShmgetOwner(int arbor_ID = 0){
-     return (shmget_owner == NULL) ? false : shmget_owner[arbor_ID];
-  };
-    virtual bool * getShmgetOwnerHead(){
-    	return  shmget_owner;
-    }
+      return (shmget_owner == NULL) ? false : shmget_owner[arbor_ID];
+   };
+   virtual bool * getShmgetOwnerHead(){
+      return  shmget_owner;
+   }
 #endif
 
 protected:
@@ -384,9 +388,9 @@ protected:
    //these were moved to private to ensure use of get/set methods and made in 3D pointers:
    //PVPatch       ** wPatches[MAX_ARBOR_LIST]; // list of weight patches, one set per neighbor
 #ifdef USE_SHMGET
+   bool shmget_flag;
    bool *shmget_owner;
    int *shmget_id;
-   bool shmget_flag;
 #endif
 private:
    PVPatch*** wPatches; // list of weight patches, one set per arbor
@@ -410,6 +414,7 @@ private:
    double triggerOffset;
    HyPerLayer* triggerLayer;
    bool strengthParamHasBeenWritten;
+   int * patch2datalookuptable;
 
 protected:
    bool useWindowPost;
@@ -447,6 +452,7 @@ protected:
    Timer * io_timer;
    Timer * update_timer;
 
+   bool sharedWeights; // Set to true for the old KernelConn behavior
    bool plasticityFlag;
    bool combine_dW_with_W_flag; // indicates that dwDataStart should be set equal to wDataStart, useful for saving memory when weights are not being learned but not used
    bool selfFlag; // indicates that connection is from a layer to itself (even though pre and post may be separately instantiated)
@@ -480,6 +486,14 @@ protected:
    double weightUpdateTime;
    double initialWeightUpdateTime;
    double lastUpdateTime;
+
+   bool symmetrizeWeightsFlag;
+   int* numKernelActivations;
+#ifdef PV_USE_MPI
+   pvdata_t * mpiReductionBuffer;
+   bool keepKernelsSynchronized_flag;
+#endif
+
 
    // unsigned int rngSeedBase; // The starting seed for rng.  The parent HyPerCol reserves {rngSeedbase, rngSeedbase+1,...rngSeedbase+neededRNGSeeds-1} for use by this layer
    // uint4 * rnd_state; // An array of RNGs.
@@ -587,6 +601,7 @@ protected:
    virtual void ioParam_postLayerName(enum ParamsIOFlag ioFlag);
    virtual void ioParam_channelCode(enum ParamsIOFlag ioFlag);
    // virtual void ioParam_initWeightsFile(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_sharedWeights(enum ParamsIOFlag ioFlag);
    virtual void ioParam_weightInitType(enum ParamsIOFlag ioFlag);
    virtual void ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag);
    virtual void ioParam_plasticityFlag(enum ParamsIOFlag ioFlag);
@@ -614,17 +629,18 @@ protected:
    virtual void ioParam_updateGSynFromPostPerspective(enum ParamsIOFlag ioFlag);
    virtual void ioParam_dWMax(enum ParamsIOFlag ioFlag);
    virtual void ioParam_normalizeMethod(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_shmget_flag(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_keepKernelsSynchronized(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_useWindowPost(enum ParamsIOFlag ioFlag);
    int setParent(HyPerCol * hc);
    int setName(const char * name);
    int setPreLayerName(const char * pre_name);
    int setPostLayerName(const char * post_name);
-//   int setFilename(const char * filename);
    virtual int initPlasticityPatches();
    virtual int setPatchSize(); // Sets nxp, nyp, nfp if weights are loaded from file.  Subclasses override if they have specialized ways of setting patch size that needs to go in the communicate stage.
                                // (e.g. BIDSConn uses pre and post layer size to set nxp,nyp, but pre and post aren't set until communicateInitInfo().
    virtual void handleDefaultSelfFlag(); // If selfFlag was not set in params, set it in this function.
-   virtual PVPatch*** initializeWeights(PVPatch*** arbors, pvwdata_t** dataStart,
-         int numPatches);
+   virtual PVPatch*** initializeWeights(PVPatch*** arbors, pvwdata_t** dataStart);
    virtual InitWeights* getDefaultInitWeightsMethod(const char* keyword);
    virtual InitWeights* handleMissingInitWeights(PVParams* params);
    virtual int createWeights(PVPatch*** patches, int nWeightPatches, int nDataPatches, int nxPatch,
@@ -632,18 +648,24 @@ protected:
    int createWeights(PVPatch*** patches, int arborId);
    virtual pvwdata_t * allocWeights(int nPatches, int nxPatch, int nyPatch, int nfPatch);
    int clearWeights(pvwdata_t** dataStart, int numPatches, int nx, int ny, int nf);
-   // virtual int checkPVPFileHeader(Communicator* comm, const PVLayerLoc* loc,
-   //       int params[], int numParams);
-   // virtual int checkWeightsHeader(const char* filename, const int wgtParams[]);
    virtual int adjustAxonalArbors(int arborId);
    int checkpointFilename(char * cpFilename, int size, const char * cpDir);
 
+   virtual int clear_dW();
    virtual int calc_dW(int arborId = 0);
-   void connOutOfMemory(const char* funcname);
+   virtual int update_dW(int arborId);
+   virtual int defaultUpdate_dW(int arborId);
+   virtual int defaultUpdateInd_dW(int arbor_ID, int kExt);
+   virtual pvdata_t updateRule_dW(pvdata_t pre, pvdata_t post);
+   virtual int normalize_dW(int arbor_ID);
+   virtual bool skipPre(pvdata_t preact){return preact == 0.0f;};
+#ifdef PV_USE_MPI
+   virtual int reduceKernels(int arborID);
+// #else
+//    virtual int reduceKernels(int arborID){return PV_SUCCESS;};
+#endif // PV_USE_MPI
 
-   // virtual int readPatchSizeFromFile(const char * filename);
-   // virtual void readUseListOfArborFiles(PVParams * params);
-   // virtual void readCombineWeightFiles(PVParams * params);
+   void connOutOfMemory(const char* funcname);
 
 #ifdef PV_USE_OPENCL
    virtual void initIgnoreGPUFlag(); // sets the ignoreGPUFlag parameter.  virtual so that a class can make it always false or always true

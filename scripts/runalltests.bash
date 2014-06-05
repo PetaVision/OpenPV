@@ -136,6 +136,13 @@ runandecho $testname $testname Debug/$testname $arglist
 mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
 cd "$wd"
 
+testname=CloneHyPerConnTest
+arglist="-p input/CloneHyPerConnTest.params"
+cd "$testname"
+runandecho $testname $testname Debug/$testname $arglist
+mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
+cd "$wd"
+
 testname=CloneKernelConnTest
 arglist="-p input/CloneKernelConnTest.params"
 cd "$testname"

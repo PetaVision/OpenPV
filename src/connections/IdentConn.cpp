@@ -25,14 +25,23 @@ int IdentConn::initialize_base() {
 }  // end of IdentConn::initialize_base()
 
 int IdentConn::initialize(const char * name, HyPerCol * hc) {
-   int status = KernelConn::initialize(name, hc);
+   int status = HyPerConn::initialize(name, hc);
    return status;
 }
 
 int IdentConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = KernelConn::ioParamsFillGroup(ioFlag);
+   int status = HyPerConn::ioParamsFillGroup(ioFlag);
 
    return status;
+}
+
+// Note this is one of the subclasses of the former kernelconn where it doesn't make sense to allow sharedWeights to be false
+void IdentConn::ioParam_sharedWeights(enum ParamsIOFlag ioFlag) {
+   sharedWeights = true;
+   if (ioFlag == PARAMS_IO_READ) {
+      fileType = PVP_KERNEL_FILE_TYPE;
+      parent->parameters()->handleUnnecessaryParameter(name, "sharedWeights", true/*correctValue*/);
+   }
 }
 
 void IdentConn::ioParam_weightInitType(enum ParamsIOFlag ioFlag) {
@@ -183,7 +192,7 @@ int IdentConn::setWeightInitializer() {
 }
 
 int IdentConn::communicateInitInfo() {
-   int status = KernelConn::communicateInitInfo();
+   int status = HyPerConn::communicateInitInfo();
    assert(pre && post);
    const PVLayerLoc * preLoc = pre->getLayerLoc();
    const PVLayerLoc * postLoc = post->getLayerLoc();
@@ -195,7 +204,7 @@ int IdentConn::communicateInitInfo() {
       }
       exit(EXIT_FAILURE);
    }
-   parent->parameters()->handleUnnecessaryParameter(name, "nfp", nfp); // nfp is set during call to KernelConn::communicateInitInfo, so don't check for unnecessary int parameter until after that.
+   parent->parameters()->handleUnnecessaryParameter(name, "nfp", nfp); // nfp is set during call to HyPerConn::communicateInitInfo, so don't check for unnecessary int parameter until after that.
    return status;
 }
 

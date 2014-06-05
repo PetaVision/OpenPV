@@ -41,12 +41,12 @@ int OjaKernelConn::initialize_base() {
 }
 
 int OjaKernelConn::initialize(const char * name, HyPerCol * hc) {
-   int status = KernelConn::initialize(name, hc);
+   int status = HyPerConn::initialize(name, hc);
    return status;
 }
 
 int OjaKernelConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = KernelConn::ioParamsFillGroup(ioFlag);
+   int status = HyPerConn::ioParamsFillGroup(ioFlag);
    ioParam_learningTime(ioFlag);
    ioParam_inputTargetRate(ioFlag);
    ioParam_outputTargetRate(ioFlag);
@@ -56,8 +56,17 @@ int OjaKernelConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    return status;
 }
 
+// TODO: make sure code works in non-shared weight case
+void OjaKernelConn::ioParam_sharedWeights(enum ParamsIOFlag ioFlag) {
+   sharedWeights = true;
+   if (ioFlag == PARAMS_IO_READ) {
+      fileType = PVP_KERNEL_FILE_TYPE;
+      parent->parameters()->handleUnnecessaryParameter(name, "sharedWeights", true/*correctValue*/);
+   }
+}
+
 void OjaKernelConn::ioParam_initialWeightUpdateTime(enum ParamsIOFlag ioFlag) {
-   KernelConn::ioParam_initialWeightUpdateTime(ioFlag);
+   HyPerConn::ioParam_initialWeightUpdateTime(ioFlag);
    if (ioFlag==PARAMS_IO_READ) {
       dWUpdateTime = weightUpdateTime;
    }
@@ -92,7 +101,7 @@ void OjaKernelConn::ioParam_dWUpdatePeriod(enum ParamsIOFlag ioFlag) {
 }
 
 int OjaKernelConn::allocateDataStructures() {
-   int status = KernelConn::allocateDataStructures();
+   int status = HyPerConn::allocateDataStructures();
    int numarbors = numberOfAxonalArborLists(); assert(numarbors>0);
 
    // Don't allocate cube's data in place, so that the data can be written to/ read from a pvp file at once
@@ -164,11 +173,11 @@ int OjaKernelConn::updateState(double timef, double dt)
       }
    }
 
-   // update timer already in KernelConn::updateState, don't call twice
+   // update timer already in HyPerConn::updateState, don't call twice
    update_timer->stop();
 
    // HyPerConn::updateState calls update_dW and updateWeights
-   return KernelConn::updateState(timef, dt);
+   return HyPerConn::updateState(timef, dt);
 }
 
 int OjaKernelConn::updateWeights(int axonId) {
@@ -194,7 +203,7 @@ int OjaKernelConn::calc_dW(int arborId) {
       return status;
    }
    dWUpdateTime += dWUpdatePeriod;
-   status = KernelConn::calc_dW(arborId);
+   status = HyPerConn::calc_dW(arborId);
    return status;
 }
 
@@ -247,7 +256,7 @@ int OjaKernelConn::update_dW(int axonId) {
 }
 
 int OjaKernelConn::checkpointRead(const char * cpDir, double * timef) {
-   int status = KernelConn::checkpointRead(cpDir, timef);
+   int status = HyPerConn::checkpointRead(cpDir, timef);
    char filename[PV_PATH_MAX];
    int chars_needed;
    chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_outputFiringRate.pvp", cpDir, name);
@@ -285,7 +294,7 @@ int OjaKernelConn::checkpointRead(const char * cpDir, double * timef) {
    return status;
 }
 int OjaKernelConn::checkpointWrite(const char * cpDir) {
-   int status = KernelConn::checkpointWrite(cpDir);
+   int status = HyPerConn::checkpointWrite(cpDir);
    char filename[PV_PATH_MAX];
    int chars_needed;
    chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_outputFiringRate.pvp", cpDir, name);

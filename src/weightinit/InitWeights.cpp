@@ -126,7 +126,7 @@ int InitWeights::zeroWeightsOutsideShrunkenPatch(PVPatch *** patches) {
     for (int arborID = 0; arborID < numArbors; arborID++) {
         for (int kPre = 0; kPre < callingConn->getNumDataPatches(); kPre++) {
             wData_head = callingConn->get_wDataHead(arborID,kPre);
-            if (patches != NULL) {  // callingConn is a HyPerConn
+            if (patches != NULL) {  // callingConn does not use shared weights
                 PVPatch * weightPatch = callingConn->getWeights(kPre, arborID);
                 nxPatch = weightPatch->nx;
                 nyPatch = weightPatch->ny;
@@ -135,7 +135,7 @@ int InitWeights::zeroWeightsOutsideShrunkenPatch(PVPatch *** patches) {
                 pvwdata_t * wData = callingConn->get_wData(arborID,kPre);
                 delta_offset = wData - wData_head;
             }
-            else {  // callingConn is a KernelConn
+            else {  // callingConn uses shared weights
                 delta_offset = callingConn->getOffsetShrunken();
                 nxPatch = callingConn->getNxpShrunken();
                 nyPatch = callingConn->getNypShrunken();

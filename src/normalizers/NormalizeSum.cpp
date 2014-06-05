@@ -49,9 +49,8 @@ int NormalizeSum::normalizeWeights(HyPerConn * conn) {
 
    float scale_factor = 1.0f;
    if (normalizeFromPostPerspective) {
-      KernelConn * kconn = dynamic_cast<KernelConn *>(conn);
-      if (!kconn) {
-         fprintf(stderr, "NormalizeSum error for connection \"%s\": normalizeFromPostPerspective is true but connection is not a KernelConn\n", conn->getName());
+      if (conn->usingSharedWeights()==false) {
+         fprintf(stderr, "NormalizeSum error for connection \"%s\": normalizeFromPostPerspective is true but connection does not use shared weights.\n", conn->getName());
          exit(EXIT_FAILURE);
       }
       scale_factor = ((float) conn->postSynapticLayer()->getNumNeurons())/((float) conn->preSynapticLayer()->getNumNeurons());

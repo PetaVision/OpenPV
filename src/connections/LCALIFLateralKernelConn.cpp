@@ -36,12 +36,12 @@ int LCALIFLateralKernelConn::initialize_base() {
 }
 
 int LCALIFLateralKernelConn::initialize(const char * name, HyPerCol * hc) {
-   int status = KernelConn::initialize(name, hc);
+   int status = HyPerConn::initialize(name, hc);
    return status;
 }
 
 int LCALIFLateralKernelConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = KernelConn::ioParamsFillGroup(ioFlag);
+   int status = HyPerConn::ioParamsFillGroup(ioFlag);
    ioParam_integrationTimeConstant(ioFlag);
    ioParam_inhibitionTimeConstant(ioFlag);
    ioParam_targetRate(ioFlag);
@@ -49,8 +49,17 @@ int LCALIFLateralKernelConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    return status;
 }
 
+// TODO: can we eliminate this class altogether and just use LCALIFLateralConn with sharedWeights = true?
+void LCALIFLateralKernelConn::ioParam_sharedWeights(enum ParamsIOFlag ioFlag) {
+   sharedWeights = true;
+   if (ioFlag == PARAMS_IO_READ) {
+      fileType = PVP_KERNEL_FILE_TYPE;
+      parent->parameters()->handleUnnecessaryParameter(name, "sharedWeights", true/*correctValue*/);
+   }
+}
+
 void LCALIFLateralKernelConn::ioParam_initialWeightUpdateTime(enum ParamsIOFlag ioFlag) {
-   KernelConn::ioParam_initialWeightUpdateTime(ioFlag);
+   HyPerConn::ioParam_initialWeightUpdateTime(ioFlag);
    if (ioFlag==PARAMS_IO_READ) {
       dWUpdateTime = weightUpdateTime;
    }
@@ -74,7 +83,7 @@ void LCALIFLateralKernelConn::ioParam_dWUpdatePeriod(enum ParamsIOFlag ioFlag) {
 }
 
 int LCALIFLateralKernelConn::communicateInitInfo() {
-   int status = KernelConn::communicateInitInfo();
+   int status = HyPerConn::communicateInitInfo();
    if (status != PV_SUCCESS) return status;
 
    const PVLayerLoc * preloc = pre->getLayerLoc();
@@ -98,7 +107,7 @@ int LCALIFLateralKernelConn::communicateInitInfo() {
 }
 
 int LCALIFLateralKernelConn::allocateDataStructures() {
-   int status = KernelConn::allocateDataStructures();
+   int status = HyPerConn::allocateDataStructures();
 
    // Neurons don't inhibit themselves, only their neighbors; set self-interaction weights to mmzero.
    assert(nxp % 2 == 1 && nyp % 2 == 1 && getNumDataPatches()==nfp);
@@ -280,7 +289,7 @@ int LCALIFLateralKernelConn::updateIntegratedSpikeCount() {
 }
 
 int LCALIFLateralKernelConn::checkpointWrite(const char * cpDir) {
-   int status = KernelConn::checkpointWrite(cpDir);
+   int status = HyPerConn::checkpointWrite(cpDir);
    char filename[PV_PATH_MAX];
    int chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_integratedSpikeCount.pvp", cpDir, name);
    if (chars_needed >= PV_PATH_MAX) {
@@ -298,7 +307,7 @@ int LCALIFLateralKernelConn::checkpointWrite(const char * cpDir) {
 }
 
 int LCALIFLateralKernelConn::checkpointRead(const char * cpDir, double * timef) {
-   int status = KernelConn::checkpointRead(cpDir, timef);
+   int status = HyPerConn::checkpointRead(cpDir, timef);
    char filename[PV_PATH_MAX];
    int chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_integratedSpikeCount.pvp", cpDir, name);
    if (chars_needed >= PV_PATH_MAX) {

@@ -9,7 +9,7 @@
 #define PURSUITLAYER_HPP_
 
 #include "GenerativeLayer.hpp"
-#include "../connections/KernelConn.hpp"
+#include "../connections/HyPerConn.hpp"
 #include "../io/fileio.hpp"
 #include "../io/io.h"
 

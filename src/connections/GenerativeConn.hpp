@@ -8,12 +8,12 @@
 #ifndef GENERATIVECONN_HPP_
 #define GENERATIVECONN_HPP_
 
-#include "KernelConn.hpp"
+#include "HyPerConn.hpp"
 #include "../columns/Random.hpp"
 
 namespace PV {
 
-class GenerativeConn : public KernelConn {
+class GenerativeConn : public HyPerConn {
 public:
    GenerativeConn(const char * name, HyPerCol * hc);
 
@@ -27,6 +27,7 @@ protected:
    GenerativeConn();
    int initialize(const char * name, HyPerCol * hc);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_sharedWeights(enum ParamsIOFlag ioFlag);
    virtual void ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag);
    virtual void ioParam_relaxation(enum ParamsIOFlag ioFlag);
    virtual void ioParam_nonnegConstraintFlag(enum ParamsIOFlag ioFlag);

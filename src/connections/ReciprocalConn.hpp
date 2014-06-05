@@ -8,11 +8,11 @@
 #ifndef RECIPROCALCONN_HPP_
 #define RECIPROCALCONN_HPP_
 
-#include "KernelConn.hpp"
+#include "HyPerConn.hpp"
 
 namespace PV {
 
-class ReciprocalConn: public PV::KernelConn {
+class ReciprocalConn: public PV::HyPerConn {
 public:
    // public methods
    ReciprocalConn(const char * name, HyPerCol * hc);
@@ -35,6 +35,7 @@ protected:
    ReciprocalConn();
    int initialize(const char * name, HyPerCol * hc);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_sharedWeights(enum ParamsIOFlag ioFlag);
    virtual void ioParam_relaxationRate(enum ParamsIOFlag ioFlag);
    virtual void ioParam_reciprocalFidelityCoeff(enum ParamsIOFlag ioFlag);
    virtual void ioParam_updateRulePre(enum ParamsIOFlag ioFlag);
@@ -47,6 +48,7 @@ protected:
    int setParameterLayer(const char * paramname, const char * layername, HyPerLayer ** layerPtr);
    virtual int update_dW(int axonID);
    virtual int updateWeights(int axonId);
+   int getReciprocalWgtCoordinates(int kx, int ky, int kf, int kernelidx, int * kxRecip, int * kyRecip, int * kfRecip, int * kernelidxRecip);
 
 private:
    // private methods

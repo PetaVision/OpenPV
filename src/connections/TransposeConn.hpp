@@ -8,18 +8,18 @@
 #ifndef TRANSPOSECONN_HPP_
 #define TRANSPOSECONN_HPP_
 
-#include "KernelConn.hpp"
+#include "HyPerConn.hpp"
 
 namespace PV {
 
-class TransposeConn: public KernelConn {
+class TransposeConn: public HyPerConn {
 public:
     TransposeConn();
     TransposeConn(const char * name, HyPerCol * hc);
     virtual ~TransposeConn();
     virtual int communicateInitInfo();
     virtual int allocateDataStructures();
-    inline KernelConn * getOriginalConn() {return originalConn;}
+    inline HyPerConn * getOriginalConn() {return originalConn;}
 
     virtual int updateWeights(int axonId);
 
@@ -27,6 +27,7 @@ protected:
     int initialize_base();
     int initialize(const char * name, HyPerCol * hc);
     virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+    virtual void ioParam_sharedWeights(enum ParamsIOFlag ioFlag);
     virtual void ioParam_weightInitType(enum ParamsIOFlag ioFlag);
     virtual void ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag);
     virtual void ioParam_plasticityFlag(enum ParamsIOFlag ioFlag);
@@ -47,8 +48,7 @@ protected:
     virtual int setPatchSize();
     virtual int setNeededRNGSeeds() {return 0;}
     virtual InitWeights * handleMissingInitWeights(PVParams * params);
-    virtual PVPatch *** initializeWeights(PVPatch *** arbors, pvwdata_t ** dataStart,
-                                          int numPatches);
+    virtual PVPatch *** initializeWeights(PVPatch *** arbors, pvwdata_t ** dataStart);
     int transposeKernels(int arborId);
     virtual int calc_dW(int arborId){return PV_BREAK;};
     virtual int reduceKernels(int arborID);
@@ -56,7 +56,7 @@ protected:
 // Member variables
 protected:
     char * originalConnName;
-    KernelConn * originalConn;
+    HyPerConn * originalConn;
 };
 
 }  // end namespace PV

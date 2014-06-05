@@ -1691,7 +1691,7 @@ int writeWeights(const char * filename, Communicator * comm, double timed, bool 
       wgtExtraFloatParams[INDEX_WGT_MAX] = maxVal;
 
       if (file_type == PVP_KERNEL_FILE_TYPE){
-         wgtExtraIntParams[INDEX_WGT_NUMPATCHES] = numPatches; // KernelConn has same weights in all processes
+         wgtExtraIntParams[INDEX_WGT_NUMPATCHES] = numPatches; // When using shared weights, all processes have same weights
       }
       else {
          wgtExtraIntParams[INDEX_WGT_NUMPATCHES] = numPatches * nxBlocks * nyBlocks;
