@@ -5,6 +5,7 @@
 
 #include <columns/buildandrun.hpp>
 #include "SoundProbe.hpp"
+#include "CochlearLayer.hpp"
 
 #define MAIN_USES_CUSTOMGROUPS
 
@@ -29,6 +30,9 @@ void * addcustomgroup(const char * keyword, const char * groupname, HyPerCol * h
     void * addedGroup = NULL;
     if ( !strcmp(keyword, "SoundProbe") ) {
        addedGroup = new SoundProbe(groupname, hc);
+    }
+    if ( !strcmp(keyword, "CochlearLayer") ) {
+       addedGroup = new CochlearLayer(groupname, hc);
     }
     return addedGroup;
 }
