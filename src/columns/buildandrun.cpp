@@ -97,7 +97,6 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
            "_Start_HyPerLayers_",
              "HyPerLayer",
              "ANNLayer",
-               "CochlearLayer",
                "AccumulateLayer",
                "ANNSquaredLayer",
                "ANNWhitenedLayer",
@@ -348,10 +347,6 @@ HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPe
    if( !strcmp(classkeyword, "ANNLayer") ) {
       keywordMatched = true;
       addedLayer = (HyPerLayer *) new ANNLayer(name, hc);
-   }
-   if( !strcmp(classkeyword, "CochlearLayer") ) {
-      keywordMatched = true;
-      addedLayer = (HyPerLayer *) new CochlearLayer(name, hc);
    }
    if( !strcmp(classkeyword, "AccumulateLayer") ) {
       keywordMatched = true;

@@ -19,7 +19,6 @@
 #include "../layers/HyPerLayer.hpp"
 #include "../layers/PVLayer.h"
 #include "../layers/ANNLayer.hpp"
-#include "../layers/CochlearLayer.hpp"
 #include "../layers/AccumulateLayer.hpp"
 #include "../layers/GenerativeLayer.hpp"
 #include "../layers/IncrementLayer.hpp"
