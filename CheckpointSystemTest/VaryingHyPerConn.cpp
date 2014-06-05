@@ -16,9 +16,7 @@ VaryingHyPerConn::VaryingHyPerConn(const char * name, HyPerCol * hc) : HyPerConn
 VaryingHyPerConn::~VaryingHyPerConn() {}
 
 int VaryingHyPerConn::initialize(const char * name, HyPerCol * hc) {
-   HyPerConn::initialize(name, hc);
-
-   return PV_SUCCESS;
+   return HyPerConn::initialize(name, hc);
 }
 
 int VaryingHyPerConn::allocateDataStructures() {

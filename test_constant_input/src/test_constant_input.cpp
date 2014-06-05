@@ -13,6 +13,7 @@
 #include "TestImage.hpp"
 
 #include <columns/HyPerCol.hpp>
+#include <connections/HyPerConn.hpp>
 #include <connections/IdentConn.hpp>
 #include <layers/Retina.hpp>
 #include <io/io.h>
@@ -57,7 +58,7 @@ int main(int argc, char* argv[])
 
    // create the connections
    //
-   new KernelConn("test_constant_input connection", hc);
+   new HyPerConn("test_constant_input connection", hc);
 
    hc->run();
 

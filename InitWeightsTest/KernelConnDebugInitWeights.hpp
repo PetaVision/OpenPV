@@ -8,11 +8,11 @@
 #ifndef KERNELCONNDEBUGINITWEIGHTS_HPP_
 #define KERNELCONNDEBUGINITWEIGHTS_HPP_
 
-#include <connections/KernelConn.hpp>
+#include <connections/HyPerConn.hpp>
 
 namespace PV {
 
-class KernelConnDebugInitWeights: public PV::KernelConn {
+class KernelConnDebugInitWeights: public PV::HyPerConn {
 public:
    KernelConnDebugInitWeights();
    KernelConnDebugInitWeights(const char * name, HyPerCol * hc);
@@ -27,6 +27,7 @@ protected:
    int initialize(const char * name, HyPerCol * hc);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    virtual void ioParam_channelCode(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_sharedWeights(enum ParamsIOFlag ioFlag);
    virtual void ioParam_copiedConn(enum ParamsIOFlag ioFlag);
    virtual void readChannelCode(PVParams * params) { channel = CHANNEL_INH;}
    PVPatch ** initializeGaussian2DWeights(PVPatch ** patches, pvdata_t * dataStart, int numPatches);
@@ -49,7 +50,7 @@ protected:
 private:
    virtual int initialize_base();
    char * otherConnName;
-   KernelConn *otherConn;
+   HyPerConn *otherConn;
 };
 
 } /* namespace PV */

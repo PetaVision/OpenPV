@@ -154,7 +154,7 @@ ANNLayer "L2" = {
 //     VShift = 0.0;
 // };
 
-//KernelConn connected layers:
+//layers connected using shared weights:
 ANNLayer "L5" = {
     restart = 0;
     nxScale = 1;
@@ -498,12 +498,13 @@ HyPerConn "Retina to L2" = {
 //   updateGSynFromPostPerspective = false;
 // };
 
-// KernelConn connections: 
-KernelConn "Retina to L5" = {
+// shared-weights connections: 
+HyPerConn "Retina to L5" = {
    preLayerName = "Retina";
    postLayerName = "L5";
    numAxonalArbors=1;
    channelCode = 0;
+   sharedWeights = true;
    nxp = 9; 
    nyp = 9; 
    nfp = 8;
@@ -544,11 +545,12 @@ KernelConn "Retina to L5" = {
    updateGSynFromPostPerspective = false;
 };
 
-KernelConn "Retina to L6" = {
+HyPerConn "Retina to L6" = {
    preLayerName = "Retina";
    postLayerName = "L6";
    numAxonalArbors=1;
    channelCode = 0;
+   sharedWeights = true;
    nxp = 9; 
    nyp = 9; 
    nfp = 8;
@@ -593,10 +595,11 @@ KernelConn "Retina to L6" = {
    updateGSynFromPostPerspective = false;
 };
 
-KernelConn "Retina to L7" = {
+HyPerConn "Retina to L7" = {
    preLayerName = "Retina";
    postLayerName = "L7";
    numAxonalArbors=1;
+   sharedWeights = true;
    channelCode = 0;
    nxp = 9; 
    nyp = 9; 
@@ -620,11 +623,12 @@ KernelConn "Retina to L7" = {
    updateGSynFromPostPerspective = false;
 };
 
-KernelConn "Retina to L8" = {
+HyPerConn "Retina to L8" = {
    preLayerName = "Retina";
    postLayerName = "L8";
    numAxonalArbors=1;
    channelCode = 0;
+   sharedWeights = true;
    nxp = 9; 
    nyp = 9; 
    nfp = 8;
@@ -672,11 +676,12 @@ KernelConn "Retina to L8" = {
    updateGSynFromPostPerspective = false;
 };
 
-KernelConn "Retina to L9" = {
+HyPerConn "Retina to L9" = {
    preLayerName = "Retina";
    postLayerName = "L9";
    numAxonalArbors=1;
    channelCode = 0;
+   sharedWeights = true;
    nxp = 9; 
    nyp = 9; 
    nfp = 8;

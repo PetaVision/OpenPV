@@ -18,12 +18,12 @@
 
 using namespace PV;
 
-int testTransposeOfTransposeWeights(KernelConn * originalMap, TransposeConn * transpose, TransposeConn * transposeOfTranspose, const char * message);
+int testTransposeOfTransposeWeights(HyPerConn * originalMap, TransposeConn * transpose, TransposeConn * transposeOfTranspose, const char * message);
 int testWeightsEqual(HyPerConn * conn1, HyPerConn * conn2);
 int testPatchesEqual(PVPatch * patch1, PVPatch * patch2, int index, const char * conn1name, const char * conn2name);
 int verifyEqual(int val1, int val2, const char * description, const char * name1, const char * name2, int status_in);
 int testDataPatchEqual(pvdata_t * w1, pvdata_t * w2, int patchSize, const char * name1, const char * name2, int status_in);
-int dumpWeights(KernelConn * kconn, FILE * stream);
+int dumpWeights(HyPerConn * conn, FILE * stream);
 
 int main(int argc, char * argv[]) {
    InterColComm * icComm = new InterColComm(&argc, &argv);
@@ -35,36 +35,42 @@ int main(int argc, char * argv[]) {
 
    int status = PV_SUCCESS;
 
-   KernelConn * originalMap = NULL;
+   HyPerConn * originalMap = NULL;
    TransposeConn * transpose = NULL;
    TransposeConn * transposeOfTranspose = NULL;
 
-   originalMap = dynamic_cast<KernelConn *>(hc->getConnFromName("Original Map for One to One Test"));
+   originalMap = hc->getConnFromName("Original Map for One to One Test");
+   assert(originalMap->usingSharedWeights());
    transpose = dynamic_cast<TransposeConn *>(hc->getConnFromName("Transpose for One to One Test of TransposeConn"));
    transposeOfTranspose = dynamic_cast<TransposeConn *>(hc->getConnFromName("Transpose of Transpose for One to One Test of TransposeConn"));
    status = testTransposeOfTransposeWeights(originalMap, transpose, transposeOfTranspose, "One-to-one case, TransposeConn");
 
-   originalMap = dynamic_cast<KernelConn *>(hc->getConnFromName("Original Map for Many to One Test"));
+   originalMap = hc->getConnFromName("Original Map for Many to One Test");
+   assert(originalMap->usingSharedWeights());
    transpose = dynamic_cast<TransposeConn *>(hc->getConnFromName("Transpose for Many to One Test of TransposeConn"));
    transposeOfTranspose = dynamic_cast<TransposeConn *>(hc->getConnFromName("Transpose of Transpose for Many to One Test of TransposeConn"));
    status = testTransposeOfTransposeWeights(originalMap, transpose, transposeOfTranspose, "Many-to-one case, TransposeConn");
 
-   originalMap = dynamic_cast<KernelConn *>(hc->getConnFromName("Original Map for One to Many Test"));
+   originalMap = hc->getConnFromName("Original Map for One to Many Test");
+   assert(originalMap->usingSharedWeights());
    transpose = dynamic_cast<TransposeConn *>(hc->getConnFromName("Transpose for One to Many Test of TransposeConn"));
    transposeOfTranspose = dynamic_cast<TransposeConn *>(hc->getConnFromName("Transpose of Transpose for One to Many Test of TransposeConn"));
    status = testTransposeOfTransposeWeights(originalMap, transpose, transposeOfTranspose, "One-to-many case, TransposeConn");
 
-   originalMap = dynamic_cast<KernelConn *>(hc->getConnFromName("Original Map for One to One Test"));
+   originalMap = hc->getConnFromName("Original Map for One to One Test");
+   assert(originalMap->usingSharedWeights());
    transpose = dynamic_cast<TransposeConn *>(hc->getConnFromName("Transpose for One to One Test of FeedbackConn"));
    transposeOfTranspose = dynamic_cast<TransposeConn *>(hc->getConnFromName("Transpose of Transpose for One to One Test of FeedbackConn"));
    status = testTransposeOfTransposeWeights(originalMap, transpose, transposeOfTranspose, "One-to-one case, FeedbackConn");
 
-   originalMap = dynamic_cast<KernelConn *>(hc->getConnFromName("Original Map for Many to One Test"));
+   originalMap = hc->getConnFromName("Original Map for Many to One Test");
+   assert(originalMap->usingSharedWeights());
    transpose = dynamic_cast<TransposeConn *>(hc->getConnFromName("Transpose for Many to One Test of FeedbackConn"));
    transposeOfTranspose = dynamic_cast<TransposeConn *>(hc->getConnFromName("Transpose of Transpose for Many to One Test of FeedbackConn"));
    status = testTransposeOfTransposeWeights(originalMap, transpose, transposeOfTranspose, "Many-to-one case, FeedbackConn");
 
-   originalMap = dynamic_cast<KernelConn *>(hc->getConnFromName("Original Map for One to Many Test"));
+   originalMap = hc->getConnFromName("Original Map for One to Many Test");
+   assert(originalMap->usingSharedWeights());
    transpose = dynamic_cast<TransposeConn *>(hc->getConnFromName("Transpose for One to Many Test of FeedbackConn"));
    transposeOfTranspose = dynamic_cast<TransposeConn *>(hc->getConnFromName("Transpose of Transpose for One to Many Test of FeedbackConn"));
    status = testTransposeOfTransposeWeights(originalMap, transpose, transposeOfTranspose, "One-to-many case, FeedbackConn");
@@ -93,7 +99,7 @@ int manyToOneForTransposeConn(int argc, char * argv[]) {
    new ANNLayer(layerB1toManyName, hc); // to cause the params to be read, so we don't get unused-parameter warnings.
 
    // Connections
-   KernelConn * originalMapManyto1 = new KernelConn(originalConnName, hc);
+   HyPerConn * originalMapManyto1 = new HyPerConn(originalConnName, hc);
    assert(originalMapManyto1);
    TransposeConn * transposeManyto1 = new TransposeConn(transposeConnName, hc);
    assert(transposeManyto1);
@@ -107,7 +113,7 @@ int manyToOneForTransposeConn(int argc, char * argv[]) {
    return status;
 }
 
-int testTransposeOfTransposeWeights(KernelConn * originalMap, TransposeConn * transpose, TransposeConn * transposeOfTranspose, const char * message) {
+int testTransposeOfTransposeWeights(HyPerConn * originalMap, TransposeConn * transpose, TransposeConn * transposeOfTranspose, const char * message) {
    int status = testWeightsEqual(originalMap, transposeOfTranspose);
    if( status == PV_SUCCESS ) {
       printf("%s: TestTransposeConn passed.\n", message);
@@ -192,18 +198,18 @@ int testDataPatchEqual(pvdata_t * w1, pvdata_t * w2, int patchSize, const char *
    return status_out;
 }
 
-int dumpWeights(KernelConn * kconn, FILE * stream) {
-   fprintf(stream, "Dumping weights for connection %s\n", kconn->getName() );
-   int nxp = kconn->xPatchSize();
-   int nyp = kconn->yPatchSize();
-   int nfp = kconn->fPatchSize();
-   int numArbors = kconn->numberOfAxonalArborLists();
+int dumpWeights(HyPerConn * conn, FILE * stream) {
+   fprintf(stream, "Dumping weights for connection %s\n", conn->getName() );
+   int nxp = conn->xPatchSize();
+   int nyp = conn->yPatchSize();
+   int nfp = conn->fPatchSize();
+   int numArbors = conn->numberOfAxonalArborLists();
    fprintf(stream, "    nxp = %d, nyp = %d, nfp = %d, numAxonalArbors = %d\n",
            nxp, nyp, nfp, numArbors);
-   int numPatches = kconn->getNumWeightPatches();
+   int numPatches = conn->getNumWeightPatches();
    for (int arbor=0; arbor<numArbors; arbor++) {
       for(int kn = 0; kn < numPatches; kn++) {
-         PVPatch * kp = kconn->getWeights(kn, 0);
+         PVPatch * kp = conn->getWeights(kn, 0);
          int nx = kp->nx;
          int ny = kp->ny;
          int offset = kp->offset;
@@ -211,13 +217,13 @@ int dumpWeights(KernelConn * kconn, FILE * stream) {
                kn, nx, ny, offset);
       }
    }
-   int numDataPatches = kconn->getNumDataPatches();
+   int numDataPatches = conn->getNumDataPatches();
    for (int arbor=0; arbor<numArbors; arbor++) {
       for(int n=0; n<numDataPatches; n++) {
          for(int k=0; k<nxp*nyp*nfp; k++) {
             fprintf(stream, "    Arbor %d, Data Patch %d, Index %4d, (x=%3d, y=%3d, f=%3d): Value %g\n",
                     arbor, n, k, kxPos(k, nxp, nyp, nfp), kyPos(k, nxp, nyp, nfp),
-                    featureIndex(k, nxp, nyp, nfp), kconn->get_wData(arbor, n)[k]);
+                    featureIndex(k, nxp, nyp, nfp), conn->get_wData(arbor, n)[k]);
          }
       }
    }

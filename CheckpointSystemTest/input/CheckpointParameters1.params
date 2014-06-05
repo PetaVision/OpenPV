@@ -16,16 +16,16 @@ HyPerCol "column" = {
    nx = 8;   
    ny = 8;
    dt = 1.0;
+   dtAdaptFlag = false;
    randomSeed = 1860277205;  // if not set here,  clock time is used to generate seed
    startTime = 0.0;
-   numSteps = 50;
-   progressStep = 10;
+   stopTime = 50;
+   progressInterval = 10;
    writeProgressToErr = false;
    outputPath = "output";
    outputNamesOfLayersAndConns = "Names.txt";
    filenamesContainLayerNames = true;
    filenamesContainConnectionNames = true;
-   checkpointRead = false;
    checkpointWrite = true;
    checkpointWriteDir = "checkpoints1";
    checkpointWriteStepInterval = 4;
@@ -49,10 +49,10 @@ CPTestInputLayer "input" = {
     mirrorBCflag = false;
     valueBC = 0.0;
     InitVType = "ZeroV";
-    VMax = infinity;
-    VMin = -infinity;
+    AMax = infinity;
+    AMin = -infinity;
     VThresh = -infinity;
-    VShift = 0.0;
+    AShift = 0.0;
 };
 
 ANNLayer "output no delay" = {
@@ -69,9 +69,9 @@ ANNLayer "output no delay" = {
     InitVType = "ZeroV";
 
     VThresh = -infinity;
-    VMax = infinity;
-    VMin = -infinity;
-    VShift = 0.0;
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0.0;
 };
 
 ANNLayer "output with delay" = {
@@ -88,9 +88,9 @@ ANNLayer "output with delay" = {
     InitVType = "ZeroV";
 
     VThresh = -infinity;
-    VMax = infinity;
-    VMin = -infinity;
-    VShift = 0.0;
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0.0;
 };
 
 ANNLayer "output arbor" = {
@@ -107,9 +107,9 @@ ANNLayer "output arbor" = {
     InitVType = "ZeroV";
 
     VThresh = -infinity;
-    VMax = infinity;
-    VMin = -infinity;
-    VShift = 0.0;
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0.0;
 };
 
 ANNLayer "output from full hyperconn" = {
@@ -126,15 +126,16 @@ ANNLayer "output from full hyperconn" = {
     InitVType = "ZeroV";
 
     VThresh = -infinity;
-    VMax = infinity;
-    VMin = -infinity;
-    VShift = 0.0;
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0.0;
 };
 
-VaryingKernelConn "conn no delay" = {
+VaryingHyPerConn "conn no delay" = {
     preLayerName = "input";
     postLayerName = "output no delay";
     channelCode = 0;
+    sharedWeights = true;
     nxp = 1;
     nyp = 1;
     nfp = 1;
@@ -176,10 +177,11 @@ VaryingKernelConn "conn no delay" = {
     updateGSynFromPostPerspective = false;
 };
 
-VaryingKernelConn "conn with delay" = {
+VaryingHyPerConn "conn with delay" = {
     preLayerName = "input";
     postLayerName = "output with delay";
     channelCode = 0;
+    sharedWeights = true;
     nxp = 1;
     nyp = 1;
     nfp = 1;
@@ -221,10 +223,11 @@ VaryingKernelConn "conn with delay" = {
     updateGSynFromPostPerspective = false;
 };
 
-KernelConn "input to output arbor" = {
+HyPerConn "input to output arbor" = {
     preLayerName = "input";
     postLayerName = "output arbor";
     channelCode = 0;
+    sharedWeights = true;
     numAxonalArbors = 4;
     useWindowPost = false;
     nxp = 3;
@@ -267,6 +270,7 @@ VaryingHyPerConn "full hyperconn" = {
     preLayerName = "input";
     postLayerName = "output from full hyperconn";
     channelCode = 0;
+    sharedWeights = false;
     numAxonalArbors = 1;
     nxp = 1;
     nyp = 1;

@@ -78,6 +78,7 @@ PlasticConnTestLayer "post" = {
 
 PlasticTestConn "pre to post" = {
     channelCode = 0;
+    sharedWeights = true;
     nxp = 5;
     nyp = 5;
     nfp = 1;

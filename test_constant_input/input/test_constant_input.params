@@ -35,10 +35,11 @@ Retina "test_constant_input retina" = {
     backgroundRate = 0;
 };
 
-KernelConn "test_constant_input connection" = {
+HyPerConn "test_constant_input connection" = {
     preLayerName = "test_constant_input image";
     postLayerName = "test_constant_input retina";
     channelCode = 0;
+    sharedWeights = true;
     nxp = 3;
     nyp = 3;
     numAxonalArbors = 1;

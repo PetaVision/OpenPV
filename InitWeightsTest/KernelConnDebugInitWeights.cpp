@@ -16,7 +16,7 @@ KernelConnDebugInitWeights::KernelConnDebugInitWeights()
    initialize_base();
 }
 
-KernelConnDebugInitWeights::KernelConnDebugInitWeights(const char * name, HyPerCol * hc) : KernelConn()
+KernelConnDebugInitWeights::KernelConnDebugInitWeights(const char * name, HyPerCol * hc) : HyPerConn()
 {
    initialize_base();
    KernelConnDebugInitWeights::initialize(name, hc);
@@ -33,12 +33,12 @@ int KernelConnDebugInitWeights::initialize_base() {
 }
 
 int KernelConnDebugInitWeights::initialize(const char * name, HyPerCol * hc) {
-   KernelConn::initialize(name, hc);
+   HyPerConn::initialize(name, hc);
    return PV_SUCCESS;
 }
 
 int KernelConnDebugInitWeights::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = KernelConn::ioParamsFillGroup(ioFlag);
+   int status = HyPerConn::ioParamsFillGroup(ioFlag);
    ioParam_copiedConn(ioFlag);
    return status;
 }
@@ -50,21 +50,28 @@ void KernelConnDebugInitWeights::ioParam_channelCode(enum ParamsIOFlag ioFlag) {
    }
 }
 
+void KernelConnDebugInitWeights::ioParam_sharedWeights(enum ParamsIOFlag ioFlag) {
+   sharedWeights = true;
+   if (ioFlag == PARAMS_IO_READ) {
+      fileType = PVP_KERNEL_FILE_TYPE;
+      parent->parameters()->handleUnnecessaryParameter(name, "sharedWeights", true/*correctValue*/);
+   }
+}
+
 void KernelConnDebugInitWeights::ioParam_copiedConn(enum ParamsIOFlag ioFlag) {
    parent->ioParamStringRequired(ioFlag, name, "copiedConn", &otherConnName);
 }
 
 int KernelConnDebugInitWeights::communicateInitInfo() {
-   KernelConn::communicateInitInfo();
-   HyPerConn * other_conn = parent->getConnFromName(otherConnName);
-   if (other_conn == NULL) {
+   HyPerConn::communicateInitInfo();
+   otherConn = parent->getConnFromName(otherConnName);
+   if (otherConn == NULL) {
       fprintf(stderr, "KernelConnDebugInitWeights \"%s\" error in rank %d process: copiedConn \"%s\" is not a connection in the column.\n",
             name, parent->columnId(), otherConnName);
       exit(EXIT_FAILURE);
    }
-   otherConn = dynamic_cast<KernelConn *>(other_conn);
-   if (otherConn == NULL) {
-      fprintf(stderr, "KernelConnDebugInitWeights \"%s\" error in rank %d process: copiedConn \"%s\" is not a KernelConn or KernelConn-derived class.\n",
+   if (otherConn->usingSharedWeights() == false) {
+      fprintf(stderr, "KernelConnDebugInitWeights \"%s\" error in rank %d process: copiedConn \"%s\" does not use shared weights.\n",
             name, parent->columnId(), otherConnName);
       exit(EXIT_FAILURE);
    }

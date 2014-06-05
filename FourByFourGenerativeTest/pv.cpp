@@ -4,7 +4,6 @@
  */
 
 #include <columns/buildandrun.hpp>
-#include <io/io.c>
 
 int checkweights(HyPerCol * hc, int argc, char * argv[]);
 
@@ -41,13 +40,13 @@ int checkweights(HyPerCol * hc, int argc, char * argv[]) {
    int weightsBidx = 10;
    const char * weightsAname = "AnaRetina to Layer A";
    const char * weightsBname = "Arrow AnaLayer A to Layer B";
-   KernelConn * connA = dynamic_cast<KernelConn *>(hc->getConnection(weightsAidx));
+   HyPerConn * connA = hc->getConnection(weightsAidx);
    if( strcmp(connA->getName(),weightsAname) ) {
       fprintf(stderr, "Expected connection %d to be named \"%s\"\n", weightsBidx, weightsAname);
       fprintf(stderr, "Instead it is named \"%s\"\n", connA->getName());
       exit(EXIT_FAILURE);
    }
-   KernelConn * connB = dynamic_cast<KernelConn *>(hc->getConnection(weightsBidx));
+   HyPerConn * connB = hc->getConnection(weightsBidx);
    if( strcmp(connB->getName(),weightsBname) ) {
       fprintf(stderr, "Expected connection %d to be named \"%s\"\n", weightsBidx, weightsBname);
       fprintf(stderr, "Instead it is named \"%s\"\n", connB->getName());

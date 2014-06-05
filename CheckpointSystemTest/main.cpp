@@ -6,7 +6,6 @@
 
 #include <columns/buildandrun.hpp>
 #include "CPTestInputLayer.hpp"
-#include "VaryingKernelConn.hpp"
 #include "VaryingHyPerConn.hpp"
 
 void * customgroup(const char * keyword, const char * name, HyPerCol * hc);
@@ -15,96 +14,96 @@ int customexit(HyPerCol * hc, int argc, char * argv[]);
 
 int main(int argc, char * argv[]) {
 
-   int rank;
+   int rank = 0;
    bool argerr = false;
    int reqrtn = 0;
-   int threading = 0;
-
-   if (argc > 1){
-      for(int i = 1; i < argc; i++){
-         std::cout << "i: " << i << "argc: " << argc << "\n";
-         //Allowed arguments are -t and --require-return
-         if(strcmp(argv[i], "-t") == 0){
-            if(i+1 >= argc || argv[i+1][0] == '-'){
-               //Do nothing
-            }
-            else{
-               int numthreads = atoi(argv[i+1]);
-               if(numthreads != 4){
-                  std::cout << "Hardcoding to 4 threads\n";
-               }
-               i++;
-            }
-            threading = 2;
-            argerr |= false;
-         }
-         else if(strcmp(argv[i], "--require-return") == 0){
-            reqrtn = 1;
-            argerr |= false;
-         }
-         else{
-            //error
-            argerr = true;
+   int usethreads = 0;
+   int threadargno = -1;
+   for (int k=1; k<argc; k++) {
+      if (!strcmp(argv[k], "--require-return")) {
+         reqrtn = 1;
+      }
+      else if (!strcmp(argv[k], "-t")) {
+         usethreads = 1;
+         if (k<argc-1 && argv[k+1][0] != '-') {
+            k++;
+            threadargno = k;
          }
       }
-   }
-   if (argerr) {
-      fprintf(stderr, "%s: run without input arguments (except for --require-return or -t); the necessary arguments are hardcoded.\n", argv[0]);
-      exit(EXIT_FAILURE);
+      else {
+         argerr = true;
+         break;
+      }
    }
 #ifdef PV_USE_MPI
    MPI_Init(&argc, &argv);
    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-#endif // PV_USE_MPI
-
-#undef REQUIRE_RETURN
-#ifdef REQUIRE_RETURN
-   int charhit;
-   fflush(stdout);
-   if( rank == 0 ) {
-      printf("Hit enter to begin! ");
-      fflush(stdout);
-      charhit = getc(stdin);
+   if (argerr) {
+      if (rank==0) {
+         fprintf(stderr, "%s: run without input arguments (except for --require-return); the necessary arguments are hardcoded.\n", argv[0]);
+      }
+      MPI_Barrier(MPI_COMM_WORLD);
+      MPI_Finalize();
+      exit(EXIT_FAILURE);
    }
-#ifdef PV_USE_MPI
-   MPI_Bcast(&charhit, 1, MPI_INT, 0, MPI_COMM_WORLD);
-#endif
-#endif // REQUIRE_RETURN
+#else // PV_USE_MPI
+   if (argerr) {
+      fprintf(stderr, "%s: run without input arguments (except for --require-return); the necessary arguments are hardcoded.\n", argv[0]);
+      exit(EXIT_FAILURE);
+   }
+#endif // PV_USE_MPI
 
    int status;
    assert(reqrtn==0 || reqrtn==1);
-   assert(threading == 0 || threading == 2);
-   int cl_argc = 3+reqrtn+threading;
-   char * cl_args[cl_argc];
-   cl_args[0] = strdup(argv[0]);
-   cl_args[1] = strdup("-p");
-   cl_args[2] = strdup("input/CheckpointParameters1.params");
-   if(threading && reqrtn){
-      assert(cl_argc==6);
-      cl_args[3] = strdup("-t");
-      cl_args[4] = strdup("4");
-      cl_args[5] = strdup("--require-return");
-      std::cout << "Requiring Return and Threading!\n";
+   assert(usethreads==0 || usethreads==1);
+   size_t cl_argc = 3+reqrtn+usethreads+(threadargno>0);
+   char ** cl_args = (char **) malloc((cl_argc+1)*sizeof(char *));
+   assert(cl_args!=NULL);
+   int cl_arg = 0;
+   cl_args[cl_arg++] = strdup(argv[0]);
+   cl_args[cl_arg++] = strdup("-p");
+   cl_args[cl_arg++] = strdup("input/CheckpointParameters1.params");
+   if (reqrtn) {
+      cl_args[cl_arg++] = strdup("--require-return");
    }
-   else if (threading) {
-      assert(cl_argc==5);
-      cl_args[3] = strdup("-t");
-      cl_args[4] = strdup("4");
-      std::cout << "Threading!\n";
+   if (usethreads) {
+      cl_args[cl_arg++] = strdup("-t");
+      if (threadargno>0) {
+         cl_args[cl_arg++] = strdup(argv[threadargno]);
+      }
    }
-   else if (reqrtn){
-      assert(cl_argc==4);
-      cl_args[3] = strdup("--require-return");
-      std::cout << "Requiring Return!\n";
-   }
-   status = buildandrun(cl_argc, cl_args, NULL, NULL, &customgroup);
+   assert(cl_arg==cl_argc);
+   cl_args[cl_arg] = NULL;
+   status = buildandrun((int) cl_argc, cl_args, NULL, NULL, &customgroup);
    if( status != PV_SUCCESS ) {
       fprintf(stderr, "%s: running with params file %s returned error %d.\n", cl_args[0], cl_args[2], status);
       exit(status);
    }
+   for (size_t arg=0; arg<cl_argc; arg++) {
+       free(cl_args[arg]);
+   }
+   free(cl_args);
 
-   free(cl_args[2]);
-   cl_args[2] = strdup("input/CheckpointParameters2.params");
+   cl_argc = 5+reqrtn+usethreads+(threadargno>0);;
+   cl_args = (char **) malloc((cl_argc+1)*sizeof(char *));
+   assert(cl_args);
+   cl_arg = 0;
+   cl_args[cl_arg++] = strdup(argv[0]);
+   cl_args[cl_arg++] = strdup("-p");
+   cl_args[cl_arg++] = strdup("input/CheckpointParameters2.params");
+   cl_args[cl_arg++] = strdup("-c");
+   cl_args[cl_arg++] = strdup("checkpoints1/Checkpoint12");
+   if (reqrtn) {
+      cl_args[cl_arg++] = strdup("--require-return");
+   }
+   if (usethreads) {
+      cl_args[cl_arg++] = strdup("-t");
+      if (threadargno>0) {
+         cl_args[cl_arg++] = strdup(argv[threadargno]);
+      }
+   }
+   assert(cl_arg==cl_argc);
+   cl_args[cl_arg++] = NULL;
    status = buildandrun(cl_argc, cl_args, NULL, &customexit, &customgroup);
    if( status != PV_SUCCESS ) {
       fprintf(stderr, "%s: running with params file %s returned error %d.\n", cl_args[0], cl_args[2], status);
@@ -114,9 +113,10 @@ int main(int argc, char * argv[]) {
    MPI_Finalize();
 #endif
 
-   for (int i=0; i<cl_argc; i++) {
-      free(cl_args[i]);
+   for (size_t arg=0; arg<cl_argc; arg++) {
+       free(cl_args[arg]);
    }
+   free(cl_args);
    return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
@@ -127,9 +127,6 @@ void * customgroup(const char * keyword, const char * name, HyPerCol * hc) {
    char * postLayerName = NULL;
    if( !strcmp(keyword, "CPTestInputLayer") ) {
       addedGroup = (void *) new CPTestInputLayer(name, hc);
-   }
-   if( !strcmp(keyword, "VaryingKernelConn") ) {
-      addedGroup = (void * ) new VaryingKernelConn(name, hc);
    }
    if( !strcmp(keyword, "VaryingHyPerConn") ) {
       addedGroup = (void * ) new VaryingHyPerConn(name, hc);
@@ -145,7 +142,7 @@ int customexit(HyPerCol * hc, int argc, char * argv[]) {
    int rootproc = 0;
    if( rank == rootproc ) {
       int index = hc->getFinalStep()-hc->getInitialStep();
-      const char * cpdir1 = hc->parameters()->stringValue("column", "checkpointReadDir");
+      const char * cpdir1 = "checkpoints1";
       const char * cpdir2 = hc->parameters()->stringValue("column", "checkpointWriteDir");
       if(cpdir1 == NULL || cpdir2 == NULL) {
          fprintf(stderr, "%s: unable to allocate memory for names of checkpoint directories", argv[0]);

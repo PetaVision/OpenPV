@@ -109,10 +109,11 @@ ANNLayer "Layer B One to Many" = {
     VMax                                = infinity;
 };
 
-KernelConn "Original Map for One to One Test" = {
+HyPerConn "Original Map for One to One Test" = {
     preLayerName                        = "Layer A";
     postLayerName                       = "Layer B One to One";
     channelCode                         = 0;
+    sharedWeights                       = true;
     nxp                                 = 7;
     nyp                                 = 7;
     nxpShrunken                         = 7;
@@ -194,10 +195,11 @@ FeedbackConn "Transpose of Transpose for One to One Test of FeedbackConn" = {
     selfFlag                            = false;
 };
 
-KernelConn "Original Map for Many to One Test" = {
+HyPerConn "Original Map for Many to One Test" = {
     preLayerName                        = "Layer A";
     postLayerName                       = "Layer B Many to One";
     channelCode                         = 0;
+    sharedWeights                       = true;
     nxp                                 = 7;
     nyp                                 = 7;
     nxpShrunken                         = 7;
@@ -279,10 +281,11 @@ FeedbackConn "Transpose of Transpose for Many to One Test of FeedbackConn" = {
     selfFlag                            = false;
 };
 
-KernelConn "Original Map for One to Many Test" = {
+HyPerConn "Original Map for One to Many Test" = {
     preLayerName                        = "Layer A";
     postLayerName                       = "Layer B One to Many";
     channelCode                         = 0;
+    sharedWeights                       = true;
     nxp                                 = 28;
     nyp                                 = 28;
     nxpShrunken                         = 28;

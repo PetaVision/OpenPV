@@ -8,11 +8,11 @@
 #ifndef PLASTICTESTCONN_HPP_
 #define PLASTICTESTCONN_HPP_
 
-#include <connections/KernelConn.hpp>
+#include <connections/HyPerConn.hpp>
 
 namespace PV {
 
-class PlasticTestConn : public KernelConn {
+class PlasticTestConn : public HyPerConn {
 public:
 	PlasticTestConn(const char * name, HyPerCol * hc);
 	virtual ~PlasticTestConn();
