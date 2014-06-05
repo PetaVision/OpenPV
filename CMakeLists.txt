@@ -7,9 +7,7 @@ project(PetaVision)
 cmake_minimum_required(VERSION 2.6)
 
 # Set variable for current working directory (workspace directory)
-if(NOT PV_DIR)
-   set(PV_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../PetaVision CACHE FILEPATH "The base petavision directory")
-endif (NOT PV_DIR)
+set(PV_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../PetaVision CACHE FILEPATH "The base petavision directory")
 
 set(OPEN_MP_THREADS FALSE CACHE PATH "Defines if PetaVision uses OpenMP threads")
 
