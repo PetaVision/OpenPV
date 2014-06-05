@@ -11,6 +11,7 @@
 #include "HyPerCol.hpp"
 #include "InterColComm.hpp"
 #include "../io/clock.h"
+#include "../io/imageio.hpp"
 #include "../io/io.h"
 
 #include <assert.h>
@@ -160,6 +161,7 @@ int HyPerCol::initialize_base() {
    filenamesContainConnectionNames = 0;
    random_seed = 0;
    random_seed_obj = 0;
+   printTimescales = true; //Defaults to true
 
    return PV_SUCCESS;
 }
@@ -451,6 +453,7 @@ int HyPerCol::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_checkpointWriteTimeInterval(ioFlag);
    ioParam_deleteOlderCheckpoints(ioFlag);
    ioParam_suppressLastOutput(ioFlag);
+   ioParam_printTimescales(ioFlag);
    return PV_SUCCESS;
 }
 
@@ -851,6 +854,10 @@ void HyPerCol::ioParam_suppressLastOutput(enum ParamsIOFlag ioFlag) {
    if (!checkpointWriteFlag) {
       ioParamValue(ioFlag, name, "suppressLastOutput", &suppressLastOutput, false/*default value*/);
    }
+}
+
+void HyPerCol::ioParam_printTimescales(enum ParamsIOFlag ioFlag) {
+   ioParamValue(ioFlag, name, "printTimescales", &printTimescales, printTimescales);
 }
 
 template <typename T>
@@ -1391,8 +1398,10 @@ int HyPerCol::advanceTime(double sim_time)
    double deltaTimeAdapt = deltaTime;
    if (dtAdaptFlag){ // adapt deltaTime
      deltaTimeAdapt = adaptTimeScale();
-     if (columnId() == 0) {
-       //std::cout << "timeScale = " << timeScale << ", " << "timeScaleTrue = " << timeScaleTrue << std::endl;
+     if(printTimescales){
+        if (columnId() == 0) {
+          std::cout << "timeScale = " << timeScale << ", " << "timeScaleTrue = " << timeScaleTrue << std::endl;
+        }
      }
    } // dtAdaptFlag
 

@@ -192,6 +192,7 @@ private:
    virtual void ioParam_checkpointWriteTimeInterval(enum ParamsIOFlag ioFlag);
    virtual void ioParam_deleteOlderCheckpoints(enum ParamsIOFlag ioFlag);
    virtual void ioParam_suppressLastOutput(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_printTimescales(enum ParamsIOFlag ioFlag);
 
    int checkDirExists(const char * dirname, struct stat * pathstat);
 
@@ -304,6 +305,8 @@ private:
                                   // the HyPerCol, saying how many they need (across all processes in an MPI run).
                                   // random_seed_obj is incremented by the number requested, so that everything
                                   // that needs a random seed gets a unique seed, and things are reproducible.
+                                  //
+   bool printTimescales;
 
 }; // class HyPerCol
 
