@@ -1392,7 +1392,7 @@ int HyPerCol::advanceTime(double sim_time)
    if (dtAdaptFlag){ // adapt deltaTime
      deltaTimeAdapt = adaptTimeScale();
      if (columnId() == 0) {
-       std::cout << "timeScale = " << timeScale << ", " << "timeScaleTrue = " << timeScaleTrue << std::endl;
+       //std::cout << "timeScale = " << timeScale << ", " << "timeScaleTrue = " << timeScaleTrue << std::endl;
      }
    } // dtAdaptFlag
 
