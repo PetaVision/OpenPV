@@ -43,12 +43,9 @@ int SoundProbe::initSoundProbe(const char * probeName, HyPerCol * hc) {
 
 int SoundProbe::communicateInitInfo(){
    StatsProbe::communicateInitInfo();
-   std::cout << "communicating for soundprobe\n";
    //Open soundprobe file for writing
    SF_INFO* tmpFileHeader = new SF_INFO();
-   std::cout << "Created header\n";
    //Grab the header to base the output file on
-   std::cout << "soundInputType: " << soundInputType  << "\n";
    SNDFILE* tmpStream = sf_open(soundInputType, SFM_READ, tmpFileHeader);
    std::cout << "frames: " << tmpFileHeader->frames << "\n";
    //New file header
@@ -63,7 +60,6 @@ int SoundProbe::communicateInitInfo(){
    assert(sf_format_check(fileHeader));
    fileStream = sf_open(soundOutputPath, SFM_WRITE, fileHeader);
    soundBuf = (float*) malloc(sizeof(float) * fileHeader->channels);
-   std::cout << "done communicating\n";
    return PV_SUCCESS;
 }
 

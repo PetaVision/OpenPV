@@ -15,8 +15,8 @@ HyPerCol "column" = {
    ny                              = 1;
    dt                              = 1.0;
    randomSeed                      = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
-   numSteps                        = 441839;       
-   progressStep                    = 1;
+   stopTime                        = 441839;       
+   progressStep                    = 5000;
    outputPath                      = "/Users/Burger/workspace/soundAnalysis/output";
    filenamesContainLayerNames      = true;
    filenamesContainConnectionNames = true;
@@ -38,21 +38,48 @@ SoundStream "Sound" = {
     nxScale                = 1;
     nyScale                = 1;
     nf                     = 1;
-    soundInputPath          = "/Users/Burger/workspace/soundAnalysis/input/A.wav";
-    writeStep              = 1;
+    soundInputPath         = "/Users/Burger/workspace/soundAnalysis/input/A.wav";
+    writeStep              = -1;
     writeSparseActivity    = false;
     displayPeriod          = 1;//5000;  // [in time steps - I think] TODO: change to [ms] 
-    phase                  = 0;
-    loopInput              = 1;
-    lowFreqOffset          = 0;
-    timeWindowOffset       = 50;
     soundBCFlag            = true;
     soundOffset            = 1; //In seconds
+    phase = 0;
 };
 
-SoundProbe "soundProbe" = {
+CochlearLayer "Cochlear" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    writeStep = 1; //Change based on display period
+    initialWriteTime = 0.0; //Change based on display period 
+    mirrorBCflag = 0;
+    writeSparseActivity = 0;
+
+    InitVType = "ZeroV";
+
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+    VShift = 0;
+    VWidth = 0;
+
+    inputLayername = "Sound"; 
+    targetChannel = 0;
+
+    freqMin = 20;
+    freqMax = 4000;
+
+    dampingRatio = .5;
+
+    sampleRate = 44100;
+    
+    phase = 1;
+};
+
+SoundProbe "inputProbe" = {
    restart = 0;
    targetLayer = "Sound";
-   soundOutputPath = "/Users/Burger/workspace/soundAnalysis/output/out.wav";
-   soundInputType = "/Users/Burger/workspace/soundAnalysis/input/A.wav";
+   soundOutputPath = "/Users/Burger/workspace/soundAnalysis/output/actualOut.wav";
+   soundInputType = "/Users/Burger/workspace/soundAnalysis/input/furElise.wav";
 };
