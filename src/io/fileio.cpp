@@ -1785,7 +1785,7 @@ int readRandState(const char * filename, Communicator * comm, uint4 * randState,
    return status;
 }
 
-template <typename T> int gatherActivity(PV_Stream * pvstream, Communicator * comm, int rootproc, const T * buffer, const PVLayerLoc * layerLoc, bool extended) {
+template <typename T> int gatherActivity(PV_Stream * pvstream, Communicator * comm, int rootproc, T * buffer, const PVLayerLoc * layerLoc, bool extended) {
    // In MPI when this process is called, all processes must call it.
    // Only the root process uses the file pointer.
    int status = PV_SUCCESS;
@@ -1911,9 +1911,9 @@ template <typename T> int gatherActivity(PV_Stream * pvstream, Communicator * co
 }
 
 // Declare the instantiations of gatherActivity that occur in other .cpp files; otherwise you may get linker errors.
-template int gatherActivity<unsigned char>(PV_Stream * pvstream, Communicator * comm, int rootproc,  const unsigned char * buffer, const PVLayerLoc * layerLoc, bool extended);
-template int gatherActivity<pvdata_t>(PV_Stream * pvstream, Communicator * comm, int rootproc,  const pvdata_t * buffer, const PVLayerLoc * layerLoc, bool extended);
-template int gatherActivity<uint4>(PV_Stream * pvstream, Communicator * comm, int rootproc,  const uint4 * buffer, const PVLayerLoc * layerLoc, bool extended);
+template int gatherActivity<unsigned char>(PV_Stream * pvstream, Communicator * comm, int rootproc, unsigned char * buffer, const PVLayerLoc * layerLoc, bool extended);
+template int gatherActivity<pvdata_t>(PV_Stream * pvstream, Communicator * comm, int rootproc, pvdata_t * buffer, const PVLayerLoc * layerLoc, bool extended);
+template int gatherActivity<uint4>(PV_Stream * pvstream, Communicator * comm, int rootproc, uint4 * buffer, const PVLayerLoc * layerLoc, bool extended);
 
 template <typename T> int scatterActivity(PV_Stream * pvstream, Communicator * comm, int rootproc, T * buffer, const PVLayerLoc * layerLoc, bool extended, const PVLayerLoc * fileLoc, int offsetX, int offsetY, int filetype, int numActive) {
    // In MPI when this process is called, all processes must call it.
