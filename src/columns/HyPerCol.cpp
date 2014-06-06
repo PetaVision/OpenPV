@@ -856,7 +856,10 @@ void HyPerCol::ioParam_suppressLastOutput(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerCol::ioParam_printTimescales(enum ParamsIOFlag ioFlag) {
-   ioParamValue(ioFlag, name, "printTimescales", &printTimescales, printTimescales);
+   assert(!params->presentAndNotBeenRead(name, "dtAdaptFlag"));
+   if (dtAdaptFlag) {
+      ioParamValue(ioFlag, name, "printTimescales", &printTimescales, printTimescales);
+   }
 }
 
 template <typename T>

@@ -152,10 +152,11 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
            "_Start_HyPerConns_",
              "HyPerConn",
                "BIDSConn",
-               "KernelConn",
+               "CloneConn",
+               "KernelConn", // Deprecated
                  "MapReduceKernelConn",
                  "CliqueConn",
-                 "CloneKernelConn",
+                 "CloneKernelConn", //Deprecated
                  "IdentConn",
                  "ImprintConn",
                  "GapConn",
@@ -582,6 +583,10 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
    if( !keywordMatched && !strcmp(classkeyword, "BIDSConn") ) {
       keywordMatched = true;
       addedConn = (HyPerConn*) new BIDSConn(name, hc);
+   }
+   if( !keywordMatched && !strcmp(classkeyword, "CloneConn") ) {
+      keywordMatched = true;
+      addedConn = (HyPerConn*) new CloneConn(name, hc);
    }
    if( !keywordMatched && !strcmp(classkeyword, "KernelConn") ) {
       keywordMatched = true;

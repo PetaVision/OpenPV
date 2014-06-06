@@ -46,7 +46,7 @@ class Random;
 class HyPerConn {
 
 public:
-   friend class CloneKernelConn;
+   friend class CloneConn;
    HyPerConn(const char * name, HyPerCol * hc);
    virtual ~HyPerConn();
 #ifdef PV_USE_OPENCL
