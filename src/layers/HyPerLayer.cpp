@@ -204,6 +204,9 @@ int HyPerLayer::initialize(const char * name, HyPerCol * hc) {
    initUseGPUFlag();
 #endif
 
+   //set precision of cout
+   std::cout.precision(8);
+
    return PV_SUCCESS;
 }
 
@@ -1667,6 +1670,7 @@ int HyPerLayer::recvSynapticInputFromPost(HyPerConn * conn, const PVLayerCube * 
       //Fill buffer
       for (int kTargetRes = 0; kTargetRes < numRestricted; kTargetRes++){
          int okTargetExt = kIndexExtended(kTargetRes, targetNx, targetNy, targetNf, oTargetNb);
+         int akTargetExt = kIndexExtended(kTargetRes, targetNx, targetNy, targetNf, aTargetNb);
          //Get start index of source from gsyn in restricted
          // We have to use gSynPatchStart instead of aPostOffset because originalConn's post-synaptic layer's nb may not be the same as conn's pre-layer's nb.
          int sourceRes = targetToSourceConn->getGSynPatchStart(okTargetExt, arborID);
@@ -1695,31 +1699,34 @@ int HyPerLayer::recvSynapticInputFromPost(HyPerConn * conn, const PVLayerCube * 
    }
 
    //Looping through yPatchSize first for cache optimization
-   for (int ky = 0; ky < targetToSourceConn->yPatchSize(); ky++){
+   //for (int ky = 0; ky < targetToSourceConn->yPatchSize(); ky++){
 #ifdef PV_USE_OPENMP_THREADS
-#pragma omp parallel for schedule(static)
+#pragma omp parallel for
 #endif
-      for (int kTargetRes = 0; kTargetRes < numRestricted; kTargetRes++){
-         //Change restricted to extended post neuron
-         int akTargetExt = kIndexExtended(kTargetRes, targetNx, targetNy, targetNf, aTargetNb);
-         int okTargetExt = kIndexExtended(kTargetRes, targetNx, targetNy, targetNf, oTargetNb);
+   for (int kTargetRes = 0; kTargetRes < numRestricted; kTargetRes++){
+      //Change restricted to extended post neuron
+      int akTargetExt = kIndexExtended(kTargetRes, targetNx, targetNy, targetNf, aTargetNb);
+      int okTargetExt = kIndexExtended(kTargetRes, targetNx, targetNy, targetNf, oTargetNb);
 
-         bool inWindow; 
-         inWindow = inWindowExt(arborID, akTargetExt);
-         if(!inWindow) continue;
+      bool inWindow; 
+      inWindow = inWindowExt(arborID, akTargetExt);
+      if(!inWindow) continue;
 
-         //Read from buffer
-         int startSourceExt = startSourceExtBuf[kTargetRes];
+      //Read from buffer
+      int startSourceExt = startSourceExtBuf[kTargetRes];
 
-         //Calculate target's start of gsyn
-         pvdata_t * gSynPatchPos = gSynPatchHead + kTargetRes;
+      //Calculate target's start of gsyn
+      pvdata_t * gSynPatchPos = gSynPatchHead + kTargetRes;
 
-         int kernelIndex = targetToSourceConn->patchToDataLUT(okTargetExt);
-         uint4 * rngPtr = conn->getRandState(kTargetRes);
+      int kernelIndex = targetToSourceConn->patchToDataLUT(okTargetExt);
+      uint4 * rngPtr = conn->getRandState(kTargetRes);
+
+      for (int ky = 0; ky < targetToSourceConn->yPatchSize(); ky++){
          float * activityY = &(activity->data[startSourceExt + ky*sy]);
          pvwdata_t * weightY = targetToSourceConn->get_wDataHead(arborID, kernelIndex) + ky*syp;
          (conn->accumulateFunctionFromPostPointer)(numPerStride, gSynPatchPos, activityY, weightY, dt_factor, rngPtr);
       }
+
    }
    recvsyn_timer->stop();
    return PV_SUCCESS;
@@ -1745,13 +1752,7 @@ int HyPerLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activity
 
    float dt_factor = getConvertToRateDeltaTimeFactor(conn);
 
-//Testing for clobbering
-//TODO make sure to run system tests for this
-#ifdef PV_USE_OPENMP_THREADS
-#pragma omp parallel for
-#endif
    for (int kPre = 0; kPre < numExtended; kPre++) {
-
       bool inWindow; 
       //Post layer recieves synaptic input
       //Only with respect to post layer
@@ -1780,8 +1781,11 @@ int HyPerLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activity
       // GTK: gSynPatchStart redefined as offset from start of gSyn buffer
       pvwdata_t * data = conn->get_wData(arborID,kPre);
       uint4 * rngPtr = conn->getRandState(kPre);
+      
+#ifdef PV_USE_OPENMP_THREADS
+#pragma omp parallel for
+#endif
       for (int y = 0; y < ny; y++) {
-         //Individual accumulate functions have atomic operations in them
          (conn->accumulateFunctionPointer)(nk, gSynPatchStart + y*sy, a, data + y*syw, rngPtr);
       }
    }
