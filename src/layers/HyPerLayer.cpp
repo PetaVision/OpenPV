@@ -204,9 +204,6 @@ int HyPerLayer::initialize(const char * name, HyPerCol * hc) {
    initUseGPUFlag();
 #endif
 
-   //set precision of cout
-   std::cout.precision(8);
-
    return PV_SUCCESS;
 }
 
