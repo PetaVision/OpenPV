@@ -34,14 +34,14 @@ int ReceiveFromPostProbe::outputState(double timed){
    const pvdata_t * A = getTargetLayer()->getLayerData();
    std::cout.precision(15);
    for (int i = 0; i < numExtNeurons; i++){
-      //if(fabs(A[i]) >= 1e-6){
+      if(fabs(A[i]) >= 1e-6){
          int xpos = kxPos(i, loc->nx+2*loc->nb, loc->ny+2*loc->nb, loc->nf);
          int ypos = kyPos(i, loc->nx+2*loc->nb, loc->ny+2*loc->nb, loc->nf);
          int fpos = featureIndex(i, loc->nx+2*loc->nb, loc->ny+2*loc->nb, loc->nf);
          std::cout << "[" << xpos << "," << ypos << "," << fpos << "] = " << std::fixed << A[i] << "\n";
-      //}
+      }
       //For roundoff errors
-      //assert(fabs(A[i]) < 1e-6);
+      assert(fabs(A[i]) < 1e-6);
    }
    return status;
 }
