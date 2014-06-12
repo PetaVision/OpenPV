@@ -136,8 +136,6 @@ int HyPerLayer::initialize_base() {
    this->numSynchronizedMarginWidthLayers = 0;
    this->synchronizedMarginWidthLayers = NULL;
 
-   this->startSourceExtBuf = NULL;
-
 #ifdef PV_USE_OPENCL
    this->krUpdate = NULL;
    this->clV = NULL;
@@ -296,11 +294,6 @@ HyPerLayer::~HyPerLayer()
    freeClayer();
    free(name); name = NULL;
    freeChannels();
-
-   if(startSourceExtBuf){
-      free(startSourceExtBuf);
-      startSourceExtBuf = NULL;
-   }
 
 #ifdef PV_USE_OPENCL
    if(gpuAccelerateFlag) {
@@ -1661,9 +1654,11 @@ int HyPerLayer::recvSynapticInputFromPost(HyPerConn * conn, const PVLayerCube * 
    //The start of the gsyn buffer
    pvdata_t * gSynPatchHead = this->getChannel(sourceToTargetConn->getChannel());
 
+   long * startSourceExtBuf = conn->getPostToPreGsyn();
+
    //If the startSourceExt buffer doesn't exist, create it
    if(startSourceExtBuf == NULL){
-      startSourceExtBuf = (int*)malloc(sizeof(int) * numRestricted);
+      startSourceExtBuf = (long*)malloc(sizeof(long) * numRestricted);
       //Fill buffer
       for (int kTargetRes = 0; kTargetRes < numRestricted; kTargetRes++){
          int okTargetExt = kIndexExtended(kTargetRes, targetNx, targetNy, targetNf, oTargetNb);
@@ -1710,7 +1705,7 @@ int HyPerLayer::recvSynapticInputFromPost(HyPerConn * conn, const PVLayerCube * 
       if(!inWindow) continue;
 
       //Read from buffer
-      int startSourceExt = startSourceExtBuf[kTargetRes];
+      long startSourceExt = startSourceExtBuf[kTargetRes];
 
       //Calculate target's start of gsyn
       pvdata_t * gSynPatchPos = gSynPatchHead + kTargetRes;
@@ -1718,8 +1713,16 @@ int HyPerLayer::recvSynapticInputFromPost(HyPerConn * conn, const PVLayerCube * 
       int kernelIndex = targetToSourceConn->patchToDataLUT(okTargetExt);
       uint4 * rngPtr = conn->getRandState(kTargetRes);
 
+
       for (int ky = 0; ky < targetToSourceConn->yPatchSize(); ky++){
          float * activityY = &(activity->data[startSourceExt + ky*sy]);
+         //if(strcmp(name, "C1") == 0 && kTargetRes == 18331){
+         //   for(int k = 0; k < numPerStride; k++){
+         //      if(activityY[k] != 0){
+         //         std::cout << conn->preSynapticLayer()->getName()<< " Post: preMargin: " << conn->preSynapticLayer()->getLayerLoc()->nb << " kPreExt: " << startSourceExt + ky*sy + k << " a: " << activityY[k] << "\n";
+         //      }
+         //   }
+         //}
          pvwdata_t * weightY = targetToSourceConn->get_wDataHead(arborID, kernelIndex) + ky*syp;
          (conn->accumulateFunctionFromPostPointer)(numPerStride, gSynPatchPos, activityY, weightY, dt_factor, rngPtr);
       }
@@ -1748,6 +1751,13 @@ int HyPerLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activity
 #endif // DEBUG_OUTPUT
 
    float dt_factor = getConvertToRateDeltaTimeFactor(conn);
+
+   //float* mem_check;
+   //if(strcmp(name, "C1") == 0){
+   //   pvdata_t* post_gsyn_start = this->getChannel(conn->getChannel());
+   //   //Getting 0th neuron
+   //   mem_check = &(post_gsyn_start[18331]);
+   //}
 
    for (int kPre = 0; kPre < numExtended; kPre++) {
       bool inWindow; 
@@ -1778,11 +1788,20 @@ int HyPerLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activity
       // GTK: gSynPatchStart redefined as offset from start of gSyn buffer
       pvwdata_t * data = conn->get_wData(arborID,kPre);
       uint4 * rngPtr = conn->getRandState(kPre);
-      
+
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif
       for (int y = 0; y < ny; y++) {
+
+         //if(strcmp(name, "C1") == 0){
+         //   for(int k = 0; k < nk; k++){
+         //      if(gSynPatchStart + y * sy + k == mem_check){
+         //         std::cout << conn->preSynapticLayer()->getName()<< " Pre neuron  margin: " << conn->preSynapticLayer()->getLayerLoc()->nb << " kPreExt: " << kPre << " a: " << a << "\n";
+         //      }
+         //   }
+         //}
+
          (conn->accumulateFunctionPointer)(nk, gSynPatchStart + y*sy, a, data + y*syw, rngPtr);
       }
    }
