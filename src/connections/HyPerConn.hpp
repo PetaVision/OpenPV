@@ -346,6 +346,9 @@ public:
          int numPatches, int arborId);
    virtual int normalizeWeights();
 
+   virtual long* getPostToPreGsyn(){
+      return postToPreGsyn;
+   }
 
 #ifdef PV_USE_OPENCL
    virtual int * getLUTpointer() {return NULL;}
@@ -415,6 +418,9 @@ private:
    HyPerLayer* triggerLayer;
    bool strengthParamHasBeenWritten;
    int * patch2datalookuptable;
+   
+   //TODO this variable is being calculated in HyPerLayer right now, do this here in HyPerConn
+   long * postToPreGsyn;
 
 protected:
    bool useWindowPost;

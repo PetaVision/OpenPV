@@ -144,6 +144,11 @@ HyPerConn::~HyPerConn()
    delete weightInitializer;
    delete randState;
 
+   if(this->postToPreGsyn){
+      free(this->postToPreGsyn);
+      this->postToPreGsyn = NULL;
+   }
+
    if (triggerLayerName) {
       free(triggerLayerName);
       triggerLayerName = NULL;
@@ -251,6 +256,7 @@ int HyPerConn::initialize_base()
    this->triggerLayerName = NULL;
    this->triggerOffset = 0;
 
+   this->postToPreGsyn = NULL;
    lastUpdateTime = 0.f;
    symmetrizeWeightsFlag = false;
    patch2datalookuptable = NULL;
