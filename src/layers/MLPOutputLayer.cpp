@@ -4,6 +4,7 @@
  */
 
 #include "MLPOutputLayer.hpp"
+#include <iostream>
 
 namespace PV {
 MLPOutputLayer::MLPOutputLayer(){

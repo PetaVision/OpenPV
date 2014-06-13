@@ -6,6 +6,7 @@
  */
 
 #include "HyPerLCALayer.hpp"
+#include <iostream>
 
 #ifdef __cplusplus
 extern "C" {

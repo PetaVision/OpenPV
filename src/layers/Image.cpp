@@ -12,6 +12,7 @@
 #endif
 #include <assert.h>
 #include <string.h>
+#include <iostream>
 
 #ifdef PV_USE_GDAL
 #  include <gdal_priv.h>
