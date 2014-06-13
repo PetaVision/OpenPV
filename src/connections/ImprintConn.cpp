@@ -6,6 +6,8 @@
  */
 
 #include "ImprintConn.hpp"
+#include <iostream>
+
 namespace PV {
 
 ImprintConn::ImprintConn(){
