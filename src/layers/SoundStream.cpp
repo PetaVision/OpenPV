@@ -9,6 +9,7 @@
 #ifdef PV_USE_SNDFILE
 
 #include "SoundStream.hpp"
+#include <iostream>
 
 #include <stdio.h>
 
