@@ -6,6 +6,7 @@
  */
 
 #include "NormalizeSum.hpp"
+#include <iostream>
 
 namespace PV {
 

@@ -9,6 +9,7 @@
 
 #include <stdlib.h>
 #include <math.h>
+#include <iostream>
 
 #include "../include/default_params.h"
 #include "../io/io.h"
