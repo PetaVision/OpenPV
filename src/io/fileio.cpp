@@ -9,6 +9,8 @@
 #include "../layers/HyPerLayer.hpp"
 
 #include <assert.h>
+#include <iostream>
+
 #undef DEBUG_OUTPUT
 
 namespace PV {
