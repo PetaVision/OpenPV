@@ -28,7 +28,7 @@ int L2NormProbe::initL2NormProbe(const char * probeName, HyPerCol * hc) {
 }
 
 void L2NormProbe::initFunction() {
-   setFunction(new L2NormFunction(getProbeName()));
+   setFunction(new L2NormFunction(getName()));
 }
 
 int L2NormProbe::writeState(double timed, HyPerLayer * l, pvdata_t value) {

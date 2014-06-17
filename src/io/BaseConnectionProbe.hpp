@@ -14,41 +14,29 @@ enum PatchIDMethod { INDEX_METHOD, COORDINATE_METHOD };
 
 namespace PV {
 
-class BaseConnectionProbe {
+class BaseConnectionProbe:public BaseProbe{
 
 // Methods
 public:
+   BaseConnectionProbe(const char * probeName, HyPerCol * hc);
    virtual ~BaseConnectionProbe();
-   virtual int communicate();
-   virtual int allocateProbe();
-   virtual int outputState(double timed) = 0;
-   int ioParams(enum ParamsIOFlag ioFlag);
 
-   const char * getName()                  {return name;}
-   const char * getTargetConnName()        {return targetConnName;}
+   virtual int communicateInitInfo();
+
    HyPerConn * getTargetConn()             {return targetConn;}
 
 protected:
    BaseConnectionProbe(); // Default constructor, can only be called by derived classes
-   int initialize(const char * probename, HyPerCol * hc);
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_probeOutputFile(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_targetConnection(enum ParamsIOFlag ioFlag);
-
-   HyPerCol * getParent()                  {return parent;}
-   PV_Stream * getStream()                 {return stream;}
+   int initialize(const char * probeName, HyPerCol * hc);
+   virtual void ioParam_targetName(enum ParamsIOFlag ioFlag);
 
 private:
    int initialize_base();
+   int setTargetConn(const char * connName);
 
 // Member Variables
 protected:
-   HyPerCol * parent; // HyPerCol that owns the probe
-   char * name; // Name of the probe; corresponds to the group name in the params file
-   PV_Stream * stream; // pointer to output file; NULL except for root process.  If filename is NULL, fp will be stdout.
-   char * targetConnName; // The name of the connection being probed.
    HyPerConn * targetConn; // The connection itself.
-   char * probeOutputFile;
 };
 
 }  // end of namespace PV block

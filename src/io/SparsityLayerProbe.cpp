@@ -16,7 +16,7 @@ namespace PV {
 SparsityLayerProbe::SparsityLayerProbe(const char * probeName, HyPerCol * hc)
 {
    initSparsityLayerProbe_base();
-   LayerProbe::initLayerProbe(probeName, hc);
+   LayerProbe::initialize(probeName, hc);
 }
 
 SparsityLayerProbe::SparsityLayerProbe()
@@ -54,15 +54,15 @@ int SparsityLayerProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void SparsityLayerProbe::ioParam_windowSize(enum ParamsIOFlag ioFlag) {
-   parentCol->ioParamValue(ioFlag, probeName, "windowSize", &windowSize, windowSize);
+   parent->ioParamValue(ioFlag, name, "windowSize", &windowSize, windowSize);
 }
 
 void SparsityLayerProbe::ioParam_calcNNZ(enum ParamsIOFlag ioFlag) {
-   parentCol->ioParamValue(ioFlag, probeName, "calcNNZ", &calcNNZ, calcNNZ);
+   parent->ioParamValue(ioFlag, name, "calcNNZ", &calcNNZ, calcNNZ);
 }
 
 void SparsityLayerProbe::ioParam_initSparsityVal(enum ParamsIOFlag ioFlag) {
-   parentCol->ioParamValue(ioFlag, probeName, "initSparsityVal", &initSparsityVal, initSparsityVal);
+   parent->ioParamValue(ioFlag, name, "initSparsityVal", &initSparsityVal, initSparsityVal);
 }
 
 int SparsityLayerProbe::communicateInitInfo() {
@@ -79,15 +79,15 @@ int SparsityLayerProbe::communicateInitInfo() {
       else{
          double dBufSize = (float)windowSize/deltaUpdateTime;
          if(dBufSize < 1){
-            fprintf(stderr, "SparsityLayerProbe %s: window size must be bigger than the trigger layer's delta update time (%f)", probeName, deltaUpdateTime);
+            fprintf(stderr, "SparsityLayerProbe %s: window size must be bigger than the trigger layer's delta update time (%f)", name, deltaUpdateTime);
             exit(EXIT_FAILURE);
          }
          bufSize = ceil(dBufSize);
       }
    }
    else{
-      bufSize = ceil((float)windowSize/parentCol->getDeltaTime());
-      deltaUpdateTime = parentCol->getDeltaTime();
+      bufSize = ceil((float)windowSize/parent->getDeltaTime());
+      deltaUpdateTime = parent->getDeltaTime();
    }
    //Allocate buffers
    sparsityVals = (float*) calloc(bufSize, sizeof(float));
@@ -194,7 +194,7 @@ float SparsityLayerProbe::getSparsity(){
 }
 
 double SparsityLayerProbe::getUpdateTime(){
-   return timeVals[bufIndex] + parentCol->getDeltaTime();
+   return timeVals[bufIndex] + parent->getDeltaTime();
 }
 
 } // namespace PV

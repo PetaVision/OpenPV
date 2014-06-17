@@ -27,8 +27,8 @@ int TextStreamProbe::initTextStreamProbe_base() {
 }
 
 int TextStreamProbe::initTextStreamProbe(const char * probeName, HyPerCol * hc) {
-   int status = LayerProbe::initLayerProbe(probeName, hc);
-   nextDisplayTime = getParentCol()->getStartTime();
+   int status = LayerProbe::initialize(probeName, hc);
+   nextDisplayTime = getParent()->getStartTime();
    return status;
 }
 
@@ -39,7 +39,7 @@ int TextStreamProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void TextStreamProbe::ioParam_displayPeriod(enum ParamsIOFlag ioFlag) {
-   getParentCol()->ioParamValue(ioFlag, getProbeName(), "displayPeriod", &displayPeriod, 1.0);
+   getParent()->ioParamValue(ioFlag, getName(), "displayPeriod", &displayPeriod, 1.0);
 }
 
 int TextStreamProbe::communicateInitInfo() {

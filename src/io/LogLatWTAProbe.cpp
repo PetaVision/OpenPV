@@ -30,7 +30,7 @@ int LogLatWTAProbe::initLogLatWTAProbe(const char * probeName, HyPerCol * hc) {
 }
 
 void LogLatWTAProbe::initFunction() {
-   setFunction(new LogLatWTAFunction(getProbeName()));
+   setFunction(new LogLatWTAFunction(getName()));
 }
 
 int LogLatWTAProbe::writeState(double timed, HyPerLayer * l, pvdata_t value) {

@@ -21,7 +21,7 @@ public:
    LCALIFLateralProbe(const char * probename, HyPerCol * hc);
    // LCALIFLateralProbe(const char * probename, const char * filename, HyPerConn * conn, int kxPre, int kyPre, int kfPre);
    virtual ~LCALIFLateralProbe();
-   virtual int allocateProbe();
+   virtual int allocateDataStructures();
 
    virtual int outputState(double timef);
 

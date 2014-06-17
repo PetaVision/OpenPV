@@ -40,7 +40,7 @@ int PointProbe::initPointProbe_base() {
 }
 
 int PointProbe::initPointProbe(const char * probeName, HyPerCol * hc) {
-   int status = LayerProbe::initLayerProbe(probeName, hc);
+   int status = LayerProbe::initialize(probeName, hc);
    return status;
 }
 
@@ -53,15 +53,15 @@ int PointProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void PointProbe::ioParam_xLoc(enum ParamsIOFlag ioFlag) {
-   getParentCol()->ioParamValueRequired(ioFlag, getProbeName(), "xLoc", &xLoc);
+   getParent()->ioParamValueRequired(ioFlag, getName(), "xLoc", &xLoc);
 }
 
 void PointProbe::ioParam_yLoc(enum ParamsIOFlag ioFlag) {
-   getParentCol()->ioParamValueRequired(ioFlag, getProbeName(), "yLoc", &xLoc);
+   getParent()->ioParamValueRequired(ioFlag, getName(), "yLoc", &xLoc);
 }
 
 void PointProbe::ioParam_fLoc(enum ParamsIOFlag ioFlag) {
-   getParentCol()->ioParamValueRequired(ioFlag, getProbeName(), "fLoc", &xLoc);
+   getParent()->ioParamValueRequired(ioFlag, getName(), "fLoc", &xLoc);
 }
 
 int PointProbe::initOutputStream(const char * filename) {
@@ -78,7 +78,7 @@ int PointProbe::initOutputStream(const char * filename) {
    bool pointInLocalFrame = xLocLocal >= 0 && xLocLocal < nx && yLocLocal >=0 && yLocLocal < ny;
    if (pointInLocalFrame) {
       if( filename != NULL ) {
-         char * outputdir = getParentCol()->getOutputPath();
+         char * outputdir = getParent()->getOutputPath();
          char * path = (char *) malloc(strlen(outputdir)+1+strlen(filename)+1);
          sprintf(path, "%s/%s", outputdir, filename);
          outputstream = PV_fopen(path, "w");
@@ -102,7 +102,7 @@ int PointProbe::communicateInitInfo() {
    int status = LayerProbe::communicateInitInfo();
    assert(getTargetLayer());
    const PVLayerLoc * loc = getTargetLayer()->getLayerLoc();
-   bool isRoot = getParentCol()->icCommunicator()->commRank()==0;
+   bool isRoot = getParent()->icCommunicator()->commRank()==0;
    if( (xLoc < 0 || xLoc > loc->nxGlobal) && isRoot ) {
       fprintf(stderr, "PointProbe on layer %s: xLoc coordinate %d is out of bounds (layer has %d neurons in the x-direction.\n", getTargetLayer()->getName(), xLoc, loc->nxGlobal);
       status = PV_FAILURE;

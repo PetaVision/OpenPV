@@ -1693,6 +1693,7 @@ int HyPerLayer::recvSynapticInputFromPost(HyPerConn * conn, const PVLayerCube * 
    //Looping through yPatchSize first for cache optimization
    //for (int ky = 0; ky < targetToSourceConn->yPatchSize(); ky++){
 #ifdef PV_USE_OPENMP_THREADS
+   //std::cout << name << ": Running with " << omp_get_num_threads() << "\n";;
 #pragma omp parallel for
 #endif
    for (int kTargetRes = 0; kTargetRes < numRestricted; kTargetRes++){
@@ -1790,6 +1791,7 @@ int HyPerLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activity
       uint4 * rngPtr = conn->getRandState(kPre);
 
 #ifdef PV_USE_OPENMP_THREADS
+   //std::cout << "Running with " << omp_get_num_threads() << "\n";;
 #pragma omp parallel for
 #endif
       for (int y = 0; y < ny; y++) {

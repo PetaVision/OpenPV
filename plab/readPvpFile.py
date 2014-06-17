@@ -40,9 +40,12 @@ def readData(filestream, shape, numPerFrame):
    if len(timestamp) != 8:
       #EOF
       return (-1, None)
-   idx = struct.unpack("d", timestamp)
-   outmat = np.fromfile(filestream, np.float32, numPerFrame).reshape(shape)
-   return (idx, outmat)
+   try:
+      idx = struct.unpack("d", timestamp)
+      outmat = np.fromfile(filestream, np.float32, numPerFrame).reshape(shape)
+      return (idx, outmat)
+   except:
+      return (-1, None)
 
 #goto frame number
 def toFrame(skipnum, filestream, numPerFrame, headerSize):

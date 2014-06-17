@@ -28,7 +28,7 @@ int SparsityTermProbe::initSparsityTermProbe(const char * probeName, HyPerCol * 
 }
 
 void SparsityTermProbe::initFunction() {
-   setFunction(new SparsityTermFunction(getProbeName()));
+   setFunction(new SparsityTermFunction(getName()));
 }
 
 int SparsityTermProbe::outputState(double timef) {

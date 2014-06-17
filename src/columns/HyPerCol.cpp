@@ -71,11 +71,11 @@ HyPerCol::~HyPerCol()
 
    free(connections);
    free(layers);
-   for (int k=0; k<numProbes; k++) {
-      delete probes[k];
+   for (int k=0; k<numColProbes; k++) {
+      delete colProbes[k];
    }
-   free(probes);
-   free(layerProbes);
+   free(colProbes);
+   free(baseProbes);
    free(name);
    free(printParamsFilename);
    // free(outputNamesOfLayersAndConns);
@@ -151,10 +151,10 @@ int HyPerCol::initialize_base() {
    icComm = NULL;
    runDelegate = NULL;
    runTimer = NULL;
-   numProbes = 0;
-   probes = NULL;
-   numLayerProbes = 0;
-   layerProbes = NULL;
+   numColProbes = 0;
+   colProbes = NULL;
+   numBaseProbes = 0;
+   baseProbes = NULL;
    // numConnProbes = 0;
    // connProbes = NULL;
    filenamesContainLayerNames = 0;
@@ -1076,27 +1076,38 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
    connInitializationStage = &HyPerCol::connCommunicateInitInfo;
    doInitializationStage(layerInitializationStage, connInitializationStage, "communicateInitInfo");
 
-   // insert probes
-   for (int i=0; i<numLayerProbes; i++) {
-      LayerProbe * p = layerProbes[i];
+   // do communication step for probes
+   // This is where probes are added to their respective target layers and connections
+   for (int i=0; i<numBaseProbes; i++) {
+      BaseProbe * p = baseProbes[i];
       int pstatus = p->communicateInitInfo();
       if (pstatus==PV_SUCCESS) {
-         if (columnId()==0) printf("Layer probe \"%s\" communicateInitInfo completed.\n", p->getProbeName());
+         if (columnId()==0) printf("Probe \"%s\" communicateInitInfo completed.\n", p->getName());
       }
       else {
          assert(pstatus == PV_FAILURE); // PV_POSTPONE etc. hasn't been implemented for probes yet.
          exit(EXIT_FAILURE); // Any error message should be printed by probe's communicateInitInfo function
       }
    }
-   //for (int i=0; i<numConnProbes; i++) {
-   //   BaseConnectionProbe * p = connProbes[i];
-   //   p->communicateInitInfo();
-   //}
 
    // allocateDataStructures stage
    layerInitializationStage = &HyPerCol::layerAllocateDataStructures;
    connInitializationStage = &HyPerCol::connAllocateDataStructures;
    doInitializationStage(layerInitializationStage, connInitializationStage, "allocateDataStructures");
+
+   // do allocation stage for probes
+   for (int i=0; i<numBaseProbes; i++) {
+      BaseProbe * p = baseProbes[i];
+      int pstatus = p->allocateDataStructures();
+      if (pstatus==PV_SUCCESS) {
+         if (columnId()==0) printf("Probe \"%s\" allocateDataStructures completed.\n", p->getName());
+      }
+      else {
+         assert(pstatus == PV_FAILURE); // PV_POSTPONE etc. hasn't been implemented for probes yet.
+         exit(EXIT_FAILURE); // Any error message should be printed by probe's communicateInitInfo function
+      }
+   }
+
 
 #ifdef OBSOLETE // Marked obsolete Aug 9, 2013.  Look everybody, checkMarginWidths is obsolete!
    if( checkMarginWidths() != PV_SUCCESS ) {
@@ -1820,8 +1831,8 @@ int HyPerCol::outputParams() {
    // Probe params
 
    // ColProbes
-   for (int p=0; p<numProbes; p++) {
-      probes[p]->ioParams(PARAMS_IO_WRITE);
+   for (int p=0; p<numColProbes; p++) {
+      colProbes[p]->ioParams(PARAMS_IO_WRITE);
    }
 
    // LayerProbes
@@ -1898,18 +1909,18 @@ int HyPerCol::loadState()
 int HyPerCol::insertProbe(ColProbe * p)
 {
    ColProbe ** newprobes;
-   newprobes = (ColProbe **) malloc( ((size_t) (numProbes + 1)) * sizeof(ColProbe *) );
+   newprobes = (ColProbe **) malloc( ((size_t) (numColProbes + 1)) * sizeof(ColProbe *) );
    assert(newprobes != NULL);
 
-   for (int i = 0; i < numProbes; i++) {
-      newprobes[i] = probes[i];
+   for (int i = 0; i < numColProbes; i++) {
+      newprobes[i] = colProbes[i];
    }
-   delete probes;
+   delete colProbes;
 
-   probes = newprobes;
-   probes[numProbes] = p;
+   colProbes = newprobes;
+   colProbes[numColProbes] = p;
 
-   return ++numProbes;
+   return ++numColProbes;
 }
 
 //int HyPerCol::addBaseConnectionProbe(BaseConnectionProbe * p) {
@@ -1927,25 +1938,40 @@ int HyPerCol::insertProbe(ColProbe * p)
 //   return ++numConnProbes;
 //}
 
-int HyPerCol::addLayerProbe(LayerProbe * p) {
-   LayerProbe ** newprobes;
-   newprobes = (LayerProbe **) malloc( ((size_t) (numLayerProbes + 1)) * sizeof(LayerProbe *) );
+//int HyPerCol::addLayerProbe(LayerProbe * p) {
+//   LayerProbe ** newprobes;
+//   newprobes = (LayerProbe **) malloc( ((size_t) (numLayerProbes + 1)) * sizeof(LayerProbe *) );
+//   assert(newprobes != NULL);
+//
+//   for (int i=0; i<numLayerProbes; i++) {
+//      newprobes[i] = layerProbes[i];
+//   }
+//   free(layerProbes);
+//   layerProbes = newprobes;
+//   layerProbes[numLayerProbes] = p;
+//
+//   return ++numLayerProbes;
+//}
+
+int HyPerCol::addBaseProbe(BaseProbe * p) {
+   BaseProbe ** newprobes;
+   newprobes = (BaseProbe **) malloc( ((size_t) (numBaseProbes + 1)) * sizeof(BaseProbe *) );
    assert(newprobes != NULL);
 
-   for (int i=0; i<numLayerProbes; i++) {
-      newprobes[i] = layerProbes[i];
+   for (int i=0; i<numBaseProbes; i++) {
+      newprobes[i] = baseProbes[i];
    }
-   free(layerProbes);
-   layerProbes = newprobes;
-   layerProbes[numLayerProbes] = p;
+   free(baseProbes);
+   baseProbes = newprobes;
+   baseProbes[numBaseProbes] = p;
 
-   return ++numLayerProbes;
+   return ++numBaseProbes;
 }
 
 int HyPerCol::outputState(double time)
 {
-   for( int n = 0; n < numProbes; n++ ) {
-       probes[n]->outputState(time, this);
+   for( int n = 0; n < numColProbes; n++ ) {
+       colProbes[n]->outputState(time, this);
    }
    return PV_SUCCESS;
 }

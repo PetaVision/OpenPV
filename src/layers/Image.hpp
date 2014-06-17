@@ -190,7 +190,8 @@ protected:
 
    Random * randState;
 
-   long * frameStart;
+   long * frameStartBuf;
+   int * countBuf;
    long length;
    bool needFrameSizesForSpiking;
    PV_Stream * posstream;

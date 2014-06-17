@@ -44,7 +44,7 @@ int LinearAverageProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void LinearAverageProbe::ioParam_gifFile(enum ParamsIOFlag ioFlag) {
-   getParentCol()->ioParamString(ioFlag, getProbeName(), "gifFile", &this->gifFilename, NULL);
+   getParent()->ioParamString(ioFlag, getName(), "gifFile", &this->gifFilename, NULL);
 }
 
 /**

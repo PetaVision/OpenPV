@@ -2,6 +2,7 @@ import os, sys
 import numpy as np
 from readPvpFile import readHeaderFile, readData, toFrame
 from scipy.misc import imsave
+#import pdb
 
 def matToImage(mat):
    (Y, X, Z) = np.shape(mat)
@@ -28,11 +29,9 @@ def matToImage(mat):
 
 #Scales mat to be between 0 and 1 for image saving
 def scaleMat(mat):
-   (Y, X, Z) = np.shape(mat)
-   assert Z == 1
-   img = mat[:, :, 0]
+   img = mat
    img = (img - np.min(img)) / (np.max(img) - np.min(img))
-   return img
+   return img.squeeze()
 
 
 ##
@@ -59,10 +58,12 @@ def plotRecon(layernames, outputDir, skipFrames):
       (idx, mat) = readData(pvpFile, shape, numPerFrame)
       #While not eof
       while idx != -1:
-         if header["nf"] > 1:
-            img = matToImage(mat)
-         else:
+         print layername + ": " + str(int(idx[0]))
+         #color bands
+         if header["nf"] == 1 or header["nf"] == 3:
             img = scaleMat(mat)
+         else:
+            img = matToImage(mat)
          imsave(reconDir + layername + str(int(idx[0])) + ".png", img)
          #Read a few extra for skipping frames
          for i in range(skipFrames):

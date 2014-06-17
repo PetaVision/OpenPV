@@ -24,7 +24,7 @@ public:
    OjaConnProbe(const char * probename, HyPerCol * hc);
    virtual ~OjaConnProbe();
 
-   virtual int allocateProbe();
+   virtual int allocateDataStructures();
 
    virtual int outputState(double timef);
 

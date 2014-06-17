@@ -22,11 +22,11 @@ public:
 
 protected:
    ActivityProbe();
-   int initActivityProbe(const char * probeName, HyPerCol * hc);
+   int initialize(const char * probeName, HyPerCol * hc);
    virtual int initOutputStream(const char * filename);
 
 private:
-   int initActivityProbe_base();
+   int initialize_base();
 
 private:
    long outFrame;

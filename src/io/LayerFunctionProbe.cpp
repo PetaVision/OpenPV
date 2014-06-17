@@ -40,7 +40,7 @@ int LayerFunctionProbe::initLayerFunctionProbe(const char * probeName, HyPerCol 
       initFunction();
       if (function==NULL) {
          fprintf(stderr, "%s \"%s\" error: rank %d unable to construct LayerFunction.\n",
-               getParentCol()->parameters()->groupKeywordFromName(probeName), probeName, getParentCol()->columnId());
+               getParent()->parameters()->groupKeywordFromName(probeName), probeName, getParent()->columnId());
          status = PV_FAILURE;
          exit(EXIT_FAILURE);
       }
@@ -49,7 +49,7 @@ int LayerFunctionProbe::initLayerFunctionProbe(const char * probeName, HyPerCol 
 }
 
 void LayerFunctionProbe::initFunction() {
-   function = new LayerFunction(getProbeName());
+   function = new LayerFunction(getName());
 }
 
 int LayerFunctionProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
@@ -66,13 +66,13 @@ void LayerFunctionProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
 }
 
 void LayerFunctionProbe::ioParam_parentGenColProbe(enum ParamsIOFlag ioFlag) {
-   getParentCol()->ioParamString(ioFlag, getProbeName(), "parentGenColProbe", &parentGenColProbeName, NULL, false/*warnIfAbsent*/);
+   getParent()->ioParamString(ioFlag, getName(), "parentGenColProbe", &parentGenColProbeName, NULL, false/*warnIfAbsent*/);
 }
 
 void LayerFunctionProbe::ioParam_coeff(enum ParamsIOFlag ioFlag) {
-   assert(!getParentCol()->parameters()->presentAndNotBeenRead(getProbeName(), "parentGenColProbeName"));
+   assert(!getParent()->parameters()->presentAndNotBeenRead(getName(), "parentGenColProbeName"));
    if (parentGenColProbeName != NULL) {
-      getParentCol()->ioParamValue(ioFlag, getProbeName(), "coeff", &coeff, (pvdata_t) 1.0);
+      getParent()->ioParamValue(ioFlag, getName(), "coeff", &coeff, (pvdata_t) 1.0);
    }
 }
 
@@ -80,15 +80,15 @@ int LayerFunctionProbe::communicateInitInfo() {
    int status = StatsProbe::communicateInitInfo();
    if (status == PV_SUCCESS && parentGenColProbeName != NULL) {
       if (parentGenColProbeName != NULL && parentGenColProbeName[0] != '\0') {
-         ColProbe * colprobe = getParentCol()->getColProbeFromName(parentGenColProbeName);
+         ColProbe * colprobe = getParent()->getColProbeFromName(parentGenColProbeName);
          GenColProbe * gencolprobe = dynamic_cast<GenColProbe *>(colprobe);
          if (gencolprobe==NULL) {
-            if (getParentCol()->columnId()==0) {
+            if (getParent()->columnId()==0) {
                fprintf(stderr, "%s \"%s\" error: parentGenColProbe \"%s\" is not a GenColProbe in the column.\n",
-                     getParentCol()->parameters()->groupKeywordFromName(getProbeName()), getProbeName(), parentGenColProbeName);
+                     getParent()->parameters()->groupKeywordFromName(getName()), getName(), parentGenColProbeName);
             }
 #ifdef PV_USE_MPI
-            MPI_Barrier(getParentCol()->icCommunicator()->communicator());
+            MPI_Barrier(getParent()->icCommunicator()->communicator());
 #endif
             exit(EXIT_FAILURE);
          }

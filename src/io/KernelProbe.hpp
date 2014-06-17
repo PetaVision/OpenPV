@@ -19,7 +19,7 @@ public:
    KernelProbe(const char * probename, HyPerCol * hc);
    virtual ~KernelProbe();
    virtual int communicate();
-   virtual int allocateProbe();
+   virtual int allocateDataStructures();
    virtual int outputState(double timef);
 protected:
    KernelProbe(); // Default constructor, can only be called by derived classes

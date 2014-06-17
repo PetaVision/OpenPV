@@ -63,7 +63,7 @@ void OjaKernelSpikeRateProbe::ioParam_arbor(enum ParamsIOFlag ioFlag) {
    }
 }
 
-int OjaKernelSpikeRateProbe::allocateProbe() {
+int OjaKernelSpikeRateProbe::allocateDataStructures() {
    targetOjaKernelConn = dynamic_cast<OjaKernelConn *>(getTargetConn());
    if (targetOjaKernelConn == NULL) {
       if (getParent()->columnId()==0) {
@@ -93,20 +93,21 @@ int OjaKernelSpikeRateProbe::allocateProbe() {
       }
    }
    else {
-      stream = NULL;
+      outputstream = NULL;
    }
-   getTargetConn()->insertProbe(this);
+   //This is now being done in BaseConnectionProbe
+   //getTargetConn()->insertProbe(this);
 
    return PV_SUCCESS;
 }
 
 int OjaKernelSpikeRateProbe::outputState(double timed) {
-   if (stream!=NULL) {
+   if (outputstream!=NULL) {
       if (isInputRate) {
-         fprintf(stream->fp, "Connection \"%s\", t=%f: arbor %d, x=%d, y=%d, f=%d, input integrated rate=%f\n", targetOjaKernelConn->getName(), timed, arbor, xg, yg, feature, *spikeRate);
+         fprintf(outputstream->fp, "Connection \"%s\", t=%f: arbor %d, x=%d, y=%d, f=%d, input integrated rate=%f\n", targetOjaKernelConn->getName(), timed, arbor, xg, yg, feature, *spikeRate);
       }
       else {
-         fprintf(stream->fp, "Connection \"%s\", t=%f: x=%d, y=%d, f=%d, output integrated rate=%f\n", targetOjaKernelConn->getName(), timed, xg, yg, feature, *spikeRate);
+         fprintf(outputstream->fp, "Connection \"%s\", t=%f: x=%d, y=%d, f=%d, output integrated rate=%f\n", targetOjaKernelConn->getName(), timed, xg, yg, feature, *spikeRate);
       }
    }
    return PV_SUCCESS;

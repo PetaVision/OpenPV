@@ -37,7 +37,7 @@ int LinearActivityProbe::initLinearActivityProbe_base() {
 }
 
 int LinearActivityProbe::initLinearActivityProbe(const char * probeName, HyPerCol * hc) {
-   int status = initLayerProbe(probeName, hc);
+   int status = LayerProbe::initialize(probeName, hc);
    return status;
 }
 
@@ -50,7 +50,7 @@ int LinearActivityProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void LinearActivityProbe::ioParam_dim(enum ParamsIOFlag ioFlag) {
-   getParentCol()->ioParamString(ioFlag, getProbeName(), "dim", &dimString, "DimX");
+   getParent()->ioParamString(ioFlag, getName(), "dim", &dimString, "DimX");
    if (ioFlag == PARAMS_IO_READ) {
       assert(dimString!=NULL);
       if (!strcmp(dimString, "DimX")) {
@@ -60,12 +60,12 @@ void LinearActivityProbe::ioParam_dim(enum ParamsIOFlag ioFlag) {
          dim = DimY;
       }
       else {
-         if (getParentCol()->columnId()==0) {
+         if (getParent()->columnId()==0) {
             fprintf(stderr, "%s \"%s\" error: parameter \"dim\" must be either \"DimX\" or \"DimY\".\n",
-                  getParentCol()->parameters()->groupKeywordFromName(getProbeName()), getProbeName());
+                  getParent()->parameters()->groupKeywordFromName(getName()), getName());
          }
 #ifdef PV_USE_MPI
-         MPI_Barrier(getParentCol()->icCommunicator()->communicator());
+         MPI_Barrier(getParent()->icCommunicator()->communicator());
 #endif
          exit(EXIT_FAILURE);
       }
@@ -73,11 +73,11 @@ void LinearActivityProbe::ioParam_dim(enum ParamsIOFlag ioFlag) {
 }
 
 void LinearActivityProbe::ioParam_linePos(enum ParamsIOFlag ioFlag) {
-   getParentCol()->ioParamValue(ioFlag, getProbeName(), "linePos", &linePos, linePos);
+   getParent()->ioParamValue(ioFlag, getName(), "linePos", &linePos, linePos);
 }
 
 void LinearActivityProbe::ioParam_f(enum ParamsIOFlag ioFlag) {
-   getParentCol()->ioParamValue(ioFlag, getProbeName(), "f", &f, f);
+   getParent()->ioParamValue(ioFlag, getName(), "f", &f, f);
 }
 
 /**

@@ -2356,7 +2356,7 @@ int HyPerConn::outputState(double timef, bool last)
 
    if( !last ) {
       for (int i = 0; i < numProbes; i++) {
-         probes[i]->outputState(timef);
+         probes[i]->outputStateWrapper(timef, parent->getDeltaTime());
       }
    }
 

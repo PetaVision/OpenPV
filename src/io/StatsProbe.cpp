@@ -58,7 +58,7 @@ int StatsProbe::initStatsProbe_base() {
 }
 
 int StatsProbe::initStatsProbe(const char * probeName, HyPerCol * hc) {
-   int status = initLayerProbe(probeName, hc);
+   int status = LayerProbe::initialize(probeName, hc);
    if( status == PV_SUCCESS ) {
       fMin = FLT_MAX;
       fMax = -FLT_MAX;
@@ -69,16 +69,16 @@ int StatsProbe::initStatsProbe(const char * probeName, HyPerCol * hc) {
       nnz = 0;
    }
    assert(status == PV_SUCCESS);
-   size_t timermessagelen = strlen("StatsProbe ") + strlen(getProbeName()) + strlen(" Comp timer ");
+   size_t timermessagelen = strlen("StatsProbe ") + strlen(getName()) + strlen(" Comp timer ");
    char timermessage[timermessagelen+1];
    int charsneeded;
-   charsneeded = snprintf(timermessage, timermessagelen+1, "StatsProbe %s I/O  timer ", getProbeName());
+   charsneeded = snprintf(timermessage, timermessagelen+1, "StatsProbe %s I/O  timer ", getName());
    assert(charsneeded<=timermessagelen);
    iotimer = new Timer(timermessage);
-   charsneeded = snprintf(timermessage, timermessagelen+1, "StatsProbe %s MPI  timer ", getProbeName());
+   charsneeded = snprintf(timermessage, timermessagelen+1, "StatsProbe %s MPI  timer ", getName());
    assert(charsneeded<=timermessagelen);
    mpitimer = new Timer(timermessage);
-   charsneeded = snprintf(timermessage, timermessagelen+1, "StatsProbe %s Comp timer ", getProbeName());
+   charsneeded = snprintf(timermessage, timermessagelen+1, "StatsProbe %s Comp timer ", getName());
    assert(charsneeded<=timermessagelen);
    comptimer = new Timer(timermessage);
    return status;
@@ -92,9 +92,9 @@ int StatsProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void StatsProbe::requireType(PVBufType requiredType) {
-   PVParams * params = getParentCol()->parameters();
-   if (params->stringPresent(getProbeName(), "buffer")) {
-      params->handleUnnecessaryStringParameter(getProbeName(), "buffer");
+   PVParams * params = getParent()->parameters();
+   if (params->stringPresent(getName(), "buffer")) {
+      params->handleUnnecessaryStringParameter(getName(), "buffer");
       StatsProbe::ioParam_buffer(PARAMS_IO_READ);
       if (type != requiredType) {
          const char * requiredString = NULL;
@@ -110,9 +110,9 @@ void StatsProbe::requireType(PVBufType requiredType) {
             break;
          }
          if (type != BufV) {
-            if (getParentCol()->columnId()==0) {
+            if (getParent()->columnId()==0) {
                fprintf(stderr, "   Value \"%s\" is inconsistent with allowed values %s.\n",
-                     params->stringValue(getProbeName(), "buffer"), requiredString);
+                     params->stringValue(getName(), "buffer"), requiredString);
             }
          }
       }
@@ -133,7 +133,7 @@ void StatsProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
          buffer = strdup("Activity");
       }
    }
-   getParentCol()->ioParamString(ioFlag, getProbeName(), "buffer", &buffer, "Activity", true/*warnIfAbsent*/);
+   getParent()->ioParamString(ioFlag, getName(), "buffer", &buffer, "Activity", true/*warnIfAbsent*/);
    if (ioFlag == PARAMS_IO_READ) {
       assert(buffer);
       size_t len = strlen(buffer);
@@ -147,14 +147,14 @@ void StatsProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
          type = BufActivity;
       }
       else {
-         if (getParentCol()->columnId()==0) {
-            const char * bufnameinparams = getParentCol()->parameters()->stringValue(getProbeName(), "buffer");
+         if (getParent()->columnId()==0) {
+            const char * bufnameinparams = getParent()->parameters()->stringValue(getName(), "buffer");
             assert(bufnameinparams);
             fprintf(stderr, "%s \"%s\" error: buffer \"%s\" is not recognized.\n",
-                  getParentCol()->parameters()->groupKeywordFromName(getProbeName()), getProbeName(), bufnameinparams);
+                  getParent()->parameters()->groupKeywordFromName(getName()), getName(), bufnameinparams);
          }
 #ifdef PV_USE_MPI
-         MPI_Barrier(getParentCol()->icCommunicator()->communicator());
+         MPI_Barrier(getParent()->icCommunicator()->communicator());
 #endif
          exit(EXIT_FAILURE);
       }
@@ -163,7 +163,7 @@ void StatsProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
 }
 
 void StatsProbe::ioParam_nnzThreshold(enum ParamsIOFlag ioFlag) {
-    getParentCol()->ioParamValue(ioFlag, getProbeName(), "nnzThreshold", &nnzThreshold, (pvdata_t) 0);
+    getParent()->ioParamValue(ioFlag, getName(), "nnzThreshold", &nnzThreshold, (pvdata_t) 0);
 }
 
 /**

@@ -91,9 +91,9 @@ void OjaConnProbe::ioParam_kfPost(enum ParamsIOFlag ioFlag) {
    parent->ioParamValue(ioFlag, name, "kfPost", &kfPost, -1, false/*warnIfAbsent*/);
 }
 
-int OjaConnProbe::allocateProbe()
+int OjaConnProbe::allocateDataStructures()
 {
-   BaseConnectionProbe::allocateProbe();
+   BaseConnectionProbe::allocateDataStructures();
    ojaConn = dynamic_cast<OjaSTDPConn *>(targetConn);
    assert(ojaConn != NULL);
 

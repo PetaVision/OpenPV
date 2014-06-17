@@ -84,8 +84,8 @@ void LCALIFLateralProbe::ioParam_kfPost(enum ParamsIOFlag ioFlag) {
    parent->ioParamValue(ioFlag, name, "kfPost", &kfPost, -1, false/*warnIfAbsent*/);
 }
 
-int LCALIFLateralProbe::allocateProbe() {
-   BaseConnectionProbe::allocateProbe();
+int LCALIFLateralProbe::allocateDataStructures() {
+   BaseConnectionProbe::allocateDataStructures();
    LCALIFConn = dynamic_cast<LCALIFLateralConn *>(targetConn);
    assert(LCALIFConn != NULL);
 

@@ -38,10 +38,14 @@ Image::Image(const char * name, HyPerCol * hc) {
 Image::~Image() {
    free(filename); // It is not an error to pass NULL to free().
    filename = NULL;
-   //free(frameStart);
-   //frameStart = NULL;
-   //free(count);
-   //count = NULL;
+   if(frameStartBuf){
+      free(frameStartBuf);
+      frameStartBuf = NULL;
+   }
+   if(countBuf){
+      free(countBuf);
+      countBuf = NULL;
+   }
    Communicator::freeDatatypes(mpi_datatypes); mpi_datatypes = NULL;
    delete randState; randState = NULL;
 
@@ -83,6 +87,8 @@ int Image::initialize_base() {
    randState = NULL;
    posstream = NULL;
    pvpFileTime = 0;
+   frameStartBuf = NULL;
+   countBuf = NULL;
    return PV_SUCCESS;
 }
 
@@ -359,77 +365,131 @@ int Image::scatterImageFilePVP(const char * filename, int xOffset, int yOffset,
       case PVP_ACT_FILE_TYPE:
       case PVP_ACT_SPARSEVALUES_FILE_TYPE:
 
+         //Allocate the byte positions in file where each frame's data starts and the number of active neurons in each frame
+         //Only need to do this once
+
+         //Allocate the byte positions in file where each frame's data starts and the number of active neurons in each frame
+         //Only need to do this once
          if (needFrameSizesForSpiking) {
-            //See if position file exists
-            strcpy(tempPosFilename, filename);
-            len = strlen(filename);
-            //Check suffix of filename
-            if(strcmp(&filename[len-4], ".pvp") != 0){
-               fprintf(stderr, "Filename %s must end in \".pvp\".\n", filename);
+            std::cout << "Calculating file positions\n";
+            frameStartBuf = (long *) calloc(params[INDEX_NBANDS],sizeof(long));
+            if (frameStartBuf==NULL) {
+               fprintf(stderr, "scatterImageFilePVP unable to allocate memory for frameStart.\n");
                status = PV_FAILURE;
                abort();
             }
-            //Change suffix to pos
-            tempPosFilename[len-2] = 'o';
-            tempPosFilename[len-1] = 's';
-            posFilename = tempPosFilename;
-
-            //If file doesn't exist, write file
-            if(access(posFilename, F_OK) == -1){
-               //Allocate the byte positions in file where each frame's data starts and the number of active neurons in each frame
-               //Only need to do this once
-               std::cout << "Calculating file positions\n";
-               
-               //Fseek past the header and first timestamp
-               PV::PV_fseek(pvstream, (long)8 + (long)headerSize, SEEK_SET);
-
-               int percent = 0;
-               long frameStart;
-               long count;
-               posstream = PV_fopen(posFilename, "w");
-               assert(posstream);
-               for (i = 0; i<params[INDEX_NBANDS]; i++) {
-                  int newpercent = 100*(float(i)/params[INDEX_NBANDS]);
-                  if(percent != newpercent){
-                     percent = newpercent;
-                     std::cout << "\r" << percent << "% Done";
-                     std::cout.flush();
-                  }
-                  //First byte position should always be 92
-                  if (i == 0) {
-                     frameStart = (long)92;
-                  }
-                  //Read in the number of active neurons for that frame and calculate byte position
-                  else {
-                     PV::PV_fread(&count, sizeof(unsigned int), 1, pvstream);
-                     frameStart = frameStart + (long)count*(long)datasize + (long)12;
-                     PV::PV_fseek(pvstream, frameStart - (long)4, SEEK_SET);
-                  }
-                  //Write to file
-                  status = (PV_fwrite(&frameStart, sizeof(long), 1, posstream) != 1);
-               }
-               std::cout << "\r" << percent << "% Done\n";
-               std::cout.flush();
-
-               PV_fclose(posstream);
+            countBuf = (int *) calloc(params[INDEX_NBANDS],sizeof(int));
+            if (countBuf==NULL) {
+               fprintf(stderr, "scatterImageFilePVP unable to allocate memory for frameLength.\n");
+               status = PV_FAILURE;
+               abort();
             }
-            posstream = PV_fopen(posFilename, "r");
-            assert(posstream);
+
+            //Fseek past the header and first timestamp
+            PV::PV_fseek(pvstream, (long)8 + (long)headerSize, SEEK_SET);
+            int percent = 0;
+            for (i = 0; i<params[INDEX_NBANDS]; i++) {
+               int newpercent = 100*(float(i)/params[INDEX_NBANDS]);
+               if(percent != newpercent){
+                  percent = newpercent;
+                  std::cout << "\r" << percent << "% Done";
+                  std::cout.flush();
+               }
+               //First byte position should always be 92
+               if (i == 0) {
+                  frameStartBuf[i] = (long)92;
+               }
+               //Read in the number of active neurons for that frame and calculate byte position
+               else {
+                  PV::PV_fread(&countBuf[i-1], sizeof(int), 1, pvstream);
+                  frameStartBuf[i] = frameStartBuf[i-1] + (long)countBuf[i-1]*(long)datasize + (long)12;
+                  PV::PV_fseek(pvstream, frameStartBuf[i] - (long)4, SEEK_SET);
+               }
+            }
+            std::cout << "\r" << percent << "% Done\n";
+            std::cout.flush();
+            //We still need the last count
+            PV::PV_fread(&countBuf[i-1], sizeof(int), 1, pvstream);
+
             //So we don't have to calculate frameStart and count again
             needFrameSizesForSpiking = false;
          }
-         //At this point, posstream should be pointing to something
-         assert(posstream);
-         //Calculate based on frame number where to read from posstream
-         PV::PV_fseek(posstream, frameNumber * sizeof(long), SEEK_SET);
-         PV::PV_fread(&framepos, sizeof(long), 1, posstream);
-         //Calculate where in position file to look at fileposition 
+         framepos = (long)frameStartBuf[frameNumber];
+         length = countBuf[frameNumber];
          PV::PV_fseek(pvstream, framepos-sizeof(double)-sizeof(unsigned int), SEEK_SET);
          PV::PV_fread(&timed, sizeof(double), 1, pvstream);
-         PV::PV_fread(&length, sizeof(unsigned int), 1, pvstream);
-         std::cout << "length: " << length << "\n";
+         unsigned int dropLength;
+         PV::PV_fread(&dropLength, sizeof(unsigned int), 1, pvstream);
+         assert(dropLength == length);
          status = PV_SUCCESS;
          break;
+               
+            ////See if position file exists
+            //strcpy(tempPosFilename, filename);
+            //len = strlen(filename);
+            ////Check suffix of filename
+            //if(strcmp(&filename[len-4], ".pvp") != 0){
+            //   fprintf(stderr, "Filename %s must end in \".pvp\".\n", filename);
+            //   status = PV_FAILURE;
+            //   abort();
+            //}
+            ////Change suffix to pos
+            //tempPosFilename[len-2] = 'o';
+            //tempPosFilename[len-1] = 's';
+            //posFilename = tempPosFilename;
+
+            ////If file doesn't exist, write file
+            //if(access(posFilename, F_OK) == -1){
+               ////Fseek past the header and first timestamp
+               //PV::PV_fseek(pvstream, (long)8 + (long)headerSize, SEEK_SET);
+
+               //int percent = 0;
+               //long frameStart;
+               //long count;
+               //posstream = PV_fopen(posFilename, "w");
+               //assert(posstream);
+               //for (i = 0; i<params[INDEX_NBANDS]; i++) {
+               //   int newpercent = 100*(float(i)/params[INDEX_NBANDS]);
+               //   if(percent != newpercent){
+               //      percent = newpercent;
+               //      std::cout << "\r" << percent << "% Done";
+               //      std::cout.flush();
+               //   }
+               //   //First byte position should always be 92
+               //   if (i == 0) {
+               //      frameStart = (long)92;
+               //   }
+               //   //Read in the number of active neurons for that frame and calculate byte position
+               //   else {
+               //      PV::PV_fread(&count, sizeof(unsigned int), 1, pvstream);
+               //      frameStart = frameStart + (long)count*(long)datasize + (long)12;
+               //      PV::PV_fseek(pvstream, frameStart - (long)4, SEEK_SET);
+               //   }
+               //   //Write to file
+               //   status = (PV_fwrite(&frameStart, sizeof(long), 1, posstream) != 1);
+               //}
+               //std::cout << "\r" << percent << "% Done\n";
+               //std::cout.flush();
+
+               //PV_fclose(posstream);
+            //}
+            //posstream = PV_fopen(posFilename, "r");
+            //assert(posstream);
+            ////So we don't have to calculate frameStart and count again
+            //needFrameSizesForSpiking = false;
+         //}
+         //At this point, posstream should be pointing to something
+         //assert(posstream);
+         //Calculate based on frame number where to read from posstream
+         //PV::PV_fseek(posstream, frameNumber * sizeof(long), SEEK_SET);
+         //PV::PV_fread(&framepos, sizeof(long), 1, posstream);
+         ////Calculate where in position file to look at fileposition 
+         //PV::PV_fseek(pvstream, framepos-sizeof(double)-sizeof(unsigned int), SEEK_SET);
+         //PV::PV_fread(&timed, sizeof(double), 1, pvstream);
+         //PV::PV_fread(&length, sizeof(unsigned int), 1, pvstream);
+         //std::cout << "length: " << length << "\n";
+         //status = PV_SUCCESS;
+         //break;
       case PVP_NONSPIKING_ACT_FILE_TYPE:
          length = 0; //Don't need to compute this for nonspiking files.
          framesize = recordsize*datasize*nxProcs*nyProcs+8;

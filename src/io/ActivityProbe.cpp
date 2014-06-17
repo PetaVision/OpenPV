@@ -26,13 +26,13 @@ pv_tiff_write_frame(PV_Stream * pvstream, const pvdata_t * data,
 namespace PV {
 
 ActivityProbe::ActivityProbe() {
-   initActivityProbe_base();
+   initialize_base();
 }
 
 ActivityProbe::ActivityProbe(const char * probeName, HyPerCol * hc)
 {
-   initActivityProbe_base();
-   initActivityProbe(probeName, hc);
+   initialize_base();
+   initialize(probeName, hc);
 }
 
 ActivityProbe::~ActivityProbe()
@@ -43,13 +43,13 @@ ActivityProbe::~ActivityProbe()
    }
 }
 
-int ActivityProbe::initActivityProbe_base() {
+int ActivityProbe::initialize_base() {
    outFrame = 0L;
    outBuf = NULL;
    return PV_SUCCESS;
 }
 
-int ActivityProbe::initActivityProbe(const char * probeName, HyPerCol * hc) {
+int ActivityProbe::initialize(const char * probeName, HyPerCol * hc) {
    if (hc->icCommunicator()->commSize()>1) {
       if (hc->columnId()==0) {
          fprintf(stderr, "ActivityProbe \"%s\" error: ActivityProbe is not compatible with MPI.\n", probeName);
@@ -59,7 +59,7 @@ int ActivityProbe::initActivityProbe(const char * probeName, HyPerCol * hc) {
 #endif
       exit(EXIT_FAILURE);
    }
-   return initLayerProbe(probeName, hc);
+   return LayerProbe::initialize(probeName, hc);
 }
 
 int ActivityProbe::initOutputStream(const char * filename) {

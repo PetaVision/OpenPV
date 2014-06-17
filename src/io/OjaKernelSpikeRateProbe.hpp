@@ -17,7 +17,7 @@ class OjaKernelSpikeRateProbe: public PV::BaseConnectionProbe {
 public:
    OjaKernelSpikeRateProbe(const char * probename, HyPerCol * hc);
    virtual ~OjaKernelSpikeRateProbe();
-   virtual int allocateProbe();
+   virtual int allocateDataStructures();
    virtual int outputState(double timed);
 
 protected:

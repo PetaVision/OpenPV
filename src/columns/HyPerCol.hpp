@@ -34,6 +34,7 @@ namespace PV {
 //class InterColComm;
 //class HyPerConn;
 class ColProbe;
+class BaseProbe;
 class PVParams;
 
 class HyPerCol {
@@ -69,7 +70,7 @@ public:
 
    HyPerLayer * getLayer(int which)       {return layers[which];}
    HyPerConn  * getConnection(int which)  {return connections[which];}
-   ColProbe * getColProbe(int which)      {return probes[which];}
+   ColProbe * getColProbe(int which)      {return colProbes[which];}
 
    char * getName()                       {return name;}
    char * getSrcPath()                    {return srcPath;}
@@ -115,7 +116,7 @@ public:
 
    int numberOfLayers()                   {return numLayers;}
    int numberOfConnections()              {return numConnections;}
-   int numberOfProbes()                   {return numProbes;}
+   int numberOfProbes()                   {return numColProbes;}
 
    /** returns the number of border regions, either an actual image border or a neighbor **/
    int numberOfBorderRegions()            {return MAX_NEIGHBORS;}
@@ -136,7 +137,8 @@ public:
    void setDelegate(HyPerColRunDelegate * delegate)  {runDelegate = delegate;}
 
    int insertProbe(ColProbe * p);
-   int addLayerProbe(LayerProbe * p);
+   int addBaseProbe(BaseProbe * p);
+   //int addLayerProbe(LayerProbe * p);
    // int addBaseConnectionProbe(BaseConnectionProbe * p);
    int outputState(double time);
    int ensureDirExists(const char * dirname);
@@ -285,11 +287,12 @@ private:
 
    Timer * runTimer;
 
-   int numProbes;
-   ColProbe ** probes;
+   int numColProbes;
+   ColProbe ** colProbes;
 
-   int numLayerProbes;
-   LayerProbe ** layerProbes;
+   //int numLayerProbes;
+   int numBaseProbes;
+   BaseProbe ** baseProbes;
 
    // int numConnProbes;
    // BaseConnectionProbe ** connProbes;
