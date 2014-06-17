@@ -40,11 +40,11 @@ int PlasticConnTestProbe::outputState(double timed) {
 #endif // PV_USE_MPI
    assert(getTargetConn()!=NULL);
    FILE * fp = getStream()->fp;
-   fprintf(fp, "    Time %f, connection \"%s\":\n", timed, getTargetConnName());
+   fprintf(fp, "    Time %f, connection \"%s\":\n", timed, getTargetName());
    const pvwdata_t * w = getTargetConn()->get_wDataHead(getArbor(), getKernelIndex());
    const pvdata_t * dw = getTargetConn()->get_dwDataHead(getArbor(), getKernelIndex());
    if( getOutputPlasticIncr() && dw == NULL ) {
-      fprintf(stderr, "PlasticConnTestProbe \"%s\": connection \"%s\" has dKernelData(%d,%d) set to null.\n", getName(), getTargetConnName(), getKernelIndex(), getArbor());
+      fprintf(stderr, "PlasticConnTestProbe \"%s\": connection \"%s\" has dKernelData(%d,%d) set to null.\n", getName(), getTargetName(), getKernelIndex(), getArbor());
       assert(false);
    }
    int nxp = getTargetConn()->xPatchSize();

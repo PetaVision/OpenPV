@@ -64,7 +64,7 @@ ANNLayer "output no delay" = {
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = 1;
-    writeSparseActivity = false;
+    writeSparseActivity = true;
 
     // InitVType = "ZeroV"; // inited from checkpoint
 
@@ -83,7 +83,7 @@ ANNLayer "output with delay" = {
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = 1;
-    writeSparseActivity = false;
+    writeSparseActivity = true;
 
     // InitVType = "ZeroV"; // inited from checkpoint
 
@@ -102,7 +102,7 @@ ANNLayer "output arbor" = {
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = 1;
-    writeSparseActivity = false;
+    writeSparseActivity = true;
 
     // InitVType = "ZeroV"; // inited from checkpoint
 
@@ -121,7 +121,7 @@ ANNLayer "output from full hyperconn" = {
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = 1;
-    writeSparseActivity = false;
+    writeSparseActivity = true;
 
     // InitVType = "ZeroV"; // inited from checkpoint
 

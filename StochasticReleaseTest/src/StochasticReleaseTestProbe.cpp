@@ -37,7 +37,7 @@ void StochasticReleaseTestProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
 int StochasticReleaseTestProbe::communicateInitInfo() {
    int status = StatsProbe::communicateInitInfo();
    assert(getTargetLayer());
-   long int num_steps = getParentCol()->getFinalStep() - getParentCol()->getInitialStep();
+   long int num_steps = getParent()->getFinalStep() - getParent()->getInitialStep();
    pvalues = (double *) calloc(num_steps*getTargetLayer()->getLayerLoc()->nf, sizeof(double));
    if (pvalues == NULL) {
       fprintf(stderr, "StochasticReleaseTestProbe error: unable to allocate memory for pvalues: %s\n", strerror(errno));

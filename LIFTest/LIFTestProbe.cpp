@@ -72,11 +72,11 @@ int LIFTestProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void LIFTestProbe::ioParam_endingTime(enum ParamsIOFlag ioFlag) {
-   getParentCol()->ioParamValue(ioFlag, getProbeName(), "endingTime", &endingTime, LIFTESTPROBE_DEFAULTENDINGTIME);
+   getParent()->ioParamValue(ioFlag, getName(), "endingTime", &endingTime, LIFTESTPROBE_DEFAULTENDINGTIME);
 }
 
 void LIFTestProbe::ioParam_tolerance(enum ParamsIOFlag ioFlag) {
-   getParentCol()->ioParamValue(ioFlag, getProbeName(), "tolerance", &tolerance, LIFTESTPROBE_DEFAULTTOLERANCE);
+   getParent()->ioParamValue(ioFlag, getName(), "tolerance", &tolerance, LIFTESTPROBE_DEFAULTTOLERANCE);
 }
 
 LIFTestProbe::~LIFTestProbe() {
@@ -89,7 +89,7 @@ LIFTestProbe::~LIFTestProbe() {
 
 int LIFTestProbe::communicateInitInfo() {
    int status = StatsProbe::communicateInitInfo();
-   if (getParentCol()->columnId()==0) {
+   if (getParent()->columnId()==0) {
       fprintf(outputstream->fp, "%s Correct: ", getMessage());
       for (int k=0; k<LIFTESTPROBE_BINS; k++) {
          fprintf(outputstream->fp, " %f", targetrates[k]);

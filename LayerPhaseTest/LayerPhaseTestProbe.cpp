@@ -34,11 +34,11 @@ void LayerPhaseTestProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
 }
 
 void LayerPhaseTestProbe::ioParam_equilibriumValue(enum ParamsIOFlag ioFlag) {
-   getParentCol()->ioParamValue(ioFlag, getProbeName(), "equilibriumValue", &equilibriumValue, 0.0f, true);
+   getParent()->ioParamValue(ioFlag, getName(), "equilibriumValue", &equilibriumValue, 0.0f, true);
 }
 
 void LayerPhaseTestProbe::ioParam_equilibriumTime(enum ParamsIOFlag ioFlag) {
-   getParentCol()->ioParamValue(ioFlag, getProbeName(), "equilibriumTime", &equilibriumTime, 0.0, true);
+   getParent()->ioParamValue(ioFlag, getName(), "equilibriumTime", &equilibriumTime, 0.0, true);
 }
 
 int LayerPhaseTestProbe::outputState(double timed)

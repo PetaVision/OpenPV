@@ -9,7 +9,7 @@
 namespace PV {
 TriggerTestLayerProbe::TriggerTestLayerProbe(const char * name, HyPerCol * hc)
 {
-   LayerProbe::initLayerProbe(name , hc);
+   LayerProbe::initialize(name , hc);
 }
 
 int TriggerTestLayerProbe::outputStateWrapper(double time, double dt){
@@ -20,7 +20,7 @@ int TriggerTestLayerProbe::outputStateWrapper(double time, double dt){
 
    //4 different layers
    //No trigger, always update
-   const char * name = getProbeName();
+   const char * name = getName();
    fprintf(stderr, "%s: time=%f, dt=%f, needUpdate=%d\n", name, time, dt, needUpdate(time, dt));
    if(strcmp(name, "notriggerlayerprobe") == 0){
       assert(needUpdate(time, dt) == true);

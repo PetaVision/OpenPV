@@ -34,7 +34,7 @@ int MatchingPursuitProbe::initMatchingPursuitProbe(const char * name, HyPerCol *
 #endif
       exit(EXIT_FAILURE);
    }
-   initLayerProbe(name, hc);
+   LayerProbe::initialize(name, hc);
    return PV_SUCCESS;
 }
 

@@ -11,19 +11,19 @@ namespace PV {
 
 SparsityProbeTest::SparsityProbeTest(const char * name, HyPerCol * hc)
 {
-   SparsityLayerProbe::initLayerProbe(name , hc);
+   LayerProbe::initialize(name , hc);
 }
 
 int SparsityProbeTest::outputState(double time){
    //Update probe
    int status = SparsityLayerProbe::outputState(time);
-   double deltaTime = parentCol->getDeltaTime();
+   double deltaTime = parent->getDeltaTime();
    //Skip on ts 0, initialization step
    if(fabs(time - 0) <= (deltaTime/2)){
       return status;
    }
    float actualVal;
-   if(strcmp(probeName, "nnxProbe") == 0){
+   if(strcmp(name, "nnxProbe") == 0){
       actualVal = time / 64;
    }
    else{

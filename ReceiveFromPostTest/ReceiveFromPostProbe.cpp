@@ -33,8 +33,9 @@ int ReceiveFromPostProbe::outputState(double timed){
    int numExtNeurons = getTargetLayer()->getNumExtended();
    const pvdata_t * A = getTargetLayer()->getLayerData();
    std::cout.precision(15);
+   std::cout << "outputing\n";
    for (int i = 0; i < numExtNeurons; i++){
-      if(fabs(A[i]) >= 1e-6){
+      if(fabs(A[i]) != 0){
          int xpos = kxPos(i, loc->nx+2*loc->nb, loc->ny+2*loc->nb, loc->nf);
          int ypos = kyPos(i, loc->nx+2*loc->nb, loc->ny+2*loc->nb, loc->nf);
          int fpos = featureIndex(i, loc->nx+2*loc->nb, loc->ny+2*loc->nb, loc->nf);

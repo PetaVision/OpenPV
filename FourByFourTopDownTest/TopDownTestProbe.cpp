@@ -44,7 +44,7 @@ void TopDownTestProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
 }
 
 void TopDownTestProbe::ioParam_checkPeriod(enum ParamsIOFlag ioFlag) {
-   getParentCol()->ioParamValue(ioFlag, getProbeName(), "checkPeriod", &checkperiod, 0.0, true/*warnIfAbsent*/);
+   getParent()->ioParamValue(ioFlag, getName(), "checkPeriod", &checkperiod, 0.0, true/*warnIfAbsent*/);
 }
 
 int TopDownTestProbe::communicateInitInfo() {

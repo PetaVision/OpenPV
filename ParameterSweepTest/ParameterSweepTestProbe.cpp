@@ -34,14 +34,14 @@ void ParameterSweepTestProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
 }
 
 void ParameterSweepTestProbe::ioParam_expectedSum(enum ParamsIOFlag ioFlag) {
-   getParentCol()->ioParamValue(ioFlag, getProbeName(), "expectedSum", &expectedSum, 0.0);
+   getParent()->ioParamValue(ioFlag, getName(), "expectedSum", &expectedSum, 0.0);
 }
 void ParameterSweepTestProbe::ioParam_expectedMin(enum ParamsIOFlag ioFlag) {
-   getParentCol()->ioParamValue(ioFlag, getProbeName(), "expectedMin", &expectedMin, 0.0f);
+   getParent()->ioParamValue(ioFlag, getName(), "expectedMin", &expectedMin, 0.0f);
 }
 
 void ParameterSweepTestProbe::ioParam_expectedMax(enum ParamsIOFlag ioFlag) {
-   getParentCol()->ioParamValue(ioFlag, getProbeName(), "expectedMax", &expectedMax, 0.0f);
+   getParent()->ioParamValue(ioFlag, getName(), "expectedMax", &expectedMax, 0.0f);
 }
 
 int ParameterSweepTestProbe::outputState(double timed) {

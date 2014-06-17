@@ -337,7 +337,7 @@ int assertAllZeroes(HyPerCol * hc, int argc, char * argv[]) {
    LayerProbe * probe = NULL;
    int np = layer->getNumProbes();
    for (int p=0; p<np; p++) {
-      if (!strcmp(layer->getProbe(p)->getProbeName(), "comparison_test")) {
+      if (!strcmp(layer->getProbe(p)->getName(), "comparison_test")) {
          probe = layer->getProbe(p);
          break;
       }
