@@ -1,5 +1,5 @@
-addpath("~/workspace/PetaVision/mlab/util/");
-pvpfile = "/Users/Burger/workspace/soundAnalysis/output/a1_Cochlear.pvp";
+addpath("~/Desktop/PetaVision/trunk/mlab/util/");
+pvpfile = "/Users/JEC/Desktop/PetaVision/sandbox/soundAnalysis/output/a1_Cochlear.pvp";
 outfilename = "outImg.png";
 
 [data, hdr] = readpvpfile(pvpfile);
@@ -10,6 +10,8 @@ for(time = 1:length(data))
    outimg(time, :) = squeeze(data{time}.values)';
 end
 
-outimg = (outimg - min(outimg(:))) / (max(outimg(:)) - min(outimg(:)));
-imwrite(outimg, outfilename);
+
+outimgrescaled = (outimg - min(outimg(:))) / (max(outimg(:)) - min(outimg(:)));
+
+imwrite(outimgrescaled, outfilename);
 

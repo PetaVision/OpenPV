@@ -39,14 +39,18 @@ private:
    float freqMin;
    float freqMax;
    std::vector <float> targetFreqs;
+   std::vector <float> radianFreqs;
+   std::vector <float> omegas;
    std::vector <float> dampingConstants;
    HyPerLayer* inputLayer;
    char* inputLayername;
    int targetChannel;
    float dampingConstant;
+    float omega;
    float sampleRate;
    float* vVal; //velocity value
    float* xVal; //x value
+    float timestep;
 
 }; // end of class CochlearLayer
 

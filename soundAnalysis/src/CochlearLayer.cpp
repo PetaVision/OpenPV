@@ -20,6 +20,8 @@ CochlearLayer::CochlearLayer(const char * name, HyPerCol * hc) {
 
 CochlearLayer::~CochlearLayer() {
    targetFreqs.clear();
+   radianFreqs.clear();
+   omegas.clear();
    dampingConstants.clear();
    free(inputLayername);
    free(vVal);
@@ -27,30 +29,47 @@ CochlearLayer::~CochlearLayer() {
 }
 
 int CochlearLayer::initialize_base() {
-   freqMin = 27.5;
-   freqMax = 4186.01;
-   dampingConstant = 1;
+   freqMin = 20;
+   freqMax = 4200;
+   dampingConstant = 0;
    inputLayer = NULL;
    inputLayername = NULL;
    targetChannel = 0;
    sampleRate = 0;
    vVal = NULL;
+    xVal = NULL;
+    omega = 0;
    return PV_SUCCESS;
+    timestep = 0;
 }
 
 int CochlearLayer::initialize(const char * name, HyPerCol * hc) {
    int status = ANNLayer::initialize(name, hc);
 
+    
+    timestep = 0.00023; //hard coded in seconds
+    
    //This should have been set correctly
    assert(targetFreqs.size() > 0);
    assert(getLayerLoc()->nf == targetFreqs.size());
 
-   //Set up damping constant based on the damping ratio
+   //Set up damping constant based on frequency envelope
    dampingConstants.clear();
+    
    for(int i = 0; i < targetFreqs.size(); i++){
-      float constant = dampingConstant * 4 * PI * (targetFreqs[i]);
-      dampingConstants.push_back(constant);
-      std::cout << "damping constant: " << constant << "\n";
+    
+       
+       
+       
+       dampingConstant = targetFreqs[i] / ( 12.7 * pow((targetFreqs[i] / 1000), .3)) ;
+       
+     
+       omega = (.5 * sqrt( (4 * pow(targetFreqs[i], 2)) - pow(dampingConstant, 2)));
+      
+       
+       
+      dampingConstants.push_back(dampingConstant);
+       omegas.push_back(omega);
    }
 
    //Allocate buffers
@@ -89,6 +108,10 @@ int CochlearLayer::communicateInitInfo(){
       std::cout << "CochlearLayer:: InputLayer only has " << inputLayer->getLayerLoc()->nf << " channels, while target channel is set to " << targetChannel << "\n";
       exit(EXIT_FAILURE);
    }
+    int i;
+    for (i=0;i<radianFreqs.size();i++)
+    { std::cout << "radianFreqs: " << radianFreqs[i] << "\n";
+    }
    return PV_SUCCESS;
 }
 
@@ -115,12 +138,23 @@ void CochlearLayer::ioParam_nf(enum ParamsIOFlag ioFlag){
       //Calculate num features
       targetFreqs.clear();
       targetFreqs.push_back(freqMin);
+       radianFreqs.clear();
+       radianFreqs.push_back(freqMin * 2 * PI);
+       
       float newFreq = 0;
-      while(newFreq <= freqMax){
+       float newradFreq = 0;
+       
+      while(newFreq < freqMax){
          float prevFreq = targetFreqs.back();
          newFreq = 7e-10*powf(prevFreq,3) - 3e-6*powf(prevFreq,2) + 1.0041 * prevFreq + .6935;
+          newradFreq = newFreq * 2 * PI;
          targetFreqs.push_back(newFreq);
+          radianFreqs.push_back(newradFreq);
+          
+          
+          
       }
+       
       //This is not read from parameters, but set explicitly
       numFeatures = targetFreqs.size();
       std::cout << "CochlearLayer " << name << ":: numFeatures set to " << numFeatures << "\n";
@@ -165,6 +199,7 @@ int CochlearLayer::updateState(double time, double dt){
    assert(nx == 1 && ny == 1);
    int num_input_neurons = inputLayer->getNumNeurons();
    int num_output_neurons = getNumNeurons();
+    
    //Reset pointer of gSynHead to point to the excitatory channel
    pvdata_t * inA = inputLayer->getCLayer()->activity->data;
    pvdata_t * V = getV();
@@ -178,31 +213,33 @@ int CochlearLayer::updateState(double time, double dt){
 #endif
          for(int outNi = 0; outNi < num_output_neurons; outNi++){
 
-            float rplus = (.5*(-dampingConstant+sqrt(((powf(dampingConstant, 2))-(4*powf(targetFreqs[outNi], 2))))));
-            // defines r for positive square root
-            float rminus = (.5*(-dampingConstant-sqrt(((powf(dampingConstant, 2))-(4*powf(targetFreqs[outNi], 2)))))) ; 
-            // defines r for negative square root
-
-            //update x using exponential function
-
-            float termone = (((vVal[outNi]-(rminus*xVal[outNi]))/(rplus-rminus))*exp(rplus*time));
-            float termtwo = (((-vVal[outNi]+(rminus*xVal[outNi]))/(rplus-rminus))*exp(rminus*time));
-            float termthree = ((inVal/(rplus-rminus))*exp(rplus*time));
-            float termfour = ((inVal/(rplus-rminus))*exp(rminus*time));
-
-            xVal[outNi] = termone + termtwo + termthree - termfour;
-
-            //vVal[outNi] += aVal * sampleRate;
-            //V buffer is the position
-            V[outNi] += vVal[outNi] * sampleRate;
-
-            ////Multiplying by k constant to get back out the value
-            //float prevVal = V[outNi] * kVal;
-            ////Accumulating outNi here
-            //V[outNi] = inVal/kVal;
-            ////Calculate damping
-            //V[outNi] = V[outNi] - dampingConstants[outNi]*(inVal - prevVal);
-            ////V[outNi] = V[outNi] - dampingRatio*(inVal - prevVal);
+           
+         
+             dampingConstant = dampingConstants[outNi];
+             
+             
+             float sound = sin (440 * time * timestep * 2 * PI);
+           
+             float c1 = xVal[outNi] - (inVal / pow(targetFreqs[outNi], 2));
+             float c2 = (vVal[outNi] + (.5 * dampingConstant) * c1) / omegas[outNi];
+             
+             float xtermone = c1 * exp(-.5 * dampingConstant * timestep ) * cos(omegas[outNi] * timestep );
+             float xtermtwo = c2 * exp(-.5 * dampingConstant * timestep ) * sin(omegas[outNi] * timestep );
+             
+             float vtermone = -.5 * dampingConstant * c1 * exp(-.5 * dampingConstant * timestep ) * cos(omegas[outNi] * timestep );
+             float vtermtwo = -1 * omegas[outNi] * c1 * exp(-.5 * dampingConstant * timestep ) * sin(omegas[outNi] * timestep );
+             float vtermthree = -.5 * dampingConstant * c2 * exp(-.5 * dampingConstant * timestep ) * sin(omegas[outNi] * timestep );
+             float vtermfour = omegas[outNi] * c2 * exp(-.5 * dampingConstant * timestep ) * cos(omegas[outNi] * timestep );
+             
+             xVal[outNi] = xtermone + xtermtwo + (inVal / pow(targetFreqs[outNi], 2));
+             
+             vVal[outNi] = vtermone + vtermtwo + vtermthree + vtermfour;
+             
+             
+             V[outNi] = xVal[outNi];
+             
+            
+             
          }
       }
    }
