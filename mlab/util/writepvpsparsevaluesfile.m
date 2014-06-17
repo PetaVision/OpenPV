@@ -13,7 +13,7 @@ function writepvpsparsevaluesfile(filename, data, nx, ny, nf)
    %
    % data{k} is a structure with two fields, time and values.
    % data{k}.time is the timestamp of frame k.
-   % data{k}.values is an integer vector giving the indices of active neurons.
+   % data{k}.values is an array of two columns giving the indices and values of active neurons.
    % If data{k}.values(j,1)==n and data{k}.values(j,2)==x, then neuron n has activity x.
    %     The neuron with zero-indexed coordinates (x,y,f) in a layer with
    %     dimensions (nx,ny,nf) has index y*(nx*nf)+x*(nf)+f
