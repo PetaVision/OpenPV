@@ -93,8 +93,6 @@ int inverseCochlearLayer::allocateDataStructures(){
 }
 
 int inverseCochlearLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   //This needs to be called here to grab max/min first
-   ioParam_FreqMinMax(ioFlag);
    int status = ANNLayer::ioParamsFillGroup(ioFlag);
    ioParam_inputLayername(ioFlag);
    ioParam_cochlearLayername(ioFlag);

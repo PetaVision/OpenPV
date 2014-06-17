@@ -77,3 +77,38 @@ CochlearLayer "Cochlear" = {
     
     phase = 1;
 };
+
+inverseCochlearLayer "inverseCochlear" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    writeStep = 1; //Change based on display period
+    initialWriteTime = 0.0; //Change based on display period 
+    mirrorBCflag = 0;
+    writeSparseActivity = 0;
+
+    InitVType = "ZeroV";
+
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+    VShift = 0;
+    VWidth = 0;
+
+    //These 2 layers are the same right now, but eventually the inputLayername will be different
+    inputLayername = "Cochlear"; 
+    cochlearLayername = "Cochlear";
+
+    sampleRate = 44100;
+    
+    phase = 1;
+};
+
+SoundProbe "soundProbe" = {
+   restart = 0;
+   targetLayer = "Sound";
+   soundOutputPath = "~/Desktop/PetaVision/sandbox/soundAnalysis/output/out.wav";
+   soundInputType  = "~/Desktop/PetaVision/sandbox/soundAnalysis/input/furElise.wav";
+};
+

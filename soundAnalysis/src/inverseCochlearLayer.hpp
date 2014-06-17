@@ -5,8 +5,8 @@
  *      Author: pschultz
  */
 
-#ifndef COCHLEARLAYER_HPP_
-#define COCHLEARLAYER_HPP_
+#ifndef INVERSECOCHLEARLAYER_HPP_
+#define INVERSECOCHLEARLAYER_HPP_
 
 #include <layers/ANNLayer.hpp>
 #include "CochlearLayer.hpp"
