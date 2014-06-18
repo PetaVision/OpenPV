@@ -155,9 +155,10 @@ HyPerConn::~HyPerConn()
       triggerLayerName = NULL;
    }
    free(numKernelActivations);
-#ifdef PV_USE_MPI
-   free(mpiReductionBuffer);
-#endif // PV_USE_MPI
+   if (mpiReductionBuffer) {
+      free(mpiReductionBuffer);
+      mpiReductionBuffer = NULL;
+   }
 }
 
 //!
@@ -262,11 +263,8 @@ int HyPerConn::initialize_base()
    symmetrizeWeightsFlag = false;
    patch2datalookuptable = NULL;
    numKernelActivations = NULL;
-#ifdef PV_USE_MPI
    keepKernelsSynchronized_flag = false;
    mpiReductionBuffer = NULL;
-#endif // PV_USE_MPI
-
 
 #ifdef USE_SHMGET
    shmget_flag = false;
