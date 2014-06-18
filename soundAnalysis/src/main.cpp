@@ -29,9 +29,11 @@ int main(int argc, char * argv[]) {
 #ifdef MAIN_USES_CUSTOMGROUPS
 void * addcustomgroup(const char * keyword, const char * groupname, HyPerCol * hc) {
     void * addedGroup = NULL;
+#ifdef PV_USE_SNDFILE
     if ( !strcmp(keyword, "SoundProbe") ) {
        addedGroup = new SoundProbe(groupname, hc);
     }
+#endif // PV_USE_SNDFILE
     if ( !strcmp(keyword, "CochlearLayer") ) {
        addedGroup = new CochlearLayer(groupname, hc);
     }

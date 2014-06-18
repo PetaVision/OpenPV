@@ -3,6 +3,8 @@
  * Author: slundquist
  */
 
+#ifdef PV_USE_SNDFILE
+
 #include "SoundProbe.hpp"
 #include <include/pv_arch.h>
 #include <layers/HyPerLayer.hpp>
@@ -93,4 +95,6 @@ int SoundProbe::outputState(double timed){
 }
 
 }
+
+#endif // PV_USE_SNDFILE
 

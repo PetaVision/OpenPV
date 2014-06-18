@@ -82,7 +82,7 @@ inverseCochlearLayer "inverseCochlear" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
-    nf = 1;
+    // nf automatically set to 2 (real part & imaginary part)
     writeStep = 1; //Change based on display period
     initialWriteTime = 0.0; //Change based on display period 
     mirrorBCflag = 0;

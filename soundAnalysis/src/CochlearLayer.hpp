@@ -21,6 +21,9 @@ public:
 
    virtual int communicateInitInfo();
    virtual int allocateDataStructures();
+   
+   const std::vector <float> getTargetFreqs() {return targetFreqs;}
+   const std::vector <float> getDampingConstants() {return dampingConstants;}
 protected:
    CochlearLayer();
 
