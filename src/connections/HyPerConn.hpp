@@ -19,6 +19,7 @@
 #include "../utils/Timer.hpp"
 #include "../weightinit/InitWeights.hpp"
 #include <stdlib.h>
+#include <vector>
 
 #ifdef PV_USE_OPENCL
 #include "../arch/opencl/CLKernel.hpp"
@@ -36,6 +37,7 @@ namespace PV {
 class InitWeights;
 class BaseConnectionProbe;
 class PVParams;
+class CloneConn;
 class NormalizeBase;
 class Random;
 
@@ -155,6 +157,20 @@ public:
    inline bool getPlasticityFlag() {
       return plasticityFlag;
    };
+
+   inline bool getUpdateFromClone(){
+      return updateFromClone; 
+   }
+
+   inline float getDWMax(){
+      return dWMax;
+   }
+
+#ifdef PV_USE_MPI
+   inline bool getKeepKernelsSynchronized(){ 
+      return keepKernelsSynchronized_flag;
+   }
+#endif
 
    virtual float minWeight(int arborId = 0);
    virtual float maxWeight(int arborId = 0);
@@ -346,9 +362,23 @@ public:
          int numPatches, int arborId);
    virtual int normalizeWeights();
 
+   virtual void addClone(CloneConn* conn);
+
+   virtual void reduceNumKernelActivations();
+
+   virtual double getNumKernelActivations(int kernelIndex){
+      assert(kernelIndex < getNumDataPatches());
+      return numKernelActivations[kernelIndex];
+   }
+
    virtual long* getPostToPreGsyn(){
       return postToPreGsyn;
    }
+
+   virtual void setPostToPreGsyn(long* inPointer){
+      postToPreGsyn = inPointer;
+   }
+
 
 #ifdef PV_USE_OPENCL
    virtual int * getLUTpointer() {return NULL;}
@@ -387,6 +417,8 @@ protected:
    int fileparams[NUM_WGT_PARAMS]; // The header of the file named by the filename member variable
    int numWeightPatches; // Number of PVPatch structures in buffer pointed to by wPatches[arbor]
    int numDataPatches;   // Number of blocks of pvwdata_t's in buffer pointed to by wDataStart[arbor]
+
+   std::vector <HyPerConn*> clones; //A vector of clones that are cloning from this connection
 
    //these were moved to private to ensure use of get/set methods and made in 3D pointers:
    //PVPatch       ** wPatches[MAX_ARBOR_LIST]; // list of weight patches, one set per neighbor
@@ -495,6 +527,7 @@ protected:
 
    bool symmetrizeWeightsFlag;
    int* numKernelActivations;
+   bool updateFromClone;
    pvwdata_t * mpiReductionBuffer;
    bool keepKernelsSynchronized_flag;
 
@@ -635,6 +668,7 @@ protected:
    virtual void ioParam_shmget_flag(enum ParamsIOFlag ioFlag);
    virtual void ioParam_keepKernelsSynchronized(enum ParamsIOFlag ioFlag);
    virtual void ioParam_useWindowPost(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_updateFromClone(enum ParamsIOFlag ioFlag);
    int setParent(HyPerCol * hc);
    int setName(const char * name);
    int setPreLayerName(const char * pre_name);
