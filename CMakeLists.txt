@@ -80,16 +80,13 @@ if (NOT LIBSNDFILE_FOUND)
     find_package(LIBSNDFILE)
 endif (NOT LIBSNDFILE_FOUND)
 
-#Include compiler directive for LIBSNDFILE
+#Include compiler directive and include directory for LIBSNDFILE
 if (LIBSNDFILE_FOUND)
    ADD_DEFINITIONS(-DPV_USE_SNDFILE)
+   include_directories(${LIBSNDFILE_INCLUDE_DIR})
 else (LIBSNDFILE_FOUND)
    REMOVE_DEFINITIONS(-DPV_USE_SNDFILE)
 endif (LIBSNDFILE_FOUND)
-
-IF(LIBSNDFILE_FOUND)
-    include_directories(${LIBSNDFILE_INCLUDE_DIR})
-ENDIF(LIBSNDFILE_FOUND)
 
 # Add PetaVision
 add_library(pv ${PVLibSrc})
