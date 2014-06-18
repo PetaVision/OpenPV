@@ -74,11 +74,11 @@ int SoundProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void SoundProbe::ioParam_soundOutputPath(enum ParamsIOFlag ioFlag) {
-   parentCol->ioParamStringRequired(ioFlag, probeName, "soundOutputPath", &soundOutputPath);
+   parent->ioParamStringRequired(ioFlag, name, "soundOutputPath", &soundOutputPath);
 }
 
 void SoundProbe::ioParam_soundInputType(enum ParamsIOFlag ioFlag) {
-   parentCol->ioParamStringRequired(ioFlag, probeName, "soundInputType", &soundInputType);
+   parent->ioParamStringRequired(ioFlag, name, "soundInputType", &soundInputType);
 }
 
 int SoundProbe::outputState(double timed){
