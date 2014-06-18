@@ -37,9 +37,14 @@ endif (NOT LIBSNDFILE_FOUND)
 # Header files
 include_directories(${PV_SOURCE_DIR})
 include_directories(${GDAL_INCLUDE_DIR})
-IF(LIBSNDFILE_FOUND)
-    include_directories(${LIBSNDFILE_INCLUDE_DIR})
-ENDIF(LIBSNDFILE_FOUND)
+
+#Include compiler directive and include directory for LIBSNDFILE
+if (LIBSNDFILE_FOUND)
+   ADD_DEFINITIONS(-DPV_USE_SNDFILE)
+   include_directories(${LIBSNDFILE_INCLUDE_DIR})
+else (LIBSNDFILE_FOUND)
+   REMOVE_DEFINITIONS(-DPV_USE_SNDFILE)
+endif (LIBSNDFILE_FOUND)
 
 # Link to binary files
 link_directories(${PV_BINARY_DIR})
