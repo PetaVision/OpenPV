@@ -17,12 +17,12 @@ HyPerCol "column" = {
    randomSeed                      = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
    stopTime                        = 441839;       
    progressStep                    = 5000;
-   outputPath                      = "~/Desktop/PetaVision/sandbox/soundAnalysis/output";
+   outputPath                      = "output";
    filenamesContainLayerNames      = true;
    filenamesContainConnectionNames = true;
    checkpointRead                  = false;
    checkpointWrite                 = true;
-   checkpointWriteDir              = "~/Desktop/PetaVision/sandbox/soundAnalysis/output/checkpoints";
+   checkpointWriteDir              = "output/checkpoints";
    checkpointWriteStepInterval     = 500000;
    deleteOlderCheckpoints          = false;
    writeProgressToErr              = true;
@@ -38,7 +38,7 @@ SoundStream "Sound" = {
     restart                = 0;
     nxScale                = 1;
     nyScale                = 1;
-    soundInputPath         = "~/Desktop/PetaVision/sandbox/soundAnalysis/input/furElise.wav";
+    soundInputPath         = "input/furElise.wav";
     nf                     = 1;
     writeStep              = -1;
     writeSparseActivity    = false;
@@ -101,6 +101,7 @@ inverseCochlearLayer "inverseCochlear" = {
     cochlearLayername = "Cochlear";
 
     sampleRate = 44100;
+    bufferLength = 1000;
     
     phase = 1;
 };
@@ -108,7 +109,7 @@ inverseCochlearLayer "inverseCochlear" = {
 SoundProbe "soundProbe" = {
    restart = 0;
    targetLayer = "Sound";
-   soundOutputPath = "~/Desktop/PetaVision/sandbox/soundAnalysis/output/out.wav";
-   soundInputType  = "~/Desktop/PetaVision/sandbox/soundAnalysis/input/furElise.wav";
+   soundOutputPath = "output/out.wav";
+   soundInputType  = "input/furElise.wav";
 };
 
