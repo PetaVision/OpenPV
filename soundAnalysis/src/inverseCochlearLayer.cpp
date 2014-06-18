@@ -99,7 +99,7 @@ int inverseCochlearLayer::allocateDataStructures(){
    ANNLayer::allocateDataStructures();
    
    int numFrequencies = inputLayer->getLayerLoc()->nf;
-   inputRingBuffer = (pvdata_t **) calloc(bufferLength, sizeof(pvdata_t));
+   inputRingBuffer = (pvdata_t **) calloc(bufferLength, sizeof(pvdata_t *));
    assert(inputRingBuffer!=NULL); // TODO: change to error message
    for (int t=0; t<bufferLength; t++) {
       inputRingBuffer[t] = (pvdata_t *) calloc(numFrequencies, sizeof(pvdata_t));
