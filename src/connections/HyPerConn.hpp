@@ -158,33 +158,44 @@ public:
       return plasticityFlag;
    };
 
-   inline bool getUpdateFromClone(){
+   inline bool getUpdateFromClone() {
       return updateFromClone; 
    }
+
+   inline bool getKeepKernelsSynchronized() { 
+      return keepKernelsSynchronized_flag;
+   }
+
+   /** Actual mininum weight value */
+   virtual float minWeight(int arborId = 0);
+
+   /** Actual maximum weight value */
+   virtual float maxWeight(int arborId = 0);
+
+   /** Minimum allowed weight value */
+   inline float getWMin() {
+      return wMin;
+   };
+
+   /** Maximum allowed weight value */
+   inline float getWMax() {
+      return wMax;
+   };
 
    inline float getDWMax(){
       return dWMax;
    }
 
-#ifdef PV_USE_MPI
-   inline bool getKeepKernelsSynchronized(){ 
-      return keepKernelsSynchronized_flag;
-   }
-#endif
-
-   virtual float minWeight(int arborId = 0);
-   virtual float maxWeight(int arborId = 0);
-
    inline int getNxpShrunken() {
-	   return nxpShrunken;
+      return nxpShrunken;
    }
 
    inline int getNypShrunken() {
-	   return nypShrunken;
+      return nypShrunken;
    }
 
    inline int getOffsetShrunken() {
-	   return offsetShrunken;
+      return offsetShrunken;
    }
 
    inline int xPatchSize() {
