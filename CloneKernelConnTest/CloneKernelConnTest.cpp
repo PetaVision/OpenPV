@@ -28,19 +28,20 @@ int main(int argc, char * argv[]) {
 
 #ifdef MAIN_USES_CUSTOMGROUP
 void * customgroup(const char * keyword, const char * name, HyPerCol * hc) {
-	   int status;
-	   // PVParams * params = hc->parameters();
-	   // HyPerLayer * preLayer;
-	   // HyPerLayer * postLayer;
-	   LayerProbe * addedProbe;
-	   void * addedGroup = NULL;
-	   const char * filename;
-	   HyPerLayer * targetlayer;
-	   char * message = NULL;
-	   bool errorFound;
-	   if( !strcmp(keyword, "CloneKernelConnTestProbe") ) {
-          addedProbe = (LayerProbe *) new CloneKernelConnTestProbe(name, hc);
-	   }
-	   return addedGroup;
+   int status;
+   // PVParams * params = hc->parameters();
+   // HyPerLayer * preLayer;
+   // HyPerLayer * postLayer;
+   LayerProbe * addedProbe;
+   void * addedGroup = NULL;
+   const char * filename;
+   HyPerLayer * targetlayer;
+   char * message = NULL;
+   bool errorFound;
+   if( !strcmp(keyword, "CloneKernelConnTestProbe") ) {
+      addedProbe = (LayerProbe *) new CloneKernelConnTestProbe(name, hc);
+      addedGroup = (void *) addedProbe;
+   }
+   return addedGroup;
 }
 #endif // MAIN_USES_CUSTOMGROUP
