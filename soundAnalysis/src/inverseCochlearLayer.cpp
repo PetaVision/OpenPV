@@ -138,6 +138,7 @@ int inverseCochlearLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_inputLayername(ioFlag);
    ioParam_cochlearLayername(ioFlag);
    ioParam_sampleRate(ioFlag);
+   ioParam_bufferLength(ioFlag);
 
    return status;
 }
