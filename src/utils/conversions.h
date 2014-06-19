@@ -8,9 +8,6 @@
 #ifndef CONVERSIONS_H_
 #define CONVERSIONS_H_
 
-/* define this variable if code is to be run (or transformed to be run) on a Cell processor */
-//#define CELL_BE
-
 #include "../include/pv_types.h"
 
 #include <math.h>
@@ -546,16 +543,6 @@ static inline float gaussianWeight(float x0, float x, float sigma, float max)
 {
    float dx = deltaWithPBC(x0, x, max);
    return expf(-0.5f * dx * dx / (sigma * sigma));
-}
-
-static inline unsigned char compressWeight(pvdata_t pval, float minVal, float maxVal) {
-   unsigned char cval = (unsigned char) (255.0 * (((float)pval - minVal) / (maxVal - minVal)) + 0.5);
-   return cval;
-}
-
-static inline pvdata_t uncompressWeight(unsigned char cval, float minVal, float maxVal) {
-   pvdata_t pval =  (pvdata_t) (minVal + (maxVal - minVal) * ((float)cval / 255.0));
-   return pval;
 }
 
 static inline pvdata_t * getChannelStart(pvdata_t * gSynHead, enum ChannelType ch, int num_neurons) {
