@@ -21,7 +21,7 @@ public:
    InitGaborWeights(HyPerConn * conn);
    virtual ~InitGaborWeights();
 
-   virtual int calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, int arborId);
+   virtual int calcWeights(pvwdata_t * dataStart, int patchIndex, int arborId);
    virtual InitWeightsParams * createNewWeightParams();
    void calcOtherParams(PVPatch * patch, int patchIndex);
 
@@ -32,7 +32,7 @@ protected:
 
 private:
    int initialize_base();
-   int gaborWeights(/* PVPatch * patch */ pvdata_t * dataStart, InitGaborWeightsParams * weightParamPtr);
+   int gaborWeights(pvwdata_t * dataStart, InitGaborWeightsParams * weightParamPtr);
 };
 
 } /* namespace PV */
