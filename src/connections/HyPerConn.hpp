@@ -38,6 +38,7 @@ class InitWeights;
 class BaseConnectionProbe;
 class PVParams;
 class CloneConn;
+class PlasticCloneConn;
 class NormalizeBase;
 class Random;
 
@@ -157,10 +158,6 @@ public:
    inline bool getPlasticityFlag() {
       return plasticityFlag;
    };
-
-   inline bool getUpdateFromClone() {
-      return updateFromClone; 
-   }
 
    inline bool getKeepKernelsSynchronized() { 
       return keepKernelsSynchronized_flag;
@@ -373,7 +370,7 @@ public:
          int numPatches, int arborId);
    virtual int normalizeWeights();
 
-   virtual void addClone(CloneConn* conn);
+   virtual void addClone(PlasticCloneConn* conn);
 
    virtual void reduceNumKernelActivations();
 
@@ -429,7 +426,7 @@ protected:
    int numWeightPatches; // Number of PVPatch structures in buffer pointed to by wPatches[arbor]
    int numDataPatches;   // Number of blocks of pvwdata_t's in buffer pointed to by wDataStart[arbor]
 
-   std::vector <HyPerConn*> clones; //A vector of clones that are cloning from this connection
+   std::vector <PlasticCloneConn*> clones; //A vector of plastic clones that are cloning from this connection
 
    //these were moved to private to ensure use of get/set methods and made in 3D pointers:
    //PVPatch       ** wPatches[MAX_ARBOR_LIST]; // list of weight patches, one set per neighbor
@@ -538,7 +535,6 @@ protected:
 
    bool symmetrizeWeightsFlag;
    int* numKernelActivations;
-   bool updateFromClone;
    pvwdata_t * mpiReductionBuffer;
    bool keepKernelsSynchronized_flag;
 
@@ -679,7 +675,6 @@ protected:
    virtual void ioParam_shmget_flag(enum ParamsIOFlag ioFlag);
    virtual void ioParam_keepKernelsSynchronized(enum ParamsIOFlag ioFlag);
    virtual void ioParam_useWindowPost(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_updateFromClone(enum ParamsIOFlag ioFlag);
    int setParent(HyPerCol * hc);
    int setName(const char * name);
    int setPreLayerName(const char * pre_name);

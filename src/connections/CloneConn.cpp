@@ -112,21 +112,7 @@ void CloneConn::ioParam_shrinkPatches(enum ParamsIOFlag ioFlag) {
    // During the communication phase, shrinkPatches_flag will be copied from originalConn
 }
 
-void CloneConn::ioParam_keepKernelsSynchronized(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
-      parent->parameters()->handleUnnecessaryParameter(name, "keepKernelsSynchronized");
-   }
-   // During the communication phase, shrinkPatches_flag will be copied from originalConn
-}
-
-void CloneConn::ioParam_useWindowPost(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
-      parent->parameters()->handleUnnecessaryParameter(name, "useWindowPost");
-   }
-   // During the communication phase, shrinkPatches_flag will be copied from originalConn
-}
-
-void CloneConn::ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag){
+void CloneConn::ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
       parent->parameters()->handleUnnecessaryParameter(name, "numAxonalArbors");
    }
@@ -179,20 +165,6 @@ int CloneConn::communicateInitInfo() {
    parent->parameters()->handleUnnecessaryParameter(name, "sharedWeights", sharedWeights);
    numAxonalArborLists = originalConn->numberOfAxonalArborLists();
    parent->parameters()->handleUnnecessaryParameter(name, "numAxonalArbors", numAxonalArborLists);
-   useWindowPost = originalConn->getUseWindowPost();
-   parent->parameters()->handleUnnecessaryParameter(name, "useWindowPost", useWindowPost);
-#ifdef PV_USE_MPI
-   keepKernelsSynchronized_flag = originalConn->getKeepKernelsSynchronized();
-   parent->parameters()->handleUnnecessaryParameter(name, "keepKernelsSynchronized", keepKernelsSynchronized_flag);
-#endif
-
-   if(originalConn->getUpdateFromClone()){
-      //Set plasticity flag to true for allocate
-      plasticityFlag = true;
-      //Grab dwMax for calculation of weights
-      dWMax = originalConn->getDWMax();
-      weightUpdatePeriod = originalConn->getWeightUpdatePeriod();
-   }
    status = HyPerConn::communicateInitInfo();
    if (status != PV_SUCCESS) return status;
 
@@ -218,9 +190,6 @@ int CloneConn::communicateInitInfo() {
    numAxonalArborLists = originalConn->numberOfAxonalArborLists();
    shrinkPatches_flag = originalConn->getShrinkPatches_flag();
    parent->parameters()->handleUnnecessaryParameter(name, "shrinkPatches", shrinkPatches_flag);
-
-   //Add this clone to original conn
-   originalConn->addClone(this);
 
    return status;
 }

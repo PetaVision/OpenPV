@@ -43,7 +43,7 @@
 #include "../normalizers/NormalizeScale.hpp"
 #include "../normalizers/NormalizeMax.hpp"
 #include "../normalizers/NormalizeContrastZeroMean.hpp"
-#include "CloneConn.hpp"
+#include "PlasticCloneConn.hpp"
 #ifdef USE_SHMGET
    #include <sys/shm.h>
 #endif
@@ -260,7 +260,6 @@ int HyPerConn::initialize_base()
    this->triggerOffset = 0;
 
    this->clones.clear();
-   this->updateFromClone = false;
 
    this->postToPreGsyn = NULL;
 
@@ -861,7 +860,6 @@ int HyPerConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag)
    ioParam_shrinkPatches(ioFlag);
    ioParam_updateGSynFromPostPerspective(ioFlag);
    ioParam_normalizeMethod(ioFlag);
-   ioParam_updateFromClone(ioFlag);
    if (normalizer != NULL) {
       normalizer->ioParamsFillGroup(ioFlag);
    }
@@ -909,13 +907,6 @@ void HyPerConn::ioParam_sharedWeights(enum ParamsIOFlag ioFlag) {
    parent->ioParamValue(ioFlag, name, "sharedWeights", &sharedWeights, false/*default*/, true/*warn if absent*/);
    if (sharedWeights && ioFlag == PARAMS_IO_READ) {
       fileType = PVP_KERNEL_FILE_TYPE;
-   }
-}
-
-void HyPerConn::ioParam_updateFromClone(enum ParamsIOFlag ioFlag) {
-   assert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
-   if (plasticityFlag) {
-      parent->ioParamValue(ioFlag, name, "updateFromClone", &updateFromClone, false/*default*/, false/*warn if absent*/);
    }
 }
 
@@ -2530,12 +2521,11 @@ int HyPerConn::defaultUpdate_dW(int arbor_ID) {
       defaultUpdateInd_dW(arbor_ID, kExt);
    }
    //If update from clones, update dw here as well
-   if(updateFromClone){
-      for(int clonei = 0; clonei < clones.size(); clonei++){
-         assert(clones[clonei]->preSynapticLayer()->getNumExtended() == nExt);
-         for(int kExt=0; kExt<nExt;kExt++) {
-            clones[clonei]->defaultUpdateInd_dW(arbor_ID, kExt);
-         }
+   //Updates on all PlasticClones
+   for(int clonei = 0; clonei < clones.size(); clonei++){
+      assert(clones[clonei]->preSynapticLayer()->getNumExtended() == nExt);
+      for(int kExt=0; kExt<nExt;kExt++) {
+         clones[clonei]->defaultUpdateInd_dW(arbor_ID, kExt);
       }
    }
 
@@ -2602,7 +2592,7 @@ int HyPerConn::defaultUpdateInd_dW(int arbor_ID, int kExt){
    return PV_SUCCESS;
 }
 
-void HyPerConn::addClone(CloneConn* conn){
+void HyPerConn::addClone(PlasticCloneConn* conn){
    //Make sure that the origional conn is indeed this
    assert(conn->getOriginalConn() == this);
    clones.push_back(conn);
@@ -2632,11 +2622,9 @@ int HyPerConn::normalize_dW(int arbor_ID){
          //update_dW to do dwNormalization in this way and take out the divide by nproc in reduceKernels.
          const int nProcs = parent->icCommunicator()->numCommColumns() * parent->icCommunicator()->numCommRows();
          double divisor = numKernelActivations[kernelindex];
-         if(updateFromClone){
-            for(int i = 0; i < clones.size(); i++){
-               clones[i]->reduceNumKernelActivations();
-               divisor += clones[i]->getNumKernelActivations(kernelindex);
-            }
+         for(int i = 0; i < clones.size(); i++){
+            clones[i]->reduceNumKernelActivations();
+            divisor += clones[i]->getNumKernelActivations(kernelindex);
          }
 
          if(divisor != 0){

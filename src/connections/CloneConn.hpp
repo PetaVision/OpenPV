@@ -27,6 +27,7 @@ public:
    virtual int writeWeights(const char * filename){return PV_SUCCESS;};
    virtual int checkpointWrite(const char * cpDir){return PV_SUCCESS;};
    virtual int checkpointRead(const char * cpDir, double *timef){return PV_SUCCESS;};
+
    HyPerConn * getOriginalConn(){return originalConn;}
 
 protected:
@@ -45,8 +46,6 @@ protected:
    virtual void ioParam_nypShrunken(enum ParamsIOFlag ioFlag);
    virtual void ioParam_nfp(enum ParamsIOFlag ioFlag);
    virtual void ioParam_originalConnName(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_keepKernelsSynchronized(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_useWindowPost(enum ParamsIOFlag ioFlag);
    virtual int setWeightInitializer();
    virtual PVPatch *** initializeWeights(PVPatch *** patches, pvdata_t ** dataStart);
    virtual int constructWeights();
