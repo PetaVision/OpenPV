@@ -6,6 +6,7 @@
  */
 
 #include "fileio.hpp"
+#include "../connections/weight_conversions.hpp"
 #include "../layers/HyPerLayer.hpp"
 
 #include <assert.h>
