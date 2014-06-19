@@ -75,6 +75,7 @@
 #include "../connections/HyPerConn.hpp"
 #include "../connections/BIDSConn.hpp"
 #include "../connections/CloneConn.hpp"
+#include "../connections/PlasticCloneConn.hpp"
 #include "../connections/KernelConn.hpp"
 #include "../connections/ImprintConn.hpp"
 #include "../connections/MapReduceKernelConn.hpp"

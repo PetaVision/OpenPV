@@ -1792,7 +1792,6 @@ int HyPerLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activity
       uint4 * rngPtr = conn->getRandState(kPre);
 
 #ifdef PV_USE_OPENMP_THREADS
-   //std::cout << "Running with " << omp_get_num_threads() << "\n";;
 #pragma omp parallel for
 #endif
       for (int y = 0; y < ny; y++) {
