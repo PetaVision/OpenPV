@@ -29,8 +29,8 @@ CochlearLayer::~CochlearLayer() {
 }
 
 int CochlearLayer::initialize_base() {
-   freqMin = 20;
-   freqMax = 4200;
+   freqMin = 20; // hertz
+   freqMax = 4200; // hertz
    dampingConstant = 0;
    inputLayer = NULL;
    inputLayername = NULL;
@@ -47,7 +47,7 @@ int CochlearLayer::initialize(const char * name, HyPerCol * hc) {
    int status = ANNLayer::initialize(name, hc);
 
     
-    timestep = 0.00023; //hard coded in seconds
+    timestep = 1.0/sampleRate;
     
    //This should have been set correctly
    assert(targetFreqs.size() > 0);
@@ -61,10 +61,10 @@ int CochlearLayer::initialize(const char * name, HyPerCol * hc) {
        
        
        
-       dampingConstant = targetFreqs[i] / ( 12.7 * pow((targetFreqs[i] / 1000), .3)) ;
+       dampingConstant = radianFreqs[i] / ( 12.7 * pow((radianFreqs[i] / 1000), .3)) ;
        
      
-       omega = (.5 * sqrt( (4 * pow(targetFreqs[i], 2)) - pow(dampingConstant, 2)));
+       omega = (.5 * sqrt( (4 * pow(radianFreqs[i], 2)) - pow(dampingConstant, 2)));
       
        
        
@@ -73,8 +73,8 @@ int CochlearLayer::initialize(const char * name, HyPerCol * hc) {
    }
 
    //Allocate buffers
-   vVal = (float*) calloc(targetFreqs.size(), sizeof(float));
-   xVal = (float*) calloc(targetFreqs.size(), sizeof(float));
+   vVal = (float*) calloc(radianFreqs.size(), sizeof(float));
+   xVal = (float*) calloc(radianFreqs.size(), sizeof(float));
    assert(vVal);
    assert(xVal);
    return status;
@@ -220,7 +220,7 @@ int CochlearLayer::updateState(double time, double dt){
              
              float sound = sin (440 * time * timestep * 2 * PI);
            
-             float c1 = xVal[outNi] - (inVal / pow(targetFreqs[outNi], 2));
+             float c1 = xVal[outNi] - (inVal / pow(radianFreqs[outNi], 2));
              float c2 = (vVal[outNi] + (.5 * dampingConstant) * c1) / omegas[outNi];
              
              float xtermone = c1 * exp(-.5 * dampingConstant * timestep ) * cos(omegas[outNi] * timestep );
@@ -231,7 +231,7 @@ int CochlearLayer::updateState(double time, double dt){
              float vtermthree = -.5 * dampingConstant * c2 * exp(-.5 * dampingConstant * timestep ) * sin(omegas[outNi] * timestep );
              float vtermfour = omegas[outNi] * c2 * exp(-.5 * dampingConstant * timestep ) * cos(omegas[outNi] * timestep );
              
-             xVal[outNi] = xtermone + xtermtwo + (inVal / pow(targetFreqs[outNi], 2));
+             xVal[outNi] = xtermone + xtermtwo + (inVal / pow(radianFreqs[outNi], 2));
              
              vVal[outNi] = vtermone + vtermtwo + vtermthree + vtermfour;
              

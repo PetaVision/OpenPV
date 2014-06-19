@@ -24,6 +24,7 @@ public:
    
    const std::vector <float> getTargetFreqs() {return targetFreqs;}
    const std::vector <float> getDampingConstants() {return dampingConstants;}
+   float getSampleRate() { return sampleRate; }
 protected:
    CochlearLayer();
 

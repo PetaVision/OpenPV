@@ -15,8 +15,8 @@ HyPerCol "column" = {
    ny                              = 1;
    dt                              = 1.0;
    randomSeed                      = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
-   stopTime                        = 441839;       
-   progressStep                    = 5000;
+   stopTime                        = 441000;
+   progressInterval                = 1000;
    outputPath                      = "output";
    filenamesContainLayerNames      = true;
    filenamesContainConnectionNames = true;
@@ -40,7 +40,8 @@ SoundStream "Sound" = {
     nyScale                = 1;
     soundInputPath         = "input/furElise.wav";
     nf                     = 1;
-    writeStep              = -1;
+    writeStep              = 1;
+    initialWriteTime       = 0;
     writeSparseActivity    = false;
     displayPeriod          = 1;//5000;  // [in time steps - I think] TODO: change to [ms] 
     soundBCFlag            = true;
@@ -101,14 +102,14 @@ inverseCochlearLayer "inverseCochlear" = {
     cochlearLayername = "Cochlear";
 
     sampleRate = 44100;
-    bufferLength = 1000;
+    bufferLength = 1;
     
     phase = 1;
 };
 
 SoundProbe "soundProbe" = {
    restart = 0;
-   targetLayer = "Sound";
+   targetLayer = "inverseCochlear";
    soundOutputPath = "output/out.wav";
    soundInputType  = "input/furElise.wav";
 };

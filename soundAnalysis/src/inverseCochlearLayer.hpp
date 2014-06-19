@@ -47,13 +47,16 @@ private:
    CochlearLayer* cochlearLayer;
    
    int bufferLength;
-   pvdata_t ** inputRingBuffer;
+   pvdata_t ** xhistory; // ring buffer of past x_k(t_j).
    int ringBufferLevel;
-   double * timehistory;
-   double * dthistory;
+   double * timehistory; // may not need
    
+   int numFrequencies;
    float * targetFreqs;
    float * deltaFreqs;
+   
+   float ** Mreal; // f = sum_j M[j][k] * x_k(t_j).  Should choose a more descriptive name
+   float ** Mimag;
 
 
 }; // end of class inverseCochlearLayer
