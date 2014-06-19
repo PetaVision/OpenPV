@@ -74,8 +74,8 @@ int InitGaborWeights::gaborWeights(pvwdata_t * dataStart, InitGaborWeightsParams
    int sf_tmp=weightParamPtr->getsf();
    double r2Max=weightParamPtr->getr2Max();
 
-   float wMin = weightParamPtr->getwMin();
-   float wMax = weightParamPtr->getwMax();
+   float wMin = weightParamPtr->getWMin();
+   float wMax = weightParamPtr->getWMax();
 
    for (int fPost = 0; fPost < nfPatch_tmp; fPost++) {
       float thPost = weightParamPtr->calcThPost(fPost);
