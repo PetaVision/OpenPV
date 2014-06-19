@@ -77,6 +77,10 @@ int InitGaborWeights::gaborWeights(pvwdata_t * dataStart, InitGaborWeightsParams
    float wMin = weightParamPtr->getWMin();
    float wMax = weightParamPtr->getWMax();
 
+   //2014.6.19:Rasmussen - const should allow the compiler to optimize the
+   //  if (compress) ... statement below.
+   const bool compress = (sizeof(pvwdata_t) == sizeof(unsigned char));
+
    for (int fPost = 0; fPost < nfPatch_tmp; fPost++) {
       float thPost = weightParamPtr->calcThPost(fPost);
       for (int jPost = 0; jPost < nyPatch_tmp; jPost++) {
@@ -101,7 +105,8 @@ int InitGaborWeights::gaborWeights(pvwdata_t * dataStart, InitGaborWeightsParams
             else {
                if (invert) wt *= -1.0f;
                if (wt < 0.0f) wt = 0.0f;       // clip negative values
-               dataStart[index] = compressWeight(wt, wMin, wMax);
+               if (compress) dataStart[index] = compressWeight(wt, wMin, wMax);
+               else          dataStart[index] = wt;
             }
          }
       }
