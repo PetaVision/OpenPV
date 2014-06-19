@@ -55,10 +55,12 @@ public:
    int getsy();
    int getsf();
 
+   float getwMin();     // minimum allowed weight value
+   float getwMax();     // maximum allowed weight value
+
 protected:
    int initialize_base();
    int initialize(HyPerConn * pConn);
-
 
    char * name; //this is actually the Connection name
    HyPerLayer     * pre;
@@ -78,17 +80,15 @@ protected:
    virtual void ioParam_combineWeightFiles(enum ParamsIOFlag ioFlag);
    virtual void ioParam_numWeightFiles(enum ParamsIOFlag ioFlag);
    //more get/set
-   inline float getxDistHeadPreUnits()        {return xDistHeadPreUnits;}
-   inline float getyDistHeadPreUnits()        {return yDistHeadPreUnits;}
-   inline float getdyPost()        {return dyPost;}
-   inline float getdxPost()        {return dxPost;}
+   inline float getxDistHeadPreUnits()   {return xDistHeadPreUnits;}
+   inline float getyDistHeadPreUnits()   {return yDistHeadPreUnits;}
+   inline float getdyPost()              {return dyPost;}
+   inline float getdxPost()              {return dxPost;}
 
-public:
    float dxPost;
    float dyPost;
    float xDistHeadPreUnits;
    float yDistHeadPreUnits;
-
 };
 
 } /* namespace PV */
