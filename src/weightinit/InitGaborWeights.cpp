@@ -7,6 +7,7 @@
 
 #include "InitGaborWeights.hpp"
 #include "InitGaborWeightsParams.hpp"
+#include "../connections/weight_conversions.hpp"
 
 namespace PV {
 
@@ -39,16 +40,14 @@ InitWeightsParams * InitGaborWeights::createNewWeightParams() {
    return tempPtr;
 }
 
-int InitGaborWeights::calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, int arborId) {
+int InitGaborWeights::calcWeights(pvwdata_t * dataStart, int patchIndex, int arborId) {
 
    InitGaborWeightsParams *weightParamPtr = dynamic_cast<InitGaborWeightsParams*>(weightParams);
-
 
    if(weightParamPtr==NULL) {
       fprintf(stderr, "Failed to recast pointer to weightsParam!  Exiting...");
       exit(1);
    }
-
 
    weightParamPtr->calcOtherParams(patchIndex);
 
@@ -58,7 +57,7 @@ int InitGaborWeights::calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, in
 
 }
 
-int InitGaborWeights::gaborWeights(/* PVPatch * patch */ pvdata_t * dataStart, InitGaborWeightsParams * weightParamPtr) {
+int InitGaborWeights::gaborWeights(pvwdata_t * dataStart, InitGaborWeightsParams * weightParamPtr) {
    //load necessary params:
    int nfPatch_tmp = weightParamPtr->getnfPatch();
    int nyPatch_tmp = weightParamPtr->getnyPatch();
@@ -75,8 +74,8 @@ int InitGaborWeights::gaborWeights(/* PVPatch * patch */ pvdata_t * dataStart, I
    int sf_tmp=weightParamPtr->getsf();
    double r2Max=weightParamPtr->getr2Max();
 
-   // pvdata_t * w_tmp = patch->data;
-
+   float wMin = weightParamPtr->getwMin();
+   float wMax = weightParamPtr->getwMax();
 
    for (int fPost = 0; fPost < nfPatch_tmp; fPost++) {
       float thPost = weightParamPtr->calcThPost(fPost);
@@ -97,19 +96,16 @@ int InitGaborWeights::gaborWeights(/* PVPatch * patch */ pvdata_t * dataStart, I
             int index = iPost * sx_tmp + jPost * sy_tmp + fPost * sf_tmp;
 
             if (xDelta*xDelta + yDelta*yDelta > r2Max) {
-               dataStart[index] = 0.0f;
+               dataStart[index] = (pvwdata_t) 0;
             }
             else {
                if (invert) wt *= -1.0f;
                if (wt < 0.0f) wt = 0.0f;       // clip negative values
-               dataStart[index] = wt;
+               dataStart[index] = compressWeight(wt, wMin, wMax);
             }
-
-
          }
       }
    }
-
 
    return 0;
 }
