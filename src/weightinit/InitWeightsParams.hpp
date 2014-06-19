@@ -55,8 +55,8 @@ public:
    int getsy();
    int getsf();
 
-   float getwMin();     // minimum allowed weight value
-   float getwMax();     // maximum allowed weight value
+   float getWMin();     // minimum allowed weight value
+   float getWMax();     // maximum allowed weight value
 
 protected:
    int initialize_base();
