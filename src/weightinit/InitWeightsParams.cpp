@@ -71,6 +71,14 @@ int InitWeightsParams::getsf() {
    return parentConn->fPatchStride();
 }
 
+float InitWeightsParams::getWMin() {
+   return parentConn->getWMin();
+}
+
+float InitWeightsParams::getWMax() {
+   return parentConn->getWMax();
+}
+
 int InitWeightsParams::initialize(HyPerConn * pConn) {
    int status = PV_SUCCESS;
 
