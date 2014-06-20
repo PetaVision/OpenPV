@@ -18,13 +18,14 @@ public:
    CochlearLayer(const char* name, HyPerCol * hc);
    virtual ~CochlearLayer();
    virtual int updateState (double time, double dt);
-
+    
    virtual int communicateInitInfo();
    virtual int allocateDataStructures();
    
    const std::vector <float> getTargetFreqs() {return targetFreqs;}
    const std::vector <float> getDampingConstants() {return dampingConstants;}
    float getSampleRate() { return sampleRate; }
+    float getcochlearScale() { return cochlearScale; }
 protected:
    CochlearLayer();
 
@@ -37,7 +38,8 @@ protected:
    virtual void ioParam_inputLayername(enum ParamsIOFlag ioFlag);
    virtual void ioParam_dampingConstant(enum ParamsIOFlag ioFlag);
    virtual void ioParam_sampleRate(enum ParamsIOFlag ioFlag);
-
+    virtual void ioParam_cochlearScale(enum ParamsIOFlag ioFlag);
+    
 private:
    int initialize_base();
    float freqMin;
@@ -52,6 +54,7 @@ private:
    float dampingConstant;
     float omega;
    float sampleRate;
+    float cochlearScale;
    float* vVal; //velocity value
    float* xVal; //x value
     float timestep;

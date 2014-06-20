@@ -36,6 +36,7 @@ int CochlearLayer::initialize_base() {
    inputLayername = NULL;
    targetChannel = 0;
    sampleRate = 0;
+    cochlearScale = 0;
    vVal = NULL;
     xVal = NULL;
     omega = 0;
@@ -127,6 +128,7 @@ int CochlearLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_targetChannel(ioFlag);
    ioParam_inputLayername(ioFlag);
    ioParam_sampleRate(ioFlag);
+    ioParam_cochlearScale(ioFlag);
    return status;
 }
 
@@ -184,6 +186,10 @@ void CochlearLayer::ioParam_dampingConstant(enum ParamsIOFlag ioFlag) {
 void CochlearLayer::ioParam_sampleRate(enum ParamsIOFlag ioFlag) {
    parent->ioParamValueRequired(ioFlag, name, "sampleRate", &sampleRate);
 }
+    
+void CochlearLayer::ioParam_cochlearScale(enum ParamsIOFlag ioFlag) {
+    parent->ioParamValueRequired(ioFlag, name, "cochlearScale", &cochlearScale);
+}
 
 void CochlearLayer::ioParam_inputLayername(enum ParamsIOFlag ioFlag) {
    parent->ioParamStringRequired(ioFlag, name, "inputLayername", &inputLayername);
@@ -235,10 +241,11 @@ int CochlearLayer::updateState(double time, double dt){
              
              vVal[outNi] = vtermone + vtermtwo + vtermthree + vtermfour;
              
+            // std::cout << ":: xVal " << xVal[124] << "\n";
              
-             V[outNi] = xVal[outNi];
+             V[outNi] = xVal[outNi] * cochlearScale;
              
-            
+           // std::cout << ":: Vbuffer " << V[124] << "\n";
              
          }
       }

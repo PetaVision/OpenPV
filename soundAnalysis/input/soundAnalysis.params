@@ -13,7 +13,7 @@ debugParsing = true;
 HyPerCol "column" = {
    nx                              = 1;//always 1x1
    ny                              = 1;
-   dt                              = 1.0;
+   dt                              = 1; //.02439; // 1/4400 ms
    randomSeed                      = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
    stopTime                        = 441000;
    progressInterval                = 1000;
@@ -38,7 +38,7 @@ SoundStream "Sound" = {
     restart                = 0;
     nxScale                = 1;
     nyScale                = 1;
-    soundInputPath         = "input/furElise.wav";
+    soundInputPath         = "input/A.wav";
     nf                     = 1;
     writeStep              = 1;
     initialWriteTime       = 0;
@@ -75,9 +75,11 @@ CochlearLayer "Cochlear" = {
     dampingRatio = .5;
 
     sampleRate = 44100;
-    
+    cochlearScale = 1000000; //based on maximum response of 440 cell to 440 pure tone
     phase = 1;
 };
+
+
 
 inverseCochlearLayer "inverseCochlear" = {
     restart = 0;
@@ -107,10 +109,12 @@ inverseCochlearLayer "inverseCochlear" = {
     phase = 1;
 };
 
+
+
 SoundProbe "soundProbe" = {
    restart = 0;
    targetLayer = "inverseCochlear";
    soundOutputPath = "output/out.wav";
-   soundInputType  = "input/furElise.wav";
+   soundInputType  = "input/A.wav";
 };
 
