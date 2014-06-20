@@ -422,7 +422,10 @@ protected:
 private:
 
    // OpenCL variables
-   //
+   
+   // OpenMP variables
+   pvdata_t ** thread_gSyn; //Accumulate buffer for each thread, only used if numThreads > 1
+
 #ifdef PV_USE_OPENCL
 public:
    int initializeGPU(); //this method sets up GPU stuff...

@@ -156,6 +156,8 @@ int HyPerLayer::initialize_base() {
    this->timescale_timer = NULL;
    this->io_timer      = NULL;
 
+   this->thread_gSyn = NULL;
+
    return PV_SUCCESS;
 }
 
@@ -328,6 +330,13 @@ HyPerLayer::~HyPerLayer()
    if(triggerLayerName){
       free(triggerLayerName);
       triggerLayerName = NULL;
+   }
+
+   if(thread_gSyn){
+      //Because the memory was allocated as one big chunk, this free should take care of everything
+      free(thread_gSyn[0]);
+      free(thread_gSyn);
+      thread_gSyn = NULL;
    }
 
    //free(lastActiveTime);
@@ -1027,6 +1036,17 @@ int HyPerLayer::allocateDataStructures()
    //for(int kf = 0; kf < nf; kf++){
    //   lastActiveTime[kf] = -kf;
    //};
+
+   //Allocate temp buffers if needed, 1 for each thread
+   if(parent->getNumThreads() > 1){
+      thread_gSyn = (pvdata_t**) malloc(sizeof(pvdata_t*) * parent->getNumThreads());
+      //Allocate one big chunk of memory for the threads
+      pvdata_t* tempMem = (pvdata_t*) malloc(sizeof(pvdata_t) * getNumNeurons() * parent->getNumThreads());
+      //Assign thread_gSyn to different points of tempMem
+      for(int i = 0; i < parent->getNumThreads(); i++){
+         thread_gSyn[i] = &(tempMem[i*getNumNeurons()]);
+      }
+   }
 
    return status;
 }
@@ -1761,6 +1781,19 @@ int HyPerLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activity
    //   mem_check = &(post_gsyn_start[18331]);
    //}
 
+   //Clear all thread gsyn buffer
+   if(thread_gSyn){
+#ifdef PV_USE_OPENMP_THREADS
+#pragma omp parallel for
+#endif
+      for(int i = 0; i < parent->getNumThreads() * getNumNeurons(); i++){
+         thread_gSyn[0][i] = 0;
+      }
+   }
+
+#ifdef PV_USE_OPENMP_THREADS
+#pragma omp parallel for
+#endif
    for (int kPre = 0; kPre < numExtended; kPre++) {
       bool inWindow; 
       //Post layer recieves synaptic input
@@ -1784,16 +1817,26 @@ int HyPerLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activity
       int ny  = weights->ny;
       int sy  = conn->getPostNonextStrides()->sy;       // stride in layer
       int syw = conn->yPatchStride();                   // stride in patch
-      pvdata_t * gSynPatchHead = this->getChannel(conn->getChannel());
+
+      //If we're using thread_gSyn, set this here
+      pvdata_t * gSynPatchHead;
+#ifdef PV_USE_OPENMP_THREADS
+      if(thread_gSyn){
+         int ti = omp_get_thread_num();
+         gSynPatchHead = thread_gSyn[ti];
+      }
+      else{
+         gSynPatchHead = this->getChannel(conn->getChannel());
+      }
+#else
+      gSynPatchHead = this->getChannel(conn->getChannel());
+#endif
       size_t gSynPatchStartIndex = conn->getGSynPatchStart(kPre, arborID);
       pvdata_t * gSynPatchStart = gSynPatchHead + gSynPatchStartIndex;
       // GTK: gSynPatchStart redefined as offset from start of gSyn buffer
       pvwdata_t * data = conn->get_wData(arborID,kPre);
       uint4 * rngPtr = conn->getRandState(kPre);
 
-#ifdef PV_USE_OPENMP_THREADS
-#pragma omp parallel for
-#endif
       for (int y = 0; y < ny; y++) {
 
          //if(strcmp(name, "C1") == 0){
@@ -1807,6 +1850,19 @@ int HyPerLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activity
          (conn->accumulateFunctionPointer)(nk, gSynPatchStart + y*sy, a, data + y*syw, rngPtr);
       }
    }
+#ifdef PV_USE_OPENMP_THREADS
+   //Accumulate back into gSyn
+   if(thread_gSyn){
+      pvdata_t * gSynPatchHead = this->getChannel(conn->getChannel());
+      //Looping over neurons first to be thread safe
+#pragma omp parallel for
+      for(int ni = 0; ni < getNumNeurons(); ni++){
+         for(int ti = 0; ti < parent->getNumThreads(); ti++){
+            gSynPatchHead[ni] += thread_gSyn[ti][ni];
+         }
+      }
+   }
+#endif
 
    recvsyn_timer->stop();
 

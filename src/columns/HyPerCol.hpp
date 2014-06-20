@@ -106,6 +106,7 @@ public:
    bool getCheckpointWriteFlag()          {return checkpointWriteFlag;}
    bool getSuppresLastOutputFlag()        {return suppressLastOutput;}
    const char * getPrintParamsFilename()  {return printParamsFilename;}
+   int getNumThreads()                    {return numThreads;}
 
    int includeLayerName()                 {return filenamesContainLayerNames;}
    int includeConnectionName()            {return filenamesContainConnectionNames;}
@@ -310,6 +311,8 @@ private:
                                   // that needs a random seed gets a unique seed, and things are reproducible.
                                   //
    bool printTimescales;
+
+   int numThreads;
 
 }; // class HyPerCol
 

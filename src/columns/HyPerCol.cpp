@@ -162,6 +162,7 @@ int HyPerCol::initialize_base() {
    random_seed = 0;
    random_seed_obj = 0;
    printTimescales = true; //Defaults to true
+   numThreads = 1;
 
    return PV_SUCCESS;
 }
@@ -232,6 +233,9 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * p
       exit(PV_FAILURE);
    }
 #endif
+   //set numthreads to member variable
+   this->numThreads = numthreads;
+
 
    warmStart = (restart!=0);
    if(working_dir && columnId()==0) {
