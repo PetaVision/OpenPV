@@ -1,6 +1,6 @@
 // // HyPerHLCA.params
 //
-// created by peteschultz: Sept 27, 2012, modified garkenyon, 1/20/13
+// created by peteschultz: Sept 27, 2012, modified bliu June 20, 2014
 //
 //
 // Implements the locally competitive algorithm described in
@@ -13,7 +13,7 @@ debugParsing = true;
 HyPerCol "column" = {
    nx                              = 1;//always 1x1
    ny                              = 1;
-   dt                              = 1; //.02439; // 1/4400 ms
+   dt                              = 1.03;
    randomSeed                      = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
    stopTime                        = 441000;
    progressInterval                = 1000;
@@ -38,7 +38,7 @@ SoundStream "Sound" = {
     restart                = 0;
     nxScale                = 1;
     nyScale                = 1;
-    soundInputPath         = "input/A.wav";
+    soundInputPath         = "input/furElise.wav";
     nf                     = 1;
     writeStep              = 1;
     initialWriteTime       = 0;
@@ -75,11 +75,9 @@ CochlearLayer "Cochlear" = {
     dampingRatio = .5;
 
     sampleRate = 44100;
-    cochlearScale = 1000000; //based on maximum response of 440 cell to 440 pure tone
+    cochlearScale = 1000000;    
     phase = 1;
 };
-
-
 
 inverseCochlearLayer "inverseCochlear" = {
     restart = 0;
@@ -110,11 +108,139 @@ inverseCochlearLayer "inverseCochlear" = {
 };
 
 
+ANNLayer “CochlearThreshold” = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 0;
+    writeStep = 1000.0;
+    initialWriteTime = 999.0;
+    mirrorBCflag = 1;
+    writeSparseActivity = 0;
+    //
+    InitVType = "ZeroV";
+    //
+    VThresh = 0; // change to desired threshold
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0;
+    // 
+    phase = 2;
+
+};
+
+LIF “LIFLayer” = {
+    restart                         = 0;
+    nxScale                         = 1;
+    nyScale                         = 1;
+    nf                              = 1;
+    writeStep                       = -1.0;
+    mirrorBCflag                    = false;
+    valueBC                         = 0.0;
+    writeSparseActivity             = true;
+    phase                           = 0;
+    
+    InitVType                       = "ConstantV";
+    valueV                          = -70.0;
+    Vrest                           = -70.0;    // adjusted for gap of 0.025   
+    Vexc                            = 0.0;     // reversal potential 
+    Vinh                            = -75.0;   // chloride channel
+    VinhB                           = -90.0;   // potassium reversal
+    tau                             = 15.0;    // intrinsic leak membrane time constant 
+};
+
+ANNErrorLayer “ErrorLayer” = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 8;
+    initialWriteTime = 0.0;
+    writeStep = 1;
+    mirrorBCflag = 1;
+    writeSparseActivity = 0;
+    //
+    //InitVType = "ZeroV";
+    InitVType = "InitVFromFile";
+    Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_31/
+};
+
+HyPerLCALayer “A1” = {
+    restart = 0;
+    nxScale = 0.5;
+    nyScale = 0.5;
+    nf = 48;
+    numChannels = 1; // should be 1
+    numWindowX = 1;
+    numWindowY = 1;
+    initialWriteTime = 40.0;
+    writeStep = 40.0;
+    mirrorBCflag = 0;
+    valueBC = 0;
+    writeSparseActivity = 1;
+    writeSparseValues = 1;
+    //
+    InitVType = "UniformRandomV";
+    minV = -1.0;
+    maxV = .15; //0.05 above VThresh
+    //InitVType = "InitVFromFile";
+    //Vfilename = "/nh/compneuro/Data/vine/LCA/2013_01_30/output/Checkpoints/Checkpoint6000000/V1_V.pvp";
+    // 
+    timeConstantTau = 200.0;
+    timeConstantTauMinimum = 10.0;
+    slopeErrorStd = 0.01;
+    // 
+    VThresh = 0.05; //  // 0.05 works for animalDB
+    VMax = infinity;
+    VMin = 0;
+    VShift = 0.0;  // 0 -> hard threshold, 1 -> soft threshold
+    VWidth = 0.05;
+    //
+    phase = 2;
+};
 
 SoundProbe "soundProbe" = {
    restart = 0;
    targetLayer = "inverseCochlear";
    soundOutputPath = "output/out.wav";
-   soundInputType  = "input/A.wav";
+   soundInputType  = "input/furElise.wav";
 };
 
+
+
+IdentConn “CochleaToThreshold” = {
+	preLayerName = “CochlearLayer”;
+	postLayerName = “CochlearThreshold”;
+	channelCode = 0;
+	delay = 0;
+	writeStep = -1;
+};
+
+
+IdentConn “ThresholdToLIF” = {
+	preLayerName = “CochlearThreshold”;
+	postLayerName = “LIFLayer”;
+	channelCode = 0;
+	delay = 0;
+	writeStep = -1;
+
+
+
+};
+
+IdentConn “LIFToError” = {
+	preLayerName = “LIFLayer”;
+	postLayerName = “ErrorLayer”;
+	channelCode = 0;
+	delay = 0;
+	writeStep = -1;
+};
+
+HyPerConn “ErrorToA1” = {
+	preLayerName = “ErrorLayer”;
+	postLayerName = “A1”;
+	channelCode = 0;
+	delay = 0;
+	writeStep = -1;
+};

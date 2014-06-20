@@ -48,7 +48,7 @@ int CochlearLayer::initialize(const char * name, HyPerCol * hc) {
    int status = ANNLayer::initialize(name, hc);
 
     
-    timestep = 1.0/sampleRate;
+    timestep = dt/sampleRate;
     
    //This should have been set correctly
    assert(targetFreqs.size() > 0);
