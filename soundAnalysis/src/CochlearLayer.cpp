@@ -47,8 +47,9 @@ int CochlearLayer::initialize_base() {
 int CochlearLayer::initialize(const char * name, HyPerCol * hc) {
    int status = ANNLayer::initialize(name, hc);
 
+    nextDisplayTime = hc->getStartTime();
     
-    timestep = dt/sampleRate;
+    //timestep = 1.0/sampleRate;
     
    //This should have been set correctly
    assert(targetFreqs.size() > 0);
@@ -73,6 +74,7 @@ int CochlearLayer::initialize(const char * name, HyPerCol * hc) {
        omegas.push_back(omega);
    }
 
+    
    //Allocate buffers
    vVal = (float*) calloc(radianFreqs.size(), sizeof(float));
    xVal = (float*) calloc(radianFreqs.size(), sizeof(float));
@@ -129,6 +131,7 @@ int CochlearLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_inputLayername(ioFlag);
    ioParam_sampleRate(ioFlag);
     ioParam_cochlearScale(ioFlag);
+    ioParam_displayPeriod(ioFlag);
    return status;
 }
 
@@ -194,7 +197,12 @@ void CochlearLayer::ioParam_cochlearScale(enum ParamsIOFlag ioFlag) {
 void CochlearLayer::ioParam_inputLayername(enum ParamsIOFlag ioFlag) {
    parent->ioParamStringRequired(ioFlag, name, "inputLayername", &inputLayername);
 }
+    
+void CochlearLayer::ioParam_displayPeriod(enum ParamsIOFlag ioFlag) {
+    parent->ioParamValueRequired(ioFlag, name, "displayPeriod", &displayPeriod);
+}
 
+    
 int CochlearLayer::updateState(double time, double dt){
    update_timer->start();
 
@@ -243,17 +251,22 @@ int CochlearLayer::updateState(double time, double dt){
              
             // std::cout << ":: xVal " << xVal[124] << "\n";
              
-             V[outNi] = xVal[outNi] * cochlearScale;
+             V[outNi] = xVal[outNi];
              
            // std::cout << ":: Vbuffer " << V[124] << "\n";
              
          }
       }
    }
-//Copy V to A buffer
-   HyPerLayer::setActivity();
+    if (time >= nextDisplayTime){
+        nextDisplayTime += displayPeriod;
+        //Copy V to A buffer
+        HyPerLayer::setActivity();
+    }
+    
    update_timer->stop();
    return PV_SUCCESS;
+    
 }
 
 }  // end namespace PV

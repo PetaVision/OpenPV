@@ -26,6 +26,9 @@ public:
    const std::vector <float> getDampingConstants() {return dampingConstants;}
    float getSampleRate() { return sampleRate; }
     float getcochlearScale() { return cochlearScale; }
+    
+    double getnextDisplayTime() {return nextDisplayTime; }
+    
 protected:
    CochlearLayer();
 
@@ -39,6 +42,7 @@ protected:
    virtual void ioParam_dampingConstant(enum ParamsIOFlag ioFlag);
    virtual void ioParam_sampleRate(enum ParamsIOFlag ioFlag);
     virtual void ioParam_cochlearScale(enum ParamsIOFlag ioFlag);
+    virtual void ioParam_displayPeriod(enum ParamsIOFlag ioFlag);
     
 private:
    int initialize_base();
@@ -55,6 +59,8 @@ private:
     float omega;
    float sampleRate;
     float cochlearScale;
+    double displayPeriod;
+    double nextDisplayTime;
    float* vVal; //velocity value
    float* xVal; //x value
     float timestep;

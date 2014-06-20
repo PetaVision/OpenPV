@@ -54,7 +54,6 @@ private:
    int numFrequencies;
    float * targetFreqs;
    float * deltaFreqs;
-   
    float ** Mreal; // f = sum_j M[j][k] * x_k(t_j).  Should choose a more descriptive name
    float ** Mimag;
 

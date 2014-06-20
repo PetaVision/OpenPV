@@ -214,53 +214,56 @@ void inverseCochlearLayer::ioParam_cochlearLayername(enum ParamsIOFlag ioFlag) {
    parent->ioParamStringRequired(ioFlag, name, "cochlearLayername", &cochlearLayername);
 }
 
+    
 int inverseCochlearLayer::updateState(double time, double dt){
    update_timer->start();
+    if (time >= cochlearLayer->getnextDisplayTime()) {
 
-   const PVLayerLoc * loc = getLayerLoc();
-   int nx = loc->nx;
-   int ny = loc->ny;
-   int nf = loc->nf;
+       const PVLayerLoc * loc = getLayerLoc();
+       int nx = loc->nx;
+       int ny = loc->ny;
+       int nf = loc->nf;
 
-   //This layer must be 1x1x(INVERSECOCHLEARLAYER_NF)
-   assert(nx == 1 && ny == 1 && nf == INVERSECOCHLEARLAYER_NF);
-   int num_input_neurons = inputLayer->getNumNeurons();
-   int num_output_neurons = getNumNeurons();
-   //num_output_neurons should be only INVERSECOCHLEARLAYER_NF
-   assert(num_output_neurons == INVERSECOCHLEARLAYER_NF);
-   
-   timehistory[ringBufferLevel] = time;
-   for (int k=0; k<inputLayer->getLayerLoc()->nf; k++) {
-      xhistory[ringBufferLevel][k] = inputLayer->getLayerData()[k];
-   } // memcpy?
-   
-   double sumreal = 0.0;
-   double sumimag = 0.0;
-   double sampleFrequency = 1.0/cochlearLayer->getSampleRate();
-   for (int j=0; j<bufferLength; j++) {
-      for (int k=0; k<numFrequencies; k++) {
-         sumreal += Mreal[j][k]*xhistory[ringBuffer(j)][k];
-         sumimag += Mimag[j][k]*xhistory[ringBuffer(j)][k];
-      }
-   }
-   sumreal /= (2*PI);
-   sumimag /= (2*PI);   
-   
-   //Reset pointer of gSynHead to point to the excitatory channel
-   // pvdata_t * inA = inputLayer->getCLayer()->activity->data;
-   pvdata_t * outV = getV();
-   
-   outV[0] = sumreal;
-   outV[1] = sumimag;
+       //This layer must be 1x1x(INVERSECOCHLEARLAYER_NF)
+       assert(nx == 1 && ny == 1 && nf == INVERSECOCHLEARLAYER_NF);
+       int num_input_neurons = inputLayer->getNumNeurons();
+       int num_output_neurons = getNumNeurons();
+       //num_output_neurons should be only INVERSECOCHLEARLAYER_NF
+       assert(num_output_neurons == INVERSECOCHLEARLAYER_NF);
+       
+       timehistory[ringBufferLevel] = time;
+       for (int k=0; k<inputLayer->getLayerLoc()->nf; k++) {
+          xhistory[ringBufferLevel][k] = inputLayer->getLayerData()[k];
+       } // memcpy?
+       
+       double sumreal = 0.0;
+       double sumimag = 0.0;
+       double sampleFrequency = 1.0/cochlearLayer->getSampleRate();
+       for (int j=0; j<bufferLength; j++) {
+          for (int k=0; k<numFrequencies; k++) {
+             sumreal += Mreal[j][k]*xhistory[ringBuffer(j)][k];
+             sumimag += Mimag[j][k]*xhistory[ringBuffer(j)][k];
+          }
+       }
+       sumreal /= (2*PI);
+       sumimag /= (2*PI);   
+       
+       //Reset pointer of gSynHead to point to the excitatory channel
+       // pvdata_t * inA = inputLayer->getCLayer()->activity->data;
+       pvdata_t * outV = getV();
+       
+       outV[0] = sumreal;
+       outV[1] = sumimag;
 
-   //*outV is where the output data should go
+       //*outV is where the output data should go
 
-//Copy V to A buffer
-   HyPerLayer::setActivity();
-   
-   ringBufferLevel++;
-   if (ringBufferLevel == bufferLength) { ringBufferLevel = 0; }
-   
+    //Copy V to A buffer
+       HyPerLayer::setActivity();
+       
+       ringBufferLevel++;
+       if (ringBufferLevel == bufferLength) { ringBufferLevel = 0; }
+    }
+    
    update_timer->stop();
    return PV_SUCCESS;
 }

@@ -7,7 +7,7 @@
 #include "SoundProbe.hpp"
 #include "CochlearLayer.hpp"
 #include "inverseCochlearLayer.hpp"
-#include "LIFTestProbe.hpp"
+
 
 #define MAIN_USES_CUSTOMGROUPS
 
@@ -41,9 +41,7 @@ void * addcustomgroup(const char * keyword, const char * groupname, HyPerCol * h
     if ( !strcmp(keyword, "inverseCochlearLayer") ) {
        addedGroup = new inverseCochlearLayer(groupname, hc);
     }
-    if ( !strcmp(keyword, "LIFTestProbe") ) {
-       addedGroup = new LIFTestProbe(groupname, hc);
-    }
+   
     return addedGroup;
 }
 #endif // MAIN_USE_CUSTOMGROUPS
