@@ -60,6 +60,8 @@ int SoundStream::initialize(const char * name, HyPerCol * hc) {
    fileHeader = new SF_INFO();
    fileStream = sf_open(filename, SFM_READ, fileHeader);
    assert(fileStream != NULL);
+    sampleRate = fileHeader->samplerate;
+    nextSampleTime = hc->getStartTime();
    return status;
 }
 
@@ -129,25 +131,29 @@ int SoundStream::allocateDataStructures() {
 int SoundStream::updateState(double time, double dt){
    int status = PV_SUCCESS;
    assert(fileStream);
-   //Read 1 frame
-   int numRead = sf_readf_float(fileStream, soundBuf, 1);
-   //EOF
-   if(numRead == 0){
-      sf_seek(fileStream, 0, SEEK_SET);
-      numRead = sf_readf_float(fileStream, soundBuf, 1);
-      if(numRead == 0){
-         fprintf(stderr, "SoundStream:: Fatal error, is the file empty?\n");
-         exit(EXIT_FAILURE);
-      }
-      std::cout << "Rewinding sound file\n";
-   }
-   else if(numRead > 1){
-      fprintf(stderr, "SoundStream:: Fatal error, numRead is bigger than 1\n");
-      exit(EXIT_FAILURE);
-   }
-   for(int fi = 0; fi < getLayerLoc()->nf; fi++){
-      soundData[fi] = soundBuf[fi];
-   }
+    
+    if (time >= nextSampleTime) {
+        nextSampleTime += (1.0 / sampleRate);
+       //Read 1 frame
+       int numRead = sf_readf_float(fileStream, soundBuf, 1);
+       //EOF
+       if(numRead == 0){
+          sf_seek(fileStream, 0, SEEK_SET);
+          numRead = sf_readf_float(fileStream, soundBuf, 1);
+          if(numRead == 0){
+             fprintf(stderr, "SoundStream:: Fatal error, is the file empty?\n");
+             exit(EXIT_FAILURE);
+          }
+          std::cout << "Rewinding sound file\n";
+       }
+       else if(numRead > 1){
+          fprintf(stderr, "SoundStream:: Fatal error, numRead is bigger than 1\n");
+          exit(EXIT_FAILURE);
+       }
+       for(int fi = 0; fi < getLayerLoc()->nf; fi++){
+          soundData[fi] = soundBuf[fi];
+       }
+    }
    return status;
 }
 
