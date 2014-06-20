@@ -17,18 +17,18 @@ HyPerCol "column" = {
    nx = 32;   
    ny = 32;
    dt = 1.0;
+   dtAdaptFlag = false;
    randomSeed = 1554498580;  // if not set here,  clock time is used to generate seed
    startTime = 0.0;
-   numSteps = 10;
-   progressStep = 10;
+   stopTime = 10;
+   progressInterval = 10;
    writeProgressToErr = false;
    outputPath = "output/";
+   printParamsFilename = "pv.params";
    filenamesContainLayerNames = false;
    filenamesContainConnectionNames = false;
-   checkpointRead = false;
    checkpointWrite = false;
    suppressLastOutput = false;
-   outputNamesOfLayersAndConns = "LayerAndConnNames.txt";
 };
 
 //
@@ -80,9 +80,10 @@ ANNLayer "retina" = {
     InitVType = "ZeroV";
 
     VThresh = -infinity;
-    VMax = infinity;
-    VMin = -infinity;
-    VShift = 0.0;
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0.0;
+    VWidth = 0.0;
 };
 
 ANNLayer "output from original" = {
@@ -100,9 +101,10 @@ ANNLayer "output from original" = {
     InitVType = "ZeroV";
 
     VThresh = -infinity;
-    VMax = infinity;
-    VMin = -infinity;
-    VShift = 0.0;
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0.0;
+    VWidth = 0.0;
 };
 
 ANNLayer "output from clone" = {
@@ -116,13 +118,14 @@ ANNLayer "output from clone" = {
     mirrorBCflag = 0;
     valueBC = 0.0;
     writeSparseActivity = false;
-    VShift = 0.0;
 
     InitVType = "ZeroV";
 
     VThresh = -infinity;
-    VMax = infinity;
-    VMin = -infinity;
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0.0;
+    VWidth = 0.0;
 };
 
 ANNLayer "comparison" = {
@@ -140,15 +143,17 @@ ANNLayer "comparison" = {
     InitVType = "ZeroV";
 
     VThresh = -infinity;
-    VMax = infinity;
-    VMin = -infinity;
-    VShift = 0.0;
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0.0;
+    VWidth = 0.0;
 };
 
 HyPerConn "original" = {
     preLayerName = "input";
     postLayerName = "output from original";
     channelCode = 0;
+    sharedWeights = false;
     nxp = 7;
     nyp = 7;
     nfp = 8;
@@ -191,7 +196,7 @@ HyPerConn "original" = {
     updateGSynFromPostPerspective = false;
 };
 
-CloneKernelConn "clone" = {
+CloneConn "clone" = {
     preLayerName = "input";
     postLayerName = "output from clone";
     
