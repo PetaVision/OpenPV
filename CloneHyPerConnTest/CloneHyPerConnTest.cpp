@@ -40,6 +40,7 @@ void * customgroup(const char * keyword, const char * name, HyPerCol * hc) {
 	   bool errorFound;
 	   if( !strcmp(keyword, "CloneHyPerConnTestProbe") ) {
           addedProbe = (LayerProbe *) new CloneHyPerConnTestProbe(name, hc);
+          addedGroup = (void *) addedProbe;
 	   }
 	   return addedGroup;
 }
