@@ -1792,7 +1792,7 @@ int HyPerLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activity
    }
 
 #ifdef PV_USE_OPENMP_THREADS
-#pragma omp parallel for
+#pragma omp parallel for schedule(guided)
 #endif
    for (int kPre = 0; kPre < numExtended; kPre++) {
       bool inWindow; 
