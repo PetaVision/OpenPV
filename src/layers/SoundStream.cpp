@@ -39,7 +39,7 @@ SoundStream::~SoundStream() {
 }
 
 int SoundStream::initialize_base() {
-   displayPeriod = 1;
+   // displayPeriod = 1;
    frameStart= 0;
    filename = NULL;
    soundData = NULL;
@@ -61,14 +61,14 @@ int SoundStream::initialize(const char * name, HyPerCol * hc) {
    fileStream = sf_open(filename, SFM_READ, fileHeader);
    assert(fileStream != NULL);
     sampleRate = fileHeader->samplerate;
-    nextSampleTime = hc->getStartTime();
+   // nextSampleTime = hc->getStartTime();
    return status;
 }
 
 
 
 double SoundStream::getDeltaUpdateTime(){
-   return displayPeriod;
+   return 1.0/sampleRate;
 }
 
 int SoundStream::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
@@ -132,8 +132,8 @@ int SoundStream::updateState(double time, double dt){
    int status = PV_SUCCESS;
    assert(fileStream);
     
-    if (time >= nextSampleTime) {
-        nextSampleTime += (1.0 / sampleRate);
+    // if (time >= nextSampleTime) {
+    //     nextSampleTime += (1.0 / sampleRate);
        //Read 1 frame
        int numRead = sf_readf_float(fileStream, soundBuf, 1);
        //EOF
@@ -153,7 +153,7 @@ int SoundStream::updateState(double time, double dt){
        for(int fi = 0; fi < getLayerLoc()->nf; fi++){
           soundData[fi] = soundBuf[fi];
        }
-    }
+   // }
    return status;
 }
 

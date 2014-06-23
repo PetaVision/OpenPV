@@ -51,11 +51,11 @@ protected:
    SNDFILE* fileStream;
    float* soundBuf;
 
-   double displayPeriod;     // Length of time a string 'frame' is displayed
+   // double displayPeriod;     // Length of time a string 'frame' is displayed
    int frameStart;
 
     int sampleRate;          // sample rate from file in Hz
-    double nextSampleTime;   // time at which next sample is retrieved
+   // double nextSampleTime;   // time at which next sample is retrieved
    char * filename;          // Path to file if a file exists
 
 };
