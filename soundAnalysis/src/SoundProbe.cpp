@@ -88,8 +88,7 @@ void SoundProbe::ioParam_soundInputType(enum ParamsIOFlag ioFlag) {
 int SoundProbe::outputState(double timed){
     if (timed >= nextDisplayTime) {
         nextDisplayTime += 1.0/fileHeader->samplerate;
-        std::cout << "time: " << timed << "\n";
-
+    
        const pvdata_t * A = getTargetLayer()->getLayerData();
        int numNeurons = getTargetLayer()->getNumNeurons();
        const PVLayerLoc * loc = getTargetLayer()->getLayerLoc();
