@@ -78,7 +78,8 @@ int inverseCochlearLayer::initialize_base() {
 
 int inverseCochlearLayer::initialize(const char * name, HyPerCol * hc) {
    int status = ANNLayer::initialize(name, hc);
-   //Initialize any other variables here
+   //Initialize any other member variables here
+    nextDisplayTime = hc->getStartTime();
 
    return status;
 }
@@ -217,8 +218,8 @@ void inverseCochlearLayer::ioParam_cochlearLayername(enum ParamsIOFlag ioFlag) {
     
 int inverseCochlearLayer::updateState(double time, double dt){
    update_timer->start();
-    {//if (time >= cochlearLayer->getnextDisplayTime()) {
-
+    if (time >= nextDisplayTime) {
+       nextDisplayTime += cochlearLayer->getDisplayPeriod();
        const PVLayerLoc * loc = getLayerLoc();
        int nx = loc->nx;
        int ny = loc->ny;

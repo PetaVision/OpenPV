@@ -27,6 +27,7 @@ public:
    float getSampleRate() { return sampleRate; }
     float getcochlearScale() { return cochlearScale; }
     
+    double getDisplayPeriod() {return displayPeriod; }
     double getnextDisplayTime() {return nextDisplayTime; }
     
 protected:
