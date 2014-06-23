@@ -29,6 +29,7 @@ InitWeightsParams::InitWeightsParams(HyPerConn * pConn) {
 InitWeightsParams::~InitWeightsParams()
 {
    free(this->name);
+   free(this->filename);
 }
 
 int InitWeightsParams::initialize_base() {
