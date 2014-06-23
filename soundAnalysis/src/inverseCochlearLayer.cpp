@@ -259,8 +259,8 @@ int inverseCochlearLayer::updateState(double time, double dt){
 
     //Copy V to A buffer
        HyPerLayer::setActivity();
-       // clayer->activity->data[0] *= 0.25; // With bufferLength 1, sound is reproduced well but at a higher amplitude
-       // clayer->activity->data[1] *= 0.25; // This corrects the amplitude to approximately its original value
+       clayer->activity->data[0] *= 0.25; // With bufferLength 1, sound is reproduced well but at a higher amplitude
+       clayer->activity->data[1] *= 0.25; // This corrects the amplitude to approximately its original value
                                              // But I think the correction factor depends on frequency.  --pfs Jun 23, 2014
        
        ringBufferLevel++;

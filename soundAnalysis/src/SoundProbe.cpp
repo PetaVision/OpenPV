@@ -17,7 +17,7 @@ SoundProbe::SoundProbe(const char * probeName, HyPerCol * hc)
 {
    init_base();
    initSoundProbe(probeName, hc);
-}
+    }
 
 SoundProbe::~SoundProbe() {
    if(soundOutputPath){
@@ -40,6 +40,10 @@ int SoundProbe::init_base() {
 }
 
 int SoundProbe::initSoundProbe(const char * probeName, HyPerCol * hc) {
+    nextDisplayTime = hc->getStartTime();
+    std::cout << "initdisplaytime: " << nextDisplayTime << "\n";
+
+    
    return initStatsProbe(probeName, hc);
 }
 
@@ -82,16 +86,22 @@ void SoundProbe::ioParam_soundInputType(enum ParamsIOFlag ioFlag) {
 }
 
 int SoundProbe::outputState(double timed){
-   const pvdata_t * A = getTargetLayer()->getLayerData();
-   int numNeurons = getTargetLayer()->getNumNeurons();
-   const PVLayerLoc * loc = getTargetLayer()->getLayerLoc();
-   for (int i = 0; i < numNeurons; i++){
-      soundBuf[i] = A[i];
-   }
-   //Write file out
-   int count = sf_writef_float(fileStream, soundBuf, 1);
-   assert(count == 1);
-   return PV_SUCCESS;
+    if (timed >= nextDisplayTime) {
+        nextDisplayTime += 1.0/fileHeader->samplerate;
+        std::cout << "time: " << timed << "\n";
+
+       const pvdata_t * A = getTargetLayer()->getLayerData();
+       int numNeurons = getTargetLayer()->getNumNeurons();
+       const PVLayerLoc * loc = getTargetLayer()->getLayerLoc();
+       for (int i = 0; i < numNeurons; i++){
+          soundBuf[i] = A[i];
+       }
+       //Write file out
+       int count = sf_writef_float(fileStream, soundBuf, 1);
+       assert(count == 1);
+       
+    }
+    return PV_SUCCESS;
 }
 
 }

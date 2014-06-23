@@ -35,6 +35,7 @@ private:
    SF_INFO* fileHeader;
    SNDFILE* fileStream;
    float* soundBuf;
+    double nextDisplayTime;
 
 };
 
