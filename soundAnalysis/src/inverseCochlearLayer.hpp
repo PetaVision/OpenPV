@@ -56,6 +56,7 @@ private:
    float * deltaFreqs;
    float ** Mreal; // f = sum_j M[j][k] * x_k(t_j).  Should choose a more descriptive name
    float ** Mimag;
+   double nextDisplayTime;
 
 
 }; // end of class inverseCochlearLayer
