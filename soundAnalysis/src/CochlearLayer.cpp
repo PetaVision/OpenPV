@@ -49,7 +49,7 @@ int CochlearLayer::initialize(const char * name, HyPerCol * hc) {
 
     nextDisplayTime = hc->getStartTime();
     
-    //timestep = 1.0/sampleRate;
+    timestep = hc->getDeltaTime(); // 1.0/sampleRate;
     
    //This should have been set correctly
    assert(targetFreqs.size() > 0);
@@ -232,7 +232,7 @@ int CochlearLayer::updateState(double time, double dt){
              dampingConstant = dampingConstants[outNi];
              
              
-             float sound = sin (440 * time * timestep * 2 * PI);
+             // float sound = sin (440 * time * timestep * 2 * PI);
            
              float c1 = xVal[outNi] - (inVal / pow(radianFreqs[outNi], 2));
              float c2 = (vVal[outNi] + (.5 * dampingConstant) * c1) / omegas[outNi];
