@@ -1305,8 +1305,10 @@ int HyPerConn::decodeChannel(int channel_code, ChannelType * channel_type) {
    case CHANNEL_NORM:
       *channel_type = CHANNEL_NORM;
       break;
+   case CHANNEL_NOUPDATE:
+      *channel_type = CHANNEL_NOUPDATE;
+      break;
    default:
-      *channel_type = CHANNEL_INVALID;
       status = PV_FAILURE;
       break;
    }

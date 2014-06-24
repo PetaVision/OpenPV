@@ -48,7 +48,7 @@ enum ChannelType {
   CHANNEL_INHB = 2,
   CHANNEL_GAP  = 3,
   CHANNEL_NORM = 4,
-  CHANNEL_INVALID  = -1
+  CHANNEL_NOUPDATE = -1
 };
 
 enum GSynAccumulateType {

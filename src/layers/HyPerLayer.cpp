@@ -1615,6 +1615,12 @@ int HyPerLayer::recvAllSynapticInput() {
  */
 int HyPerLayer::recvSynapticInputFromPost(HyPerConn * conn, const PVLayerCube * activity, int arborID)
 {
+   
+   //Check channel number for noupdate
+   if(conn->getChannel() == CHANNEL_NOUPDATE){
+      return PV_SUCCESS;
+   }
+
    //Cast to transpose conn
    TransposeConn * sourceToTargetConn = dynamic_cast <TransposeConn*> (conn);
    if(sourceToTargetConn == NULL){
@@ -1759,6 +1765,11 @@ int HyPerLayer::recvSynapticInputFromPost(HyPerConn * conn, const PVLayerCube * 
  */
 int HyPerLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activity, int arborID)
 {
+   //Check if we need to update based on connection's channel
+   if(conn->getChannel() == CHANNEL_NOUPDATE){
+      return PV_SUCCESS;
+   }
+
    recvsyn_timer->start();
 
    assert(arborID >= 0);

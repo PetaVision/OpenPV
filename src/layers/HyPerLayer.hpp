@@ -304,7 +304,7 @@ public:
    pvdata_t * getV()                 {return clayer->V;}           // name query
    int getNumChannels()              {return numChannels;}
    pvdata_t * getChannel(ChannelType ch) {                         // name query
-      return ch < this->numChannels ? GSyn[ch] : NULL;
+      return (ch < this->numChannels && ch >= 0) ? GSyn[ch] : NULL;
    }
    virtual float getChannelTimeConst(enum ChannelType channel_type){return 0.0f;};
    int getXScale()                   {return clayer->xScale;}
