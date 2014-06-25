@@ -1,6 +1,6 @@
 /*
  * CochlearLayer.cpp
- *
+ * Users/JEC/Desktop/newvision/sandbox/soundAnalysis/src/CochlearLayer.hpp
  *  Created on: June 4, 2014
  *      Author: slundquist
  */
@@ -51,9 +51,35 @@ int CochlearLayer::initialize(const char * name, HyPerCol * hc) {
     
     timestep = hc->getDeltaTime(); // 1.0/sampleRate;
     
+    //Calculate nx
+    targetFreqs.clear();
+    targetFreqs.push_back(freqMin);
+    radianFreqs.clear();
+    radianFreqs.push_back(freqMin * 2 * PI);
+    
+    int nx = getLayerLoc()->nx;
+    
+    float newFreq = 0;
+    float newradFreq = 0;
+    
+    for(int i = 1; i < nxScale; i++){
+        float prevFreq = targetFreqs.back();
+        newFreq = 7e-10*powf(prevFreq,3) - 3e-6*powf(prevFreq,2) + 1.0041 * prevFreq + .6935;
+        newradFreq = newFreq * 2 * PI;
+        targetFreqs.push_back(newFreq);
+        radianFreqs.push_back(newradFreq);
+        
+    }
+    
+    
+    //This is not read from parameters, but set explicitly
+    nx = targetFreqs.size();
+    std::cout << ":: nx " << nx << "\n";
+
+    
    //This should have been set correctly
    assert(targetFreqs.size() > 0);
-   assert(getLayerLoc()->nf == targetFreqs.size());
+   assert(getLayerLoc()->nx == targetFreqs.size());
 
    //Set up damping constant based on frequency envelope
    dampingConstants.clear();
@@ -81,6 +107,7 @@ int CochlearLayer::initialize(const char * name, HyPerCol * hc) {
    assert(vVal);
    assert(xVal);
    return status;
+    
 }
 
 int CochlearLayer::communicateInitInfo(){
@@ -139,31 +166,6 @@ void CochlearLayer::ioParam_nf(enum ParamsIOFlag ioFlag){
    assert(!parent->parameters()->presentAndNotBeenRead(name,"freqMin"));
    assert(!parent->parameters()->presentAndNotBeenRead(name,"freqMax"));
 
-   if(ioFlag == PARAMS_IO_READ){
-      //Calculate num features
-      targetFreqs.clear();
-      targetFreqs.push_back(freqMin);
-       radianFreqs.clear();
-       radianFreqs.push_back(freqMin * 2 * PI);
-       
-      float newFreq = 0;
-       float newradFreq = 0;
-       
-      while(newFreq < freqMax){
-         float prevFreq = targetFreqs.back();
-         newFreq = 7e-10*powf(prevFreq,3) - 3e-6*powf(prevFreq,2) + 1.0041 * prevFreq + .6935;
-          newradFreq = newFreq * 2 * PI;
-         targetFreqs.push_back(newFreq);
-          radianFreqs.push_back(newradFreq);
-          
-          
-          
-      }
-       
-      //This is not read from parameters, but set explicitly
-      numFeatures = targetFreqs.size();
-      std::cout << "CochlearLayer " << name << ":: numFeatures set to " << numFeatures << "\n";
-   }
 }
 
 void CochlearLayer::ioParam_FreqMinMax(enum ParamsIOFlag ioFlag) {
@@ -210,7 +212,7 @@ int CochlearLayer::updateState(double time, double dt){
    int nx = loc->nx;
    int ny = loc->ny;
    int nf = loc->nf;
-   assert(nx == 1 && ny == 1);
+   assert(nf == 1 && ny == 1);
    int num_input_neurons = inputLayer->getNumNeurons();
    int num_output_neurons = getNumNeurons();
     
