@@ -75,18 +75,12 @@ if (NOT MPI_C_FOUND OR NOT MPI_CXX_FOUND)
     set(CMAKE_CXX_COMPILER "${MPI_CXX_COMPILER}")
 endif (NOT MPI_C_FOUND OR NOT MPI_CXX_FOUND)
 
-if (NOT LIBSNDFILE_FOUND)
+if (LIB_SND_FILE)
     MESSAGE("-- Searching for SND library ............")
     find_package(LIBSNDFILE)
-endif (NOT LIBSNDFILE_FOUND)
-
-#Include compiler directive and include directory for LIBSNDFILE
-if (LIBSNDFILE_FOUND)
-   ADD_DEFINITIONS(-DPV_USE_SNDFILE)
-   include_directories(${LIBSNDFILE_INCLUDE_DIR})
-else (LIBSNDFILE_FOUND)
-   REMOVE_DEFINITIONS(-DPV_USE_SNDFILE)
-endif (LIBSNDFILE_FOUND)
+    ADD_DEFINITIONS(-DPV_USE_SNDFILE)
+    include_directories(${LIBSNDFILE_INCLUDE_DIR})
+endif (LIB_SND_FILE)
 
 # Add PetaVision
 add_library(pv ${PVLibSrc})
