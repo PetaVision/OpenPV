@@ -13,15 +13,16 @@ HyPerCol "column" = {
    nx = 32;   
    ny = 32;
    dt = 1.0;
+   dtAdaptFlag = false;
    randomSeed = 17406293508;  // if not set here,  clock time is used to generate seed
    startTime = 0.0;
-   numSteps = 10;  // num images plus (num layers + 1) * delay
+   stopTime = 10;  // num images plus (num layers + 1) * delay
    writeProgressToErr = false;
-   progressStep = 10;
+   progressInterval = 10;
    outputPath = "output/";
+   printParamsFilename = "pv.params";
    filenamesContainLayerNames = true;
    filenamesContainConnectionNames = true;
-   checkpointRead = false;
    checkpointWrite = false;
    // checkpointWriteDir = "Checkpoints";
    // checkpointWriteStepInterval = 1;
@@ -44,6 +45,7 @@ Retina "Retina" = {
     spikingFlag = false;
     writeSparseActivity = false;
     // GPUAccelerate = false;
+    triggerFlag = false;
 
     // refractoryPeriod
     // absRefractoryPeriod
@@ -70,13 +72,15 @@ ANNLayer "L0" = {
     mirrorBCflag = true;
     writeSparseActivity = false;
     // GPUAccelerate = false;
+    triggerFlag = false;
 
     InitVType = "ZeroV";
 
     VThresh = -infinity;
-    VMax = infinity;
-    VMin = -infinity;
-    VShift = 0.0;
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0.0;
+    VWidth = 0.0;
 };
 
 
@@ -91,13 +95,15 @@ ANNLayer "Lx1" = {
     mirrorBCflag = true;
     writeSparseActivity = false;
     // GPUAccelerate = false;
+    triggerFlag = false;
 
     InitVType = "ZeroV";
 
     VThresh = -infinity;
-    VMax = infinity;
-    VMin = -infinity;
-    VShift = 0.0;
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0.0;
+    VWidth = 0.0;
 };
 
 
@@ -112,13 +118,15 @@ ANNLayer "Lx2" = {
     mirrorBCflag = true;
     writeSparseActivity = false;
     // GPUAccelerate = false;
+    triggerFlag = false;
 
     InitVType = "ZeroV";
 
     VThresh = -infinity;
-    VMax = infinity;
-    VMin = -infinity;
-    VShift = 0.0;
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0.0;
+    VWidth = 0.0;
 };
 
 
@@ -134,13 +142,15 @@ ANNLayer "Lx4" = {
     valueBC = 0.0;
     writeSparseActivity = false;
     // GPUAccelerate = false;
+    triggerFlag = false;
 
     InitVType = "ZeroV";
 
     VThresh = -infinity;
-    VMax = infinity;
-    VMin = -infinity;
-    VShift = 0.0;
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0.0;
+    VWidth = 0.0;
 };
 
 
@@ -157,13 +167,15 @@ ANNLayer "Lx1_2" = {
     valueBC = 0.0;
     writeSparseActivity = false;
     // GPUAccelerate = false;
+    triggerFlag = false;
 
     InitVType = "ZeroV";
 
     VThresh = -infinity;
-    VMax = infinity;
-    VMin = -infinity;
-    VShift = 0.0;
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0.0;
+    VWidth = 0.0;
 };
 
 
@@ -180,22 +192,25 @@ ANNLayer "Lx1_4" = {
     valueBC = 0.0;
     writeSparseActivity = false;
     // GPUAccelerate = false;
+    triggerFlag = false;
 
     InitVType = "ZeroV";
 
     VThresh = -infinity;
-    VMax = infinity;
-    VMin = -infinity;
-    VShift = 0.0;
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0.0;
+    VWidth = 0.0;
 };
 
 
 //  connections: 
 
-KernelConn "Retina to L0" = {
+HyPerConn "Retina to L0" = {
     preLayerName = "Retina";
     postLayerName = "L0";
     channelCode = 0;
+    sharedWeights = true;
     numAxonalArbors = 1;
     nxp = 1;
     nyp = 1;
@@ -249,10 +264,11 @@ KernelConn "Retina to L0" = {
 
 
 
-KernelConn "L0 to Lx1" = {
+HyPerConn "L0 to Lx1" = {
     preLayerName = "L0";
     postLayerName = "Lx1";
     channelCode = 0;
+    sharedWeights = true;
     numAxonalArbors = 4;
     nxp = 5;
     nyp = 5;
@@ -304,11 +320,12 @@ KernelConn "L0 to Lx1" = {
 };
 
 
-KernelConn "L0 to Lx2" = {
+HyPerConn "L0 to Lx2" = {
     preLayerName = "L0";
     postLayerName = "Lx2";
     numAxonalArbors = 4;
     channelCode = 0;
+    sharedWeights = true;
     nxp = 10;
     nyp = 10;
     nfp = 8;
@@ -359,11 +376,12 @@ KernelConn "L0 to Lx2" = {
 };
 
 
-KernelConn "L0 to Lx4" = {
+HyPerConn "L0 to Lx4" = {
     preLayerName = "L0";
     postLayerName = "Lx4";
     numAxonalArbors = 4;
     channelCode = 0;
+    sharedWeights = true;
     nxp = 20;
     nyp = 20;
     nfp = 16;
@@ -414,11 +432,12 @@ KernelConn "L0 to Lx4" = {
 };
 
 
-KernelConn "L0 to Lx1_2" = {
+HyPerConn "L0 to Lx1_2" = {
     preLayerName = "L0";
     postLayerName = "Lx1_2";
     numAxonalArbors = 4;
     channelCode = 0;
+    sharedWeights = true;
     nxp = 3;
     nyp = 3;
     nfp = 2;
@@ -469,11 +488,12 @@ KernelConn "L0 to Lx1_2" = {
 };
 
 
-KernelConn "L0 to Lx1_4" = {
+HyPerConn "L0 to Lx1_4" = {
     preLayerName = "L0";
     postLayerName = "Lx1_4";
     numAxonalArbors = 4;
     channelCode = 0;
+    sharedWeights = true;
     nxp = 1;
     nyp = 1;
     nfp = 1;
