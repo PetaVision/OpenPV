@@ -15,13 +15,13 @@ namespace PV {
 class ArborTestProbe: public PV::StatsProbe {
 public:
    ArborTestProbe(const char * probeName, HyPerCol * hc);
-   ArborTestProbe(HyPerLayer * layer, const char * msg);
    virtual ~ArborTestProbe();
 
    virtual int outputState(double timed);
 
 protected:
    int initArborTestProbe(const char * probeName, HyPerCol * hc);
+   virtual void ioParam_buffer(enum ParamsIOFlag ioFlag);
 
 private:
    int initArborTestProbe_base();
