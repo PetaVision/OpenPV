@@ -41,6 +41,13 @@
 }
 
 {
+   <suppression_leak_ompi_comm_activate>
+   Memcheck:Leak
+   ...
+   fun:ompi_comm_activate
+}
+
+{
    <suppression_leak_yyparse>
    Memcheck:Leak
    ...
