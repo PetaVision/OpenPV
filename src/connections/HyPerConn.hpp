@@ -80,7 +80,6 @@ public:
    virtual int updateState(double time, double dt);
    virtual bool needUpdate(double time, double dt);
    virtual double computeNewWeightUpdateTime(double time, double currentUpdateTime);
-   virtual int updateWeights(int arborId = 0);
    virtual int writeWeights(double timed, bool last = false);
    virtual int writeWeights(const char* filename);
    virtual int writeWeights(PVPatch*** patches, pvwdata_t** dataStart,
@@ -440,10 +439,7 @@ private:
    // GTK:: gSynPatchStart redefined as offset from start of associated gSynBuffer
    //pvwdata_t*** gSynPatchStart; //  gSynPatchStart[arborId][kExt] is a pointer to the start of the patch in the post-synaptic GSyn buffer
    size_t** gSynPatchStart;  // gSynPatchStart[arborId][kExt] is the offset to the start of the patch from the beginning of the post-synaptic GSyn buffer for corresponding channel
-   //pvwdata_t** gSynPatchStartBuffer;
-   size_t * gSynPatchStartBuffer;
    size_t** aPostOffset; // aPostOffset[arborId][kExt] is the index of the start of a patch into an extended post-synaptic layer
-   size_t* aPostOffsetBuffer;
    int* delays; // delays[arborId] is the delay in timesteps (not units of dt) of the arborId'th arbor
    PVPatchStrides postExtStrides;    // sx,sy,sf for a patch mapping into an extended post-synaptic layer
    PVPatchStrides postNonextStrides; // sx,sy,sf for a patch mapping into a non-extended post-synaptic layer
@@ -700,6 +696,7 @@ protected:
    virtual int defaultUpdate_dW(int arborId);
    virtual int defaultUpdateInd_dW(int arbor_ID, int kExt);
    virtual pvdata_t updateRule_dW(pvdata_t pre, pvdata_t post);
+   virtual int updateWeights(int arborId = 0);
    virtual int normalize_dW(int arbor_ID);
    virtual bool skipPre(pvdata_t preact){return preact == 0.0f;};
 #ifdef PV_USE_MPI

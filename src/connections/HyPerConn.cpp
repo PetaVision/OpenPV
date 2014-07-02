@@ -219,9 +219,7 @@ int HyPerConn::initialize_base()
    dwDataStart = NULL;
    wPatches=NULL;
    aPostOffset = NULL;
-   aPostOffsetBuffer = NULL;
    gSynPatchStart = NULL;
-   gSynPatchStartBuffer = NULL;
 
    this->selfFlag = false;  // specifies whether connection is from a layer to itself (i.e. a self-connection)
    this->combine_dW_with_W_flag = false;
@@ -301,7 +299,7 @@ int HyPerConn::createArbors() {
       createArborsOutOfMemory();
       assert(false);
    }
-   gSynPatchStartBuffer = (size_t *) calloc(
+   size_t * gSynPatchStartBuffer = (size_t *) calloc(
 		   (this->shrinkPatches_flag ? numAxonalArborLists : 1)
 		   * preSynapticLayer()->getNumExtended(), sizeof(size_t));
    if (gSynPatchStartBuffer == NULL) {
@@ -318,7 +316,7 @@ int HyPerConn::createArbors() {
       createArborsOutOfMemory();
       assert(false);
    }
-   aPostOffsetBuffer = (size_t *) calloc(
+   size_t * aPostOffsetBuffer = (size_t *) calloc(
          (this->shrinkPatches_flag ? numAxonalArborLists : 1)
                * preSynapticLayer()->getNumExtended(), sizeof(size_t));
    if( aPostOffsetBuffer == NULL ) {
@@ -2843,11 +2841,11 @@ int HyPerConn::deleteWeights() {
 	}  // wPostPatches != NULL
 
 	if (gSynPatchStart != NULL) {
-		free(gSynPatchStartBuffer); // All gSynPatchStart[k]'s were allocated together in a single malloc call.
+		free(gSynPatchStart[0]); // All gSynPatchStart[k]'s were allocated together in a single malloc call.
 		free(gSynPatchStart);
 	}
 	if (aPostOffset != NULL) {
-		free(aPostOffsetBuffer); // All aPostOffset[k]'s were allocated together in a single malloc call.
+		free(aPostOffset[0]); // All aPostOffset[k]'s were allocated together in a single malloc call.
 		free(aPostOffset);
 	}
 	free(patch2datalookuptable); patch2datalookuptable = NULL;
