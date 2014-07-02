@@ -631,8 +631,8 @@ int Image::scatterImageFileGDAL(const char * filename, int xOffset, int yOffset,
       int dest = -1;
       const int tag = 13;
 
-      srand(time(NULL));
-      int generatejitter = rand();
+      using std::min;
+      using std::max;
       for( dest = 1; dest < nyProcs*nxProcs; dest++ ) {
          int col = columnFromRank(dest,nyProcs,nxProcs);
          int row = rowFromRank(dest,nyProcs,nxProcs);
@@ -644,20 +644,17 @@ int Image::scatterImageFileGDAL(const char * filename, int xOffset, int yOffset,
          //? from the image with the correct aspect ratio determined by hypercolumn.  It then
          //? determines the offset needed in the long dimension to center the cropped image,
          //? and reads in that portion of the image.  The offset can optionally be translated by
-         //? a random number between -offset and +offset (offset specified in params file) or
-         //? between the maximum translation possible, whichever is smaller.
+         //? offset{X,Y} specified in the params file (values can be positive or negative).
+         //? If the specified offset takes the cropped image outside the image file, it uses the
+         //? largest-magnitude offset that stays within the image file's borders.
 
          if (autoResizeFlag){
-             using std::min;
 
              if (xImageSize/(double)xTotalSize < yImageSize/(double)yTotalSize){
                 int new_y = int(round(ny*xImageSize/(double)xTotalSize));
                 int y_off = int(round((yImageSize - new_y*nyProcs)/2.0));
 
-                int jitter_y = 0;
-                if (yOffset > 0){
-                   jitter_y = generatejitter % min(y_off*2,yOffset*2) - min(y_off,yOffset);
-                }
+                int jitter_y = max(min(y_off,yOffset),-y_off);
 
                 kx = xImageSize/nxProcs * col;
                 ky = new_y * row;
@@ -672,10 +669,7 @@ int Image::scatterImageFileGDAL(const char * filename, int xOffset, int yOffset,
                 int new_x = int(round(nx*yImageSize/(double)yTotalSize));
                 int x_off = int(round((xImageSize - new_x*nxProcs)/2.0));
 
-                int jitter_x = 0;
-                if (xOffset > 0){
-                   jitter_x = generatejitter % min(x_off*2,xOffset*2) - min(x_off,xOffset);
-                }
+                int jitter_x = max(min(x_off,xOffset),-x_off);
 
                 kx = new_x * col;
                 ky = yImageSize/nyProcs * row;
@@ -709,19 +703,15 @@ fprintf(stderr, "[%2d]: scatterImageFileGDAL: sending to %d xSize==%d"
       //? same logic as before, except this time we know that the row and column are 0
 
       if (autoResizeFlag){
-         using std::min;
 
          if (xImageSize/(double)xTotalSize < yImageSize/(double)yTotalSize){
             int new_y = int(round(ny*xImageSize/(double)xTotalSize));
             int y_off = int(round((yImageSize - new_y*nyProcs)/2.0));
 
-            int jitter_y = 0;
-            if (yOffset > 0){
-               jitter_y = generatejitter % min(y_off*2,yOffset*2) - min(y_off,yOffset);
-            }
+            int offset_y = max(min(y_off,yOffset),-y_off);
 
             //fprintf(stderr, "kx = %d, ky = %d, nx = %d, new_y = %d", 0, 0, xImageSize/nxProcs, new_y);
-            dataset->RasterIO(GF_Read, 0, y_off + jitter_y, xImageSize/nxProcs, new_y, buf, nx, ny,
+            dataset->RasterIO(GF_Read, 0, y_off + offset_y, xImageSize/nxProcs, new_y, buf, nx, ny,
                               GDT_Float32, bandsInFile, NULL, bandsInFile*sizeof(float),
                               bandsInFile*nx*sizeof(float), sizeof(float));
          }
@@ -729,15 +719,12 @@ fprintf(stderr, "[%2d]: scatterImageFileGDAL: sending to %d xSize==%d"
             int new_x = int(round(nx*yImageSize/(double)yTotalSize));
             int x_off = int(round((xImageSize - new_x*nxProcs)/2.0));
 
-            int jitter_x = 0;
-            if (xOffset > 0){
-               jitter_x = generatejitter % min(x_off*2,xOffset*2) - min(x_off,xOffset);
-            }
+            int offset_x = max(min(x_off,xOffset),-x_off);
 
             //fprintf(stderr, "xImageSize = %d, xTotalSize = %d, yImageSize = %d, yTotalSize = %d", xImageSize, xTotalSize, yImageSize, yTotalSize);
             //fprintf(stderr, "kx = %d, ky = %d, new_x = %d, ny = %d",
             //0, 0, new_x, yImageSize/nyProcs);
-            dataset->RasterIO(GF_Read, x_off + jitter_x, 0, new_x, yImageSize/nyProcs, buf, nx, ny,
+            dataset->RasterIO(GF_Read, x_off + offset_x, 0, new_x, yImageSize/nyProcs, buf, nx, ny,
                               GDT_Float32, bandsInFile, NULL, bandsInFile*sizeof(float),
                               bandsInFile*nx*sizeof(float),sizeof(float));
          }
