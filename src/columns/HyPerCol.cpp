@@ -56,6 +56,7 @@ HyPerCol::~HyPerCol()
 
    if (ownsParams) delete params;
 
+   int rank=columnId(); // Need to save so that we know whether we're the process that does I/O, even after deleting icComm.
    if (ownsInterColComm) {
       delete icComm;
    }
@@ -63,7 +64,7 @@ HyPerCol::~HyPerCol()
       icComm->clearPublishers();
    }
 
-   if (columnId()==0) {
+   if (rank==0) {
       runTimer->fprint_time(stdout);
       fflush(stdout);
    }
@@ -75,6 +76,9 @@ HyPerCol::~HyPerCol()
       delete colProbes[k];
    }
    free(colProbes);
+   for (int k=0; k<numBaseProbes; k++) {
+      if (baseProbes[k]->getOwner()==(void *) this) { delete baseProbes[k]; }
+   }
    free(baseProbes);
    free(name);
    free(printParamsFilename);
