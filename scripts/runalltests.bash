@@ -21,10 +21,13 @@ if test "${0%/*}" != "$0"
 then
     cd "${0%/*}"
 fi
-cd ../..
-wd=$PWD # $wd is the eclipse workspace directory
+cd ../
+pvdir=$PWD # $pvdir is the directory containing the PetaVision project
+cd ..
+workspacedir=$PWD # $workspacedir is the eclipse workspace directory
 
-echo cd "$wd"
+valgrindcommand=""
+#valgrindcommand="valgrind --suppressions=$pvdir/valgrind/petavision-mac.supp --num-callers=50 --leak-check=full"
 
 fails=""
 dne=""
@@ -34,7 +37,7 @@ function runandecho() {
     shift
     logfilebasename=$1
     shift
-    if $* &> ${logfilebasename}_1.log
+    if $valgrindcommand $* &> ${logfilebasename}_1.log
     then
         result=passed
     else
@@ -86,7 +89,7 @@ else
         logfilebasename=$1
         shift
         logfilename="${logfilebasename}_${numprocs}.log"
-        if $PV_MPIRUN -np $numprocs $* &> "${logfilename}"
+        if $PV_MPIRUN -np $numprocs $valgrindcommand $* &> "${logfilename}"
         then
             result=passed
         else
@@ -106,103 +109,103 @@ arglist="-p input/BasicSystemTest.params"
 cd "$testname"
 runandecho $testname $testname Debug/$testname $arglist
 mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
-cd "$wd"
+cd "$workspacedir"
 
 testname=AdjustAxonalArborsTest
 arglist="-p input/AdjustAxonalArborsTest.params"
 cd "$testname"
 runandecho $testname $testname Debug/$testname $arglist
 mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
-cd "$wd"
+cd "$workspacedir"
 
 testname=ArborSystemTest
 arglist="-p input/test_arbors.params"
 cd "$testname"
 runandecho $testname $testname Debug/$testname $arglist
 mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
-cd "$wd"
+cd "$workspacedir"
 
 testname=BinningLayerTest
 arglist="-p input/BinningLayerTest.params"
 cd "$testname"
 runandecho $testname $testname Debug/$testname $arglist
 mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
-cd "$wd"
+cd "$workspacedir"
 
 testname=CheckpointSystemTest
 arglist=""
 cd "$testname"
 runandecho $testname $testname Debug/$testname $arglist
 mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
-cd "$wd"
+cd "$workspacedir"
 
 testname=CloneHyPerConnTest
 arglist="-p input/CloneHyPerConnTest.params"
 cd "$testname"
 runandecho $testname $testname Debug/$testname $arglist
 mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
-cd "$wd"
+cd "$workspacedir"
 
 testname=CloneKernelConnTest
 arglist="-p input/CloneKernelConnTest.params"
 cd "$testname"
 runandecho $testname $testname Debug/$testname $arglist
 mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
-cd "$wd"
+cd "$workspacedir"
 
 testname=CloneVLayerTest
 arglist=""
 cd "$testname"
 runandecho $testname $testname Debug/$testname $arglist
 mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
-cd "$wd"
+cd "$workspacedir"
 
 testname=DatastoreDelayTest
 arglist="-p input/DatastoreDelayTest.params"
 cd "$testname"
 runandecho $testname $testname Debug/$testname $arglist
 mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
-cd "$wd"
+cd "$workspacedir"
 
 testname=DelaysToFeaturesTest
 arglist="-p input/test_delays.params"
 cd "$testname"
 runandecho $testname $testname Debug/$testname $arglist
 mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
-cd "$wd"
+cd "$workspacedir"
 
 testname=FourByFourGenerativeTest
 arglist=""
 cd "$testname"
 runandecho $testname $testname Debug/$testname $arglist
-cd "$wd"
+cd "$workspacedir"
 
 testname=FourByFourTopDownTest
 arglist=""
 cd "$testname"
 runandecho $testname $testname Debug/$testname $arglist
-cd "$wd"
+cd "$workspacedir"
 
 testname=GenerativeConnTest
 arglist=""
 cd "$testname"
 runandecho $testname $testname Debug/$testname $arglist
 mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
-cd "$wd"
+cd "$workspacedir"
 
 testname=GenericSystemTest
 arglist="-p input/GenericSystemTest.params -c checkpoints/Checkpoint6 --testall"
 cd "$testname"
 runandecho $testname $testname Debug/$testname $arglist
 mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
-cd "$wd"
+cd "$workspacedir"
 
 #testname=GPUSystemTest
 #cd "$testname"
 #arglist="-d 0 -p input/test_gpu.params"
 #runandecho $testname $testname Debug/$testname $arglist
 #mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
-#cd "$wd"
+#cd "$workspacedir"
 echo "TODO: fix GPUSystemTest and maybe implement GPUs"
 
 testname=ImageSystemTest
@@ -210,21 +213,21 @@ arglist="-p input/multiframe_SystemTest.params"
 cd "$testname"
 runandecho $testname $testname Debug/$testname $arglist
 mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
-cd "$wd"
+cd "$workspacedir"
 
 testname=ImportParamsTest
 arglist="-p input/ImportParamsTest.params"
 cd "$testname"
 runandecho $testname $testname Debug/$testname $arglist
 mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
-cd "$wd"
+cd "$workspacedir"
 
 testname=InitWeightsTest
 arglist="-p input/test_initweights.params"
 cd "$testname"
 runandecho $testname $testname Debug/$testname $arglist
 mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
-cd "$wd"
+cd "$workspacedir"
 
 testname=KernelTest
 logfilebasename=test_kernel
@@ -232,7 +235,7 @@ arglist="-p input/test_kernel.params"
 cd "$testname"
 runandecho $testname $logfilebasename Debug/$testname $arglist
 mpi_np2_np4_runandecho $testname $logfilebasename Debug/$testname $arglist
-cd "$wd"
+cd "$workspacedir"
 
 testname=KernelTest
 logfilebasename=test_kernel_normalizepost_shrunken
@@ -240,195 +243,195 @@ arglist="-p input/test_kernel_normalizepost_shrunken.params"
 cd "$testname"
 runandecho $testname $logfilebasename Debug/$testname $arglist
 mpi_np2_np4_runandecho $testname $logfilebasename Debug/$testname $arglist
-cd "$wd"
+cd "$workspacedir"
 
 testname=LayerPhaseTest
 arglist="-p input/LayerPhaseTest.params"
 cd "$testname"
 runandecho $testname $testname Debug/$testname $arglist
 mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
-cd "$wd"
+cd "$workspacedir"
 
 testname=LayerRestartTest
 arglist=""
 cd "$testname"
 runandecho $testname $testname Debug/$testname $arglist
 mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
-cd "$wd"
+cd "$workspacedir"
 
 testname=LIFTest
 arglist="-p input/LIFTest.params"
 cd "$testname"
 runandecho $testname $testname Debug/$testname $arglist
 mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
-cd "$wd"
+cd "$workspacedir"
 
 testname=MarginWidthTest
 arglist="-p input/MarginWidthTest.params"
 cd "$testname"
 runandecho $testname $testname Debug/$testname $arglist
 mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
-cd "$wd"
+cd "$workspacedir"
 
 testname=MatchingPursuitTest
 arglist=""
 cd "$testname"
 runandecho $testname $testname Debug/$testname $arglist
 mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
-cd "$wd"
+cd "$workspacedir"
 
 testname=MLPTest
 arglist=""
 cd "$testname"
 runandecho $testname $testname Debug/$testname $arglist
 mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
-cd "$wd"
+cd "$workspacedir"
 
 testname=MovieSystemTest
 arglist="-p input/MovieSystemTest.params"
 cd "$testname"
 runandecho $testname $testname Debug/$testname $arglist
 mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
-cd "$wd"
+cd "$workspacedir"
 
 testname=MPITest2
 arglist="-p input/MPI_test.params"
 cd "$testname"
 runandecho $testname $testname Debug/$testname $arglist
 mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
-cd "$wd"
+cd "$workspacedir"
 
 testname=NormalizeSystemTest
 arglist="-p input/NormalizeSystemTest.params"
 cd "$testname"
 runandecho $testname $testname Debug/$testname $arglist
-cd "$wd"
+cd "$workspacedir"
 
 testname=ParameterSweepTest
 cd "$testname"
 arglist="-p input/ParameterSweepTest.params"
 runandecho $testname $testname Debug/$testname $arglist
 mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
-cd "$wd"
+cd "$workspacedir"
 
 testname=PlasticConnTest
 cd "$testname"
 arglist="-p input/PlasticConnTest.params"
 runandecho $testname $testname Debug/$testname $arglist
 mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
-cd "$wd"
+cd "$workspacedir"
 
 testname=RandStateSystemTest
 cd "$testname"
 arglist="-p input/RandStateSystemTest.params"
 runandecho $testname $testname Debug/$testname $arglist
 mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
-cd "$wd"
+cd "$workspacedir"
 
 testname=ReadArborFileTest
 cd "$testname"
 arglist="-p input/ReadArborFileTest.params"
 runandecho $testname $testname Debug/$testname $arglist
 mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
-cd "$wd"
+cd "$workspacedir"
 
 testname=ReceiveFromPostTest
 cd "$testname"
 arglist="-p input/postTest.params"
 runandecho $testname $testname Debug/$testname $arglist
 mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
-cd "$wd"
+cd "$workspacedir"
 
 testname=ShrunkenPatchFlagTest
 cd "$testname"
 arglist="-p input/ShrunkenPatchFlagTest.params" # parameter filename is in main()
 runandecho $testname $testname Debug/$testname $arglist
 mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
-cd "$wd"
+cd "$workspacedir"
 
 testname=ShrunkenPatchTest
 cd "$testname"
 arglist="" # parameter filename is in main()
 runandecho $testname $testname Debug/$testname $arglist
 mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
-cd "$wd"
+cd "$workspacedir"
 
 testname=StochasticReleaseTest
 cd "$testname"
 arglist="-p input/StochasticReleaseTest.params"
 runandecho $testname $testname Debug/$testname $arglist
 mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
-cd "$wd"
+cd "$workspacedir"
 
 testname=test_border_activity
 cd "$testname"
 arglist=""
 runandecho $testname $testname Debug/$testname $arglist
 mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
-cd "$wd"
+cd "$workspacedir"
 
 testname=test_cocirc
 cd "$testname"
 arglist="-p input/test_cocirc.params"
 runandecho $testname $testname Debug/$testname $arglist
 mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
-cd "$wd"
+cd "$workspacedir"
 
 testname=test_constant_input
 cd "$testname"
 arglist="-p input/test_constant_input.params"
 runandecho $testname $testname Debug/$testname $arglist
 mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
-cd "$wd"
+cd "$workspacedir"
 
 testname=test_delta
 cd "$testname"
 arglist=""
 runandecho $testname $testname Debug/$testname $arglist
-cd "$wd"
+cd "$workspacedir"
 
 testname=test_delta_pos
 cd "$testname"
 arglist=""
 runandecho $testname $testname Debug/$testname $arglist
-cd "$wd"
+cd "$workspacedir"
 
 testname=test_extend_border
 cd "$testname"
 arglist=""
 runandecho $testname $testname Debug/$testname $arglist
-cd "$wd"
+cd "$workspacedir"
 
 testname=test_gauss2d
 cd "$testname"
 arglist=""
 runandecho $testname $testname Debug/$testname $arglist
-cd "$wd"
+cd "$workspacedir"
 
 testname=test_kg
 cd "$testname"
 arglist=""
 runandecho $testname $testname Debug/$testname $arglist
-cd "$wd"
+cd "$workspacedir"
 
 testname=test_kxpos
 cd "$testname"
 arglist=""
 runandecho $testname $testname Debug/$testname $arglist
-cd "$wd"
+cd "$workspacedir"
 
 testname=test_kypos
 cd "$testname"
 arglist=""
 runandecho $testname $testname Debug/$testname $arglist
-cd "$wd"
+cd "$workspacedir"
 
 tetstname=test_mirror_BCs
 cd "$testname"
 arglist=""
 runandecho $testname $testname Debug/$testname $arglist
 mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
-cd "$wd"
+cd "$workspacedir"
 
 testname=test_mpi_specifyrowscolumns
 if test $usempi -eq 1
@@ -439,53 +442,53 @@ then
 else
     echo "Skipping MPI-only test $testname"
 fi
-cd "$wd"
+cd "$workspacedir"
 
 testname=test_nearby_neighbor
 cd "$testname"
 arglist=""
 runandecho $testname $testname Debug/$testname $arglist
-cd "$wd"
+cd "$workspacedir"
 
 testname=test_patch_head
 cd "$testname"
 arglist=""
 runandecho $testname $testname Debug/$testname $arglist
-cd "$wd"
+cd "$workspacedir"
 
 testname=test_post_weights
 cd "$testname"
 arglist="-p input/test_post_weights.params"
 runandecho $testname $testname Debug/$testname $arglist
 mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
-cd "$wd"
+cd "$workspacedir"
 
 testname=test_sign
 cd "$testname"
 arglist=""
 runandecho $testname $testname Debug/$testname $arglist
-cd "$wd"
+cd "$workspacedir"
 
 testname=TriggerTest
 arglist="-p input/TriggerTest.params"
 cd "$testname"
 runandecho $testname $testname Debug/$testname $arglist
 mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
-cd "$wd"
+cd "$workspacedir"
 
 testname=TransposeConnTest
 cd "$testname"
 arglist="" # parameter filename is in main()
 runandecho $testname $testname Debug/$testname $arglist
 mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
-cd "$wd"
+cd "$workspacedir"
 
 testname=WindowSystemTest
 cd "$testname"
 arglist="-p input/postTest.params"
 runandecho $testname $testname Debug/$testname $arglist
 mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
-cd "$wd"
+cd "$workspacedir"
 
 status=0
 if test -n "$fails"
