@@ -631,6 +631,8 @@ int Image::scatterImageFileGDAL(const char * filename, int xOffset, int yOffset,
       int dest = -1;
       const int tag = 13;
 
+      srand(time(NULL));
+      int generatejitter = rand();
       for( dest = 1; dest < nyProcs*nxProcs; dest++ ) {
          int col = columnFromRank(dest,nyProcs,nxProcs);
          int row = rowFromRank(dest,nyProcs,nxProcs);
@@ -654,8 +656,7 @@ int Image::scatterImageFileGDAL(const char * filename, int xOffset, int yOffset,
 
                 int jitter_y = 0;
                 if (yOffset > 0){
-                   srand(time(NULL));
-                   jitter_y = rand() % min(y_off*2,yOffset*2) - min(y_off,yOffset);
+                   jitter_y = generatejitter % min(y_off*2,yOffset*2) - min(y_off,yOffset);
                 }
 
                 kx = xImageSize/nxProcs * col;
@@ -673,8 +674,7 @@ int Image::scatterImageFileGDAL(const char * filename, int xOffset, int yOffset,
 
                 int jitter_x = 0;
                 if (xOffset > 0){
-                   srand(time(NULL));
-                   jitter_x = rand() % min(x_off*2,xOffset*2) - min(x_off,xOffset);
+                   jitter_x = generatejitter % min(x_off*2,xOffset*2) - min(x_off,xOffset);
                 }
 
                 kx = new_x * col;
@@ -717,8 +717,7 @@ fprintf(stderr, "[%2d]: scatterImageFileGDAL: sending to %d xSize==%d"
 
             int jitter_y = 0;
             if (yOffset > 0){
-               srand(time(NULL));
-               jitter_y = rand() % min(y_off*2,yOffset*2) - min(y_off,yOffset);
+               jitter_y = generatejitter % min(y_off*2,yOffset*2) - min(y_off,yOffset);
             }
 
             //fprintf(stderr, "kx = %d, ky = %d, nx = %d, new_y = %d", 0, 0, xImageSize/nxProcs, new_y);
@@ -732,8 +731,7 @@ fprintf(stderr, "[%2d]: scatterImageFileGDAL: sending to %d xSize==%d"
 
             int jitter_x = 0;
             if (xOffset > 0){
-               srand(time(NULL));
-               jitter_x = rand() % min(x_off*2,xOffset*2) - min(x_off,xOffset);
+               jitter_x = generatejitter % min(x_off*2,xOffset*2) - min(x_off,xOffset);
             }
 
             //fprintf(stderr, "xImageSize = %d, xTotalSize = %d, yImageSize = %d, yTotalSize = %d", xImageSize, xTotalSize, yImageSize, yTotalSize);
