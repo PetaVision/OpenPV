@@ -30,7 +30,7 @@ StatsProbe::StatsProbe()
 
 StatsProbe::~StatsProbe()
 {
-   int rank = getTargetLayer()->getParent()->columnId();
+   int rank = getParent()->columnId();
    if (rank==0) {
       iotimer->fprint_time(stdout);
       mpitimer->fprint_time(stdout);
