@@ -44,6 +44,7 @@ int BaseConnectionProbe::communicateInitInfo() {
    int status = setTargetConn(targetName);
    if (status == PV_SUCCESS){
       targetConn->insertProbe(this);
+      owner = targetConn;
    }
    return status;
 }

@@ -35,6 +35,7 @@ BaseProbe::~BaseProbe()
 int BaseProbe::initialize_base() {
    name = NULL;
    parent = NULL;
+   owner = NULL;
    outputstream = NULL;
    targetName = NULL;
    msgparams = NULL;
@@ -58,6 +59,7 @@ int BaseProbe::initialize(const char * probeName, HyPerCol * hc)
    ioParams(PARAMS_IO_READ);
    //Add probe to list of probes
    parent->addBaseProbe(this); // Can't call HyPerLayer::insertProbe yet because HyPerLayer is not known to be instantiated until the communicateInitInfo stage
+   owner = (void *) parent;
    return PV_SUCCESS;
 }
 

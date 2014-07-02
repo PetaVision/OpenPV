@@ -41,6 +41,7 @@ public:
 
    const char * getName() {return name;}
    const char * getTargetName() {return targetName;}
+   void const * getOwner() { return owner;}
 
 protected:
    BaseProbe();
@@ -72,6 +73,7 @@ protected:
    HyPerLayer * triggerLayer;
    double triggerOffset;
    HyPerCol * parent;
+   void * owner; // the object responsible for calling the probe's destructor
    char * name;
    char * targetName;
 
