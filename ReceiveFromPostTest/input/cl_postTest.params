@@ -1,12 +1,12 @@
 debugParsing = false;
 
 HyPerCol "column" = {
-    nx = 32; //1242;  // KITTI synced value
-    ny = 32;  //218;
+    nx = 1024; //1242;  // KITTI synced value
+    ny = 1024;  //218;
     dt = 1.0;
     randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
     startTime = 0.0;
-    numSteps = 5;       // Depends on number of VINE video frames
+    numSteps = 3;       // Depends on number of VINE video frames
     progressStep = 1;
     //Change this
     outputPath = "output/";
@@ -106,8 +106,8 @@ KernelConn "origConn" = {
     preLayerName = "outputRecvPost";
     postLayerName = "input";
     channelCode = 2; //Inhib b, doing nothing to input
-    nxp = 6; 
-    nyp = 6; 
+    nxp = 10; 
+    nyp = 10; 
     nfp = 96;
     numAxonalArbors = 1;
     initFromLastFlag = 0;  // 1;  // restart
