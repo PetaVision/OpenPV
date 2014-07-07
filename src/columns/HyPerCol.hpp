@@ -177,6 +177,7 @@ private:
    virtual void ioParam_dtScaleMin(enum ParamsIOFlag ioFlag);
    virtual void ioParam_dtChangeMax(enum ParamsIOFlag ioFlag);
    virtual void ioParam_dtChangeMin(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_dtMinToleratedTimeScale(enum ParamsIOFlag ioFlag);
    virtual void ioParam_stopTime(enum ParamsIOFlag ioFlag);
    virtual void ioParam_progressInterval(enum ParamsIOFlag ioFlag);
    virtual void ioParam_writeProgressToErr(enum ParamsIOFlag ioFlag);
@@ -196,6 +197,7 @@ private:
    virtual void ioParam_deleteOlderCheckpoints(enum ParamsIOFlag ioFlag);
    virtual void ioParam_suppressLastOutput(enum ParamsIOFlag ioFlag);
    virtual void ioParam_printTimescales(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_errorOnNotANumber(enum ParamsIOFlag ioFlag);
 
    int checkDirExists(const char * dirname, struct stat * pathstat);
 
@@ -260,6 +262,7 @@ private:
    double timeScaleMin;     // minimum value of timeScale (not really a minimum, actually sets starting/iniital value of deltaTime)
    double changeTimeScaleMax;     // maximum change in value of timeScale (prevents deltaTime from growing too quickly)
    double changeTimeScaleMin;     // typically 0 or negative, maximum DECREASE in timeScale allowed before resetting timeScale -> timeScaleMin
+   double dtMinToleratedTimeScale;// Exits with an error if any layer returns a timeScale between zero and this amount
    double progressInterval; // Output progress after simTime increases by this amount.
    double nextProgressTime; // Next time to output a progress message
    bool writeProgressToErr;// Whether to write progress step to standard error (True) or standard output (False) (default is output)
@@ -311,6 +314,7 @@ private:
                                   // that needs a random seed gets a unique seed, and things are reproducible.
                                   //
    bool printTimescales;
+   bool errorOnNotANumber;        // If true, check each layer's activity buffer for not-a-numbers and exit with an error if any appear
 
    int numThreads;
 

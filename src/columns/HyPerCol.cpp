@@ -134,6 +134,7 @@ int HyPerCol::initialize_base() {
    timeScaleMin = 1.0;
    changeTimeScaleMax = 0.0;
    changeTimeScaleMin = 0.0;
+   dtMinToleratedTimeScale = 1.0e-4;
    // progressStep = 1L; // deprecated Dec 18, 2013
    progressInterval = 1.0;
    writeProgressToErr = false;
@@ -166,6 +167,7 @@ int HyPerCol::initialize_base() {
    random_seed = 0;
    random_seed_obj = 0;
    printTimescales = true; //Defaults to true
+   errorOnNotANumber = false;
    numThreads = 1;
 
    return PV_SUCCESS;
@@ -443,6 +445,7 @@ int HyPerCol::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_dtScaleMin(ioFlag);
    ioParam_dtChangeMax(ioFlag);
    ioParam_dtChangeMin(ioFlag);
+   ioParam_dtMinToleratedTimeScale(ioFlag);
    ioParam_stopTime(ioFlag);
    ioParam_progressInterval(ioFlag);
    ioParam_writeProgressToErr(ioFlag);
@@ -462,6 +465,7 @@ int HyPerCol::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_deleteOlderCheckpoints(ioFlag);
    ioParam_suppressLastOutput(ioFlag);
    ioParam_printTimescales(ioFlag);
+   ioParam_errorOnNotANumber(ioFlag);
    return PV_SUCCESS;
 }
 
@@ -617,6 +621,13 @@ void HyPerCol::ioParam_dtScaleMin(enum ParamsIOFlag ioFlag) {
    assert(!params->presentAndNotBeenRead(name, "dtAdaptFlag"));
    if (dtAdaptFlag) {
      ioParamValue(ioFlag, name, "dtScaleMin", &timeScaleMin, timeScaleMin);
+   }
+}
+
+void HyPerCol::ioParam_dtMinToleratedTimeScale(enum ParamsIOFlag ioFlag) {
+   assert(!params->presentAndNotBeenRead(name, "dtAdaptFlag"));
+   if (dtAdaptFlag) {
+      ioParamValue(ioFlag, name, "dtMinToleratedTimeScale", &dtMinToleratedTimeScale, dtMinToleratedTimeScale);
    }
 }
 
@@ -870,6 +881,11 @@ void HyPerCol::ioParam_printTimescales(enum ParamsIOFlag ioFlag) {
       ioParamValue(ioFlag, name, "printTimescales", &printTimescales, printTimescales);
    }
 }
+
+void HyPerCol::ioParam_errorOnNotANumber(enum ParamsIOFlag ioFlag) {
+   ioParamValue(ioFlag, name, "errorOnNotANumber", &errorOnNotANumber, errorOnNotANumber);
+}
+
 
 template <typename T>
 void HyPerCol::writeParam(const char * param_name, T value) {
@@ -1376,12 +1392,19 @@ int HyPerCol::initPublishers() {
      for(int l = 0; l < numLayers; l++) {
        double timeScaleTmp = layers[l]->getTimeScale();
        if (timeScaleTmp > 0.0){
-	 if (minTimeScaleTmp > 0.0){
-	   minTimeScaleTmp = timeScaleTmp < minTimeScaleTmp ? timeScaleTmp : minTimeScaleTmp;
-	 }
-	 else{
-	   minTimeScaleTmp = timeScaleTmp;
-	 }
+          if (timeScaleTmp < dtMinToleratedTimeScale) {
+             if (columnId()==0) {
+                fprintf(stderr, "Error: Layer \"%s\" has time scale %g, less than dtMinToleratedTimeScale=%g.\n", layers[l]->getName(), timeScaleTmp, dtMinToleratedTimeScale);
+             }
+             MPI_Barrier(icComm->communicator());
+             exit(EXIT_FAILURE);
+          }
+          if (minTimeScaleTmp > 0.0){
+             minTimeScaleTmp = timeScaleTmp < minTimeScaleTmp ? timeScaleTmp : minTimeScaleTmp;
+          }
+          else{
+             minTimeScaleTmp = timeScaleTmp;
+          }
        }
      }
      timeScaleTrue = minTimeScaleTmp;
@@ -1394,7 +1417,8 @@ int HyPerCol::initPublishers() {
        timeScale = oldTimeScale;
      }
      if (changeTimeScaleTrue < changeTimeScaleMin){
-       timeScale = timeScaleMin;
+        // timeScale = timeScaleMin;
+        timeScale = minTimeScaleTmp > 0.0 ? minTimeScaleTmp : timeScaleMin;
      }
      // deltaTimeAdapt is only used internally to set scale of each update step
      double deltaTimeAdapt = timeScale * deltaTimeBase;
@@ -1446,7 +1470,7 @@ int HyPerCol::advanceTime(double sim_time)
    for (int c = 0; c < numConnections; c++) {
       status = connections[c]->updateStateWrapper(simTime, deltaTimeBase);
       if (!exitAfterUpdate) {
-		  exitAfterUpdate = status == PV_EXIT_NORMALLY;
+         exitAfterUpdate = status == PV_EXIT_NORMALLY;
       }
    }
    for (int c = 0; c < numConnections; c++) {
@@ -1476,9 +1500,9 @@ int HyPerCol::advanceTime(double sim_time)
       for(int l = 0; l < numLayers; l++) {
          if (layers[l]->getPhase() != phase) continue;
          status = layers[l]->updateStateWrapper(simTime, deltaTimeAdapt);
-		 if (!exitAfterUpdate) {
-			 exitAfterUpdate = status == PV_EXIT_NORMALLY;
-		 }
+         if (!exitAfterUpdate) {
+            exitAfterUpdate = status == PV_EXIT_NORMALLY;
+         }
       }
 
       // This loop separate from the update layer loop above
@@ -1501,16 +1525,35 @@ int HyPerCol::advanceTime(double sim_time)
          icComm->increaseTimeLevel(layers[l]->getLayerId());
 
          layers[l]->publish(icComm, simTime);
-     }
+      }
 
-     // wait for all published data to arrive
-     //
-     for (int l = 0; l < numLayers; l++) {
+      // wait for all published data to arrive
+      //
+      char brokenlayers[numLayers];
+      memset(brokenlayers, 0, (size_t) numLayers);
+      for (int l = 0; l < numLayers; l++) {
          if (layers[l]->getPhase() != phase) continue;
          layers[l]->waitOnPublish(icComm);
          //
          //    // also calls layer probes
          layers[l]->outputState(simTime); // also calls layer probes' outputState
+         if (errorOnNotANumber) {
+            for (int n=0; n<layers[l]->getNumExtended(); n++) {
+               pvadata_t a = layers[l]->getLayerData()[n];
+               if (a!=a) {
+                  status = PV_FAILURE;
+                  brokenlayers[l] = 1;
+               }
+            }
+         }
+      }
+      if (status==PV_FAILURE) {
+         for (int l=0; l<numLayers;l++) {
+            if (brokenlayers[l]) {
+               fprintf(stderr, "Layer \"%s\" has not-a-number values in the activity buffer.  Exiting.\n", layers[l]->getName());
+            }
+         }
+         exit(EXIT_FAILURE);
       }
 
    }
@@ -1523,7 +1566,7 @@ int HyPerCol::advanceTime(double sim_time)
    outputState(simTime);
 
    if (exitAfterUpdate) {
-	   status = PV_EXIT_NORMALLY;
+      status = PV_EXIT_NORMALLY;
    }
 
    return status;
