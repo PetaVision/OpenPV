@@ -63,14 +63,14 @@ int InterColComm::resizePublishersArray(int newSize) {
     * create a new array of size newSize, and copy over the existing
     * publishers.  publisherArraySize is updated, to equal newSize.
     * If newSize <= publisherArraySize, do nothing
-    * Returns EXIT_SUCCESS if resizing was successful
+    * Returns PV_SUCCESS if resizing was successful
     * (or not needed; i.e. if newSize<=publisherArraySize)
-    * Returns EXIT_FAILURE if unable to allocate a new array; in this
+    * Returns PV_FAILURE if unable to allocate a new array; in this
     * (unlikely) case, publishers and publisherArraySize are unchanged.
     */
    if( newSize > publisherArraySize ) {
       Publisher ** newPublishers = (Publisher **) malloc( newSize * sizeof(Publisher *) );
-      if( newPublishers == NULL) return EXIT_FAILURE;
+      if( newPublishers == NULL) return PV_FAILURE;
       for( int k=0; k< publisherArraySize; k++ ) {
          newPublishers[k] = publishers[k];
       }
@@ -81,7 +81,7 @@ int InterColComm::resizePublishersArray(int newSize) {
       publishers = newPublishers;
       publisherArraySize = newSize;
    }
-   return EXIT_SUCCESS;
+   return PV_SUCCESS;
 }
 
 int InterColComm::subscribe(HyPerConn* conn)
