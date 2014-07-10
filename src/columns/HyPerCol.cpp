@@ -1388,6 +1388,8 @@ int HyPerCol::initPublishers() {
      // forces timeScale to remain constant if Error is changing too rapidly
      // if change in timeScaleTrue is negative, revert to minimum timeScale 
      // TODO?? add ability to revert all dynamical variables to previous values if Error increases?
+
+     // set the true timeScale to the minimum timeScale returned by each layer, stored in minTimeScaleTmp
      double minTimeScaleTmp = -1;
      for(int l = 0; l < numLayers; l++) {
        double timeScaleTmp = layers[l]->getTimeScale();
@@ -1408,18 +1410,32 @@ int HyPerCol::initPublishers() {
        }
      }
      timeScaleTrue = minTimeScaleTmp;
+
+     // force the minTimeScaleTmp to be <= timeScaleMax
      minTimeScaleTmp = minTimeScaleTmp < timeScaleMax ? minTimeScaleTmp : timeScaleMax;
+
+     // set the timeScale to minTimeScaleTmp iff minTimeScaleTmp > 0, otherwise default to timeScaleMin
      timeScale = minTimeScaleTmp > 0.0 ? minTimeScaleTmp : timeScaleMin;
+
+     // only let the timeScale change by a maximum of changeTimeScaleMax on any given time step
      double changeTimeScale = timeScale - oldTimeScale;
      timeScale = changeTimeScale < changeTimeScaleMax ? timeScale : oldTimeScale + changeTimeScaleMax;
+
+     // keep the timeScale constant if the error is decreasing too rapidly
      double changeTimeScaleTrue = timeScaleTrue - oldTimeScaleTrue;
      if (changeTimeScaleTrue > changeTimeScaleMax){
        timeScale = oldTimeScale;
      }
+
+     // if error is increasing, retreat back to the MIN(timeScaleMin, minTimeScaleTmp)
      if (changeTimeScaleTrue < changeTimeScaleMin){
-        // timeScale = timeScaleMin;
-        timeScale = minTimeScaleTmp > 0.0 ? minTimeScaleTmp : timeScaleMin;
+       if (minTimeScaleTmp > 0.0)
+	 timeScale =  minTimeScaleTmp < timeScaleMin ? minTimeScaleTmp : timeScaleMin;
+       else{
+        timeScale = timeScaleMin;
+       }
      }
+
      // deltaTimeAdapt is only used internally to set scale of each update step
      double deltaTimeAdapt = timeScale * deltaTimeBase;
      return deltaTimeAdapt;
