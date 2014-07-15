@@ -52,7 +52,7 @@ static void copyFromLocBuffer(int buf[], PVLayerLoc * loc)
 int getFileType(const char * filename)
 {
    const char * ext = strrchr(filename, '.');
-   if (strcmp(ext, ".pvp") == 0) {
+   if (ext && strcmp(ext, ".pvp") == 0) {
       return PVP_FILE_TYPE;
    }
    return 0;
