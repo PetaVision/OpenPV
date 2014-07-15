@@ -1,35 +1,35 @@
-function writepvpkernelfile(filename, data)
-   % Usage: writepvpkernelfile(filename, data)
+function writepvpsharedweightfile(filename, data)
+   % Usage: writepvpsharedweightfile(filename, data)
    % filename is the pvp file to be created.  If the file already
    % exists it will be clobbered.
    %
-   % data is a cell structure representing the weights, in the same
+   % data is a cell array representing the weights, in the same
    % format returned by readpvpfile:
    %
    % data{k} is a structure with two fields, time and values.
    % data{k}.time is the timestamp of frame k.
    % data{k}.values is a cell structure, one element per arbor.
-   %     (HyPerConns store their patches in a 3-d cell structure, the
-   %      first element for x-location of the patch, the second for
+   %     (Non-shared weight pvp files store their patches in a 3-d cell array,
+   %      the first element for x-location of the patch, the second for
    %      y-location, and the third for arbor number.
-   %      readpvpfile applied to a kernel file therefore returns a
-   %      cell array of size (1,1,numArbors).  writepvpkernelfile
+   %      readpvpfile applied to a shared-weight file therefore returns a
+   %      cell array of size (1,1,numArbors).  writepvpsharedweightfile
    %      just uses numel of the cell array to get numArbors.)
    % data{k}.values{j} is arbor number j, a 4-dimensional array.
    % data{k}.values{j}(x,y,f,k) is the weight at location (x,y,f)
    % of data patch k.
    
    if ~ischar(filename) || ~isvector(filename) || size(filename,1)~=1
-       error('writepvpkernelfile:filenamenotstring', 'filename must be a string');
+       error('writepvpsharedweightfile:filenamenotstring', 'filename must be a string');
    end%if
    
    if ~iscell(data)
-       error('writepvpkernelfile:datanotcell', 'data must be a cell array, one element per frame');
+       error('writepvpsharedweightfile:datanotcell', 'data must be a cell array, one element per frame');
    end%if
    
    fid = fopen(filename, 'w');
    if fid < 0
-       error('writepvpkernelfile:fopenerror', 'unable to open %s', filename);
+       error('writepvpsharedweightfile:fopenerror', 'unable to open %s', filename);
    end%if
    
    errorpresent = 0;
@@ -63,7 +63,7 @@ function writepvpkernelfile(filename, data)
        % Each frame has its own header
        hdr(1) = 104; % Number of bytes in header
        hdr(2) = 26;  % Number of 4-byte values in header
-       hdr(3) = 5;   % File type for kernels
+       hdr(3) = 5;   % File type for shared-weight connections
        hdr(4) = 1;   % Presynaptic nx, not used by weights
        hdr(5) = 1;   % Presynaptic ny, not used by weights
        hdr(6) = numpatches; % Presynaptic nf, assuming it's the same as the number of weight patches
@@ -92,7 +92,7 @@ function writepvpkernelfile(filename, data)
            for patchno=1:numpatches
                fwrite(fid,nxp,'uint16');
                fwrite(fid,nyp,'uint16');
-               fwrite(fid,0,'uint32'); % Offset for kernels is always 0.
+               fwrite(fid,0,'uint32'); % Offset for shared weights is always 0.
                fwrite(fid,permute(data{frameno}.values{arbor}(:,:,:,patchno),[3 1 2]),'single');
            end%for
        end%for
