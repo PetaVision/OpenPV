@@ -69,6 +69,6 @@ function increaseNumFeatInFile(pvpFile, newNF, wMinInit, wMaxInit, sparseFractio
    end%for
    end%for
    newSize = size(data{1}.values{1})
-   writepvpkernelfile(outFile, data);
+   writepvpsharedweightfile(outFile, data);
 
 end%function
