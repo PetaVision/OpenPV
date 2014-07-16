@@ -189,6 +189,9 @@ if isempty(errorstring)
                             % octave has trouble with multidim cell arrays
                             patchesperproc = hdr.numPatches/(hdr.nxprocs*hdr.nyprocs);
                             data_tmp.values{cellindex} = nan(hdr.nxp,hdr.nyp,hdr.nfp,patchesperproc);
+                            data_tmp.nx{cellindex} = zeros(patchesperproc,1);
+                            data_tmp.ny{cellindex} = zeros(patchesperproc,1);
+                            data_tmp.offset{cellindex} = zeros(patchesperproc,1);
                             for p=1:patchesperproc
                                 patchnx = fread(fid,1,'uint16');
                                 patchny = fread(fid,1,'uint16');
@@ -198,9 +201,9 @@ if isempty(errorstring)
                                 tempdata = permute(tempdata,[2 3 1]);
                                 % Need to move shrunken patches
                                 data_tmp.values{cellindex}(:,:,:,p) = tempdata;
-                                data_tmp.nx{cellindex} = patchnx;
-                                data_tmp.ny{cellindex} = patchny;
-                                data_tmp.offset{cellindex} = patchoffset;
+                                data_tmp.nx{cellindex}(p,1) = patchnx;
+                                data_tmp.ny{cellindex}(p,1) = patchny;
+                                data_tmp.offset{cellindex}(p,1) = patchoffset;
                             end%for
                             if hdr.datatype==1 % byte-type.  If float-type, no rescaling took place.
                                 data_tmp.values{cellindex} = data_tmp.values{1}/255*(hdr.wMax-hdr.wMin)+hdr.wMin;
