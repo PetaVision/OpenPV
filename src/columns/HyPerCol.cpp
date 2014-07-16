@@ -1202,19 +1202,20 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
    int status = PV_SUCCESS;
    while (simTime < stopTime - deltaTime/2.0 && status != PV_EXIT_NORMALLY) {
       if( checkpointWriteFlag && advanceCPWriteTime() ) {
-         if ( !checkpointReadFlag || strcmp(checkpointReadDir, checkpointWriteDir) || cpReadDirIndex!=currentStep ) {
+         char cpDir[PV_PATH_MAX];
+         int chars_printed = snprintf(cpDir, PV_PATH_MAX, "%s/Checkpoint%ld", checkpointWriteDir, currentStep);
+         if(chars_printed >= PV_PATH_MAX) {
+            if (icComm->commRank()==0) {
+               fprintf(stderr,"HyPerCol::run error.  Checkpoint directory \"%s/Checkpoint%ld\" is too long.\n", checkpointWriteDir, currentStep);
+               abort();
+            }
+         }
+         if ( !checkpointReadFlag || strcmp(checkpointReadDir, cpDir) ) {
+            /* Note: the strcmp isn't perfect, since there are multiple ways to specify a path that points to the same directory */
             if (icComm->commRank()==0) {
                printf("Checkpointing, simTime = %f\n", simulationTime());
             }
 
-            char cpDir[PV_PATH_MAX];
-            int chars_printed = snprintf(cpDir, PV_PATH_MAX, "%s/Checkpoint%ld", checkpointWriteDir, currentStep);
-            if(chars_printed >= PV_PATH_MAX) {
-               if (icComm->commRank()==0) {
-                  fprintf(stderr,"HyPerCol::run error.  Checkpoint directory \"%s/Checkpoint%ld\" is too long.\n", checkpointWriteDir, currentStep);
-                  abort();
-               }
-            }
             checkpointWrite(cpDir);
          }
          else {
@@ -1373,73 +1374,73 @@ int HyPerCol::initPublishers() {
    return PV_SUCCESS;
 }
 
-  double HyPerCol::adaptTimeScale(){
-     // query all layers to determine minimum timeScale > 0
-     // by default, HyPerLayer::getTimeScale returns -1
-     // initialize timeScaleMin to first returned timeScale > 0
-     // Movie returns timeScale = 1 when expecting to load a new frame 
-     // on next time step based on current value of deltaTime
-     double oldTimeScale = timeScale;
-     double oldTimeScaleTrue = timeScaleTrue;
-     //double timeScaleMin = -1.0;
-     //const double timeScaleMax = 5.0;             // maxiumum value of timeScale
-     //const double changeTimeScaleMax = 0.05;      // maximum change in timeScale from previous time step
-     //const double changeTimeScaleTrueMax = 0.05;  // if change in timeScaleTrue exceeds changeTimeScaleMax, timeScale does not increase; 
-     // forces timeScale to remain constant if Error is changing too rapidly
-     // if change in timeScaleTrue is negative, revert to minimum timeScale 
-     // TODO?? add ability to revert all dynamical variables to previous values if Error increases?
+double HyPerCol::adaptTimeScale(){
+   // query all layers to determine minimum timeScale > 0
+   // by default, HyPerLayer::getTimeScale returns -1
+   // initialize timeScaleMin to first returned timeScale > 0
+   // Movie returns timeScale = 1 when expecting to load a new frame
+   // on next time step based on current value of deltaTime
+   double oldTimeScale = timeScale;
+   double oldTimeScaleTrue = timeScaleTrue;
+   //double timeScaleMin = -1.0;
+   //const double timeScaleMax = 5.0;             // maxiumum value of timeScale
+   //const double changeTimeScaleMax = 0.05;      // maximum change in timeScale from previous time step
+   //const double changeTimeScaleTrueMax = 0.05;  // if change in timeScaleTrue exceeds changeTimeScaleMax, timeScale does not increase;
+   // forces timeScale to remain constant if Error is changing too rapidly
+   // if change in timeScaleTrue is negative, revert to minimum timeScale
+   // TODO?? add ability to revert all dynamical variables to previous values if Error increases?
 
-     // set the true timeScale to the minimum timeScale returned by each layer, stored in minTimeScaleTmp
-     double minTimeScaleTmp = -1;
-     for(int l = 0; l < numLayers; l++) {
-       double timeScaleTmp = layers[l]->getTimeScale();
-       if (timeScaleTmp > 0.0){
-          if (timeScaleTmp < dtMinToleratedTimeScale) {
-             if (columnId()==0) {
-                fprintf(stderr, "Error: Layer \"%s\" has time scale %g, less than dtMinToleratedTimeScale=%g.\n", layers[l]->getName(), timeScaleTmp, dtMinToleratedTimeScale);
-             }
-             MPI_Barrier(icComm->communicator());
-             exit(EXIT_FAILURE);
-          }
-          if (minTimeScaleTmp > 0.0){
-             minTimeScaleTmp = timeScaleTmp < minTimeScaleTmp ? timeScaleTmp : minTimeScaleTmp;
-          }
-          else{
-             minTimeScaleTmp = timeScaleTmp;
-          }
-       }
-     }
-     timeScaleTrue = minTimeScaleTmp;
+   // set the true timeScale to the minimum timeScale returned by each layer, stored in minTimeScaleTmp
+   double minTimeScaleTmp = -1;
+   for(int l = 0; l < numLayers; l++) {
+      double timeScaleTmp = layers[l]->getTimeScale();
+      if (timeScaleTmp > 0.0){
+         if (timeScaleTmp < dtMinToleratedTimeScale) {
+            if (columnId()==0) {
+               fprintf(stderr, "Error: Layer \"%s\" has time scale %g, less than dtMinToleratedTimeScale=%g.\n", layers[l]->getName(), timeScaleTmp, dtMinToleratedTimeScale);
+            }
+            MPI_Barrier(icComm->communicator());
+            exit(EXIT_FAILURE);
+         }
+         if (minTimeScaleTmp > 0.0){
+            minTimeScaleTmp = timeScaleTmp < minTimeScaleTmp ? timeScaleTmp : minTimeScaleTmp;
+         }
+         else{
+            minTimeScaleTmp = timeScaleTmp;
+         }
+      }
+   }
+   timeScaleTrue = minTimeScaleTmp;
 
-     // force the minTimeScaleTmp to be <= timeScaleMax
-     minTimeScaleTmp = minTimeScaleTmp < timeScaleMax ? minTimeScaleTmp : timeScaleMax;
+   // force the minTimeScaleTmp to be <= timeScaleMax
+   minTimeScaleTmp = minTimeScaleTmp < timeScaleMax ? minTimeScaleTmp : timeScaleMax;
 
-     // set the timeScale to minTimeScaleTmp iff minTimeScaleTmp > 0, otherwise default to timeScaleMin
-     timeScale = minTimeScaleTmp > 0.0 ? minTimeScaleTmp : timeScaleMin;
+   // set the timeScale to minTimeScaleTmp iff minTimeScaleTmp > 0, otherwise default to timeScaleMin
+   timeScale = minTimeScaleTmp > 0.0 ? minTimeScaleTmp : timeScaleMin;
 
-     // only let the timeScale change by a maximum of changeTimeScaleMax on any given time step
-     double changeTimeScale = timeScale - oldTimeScale;
-     timeScale = changeTimeScale < changeTimeScaleMax ? timeScale : oldTimeScale + changeTimeScaleMax;
+   // only let the timeScale change by a maximum of changeTimeScaleMax on any given time step
+   double changeTimeScale = timeScale - oldTimeScale;
+   timeScale = changeTimeScale < changeTimeScaleMax ? timeScale : oldTimeScale + changeTimeScaleMax;
 
-     // keep the timeScale constant if the error is decreasing too rapidly
-     double changeTimeScaleTrue = timeScaleTrue - oldTimeScaleTrue;
-     if (changeTimeScaleTrue > changeTimeScaleMax){
-       timeScale = oldTimeScale;
-     }
+   // keep the timeScale constant if the error is decreasing too rapidly
+   double changeTimeScaleTrue = timeScaleTrue - oldTimeScaleTrue;
+   if (changeTimeScaleTrue > changeTimeScaleMax){
+      timeScale = oldTimeScale;
+   }
 
-     // if error is increasing, retreat back to the MIN(timeScaleMin, minTimeScaleTmp)
-     if (changeTimeScaleTrue < changeTimeScaleMin){
-       if (minTimeScaleTmp > 0.0)
-	 timeScale =  minTimeScaleTmp < timeScaleMin ? minTimeScaleTmp : timeScaleMin;
-       else{
-        timeScale = timeScaleMin;
-       }
-     }
+   // if error is increasing, retreat back to the MIN(timeScaleMin, minTimeScaleTmp)
+   if (changeTimeScaleTrue < changeTimeScaleMin){
+      if (minTimeScaleTmp > 0.0)
+         timeScale =  minTimeScaleTmp < timeScaleMin ? minTimeScaleTmp : timeScaleMin;
+      else{
+         timeScale = timeScaleMin;
+      }
+   }
 
-     // deltaTimeAdapt is only used internally to set scale of each update step
-     double deltaTimeAdapt = timeScale * deltaTimeBase;
-     return deltaTimeAdapt;
-  }
+   // deltaTimeAdapt is only used internally to set scale of each update step
+   double deltaTimeAdapt = timeScale * deltaTimeBase;
+   return deltaTimeAdapt;
+}
 
 int HyPerCol::advanceTime(double sim_time)
 {
