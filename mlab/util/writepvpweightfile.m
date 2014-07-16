@@ -17,6 +17,9 @@ function writepvpweightfile(filename, data, nxGlobalPre, nyGlobalPre, nfPre, nbP
     % ordering x,y,f is different from PetaVision's f,x,y.
     % (the minus ones are because matlab/octave is 1-indexed and PetaVision is zero-indexed.
     % Note that even if the patch is shrunken, it occupies a full-sized patch in data and in the pvpfile.
+    % readpvpfile() fills field names data{k}.nx, data{k}.ny, and data{k}.offset.  However,
+    % writepvpweightfile does not use those fields if they exist, but instead computes them
+    % the way petavision does.
     %
     % nxGlobalPre, nyGlobalPre, nfPre, nbPre are the dimensions of the presynaptic layer
     % in global coordinates.  nxGlobalPre must be an integer multiple of commColumns() and
@@ -50,7 +53,6 @@ function writepvpweightfile(filename, data, nxGlobalPre, nyGlobalPre, nfPre, nbP
         numyprocs = size(data{frameno}.values,2);
         numarbors = size(data{frameno}.values,3);
         numcells = numxprocs*numyprocs*numarbors;
-        keyboard;
         assert(numcells==numel(data{frameno}.values)); % will fail if data{frameno}.values is N-dimensional, N>=4
         if mod(nxGlobalPre,numxprocs) ~= 0
             msgid='nxglobalprenotmultiple';
@@ -183,10 +185,6 @@ end%function
 function [nx,ny,offset] = patchgeometry(nxLocalPre,nyLocalPre,nbPre,nxLocalPost,nyLocalPost,nxp,nyp,nfp)
     nxLocalPreExt = nxLocalPre+2*nbPre;
     nyLocalPreExt = nyLocalPre+2*nbPre;
-    nx = repmat(nxp,1,nxLocalPreExt);
-    ny = repmat(nyp,1,nyLocalPreExt);
-    offsetx = repmat(0,1,nxLocalPreExt);
-    offsety = repmat(0,1,nyLocalPreExt);
     offset = repmat(0, nxLocalPreExt, nyLocalPreExt);
     manytoonefactorx = max(nxLocalPre/nxLocalPost,1); % should do error checking since this should be an integer
     manytoonefactory = max(nyLocalPre/nyLocalPost,1);
@@ -197,31 +195,30 @@ function [nx,ny,offset] = patchgeometry(nxLocalPre,nyLocalPre,nbPre,nxLocalPost,
     [offsetx,nx] = patchgeometryonedimension(nxLocalPreExt, nbPre, nxLocalPost, nxp);
     for y=1:nyLocalPreExt
         for x=1:nxLocalPreExt
-            offset(x,y) = (offsety(x)*nxp+offsetx(x))*nfp; % can't use sub2ind because offsetx(x) could be 0 through nxp
+            offset(x,y) = (offsety(y)*nxp+offsetx(x))*nfp; % can't use sub2ind because offsetx(x) could be 0 through nxp
         end%for
     end%for
 end%function
 
 function [start,width] = patchgeometryonedimension(nLocalPreExt,nb,nLocalPostRes,patchwidth)
-    width = zeros(1,nLocalPreExt);
-    start = zeros(1,nLocalPreExt);
-    
     nLocalPreRes = nLocalPreExt-2*nb;
+    points = (-nb:nLocalPreRes+nb-1); % zero-indexed coordinates in restricted space of extended neurons
+    
     postFactor = max(nLocalPostRes/nLocalPreRes,1); % number of post-synaptic neurons in a unit cell
     preFactor = max(nLocalPreRes/nLocalPostRes,1); % number of pre-synaptic neurons in a unit cell
     assert(postFactor==round(postFactor));
     assert(preFactor==round(preFactor));
     radius = (patchwidth/postFactor - 1)/2; % measured in unit cells
     assert(radius==round(radius));
-    start = postFactor*((-nb:nLocalPreRes+nb-1)/preFactor-radius);
+    start = postFactor*((-points-preFactor+1)/preFactor+radius);
     start = max(start, 0);
     start = min(start, nLocalPostRes);
     start = floor(start);
-    width = (-nb:nLocalPreRes+nb-1)/preFactor+radius+1;
+    width = points/preFactor+radius+1;
     width = min(width,width(end:-1:1));
     width = max(width,0);
     width = min(width, patchwidth);
     width = min(width, nLocalPostRes);
     width = postFactor*floor(width);
-    assert(all(start+width>=0 & start+width<=nLocalPostRes));
+    assert(all(start+width>=0 & start+width<=patchwidth));
 end%function
