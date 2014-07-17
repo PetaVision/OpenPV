@@ -409,20 +409,19 @@ int pvp_copy_patches(unsigned char * buf, PVPatch ** patches, pvwdata_t * dataSt
 /**
  * Set patches given an unsigned char input buffer
  */
-int pvp_set_patches(unsigned char * buf, PVPatch ** patches, pvwdata_t * dataStart, int numDataPatches,
+int pvp_set_patches(const unsigned char * buf, const PVPatch * const * patches, pvwdata_t * dataStart, int numDataPatches,
                     int nxp, int nyp, int nfp, float minVal, float maxVal,
                     bool compress=true,
                     bool shmget_owner=true, bool shmget_flag=false)
 {
-   // Copies data from patches and dataStart to buf.
+   // Copies weight values from buf to dataStart.
    // buf should point to a buffer of size numDataPatches*pv_sizeof_patch(numweights,datatype) characters,
    // where numweights is nxp*nyp*nfp; and datatype is PV_FLOAT_TYPE for uncompressed weights and PV_BYTE_TYPE for compressed.
    // The calling routine is responsible for allocating and for freeing buf.
    // For PVP_KERNEL_FILE_TYPE, patches should be null.  For PVP_WGT_FILE_TYPE, patches should point to the weight patches for one arbor.
    // Each patch takes up pv_sizeof_patch(numweights,datatype) chars in buf --- even for shrunken patches.
-   // The values in patches[k] are compared to &buf[k] in an assert statement; they should be equal.  (For PVP_KERNEL_FILE_TYPE, these tests are skipped).
    // The numweights values from dataStart+k*numweights will be copied from buf starting at &buf[k*(numweights*datasize+2*sizeof(short)+sizeof(int))].
-   unsigned char * cptr = buf;
+   const unsigned char * cptr = buf;
 
    // const int sfp = 1;
    // const int sxp = nfp;
@@ -432,19 +431,16 @@ int pvp_set_patches(unsigned char * buf, PVPatch ** patches, pvwdata_t * dataSta
    unsigned short nx = nxp;
    unsigned short ny = nyp;
    unsigned int offset = 0;
-   for (int k = 0; k < numDataPatches; k++) {
+   for (int n = 0; n < numDataPatches; n++) {
       if( patches != NULL ) {
-         PVPatch * p = patches[k];
-         nx = p->nx;
-         ny = p->ny;
-         offset = p->offset;
+         const PVPatch * p = patches[n];
       }
-      // pvwdata_t * data = p->data;
-      pvwdata_t * data = dataStart + k*patchsize; // + offset; // Don't include offset as entire patch will be read from buf
+      pvwdata_t * data = dataStart + n*patchsize; // Don't include offset as entire patch will be read from buf
 #ifdef USE_SHMGET
-      volatile pvwdata_t * data_volatile = dataStart + k*patchsize;
+      volatile pvwdata_t * data_volatile = dataStart + n*patchsize;
 #endif
 
+#ifdef OBSOLETE // Marked obsolete June 30, 2014.  The check has been moved to PV::readWeights()
       unsigned short * nxny = (unsigned short *) cptr;
       nx = nxny[0];
       ny = nxny[1];
@@ -453,7 +449,9 @@ int pvp_set_patches(unsigned char * buf, PVPatch ** patches, pvwdata_t * dataSta
       unsigned int * offsetptr = (unsigned int *) cptr;
       offset = *offsetptr;
       cptr += sizeof(unsigned int);
-      assert( patches==NULL || (patches[k]->nx==nx && patches[k]->ny==ny && patches[k]->offset == offset) );
+      assert( patches==NULL || (patches[n]->nx==nx && patches[n]->ny==ny && patches[n]->offset == offset) );
+#endif // OBSOLETE
+      cptr += 2*sizeof(unsigned short)+sizeof(unsigned int);
 
       if( compress ) {
          for (int k = 0; k < patchsize; k++) {
@@ -462,16 +460,16 @@ int pvp_set_patches(unsigned char * buf, PVPatch ** patches, pvwdata_t * dataSta
             data[k] += uncompressWeight(*cptr++, minVal, maxVal);
 #else
             if (!shmget_flag){
-               data[k] += uncompressWeight(*cptr++, minVal, maxVal);
+               data[n] += uncompressWeight(*cptr++, minVal, maxVal);
             }
             else{
-               data_volatile[k] += uncompressWeight(*cptr++, minVal, maxVal);
+               data_volatile[n] += uncompressWeight(*cptr++, minVal, maxVal);
             }
 #endif
          }
       }
       else {
-         float * fptr = (float *) cptr;
+         const float * fptr = (const float *) cptr;
          for (int k = 0; k < patchsize; k++) {
 #ifndef USE_SHMGET
             data[k] += *fptr++;
@@ -1590,6 +1588,34 @@ int readWeights(PVPatch *** patches, pvwdata_t ** dataStart, int numArbors, int 
       }
 #endif
       bool compress = header_data_type == PV_BYTE_TYPE;
+
+      assert(status == PV_SUCCESS);
+      // check that nx,ny,offset info in patches (passed as an input argument, typically determined by params file)
+      // is consistent with the nx,ny,offset info in cbuf (read from the filename)
+      // (used to be in pvp_set_patches, but that doesn't have filename to use in the error messages)
+      if (patches != NULL) {
+         const unsigned char * patchinfofromfile = (const unsigned char *) cbuf;
+         for (int patchindex=0; patchindex<numPatches; patchindex++) {
+            unsigned short int const nx = *(unsigned short *) patchinfofromfile;
+            patchinfofromfile += sizeof(unsigned short);
+            unsigned short int const ny = *(unsigned short *) patchinfofromfile;
+            patchinfofromfile += sizeof(unsigned short);
+            unsigned short int const offset = *(unsigned int *) patchinfofromfile;
+            patchinfofromfile += sizeof(unsigned int);
+            const PVPatch * patch = patches[arborId][patchindex];
+            if (offset != patch->offset ||
+                nx != patch->nx ||
+                ny != patch->ny) {
+               fprintf(stderr, "readWeights error: Rank %d process, patch %d: geometry from filename \"%s\" is not consistent with geometry from patches input argument: ", comm->commRank(), patchindex, filename);
+               fprintf(stderr, "filename has nx=%hu, ny=%hu, offset=%u; patches[%d] has nx=%hu, ny=%hu, offset=%u.\n", nx, ny, offset, patchindex, patch->nx, patch->ny, patch->offset);
+               status = PV_FAILURE;
+            }
+            patchinfofromfile += (size_t) (nxp*nyp*nfp)*pv_sizeof(header_data_type);
+         }
+      }
+      if (status != PV_SUCCESS) {
+          exit(EXIT_FAILURE);
+      }
       status = pvp_set_patches(cbuf, patches ? patches[arborId] : NULL, dataStart[arborId], numPatches, nxp, nyp, nfp, minVal, maxVal, compress);
       if (status != PV_SUCCESS) {
          fprintf(stderr, "[%2d]: readWeights: failed in pvp_set_patches, numPatches==%d\n",

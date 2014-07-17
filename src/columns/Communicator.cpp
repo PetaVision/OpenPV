@@ -186,11 +186,13 @@ int Communicator::neighborInit()
 
    this->numNeighbors = numberOfNeighbors();
    this->numBorders   = NUM_NEIGHBORHOOD - this->numNeighbors;
-   int tags[9] = {0, 33, 34, 33, 34, 34, 33, 34, 33};
-   // Corners (NW, NE, SW, SE) have tag 33 and edges (N, W, E, S) have tag 34.
+   int tags[9] = {0, 33, 34, 35, 34, 34, 35, 34, 33};
+   // NW and SE corners have tag 33; edges have tag 34; NE and SW corners have tag 35.
    // In the top row of processes in the hypercolumn, a process is both the
-   // northeast and east neighbor of the process to its left.  The difference
-   // in tags ensures that the MPI_Send/MPI_Irecv calls can be distinguished.
+   // northeast and east neighbor of the process to its left.  If there is only one
+   // row, a process is the northeast, east, and southeast neighbor of the process
+   // to its left.  The numbering of tags ensures that the MPI_Send/MPI_Irecv calls
+   // can be distinguished.
 
    for (int i = 0; i < NUM_NEIGHBORHOOD; i++) {
       int n = neighborIndex(icRank, i);
@@ -492,11 +494,11 @@ int Communicator::southeast(int commRow, int commColumn)
  * Returns the intercolumn rank of the neighbor in the given direction
  * If there is no neighbor, returns a negative value
  */
-int Communicator::neighborIndex(int commId, int index)
+int Communicator::neighborIndex(int commId, int direction)
 {
    int row = commRow(commId);
    int column = commColumn(commId);
-   switch (index) {
+   switch (direction) {
    case LOCAL: /* local */
       return commId;
    case NORTHWEST : /* northwest */
@@ -520,6 +522,92 @@ int Communicator::neighborIndex(int commId, int index)
       return -1;
    }
 }
+
+/*
+ * In a send/receive exchange, when rank A makes an MPI send to its neighbor in direction x,
+ * that neighbor must make a complementary MPI receive call.  To get the tags correct,
+ * the receiver needs to know the direction that the sender was using in determining which
+ * process to send to.
+ *
+ * Thus, if every process does an MPI send in each direction, to the process of rank neighborIndex(icRank,direction) with tag[direction],
+ * every process must also do an MPI receive in each direction, to the process of rank neighborIndex(icRank,direction) with tag[reverseDirection(icRank,direction)].
+ */
+int Communicator::reverseDirection(int commId, int direction) {
+   int neighbor = neighborIndex(commId, direction);
+   if (neighbor == commId) {
+      return -1;
+   }
+   int revdir = 9-direction; // Correct unless at an edge of the MPI quilt
+   int col = commColumn(commId);
+   int row = commRow(commId);
+   switch(direction) {
+   case LOCAL:
+      assert(0); // Should have neighbor==commId, so should have already returned
+      break;
+   case NORTHWEST : /* northwest */
+      assert(revdir==SOUTHEAST);
+      if (row==0) {
+         assert(col>0);
+         revdir=NORTHEAST;
+      }
+      if (col==0) {
+         assert(row>0);
+         revdir=SOUTHWEST;
+      }
+      break;
+   case NORTH     : /* north */
+      assert(commRow(commId)>0); // If row==0, there is no north neighbor so should have already returned.
+      break;
+   case NORTHEAST : /* northeast */
+      assert(revdir==SOUTHWEST);
+      if (row==0) {
+         assert(col<numCols-1);
+         revdir=NORTHWEST;
+      }
+      if (col==numCols-1) {
+         assert(row>0);
+         revdir=SOUTHEAST;
+      }
+      break;
+   case WEST      : /* west */
+      assert(commColumn(commId)>0);
+      break;
+   case EAST      : /* east */
+      assert(commColumn(commId)<numCols-1);
+      break;
+   case SOUTHWEST : /* southwest */
+      assert(revdir==NORTHEAST);
+      if (row==numRows-1) {
+         assert(col>0);
+         revdir=SOUTHEAST;
+      }
+      if (col==0) {
+         assert(row<numRows-1);
+         revdir=NORTHWEST;
+      }
+      break;
+   case SOUTH     : /* south */
+      assert(commRow(commId)<numRows-1);
+      break;
+   case SOUTHEAST : /* southeast */
+      assert(revdir==NORTHWEST);
+      if (row==numRows-1) {
+         assert(col<numCols-1);
+         revdir=SOUTHWEST;
+      }
+      if (col==numCols-1) {
+         assert(row<numRows-1);
+         revdir=NORTHEAST;
+      }
+      break;
+   default:
+      fprintf(stderr, "ERROR:neighborIndex: bad index\n");
+      revdir = -1;
+      break;
+   }
+   return revdir;
+}
+
 
 /**
  * Returns the recv data offset for the given neighbor
@@ -715,9 +803,9 @@ int Communicator::exchange(pvdata_t * data,
 #ifdef DEBUG_OUTPUT
       fprintf(stderr, "[%2d]: recv,send to %d, n=%d recvOffset==%ld sendOffset==%ld send[0]==%f\n", icRank, neighbors[n], n, recvOffset(n,loc), sendOffset(n,loc), sendBuf[0]); fflush(stdout);
 #endif // DEBUG_OUTPUT
-      MPI_Irecv(recvBuf, 1, neighborDatatypes[n], neighbors[n], tags[n], icComm,
+      MPI_Irecv(recvBuf, 1, neighborDatatypes[n], neighbors[n], getReverseTag(n), icComm,
                 &requests[nreq++]);
-      MPI_Send( sendBuf, 1, neighborDatatypes[n], neighbors[n], tags[n], icComm);
+      MPI_Send( sendBuf, 1, neighborDatatypes[n], neighbors[n], getTag(n), icComm);
    }
 
    // don't recv interior
@@ -730,7 +818,7 @@ int Communicator::exchange(pvdata_t * data,
    exchange_timer->stop();
 #endif // PV_USE_MPI
 
-   return 0;
+   return PV_SUCCESS;
 }
 
 } // end namespace PV

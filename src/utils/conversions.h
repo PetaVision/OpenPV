@@ -378,7 +378,7 @@ static inline int kIndexRestricted(int k_ex, int nx, int ny, int nf, int nb)
 //           tests/test_extend_border.c files. These tests run a
 //           function equivalent to the mpi version of
 //           globalIndexFromLocal but without using MPI.
-static inline int globalIndexFromLocal(int kl, PVLayerLoc loc)
+static inline int globalIndexFromLocal(int kl, const PVLayerLoc loc)
 {
 #ifdef PV_USE_MPI
    int kxg = loc.kx0 + kxPos(kl, loc.nx, loc.ny, loc.nf);

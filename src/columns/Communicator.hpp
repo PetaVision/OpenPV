@@ -59,6 +59,8 @@ public:
    int numberOfBorders()        {return numBorders;}
 
    bool hasNeighbor(int neighborId);
+   int neighborIndex(int commId, int index);
+   int reverseDirection(int commId, int direction);
 
    int commRow()          {return commRow(icRank);}
    int commColumn()       {return commColumn(icRank);}
@@ -70,6 +72,7 @@ public:
                 const PVLayerLoc * loc);
 
    int getTag(int neighbor) { return tags[neighbor]; }
+   int getReverseTag(int neighbor) { return tags[reverseDirection(icRank, neighbor)]; }
    double fprintTime(FILE * fp) {return exchange_timer->fprint_time(fp);}
 
 protected:
@@ -127,8 +130,6 @@ private:
    int southwest(int commRow, int commColumn);
    int south(int commRow, int commColumn);
    int southeast(int commRow, int commColumn);
-
-   int neighborIndex(int commId, int index);
 
 };
 

@@ -49,10 +49,14 @@ protected:
     virtual int setNeededRNGSeeds() {return 0;}
     virtual InitWeights * handleMissingInitWeights(PVParams * params);
     virtual PVPatch *** initializeWeights(PVPatch *** arbors, pvwdata_t ** dataStart);
-    int transposeKernels(int arborId);
+    int transpose(int arborId);
     virtual int calc_dW(int arborId){return PV_BREAK;};
     virtual int reduceKernels(int arborID);
 
+private:
+    int transposeSharedWeights(int arborId);
+    int transposeNonsharedWeights(int arborId);
+    int mpiexchangesize(int neighbor, int * size, int * startx, int * stopx, int * starty, int * stopy, int * blocksize, size_t * buffersize);
 // Member variables
 protected:
     char * originalConnName;

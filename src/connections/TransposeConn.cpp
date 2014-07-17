@@ -63,13 +63,11 @@ int TransposeConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 // group's param directly.
 
 void TransposeConn::ioParam_sharedWeights(enum ParamsIOFlag ioFlag) {
-   sharedWeights = true;
-   if (ioFlag == PARAMS_IO_READ) {
-      fileType = PVP_KERNEL_FILE_TYPE;
-      parent->parameters()->handleUnnecessaryParameter(name, "sharedWeights", true/*correctValue*/);
+   // During the communication phase, numAxonalArbors will be copied from originalConn
+   if (ioFlag==PARAMS_IO_READ) {
+      parent->parameters()->handleUnnecessaryStringParameter(name, "sharedWeights");
    }
 }
-
 
 void TransposeConn::ioParam_weightInitType(enum ParamsIOFlag ioFlag) {
    // TransposeConn doesn't use a weight initializer
@@ -183,13 +181,6 @@ int TransposeConn::communicateInitInfo() {
       }
    }
    if (status != PV_SUCCESS) return status;
-   if (originalConn->usingSharedWeights()==false) {
-      if (parent->columnId()==0) {
-         fprintf(stderr, "TransposeConn \"%s\" error: originalConnName \"%s\" must use shared weights.\n", name, originalConnName);
-         status = PV_FAILURE;
-      }
-   }
-   if (status != PV_SUCCESS) return status;
 
    if (!originalConn->getInitInfoCommunicatedFlag()) {
       if (parent->columnId()==0) {
@@ -199,7 +190,26 @@ int TransposeConn::communicateInitInfo() {
       return PV_POSTPONE;
    }
 
-   status = HyPerConn::communicateInitInfo();
+   sharedWeights = originalConn->usingSharedWeights();
+   parent->parameters()->handleUnnecessaryParameter(name, "sharedWeights", sharedWeights);
+
+   numAxonalArborLists = originalConn->numberOfAxonalArborLists();
+   parent->parameters()->handleUnnecessaryParameter(name, "numAxonalArbors", numAxonalArborLists);
+
+   plasticityFlag = originalConn->getPlasticityFlag();
+   parent->parameters()->handleUnnecessaryParameter(name, "plasticityFlag", plasticityFlag);
+
+   if(originalConn->getShrinkPatches_flag()) {
+      if (parent->columnId()==0) {
+         fprintf(stderr, "TransposeConn \"%s\" error: original conn \"%s\" has shrinkPatches set to true.  TransposeConn has not been implemented for that case.\n", name, originalConn->getName());
+      }
+#ifdef PV_USE_MPI
+      MPI_Barrier(parent->icCommunicator()->communicator());
+#endif
+      exit(EXIT_FAILURE);
+   }
+
+   status = HyPerConn::communicateInitInfo(); // calls setPatchSize()
    if (status != PV_SUCCESS) return status;
 
    const PVLayerLoc * preLoc = pre->getLayerLoc();
@@ -227,35 +237,12 @@ int TransposeConn::communicateInitInfo() {
       exit(EXIT_FAILURE);
    }
 
-
-   numAxonalArborLists = originalConn->numberOfAxonalArborLists();
-   parent->parameters()->handleUnnecessaryParameter(name, "numAxonalArbors", numAxonalArborLists);
-
-   plasticityFlag = originalConn->getPlasticityFlag();
-   parent->parameters()->handleUnnecessaryParameter(name, "plasticityFlag", plasticityFlag);
-
-   if(originalConn->getShrinkPatches_flag()) {
-      if (parent->columnId()==0) {
-         fprintf(stderr, "TransposeConn \"%s\" error: original conn \"%s\" has shrinkPatches set to true.  TransposeConn has not been implemented for that case.\n", name, originalConn->getName());
-      }
-#ifdef PV_USE_MPI
-      MPI_Barrier(parent->icCommunicator()->communicator());
-#endif
-      exit(EXIT_FAILURE);
-   }
-
    return status;
 }
 
 int TransposeConn::setPatchSize() {
    // If originalConn is many-to-one, the transpose connection is one-to-many; then xscaleDiff > 0.
    // Similarly, if originalConn is one-to-many, xscaleDiff < 0.
-
-   // Since this is called before pre, post and originalConn are set up, we have to load nxp,nyp
-   // and compute the scale differences instead of grabbing them from the object.
-   // The problem with waiting until after pre, post and originalConn are defined (in communicateInitInfo())
-   // is that some of the things in communicateInitInfo()  (e.g. requireMarginWidth) use nxp and nyp
-   // before communicate gets called.
 
    // Some of the code duplication might be eliminated by adding some functions to convert.h
 
@@ -285,7 +272,8 @@ int TransposeConn::setPatchSize() {
    }
 
    nfp = post->getLayerLoc()->nf;
-   assert(nfp==originalConn->preSynapticLayer()->getLayerLoc()->nf);
+   // post->getLayerLoc()->nf must be the same as originalConn->preSynapticLayer()->getLayerLoc()->nf.
+   // This requirement is checked in communicateInitInfo
 
    nxpShrunken = nxp;
    nypShrunken = nyp;
@@ -316,7 +304,7 @@ int TransposeConn::allocateDataStructures() {
 PVPatch*** TransposeConn::initializeWeights(PVPatch*** patches, pvwdata_t** dataStart) {
    assert(originalConn->getDataStructuresAllocatedFlag()); // originalConn->dataStructurenAllocatedFlag checked in TransposeConn::allocateDataStructures()
    for (int arbor=0; arbor<numAxonalArborLists; arbor++) {
-      transposeKernels(arbor);
+      transpose(arbor);
    }
    return patches;
 }
@@ -326,7 +314,7 @@ int TransposeConn::updateWeights(int axonID) {
    int status;
    float original_update_time = originalConn->getLastUpdateTime();
    if(original_update_time > lastUpdateTime ) {
-      status = transposeKernels(axonID);
+      status = transpose(axonID);
       lastUpdateTime = parent->simulationTime();
    }
    else
@@ -334,7 +322,279 @@ int TransposeConn::updateWeights(int axonID) {
    return status;
 }  // end of TransposeConn::updateWeights(int);
 
-int TransposeConn::transposeKernels(int arborId) {
+int TransposeConn::transpose(int arborId) {
+   return sharedWeights ? transposeSharedWeights(arborId) : transposeNonsharedWeights(arborId);
+}
+
+int TransposeConn::transposeNonsharedWeights(int arborId) {
+   assert(usingSharedWeights()==false); // Temporary
+   const PVLayerLoc * preLocOrig = originalConn->preSynapticLayer()->getLayerLoc();
+   const PVLayerLoc * postLocOrig = originalConn->postSynapticLayer()->getLayerLoc();
+   const PVLayerLoc * preLocTranspose = preSynapticLayer()->getLayerLoc();
+   const PVLayerLoc * postLocTranspose = postSynapticLayer()->getLayerLoc();
+#ifdef PV_USE_MPI
+   InterColComm * icComm = parent->icCommunicator();
+   pvwdata_t * sendbuf[NUM_NEIGHBORHOOD];
+   pvwdata_t * recvbuf[NUM_NEIGHBORHOOD];
+   int size[NUM_NEIGHBORHOOD];
+   int startx[NUM_NEIGHBORHOOD];
+   int starty[NUM_NEIGHBORHOOD];
+   int stopx[NUM_NEIGHBORHOOD];
+   int stopy[NUM_NEIGHBORHOOD];
+   int blocksize[NUM_NEIGHBORHOOD];
+   MPI_Request request[NUM_NEIGHBORHOOD];
+   size_t buffersize[NUM_NEIGHBORHOOD];
+   for (int neighbor=0; neighbor<NUM_NEIGHBORHOOD; neighbor++) {
+      if (neighbor==LOCAL || icComm->neighborIndex(parent->columnId(), neighbor)<0 ) {
+         size[neighbor] = 0;
+         startx[neighbor] = -1;
+         starty[neighbor] = -1;
+         stopx[neighbor] = -1;
+         stopy[neighbor] = -1;
+         blocksize[neighbor] = 0;
+         buffersize[neighbor] = (size_t) 0;
+         sendbuf[neighbor] = NULL;
+         recvbuf[neighbor] = NULL;
+         request[neighbor] = NULL;
+      }
+      else {
+         mpiexchangesize(neighbor,  &size[neighbor], &startx[neighbor], &stopx[neighbor], &starty[neighbor], &stopy[neighbor], &blocksize[neighbor], &buffersize[neighbor]);
+         sendbuf[neighbor] = (pvwdata_t *) malloc(buffersize[neighbor]);
+         if (sendbuf==NULL) {
+            fprintf(stderr, "%s \"%s\": Rank %d process unable to allocate memory for Transpose send buffer: %s\n", parent->parameters()->groupKeywordFromName(name), name, parent->columnId(), strerror(errno));
+            exit(EXIT_FAILURE);
+         }
+         recvbuf[neighbor] = (pvwdata_t *) malloc(buffersize[neighbor]);
+         if (recvbuf==NULL) {
+            fprintf(stderr, "%s \"%s\": Rank %d process unable to allocate memory for Transpose receive buffer: %s\n", parent->parameters()->groupKeywordFromName(name), name, parent->columnId(), strerror(errno));
+            exit(EXIT_FAILURE);
+         }
+         request[neighbor] = NULL;
+      }
+   }
+
+   for (int neighbor=0; neighbor<NUM_NEIGHBORHOOD; neighbor++) {
+      if (neighbor==LOCAL) { continue; }
+      int nbrIdx = icComm->neighborIndex(parent->columnId(), neighbor);
+      if (nbrIdx<0) { continue; }
+      if (icComm->reverseDirection(parent->columnId(), neighbor) + neighbor != NUM_NEIGHBORHOOD) { continue; }
+
+      char * b = (char *) sendbuf[neighbor];
+      for (int y=starty[neighbor]; y<stopy[neighbor]; y++) {
+         for (int x=startx[neighbor]; x<stopx[neighbor]; x++) {
+            int idxExt = kIndex(x,y,0,preLocOrig->nx+2*preLocOrig->nb,preLocOrig->ny+2*preLocOrig->nb,preLocOrig->nf);
+            int xGlobalExt = x+preLocOrig->kx0;
+            int xGlobalRes = xGlobalExt-preLocOrig->nb;
+            assert(xGlobalRes>=preLocOrig->kx0-preLocOrig->nb && xGlobalRes<preLocOrig->kx0+preLocOrig->nx+preLocOrig->nb);
+            int yGlobalExt = y+preLocOrig->ky0;
+            int yGlobalRes = yGlobalExt-preLocOrig->nb;
+            assert(yGlobalRes>=preLocOrig->ky0-preLocOrig->nb && yGlobalRes<preLocOrig->ky0+preLocOrig->ny+preLocOrig->nb);
+            int idxGlobalRes = kIndex(xGlobalRes, yGlobalRes, 0, preLocOrig->nxGlobal, preLocOrig->nyGlobal, preLocOrig->nf);
+            memcpy(b, &idxGlobalRes, sizeof(idxGlobalRes));
+            b += sizeof(idxGlobalRes);
+            PVPatch * patchOrig = originalConn->getWeights(idxExt, arborId);
+            memcpy(b, patchOrig, sizeof(*patchOrig));
+            b += sizeof(*patchOrig);
+            int postIdxRes = (int) originalConn->getGSynPatchStart(idxExt, arborId);
+            int postIdxExt = kIndexExtended(postIdxRes, postLocOrig->nx, postLocOrig->ny, postLocOrig->nf, postLocOrig->nb);
+            int postIdxGlobalRes = globalIndexFromLocal(postIdxRes, *postLocOrig);
+            memcpy(b, &postIdxGlobalRes, sizeof(postIdxGlobalRes));
+            b += sizeof(postIdxGlobalRes);
+            memcpy(b, originalConn->get_wDataHead(arborId, idxExt), (size_t) blocksize[neighbor] * sizeof(pvwdata_t));
+            b += blocksize[neighbor]*sizeof(pvwdata_t);
+         }
+      }
+      assert(b==((char *) sendbuf[neighbor]) + buffersize[neighbor]);
+
+      MPI_Isend(sendbuf[neighbor], buffersize[neighbor], MPI_CHAR, nbrIdx, icComm->getTag(neighbor), icComm->communicator(), &request[neighbor]);
+   }
+#endif // PV_USE_MPI
+
+   const int nkRestrictedOrig = originalConn->getPostNonextStrides()->sy; // preLocOrig->nx*preLocOrig->nf; // a stride in originalConn
+   int nPreRestrictedOrig = originalConn->preSynapticLayer()->getNumNeurons();
+   for (int kPreRestrictedOrig = 0; kPreRestrictedOrig < nPreRestrictedOrig; kPreRestrictedOrig++) {
+      int kPreExtendedOrig = kIndexExtended(kPreRestrictedOrig, preLocOrig->nx, preLocOrig->ny, preLocOrig->nf, preLocOrig->nb);
+      PVPatch * patchOrig = originalConn->getWeights(kPreExtendedOrig, arborId);
+      int nk = patchOrig->nx * originalConn->fPatchSize();
+      int ny = patchOrig->ny;
+      pvwdata_t * weightvaluesorig = originalConn->get_wData(arborId, kPreExtendedOrig);
+      int kPostRestrictedOrigBase = (int) originalConn->getGSynPatchStart(kPreExtendedOrig, arborId);
+      int kPostRestrictedTranspose = kPreRestrictedOrig;
+      for (int y=0; y<ny; y++) {
+         for (int k=0; k<nk; k++) {
+            pvwdata_t w = weightvaluesorig[y*originalConn->yPatchStride()+k];
+            int kPostRestrictedOrig = kPostRestrictedOrigBase + y*nkRestrictedOrig+k;
+            int kPreRestrictedTranspose = kPostRestrictedOrig;
+            int kPreExtendedTranspose = kIndexExtended(kPreRestrictedTranspose, preLocTranspose->nx, preLocTranspose->ny, preLocTranspose->nf, preLocTranspose->nb);
+            PVPatch * patchTranspose = getWeights(kPreExtendedTranspose, arborId);
+            size_t gSynPatchStartTranspose = getGSynPatchStart(kPreExtendedTranspose, arborId);
+            // Need to find which pixel in the patch is tied to kPostRestrictedTranspose
+            // assert((size_t) kPostRestrictedTranspose>=gSynPatchStartTranspose);
+            int moveFromOffset = kPostRestrictedTranspose-(int) gSynPatchStartTranspose;
+            div_t coordsFromOffset = div(moveFromOffset, getPostNonextStrides()->sy);
+            int yt = coordsFromOffset.quot;
+            int kt = coordsFromOffset.rem;
+            get_wData(arborId, kPreExtendedTranspose)[yt*syp+kt] = w;
+         }
+      }
+   }
+
+#ifdef PV_USE_MPI
+   for (int neighbor=0; neighbor<NUM_NEIGHBORHOOD; neighbor++) {
+      if (neighbor==LOCAL) { continue; }
+      int nbrIdx = icComm->neighborIndex(parent->columnId(), neighbor);
+      if (nbrIdx<0) { continue; }
+      if (icComm->reverseDirection(parent->columnId(), neighbor) + neighbor != NUM_NEIGHBORHOOD) { continue; }
+
+      MPI_Recv(recvbuf[neighbor], buffersize[neighbor], MPI_CHAR, nbrIdx, icComm->getReverseTag(neighbor), icComm->communicator(), MPI_STATUS_IGNORE);
+      char * b = (char *) recvbuf[neighbor];
+      int postGlobalResStrideY = postLocOrig->nxGlobal*postLocOrig->nf;
+      for (int p=0; p<size[neighbor]; p++) {
+         int origPreIndex;
+         memcpy(&origPreIndex, b, sizeof(origPreIndex));
+         b += sizeof(origPreIndex);
+         PVPatch patch;
+         memcpy(&patch, b, sizeof(patch));
+         b += sizeof(patch);
+         int postIdxGlobalRes;
+         memcpy(&postIdxGlobalRes, b, sizeof(postIdxGlobalRes));
+         b += sizeof(postIdxGlobalRes);
+         for (int f=0; f<originalConn->preSynapticLayer()->getLayerLoc()->nf; f++) {
+            for (int y=0; y<patch.ny; y++) {
+               for (int k=0; k<patch.nx*originalConn->fPatchSize(); k++) {
+                  int origPostIndex = postIdxGlobalRes + y*postGlobalResStrideY + k;
+                  pvwdata_t w = ((pvwdata_t *) b)[patch.offset + y*originalConn->yPatchStride()+k];
+
+                  int transposePreGlobalRes = origPostIndex;
+                  int transposePreGlobalXRes = kxPos(transposePreGlobalRes, preLocTranspose->nxGlobal, preLocTranspose->nyGlobal, preLocTranspose->nf);
+                  int transposePreLocalXRes = transposePreGlobalXRes - preLocTranspose->kx0;
+                  int transposePreLocalXExt = transposePreLocalXRes + preLocTranspose->nb;
+                  assert(transposePreLocalXExt >= 0 && transposePreLocalXExt < preLocTranspose->nx+2*preLocTranspose->nb);
+                  int transposePreGlobalYRes = kyPos(transposePreGlobalRes, preLocTranspose->nxGlobal, preLocTranspose->nyGlobal, preLocTranspose->nf);
+                  int transposePreLocalYRes = transposePreGlobalYRes - preLocTranspose->ky0;
+                  int transposePreLocalYExt = transposePreLocalYRes + preLocTranspose->nb;
+                  assert(transposePreLocalYExt >= 0 && transposePreLocalYExt < preLocTranspose->ny+2*preLocTranspose->nb);
+                  int transposePreFeature = featureIndex(transposePreGlobalRes, preLocTranspose->nxGlobal, preLocTranspose->nyGlobal, preLocTranspose->nf);
+                  int transposePreLocalExt = kIndex(transposePreLocalXExt, transposePreLocalYExt, transposePreFeature, preLocTranspose->nx+2*preLocTranspose->nb, preLocTranspose->ny+2*preLocTranspose->nb, preLocTranspose->nf);
+
+                  int transposePostGlobalRes = origPreIndex;
+                  int transposePostGlobalXRes = kxPos(transposePostGlobalRes, preLocOrig->nxGlobal, preLocOrig->nyGlobal, preLocOrig->nf);
+                  int origPreLocalXRes = transposePostGlobalXRes - preLocOrig->kx0;
+                  assert(origPreLocalXRes>=0 && transposePostGlobalXRes<preLocOrig->nxGlobal);
+                  int transposePostGlobalYRes = kyPos(transposePostGlobalRes, preLocOrig->nxGlobal, preLocOrig->nyGlobal, preLocOrig->nf);
+                  int origPreLocalYRes = transposePostGlobalYRes - preLocOrig->ky0;
+                  assert(origPreLocalYRes>=0 && transposePostGlobalYRes<preLocOrig->nyGlobal);
+                  int transposePostLocalRes = kIndex(origPreLocalXRes, origPreLocalYRes, f, postLocTranspose->nx, postLocTranspose->ny, postLocTranspose->nf);
+
+                  PVPatch * transposePatch = getWeights(transposePreLocalExt, arborId);
+                  int transposeGSynPatchStart = (int) getGSynPatchStart(transposePreLocalExt, arborId);
+                  int transposeGSynOffset = transposePostLocalRes - transposeGSynPatchStart;
+                  div_t coordsFromOffset = div(transposeGSynOffset, getPostNonextStrides()->sy);
+                  int yt = coordsFromOffset.quot;
+                  int kt = coordsFromOffset.rem;
+                  get_wData(arborId, transposePreLocalExt)[yt*syp+kt] = w;
+               }
+            }
+            b += sizeof(pvwdata_t)*originalConn->xPatchSize()*originalConn->yPatchSize()*originalConn->fPatchSize();
+         }
+      }
+      assert(b == ((char *) recvbuf[neighbor]) + buffersize[neighbor]);
+   }
+
+   // Free the receive buffers
+   for (int neighbor=0; neighbor<NUM_NEIGHBORHOOD; neighbor++) {
+      free(recvbuf[neighbor]); recvbuf[neighbor] = NULL;
+   }
+
+   // Free the send buffers.  Since a different process receives and it might be behind, need to
+   int numsent = 0;
+   for (int neighbor=0; neighbor<NUM_NEIGHBORHOOD; neighbor++) {
+      if (request[neighbor]) {
+         numsent++;
+      }
+   }
+   while(numsent > 0) {
+      for (int neighbor=0; neighbor<NUM_NEIGHBORHOOD; neighbor++) {
+         if (request[neighbor]) {
+            int flag = false;
+            MPI_Test(&request[neighbor], &flag, MPI_STATUS_IGNORE);
+            if (flag) {
+               assert(request[neighbor] == MPI_REQUEST_NULL);
+               request[neighbor] = NULL;
+               numsent--;
+               free(sendbuf[neighbor]); sendbuf[neighbor] = NULL;
+            }
+         }
+      }
+   }
+#endif // PV_USE_MPI
+
+   fclose(fp); fp=NULL;
+   free(filename);
+   return PV_SUCCESS;
+}
+
+int TransposeConn::mpiexchangesize(int neighbor, int * size, int * startx, int * stopx, int * starty, int * stopy, int * blocksize, size_t * buffersize) {
+   const PVLayerLoc * preLocOrig = originalConn->preSynapticLayer()->getLayerLoc();
+   const int nb = preLocOrig->nb;
+   const int nx = preLocOrig->nx;
+   const int ny = preLocOrig->ny;
+   switch(neighbor) {
+   case LOCAL:
+      assert(0);
+      break;
+   case NORTHWEST:
+      *size = nb * nb;
+      *startx = 0; *stopx = nb;
+      *starty = 0; *stopy = nb;
+      break;
+   case NORTH:
+      *size = nx * nb;
+      *startx = nb; *stopx = nb + nx;
+      *starty = 0; *stopy = nb;
+      break;
+   case NORTHEAST:
+      *size = nb * nb;
+      *startx = nx + nb; *stopx = nx + 2*nb;
+      *starty = 0; *stopy = nb;
+      break;
+   case WEST:
+      *size = nb * ny;
+      *startx = 0; *stopx = nb;
+      *starty = nb; *stopy = nb + ny;
+      break;
+   case EAST:
+      *size = nb * ny;
+      *startx = nx + nb; *stopx = nx + 2*nb;
+      *starty = nb; *stopy = nb + ny;
+      break;
+   case SOUTHWEST:
+      *size = nb * nb;
+      *startx = 0; *stopx = nb;
+      *starty = ny + nb; *stopy = ny + 2*nb;
+      break;
+   case SOUTH:
+      *size = nx * nb;
+      *startx = nb; *stopx = nb + nx;
+      *starty = ny + nb; *stopy = ny + 2*nb;
+      break;
+   case SOUTHEAST:
+      *size = nb * nb;
+      *startx = nx + nb; *stopx = nx + 2*nb;
+      *starty = ny + nb; *stopy = ny + 2*nb;
+      break;
+   default:
+      assert(0);
+      break;
+   }
+   *blocksize = preLocOrig->nf * originalConn->xPatchSize() * originalConn->yPatchSize() * originalConn->fPatchSize();
+   // Each block is a contiguous set of preLocOrig->nf weight patches.  We also need to send the presynaptic index, the PVPatch geometry and the aPostOffset.
+   // for each block.  This assumes that each of the preLocOrig->nf patches for a given (x,y) site has the same aPostOffset and PVPatch values.
+   *buffersize = (size_t) *size * ( sizeof(int) + sizeof(PVPatch) + sizeof(int) + (size_t) *blocksize * sizeof(pvwdata_t));
+   return PV_SUCCESS;
+}
+
+int TransposeConn::transposeSharedWeights(int arborId) {
    // compute the transpose of originalConn->kernelPatches and
    // store into this->kernelPatches
    // assume scale factors are 1 and that nxp, nyp are odd.

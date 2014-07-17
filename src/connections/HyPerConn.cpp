@@ -903,9 +903,6 @@ void HyPerConn::ioParam_channelCode(enum ParamsIOFlag ioFlag) {
 
 void HyPerConn::ioParam_sharedWeights(enum ParamsIOFlag ioFlag) {
    parent->ioParamValue(ioFlag, name, "sharedWeights", &sharedWeights, false/*default*/, true/*warn if absent*/);
-   if (sharedWeights && ioFlag == PARAMS_IO_READ) {
-      fileType = PVP_KERNEL_FILE_TYPE;
-   }
 }
 
 void HyPerConn::ioParam_weightInitType(enum ParamsIOFlag ioFlag) {
@@ -1550,6 +1547,10 @@ int HyPerConn::communicateInitInfo() {
       if (pre->getNumWindows() != 1 && pre->getNumWindows() != this->numberOfAxonalArborLists()){
          fprintf(stderr, "HyPerConn::Number of windows in %s is %d (calculated from symmetry), while number of arbors in %s is %d. Either some windows or arbors will not be used\n", pre->getName(), pre->getNumWindows(), name, this->numberOfAxonalArborLists());
       }
+      fileType = PVP_KERNEL_FILE_TYPE;
+   }
+   else {
+      fileType = PVP_WGT_FILE_TYPE;
    }
 
    return status;
@@ -1912,7 +1913,7 @@ int HyPerConn::writeWeights(PVPatch *** patches, pvwdata_t ** dataStart, int num
 
    bool append = last ? false : ioAppend;
 
-	status = PV::writeWeights(path, comm, (double) timed, append, loc, nxp, nyp,
+   status = PV::writeWeights(path, comm, (double) timed, append, loc, nxp, nyp,
 			nfp, minVal, maxVal, patches, dataStart, numPatches,
 			numberOfAxonalArborLists(), compressWeights, fileType);
    assert(status == 0);

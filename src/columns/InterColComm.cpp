@@ -224,7 +224,7 @@ int Publisher::exchangeBorders(int neighbors[], int numNeighbors, const PVLayerL
       }
       fflush(stdout);
 #endif //DEBUG_OUTPUT
-      MPI_Irecv(recvBuf, 1, neighborDatatypes[n], neighbors[n], comm->getTag(n), mpiComm,
+      MPI_Irecv(recvBuf, 1, neighborDatatypes[n], neighbors[n], comm->getReverseTag(n), mpiComm,
                 &requests[numRequests++]);
       int status = MPI_Send( sendBuf, 1, neighborDatatypes[n], neighbors[n], comm->getTag(n), mpiComm);
       assert(status==0);
