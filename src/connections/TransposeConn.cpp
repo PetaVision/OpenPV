@@ -528,9 +528,6 @@ int TransposeConn::transposeNonsharedWeights(int arborId) {
       }
    }
 #endif // PV_USE_MPI
-
-   fclose(fp); fp=NULL;
-   free(filename);
    return PV_SUCCESS;
 }
 
