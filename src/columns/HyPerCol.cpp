@@ -1865,6 +1865,16 @@ int HyPerCol::outputParams() {
 #else // PV_USE_MPI
       fprintf(printParamsStream->fp, "// Compiled without MPI.\n");
 #endif // PV_USE_MPI
+#ifdef PV_USE_OPENCL
+      fprintf(printParamsStream->fp, "// Compiled with OpenCL.\n");
+#else
+      fprintf(printParamsStream->fp, "// Compiled without OpenCL.\n");
+#endif // PV_USE_OPENCL
+#ifdef PV_USE_OPENMP_THREADS
+      fprintf(printParamsStream->fp, "// Compiled with OpenMP parallel code and run using %d threads.\n", numThreads);
+#else
+      fprintf(printParamsStream->fp, "// Compiled without OpenMP parallel code.\n");
+#endif // PV_USE_OPENMP_THREADS
       if (checkpointReadFlag) {
          fprintf(printParamsStream->fp, "// Started from checkpoint \"%s\"\n", checkpointReadDir);
       }
