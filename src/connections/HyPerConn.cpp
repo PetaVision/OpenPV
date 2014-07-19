@@ -2416,20 +2416,21 @@ int HyPerConn::updateStateWrapper(double time, double dt){
    int status = PV_SUCCESS;
    if(needUpdate(time, dt)){
       //std::cout << "Connection " << name << " updating on timestep " << time << "\n";
-      
+     double preTimeScale = pre->getTimeScale(); 
+     double postTimeScale = post->getTimeScale();
       //If timeScale is less than the value for dtScaleMin specified in the params but not -1, don't updateState.
       //This is implemented as an optimization so weights don't change dramatically as ANNNormalizedErrorLayer values get large.
-      if (pre->getTimeScale() > 0 && pre->getTimeScale() < parent->getTimeScaleMin()) { 
-         if(parent->icCommunicator()->commRank() == 0) {
-            fprintf(stdout, "TimeScale = %f, which is less than your specified dtScaleMin, %f. updateState won't be called this timestep.\n", pre->getTimeScale(), parent->getTimeScaleMin());
+      if (preTimeScale > 0 && preTimeScale < parent->getTimeScaleMin()) { 
+         if (parent->icCommunicator()->commRank()==0) {
+            fprintf(stdout, "TimeScale = %f, which is less than your specified dtScaleMin, %f. updateState won't be called this timestep.\n", preTimeScale, parent->getTimeScaleMin());
          }
       }
-      else if (post->getTimeScale() > 0 && post->getTimeScale() < parent->getTimeScaleMin()) { 
-         if(parent->icCommunicator()->commRank() == 0) {
-            fprintf(stdout, "TimeScale = %f, which is less than your specified dtScaleMin, %f. updateState won't be called this timestep.\n", post->getTimeScale(), parent->getTimeScaleMin());
+      else if (postTimeScale > 0 && postTimeScale < parent->getTimeScaleMin()) { 
+         if (parent->icCommunicator()->commRank()==0) {
+            fprintf(stdout, "TimeScale = %f, which is less than your specified dtScaleMin, %f. updateState won't be called this timestep.\n", postTimeScale, parent->getTimeScaleMin());
          }
       }
-      else {
+     else {
          status = updateState(time, dt);
          //Update lastUpdateTime
          lastUpdateTime = time;
