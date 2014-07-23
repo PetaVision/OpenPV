@@ -1,17 +1,12 @@
 debugParsing = false;
 
 HyPerCol "column" = {
-<<<<<<< .mine
-    nx = 128; //1242;  // KITTI synced value
-    ny = 128;  //218;
-=======
     nx = 1024; //1242;  // KITTI synced value
     ny = 1024;  //218;
->>>>>>> .r8708
     dt = 1.0;
     randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
     startTime = 0.0;
-    numSteps = 5;       // Depends on number of VINE video frames
+    numSteps = 1;       // Depends on number of VINE video frames
     progressStep = 1;
     //Change this
     outputPath = "output/";
@@ -51,11 +46,7 @@ ANNLayer "outputRecv" = {
     restart = 0;
     nxScale = .5;
     nyScale = .5;
-<<<<<<< .mine
-    nf = 128;
-=======
     nf = 64;
->>>>>>> .r8708
     writeStep = -1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = false;
@@ -75,11 +66,7 @@ ANNLayer "outputRecvGpu" = {
     restart = 0;
     nxScale = .5;
     nyScale = .5;
-<<<<<<< .mine
-    nf = 128;
-=======
     nf = 64;
->>>>>>> .r8708
     writeStep = -1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = false;
@@ -99,11 +86,7 @@ ANNLayer "outputTest" = {
     restart = 0;
     nxScale = .5;
     nyScale = .5;
-<<<<<<< .mine
-    nf = 128;
-=======
     nf = 64;
->>>>>>> .r8708
     writeStep = -1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = false;
@@ -193,17 +176,13 @@ TransposeConn "gpuTransposeConn" = {
     shmget_flag = false;
     delay = 0;
     pvpatchAccumulateType = "convolve";
-    updateGSynFromPostPerspective = true;
+    updateGSynFromPostPerspective = false;
     receiveGpu = true;
-<<<<<<< .mine
-    xLocalSize = 1;
-    yLocalSize = 1;
-    fLocalSize = 128;
-=======
-    xLocalSize = 2;
-    yLocalSize = 2;
-    fLocalSize = 64;
->>>>>>> .r8708
+    numXLocal = 8;
+    numYLocal = 8;
+    numFLocal = 1;
+    postGroupXSize = 2;
+    postGroupYSize = 2;
 };
 
 IdentConn "RecvPostTest" = {
