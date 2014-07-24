@@ -13,15 +13,18 @@ HyPerCol "column" = {
    nx = 32;   
    ny = 32;
    dt = 1.0;
+   dtAdaptFlag = false;
    randomSeed = 17406293508;  // if not set here,  clock time is used to generate seed
    startTime = 0.0;
-   numSteps = 16; 
+   stopTime = 16.0; 
+   errorOnNotANumber = false;
    writeProgressToErr = false;
-   progressStep = 1;
+   progressInterval = 1;
    outputPath = "output/";
+   printParamsFilename = "pv.params";
    filenamesContainLayerNames = true;
    filenamesContainConnectionNames = true;
-   checkpointRead = false;
+   initializeFromCheckpoint = "";
    checkpointWrite = false;
    // checkpointWriteDir = "Checkpoints";
    // checkpointWriteStepInterval = 1;
@@ -34,7 +37,6 @@ HyPerCol "column" = {
 
 
 Movie "Image" = {
-    restart = 0;
     nxScale = 1;
     nyScale = 1;
     imageListPath = "input/files.txt";
@@ -51,6 +53,7 @@ Movie "Image" = {
     inverseFlag = false;
     normalizeLuminanceFlag = false;
     writeImages = false;
+    writeFrameToTimestamp = true;
     offsetX = 0;
     offsetY = 0;
     randomMovie = 0;
@@ -63,7 +66,6 @@ Movie "Image" = {
 
 
 ANNErrorLayer "Error" = {
-    restart = 0;
     nxScale = 1;
     nyScale = 1;
     nf = 16;
@@ -71,14 +73,17 @@ ANNErrorLayer "Error" = {
     writeStep = 100;
     mirrorBCflag = 0;
     writeSparseActivity = 0;
+    triggerFlag = false;
 
     InitVType = "ZeroV";
 
     VThresh = -infinity;
-    VMax =  infinity;
-    VMin = -infinity;
-    VShift = 0;
+    AMax =  infinity;
+    AMin = -infinity;
+    AShift = 0.0;
+    VWidth = 0.0;
     valueBC = 0;
+    errScale = 1;
     
     //
     phase = 1;
@@ -91,7 +96,7 @@ ANNErrorLayer "Error" = {
 //  connections: 
 
 
-KernelConn "delayArbor" = {
+HyPerConn "delayArbor" = {
     preLayerName = "Image";
     postLayerName = "Error";
     
@@ -99,12 +104,12 @@ KernelConn "delayArbor" = {
     nxp         = 1;
     nyp         = 1;
     nfp         = 16;
+    sharedWeights = true;
     
     //Set delay from 0 to 15
     delay       = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
     
     numAxonalArbors  = 16;
-    useWindowPost    = false;
     writeStep        = 100;
     initialWriteTime = 100;
     initFromLastFlag = 0;
@@ -124,9 +129,11 @@ KernelConn "delayArbor" = {
     shmget_flag            = true;
 };
 
-    DelayTestProbe "Error Stats File" = {
+DelayTestProbe "Error Stats File" = {
     targetLayer = "Error";
     probeOutputFile = "Error_Stats.txt";
     message = "Error Stats File              ";
+    triggerFlag = false;
+    buffer = "Activity";
+    nnzThreshold = 0.0;
 };
-
