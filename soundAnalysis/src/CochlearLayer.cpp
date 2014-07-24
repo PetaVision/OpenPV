@@ -29,8 +29,8 @@ CochlearLayer::~CochlearLayer() {
 }
 
 int CochlearLayer::initialize_base() {
-   freqMin = 20; // hertz
-   freqMax = 4200; // hertz
+   freqMin = 440; // hertz
+   freqMax = 4400; // hertz
    dampingConstant = 0;
    inputLayer = NULL;
    inputLayername = NULL;
@@ -93,7 +93,7 @@ int CochlearLayer::initialize(const char * name, HyPerCol * hc) {
        
      
        omega = (.5 * sqrt( (4 * pow(radianFreqs[i], 2)) - pow(dampingConstant, 2)));
-      
+       std::cout << "Freqs: " << targetFreqs[i] << "\n";
        
        
       dampingConstants.push_back(dampingConstant);
@@ -234,7 +234,7 @@ int CochlearLayer::updateState(double time, double dt){
              dampingConstant = dampingConstants[outNi];
              
              
-             // float sound = sin (440 * time * timestep * 2 * PI);
+             //float sound = sin (440 * time * timestep * 2 * PI);
            
              float c1 = xVal[outNi] - (inVal / pow(radianFreqs[outNi], 2));
              float c2 = (vVal[outNi] + (.5 * dampingConstant) * c1) / omegas[outNi];

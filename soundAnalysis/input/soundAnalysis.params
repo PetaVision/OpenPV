@@ -1,7 +1,4 @@
-// // HyPerHLCA.params
-//
-// created by peteschultz: Sept 27, 2012, modified bliu June 20, 2014
-//
+// // soundAnalysis.params
 //
 // Implements the locally competitive algorithm described in
 // Rozell et al., "Sparse Coding via Thresholding and Local Cometition
@@ -15,19 +12,20 @@ HyPerCol "column" = {
    ny                              = 1;
    dt                              = .000023; // streaming when equal to Cochlear display period
    randomSeed                      = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
-   stopTime                        = 0.1;
-   progressInterval                = .000023;
+   stopTime                        = 2;
+   progressInterval                = 0.000023;
    outputPath                      = "output";
    filenamesContainLayerNames      = true;
    filenamesContainConnectionNames = true;
    checkpointRead                  = false;
    checkpointWrite                 = true;
    checkpointWriteDir              = "output/checkpoints";
-   checkpointWriteStepInterval     = 500000;
+   checkpointWriteStepInterval     = 10;
    deleteOlderCheckpoints          = false;
    writeProgressToErr              = true;
    outputNamesOfLayersAndConns     = "LayerAndConnNames.txt";
    printTimescales                 = false;
+   dtMinToleratedTimeScale         = 0.0000023;
 };
 
 //
@@ -52,7 +50,7 @@ SoundStream "Sound" = {
 
 CochlearLayer "Cochlear" = {
     restart = 0;
-    nxScale = 16; //number of cochlear hair cells, useful as power of two (1024)
+    nxScale = 1; //number of cochlear hair cells, useful as power of two, 16 & 1024 used
     nyScale = 1;
     nf = 1;
     writeStep = .000023; //Change based on display period
@@ -71,8 +69,8 @@ CochlearLayer "Cochlear" = {
     inputLayername = "Sound"; 
     targetChannel = 0;
 
-    freqMin = 435;
-    freqMax = 4000;
+    freqMin = 439;
+    freqMax = 441;
 
     dampingRatio = .5;
 
@@ -87,7 +85,7 @@ CochlearLayer "Cochlear" = {
 
 ANNNormalizedErrorLayer "CochlearError" = {
     restart = 0;
-    nxScale = 16; // same as Coclear nxScale
+    nxScale = 1; // same as Coclear nxScale
     nyScale = 1;
     nf = 221; //number of delays, useful as power of 2
     initialWriteTime = 0;
@@ -99,7 +97,7 @@ ANNNormalizedErrorLayer "CochlearError" = {
     //InitVType = "InitVFromFile";
     //Vfilename = "/nh/compneuro/Data/vine/LCA/RETINAvsShuffled_10k/Checkpoints/Checkpoint22000/ErrorON_V.pvp";
 
-    VThresh = 0.005;
+    VThresh = 0.005; //previously .005
     VMax =  infinity;
     VMin = 0;
     VShift = 0;
@@ -111,6 +109,7 @@ ANNNormalizedErrorLayer "CochlearError" = {
     phase = 2;
 };
 
+
 HyPerLCALayer "A1" = {
     restart = 0;
     nxScale = 1;
@@ -118,7 +117,7 @@ HyPerLCALayer "A1" = {
     nf = 443; // number of desired features considering overcompleteness
     numChannels = 1;
     initialWriteTime = 0;
-    writeStep = -1;
+    writeStep = .000023;
     mirrorBCflag = 0;
     writeSparseActivity = 1;
 
@@ -142,6 +141,35 @@ HyPerLCALayer "A1" = {
 
     phase = 3;
 };
+
+
+ANNLayer "CochlearRecon" = {
+    restart = 0;
+    nxScale = 1; // numfreqs
+    nyScale = 1;
+    nf = 221;  // num delays
+    initialWriteTime = 0;
+    writeStep = -1;
+    mirrorBCflag = 0;
+    writeSparseActivity = 0;
+    
+    InitVType = "ZeroV";    
+    //InitVType = "InitVFromFile";
+    //Vfilename = "/nh/compneuro/Data/vine/LCA/RETINAvsShuffled_10k/Checkpoints/Checkpoint22000/ReconON_V.pvp";
+
+    VThresh = -infinity;
+    VMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
+    VMin = -infinity;
+    VShift = 0;
+    valueBC = 0; 
+    
+    triggerFlag = true;
+    triggerLayerName = "Cochlear";
+
+    phase = 4;
+};
+
+
 
 ANNLayer "SoundByte" = {
     restart = 0;
@@ -192,14 +220,39 @@ ANNLayer "ReverseCorrelation" = {
 };
 
 
+Movie "DelayCombinedRecon" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    imageListPath = "/code/sandbox/soundAnalysis/output/a3_A1.pvp";
+    nf = 1;
+    writeStep = -1;
+    writeSparseActivity = false;
+    displayPeriod = 1;
+    start_frame_index = 1;
+    skip_frame_index = 1;
+    echoFramePathnameFlag = true;
+    mirrorBCflag = true;
+    jitterFlag = 0;
+    useImageBCflag = false;
+    inverseFlag = false;
+    normalizeLuminanceFlag = false;
+    writeImages = false;
+    offsetX = 0;
+    offsetY = 0;
+    randomMovie = 0;
+    autoResizeFlag = false;
+    readPvpFile = true;
+    phase = 0;
+};
+
+
 ///Connections////
 
 
 KernelConn "SoundToSoundByte" = {
-
     preLayerName = "Sound";
     postLayerName = "SoundByte";
-    
     channelCode = 0;
     nxp         = 1;
     nyp         = 1;
@@ -232,7 +285,7 @@ KernelConn "CochlearToCochlearError" = {
     postLayerName = "CochlearError";
     
     channelCode = 0;
-    nxp         = 31; //(2 * numfreqs) - 1 for all to all connection
+    nxp         = 1; //(2 * numfreqs) - 1 for all to all connection
     nyp         = 1;
     nfp         = 221; //numdelays
     //Set delay from 0 to 2205 * .000023
@@ -262,7 +315,7 @@ KernelConn "A1ToCochlearError" = {
     preLayerName = "A1";
     postLayerName = "CochlearError";
     channelCode = 1;
-    nxp = 16; // numfreqs
+    nxp = 1; // numfreqs
     nyp = 1;
     nfp = 221;  // numdelays
     numAxonalArbors = 1;
@@ -270,6 +323,7 @@ KernelConn "A1ToCochlearError" = {
     
     weightInitType = "UniformRandomWeight";
     //weightInitType = "FileWeight";
+
     //initWeightsFile = "/nh/compneuro/Data/vine/LCA/RETINAvsShuffled_10k/Checkpoints/Checkpoint22000/V1ToErrorON_W.pvp";
 
     strength = 1;
@@ -282,12 +336,12 @@ KernelConn "A1ToCochlearError" = {
     preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
     keepKernelsSynchronized = true; 
     combine_dW_with_W_flag = false; 
-    writeStep = .000023;
+    writeStep = -.000023;
     writeCompressedWeights = false;
     writeCompressedCheckpoints = false;
     plasticityFlag = true;
-    weightUpdatePeriod = 20; //200.0;
-    initialWeightUpdateTime = 20; //199.0;
+    weightUpdatePeriod = 0.000023; //200.0;
+    initialWeightUpdateTime = 0.000023; //199.0;
     initialWriteTime = 0.0;
     dWMax = 1; //5.0; 
     selfFlag = false;
@@ -295,12 +349,29 @@ KernelConn "A1ToCochlearError" = {
     delay = 0;
     pvpatchAccumulateType = "convolve";
     shrinkPatches = false;
-    
     updateGSynFromPostPerspective = 0;
 };
 
-KernelConn "A1ToSoundByte" = {
+
+
+CloneKernelConn "A1ToCochlearRecon" = {
     preLayerName = "A1";
+    postLayerName = "CochlearRecon";
+    channelCode = 0;
+    writeStep = -1;
+    originalConnName = "A1ToCochlearError";
+    selfFlag = false;
+   pvpatchAccumulateType = "convolve";
+    delay = 0;
+    preActivityIsNotRate = false;
+    updateGSynFromPostPerspective = 0;
+    writeCompressedCheckpoints = 0;
+};
+
+
+
+KernelConn "ErrorToSoundByte" = {
+    preLayerName = "CochlearError";
     postLayerName = "SoundByte";
     channelCode = -1;  //set to -1
     nxp = 1;
@@ -323,12 +394,12 @@ KernelConn "A1ToSoundByte" = {
     preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
     keepKernelsSynchronized = true; 
     combine_dW_with_W_flag = false; 
-    writeStep = .000023;
+    writeStep = .0023; //set to a multiple of 1/44100, if set to exactly 1/44100 it will eat memory
     writeCompressedWeights = false;
     writeCompressedCheckpoints = false;
     plasticityFlag = true;
-    weightUpdatePeriod = 20; //200.0;
-    initialWeightUpdateTime = 20; //199.0;
+    weightUpdatePeriod = 0.0023; //same as writeStep;
+    initialWeightUpdateTime = 0.000023; //199.0;
     initialWriteTime = 0.0;
     dWMax = 1; //5.0; 
     selfFlag = false;
@@ -374,6 +445,23 @@ CloneKernelConn "A1ToReverseCorrelation" = {
 };
 
 
+disable = true;
+
+CloneKernelConn "ErrorToReverseCorrelation" = {
+    preLayerName = "CochlearError";
+    postLayerName = "ReverseCorrelation";
+    channelCode = 0;
+    writeStep = -1;
+    originalConnName = "ErrorToSoundByte";
+    selfFlag = false;
+   pvpatchAccumulateType = "convolve";
+    delay = 0;
+    preActivityIsNotRate = false;
+    updateGSynFromPostPerspective = 0;
+    writeCompressedCheckpoints = 0;
+};
+
+disable = false;
 ////Probes//////
 
 
@@ -445,7 +533,7 @@ LIF "LIFLayer" = {
 
 ANNLayer "CochlearRecon" = {
     restart = 0;
-    nxScale = 16; // numfreqs
+    nxScale = 1; // numfreqs
     nyScale = 1;
     nf = 221;  // num delays
     initialWriteTime = 0;
