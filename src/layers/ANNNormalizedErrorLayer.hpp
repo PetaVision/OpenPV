@@ -9,13 +9,14 @@
 #define ANNNORMALIZEDERRORLAYER_HPP_
 
 #include "ANNErrorLayer.hpp"
-
+#include <fstream>
 namespace PV {
 
 class ANNNormalizedErrorLayer: public PV::ANNErrorLayer {
 public:
    ANNNormalizedErrorLayer(const char * name, HyPerCol * hc);
    virtual ~ANNNormalizedErrorLayer();
+   virtual double calcTimeScale();
    virtual double getTimeScale();
 protected:
    ANNNormalizedErrorLayer();
@@ -23,6 +24,7 @@ protected:
 private:
    int initialize_base();
    double timeScale;
+   std::ofstream timeScaleStream;
 };
 
 } /* namespace PV */

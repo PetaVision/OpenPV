@@ -23,9 +23,7 @@
 #include <fstream>
 #include <string>
 #include <sstream>
-
 #include "../arch/opencl/CLDevice.hpp"
-
 enum CheckpointWriteTriggerMode { CPWRITE_TRIGGER_STEP, CPWRITE_TRIGGER_TIME, CPWRITE_TRIGGER_CLOCK };
 
 namespace PV {
@@ -107,7 +105,7 @@ public:
    bool getSuppresLastOutputFlag()        {return suppressLastOutput;}
    const char * getPrintParamsFilename()  {return printParamsFilename;}
    int getNumThreads()                    {return numThreads;}
-
+   bool getWriteTimescales()              {return writeTimescales;}
    int includeLayerName()                 {return filenamesContainLayerNames;}
    int includeConnectionName()            {return filenamesContainConnectionNames;}
 
@@ -196,7 +194,7 @@ private:
    virtual void ioParam_checkpointWriteTimeInterval(enum ParamsIOFlag ioFlag);
    virtual void ioParam_deleteOlderCheckpoints(enum ParamsIOFlag ioFlag);
    virtual void ioParam_suppressLastOutput(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_printTimescales(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_writeTimescales(enum ParamsIOFlag ioFlag); 
    virtual void ioParam_errorOnNotANumber(enum ParamsIOFlag ioFlag);
 
    int checkDirExists(const char * dirname, struct stat * pathstat);
@@ -313,7 +311,8 @@ private:
                                   // random_seed_obj is incremented by the number requested, so that everything
                                   // that needs a random seed gets a unique seed, and things are reproducible.
                                   //
-   bool printTimescales;
+   bool writeTimescales;
+   std::ofstream timeScaleStream;
    bool errorOnNotANumber;        // If true, check each layer's activity buffer for not-a-numbers and exit with an error if any appear
 
    int numThreads;

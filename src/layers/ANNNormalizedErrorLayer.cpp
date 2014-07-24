@@ -6,6 +6,7 @@
  */
 
 #include "ANNNormalizedErrorLayer.hpp"
+#include <fstream>
 
 namespace PV {
 
@@ -22,6 +23,9 @@ namespace PV {
 
   ANNNormalizedErrorLayer::~ANNNormalizedErrorLayer()
   {
+    if (parent->getDtAdaptFlag() && parent->getWriteTimescales()){
+      timeScaleStream.close();
+    }
   }
 
   int ANNNormalizedErrorLayer::initialize_base()
@@ -33,10 +37,23 @@ namespace PV {
   int ANNNormalizedErrorLayer::initialize(const char * name, HyPerCol * hc)
   {
     int status = ANNErrorLayer::initialize(name, hc);
+   
+    if (parent->icCommunicator()->commRank()==0 && parent->getDtAdaptFlag() && parent->getWriteTimescales()){
+      char * outputPath = parent->getOutputPath();
+      size_t timeScaleFileNameLen = strlen(outputPath) + strlen("/") + strlen(name) + strlen("_timescales.txt");
+      char timeScaleFileName[timeScaleFileNameLen+1];
+      int charsneeded = snprintf(timeScaleFileName, timeScaleFileNameLen+1, "%s/%s_timescales.txt", outputPath, name);
+      assert(charsneeded<=timeScaleFileNameLen);
+      timeScaleStream.open(timeScaleFileName);
+    }
     return status;
   }
 
   double ANNNormalizedErrorLayer::getTimeScale(){
+    return timeScale;
+  }
+
+  double ANNNormalizedErrorLayer::calcTimeScale(){
     if (parent->getDtAdaptFlag()){
       timescale_timer->start();
       InterColComm * icComm = parent->icCommunicator();
@@ -51,7 +68,10 @@ namespace PV {
 #endif
       for (int i = 0; i < num_neurons; i++){
          errorMag += (gSynExc[i] - gSynInh[i]) * (gSynExc[i] - gSynInh[i]);
-         inputMag += gSynExc[i] * gSynExc[i];
+         inputMag += gSynExc[i] * gSynExc[i]; 
+        // if(i==1){
+        //    fprintf(stdout, "ErrorMag: %f  inputMag: %f\ngSynExc[i]: %f\ngSynInh[i]: %f\n", errorMag, inputMag, gSynExc[i], gSynInh[i]);
+         //}
       }
 #ifdef PV_USE_MPI
       //Sum all errMag across processors
@@ -61,11 +81,15 @@ namespace PV {
       //errorMag /= num_neurons * num_procs;
       //inputMag /= num_neurons * num_procs;
       timeScale = errorMag > 0 ? sqrt(inputMag / errorMag) : parent->getTimeScaleMin();
+      //fprintf(stdout, "timeScale: %f\n", timeScale);
       timescale_timer->stop();
+      if (parent->getWriteTimescales() && parent->icCommunicator()->commRank()==0){
+         timeScaleStream << "sim_time = " << parent->simulationTime() << ", " << "timeScale = " << timeScale << std::endl;
+      }
       return timeScale;
     }
     else{
-      return HyPerLayer::getTimeScale();
+      return HyPerLayer::calcTimeScale();
     }
   }
 

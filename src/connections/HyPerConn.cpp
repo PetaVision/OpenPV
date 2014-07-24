@@ -2424,25 +2424,26 @@ int HyPerConn::updateStateWrapper(double time, double dt){
    int status = PV_SUCCESS;
    if(needUpdate(time, dt)){
       //std::cout << "Connection " << name << " updating on timestep " << time << "\n";
-     double preTimeScale = pre->getTimeScale(); 
-     double postTimeScale = post->getTimeScale();
+      double preTimeScale = pre->getTimeScale(); 
+      double postTimeScale = post->getTimeScale();
+      double timeScaleMin = parent->getTimeScaleMin();
       //If timeScale is less than the value for dtScaleMin specified in the params but not -1, don't updateState.
       //This is implemented as an optimization so weights don't change dramatically as ANNNormalizedErrorLayer values get large.
-      if (preTimeScale > 0 && preTimeScale < parent->getTimeScaleMin()) { 
+      if (preTimeScale > 0 && preTimeScale < timeScaleMin) { 
          if (parent->icCommunicator()->commRank()==0) {
-            fprintf(stdout, "TimeScale = %f, which is less than your specified dtScaleMin, %f. updateState won't be called this timestep.\n", preTimeScale, parent->getTimeScaleMin());
+            fprintf(stdout, "TimeScale = %f for layer %s, which is less than your specified dtScaleMin, %f. updateState won't be called this timestep.\n", preTimeScale, pre->getName(), timeScaleMin);
          }
       }
-      else if (postTimeScale > 0 && postTimeScale < parent->getTimeScaleMin()) { 
+      else if (postTimeScale > 0 && postTimeScale < timeScaleMin) { 
          if (parent->icCommunicator()->commRank()==0) {
-            fprintf(stdout, "TimeScale = %f, which is less than your specified dtScaleMin, %f. updateState won't be called this timestep.\n", postTimeScale, parent->getTimeScaleMin());
+            fprintf(stdout, "TimeScale = %f for layer %s, which is less than your specified dtScaleMin, %f. updateState won't be called this timestep.\n", postTimeScale, post->getName(),  timeScaleMin);
          }
       }
      else {
          status = updateState(time, dt);
          //Update lastUpdateTime
          lastUpdateTime = time;
-      }
+     }
       computeNewWeightUpdateTime(time, weightUpdateTime);
 
       //Sanity check, take this out once convinced layer's nextUpdateTime is the same as weightUpdateTime

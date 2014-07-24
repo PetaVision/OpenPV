@@ -392,12 +392,13 @@ double Movie::getDeltaUpdateTime(){
 //}
 
   // ensure that timeScale == 1 if new frame being loaded on NEXT time step
-  double Movie::getTimeScale(){
+  
+double Movie::calcTimeScale(){
     if(needUpdate(parent->simulationTime() + parent->getDeltaTime(), parent->getDeltaTime())){
       return parent->getTimeScaleMin(); 
     }
     else{
-      return HyPerLayer::getTimeScale();
+      return HyPerLayer::calcTimeScale();
     }
   }
 

@@ -25,7 +25,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fts.h>
-#include <iostream>
+#include <fstream>
 
 namespace PV {
 
@@ -94,6 +94,9 @@ HyPerCol::~HyPerCol()
    if (checkpointReadFlag) {
       free(checkpointReadDir); checkpointReadDir = NULL;
       free(checkpointReadDirBase); checkpointReadDirBase = NULL;
+   }
+   if (dtAdaptFlag && writeTimescales){
+      timeScaleStream.close();
    }
 }
 
@@ -166,7 +169,7 @@ int HyPerCol::initialize_base() {
    filenamesContainConnectionNames = 0;
    random_seed = 0;
    random_seed_obj = 0;
-   printTimescales = true; //Defaults to true
+   writeTimescales = true; //Defaults to true
    errorOnNotANumber = false;
    numThreads = 1;
 
@@ -289,6 +292,13 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * p
    currentStep = initialStep;
    finalStep = (long int) nearbyint(stopTime/deltaTimeBase);
    nextProgressTime = startTime + progressInterval;
+   if (icCommunicator()->commRank()==0 && dtAdaptFlag && writeTimescales){
+      size_t timeScaleFileNameLen = strlen(outputPath) + strlen("/HyPerCol_timescales.txt");
+      char timeScaleFileName[timeScaleFileNameLen+1];
+      int charsneeded = snprintf(timeScaleFileName, timeScaleFileNameLen+1, "%s/HyPerCol_timescales.txt", outputPath);
+      assert(charsneeded<=timeScaleFileNameLen);
+      timeScaleStream.open(timeScaleFileName);
+   }
 
    if(checkpointWriteFlag && checkpointWriteTriggerMode == CPWRITE_TRIGGER_STEP) {
       switch (checkpointWriteTriggerMode) {
@@ -464,7 +474,7 @@ int HyPerCol::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_checkpointWriteTimeInterval(ioFlag);
    ioParam_deleteOlderCheckpoints(ioFlag);
    ioParam_suppressLastOutput(ioFlag);
-   ioParam_printTimescales(ioFlag);
+   ioParam_writeTimescales(ioFlag);
    ioParam_errorOnNotANumber(ioFlag);
    return PV_SUCCESS;
 }
@@ -875,13 +885,12 @@ void HyPerCol::ioParam_suppressLastOutput(enum ParamsIOFlag ioFlag) {
    }
 }
 
-void HyPerCol::ioParam_printTimescales(enum ParamsIOFlag ioFlag) {
+void HyPerCol::ioParam_writeTimescales(enum ParamsIOFlag ioFlag) {
    assert(!params->presentAndNotBeenRead(name, "dtAdaptFlag"));
    if (dtAdaptFlag) {
-      ioParamValue(ioFlag, name, "printTimescales", &printTimescales, printTimescales);
+      ioParamValue(ioFlag, name, "writeTimescales", &writeTimescales, writeTimescales);
    }
 }
-
 void HyPerCol::ioParam_errorOnNotANumber(enum ParamsIOFlag ioFlag) {
    ioParamValue(ioFlag, name, "errorOnNotANumber", &errorOnNotANumber, errorOnNotANumber);
 }
@@ -1393,7 +1402,7 @@ double HyPerCol::adaptTimeScale(){
    // set the true timeScale to the minimum timeScale returned by each layer, stored in minTimeScaleTmp
    double minTimeScaleTmp = -1;
    for(int l = 0; l < numLayers; l++) {
-      double timeScaleTmp = layers[l]->getTimeScale();
+      double timeScaleTmp = layers[l]->calcTimeScale();
       if (timeScaleTmp > 0.0){
          if (timeScaleTmp < dtMinToleratedTimeScale) {
             if (columnId()==0) {
@@ -1461,10 +1470,8 @@ int HyPerCol::advanceTime(double sim_time)
    double deltaTimeAdapt = deltaTime;
    if (dtAdaptFlag){ // adapt deltaTime
      deltaTimeAdapt = adaptTimeScale();
-     if(printTimescales){
-        if (columnId() == 0) {
-          std::cout << "timeScale = " << timeScale << ", " << "timeScaleTrue = " << timeScaleTrue << std::endl;
-        }
+     if(writeTimescales && columnId() == 0) {
+         timeScaleStream << "sim_time = " << sim_time << ", " << "timeScale = " << timeScale << ", " << "timeScaleTrue = " << timeScaleTrue << std::endl;
      }
    } // dtAdaptFlag
 
