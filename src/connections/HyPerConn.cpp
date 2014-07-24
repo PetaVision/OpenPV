@@ -1158,9 +1158,10 @@ void HyPerConn::ioParam_dWMax(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerConn::ioParam_normalizeMethod(enum ParamsIOFlag ioFlag) {
-   parent->ioParamString(ioFlag, name, "normalizeMethod", &normalizeMethod, NULL);
+   parent->ioParamStringRequired(ioFlag, name, "normalizeMethod", &normalizeMethod);
    PVParams * params = parent->parameters();
    if (ioFlag == PARAMS_IO_READ) {
+#ifdef OBSOLETE // Marked obsolete July 17, 2014.  normalizeMethod is now a required parameter
       if (!normalizeMethod) {
          const char * normalize_method = NULL;
          if (params->present(name, "normalize")) {
@@ -1190,7 +1191,9 @@ void HyPerConn::ioParam_normalizeMethod(enum ParamsIOFlag ioFlag) {
          }
          normalizeMethod = strdup(normalize_method);
       }
-      if (normalizeMethod && normalizeMethod[0]!='\0') {
+#endif // OBSOLETE
+      assert(normalizeMethod);
+      if (normalizeMethod[0]!='\0') {
          if (!strcmp(normalizeMethod, "normalizeSum")) {
             normalizer = new NormalizeSum(this);
          }
@@ -1221,6 +1224,11 @@ void HyPerConn::ioParam_normalizeMethod(enum ParamsIOFlag ioFlag) {
          }
       }
       else {
+         free(normalizeMethod);
+         normalizeMethod = strdup("none");
+         if (parent->columnId()==0) {
+            printf("%s \"%s\": empty normalizeMethod string will be set to \"none\"\n", parent->parameters()->groupKeywordFromName(name), name);
+         }
          normalizer = NULL;
       }
    }
