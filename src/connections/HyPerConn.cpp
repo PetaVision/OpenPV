@@ -2426,6 +2426,7 @@ int HyPerConn::updateStateWrapper(double time, double dt){
       //std::cout << "Connection " << name << " updating on timestep " << time << "\n";
       double preTimeScale = pre->getTimeScale(); 
       double postTimeScale = post->getTimeScale();
+      double colTimeScale = parent->getTimeScale();
       double timeScaleMin = parent->getTimeScaleMin();
       //If timeScale is less than the value for dtScaleMin specified in the params but not -1, don't updateState.
       //This is implemented as an optimization so weights don't change dramatically as ANNNormalizedErrorLayer values get large.
@@ -2437,6 +2438,11 @@ int HyPerConn::updateStateWrapper(double time, double dt){
       else if (postTimeScale > 0 && postTimeScale < timeScaleMin) { 
          if (parent->icCommunicator()->commRank()==0) {
             fprintf(stdout, "TimeScale = %f for layer %s, which is less than your specified dtScaleMin, %f. updateState won't be called this timestep.\n", postTimeScale, post->getName(),  timeScaleMin);
+         }
+      }
+      else if (colTimeScale > 0 && colTimeScale < timeScaleMin) { 
+         if (parent->icCommunicator()->commRank()==0) {
+            fprintf(stdout, "TimeScale = %f for column %s, which is less than your specified dtScaleMin, %f. updateState won't be called this timestep.\n", colTimeScale, parent->getName(),  timeScaleMin);
          }
       }
      else {

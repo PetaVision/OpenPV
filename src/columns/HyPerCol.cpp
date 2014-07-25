@@ -1427,9 +1427,9 @@ double HyPerCol::adaptTimeScale(){
    // set the timeScale to minTimeScaleTmp iff minTimeScaleTmp > 0, otherwise default to timeScaleMin
    timeScale = minTimeScaleTmp > 0.0 ? minTimeScaleTmp : timeScaleMin;
 
-   // only let the timeScale change by a maximum of changeTimeScaleMax on any given time step
-   double changeTimeScale = timeScale - oldTimeScale;
-   timeScale = changeTimeScale < changeTimeScaleMax ? timeScale : oldTimeScale + changeTimeScaleMax;
+   // only let the timeScale change by a maximum percentage of oldTimescale of changeTimeScaleMax on any given time step
+   double changeTimeScale = (timeScale - oldTimeScale)/oldTimeScale;
+   timeScale = changeTimeScale < changeTimeScaleMax ? timeScale : oldTimeScale * (1 + changeTimeScaleMax);
 
    // keep the timeScale constant if the error is decreasing too rapidly
    double changeTimeScaleTrue = timeScaleTrue - oldTimeScaleTrue;
@@ -1439,11 +1439,21 @@ double HyPerCol::adaptTimeScale(){
 
    // if error is increasing, retreat back to the MIN(timeScaleMin, minTimeScaleTmp)
    if (changeTimeScaleTrue < changeTimeScaleMin){
-      if (minTimeScaleTmp > 0.0)
-         timeScale =  minTimeScaleTmp < timeScaleMin ? minTimeScaleTmp : timeScaleMin;
+      if (minTimeScaleTmp > 0.0){
+         double setTimeScale = oldTimeScale < timeScaleMin ? oldTimeScale : timeScaleMin;
+         timeScale = setTimeScale < minTimeScaleTmp ? setTimeScale : minTimeScaleTmp;
+         //timeScale =  minTimeScaleTmp < timeScaleMin ? minTimeScaleTmp : setTimeScale;
+      }
       else{
          timeScale = timeScaleMin;
       }
+   }
+
+   if(timeScale > timeScaleTrue){
+      std::cout << "timeScale is bigger than timeScaleTrue\n";
+      std::cout << "minTimeScaleTmp: " << minTimeScaleTmp << "\n";
+      std::cout << "oldTimeScaleTrue " << oldTimeScaleTrue << "\n";
+      exit(EXIT_FAILURE);
    }
 
    // deltaTimeAdapt is only used internally to set scale of each update step

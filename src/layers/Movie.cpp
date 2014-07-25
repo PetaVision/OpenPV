@@ -432,18 +432,27 @@ bool Movie::updateImage(double time, double dt)
       //Moved to updateStateWrapper
       //lastUpdateTime = time;
    } else {
-      if(!readPvpFile){
-         //Only do this if it's not the first update timestep
-         //The timestep number is (time - startTime)/(width of timestep), with allowance for roundoff.
-         //But if we're using adaptive timesteps, the dt passed as a function argument is not the correct (width of timestep).  
-         if(fabs(time - (parent->getStartTime() + parent->getDeltaTime())) > (parent->getDeltaTime()/2)){
-            if (filename != NULL) free(filename);
-            filename = strdup(getNextFileName(skipFrameIndex));
-            assert(filename != NULL);
+
+      if(parent->getTimeScale() > 0 && parent->getTimeScale() < parent->getTimeScaleMin()){
+         if (parent->icCommunicator()->commRank()==0) {
+            std::cout << "timeScale of " << parent->getTimeScale() << " is less than timeScaleMin of " << parent->getTimeScaleMin() << ", Movie is keeping the same frame\n";
          }
       }
       else{
-         updateFrameNum(skipFrameIndex);
+         if(!readPvpFile){
+            //Only do this if it's not the first update timestep
+            //The timestep number is (time - startTime)/(width of timestep), with allowance for roundoff.
+            //But if we're using adaptive timesteps, the dt passed as a function argument is not the correct (width of timestep).  
+            if(fabs(time - (parent->getStartTime() + parent->getDeltaTime())) > (parent->getDeltaTime()/2)){
+               //If the error is too high, keep the same frame
+               if (filename != NULL) free(filename);
+               filename = strdup(getNextFileName(skipFrameIndex));
+            }
+            assert(filename != NULL);
+         }
+         else{
+            updateFrameNum(skipFrameIndex);
+         }
       }
       if(writePosition && icComm->commRank()==0){
          fprintf(fp_pos->fp,"%f %s: \n",time,filename);
