@@ -1449,7 +1449,7 @@ double HyPerCol::adaptTimeScale(){
       }
    }
 
-   if(timeScale > timeScaleTrue){
+   if(timeScale > 0 && timeScaleTrue > 0 && timeScale > timeScaleTrue){
       std::cout << "timeScale is bigger than timeScaleTrue\n";
       std::cout << "minTimeScaleTmp: " << minTimeScaleTmp << "\n";
       std::cout << "oldTimeScaleTrue " << oldTimeScaleTrue << "\n";
