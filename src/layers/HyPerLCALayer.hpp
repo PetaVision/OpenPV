@@ -30,29 +30,20 @@ protected:
    int initialize(const char * name, HyPerCol * hc);
    virtual int allocateDataStructures();
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_dVThresh(enum ParamsIOFlag ioFlag);
    virtual void ioParam_numChannels(enum ParamsIOFlag ioFlag);
    virtual void ioParam_timeConstantTau(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_timeConstantTauMinimum(enum ParamsIOFlag ioFlag);
    virtual void ioParam_numWindowX(enum ParamsIOFlag ioFlag);
    virtual void ioParam_numWindowY(enum ParamsIOFlag ioFlag);
    virtual void ioParam_windowSymX(enum ParamsIOFlag ioFlag);
    virtual void ioParam_windowSymY(enum ParamsIOFlag ioFlag);
    virtual void ioParam_selfInteract(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_slopeErrorStd(enum ParamsIOFlag ioFlag);
    virtual int doUpdateState(double time, double dt, const PVLayerLoc * loc, pvdata_t * A,
          pvdata_t * V, int num_channels, pvdata_t * gSynHead, bool spiking,
          unsigned int * active_indices, unsigned int * num_active);
-   virtual float getChannelTimeConst(enum ChannelType channel_type){return tauMax;};
+   virtual float getChannelTimeConst(enum ChannelType channel_type){return timeConstantTau;};
 private:
-   float dVThresh;
-   float targetSparsity; //Grabbed from the attached probe
    SparsityLayerProbe* sparseProbe;
-   pvdata_t tauMax;
-   pvdata_t tauMin;
-   pvdata_t dtTau;
-   float slopeErrorStd;
-   double errorStd;
+   pvdata_t timeConstantTau;
    int initialize_base();
    int numWindowX;
    int numWindowY;
