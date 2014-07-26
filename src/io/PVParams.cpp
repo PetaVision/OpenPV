@@ -1453,6 +1453,8 @@ void PVParams::handleUnnecessaryStringParameter(const char * group_name, const c
                      params_value, correct_value);
             }
          }
+         free(correct_value_i);
+         free(params_value_i);
       }
    }
 #ifdef PV_USE_MPI
@@ -1633,6 +1635,7 @@ void PVParams::action_parameter_array_overwrite(char * id){
       fflush(stdout);
       exit(EXIT_FAILURE);
    }
+   free(param_name);
    //Set values of arrays
    origArray->resetArraySize();
    for(int i = 0; i < currentParamArray->getArraySize(); i++){ 
@@ -1697,6 +1700,7 @@ void PVParams::action_parameter_string_def_overwrite(const char * id, const char
    assert(param_value);
    //Set to new value
    currParam->setValue(param_value);
+   free(param_value);
 }
 
 void PVParams::action_parameter_filename_def(const char * id, const char * stringval) {
@@ -1740,6 +1744,7 @@ void PVParams::action_parameter_filename_def_overwrite(const char * id, const ch
          currParam = param;
       }
    }
+   free(param_name); param_name = NULL;
    if(!currParam){
       fflush(stdout);
       printf("Overwrite error: %s is not an existing parameter to overwrite.\n", id);
@@ -1796,6 +1801,7 @@ void PVParams::action_include_directive(const char * stringval) {
       fflush(stdout);
       exit(EXIT_FAILURE);
    }
+   free(param_value);
    //Load all stack values into current parameter group
    stack = includeGroup->copyStack();
    arrayStack = includeGroup->copyArrayStack();
