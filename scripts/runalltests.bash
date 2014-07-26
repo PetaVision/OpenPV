@@ -26,8 +26,8 @@ pvdir=$PWD # $pvdir is the directory containing the PetaVision project
 cd ..
 workspacedir=$PWD # $workspacedir is the eclipse workspace directory
 
-#valgrindcommand=""
-valgrindcommand="valgrind --suppressions=$pvdir/valgrind/petavision-mac.supp --num-callers=50 --leak-check=full --track-origins=yes"
+valgrindcommand=""
+#valgrindcommand="valgrind --suppressions=$pvdir/valgrind/petavision-mac.supp --num-callers=50 --leak-check=full --track-origins=yes"
 
 fails=""
 dne=""
