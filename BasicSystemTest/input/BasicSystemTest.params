@@ -19,6 +19,7 @@ HyPerCol "column" = {
    randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
    startTime = 0.0;
    stopTime = 10.0;  
+   errorOnNotANumber = true;
    progressInterval = 10.0; //Program will output its progress at each progressStep
    writeProgressToErr = false;  
    outputPath = "output/";
@@ -84,7 +85,7 @@ ANNLayer "output" = {
 
 //this is a layer for connection
 
-KernelConn "input to output" = {
+HyPerConn "input to output" = {
     preLayerName = "input";
     postLayerName = "output";
     channelCode = 0;
@@ -96,6 +97,7 @@ KernelConn "input to output" = {
     nyp = 7;
     nfp = 8; 
     numAxonalArbors = 1;
+    sharedWeights = true;
     writeStep = -1;
     initFromLastFlag = 0;
     
