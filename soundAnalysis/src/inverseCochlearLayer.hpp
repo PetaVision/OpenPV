@@ -9,7 +9,7 @@
 #define INVERSECOCHLEARLAYER_HPP_
 
 #include <layers/ANNLayer.hpp>
-#include "CochlearLayer.hpp"
+#include "/Users/JEC/Desktop/newvision/trunk/src/layers/NewCochlear.h"
 
 namespace PV {
 
@@ -44,7 +44,7 @@ private:
    //The layer to grab the input from
    HyPerLayer* inputLayer;
    //The cochlear layer to grab nessessary parameters from
-   CochlearLayer* cochlearLayer;
+   NewCochlearLayer* cochlearLayer;
    
    int bufferLength;
    pvdata_t ** xhistory; // ring buffer of past x_k(t_j).

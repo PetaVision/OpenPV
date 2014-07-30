@@ -97,11 +97,11 @@ int inverseCochlearLayer::communicateInitInfo(){
       exit(EXIT_FAILURE);
    }
    //Make sure the size is correct for the input layer
-   if(inputLayer->getLayerLoc()->nx != 1 || inputLayer->getLayerLoc()->ny != 1){
-      fprintf(stderr, "%s \"%s\" error: InputLayer \"%s\" must have a nx and ny size of 1.\n",
-              parent->parameters()->groupKeywordFromName(name), name, inputLayername);
-      exit(EXIT_FAILURE);
-   }
+   //if(inputLayer->getLayerLoc()->nx != 1 || inputLayer->getLayerLoc()->ny != 1){
+     // fprintf(stderr, "%s \"%s\" error: InputLayer \"%s\" must have a nx and ny size of 1.\n",
+      //        parent->parameters()->groupKeywordFromName(name), name, inputLayername);
+     // exit(EXIT_FAILURE);
+   //}
 
    //Grab the cochlear layer
    HyPerLayer* tempLayer = parent->getLayerFromName(cochlearLayername);
@@ -113,7 +113,7 @@ int inverseCochlearLayer::communicateInitInfo(){
       exit(EXIT_FAILURE);
    }
 
-   cochlearLayer = dynamic_cast <CochlearLayer*> (tempLayer);
+   cochlearLayer = dynamic_cast <NewCochlearLayer*> (tempLayer); //this should be new cochlear layer
    if (cochlearLayer == NULL) {
       if (parent->columnId()==0) {
          fprintf(stderr, "%s \"%s\" error: CochlearLayerName \"%s\" is not a CochlearLayer.\n",
@@ -128,7 +128,7 @@ int inverseCochlearLayer::communicateInitInfo(){
 int inverseCochlearLayer::allocateDataStructures(){
    ANNLayer::allocateDataStructures();
    
-   numFrequencies = inputLayer->getLayerLoc()->nf;
+   numFrequencies = inputLayer->getLayerLoc()->nx;
    xhistory = (pvdata_t **) calloc(bufferLength, sizeof(pvdata_t *));
    assert(xhistory!=NULL); // TODO: change to error message
    for (int j=0; j<bufferLength; j++) {
@@ -218,14 +218,16 @@ void inverseCochlearLayer::ioParam_cochlearLayername(enum ParamsIOFlag ioFlag) {
     
 int inverseCochlearLayer::updateState(double time, double dt){
    update_timer->start();
-    if (time >= nextDisplayTime) {
-       nextDisplayTime += cochlearLayer->getDisplayPeriod();
+    
+   // if (time >= nextDisplayTime) {
+    //   nextDisplayTime += cochlearLayer->getDisplayPeriod();
+    
        const PVLayerLoc * loc = getLayerLoc();
        int nx = loc->nx;
        int ny = loc->ny;
        int nf = loc->nf;
 
-       //This layer must be 1x1x(INVERSECOCHLEARLAYER_NF)
+       //This layer must be 1X1X(INVERSECOCHLEARLAYER_NF)
        assert(nx == 1 && ny == 1 && nf == INVERSECOCHLEARLAYER_NF);
        int num_input_neurons = inputLayer->getNumNeurons();
        int num_output_neurons = getNumNeurons();
@@ -233,7 +235,7 @@ int inverseCochlearLayer::updateState(double time, double dt){
        assert(num_output_neurons == INVERSECOCHLEARLAYER_NF);
        
        timehistory[ringBufferLevel] = time;
-       for (int k=0; k<inputLayer->getLayerLoc()->nf; k++) {
+       for (int k=0; k<inputLayer->getLayerLoc()->nx; k++) {
           xhistory[ringBufferLevel][k] = inputLayer->getLayerData()[k];
        } // memcpy?
        
@@ -259,13 +261,14 @@ int inverseCochlearLayer::updateState(double time, double dt){
 
     //Copy V to A buffer
        HyPerLayer::setActivity();
-       clayer->activity->data[0] *= 0.25; // With bufferLength 1, sound is reproduced well but at a higher amplitude
-       clayer->activity->data[1] *= 0.25; // This corrects the amplitude to approximately its original value
+      // clayer->activity->data[0] *= 0.25; // With bufferLength 1, sound is reproduced well but at a higher amplitude
+      // clayer->activity->data[1] *= 0.25; // This corrects the amplitude to approximately its original value
                                              // But I think the correction factor depends on frequency.  --pfs Jun 23, 2014
        
        ringBufferLevel++;
        if (ringBufferLevel == bufferLength) { ringBufferLevel = 0; }
-    }
+    
+    //} // end nextdisplaytime
     
    update_timer->stop();
    return PV_SUCCESS;

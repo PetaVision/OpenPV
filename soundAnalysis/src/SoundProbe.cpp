@@ -84,22 +84,32 @@ void SoundProbe::ioParam_soundOutputPath(enum ParamsIOFlag ioFlag) {
 void SoundProbe::ioParam_soundInputType(enum ParamsIOFlag ioFlag) {
    parent->ioParamStringRequired(ioFlag, name, "soundInputType", &soundInputType);
 }
+    
 
 int SoundProbe::outputState(double timed){
-    if (timed >= nextDisplayTime) {
-        nextDisplayTime += 1.0/fileHeader->samplerate;
     
-       const pvdata_t * A = getTargetLayer()->getLayerData();
-       int numNeurons = getTargetLayer()->getNumNeurons();
-       const PVLayerLoc * loc = getTargetLayer()->getLayerLoc();
-       for (int i = 0; i < numNeurons; i++){
+    int numSamples = nearbyint (getParent()->getDeltaTime() * fileHeader->samplerate);
+    
+    //std::cout << "numsamples" << numSamples << "\n";
+    
+    for (int i = 0; i < numSamples; i++) {
+
+        if (timed >= nextDisplayTime) {
+            
+        nextDisplayTime += 1.0/fileHeader->samplerate;
+
+        const pvdata_t * A = getTargetLayer()->getLayerData();
+        int numNeurons = getTargetLayer()->getNumNeurons();
+        const PVLayerLoc * loc = getTargetLayer()->getLayerLoc();
+        for (int i = 0; i < numNeurons; i++){
           soundBuf[i] = A[i];
-       }
-       //Write file out
-       int count = sf_writef_float(fileStream, soundBuf, 1);
-       assert(count == 1);
-       
-    }
+        }
+        //Write file out
+        int count = sf_writef_float(fileStream, soundBuf, 1);
+        assert(count == 1);
+
+        }
+    } //end of forloop over samples
     return PV_SUCCESS;
 }
 

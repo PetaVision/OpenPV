@@ -93,8 +93,8 @@ int CochlearLayer::initialize(const char * name, HyPerCol * hc) {
        
      
        omega = (.5 * sqrt( (4 * pow(radianFreqs[i], 2)) - pow(dampingConstant, 2)));
+      
        std::cout << "Freqs: " << targetFreqs[i] << "\n";
-       
        
       dampingConstants.push_back(dampingConstant);
        omegas.push_back(omega);
@@ -234,7 +234,7 @@ int CochlearLayer::updateState(double time, double dt){
              dampingConstant = dampingConstants[outNi];
              
              
-             //float sound = sin (440 * time * timestep * 2 * PI);
+             //float sound = sin (440 * time * 2 * PI);
            
              float c1 = xVal[outNi] - (inVal / pow(radianFreqs[outNi], 2));
              float c2 = (vVal[outNi] + (.5 * dampingConstant) * c1) / omegas[outNi];
@@ -253,7 +253,7 @@ int CochlearLayer::updateState(double time, double dt){
              
             // std::cout << ":: xVal " << xVal[124] << "\n";
              
-             V[outNi] = xVal[outNi];
+             V[outNi] = xVal[outNi]; //multiply by (non-freq dependent) inner ear amplification? (100000 gets into reasonable range)
              
            // std::cout << ":: Vbuffer " << V[124] << "\n";
              
