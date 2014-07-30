@@ -37,6 +37,7 @@
 #include "../layers/TextStream.hpp"
 #ifdef PV_USE_SNDFILE
 #include "../layers/SoundStream.hpp"
+#include "../layers/NewCochlear.h"
 #endif
 #include "../layers/Image.hpp"
 #include "../layers/CreateMovies.hpp"

@@ -134,6 +134,7 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
              "TextStream",
 #ifdef PV_USE_SNDFILE
              "SoundStream",
+             "NewCochlearLayer",
 #endif
              "Image",
                "CreateMovies",
@@ -432,6 +433,10 @@ HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPe
       keywordMatched = true;
       addedLayer = (HyPerLayer *) new SoundStream(name, hc);
    }
+    if( !strcmp(classkeyword, "NewCochlearLayer") ) {
+        keywordMatched = true;
+        addedLayer = (HyPerLayer *) new NewCochlearLayer(name, hc);
+    }
 #endif
    if( !strcmp(classkeyword, "Image") ) {
       keywordMatched = true;
