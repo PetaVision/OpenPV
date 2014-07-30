@@ -68,7 +68,7 @@ int SoundStream::initialize(const char * name, HyPerCol * hc) {
 
 
 double SoundStream::getDeltaUpdateTime(){
-   return 1.0/sampleRate;
+   return 1.0/sampleRate; 
 }
 
 int SoundStream::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
@@ -154,6 +154,7 @@ int SoundStream::updateState(double time, double dt){
           soundData[fi] = soundBuf[fi];
        }
    // }
+    
    return status;
 }
 
