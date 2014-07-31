@@ -1,6 +1,6 @@
 # Valgrind suppression file for PetaVision
 # There are memory leaks, etc., in Open MPI.  Running a typical PetaVision job
-# under valgrind therefor finds hundreds of errors we can't do anything about.
+# under valgrind therefore finds hundreds of errors we can't do anything about.
 # This suppression file prevents valgrind from reporting on them so we notice
 # when there's an error in the PetaVision code itself.
 #
@@ -12,7 +12,7 @@
 # This file was written for the Mac running Open MPI 1.8.1 installed from Homebrew.
 
 {
-   <insert_a_suppression_name_here>
+   <suppression_syscall_param_unitialized>
    Memcheck:Param
    socketcall.bind(my_addr.sin6_scope_id)
    ...
@@ -59,4 +59,25 @@
    Memcheck:Leak
    ...
    fun:orte_progress_thread_engine
+}
+
+{
+   <suppression_leak_ctime>
+   Memcheck:Leak
+   ...
+   fun:ctime
+}
+
+{
+   <suppression_leak_dyld_start>
+   Memcheck:Leak
+   ...
+   fun:_dyld_start
+}
+
+{
+   <suppression_leak_vprintf>
+   Memcheck:Leak
+   ...
+   fun:__vfprintf
 }
