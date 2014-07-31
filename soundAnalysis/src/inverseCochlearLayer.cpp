@@ -236,7 +236,7 @@ int inverseCochlearLayer::updateState(double time, double dt){
        
        timehistory[ringBufferLevel] = time;
        for (int k=0; k<inputLayer->getLayerLoc()->nx; k++) {
-          xhistory[ringBufferLevel][k] = inputLayer->getLayerData()[k];
+          xhistory[ringBufferLevel][k] = (inputLayer->getLayerData()[k]) / 10000; // divide  by linear scaling in cochlea / 100
        } // memcpy?
        
        double sumreal = 0.0;
@@ -254,8 +254,8 @@ int inverseCochlearLayer::updateState(double time, double dt){
        // pvdata_t * inA = inputLayer->getCLayer()->activity->data;
        pvdata_t * outV = getV();
        
-       outV[0] = sumreal;
-       outV[1] = sumimag;
+       outV[0] = sumimag;
+       outV[1] = sumreal;
 
        //*outV is where the output data should go
 

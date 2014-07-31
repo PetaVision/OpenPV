@@ -65,6 +65,7 @@ int CochlearLayer::initialize(const char * name, HyPerCol * hc) {
     for(int i = 1; i < nxScale; i++){
         float prevFreq = targetFreqs.back();
         newFreq = 7e-10*powf(prevFreq,3) - 3e-6*powf(prevFreq,2) + 1.0041 * prevFreq + .6935;
+        //newFreq = prevFreq * powf(2,1/12.0); //for equal temperament
         newradFreq = newFreq * 2 * PI;
         targetFreqs.push_back(newFreq);
         radianFreqs.push_back(newradFreq);

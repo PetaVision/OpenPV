@@ -8,6 +8,7 @@
 #include "CochlearLayer.hpp"
 #include "inverseCochlearLayer.hpp"
 #include "SoundReconLayer.h"
+#include "StreamReconLayer.h"
 
 #define MAIN_USES_CUSTOMGROUPS
 
@@ -43,6 +44,9 @@ void * addcustomgroup(const char * keyword, const char * groupname, HyPerCol * h
     }
     if ( !strcmp(keyword, "SoundReconLayer") ) {
         addedGroup = new SoundReconLayer(groupname, hc);
+    }
+    if ( !strcmp(keyword, "StreamReconLayer") ) {
+        addedGroup = new StreamReconLayer(groupname, hc);
     }
    
     return addedGroup;

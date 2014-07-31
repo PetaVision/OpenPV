@@ -13,7 +13,7 @@ debugParsing = true;
 HyPerCol "column" = {
    nx                              = 1;//always 1x1
    ny                              = 1;
-   dt                              = .00023; // .00022675737; // downsampling = dt * sampleRate
+   dt                              = .00022675737; // downsampling = dt * sampleRate
    randomSeed                      = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
    stopTime                        = 150.0;
    progressInterval                = .00023; // dt
@@ -40,7 +40,7 @@ SoundStream "Sound" = {
     restart                = 0;
     nxScale                = 1;
     nyScale                = 1;
-    soundInputPath         = "input/A.wav";
+    soundInputPath         = "input/furElise.wav";
     nf                     = 1; // mono vs. stereo
     writeStep              = .00023; //dt
     initialWriteTime       = 0;
@@ -54,10 +54,10 @@ SoundStream "Sound" = {
 
 NewCochlearLayer "NewCochlear" = {
     restart = 0;
-    nxScale = 1; //number of cochlear hair cells, useful as power of two (1024)
+    nxScale = 64; //number of cochlear hair cells, useful as power of two (1024)
     nyScale = 1;
     nf = 1;
-    writeStep = .00023; //dt
+    writeStep = .00022675737; //dt
     initialWriteTime = 0.0;
     mirrorBCflag = 0;
     writeSparseActivity = 0;
@@ -73,8 +73,8 @@ NewCochlearLayer "NewCochlear" = {
     inputLayername = "Sound"; 
     targetChannel = 0;
 
-    freqMin = 440;
-    freqMax = 4000;
+    freqMin = 50;
+    freqMax = 20000;
 
     dampingRatio = .5;
 
@@ -85,7 +85,7 @@ NewCochlearLayer "NewCochlear" = {
     
     //soundstream params
     
-    soundInputPath         = "input/A.wav";
+    soundInputPath         = "input/furElise.wav";
     soundBCFlag            = true;
     soundOffset            = 0; //In seconds
     
@@ -99,9 +99,10 @@ NewCochlearLayer "NewCochlear" = {
 };
 
 
+
 ANNNormalizedErrorLayer "CochlearError" = {
     restart = 0;
-    nxScale = 1; // same as Coclear nxScale
+    nxScale = 64; // same as Coclear nxScale
     nyScale = 1;
     nf = 221; //number of delays, useful as power of 2
     initialWriteTime = 0;
@@ -156,9 +157,9 @@ HyPerLCALayer "A1" = {
     phase = 3;
 };
 
-SoundReconLayer "SoundRecon" = {
+StreamReconLayer "StreamRecon" = {
     restart = 0;
-    nxScale = 1; //numfrequencies
+    nxScale = 64; //numfrequencies
     nySacle = 1;
     nf = 221; //numdelays
     numChannels = 1;
@@ -173,6 +174,7 @@ SoundReconLayer "SoundRecon" = {
     phase = 4;
     
 };
+
 
 
 inverseCochlearLayer "inverseCochlear" = {
@@ -195,7 +197,7 @@ inverseCochlearLayer "inverseCochlear" = {
 
 
 
-    inputLayername = "SoundRecon";
+    inputLayername = "StreamRecon";
     cochlearLayername = "NewCochlear";
 
     sampleRate = 44100;
@@ -214,7 +216,7 @@ KernelConn "CochlearToCochlearError" = {
     postLayerName = "CochlearError";
     
     channelCode = 0;
-    nxp         = 1; //(2 * numfreqs) - 1 for all to all connection
+    nxp         = 127; //(2 * numfreqs) - 1 for all to all connection
     nyp         = 1;
     nfp         = 221; //numdelays
     //Set delay from 0 to 2205 * dt
@@ -244,7 +246,7 @@ KernelConn "A1ToCochlearError" = {
     preLayerName = "A1";
     postLayerName = "CochlearError";
     channelCode = 1;
-    nxp = 1; // numfreqs
+    nxp = 64; // numfreqs
     nyp = 1;
     nfp = 221;  // numdelays
     numAxonalArbors = 1;
@@ -264,7 +266,7 @@ KernelConn "A1ToCochlearError" = {
     preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
     keepKernelsSynchronized = true; 
     combine_dW_with_W_flag = false; 
-    writeStep = .00023;
+    writeStep = -.00023;
     writeCompressedWeights = false;
     writeCompressedCheckpoints = false;
     plasticityFlag = true;
@@ -298,12 +300,12 @@ TransposeConn "CochlearErrorToA1" = {
     updateGSynFromPostPerspective = 0;
 };
 
-CloneKernelConn "A1ToSoundRecon" = {
+CloneKernelConn "A1ToStreamRecon" = {
     preLayerName = "A1";
-    postLayerName = "SoundRecon";
+    postLayerName = "StreamRecon";
     channelCode = 0;
     initialWriteTime = 0.0;
-    writeStep = .00023;
+    writeStep = -.00023;
     originalConnName = "A1ToCochlearError";
     selfFlag = false;
     pvpatchAccumulateType = "convolve";
@@ -327,7 +329,7 @@ SoundProbe "inverseCochlearProbe" = {
    restart = 0;
    targetLayer = "inverseCochlear";
    soundOutputPath = "output/outic.wav";
-   soundInputType  = "input/A.wav";
+   soundInputType  = "input/furElise.wav";
 };
 
 
@@ -357,7 +359,7 @@ SoundStream "Sound" = {
 
 CochlearLayer "Cochlear" = {
     restart = 0;
-    nxScale = 1024; //number of cochlear hair cells, useful as power of two (1024)
+    nxScale = 128; //number of cochlear hair cells, useful as power of two (1024)
     nyScale = 1;
     nf = 1;
     writeStep = .000022675737; //Change based on display period
@@ -376,7 +378,7 @@ CochlearLayer "Cochlear" = {
     inputLayername = "Sound"; 
     targetChannel = 0;
 
-    freqMin = 20;
+    freqMin = 100;
     freqMax = 4000;
 
     dampingRatio = .5;
@@ -458,6 +460,25 @@ ANNLayer "CochlearRecon" = {
     triggerLayerName = "Cochlear";
 
     phase = 4;
+};
+
+
+StreamReconLayer "StreamRecon" = {
+    restart = 0;
+    nxScale = 2; //numfrequencies
+    nySacle = 1;
+    nf = 221; //numdelays
+    numChannels = 1;
+    initialWriteTime = 0;
+    writeStep = .00023; //dt
+    mirrorBCflag = false;
+    writeSparseActivity = false;
+    
+    InitVType = "ZeroV";
+    triggerFlag = false;
+
+    phase = 4;
+    
 };
 
 ANNLayer "SoundByte" = {

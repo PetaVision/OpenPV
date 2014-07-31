@@ -32,7 +32,7 @@ namespace PV {
         int initialize_base();
         int bufferLevel;
         
-    }; // end of class inverseCochlearLayer
+    }; // end of class soundreconLayer
     
 }  // end namespace PV
 

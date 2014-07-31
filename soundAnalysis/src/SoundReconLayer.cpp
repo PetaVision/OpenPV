@@ -166,6 +166,8 @@ namespace PV {
                 gSynPatchStart[j * nf] += data[j * nf] * a;
             }
             
+            
+            
             if (bufferLevel < nf - 1) {
                 bufferLevel++; }
             else {
@@ -188,6 +190,9 @@ namespace PV {
             }
         }
 #endif
+        
+        //Copy V to A buffer
+        HyPerLayer::setActivity();
         
         recvsyn_timer->stop();
         
