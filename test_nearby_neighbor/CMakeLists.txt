@@ -61,3 +61,5 @@ IF(LIBSNDFILE_FOUND)
    target_link_libraries(${PV_PROJECT_NAME} ${LIBSNDFILE_LIBRARY})
 ENDIF(LIBSNDFILE_FOUND)
 
+# Link to libm since Ubuntu's libmpi doesn't do so, at least in 14.04
+target_link_libraries(${PV_PROJECT_NAME} m)
