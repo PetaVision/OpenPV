@@ -96,12 +96,14 @@ namespace PV {
         
         for(int i = 1; i < nxScale; i++){
             float prevFreq = targetFreqs.back();
-            newFreq = 7e-10*powf(prevFreq,3) - 3e-6*powf(prevFreq,2) + 1.0041 * prevFreq + .6935;
+            //newFreq = 7e-10*powf(prevFreq,3) - 3e-6*powf(prevFreq,2) + 1.0041 * prevFreq + .6935;
+            newFreq = prevFreq * powf(2,1/12.0); //for equal temperament
             newradFreq = newFreq * 2 * PI;
             targetFreqs.push_back(newFreq);
             radianFreqs.push_back(newradFreq);
-            
+            std::cout << ":: Frequency " << newFreq << "\n";
         }
+        
         
         
         //This is not read from parameters, but set explicitly
@@ -325,7 +327,7 @@ namespace PV {
                     
                     //std::cout << ":: xVal " << xVal[outNi] << "\n";
                     
-                    V[outNi] = xVal[outNi]; //multiply by (non-freq dependent) inner ear amplification? (100000 gets into reasonable range)
+                    V[outNi] = xVal[outNi] * 100000; //multiply by (non-freq dependent) inner ear amplification? (100000 gets into reasonable range)
                     
                   //  std::cout << ":: Vbuffer " << V[outNi] << "\n";
                     
