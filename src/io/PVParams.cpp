@@ -1585,6 +1585,7 @@ void PVParams::action_parameter_def_overwrite(char * id, double val){
       fflush(stdout);
       exit(EXIT_FAILURE);
    }
+   free(param_name);
    //Set to new value
    currParam->setValue(val);
 }
@@ -1642,7 +1643,7 @@ void PVParams::action_parameter_array_overwrite(char * id){
       origArray->pushValue(currentParamArray->peek(i));
    }
    assert(origArray->getArraySize() == currentParamArray->getArraySize());
-   free(currentParamArray);
+   delete currentParamArray;
    currentParamArray = new ParameterArray(PARAMETERARRAYSTACK_INITIALCOUNT);
 }
 
@@ -1690,6 +1691,7 @@ void PVParams::action_parameter_string_def_overwrite(const char * id, const char
          currParam = param;
       }
    }
+   free(param_name);
    if(!currParam){
       fflush(stdout);
       printf("Overwrite error: %s is not an existing parameter to overwrite.\n", id);
@@ -1761,6 +1763,7 @@ void PVParams::action_parameter_filename_def_overwrite(const char * id, const ch
    else {
       currParam->setValue(param_value);
    }
+   free(param_value);
 }
 
 void PVParams::action_include_directive(const char * stringval) {
@@ -1803,8 +1806,17 @@ void PVParams::action_include_directive(const char * stringval) {
    }
    free(param_value);
    //Load all stack values into current parameter group
+
+   assert(stack->size()==0);
+   delete stack;
    stack = includeGroup->copyStack();
+
+   assert(arrayStack->size()==0);
+   delete arrayStack;
    arrayStack = includeGroup->copyArrayStack();
+
+   assert(stringStack->size()==0);
+   delete stringStack;
    stringStack = includeGroup->copyStringStack();
 }
 

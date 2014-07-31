@@ -199,6 +199,9 @@ int getImageInfoGDAL(const char * filename, PV::Communicator * comm, PVLayerLoc 
          loc->nx = nx;
          loc->ny = ny;
 
+         loc->nb = 0;
+         memset(&loc->halo, 0, sizeof(loc->halo));
+
          loc->nxGlobal = nxProcs * nx;
          loc->nyGlobal = nyProcs * ny;
 
