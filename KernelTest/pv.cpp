@@ -40,7 +40,7 @@ void * customgroup(const char * keyword, const char * name, HyPerCol * hc) {
    const char * filename;
    HyPerLayer * targetlayer;
    char * message = NULL;
-   bool errorFound;
+   bool errorFound = false;
    if( !strcmp(keyword, "KernelTestProbe") ) {
       addedProbe = (LayerProbe *) new KernelTestProbe(name, hc);
       if( !addedProbe ) {
