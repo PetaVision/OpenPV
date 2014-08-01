@@ -24,7 +24,6 @@ protected:
    virtual int initialize(const char * name, HyPerCol * hc);
    virtual int allocateV();
    virtual int initializeV();
-   virtual int checkpointRead(const char * cpDir, double * timed);
    virtual int checkpointWrite(const char * cpDir);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    virtual void ioParam_ForwardLayername(enum ParamsIOFlag ioFlag);
@@ -40,6 +39,7 @@ protected:
    virtual void ioParam_LinAlpha(enum ParamsIOFlag ioFlag);
 
    virtual int updateState(double time, double dt);
+   virtual int readVFromCheckpoint(const char * cpDir, double * timeptr);
 private:
    int initialize_base();
    bool * dropout;

@@ -81,7 +81,7 @@ public:
    virtual int updateState(double time, double dt);
    virtual int outputState(double time, bool last=false);
 
-   virtual int checkpointRead(const char * cpDir, double * timef);
+   virtual int checkpointRead(const char * cpDir, double * timeptr);
 
    // partially override implementation of LayerDataInterface interface
    //
@@ -192,7 +192,6 @@ protected:
 
    long * frameStartBuf;
    int * countBuf;
-   long length;
    bool needFrameSizesForSpiking;
    PV_Stream * posstream;
 };

@@ -44,6 +44,11 @@ HyPerCol::~HyPerCol()
 
    if (image_file != NULL) free(image_file);
 
+   for (int k=0; k<numBaseProbes; k++) {
+      if (baseProbes[k] && baseProbes[k]->getOwner()==(void *) this) { delete baseProbes[k]; }
+   }
+   free(baseProbes);
+
    for (n = 0; n < numConnections; n++) {
       delete connections[n];
    }
@@ -76,10 +81,6 @@ HyPerCol::~HyPerCol()
       delete colProbes[k];
    }
    free(colProbes);
-   for (int k=0; k<numBaseProbes; k++) {
-      if (baseProbes[k]->getOwner()==(void *) this) { delete baseProbes[k]; }
-   }
-   free(baseProbes);
    free(name);
    free(printParamsFilename);
    // free(outputNamesOfLayersAndConns);
@@ -87,6 +88,7 @@ HyPerCol::~HyPerCol()
    if (srcPath) {
       free(srcPath);
    }
+   free(initializeFromCheckpointDir);
    if (checkpointWriteFlag) {
       free(checkpointWriteDir); checkpointWriteDir = NULL;
       free(checkpointWriteTriggerModeString); checkpointWriteTriggerModeString = NULL;
@@ -144,6 +146,8 @@ int HyPerCol::initialize_base() {
    clDevice = NULL;
    layers = NULL;
    connections = NULL;
+   layerStatus = NULL;
+   connectionStatus = NULL;
    name = NULL;
    srcPath = NULL;
    outputPath = NULL;
@@ -466,6 +470,8 @@ int HyPerCol::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_ny(ioFlag);
    ioParam_filenamesContainLayerNames(ioFlag);
    ioParam_filenamesContainConnectionNames(ioFlag);
+   ioParam_initializeFromCheckpointDir(ioFlag);
+   ioParam_defaultInitializeFromCheckpointFlag(ioFlag);
    ioParam_checkpointRead(ioFlag);
    ioParam_checkpointWrite(ioFlag);
    ioParam_checkpointWriteDir(ioFlag);
@@ -775,6 +781,19 @@ void HyPerCol::ioParam_filenamesContainConnectionNames(enum ParamsIOFlag ioFlag)
    }
 }
 
+void HyPerCol::ioParam_initializeFromCheckpointDir(enum ParamsIOFlag ioFlag) {
+   ioParamString(ioFlag, name, "initializeFromCheckpointDir", &initializeFromCheckpointDir, "", true/*warnIfAbsent*/);
+}
+
+void HyPerCol::ioParam_defaultInitializeFromCheckpointFlag(enum ParamsIOFlag ioFlag) {
+   assert(!params->presentAndNotBeenRead(name, "initializeFromCheckpointDir"));
+   assert(initializeFromCheckpointDir); // Should never be null after ioParam_initializeFromCheckpoint is called: an empty string serves as turning the feature off
+   if (initializeFromCheckpointDir[0] != '\0') {
+      ioParamValue(ioFlag, name, "defaultInitializeFromCheckpointFlag", &defaultInitializeFromCheckpointFlag, true/*default value*/, true/*warn if absent*/);
+   }
+
+}
+
 void HyPerCol::ioParam_checkpointRead(enum ParamsIOFlag ioFlag) {
    // checkpointRead, checkpointReadDir, and checkpointReadDirIndex parameters were deprecated on Mar 27, 2014.
    // Instead of setting checkpointRead=true; checkpointReadDir="foo"; checkpointReadDirIndex=100,
@@ -1049,13 +1068,19 @@ int HyPerCol::addLayer(HyPerLayer * l)
 
    if( (size_t) numLayers ==  layerArraySize ) {
       layerArraySize += RESIZE_ARRAY_INCR;
-      HyPerLayer ** newLayers = (HyPerLayer **) malloc( layerArraySize * sizeof(HyPerLayer *) );
-      assert(newLayers);
-      for(int k=0; k<numLayers; k++) {
-         newLayers[k] = layers[k];
+      HyPerLayer ** newLayers = (HyPerLayer **) realloc(layers, layerArraySize * sizeof(HyPerLayer *));
+      if (newLayers==NULL) {
+         fprintf(stderr, "Rank %d process unable to append layer %d (\"%s\") to list of layers: %s", columnId(), numLayers, l->getName(), strerror(errno));
+         exit(EXIT_FAILURE);
       }
-      free(layers);
       layers = newLayers;
+      // HyPerLayer ** newLayers = (HyPerLayer **) malloc( layerArraySize * sizeof(HyPerLayer *) );
+      // assert(newLayers);
+      // for(int k=0; k<numLayers; k++) {
+      //    newLayers[k] = layers[k];
+      // }
+      // free(layers);
+      // layers = newLayers;
    }
    layers[numLayers++] = l;
    if (l->getPhase() >= numPhases) numPhases = l->getPhase()+1;
@@ -1101,6 +1126,15 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
    stopTime = stop_time;
    deltaTime = dt;
 
+   layerStatus = (int *) calloc((size_t) numLayers, sizeof(int));
+   if (layerStatus==NULL) {
+      fprintf(stderr, "Rank %d process unable to allocate memory for status of %zu layers: %s\n", columnId(), (size_t) numLayers, strerror(errno));
+   }
+   connectionStatus = (int *) calloc((size_t) numConnections, sizeof(int));
+   if (connectionStatus==NULL) {
+      fprintf(stderr, "Rank %d process unable to allocate memory for status of %zu connections: %s\n", columnId(), (size_t) numConnections, strerror(errno));
+   }
+
    int (HyPerCol::*layerInitializationStage)(int) = NULL;
    int (HyPerCol::*connInitializationStage)(int) = NULL;
 
@@ -1114,6 +1148,9 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
    for (int i=0; i<numBaseProbes; i++) {
       BaseProbe * p = baseProbes[i];
       int pstatus = p->communicateInitInfo();
+      if (p->getOwner() != this) {
+         baseProbes[i] = NULL; // don't need to maintain probes whose ownership has been handed off.
+      }
       if (pstatus==PV_SUCCESS) {
          if (columnId()==0) printf("Probe \"%s\" communicateInitInfo completed.\n", p->getName());
       }
@@ -1131,6 +1168,7 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
    // do allocation stage for probes
    for (int i=0; i<numBaseProbes; i++) {
       BaseProbe * p = baseProbes[i];
+      if (p==NULL) continue;
       int pstatus = p->allocateDataStructures();
       if (pstatus==PV_SUCCESS) {
          if (columnId()==0) printf("Probe \"%s\" allocateDataStructures completed.\n", p->getName());
@@ -1140,14 +1178,6 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
          exit(EXIT_FAILURE); // Any error message should be printed by probe's communicateInitInfo function
       }
    }
-
-
-#ifdef OBSOLETE // Marked obsolete Aug 9, 2013.  Look everybody, checkMarginWidths is obsolete!
-   if( checkMarginWidths() != PV_SUCCESS ) {
-      fprintf(stderr, "Margin width failure; unable to continue.\n");
-      return PV_MARGINWIDTH_FAILURE;
-   }
-#endif // OBSOLETE
 
    const bool exitOnFinish = false;
 
@@ -1166,10 +1196,12 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
       checkpointRead(checkpointReadDir);
    }
    else {
-      for ( int l=0; l<numLayers; l++ ) {
-         layers[l]->initializeState();
-      }
+      layerInitializationStage = &HyPerCol::layerSetInitialValues;
+      connInitializationStage = &HyPerCol::connSetInitialValues;
+      doInitializationStage(layerInitializationStage, connInitializationStage, "allocateDataStructures");
    }
+   free(layerStatus); layerStatus = NULL;
+   free(connectionStatus); connectionStatus = NULL;
 
    parameters()->warnUnread();
    if (printParamsFilename!=NULL) outputParams();
@@ -1259,14 +1291,11 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
 
 int HyPerCol::doInitializationStage(int (HyPerCol::*layerInitializationStage)(int), int (HyPerCol::*connInitializationStage)(int), const char * stageName) {
    int status = PV_SUCCESS;
-   int * layerStatus = (int *) malloc((size_t) numLayers * sizeof(int));
-   assert(layerStatus);
    for (int l=0; l<numLayers; l++) {
       layerStatus[l]=PV_POSTPONE;
    }
-   int * connStatus = (int *) malloc((size_t) numConnections * sizeof(int));
    for (int c=0; c<numConnections; c++) {
-      connStatus[c]=PV_POSTPONE;
+      connectionStatus[c]=PV_POSTPONE;
    }
    int numPostponedLayers = numLayers;
    int numPostponedConns = numConnections;
@@ -1297,11 +1326,11 @@ int HyPerCol::doInitializationStage(int (HyPerCol::*layerInitializationStage)(in
          }
       }
       for (int c=0; c<numConnections; c++) {
-         if (connStatus[c]==PV_POSTPONE) {
+         if (connectionStatus[c]==PV_POSTPONE) {
             int status = (this->*connInitializationStage)(c);
             switch (status) {
             case PV_SUCCESS:
-               connStatus[c] = PV_SUCCESS;
+               connectionStatus[c] = PV_SUCCESS;
                numPostponedConns--;
                assert(numPostponedConns>=0);
                if (columnId()==0) printf("Connection \"%s\" %s completed.\n", connections[c]->getName(), stageName);
@@ -1334,8 +1363,6 @@ int HyPerCol::doInitializationStage(int (HyPerCol::*layerInitializationStage)(in
       }
       exit(EXIT_FAILURE);
    }
-   free(layerStatus); layerStatus = NULL;
-   free(connStatus); connStatus = NULL;
    return status;
 }
 
@@ -1368,6 +1395,22 @@ int HyPerCol::connAllocateDataStructures(int c) {
    assert(c>=0 && c<numConnections && conn->getDataStructuresAllocatedFlag()==false);
    int status = conn->allocateDataStructures();
    if (status==PV_SUCCESS) conn->setDataStructuresAllocatedFlag();
+   return status;
+}
+
+int HyPerCol::layerSetInitialValues(int l) {
+   HyPerLayer * layer = layers[l];
+   assert(l>=0 && l<numLayers && layer->getInitialValuesSetFlag()==false);
+   int status = layer->initializeState();
+   if (status==PV_SUCCESS) layer->setInitialValuesSetFlag();
+   return status;
+}
+
+int HyPerCol::connSetInitialValues(int c) {
+   HyPerConn * conn = connections[c];
+   assert(c>=0 && c<numConnections && conn->getInitialValuesSetFlag()==false);
+   int status = conn->initializeState();
+   if (status==PV_SUCCESS) conn->setInitialValuesSetFlag();
    return status;
 }
 
@@ -1661,6 +1704,14 @@ int HyPerCol::checkpointRead(const char * cpDir) {
 #endif // PV_USE_MPI
    simTime = timestamp.time;
    currentStep = timestamp.step;
+
+   double t = startTime;
+   for (long int k=initialStep; k<currentStep; k++) {
+      if (t >= nextProgressTime) {
+         nextProgressTime += progressInterval;
+         t += deltaTimeBase;
+      }
+   }
    struct timescale_struct {
       double timeScale; // timeScale factor for increasing/decreasing dt
       double timeScaleTrue; // true timeScale as returned by HyPerLayer::getTimeScale() before applications of constraints
@@ -1694,20 +1745,12 @@ int HyPerCol::checkpointRead(const char * cpDir) {
 #endif // PV_USE_MPI
    timeScale = timescale.timeScale;
    timeScaleTrue = timescale.timeScaleTrue;
-   double checkTime;
+   double checkTime = simTime; // HyPerLayer::checkpointRead gives warnings if the files' timestamps are different from checkTime, but won't quit or change the value of checkTime
    for( int l=0; l<numLayers; l++ ) {
       layers[l]->checkpointRead(cpDir, &checkTime);
-      if (checkTime!=simTime && columnId()==0) {
-         fprintf(stderr, "Warning: layer \"%s\" checkpoint has timestamp %f instead of the HyPerCol timestamp %f.\n",
-               layers[l]->getName(), checkTime, simTime);
-      }
    }
    for( int c=0; c<numConnections; c++ ) {
       connections[c]->checkpointRead(cpDir, &checkTime);
-      if (checkTime!=simTime && columnId()==0) {
-         fprintf(stderr, "Warning: connection \"%s\" checkpoint has timestamp %f instead of the HyPerCol timestamp %f.\n",
-               connections[c]->getName(), checkTime, simTime);
-      }
    }
    if(checkpointWriteFlag) {
       if( cpWriteStepInterval > 0) {
@@ -1762,7 +1805,10 @@ int HyPerCol::checkpointWrite(const char * cpDir) {
       timerpathstring += "timers.txt";
       const char * timerpath = timerpathstring.c_str();
       PV_Stream * timerstream = PV_fopen(timerpath, "w");
-      assert(timerstream); // Lazy; do a proper error message.
+      if (timerstream==NULL) {
+         fprintf(stderr, "Unable to open \"%s\" for checkpointing timer information: %s\n", timerpath, strerror(errno));
+         exit(EXIT_FAILURE);
+      }
       runTimer->fprint_time(timerstream->fp);
       icCommunicator()->fprintTime(timerstream->fp);
       for (int l=0; l<numLayers; l++) {
@@ -1948,6 +1994,23 @@ int HyPerCol::outputParams() {
    return status;
 }
 
+// Uses the arguments cpDir, objectName, and suffix to create a path of the form
+// [cpDir]/[objectName][suffix]
+// (the brackets are not in the created path, but the slash is)
+// The string returned is allocated with malloc, and the calling routine is responsible for freeing the string.
+char * HyPerCol::pathInCheckpoint(const char * cpDir, const char * objectName, const char * suffix) {
+   assert(cpDir!=NULL && suffix!=NULL);
+   size_t n = strlen(cpDir)+strlen("/")+strlen(objectName)+strlen(suffix)+(size_t) 1; // the +1 leaves room for the terminating null
+   char * filename = (char *) malloc(n);
+   if (filename==NULL) {
+      fprintf(stderr, "Error: rank %d process unable to allocate filename \"%s/%s%s\": %s\n", columnId(), cpDir, objectName, suffix, strerror(errno));
+      exit(EXIT_FAILURE);
+   }
+   int chars_needed = snprintf(filename, n, "%s/%s%s", cpDir, objectName, suffix);
+   assert(chars_needed < n);
+   return filename;
+}
+
 int HyPerCol::exitRunLoop(bool exitOnFinish)
 {
    int status = 0;
@@ -2014,40 +2077,13 @@ int HyPerCol::insertProbe(ColProbe * p)
 
    colProbes = newprobes;
    colProbes[numColProbes] = p;
-
+   // Note: if ColProbe becomes a subclass of BaseProbe and the probe gets added to the baseProbes array
+   // before getting inserted, as LayerProbes and BaseConnectionProbes do, we'll have to remove the probe from baseProbes
+   // when adding it to colProbes, or the destructor will try to delete it twice.
    return ++numColProbes;
 }
 
-//int HyPerCol::addBaseConnectionProbe(BaseConnectionProbe * p) {
-//   BaseConnectionProbe ** newprobes;
-//   newprobes = (BaseConnectionProbe **) malloc( ((size_t) (numConnProbes + 1)) * sizeof(BaseConnectionProbe *) );
-//   assert(newprobes != NULL);
-//
-//   for (int i=0; i<numConnProbes; i++) {
-//      newprobes[i] = connProbes[i];
-//   }
-//   delete connProbes;
-//   connProbes = newprobes;
-//   connProbes[numConnProbes] = p;
-//
-//   return ++numConnProbes;
-//}
-
-//int HyPerCol::addLayerProbe(LayerProbe * p) {
-//   LayerProbe ** newprobes;
-//   newprobes = (LayerProbe **) malloc( ((size_t) (numLayerProbes + 1)) * sizeof(LayerProbe *) );
-//   assert(newprobes != NULL);
-//
-//   for (int i=0; i<numLayerProbes; i++) {
-//      newprobes[i] = layerProbes[i];
-//   }
-//   free(layerProbes);
-//   layerProbes = newprobes;
-//   layerProbes[numLayerProbes] = p;
-//
-//   return ++numLayerProbes;
-//}
-
+// BaseProbes include layer probes and connection probes, but not (yet) column probes.
 int HyPerCol::addBaseProbe(BaseProbe * p) {
    BaseProbe ** newprobes;
    newprobes = (BaseProbe **) malloc( ((size_t) (numBaseProbes + 1)) * sizeof(BaseProbe *) );
@@ -2125,83 +2161,6 @@ unsigned int HyPerCol::getRandomSeed() {
    return t;
 }
 
-#ifdef OBSOLETE // Marked obsolete Aug 9, 2013.  Look, everybody, checkMarginWidths is obsolete!
-int HyPerCol::checkMarginWidths() {
-   // For each connection, make sure that the pre-synaptic margin width is
-   // large enough for the patch size.
-
-   int status = PV_SUCCESS;
-   int status1, status2;
-   for( int c=0; c < numConnections; c++ ) {
-      HyPerConn * conn = connections[c];
-      HyPerLayer * pre = conn->preSynapticLayer();
-      HyPerLayer * post = conn->postSynapticLayer();
-
-      int xScalePre = pre->getXScale();
-      int xScalePost = post->getXScale();
-      status1 = zCheckMarginWidth(conn, "x", conn->xPatchSize(), xScalePre, xScalePost, status);
-
-      int yScalePre = pre->getYScale();
-      int yScalePost = post->getYScale();
-      status2 = zCheckMarginWidth(conn, "y", conn->yPatchSize(), yScalePre, yScalePost, status1);
-      status = (status == PV_SUCCESS && status1 == PV_SUCCESS && status2 == PV_SUCCESS) ?
-               PV_SUCCESS : PV_MARGINWIDTH_FAILURE;
-   }
-   for( int l=0; l < numLayers; l++ ) {
-      HyPerLayer * layer = layers[l];
-      status1 = lCheckMarginWidth(layer, "x", layer->getLayerLoc()->nx, layer->getLayerLoc()->nxGlobal, status);
-      status2 = lCheckMarginWidth(layer, "y", layer->getLayerLoc()->ny, layer->getLayerLoc()->nyGlobal, status1);
-      status = (status == PV_SUCCESS && status1 == PV_SUCCESS && status2 == PV_SUCCESS) ?
-               PV_SUCCESS : PV_MARGINWIDTH_FAILURE;
-   }
-   return status;
-}  // end HyPerCol::checkMarginWidths()
-
-int HyPerCol::zCheckMarginWidth(HyPerConn * conn, const char * dim, int patchSize, int scalePre, int scalePost, int prevStatus) {
-   int status;
-   int scaleDiff = scalePre - scalePost;
-   // if post has higher neuronal density than pre, scaleDiff < 0.
-   HyPerLayer * pre = conn->preSynapticLayer();
-   int padding = conn->preSynapticLayer()->getLayerLoc()->nb;
-   int needed = scaleDiff > 0 ? ( patchSize/( (int) pow(2,scaleDiff) )/2 ) :
-                                ( (patchSize/2) * ( (int) pow(2,-scaleDiff) ) );
-   if( padding < needed ) {
-      if( prevStatus == PV_SUCCESS ) {
-         fprintf(stderr, "Margin width error.\n");
-      }
-      fprintf(stderr, "Connection \"%s\", dimension %s:\n", conn->getName(), dim);
-      fprintf(stderr, "    Pre-synaptic margin width %d, patch size %d, presynaptic scale %d, postsynaptic scale %d\n",
-              padding, patchSize, scalePre, scalePost);
-      fprintf(stderr, "    Layer %s needs margin width of at least %d\n", pre->getName(), needed);
-      if( numberOfColumns() > 1 || padding > 0 ) {
-         status = PV_MARGINWIDTH_FAILURE;
-      }
-      else {
-         fprintf(stderr, "Continuing, but there may be undesirable edge effects.\n");
-         status = PV_SUCCESS;
-      }
-   }
-   else status = PV_SUCCESS;
-   return status;
-}
-
-int HyPerCol::lCheckMarginWidth(HyPerLayer * layer, const char * dim, int layerSize, int layerGlobalSize, int prevStatus) {
-   int status;
-   int nb = layer->getLayerLoc()->nb;
-   if( layerSize < nb) {
-      if( prevStatus == PV_SUCCESS ) {
-         fprintf(stderr, "Margin width error.\n");
-      }
-      fprintf(stderr, "Layer \"%s\", dimension %s:\n", layer->getName(), dim);
-      fprintf(stderr, "    Pre-synaptic margin width %d, overall layer size %d, layer size per process %d\n", nb, layerGlobalSize, layerSize);
-      fprintf(stderr, "    Use either fewer processes in dimension %s, or a margin size <= %d.\n", dim, layerSize);
-      status = PV_MARGINWIDTH_FAILURE;
-   }
-   else status = PV_SUCCESS;
-   return status;
-}
-#endif // OBSOLETE
-
 template <typename T>
 int HyPerCol::writeScalarToFile(const char * cp_dir, const char * group_name, const char * val_name, T val) {
    int status = PV_SUCCESS;
@@ -2249,7 +2208,7 @@ int HyPerCol::readScalarFromFile(const char * cp_dir, const char * group_name, c
    if( columnId() == 0 ) {
       char filename[PV_PATH_MAX];
       int chars_needed;
-      chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_%s.bin", cp_dir, group_name, val_name);
+      chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_%s.bin", cp_dir, group_name, val_name); // Could use pathInCheckpoint if not for the .bin
       if(chars_needed >= PV_PATH_MAX) {
          fprintf(stderr, "HyPerLayer::readScalarFloat error: path %s/%s_%s.bin is too long.\n", cp_dir, group_name, val_name);
          abort();

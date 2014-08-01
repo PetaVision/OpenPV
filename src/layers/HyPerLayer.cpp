@@ -125,13 +125,15 @@ int HyPerLayer::initialize_base() {
    this->initVObject = NULL;
    this->triggerOffset = 0;
    this->nextUpdateTime = 0;
+   this->initializeFromCheckpointFlag = false;
+   this->restartFlag = false; // Deprecated July 31, 2014 in favor of initializeFromCheckpointFlag
    
    this->lastUpdateTime = 0.0;
-   //this->lastActiveTime = NULL;
    this->phase = 0;
 
    this->initInfoCommunicatedFlag = false;
    this->dataStructuresAllocatedFlag = false;
+   this->initialValuesSetFlag = false;
    
    this->numSynchronizedMarginWidthLayers = 0;
    this->synchronizedMarginWidthLayers = NULL;
@@ -339,7 +341,6 @@ HyPerLayer::~HyPerLayer()
       thread_gSyn = NULL;
    }
 
-   //free(lastActiveTime);
 }
 
 int HyPerLayer::freeClayer() {
@@ -570,19 +571,32 @@ int HyPerLayer::allocateGSyn() {
 int HyPerLayer::initializeState() {
    int status = PV_SUCCESS;
    PVParams * params = parent->parameters();
-   assert(!params->presentAndNotBeenRead(name, "restart"));
-   if( restartFlag ) {
-      double timef;
-      status = readState(&timef);
-      if(!parent->getCheckpointReadFlag()){
-         nextUpdateTime = parent->getDeltaTime();
-         //updateNextUpdateTime();
-      }
+
+   assert(!params->presentAndNotBeenRead(name, "initializeFromCheckpointFlag"));
+   if (initializeFromCheckpointFlag) {
+      assert(parent->getInitializeFromCheckpointDir() && parent->getInitializeFromCheckpointDir()[0]);
+      status = readStateFromCheckpoint(parent->getInitializeFromCheckpointDir(), NULL);
    }
    else {
-      status = initializeV();
-      if (status == PV_SUCCESS) initializeActivity();
+      assert(!params->presentAndNotBeenRead(name, "restart"));
+      if( restartFlag ) {
+         status = readState(NULL);
+         if(!parent->getCheckpointReadFlag()){
+            nextUpdateTime = parent->getDeltaTime();
+            //updateNextUpdateTime();
+         }
+      }
+      else {
+         status = setInitialValues();
+      }
    }
+   return status;
+}
+
+int HyPerLayer::setInitialValues() {
+   int status = PV_SUCCESS;
+   status = initializeV();
+   if (status == PV_SUCCESS) initializeActivity();
    return status;
 }
 
@@ -623,7 +637,8 @@ int HyPerLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_phase(ioFlag);
    ioParam_mirrorBCflag(ioFlag);
    ioParam_valueBC(ioFlag);
-   ioParam_restart(ioFlag);
+   ioParam_initializeFromCheckpointFlag(ioFlag);
+   ioParam_restart(ioFlag); // Deprecated July 31, 2014 in favor of initializeFromCheckpointFlag
    ioParam_InitVType(ioFlag);
    ioParam_triggerFlag(ioFlag);
    ioParam_triggerLayerName(ioFlag);
@@ -679,8 +694,25 @@ void HyPerLayer::ioParam_valueBC(enum ParamsIOFlag ioFlag) {
    }
 }
 
+void HyPerLayer::ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag) {
+   assert(parent->getInitializeFromCheckpointDir());
+   if (parent->getInitializeFromCheckpointDir() && parent->getInitializeFromCheckpointDir()[0]) {
+      parent->ioParamValue(ioFlag, name, "initializeFromCheckpointFlag", &initializeFromCheckpointFlag, initializeFromCheckpointFlag, true/*warnIfAbsent*/);
+   }
+}
+
 void HyPerLayer::ioParam_restart(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "restart", &restartFlag, false/*default value*/);
+   if (parent->parameters()->present(name, "restart")) {
+      parent->ioParamValue(ioFlag, name, "restart", &restartFlag, false/*default value*/);
+      // restart was deprecated July 31, 2014
+      if (parent->parameters()->present(name, "restart") && parent->columnId()==0) {
+         fprintf(stderr, " *** %s \"%s\": parameter \"restart\" has been deprecated.\n", parent->parameters()->groupKeywordFromName(getName()), getName());
+         if (restartFlag) {
+            fprintf(stderr, " ***     Instead of restart=true, set HyPerCol's initializeFromCheckpointDir to the output/Last directory,\n");
+            fprintf(stderr, " ***     and set each layer's initializeFromCheckpointFlag according to whether or not to load that layer from the checkpoint.\n");
+         }
+      }
+   }
 }
 
 void HyPerLayer::ioParam_InitVType(enum ParamsIOFlag ioFlag) {
@@ -1030,13 +1062,6 @@ int HyPerLayer::allocateDataStructures()
       exit(EXIT_FAILURE);
    }
 
-   //allocate lastActiveTime data structure
-   //lastActiveTime = (double*) malloc(nf * sizeof(double));
-   //Initialize with all different active values for imprinting
-   //for(int kf = 0; kf < nf; kf++){
-   //   lastActiveTime[kf] = -kf;
-   //};
-
    //Allocate temp buffers if needed, 1 for each thread
    if(parent->getNumThreads() > 1){
       thread_gSyn = (pvdata_t**) malloc(sizeof(pvdata_t*) * parent->getNumThreads());
@@ -1048,6 +1073,19 @@ int HyPerLayer::allocateDataStructures()
       }
    }
 
+   // do allocation stage for probes
+   for (int i=0; i<numProbes; i++) {
+      LayerProbe * p = probes[i];
+      if (p==NULL) continue;
+      int pstatus = p->allocateDataStructures();
+      if (pstatus==PV_SUCCESS) {
+         if (parent->columnId()==0) printf("Probe \"%s\" allocateDataStructures completed.\n", p->getName());
+      }
+      else {
+         assert(pstatus == PV_FAILURE); // PV_POSTPONE etc. hasn't been implemented for probes yet.
+         exit(EXIT_FAILURE); // Any error message should be printed by probe's communicateInitInfo function
+      }
+   }
    return status;
 }
 
@@ -1528,19 +1566,6 @@ int HyPerLayer::calcActiveIndices() {
    }
    clayer->numActive = numActive;
 
-   ////TODO combine this for loop with the previous one
-   //for(int kex = 0; kex < getNumExtended(); kex++){
-   //   if (activity[kex] != 0.0){
-   //      int fi = featureIndex(kex, loc.nx+2*loc.nb, loc.ny+2*loc.nb, loc.nf);
-   //      //Update lastActiveTime
-   //      lastActiveTime[fi] = parent->simulationTime();
-   //   }
-   //}
-   //mpi reduce all to find maximum time active
-//#ifdef PV_USE_MPI
-//   //Collect over mpi
-//   MPI_Allreduce(MPI_IN_PLACE, lastActiveTime, loc.nf, MPI_LONG, MPI_MAX, parent->icCommunicator()->communicator());
-//#endif // PV_USE_MPI
    return PV_SUCCESS;
 }
 
@@ -1633,7 +1658,7 @@ int HyPerLayer::recvSynapticInputFromPost(HyPerConn * conn, const PVLayerCube * 
     ////Assert that the transpose is opposite of the original connection
     //if(targetToSourceConn->preSynapticLayer()->getLayerId() != sourceToTargetConn->postSynapticLayer()->getLayerId() ||
     //   targetToSourceConn->postSynapticLayer()->getLayerId() != sourceToTargetConn->preSynapticLayer()->getLayerId()){
-    //   fprintf(stderr, "HyPerLayer \"%s\": Transpose connection %s must be the same connection in the oposite direction of %s.\n", name, sourceToTargetConn->getName(), conn->getName());
+    //   fprintf(stderr, "HyPerLayer \"%s\": Transpose connection %s must be the same connection in the opposite direction of %s.\n", name, sourceToTargetConn->getName(), conn->getName());
     //   abort();
     //}
 
@@ -2001,45 +2026,53 @@ int HyPerLayer::outputState(double timef, bool last)
    return status;
 }
 
-int HyPerLayer::checkpointRead(const char * cpDir, double * timed) {
-   InterColComm * icComm = parent->icCommunicator();
-   char basepath[PV_PATH_MAX];
-   char filename[PV_PATH_MAX];
-   int lenbase = snprintf(basepath, PV_PATH_MAX, "%s/%s", cpDir, name);
-   if (lenbase+strlen("_Delays.pvp") >= PV_PATH_MAX) { // currently _Delays.pvp is the longest suffix needed
-      if (icComm->commRank()==0) {
-         fprintf(stderr, "HyPerLayer::checkpointRead error in layer \"%s\".  Base pathname \"%s/%s_\" too long.\n", name, cpDir, name);
-      }
-      abort();
-   }
-   double filetime;
-   assert(filename != NULL);
-   int chars_needed = snprintf(filename, PV_PATH_MAX, "%s_A.pvp", basepath);
-   assert(chars_needed < PV_PATH_MAX);
-   int status = readBufferFile(filename, icComm, &filetime, &clayer->activity->data, 1, /*extended*/true, getLayerLoc());
-   assert(status == PV_SUCCESS);
-   *timed = filetime;
-   updateActiveIndices();
+int HyPerLayer::readStateFromCheckpoint(const char * cpDir, double * timeptr) {
+   // If timeptr is NULL, the timestamps in the pvp files are ignored.  If non-null, they are compared to the value of *timeptr and
+   // a warning is issued if there is a discrepancy.
+   int status = PV_SUCCESS;
+   status = readActivityFromCheckpoint(cpDir, timeptr);
+   status = readVFromCheckpoint(cpDir, timeptr);
+   status = readDelaysFromCheckpoint(cpDir, timeptr);
+   return status;
+}
 
-   if( getV() != NULL ) {
-      chars_needed = snprintf(filename, PV_PATH_MAX, "%s_V.pvp", basepath);
-      assert(chars_needed < PV_PATH_MAX);
+int HyPerLayer::readActivityFromCheckpoint(const char * cpDir, double * timeptr) {
+   char * filename = parent->pathInCheckpoint(cpDir, getName(), "_A.pvp");
+   int status = readBufferFile(filename, parent->icCommunicator(), timeptr, &clayer->activity->data, 1, /*extended*/true, getLayerLoc());
+   assert(status==PV_SUCCESS);
+   free(filename);
+   status = updateActiveIndices();
+   assert(status==PV_SUCCESS);
+   return status;
+}
+
+int HyPerLayer::readVFromCheckpoint(const char * cpDir, double * timeptr) {
+   int status = PV_SUCCESS;
+   if (getV() != NULL) {
+      char * filename = parent->pathInCheckpoint(cpDir, getName(), "_V.pvp");
       pvdata_t * V = getV();
-      status = readBufferFile(filename, icComm, &filetime, &V, 1, /*extended*/false, getLayerLoc());
+      status = readBufferFile(filename, parent->icCommunicator(), timeptr, &V, 1, /*extended*/false, getLayerLoc());
       assert(status == PV_SUCCESS);
-      if( filetime != *timed && parent->icCommunicator()->commRank() == 0 ) {
-         fprintf(stderr, "Warning: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, filetime, *timed);
-      }
+      free(filename);
    }
+   return status;
+}
 
-   chars_needed = snprintf(filename, PV_PATH_MAX, "%s_Delays.pvp", basepath);
-   assert(chars_needed < PV_PATH_MAX);
-   status = readDataStoreFromFile(filename, icComm, &filetime);
+int HyPerLayer::readDelaysFromCheckpoint(const char * cpDir, double * timeptr) {
+   char * filename = parent->pathInCheckpoint(cpDir, getName(), "_Delays.pvp");
+   int status = readDataStoreFromFile(filename, parent->icCommunicator(), timeptr);
    assert(status == PV_SUCCESS);
-   if( filetime != *timed && parent->icCommunicator()->commRank() == 0 ) {
-      fprintf(stderr, "Warning: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, filetime, *timed);
-   }
+   free(filename);
+   return status;
+}
 
+int HyPerLayer::checkpointRead(const char * cpDir, double * timeptr) {
+   int status = readStateFromCheckpoint(cpDir, timeptr);
+   if (status != PV_SUCCESS) {
+      fprintf(stderr, "Layer \"%s\": rank %d process failed to read state from checkpoint directory \"%s\"\n", getName(), parent->columnId(), cpDir);
+      exit(EXIT_FAILURE);
+   }
+   InterColComm * icComm = parent->icCommunicator();
    parent->readScalarFromFile(cpDir, getName(), "lastUpdateTime", &lastUpdateTime, parent->simulationTime()-parent->getDeltaTime());
    parent->readScalarFromFile(cpDir, getName(), "nextUpdateTime", &nextUpdateTime, parent->simulationTime()+parent->getDeltaTime());
    parent->readScalarFromFile(cpDir, getName(), "nextWrite", &writeTime, writeTime);
@@ -2074,7 +2107,7 @@ int HyPerLayer::checkpointRead(const char * cpDir, double * timed) {
    return PV_SUCCESS;
 }
 
-int HyPerLayer::readBufferFile(const char * filename, InterColComm * comm, double * timed, pvdata_t ** buffers, int numbands, bool extended, const PVLayerLoc * loc) {
+int HyPerLayer::readBufferFile(const char * filename, InterColComm * comm, double * timeptr, pvdata_t ** buffers, int numbands, bool extended, const PVLayerLoc * loc) {
    PV_Stream * readFile = pvp_open_read_file(filename, comm);
    int rank = comm->commRank();
    assert( (readFile != NULL && rank == 0) || (readFile == NULL && rank != 0) );
@@ -2085,12 +2118,13 @@ int HyPerLayer::readBufferFile(const char * filename, InterColComm * comm, doubl
       read_header_err(filename, comm, numParams, params);
    }
 
+   double filetime = 0.0;
    switch(params[INDEX_FILE_TYPE]) {
    case PVP_FILE_TYPE:
-      *timed = timeFromParams(params);
+      filetime = timeFromParams(params);
       break;
    case PVP_ACT_FILE_TYPE:
-      status = pvp_read_time(readFile, comm, 0/*root process*/, timed);
+      status = pvp_read_time(readFile, comm, 0/*root process*/, &filetime);
       if (status!=PV_SUCCESS) {
          fprintf(stderr, "HyPerLayer::readBufferFile error reading timestamp in file \"%s\"\n", filename);
          abort();
@@ -2101,7 +2135,7 @@ int HyPerLayer::readBufferFile(const char * filename, InterColComm * comm, doubl
       status = PV_FAILURE;
       break;
    case PVP_NONSPIKING_ACT_FILE_TYPE:
-      status = pvp_read_time(readFile, comm, 0/*root process*/, timed);
+      status = pvp_read_time(readFile, comm, 0/*root process*/, &filetime);
       if (status!=PV_SUCCESS) {
          fprintf(stderr, "HyPerLayer::readBufferFile error reading timestamp in file \"%s\"\n", filename);
          abort();
@@ -2135,6 +2169,9 @@ int HyPerLayer::readBufferFile(const char * filename, InterColComm * comm, doubl
    assert(status==PV_SUCCESS);
    pvp_close_file(readFile, comm);
    readFile = NULL;
+   if (rank==0 && timeptr && *timeptr != filetime) {
+      fprintf(stderr, "Warning: \"%s\" checkpoint has timestamp %g instead of the expected value %g.\n", filename, filetime, *timeptr);
+   }
    return status;
 }
 
@@ -2162,15 +2199,8 @@ int HyPerLayer::readDataStoreFromFile(const char * filename, InterColComm * comm
    for (int l=0; l<numlevels; l++) {
       double tlevel;
       pvp_read_time(readFile, comm, 0/*root process*/, &tlevel);
-      if (timeptr != NULL) {
-         if (l==0) {
-            *timeptr = tlevel;
-         }
-         else {
-            if (tlevel != *timeptr && comm->commRank()==0) {
-               fprintf(stderr, "Warning: timestamp on delay level %d does not agree with that of delay level 0 (%g versus %g).\n", l, tlevel, *timeptr);
-            }
-         }
+      if (comm->commRank()==0 && timeptr != NULL && *timeptr != tlevel) {
+         fprintf(stderr, "Warning: \"%s\" delay level %d has timestamp %g instead of the expected value %g.\n", filename, l, tlevel, *timeptr);
       }
       pvdata_t * buffer = (pvdata_t *) datastore->buffer(0, l);
       int status1 = scatterActivity(readFile, comm, 0/*root process*/, buffer, getLayerLoc(), true);
@@ -2302,7 +2332,8 @@ int HyPerLayer::checkpointTimers(PV_Stream * timerstream) {
    return PV_SUCCESS;
 }
 
-int HyPerLayer::readState(double * timef)
+// Deprecated July 31, 2014 in favor of readStateFromCheckpoint
+int HyPerLayer::readState(double * timeptr)
 {
    char last_dir[PV_PATH_MAX];
    int chars_needed = snprintf(last_dir, PV_PATH_MAX, "%s/Last", parent->getOutputPath());
@@ -2312,7 +2343,7 @@ int HyPerLayer::readState(double * timef)
       }
       abort();
    }
-   return checkpointRead(last_dir, timef);
+   return checkpointRead(last_dir, timeptr);
 }
 
 int HyPerLayer::writeActivitySparse(double timed, bool includeValues)

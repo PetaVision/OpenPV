@@ -55,6 +55,8 @@ protected:
    virtual void ioParam_skip_frame_index(enum ParamsIOFlag ioFlag);
    virtual void ioParam_movieOutputPath(enum ParamsIOFlag ioFlag);
    virtual void ioParam_writeFrameToTimestamp(enum ParamsIOFlag ioFlag);
+   virtual int readStateFromCheckpoint(const char * cpDir, double * timeptr);
+   virtual int readFrameNumStateFromCheckpoint(const char * cpDir);
 
    bool readPvpFile;
    const char * getNextFileName(int n_skip);

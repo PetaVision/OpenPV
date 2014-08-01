@@ -208,42 +208,6 @@ int LIFGap::allocateConductances(int num_channels) {
    return LIF::allocateConductances(num_channels-1); // Don't need conductance for gap channel
 }
 
-#ifdef OBSOLETE // Marked obsolete May 15, 2013.  G_Gap wasn't being used (GSyn[3] isn't filtered into a conductance) so the checkpointed G_Gap was all zeroes.
-int LIFGap::checkpointRead(const char * cpDir, double * timef) {
-   LIF::checkpointRead(cpDir, timef);
-   InterColComm * icComm = parent->icCommunicator();
-   double timed;
-   int filenamesize = strlen(cpDir)+1+strlen(name)+12;
-   // The +1 is for the slash between cpDir and name; the +12 needs to be large enough to hold the suffix (e.g. _G_Gap.pvp) plus the null terminator
-   char * filename = (char *) malloc( filenamesize*sizeof(char) );
-   assert(filename != NULL);
-
-   int chars_needed = snprintf(filename, filenamesize, "%s/%s_G_Gap.pvp", cpDir, name);
-   assert(chars_needed < filenamesize);
-   readBufferFile(filename, icComm, &timed, &G_Gap, /*numbands*/1, /*extended*/false, getLayerLoc());
-   if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
-      fprintf(stderr, "Warning: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
-   }
-
-   free(filename);
-   return PV_SUCCESS;
-}
-
-int LIFGap::checkpointWrite(const char * cpDir) {
-   LIF::checkpointWrite(cpDir);
-   InterColComm * icComm = parent->icCommunicator();
-   double timed = (double) parent->simulationTime();
-   int filenamesize = strlen(cpDir)+1+strlen(name)+12;
-   // The +1 is for the slash between cpDir and name; the +12 needs to be large enough to hold the suffix (e.g. _G_Gap.pvp) plus the null terminator
-   char * filename = (char *) malloc( filenamesize*sizeof(char) );
-   assert(filename != NULL);
-   sprintf(filename, "%s/%s_G_Gap.pvp", cpDir, name);
-   writeBufferFile(filename, icComm, timed, &G_Gap, /*numbands*/1, /*extended*/false, getLayerLoc());
-   free(filename);
-   return PV_SUCCESS;
-}
-#endif // OBSOLETE
-
 int LIFGap::updateStateOpenCL(double time, double dt)
 {
    int status = CL_SUCCESS;
@@ -263,30 +227,6 @@ int LIFGap::updateStateOpenCL(double time, double dt)
 
    return status;
 }
-
-#ifdef OBSOLETE // Marked obsolete July 25, 2013.  recvSynapticInput is now called by recvAllSynapticInput, called by HyPerCol, so deliver andtriggerReceive aren't needed.
-int LIFGap::triggerReceive(InterColComm* comm)
-{
-   int status = CL_SUCCESS;
-   status = LIF::triggerReceive(comm);
-
-#ifdef PV_USE_OPENCL
-   // copy data to device
-//   if(gpuAccelerateFlag) {
-//      //do we need to copy gap back and forth? what should the event be?
-//      //status |= clG_Gap->copyToDevice(1, &evUpdate, &evList[EV_LIF_GSYN_GAP]);
-//      status |= getChannelCLBuffer(CHANNEL_GAP)->copyToDevice(&evList[getEVGSynGap()]);
-//      numWait += 1;
-//   }
-#if PV_CL_COPY_BUFFERS
-   status |= clGSynGap->copyToDevice(&evList[EV_LIF_GSYN_GAP]);
-   numWait += 1;
-#endif // PV_CL_COPY_BUFFERS
-#endif // PV_USE_OPENCL
-
-   return status;
-}
-#endif // OBSOLETE
 
 int LIFGap::updateState(double time, double dt)
 {

@@ -200,34 +200,27 @@ int LCALIFLayer::updateState(double timed, double dt)
    return PV_SUCCESS;
 }
 
-int LCALIFLayer::checkpointRead(const char * cpDir, double * timef) {
-   int status = LIFGap::checkpointRead(cpDir, timef);
-   InterColComm * icComm = parent->icCommunicator();
-   char basepath[PV_PATH_MAX];
-   char filename[PV_PATH_MAX];
-   int lenbase = snprintf(basepath, PV_PATH_MAX, "%s/%s", cpDir, name);
-   if (lenbase+strlen("_integratedSpikeCount.pvp") >= PV_PATH_MAX) { // currently _integratedSpikeCount.pvp is the longest suffix needed
-      if (icComm->commRank()==0) {
-         fprintf(stderr, "HyPerLayer::checkpointRead error in layer \"%s\".  Base pathname \"%s/%s_\" too long.\n", name, cpDir, name);
-      }
-      abort();
-   }
-   double timed;
-   assert(filename != NULL);
-   int chars_needed = snprintf(filename, PV_PATH_MAX, "%s_integratedSpikeCount.pvp", basepath);
-   assert(chars_needed < PV_PATH_MAX);
-   readBufferFile(filename, icComm, &timed, &integratedSpikeCount, 1, /*extended*/ false, getLayerLoc());
-   if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
-      fprintf(stderr, "Warning: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
-   }
+int LCALIFLayer::readStateFromCheckpoint(const char * cpDir, double * timeptr) {
+   int status = LIFGap::readStateFromCheckpoint(cpDir, timeptr);
+   double filetime = 0.0;
+   status = read_integratedSpikeCountFromCheckpoint(cpDir, timeptr);
+   status = readVadptFromCheckpoint(cpDir, timeptr);
+   return status;
+}
 
-   chars_needed = snprintf(filename, PV_PATH_MAX, "%s_Vadpt.pvp", basepath);
-      assert(chars_needed < PV_PATH_MAX);
-      readBufferFile(filename, icComm, &timed, &Vadpt, 1, /*extended*/ false, getLayerLoc());
-      if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
-         fprintf(stderr, "Warning: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
-      }
+int LCALIFLayer::read_integratedSpikeCountFromCheckpoint(const char * cpDir, double * timeptr) {
+   char * filename = parent->pathInCheckpoint(cpDir, getName(), "_integratedSpikeCount.pvp");
+   int status = readBufferFile(filename, parent->icCommunicator(), timeptr, &Vth, 1, /*extended*/true, getLayerLoc());
+   assert(status==PV_SUCCESS);
+   free(filename);
+   return status;
+}
 
+int LCALIFLayer::readVadptFromCheckpoint(const char * cpDir, double * timeptr) {
+   char * filename = parent->pathInCheckpoint(cpDir, getName(), "_Vadpt.pvp");
+   int status = readBufferFile(filename, parent->icCommunicator(), timeptr, &Vth, 1, /*extended*/true, getLayerLoc());
+   assert(status==PV_SUCCESS);
+   free(filename);
    return status;
 }
 

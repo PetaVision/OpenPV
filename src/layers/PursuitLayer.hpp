@@ -42,6 +42,9 @@ protected:
    virtual int initializeActivity();
    int constrainMinima();
    int filterMinEnergies(bool * mask, pvdata_t * smallestEnergyDrop);
+   virtual int readStateFromCheckpoint(const char * cpDir, double * timeptr);
+   virtual int read_gSynSparseFromCheckpoint(const char * cpDir, double * timeptr, const PVLayerLoc * flat_loc);
+   virtual int read_foundFeaturesFromCheckpoint(const char * cpDir, double * timeptr, const PVLayerLoc * flat_loc);
 
 private:
    int initialize_base();

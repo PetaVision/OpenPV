@@ -292,8 +292,16 @@ void Image::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {
 }
 
 void Image::ioParam_useParamsImage(enum ParamsIOFlag ioFlag) {
+   // Deprecate in favor of HyPerLayer's initializeFromCheckpointFlag?
    if (parent->getCheckpointReadFlag()) {
       parent->ioParamValue(ioFlag, name, "useParamsImage", &useParamsImage, false/*default value*/, true/*warnIfAbsent*/);
+      if (useParamsImage && ioFlag==PARAMS_IO_READ && parent->columnId()==0) {
+         // useParamsImage was deprecated July 21, 2014
+         fprintf(stderr, " *** Image \"%s\" warning: parameter useParamsImage is deprecated.\n", getName());
+         fprintf(stderr, " *** Instead, set HyPerCol's initializeFromCheckpointDir to the checkpoint directory,\n");
+         fprintf(stderr, " ***     HyPerCol's defaultInitializeFromCheckpointFlag to true,\n");
+         fprintf(stderr, " ***     and parameter initializeFromCheckpointFlag of \"%s\" to false.\n", getName());
+      }
    }
 }
 
@@ -764,20 +772,6 @@ fprintf(stderr, "[%2d]: scatterImageFileGDAL: sending to %d xSize==%d"
    return status;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 int Image::communicateInitInfo() {
    return HyPerLayer::communicateInitInfo();
 }
@@ -954,20 +948,19 @@ int Image::outputState(double time, bool last)
    return 0;
 }
 
-int Image::checkpointRead(const char * cpDir, double * timef){
-
+int Image::checkpointRead(const char * cpDir, double * timeptr){
    PVParams * params = parent->parameters();
    if (this->useParamsImage) {
       if (parent->columnId()==0) {
          fprintf(stderr,"Initializing image from params file location ! \n");
       }
-      * timef = parent->simulationTime(); // fakes the pvp time stamp
+      *timeptr = parent->simulationTime(); // fakes the pvp time stamp
    }
    else {
       if (parent->columnId()==0) {
          fprintf(stderr,"Initializing image from checkpoint NOT from params file location! \n");
       }
-      HyPerLayer::checkpointRead(cpDir, timef);
+      HyPerLayer::checkpointRead(cpDir, timeptr);
    }
 
    return PV_SUCCESS;

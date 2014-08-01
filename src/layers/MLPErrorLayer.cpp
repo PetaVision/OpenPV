@@ -141,19 +141,12 @@ int MLPErrorLayer::allocateV() {
 }
 
 int MLPErrorLayer::initializeV() {
-   // TODO Need to make sure that original layer's initializeState has been called before this layer's V.
    return PV_SUCCESS;
 }
 
-int MLPErrorLayer::checkpointRead(const char * cpDir, double * timed) {
-   // If we just call HyPerLayer, we checkpoint V since it is non-null.  This is redundant since V is a clone.
-   // So we temporarily set clayer->V to NULL to fool HyPerLayer::checkpointRead into not reading it.
-   // A cleaner way to do this would be to have HyPerLayer::checkpointRead call a virtual method checkpointReadV, which can be overridden if unnecessary.
-   pvdata_t * V = clayer->V;
-   clayer->V = NULL;
-   int status = HyPerLayer::checkpointRead(cpDir, timed);
-   clayer->V = V;
-   return status;
+int MLPErrorLayer::readVFromCheckpoint(const char * cpDir, double * timeptr) {
+   // If we just inherit HyPerLayer::readVFromCheckpoint, we checkpoint V since it is non-null.  This is redundant since V is a clone.
+   return PV_SUCCESS;
 }
 
 int MLPErrorLayer::checkpointWrite(const char * cpDir) {

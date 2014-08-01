@@ -235,7 +235,7 @@ int InitWeights::initialize_base() {
    return PV_SUCCESS;
 }
 
-int InitWeights::readWeights(PVPatch *** patches, pvwdata_t ** dataStart, int numPatches, const char * filename, double * timef/*default=NULL*/) {
+int InitWeights::readWeights(PVPatch *** patches, pvwdata_t ** dataStart, int numPatches, const char * filename, double * timeptr/*default=NULL*/) {
    InterColComm *icComm = callingConn->getParent()->icCommunicator();
    int numArbors = callingConn->numberOfAxonalArborLists();
    const PVLayerLoc *preLoc = callingConn->preSynapticLayer()->getLayerLoc();
@@ -365,7 +365,7 @@ int InitWeights::readWeights(PVPatch *** patches, pvwdata_t ** dataStart, int nu
          fprintf(stderr, "PV::readWeights: problem reading weight file %s for connection %s, SHUTTING DOWN\n", filename, callingConn->getName());
          exit(EXIT_FAILURE);
       }
-      if( timef != NULL ) *timef = (float) timed;
+      if( timeptr != NULL ) *timeptr = timed;
    }
    return PV_SUCCESS;
 }

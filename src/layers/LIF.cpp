@@ -456,49 +456,55 @@ int LIF::allocateConductances(int num_channels) {
    return PV_SUCCESS;
 }
 
-int LIF::checkpointRead(const char * cpDir, double * timef) {
-   HyPerLayer::checkpointRead(cpDir, timef);
-   InterColComm * icComm = parent->icCommunicator();
-   double timed;
-   int filenamesize = strlen(name) + strlen(cpDir) + 17;
-   // The +17 needs to be large enough to hold the slash between cpDir and name plus the suffix (e.g. _rand_state.bin) plus the null terminator
-   char * filename = (char *) malloc( filenamesize*sizeof(char) );
-   assert(filename != NULL);
+int LIF::readStateFromCheckpoint(const char * cpDir, double * timeptr) {
+   int status = HyPerLayer::readStateFromCheckpoint(cpDir, timeptr);
+   status = readVthFromCheckpoint(cpDir, timeptr);
+   status = readG_EFromCheckpoint(cpDir, timeptr);
+   status = readG_IFromCheckpoint(cpDir, timeptr);
+   status = readG_IBFromCheckpoint(cpDir, timeptr);
+   status = readRandStateFromCheckpoint(cpDir, timeptr);
 
-   int chars_needed = snprintf(filename, filenamesize, "%s/%s_Vth.pvp", cpDir, name);
-   assert(chars_needed < filenamesize);
-   readBufferFile(filename, icComm, &timed, &Vth, 1, /*extended*/false, getLayerLoc());
-   if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
-      fprintf(stderr, "Warning: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
-   }
-
-   chars_needed = snprintf(filename, filenamesize, "%s/%s_G_E.pvp", cpDir, name);
-   assert(chars_needed < filenamesize);
-   readBufferFile(filename, icComm, &timed, &G_E, 1, /*extended*/false, getLayerLoc());
-   if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
-      fprintf(stderr, "Warning: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
-   }
-
-   chars_needed = snprintf(filename, filenamesize, "%s/%s_G_I.pvp", cpDir, name);
-   assert(chars_needed < filenamesize);
-   readBufferFile(filename, icComm, &timed, &G_I, 1, /*extended*/false, getLayerLoc());
-   if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
-      fprintf(stderr, "Warning: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
-   }
-
-   chars_needed = snprintf(filename, filenamesize, "%s/%s_G_IB.pvp", cpDir, name);
-   assert(chars_needed < filenamesize);
-   readBufferFile(filename, icComm, &timed, &G_IB, 1, /*extended*/false, getLayerLoc());
-   if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
-      fprintf(stderr, "Warning: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
-   }
-
-   chars_needed = snprintf(filename, filenamesize, "%s/%s_rand_state.bin", cpDir, name);
-   assert(chars_needed < filenamesize);
-   readRandState(filename, parent->icCommunicator(), randState->getRNG(0), getLayerLoc()); // TODO Make a method in Random class
-
-   free(filename);
    return PV_SUCCESS;
+}
+
+int LIF::readVthFromCheckpoint(const char * cpDir, double * timeptr) {
+   char * filename = parent->pathInCheckpoint(cpDir, getName(), "_Vth.pvp");
+   int status = readBufferFile(filename, parent->icCommunicator(), timeptr, &Vth, 1, /*extended*/true, getLayerLoc());
+   assert(status==PV_SUCCESS);
+   free(filename);
+   return status;
+}
+
+int LIF::readG_EFromCheckpoint(const char * cpDir, double * timeptr) {
+   char * filename = parent->pathInCheckpoint(cpDir, getName(), "_G_E.pvp");
+   int status = readBufferFile(filename, parent->icCommunicator(), timeptr, &G_E, 1, /*extended*/true, getLayerLoc());
+   assert(status==PV_SUCCESS);
+   free(filename);
+   return status;
+}
+
+int LIF::readG_IFromCheckpoint(const char * cpDir, double * timeptr) {
+   char * filename = parent->pathInCheckpoint(cpDir, getName(), "_G_I.pvp");
+   int status = readBufferFile(filename, parent->icCommunicator(), timeptr, &G_I, 1, /*extended*/true, getLayerLoc());
+   assert(status==PV_SUCCESS);
+   free(filename);
+   return status;
+}
+
+int LIF::readG_IBFromCheckpoint(const char * cpDir, double * timeptr) {
+   char * filename = parent->pathInCheckpoint(cpDir, getName(), "_G_IB.pvp");
+   int status = readBufferFile(filename, parent->icCommunicator(), timeptr, &G_IB, 1, /*extended*/true, getLayerLoc());
+   assert(status==PV_SUCCESS);
+   free(filename);
+   return status;
+}
+
+int LIF::readRandStateFromCheckpoint(const char * cpDir, double * timeptr) {
+   char * filename = parent->pathInCheckpoint(cpDir, getName(), "_rand_state.bin");
+   int status = readRandState(filename, parent->icCommunicator(), randState->getRNG(0), getLayerLoc()); // TODO Make a method in Random class
+   assert(status==PV_SUCCESS);
+   free(filename);
+   return status;
 }
 
 int LIF::checkpointWrite(const char * cpDir) {
@@ -572,31 +578,6 @@ int LIF::updateStateOpenCL(double time, double dt)
 
    return status;
 }
-
-#ifdef OBSOLETE // Marked obsolete July 25, 2013.  recvSynapticInput is now called by recvAllSynapticInput, called by HyPerCol, so deliver andtriggerReceive aren't needed.
-int LIF::triggerReceive(InterColComm* comm)
-{
-   int status = HyPerLayer::triggerReceive(comm);
-
-   // copy data to device
-   //
-#ifdef PV_USE_OPENCL
-//   if(gpuAccelerateFlag) {
-//      status |= getChannelCLBuffer(CHANNEL_INHB)->copyToDevice(&evList[getEVGSynIB()]);
-//      //status |= getChannelCLBuffer(CHANNEL_INHB)->copyToDevice(&evList[getEVGSynIB()]);
-//      numWait += 1;
-//   }
-#if PV_CL_COPY_BUFFERS
-   status |= clGSynE->copyToDevice(&evList[EV_LIF_GSYN_E]);
-   status |= clGSynI->copyToDevice(&evList[EV_LIF_GSYN_I]);
-   status |= clGSynI->copyToDevice(&evList[EV_LIF_GSYN_IB]);
-   numWait += 3;
-#endif // PV_CL_COPY_BUFFERS
-#endif // PV_USE_OPENCL
-
-   return status;
-}
-#endif // OBSOLETE
 
 int LIF::waitOnPublish(InterColComm* comm)
 {

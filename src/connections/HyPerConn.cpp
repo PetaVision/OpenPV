@@ -194,6 +194,7 @@ int HyPerConn::initialize_base()
 
    this->weightInitTypeString = NULL;
    this->weightInitializer = NULL;
+   this->initializeFromCheckpointFlag = false;
 
    this->probes = NULL;
    this->numProbes = 0;
@@ -249,6 +250,7 @@ int HyPerConn::initialize_base()
 
    this->initInfoCommunicatedFlag = false;
    this->dataStructuresAllocatedFlag = false;
+   this->initialValuesSetFlag = false;
 
    this->randState = NULL;
 
@@ -387,9 +389,7 @@ int HyPerConn::constructWeights()
       }
    }  // arborId
 
-   //initialize weights for patches:
-   status |= initializeWeights(wPatches, wDataStart) != NULL ? PV_SUCCESS : PV_FAILURE;
-   assert(status == 0);
+   //call to initializeWeights moved to initializeState()
    status |= initPlasticityPatches();
    assert(status == 0);
    if (shrinkPatches_flag) {
@@ -397,6 +397,7 @@ int HyPerConn::constructWeights()
          shrinkPatches(arborId);
       }
    }
+
    return status;
 }
 
@@ -799,11 +800,11 @@ int HyPerConn::initPlasticityPatches()
 //       assert(!parent->parameters()->presentAndNotBeenRead(name, "keepKernelsSynchronized"));
 //    }
 // #endif // PV_USE_MPI
+   if (!plasticityFlag) return PV_SUCCESS;
    int sx = nfp;
    int sy = sx * nxp;
    int sp = sy * nyp;
    int nPatches = getNumDataPatches();
-   if (!plasticityFlag) return PV_SUCCESS;
 
    const int numAxons = numberOfAxonalArborLists();
 
@@ -815,7 +816,6 @@ int HyPerConn::initPlasticityPatches()
    assert(this->get_dwDataStart(0) != NULL);
    for (int arborId = 0; arborId < numAxons; arborId++) {
       dwDataStart[arborId] = (dwDataStart[0] + sp * nPatches * arborId);
-      //set_dwDataStart(arborId, allocWeights(getNumDataPatches(), nxp, nyp, nfp, arborId));
       assert(get_dwDataStart(arborId) != NULL);
    } // loop over arbors
 
@@ -834,6 +834,7 @@ int HyPerConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag)
    if (weightInitializer != NULL) {
       weightInitializer->ioParamsFillGroup(ioFlag);
    }
+   ioParam_initializeFromCheckpointFlag(ioFlag);
    ioParam_numAxonalArbors(ioFlag);
    ioParam_plasticityFlag(ioFlag);
    ioParam_weightUpdatePeriod(ioFlag);
@@ -903,6 +904,13 @@ void HyPerConn::ioParam_channelCode(enum ParamsIOFlag ioFlag) {
 
 void HyPerConn::ioParam_sharedWeights(enum ParamsIOFlag ioFlag) {
    parent->ioParamValue(ioFlag, name, "sharedWeights", &sharedWeights, false/*default*/, true/*warn if absent*/);
+}
+
+void HyPerConn::ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag) {
+   assert(parent->getInitializeFromCheckpointDir()); // If we're not initializing any layers or connections from a checkpoint, this should be the empty string, not null.
+   if (parent->getInitializeFromCheckpointDir() && parent->getInitializeFromCheckpointDir()[0]) {
+      parent->ioParamValue(ioFlag, name, "initializeFromCheckpointFlag", &initializeFromCheckpointFlag, parent->getDefaultInitializeFromCheckpointFlag(), true/*warnIfAbsent*/);
+   }
 }
 
 void HyPerConn::ioParam_weightInitType(enum ParamsIOFlag ioFlag) {
@@ -1658,6 +1666,19 @@ int HyPerConn::allocateDataStructures() {
          numKernelActivations[ki] = 0;
       }
    }
+   // do allocation stage for probes
+   for (int i=0; i<numProbes; i++) {
+      BaseConnectionProbe * p = probes[i];
+      if (p==NULL) continue;
+      int pstatus = p->allocateDataStructures();
+      if (pstatus==PV_SUCCESS) {
+         if (parent->columnId()==0) printf("Probe \"%s\" allocateDataStructures completed.\n", p->getName());
+      }
+      else {
+         assert(pstatus == PV_FAILURE); // PV_POSTPONE etc. hasn't been implemented for probes yet.
+         exit(EXIT_FAILURE); // Any error message should be printed by probe's communicateInitInfo function
+      }
+   }
 
    return status;
 }
@@ -2154,59 +2175,31 @@ int HyPerConn::deliverOpenCL(Publisher * pub, const PVLayerCube * cube)
 }
 #endif // PV_USE_OPENCL
 
-#ifdef OBSOLETE // Marked obsolete July 25, 2013.  recvSynapticInput is now called by recvAllSynapticInput, called by HyPerCol, so deliver andtriggerReceive aren't needed.
-int HyPerConn::deliver(Publisher * pub, const PVLayerCube * cube, int neighbor)
-{
-#ifdef DEBUG_OUTPUT
-   int rank = 0;
-#ifdef PV_USE_MPI
-   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-#endif
-   printf("[%d]: HyPerConn::deliver: neighbor=%d cube=%p post=%p this=%p\n", rank, neighbor, cube, post, this);
-   fflush(stdout);
-#endif // DEBUG_OUTPUT
-
-#ifdef PV_USE_OPENCL
-   if((gpuAccelerateFlag)&&(!ignoreGPUflag)) {
-      deliverOpenCL(pub, cube);
-   }
-   else {
-      //if((gpuAccelerateFlag)&&(ignoreGPUflag)) post->copyChannelFromDevice(getChannel());
-      if((gpuAccelerateFlag)&&(ignoreGPUflag))
-         post->copyGSynFromDevice();
-#endif // PV_USE_OPENCL
-      for(int arborId=0;arborId<numberOfAxonalArborLists();arborId++) {
-         int delay = getDelay(arborId);
-         pub->readData(delay);
-         int status = post->recvSynapticInput(this, cube, arborId);
-         if (status == PV_BREAK) break;
-         assert(status == PV_SUCCESS);
-      }
-#ifdef PV_USE_OPENCL
-      if((gpuAccelerateFlag)&&(ignoreGPUflag))
-         post->copyGSynToDevice();
-
-   }
-#endif // PV_USE_OPENCL
-
-#ifdef DEBUG_OUTPUT
-   printf("[%d]: HyPerConn::delivered: \n", rank);
-   fflush(stdout);
-#endif // DEBUG_OUTPUT
-   return 0;
+int HyPerConn::readStateFromCheckpoint(const char * cpDir, double * timeptr) {
+   // If timeptr is NULL, the timestamps in the pvp files are ignored.  If non-null, they are compared to the value of *timeptr and
+   // a warning is issued if there is a discrepancy.
+   int status = PV_SUCCESS;
+   status = readWeightsFromCheckpoint(cpDir, timeptr);
+   return status;
 }
-#endif // OBSOLETE
 
-int HyPerConn::checkpointRead(const char * cpDir, double * timef) {
+int HyPerConn::readWeightsFromCheckpoint(const char * cpDir, double * timeptr) {
    clearWeights(get_wDataStart(), getNumDataPatches(), nxp, nyp, nfp);
-
-   char path[PV_PATH_MAX];
-   int status = checkpointFilename(path, PV_PATH_MAX, cpDir);
-   assert(status==PV_SUCCESS);
+   char * path = parent->pathInCheckpoint(cpDir, getName(), "_W.pvp");
    InitWeights * weightsInitObject = new InitWeights(this);
    PVPatch *** patches_arg = sharedWeights ? NULL : wPatches;
-   weightsInitObject->readWeights(patches_arg, get_wDataStart(), getNumDataPatches(), path, timef);
-   delete weightsInitObject; weightsInitObject = NULL;
+   double filetime=0.0;
+   int status = weightsInitObject->readWeights(patches_arg, get_wDataStart(), getNumDataPatches(), path, &filetime);
+   if (parent->columnId()==0 && timeptr && *timeptr != filetime) {
+      fprintf(stderr, "Warning: \"%s\" checkpoint has timestamp %g instead of the expected value %g.\n", path, filetime, *timeptr);
+   }
+   free(path);
+   delete weightsInitObject;
+   return status;
+}
+
+int HyPerConn::checkpointRead(const char * cpDir, double * timeptr) {
+   int status = readStateFromCheckpoint(cpDir, timeptr);
 
    status = parent->readScalarFromFile(cpDir, getName(), "lastUpdateTime", &lastUpdateTime, lastUpdateTime);
    assert(status == PV_SUCCESS);
@@ -2349,6 +2342,25 @@ int HyPerConn::insertProbe(BaseConnectionProbe * p)
    probes[numProbes] = p;
 
    return ++numProbes;
+}
+
+int HyPerConn::initializeState() {
+   int status = PV_SUCCESS;
+   assert(parent->getInitializeFromCheckpointDir()); // should never be null; it should be the empty string if not initializing from a checkpoint
+   if (parent->getInitializeFromCheckpointDir()[0] && initializeFromCheckpointFlag) {
+      assert(parent->getInitializeFromCheckpointDir() && parent->getInitializeFromCheckpointDir()[0]);
+      status = readStateFromCheckpoint(parent->getInitializeFromCheckpointDir(), NULL);
+   }
+   else {
+      //initialize weights for patches:
+      status = setInitialValues();
+   }
+   return status;
+}
+
+int HyPerConn::setInitialValues() {
+   initializeWeights(wPatches, wDataStart);
+   return PV_SUCCESS;
 }
 
 int HyPerConn::outputProbeParams() {

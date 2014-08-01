@@ -100,6 +100,8 @@ public:
    long int getInitialStep()              {return initialStep;}
    long int getFinalStep()                {return finalStep;}
    long int getCurrentStep()              {return currentStep;}
+   const char * getInitializeFromCheckpointDir() { return initializeFromCheckpointDir; }
+   bool getDefaultInitializeFromCheckpointFlag() { return defaultInitializeFromCheckpointFlag; }
    bool getCheckpointReadFlag()           {return checkpointReadFlag;}
    bool getCheckpointWriteFlag()          {return checkpointWriteFlag;}
    bool getSuppresLastOutputFlag()        {return suppressLastOutput;}
@@ -162,6 +164,7 @@ public:
    void writeParamString(const char * param_name, const char * svalue);
    template <typename T>
    void writeParamArray(const char * param_name, const T * array, int arraysize);
+   char * pathInCheckpoint(const char * cpDir, const char * objectName, const char * suffix);
 
 private:
    int initialize_base();
@@ -186,6 +189,8 @@ private:
    virtual void ioParam_ny(enum ParamsIOFlag ioFlag);
    virtual void ioParam_filenamesContainLayerNames(enum ParamsIOFlag ioFlag);
    virtual void ioParam_filenamesContainConnectionNames(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_initializeFromCheckpointDir(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_defaultInitializeFromCheckpointFlag(enum ParamsIOFlag ioFlag);
    virtual void ioParam_checkpointRead(enum ParamsIOFlag ioFlag);
    virtual void ioParam_checkpointWrite(enum ParamsIOFlag ioFlag);
    virtual void ioParam_checkpointWriteDir(enum ParamsIOFlag ioFlag);
@@ -204,7 +209,8 @@ private:
    int connCommunicateInitInfo(int c);
    int layerAllocateDataStructures(int l);
    int connAllocateDataStructures(int c);
-
+   int layerSetInitialValues(int l);
+   int connSetInitialValues(int c);
    int initPublishers();
    bool advanceCPWriteTime();
    int checkpointRead(const char * cpDir);
@@ -212,12 +218,6 @@ private:
    int outputParams();
 
    virtual double adaptTimeScale();
-
-#ifdef OBSOLETE // Marked obsolete Aug 9, 2013.  Look, everybody, checkMarginWidths is obsolete!
-   int checkMarginWidths();
-   int zCheckMarginWidth(HyPerConn * conn, const char * dim, int patchSize, int scalePre, int scalePost, int prevStatus);
-   int lCheckMarginWidth(HyPerLayer * layer, const char * dim, int layerSize, int layerGlobalSize, int prevStatus);
-#endif // OBSOLETE
 
    long int currentStep;
    long int initialStep;
@@ -228,6 +228,8 @@ private:
    size_t connectionArraySize;
    int numConnections;
 
+   char * initializeFromCheckpointDir; // If nonempty, layers and connections can load from this directory as in checkpointRead, by setting their initializeFromCheckpointFlag parameter, but the run still starts at simTime=startTime
+   bool defaultInitializeFromCheckpointFlag ; // Each Layer and connection can individually set its own initializeFromCheckpointFlag.  This sets the default value for those flags.
    bool warmStart;             // whether to start from a checkpoint
    bool checkpointReadFlag;    // whether to load from a checkpoint directory
    bool checkpointWriteFlag;   // whether to write from a checkpoint directory
@@ -269,6 +271,8 @@ private:
 
    HyPerLayer ** layers;
    HyPerConn  ** connections;
+   int * layerStatus;
+   int * connectionStatus;
 
    char * name;
    char * srcPath;        // path to PetaVision src directory (used to compile OpenCL kernels)

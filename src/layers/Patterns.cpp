@@ -1049,17 +1049,16 @@ float Patterns::calcPosition(float pos, int step)
    return pos;
 }
 
-int Patterns::checkpointRead(const char * cpDir, double * timef) {
-   int status = HyPerLayer::checkpointRead(cpDir, timef);
-   InterColComm * icComm = parent->icCommunicator();
-   int filenamesize = strlen(cpDir)+1+strlen(name)+18;
-   // The +1 is for the slash between cpDir and name; the +18 needs to be large enough to hold the suffix _PatternState.{bin,txt} plus the null terminator
-   char * filename = (char *) malloc( filenamesize*sizeof(char) );
-   assert(filename != NULL);
+int Patterns::readStateFromCheckpoint(const char * cpDir, double * timeptr) {
+   int status = Image::readStateFromCheckpoint(cpDir, timeptr);
+   status = readPatternStateFromCheckpoint(cpDir);
+   return status;
+}
 
-   int chars_needed = snprintf(filename, filenamesize, "%s/%s_PatternState.bin", cpDir, name);
-   assert(chars_needed < filenamesize);
-   if( icComm->commRank() == 0 ) {
+int Patterns::readPatternStateFromCheckpoint(const char * cpDir) {
+   int status = PV_SUCCESS;
+   if( parent->columnId() == 0 ) {
+      char * filename = parent->pathInCheckpoint(cpDir, getName(), "_PatternState.bin");
       PV_Stream * pvstream = PV_fopen(filename, "r");
       if( pvstream != NULL ) {
          status = PV_fread(&type, sizeof(PatternType), 1, pvstream) == 1 ? status : PV_FAILURE;
@@ -1144,6 +1143,7 @@ int Patterns::checkpointRead(const char * cpDir, double * timef) {
       }
    }
 #endif // PV_USE_MPI
+   free(filename);
    return status;
 }
 

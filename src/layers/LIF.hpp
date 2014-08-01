@@ -41,15 +41,11 @@ public:
    virtual int communicateInitInfo();
    virtual int allocateDataStructures();
 
-#ifdef OBSOLETE // Marked obsolete July 25, 2013.  recvSynapticInput is now called by recvAllSynapticInput, called by HyPerCol, so deliver andtriggerReceive aren't needed.
-   virtual int triggerReceive(InterColComm* comm);
-#endif // OBSOLETE
    virtual int updateState(double time, double dt);
    virtual int updateStateOpenCL(double time, double dt);
    virtual int waitOnPublish(InterColComm* comm);
    virtual int setActivity();
    
-   virtual int checkpointRead(const char * cpDir, double * timef);
    virtual int checkpointWrite(const char * cpDir);
 
    pvdata_t * getVth()              {return Vth;}
@@ -136,6 +132,13 @@ protected:
    virtual void ioParam_method(enum ParamsIOFlag ioFlag);
    virtual int allocateBuffers();
    virtual int allocateConductances(int num_channels);
+   virtual int readStateFromCheckpoint(const char * cpDir, double * timeptr);
+   virtual int readVthFromCheckpoint(const char * cpDir, double * timeptr);
+   virtual int readG_EFromCheckpoint(const char * cpDir, double * timeptr);
+   virtual int readG_IFromCheckpoint(const char * cpDir, double * timeptr);
+   virtual int readG_IBFromCheckpoint(const char * cpDir, double * timeptr);
+   virtual int readRandStateFromCheckpoint(const char * cpDir, double * timeptr);
+
 
 private:
    int initialize_base();

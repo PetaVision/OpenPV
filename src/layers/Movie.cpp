@@ -43,27 +43,16 @@ int Movie::initialize_base() {
    return PV_SUCCESS;
 }
 
-int Movie::checkpointRead(const char * cpDir, double * timef){
-   int status = Image::checkpointRead(cpDir, timef);
+int Movie::readStateFromCheckpoint(const char * cpDir, double * timeptr) {
+   int status = Image::readStateFromCheckpoint(cpDir, timeptr);
+   status = readFrameNumStateFromCheckpoint(cpDir);
+   return status;
+}
 
-   //nextUpdateTime now handeled in HyPerLayer checkpoint read/write
-   //if (this->useParamsImage) { //Sets nextDisplayTime = simulationtime (i.e. effectively restarting)
-   //   nextDisplayTime += parent->simulationTime();
-   //}
-
-   if (writeFrameToTimestamp) {
-      long timestampFilePos = 0L;
-      parent->readScalarFromFile(cpDir, getName(), "TimestampState", &timestampFilePos, timestampFilePos);
-      if (timestampFile) {
-         assert(parent->columnId()==0);
-         if (PV_fseek(timestampFile, timestampFilePos, SEEK_SET) != 0) {
-            fprintf(stderr, "MovieLayer::checkpointRead error: unable to recover initial file position in timestamp file for layer %s: %s\n", name, strerror(errno));
-            exit(EXIT_FAILURE);
-         }
-      }
-   }
+int Movie::readFrameNumStateFromCheckpoint(const char * cpDir) {
+   int status = PV_SUCCESS;
    parent->readScalarFromFile(cpDir, getName(), "FrameNumState", &frameNumber, frameNumber);
-   
+
    if (!readPvpFile) {
       int startFrame = frameNumber;
       if (parent->columnId()==0) {
@@ -76,6 +65,24 @@ int Movie::checkpointRead(const char * cpDir, double * timef){
       if (parent->columnId()==0) {
          printf("%s \"%s\" checkpointRead set frameNumber to %d and filename to \"%s\"\n",
                parent->parameters()->groupKeywordFromName(name), name, frameNumber, filename);
+      }
+   }
+   return status;
+}
+
+int Movie::checkpointRead(const char * cpDir, double * timef){
+   int status = Image::checkpointRead(cpDir, timef);
+
+   // should this be moved to readStateFromCheckpoint?
+   if (writeFrameToTimestamp) {
+      long timestampFilePos = 0L;
+      parent->readScalarFromFile(cpDir, getName(), "TimestampState", &timestampFilePos, timestampFilePos);
+      if (timestampFile) {
+         assert(parent->columnId()==0);
+         if (PV_fseek(timestampFile, timestampFilePos, SEEK_SET) != 0) {
+            fprintf(stderr, "MovieLayer::checkpointRead error: unable to recover initial file position in timestamp file for layer %s: %s\n", name, strerror(errno));
+            exit(EXIT_FAILURE);
+         }
       }
    }
 

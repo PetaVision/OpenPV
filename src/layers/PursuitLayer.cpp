@@ -123,31 +123,40 @@ int PursuitLayer::initializeActivity() {
    return PV_SUCCESS;
 }
 
-
-int PursuitLayer::checkpointRead(const char * cpDir, double * timef) {
-   int status = HyPerLayer::checkpointRead(cpDir, timef);
-   double timed;
-   int filenamesize = strlen(cpDir)+1+strlen(name)+29;
-   // The +1 is for the slash between cpDir and name; the +29 needs to be large enough to hold the suffix (e.g. _minLocationsBestFeature.pvp) plus the null terminator
-   char * filename = (char *) malloc( filenamesize*sizeof(char) );
-   assert(filename != NULL);
-
+int PursuitLayer::readStateFromCheckpoint(const char * cpDir, double * timeptr) {
+   int status = ANNLayer::readStateFromCheckpoint(cpDir, timeptr);
    PVLayerLoc flat_loc;
    memcpy(&flat_loc, getLayerLoc(), sizeof(PVLayerLoc));
    flat_loc.nf = 1;
-
    pvdata_t buffer1feature[flat_loc.nx*flat_loc.ny];
+   status = read_gSynSparseFromCheckpoint(cpDir, timeptr, &flat_loc);
+   status = read_foundFeaturesFromCheckpoint(cpDir, timeptr, &flat_loc);
+   return status;
+}
 
-   int chars_needed = snprintf(filename, filenamesize, "%s/%s_gSynSparse.pvp", cpDir, name);
-   assert(chars_needed < filenamesize);
-   readBufferFile(filename, parent->icCommunicator(), &timed, &gSynSparse, 1/*numbands*/, false/*extended*/, &flat_loc);
-   chars_needed = snprintf(filename, filenamesize, "%s/%s_foundFeatures.pvp", cpDir, name);
-   assert(chars_needed < filenamesize);
+int PursuitLayer::read_gSynSparseFromCheckpoint(const char * cpDir, double * timeptr, const PVLayerLoc * flat_loc) {
+   char * filename = parent->pathInCheckpoint(cpDir, getName(), "_foundFeatures.pvp");
+   int status = readBufferFile(filename, parent->icCommunicator(), timeptr, &gSynSparse, 1, /*extended*/true, flat_loc);
+   assert(status==PV_SUCCESS);
+   free(filename);
+   return status;
+}
+
+int PursuitLayer::read_foundFeaturesFromCheckpoint(const char * cpDir, double * timeptr, const PVLayerLoc * flat_loc) {
+   char * filename = parent->pathInCheckpoint(cpDir, getName(), "_foundFeatures.pvp");
+   pvdata_t buffer1feature[flat_loc->nx*flat_loc->ny];
    pvdata_t * buffer1ptr = buffer1feature;
-   readBufferFile(filename, parent->icCommunicator(), &timed, &buffer1ptr, 1/*numbands*/, false/*extended*/, &flat_loc);
-   for (int k=0; k<flat_loc.nx*flat_loc.ny; k++) {
+   int status = readBufferFile(filename, parent->icCommunicator(), timeptr, &buffer1ptr, 1, /*extended*/true, flat_loc);
+   assert(status==PV_SUCCESS);
+   free(filename);
+   for (int k=0; k<flat_loc->nx*flat_loc->ny; k++) {
       foundFeatures[k] = (int) buffer1feature[k];
    }
+   return status;
+}
+
+int PursuitLayer::checkpointRead(const char * cpDir, double * timef) {
+   int status = ANNLayer::checkpointRead(cpDir, timef);
 
    status = parent->readScalarFromFile(cpDir, getName(), "nextUpdate", &nextUpdate, firstUpdate);
    assert(status == PV_SUCCESS);

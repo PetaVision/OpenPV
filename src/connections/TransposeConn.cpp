@@ -301,8 +301,19 @@ int TransposeConn::allocateDataStructures() {
    return PV_SUCCESS;
 }
 
+int TransposeConn::setInitialValues() {
+   int status = PV_SUCCESS;
+   if (originalConn->getInitialValuesSetFlag()) {
+      status = HyPerConn::setInitialValues(); // calls initializeWeights
+   }
+   else {
+      status = PV_POSTPONE;
+   }
+   return status;
+}
+
 PVPatch*** TransposeConn::initializeWeights(PVPatch*** patches, pvwdata_t** dataStart) {
-   assert(originalConn->getDataStructuresAllocatedFlag()); // originalConn->dataStructurenAllocatedFlag checked in TransposeConn::allocateDataStructures()
+   assert(originalConn->getInitialValuesSetFlag()); // setInitialValues shouldn't call this function unless original conn has set its own initial values
    for (int arbor=0; arbor<numAxonalArborLists; arbor++) {
       transpose(arbor);
    }

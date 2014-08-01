@@ -48,7 +48,6 @@ public:
    virtual int updateStateOpenCL(double time, double dt);
    virtual int updateBorder(double time, double dt);
    virtual int waitOnPublish(InterColComm* comm);
-   virtual int checkpointRead(const char * cpDir, double * timef);
    virtual int checkpointWrite(const char * cpDir);
 
 protected:
@@ -72,6 +71,8 @@ protected:
    int allocateBorderIndices(int neighbor, size_t xCount, size_t yCount, size_t fCount, int indexStart, int indexStride);
    virtual int initializeV();
    virtual int initializeActivity();
+   virtual int readStateFromCheckpoint(const char * cpDir, double * timeptr);
+   virtual int readRandStateFromCheckpoint(const char * cpDir);
 #ifdef PV_USE_OPENCL
    //int initializeGPU();  //right now there's no use for a Retina specific version
    virtual int getNumCLEvents() {return numEvents;}

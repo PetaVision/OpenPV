@@ -26,8 +26,8 @@ pvdir=$PWD # $pvdir is the directory containing the PetaVision project
 cd ..
 workspacedir=$PWD # $workspacedir is the eclipse workspace directory
 
-valgrindcommand=""
-#valgrindcommand="valgrind --suppressions=$pvdir/valgrind/petavision-mac.supp --num-callers=50 --leak-check=full --track-origins=yes"
+#valgrindcommand=""
+valgrindcommand="valgrind --suppressions=$pvdir/valgrind/petavision-mac.supp --num-callers=50 --leak-check=full --show-leak-kinds=all --track-origins=yes"
 
 fails=""
 dne=""
@@ -155,6 +155,13 @@ cd "$workspacedir"
 
 testname=CloneVLayerTest
 arglist=""
+cd "$testname"
+runandecho $testname $testname Debug/$testname $arglist
+mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
+cd "$workspacedir"
+
+testname=ConnectionRestartTest
+arglist="-p input/ConnectionRestartTest.params"
 cd "$testname"
 runandecho $testname $testname Debug/$testname $arglist
 mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist

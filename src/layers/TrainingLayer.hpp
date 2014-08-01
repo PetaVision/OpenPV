@@ -27,7 +27,6 @@ public:
    virtual bool needUpdate(double timed, double dt);
    virtual int recvAllSynapticInput() {return PV_SUCCESS;}
    virtual int updateState(double timed, double dt);
-   virtual int checkpointRead(const char * cpDir, double * timef);
    virtual int checkpointWrite(const char * cpDir);
    virtual double getDeltaUpdateTime();
 
@@ -42,6 +41,8 @@ protected:
    virtual int initializeV();
 
    /* static */ int updateState(double timed, double dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int numTrainingLabels, int * trainingLabels, int traininglabelindex, int strength);
+   int readStateFromCheckpoint(const char * cpDir, double * timeptr);
+   int read_currentLabelIndexFromCheckpoint(const char * cpDir);
 
    char * filename;
    int numTrainingLabels;

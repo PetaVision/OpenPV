@@ -63,13 +63,14 @@ public:
    // TODO The two routines below shouldn't be public, but HyPerCol needs to call them, so for now they are.
    void setInitInfoCommunicatedFlag() {initInfoCommunicatedFlag = true;}
    void setDataStructuresAllocatedFlag() {dataStructuresAllocatedFlag = true;}
+   void setInitialValuesSetFlag() {initialValuesSetFlag = true;}
 
    bool getInitInfoCommunicatedFlag() {return initInfoCommunicatedFlag;}
    bool getDataStructuresAllocatedFlag() {return dataStructuresAllocatedFlag;}
+   bool getInitialValuesSetFlag() {return initialValuesSetFlag;}
 
-#ifdef OBSOLETE // Marked obsolete July 25, 2013.  recvSynapticInput is now called by recvAllSynapticInput, called by HyPerCol, so deliver andtriggerReceive aren't needed.
-   virtual int deliver(Publisher * pub, const PVLayerCube * cube, int neighbor);
-#endif // OBSOLETE
+   int initializeState(); // Not virtual since all connections should respond to initializeFromCheckpointFlag in the same way.
+                          // It calls either readStateFromCheckpoint or initializeWeights, both of which are virtual.
    virtual int checkpointRead(const char * cpDir, double* timef);
    virtual int checkpointWrite(const char * cpDir);
    virtual int checkpointTimers(PV_Stream * timerstream);
@@ -540,6 +541,8 @@ protected:
 
    bool initInfoCommunicatedFlag;
    bool dataStructuresAllocatedFlag;
+   bool initialValuesSetFlag;
+   bool initializeFromCheckpointFlag;
 
 #ifdef PV_USE_OPENCL
    bool gpuAccelerateFlag; // Whether to accelerate the connection on a GPU
@@ -641,6 +644,7 @@ protected:
    virtual void ioParam_channelCode(enum ParamsIOFlag ioFlag);
    // virtual void ioParam_initWeightsFile(enum ParamsIOFlag ioFlag);
    virtual void ioParam_sharedWeights(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag);
    virtual void ioParam_weightInitType(enum ParamsIOFlag ioFlag);
    virtual void ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag);
    virtual void ioParam_plasticityFlag(enum ParamsIOFlag ioFlag);
@@ -688,8 +692,10 @@ protected:
    virtual pvwdata_t * allocWeights(int nPatches, int nxPatch, int nyPatch, int nfPatch);
    int clearWeights(pvwdata_t** dataStart, int numPatches, int nx, int ny, int nf);
    virtual int adjustAxonalArbors(int arborId);
+   virtual int readStateFromCheckpoint(const char * cpDir, double * timeptr);
+   virtual int readWeightsFromCheckpoint(const char * cpDir, double * timeptr);
    int checkpointFilename(char * cpFilename, int size, const char * cpDir);
-
+   virtual int setInitialValues(); // returns PV_SUCCESS if successful, or PV_POSTPONE if it needs to wait on other objects (e.g. TransposeConn has to wait for original conn)
    virtual int clear_dW();
    virtual int calc_dW(int arborId = 0);
    virtual int update_dW(int arborId);

@@ -23,7 +23,6 @@ public:
 //   int updateState(double timef, double dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels, pvdata_t * gSynHead, bool spiking, unsigned int * active_indices, unsigned int * num_active);
    int findFlag(int numMatrixCol, int numMatrixRow);
 
-   virtual int checkpointRead(const char * cpDir, double * timef);
    virtual int checkpointWrite(const char * cpDir);
 
    inline float getTargetRate() {return targetRateHz;}
@@ -39,6 +38,9 @@ protected:
    virtual void ioParam_targetRate(enum ParamsIOFlag ioFlag);
    virtual void ioParam_normalizeInput(enum ParamsIOFlag ioFlag);
    virtual void ioParam_Vscale(enum ParamsIOFlag ioFlag);
+   virtual int readStateFromCheckpoint(const char * cpDir, double * timeptr);
+   virtual int read_integratedSpikeCountFromCheckpoint(const char * cpDir, double * timeptr);
+   virtual int readVadptFromCheckpoint(const char * cpDir, double * timeptr);
 #ifdef PV_USE_OPENCL
 
    // OpenCL buffers
@@ -58,6 +60,7 @@ protected:
 #endif
 
    int allocateBuffers();
+
    pvdata_t * integratedSpikeCount;      // plasticity decrement variable for postsynaptic layer
    pvdata_t * G_Norm;                    // Copy of GSyn[CHANNEL_NORM] to be written out during checkpointing
    pvdata_t * GSynExcEffective;         // What is used as GSynExc, after normalizing, stored for checkpointing

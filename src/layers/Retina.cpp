@@ -475,21 +475,20 @@ int Retina::setRetinaParams(PVParams * p)
    return 0;
 }
 
-int Retina::checkpointRead(const char * cpDir, double * timef) {
-   int status = HyPerLayer::checkpointRead(cpDir, timef);
 
-   // Restore rand_state
-   char filename[PV_PATH_MAX];
-   int chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_rand_state.bin", cpDir, name);
-   if(chars_needed >= PV_PATH_MAX) {
-      if (parent->icCommunicator()->commRank()==0) {
-         fprintf(stderr, "HyPerLayer::checkpointRead error in layer \"%s\".  Base pathname \"%s/%s_rand_state.bin\" too long.\n", name, cpDir, name);
-      }
-      abort();
-   }
+int Retina::readStateFromCheckpoint(const char * cpDir, double * timeptr) {
+   int status = HyPerLayer::readStateFromCheckpoint(cpDir, timeptr);
+   double filetime = 0.0;
+   status = readRandStateFromCheckpoint(cpDir);
+   return status;
+}
+
+int Retina::readRandStateFromCheckpoint(const char * cpDir) {
+   int status = PV_SUCCESS;
    if (spikingFlag) {
-      int rand_state_status = readRandState(filename, parent->icCommunicator(), randState[0]->getRNG(0), getLayerLoc());
-      if (rand_state_status != PV_SUCCESS) status = rand_state_status;
+      char * filename = parent->pathInCheckpoint(cpDir, getName(), "_rand_state.bin");
+      status = readRandState(filename, parent->icCommunicator(), randState[0]->getRNG(0), getLayerLoc());
+      free(filename);
    }
    return status;
 }

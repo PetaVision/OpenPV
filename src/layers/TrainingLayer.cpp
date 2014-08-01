@@ -148,11 +148,14 @@ int TrainingLayer::updateState(double timed, double dt, const PVLayerLoc * loc, 
    return PV_SUCCESS;
 }
 
-int TrainingLayer::checkpointRead(const char * cpDir, double * timef) {
-   int status = HyPerLayer::checkpointRead(cpDir, timef);
-   assert(status == PV_SUCCESS);
-   parent->readScalarFromFile(cpDir, getName(), "currentLabelIndex", &curTrainingLabelIndex, curTrainingLabelIndex);
+int TrainingLayer::readStateFromCheckpoint(const char * cpDir, double * timeptr) {
+   int status = ANNLayer::readStateFromCheckpoint(cpDir, timeptr);
+   status = read_currentLabelIndexFromCheckpoint(cpDir);
    return status;
+}
+
+int TrainingLayer::read_currentLabelIndexFromCheckpoint(const char * cpDir) {
+   return parent->readScalarFromFile(cpDir, getName(), "currentLabelIndex", &curTrainingLabelIndex, curTrainingLabelIndex);
 }
 
 int TrainingLayer::checkpointWrite(const char * cpDir) {

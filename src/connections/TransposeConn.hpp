@@ -48,6 +48,7 @@ protected:
     virtual int setPatchSize();
     virtual int setNeededRNGSeeds() {return 0;}
     virtual InitWeights * handleMissingInitWeights(PVParams * params);
+    virtual int setInitialValues();
     virtual PVPatch *** initializeWeights(PVPatch *** arbors, pvwdata_t ** dataStart);
     int transpose(int arborId);
     virtual int calc_dW(int arborId){return PV_BREAK;};

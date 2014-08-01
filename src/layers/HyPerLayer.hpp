@@ -124,8 +124,14 @@ protected:
    virtual int allocateActivity();
    virtual int allocateActiveIndices();
    virtual int allocatePrevActivity();
+   virtual int setInitialValues();
    virtual int initializeV();
    virtual int initializeActivity();
+   virtual int readStateFromCheckpoint(const char * cpDir, double * timeptr);
+   virtual int readActivityFromCheckpoint(const char * cpDir, double * timeptr);
+   virtual int readVFromCheckpoint(const char * cpDir, double * timeptr);
+   virtual int readDelaysFromCheckpoint(const char * cpDir, double * timeptr);
+   char * pathInCheckpoint(const char * cpDir, const char * suffix);
    int readDataStoreFromFile(const char * filename, InterColComm * comm, double * timed);
    int incrementNBands(int * numCalls);
    int writeDataStoreToFile(const char * filename, InterColComm * comm, double dtime);
@@ -144,7 +150,8 @@ protected:
    virtual void ioParam_phase(enum ParamsIOFlag ioFlag);
    virtual void ioParam_mirrorBCflag(enum ParamsIOFlag ioFlag);
    virtual void ioParam_valueBC(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_restart(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_restart(enum ParamsIOFlag ioFlag); // Deprecating in favor of initializeFromCheckpointFlag?
+   virtual void ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag);
    virtual void ioParam_InitVType(enum ParamsIOFlag ioFlag);
    virtual void ioParam_triggerFlag(enum ParamsIOFlag ioFlag);
    virtual void ioParam_triggerLayerName(enum ParamsIOFlag ioFlag);
@@ -168,7 +175,8 @@ protected:
 public:
 
    virtual ~HyPerLayer() = 0;
-   virtual int initializeState();
+   int initializeState(); // Not virtual since all layers should respond to initializeFromCheckpointFlag and (deprecated) restartFlag in the same way.
+                          // initializeState calls the virtual methods readStateFromCheckpoint(), readState() (deprecated), and setInitialValues().
 
    virtual int communicateInitInfo();
    virtual int allocateDataStructures();
@@ -178,9 +186,11 @@ public:
    // TODO The two routines below shouldn't be public, but HyPerCol needs to call them, so for now they are.
    void setInitInfoCommunicatedFlag() {initInfoCommunicatedFlag = true;}
    void setDataStructuresAllocatedFlag() {dataStructuresAllocatedFlag = true;}
+   void setInitialValuesSetFlag() {initialValuesSetFlag = true;}
 
    bool getInitInfoCommunicatedFlag() {return initInfoCommunicatedFlag;}
    bool getDataStructuresAllocatedFlag() {return dataStructuresAllocatedFlag;}
+   bool getInitialValuesSetFlag() {return initialValuesSetFlag;}
 
    int ioParams(enum ParamsIOFlag ioFlag);
 
@@ -253,13 +263,13 @@ public:
 
    int mirrorInteriorToBorder(int whichBorder, PVLayerCube * cube, PVLayerCube * borderCube);
 
-   virtual int checkpointRead(const char * cpDir, double * timed);
+   virtual int checkpointRead(const char * cpDir, double * timeptr); // (const char * cpDir, double * timed);
    virtual int checkpointWrite(const char * cpDir);
    virtual int checkpointTimers(PV_Stream * timerstream);
    static int readBufferFile(const char * filename, InterColComm * comm, double * timed, pvdata_t ** buffers, int numbands, bool extended, const PVLayerLoc * loc);
    static int writeBufferFile(const char * filename, InterColComm * comm, double dtime, pvdata_t ** buffers, int numbands, bool extended, const PVLayerLoc * loc);
 
-   virtual int readState (double * timef);
+   virtual int readState (double * timeptr);
    virtual int outputState(double timef, bool last=false);
    virtual int writeActivity(double timed);
    virtual int writeActivitySparse(double timed, bool includeValues);
@@ -331,8 +341,6 @@ public:
    virtual double getLastUpdateTime();
    double getNextUpdateTime() { return nextUpdateTime;}
 
-   //double getLastActiveTime(int fi){assert(fi>=0 && fi<getLayerLoc()->nf); return lastActiveTime[fi];}
-
    virtual int gatherToInteriorBuffer(unsigned char * buf);
 
    virtual int label(int k);
@@ -368,6 +376,7 @@ protected:
    int numFeatures;
    int margin;
 
+   bool initializeFromCheckpointFlag; // Whether to load initial state using directory parent->getInitializeFromCheckpoint()
    bool restartFlag;
 
    int numProbes;
@@ -399,7 +408,7 @@ protected:
 
    bool initInfoCommunicatedFlag;
    bool dataStructuresAllocatedFlag;
-   bool initialStateCompletedFlag;
+   bool initialValuesSetFlag;
 
    InitV * initVObject;
 
@@ -415,8 +424,6 @@ protected:
 
    double lastUpdateTime; // The most recent time that the layer's activity is updated, used as a cue for publisher to exchange borders
    double nextUpdateTime; // The timestep to update next
-
-   //double * lastActiveTime; //A matrix that keeps track of when a given neuron was last active
 
 //   int feedforwardDelay;  // minimum delay required for a change in the input to potentially influence this layer
 //   int feedbackDelay;     // minimum delay required for a change in this layer to potentially influence itself via feedback loop

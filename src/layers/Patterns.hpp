@@ -66,7 +66,6 @@ public:
 
    virtual int tag();
 
-   int checkpointRead(const char * cpDir, double * timef);
    int checkpointWrite(const char * cpDir);
 
 protected:
@@ -118,6 +117,9 @@ protected:
    virtual bool constrainBiases() {return false;}
    virtual bool constrainOffsets() {return false;}
    virtual double getDeltaUpdateTime();
+
+   virtual int readStateFromCheckpoint(const char * cpDir, double * timeptr);
+   virtual int readPatternStateFromCheckpoint(const char * cpDir);
 
    PatternType type;
    char * typeString;

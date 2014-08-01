@@ -148,24 +148,23 @@ int IncrementLayer::setActivity() {
    return setActivity_IncrementLayer(getNumNeurons(), clayer->activity->data, getV(), getVprev(), loc->nx, loc->ny, loc->nf, loc->nb);
 }
 
-int IncrementLayer::checkpointRead(const char * cpDir, double * timef) {
-   HyPerLayer::checkpointRead(cpDir, timef);
-   InterColComm * icComm = parent->icCommunicator();
-   double timed;
-   char filename[PV_PATH_MAX];
+int IncrementLayer::readVprevFromCheckpoint(const char * cpDir, double * timeptr) {
+   char * filename = parent->pathInCheckpoint(cpDir, getName(), "_Vprev.pvp");
+   int status = readBufferFile(filename, parent->icCommunicator(), timeptr, &Vprev, 1, /*extended*/false, getLayerLoc());
+   assert(status==PV_SUCCESS);
+   return status;
+}
 
-   int chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_Vprev.pvp", cpDir, name);
-   if (chars_needed >= PV_PATH_MAX) {
-      if (icComm->commRank()==0) {
-         fprintf(stderr, "IncrementLayer::checkpointRead error: path \"%s/%s_Vprev.pvp\" is too long.\n", cpDir, name);
-      }
-      abort();
-   }
-   readBufferFile(filename, icComm, &timed, &Vprev, 1, /*extended*/false, getLayerLoc());
-   if( (float) timed != *timef && parent->icCommunicator()->commRank() == 0 ) {
-      fprintf(stderr, "Warning: %s and %s_A.pvp have different timestamps: %f versus %f\n", filename, name, (float) timed, *timef);
-   }
-   VInited = *timef >= firstUpdateTime + parent->getDeltaTime();
+int IncrementLayer::readStateFromCheckpoint(const char * cpDir, double * timeptr) {
+   int status = ANNLayer::readStateFromCheckpoint(cpDir, timeptr);
+   status = readVprevFromCheckpoint(cpDir, timeptr);
+   // TODO: check whether should VInited be set if initializeFromCheckpointFlag is true
+   return status;
+}
+
+int IncrementLayer::checkpointRead(const char * cpDir, double * timeptr) {
+   int status = HyPerLayer::checkpointRead(cpDir, timeptr);
+   VInited = *timeptr >= firstUpdateTime + parent->getDeltaTime();
 
    return PV_SUCCESS;
 }

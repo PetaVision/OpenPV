@@ -28,7 +28,7 @@ protected:
    virtual void ioParam_originalLayerName(enum ParamsIOFlag ioFlag);
    virtual int allocateV();
    virtual int initializeV();
-   virtual int checkpointRead(const char * cpDir, double * timed);
+   virtual int readVFromCheckpoint(const char * cpDir, double * timeptr);
    virtual int checkpointWrite(const char * cpDir);
    virtual int doUpdateState(double timed, double dt, const PVLayerLoc * loc, pvdata_t * A,
          pvdata_t * V, int num_channels, pvdata_t * GSynHead, bool spiking,
