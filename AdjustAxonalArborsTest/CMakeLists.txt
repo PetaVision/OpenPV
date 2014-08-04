@@ -1,5 +1,5 @@
 ## See http://www.cmake.org/Wiki/CMake_Useful_Variables for more variables to set
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 2.8)
 
 #Set default PV_WRKSPC_DIR if not already set
 #if (NOT PV_WRKSPC_DIR)
