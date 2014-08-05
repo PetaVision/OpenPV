@@ -161,13 +161,6 @@ mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
 cd "$workspacedir"
 
 testname=ConnectionRestartTest
-arglist="-p ConnectionRestartTest.params"
-cd "$testname"
-runandecho $testname $testname Debug/$testname $arglist
-mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
-cd "$workspacedir"
-
-testname=ConnectionRestartTest
 arglist="-p input/ConnectionRestartTest.params"
 cd "$testname"
 runandecho $testname $testname Debug/$testname $arglist
