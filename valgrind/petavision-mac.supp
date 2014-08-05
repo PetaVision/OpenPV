@@ -1,8 +1,9 @@
 # Valgrind suppression file for PetaVision
-# There are memory leaks, etc., in Open MPI.  Running a typical PetaVision job
-# under valgrind therefore finds hundreds of errors we can't do anything about.
-# This suppression file prevents valgrind from reporting on them so we notice
-# when there's an error in the PetaVision code itself.
+# Valgrind finds many memory leaks and other problems in Open MPI, GDAL, etc.
+# Running a typical PetaVision job under valgrind therefore finds hundreds of
+# errors we can't do anything about.  This suppression file prevents valgrind
+# from reporting on them so we notice when there's an error in the PetaVision
+# code itself.
 #
 # Example usage: to run the command
 #     Debug/BasicSystemTest -p input/BasicSystemTest.params
@@ -48,17 +49,44 @@
 }
 
 {
-   <suppression_leak_yyparse>
-   Memcheck:Leak
-   ...
-   fun:yylex
-}
-
-{
    <suppression_leak_orte_progress_thread_engine>
    Memcheck:Leak
    ...
    fun:orte_progress_thread_engine
+}
+
+{
+   <suppression_leak_gdalregister_wms>
+   Memcheck:Leak
+   fun:malloc
+   fun:_ZL22CPLCreateMutexInternali
+   fun:CPLCreateOrAcquireMutex
+   fun:_ZN14CPLMutexHolderC2EPPvdPKci
+   fun:_Z27GetGDALWMSMiniDriverManagerv
+   fun:GDALRegister_WMS
+   fun:GDALAllRegister
+}
+
+{
+   <suppression_leak_rasterband_rasterbandio>
+   Memcheck:Leak
+   fun:malloc
+   fun:_ZL22CPLCreateMutexInternali
+   fun:CPLCreateOrAcquireMutex
+   fun:_ZN14CPLMutexHolderC2EPPvdPKci
+   fun:_ZN15GDALRasterBlock13SafeLockBlockEPPS_
+   fun:_ZN14GDALRasterBand20TryGetLockedBlockRefEii
+   fun:_ZN14GDALRasterBand17GetLockedBlockRefEiii
+   fun:_ZN14GDALRasterBand9IRasterIOE10GDALRWFlagiiiiPvii12GDALDataTypeii
+   fun:_ZN11GDALDataset9IRasterIOE10GDALRWFlagiiiiPvii12GDALDataTypeiPiiii
+   fun:_ZN11GDALDataset8RasterIOE10GDALRWFlagiiiiPvii12GDALDataTypeiPiiii
+}
+
+{
+   <suppression_leak_yylex>
+   Memcheck:Leak
+   ...
+   fun:yylex
 }
 
 {
@@ -80,4 +108,13 @@
    Memcheck:Leak
    ...
    fun:__vfprintf
+}
+
+{
+   <suppression_leak_fopen_moreglue>
+   Memcheck:Leak
+   fun:malloc
+   fun:moreglue
+   fun:__sfp
+   fun:fopen
 }
