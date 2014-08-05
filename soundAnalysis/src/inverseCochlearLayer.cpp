@@ -156,7 +156,8 @@ int inverseCochlearLayer::allocateDataStructures(){
       deltaFreqs[k] = targetFreqs[k+1]-targetFreqs[k];
    }
    float lastfreq = targetFreqs[numFrequencies-1];
-   float nextfreq = 7e-10*powf(lastfreq,3) - 3e-6*powf(lastfreq,2) + 1.0041*lastfreq+0.6935;
+   //float nextfreq = 7e-10*powf(lastfreq,3) - 3e-6*powf(lastfreq,2) + 1.0041*lastfreq+0.6935;
+    float nextfreq = lastfreq * powf(2,1/12.0); //for equal temperament
    deltaFreqs[numFrequencies-1] = nextfreq-lastfreq;
 
    Mreal = (float **) calloc(bufferLength, sizeof(float *));
@@ -236,7 +237,7 @@ int inverseCochlearLayer::updateState(double time, double dt){
        
        timehistory[ringBufferLevel] = time;
        for (int k=0; k<inputLayer->getLayerLoc()->nx; k++) {
-          xhistory[ringBufferLevel][k] = (inputLayer->getLayerData()[k]) / 10000; // divide  by linear scaling in cochlea / 100
+          xhistory[ringBufferLevel][k] = (inputLayer->getLayerData()[k]) / cochlearLayer->getcochlearScale(); // divide  by linear scaling in cochlea (10,000,000) and numfreqs
        } // memcpy?
        
        double sumreal = 0.0;
@@ -254,8 +255,8 @@ int inverseCochlearLayer::updateState(double time, double dt){
        // pvdata_t * inA = inputLayer->getCLayer()->activity->data;
        pvdata_t * outV = getV();
        
-       outV[0] = sumimag;
-       outV[1] = sumreal;
+       outV[0] = sumimag * 100;
+       outV[1] = sumreal * 100;
 
        //*outV is where the output data should go
 

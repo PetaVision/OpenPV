@@ -26,7 +26,6 @@ public:
    const std::vector <float> getDampingConstants() {return dampingConstants;}
    float getSampleRate() { return sampleRate; }
     float getcochlearScale() { return cochlearScale; }
-    
     double getDisplayPeriod() {return displayPeriod; }
     double getnextDisplayTime() {return nextDisplayTime; }
     
