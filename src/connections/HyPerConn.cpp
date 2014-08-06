@@ -2444,17 +2444,17 @@ int HyPerConn::updateStateWrapper(double time, double dt){
       //This is implemented as an optimization so weights don't change dramatically as ANNNormalizedErrorLayer values get large.
       if (preTimeScale > 0 && preTimeScale < timeScaleMin) { 
          if (parent->icCommunicator()->commRank()==0) {
-            fprintf(stdout, "TimeScale = %f for layer %s, which is less than your specified dtScaleMin, %f. updateState won't be called this timestep.\n", preTimeScale, pre->getName(), timeScaleMin);
+            fprintf(stdout, "TimeScale = %f for layer %s, which is less than your specified dtScaleMin, %f. updateState won't be called for connection \"%s\" this timestep.\n", preTimeScale, pre->getName(), timeScaleMin, getName());
          }
       }
       else if (postTimeScale > 0 && postTimeScale < timeScaleMin) { 
          if (parent->icCommunicator()->commRank()==0) {
-            fprintf(stdout, "TimeScale = %f for layer %s, which is less than your specified dtScaleMin, %f. updateState won't be called this timestep.\n", postTimeScale, post->getName(),  timeScaleMin);
+            fprintf(stdout, "TimeScale = %f for layer %s, which is less than your specified dtScaleMin, %f. updateState won't be called for connection \"%s\" this timestep.\n", postTimeScale, post->getName(),  timeScaleMin, getName());
          }
       }
       else if (colTimeScale > 0 && colTimeScale < timeScaleMin) { 
          if (parent->icCommunicator()->commRank()==0) {
-            fprintf(stdout, "TimeScale = %f for column %s, which is less than your specified dtScaleMin, %f. updateState won't be called this timestep.\n", colTimeScale, parent->getName(),  timeScaleMin);
+            fprintf(stdout, "TimeScale = %f for column %s, which is less than your specified dtScaleMin, %f. updateState won't be called for connection \"%s\" this timestep.\n", colTimeScale, parent->getName(),  timeScaleMin, getName());
          }
       }
      else {
