@@ -449,7 +449,6 @@ private:
    int defaultDelay; //added to save params file defined delay...
    float * fDelayArray;
    int delayArraySize;
-   bool triggerFlag;
    char* triggerLayerName;
    double triggerOffset;
    HyPerLayer* triggerLayer;
@@ -497,6 +496,7 @@ protected:
 
    bool sharedWeights; // Set to true for the old KernelConn behavior
    bool plasticityFlag;
+   bool triggerFlag;
    bool combine_dW_with_W_flag; // indicates that dwDataStart should be set equal to wDataStart, useful for saving memory when weights are not being learned but not used
    bool selfFlag; // indicates that connection is from a layer to itself (even though pre and post may be separately instantiated)
    char * normalizeMethod;

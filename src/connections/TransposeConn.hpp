@@ -31,6 +31,7 @@ protected:
     virtual void ioParam_weightInitType(enum ParamsIOFlag ioFlag);
     virtual void ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag);
     virtual void ioParam_plasticityFlag(enum ParamsIOFlag ioFlag);
+    virtual void ioParam_triggerFlag(enum ParamsIOFlag ioFlag);
     virtual void ioParam_combine_dW_with_W_flag(enum ParamsIOFlag ioFlag);
     virtual void ioParam_nxp(enum ParamsIOFlag ioFlag);
     virtual void ioParam_nyp(enum ParamsIOFlag ioFlag);
