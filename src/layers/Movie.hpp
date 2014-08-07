@@ -55,6 +55,7 @@ protected:
    virtual void ioParam_skip_frame_index(enum ParamsIOFlag ioFlag);
    virtual void ioParam_movieOutputPath(enum ParamsIOFlag ioFlag);
    virtual void ioParam_writeFrameToTimestamp(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_flipOnTimescaleError(enum ParamsIOFlag ioFlag);
    virtual int readStateFromCheckpoint(const char * cpDir, double * timeptr);
    virtual int readFrameNumStateFromCheckpoint(const char * cpDir);
 
@@ -91,6 +92,8 @@ private:
 
    bool writeFrameToTimestamp;
    PV_Stream * timestampFile;
+
+   bool flipOnTimescaleError;
 };
 
 }

@@ -38,6 +38,7 @@ int Movie::initialize_base() {
    numFrames = 0;
    writeFrameToTimestamp = true;
    timestampFile = NULL;
+   flipOnTimescaleError = true;
    //updateThisTimestep = false;
    // newImageFlag = false;
    return PV_SUCCESS;
@@ -214,6 +215,7 @@ int Movie::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_skip_frame_index(ioFlag);
    ioParam_movieOutputPath(ioFlag);
    ioParam_writeFrameToTimestamp(ioFlag);
+   ioParam_flipOnTimescaleError(ioFlag);
    return status;
 }
 
@@ -235,6 +237,10 @@ void Movie::ioParam_frameNumber(enum ParamsIOFlag ioFlag) {
 
 void Movie::ioParam_imageListPath(enum ParamsIOFlag ioFlag) {
    parent->ioParamStringRequired(ioFlag, name, "imageListPath", &fileOfFileNames);
+}
+
+void Movie::ioParam_flipOnTimescaleError(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "flipOnTimescaleError", &flipOnTimescaleError, flipOnTimescaleError);
 }
 
 void Movie::ioParam_displayPeriod(enum ParamsIOFlag ioFlag) {
@@ -440,7 +446,7 @@ bool Movie::updateImage(double time, double dt)
       //lastUpdateTime = time;
    } else {
 
-      if(parent->getTimeScale() > 0 && parent->getTimeScale() < parent->getTimeScaleMin()){
+      if(!flipOnTimescaleError && (parent->getTimeScale() > 0 && parent->getTimeScale() < parent->getTimeScaleMin())){
          if (parent->icCommunicator()->commRank()==0) {
             std::cout << "timeScale of " << parent->getTimeScale() << " is less than timeScaleMin of " << parent->getTimeScaleMin() << ", Movie is keeping the same frame\n";
          }
