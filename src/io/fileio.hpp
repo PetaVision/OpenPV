@@ -80,7 +80,7 @@ int writeActivitySparse(PV_Stream * pvstream, PV_Stream * posstream, Communicato
 //This function is not defined anywhere?
 //int writeActivitySparseValues(PV_Stream * pvstream, PV_Stream * posstream, Communicator * comm, double time, PVLayer * l);
 
-int readWeights(PVPatch *** patches, pvwdata_t ** dataStart, int numArbors, int numPatches, const char * filename,
+int readWeights(PVPatch *** patches, pvwdata_t ** dataStart, int numArbors, int numPatches, int nxp, int nyp, int nfp, const char * filename,
                 Communicator * comm, double * timed, const PVLayerLoc * loc, bool * shmget_owner = NULL, bool shmget_flag = false);
 
 int writeWeights(const char * filename, Communicator * comm, double timed, bool append,

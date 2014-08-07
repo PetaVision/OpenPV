@@ -215,7 +215,7 @@ int MapReduceKernelConn::reduceKernels(const int arborID) {
 				exit(EXIT_FAILURE);
 			} // num_attempts > MAX_ATTEMPTS
 			int status = PV::readWeights(NULL, get_dwDataStart(),
-					this->numberOfAxonalArborLists(), this->getNumDataPatches(),
+					this->numberOfAxonalArborLists(), this->getNumDataPatches(), nxp, nyp, nfp,
 					dWeightsList[file_count], icComm, &dW_time, preLoc);
 			if (status != PV_SUCCESS) {
 				fprintf(stderr,

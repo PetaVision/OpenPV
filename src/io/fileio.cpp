@@ -1388,7 +1388,7 @@ int writeActivitySparse(PV_Stream * pvstream, PV_Stream * posstream, Communicato
 
 
 int readWeights(PVPatch *** patches, pvwdata_t ** dataStart, int numArbors, int numPatches,
-      const char * filename, Communicator * comm, double * timed, const PVLayerLoc * loc,
+      int nxp, int nyp, int nfp, const char * filename, Communicator * comm, double * timed, const PVLayerLoc * loc,
       bool * shmget_owner, bool shmget_flag)
 {
    int status = PV_SUCCESS;
@@ -1426,9 +1426,16 @@ int readWeights(PVPatch *** patches, pvwdata_t ** dataStart, int numArbors, int 
 
    int * wgtParams = &params[NUM_BIN_PARAMS];
 
-   const int nxp = wgtParams[INDEX_WGT_NXP];
-   const int nyp = wgtParams[INDEX_WGT_NYP];
-   const int nfp = wgtParams[INDEX_WGT_NFP];
+   if (nxp != wgtParams[INDEX_WGT_NXP] || nyp != wgtParams[INDEX_WGT_NYP] || nfp != wgtParams[INDEX_WGT_NFP]) {
+      if (icRank==0) {
+         fprintf(stderr, "readWeights error: file \"%s\" patch dimensions (nxp=%d, nyp=%d, nfp=%d) do not agree with expected values (%d,%d,%d).\n",
+               filename, nxp, nyp, nfp, wgtParams[INDEX_WGT_NXP], wgtParams[INDEX_WGT_NYP], wgtParams[INDEX_WGT_NFP]);
+      }
+      MPI_Barrier(comm->communicator());
+      exit(EXIT_FAILURE);
+   }
+   assert(nyp == wgtParams[INDEX_WGT_NYP]);
+   assert(nfp = wgtParams[INDEX_WGT_NFP]);
 
    // Have to use memcpy instead of casting floats because of strict aliasing rules, since some are int and some are float
    float minVal = 0.0f;
