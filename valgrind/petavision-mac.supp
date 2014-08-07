@@ -71,14 +71,7 @@
    <suppression_leak_rasterband_rasterbandio>
    Memcheck:Leak
    fun:malloc
-   fun:_ZL22CPLCreateMutexInternali
-   fun:CPLCreateOrAcquireMutex
-   fun:_ZN14CPLMutexHolderC2EPPvdPKci
-   fun:_ZN15GDALRasterBlock13SafeLockBlockEPPS_
-   fun:_ZN14GDALRasterBand20TryGetLockedBlockRefEii
-   fun:_ZN14GDALRasterBand17GetLockedBlockRefEiii
-   fun:_ZN14GDALRasterBand9IRasterIOE10GDALRWFlagiiiiPvii12GDALDataTypeii
-   fun:_ZN11GDALDataset9IRasterIOE10GDALRWFlagiiiiPvii12GDALDataTypeiPiiii
+   ...
    fun:_ZN11GDALDataset8RasterIOE10GDALRWFlagiiiiPvii12GDALDataTypeiPiiii
 }
 
@@ -101,6 +94,13 @@
    Memcheck:Leak
    ...
    fun:_dyld_start
+}
+
+{
+   <suppression_leak_sfvwrite>
+   Memcheck:Leak
+   ...
+   fun:__sfvwrite
 }
 
 {
