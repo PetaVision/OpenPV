@@ -43,9 +43,9 @@ inverseCochlearLayer::~inverseCochlearLayer() {
       free(timehistory);
       timehistory = NULL;
    }
-   if(targetFreqs){
-      free(targetFreqs);
-      targetFreqs = NULL;
+   if(radianFreqs){
+      free(radianFreqs);
+      radianFreqs = NULL;
    }
    if(deltaFreqs){
       free(deltaFreqs);
@@ -69,7 +69,7 @@ int inverseCochlearLayer::initialize_base() {
    cochlearLayer = NULL;
    xhistory = NULL;
    timehistory = NULL;
-   targetFreqs = NULL;
+   radianFreqs = NULL;
    deltaFreqs = NULL;
    Mreal = NULL;
    Mimag = NULL;
@@ -128,7 +128,7 @@ int inverseCochlearLayer::communicateInitInfo(){
 int inverseCochlearLayer::allocateDataStructures(){
    ANNLayer::allocateDataStructures();
    
-   numFrequencies = inputLayer->getLayerLoc()->nx;
+   numFrequencies = cochlearLayer->getLayerLoc()->nx;
    xhistory = (pvdata_t **) calloc(bufferLength, sizeof(pvdata_t *));
    assert(xhistory!=NULL); // TODO: change to error message
    for (int j=0; j<bufferLength; j++) {
@@ -143,21 +143,21 @@ int inverseCochlearLayer::allocateDataStructures(){
       exit(EXIT_FAILURE);
    }
    
-   targetFreqs = (float *) calloc(numFrequencies, sizeof(float));
+   radianFreqs = (float *) calloc(numFrequencies, sizeof(float));
    deltaFreqs = (float *) calloc(numFrequencies, sizeof(float));
-   if (targetFreqs==NULL || deltaFreqs==NULL) {
-      fprintf(stderr, "Unable to allocate memory for targetFreqs or deltaFreqs: %s\n", strerror(errno));
+   if (radianFreqs==NULL || deltaFreqs==NULL) {
+      fprintf(stderr, "Unable to allocate memory for radianFreqs or deltaFreqs: %s\n", strerror(errno));
       exit(EXIT_FAILURE);
    }
    for (int k=0; k<numFrequencies; k++) {
-      targetFreqs[k] = cochlearLayer->getTargetFreqs()[k];
+      radianFreqs[k] = cochlearLayer->getRadianFreqs()[k];
    }
    for (int k=0; k<numFrequencies-1; k++) {
-      deltaFreqs[k] = targetFreqs[k+1]-targetFreqs[k];
+      deltaFreqs[k] = radianFreqs[k+1]-radianFreqs[k];
    }
-   float lastfreq = targetFreqs[numFrequencies-1];
-   //float nextfreq = 7e-10*powf(lastfreq,3) - 3e-6*powf(lastfreq,2) + 1.0041*lastfreq+0.6935;
-    float nextfreq = lastfreq * powf(2,1/12.0); //for equal temperament
+   float lastfreq = radianFreqs[numFrequencies-1];
+   //float nextfreq = (7e-10*powf(lastfreq,3) - 3e-6*powf(lastfreq,2) + 1.0041*lastfreq+0.6935) * 2 * PI;
+    float nextfreq = lastfreq * powf(2,1/12.0) * 2 * PI; //for equal temperament
    deltaFreqs[numFrequencies-1] = nextfreq-lastfreq;
 
    Mreal = (float **) calloc(bufferLength, sizeof(float *));
@@ -166,7 +166,8 @@ int inverseCochlearLayer::allocateDataStructures(){
       fprintf(stderr, "Unable to allocate memory for Mreal or Mimag: %s\n", strerror(errno));
       exit(EXIT_FAILURE);
    }
-   double sampleFrequency = 1.0/cochlearLayer->getSampleRate();
+   //double sampleFrequency = 1.0/cochlearLayer->getSampleRate();
+    
    for (int j=0; j<bufferLength; j++) {
       Mreal[j] = (pvdata_t *) calloc(numFrequencies, sizeof(pvdata_t));
       Mimag[j] = (pvdata_t *) calloc(numFrequencies, sizeof(pvdata_t));
@@ -174,9 +175,11 @@ int inverseCochlearLayer::allocateDataStructures(){
          fprintf(stderr, "Unable to allocate memory for Mreal[j] or Mimag[j]: %s\n", strerror(errno));
          exit(EXIT_FAILURE);
       }
+       
+       float dt = parent->getDeltaTime();
       for(int k=0; k<numFrequencies; k++) {
-         Mreal[j][k] = targetFreqs[k]*cochlearLayer->getDampingConstants()[k]*deltaFreqs[k]*sin(targetFreqs[k]*j*sampleFrequency);
-         Mimag[j][k] = targetFreqs[k]*cochlearLayer->getDampingConstants()[k]*deltaFreqs[k]*cos(targetFreqs[k]*j*sampleFrequency);
+         Mreal[j][k] = radianFreqs[k]*cochlearLayer->getDampingConstants()[k]*deltaFreqs[k]*sin(radianFreqs[k]*j*dt);
+         Mimag[j][k] = radianFreqs[k]*cochlearLayer->getDampingConstants()[k]*deltaFreqs[k]*cos(radianFreqs[k]*j*dt);
       }
    }
    
@@ -236,8 +239,8 @@ int inverseCochlearLayer::updateState(double time, double dt){
        assert(num_output_neurons == INVERSECOCHLEARLAYER_NF);
        
        timehistory[ringBufferLevel] = time;
-       for (int k=0; k<inputLayer->getLayerLoc()->nx; k++) {
-          xhistory[ringBufferLevel][k] = (inputLayer->getLayerData()[k]) / cochlearLayer->getcochlearScale(); // divide  by linear scaling in cochlea (10,000,000) and numfreqs
+       for (int k=0; k<cochlearLayer->getLayerLoc()->nx; k++) {
+          xhistory[ringBufferLevel][k] = (inputLayer->getLayerData()[k]) / cochlearLayer->getCochlearScales()[k]; // divide  by linear scaling in cochlea (10,000,000) and numfreqs
        } // memcpy?
        
        double sumreal = 0.0;
@@ -248,16 +251,21 @@ int inverseCochlearLayer::updateState(double time, double dt){
              sumimag += Mimag[j][k]*xhistory[ringBuffer(j)][k];
           }
        }
-       sumreal /= (2*PI);
-       sumimag /= (2*PI);   
+    
+      sumreal /= (2*PI);
+      sumimag /= (2*PI);
        
        //Reset pointer of gSynHead to point to the excitatory channel
        // pvdata_t * inA = inputLayer->getCLayer()->activity->data;
        pvdata_t * outV = getV();
-       
-       outV[0] = sumimag * 100;
-       outV[1] = sumreal * 100;
+    
+    
+       outV[0] = sumimag;
+    
+       //outV[1] = sumreal;
 
+    
+    
        //*outV is where the output data should go
 
     //Copy V to A buffer

@@ -101,8 +101,8 @@ int SoundProbe::outputState(double timed){
         const pvdata_t * A = getTargetLayer()->getLayerData();
         int numNeurons = getTargetLayer()->getNumNeurons();
         const PVLayerLoc * loc = getTargetLayer()->getLayerLoc();
-        for (int i = 0; i < numNeurons; i++){
-          soundBuf[i] = A[i];
+        for (int j = 0; j < numNeurons; j++){
+          soundBuf[j] = A[j];
         }
         //Write file out
         int count = sf_writef_float(fileStream, soundBuf, 1);

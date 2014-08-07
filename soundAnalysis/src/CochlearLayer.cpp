@@ -26,6 +26,7 @@ CochlearLayer::~CochlearLayer() {
    free(inputLayername);
    free(vVal);
    free(xVal);
+   
 }
 
 int CochlearLayer::initialize_base() {
@@ -84,6 +85,9 @@ int CochlearLayer::initialize(const char * name, HyPerCol * hc) {
 
    //Set up damping constant based on frequency envelope
    dampingConstants.clear();
+    omegas.clear();
+    cochlearScales.clear();
+    
     
    for(int i = 0; i < targetFreqs.size(); i++){
     
@@ -94,11 +98,14 @@ int CochlearLayer::initialize(const char * name, HyPerCol * hc) {
        
      
        omega = (.5 * sqrt( (4 * pow(radianFreqs[i], 2)) - pow(dampingConstant, 2)));
+       
+       cochlearScale = 2 * PI * radianFreqs[i] * dampingConstant;
       
        std::cout << "Freqs: " << targetFreqs[i] << "\n";
        
       dampingConstants.push_back(dampingConstant);
        omegas.push_back(omega);
+       cochlearScales.push_back(cochlearScale);
    }
 
     
@@ -233,7 +240,7 @@ int CochlearLayer::updateState(double time, double dt){
            
          
              dampingConstant = dampingConstants[outNi];
-             
+             cochlearScale = cochlearScales[outNi];
              
              //float sound = sin (440 * time * 2 * PI);
            
@@ -254,7 +261,7 @@ int CochlearLayer::updateState(double time, double dt){
              
             // std::cout << ":: xVal " << xVal[124] << "\n";
              
-             V[outNi] = xVal[outNi]; //multiply by (non-freq dependent) inner ear amplification? (100000 gets into reasonable range)
+             V[outNi] = xVal[outNi] * cochlearScale; //multiply by (non-freq dependent) inner ear amplification? (100000 gets into reasonable range)
              
            // std::cout << ":: Vbuffer " << V[124] << "\n";
              

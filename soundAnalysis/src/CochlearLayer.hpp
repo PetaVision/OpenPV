@@ -24,8 +24,8 @@ public:
    
    const std::vector <float> getTargetFreqs() {return targetFreqs;}
    const std::vector <float> getDampingConstants() {return dampingConstants;}
+    const std::vector <float> getCochlearScales() {return cochlearScales;}
    float getSampleRate() { return sampleRate; }
-    float getcochlearScale() { return cochlearScale; }
     double getDisplayPeriod() {return displayPeriod; }
     double getnextDisplayTime() {return nextDisplayTime; }
     
@@ -52,6 +52,7 @@ private:
    std::vector <float> radianFreqs;
    std::vector <float> omegas;
    std::vector <float> dampingConstants;
+    std::vector <float> cochlearScales;
    HyPerLayer* inputLayer;
    char* inputLayername;
    int targetChannel;

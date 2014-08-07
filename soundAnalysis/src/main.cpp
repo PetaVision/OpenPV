@@ -7,6 +7,7 @@
 #include "SoundProbe.hpp"
 #include "CochlearLayer.hpp"
 #include "inverseCochlearLayer.hpp"
+#include "inverseNewCochlearLayer.hpp"
 #include "SoundReconLayer.h"
 #include "StreamReconLayer.h"
 
@@ -42,6 +43,9 @@ void * addcustomgroup(const char * keyword, const char * groupname, HyPerCol * h
     }
     if ( !strcmp(keyword, "inverseCochlearLayer") ) {
        addedGroup = new inverseCochlearLayer(groupname, hc);
+    }
+    if ( !strcmp(keyword, "inverseNewCochlearLayer") ) {
+        addedGroup = new inverseNewCochlearLayer(groupname, hc);
     }
     if ( !strcmp(keyword, "SoundReconLayer") ) {
         addedGroup = new SoundReconLayer(groupname, hc);
