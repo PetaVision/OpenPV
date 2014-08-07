@@ -54,7 +54,8 @@ function writepvpactivityfile(filename, data)
    hdr(18) = numel(data); % number of frames 
    hdr(19:20) = typecast(double(data{1}.time),'uint32'); % timestamp
    fwrite(fid,hdr,'uint32');
-   for frameno=1:size(data)
+
+   for frameno=1:numel(data)   %% mohit - I changed size(dat) to numel(data)
        fwrite(fid,data{frameno}.time,'double');
        fwrite(fid,permute(data{frameno}.values(:,:,:),[3 1 2]),'single');
    end%for

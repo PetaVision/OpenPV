@@ -33,9 +33,11 @@ namespace PV {
         virtual int allocateDataStructures();
         
         const std::vector <float> getTargetFreqs() {return targetFreqs;}
+        const std::vector <float> getRadianFreqs() {return radianFreqs;}
+        const std::vector <float> getOmegas() {return omegas;}
         const std::vector <float> getDampingConstants() {return dampingConstants;}
         float getSampleRate() { return sampleRate; }
-        float getcochlearScale() { return cochlearScale; }
+        const std::vector <float> getCochlearScales() {return cochlearScales;}
         
 
         
@@ -86,11 +88,12 @@ namespace PV {
         float dampingConstant;
         float omega;
         //float sampleRate;
-        float cochlearScale;
         float* vVal; //velocity value
         float* xVal; //x value
         float samplePeriod;
         
+        float cochlearScale;
+        std::vector <float> cochlearScales;
         
     }; // end of class NewCochlearLayer
     

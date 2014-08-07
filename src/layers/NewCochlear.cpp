@@ -117,8 +117,10 @@ namespace PV {
         
         //Set up damping constant based on frequency envelope
         dampingConstants.clear();
+        omegas.clear();
+        cochlearScales.clear();
         
-        for(int i = 0; i < targetFreqs.size(); i++){
+        for(int i = 0; i < radianFreqs.size(); i++){
             
             
             
@@ -128,10 +130,12 @@ namespace PV {
             
             omega = (.5 * sqrt( (4 * pow(radianFreqs[i], 2)) - pow(dampingConstant, 2)));
             
-            
+            cochlearScale = 2 * PI * radianFreqs[i] * dampingConstant;
+          
             
             dampingConstants.push_back(dampingConstant);
             omegas.push_back(omega);
+            cochlearScales.push_back(cochlearScale);
         }
         
         
@@ -306,6 +310,8 @@ namespace PV {
                     
                     dampingConstant = dampingConstants[outNi];
                     
+                    cochlearScale = cochlearScales[outNi];
+                    
                     //std::cout << ":: omegas " << omegas[outNi] << "\n";
                     
                     //float sound = sin (440 * time * 2 * PI);
@@ -327,7 +333,7 @@ namespace PV {
                     
                     //std::cout << ":: xVal " << xVal[outNi] << "\n";
                     
-                    V[outNi] = xVal[outNi] * 100000; //multiply by (non-freq dependent) inner ear amplification? (100000 gets into reasonable range)
+                    V[outNi] = xVal[outNi] * cochlearScale; //multiply by (non-freq dependent) inner ear amplification? (10,000,000 gets into reasonable range)
                     
                   //  std::cout << ":: Vbuffer " << V[outNi] << "\n";
                     
