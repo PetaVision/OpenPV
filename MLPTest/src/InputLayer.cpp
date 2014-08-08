@@ -15,6 +15,9 @@ InputLayer::InputLayer(const char * name, HyPerCol * hc)
    initialize(name, hc);
 }
 
+InputLayer::~InputLayer() {
+   free(inFilename);
+}
 
 int InputLayer::initialize(const char * name, HyPerCol * hc) {
    //TODO make only root process do this

@@ -15,6 +15,9 @@ GTLayer::GTLayer(const char * name, HyPerCol * hc)
    initialize(name, hc);
 }
 
+GTLayer::~GTLayer() {
+   free(inFilename);
+}
 
 int GTLayer::initialize(const char * name, HyPerCol * hc) {
    //TODO make only root process do this

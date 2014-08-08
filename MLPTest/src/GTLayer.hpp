@@ -12,6 +12,7 @@ namespace PV{
 class GTLayer : public PV::ANNLayer{
 public:
    GTLayer(const char * name, HyPerCol * hc);
+   virtual ~GTLayer();
    virtual int initialize(const char * name, HyPerCol * hc);
    virtual int updateState(double timef, double dt);
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag);

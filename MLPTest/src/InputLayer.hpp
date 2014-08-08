@@ -12,6 +12,7 @@ namespace PV{
 class InputLayer : public PV::ANNLayer{
 public:
    InputLayer(const char * name, HyPerCol * hc);
+   virtual ~InputLayer();
    virtual int initialize(const char * name, HyPerCol * hc);
    virtual int updateState(double timef, double dt);
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
