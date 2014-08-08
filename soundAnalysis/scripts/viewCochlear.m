@@ -1,5 +1,5 @@
 addpath("~/Desktop/newvision/trunk/mlab/util/");
-pvpfile = "/Users/JEC/Desktop/newvision/sandbox/soundAnalysis/output/a1_NewCochlear.pvp";
+pvpfile = "/Users/JEC/Desktop/newvision/sandbox/soundAnalysis/output/a2_WeightRecon.pvp";
 outfilename = "outImg.png";
 
 [data, hdr] = readpvpfile(pvpfile);

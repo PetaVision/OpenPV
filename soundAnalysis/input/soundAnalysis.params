@@ -15,7 +15,7 @@ HyPerCol "column" = {
    ny                              = 1;
    dt                              = .00022675737; // downsampling = dt * sampleRate
    randomSeed                      = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
-   stopTime                        = 25;
+   stopTime                        = .3;
    progressInterval                = .00023; // dt
    outputPath                      = "output";
    filenamesContainLayerNames      = true;
@@ -41,7 +41,7 @@ SoundStream "Sound" = {
     restart                = 0;
     nxScale                = 1;
     nyScale                = 1;
-    soundInputPath         = "input/furElise.wav";
+    soundInputPath         = "input/A.wav";
     nf                     = 1; // mono vs. stereo
     writeStep              = .00023; //dt
     initialWriteTime       = 0;
@@ -86,7 +86,7 @@ NewCochlearLayer "NewCochlear" = {
     
     //soundstream params
     
-    soundInputPath         = "input/furElise.wav";
+    soundInputPath         = "input/A.wav";
     soundBCFlag            = true;
     soundOffset            = 0; //In seconds
     
@@ -142,7 +142,7 @@ HyPerLCALayer "A1" = {
 
     minV = -1.0;
     maxV = .15;
-    timeConstantTau = 1;
+    timeConstantTau = .05;
     timeConstantTauMinimum = 0;
     slopeErrorStd = 0.01;
     VThresh = 0.01;
@@ -182,7 +182,7 @@ inverseCochlearLayer "inverseCochlear" = {
     nxScale = 1; //1 x 1 x 1
     nyScale = 1;
     // nf automatically set to 2 (real part & imaginary part)
-    writeStep = -1; //Change based on display period
+    writeStep = .00022675737; //Change based on display period
     initialWriteTime = 0.0; //Change based on display period 
     mirrorBCflag = 0;
     writeSparseActivity = 0;
@@ -327,7 +327,7 @@ SoundProbe "inverseCochlearProbe" = {
    restart = 0;
    targetLayer = "inverseCochlear";
    soundOutputPath = "output/outic.wav";
-   soundInputType  = "input/furElise.wav";
+   soundInputType  = "input/A.wav";
 };
 
 
@@ -356,7 +356,7 @@ SoundStream "Sound" = {
     restart                = 0;
     nxScale                = 1;
     nyScale                = 1;
-    soundInputPath         = "input/furElise.wav";
+    soundInputPath         = "input/A.wav";
     nf                     = 1; // mono vs. stereo
     writeStep              = .000022675737;
     initialWriteTime       = 0;

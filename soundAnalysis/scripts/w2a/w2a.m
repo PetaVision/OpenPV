@@ -3,7 +3,7 @@
 %%
 
 addpath("~/Desktop/newvision/trunk/mlab/util/");
-inputpvpfile = "/Users/JEC/Desktop/newvision/sandbox/soundAnalysis/output/checkpoints/Checkpoint0/A1ToCochlearError_W.pvp";
+inputpvpfile = "/Users/JEC/Desktop/newvision/sandbox/soundAnalysis/output/checkpoints/Checkpoint1323/A1ToCochlearError_W.pvp";
 
 
 W = readpvpfile(inputpvpfile);

@@ -7,7 +7,7 @@
 
 #include "inverseCochlearLayer.hpp"
 
-#define INVERSECOCHLEARLAYER_NF 2
+#define INVERSECOCHLEARLAYER_NF 1
 // Two features, one for real part, one for imaginary part
 // imaginary part should be negligible; change to one feature when that happens
 
@@ -177,6 +177,7 @@ int inverseCochlearLayer::allocateDataStructures(){
       }
        
        float dt = parent->getDeltaTime();
+       
       for(int k=0; k<numFrequencies; k++) {
          Mreal[j][k] = radianFreqs[k]*cochlearLayer->getDampingConstants()[k]*deltaFreqs[k]*sin(radianFreqs[k]*j*dt);
          Mimag[j][k] = radianFreqs[k]*cochlearLayer->getDampingConstants()[k]*deltaFreqs[k]*cos(radianFreqs[k]*j*dt);
@@ -240,7 +241,13 @@ int inverseCochlearLayer::updateState(double time, double dt){
        
        timehistory[ringBufferLevel] = time;
        for (int k=0; k<cochlearLayer->getLayerLoc()->nx; k++) {
-          xhistory[ringBufferLevel][k] = (inputLayer->getLayerData()[k]) / cochlearLayer->getCochlearScales()[k]; // divide  by linear scaling in cochlea (10,000,000) and numfreqs
+          xhistory[ringBufferLevel][k] = (inputLayer->getLayerData()[k]) / cochlearLayer->getCochlearScales()[k]; //
+           
+           //std::cout << "xvalues " << inputLayer->getLayerData()[k] << "\n" ;
+           //std::cout << " cochlearscales" << cochlearLayer->getCochlearScales()[k] << "\n" ;
+           //std::cout << "radianfreqs" << radianFreqs[k] << "\n" ;
+           
+           
        } // memcpy?
        
        double sumreal = 0.0;

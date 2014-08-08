@@ -1,14 +1,14 @@
 setenv("GNUTERM","X11");
 
 addpath("~/Desktop/newvision/trunk/mlab/util/");
-pvpfile = "/Users/JEC/Desktop/newvision/sandbox/soundAnalysis/output/a1_NewCochlear.pvp";
+pvpfile = "/Users/JEC/Desktop/newvision/sandbox/soundAnalysis/output/a5_inverseCochlear.pvp";
 
 sound = readpvpfile(pvpfile);
 
-output = zeros(101,1);
+output = zeros(1324,1);
 
-for(time = 4000:4100)
-    output(time - 3999) = sound {time}.values;
+for(time = 1:1324)
+    output(time) = sound {time}.values;
 end
 
 plot(output);
