@@ -1429,7 +1429,7 @@ int readWeights(PVPatch *** patches, pvwdata_t ** dataStart, int numArbors, int 
    if (nxp != wgtParams[INDEX_WGT_NXP] || nyp != wgtParams[INDEX_WGT_NYP] || nfp != wgtParams[INDEX_WGT_NFP]) {
       if (icRank==0) {
          fprintf(stderr, "readWeights error: file \"%s\" patch dimensions (nxp=%d, nyp=%d, nfp=%d) do not agree with expected values (%d,%d,%d).\n",
-               filename, nxp, nyp, nfp, wgtParams[INDEX_WGT_NXP], wgtParams[INDEX_WGT_NYP], wgtParams[INDEX_WGT_NFP]);
+               filename, wgtParams[INDEX_WGT_NXP], wgtParams[INDEX_WGT_NYP], wgtParams[INDEX_WGT_NFP], nxp, nyp, nfp);
       }
       MPI_Barrier(comm->communicator());
       exit(EXIT_FAILURE);
