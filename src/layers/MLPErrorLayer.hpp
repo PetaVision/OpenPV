@@ -48,6 +48,7 @@ private:
    float sigmoid_alpha;
    char * forwardLayername;
    char * lossFunction;
+   static char const * lossFunctionDefault() { return "squared"; }//This should be hidden, but for backwards compatibility, default is squared
    MLPForwardLayer* forwardLayer;
    float linAlpha;
    bool symSigmoid;

@@ -54,6 +54,8 @@ Image::~Image() {
          PV_fclose(fp_pos);
       }
    }
+
+   free(writeImagesExtension);
 }
 
 int Image::initialize_base() {

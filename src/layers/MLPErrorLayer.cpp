@@ -51,6 +51,7 @@ MLPErrorLayer::~MLPErrorLayer()
 {
    if(forwardLayername) free(forwardLayername);
    forwardLayer = NULL;
+   free(lossFunction);
    clayer->V = NULL;
 }
 
@@ -60,7 +61,7 @@ int MLPErrorLayer::initialize_base()
    forwardLayername = NULL;
    linAlpha = 0;
    symSigmoid = true;
-   lossFunction = (char *)"squared"; //This should be hidden, but for backwards compatibility, default is squared
+   lossFunction = NULL;
    lastError = false;
    return PV_SUCCESS;
 }
@@ -201,7 +202,7 @@ void MLPErrorLayer::ioParam_lastError(enum ParamsIOFlag ioFlag) {
 }
 
 void MLPErrorLayer::ioParam_LossFunction(enum ParamsIOFlag ioFlag) {
-   parent->ioParamString(ioFlag, name, "lossFunction", &lossFunction, lossFunction);
+   parent->ioParamString(ioFlag, name, "lossFunction", &lossFunction, lossFunctionDefault());
    if(strcmp(lossFunction, "squared") == 0){
    }
    else if(strcmp(lossFunction, "entropy") == 0){

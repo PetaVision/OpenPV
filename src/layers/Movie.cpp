@@ -313,7 +313,7 @@ Movie::~Movie()
    if (getParent()->icCommunicator()->commRank()==0 && timestampFile != NULL && timestampFile->isfile) {
        PV_fclose(timestampFile);
    }
-
+   free(movieOutputPath);
 }
 
 int Movie::allocateDataStructures() {
@@ -447,16 +447,12 @@ bool Movie::updateImage(double time, double dt)
    } else {
 
       if(!flipOnTimescaleError && (parent->getTimeScale() > 0 && parent->getTimeScale() < parent->getTimeScaleMin())){
-          
          if (parent->icCommunicator()->commRank()==0) {
             std::cout << "timeScale of " << parent->getTimeScale() << " is less than timeScaleMin of " << parent->getTimeScaleMin() << ", Movie is keeping the same frame\n";
          }
       }
       else{
-          
-          
          if(!readPvpFile){
-             
             //Only do this if it's not the first update timestep
             //The timestep number is (time - startTime)/(width of timestep), with allowance for roundoff.
             //But if we're using adaptive timesteps, the dt passed as a function argument is not the correct (width of timestep).  
@@ -467,9 +463,7 @@ bool Movie::updateImage(double time, double dt)
             }
             assert(filename != NULL);
          }
-          
          else{
-         
             updateFrameNum(skipFrameIndex);
          }
       }
