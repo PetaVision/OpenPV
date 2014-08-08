@@ -312,7 +312,7 @@ namespace PV {
                     
                     cochlearScale = cochlearScales[outNi];
                     
-                    //std::cout << ":: omegas " << omegas[outNi] << "\n";
+                    //std::cout << ":: radianfreqscochlea " << radianFreqs[outNi] << "\n";
                     
                     //float sound = sin (440 * time * 2 * PI);
                     
