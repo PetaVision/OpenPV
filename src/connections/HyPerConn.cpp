@@ -2542,7 +2542,7 @@ int HyPerConn::clear_dW() {
 
 int HyPerConn::update_dW(int arbor_ID) {
    // Typically override this method with a call to defaultUpdate_dW(arbor_ID)
-       int status = defaultUpdate_dW(arbor_ID);  // calculate new weights from changes
+   int status = defaultUpdate_dW(arbor_ID);  // calculate new weights from changes
    return status;
 }
 
@@ -2552,10 +2552,9 @@ int HyPerConn::defaultUpdate_dW(int arbor_ID) {
    // independent of the number of processors.
    int nExt = preSynapticLayer()->getNumExtended();
 
-   int numKernelIndices = getNumDataPatches();
-
    if (sharedWeights) {
       //Reset numKernelActivations
+      int numKernelIndices = getNumDataPatches();
       for(int ki = 0; ki < numKernelIndices; ki++){
          numKernelActivations[ki] = 0;
       }

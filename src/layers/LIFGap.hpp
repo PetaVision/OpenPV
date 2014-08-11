@@ -24,17 +24,21 @@ public:
    LIFGap(const char* name, HyPerCol * hc, PVLayerType type);
    virtual ~LIFGap();
 
-   void addGapStrength(float gap_strength){sumGap += gap_strength;}
    int virtual updateStateOpenCL(double time, double dt);
    int virtual updateState(double time, double dt);
+
+   int virtual checkpointWrite(const char * cpDir);
+   int virtual readStateFromCheckpoint(const char * cpDir, double * timeptr);
 
 protected:
 
    LIFGap();
    int initialize(const char * name, HyPerCol * hc, PVLayerType type, const char * kernel_name);
    virtual int allocateConductances(int num_channels);
+   virtual int setInitialValues();
+   virtual int readGapStrengthFromCheckpoint(const char * cpDir, double * timeptr);
 
-   pvdata_t sumGap;
+   const pvadata_t * getGapStrength() { return gapStrength; }
 
 #ifdef PV_USE_OPENCL
    virtual int initializeThreadBuffers(const char * kernelName);
@@ -58,6 +62,8 @@ protected:
 
 private:
    int initialize_base();
+   pvadata_t * gapStrength;
+   int calcGapStrength();
 
 };
 

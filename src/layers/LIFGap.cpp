@@ -43,7 +43,7 @@ void LIFGap_update_state_original(
     float * GSynHead,
     float * activity,
 
-    const float sum_gap
+    const float * gapStrength
 );
 
 void LIFGap_update_state_beginning(
@@ -67,7 +67,7 @@ void LIFGap_update_state_beginning(
     float * GSynHead,
     float * activity,
 
-    const float sum_gap
+    const float * gapStrength
 );
 
 void LIFGap_update_state_arma(
@@ -91,7 +91,7 @@ void LIFGap_update_state_arma(
     float * GSynHead,
     float * activity,
 
-    const float sum_gap
+    const float * gapStrength
 );
 
 
@@ -127,7 +127,7 @@ LIFGap::LIFGap(const char * name, HyPerCol * hc, PVLayerType type) {
 LIFGap::~LIFGap()
 {
 
-
+   // gapStrength points into conductances, already freed by LIF destructor
 #ifdef PV_USE_OPENCL
    if(gpuAccelerateFlag) {
       delete clG_Gap;
@@ -139,6 +139,7 @@ LIFGap::~LIFGap()
 
 int LIFGap::initialize_base() {
    numChannels = 4;
+   gapStrength = NULL;
 #ifdef PV_USE_OPENCL
    clG_Gap = NULL;
    clGSynGap = NULL;
@@ -204,8 +205,88 @@ int LIFGap::initializeThreadKernels(const char * kernel_name)
 #endif
 
 int LIFGap::allocateConductances(int num_channels) {
-   this->sumGap = 0.0f;
-   return LIF::allocateConductances(num_channels-1); // Don't need conductance for gap channel
+   // this->sumGap = 0.0f;
+   int status = LIF::allocateConductances(num_channels);
+   gapStrength = G_E+getNumNeurons()*CHANNEL_GAP;
+   return status;
+}
+
+int LIFGap::setInitialValues() {
+   int status = PV_SUCCESS;
+   for (int c=0; c<parent->numberOfConnections(); c++) {
+      HyPerConn * conn = parent->getConnection(c);
+      if (conn->postSynapticLayer() != this || conn->getChannel() != CHANNEL_GAP) { continue; }
+      if (!conn->getInitialValuesSetFlag()) {
+         if (parent->columnId()==0) {
+            const char * connectiontype = parent->parameters()->groupKeywordFromName(name);
+            printf("%s \"%s\" must wait until connection \"%s\" has finished its setInitialValues stage.\n", connectiontype, name, conn->getName());
+         }
+         return PV_POSTPONE;
+      }
+   }
+   if (status == PV_POSTPONE) { return status; }
+   status = LIF::setInitialValues();
+   if (status == PV_SUCCESS) { status = calcGapStrength(); }
+   return status;
+}
+
+int LIFGap::calcGapStrength() {
+   for (int c=0; c<parent->numberOfConnections(); c++) {
+      HyPerConn * conn = parent->getConnection(c);
+      if (conn->postSynapticLayer() != this || conn->getChannel() != CHANNEL_GAP) { continue; }
+      if (conn->getPlasticityFlag() && parent->columnId()==0) {
+         fprintf(stderr, "%s \"%s\" warning: connection \"%s\" on CHANNEL_GAP has plasticity flag set to true\n", parent->parameters()->groupKeywordFromName(getName()), getName(), conn->getName());
+      }
+      HyPerLayer * pre = conn->preSynapticLayer();
+      const int sy = conn->getPostNonextStrides()->sy;
+      const int syw = conn->yPatchStride();
+      for (int arbor=0; arbor<conn->numberOfAxonalArborLists(); arbor++) {
+         for (int k=0; k<pre->getNumExtended(); k++) {
+            // Duplicates code in HyPerLayer::recvSynapticInput, but with a=1.0f and gSynPatchHead=gapStrength.  Make an inline function? A HyPerConn method?
+            PVPatch * p = conn->getWeights(k, arbor);
+            size_t gapStrengthPatchStartIndex = conn->getGSynPatchStart(k, arbor);
+            pvwdata_t * data = conn->get_wData(arbor,k);
+            pvadata_t * gapStrengthPatchStart = gapStrength + gapStrengthPatchStartIndex;
+            for (int y=0; y<p->ny; y++) {
+               int nk = p->nx * conn->fPatchSize();
+               pvpatch_accumulate(nk, gapStrengthPatchStart + y*conn->getPostNonextStrides()->sy, 1.0f, data + y*syw, NULL);
+            }
+         }
+      }
+   }
+   return PV_SUCCESS;
+}
+
+int LIFGap::checkpointWrite(const char * cpDir) {
+   int status = LIF::checkpointWrite(cpDir);
+
+   // checkpoint gapStrength buffer
+   InterColComm * icComm = parent->icCommunicator();
+   double timed = (double) parent->simulationTime();
+   int filenamesize = strlen(cpDir)+(size_t) 1+strlen(name)+strlen("_gapStrength.pvp")+(size_t) 1;
+   // The +1's are for the slash between cpDir and name, and for the null terminator
+   char * filename = (char *) malloc( filenamesize*sizeof(char) );
+   assert(filename != NULL);
+   int chars_needed;
+
+   chars_needed = snprintf(filename, filenamesize, "%s/%s_gapStrength.pvp", cpDir, name);
+   assert(chars_needed < filenamesize);
+   writeBufferFile(filename, icComm, timed, &gapStrength, 1, /*extended*/false, getLayerLoc());
+   return status;
+}
+
+int LIFGap::readStateFromCheckpoint(const char * cpDir, double * timeptr) {
+   int status = LIF::readStateFromCheckpoint(cpDir, timeptr);
+   status = readGapStrengthFromCheckpoint(cpDir, timeptr);
+   return status;
+}
+
+int LIFGap::readGapStrengthFromCheckpoint(const char * cpDir, double * timeptr) {
+   char * filename = parent->pathInCheckpoint(cpDir, getName(), "_gapStrength.pvp");
+   int status = readBufferFile(filename, parent->icCommunicator(), timeptr, &gapStrength, 1, /*extended*/false, getLayerLoc());
+   assert(status==PV_SUCCESS);
+   free(filename);
+   return status;
 }
 
 int LIFGap::updateStateOpenCL(double time, double dt)
@@ -251,15 +332,15 @@ int LIFGap::updateState(double time, double dt)
    switch (method) {
    case 'a':
       LIFGap_update_state_arma(getNumNeurons(), time, dt, nx, ny, nf, nb, &lParams, randState->getRNG(0), clayer->V, Vth, G_E,
-            G_I, G_IB, GSynHead, activity, sumGap);
+            G_I, G_IB, GSynHead, activity, gapStrength);
    break;
    case 'b':
       LIFGap_update_state_beginning(getNumNeurons(), time, dt, nx, ny, nf, nb, &lParams, randState->getRNG(0), clayer->V, Vth, G_E,
-            G_I, G_IB, GSynHead, activity, sumGap);
+            G_I, G_IB, GSynHead, activity, gapStrength);
    break;
    case 'o':
       LIFGap_update_state_original(getNumNeurons(), time, dt, nx, ny, nf, nb, &lParams, randState->getRNG(0), clayer->V, Vth, G_E,
-            G_I, G_IB, GSynHead, activity, sumGap);
+            G_I, G_IB, GSynHead, activity, gapStrength);
       break;
    default:
       assert(0);

@@ -48,33 +48,37 @@ void GapConn::ioParam_channelCode(enum ParamsIOFlag ioFlag) {
    }
 }
 
-// TODO: make sure code works in non-shared weight case
 void GapConn::ioParam_sharedWeights(enum ParamsIOFlag ioFlag) {
-   sharedWeights = true;
-   if (ioFlag == PARAMS_IO_READ) {
-      fileType = PVP_KERNEL_FILE_TYPE;
-      parent->parameters()->handleUnnecessaryParameter(name, "sharedWeights", true/*correctValue*/);
+   // Default of true for sharedWeights for GapConns was deprecated Aug 11, 2014.
+   // This default was chosen for backwards compatibility because GapConn used to require sharedWeights be true.
+   // Now GapConn can be used with or without shared weights, so eventually the default will false as it is for other HyPerConns.
+   parent->ioParamValue(ioFlag, name, "sharedWeights", &sharedWeights, true/*default*/, true/*warn if absent*/);
+   if (ioFlag==PARAMS_IO_READ && !parent->parameters()->present(name, "sharedWeights")) {
+      sharedWeights = true;
+      if (parent->columnId()==0) {
+         fprintf(stderr, "%s \"%s\" warning: sharedWeights defaults to true for GapConns, but the default may be changed to false in a future release, to be consistent with other HyPerConns.\n", parent->parameters()->groupKeywordFromName(name), name);
+      }
+      return;
    }
+   HyPerConn::ioParam_sharedWeights(ioFlag);
 }
 
 void GapConn::ioParam_normalizeMethod(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
-      parent->parameters()->handleUnnecessaryStringParameter(name, "normalizeMethod", "normalizeSum", false);
+   // Default of normalizeSum for normalizeMethod for GapConns was deprecated Aug 11, 2014.
+   // This default was chosen for backwards compatibility because GapConn used to require normalizeMethod be normalizeSum.
+   // Now GapConn can be normalized using any method, so eventually the default will be removed and the parameter required as is for other HyPerConns.
+   if (ioFlag==PARAMS_IO_READ && !parent->parameters()->present(name, "normalizeMethod")) {
+      normalizeMethod = strdup("normalizeSum");
       normalizer = new NormalizeGap(this);
+      if (parent->columnId()==0) {
+         fprintf(stderr, "%s \"%s\" warning: normalizeMethod defaults to normalizeSum for GapConns, but this parameter may be required in a future release, to be consistent with other HyPerConns.\n", parent->parameters()->groupKeywordFromName(name), name);
+      }
+      return;
    }
+   HyPerConn::ioParam_normalizeMethod(ioFlag);
 }
 
 int GapConn::allocateDataStructures() {
-   // We have to wait until postsynaptic LIFGap has called its allocateDataStructures before we call its addGapStrength method,
-   // because LIFGap sets sumGap to zero in allocateDataStructures.  It may be possible to have LIFGap set sumGap to zero in
-   // initialize_base, and move this code to GapConn::communicateInitInfo where it really belongs.
-   if (!post->getDataStructuresAllocatedFlag()) {
-      if (parent->columnId()==0) {
-         const char * connectiontype = parent->parameters()->groupKeywordFromName(name);
-         printf("%s \"%s\" must wait until post-synaptic layer \"%s\" has finished its allocateDataStructures stage.\n", connectiontype, name, post->getName());
-      }
-      return PV_POSTPONE;
-   }
    HyPerLayer * postHyPerLayer = this->postSynapticLayer();
    LIFGap * postLIFGap = dynamic_cast <LIFGap*> (postHyPerLayer);
    if (postLIFGap == NULL) {
@@ -88,11 +92,11 @@ int GapConn::allocateDataStructures() {
       exit(EXIT_FAILURE);
    }
    int status = HyPerConn::allocateDataStructures();
-   //TODO!!! terrible hack here: should compute sum of gap junctions connection strengths into each post synaptic cell
-   // instead, we check that normalize is true as a stop gap
-   assert(this->normalizer->getNormalizeFromPostPerspectiveFlag());
-   float gap_strength = normalizer->getStrength(); // normalizer->getStrength() / this->postSynapticLayer()->getNumNeurons() * this->preSynapticLayer()->getNumNeurons();
-   postLIFGap->addGapStrength(gap_strength);
+
+   // LIFGap now has a gapStrength member variable and calls calcGapStrength during setInitialValues stage
+   // assert(this->normalizer->getNormalizeFromPostPerspectiveFlag());
+   // float gap_strength = normalizer->getStrength(); // normalizer->getStrength() / this->postSynapticLayer()->getNumNeurons() * this->preSynapticLayer()->getNumNeurons();
+   // postLIFGap->addGapStrength(gap_strength);
 
    return status;
 }
