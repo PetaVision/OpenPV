@@ -1198,7 +1198,7 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
    else {
       layerInitializationStage = &HyPerCol::layerSetInitialValues;
       connInitializationStage = &HyPerCol::connSetInitialValues;
-      doInitializationStage(layerInitializationStage, connInitializationStage, "allocateDataStructures");
+      doInitializationStage(layerInitializationStage, connInitializationStage, "setInitialValues");
    }
    free(layerStatus); layerStatus = NULL;
    free(connectionStatus); connectionStatus = NULL;
