@@ -37,9 +37,6 @@ public:
    int publish(HyPerLayer * pub, int neighbors[], int numNeighbors,
                int borders[], int numBorders, PVLayerCube * data, int delay=0);
    int subscribe(HyPerConn * conn);
-#ifdef OBSOLETE // Marked obsolete July 25, 2013.  recvSynapticInput is now called by recvAllSynapticInput, called by HyPerCol, so deliver andtriggerReceive aren't needed.
-   int deliver(HyPerCol * hc, int numNeighbors, int numBorders);
-#endif // OBSOLETE
    int exchangeBorders(int neighbors[], int numNeighbors, const PVLayerLoc * loc, int delay=0);
    int wait();
 
@@ -81,9 +78,6 @@ public:
    int clearPublishers();
    int publish(HyPerLayer * pub, PVLayerCube * cube);
    int subscribe(HyPerConn * conn);
-#ifdef OBSOLETE // Marked obsolete July 25, 2013.  recvSynapticInput is now called by recvAllSynapticInput, called by HyPerCol, so deliver andtriggerReceive aren't needed.
-   int deliver(HyPerCol * hc, int pubId);
-#endif // OBSOLETE
    int exchangeBorders(int pubId, const PVLayerLoc * loc, int delay=0);
    int wait(int pubId);
 

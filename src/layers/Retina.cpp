@@ -117,19 +117,6 @@ int Retina::initialize(const char * name, HyPerCol * hc, PVLayerType type) {
 
    setRetinaParams(parent->parameters());
 
-#ifdef OBSOLETE // Marked obsolete July 19, 2013.  This appears to be a remnant from before retina and image were separate objects
-   PVLayer * l = clayer;
-
-   // the size of the Retina may have changed due to size of image
-   //
-   const int nx = l->loc.nx;
-   const int ny = l->loc.ny;
-   const int nf = l->loc.nf;
-   const int nb = l->loc.nb;
-   l->numNeurons  = nx * ny * nf;
-   l->numExtended = (nx + 2*nb) * (ny + 2*nb) * nf;
-#endif // OBSOLETE
-
 #ifdef PV_USE_OPENCL
    numEvents=NUM_RETINA_EVENTS;
 //this code was moved to Hyperlayer:initializeGPU():
@@ -548,26 +535,6 @@ int Retina::updateStateOpenCL(double time, double dt)
 
    return status;
 }
-
-#ifdef OBSOLETE // Marked obsolete July 25, 2013.  recvSynapticInput is now called by recvAllSynapticInput, called by HyPerCol, so deliver andtriggerReceive aren't needed.
-int Retina::triggerReceive(InterColComm* comm)
-{
-   int status = HyPerLayer::triggerReceive(comm);
-
-
-   // copy data to device
-   //
-#ifdef PV_USE_OPENCL
-#if PV_CL_COPY_BUFFERS
-   status |= clPhiE->copyToDevice(&evList[EV_R_PHI_E]);
-   status |= clPhiI->copyToDevice(&evList[EV_R_PHI_I]);
-   numWait += 2;
-#endif
-#endif
-
-   return status;
-}
-#endif // OBSOLETE
 
 int Retina::waitOnPublish(InterColComm* comm)
 {

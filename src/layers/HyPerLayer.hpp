@@ -161,6 +161,10 @@ protected:
    virtual void ioParam_writeSparseActivity(enum ParamsIOFlag ioFlag);
    virtual void ioParam_writeSparseValues(enum ParamsIOFlag ioFlag);
 
+   virtual int recvSynapticInput(HyPerConn * conn, const PVLayerCube * cube, int arborID);
+   virtual int recvSynapticInputFromPost(HyPerConn * conn, const PVLayerCube * activity, int arborID);
+   inline void recvOnePreNeuronActivity(HyPerConn * conn, int patchIndex, int arbor, pvadata_t a, pvadata_t * postBufferStart, void * auxPtr);
+
    int freeClayer();
 
 #ifdef PV_USE_OPENCL
@@ -219,8 +223,7 @@ public:
    virtual bool inWindowRes(int windowId, int neuronIdxRes) {return true;}; 
    //Returns number of windows, with a default of 1 window for the entire layer
    virtual int getNumWindows(){return 1;}
-   virtual int recvSynapticInput(HyPerConn * conn, const PVLayerCube * cube, int arborID);
-   virtual int recvSynapticInputFromPost(HyPerConn * conn, const PVLayerCube * activity, int arborID);
+
    //An updateState wrapper that determines if updateState needs to be called
    virtual int updateStateWrapper (double time, double dt);
    virtual int updateState (double time, double dt);
@@ -246,12 +249,6 @@ public:
    virtual int publish(InterColComm * comm, double time);
    virtual int resetGSynBuffers(double timef, double dt);
    // ************************************************************************************//
-
-#ifdef OBSOLETE // Marked obsolete July 25, 2013.  recvSynapticInput is now called by recvAllSynapticInput, called by HyPerCol, so deliver andtriggerReceive aren't needed.
-   // public method for invoking synaptic communication network, cause all layers to send to all targets
-   virtual int triggerReceive(InterColComm * comm);
-#endif // OBSOLETE
-
 
    // mpi public wait method to ensure all targets have received synaptic input before proceeding to next time step
    virtual int waitOnPublish(InterColComm * comm);

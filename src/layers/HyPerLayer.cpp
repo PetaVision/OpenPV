@@ -1844,16 +1844,6 @@ int HyPerLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activity
       // Activity < 0 is used by generative models --pete
       if (a == 0.0f) continue;
 
-      PVPatch * weights = conn->getWeights(kPre, arborID);
-
-      // WARNING - assumes weight and GSyn patches from task same size
-      //         - assumes patch stride sf is 1
-
-      int nk  = conn->fPatchSize() * weights->nx;
-      int ny  = weights->ny;
-      int sy  = conn->getPostNonextStrides()->sy;       // stride in layer
-      int syw = conn->yPatchStride();                   // stride in patch
-
       //If we're using thread_gSyn, set this here
       pvdata_t * gSynPatchHead;
 #ifdef PV_USE_OPENMP_THREADS
@@ -1867,24 +1857,7 @@ int HyPerLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activity
 #else
       gSynPatchHead = this->getChannel(conn->getChannel());
 #endif
-      size_t gSynPatchStartIndex = conn->getGSynPatchStart(kPre, arborID);
-      pvdata_t * gSynPatchStart = gSynPatchHead + gSynPatchStartIndex;
-      // GTK: gSynPatchStart redefined as offset from start of gSyn buffer
-      pvwdata_t * data = conn->get_wData(arborID,kPre);
-      uint4 * rngPtr = conn->getRandState(kPre);
-
-      for (int y = 0; y < ny; y++) {
-
-         //if(strcmp(name, "C1") == 0){
-         //   for(int k = 0; k < nk; k++){
-         //      if(gSynPatchStart + y * sy + k == mem_check){
-         //         std::cout << conn->preSynapticLayer()->getName()<< " Pre neuron  margin: " << conn->preSynapticLayer()->getLayerLoc()->nb << " kPreExt: " << kPre << " a: " << a << "\n";
-         //      }
-         //   }
-         //}
-
-         (conn->accumulateFunctionPointer)(nk, gSynPatchStart + y*sy, a, data + y*syw, rngPtr);
-      }
+      recvOnePreNeuronActivity(conn, kPre, arborID, a, gSynPatchHead, conn->getRandState(kPre));
    }
 #ifdef PV_USE_OPENMP_THREADS
    //Accumulate back into gSyn
@@ -1905,24 +1878,19 @@ int HyPerLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activity
    return PV_SUCCESS;
 }
 
-#ifdef OBSOLETE // Marked obsolete July 25, 2013.  recvSynapticInput is now called by recvAllSynapticInput, called by HyPerCol, so deliver and triggerReceive aren't needed.
-int HyPerLayer::triggerReceive(InterColComm* comm)
-{
-   // deliver calls recvSynapticInput for all connections for which this layer is presynaptic (i.e. all connections made by this layer)
-   //
-   int status = comm->deliver(parent, getLayerId());
-   //#ifdef PV_USE_OPENCL
-   //   if((gpuAccelerateFlag)&&(copyToDevice)) {
-   //      status |= getChannelCLBuffer()->copyToDevice(&evList[getEVGSyn()]);
-   ////      status |= getChannelCLBuffer()->copyToDevice(&evList[getEVGSynE()]);
-   ////      status |= getChannelCLBuffer()->copyToDevice(&evList[getEVGSynI()]);
-   //      //numWait += 2;
-   //      numWait ++;
-   //   }
-   //#endif
-   return status;
+void HyPerLayer::recvOnePreNeuronActivity(HyPerConn * conn, int patchIndex, int arbor, pvadata_t a, pvadata_t * postBufferStart, void * auxPtr) {
+   PVPatch * weights = conn->getWeights(patchIndex, arbor);
+   const int nk = weights->nx * conn->fPatchSize();
+   const int ny = weights->ny;
+   const int sy  = conn->getPostNonextStrides()->sy;       // stride in layer
+   const int syw = conn->yPatchStride();                   // stride in patch
+   pvwdata_t * weightDataStart = conn->get_wData(arbor,patchIndex); // make this a pvwdata_t const *?
+   pvadata_t * postPatchStart = postBufferStart + conn->getGSynPatchStart(patchIndex, arbor);
+
+   for (int y = 0; y < ny; y++) {
+      (conn->accumulateFunctionPointer)(nk, postPatchStart + y*sy, a, weightDataStart + y*syw, auxPtr);
+   }
 }
-#endif // OBSOLETE
 
 int HyPerLayer::publish(InterColComm* comm, double time)
 {

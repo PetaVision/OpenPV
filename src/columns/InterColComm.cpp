@@ -110,19 +110,6 @@ int InterColComm::wait(int pubId)
    return publishers[pubId]->wait();
 }
 
-#ifdef OBSOLETE // Marked obsolete July 25, 2013.  recvSynapticInput is now called by recvAllSynapticInput, called by HyPerCol, so deliver andtriggerReceive aren't needed.
-/**
- * deliver all outstanding published messages
- */
-int InterColComm::deliver(HyPerCol* hc, int pubId)
-{
-#ifdef DEBUG_OUTPUT
-   printf("[%d]: InterColComm::deliver: pubId=%d\n", commRank(), pubId);  fflush(stdout);
-#endif // DEBUG_OUTPUT
-   return publishers[pubId]->deliver(hc, numNeighbors, numBorders);
-}
-#endif // OBSOLETE
-
 #ifdef PV_USE_OPENCL
 Publisher::Publisher(int pubId, HyPerCol * hc, int numItems, PVLayerLoc loc, int numLevels, bool copydstoreflag)
 #else
@@ -254,52 +241,6 @@ int Publisher::wait()
 
    return 0;
 }
-
-#ifdef OBSOLETE // Marked obsolete July 25, 2013.  recvSynapticInput is now called by recvAllSynapticInput, called by HyPerCol, so deliver andtriggerReceive aren't needed.
-/**
- * deliver published messages
- */
-int Publisher::deliver(HyPerCol* hc, int numNeighbors, int numBorders)
-{
-   //
-   // Waiting for data to arrive has been separated from delivery.
-   // This method now assumes that wait has already been called
-   // and that the data have all arrived from remote neighbors.
-   //
-#ifdef PV_USE_OPENCL
-   // TODO - send border data to device
-#endif // PV_USE_OPENCL
-
-   for (int ic = 0; ic < numSubscribers; ic++) {
-      HyPerConn* conn = connection[ic];
-//      int delay = conn->getDelay(0);
-//      if (delay > 0) {
-//         cube.data = recvBuffer(LOCAL, delay);
-//      }
-//      else {
-//         cube.data = recvBuffer(LOCAL);
-//      }
-#ifdef DEBUG_OUTPUT
-      printf("[%d]: Publisher::deliver: buf=%p\n", comm->commRank(), cube.data);
-      fflush(stdout);
-#endif // DEBUG_OUTPUT
-//I'm moving this to below.  Now that layers will decide based on a Params
-//flag whether that layer is GPU accelerated, the layers will tell
-//connections whether to use GPU acceleration and the connections
-//will then decide how to handle deliver
-//#ifdef PV_USE_OPENCL
-//      conn->deliverOpenCL(this);
-//#else
-//      conn->deliver(this, &cube, LOCAL);
-//#endif // PV_USE_OPENCL
-
-      conn->deliver(this, &cube, LOCAL);
-
-   }
-
-   return 0;
-}
-#endif // OBSOLETE
 
 int Publisher::readData(int delay) {
    if (delay > 0) {

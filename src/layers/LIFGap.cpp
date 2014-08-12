@@ -242,15 +242,7 @@ int LIFGap::calcGapStrength() {
       const int syw = conn->yPatchStride();
       for (int arbor=0; arbor<conn->numberOfAxonalArborLists(); arbor++) {
          for (int k=0; k<pre->getNumExtended(); k++) {
-            // Duplicates code in HyPerLayer::recvSynapticInput, but with a=1.0f and gSynPatchHead=gapStrength.  Make an inline function? A HyPerConn method?
-            PVPatch * p = conn->getWeights(k, arbor);
-            size_t gapStrengthPatchStartIndex = conn->getGSynPatchStart(k, arbor);
-            pvwdata_t * data = conn->get_wData(arbor,k);
-            pvadata_t * gapStrengthPatchStart = gapStrength + gapStrengthPatchStartIndex;
-            for (int y=0; y<p->ny; y++) {
-               int nk = p->nx * conn->fPatchSize();
-               pvpatch_accumulate(nk, gapStrengthPatchStart + y*conn->getPostNonextStrides()->sy, 1.0f, data + y*syw, NULL);
-            }
+            recvOnePreNeuronActivity(conn, k, arbor, (pvadata_t) 1.0, gapStrength, NULL);
          }
       }
    }
