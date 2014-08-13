@@ -267,7 +267,7 @@ int inverseCochlearLayer::updateState(double time, double dt){
        pvdata_t * outV = getV();
     
     
-       outV[0] = sumimag;
+       outV[0] = sumimag / 10;
     
        //outV[1] = sumreal;
 

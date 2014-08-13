@@ -1,7 +1,7 @@
 setenv("GNUTERM","X11");
 
 addpath("~/Desktop/newvision/trunk/mlab/util/");
-pvpfile = "/Users/JEC/Desktop/newvision/sandbox/soundAnalysis/output/a5_inverseCochlear.pvp";
+pvpfile = "/Users/JEC/Desktop/newvision/sandbox/soundAnalysis/output/a10_inverseCochlear.pvp";
 
 sound = readpvpfile(pvpfile);
 
