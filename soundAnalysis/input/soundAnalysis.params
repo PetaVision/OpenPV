@@ -76,11 +76,11 @@ NewCochlearLayer "NewCochlear" = {
 
     freqMin = 440;
     freqMax = 20000;
+    equalTemperedFlag = true;
 
     dampingRatio = .5;
 
     sampleRate = 44100;
-    cochlearScale = 10000000; // should be 10,000,000
 
     //displayPeriod = .000022675737; //downsample here
     

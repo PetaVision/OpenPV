@@ -254,12 +254,12 @@ int inverseCochlearLayer::updateState(double time, double dt){
        double sumimag = 0.0;
        for (int j=0; j<bufferLength; j++) {
           for (int k=0; k<numFrequencies; k++) {
-             sumreal += Mreal[j][k]*xhistory[ringBuffer(j)][k];
+             //sumreal += Mreal[j][k]*xhistory[ringBuffer(j)][k];
              sumimag += Mimag[j][k]*xhistory[ringBuffer(j)][k];
           }
        }
     
-      sumreal /= (2*PI);
+      //sumreal /= (2*PI);
       sumimag /= (2*PI);
        
        //Reset pointer of gSynHead to point to the excitatory channel
