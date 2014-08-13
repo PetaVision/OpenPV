@@ -403,10 +403,10 @@ int TransposeConn::transposeNonsharedWeights(int arborId) {
             int idxExt = kIndex(x,y,0,preLocOrig->nx+2*preLocOrig->nb,preLocOrig->ny+2*preLocOrig->nb,preLocOrig->nf);
             int xGlobalExt = x+preLocOrig->kx0;
             int xGlobalRes = xGlobalExt-preLocOrig->nb;
-            assert(xGlobalRes>=preLocOrig->kx0-preLocOrig->nb && xGlobalRes<preLocOrig->kx0+preLocOrig->nx+preLocOrig->nb);
+            assert(xGlobalRes>=preLocOrig->kx0 && xGlobalRes<preLocOrig->kx0+preLocOrig->nx);
             int yGlobalExt = y+preLocOrig->ky0;
             int yGlobalRes = yGlobalExt-preLocOrig->nb;
-            assert(yGlobalRes>=preLocOrig->ky0-preLocOrig->nb && yGlobalRes<preLocOrig->ky0+preLocOrig->ny+preLocOrig->nb);
+            assert(yGlobalRes>=preLocOrig->ky0 && yGlobalRes<preLocOrig->ky0+preLocOrig->ny);
             int idxGlobalRes = kIndex(xGlobalRes, yGlobalRes, 0, preLocOrig->nxGlobal, preLocOrig->nyGlobal, preLocOrig->nf);
             memcpy(b, &idxGlobalRes, sizeof(idxGlobalRes));
             b += sizeof(idxGlobalRes);
@@ -559,42 +559,34 @@ int TransposeConn::mpiexchangesize(int neighbor, int * size, int * startx, int *
       assert(0);
       break;
    case NORTHWEST:
-      *size = nb * nb;
       *startx = 0; *stopx = nb;
       *starty = 0; *stopy = nb;
       break;
    case NORTH:
-      *size = nx * nb;
       *startx = nb; *stopx = nb + nx;
       *starty = 0; *stopy = nb;
       break;
    case NORTHEAST:
-      *size = nb * nb;
       *startx = nx + nb; *stopx = nx + 2*nb;
       *starty = 0; *stopy = nb;
       break;
    case WEST:
-      *size = nb * ny;
       *startx = 0; *stopx = nb;
       *starty = nb; *stopy = nb + ny;
       break;
    case EAST:
-      *size = nb * ny;
       *startx = nx + nb; *stopx = nx + 2*nb;
       *starty = nb; *stopy = nb + ny;
       break;
    case SOUTHWEST:
-      *size = nb * nb;
       *startx = 0; *stopx = nb;
       *starty = ny + nb; *stopy = ny + 2*nb;
       break;
    case SOUTH:
-      *size = nx * nb;
       *startx = nb; *stopx = nb + nx;
       *starty = ny + nb; *stopy = ny + 2*nb;
       break;
    case SOUTHEAST:
-      *size = nb * nb;
       *startx = nx + nb; *stopx = nx + 2*nb;
       *starty = ny + nb; *stopy = ny + 2*nb;
       break;
@@ -602,6 +594,7 @@ int TransposeConn::mpiexchangesize(int neighbor, int * size, int * startx, int *
       assert(0);
       break;
    }
+   *size = (*stopx-*startx)*(*stopy-*starty);
    *blocksize = preLocOrig->nf * originalConn->xPatchSize() * originalConn->yPatchSize() * originalConn->fPatchSize();
    // Each block is a contiguous set of preLocOrig->nf weight patches.  We also need to send the presynaptic index, the PVPatch geometry and the aPostOffset.
    // for each block.  This assumes that each of the preLocOrig->nf patches for a given (x,y) site has the same aPostOffset and PVPatch values.
