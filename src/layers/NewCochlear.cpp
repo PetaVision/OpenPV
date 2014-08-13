@@ -34,6 +34,7 @@ namespace PV {
         free(vVal);
         free(xVal);
         
+        
         filename = NULL;
         delete fileHeader;
         if(soundBuf){
@@ -55,6 +56,7 @@ namespace PV {
         vVal = NULL;
         xVal = NULL;
         omega = 0;
+        equalTemperedFlag = true;
         
         frameStart= 0;
         filename = NULL;
@@ -94,14 +96,30 @@ namespace PV {
         float newFreq = 0;
         float newradFreq = 0;
         
-        for(int i = 1; i < nxScale; i++){
-            float prevFreq = targetFreqs.back();
-            //newFreq = 7e-10*powf(prevFreq,3) - 3e-6*powf(prevFreq,2) + 1.0041 * prevFreq + .6935;
-            newFreq = prevFreq * powf(2,1/12.0); //for equal temperament
-            newradFreq = newFreq * 2 * PI;
-            targetFreqs.push_back(newFreq);
-            radianFreqs.push_back(newradFreq);
-            std::cout << ":: Frequency " << newFreq << "\n";
+        if (!equalTemperedFlag) {
+            
+            for(int i = 1; i < nxScale; i++){
+                float prevFreq = targetFreqs.back();
+                newFreq = 7e-10*powf(prevFreq,3) - 3e-6*powf(prevFreq,2) + 1.0041 * prevFreq + .6935;
+                //newFreq = prevFreq * powf(2,1/12.0); //for equal temperament
+                newradFreq = newFreq * 2 * PI;
+                targetFreqs.push_back(newFreq);
+                radianFreqs.push_back(newradFreq);
+                std::cout << ":: Frequency " << newFreq << "\n";
+            }
+        }
+        
+        else {
+            for(int i = 1; i < nxScale; i++){
+                float prevFreq = targetFreqs.back();
+                //newFreq = 7e-10*powf(prevFreq,3) - 3e-6*powf(prevFreq,2) + 1.0041 * prevFreq + .6935;
+                newFreq = prevFreq * powf(2,1/12.0); //for equal temperament
+                newradFreq = newFreq * 2 * PI;
+                targetFreqs.push_back(newFreq);
+                radianFreqs.push_back(newradFreq);
+                std::cout << ":: Frequency " << newFreq << "\n";
+            }
+
         }
         
         
@@ -187,7 +205,7 @@ namespace PV {
         ioParam_targetChannel(ioFlag);
         //ioParam_inputLayername(ioFlag);
         ioParam_sampleRate(ioFlag);
-        ioParam_cochlearScale(ioFlag);
+        ioParam_equalTemperedFlag(ioFlag);
         
         
         ioParam_soundInputPath(ioFlag);
@@ -226,14 +244,10 @@ namespace PV {
         parent->ioParamValueRequired(ioFlag, name, "sampleRate", &sampleRate);
     }
     
-    void NewCochlearLayer::ioParam_cochlearScale(enum ParamsIOFlag ioFlag) {
-        parent->ioParamValueRequired(ioFlag, name, "cochlearScale", &cochlearScale);
+
+    void NewCochlearLayer::ioParam_equalTemperedFlag(enum ParamsIOFlag ioFlag) {
+        parent->ioParamValueRequired(ioFlag, name, "equalTemperedFlag", &equalTemperedFlag);
     }
-    
-   // void NewCochlearLayer::ioParam_inputLayername(enum ParamsIOFlag ioFlag) {
-   //     parent->ioParamStringRequired(ioFlag, name, "inputLayername", &inputLayername);
-   // }
-    
 
     
     void NewCochlearLayer::ioParam_soundInputPath(enum ParamsIOFlag ioFlag) {

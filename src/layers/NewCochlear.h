@@ -51,9 +51,10 @@ namespace PV {
         virtual void ioParam_nf(enum ParamsIOFlag ioFlag);
         virtual void ioParam_targetChannel(enum ParamsIOFlag ioFlag);
         //virtual void ioParam_inputLayername(enum ParamsIOFlag ioFlag);
-        virtual void ioParam_dampingConstant(enum ParamsIOFlag ioFlag);
+
         virtual void ioParam_sampleRate(enum ParamsIOFlag ioFlag);
-        virtual void ioParam_cochlearScale(enum ParamsIOFlag ioFlag);
+        virtual void ioParam_dampingConstant(enum ParamsIOFlag ioFlag);
+        virtual void ioParam_equalTemperedFlag(enum ParamsIOFlag ioFlag);
   
         
         virtual void ioParam_soundInputPath(enum ParamsIOFlag ioFlag);
@@ -85,13 +86,13 @@ namespace PV {
         HyPerLayer* inputLayer;
         char* inputLayername;
         int targetChannel;
+        int equalTemperedFlag;
         float dampingConstant;
         float omega;
         //float sampleRate;
         float* vVal; //velocity value
         float* xVal; //x value
         float samplePeriod;
-        
         float cochlearScale;
         std::vector <float> cochlearScales;
         
