@@ -85,6 +85,7 @@ int inverseCochlearLayer::initialize(const char * name, HyPerCol * hc) {
 }
 
 int inverseCochlearLayer::communicateInitInfo(){
+    
    ANNLayer::communicateInitInfo();
 
    //Grab input layer stuff
@@ -96,14 +97,10 @@ int inverseCochlearLayer::communicateInitInfo(){
       }
       exit(EXIT_FAILURE);
    }
-   //Make sure the size is correct for the input layer
-   //if(inputLayer->getLayerLoc()->nx != 1 || inputLayer->getLayerLoc()->ny != 1){
-     // fprintf(stderr, "%s \"%s\" error: InputLayer \"%s\" must have a nx and ny size of 1.\n",
-      //        parent->parameters()->groupKeywordFromName(name), name, inputLayername);
-     // exit(EXIT_FAILURE);
-   //}
+
 
    //Grab the cochlear layer
+    
    HyPerLayer* tempLayer = parent->getLayerFromName(cochlearLayername);
    if (tempLayer == NULL) {
       if (parent->columnId()==0) {

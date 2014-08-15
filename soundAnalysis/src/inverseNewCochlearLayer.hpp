@@ -9,7 +9,7 @@
 #define INVERSENEWCOCHLEARLAYER_HPP_
 
 #include <layers/ANNLayer.hpp>
-#include "/Users/JEC/Desktop/newvision/trunk/src/layers/NewCochlear.h"
+#include <layers/NewCochlear.h>
 
 namespace PV {
     
