@@ -1,5 +1,5 @@
-addpath("~/Desktop/newvision/trunk/mlab/util/");
-pvpfile = "/Users/JEC/Desktop/newvision/sandbox/soundAnalysis/output/a9_FullRecon.pvp";
+addpath("~/newvision/trunk/mlab/util/");
+pvpfile = "/Users/MLD/newvision/sandbox/soundAnalysis/output/a9_FullRecon.pvp";
 outfilename = "recongraph.png";
 
 [data, hdr] = readpvpfile(pvpfile);
