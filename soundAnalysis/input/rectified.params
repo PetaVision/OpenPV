@@ -15,7 +15,7 @@ HyPerCol "column" = {
    ny                              = 1;
    dt                              = .00022675737; // downsampling = dt * sampleRate
    randomSeed                      = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
-   stopTime                        = .1;
+   stopTime                        = 100;
    progressInterval                = .00022675737; // dt
    outputPath                      = "output";
    filenamesContainLayerNames      = true;
@@ -221,7 +221,7 @@ HyPerLCALayer "A1" = {
     timeConstantTauMinimum = 0;
     //slopeErrorStd = 0.01;
 
-    VThresh = 0.15;
+    VThresh = .15;
     VWidth = 0;
     AMax = infinity;
     AMin = 0;
@@ -647,6 +647,8 @@ SoundProbe "inverseCochlearProbe" = {
 
 
 
+
+disable = true;
 
 
 ///parameter sweep ////////
