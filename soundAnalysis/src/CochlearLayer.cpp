@@ -231,6 +231,7 @@ int CochlearLayer::updateState(double time, double dt){
       int fi = featureIndex(inNi, nx, ny, nf);
       if(fi == targetChannel){
          float inVal = inA[inNi];
+          
          //Loop through current layer's neurons
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for

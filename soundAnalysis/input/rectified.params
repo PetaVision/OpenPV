@@ -20,15 +20,17 @@ HyPerCol "column" = {
    outputPath                      = "output";
    filenamesContainLayerNames      = true;
    filenamesContainConnectionNames = true;
-   checkpointRead                  = false;
+   checkpointRead                  = false; // deprecated
    checkpointWrite                 = true;
    checkpointWriteDir              = "output/checkpoints";
-   checkpointWriteStepInterval     = 221; //numdelays
+   checkpointWriteStepInterval     = 4410; // 221; //numdelays
    deleteOlderCheckpoints          = false;
    writeProgressToErr              = true;
    outputNamesOfLayersAndConns     = "LayerAndConnNames.txt";
    printTimescales                 = false;
    dtAdaptFlag = false; // set to determine expected errors
+   initializeFromCheckpointDir     = "/Users/MLD/newvision/sandbox/soundAnalysis/output/checkpoints/Checkpoint0";
+
 };
 
 
@@ -210,7 +212,8 @@ HyPerLCALayer "A1" = {
     mirrorBCflag = 0;
     writeSparseActivity = true;
     writeSparseValues = true;
-
+    
+    initializeFromCheckpointFlag = true;
     InitVType = "UniformRandomV";
 
     minV = 0.0;
@@ -454,12 +457,12 @@ KernelConn "A1ToPositiveError" = {
     preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
     keepKernelsSynchronized = true; 
     combine_dW_with_W_flag = false; 
-    writeStep = -.00022675737;
+    writeStep = 1.0; // -.00022675737;
     writeCompressedWeights = false;
     writeCompressedCheckpoints = false;
     plasticityFlag = true;
-    weightUpdatePeriod = .00022675737; //200.0;
-    initialWeightUpdateTime = 0; //199.0;
+    weightUpdatePeriod = .00022675737;
+    initialWeightUpdateTime = 0;
     initialWriteTime = 0.0;
 
     dWMax = 0.05; //5.0;
@@ -498,7 +501,7 @@ KernelConn "A1ToNegativeError" = {
     preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
     keepKernelsSynchronized = true; 
     combine_dW_with_W_flag = false; 
-    writeStep = -.00022675737;
+    writeStep = 1.0; // -.00022675737;
     writeCompressedWeights = false;
     writeCompressedCheckpoints = false;
     plasticityFlag = true;
@@ -554,7 +557,7 @@ CloneKernelConn "A1ToStreamPositive" = {
     postLayerName = "StreamPositive";
     channelCode = 0;
     initialWriteTime = 0.0;
-    writeStep = -.00023;
+    writeStep = 1.0;
     originalConnName = "A1ToPositiveError";
     selfFlag = false;
     pvpatchAccumulateType = "convolve";
@@ -570,7 +573,7 @@ CloneKernelConn "A1ToStreamNegative" = {
     postLayerName = "StreamNegative";
     channelCode = 0;
     initialWriteTime = 0.0;
-    writeStep = -.00023;
+    writeStep = 1.0;
     originalConnName = "A1ToNegativeError";
     selfFlag = false;
     pvpatchAccumulateType = "convolve";
