@@ -29,7 +29,9 @@ HyPerCol "column" = {
    outputNamesOfLayersAndConns     = "LayerAndConnNames.txt";
    printTimescales                 = false;
    dtAdaptFlag = false; // set to determine expected errors
-   initializeFromCheckpointDir     = "/Users/MLD/newvision/sandbox/soundAnalysis/output/checkpoints/Checkpoint0";
+   
+   
+   //initializeFromCheckpointDir     = "/Users/MLD/newvision/sandbox/soundAnalysis/output/checkpoints/Checkpoint0";
 
 };
 
@@ -213,7 +215,7 @@ HyPerLCALayer "A1" = {
     writeSparseActivity = true;
     writeSparseValues = true;
     
-    initializeFromCheckpointFlag = true;
+    //initializeFromCheckpointFlag = true;
     InitVType = "UniformRandomV";
 
     minV = 0.0;
