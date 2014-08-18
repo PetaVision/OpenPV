@@ -20,8 +20,8 @@ int BinningTestLayer::updateState(double timef, double dt){
    //Grab the activity layer of current layer
    const pvdata_t * A = getActivity();
    //We only care about restricted space
-   for(int iY = nb; iY < ny - nb; iY++){
-      for(int iX = nb; iX < nx - nb; iX++){
+   for(int iY = nb; iY < ny + nb; iY++){
+      for(int iX = nb; iX < nx + nb; iX++){
          for(int iF = 0; iF < nf; iF++){
             int idx = kIndex(iX, iY, iF, nx+2*nb, ny+2*nb, nf);
             if(getSigma() == 0){
