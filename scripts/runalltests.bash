@@ -266,6 +266,13 @@ runandecho $testname $testname Debug/$testname $arglist
 mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
 cd "$workspacedir"
 
+testname=LCATest
+arglist="-p input/LCATest.params -c checkpoints/Checkpoint6 --testall"
+cd "$testname"
+runandecho $testname $testname Debug/$testname $arglist
+mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
+cd "$workspacedir"
+
 testname=LIFTest
 arglist="-p input/LIFTest.params"
 cd "$testname"
