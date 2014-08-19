@@ -315,9 +315,9 @@ namespace PV {
                 
                 float inVal = soundData[inNi];
                 //Loop through current layer's neurons
-#ifdef PV_USE_OPENMP_THREADS
-#pragma omp parallel for
-#endif
+//#ifdef PV_USE_OPENMP_THREADS
+//#pragma omp parallel for
+//#endif
                 for(int outNi = 0; outNi < num_output_neurons; outNi++){
                     
                     
