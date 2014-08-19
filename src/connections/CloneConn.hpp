@@ -50,6 +50,7 @@ protected:
    virtual void ioParam_originalConnName(enum ParamsIOFlag ioFlag);
    virtual int setWeightInitializer();
    virtual PVPatch *** initializeWeights(PVPatch *** patches, pvdata_t ** dataStart);
+   virtual int readStateFromCheckpoint(const char * cpDir, double * timeptr) { return PV_SUCCESS; }
    virtual int constructWeights();
    void constructWeightsOutOfMemory();
    virtual int createAxonalArbors(int arborId);
