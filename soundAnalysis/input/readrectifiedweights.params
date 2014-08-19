@@ -76,9 +76,9 @@ NewCochlearLayer "NewCochlear" = {
 
     inputLayername = "Sound"; 
     targetChannel = 0;
-
+    
     equalTemperedFlag = true;
-    freqMin = 440;
+    freqMin = 50;
     freqMax = 20000;
 
     dampingRatio = .5;
@@ -108,7 +108,7 @@ Movie "WeightPositive" = {
     restart = 0;
     nxScale = 64; //numfreqs
     nyScale = 1;
-    imageListPath = "~/newvision/sandbox/soundAnalysis/analysis/w2a+/+feature48checkpoint1.pvp";
+    imageListPath = "~/newvision/sandbox/soundAnalysis/analysis/w2a+/+feature6frame1.pvp";
     nf = 1;
     writeStep = .00022675737;
     writeSparseActivity = false;
@@ -134,7 +134,7 @@ Movie "WeightNegative" = {
     restart = 0;
     nxScale = 64; // numfreqs
     nyScale = 1;
-    imageListPath = "~/newvision/sandbox/soundAnalysis/analysis/w2a-/-feature48checkpoint1.pvp";
+    imageListPath = "~/newvision/sandbox/soundAnalysis/analysis/w2a-/-feature6frame1.pvp";
     nf = 1;
     writeStep = .00022675737;
     writeSparseActivity = false;

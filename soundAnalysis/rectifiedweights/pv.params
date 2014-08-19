@@ -1,4 +1,4 @@
-// PetaVision version something-point-something run at Mon Aug 18 17:32:15 2014
+// PetaVision version something-point-something run at Tue Aug 19 17:08:28 2014
 // Compiled with MPI and run using 1 rows and 1 columns.
 // Compiled without OpenCL.
 // Compiled without OpenMP parallel code.
@@ -41,7 +41,7 @@ SoundStream "Sound" = {
 };
 
 NewCochlearLayer "NewCochlear" = {
-    freqMin                             = 440;
+    freqMin                             = 50;
     freqMax                             = 20000;
     nxScale                             = 64;
     nyScale                             = 1;
@@ -80,7 +80,7 @@ Movie "WeightPositive" = {
     inverseFlag                         = false;
     normalizeLuminanceFlag              = false;
     jitterFlag                          = 0;
-    imageListPath                       = "/Users/MLD/newvision/sandbox/soundAnalysis/analysis/w2a+/+feature48checkpoint1.pvp";
+    imageListPath                       = "/Users/MLD/newvision/sandbox/soundAnalysis/analysis/w2a+/+feature6frame1.pvp";
     displayPeriod                       = 0.000226757;
     randomMovie                         = 0;
     readPvpFile                         = true;
@@ -108,7 +108,7 @@ Movie "WeightNegative" = {
     inverseFlag                         = false;
     normalizeLuminanceFlag              = false;
     jitterFlag                          = 0;
-    imageListPath                       = "/Users/MLD/newvision/sandbox/soundAnalysis/analysis/w2a-/-feature48checkpoint1.pvp";
+    imageListPath                       = "/Users/MLD/newvision/sandbox/soundAnalysis/analysis/w2a-/-feature6frame1.pvp";
     displayPeriod                       = 0.000226757;
     randomMovie                         = 0;
     readPvpFile                         = true;

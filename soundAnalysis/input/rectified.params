@@ -23,7 +23,7 @@ HyPerCol "column" = {
    checkpointRead                  = false; // deprecated
    checkpointWrite                 = true;
    checkpointWriteDir              = "output/checkpoints";
-   checkpointWriteStepInterval     = 4410; // 221; //numdelays
+   checkpointWriteStepInterval     = 442; //4410; // 221; //numdelays
    deleteOlderCheckpoints          = false;
    writeProgressToErr              = true;
    outputNamesOfLayersAndConns     = "LayerAndConnNames.txt";
@@ -31,7 +31,7 @@ HyPerCol "column" = {
    dtAdaptFlag = false; // set to determine expected errors
    
    
-   //initializeFromCheckpointDir     = "/Users/MLD/newvision/sandbox/soundAnalysis/output/checkpoints/Checkpoint0";
+   //initializeFromCheckpointDir     = "/Users/MLD/newvision/sandbox/soundAnalysis/output/checkpoints/Checkpoint1";
 
 };
 
@@ -467,7 +467,7 @@ KernelConn "A1ToPositiveError" = {
     initialWeightUpdateTime = 0;
     initialWriteTime = 0.0;
 
-    dWMax = 0.05; //5.0;
+    dWMax = 1.0; //0.05; //5.0;
     selfFlag = false;
     shmget_flag = false;
     delay = 0;
@@ -511,7 +511,7 @@ KernelConn "A1ToNegativeError" = {
     initialWeightUpdateTime = 0; //199.0;
     initialWriteTime = 0.0;
 
-    dWMax = 0.05; //5.0;
+    dWMax = 1.0; //0.05; //5.0;
     selfFlag = false;
     shmget_flag = false;
     delay = 0;
@@ -535,7 +535,7 @@ TransposeConn "PositiveErrorToA1" = {
     shmget_flag = false;
     delay = 0;
     pvpatchAccumulateType = "convolve";
-    updateGSynFromPostPerspective = 0;
+    updateGSynFromPostPerspective = true;
 };
 
 TransposeConn "NegativeErrorToA1" = {
@@ -550,11 +550,11 @@ TransposeConn "NegativeErrorToA1" = {
     shmget_flag = false;
     delay = 0;
     pvpatchAccumulateType = "convolve";
-    updateGSynFromPostPerspective = 0;
+    updateGSynFromPostPerspective = true;
 };
 
 
-CloneKernelConn "A1ToStreamPositive" = {
+CloneConn "A1ToStreamPositive" = {
     preLayerName = "A1";
     postLayerName = "StreamPositive";
     channelCode = 0;
@@ -567,10 +567,11 @@ CloneKernelConn "A1ToStreamPositive" = {
     preActivityIsNotRate = false;
     updateGSynFromPostPerspective = 0;
     writeCompressedCheckpoints = 0;
+    //initializeFromCheckpointFlag = false;
 };
 
 
-CloneKernelConn "A1ToStreamNegative" = {
+CloneConn "A1ToStreamNegative" = {
     preLayerName = "A1";
     postLayerName = "StreamNegative";
     channelCode = 0;
@@ -583,6 +584,7 @@ CloneKernelConn "A1ToStreamNegative" = {
     preActivityIsNotRate = false;
     updateGSynFromPostPerspective = 0;
     writeCompressedCheckpoints = 0;
+    //initializeFromCheckpointFlag = false;
 };
 
 IdentConn "StreamPositiveToFullRecon" = {
@@ -628,18 +630,6 @@ StatsProbe "A1StatsFile" = {
     buffer = "A";
     targetLayer = "A1";
     probeOutputFile = "A1_Stats.txt";
-};
-
-StatsProbe "PositiveCochlearStatsFile" = {
-    buffer = "A";
-    targetLayer = "PositiveCochlear";
-    probeOutputFile = "+Cochlear_Stats.txt";
-};
-
-StatsProbe "NegativeCochlearStatsFile" = {
-    buffer = "A";
-    targetLayer = "NegativeCochlear";
-    probeOutputFile = "-Cochlear_Stats.txt";
 };
 
 

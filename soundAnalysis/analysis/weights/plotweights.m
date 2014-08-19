@@ -14,3 +14,5 @@ end
 plot(output);
 
 print("outweight.png");
+
+wavwrite(output,4410,"outweight.wav");
