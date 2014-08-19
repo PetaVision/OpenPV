@@ -36,8 +36,6 @@ int GapConn::initialize_base(){
 
 int GapConn::initialize(const char * name, HyPerCol * hc) {
    int status = HyPerConn::initialize(name, hc);
-   assert(dynamic_cast<NormalizeGap *>(normalizer));
-   assert(normalizer->getNormalizeFromPostPerspectiveFlag());
    return status;
 }
 
