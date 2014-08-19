@@ -48,6 +48,7 @@ protected:
    virtual void ioParam_keepKernelsSynchronized(enum ParamsIOFlag ioFlag);
    virtual void ioParam_useWindowPost(enum ParamsIOFlag ioFlag);
    virtual void ioParam_originalConnName(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag);
    virtual int setWeightInitializer();
    virtual PVPatch *** initializeWeights(PVPatch *** patches, pvdata_t ** dataStart);
    virtual int readStateFromCheckpoint(const char * cpDir, double * timeptr) { return PV_SUCCESS; }

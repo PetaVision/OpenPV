@@ -157,6 +157,14 @@ void CloneConn::ioParam_nfp(enum ParamsIOFlag ioFlag) {
    // During the communication phase, nfp will be copied from originalConn
 }
 
+void CloneConn::ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag) {
+   if (ioFlag == PARAMS_IO_READ) {
+      initializeFromCheckpointFlag = parent->getDefaultInitializeFromCheckpointFlag();
+      parent->parameters()->handleUnnecessaryParameter(name, "initializeFromCheckpointFlag");
+   }
+   // CloneConn does not checkpoint, so we don't need initializeFromCheckpointFlag
+}
+
 int CloneConn::communicateInitInfo() {
    // Need to set originalConn before calling HyPerConn::communicate, since HyPerConn::communicate calls setPatchSize, which needs originalConn.
    originalConn = parent->getConnFromName(originalConnName);
