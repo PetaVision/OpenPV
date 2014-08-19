@@ -1,8 +1,8 @@
 
 addpath("~/newvision/trunk/mlab/util/");
 
-errorpvp = "/Users/MLD/newvision/sandbox/soundAnalysis/output/a5_NegativeError.pvp";
-cochlearpvp = errorpvp = "/Users/MLD/newvision/sandbox/soundAnalysis/output/a3_NegativeCochlear.pvp";
+errorpvp = "/Users/MLD/newvision/sandbox/soundAnalysis/servers/output/a5_NegativeError.pvp";
+cochlearpvp = errorpvp = "/Users/MLD/newvision/sandbox/soundAnalysis/servers/output/a3_NegativeCochlear.pvp";
 
 error = readpvpfile(errorpvp);
 cochlear = readpvpfile(cochlearpvp);
@@ -64,8 +64,8 @@ end
 
 
 
-errorpvp = "/Users/MLD/newvision/sandbox/soundAnalysis/output/a4_PositiveError.pvp";
-cochlearpvp = errorpvp = "/Users/MLD/newvision/sandbox/soundAnalysis/output/a2_PositiveCochlear.pvp";
+errorpvp = "/Users/MLD/newvision/sandbox/soundAnalysis/servers/output/a4_PositiveError.pvp";
+cochlearpvp = errorpvp = "/Users/MLD/newvision/sandbox/soundAnalysis/servers/output/a2_PositiveCochlear.pvp";
 
 error = readpvpfile(errorpvp);
 cochlear = readpvpfile(cochlearpvp);

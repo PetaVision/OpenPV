@@ -43,7 +43,7 @@ SoundStream "Sound" = {
     restart                = 0;
     nxScale                = 1;
     nyScale                = 1;
-    soundInputPath         = "input/A.wav";
+    soundInputPath         = "input/furElise.wav";
     nf                     = 1; // mono vs. stereo
     writeStep              = .00023; //dt
     initialWriteTime       = 0;
@@ -58,7 +58,7 @@ SoundStream "Sound" = {
 
 NewCochlearLayer "NewCochlear" = {
     restart = 0;
-    nxScale = 1; //number of cochlear hair cells, useful as power of two (1024)
+    nxScale = 64; //number of cochlear hair cells, useful as power of two (1024)
     nyScale = 1;
     nf = 1;
     writeStep = .00022675737; //dt
@@ -90,7 +90,7 @@ NewCochlearLayer "NewCochlear" = {
     
     //soundstream params
     
-    soundInputPath         = "input/A.wav";
+    soundInputPath         = "input/furElise.wav";
     soundBCFlag            = true;
     soundOffset            = 0; //In seconds
     
@@ -106,9 +106,9 @@ NewCochlearLayer "NewCochlear" = {
 
 Movie "WeightPositive" = {
     restart = 0;
-    nxScale = 1; //1x1x1
+    nxScale = 64; //numfreqs
     nyScale = 1;
-    imageListPath = "~/newvision/sandbox/soundAnalysis/analysis/w2a+/+feature48.pvp";
+    imageListPath = "~/newvision/sandbox/soundAnalysis/analysis/w2a+/+feature48checkpoint1.pvp";
     nf = 1;
     writeStep = .00022675737;
     writeSparseActivity = false;
@@ -132,9 +132,9 @@ Movie "WeightPositive" = {
 
 Movie "WeightNegative" = {
     restart = 0;
-    nxScale = 1; //1x1x1
+    nxScale = 64; // numfreqs
     nyScale = 1;
-    imageListPath = "~/newvision/sandbox/soundAnalysis/analysis/w2a-/-feature48.pvp";
+    imageListPath = "~/newvision/sandbox/soundAnalysis/analysis/w2a-/-feature48checkpoint1.pvp";
     nf = 1;
     writeStep = .00022675737;
     writeSparseActivity = false;
@@ -158,7 +158,7 @@ Movie "WeightNegative" = {
 
 ANNLayer "WeightRecon" = {
     restart = 0;
-    nxScale = 1; //numfreqs
+    nxScale = 64; //numfreqs
     nyScale = 1;
     nf = 1; //numdelays
     marginWidth = 0;
@@ -254,7 +254,7 @@ SoundProbe "WeightsProbe" = {
    restart = 0;
    targetLayer = "inverseWeights";
    soundOutputPath = "output/outweight.wav";
-   soundInputType  = "input/A.wav";
+   soundInputType  = "input/furElise.wav";
 };
 
 

@@ -105,7 +105,7 @@ NewCochlearLayer "NewCochlear" = {
 
 Movie "WeightRecon" = {
     restart = 0;
-    nxScale = 4; //1x1x1
+    nxScale = 4; //numfreqs
     nyScale = 1;
     imageListPath = "/Users/JEC/Desktop/newvision/sandbox/soundAnalysis/scripts/w2a/feature17.pvp";
     nf = 1;

@@ -1,4 +1,4 @@
-// PetaVision version something-point-something run at Mon Aug 18 11:33:07 2014
+// PetaVision version something-point-something run at Mon Aug 18 17:32:15 2014
 // Compiled with MPI and run using 1 rows and 1 columns.
 // Compiled without OpenCL.
 // Compiled without OpenMP parallel code.
@@ -36,14 +36,14 @@ SoundStream "Sound" = {
     writeStep                           = 0.00023;
     initialWriteTime                    = 0;
     writeSparseActivity                 = false;
-    soundInputPath                      = "input/A.wav";
+    soundInputPath                      = "input/furElise.wav";
     frameStart                          = 1;
 };
 
 NewCochlearLayer "NewCochlear" = {
     freqMin                             = 440;
     freqMax                             = 20000;
-    nxScale                             = 1;
+    nxScale                             = 64;
     nyScale                             = 1;
     phase                               = 1;
     mirrorBCflag                        = false;
@@ -58,12 +58,12 @@ NewCochlearLayer "NewCochlear" = {
     targetChannel                       = 0;
     sampleRate                          = 44100;
     equalTemperedFlag                   = 1;
-    soundInputPath                      = "input/A.wav";
+    soundInputPath                      = "input/furElise.wav";
     frameStart                          = 1;
 };
 
 Movie "WeightPositive" = {
-    nxScale                             = 1;
+    nxScale                             = 64;
     nyScale                             = 1;
     nf                                  = 1;
     phase                               = 2;
@@ -80,7 +80,7 @@ Movie "WeightPositive" = {
     inverseFlag                         = false;
     normalizeLuminanceFlag              = false;
     jitterFlag                          = 0;
-    imageListPath                       = "/Users/MLD/newvision/sandbox/soundAnalysis/analysis/w2a+/+feature48.pvp";
+    imageListPath                       = "/Users/MLD/newvision/sandbox/soundAnalysis/analysis/w2a+/+feature48checkpoint1.pvp";
     displayPeriod                       = 0.000226757;
     randomMovie                         = 0;
     readPvpFile                         = true;
@@ -91,7 +91,7 @@ Movie "WeightPositive" = {
 };
 
 Movie "WeightNegative" = {
-    nxScale                             = 1;
+    nxScale                             = 64;
     nyScale                             = 1;
     nf                                  = 1;
     phase                               = 2;
@@ -108,7 +108,7 @@ Movie "WeightNegative" = {
     inverseFlag                         = false;
     normalizeLuminanceFlag              = false;
     jitterFlag                          = 0;
-    imageListPath                       = "/Users/MLD/newvision/sandbox/soundAnalysis/analysis/w2a-/-feature48.pvp";
+    imageListPath                       = "/Users/MLD/newvision/sandbox/soundAnalysis/analysis/w2a-/-feature48checkpoint1.pvp";
     displayPeriod                       = 0.000226757;
     randomMovie                         = 0;
     readPvpFile                         = true;
@@ -119,7 +119,7 @@ Movie "WeightNegative" = {
 };
 
 ANNLayer "WeightRecon" = {
-    nxScale                             = 1;
+    nxScale                             = 64;
     nyScale                             = 1;
     nf                                  = 1;
     phase                               = 3;
@@ -188,5 +188,5 @@ SoundProbe "WeightsProbe" = {
     buffer                              = "Activity";
     nnzThreshold                        = 0;
     soundOutputPath                     = "output/outweight.wav";
-    soundInputType                      = "input/A.wav";
+    soundInputType                      = "input/furElise.wav";
 };
