@@ -45,7 +45,6 @@ protected:
    virtual void ioParam_InitVType(enum ParamsIOFlag ioFlag);
    //Image does not need trigger flag, since it's overwriting needUpdate
    virtual void ioParam_triggerFlag(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_triggerLayerName(enum ParamsIOFlag ioFlag);
    virtual void ioParam_useParamsImage(enum ParamsIOFlag ioFlag);
 
    int initRandState();

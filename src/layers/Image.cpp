@@ -288,9 +288,10 @@ void Image::ioParam_InitVType(enum ParamsIOFlag ioFlag) {
 }
 
 void Image::ioParam_triggerFlag(enum ParamsIOFlag ioFlag) {
-}
-
-void Image::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {
+   if (ioFlag == PARAMS_IO_READ) {
+      triggerFlag = false;
+      parent->parameters()->handleUnnecessaryParameter(name, "triggerFlag", false/*correct value*/);
+   }
 }
 
 void Image::ioParam_useParamsImage(enum ParamsIOFlag ioFlag) {
