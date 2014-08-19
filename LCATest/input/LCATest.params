@@ -6,14 +6,14 @@
 
 //  A test of LCA in the GenericSystemTest paradigm
 //  An input->error<->V1 LCA module, using random initial weights
-//  and a correct-values movie being compared to the V1 layer.
+//  and a correct-values movie being compared to the reconstruciton layer.
 //
 
 debugParsing = false;
 
 HyPerCol "column" = {
-   nx = 480;
-   ny = 480;
+   nx = 60;
+   ny = 60;
    dt = 1.0;
    dtAdaptFlag = true;
    dtScaleMax = 5;
