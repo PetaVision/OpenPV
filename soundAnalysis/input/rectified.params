@@ -23,7 +23,7 @@ HyPerCol "column" = {
    checkpointRead                  = false; // deprecated
    checkpointWrite                 = true;
    checkpointWriteDir              = "output/checkpoints";
-   checkpointWriteStepInterval     = 442; //4410; // 221; //numdelays
+   checkpointWriteStepInterval     = 2210; //numdelays
    deleteOlderCheckpoints          = false;
    writeProgressToErr              = true;
    outputNamesOfLayersAndConns     = "LayerAndConnNames.txt";
@@ -79,7 +79,7 @@ NewCochlearLayer "NewCochlear" = {
     targetChannel = 0;
     
     equalTemperedFlag = true;
-    freqMin = 50;
+    freqMin = 55;
     freqMax = 20000;
 
     dampingRatio = .5;
@@ -467,7 +467,7 @@ KernelConn "A1ToPositiveError" = {
     initialWeightUpdateTime = 0;
     initialWriteTime = 0.0;
 
-    dWMax = 1.0; //0.05; //5.0;
+    dWMax = 0.5;//1.0; //0.05; //5.0;
     selfFlag = false;
     shmget_flag = false;
     delay = 0;
@@ -511,7 +511,7 @@ KernelConn "A1ToNegativeError" = {
     initialWeightUpdateTime = 0; //199.0;
     initialWriteTime = 0.0;
 
-    dWMax = 1.0; //0.05; //5.0;
+    dWMax = 0.5://1.0; //0.05; //5.0;
     selfFlag = false;
     shmget_flag = false;
     delay = 0;

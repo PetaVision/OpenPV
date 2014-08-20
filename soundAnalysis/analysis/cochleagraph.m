@@ -9,7 +9,7 @@ outimg = zeros(hdr.nbands, hdr.nx);
 
 
 for(time = 1:length(data))
-outimg(time, :) = squeeze(data{time}.values)';
+    outimg(time, :) = squeeze(data{time}.values)';
 end
 
 
