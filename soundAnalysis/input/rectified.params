@@ -299,35 +299,6 @@ ANNLayer "FullRecon" = {
 };
 
 
-inverseCochlearLayer "inverseCochlear" = {
-    restart = 0;
-    nxScale = 1; //1 x 1 x 1
-    nyScale = 1;
-    // nf automatically set to 1
-    writeStep = .00022675737; //Change based on display period
-    initialWriteTime = 0.0; //Change based on display period 
-    mirrorBCflag = 0;
-    writeSparseActivity = 0;
-
-    InitVType = "ZeroV";
-
-    VThresh = -infinity;
-    VMax = infinity;
-    VMin = -infinity;
-    VShift = 0;
-    VWidth = 0;
-
-    //These 2 layers are the same right now, but eventually the inputLayername will be different
-    inputLayername = "FullRecon";
-    cochlearLayername = "NewCochlear";
-
-    sampleRate = 44100;
-    bufferLength = 1;
-    
-    phase = 6;
-};
-
-
 
 
 
@@ -633,13 +604,6 @@ StatsProbe "A1StatsFile" = {
 };
 
 
-SoundProbe "inverseCochlearProbe" = {
-   restart = 0;
-   targetLayer = "inverseCochlear";
-   soundOutputPath = "output/outic.wav";
-   soundInputType  = "input/A.wav";
-};
-
 
 
 
@@ -659,6 +623,46 @@ ParameterSweep "column":outputPath = {
     "output7/";
     "output9/";
 };
+
+
+
+inverseCochlearLayer "inverseCochlear" = {
+    restart = 0;
+    nxScale = 1; //1 x 1 x 1
+    nyScale = 1;
+    // nf automatically set to 1
+    writeStep = .00022675737; //Change based on display period
+    initialWriteTime = 0.0; //Change based on display period 
+    mirrorBCflag = 0;
+    writeSparseActivity = 0;
+
+    InitVType = "ZeroV";
+
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+    VShift = 0;
+    VWidth = 0;
+
+    //These 2 layers are the same right now, but eventually the inputLayername will be different
+    inputLayername = "FullRecon";
+    cochlearLayername = "NewCochlear";
+
+    sampleRate = 44100;
+    bufferLength = 1;
+    
+    phase = 6;
+};
+
+
+SoundProbe "inverseCochlearProbe" = {
+   restart = 0;
+   targetLayer = "inverseCochlear";
+   soundOutputPath = "output/outic.wav";
+   soundInputType  = "input/A.wav";
+};
+
+
 
 
 
