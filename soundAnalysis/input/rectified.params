@@ -15,7 +15,7 @@ HyPerCol "column" = {
    ny                              = 1;
    dt                              = .00022675737; // downsampling = dt * sampleRate
    randomSeed                      = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
-   stopTime                        = 100;
+   stopTime                        = 150;
    progressInterval                = .00022675737; // dt
    outputPath                      = "output";
    filenamesContainLayerNames      = true;
@@ -47,7 +47,7 @@ SoundStream "Sound" = {
     nyScale                = 1;
     soundInputPath         = "input/furElise.wav";
     nf                     = 1; // mono vs. stereo
-    writeStep              = .00022675737; //dt
+    writeStep              = .05; //.00022675737; //dt
     initialWriteTime       = 0;
     writeSparseActivity    = false;
     displayPeriod          = 1;  //5000;  //  unnecesary [in time steps - I think] TODO: change to [ms]
@@ -110,7 +110,7 @@ ANNLayer "PositiveCochlear" = {
     nyScale = 1;
     nf = 1;
     marginWidth = 0;
-    writeStep = .00022675737;
+    writeStep = .05; // .00022675737;
     initialWriteTime = 0;
     mirrorBCflag = 1;
     writeSparseActivity = 0;
@@ -133,7 +133,7 @@ ANNLayer "NegativeCochlear" = {
     nyScale = 1;
     nf = 1;
     marginWidth = 0;
-    writeStep = .00022675737;
+    writeStep = .05; // .00022675737;
     initialWriteTime = 0;
     mirrorBCflag = 1;
     writeSparseActivity = 0;
@@ -157,7 +157,7 @@ ANNNormalizedErrorLayer "PositiveError" = {
     nyScale = 1;
     nf = 221; //number of delays, useful as power of 2
     initialWriteTime = 0;
-    writeStep = .00022675737; //dt
+    writeStep = .05; // .00022675737; //dt
     mirrorBCflag = 0;
     writeSparseActivity = 0;
 
@@ -183,7 +183,7 @@ ANNNormalizedErrorLayer "NegativeError" = {
     nyScale = 1;
     nf = 221; //number of delays, useful as power of 2
     initialWriteTime = 0;
-    writeStep = .00022675737; //dt
+    writeStep = .05; // .00022675737; //dt
     mirrorBCflag = 0;
     writeSparseActivity = 0;
 
@@ -207,7 +207,7 @@ HyPerLCALayer "A1" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
-    nf = 128; // numfreqs * numdelays * overcompleteness
+    nf = 256; // numfreqs * numdelays * overcompleteness
     numChannels = 1;
     initialWriteTime = 0;
     writeStep = .00022675737; //dt
@@ -246,7 +246,7 @@ StreamReconLayer "StreamPositive" = {
     nf = 221; //numdelays
     numChannels = 1;
     initialWriteTime = 0;
-    writeStep = .00022675737; //dt
+    writeStep = .05; // .00022675737; //dt
     mirrorBCflag = false;
     writeSparseActivity = false;
     
@@ -264,7 +264,7 @@ StreamReconLayer "StreamNegative" = {
     nf = 221; //numdelays
     numChannels = 1;
     initialWriteTime = 0;
-    writeStep = .00022675737; //dt
+    writeStep = .05; // .00022675737; //dt
     mirrorBCflag = false;
     writeSparseActivity = false;
     
@@ -573,6 +573,9 @@ IdentConn "StreamPositiveToFullRecon" = {
    // weightInit = 1;
    // normaizeMethod = "none";
 
+   initialWriteTime = 0.0;
+   writeStep = -1.0;
+
 
 };
 
@@ -590,6 +593,8 @@ IdentConn "StreamNegativeToFullRecon" = {
     //weightInit = -1;
     //normaizeMethod = "none";
 
+    initialWriteTime = 0.0;
+    writeStep = -1.0;
 
 };
 
