@@ -26,6 +26,7 @@ protected:
    int initialize(const char * name, HyPerCol * hc);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    virtual void ioParam_originalLayerName(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_InitVType(enum ParamsIOFlag ioFlag);
    virtual int allocateV();
    virtual int initializeV();
    virtual int readVFromCheckpoint(const char * cpDir, double * timeptr);

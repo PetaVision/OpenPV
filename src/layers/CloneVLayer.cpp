@@ -41,6 +41,12 @@ void CloneVLayer::ioParam_originalLayerName(enum ParamsIOFlag ioFlag) {
    parent->ioParamStringRequired(ioFlag, name, "originalLayerName", &originalLayerName);
 }
 
+void CloneVLayer::ioParam_InitVType(enum ParamsIOFlag ioFlag) {
+   if (ioFlag==PARAMS_IO_READ) {
+      parent->parameters()->handleUnnecessaryParameter(name, "InitVType");
+   }
+}
+
 int CloneVLayer::communicateInitInfo() {
    int status = HyPerLayer::communicateInitInfo();
    originalLayer = parent->getLayerFromName(originalLayerName);
