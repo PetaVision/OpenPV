@@ -11,11 +11,11 @@ time = numel(a1)
 
 output = zeros(time,1);
 
-numel(a1{7}.values)
+size(a1{1}.values)
 
 for(k = 1:time)
 
-    output(k) = numel(a1{k}.values);
+    output(k) = numel(a1{k}.values)/(2*128);
 
 end
 

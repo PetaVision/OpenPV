@@ -1,5 +1,5 @@
 addpath("~/newvision/trunk/mlab/util/");
-pluspvpfile = "~/newvision/sandbox/soundAnalysis/servers/output/Checkpoint55692/A1ToPositiveError_W.pvp"
+pluspvpfile = "~/newvision/sandbox/soundAnalysis/servers/output/Checkpoint59670/A1ToPositiveError_W.pvp"
 
 
 plusWcell = readpvpfile(pluspvpfile);
@@ -47,8 +47,10 @@ colormap(gray);
 
 [R,C] = ind2sub(size(weightrescaled),location);
 
+
 C
 
+dlmwrite('positivefreqs.txt',C,"-append");
 
 end
 

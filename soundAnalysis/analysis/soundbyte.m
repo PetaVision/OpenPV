@@ -1,6 +1,6 @@
 addpath("~/newvision/trunk/mlab/util/");
-pluspvpfile = "~/newvision/sandbox/soundAnalysis/servers/output/Checkpoint55692/A1ToPositiveError_W.pvp"
-minuspvpfile = "~/newvision/sandbox/soundAnalysis/servers/output/Checkpoint55692/A1ToNegativeError_W.pvp"
+pluspvpfile = "~/newvision/sandbox/soundAnalysis/servers/output/Checkpoint59670/A1ToPositiveError_W.pvp"
+minuspvpfile = "~/newvision/sandbox/soundAnalysis/servers/output/Checkpoint59670/A1ToNegativeError_W.pvp"
 
 plusWcell = readpvpfile(pluspvpfile);
 minusWcell = readpvpfile(minuspvpfile);
@@ -34,26 +34,31 @@ W = plusW - minusW;
 
 for(feature = 1:NF)
 
-    weight = zeros(numdelays,numfreqs);
+    weight = zeros(numfreqs,numdelays);
 
     for(time = 1:numdelays)
 
-        weight(time, :) = W(:,:,time,feature);
+        weight(:,time) = W(:,:,time,feature);
 
     end
 
-    weightrescaled = (weight - min(weight(:))) / (max(weight(:)) - min(weight(:)));
+    %%weightrescaled = (weight - min(weight(:))) / (max(weight(:)) - min(weight(:)));
+
+    weightrescaled = 127.5 + 127.5 * (weight / max(abs(weight(:))));
+
 
     subplot(ceil(sqrt(NF)),ceil(sqrt(NF)),feature);
     imagesc(weightrescaled);
     axis off;
-    colormap(gray);
+    %%colormap(gray);
 
     [value, location] = max(abs(weightrescaled(:)));
 
     [R,C] = ind2sub(size(weightrescaled),location);
 
     C
+
+    dlmwrite('freqs.txt',C,"-append")
 
 
 end

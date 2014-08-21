@@ -1,5 +1,5 @@
 addpath("~/newvision/trunk/mlab/util/");
-minuspvpfile = "~/newvision/sandbox/soundAnalysis/servers/output/Checkpoint55692/A1ToNegativeError_W.pvp"
+minuspvpfile = "~/newvision/sandbox/soundAnalysis/servers/output/Checkpoint59670/A1ToNegativeError_W.pvp"
 
 
 minusWcell = readpvpfile(minuspvpfile);
@@ -49,8 +49,11 @@ colormap(gray);
 
 C
 
+dlmwrite('negativefreqs.txt',C,"-append");
+
 
 end
 
 print -dpng negativeweights.png
+
 
