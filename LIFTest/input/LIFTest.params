@@ -20,9 +20,12 @@ HyPerCol "column" = {
    stopTime                         = 2000.0;
    progressInterval                 = 100.0;
    writeProgressToErr               = false;
+   errorOnNotANumber                = false;
    outputPath                       = "output";
+   printParamsFilename              = "pv.params";
    filenamesContainLayerNames       = false;
    filenamesContainConnectionNames  = false;
+   initializeFromCheckpointDir      = "";
    checkpointWrite                  = false;
    // checkpointWriteDir               = "Checkpoints";
    // checkpointWriteStepInterval      = 4000;
@@ -35,7 +38,6 @@ HyPerCol "column" = {
 //
 
 Image "input" = {
-    restart                         = false;
     nxScale                         = 1;
     nyScale                         = 1;
     imagePath                       = "input/inputimage.pvp";
@@ -57,7 +59,6 @@ Image "input" = {
 };
 
 ANNLayer "scaled input" = {
-    restart                         = false;
     nxScale                         = 1;
     nyScale                         = 1;
     nf                              = 1;
@@ -66,6 +67,7 @@ ANNLayer "scaled input" = {
     writeStep                       = -1;
     writeSparseActivity             = false;
     phase                           = 0;
+    triggerFlag                     = false;
 
     InitVType                       = "ZeroV";
 
@@ -73,18 +75,19 @@ ANNLayer "scaled input" = {
     AShift                          = 0;
     AMin                            = -infinity;
     VThresh                         = -infinity;
+    VWidth                          = 0.0;
 };
 
 Retina "retina" = {
-    restart                         = false;
     nxScale                         = 1.;
     nyScale                         = 1.;
     nf                              = 1;
     mirrorBCflag                    = false;
     valueBC                         = 0.0;
-    writeStep                       = -1;
+    writeStep                       = 0.25;
     writeSparseActivity             = false;
     phase                           = 0;
+    triggerFlag                     = false;
     spikingFlag                     = true;
     foregroundRate                  = 200.0;
     backgroundRate                  = 0.0;
@@ -97,7 +100,6 @@ Retina "retina" = {
 };
 
 GenerativeLayer "Retina Spike Counter" = {
-    restart                         = false;
     nxScale                         = 1;
     nyScale                         = 1;
     nf                              = 1;
@@ -110,11 +112,13 @@ GenerativeLayer "Retina Spike Counter" = {
     writeStep                       = -1.0;
     writeSparseActivity             = false;
     phase                           = 0;
+    triggerFlag                     = false;
 
     AMax                            = infinity;
     AShift                          = 0.0;
     AMin                            = -infinity;
     VThresh                         = -infinity;
+    VWidth                          = 0.0;
     relaxation                      = 1;
     activityThreshold               = 0.0;
     auxChannelCoeff                 = 0.0;
@@ -123,7 +127,6 @@ GenerativeLayer "Retina Spike Counter" = {
 };
 
 LIFGap "LIFTest" = {
-    restart                         = 0;
     nxScale                         = 1;
     nyScale                         = 1;
     nf                              = 1;
@@ -131,7 +134,9 @@ LIFGap "LIFTest" = {
     mirrorBCflag                    = false;
     valueBC                         = 0.0;
     writeSparseActivity             = true;
+    writeSparseValues               = false;
     phase                           = 0;
+    triggerFlag                     = false;
     
     InitVType                       = "ConstantV";
     valueV                          = -70.0;
@@ -146,6 +151,7 @@ LIFGap "LIFTest" = {
     VthRest                         = -55.0;   // firing threshold
     tauVth                          = 10.0;    // relative refractory period
     deltaVth                        = 5.0;     // jump of threshold when firing
+    deltaGIB                        = 1.0;     // jump of conductance on IB channel when firing
     noiseAmpE                       = 0.5;     // 1 means conductance is equal to lead conductance               <======== no noise  
     noiseAmpI                       = 0.5;     // "twice as easy for the membrane capacitance to discharge"
     noiseAmpIB                      = 0.0;     // no noise here 
@@ -157,7 +163,6 @@ LIFGap "LIFTest" = {
 };
 
 GenerativeLayer "LIFTest Spike Counter" = {
-    restart                         = false;
     nxScale                         = 1;
     nyScale                         = 1;
     nf                              = 1;
@@ -170,6 +175,7 @@ GenerativeLayer "LIFTest Spike Counter" = {
 
     writeStep                       = -1.0;
     phase                           = 0;
+    triggerFlag                     = false;
 
     AMax                            = infinity;
     AShift                          = 0;
@@ -184,13 +190,13 @@ GenerativeLayer "LIFTest Spike Counter" = {
 };
 
 GapLayer "GapTest" = {
-    restart                         = false;
     originalLayerName               = "LIFTest";
     nxScale                         = 1; // Should this be 0.5 or 1?
     nyScale                         = 1; // Should this be 0.5 or 1?
     nf                              = 1;
     mirrorBCflag                    = true;
     phase                           = 0;
+    triggerFlag                     = false;
 
     writeStep                       = -1;
     writeSparseActivity             = false;
@@ -199,7 +205,6 @@ GapLayer "GapTest" = {
 };
 
 LIFGap "LIFGapTest" = {
-    restart                         = 0;
     nxScale                         = 1;
     nyScale                         = 1;
     nf                              = 1;
@@ -207,7 +212,9 @@ LIFGap "LIFGapTest" = {
     mirrorBCflag                    = false;
     valueBC                         = 0.0;
     writeSparseActivity             = true;
+    writeSparseValues               = false;
     phase                           = 0;
+    triggerFlag                     = false;
     
     InitVType                       = "ConstantV";
     valueV                          = -70.0;
@@ -222,6 +229,7 @@ LIFGap "LIFGapTest" = {
     VthRest                         = -65.0;   // firing threshold
     tauVth                          = 10.0;    // relative refractory period
     deltaVth                        = 5.0;     // jump of threshold when firing
+    deltaGIB                        = 1.0;     // jump of conductance on IB channel when firing
     noiseAmpE                       = 0.5;     // 1 means conductance is equal to lead conductance               <======== no noise  
     noiseAmpI                       = 0.5;     // "twice as easy for the membrane capacitance to discharge"
     noiseAmpIB                      = 0.0;     // no noise here 
@@ -233,7 +241,6 @@ LIFGap "LIFGapTest" = {
 };
 
 GenerativeLayer "LIFGapTest Spike Counter" = {
-    restart                         = false;
     nxScale                         = 1;
     nyScale                         = 1;
     nf                              = 1;
@@ -246,11 +253,13 @@ GenerativeLayer "LIFGapTest Spike Counter" = {
     writeStep                       = -1;
     writeSparseActivity             = false;
     phase                           = 0;
+    triggerFlag                     = false;
 
     AMax                            = infinity;
     AShift                          = 0;
     AMin                            = -infinity;
     VThresh                         = -infinity;
+    VWidth                          = 0.0;
     relaxation                      = 1;
     activityThreshold               = 0.0;
     auxChannelCoeff                 = 0.0;
@@ -258,10 +267,11 @@ GenerativeLayer "LIFGapTest Spike Counter" = {
     persistence                     = 0.0;
 };
 
-KernelConn "input to scaled input" = {
+HyPerConn "input to scaled input" = {
     preLayerName                    = "input";
     postLayerName                   = "scaled input";
     channelCode                     = 0;
+    sharedWeights                   = true;
     nxp                             = 1;
     nyp                             = 1;
     nfp                             = 1;
@@ -298,8 +308,9 @@ IdentConn "retina to Retina Spike Counter" = {
     writeStep                       = -1;
 };
 
-KernelConn "retina to LIFTest" = {
+HyPerConn "retina to LIFTest" = {
     channelCode                     = 0;
+    sharedWeights                   = true;
     nxp                             = 1;
     nyp                             = 1;
     nfp                             = 1;
@@ -334,6 +345,7 @@ GapConn "GapTest to LIFGapTest" = {
     preLayerName                    = "GapTest";
     postLayerName                   = "LIFGapTest";
     // channelCode                  = 3;
+    sharedWeights                   = true;
     nxp                             = 3;
     nyp                             = 3;
     nfp                             = 1;
@@ -352,6 +364,8 @@ GapConn "GapTest to LIFGapTest" = {
     normalizeFromPostPerspective    = true;
     normalizeArborsIndividually     = false;
     minSumTolerated                 = 0.0;
+    rMinX                           = 0; // Only count |x|>=rMinX when normalizing
+    rMinY                           = 0; // Only count |y|>=rMinY when normalizing
     
     symmetrizeWeights               = false;
     plasticityFlag                  = false;
@@ -379,6 +393,10 @@ LIFTestProbe "LIFGapTest Spike Count Probe" = {
     targetLayer                     = "LIFGapTest Spike Counter";
     probeOutputFile                 = "SpikeRates.txt";
     message                         = "Spike Rates File               ";
+    triggerFlag                     = false;
+    
+    buffer                          = "Activity";
+    nnzThreshold                    = 0.0;
     
     endingTime                      = 2000.0;
     tolerance                       = 3.0;
