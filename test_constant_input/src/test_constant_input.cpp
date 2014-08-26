@@ -42,8 +42,6 @@ int main(int argc, char* argv[])
 {
    int status = 0;
 
-   const float imVal = 1.0f;
-
    // create the managing hypercolumn
    //
    HyPerCol* hc = new HyPerCol("test_constant_input column", argc, argv);
@@ -58,8 +56,17 @@ int main(int argc, char* argv[])
 
    // create the connections
    //
-   new HyPerConn("test_constant_input connection", hc);
-
+   HyPerConn * conn = new HyPerConn("test_constant_input connection", hc);
+   const int nxp = conn->xPatchSize();
+   const int nyp = conn->yPatchSize();
+   const PVLayerLoc * imageLoc = image->getLayerLoc();
+   const PVLayerLoc * retinaLoc = image->getLayerLoc();
+   const int nfPre = imageLoc->nf;
+    
+   float sumOfWeights = (float) (nxp*nyp*nfPre);
+   if (imageLoc->nx > retinaLoc->nx) { sumOfWeights *= imageLoc->nx/retinaLoc->nx;}
+   if (imageLoc->ny > retinaLoc->ny) { sumOfWeights *= imageLoc->ny/retinaLoc->ny;}
+   
    hc->run();
 
    const int rank = hc->columnId();
@@ -92,13 +99,15 @@ int main(int argc, char* argv[])
       exit(status);
    }
 
-   status = checkInput(retina->getLayerLoc(), retina->getActivity(), imVal, false);
+   float retinaVal = sumOfWeights * image->getConstantVal();
+
+   status = checkInput(retina->getLayerLoc(), retina->getActivity(), retinaVal, false);
    if (status != 0) {
       fprintf(stderr, "[%d]: test_constant_input: ERROR in retina data\n", rank);
       exit(status);
    }
 
-   status = checkInput(retina->getLayerLoc(), retina->getLayerData(), image->getConstantVal(), true);
+   status = checkInput(retina->getLayerLoc(), retina->getLayerData(), retinaVal, true);
    if (status != 0) {
       fprintf(stderr, "[%d]: test_constant_input: ERROR in retina data\n", rank);
       exit(status);

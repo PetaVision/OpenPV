@@ -49,7 +49,6 @@ HyPerConn "test_constant_input connection" = {
     
     weightInitType = "UniformWeight";
     weightInit = 1.0;
-    normalizeMethod = "normalizeSum";
-    strength = 1;
+    normalizeMethod = "none";
     writeStep = -1;
 };
