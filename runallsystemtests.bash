@@ -415,6 +415,7 @@ testname=test_gauss2d
 cd "$testname"
 arglist=""
 runandecho $testname $testname Debug/$testname $arglist
+mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
 cd "$workspacedir"
 
 testname=test_kg
