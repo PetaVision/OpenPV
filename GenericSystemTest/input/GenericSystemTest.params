@@ -9,22 +9,25 @@
 //  basic functionality
 //
 
-debugParsing = false;    // Debug the reading of this parameter file.
+debugParsing = false; // Print a message every time something in params file is parsed
 
 HyPerCol "column" = {
    nx = 32;   //size of the whole networks
    ny = 32;
    dt = 1.0;  //time step in ms.	     
+   dtAdaptFlag = false;
    randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
    startTime = 0.0;
    stopTime = 10.0;  
    progressInterval = 10.0; //Program will output its progress at each progressStep
    writeProgressToErr = false;  
+   errorOnNotANumber = false;
    outputPath = "output1/";
    printParamsFilename = "pv.params";
    filenamesContainLayerNames = true;  
    filenamesContainConnectionNames = true;
    checkpointWrite = true;
+   initializeFromCheckpointDir = "";
    checkpointWriteDir = "checkpoints";
    checkpointWriteTriggerMode = "step";
    checkpointWriteStepInterval = 1;
@@ -39,9 +42,8 @@ HyPerCol "column" = {
 //All layers are subclasses of hyperlayer
 
 
-// this is a input layer
+// this is an input layer
 Movie "input" = {
-    restart = 0;  // make only a certain layer restart
     nxScale = 1;  // this must be 2^n, n = ...,-2,-1,0,1,2,... 
     nyScale = 1;  // the scale is to decide how much area will be used as input. For exampel, nx * nxScale = 32. The size of input
     	      	  // cannot be larger than the input image size.
@@ -68,11 +70,11 @@ Movie "input" = {
     start_frame_index = 0;
     skip_frame_index = 0;
     writeFrameToTimestamp = true;
+    flipOnTimescaleError = false;
 };
 
 //an output layer
 ANNLayer "output" = {
-    restart = false;
     nxScale = 1; 
     nyScale = 1;
     nf = 8; // 8 outputs 
@@ -94,7 +96,6 @@ ANNLayer "output" = {
 };
 
 Movie "correct" = {
-    restart = false;
     nxScale = 1;
     nyScale = 1;
     nf = 8;
@@ -121,10 +122,10 @@ Movie "correct" = {
     start_frame_index = 0;
     skip_frame_index = 1;
     writeFrameToTimestamp = true;
+    flipOnTimescaleError = false;
 };
 
 ANNLayer "comparison" = {
-    restart = false;
     nxScale = 1;
     nyScale = 1;
     nf = 8; // 8 outputs
@@ -147,10 +148,11 @@ ANNLayer "comparison" = {
 
 // connections
 
-KernelConn "input_to_output" = {
+HyPerConn "input_to_output" = {
     preLayerName = "input";
     postLayerName = "output";
     channelCode = 0;
+    sharedWeights = true;
 
 // we have a 32*32 image, an input layer with nf = 1 and an output layer with nf = 8. So we have 32*32*8 outputs.
 // the connection layer defines nxp * nyp (i.e. 7*7) edges from each pixel in input layer to 7*7 vertexs of 1 out of 8 images
@@ -218,5 +220,6 @@ IdentConn "correct_to_comparison" = {
 RequireAllZeroActivityProbe "comparison_test" = {
     targetLayer = "comparison";
     probeOutputFile = "comparison_test.txt";
+    triggerFlag = false;
     nnzThreshold = 1e-6;
 };
