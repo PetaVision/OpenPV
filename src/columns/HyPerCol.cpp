@@ -1712,39 +1712,43 @@ int HyPerCol::checkpointRead(const char * cpDir) {
          t += deltaTimeBase;
       }
    }
-   struct timescale_struct {
-      double timeScale; // timeScale factor for increasing/decreasing dt
-      double timeScaleTrue; // true timeScale as returned by HyPerLayer::getTimeScale() before applications of constraints
-   };
-   // read timeScale info
-   struct timescale_struct timescale;
-   size_t timescale_size = sizeof(struct timescale_struct);
-   assert(sizeof(struct timescale_struct) == sizeof(double) + sizeof(double));
-   if( icCommunicator()->commRank()==0 ) {
-      char timescalepath[PV_PATH_MAX];
-      int chars_needed = snprintf(timescalepath, PV_PATH_MAX, "%s/timescaleinfo.bin", cpDir);
-      if (chars_needed >= PV_PATH_MAX) {
-         fprintf(stderr, "HyPerCol::checkpointRead error: path \"%s/timescaleinfo.bin\" is too long.\n", cpDir);
-         abort();
+
+   if (dtAdaptFlag == true) {
+      struct timescale_struct {
+         double timeScale; // timeScale factor for increasing/decreasing dt
+         double timeScaleTrue; // true timeScale as returned by HyPerLayer::getTimeScale() before applications of constraints
+      };
+      // read timeScale info
+      struct timescale_struct timescale;
+      size_t timescale_size = sizeof(struct timescale_struct);
+      assert(sizeof(struct timescale_struct) == sizeof(double) + sizeof(double));
+      if( icCommunicator()->commRank()==0 ) {
+         char timescalepath[PV_PATH_MAX];
+         int chars_needed = snprintf(timescalepath, PV_PATH_MAX, "%s/timescaleinfo.bin", cpDir);
+         if (chars_needed >= PV_PATH_MAX) {
+            fprintf(stderr, "HyPerCol::checkpointRead error: path \"%s/timescaleinfo.bin\" is too long.\n", cpDir);
+            abort();
+         }
+         PV_Stream * timescalefile = PV_fopen(timescalepath,"r");
+         if (timescalefile == NULL) {
+            fprintf(stderr, "HyPerCol::checkpointRead error: unable to open \"%s\" for reading: %s.\n", timescalepath, strerror(errno));
+            fprintf(stderr, "    will use default value of timeScale=%f, timeScaleTrue=%f\n", timescale.timeScale, timescale.timeScaleTrue);
+         }
+         else {
+            long int startpos = getPV_StreamFilepos(timescalefile);
+            PV_fread(&timescale,1,timescale_size,timescalefile);
+            long int endpos = getPV_StreamFilepos(timescalefile);
+            assert(endpos-startpos==(int)timescale_size);
+            PV_fclose(timescalefile);
+         }
       }
-      PV_Stream * timescalefile = PV_fopen(timescalepath,"r");
-      if (timescalefile == NULL) {
-         fprintf(stderr, "HyPerCol::checkpointRead error: unable to open \"%s\" for reading: %s.\n", timescalepath, strerror(errno));
-         fprintf(stderr, "    will use default value of timeScale=%f, timeScaleTrue=%f\n", timescale.timeScale, timescale.timeScaleTrue);
-      }
-      else {
-         long int startpos = getPV_StreamFilepos(timescalefile);
-         PV_fread(&timescale,1,timescale_size,timescalefile);
-         long int endpos = getPV_StreamFilepos(timescalefile);
-         assert(endpos-startpos==(int)timescale_size);
-         PV_fclose(timescalefile);
-      }
+   #ifdef PV_USE_MPI
+      MPI_Bcast(&timescale,(int) timescale_size,MPI_CHAR,0,icCommunicator()->communicator());
+   #endif // PV_USE_MPI
+      timeScale = timescale.timeScale;
+      timeScaleTrue = timescale.timeScaleTrue;
    }
-#ifdef PV_USE_MPI
-   MPI_Bcast(&timescale,(int) timescale_size,MPI_CHAR,0,icCommunicator()->communicator());
-#endif // PV_USE_MPI
-   timeScale = timescale.timeScale;
-   timeScaleTrue = timescale.timeScaleTrue;
+
    double checkTime = simTime; // HyPerLayer::checkpointRead gives warnings if the files' timestamps are different from checkTime, but won't quit or change the value of checkTime
    for( int l=0; l<numLayers; l++ ) {
       layers[l]->checkpointRead(cpDir, &checkTime);
