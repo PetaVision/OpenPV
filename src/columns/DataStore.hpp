@@ -23,11 +23,11 @@ class HyPerCol;
 class DataStore
 {
 public:
-#ifdef PV_USE_OPENCL
-   DataStore(HyPerCol * hc, int numBuffers, size_t size, int numLevels, bool copydstoreflag);
-#else
+//#ifdef PV_USE_OPENCL
+//   DataStore(HyPerCol * hc, int numBuffers, size_t size, int numLevels, bool copydstoreflag);
+//#else
    DataStore(HyPerCol * hc, int numBuffers, size_t size, int numLevels);
-#endif
+//#endif
 
    virtual ~DataStore();
 
@@ -55,16 +55,16 @@ private:
    int    numBuffers;
    char*  recvBuffers;
 
-#ifdef PV_USE_OPENCL
-   CLBuffer * clRecvBuffers;
-   cl_event   evCopyDataStore;
-   int numWait;
-public:
-   int initializeThreadBuffers(HyPerCol * hc);
-   int copyBufferToDevice();
-   int waitForCopy();
-   CLBuffer * getCLBuffer() {return clRecvBuffers;}
-#endif
+//#ifdef PV_USE_OPENCL
+//   CLBuffer * clRecvBuffers;
+//   cl_event   evCopyDataStore;
+//   int numWait;
+//public:
+//   int initializeThreadBuffers(HyPerCol * hc);
+//   int copyBufferToDevice();
+//   int waitForCopy();
+//   CLBuffer * getCLBuffer() {return clRecvBuffers;}
+//#endif
 };
 
 } // NAMESPACE

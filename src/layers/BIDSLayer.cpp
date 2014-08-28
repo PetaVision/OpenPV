@@ -114,12 +114,12 @@ int BIDSLayer::updateState(double time, double dt)
    int status = 0;
    update_timer->start();
 
-#ifdef PV_USE_OPENCL
-   if((gpuAccelerateFlag)&&(true)) {
-      updateStateOpenCL(time, dt);
-   }
-   else {
-#endif
+//#ifdef PV_USE_OPENCL
+//   if((gpuAccelerateFlag)&&(true)) {
+//      updateStateOpenCL(time, dt);
+//   }
+//   else {
+//#endif
       const int nx = clayer->loc.nx;
       const int ny = clayer->loc.ny;
       const int nf = clayer->loc.nf;
@@ -148,9 +148,9 @@ int BIDSLayer::updateState(double time, double dt)
          assert(0);
          break;
       }
-#ifdef PV_USE_OPENCL
-   }
-#endif
+//#ifdef PV_USE_OPENCL
+//   }
+//#endif
 
    updateActiveIndices();
    update_timer->stop();

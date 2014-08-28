@@ -15,16 +15,25 @@ if (NOT CMAKE_BUILD_TYPE)        #To use a different CMAKE_BUILD_TYPE, use the o
 endif (NOT CMAKE_BUILD_TYPE)
 
 set(OPEN_MP_THREADS FALSE CACHE PATH "Defines if PetaVision uses OpenMP threads")
+set(OPEN_CL_GPU FALSE CACHE PATH "Defines if PetaVision uses OpenCL GPU")
+set(CUDA_GPU FALSE CACHE PATH "Defines if PetaVision uses OpenCL GPU")
 
 if(OPEN_MP_THREADS)
    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp -DPV_USE_THREADS")
    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp -DPV_USE_THREADS")
 endif (OPEN_MP_THREADS)
 
+if(OPEN_CL_GPU)
+   #TODO: make sure these flags work on linux
+   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DPV_OPENCL")
+   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DPV_OPENCL")
+endif (OPEN_CL_GPU)
+
 set(CMAKE_C_FLAGS_DEBUG "-g3 -O0")
 set(CMAKE_CXX_FLAGS_DEBUG "-g3 -O0")
 set(CMAKE_C_FLAGS_RELEASE "-g0 -O3")
 set(CMAKE_CXX_FLAGS_RELEASE "-g0 -O3")
+
 
 # File which denotes compile-ready folders
 set(PV_SRC_LIST PV_FOLDER_LIST.txt)
@@ -53,6 +62,11 @@ foreach(LIN ${contents})
    file(GLOB_RECURSE libSrcC ${LIN}/*.c)
    set(PVLibSrc ${PVLibSrc} ${libSrcCPP})
    set(PVLibSrc ${PVLibSrc} ${libSrcC})
+
+   if(CUDA_GPU)
+      file(GLOB_RECURSE libSrcCU ${LIN}/*.cu)
+      set(PVLibSrcCu ${PVLibSrcCu} ${libSrcCU})
+   endif(CUDA_GPU)
 endforeach(LIN ${contents})
 
 # Header file to pass CMake settings to source code
@@ -78,9 +92,39 @@ endif (NOT MPI_C_FOUND OR NOT MPI_CXX_FOUND)
 if (LIB_SND_FILE)
     MESSAGE("-- Searching for SND library ............")
     find_package(LIBSNDFILE)
-    ADD_DEFINITIONS(-DPV_USE_SNDFILE)
-    include_directories(${LIBSNDFILE_INCLUDE_DIR})
 endif (LIB_SND_FILE)
 
+if (CUDA_GPU)
+    MESSAGE("-- Searching for CUDA library ............")
+    find_package(CUDA)
+endif (CUDA_GPU)
+
+#Include compiler directive and include directory for LIBSNDFILE
+if (LIB_SND_FILE)
+   ADD_DEFINITIONS(-DPV_USE_SNDFILE)
+   include_directories(${LIBSNDFILE_INCLUDE_DIR})
+else (LIB_SND_FILE)
+   REMOVE_DEFINITIONS(-DPV_USE_SNDFILE)
+endif (LIB_SND_FILE)
+
+#IF(CMAKE_BUILD_TYPE MATCHES DEBUG)
+#   set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -g3; -G3; -O0)
+#ELSE(CMAKE_BUILD_TYPE MATCHES RELEASE)
+#   set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -g0; -G0; -O3)
+#endif(CMAKE_BUILD_TYPE)
+
+if(CUDA_RELEASE)
+   set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -arch=sm_20; -O;)
+else(CUDA_RELEASE)
+   set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -arch=sm_20; -Xptxas; -v; -keep; -lineinfo; -g; -G;)
+endif(CUDA_RELEASE)
+#cuda_compile(CUDA_O ${PVLibSrcCu}) 
+
 # Add PetaVision
-add_library(pv ${PVLibSrc})
+if(CUDA_GPU)
+   cuda_add_library(pv ${PVLibSrc} ${PVLibSrcCu})
+else(CUDA_GPU)
+   add_library(pv ${PVLibSrc})
+endif(CUDA_GPU)
+
+

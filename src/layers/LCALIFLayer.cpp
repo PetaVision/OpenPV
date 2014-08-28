@@ -19,13 +19,13 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#ifndef PV_USE_OPENCL
-#  include "../kernels/LCALIF_update_state.cl"
-#else
+//#ifndef PV_USE_OPENCL
+//#  include "../kernels/LCALIF_update_state.cl"
+//#else
 #  undef PV_USE_OPENCL
 #  include "../kernels/LCALIF_update_state.cl"
 #  define PV_USE_OPENCL
-#endif
+//#endif
 #ifdef __cplusplus
 }
 #endif

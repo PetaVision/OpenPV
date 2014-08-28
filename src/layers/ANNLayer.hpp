@@ -50,22 +50,22 @@ protected:
                      // AShift == 0, hard threshold condition
                      // AShift == VThresh, soft threshold condition
    pvdata_t VWidth;  // The thresholding occurs linearly over the region [VThresh,VThresh+VWidth].  VWidth=0,AShift=0 is standard hard-thresholding
-#ifdef PV_USE_OPENCL
-   virtual int getNumCLEvents() {return numEvents;}
-   virtual const char * getKernelName() { return "ANNLayer_update_state"; }
-   virtual int initializeThreadBuffers(const char * kernel_name);
-   virtual int initializeThreadKernels(const char * kernel_name);
-   //virtual int getEVActivity() {return EV_ANN_ACTIVITY;}
-   int updateStateOpenCL(double time, double dt);
-   //temporary method for debuging recievesynapticinput
-public:
-//   virtual void copyChannelExcFromDevice() {
-//      getChannelCLBuffer(CHANNEL_EXC)->copyFromDevice(&evList[getEVGSynE()]);
-//      clWaitForEvents(1, &evList[getEVGSynE()]);
-//      clReleaseEvent(evList[getEVGSynE()]);
-//   }
-protected:
-#endif // PV_USE_OPENCL
+//#ifdef PV_USE_OPENCL
+//   virtual int getNumCLEvents() {return numEvents;}
+//   virtual const char * getKernelName() { return "ANNLayer_update_state"; }
+//   virtual int initializeThreadBuffers(const char * kernel_name);
+//   virtual int initializeThreadKernels(const char * kernel_name);
+//   //virtual int getEVActivity() {return EV_ANN_ACTIVITY;}
+//   int updateStateOpenCL(double time, double dt);
+//   //temporary method for debuging recievesynapticinput
+//public:
+////   virtual void copyChannelExcFromDevice() {
+////      getChannelCLBuffer(CHANNEL_EXC)->copyFromDevice(&evList[getEVGSynE()]);
+////      clWaitForEvents(1, &evList[getEVGSynE()]);
+////      clReleaseEvent(evList[getEVGSynE()]);
+////   }
+//protected:
+//#endif // PV_USE_OPENCL
 
 private:
    int initialize_base();

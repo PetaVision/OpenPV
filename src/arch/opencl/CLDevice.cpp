@@ -61,6 +61,7 @@ int CLDevice::initialize(int device)
       exit(status);
    }
 
+
    status = clGetPlatformIDs(2, platforms, &num_platforms);
    if (status != CL_SUCCESS) {
       printf("Error: Failed to get platform ids!\n");
@@ -88,6 +89,8 @@ int CLDevice::initialize(int device)
       print_error_code(status);
       exit(status);
    }
+
+   printf("Using device %d\n", device_id);
 
    // create a compute context
    //
@@ -136,6 +139,30 @@ CLBuffer * CLDevice::createBuffer(cl_mem_flags flags, size_t size, void * host_p
 
 #ifdef PV_USE_OPENCL
 
+size_t CLDevice::get_max_work_group(){
+   int    status;
+   cl_device_id device = device_ids[device_id];
+   size_t val;
+   size_t param_value_size;
+   status = clGetDeviceInfo(device, CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(size_t), &val, &param_value_size);
+   return val;
+}
+
+size_t CLDevice::get_max_work_item_dimension(int dimension){
+   int    status;
+   cl_device_id device = device_ids[device_id];
+   const int vals_len = MAX_WORK_ITEM_DIMENSIONS;
+   size_t vals[vals_len];
+   if(dimension >= vals_len){
+      return 0;
+   }
+   size_t param_value_size;
+   status = clGetDeviceInfo(device, CL_DEVICE_MAX_WORK_ITEM_SIZES, vals_len*sizeof(size_t), vals, &param_value_size);
+   return vals[dimension];
+}
+
+
+
 int CLDevice::query_device_info()
 {
    // query and print information about the devices found
@@ -150,9 +177,12 @@ int CLDevice::query_device_info()
    return 0;
 }
 
+
+
+
 int CLDevice::query_device_info(int id, cl_device_id device)
 {
-   const int str_size = 64;
+   const int str_size = 200;
    const int vals_len = MAX_WORK_ITEM_DIMENSIONS;
 
    long long val;
@@ -162,6 +192,8 @@ int CLDevice::query_device_info(int id, cl_device_id device)
    int    status;
    char   param_value[str_size];
    size_t param_value_size;
+
+   printf("device: %d\n", device);
 
    status = clGetDeviceInfo(device, CL_DEVICE_NAME, str_size, param_value, &param_value_size);
    param_value[str_size-1] = '\0';
@@ -234,6 +266,18 @@ int CLDevice::query_device_info(int id, cl_device_id device)
 
    status = clGetDeviceInfo(device, CL_DEVICE_GLOBAL_MEM_CACHELINE_SIZE, sizeof(val), &val, &param_value_size);
    printf("\tGlobal mem cache line size == %u\n", (unsigned int) val);
+
+   status = clGetDeviceInfo(device, CL_DEVICE_MAX_CONSTANT_ARGS, sizeof(val), &val, &param_value_size);
+   printf("\tMax constant arguments == %u\n", (unsigned int) val);
+
+   status = clGetDeviceInfo(device, CL_DEVICE_MAX_CONSTANT_BUFFER_SIZE, sizeof(val), &val, &param_value_size);
+   printf("\tMax constant buffer size == %lu\n", (unsigned long) val);
+
+   status = clGetDeviceInfo(device, CL_DEVICE_MAX_MEM_ALLOC_SIZE, sizeof(val), &val, &param_value_size);
+   printf("\tMax mem alloc size == %lu\n", (unsigned long) val);
+
+   status = clGetDeviceInfo(device, CL_DEVICE_PREFERRED_VECTOR_WIDTH_FLOAT, sizeof(val), &val, &param_value_size);
+   printf("\tPreferred vector width float == %u\n", (unsigned int) val);
 
    printf("\n");
 

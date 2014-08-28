@@ -70,10 +70,10 @@ Retina::Retina() {
 Retina::Retina(const char * name, HyPerCol * hc) {
    initialize_base();
    initialize(name, hc, TypeRetina);
-#ifdef PV_USE_OPENCL
-   if(gpuAccelerateFlag)
-      initializeGPU();
-#endif
+//#ifdef PV_USE_OPENCL
+//   if(gpuAccelerateFlag)
+//      initializeGPU();
+//#endif
 }
 
 Retina::~Retina()
@@ -82,13 +82,13 @@ Retina::~Retina()
       delete randState[n];
       if (n!=0) free(border_indices[n]);
    }
-#ifdef PV_USE_OPENCL
-   if((gpuAccelerateFlag)&&(spikingFlag)) {
-      delete clRand;
-   }
-   // Moved to HyPerLayer since evList is a HyPerLayer member variable
-//    free(evList);
-#endif
+//#ifdef PV_USE_OPENCL
+//   if((gpuAccelerateFlag)&&(spikingFlag)) {
+//      delete clRand;
+//   }
+//   // Moved to HyPerLayer since evList is a HyPerLayer member variable
+////    free(evList);
+//#endif
 }
 
 int Retina::initialize_base() {
@@ -117,116 +117,116 @@ int Retina::initialize(const char * name, HyPerCol * hc, PVLayerType type) {
 
    setRetinaParams(parent->parameters());
 
-#ifdef PV_USE_OPENCL
-   numEvents=NUM_RETINA_EVENTS;
-//this code was moved to Hyperlayer:initializeGPU():
+//#ifdef PV_USE_OPENCL
+//   numEvents=NUM_RETINA_EVENTS;
+////this code was moved to Hyperlayer:initializeGPU():
+////   CLDevice * device = parent->getCLDevice();
+////
+////   numWait = 0;
+////   numEvents = NUM_RETINA_EVENTS;
+////   evList = (cl_event *) malloc(numEvents*sizeof(cl_event));
+////   assert(evList != NULL);
+////
+////   // TODO - fix to use device and layer parameters
+////   if (device->id() == 1) {
+////      nxl = 1;  nyl = 1;
+////   }
+////   else {
+////      nxl = 16; nyl = 8;
+////   }
+////
+////   const char * kernel_name;
+////   if (spikingFlag) {
+////      kernel_name = "Retina_spiking_update_state";
+////   }
+////   else {
+////      kernel_name = "Retina_nonspiking_update_state";
+////   }
+////
+////   initializeThreadBuffers(kernel_name);
+////   initializeThreadKernels(kernel_name);
+//#endif
+
+   return status;
+}
+
+//#ifdef PV_USE_OPENCL
+///**
+// * Initialize OpenCL buffers.  This must be called after PVLayer data have
+// * been allocated.
+// */
+//int Retina::initializeThreadBuffers(const char * kernel_name)
+//{
+//   int status = HyPerLayer::initializeThreadBuffers(kernel_name);
+//
 //   CLDevice * device = parent->getCLDevice();
 //
-//   numWait = 0;
-//   numEvents = NUM_RETINA_EVENTS;
-//   evList = (cl_event *) malloc(numEvents*sizeof(cl_event));
-//   assert(evList != NULL);
+//   // TODO - use constant memory --done!
+//   clParams = device->createBuffer(CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(rParams), &rParams);
+////   clParams->copyToDevice(&evUpdate);
+////   status |= clWaitForEvents(1, &evUpdate);
+////   clReleaseEvent(evUpdate);
 //
-//   // TODO - fix to use device and layer parameters
-//   if (device->id() == 1) {
-//      nxl = 1;  nyl = 1;
-//   }
-//   else {
-//      nxl = 16; nyl = 8;
-//   }
-//
-//   const char * kernel_name;
 //   if (spikingFlag) {
-//      kernel_name = "Retina_spiking_update_state";
-//   }
-//   else {
-//      kernel_name = "Retina_nonspiking_update_state";
+//      clRand   = device->createBuffer(CL_MEM_COPY_HOST_PTR, getNumNeurons()*sizeof(uint4), *rand_state);
+////      clRand->copyToDevice(&evUpdate);
+////      status |= clWaitForEvents(1, &evUpdate);
+////      clReleaseEvent(evUpdate);
 //   }
 //
-//   initializeThreadBuffers(kernel_name);
-//   initializeThreadKernels(kernel_name);
-#endif
-
-   return status;
-}
-
-#ifdef PV_USE_OPENCL
-/**
- * Initialize OpenCL buffers.  This must be called after PVLayer data have
- * been allocated.
- */
-int Retina::initializeThreadBuffers(const char * kernel_name)
-{
-   int status = HyPerLayer::initializeThreadBuffers(kernel_name);
-
-   CLDevice * device = parent->getCLDevice();
-
-   // TODO - use constant memory --done!
-   clParams = device->createBuffer(CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(rParams), &rParams);
-//   clParams->copyToDevice(&evUpdate);
-//   status |= clWaitForEvents(1, &evUpdate);
-//   clReleaseEvent(evUpdate);
-
-   if (spikingFlag) {
-      clRand   = device->createBuffer(CL_MEM_COPY_HOST_PTR, getNumNeurons()*sizeof(uint4), *rand_state);
-//      clRand->copyToDevice(&evUpdate);
-//      status |= clWaitForEvents(1, &evUpdate);
-//      clReleaseEvent(evUpdate);
-   }
-
-   return status;
-}
-
-int Retina::initializeThreadKernels(const char * kernel_name)
-{
-   char kernelPath[256];
-   char kernelFlags[256];
-
-   int status = CL_SUCCESS;
-   CLDevice * device = parent->getCLDevice();
-
-   const char * pvRelPath = "../PetaVision";
-   sprintf(kernelPath,  "%s/%s/src/kernels/Retina_update_state.cl", parent->getSrcPath(), pvRelPath);
-   sprintf(kernelFlags, "-D PV_USE_OPENCL -cl-fast-relaxed-math -I %s/%s/src/kernels/", parent->getSrcPath(), pvRelPath);
-
-   // create kernels
-   //
-   krUpdate = device->createKernel(kernelPath, kernel_name, kernelFlags);
-//kernel name should already be set correctly!
+//   return status;
+//}
+//
+//int Retina::initializeThreadKernels(const char * kernel_name)
+//{
+//   char kernelPath[256];
+//   char kernelFlags[256];
+//
+//   int status = CL_SUCCESS;
+//   CLDevice * device = parent->getCLDevice();
+//
+//   const char * pvRelPath = "../PetaVision";
+//   sprintf(kernelPath,  "%s/%s/src/kernels/Retina_update_state.cl", parent->getSrcPath(), pvRelPath);
+//   sprintf(kernelFlags, "-D PV_USE_OPENCL -cl-fast-relaxed-math -I %s/%s/src/kernels/", parent->getSrcPath(), pvRelPath);
+//
+//   // create kernels
+//   //
+//   krUpdate = device->createKernel(kernelPath, kernel_name, kernelFlags);
+////kernel name should already be set correctly!
+////   if (spikingFlag) {
+////      krUpdate = device->createKernel(kernelPath, kernel_name, kernelFlags);
+////   }
+////   else {
+////      krUpdate = device->createKernel(kernelPath, "Retina_nonspiking_update_state", kernelFlags);
+////   }
+//
+//   int argid = 0;
+//
+//   status |= krUpdate->setKernelArg(argid++, getNumNeurons());
+//   status |= krUpdate->setKernelArg(argid++, parent->simulationTime());
+//   status |= krUpdate->setKernelArg(argid++, parent->getDeltaTime());
+//
+//   status |= krUpdate->setKernelArg(argid++, clayer->loc.nx);
+//   status |= krUpdate->setKernelArg(argid++, clayer->loc.ny);
+//   status |= krUpdate->setKernelArg(argid++, clayer->loc.nf);
+//   status |= krUpdate->setKernelArg(argid++, clayer->loc.nb);
+//
+//   status |= krUpdate->setKernelArg(argid++, clParams);
 //   if (spikingFlag) {
-//      krUpdate = device->createKernel(kernelPath, kernel_name, kernelFlags);
+//      status |= krUpdate->setKernelArg(argid++, clRand);
 //   }
-//   else {
-//      krUpdate = device->createKernel(kernelPath, "Retina_nonspiking_update_state", kernelFlags);
+//
+//   status |= krUpdate->setKernelArg(argid++, getChannelCLBuffer());
+////   status |= krUpdate->setKernelArg(argid++, getChannelCLBuffer(CHANNEL_EXC));
+////   status |= krUpdate->setKernelArg(argid++, getChannelCLBuffer(CHANNEL_INH));
+//   status |= krUpdate->setKernelArg(argid++, clActivity);
+//   if (spikingFlag) {
+//      status |= krUpdate->setKernelArg(argid++, clPrevTime);
 //   }
-
-   int argid = 0;
-
-   status |= krUpdate->setKernelArg(argid++, getNumNeurons());
-   status |= krUpdate->setKernelArg(argid++, parent->simulationTime());
-   status |= krUpdate->setKernelArg(argid++, parent->getDeltaTime());
-
-   status |= krUpdate->setKernelArg(argid++, clayer->loc.nx);
-   status |= krUpdate->setKernelArg(argid++, clayer->loc.ny);
-   status |= krUpdate->setKernelArg(argid++, clayer->loc.nf);
-   status |= krUpdate->setKernelArg(argid++, clayer->loc.nb);
-
-   status |= krUpdate->setKernelArg(argid++, clParams);
-   if (spikingFlag) {
-      status |= krUpdate->setKernelArg(argid++, clRand);
-   }
-
-   status |= krUpdate->setKernelArg(argid++, getChannelCLBuffer());
-//   status |= krUpdate->setKernelArg(argid++, getChannelCLBuffer(CHANNEL_EXC));
-//   status |= krUpdate->setKernelArg(argid++, getChannelCLBuffer(CHANNEL_INH));
-   status |= krUpdate->setKernelArg(argid++, clActivity);
-   if (spikingFlag) {
-      status |= krUpdate->setKernelArg(argid++, clPrevTime);
-   }
-
-   return status;
-}
-#endif
+//
+//   return status;
+//}
+//#endif
 
 int Retina::communicateInitInfo() {
    int status = HyPerLayer::communicateInitInfo();
@@ -504,34 +504,34 @@ int Retina::updateStateOpenCL(double time, double dt)
 {
    int status = CL_SUCCESS;
 
-#ifdef PV_USE_OPENCL
-   // wait for memory to be copied to device
-   if (numWait > 0) {
-       status |= clWaitForEvents(numWait, evList);
-   }
-   for (int i = 0; i < numWait; i++) {
-      clReleaseEvent(evList[i]);
-   }
-   numWait = 0;
-
-   status |= krUpdate->setKernelArg(1, time);
-   status |= krUpdate->setKernelArg(2, dt);
-   status |= krUpdate->run(getNumNeurons(), nxl*nyl, 0, NULL, &evUpdate);
-   krUpdate->finish();
-
-   status |= getChannelCLBuffer()->copyFromDevice(1, &evUpdate, &evList[getEVGSyn()]);
-//   status |= getChannelCLBuffer(CHANNEL_EXC)->copyFromDevice(1, &evUpdate, &evList[getEVGSynE()]);
-//   status |= getChannelCLBuffer(CHANNEL_INH)->copyFromDevice(1, &evUpdate, &evList[getEVGSynI()]);
-   status |= clActivity->copyFromDevice(1, &evUpdate, &evList[getEVActivity()]);
-   numWait += 2;
-
-#if PV_CL_COPY_BUFFERS
-   status |= clPhiE    ->copyFromDevice(1, &evUpdate, &evList[EV_R_PHI_E]);
-   status |= clPhiI    ->copyFromDevice(1, &evUpdate, &evList[EV_R_PHI_I]);
-   status |= clActivity->copyFromDevice(1, &evUpdate, &evList[EV_R_ACTIVITY]);
-   numWait += 3;
-#endif
-#endif
+//#ifdef PV_USE_OPENCL
+//   // wait for memory to be copied to device
+//   if (numWait > 0) {
+//       status |= clWaitForEvents(numWait, evList);
+//   }
+//   for (int i = 0; i < numWait; i++) {
+//      clReleaseEvent(evList[i]);
+//   }
+//   numWait = 0;
+//
+//   status |= krUpdate->setKernelArg(1, time);
+//   status |= krUpdate->setKernelArg(2, dt);
+//   status |= krUpdate->run(getNumNeurons(), nxl*nyl, 0, NULL, &evUpdate);
+//   krUpdate->finish();
+//
+//   status |= getChannelCLBuffer()->copyFromDevice(1, &evUpdate, &evList[getEVGSyn()]);
+////   status |= getChannelCLBuffer(CHANNEL_EXC)->copyFromDevice(1, &evUpdate, &evList[getEVGSynE()]);
+////   status |= getChannelCLBuffer(CHANNEL_INH)->copyFromDevice(1, &evUpdate, &evList[getEVGSynI()]);
+//   status |= clActivity->copyFromDevice(1, &evUpdate, &evList[getEVActivity()]);
+//   numWait += 2;
+//
+//#if PV_CL_COPY_BUFFERS
+//   status |= clPhiE    ->copyFromDevice(1, &evUpdate, &evList[EV_R_PHI_E]);
+//   status |= clPhiI    ->copyFromDevice(1, &evUpdate, &evList[EV_R_PHI_I]);
+//   status |= clActivity->copyFromDevice(1, &evUpdate, &evList[EV_R_ACTIVITY]);
+//   numWait += 3;
+//#endif
+//#endif
 
    return status;
 }
@@ -543,16 +543,16 @@ int Retina::waitOnPublish(InterColComm* comm)
 
    // copy activity to device
    //
-#ifdef PV_USE_OPENCL
-#if PV_CL_COPY_BUFFERS
-   publish_timer->start();
-
-   status |= clActivity->copyToDevice(&evList[EV_R_ACTIVITY]);
-   numWait += 1;
-
-   publish_timer->stop();
-#endif
-#endif
+//#ifdef PV_USE_OPENCL
+//#if PV_CL_COPY_BUFFERS
+//   publish_timer->start();
+//
+//   status |= clActivity->copyToDevice(&evList[EV_R_ACTIVITY]);
+//   numWait += 1;
+//
+//   publish_timer->stop();
+//#endif
+//#endif
 
    return status;
 }
@@ -579,12 +579,12 @@ int Retina::waitOnPublish(InterColComm* comm)
 int Retina::updateState(double timed, double dt)
 {
    update_timer->start();
-#ifdef PV_USE_OPENCL
-   if((gpuAccelerateFlag)&&(true)) {
-      updateStateOpenCL(timed, dt);
-   }
-   else {
-#endif // PV_USE_OPENCL
+//#ifdef PV_USE_OPENCL
+//   if((gpuAccelerateFlag)&&(true)) {
+//      updateStateOpenCL(timed, dt);
+//   }
+//   else {
+//#endif // PV_USE_OPENCL
       const int nx = clayer->loc.nx;
       const int ny = clayer->loc.ny;
       const int nf = clayer->loc.nf;
@@ -602,9 +602,9 @@ int Retina::updateState(double timed, double dt)
          Retina_nonspiking_update_state(getNumNeurons(), timed, dt, nx, ny, nf, nb,
                                         &rParams, GSynHead, activity);
       }
-#ifdef PV_USE_OPENCL
-   }
-#endif // PV_USE_OPENCL
+//#ifdef PV_USE_OPENCL
+//   }
+//#endif // PV_USE_OPENCL
 
 #ifdef DEBUG_PRINT
    char filename[132];

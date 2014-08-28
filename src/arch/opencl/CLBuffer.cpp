@@ -89,6 +89,7 @@ int CLBuffer::copyFromDevice(void * host_ptr, unsigned int nWait, cl_event * wai
 #endif
 
    // write data from host_ptr into the buffer in device memory
+   // TODO make this read a nonblocking read false
    //
    status = clEnqueueReadBuffer(commands, d_buf, CL_TRUE, 0, size,
                                 host_ptr, nWait, waitList, ev);
@@ -109,6 +110,10 @@ int CLBuffer::copyFromDevice(void * host_ptr, unsigned int nWait, cl_event * wai
    
 void * CLBuffer::map(cl_map_flags flags)
 {
+   //TODO doesn't work on neuro
+   printf("Unmap not implemented\n");
+   exit(1);
+
    int status = 0;
 
 #ifdef PV_USE_TAU
@@ -127,7 +132,10 @@ void * CLBuffer::map(cl_map_flags flags)
    }
 
    //TODO - or use Marker?
-   status = clEnqueueBarrierWithWaitList(commands, 0, NULL, &event);
+   
+   //TODO this doesn't work on neuro
+   //status = clEnqueueBarrierWithWaitList(commands, 0, NULL, &event);
+
 #ifdef PV_USE_TAU
    Tau_opencl_exit_memcpy_event(tau_id, MemcpyDtoH);
 #endif
@@ -166,6 +174,10 @@ int CLBuffer::unmap(void * mapped_ptr)
 {
    int status = CL_SUCCESS;
 
+   //TODO doesn't work on neuro
+   printf("Unmap not implemented\n");
+   exit(1);
+
    h_ptr = NULL;  // buffer no longer mapped for host usage
 
 #ifdef PV_USE_TAU
@@ -183,7 +195,10 @@ int CLBuffer::unmap(void * mapped_ptr)
    }
 
    //TODO - or use Marker?
-   status = clEnqueueBarrierWithWaitList(commands, 0, NULL, &event);
+   //Doesn't work on neuro
+   //status = clEnqueueBarrierWithWaitList(commands, 0, NULL, &event);
+
+
 #ifdef PV_USE_TAU
    Tau_opencl_exit_memcpy_event(tau_id, MemcpyHtoD);
 #endif

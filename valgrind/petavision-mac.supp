@@ -42,13 +42,6 @@
 }
 
 {
-   <suppression_leak_ompi_comm_activate>
-   Memcheck:Leak
-   ...
-   fun:ompi_comm_activate
-}
-
-{
    <suppression_leak_orte_progress_thread_engine>
    Memcheck:Leak
    ...

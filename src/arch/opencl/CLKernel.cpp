@@ -30,7 +30,9 @@ CLKernel::CLKernel(cl_context context, cl_command_queue commands, cl_device_id d
 {
    this->device = device;
    this->commands = commands;
-   this->profiling = true;
+   //this->profiling = true;
+   //Profiling doesn't work on neuro
+   this->profiling = false;
    this->elapsed = 0;
 
 #ifdef PV_USE_OPENCL
@@ -55,7 +57,7 @@ CLKernel::CLKernel(cl_context context, cl_command_queue commands, cl_device_id d
    if (status != CL_SUCCESS)
    {
        size_t len;
-       char buffer[53192]; //[12050]; //[8192];
+       char buffer[150641]; //[12050]; //[8192];
 
        printf("Error: Failed to build program executable!\n");
        CLDevice::print_error_code(status);
@@ -87,6 +89,41 @@ CLKernel::CLKernel(cl_context context, cl_command_queue commands, cl_device_id d
 
 CLKernel::~CLKernel()
 {
+}
+
+int CLKernel::run(size_t global_work_size,
+                  unsigned int nWait, cl_event * waitList, cl_event * ev)
+{
+   int status = CL_SUCCESS;
+
+#ifdef PV_USE_OPENCL
+
+   size_t max_local_size;
+
+   // get the maximum work group size for executing the kernel on the device
+   //
+   status = clGetKernelWorkGroupInfo(kernel, device, CL_KERNEL_WORK_GROUP_SIZE,
+                                     sizeof(size_t), &max_local_size, NULL);
+   if (status != CL_SUCCESS) {
+      fprintf(stderr, "Error: Failed to retrieve kernel work group info! %d\n", status);
+      CLDevice::print_error_code(status);
+      exit(status);
+   }
+
+   // execute the kernel over the entire range of our 1d input data set
+   // using the maximum number of work group items for this device
+   //
+   status = clEnqueueNDRangeKernel(commands, kernel, 1, NULL,
+                                   &global_work_size, NULL, nWait, waitList, ev);
+   if (status != CL_SUCCESS) {
+      fprintf(stderr, "CLDevice::run(): Failed to execute kernel!\n");
+      CLDevice::print_error_code(status);
+      exit(status);
+   }
+
+#endif // PV_USE_OPENCL
+
+   return status;
 }
 
 int CLKernel::run(size_t global_work_size, size_t local_work_size,
@@ -167,27 +204,160 @@ int CLKernel::run(size_t gWorkSizeX, size_t gWorkSizeY, size_t lWorkSizeX, size_
    }
 
    if (lWorkSizeX * lWorkSizeY > max_local_size) {
-      local_work_size[0] = 1;
-      local_work_size[1] = 1;
+      fprintf(stderr, "Error: Work size of %lu is bigger than max_local_size of %d\n", lWorkSizeX * lWorkSizeY, (int)max_local_size);
+      exit(-1);
    }
 
    // execute the kernel over the entire range of our 1d input data set
    // using the maximum number of work group items for this device
    //
    cl_event startMark, endMark;
+
+   //TODO doesn't work on neuro
    if (profiling) {
+      //TODO doesn't work on neuro
+      printf("Profiling not implemented\n");
+      exit(1);
+
       //TODO - why not use clEnqueueBarrierWithWaitList
-      int error = clEnqueueMarkerWithWaitList(commands, nWait, waitList, &startMark);
-      error |= clFinish(commands);
-      if (error) CLDevice::print_error_code(error);
+      //int error = clEnqueueMarkerWithWaitList(commands, nWait, waitList, &startMark);
+      //error |= clFinish(commands);
+      //if (error) CLDevice::print_error_code(error);
    }
+
    status = clEnqueueNDRangeKernel(commands, kernel, 2, NULL,
                                    global_work_size, local_work_size, nWait, waitList, ev);
+
+   //TODO doesn't work on neuro
    if (profiling) {
-      int error = clEnqueueMarkerWithWaitList(commands, nWait, waitList, &endMark);
-      error |= clFinish(commands);
-      if (error) CLDevice::print_error_code(error);
+      //TODO doesn't work on neuro
+      printf("Profiling not implemented\n");
+      exit(1);
+
+      //int error = clEnqueueMarkerWithWaitList(commands, nWait, waitList, &endMark);
+      //error |= clFinish(commands);
+      //if (error) CLDevice::print_error_code(error);
    }
+
+   //clFinish(commands);
+   if (status) {
+      fprintf(stderr, "CLDevice::run(): Failed to execute kernel! (status==%d)\n", status);
+      fprintf(stderr, "CLDevice::run(): max_local_work_size==%ld\n", max_local_size);
+      CLDevice::print_error_code(status);
+      exit(status);
+   }
+
+   // get profiling information
+   //
+   if (profiling) {
+      //size_t param_size;
+      cl_ulong start=0, end=0;
+#ifdef PV_USE_TAU
+      tau_id += 1000;
+      TAU_STOP("CLKernel::run::CPU");
+#endif
+//      status = clGetEventProfilingInfo(*ev, CL_PROFILING_COMMAND_START,
+//                                       sizeof(start), &start, &param_size);
+//      status = clGetEventProfilingInfo(*ev, CL_PROFILING_COMMAND_END,
+//                                       sizeof(end), &end, &param_size);
+      status = clGetEventProfilingInfo(startMark, CL_PROFILING_COMMAND_END,
+                                       sizeof(start), &start, NULL);
+      status |= clGetEventProfilingInfo(endMark, CL_PROFILING_COMMAND_END,
+                                       sizeof(end), &end, NULL);
+      if (status == 0) {
+         elapsed = (end - start) / 1000;  // microseconds
+      }
+      //fprintf(stderr, "status %d\n",status);
+      //CLDevice::print_error_code(status);
+      //fprintf(stderr, "start %lu, end %lu, elapsed %u\n",(unsigned long)start, (unsigned long)end, elapsed);
+#ifdef PV_USE_TAU
+      Tau_opencl_register_gpu_event("CLKernel::run::GPU", tau_id, start, end);
+#endif
+   }
+
+#endif // PV_USE_OPENCL
+
+   return status;
+}
+
+int CLKernel::run(size_t gWorkSizeX, size_t gWorkSizeY, size_t gWorkSizeF,
+                  size_t lWorkSizeX, size_t lWorkSizeY, size_t lWorkSizeF,
+                  unsigned int nWait, cl_event * waitList, cl_event * ev)
+{
+   int status = CL_SUCCESS;
+
+#ifdef PV_USE_OPENCL
+
+   size_t local_work_size[3];
+   size_t global_work_size[3];
+   size_t max_local_size;
+
+   global_work_size[0] = gWorkSizeX;
+   global_work_size[1] = gWorkSizeY;
+   global_work_size[2] = gWorkSizeF;
+
+   local_work_size[0] = lWorkSizeX;
+   local_work_size[1] = lWorkSizeY;
+   local_work_size[2] = lWorkSizeF;
+
+#ifdef PV_USE_TAU
+   int tau_id = 10;
+   TAU_START("CLKernel::run::CPU");
+#endif
+
+   // get the maximum work group size for executing the kernel on the device
+   //
+   status = clGetKernelWorkGroupInfo(kernel, device, CL_KERNEL_WORK_GROUP_SIZE,
+                                     sizeof(size_t), &max_local_size, NULL);
+   if (status != CL_SUCCESS) {
+      fprintf(stderr, "Error: Failed to retrieve kernel work group info! (status==%d)\n", status);
+      CLDevice::print_error_code(status);
+      exit(status);
+   } else {
+//      printf("run: local_work_size==(%ld,%ld) global_work_size==(%ld,%ld)\n",
+//             local_work_size[0], local_work_size[1], global_work_size[0], global_work_size[1]);
+   }
+
+   if (lWorkSizeX * lWorkSizeY * lWorkSizeF > max_local_size) {
+      fprintf(stderr, "Error: Work size of %lu is bigger than max_local_size of %d\n", lWorkSizeX * lWorkSizeY * lWorkSizeF, (int)max_local_size);
+      exit(-1);
+   }
+
+   // execute the kernel over the entire range of our 1d input data set
+   // using the maximum number of work group items for this device
+   //
+   cl_event startMark, endMark;
+
+   //TODO doesn't work on neuro
+   if (profiling) {
+      //TODO doesn't work on neuro
+      printf("Profiling not implemented\n");
+      exit(1);
+
+      //TODO - why not use clEnqueueBarrierWithWaitList
+      //int error = clEnqueueMarkerWithWaitList(commands, nWait, waitList, &startMark);
+      //error |= clFinish(commands);
+      //if (error) CLDevice::print_error_code(error);
+   }
+   
+   if(local_work_size[0] == 0 || local_work_size[1] == 0 || local_work_size[2] == 0){
+      status = clEnqueueNDRangeKernel(commands, kernel, 3, NULL,
+                                      global_work_size, NULL, nWait, waitList, ev);
+   }
+   else{
+      status = clEnqueueNDRangeKernel(commands, kernel, 3, NULL,
+                                      global_work_size, local_work_size, nWait, waitList, ev);
+   }
+   //TODO doesn't work with neuro
+   if (profiling) {
+      //TODO doesn't work on neuro
+      printf("Profiling not implemented\n");
+      exit(1);
+      //int error = clEnqueueMarkerWithWaitList(commands, nWait, waitList, &endMark);
+      //error |= clFinish(commands);
+      //if (error) CLDevice::print_error_code(error);
+   }
+
    //clFinish(commands);
    if (status) {
       fprintf(stderr, "CLDevice::run(): Failed to execute kernel! (status==%d)\n", status);

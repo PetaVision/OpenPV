@@ -68,28 +68,28 @@ protected:
    int allocateBorderIndices(int neighbor, size_t xCount, size_t yCount, size_t fCount, int indexStart, int indexStride);
    virtual int initializeV();
    virtual int initializeActivity();
+//#ifdef PV_USE_OPENCL
+//   //int initializeGPU();  //right now there's no use for a Retina specific version
+//   virtual int getNumCLEvents() {return numEvents;}
+//   virtual const char * getKernelName() {
+//      return spikingFlag ? "Retina_spiking_update_state" : "Retina_nonspiking_update_state";
+//   }
+//   virtual int initializeThreadBuffers(const char * kernel_name);
+//   virtual int initializeThreadKernels(const char * kernel_name);
+//   //virtual int getEVActivity() {return EV_R_ACTIVITY;}
+//
+//   CLBuffer * clRand;
+//#endif
    virtual int readStateFromCheckpoint(const char * cpDir, double * timeptr);
    virtual int readRandStateFromCheckpoint(const char * cpDir);
-#ifdef PV_USE_OPENCL
-   //int initializeGPU();  //right now there's no use for a Retina specific version
-   virtual int getNumCLEvents() {return numEvents;}
-   virtual const char * getKernelName() {
-      return spikingFlag ? "Retina_spiking_update_state" : "Retina_nonspiking_update_state";
-   }
-   virtual int initializeThreadBuffers(const char * kernel_name);
-   virtual int initializeThreadKernels(const char * kernel_name);
-   //virtual int getEVActivity() {return EV_R_ACTIVITY;}
-
-   CLBuffer * clRand;
-#endif
 
    bool spikingFlag;        // specifies that layer is spiking
    Retina_params rParams;   // used in update state
    Random * randState[NUM_NEIGHBORHOOD];
-#ifdef PV_USE_OPENCL
-   //TODO-Rasmussen-2014.5.24 - need to figure out interaction between Random class and rand_state
-   uint4 * rand_state[NUM_NEIGHBORHOOD];      // state for random numbers // rand_state[0] for the restricted region; rand_state[1] for northwest corner for background activity, etc.
-#endif
+//#ifdef PV_USE_OPENCL
+//   //TODO-Rasmussen-2014.5.24 - need to figure out interaction between Random class and rand_state
+//   uint4 * rand_state[NUM_NEIGHBORHOOD];      // state for random numbers // rand_state[0] for the restricted region; rand_state[1] for northwest corner for background activity, etc.
+//#endif
    size_t rand_state_size[NUM_NEIGHBORHOOD]; // Size of each rand_state pointer.  rand_state_size[0]=numNeurons (local); rand_state_size[NORTHWEST]=nb*nb*nf if the column is in the northwest corner, etc.
    int * border_indices[NUM_NEIGHBORHOOD];
    float probStimParam;

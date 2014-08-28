@@ -47,7 +47,7 @@
 
 // guess at maxinum number of devices (CPU + GPU)
 //
-#define MAX_DEVICES (2)
+#define MAX_DEVICES (5)
 
 // guess at maximum work item dimensions
 //

@@ -28,10 +28,15 @@ public:
    int setKernelArg(int argid, CLBuffer * buf);
    int setLocalArg(int argid, size_t size);
 
+   int run(size_t global_work_size,
+         unsigned int nWait, cl_event * waitList, cl_event * ev);
    int run(size_t global_work_size, size_t local_work_size,
          unsigned int nWait, cl_event * waitList, cl_event * ev);
    int run(size_t gWorkSizeX, size_t gWorkSizeY, size_t lWorkSizeX, size_t lWorkSizeY,
            unsigned int nWait, cl_event * waitList, cl_event * ev);
+   int run(size_t gWorkSizeX, size_t gWorkSizeY, size_t gWorkSizeF,
+                  size_t lWorkSizeX, size_t lWorkSizeY, size_t lWorkSizeF,
+                  unsigned int nWait, cl_event * waitList, cl_event * ev);
 
 //   int run(size_t global_work_size, size_t local_work_size)
 //      {

@@ -38,26 +38,26 @@ protected:
    virtual void ioParam_targetRate(enum ParamsIOFlag ioFlag);
    virtual void ioParam_normalizeInput(enum ParamsIOFlag ioFlag);
    virtual void ioParam_Vscale(enum ParamsIOFlag ioFlag);
+//#ifdef PV_USE_OPENCL
+//
+//   // OpenCL buffers
+//   //
+//   CLBuffer * clG_Gap;
+//   CLBuffer * clGSynGap;
+//
+//   virtual int getEVGSynGap() {return EV_LIFGAP_GSYN_GAP;}
+//   //virtual int getEVActivity() {return EV_LIFGAP_ACTIVITY;}
+//   virtual inline int getGSynEvent(ChannelType ch) {
+//      if(LIF::getGSynEvent(ch)>=0) return LIF::getGSynEvent(ch);
+//      if(ch==CHANNEL_GAP) return getEVGSynGap();
+//      return -1;
+//   }
+//   virtual int getNumCLEvents(){return NUM_LIFGAP_EVENTS;}
+//   virtual const char * getKernelName() {return "LCALIF_update_state";}
+//#endif
    virtual int readStateFromCheckpoint(const char * cpDir, double * timeptr);
    virtual int read_integratedSpikeCountFromCheckpoint(const char * cpDir, double * timeptr);
    virtual int readVadptFromCheckpoint(const char * cpDir, double * timeptr);
-#ifdef PV_USE_OPENCL
-
-   // OpenCL buffers
-   //
-   CLBuffer * clG_Gap;
-   CLBuffer * clGSynGap;
-
-   virtual int getEVGSynGap() {return EV_LIFGAP_GSYN_GAP;}
-   //virtual int getEVActivity() {return EV_LIFGAP_ACTIVITY;}
-   virtual inline int getGSynEvent(ChannelType ch) {
-      if(LIF::getGSynEvent(ch)>=0) return LIF::getGSynEvent(ch);
-      if(ch==CHANNEL_GAP) return getEVGSynGap();
-      return -1;
-   }
-   virtual int getNumCLEvents(){return NUM_LIFGAP_EVENTS;}
-   virtual const char * getKernelName() {return "LCALIF_update_state";}
-#endif
 
    int allocateBuffers();
 

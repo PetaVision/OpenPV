@@ -109,41 +109,41 @@ LIFGap::LIFGap() {
 LIFGap::LIFGap(const char * name, HyPerCol * hc) {
    initialize_base();
    initialize(name, hc, TypeLIFGap, "LIFGap_update_state");
-#ifdef PV_USE_OPENCL
-   if(gpuAccelerateFlag)
-      initializeGPU();
-#endif
+//#ifdef PV_USE_OPENCL
+//   if(gpuAccelerateFlag)
+//      initializeGPU();
+//#endif
 }
 
 LIFGap::LIFGap(const char * name, HyPerCol * hc, PVLayerType type) {
    initialize_base();
    initialize(name, hc, type, "LIFGap_update_state");
-#ifdef PV_USE_OPENCL
-   if(gpuAccelerateFlag)
-      initializeGPU();
-#endif
+//#ifdef PV_USE_OPENCL
+//   if(gpuAccelerateFlag)
+//      initializeGPU();
+//#endif
 }
 
 LIFGap::~LIFGap()
 {
 
    // gapStrength points into conductances, already freed by LIF destructor
-#ifdef PV_USE_OPENCL
-   if(gpuAccelerateFlag) {
-      delete clG_Gap;
-      delete clGSynGap;
-   }
-#endif
+//#ifdef PV_USE_OPENCL
+//   if(gpuAccelerateFlag) {
+//      delete clG_Gap;
+//      delete clGSynGap;
+//   }
+//#endif
 
 }
 
 int LIFGap::initialize_base() {
    numChannels = 4;
    gapStrength = NULL;
-#ifdef PV_USE_OPENCL
-   clG_Gap = NULL;
-   clGSynGap = NULL;
-#endif
+//#ifdef PV_USE_OPENCL
+//   clG_Gap = NULL;
+//   clGSynGap = NULL;
+//#endif
 
    return PV_SUCCESS;
 }
@@ -155,54 +155,54 @@ int LIFGap::initialize_base() {
 int LIFGap::initialize(const char * name, HyPerCol * hc, PVLayerType type, const char * kernel_name) {
    int status = LIF::initialize(name, hc, type, kernel_name);
 
-#ifdef PV_USE_OPENCL
-   numEvents=NUM_LIFGAP_EVENTS;
-#endif
+//#ifdef PV_USE_OPENCL
+//   numEvents=NUM_LIFGAP_EVENTS;
+//#endif
 
    return status;
 }
 
 
-#ifdef PV_USE_OPENCL
-/**
- * Initialize OpenCL buffers.  This must be called after PVLayer data have
- * been allocated.
- */
-int LIFGap::initializeThreadBuffers(const char * kernel_name)
-{
-   int status = CL_SUCCESS;
-
-   status = LIF::initializeThreadBuffers(kernel_name);
-
-   const size_t size    = getNumNeurons()  * sizeof(pvdata_t);
-   CLDevice * device = parent->getCLDevice();
-
-   // these buffers are shared between host and device
-   //
-
-   clGSynGap = device->createBuffer(CL_MEM_COPY_HOST_PTR, size, getChannel(CHANNEL_GAP));
-
-   return status;
-}
-
-int LIFGap::initializeThreadKernels(const char * kernel_name)
-
-{
-   int status = CL_SUCCESS;
-
-   status = LIF::initializeThreadKernels(kernel_name);
-
-   int argid = getNumKernelArgs();
-
-   status |= krUpdate->setKernelArg(argid++, sumGap);
-   status |= krUpdate->setKernelArg(argid++, clG_Gap);
-   //status |= krUpdate->setKernelArg(argid++, clGSynGap);
-
-   numKernelArgs = argid;
-
-   return status;
-}
-#endif
+//#ifdef PV_USE_OPENCL
+///**
+// * Initialize OpenCL buffers.  This must be called after PVLayer data have
+// * been allocated.
+// */
+//int LIFGap::initializeThreadBuffers(const char * kernel_name)
+//{
+//   int status = CL_SUCCESS;
+//
+//   status = LIF::initializeThreadBuffers(kernel_name);
+//
+//   const size_t size    = getNumNeurons()  * sizeof(pvdata_t);
+//   CLDevice * device = parent->getCLDevice();
+//
+//   // these buffers are shared between host and device
+//   //
+//
+//   clGSynGap = device->createBuffer(CL_MEM_COPY_HOST_PTR, size, getChannel(CHANNEL_GAP));
+//
+//   return status;
+//}
+//
+//int LIFGap::initializeThreadKernels(const char * kernel_name)
+//
+//{
+//   int status = CL_SUCCESS;
+//
+//   status = LIF::initializeThreadKernels(kernel_name);
+//
+//   int argid = getNumKernelArgs();
+//
+//   status |= krUpdate->setKernelArg(argid++, sumGap);
+//   status |= krUpdate->setKernelArg(argid++, clG_Gap);
+//   //status |= krUpdate->setKernelArg(argid++, clGSynGap);
+//
+//   numKernelArgs = argid;
+//
+//   return status;
+//}
+//#endif
 
 int LIFGap::allocateConductances(int num_channels) {
    // this->sumGap = 0.0f;
@@ -283,35 +283,35 @@ int LIFGap::readGapStrengthFromCheckpoint(const char * cpDir, double * timeptr) 
 
 int LIFGap::updateStateOpenCL(double time, double dt)
 {
-   int status = CL_SUCCESS;
+   int status = 0;
 
-#ifdef PV_USE_OPENCL
-   status = LIF::updateStateOpenCL(time, dt);
-
-#if PV_CL_COPY_BUFFERS
-   status |= clGSynGap->copyFromDevice(1, &evUpdate, &evList[getEVGSynGap()]);
-#endif
-
-   //do we need to copy gap back and forth?
-   //status |= clG_Gap->copyFromDevice(1, &evUpdate, &evList[EV_LIF_GSYN_GAP]);
-//   status |= getChannelCLBuffer(CHANNEL_GAP)->copyFromDevice(1, &evUpdate, &evList[getEVGSynGap()]);
-//   numWait += 1;
-#endif
+//#ifdef PV_USE_OPENCL
+//   status = LIF::updateStateOpenCL(time, dt);
+//
+//#if PV_CL_COPY_BUFFERS
+//   status |= clGSynGap->copyFromDevice(1, &evUpdate, &evList[getEVGSynGap()]);
+//#endif
+//
+//   //do we need to copy gap back and forth?
+//   //status |= clG_Gap->copyFromDevice(1, &evUpdate, &evList[EV_LIF_GSYN_GAP]);
+////   status |= getChannelCLBuffer(CHANNEL_GAP)->copyFromDevice(1, &evUpdate, &evList[getEVGSynGap()]);
+////   numWait += 1;
+//#endif
 
    return status;
 }
 
 int LIFGap::updateState(double time, double dt)
 {
-   int status = CL_SUCCESS;
+   int status = 0;
    update_timer->start();
 
-#ifdef PV_USE_OPENCL
-   if((gpuAccelerateFlag)&&(true)) {
-      updateStateOpenCL(time, dt);
-   }
-   else {
-#endif
+//#ifdef PV_USE_OPENCL
+//   if((gpuAccelerateFlag)&&(true)) {
+//      updateStateOpenCL(time, dt);
+//   }
+//   else {
+//#endif
 
    const int nx = clayer->loc.nx;
    const int ny = clayer->loc.ny;
@@ -338,9 +338,9 @@ int LIFGap::updateState(double time, double dt)
       assert(0);
       break;
    }
-#ifdef PV_USE_OPENCL
-   }
-#endif
+//#ifdef PV_USE_OPENCL
+//   }
+//#endif
    updateActiveIndices();
    update_timer->stop();
    return status;

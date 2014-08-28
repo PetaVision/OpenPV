@@ -126,20 +126,6 @@ void CloneConn::ioParam_plasticityFlag(enum ParamsIOFlag ioFlag) {
    }
 }
 
-void CloneConn::ioParam_keepKernelsSynchronized(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
-      keepKernelsSynchronized_flag = false; // originalConn decides whether weights need to be kept synchronized, so clones don't have to.
-      parent->parameters()->handleUnnecessaryParameter(name, "keepKernelsSynchronized", false/*correctValue*/);
-   }
-}
-
-void CloneConn::ioParam_useWindowPost(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
-      parent->parameters()->handleUnnecessaryParameter(name, "useWindowsPost");
-   }
-   // During the communication phase, numAxonalArbors will be copied from originalConn
-}
-
 void CloneConn::ioParam_nxp(enum ParamsIOFlag ioFlag) {
    // During the communication phase, nxp will be copied from originalConn
 }
@@ -171,7 +157,10 @@ int CloneConn::communicateInitInfo() {
    if (originalConn == NULL) {
       fprintf(stderr, "CloneConn \"%s\" error in rank %d process: originalConnName \"%s\" is not a connection in the column.\n",
             name, parent->columnId(), originalConnName);
-      exit(EXIT_FAILURE);
+   }
+   if (originalConn->usingSharedWeights() == false) {
+      fprintf(stderr, "CloneConn \"%s\" error in rank %d process: originalConnName \"%s\" must use shared weights.\n",
+            name, parent->columnId(), originalConnName);
    }
 
    // Copy some parameters from originalConn.  Check if parameters exist is
@@ -184,8 +173,6 @@ int CloneConn::communicateInitInfo() {
    parent->parameters()->handleUnnecessaryParameter(name, "sharedWeights", sharedWeights);
    numAxonalArborLists = originalConn->numberOfAxonalArborLists();
    parent->parameters()->handleUnnecessaryParameter(name, "numAxonalArbors", numAxonalArborLists);
-   useWindowPost = originalConn->getUseWindowPost();
-   parent->parameters()->handleUnnecessaryParameter(name, "useWindowPost", useWindowPost);
    status = HyPerConn::communicateInitInfo();
    if (status != PV_SUCCESS) return status;
 

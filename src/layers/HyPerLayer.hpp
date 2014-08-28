@@ -87,6 +87,12 @@ DerivedLayer::initialize(arguments) {
 #define EV_HPL_PHI_I 1
 #endif
 
+#ifdef PV_USE_CUDA
+#include "../arch/cuda/CudaKernel.hpp"
+#include "../arch/cuda/CudaBuffer.hpp"
+#endif
+
+
 
 // default constants
 #define HYPERLAYER_FEEDBACK_DELAY 1
@@ -166,15 +172,6 @@ protected:
    void recvOnePreNeuronActivity(HyPerConn * conn, int patchIndex, int arbor, pvadata_t a, pvadata_t * postBufferStart, void * auxPtr);
 
    int freeClayer();
-
-#ifdef PV_USE_OPENCL
-   virtual void ioParam_GPUAccelerate(enum ParamsIOFlag ioFlag);
-#endif
-
-#ifdef PV_USE_OPENCL
-   virtual int initializeThreadBuffers(const char * kernelName);
-   virtual int initializeThreadKernels(const char * kernelName);
-#endif
 
 public:
 
@@ -426,118 +423,116 @@ protected:
 //   int feedbackDelay;     // minimum delay required for a change in this layer to potentially influence itself via feedback loop
 private:
 
-   // OpenCL variables
    
    // OpenMP variables
    pvdata_t ** thread_gSyn; //Accumulate buffer for each thread, only used if numThreads > 1
 
-#ifdef PV_USE_OPENCL
+   // OpenCL variables
+#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
 public:
-   int initializeGPU(); //this method sets up GPU stuff...
-   //virtual int getNumCLEvents() {return 0;}
-   virtual const char * getKernelName() {return NULL;}
-   virtual int getNumKernelArgs() {return numKernelArgs;}
-   virtual int getNumCLEvents()   {return numEvents;}
 
-   CLBuffer * getChannelCLBuffer() {
-      return clGSyn;
+#ifdef PV_USE_OPENCL
+   CLBuffer * getDeviceV(){
+#endif
+#ifdef PV_USE_CUDA
+   PVCuda::CudaBuffer * getDeviceV(){
+#endif
+      return d_V;
    }
-//   CLBuffer * getChannelCLBuffer(ChannelType ch) {
-//      return ch < this->numChannels ? clGSyn[ch] : NULL;
-//   }
-   //#define EV_PHI_E 0
-   //#define EV_PHI_I 1
-   virtual int getEVGSyn() {return EV_GSYN;}
-   virtual int getEVGSynE() {return EV_HPL_PHI_E;}
-   virtual int getEVGSynI() {return EV_HPL_PHI_I;}
-   virtual int getEVActivity() {return EV_ACTIVITY;}
-   CLBuffer * getLayerDataStoreCLBuffer();
-   size_t     getLayerDataStoreOffset(int delay=0);
-   void initUseGPUFlag();
-   inline bool getUseGPUFlag() {return gpuAccelerateFlag;}
-   //int initializeDataStoreThreadBuffers();
-   inline bool getCopyDataStoreFlag() {return copyDataStoreFlag;}
-   int waitForDataStoreCopy();
-   int copyDataStoreCLBuffer();
-   void tellLayerToCopyDataStoreCLBuffer(/*cl_event * evCpDataStore*/) {copyDataStoreFlag=true; /*evCopyDataStore=evCpDataStore;*/}
 
-   //temporary method for debuging recievesynapticinput
-   virtual inline int getGSynEvent(ChannelType ch) {
-      switch (ch) {
-      case CHANNEL_EXC: return getEVGSynE();
-      case CHANNEL_INH: return getEVGSynI();
-      default: return -1;
+#ifdef PV_USE_OPENCL
+   CLBuffer * getDeviceGSyn(ChannelType ch) {
+#endif
+#ifdef PV_USE_CUDA
+   PVCuda::CudaBuffer * getDeviceGSyn(ChannelType ch) {
+#endif
+      return (ch < this->numChannels && ch >= 0) ? d_GSyn[ch] : NULL;
+   }
+
+#ifdef PV_USE_OPENCL
+   CLBuffer * getDeviceActivity(){
+#endif
+#ifdef PV_USE_CUDA
+   PVCuda::CudaBuffer * getDeviceActivity(){
+#endif
+      return d_Activity;
+   }
+
+   void setAllocDeviceV(){
+      allocDeviceV = true;
+   }
+   void setAllocDeviceGSyn(ChannelType ch){
+      if(ch >= 0 && ch < this->numChannels){
+         allocDeviceGSyn[ch] = true;
       }
    }
-   virtual void copyGSynFromDevice() {
-      int gsynEvent = getEVGSyn();
-//      if(numWait>0) {
-//         clWaitForEvents(numWait, &evList[gsynEvent]);
-//         for (int i = 0; i < numWait; i++) {
-//            clReleaseEvent(evList[i]);
-//         }
-//         numWait = 0;
-//      }
-      if(gsynEvent>=0){
-         clGSyn->copyFromDevice(&evList[gsynEvent]);
-         clWaitForEvents(1, &evList[gsynEvent]);
-         clReleaseEvent(evList[gsynEvent]);
-      }
+   void setAllocDeviceActivity(){
+      allocDeviceActivity = true;
    }
-//   virtual void copyChannelFromDevice(ChannelType ch) {
-//      int gsynEvent = getGSynEvent(ch);
-//      if(gsynEvent>=0){
-//         getChannelCLBuffer(ch)->copyFromDevice(&evList[gsynEvent]);
-//         clWaitForEvents(1, &evList[gsynEvent]);
-//         clReleaseEvent(evList[gsynEvent]);
-//      }
-//   }
-   virtual void copyGSynToDevice() {
-      int gsynEvent = getEVGSyn();
-      if(gsynEvent>=0){
-         clGSyn->copyToDevice(&evList[gsynEvent]);
-         clWaitForEvents(1, &evList[gsynEvent]);
-         clReleaseEvent(evList[gsynEvent]);
-      }
-      //copyToDevice=true;
-   }
-   void startTimer() {recvsyn_timer->start();}
-   void stopTimer() {recvsyn_timer->stop();}
 
+   bool getUpdatedDeviceActivityFlag(){
+      return updatedDeviceActivity;
+   }
+
+   void setUpdatedDeviceActivityFlag(bool in){
+      updatedDeviceActivity = in;
+   }
+
+#ifdef PV_USE_OPENCL
+   void clFinishGSyn(){
+      for(int i = 0; i < this->numChannels; i++){
+         if(allocDeviceGSyn[i] && d_GSyn[i]){
+            d_GSyn[i]->finish(); //This should take care of every command in the queue
+            break;
+         }
+      }
+   }
+   void clFinishActivity(){
+      if(allocDeviceActivity && allocDeviceActivity){
+         d_Activity->finish();
+      }
+   }
+#endif
+   //void setAllocKrRecvPost(){
+   //   allocKrRecvPost = true;
+   //}
+//   void startTimer() {recvsyn_timer->start();}
+//   void stopTimer() {recvsyn_timer->stop();}
+//
 protected:
 
-   CLKernel * krUpdate;        // CL kernel for update state call
+   virtual int allocateDeviceBuffers();
+   //virtual int allocateReceivePostKernel();
 
-   // OpenCL buffers
+//   CLKernel * krUpdate;        // CL kernel for update state call
+
+   // OpenCL buffers and their corresponding flags
    //
-   CLBuffer * clV;
-   //CLBuffer **clGSyn;         // of dynamic length numChannels
-   CLBuffer * clGSyn;         // of dynamic length numChannels
-   CLBuffer * clActivity;
-   CLBuffer * clPrevTime;
-   CLBuffer * clParams;       // for transferring params to kernel
+   
+   bool allocDeviceV;
+   bool* allocDeviceGSyn;         // array of channels to allocate
+   bool allocDeviceActivity;
+   bool updatedDeviceActivity;
 
-   int numKernelArgs;         // number of arguments in kernel call
-   int numEvents;             // number of events in event list
-   int numWait;               // number of events to wait for
-   cl_event * evList;         // event list
-   cl_event   evUpdate;
-   //cl_event * evCopyDataStore;
+#ifdef PV_USE_OPENCL
+   CLBuffer * d_V;
+   CLBuffer **d_GSyn;         // of dynamic length numChannels
+   CLBuffer * d_Activity;
+#endif
+#ifdef PV_USE_CUDA
+   PVCuda::CudaBuffer * d_V;
+   PVCuda::CudaBuffer **d_GSyn;         // of dynamic length numChannels
+   PVCuda::CudaBuffer * d_Activity;
+#endif
 
-   int nxl;  // local OpenCL grid size in x
-   int nyl;  // local OpenCL grid size in y
-
-   bool gpuAccelerateFlag;
-   //bool copyToDevice;
-   bool copyDataStoreFlag;
-   //bool buffersInitialized;
-   //
 
 #endif
 
 protected:
    Timer * update_timer;
    Timer * recvsyn_timer;
+   Timer * recvsyn_io_timer;
+   Timer * recvsyn_calc_timer;
    Timer * publish_timer;
    Timer * timescale_timer;
    Timer * io_timer;

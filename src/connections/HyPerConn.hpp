@@ -23,7 +23,11 @@
 
 #ifdef PV_USE_OPENCL
 #include "../arch/opencl/CLKernel.hpp"
-#include "../arch/opencl/CLBuffer.hpp"
+#endif
+#ifdef PV_USE_CUDA
+#include "../cudakernels/CudaRecvPost.hpp"
+#include "../cudakernels/CudaRecvPre.hpp"
+#include "../arch/cuda/CudaBuffer.hpp"
 #endif
 
 #define PROTECTED_NUMBER 13
@@ -52,9 +56,9 @@ public:
    friend class CloneConn;
    HyPerConn(const char * name, HyPerCol * hc);
    virtual ~HyPerConn();
-#ifdef PV_USE_OPENCL
-   virtual int deliverOpenCL(Publisher * pub, const PVLayerCube * cube);
-#endif
+//#ifdef PV_USE_OPENCL
+//   virtual int deliverOpenCL(Publisher * pub, const PVLayerCube * cube);
+//#endif
 
    virtual int communicateInitInfo();
    virtual int allocateDataStructures();
@@ -379,20 +383,13 @@ public:
       return numKernelActivations[kernelIndex];
    }
 
-   virtual long* getPostToPreGsyn(){
-      return postToPreGsyn;
+   virtual long* getPostToPreActivity(){
+      return postToPreActivity;
    }
 
-   virtual void setPostToPreGsyn(long* inPointer){
-      postToPreGsyn = inPointer;
-   }
-
-
-#ifdef PV_USE_OPENCL
-   virtual int * getLUTpointer() {return NULL;}
-#endif // PV_USE_OPENCL
    virtual void initPatchToDataLUT();
    virtual int patchToDataLUT(int patchIndex);
+   virtual int* getPatchToDataLUT(){return patch2datalookuptable;}
    virtual int patchIndexToDataIndex(int patchIndex, int* kx = NULL, int* ky =
          NULL, int* kf = NULL);
    virtual int dataIndexToUnitCellIndex(int dataIndex, int* kx = NULL, int* ky =
@@ -455,8 +452,7 @@ private:
    bool strengthParamHasBeenWritten;
    int * patch2datalookuptable;
    
-   //TODO this variable is being calculated in HyPerLayer right now, do this here in HyPerConn
-   long * postToPreGsyn;
+   long * postToPreActivity;
 
 protected:
    bool useWindowPost;
@@ -544,10 +540,6 @@ protected:
    bool initialValuesSetFlag;
    bool initializeFromCheckpointFlag;
 
-#ifdef PV_USE_OPENCL
-   bool gpuAccelerateFlag; // Whether to accelerate the connection on a GPU
-   bool ignoreGPUflag;     // Don't use GPU (overrides gpuAccelerateFlag)
-#endif // PV_USE_OPENCL
 protected:
    HyPerConn();
    virtual int initNumWeightPatches();
@@ -565,9 +557,11 @@ protected:
 //      return gSynPatchStart;
 //   }
 
+public:
    inline size_t** getGSynPatchStart() {
       return gSynPatchStart;
    }
+protected:
 
 //   inline void setGSynPatchStart(pvwdata_t*** patchstart) {
 //      gSynPatchStart = patchstart;
@@ -675,6 +669,16 @@ protected:
    virtual void ioParam_shmget_flag(enum ParamsIOFlag ioFlag);
    virtual void ioParam_keepKernelsSynchronized(enum ParamsIOFlag ioFlag);
    virtual void ioParam_useWindowPost(enum ParamsIOFlag ioFlag);
+
+#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+   virtual void ioParam_receiveGpu(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_numXLocal(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_numYLocal(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_numFLocal(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_postGroupXSize(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_postGroupYSize(enum ParamsIOFlag ioFlag);
+#endif
+
    int setParent(HyPerCol * hc);
    int setName(const char * name);
    int setPreLayerName(const char * pre_name);
@@ -691,6 +695,7 @@ protected:
    int createWeights(PVPatch*** patches, int arborId);
    virtual pvwdata_t * allocWeights(int nPatches, int nxPatch, int nyPatch, int nfPatch);
    int clearWeights(pvwdata_t** dataStart, int numPatches, int nx, int ny, int nf);
+   virtual int adjustAllPatches(int nxPre, int nyPre, int nfPre, int nbPre, int nxPost, int nyPost, int nfPost, int nbPost, PVPatch*** inWPatches, size_t** inGSynPatchStart, size_t** inAPostOffset, int arborId);
    virtual int adjustAxonalArbors(int arborId);
    virtual int readStateFromCheckpoint(const char * cpDir, double * timeptr);
    virtual int readWeightsFromCheckpoint(const char * cpDir, double * timeptr);
@@ -713,32 +718,154 @@ protected:
 
    void connOutOfMemory(const char* funcname);
 
+//GPU variables
+#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+public:
+   //TODO check if kernel name is ever needed
+   void setAllocDeviceWeights(){
+      allocDeviceWeights = true;
+   }
 #ifdef PV_USE_OPENCL
-   virtual void initIgnoreGPUFlag(); // sets the ignoreGPUFlag parameter.  virtual so that a class can make it always false or always true
-   int initializeGPU(); //this method sets up GPU stuff...
-   virtual int initializeThreadBuffers(const char * kernelName);
-   virtual int initializeThreadKernels(const char * kernelName);
+   CLBuffer * getDeviceWData(){
+#endif
+#ifdef PV_USE_CUDA
+   PVCuda::CudaBuffer * getDeviceWData(){
+#endif
+      return d_WData;
+   }
+#ifdef PV_USE_OPENCL
+   CLBuffer * getDevicePatches(){
+#endif
+#ifdef PV_USE_CUDA
+   PVCuda::CudaBuffer * getDevicePatches(){
+#endif
+      return d_Patches;
+   }
+#ifdef PV_USE_OPENCL
+   CLBuffer * getDeviceGSynPatchStart(){
+#endif
+#ifdef PV_USE_CUDA
+   PVCuda::CudaBuffer * getDeviceGSynPatchStart(){
+#endif
+      return d_GSynPatchStart;
+   }
+#ifdef PV_USE_OPENCL
+   void setDeviceWData(CLBuffer* inBuf){
+#endif
+#ifdef PV_USE_CUDA
+   void setDeviceWData(PVCuda::CudaBuffer* inBuf){
+#endif
+      d_WData = inBuf;
+   }
+#ifdef PV_USE_OPENCL
+   void clFinishW(){ 
+      if(allocDeviceWeights && d_WData){
+         d_WData->finish();
+      }
+   }
+#endif
 
-   CLKernel * krRecvSyn;        // CL kernel for layer recvSynapticInput call
-   cl_event   evRecvSyn;
-   cl_event * evRecvSynWaitList;
-   int numWait;  //number of receive synaptic runs to wait for (=numarbors)
-   //cl_event   evCopyDataStore;
+   bool getReceiveGpu(){return receiveGpu;}
 
-   size_t nxl;
-   size_t nyl;
+#ifdef PV_USE_OPENCL
+   CLKernel * getKrRecvPost(){return krRecvPost;}
+   CLKernel * getKrRecvPre(){return krRecvPre;}
+#endif
+#ifdef PV_USE_CUDA
+   PVCuda::CudaKernel * getKrRecvPost(){return krRecvPost;}
+   PVCuda::CudaKernel * getKrRecvPre(){return krRecvPre;}
+#endif
 
-   // OpenCL buffers
-   CLBuffer *  clGSyn;
-   CLBuffer *  clPatch2DataLookUpTable;
-   CLBuffer *  clActivity;
-   CLBuffer ** clWeights;
+   virtual int getNumXLocal(){return numXLocal;}
+   virtual int getNumYLocal(){return numYLocal;}
+   virtual int getNumFLocal(){return numFLocal;}
+   virtual int getPostGroupXSize(){return postGroupXSize;}
+   virtual int getPostGroupYSize(){return postGroupYSize;}
+   virtual int getNumPostGroupX(){return numPostGroupX;}
+   virtual int getNumPostGroupY(){return numPostGroupY;}
 
-   // ids of OpenCL arguments that change
-   //
-   int clArgIdOffset;
-   int clArgIdWeights;
-   int clArgIdDataStore;
+   
+   
+   bool getUpdatedDeviceWFlag(){
+      return updatedDeviceWeights;
+   }
+   void setUpdatedDeviceWFlag(bool in){
+      updatedDeviceWeights = in;
+   }
+   
+protected:
+   virtual int allocateDeviceBuffers();
+   virtual int allocateReceivePostKernel();
+   virtual int allocateReceivePreKernel();
+
+   bool allocDeviceWeights;
+   bool updatedDeviceWeights;
+
+#ifdef PV_USE_OPENCL
+   CLBuffer * d_WData;
+   CLBuffer * d_Patches;
+   CLBuffer * d_GSynPatchStart;
+   CLBuffer * d_PostToPreActivity;
+   CLBuffer * d_Patch2DataLookupTable;
+   CLKernel * krRecvPost;        // CL kernel for update state call
+   CLKernel * krRecvPre;        // CL kernel for update state call
+#endif
+#ifdef PV_USE_CUDA
+   PVCuda::CudaBuffer * d_WData;
+   PVCuda::CudaBuffer * d_Patches;
+   PVCuda::CudaBuffer * d_GSynPatchStart;
+   PVCuda::CudaBuffer * d_PostToPreActivity;
+   PVCuda::CudaBuffer * d_Patch2DataLookupTable;
+   PVCuda::CudaRecvPost* krRecvPost;        // Cuda kernel for update state call
+   PVCuda::CudaRecvPre* krRecvPre;        // Cuda kernel for update state call
+#endif
+
+   PVPatch ** localWPatches;
+   size_t * localGSynPatchStart;
+
+   bool receiveGpu;
+
+   int numXLocal;
+   int numYLocal;
+   int numFLocal;
+   int localPreX;
+   int localPreY;
+   int postGroupXSize;
+   int postGroupYSize;
+   int numPostGroupX;
+   int numPostGroupY;
+
+
+
+
+//   bool gpuAccelerateFlag; // Whether to accelerate the connection on a GPU
+//   bool ignoreGPUflag;     // Don't use GPU (overrides gpuAccelerateFlag)
+//   virtual void initIgnoreGPUFlag(); // sets the ignoreGPUFlag parameter.  virtual so that a class can make it always false or always true
+//   int initializeGPU(); //this method sets up GPU stuff...
+//   virtual int initializeThreadKernels(const char * kernelName);
+//   virtual int initializeThreadBuffers(const char * kernelName);
+//
+//   CLKernel * krRecvSyn;        // CL kernel for layer recvSynapticInput call
+//   cl_event   evRecvSyn;
+//   cl_event * evRecvSynWaitList;
+//   int numWait;  //number of receive synaptic runs to wait for (=numarbors)
+//   //cl_event   evCopyDataStore;
+//
+//   size_t nxl;
+//   size_t nyl;
+//
+//   // OpenCL buffers
+//   CLBuffer *  clGSyn;
+//   CLBuffer *  clPatch2DataLookUpTable;
+//   CLBuffer *  clActivity;
+//   CLBuffer ** clWeights;
+
+//
+//   // ids of OpenCL arguments that change
+//   //
+//   int clArgIdOffset;
+//   int clArgIdWeights;
+//   int clArgIdDataStore;
 #endif // PV_USE_OPENCL
 
 private:

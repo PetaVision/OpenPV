@@ -315,9 +315,8 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
          exit(EXIT_FAILURE);
       }
 
-      if( !didAddObject) {
-         fprintf(stderr, "Parameter group \"%s\": %s could not be created in rank %d process.\n", name, kw, hc->columnId());
-         exit(EXIT_FAILURE);
+      if( !didAddObject && hc->icCommunicator()->commRank()==0 ) {
+         fprintf(stderr, "Parameter group \"%s\": %s could not be created.\n", name, kw);
       }
    }
 
@@ -326,7 +325,11 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
       delete hc;
       return NULL;
    }
-   // Allow a column with no connections, because layers can be connected through mechanisms other than HyPerConns.
+   // if( hc->numberOfConnections() == 0 ) {
+   //    fprintf(stderr, "HyPerCol \"%s\" does not have any connections.\n", hc->getName());
+   //    delete hc;
+   //    return NULL;
+   // }
    return hc;
 }
 

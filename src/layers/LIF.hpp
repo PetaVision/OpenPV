@@ -13,9 +13,9 @@
 #include "../columns/Random.hpp"
 #include "../kernels/LIF_params.h"
 
-#ifdef PV_USE_OPENCL
-#include "../arch/opencl/CLBuffer.hpp"
-#endif
+//#ifdef PV_USE_OPENCL
+//#include "../arch/opencl/CLBuffer.hpp"
+//#endif
 
 #define NUM_LIF_EVENTS   4
 //#define EV_LIF_GSYN_E     0
@@ -70,10 +70,10 @@ public:
 protected:
    LIF_params lParams;
    Random * randState;
-#ifdef PV_USE_OPENCL
-   //TODO-Rasmussen-2014.5.24 - need to figure out interaction between Random class and rand_state
-   uint4 * rand_state;  // state for random numbers
-#endif
+//#ifdef PV_USE_OPENCL
+//   //TODO-Rasmussen-2014.5.24 - need to figure out interaction between Random class and rand_state
+//   uint4 * rand_state;  // state for random numbers
+//#endif
 
    pvdata_t * Vth;      // threshold potential
    pvdata_t * G_E;      // excitatory conductance
@@ -83,29 +83,29 @@ protected:
    char * methodString; // 'arma', 'before', or 'original'
    char method;         // 'a', 'b', or 'o', the first character of methodString
 
-#ifdef PV_USE_OPENCL
-   virtual int initializeThreadBuffers(const char * kernelName);
-   virtual int initializeThreadKernels(const char * kernelName);
-
-   virtual int getNumCLEvents() {return NUM_LIF_EVENTS;}
-   virtual const char * getKernelName() {return "LIF_update_state";}
-
-   virtual int getEVGSynIB() {return EV_LIF_GSYN_IB;}
-   //virtual int getEVActivity() {return EV_LIF_ACTIVITY;}
-   virtual inline int getGSynEvent(ChannelType ch) {
-      if(HyPerLayer::getGSynEvent(ch)>=0) return HyPerLayer::getGSynEvent(ch);
-      if(ch==CHANNEL_INHB) return getEVGSynIB();
-      return -1;
-   }
-
-   // OpenCL buffers
-   //
-   CLBuffer * clRand;
-   CLBuffer * clVth;
-   CLBuffer * clG_E;
-   CLBuffer * clG_I;
-   CLBuffer * clG_IB;
-#endif
+//#ifdef PV_USE_OPENCL
+//   virtual int initializeThreadBuffers(const char * kernelName);
+//   virtual int initializeThreadKernels(const char * kernelName);
+//
+//   virtual int getNumCLEvents() {return NUM_LIF_EVENTS;}
+//   virtual const char * getKernelName() {return "LIF_update_state";}
+//
+//   virtual int getEVGSynIB() {return EV_LIF_GSYN_IB;}
+//   //virtual int getEVActivity() {return EV_LIF_ACTIVITY;}
+//   virtual inline int getGSynEvent(ChannelType ch) {
+//      if(HyPerLayer::getGSynEvent(ch)>=0) return HyPerLayer::getGSynEvent(ch);
+//      if(ch==CHANNEL_INHB) return getEVGSynIB();
+//      return -1;
+//   }
+//
+//   // OpenCL buffers
+//   //
+//   CLBuffer * clRand;
+//   CLBuffer * clVth;
+//   CLBuffer * clG_E;
+//   CLBuffer * clG_I;
+//   CLBuffer * clG_IB;
+//#endif
 
 protected:
    LIF();

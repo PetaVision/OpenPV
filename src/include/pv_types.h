@@ -9,9 +9,11 @@
 #define PV_TYPES_H_
 
 #include "PVLayerLoc.h"
+#ifndef CL_KERNEL_INCLUDE
 #include <stdlib.h>   /* for size_t */
 #include <stdio.h>    /* for FILE */
 #include <float.h>
+#endif
 
 
 #define PV_ON  1

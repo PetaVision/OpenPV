@@ -42,10 +42,10 @@ ANNLayer::ANNLayer() {
 ANNLayer::ANNLayer(const char * name, HyPerCol * hc) {
    initialize_base();
    initialize(name, hc);
-#ifdef PV_USE_OPENCL
-   if(gpuAccelerateFlag)
-      initializeGPU();
-#endif
+//#ifdef PV_USE_OPENCL
+//   if(gpuAccelerateFlag)
+//      initializeGPU();
+//#endif
 }  // end ANNLayer::ANNLayer(const char *, HyPerCol *)
 
 ANNLayer::~ANNLayer() {}
@@ -59,9 +59,9 @@ int ANNLayer::initialize(const char * name, HyPerCol * hc) {
    assert(status == PV_SUCCESS);
 
    status |= checkVThreshParams(parent->parameters());
-#ifdef PV_USE_OPENCL
-   numEvents=NUM_ANN_EVENTS;
-#endif
+//#ifdef PV_USE_OPENCL
+//   numEvents=NUM_ANN_EVENTS;
+//#endif
    return status;
 }
 
@@ -125,87 +125,87 @@ void ANNLayer::ioParam_VWidth(enum ParamsIOFlag ioFlag) {
    parent->ioParamValue(ioFlag, name, "VWidth", &VWidth, (pvdata_t) 0);
 }
 
-#ifdef PV_USE_OPENCL
-/**
- * Initialize OpenCL buffers.  This must be called after PVLayer data have
- * been allocated.
- */
-int ANNLayer::initializeThreadBuffers(const char * kernel_name)
-{
-   int status = HyPerLayer::initializeThreadBuffers(kernel_name);
-
-   //right now there are no ANN layer specific buffers...
-   return status;
-}
-
-int ANNLayer::initializeThreadKernels(const char * kernel_name)
-{
-   char kernelPath[256];
-   char kernelFlags[256];
-
-   int status = CL_SUCCESS;
-   CLDevice * device = parent->getCLDevice();
-
-   const char * pvRelPath = "../PetaVision";
-   sprintf(kernelPath, "%s/%s/src/kernels/%s.cl", parent->getSrcPath(), pvRelPath, kernel_name);
-   sprintf(kernelFlags, "-D PV_USE_OPENCL -cl-fast-relaxed-math -I %s/%s/src/kernels/", parent->getSrcPath(), pvRelPath);
-
-   // create kernels
-   //
-   krUpdate = device->createKernel(kernelPath, kernel_name, kernelFlags);
-//kernel name should already be set correctly!
-//   if (spikingFlag) {
-//      krUpdate = device->createKernel(kernelPath, kernel_name, kernelFlags);
+//#ifdef PV_USE_OPENCL
+///**
+// * Initialize OpenCL buffers.  This must be called after PVLayer data have
+// * been allocated.
+// */
+//int ANNLayer::allocateThreadBuffers(const char * kernel_name)
+//{
+//   int status = HyPerLayer::allocateThreadBuffers(kernel_name);
+//
+//   //right now there are no ANN layer specific buffers...
+//   return status;
+//}
+//
+//int ANNLayer::initializeThreadKernels(const char * kernel_name)
+//{
+//   char kernelPath[256];
+//   char kernelFlags[256];
+//
+//   int status = CL_SUCCESS;
+//   CLDevice * device = parent->getCLDevice();
+//
+//   const char * pvRelPath = "../PetaVision";
+//   sprintf(kernelPath, "%s/%s/src/kernels/%s.cl", parent->getSrcPath(), pvRelPath, kernel_name);
+//   sprintf(kernelFlags, "-D PV_USE_OPENCL -cl-fast-relaxed-math -I %s/%s/src/kernels/", parent->getSrcPath(), pvRelPath);
+//
+//   // create kernels
+//   //
+//   krUpdate = device->createKernel(kernelPath, kernel_name, kernelFlags);
+////kernel name should already be set correctly!
+////   if (spikingFlag) {
+////      krUpdate = device->createKernel(kernelPath, kernel_name, kernelFlags);
+////   }
+////   else {
+////      krUpdate = device->createKernel(kernelPath, "Retina_nonspiking_update_state", kernelFlags);
+////   }
+//
+//   int argid = 0;
+//
+//   status |= krUpdate->setKernelArg(argid++, getNumNeurons());
+//   status |= krUpdate->setKernelArg(argid++, clayer->loc.nx);
+//   status |= krUpdate->setKernelArg(argid++, clayer->loc.ny);
+//   status |= krUpdate->setKernelArg(argid++, clayer->loc.nf);
+//   status |= krUpdate->setKernelArg(argid++, clayer->loc.nb);
+//
+//
+//   status |= krUpdate->setKernelArg(argid++, clV);
+//   status |= krUpdate->setKernelArg(argid++, VThresh);
+//   status |= krUpdate->setKernelArg(argid++, AMax);
+//   status |= krUpdate->setKernelArg(argid++, AMin);
+//   status |= krUpdate->setKernelArg(argid++, AShift);
+//   status |= krUpdate->setKernelArg(argid++, getChannelCLBuffer());
+////   status |= krUpdate->setKernelArg(argid++, getChannelCLBuffer(CHANNEL_EXC));
+////   status |= krUpdate->setKernelArg(argid++, getChannelCLBuffer(CHANNEL_INH));
+//   status |= krUpdate->setKernelArg(argid++, clActivity);
+//
+//   return status;
+//}
+//int ANNLayer::updateStateOpenCL(double time, double dt)
+//{
+//   int status = CL_SUCCESS;
+//
+//   // wait for memory to be copied to device
+//   if (numWait > 0) {
+//       status |= clWaitForEvents(numWait, evList);
 //   }
-//   else {
-//      krUpdate = device->createKernel(kernelPath, "Retina_nonspiking_update_state", kernelFlags);
+//   for (int i = 0; i < numWait; i++) {
+//      clReleaseEvent(evList[i]);
 //   }
-
-   int argid = 0;
-
-   status |= krUpdate->setKernelArg(argid++, getNumNeurons());
-   status |= krUpdate->setKernelArg(argid++, clayer->loc.nx);
-   status |= krUpdate->setKernelArg(argid++, clayer->loc.ny);
-   status |= krUpdate->setKernelArg(argid++, clayer->loc.nf);
-   status |= krUpdate->setKernelArg(argid++, clayer->loc.nb);
-
-
-   status |= krUpdate->setKernelArg(argid++, clV);
-   status |= krUpdate->setKernelArg(argid++, VThresh);
-   status |= krUpdate->setKernelArg(argid++, AMax);
-   status |= krUpdate->setKernelArg(argid++, AMin);
-   status |= krUpdate->setKernelArg(argid++, AShift);
-   status |= krUpdate->setKernelArg(argid++, getChannelCLBuffer());
-//   status |= krUpdate->setKernelArg(argid++, getChannelCLBuffer(CHANNEL_EXC));
-//   status |= krUpdate->setKernelArg(argid++, getChannelCLBuffer(CHANNEL_INH));
-   status |= krUpdate->setKernelArg(argid++, clActivity);
-
-   return status;
-}
-int ANNLayer::updateStateOpenCL(double time, double dt)
-{
-   int status = CL_SUCCESS;
-
-   // wait for memory to be copied to device
-   if (numWait > 0) {
-       status |= clWaitForEvents(numWait, evList);
-   }
-   for (int i = 0; i < numWait; i++) {
-      clReleaseEvent(evList[i]);
-   }
-   numWait = 0;
-
-   status |= krUpdate->run(getNumNeurons(), nxl*nyl, 0, NULL, &evUpdate);
-   krUpdate->finish();
-
-   status |= getChannelCLBuffer()->copyFromDevice(1, &evUpdate, &evList[getEVGSyn()]);
-   status |= clActivity->copyFromDevice(1, &evUpdate, &evList[getEVActivity()]);
-   numWait += 2; //3;
-
-
-   return status;
-}
-#endif
+//   numWait = 0;
+//
+//   status |= krUpdate->run(getNumNeurons(), nxl*nyl, 0, NULL, &evUpdate);
+//   krUpdate->finish();
+//
+//   status |= getChannelCLBuffer()->copyFromDevice(1, &evUpdate, &evList[getEVGSyn()]);
+//   status |= clActivity->copyFromDevice(1, &evUpdate, &evList[getEVActivity()]);
+//   numWait += 2; //3;
+//
+//
+//   return status;
+//}
+//#endif
 
 int ANNLayer::checkVThreshParams(PVParams * params) {
    if (VWidth<0) {
@@ -253,13 +253,13 @@ int ANNLayer::doUpdateState(double time, double dt, const PVLayerLoc * loc, pvda
       unsigned int * active_indices, unsigned int * num_active)
 {
    update_timer->start();
-#ifdef PV_USE_OPENCL
-   if(gpuAccelerateFlag) {
-      updateStateOpenCL(time, dt);
-      //HyPerLayer::updateState(time, dt);
-   }
-   else {
-#endif
+//#ifdef PV_USE_OPENCL
+//   if(gpuAccelerateFlag) {
+//      updateStateOpenCL(time, dt);
+//      //HyPerLayer::updateState(time, dt);
+//   }
+//   else {
+//#endif
       int nx = loc->nx;
       int ny = loc->ny;
       int nf = loc->nf;
@@ -268,9 +268,9 @@ int ANNLayer::doUpdateState(double time, double dt, const PVLayerLoc * loc, pvda
       if (this->writeSparseActivity){
          updateActiveIndices();  // added by GTK to allow for sparse output, can this be made an inline function???
       }
-#ifdef PV_USE_OPENCL
-   }
-#endif
+//#ifdef PV_USE_OPENCL
+//   }
+//#endif
 
    update_timer->stop();
    return PV_SUCCESS;

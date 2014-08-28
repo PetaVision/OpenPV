@@ -53,6 +53,8 @@ public:
 
    int query_device_info();
    int query_device_info(int id, cl_device_id device);
+   size_t get_max_work_group();
+   size_t get_max_work_item_dimension(int dimension);
 
 protected:
    cl_uint num_devices;                  // number of computing devices

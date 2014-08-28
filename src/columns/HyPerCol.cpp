@@ -38,9 +38,9 @@ HyPerCol::~HyPerCol()
 {
    int n;
 
-#ifdef PV_USE_OPENCL
+#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
    finalizeThreads();
-#endif // PV_USE_OPENCL
+#endif // PV_USE_OPENCL || PV_USE_CUDA
 
    if (image_file != NULL) free(image_file);
 
@@ -143,7 +143,14 @@ int HyPerCol::initialize_base() {
    // progressStep = 1L; // deprecated Dec 18, 2013
    progressInterval = 1.0;
    writeProgressToErr = false;
+
+#ifdef PV_USE_OPENCL
    clDevice = NULL;
+#endif
+#ifdef PV_USE_CUDA
+   cudaDevice = NULL;
+#endif
+
    layers = NULL;
    connections = NULL;
    layerStatus = NULL;
@@ -221,6 +228,7 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * p
    connections = (HyPerConn **) malloc(connectionArraySize * sizeof(HyPerConn *));
 
    int opencl_device = 0;  // default to GPU for now
+
    char * param_file = NULL;
    char * working_dir = NULL;
    int restart = 0;
@@ -228,10 +236,21 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * p
    parse_options(argc, argv, &outputPath, &param_file,
                  &opencl_device, &random_seed, &working_dir, &restart, &checkpointReadDir, &numthreads);
 
+//Either opencl or cuda, not both
+#if defined(PV_USE_OPENCL) && defined(PV_USE_CUDA)
+   std::cout << "HyPerCol error: Can use either OpenCL or Cuda, not both\n";
+   exit(PV_FAILURE);
+#endif
+
 #ifdef PV_USE_OPENCL
+   //Make sure the directive set in CMake is set here
+#ifndef PV_DIR
+   std::cout << "HyPerCol error: PV_DIR compiler directive must be set if using opencl\n";
+   exit(PV_FAILURE);
+#endif
    srcPath = (char *) calloc(PV_PATH_MAX, sizeof(char));
-   sprintf(srcPath, "%s", "/Users/rasmus/Documents/workspace-PV/PetaVision/src");   // hardcode for now
-   srcPath = getcwd(srcPath, PV_PATH_MAX);
+   strcat(srcPath, PV_DIR);
+   strcat(srcPath, "/src");
    printf("============================= srcPath is %s\n", srcPath);
 #endif
 
@@ -423,10 +442,19 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * p
    }
 
    // run only on GPU for now
-#ifdef PV_USE_OPENCL
+#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
    initializeThreads(opencl_device);
-   clDevice->query_device_info();
 #endif
+
+   //Only print rank for comm rank 0
+   if(columnId() == 0){
+#ifdef PV_USE_OPENCL
+      clDevice->query_device_info();
+#endif
+#ifdef PV_USE_CUDA
+      cudaDevice->query_device_info();
+#endif
+   }
 
    runDelegate = NULL;
 
@@ -2051,14 +2079,28 @@ int HyPerCol::exitRunLoop(bool exitOnFinish)
 
 int HyPerCol::initializeThreads(int device)
 {
+   if(device == -1){
+      //Device of -1 means to use mpi process for each device
+      device = icComm->commRank();
+   }
+#ifdef PV_USE_OPENCL
    clDevice = new CLDevice(device);
+#endif
+#ifdef PV_USE_CUDA
+   cudaDevice = new PVCuda::CudaDevice(device);
+#endif
    return 0;
 }
 
-#ifdef PV_USE_OPENCL
+#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
 int HyPerCol::finalizeThreads()
 {
+#ifdef PV_USE_OPENCL
    delete clDevice;
+#endif
+#ifdef PV_USE_CUDA
+   delete cudaDevice;
+#endif
    return 0;
 }
 #endif // PV_USE_OPENCL
@@ -2247,3 +2289,4 @@ template int HyPerCol::readScalarFromFile<float>(char const * cpDir, const char 
 template int HyPerCol::readScalarFromFile<double>(char const * cpDir, const char * group_name, char const * val_name, double * val, double default_value);
 
 } // PV namespace
+

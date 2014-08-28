@@ -35,10 +35,10 @@ ANNSquaredLayer::ANNSquaredLayer() {
 ANNSquaredLayer::ANNSquaredLayer(const char * name, HyPerCol * hc) {
    initialize_base();
    initialize(name, hc);
-#ifdef PV_USE_OPENCL
-   if(gpuAccelerateFlag)
-      initializeGPU();
-#endif
+//#ifdef PV_USE_OPENCL
+//   if(gpuAccelerateFlag)
+//      initializeGPU();
+//#endif
 }  // end V1AveSquaredInput::V1AveSquaredInput(const char *, HyPerCol *)
 
 ANNSquaredLayer::~ANNSquaredLayer()
@@ -53,53 +53,53 @@ int ANNSquaredLayer::initialize_base() {
 int ANNSquaredLayer::initialize(const char * name, HyPerCol * hc) {
    int status = ANNLayer::initialize(name, hc);
    assert(numChannels==1);
-#ifdef PV_USE_OPENCL
-   numEvents=NUM_ANNSQ_EVENTS;
-#endif
+//#ifdef PV_USE_OPENCL
+//   numEvents=NUM_ANNSQ_EVENTS;
+//#endif
    return status;
 }
 
 
-#ifdef PV_USE_OPENCL
-/**
- * Initialize OpenCL buffers.  This must be called after PVLayer data have
- * been allocated.
- */
-int ANNSquaredLayer::initializeThreadBuffers(const char * kernel_name)
-{
-   int status = HyPerLayer::initializeThreadBuffers(kernel_name);
-
-   //right now there are no ANN layer specific buffers...
-   return status;
-}
-
-int ANNSquaredLayer::initializeThreadKernels(const char * kernel_name)
-{
-   //at the moment there's no reason to do anything differently
-   //for ANNSquaredLayer, but I still defined the method in case
-   //that changes in the future.
-   return ANNLayer::initializeThreadKernels(kernel_name);
-}
-int ANNSquaredLayer::updateStateOpenCL(double time, double dt)
-{
-   //at the moment there's no reason to do anything differently
-   //for ANNSquaredLayer, but I still defined the method in case
-   //that changes in the future.
-   return ANNLayer::updateStateOpenCL(time, dt);
-}
-#endif
+//#ifdef PV_USE_OPENCL
+///**
+// * Initialize OpenCL buffers.  This must be called after PVLayer data have
+// * been allocated.
+// */
+//int ANNSquaredLayer::initializeThreadBuffers(const char * kernel_name)
+//{
+//   int status = HyPerLayer::initializeThreadBuffers(kernel_name);
+//
+//   //right now there are no ANN layer specific buffers...
+//   return status;
+//}
+//
+//int ANNSquaredLayer::initializeThreadKernels(const char * kernel_name)
+//{
+//   //at the moment there's no reason to do anything differently
+//   //for ANNSquaredLayer, but I still defined the method in case
+//   //that changes in the future.
+//   return ANNLayer::initializeThreadKernels(kernel_name);
+//}
+//int ANNSquaredLayer::updateStateOpenCL(double time, double dt)
+//{
+//   //at the moment there's no reason to do anything differently
+//   //for ANNSquaredLayer, but I still defined the method in case
+//   //that changes in the future.
+//   return ANNLayer::updateStateOpenCL(time, dt);
+//}
+//#endif
 
 
 int ANNSquaredLayer::updateState(double time, double dt)
 {
    update_timer->start();
-#ifdef PV_USE_OPENCL
-   if((gpuAccelerateFlag)&&(true)) {
-      updateStateOpenCL(time, dt);
-      //HyPerLayer::updateState(time, dt);
-   }
-   else {
-#endif
+//#ifdef PV_USE_OPENCL
+//   if((gpuAccelerateFlag)&&(true)) {
+//      updateStateOpenCL(time, dt);
+//      //HyPerLayer::updateState(time, dt);
+//   }
+//   else {
+//#endif
       const int nx = clayer->loc.nx;
       const int ny = clayer->loc.ny;
       const int nf = clayer->loc.nf;
@@ -110,9 +110,9 @@ int ANNSquaredLayer::updateState(double time, double dt)
       pvdata_t * activity = clayer->activity->data;
 
       ANNSquaredLayer_update_state(getNumNeurons(), nx, ny, nf, nb, V, GSynHead, activity);
-#ifdef PV_USE_OPENCL
-   }
-#endif
+//#ifdef PV_USE_OPENCL
+//   }
+//#endif
 
    update_timer->stop();
    return PV_SUCCESS;

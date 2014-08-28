@@ -194,13 +194,13 @@ int HyPerLCALayer::doUpdateState(double time, double dt, const PVLayerLoc * loc,
       unsigned int * active_indices, unsigned int * num_active)
 {
    update_timer->start();
-#ifdef PV_USE_OPENCL
-   if(gpuAccelerateFlag)
-   {
-      updateStateOpenCL(time, dt);
-   }
-   else
-#endif
+//#ifdef PV_USE_OPENCL
+//   if(gpuAccelerateFlag) {
+//      updateStateOpenCL(time, dt);
+//      //HyPerLayer::updateState(time, dt);
+//   }
+//   else {
+//#endif
    {
       int nx = loc->nx;
       int ny = loc->ny;

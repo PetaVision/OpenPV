@@ -23,7 +23,12 @@
 #include <fstream>
 #include <string>
 #include <sstream>
+#ifdef PV_USE_OPENCL
 #include "../arch/opencl/CLDevice.hpp"
+#endif
+#ifdef PV_USE_CUDA
+#include "../arch/cuda/CudaDevice.hpp"
+#endif
 enum CheckpointWriteTriggerMode { CPWRITE_TRIGGER_STEP, CPWRITE_TRIGGER_TIME, CPWRITE_TRIGGER_CLOCK };
 
 namespace PV {
@@ -44,7 +49,7 @@ public:
    virtual ~HyPerCol();
 
    int initializeThreads(int device);
-#ifdef PV_USE_OPENCL
+#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
    int finalizeThreads();
 #endif //PV_USE_OPENCL
 
@@ -76,11 +81,16 @@ public:
    int getNxGlobal()                      {return nxGlobal;}
    int getNyGlobal()                      {return nyGlobal;}
 
+#ifdef PV_USE_OPENCL
    CLDevice * getCLDevice()               {return clDevice;}
+#endif
+#ifdef PV_USE_CUDA
+   PVCuda::CudaDevice * getCudaDevice()   {return cudaDevice;}
+#endif
 
    InterColComm * icCommunicator()        {return icComm;}
 
-   PV_Stream * getPrintParamsStream()      {return printParamsStream;}
+   PV_Stream * getPrintParamsStream()     {return printParamsStream;}
 
    PVParams * parameters()                {return params;}
 
@@ -267,7 +277,13 @@ private:
    double nextProgressTime; // Next time to output a progress message
    bool writeProgressToErr;// Whether to write progress step to standard error (True) or standard output (False) (default is output)
 
+#ifdef PV_USE_OPENCL
    CLDevice * clDevice;    // object for running kernels on OpenCL device
+#endif
+#ifdef PV_USE_CUDA
+   PVCuda::CudaDevice * cudaDevice;    // object for running kernels on OpenCL device
+#endif
+
 
    HyPerLayer ** layers;
    HyPerConn  ** connections;

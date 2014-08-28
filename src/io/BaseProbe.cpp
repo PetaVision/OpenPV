@@ -21,7 +21,6 @@ BaseProbe::~BaseProbe()
    if (outputstream != NULL) {
       PV_fclose(outputstream); outputstream = NULL;
    }
-   free(name); name = NULL;
    free(targetName); targetName = NULL;
    free(msgparams); msgparams = NULL;
    free(msgstring); msgstring = NULL;

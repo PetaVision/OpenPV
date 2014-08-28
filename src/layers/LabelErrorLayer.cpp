@@ -85,13 +85,13 @@ int LabelErrorLayer::doUpdateState(double time, double dt, const PVLayerLoc * lo
       unsigned int * active_indices, unsigned int * num_active)
 {
    update_timer->start();
-#ifdef PV_USE_OPENCL
-   if(gpuAccelerateFlag) {
-      updateStateOpenCL(time, dt);
-      //HyPerLayer::updateState(time, dt);
-   }
-   else {
-#endif
+//#ifdef PV_USE_OPENCL
+//   if(gpuAccelerateFlag) {
+//      updateStateOpenCL(time, dt);
+//      //HyPerLayer::updateState(time, dt);
+//   }
+//   else {
+//#endif
       int nx = loc->nx;
       int ny = loc->ny;
       int nf = loc->nf;
@@ -101,9 +101,9 @@ int LabelErrorLayer::doUpdateState(double time, double dt, const PVLayerLoc * lo
       if (this->writeSparseActivity){
          updateActiveIndices();  // added by GTK to allow for sparse output, can this be made an inline function???
       }
-#ifdef PV_USE_OPENCL
-   }
-#endif
+//#ifdef PV_USE_OPENCL
+//   }
+//#endif
 
    update_timer->stop();
    return PV_SUCCESS;
