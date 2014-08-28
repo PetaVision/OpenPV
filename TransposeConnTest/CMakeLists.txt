@@ -30,9 +30,9 @@ set(CMAKE_C_COMPILER "${MPI_C_COMPILER}")
 set(CMAKE_CXX_COMPILER "${MPI_CXX_COMPILER}")
 endif (NOT MPI_C_FOUND OR NOT MPI_CXX_FOUND)
 
-if (NOT LIBSNDFILE_FOUND)
+if (LIB_SND_FILE)
     find_package(LIBSNDFILE)
-endif (NOT LIBSNDFILE_FOUND)
+endif (LIB_SND_FILE)
 
 # Header files
 include_directories(${PV_SOURCE_DIR})
