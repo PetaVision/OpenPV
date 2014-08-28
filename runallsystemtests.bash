@@ -518,6 +518,13 @@ runandecho $testname $testname Debug/$testname $arglist
 mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
 cd "$workspacedir"
 
+testname=UpdateFromCloneTest
+cd "$testname"
+arglist="-p input/updateFromCloneTest.params"
+runandecho $testname $testname Debug/$testname $arglist
+mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
+cd "$workspacedir"
+
 testname=WindowSystemTest
 cd "$testname"
 arglist="-p input/postTest.params"
