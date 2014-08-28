@@ -1,0 +1,162 @@
+debugParsing = true;
+
+HyPerCol "column" = {
+    nx = 32; //1242;  // KITTI synced value
+    ny = 32;  //218;
+    dt = 1.0;
+    randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
+    startTime = 0.0;
+    numSteps = 1;       // Depends on number of VINE video frames
+    progressStep = 1;
+    //Change this
+    outputPath = "output/";
+    filenamesContainLayerNames = true;
+    filenamesContainConnectionNames = true;
+    checkpointRead = false;
+    checkpointWrite = false;
+    // deleteOlderCheckpoints = false;
+    suppressLastOutput = true;
+    writeProgressToErr = true;
+};
+
+//This layer must have .5 activity for every neuron
+Image "origPre" = {
+    restart = 0;  // make only a certain layer restart
+    nxScale = 1;  // this must be 2^n, n = ...,-2,-1,0,1,2,... 
+    nyScale = 1;  // the scale is to decide how much area will be used as input. For exampel, nx * nxScale = 32. The size of input
+    	      	  // cannot be larger than the input image size.
+    imagePath = "input/origImg.png";
+    nf = 1; //number of features.
+    phase = 0; //phase defines an order in which layers should be executed.
+    writeStep = 1;  //-1 means doesn't write for log
+    writeSparseActivity = false; //only write weights which are not 0
+    mirrorBCflag = true;    //border condition flag
+    valueBC = 0.0; // Value in border if mirrorBCflag is false
+    useImageBCflag = false;
+    inverseFlag = false; 
+    normalizeLuminanceFlag = false;
+    autoResizeFlag = false;
+    writeImages = false;
+    offsetX = 0;  // offset for crop, when the input size is smaller than the size of image
+    offsetY = 0;
+    jitterFlag = false; // moving around like an eyeball. our eyeballs are not still even when we are gazing at something.
+    // frameNumber = 0;
+};
+
+//This layer must have .25 activity for every neuron
+Image "clonePre" = {
+    restart = 0;  // make only a certain layer restart
+    nxScale = 1;  // this must be 2^n, n = ...,-2,-1,0,1,2,... 
+    nyScale = 1;  // the scale is to decide how much area will be used as input. For exampel, nx * nxScale = 32. The size of input
+    	      	  // cannot be larger than the input image size.
+    imagePath = "input/cloneImg.png";
+    nf = 1; //number of features.
+    phase = 0; //phase defines an order in which layers should be executed.
+    writeStep = 1;  //-1 means doesn't write for log
+    writeSparseActivity = false; //only write weights which are not 0
+    mirrorBCflag = true;    //border condition flag
+    valueBC = 0.0; // Value in border if mirrorBCflag is false
+    useImageBCflag = false;
+    inverseFlag = false; 
+    normalizeLuminanceFlag = false;
+    autoResizeFlag = false;
+    writeImages = false;
+    offsetX = 0;  // offset for crop, when the input size is smaller than the size of image
+    offsetY = 0;
+    jitterFlag = false; // moving around like an eyeball. our eyeballs are not still even when we are gazing at something.
+    // frameNumber = 0;
+};
+
+ANNLayer "origPost" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    writeStep = 1.0;
+    initialWriteTime = 0.0;
+    mirrorBCflag = -1;
+    writeSparseActivity = 0;
+    //
+    InitVType = "ConstantV";
+    valueV = 1;
+    // 
+    phase = 1; 
+};
+
+ANNLayer "clonePost" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    writeStep = -1.0;
+    initialWriteTime = 0.0;
+    mirrorBCflag = -1;
+    writeSparseActivity = 0;
+    //
+    InitVType = "ConstantV";
+    valueV = 1;
+    // 
+    phase = 1; 
+};
+
+HyPerConn "origConn" = {
+    preLayerName = "origPre";
+    postLayerName = "origPost";
+    channelCode = 0; //Inhib b, doing nothing to input
+    sharedWeights = true;
+    
+    nxp = 5; 
+    nyp = 5; 
+    nfp = 1;
+
+    numAxonalArbors = 1;
+    initFromLastFlag = 0;  // 1;  // restart
+    writeStep = -1;
+    initialWriteTime = 0.0;
+    writeCompressedWeights = false;
+    
+    weightInitType = "UniformWeight";
+    weightInit = 1.0;
+    sparseFraction = 0;
+        
+    strength = 1.0;  
+    normalizeMethod = "none";
+    symmetrizeWeights = false;
+    
+    shrinkPatches = false;
+    //writeCompressedWeights = 0.0;
+    writeCompressedCheckpoints = false;
+    plasticityFlag = 1;
+    dWMax = 1;
+    updateFromClone = true;
+    weightUpdatePeriod = 1;
+
+    pvpatchAccumulateType = "convolve";
+     
+    delay = 0;
+     
+    preActivityIsNotRate = false;
+    selfFlag = false;
+    shmget_flag = false;
+
+    updateGSynFromPostPerspective = false;
+    useWindowPost = false;
+};
+
+PlasticCloneConn "cloneConn" = {
+    preLayerName = "clonePre";
+    postLayerName = "clonePost";
+    channelCode = 0;
+    writeStep = -1;
+    originalConnName = "origConn";
+    selfFlag = false;
+    delay = 0;
+    preActivityIsNotRate = false;
+    useWindowPost = false;
+    updateGSynFromPostPerspective = false;
+    pvpatchAccumulateType = "convolve";
+};
+
+TestConnProbe "testConnProbe" = {
+   targetConnection = "origConn";
+};
