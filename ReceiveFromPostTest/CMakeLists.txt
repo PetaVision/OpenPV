@@ -30,9 +30,9 @@ set(CMAKE_C_COMPILER "${MPI_C_COMPILER}")
 set(CMAKE_CXX_COMPILER "${MPI_CXX_COMPILER}")
 endif (NOT MPI_C_FOUND OR NOT MPI_CXX_FOUND)
 
-if (NOT LIBSNDFILE_FOUND)
-    find_package(LIBSNDFILE)
-endif (NOT LIBSNDFILE_FOUND)
+#if (NOT LIBSNDFILE_FOUND)
+#    find_package(LIBSNDFILE)
+#endif (NOT LIBSNDFILE_FOUND)
 
 # Header files
 include_directories(${PV_SOURCE_DIR})
@@ -48,10 +48,17 @@ link_directories(${PV_BINARY_DIR})
 # Add executable
 file(GLOB libSrcCPP ${PROJECT_SOURCE_DIR}/*.cpp)
 file(GLOB libSrcC ${PROJECT_SOURCE_DIR}/*.c)
-add_executable(ReceiveFromPostTest ${libSrcCPP} ${libSrcC})
 
-# Link executable to PV 
+if(CUDA_GPU)
+   cuda_compile(Cuda_O ${pv} OPTIONS -dlink)
+   add_executable(ReceiveFromPostTest ${pv} ${libSrcCPP} ${libSrcC} ${Cuda_O})
+   #target_link_libraries(ReceiveFromPostTest pvCuda)
+else(CUDA_GPU)
+   add_executable(ReceiveFromPostTest ${libSrcCPP} ${libSrcC})
+endif(CUDA_GPU)
+
 target_link_libraries(ReceiveFromPostTest pv)
+
 
 # Link executable to external libraries
 target_link_libraries(ReceiveFromPostTest ${GDAL_LIBRARY})
