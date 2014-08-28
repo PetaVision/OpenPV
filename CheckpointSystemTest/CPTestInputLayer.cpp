@@ -69,43 +69,43 @@ int CPTestInputLayer::initializeV() {
    return PV_SUCCESS;
 }
 
-#ifdef PV_USE_OPENCL
-/**
- * Initialize OpenCL buffers.  This must be called after PVLayer data have
- * been allocated.
- */
-int CPTestInputLayer::initializeThreadBuffers(const char * kernel_name)
-{
-   int status = ANNLayer::initializeThreadBuffers(kernel_name);
-   //There are no CPTestInputLayer-specific buffers...
-   return status;
-}
-
-int CPTestInputLayer::initializeThreadKernels(const char * kernel_name)
-{
-   return ANNLayer::initializeThreadKernels(kernel_name);
-}
-int CPTestInputLayer::updateStateOpenCL(double timed, double dt)
-{
-   //at the moment there's no reason to do anything differently
-   //for CPTestInputLayer, but I still defined the method in case
-   //that changes in the future.
-   int status = ANNLayer::updateStateOpenCL(timed, dt);
-   return status;
-}
-
-#endif // PV_USE_OPENCL
+//#ifdef PV_USE_OPENCL
+///**
+// * Initialize OpenCL buffers.  This must be called after PVLayer data have
+// * been allocated.
+// */
+//int CPTestInputLayer::initializeThreadBuffers(const char * kernel_name)
+//{
+//   int status = ANNLayer::initializeThreadBuffers(kernel_name);
+//   //There are no CPTestInputLayer-specific buffers...
+//   return status;
+//}
+//
+//int CPTestInputLayer::initializeThreadKernels(const char * kernel_name)
+//{
+//   return ANNLayer::initializeThreadKernels(kernel_name);
+//}
+//int CPTestInputLayer::updateStateOpenCL(double timed, double dt)
+//{
+//   //at the moment there's no reason to do anything differently
+//   //for CPTestInputLayer, but I still defined the method in case
+//   //that changes in the future.
+//   int status = ANNLayer::updateStateOpenCL(timed, dt);
+//   return status;
+//}
+//
+//#endif // PV_USE_OPENCL
 
 
 int CPTestInputLayer::updateState(double timed, double dt) {
    update_timer->start();
-#ifdef PV_USE_OPENCL
-   if(gpuAccelerateFlag) {
-      updateStateOpenCL(timed, dt);
-      //HyPerLayer::updateState(time, dt);
-   }
-   else {
-#endif
+//#ifdef PV_USE_OPENCL
+//   if(gpuAccelerateFlag) {
+//      updateStateOpenCL(timed, dt);
+//      //HyPerLayer::updateState(time, dt);
+//   }
+//   else {
+//#endif
       const int nx = clayer->loc.nx;
       const int ny = clayer->loc.ny;
       const int nf = clayer->loc.nf;
@@ -119,9 +119,9 @@ int CPTestInputLayer::updateState(double timed, double dt) {
       pvdata_t * activity = clayer->activity->data;
 
       CPTestInputLayer_update_state(numNeurons, nx, ny, nf, nb, V, VThresh, AMax, AMin, GSynHead, activity);
-#ifdef PV_USE_OPENCL
-   }
-#endif
+//#ifdef PV_USE_OPENCL
+//   }
+//#endif
 
    update_timer->stop();
    return PV_SUCCESS;

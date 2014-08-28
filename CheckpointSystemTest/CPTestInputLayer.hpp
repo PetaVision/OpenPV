@@ -27,10 +27,10 @@ protected:
 #ifdef PV_USE_OPENCL
 
 protected:
-   virtual int getNumCLEvents() {return numEvents;}
+   //virtual int getNumCLEvents() {return numEvents;}
    virtual const char * getKernelName() { return "ANNLayer_update_state"; }
-   virtual int initializeThreadBuffers(const char * kernel_name);
-   virtual int initializeThreadKernels(const char * kernel_name);
+   //virtual int initializeThreadBuffers(const char * kernel_name);
+   //virtual int initializeThreadKernels(const char * kernel_name);
    int updateStateOpenCL(double timed, double dt);
 
 #endif // PV_USE_OPENCL
