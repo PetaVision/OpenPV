@@ -168,7 +168,13 @@ int InitV::calcVFromFile(pvdata_t * V, const PVLayerLoc * loc, InterColComm * ic
       }
       int filetype = params[INDEX_FILE_TYPE];
       status = checkLoc(loc, params[INDEX_NX], params[INDEX_NY], params[INDEX_NF], params[INDEX_NX_GLOBAL], params[INDEX_NY_GLOBAL]);
-      assert(status == PV_SUCCESS);
+      if (status != PV_SUCCESS) {
+         if (icComm->commRank() == 0) {
+            fprintf(stderr, "InitVFromFilename error: dimensions of \"%s\" (x=%d,y=%d,f=%d) do not agree with layer dimensions (x=%d,y=%d,f=%d).\n", filename, params[INDEX_NX_GLOBAL], params[INDEX_NY_GLOBAL], params[INDEX_NF], loc->nxGlobal, loc->nyGlobal, loc->nf);
+         }
+         MPI_Barrier(icComm->communicator());
+         exit(EXIT_FAILURE);
+      }
       fileLoc.nx = params[INDEX_NX];
       fileLoc.ny = params[INDEX_NY];
       fileLoc.nf = params[INDEX_NF];
