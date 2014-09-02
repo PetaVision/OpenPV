@@ -54,7 +54,9 @@ Image::~Image() {
          PV_fclose(fp_pos);
       }
    }
-
+   if(offsetAnchor){
+      free(offsetAnchor);
+   }
    free(writeImagesExtension);
 }
 
@@ -73,6 +75,7 @@ int Image::initialize_base() {
    normalizeStdDev = true;
    offsets[0] = 0;
    offsets[1] = 0;
+   offsetAnchor = (char*) "tl";
    jitterFlag = false;
    jitterType = RANDOM_WALK;
    timeSinceLastJitter = 0;
@@ -109,6 +112,7 @@ int Image::initialize(const char * name, HyPerCol * hc) {
    if (jitterFlag) {
       assert(!params->presentAndNotBeenRead(name, "offsetX"));
       assert(!params->presentAndNotBeenRead(name, "offsetY"));
+      assert(!params->presentAndNotBeenRead(name, "offsetAnchor"));
       biases[0] = getOffsetX();
       biases[1] = getOffsetY();
    }
@@ -120,6 +124,7 @@ int Image::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = HyPerLayer::ioParamsFillGroup(ioFlag);
 
    ioParam_imagePath(ioFlag);
+   ioParam_offsetAnchor(ioFlag);
    ioParam_offsets(ioFlag);
    ioParam_writeImages(ioFlag);
    ioParam_writeImagesExtension(ioFlag);
@@ -157,6 +162,10 @@ int Image::ioParam_offsets(enum ParamsIOFlag ioFlag) {
    parent->ioParamValue(ioFlag, name, "offsetY", &offsets[1], offsets[1]);
 
    return PV_SUCCESS;
+}
+
+void Image::ioParam_offsetAnchor(enum ParamsIOFlag ioFlag){
+   parent->ioParamString(ioFlag, name, "offsetAnchor", &offsetAnchor, "tl");
 }
 
 void Image::ioParam_writeImages(enum ParamsIOFlag ioFlag) {
@@ -429,6 +438,7 @@ int Image::scatterImageFilePVP(const char * filename, int xOffset, int yOffset,
          length = countBuf[frameNumber];
          PV::PV_fseek(pvstream, framepos-sizeof(double)-sizeof(unsigned int), SEEK_SET);
          PV::PV_fread(&timed, sizeof(double), 1, pvstream);
+         std::cout << "Reading file time " << timed << " on time " << parent->simulationTime() << "\n";
          unsigned int dropLength;
          PV::PV_fread(&dropLength, sizeof(unsigned int), 1, pvstream);
          assert(dropLength == length);
@@ -1269,6 +1279,44 @@ void Image::equalBandWeights(int numBands, float * bandweight) {
    for( int b=0; b<numBands; b++ ) bandweight[b] = w;
 }
 
+
+//Offsets based on an anchor point, so calculate offsets based off a given anchor point
+int Image::getOffsetX(){
+   //Offset on left
+   if(!strcmp(offsetAnchor, "tl") || !strcmp(offsetAnchor, "cl") || !strcmp(offsetAnchor, "bl")){
+      return offsets[1];
+   }
+   //Offset in center
+   else if(!strcmp(offsetAnchor, "tc") || !strcmp(offsetAnchor, "cc") || !strcmp(offsetAnchor, "bc")){
+      int layerSizeX = getLayerLoc()->nxGlobal;
+      return ((imageLoc.nxGlobal/2)-(layerSizeX/2) - 1) + offsets[1];
+   }
+   //Offset on bottom
+   else if(!strcmp(offsetAnchor, "tr") || !strcmp(offsetAnchor, "cr") || !strcmp(offsetAnchor, "br")){
+      int layerSizeX = getLayerLoc()->nxGlobal;
+      return (imageLoc.nxGlobal - layerSizeX - 1) + offsets[1];
+   }
+}
+
+int Image::getOffsetY(){
+   //Offset on top
+   if(!strcmp(offsetAnchor, "tl") || !strcmp(offsetAnchor, "tc") || !strcmp(offsetAnchor, "tr")){
+      return offsets[0];
+   }
+   //Offset in center
+   else if(!strcmp(offsetAnchor, "cl") || !strcmp(offsetAnchor, "cc") || !strcmp(offsetAnchor, "cr")){
+      int layerSizeY = getLayerLoc()->nyGlobal;
+      return ((imageLoc.nyGlobal/2)-(layerSizeY/2) - 1) + offsets[0];
+   }
+   //Offset on bottom
+   else if(!strcmp(offsetAnchor, "bl") || !strcmp(offsetAnchor, "bc") || !strcmp(offsetAnchor, "br")){
+      int layerSizeY = getLayerLoc()->nyGlobal;
+      return (imageLoc.nyGlobal-layerSizeY-1) + offsets[0];
+   }
+}
+
+
+
 /*
  * jitter() is not called by Image directly, but it is called by
  * its derived classes Patterns and Movie, so it's placed in Image.
@@ -1289,7 +1337,7 @@ bool Image::jitter() {
    constrainOffsets();
 
    if(writePosition && parent->icCommunicator()->commRank()==0){
-      fprintf(fp_pos->fp,"t=%f, bias x=%d, y=%d, offset x=%d y=%d\n",timed,biases[0],biases[1],offsets[0],offsets[1]);
+      fprintf(fp_pos->fp,"t=%f, bias x=%d, y=%d, offset x=%d y=%d\n",timed,biases[0],biases[1],getOffsetX(),getOffsetY());
    }
    lastUpdateTime = timed;
    return needNewImage;

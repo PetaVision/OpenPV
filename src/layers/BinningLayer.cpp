@@ -21,6 +21,7 @@ int BinningLayer::initialize_base() {
    binMin = 0;
    binSigma = 0;
    zeroNeg = true;
+   zeroDCR = false;
    return PV_SUCCESS;
 }
 
@@ -79,6 +80,10 @@ void BinningLayer::ioParam_delay(enum ParamsIOFlag ioFlag) {
 
 void BinningLayer::ioParam_zeroNeg(enum ParamsIOFlag ioFlag) {
    parent->ioParamValue(ioFlag, name, "zeroNeg", &zeroNeg, zeroNeg);
+}
+
+void BinningLayer::ioParam_zeroDCR(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "zeroDCR", &zeroDCR, zeroDCR);
 }
 
 //TODO read params for gaussian over features
@@ -175,41 +180,54 @@ int BinningLayer::doUpdateState(double timed, double dt, const PVLayerLoc * orig
       for (int iX = 0; iX < (nx+2*nb); iX++){
          int origIdx = kIndex(iX, iY, 0, nx+2*nb, ny+2*nb, origLoc->nf);
          float inVal = origData[origIdx];
-         //A sigma of zero means only the centered bin value should get input
-         int featureIdx = round((inVal-binMin)/stepSize);
-         for(int iF = 0; iF < numBins; iF++){
-            if(binSigma == 0){
+         if(zeroDCR && inVal == 0){
+            for(int iF = 0; iF < numBins; iF++){
                int currIdx = kIndex(iX, iY, iF, nx+2*nb, ny+2*nb, numBins);
-               if(iF == featureIdx){
-                  currA[currIdx] = 1;
-               }
-               //Resetting value
-               else{
-                  if(zeroNeg){
-                     currA[currIdx] = 0;
-                  }
-                  else{
-                     currA[currIdx] = -1; //Hacked in, make a parameter to choose between 0 or -1
-                  }
-               }
+               currA[currIdx] = 0;
             }
-            else{
-               //Calculate center value for featureIdx (the bin that the value belongs to without a sigma) is binning
-               float mean = featureIdx * stepSize + (stepSize/2);
-               //Possible bins
-               int intSigma = ceil(binSigma);
-               int currIdx = kIndex(iX, iY, iF, nx+2*nb, ny+2*nb, numBins);
-               if(iF >= featureIdx-intSigma && iF <= featureIdx+intSigma){
-                  //Get center of that aBin for the x pos of the normal dist
-                  float xVal = iF * stepSize + (stepSize/2);
-                  //Calculate normal dist
-                  float outVal = calcNormDist(xVal, mean, binSigma);
-                  //Put into activity buffer
-                  currA[currIdx] = outVal;
+         }
+         else{
+            //A sigma of zero means only the centered bin value should get input
+            int featureIdx = round((inVal-binMin)/stepSize);
+            for(int iF = 0; iF < numBins; iF++){
+               if(binSigma == 0){
+                  int currIdx = kIndex(iX, iY, iF, nx+2*nb, ny+2*nb, numBins);
+                  if(iF == featureIdx){
+                     currA[currIdx] = 1;
+                  }
+                  //Resetting value
+                  else{
+                     if(zeroNeg){
+                        currA[currIdx] = 0;
+                     }
+                     else{
+                        currA[currIdx] = -1;
+                     }
+                  }
                }
-               //Resetting value
                else{
-                  currA[currIdx] = 0;
+                  //Calculate center value for featureIdx (the bin that the value belongs to without a sigma) is binning
+                  float mean = featureIdx * stepSize + (stepSize/2);
+                  //Possible bins
+                  int intSigma = ceil(binSigma);
+                  int currIdx = kIndex(iX, iY, iF, nx+2*nb, ny+2*nb, numBins);
+                  if(iF >= featureIdx-intSigma && iF <= featureIdx+intSigma){
+                     //Get center of that aBin for the x pos of the normal dist
+                     float xVal = iF * stepSize + (stepSize/2);
+                     //Calculate normal dist
+                     float outVal = calcNormDist(xVal, mean, binSigma);
+                     //Put into activity buffer
+                     currA[currIdx] = outVal;
+                  }
+                  //Resetting value
+                  else{
+                     if(zeroNeg){
+                        currA[currIdx] = 0;
+                     }
+                     else{
+                        currA[currIdx] = -1;
+                     }
+                  }
                }
             }
          }

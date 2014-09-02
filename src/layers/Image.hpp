@@ -24,6 +24,7 @@ protected:
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    virtual void ioParam_imagePath(enum ParamsIOFlag ioFlag);
    virtual int ioParam_offsets(enum ParamsIOFlag ioFlag); // reads offsetX, offsetY from params.  Override with empty function if a derived class doesn't use these parameters (e.g. Patterns)
+   virtual void ioParam_offsetAnchor(enum ParamsIOFlag ioFlag);
    virtual void ioParam_writeImages(enum ParamsIOFlag ioFlag);
    virtual void ioParam_writeImagesExtension(enum ParamsIOFlag ioFlag);
    virtual void ioParam_useImageBCflag(enum ParamsIOFlag ioFlag);
@@ -92,6 +93,7 @@ public:
    //float lastUpdate()  { return lastUpdateTime; }
 
    virtual pvdata_t * getImageBuffer() { return data; }
+
    virtual PVLayerLoc getImageLoc() {return imageLoc; }
 
    virtual int tag();
@@ -110,9 +112,10 @@ public:
    int copyToInteriorBuffer(unsigned char * buf, float fac);
 
    const char * getFilename() { return filename; }
-   int getOffsetX() { return offsets[0]; }
-   int getOffsetY() { return offsets[1]; }
-   const int * getOffsets() { return offsets; }
+   int getOffsetX();
+   int getOffsetY();
+   //const int * getOffsets() { return offsets; }
+   
    int getBiasX() { return biases[0]; }
    int getBiasY() { return biases[1]; }
    const int * getBiases() { return biases; }
@@ -142,13 +145,12 @@ protected:
    char * filename;       // path to file if a file exists
 
    PVLayerLoc imageLoc;   // size/location of actual image
+
    pvdata_t * imageData;  // buffer containing image
 
    int writeImages;      // controls writing of image file during outputState
    char * writeImagesExtension; // ".pvp", ".tif", ".png", etc.; the extension to use when writing images
    // bool useGrayScale;    // whether to convert image to grayscale
-   // useGrayScale no longer used; instead setting nf=1 in params with color input images calls toGrayScale()
-   int offsets[2];        // offsets array points to [offsetX, offsetY]
 
    bool useParamsImage;
    bool useImageBCflag;
@@ -193,6 +195,12 @@ protected:
    int * countBuf;
    bool needFrameSizesForSpiking;
    PV_Stream * posstream;
+
+private:
+   //Offsets is now private, must use getOffsetX and getOffsetY to get the offset
+   // useGrayScale no longer used; instead setting nf=1 in params with color input images calls toGrayScale()
+   int offsets[2];        // offsets array points to [offsetX, offsetY]
+   char* offsetAnchor;
 };
 
 }

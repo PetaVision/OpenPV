@@ -193,17 +193,21 @@ int getImageInfoGDAL(const char * filename, PV::Communicator * comm, PVLayerLoc 
 
          // calculate local layer size
 
-         int nx = xImageSize / nxProcs;
-         int ny = yImageSize / nyProcs;
-
-         loc->nx = nx;
-         loc->ny = ny;
+         //SL nx and ny are no longer being used in image loc
+         //int nx = xImageSize / nxProcs;
+         //int ny = yImageSize / nyProcs;
+         //loc->nx = nx;
+         //loc->ny = ny;
+         loc->nx = -1;
+         loc->ny = -1;
 
          loc->nb = 0;
          memset(&loc->halo, 0, sizeof(loc->halo));
 
-         loc->nxGlobal = nxProcs * nx;
-         loc->nyGlobal = nyProcs * ny;
+         //loc->nxGlobal = nxProcs * nx;
+         //loc->nyGlobal = nyProcs * ny;
+         loc->nxGlobal = xImageSize;
+         loc->nyGlobal = yImageSize;
 
          locBuf[0] = PV_SUCCESS;
          copyToLocBuffer(&locBuf[1], loc);
