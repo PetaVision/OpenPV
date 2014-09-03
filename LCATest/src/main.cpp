@@ -281,6 +281,15 @@ int testioparams(int argc, char * argv[], int rank) {
       }
    }
    HyPerCol * hc = build(pv_argc, pv_argv);
+   if (hc == NULL) {
+      fprintf(stderr, "testioparams error: unable to build HyPerCol.\n");
+      exit(EXIT_FAILURE);
+   }
+   int status = hc->run(); // Needed to generate pv.params file
+   if (status != PV_SUCCESS) {
+      fprintf(stderr, "testioparams error: run to generate pv.params file failed.\n");
+      exit(EXIT_FAILURE);
+   }
    const char * paramsfile = hc->getPrintParamsFilename();
    std::string paramsfileString = paramsfile;
    if (paramsfile[0]!='/') {
@@ -322,7 +331,7 @@ int testioparams(int argc, char * argv[], int rank) {
       }
       printf("\n");
    }
-   int status = buildandrun(pv_argc, pv_argv, NULL, &assertAllZeroes, NULL);
+   status = buildandrun(pv_argc, pv_argv, NULL, &assertAllZeroes, NULL);
    if (usingdefaultparamsfile) {
       free(pv_argv[arg-1]); pv_argv[arg-1] = NULL;
    }
