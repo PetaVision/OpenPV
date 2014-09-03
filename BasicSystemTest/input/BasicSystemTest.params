@@ -26,6 +26,7 @@ HyPerCol "column" = {
    printParamsFilename = "pv.params"; // A record of the parameters used, including defaults and excluding unused params, will be written to this file.
    filenamesContainLayerNames = false;  
    filenamesContainConnectionNames = false;
+   initializeFromCheckpointDir = "";
    checkpointWrite = false;
    suppressLastOutput = false; //If true, save the last output as checkpoint.
 };
@@ -39,7 +40,6 @@ HyPerCol "column" = {
 
 // this is a input layer
 Image "input" = {
-    restart = 0;  // make only a certain layer restart
     nxScale = 1;  // this must be 2^n, n = ...,-2,-1,0,1,2,... 
     nyScale = 1;  // the scale is to decide how much area will be used as input. For exampel, nx * nxScale = 32. The size of input
     	      	  // cannot be larger than the input image size.
@@ -62,7 +62,6 @@ Image "input" = {
 
 //an output layer
 ANNLayer "output" = {
-    restart = 0;
     nxScale = 1; 
     nyScale = 1;
     nf = 8; // 8 outputs 
@@ -83,7 +82,7 @@ ANNLayer "output" = {
     VWidth = 0.0;
 };
 
-//this is a layer for connection
+//HyPerConns are connections between two layers
 
 HyPerConn "input to output" = {
     preLayerName = "input";
@@ -122,6 +121,8 @@ HyPerConn "input to output" = {
     preActivityIsNotRate = false;
     minSumTolerated = 0.0;
     normalizeFromPostPerspective = false;
+    rMinX = 0.0;
+    rMinY = 0.0;
 
     writeCompressedCheckpoints = false;
     plasticityFlag = false;
