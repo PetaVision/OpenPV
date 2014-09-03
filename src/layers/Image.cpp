@@ -344,6 +344,12 @@ int Image::scatterImageFilePVP(const char * filename, int xOffset, int yOffset,
    int numParams = NUM_BIN_PARAMS;
    int params[numParams];
    PV::pvp_read_header(pvstream, comm, params, &numParams);
+   if (frameNumber < 0 || frameNumber >= params[INDEX_NBANDS]) {
+      if (rank==rootproc) {
+         fprintf(stderr, "scatterImageFilePVP error: requested frameNumber %d but file \"%s\" only has frames numbered 0 through %d.\n", frameNumber, filename, params[INDEX_NBANDS]-1);
+      }
+      return PV_FAILURE;
+   }
 
    if (rank==rootproc) {
       PVLayerLoc fileloc;
@@ -516,9 +522,21 @@ int Image::scatterImageFilePVP(const char * filename, int xOffset, int yOffset,
          framesize = recordsize*datasize*nxProcs*nyProcs+8;
          framepos = (long)framesize * (long)frameNumber + (long)headerSize;
          //ONLY READING TIME INFO HERE
-         PV::PV_fseek(pvstream, framepos, SEEK_SET);
-         PV::PV_fread(&timed, sizeof(double), 1, pvstream);
-         status = PV_SUCCESS;
+         status = PV::PV_fseek(pvstream, framepos, SEEK_SET);
+         if (status != 0) {
+            fprintf(stderr, "scatterImageFilePVP error: Unable to seek to start of frame %d in \"%s\": %s\n", frameNumber, filename, strerror(errno));
+            status = PV_FAILURE;
+         }
+         if (status == PV_SUCCESS) {
+            size_t numread = PV::PV_fread(&timed, sizeof(double), (size_t) 1, pvstream);
+            if (numread != (size_t) 1) {
+               fprintf(stderr, "scatterImageFilePVP error: Unable to read timestamp from frame %d of file \"%s\":", frameNumber, filename);
+               if (feof(pvstream->fp)) { fprintf(stderr, " end-of-file."); }
+               if (ferror(pvstream->fp)) { fprintf(stderr, " fread error."); }
+               fprintf(stderr, "\n");
+               status = PV_FAILURE;
+            }
+         }
          break;
       case PVP_WGT_FILE_TYPE:
          fprintf(stderr, "scatterImageFilePVP error opening \"%s\": file is a weight file, not an image file.\n", filename);
@@ -531,6 +549,9 @@ int Image::scatterImageFilePVP(const char * filename, int xOffset, int yOffset,
          fprintf(stderr, "scatterImageFilePVP error opening \"%s\": filetype %d is unrecognized.\n", filename ,filetype);
          status = PV_FAILURE;
          break;
+      }
+      if (status != PV_SUCCESS) {
+         exit(EXIT_FAILURE);
       }
 
       pvpFileTime = timed;
@@ -1015,6 +1036,13 @@ int Image::readImage(const char * filename, int offsetX, int offsetY, GDALColorI
 
    // read the image and scatter the local portions
    status = scatterImageFile(filename, offsetX, offsetY, parent->icCommunicator(), loc, buf, frameNumber, this->autoResizeFlag);
+   if (status != PV_SUCCESS) {
+      if (parent->columnId()==0) {
+         fprintf(stderr, "Image::readImage failed for layer \"%s\"\n", getName());
+      }
+      MPI_Barrier(parent->icCommunicator()->communicator());
+      exit(EXIT_FAILURE);
+   }
    assert(status == PV_SUCCESS);
    if( loc->nf == 1 && imageLoc.nf > 1 ) {
       float * graybuf = convertToGrayScale(buf,loc->nx,loc->ny,imageLoc.nf, colorbandtypes);
