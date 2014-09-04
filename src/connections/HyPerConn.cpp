@@ -3797,7 +3797,7 @@ int HyPerConn::adjustAllPatches(
 
       int ny = yPatchStop - yPatchStart;
       assert(ny>=0 && ny<=nypShrunken);
-      assert(yPatchStart>=0 && (yPatchStart<nxp || (ny==0 && yPatchStart==nyp)));
+      assert(yPatchStart>=0 && (yPatchStart<nyp || (ny==0 && yPatchStart==nyp)));
 
       if(inAPostOffset){
          inAPostOffset[arborId][kex] = (size_t) kIndex(xPostStart+nbPost,yPostStart+nbPost,0,nxPost+2*nbPost,nyPost+2*nbPost,nfPost);
