@@ -336,17 +336,9 @@ int HyPerLayer::initClayer() {
 
 HyPerLayer::~HyPerLayer()
 {
-   if (parent->columnId() == 0) {
-      recvsyn_timer->fprint_time(stdout);
-#ifdef PV_USE_CUDA
-    gpu_recvsyn_timer->fprint_time(stdout);
-#endif
-      update_timer->fprint_time(stdout);
-      publish_timer->fprint_time(stdout);
-      timescale_timer->fprint_time(stdout);
-      io_timer->fprint_time(stdout);
-      fflush(stdout);
-   }
+   //if (parent->columnId() == 0) {
+   //   writeTimers(stdout);
+   //}
    delete recvsyn_timer;  recvsyn_timer = NULL;
    delete update_timer;   update_timer  = NULL;
    delete publish_timer;  publish_timer = NULL;
@@ -2703,13 +2695,21 @@ int HyPerLayer::writeDataStoreToFile(const char * filename, InterColComm * comm,
    return status;
 }
 
+int HyPerLayer::writeTimers(FILE* stream){
+   recvsyn_timer->fprint_time(stream);
+#ifdef PV_USE_CUDA
+   gpu_recvsyn_timer->fprint_time(stream);
+#endif
+   update_timer->fprint_time(stream);
+   publish_timer->fprint_time(stream);
+   timescale_timer->fprint_time(stream);
+   io_timer->fprint_time(stream);
+   return PV_SUCCESS;
+}
+
 int HyPerLayer::checkpointTimers(PV_Stream * timerstream) {
-   update_timer->fprint_time(timerstream->fp);
-   recvsyn_timer->fprint_time(timerstream->fp);
-   publish_timer->fprint_time(timerstream->fp);
-   timescale_timer->fprint_time(timerstream->fp);
-   io_timer->fprint_time(timerstream->fp);
-   for (int p=0; p<getNumProbes(); p++) {
+   writeTimers(timerstream->fp);
+   for (int p=0; p<getNumProbes(); p++){
       getProbe(p)->checkpointTimers(timerstream);
    }
    return PV_SUCCESS;

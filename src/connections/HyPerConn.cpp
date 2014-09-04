@@ -2991,10 +2991,17 @@ int HyPerConn::checkpointFilename(char * cpFilename, int size, const char * cpDi
    return PV_SUCCESS;
 }
 
-int HyPerConn::checkpointTimers(PV_Stream * timerstream) {
-   io_timer->fprint_time(timerstream->fp);
-   update_timer->fprint_time(timerstream->fp);
+int HyPerConn::writeTimers(FILE* stream){
+   io_timer->fprint_time(stream);
+   update_timer->fprint_time(stream);
    return PV_SUCCESS;
+}
+
+int HyPerConn::checkpointTimers(PV_Stream * timerstream) {
+   return writeTimers(timerstream->fp);
+   for (int p=0; p<numProbes; p++){
+      probes[p]->checkpointTimers(timerstream);
+   }
 }
 
 float HyPerConn::minWeight(int arborId)

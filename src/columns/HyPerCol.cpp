@@ -49,6 +49,11 @@ HyPerCol::~HyPerCol()
    }
    free(baseProbes);
 
+   //Print connection timers
+   for (n = 0; n < numConnections; n++) {
+      connections[n]->writeTimers(stdout);
+   }
+
    for (n = 0; n < numConnections; n++) {
       delete connections[n];
    }
@@ -61,18 +66,24 @@ HyPerCol::~HyPerCol()
          if (rank==0) {
             //Timing info for phases
             phaseRecvTimers[phase]->fprint_time(stdout);
-            fflush(stdout);
+            //Timing info for layers
          }
          delete phaseRecvTimers[phase];
       }
-
       for (n = 0; n < numLayers; n++) {
          if (layers[n] != NULL) {
             if(layers[n]->getPhase() != phase) continue;
-            delete layers[n];
+            layers[n]->writeTimers(stdout);
          }
       }
    }
+
+   for (n = 0; n < numLayers; n++) {
+      if (layers[n] != NULL) {
+         delete layers[n];
+      }
+   }
+
    if(phaseRecvTimers){
       free(phaseRecvTimers);
    }

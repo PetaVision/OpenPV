@@ -78,6 +78,7 @@ public:
    virtual int checkpointRead(const char * cpDir, double* timef);
    virtual int checkpointWrite(const char * cpDir);
    virtual int checkpointTimers(PV_Stream * timerstream);
+   virtual int writeTimers(FILE* stream);
    virtual int insertProbe(BaseConnectionProbe* p);
    int outputProbeParams();
    virtual int outputState(double time, bool last = false);

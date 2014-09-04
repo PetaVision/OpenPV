@@ -269,6 +269,7 @@ public:
    virtual int checkpointRead(const char * cpDir, double * timeptr); // (const char * cpDir, double * timed);
    virtual int checkpointWrite(const char * cpDir);
    virtual int checkpointTimers(PV_Stream * timerstream);
+   virtual int writeTimers(FILE* stream);
    static int readBufferFile(const char * filename, InterColComm * comm, double * timed, pvdata_t ** buffers, int numbands, bool extended, const PVLayerLoc * loc);
    static int writeBufferFile(const char * filename, InterColComm * comm, double dtime, pvdata_t ** buffers, int numbands, bool extended, const PVLayerLoc * loc);
 
