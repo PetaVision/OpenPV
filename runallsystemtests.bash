@@ -166,6 +166,13 @@ runandecho $testname $testname Debug/$testname $arglist
 mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
 cd "$workspacedir"
 
+testname=CloneHyPerConnTest
+arglist="-p input/CloneHyPerConnTest.params"
+cd "$testname"
+runandecho $testname $testname Debug/$testname $arglist
+mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
+cd "$workspacedir"
+
 testname=CloneKernelConnTest
 arglist="-p input/CloneKernelConnTest.params"
 cd "$testname"
@@ -514,6 +521,13 @@ cd "$workspacedir"
 testname=TransposeConnTest
 cd "$testname"
 arglist="" # parameter filename is in main()
+runandecho $testname $testname Debug/$testname $arglist
+mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
+cd "$workspacedir"
+
+testname=UnequalPatchSizeTest
+cd "$testname"
+arglist="-p input/UnequalPatchSizeTest.params"
 runandecho $testname $testname Debug/$testname $arglist
 mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
 cd "$workspacedir"
