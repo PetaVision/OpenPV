@@ -42,10 +42,10 @@ int LogLatWTAGenLayer::updateState(double timef, double dt, const PVLayerLoc * l
       updateSparsityTermDeriv_LogLatWTAGenLayer(num_neurons, getLayerLoc()->nf, V, sparsitytermderivative);
       update_dV_GenerativeLayer(num_neurons, V, gSynHead, sparsitytermderivative, dAold, AMax, AMin, VThresh, relaxation, auxChannelCoeff, sparsityTermCoeff, persistence);
       trunc_rel = reduce_relaxation(num_neurons, V, dV, relax_remaining);
-      updateV_GenerativeLayer(num_neurons, V, dV, A, AMax, AMin, VThresh, AShift, VWidth, trunc_rel, nx, ny, nf, loc->nb);
+      updateV_GenerativeLayer(num_neurons, V, dV, A, AMax, AMin, VThresh, AShift, VWidth, trunc_rel, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
       relax_remaining -=trunc_rel;
    }
-   setActivity_GenerativeLayer(num_neurons, A, V, nx, ny, nf, loc->nb, activity_threshold); // setActivity();
+   setActivity_GenerativeLayer(num_neurons, A, V, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up, activity_threshold); // setActivity();
    resetGSynBuffers_HyPerLayer(num_neurons, getNumChannels(), gSynHead); // resetGSynBuffers();
    return PV_SUCCESS;
 }

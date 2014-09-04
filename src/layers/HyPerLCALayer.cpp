@@ -17,7 +17,10 @@ void HyPerLCALayer_update_state(
     const int nx,
     const int ny,
     const int nf,
-    const int nb,
+    const int lt,
+    const int rt,
+    const int dn,
+    const int up,
     const int numChannels,
 
     float * V,
@@ -68,8 +71,8 @@ int HyPerLCALayer::initialize_base()
 
 bool HyPerLCALayer::inWindowExt(int windowId, int neuronIdxExt){
    const PVLayerLoc * loc = this->getLayerLoc();
-   int globalExtX = kxPos(neuronIdxExt, loc->nx + 2*loc->nb, loc->ny + 2*loc->nb, loc->nf) + loc->kx0;
-   int globalExtY = kyPos(neuronIdxExt, loc->nx + 2*loc->nb, loc->ny + 2*loc->nb, loc->nf) + loc->ky0;
+   int globalExtX = kxPos(neuronIdxExt, loc->nx + loc->halo.lt + loc->halo.rt, loc->ny + loc->halo.dn + loc->halo.up, loc->nf) + loc->kx0;
+   int globalExtY = kyPos(neuronIdxExt, loc->nx + loc->halo.lt + loc->halo.rt, loc->ny + loc->halo.dn + loc->halo.up, loc->nf) + loc->ky0;
    int outWindow = calcWindow(globalExtX, globalExtY);
    //std::cout << globalExtX << "/" << loc->nxGlobal + 2*loc->nb << " " << globalExtY << "/" << loc->nyGlobal + 2*loc->nb << " " << outWindow << "," << windowId << "\n";
    return (outWindow == windowId);
@@ -86,15 +89,15 @@ bool HyPerLCALayer::inWindowRes(int windowId, int neuronIdxRes){
 int HyPerLCALayer::calcWindow(int globalExtX, int globalExtY){
    const PVLayerLoc * loc = this->getLayerLoc();
    //Calculate x and y with symmetry on
-   if(windowSymX && globalExtX >= floor((loc->nxGlobal + 2*loc->nb)/2)){
-      globalExtX = loc->nxGlobal+2*loc->nb - globalExtX - 1;
+   if(windowSymX && globalExtX >= floor((loc->nxGlobal + loc->halo.lt + loc->halo.rt)/2)){
+      globalExtX = loc->nxGlobal + loc->halo.lt + loc->halo.rt - globalExtX - 1;
    }
-   if(windowSymY && globalExtY >= floor((loc->nyGlobal + 2*loc->nb)/2)){
-      globalExtY = loc->nyGlobal+2*loc->nb - globalExtY - 1;
+   if(windowSymY && globalExtY >= floor((loc->nyGlobal + loc->halo.dn + loc->halo.up)/2)){
+      globalExtY = loc->nyGlobal + loc->halo.dn + loc->halo.up - globalExtY - 1;
    }
    //Calculate the window x and y
-   int windowX = floor(((float)globalExtX/(loc->nxGlobal+2*loc->nb)) * numWindowX); 
-   int windowY = floor(((float)globalExtY/(loc->nyGlobal+2*loc->nb)) * numWindowY);
+   int windowX = floor(((float)globalExtX/(loc->nxGlobal+loc->halo.lt+loc->halo.rt)) * numWindowX);
+   int windowY = floor(((float)globalExtY/(loc->nyGlobal+loc->halo.dn+loc->halo.up)) * numWindowY);
    //Change x and y into index
    int windowIdx = (windowY * numWindowY) + windowX;
    assert(windowIdx < getNumWindows());
@@ -214,7 +217,7 @@ int HyPerLCALayer::doUpdateState(double time, double dt, const PVLayerLoc * loc,
          }
       }
 
-      HyPerLCALayer_update_state(num_neurons, nx, ny, nf, loc->nb, numChannels,
+      HyPerLCALayer_update_state(num_neurons, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up, numChannels,
             V, VThresh, AMax, AMin, AShift, VWidth, 
             selfInteract, dt/timeConstantTau, gSynHead, A);
       if (this->writeSparseActivity){

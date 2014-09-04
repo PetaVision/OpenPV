@@ -136,7 +136,7 @@ int SparsityLayerProbe::outputState(double timed)
    if (calcNNZ){
       int nnz = 0;
       for( int k=0; k<nk; k++ ) {
-         int kex = kIndexExtended(k, loc->nx, loc->ny, loc->nf, loc->nb);
+         int kex = kIndexExtended(k, loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
          pvdata_t a = buf[kex];
          if(a > 0){
             nnz++;
@@ -152,7 +152,7 @@ int SparsityLayerProbe::outputState(double timed)
    else{
       float sumVal = 0;
       for( int k=0; k<nk; k++ ) {
-         int kex = kIndexExtended(k, loc->nx, loc->ny, loc->nf, loc->nb);
+         int kex = kIndexExtended(k, loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
          pvdata_t a = buf[kex];
          sumVal += a;
       }

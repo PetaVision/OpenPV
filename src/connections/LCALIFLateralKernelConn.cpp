@@ -91,12 +91,13 @@ int LCALIFLateralKernelConn::communicateInitInfo() {
    int nxpre = preloc->nx; int nxpost = postloc->nx;
    int nypre = preloc->ny; int nypost = postloc->ny;
    int nfpre = preloc->nf; int nfpost = postloc->nf;
-   int nbpre = preloc->nb; int nbpost = postloc->nb;
-   if (nxpre!=nxpost || nypre!=nypost || nfpre!=nfpost || nbpre!=nbpost) {
+   const PVHalo * haloPre = &preloc->halo; const PVHalo * haloPost = &postloc->halo;
+   if (nxpre!=nxpost || nypre!=nypost || nfpre!=nfpost ||
+       haloPre->lt!=haloPost->lt || haloPre->rt!=haloPost->rt || haloPre->dn!=haloPost->dn || haloPre->up!=haloPost->dn) {
       if (parent->columnId()==0) {
-         fprintf(stderr, "LCALIFLateralKernelConn: pre- and post-synaptic layers must have the same geometry (including margin width)\n");
-         fprintf(stderr, "  Pre:  nx=%d, ny=%d, nf=%d, nb=%d\n", nxpre, nypre, nfpre, nbpre);
-         fprintf(stderr, "  Post: nx=%d, ny=%d, nf=%d, nb=%d\n", nxpost, nypost, nfpost, nbpost);
+         fprintf(stderr, "LCALIFLateralKernelConn: pre- and post-synaptic layers must have the same geometry (including margin widths)\n");
+         fprintf(stderr, "  Pre:  nx=%d, ny=%d, nf=%d, halo=(%d,%d,%d,%d)\n", nxpre, nypre, nfpre, haloPre->lt, haloPre->rt, haloPre->dn, haloPre->up);
+         fprintf(stderr, "  Post: nx=%d, ny=%d, nf=%d, nb=(%d,%d,%d,%d)\n", nxpost, nypost, nfpost, haloPost->lt, haloPost->rt, haloPost->dn, haloPost->up);
       }
 #ifdef PV_USE_MPI
       MPI_Barrier(parent->icCommunicator()->communicator());
@@ -145,7 +146,6 @@ int LCALIFLateralKernelConn::allocateDataStructures() {
    int nxpre = preloc->nx;
    int nypre = preloc->ny;
    int nfpre = preloc->nf;
-   int nbpre = preloc->nb;
 
    int nExt = pre->getNumExtended();
    int sya = getPostExtStrides()->sy;
@@ -155,8 +155,8 @@ int LCALIFLateralKernelConn::allocateDataStructures() {
    int ky0 = preloc->ky0;
    for (int arbor=0; arbor<numberOfAxonalArborLists(); arbor++) {
       for(int kExt=0; kExt<nExt;kExt++) {
-         int xglob = kxPos(kExt, nxpre + 2*nbpre, nypre + 2*nbpre, nfpre) + kx0 - nbpre;
-         int yglob = kyPos(kExt, nypre + 2*nbpre, nypre + 2*nbpre, nfpre) + ky0 - nbpre;
+         int xglob = kxPos(kExt, nxpre + preloc->halo.lt + preloc->halo.rt, nypre + preloc->halo.dn + preloc->halo.up, nfpre) + kx0 - preloc->halo.lt;
+         int yglob = kyPos(kExt, nypre + preloc->halo.lt + preloc->halo.rt, nypre + preloc->halo.dn + preloc->halo.up, nfpre) + ky0 - preloc->halo.up;
          if (xglob < 0 || xglob >= nxglob || yglob < 0 || yglob >= nyglob) {
             continue;
          }
@@ -200,20 +200,19 @@ int LCALIFLateralKernelConn::update_dW(int axonId) {
    const pvdata_t * preactbuf = integratedSpikeCount;
    const pvdata_t * postactbuf = integratedSpikeCount;
 
-   int sya = (post->getLayerLoc()->nf * (post->getLayerLoc()->nx + 2*post->getLayerLoc()->nb));
+   int sya = (post->getLayerLoc()->nf * (post->getLayerLoc()->nx + post->getLayerLoc()->halo.lt + post->getLayerLoc()->halo.rt));
 
    const PVLayerLoc * preloc = pre->getLayerLoc();
    int nxpre = preloc->nx;
    int nypre = preloc->ny;
    int nfpre = preloc->nf;
-   int nbpre = preloc->nb;
    int nxglob = preloc->nxGlobal;
    int nyglob = preloc->nyGlobal;
    int kx0 = preloc->kx0;
    int ky0 = preloc->ky0;
    for(int kExt=0; kExt<nExt;kExt++) {
-      int xglob = kxPos(kExt, nxpre + 2*nbpre, nypre + 2*nbpre, nfpre) + kx0 - nbpre;
-      int yglob = kyPos(kExt, nypre + 2*nbpre, nypre + 2*nbpre, nfpre) + ky0 - nbpre;
+      int xglob = kxPos(kExt, nxpre + preloc->halo.lt + preloc->halo.rt, nypre + preloc->halo.dn + preloc->halo.up, nfpre) + kx0 - preloc->halo.lt;
+      int yglob = kyPos(kExt, nxpre + preloc->halo.lt + preloc->halo.rt, nypre + preloc->halo.dn + preloc->halo.up, nfpre) + ky0 - preloc->halo.dn;
       if (xglob < 0 || xglob >= nxglob || yglob < 0 || yglob >= nyglob) {
          continue;
       }

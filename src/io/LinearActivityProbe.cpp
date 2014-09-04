@@ -101,7 +101,7 @@ int LinearActivityProbe::outputState(double timef)
    const int nx = loc->nx;
    const int ny = loc->ny;
    const int nf = loc->nf;
-   const int nb = loc->nb;
+   const PVHalo * halo = &loc->halo;
 
    float dt = hc->getDeltaTime();
 
@@ -109,14 +109,14 @@ int LinearActivityProbe::outputState(double timef)
    float freq;
 
    if (dim == DimX) {
-      width = nx + 2*nb;
-      line = activity + (linePos + nb) * width * nf;
+      width = nx + halo->lt + halo->rt;
+      line = activity + (linePos + halo->up) * width * nf;
       sLine = nf;
    }
    else {
-      width = ny + 2*nb;
-      line = activity + (linePos + nb)*nf;
-      sLine = nf * (nx + 2 * nb);
+      width = ny + halo->dn + halo->up;
+      line = activity + (linePos + halo->lt)*nf;
+      sLine = nf * (nx + halo->dn + halo->up);
 
    }
 

@@ -115,8 +115,8 @@ int layerIndexToUnitCellIndex(int patchIndex, const PVLayerLoc * preLoc, int nxU
       int * kyUnitCellIndex, int * kfUnitCellIndex)
 {
    // int UnitCellIndex;
-   int nxPreExtended = preLoc->nx + 2*preLoc->nb;
-   int nyPreExtended = preLoc->ny + 2*preLoc->nb;
+   int nxPreExtended = preLoc->nx + preLoc->halo.lt + preLoc->halo.rt;
+   int nyPreExtended = preLoc->ny + preLoc->halo.dn + preLoc->halo.up;
    int nfPre = preLoc->nf;
    int kxPreExtended = kxPos(patchIndex, nxPreExtended, nyPreExtended, nfPre);
    int kyPreExtended = kyPos(patchIndex, nxPreExtended, nyPreExtended, nfPre);
@@ -131,7 +131,7 @@ int layerIndexToUnitCellIndex(int patchIndex, const PVLayerLoc * preLoc, int nxU
 
    // convert from extended to restricted space (in local HyPerCol coordinates)
    int kxPreRestricted;
-   kxPreRestricted = kxPreExtended - preLoc->nb;
+   kxPreRestricted = kxPreExtended - preLoc->halo.lt;
    while(kxPreRestricted < 0){
       kxPreRestricted += preLoc->nx;
    }
@@ -140,7 +140,7 @@ int layerIndexToUnitCellIndex(int patchIndex, const PVLayerLoc * preLoc, int nxU
    }
 
    int kyPreRestricted;
-   kyPreRestricted = kyPreExtended - preLoc->nb;
+   kyPreRestricted = kyPreExtended - preLoc->halo.up;
    while(kyPreRestricted < 0){
       kyPreRestricted += preLoc->ny;
    }

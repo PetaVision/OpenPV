@@ -129,12 +129,12 @@ int IncrementLayer::updateState(double timef, double dt, bool * inited, double *
          }
       }
       status = applyGSyn_HyPerLayer(num_neurons, V, gSynHead);
-      if( status == PV_SUCCESS ) status = setActivity_IncrementLayer(num_neurons, A, V, Vprev, nx, ny, nf, loc->nb); // setActivity();
+      if( status == PV_SUCCESS ) status = setActivity_IncrementLayer(num_neurons, A, V, Vprev, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up); // setActivity();
       if( status == PV_SUCCESS ) status = resetGSynBuffers_HyPerLayer(num_neurons, num_channels, gSynHead); // resetGSynBuffers();
    }
    else {
       if( timef >= first_update_time ) {
-         status = updateV_ANNLayer(num_neurons, V, num_channels, gSynHead, A, max_pvdata_t, -max_pvdata_t, -max_pvdata_t, 0.0f, 0.0f, nx, ny, nf, loc->nb); // updateV();
+         status = updateV_ANNLayer(num_neurons, V, num_channels, gSynHead, A, max_pvdata_t, -max_pvdata_t, -max_pvdata_t, 0.0f, 0.0f, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up); // updateV();
          resetGSynBuffers_HyPerLayer(num_neurons, num_channels, gSynHead); // resetGSynBuffers();
          *inited = true;
       }
@@ -145,7 +145,7 @@ int IncrementLayer::updateState(double timef, double dt, bool * inited, double *
 
 int IncrementLayer::setActivity() {
    const PVLayerLoc * loc = getLayerLoc();
-   return setActivity_IncrementLayer(getNumNeurons(), clayer->activity->data, getV(), getVprev(), loc->nx, loc->ny, loc->nf, loc->nb);
+   return setActivity_IncrementLayer(getNumNeurons(), clayer->activity->data, getV(), getVprev(), loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
 }
 
 int IncrementLayer::readVprevFromCheckpoint(const char * cpDir, double * timeptr) {
@@ -158,7 +158,7 @@ int IncrementLayer::readVprevFromCheckpoint(const char * cpDir, double * timeptr
 int IncrementLayer::readStateFromCheckpoint(const char * cpDir, double * timeptr) {
    int status = ANNLayer::readStateFromCheckpoint(cpDir, timeptr);
    status = readVprevFromCheckpoint(cpDir, timeptr);
-   // TODO: check whether should VInited be set if initializeFromCheckpointFlag is true
+   // TODO: check whether VInited should be set if initializeFromCheckpointFlag is true
    return status;
 }
 

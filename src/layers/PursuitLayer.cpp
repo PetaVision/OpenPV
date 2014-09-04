@@ -203,7 +203,7 @@ int PursuitLayer::updateState(double time, double dt) {
    int nx = getLayerLoc()->nx;
    int ny = getLayerLoc()->ny;
    int nf = getLayerLoc()->nf;
-   int nb = getLayerLoc()->nb;
+   PVHalo const * halo = &getLayerLoc()->halo;
    pvdata_t * activity = getActivity();
    memset(activity, 0, getNumExtended()*sizeof(*activity));
 
@@ -213,7 +213,7 @@ int PursuitLayer::updateState(double time, double dt) {
       if (kf>=0) {
          int kx = kxPos(kxy,nx,ny,1);
          int ky = kyPos(kxy,nx,ny,1);
-         int kex = kIndex(kx+nb, ky+nb, kf, nx+2*nb, ny*nb, nf);
+         int kex = kIndex(kx+halo->lt, ky+halo->up, kf, nx+halo->lt+halo->rt, ny+halo->dn+halo->up, nf); /* Is this correct? Before splitting x- and y- margin widths, the ny argument was ny*nb, which seems weird. */
          activity[kex] = gSynSparse[kxy];
       }
    }

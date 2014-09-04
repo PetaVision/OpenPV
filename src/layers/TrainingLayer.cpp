@@ -144,7 +144,7 @@ int TrainingLayer::updateState(double timed, double dt, const PVLayerLoc * loc, 
    int num_neurons = nx*ny*nf;
    updateV_TrainingLayer(num_neurons, V, numTrainingLabels, trainingLabels, curTrainingLabelIndex, strength);
    curTrainingLabelIndex++;
-   setActivity_HyPerLayer(num_neurons, A, V, nx, ny, nf, loc->nb);
+   setActivity_HyPerLayer(num_neurons, A, V, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
    return PV_SUCCESS;
 }
 

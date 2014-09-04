@@ -236,7 +236,7 @@ bool MatchingPursuitLayer::inWindowExt(int windowId, int neuronIdxExt) {
    if (useWindowedSynapticInput && maxinfo.maxloc>=0) {
       const PVLayerLoc * loc = getLayerLoc();
       // maxinfo.maxloc is global restricted; neuronIdxExt is local extended.
-      int neuronIdxRes = kIndexRestricted(neuronIdxExt, loc->nx, loc->ny, loc->nf, loc->nb);
+      int neuronIdxRes = kIndexRestricted(neuronIdxExt, loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
       if (neuronIdxRes >= 0) {
          inWindow = inWindowGlobalRes(neuronIdxRes, loc);
       }
@@ -271,7 +271,7 @@ int MatchingPursuitLayer::updateState(double timed, double dt) {
    }
    if (getCLayer()->numActive) {
       int kLocal = localIndexFromGlobal(getCLayer()->activeIndices[0], loc);
-      int kExt = kIndexExtended(kLocal, loc.nx, loc.ny, loc.nf, loc.nb);
+      int kExt = kIndexExtended(kLocal, loc.nx, loc.ny, loc.nf, loc.halo.lt, loc.halo.rt, loc.halo.dn, loc.halo.up);
       getActivity()[kExt] = 0.0f;
       getCLayer()->numActive = 0;
    }
@@ -321,7 +321,7 @@ int MatchingPursuitLayer::updateState(double timed, double dt) {
    if (maxinfo.mpirank == rank && fabsf(maxinfo.maxval) > activationThreshold) {
       const PVLayerLoc * loc = getLayerLoc();
       int kLocal = localIndexFromGlobal(maxinfo.maxloc, *loc);
-      int kExt = kIndexExtended(kLocal, loc->nx, loc->ny, loc->nf, loc->nb);
+      int kExt = kIndexExtended(kLocal, loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
       getV()[kLocal] += maxinfo.maxval;
       getActivity()[kExt] = maxinfo.maxval;
       getCLayer()->activeIndices[getCLayer()->numActive] = maxinfo.maxloc;

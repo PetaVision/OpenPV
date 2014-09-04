@@ -543,8 +543,8 @@ int Patterns::drawPattern(float val)
    // extended frame
    const PVLayerLoc * loc = getLayerLoc();
 
-   const int nx = loc->nx + 2 * loc->nb;
-   const int ny = loc->ny + 2 * loc->nb;
+   const int nx = loc->nx + loc->halo.lt + loc->halo.rt;
+   const int ny = loc->ny + loc->halo.dn + loc->halo.up;
 
    // reset data buffer
    const int nk = nx * ny;
@@ -672,8 +672,8 @@ int Patterns::drawRectangles(float val) {
    int width  = (int)(minWidth  + (maxWidth  - minWidth)  * patternRandState->uniformRandom());
    int height = (int)(minHeight + (maxHeight - minHeight) * patternRandState->uniformRandom());
    const PVLayerLoc * loc = getLayerLoc();
-   const int nx = loc->nx + 2 * loc->nb;
-   const int ny = loc->ny + 2 * loc->nb;
+   const int nx = loc->nx + loc->halo.lt + loc->halo.rt;
+   const int ny = loc->ny + loc->halo.dn + loc->halo.up;
    const int sx = 1;
    const int sy = sx * nx;
 
@@ -702,9 +702,8 @@ int Patterns::drawRectangles(float val) {
 int Patterns::drawWaves(float val) {
    int status = PV_SUCCESS;
    const PVLayerLoc * loc = getLayerLoc();
-   const int nx = loc->nx + 2 * loc->nb;
-   const int ny = loc->ny + 2 * loc->nb;
-   const int nb = loc->nb;
+   const int nx = loc->nx + loc->halo.lt + loc->halo.rt;
+   const int ny = loc->ny + loc->halo.dn + loc->halo.up;
    const int sx = 1;
    const int sy = sx * nx;
    const int kx0 = loc->kx0;
@@ -726,8 +725,8 @@ int Patterns::drawWaves(float val) {
    }
    for (int iy = 0; iy < ny; iy++) {
       for (int ix = 0; ix < nx; ix++) {
-         int glx = ix+kx0-nb;
-         int gly = iy+ky0-nb;
+         int glx = ix+kx0-loc->halo.lt;
+         int gly = iy+ky0-loc->halo.up;
          float rot2 = rot;
          float phi = 0;
          if((type == COSV)||(type == SINEV)) {
@@ -758,7 +757,6 @@ int Patterns::drawImpulse() {
    const PVLayerLoc * loc = getLayerLoc();
    const int nx = loc->nx;
    const int ny = loc->ny;
-   const int nb = loc->nb;
    const int kx0 = loc->kx0;
    const int ky0 = loc->ky0;
    const int nxgl = loc->nxGlobal;
@@ -767,8 +765,8 @@ int Patterns::drawImpulse() {
    const int sy = sx * nx;
    for (int iy = 0; iy < ny; iy++) {
       for (int ix = 0; ix < nx; ix++) {
-         int glx = ix+kx0-nb;
-         int gly = iy+ky0-nb;
+         int glx = ix+kx0-loc->halo.lt;
+         int gly = iy+ky0-loc->halo.up;
 
          if((glx==nxgl/2)&&(gly==nygl/2)&&(initPatternCntr==5))
             data[ix * sx + iy * sy] = 50000.0f;
@@ -783,8 +781,8 @@ int Patterns::drawImpulse() {
 int Patterns::drawDrops() {
    int status = PV_SUCCESS;
    const PVLayerLoc * loc = getLayerLoc();
-   const int nx = loc->nx + 2 * loc->nb;
-   const int ny = loc->ny + 2 * loc->nb;
+   const int nx = loc->nx + loc->halo.lt + loc->halo.rt;
+   const int ny = loc->ny + loc->halo.dn + loc->halo.up;
    const int sx = 1;
    const int sy = sx * nx;
    const int kx0 = loc->kx0;

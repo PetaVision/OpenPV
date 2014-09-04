@@ -82,7 +82,7 @@ bool ImprintConn::imprintFeature(int arborId, int kExt){
       return false;
    }
 
-   int sya = (post->getLayerLoc()->nf * (post->getLayerLoc()->nx + 2*post->getLayerLoc()->nb));
+   int sya = (post->getLayerLoc()->nf * (post->getLayerLoc()->nx + post->getLayerLoc()->halo.lt + post->getLayerLoc()->halo.rt));
 
    const pvdata_t * preactbuf = preSynapticLayer()->getLayerData(getDelay(arborId));
    const pvdata_t * postactbuf = postSynapticLayer()->getLayerData(); 

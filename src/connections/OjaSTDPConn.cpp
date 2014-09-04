@@ -292,12 +292,12 @@ int OjaSTDPConn::updateAmpLTD()
    const int postNx = post->getLayerLoc()->nx;
    const int postNy = post->getLayerLoc()->ny;
    const int postNf = post->getLayerLoc()->nf;
-   const int postNb = post->getLayerLoc()->nb;
+   const PVHalo * postHalo = &post->getLayerLoc()->halo;
 
    // 1. Updates the postsynaptic traces
    for (int kPostRes = 0; kPostRes < nkPost; kPostRes++)
    {
-      int kPostExt = kIndexExtended(kPostRes, postNx, postNy, postNf, postNb);
+      int kPostExt = kIndexExtended(kPostRes, postNx, postNy, postNf, postHalo->lt, postHalo->rt, postHalo->dn, postHalo->up);
       post_stdp_tr_m[kPostRes] = decayLTD * (post_stdp_tr_m[kPostRes] + aPost[kPostExt]);
       post_oja_tr_m[kPostRes]  = decayOja * (post_oja_tr_m[kPostRes]  + aPost[kPostExt]);
       post_int_tr_m[kPostRes]  = decayO   * (post_int_tr_m[kPostRes]  + aPost[kPostExt]);
@@ -341,7 +341,7 @@ int OjaSTDPConn::updateWeights(int arborID)
    const int postNx = post->getLayerLoc()->nx;
    const int postNy = post->getLayerLoc()->ny;
    const int postNf = post->getLayerLoc()->nf;
-   const int postNb = post->getLayerLoc()->nb;
+   const PVHalo * postHalo = &post->getLayerLoc()->halo;
 
    //stride in restricted space
    const int postStrideYRes = postNf * postNx;
@@ -466,7 +466,7 @@ int OjaSTDPConn::updateWeights(int arborID)
    }
 #else
    // this stride is in extended space for post-synaptic activity and STDP decrement variable
-   const int postStrideYExt = postNf * (postNx + 2 * postNb);
+   const int postStrideYExt = postNf * (postNx + postHalo->lt + postHalo->rt);
 
    //std::cout << "\nold\n";
 
@@ -474,7 +474,7 @@ int OjaSTDPConn::updateWeights(int arborID)
    {
       size_t postOffsetExt = getAPostOffset(kPreExt, arborID); // Gets start index for postsynaptic vectors for given presynaptic neuron and axon
       // size_t postOffsetRes = postOffsetExt - (postNb * (postNx + 2*postNb) + postNb);
-      size_t postOffsetRes = kIndexRestricted(postOffsetExt, postNx, postNy, postNf, postNb);
+      size_t postOffsetRes = kIndexRestricted(postOffsetExt, postNx, postNy, postNf, postHalo->lt, postHalo->rt, postHalo->dn, postHalo->up);
 
       //Post in extended space
       aPost          = &post->getLayerData()[postOffsetExt];   // Gets address of postsynaptic activity
@@ -618,17 +618,6 @@ int OjaSTDPConn::writeTextWeightsExtra(PV_Stream * pvstream, int k, int arborID)
    return 0;
 }
 
-// Change to checkpointWrite and checkpointRead, Jan 10, 2013.
-// The presynaptic traces have size nx-by-ny with border of width nb.
-// Before the change, the presynaptic traces were checkpointed as if the
-// local layer had size (nx+2*nb)-by-(ny+2*nb) with border region zero.
-// This has the drawback that the file depends on the MPI configuration.
-//
-// As of this update, the layer is treated as nx-by-ny with border nb.
-// On reading from a checkpoint, the border region is filled by calling
-// Communicator::exchange and (if mirrorBCflag is set), mirroring to the
-// exterior boundary.  This should make the trace files independent of
-// the MPI configuration, and should recover the border regions correctly.
 int OjaSTDPConn::checkpointWrite(const char * cpDir) {
    int status = HyPerConn::checkpointWrite(cpDir);
    char filename[PV_PATH_MAX];
@@ -639,13 +628,13 @@ int OjaSTDPConn::checkpointWrite(const char * cpDir) {
    loc = pre->getLayerLoc();
 // Commented out Jan 10, 2013
 //    memcpy(&loc, pre->getLayerLoc(), sizeof(PVLayerLoc));
-//   // This is kind of hacky, but we save the extended buffers pre_stdp_tr as if they were nonextended buffers of size (nx+2*nb)-by-(ny+2*nb)-by-nf
+//   // This is kind of hacky, but we save the extended buffers pre_stdp_tr as if they were nonextended buffers of size (nx+lt+rt)-by-(ny+dn+up)-by-nf
 //   // post_stdp_tr is buffer of size nx-by-ny-by-nf
-//   loc.nx += 2*loc.nb;
-//   loc.ny += 2*loc.nb;
+//   loc.nx += loc.halo.lt+loc.halo.rt;
+//   loc.ny += loc.halo.dn+loc.halo.up;
 //   loc.nxGlobal = loc.nx * parent->icCommunicator()->numCommColumns();
 //   loc.nyGlobal = loc.ny * parent->icCommunicator()->numCommRows();
-//   loc.nb = 0;
+//   loc.halo.lt = loc.halo.rt = loc.halo.dn + loc.halo.up = 0;
 
    pvdata_t ** traces = (pvdata_t **) calloc(numberOfAxonalArborLists(), sizeof(pvdata_t *));
    // pre_stdp_tr
@@ -719,14 +708,6 @@ int OjaSTDPConn::checkpointRead(const char * cpDir, double * timef) {
 
    // **** PRE LAYER INFO *** //
    loc = pre->getLayerLoc();
-// Commented out Jan 10, 2013
-//   memcpy(&loc, pre->getLayerLoc(), sizeof(PVLayerLoc));
-//   loc.nx += 2*loc.nb;
-//   loc.ny += 2*loc.nb;
-//   loc.nxGlobal = loc.nx * parent->icCommunicator()->numCommColumns();
-//   loc.nyGlobal = loc.ny * parent->icCommunicator()->numCommRows();
-//   loc.nb = 0;
-
 
    //TODO: Only read if plasticity flag is on (How much of the code below does this todo apply to?)
    pvdata_t ** traces = (pvdata_t **) calloc(numberOfAxonalArborLists(), sizeof(pvdata_t *));

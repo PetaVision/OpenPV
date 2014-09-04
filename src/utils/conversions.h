@@ -313,7 +313,10 @@ static inline float deltaPosLayers(int kPre, int scale)
  * @nx the size in x of restricted space
  * @ny the size in y of restricted space
  * @nf the size in f of restricted space
- * @nb the width of the margin
+ * @lt the width of the left margin
+ * @rt the width of the right margin
+ * @dn the width of the bottom margin
+ * @up the width of, you guessed it, the top margin
  *
  * REMARKS:
  *   - the linear indexing of neurons is done by varying first along these directions:
@@ -324,12 +327,12 @@ static inline float deltaPosLayers(int kPre, int scale)
  *   - ky is the Y direction index in restricted space
  *   .
  */
-static inline int kIndexExtended(int k, int nx, int ny, int nf, int nb)
+static inline int kIndexExtended(int k, int nx, int ny, int nf, int lt, int rt, int dn, int up)
 {
-   const int kx_ex = nb + kxPos(k, nx, ny, nf);
-   const int ky_ex = nb + kyPos(k, nx, ny, nf);
+   const int kx_ex = lt + kxPos(k, nx, ny, nf);
+   const int ky_ex = up + kyPos(k, nx, ny, nf);
    const int kf = featureIndex(k, nx, ny, nf);
-   return kIndex(kx_ex, ky_ex, kf, nx + 2*nb, ny + 2*nb, nf);
+   return kIndex(kx_ex, ky_ex, kf, nx + lt + rt, ny + dn + up, nf);
 }
 
 /*!
@@ -339,7 +342,10 @@ static inline int kIndexExtended(int k, int nx, int ny, int nf, int nb)
  * @nx the size in x of restricted space
  * @ny the size in y of restricted space
  * @nf the size in f of restricted space
- * @nb the width of the margin
+ * @lt the width of the left margin
+ * @rt the width of the right margin
+ * @dn the width of the bottom margin
+ * @up the width of the top margin
  *
  * REMARKS:
  *   - the linear indexing of neurons is done by varying first along these directions:
@@ -350,17 +356,17 @@ static inline int kIndexExtended(int k, int nx, int ny, int nf, int nb)
  *   - ky is the Y direction index in restricted space
  *   .
  */
-static inline int kIndexRestricted(int k_ex, int nx, int ny, int nf, int nb)
+static inline int kIndexRestricted(int k_ex, int nx, int ny, int nf, int lt, int rt, int dn, int up)
 {
    int kx, ky, kf;
 
-   const int nx_ex = nx + 2*nb;
-   const int ny_ex = ny + 2*nb;
+   const int nx_ex = nx + lt + rt;
+   const int ny_ex = ny + dn + up;
 
-   kx = kxPos(k_ex, nx_ex, ny_ex, nf) - nb;
+   kx = kxPos(k_ex, nx_ex, ny_ex, nf) - lt;
    if (kx < 0 || kx >= nx) return -1;
 
-   ky = kyPos(k_ex, nx_ex, ny_ex, nf) - nb;
+   ky = kyPos(k_ex, nx_ex, ny_ex, nf) - up;
    if (ky < 0 || ky >= ny) return -1;
 
    kf = featureIndex(k_ex, nx_ex, ny_ex, nf);
@@ -471,11 +477,11 @@ static inline int layerIndexExt(int kPreExt, const PVLayerLoc * inLoc, const PVL
    float scaleFactorX = (float)outLoc->nxGlobal / inLoc->nxGlobal;
    float scaleFactorY = (float)outLoc->nyGlobal / inLoc->nyGlobal;
    //Calculate x and y in extended space
-   int kPreX = kxPos(kPreExt, inLoc->nx + 2*inLoc->nb, inLoc->ny+ 2*inLoc->nb, inLoc->nf);
-   int kPreY = kyPos(kPreExt, inLoc->nx + 2*inLoc->nb, inLoc->ny+ 2*inLoc->nb, inLoc->nf);
-   //Subtract nb to set 0 to the beginning of the restricted space 
-   kPreX -= inLoc->nb;
-   kPreY -= inLoc->nb;
+   int kPreX = kxPos(kPreExt, inLoc->nx + inLoc->halo.lt + inLoc->halo.rt, inLoc->ny+ inLoc->halo.dn + inLoc->halo.up, inLoc->nf);
+   int kPreY = kyPos(kPreExt, inLoc->nx + inLoc->halo.lt + inLoc->halo.rt, inLoc->ny+ inLoc->halo.dn + inLoc->halo.up, inLoc->nf);
+   //Subtract margin to set 0 to the beginning of the restricted space
+   kPreX -= inLoc->halo.lt;
+   kPreY -= inLoc->halo.up;
    int kPostX, kPostY, half;
    //If one to many, scale factor is greater than 1
    if (scaleFactorX > 1){
@@ -494,8 +500,8 @@ static inline int layerIndexExt(int kPreExt, const PVLayerLoc * inLoc, const PVL
    }
 
    //Change back to ext points 
-   kPostX += outLoc->nb;
-   kPostY += outLoc->nb;
+   kPostX += outLoc->halo.lt;
+   kPostY += outLoc->halo.up;
 
    //If outside of out layer margins, shrink
    //Left margin
@@ -503,20 +509,20 @@ static inline int layerIndexExt(int kPreExt, const PVLayerLoc * inLoc, const PVL
       kPostX = 0;
    }
    //Right Margin
-   else if(kPostX >= outLoc->nx + 2*outLoc->nb){
-      kPostX = outLoc->nx + 2*outLoc->nb - 1;
+   else if(kPostX >= outLoc->nx + outLoc->halo.lt + outLoc->halo.rt){
+      kPostX = outLoc->nx + outLoc->halo.dn + outLoc->halo.up - 1;
    }
    //Top margin
    if (kPostY < 0){
       kPostY = 0;
    }
    //Bottom Margin
-   else if(kPostY >= outLoc->ny + 2*outLoc->nb){
-      kPostY = outLoc->ny + 2*outLoc->nb - 1;
+   else if(kPostY >= outLoc->ny + outLoc->halo.lt + outLoc->halo.rt){
+      kPostY = outLoc->ny + outLoc->halo.dn + outLoc->halo.up - 1;
    }
    //Change back to index
    //Using feature of 0
-   return kIndex(kPostX, kPostY, 0, outLoc->nx + 2*outLoc->nb, outLoc->ny + 2*outLoc->nb, outLoc->nf);
+   return kIndex(kPostX, kPostY, 0, outLoc->nx + outLoc->halo.lt + outLoc->halo.rt, outLoc->ny + outLoc->halo.dn + outLoc->halo.up, outLoc->nf);
 }
 
 //Converts an index from one layer to the other in the restricted space
@@ -524,7 +530,7 @@ static inline int layerIndexExt(int kPreExt, const PVLayerLoc * inLoc, const PVL
 //Conversion in feature space does not exist, output will be first feature
 static inline int layerIndexRes(int kPreRes, const PVLayerLoc * inLoc, const PVLayerLoc * outLoc){
    //Call with extended index
-   int kPreExt = kIndexExtended(kPreRes, inLoc->nx, inLoc->ny, inLoc->nf, inLoc->nb);
+   int kPreExt = kIndexExtended(kPreRes, inLoc->nx, inLoc->ny, inLoc->nf, inLoc->halo.lt, inLoc->halo.rt, inLoc->halo.dn, inLoc->halo.up);
    return layerIndexExt(kPreExt, inLoc, outLoc);
 }
 

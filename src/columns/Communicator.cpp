@@ -615,37 +615,36 @@ int Communicator::reverseDirection(int commId, int direction) {
  */
 size_t Communicator::recvOffset(int n, const PVLayerLoc * loc)
 {
-   const size_t nx = loc->nx;
-   const size_t ny = loc->ny;
-   // const size_t nf = loc->nf;  // Unused variable commented out May 24, 2011
-   const size_t nxBorder = loc->nb;
-   const size_t nyBorder = loc->nb;
+   const int nx = loc->nx;
+   const int ny = loc->ny;
+   const int leftBorder = loc->halo.lt;
+   const int topBorder = loc->halo.dn;
 
-   const size_t sx = strideXExtended(loc);
-   const size_t sy = strideYExtended(loc);
+   const int sx = strideXExtended(loc);
+   const int sy = strideYExtended(loc);
 
    switch (n) {
    case LOCAL:
-      return (sx*nxBorder         + sy * nyBorder);
+      return (sx*leftBorder         + sy * topBorder);
    case NORTHWEST:
-      return ((size_t) 0                         );
+      return ((size_t) 0                            );
    case NORTH:
-      return (sx*nxBorder                        );
+      return (sx*leftBorder                         );
    case NORTHEAST:
-      return (sx*nxBorder + sx*nx                );
+      return (sx*leftBorder + sx*nx                 );
    case WEST:
-      return (                      sy * nyBorder);
+      return (                        sy * topBorder);
    case EAST:
-      return (sx*nxBorder + sx*nx + sy * nyBorder);
+      return (sx*leftBorder + sx*nx + sy * topBorder);
    case SOUTHWEST:
-      return (                    + sy * (nyBorder + ny));
+      return (                      + sy * (topBorder + ny));
    case SOUTH:
-      return (sx*nxBorder         + sy * (nyBorder + ny));
+      return (sx*leftBorder         + sy * (topBorder + ny));
    case SOUTHEAST:
-      return (sx*nxBorder + sx*nx + sy * (nyBorder + ny));
+      return (sx*leftBorder + sx*nx + sy * (topBorder + ny));
    default:
       fprintf(stderr, "ERROR:recvOffset: bad neighbor index\n");
-      return 0;
+      return (size_t) 0;
    }
 }
 
@@ -657,9 +656,8 @@ size_t Communicator::sendOffset(int n, const PVLayerLoc * loc)
 {
    const size_t nx = loc->nx;
    const size_t ny = loc->ny;
-   // const size_t nf = loc->nf;  // Unused variable commented out May 24, 2011
-   const size_t nxBorder = loc->nb;
-   const size_t nyBorder = loc->nb;
+   const size_t leftBorder = loc->halo.lt;
+   const size_t topBorder = loc->halo.up;
 
    const size_t sx = strideXExtended(loc);
    const size_t sy = strideYExtended(loc);
@@ -671,23 +669,23 @@ size_t Communicator::sendOffset(int n, const PVLayerLoc * loc)
 
    switch (n) {
    case LOCAL:
-      return (sx*nxBorder                      + sy*nyBorder);
+      return (sx*leftBorder                      + sy*topBorder);
    case NORTHWEST:
-      return (sx*has_west_nbr*nxBorder         + sy*has_north_nbr*nyBorder);
+      return (sx*has_west_nbr*leftBorder         + sy*has_north_nbr*topBorder);
    case NORTH:
-      return (sx*nxBorder                      + sy*nyBorder);
+      return (sx*leftBorder                      + sy*topBorder);
    case NORTHEAST:
-      return (sx*(nx + !has_east_nbr*nxBorder) + sy*has_north_nbr*nyBorder);
+      return (sx*(nx + !has_east_nbr*leftBorder) + sy*has_north_nbr*topBorder);
    case WEST:
-      return (sx*nxBorder                      + sy*nyBorder);
+      return (sx*leftBorder                      + sy*topBorder);
    case EAST:
-      return (sx*nx                            + sy*nyBorder);
+      return (sx*nx                            + sy*topBorder);
    case SOUTHWEST:
-      return (sx*has_west_nbr*nxBorder         + sy*(ny + !has_south_nbr*nyBorder));
+      return (sx*has_west_nbr*leftBorder         + sy*(ny + !has_south_nbr*topBorder));
    case SOUTH:
-      return (sx*nxBorder                      + sy*ny);
+      return (sx*leftBorder                      + sy*ny);
    case SOUTHEAST:
-      return (sx*(nx + !has_east_nbr*nxBorder) + sy*(ny + !has_south_nbr*nyBorder));
+      return (sx*(nx + !has_east_nbr*leftBorder) + sy*(ny + !has_south_nbr*topBorder));
    default:
       fprintf(stderr, "ERROR:sendOffset: bad neighbor index\n");
       return 0;
@@ -705,23 +703,25 @@ MPI_Datatype * Communicator::newDatatypes(const PVLayerLoc * loc)
 
    MPI_Datatype * comms = new MPI_Datatype [NUM_NEIGHBORHOOD];
    
-   const int nxBorder = loc->nb;
-   const int nyBorder = loc->nb;
+   const int leftBorder = loc->halo.lt;
+   const int rightBorder = loc->halo.rt;
+   const int bottomBorder = loc->halo.dn;
+   const int topBorder = loc->halo.up;
 
    const int nf = loc->nf;
 
    count       = loc->ny;
    blocklength = nf*loc->nx;
-   stride      = nf*(2*nxBorder + loc->nx);
+   stride      = nf*(loc->nx + leftBorder + rightBorder);
 
    /* local interior */
    MPI_Type_vector(count, blocklength, stride, MPI_FLOAT, &comms[LOCAL]);
    MPI_Type_commit(&comms[LOCAL]);
 
-   count = nyBorder;
+   count = topBorder;
 
    /* northwest */
-   blocklength = nf*nxBorder;
+   blocklength = nf*leftBorder;
    MPI_Type_vector(count, blocklength, stride, MPI_FLOAT, &comms[NORTHWEST]);
    MPI_Type_commit(&comms[NORTHWEST]);
 
@@ -731,25 +731,26 @@ MPI_Datatype * Communicator::newDatatypes(const PVLayerLoc * loc)
    MPI_Type_commit(&comms[NORTH]);
 
    /* northeast */
-   blocklength = nf*nxBorder;
+   blocklength = nf*rightBorder;
    MPI_Type_vector(count, blocklength, stride, MPI_FLOAT, &comms[NORTHEAST]);
    MPI_Type_commit(&comms[NORTHEAST]);
 
    count       = loc->ny;
-   blocklength = nf*nxBorder;
 
    /* west */
+   blocklength = nf*leftBorder;
    MPI_Type_vector(count, blocklength, stride, MPI_FLOAT, &comms[WEST]);
    MPI_Type_commit(&comms[WEST]);
 
    /* east */
+   blocklength = nf*rightBorder;
    MPI_Type_vector(count, blocklength, stride, MPI_FLOAT, &comms[EAST]);
    MPI_Type_commit(&comms[EAST]);
 
-   count = nyBorder;
+   count = bottomBorder;
 
    /* southwest */
-   blocklength = nf*nxBorder;
+   blocklength = nf*leftBorder;
    MPI_Type_vector(count, blocklength, stride, MPI_FLOAT, &comms[SOUTHWEST]);
    MPI_Type_commit(&comms[SOUTHWEST]);
 
@@ -759,7 +760,7 @@ MPI_Datatype * Communicator::newDatatypes(const PVLayerLoc * loc)
    MPI_Type_commit(&comms[SOUTH]);
 
    /* southeast */
-   blocklength = nf*nxBorder;
+   blocklength = nf*rightBorder;
    MPI_Type_vector(count, blocklength, stride, MPI_FLOAT, &comms[SOUTHEAST]);
    MPI_Type_commit(&comms[SOUTHEAST]);
 

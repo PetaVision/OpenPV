@@ -101,7 +101,11 @@ int BinningLayer::communicateInitInfo() {
 #endif
       exit(EXIT_FAILURE);
    }
+   if (originalLayer->getInitInfoCommunicatedFlag()==false) {
+      return PV_POSTPONE;
+   }
    originalLayer->synchronizeMarginWidth(this);
+   this->synchronizeMarginWidth(originalLayer);
    const PVLayerLoc * srcLoc = originalLayer->getLayerLoc();
    const PVLayerLoc * loc = getLayerLoc();
    assert(srcLoc != NULL && loc != NULL);
@@ -125,11 +129,12 @@ int BinningLayer::communicateInitInfo() {
    return status;
 }
 
-int BinningLayer::requireMarginWidth(int marginWidthNeeded, int * marginWidthResult) {
-   HyPerLayer::requireMarginWidth(marginWidthNeeded, marginWidthResult);
+int BinningLayer::requireMarginWidth(int marginWidthNeeded, int * marginWidthResult, char axis) {
+   HyPerLayer::requireMarginWidth(marginWidthNeeded, marginWidthResult, axis);
    assert(*marginWidthResult >= marginWidthNeeded);
-   originalLayer->requireMarginWidth(marginWidthNeeded, marginWidthResult);
-   assert(*marginWidthResult>=marginWidthNeeded);
+   // The code below is handled by the synchronizeMarginWidth call in communicateInitInfo
+   // originalLayer->requireMarginWidth(marginWidthNeeded, marginWidthResult, axis);
+   // assert(*marginWidthResult>=marginWidthNeeded);
    return PV_SUCCESS;
 }
 
@@ -171,18 +176,21 @@ int BinningLayer::doUpdateState(double timed, double dt, const PVLayerLoc * orig
    int nx = currLoc->nx;
    int ny = currLoc->ny;
    //Check that both nb are the same
-   assert(origLoc->nb == currLoc->nb);
+   assert(origLoc->halo.lt == currLoc->halo.lt &&
+          origLoc->halo.rt == currLoc->halo.rt &&
+          origLoc->halo.dn == currLoc->halo.dn &&
+          origLoc->halo.up == currLoc->halo.up);
    assert(origLoc->nf == 1);
-   int nb = origLoc->nb;
+   PVHalo const * halo = &origLoc->halo;
    float binRange = binMax - binMin;
    float stepSize = float(binRange)/numBins;
-   for (int iY = 0; iY < (ny+2*nb); iY++){
-      for (int iX = 0; iX < (nx+2*nb); iX++){
-         int origIdx = kIndex(iX, iY, 0, nx+2*nb, ny+2*nb, origLoc->nf);
+   for (int iY = 0; iY < (ny+halo->dn+halo->up); iY++){
+      for (int iX = 0; iX < (nx+halo->lt+halo->rt); iX++){
+         int origIdx = kIndex(iX, iY, 0, nx+halo->lt+halo->rt, ny+halo->dn+halo->up, origLoc->nf);
          float inVal = origData[origIdx];
          if(zeroDCR && inVal == 0){
             for(int iF = 0; iF < numBins; iF++){
-               int currIdx = kIndex(iX, iY, iF, nx+2*nb, ny+2*nb, numBins);
+               int currIdx = kIndex(iX, iY, iF, nx+halo->lt+halo->rt, ny+halo->dn+halo->up, numBins);
                currA[currIdx] = 0;
             }
          }
@@ -191,7 +199,7 @@ int BinningLayer::doUpdateState(double timed, double dt, const PVLayerLoc * orig
             int featureIdx = round((inVal-binMin)/stepSize);
             for(int iF = 0; iF < numBins; iF++){
                if(binSigma == 0){
-                  int currIdx = kIndex(iX, iY, iF, nx+2*nb, ny+2*nb, numBins);
+                  int currIdx = kIndex(iX, iY, iF, nx+halo->lt+halo->rt, ny+halo->dn+halo->up, numBins);
                   if(iF == featureIdx){
                      currA[currIdx] = 1;
                   }
@@ -210,7 +218,7 @@ int BinningLayer::doUpdateState(double timed, double dt, const PVLayerLoc * orig
                   float mean = featureIdx * stepSize + (stepSize/2);
                   //Possible bins
                   int intSigma = ceil(binSigma);
-                  int currIdx = kIndex(iX, iY, iF, nx+2*nb, ny+2*nb, numBins);
+                  int currIdx = kIndex(iX, iY, iF, nx+halo->lt+halo->rt, ny+halo->dn+halo->up, numBins);
                   if(iF >= featureIdx-intSigma && iF <= featureIdx+intSigma){
                      //Get center of that aBin for the x pos of the normal dist
                      float xVal = iF * stepSize + (stepSize/2);

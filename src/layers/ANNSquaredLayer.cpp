@@ -16,7 +16,10 @@ void ANNSquaredLayer_update_state(
     const int nx,
     const int ny,
     const int nf,
-    const int nb,
+    const int lt,
+    const int rt,
+    const int dn,
+    const int up,
 
     float * V,
     float * GSynHead,
@@ -103,13 +106,12 @@ int ANNSquaredLayer::updateState(double time, double dt)
       const int nx = clayer->loc.nx;
       const int ny = clayer->loc.ny;
       const int nf = clayer->loc.nf;
-      const int nb = clayer->loc.nb;
 
       pvdata_t * GSynHead   = GSyn[0];
       pvdata_t * V = getV();
       pvdata_t * activity = clayer->activity->data;
 
-      ANNSquaredLayer_update_state(getNumNeurons(), nx, ny, nf, nb, V, GSynHead, activity);
+      ANNSquaredLayer_update_state(getNumNeurons(), nx, ny, nf, clayer->loc.halo.lt, clayer->loc.halo.rt, clayer->loc.halo.dn, clayer->loc.halo.up, V, GSynHead, activity);
 //#ifdef PV_USE_OPENCL
 //   }
 //#endif

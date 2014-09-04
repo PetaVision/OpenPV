@@ -142,8 +142,8 @@ void MLPOutputLayer::binaryNonlocalStats(){
    //Only go through restricted
    //Calculate the sum squared error
    for(int ni = 0; ni < numNeurons; ni++){
-      int nExt = kIndexExtended(ni, nx, ny, nf, loc->nb);
-      int fi = featureIndex(nExt, nx+2*loc->nb, ny+2*loc->nb, nf);
+      int nExt = kIndexExtended(ni, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
+      int fi = featureIndex(nExt, nx+loc->halo.lt+loc->halo.rt, ny+loc->halo.dn+loc->halo.up, nf);
       //Sum over x and y direction
       sumsq += pow(A[nExt] - gtA[nExt], 2);
       //Sum over activity to find mean
@@ -216,8 +216,8 @@ void MLPOutputLayer::multiclassNonlocalStats(){
    //Only go through restricted
    //Calculate the sum squared error
    for(int ni = 0; ni < numNeurons; ni++){
-      int nExt = kIndexExtended(ni, nx, ny, nf, loc->nb);
-      int fi = featureIndex(nExt, nx+2*loc->nb, ny+2*loc->nb, nf);
+      int nExt = kIndexExtended(ni, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
+      int fi = featureIndex(nExt, nx+loc->halo.lt+loc->halo.rt, ny+loc->halo.dn+loc->halo.up, nf);
       //Sum over x and y direction
       classBuffer[fi] += A[nExt];
       sumsq += pow(A[nExt] - gtA[nExt], 2);
@@ -245,7 +245,7 @@ void MLPOutputLayer::multiclassNonlocalStats(){
          estMaxF = classBuffer[i];
          estMaxFi = i;
       }
-      int nExt = kIndex(loc->nb, loc->nb, i, nx+2*loc->nb, ny+2*loc->nb, nf);
+      int nExt = kIndex(loc->halo.lt, loc->halo.up, i, nx+loc->halo.lt+loc->halo.rt, ny+loc->halo.dn+loc->halo.up, nf);
       if(gtA[nExt] >= actualMaxF){
          actualMaxF = gtA[nExt];
          actualMaxFi = i;
@@ -299,7 +299,7 @@ void MLPOutputLayer::binaryLocalStats(){
    int currTruePos = 0;
    int currTrueNeg = 0;
    for(int ni = 0; ni < numNeurons; ni++){
-      int nExt = kIndexExtended(ni, nx, ny, nf, loc->nb);
+      int nExt = kIndexExtended(ni, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
       //DCR
       if(gtA[nExt] == 0){
          continue;

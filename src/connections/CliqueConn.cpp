@@ -88,13 +88,12 @@ int CliqueConn::update_dW(int arborId)
 {
    const PVLayerLoc * preLoc = this->getPre()->getLayerLoc();
    const int nfPre = preLoc->nf;
-   //const int nxPre = preLoc->nx;
-   //const int nyPre = preLoc->ny;
-   const int nxPreExt = preLoc->nx + 2 * preLoc->nb;
-   const int nyPreExt = preLoc->ny + 2 * preLoc->nb;
+
+   const int nxPreExt = preLoc->nx + preLoc->halo.lt + preLoc->halo.rt;
+   const int nyPreExt = preLoc->ny + preLoc->halo.dn + preLoc->halo.up;
 
    int syPostExt = post->getLayerLoc()->nf
-         * (post->getLayerLoc()->nx + 2 * post->getLayerLoc()->nb); // compute just once
+         * (post->getLayerLoc()->nx + post->getLayerLoc()->halo.lt + post->getLayerLoc()->halo.rt); // compute just once
 
    // if pre and post denote the same layers, make a clone of size PVPatch to hold temporary activity values
    // in order to eliminate generalized self-interactions

@@ -216,7 +216,7 @@ int ReciprocalConn::update_dW(int axonID) {
    const pvdata_t * slownessprebuf = getSlownessFlag() ? slownessPre->getLayerData(delay) : NULL;
    const pvdata_t * slownesspostbuf = getSlownessFlag() ? slownessPost->getLayerData(delay) : NULL;
 
-   int sya = (post->getLayerLoc()->nf * (post->getLayerLoc()->nx + 2*post->getLayerLoc()->nb));
+   int sya = (post->getLayerLoc()->nf * (post->getLayerLoc()->nx + post->getLayerLoc()->halo.lt + post->getLayerLoc()->halo.rt));
    for(int kExt=0; kExt<nExt;kExt++) {
       PVPatch * weights = getWeights(kExt,axonID);
       size_t offset = getAPostOffset(kExt, axonID);

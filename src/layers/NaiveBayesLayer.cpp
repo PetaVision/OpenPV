@@ -65,7 +65,6 @@ int NaiveBayesLayer::updateState(double timef, double dt, const PVLayerLoc * loc
    int nx = loc->nx;
    int ny = loc->ny;
    int nf = loc->nf;
-   int nb = loc->nb;
    int num_neurons = nx * ny * nf;
 
    // Assumes that channels are contiguous in memory, i.e. GSyn[ch] = GSyn[0]+num_neurons*ch.  See allocateBuffers().
@@ -84,7 +83,7 @@ int NaiveBayesLayer::updateState(double timef, double dt, const PVLayerLoc * loc
       outClassCount[kLocal] += (inClass_mask <= 0.0f);
       inClassSum[kLocal] += (inClass_mask > 0.0f) * bottomUp_input;
       inClassSum[kLocal] += (inClass_mask <= 0.0f) * bottomUp_input;
-      int kExtended = kIndexExtended(kLocal, nx, ny, nf, nb);
+      int kExtended = kIndexExtended(kLocal, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
       double log_prob = 0.0;
       if (inClassCount[kLocal]>0 && outClassCount[kLocal]>0){
          log_prob = log((inClassSum[kLocal]/inClassCount[kLocal])/(outClassSum[kLocal]/outClassCount[kLocal]));

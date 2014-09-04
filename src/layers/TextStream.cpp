@@ -238,8 +238,8 @@ int TextStream::scatterTextBuffer(PV::Communicator * comm, const PVLayerLoc * lo
    int loc_ny = loc->ny;
    int loc_nx = loc->nx;
    if(textBCFlag){ //Expand dimensions to the extended space
-      loc_ny = loc->ny + 2*loc->nb;
-      loc_nx = loc->nx + 2*loc->nb;
+      loc_ny = loc->ny + loc->halo.dn + loc->halo.up;
+      loc_nx = loc->nx + loc->halo.lt + loc->halo.rt;
    }
 
    int numExtendedNeurons = loc_ny * loc_nx * loc->nf;
@@ -352,15 +352,15 @@ int TextStream::readFileToBuffer(int offset, const PVLayerLoc * loc, int * buf) 
    int x_start = 0;
 
    if (textBCFlag) {
-      loc_ny = loc->ny + 2*loc->nb;
-      loc_nx = loc->nx + 2*loc->nb;
-      x_start = loc->nb;
+      loc_ny = loc->ny + loc->halo.lt + loc->halo.rt;
+      loc_nx = loc->nx + loc->halo.lt + loc->halo.rt;
+      x_start = loc->halo.lt;
    }
 
    unsigned char * tmpChar = new unsigned char[1];  // One character at a time
    char charType;
    if (fileStream->filepos==0) { // Skip initial margin stuff for first read
-      y_start = loc->nb;
+      y_start = loc->halo.up;
    }
 
    int numCharReads=0, preMarginReads=0, numExtraReads = 0;
@@ -382,7 +382,7 @@ int TextStream::readFileToBuffer(int offset, const PVLayerLoc * loc, int * buf) 
       //std::cout << "loc->nx" << loc->nx << " loc->nb " << loc->nb << "\n";
       //Read until buffer + one side of margin
       //x_start is loc->nb
-      for (; x<loc->nx+loc->nb; x++) { // nx = num chars per word
+      for (; x<loc->nx+loc->halo.lt; x++) { // nx = num chars per word
          charType = getCharType(encodedChar);
          //std::cout<<"READ 1: "<<tmpChar[0]<<" is a "<<charType;
          bool break_loop = false;
@@ -423,7 +423,7 @@ int TextStream::readFileToBuffer(int offset, const PVLayerLoc * loc, int * buf) 
             }
             //std::cout<<" ADDED letter "<<encodedChar<<"; x="<<x<<"\n";
             //Word too long
-            if (x==loc->nx+loc->nb-1) {
+            if (x==loc->nx+loc->halo.lt-1) {
                char tempCharType = getCharType(encodedChar);
                //Look for spaces, return, puncuation
                while(encodedChar!=0 && tempCharType!='p' && fileStream->filepos + numItems <= fileStream->filelength) { // Dump the rest of the word
@@ -455,7 +455,7 @@ int TextStream::readFileToBuffer(int offset, const PVLayerLoc * loc, int * buf) 
          if (break_loop) break;
       }//End reading characters
 
-      for (; x<loc->nx+loc->nb; x++) { // Fill in the rest of the word with a buffer
+      for (; x<loc->nx+loc->halo.lt; x++) { // Fill in the rest of the word with a buffer
          for (int f=0; f<loc->nf; f++) { // Store 0
             buf[loc->nf*(loc_nx*y+x)+f] = 0;
          }
@@ -482,8 +482,8 @@ int TextStream::loadBufferIntoData(const PVLayerLoc * loc, int * buf) {
    int loc_nx = loc->nx;
 
    if(textBCFlag){ //Expand dimensions to the extended space
-      loc_ny = loc->ny + 2*loc->nb;
-      loc_nx = loc->nx + 2*loc->nb;
+      loc_ny = loc->ny + loc->halo.dn + loc->halo.up;
+      loc_nx = loc->nx + loc->halo.dn + loc->halo.up;
    }
 
    //TODO: Get memcpy to work

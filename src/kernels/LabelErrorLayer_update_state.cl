@@ -28,7 +28,10 @@ void LabelErrorLayer_update_state(
     const int nx,
     const int ny,
     const int nf,
-    const int nb,
+    const int lt,
+    const int rt,
+    const int dn,
+    const int up,
 
     CL_MEM_GLOBAL float * V,
     const float Vth,
@@ -39,5 +42,5 @@ void LabelErrorLayer_update_state(
     CL_MEM_GLOBAL float * activity,
     const float errScale, const int isBinary)
 {
-  updateV_LabelErrorLayer(numNeurons, V, GSynHead, activity, AMax, AMin, Vth, AShift, nx, ny, nf, nb, errScale, isBinary);
+  updateV_LabelErrorLayer(numNeurons, V, GSynHead, activity, AMax, AMin, Vth, AShift, nx, ny, nf, lt, rt, dn, up, errScale, isBinary);
 }

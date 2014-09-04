@@ -220,7 +220,7 @@ int StatsProbe::outputState(double timed)
       assert(buf != NULL);
       for( int k=0; k<nk; k++ ) {
          const PVLayerLoc * loc = getTargetLayer()->getLayerLoc();
-         int kex = kIndexExtended(k, loc->nx, loc->ny, loc->nf, loc->nb); // TODO: faster to use strides and a double-loop than compute kIndexExtended for every neuron?
+         int kex = kIndexExtended(k, loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up); // TODO: faster to use strides and a double-loop than compute kIndexExtended for every neuron?
          pvdata_t a = buf[kex];
          sum += a;
          sum2 += a*a;

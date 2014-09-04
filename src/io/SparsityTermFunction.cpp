@@ -19,9 +19,9 @@ pvdata_t SparsityTermFunction::evaluate(float time, HyPerLayer * l) {
     const int nx = l->getLayerLoc()->nx;
     const int ny = l->getLayerLoc()->ny;
     const int nf = l->getLayerLoc()->nf;
-    const int nb = l->getLayerLoc()->nb;
+    const PVHalo * halo = &l->getLayerLoc()->halo;
     for(int n=0; n<numNeurons; n++) {
-        int nex = kIndexExtended(n, nx, ny, nf, nb);
+        int nex = kIndexExtended(n, nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up);
     	pvdata_t v = activityBuffer[nex];
         sum += log(1+v*v);
     }

@@ -107,17 +107,17 @@ int GenerativeLayer::updateState(double timef, double dt,
             relax_remaining, auxChannelCoeff, sparsityTermCoeff,
             persistence);
       pvdata_t trunc_rel = reduce_relaxation(num_neurons, V, dV, relax_remaining);
-      updateV_GenerativeLayer(num_neurons, V, dV, A, AMax, AMin, VThresh, AShift, VWidth, trunc_rel, nx, ny, nf, loc->nb);
+      updateV_GenerativeLayer(num_neurons, V, dV, A, AMax, AMin, VThresh, AShift, VWidth, trunc_rel, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
       relax_remaining -=trunc_rel;
    }
-   setActivity_GenerativeLayer(num_neurons, A, V, nx, ny, nf, loc->nb, activity_threshold);
+   setActivity_GenerativeLayer(num_neurons, A, V, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up, activity_threshold);
    resetGSynBuffers_HyPerLayer(num_neurons, getNumChannels(), gSynHead);
    return PV_SUCCESS;
 }
 
 int GenerativeLayer::setActivity() {
    const PVLayerLoc * loc = getLayerLoc();
-   return setActivity_GenerativeLayer(getNumNeurons(), clayer->activity->data, getV(), loc->nx, loc->ny, loc->nf, loc->nb, getActivityThreshold());
+   return setActivity_GenerativeLayer(getNumNeurons(), clayer->activity->data, getV(), loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up, getActivityThreshold());
 }
 
 pvdata_t GenerativeLayer::reduce_relaxation(int num_neurons, pvdata_t * V, pvdata_t * dV, pvdata_t relaxation) {

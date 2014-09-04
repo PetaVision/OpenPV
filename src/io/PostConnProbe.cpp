@@ -114,12 +114,12 @@ int PostConnProbe::outputState(double timef)
    const int nxPre = lPre->loc.nx;
    const int nyPre = lPre->loc.ny;
    const int nfPre = lPre->loc.nf;
-   const int nbPre = lPre->loc.nb;
+   const PVHalo * haloPre = &lPre->loc.halo;
 
    const int nxPost = lPost->loc.nx;
    const int nyPost = lPost->loc.ny;
    const int nfPost = lPost->loc.nf;
-   const int nbPost = lPost->loc.nb;
+   const PVHalo * haloPost = &lPost->loc.halo;
 
    // calc kPost if needed
    if (kPost < 0) {
@@ -133,12 +133,12 @@ int PostConnProbe::outputState(double timef)
 
    c->preSynapticPatchHead(kxPost, kyPost, kfPost, &kxPre, &kyPre);
 
-   const int kxPreEx = kxPre + nbPre;
-   const int kyPreEx = kyPre + nbPre;
+   const int kxPreEx = kxPre + haloPre->lt;
+   const int kyPreEx = kyPre + haloPre->up;
 
-   const int kxPostEx = kxPost + nbPost;
-   const int kyPostEx = kyPost + nbPost;
-   const int kPostEx = kIndex(kxPostEx, kyPostEx, kfPost, nxPost+2*nbPost, nyPost+2*nbPost, nfPost);
+   const int kxPostEx = kxPost + haloPost->lt;
+   const int kyPostEx = kyPost + haloPost->up;
+   const int kPostEx = kIndex(kxPostEx, kyPostEx, kfPost, nxPost+haloPost->lt+haloPost->rt, nyPost+haloPost->dn+haloPost->up, nfPost);
 
    const bool postFired = lPost->activity->data[kPostEx] > 0.0;
 
@@ -160,7 +160,7 @@ int PostConnProbe::outputState(double timef)
    k = 0;
    for (int ky = 0; ky < w->ny; ky++) {
       for (int kx = 0; kx < w->nx; kx++) {
-         int kPre = kIndex(kx+kxPreEx, ky+kyPreEx, 0, nxPre+2*nbPre, nyPre+2*nbPre, nfPre);
+         int kPre = kIndex(kx+kxPreEx, ky+kyPreEx, 0, nxPre+haloPre->lt+haloPre->rt, nyPre+haloPre->dn+haloPre->up, nfPre);
          wActiv[k++] = lPre->activity->data[kPre];
       }
    }

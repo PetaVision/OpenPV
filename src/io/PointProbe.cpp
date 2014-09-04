@@ -146,7 +146,7 @@ int PointProbe::outputState(double timef)
    const int nf = loc->nf;
 
    const int k = kIndex(xLocLocal, yLocLocal, fLoc, nx, ny, nf);
-   const int kex = kIndexExtended(k, nx, ny, nf, loc->nb);
+   const int kex = kIndexExtended(k, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
 
    return writeState(timef, getTargetLayer(), k, kex);
 }

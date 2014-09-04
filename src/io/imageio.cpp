@@ -25,12 +25,11 @@ static void copyToLocBuffer(int buf[], PVLayerLoc * loc)
    buf[3] = loc->nyGlobal;
    buf[4] = loc->kx0;
    buf[5] = loc->ky0;
-   buf[6] = loc->nb;
-   buf[7] = loc->nf;
-   buf[8] = loc->halo.lt;
-   buf[9] = loc->halo.rt;
-   buf[10] = loc->halo.dn;
-   buf[11] = loc->halo.up;
+   buf[6] = loc->nf;
+   buf[7] = loc->halo.lt;
+   buf[8] = loc->halo.rt;
+   buf[9] = loc->halo.dn;
+   buf[10] = loc->halo.up;
 }
 
 static void copyFromLocBuffer(int buf[], PVLayerLoc * loc)
@@ -41,12 +40,11 @@ static void copyFromLocBuffer(int buf[], PVLayerLoc * loc)
    loc->nyGlobal = buf[3];
    loc->kx0      = buf[4];
    loc->ky0      = buf[5];
-   loc->nb       = buf[6];
-   loc->nf       = buf[7];
-   loc->halo.lt  = buf[8];
-   loc->halo.rt  = buf[9];
-   loc->halo.dn  = buf[10];
-   loc->halo.up  = buf[11];
+   loc->nf       = buf[6];
+   loc->halo.lt  = buf[7];
+   loc->halo.rt  = buf[8];
+   loc->halo.dn  = buf[9];
+   loc->halo.up  = buf[10];
 }
 
 int getFileType(const char * filename)
@@ -114,7 +112,7 @@ int getImageInfoPVP(const char * filename, PV::Communicator * comm, PVLayerLoc *
    loc->nyGlobal = params[INDEX_NY_GLOBAL];
    loc->kx0      = params[INDEX_KX0];
    loc->ky0      = params[INDEX_KY0];
-   loc->nb       = params[INDEX_NB];
+   // loc->nb       = params[INDEX_NB];
    loc->nf       = params[INDEX_NF];
 
    loc->kx0 = loc->nx * icCol;
@@ -201,7 +199,7 @@ int getImageInfoGDAL(const char * filename, PV::Communicator * comm, PVLayerLoc 
          loc->nx = -1;
          loc->ny = -1;
 
-         loc->nb = 0;
+         // loc->nb = 0;
          memset(&loc->halo, 0, sizeof(loc->halo));
 
          //loc->nxGlobal = nxProcs * nx;
@@ -337,7 +335,7 @@ int gatherImageFilePVP(const char * filename,
       params[INDEX_NY_GLOBAL]   = loc->nyGlobal;
       params[INDEX_KX0]         = 0;
       params[INDEX_KY0]         = 0;
-      params[INDEX_NB]          = loc->nb;
+      params[INDEX_NB]          = 0; // loc->nb;
       params[INDEX_NBANDS]      = 1;
 
       int numWrite = PV::PV_fwrite(params, sizeof(int), numParams, pvstream);

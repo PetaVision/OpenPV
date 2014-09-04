@@ -19,13 +19,8 @@ GaussianRandom::GaussianRandom(HyPerCol * hc, int count) {
 }
 GaussianRandom::GaussianRandom(HyPerCol * hc, const PVLayerLoc * locptr, bool isExtended) {
    initialize_base();
-   int nb = isExtended ? locptr->nb : 0;
-   int numBlocks = locptr->ny+2*nb;
-   int blockLength =  (locptr->nx+2*nb)*locptr->nf;
-   int numGlobalBlocks = locptr->nyGlobal+2*nb;
-   int nxGlobal = locptr->nxGlobal+2*nb;
-   int globalBlockLength = nxGlobal*locptr->nf;
-   int startIndex = kIndex(locptr->kx0, locptr->ky0, 0, nxGlobal, numGlobalBlocks, locptr->nf);
+   unsigned int numBlocks, blockLength, numGlobalBlocks, nxGlobal, globalBlockLength, startIndex;
+   defineBlocksFromPVLayerLoc(locptr, isExtended, &numBlocks, &blockLength, &numGlobalBlocks, &globalBlockLength, &startIndex);
 
    initialize(hc, numBlocks, blockLength, numGlobalBlocks, globalBlockLength, startIndex);
 }
@@ -44,7 +39,7 @@ int GaussianRandom::initialize(HyPerCol * hc, unsigned int numBlocks, unsigned i
    if (status == PV_SUCCESS) {
       heldValues = (struct box_muller_data *) malloc(rngArraySize*sizeof(uint4));
       if (heldValues==NULL) {
-         fprintf(stderr, "GaussianRandom::initialize error: rank %d process unable to allocate memory for %lu Box-Muller held values.\n", hc->columnId(), rngArraySize);
+         fprintf(stderr, "GaussianRandom::initialize error: rank %d process unable to allocate memory for %zu Box-Muller held values.\n", hc->columnId(), rngArraySize);
          status = PV_FAILURE;
       }
    }

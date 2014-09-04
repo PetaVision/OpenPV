@@ -96,7 +96,6 @@ int LCALIFLateralProbe::allocateDataStructures() {
    int nxGlobal = loc->nxGlobal;
    int nyGlobal = loc->nyGlobal;
    int nf = loc->nf;
-   int nb = loc->nb;
 
    if (patchIDMethod == INDEX_METHOD) {
       kxPost = kxPos(kPost,nxGlobal,nyGlobal,nf);
@@ -121,7 +120,7 @@ int LCALIFLateralProbe::allocateDataStructures() {
 
    //Restricted Index
    kLocalRes = kIndex(kxPostLocal,kyPostLocal,kfPost,nxLocal,nyLocal,nf);
-   kLocalExt = kIndexExtended(kLocalRes, nxLocal, nyLocal, nf, nb);
+   kLocalExt = kIndexExtended(kLocalRes, nxLocal, nyLocal, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
 
    // assert(kLocal >=0 && kLocal < ojaConn->postSynapticLayer()->getNumExtended());
 

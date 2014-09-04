@@ -27,7 +27,10 @@ void Retina_spiking_update_state (
     const int nx,
     const int ny,
     const int nf,
-    const int nb,
+    const int lt,
+    const int rt,
+    const int dn,
+    const int up,
     Retina_params * params,
     uint4 * rnd,
     float * GSynHead,
@@ -43,7 +46,10 @@ void Retina_nonspiking_update_state (
     const int nx,
     const int ny,
     const int nf,
-    const int nb,
+    const int lt,
+    const int rt,
+    const int dn,
+    const int up,
     Retina_params * params,
     float * GSynHead,
 //    float * phiExc,
@@ -246,23 +252,23 @@ int Retina::allocateDataStructures() {
       unsigned int columnOffset = (unsigned int) kIndex(loc->kx0,loc->ky0,0,loc->nxGlobal,loc->nyGlobal,loc->nf);
       allocateRandStateRestricted(loc->nx, loc->ny, loc->nf, seed+columnOffset, loc->nxGlobal * loc->nf);
 
-      int indexStride = (loc->nx+2*loc->nb)*loc->nf;
-      int globalExtStride = (loc->nxGlobal+2*loc->nb)*loc->nf;
+      int indexStride = (loc->nx+loc->halo.lt+loc->halo.rt)*loc->nf;
+      int globalExtStride = (loc->nxGlobal+loc->halo.dn+loc->halo.up)*loc->nf;
 
       seed += getNumGlobalNeurons();
       int indexBase = 0;
-      allocateRandStateBorder(NORTHWEST, loc->nb, loc->nb, loc->nf, seed, globalExtStride, indexBase, indexStride);
-      allocateRandStateBorder(NORTH, loc->nx, loc->nb, loc->nf, seed + loc->nb + loc->kx0, globalExtStride, indexBase+loc->nb, indexStride);
-      allocateRandStateBorder(NORTHEAST, loc->nb, loc->nb, loc->nf, seed + loc->nb + loc->nxGlobal, globalExtStride, indexBase+loc->nb+loc->nx, indexStride);
-      seed += (loc->nxGlobal + 2*loc->nb) * loc->nb * loc->nf;
-      indexBase = kIndex(0, loc->nb, 0, loc->nx+2*loc->nb, loc->ny+2*loc->nb, loc->nf);
-      allocateRandStateBorder(WEST, loc->nb, loc->ny, loc->nf, seed + loc->ky0*(2*loc->nb*loc->nf), 2*loc->nb*loc->nf, indexBase, indexStride);
-      allocateRandStateBorder(EAST, loc->nb, loc->ny, loc->nf, seed + loc->ky0*(2*loc->nb*loc->nf)+loc->nb*loc->nf, 2*loc->nb*loc->nf, indexBase+loc->nx+loc->nb, indexStride);
-      seed += 2*loc->nb * loc->nyGlobal * loc->nf;
-      indexBase = kIndex(0, loc->nb+loc->ny, 0, loc->nx+2*loc->nb, loc->ny+2*loc->nb, loc->nf);
-      allocateRandStateBorder(SOUTHWEST, loc->nb, loc->nb, loc->nf, seed, globalExtStride, indexBase, indexStride);
-      allocateRandStateBorder(SOUTH, loc->nx, loc->nb, loc->nf, seed + loc->nb + loc->kx0, globalExtStride, indexBase+loc->nb, indexStride);
-      allocateRandStateBorder(SOUTHEAST, loc->nb, loc->nb, loc->nf, seed + loc->nb + loc->nxGlobal, globalExtStride, indexBase+loc->nb+loc->nx, indexStride);
+      allocateRandStateBorder(NORTHWEST, loc->halo.lt, loc->halo.up, loc->nf, seed, globalExtStride, indexBase, indexStride);
+      allocateRandStateBorder(NORTH, loc->nx, loc->halo.up, loc->nf, seed + loc->halo.lt + loc->kx0, globalExtStride, indexBase+loc->halo.lt, indexStride);
+      allocateRandStateBorder(NORTHEAST, loc->halo.rt, loc->halo.up, loc->nf, seed + loc->halo.lt + loc->nxGlobal, globalExtStride, indexBase+loc->halo.lt+loc->nx, indexStride);
+      seed += (loc->nxGlobal + loc->halo.lt + loc->halo.rt) * loc->halo.up * loc->nf;
+      indexBase = kIndex(0, loc->halo.up, 0, loc->nx+loc->halo.lt+loc->halo.rt, loc->ny+loc->halo.dn+loc->halo.up, loc->nf);
+      allocateRandStateBorder(WEST, loc->halo.lt, loc->ny, loc->nf, seed + loc->ky0*(loc->halo.lt+loc->halo.rt)*loc->nf, (loc->halo.lt+loc->halo.rt)*loc->nf, indexBase, indexStride);
+      allocateRandStateBorder(EAST, loc->halo.rt, loc->ny, loc->nf, seed + loc->ky0*(loc->halo.lt+loc->halo.rt)*loc->nf, (loc->halo.lt+loc->halo.rt)*loc->nf, indexBase+loc->nx+loc->halo.lt, indexStride);
+      seed += (loc->halo.lt+loc->halo.rt) * loc->nyGlobal * loc->nf;
+      indexBase = kIndex(0, loc->halo.up+loc->ny, 0, loc->nx+loc->halo.lt+loc->halo.rt, loc->ny+loc->halo.dn+loc->halo.up, loc->nf);
+      allocateRandStateBorder(SOUTHWEST, loc->halo.lt, loc->halo.dn, loc->nf, seed, globalExtStride, indexBase, indexStride);
+      allocateRandStateBorder(SOUTH, loc->nx, loc->halo.dn, loc->nf, seed + loc->halo.lt + loc->kx0, globalExtStride, indexBase+loc->halo.lt, indexStride);
+      allocateRandStateBorder(SOUTHEAST, loc->halo.rt, loc->halo.up, loc->nf, seed + loc->halo.lt + loc->nxGlobal, globalExtStride, indexBase+loc->halo.lt+loc->nx, indexStride);
    }
 
    return status;
@@ -588,18 +594,20 @@ int Retina::updateState(double timed, double dt)
       const int nx = clayer->loc.nx;
       const int ny = clayer->loc.ny;
       const int nf = clayer->loc.nf;
-      const int nb = clayer->loc.nb;
+      const PVHalo * halo = &clayer->loc.halo;
 
       pvdata_t * GSynHead   = GSyn[0];
       pvdata_t * activity = clayer->activity->data;
 
       if (spikingFlag == 1) {
-         Retina_spiking_update_state(getNumNeurons(), timed, dt, nx, ny, nf, nb,
+         Retina_spiking_update_state(getNumNeurons(), timed, dt, nx, ny, nf,
+                                     halo->lt, halo->rt, halo->dn, halo->up,
                                      &rParams, randState[0]->getRNG(0),
                                      GSynHead, activity, clayer->prevActivity);
       }
       else {
-         Retina_nonspiking_update_state(getNumNeurons(), timed, dt, nx, ny, nf, nb,
+         Retina_nonspiking_update_state(getNumNeurons(), timed, dt, nx, ny, nf,
+                                        halo->lt, halo->rt, halo->dn, halo->up,
                                         &rParams, GSynHead, activity);
       }
 //#ifdef PV_USE_OPENCL

@@ -45,7 +45,10 @@ void LCALIF_update_state(
     const int nx,
     const int ny,
     const int nf,
-    const int nb,
+    const int lt,
+    const int rt,
+    const int dn,
+    const int up,
     
     float Vscale,
     float * Vadpt,
@@ -97,7 +100,7 @@ for (int k = 0; k < nx*ny*nf; k++) {
    k = get_global_id(0);
 #endif
 
-   int kex = kIndexExtended(k, nx, ny, nf, nb);
+   int kex = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
 
    //
    // kernel (nonheader part) begins here

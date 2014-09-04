@@ -1625,12 +1625,17 @@ int HyPerConn::communicateInitInfo() {
 
    int xmargin = computeMargin(pre->getXScale(), post->getXScale(), nxp);
    int ymargin = computeMargin(pre->getYScale(), post->getYScale(), nyp);
-   int margin = xmargin>=ymargin ? xmargin : ymargin;
-   int receivedmargin = 0;
-   status = pre->requireMarginWidth(margin, &receivedmargin);
-   if (status != PV_SUCCESS) {
+   int receivedxmargin = 0;
+   int statusx = pre->requireMarginWidth(xmargin, &receivedxmargin, 'x');
+   int receivedymargin = 0;
+   int statusy = pre->requireMarginWidth(ymargin, &receivedymargin, 'y');
+   if (statusx != PV_SUCCESS) {
+      fprintf(stderr,"Margin Failure for layer %s.  Received x-margin is %d, but connection \"%s\" requires margin of at least %d\n", pre->getName(),receivedxmargin, name, xmargin);
       status = PV_MARGINWIDTH_FAILURE;
-      fprintf(stderr,"Margin Failure for layer %s.  Received margin is %d, but required margin is %d",name,receivedmargin,margin);
+   }
+   if (statusy != PV_SUCCESS) {
+      fprintf(stderr,"Margin Failure for layer %s.  Received y-margin is %d, but connection \"%s\" requires margin of at least %d\n", pre->getName(),receivedymargin, name, ymargin);
+      status = PV_MARGINWIDTH_FAILURE;
    }
 
    //Trigger stuff
@@ -1823,24 +1828,24 @@ int HyPerConn::allocateDataStructures() {
       const int targetNy = aTargetLoc->ny;
       const int targetNf = aTargetLoc->nf;
 
-      const int aSourceNb = aSourceLoc->nb;
-      const int oSourceNb = oSourceLoc->nb;
-      const int aTargetNb = aTargetLoc->nb;
-      const int oTargetNb = oTargetLoc->nb;
+      const PVHalo * aSourceHalo = &aSourceLoc->halo;
+      const PVHalo * oSourceHalo = &oSourceLoc->halo;
+      const PVHalo * aTargetHalo = &aTargetLoc->halo;
+      const PVHalo * oTargetHalo = &oTargetLoc->halo;
 
       const int numRestricted = postSynapticLayer()->getNumNeurons();
 
       postToPreActivity = (long*)malloc(sizeof(long) * numRestricted);
       for (int kTargetRes = 0; kTargetRes < numRestricted; kTargetRes++){
-         int okTargetExt = kIndexExtended(kTargetRes, targetNx, targetNy, targetNf, oTargetNb);
-         int akTargetExt = kIndexExtended(kTargetRes, targetNx, targetNy, targetNf, aTargetNb);
+         int okTargetExt = kIndexExtended(kTargetRes, targetNx, targetNy, targetNf, oTargetHalo->lt, oTargetHalo->rt, oTargetHalo->dn, oTargetHalo->up);
+         int akTargetExt = kIndexExtended(kTargetRes, targetNx, targetNy, targetNf, aTargetHalo->lt, aTargetHalo->rt, aTargetHalo->dn, aTargetHalo->up);
          //Get start index of source from gsyn in restricted
          // We have to use gSynPatchStart instead of aPostOffset because originalConn's post-synaptic layer's nb may not be the same as conn's pre-layer's nb.
          int sourceRes = targetToSourceConn->getGSynPatchStart(okTargetExt, 0);
-         int sourceExt= kIndexExtended(sourceRes, sourceNx, sourceNy, sourceNf, aSourceNb);
-         int sourceXExt = kxPos(sourceExt, sourceNx + 2*aSourceNb, sourceNy + 2*aSourceNb, sourceNf);
-         int sourceYExt = kyPos(sourceExt, sourceNx + 2*aSourceNb, sourceNy + 2*aSourceNb, sourceNf);
-         int sourceF = featureIndex(sourceExt, sourceNx + 2*aSourceNb, sourceNy + 2*aSourceNb, sourceNf);
+         int sourceExt= kIndexExtended(sourceRes, sourceNx, sourceNy, sourceNf, aSourceHalo->lt, aSourceHalo->rt, aSourceHalo->dn, aSourceHalo->up);
+         int sourceXExt = kxPos(sourceExt, sourceNx + aSourceHalo->lt + aSourceHalo->rt, sourceNy + aSourceHalo->dn + aSourceHalo->up, sourceNf);
+         int sourceYExt = kyPos(sourceExt, sourceNx + aSourceHalo->lt + aSourceHalo->rt, sourceNy + aSourceHalo->dn + aSourceHalo->up, sourceNf);
+         int sourceF = featureIndex(sourceExt, sourceNx + aSourceHalo->lt + aSourceHalo->rt, sourceNy + aSourceHalo->dn + aSourceHalo->up, sourceNf);
 
          //Grab patch given the post
          //We grab this value from host memory since all we're taking from it is the offset
@@ -1859,7 +1864,7 @@ int HyPerConn::allocateDataStructures() {
 
          //Change sourceExt back to extended source index, but unshrunken
          //Store this value in a buffer to avoid recalculation
-         postToPreActivity[kTargetRes] = kIndex(sourceXExt, sourceYExt, sourceF, sourceNx + 2*aSourceNb, sourceNy + 2*aSourceNb, sourceNf);
+         postToPreActivity[kTargetRes] = kIndex(sourceXExt, sourceYExt, sourceF, sourceNx + aSourceHalo->lt + aSourceHalo->rt, sourceNy + aSourceHalo->dn + aSourceHalo->up, sourceNf);
       }
    }
 
@@ -2712,12 +2717,12 @@ int HyPerConn::writeTextWeights(const char * filename, int k)
    FILE * fd = pvstream->fp;
    fprintf(fd, "Weights for connection \"%s\", neuron %d\n", name, k);
    fprintf(fd, "   (kxPre,kyPre,kfPre)   = (%i,%i,%i)\n",
-           kxPos(k,pre->getLayerLoc()->nx + 2*pre->getLayerLoc()->nb,
-                 pre->getLayerLoc()->ny + 2*pre->getLayerLoc()->nb, pre->getLayerLoc()->nf),
-           kyPos(k,pre->getLayerLoc()->nx + 2*pre->getLayerLoc()->nb,
-                 pre->getLayerLoc()->ny + 2*pre->getLayerLoc()->nb, pre->getLayerLoc()->nf),
-           featureIndex(k,pre->getLayerLoc()->nx + 2*pre->getLayerLoc()->nb,
-                 pre->getLayerLoc()->ny + 2*pre->getLayerLoc()->nb, pre->getLayerLoc()->nf) );
+           kxPos(k,pre->getLayerLoc()->nx + pre->getLayerLoc()->halo.lt + pre->getLayerLoc()->halo.rt,
+                 pre->getLayerLoc()->ny + pre->getLayerLoc()->halo.dn + pre->getLayerLoc()->halo.up, pre->getLayerLoc()->nf),
+           kyPos(k,pre->getLayerLoc()->nx + pre->getLayerLoc()->halo.lt + pre->getLayerLoc()->halo.rt,
+                 pre->getLayerLoc()->ny + pre->getLayerLoc()->halo.dn + pre->getLayerLoc()->halo.up, pre->getLayerLoc()->nf),
+           featureIndex(k,pre->getLayerLoc()->nx + pre->getLayerLoc()->halo.lt + pre->getLayerLoc()->halo.rt,
+                 pre->getLayerLoc()->ny + pre->getLayerLoc()->halo.dn + pre->getLayerLoc()->halo.up, pre->getLayerLoc()->nf) );
    fprintf(fd, "   (nxp,nyp,nfp)   = (%i,%i,%i)\n", (int) nxp, (int) nyp, (int) nfp);
    fprintf(fd, "   pre  (nx,ny,nf) = (%i,%i,%i)\n",
            pre->getLayerLoc()->nx, pre->getLayerLoc()->ny, pre->getLayerLoc()->nf);
@@ -3339,7 +3344,7 @@ int HyPerConn::defaultUpdateInd_dW(int arbor_ID, int kExt){
    const pvdata_t * postactbuf = postSynapticLayer()->getLayerData();
    const PVLayerLoc * preLoc = pre->getLayerLoc();
    const PVLayerLoc * postLoc = post->getLayerLoc();
-   int sya = (post->getLayerLoc()->nf * (post->getLayerLoc()->nx + 2*post->getLayerLoc()->nb));
+   int sya = (post->getLayerLoc()->nf * (post->getLayerLoc()->nx + post->getLayerLoc()->halo.lt + post->getLayerLoc()->halo.rt));
 
    pvdata_t preact = preactbuf[kExt];
    if (skipPre(preact)) return PV_CONTINUE;
@@ -3348,13 +3353,13 @@ int HyPerConn::defaultUpdateInd_dW(int arbor_ID, int kExt){
       //update numKernelActivations
       int kernelIndex = patchIndexToDataIndex(kExt);
       //Only increment if kernelIndex is restricted
-      int nxExt = preLoc->nx + 2*preLoc->nb;
-      int nyExt = preLoc->ny + 2*preLoc->nb;
+      int nxExt = preLoc->nx + preLoc->halo.lt + preLoc->halo.rt;
+      int nyExt = preLoc->ny + preLoc->halo.dn + preLoc->halo.up;
       int nf = preLoc->nf;
       int extX = kxPos(kExt, nxExt, nyExt, nf);
       int extY = kyPos(kExt, nxExt, nyExt, nf);
-      if(extX >= preLoc->nb && extX < preLoc->nx + preLoc->nb &&
-            extY >= preLoc->nb && extY < preLoc->ny + preLoc->nb){
+      if(extX >= preLoc->halo.lt && extX < preLoc->nx + preLoc->halo.lt &&
+            extY >= preLoc->halo.up && extY < preLoc->ny + preLoc->halo.up){
          numKernelActivations[kernelIndex]++;
       }
    }
@@ -3656,8 +3661,8 @@ int HyPerConn::deleteWeights() {
 
 //This function is doing what adjust axonal arbors was doing before, but generalized to not use the pre/post layer's pre/post for use with gpu post groups
 int HyPerConn::adjustAllPatches(
-      int nxPre, int nyPre, int nfPre, int nbPre,
-      int nxPost, int nyPost, int nfPost, int nbPost,
+      int nxPre, int nyPre, int nfPre, const PVHalo * haloPre,
+      int nxPost, int nyPost, int nfPost, const PVHalo * haloPost,
       PVPatch*** inWPatches,
       size_t** inGSynPatchStart,
       size_t** inAPostOffset,
@@ -3683,12 +3688,11 @@ int HyPerConn::adjustAllPatches(
    assert(2*yPatchHead == nyp-nypShrunken);
    offsetShrunken = kIndex(xPatchHead, yPatchHead, 0, nxp, nyp, nfp);
 
-   for (int kex=0; kex<((nxPre+2*nbPre)*(nyPre+2*nbPre)*nfPre); kex++) {
-   //for (int kex=0; kex<getNumWeightPatches(); kex++) {
+   for (int kex=0; kex<getNumWeightPatches(); kex++) {
       // calculate xPostStart, xPostStop, xPatchStart, xPatchStop
       int xHalfLength = (nxpShrunken-xPostNeuronsPerPreNeuron)/2;
       assert(2*xHalfLength+xPostNeuronsPerPreNeuron==nxpShrunken);
-      int xPre = kxPos(kex, nxPre+2*nbPre, nyPre+2*nbPre, nfPre)-nbPre; // x-coordinate of presynaptic neuron tied to patch kex, in restricted coordinates.
+      int xPre = kxPos(kex, nxPre+haloPre->lt+haloPre->rt, nyPre+haloPre->dn+haloPre->up, nfPre)-haloPre->lt; // x-coordinate of presynaptic neuron tied to patch kex, in restricted coordinates.
       // xCellStartInPostCoords will be the x-coordinate of the first neuron in the unit cell pre-synaptic site xPre,
       // in postsynaptic restricted coordinates (i.e. leftmost restricted neuron is at x=0; rightmost is at x=post->getLayerLoc()->nx - 1.
       // For a 1-1 connection, this is the same as xPre, but for 1-many or many-1 connections, we have to multiply or divide by "many".
@@ -3750,7 +3754,7 @@ int HyPerConn::adjustAllPatches(
       // calculate yPostStart, yPostStop, yPatchStart, yPatchStop
       int yHalfLength = (nypShrunken-yPostNeuronsPerPreNeuron)/2;
       assert(2*yHalfLength+yPostNeuronsPerPreNeuron==nypShrunken);
-      int yPre = kyPos(kex, nxPre+2*nbPre, nyPre+2*nbPre, nfPre)-nbPre;
+      int yPre = kyPos(kex, nxPre+haloPre->lt+haloPre->rt, nyPre+haloPre->dn+haloPre->up, nfPre)-haloPre->up;
       int yCellStartInPostCoords = yPre;
       if (yPostNeuronsPerPreNeuron>1) {
          yCellStartInPostCoords *= yPostNeuronsPerPreNeuron;
@@ -3807,7 +3811,7 @@ int HyPerConn::adjustAllPatches(
       assert(yPatchStart>=0 && (yPatchStart<nyp || (ny==0 && yPatchStart==nyp)));
 
       if(inAPostOffset){
-         inAPostOffset[arborId][kex] = (size_t) kIndex(xPostStart+nbPost,yPostStart+nbPost,0,nxPost+2*nbPost,nyPost+2*nbPost,nfPost);
+         inAPostOffset[arborId][kex] = (size_t) kIndex(xPostStart+haloPost->lt,yPostStart+haloPost->up,0,nxPost+haloPost->lt+haloPost->rt,nyPost+haloPost->dn+haloPost->up,nfPost);
       }
 
       inGSynPatchStart[arborId][kex] = (size_t) kIndex(xPostStart,yPostStart,0,nxPost,nyPost,nfPost);
@@ -3845,13 +3849,13 @@ int HyPerConn::adjustAxonalArbors(int arborId)
    const int nxPre = pre->getLayerLoc()->nx;
    const int nyPre = pre->getLayerLoc()->ny;
    const int nfPre = pre->getLayerLoc()->nf;
-   const int nbPre = pre->getLayerLoc()->nb;
+   const PVHalo * haloPre = &pre->getLayerLoc()->halo;
    const int nxPost = post->getLayerLoc()->nx;
    const int nyPost = post->getLayerLoc()->ny;
    const int nfPost = post->getLayerLoc()->nf;
-   const int nbPost = post->getLayerLoc()->nb;
+   const PVHalo * haloPost = &post->getLayerLoc()->halo;
 
-   return adjustAllPatches(nxPre, nyPre, nfPre, nbPre, nxPost, nyPost, nfPost, nbPost, wPatches, gSynPatchStart, aPostOffset, arborId);
+   return adjustAllPatches(nxPre, nyPre, nfPre, haloPre, nxPost, nyPost, nfPost, haloPost, wPatches, gSynPatchStart, aPostOffset, arborId);
    
    //This function is moved to adjustAllPatches
    // activity is extended into margins
@@ -4037,11 +4041,9 @@ PVPatch *** HyPerConn::convertPreSynapticWeights(double time)
 //   assert(xScale <= 0);
 //   assert(yScale <= 0);
 
-   const int prePad = preLoc->nb;
-
    // pre-synaptic weights are in extended layer reference frame
-   const int nxPre = preLoc->nx + 2 * prePad;
-   const int nyPre = preLoc->ny + 2 * prePad;
+   const int nxPre = preLoc->nx + preLoc->halo.lt + preLoc->halo.rt;
+   const int nyPre = preLoc->ny + preLoc->halo.dn + preLoc->halo.up;
    const int nfPre = preLoc->nf;
 
    const int nxPost  = postLoc->nx;
@@ -4094,8 +4096,8 @@ PVPatch *** HyPerConn::convertPreSynapticWeights(double time)
          int kyPreHead = zPatchHead(kyPost, nypPost, post->getYScale(), pre->getYScale());
 
          // convert kxPreHead and kyPreHead to extended indices
-         kxPreHead += prePad;
-         kyPreHead += prePad;
+         kxPreHead += preLoc->halo.lt;
+         kyPreHead += preLoc->halo.up;
 
          // TODO - FIXME for powXScale > 1
    //      int ax = (int) (1.0f / powXScale);
@@ -4268,11 +4270,9 @@ PVPatch **** HyPerConn::point2PreSynapticWeights()
 //   assert(xScale <= 0);
 //   assert(yScale <= 0);
 
-   const int prePad = preLoc->nb;
-
    // pre-synaptic weights are in extended layer reference frame
-   const int nxPre = preLoc->nx + 2 * prePad;
-   const int nyPre = preLoc->ny + 2 * prePad;
+   const int nxPre = preLoc->nx + preLoc->halo.lt + preLoc->halo.rt;
+   const int nyPre = preLoc->ny + preLoc->halo.dn + preLoc->halo.up;
    const int nfPre = preLoc->nf;
 
    const int nxPost  = postLoc->nx;
@@ -4334,8 +4334,8 @@ PVPatch **** HyPerConn::point2PreSynapticWeights()
          int kyPreHead = zPatchHead(kyPost, nypPost, post->getYScale(), pre->getYScale());
 
          // convert kxPreHead and kyPreHead to extended indices
-         kxPreHead += prePad;
-         kyPreHead += prePad;
+         kxPreHead += preLoc->halo.lt;
+         kyPreHead += preLoc->halo.up;
 
          // TODO - FIXME for powXScale > 1
    //      int ax = (int) (1.0f / powXScale);
@@ -4476,16 +4476,14 @@ int HyPerConn::postSynapticPatchHead(int kPreEx,
    const PVLayerLoc * preLoc = pre->getLayerLoc();
    const PVLayerLoc * postLoc = post->getLayerLoc();
 
-   const int prePad  = preLoc->nb;
-
    const int nxPre  = preLoc->nx;
    const int nyPre  = preLoc->ny;
    const int kx0Pre = preLoc->kx0;
    const int ky0Pre = preLoc->ky0;
    const int nfPre  = preLoc->nf;
 
-   const int nxexPre = nxPre + 2 * prePad;
-   const int nyexPre = nyPre + 2 * prePad;
+   const int nxexPre = preLoc->nx + preLoc->halo.lt + preLoc->halo.rt;
+   const int nyexPre = preLoc->ny + preLoc->halo.dn + preLoc->halo.up;
 
    const int nxPost  = postLoc->nx;
    const int nyPost  = postLoc->ny;
@@ -4502,8 +4500,8 @@ int HyPerConn::postSynapticPatchHead(int kPreEx,
 
    // convert to global non-extended frame
    //
-   kxPre += kx0Pre - prePad;
-   kyPre += ky0Pre - prePad;
+   kxPre += kx0Pre - preLoc->halo.lt;
+   kyPre += ky0Pre - preLoc->halo.up;
 
    // global non-extended post-synaptic frame
    //
@@ -5044,7 +5042,7 @@ int HyPerConn::setPatchStrides() {
    // these strides are for a post-synaptic extended layer variable.
    postExtStrides.sf = 1;
    postExtStrides.sx = nfp;
-   postExtStrides.sy = nfp * (post->getLayerLoc()->nx+2*post->getLayerLoc()->nb);
+   postExtStrides.sy = nfp * (post->getLayerLoc()->nx+post->getLayerLoc()->halo.lt+post->getLayerLoc()->halo.rt);
 
    return PV_SUCCESS;
 }
@@ -5160,9 +5158,9 @@ int HyPerConn::patchIndexToDataIndex(int patchIndex, int * kx/*default=NULL*/, i
    }
    else {
       const PVLayerLoc * preLoc = pre->getLayerLoc();
-      if(kx) *kx = kxPos(patchIndex, preLoc->nx + 2*preLoc->nb, preLoc->ny + 2*preLoc->nb, preLoc->nf);
-      if(ky) *ky = kyPos(patchIndex, preLoc->nx + 2*preLoc->nb, preLoc->ny + 2*preLoc->nb, preLoc->nf);
-      if(kf) *kf = featureIndex(patchIndex, preLoc->nx + 2*preLoc->nb, preLoc->ny + 2*preLoc->nb, preLoc->nf);
+      if(kx) *kx = kxPos(patchIndex, preLoc->nx + preLoc->halo.lt + preLoc->halo.rt, preLoc->ny + preLoc->halo.dn + preLoc->halo.up, preLoc->nf);
+      if(ky) *ky = kyPos(patchIndex, preLoc->nx + preLoc->halo.lt + preLoc->halo.rt, preLoc->ny + preLoc->halo.dn + preLoc->halo.up, preLoc->nf);
+      if(kf) *kf = featureIndex(patchIndex, preLoc->nx + preLoc->halo.lt + preLoc->halo.rt, preLoc->ny + preLoc->halo.dn + preLoc->halo.up, preLoc->nf);
       dataIndex = patchIndex;
    }
    return dataIndex;

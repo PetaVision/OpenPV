@@ -10,7 +10,7 @@ public:
    BinningLayer(const char * name, HyPerCol * hc);
    virtual int communicateInitInfo();
    virtual int allocateDataStructures();
-   virtual int requireMarginWidth(int marginWidthNeeded, int * marginWidthResult);
+   virtual int requireMarginWidth(int marginWidthNeeded, int * marginWidthResult, char axis);
    virtual ~BinningLayer();
 
 protected:

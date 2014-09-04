@@ -36,15 +36,16 @@ protected:
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    virtual void ioParam_originalMovie(enum ParamsIOFlag ioFlag);
    virtual void ioParam_jitter(enum ParamsIOFlag ioFlag);
+   int getNxOrig();
+   int getNyOrig();
+   int getNfOrig();
+   PVHalo const * getHaloOrig();
+
    char * originalMovieName;
    HyPerLayer * originalMovie;
    BIDSCoords* coords;
-   int getNbOrig() {return originalMovie->getLayerLoc()->nb;}
-   int getNxOrig() {return originalMovie->getLayerLoc()->nx;}
-   int getNyOrig() {return originalMovie->getLayerLoc()->ny;}
    int nxPost;
    int nyPost;
-   int getNfOrig() {return originalMovie->getLayerLoc()->nf;}
    int jitter;
 
 private:

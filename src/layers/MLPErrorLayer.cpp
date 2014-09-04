@@ -243,7 +243,7 @@ int MLPErrorLayer::updateState(double time, double dt)
 #pragma omp parallel for
 #endif
    for(int ni = 0; ni < num_neurons; ni++){
-      int next = kIndexExtended(ni, nx, ny, nf, loc->nb);
+      int next = kIndexExtended(ni, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
       //Update activity
       //f'(V)*(error)
       //error = gt - finalLayer iff error is last error

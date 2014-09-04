@@ -72,7 +72,6 @@ int TextStreamProbe::outputState(double timef) {
    int ny = loc->ny;
    int nyGlobal = loc->nyGlobal;
    int nf = loc->nf;
-   int nb = loc->nb;
    assert(nyGlobal==ny*num_rows);
    MPI_Comm mpi_comm = getTargetLayer()->getParent()->icCommunicator()->communicator();
    pvdata_t * buf = (pvdata_t *) calloc(ny*nf*nx, sizeof(pvdata_t)); // Buffer holding the max feature value;
@@ -84,7 +83,7 @@ int TextStreamProbe::outputState(double timef) {
          if (proc==rootproc) {
             // Copy to layer data to buf.
             for (int y=0; y<ny; y++) {
-               int kex = kIndexExtended(y*nx*nf, nx, ny, nf, nb);
+               int kex = kIndexExtended(y*nx*nf, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
                memcpy(&buf[y*nx*nf], &getTargetLayer()->getLayerData()[kex], nx*nf*sizeof(pvdata_t));
             }
          }
@@ -126,7 +125,7 @@ int TextStreamProbe::outputState(double timef) {
    }
    else {
       for (int y=0; y<ny; y++) {
-         int kex = kIndexExtended(y*nx*nf, nx, ny, nf, nb);
+         int kex = kIndexExtended(y*nx*nf, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
          memcpy(&buf[y*nx*nf], &getTargetLayer()->getLayerData()[kex], nx*nf*sizeof(pvdata_t));
       }
 #ifdef PV_USE_MPI

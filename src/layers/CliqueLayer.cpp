@@ -98,8 +98,8 @@ int CliqueLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activit
    const int nfPre = preLoc->nf;
    //const int nxPre = preLoc->nx;
    //const int nyPre = preLoc->ny;
-   const int nxPreExt = preLoc->nx + 2 * preLoc->nb;
-   const int nyPreExt = preLoc->ny + 2 * preLoc->nb;
+   const int nxPreExt = preLoc->nx + preLoc->halo.lt + preLoc->halo.rt;
+   const int nyPreExt = preLoc->ny + preLoc->halo.dn + preLoc->halo.up;
    int syPost = conn->getPostNonextStrides()->sy; // stride in layer
 
    // if pre and post are the same layers, make a clone of size PVPatch to hold temporary activity values
@@ -330,9 +330,9 @@ int CliqueLayer::updateStateClique(double timef, double dt, const PVLayerLoc * l
 
    // resetGSynBuffers called by HyPerCol
    resetGSynBuffers_HyPerLayer(num_neurons, getNumChannels(), gSynHead);
-   setActivity_HyPerLayer(num_neurons, A, V, nx, ny, nf, loc->nb); // setActivity();
-   applyVThresh_ANNLayer(num_neurons, V, AMin, VThresh, 0.0f/*AShift*/, 0.0f/*VWidth*/, A, nx, ny, nf, loc->nb); // applyVThresh();
-   applyVMax_ANNLayer(num_neurons, V, AMax, A, nx, ny, nf, loc->nb); // applyVMax();
+   setActivity_HyPerLayer(num_neurons, A, V, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up); // setActivity();
+   applyVThresh_ANNLayer(num_neurons, V, AMin, VThresh, 0.0f/*AShift*/, 0.0f/*VWidth*/, A, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up); // applyVThresh();
+   applyVMax_ANNLayer(num_neurons, V, AMax, A, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up); // applyVMax();
    updateActiveIndices();
 
    return 0;

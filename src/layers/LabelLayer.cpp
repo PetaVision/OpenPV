@@ -164,7 +164,7 @@ int LabelLayer::allocateDataStructures() {
 
       // the firstlines below force an L2 norm of unity on the activity of the LabelLayer
       // the second lines force a stddev of 1
-      for (int i = 0; i<(labelLoc.nf*(labelLoc.nx+labelLoc.nb*2)*(labelLoc.ny+labelLoc.nb*2)); i++){
+      for (int i = 0; i<(labelLoc.nf*(labelLoc.nx+labelLoc.halo.lt+labelLoc.halo.rt)*(labelLoc.ny+labelLoc.halo.dn+labelLoc.halo.up)); i++){
          if (i%maxLabel == currentLabel){
             labelData[i] = sqrt(maxLabel-1)/sqrt(maxLabel);
             //labelData[i] = sqrt(maxLabel-1);
@@ -216,7 +216,7 @@ int LabelLayer::updateState(double time, double dt){
       if(echoLabelFlag){
          fprintf(stderr,"Current Label Integer: %d out of %d\n",currentLabel, maxLabel);
       }
-      for (int i = 0; i<(labelLoc.nf*(labelLoc.nx+labelLoc.nb*2)*(labelLoc.ny+labelLoc.nb*2)); i++){
+      for (int i = 0; i<(labelLoc.nf*(labelLoc.nx+labelLoc.halo.lt+labelLoc.halo.rt)*(labelLoc.ny+labelLoc.halo.dn+labelLoc.halo.up)); i++){
          if (i%maxLabel == currentLabel){
             labelData[i] = sqrt(maxLabel-1)/sqrt(maxLabel);
          }

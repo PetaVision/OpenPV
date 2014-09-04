@@ -148,11 +148,11 @@ void ShuffleLayer::readFreq(){ // TODO: Add MPI Bcast so that only root proc doe
    }
 }
 void ShuffleLayer::collectFreq(const pvdata_t * sourceData){
-   int nbOrig = originalLayer->getLayerLoc()->nb;
+   PVHalo const * haloOrig = &originalLayer->getLayerLoc()->halo;
    int nx = getLayerLoc()->nx;
    int ny = getLayerLoc()->ny;
-   int nxExt = nx + 2*nbOrig;
-   int nyExt = ny + 2*nbOrig;
+   int nxExt = nx + haloOrig->lt + haloOrig->rt;
+   int nyExt = ny + haloOrig->dn + haloOrig->up;
    int nf    = getLayerLoc()->nf;
    //Reset currFeatureFreqCount
    for(int kf = 0; kf < nf; kf++){
@@ -161,7 +161,7 @@ void ShuffleLayer::collectFreq(const pvdata_t * sourceData){
    for (int ky = 0; ky < ny; ky++){
       for (int kx = 0; kx < nx; kx++){
          for (int kf = 0; kf < nf; kf++){
-            int extIdx = kIndex(kx+nbOrig, ky+nbOrig, kf, nxExt, nyExt, nf);
+            int extIdx = kIndex(kx+haloOrig->lt, ky+haloOrig->up, kf, nxExt, nyExt, nf);
             float inData = sourceData[extIdx];
             if(inData > 0){   //Really use 0? Or should there be a threshold parameter
                currFeatureFreqCount[kf]++;
@@ -185,8 +185,8 @@ void ShuffleLayer::collectFreq(const pvdata_t * sourceData){
 
 void ShuffleLayer::rejectionShuffle(const pvdata_t * sourceData, pvdata_t * activity){
    const PVLayerLoc * loc = getLayerLoc();
-   int nbOrig = originalLayer->getLayerLoc()->nb;
-   int nb = loc->nb;
+   PVHalo const * haloOrig = &originalLayer->getLayerLoc()->halo;
+   PVHalo const * halo = &loc->halo;
    int nx = loc->nx;
    int ny = loc->ny;
    int nf    = loc->nf;
@@ -204,8 +204,8 @@ void ShuffleLayer::rejectionShuffle(const pvdata_t * sourceData, pvdata_t * acti
       //      If the number of active features in sourceData is greater than 1/2 of nf, while will loop infinitely 
       for (int ky = 0; ky < ny; ky++){
          for (int kx = 0; kx < nx; kx++){
-            int extIdx = kIndex(kx+nb, ky+nb, 0, nx+2*nb, ny+2*nb, nf);
-            int extIdxOrig = kIndex(kx+nbOrig, ky+nbOrig, 0, nx+2*nbOrig, ny+2*nbOrig, nf);
+            int extIdx = kIndex(kx+halo->lt, ky+halo->up, 0, nx+halo->lt+halo->rt, ny+halo->dn+halo->up, nf);
+            int extIdxOrig = kIndex(kx+haloOrig->lt, ky+haloOrig->up, 0, nx+haloOrig->lt+haloOrig->rt, ny+haloOrig->dn+haloOrig->up, nf);
             // Assumes stride in features is 1 when computing indices for features other than kf=0
             for (int kf = 0; kf < nf; kf++){
                float inData = sourceData[extIdxOrig+kf];
@@ -242,8 +242,8 @@ void ShuffleLayer::rejectionShuffle(const pvdata_t * sourceData, pvdata_t * acti
 
 void ShuffleLayer::randomShuffle(const pvdata_t * sourceData, pvdata_t * activity){
    const PVLayerLoc * loc = getLayerLoc();
-   int nbOrig = originalLayer->getLayerLoc()->nb;
-   int nb = loc->nb;
+   PVHalo const * haloOrig = &originalLayer->getLayerLoc()->halo;
+   PVHalo const * halo = &loc->halo;
    int nx = loc->nx;
    int ny = loc->ny;
    int nf    = loc->nf;
@@ -257,8 +257,8 @@ void ShuffleLayer::randomShuffle(const pvdata_t * sourceData, pvdata_t * activit
    
    for (int ky = 0; ky < ny; ky++){
       for (int kx = 0; kx < nx; kx++){
-         int extIdx = kIndex(kx+nb, ky+nb, 0, nx+2*nb, ny+2*nb, nf);
-         int extIdxOrig = kIndex(kx+nbOrig, ky+nbOrig, 0, nx+2*nbOrig, ny+2*nbOrig, nf);
+         int extIdx = kIndex(kx+halo->lt, ky+halo->rt, 0, nx+halo->lt+halo->rt, ny+halo->dn+halo->up, nf);
+         int extIdxOrig = kIndex(kx+haloOrig->lt, ky+haloOrig->up, 0, nx+haloOrig->lt+haloOrig->rt, ny+haloOrig->dn+haloOrig->up, nf);
          // Assumes stride in features is 1 when computing indices for features other than kf=0
          for (int kf = 0; kf < nf; kf++){
             float inData = sourceData[extIdxOrig+kf];

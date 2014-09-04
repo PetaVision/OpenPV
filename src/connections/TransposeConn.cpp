@@ -400,12 +400,12 @@ int TransposeConn::transposeNonsharedWeights(int arborId) {
       char * b = (char *) sendbuf[neighbor];
       for (int y=starty[neighbor]; y<stopy[neighbor]; y++) {
          for (int x=startx[neighbor]; x<stopx[neighbor]; x++) {
-            int idxExt = kIndex(x,y,0,preLocOrig->nx+2*preLocOrig->nb,preLocOrig->ny+2*preLocOrig->nb,preLocOrig->nf);
+            int idxExt = kIndex(x,y,0,preLocOrig->nx+preLocOrig->halo.lt+preLocOrig->halo.rt,preLocOrig->ny+preLocOrig->halo.dn+preLocOrig->halo.up,preLocOrig->nf);
             int xGlobalExt = x+preLocOrig->kx0;
-            int xGlobalRes = xGlobalExt-preLocOrig->nb;
+            int xGlobalRes = xGlobalExt-preLocOrig->halo.lt;
             assert(xGlobalRes>=preLocOrig->kx0 && xGlobalRes<preLocOrig->kx0+preLocOrig->nx);
             int yGlobalExt = y+preLocOrig->ky0;
-            int yGlobalRes = yGlobalExt-preLocOrig->nb;
+            int yGlobalRes = yGlobalExt-preLocOrig->halo.up;
             assert(yGlobalRes>=preLocOrig->ky0 && yGlobalRes<preLocOrig->ky0+preLocOrig->ny);
             int idxGlobalRes = kIndex(xGlobalRes, yGlobalRes, 0, preLocOrig->nxGlobal, preLocOrig->nyGlobal, preLocOrig->nf);
             memcpy(b, &idxGlobalRes, sizeof(idxGlobalRes));
@@ -414,7 +414,7 @@ int TransposeConn::transposeNonsharedWeights(int arborId) {
             memcpy(b, patchOrig, sizeof(*patchOrig));
             b += sizeof(*patchOrig);
             int postIdxRes = (int) originalConn->getGSynPatchStart(idxExt, arborId);
-            int postIdxExt = kIndexExtended(postIdxRes, postLocOrig->nx, postLocOrig->ny, postLocOrig->nf, postLocOrig->nb);
+            int postIdxExt = kIndexExtended(postIdxRes, postLocOrig->nx, postLocOrig->ny, postLocOrig->nf, postLocOrig->halo.lt, postLocOrig->halo.rt, postLocOrig->halo.dn, postLocOrig->halo.up);
             int postIdxGlobalRes = globalIndexFromLocal(postIdxRes, *postLocOrig);
             memcpy(b, &postIdxGlobalRes, sizeof(postIdxGlobalRes));
             b += sizeof(postIdxGlobalRes);
@@ -431,7 +431,7 @@ int TransposeConn::transposeNonsharedWeights(int arborId) {
    const int nkRestrictedOrig = originalConn->getPostNonextStrides()->sy; // preLocOrig->nx*preLocOrig->nf; // a stride in originalConn
    int nPreRestrictedOrig = originalConn->preSynapticLayer()->getNumNeurons();
    for (int kPreRestrictedOrig = 0; kPreRestrictedOrig < nPreRestrictedOrig; kPreRestrictedOrig++) {
-      int kPreExtendedOrig = kIndexExtended(kPreRestrictedOrig, preLocOrig->nx, preLocOrig->ny, preLocOrig->nf, preLocOrig->nb);
+      int kPreExtendedOrig = kIndexExtended(kPreRestrictedOrig, preLocOrig->nx, preLocOrig->ny, preLocOrig->nf, preLocOrig->halo.lt, preLocOrig->halo.rt, preLocOrig->halo.dn, preLocOrig->halo.up);
       PVPatch * patchOrig = originalConn->getWeights(kPreExtendedOrig, arborId);
       int nk = patchOrig->nx * originalConn->fPatchSize();
       int ny = patchOrig->ny;
@@ -443,7 +443,7 @@ int TransposeConn::transposeNonsharedWeights(int arborId) {
             pvwdata_t w = weightvaluesorig[y*originalConn->yPatchStride()+k];
             int kPostRestrictedOrig = kPostRestrictedOrigBase + y*nkRestrictedOrig+k;
             int kPreRestrictedTranspose = kPostRestrictedOrig;
-            int kPreExtendedTranspose = kIndexExtended(kPreRestrictedTranspose, preLocTranspose->nx, preLocTranspose->ny, preLocTranspose->nf, preLocTranspose->nb);
+            int kPreExtendedTranspose = kIndexExtended(kPreRestrictedTranspose, preLocTranspose->nx, preLocTranspose->ny, preLocTranspose->nf, preLocTranspose->halo.lt, preLocTranspose->halo.rt, preLocTranspose->halo.dn, preLocTranspose->halo.up);
             PVPatch * patchTranspose = getWeights(kPreExtendedTranspose, arborId);
             size_t gSynPatchStartTranspose = getGSynPatchStart(kPreExtendedTranspose, arborId);
             // Need to find which pixel in the patch is tied to kPostRestrictedTranspose
@@ -486,14 +486,14 @@ int TransposeConn::transposeNonsharedWeights(int arborId) {
                   int transposePreGlobalRes = origPostIndex;
                   int transposePreGlobalXRes = kxPos(transposePreGlobalRes, preLocTranspose->nxGlobal, preLocTranspose->nyGlobal, preLocTranspose->nf);
                   int transposePreLocalXRes = transposePreGlobalXRes - preLocTranspose->kx0;
-                  int transposePreLocalXExt = transposePreLocalXRes + preLocTranspose->nb;
-                  assert(transposePreLocalXExt >= 0 && transposePreLocalXExt < preLocTranspose->nx+2*preLocTranspose->nb);
+                  int transposePreLocalXExt = transposePreLocalXRes + preLocTranspose->halo.lt;
+                  assert(transposePreLocalXExt >= 0 && transposePreLocalXExt < preLocTranspose->nx+preLocTranspose->halo.lt+preLocTranspose->halo.rt);
                   int transposePreGlobalYRes = kyPos(transposePreGlobalRes, preLocTranspose->nxGlobal, preLocTranspose->nyGlobal, preLocTranspose->nf);
                   int transposePreLocalYRes = transposePreGlobalYRes - preLocTranspose->ky0;
-                  int transposePreLocalYExt = transposePreLocalYRes + preLocTranspose->nb;
-                  assert(transposePreLocalYExt >= 0 && transposePreLocalYExt < preLocTranspose->ny+2*preLocTranspose->nb);
+                  int transposePreLocalYExt = transposePreLocalYRes + preLocTranspose->halo.dn;
+                  assert(transposePreLocalYExt >= 0 && transposePreLocalYExt < preLocTranspose->ny+preLocTranspose->halo.dn+preLocTranspose->halo.up);
                   int transposePreFeature = featureIndex(transposePreGlobalRes, preLocTranspose->nxGlobal, preLocTranspose->nyGlobal, preLocTranspose->nf);
-                  int transposePreLocalExt = kIndex(transposePreLocalXExt, transposePreLocalYExt, transposePreFeature, preLocTranspose->nx+2*preLocTranspose->nb, preLocTranspose->ny+2*preLocTranspose->nb, preLocTranspose->nf);
+                  int transposePreLocalExt = kIndex(transposePreLocalXExt, transposePreLocalYExt, transposePreFeature, preLocTranspose->nx+preLocTranspose->halo.lt+preLocTranspose->halo.rt, preLocTranspose->ny+preLocTranspose->halo.dn+preLocTranspose->halo.up, preLocTranspose->nf);
 
                   int transposePostGlobalRes = origPreIndex;
                   int transposePostGlobalXRes = kxPos(transposePostGlobalRes, preLocOrig->nxGlobal, preLocOrig->nyGlobal, preLocOrig->nf);
@@ -551,7 +551,7 @@ int TransposeConn::transposeNonsharedWeights(int arborId) {
 
 int TransposeConn::mpiexchangesize(int neighbor, int * size, int * startx, int * stopx, int * starty, int * stopy, int * blocksize, size_t * buffersize) {
    const PVLayerLoc * preLocOrig = originalConn->preSynapticLayer()->getLayerLoc();
-   const int nb = preLocOrig->nb;
+   PVHalo const * halo = &preLocOrig->halo;
    const int nx = preLocOrig->nx;
    const int ny = preLocOrig->ny;
    switch(neighbor) {
@@ -559,36 +559,36 @@ int TransposeConn::mpiexchangesize(int neighbor, int * size, int * startx, int *
       assert(0);
       break;
    case NORTHWEST:
-      *startx = 0; *stopx = nb;
-      *starty = 0; *stopy = nb;
+      *startx = 0; *stopx = halo->lt;
+      *starty = 0; *stopy = halo->up;
       break;
    case NORTH:
-      *startx = nb; *stopx = nb + nx;
-      *starty = 0; *stopy = nb;
+      *startx = halo->lt; *stopx = halo->lt + nx;
+      *starty = 0; *stopy = halo->up;
       break;
    case NORTHEAST:
-      *startx = nx + nb; *stopx = nx + 2*nb;
-      *starty = 0; *stopy = nb;
+      *startx = nx + halo->lt; *stopx = nx + halo->lt + halo->rt;
+      *starty = 0; *stopy = halo->up;
       break;
    case WEST:
-      *startx = 0; *stopx = nb;
-      *starty = nb; *stopy = nb + ny;
+      *startx = 0; *stopx = halo->lt;
+      *starty = halo->up; *stopy = halo->up + ny;
       break;
    case EAST:
-      *startx = nx + nb; *stopx = nx + 2*nb;
-      *starty = nb; *stopy = nb + ny;
+      *startx = nx + halo->lt; *stopx = nx + halo->lt + halo->rt;
+      *starty = halo->up; *stopy = halo->up + ny;
       break;
    case SOUTHWEST:
-      *startx = 0; *stopx = nb;
-      *starty = ny + nb; *stopy = ny + 2*nb;
+      *startx = 0; *stopx = halo->lt;
+      *starty = ny + halo->up; *stopy = ny + halo->dn + halo->up;
       break;
    case SOUTH:
-      *startx = nb; *stopx = nb + nx;
-      *starty = ny + nb; *stopy = ny + 2*nb;
+      *startx = halo->lt; *stopx = halo->lt + nx;
+      *starty = ny + halo->up; *stopy = ny + halo->dn + halo->up;
       break;
    case SOUTHEAST:
-      *startx = nx + nb; *stopx = nx + 2*nb;
-      *starty = ny + nb; *stopy = ny + 2*nb;
+      *startx = nx + halo->lt; *stopx = nx + halo->lt + halo->rt;
+      *starty = ny + halo->up; *stopy = ny + halo->dn + halo->up;
       break;
    default:
       assert(0);

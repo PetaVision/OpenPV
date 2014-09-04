@@ -26,7 +26,10 @@ void LIF_update_state_arma(
     const int nx,
     const int ny,
     const int nf,
-    const int nb,
+    const int lt,
+    const int rt,
+    const int dn,
+    const int up,
 
     LIF_params * params,
     uint4 * rnd,
@@ -50,7 +53,10 @@ void LIF_update_state_beginning(
     const int nx,
     const int ny,
     const int nf,
-    const int nb,
+    const int lt,
+    const int rt,
+    const int dn,
+    const int up,
 
     LIF_params * params,
     uint4 * rnd,
@@ -74,7 +80,10 @@ void LIF_update_state_original(
     const int nx,
     const int ny,
     const int nf,
-    const int nb,
+    const int lt,
+    const int rt,
+    const int dn,
+    const int up,
 
     LIF_params * params,
     uint4 * rnd,
@@ -123,7 +132,7 @@ int BIDSLayer::updateState(double time, double dt)
       const int nx = clayer->loc.nx;
       const int ny = clayer->loc.ny;
       const int nf = clayer->loc.nf;
-      const int nb = clayer->loc.nb;
+      const PVHalo * halo = &clayer->loc.halo;
 
       pvdata_t * GSynHead   = GSyn[0];
 //      pvdata_t * GSynExc   = getChannel(CHANNEL_EXC);
@@ -133,15 +142,15 @@ int BIDSLayer::updateState(double time, double dt)
 
       switch (method) {
       case 'a':
-         LIF_update_state_arma(getNumNeurons(), time, dt, nx, ny, nf, nb, &lParams, randState->getRNG(0), getV(), Vth,
+         LIF_update_state_arma(getNumNeurons(), time, dt, nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up, &lParams, randState->getRNG(0), getV(), Vth,
                G_E, G_I, G_IB, GSynHead, activity);
          break;
       case 'b':
-         LIF_update_state_beginning(getNumNeurons(), time, dt, nx, ny, nf, nb, &lParams, randState->getRNG(0), getV(), Vth,
+         LIF_update_state_beginning(getNumNeurons(), time, dt, nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up, &lParams, randState->getRNG(0), getV(), Vth,
                G_E, G_I, G_IB, GSynHead, activity);
          break;
       case 'o':
-         LIF_update_state_original(getNumNeurons(), time, dt, nx, ny, nf, nb, &lParams, randState->getRNG(0), getV(), Vth,
+         LIF_update_state_original(getNumNeurons(), time, dt, nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up, &lParams, randState->getRNG(0), getV(), Vth,
                G_E, G_I, G_IB, GSynHead, activity);
          break;
       default:

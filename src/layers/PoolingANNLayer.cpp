@@ -63,7 +63,7 @@ int PoolingANNLayer::updateState(double timef, double dt, const PVLayerLoc * loc
 //   pvdata_t * gSynExc = getChannelStart(gSynHead, CHANNEL_EXC, num_neurons);
 //   pvdata_t * gSynInh = getChannelStart(gSynHead, CHANNEL_INH, num_neurons);
    updateV_PoolingANNLayer(num_neurons, V, gSynHead, biasa, biasb);
-   setActivity_HyPerLayer(num_neurons, A, V, nx, ny, nf, loc->nb); // setActivity();
+   setActivity_HyPerLayer(num_neurons, A, V, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up); // setActivity();
    resetGSynBuffers_HyPerLayer(num_neurons, getNumChannels(), gSynHead); // resetGSynBuffers();
    return PV_SUCCESS;
 }

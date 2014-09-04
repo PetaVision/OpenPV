@@ -696,7 +696,7 @@ protected:
    int createWeights(PVPatch*** patches, int arborId);
    virtual pvwdata_t * allocWeights(int nPatches, int nxPatch, int nyPatch, int nfPatch);
    int clearWeights(pvwdata_t** dataStart, int numPatches, int nx, int ny, int nf);
-   virtual int adjustAllPatches(int nxPre, int nyPre, int nfPre, int nbPre, int nxPost, int nyPost, int nfPost, int nbPost, PVPatch*** inWPatches, size_t** inGSynPatchStart, size_t** inAPostOffset, int arborId);
+   virtual int adjustAllPatches(int nxPre, int nyPre, int nfPre, const PVHalo * haloPre, int nxPost, int nyPost, int nfPost, const PVHalo * haloPost, PVPatch*** inWPatches, size_t** inGSynPatchStart, size_t** inAPostOffset, int arborId);
    virtual int adjustAxonalArbors(int arborId);
    virtual int readStateFromCheckpoint(const char * cpDir, double * timeptr);
    virtual int readWeightsFromCheckpoint(const char * cpDir, double * timeptr);

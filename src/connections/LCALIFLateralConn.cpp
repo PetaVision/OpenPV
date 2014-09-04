@@ -74,12 +74,16 @@ int LCALIFLateralConn::communicateInitInfo() {
    int nxpre = preloc->nx; int nxpost = postloc->nx;
    int nypre = preloc->ny; int nypost = postloc->ny;
    int nfpre = preloc->nf; int nfpost = postloc->nf;
-   int nbpre = preloc->nb; int nbpost = postloc->nb;
-   if (nxpre!=nxpost || nypre!=nypost || nfpre!=nfpost || nbpre!=nbpost) {
+   if (nxpre!=nxpost || nypre!=nypost || nfpre!=nfpost ||
+       preloc->halo.lt!=postloc->halo.lt ||
+       preloc->halo.rt!=postloc->halo.rt ||
+       preloc->halo.dn!=postloc->halo.dn ||
+       preloc->halo.up!=postloc->halo.up) {
       if (parent->columnId()==0) {
          fprintf(stderr, "LCALIFLateralConn: pre- and post-synaptic layers must have the same geometry (including margin width)\n");
-         fprintf(stderr, "  Pre:  nx=%d, ny=%d, nf=%d, nb=%d\n", nxpre, nypre, nfpre, nbpre);
-         fprintf(stderr, "  Post: nx=%d, ny=%d, nf=%d, nb=%d\n", nxpost, nypost, nfpost, nbpost);
+         fprintf(stderr, "  Pre:  nx=%d, ny=%d, nf=%d, halo=(%d,%d,%d,%d)\n", nxpre, nypre, nfpre, preloc->halo.lt, preloc->halo.rt, preloc->halo.dn, preloc->halo.up);
+         fprintf(stderr, "  Post: nx=%d, ny=%d, nf=%d, nb=(%d,%d,%d,%d)\n", nxpost, nypost, nfpost, postloc->halo.lt, postloc->halo.rt, postloc->halo.dn, postloc->halo.up
+);
       }
       status = PV_FAILURE;
    }
@@ -123,13 +127,13 @@ int LCALIFLateralConn::allocateDataStructures() {
          int nxpost = postloc->nx;
          int nypost = postloc->ny;
          int nfpost = postloc->nf;
-         int nbpost = postloc->nb;
+         const PVHalo * halopost = &(postloc->halo);
          for (int ky_patch=0; ky_patch<ny_patch; ky_patch++) {
             for (int kx_patch=0; kx_patch<nx_patch; kx_patch++) {
                for (int kf_patch=0; kf_patch<nfp; kf_patch++) {
                   //Calculate indices of post weights
                   int kPost_restricted = start_index_restricted + sy_restricted*ky_patch + sx_restricted*kx_patch + sf*kf_patch;
-                  int kPost_extended = kIndexExtended(kPost_restricted, nxpost, nypost, nfpost, nbpost);
+                  int kPost_extended = kIndexExtended(kPost_restricted, nxpost, nypost, nfpost, halopost->lt, halopost->rt, halopost->dn, halopost->up);
                   int k_patch = sxp*kx_patch + syp*ky_patch + sfp*kf_patch;
                   if (kPost_extended == kPre_extended) {
                      w_data[k_patch] = 0;
@@ -164,7 +168,7 @@ int LCALIFLateralConn::calc_dW(int axonId) {
    const int nxpost = postloc->nx;
    const int nypost = postloc->ny;
    const int nfpost = postloc->nf;
-   const int nbpost = postloc->nb;
+   const PVHalo * halopost = &(postloc->halo);
 
    for (int kPre_extended=0; kPre_extended<getNumWeightPatches(); kPre_extended++) {
       // The weight p(x,y,f) connects a presynaptic neuron in extended space to a postsynaptic neuron in restricted space.
@@ -182,7 +186,7 @@ int LCALIFLateralConn::calc_dW(int axonId) {
             for (int kf_patch=0; kf_patch<nfp; kf_patch++) {
                //Calculate indicies of post weights
                int kPost_restricted = start_index_restricted + sy_restricted*ky_patch + sx_restricted*kx_patch + sf*kf_patch;
-               int kPost_extended = kIndexExtended(kPost_restricted, nxpost, nypost, nfpost, nbpost);
+               int kPost_extended = kIndexExtended(kPost_restricted, nxpost, nypost, nfpost, halopost->lt, halopost->rt, halopost->dn, halopost->up);
                if (kPost_extended != kPre_extended) { //Neuron shouldn't inhibit itself
                   pvdata_t delta_weight;
                   float pre_scale_dt_weight = (1/target_rate_sq) * ((integratedSpikeCount[kPre_extended]/integrationTimeConstant)

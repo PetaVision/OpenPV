@@ -121,7 +121,6 @@ protected:
 
    virtual int allocateClayerBuffers();
    int setLayerLoc(PVLayerLoc * layerLoc, float nxScale, float nyScale, int nf);
-   int updateClayerMargin(PVLayer * clayer, int new_margin);
    virtual int allocateBuffers();
    virtual int allocateGSyn();
 
@@ -145,6 +144,7 @@ protected:
    int incrementNBands(int * numCalls);
    int writeDataStoreToFile(const char * filename, InterColComm * comm, double dtime);
    virtual int calcActiveIndices();
+   void calcNumExtended();
 public:
    pvdata_t * getActivity()          {return clayer->activity->data;}
    virtual double calcTimeScale()          {return -1.0;};
@@ -170,6 +170,8 @@ protected:
    virtual void ioParam_writeSparseActivity(enum ParamsIOFlag ioFlag);
    virtual void ioParam_writeSparseValues(enum ParamsIOFlag ioFlag);
 
+   static int equalizeMargins(HyPerLayer * layer1, HyPerLayer * layer2);
+
    virtual int recvSynapticInput(HyPerConn * conn, const PVLayerCube * cube, int arborID);
    virtual int recvSynapticInputFromPost(HyPerConn * conn, const PVLayerCube * activity, int arborID);
    void recvOnePreNeuronActivity(HyPerConn * conn, int patchIndex, int arbor, pvadata_t a, pvadata_t * postBufferStart, void * auxPtr);
@@ -193,7 +195,7 @@ public:
 
    void synchronizeMarginWidth(HyPerLayer * layer);
 
-   // TODO The two routines below shouldn't be public, but HyPerCol needs to call them, so for now they are.
+   // TODO The three routines below shouldn't be public, but HyPerCol needs to call them, so for now they are.
    void setInitInfoCommunicatedFlag() {initInfoCommunicatedFlag = true;}
    void setDataStructuresAllocatedFlag() {dataStructuresAllocatedFlag = true;}
    void setInitialValuesSetFlag() {initialValuesSetFlag = true;}
@@ -264,7 +266,9 @@ public:
    virtual int updateActiveIndices();
    int resetBuffer(pvdata_t * buf, int numItems);
 
+   static bool localDimensionsEqual(PVLayerLoc const * loc1, PVLayerLoc const * loc2);
    int mirrorInteriorToBorder(int whichBorder, PVLayerCube * cube, PVLayerCube * borderCube);
+   int mirrorInteriorToBorder(PVLayerCube * cube, PVLayerCube * borderCube);
 
    virtual int checkpointRead(const char * cpDir, double * timeptr); // (const char * cpDir, double * timed);
    virtual int checkpointWrite(const char * cpDir);
@@ -287,6 +291,7 @@ public:
    /** returns the number of neurons in layer (for borderId=0) or a border region **/
    virtual int numberOfNeurons(int borderId);
 
+   // TODO: should the mirroring functions be static?  Why are they virtual?
    virtual int mirrorToNorthWest(PVLayerCube * dest, PVLayerCube * src);
    virtual int mirrorToNorth    (PVLayerCube * dest, PVLayerCube* src);
    virtual int mirrorToNorthEast(PVLayerCube * dest, PVLayerCube * src);
@@ -305,14 +310,14 @@ public:
    int getNumNeurons()               {return clayer->numNeurons;}
    int getNumExtended()              {return clayer->numExtended;}
    int getNumGlobalNeurons()         {const PVLayerLoc * loc = getLayerLoc(); return loc->nxGlobal*loc->nyGlobal*loc->nf;}
-   int getNumGlobalExtended()        {const PVLayerLoc * loc = getLayerLoc(); return (loc->nxGlobal+2*loc->nb)*(loc->nyGlobal+2*loc->nb)*loc->nf;}
+   int getNumGlobalExtended()        {const PVLayerLoc * loc = getLayerLoc(); return (loc->nxGlobal+loc->halo.lt+loc->halo.rt)*(loc->nyGlobal+loc->halo.dn+loc->halo.up)*loc->nf;}
    int getNumDelayLevels()           {return numDelayLevels;}
 
    int  getLayerId()                 {return layerId;}
    PVLayerType getLayerType()        {return clayer->layerType;}
    void setLayerId(int id)           {layerId = id;}
    int increaseDelayLevels(int neededDelay);
-   virtual int requireMarginWidth(int marginWidthNeeded, int * marginWidthResult);
+   virtual int requireMarginWidth(int marginWidthNeeded, int * marginWidthResult, char axis);
    virtual int requireChannel(int channelNeeded, int * numChannelsResult);
 
    PVLayer*  getCLayer()             {return clayer;}
@@ -378,7 +383,7 @@ protected:
 
    float nxScale, nyScale;        // Size of layer relative to column
    int numFeatures;
-   int margin;
+   int xmargin, ymargin;
 
    bool initializeFromCheckpointFlag; // Whether to load initial state using directory parent->getInitializeFromCheckpoint()
    bool restartFlag;

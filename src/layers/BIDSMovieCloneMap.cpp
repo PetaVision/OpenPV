@@ -101,6 +101,11 @@ BIDSCoords* BIDSMovieCloneMap::getCoords(){
    return coords;
 }
 
+int BIDSMovieCloneMap::getNxOrig() {return originalMovie->getLayerLoc()->nx;}
+int BIDSMovieCloneMap::getNyOrig() {return originalMovie->getLayerLoc()->ny;}
+int BIDSMovieCloneMap::getNfOrig() {return originalMovie->getLayerLoc()->nf;}
+PVHalo const * BIDSMovieCloneMap::getHaloOrig() {return &(originalMovie->getLayerLoc()->halo);}
+
 int BIDSMovieCloneMap::updateState(double timef, double dt){
    //Get output buffer
    pvdata_t * output = getCLayer()->V;
@@ -112,12 +117,12 @@ int BIDSMovieCloneMap::updateState(double timef, double dt){
    int nxPre = getNxOrig();
    int nyPre = getNyOrig();
    int nf = getNfOrig();
-   int nbPre = getNbOrig();
+   PVHalo const * haloPre = getHaloOrig();
    for (int i = 0; i < nxPost * nyPost; i++){
       //Iterate through features
       for (int k = 0; k < nf; k++){
          coord = coords[i];
-         indexPre = kIndex(coord.xCoord+nbPre, coord.yCoord+nbPre, k, nxPre+2*nbPre, nyPre+2*nbPre, nf);
+         indexPre = kIndex(coord.xCoord+haloPre->lt, coord.yCoord+haloPre->up, k, nxPre+haloPre->lt+haloPre->rt, nyPre+haloPre->dn+haloPre->up, nf);
          int xPost = i % nxPost;
          int yPost = (int) i/nxPost;
          indexPost = kIndex(xPost, yPost, k, nxPost, nyPost, nf);

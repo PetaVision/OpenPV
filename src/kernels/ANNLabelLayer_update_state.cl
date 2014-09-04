@@ -28,7 +28,10 @@ void ANNLabelLayer_update_state(
     const int nx,
     const int ny,
     const int nf,
-    const int nb,
+    const int lt,
+    const int rt,
+    const int dn,
+    const int up,
 
     CL_MEM_GLOBAL float * V,
     const float Vth,
@@ -38,5 +41,5 @@ void ANNLabelLayer_update_state(
     CL_MEM_GLOBAL float * GSynHead,
     CL_MEM_GLOBAL float * activity)
 {
-   updateV_ANNLabelLayer(numNeurons, V, GSynHead, activity, AMax, AMin, Vth, AShift, nx, ny, nf, nb);
+   updateV_ANNLabelLayer(numNeurons, V, GSynHead, activity, AMax, AMin, Vth, AShift, nx, ny, nf, lt, rt, dn, up);
 }

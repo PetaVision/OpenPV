@@ -43,7 +43,10 @@ void LCALIF_update_state(
    const int nx,
    const int ny,
    const int nf,
-   const int nb,
+   const int lt,
+   const int rt,
+   const int dn,
+   const int up,
 
    pvdata_t Vscale,
    pvdata_t * Vadpt,
@@ -193,7 +196,7 @@ int LCALIFLayer::updateState(double timed, double dt)
       G_Norm[k] = GSyn[CHANNEL_NORM][k]; // Copy GSyn buffer on normalizing channel for checkpointing, since LCALIF_update_state will blank the GSyn's
    }
    LCALIF_update_state(getNumNeurons(), timed, dt, clayer->loc.nx, clayer->loc.ny, clayer->loc.nf,
-         clayer->loc.nb, Vscale, Vadpt, tauTHR, targetRateHz, integratedSpikeCount, &lParams,
+         clayer->loc.halo.lt, clayer->loc.halo.rt, clayer->loc.halo.dn, clayer->loc.halo.up, Vscale, Vadpt, tauTHR, targetRateHz, integratedSpikeCount, &lParams,
          randState->getRNG(0), clayer->V, Vth, G_E, G_I, G_IB, GSyn[0], clayer->activity->data, getGapStrength(), Vattained, Vmeminf, (int) normalizeInputFlag,
          GSynExcEffective, GSynInhEffective, excitatoryNoise, inhibitoryNoise, inhibNoiseB);
    updateActiveIndices();

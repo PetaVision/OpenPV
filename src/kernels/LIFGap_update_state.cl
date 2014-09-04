@@ -56,7 +56,10 @@ void LIFGap_update_state_original(
     const int nx,
     const int ny,
     const int nf,
-    const int nb,
+    const int lt,
+    const int rt,
+    const int dn,
+    const int up,
     
     
     CL_MEM_CONST LIF_params * params,
@@ -87,7 +90,7 @@ for (k = 0; k < nx*ny*nf; k++) {
    k = get_global_id(0);
 #endif
 
-   int kex = kIndexExtended(k, nx, ny, nf, nb);
+   int kex = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
 
    //
    // kernel (nonheader part) begins here
@@ -224,8 +227,10 @@ void LIFGap_update_state_beginning(
     const int nx,
     const int ny,
     const int nf,
-    const int nb,
-    
+    const int lt,
+    const int rt,
+    const int dn,
+    const int up,
     
     CL_MEM_CONST LIF_params * params,
     CL_MEM_GLOBAL uint4 * rnd,
@@ -255,7 +260,7 @@ for (k = 0; k < nx*ny*nf; k++) {
    k = get_global_id(0);
 #endif
 
-   int kex = kIndexExtended(k, nx, ny, nf, nb);
+   int kex = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
 
    //
    // kernel (nonheader part) begins here
@@ -400,7 +405,10 @@ void LIFGap_update_state_arma(
     const int nx,
     const int ny,
     const int nf,
-    const int nb,
+    const int lt,
+    const int rt,
+    const int dn,
+    const int up,
 
     CL_MEM_CONST LIF_params * params,
     CL_MEM_GLOBAL uint4 * rnd,
@@ -431,7 +439,7 @@ void LIFGap_update_state_arma(
    { // compound statement so indentation is consistent with the for loop when not using PV_USE_OPENCL
 #endif
 
-      int kex = kIndexExtended(k, nx, ny, nf, nb);
+      int kex = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
 
       //
       // kernel (nonheader part) begins here

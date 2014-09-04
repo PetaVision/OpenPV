@@ -138,8 +138,8 @@ int CreateMovies::Rotate(const float DAngle, const int centerx, const int center
 
    CreateMovies_Params * param = (CreateMovies_Params *)CMParams;
 
-   int Nx = loc->nx + 2*loc->nb;
-   int Ny = loc->ny + 2*loc->nb;
+   int Nx = loc->nx + loc->halo.lt + loc->halo.rt;
+   int Ny = loc->ny + loc->halo.dn + loc->halo.up;
 
    param->rotateangle+=DAngle;
    if (param->rotateangle>=180){
@@ -204,8 +204,8 @@ int CreateMovies::Transform(const float DAngle,const int Dx,const int Dy)
 
    CreateMovies_Params * param = CMParams;
 
-   int Nx = loc->nx + 2*loc->nb;
-   int Ny = loc->ny + 2*loc->nb;
+   int Nx = loc->nx + loc->halo.lt + loc->halo.rt;
+   int Ny = loc->ny + loc->halo.dn + loc->halo.up;
 
    param->centerx +=  Dx;
    param->centerx  =  (int)param->centerx % (int)(10*Nx);

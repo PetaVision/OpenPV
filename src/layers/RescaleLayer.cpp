@@ -170,7 +170,8 @@ int RescaleLayer::updateState(double timef, double dt) {
           float minA = 1000000000;
           //Find max and min of A
           for (int k = 0; k < numNeurons; k++){
-             int kextOriginal = kIndexExtended(k, locOriginal->nx, locOriginal->ny, locOriginal->nf, locOriginal->nb);
+             int kextOriginal = kIndexExtended(k, locOriginal->nx, locOriginal->ny, locOriginal->nf,
+                                               locOriginal->halo.lt, locOriginal->halo.rt, locOriginal->halo.dn, locOriginal->halo.up);
              if (originalA[kextOriginal] > maxA){
                 maxA = originalA[kextOriginal];
              }
@@ -186,8 +187,9 @@ int RescaleLayer::updateState(double timef, double dt) {
 
           float rangeA = maxA - minA;
           for (int k = 0; k < numNeurons; k++){
-             int kext = kIndexExtended(k, loc->nx, loc->ny, loc->nf, loc->nb);
-             int kextOriginal = kIndexExtended(k, locOriginal->nx, locOriginal->ny, locOriginal->nf, locOriginal->nb);
+             int kext = kIndexExtended(k, loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
+             int kextOriginal = kIndexExtended(k, locOriginal->nx, locOriginal->ny, locOriginal->nf,
+                                               locOriginal->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
              if (rangeA != 0){
                 A[kext] = ((originalA[kextOriginal] - minA)/rangeA) * (targetMax - targetMin) + targetMin;
              }
@@ -201,7 +203,8 @@ int RescaleLayer::updateState(double timef, double dt) {
           float sumsq = 0;
           //Find sum of originalA
           for (int k = 0; k < numNeurons; k++){
-             int kextOriginal = kIndexExtended(k, locOriginal->nx, locOriginal->ny, locOriginal->nf, locOriginal->nb);
+             int kextOriginal = kIndexExtended(k, locOriginal->nx, locOriginal->ny, locOriginal->nf,
+                                               locOriginal->halo.lt, locOriginal->halo.rt, locOriginal->halo.dn, locOriginal->halo.up);
              sum += originalA[kextOriginal];
           }
 
@@ -213,7 +216,8 @@ int RescaleLayer::updateState(double timef, double dt) {
 
           //Find (val - mean)^2 of originalA
           for (int k = 0; k < numNeurons; k++){
-             int kextOriginal = kIndexExtended(k, locOriginal->nx, locOriginal->ny, locOriginal->nf, locOriginal->nb);
+             int kextOriginal = kIndexExtended(k, locOriginal->nx, locOriginal->ny, locOriginal->nf,
+                   locOriginal->halo.lt, locOriginal->halo.rt, locOriginal->halo.dn, locOriginal->halo.up);
              sumsq += (originalA[kextOriginal] - mean) * (originalA[kextOriginal] - mean);
           }
 
@@ -223,8 +227,9 @@ int RescaleLayer::updateState(double timef, double dt) {
           float std = sqrt(sumsq / originalLayer->getNumGlobalNeurons());
           //Normalize
           for (int k = 0; k < numNeurons; k++){
-             int kext = kIndexExtended(k, loc->nx, loc->ny, loc->nf, loc->nb);
-             int kextOriginal = kIndexExtended(k, locOriginal->nx, locOriginal->ny, locOriginal->nf, locOriginal->nb);
+             int kext = kIndexExtended(k, loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.up, loc->halo.dn);
+             int kextOriginal = kIndexExtended(k, locOriginal->nx, locOriginal->ny, locOriginal->nf,
+                                               locOriginal->halo.lt, locOriginal->halo.rt, locOriginal->halo.dn, locOriginal->halo.up);
              if (std != 0){
                 A[kext] = ((originalA[kextOriginal] - mean) * (targetStd/std) + targetMean);
              }
@@ -237,8 +242,8 @@ int RescaleLayer::updateState(double timef, double dt) {
           int nx = loc->nx;
           int ny = loc->ny;
           int nf = loc->nf;
-          int nb = loc->nb;
-          int nbOrig = locOriginal->nb;
+          PVHalo const * halo = &loc->halo;
+          PVHalo const * haloOrig = &locOriginal->halo;
           //Loop through all nx and ny
           for(int iY = 0; iY < ny; iY++){ 
              for(int iX = 0; iX < nx; iX++){ 
@@ -246,18 +251,18 @@ int RescaleLayer::updateState(double timef, double dt) {
                 float sum = 0;
                 float sumsq = 0;
                 for(int iF = 0; iF < nf; iF++){
-                   int kext = kIndex(iX, iY, iF, nx+2*nbOrig, ny+2*nbOrig, nf);
+                   int kext = kIndex(iX, iY, iF, nx+haloOrig->lt+haloOrig->rt, ny+haloOrig->dn+haloOrig->up, nf);
                    sum += originalA[kext];
                 }
                 float mean = sum/nf;
                 for(int iF = 0; iF < nf; iF++){
-                   int kext = kIndex(iX, iY, iF, nx+2*nbOrig, ny+2*nbOrig, nf);
+                   int kext = kIndex(iX, iY, iF, nx+haloOrig->lt+haloOrig->rt, ny+haloOrig->dn+haloOrig->up, nf);
                    sumsq += (originalA[kext] - mean) * (originalA[kext] - mean);
                 }
                 float std = sqrt(sumsq/nf);
                 for(int iF = 0; iF < nf; iF++){
-                   int kextOrig = kIndex(iX, iY, iF, nx+2*nbOrig, ny+2*nbOrig, nf);
-                   int kext = kIndex(iX, iY, iF, nx+2*nb, ny+2*nb, nf);
+                   int kextOrig = kIndex(iX, iY, iF, nx+haloOrig->lt+haloOrig->rt, ny+haloOrig->dn+haloOrig->up, nf);
+                   int kext = kIndex(iX, iY, iF, nx+halo->lt+halo->rt, ny+halo->dn+halo->up, nf);
                    if (std != 0){
                       A[kext] = ((originalA[kextOrig] - mean) * (targetStd/std) + targetMean);
                    }
@@ -269,9 +274,12 @@ int RescaleLayer::updateState(double timef, double dt) {
           }
        }
        else if(strcmp(rescaleMethod, "zerotonegative") == 0){
+          PVHalo const * halo = &loc->halo;
+          PVHalo const * haloOrig = &locOriginal->halo;
           for (int k = 0; k < numNeurons; k++){
-             int kextOriginal = kIndexExtended(k, locOriginal->nx, locOriginal->ny, locOriginal->nf, locOriginal->nb);
-             int kext = kIndexExtended(k, loc->nx, loc->ny, loc->nf, loc->nb);
+             int kextOriginal = kIndexExtended(k, locOriginal->nx, locOriginal->ny, locOriginal->nf,
+                                               haloOrig->lt, haloOrig->rt, haloOrig->dn, haloOrig->up);
+             int kext = kIndexExtended(k, loc->nx, loc->ny, loc->nf, halo->lt, halo->rt, halo->dn, halo->up);
              if(originalA[kextOriginal] == 0){;
                 A[kext] = -1;
              }

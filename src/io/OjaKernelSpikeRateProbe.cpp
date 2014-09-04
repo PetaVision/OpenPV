@@ -85,7 +85,7 @@ int OjaKernelSpikeRateProbe::allocateDataStructures() {
    if(inBounds ) { // if inBounds
       int krestricted = kIndex(x_local, y_local, feature, loc->nx, loc->ny, loc->nf);
       if (isInputRate) {
-         int kextended = kIndexExtended(krestricted, loc->nx, loc->ny, loc->nf, loc->nb);
+         int kextended = kIndexExtended(krestricted, loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
          spikeRate = &targetOjaKernelConn->getInputFiringRate(arbor)[kextended];
       }
       else {

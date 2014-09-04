@@ -21,7 +21,10 @@ void ANNSquaredLayer_update_state(
     const int nx,
     const int ny,
     const int nf,
-    const int nb,
+    const int lt,
+    const int rt,
+    const int dn,
+    const int up,
 
     CL_MEM_GLOBAL float * V,
     CL_MEM_GLOBAL float * GSynHead,
@@ -29,6 +32,6 @@ void ANNSquaredLayer_update_state(
 {
 
    updateV_ANNSquaredLayer(numNeurons, V, GSynHead);
-   setActivity_HyPerLayer(numNeurons, activity, V, nx, ny, nf, nb);
+   setActivity_HyPerLayer(numNeurons, activity, V, nx, ny, nf, lt, rt, dn, up);
 
 }

@@ -77,9 +77,9 @@ int InitBIDSLateral::BIDSLateralCalcWeights(int kPre, pvdata_t * dataStart, Init
    int nxBids = weightParamPtr->getPre()->getLayerLoc()->nx;
    int nyBids = weightParamPtr->getPre()->getLayerLoc()->ny;
    int nfBids = weightParamPtr->getPre()->getLayerLoc()->nf;
-   int nbBids = weightParamPtr->getPre()->getLayerLoc()->nb;
+   PVHalo const * haloBids = &weightParamPtr->getPre()->getLayerLoc()->halo;
 
-   int kPreRes = kIndexRestricted(kPre, nxBids, nyBids, nfBids, nbBids);
+   int kPreRes = kIndexRestricted(kPre, nxBids, nyBids, nfBids, haloBids->lt, haloBids->rt, haloBids->dn, haloBids->up);
    if(kPreRes == -1){
       return 0;
    }

@@ -30,7 +30,10 @@ void LIFGap_update_state_original(
     const int nx,
     const int ny,
     const int nf,
-    const int nb,
+    const int lt,
+    const int rt,
+    const int dn,
+    const int up,
 
     LIF_params * params,
     uint4 * rnd,
@@ -54,7 +57,10 @@ void LIFGap_update_state_beginning(
     const int nx,
     const int ny,
     const int nf,
-    const int nb,
+    const int lt,
+    const int rt,
+    const int dn,
+    const int up,
 
     LIF_params * params,
     uint4 * rnd,
@@ -78,7 +84,10 @@ void LIFGap_update_state_arma(
     const int nx,
     const int ny,
     const int nf,
-    const int nb,
+    const int lt,
+    const int rt,
+    const int dn,
+    const int up,
 
     LIF_params * params,
     uint4 * rnd,
@@ -316,22 +325,22 @@ int LIFGap::updateState(double time, double dt)
    const int nx = clayer->loc.nx;
    const int ny = clayer->loc.ny;
    const int nf = clayer->loc.nf;
-   const int nb = clayer->loc.nb;
+   const PVHalo * halo = &clayer->loc.halo;
 
    pvdata_t * GSynHead   = GSyn[0];
    pvdata_t * activity = clayer->activity->data;
 
    switch (method) {
    case 'a':
-      LIFGap_update_state_arma(getNumNeurons(), time, dt, nx, ny, nf, nb, &lParams, randState->getRNG(0), clayer->V, Vth, G_E,
+      LIFGap_update_state_arma(getNumNeurons(), time, dt, nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up, &lParams, randState->getRNG(0), clayer->V, Vth, G_E,
             G_I, G_IB, GSynHead, activity, gapStrength);
    break;
    case 'b':
-      LIFGap_update_state_beginning(getNumNeurons(), time, dt, nx, ny, nf, nb, &lParams, randState->getRNG(0), clayer->V, Vth, G_E,
+      LIFGap_update_state_beginning(getNumNeurons(), time, dt, nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up, &lParams, randState->getRNG(0), clayer->V, Vth, G_E,
             G_I, G_IB, GSynHead, activity, gapStrength);
    break;
    case 'o':
-      LIFGap_update_state_original(getNumNeurons(), time, dt, nx, ny, nf, nb, &lParams, randState->getRNG(0), clayer->V, Vth, G_E,
+      LIFGap_update_state_original(getNumNeurons(), time, dt, nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up, &lParams, randState->getRNG(0), clayer->V, Vth, G_E,
             G_I, G_IB, GSynHead, activity, gapStrength);
       break;
    default:

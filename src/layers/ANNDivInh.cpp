@@ -16,7 +16,10 @@ void ANNDivLayer_update_state(
     const int nx,
     const int ny,
     const int nf,
-    const int nb,
+    const int lt,
+    const int rt,
+    const int dn,
+    const int up,
 
     float * V,
     const float Vth,
@@ -173,7 +176,7 @@ int ANNDivInh::updateState(double time, double dt)
       const int nx = clayer->loc.nx;
       const int ny = clayer->loc.ny;
       const int nf = clayer->loc.nf;
-      const int nb = clayer->loc.nb;
+      const PVHalo * halo = &(clayer->loc.halo);
 
       pvdata_t * GSynHead   = GSyn[0];
 //      pvdata_t * GSynExc   = getChannel(CHANNEL_EXC);
@@ -182,7 +185,7 @@ int ANNDivInh::updateState(double time, double dt)
       pvdata_t * V = getV();
       pvdata_t * activity = clayer->activity->data;
 
-      ANNDivLayer_update_state(getNumNeurons(), nx, ny, nf, nb, V, VThresh, AMax, AMin, GSynHead, activity);
+      ANNDivLayer_update_state(getNumNeurons(), nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up, V, VThresh, AMax, AMin, GSynHead, activity);
 //#ifdef PV_USE_OPENCL
 //   }
 //#endif

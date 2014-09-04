@@ -43,35 +43,35 @@ static inline int applyGSyn_HyPerLayer1Channel(int numNeurons,
 static inline int applyGSyn_HyPerLayer(int numNeurons,
       CL_MEM_GLOBAL pvdata_t * V, CL_MEM_GLOBAL pvdata_t * GSynHead);
 static inline int applyGSyn_LabelErrorLayer(int numNeurons,
-      CL_MEM_GLOBAL pvdata_t * V, CL_MEM_GLOBAL pvdata_t * GSynHead, int nx, int ny, int nf, int nb, int isBinary);
+      CL_MEM_GLOBAL pvdata_t * V, CL_MEM_GLOBAL pvdata_t * GSynHead, int nx, int ny, int nf, int lt, int rt, int dn, int up, int isBinary);
 static inline int updateV_ANNLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * V,
       int num_channels, CL_MEM_GLOBAL pvdata_t * GSynHead, CL_MEM_GLOBAL float * activity,
       pvdata_t AMax, pvdata_t AMin, pvdata_t VThresh, pvdata_t AShift, pvdata_t VWidth, int nx,
-      int ny, int nf, int nb);
+      int ny, int nf, int lt, int rt, int dn, int up);
 static inline int updateV_AccumulateLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * V,
       int num_channels, CL_MEM_GLOBAL pvdata_t * GSynHead, CL_MEM_GLOBAL float * activity,
       pvdata_t AMax, pvdata_t AMin, pvdata_t VThresh, pvdata_t AShift, pvdata_t VWidth, int nx,
-      int ny, int nf, int nb);
+      int ny, int nf, int lt, int rt, int dn, int up);
 static inline int updateV_ANNErrorLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * V,
       CL_MEM_GLOBAL pvdata_t * GSynHead, CL_MEM_GLOBAL float * activity,
       pvdata_t AMax, pvdata_t AMin, pvdata_t VThresh, pvdata_t AShift, int nx,
-      int ny, int nf, int nb, float errScale);
+      int ny, int nf, int lt, int rt, int dn, int up, float errScale);
 static inline int updateV_LabelErrorLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * V,
       CL_MEM_GLOBAL pvdata_t * GSynHead, CL_MEM_GLOBAL float * activity,
       pvdata_t AMax, pvdata_t AMin, pvdata_t VThresh, pvdata_t AShift, int nx,
-      int ny, int nf, int nb, float errScale, int isBinary);
+      int ny, int nf, int lt, int rt, int dn, int up, float errScale, int isBinary);
 static inline int updateV_ANNLabelLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * V,
       CL_MEM_GLOBAL pvdata_t * GSynHead, CL_MEM_GLOBAL float * activity,
       pvdata_t AMax, pvdata_t AMin, pvdata_t VThresh, pvdata_t AShift, int nx,
-      int ny, int nf, int nb);
+      int ny, int nf, int lt, int rt, int dn, int up);
 static inline int applyGSyn_HyPerLCALayer(int numNeurons,
       CL_MEM_GLOBAL pvdata_t * V, CL_MEM_GLOBAL pvdata_t * GSynHead,
       CL_MEM_GLOBAL pvdata_t * activity, pvdata_t dt_tau, pvdata_t selfInteract, 
-      int nx, int ny, int nf, int nb);
+      int nx, int ny, int nf, int lt, int rt, int dn, int up);
 static inline int applyGSyn_HyPerLCALayer2(int numNeurons,
       CL_MEM_GLOBAL pvdata_t * V, CL_MEM_GLOBAL pvdata_t * GSynHead,
       CL_MEM_GLOBAL pvdata_t * activity, pvdata_t dt_tau, pvdata_t selfInteract,
-      int nx, int ny, int nf, int nb);
+      int nx, int ny, int nf, int lt, int rt, int dn, int up);
 static inline int applyGSyn_ANNWhitenedLayer(int numNeurons,
       CL_MEM_GLOBAL pvdata_t * V, CL_MEM_GLOBAL pvdata_t * GSynHead);
 static inline int updateV_HyPerLCALayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * V,
@@ -79,20 +79,20 @@ static inline int updateV_HyPerLCALayer(int numNeurons, CL_MEM_GLOBAL pvdata_t *
       pvdata_t AMax,
       pvdata_t AMin, pvdata_t VThresh, pvdata_t AShift, pvdata_t VWidth,
       pvdata_t dt_tau, 
-      pvdata_t selfInteract, int nx, int ny, int nf, int nb, int numChannels);
+      pvdata_t selfInteract, int nx, int ny, int nf, int lt, int rt, int dn, int up, int numChannels);
 static inline int updateV_ANNWhitenedLayer(int numNeurons,
       CL_MEM_GLOBAL pvdata_t * V,
       CL_MEM_GLOBAL pvdata_t * GSynHead,
       CL_MEM_GLOBAL pvdata_t * activity,
       pvdata_t AMax, pvdata_t AMin, pvdata_t VThresh, pvdata_t AShift, pvdata_t VWidth,
-      int nx, int ny, int nf, int nb);
+      int nx, int ny, int nf, int lt, int rt, int dn, int up);
 static inline int updateV_ANNDivInh(int numNeurons, CL_MEM_GLOBAL pvdata_t * V,
       CL_MEM_GLOBAL pvdata_t * GSynHead);
 static inline int updateV_ANNSquaredLayer(int numNeurons,
       CL_MEM_GLOBAL pvdata_t * V, CL_MEM_GLOBAL pvdata_t * GSynHead);
 static inline int updateV_GenerativeLayer(int numNeurons,
       CL_MEM_GLOBAL pvdata_t * V, CL_MEM_GLOBAL pvdata_t * dV, CL_MEM_GLOBAL float * activity, pvdata_t AMax,
-      pvdata_t AMin, pvdata_t VThresh, pvdata_t AShift, pvdata_t VWidth, pvdata_t relaxation, int nx, int ny, int nf, int nb);
+      pvdata_t AMin, pvdata_t VThresh, pvdata_t AShift, pvdata_t VWidth, pvdata_t relaxation, int nx, int ny, int nf, int lt, int rt, int dn, int up);
 static inline int updateV_PoolingANNLayer(int numNeurons,
       CL_MEM_GLOBAL pvdata_t * V, CL_MEM_GLOBAL pvdata_t * GSynHead,
       pvdata_t biasa, pvdata_t biasb);
@@ -111,19 +111,19 @@ static inline int update_dV_GenerativeLayer(int numNeurons,
       pvdata_t sparsityTermCoeff, pvdata_t persistence);
 static inline int applyVMax_ANNLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * V,
       pvdata_t AMax, CL_MEM_GLOBAL pvdata_t * activity, int nx, int ny,
-      int nf, int nb);
+      int nf, int lt, int rt, int dn, int up);
 static inline int applyVThresh_ANNLayer(int numNeurons,
       CL_MEM_GLOBAL pvdata_t * V, pvdata_t AMin, pvdata_t VThresh,
       pvdata_t AShift, pvdata_t VWidth, CL_MEM_GLOBAL pvdata_t * activity, int nx, int ny,
-      int nf, int nb);
+      int nf, int lt, int rt, int dn, int up);
 static inline int applyVThresh_ANNErrorLayer(int numNeurons,
       CL_MEM_GLOBAL pvdata_t * V, pvdata_t AMin, pvdata_t VThresh,
       pvdata_t AShift, CL_MEM_GLOBAL pvdata_t * activity, int nx, int ny,
-      int nf, int nb);
+      int nf, int lt, int rt, int dn, int up);
 static inline int applyV_ANNLabelLayer(int numNeurons,
                                        CL_MEM_GLOBAL pvdata_t * V, pvdata_t AMin, pvdata_t AMax, pvdata_t VThresh,
                                        CL_MEM_GLOBAL pvdata_t * activity, int nx, int ny,
-                                       int nf, int nb);
+                                       int nf, int lt, int rt, int dn, int up);
 static inline int squareV_ANNSquaredLayer(int numNeurons,
       CL_MEM_GLOBAL pvdata_t * V);
 static inline int updateSparsityTermDeriv_GenerativeLayer(int numNeurons,
@@ -137,21 +137,21 @@ static inline pvdata_t lateralCompetitionPenalty(CL_MEM_GLOBAL pvdata_t * V,
 
 static inline int setActivity_HyPerLayer(int numNeurons,
       CL_MEM_GLOBAL pvdata_t * A, CL_MEM_GLOBAL pvdata_t * V, int nx, int ny,
-      int nf, int nb);
+      int nf, int lt, int rt, int dn, int up);
 static inline int setActivity_AccumulateLayer(int numNeurons,
       CL_MEM_GLOBAL pvdata_t * A, CL_MEM_GLOBAL pvdata_t * V, int nx, int ny,
-      int nf, int nb);
+      int nf, int lt, int rt, int dn, int up);
 static inline int setActivity_GenerativeLayer(int numNeurons,
       CL_MEM_GLOBAL pvdata_t * A, CL_MEM_GLOBAL pvdata_t * V, int nx, int ny,
-      int nf, int nb, pvdata_t activity_threshold);
+      int nf, int lt, int rt, int dn, int up, pvdata_t activity_threshold);
 static inline int setActivity_IncrementLayer(int numNeurons,
       CL_MEM_GLOBAL pvdata_t * A, CL_MEM_GLOBAL pvdata_t * V,
-      CL_MEM_GLOBAL pvdata_t * Vprev, int nx, int ny, int nf, int nb);
+      CL_MEM_GLOBAL pvdata_t * Vprev, int nx, int ny, int nf, int lt, int rt, int dn, int up);
 static inline int setActivity_GapLayer(int numNeurons,
       CL_MEM_GLOBAL pvdata_t * A, CL_MEM_GLOBAL pvdata_t * V, int nx, int ny,
-      int nf, int nb, int orig_nb, CL_MEM_GLOBAL pvdata_t * active, float ampSpiklet);
+      int nf, int lt, int rt, int dn, int up, int orig_lt, int orig_rt, int orig_dn, int orig_up, CL_MEM_GLOBAL pvdata_t * active, float ampSpiklet);
 //#ifndef PV_USE_OPENCL
-//static inline int setActivity_GapLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * A, CL_MEM_GLOBAL pvdata_t * V, int nx, int ny, int nf, int nb, int orig_nb, const PVLayerLoc * src_loc, bool src_spiking, unsigned int src_num_active, unsigned int * src_active_indices);
+//static inline int setActivity_GapLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * A, CL_MEM_GLOBAL pvdata_t * V, int nx, int ny, int nf, int lt, int rt, int dn, int up, int orig_lt, int orig_rt, int orig_dn, int orig_up, const PVLayerLoc * src_loc, bool src_spiking, unsigned int src_num_active, unsigned int * src_active_indices);
 //#endif //PV_USE_OPENCL
 
 
@@ -203,7 +203,7 @@ static inline int applyGSyn_HyPerLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * 
    return PV_SUCCESS;
 }
 
-static inline int applyGSyn_LabelErrorLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * V, CL_MEM_GLOBAL pvdata_t * GSynHead, int nx, int ny, int nf, int nb, int isBinary) {
+static inline int applyGSyn_LabelErrorLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * V, CL_MEM_GLOBAL pvdata_t * GSynHead, int nx, int ny, int nf, int lt, int rt, int dn, int up, int isBinary) {
    int k;
    CL_MEM_GLOBAL pvdata_t * GSynExc = &GSynHead[CHANNEL_EXC*numNeurons];
    CL_MEM_GLOBAL pvdata_t * GSynInh = &GSynHead[CHANNEL_INH*numNeurons];
@@ -240,7 +240,7 @@ static inline int applyGSyn_LabelErrorLayer(int numNeurons, CL_MEM_GLOBAL pvdata
          float ratio = 1;
          //Need to find maximum value of target label
          //If first feature, find ratio between target and guess feature val
-         int iF = featureIndex(k, nx+2*nb, ny+2*nb, nf);
+         int iF = featureIndex(k, nx+lt+rt, ny+dn+up, nf);
          if(iF == 0){
             float maxTargetVal = GSynExc[k];
             int maxIdx = k;
@@ -274,7 +274,7 @@ static inline int applyGSyn_LabelErrorLayer(int numNeurons, CL_MEM_GLOBAL pvdata
 static inline int applyGSyn_HyPerLCALayer(int numNeurons,
       CL_MEM_GLOBAL pvdata_t * V, CL_MEM_GLOBAL pvdata_t * GSynHead,
       CL_MEM_GLOBAL pvdata_t * activity, pvdata_t dt_tau, pvdata_t selfInteract, 
-      int nx, int ny, int nf, int nb) {
+      int nx, int ny, int nf, int lt, int rt, int dn, int up) {
    int k;
    float exp_tau = exp(-dt_tau);
    CL_MEM_GLOBAL pvdata_t * GSynError = &GSynHead[0 * numNeurons]; // weighted input
@@ -287,7 +287,7 @@ static inline int applyGSyn_HyPerLCALayer(int numNeurons,
       k = get_global_id(0);
 #endif // PV_USE_OPENCL
    {
-      int kex = kIndexExtended(k, nx, ny, nf, nb);
+      int kex = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
       //V[k] = V[k] + dt_tau * (GSynError[k] - V[k] + activity[kex]);
       //      if (selfInteract){
          V[k] = exp_tau * V[k] + (1 - exp_tau) * (GSynError[k] + selfInteract * activity[kex]);}
@@ -321,7 +321,7 @@ static inline int calcGSyn_Mean_StdDev(int numNeurons, CL_MEM_GLOBAL pvdata_t * 
 static inline int applyGSyn_HyPerLCALayer2(int numNeurons,
       CL_MEM_GLOBAL pvdata_t * V, CL_MEM_GLOBAL pvdata_t * GSynHead,
       CL_MEM_GLOBAL pvdata_t * activity, pvdata_t dt_tau, pvdata_t selfInteract, 
-      int nx, int ny, int nf, int nb) {
+      int nx, int ny, int nf, int lt, int rt, int dn, int up) {
    int k;
    float exp_tau = exp(-dt_tau);
    CL_MEM_GLOBAL pvdata_t * GSynError = &GSynHead[0 * numNeurons]; // weighted input
@@ -335,7 +335,7 @@ static inline int applyGSyn_HyPerLCALayer2(int numNeurons,
       k = get_global_id(0);
 #endif // PV_USE_OPENCL
    {
-      int kex = kIndexExtended(k, nx, ny, nf, nb);
+      int kex = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
       //V[k] = V[k] + dt_tau * (GSynError[k] - GSynError2[k] - V[k] + activity[kex]);
       //if (selfInteract){
          V[k] = exp_tau * V[k] + (1 - exp_tau) * (GSynError[k] - GSynError2[k] + selfInteract * activity[kex]);}
@@ -370,7 +370,7 @@ static inline int applyGSyn_ANNWhitenedLayer(int numNeurons, CL_MEM_GLOBAL pvdat
 static inline int updateV_ANNLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * V,
         int num_channels, CL_MEM_GLOBAL pvdata_t * GSynHead, CL_MEM_GLOBAL float * activity,
         pvdata_t AMax, pvdata_t AMin, pvdata_t VThresh, pvdata_t AShift, pvdata_t VWidth, int nx,
-        int ny, int nf, int nb) {
+        int ny, int nf, int lt, int rt, int dn, int up) {
    int status;
    if (num_channels==1) {
       status = applyGSyn_HyPerLayer1Channel(numNeurons, V, GSynHead);
@@ -378,17 +378,17 @@ static inline int updateV_ANNLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * V,
    else {
       status = applyGSyn_HyPerLayer(numNeurons, V, GSynHead);
    }
-   if(status == PV_SUCCESS) status = setActivity_HyPerLayer(numNeurons, activity, V, nx, ny, nf, nb);
+   if(status == PV_SUCCESS) status = setActivity_HyPerLayer(numNeurons, activity, V, nx, ny, nf, lt, rt, dn, up);
    if( status == PV_SUCCESS ) status =
-           applyVThresh_ANNLayer(numNeurons, V, AMin, VThresh, AShift, VWidth, activity, nx, ny, nf, nb);
-   if( status == PV_SUCCESS ) status = applyVMax_ANNLayer(numNeurons, V, AMax, activity, nx, ny, nf, nb);
+           applyVThresh_ANNLayer(numNeurons, V, AMin, VThresh, AShift, VWidth, activity, nx, ny, nf, lt, rt, dn, up);
+   if( status == PV_SUCCESS ) status = applyVMax_ANNLayer(numNeurons, V, AMax, activity, nx, ny, nf, lt, rt, dn, up);
    return status;
 }
 
 static inline int updateV_AccumulateLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * V,
         int num_channels, CL_MEM_GLOBAL pvdata_t * GSynHead, CL_MEM_GLOBAL float * activity,
         pvdata_t AMax, pvdata_t AMin, pvdata_t VThresh, pvdata_t AShift, pvdata_t VWidth, int nx,
-        int ny, int nf, int nb) {
+        int ny, int nf, int lt, int rt, int dn, int up) {
    int status;
    if (num_channels==1) {
       status = applyGSyn_HyPerLayer1Channel(numNeurons, V, GSynHead);
@@ -396,10 +396,10 @@ static inline int updateV_AccumulateLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t
    else {
       status = applyGSyn_HyPerLayer(numNeurons, V, GSynHead);
    }
-   if(status == PV_SUCCESS) status = setActivity_AccumulateLayer(numNeurons, activity, V, nx, ny, nf, nb);
+   if(status == PV_SUCCESS) status = setActivity_AccumulateLayer(numNeurons, activity, V, nx, ny, nf, lt, rt, dn, up);
    if( status == PV_SUCCESS ) status =
-           applyVThresh_ANNLayer(numNeurons, V, AMin, VThresh, AShift, VWidth, activity, nx, ny, nf, nb);
-   if( status == PV_SUCCESS ) status = applyVMax_ANNLayer(numNeurons, V, AMax, activity, nx, ny, nf, nb);
+           applyVThresh_ANNLayer(numNeurons, V, AMin, VThresh, AShift, VWidth, activity, nx, ny, nf, lt, rt, dn, up);
+   if( status == PV_SUCCESS ) status = applyVMax_ANNLayer(numNeurons, V, AMax, activity, nx, ny, nf, lt, rt, dn, up);
    return status;
 }
 
@@ -408,27 +408,27 @@ static inline int updateV_HyPerLCALayer(int numNeurons, CL_MEM_GLOBAL pvdata_t *
       pvdata_t AMax,
       pvdata_t AMin, pvdata_t VThresh, pvdata_t AShift, pvdata_t VWidth,
       pvdata_t dt_tau, 
-      pvdata_t selfInteract, int nx, int ny, int nf, int nb, int numChannels)
+      pvdata_t selfInteract, int nx, int ny, int nf, int lt, int rt, int dn, int up, int numChannels)
 {
    int status = PV_SUCCESS;
    if (numChannels == 2){
       if( status == PV_SUCCESS ) status =
-            applyGSyn_HyPerLCALayer2(numNeurons, V, GSynHead, activity, dt_tau, selfInteract, nx, ny, nf, nb);
+            applyGSyn_HyPerLCALayer2(numNeurons, V, GSynHead, activity, dt_tau, selfInteract, nx, ny, nf, lt, rt, dn, up);
    }
    else if (numChannels == 1){
       if( status == PV_SUCCESS ) status =
-            applyGSyn_HyPerLCALayer(numNeurons, V, GSynHead, activity, dt_tau, selfInteract, nx, ny, nf, nb);
+            applyGSyn_HyPerLCALayer(numNeurons, V, GSynHead, activity, dt_tau, selfInteract, nx, ny, nf, lt, rt, dn, up);
    }
-   if(status == PV_SUCCESS) status = setActivity_HyPerLayer(numNeurons, activity, V, nx, ny, nf, nb);
+   if(status == PV_SUCCESS) status = setActivity_HyPerLayer(numNeurons, activity, V, nx, ny, nf, lt, rt, dn, up);
    if( status == PV_SUCCESS ) status =
-         applyVThresh_ANNLayer(numNeurons, V, AMin, VThresh, AShift, VWidth, activity, nx, ny, nf, nb);
-   if( status == PV_SUCCESS ) status = applyVMax_ANNLayer(numNeurons, V, AMax, activity, nx, ny, nf, nb);
+         applyVThresh_ANNLayer(numNeurons, V, AMin, VThresh, AShift, VWidth, activity, nx, ny, nf, lt, rt, dn, up);
+   if( status == PV_SUCCESS ) status = applyVMax_ANNLayer(numNeurons, V, AMax, activity, nx, ny, nf, lt, rt, dn, up);
    return status;
 }
 
 static inline int updateV_ANNErrorLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * V,
       CL_MEM_GLOBAL pvdata_t * GSynHead, CL_MEM_GLOBAL float * activity, pvdata_t AMax,
-      pvdata_t AMin, pvdata_t VThresh, pvdata_t AShift, int nx, int ny, int nf, int nb, float errScale)
+      pvdata_t AMin, pvdata_t VThresh, pvdata_t AShift, int nx, int ny, int nf, int lt, int rt, int dn, int up, float errScale)
 {
    int status;
    status = applyGSyn_HyPerLayer(numNeurons, V, GSynHead);
@@ -438,55 +438,55 @@ static inline int updateV_ANNErrorLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t *
    for(int i = 0; i < numNeurons; i++){
        V[i] *= errScale;
    }
-   if(status == PV_SUCCESS) status = setActivity_HyPerLayer(numNeurons, activity, V, nx, ny, nf, nb);
+   if(status == PV_SUCCESS) status = setActivity_HyPerLayer(numNeurons, activity, V, nx, ny, nf, lt, rt, dn, up);
    if( status == PV_SUCCESS ) status =
-         applyVThresh_ANNErrorLayer(numNeurons, V, AMin, VThresh, AShift, activity, nx, ny, nf, nb);
-   if( status == PV_SUCCESS ) status = applyVMax_ANNLayer(numNeurons, V, AMax, activity, nx, ny, nf, nb);
+         applyVThresh_ANNErrorLayer(numNeurons, V, AMin, VThresh, AShift, activity, nx, ny, nf, lt, rt, dn, up);
+   if( status == PV_SUCCESS ) status = applyVMax_ANNLayer(numNeurons, V, AMax, activity, nx, ny, nf, lt, rt, dn, up);
    return status;
 }
 
 static inline int updateV_LabelErrorLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * V,
       CL_MEM_GLOBAL pvdata_t * GSynHead, CL_MEM_GLOBAL float * activity, pvdata_t AMax,
-      pvdata_t AMin, pvdata_t VThresh, pvdata_t AShift, int nx, int ny, int nf, int nb, float errScale, int isBinary)
+      pvdata_t AMin, pvdata_t VThresh, pvdata_t AShift, int nx, int ny, int nf, int lt, int rt, int dn, int up, float errScale, int isBinary)
 {
    int status;
-   status = applyGSyn_LabelErrorLayer(numNeurons, V, GSynHead, nx, ny, nf, nb, isBinary);
+   status = applyGSyn_LabelErrorLayer(numNeurons, V, GSynHead, nx, ny, nf, lt, rt, dn, up, isBinary);
    #ifdef PV_USE_OPENMP_THREADS
    #pragma omp parallel for
    #endif
    for(int i = 0; i < numNeurons; i++){
        V[i] *= errScale;
    }
-   if(status == PV_SUCCESS) status = setActivity_HyPerLayer(numNeurons, activity, V, nx, ny, nf, nb);
+   if(status == PV_SUCCESS) status = setActivity_HyPerLayer(numNeurons, activity, V, nx, ny, nf, lt, rt, dn, up);
    if( status == PV_SUCCESS ) status =
-         applyVThresh_ANNErrorLayer(numNeurons, V, AMin, VThresh, AShift, activity, nx, ny, nf, nb);
-   if( status == PV_SUCCESS ) status = applyVMax_ANNLayer(numNeurons, V, AMax, activity, nx, ny, nf, nb);
+         applyVThresh_ANNErrorLayer(numNeurons, V, AMin, VThresh, AShift, activity, nx, ny, nf, lt, rt, dn, up);
+   if( status == PV_SUCCESS ) status = applyVMax_ANNLayer(numNeurons, V, AMax, activity, nx, ny, nf, lt, rt, dn, up);
    return status;
 }
 
 static inline int updateV_ANNLabelLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * V,
       CL_MEM_GLOBAL pvdata_t * GSynHead, CL_MEM_GLOBAL float * activity, pvdata_t AMax,
-      pvdata_t AMin, pvdata_t VThresh, pvdata_t AShift, int nx, int ny, int nf, int nb)
+      pvdata_t AMin, pvdata_t VThresh, pvdata_t AShift, int nx, int ny, int nf, int lt, int rt, int dn, int up)
 {
    int status;
    status = applyGSyn_HyPerLayer(numNeurons, V, GSynHead);
-   if(status == PV_SUCCESS) status = setActivity_HyPerLayer(numNeurons, activity, V, nx, ny, nf, nb);
+   if(status == PV_SUCCESS) status = setActivity_HyPerLayer(numNeurons, activity, V, nx, ny, nf, lt, rt, dn, up);
    if( status == PV_SUCCESS ) status =
-                                  applyV_ANNLabelLayer(numNeurons, V, AMin, AMax, VThresh, activity, nx, ny, nf, nb);
+                                  applyV_ANNLabelLayer(numNeurons, V, AMin, AMax, VThresh, activity, nx, ny, nf, lt, rt, dn, up);
 
    return status;
 }
 
 static inline int updateV_ANNWhitenedLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * V,
       CL_MEM_GLOBAL pvdata_t * GSynHead, CL_MEM_GLOBAL float * activity, pvdata_t AMax,
-      pvdata_t AMin, pvdata_t VThresh, pvdata_t AShift, pvdata_t VWidth, int nx, int ny, int nf, int nb)
+      pvdata_t AMin, pvdata_t VThresh, pvdata_t AShift, pvdata_t VWidth, int nx, int ny, int nf, int lt, int rt, int dn, int up)
 {
    int status;
    status = applyGSyn_ANNWhitenedLayer(numNeurons, V, GSynHead);
-   if(status == PV_SUCCESS) status = setActivity_HyPerLayer(numNeurons, activity, V, nx, ny, nf, nb);
+   if(status == PV_SUCCESS) status = setActivity_HyPerLayer(numNeurons, activity, V, nx, ny, nf, lt, rt, dn, up);
    if( status == PV_SUCCESS ) status =
-         applyVThresh_ANNLayer(numNeurons, V, AMin, VThresh, AShift, VWidth, activity, nx, ny, nf, nb);
-   if( status == PV_SUCCESS ) status = applyVMax_ANNLayer(numNeurons, V, AMax, activity, nx, ny, nf, nb);
+         applyVThresh_ANNLayer(numNeurons, V, AMin, VThresh, AShift, VWidth, activity, nx, ny, nf, lt, rt, dn, up);
+   if( status == PV_SUCCESS ) status = applyVMax_ANNLayer(numNeurons, V, AMax, activity, nx, ny, nf, lt, rt, dn, up);
    return status;
 }
 
@@ -514,7 +514,7 @@ static inline int updateV_ANNSquaredLayer(int numNeurons,
    int status;
    status = applyGSyn_HyPerLayer1Channel(numNeurons, V, GSynHead);
 //   status = updateV_ANNLayer(numNeurons, V, GSynHead, activity, AMax, AMin, VThresh,
-//         0.0f, nx, ny, nf, nb);
+//         0.0f, nx, ny, nf, lt, rt, dn, up);
    if (status == PV_SUCCESS)
       status = squareV_ANNSquaredLayer(numNeurons, V);
    return status;
@@ -522,7 +522,7 @@ static inline int updateV_ANNSquaredLayer(int numNeurons,
 
 static inline int updateV_GenerativeLayer(int numNeurons,
       CL_MEM_GLOBAL pvdata_t * V, CL_MEM_GLOBAL pvdata_t * dV, CL_MEM_GLOBAL float * activity, pvdata_t AMax,
-      pvdata_t AMin, pvdata_t VThresh, pvdata_t AShift, pvdata_t VWidth, pvdata_t relaxation, int nx, int ny, int nf, int nb) {
+      pvdata_t AMin, pvdata_t VThresh, pvdata_t AShift, pvdata_t VWidth, pvdata_t relaxation, int nx, int ny, int nf, int lt, int rt, int dn, int up) {
    int k;
 #ifndef PV_USE_OPENCL
    #ifdef PV_USE_OPENMP_THREADS
@@ -535,8 +535,8 @@ static inline int updateV_GenerativeLayer(int numNeurons,
    {
       V[k] += relaxation * dV[k];
    }
-   applyVMax_ANNLayer(numNeurons, V, AMax, V, nx, ny, nf, nb);
-   applyVThresh_ANNLayer(numNeurons, V, AMin, VThresh, AShift, VWidth, V, nx, ny, nf, nb);
+   applyVMax_ANNLayer(numNeurons, V, AMax, V, nx, ny, nf, lt, rt, dn, up);
+   applyVThresh_ANNLayer(numNeurons, V, AMin, VThresh, AShift, VWidth, V, nx, ny, nf, lt, rt, dn, up);
    return PV_SUCCESS;
 }
 
@@ -627,7 +627,7 @@ static inline int update_dV_GenerativeLayer(int numNeurons, CL_MEM_GLOBAL pvdata
 
 static inline int applyVMax_ANNLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * V,
       pvdata_t AMax, CL_MEM_GLOBAL pvdata_t * activity, int nx, int ny,
-      int nf, int nb) {
+      int nf, int lt, int rt, int dn, int up) {
    if (AMax < max_pvdata_t) {
       int k = 0;
 #ifndef PV_USE_OPENCL
@@ -639,7 +639,7 @@ static inline int applyVMax_ANNLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * V,
          k = get_global_id(0);
 #endif // PV_USE_OPENCL
       {
-         int kex = kIndexExtended(k, nx, ny, nf, nb);
+         int kex = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
          if (activity[kex] > AMax)
             activity[kex] = AMax;
       }
@@ -650,7 +650,7 @@ static inline int applyVMax_ANNLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * V,
 static inline int applyVThresh_ANNLayer(int numNeurons,
       CL_MEM_GLOBAL pvdata_t * V, pvdata_t AMin, pvdata_t VThresh,
       pvdata_t AShift, pvdata_t VWidth, CL_MEM_GLOBAL pvdata_t * activity, int nx, int ny,
-      int nf, int nb) {
+      int nf, int lt, int rt, int dn, int up) {
    if (VThresh > -max_pvdata_t) {
       int k = 0;
 #ifndef PV_USE_OPENCL
@@ -662,7 +662,7 @@ static inline int applyVThresh_ANNLayer(int numNeurons,
          k = get_global_id(0);
 #endif // PV_USE_OPENCL
       {
-         int kex = kIndexExtended(k, nx, ny, nf, nb);
+         int kex = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
          if (V[k] < VThresh)
             activity[kex] = AMin;
          else if (V[k] < VThresh + VWidth)
@@ -677,7 +677,7 @@ static inline int applyVThresh_ANNLayer(int numNeurons,
 static inline int applyVThresh_ANNErrorLayer(int numNeurons,
       CL_MEM_GLOBAL pvdata_t * V, pvdata_t AMin, pvdata_t VThresh,
       pvdata_t AShift, CL_MEM_GLOBAL pvdata_t * activity, int nx, int ny,
-      int nf, int nb) {
+      int nf, int lt, int rt, int dn, int up) {
    if (VThresh > -max_pvdata_t) {
       int k = 0;
 #ifndef PV_USE_OPENCL
@@ -689,7 +689,7 @@ static inline int applyVThresh_ANNErrorLayer(int numNeurons,
          k = get_global_id(0);
 #endif // PV_USE_OPENCL
       {
-         int kex = kIndexExtended(k, nx, ny, nf, nb);
+         int kex = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
          if (fabs(V[k]) < VThresh)
             activity[kex] = AMin;
          else
@@ -701,7 +701,7 @@ static inline int applyVThresh_ANNErrorLayer(int numNeurons,
 
 static inline int applyV_ANNLabelLayer(int numNeurons,
                                        CL_MEM_GLOBAL pvdata_t * V, pvdata_t AMin, pvdata_t AMax, pvdata_t VThresh,CL_MEM_GLOBAL pvdata_t * activity, int nx, int ny,
-                                             int nf, int nb) {
+                                             int nf, int lt, int rt, int dn, int up) {
     if (VThresh > -max_pvdata_t) {
         int k = 0;
 #ifndef PV_USE_OPENCL
@@ -713,7 +713,7 @@ static inline int applyV_ANNLabelLayer(int numNeurons,
             k = get_global_id(0);
 #endif // PV_USE_OPENCL
         {
-            int kex = kIndexExtended(k, nx, ny, nf, nb);
+            int kex = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
             int featureindex = featureIndex(k, nx, ny, nf) % nf;
             float factor;
             if (nf == 2)
@@ -815,8 +815,8 @@ static inline pvdata_t lateralCompetitionPenalty(CL_MEM_GLOBAL pvdata_t * V, int
    return z;
 }
 
-static inline int setActivity_HyPerLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * A, CL_MEM_GLOBAL pvdata_t * V, int nx, int ny, int nf, int nb) {
-//static inline int setActivity_HyPerLayer(int numNeurons, pvdata_t * A, pvdata_t * V, int nx, int ny, int nf, int nb) {
+static inline int setActivity_HyPerLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * A, CL_MEM_GLOBAL pvdata_t * V, int nx, int ny, int nf, int lt, int rt, int dn, int up) {
+//static inline int setActivity_HyPerLayer(int numNeurons, pvdata_t * A, pvdata_t * V, int nx, int ny, int nf, int lt, int rt, int dn, int up) {
    int k;
 #ifndef PV_USE_OPENCL
    #ifdef PV_USE_OPENMP_THREADS
@@ -827,14 +827,14 @@ static inline int setActivity_HyPerLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t 
       k = get_global_id(0);
 #endif // PV_USE_OPENCL
    {
-      int kex = kIndexExtended(k,nx,ny,nf,nb);
+      int kex = kIndexExtended(k,nx,ny,nf,lt, rt, dn, up);
       A[kex] = V[k];
    }
    return PV_SUCCESS;
 }
 
-static inline int setActivity_AccumulateLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * A, CL_MEM_GLOBAL pvdata_t * V, int nx, int ny, int nf, int nb) {
-//static inline int setActivity_HyPerLayer(int numNeurons, pvdata_t * A, pvdata_t * V, int nx, int ny, int nf, int nb) {
+static inline int setActivity_AccumulateLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * A, CL_MEM_GLOBAL pvdata_t * V, int nx, int ny, int nf, int lt, int rt, int dn, int up) {
+//static inline int setActivity_HyPerLayer(int numNeurons, pvdata_t * A, pvdata_t * V, int nx, int ny, int nf, int lt, int rt, int dn, int up) {
    int k;
 #ifndef PV_USE_OPENCL
    #ifdef PV_USE_OPENMP_THREADS
@@ -845,14 +845,14 @@ static inline int setActivity_AccumulateLayer(int numNeurons, CL_MEM_GLOBAL pvda
       k = get_global_id(0);
 #endif // PV_USE_OPENCL
    {
-      int kex = kIndexExtended(k,nx,ny,nf,nb);
+      int kex = kIndexExtended(k,nx,ny,nf,lt, rt, dn, up);
       A[kex] += V[k];
    }
    return PV_SUCCESS;
 }
 
 
-static inline int setActivity_GenerativeLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * A, CL_MEM_GLOBAL pvdata_t * V, int nx, int ny, int nf, int nb, pvdata_t activity_threshold) {
+static inline int setActivity_GenerativeLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * A, CL_MEM_GLOBAL pvdata_t * V, int nx, int ny, int nf, int lt, int rt, int dn, int up, pvdata_t activity_threshold) {
    int k;
 #ifndef PV_USE_OPENCL
    #ifdef PV_USE_OPENMP_THREADS
@@ -863,13 +863,13 @@ static inline int setActivity_GenerativeLayer(int numNeurons, CL_MEM_GLOBAL pvda
       k = get_global_id(0);
 #endif // PV_USE_OPENCL
    {
-      int kex = kIndexExtended(k, nx, ny, nf, nb);
+      int kex = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
       A[kex] = fabs(V[k])>activity_threshold ? V[k] : 0.0f;
    }
    return PV_SUCCESS;
 }
 
-static inline int setActivity_IncrementLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * A, CL_MEM_GLOBAL pvdata_t * V, CL_MEM_GLOBAL pvdata_t * Vprev, int nx, int ny, int nf, int nb) {
+static inline int setActivity_IncrementLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * A, CL_MEM_GLOBAL pvdata_t * V, CL_MEM_GLOBAL pvdata_t * Vprev, int nx, int ny, int nf, int lt, int rt, int dn, int up) {
    int k;
 #ifndef PV_USE_OPENCL
    #ifdef PV_USE_OPENMP_THREADS
@@ -880,13 +880,13 @@ static inline int setActivity_IncrementLayer(int numNeurons, CL_MEM_GLOBAL pvdat
       k = get_global_id(0);
 #endif // PV_USE_OPENCL
    {
-      int kex = kIndexExtended(k, nx, ny, nf, nb);
+      int kex = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
       A[kex] = V[k]-Vprev[k];
    }
    return PV_SUCCESS;
 }
 
-static inline int setActivity_GapLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * A, CL_MEM_GLOBAL pvdata_t * V, int nx, int ny, int nf, int nb, int orig_nb, CL_MEM_GLOBAL pvdata_t * checkActive, float ampSpikelet) {
+static inline int setActivity_GapLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * A, CL_MEM_GLOBAL pvdata_t * V, int nx, int ny, int nf, int lt, int rt, int dn, int up, int orig_lt, int orig_rt, int orig_dn, int orig_up, CL_MEM_GLOBAL pvdata_t * checkActive, float ampSpikelet) {
    int k;
 #ifndef PV_USE_OPENCL
    #ifdef PV_USE_OPENMP_THREADS
@@ -897,15 +897,15 @@ static inline int setActivity_GapLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * 
       k = get_global_id(0);
 #endif // PV_USE_OPENCL
    {
-      int kex = kIndexExtended(k,nx,ny,nf,nb);
-      int kexorig = kIndexExtended(k,nx,ny,nf,orig_nb);
+      int kex = kIndexExtended(k,nx,ny,nf,lt, rt, dn, up);
+      int kexorig = kIndexExtended(k,nx,ny,nf,orig_lt, orig_rt, orig_dn, orig_up);
       A[kex] = V[k];
       if( checkActive[kexorig] > 0.0) A[kex] += ampSpikelet;
    }
    return PV_SUCCESS;
 }
 
-static inline int setActivity_SigmoidLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * A, CL_MEM_GLOBAL pvdata_t * V, int nx, int ny, int nf, int nb, float VthRest, float Vrest, float sigmoid_alpha, bool sigmoid_flag, bool inverse_flag, float dt) {
+static inline int setActivity_SigmoidLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * A, CL_MEM_GLOBAL pvdata_t * V, int nx, int ny, int nf, int lt, int rt, int dn, int up, float VthRest, float Vrest, float sigmoid_alpha, bool sigmoid_flag, bool inverse_flag, float dt) {
    pvdata_t Vth = (VthRest+Vrest)/2.0;
    pvdata_t sig_scale = -logf(1.0f/sigmoid_alpha - 1.0f)/(Vth - Vrest);
    if (!sigmoid_flag) {
@@ -924,7 +924,7 @@ static inline int setActivity_SigmoidLayer(int numNeurons, CL_MEM_GLOBAL pvdata_
       k = get_global_id(0);
 #endif // PV_USE_OPENCL
    {
-      int kex = kIndexExtended(k, nx, ny, nf, nb);
+      int kex = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
       pvdata_t activity = 0.0f;
       if(!sigmoid_flag) {
          activity = 0.5f - (V[k] - Vth) * sig_scale/2;
@@ -945,7 +945,7 @@ static inline int setActivity_SigmoidLayer(int numNeurons, CL_MEM_GLOBAL pvdata_
    return PV_SUCCESS;
 }
 
-static inline int setActivity_MLPSigmoidLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * A, CL_MEM_GLOBAL pvdata_t * V, float linear_alpha, bool* dropout_buf, int nx, int ny, int nf, int nb, float dt) {
+static inline int setActivity_MLPSigmoidLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * A, CL_MEM_GLOBAL pvdata_t * V, float linear_alpha, bool* dropout_buf, int nx, int ny, int nf, int lt, int rt, int dn, int up, float dt) {
    int k;
 #ifndef PV_USE_OPENCL
    #ifdef PV_USE_OPENMP_THREADS
@@ -956,7 +956,7 @@ static inline int setActivity_MLPSigmoidLayer(int numNeurons, CL_MEM_GLOBAL pvda
       k = get_global_id(0);
 #endif // PV_USE_OPENCL
    {
-      int kex = kIndexExtended(k, nx, ny, nf, nb);
+      int kex = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
       pvdata_t activity = 1.7159 * tanh(((float)2/3) * V[k]) + linear_alpha * V[k];
       //Set explicitly to 0 if that neuron was dropped out
       A[kex] = dropout_buf[k] ? 0 : activity;

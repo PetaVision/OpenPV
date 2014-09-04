@@ -19,9 +19,9 @@ pvdata_t LogLatWTAFunction::evaluateLocal(float time, HyPerLayer * l) {
     const int nx = l->getLayerLoc()->nx;
     const int ny = l->getLayerLoc()->ny;
     const int nf = l->getLayerLoc()->nf;
-    const int nb = l->getLayerLoc()->nb;
+    const PVHalo * halo = &l->getLayerLoc()->halo;
     for(int n=0; n<numNeurons; n+=nf /* assumes feature stride=1, x,y strides>1 */) {
-        int nex = kIndexExtended(n, nx, ny, nf, nb);
+        int nex = kIndexExtended(n, nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up);
     	pvdata_t * v = activityBuffer+nex;
     	pvdata_t aLa = 0;
     	for( int p=0; p<nf; p++) {

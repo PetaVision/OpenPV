@@ -357,7 +357,7 @@ int Image::scatterImageFilePVP(const char * filename, int xOffset, int yOffset,
       fileloc.nx = params[INDEX_NX];
       fileloc.ny = params[INDEX_NY];
       fileloc.nf = params[INDEX_NF];
-      fileloc.nb = params[INDEX_NB];
+      // fileloc.nb = params[INDEX_NB];
       fileloc.nxGlobal = params[INDEX_NX_GLOBAL];
       fileloc.nyGlobal = params[INDEX_NY_GLOBAL];
       fileloc.kx0 = params[INDEX_KX0];
@@ -1024,8 +1024,8 @@ int Image::readImage(const char * filename, int offsetX, int offsetY, GDALColorI
    PVLayerLoc * loc = & clayer->loc;
 
    if(useImageBCflag){ //Expand dimensions to the extended space
-      loc->nx = loc->nx + 2*loc->nb;
-      loc->ny = loc->ny + 2*loc->nb;
+      loc->nx = loc->nx + loc->halo.lt + loc->halo.rt;
+      loc->ny = loc->ny + loc->halo.dn + loc->halo.up;
    }
 
    int n = loc->nx * loc->ny * imageLoc.nf;
@@ -1126,8 +1126,8 @@ int Image::readImage(const char * filename, int offsetX, int offsetY, GDALColorI
    delete[] buf;
 
    if(useImageBCflag){ //Restore non-extended dimensions
-      loc->nx = loc->nx - 2*loc->nb;
-      loc->ny = loc->ny - 2*loc->nb;
+      loc->nx = loc->nx - loc->halo.lt - loc->halo.rt;
+      loc->ny = loc->ny - loc->halo.dn - loc->halo.up;
    }
 
    return status;
@@ -1171,10 +1171,10 @@ int Image::copyToInteriorBuffer(unsigned char * buf, float fac)
    const int nx = loc->nx;
    const int ny = loc->ny;
    const int nf = loc->nf;
-   const int nBorder = loc->nb;
+   const PVHalo * halo = &loc->halo;
 
    for(int n=0; n<getNumNeurons(); n++) {
-      int n_ex = kIndexExtended(n, nx, ny, nf, nBorder);
+      int n_ex = kIndexExtended(n, nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up);
       buf[n] = (unsigned char) (fac * data[n_ex]);
    }
    return 0;
@@ -1187,7 +1187,7 @@ int Image::copyFromInteriorBuffer(float * buf, float fac)
    const int ny = loc->ny;
    const int nf = loc->nf;
 
-   const int nBorder = loc->nb;
+   const PVHalo * halo = &loc->halo;
 
    if(useImageBCflag){
       for(int n=0; n<getNumExtended(); n++) {
@@ -1196,7 +1196,7 @@ int Image::copyFromInteriorBuffer(float * buf, float fac)
       }
    }else{
       for(int n=0; n<getNumNeurons(); n++) {
-         int n_ex = kIndexExtended(n, nx, ny, nf, nBorder);
+         int n_ex = kIndexExtended(n, nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up);
          data[n_ex] = fac*buf[n];
       }
    }

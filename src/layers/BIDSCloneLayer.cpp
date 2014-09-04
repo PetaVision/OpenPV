@@ -92,7 +92,7 @@ int BIDSCloneLayer::allocateDataStructures() {
 int BIDSCloneLayer::mapCoords(){
    for(int i = 0; i < numNodes; i++){
       int index = kIndex(coords[i].xCoord, coords[i].yCoord, 0, clayer->loc.nx, clayer->loc.ny, clayer->loc.nf);
-      int indexEx = kIndexExtended(index, clayer->loc.nx, clayer->loc.ny, clayer->loc.nf, clayer->loc.nb);
+      int indexEx = kIndexExtended(index, clayer->loc.nx, clayer->loc.ny, clayer->loc.nf, clayer->loc.halo.lt, clayer->loc.halo.rt, clayer->loc.halo.dn, clayer->loc.halo.up);
       this->clayer->activity->data[indexEx] = 0;
    }
 
@@ -100,7 +100,7 @@ int BIDSCloneLayer::mapCoords(){
    unsigned int sourceLayerNumIndices = getSourceNumActive();
    for(unsigned int i = 0; i < sourceLayerNumIndices; i++){
       int index = kIndex(coords[sourceLayerA[i]].xCoord, coords[sourceLayerA[i]].yCoord, 0, clayer->loc.nx, clayer->loc.ny, clayer->loc.nf);
-      int indexEx = kIndexExtended(index, clayer->loc.nx, clayer->loc.ny, clayer->loc.nf, clayer->loc.nb);
+      int indexEx = kIndexExtended(index, clayer->loc.nx, clayer->loc.ny, clayer->loc.nf, clayer->loc.halo.lt, clayer->loc.halo.rt, clayer->loc.halo.dn, clayer->loc.halo.up);
       this->clayer->activity->data[indexEx] += 1;
    }
    return PV_SUCCESS;

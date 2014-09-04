@@ -149,18 +149,17 @@ int PatchProbe::outputState(double timef)
    int nxGlobal = loc->nxGlobal;
    int nyGlobal = loc->nyGlobal;
    int nf = loc->nf;
-   int nb = loc->nb;
-   int nxext = nxGlobal+2*nb;
-   int nyext = nyGlobal+2*nb;
+   int nxext = nxGlobal+loc->halo.lt+loc->halo.rt;
+   int nyext = nyGlobal+loc->halo.dn+loc->halo.up;
    int numPatches = c->preSynapticLayer()->getNumGlobalExtended();
    if( patchIDMethod == INDEX_METHOD ) {
       kPre = this->kPre;
-      kxPre = kxPos(this->kPre,nxext,nyext,loc->nf)-nb;
-      kyPre = kyPos(this->kPre,nxext,nyext,loc->nf)-nb;
+      kxPre = kxPos(this->kPre,nxext,nyext,loc->nf)-loc->halo.lt;
+      kyPre = kyPos(this->kPre,nxext,nyext,loc->nf)-loc->halo.up;
       kfPre = featureIndex(this->kPre,nxext,nyext,loc->nf);
    }
    else if( patchIDMethod == COORDINATE_METHOD ) {
-      kPre = kIndex(this->kxPre,this->kyPre,this->kfPre,loc->nx+2*nb,loc->ny+2*nb,loc->nf);
+      kPre = kIndex(this->kxPre,this->kyPre,this->kfPre,loc->nx+loc->halo.lt+loc->halo.rt,loc->ny+loc->halo.dn+loc->halo.up,loc->nf);
       kxPre = this->kxPre;
       kyPre = this->kyPre;
       kfPre = this->kfPre;
@@ -172,14 +171,14 @@ int PatchProbe::outputState(double timef)
       fprintf(stderr, "    value is %d\n (should be between %d and %d)\n", kPre, 0, numPatches);
       errorFound = true;
    }
-   if( kxPre < -nb || kxPre >= nxGlobal+nb ) {
+   if( kxPre < -loc->halo.lt || kxPre >= nxGlobal+loc->halo.rt ) {
       fprintf(stderr, "PatchProbe \"%s\" of connection \"%s\": x-coordinate is out of bounds\n", getName(), c->getName());
-      fprintf(stderr, "    value is %d\n (should be between %d and %d)\n", kxPre, -nb, nxGlobal+nb);
+      fprintf(stderr, "    value is %d\n (should be between %d and %d)\n", kxPre, -loc->halo.lt, nxGlobal+loc->halo.rt);
       errorFound = true;
    }
    if( kyPre < 0 || kyPre >= numPatches ) {
       fprintf(stderr, "PatchProbe \"%s\" of connection \"%s\": y-coordinate is out of bounds\n", getName(), c->getName());
-      fprintf(stderr, "    value is %d\n (should be between %d and %d)\n", kyPre, 0, nyGlobal+nb);
+      fprintf(stderr, "    value is %d\n (should be between %d and %d)\n", kyPre, -loc->halo.up, nyGlobal+loc->halo.dn);
       errorFound = true;
    }
    if( kfPre < 0 || kfPre >= numPatches ) {
@@ -199,11 +198,11 @@ int PatchProbe::outputState(double timef)
    int kyPreLocal = kyPre - loc->ky0;
    int nxLocal = loc->nx;
    int nyLocal = loc->ny;
-   int kLocal = kIndex(kxPreLocal+nb,kyPreLocal+nb,kfPre,nxLocal+2*nb,nyLocal+2*nb,nf);
+   int kLocal = kIndex(kxPreLocal+loc->halo.lt,kyPreLocal+loc->halo.up,kfPre,nxLocal+loc->halo.lt+loc->halo.rt,nyLocal+loc->halo.dn+loc->halo.up,nf);
    assert(kLocal >=0 && kLocal < c->preSynapticLayer()->getNumExtended());
 
 #ifdef PV_USE_MPI
-   int inbounds = kxPreLocal < -nb || kxPreLocal > loc->nx+nb || kyPreLocal < -nb || kyPreLocal > loc->ny+nb;
+   int inbounds = kxPreLocal < -loc->halo.lt || kxPreLocal > loc->nx+loc->halo.rt || kyPreLocal < -loc->halo.up || kyPreLocal > loc->ny+loc->halo.dn;
 #endif //PV_USE_MPI
    if( rank > 0 ) {
 #ifdef PV_USE_MPI
@@ -243,14 +242,14 @@ int PatchProbe::outputState(double timef)
       int kPost = c->getAPostOffset(kPre, arborID);
       const PVLayerLoc * lPostLoc = c->postSynapticLayer()->getLayerLoc();
 
-      const int nxPostExt = lPostLoc->nx + 2*lPostLoc->nb;
-      const int nyPostExt = lPostLoc->ny + 2*lPostLoc->nb;
+      const int nxPostExt = lPostLoc->nx + lPostLoc->halo.lt + lPostLoc->halo.rt;
+      const int nyPostExt = lPostLoc->ny + lPostLoc->halo.dn + lPostLoc->halo.up;
       const int nfPost = lPostLoc->nf;
 
       //const int kxPost = kxPos(kPost, nxPost, nyPost, nfPost) - lPostLoc->nPad;;
       //const int kyPost = kyPos(kPost, nxPost, nyPost, nfPost) - lPostLoc->nPad;;
-      int kxPost = kxPos(kPost, nxPostExt, nyPostExt, nfPost) - lPostLoc->nb;
-      int kyPost = kyPos(kPost, nxPostExt, nyPostExt, nfPost) - lPostLoc->nb;
+      int kxPost = kxPos(kPost, nxPostExt, nyPostExt, nfPost) - lPostLoc->halo.lt;
+      int kyPost = kyPos(kPost, nxPostExt, nyPostExt, nfPost) - lPostLoc->halo.up;
 
       //
       // The following is incorrect because w->nx is reduced near boundary.

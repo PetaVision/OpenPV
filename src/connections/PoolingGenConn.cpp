@@ -100,9 +100,9 @@ bool PoolingGenConn::checkLayersCompatible(HyPerLayer * layer1, HyPerLayer * lay
 	int ny2 = layer2->getLayerLoc()->ny;
 	int nf1 = layer1->getLayerLoc()->nf;
 	int nf2 = layer2->getLayerLoc()->nf;
-	int nb1 = layer1->getLayerLoc()->nb;
-	int nb2 = layer2->getLayerLoc()->nb;
-    bool result = nx1==nx2 && ny1==ny2 && nf1==nf2 && nb1==nb2;
+    const PVHalo * halo1 = &layer1->getLayerLoc()->halo;
+    const PVHalo * halo2 = &layer2->getLayerLoc()->halo;
+    bool result = nx1==nx2 && ny1==ny2 && nf1==nf2 && halo1->lt==halo2->lt && halo1->rt==halo2->rt && halo1->dn==halo2->dn && halo1->up==halo2->up;
     if( !result ) {
     	const char * name1 = layer1->getName();
     	const char * name2 = layer2->getName();
@@ -110,8 +110,8 @@ bool PoolingGenConn::checkLayersCompatible(HyPerLayer * layer1, HyPerLayer * lay
         int len1 = (int) strlen(name1);
         int len2 = (int) strlen(name2);
         int len = len1 >= len2 ? len1 : len2;
-        fprintf(stderr, "Layer \"%*s\": nx=%d, ny=%d, nf=%d, nb=%d\n", len, name1, nx1, ny1, nf1, nb1);
-        fprintf(stderr, "Layer \"%*s\": nx=%d, ny=%d, nf=%d, nb=%d\n", len, name2, nx2, ny2, nf2, nb2);
+        fprintf(stderr, "Layer \"%*s\": nx=%d, ny=%d, nf=%d, halo=(%d,%d,%d,%d)\n", len, name1, nx1, ny1, nf1, halo1->lt, halo1->rt, halo1->dn, halo1->up);
+        fprintf(stderr, "Layer \"%*s\": nx=%d, ny=%d, nf=%d, halo=(%d,%d,%d,%d)\n", len, name2, nx2, ny2, nf2, halo2->lt, halo2->rt, halo2->dn, halo2->up);
     }
     return result;
 }  // end of PoolingGenConn::PoolingGenConn(HyPerLayer *, HyPerLayer *)
@@ -140,9 +140,9 @@ int PoolingGenConn::updateWeights(int axonID) {
     int nx = preSynapticLayer()->getLayerLoc()->nx;
     int ny = preSynapticLayer()->getLayerLoc()->ny;
     int nf = preSynapticLayer()->getLayerLoc()->nf;
-    int pad = preSynapticLayer()->getLayerLoc()->nb;
+    const PVHalo * halo = &preSynapticLayer()->getLayerLoc()->halo;
     for(int kPre=0; kPre<nPre;kPre++) {
-        int kExt = kIndexExtended(kPre, nx, ny, nf, pad);
+        int kExt = kIndexExtended(kPre, nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up);
 
         size_t offset = getAPostOffset(kPre, axonID);
         pvdata_t preact = preSynapticLayer()->getCLayer()->activity->data[kExt];
@@ -168,7 +168,7 @@ int PoolingGenConn::updateWeights(int axonID) {
     }
     if( slownessFlag ) {
        for(int kPre=0; kPre<nPre;kPre++) {
-           int kExt = kIndexExtended(kPre, nx, ny, nf, pad);
+           int kExt = kIndexExtended(kPre, nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up);
 
            size_t offset = getAPostOffset(kPre, axonID);
            pvdata_t preact = slownessPre->getCLayer()->activity->data[kExt];

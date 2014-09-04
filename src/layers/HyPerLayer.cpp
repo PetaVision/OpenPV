@@ -138,7 +138,8 @@ int HyPerLayer::initialize_base() {
    this->nyScale = 1.0f;
    this->numFeatures = 1;
    this->mirrorBCflag = 0;
-   this->margin = 0;
+   this->xmargin = 0;
+   this->ymargin = 0;
    this->numProbes = 0;
    this->ioAppend = 0;
    this->numChannels = 2;
@@ -275,9 +276,10 @@ int HyPerLayer::initClayer() {
 
    PVLayerLoc * loc = &clayer->loc;
    setLayerLoc(loc, nxScale, nyScale, numFeatures);
-   updateClayerMargin(clayer, margin);
+   assert(loc->halo.lt==0 && loc->halo.rt==0 && loc->halo.dn==0 && loc->halo.up==0);
 
    clayer->numNeurons  = loc->nx * loc->ny * loc->nf;
+   clayer->numExtended = clayer->numNeurons; // initially, margin is zero; it will be updated as needed during the communicateInitInfo stage.
 
    double xScaled = -log2( (double) nxScale);
    double yScaled = -log2( (double) nyScale);
@@ -559,9 +561,7 @@ int HyPerLayer::setLayerLoc(PVLayerLoc * layerLoc, float nxScale, float nyScale,
 
    layerLoc->nf = nf;
 
-   // nb and halo are set in calls to updateClayerMargin
-   layerLoc->nb = 0; // margin;
-
+   // halo is set in calls to updateClayerMargin
    layerLoc->halo.lt = 0; // margin;
    layerLoc->halo.rt = 0; // margin;
    layerLoc->halo.dn = 0; // margin;
@@ -570,19 +570,9 @@ int HyPerLayer::setLayerLoc(PVLayerLoc * layerLoc, float nxScale, float nyScale,
    return 0;
 }
 
-int HyPerLayer::updateClayerMargin(PVLayer * clayer, int new_margin) {
-   // Only be called before buffers are allocated
-   assert(clayer!=NULL);
-   PVLayerLoc * loc = &clayer->loc;
-   clayer->loc.nb = new_margin;
-   PVHalo * halo = &loc->halo;
-   halo->lt = new_margin;
-   halo->rt = new_margin;
-   halo->dn = new_margin;
-   halo->up = new_margin;
-
-   clayer->numExtended = (loc->nx+2*new_margin)*(loc->ny+2*new_margin)*loc->nf;
-   return PV_SUCCESS;
+void HyPerLayer::calcNumExtended() {
+   PVLayerLoc const * loc = getLayerLoc();
+   clayer->numExtended = (loc->nx+loc->halo.lt+loc->halo.rt)*(loc->ny+loc->halo.dn+loc->halo.up)*loc->nf;
 }
 
 int HyPerLayer::allocateBuffers() {
@@ -718,11 +708,12 @@ void HyPerLayer::ioParam_nf(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerLayer::ioParam_marginWidth(enum ParamsIOFlag ioFlag) {
-   // marginWidth parameter was deprecated July 25, 2013.  When support for marginWidth is removed entirely, this function should be deleted.
+   // marginWidth parameter was deprecated July 25, 2013.
+   // As of Aug 12, 2014, marginWidth parameter is no longer read.
+   // After enough time has passed, this function should be deleted.
    if (ioFlag==PARAMS_IO_READ && parent->parameters()->present(name, "marginWidth")) {
-      margin = (int) parent->parameters()->value(name, "marginWidth");
       if (parent->columnId()==0) {
-         fprintf(stderr, "HyPerLayer \"%s\": margins are adjusted automatically; parameter marginWidth is deprecated.\n", name);
+         fprintf(stderr, "HyPerLayer \"%s\": margins are adjusted automatically; parameter marginWidth is no longer read.\n", name);
       }
    }
 }
@@ -1021,6 +1012,7 @@ int HyPerLayer::openOutputStateFile() {
 }
 
 void HyPerLayer::synchronizeMarginWidth(HyPerLayer * layer) {
+   if (layer==this) { return; }
    assert(layer->getLayerLoc()!=NULL && this->getLayerLoc()!=NULL);
    HyPerLayer ** newSynchronizedMarginWidthLayers = (HyPerLayer **) calloc(numSynchronizedMarginWidthLayers+1, sizeof(HyPerLayer *));
    assert(newSynchronizedMarginWidthLayers);
@@ -1037,26 +1029,47 @@ void HyPerLayer::synchronizeMarginWidth(HyPerLayer * layer) {
    synchronizedMarginWidthLayers[numSynchronizedMarginWidthLayers] = layer;
    numSynchronizedMarginWidthLayers++;
 
-   int thisnb = this->getLayerLoc()->nb;
-   int thatnb = layer->getLayerLoc()->nb;
-   int result = 0;
-   int status = PV_SUCCESS;
-   if (thisnb < thatnb) {
-      this->requireMarginWidth(thatnb, &result);
-      if (result != thatnb) status = PV_FAILURE;
-   }
-   else if (thisnb > thatnb) {
-      int result = thatnb;
-      layer->requireMarginWidth(thisnb, &result);
-      if (result != thisnb) status = PV_FAILURE;
-   }
-   if (status != PV_SUCCESS) {
-      fprintf(stderr, "%s \"%s\" error in rank %d process: unable to synchronize margin width with layer \"%s\"\n", parent->parameters()->groupKeywordFromName(name), name, parent->columnId(), layer->getName());;
-      exit(EXIT_FAILURE);
-   }
-   assert(this->getLayerLoc()->nb == layer->getLayerLoc()->nb);
+   equalizeMargins(this, layer);
 
    return;
+}
+
+int HyPerLayer::equalizeMargins(HyPerLayer * layer1, HyPerLayer * layer2) {
+   int border1, border2, maxborder, result;
+   int status = PV_SUCCESS;
+
+   border1 = layer1->getLayerLoc()->halo.lt;
+   border2 = layer2->getLayerLoc()->halo.lt;
+   maxborder = border1 > border2 ? border1 : border2;
+   layer1->requireMarginWidth(maxborder, &result, 'x');
+   if (result != maxborder) { status = PV_FAILURE; }
+   layer2->requireMarginWidth(maxborder, &result, 'x');
+   if (result != maxborder) { status = PV_FAILURE; }
+   if (status != PV_SUCCESS) {
+      fprintf(stderr, "Error in rank %d process: unable to synchronize x-margin widths of layers \"%s\" and \"%s\" to %d\n", layer1->getParent()->columnId(), layer1->getName(), layer2->getName(), maxborder);;
+      exit(EXIT_FAILURE);
+   }
+   assert(layer1->getLayerLoc()->halo.lt == layer2->getLayerLoc()->halo.lt &&
+          layer1->getLayerLoc()->halo.rt == layer2->getLayerLoc()->halo.rt &&
+          layer1->getLayerLoc()->halo.lt == layer1->getLayerLoc()->halo.rt &&
+          layer1->getLayerLoc()->halo.lt == maxborder);
+
+   border1 = layer1->getLayerLoc()->halo.dn;
+   border2 = layer2->getLayerLoc()->halo.dn;
+   maxborder = border1 > border2 ? border1 : border2;
+   layer1->requireMarginWidth(maxborder, &result, 'y');
+   if (result != maxborder) { status = PV_FAILURE; }
+   layer2->requireMarginWidth(maxborder, &result, 'y');
+   if (result != maxborder) { status = PV_FAILURE; }
+   if (status != PV_SUCCESS) {
+      fprintf(stderr, "Error in rank %d process: unable to synchronize y-margin widths of layers \"%s\" and \"%s\" to %d\n", layer1->getParent()->columnId(), layer1->getName(), layer2->getName(), maxborder);;
+      exit(EXIT_FAILURE);
+   }
+   assert(layer1->getLayerLoc()->halo.dn == layer2->getLayerLoc()->halo.dn &&
+          layer1->getLayerLoc()->halo.up == layer2->getLayerLoc()->halo.up &&
+          layer1->getLayerLoc()->halo.dn == layer1->getLayerLoc()->halo.up &&
+          layer1->getLayerLoc()->halo.dn == maxborder);
+   return status;
 }
 
 int HyPerLayer::allocateDataStructures()
@@ -1084,30 +1097,30 @@ int HyPerLayer::allocateDataStructures()
    int nx = loc->nx;
    int ny = loc->ny;
    int nf = loc->nf;
-   int nb = loc->nb;
+   PVHalo const * halo = &loc->halo;
 
    // If not mirroring, fill the boundaries with the value in the valueBC param
    if (!useMirrorBCs() && getValueBC()!=0.0f) {
       int idx = 0;
-      for (int b=0; b<getLayerLoc()->nb; b++) {
-         for(int k=0; k<(nx+2*nb)*nf; k++) {
+      for (int b=0; b<halo->up; b++) {
+         for(int k=0; k<(nx+halo->lt+halo->rt)*nf; k++) {
             clayer->activity->data[idx] = getValueBC();
             idx++;
          }
       }
       for (int y=0; y<ny; y++) {
-         for(int k=0; k<nb*nf; k++) {
+         for(int k=0; k<halo->lt*nf; k++) {
             clayer->activity->data[idx] = getValueBC();
             idx++;
          }
          idx += nx;
-         for(int k=0; k<nb*nf; k++) {
+         for(int k=0; k<halo->rt*nf; k++) {
             clayer->activity->data[idx] = getValueBC();
             idx++;
          }
       }
-      for (int b=0; b<getLayerLoc()->nb; b++) {
-         for(int k=0; k<(nx+2*nb)*nf; k++) {
+      for (int b=0; b<halo->dn; b++) {
+         for(int k=0; k<(nx+halo->lt+halo->rt)*nf; k++) {
             clayer->activity->data[idx] = getValueBC();
             idx++;
          }
@@ -1200,25 +1213,65 @@ int HyPerLayer::increaseDelayLevels(int neededDelay) {
    return numDelayLevels;
 }
 
-int HyPerLayer::requireMarginWidth(int marginWidthNeeded, int * marginWidthResult) {
-   if (margin < marginWidthNeeded) {
-      assert(clayer);
-      if (parent->columnId()==0) {
-         printf("Layer \"%s\": adjusting margin width from %d to %d\n", name, margin, marginWidthNeeded);
-      }
-      margin = marginWidthNeeded;
-      updateClayerMargin(clayer, margin);
-   }
-   *marginWidthResult = margin;
-   if (synchronizedMarginWidthLayers != NULL) {
-      for (int k=0; k<numSynchronizedMarginWidthLayers; k++) {
-         HyPerLayer * l = synchronizedMarginWidthLayers[k];
-         if (l->getLayerLoc()->nb < marginWidthNeeded) {
-            synchronizedMarginWidthLayers[k]->requireMarginWidth(marginWidthNeeded, marginWidthResult);
-            assert(*marginWidthResult == marginWidthNeeded);
+int HyPerLayer::requireMarginWidth(int marginWidthNeeded, int * marginWidthResult, char axis) {
+   // TODO: Is there a good way to handle x- and y-axis margins without so much duplication of code?
+   // Navigating through the halo makes it difficult to combine cases.
+   PVLayerLoc * loc = &clayer->loc;
+   PVHalo * halo = &loc->halo;
+   switch (axis) {
+   case 'x':
+      *marginWidthResult = xmargin;
+      if (xmargin < marginWidthNeeded) {
+         assert(clayer);
+         if (parent->columnId()==0) {
+            printf("Layer \"%s\": adjusting x-margin width from %d to %d\n", name, xmargin, marginWidthNeeded);
          }
-         assert(l->getLayerLoc()->nb == getLayerLoc()->nb);
+         xmargin = marginWidthNeeded;
+         halo->lt = xmargin;
+         halo->rt = xmargin;
+         calcNumExtended();
+         assert(axis=='x' && getLayerLoc()->halo.lt==getLayerLoc()->halo.rt);
+         *marginWidthResult = xmargin;
+         if (synchronizedMarginWidthLayers != NULL) {
+            for (int k=0; k<numSynchronizedMarginWidthLayers; k++) {
+               HyPerLayer * l = synchronizedMarginWidthLayers[k];
+               if (l->getLayerLoc()->halo.lt < marginWidthNeeded) {
+                  synchronizedMarginWidthLayers[k]->requireMarginWidth(marginWidthNeeded, marginWidthResult, axis);
+               }
+               assert(l->getLayerLoc()->halo.lt == getLayerLoc()->halo.lt);
+               assert(l->getLayerLoc()->halo.rt == getLayerLoc()->halo.rt);
+            }
+         }
       }
+      break;
+   case 'y':
+      *marginWidthResult = ymargin;
+      if (ymargin < marginWidthNeeded) {
+         assert(clayer);
+         if (parent->columnId()==0) {
+            printf("Layer \"%s\": adjusting y-margin width from %d to %d\n", name, ymargin, marginWidthNeeded);
+         }
+         ymargin = marginWidthNeeded;
+         halo->dn = ymargin;
+         halo->up = ymargin;
+         calcNumExtended();
+         assert(axis=='y' && getLayerLoc()->halo.dn==getLayerLoc()->halo.up);
+         *marginWidthResult = ymargin;
+         if (synchronizedMarginWidthLayers != NULL) {
+            for (int k=0; k<numSynchronizedMarginWidthLayers; k++) {
+               HyPerLayer * l = synchronizedMarginWidthLayers[k];
+               if (l->getLayerLoc()->halo.up < marginWidthNeeded) {
+                  synchronizedMarginWidthLayers[k]->requireMarginWidth(marginWidthNeeded, marginWidthResult, axis);
+               }
+               assert(l->getLayerLoc()->halo.dn == getLayerLoc()->halo.dn);
+               assert(l->getLayerLoc()->halo.up == getLayerLoc()->halo.up);
+            }
+         }
+      }
+      break;
+   default:
+      assert(0);
+      break;
    }
    return PV_SUCCESS;
 }
@@ -1313,28 +1366,27 @@ int HyPerLayer::numberOfNeurons(int borderId)
    const int nx = clayer->loc.nx;
    const int ny = clayer->loc.ny;
    const int nf = clayer->loc.nf;
-   const int nxBorder = clayer->loc.nb;
-   const int nyBorder = clayer->loc.nb;
+   const PVHalo * halo = &clayer->loc.halo;
 
    switch (borderId) {
    case 0:
       numNeurons = clayer->numNeurons;         break;
    case NORTHWEST:
-      numNeurons = nxBorder * nyBorder * nf;   break;
+      numNeurons = halo->lt * halo->up * nf;   break;
    case NORTH:
-      numNeurons = nx       * nyBorder * nf;   break;
+      numNeurons = nx       * halo->up * nf;   break;
    case NORTHEAST:
-      numNeurons = nxBorder * nyBorder * nf;   break;
+      numNeurons = halo->rt * halo->up * nf;   break;
    case WEST:
-      numNeurons = nxBorder * ny       * nf;   break;
+      numNeurons = halo->lt * ny       * nf;   break;
    case EAST:
-      numNeurons = nxBorder * ny       * nf;   break;
+      numNeurons = halo->rt * ny       * nf;   break;
    case SOUTHWEST:
-      numNeurons = nxBorder * nyBorder * nf;   break;
+      numNeurons = halo->lt * halo->dn * nf;   break;
    case SOUTH:
-      numNeurons = nx       * nyBorder * nf;   break;
+      numNeurons = nx       * halo->dn * nf;   break;
    case SOUTHEAST:
-      numNeurons = nxBorder * nyBorder * nf;   break;
+      numNeurons = halo->rt * halo->dn * nf;   break;
    default:
       fprintf(stderr, "ERROR:HyPerLayer:numberOfBorderNeurons: bad border index %d\n", borderId);
       numNeurons = 0; break;
@@ -1352,32 +1404,47 @@ int HyPerLayer::numberOfNeurons(int borderId)
 int HyPerLayer::mirrorInteriorToBorder(int whichBorder, PVLayerCube * cube, PVLayerCube * border)
 {
    assert( cube->numItems == border->numItems );
-   assert( cube->loc.nx == border->loc.nx );
-   assert( cube->loc.ny == border->loc.ny );
-   assert( cube->loc.nf == border->loc.nf );
-
+   assert( localDimensionsEqual(&cube->loc,&border->loc));
+   int status = 0;
    switch (whichBorder) {
    case NORTHWEST:
-      return mirrorToNorthWest(border, cube);
+      status = mirrorToNorthWest(border, cube); break;
    case NORTH:
-      return mirrorToNorth(border, cube);
+      status = mirrorToNorth(border, cube); break;
    case NORTHEAST:
-      return mirrorToNorthEast(border, cube);
+      status = mirrorToNorthEast(border, cube); break;
    case WEST:
-      return mirrorToWest(border, cube);
+      status = mirrorToWest(border, cube); break;
    case EAST:
-      return mirrorToEast(border, cube);
+      status = mirrorToEast(border, cube); break;
    case SOUTHWEST:
-      return mirrorToSouthWest(border, cube);
+      status = mirrorToSouthWest(border, cube); break;
    case SOUTH:
-      return mirrorToSouth(border, cube);
+      status = mirrorToSouth(border, cube); break;
    case SOUTHEAST:
-      return mirrorToSouthEast(border, cube);
+      status = mirrorToSouthEast(border, cube); break;
    default:
       fprintf(stderr, "ERROR:HyPerLayer:copyToBorder: bad border index %d\n", whichBorder);
-      return -1;
+      status = -1;
+      break;
    }
+   return status;
+}
 
+int HyPerLayer::mirrorInteriorToBorder(PVLayerCube * cube, PVLayerCube * border)
+{
+   assert( cube->numItems == border->numItems );
+   assert( localDimensionsEqual(&cube->loc,&border->loc));
+
+   mirrorToNorthWest(border, cube);
+   mirrorToNorth(border, cube);
+   mirrorToNorthEast(border, cube);
+   mirrorToWest(border, cube);
+   mirrorToEast(border, cube);
+   mirrorToSouthWest(border, cube);
+   mirrorToSouth(border, cube);
+   mirrorToSouthEast(border, cube);
+   return 0;
 }
 
 int HyPerLayer::gatherToInteriorBuffer(unsigned char * buf)
@@ -1394,12 +1461,12 @@ int HyPerLayer::copyToBuffer(unsigned char * buf, const pvdata_t * data,
    const int ny = loc->ny;
    const int nf = loc->nf;
 
-   int nxBorder = 0;
-   int nyBorder = 0;
+   int leftBorder = 0;
+   int topBorder = 0;
 
    if (extended) {
-      nxBorder = loc->nb;
-      nyBorder = loc->nb;
+      leftBorder = loc->halo.lt;
+      topBorder = loc->halo.up;
       sf = strideFExtended(loc);
       sx = strideXExtended(loc);
       sy = strideYExtended(loc);
@@ -1412,9 +1479,9 @@ int HyPerLayer::copyToBuffer(unsigned char * buf, const pvdata_t * data,
 
    int ii = 0;
    for (int j = 0; j < ny; j++) {
-      int jex = j + nyBorder;
+      int jex = j + topBorder;
       for (int i = 0; i < nx; i++) {
-         int iex = i + nxBorder;
+         int iex = i + leftBorder;
          for (int f = 0; f < nf; f++) {
             buf[ii++] = (unsigned char) (scale * data[iex*sx + jex*sy + f*sf]);
          }
@@ -1427,35 +1494,32 @@ int HyPerLayer::copyToBuffer(pvdata_t * buf, const pvdata_t * data,
       const PVLayerLoc * loc, bool extended, float scale)
 {
    size_t sf, sx, sy;
-   int nxBorder, nyBorder;
-   int numItems;
+   int leftBorder, topBorder;
 
    const int nx = loc->nx;
    const int ny = loc->ny;
    const int nf = loc->nf;
 
    if (extended) {
-      nxBorder = loc->nb;
-      nyBorder = loc->nb;
+      leftBorder = loc->halo.lt;
+      topBorder = loc->halo.up;
       sf = strideFExtended(loc);
       sx = strideXExtended(loc);
       sy = strideYExtended(loc);
-      numItems = nf*(nx+2*nxBorder)*(ny+2*nyBorder);
    }
    else {
-      nxBorder = 0;
-      nyBorder = 0;
+      leftBorder = 0;
+      topBorder = 0;
       sf = strideF(loc);
       sx = strideX(loc);
       sy = strideY(loc);
-      numItems = nf*nx*ny;
    }
 
    int ii = 0;
    for (int j = 0; j < ny; j++) {
-      int jex = j + nyBorder;
+      int jex = j + topBorder;
       for (int i = 0; i < nx; i++) {
-         int iex = i + nxBorder;
+         int iex = i + leftBorder;
          for (int f = 0; f < nf; f++) {
             buf[ii++] = scale * data[iex*sx + jex*sy + f*sf];
          }
@@ -1473,12 +1537,12 @@ int HyPerLayer::copyFromBuffer(const unsigned char * buf, pvdata_t * data,
    const int ny = loc->ny;
    const int nf = loc->nf;
 
-   int nxBorder = 0;
-   int nyBorder = 0;
+   int leftBorder = 0;
+   int topBorder = 0;
 
    if (extended) {
-      nxBorder = loc->nb;
-      nyBorder = loc->nb;
+      leftBorder = loc->halo.lt;
+      topBorder = loc->halo.up;
       sf = strideFExtended(loc);
       sx = strideXExtended(loc);
       sy = strideYExtended(loc);
@@ -1491,9 +1555,9 @@ int HyPerLayer::copyFromBuffer(const unsigned char * buf, pvdata_t * data,
 
    int ii = 0;
    for (int j = 0; j < ny; j++) {
-      int jex = j + nyBorder;
+      int jex = j + topBorder;
       for (int i = 0; i < nx; i++) {
-         int iex = i + nxBorder;
+         int iex = i + leftBorder;
          for (int f = 0; f < nf; f++) {
             data[iex*sx + jex*sy + f*sf] = scale * (pvdata_t) buf[ii++];
          }
@@ -1625,14 +1689,14 @@ int HyPerLayer::doUpdateState(double timef, double dt, const PVLayerLoc * loc, p
    else{
       applyGSyn_HyPerLayer(num_neurons, V, gSynHead);
    }
-   setActivity_HyPerLayer(num_neurons, A, V, nx, ny, nf, loc->nb);
+   setActivity_HyPerLayer(num_neurons, A, V, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
 
    return PV_SUCCESS;
 }
 
 int HyPerLayer::setActivity() {
    const PVLayerLoc * loc = getLayerLoc();
-   return setActivity_HyPerLayer(getNumNeurons(), clayer->activity->data, getV(), loc->nx, loc->ny, loc->nf, loc->nb);
+   return setActivity_HyPerLayer(getNumNeurons(), clayer->activity->data, getV(), loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
 }
 
 int HyPerLayer::updateBorder(double time, double dt)
@@ -1676,7 +1740,7 @@ int HyPerLayer::calcActiveIndices() {
    pvdata_t * activity = clayer->activity->data;
 
    for (int k = 0; k < getNumNeurons(); k++) {
-      const int kex = kIndexExtended(k, loc.nx, loc.ny, loc.nf, loc.nb);
+      const int kex = kIndexExtended(k, loc.nx, loc.ny, loc.nf, loc.halo.lt, loc.halo.rt, loc.halo.dn, loc.halo.up);
       if (activity[kex] != 0.0) {
          clayer->activeIndices[numActive++] = globalIndexFromLocal(k, loc);
       }
@@ -1910,13 +1974,13 @@ int HyPerLayer::recvSynapticInputFromPost(HyPerConn * conn, const PVLayerCube * 
    const int targetNy = aTargetLoc->ny;
    const int targetNf = aTargetLoc->nf;
 
-   const int aSourceNb = aSourceLoc->nb;
-   const int oSourceNb = oSourceLoc->nb;
-   const int aTargetNb = aTargetLoc->nb;
-   const int oTargetNb = oTargetLoc->nb;
+   const PVHalo * aSourceHalo = &aSourceLoc->halo;
+   const PVHalo * oSourceHalo = &oSourceLoc->halo;
+   const PVHalo * aTargetHalo = &aTargetLoc->halo;
+   const PVHalo * oTargetHalo = &oTargetLoc->halo;
 
    //get source layer's extended y stride
-   int sy  = (sourceNx+2*aSourceNb)*sourceNf;
+   int sy  = (sourceNx+aSourceHalo->lt+aSourceHalo->rt)*sourceNf;
    //get source layer's patch y stride
    int syp = targetToSourceConn->yPatchStride(); // Should be correct even if targetToSourceConn points to a different layer than sourceToTargetConn's pre.
    //Iterate through y patch
@@ -1936,8 +2000,8 @@ int HyPerLayer::recvSynapticInputFromPost(HyPerConn * conn, const PVLayerCube * 
 #endif
    for (int kTargetRes = 0; kTargetRes < numRestricted; kTargetRes++){
       //Change restricted to extended post neuron
-      int akTargetExt = kIndexExtended(kTargetRes, targetNx, targetNy, targetNf, aTargetNb);
-      int okTargetExt = kIndexExtended(kTargetRes, targetNx, targetNy, targetNf, oTargetNb);
+      int akTargetExt = kIndexExtended(kTargetRes, targetNx, targetNy, targetNf, aTargetHalo->lt, aTargetHalo->rt, aTargetHalo->dn, aTargetHalo->up);
+      int okTargetExt = kIndexExtended(kTargetRes, targetNx, targetNy, targetNf, oTargetHalo->lt, oTargetHalo->rt, oTargetHalo->dn, oTargetHalo->up);
 
       bool inWindow; 
       inWindow = inWindowExt(arborID, akTargetExt);
@@ -2006,7 +2070,10 @@ int HyPerLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activity
 #endif
    for (int kPre = 0; kPre < numExtended; kPre++) {
       bool inWindow; 
-
+      //Post layer recieves synaptic input
+      //Only with respect to post layer
+      const PVLayerLoc * preLoc = conn->preSynapticLayer()->getLayerLoc();
+      const PVLayerLoc * postLoc = this->getLayerLoc();
       int kPost = layerIndexExt(kPre, preLoc, postLoc);
       inWindow = inWindowExt(arborID, kPost);
       if(!inWindow) continue;
@@ -2762,6 +2829,7 @@ int HyPerLayer::incrementNBands(int * numCalls) {
    return status;
 }
 
+// copyDirect is never called.  Do we still need it?
 /* copy src PVLayerCube to dest PVLayerCube */
 /* initialize src, dest to beginning of data structures */
 int copyDirect(pvdata_t * dest, pvdata_t * src, int nf, int nxSrc, int nySrc, int syDst, int sySrc)
@@ -2783,21 +2851,34 @@ int copyDirect(pvdata_t * dest, pvdata_t * src, int nf, int nxSrc, int nySrc, in
    return 0;
 }
 
+bool HyPerLayer::localDimensionsEqual(PVLayerLoc const * loc1, PVLayerLoc const * loc2) {
+   return
+         loc1->nx==loc2->nx &&
+         loc1->ny==loc2->ny &&
+         loc1->nf==loc2->nf &&
+         loc1->halo.lt==loc2->halo.lt &&
+         loc1->halo.rt==loc2->halo.rt &&
+         loc1->halo.dn==loc2->halo.dn &&
+         loc1->halo.up==loc2->halo.up;
+}
+
 int HyPerLayer::mirrorToNorthWest(PVLayerCube * dest, PVLayerCube * src)
 {
-   int nf = clayer->loc.nf;
-   int nb = dest->loc.nb;
+   if (!localDimensionsEqual(&dest->loc, &src->loc)) { return -1; }
+   int nf = dest->loc.nf;
+   int leftBorder = dest->loc.halo.lt;
+   int topBorder = dest->loc.halo.up;
    size_t sf = strideFExtended(&dest->loc);
    size_t sx = strideXExtended(&dest->loc);
    size_t sy = strideYExtended(&dest->loc);
 
-   pvdata_t * src0 = src-> data + nb*sy + nb*sx;
-   pvdata_t * dst0 = dest->data + (nb - 1)*sy + (nb - 1)*sx;
+   pvdata_t * src0 = src-> data + topBorder*sy + leftBorder*sx;
+   pvdata_t * dst0 = dest->data + (topBorder - 1)*sy + (leftBorder - 1)*sx;
 
-   for (int ky = 0; ky < nb; ky++) {
+   for (int ky = 0; ky < topBorder; ky++) {
       pvdata_t * to   = dst0 - ky*sy;
       pvdata_t * from = src0 + ky*sy;
-      for (int kx = 0; kx < nb; kx++) {
+      for (int kx = 0; kx < leftBorder; kx++) {
          for (int kf = 0; kf < nf; kf++) {
             to[kf*sf] = from[kf*sf];
          }
@@ -2810,17 +2891,19 @@ int HyPerLayer::mirrorToNorthWest(PVLayerCube * dest, PVLayerCube * src)
 
 int HyPerLayer::mirrorToNorth(PVLayerCube * dest, PVLayerCube * src)
 {
+   if (!localDimensionsEqual(&dest->loc, &src->loc)) { return -1; }
    int nx = clayer->loc.nx;
    int nf = clayer->loc.nf;
-   int nb = dest->loc.nb;
+   int leftBorder = dest->loc.halo.lt;
+   int topBorder = dest->loc.halo.up;
    size_t sf = strideFExtended(&dest->loc);
    size_t sx = strideXExtended(&dest->loc);
    size_t sy = strideYExtended(&dest->loc);
 
-   pvdata_t * src0 = src-> data + nb*sy + nb*sx;
-   pvdata_t * dst0 = dest->data + (nb-1)*sy + nb*sx;
+   pvdata_t * src0 = src-> data + topBorder*sy + leftBorder*sx;
+   pvdata_t * dst0 = dest->data + (topBorder-1)*sy + leftBorder*sx;
 
-   for (int ky = 0; ky < nb; ky++) {
+   for (int ky = 0; ky < topBorder; ky++) {
       pvdata_t * to   = dst0 - ky*sy;
       pvdata_t * from = src0 + ky*sy;
       for (int kx = 0; kx < nx; kx++) {
@@ -2836,20 +2919,23 @@ int HyPerLayer::mirrorToNorth(PVLayerCube * dest, PVLayerCube * src)
 
 int HyPerLayer::mirrorToNorthEast(PVLayerCube* dest, PVLayerCube* src)
 {
-   int nx = clayer->loc.nx;
-   int nf = clayer->loc.nf;
-   int nb = dest->loc.nb;
+   if (!localDimensionsEqual(&dest->loc, &src->loc)) { return -1; }
+   int nx = dest->loc.nx;
+   int nf = dest->loc.nf;
+   int leftBorder = dest->loc.halo.lt;
+   int rightBorder = dest->loc.halo.rt;
+   int topBorder = dest->loc.halo.up;
    size_t sf = strideFExtended(&dest->loc);
    size_t sx = strideXExtended(&dest->loc);
    size_t sy = strideYExtended(&dest->loc);
 
-   pvdata_t * src0 = src-> data + nb*sy + (nx + nb - 1)*sx;
-   pvdata_t * dst0 = dest->data + (nb-1)*sy + (nx + nb)*sx;
+   pvdata_t * src0 = src-> data + topBorder*sy + (nx + leftBorder - 1)*sx;
+   pvdata_t * dst0 = dest->data + (topBorder-1)*sy + (nx + leftBorder)*sx;
 
-   for (int ky = 0; ky < nb; ky++) {
+   for (int ky = 0; ky < topBorder; ky++) {
       pvdata_t * to   = dst0 - ky*sy;
       pvdata_t * from = src0 + ky*sy;
-      for (int kx = 0; kx < nb; kx++) {
+      for (int kx = 0; kx < rightBorder; kx++) {
          for (int kf = 0; kf < nf; kf++) {
             to[kf*sf] = from[kf*sf];
          }
@@ -2862,20 +2948,22 @@ int HyPerLayer::mirrorToNorthEast(PVLayerCube* dest, PVLayerCube* src)
 
 int HyPerLayer::mirrorToWest(PVLayerCube* dest, PVLayerCube* src)
 {
-   int ny = clayer->loc.ny;
-   int nf = clayer->loc.nf;
-   int nb = dest->loc.nb;
+   if (!localDimensionsEqual(&dest->loc, &src->loc)) { return -1; }
+   int ny = dest->loc.ny;
+   int nf = dest->loc.nf;
+   int leftBorder = dest->loc.halo.lt;
+   int topBorder = dest->loc.halo.up;
    size_t sf = strideFExtended(&dest->loc);
    size_t sx = strideXExtended(&dest->loc);
    size_t sy = strideYExtended(&dest->loc);
 
-   pvdata_t * src0 = src-> data + nb*sy + nb*sx;
-   pvdata_t * dst0 = dest->data + nb*sy + (nb - 1)*sx;
+   pvdata_t * src0 = src-> data + topBorder*sy + leftBorder*sx;
+   pvdata_t * dst0 = dest->data + topBorder*sy + (leftBorder - 1)*sx;
 
    for (int ky = 0; ky < ny; ky++) {
       pvdata_t * to   = dst0 + ky*sy;
       pvdata_t * from = src0 + ky*sy;
-      for (int kx = 0; kx < nb; kx++) {
+      for (int kx = 0; kx < leftBorder; kx++) {
          for (int kf = 0; kf < nf; kf++) {
             to[kf*sf] = from[kf*sf];
          }
@@ -2888,21 +2976,24 @@ int HyPerLayer::mirrorToWest(PVLayerCube* dest, PVLayerCube* src)
 
 int HyPerLayer::mirrorToEast(PVLayerCube* dest, PVLayerCube* src)
 {
+   if (!localDimensionsEqual(&dest->loc, &src->loc)) { return -1; }
    int nx = clayer->loc.nx;
    int ny = clayer->loc.ny;
    int nf = clayer->loc.nf;
-   int nb = dest->loc.nb;
+   int leftBorder = dest->loc.halo.lt;
+   int rightBorder = dest->loc.halo.rt;
+   int topBorder = dest->loc.halo.up;
    size_t sf = strideFExtended(&dest->loc);
    size_t sx = strideXExtended(&dest->loc);
    size_t sy = strideYExtended(&dest->loc);
 
-   pvdata_t * src0 = src-> data + nb*sy + (nx + nb - 1)*sx;
-   pvdata_t * dst0 = dest->data + nb*sy + (nx + nb)*sx;
+   pvdata_t * src0 = src-> data + topBorder*sy + (nx + leftBorder - 1)*sx;
+   pvdata_t * dst0 = dest->data + topBorder*sy + (nx + leftBorder)*sx;
 
    for (int ky = 0; ky < ny; ky++) {
       pvdata_t * to   = dst0 + ky*sy;
       pvdata_t * from = src0 + ky*sy;
-      for (int kx = 0; kx < nb; kx++) {
+      for (int kx = 0; kx < rightBorder; kx++) {
          for (int kf = 0; kf < nf; kf++) {
             to[kf*sf] = from[kf*sf];
          }
@@ -2915,20 +3006,23 @@ int HyPerLayer::mirrorToEast(PVLayerCube* dest, PVLayerCube* src)
 
 int HyPerLayer::mirrorToSouthWest(PVLayerCube* dest, PVLayerCube* src)
 {
-   int ny = clayer->loc.ny;
-   int nf = clayer->loc.nf;
-   int nb = dest->loc.nb;
+   if (!localDimensionsEqual(&dest->loc, &src->loc)) { return -1; }
+   int ny = dest->loc.ny;
+   int nf = dest->loc.nf;
+   int leftBorder = dest->loc.halo.lt;
+   int topBorder = dest->loc.halo.up;
+   int bottomBorder = dest->loc.halo.dn;
    size_t sf = strideFExtended(&dest->loc);
    size_t sx = strideXExtended(&dest->loc);
    size_t sy = strideYExtended(&dest->loc);
 
-   pvdata_t * src0 = src-> data + (ny + nb - 1)*sy + nb*sx;
-   pvdata_t * dst0 = dest->data + (ny + nb)*sy + (nb - 1)*sx;
+   pvdata_t * src0 = src-> data + (ny + topBorder - 1)*sy + leftBorder*sx;
+   pvdata_t * dst0 = dest->data + (ny + topBorder)*sy + (leftBorder - 1)*sx;
 
-   for (int ky = 0; ky < nb; ky++) {
+   for (int ky = 0; ky < bottomBorder; ky++) {
       pvdata_t * to   = dst0 + ky*sy;
       pvdata_t * from = src0 - ky*sy;
-      for (int kx = 0; kx < nb; kx++) {
+      for (int kx = 0; kx < leftBorder; kx++) {
          for (int kf = 0; kf < nf; kf++) {
             to[kf*sf] = from[kf*sf];
          }
@@ -2941,18 +3035,22 @@ int HyPerLayer::mirrorToSouthWest(PVLayerCube* dest, PVLayerCube* src)
 
 int HyPerLayer::mirrorToSouth(PVLayerCube* dest, PVLayerCube* src)
 {
-   int nx = clayer->loc.nx;
-   int ny = clayer->loc.ny;
-   int nf = clayer->loc.nf;
-   int nb = dest->loc.nb;
+   if (!localDimensionsEqual(&dest->loc, &src->loc)) { return -1; }
+   int nx = dest->loc.nx;
+   int ny = dest->loc.ny;
+   int nf = dest->loc.nf;
+   int leftBorder = dest->loc.halo.lt;
+   int rightBorder = dest->loc.halo.rt;
+   int topBorder = dest->loc.halo.up;
+   int bottomBorder = dest->loc.halo.dn;
    size_t sf = strideFExtended(&dest->loc);
    size_t sx = strideXExtended(&dest->loc);
    size_t sy = strideYExtended(&dest->loc);
 
-   pvdata_t * src0 = src-> data + (ny + nb -1)*sy + nb*sx;
-   pvdata_t * dst0 = dest->data + (ny + nb)*sy + nb*sx;
+   pvdata_t * src0 = src-> data + (ny + topBorder -1)*sy + leftBorder*sx;
+   pvdata_t * dst0 = dest->data + (ny + topBorder)*sy + leftBorder*sx;
 
-   for (int ky = 0; ky < nb; ky++) {
+   for (int ky = 0; ky < bottomBorder; ky++) {
       pvdata_t * to   = dst0 + ky*sy;
       pvdata_t * from = src0 - ky*sy;
       for (int kx = 0; kx < nx; kx++) {
@@ -2968,21 +3066,25 @@ int HyPerLayer::mirrorToSouth(PVLayerCube* dest, PVLayerCube* src)
 
 int HyPerLayer::mirrorToSouthEast(PVLayerCube* dest, PVLayerCube* src)
 {
-   int nx = clayer->loc.nx;
-   int ny = clayer->loc.ny;
-   int nf = clayer->loc.nf;
-   int nb = dest->loc.nb;
+   if (!localDimensionsEqual(&dest->loc, &src->loc)) { return -1; }
+   int nx = dest->loc.nx;
+   int ny = dest->loc.ny;
+   int nf = dest->loc.nf;
+   int leftBorder = dest->loc.halo.lt;
+   int rightBorder = dest->loc.halo.rt;
+   int topBorder = dest->loc.halo.up;
+   int bottomBorder = dest->loc.halo.dn;
    size_t sf = strideFExtended(&dest->loc);
    size_t sx = strideXExtended(&dest->loc);
    size_t sy = strideYExtended(&dest->loc);
 
-   pvdata_t * src0 = src-> data + (ny + nb - 1)*sy + (nx + nb - 1)*sx;
-   pvdata_t * dst0 = dest->data + (ny + nb)*sy + (nx + nb)*sx;
+   pvdata_t * src0 = src-> data + (ny + topBorder - 1)*sy + (nx + leftBorder - 1)*sx;
+   pvdata_t * dst0 = dest->data + (ny + topBorder)*sy + (nx + leftBorder)*sx;
 
-   for (int ky = 0; ky < nb; ky++) {
+   for (int ky = 0; ky < bottomBorder; ky++) {
       pvdata_t * to   = dst0 + ky*sy;
       pvdata_t * from = src0 - ky*sy;
-      for (int kx = 0; kx < nb; kx++) {
+      for (int kx = 0; kx < rightBorder; kx++) {
          for (int kf = 0; kf < nf; kf++) {
             to[kf*sf] = from[kf*sf];
          }
@@ -3080,8 +3182,8 @@ int HyPerLayer::copyFromBuffer(const T * buf, T * data,
    int nyBorder = 0;
 
    if (extended) {
-      nxBorder = loc->nb;
-      nyBorder = loc->nb;
+      nxBorder = loc->halo.lt;
+      nyBorder = loc->halo.up;
       sf = strideFExtended(loc);
       sx = strideXExtended(loc);
       sy = strideYExtended(loc);

@@ -51,6 +51,7 @@ public:
 
 protected:
    Random();
+   int defineBlocksFromPVLayerLoc(PVLayerLoc const * loc, bool isExtended, unsigned int * numBlocks, unsigned int * blockLength, unsigned int * numGlobalBlocks, unsigned int * globalBlockLength, unsigned int * startIndex);
    int initialize(HyPerCol * hc, unsigned int numBlocks, unsigned int blockLength, unsigned int numGlobalBlocks, unsigned int globalBlockLength, unsigned int startIndex);
 
 private:

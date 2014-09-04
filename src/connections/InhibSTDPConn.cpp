@@ -60,7 +60,7 @@ int InhibSTDPConn::updateWeights(int arborID)
    const int postNx = post->getLayerLoc()->nx;
    const int postNy = post->getLayerLoc()->ny;
    const int postNf = post->getLayerLoc()->nf;
-   const int postNb = post->getLayerLoc()->nb;
+   const PVHalo * postHalo = &post->getLayerLoc()->halo;
 
    //stride in restricted space
    const int postStrideYRes = postNf * postNx;
@@ -151,13 +151,13 @@ int InhibSTDPConn::updateWeights(int arborID)
    }
 #else
    // this stride is in extended space for post-synaptic activity and STDP decrement variable
-   const int postStrideYExt = postNf * (postNx + 2 * postNb);
+   const int postStrideYExt = postNf * (postNx + postHalo->lt + postHalo->rt);
 
    for (int kPreExt = 0; kPreExt < nkPre; kPreExt++)           // Loop over all presynaptic neurons
    {
       size_t postOffsetExt = getAPostOffset(kPreExt, arborID); // Gets start index for postsynaptic vectors for given presynaptic neuron and axon
       // size_t postOffsetRes = postOffsetExt - (postNb * (postNx + 2*postNb) + postNb);
-      size_t postOffsetRes = kIndexRestricted(postOffsetExt, postNx, postNy, postNf, postNb);
+      size_t postOffsetRes = kIndexRestricted(postOffsetExt, postNx, postNy, postNf, postHalo->lt, postHalo->rt, postHalo->dn, postHalo->up);
 
       //Post in extended space
       aPost          = &post->getLayerData()[postOffsetExt];   // Gets address of postsynaptic activity

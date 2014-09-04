@@ -25,7 +25,10 @@ void ANNDivLayer_update_state(
     const int nx,
     const int ny,
     const int nf,
-    const int nb,
+    const int lt,
+    const int rt,
+    const int dn,
+    const int up,
 
     CL_MEM_GLOBAL float * V,
     const float Vth,
@@ -42,7 +45,7 @@ void ANNDivLayer_update_state(
    //updateV():
    updateV_ANNDivInh(numNeurons, V, GSynHead);
    //setActivity():
-   setActivity_HyPerLayer(numNeurons, activity, V, nx, ny, nf, nb);
+   setActivity_HyPerLayer(numNeurons, activity, V, nx, ny, nf, lt, rt, dn, up);
    //resetGSynBuffers():
    resetGSynBuffers_HyPerLayer(numNeurons, 3, GSynHead);
 }

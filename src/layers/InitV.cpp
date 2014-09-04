@@ -178,7 +178,7 @@ int InitV::calcVFromFile(pvdata_t * V, const PVLayerLoc * loc, InterColComm * ic
       fileLoc.nx = params[INDEX_NX];
       fileLoc.ny = params[INDEX_NY];
       fileLoc.nf = params[INDEX_NF];
-      fileLoc.nb = params[INDEX_NB];
+      // fileLoc.nb = params[INDEX_NB];
       fileLoc.nxGlobal = params[INDEX_NX_GLOBAL];
       fileLoc.nyGlobal = params[INDEX_NY_GLOBAL];
       fileLoc.kx0 = 0;

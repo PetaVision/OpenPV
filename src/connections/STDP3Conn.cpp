@@ -260,7 +260,7 @@ int STDP3Conn::updateWeights(int axonId)
    }
 
    // this stride is in extended space for post-synaptic activity and STDP decrement variable
-   const int postStrideY = post->getLayerLoc()->nf * (post->getLayerLoc()->nx + 2 * post->getLayerLoc()->nb);
+   const int postStrideY = post->getLayerLoc()->nf * (post->getLayerLoc()->nx + post->getLayerLoc()->halo.lt + post->getLayerLoc()->halo.rt);
    //FIXME: In the first iteration post is -70!!
 
    for (int kPre = 0; kPre < nkpre; kPre++) {

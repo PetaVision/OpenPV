@@ -39,13 +39,8 @@ Random::Random(HyPerCol * hc, int count) {
 // random number does not depend on the MPI configuration.
 Random::Random(HyPerCol * hc, const PVLayerLoc * locptr, bool isExtended) {
    initialize_base();
-   int nb = isExtended ? locptr->nb : 0;
-   int numBlocks = locptr->ny+2*nb;
-   int blockLength =  (locptr->nx+2*nb)*locptr->nf;
-   int numGlobalBlocks = locptr->nyGlobal+2*nb;
-   int nxGlobal = locptr->nxGlobal+2*nb;
-   int globalBlockLength = nxGlobal*locptr->nf;
-   int startIndex = kIndex(locptr->kx0, locptr->ky0, 0, nxGlobal, numGlobalBlocks, locptr->nf);
+   unsigned int numBlocks, blockLength, numGlobalBlocks, nxGlobal, globalBlockLength, startIndex;
+   defineBlocksFromPVLayerLoc(locptr, isExtended, &numBlocks, &blockLength, &numGlobalBlocks, &globalBlockLength, &startIndex);
 
    initialize(hc, numBlocks, blockLength, numGlobalBlocks, globalBlockLength, startIndex);
 }
@@ -88,6 +83,25 @@ int Random::initialize(HyPerCol * hc, unsigned int numBlocks, unsigned int block
       }
    }
    return status;
+}
+int Random::defineBlocksFromPVLayerLoc(PVLayerLoc const * loc, bool isExtended, unsigned int * numBlocks, unsigned int * blockLength, unsigned int * numGlobalBlocks, unsigned int * globalBlockLength, unsigned int * startIndex) {
+   PVHalo halo;
+   if (isExtended) {
+      memcpy(&halo, &(loc->halo), sizeof(halo));
+   }
+   else {
+      halo.lt = 0;
+      halo.rt = 0;
+      halo.dn = 0;
+      halo.up = 0;
+   }
+   *numBlocks = loc->ny+halo.dn + halo.up;
+   *blockLength =  (loc->nx+halo.lt+halo.rt)*loc->nf;
+   *numGlobalBlocks = loc->nyGlobal+halo.dn+halo.up;
+   int nxGlobal = loc->nxGlobal+halo.lt+halo.rt;
+   *globalBlockLength = nxGlobal*loc->nf;
+   *startIndex = kIndex(loc->kx0, loc->ky0, 0, nxGlobal, (int) *numGlobalBlocks, loc->nf);
+   return PV_SUCCESS;
 }
 
 float Random::uniformRandom(int localIndex) {

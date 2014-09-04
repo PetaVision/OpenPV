@@ -624,16 +624,16 @@ int pvp_check_file_header(Communicator * comm, const PVLayerLoc * loc, int param
          status = PV_SUCCESS; // kernels can be used regardless of num procs
       }
    }
-   if (loc->nb != params[INDEX_NB]) {status = PV_FAILURE; tmp_status = INDEX_NB;}
-   if (tmp_status == INDEX_NB) {
-      if (params[INDEX_FILE_TYPE] != PVP_KERNEL_FILE_TYPE){
-         fprintf(stderr, "nPad = %d != params[%d]==%d ", loc->nb, INDEX_NB, params[INDEX_NB]);
-         fprintf(stderr, "\n");
-      }
-      else {
-         status = PV_SUCCESS; // kernels can be used regardless of margin size
-      }
-   }
+   // if (loc->nb != params[INDEX_NB]) {status = PV_FAILURE; tmp_status = INDEX_NB;}
+   // if (tmp_status == INDEX_NB) {
+   //    if (params[INDEX_FILE_TYPE] != PVP_KERNEL_FILE_TYPE){
+   //       fprintf(stderr, "nPad = %d != params[%d]==%d ", loc->nb, INDEX_NB, params[INDEX_NB]);
+   //       fprintf(stderr, "\n");
+   //    }
+   //    else {
+   //       status = PV_SUCCESS; // kernels can be used regardless of margin size
+   //    }
+   // }
    //TODO: remove? Duplicated check from above.
    //if (loc->nf != params[INDEX_NF]) {status = PV_FAILURE; tmp_status = INDEX_NF;}
    //if (tmp_status == INDEX_NF) {
@@ -919,7 +919,7 @@ int pvp_write_header(PV_Stream * pvstream, Communicator * comm, double time, con
    params[INDEX_NY_GLOBAL]   = loc->nyGlobal;
    params[INDEX_KX0]         = loc->kx0;
    params[INDEX_KY0]         = loc->ky0;
-   params[INDEX_NB]          = loc->nb;
+   params[INDEX_NB]          = 0; // loc->nb;
    params[INDEX_NBANDS]      = numbands;
 
    timeToParams(time, &params[INDEX_TIME]);
@@ -951,7 +951,7 @@ int * pvp_set_file_params(Communicator * comm, double timed, const PVLayerLoc * 
    params[INDEX_NY_GLOBAL]   = loc->nyGlobal;
    params[INDEX_KX0]         = 0;
    params[INDEX_KY0]         = 0;
-   params[INDEX_NB]          = loc->nb;
+   params[INDEX_NB]          = 0; // loc->nb;
    params[INDEX_NBANDS]      = numbands;
    timeToParams(timed, &params[INDEX_TIME]);
    return params;
@@ -977,7 +977,7 @@ int * pvp_set_activity_params(Communicator * comm, double timed, const PVLayerLo
    params[INDEX_KX0]         = 0;
    params[INDEX_KY0]         = 0;
    params[INDEX_NBANDS]      = numbands;
-   params[INDEX_NB]          = loc->nb;
+   params[INDEX_NB]          = 0; // loc->nb;
    timeToParams(timed, &params[INDEX_TIME]);
    return params;
 }
@@ -1004,7 +1004,7 @@ int * pvp_set_weight_params(Communicator * comm, double timed, const PVLayerLoc 
    params[INDEX_NY_GLOBAL]   = loc->nyGlobal;
    params[INDEX_KX0]         = 0;
    params[INDEX_KY0]         = 0;
-   params[INDEX_NB]          = loc->nb;
+   params[INDEX_NB]          = 0; // loc->nb;
    params[INDEX_NBANDS]      = numbands;
    timeToParams(timed, &params[INDEX_TIME]);
    set_weight_params(params, nxp, nyp, nfp, min, max, numPatches);
@@ -1030,7 +1030,7 @@ int * pvp_set_nonspiking_act_params(Communicator * comm, double timed, const PVL
    params[INDEX_NY_GLOBAL]   = loc->nyGlobal;
    params[INDEX_KX0]         = 0;
    params[INDEX_KY0]         = 0;
-   params[INDEX_NB]          = loc->nb;
+   params[INDEX_NB]          = 0; // loc->nb;
    params[INDEX_NBANDS]      = numbands;
    timeToParams(timed, &params[INDEX_TIME]);
    return params;
@@ -1057,7 +1057,7 @@ int * pvp_set_kernel_params(Communicator * comm, double timed, const PVLayerLoc 
    params[INDEX_NY_GLOBAL]   = loc->nyGlobal;
    params[INDEX_KX0]         = 0;
    params[INDEX_KY0]         = 0;
-   params[INDEX_NB]          = loc->nb;
+   params[INDEX_NB]          = 0; // loc->nb;
    timeToParams(timed, &params[INDEX_TIME]);
    set_weight_params(params, nxp, nyp, nfp, min, max, numPatches);
    return params;
@@ -1083,7 +1083,7 @@ int * pvp_set_nonspiking_sparse_act_params(Communicator * comm, double timed, co
    params[INDEX_KX0]         = 0;
    params[INDEX_KY0]         = 0;
    params[INDEX_NBANDS]      = numbands;
-   params[INDEX_NB]          = loc->nb;
+   params[INDEX_NB]          = 0; // loc->nb;
    timeToParams(timed, &params[INDEX_TIME]);
    return params;
 }
@@ -1224,7 +1224,7 @@ int writeActivitySparse(PV_Stream * pvstream, PV_Stream * posstream, Communicato
             indexvaluepairs[j].index = indices[j];
             // indices[j] is a global restricted index
             int localRestrictedIndex = localIndexFromGlobal(indices[j], l->loc);
-            int localExtendedIndex = kIndexExtended(localRestrictedIndex, l->loc.nx, l->loc.ny, l->loc.nf, l->loc.nb);
+            int localExtendedIndex = kIndexExtended(localRestrictedIndex, l->loc.nx, l->loc.ny, l->loc.nf, l->loc.halo.lt, l->loc.halo.rt, l->loc.halo.dn, l->loc.halo.up);
             indexvaluepairs[j].value = l->activity->data[localExtendedIndex];
          }
          data = (void *) indexvaluepairs;
@@ -1331,7 +1331,7 @@ int writeActivitySparse(PV_Stream * pvstream, PV_Stream * posstream, Communicato
             for (int k=0; k<localActive; k++) {
                indexvaluepairs[k].index = indices[k];
                int localRestricted = localIndexFromGlobal(indices[k], l->loc);
-               int localExtended = kIndexExtended(localRestricted, l->loc.nx, l->loc.ny, l->loc.nf, l->loc.nb);
+               int localExtended = kIndexExtended(localRestricted, l->loc.nx, l->loc.ny, l->loc.nf, l->loc.halo.lt, l->loc.halo.rt, l->loc.halo.dn, l->loc.halo.up);
                indexvaluepairs[k].value = l->activity->data[localExtended];
             }
             status = (PV_fwrite(indexvaluepairs, sizeof(indexvaluepair), localActive, pvstream) != (size_t) localActive);
@@ -1832,13 +1832,16 @@ template <typename T> int gatherActivity(PV_Stream * pvstream, Communicator * co
    int yLineStart = 0;
    int xBufSize = layerLoc->nx;
    int yBufSize = layerLoc->ny;
-   int nb = 0;
+   PVHalo halo;
    if (extended) {
-      nb = layerLoc->nb;
-      xLineStart = nb;
-      yLineStart = nb;
-      xBufSize += 2*nb;
-      yBufSize += 2*nb;
+      memcpy(&halo,&layerLoc->halo,sizeof(halo));
+      xLineStart = halo.lt;
+      yLineStart = halo.up;
+      xBufSize += halo.lt+halo.rt;
+      yBufSize += halo.dn+halo.up;
+   }
+   else {
+      halo.lt = halo.rt = halo.dn = halo.up = 0;
    }
 
    int linesize = layerLoc->nx*layerLoc->nf; // All values across x and f for a specific y are contiguous; do a single write for each y.
@@ -1885,7 +1888,7 @@ template <typename T> int gatherActivity(PV_Stream * pvstream, Communicator * co
          if (r==rootproc) {
             if (extended) {
                for (int y=0; y<layerLoc->ny; y++) {
-                  int k_extended = kIndex(nb, y+yLineStart, 0, xBufSize, yBufSize, layerLoc->nf);
+                  int k_extended = kIndex(halo.lt, y+yLineStart, 0, xBufSize, yBufSize, layerLoc->nf);
                   int k_restricted = kIndex(0, y, 0, layerLoc->nx, layerLoc->ny, layerLoc->nf);
                   memcpy(&temp_buffer[k_restricted], &buffer[k_extended], datasize*linesize);
                }
@@ -1924,10 +1927,10 @@ template <typename T> int gatherActivity(PV_Stream * pvstream, Communicator * co
       PV_fseek(pvstream, startpos+numLocalNeurons*datasize*comm_size, SEEK_SET);
    }
    else {
-      if (nb>0) {
+      if (halo.lt || halo.rt || halo.dn || halo.up) {
          // temp_buffer is a restricted buffer, but if extended is true, buffer is an extended buffer.
          for (int y=0; y<layerLoc->ny; y++) {
-            int k_extended = kIndex(nb, y+yLineStart, 0, xBufSize, yBufSize, layerLoc->nf);
+            int k_extended = kIndex(halo.lt, y+yLineStart, 0, xBufSize, yBufSize, layerLoc->nf);
             int k_restricted = kIndex(0, y, 0, layerLoc->nx, layerLoc->ny, layerLoc->nf);
             memcpy(&temp_buffer[k_restricted], &buffer[k_extended], datasize*linesize);
          }
@@ -1971,18 +1974,18 @@ template <typename T> int scatterActivity(PV_Stream * pvstream, Communicator * c
    int yLineStart = 0;
    int xBufSize = layerLoc->nx;
    int yBufSize = layerLoc->ny;
-   int nb = 0;
    int kx0;
    int ky0;
    int * activeNeurons;
    T * TBuff;
    pvdata_t * TBuff1;
+   PVHalo halo;
    if (extended) {
-      nb = layerLoc->nb;
-      xLineStart = nb;
-      yLineStart = nb;
-      xBufSize += 2*nb;
-      yBufSize += 2*nb;
+      memcpy(&halo, &layerLoc->halo, sizeof(halo));
+      xLineStart = halo.lt;
+      yLineStart = halo.up;
+      xBufSize += halo.lt+halo.rt;
+      yBufSize += halo.dn+halo.up;
    }
    int linesize = layerLoc->nx * layerLoc->nf;
    switch (filetype) {
@@ -2220,7 +2223,7 @@ template <typename T> int scatterActivity(PV_Stream * pvstream, Communicator * c
 
    // At this point, each process has the data, as a restricted layer, in temp_buffer.
    // Each process now copies the data to buffer, which may be extended.
-   if (nb>0) {
+   if (extended) {
       for (int y=0; y<layerLoc->ny; y++) {
          int k_extended = kIndex(xLineStart, y+yLineStart, 0, xBufSize, yBufSize, layerLoc->nf);
          int k_restricted = kIndex(0, y, 0, layerLoc->nx, layerLoc->ny, layerLoc->nf);

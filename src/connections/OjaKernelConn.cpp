@@ -162,7 +162,7 @@ int OjaKernelConn::updateState(double timef, double dt)
    // Update output firing rate
    const PVLayerLoc * postloc = post->getLayerLoc();
    for (int kpost=0; kpost<post->getNumNeurons(); kpost++) {
-      int kpostext = kIndexExtended(kpost, postloc->nx, postloc->ny, postloc->nf, postloc->nb);
+      int kpostext = kIndexExtended(kpost, postloc->nx, postloc->ny, postloc->nf, postloc->halo.lt, postloc->halo.rt, postloc->halo.dn, postloc->halo.up);
       outputFiringRate[kpost] = decayfactor * (outputFiringRate[kpost] + post->getLayerData()[kpostext]/integrationTime);
    }
    // Update input firing rates
