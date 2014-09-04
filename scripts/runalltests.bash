@@ -420,6 +420,7 @@ testname=test_gauss2d
 cd "$testname"
 arglist=""
 runandecho $testname $testname Debug/$testname $arglist
+mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
 cd "$workspacedir"
 
 testname=test_kg
@@ -493,6 +494,20 @@ cd "$workspacedir"
 testname=TransposeConnTest
 cd "$testname"
 arglist="" # parameter filename is in main()
+runandecho $testname $testname Debug/$testname $arglist
+mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
+cd "$workspacedir"
+
+testname=UnequalPatchSizeTest
+cd "$testname"
+arglist="-p input/UnequalPatchSizeTest.params"
+runandecho $testname $testname Debug/$testname $arglist
+mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
+cd "$workspacedir"
+
+testname=UpdateFromCloneTest
+cd "$testname"
+arglist="-p input/updateFromCloneTest.params"
 runandecho $testname $testname Debug/$testname $arglist
 mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
 cd "$workspacedir"
