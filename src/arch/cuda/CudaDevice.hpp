@@ -9,6 +9,8 @@
 #define CUDADEVICE_HPP_
 
 
+#include "CudaBuffer.hpp"
+
 namespace PVCuda{
 #include <stdio.h>
 #include <cuda_runtime_api.h>
@@ -25,8 +27,13 @@ public:
 
    int id()  { return device_id; }
 
-   //TODO do texture memory for readonly memory
-   //CLBuffer * createBuffer(void* h_ptr);
+   CudaBuffer * createBuffer(size_t size);
+
+   cudaStream_t getStream(){return stream;}
+   
+   void syncDevice();
+  
+
    //CLBuffer * createBuffer(cl_mem_flags flags, size_t size, void * host_ptr);
 
    //CLBuffer * createReadBuffer(size_t size, void * host_ptr)
@@ -54,6 +61,7 @@ public:
 protected:
    int num_devices;                  // number of computing devices
    struct cudaDeviceProp device_props;
+   cudaStream_t stream;
 };
 
 } // namespace PV

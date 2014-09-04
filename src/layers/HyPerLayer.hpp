@@ -90,7 +90,10 @@ DerivedLayer::initialize(arguments) {
 #ifdef PV_USE_CUDA
 #include "../arch/cuda/CudaKernel.hpp"
 #include "../arch/cuda/CudaBuffer.hpp"
+#include "../arch/cuda/CudaTimer.hpp"
 #endif
+
+#include <vector>
 
 
 
@@ -170,6 +173,12 @@ protected:
    virtual int recvSynapticInput(HyPerConn * conn, const PVLayerCube * cube, int arborID);
    virtual int recvSynapticInputFromPost(HyPerConn * conn, const PVLayerCube * activity, int arborID);
    void recvOnePreNeuronActivity(HyPerConn * conn, int patchIndex, int arbor, pvadata_t a, pvadata_t * postBufferStart, void * auxPtr);
+
+#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+   virtual int recvSynapticInputGpu(HyPerConn * conn, const PVLayerCube * cube, int arborID);
+   virtual int recvSynapticInputFromPostGpu(HyPerConn * conn, const PVLayerCube * activity, int arborID);
+#endif
+
 
    int freeClayer();
 
@@ -423,13 +432,19 @@ protected:
 //   int feedbackDelay;     // minimum delay required for a change in this layer to potentially influence itself via feedback loop
 private:
 
-   
-   // OpenMP variables
    pvdata_t ** thread_gSyn; //Accumulate buffer for each thread, only used if numThreads > 1
+   std::vector<HyPerConn*> recvConns;
 
    // OpenCL variables
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
 public:
+
+#ifdef PV_USE_CUDA
+   virtual float syncGpu();
+#endif
+
+   void copyAllGSynToDevice();
+   void copyAllGSynFromDevice();
 
 #ifdef PV_USE_OPENCL
    CLBuffer * getDeviceV(){
@@ -478,6 +493,10 @@ public:
       updatedDeviceActivity = in;
    }
 
+   bool getRecvGpu(){
+      return recvGpu;
+   }
+
 #ifdef PV_USE_OPENCL
    void clFinishGSyn(){
       for(int i = 0; i < this->numChannels; i++){
@@ -513,6 +532,7 @@ protected:
    bool* allocDeviceGSyn;         // array of channels to allocate
    bool allocDeviceActivity;
    bool updatedDeviceActivity;
+   bool recvGpu;
 
 #ifdef PV_USE_OPENCL
    CLBuffer * d_V;
@@ -525,17 +545,19 @@ protected:
    PVCuda::CudaBuffer * d_Activity;
 #endif
 
-
 #endif
 
 protected:
    Timer * update_timer;
    Timer * recvsyn_timer;
-   Timer * recvsyn_io_timer;
    Timer * recvsyn_calc_timer;
    Timer * publish_timer;
    Timer * timescale_timer;
    Timer * io_timer;
+
+#ifdef PV_USE_CUDA
+   PVCuda::CudaTimer * gpu_recvsyn_timer ;
+#endif
 };
 
 } // namespace PV

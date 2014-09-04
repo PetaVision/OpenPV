@@ -1987,7 +1987,7 @@ int HyPerConn::allocateDeviceBuffers()
             origConn->setDeviceWData(device->createBuffer(CL_MEM_READ_ONLY, size, NULL));
 #endif
 #ifdef PV_USE_CUDA
-            origConn->setDeviceWData(new PVCuda::CudaBuffer(size));
+            origConn->setDeviceWData(device->createBuffer(size));
 #endif
          }
 
@@ -1996,7 +1996,7 @@ int HyPerConn::allocateDeviceBuffers()
          d_PostToPreActivity = device->createBuffer(CL_MEM_READ_ONLY, numPostRes*sizeof(long), NULL); 
 #endif
 #ifdef PV_USE_CUDA
-         d_PostToPreActivity = new PVCuda::CudaBuffer(numPostRes*sizeof(long)); 
+         d_PostToPreActivity = device->createBuffer(numPostRes*sizeof(long)); 
 #endif
 
          if(sharedWeights){
@@ -2005,7 +2005,7 @@ int HyPerConn::allocateDeviceBuffers()
             d_Patch2DataLookupTable = device->createBuffer(CL_MEM_READ_ONLY, numWeightPatches * sizeof(int), NULL);  
 #endif
 #ifdef PV_USE_CUDA
-            d_Patch2DataLookupTable = new PVCuda::CudaBuffer(numWeightPatches * sizeof(int));  
+            d_Patch2DataLookupTable = device->createBuffer(numWeightPatches * sizeof(int));  
 #endif
          }
       }
@@ -2016,7 +2016,7 @@ int HyPerConn::allocateDeviceBuffers()
             d_WData = device->createBuffer(CL_MEM_READ_ONLY, size, NULL);
 #endif
 #ifdef PV_USE_CUDA
-            d_WData = new PVCuda::CudaBuffer(size);
+            d_WData = device->createBuffer(size);
 #endif
             assert(d_WData);
          }
@@ -2078,7 +2078,7 @@ int HyPerConn::allocateDeviceBuffers()
          d_Patches = device->createBuffer(CL_MEM_READ_ONLY, patchSize, NULL); 
 #endif
 #ifdef PV_USE_CUDA
-         d_Patches = new PVCuda::CudaBuffer(patchSize); 
+         d_Patches = device->createBuffer(patchSize); 
 #endif
 
          //Need a buffer for gsynpatch start for one arbor
@@ -2087,7 +2087,7 @@ int HyPerConn::allocateDeviceBuffers()
          d_GSynPatchStart = device->createBuffer(CL_MEM_READ_ONLY, gsynPatchStartIndexSize, NULL); 
 #endif
 #ifdef PV_USE_CUDA
-         d_GSynPatchStart = new PVCuda::CudaBuffer(gsynPatchStartIndexSize); 
+         d_GSynPatchStart = device->createBuffer(gsynPatchStartIndexSize); 
 #endif
 
          //Need a local host buffer for the new localGSynPatchStart
@@ -2124,7 +2124,7 @@ int HyPerConn::allocateDeviceBuffers()
          d_PostToPreActivity = device->createBuffer(CL_MEM_READ_ONLY, numPostRes*sizeof(long), NULL); 
 #endif
 #ifdef PV_USE_CUDA
-         d_PostToPreActivity = new PVCuda::CudaBuffer(numPostRes*sizeof(long)); 
+         d_PostToPreActivity = device->createBuffer(numPostRes*sizeof(long)); 
 #endif
 
          if(sharedWeights){
@@ -2133,7 +2133,7 @@ int HyPerConn::allocateDeviceBuffers()
             d_Patch2DataLookupTable = device->createBuffer(CL_MEM_READ_ONLY, numWeightPatches * sizeof(int), NULL);  
 #endif
 #ifdef PV_USE_CUDA
-            d_Patch2DataLookupTable = new PVCuda::CudaBuffer(numWeightPatches * sizeof(int));  
+            d_Patch2DataLookupTable = device->createBuffer(numWeightPatches * sizeof(int));  
 #endif
          }
       }

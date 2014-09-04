@@ -53,15 +53,32 @@ HyPerCol::~HyPerCol()
       delete connections[n];
    }
 
-   for (n = 0; n < numLayers; n++) {
-      if (layers[n] != NULL) {
-         delete layers[n];
+   int rank=columnId(); // Need to save so that we know whether we're the process that does I/O, even after deleting icComm.
+
+   //Delete by phases
+   for (int phase=0; phase<numPhases; phase++) {
+      if(phaseRecvTimers){
+         if (rank==0) {
+            //Timing info for phases
+            phaseRecvTimers[phase]->fprint_time(stdout);
+            fflush(stdout);
+         }
+         delete phaseRecvTimers[phase];
       }
+
+      for (n = 0; n < numLayers; n++) {
+         if (layers[n] != NULL) {
+            if(layers[n]->getPhase() != phase) continue;
+            delete layers[n];
+         }
+      }
+   }
+   if(phaseRecvTimers){
+      free(phaseRecvTimers);
    }
 
    if (ownsParams) delete params;
 
-   int rank=columnId(); // Need to save so that we know whether we're the process that does I/O, even after deleting icComm.
    if (ownsInterColComm) {
       delete icComm;
    }
@@ -170,6 +187,7 @@ int HyPerCol::initialize_base() {
    icComm = NULL;
    runDelegate = NULL;
    runTimer = NULL;
+   phaseRecvTimers = NULL;
    numColProbes = 0;
    colProbes = NULL;
    numBaseProbes = 0;
@@ -183,6 +201,7 @@ int HyPerCol::initialize_base() {
    writeTimescales = true; //Defaults to true
    errorOnNotANumber = false;
    numThreads = 1;
+   layerBuffer.clear();
 
    return PV_SUCCESS;
 }
@@ -1207,6 +1226,14 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
       }
    }
 
+   //Allocate all phaseRecvTimers
+   phaseRecvTimers = (Timer**) malloc(numPhases * sizeof(Timer*));
+   for(int phase = 0; phase < numPhases; phase++){ 
+      char tmpStr[10];
+      sprintf(tmpStr, "phRecv%d", phase);
+      phaseRecvTimers[phase] = new Timer(name, "column", tmpStr);
+   }
+
    const bool exitOnFinish = false;
 
    initPublishers(); // create the publishers and their data stores
@@ -1584,13 +1611,52 @@ int HyPerCol::advanceTime(double sim_time)
 
    // Each layer's phase establishes a priority for updating
    for (int phase=0; phase<numPhases; phase++) {
+#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+      //Clear layer buffer
+      layerBuffer.clear();
+#endif
 
+      //Time recv for each phase
       // clear GSyn buffers
       for(int l = 0; l < numLayers; l++) {
          if (layers[l]->getPhase() != phase) continue;
+#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+         //Save non gpu layers for later
+         if(!layers[l]->getRecvGpu()){
+            layerBuffer.push_back(layers[l]);
+            continue;
+         }
+#endif
          layers[l]->resetGSynBuffers(simTime, deltaTimeBase);  // deltaTimeAdapt is not used 
+         phaseRecvTimers[phase]->start();
          layers[l]->recvAllSynapticInput();
+         phaseRecvTimers[phase]->stop();
       }
+
+#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+      //Run non gpu layers
+      for(std::vector<HyPerLayer*>::iterator it = layerBuffer.begin(); it < layerBuffer.end(); it++){
+         HyPerLayer * layer = *it;
+         layer->resetGSynBuffers(simTime, deltaTimeBase);  // deltaTimeAdapt is not used 
+         phaseRecvTimers[phase]->start();
+         layer->recvAllSynapticInput();
+         phaseRecvTimers[phase]->stop();
+      }
+      layerBuffer.clear();
+#endif
+
+#ifdef PV_USE_CUDA
+      //Barriers for all gpus, and copy back all gsyn
+      for(int l = 0; l < numLayers; l++) {
+         if (layers[l]->getPhase() != phase) continue;
+         phaseRecvTimers[phase]->start();
+         layers[l]->copyAllGSynFromDevice();
+         layers[l]->syncGpu();
+         phaseRecvTimers[phase]->stop();
+      }
+#endif
+
+
       //    for (int l = 0; l < numLayers; l++) {
       //       // deliver new synaptic activity to any
       //       // postsynaptic layers for which this

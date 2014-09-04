@@ -177,6 +177,7 @@ int HyPerLayer::initialize_base() {
    this->d_GSyn = NULL;
    this->d_Activity = NULL;
    this->updatedDeviceActivity = true; //Start off always updating activity
+   this->recvGpu = false;
 
 //   this->clPrevTime = NULL;
 //   this->clParams = NULL;
@@ -193,7 +194,12 @@ int HyPerLayer::initialize_base() {
    this->timescale_timer = NULL;
    this->io_timer      = NULL;
 
+#ifdef PV_USE_CUDA
+   this->gpu_recvsyn_timer = NULL;
+#endif
+
    this->thread_gSyn = NULL;
+   this->recvConns.clear();
 
    return PV_SUCCESS;
 }
@@ -213,6 +219,11 @@ int HyPerLayer::initialize(const char * name, HyPerCol * hc) {
    this->publish_timer = new Timer(getName(), "layer", "publish");
    this->timescale_timer = new Timer(getName(), "layer", "timescale");
    this->io_timer =      new Timer(getName(), "layer", "io     ");
+
+#ifdef PV_USE_CUDA
+   this->gpu_recvsyn_timer = new PVCuda::CudaTimer(getName(), "layer", "gpurecvsyn");
+   this->gpu_recvsyn_timer->setStream(hc->getCudaDevice()->getStream());
+#endif
 
    PVParams * params = parent->parameters();
 
@@ -327,6 +338,9 @@ HyPerLayer::~HyPerLayer()
 {
    if (parent->columnId() == 0) {
       recvsyn_timer->fprint_time(stdout);
+#ifdef PV_USE_CUDA
+    gpu_recvsyn_timer->fprint_time(stdout);
+#endif
       update_timer->fprint_time(stdout);
       publish_timer->fprint_time(stdout);
       timescale_timer->fprint_time(stdout);
@@ -338,6 +352,9 @@ HyPerLayer::~HyPerLayer()
    delete publish_timer;  publish_timer = NULL;
    delete timescale_timer;  timescale_timer = NULL;
    delete io_timer;       io_timer      = NULL;
+#ifdef PV_USE_CUDA
+   delete gpu_recvsyn_timer; gpu_recvsyn_timer = NULL;
+#endif
 
    delete initVObject; initVObject = NULL;
    freeClayer();
@@ -854,7 +871,7 @@ int HyPerLayer::allocateDeviceBuffers()
       d_V = device->createBuffer(CL_MEM_READ_WRITE, size, NULL);
 #endif
 #ifdef PV_USE_CUDA
-      d_V = new PVCuda::CudaBuffer(size);
+      d_V = device->createBuffer(size);
 #endif 
    }
 
@@ -863,7 +880,7 @@ int HyPerLayer::allocateDeviceBuffers()
       d_Activity = device->createBuffer(CL_MEM_READ_ONLY, size_ex, NULL);
 #endif
 #ifdef PV_USE_CUDA
-      d_Activity = new PVCuda::CudaBuffer(size_ex);
+      d_Activity = device->createBuffer(size_ex);
 #endif 
    }
 
@@ -880,7 +897,7 @@ int HyPerLayer::allocateDeviceBuffers()
          d_GSyn[i] = device->createBuffer(CL_MEM_READ_WRITE, size, NULL);
 #endif
 #ifdef PV_USE_CUDA
-         d_GSyn[i] = new PVCuda::CudaBuffer(size);
+         d_GSyn[i] = device->createBuffer(size);
 #endif 
       }
       else{
@@ -1052,6 +1069,7 @@ void HyPerLayer::synchronizeMarginWidth(HyPerLayer * layer) {
 
 int HyPerLayer::allocateDataStructures()
 {
+   std::cout.flush();
    // Once initialize and communicateInitInfo have been called, HyPerLayer has the
    // information it needs to allocate the membrane potential buffer V, the
    // activity buffer activity->data, and the data store.
@@ -1139,6 +1157,29 @@ int HyPerLayer::allocateDataStructures()
       exit(PV_FAILURE);
    }
 #endif
+
+   //Make a data structure that stores the connections (in order of execution) this layer needs to recv from
+   //CPU connections must run first to avoid race conditions
+   int numConnections = parent->numberOfConnections();
+   for(int c=0; c<numConnections; c++){
+      HyPerConn * conn = parent->getConnection(c);
+      if(conn->postSynapticLayer()!=this) continue;
+#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+      //If not recv from gpu, execute first
+      if(!conn->getReceiveGpu()){
+         recvConns.insert(recvConns.begin(), conn);
+      }
+      //Otherwise, add to the back. If no gpus at all, just add to back
+      else
+#endif
+      {
+         recvConns.push_back(conn);
+#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+         //If it is receiving from gpu, set layer flag as such
+         recvGpu = true;
+#endif
+      }
+   }
 
    // do allocation stage for probes
    for (int i=0; i<numProbes; i++) {
@@ -1679,10 +1720,27 @@ int HyPerLayer::recvAllSynapticInput() {
    int status = PV_SUCCESS;
    //Only recvAllSynapticInput if we need an update
    if(needUpdate(parent->simulationTime(), parent->getDeltaTime())){
-      int numConnections = parent->numberOfConnections();
-      for (int c=0; c<numConnections; c++) {
-         HyPerConn * conn = parent->getConnection(c);
-         if (conn->postSynapticLayer()!=this) continue;
+      //int numConnections = parent->numberOfConnections();
+      //for (int c=0; c<numConnections; c++) {
+         //HyPerConn * conn = parent->getConnection(c);
+         //if (conn->postSynapticLayer()!=this) continue;
+      bool switchGpu = false;
+      //Start CPU timer here
+      recvsyn_timer->start();
+
+      for(std::vector<HyPerConn*>::iterator it = recvConns.begin(); it < recvConns.end(); it++){
+         HyPerConn * conn = *it;
+#ifdef PV_USE_CUDA
+         //Check if it's done with cpu connections
+         if(!switchGpu && conn->getReceiveGpu()){
+            //Start gpu timer
+            gpu_recvsyn_timer->start();
+            //Copy GSyn over to GPU
+            copyAllGSynToDevice();
+            switchGpu = true;
+         }
+#endif
+
          //Check if updating from post perspective
          HyPerLayer * pre = conn->preSynapticLayer();
          PVLayerCube cube;
@@ -1691,18 +1749,31 @@ int HyPerLayer::recvAllSynapticInput() {
          cube.size = sizeof(PVLayerCube);
          DataStore * store = parent->icCommunicator()->publisherStore(pre->getLayerId());
          int numArbors = conn->numberOfAxonalArborLists();
+
          for (int arbor=0; arbor<numArbors; arbor++) {
             int delay = conn->getDelay(arbor);
             cube.data = (pvdata_t *) store->buffer(LOCAL, delay);
             if(!conn->getUpdateGSynFromPostPerspective()){
-               status = recvSynapticInput(conn, &cube, arbor);
+#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+               if(conn->getReceiveGpu()){
+                  status = recvSynapticInputGpu(conn, &cube, arbor);
+               }
+               else
+#endif
+               {
+                  status = recvSynapticInput(conn, &cube, arbor);
+               }
             }
             else{
-               //Source layer is pre layer in current connection, post layer in original connection
-               //Target layer is post layer in current connection, pre layer in original connection
-               //cube is activity buffer of source layer
-               //conn is source to target
-               status = recvSynapticInputFromPost(conn, &cube, arbor);
+#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+               if(conn->getReceiveGpu()){
+                  status = recvSynapticInputFromPostGpu(conn, &cube, arbor);
+               }
+               else
+#endif
+               {
+                  status = recvSynapticInputFromPost(conn, &cube, arbor);
+               }
             }
             assert(status == PV_SUCCESS || status == PV_BREAK);
             if (status == PV_BREAK){
@@ -1710,9 +1781,82 @@ int HyPerLayer::recvAllSynapticInput() {
             }
          }
       }
+#ifdef PV_USE_CUDA
+      if(switchGpu){
+         //Copy GSyn back from GPU
+         //copyAllGSynFromDevice();
+         //Stop timer
+         gpu_recvsyn_timer->stop();
+      }
+#endif
+      recvsyn_timer->stop();
    }
    return status;
 }
+
+#ifdef PV_USE_CUDA
+float HyPerLayer::syncGpu(){
+   if(recvGpu){
+      parent->getCudaDevice()->syncDevice();
+      return gpu_recvsyn_timer->accumulateTime();
+   }
+   else{
+      return 0;
+   }
+}
+#endif
+
+#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+void HyPerLayer::copyAllGSynToDevice(){
+   for(int ch = 0; ch < this->numChannels; ch++){
+      //If the device gsyn is allocated for the channel
+      if(allocDeviceGSyn[ch]){
+         ChannelType enumCh = static_cast<ChannelType>(ch);
+         //Copy it to device
+         float * h_postGSyn = this->getChannel(enumCh);
+#ifdef PV_USE_OPENCL
+         CLBuffer * d_postGSyn = this->getDeviceGSyn(enumCh);
+#endif
+#ifdef PV_USE_CUDA
+         PVCuda::CudaBuffer * d_postGSyn = this->getDeviceGSyn(enumCh);
+#endif
+         assert(d_postGSyn);
+         //recvsyn_timer->start();
+         //gpu_recvsyn_timer->start();
+         d_postGSyn->copyToDevice(h_postGSyn);
+         //gpu_recvsyn_timer->stop();
+         //recvsyn_timer->stop();
+         //gpu_recvsyn_timer->accumulateTime();
+      }
+   }
+}
+
+void HyPerLayer::copyAllGSynFromDevice(){
+   for(int ch = 0; ch < this->numChannels; ch++){
+      //If the device gsyn is allocated for the channel
+      if(allocDeviceGSyn[ch]){
+         ChannelType enumCh = static_cast<ChannelType>(ch);
+         //Copy it to device
+         float * h_postGSyn = this->getChannel(enumCh);
+#ifdef PV_USE_OPENCL
+         CLBuffer * d_postGSyn = this->getDeviceGSyn(enumCh);
+#endif
+#ifdef PV_USE_CUDA
+         PVCuda::CudaBuffer * d_postGSyn = this->getDeviceGSyn(enumCh);
+#endif
+         assert(d_postGSyn);
+         //recvsyn_timer->start();
+         //gpu_recvsyn_timer->start();
+         d_postGSyn->copyFromDevice(h_postGSyn);
+         //gpu_recvsyn_timer->stop();
+         //recvsyn_timer->stop();
+         //gpu_recvsyn_timer->accumulateTime();
+      }
+   }
+}
+
+#endif
+
 
 
 
@@ -1726,7 +1870,7 @@ int HyPerLayer::recvAllSynapticInput() {
  */
 int HyPerLayer::recvSynapticInputFromPost(HyPerConn * conn, const PVLayerCube * activity, int arborID)
 {
-   
+
    //Check channel number for noupdate
    if(conn->getChannel() == CHANNEL_NOUPDATE){
       return PV_SUCCESS;
@@ -1747,8 +1891,6 @@ int HyPerLayer::recvSynapticInputFromPost(HyPerConn * conn, const PVLayerCube * 
     //   fprintf(stderr, "HyPerLayer \"%s\": Transpose connection %s must be the same connection in the opposite direction of %s.\n", name, sourceToTargetConn->getName(), conn->getName());
     //   abort();
     //}
-
-   recvsyn_timer->start();
 
    assert(arborID >= 0);
    //Get number of neurons restricted target
@@ -1797,88 +1939,6 @@ int HyPerLayer::recvSynapticInputFromPost(HyPerConn * conn, const PVLayerCube * 
       exit(EXIT_FAILURE);
    }
 
-#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
-   //If the connection uses gpu to receive, update all buffers
-   if(conn->getReceiveGpu()){
-
-      //Update pre activity, post gsyn, and conn weights 
-      //Only if their updated
-      if(sourceToTargetConn->preSynapticLayer()->getUpdatedDeviceActivityFlag()){
-         float * h_preActivity = activity->data;
-#ifdef PV_USE_OPENCL
-         CLBuffer * d_preActivity = sourceToTargetConn->preSynapticLayer()->getDeviceActivity();
-#endif
-#ifdef PV_USE_CUDA
-         //std::cout << "preActivity size: " << sourceToTargetConn->preSynapticLayer()->getNumExtended() << "\n";
-         PVCuda::CudaBuffer * d_preActivity = sourceToTargetConn->preSynapticLayer()->getDeviceActivity();
-#endif
-         assert(d_preActivity);
-         d_preActivity->copyToDevice(h_preActivity);
-         //Device now has updated 
-         sourceToTargetConn->preSynapticLayer()->setUpdatedDeviceActivityFlag(false);
-      }
-      
-      if(targetToSourceConn->getUpdatedDeviceWFlag()){
-         //These weights should be orig conn weights
-         float * h_weights = targetToSourceConn->get_wDataStart(arborID);
-
-#ifdef PV_USE_OPENCL
-         CLBuffer * d_weights = targetToSourceConn->getDeviceWData();
-#endif
-#ifdef PV_USE_CUDA
-         PVCuda::CudaBuffer * d_weights = targetToSourceConn->getDeviceWData();
-#endif
-         assert(d_weights);
-         d_weights->copyToDevice(h_weights);
-         targetToSourceConn->setUpdatedDeviceWFlag(false);
-      }
-      
-      //Always copy gsyn, since gsyn is always going to be at least zeroed out
-      float * h_postGSyn = gSynPatchHead;
-#ifdef PV_USE_OPENCL
-      CLBuffer * d_postGSyn = this->getDeviceGSyn(conn->getChannel());
-#endif
-#ifdef PV_USE_CUDA
-      PVCuda::CudaBuffer * d_postGSyn = this->getDeviceGSyn(conn->getChannel());
-#endif
-      assert(d_postGSyn);
-      d_postGSyn->copyToDevice(h_postGSyn);
-
-#ifdef PV_USE_OPENCL
-      //Grab kernel from conn
-      CLKernel * krRecvPost = conn->getKrRecvPost();        // CL kernel for update state call
-#endif
-#ifdef PV_USE_CUDA
-      PVCuda::CudaKernel * krRecvPost = conn->getKrRecvPost();        // CL kernel for update state call
-#endif
-      assert(krRecvPost);
-
-      int totF = targetNf;
-      int totX = targetNx;
-      int totY = targetNy;
-      //Make sure local sizes are divisible by f, x, and y
-      //krRecvPost->run(numRestricted, 0, NULL, NULL);
-#ifdef PV_USE_OPENCL
-      krRecvPost->run(totF, totX, totY, conn->getNumFLocal(), conn->getNumXLocal(), conn->getNumYLocal(),
-            0, NULL, NULL);
-#endif
-#ifdef PV_USE_CUDA
-      //std::cout << "Global: (" << totX << "," << totY << "," << totF << ") Local: (" << conn->getNumXLocal() << "," << conn->getNumYLocal() << "," << conn->getNumFLocal() << ")\n";
-      krRecvPost->run(totX, totY, totF, conn->getNumXLocal(), conn->getNumYLocal(), conn->getNumFLocal());
-      //krRecvPost->run(1, 1, numRestricted, 1, 1, 1);
-#endif
-
-      //Only need to copy gsyn back, since activity and weights shouldn't change
-      d_postGSyn->copyFromDevice(h_postGSyn);
-
-#ifdef PV_USE_OPENCL
-      //Do a wait for accurate timing
-      d_postGSyn->finish();
-#endif
-   }
-   else{
-#endif
-
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif
@@ -1903,23 +1963,11 @@ int HyPerLayer::recvSynapticInputFromPost(HyPerConn * conn, const PVLayerCube * 
 
       for (int ky = 0; ky < targetToSourceConn->yPatchSize(); ky++){
          float * activityY = &(activity->data[startSourceExt + ky*sy]);
-         //if(strcmp(name, "C1") == 0 && kTargetRes == 18331){
-         //   for(int k = 0; k < numPerStride; k++){
-         //      if(activityY[k] != 0){
-         //         std::cout << conn->preSynapticLayer()->getName()<< " Post: preMargin: " << conn->preSynapticLayer()->getLayerLoc()->nb << " kPreExt: " << startSourceExt + ky*sy + k << " a: " << activityY[k] << "\n";
-         //      }
-         //   }
-         //}
          pvwdata_t * weightY = targetToSourceConn->get_wDataHead(arborID, kernelIndex) + ky*syp;
          (conn->accumulateFunctionFromPostPointer)(numPerStride, gSynPatchPos, activityY, weightY, dt_factor, rngPtr);
       }
 
    }
-#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
-   }
-#endif
-
-   recvsyn_timer->stop();
    return PV_SUCCESS;
 }
 
@@ -1933,7 +1981,11 @@ int HyPerLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activity
       return PV_SUCCESS;
    }
 
-   recvsyn_timer->start();
+   float dt_factor = getConvertToRateDeltaTimeFactor(conn);
+
+   const PVLayerLoc * preLoc = conn->preSynapticLayer()->getLayerLoc();
+   const PVLayerLoc * postLoc = this->getLayerLoc();
+
 
    assert(arborID >= 0);
    const int numExtended = activity->numItems;
@@ -1946,115 +1998,6 @@ int HyPerLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activity
    fflush(stdout);
 #endif // DEBUG_OUTPUT
 
-   float dt_factor = getConvertToRateDeltaTimeFactor(conn);
-
-   //Post layer recieves synaptic input
-   //Only with respect to post layer
-   const PVLayerLoc * preLoc = conn->preSynapticLayer()->getLayerLoc();
-   const PVLayerLoc * postLoc = this->getLayerLoc();
-#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
-   //If the connection uses gpu to receive, update all buffers
-   if(conn->getReceiveGpu()){
-
-      //TODO see if you can avoid this step of transfering patches to gpu
-      //Based on arborId
-      //Other way would be to just allocate all arbors to gpu
-      //PVPatch* h_patches = conn->weights(arborID)[0]; //0 beacuse it's one block of memory
-      //CLBuffer * d_patches = conn->getClPatches();
-      //assert(d_patches);
-      //d_patches->copyToDevice(h_patches, 0, NULL, NULL);
-
-      //size_t* h_GSynPatchStart = conn->getGSynPatchStart()[arborID];
-      //CLBuffer * d_GSynPatchStart = conn->getClGSynPatchStart();
-      //assert(d_GSynPatchStart);
-      //d_GSynPatchStart->copyToDevice(h_GSynPatchStart, 0, NULL, NULL);
-
-      //Update pre activity, post gsyn, and conn weights 
-      //Only if their updated
-      if(conn->preSynapticLayer()->getUpdatedDeviceActivityFlag()){
-         float * h_preActivity = activity->data;
-#ifdef PV_USE_OPENCL
-         CLBuffer * d_preActivity = conn->preSynapticLayer()->getDeviceActivity();
-#endif
-#ifdef PV_USE_CUDA
-         PVCuda::CudaBuffer * d_preActivity = conn->preSynapticLayer()->getDeviceActivity();
-#endif
-         assert(d_preActivity);
-         d_preActivity->copyToDevice(h_preActivity);
-         //Device now has updated 
-         conn->preSynapticLayer()->setUpdatedDeviceActivityFlag(false);
-      }
-      
-      if(conn->getUpdatedDeviceWFlag()){
-         float * h_weights = conn->get_wDataStart(arborID);
-#ifdef PV_USE_OPENCL
-         CLBuffer * d_weights = conn->getDeviceWData();
-#endif
-#ifdef PV_USE_CUDA
-         PVCuda::CudaBuffer * d_weights = conn->getDeviceWData();
-#endif
-         assert(d_weights);
-         d_weights->copyToDevice(h_weights);
-         conn->setUpdatedDeviceWFlag(false);
-      }
-      
-      //Always copy gsyn, since gsyn is always going to be at least zeroed out
-      //The start of the gsyn buffer
-      float * h_postGSyn = this->getChannel(conn->getChannel());
-#ifdef PV_USE_OPENCL
-      CLBuffer * d_postGSyn = this->getDeviceGSyn(conn->getChannel());
-#endif
-#ifdef PV_USE_CUDA
-      PVCuda::CudaBuffer* d_postGSyn = this->getDeviceGSyn(conn->getChannel());
-#endif
-      assert(d_postGSyn);
-      d_postGSyn->copyToDevice(h_postGSyn);
-
-#ifdef PV_USE_OPENCL
-      //Grab kernel from conn
-      CLKernel * krRecvPre = conn->getKrRecvPre();        // CL kernel for update state call
-#endif
-#ifdef PV_USE_CUDA
-      PVCuda::CudaKernel * krRecvPre = conn->getKrRecvPre();        // CL kernel for update state call
-#endif
-      assert(krRecvPre);
-
-
-
-      int totX = conn->getNumPostGroupX();
-      int totY = conn->getNumPostGroupY();
-
-
-      //krRecvPre->run(numExtended, 0, NULL, NULL);
-      //krRecvPre->run(1, 0, NULL, NULL);
-      
-     // krRecvPre->run(totX, totY, 1, 1,
-     //         0, NULL, NULL);
-#ifdef PV_USE_OPENCL
-      krRecvPre->run(totX, totY, conn->getNumXLocal(), conn->getNumYLocal(),
-              0, NULL, NULL);
-#endif
-#ifdef PV_USE_CUDA
-      krRecvPre->run(totX, totY, conn->getNumXLocal(), conn->getNumYLocal());
-#endif
-
-      //Only need to copy gsyn back, since activity and weights shouldn't change
-      assert(h_postGSyn);
-      d_postGSyn->copyFromDevice(h_postGSyn);
-#ifdef PV_USE_OPENCL
-      //Do a wait for accurate timing
-      d_postGSyn->finish();
-#endif
-   }
-   else{
-#endif
-
-   //float* mem_check;
-   //if(strcmp(name, "C1") == 0){
-   //   pvdata_t* post_gsyn_start = this->getChannel(conn->getChannel());
-   //   //Getting 0th neuron
-   //   mem_check = &(post_gsyn_start[18331]);
-   //}
 
    //Clear all thread gsyn buffer
    if(thread_gSyn){
@@ -2108,14 +2051,240 @@ int HyPerLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activity
       }
    }
 #endif
-#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
-   }
-#endif
-
-   recvsyn_timer->stop();
 
    return PV_SUCCESS;
 }
+
+#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+
+int HyPerLayer::recvSynapticInputFromPostGpu(HyPerConn * conn, const PVLayerCube * activity, int arborID)
+{
+   //Check channel number for noupdate
+   if(conn->getChannel() == CHANNEL_NOUPDATE){
+      return PV_SUCCESS;
+   }
+
+   //Cast to transpose conn
+   TransposeConn * sourceToTargetConn = dynamic_cast <TransposeConn*> (conn);
+   if(sourceToTargetConn == NULL){
+      fprintf(stderr, "HyPerLayer \"%s\": Updating GSyn buffer from post perspective requires connection %s to be a TransposeConn.\n", name, conn->getName());
+      abort();
+   }
+   //update conn to original connection
+   HyPerConn * targetToSourceConn = sourceToTargetConn->getOriginalConn();
+
+   assert(arborID >= 0);
+   //Get number of neurons restricted target
+   const int numRestricted = getNumNeurons();
+
+   float dt_factor = getConvertToRateDeltaTimeFactor(sourceToTargetConn);
+
+   const PVLayerLoc * oSourceLoc = targetToSourceConn->postSynapticLayer()->getLayerLoc();
+   const PVLayerLoc * oTargetLoc = targetToSourceConn->preSynapticLayer()->getLayerLoc();
+   const PVLayerLoc * aSourceLoc = sourceToTargetConn->preSynapticLayer()->getLayerLoc();
+   const PVLayerLoc * aTargetLoc = getLayerLoc();
+
+   const int sourceNx = aSourceLoc->nx;
+   const int sourceNy = aSourceLoc->ny;
+   const int sourceNf = aSourceLoc->nf;
+   const int targetNx = aTargetLoc->nx;
+   const int targetNy = aTargetLoc->ny;
+   const int targetNf = aTargetLoc->nf;
+
+   const int aSourceNb = aSourceLoc->nb;
+
+   //get source layer's extended y stride
+   int sy  = (sourceNx+2*aSourceNb)*sourceNf;
+   //get source layer's patch y stride
+   int syp = targetToSourceConn->yPatchStride(); // Should be correct even if targetToSourceConn points to a different layer than sourceToTargetConn's pre.
+   //Iterate through y patch
+   int numPerStride = targetToSourceConn->xPatchSize() * targetToSourceConn->fPatchSize();
+
+   //The start of the gsyn buffer
+   pvdata_t * gSynPatchHead = this->getChannel(sourceToTargetConn->getChannel());
+
+   long * startSourceExtBuf = conn->getPostToPreActivity();
+   if(!startSourceExtBuf){
+      std::cout << "HyPerLayer::recvFromPost error getting preToPostActivity from connection. Is shrink_patches on?\n";
+      exit(EXIT_FAILURE);
+   }
+
+   //Update pre activity, post gsyn, and conn weights 
+   //Only if their updated
+   if(sourceToTargetConn->preSynapticLayer()->getUpdatedDeviceActivityFlag()){
+      float * h_preActivity = activity->data;
+#ifdef PV_USE_OPENCL
+      CLBuffer * d_preActivity = sourceToTargetConn->preSynapticLayer()->getDeviceActivity();
+#endif
+#ifdef PV_USE_CUDA
+      //std::cout << "preActivity size: " << sourceToTargetConn->preSynapticLayer()->getNumExtended() << "\n";
+      PVCuda::CudaBuffer * d_preActivity = sourceToTargetConn->preSynapticLayer()->getDeviceActivity();
+#endif
+      assert(d_preActivity);
+      d_preActivity->copyToDevice(h_preActivity);
+      //Device now has updated 
+      sourceToTargetConn->preSynapticLayer()->setUpdatedDeviceActivityFlag(false);
+   }
+   
+   if(targetToSourceConn->getUpdatedDeviceWFlag()){
+      //These weights should be orig conn weights
+      float * h_weights = targetToSourceConn->get_wDataStart(arborID);
+
+#ifdef PV_USE_OPENCL
+      CLBuffer * d_weights = targetToSourceConn->getDeviceWData();
+#endif
+#ifdef PV_USE_CUDA
+      PVCuda::CudaBuffer * d_weights = targetToSourceConn->getDeviceWData();
+#endif
+      assert(d_weights);
+      d_weights->copyToDevice(h_weights);
+      targetToSourceConn->setUpdatedDeviceWFlag(false);
+   }
+   
+//   //Always copy gsyn, since gsyn is always going to be at least zeroed out
+//   float * h_postGSyn = gSynPatchHead;
+//#ifdef PV_USE_OPENCL
+//   CLBuffer * d_postGSyn = this->getDeviceGSyn(conn->getChannel());
+//#endif
+//#ifdef PV_USE_CUDA
+//   PVCuda::CudaBuffer * d_postGSyn = this->getDeviceGSyn(conn->getChannel());
+//#endif
+//   assert(d_postGSyn);
+//   d_postGSyn->copyToDevice(h_postGSyn);
+
+#ifdef PV_USE_OPENCL
+   //Grab kernel from conn
+   CLKernel * krRecvPost = conn->getKrRecvPost();        // CL kernel for update state call
+#endif
+#ifdef PV_USE_CUDA
+   PVCuda::CudaKernel * krRecvPost = conn->getKrRecvPost();        // CL kernel for update state call
+#endif
+   assert(krRecvPost);
+
+   int totF = targetNf;
+   int totX = targetNx;
+   int totY = targetNy;
+   //Make sure local sizes are divisible by f, x, and y
+   //krRecvPost->run(numRestricted, 0, NULL, NULL);
+#ifdef PV_USE_OPENCL
+   krRecvPost->run(totF, totX, totY, conn->getNumFLocal(), conn->getNumXLocal(), conn->getNumYLocal(),
+         0, NULL, NULL);
+#endif
+#ifdef PV_USE_CUDA
+   //std::cout << "Global: (" << totX << "," << totY << "," << totF << ") Local: (" << conn->getNumXLocal() << "," << conn->getNumYLocal() << "," << conn->getNumFLocal() << ")\n";
+   krRecvPost->run(totX, totY, totF, conn->getNumXLocal(), conn->getNumYLocal(), conn->getNumFLocal());
+   //krRecvPost->run(1, 1, numRestricted, 1, 1, 1);
+#endif
+
+//   //Only need to copy gsyn back, since activity and weights shouldn't change
+//   d_postGSyn->copyFromDevice(h_postGSyn);
+
+#ifdef PV_USE_OPENCL
+   //Do a wait for accurate timing
+   //TODO take this out
+   krRecvPost->finish();
+
+#endif
+}
+
+int HyPerLayer::recvSynapticInputGpu(HyPerConn * conn, const PVLayerCube * activity, int arborID){
+   //Check if we need to update based on connection's channel
+   if(conn->getChannel() == CHANNEL_NOUPDATE){
+      return PV_SUCCESS;
+   }
+   float dt_factor = getConvertToRateDeltaTimeFactor(conn);
+
+   //Post layer recieves synaptic input
+   //Only with respect to post layer
+   const PVLayerLoc * preLoc = conn->preSynapticLayer()->getLayerLoc();
+   const PVLayerLoc * postLoc = this->getLayerLoc();
+   //If the connection uses gpu to receive, update all buffers
+
+   //TODO see if you can avoid this step of transfering patches to gpu
+   //Based on arborId
+   //Other way would be to just allocate all arbors to gpu
+   //PVPatch* h_patches = conn->weights(arborID)[0]; //0 beacuse it's one block of memory
+   //CLBuffer * d_patches = conn->getClPatches();
+   //assert(d_patches);
+   //d_patches->copyToDevice(h_patches, 0, NULL, NULL);
+
+   //size_t* h_GSynPatchStart = conn->getGSynPatchStart()[arborID];
+   //CLBuffer * d_GSynPatchStart = conn->getClGSynPatchStart();
+   //assert(d_GSynPatchStart);
+   //d_GSynPatchStart->copyToDevice(h_GSynPatchStart, 0, NULL, NULL);
+
+   //Update pre activity, post gsyn, and conn weights 
+   //Only if their updated
+   if(conn->preSynapticLayer()->getUpdatedDeviceActivityFlag()){
+      float * h_preActivity = activity->data;
+#ifdef PV_USE_OPENCL
+      CLBuffer * d_preActivity = conn->preSynapticLayer()->getDeviceActivity();
+#endif
+#ifdef PV_USE_CUDA
+      PVCuda::CudaBuffer * d_preActivity = conn->preSynapticLayer()->getDeviceActivity();
+#endif
+      assert(d_preActivity);
+      d_preActivity->copyToDevice(h_preActivity);
+      //Device now has updated 
+      conn->preSynapticLayer()->setUpdatedDeviceActivityFlag(false);
+   }
+   
+   if(conn->getUpdatedDeviceWFlag()){
+      float * h_weights = conn->get_wDataStart(arborID);
+#ifdef PV_USE_OPENCL
+      CLBuffer * d_weights = conn->getDeviceWData();
+#endif
+#ifdef PV_USE_CUDA
+      PVCuda::CudaBuffer * d_weights = conn->getDeviceWData();
+#endif
+      assert(d_weights);
+      d_weights->copyToDevice(h_weights);
+      conn->setUpdatedDeviceWFlag(false);
+   }
+   
+//   //Always copy gsyn, since gsyn is always going to be at least zeroed out
+//   //The start of the gsyn buffer
+//   float * h_postGSyn = this->getChannel(conn->getChannel());
+//#ifdef PV_USE_OPENCL
+//   CLBuffer * d_postGSyn = this->getDeviceGSyn(conn->getChannel());
+//#endif
+//#ifdef PV_USE_CUDA
+//   PVCuda::CudaBuffer* d_postGSyn = this->getDeviceGSyn(conn->getChannel());
+//#endif
+//   assert(d_postGSyn);
+//   d_postGSyn->copyToDevice(h_postGSyn);
+
+#ifdef PV_USE_OPENCL
+   //Grab kernel from conn
+   CLKernel * krRecvPre = conn->getKrRecvPre();        // CL kernel for update state call
+#endif
+#ifdef PV_USE_CUDA
+   PVCuda::CudaKernel * krRecvPre = conn->getKrRecvPre();        // CL kernel for update state call
+#endif
+   assert(krRecvPre);
+
+   int totX = conn->getNumPostGroupX();
+   int totY = conn->getNumPostGroupY();
+
+#ifdef PV_USE_OPENCL
+   krRecvPre->run(totX, totY, conn->getNumXLocal(), conn->getNumYLocal(),
+           0, NULL, NULL);
+#endif
+#ifdef PV_USE_CUDA
+   krRecvPre->run(totX, totY, conn->getNumXLocal(), conn->getNumYLocal());
+#endif
+
+   //Only need to copy gsyn back, since activity and weights shouldn't change
+//   assert(h_postGSyn);
+//   d_postGSyn->copyFromDevice(h_postGSyn);
+#ifdef PV_USE_OPENCL
+   //Do a wait for accurate timing
+   krRecvPre->finish();
+#endif
+}
+
+
+#endif
 
 void HyPerLayer::recvOnePreNeuronActivity(HyPerConn * conn, int patchIndex, int arbor, pvadata_t a, pvadata_t * postBufferStart, void * auxPtr) {
    PVPatch * weights = conn->getWeights(patchIndex, arbor);

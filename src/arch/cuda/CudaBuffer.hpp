@@ -11,12 +11,13 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 namespace PVCuda {
+#include <cuda_runtime_api.h>
 
 class CudaBuffer {
 
 public:
 
-   CudaBuffer(size_t inSize);
+   CudaBuffer(size_t inSize, cudaStream_t stream);
    CudaBuffer();
    virtual ~CudaBuffer();
    
@@ -29,6 +30,7 @@ public:
 protected:
    void * d_ptr;                       // pointer to buffer on host
    size_t size;
+   cudaStream_t stream;
 };
 
 } // namespace PV

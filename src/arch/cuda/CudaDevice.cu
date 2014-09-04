@@ -8,7 +8,6 @@
 #include "../../include/pv_arch.h"
 #include "cuda_util.hpp"
 #include "CudaDevice.hpp"
-#include "CudaBuffer.hpp"
 
 namespace PVCuda{
 
@@ -20,6 +19,7 @@ CudaDevice::CudaDevice(int device)
 
 CudaDevice::~CudaDevice()
 {
+   handleError(cudaStreamDestroy(stream));
 }
 
 int CudaDevice::initialize(int device)
@@ -37,10 +37,16 @@ int CudaDevice::initialize(int device)
    printf("Using device %d\n", device);
    handleError(cudaSetDevice(device));
 
+   handleError(cudaStreamCreate(&stream));
+
    status = 0;
 #endif // PV_USE_OPENCL
 
    return status;
+}
+
+void CudaDevice::syncDevice(){
+   handleError(cudaDeviceSynchronize());
 }
 
 int CudaDevice::query_device_info()
@@ -55,6 +61,10 @@ int CudaDevice::query_device_info()
       query_device(i);
    }
    return 0;
+}
+
+CudaBuffer* CudaDevice::createBuffer(size_t size){
+   return(new CudaBuffer(size, stream));
 }
 
 void CudaDevice::query_device(int id)

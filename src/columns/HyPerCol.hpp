@@ -29,6 +29,9 @@
 #ifdef PV_USE_CUDA
 #include "../arch/cuda/CudaDevice.hpp"
 #endif
+
+#include <vector>
+
 enum CheckpointWriteTriggerMode { CPWRITE_TRIGGER_STEP, CPWRITE_TRIGGER_TIME, CPWRITE_TRIGGER_CLOCK };
 
 namespace PV {
@@ -308,6 +311,8 @@ private:
    HyPerColRunDelegate * runDelegate; // runs time loop
 
    Timer * runTimer;
+   //Phase timers
+   Timer ** phaseRecvTimers;
 
    int numColProbes;
    ColProbe ** colProbes;
@@ -336,6 +341,8 @@ private:
    bool errorOnNotANumber;        // If true, check each layer's activity buffer for not-a-numbers and exit with an error if any appear
 
    int numThreads;
+
+   std::vector<HyPerLayer*> layerBuffer;
 
 }; // class HyPerCol
 

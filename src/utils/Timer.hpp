@@ -31,7 +31,7 @@ namespace PV {
       virtual double start();
       virtual double stop();
       inline double elapsed_time();
-      int fprint_time(FILE * stream);
+      virtual int fprint_time(FILE * stream);
       
    protected:
       
