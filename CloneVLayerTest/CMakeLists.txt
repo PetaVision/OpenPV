@@ -1,6 +1,8 @@
 ## See http://www.cmake.org/Wiki/CMake_Useful_Variables for more variables to set
 cmake_minimum_required(VERSION 2.8)
 
+set(PV_PROJECT_NAME CloneVLayerTest)
+
 #Set CMAKE_MODULE_PATH
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PV_DIR}/docs/cmake/Modules/")
 
@@ -47,14 +49,14 @@ link_directories(${PV_BINARY_DIR})
 # Add executable
 file(GLOB libSrcCPP ${PROJECT_SOURCE_DIR}/*.cpp)
 file(GLOB libSrcC ${PROJECT_SOURCE_DIR}/*.c)
-add_executable(CloneVLayerTest ${libSrcCPP} ${libSrcC})
+add_executable(${PV_PROJECT_NAME} ${libSrcCPP} ${libSrcC})
 
 # Link executable to PV 
-target_link_libraries(CloneVLayerTest pv)
+target_link_libraries(${PV_PROJECT_NAME} pv)
 
 # Link executable to external libraries
-target_link_libraries(CloneVLayerTest ${GDAL_LIBRARY})
+target_link_libraries(${PV_PROJECT_NAME} ${GDAL_LIBRARY})
 IF(LIB_SND_FILE)
-   target_link_libraries(CloneVLayerTest ${LIBSNDFILE_LIBRARY})
+   target_link_libraries(${PV_PROJECT_NAME} ${LIBSNDFILE_LIBRARY})
 ENDIF(LIB_SND_FILE)
 
