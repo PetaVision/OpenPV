@@ -100,7 +100,7 @@ void HyPerLayer_recv_post(
       //int kTargetRes = blockIdx.x;
 
       //Change restricted to extended post neuron
-      int kTargetExt = kIndexExtended(kTargetRes, params.nxRes, params.nyRes, params.nf, params.nb);
+      int kTargetExt = kIndexExtended(kTargetRes, params.nxRes, params.nyRes, params.nf, params.nblt, params.nbrt, params.nbdn, params.nbup);
 
       int kernelIndex;
       if(params.sharedWeights == 1){
@@ -200,7 +200,12 @@ void CudaRecvPost::setArgs(
       const int nxRes, //num post neurons
       const int nyRes,
       const int nf,
-      const int nb, //Border of orig
+
+      const int nblt, //Border of orig
+      const int nbrt, //Border of orig
+      const int nbdn, //Border of orig
+      const int nbup, //Border of orig
+
       const int nxp,
       const int nyp,
       const int nfp,
@@ -225,7 +230,12 @@ void CudaRecvPost::setArgs(
    params.nxRes = nxRes;
    params.nyRes = nyRes;
    params.nf = nf;
-   params.nb = nb;
+
+   params.nblt = nblt;
+   params.nbrt = nbrt;
+   params.nbdn = nbdn;
+   params.nbup = nbup;
+
    params.nxp = nxp;
    params.nyp = nyp;
    params.nfp = nfp;

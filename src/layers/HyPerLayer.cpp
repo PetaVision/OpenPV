@@ -2142,6 +2142,7 @@ int HyPerLayer::recvSynapticInputFromPostGpu(HyPerConn * conn, const PVLayerCube
    const PVLayerLoc * oTargetLoc = targetToSourceConn->preSynapticLayer()->getLayerLoc();
    const PVLayerLoc * aSourceLoc = sourceToTargetConn->preSynapticLayer()->getLayerLoc();
    const PVLayerLoc * aTargetLoc = getLayerLoc();
+   const PVHalo * aSourceHalo = &aSourceLoc->halo;
 
    const int sourceNx = aSourceLoc->nx;
    const int sourceNy = aSourceLoc->ny;
@@ -2150,10 +2151,8 @@ int HyPerLayer::recvSynapticInputFromPostGpu(HyPerConn * conn, const PVLayerCube
    const int targetNy = aTargetLoc->ny;
    const int targetNf = aTargetLoc->nf;
 
-   const int aSourceNb = aSourceLoc->nb;
-
    //get source layer's extended y stride
-   int sy  = (sourceNx+2*aSourceNb)*sourceNf;
+   int sy  = (sourceNx+aSourceHalo->rt+aSourceHalo->lt)*sourceNf;
    //get source layer's patch y stride
    int syp = targetToSourceConn->yPatchStride(); // Should be correct even if targetToSourceConn points to a different layer than sourceToTargetConn's pre.
    //Iterate through y patch

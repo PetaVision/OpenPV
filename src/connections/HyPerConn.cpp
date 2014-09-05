@@ -2029,6 +2029,8 @@ int HyPerConn::allocateDeviceBuffers()
          //Calculate local pre size here
          const PVLayerLoc * preLoc = pre->getLayerLoc();
          const PVLayerLoc * postLoc = post->getLayerLoc();
+         PVHalo haloPre;
+         PVHalo haloPost;
          
          //Set local sizes here
          float preToPostScaleX = (float)preLoc->nx/((float)postLoc->nx);
@@ -2098,6 +2100,15 @@ int HyPerConn::allocateDeviceBuffers()
          //Need a local host buffer for the new localGSynPatchStart
          localGSynPatchStart = (size_t*) malloc(gsynPatchStartIndexSize);
 
+         haloPre.lt = localPreNb;
+         haloPre.rt = localPreNb;
+         haloPre.dn = localPreNb;
+         haloPre.up = localPreNb;
+         haloPost.lt = 0;
+         haloPost.rt = 0;
+         haloPost.dn = 0;
+         haloPost.up = 0;
+
          //Create clPatches for local space
          localWPatches = createPatches(numWeightPatches, nxp, nyp);
          //Shrink weights with spoofed sizes 
@@ -2105,20 +2116,15 @@ int HyPerConn::allocateDeviceBuffers()
                localPreX - 2*localPreNb,
                localPreY - 2*localPreNb,
                preNf,
-               localPreNb,
+               &haloPre,
                postGroupXSize,
                postGroupYSize,
-               postNf, 0,
+               postNf,
+               &haloPost,
                &(localWPatches),
                &(localGSynPatchStart),
                NULL,
                0); //Doing only the 0th arbor
-
-         //for(int i = 0; i < localPreX * localPreY * preNf; i++){
-         //   std::cout << "localGSynPatchStart[" << i << "] = " << localGSynPatchStart[i] << "\n";
-         //}
-
-         //exit(EXIT_FAILURE);
 
          //Set device patches and gsynpatchstart
          d_Patches->copyToDevice(localWPatches[0]);
@@ -2173,6 +2179,8 @@ int HyPerConn::allocateReceivePreKernel()
 
    const PVLayerLoc * preLoc = pre->getLayerLoc();
    const PVLayerLoc * postLoc = post->getLayerLoc();
+   const PVHalo * preHalo = &pre->getLayerLoc()->halo;
+   const PVHalo * postHalo = &post->getLayerLoc()->halo;
 
 #ifdef PV_USE_OPENCL
    CLBuffer* d_PreData = pre->getDeviceActivity();
@@ -2191,8 +2199,9 @@ int HyPerConn::allocateReceivePreKernel()
    assert(d_Patches);
    assert(d_GSynPatchStart);
 
-   int preNxExt = preLoc->nx + 2*preLoc->nb;
-   int preNyExt = preLoc->ny + 2*preLoc->nb;
+
+   int preNxExt = preLoc->nx + preHalo->lt + preHalo->rt;
+   int preNyExt = preLoc->ny + preHalo->up + preHalo->dn;
    int preNf = preLoc->nf;
    int postNxRes = postLoc->nx;
    int postNyRes = postLoc->ny;
@@ -2379,6 +2388,10 @@ int HyPerConn::allocateReceivePostKernel()
    HyPerConn * origConn = thisTranspose->getOriginalConn();
    const PVLayerLoc * preLoc = pre->getLayerLoc();
    const PVLayerLoc * postLoc = post->getLayerLoc();
+   const PVHalo* preHalo = &pre->getLayerLoc()->halo;
+   const PVHalo* postHalo = &post->getLayerLoc()->halo;
+
+
 
 
 #ifdef PV_USE_OPENCL
@@ -2396,12 +2409,18 @@ int HyPerConn::allocateReceivePostKernel()
    assert(d_PostGSyn);
    assert(d_origWData);
 
-   int sy  = (preLoc->nx+2*preLoc->nb)*preLoc->nf;
+   int sy  = (preLoc->nx+preHalo->rt+preHalo->lt)*preLoc->nf;
    int syp = origConn->yPatchStride();
    int numPerStride = origConn->xPatchSize() * origConn->fPatchSize();
    float dt_factor = post->getConvertToRateDeltaTimeFactor(this);
    int i_sharedWeights = sharedWeights;
-   int oNb = origConn->preSynapticLayer()->getLayerLoc()->nb;
+
+   const PVHalo* oHalo = &origConn->preSynapticLayer()->getLayerLoc()->halo;
+   int oNblt = oHalo->lt;
+   int oNbrt = oHalo->rt;
+   int oNbup = oHalo->up;
+   int oNbdn = oHalo->dn;
+
    //nxp, nyp, and nfp should be orig conn's
    int oNxp = origConn->xPatchSize();
    int oNyp = origConn->yPatchSize();
@@ -2461,8 +2480,6 @@ int HyPerConn::allocateReceivePostKernel()
    std::cout << "preToPostScale: (" << preToPostScaleX << "," << preToPostScaleY << ")\n";
    std::cout << "patch size: (" << oNxp << "," << oNyp << ") numLocal: (" << numXLocal << "," << numYLocal << ")\n";
    std::cout << "local sizes: (" << localBufSizeX << "," << localBufSizeY << ")\n";
-
-   std::cout << "Pre number of ext neurons: " << (2*preLoc->nb + preLoc->nx) * (2*preLoc->nb + preLoc->ny) * preLoc->nf << "\n";
    
 #ifdef PV_USE_OPENCL
    //Set arguments
@@ -2472,7 +2489,10 @@ int HyPerConn::allocateReceivePostKernel()
    status |= krRecvPost->setKernelArg(argid++, sizeof(int), &postNx);
    status |= krRecvPost->setKernelArg(argid++, sizeof(int), &postNy);
    status |= krRecvPost->setKernelArg(argid++, sizeof(int), &postNf);
-   status |= krRecvPost->setKernelArg(argid++, sizeof(int), &oNb);
+   status |= krRecvPost->setKernelArg(argid++, sizeof(int), &oNblt);
+   status |= krRecvPost->setKernelArg(argid++, sizeof(int), &oNbrt);
+   status |= krRecvPost->setKernelArg(argid++, sizeof(int), &oNbdn);
+   status |= krRecvPost->setKernelArg(argid++, sizeof(int), &oNbup);
    status |= krRecvPost->setKernelArg(argid++, sizeof(int), &oNxp);
    status |= krRecvPost->setKernelArg(argid++, sizeof(int), &oNyp);
    status |= krRecvPost->setKernelArg(argid++, sizeof(int), &oNfp);
@@ -2504,7 +2524,12 @@ int HyPerConn::allocateReceivePostKernel()
       postNx, //num post neurons
       postNy,
       postNf,
-      oNb, //Border of orig
+
+      oNblt, //Border of orig
+      oNbrt, //Border of orig
+      oNbdn, //Border of orig
+      oNbup, //Border of orig
+
       oNxp,
       oNyp,
       oNfp,
@@ -3688,7 +3713,9 @@ int HyPerConn::adjustAllPatches(
    assert(2*yPatchHead == nyp-nypShrunken);
    offsetShrunken = kIndex(xPatchHead, yPatchHead, 0, nxp, nyp, nfp);
 
-   for (int kex=0; kex<getNumWeightPatches(); kex++) {
+   int numWeightPatches = (nxPre + haloPre->lt + haloPre->rt) * (nyPre+haloPre->up + haloPre->dn) * nfPre; 
+   for (int kex=0; kex<numWeightPatches; kex++) {
+   //for (int kex=0; kex<getNumWeightPatches(); kex++) {
       // calculate xPostStart, xPostStop, xPatchStart, xPatchStop
       int xHalfLength = (nxpShrunken-xPostNeuronsPerPreNeuron)/2;
       assert(2*xHalfLength+xPostNeuronsPerPreNeuron==nxpShrunken);

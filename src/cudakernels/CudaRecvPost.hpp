@@ -22,7 +22,10 @@ namespace PVCuda{
       int nxRes; //num post neurons
       int nyRes;
       int nf;
-      int nb; //Border of orig
+      int nblt; //Border of orig
+      int nbrt; //Border of orig
+      int nbdn; //Border of orig
+      int nbup; //Border of orig
       int nxp;
       int nyp;
       int nfp;
@@ -62,7 +65,10 @@ public:
       const int nxRes, //num post neurons
       const int nyRes,
       const int nf,
-      const int nb, //Border of orig
+      const int nblt, //Border of orig
+      const int nbrt, //Border of orig
+      const int nbdn, //Border of orig
+      const int nbup, //Border of orig
       const int nxp,
       const int nyp,
       const int nfp,
