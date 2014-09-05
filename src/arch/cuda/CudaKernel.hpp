@@ -13,31 +13,72 @@
 
 namespace PVCuda {
 
+/**
+ * The base class of any kernels written in Cuda
+ */
 class CudaKernel {
 public:
+   /**
+    * A constructor for the cuda kernel
+    * @param inDevice The CudaDevice object this kernel will run on
+    */
    CudaKernel(CudaDevice* inDevice);
    CudaKernel();
    virtual ~CudaKernel();
 
 
-   //These wrapper functions set the global/local work size member variables
-   //1 dimension runs
+   /**
+    * Wrapper function to run the kernel with the specified 1 dimensional global work size with no local work groups
+    * @param global_work_size The global work size of the problem
+    */
    int run(int global_work_size); //Default local work size of 1
+
+   /**
+    * Wrapper function to run the kernel with the specified 1 dimensional global work size with the specified local work groups
+    * @param global_work_size The global work size of the problem
+    * @param local_work_size The local work size of the problem
+    */
    int run(int global_work_size, int local_work_size);
-   //2 dimension runs
+
+   /**
+    * Wrapper function to run the kernel with the specified 2 dimensional global work size with the specified local work groups
+    * @param gWorkSizeX The global work size in the X dimension
+    * @param gWorkSizeY The global work size in the Y dimension
+    * @param lWorkSizeX The local work size in the X dimension
+    * @param lWorkSizeY The local work size in the Y dimension
+    */
    int run(int gWorkSizeX, int gWorkSizeY, int lWorkSizeX, int lWorkSizeY);
-   //3 dimension runs
+
+   /**
+    * Wrapper function to run the kernel with the specified 3 dimensional global work size with the specified local work groups
+    * @param gWorkSizeX The global work size in the X dimension
+    * @param gWorkSizeY The global work size in the Y dimension
+    * @param gWorkSizeF The global work size in the F dimension
+    * @param lWorkSizeX The local work size in the X dimension
+    * @param lWorkSizeY The local work size in the Y dimension
+    * @param lWorkSizeF The local work size in the F dimension
+    */
    int run(int gWorkSizeX, int gWorkSizeY, int gWorkSizeF,
            int lWorkSizeX, int lWorkSizeY, int lWorkSizeF);
 protected:
-   //This is the function that should be overwritten in child classes
+   /**
+    * This virtual function should be overwritten by any subclasses. Note that argsSet and dimsSet should be set before this function is called
+    */
    virtual int run() = 0;
+   
+   /**
+    * A flag setter to tell CudaKernel that the arguments to the kernel is set
+    */
+   void setArgsFlag(){argsSet = true;}
+
    dim3 grid_size;
    dim3 block_size;
    CudaDevice* device;
-   void setArgsFlag(){argsSet = true;}
 
 private:
+   /**
+    * A function to set the dimensions of the run
+    */
    void setDims(int gWorkSizeX, int gWorkSizeY, int gWorkSizeF, int lWorkSizeX, int lWorkSizeY, int lWorkSizeF);
 
    //argsSet must be set to true before being called

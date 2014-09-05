@@ -1,3 +1,8 @@
+/**
+ * A file that includes device conversion functions
+ * TODO see if we can include conversions.h instead of having this file
+ */
+
 #ifndef DEVICE_UTIL_HPP_
 #define DEVICE_UTIL_HPP_
 

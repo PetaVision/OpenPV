@@ -14,6 +14,12 @@
 
 namespace PV {
 
+/**
+ * A timer class to time OpenCL events
+ * Note: There is no start/stop in CLTimer. Instead, a timer event gets made that needs to get attached to the
+ * OpenCL command that is being timed. Calling the blocking function accumulateTime will grab the time of the attached
+ * OpenCL command. 
+ */
 class CLTimer : public Timer{
 #ifdef PV_USE_OPENCL
    public:
