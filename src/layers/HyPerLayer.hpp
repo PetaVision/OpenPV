@@ -93,6 +93,10 @@ DerivedLayer::initialize(arguments) {
 #include "../arch/cuda/CudaTimer.hpp"
 #endif
 
+#ifdef PV_USE_OPENCL
+#include "../arch/opencl/CLTimer.hpp"
+#endif
+
 #include <vector>
 
 
@@ -561,6 +565,9 @@ protected:
 
 #ifdef PV_USE_CUDA
    PVCuda::CudaTimer * gpu_recvsyn_timer ;
+#endif
+#ifdef PV_USE_OPENCL
+   CLTimer * gpu_recvsyn_timer;
 #endif
 };
 

@@ -162,6 +162,10 @@ size_t CLDevice::get_max_work_item_dimension(int dimension){
 }
 
 
+int CLDevice::syncDevice(){
+   return clFinish(commands);
+}
+
 
 int CLDevice::query_device_info()
 {
