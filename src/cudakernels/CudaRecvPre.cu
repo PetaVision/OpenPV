@@ -4,54 +4,6 @@
 
 namespace PVCuda{
 
-//Declaring texture reference
-//texture<float, 1, cudaReadModeElementType> texReference;
-//Note that this reference is not a member variable, so it must be bound and unbound at the beginning and end of run()
-
-
-//__device__
-//int kxPos(int k, int nx, int ny, int nf)
-//{
-//   return (k/nf) % nx;
-//}
-//
-//__device__
-//int kyPos(int k, int nx, int ny, int nf)
-//{
-//   return k / (nx*nf);
-//}
-//
-//__device__
-//int featureIndex(int k, int nx, int ny, int nf)
-//{
-//   return k % nf;
-//}
-
-
-
-
-////A function that copys src to dest elements using all avaliable threads in a block
-//__device__
-//void work_group_copy(float* dest, float* src, int numElements, int warpSize, int threadIndex){
-//   if(threadIndex < warpSize){
-//      for(int i = threadIndex; i < numElements; i+= warpSize){
-//         dest[i] = src[i];
-//      }
-//   }
-//}
-
-//__device__
-//int pvpatch_accumulate_from_post(int nk, float * v, float * a, float * w, float dt_factor, void * auxPtr) {
-//   int status = 0;
-//   int k;
-//   for (k = 0; k < nk; k++) {
-//      *v += a[k]*w[k]*dt_factor;
-//      //dv = dv + a[k]*w[k];
-//   }
-//   //*v = *v + dt_factor*dv;
-//   return status;
-//}
-
 //Kernel code
 __global__
 void HyPerLayer_recv_pre(
@@ -71,11 +23,11 @@ void HyPerLayer_recv_pre(
    //Mapped to petavision order of f, x, and y
 
    
-   int localX = blockDim.x;
-   int localY = blockDim.y;
+   //int localX = blockDim.x;
+   //int localY = blockDim.y;
    
-   int localXIndex = threadIdx.x;
-   int localYIndex = threadIdx.y;
+   //int localXIndex = threadIdx.x;
+   //int localYIndex = threadIdx.y;
 
    int groupXPost = (blockIdx.x * blockDim.x) + threadIdx.x;
    int groupYPost = (blockIdx.y * blockDim.y) + threadIdx.y;

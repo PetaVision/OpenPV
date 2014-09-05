@@ -127,7 +127,7 @@ void HyPerLayer_recv_post(
       CL_MEM_GLOBAL float* postGsyn,
       CL_MEM_GLOBAL int* patch2datalookuptable,
 
-      CL_MEM_LOCAL float* preBuffer,
+//      CL_MEM_LOCAL float* preBuffer,
       CL_MEM_LOCAL float* postBuffer
 ){
 #ifdef PV_USE_OPENCL

@@ -2315,8 +2315,8 @@ int HyPerConn::allocateReceivePreKernel()
    status |= krRecvPre->setKernelArg(argid++, d_Patch2DataLookupTable);
 
    //Local buffers
-   status |= krRecvPre->setKernelArg(argid++, sizeof(float) * localBufSizeX * localBufSizeY * preNf, NULL);
-   status |= krRecvPre->setKernelArg(argid++, sizeof(float) * (postGroupXSize * numXLocal) * (postGroupYSize * numYLocal) * postNf, NULL);
+   //status |= krRecvPre->setKernelArg(argid++, sizeof(float) * localBufSizeX * localBufSizeY * preNf, NULL);
+   //status |= krRecvPre->setKernelArg(argid++, sizeof(float) * (postGroupXSize * numXLocal) * (postGroupYSize * numYLocal) * postNf, NULL);
 #endif
 #ifdef PV_USE_CUDA
    krRecvPre->setArgs(
@@ -2515,7 +2515,7 @@ int HyPerConn::allocateReceivePostKernel()
    status |= krRecvPost->setKernelArg(argid++, d_PostGSyn);
    status |= krRecvPost->setKernelArg(argid++, d_Patch2DataLookupTable);
    //Buffer for pre activity 
-   status |= krRecvPost->setKernelArg(argid++, sizeof(float) * localBufSizeX * localBufSizeY * oNfp, NULL);
+   //status |= krRecvPost->setKernelArg(argid++, sizeof(float) * localBufSizeX * localBufSizeY * oNfp, NULL);
    //Buffer for post gsyn. One per neuron in workgroup
    status |= krRecvPost->setKernelArg(argid++, sizeof(float) * numXLocal * numYLocal * numFLocal, NULL);
 

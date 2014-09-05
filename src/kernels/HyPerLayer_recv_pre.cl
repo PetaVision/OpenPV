@@ -56,25 +56,7 @@ static inline int kIndexExtended(int k, int nx, int ny, int nf, int nb)
    return kIndex(kx_ex, ky_ex, kf, nx + 2*nb, ny + 2*nb, nf);
 }
 
-////Atomic add for floating points, here for testing purposes
-//inline void atomicAdd(volatile __global float *source, const float operand){
-//   //This is here for atomic operations for testing purposes
-//   union {
-//      unsigned int intVal;
-//      float floatVal;
-//   }newVal;
-//
-//   union{
-//      unsigned int intVal;
-//      float floatVal;
-//   }prevVal;
-//   do{
-//      prevVal.floatVal = *source;
-//      newVal.floatVal = prevVal.floatVal + operand;
-//   }while(atomic_cmpxchg((volatile __global unsigned int*)source, prevVal.intVal, newVal.intVal) != prevVal.intVal);
-//}
-
-int pvpatch_accumulate(int nk, CL_MEM_LOCAL float * v, float a, CL_MEM_GLOBAL float * w, void * auxPtr) {
+int pvpatch_accumulate(int nk, CL_MEM_GLOBAL float * v, float a, CL_MEM_GLOBAL float * w, void * auxPtr) {
    int k = 0;
    while(k < nk){
       //GPUs can do 2, 4, 8, and 16 vector multiplications
@@ -84,7 +66,7 @@ int pvpatch_accumulate(int nk, CL_MEM_LOCAL float * v, float a, CL_MEM_GLOBAL fl
          
          float16 w16 = (float16)(w[k], w[k+1], w[k+2], w[k+3], w[k+4], w[k+5], w[k+6], w[k+7],
                                       w[k+8], w[k+9], w[k+10], w[k+11], w[k+12], w[k+13], w[k+14], w[k+15]);
-         CL_MEM_LOCAL float16* v16 = (CL_MEM_LOCAL float16*) (v+k);
+         CL_MEM_GLOBAL float16* v16 = (CL_MEM_GLOBAL float16*) (v+k);
          *v16 += a16 * w16;
          
          k += 16;
@@ -92,21 +74,21 @@ int pvpatch_accumulate(int nk, CL_MEM_LOCAL float * v, float a, CL_MEM_GLOBAL fl
       else if(nk - k > 8){
          float8 a8 = (float8)(a, a, a, a, a, a, a, a);
          float8 w8 = (float8)(w[k], w[k+1], w[k+2], w[k+3], w[k+4], w[k+5], w[k+6], w[k+7]);
-         CL_MEM_LOCAL float8* v8 = (CL_MEM_LOCAL float8*)(v+k);
+         CL_MEM_GLOBAL float8* v8 = (CL_MEM_GLOBAL float8*)(v+k);
          *v8 += a8 * w8;
          k += 8;
       }
       else if(nk - k > 4){
          float4 a4 = (float4)(a, a, a, a);
          float4 w4 = (float4)(w[k], w[k+1], w[k+2], w[k+3]);
-         CL_MEM_LOCAL float4* v4 = (CL_MEM_LOCAL float4*)(v+k);
+         CL_MEM_GLOBAL float4* v4 = (CL_MEM_GLOBAL float4*)(v+k);
          *v4 += a4 * w4;
          k += 4;
       }
       else if(nk - k > 2){ 
          float2 a2 = (float2)(a, a);
          float2 w2 = (float2)(w[k], w[k+1]);
-         CL_MEM_LOCAL float2* v2 = (CL_MEM_LOCAL float2*)(v+k);
+         CL_MEM_GLOBAL float2* v2 = (CL_MEM_GLOBAL float2*)(v+k);
          *v2 += a2 * w2;
          k += 2;
       }
@@ -150,11 +132,7 @@ void HyPerLayer_recv_pre(
       CL_MEM_GLOBAL float* preData,
       CL_MEM_GLOBAL float* weights,
       CL_MEM_GLOBAL float* postGSyn,
-      CL_MEM_GLOBAL int* patch2datalookuptable,
-
-      //Local buffers
-      CL_MEM_LOCAL float* preBuffer,
-      CL_MEM_LOCAL float* postBuffer
+      CL_MEM_GLOBAL int* patch2datalookuptable
 ){
 #ifdef PV_USE_OPENCL
       int groupXPost = get_global_id(0);
@@ -173,73 +151,77 @@ void HyPerLayer_recv_pre(
       int postX = groupXPost * groupXSize;
       int postY = groupYPost * groupYSize;
       int kPostRes = kIndex(postX, postY, 0, postNxRes, postNyRes, postNf); 
-      CL_MEM_LOCAL int groupPostRes;
-      CL_MEM_LOCAL long groupStartPreExt;
-      if(localXIndex == 0 && localYIndex == 0){
-         groupPostRes = kPostRes;
-         groupStartPreExt = postToPreActivity[groupPostRes];
-      }
 
-      //Clear post buffer
-      int postBufXSize = groupXSize * localX;
-      int postBufYStride = postBufXSize * postNf;
-      int postBufNumXF = groupXSize * postNf;
-      CL_MEM_LOCAL float* localGSynStart = &(postBuffer[localYIndex * groupYSize * postBufYStride
-                                                                    + localXIndex * groupXSize * postNf]);
+      //CL_MEM_LOCAL int groupPostRes;
+      //CL_MEM_LOCAL long groupStartPreExt;
+      //if(localXIndex == 0 && localYIndex == 0){
+      //   groupPostRes = kPostRes;
+      //   groupStartPreExt = postToPreActivity[groupPostRes];
+      //}
 
-      for(int ky = 0; ky < groupYSize; ky++){
-         CL_MEM_LOCAL float* gSynStartY = localGSynStart + ky * postBufYStride;
-         for(int kxf = 0; kxf < postBufNumXF; kxf++){
-            gSynStartY[kxf] = 0;
-         }
-      }
-      barrier(CLK_LOCAL_MEM_FENCE);
+      ////Clear post buffer
+      //int postBufXSize = groupXSize * localX;
+      //int postBufYStride = postBufXSize * postNf;
+      //int postBufNumXF = groupXSize * postNf;
+      //CL_MEM_LOCAL float* localGSynStart = &(postBuffer[localYIndex * groupYSize * postBufYStride
+      //                                                              + localXIndex * groupXSize * postNf]);
 
-      //Find number of global threads working in this workgroup
-      int numLocal = localX * localY;
-      //Find total number of pre neurons in the buffer
-      int totPreBuf = localBufSizeX * localBufSizeY * preNf;
-      //Find a good splitting number, using ceil to make sure we get everything
-      int numPrePerLocal = ceil((float)totPreBuf/(float)numLocal);
-      int localIndex = kIndex(localXIndex, localYIndex, 0, localX, localY, 1);
+      //for(int ky = 0; ky < groupYSize; ky++){
+      //   CL_MEM_LOCAL float* gSynStartY = localGSynStart + ky * postBufYStride;
+      //   for(int kxf = 0; kxf < postBufNumXF; kxf++){
+      //      gSynStartY[kxf] = 0;
+      //   }
+      //}
+      //barrier(CLK_LOCAL_MEM_FENCE);
 
-      //Find pre activity start from post index
+      ////Find number of global threads working in this workgroup
+      //int numLocal = localX * localY;
+      ////Find total number of pre neurons in the buffer
+      //int totPreBuf = localBufSizeX * localBufSizeY * preNf;
+      ////Find a good splitting number, using ceil to make sure we get everything
+      //int numPrePerLocal = ceil((float)totPreBuf/(float)numLocal);
+      //int localIndex = kIndex(localXIndex, localYIndex, 0, localX, localY, 1);
 
-      for(int i = 0; i < numPrePerLocal; i++){
-         //Need to get a mapping from localIndex (post group) to pre index
-         int mappedPreIndex = localIndex * numPrePerLocal + i;
-         if(mappedPreIndex < totPreBuf){
-            //Convert mappedPreIndex into a pre data index
-            int preIdxX = kxPos(mappedPreIndex, localBufSizeX, localBufSizeY, preNf);
-            int preIdxY = kyPos(mappedPreIndex, localBufSizeX, localBufSizeY, preNf);
-            int preIdxF = featureIndex(mappedPreIndex, localBufSizeX, localBufSizeY, preNf);
+      ////Find pre activity start from post index
 
-            //Convert mappedPreIndex into a preBufIdx
-            int preBufIdx = kIndex(preIdxX, preIdxY, preIdxF, localBufSizeX, localBufSizeY, preNf);
+      //for(int i = 0; i < numPrePerLocal; i++){
+      //   //Need to get a mapping from localIndex (post group) to pre index
+      //   int mappedPreIndex = localIndex * numPrePerLocal + i;
+      //   if(mappedPreIndex < totPreBuf){
+      //      //Convert mappedPreIndex into a pre data index
+      //      int preIdxX = kxPos(mappedPreIndex, localBufSizeX, localBufSizeY, preNf);
+      //      int preIdxY = kyPos(mappedPreIndex, localBufSizeX, localBufSizeY, preNf);
+      //      int preIdxF = featureIndex(mappedPreIndex, localBufSizeX, localBufSizeY, preNf);
 
-            //X, Y, and F are with respect to the buffer size
-            int xfIdx = preIdxX * preNf + preIdxF;
+      //      //Convert mappedPreIndex into a preBufIdx
+      //      int preBufIdx = kIndex(preIdxX, preIdxY, preIdxF, localBufSizeX, localBufSizeY, preNf);
 
-            int dataIdx = groupStartPreExt + preIdxY * (preNxExt * preNf) + xfIdx;
-            //Using the orig stride, we should be able to go to the correct row in the data
-            preBuffer[preBufIdx] = preData[dataIdx];
-         }
-      }
+      //      //X, Y, and F are with respect to the buffer size
+      //      int xfIdx = preIdxX * preNf + preIdxF;
 
-      //Barrier to make sure the work group's prebuffer is set
-      barrier(CLK_LOCAL_MEM_FENCE);
+      //      int dataIdx = groupStartPreExt + preIdxY * (preNxExt * preNf) + xfIdx;
+      //      //Using the orig stride, we should be able to go to the correct row in the data
+      //      preBuffer[preBufIdx] = preData[dataIdx];
+      //   }
+      //}
+
+      ////Barrier to make sure the work group's prebuffer is set
+      //barrier(CLK_LOCAL_MEM_FENCE);
 
       //Calculate this local group's startPreExt
       int startPreExt = postToPreActivity[kPostRes];
-      //Calculate offset in x and y direction from starting group to this group
-      //We shouldn't need F
-      int kGroupPreX = kxPos(groupStartPreExt, preNxExt, preNyExt, preNf);
-      int kGroupPreY = kyPos(groupStartPreExt, preNxExt, preNyExt, preNf);
-      int kCurPreX = kxPos(startPreExt, preNxExt, preNyExt, preNf);
-      int kCurPreY = kyPos(startPreExt, preNxExt, preNyExt, preNf);
-      int diffX = kCurPreX - kGroupPreX;
-      int diffY = kCurPreY - kGroupPreY;
-      int preLocalStart = kIndex(diffX, diffY, 0, localBufSizeX, localBufSizeY, preNf);
+
+      CL_MEM_GLOBAL float* gSynStart = &(postGSyn[kPostRes]);
+
+      ////Calculate offset in x and y direction from starting group to this group
+      ////We shouldn't need F
+      //int kGroupPreX = kxPos(groupStartPreExt, preNxExt, preNyExt, preNf);
+      //int kGroupPreY = kyPos(groupStartPreExt, preNxExt, preNyExt, preNf);
+      //int kCurPreX = kxPos(startPreExt, preNxExt, preNyExt, preNf);
+      //int kCurPreY = kyPos(startPreExt, preNxExt, preNyExt, preNf);
+      //int diffX = kCurPreX - kGroupPreX;
+      //int diffY = kCurPreY - kGroupPreY;
+      //int preLocalStart = kIndex(diffX, diffY, 0, localBufSizeX, localBufSizeY, preNf);
 
       //Loop through pre activity
       for(int kPreLocal = 0; kPreLocal < localPreSizeY * localPreSizeX * preNf; kPreLocal++){
@@ -248,10 +230,11 @@ void HyPerLayer_recv_pre(
          int kPreYLocal = kyPos(kPreLocal, localPreSizeX, localPreSizeY, preNf);
          int kPreFLocal = featureIndex(kPreLocal, localPreSizeX, localPreSizeY, preNf);
 
-         int kPreBuf = preLocalStart + kPreYLocal * (localBufSizeX * preNf) + kPreXLocal * preNf + kPreFLocal;
+         //int kPreBuf = preLocalStart + kPreYLocal * (localBufSizeX * preNf) + kPreXLocal * preNf + kPreFLocal;
          int kPre = startPreExt + kPreYLocal * (preNxExt * preNf) + kPreXLocal * preNf + kPreFLocal;
 
-         float a = preBuffer[kPreBuf] * dt_factor;
+         //float a = preBuffer[kPreBuf] * dt_factor;
+         float a = preData[kPre] * dt_factor;
          if(a == 0) continue;
 
          //GSynPatchStart is in local post space, need to translate to buffer post space
@@ -260,11 +243,11 @@ void HyPerLayer_recv_pre(
          int localXGSynOffset = kxPos(localGSynOffset, groupXSize, groupYSize, postNf);
          int localYGSynOffset = kyPos(localGSynOffset, groupXSize, groupYSize, postNf);
          int localFGSynOffset = featureIndex(localGSynOffset, groupXSize, groupYSize, postNf);
-         size_t gSynOffset = localYGSynOffset * postBufYStride + localXGSynOffset * postNf + localFGSynOffset;
+         //size_t gSynOffset = localYGSynOffset * postBufYStride + localXGSynOffset * postNf + localFGSynOffset;
+         size_t gSynOffset = localYGSynOffset * sy + localXGSynOffset * postNf + localFGSynOffset;
 
          //Grab weight patches
          PVPatch patch = patches[kPreLocal];
-
          int nk = nfp * patch.nx;
          int ny = patch.ny;
 
@@ -279,26 +262,23 @@ void HyPerLayer_recv_pre(
          int wIdx = kernelIndex * nxp * nyp * nfp + patch.offset;
 
          for(int ky = 0; ky < ny; ky++){
-            CL_MEM_LOCAL float * gSynY = localGSynStart + gSynOffset + ky * postBufYStride;
+            //CL_MEM_LOCAL float * gSynY = localGSynStart + gSynOffset + ky * postBufYStride;
+            CL_MEM_GLOBAL float * gSynY = gSynStart + gSynOffset + ky * sy;
             CL_MEM_GLOBAL float * weightY = &(weights[wIdx + ky*syw]);
             //Summing into post buffer indexed by localIndex
             pvpatch_accumulate(nk, gSynY, a, weightY, (void*)0);
          }
-         if(kPreLocal == 100){
-            return;
-         }
-
       }
-      barrier(CLK_LOCAL_MEM_FENCE);
-      
-      //Copy post buf to gsyn start
-      CL_MEM_GLOBAL float* gSynStart = &(postGSyn[kPostRes]);
-      for(int ky = 0; ky < groupYSize; ky++){
-         CL_MEM_GLOBAL float* globalGSynY = gSynStart + ky * sy;
-         CL_MEM_LOCAL float* localGSynY = localGSynStart + ky * postBufYStride;
-         for(int kxf = 0; kxf < postBufNumXF; kxf++){
-            globalGSynY[kxf] = localGSynY[kxf];
-         }
-      }
+      //barrier(CLK_LOCAL_MEM_FENCE);
+      //
+      ////Copy post buf to gsyn start
+      //CL_MEM_GLOBAL float* gSynStart = &(postGSyn[kPostRes]);
+      //for(int ky = 0; ky < groupYSize; ky++){
+      //   CL_MEM_GLOBAL float* globalGSynY = gSynStart + ky * sy;
+      //   CL_MEM_LOCAL float* localGSynY = localGSynStart + ky * postBufYStride;
+      //   for(int kxf = 0; kxf < postBufNumXF; kxf++){
+      //      globalGSynY[kxf] = localGSynY[kxf];
+      //   }
+      //}
 #endif
 }
