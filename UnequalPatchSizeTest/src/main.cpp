@@ -43,9 +43,6 @@ int customexit(HyPerCol * hc, int argc, char * argv[]) {
    int nyPost = outlayer->getLayerLoc()->ny;
    int yHaloSize = correctHaloSize(nyp, nyPre, nyPost);
    
-   if (xHaloSize > yHaloSize) { yHaloSize = xHaloSize; } else { xHaloSize = yHaloSize; }
-   // TODO: allow x- and y- dimensions of halo to differ
-   
    assert(inlayer->getLayerLoc()->halo.lt == xHaloSize);
    assert(inlayer->getLayerLoc()->halo.rt == xHaloSize);
    assert(inlayer->getLayerLoc()->halo.dn == yHaloSize);
