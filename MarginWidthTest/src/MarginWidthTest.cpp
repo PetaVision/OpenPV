@@ -18,6 +18,8 @@ int customexit(HyPerCol * hc, int argc, char **argv);
 void * customgroup(const char * name, const char * groupname, HyPerCol * hc);
 // customgroups is for adding objects not supported by build().
 
+bool checkHalo(PVHalo const * halo, int lt, int rt, int dn, int up);
+
 int main(int argc, char * argv[]) {
 
    int status;
@@ -26,22 +28,19 @@ int main(int argc, char * argv[]) {
 }
 
 int custominit(HyPerCol * hc, int argc, char ** argv) {
-   assert(hc->getLayerFromName("OneToOneCenterFirstInput")->getLayerLoc()->nb==0);
-   assert(hc->getLayerFromName("OneToOneSurroundFirstInput")->getLayerLoc()->nb==0);
-   assert(hc->getLayerFromName("ManyToOneCenterFirstInput")->getLayerLoc()->nb==0);
-   assert(hc->getLayerFromName("ManyToOneSurroundFirstInput")->getLayerLoc()->nb==0);
-   assert(hc->getLayerFromName("OneToManyCenterFirstInput")->getLayerLoc()->nb==0);
-   assert(hc->getLayerFromName("OneToManySurroundFirstInput")->getLayerLoc()->nb==0);
+   PVHalo check;
+   assert(checkHalo(&hc->getLayerFromName("MarginsEqualImage")->getLayerLoc()->halo, 0, 0, 0, 0));
+   assert(checkHalo(&hc->getLayerFromName("XMarginLargerImage")->getLayerLoc()->halo, 0, 0, 0, 0));
+   assert(checkHalo(&hc->getLayerFromName("YMarginLargerImage")->getLayerLoc()->halo, 0, 0, 0, 0));
+   assert(checkHalo(&hc->getLayerFromName("MultipleConnImage")->getLayerLoc()->halo, 0, 0, 0, 0));
    return PV_SUCCESS;
 }
 
 int customexit(HyPerCol * hc, int argc, char ** argv) {
-   assert(hc->getLayerFromName("OneToOneCenterFirstInput")->getLayerLoc()->nb==4);
-   assert(hc->getLayerFromName("OneToOneSurroundFirstInput")->getLayerLoc()->nb==4);
-   assert(hc->getLayerFromName("ManyToOneCenterFirstInput")->getLayerLoc()->nb==16);
-   assert(hc->getLayerFromName("ManyToOneSurroundFirstInput")->getLayerLoc()->nb==16);
-   assert(hc->getLayerFromName("OneToManyCenterFirstInput")->getLayerLoc()->nb==4);
-   assert(hc->getLayerFromName("OneToManySurroundFirstInput")->getLayerLoc()->nb==4);
+   assert(checkHalo(&hc->getLayerFromName("MarginsEqualImage")->getLayerLoc()->halo, 2, 2, 2, 2));
+   assert(checkHalo(&hc->getLayerFromName("XMarginLargerImage")->getLayerLoc()->halo,3, 3, 1, 1));
+   assert(checkHalo(&hc->getLayerFromName("YMarginLargerImage")->getLayerLoc()->halo,1, 1, 3, 3));
+   assert(checkHalo(&hc->getLayerFromName("MultipleConnImage")->getLayerLoc()->halo,3, 3, 3, 3));
    return PV_SUCCESS;
 }
 
@@ -50,6 +49,12 @@ void * customgroup(const char * keyword, const char * name, HyPerCol * hc) {
    return addedGroup;
 }
 
-
+bool checkHalo(PVHalo const * halo, int lt, int rt, int dn, int up) {
+   return
+         halo->lt==lt &&
+         halo->rt==rt &&
+         halo->dn==dn &&
+         halo->up==up;
+}
 
 

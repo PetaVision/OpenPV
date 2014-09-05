@@ -33,13 +33,13 @@ int MPITestLayer::setVtoGlobalPos(){
 // set activity to global x/y/f position, using position in border/margin as required
 int MPITestLayer::setActivitytoGlobalPos(){
    for (int kLocalExt = 0; kLocalExt < clayer->numExtended; kLocalExt++){
-      int kxLocalExt = kxPos(kLocalExt, clayer->loc.nx + 2*clayer->loc.nb, clayer->loc.ny + 2*clayer->loc.nb, clayer->loc.nf) - clayer->loc.nb;
+      int kxLocalExt = kxPos(kLocalExt, clayer->loc.nx + clayer->loc.halo.lt + clayer->loc.halo.rt, clayer->loc.ny + clayer->loc.halo.dn + clayer->loc.halo.up, clayer->loc.nf) - clayer->loc.halo.lt;
       int kxGlobalExt = kxLocalExt + clayer->loc.kx0;
       float xScaleLog2 = clayer->xScale;
       float x0 = xOriginGlobal(xScaleLog2);
       float dx = deltaX(xScaleLog2);
       float x_global_pos = (x0 + dx * kxGlobalExt);
-      int kyLocalExt = kyPos(kLocalExt, clayer->loc.nx + 2*clayer->loc.nb, clayer->loc.ny + 2*clayer->loc.nb, clayer->loc.nf) - clayer->loc.nb;
+      int kyLocalExt = kyPos(kLocalExt, clayer->loc.nx + clayer->loc.halo.lt + clayer->loc.halo.rt, clayer->loc.ny + clayer->loc.halo.dn + clayer->loc.halo.up, clayer->loc.nf) - clayer->loc.halo.up;
       int kyGlobalExt = kyLocalExt + clayer->loc.ky0;
 
       bool x_in_local_interior = kxLocalExt >= 0 && kxLocalExt < clayer->loc.nx;

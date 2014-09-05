@@ -28,35 +28,36 @@ int main(int argc, char * argv[])
 
    //FILE * fd = stdout;
    int nf = l->clayer->loc.nf;
-   int nB = l->clayer->loc.nb; //4;
+   PVHalo const * halo = &l->clayer->loc.halo;
    int nS = l->clayer->loc.nx; // 8;
-   int syex = ( nS + 2*nB ) * nf;
+   int syex = ( nS + halo->lt + halo->rt ) * nf;
    int sy = nS * nf;
 
    sLoc.nxGlobal = sLoc.nyGlobal = nS; // shouldn't be used
    sLoc.kx0 = sLoc.ky0 = 0; // shouldn't be used
    sLoc.nx = sLoc.ny = nS;
-   sLoc.nb = nB;
    sLoc.nf = nf;
-   sLoc.halo.lt = l->getLayerLoc()->halo.lt;
-   sLoc.halo.rt = l->getLayerLoc()->halo.rt;
-   sLoc.halo.dn = l->getLayerLoc()->halo.dn;
-   sLoc.halo.up = l->getLayerLoc()->halo.up;
+   sLoc.halo.lt = halo->lt;
+   sLoc.halo.rt = halo->rt;
+   sLoc.halo.dn = halo->dn;
+   sLoc.halo.up = halo->up;
 
    bLoc = sLoc;
 
-   sCube = pvcube_new(&sLoc, (nS+2*nB)*(nS+2*nB)*nf);
+   sCube = pvcube_new(&sLoc, (nS+halo->lt+halo->rt)*(nS+halo->dn+halo->up)*nf);
    bCube = sCube;
 
    // fill interior with non-extended index of each neuron
    // leave border values at zero to start with
-   int kFirst = nB;
-   int kLast = nS + nB;
-   for (int ky = kFirst; ky < kLast; ky++) {
-      for (int kx = kFirst; kx < kLast; kx++) {
+   int kxFirst = halo->lt;
+   int kxLast = nS + halo->lt;
+   int kyFirst = halo->up;
+   int kyLast = nS + halo->up;
+   for (int ky = kyFirst; ky < kyLast; ky++) {
+      for (int kx = kxFirst; kx < kxLast; kx++) {
          for (int kf = 0; kf < nf; kf++) {
             int kex = ky * syex + kx * nf + kf;
-            int k = (ky-kFirst) * sy + (kx-kFirst) * nf + kf;
+            int k = (ky-kyFirst) * sy + (kx-kxFirst) * nf + kf;
             sCube->data[kex] = k;
 #ifdef DEBUG_PRINT
             printf("sCube val = %5i:, kex = %5i:, k = %5i\n", (int) sCube->data[kex], kex, k);
@@ -102,13 +103,13 @@ int main(int argc, char * argv[])
    // uses a completely different algorithm than mirrorInteriorToBorder
 
    // northwest
-   for (int ky = kFirst; ky < kFirst+nB; ky++) {
-      int kymirror = kFirst - 1 - (ky - kFirst);
-      for (int kx = kFirst; kx < kFirst+nB; kx++) {
-         int kxmirror = kFirst - 1 - (kx - kFirst);
+   for (int ky = kxFirst; ky < kyFirst+halo->lt; ky++) {
+      int kymirror = kyFirst - 1 - (ky - kyFirst);
+      for (int kx = kxFirst; kx < kxFirst+halo->lt; kx++) {
+         int kxmirror = kxFirst - 1 - (kx - kxFirst);
          for (int kf = 0; kf < nf; kf++) {
             int kex = ky * syex + kx * nf + kf;
-            int k = (ky-kFirst) * sy + (kx-kFirst) * nf + kf;
+            int k = (ky-kyFirst) * sy + (kx-kxFirst) * nf + kf;
             int kmirror = kymirror * syex + kxmirror * nf + kf;
             int mirrorVal = bCube->data[kmirror];
             if ( mirrorVal != k) {
@@ -120,13 +121,13 @@ int main(int argc, char * argv[])
    }
 
    // north
-   for (int ky = kFirst; ky < kFirst+nB; ky++) {
-      int kymirror = kFirst - 1 - (ky - kFirst);
-      for (int kx = kFirst; kx < kLast; kx++) {
+   for (int ky = kyFirst; ky < kyFirst+halo->up; ky++) {
+      int kymirror = kyFirst - 1 - (ky - kyFirst);
+      for (int kx = kxFirst; kx < kxLast; kx++) {
          int kxmirror = kx;
          for (int kf = 0; kf < nf; kf++) {
             int kex = ky * syex + kx * nf + kf;
-            int k = (ky-kFirst) * sy + (kx-kFirst) * nf + kf;
+            int k = (ky-kyFirst) * sy + (kx-kxFirst) * nf + kf;
             int kmirror = kymirror * syex + kxmirror * nf + kf;
             int mirrorVal = bCube->data[kmirror];
             if ( mirrorVal != k) {
@@ -138,13 +139,13 @@ int main(int argc, char * argv[])
    }
 
    // northeast
-   for (int ky = kFirst; ky < kFirst+nB; ky++) {
-      int kymirror = kFirst - 1 - (ky - kFirst);
-      for (int kx = kLast - nB; kx < kLast; kx++) {
-         int kxmirror = kLast - 1 + (kLast - kx);
+   for (int ky = kyFirst; ky < kyFirst+halo->up; ky++) {
+      int kymirror = kyFirst - 1 - (ky - kyFirst);
+      for (int kx = kxLast - halo->rt; kx < kxLast; kx++) {
+         int kxmirror = kxLast - 1 + (kxLast - kx);
          for (int kf = 0; kf < nf; kf++) {
             int kex = ky * syex + kx * nf + kf;
-            int k = (ky-kFirst) * sy + (kx-kFirst) * nf + kf;
+            int k = (ky-kxFirst) * sy + (kx-kxFirst) * nf + kf;
             int kmirror = kymirror * syex + kxmirror * nf + kf;
             int mirrorVal = bCube->data[kmirror];
             if ( mirrorVal != k) {
@@ -156,13 +157,13 @@ int main(int argc, char * argv[])
    }
 
    // west
-   for (int ky = kFirst; ky < kLast; ky++) {
+   for (int ky = kyFirst; ky < kyLast; ky++) {
       int kymirror = ky;
-      for (int kx = kFirst; kx < kFirst + nB; kx++) {
-         int kxmirror = kFirst - 1 - (kx - kFirst);
+      for (int kx = kxFirst; kx < kxFirst + halo->lt; kx++) {
+         int kxmirror = kxFirst - 1 - (kx - kxFirst);
          for (int kf = 0; kf < nf; kf++) {
             int kex = ky * syex + kx * nf + kf;
-            int k = (ky-kFirst) * sy + (kx-kFirst) * nf + kf;
+            int k = (ky-kyFirst) * sy + (kx-kxFirst) * nf + kf;
             int kmirror = kymirror * syex + kxmirror * nf + kf;
             int mirrorVal = bCube->data[kmirror];
             if ( mirrorVal != k) {
@@ -175,13 +176,13 @@ int main(int argc, char * argv[])
 
 
    // east
-   for (int ky = kFirst; ky < kLast; ky++) {
+   for (int ky = kyFirst; ky < kyLast; ky++) {
       int kymirror = ky;
-      for (int kx = kLast - nB; kx < kLast; kx++) {
-         int kxmirror = kLast - 1 + (kLast - kx);
+      for (int kx = kxLast - halo->rt; kx < kxLast; kx++) {
+         int kxmirror = kxLast - 1 + (kxLast - kx);
          for (int kf = 0; kf < nf; kf++) {
             int kex = ky * syex + kx * nf + kf;
-            int k = (ky-kFirst) * sy + (kx-kFirst) * nf + kf;
+            int k = (ky-kyFirst) * sy + (kx-kyFirst) * nf + kf;
             int kmirror = kymirror * syex + kxmirror * nf + kf;
             int mirrorVal = bCube->data[kmirror];
             if ( mirrorVal != k) {
@@ -193,13 +194,13 @@ int main(int argc, char * argv[])
    }
 
    // southwest
-   for (int ky = kLast - nB; ky < kLast; ky++) {
-      int kymirror = kLast - 1 + (kLast - ky);
-      for (int kx = kFirst; kx < kFirst+nB; kx++) {
-         int kxmirror = kFirst - 1 - (kx - kFirst);
+   for (int ky = kyLast - halo->dn; ky < kyLast; ky++) {
+      int kymirror = kyLast - 1 + (kyLast - ky);
+      for (int kx = kxFirst; kx < kxFirst+halo->lt; kx++) {
+         int kxmirror = kxFirst - 1 - (kx - kxFirst);
          for (int kf = 0; kf < nf; kf++) {
             int kex = ky * syex + kx * nf + kf;
-            int k = (ky-kFirst) * sy + (kx-kFirst) * nf + kf;
+            int k = (ky-kyFirst) * sy + (kx-kxFirst) * nf + kf;
             int kmirror = kymirror * syex + kxmirror * nf + kf;
             int mirrorVal = bCube->data[kmirror];
             if ( mirrorVal != k) {
@@ -211,13 +212,13 @@ int main(int argc, char * argv[])
    }
 
    // south
-   for (int ky = kLast - nB; ky < kLast; ky++) {
-      int kymirror = kLast - 1 + (kLast - ky);
-      for (int kx = kFirst; kx < kLast; kx++) {
+   for (int ky = kyLast - halo->dn; ky < kyLast; ky++) {
+      int kymirror = kyLast - 1 + (kyLast - ky);
+      for (int kx = kxFirst; kx < kxLast; kx++) {
          int kxmirror = kx;
          for (int kf = 0; kf < nf; kf++) {
             int kex = ky * syex + kx * nf + kf;
-            int k = (ky-kFirst) * sy + (kx-kFirst) * nf + kf;
+            int k = (ky-kyFirst) * sy + (kx-kxFirst) * nf + kf;
             int kmirror = kymirror * syex + kxmirror * nf + kf;
             int mirrorVal = bCube->data[kmirror];
             if ( mirrorVal != k) {
@@ -230,13 +231,13 @@ int main(int argc, char * argv[])
 
 
    // southeast
-   for (int ky = kLast - nB; ky < kLast; ky++) {
-      int kymirror = kLast - 1 + (kLast - ky);
-      for (int kx = kLast - nB; kx < kLast; kx++) {
-         int kxmirror = kLast - 1 + (kLast - kx);
+   for (int ky = kyLast - halo->dn; ky < kyLast; ky++) {
+      int kymirror = kyLast - 1 + (kyLast - ky);
+      for (int kx = kxLast - halo->rt; kx < kxLast; kx++) {
+         int kxmirror = kxLast - 1 + (kxLast - kx);
          for (int kf = 0; kf < nf; kf++) {
             int kex = ky * syex + kx * nf + kf;
-            int k = (ky-kFirst) * sy + (kx-kFirst) * nf + kf;
+            int k = (ky-kyFirst) * sy + (kx-kyFirst) * nf + kf;
             int kmirror = kymirror * syex + kxmirror * nf + kf;
             int mirrorVal = bCube->data[kmirror];
             if ( mirrorVal != k) {

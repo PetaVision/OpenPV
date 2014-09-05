@@ -16,14 +16,13 @@ int BinningTestLayer::updateState(double timef, double dt){
    int nf = loc->nf;
    int kx0 = loc->kx0;
    int ky0 = loc->ky0;
-   int nb = loc->nb;
    //Grab the activity layer of current layer
    const pvdata_t * A = getActivity();
    //We only care about restricted space
-   for(int iY = nb; iY < ny + nb; iY++){
-      for(int iX = nb; iX < nx + nb; iX++){
+   for(int iY = loc->halo.up; iY < ny + loc->halo.up; iY++){
+      for(int iX = loc->halo.up; iX < nx + loc->halo.lt; iX++){
          for(int iF = 0; iF < nf; iF++){
-            int idx = kIndex(iX, iY, iF, nx+2*nb, ny+2*nb, nf);
+            int idx = kIndex(iX, iY, iF, nx+loc->halo.lt+loc->halo.rt, ny+loc->halo.dn+loc->halo.up, nf);
             if(getSigma() == 0){
                //Based on the input image, X index should be the same as F index
                if(iX+kx0 == iF){

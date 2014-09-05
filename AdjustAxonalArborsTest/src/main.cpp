@@ -23,11 +23,15 @@ int checkoutput(HyPerCol * hc, int argc, char ** argv) {
    assert(hc->numberOfLayers()==2 && hc->numberOfConnections()==1);
 
    // Input layer should be 2x2 with values 1, 2, 3, 4;
-   // and have nb=1 with mirror boundary conditions off.
+   // and have margin width 1 with mirror boundary conditions off.
    HyPerLayer * inLayer = hc->getLayer(0);
    const PVLayerLoc * inLoc = inLayer->getLayerLoc();
    assert(inLoc->nxGlobal==2 && inLoc->nyGlobal==2 && inLoc->nf==1);
-   assert(inLoc->nb==1 && inLayer->getNumGlobalExtended()==16);   
+   assert(inLoc->halo.lt==1 &&
+          inLoc->halo.rt==1 &&
+          inLoc->halo.dn==1 &&
+          inLoc->halo.up==1 &&
+          inLayer->getNumGlobalExtended()==16);
    
    fflush(stdout);
 #ifdef PV_USE_MPI
@@ -37,9 +41,9 @@ int checkoutput(HyPerCol * hc, int argc, char ** argv) {
       if (r==hc->columnId()) {
          printf("Rank %d, Input layer activity\n",r);
          for (int k=0; k<inLayer->getNumExtended(); k++) {
-            int x=kxPos(k,inLoc->nx+2*inLoc->nb,inLoc->ny+2*inLoc->nb,inLoc->nf)-inLoc->nb+inLoc->kx0;
-            int y=kyPos(k,inLoc->nx+2*inLoc->nb,inLoc->ny+2*inLoc->nb,inLoc->nf)-inLoc->nb+inLoc->ky0;
-            int f=featureIndex(k,inLoc->nxGlobal+2*inLoc->nb,inLoc->nyGlobal+2*inLoc->nb,inLoc->nf);
+            int x=kxPos(k,inLoc->nx+inLoc->halo.lt+inLoc->halo.rt,inLoc->ny+inLoc->halo.dn+inLoc->halo.up,inLoc->nf)-inLoc->halo.lt+inLoc->kx0;
+            int y=kyPos(k,inLoc->nx+inLoc->halo.lt+inLoc->halo.rt,inLoc->ny+inLoc->halo.dn+inLoc->halo.up,inLoc->nf)-inLoc->halo.up+inLoc->ky0;
+            int f=featureIndex(k,inLoc->nx+inLoc->halo.lt+inLoc->halo.rt,inLoc->ny+inLoc->halo.dn+inLoc->halo.up,inLoc->nf);
             pvdata_t a = inLayer->getLayerData()[k];
             
             if (x>=0 && x<inLoc->nxGlobal && y>=0 && y<inLoc->nyGlobal) {
@@ -88,7 +92,11 @@ int checkoutput(HyPerCol * hc, int argc, char ** argv) {
    HyPerLayer * outLayer = hc->getLayer(1);
    const PVLayerLoc * outLoc = outLayer->getLayerLoc();
    assert(outLoc->nxGlobal==2 && outLoc->nyGlobal==2 && outLoc->nf==1);
-   assert(outLoc->nb==0 && outLayer->getNumGlobalExtended()==4);
+   assert(outLoc->halo.lt==0 &&
+          outLoc->halo.rt==0 &&
+          outLoc->halo.dn==0 &&
+          outLoc->halo.up==0 &&
+          outLayer->getNumGlobalExtended()==4);
    const pvdata_t correct[4] = {13.0f, 23.0f, 43.0f, 53.0f};
    
    for (int r=0; r<hc->icCommunicator()->commSize(); r++) {

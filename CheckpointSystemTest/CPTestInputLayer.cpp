@@ -16,7 +16,10 @@ void CPTestInputLayer_update_state(
       const int nx,
       const int ny,
       const int nf,
-      const int nb,
+      const int lt,
+      const int rt,
+      const int dn,
+      const int up,
 
       float * V,
       const float Vth,
@@ -109,7 +112,7 @@ int CPTestInputLayer::updateState(double timed, double dt) {
       const int nx = clayer->loc.nx;
       const int ny = clayer->loc.ny;
       const int nf = clayer->loc.nf;
-      const int nb = clayer->loc.nb;
+      const PVHalo * halo = &clayer->loc.halo;
       const int numNeurons = getNumNeurons();
 
       //pvdata_t * GSynExc   = getChannel(CHANNEL_EXC);
@@ -118,7 +121,7 @@ int CPTestInputLayer::updateState(double timed, double dt) {
       pvdata_t * V = getV();
       pvdata_t * activity = clayer->activity->data;
 
-      CPTestInputLayer_update_state(numNeurons, nx, ny, nf, nb, V, VThresh, AMax, AMin, GSynHead, activity);
+      CPTestInputLayer_update_state(numNeurons, nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up, V, VThresh, AMax, AMin, GSynHead, activity);
 //#ifdef PV_USE_OPENCL
 //   }
 //#endif

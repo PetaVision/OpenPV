@@ -1,7 +1,7 @@
 //
 // MarginWidthTest.params
 //
-// created by peteschultz: Jul 24, 2013
+// created by peteschultz: Aug 15, 2014
 //
 
 //  A params file to test automatic resizing of margin widths
@@ -9,80 +9,55 @@
 debugParsing = false;    // Debug the reading of this parameter file.
 
 HyPerCol "column" = {
-   nx = 256;   // size of the global layer in the x-direction
-   ny = 256;   // size of the global layer in the y-direction
-   dt = 1.0;  //time step in ms.	     
+   nx = 256;
+   ny = 256;
+   dt = 1.0;
+   dtAdaptFlag = false;
    randomSeed = 1149986818;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
    startTime = 0.0;
-   numSteps = 1;  
-   progressStep = 1; //Program will output its progress at each progressStep
+   stopTime = 1.0;  
+   progressInterval = 1;
+   errorOnNotANumber = false;
    writeProgressToErr = false;  
    outputPath = "output/";
+   printParamsFilename = "pv.params";
    filenamesContainLayerNames = false;  
    filenamesContainConnectionNames = false;
-   checkpointRead = false;  
+   initializeFromCheckpointDir = "";
    checkpointWrite = false;
-   suppressLastOutput = false; //If true, don't save the last output as checkpoint.
+   suppressLastOutput = false;
 };
 
 //
 // layers
 //
 
-//All layers are subclasses of hyperlayer
-
-
-// this is an input layer
-Image "OneToOneCenterFirstInput" = {
-    restart = 0;  // make only a certain layer restart
-    nxScale = 1;  // this must be 2^n, n = ...,-2,-1,0,1,2,... 
-    nyScale = 1;  // the scale is to decide how much area will be used as input. For example, nx * nxScale = 32. The size of input
-    	      	  // cannot be larger than the input image size.
-    imagePath = "input/testimage.jpg"; // it's a 32*32 image
-    nf = 1; //number of features. For a grey image, it's 1. For a color image, it could be either 1 or 3.
-    phase = 0; //phase defines an order in which layers should be executed.
-    writeStep = -1;  //-1 means doesn't write for log
-    writeSparseActivity = false; //only write weights which are not 0
-    mirrorBCflag = false;    //border condition flag
-    valueBC = 0.0;           //If mirrorBCflag is false, use this value in the boundary regions
+Image "MarginsEqualImage" = {
+    nxScale = 1;
+    nyScale = 1;
+    imagePath = "input/testimage.jpg";
+    nf = 1;
+    phase = 0;
+    writeStep = -1;
+    writeSparseActivity = false;
+    mirrorBCflag = false;
+    valueBC = 0.0;
     useImageBCflag = false;
     inverseFlag = false; 
     normalizeLuminanceFlag = false;
     autoResizeFlag = false;
     writeImages = false;
-    offsetX = 0;  // offset for crop, when the input size is smaller than the size of image
+    offsetX = 0;
     offsetY = 0;
-    jitterFlag = false; // moving around like an eyeball. our eyeballs are not still even when we are gazing at something.
+    jitterFlag = false;
 };
 
-Image "OneToOneSurroundFirstInput" = {
-    restart = 0;  // make only a certain layer restart
-    nxScale = 1;  // this must be 2^n, n = ...,-2,-1,0,1,2,... 
-    nyScale = 1;  // the scale is to decide how much area will be used as input. For example, nx * nxScale = 32. The size of input
-    	      	  // cannot be larger than the input image size.
-    imagePath = "input/testimage.jpg"; // it's a 32*32 image
-    nf = 1; //number of features. For a grey image, it's 1. For a color image, it could be either 1 or 3.
-    phase = 0; //phase defines an order in which layers should be executed.
-    writeStep = -1;  //-1 means doesn't write for log
-    writeSparseActivity = false; //only write weights which are not 0
-    mirrorBCflag = false;    //border condition flag
-    valueBC = 0.0;           //If mirrorBCflag is false, use this value in the boundary regions
-    useImageBCflag = false;
-    inverseFlag = false; 
-    normalizeLuminanceFlag = false;
-    autoResizeFlag = false;
-    writeImages = false;
-    offsetX = 0;  // offset for crop, when the input size is smaller than the size of image
-    offsetY = 0;
-    jitterFlag = false; // moving around like an eyeball. our eyeballs are not still even when we are gazing at something.
-};
-
-ANNLayer "OneToOneCenterFirstOutput" = {
-    restart = 0;
+ANNLayer "MarginsEqualResult" = {
     nxScale = 1; 
     nyScale = 1;
     nf = 1; // 1 feature 
     phase = 1;
+    triggerFlag = false;
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = 1;
@@ -90,19 +65,39 @@ ANNLayer "OneToOneCenterFirstOutput" = {
 
     InitVType = "ZeroV";
 
-    //define a linear relation between its input and output, with some hard cut-off.
     VThresh = -infinity;   
-    VMax = infinity;
-    VMin = -infinity;
-    VShift = 0.0;
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0.0;
+    VWidth = 0.0;
 };
 
-ANNLayer "OneToOneSurroundFirstOutput" = {
-    restart = 0;
+Image "XMarginLargerImage" = {
+    nxScale = 1;
+    nyScale = 1;
+    imagePath = "input/testimage.jpg";
+    nf = 1;
+    phase = 0;
+    writeStep = -1;
+    writeSparseActivity = false;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+    useImageBCflag = false;
+    inverseFlag = false; 
+    normalizeLuminanceFlag = false;
+    autoResizeFlag = false;
+    writeImages = false;
+    offsetX = 0;
+    offsetY = 0;
+    jitterFlag = false;
+};
+
+ANNLayer "XMarginLargerResult" = {
     nxScale = 1; 
     nyScale = 1;
     nf = 1; // 1 feature 
     phase = 1;
+    triggerFlag = false;
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = 1;
@@ -110,63 +105,79 @@ ANNLayer "OneToOneSurroundFirstOutput" = {
 
     InitVType = "ZeroV";
 
-    //define a linear relation between its input and output, with some hard cut-off.
     VThresh = -infinity;   
-    VMax = infinity;
-    VMin = -infinity;
-    VShift = 0.0;
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0.0;
+    VWidth = 0.0;
 };
 
-Image "ManyToOneCenterFirstInput" = {
-    restart = 0;  // make only a certain layer restart
-    nxScale = 1;  // this must be 2^n, n = ...,-2,-1,0,1,2,... 
-    nyScale = 1;  // the scale is to decide how much area will be used as input. For example, nx * nxScale = 32. The size of input
-    	      	  // cannot be larger than the input image size.
-    imagePath = "input/testimage.jpg"; // it's a 32*32 image
-    nf = 1; //number of features. For a grey image, it's 1. For a color image, it could be either 1 or 3.
-    phase = 0; //phase defines an order in which layers should be executed.
-    writeStep = -1;  //-1 means doesn't write for log
-    writeSparseActivity = false; //only write weights which are not 0
-    mirrorBCflag = false;    //border condition flag
-    valueBC = 0.0;           //If mirrorBCflag is false, use this value in the boundary regions
+Image "YMarginLargerImage" = {
+    nxScale = 1;
+    nyScale = 1;
+    imagePath = "input/testimage.jpg";
+    nf = 1;
+    phase = 0;
+    writeStep = -1;
+    writeSparseActivity = false;
+    mirrorBCflag = false;
+    valueBC = 0.0;
     useImageBCflag = false;
     inverseFlag = false; 
     normalizeLuminanceFlag = false;
     autoResizeFlag = false;
     writeImages = false;
-    offsetX = 0;  // offset for crop, when the input size is smaller than the size of image
+    offsetX = 0;
     offsetY = 0;
-    jitterFlag = false; // moving around like an eyeball. our eyeballs are not still even when we are gazing at something.
+    jitterFlag = false;
 };
 
-Image "ManyToOneSurroundFirstInput" = {
-    restart = 0;  // make only a certain layer restart
-    nxScale = 1;  // this must be 2^n, n = ...,-2,-1,0,1,2,... 
-    nyScale = 1;  // the scale is to decide how much area will be used as input. For example, nx * nxScale = 32. The size of input
-    	      	  // cannot be larger than the input image size.
-    imagePath = "input/testimage.jpg"; // it's a 32*32 image
-    nf = 1; //number of features. For a grey image, it's 1. For a color image, it could be either 1 or 3.
-    phase = 0; //phase defines an order in which layers should be executed.
-    writeStep = -1;  //-1 means doesn't write for log
-    writeSparseActivity = false; //only write weights which are not 0
-    mirrorBCflag = false;    //border condition flag
-    valueBC = 0.0;           //If mirrorBCflag is false, use this value in the boundary regions
+ANNLayer "YMarginLargerResult" = {
+    nxScale = 1; 
+    nyScale = 1;
+    nf = 1; // 1 feature 
+    phase = 1;
+    triggerFlag = false;
+    writeStep = 1.0;
+    initialWriteTime = 0.0;
+    mirrorBCflag = 1;
+    writeSparseActivity = false;
+
+    InitVType = "ZeroV";
+
+    VThresh = -infinity;   
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0.0;
+    VWidth = 0.0;
+};
+
+Image "MultipleConnImage" = {
+    nxScale = 1;
+    nyScale = 1;
+    imagePath = "input/testimage.jpg";
+    nf = 1;
+    phase = 0;
+    writeStep = -1;
+    writeSparseActivity = false;
+    mirrorBCflag = false;
+    valueBC = 0.0;
     useImageBCflag = false;
     inverseFlag = false; 
     normalizeLuminanceFlag = false;
     autoResizeFlag = false;
     writeImages = false;
-    offsetX = 0;  // offset for crop, when the input size is smaller than the size of image
+    offsetX = 0;
     offsetY = 0;
-    jitterFlag = false; // moving around like an eyeball. our eyeballs are not still even when we are gazing at something.
+    jitterFlag = false;
 };
 
-ANNLayer "ManyToOneCenterFirstOutput" = {
-    restart = 0;
-    nxScale = 0.25; 
-    nyScale = 0.25;
+ANNLayer "MultipleConnResult" = {
+    nxScale = 1; 
+    nyScale = 1;
     nf = 1; // 1 feature 
     phase = 1;
+    triggerFlag = false;
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = 1;
@@ -174,128 +185,26 @@ ANNLayer "ManyToOneCenterFirstOutput" = {
 
     InitVType = "ZeroV";
 
-    //define a linear relation between its input and output, with some hard cut-off.
     VThresh = -infinity;   
-    VMax = infinity;
-    VMin = -infinity;
-    VShift = 0.0;
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0.0;
+    VWidth = 0.0;
 };
 
-ANNLayer "ManyToOneSurroundFirstOutput" = {
-    restart = 0;
-    nxScale = 0.25; 
-    nyScale = 0.25;
-    nf = 1; // 1 feature 
-    phase = 1;
-    writeStep = 1.0;
-    initialWriteTime = 0.0;
-    mirrorBCflag = 1;
-    writeSparseActivity = false;
+//
+// connections
+//
 
-    InitVType = "ZeroV";
+HyPerConn "MarginsEqual" = {
+    preLayerName = "MarginsEqualImage";
+    postLayerName = "MarginsEqualResult";
+    channelCode = 0;
+    sharedWeights = true;
 
-    //define a linear relation between its input and output, with some hard cut-off.
-    VThresh = -infinity;   
-    VMax = infinity;
-    VMin = -infinity;
-    VShift = 0.0;
-};
-
-Image "OneToManyCenterFirstInput" = {
-    restart = 0;  // make only a certain layer restart
-    nxScale = 1;  // this must be 2^n, n = ...,-2,-1,0,1,2,... 
-    nyScale = 1;  // the scale is to decide how much area will be used as input. For example, nx * nxScale = 32. The size of input
-    	      	  // cannot be larger than the input image size.
-    imagePath = "input/testimage.jpg"; // it's a 32*32 image
-    nf = 1; //number of features. For a grey image, it's 1. For a color image, it could be either 1 or 3.
-    phase = 0; //phase defines an order in which layers should be executed.
-    writeStep = -1;  //-1 means doesn't write for log
-    writeSparseActivity = false; //only write weights which are not 0
-    mirrorBCflag = false;    //border condition flag
-    valueBC = 0.0;           //If mirrorBCflag is false, use this value in the boundary regions
-    useImageBCflag = false;
-    inverseFlag = false; 
-    normalizeLuminanceFlag = false;
-    autoResizeFlag = false;
-    writeImages = false;
-    offsetX = 0;  // offset for crop, when the input size is smaller than the size of image
-    offsetY = 0;
-    jitterFlag = false; // moving around like an eyeball. our eyeballs are not still even when we are gazing at something.
-};
-
-Image "OneToManySurroundFirstInput" = {
-    restart = 0;  // make only a certain layer restart
-    nxScale = 1;  // this must be 2^n, n = ...,-2,-1,0,1,2,... 
-    nyScale = 1;  // the scale is to decide how much area will be used as input. For example, nx * nxScale = 32. The size of input
-    	      	  // cannot be larger than the input image size.
-    imagePath = "input/testimage.jpg"; // it's a 32*32 image
-    nf = 1; //number of features. For a grey image, it's 1. For a color image, it could be either 1 or 3.
-    phase = 0; //phase defines an order in which layers should be executed.
-    writeStep = -1;  //-1 means doesn't write for log
-    writeSparseActivity = false; //only write weights which are not 0
-    mirrorBCflag = false;    //border condition flag
-    valueBC = 0.0;           //If mirrorBCflag is false, use this value in the boundary regions
-    useImageBCflag = false;
-    inverseFlag = false; 
-    normalizeLuminanceFlag = false;
-    autoResizeFlag = false;
-    writeImages = false;
-    offsetX = 0;  // offset for crop, when the input size is smaller than the size of image
-    offsetY = 0;
-    jitterFlag = false; // moving around like an eyeball. our eyeballs are not still even when we are gazing at something.
-};
-
-ANNLayer "OneToManyCenterFirstOutput" = {
-    restart = 0;
-    nxScale = 4.0; 
-    nyScale = 4.0;
-    nf = 1; // 1 feature 
-    phase = 1;
-    writeStep = 1.0;
-    initialWriteTime = 0.0;
-    mirrorBCflag = 1;
-    writeSparseActivity = false;
-
-    InitVType = "ZeroV";
-
-    //define a linear relation between its input and output, with some hard cut-off.
-    VThresh = -infinity;   
-    VMax = infinity;
-    VMin = -infinity;
-    VShift = 0.0;
-};
-
-ANNLayer "OneToManySurroundFirstOutput" = {
-    restart = 0;
-    nxScale = 4.0; 
-    nyScale = 4.0;
-    nf = 1; // 1 feature 
-    phase = 1;
-    writeStep = 1.0;
-    initialWriteTime = 0.0;
-    mirrorBCflag = 1;
-    writeSparseActivity = false;
-
-    InitVType = "ZeroV";
-
-    //define a linear relation between its input and output, with some hard cut-off.
-    VThresh = -infinity;   
-    VMax = infinity;
-    VMin = -infinity;
-    VShift = 0.0;
-};
-
-
-//this is a connection between layers
-
-KernelConn "OneToOneCenterFirst_Center" = {
-    preLayerName = "OneToOneCenterFirstInput";
-    postLayerName = "OneToOneCenterFirstOutput";
-    channelCode = 1;
-
-    nxp = 3; // Size of patch in x-direction in post-synaptic pixels
-    nyp = 3; // Size of patch in y-direction in post-synaptic pixels
-    nfp = 1; // Number of post-synaptic features
+    nxp = 5;
+    nyp = 5;
+    nfp = 1;
     numAxonalArbors = 1;
     writeStep = -1;
     initFromLastFlag = 0;
@@ -306,7 +215,7 @@ KernelConn "OneToOneCenterFirst_Center" = {
     rMax  = infinity;
     rMin = 0;
       
-    strength = 1.0;  // 1.0 x post->num_neurons / pre->num_neurons
+    strength = 1.0;
     normalizeMethod = "normalizeSum";
     normalizeArborsIndividually = false;
     normalize_cutoff = 0;
@@ -314,148 +223,31 @@ KernelConn "OneToOneCenterFirst_Center" = {
     preActivityIsNotRate = false;
     minSumTolerated = 0.0;
     normalizeFromPostPerspective = false;
+    rMinX = 0.0;
+    rMinY = 0.0;
 
     writeCompressedCheckpoints = false;
     plasticityFlag = false;
-    selfFlag = false;  // Whether the connection should be treated as connecting a layer to itself
-    shmget_flag = true; //shared memory
+    selfFlag = false;
+    shmget_flag = true;
 
     delay = 0;
 
-    pvpatchAccumulateType = "convolve"; //if it's true, then the connections between neurons will fire with a certain probability.
-    shrinkPatches = false; //if only a small part of connections whose weights are non-zero, then we could shrink the whole networks
+    pvpatchAccumulateType = "convolve";
+    shrinkPatches = false;
     
     updateGSynFromPostPerspective = false;
 };
 
-KernelConn "OneToOneCenterFirst_Surround" = {
-    preLayerName = "OneToOneCenterFirstInput";
-    postLayerName = "OneToOneCenterFirstOutput";
+HyPerConn "XMarginLarger" = {
+    preLayerName = "XMarginLargerImage";
+    postLayerName = "XMarginLargerResult";
     channelCode = 0;
+    sharedWeights = true;
 
-    nxp = 9; // Size of patch in x-direction in post-synaptic pixels
-    nyp = 9; // Size of patch in y-direction in post-synaptic pixels
-    nfp = 1; // Number of post-synaptic features
-    numAxonalArbors = 1;
-    writeStep = -1;
-    initFromLastFlag = 0;
-    
-    weightInitType = "Gauss2DWeight";
-    aspect = 1;
-    sigma = 5;
-    rMax  = infinity;
-    rMin = 0;
-      
-    strength = 1.0;  // 1.0 x post->num_neurons / pre->num_neurons
-    normalizeMethod = "normalizeSum";
-    normalizeArborsIndividually = false;
-    normalize_cutoff = 0;
-    symmetrizeWeights = 0;
-    preActivityIsNotRate = false;
-    minSumTolerated = 0.0;
-    normalizeFromPostPerspective = false;
-
-    writeCompressedCheckpoints = false;
-    plasticityFlag = false;
-    selfFlag = false;  // Whether the connection should be treated as connecting a layer to itself
-    shmget_flag = true; //shared memory
-
-    delay = 0;
-
-    pvpatchAccumulateType = "convolve"; //if it's true, then the connections between neurons will fire with a certain probability.
-    shrinkPatches = false; //if only a small part of connections whose weights are non-zero, then we could shrink the whole networks
-
-    updateGSynFromPostPerspective = false;
-};
-
-KernelConn "OneToOneSurroundFirst_Surround" = {
-    preLayerName = "OneToOneSurroundFirstInput";
-    postLayerName = "OneToOneSurroundFirstOutput";
-    channelCode = 0;
-
-    nxp = 9; // Size of patch in x-direction in post-synaptic pixels
-    nyp = 9; // Size of patch in y-direction in post-synaptic pixels
-    nfp = 1; // Number of post-synaptic features
-    numAxonalArbors = 1;
-    writeStep = -1;
-    initFromLastFlag = 0;
-    
-    weightInitType = "Gauss2DWeight";
-    aspect = 1;
-    sigma = 5;
-    rMax  = infinity;
-    rMin = 0;
-      
-    strength = 1.0;  // 1.0 x post->num_neurons / pre->num_neurons
-    normalizeMethod = "normalizeSum";
-    normalizeArborsIndividually = false;
-    normalize_cutoff = 0;
-    symmetrizeWeights = 0;
-    preActivityIsNotRate = false;
-    minSumTolerated = 0.0;
-    normalizeFromPostPerspective = false;
-
-    writeCompressedCheckpoints = false;
-    plasticityFlag = false;
-    selfFlag = false;  // Whether the connection should be treated as connecting a layer to itself
-    shmget_flag = true; //shared memory
-
-    delay = 0;
-
-    pvpatchAccumulateType = "convolve"; //if it's true, then the connections between neurons will fire with a certain probability.
-    shrinkPatches = false; //if only a small part of connections whose weights are non-zero, then we could shrink the whole networks
-
-    updateGSynFromPostPerspective = false;
-};
-
-KernelConn "OneToOneSurroundFirst_Center" = {
-    preLayerName = "OneToOneSurroundFirstInput";
-    postLayerName = "OneToOneSurroundFirstOutput";
-    channelCode = 1;
-
-    nxp = 3; // Size of patch in x-direction in post-synaptic pixels
-    nyp = 3; // Size of patch in y-direction in post-synaptic pixels
-    nfp = 1; // Number of post-synaptic features
-    numAxonalArbors = 1;
-    writeStep = -1;
-    initFromLastFlag = 0;
-
-    weightInitType = "Gauss2DWeight";
-    aspect = 1;
-    sigma = 1;
-    rMax  = infinity;
-    rMin = 0;
-      
-    strength = 1.0;  // 1.0 x post->num_neurons / pre->num_neurons
-    normalizeMethod = "normalizeSum";
-    normalizeArborsIndividually = false;
-    normalize_cutoff = 0;
-    symmetrizeWeights = 0;
-    preActivityIsNotRate = false;
-    minSumTolerated = 0.0;
-    normalizeFromPostPerspective = false;
-
-    writeCompressedCheckpoints = false;
-    plasticityFlag = false;
-    selfFlag = false;  // Whether the connection should be treated as connecting a layer to itself
-    shmget_flag = true; //shared memory
-
-    delay = 0;
-
-    pvpatchAccumulateType = "convolve"; //if it's true, then the connections between neurons will fire with a certain probability.
-    shrinkPatches = false; //if only a small part of connections whose weights are non-zero, then we could shrink the whole networks
-
-    updateGSynFromPostPerspective = false;
-};
-
-KernelConn "ManyToOneCenterFirst_Center" = {
-    preLayerName = "ManyToOneCenterFirstInput";
-    postLayerName = "ManyToOneCenterFirstOutput";
-    channelCode = 1;
-
-    nxp = 3; // Size of patch in x-direction in post-synaptic pixels
-    nyp = 3; // Size of patch in y-direction in post-synaptic pixels
-    nfp = 1; // Number of post-synaptic features
+    nxp = 7;
+    nyp = 3;
+    nfp = 1;
     numAxonalArbors = 1;
     writeStep = -1;
     initFromLastFlag = 0;
@@ -466,7 +258,7 @@ KernelConn "ManyToOneCenterFirst_Center" = {
     rMax  = infinity;
     rMin = 0;
       
-    strength = 1.0;  // 1.0 x post->num_neurons / pre->num_neurons
+    strength = 1.0;
     normalizeMethod = "normalizeSum";
     normalizeArborsIndividually = false;
     normalize_cutoff = 0;
@@ -474,148 +266,31 @@ KernelConn "ManyToOneCenterFirst_Center" = {
     preActivityIsNotRate = false;
     minSumTolerated = 0.0;
     normalizeFromPostPerspective = false;
+    rMinX = 0.0;
+    rMinY = 0.0;
 
     writeCompressedCheckpoints = false;
     plasticityFlag = false;
-    selfFlag = false;  // Whether the connection should be treated as connecting a layer to itself
-    shmget_flag = true; //shared memory
+    selfFlag = false;
+    shmget_flag = true;
 
     delay = 0;
 
-    pvpatchAccumulateType = "convolve"; //if it's true, then the connections between neurons will fire with a certain probability.
-    shrinkPatches = false; //if only a small part of connections whose weights are non-zero, then we could shrink the whole networks
+    pvpatchAccumulateType = "convolve";
+    shrinkPatches = false;
     
     updateGSynFromPostPerspective = false;
 };
 
-KernelConn "ManyToOneCenterFirst_Surround" = {
-    preLayerName = "ManyToOneCenterFirstInput";
-    postLayerName = "ManyToOneCenterFirstOutput";
+HyPerConn "YMarginLarger" = {
+    preLayerName = "YMarginLargerImage";
+    postLayerName = "YMarginLargerResult";
     channelCode = 0;
+    sharedWeights = true;
 
-    nxp = 9; // Size of patch in x-direction in post-synaptic pixels
-    nyp = 9; // Size of patch in y-direction in post-synaptic pixels
-    nfp = 1; // Number of post-synaptic features
-    numAxonalArbors = 1;
-    writeStep = -1;
-    initFromLastFlag = 0;
-    
-    weightInitType = "Gauss2DWeight";
-    aspect = 1;
-    sigma = 5;
-    rMax  = infinity;
-    rMin = 0;
-      
-    strength = 1.0;  // 1.0 x post->num_neurons / pre->num_neurons
-    normalizeMethod = "normalizeSum";
-    normalizeArborsIndividually = false;
-    normalize_cutoff = 0;
-    symmetrizeWeights = 0;
-    preActivityIsNotRate = false;
-    minSumTolerated = 0.0;
-    normalizeFromPostPerspective = false;
-
-    writeCompressedCheckpoints = false;
-    plasticityFlag = false;
-    selfFlag = false;  // Whether the connection should be treated as connecting a layer to itself
-    shmget_flag = true; //shared memory
-
-    delay = 0;
-
-    pvpatchAccumulateType = "convolve"; //if it's true, then the connections between neurons will fire with a certain probability.
-    shrinkPatches = false; //if only a small part of connections whose weights are non-zero, then we could shrink the whole networks
-
-    updateGSynFromPostPerspective = false;
-};
-
-KernelConn "ManyToOneSurroundFirst_Surround" = {
-    preLayerName = "ManyToOneSurroundFirstInput";
-    postLayerName = "ManyToOneSurroundFirstOutput";
-    channelCode = 0;
-
-    nxp = 9; // Size of patch in x-direction in post-synaptic pixels
-    nyp = 9; // Size of patch in y-direction in post-synaptic pixels
-    nfp = 1; // Number of post-synaptic features
-    numAxonalArbors = 1;
-    writeStep = -1;
-    initFromLastFlag = 0;
-    
-    weightInitType = "Gauss2DWeight";
-    aspect = 1;
-    sigma = 5;
-    rMax  = infinity;
-    rMin = 0;
-      
-    strength = 1.0;  // 1.0 x post->num_neurons / pre->num_neurons
-    normalizeMethod = "normalizeSum";
-    normalizeArborsIndividually = false;
-    normalize_cutoff = 0;
-    symmetrizeWeights = 0;
-    preActivityIsNotRate = false;
-    minSumTolerated = 0.0;
-    normalizeFromPostPerspective = false;
-
-    writeCompressedCheckpoints = false;
-    plasticityFlag = false;
-    selfFlag = false;  // Whether the connection should be treated as connecting a layer to itself
-    shmget_flag = true; //shared memory
-
-    delay = 0;
-
-    pvpatchAccumulateType = "convolve"; //if it's true, then the connections between neurons will fire with a certain probability.
-    shrinkPatches = false; //if only a small part of connections whose weights are non-zero, then we could shrink the whole networks
-
-    updateGSynFromPostPerspective = false;
-};
-
-KernelConn "ManyToOneSurroundFirst_Center" = {
-    preLayerName = "ManyToOneSurroundFirstInput";
-    postLayerName = "ManyToOneSurroundFirstOutput";
-    channelCode = 1;
-
-    nxp = 3; // Size of patch in x-direction in post-synaptic pixels
-    nyp = 3; // Size of patch in y-direction in post-synaptic pixels
-    nfp = 1; // Number of post-synaptic features
-    numAxonalArbors = 1;
-    writeStep = -1;
-    initFromLastFlag = 0;
-
-    weightInitType = "Gauss2DWeight";
-    aspect = 1;
-    sigma = 1;
-    rMax  = infinity;
-    rMin = 0;
-      
-    strength = 1.0;  // 1.0 x post->num_neurons / pre->num_neurons
-    normalizeMethod = "normalizeSum";
-    normalizeArborsIndividually = false;
-    normalize_cutoff = 0;
-    symmetrizeWeights = 0;
-    preActivityIsNotRate = false;
-    minSumTolerated = 0.0;
-    normalizeFromPostPerspective = false;
-
-    writeCompressedCheckpoints = false;
-    plasticityFlag = false;
-    selfFlag = false;  // Whether the connection should be treated as connecting a layer to itself
-    shmget_flag = true; //shared memory
-
-    delay = 0;
-
-    pvpatchAccumulateType = "convolve"; //if it's true, then the connections between neurons will fire with a certain probability.
-    shrinkPatches = false; //if only a small part of connections whose weights are non-zero, then we could shrink the whole networks
-
-    updateGSynFromPostPerspective = false;
-};
-
-KernelConn "OneToManyCenterFirst_Center" = {
-    preLayerName = "OneToManyCenterFirstInput";
-    postLayerName = "OneToManyCenterFirstOutput";
-    channelCode = 1;
-
-    nxp = 12; // Size of patch in x-direction in post-synaptic pixels
-    nyp = 12; // Size of patch in y-direction in post-synaptic pixels
-    nfp = 1; // Number of post-synaptic features
+    nxp = 3;
+    nyp = 7;
+    nfp = 1;
     numAxonalArbors = 1;
     writeStep = -1;
     initFromLastFlag = 0;
@@ -626,7 +301,7 @@ KernelConn "OneToManyCenterFirst_Center" = {
     rMax  = infinity;
     rMin = 0;
       
-    strength = 1.0;  // 1.0 x post->num_neurons / pre->num_neurons
+    strength = 1.0;
     normalizeMethod = "normalizeSum";
     normalizeArborsIndividually = false;
     normalize_cutoff = 0;
@@ -634,6 +309,8 @@ KernelConn "OneToManyCenterFirst_Center" = {
     preActivityIsNotRate = false;
     minSumTolerated = 0.0;
     normalizeFromPostPerspective = false;
+    rMinX = 0.0;
+    rMinY = 0.0;
 
     writeCompressedCheckpoints = false;
     plasticityFlag = false;
@@ -642,111 +319,32 @@ KernelConn "OneToManyCenterFirst_Center" = {
 
     delay = 0;
 
-    pvpatchAccumulateType = "convolve"; //if it's true, then the connections between neurons will fire with a certain probability.
-    shrinkPatches = false; //if only a small part of connections whose weights are non-zero, then we could shrink the whole networks
+    pvpatchAccumulateType = "convolve";
+    shrinkPatches = false;
     
     updateGSynFromPostPerspective = false;
 };
 
-KernelConn "OneToManyCenterFirst_Surround" = {
-    preLayerName = "OneToManyCenterFirstInput";
-    postLayerName = "OneToManyCenterFirstOutput";
+HyPerConn "YLargerConnInMultiple" = {
+    preLayerName = "MultipleConnImage";
+    postLayerName = "MultipleConnResult";
     channelCode = 0;
+    sharedWeights = true;
 
-    nxp = 36; // Size of patch in x-direction in post-synaptic pixels
-    nyp = 36; // Size of patch in y-direction in post-synaptic pixels
-    nfp = 1; // Number of post-synaptic features
+    nxp = 3;
+    nyp = 7;
+    nfp = 1;
     numAxonalArbors = 1;
     writeStep = -1;
     initFromLastFlag = 0;
     
-    weightInitType = "Gauss2DWeight";
-    aspect = 1;
-    sigma = 5;
-    rMax  = infinity;
-    rMin = 0;
-      
-    strength = 1.0;  // 1.0 x post->num_neurons / pre->num_neurons
-    normalizeMethod = "normalizeSum";
-    normalizeArborsIndividually = false;
-    normalize_cutoff = 0;
-    symmetrizeWeights = 0;
-    preActivityIsNotRate = false;
-    minSumTolerated = 0.0;
-    normalizeFromPostPerspective = false;
-
-    writeCompressedCheckpoints = false;
-    plasticityFlag = false;
-    selfFlag = false;  // Whether the connection should be treated as connecting a layer to itself
-    shmget_flag = true; //shared memory
-
-    delay = 0;
-
-    pvpatchAccumulateType = "convolve"; //if it's true, then the connections between neurons will fire with a certain probability.
-    shrinkPatches = false; //if only a small part of connections whose weights are non-zero, then we could shrink the whole networks
-
-    updateGSynFromPostPerspective = false;
-};
-
-KernelConn "OneToManySurroundFirst_Surround" = {
-    preLayerName = "OneToManySurroundFirstInput";
-    postLayerName = "OneToManySurroundFirstOutput";
-    channelCode = 0;
-
-    nxp = 36; // Size of patch in x-direction in post-synaptic pixels
-    nyp = 36; // Size of patch in y-direction in post-synaptic pixels
-    nfp = 1; // Number of post-synaptic features
-    numAxonalArbors = 1;
-    writeStep = -1;
-    initFromLastFlag = 0;
-    
-    weightInitType = "Gauss2DWeight";
-    aspect = 1;
-    sigma = 5;
-    rMax  = infinity;
-    rMin = 0;
-      
-    strength = 1.0;  // 1.0 x post->num_neurons / pre->num_neurons
-    normalizeMethod = "normalizeSum";
-    normalizeArborsIndividually = false;
-    normalize_cutoff = 0;
-    symmetrizeWeights = 0;
-    preActivityIsNotRate = false;
-    minSumTolerated = 0.0;
-    normalizeFromPostPerspective = false;
-
-    writeCompressedCheckpoints = false;
-    plasticityFlag = false;
-    selfFlag = false;  // Whether the connection should be treated as connecting a layer to itself
-    shmget_flag = true; //shared memory
-
-    delay = 0;
-
-    pvpatchAccumulateType = "convolve"; //if it's true, then the connections between neurons will fire with a certain probability.
-    shrinkPatches = false; //if only a small part of connections whose weights are non-zero, then we could shrink the whole networks
-
-    updateGSynFromPostPerspective = false;
-};
-
-KernelConn "OneToManySurroundFirst_Center" = {
-    preLayerName = "OneToManySurroundFirstInput";
-    postLayerName = "OneToManySurroundFirstOutput";
-    channelCode = 1;
-
-    nxp = 12; // Size of patch in x-direction in post-synaptic pixels
-    nyp = 12; // Size of patch in y-direction in post-synaptic pixels
-    nfp = 1; // Number of post-synaptic features
-    numAxonalArbors = 1;
-    writeStep = -1;
-    initFromLastFlag = 0;
-
     weightInitType = "Gauss2DWeight";
     aspect = 1;
     sigma = 1;
     rMax  = infinity;
     rMin = 0;
       
-    strength = 1.0;  // 1.0 x post->num_neurons / pre->num_neurons
+    strength = 1.0;
     normalizeMethod = "normalizeSum";
     normalizeArborsIndividually = false;
     normalize_cutoff = 0;
@@ -754,16 +352,61 @@ KernelConn "OneToManySurroundFirst_Center" = {
     preActivityIsNotRate = false;
     minSumTolerated = 0.0;
     normalizeFromPostPerspective = false;
+    rMinX = 0.0;
+    rMinY = 0.0;
 
     writeCompressedCheckpoints = false;
     plasticityFlag = false;
-    selfFlag = false;  // Whether the connection should be treated as connecting a layer to itself
-    shmget_flag = true; //shared memory
+    selfFlag = false;
+    shmget_flag = true;
 
     delay = 0;
 
-    pvpatchAccumulateType = "convolve"; //if it's true, then the connections between neurons will fire with a certain probability.
-    shrinkPatches = false; //if only a small part of connections whose weights are non-zero, then we could shrink the whole networks
+    pvpatchAccumulateType = "convolve";
+    shrinkPatches = false;
+    
+    updateGSynFromPostPerspective = false;
+};
 
+HyPerConn "XLargerConnInMultiple" = {
+    preLayerName = "MultipleConnImage";
+    postLayerName = "MultipleConnResult";
+    channelCode = 1;
+    sharedWeights = true;
+
+    nxp = 7;
+    nyp = 3;
+    nfp = 1;
+    numAxonalArbors = 1;
+    writeStep = -1;
+    initFromLastFlag = 0;
+    
+    weightInitType = "Gauss2DWeight";
+    aspect = 1;
+    sigma = 1;
+    rMax  = infinity;
+    rMin = 0;
+      
+    strength = 1.0;
+    normalizeMethod = "normalizeSum";
+    normalizeArborsIndividually = false;
+    normalize_cutoff = 0;
+    symmetrizeWeights = 0;
+    preActivityIsNotRate = false;
+    minSumTolerated = 0.0;
+    normalizeFromPostPerspective = false;
+    rMinX = 0.0;
+    rMinY = 0.0;
+
+    writeCompressedCheckpoints = false;
+    plasticityFlag = false;
+    selfFlag = false;
+    shmget_flag = true;
+
+    delay = 0;
+
+    pvpatchAccumulateType = "convolve";
+    shrinkPatches = false;
+    
     updateGSynFromPostPerspective = false;
 };

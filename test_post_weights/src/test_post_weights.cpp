@@ -107,7 +107,7 @@ static int check_weights(HyPerConn * c, PVPatch ** postWeights, pvdata_t * postD
    const int nxPre = c->preSynapticLayer()->clayer->loc.nx;
    const int nyPre = c->preSynapticLayer()->clayer->loc.ny;
    const int nfPre = c->preSynapticLayer()->clayer->loc.nf;
-   const int nbPre = c->preSynapticLayer()->clayer->loc.nb;
+   const PVHalo * halo = &c->preSynapticLayer()->clayer->loc.halo;
 
    const int nx = c->postSynapticLayer()->clayer->loc.nx;
    const int ny = c->postSynapticLayer()->clayer->loc.ny;
@@ -133,7 +133,7 @@ static int check_weights(HyPerConn * c, PVPatch ** postWeights, pvdata_t * postD
       // NOTE: assumes nf from layer == nf from patch
       //
       const int sx = nfPre;
-      const int sy = (nxPre + 2*nbPre) * nfPre;
+      const int sy = (nxPre + halo->lt + halo->rt) * nfPre;
       const int sf = c->fPatchStride(); // p->sf;
 
       const int postPatchSize = c->xPostPatchSize()*c->yPostPatchSize()*c->fPostPatchSize();
@@ -143,10 +143,10 @@ static int check_weights(HyPerConn * c, PVPatch ** postWeights, pvdata_t * postD
 
       // convert to extended indices
       //
-      kxPre += nbPre;
-      kyPre += nbPre;
+      kxPre += halo->lt;
+      kyPre += halo->up;
 
-      int kPreHead = kIndex(kxPre, kyPre, kfPre, nxPre+2*nbPre, nyPre+2*nbPre, nfPre);
+      int kPreHead = kIndex(kxPre, kyPre, kfPre, nxPre+halo->lt+halo->rt, nyPre+halo->dn+halo->up, nfPre);
 
       // FIND OUT WHY THIS DOESN'T WORK
       //int kPreHead = kIndex(kxPre, kyPre, kfPre, nxPre, nyPre, nfPre);

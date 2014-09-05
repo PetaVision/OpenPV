@@ -52,7 +52,7 @@ int TestImage::allocateV() {
 int TestImage::initializeActivity() {
    for (int k=0; k<getNumNeurons(); k++) {
       const PVLayerLoc * loc = getLayerLoc();
-      int kExt = kIndexExtended(k,loc->nx,loc->ny,loc->nf,loc->nb);
+      int kExt = kIndexExtended(k,loc->nx,loc->ny,loc->nf,loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
       getActivity()[kExt] = val;
    }
    return PV_SUCCESS;

@@ -26,13 +26,13 @@ int DatastoreDelayTestLayer::initialize(const char * name, HyPerCol * hc) {
 
 int DatastoreDelayTestLayer::updateState(double timed, double dt) {
    const PVLayerLoc * loc = getLayerLoc();
-   return updateState(timed, dt, getNumNeurons(), getV(), getActivity(), loc->nx, loc->ny, loc->nf, loc->nb);
+   return updateState(timed, dt, getNumNeurons(), getV(), getActivity(), loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
 }
 
-int DatastoreDelayTestLayer::updateState(double timef, double dt, int num_neurons, pvdata_t * V, pvdata_t * A, int nx, int ny, int nf, int nb) {
+int DatastoreDelayTestLayer::updateState(double timef, double dt, int num_neurons, pvdata_t * V, pvdata_t * A, int nx, int ny, int nf, int lt, int rt, int dn, int up) {
    // updateV();
    updateV_DatastoreDelayTestLayer(getLayerLoc(), &inited, getV(), parent->icCommunicator()->publisherStore(getLayerId())->numberOfLevels());
-   setActivity_HyPerLayer(num_neurons, A, V, nx, ny, nf, nb);
+   setActivity_HyPerLayer(num_neurons, A, V, nx, ny, nf, lt, rt, dn, up);
    // resetGSynBuffers(); // Since V doesn't use the GSyn buffers, no need to maintain them.
    updateActiveIndices();
 

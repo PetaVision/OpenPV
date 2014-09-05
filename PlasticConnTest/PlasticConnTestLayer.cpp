@@ -20,7 +20,7 @@ int PlasticConnTestLayer::copyAtoV(){
    pvdata_t * V = getV();
    pvdata_t * A = clayer->activity->data;
    for (int kLocal = 0; kLocal < getNumNeurons(); kLocal++){
-      int kExtended = kIndexExtended(kLocal, loc->nx, loc->ny, loc->nf, loc->nb);
+      int kExtended = kIndexExtended(kLocal, loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
       V[kLocal] = A[kExtended];
    }
    return PV_SUCCESS;
@@ -30,7 +30,7 @@ int PlasticConnTestLayer::copyAtoV(){
 // set activity to global x/y/f position, using position in border/margin as required
 int PlasticConnTestLayer::setActivitytoGlobalPos(){
    for (int kLocalExt = 0; kLocalExt < getNumExtended(); kLocalExt++){
-      int kxLocalExt = kxPos(kLocalExt, clayer->loc.nx + 2*clayer->loc.nb, clayer->loc.ny + 2*clayer->loc.nb, clayer->loc.nf) - clayer->loc.nb;
+      int kxLocalExt = kxPos(kLocalExt, clayer->loc.nx + clayer->loc.halo.lt + clayer->loc.halo.rt, clayer->loc.ny + clayer->loc.halo.dn + clayer->loc.halo.up, clayer->loc.nf) - clayer->loc.halo.lt;
       int kxGlobalExt = kxLocalExt + clayer->loc.kx0;
       float xScaleLog2 = clayer->xScale;
       float x0 = xOriginGlobal(xScaleLog2);

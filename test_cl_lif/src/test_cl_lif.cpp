@@ -26,7 +26,7 @@ int test_LIF(int argc, char * argv[])
    int status = CL_SUCCESS;
    int nWarm = 10, nLoops = 100;
 
-   HyPerCol * hc = new HyPerCol("test_cl_lif column", argc, argv, "..");
+   HyPerCol * hc = new HyPerCol("test_cl_lif column", argc, argv);
    LIF      * l1 = new LIF("test_cl_lif layer", hc);
 
    const PVLayerLoc * loc = l1->getLayerLoc();
@@ -34,7 +34,7 @@ int test_LIF(int argc, char * argv[])
    const int nx = loc->nx;
    const int ny = loc->ny;
    const int nf = loc->nf;
-   const int nb = loc->nb;
+   const PVHalo * halo = &loc->halo;
 
    const int nxl = l1->nxl;
    const int nyl = l1->nyl;
@@ -79,19 +79,20 @@ int test_LIF(int argc, char * argv[])
    float time = l1->parent->simulationTime();
    float dt   = l1->parent->getDeltaTime();
 
-   pvdata_t * phiExc   = l1->getChannel(CHANNEL_EXC);
-   pvdata_t * phiInh   = l1->getChannel(CHANNEL_INH);
-   pvdata_t * phiInhB  = l1->getChannel(CHANNEL_INHB);
+   pvdata_t * gSynHead = l1->getChannel(CHANNEL_EXC); /*All channels allocated at once, so this array points to all channels*/
    pvdata_t * activity = l1->clayer->activity->data;
 
    timer.reset();
    timer.start();
    for (int n = 0; n < nLoops; n++) {
-      LIF_update_state(time, dt, nx, ny, nf, nb,
-                       &(l1->lParams), l1->rand_state,
-                       l1->clayer->V, l1->Vth,
-                       l1->G_E, l1->G_I, l1->G_IB,
-                       phiExc, phiInh, phiInhB, l1->R, activity);
+      LIF_update_state(time, dt, nx, ny, nf,
+            halo->lt, halo->rt, halo->dn, halo->up,
+            &(l1->lParams), l1->rand_state,
+            l1->getV(), l1->getVth(),
+            l1->getConductance(CHANNEL_EXC),
+            l1->getConductance(CHANNEL_INH),
+            l1->getConductance(CHANNEL_INHB),
+            gSynHead, activity);
    }
    timer.stop();
    timer.elapsed_time();

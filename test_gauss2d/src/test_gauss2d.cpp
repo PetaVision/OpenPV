@@ -22,16 +22,19 @@ int check_kernel_vs_hyper(HyPerConn * cHyPer, KernelConn * cKernel, int kPre,
 
 int main(int argc, char * argv[])
 {
-   char * cl_args[4];
-   cl_args[0] = strdup(argv[0]);
-   cl_args[1] = strdup("-p");
-   cl_args[2] = strdup("input/test_gauss2d.params");
-   cl_args[3] = NULL;
+   int const cl_argc = 3;
+   char * cl_args[cl_argc+1];
+   int arg = 0;
+   cl_args[arg++] = strdup(argv[0]);
+   cl_args[arg++] = strdup("-p");
+   cl_args[arg++] = strdup("input/test_gauss2d.params");
+   assert(arg==cl_argc);
+   cl_args[arg] = NULL;
    const char * pre_layer_name = "test_gauss2d pre";
    const char * post_layer_name = "test_gauss2d post";
    const char * pre2_layer_name = "test_gauss2d pre 2";
    const char * post2_layer_name = "test_gauss2d post 2";
-   PV::HyPerCol * hc = new PV::HyPerCol("test_gauss2d column", 3, cl_args);
+   PV::HyPerCol * hc = new PV::HyPerCol("test_gauss2d column", cl_argc, cl_args);
    PV::Example * pre = new PV::Example(pre_layer_name, hc);
    assert(pre);
    PV::Example * post = new PV::Example(post_layer_name, hc);
@@ -98,6 +101,9 @@ int main(int argc, char * argv[])
    }
 
    delete hc;
+   for (int arg=0; arg<cl_argc; arg++) {
+      free(cl_args[arg]);
+   }
    return 0;
 }
 

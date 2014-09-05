@@ -21,7 +21,7 @@ int ComparisonLayer::updateState(double timef, double dt) {
    pvdata_t * A = getCLayer()->activity->data;
    const PVLayerLoc * loc = getLayerLoc(); 
    for(int ni = 0; ni < getNumNeurons(); ni++){
-      int nExt = kIndexExtended(ni, loc->nx, loc->ny, loc->nf, loc->nb);
+      int nExt = kIndexExtended(ni, loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
       //.1 is the error allowed
       assert(fabs(A[nExt]) <= .1);
    }

@@ -40,9 +40,9 @@ int WindowProbe::outputState(double timed){
    const pvdata_t * actLayer = windowLayer->getLayerData();
    const PVLayerLoc * loc = windowLayer->getLayerLoc();
    for (int kLocalRes = 0; kLocalRes < numRes; kLocalRes++){
-      int kLocalExt = kIndexExtended(kLocalRes, loc->nx, loc->ny, loc->nf, loc->nb);
-      int kxGlobalExt = kxPos(kLocalExt, loc->nx + 2*loc->nb, loc->ny + 2*loc->nb, loc->nf) + loc->kx0;
-      int kyGlobalExt = kyPos(kLocalExt, loc->nx + 2*loc->nb, loc->ny + 2*loc->nb, loc->nf) + loc->ky0;
+      int kLocalExt = kIndexExtended(kLocalRes, loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
+      int kxGlobalExt = kxPos(kLocalExt, loc->nx + loc->halo.lt + loc->halo.rt, loc->ny + loc->halo.dn + loc->halo.up, loc->nf) + loc->kx0;
+      int kyGlobalExt = kyPos(kLocalExt, loc->nx + loc->halo.lt + loc->halo.rt, loc->ny + loc->halo.dn + loc->halo.up, loc->nf) + loc->ky0;
       //Get window from windowLayer
       int windowId = windowLayer->calcWindow(kxGlobalExt, kyGlobalExt);
       float diff = abs(actLayer[kLocalExt] - windowId);

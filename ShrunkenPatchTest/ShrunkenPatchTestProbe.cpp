@@ -120,7 +120,7 @@ int ShrunkenPatchTestProbe::outputState(double timed) {
 
    if (timed>=3.0f) {
       for (int k=0; k<num_neurons; k++) {
-         int kex = kIndexExtended(k, loc->nx, loc->ny, loc->nf, loc->nb);
+         int kex = kIndexExtended(k, loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
          int x = kxPos(k,loc->nx, loc->ny, loc->nf);
          if (fabs(buf[kex]-correctValues[x])>tol) {
             int y = kyPos(k,loc->nx, loc->ny, loc->nf);

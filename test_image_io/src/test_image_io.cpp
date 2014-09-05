@@ -51,8 +51,8 @@ int main(int argc, char* argv[])
    loc.nxGlobal = nx * comm->numCommColumns();
    loc.nyGlobal = ny * comm->numCommRows();
 
-   loc.nPad = 0;
-   loc.nBands = nf;
+   loc.halo.lt = loc.halo.rt = loc.halo.dn = loc.halo.up = 0;
+   loc.nf = nf;
 
    const int localSize = nx * ny * nf;
 

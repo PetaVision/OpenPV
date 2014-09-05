@@ -27,7 +27,10 @@ void CPTestInputLayer_update_state(
     const int nx,
     const int ny,
     const int nf,
-    const int nb,
+    const int lt,
+    const int rt,
+    const int dn,
+    const int up,
 
     CL_MEM_GLOBAL float * V,
     const float Vth,
@@ -39,6 +42,6 @@ void CPTestInputLayer_update_state(
     CL_MEM_GLOBAL float * activity)
 {
    updateV_CPTestInputLayer(numNeurons, V);
-   setActivity_HyPerLayer(numNeurons, activity, V, nx, ny, nf, nb);
+   setActivity_HyPerLayer(numNeurons, activity, V, nx, ny, nf, lt, rt, dn, up);
    resetGSynBuffers_HyPerLayer(numNeurons, 2, GSynHead);
 }

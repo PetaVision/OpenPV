@@ -45,21 +45,6 @@ int main(int argc, char * argv[]) {
       exit(EXIT_FAILURE);
    }
 
-#undef REQUIRE_RETURN // #define if the program should wait for carriage return before proceeding
-#ifdef REQUIRE_RETURN
-   int charhit;
-   fflush(stdout);
-   int rank;
-   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-   if( rank == 0 ) {
-      printf("Hit enter to begin! ");
-      fflush(stdout);
-      charhit = getc(stdin);
-   }
-   int ierr;
-   ierr = MPI_Bcast(&charhit, 1, MPI_INT, 0, MPI_COMM_WORLD);
-#endif // REQUIRE_RETURN
-
 #define TEST_MPI_SPECIFYROWCOLUMNS_ARGC 7
    char * cl_args[TEST_MPI_SPECIFYROWCOLUMNS_ARGC];
    cl_args[0] = argv[0];
@@ -113,7 +98,6 @@ int verifyLoc(PV::HyPerCol * hc, int rows, int columns) {
    testpassed = (loc->nx == nxGlobFromParams/columns) &&
                 (loc->ny == nyGlobFromParams/rows) &&
                 (loc->nf == params->value("layer", "nf")) &&
-                (loc->nb == params->value("layer", "marginWidth")) &&
                 (loc->nxGlobal == nxGlobFromParams) &&
                 (loc->nyGlobal == nyGlobFromParams) &&
                 (loc->kx0 == loc->nx * (rank % columns)) &&

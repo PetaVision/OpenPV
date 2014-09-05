@@ -52,7 +52,7 @@ int Example::updateState(double time, double dt)
    const int nx = clayer->loc.nx;
    const int ny = clayer->loc.ny;
    const int nf = clayer->loc.nf;
-   const int nb = clayer->loc.nb;
+   const PVHalo * halo = &clayer->loc.halo;
 
    // make sure activity in border is zero
    //
@@ -62,7 +62,7 @@ int Example::updateState(double time, double dt)
    }
 
    for (int k = 0; k < clayer->numNeurons; k++) {
-      int kex = kIndexExtended(k, nx, ny, nf, nb);
+      int kex = kIndexExtended(k, nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up);
       clayer->V[k] = phi[k];
       activity[kex] = phi[k];
       phi[k] = 0.0;     // reset accumulation buffer

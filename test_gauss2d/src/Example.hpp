@@ -8,7 +8,7 @@
 #ifndef EXAMPLE_HPP_
 #define EXAMPLE_HPP_
 
-#include "../src/layers/HyPerLayer.hpp"
+#include <layers/HyPerLayer.hpp>
 
 namespace PV
 {

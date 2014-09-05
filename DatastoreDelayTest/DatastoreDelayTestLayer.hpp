@@ -21,7 +21,7 @@ public:
    virtual int updateState(double timed, double dt);
 protected:
    int initialize(const char * name, HyPerCol * hc);
-   int updateState(double timed, double dt, int numNeurons, pvdata_t * V, pvdata_t * A, int nx, int ny, int nf, int nb);
+   int updateState(double timed, double dt, int numNeurons, pvdata_t * V, pvdata_t * A, int nx, int ny, int nf, int lt, int rt, int dn, int up);
 
    static int updateV_DatastoreDelayTestLayer(const PVLayerLoc * loc, bool * inited, pvdata_t * V, int period);
 

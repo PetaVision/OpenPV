@@ -60,7 +60,7 @@ int GTLayer::updateState(double timef, double dt) {
    //Set binary values of xor values
    //std::cout << timef << ": gt:" << iVal << "\n";
    for(int ni = 0; ni < getNumNeurons(); ni++){
-      int nExt = kIndexExtended(ni, loc->nx, loc->ny, loc->nf, loc->nb);
+      int nExt = kIndexExtended(ni, loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
       switch(iVal){
          case 0:
             A[nExt] = -1;

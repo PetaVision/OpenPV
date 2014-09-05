@@ -36,9 +36,9 @@ int ReceiveFromPostProbe::outputState(double timed){
    std::cout << "outputing\n";
    for (int i = 0; i < numExtNeurons; i++){
       if(fabs(A[i]) != 0){
-         int xpos = kxPos(i, loc->nx+2*loc->nb, loc->ny+2*loc->nb, loc->nf);
-         int ypos = kyPos(i, loc->nx+2*loc->nb, loc->ny+2*loc->nb, loc->nf);
-         int fpos = featureIndex(i, loc->nx+2*loc->nb, loc->ny+2*loc->nb, loc->nf);
+         int xpos = kxPos(i, loc->nx+loc->halo.lt+loc->halo.rt, loc->ny+loc->halo.dn+loc->halo.up, loc->nf);
+         int ypos = kyPos(i, loc->nx+loc->halo.lt+loc->halo.rt, loc->ny+loc->halo.dn+loc->halo.up, loc->nf);
+         int fpos = featureIndex(i, loc->nx+loc->halo.lt+loc->halo.rt, loc->ny+loc->halo.dn+loc->halo.up, loc->nf);
          //std::cout << "[" << xpos << "," << ypos << "," << fpos << "] = " << std::fixed << A[i] << "\n";
       }
       //For roundoff errors

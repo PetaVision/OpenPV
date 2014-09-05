@@ -60,8 +60,8 @@ int InputLayer::updateState(double timef, double dt) {
    //Set binary values of xor values
    //std::cout << timef << ": input val:" << iVal << "\n";
    for(int ni = 0; ni < getNumNeurons(); ni++){
-      int nExt = kIndexExtended(ni, loc->nx, loc->ny, loc->nf, loc->nb);
-      int fi = featureIndex(nExt, loc->nx+2*loc->nb, loc->ny+2*loc->nb, loc->nf);
+      int nExt = kIndexExtended(ni, loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
+      int fi = featureIndex(nExt, loc->nx+loc->halo.lt+loc->halo.rt, loc->ny+loc->halo.dn+loc->halo.up, loc->nf);
       switch(iVal){
          case 0:
             if(fi == 0){

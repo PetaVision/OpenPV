@@ -122,7 +122,7 @@ int StochasticReleaseTestProbe::computePValues(long int step, int f) {
    bool found=false;
    pvdata_t preact = 0.0f;
    for (int n=f; n<numPreNeurons; n+=nf) {
-      int nExt = kIndexExtended(n, preLoc->nx, preLoc->ny, preLoc->nf, preLoc->nb);
+      int nExt = kIndexExtended(n, preLoc->nx, preLoc->ny, preLoc->nf, preLoc->halo.lt, preLoc->halo.rt, preLoc->halo.dn, preLoc->halo.up);
       pvdata_t a = preactPtr[nExt];
       if (a!=0.0f) {
          if (found) {
@@ -142,7 +142,7 @@ int StochasticReleaseTestProbe::computePValues(long int step, int f) {
    int nnzf = 0;
    const int numNeurons = getTargetLayer()->getNumNeurons();
    for (int n=f; n<numNeurons; n+=nf) {
-      int nExt = kIndexExtended(n, loc->nx, loc->ny, loc->nf, loc->nb);
+      int nExt = kIndexExtended(n, loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
       assert(activity[nExt]==0 || activity[nExt]==wgt);
       if (activity[nExt]!=0) nnzf++;
    }

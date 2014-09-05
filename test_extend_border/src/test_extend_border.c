@@ -38,12 +38,15 @@ int main(int argc, char* argv[])
    loc.nyGlobal = nyGlobal;
    loc.kx0 = kx0;
    loc.ky0 = ky0;
-   loc.nb  = nb;
+   loc.halo.lt  = nb;
+   loc.halo.rt  = nb;
+   loc.halo.dn  = nb;
+   loc.halo.up  = nb;
    loc.nf  = nf;
 
    for (kl = 0; kl < nf*nxGlobal*nyGlobal; kl++) {
       kg = globalIndexFromLocal_nompi(kl, loc);
-      kb = kIndexExtended(kl, nx, ny, nf, nb);
+      kb = kIndexExtended(kl, nx, ny, nf, nb, nb, nb, nb); // All margin widths the same.  Should generalize
       if (kb != kg) {
          printf("FAILED:TEST_EXTEND_BORDER: (kl,kb) = (%d,%d)\n", kl, kb);
          exit(1);

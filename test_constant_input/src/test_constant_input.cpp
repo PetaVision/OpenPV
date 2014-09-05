@@ -122,8 +122,8 @@ int checkInput(const PVLayerLoc * loc, const pvdata_t * data, pvdata_t val, bool
 {
    int status = 0;
 
-   const int nBorder = (extended) ? loc->nb : 0;
-   const int nk = (loc->nx + 2*nBorder) * (loc->ny + 2*nBorder) * loc->nf;
+   const PVHalo * halo = &loc->halo;
+   const int nk = (loc->nx + halo->lt + halo->rt) * (loc->ny + halo->dn + halo->up) * loc->nf;
 
    for (int k = 0; k < nk; k++) {
       if (data[k] != val) {
@@ -171,8 +171,8 @@ int createTestFile(const char* filename, int nTotal, float* buf)
 
 int printLoc(const PVLayerLoc * loc)
 {
-   printf("nxGlobal==%d nyGlobal==%d nx==%d ny==%d kx0==%d ky0==%d nb==%d nf==%d\n",
-     loc->nxGlobal, loc->nyGlobal, loc->nx, loc->ny, loc->kx0, loc->ky0, loc->nb, loc->nf);
+   printf("nxGlobal==%d nyGlobal==%d nx==%d ny==%d kx0==%d ky0==%d halo==(%d,%d,%d,%d) nf==%d\n",
+     loc->nxGlobal, loc->nyGlobal, loc->nx, loc->ny, loc->kx0, loc->ky0, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up, loc->nf);
    fflush(stdout);
    return 0;
 }
