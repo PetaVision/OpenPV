@@ -20,7 +20,6 @@ ANNLayer "layer" = {
     nxScale = 1;
     nyScale = 1;
     nf = 4;
-    marginWidth = 0;
     writeStep = -1;
     mirrorBCflag = 1;
     spikingFlag = 0;
