@@ -1667,6 +1667,17 @@ int HyPerCol::advanceTime(double sim_time)
       }
 #endif
 
+#ifdef PV_USE_OPENCL
+      //Barriers for all gpus, and copy back all gsyn
+      for(int l = 0; l < numLayers; l++) {
+         if (layers[l]->getPhase() != phase) continue;
+         //TODO set up async stuff here
+         layers[l]->copyAllGSynFromDevice();
+         layers[l]->syncGpu();
+      }
+#endif
+
+
 
       //    for (int l = 0; l < numLayers; l++) {
       //       // deliver new synaptic activity to any

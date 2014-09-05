@@ -1797,6 +1797,13 @@ int HyPerLayer::recvAllSynapticInput() {
          }
 #endif
 
+#ifdef PV_USE_OPENCL
+         if(!switchGpu && conn->getReceiveGpu()){
+            copyAllGSynToDevice();
+            switchGpu = true;
+         }
+#endif
+
          //Check if updating from post perspective
          HyPerLayer * pre = conn->preSynapticLayer();
          PVLayerCube cube;
@@ -1850,11 +1857,17 @@ int HyPerLayer::recvAllSynapticInput() {
    return status;
 }
 
-#ifdef PV_USE_CUDA
+#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
 float HyPerLayer::syncGpu(){
    if(recvGpu){
+#ifdef PV_USE_CUDA
       parent->getCudaDevice()->syncDevice();
       return gpu_recvsyn_timer->accumulateTime();
+#endif
+#ifdef PV_USE_OPENCL
+      parent->getCLDevice()->syncDevice();
+      return 0;
+#endif
    }
    else{
       return 0;
@@ -1877,12 +1890,7 @@ void HyPerLayer::copyAllGSynToDevice(){
          PVCuda::CudaBuffer * d_postGSyn = this->getDeviceGSyn(enumCh);
 #endif
          assert(d_postGSyn);
-         //recvsyn_timer->start();
-         //gpu_recvsyn_timer->start();
          d_postGSyn->copyToDevice(h_postGSyn);
-         //gpu_recvsyn_timer->stop();
-         //recvsyn_timer->stop();
-         //gpu_recvsyn_timer->accumulateTime();
       }
    }
 }
@@ -1901,12 +1909,7 @@ void HyPerLayer::copyAllGSynFromDevice(){
          PVCuda::CudaBuffer * d_postGSyn = this->getDeviceGSyn(enumCh);
 #endif
          assert(d_postGSyn);
-         //recvsyn_timer->start();
-         //gpu_recvsyn_timer->start();
          d_postGSyn->copyFromDevice(h_postGSyn);
-         //gpu_recvsyn_timer->stop();
-         //recvsyn_timer->stop();
-         //gpu_recvsyn_timer->accumulateTime();
       }
    }
 }
@@ -2009,6 +2012,7 @@ int HyPerLayer::recvSynapticInputFromPost(HyPerConn * conn, const PVLayerCube * 
 
       //Read from buffer
       long startSourceExt = startSourceExtBuf[kTargetRes];
+      //std::cout << "startSourceExt[" << kTargetRes << "]: " << startSourceExt << "\n";
 
       //Calculate target's start of gsyn
       pvdata_t * gSynPatchPos = gSynPatchHead + kTargetRes;
@@ -2016,13 +2020,14 @@ int HyPerLayer::recvSynapticInputFromPost(HyPerConn * conn, const PVLayerCube * 
       int kernelIndex = targetToSourceConn->patchToDataLUT(okTargetExt);
       uint4 * rngPtr = conn->getRandState(kTargetRes);
 
-
       for (int ky = 0; ky < targetToSourceConn->yPatchSize(); ky++){
          float * activityY = &(activity->data[startSourceExt + ky*sy]);
          pvwdata_t * weightY = targetToSourceConn->get_wDataHead(arborID, kernelIndex) + ky*syp;
+         //if(ky == 0){
+         //   std::cout << "cpu activity: " << activityY[0] << "  weight: " << weightY[0] << "\n";
+         //}
          (conn->accumulateFunctionFromPostPointer)(numPerStride, gSynPatchPos, activityY, weightY, dt_factor, rngPtr);
       }
-
    }
    return PV_SUCCESS;
 }
@@ -2227,6 +2232,8 @@ int HyPerLayer::recvSynapticInputFromPostGpu(HyPerConn * conn, const PVLayerCube
 #ifdef PV_USE_OPENCL
    krRecvPost->run(totF, totX, totY, conn->getNumFLocal(), conn->getNumXLocal(), conn->getNumYLocal(),
          0, NULL, NULL);
+   //krRecvPost->run(1,
+   //      0, NULL, NULL);
 #endif
 #ifdef PV_USE_CUDA
    //std::cout << "Global: (" << totX << "," << totY << "," << totF << ") Local: (" << conn->getNumXLocal() << "," << conn->getNumYLocal() << "," << conn->getNumFLocal() << ")\n";
@@ -2241,8 +2248,8 @@ int HyPerLayer::recvSynapticInputFromPostGpu(HyPerConn * conn, const PVLayerCube
    //Do a wait for accurate timing
    //TODO take this out
    krRecvPost->finish();
-
 #endif
+   return PV_SUCCESS;
 }
 
 int HyPerLayer::recvSynapticInputGpu(HyPerConn * conn, const PVLayerCube * activity, int arborID){
@@ -2339,6 +2346,7 @@ int HyPerLayer::recvSynapticInputGpu(HyPerConn * conn, const PVLayerCube * activ
    //Do a wait for accurate timing
    krRecvPre->finish();
 #endif
+   return PV_SUCCESS;
 }
 
 

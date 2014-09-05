@@ -2435,8 +2435,9 @@ int HyPerConn::allocateReceivePostKernel()
 
    //Since it never changes, set this buffer here
    //Need to set orig connection's patch2datalookuptable
-   d_Patch2DataLookupTable->copyToDevice(origConn->getPatchToDataLUT());
    d_PostToPreActivity->copyToDevice(postToPreActivity);
+
+   d_Patch2DataLookupTable->copyToDevice(origConn->getPatchToDataLUT());
 
    //In receive from post, we need to make sure x, y, and f local size is divisible by the actual number of post neurons
    if(postLoc->nx % numXLocal != 0){
@@ -2517,6 +2518,7 @@ int HyPerConn::allocateReceivePostKernel()
    status |= krRecvPost->setKernelArg(argid++, sizeof(float) * localBufSizeX * localBufSizeY * oNfp, NULL);
    //Buffer for post gsyn. One per neuron in workgroup
    status |= krRecvPost->setKernelArg(argid++, sizeof(float) * numXLocal * numYLocal * numFLocal, NULL);
+
 #endif
 
 #ifdef PV_USE_CUDA

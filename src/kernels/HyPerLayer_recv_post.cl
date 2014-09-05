@@ -42,15 +42,15 @@ static inline int kIndex(int kx, int ky, int kf, int nx, int ny, int nf)
    return kf + (kx + ky * nx) * nf;
 }
 
-static inline int kIndexExtended(int k, int nx, int ny, int nf, int nb)
+static inline int kIndexExtended(int k, int nx, int ny, int nf, int lt, int rt, int dn, int up)
 {
-   const int kx_ex = nb + kxPos(k, nx, ny, nf);
-   const int ky_ex = nb + kyPos(k, nx, ny, nf);
+   const int kx_ex = lt + kxPos(k, nx, ny, nf);
+   const int ky_ex = up + kyPos(k, nx, ny, nf);
    const int kf = featureIndex(k, nx, ny, nf);
-   return kIndex(kx_ex, ky_ex, kf, nx + 2*nb, ny + 2*nb, nf);
+   return kIndex(kx_ex, ky_ex, kf, nx + lt + rt, ny + dn + up, nf);
 }
 
-int pvpatch_accumulate_from_post(int nk, CL_MEM_LOCAL float * v, CL_MEM_LOCAL float * a, CL_MEM_GLOBAL float * w, float dt_factor, void * auxPtr) {
+int pvpatch_accumulate_from_post(int nk, CL_MEM_LOCAL float * v, CL_MEM_GLOBAL float * a, CL_MEM_GLOBAL float * w, float dt_factor, void * auxPtr) {
    //See what size nk is, and see if you can split it into vector multiplication
    int k = 0;
    while(k < nk){
@@ -95,15 +95,17 @@ int pvpatch_accumulate_from_post(int nk, CL_MEM_LOCAL float * v, CL_MEM_LOCAL fl
 }
 #endif
 
-
-
-
 CL_KERNEL
 void HyPerLayer_recv_post(
       const int nxRes, //num post neurons
       const int nyRes,
       const int nf,
-      const int nb, //Border of orig
+
+      const int nblt, //Border of orig
+      const int nbrt, //Border of orig
+      const int nbdn, //Border of orig
+      const int nbup, //Border of orig
+
       const int nxp,
       const int nyp,
       const int nfp,
@@ -144,48 +146,7 @@ void HyPerLayer_recv_post(
       //Calculate kTargetRes based on x, y, and f
       int kTargetRes = kIndex(xTargetRes, yTargetRes, fTargetRes, nxRes, nyRes, nf);
       //Change restricted to extended post neuron
-      int kTargetExt = kIndexExtended(kTargetRes, nxRes, nyRes, nf, nb);
-
-      //Get top left most neuron in the group
-      CL_MEM_LOCAL long localStartSourceExt;
-      if(localXIndex == 0 && localYIndex == 0 && localFIndex == 0){
-         localStartSourceExt = startSourceExtBuf[kTargetRes];
-      }
-      //All processes in workgroup needs that local index
-      barrier(CLK_LOCAL_MEM_FENCE);
-      
-      //Move global predata to buffer
-      //Find number of global threads working in this work group
-      int numLocal = localX * localY * localF;
-      //Find total number of pre neurons needed in the buffer
-      int totPreBuf = localBufSizeX * localBufSizeY * nfp;
-      //Find a good splitting number, using ceil to make sure we get everything
-      int numPrePerLocal = ceil((float)totPreBuf/(float)numLocal);
-
-      int localIndex = kIndex(localXIndex, localYIndex, localFIndex, localX, localY, localF);
-      //Set up pre
-      for(int i = 0; i < numPrePerLocal; i++){
-         //Need to get a mapping from local index (post) to pre index
-         int mappedPreIndex = localIndex * numPrePerLocal + i;
-         if(mappedPreIndex < totPreBuf){
-            //Convert mappedPreIndex into a pre data index
-            int preIdxX = kxPos(mappedPreIndex, localBufSizeX, localBufSizeY, nfp);
-            int preIdxY = kyPos(mappedPreIndex, localBufSizeX, localBufSizeY, nfp); 
-            int preIdxF = featureIndex(mappedPreIndex, localBufSizeX, localBufSizeY, nfp);
-            //Convert mappedPreIndex into a preBufIdx
-            int preBufIdx = kIndex(preIdxX, preIdxY, preIdxF, localBufSizeX, localBufSizeY, nfp);
-            //X, Y, and F are with respect to the buffer size
-            int xfIdx = preIdxX * nfp + preIdxF;
-            //Using the orig stride, we should be able to go to the correct row in the data
-            preBuffer[preBufIdx] = preData[localStartSourceExt + preIdxY * sy + xfIdx];
-         }
-      }
-
-      //Initialize post
-      postBuffer[localIndex] = 0;
-
-      //Barrier to make sure the work group's prebuffer is set
-      barrier(CLK_LOCAL_MEM_FENCE);
+      int kTargetExt = kIndexExtended(kTargetRes, nxRes, nyRes, nf, nblt, nbrt, nbdn, nbup);
 
       int kernelIndex;
       if(sharedWeights == 1){
@@ -196,15 +157,61 @@ void HyPerLayer_recv_post(
       }
       int wIdx = kernelIndex * nxp * nyp * nfp;
 
+      ////Get top left most neuron in the group
+      //CL_MEM_LOCAL long localStartSourceExt;
+      //if(localXIndex == 0 && localYIndex == 0 && localFIndex == 0){
+      //   localStartSourceExt = startSourceExtBuf[kTargetRes];
+      //}
+      ////All processes in workgroup needs that local index
+      //barrier(CLK_LOCAL_MEM_FENCE);
+      
+      long startSourceExt = startSourceExtBuf[kTargetRes];
+      int localIndex = kIndex(localXIndex, localYIndex, localFIndex, localX, localY, localF);
+      postBuffer[localIndex] = 0;
+      
+      ////Move global predata to buffer
+      ////Find number of global threads working in this work group
+      //int numLocal = localX * localY * localF;
+      ////Find total number of pre neurons needed in the buffer
+      //int totPreBuf = localBufSizeX * localBufSizeY * nfp;
+      ////Find a good splitting number, using ceil to make sure we get everything
+      //int numPrePerLocal = ceil((float)totPreBuf/(float)numLocal);
+
+      ////Set up pre
+      //for(int i = 0; i < numPrePerLocal; i++){
+      //   //Need to get a mapping from local index (post) to pre index
+      //   int mappedPreIndex = localIndex * numPrePerLocal + i;
+      //   if(mappedPreIndex < totPreBuf){
+      //      //Convert mappedPreIndex into a pre data index
+      //      int preIdxX = kxPos(mappedPreIndex, localBufSizeX, localBufSizeY, nfp);
+      //      int preIdxY = kyPos(mappedPreIndex, localBufSizeX, localBufSizeY, nfp); 
+      //      int preIdxF = featureIndex(mappedPreIndex, localBufSizeX, localBufSizeY, nfp);
+      //      //Convert mappedPreIndex into a preBufIdx
+      //      int preBufIdx = kIndex(preIdxX, preIdxY, preIdxF, localBufSizeX, localBufSizeY, nfp);
+      //      //X, Y, and F are with respect to the buffer size
+      //      int xfIdx = preIdxX * nfp + preIdxF;
+      //      //Using the orig stride, we should be able to go to the correct row in the data
+      //      preBuffer[preBufIdx] = preData[localStartSourceExt + preIdxY * sy + xfIdx];
+      //   }
+      //}
+
+      ////Initialize post
+      //postBuffer[localIndex] = 0;
+
+      //Barrier to make sure the work group's prebuffer is set
+      barrier(CLK_LOCAL_MEM_FENCE);
+
+
       //Match preBuffer to indPreData, need to find x and y offsets
-      int xOffset = localXIndex * preToPostScaleX;
-      int yOffset = localYIndex * preToPostScaleY;
+      //int xOffset = localXIndex * preToPostScaleX;
+      //int yOffset = localYIndex * preToPostScaleY;
 
       //Find post buffer address
       CL_MEM_LOCAL float * postAddr = postBuffer + localIndex;
 
       for(int ky = 0; ky < nyp; ky++){
-         CL_MEM_LOCAL float * activityY = &(preBuffer[(ky+yOffset) * localBufSizeX * nfp + xOffset*nfp]);
+         //CL_MEM_LOCAL float * activityY = &(preBuffer[(ky+yOffset) * localBufSizeX * nfp + xOffset*nfp]);
+         CL_MEM_GLOBAL float * activityY = &(preData[startSourceExt + ky * sy]);
          CL_MEM_GLOBAL float * weightY = &(weights[wIdx + ky*syp]);
          //Summing into post buffer indexed by localIndex
          pvpatch_accumulate_from_post(numPerStride, postAddr, activityY, weightY, dt_factor, (void*)0);
@@ -214,9 +221,6 @@ void HyPerLayer_recv_post(
       barrier(CLK_LOCAL_MEM_FENCE);
 
       //Sum into global memory
-      CL_MEM_GLOBAL pvdata_t * gSynPatchPos = postGsyn + kTargetRes;
-      *gSynPatchPos += postBuffer[localIndex];
-
-
+      postGsyn[kTargetRes] += postBuffer[localIndex];
 #endif
 }

@@ -4,66 +4,6 @@
 
 namespace PVCuda{
 
-//Declaring texture reference
-//texture<float, 1, cudaReadModeElementType> texReference;
-//Note that this reference is not a member variable, so it must be bound and unbound at the beginning and end of run()
-
-
-//__device__
-//int kxPos(int k, int nx, int ny, int nf)
-//{
-//   return (k/nf) % nx;
-//}
-//
-//__device__
-//int kyPos(int k, int nx, int ny, int nf)
-//{
-//   return k / (nx*nf);
-//}
-//
-//__device__
-//int featureIndex(int k, int nx, int ny, int nf)
-//{
-//   return k % nf;
-//}
-
-//__device__
-//int kIndex(int kx, int ky, int kf, int nx, int ny, int nf)
-//{
-//   return kf + (kx + ky * nx) * nf;
-//}
-//
-//__device__
-//int kIndexExtended(int k, int nx, int ny, int nf, int nb)
-//{
-//   const int kx_ex = nb + kxPos(k, nx, ny, nf);
-//   const int ky_ex = nb + kyPos(k, nx, ny, nf);
-//   const int kf = featureIndex(k, nx, ny, nf);
-//   return kIndex(kx_ex, ky_ex, kf, nx + 2*nb, ny + 2*nb, nf);
-//}
-//
-////A function that copys src to dest elements using all avaliable threads in a block
-//__device__
-//void work_group_copy(float* dest, float* src, int numElements, int warpSize, int threadIndex){
-//   if(threadIndex < warpSize){
-//      for(int i = threadIndex; i < numElements; i+= warpSize){
-//         dest[i] = src[i];
-//      }
-//   }
-//}
-
-//__device__
-//int pvpatch_accumulate_from_post(int nk, float * v, float * a, float * w, float dt_factor, void * auxPtr) {
-//   int status = 0;
-//   int k;
-//   for (k = 0; k < nk; k++) {
-//      *v += a[k]*w[k]*dt_factor;
-//      //dv = dv + a[k]*w[k];
-//   }
-//   //*v = *v + dt_factor*dv;
-//   return status;
-//}
-
 //Kernel code
 __global__
 void HyPerLayer_recv_post(

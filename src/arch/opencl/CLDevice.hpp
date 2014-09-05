@@ -48,6 +48,8 @@ public:
    CLKernel * createKernel(const char * filename, const char * name)
          { return createKernel(filename, name, NULL); }
 
+   int syncDevice(){return clFinish(commands);}
+
    
 //   int copyResultsBuffer(cl_mem output, void * results, size_t size);
 

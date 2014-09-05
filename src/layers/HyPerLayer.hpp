@@ -445,9 +445,7 @@ private:
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
 public:
 
-#ifdef PV_USE_CUDA
    virtual float syncGpu();
-#endif
 
    void copyAllGSynToDevice();
    void copyAllGSynFromDevice();
