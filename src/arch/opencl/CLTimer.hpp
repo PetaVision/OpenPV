@@ -41,6 +41,7 @@ class CLTimer : public Timer{
 
       cl_event * getStartEvent(){return startEvent;}
       cl_event * getStopEvent(){return stopEvent;}
+      void clearStopEvent(){clReleaseEvent(*stopEvent);}
 
    private:
       cl_event * startEvent;
