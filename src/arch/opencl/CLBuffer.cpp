@@ -61,7 +61,7 @@ int CLBuffer::copyToDevice(void * host_ptr, unsigned int nWait, cl_event * waitL
       
    // write data from host_ptr into the buffer in device memory
    //
-   status = clEnqueueWriteBuffer(commands, d_buf, CL_TRUE, 0, size,
+   status = clEnqueueWriteBuffer(commands, d_buf, CL_FALSE, 0, size,
                                  host_ptr, nWait, waitList, ev);
 
    //clFinish(commands);
@@ -91,7 +91,7 @@ int CLBuffer::copyFromDevice(void * host_ptr, unsigned int nWait, cl_event * wai
    // write data from host_ptr into the buffer in device memory
    // TODO make this read a nonblocking read false
    //
-   status = clEnqueueReadBuffer(commands, d_buf, CL_TRUE, 0, size,
+   status = clEnqueueReadBuffer(commands, d_buf, CL_FALSE, 0, size,
                                 host_ptr, nWait, waitList, ev);
 
 #ifdef PV_USE_TAU

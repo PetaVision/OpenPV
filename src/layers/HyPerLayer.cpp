@@ -1855,6 +1855,7 @@ int HyPerLayer::recvAllSynapticInput() {
          gpu_recvsyn_timer->stop();
       }
 #endif
+
       recvsyn_timer->stop();
    }
    return status;
@@ -2206,17 +2207,6 @@ int HyPerLayer::recvSynapticInputFromPostGpu(HyPerConn * conn, const PVLayerCube
       d_weights->copyToDevice(h_weights);
       targetToSourceConn->setUpdatedDeviceWFlag(false);
    }
-   
-//   //Always copy gsyn, since gsyn is always going to be at least zeroed out
-//   float * h_postGSyn = gSynPatchHead;
-//#ifdef PV_USE_OPENCL
-//   CLBuffer * d_postGSyn = this->getDeviceGSyn(conn->getChannel());
-//#endif
-//#ifdef PV_USE_CUDA
-//   PVCuda::CudaBuffer * d_postGSyn = this->getDeviceGSyn(conn->getChannel());
-//#endif
-//   assert(d_postGSyn);
-//   d_postGSyn->copyToDevice(h_postGSyn);
 
 #ifdef PV_USE_OPENCL
    //Grab kernel from conn
@@ -2237,9 +2227,7 @@ int HyPerLayer::recvSynapticInputFromPostGpu(HyPerConn * conn, const PVLayerCube
          0, NULL, gpu_recvsyn_timer->getTimerEvent());
 #endif
 #ifdef PV_USE_CUDA
-   //std::cout << "Global: (" << totX << "," << totY << "," << totF << ") Local: (" << conn->getNumXLocal() << "," << conn->getNumYLocal() << "," << conn->getNumFLocal() << ")\n";
    krRecvPost->run(totX, totY, totF, conn->getNumXLocal(), conn->getNumYLocal(), conn->getNumFLocal());
-   //krRecvPost->run(1, 1, numRestricted, 1, 1, 1);
 #endif
 
    return PV_SUCCESS;
