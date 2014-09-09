@@ -41,7 +41,7 @@ class CLTimer : public Timer{
 
       cl_event * getStartEvent(){return startEvent;}
       cl_event * getStopEvent(){return stopEvent;}
-      
+
    private:
       cl_event * startEvent;
       cl_event * stopEvent;

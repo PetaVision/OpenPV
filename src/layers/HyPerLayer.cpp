@@ -2328,8 +2328,10 @@ int HyPerLayer::recvSynapticInputGpu(HyPerConn * conn, const PVLayerCube * activ
    cl_event* timerEvent;
    if(firstRun){
       timerEvent = this->gpu_recvsyn_timer->getStartEvent();
+
    }
    else{
+      //this->gpu_recvsyn_timer->clearStopEvent();
       timerEvent = this->gpu_recvsyn_timer->getStopEvent();
    }
    krRecvPre->run(totX, totY, conn->getNumXLocal(), conn->getNumYLocal(),

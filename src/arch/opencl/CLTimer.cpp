@@ -45,6 +45,10 @@ CLTimer::~CLTimer()
    delete(stopEvent);
 }
 
+//void CLTimer::clearStopEvent(){
+//   clReleaseEvent(*stopEvent);
+//}
+
 //double CLTimer::start()
 //{
 //   printf("Starting opencl timer\n");
@@ -99,7 +103,7 @@ CLTimer::~CLTimer()
 
 //Note this function is blocking
 double CLTimer::accumulateTime(){
-   printf("Accumulating opencl timer\n");
+   //printf("Accumulating opencl timer\n");
    cl_ulong cl_time_start, cl_time_end;
    cl_time_start = 0;
    cl_time_end = 0;
@@ -115,7 +119,7 @@ double CLTimer::accumulateTime(){
             printf("Invalid param names\n");
             break;
          case CL_INVALID_EVENT:
-            printf("Invalid event\n");
+            printf("Invalid event for start event\n");
             break;
          default:
             printf("Unknown error\n");
@@ -123,6 +127,9 @@ double CLTimer::accumulateTime(){
       exit(EXIT_FAILURE);
    }
    status = clGetEventProfilingInfo(*stopEvent, CL_PROFILING_COMMAND_END, sizeof(cl_time_end), &cl_time_end, NULL);
+   if(status == CL_INVALID_EVENT){
+      status = clGetEventProfilingInfo(*startEvent, CL_PROFILING_COMMAND_END, sizeof(cl_time_end), &cl_time_end, NULL);
+   }
    if(status != CL_SUCCESS){
       switch(status){
          case CL_PROFILING_INFO_NOT_AVAILABLE:
@@ -132,7 +139,7 @@ double CLTimer::accumulateTime(){
             printf("Invalid param names\n");
             break;
          case CL_INVALID_EVENT:
-            printf("Invalid event\n");
+            printf("Invalid event for stop event\n");
             break;
          default:
             printf("Unknown error\n");
@@ -140,7 +147,7 @@ double CLTimer::accumulateTime(){
       exit(EXIT_FAILURE);
    }
    //Roundoff errors?
-   printf("Diff times: %f\n", (double)(cl_time_end - cl_time_start)/1000000);
+   //printf("Diff times: %f\n", (double)(cl_time_end - cl_time_start)/1000000);
    time += (double)(cl_time_end - cl_time_start)/1000000;
 
    return (double) time;

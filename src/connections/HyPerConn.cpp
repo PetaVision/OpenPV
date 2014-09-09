@@ -93,11 +93,11 @@ HyPerConn::HyPerConn(const char * name, HyPerCol * hc) {
 HyPerConn::~HyPerConn()
 {
    delete normalizer;
-   if (parent->columnId() == 0) {
-      io_timer->fprint_time(stdout);
-      update_timer->fprint_time(stdout);
-      fflush(stdout);
-   }
+   //if (parent->columnId() == 0) {
+   //   io_timer->fprint_time(stdout);
+   //   update_timer->fprint_time(stdout);
+   //   fflush(stdout);
+   //}
    delete io_timer;      io_timer     = NULL;
    delete update_timer;  update_timer = NULL;
 

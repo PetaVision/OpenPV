@@ -60,17 +60,19 @@ HyPerCol::~HyPerCol()
 
    //Delete by phases
    for (int phase=0; phase<numPhases; phase++) {
-      delete phaseRecvTimers[phase];
+      if(phaseRecvTimers[phase]){
+         delete phaseRecvTimers[phase];
+      }
+   }
+
+   if(phaseRecvTimers){
+      free(phaseRecvTimers);
    }
 
    for (n = 0; n < numLayers; n++) {
       if (layers[n] != NULL) {
          delete layers[n];
       }
-   }
-
-   if(phaseRecvTimers){
-      free(phaseRecvTimers);
    }
 
    if (ownsParams) delete params;
@@ -82,10 +84,6 @@ HyPerCol::~HyPerCol()
       icComm->clearPublishers();
    }
 
-   if (rank==0) {
-      runTimer->fprint_time(stdout);
-      fflush(stdout);
-   }
    delete runTimer;
 
    free(connections);
