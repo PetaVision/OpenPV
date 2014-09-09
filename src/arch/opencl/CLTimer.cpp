@@ -39,8 +39,10 @@ double CLTimer::accumulateTime(){
    if(timerEvent){
       cl_ulong time_start, time_end;
       clWaitForEvents(1, timerEvent);
-      clGetEventProfilingInfo(*timerEvent, CL_PROFILING_COMMAND_START, sizeof(time_start), &time_start, NULL);
-      clGetEventProfilingInfo(*timerEvent, CL_PROFILING_COMMAND_END, sizeof(time_end), &time_end, NULL);
+      cl_int status = clGetEventProfilingInfo(*timerEvent, CL_PROFILING_COMMAND_START, sizeof(time_start), &time_start, NULL);
+      assert(status == CL_SUCCESS);
+      status = clGetEventProfilingInfo(*timerEvent, CL_PROFILING_COMMAND_END, sizeof(time_end), &time_end, NULL);
+      assert(status == CL_SUCCESS);
       //Roundoff errors?
       time += (time_end - time_start)/1000000;
    }
