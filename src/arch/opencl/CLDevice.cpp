@@ -13,6 +13,7 @@
 #include "CLDevice.hpp"
 #include "CLBuffer.hpp"
 #include "CLKernel.hpp"
+#include "CLTimer.hpp"
 
 #include <assert.h>
 #include <stdio.h>
@@ -104,6 +105,7 @@ int CLDevice::initialize(int device)
    // create a command queue
    //
    commands = clCreateCommandQueue(context, device_ids[device_id], CL_QUEUE_PROFILING_ENABLE, &status);
+   assert(status == CL_SUCCESS);
    if (!commands)
    {
        printf("Error: Failed to create a command commands!\n");
@@ -121,6 +123,16 @@ int CLDevice::initialize(int device)
 #endif // PV_USE_OPENCL
 
    return status;
+}
+
+CLTimer* CLDevice::createTimer(double init_time){
+   return new CLTimer(commands, init_time);
+}
+CLTimer* CLDevice::createTimer(const char * timermessage, double init_time){
+   return new CLTimer(commands, timermessage, init_time);
+}
+CLTimer* CLDevice::createTimer(const char * objname, const char * objtype, const char * timertype, double init_time){
+   return new CLTimer(commands, objname, objtype, timertype, init_time);
 }
 
 CLKernel * CLDevice::createKernel(const char * filename, const char * name, const char * options)

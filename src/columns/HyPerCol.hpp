@@ -226,8 +226,11 @@ private:
    int connSetInitialValues(int c);
    int initPublishers();
    bool advanceCPWriteTime();
+
    int checkpointRead(const char * cpDir);
    int checkpointWrite(const char * cpDir);
+   int writeTimers(FILE* stream);
+
    int outputParams();
 
    virtual double adaptTimeScale();

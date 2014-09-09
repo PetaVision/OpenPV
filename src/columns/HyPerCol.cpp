@@ -42,17 +42,15 @@ HyPerCol::~HyPerCol()
    finalizeThreads();
 #endif // PV_USE_OPENCL || PV_USE_CUDA
 
+   //Print all timers
+   writeTimers(stdout);
+
    if (image_file != NULL) free(image_file);
 
    for (int k=0; k<numBaseProbes; k++) {
       if (baseProbes[k] && baseProbes[k]->getOwner()==(void *) this) { delete baseProbes[k]; }
    }
    free(baseProbes);
-
-   //Print connection timers
-   for (n = 0; n < numConnections; n++) {
-      connections[n]->writeTimers(stdout);
-   }
 
    for (n = 0; n < numConnections; n++) {
       delete connections[n];
@@ -62,20 +60,7 @@ HyPerCol::~HyPerCol()
 
    //Delete by phases
    for (int phase=0; phase<numPhases; phase++) {
-      if(phaseRecvTimers){
-         if (rank==0) {
-            //Timing info for phases
-            phaseRecvTimers[phase]->fprint_time(stdout);
-            //Timing info for layers
-         }
-         delete phaseRecvTimers[phase];
-      }
-      for (n = 0; n < numLayers; n++) {
-         if (layers[n] != NULL) {
-            if(layers[n]->getPhase() != phase) continue;
-            layers[n]->writeTimers(stdout);
-         }
-      }
+      delete phaseRecvTimers[phase];
    }
 
    for (n = 0; n < numLayers; n++) {
@@ -1877,6 +1862,26 @@ int HyPerCol::checkpointRead(const char * cpDir) {
    return PV_SUCCESS;
 }
 
+int HyPerCol::writeTimers(FILE* stream){
+   int rank=columnId();
+   if (rank==0) {
+      runTimer->fprint_time(stream);
+      icCommunicator()->fprintTime(stream);
+      for (int c=0; c<numConnections; c++) {
+         connections[c]->writeTimers(stream);
+      }
+      for (int phase=0; phase<numPhases; phase++) {
+         phaseRecvTimers[phase]->fprint_time(stream);
+         for (int n = 0; n < numLayers; n++) {
+            if (layers[n] != NULL) {
+               if(layers[n]->getPhase() != phase) continue;
+               layers[n]->writeTimers(stream);
+            }
+         }
+      }
+   }
+}
+
 int HyPerCol::checkpointWrite(const char * cpDir) {
    if (columnId()==0) {
       printf("Checkpointing to directory \"%s\" at simTime = %f\n", cpDir, simTime);
@@ -1917,14 +1922,8 @@ int HyPerCol::checkpointWrite(const char * cpDir) {
          fprintf(stderr, "Unable to open \"%s\" for checkpointing timer information: %s\n", timerpath, strerror(errno));
          exit(EXIT_FAILURE);
       }
-      runTimer->fprint_time(timerstream->fp);
-      icCommunicator()->fprintTime(timerstream->fp);
-      for (int l=0; l<numLayers; l++) {
-         layers[l]->checkpointTimers(timerstream);
-      }
-      for (int c=0; c<numConnections; c++) {
-         connections[c]->checkpointTimers(timerstream);
-      }
+      writeTimers(timerstream->fp);
+
       PV_fclose(timerstream); timerstream = NULL;
    }
 

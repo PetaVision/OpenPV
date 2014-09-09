@@ -37,7 +37,7 @@ public:
    virtual bool needUpdate(double time, double dt);
    virtual int outputStateWrapper(double timef, double dt);
    virtual int outputState(double timef) = 0;
-   virtual int checkpointTimers(PV_Stream * timerstream) {return PV_SUCCESS;}
+   virtual int writeTimer(FILE* stream) {return PV_SUCCESS;}
 
    const char * getName() {return name;}
    const char * getTargetName() {return targetName;}

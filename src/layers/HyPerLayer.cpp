@@ -226,8 +226,7 @@ int HyPerLayer::initialize(const char * name, HyPerCol * hc) {
    this->gpu_recvsyn_timer->setStream(hc->getCudaDevice()->getStream());
 #endif
 #ifdef PV_USE_OPENCL
-   this->gpu_recvsyn_timer = new CLTimer(getName(), "layer", "gpurecvsyn");
-   this->gpu_recvsyn_timer->setCommand(hc->getCLDevice()->getCommandQueue());
+   this->gpu_recvsyn_timer = hc->getCLDevice()->createTimer(getName(), "layer", "gpurecvsyn");
 #endif
 
    PVParams * params = parent->parameters();
@@ -1847,7 +1846,6 @@ int HyPerLayer::recvAllSynapticInput() {
          gpu_recvsyn_timer->stop();
       }
 #endif
-
       recvsyn_timer->stop();
    }
    return status;
@@ -2736,21 +2734,18 @@ int HyPerLayer::writeDataStoreToFile(const char * filename, InterColComm * comm,
 }
 
 int HyPerLayer::writeTimers(FILE* stream){
-   recvsyn_timer->fprint_time(stream);
+   if (parent->icCommunicator()->commRank()==0) {
+      recvsyn_timer->fprint_time(stream);
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
-   gpu_recvsyn_timer->fprint_time(stream);
+      gpu_recvsyn_timer->fprint_time(stream);
 #endif
-   update_timer->fprint_time(stream);
-   publish_timer->fprint_time(stream);
-   timescale_timer->fprint_time(stream);
-   io_timer->fprint_time(stream);
-   return PV_SUCCESS;
-}
-
-int HyPerLayer::checkpointTimers(PV_Stream * timerstream) {
-   writeTimers(timerstream->fp);
-   for (int p=0; p<getNumProbes(); p++){
-      getProbe(p)->checkpointTimers(timerstream);
+      update_timer->fprint_time(stream);
+      publish_timer->fprint_time(stream);
+      timescale_timer->fprint_time(stream);
+      io_timer->fprint_time(stream);
+      for (int p=0; p<getNumProbes(); p++){
+         getProbe(p)->writeTimer(stream);
+      }
    }
    return PV_SUCCESS;
 }

@@ -19,6 +19,7 @@ namespace PV {
    
 class CLBuffer;
 class CLKernel;
+class CLTimer;
 
 class CLDevice {
 
@@ -35,6 +36,10 @@ public:
 
    int id()  { return device_id; }
 
+   CLTimer* createTimer(double init_time=0.0);
+   CLTimer* createTimer(const char * timermessage, double init_time=0.0);
+   CLTimer* createTimer(const char * objname, const char * objtype, const char * timertype, double init_time=0.0);
+
    CLBuffer * createBuffer(cl_mem_flags flags, size_t size, void * host_ptr);
 
    CLBuffer * createReadBuffer(size_t size, void * host_ptr)
@@ -50,7 +55,7 @@ public:
 
    int syncDevice();
 
-   cl_command_queue getCommandQueue(){return commands;}
+   cl_command_queue * getCommandQueue(){return & commands;}
 
    
 //   int copyResultsBuffer(cl_mem output, void * results, size_t size);
