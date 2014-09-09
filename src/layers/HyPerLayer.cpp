@@ -2326,7 +2326,7 @@ int HyPerLayer::recvSynapticInputGpu(HyPerConn * conn, const PVLayerCube * activ
 
 #ifdef PV_USE_OPENCL
    krRecvPre->run(totX, totY, conn->getNumXLocal(), conn->getNumYLocal(),
-           0, NULL, gpu_recvsyn_timer->getTimerEvent());
+        0, NULL, gpu_recvsyn_timer->getTimerEvent());
 #endif
 #ifdef PV_USE_CUDA
    krRecvPre->run(totX, totY, conn->getNumXLocal(), conn->getNumYLocal());

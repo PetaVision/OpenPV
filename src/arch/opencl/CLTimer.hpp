@@ -34,7 +34,7 @@ class CLTimer : public Timer{
       
    private:
       cl_event * timerEvent;
-      float time;
+      double time;
 #endif
 };
 

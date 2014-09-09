@@ -175,7 +175,7 @@ int CLDevice::query_device_info()
    printf("Number of OpenCL devices found: %d\n", num_devices);
    printf("\n");
 
-   for (unsigned int i = 0; i < num_devices; i++) {
+   for (int i = 0; i < num_devices; i++) {
       query_device_info(i, device_ids[i]);
    }
    return 0;
@@ -197,7 +197,7 @@ int CLDevice::query_device_info(int id, cl_device_id device)
    char   param_value[str_size];
    size_t param_value_size;
 
-   printf("device: %d\n", device);
+   printf("device: %d\n", id);
 
    status = clGetDeviceInfo(device, CL_DEVICE_NAME, str_size, param_value, &param_value_size);
    param_value[str_size-1] = '\0';
