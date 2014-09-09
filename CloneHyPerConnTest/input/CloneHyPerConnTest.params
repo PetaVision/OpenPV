@@ -23,10 +23,12 @@ HyPerCol "column" = {
    stopTime = 10;
    progressInterval = 10;
    writeProgressToErr = false;
+   errorOnNotANumber = false;
    outputPath = "output/";
    printParamsFilename = "pv.params";
    filenamesContainLayerNames = false;
    filenamesContainConnectionNames = false;
+   initializeFromCheckpointDir = "";
    checkpointWrite = false;
    suppressLastOutput = false;
 };
@@ -38,7 +40,6 @@ HyPerCol "column" = {
 Movie "input" = {
     imageListPath = "./input/images.txt";
 
-    restart = 0;
     nxScale = 1;
     nyScale = 1;
     nf = 1;
@@ -53,24 +54,27 @@ Movie "input" = {
     autoResizeFlag = false;  
     
     writeImages = false;
+    writeFrameToTimestamp = false;
 
     displayPeriod = 100;
+    flipOnTimescaleError = false;
     randomMovie = true;
     randomMovieProb = 0.25;
     // start_frame_index = 0;
     // skip_frame_index = 0;
     // echoFramePathnameFlag = false;
     jitterFlag = false;
+    offsetAnchor = "tl";
     offsetX = 0;
     offsetY = 0;
 };
 
 ANNLayer "retina" = {
-    restart = 0;
     nxScale = 1;
     nyScale = 1;
     nf = 1;
     phase = 0;
+    triggerFlag = false;
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = 0;
@@ -87,11 +91,11 @@ ANNLayer "retina" = {
 };
 
 ANNLayer "output from original" = {
-    restart = 0;
     nxScale = 1;
     nyScale = 1;
     nf = 8;
     phase = 0;
+    triggerFlag = false;
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = 0;
@@ -108,11 +112,11 @@ ANNLayer "output from original" = {
 };
 
 ANNLayer "output from clone" = {
-    restart = 0;
     nxScale = 1;
     nyScale = 1;
     nf = 8;
     phase = 0;
+    triggerFlag = false;
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = 0;
@@ -129,11 +133,11 @@ ANNLayer "output from clone" = {
 };
 
 ANNLayer "comparison" = {
-    restart = 0;
     nxScale = 1;
     nyScale = 1;
     nf = 8;
     phase = 0;
+    triggerFlag = false;
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = 0;
@@ -182,6 +186,8 @@ HyPerConn "original" = {
     symmetrizeWeights = false;
     minSumTolerated = 0.0;
     normalizeFromPostPerspective = false;
+    rMinX = 0.0;
+    rMinY = 0.0;
 
     writeCompressedWeights = false;
     writeCompressedCheckpoints = false;
@@ -246,5 +252,8 @@ CloneHyPerConnTestProbe "comparison probe" = {
     targetLayer = "comparison";
     probeOutputFile = "comparison_stats.txt";
     message = "CloneHyPerConnTest probe      ";
+    buffer = "Activity";
+    triggerFlag = false;
+    nnzThreshold = 0.0;
 };
 
