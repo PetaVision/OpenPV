@@ -28,16 +28,19 @@ class CLTimer : public Timer{
       CLTimer(cl_command_queue commands, const char * objname, const char * objtype, const char * timertype, double init_time=0.0);
       virtual ~CLTimer();
 
-      /**
-       * A function to put an instruction on the GPU queue to start timing
-       */
-      virtual double start();
-      /**
-       * A function to put an instruction on the GPU queue to stop timing
-       */
-      virtual double stop();
+      ///**
+      // * A function to put an instruction on the GPU queue to start timing
+      // */
+      //virtual double start();
+      ///**
+      // * A function to put an instruction on the GPU queue to stop timing
+      // */
+      //virtual double stop();
       double accumulateTime();
       virtual int fprint_time(FILE * stream);
+
+      cl_event * getStartEvent(){return startEvent;}
+      cl_event * getStopEvent(){return stopEvent;}
       
    private:
       cl_event * startEvent;

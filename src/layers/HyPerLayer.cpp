@@ -1784,6 +1784,7 @@ int HyPerLayer::recvAllSynapticInput() {
          //HyPerConn * conn = parent->getConnection(c);
          //if (conn->postSynapticLayer()!=this) continue;
       bool switchGpu = false;
+      bool isFirstGpu = true;
       //Start CPU timer here
       recvsyn_timer->start();
 
@@ -1794,8 +1795,10 @@ int HyPerLayer::recvAllSynapticInput() {
          if(!switchGpu && conn->getReceiveGpu()){
             //Copy GSyn over to GPU
             copyAllGSynToDevice();
+#ifdef PV_USE_CUDA
             //Start gpu timer
             gpu_recvsyn_timer->start();
+#endif
             switchGpu = true;
          }
 #endif
@@ -1815,7 +1818,13 @@ int HyPerLayer::recvAllSynapticInput() {
             if(!conn->getUpdateGSynFromPostPerspective()){
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
                if(conn->getReceiveGpu()){
-                  status = recvSynapticInputGpu(conn, &cube, arbor);
+                  if(isFirstGpu){
+                     isFirstGpu = false;
+                     status = recvSynapticInputGpu(conn, &cube, arbor, true);
+                  }
+                  else{
+                     status = recvSynapticInputGpu(conn, &cube, arbor, false);
+                  }
                }
                else
 #endif
@@ -1826,7 +1835,13 @@ int HyPerLayer::recvAllSynapticInput() {
             else{
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
                if(conn->getReceiveGpu()){
-                  status = recvSynapticInputFromPostGpu(conn, &cube, arbor);
+                  if(isFirstGpu){
+                     isFirstGpu = false;
+                     status = recvSynapticInputFromPostGpu(conn, &cube, arbor, true);
+                  }
+                  else{
+                     status = recvSynapticInputFromPostGpu(conn, &cube, arbor, false);
+                  }
                }
                else
 #endif
@@ -1840,7 +1855,7 @@ int HyPerLayer::recvAllSynapticInput() {
             }
          }
       }
-#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+#ifdef PV_USE_CUDA
       if(switchGpu){
          //Stop timer
          gpu_recvsyn_timer->stop();
@@ -2115,7 +2130,7 @@ int HyPerLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activity
 
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
 
-int HyPerLayer::recvSynapticInputFromPostGpu(HyPerConn * conn, const PVLayerCube * activity, int arborID)
+int HyPerLayer::recvSynapticInputFromPostGpu(HyPerConn * conn, const PVLayerCube * activity, int arborID, bool firstRun)
 {
    //Check channel number for noupdate
    if(conn->getChannel() == CHANNEL_NOUPDATE){
@@ -2213,8 +2228,15 @@ int HyPerLayer::recvSynapticInputFromPostGpu(HyPerConn * conn, const PVLayerCube
    //Make sure local sizes are divisible by f, x, and y
    //krRecvPost->run(numRestricted, 0, NULL, NULL);
 #ifdef PV_USE_OPENCL
+   cl_event* timerEvent;
+   if(firstRun){
+      timerEvent = this->gpu_recvsyn_timer->getStartEvent();
+   }
+   else{
+      timerEvent = this->gpu_recvsyn_timer->getStopEvent();
+   }
    krRecvPost->run(totF, totX, totY, conn->getNumFLocal(), conn->getNumXLocal(), conn->getNumYLocal(),
-         0, NULL, NULL);
+         0, NULL, timerEvent);
 #endif
 #ifdef PV_USE_CUDA
    krRecvPost->run(totX, totY, totF, conn->getNumXLocal(), conn->getNumYLocal(), conn->getNumFLocal());
@@ -2223,7 +2245,7 @@ int HyPerLayer::recvSynapticInputFromPostGpu(HyPerConn * conn, const PVLayerCube
    return PV_SUCCESS;
 }
 
-int HyPerLayer::recvSynapticInputGpu(HyPerConn * conn, const PVLayerCube * activity, int arborID){
+int HyPerLayer::recvSynapticInputGpu(HyPerConn * conn, const PVLayerCube * activity, int arborID, bool firstRun){
    //Check if we need to update based on connection's channel
    if(conn->getChannel() == CHANNEL_NOUPDATE){
       return PV_SUCCESS;
@@ -2303,8 +2325,15 @@ int HyPerLayer::recvSynapticInputGpu(HyPerConn * conn, const PVLayerCube * activ
    int totY = conn->getNumPostGroupY();
 
 #ifdef PV_USE_OPENCL
+   cl_event* timerEvent;
+   if(firstRun){
+      timerEvent = this->gpu_recvsyn_timer->getStartEvent();
+   }
+   else{
+      timerEvent = this->gpu_recvsyn_timer->getStopEvent();
+   }
    krRecvPre->run(totX, totY, conn->getNumXLocal(), conn->getNumYLocal(),
-        0, NULL, NULL);
+        0, NULL, timerEvent);
 #endif
 #ifdef PV_USE_CUDA
    krRecvPre->run(totX, totY, conn->getNumXLocal(), conn->getNumYLocal());

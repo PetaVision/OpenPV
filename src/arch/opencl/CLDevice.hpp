@@ -22,6 +22,9 @@ class CLKernel;
 class CLTimer;
 
 class CLDevice {
+   
+#ifdef PV_USE_OPENCL
+
 
 protected:
    int device_id;                         // device id (normally 0 for GPU, 1 for CPU)
@@ -71,6 +74,7 @@ protected:
    cl_device_id device_ids[MAX_DEVICES]; // compute device id
    cl_context context;                   // compute context
    cl_command_queue commands;            // compute command queue
+#endif
 };
 
 } // namespace PV

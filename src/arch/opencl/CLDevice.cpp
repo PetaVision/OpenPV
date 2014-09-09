@@ -21,6 +21,8 @@
 
 namespace PV {
 
+#ifdef PV_USE_OPENCL
+
 CLDevice::CLDevice(int device)
 {
    this->device_id = device;
@@ -46,7 +48,6 @@ int CLDevice::initialize(int device)
 {
    int status = 0;
 
-#ifdef PV_USE_OPENCL
    // get list of available platforms
    //
    cl_uint num_platforms;
@@ -120,7 +121,6 @@ int CLDevice::initialize(int device)
 //      exit(status);
 //   }
    status = 0;
-#endif // PV_USE_OPENCL
 
    return status;
 }
@@ -142,14 +142,8 @@ CLKernel * CLDevice::createKernel(const char * filename, const char * name, cons
 
 CLBuffer * CLDevice::createBuffer(cl_mem_flags flags, size_t size, void * host_ptr)
 {
-#ifdef PV_USE_OPENCL
    return new CLBuffer(context, commands, flags, size, host_ptr);
-#else
-   return new CLBuffer();
-#endif // PV_USE_OPENCL
 }
-
-#ifdef PV_USE_OPENCL
 
 size_t CLDevice::get_max_work_group(){
    int    status;
