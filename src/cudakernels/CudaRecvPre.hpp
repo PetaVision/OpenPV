@@ -5,7 +5,7 @@
  *      Author: Sheng Lundquist
  */
 
-#ifndef CUDARECVPRE_HPP
+#ifndef CUDARECVPRE_HPP_
 #define CUDARECVPRE_HPP_
 
 #include "../arch/cuda/CudaKernel.hpp"
