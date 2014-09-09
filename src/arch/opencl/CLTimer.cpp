@@ -37,14 +37,14 @@ CLTimer::~CLTimer()
 //Note this function is blocking
 double CLTimer::accumulateTime(){
    if(timerEvent){
-      cl_ulong time_start, time_end;
+      cl_ulong cl_time_start, cl_time_end;
       clWaitForEvents(1, timerEvent);
-      cl_int status = clGetEventProfilingInfo(*timerEvent, CL_PROFILING_COMMAND_START, sizeof(time_start), &time_start, NULL);
+      cl_int status = clGetEventProfilingInfo(*timerEvent, CL_PROFILING_COMMAND_START, sizeof(cl_time_start), &cl_time_start, NULL);
       assert(status == CL_SUCCESS);
-      status = clGetEventProfilingInfo(*timerEvent, CL_PROFILING_COMMAND_END, sizeof(time_end), &time_end, NULL);
+      status = clGetEventProfilingInfo(*timerEvent, CL_PROFILING_COMMAND_END, sizeof(cl_time_end), &cl_time_end, NULL);
       assert(status == CL_SUCCESS);
       //Roundoff errors?
-      time += (time_end - time_start)/1000000;
+      time += (double)(cl_time_end - cl_time_start)/1000000;
    }
    return (double) time;
 }
