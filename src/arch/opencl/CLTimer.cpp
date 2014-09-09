@@ -13,35 +13,51 @@ namespace PV{
 CLTimer::CLTimer(double init_time):Timer(init_time)
 {
    time = 0;
-   timerEvent = new cl_event();
 }
 
 CLTimer::CLTimer(const char * timermessage, double init_time):Timer(timermessage, init_time)
 {
    time = 0;
-   timerEvent = new cl_event();
 }
 
 CLTimer::CLTimer(const char * objname, const char * objtype, const char * timertype, double init_time):Timer(objname, objtype, timertype, init_time){
    time = 0;
-   timerEvent = new cl_event();
 }
 
 CLTimer::~CLTimer()
 {
-   if(timerEvent){
-      clReleaseEvent(*timerEvent);
+   if(startEvent){
+      clReleaseEvent(startEvent);
    }
+   if(stopEvent){
+      clReleaseEvent(stopEvent);
+   }
+}
+
+double CLTimer::start()
+{
+   cl_int status = clEnqueueMarker(commands, &startEvent);
+   assert(status == CL_SUCCESS);
+   return 0;
+}
+
+double CLTimer::stop()
+{
+   cl_int status = clEnqueueMarker(commands, &stopEvent);
+   assert(status == CL_SUCCESS);
+   return 0;
 }
 
 //Note this function is blocking
 double CLTimer::accumulateTime(){
-   if(timerEvent){
+   if(startEvent && stopEvent){
       cl_ulong cl_time_start, cl_time_end;
-      clWaitForEvents(1, timerEvent);
-      cl_int status = clGetEventProfilingInfo(*timerEvent, CL_PROFILING_COMMAND_START, sizeof(cl_time_start), &cl_time_start, NULL);
+      cl_time_start = 0;
+      cl_time_end = 0;
+      clWaitForEvents(1, &stopEvent);
+      cl_int status = clGetEventProfilingInfo(startEvent, CL_PROFILING_COMMAND_START, sizeof(cl_time_start), &cl_time_start, NULL);
       assert(status == CL_SUCCESS);
-      status = clGetEventProfilingInfo(*timerEvent, CL_PROFILING_COMMAND_END, sizeof(cl_time_end), &cl_time_end, NULL);
+      status = clGetEventProfilingInfo(stopEvent, CL_PROFILING_COMMAND_END, sizeof(cl_time_end), &cl_time_end, NULL);
       assert(status == CL_SUCCESS);
       //Roundoff errors?
       time += (double)(cl_time_end - cl_time_start)/1000000;

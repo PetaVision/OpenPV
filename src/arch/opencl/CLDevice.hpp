@@ -50,6 +50,8 @@ public:
 
    int syncDevice();
 
+   cl_command_queue getCommandQueue(){return commands;}
+
    
 //   int copyResultsBuffer(cl_mem output, void * results, size_t size);
 

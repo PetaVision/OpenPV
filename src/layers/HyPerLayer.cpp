@@ -195,7 +195,7 @@ int HyPerLayer::initialize_base() {
    this->timescale_timer = NULL;
    this->io_timer      = NULL;
 
-#ifdef PV_USE_CUDA
+#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
    this->gpu_recvsyn_timer = NULL;
 #endif
 
@@ -227,6 +227,7 @@ int HyPerLayer::initialize(const char * name, HyPerCol * hc) {
 #endif
 #ifdef PV_USE_OPENCL
    this->gpu_recvsyn_timer = new CLTimer(getName(), "layer", "gpurecvsyn");
+   this->gpu_recvsyn_timer->setCommand(hc->getCLDevice()->getCommandQueue());
 #endif
 
    PVParams * params = parent->parameters();
@@ -1789,20 +1790,13 @@ int HyPerLayer::recvAllSynapticInput() {
 
       for(std::vector<HyPerConn*>::iterator it = recvConns.begin(); it < recvConns.end(); it++){
          HyPerConn * conn = *it;
-#ifdef PV_USE_CUDA
+#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
          //Check if it's done with cpu connections
          if(!switchGpu && conn->getReceiveGpu()){
             //Copy GSyn over to GPU
             copyAllGSynToDevice();
             //Start gpu timer
             gpu_recvsyn_timer->start();
-            switchGpu = true;
-         }
-#endif
-
-#ifdef PV_USE_OPENCL
-         if(!switchGpu && conn->getReceiveGpu()){
-            copyAllGSynToDevice();
             switchGpu = true;
          }
 #endif
@@ -1847,10 +1841,8 @@ int HyPerLayer::recvAllSynapticInput() {
             }
          }
       }
-#ifdef PV_USE_CUDA
+#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
       if(switchGpu){
-         //Copy GSyn back from GPU
-         //copyAllGSynFromDevice();
          //Stop timer
          gpu_recvsyn_timer->stop();
       }
@@ -2224,7 +2216,7 @@ int HyPerLayer::recvSynapticInputFromPostGpu(HyPerConn * conn, const PVLayerCube
    //krRecvPost->run(numRestricted, 0, NULL, NULL);
 #ifdef PV_USE_OPENCL
    krRecvPost->run(totF, totX, totY, conn->getNumFLocal(), conn->getNumXLocal(), conn->getNumYLocal(),
-         0, NULL, gpu_recvsyn_timer->getTimerEvent());
+         0, NULL, NULL);
 #endif
 #ifdef PV_USE_CUDA
    krRecvPost->run(totX, totY, totF, conn->getNumXLocal(), conn->getNumYLocal(), conn->getNumFLocal());
@@ -2314,7 +2306,7 @@ int HyPerLayer::recvSynapticInputGpu(HyPerConn * conn, const PVLayerCube * activ
 
 #ifdef PV_USE_OPENCL
    krRecvPre->run(totX, totY, conn->getNumXLocal(), conn->getNumYLocal(),
-        0, NULL, gpu_recvsyn_timer->getTimerEvent());
+        0, NULL, NULL);
 #endif
 #ifdef PV_USE_CUDA
    krRecvPre->run(totX, totY, conn->getNumXLocal(), conn->getNumYLocal());
