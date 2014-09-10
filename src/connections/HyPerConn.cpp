@@ -2391,9 +2391,6 @@ int HyPerConn::allocateReceivePostKernel()
    const PVHalo* preHalo = &pre->getLayerLoc()->halo;
    const PVHalo* postHalo = &post->getLayerLoc()->halo;
 
-
-
-
 #ifdef PV_USE_OPENCL
    CLBuffer* d_PreData = pre->getDeviceActivity();
    CLBuffer* d_PostGSyn = post->getDeviceGSyn(channel);
@@ -2449,11 +2446,6 @@ int HyPerConn::allocateReceivePostKernel()
       std::cout << "Y local size of " << numYLocal << " is not divisible by post ny of " << postLoc->ny << "\n";
       exit(EXIT_FAILURE);
    }
-   ////In recv from post, numYLocal must be equal to 1. The locality is best used in x direction
-   //if(numYLocal != 1){
-   //   std::cout << "Y local size must equal to 1 in recv from post\n";
-   //   exit(EXIT_FAILURE);
-   //}
 
    if(postLoc->nf % numFLocal != 0){
       std::cout << "F local size of " << numFLocal << " is not divisible by post nf of " << postLoc->nf << "\n";
@@ -2514,10 +2506,13 @@ int HyPerConn::allocateReceivePostKernel()
    status |= krRecvPost->setKernelArg(argid++, d_origWData);
    status |= krRecvPost->setKernelArg(argid++, d_PostGSyn);
    status |= krRecvPost->setKernelArg(argid++, d_Patch2DataLookupTable);
-   //Buffer for pre activity 
-   //status |= krRecvPost->setKernelArg(argid++, sizeof(float) * localBufSizeX * localBufSizeY * oNfp, NULL);
+   //Buffer for pre activity. Only one plane in x and f dimension at a time
+   status |= krRecvPost->setKernelArg(argid++, sizeof(float) * localBufSizeX * oNfp, NULL);
    //Buffer for post gsyn. One per neuron in workgroup
    status |= krRecvPost->setKernelArg(argid++, sizeof(float) * numXLocal * numYLocal * numFLocal, NULL);
+   //Buffer for weights. Only one xf set of weights
+   status |= krRecvPost->setKernelArg(argid++, sizeof(float) * oNxp * oNfp, NULL);
+
 
 #endif
 

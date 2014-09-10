@@ -2228,6 +2228,14 @@ int HyPerLayer::recvSynapticInputFromPostGpu(HyPerConn * conn, const PVLayerCube
    //Make sure local sizes are divisible by f, x, and y
    //krRecvPost->run(numRestricted, 0, NULL, NULL);
 #ifdef PV_USE_OPENCL
+   if(conn->getNumFLocal() != 1){
+      printf("gpu post run: numFLocal must be 1\n");
+      exit(-1);
+   }
+   if(conn->getNumYLocal() != 1){
+      printf("gpu post run: numYLocal must be 1\n");
+      exit(-1);
+   }
    cl_event* timerEvent;
    if(firstRun){
       timerEvent = this->gpu_recvsyn_timer->getStartEvent();

@@ -50,39 +50,37 @@ static inline int kIndexExtended(int k, int nx, int ny, int nf, int lt, int rt, 
    return kIndex(kx_ex, ky_ex, kf, nx + lt + rt, ny + dn + up, nf);
 }
 
-int pvpatch_accumulate_from_post(int nk, CL_MEM_LOCAL float * v, CL_MEM_GLOBAL float * a, CL_MEM_GLOBAL float * w, float dt_factor, void * auxPtr) {
+int pvpatch_accumulate_from_post(int nk, CL_MEM_LOCAL float * v, CL_MEM_LOCAL float * a, CL_MEM_LOCAL float * w, float dt_factor, void * auxPtr) {
    //See what size nk is, and see if you can split it into vector multiplication
    int k = 0;
    while(k < nk){
       //GPUs can do 2, 4, 8, and 16 vector multiplications
       if(nk - k > 16){
-         float16 activity16 = (float16)(a[k], a[k+1], a[k+2], a[k+3], a[k+4], a[k+5], a[k+6], a[k+7],
-                                        a[k+8], a[k+9], a[k+10], a[k+11], a[k+12], a[k+13], a[k+14], a[k+15]);
-         float16 weight16 = (float16)(w[k], w[k+1], w[k+2], w[k+3], w[k+4], w[k+5], w[k+6], w[k+7],
-                                      w[k+8], w[k+9], w[k+10], w[k+11], w[k+12], w[k+13], w[k+14], w[k+15]);
-         float16 ans16 = activity16 * weight16;
+         CL_MEM_LOCAL float16 * activity16 = (CL_MEM_LOCAL float16*) (a+k);
+         CL_MEM_LOCAL float16 * weight16   = (CL_MEM_LOCAL float16*) (w+k);
+         float16 ans16 = *activity16 * *weight16;
          *v += (ans16.s0 + ans16.s1 + ans16.s2 + ans16.s3 + ans16.s4 + ans16.s5 + ans16.s6 + ans16.s7 + 
                 ans16.s8 + ans16.s9 + ans16.sa + ans16.sb + ans16.sc + ans16.sd + ans16.se + ans16.sf) * dt_factor;
          k += 16;
       }
       else if(nk - k > 8){
-         float8 activity8 = (float8)(a[k], a[k+1], a[k+2], a[k+3], a[k+4], a[k+5], a[k+6], a[k+7]);
-         float8 weight8 = (float8)(w[k], w[k+1], w[k+2], w[k+3], w[k+4], w[k+5], w[k+6], w[k+7]);
-         float8 ans8 = activity8 * weight8;
+         CL_MEM_LOCAL float8 * activity8 = (CL_MEM_LOCAL float8*) (a+k);
+         CL_MEM_LOCAL float8 * weight8   = (CL_MEM_LOCAL float8*) (w+k);
+         float8 ans8 = *activity8 * *weight8;
          *v += (ans8.s0 + ans8.s1 + ans8.s2 + ans8.s3 + ans8.s4 + ans8.s5 + ans8.s6 + ans8.s7) * dt_factor;
          k += 8;
       }
       else if(nk - k > 4){
-         float4 activity4 = (float4)(a[k], a[k+1], a[k+2], a[k+3]);
-         float4 weight4 = (float4)(w[k], w[k+1], w[k+2], w[k+3]);
-         float4 ans4 = activity4 * weight4;
+         CL_MEM_LOCAL float4 * activity4 = (CL_MEM_LOCAL float4*) (a+k);
+         CL_MEM_LOCAL float4 * weight4   = (CL_MEM_LOCAL float4*) (w+k);
+         float4 ans4 = *activity4 * *weight4;
          *v += (ans4.x + ans4.y + ans4.z + ans4.w) * dt_factor;
          k += 4;
       }
       else if(nk - k > 2){ 
-         float2 activity2 = (float2)(a[k], a[k+1]);
-         float2 weight2 = (float2)(w[k], w[k+1]);
-         float2 ans2 = activity2 * weight2;
+         CL_MEM_LOCAL float2 * activity2 = (CL_MEM_LOCAL float2*) (a+k);
+         CL_MEM_LOCAL float2 * weight2   = (CL_MEM_LOCAL float2*) (w+k);
+         float2 ans2 = *activity2 * *weight2;
          *v += (ans2.x + ans2.y) * dt_factor;
          k += 2;
       }
@@ -127,8 +125,9 @@ void HyPerLayer_recv_post(
       CL_MEM_GLOBAL float* postGsyn,
       CL_MEM_GLOBAL int* patch2datalookuptable,
 
-//      CL_MEM_LOCAL float* preBuffer,
-      CL_MEM_LOCAL float* postBuffer
+      CL_MEM_LOCAL float* preBuffer,
+      CL_MEM_LOCAL float* postBuffer,
+      CL_MEM_LOCAL float* weightsBuffer
 ){
 #ifdef PV_USE_OPENCL
       int fTargetRes = get_global_id(0);
@@ -148,73 +147,61 @@ void HyPerLayer_recv_post(
       //Change restricted to extended post neuron
       int kTargetExt = kIndexExtended(kTargetRes, nxRes, nyRes, nf, nblt, nbrt, nbdn, nbup);
 
-      int kernelIndex;
-      if(sharedWeights == 1){
-         kernelIndex = patch2datalookuptable[kTargetExt];
+      CL_MEM_LOCAL int wIdx;
+      if(localXIndex == 0 && localYIndex == 0){
+         int kernelIndex;
+         if(sharedWeights == 1){
+            kernelIndex = patch2datalookuptable[kTargetExt];
+         }
+         else{
+            kernelIndex = kTargetExt;
+         }
+         int wIdx = kernelIndex * nxp * nyp * nfp;
       }
-      else{
-         kernelIndex = kTargetExt;
-      }
-      int wIdx = kernelIndex * nxp * nyp * nfp;
 
-      ////Get top left most neuron in the group
-      //CL_MEM_LOCAL long localStartSourceExt;
-      //if(localXIndex == 0 && localYIndex == 0 && localFIndex == 0){
-      //   localStartSourceExt = startSourceExtBuf[kTargetRes];
-      //}
-      ////All processes in workgroup needs that local index
-      //barrier(CLK_LOCAL_MEM_FENCE);
-      
-      long startSourceExt = startSourceExtBuf[kTargetRes];
+      //Get top left most neuron in the group
+      CL_MEM_LOCAL long localStartSourceExt;
+      if(localXIndex == 0 && localYIndex == 0 && localFIndex == 0){
+         localStartSourceExt = startSourceExtBuf[kTargetRes];
+      }
+      //long startSourceExt = startSourceExtBuf[kTargetRes];
+
       int localIndex = kIndex(localXIndex, localYIndex, localFIndex, localX, localY, localF);
+
       postBuffer[localIndex] = 0;
-      
-      ////Move global predata to buffer
-      ////Find number of global threads working in this work group
-      //int numLocal = localX * localY * localF;
-      ////Find total number of pre neurons needed in the buffer
-      //int totPreBuf = localBufSizeX * localBufSizeY * nfp;
-      ////Find a good splitting number, using ceil to make sure we get everything
-      //int numPrePerLocal = ceil((float)totPreBuf/(float)numLocal);
 
-      ////Set up pre
-      //for(int i = 0; i < numPrePerLocal; i++){
-      //   //Need to get a mapping from local index (post) to pre index
-      //   int mappedPreIndex = localIndex * numPrePerLocal + i;
-      //   if(mappedPreIndex < totPreBuf){
-      //      //Convert mappedPreIndex into a pre data index
-      //      int preIdxX = kxPos(mappedPreIndex, localBufSizeX, localBufSizeY, nfp);
-      //      int preIdxY = kyPos(mappedPreIndex, localBufSizeX, localBufSizeY, nfp); 
-      //      int preIdxF = featureIndex(mappedPreIndex, localBufSizeX, localBufSizeY, nfp);
-      //      //Convert mappedPreIndex into a preBufIdx
-      //      int preBufIdx = kIndex(preIdxX, preIdxY, preIdxF, localBufSizeX, localBufSizeY, nfp);
-      //      //X, Y, and F are with respect to the buffer size
-      //      int xfIdx = preIdxX * nfp + preIdxF;
-      //      //Using the orig stride, we should be able to go to the correct row in the data
-      //      preBuffer[preBufIdx] = preData[localStartSourceExt + preIdxY * sy + xfIdx];
-      //   }
-      //}
-
-      ////Initialize post
-      //postBuffer[localIndex] = 0;
-
-      //Barrier to make sure the work group's prebuffer is set
-      barrier(CLK_LOCAL_MEM_FENCE);
-
+      int numXfBuffer = localBufSizeX * nfp;
 
       //Match preBuffer to indPreData, need to find x and y offsets
-      //int xOffset = localXIndex * preToPostScaleX;
+      int xOffset = localXIndex * preToPostScaleX;
       //int yOffset = localYIndex * preToPostScaleY;
 
-      //Find post buffer address
-      CL_MEM_LOCAL float * postAddr = postBuffer + localIndex;
+      int numThreads = localX * localY * localF;
 
+      CL_MEM_LOCAL float* postAddr = postBuffer + localIndex;
+      
+      //All processes in workgroup needs that local index
+      barrier(CLK_LOCAL_MEM_FENCE);
+      
       for(int ky = 0; ky < nyp; ky++){
-         //CL_MEM_LOCAL float * activityY = &(preBuffer[(ky+yOffset) * localBufSizeX * nfp + xOffset*nfp]);
-         CL_MEM_GLOBAL float * activityY = &(preData[startSourceExt + ky * sy]);
-         CL_MEM_GLOBAL float * weightY = &(weights[wIdx + ky*syp]);
+         //Copy global to local, do this with all threads
+         //Pre buffer
+         for(int i = localIndex; i < numXfBuffer; i+=numThreads){
+            preBuffer[i] = preData[localStartSourceExt + ky * sy + i];
+         }
+         //Weights
+         for(int i = localIndex; i < nxp*nfp; i+= numThreads){
+            weightsBuffer[i] = weights[wIdx + ky * syp + i];
+         }
+         barrier(CLK_LOCAL_MEM_FENCE);
+         
+         CL_MEM_LOCAL float * activityY = &(preBuffer[xOffset * nfp]);
+         //CL_MEM_GLOBAL float * activityY = &(preData[startSourceExt + ky * sy]);
+         //CL_MEM_GLOBAL float * weightY = &(weights[wIdx + ky*syp]);
          //Summing into post buffer indexed by localIndex
-         pvpatch_accumulate_from_post(numPerStride, postAddr, activityY, weightY, dt_factor, (void*)0);
+         //pvpatch_accumulate_from_post(numPerStride, postAddr, activityY, weightY, dt_factor, (void*)0);
+         pvpatch_accumulate_from_post(numPerStride, postAddr, activityY, weightsBuffer, dt_factor, (void*)0);
+         barrier(CLK_LOCAL_MEM_FENCE);
       }
 
       //Barrier to make sure the work group's postbuffer is set
