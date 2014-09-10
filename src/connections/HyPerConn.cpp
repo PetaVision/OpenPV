@@ -2506,6 +2506,7 @@ int HyPerConn::allocateReceivePostKernel()
    status |= krRecvPost->setKernelArg(argid++, d_origWData);
    status |= krRecvPost->setKernelArg(argid++, d_PostGSyn);
    status |= krRecvPost->setKernelArg(argid++, d_Patch2DataLookupTable);
+
    //Buffer for pre activity. Only one plane in x and f dimension at a time
    status |= krRecvPost->setKernelArg(argid++, sizeof(float) * localBufSizeX * oNfp, NULL);
    //Buffer for post gsyn. One per neuron in workgroup

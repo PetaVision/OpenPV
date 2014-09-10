@@ -147,6 +147,7 @@ void HyPerLayer_recv_post(
       //Change restricted to extended post neuron
       int kTargetExt = kIndexExtended(kTargetRes, nxRes, nyRes, nf, nblt, nbrt, nbdn, nbup);
 
+      //TODO this won't work with HyPerConns
       CL_MEM_LOCAL int wIdx;
       if(localXIndex == 0 && localYIndex == 0){
          int kernelIndex;
@@ -156,7 +157,7 @@ void HyPerLayer_recv_post(
          else{
             kernelIndex = kTargetExt;
          }
-         int wIdx = kernelIndex * nxp * nyp * nfp;
+         wIdx = kernelIndex * nxp * nyp * nfp;
       }
 
       //Get top left most neuron in the group
@@ -164,7 +165,6 @@ void HyPerLayer_recv_post(
       if(localXIndex == 0 && localYIndex == 0 && localFIndex == 0){
          localStartSourceExt = startSourceExtBuf[kTargetRes];
       }
-      //long startSourceExt = startSourceExtBuf[kTargetRes];
 
       int localIndex = kIndex(localXIndex, localYIndex, localFIndex, localX, localY, localF);
 
@@ -186,13 +186,15 @@ void HyPerLayer_recv_post(
       for(int ky = 0; ky < nyp; ky++){
          //Copy global to local, do this with all threads
          //Pre buffer
-         for(int i = localIndex; i < numXfBuffer; i+=numThreads){
-            preBuffer[i] = preData[localStartSourceExt + ky * sy + i];
-         }
+         async_work_group_copy(preBuffer, &(preData[localStartSourceExt + ky * sy]), numXfBuffer, 0);
+         //for(int i = localIndex; i < numXfBuffer; i+=numThreads){
+         //   preBuffer[i] = preData[localStartSourceExt + ky * sy + i];
+         //}
          //Weights
-         for(int i = localIndex; i < nxp*nfp; i+= numThreads){
-            weightsBuffer[i] = weights[wIdx + ky * syp + i];
-         }
+         async_work_group_copy(weightsBuffer, &weights[wIdx+ky * syp], nxp*nfp, 0);
+         //for(int i = localIndex; i < nxp*nfp; i+= numThreads){
+         //   weightsBuffer[i] = weights[wIdx + ky * syp + i];
+         //}
          barrier(CLK_LOCAL_MEM_FENCE);
          
          CL_MEM_LOCAL float * activityY = &(preBuffer[xOffset * nfp]);
