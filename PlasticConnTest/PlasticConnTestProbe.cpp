@@ -32,7 +32,7 @@ int PlasticConnTestProbe::initialize(const char * probename, HyPerCol * hc) {
 int PlasticConnTestProbe::outputState(double timed) {
    HyPerConn * c = getTargetConn();
 #ifdef PV_USE_MPI
-   InterColComm * icComm = c->getParent()->icCommunicator();
+   InterColComm * icComm = getParent()->icCommunicator();
    const int rcvProc = 0;
    if( icComm->commRank() != rcvProc ) {
       return PV_SUCCESS;
@@ -75,7 +75,7 @@ int PlasticConnTestProbe::outputState(double timed) {
    }
    assert(status==PV_SUCCESS);
    if( status == PV_SUCCESS ) {
-      if( getOutputWeights() )      fprintf(fp, "        All weights are correct.\n");
+      if( getOutputWeights() )     fprintf(fp, "        All weights are correct.\n");
       if( getOutputPlasticIncr() ) fprintf(fp, "        All plastic increments are correct.\n");
    }
    if(getOutputPatchIndices()) {
@@ -86,7 +86,7 @@ int PlasticConnTestProbe::outputState(double timed) {
 }
 
 PlasticConnTestProbe::~PlasticConnTestProbe() {
-   if( !errorPresent ) {
+   if( !errorPresent && getStream() && getStream()->fp ) {
       fprintf(getStream()->fp, "No errors detected\n");
    }
 }
