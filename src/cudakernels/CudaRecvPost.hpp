@@ -10,6 +10,7 @@
 
 #include "../arch/cuda/CudaKernel.hpp"
 #include "../arch/cuda/CudaBuffer.hpp"
+#include <assert.h>
 //#include "../arch/cuda/Cuda3dFloatTextureBuffer.hpp"
 //#include "../utils/conversions.h"
 //#include "../layers/accumulate_functions.h"
@@ -50,6 +51,7 @@ namespace PVCuda{
       //Shared num elements
       size_t preBufNum;
       size_t postBufNum;
+      size_t weightsBufNum;
       //Warp size of the device
       int warpSize;
    };
