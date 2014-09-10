@@ -126,6 +126,21 @@ void CloneConn::ioParam_plasticityFlag(enum ParamsIOFlag ioFlag) {
    }
 }
 
+void CloneConn::ioParam_keepKernelsSynchronized(enum ParamsIOFlag ioFlag) {
+   if (ioFlag == PARAMS_IO_READ) {
+      keepKernelsSynchronized_flag = false;
+      // CloneConns do not have to synchronize because the pointers keep them synchronized whenever the original is.
+      // We override this method because sharedWeights is not determined when this function is called.
+   }
+}
+
+void CloneConn::ioParam_useWindowPost(enum ParamsIOFlag ioFlag) {
+   if (ioFlag == PARAMS_IO_READ) {
+      parent->parameters()->handleUnnecessaryParameter(name, "useWindowPost");
+   }
+   // During communication phase, useWindowPost will be copied from originalConn
+}
+
 void CloneConn::ioParam_nxp(enum ParamsIOFlag ioFlag) {
    // During the communication phase, nxp will be copied from originalConn
 }
@@ -156,10 +171,6 @@ int CloneConn::communicateInitInfo() {
    originalConn = parent->getConnFromName(originalConnName);
    if (originalConn == NULL) {
       fprintf(stderr, "CloneConn \"%s\" error in rank %d process: originalConnName \"%s\" is not a connection in the column.\n",
-            name, parent->columnId(), originalConnName);
-   }
-   if (originalConn->usingSharedWeights() == false) {
-      fprintf(stderr, "CloneConn \"%s\" error in rank %d process: originalConnName \"%s\" must use shared weights.\n",
             name, parent->columnId(), originalConnName);
    }
 
@@ -198,6 +209,7 @@ int CloneConn::communicateInitInfo() {
    numAxonalArborLists = originalConn->numberOfAxonalArborLists();
    shrinkPatches_flag = originalConn->getShrinkPatches_flag();
    parent->parameters()->handleUnnecessaryParameter(name, "shrinkPatches", shrinkPatches_flag);
+   useWindowPost = originalConn->getUseWindowPost();
 
    return status;
 }

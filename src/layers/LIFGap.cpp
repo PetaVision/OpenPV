@@ -273,6 +273,7 @@ int LIFGap::checkpointWrite(const char * cpDir) {
    chars_needed = snprintf(filename, filenamesize, "%s/%s_gapStrength.pvp", cpDir, name);
    assert(chars_needed < filenamesize);
    writeBufferFile(filename, icComm, timed, &gapStrength, 1, /*extended*/false, getLayerLoc());
+   free(filename);
    return status;
 }
 

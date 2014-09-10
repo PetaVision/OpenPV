@@ -59,13 +59,12 @@ HyPerCol::~HyPerCol()
    int rank=columnId(); // Need to save so that we know whether we're the process that does I/O, even after deleting icComm.
 
    //Delete by phases
-   for (int phase=0; phase<numPhases; phase++) {
-      if(phaseRecvTimers[phase]){
-         delete phaseRecvTimers[phase];
+   if (phaseRecvTimers) {
+      for (int phase=0; phase<numPhases; phase++) {
+         if(phaseRecvTimers[phase]){
+            delete phaseRecvTimers[phase];
+         }
       }
-   }
-
-   if(phaseRecvTimers){
       free(phaseRecvTimers);
    }
 
@@ -1869,7 +1868,7 @@ int HyPerCol::writeTimers(FILE* stream){
          connections[c]->writeTimers(stream);
       }
       for (int phase=0; phase<numPhases; phase++) {
-         phaseRecvTimers[phase]->fprint_time(stream);
+         if (phaseRecvTimers && phaseRecvTimers[phase]) { phaseRecvTimers[phase]->fprint_time(stream); }
          for (int n = 0; n < numLayers; n++) {
             if (layers[n] != NULL) {
                if(layers[n]->getPhase() != phase) continue;

@@ -65,10 +65,6 @@ int PlasticCloneConn::communicateInitInfo() {
       fprintf(stderr, "PlasticCloneConn \"%s\" error in rank %d process: originalConnName \"%s\" is not a connection in the column.\n",
             name, parent->columnId(), originalConnName);
    }
-   if (originalConn->usingSharedWeights() == false) {
-      fprintf(stderr, "PlasticCloneConn \"%s\" error in rank %d process: originalConnName \"%s\" must use shared weights.\n",
-            name, parent->columnId(), originalConnName);
-   }
 
    // Copy some parameters from originalConn.  Check if parameters exist is
    // the clone's param group, and issue a warning (if the param has the right

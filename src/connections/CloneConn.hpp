@@ -40,6 +40,8 @@ protected:
    virtual void ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag);
    virtual void ioParam_shrinkPatches(enum ParamsIOFlag ioFlag);
    virtual void ioParam_plasticityFlag(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_keepKernelsSynchronized(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_useWindowPost(enum ParamsIOFlag ioFlag);
    virtual void ioParam_nxp(enum ParamsIOFlag ioFlag);
    virtual void ioParam_nyp(enum ParamsIOFlag ioFlag);
    virtual void ioParam_nxpShrunken(enum ParamsIOFlag ioFlag);

@@ -167,7 +167,7 @@ HyPerConn::~HyPerConn()
    free(fDelayArray);
    free(delays);
    for (int i_probe = 0; i_probe < this->numProbes; i_probe++){
-      free(probes[i_probe]);
+      delete probes[i_probe];
    }
    free(this->probes);
    free(this->preLayerName);

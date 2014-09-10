@@ -29,6 +29,7 @@ BaseProbe::~BaseProbe()
       free(triggerLayerName);
       triggerLayerName = NULL;
    }
+   free(name);
 }
 
 int BaseProbe::initialize_base() {
