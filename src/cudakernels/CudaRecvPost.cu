@@ -84,7 +84,6 @@ void HyPerLayer_recv_post(recv_post_params params){
             if(kyIdx < params.nyp){
                //The index of the buffer of the copy
                int memCpyPreBufIdx = memCpyBufIdx * numXfBuffer;
-               int memCpyWeightBufIdx = memCpyBufIdx * numWeightsBuffer;
                //Copy global to local, do this with all threads
                //Pre buffer
                if(localIndex < warpSize){
@@ -92,6 +91,17 @@ void HyPerLayer_recv_post(recv_post_params params){
                      preBuffer[memCpyPreBufIdx + i] = params.preData[localStartSourceExt + kyIdx * params.sy + i];
                   }
                }
+            }
+         }
+         //Loop for bufIdx
+         for(int memCpyBufIdx = 0; memCpyBufIdx < params.numXfBufs; memCpyBufIdx++){
+            //The row we're currenly copying
+            int kyIdx = ky + memCpyBufIdx;
+            //Only do copy if in bounds
+            if(kyIdx < params.nyp){
+               //The index of the buffer of the copy
+               int memCpyWeightBufIdx = memCpyBufIdx * numWeightsBuffer;
+               //Copy global to local, do this with all threads
                //Weights
                if(localIndex < warpSize){
                   for(int i = localIndex; i < numWeightsBuffer; i+= warpSize){

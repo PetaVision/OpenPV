@@ -39,6 +39,8 @@ int CudaDevice::initialize(int device)
 
    handleError(cudaStreamCreate(&stream));
 
+   handleError(cudaGetDeviceProperties(&device_props, device));
+
    status = 0;
 #endif // PV_USE_OPENCL
 
@@ -69,14 +71,16 @@ CudaBuffer* CudaDevice::createBuffer(size_t size){
 
 void CudaDevice::query_device(int id)
 {
-   printf("device: %d\n", id);
    struct cudaDeviceProp props;
-   handleError(cudaGetDeviceProperties(&props, id));
-
+   //Use own props if current device
    if(id == device_id){
-      this->device_props = props;
+      props = device_props;
    }
-
+   //Otherwise, generate props
+   else{
+      handleError(cudaGetDeviceProperties(&props, id));
+   }
+   printf("device: %d\n", id);
    printf("CUDA Device # %d == %s\n", id, props.name);
 
    printf("with %d units/cores", props.multiProcessorCount);
