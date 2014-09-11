@@ -5,7 +5,7 @@
  *      Author: Sheng Lundquist
  */
 
-#ifndef CUDARECVPOST_HPP
+#ifndef CUDARECVPOST_HPP_
 #define CUDARECVPOST_HPP_
 
 #include "../arch/cuda/CudaKernel.hpp"
