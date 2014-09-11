@@ -1,5 +1,4 @@
 #include <utils/conversions.h>
-#include <layers/PVLayer.h>
 #include <stdio.h>
 #include <stdlib.h>
 
