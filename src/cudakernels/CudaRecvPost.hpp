@@ -53,7 +53,6 @@ namespace PVCuda{
       size_t postBufNum;
       size_t weightsBufNum;
 
-      int numXfBufs;
       //Warp size of the device
       int warpSize;
    };
