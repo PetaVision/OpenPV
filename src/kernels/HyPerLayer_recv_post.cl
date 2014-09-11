@@ -176,25 +176,28 @@ void HyPerLayer_recv_post(
       int xOffset = localXIndex * preToPostScaleX;
       //int yOffset = localYIndex * preToPostScaleY;
 
-      int numThreads = localX * localY * localF;
-
       CL_MEM_LOCAL float* postAddr = postBuffer + localIndex;
       
       //All processes in workgroup needs that local index
       barrier(CLK_LOCAL_MEM_FENCE);
       
       for(int ky = 0; ky < nyp; ky++){
+         event_t event1, event2;
          //Copy global to local, do this with all threads
          //Pre buffer
-         async_work_group_copy(preBuffer, &(preData[localStartSourceExt + ky * sy]), numXfBuffer, 0);
+         async_work_group_copy(preBuffer, &(preData[localStartSourceExt + ky * sy]), numXfBuffer, event1);
          //for(int i = localIndex; i < numXfBuffer; i+=numThreads){
          //   preBuffer[i] = preData[localStartSourceExt + ky * sy + i];
          //}
+
          //Weights
-         async_work_group_copy(weightsBuffer, &weights[wIdx+ky * syp], nxp*nfp, 0);
+         async_work_group_copy(weightsBuffer, &weights[wIdx+ky * syp], nxp*nfp, event2);
          //for(int i = localIndex; i < nxp*nfp; i+= numThreads){
          //   weightsBuffer[i] = weights[wIdx + ky * syp + i];
          //}
+
+         wait_group_events(1, event1);
+         wait_group_events(1, event2);
          barrier(CLK_LOCAL_MEM_FENCE);
          
          CL_MEM_LOCAL float * activityY = &(preBuffer[xOffset * nfp]);
