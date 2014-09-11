@@ -10,7 +10,6 @@
 
 #include "HyPerColRunDelegate.hpp"
 #include "InterColComm.hpp"
-#include "../layers/PVLayer.h"
 #include "../layers/HyPerLayer.hpp"
 #include "../connections/HyPerConn.hpp"
 #include "../io/PVParams.hpp"

@@ -8,7 +8,6 @@
 #ifndef LAYERDATAINTERFACE_HPP_
 #define LAYERDATAINTERFACE_HPP_
 
-#include "PVLayer.h"
 #include "../io/LayerProbe.hpp"
 
 namespace PV {

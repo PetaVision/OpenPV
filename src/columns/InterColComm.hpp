@@ -11,7 +11,6 @@
 #include "Communicator.hpp"
 #include "DataStore.hpp"
 #include "../include/pv_common.h"
-#include "../layers/PVLayer.h"
 
 // maximum number of messages (each layer publishes to all neighbors)
 #define MAX_MESSAGES    MAX_NEIGHBORS

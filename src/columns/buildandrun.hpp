@@ -17,7 +17,6 @@
 #include "../columns/HyPerCol.hpp"
 
 #include "../layers/HyPerLayer.hpp"
-#include "../layers/PVLayer.h"
 #include "../layers/ANNLayer.hpp"
 #include "../layers/AccumulateLayer.hpp"
 #include "../layers/GenerativeLayer.hpp"

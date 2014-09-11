@@ -20,7 +20,6 @@
 #define RANDOM_HPP_
 
 #include "HyPerCol.hpp"
-#include "../layers/PVLayer.h"
 #include "../utils/cl_random.h"
 
 namespace PV {

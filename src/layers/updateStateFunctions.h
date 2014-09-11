@@ -11,12 +11,12 @@
 #define UPDATESTATEFUNCTIONS_H_
 
 #ifndef PV_USE_OPENCL
+#include "../utils/conversions.h"
 #include "../include/pv_common.h"
 #include "../include/pv_types.h"
 #else
 #define pvdata_t float
 #define max_pvdata_t FLT_MAX
-#define PV_SUCCESS 0
 #endif
 
 

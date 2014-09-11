@@ -906,6 +906,22 @@ public:
       return 0;
    }
 
+   static inline
+   void pvpatch_init(PVPatch * p, int nx, int ny)
+   {
+      p->nx = nx;
+      p->ny = ny;
+      p->offset = 0;
+   }
+
+   static inline
+   void pvpatch_adjust(PVPatch * p, int sx, int sy, int nxNew, int nyNew, int dx, int dy)
+   {
+      p->nx = nxNew;
+      p->ny = nyNew;
+      p->offset += dx * sx + dy * sy;
+   }
+
 protected:
    static inline int computeMargin(int prescale, int postscale, int patchsize) {
    // 2^prescale is the distance between adjacent neurons in pre-layer, thus a smaller prescale means a layer with more neurons

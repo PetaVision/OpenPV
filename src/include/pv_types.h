@@ -8,6 +8,7 @@
 #ifndef PV_TYPES_H_
 #define PV_TYPES_H_
 
+#include "pv_common.h"
 #include "PVLayerLoc.h"
 #ifndef CL_KERNEL_INCLUDE
 #include <stdlib.h>   /* for size_t */
@@ -60,27 +61,12 @@ enum GSynAccumulateType {
 };
 
 typedef struct PVPatch_ {
-   // pvdata_t * __attribute__ ((aligned)) data;
    unsigned int offset;
    unsigned short nx, ny;
-//   int nx, ny, nf;    // number of items in x,y,features
-//   int sx, sy, sf;    // stride in x,y,features
 #ifndef PV_ARCH_64
    float padding;       // structure size should be 8*4 bytes
 #endif
 } PVPatch __attribute__ ((aligned));
-
-/**
- * PVLayerCube is a 3D cube (features,x,y) of a layer's data,
- *    plus location information
- */
-typedef struct PVLayerCube_ {
-   size_t     size;      // sizeof entire cube in bytes
-   int        numItems;  // number of items in data buffer
-   pvdata_t * data;      // pointer to data (may follow header)
-   int        padding[NUM_PADDING];   // header size should be n*128 bits
-   PVLayerLoc loc;       // location of cube in global layer
-} PVLayerCube;
 
 typedef struct PVPatchStrides_ {
    int sx, sy, sf;    // stride in x,y,features
@@ -101,29 +87,64 @@ typedef struct PV_Stream_ {
    int    isfile; /* True or false, tells whether stream corresponds to a file */
 } PV_Stream;
 
-/*
- * function declarations and inline definitions
+typedef enum {
+   TypeGeneric,
+   TypeImage,
+   TypeRetina,
+   TypeSimple,
+   TypeLIFSimple,
+   TypeLIFGap,
+   TypeLIFHC,
+   TypeLIFSimple2,
+   TypeLIFFlankInhib,
+   TypeLIFFeedbackInhib,
+   TypeLIFFeedback2Inhib,
+   TypeLIFSurroundInhib,
+   TypeLIFGeisler,
+   TypeBIDS,
+   TypeLCA,
+   TypeNonspiking
+} PVLayerType;
+
+/**
+ * PVLayerCube is a 3D cube (features,x,y) of a layer's data,
+ *    plus location information
  */
+typedef struct PVLayerCube_ {
+   size_t     size;      // sizeof entire cube in bytes
+   int        numItems;  // number of items in data buffer
+   pvdata_t * data;      // pointer to data (may follow header)
+   int        padding[NUM_PADDING];   // header size should be n*128 bits
+   PVLayerLoc loc;       // location of cube in global layer
+} PVLayerCube;
 
-static inline
-void pvpatch_init(PVPatch * p, int nx, int ny)
-{
-   p->nx = nx;
-   p->ny = ny;
-//   p->nf = nf;
-//   p->sx = sx;
-//   p->sy = sy;
-//   p->sf = sf;
-   p->offset = 0;
-}
+/**
+ * PVLayer is a collection of neurons of a specific class
+ */
+typedef struct PVLayer_ {
+   int numNeurons; // # neurons in this HyPerLayer (i.e. in PVLayerCube)
+   int numExtended;// # neurons in layer including extended border regions
 
-static inline
-void pvpatch_adjust(PVPatch * p, int sx, int sy, int nxNew, int nyNew, int dx, int dy)
-{
-   p->nx = nxNew;
-   p->ny = nyNew;
-   p->offset += dx * sx + dy * sy;
-   // p->data += dx * sx + dy * sy;
-}
+   unsigned int   numActive;      // # neurons that fired
+   unsigned int * activeIndices;  // indices of neurons that fired
+   PV_Stream    * activeFP;       // file of sparse activity
+   PV_Stream    * posFP;          // file of sparse activity frame positions
+
+   // TODO - deprecate?
+   PVLayerType layerType;  // the type/subtype of the layer (ie, Type_LIFSimple2)
+
+   PVLayerLoc loc;
+   int   xScale, yScale;   // scale (2**scale) by which layer (dx,dy) is expanded
+   float dx, dy;           // distance between neurons in the layer
+   float xOrigin, yOrigin; // origin of the layer (depends on iCol)
+
+   PVLayerCube * activity;  // activity buffer FROM this layer
+   float * prevActivity;    // time of previous activity
+
+   pvdata_t * V;            // membrane potential
+
+   void * params; // layer-specific parameters
+
+} PVLayer;
 
 #endif /* PV_TYPES_H_ */

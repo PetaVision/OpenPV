@@ -8,7 +8,8 @@
 #ifndef IO_H_
 #define IO_H_
 
-#include "../layers/PVLayer.h"
+//#include "../layers/PVLayerCube.h"
+#include "../include/pv_types.h"
 
 #ifdef PV_USE_MPI
 #  include <mpi.h>

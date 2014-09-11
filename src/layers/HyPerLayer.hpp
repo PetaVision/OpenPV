@@ -53,7 +53,7 @@ DerivedLayer::initialize(arguments) {
 #ifndef HYPERLAYER_HPP_
 #define HYPERLAYER_HPP_
 
-#include "../layers/PVLayer.h"
+#include "../layers/PVLayerCube.h"
 #include "../layers/LayerDataInterface.hpp"
 #include "../columns/DataStore.hpp"
 #include "../columns/HyPerCol.hpp"

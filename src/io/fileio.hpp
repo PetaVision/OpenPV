@@ -14,6 +14,7 @@
 #else
 #  include "../include/mpi_stubs.h"
 #endif // PV_USE_MPI
+#include "../include/pv_types.h"
 #include "../include/PVLayerLoc.h"
 #include "../columns/Communicator.hpp"
 #include "../arch/opencl/pv_uint4.h"
