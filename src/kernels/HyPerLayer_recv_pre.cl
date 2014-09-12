@@ -1,8 +1,6 @@
 //Defining a compiler directive to tell it the kernel needs the file
 /* Data type for weights and activity */
-#define pvwdata_t float
-#define pvadata_t float
-#define pvdata_t float
+#include "../include/pv_datatypes.h"
 #define RESTRICT
 
 //#define CL_KERNEL_INCLUDE

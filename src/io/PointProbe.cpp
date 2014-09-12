@@ -124,9 +124,7 @@ int PointProbe::communicateInitInfo() {
  * NOTES:
  *     - Only the activity buffer covers the extended frame - this is the frame that
  * includes boundaries.
- *     - The other dynamic variables (G_E, G_I, V, Vth) cover the "real" or "restricted"
- *     frame.
- *     - sparseOutput was introduced to deal with ConditionalProbes.
+ *     - The membrane potential V covers the "real" or "restricted" frame.
  *     - In MPI runs, xLoc and yLoc refer to global coordinates.
  *     writeState is only called by the processor with (xLoc,yLoc) in its
  *     non-extended region.

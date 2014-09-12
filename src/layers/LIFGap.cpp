@@ -46,7 +46,7 @@ void LIFGap_update_state_original(
     float * GSynHead,
     float * activity,
 
-    const float * gapStrength
+    const pvgsyndata_t * gapStrength
 );
 
 void LIFGap_update_state_beginning(
@@ -73,7 +73,7 @@ void LIFGap_update_state_beginning(
     float * GSynHead,
     float * activity,
 
-    const float * gapStrength
+    const pvgsyndata_t * gapStrength
 );
 
 void LIFGap_update_state_arma(
@@ -100,7 +100,7 @@ void LIFGap_update_state_arma(
     float * GSynHead,
     float * activity,
 
-    const float * gapStrength
+    const pvgsyndata_t * gapStrength
 );
 
 
@@ -215,8 +215,13 @@ int LIFGap::initialize(const char * name, HyPerCol * hc, PVLayerType type, const
 
 int LIFGap::allocateConductances(int num_channels) {
    // this->sumGap = 0.0f;
-   int status = LIF::allocateConductances(num_channels);
-   gapStrength = G_E+getNumNeurons()*CHANNEL_GAP;
+   int status = LIF::allocateConductances(num_channels-1); // CHANNEL_GAP doesn't have a conductance per se.
+   gapStrength = (pvgsyndata_t *) calloc((size_t) getNumNeurons(), sizeof(*gapStrength)); // G_E+getNumNeurons()*CHANNEL_GAP;
+   if(gapStrength == NULL) {
+      fprintf(stderr, "%s layer \"%s\": rank %d process unable to allocate memory for gapStrength: %s\n",
+              parent->parameters()->groupKeywordFromName(getName()), getName(), parent->columnId(), strerror(errno));
+      exit(EXIT_FAILURE);
+   }
    return status;
 }
 

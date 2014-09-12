@@ -2355,14 +2355,14 @@ int HyPerLayer::recvSynapticInputGpu(HyPerConn * conn, const PVLayerCube * activ
 
 #endif
 
-void HyPerLayer::recvOnePreNeuronActivity(HyPerConn * conn, int patchIndex, int arbor, pvadata_t a, pvadata_t * postBufferStart, void * auxPtr) {
+void HyPerLayer::recvOnePreNeuronActivity(HyPerConn * conn, int patchIndex, int arbor, pvadata_t a, pvgsyndata_t * postBufferStart, void * auxPtr) {
    PVPatch * weights = conn->getWeights(patchIndex, arbor);
    const int nk = weights->nx * conn->fPatchSize();
    const int ny = weights->ny;
    const int sy  = conn->getPostNonextStrides()->sy;       // stride in layer
    const int syw = conn->yPatchStride();                   // stride in patch
    pvwdata_t * weightDataStart = conn->get_wData(arbor,patchIndex); // make this a pvwdata_t const *?
-   pvadata_t * postPatchStart = postBufferStart + conn->getGSynPatchStart(patchIndex, arbor);
+   pvgsyndata_t * postPatchStart = postBufferStart + conn->getGSynPatchStart(patchIndex, arbor);
 
    for (int y = 0; y < ny; y++) {
       (conn->accumulateFunctionPointer)(nk, postPatchStart + y*sy, a, weightDataStart + y*syw, auxPtr);
@@ -2559,7 +2559,8 @@ int HyPerLayer::checkpointRead(const char * cpDir, double * timeptr) {
    return PV_SUCCESS;
 }
 
-int HyPerLayer::readBufferFile(const char * filename, InterColComm * comm, double * timeptr, pvdata_t ** buffers, int numbands, bool extended, const PVLayerLoc * loc) {
+template<class T>
+int HyPerLayer::readBufferFile(const char * filename, InterColComm * comm, double * timeptr, T ** buffers, int numbands, bool extended, const PVLayerLoc * loc) {
    PV_Stream * readFile = pvp_open_read_file(filename, comm);
    int rank = comm->commRank();
    assert( (readFile != NULL && rank == 0) || (readFile == NULL && rank != 0) );
@@ -2626,6 +2627,9 @@ int HyPerLayer::readBufferFile(const char * filename, InterColComm * comm, doubl
    }
    return status;
 }
+// Declare the instantiations of readScalarToFile that occur in other .cpp files; otherwise you'll get linker errors.
+// template void HyPerCol::ioParamValueRequired<pvdata_t>(enum ParamsIOFlag ioFlag, const char * group_name, const char * param_name, pvdata_t * value);
+template int HyPerLayer::readBufferFile<float>(const char * filename, InterColComm * comm, double * timeptr, float ** buffers, int numbands, bool extended, const PVLayerLoc * loc);
 
 int HyPerLayer::readDataStoreFromFile(const char * filename, InterColComm * comm, double * timeptr) {
    PV_Stream * readFile = pvp_open_read_file(filename, comm);
@@ -2713,7 +2717,8 @@ int HyPerLayer::checkpointWrite(const char * cpDir) {
    return PV_SUCCESS;
 }
 
-int HyPerLayer::writeBufferFile(const char * filename, InterColComm * comm, double timed, pvdata_t ** buffers, int numbands, bool extended, const PVLayerLoc * loc) {
+template <typename T>
+int HyPerLayer::writeBufferFile(const char * filename, InterColComm * comm, double timed, T ** buffers, int numbands, bool extended, const PVLayerLoc * loc) {
    PV_Stream * writeFile = pvp_open_write_file(filename, comm, /*append*/false);
    assert( (writeFile != NULL && comm->commRank() == 0) || (writeFile == NULL && comm->commRank() != 0) );
 
@@ -2739,6 +2744,9 @@ int HyPerLayer::writeBufferFile(const char * filename, InterColComm * comm, doub
    writeFile = NULL;
    return status;
 }
+// Declare the instantiations of readScalarToFile that occur in other .cpp files; otherwise you'll get linker errors.
+// template void HyPerCol::ioParamValueRequired<pvdata_t>(enum ParamsIOFlag ioFlag, const char * group_name, const char * param_name, pvdata_t * value);
+template int HyPerLayer::writeBufferFile<float>(const char * filename, InterColComm * comm, double timed, float ** buffers, int numbands, bool extended, const PVLayerLoc * loc);
 
 int HyPerLayer::writeDataStoreToFile(const char * filename, InterColComm * comm, double timed) {
    PV_Stream * writeFile = pvp_open_write_file(filename, comm, /*append*/false);

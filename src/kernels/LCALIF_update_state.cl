@@ -1,5 +1,8 @@
 #include "LIF_params.h"
 #include "cl_random.hcl"
+#include "../include/pv_datatypes.h"
+#include <float.h>
+#include <stdbool.h>
 
 #ifndef PV_USE_OPENCL
 #  include <math.h>
@@ -22,12 +25,12 @@
 #endif
 
 inline
-float LCALIF_tauInf(const float tau, const float G_E, const float G_I, const float G_IB, const float sum_gap) {
+float LCALIF_tauInf(const float tau, const float G_E, const float G_I, const float G_IB, const pvgsyndata_t sum_gap) {
    return tau/(1+G_E+G_I+G_IB+sum_gap);
 }
 
 inline
-float LCALIF_VmemInf(const float Vrest, const float V_E, const float V_I, const float V_B, const float G_E, const float G_I, const float G_B, const float G_gap, const float sumgap) {
+float LCALIF_VmemInf(const float Vrest, const float V_E, const float V_I, const float V_B, const float G_E, const float G_I, const float G_B, const float G_gap, const pvgsyndata_t sumgap) {
    return (Vrest + V_E*G_E + V_I*G_I + V_B*G_B + G_gap)/(1+G_E+G_I+G_B+sumgap);
 }
 
@@ -55,7 +58,7 @@ void LCALIF_update_state(
     float tauTHR,
     const float targetRateHz,
 
-    pvdata_t * integratedSpikeCount,
+    float * integratedSpikeCount,
     
     CL_MEM_CONST LIF_params * params,
     CL_MEM_GLOBAL uint4 * rnd,
@@ -67,7 +70,7 @@ void LCALIF_update_state(
     CL_MEM_GLOBAL float * GSynHead,
     CL_MEM_GLOBAL float * activity, 
 
-    const float * gapStrength,
+    const pvgsyndata_t * gapStrength,
     CL_MEM_GLOBAL float * Vattained,
     CL_MEM_GLOBAL float * Vmeminf,
     const int normalizeInputFlag,
@@ -124,7 +127,7 @@ for (int k = 0; k < nx*ny*nf; k++) {
    float l_G_E  = G_E[k];
    float l_G_I  = G_I[k];
    float l_G_IB = G_IB[k];
-   float l_gapStrength = gapStrength[k];
+   pvgsyndata_t l_gapStrength = gapStrength[k];
 
 #define CHANNEL_NORM (CHANNEL_GAP+1)
    CL_MEM_GLOBAL float * GSynExc = &GSynHead[CHANNEL_EXC*numNeurons];
@@ -150,6 +153,7 @@ for (int k = 0; k < nx*ny*nf; k++) {
    deltaVth = params->deltaVth;
    deltaGIB = params->deltaGIB;
 
+   // TODO OpenCL doesn't have an fprintf command.  How should we communicate this error when this is an OpenCL kernel?
    if (normalizeInputFlag && l_GSynNorm==0 && l_GSynExc != 0) {
       fprintf(stderr, "time = %f, k = %d, normalizeInputFlag is true but GSynNorm is zero and l_GSynExc = %f\n", timed, k, l_GSynExc);
       abort();
@@ -195,8 +199,9 @@ for (int k = 0; k < nx*ny*nf; k++) {
    G_E_initial = l_G_E + l_GSynExc;
    G_I_initial = l_G_I + l_GSynInh;
    G_IB_initial = l_G_IB + l_GSynInhB;
-   tau_inf_initial = tau/(1+G_E_initial+G_I_initial+G_IB_initial+l_gapStrength);
-   V_inf_initial = (Vrest+Vexc*G_E_initial+Vinh*G_I_initial+VinhB*G_IB_initial+l_GSynGap)/(1+G_E_initial+G_I_initial+G_IB_initial+l_gapStrength);
+   tau_inf_initial = LCALIF_tauInf(tau, G_E_initial, G_I_initial, G_IB_initial, l_gapStrength);
+
+   V_inf_initial = LCALIF_VmemInf(Vrest, Vexc, Vinh, VinhB, G_E_initial, G_I_initial, G_IB_initial, l_GSynGap, l_gapStrength);
 
    G_E_initial  = (G_E_initial  > GMAX) ? GMAX : G_E_initial;
    G_I_initial  = (G_I_initial  > GMAX) ? GMAX : G_I_initial;
@@ -208,8 +213,8 @@ for (int k = 0; k < nx*ny*nf; k++) {
    G_E_final = G_E_initial * decayE;
    G_I_final = G_I_initial * decayI;
    G_IB_final = G_IB_initial * decayIB;
-   tau_inf_final = tau/(1+G_E_final+G_I_final+G_IB_final+l_gapStrength);
-   V_inf_final = (Vrest+Vexc*G_E_final+Vinh*G_I_final+VinhB*G_IB_final+l_GSynGap)/(1+G_E_final+G_I_final+G_IB_final+l_gapStrength);
+   tau_inf_final = LCALIF_tauInf(tau, G_E_final, G_I_initial, G_IB_initial, l_gapStrength);
+   V_inf_final = LCALIF_VmemInf(Vrest, Vexc, Vinh, VinhB, G_E_final, G_I_final, G_IB_final, l_GSynGap, l_gapStrength);
 
    float tau_slope = (tau_inf_final-tau_inf_initial)/dt;
    float f1 = tau_slope==0.0f ? EXP(-dt/tau_inf_initial) : powf(tau_inf_final/tau_inf_initial, -1/tau_slope);

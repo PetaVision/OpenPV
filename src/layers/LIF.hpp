@@ -49,7 +49,7 @@ public:
    virtual int checkpointWrite(const char * cpDir);
 
    pvdata_t * getVth()              {return Vth;}
-   virtual pvdata_t * getConductance(ChannelType ch) {
+   virtual pvconductance_t * getConductance(ChannelType ch) {
          return ch < this->numChannels ? G_E + ch*getNumNeurons() : NULL;
       }
 /*
@@ -76,9 +76,9 @@ protected:
 //#endif
 
    pvdata_t * Vth;      // threshold potential
-   pvdata_t * G_E;      // excitatory conductance
-   pvdata_t * G_I;      // inhibitory conductance
-   pvdata_t * G_IB;
+   pvconductance_t * G_E;      // excitatory conductance
+   pvconductance_t * G_I;      // inhibitory conductance
+   pvconductance_t * G_IB;
 
    char * methodString; // 'arma', 'before', or 'original'
    char method;         // 'a', 'b', or 'o', the first character of methodString

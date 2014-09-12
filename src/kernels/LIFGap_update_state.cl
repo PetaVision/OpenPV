@@ -1,5 +1,7 @@
 #include "LIF_params.h"
 #include "cl_random.hcl"
+#include "../include/pv_datatypes.h"
+#include <stdbool.h>
 
 #ifndef PV_USE_OPENCL
 #  include <math.h>
@@ -31,7 +33,7 @@ float LIFGap_Vmem_derivative(
       const float V_E,
       const float V_I,
       const float V_IB,
-      const float sum_gap,
+      const pvgsyndata_t sum_gap,
       const float Vrest,
       const float tau) {
    float totalconductance = 1.0 + G_E + G_I + G_IB + sum_gap;
@@ -72,7 +74,7 @@ void LIFGap_update_state_original(
     CL_MEM_GLOBAL float * GSynHead,
     CL_MEM_GLOBAL float * activity, 
 
-    CL_MEM_GLOBAL const float * gapStrength)
+    CL_MEM_GLOBAL const pvgsyndata_t * gapStrength)
 {
    int k;
 
@@ -110,7 +112,7 @@ for (k = 0; k < nx*ny*nf; k++) {
    float l_G_E  = G_E[k];
    float l_G_I  = G_I[k];
    float l_G_IB = G_IB[k];
-   float l_gapStrength = gapStrength[k];
+   pvgsyndata_t l_gapStrength = gapStrength[k];
 
    CL_MEM_GLOBAL float * GSynExc = &GSynHead[CHANNEL_EXC*numNeurons];
    CL_MEM_GLOBAL float * GSynInh = &GSynHead[CHANNEL_INH*numNeurons];
@@ -242,7 +244,7 @@ void LIFGap_update_state_beginning(
     CL_MEM_GLOBAL float * GSynHead,
     CL_MEM_GLOBAL float * activity, 
 
-    CL_MEM_GLOBAL const float * gapStrength)
+    CL_MEM_GLOBAL const pvgsyndata_t * gapStrength)
 {
    int k;
 
@@ -284,7 +286,7 @@ for (k = 0; k < nx*ny*nf; k++) {
    float l_G_E  = G_E[k];
    float l_G_I  = G_I[k];
    float l_G_IB = G_IB[k];
-   float l_gapStrength = gapStrength[k];
+   pvgsyndata_t l_gapStrength = gapStrength[k];
 
    CL_MEM_GLOBAL float * GSynExc = &GSynHead[CHANNEL_EXC*numNeurons];
    CL_MEM_GLOBAL float * GSynInh = &GSynHead[CHANNEL_INH*numNeurons];
@@ -420,7 +422,7 @@ void LIFGap_update_state_arma(
     CL_MEM_GLOBAL float * GSynHead,
     CL_MEM_GLOBAL float * activity,
 
-    CL_MEM_GLOBAL const float * gapStrength)
+    CL_MEM_GLOBAL const pvgsyndata_t * gapStrength)
 {
    int k;
 
@@ -463,7 +465,7 @@ void LIFGap_update_state_arma(
       float l_G_E  = G_E[k];
       float l_G_I  = G_I[k];
       float l_G_IB = G_IB[k];
-      float l_gapStrength = gapStrength[k];
+      pvgsyndata_t l_gapStrength = gapStrength[k];
 
       CL_MEM_GLOBAL float * GSynExc = &GSynHead[CHANNEL_EXC*numNeurons];
       CL_MEM_GLOBAL float * GSynInh = &GSynHead[CHANNEL_INH*numNeurons];

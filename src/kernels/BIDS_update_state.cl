@@ -1,5 +1,6 @@
 #include "LIF_params.h"
 #include "cl_random.hcl"
+#include <stdbool.h>
 
 #ifndef PV_USE_OPENCL
 #  include <math.h>

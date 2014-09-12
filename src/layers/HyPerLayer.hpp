@@ -178,7 +178,7 @@ protected:
 
    virtual int recvSynapticInput(HyPerConn * conn, const PVLayerCube * cube, int arborID);
    virtual int recvSynapticInputFromPost(HyPerConn * conn, const PVLayerCube * activity, int arborID);
-   void recvOnePreNeuronActivity(HyPerConn * conn, int patchIndex, int arbor, pvadata_t a, pvadata_t * postBufferStart, void * auxPtr);
+   void recvOnePreNeuronActivity(HyPerConn * conn, int patchIndex, int arbor, pvadata_t a, pvgsyndata_t * postBufferStart, void * auxPtr);
 
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
    virtual int recvSynapticInputGpu(HyPerConn * conn, const PVLayerCube * cube, int arborID, bool firstRun);
@@ -277,8 +277,11 @@ public:
    virtual int checkpointRead(const char * cpDir, double * timeptr); // (const char * cpDir, double * timed);
    virtual int checkpointWrite(const char * cpDir);
    virtual int writeTimers(FILE* stream);
-   static int readBufferFile(const char * filename, InterColComm * comm, double * timed, pvdata_t ** buffers, int numbands, bool extended, const PVLayerLoc * loc);
-   static int writeBufferFile(const char * filename, InterColComm * comm, double dtime, pvdata_t ** buffers, int numbands, bool extended, const PVLayerLoc * loc);
+   // TODO: readBufferFile and writeBufferFile have to take different types of buffers.  Can they be templated?
+   template <typename T>
+   static int readBufferFile(const char * filename, InterColComm * comm, double * timed, T ** buffers, int numbands, bool extended, const PVLayerLoc * loc);
+   template <typename T>
+   static int writeBufferFile(const char * filename, InterColComm * comm, double dtime, T ** buffers, int numbands, bool extended, const PVLayerLoc * loc);
 
    virtual int readState (double * timeptr);
    virtual int outputState(double timef, bool last=false);

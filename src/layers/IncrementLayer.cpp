@@ -67,15 +67,15 @@ void IncrementLayer::ioParam_firstUpdateTime(enum ParamsIOFlag ioFlag) {
 // from the params file, thereby creating an unnecessary warning.
 
 void IncrementLayer::ioParam_VThresh(enum ParamsIOFlag ioFlag) {
-   if (ioFlag==PARAMS_IO_READ) VThresh = max_pvdata_t;
+   if (ioFlag==PARAMS_IO_READ) VThresh = max_pvvdata_t;
 }
 
 void IncrementLayer::ioParam_VMin(enum ParamsIOFlag ioFlag) {
-   if (ioFlag==PARAMS_IO_READ) AMin = -max_pvdata_t;
+   if (ioFlag==PARAMS_IO_READ) AMin = -max_pvadata_t;
 }
 
 void IncrementLayer::ioParam_VMax(enum ParamsIOFlag ioFlag) {
-   if (ioFlag==PARAMS_IO_READ) AMax = -max_pvdata_t;
+   if (ioFlag==PARAMS_IO_READ) AMax = -max_pvadata_t;
 }
 
 void IncrementLayer::ioParam_VShift(enum ParamsIOFlag ioFlag) {
@@ -134,7 +134,7 @@ int IncrementLayer::updateState(double timef, double dt, bool * inited, double *
    }
    else {
       if( timef >= first_update_time ) {
-         status = updateV_ANNLayer(num_neurons, V, num_channels, gSynHead, A, max_pvdata_t, -max_pvdata_t, -max_pvdata_t, 0.0f, 0.0f, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up); // updateV();
+         status = updateV_ANNLayer(num_neurons, V, num_channels, gSynHead, A, max_pvadata_t, -max_pvadata_t, -max_pvvdata_t, 0.0f, 0.0f, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up); // updateV();
          resetGSynBuffers_HyPerLayer(num_neurons, num_channels, gSynHead); // resetGSynBuffers();
          *inited = true;
       }

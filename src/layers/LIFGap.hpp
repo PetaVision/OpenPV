@@ -38,7 +38,7 @@ protected:
    virtual int setInitialValues();
    virtual int readGapStrengthFromCheckpoint(const char * cpDir, double * timeptr);
 
-   const pvadata_t * getGapStrength() { return gapStrength; }
+   const pvgsyndata_t * getGapStrength() { return gapStrength; }
 
 //#ifdef PV_USE_OPENCL
 //   virtual int initializeThreadBuffers(const char * kernelName);
@@ -62,7 +62,7 @@ protected:
 
 private:
    int initialize_base();
-   pvadata_t * gapStrength;
+   pvgsyndata_t * gapStrength;
    int calcGapStrength();
 
 };

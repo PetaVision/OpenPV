@@ -65,7 +65,7 @@ void LCALIF_update_state(
    CL_MEM_GLOBAL float * GSynHead,
    CL_MEM_GLOBAL float * activity,
 
-   const float * gapStrength,
+   const pvgsyndata_t * gapStrength,
    CL_MEM_GLOBAL float * Vattained,
    CL_MEM_GLOBAL float * Vmeminf,
    const int normalizeInputFlag,

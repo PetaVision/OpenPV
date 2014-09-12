@@ -9,6 +9,7 @@
 #define PV_TYPES_H_
 
 #include "pv_common.h"
+#include "pv_datatypes.h"
 #include "PVLayerLoc.h"
 #ifndef CL_KERNEL_INCLUDE
 #include <stdlib.h>   /* for size_t */
@@ -16,9 +17,9 @@
 #include <float.h>
 #endif
 
-
-#define PV_ON  1
-#define PV_OFF 0
+// PV_ON and PV_OFF are never used.  Uncomment this if they become necessary again.
+//#define PV_ON  1
+//#define PV_OFF 0
 
 // WARNING LAYER_CUBE_HEADER_SIZE should be n*128 bits
 #define LAYER_CUBE_HEADER_SIZE (sizeof(PVLayerCube))
@@ -29,21 +30,6 @@
 #  define NUM_PADDING 1
 #  define EXPECTED_CUBE_HEADER_SIZE 64
 #endif
-
-/* The common type for data */
-#define pvdata_t float
-#define max_pvdata_t FLT_MAX
-#define min_pvdata_t FLT_MIN
-
-/* Data type for weights and activity */
-#define pvwdata_t float
-#define pvadata_t float
-
-#define PV_WCAST  float
-#define PV_ACAST  float
-
-/* The common type for integer sizes (e.g. nxp patch size) */
-#define pvdim_t int
 
 enum ChannelType {
   CHANNEL_EXC  = 0,

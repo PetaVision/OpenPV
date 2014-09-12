@@ -14,10 +14,8 @@
 #include "../utils/conversions.h"
 #include "../include/pv_common.h"
 #include "../include/pv_types.h"
-#else
-#define pvdata_t float
-#define max_pvdata_t FLT_MAX
-#endif
+#endif // PV_USE_OPENCL
+#include "../include/pv_datatypes.h"
 
 
 #ifndef PV_USE_OPENCL
@@ -628,7 +626,7 @@ static inline int update_dV_GenerativeLayer(int numNeurons, CL_MEM_GLOBAL pvdata
 static inline int applyVMax_ANNLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * V,
       pvdata_t AMax, CL_MEM_GLOBAL pvdata_t * activity, int nx, int ny,
       int nf, int lt, int rt, int dn, int up) {
-   if (AMax < max_pvdata_t) {
+   if (AMax < max_pvadata_t) {
       int k = 0;
 #ifndef PV_USE_OPENCL
    #ifdef PV_USE_OPENMP_THREADS
@@ -651,7 +649,7 @@ static inline int applyVThresh_ANNLayer(int numNeurons,
       CL_MEM_GLOBAL pvdata_t * V, pvdata_t AMin, pvdata_t VThresh,
       pvdata_t AShift, pvdata_t VWidth, CL_MEM_GLOBAL pvdata_t * activity, int nx, int ny,
       int nf, int lt, int rt, int dn, int up) {
-   if (VThresh > -max_pvdata_t) {
+   if (VThresh > -max_pvvdata_t) {
       int k = 0;
 #ifndef PV_USE_OPENCL
    #ifdef PV_USE_OPENMP_THREADS
@@ -678,7 +676,7 @@ static inline int applyVThresh_ANNErrorLayer(int numNeurons,
       CL_MEM_GLOBAL pvdata_t * V, pvdata_t AMin, pvdata_t VThresh,
       pvdata_t AShift, CL_MEM_GLOBAL pvdata_t * activity, int nx, int ny,
       int nf, int lt, int rt, int dn, int up) {
-   if (VThresh > -max_pvdata_t) {
+   if (VThresh > -max_pvvdata_t) {
       int k = 0;
 #ifndef PV_USE_OPENCL
    #ifdef PV_USE_OPENMP_THREADS
@@ -702,7 +700,7 @@ static inline int applyVThresh_ANNErrorLayer(int numNeurons,
 static inline int applyV_ANNLabelLayer(int numNeurons,
                                        CL_MEM_GLOBAL pvdata_t * V, pvdata_t AMin, pvdata_t AMax, pvdata_t VThresh,CL_MEM_GLOBAL pvdata_t * activity, int nx, int ny,
                                              int nf, int lt, int rt, int dn, int up) {
-    if (VThresh > -max_pvdata_t) {
+    if (VThresh > -max_pvvdata_t) {
         int k = 0;
 #ifndef PV_USE_OPENCL
    #ifdef PV_USE_OPENMP_THREADS

@@ -1,4 +1,5 @@
 #include "../layers/updateStateFunctions.h"
+#include <stdbool.h>
 
 
 #ifndef PV_USE_OPENCL

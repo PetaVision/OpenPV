@@ -310,10 +310,6 @@ public:
       return numAxonalArborLists;
    }
 
-//   inline float* getGSynPatchStart(int kPre, int arborId) {
-//      return gSynPatchStart[arborId][kPre];
-//   }
-
    inline size_t getGSynPatchStart(int kPre, int arborId) {
       return gSynPatchStart[arborId][kPre];
    }

@@ -83,7 +83,7 @@ int ANNLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void ANNLayer::ioParam_VThresh(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "VThresh", &VThresh, -max_pvdata_t);
+   parent->ioParamValue(ioFlag, name, "VThresh", &VThresh, -max_pvvdata_t);
 }
 
 // Parameter VMin was deprecated in favor of AMin on Mar 20, 2014
@@ -109,7 +109,7 @@ void ANNLayer::ioParam_VMax(enum ParamsIOFlag ioFlag) {
       }
       return;
    }
-   parent->ioParamValue(ioFlag, name, "AMax", &AMax, max_pvdata_t);
+   parent->ioParamValue(ioFlag, name, "AMax", &AMax, max_pvvdata_t);
 }
 
 void ANNLayer::ioParam_VShift(enum ParamsIOFlag ioFlag) {

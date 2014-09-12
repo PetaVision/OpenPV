@@ -1,6 +1,8 @@
 #ifndef LIF_PARAMS_H_
 #define LIF_PARAMS_H_
 
+#define pvconductance_t float
+
 typedef struct LIF_params_ {
    float Vrest;
    float Vexc;
