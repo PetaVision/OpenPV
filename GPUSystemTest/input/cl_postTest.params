@@ -178,9 +178,10 @@ TransposeConn "gpuTransposeConn" = {
     pvpatchAccumulateType = "convolve";
     updateGSynFromPostPerspective = true;
     receiveGpu = true;
-    numXLocal = 16;
+    preDataLocal = true;
+    numXLocal = 256;
     numYLocal = 1;
-    numFLocal = 64;
+    numFLocal = 1;
 };
 
 IdentConn "RecvPostTest" = {
