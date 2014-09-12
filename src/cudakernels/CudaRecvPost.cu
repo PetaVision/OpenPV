@@ -9,13 +9,12 @@ __global__
 void HyPerLayer_recv_post(recv_post_params params){
    ////Shared memory buffers are declared
    extern __shared__ char sharedMem[];
-   //__shared__ float* preBuffer;
+   __shared__ float* preBuffer;
    __shared__ float* postBuffer;
    __shared__ float* weightsBuffer;
-   //__shared__ long* localStartSourceExt;
-   //preBuffer = (float*)sharedMem;
-   //postBuffer = (float*)(&(preBuffer[params.preBufNum]));
-   postBuffer = (float*)sharedMem;
+   preBuffer = (float*)sharedMem;
+   //postBuffer = (float*)sharedMem;
+   postBuffer = (float*)(&(preBuffer[params.preBufNum]));
    weightsBuffer = (float*)(&(postBuffer[params.postBufNum]));
 
    //Ordered this way because threads vary fastest in x, then y, then z
@@ -53,12 +52,12 @@ void HyPerLayer_recv_post(recv_post_params params){
    }
 
    //Get top left most neuron in the group
-   //__shared__ long localStartSourceExt;
-   //if(localXIndex == 0 && localYIndex == 0 && localFIndex == 0){
-   //   localStartSourceExt = params.startSourceExtBuf[kTargetRes];
-   //}
+   __shared__ long localStartSourceExt;
+   if(localXIndex == 0 && localYIndex == 0 && localFIndex == 0){
+      localStartSourceExt = params.startSourceExtBuf[kTargetRes];
+   }
 
-   long startSourceExt = params.startSourceExtBuf[kTargetRes];
+   //long startSourceExt = params.startSourceExtBuf[kTargetRes];
 
    int localIndex = kIndex(localXIndex, localYIndex, localFIndex, localX, localY, localF);
 
@@ -70,29 +69,31 @@ void HyPerLayer_recv_post(recv_post_params params){
    int xOffset = localXIndex * params.preToPostScaleX;
    //int yOffset = localYIndex * params.preToPostScaleY;
 
+   int numCopyThreads = localF * localX * localY < warpSize ? localF * localX * localY : warpSize;
+   
    //Wait for shared memory loads
    __syncthreads();
 
    for(int ky = 0; ky < params.nyp; ky++){
       //Copy global to local, do this with all threads
       //Pre buffer
-      //if(localIndex < warpSize){
-      //   for(int i = localIndex; i < numXfBuffer; i+= warpSize){
-      //      preBuffer[i] = params.preData[localStartSourceExt + ky * params.sy + i];
-      //   }
-      //}
+      if(localIndex < numCopyThreads){
+         for(int i = localIndex; i < numXfBuffer; i+= numCopyThreads){
+            preBuffer[i] = params.preData[localStartSourceExt + ky * params.sy + i];
+         }
+      }
 
       //Weights
-      if(localIndex < warpSize){
-         for(int i = localIndex; i < numWeightsBuffer; i+= warpSize){
+      if(localIndex < numCopyThreads){
+         for(int i = localIndex; i < numWeightsBuffer; i+= numCopyThreads){
             weightsBuffer[i] = params.weights[wIdx + ky * params.syp + i];
          }
       }
       //The actual pre buffer index
       __syncthreads();
 
-      float* activityY = &(params.preData[startSourceExt + ky * params.sy]);
-      //float* activityY = &(preBuffer[xOffset * params.nfp]);
+      //float* activityY = &(params.preData[startSourceExt + ky * params.sy]);
+      float* activityY = &(preBuffer[xOffset * params.nfp]);
       //float* activityY = &(preBuffer[(ky+yOffset) * params.localBufSizeX * params.nfp + xOffset*params.nfp]);
 
       float* weightY = weightsBuffer;
@@ -189,18 +190,13 @@ int CudaRecvPost::run(){
    
    params.postBufNum = block_size.x * block_size.y * block_size.z;
 
-   //int singlePreBufNum = params.localBufSizeX * params.nfp;
-   //int singleWeightsBufNum = params.nxp * params.nfp;
-   //params.numXfBufs = floor((device->get_local_mem()-sizeof(float)*params.postBufNum)/((singlePreBufNum + singleWeightsBufNum) * sizeof(float)));
+   //params.preBufNum = 0;
+   params.preBufNum = params.localBufSizeX * params.nfp;
 
-   //params.numXfBufs = params.numXfBufs < params.nyp ? params.numXfBufs : params.nyp;  
-   //params.numXfBufs = 1;
-
-   //params.preBufNum = params.localBufSizeX * params.nfp;
    params.weightsBufNum = params.nxp * params.nfp;
 
-   //size_t sharedSize = sizeof(float) * (params.preBufNum + params.postBufNum + params.weightsBufNum);
-   size_t sharedSize = sizeof(float) * (params.postBufNum + params.weightsBufNum);
+   size_t sharedSize = sizeof(float) * (params.preBufNum + params.postBufNum + params.weightsBufNum);
+   //size_t sharedSize = sizeof(float) * (params.postBufNum + params.weightsBufNum);
 
    if(sharedSize > device->get_local_mem()){
       printf("gpu post run: given shared memory size of %zu is bigger than allowed shared memory size of %zu\n", sharedSize, device->get_local_mem());
@@ -214,10 +210,10 @@ int CudaRecvPost::run(){
       printf("gpu post run: numFLocal must be 1\n");
       exit(-1);
    }
-   //if(block_size.z != 1){
-   //   printf("gpu post run: numYLocal must be 1\n");
-   //   exit(-1);
-   //}
+   if(block_size.z != 1){
+      printf("gpu post run: numYLocal must be 1\n");
+      exit(-1);
+   }
 
    //printf("Using %d buffers\n", params.numXfBufs);
    
