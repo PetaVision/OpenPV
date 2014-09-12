@@ -55,6 +55,8 @@ namespace PVCuda{
 
       //Warp size of the device
       int warpSize;
+
+      bool preDataLocal;
    };
 
 
@@ -91,7 +93,9 @@ public:
       /* float* */ CudaBuffer* preData,
       /* float* */ CudaBuffer* weights,
       /* float* */ CudaBuffer* postGsyn,
-      /* int* */   CudaBuffer* patch2datalookuptable
+      /* int* */   CudaBuffer* patch2datalookuptable,
+
+      const bool preDataLocal
    );
 
 protected:
@@ -100,32 +104,6 @@ protected:
 
 private:
    recv_post_params params;
-   //int nxRes; //num post neurons
-   //int nyRes;
-   //int nf;
-   //int nb; //Border of orig
-   //int nxp;
-   //int nyp;
-   //int nfp;
-
-   //int localBufSizeX;
-   //int localBufSizeY;
-   //float preToPostScaleX;
-   //float preToPostScaleY;
-
-   //int sy;
-   //int syp;
-   //int numPerStride;
-   //float dt_factor;
-   //int sharedWeights;
-
-
-   ///* long* */  CudaBuffer* startSourceExtBuf;
-   ///* float* */ CudaBuffer* preData;
-   ///* float* */ CudaBuffer* weights;
-   ///* float* */ CudaBuffer* postGsyn;
-   ///* int* */   CudaBuffer* patch2datalookuptable;
-
 };
 
 }

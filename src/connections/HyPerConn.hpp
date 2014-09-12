@@ -672,6 +672,7 @@ protected:
 
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
    virtual void ioParam_receiveGpu(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_preDataLocal(enum ParamsIOFlag ioFlag);
    virtual void ioParam_numXLocal(enum ParamsIOFlag ioFlag);
    virtual void ioParam_numYLocal(enum ParamsIOFlag ioFlag);
    virtual void ioParam_numFLocal(enum ParamsIOFlag ioFlag);
@@ -766,6 +767,7 @@ public:
 #endif
 
    bool getReceiveGpu(){return receiveGpu;}
+   bool getPreDataLocal(){return preDataLocal;}
 
 #ifdef PV_USE_OPENCL
    CLKernel * getKrRecvPost(){return krRecvPost;}
@@ -824,6 +826,7 @@ protected:
    size_t * localGSynPatchStart;
 
    bool receiveGpu;
+   bool preDataLocal;
 
    int numXLocal;
    int numYLocal;

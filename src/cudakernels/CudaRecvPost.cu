@@ -12,10 +12,13 @@ void HyPerLayer_recv_post(recv_post_params params){
    __shared__ float* preBuffer;
    __shared__ float* postBuffer;
    __shared__ float* weightsBuffer;
-   preBuffer = (float*)sharedMem;
-   //postBuffer = (float*)sharedMem;
-   postBuffer = (float*)(&(preBuffer[params.preBufNum]));
+
+   postBuffer = (float*)sharedMem;
    weightsBuffer = (float*)(&(postBuffer[params.postBufNum]));
+
+   if(params.preDataLocal){
+      preBuffer = (float*)(&(weightsBuffer[params.weightsBufNum]));
+   }
 
    //Ordered this way because threads vary fastest in x, then y, then z
    //Mapped to petavision order of f, x, and y
@@ -53,11 +56,15 @@ void HyPerLayer_recv_post(recv_post_params params){
 
    //Get top left most neuron in the group
    __shared__ long localStartSourceExt;
-   if(localXIndex == 0 && localYIndex == 0 && localFIndex == 0){
-      localStartSourceExt = params.startSourceExtBuf[kTargetRes];
+   long startSourceExt;
+   if(params.preDataLocal){
+      if(localXIndex == 0 && localYIndex == 0 && localFIndex == 0){
+         localStartSourceExt = params.startSourceExtBuf[kTargetRes];
+      }
    }
-
-   //long startSourceExt = params.startSourceExtBuf[kTargetRes];
+   else{
+      startSourceExt = params.startSourceExtBuf[kTargetRes];
+   }
 
    int localIndex = kIndex(localXIndex, localYIndex, localFIndex, localX, localY, localF);
 
@@ -76,10 +83,12 @@ void HyPerLayer_recv_post(recv_post_params params){
 
    for(int ky = 0; ky < params.nyp; ky++){
       //Copy global to local, do this with all threads
-      //Pre buffer
-      if(localIndex < numCopyThreads){
-         for(int i = localIndex; i < numXfBuffer; i+= numCopyThreads){
-            preBuffer[i] = params.preData[localStartSourceExt + ky * params.sy + i];
+      if(params.preDataLocal){
+         //Pre buffer
+         if(localIndex < numCopyThreads){
+            for(int i = localIndex; i < numXfBuffer; i+= numCopyThreads){
+               preBuffer[i] = params.preData[localStartSourceExt + ky * params.sy + i];
+            }
          }
       }
 
@@ -92,23 +101,24 @@ void HyPerLayer_recv_post(recv_post_params params){
       //The actual pre buffer index
       __syncthreads();
 
-      //float* activityY = &(params.preData[startSourceExt + ky * params.sy]);
-      float* activityY = &(preBuffer[xOffset * params.nfp]);
-      //float* activityY = &(preBuffer[(ky+yOffset) * params.localBufSizeX * params.nfp + xOffset*params.nfp]);
+      float* activityY;
+      if(params.preDataLocal){
+         activityY = &(preBuffer[xOffset * params.nfp]);
+      }
+      else{
+         activityY = &(params.preData[startSourceExt + ky * params.sy]);
+      }
 
       float* weightY = weightsBuffer;
       //float* weightY = &(params.weights[wIdx + ky * params.syp]);
-      //pvpatch_accumulate_from_post(numPerStride, postAddr, activityY, weightY, dt_factor, (void*)0);
 
       //Summing into post buffer indexed by localIndex
       int k;
       for (k = 0; k < params.numPerStride; k++) {
          postBuffer[localIndex] += activityY[k]*weightY[k]*params.dt_factor;
-         //postBuffer[localIndex] += activityY[k]*weightsBuffer[k]*params.dt_factor;
       }
       __syncthreads();
    }
-
    ////Sum into global memory
    params.postGsyn[kTargetRes] += postBuffer[localIndex];
 }
@@ -149,7 +159,9 @@ void CudaRecvPost::setArgs(
       /* float* */ CudaBuffer* preData,
       /* float* */ CudaBuffer* weights,
       /* float* */ CudaBuffer* postGsyn,
-      /* int* */   CudaBuffer* patch2datalookuptable
+      /* int* */   CudaBuffer* patch2datalookuptable,
+
+      const bool preDataLocal
    ){
    params.nxRes = nxRes;
    params.nyRes = nyRes;
@@ -183,6 +195,8 @@ void CudaRecvPost::setArgs(
 
    params.warpSize = device->get_warp_size();
 
+   params.preDataLocal = preDataLocal;
+
    setArgsFlag();
 }
 
@@ -190,33 +204,34 @@ int CudaRecvPost::run(){
    
    params.postBufNum = block_size.x * block_size.y * block_size.z;
 
-   //params.preBufNum = 0;
-   params.preBufNum = params.localBufSizeX * params.nfp;
+   if(params.preDataLocal){
+      params.preBufNum = params.localBufSizeX * params.nfp;
+   }
+   else{
+      params.preBufNum = 0;
+   }
 
    params.weightsBufNum = params.nxp * params.nfp;
 
    size_t sharedSize = sizeof(float) * (params.preBufNum + params.postBufNum + params.weightsBufNum);
-   //size_t sharedSize = sizeof(float) * (params.postBufNum + params.weightsBufNum);
 
    if(sharedSize > device->get_local_mem()){
       printf("gpu post run: given shared memory size of %zu is bigger than allowed shared memory size of %zu\n", sharedSize, device->get_local_mem());
       exit(-1);
    }
 
-   ////If sharedSize is greater than device's local memory, then numXFBufs should be greater than 1
-   //assert(params.numXfBufs >= 1);
-
    if(block_size.x != 1){
       printf("gpu post run: numFLocal must be 1\n");
       exit(-1);
    }
-   if(block_size.z != 1){
-      printf("gpu post run: numYLocal must be 1\n");
-      exit(-1);
+   
+   if(params.preDataLocal){
+      if(block_size.z != 1){
+         printf("gpu post run: numYLocal must be 1 if using local pre data\n");
+         exit(-1);
+      }
    }
 
-   //printf("Using %d buffers\n", params.numXfBufs);
-   
    HyPerLayer_recv_post<<<grid_size, block_size, sharedSize>>>(params);
    handleCallError();
 

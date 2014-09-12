@@ -323,6 +323,7 @@ int HyPerConn::initialize_base()
    postGroupYSize = 1;
    numPostGroupX = 1;
    numPostGroupY = 1;
+   preDataLocal = true;
 #endif
 
    return PV_SUCCESS;
@@ -920,6 +921,7 @@ int HyPerConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag)
    ioParam_useWindowPost(ioFlag);
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
    ioParam_receiveGpu(ioFlag);
+   ioParam_preDataLocal(ioFlag);
    ioParam_postGroupXSize(ioFlag);
    ioParam_postGroupYSize(ioFlag);
    ioParam_numXLocal(ioFlag);
@@ -932,6 +934,13 @@ int HyPerConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag)
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
 void HyPerConn::ioParam_receiveGpu(enum ParamsIOFlag ioFlag) {
    parent->ioParamValue(ioFlag, name, "receiveGpu", &receiveGpu, false/*default*/, false/*warn if absent*/);
+}
+
+void HyPerConn::ioParam_preDataLocal(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "receiveGpu"));
+   if(receiveGpu){
+      parent->ioParamValue(ioFlag, name, "preDataLocal", &preDataLocal, true/*default*/, false/*warn if absent*/);
+   }
 }
 
 void HyPerConn::ioParam_postGroupXSize(enum ParamsIOFlag ioFlag) {
@@ -966,8 +975,7 @@ void HyPerConn::ioParam_numYLocal(enum ParamsIOFlag ioFlag) {
 
 void HyPerConn::ioParam_numFLocal(enum ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(name, "receiveGpu"));
-   assert(!parent->parameters()->presentAndNotBeenRead(name, "updateGSynFromPostPerspective"));
-   if(receiveGpu && updateGSynFromPostPerspective){
+   if(receiveGpu){
       parent->ioParamValue(ioFlag, name, "numFLocal", &numFLocal, 1, true);
    }
 }
@@ -2538,7 +2546,9 @@ int HyPerConn::allocateReceivePostKernel()
       d_PreData,
       d_origWData,
       d_PostGSyn,
-      d_Patch2DataLookupTable
+      d_Patch2DataLookupTable,
+
+      preDataLocal
    );
 #endif
    return status;
