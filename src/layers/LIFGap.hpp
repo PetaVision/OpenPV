@@ -30,6 +30,8 @@ public:
    int virtual checkpointWrite(const char * cpDir);
    int virtual readStateFromCheckpoint(const char * cpDir, double * timeptr);
 
+   const pvgsyndata_t * getGapStrength() { return gapStrength; }
+
 protected:
 
    LIFGap();
@@ -37,8 +39,6 @@ protected:
    virtual int allocateConductances(int num_channels);
    virtual int setInitialValues();
    virtual int readGapStrengthFromCheckpoint(const char * cpDir, double * timeptr);
-
-   const pvgsyndata_t * getGapStrength() { return gapStrength; }
 
 //#ifdef PV_USE_OPENCL
 //   virtual int initializeThreadBuffers(const char * kernelName);

@@ -76,16 +76,14 @@ int PointLIFProbe::writeState(double timed, HyPerLayer * l, int k, int kex)
    if (timed >= writeTime) {
       writeTime += writeStep;
       fprintf(outputstream->fp, "%s t=%.1f k=%d", msg, timed, k);
-      pvdata_t * G_E  = LIF_layer->getConductance(CHANNEL_EXC);
-      pvdata_t * G_I  = LIF_layer->getConductance(CHANNEL_INH);
-      pvdata_t * G_IB = LIF_layer->getConductance(CHANNEL_INHB);
-      pvdata_t * G_GAP = LIF_layer->getConductance(CHANNEL_GAP);
+      pvconductance_t * G_E  = LIF_layer->getConductance(CHANNEL_EXC);
+      pvconductance_t * G_I  = LIF_layer->getConductance(CHANNEL_INH);
+      pvconductance_t * G_IB = LIF_layer->getConductance(CHANNEL_INHB);
       pvdata_t * Vth  = LIF_layer->getVth();
 
-      fprintf(outputstream->fp, " G_E=%6.3f", G_E[k]);
-      fprintf(outputstream->fp, " G_I=%6.3f", G_I[k]);
-      fprintf(outputstream->fp, " G_IB=%6.3f", G_IB[k]);
-      if (G_GAP != NULL) { fprintf(outputstream->fp, " G_GAP=%6.3f", G_GAP[k]); }
+      fprintf(outputstream->fp, " G_E=" CONDUCTANCE_PRINT_FORMAT, G_E[k]);
+      fprintf(outputstream->fp, " G_I=" CONDUCTANCE_PRINT_FORMAT, G_I[k]);
+      fprintf(outputstream->fp, " G_IB=" CONDUCTANCE_PRINT_FORMAT, G_IB[k]);
       fprintf(outputstream->fp, " V=%6.3f", V[k]);
       fprintf(outputstream->fp, " Vth=%6.3f", Vth[k]);
       fprintf(outputstream->fp, " a=%.1f\n", activity[kex]);

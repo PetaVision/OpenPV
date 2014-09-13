@@ -10,6 +10,8 @@
 
 #include "PointProbe.hpp"
 
+#define CONDUCTANCE_PRINT_FORMAT "%6.3f"
+
 namespace PV {
 
 class PointLIFProbe: public PointProbe {

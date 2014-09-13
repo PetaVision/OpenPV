@@ -59,18 +59,18 @@ int PointLCALIFProbe::writeState(double timed, HyPerLayer * l, int k, int kex)
    if (timed >= writeTime) {
       writeTime += writeStep;
       fprintf(outputstream->fp, "%s t=%.1f k=%d kex=%d", msg, timed, k, kex);
-      pvdata_t * G_E  = LCALIF_layer->getConductance(CHANNEL_EXC);
-      pvdata_t * G_I  = LCALIF_layer->getConductance(CHANNEL_INH);
-      pvdata_t * G_IB = LCALIF_layer->getConductance(CHANNEL_INHB);
-      pvdata_t * G_GAP = LCALIF_layer->getConductance(CHANNEL_GAP);
+      pvconductance_t * G_E  = LCALIF_layer->getConductance(CHANNEL_EXC);
+      pvconductance_t * G_I  = LCALIF_layer->getConductance(CHANNEL_INH);
+      pvconductance_t * G_IB = LCALIF_layer->getConductance(CHANNEL_INHB);
+      pvgsyndata_t const * gapStrength = LCALIF_layer->getGapStrength();
       pvdata_t * Vth  = LCALIF_layer->getVth();
       const pvdata_t * Vadpt= LCALIF_layer->getVadpt();
       const pvdata_t * integratedSpikeCount = LCALIF_layer->getIntegratedSpikeCount();
 
-      fprintf(outputstream->fp, " G_E=%6.3f", G_E[k]);
-      fprintf(outputstream->fp, " G_I=%6.3f", G_I[k]);
-      fprintf(outputstream->fp, " G_IB=%6.3f", G_IB[k]);
-      if (G_GAP != NULL) fprintf(outputstream->fp, " G_GAP=%6.3f", G_GAP[k]);
+      fprintf(outputstream->fp, " G_E=" CONDUCTANCE_PRINT_FORMAT, G_E[k]);
+      fprintf(outputstream->fp, " G_I=" CONDUCTANCE_PRINT_FORMAT, G_I[k]);
+      fprintf(outputstream->fp, " G_IB=" CONDUCTANCE_PRINT_FORMAT, G_IB[k]);
+      if (gapStrength != NULL) fprintf(outputstream->fp, " Gap strength=%6.3f", gapStrength[k]);
       fprintf(outputstream->fp, " integratedSpikeCount=%6.3f", integratedSpikeCount[k]);
       fprintf(outputstream->fp, " Vadpt=%6.3f", Vadpt[k]);
       fprintf(outputstream->fp, " V=%6.3f", V[k]);
