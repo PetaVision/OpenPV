@@ -10,7 +10,6 @@
 #     OPEN_MP_THREADS     If true, compile using OpenMPI threading.
 #     LIB_SND_FILE        If true, compile using libsndfile
 #     OPEN_CL_GPU         If true, compile using GPU acceleration using OpenCL.
-                          On Macs, set APPLE to true.
 #     CUDA_GPU            If true, compile using GPU acceleration using CUDA.
 #         OPEN_CL_GPU and CUDA_GPU cannot both be true.
 
