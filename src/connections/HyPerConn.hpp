@@ -614,11 +614,6 @@ protected:
    int checkPatchDimensions();
    virtual int checkPatchSize(int patchSize, int scalePre, int scalePost,
          char dim);
-#ifdef OBSOLETE // Marked obsolete Oct 10, 2013
-   int calcPatchSize(int n, int kex, int* kl, int* offset, int* nxPatch,
-         int* nyPatch, int* dx, int* dy);
-#endif // OBSOLETE
-   // int patchSizeFromFile(const char* filename);
    int initialize_base();
    virtual int createArbors();
    void createArborsOutOfMemory();
