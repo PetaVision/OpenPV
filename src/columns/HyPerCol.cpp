@@ -1877,6 +1877,7 @@ int HyPerCol::writeTimers(FILE* stream){
          }
       }
    }
+   return PV_SUCCESS;
 }
 
 int HyPerCol::checkpointWrite(const char * cpDir) {

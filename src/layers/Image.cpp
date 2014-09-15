@@ -166,6 +166,29 @@ int Image::ioParam_offsets(enum ParamsIOFlag ioFlag) {
 
 void Image::ioParam_offsetAnchor(enum ParamsIOFlag ioFlag){
    parent->ioParamString(ioFlag, name, "offsetAnchor", &offsetAnchor, "tl");
+   if (ioFlag==PARAMS_IO_READ) {
+      int status = PV_SUCCESS;
+      if (strlen(offsetAnchor) != (size_t) 2) {
+         status = PV_FAILURE;
+      }
+      else {
+         char xOffsetAnchor = offsetAnchor[1];
+         if (xOffsetAnchor != 'l' && xOffsetAnchor != 'c' && xOffsetAnchor != 'r') {
+            status = PV_FAILURE;
+         }
+         char yOffsetAnchor = offsetAnchor[0];
+         if (yOffsetAnchor != 't' && xOffsetAnchor != 'c' && xOffsetAnchor != 'b') {
+            status = PV_FAILURE;
+         }
+      }
+      if (status != PV_SUCCESS) {
+         if (parent->columnId()==0) {
+            fprintf(stderr, "%s \"%s\" error: offsetAnchor must be a two-letter string.  The first character must be \"t\", \"c\", or \"b\" (for top, center or bottom); and the second character must be \"l\", \"c\", or \"r\" (for left, center or right).\n", parent->parameters()->groupKeywordFromName(getName()), getName());
+         }
+         MPI_Barrier(parent->icCommunicator()->communicator());
+         exit(EXIT_FAILURE);
+      }
+   }
 }
 
 void Image::ioParam_writeImages(enum ParamsIOFlag ioFlag) {
@@ -1324,6 +1347,8 @@ int Image::getOffsetX(){
       int layerSizeX = getLayerLoc()->nxGlobal;
       return (imageLoc.nxGlobal - layerSizeX - 1) + offsets[1];
    }
+   assert(0); // All possible cases should be covered above
+   return -1; // Eliminates no-return warning
 }
 
 int Image::getOffsetY(){
@@ -1341,6 +1366,8 @@ int Image::getOffsetY(){
       int layerSizeY = getLayerLoc()->nyGlobal;
       return (imageLoc.nyGlobal-layerSizeY-1) + offsets[0];
    }
+   assert(0); // All possible cases should be covered above
+   return -1; // Eliminates no-return warning
 }
 
 
