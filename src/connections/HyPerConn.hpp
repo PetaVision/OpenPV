@@ -524,7 +524,6 @@ protected:
 
    bool symmetrizeWeightsFlag;
    int* numKernelActivations;
-   pvwdata_t * mpiReductionBuffer;
    bool keepKernelsSynchronized_flag;
 
    // unsigned int rngSeedBase; // The starting seed for rng.  The parent HyPerCol reserves {rngSeedbase, rngSeedbase+1,...rngSeedbase+neededRNGSeeds-1} for use by this layer

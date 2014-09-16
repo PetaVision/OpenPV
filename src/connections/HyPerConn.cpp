@@ -183,10 +183,6 @@ HyPerConn::~HyPerConn()
       triggerLayerName = NULL;
    }
    free(numKernelActivations);
-   if (mpiReductionBuffer) {
-      free(mpiReductionBuffer);
-      mpiReductionBuffer = NULL;
-   }
 }
 
 //!
@@ -295,7 +291,6 @@ int HyPerConn::initialize_base()
    patch2datalookuptable = NULL;
    numKernelActivations = NULL;
    keepKernelsSynchronized_flag = false;
-   mpiReductionBuffer = NULL;
 
 #ifdef USE_SHMGET
    shmget_flag = false;
@@ -1777,11 +1772,6 @@ int HyPerConn::allocateDataStructures() {
          const int numPatches = getNumDataPatches();
          const size_t patchSize = nxp*nyp*nfp;
          const size_t localSize = numPatches * patchSize;
-         mpiReductionBuffer = (pvwdata_t *) malloc(localSize*sizeof(pvwdata_t));
-         if(mpiReductionBuffer == NULL) {
-            fprintf(stderr, "Connection \"%s\" unable to allocate memory for mpiReductionBuffer in rank %d process: %s\n", getName(), getParent()->columnId(), strerror(errno));
-            exit(PV_FAILURE);
-         }
       }
 #endif // PV_USE_MPI
       numKernelActivations = (int *) malloc(getNumDataPatches() * sizeof(int));
@@ -3411,7 +3401,7 @@ pvdata_t HyPerConn::updateRule_dW(pvdata_t pre, pvdata_t post) {
 
 #ifdef PV_USE_MPI
 int HyPerConn::reduceKernels(const int arborID) {
-   assert(sharedWeights && plasticityFlag && mpiReductionBuffer);
+   assert(sharedWeights && plasticityFlag);
    Communicator * comm = parent->icCommunicator();
    const MPI_Comm mpi_comm = comm->communicator();
    int ierr;
