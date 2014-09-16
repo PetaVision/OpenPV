@@ -833,12 +833,10 @@ LayerProbe * addLayerProbeToColumn(const char * classkeyword, const char * name,
    char * message = NULL;
    const char * filename;
    PVParams * params = hc->parameters();
-   GenColProbe * parentcolprobe;
    if( !strcmp(classkeyword, "LayerProbe") ) {
       fprintf(stderr, "LayerProbe \"%s\": Abstract class LayerProbe cannot be instantiated.\n", name);
       addedProbe = NULL;
    }
-   int xLoc, yLoc, fLoc;
    if( !strcmp(classkeyword, "PointProbe") ) {
       addedProbe = new PointProbe(name, hc);
    }
