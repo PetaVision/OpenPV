@@ -10,51 +10,51 @@
 
 namespace PV {
 
-  ANNNormalizedErrorLayer::ANNNormalizedErrorLayer()
-  {
-    initialize_base();
-  }
+ANNNormalizedErrorLayer::ANNNormalizedErrorLayer()
+{
+   initialize_base();
+}
 
-  ANNNormalizedErrorLayer::ANNNormalizedErrorLayer(const char * name, HyPerCol * hc)
-  {
-    initialize_base();
-    initialize(name, hc);
-  }
+ANNNormalizedErrorLayer::ANNNormalizedErrorLayer(const char * name, HyPerCol * hc)
+{
+   initialize_base();
+   initialize(name, hc);
+}
 
-  ANNNormalizedErrorLayer::~ANNNormalizedErrorLayer()
-  {
-    if (parent->getDtAdaptFlag() && parent->getWriteTimescales()){
+ANNNormalizedErrorLayer::~ANNNormalizedErrorLayer()
+{
+   if (parent->getDtAdaptFlag() && parent->getWriteTimescales()){
       timeScaleStream.close();
-    }
-  }
+   }
+}
 
-  int ANNNormalizedErrorLayer::initialize_base()
-  {
-    timeScale = 1;
-    return PV_SUCCESS;
-  }
+int ANNNormalizedErrorLayer::initialize_base()
+{
+   timeScale = 1;
+   return PV_SUCCESS;
+}
 
-  int ANNNormalizedErrorLayer::initialize(const char * name, HyPerCol * hc)
-  {
-    int status = ANNErrorLayer::initialize(name, hc);
-   
-    if (parent->icCommunicator()->commRank()==0 && parent->getDtAdaptFlag() && parent->getWriteTimescales()){
+int ANNNormalizedErrorLayer::initialize(const char * name, HyPerCol * hc)
+{
+   int status = ANNErrorLayer::initialize(name, hc);
+
+   if (parent->icCommunicator()->commRank()==0 && parent->getDtAdaptFlag() && parent->getWriteTimescales()){
       char * outputPath = parent->getOutputPath();
       size_t timeScaleFileNameLen = strlen(outputPath) + strlen("/") + strlen(name) + strlen("_timescales.txt");
       char timeScaleFileName[timeScaleFileNameLen+1];
       int charsneeded = snprintf(timeScaleFileName, timeScaleFileNameLen+1, "%s/%s_timescales.txt", outputPath, name);
       assert(charsneeded<=timeScaleFileNameLen);
       timeScaleStream.open(timeScaleFileName);
-    }
-    return status;
-  }
+   }
+   return status;
+}
 
-  double ANNNormalizedErrorLayer::getTimeScale(){
-    return timeScale;
-  }
+double ANNNormalizedErrorLayer::getTimeScale(){
+   return timeScale;
+}
 
-  double ANNNormalizedErrorLayer::calcTimeScale(){
-    if (parent->getDtAdaptFlag()){
+double ANNNormalizedErrorLayer::calcTimeScale(){
+   if (parent->getDtAdaptFlag()){
       timescale_timer->start();
       InterColComm * icComm = parent->icCommunicator();
       //int num_procs = icComm->numCommColumns() * icComm->numCommRows();
@@ -69,9 +69,14 @@ namespace PV {
       for (int i = 0; i < num_neurons; i++){
          errorMag += (gSynExc[i] - gSynInh[i]) * (gSynExc[i] - gSynInh[i]);
          inputMag += gSynExc[i] * gSynExc[i]; 
-        // if(i==1){
-        //    fprintf(stdout, "ErrorMag: %f  inputMag: %f\ngSynExc[i]: %f\ngSynInh[i]: %f\n", errorMag, inputMag, gSynExc[i], gSynInh[i]);
-         //}
+      }
+      if (isnan(errorMag)) {
+         fprintf(stderr, "Layer \"%s\": errorMag on process %d is not a number.\n", getName(), getParent()->columnId());
+         exit(EXIT_FAILURE);
+      }
+      else if (errorMag < 0) {
+         fprintf(stderr, "Layer \"%s\": errorMag on process %d is negative.  This should absolutely never happen.\n", getName(), getParent()->columnId());
+         exit(EXIT_FAILURE);
       }
 #ifdef PV_USE_MPI
       //Sum all errMag across processors
@@ -87,11 +92,11 @@ namespace PV {
          timeScaleStream << "sim_time = " << parent->simulationTime() << ", " << "timeScale = " << timeScale << std::endl;
       }
       return timeScale;
-    }
-    else{
+   }
+   else{
       return HyPerLayer::calcTimeScale();
-    }
-  }
+   }
+}
 
 
 } /* namespace PV */
