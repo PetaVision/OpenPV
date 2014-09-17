@@ -1,16 +1,12 @@
 ## See http://www.cmake.org/Wiki/CMake_Useful_Variables for more variables to set
 cmake_minimum_required(VERSION 2.8)
 
-#Set default PV_WRKSPC_DIR if not already set
-#if (NOT PV_WRKSPC_DIR)
-#    set(PV_WRKSPC_DIR "..")
-#    message("*** Setting PV_WRKSPC_DIR to default value \"${PV_WRKSPC_DIR}\".")
-#    message("*** PV_WRKSPC_DIR must be the directory containing the PetaVision directory.")
-#    message("*** Set PV_WRKSPC_DIR manually if PetaVision is in a different location.")
-#endif (NOT PV_WRKSPC_DIR)
-
 #Set CMAKE_MODULE_PATH
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PV_DIR}/docs/cmake/Modules/")
+
+string(FIND ${CMAKE_CURRENT_SOURCE_DIR} "/" pos REVERSE)
+MATH(EXPR pos ${pos}+1)
+string(SUBSTRING ${CMAKE_CURRENT_SOURCE_DIR} ${pos} -1 PV_PROJECT_NAME)
 
 set(CMAKE_C_FLAGS_DEBUG "-g3 -O0")
 set(CMAKE_CXX_FLAGS_DEBUG "-g3 -O0")
@@ -23,7 +19,7 @@ endif (NOT CMAKE_BUILD_TYPE)
 
 set(PV_SOURCE_DIR "${PV_DIR}/src")
 set(PV_BINARY_DIR "${PV_DIR}/lib")
-set(PROJECT_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
+set(PROJECT_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src") # should we move source files to a src directory?
 set(PROJECT_BINARY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/${CMAKE_BUILD_TYPE}")
 
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR})
@@ -39,31 +35,37 @@ set(CMAKE_CXX_COMPILER "${MPI_CXX_COMPILER}")
 endif (NOT MPI_C_FOUND OR NOT MPI_CXX_FOUND)
 
 if (LIB_SND_FILE)
-    find_package(LIBSNDFILE)
+   find_package(LIBSNDFILE)
 endif (LIB_SND_FILE)
 
-# Header files
 include_directories(${PV_SOURCE_DIR})
 include_directories(${GDAL_INCLUDE_DIR})
 IF(LIB_SND_FILE)
-    include_directories(${LIBSNDFILE_INCLUDE_DIR})
+   include_directories(${LIBSNDFILE_INCLUDE_DIR})
 ENDIF(LIB_SND_FILE)
 
 # Link to binary files
 link_directories(${PV_BINARY_DIR})
 
-
 # Add executable
 file(GLOB libSrcCPP ${PROJECT_SOURCE_DIR}/*.cpp)
 file(GLOB libSrcC ${PROJECT_SOURCE_DIR}/*.c)
-add_executable(AdjustAxonalArborsTest ${libSrcCPP} ${libSrcC})
 
-# Link executable to PV 
-target_link_libraries(AdjustAxonalArborsTest pv)
+if(CUDA_GPU)
+   cuda_add_executable(${PV_PROJECT_NAME} ${libSrcCPP} ${libSrcC})
+else(CUDA_GPU)
+   add_executable(${PV_PROJECT_NAME} ${libSrcCPP} ${libSrcC})
+endif(CUDA_GPU)
+
+target_link_libraries(${PV_PROJECT_NAME} pv)
 
 # Link executable to external libraries
-target_link_libraries(AdjustAxonalArborsTest ${GDAL_LIBRARY})
+target_link_libraries(${PV_PROJECT_NAME} ${GDAL_LIBRARY})
 IF(LIBSNDFILE_FOUND)
-   target_link_libraries(AdjustAxonalArborsTest ${LIBSNDFILE_LIBRARY})
+   target_link_libraries(${PV_PROJECT_NAME} ${LIBSNDFILE_LIBRARY})
 ENDIF(LIBSNDFILE_FOUND)
+
+IF(CUDNN)
+   target_link_libraries(${PV_PROJECT_NAME} ${CUDNN_PATH}/libcudnn.so)
+ENDIF(CUDNN)
 

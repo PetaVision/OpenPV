@@ -1,13 +1,8 @@
 debugParsing = false;
 
 HyPerCol "column" = {
-<<<<<<< .mine
-    nx = 128; //1242;  // KITTI synced value
-    ny = 128;  //218;
-=======
     nx = 1024; //1242;  // KITTI synced value
     ny = 1024;  //218;
->>>>>>> .r8708
     dt = 1.0;
     randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
     startTime = 0.0;
@@ -47,39 +42,31 @@ ConstantLayer "input" = {
     triggerFlag = false;
 };
 
-ANNLayer "outputRecv" = {
-    restart = 0;
-    nxScale = .5;
-    nyScale = .5;
-<<<<<<< .mine
-    nf = 128;
-=======
-    nf = 64;
->>>>>>> .r8708
-    writeStep = -1.0;
-    initialWriteTime = 0.0;
-    mirrorBCflag = false;
-    writeSparseActivity = 0;
-    //
-    InitVType = "ZeroV";
-    VThresh = -infinity;
-    VMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
-    VMin = -infinity; 
-    VShift = 0;
-    // 
-    phase = 2; 
-    triggerFlag = false;
-};
+//ANNLayer "outputRecv" = {
+//    restart = 0;
+//    nxScale = .5;
+//    nyScale = .5;
+//    nf = 64;
+//    writeStep = -1.0;
+//    initialWriteTime = 0.0;
+//    mirrorBCflag = false;
+//    writeSparseActivity = 0;
+//    //
+//    InitVType = "ZeroV";
+//    VThresh = -infinity;
+//    VMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
+//    VMin = -infinity; 
+//    VShift = 0;
+//    // 
+//    phase = 2; 
+//    triggerFlag = false;
+//};
 
 ANNLayer "outputRecvGpu" = {
     restart = 0;
     nxScale = .5;
     nyScale = .5;
-<<<<<<< .mine
-    nf = 128;
-=======
     nf = 64;
->>>>>>> .r8708
     writeStep = -1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = false;
@@ -95,29 +82,25 @@ ANNLayer "outputRecvGpu" = {
     triggerFlag = false;
 };
 
-ANNLayer "outputTest" = {
-    restart = 0;
-    nxScale = .5;
-    nyScale = .5;
-<<<<<<< .mine
-    nf = 128;
-=======
-    nf = 64;
->>>>>>> .r8708
-    writeStep = -1.0;
-    initialWriteTime = 0.0;
-    mirrorBCflag = false;
-    writeSparseActivity = 0;
-    //
-    InitVType = "ZeroV";
-    VThresh = -infinity;
-    VMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
-    VMin = -infinity; 
-    VShift = 0;
-    // 
-    phase = 3; 
-    triggerFlag = false;
-};
+//ANNLayer "outputTest" = {
+//    restart = 0;
+//    nxScale = .5;
+//    nyScale = .5;
+//    nf = 64;
+//    writeStep = -1.0;
+//    initialWriteTime = 0.0;
+//    mirrorBCflag = false;
+//    writeSparseActivity = 0;
+//    //
+//    InitVType = "ZeroV";
+//    VThresh = -infinity;
+//    VMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
+//    VMin = -infinity; 
+//    VShift = 0;
+//    // 
+//    phase = 3; 
+//    triggerFlag = false;
+//};
 
 KernelConn "origConn" = {
     preLayerName = "outputRecvGpu";
@@ -167,20 +150,20 @@ KernelConn "origConn" = {
     keepKernelsSynchronized             = true;
 };
 
-TransposeConn "TransposeConn" = {
-    preLayerName = "input";
-    postLayerName = "outputRecv";
-    channelCode = 0; 
-    originalConnName = "origConn";
-    selfFlag = false;
-    preActivityIsNotRate = false;
-    writeStep = -1;
-    shmget_flag = false;
-    delay = 0;
-    pvpatchAccumulateType = "convolve";
-    updateGSynFromPostPerspective = false;
-    receiveGpu = false;
-};
+//TransposeConn "TransposeConn" = {
+//    preLayerName = "input";
+//    postLayerName = "outputRecv";
+//    channelCode = 0; 
+//    originalConnName = "origConn";
+//    selfFlag = false;
+//    preActivityIsNotRate = false;
+//    writeStep = -1;
+//    shmget_flag = false;
+//    delay = 0;
+//    pvpatchAccumulateType = "convolve";
+//    updateGSynFromPostPerspective = true;
+//    receiveGpu = false;
+//};
 
 TransposeConn "gpuTransposeConn" = {
     preLayerName = "input";
@@ -195,37 +178,31 @@ TransposeConn "gpuTransposeConn" = {
     pvpatchAccumulateType = "convolve";
     updateGSynFromPostPerspective = true;
     receiveGpu = true;
-<<<<<<< .mine
-    xLocalSize = 1;
-    yLocalSize = 1;
-    fLocalSize = 128;
-=======
-    xLocalSize = 2;
-    yLocalSize = 2;
-    fLocalSize = 64;
->>>>>>> .r8708
+    numXLocal = 4;
+    numYLocal = 4;
+    numFLocal = 64;
 };
 
-IdentConn "RecvPostTest" = {
-    preLayerName = "outputRecvGpu";
-    postLayerName = "outputTest";
-    channelCode = 0;
-    delay = 0;
-    writeStep = -1;
-};
-
-IdentConn "RecvPreTest" = {
-    preLayerName = "outputRecv";
-    postLayerName = "outputTest";
-    channelCode = 1;
-    delay = 0;
-    writeStep = -1;
-};
-
-ReceiveFromPostProbe "testProbe" = {
-   targetLayer = "outputTest";
-   message = "testProbe ";
-};
+//IdentConn "RecvPostTest" = {
+//    preLayerName = "outputRecvGpu";
+//    postLayerName = "outputTest";
+//    channelCode = 0;
+//    delay = 0;
+//    writeStep = -1;
+//};
+//
+//IdentConn "RecvPreTest" = {
+//    preLayerName = "outputRecv";
+//    postLayerName = "outputTest";
+//    channelCode = 1;
+//    delay = 0;
+//    writeStep = -1;
+//};
+//
+//ReceiveFromPostProbe "testProbe" = {
+//   targetLayer = "outputTest";
+//   message = "testProbe ";
+//};
 
 //RequireAllZeroActivityProbe "testProbe" = {
 //    targetLayer = "outputTest";

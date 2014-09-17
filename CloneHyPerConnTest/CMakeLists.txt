@@ -4,6 +4,10 @@ cmake_minimum_required(VERSION 2.8)
 #Set CMAKE_MODULE_PATH
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PV_DIR}/docs/cmake/Modules/")
 
+string(FIND ${CMAKE_CURRENT_SOURCE_DIR} "/" pos REVERSE)
+MATH(EXPR pos ${pos}+1)
+string(SUBSTRING ${CMAKE_CURRENT_SOURCE_DIR} ${pos} -1 PV_PROJECT_NAME)
+
 set(CMAKE_C_FLAGS_DEBUG "-g3 -O0")
 set(CMAKE_CXX_FLAGS_DEBUG "-g3 -O0")
 set(CMAKE_C_FLAGS_RELEASE "-g0 -O3")
@@ -15,7 +19,7 @@ endif (NOT CMAKE_BUILD_TYPE)
 
 set(PV_SOURCE_DIR "${PV_DIR}/src")
 set(PV_BINARY_DIR "${PV_DIR}/lib")
-set(PROJECT_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}") # should we move source files to a src directory?
+set(PROJECT_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src") # should we move source files to a src directory?
 set(PROJECT_BINARY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/${CMAKE_BUILD_TYPE}")
 
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR})
@@ -31,30 +35,37 @@ set(CMAKE_CXX_COMPILER "${MPI_CXX_COMPILER}")
 endif (NOT MPI_C_FOUND OR NOT MPI_CXX_FOUND)
 
 if (LIB_SND_FILE)
-    find_package(LIBSNDFILE)
+   find_package(LIBSNDFILE)
 endif (LIB_SND_FILE)
 
 include_directories(${PV_SOURCE_DIR})
 include_directories(${GDAL_INCLUDE_DIR})
 IF(LIB_SND_FILE)
-    include_directories(${LIBSNDFILE_INCLUDE_DIR})
+   include_directories(${LIBSNDFILE_INCLUDE_DIR})
 ENDIF(LIB_SND_FILE)
 
 # Link to binary files
 link_directories(${PV_BINARY_DIR})
 
-
 # Add executable
 file(GLOB libSrcCPP ${PROJECT_SOURCE_DIR}/*.cpp)
 file(GLOB libSrcC ${PROJECT_SOURCE_DIR}/*.c)
-add_executable(CloneHyPerConnTest ${libSrcCPP} ${libSrcC})
 
-# Link executable to PV 
-target_link_libraries(CloneHyPerConnTest pv)
+if(CUDA_GPU)
+   cuda_add_executable(${PV_PROJECT_NAME} ${libSrcCPP} ${libSrcC})
+else(CUDA_GPU)
+   add_executable(${PV_PROJECT_NAME} ${libSrcCPP} ${libSrcC})
+endif(CUDA_GPU)
+
+target_link_libraries(${PV_PROJECT_NAME} pv)
 
 # Link executable to external libraries
-target_link_libraries(CloneHyPerConnTest ${GDAL_LIBRARY})
-IF(LIB_SND_FILE)
-   target_link_libraries(CloneHyPerConnTest ${LIBSNDFILE_LIBRARY})
-ENDIF(LIB_SND_FILE)
+target_link_libraries(${PV_PROJECT_NAME} ${GDAL_LIBRARY})
+IF(LIBSNDFILE_FOUND)
+   target_link_libraries(${PV_PROJECT_NAME} ${LIBSNDFILE_LIBRARY})
+ENDIF(LIBSNDFILE_FOUND)
+
+IF(CUDNN)
+   target_link_libraries(${PV_PROJECT_NAME} ${CUDNN_PATH}/libcudnn.so)
+ENDIF(CUDNN)
 
