@@ -35,26 +35,26 @@ CudaKernel::~CudaKernel()
 int CudaKernel::run(int global_work_size)
 {
    setDims(1, 1, global_work_size, 1, 1, 1);
-   return run();
+   return do_run();
 }
 
 int CudaKernel::run(int global_work_size, int local_work_size)
 {
    setDims(1, 1, global_work_size, 1, 1, local_work_size);
-   return run();
+   return do_run();
 }
 
 int CudaKernel::run(int gWorkSizeX, int gWorkSizeY, int lWorkSizeX, int lWorkSizeY)
 {
    setDims(gWorkSizeY, 1, gWorkSizeX, lWorkSizeY, 1, lWorkSizeX);
-   return run();
+   return do_run();
 }
 
 int CudaKernel::run(int gWorkSizeX, int gWorkSizeY, int gWorkSizeF,
                   int lWorkSizeX, int lWorkSizeY, int lWorkSizeF)
 {
    setDims(gWorkSizeX, gWorkSizeY, gWorkSizeF, lWorkSizeX, lWorkSizeY, lWorkSizeF);
-   return run();
+   return do_run();
 }
 
 void CudaKernel::setDims(int gWorkSizeX, int gWorkSizeY, int gWorkSizeF, int lWorkSizeX, int lWorkSizeY, int lWorkSizeF){

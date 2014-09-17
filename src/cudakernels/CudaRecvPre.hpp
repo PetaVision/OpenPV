@@ -102,7 +102,7 @@ public:
 
 protected:
    //This is the function that should be overwritten in child classes
-   virtual int run();
+   virtual int do_run();
 
 private:
    recv_pre_params params;

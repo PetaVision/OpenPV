@@ -70,11 +70,11 @@ DerivedLayer::initialize(arguments) {
 #  undef PV_USE_OPENCL
 #  include "../layers/updateStateFunctions.h"
 #  define PV_USE_OPENCL
-#endif
+#endif //PV_USE_OPENCL
 
 #ifdef PV_USE_OPENMP_THREADS
 #include <omp.h>
-#endif
+#endif //PV_USE_OPENMP_THREADS
 
 
 #ifdef PV_USE_OPENCL
@@ -85,17 +85,17 @@ DerivedLayer::initialize(arguments) {
 #define EV_ACTIVITY 1
 #define EV_HPL_PHI_E 0
 #define EV_HPL_PHI_I 1
-#endif
+#endif //PV_USE_OPENCL
 
 #ifdef PV_USE_CUDA
 #include "../arch/cuda/CudaKernel.hpp"
 #include "../arch/cuda/CudaBuffer.hpp"
 #include "../arch/cuda/CudaTimer.hpp"
-#endif
+#endif //PV_USE_CUDA
 
 #ifdef PV_USE_OPENCL
 #include "../arch/opencl/CLTimer.hpp"
-#endif
+#endif //PV_USE_OPENCL
 
 #include <vector>
 
@@ -183,7 +183,7 @@ protected:
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
    virtual int recvSynapticInputGpu(HyPerConn * conn, const PVLayerCube * cube, int arborID, bool firstRun);
    virtual int recvSynapticInputFromPostGpu(HyPerConn * conn, const PVLayerCube * activity, int arborID, bool firstRun);
-#endif
+#endif 
 
 
    int freeClayer();
@@ -459,6 +459,7 @@ public:
 #ifdef PV_USE_OPENCL
    CLBuffer * getDeviceV(){
 #endif
+
 #ifdef PV_USE_CUDA
    PVCuda::CudaBuffer * getDeviceV(){
 #endif
@@ -468,20 +469,34 @@ public:
 #ifdef PV_USE_OPENCL
    CLBuffer * getDeviceGSyn(ChannelType ch) {
 #endif
+
 #ifdef PV_USE_CUDA
    PVCuda::CudaBuffer * getDeviceGSyn(ChannelType ch) {
 #endif
       return (ch < this->numChannels && ch >= 0) ? d_GSyn[ch] : NULL;
    }
 
+#if defined(PV_USE_CUDA) && defined(PV_USE_CUDNN)
+   PVCuda::CudaBuffer * getCudnnGSyn(){
+      return cudnn_GSyn;
+   }
+#endif
+
 #ifdef PV_USE_OPENCL
    CLBuffer * getDeviceActivity(){
 #endif
+
 #ifdef PV_USE_CUDA
    PVCuda::CudaBuffer * getDeviceActivity(){
 #endif
       return d_Activity;
    }
+
+#if defined(PV_USE_CUDA) && defined(PV_USE_CUDNN)
+   PVCuda::CudaBuffer * getCudnnActivity(){
+      return cudnn_Activity;
+   }
+#endif
 
    void setAllocDeviceV(){
       allocDeviceV = true;
@@ -549,13 +564,18 @@ protected:
    CLBuffer **d_GSyn;         // of dynamic length numChannels
    CLBuffer * d_Activity;
 #endif
+
 #ifdef PV_USE_CUDA
    PVCuda::CudaBuffer * d_V;
    PVCuda::CudaBuffer **d_GSyn;         // of dynamic length numChannels
    PVCuda::CudaBuffer * d_Activity;
-#endif
+#ifdef PV_USE_CUDNN
+   PVCuda::CudaBuffer * cudnn_GSyn;         // of dynamic length numChannels
+   PVCuda::CudaBuffer * cudnn_Activity;
+#endif //PV_USE_CUDNN
+#endif //PV_USE_CUDA
 
-#endif
+#endif //PV_USE_CUDA || PV_USE_OPENCL
 
 protected:
    Timer * update_timer;
@@ -566,8 +586,14 @@ protected:
    Timer * io_timer;
 
 #ifdef PV_USE_CUDA
-   PVCuda::CudaTimer * gpu_recvsyn_timer ;
+   PVCuda::CudaTimer * gpu_recvsyn_timer;
+#ifdef PV_USE_CUDNN
+   //PVCuda::CudaTimer * permute_weights_timer;
+   //PVCuda::CudaTimer * permute_preData_timer;
+   //PVCuda::CudaTimer * permute_postGSyn_timer;
 #endif
+#endif
+
 #ifdef PV_USE_OPENCL
    CLTimer * gpu_recvsyn_timer;
 #endif

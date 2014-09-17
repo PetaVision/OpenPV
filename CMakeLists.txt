@@ -113,10 +113,17 @@ endif (LIB_SND_FILE)
 #   set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -g0; -G0; -O3)
 #endif(CMAKE_BUILD_TYPE)
 
+if(CUDNN)
+   set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -arch=sm_35; )
+else(CUDNN)
+   set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -arch=sm_20;)
+endif(CUDNN)
+
+
 if(CUDA_RELEASE)
-   set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -arch=sm_20; -O;)
+   set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -O;)
 else(CUDA_RELEASE)
-   set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -arch=sm_20; -Xptxas; -v; -keep; -lineinfo; -g; -G;)
+   set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -Xptxas; -v; -keep; -lineinfo; -g; -G;)
 endif(CUDA_RELEASE)
 #cuda_compile(CUDA_O ${PVLibSrcCu}) 
 

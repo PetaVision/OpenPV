@@ -27,6 +27,15 @@ namespace PVCuda{
       int nbrt; //Border of orig
       int nbdn; //Border of orig
       int nbup; //Border of orig
+
+      int preNx;
+      int preNy;
+      int preNf;
+      int preNblt;
+      int preNbrt;
+      int preNbup;
+      int preNbdn;
+
       int nxp;
       int nyp;
       int nfp;
@@ -46,6 +55,11 @@ namespace PVCuda{
       float* preData;
       float* weights;
       float* postGsyn;
+#ifdef PV_USE_CUDNN
+      float* cudnn_preData;
+      float* cudnn_weights;
+      float* cudnn_gSyn;
+#endif
       int* patch2datalookuptable;
 
       //Shared num elements
@@ -57,6 +71,12 @@ namespace PVCuda{
       int warpSize;
 
       bool preDataLocal;
+#ifdef PV_USE_CUDNN
+      /* cudnnTensor4dDescriptor_t */ void* v_inputDescriptor;
+      /* cudnnFilterDescriptor_t */   void* v_filterDescriptor;
+      /* cudnnTensor4dDescriptor_t */ void* v_outputDescriptor;
+      /* cudnnConvolutionDescriptor_t */ void* v_convDescriptor;
+#endif
    };
 
 
@@ -74,6 +94,15 @@ public:
       const int nbrt, //Border of orig
       const int nbdn, //Border of orig
       const int nbup, //Border of orig
+
+      const int preNx,
+      const int preNy,
+      const int preNf,
+      const int preNblt,
+      const int preNbrt,
+      const int preNbup,
+      const int preNbdn,
+
       const int nxp,
       const int nyp,
       const int nfp,
@@ -93,14 +122,26 @@ public:
       /* float* */ CudaBuffer* preData,
       /* float* */ CudaBuffer* weights,
       /* float* */ CudaBuffer* postGsyn,
+#ifdef PV_USE_CUDNN
+      /* float* */ CudaBuffer* cudnn_preData,
+      /* float* */ CudaBuffer* cudnn_weights,
+      /* float* */ CudaBuffer* cudnn_gSyn,
+#endif
       /* int* */   CudaBuffer* patch2datalookuptable,
 
       const bool preDataLocal
    );
 
+#ifdef PV_USE_CUDNN
+   void permuteActivityPVToCudnn();
+   void permuteWeightsPVToCudnn();
+   void permuteGSynPVToCudnn();
+   void permuteGSynCudnnToPV();
+#endif
+
 protected:
    //This is the function that should be overwritten in child classes
-   virtual int run();
+   virtual int do_run();
 
 private:
    recv_post_params params;

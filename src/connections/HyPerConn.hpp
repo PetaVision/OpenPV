@@ -748,6 +748,16 @@ public:
 #endif
       d_WData = inBuf;
    }
+
+#if defined(PV_USE_CUDA) && defined(PV_USE_CUDNN)
+   PVCuda::CudaBuffer * getCudnnWData(){
+      return cudnn_WData;
+   }
+   void setCudnnWData(PVCuda::CudaBuffer* inBuf){
+      cudnn_WData = inBuf;
+   }
+#endif
+
 #ifdef PV_USE_OPENCL
    void clFinishW(){ 
       if(allocDeviceWeights && d_WData){
@@ -764,8 +774,8 @@ public:
    CLKernel * getKrRecvPre(){return krRecvPre;}
 #endif
 #ifdef PV_USE_CUDA
-   PVCuda::CudaKernel * getKrRecvPost(){return krRecvPost;}
-   PVCuda::CudaKernel * getKrRecvPre(){return krRecvPre;}
+   PVCuda::CudaRecvPost * getKrRecvPost(){return krRecvPost;}
+   PVCuda::CudaRecvPre * getKrRecvPre(){return krRecvPre;}
 #endif
 
    virtual int getNumXLocal(){return numXLocal;}
@@ -804,6 +814,9 @@ protected:
 #endif
 #ifdef PV_USE_CUDA
    PVCuda::CudaBuffer * d_WData;
+#ifdef PV_USE_CUDNN
+   PVCuda::CudaBuffer * cudnn_WData;
+#endif
    PVCuda::CudaBuffer * d_Patches;
    PVCuda::CudaBuffer * d_GSynPatchStart;
    PVCuda::CudaBuffer * d_PostToPreActivity;

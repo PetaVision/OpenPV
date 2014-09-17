@@ -5,21 +5,32 @@
  *      Author: Sheng Lundquist
  */
 
-#include "../../include/pv_arch.h"
 #include "cuda_util.hpp"
 #include "CudaDevice.hpp"
+
+#ifdef PV_USE_CUDNN
+#include <cudnn.h>
+#endif
 
 namespace PVCuda{
 
 CudaDevice::CudaDevice(int device)
 {
    this->device_id = device;
+   this->handle = NULL;
    initialize(device_id);
 }
 
 CudaDevice::~CudaDevice()
 {
    handleError(cudaStreamDestroy(stream));
+   //TODO set handleError to take care of this
+
+#ifdef PV_USE_CUDNN
+   if(handle){
+      cudnnDestroy((cudnnHandle_t)handle);
+   }
+#endif
 }
 
 int CudaDevice::initialize(int device)
@@ -43,6 +54,33 @@ int CudaDevice::initialize(int device)
 
    status = 0;
 #endif // PV_USE_OPENCL
+   
+#ifdef PV_USE_CUDNN
+   printf("Setting up cudnn\n");
+   //Testing cudnn here
+   cudnnHandle_t tmpHandle;
+   cudnnStatus_t cudnnStatus = cudnnCreate(&tmpHandle); 
+   if(cudnnStatus != CUDNN_STATUS_SUCCESS){
+      switch(cudnnStatus){
+         case CUDNN_STATUS_NOT_INITIALIZED:
+            printf("cuDNN Runtime API initialization failed\n");
+            break;
+         case CUDNN_STATUS_ALLOC_FAILED:
+            printf("cuDNN resources could not be allocated\n");
+            break;
+         default:
+            printf("cuDNN unknown error\n");
+      }
+      exit(-1);
+   }
+   cudnnStatus = cudnnSetStream(tmpHandle, stream);
+   if(cudnnStatus != CUDNN_STATUS_SUCCESS){
+      printf("CUDNN Stream set error\n");
+      exit(-1);
+   }
+
+   this->handle = (void*) tmpHandle;
+#endif
 
    return status;
 }

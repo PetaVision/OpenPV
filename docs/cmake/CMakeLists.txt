@@ -5,7 +5,7 @@ project(PetaVision)
 
 
 # See http://www.cmake.org/Wiki/CMake_Useful_Variables for more variables to set
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 2.6)
 
 
 # Set variable for current working directory (workspace directory)
@@ -23,6 +23,9 @@ set(OPEN_CL_GPU FALSE CACHE PATH "Defines if PetaVision uses OpenCL GPU")
 set(CUDA_GPU FALSE CACHE PATH "Defines if PetaVision uses OpenCL GPU")
 set(LIB_SND_FILE FALSE CACHE PATH "Defines if PetaVision uses LIB_SND_FILE")
 set(CUDA_RELEASE FALSE CACHE PATH "Defines if Cuda compiles with optimization")
+
+set(CUDNN FALSE CACHE PATH "Defines if PetaVision uses Cuda's CUDNN library")
+set(CUDNN_PATH /nh/compneuro/Data/cuDNN/cudnn-6.5-linux-R1/ CACHE PATH "Location of cuDNN libraries")
 
 set(OpenCL_dir /usr/local/cuda-6.0/ CACHE PATH "Location of opencl headers")
 #set(Cuda_lib /usr/local/cuda-6.0/lib64 CACHE PATH "Location of opencl headers")
@@ -46,6 +49,10 @@ if(CUDA_GPU)
     #Set include file
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I ${CUDA_TOOLKIT_INCLUDE} -DPV_CUDA")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -I ${CUDA_TOOLKIT_INCLUDE} -DPV_CUDA")
+    if(CUDNN)
+       set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I ${CUDNN_PATH} -DPV_CUDNN")
+       set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -I ${CUDNN_PATH} -DPV_CUDNN")
+    endif(CUDNN)
 endif(CUDA_GPU)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DPV_DIR=\"\\\"${PV_DIR}\\\"\"")
@@ -72,7 +79,7 @@ set(MPI_CXX_COMPILER_NAME "${CMAKE_CXX_COMPILER}")
 add_subdirectory(${PV_DIR})
 # # Insert additional add_subdirectory commands to add other projects.
 #add_subdirectory(BIDS)
-#add_subdirectory(DepthLCA)
+add_subdirectory(DepthLCA)
 #add_subdirectory(HyPerHLCA)
 #add_subdirectory(MaskLCA)
 #add_subdirectory(textAnalysis)

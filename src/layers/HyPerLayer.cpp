@@ -189,6 +189,11 @@ int HyPerLayer::initialize_base() {
    //this->gpuAccelerateFlag=false;
 #endif // PV_USE_OPENCL
 
+#if defined(PV_USE_CUDA) && defined(PV_USE_CUDNN)
+   this->cudnn_GSyn = NULL;
+   this->cudnn_Activity = NULL;
+#endif
+
    this->update_timer  = NULL;
    this->recvsyn_timer = NULL;
    this->publish_timer = NULL;
@@ -198,6 +203,13 @@ int HyPerLayer::initialize_base() {
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
    this->gpu_recvsyn_timer = NULL;
 #endif
+
+#if defined(PV_USE_CUDA) && defined(PV_USE_CUDNN)
+   //this->permute_weights_timer = NULL;
+   //this->permute_preData_timer = NULL;
+   //this->permute_postGSyn_timer = NULL;
+#endif
+
 
    this->thread_gSyn = NULL;
    this->recvConns.clear();
@@ -224,7 +236,16 @@ int HyPerLayer::initialize(const char * name, HyPerCol * hc) {
 #ifdef PV_USE_CUDA
    this->gpu_recvsyn_timer = new PVCuda::CudaTimer(getName(), "layer", "gpurecvsyn");
    this->gpu_recvsyn_timer->setStream(hc->getCudaDevice()->getStream());
+#ifdef PV_USE_CUDNN
+   //this->permute_weights_timer = new PVCuda::CudaTimer(getName(), "layer", "gpuWeightsPermutate");
+   //this->permute_weights_timer->setStream(hc->getCudaDevice()->getStream());
+   //this->permute_preData_timer = new PVCuda::CudaTimer(getName(), "layer", "gpuPreDataPermutate");
+   //this->permute_preData_timer->setStream(hc->getCudaDevice()->getStream());
+   //this->permute_postGSyn_timer = new PVCuda::CudaTimer(getName(), "layer", "gpuPostGSynPermutate");
+   //this->permute_postGSyn_timer->setStream(hc->getCudaDevice()->getStream());
 #endif
+#endif
+
 #ifdef PV_USE_OPENCL
    this->gpu_recvsyn_timer = hc->getCLDevice()->createTimer(getName(), "layer", "gpurecvsyn");
 #endif
@@ -353,6 +374,12 @@ HyPerLayer::~HyPerLayer()
    delete gpu_recvsyn_timer; gpu_recvsyn_timer = NULL;
 #endif
 
+#if defined(PV_USE_CUDA) && defined(PV_USE_CUDNN)
+   //delete permute_weights_timer; permute_weights_timer= NULL;
+   //delete permute_preData_timer; permute_preData_timer= NULL;
+   //delete permute_postGSyn_timer; permute_postGSyn_timer= NULL;
+#endif
+
    delete initVObject; initVObject = NULL;
    freeClayer();
    free(name); name = NULL;
@@ -375,6 +402,12 @@ HyPerLayer::~HyPerLayer()
 //
 //      free(evList);
 //      evList = NULL;
+#endif
+
+#if defined(PV_USE_CUDA) && defined(PV_USE_CUDNN)
+   if(cudnn_Activity){
+      delete cudnn_Activity;
+   }
 #endif
 
    free(labels); labels = NULL;
@@ -433,6 +466,13 @@ void HyPerLayer::freeChannels()
       d_GSyn = NULL;
    }
 #endif
+
+#if defined(PV_USE_CUDA) && defined(PV_USE_CUDNN)
+   if (cudnn_GSyn != NULL) {
+      delete cudnn_GSyn;
+   }
+#endif
+
 
    // GSyn gets allocated in allocateDataStructures, but only if numChannels>0.
    if (GSyn) {
@@ -840,9 +880,11 @@ int HyPerLayer::allocateDeviceBuffers()
 {
    int status = 0;
 
-   const size_t size    = getNumNeurons()  * sizeof(pvdata_t);
-   //const size_t size_ex = getNumExtended() * sizeof(pvdata_t);
+   
+   const size_t size    = getNumNeurons()  * sizeof(float);
    const size_t size_ex = getNumExtended() * sizeof(float);
+
+   std::cout << "NumNeurons: " << getNumNeurons() << "\n";
 
 #ifdef PV_USE_OPENCL
    CLDevice * device = parent->getCLDevice();
@@ -868,8 +910,13 @@ int HyPerLayer::allocateDeviceBuffers()
 #ifdef PV_USE_CUDA
       d_Activity = device->createBuffer(size_ex);
 #endif 
+#if defined(PV_USE_CUDA) && defined(PV_USE_CUDNN)
+      cudnn_Activity = device->createBuffer(size_ex);
+      assert(cudnn_Activity);
+#endif
    }
 
+   bool allocGSyn = false;
 #ifdef PV_USE_OPENCL
    d_GSyn = (CLBuffer**) malloc(sizeof(CLBuffer*) * numChannels);
 #endif
@@ -885,11 +932,20 @@ int HyPerLayer::allocateDeviceBuffers()
 #ifdef PV_USE_CUDA
          d_GSyn[i] = device->createBuffer(size);
 #endif 
+         assert(d_GSyn[i]);
+         allocGSyn = true;
       }
       else{
          d_GSyn[i] = NULL;
       }
    }
+
+#if defined(PV_USE_CUDA) && defined(PV_USE_CUDNN)
+   if(allocGSyn){
+      cudnn_GSyn = device->createBuffer(size);
+   }
+#endif
+
 
    return status;
 }
@@ -1871,8 +1927,15 @@ float HyPerLayer::syncGpu(){
    if(recvGpu){
 #ifdef PV_USE_CUDA
       parent->getCudaDevice()->syncDevice();
-      return gpu_recvsyn_timer->accumulateTime();
+      float time = gpu_recvsyn_timer->accumulateTime();
+#ifdef PV_USE_CUDNN
+      //time += permute_weights_timer->accumulateTime(); 
+      //time += permute_preData_timer->accumulateTime(); 
+      //time += permute_postGSyn_timer->accumulateTime();
 #endif
+      return time;
+#endif
+
 #ifdef PV_USE_OPENCL
       parent->getCLDevice()->syncDevice();
       return gpu_recvsyn_timer->accumulateTime();
@@ -2032,6 +2095,11 @@ int HyPerLayer::recvSynapticInputFromPost(HyPerConn * conn, const PVLayerCube * 
       for (int ky = 0; ky < targetToSourceConn->yPatchSize(); ky++){
          float * activityY = &(activity->data[startSourceExt + ky*sy]);
          pvwdata_t * weightY = targetToSourceConn->get_wDataHead(arborID, kernelIndex) + ky*syp;
+         for(int i = 0; i < numPerStride; i++){
+            if(activityY[i] == 1 && weightY[i] == 1){
+               std::cout << "Break here\n";
+            }
+         }
          //if(ky == 0){
          //   std::cout << "cpu activity: " << activityY[0] << "  weight: " << weightY[0] << "\n";
          //}
@@ -2181,6 +2249,16 @@ int HyPerLayer::recvSynapticInputFromPostGpu(HyPerConn * conn, const PVLayerCube
       exit(EXIT_FAILURE);
    }
 
+#ifdef PV_USE_OPENCL
+   //Grab kernel from conn
+   CLKernel * krRecvPost = conn->getKrRecvPost();        // CL kernel for update state call
+#endif
+#ifdef PV_USE_CUDA
+   PVCuda::CudaRecvPost * krRecvPost = conn->getKrRecvPost();        // CL kernel for update state call
+#endif
+   assert(krRecvPost);
+
+   bool updatePreAct = false;
    //Update pre activity, post gsyn, and conn weights 
    //Only if their updated
    if(sourceToTargetConn->preSynapticLayer()->getUpdatedDeviceActivityFlag()){
@@ -2196,8 +2274,11 @@ int HyPerLayer::recvSynapticInputFromPostGpu(HyPerConn * conn, const PVLayerCube
       d_preActivity->copyToDevice(h_preActivity);
       //Device now has updated 
       sourceToTargetConn->preSynapticLayer()->setUpdatedDeviceActivityFlag(false);
+      updatePreAct = true;
    }
    
+
+   bool updateWeights = false;
    if(targetToSourceConn->getUpdatedDeviceWFlag()){
       //These weights should be orig conn weights
       float * h_weights = targetToSourceConn->get_wDataStart(arborID);
@@ -2211,16 +2292,19 @@ int HyPerLayer::recvSynapticInputFromPostGpu(HyPerConn * conn, const PVLayerCube
       assert(d_weights);
       d_weights->copyToDevice(h_weights);
       targetToSourceConn->setUpdatedDeviceWFlag(false);
+      updateWeights = true;
    }
 
-#ifdef PV_USE_OPENCL
-   //Grab kernel from conn
-   CLKernel * krRecvPost = conn->getKrRecvPost();        // CL kernel for update state call
+#if defined(PV_USE_CUDA) && defined(PV_USE_CUDNN)
+   if(updatePreAct){
+      krRecvPost->permuteActivityPVToCudnn();
+   }
+   if(updateWeights){
+      krRecvPost->permuteWeightsPVToCudnn();
+   }
+   //Permute GSyn 
+   krRecvPost->permuteGSynPVToCudnn();
 #endif
-#ifdef PV_USE_CUDA
-   PVCuda::CudaKernel * krRecvPost = conn->getKrRecvPost();        // CL kernel for update state call
-#endif
-   assert(krRecvPost);
 
    int totF = targetNf;
    int totX = targetNx;
@@ -2249,6 +2333,11 @@ int HyPerLayer::recvSynapticInputFromPostGpu(HyPerConn * conn, const PVLayerCube
 #endif
 #ifdef PV_USE_CUDA
    krRecvPost->run(totX, totY, totF, conn->getNumXLocal(), conn->getNumYLocal(), conn->getNumFLocal());
+#endif
+
+#if defined(PV_USE_CUDA) && defined(PV_USE_CUDNN)
+   //printf("Permuting gsyn back\n");
+   krRecvPost->permuteGSynCudnnToPV();
 #endif
 
    return PV_SUCCESS;
@@ -2785,6 +2874,11 @@ int HyPerLayer::writeTimers(FILE* stream){
       recvsyn_timer->fprint_time(stream);
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
       gpu_recvsyn_timer->fprint_time(stream);
+#endif
+#if defined(PV_USE_CUDA) && defined(PV_USE_CUDNN)
+      //permute_preData_timer->fprint_time(stream);
+      //permute_weights_timer->fprint_time(stream);
+      //permute_postGSyn_timer ->fprint_time(stream);
 #endif
       update_timer->fprint_time(stream);
       publish_timer->fprint_time(stream);

@@ -58,7 +58,6 @@ HyPerCol::~HyPerCol()
 
    int rank=columnId(); // Need to save so that we know whether we're the process that does I/O, even after deleting icComm.
 
-   //Delete by phases
    if (phaseRecvTimers) {
       for (int phase=0; phase<numPhases; phase++) {
          if(phaseRecvTimers[phase]){

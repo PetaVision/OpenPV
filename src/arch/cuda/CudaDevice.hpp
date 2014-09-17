@@ -8,7 +8,7 @@
 #ifndef CUDADEVICE_HPP_
 #define CUDADEVICE_HPP_
 
-
+#include "../../include/pv_arch.h"
 #include "CudaBuffer.hpp"
 
 namespace PVCuda{
@@ -102,10 +102,17 @@ public:
     */
    size_t get_local_mem();
 
+#ifdef PV_USE_CUDNN
+   void* getCudnnHandle(){return handle;}
+#endif
+
+
 protected:
    int num_devices;                  // number of computing devices
    struct cudaDeviceProp device_props;
    cudaStream_t stream;
+
+   void* handle;
 };
 
 } // namespace PV

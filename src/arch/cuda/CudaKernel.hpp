@@ -64,8 +64,8 @@ protected:
    /**
     * This virtual function should be overwritten by any subclasses. Note that argsSet and dimsSet should be set before this function is called
     */
-   virtual int run() = 0;
-   
+   virtual int do_run() = 0;
+
    /**
     * A flag setter to tell CudaKernel that the arguments to the kernel is set
     */

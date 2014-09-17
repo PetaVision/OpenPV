@@ -21,6 +21,11 @@
 #undef PV_USE_CUDA
 #endif //PV_CUDA
 
+#ifdef PV_CUDNN
+#define PV_USE_CUDNN
+#else
+#undef PV_USE_CUDNN
+#endif
 
 /* define this if using OpenGL library for online graphics */
 #undef PV_USE_OPENGL

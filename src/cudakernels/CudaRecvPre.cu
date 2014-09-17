@@ -185,7 +185,7 @@ void CudaRecvPre::setArgs(
    setArgsFlag();
 }
 
-int CudaRecvPre::run(){
+int CudaRecvPre::do_run(){
 
    params.preBufNum = params.localBufSizeY * params.localBufSizeX * params.nfp;
 

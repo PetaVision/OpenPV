@@ -146,6 +146,13 @@ HyPerConn::~HyPerConn()
       delete krRecvPre;
       krRecvPre = NULL;
    }
+
+#if defined(PV_USE_CUDA) && defined(PV_USE_CUDNN)
+   if(cudnn_WData){
+      delete cudnn_WData;
+      cudnn_WData = NULL;
+   }
+#endif
 //
 //      free(evRecvSynWaitList);
 //      evRecvSynWaitList=NULL;
@@ -319,6 +326,9 @@ int HyPerConn::initialize_base()
    numPostGroupX = 1;
    numPostGroupY = 1;
    preDataLocal = true;
+#if defined(PV_USE_CUDA) && defined(PV_USE_CUDNN)
+   cudnn_WData = NULL;
+#endif
 #endif
 
    return PV_SUCCESS;
@@ -1974,6 +1984,7 @@ int HyPerConn::allocateDeviceBuffers()
 
          if(allocDeviceWeights){
             const size_t size = origConn->getNumDataPatches() * origConn->xPatchSize()*origConn->yPatchSize()*origConn->fPatchSize() * sizeof(pvwdata_t);
+            std::cout << "Num weights: " << size/sizeof(pvwdata_t) << "\n";
             //pvwdata_t * wBuf = get_wDataStart(arbor);
             //clWeights[arbor] = device->createReadBuffer(size, (void*)wBuf);
             //TODO change to read only
@@ -1982,6 +1993,10 @@ int HyPerConn::allocateDeviceBuffers()
 #endif
 #ifdef PV_USE_CUDA
             origConn->setDeviceWData(device->createBuffer(size));
+#ifdef PV_USE_CUDNN
+            origConn->setCudnnWData(device->createBuffer(size));
+#endif
+
 #endif
          }
 
@@ -2011,8 +2026,9 @@ int HyPerConn::allocateDeviceBuffers()
 #endif
 #ifdef PV_USE_CUDA
             d_WData = device->createBuffer(size);
-#endif
             assert(d_WData);
+
+#endif
          }
 
          //Calculate local pre size here
@@ -2389,11 +2405,20 @@ int HyPerConn::allocateReceivePostKernel()
    PVCuda::CudaBuffer* d_PreData = pre->getDeviceActivity();
    PVCuda::CudaBuffer* d_PostGSyn = post->getDeviceGSyn(channel);
    PVCuda::CudaBuffer * d_origWData = origConn->getDeviceWData();
+#ifdef PV_USE_CUDNN
+   PVCuda::CudaBuffer * cudnn_preData = pre->getCudnnActivity();
+   PVCuda::CudaBuffer * cudnn_gSyn = post->getCudnnGSyn();
+   PVCuda::CudaBuffer * cudnn_origWData = origConn->getCudnnWData();
+   assert(cudnn_preData);
+   assert(cudnn_gSyn);
+   assert(cudnn_origWData);
+#endif
 #endif
 
    assert(d_PreData);
    assert(d_PostGSyn);
    assert(d_origWData);
+
 
    int sy  = (preLoc->nx+preHalo->rt+preHalo->lt)*preLoc->nf;
    int syp = origConn->yPatchStride();
@@ -2414,6 +2439,15 @@ int HyPerConn::allocateReceivePostKernel()
    int postNx = postLoc->nx;
    int postNy = postLoc->ny;
    int postNf = postLoc->nf;
+
+   int preNx = preLoc->nx;
+   int preNy = preLoc->ny;
+   int preNf = preLoc->nf;
+   int preNblt = preHalo->lt;
+   int preNbrt = preHalo->rt;
+   int preNbup = preHalo->up;
+   int preNbdn = preHalo->dn;
+   
 
    //Set local sizes here
    float preToPostScaleX = (float)preLoc->nx/((float)postLoc->nx);
@@ -2517,6 +2551,15 @@ int HyPerConn::allocateReceivePostKernel()
       oNbdn, //Border of orig
       oNbup, //Border of orig
 
+
+      preNx,
+      preNy,
+      preNf,
+      preNblt,
+      preNbrt,
+      preNbup,
+      preNbdn,
+
       oNxp,
       oNyp,
       oNfp,
@@ -2536,6 +2579,11 @@ int HyPerConn::allocateReceivePostKernel()
       d_PreData,
       d_origWData,
       d_PostGSyn,
+#ifdef PV_USE_CUDNN
+      cudnn_preData,
+      cudnn_origWData,
+      cudnn_gSyn,
+#endif
       d_Patch2DataLookupTable,
 
       preDataLocal
