@@ -86,8 +86,11 @@ int PlasticConnTestProbe::outputState(double timed) {
 }
 
 PlasticConnTestProbe::~PlasticConnTestProbe() {
-   if( !errorPresent ) {
-      fprintf(getStream()->fp, "No errors detected\n");
+   InterColComm * icComm = getParent()->icCommunicator();
+   if( icComm->commRank() == 0) {
+      if( !errorPresent ) {
+         fprintf(getStream()->fp, "No errors detected\n");
+      }
    }
 }
 
