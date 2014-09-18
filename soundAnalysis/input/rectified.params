@@ -438,7 +438,7 @@ KernelConn "A1ToPositiveError" = {
     initialWeightUpdateTime = 0;
     initialWriteTime = 0.0;
 
-    dWMax = 0.05; // 1.0; //0.05; //5.0;
+    dWMax = 0.01; // 0.05; // 1.0; //0.05; //5.0;
     selfFlag = false;
     shmget_flag = false;
     delay = 0;

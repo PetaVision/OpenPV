@@ -1,5 +1,5 @@
 addpath("~/newvision/trunk/mlab/util/");
-pluspvpfile = "~/newvision/sandbox/soundAnalysis/servers/output/Checkpoint59670/A1ToPositiveError_W.pvp"
+pluspvpfile = "~/newvision/sandbox/soundAnalysis/servers/output/Checkpoint327080/A1ToPositiveError_W.pvp"
 
 
 plusWcell = readpvpfile(pluspvpfile);
@@ -26,17 +26,21 @@ W = plusW;
 
 
 
+
 for(feature = 1:NF)
 
-weight = zeros(numdelays,numfreqs);
+weight = zeros(numfreqs,numdelays);
 
 for(time = 1:numdelays)
 
-weight(time, :) = W(:,:,time,feature);
+weight(:,time) = W(:,:,time,feature);
 
 end
 
-weightrescaled = (weight - min(weight(:))) / (max(weight(:)) - min(weight(:)));
+%%weightrescaled = (weight - min(weight(:))) / (max(weight(:)) - min(weight(:)));
+
+weightrescaled = 127.5 + 127.5 * (weight / max(abs(weight(:))));
+
 
 subplot(ceil(sqrt(NF)),ceil(sqrt(NF)),feature);
 imagesc(weightrescaled);
@@ -47,12 +51,14 @@ colormap(gray);
 
 [R,C] = ind2sub(size(weightrescaled),location);
 
+R
 
-C
+dlmwrite('freqs.txt',R,"-append")
 
-dlmwrite('positivefreqs.txt',C,"-append");
 
 end
+
+
 
 print -dpng positiveweights.png
 
