@@ -475,23 +475,6 @@ void CudaRecvPost::permuteActivityPVToCudnn(){
 
 }
 
-////For testing
-//void CudaRecvPost::permuteActivityCudnnToPV(){
-//   //Ext pre activity
-//   int ny = params.preNy + params.preNbup + params.preNbdn;
-//   int nx = params.preNx + params.preNblt + params.preNbrt;
-//   int nf = params.preNf;
-//
-//   //Calculate grid and work size
-//   int numNeurons = ny * nx * nf;
-//   int blockSize = device->get_max_threads();
-//   //Ceil to get all weights
-//   int gridSize = ceil((float)numNeurons/blockSize);
-//   //Call function
-//   CudaWeightPermuteCudnnToPV<<<gridSize, blockSize, 0, device->getStream()>>>(params.preData, params.cudnn_preData, 1, ny, nx, nf);
-//   handleCallError();
-//}
-
 void CudaRecvPost::permuteGSynPVToCudnn(){
    //Res post activity
    int ny = params.nyRes;
@@ -544,65 +527,13 @@ void CudaRecvPost::permuteWeightsPVToCudnn(){
    //printf("Calling weights PV To Cudnn with (%d, %d, %d, %d)\n", outFeatures, ny, nx, inFeatures);
    CudaPermuteWeightsPVToCudnn<<<gridSize, blockSize, 0, device->getStream()>>>(params.cudnn_weights, params.weights, outFeatures, ny, nx, inFeatures);
    handleCallError();
-
-   //Testing permute for activity
-   //Copy preData to temp variable
-   float* d_tempVar;
-   handleError(cudaMalloc(&d_tempVar, numWeights * sizeof(float)));
-   handleError(cudaMemcpy(d_tempVar, params.weights, numWeights*sizeof(float), cudaMemcpyDeviceToDevice));
-
-   device->syncDevice();
-
-   //////Test
-   ////testEquality<<<gridSize, blockSize, 0, device->getStream()>>>(d_tempVar, params.preData, 1, ny, nx, nf);
-   ////handleCallError();
-
-   //device->syncDevice();
-
-   ////Permute back
-   //CudaPermuteCudnnToPV<<<gridSize, blockSize, 0, device->getStream()>>>(params.weights, params.cudnn_weights, outFeatures, ny, nx, inFeatures);
-   //handleCallError();
-
-   //device->syncDevice();
-
-   ////Test
-   //testEquality<<<gridSize, blockSize, 0, device->getStream()>>>(d_tempVar, params.weights, outFeatures, ny, nx, inFeatures);
-   //handleCallError();
-
-
-   //device->syncDevice();
-
-   //cudaFree(d_tempVar);
-   //exit(-1);
-
-   ////End testing
 }
-
-//void CudaRecvPost::permuteWeightsCUDNNToPV(){
-//   //outFeatures is number of post features
-//   int outFeatures = params.nf;
-//   //Rest is patch sizes
-//   int ny = params.nyp;
-//   int nx = params.nxp;
-//   int inFeatures = params.nfp;
-//
-//   //Calculate grid and work size
-//   int numWeights = outFeatures * ny * nx * inFeatures;
-//   int blockSize = device->get_max_threads();
-//   //Ceil to get all weights
-//   int gridSize = ceil((float)numWeights/blockSize);
-//   //Call function
-//   CudaWeightPermuteCUDNNToPV<<<gridSize, blockSize, 0, device->getStream()>>>(params.weights, params.cudnn_weights, outFeatures, ny, nx, inFeatures);
-//   handleCallError();
-//}
-
 
 #endif
 
 int CudaRecvPost::do_run(){
    
 #ifdef PV_USE_CUDNN
-   //printf("Running CUDNN\n");
    cudnnHandle_t handle = (cudnnHandle_t) device->getCudnnHandle();
    cudnnTensor4dDescriptor_t inputDescriptor = (cudnnTensor4dDescriptor_t) params.v_inputDescriptor;
    cudnnFilterDescriptor_t filterDescriptor = (cudnnFilterDescriptor_t) params.v_filterDescriptor;
