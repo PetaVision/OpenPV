@@ -1492,8 +1492,10 @@ double HyPerCol::adaptTimeScale(){
    // set the true timeScale to the minimum timeScale returned by each layer, stored in minTimeScaleTmp
    double minTimeScaleTmp = -1;
    for(int l = 0; l < numLayers; l++) {
+      //Grab timescale
       double timeScaleTmp = layers[l]->calcTimeScale();
       if (timeScaleTmp > 0.0){
+         //Error if smaller than tolerated
          if (timeScaleTmp < dtMinToleratedTimeScale) {
             if (columnId()==0) {
                fprintf(stderr, "Error: Layer \"%s\" has time scale %g, less than dtMinToleratedTimeScale=%g.\n", layers[l]->getName(), timeScaleTmp, dtMinToleratedTimeScale);
@@ -1501,14 +1503,17 @@ double HyPerCol::adaptTimeScale(){
             MPI_Barrier(icComm->communicator());
             exit(EXIT_FAILURE);
          }
+         //Grabbing lowest timeScaleTmp
          if (minTimeScaleTmp > 0.0){
             minTimeScaleTmp = timeScaleTmp < minTimeScaleTmp ? timeScaleTmp : minTimeScaleTmp;
          }
+         //Initial set
          else{
             minTimeScaleTmp = timeScaleTmp;
          }
       }
    }
+   //Set timeScaleTrue to new minTimeScale
    timeScaleTrue = minTimeScaleTmp;
 
    // force the minTimeScaleTmp to be <= timeScaleMax
@@ -1521,14 +1526,17 @@ double HyPerCol::adaptTimeScale(){
    double changeTimeScale = (timeScale - oldTimeScale)/oldTimeScale;
    timeScale = changeTimeScale < changeTimeScaleMax ? timeScale : oldTimeScale * (1 + changeTimeScaleMax);
 
-   // keep the timeScale constant if the error is decreasing too rapidly
+   //Positive if timescale increased, error decreased
+   //Negative if timescale decreased, error increased
    double changeTimeScaleTrue = timeScaleTrue - oldTimeScaleTrue;
+   // keep the timeScale constant if the error is decreasing too rapidly
    if (changeTimeScaleTrue > changeTimeScaleMax){
       timeScale = oldTimeScale;
    }
 
-   // if error is increasing, retreat back to the MIN(timeScaleMin, minTimeScaleTmp)
+   // if error is increasing,
    if (changeTimeScaleTrue < changeTimeScaleMin){
+      //retreat back to the MIN(timeScaleMin, minTimeScaleTmp)
       if (minTimeScaleTmp > 0.0){
          double setTimeScale = oldTimeScale < timeScaleMin ? oldTimeScale : timeScaleMin;
          timeScale = setTimeScale < minTimeScaleTmp ? setTimeScale : minTimeScaleTmp;
@@ -1643,6 +1651,7 @@ int HyPerCol::advanceTime(double sim_time)
          layers[l]->copyAllGSynFromDevice();
          layers[l]->syncGpu();
          phaseRecvTimers[phase]->stop();
+         //Check for nan
       }
 #endif
 

@@ -439,6 +439,7 @@ bool Movie::updateImage(double time, double dt)
    if( jitterFlag ) {
       jitter();
    } // jitterFlag
+
    InterColComm * icComm = getParent()->icCommunicator();
    if(randomMovie){
       randomFrame();
@@ -503,6 +504,14 @@ bool Movie::updateImage(double time, double dt)
           }
       }
    } // randomMovie
+
+   ////Check for nan
+   //const pvdata_t * data = getLayerData();
+   //for(int k = 0; k < getNumExtended(); k++){
+   //   if(isnan(data[k])){
+   //      std::cout << "break here\n";
+   //   }
+   //}
 
    return true;
 }

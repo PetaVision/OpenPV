@@ -213,6 +213,9 @@ void HyPerLayer_recv_post(recv_post_params params){
    }
    ////Sum into global memory
    params.postGsyn[kTargetRes] += postBuffer[localIndex];
+   //if(isnan(params.postGsyn[kTargetRes])){
+   //   printf("breakHere\n");
+   //}
 }
 
 
