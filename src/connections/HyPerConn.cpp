@@ -929,6 +929,7 @@ int HyPerConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag)
    ioParam_preDataLocal(ioFlag);
    ioParam_postGroupXSize(ioFlag);
    ioParam_postGroupYSize(ioFlag);
+   //Only read numX, Y, and F local if not using CUDNN
    ioParam_numXLocal(ioFlag);
    ioParam_numYLocal(ioFlag);
    ioParam_numFLocal(ioFlag);
@@ -966,22 +967,44 @@ void HyPerConn::ioParam_postGroupYSize(enum ParamsIOFlag ioFlag) {
 
 void HyPerConn::ioParam_numXLocal(enum ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(name, "receiveGpu"));
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "updateGSynFromPostPerspective"));
    if(receiveGpu){
+      //If we're using cudnn and updating from post, we don't need numX, Y, and F local
+#ifdef PV_USE_CUDNN
+      if(!updateGSynFromPostPerspective){
+         parent->ioParamValue(ioFlag, name, "numXLocal", &numXLocal, 1, true);
+      }
+#else
       parent->ioParamValue(ioFlag, name, "numXLocal", &numXLocal, 1, true);
+#endif
    }
 }
 
 void HyPerConn::ioParam_numYLocal(enum ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(name, "receiveGpu"));
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "updateGSynFromPostPerspective"));
    if(receiveGpu){
+#ifdef PV_USE_CUDNN
+      if(!updateGSynFromPostPerspective){
+         parent->ioParamValue(ioFlag, name, "numYLocal", &numYLocal, 1, true);
+      }
+#else
       parent->ioParamValue(ioFlag, name, "numYLocal", &numYLocal, 1, true);
+#endif
    }
 }
 
 void HyPerConn::ioParam_numFLocal(enum ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(name, "receiveGpu"));
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "updateGSynFromPostPerspective"));
    if(receiveGpu){
+#ifdef PV_USE_CUDNN
+      if(!updateGSynFromPostPerspective){
+         parent->ioParamValue(ioFlag, name, "numFLocal", &numFLocal, 1, true);
+      }
+#else
       parent->ioParamValue(ioFlag, name, "numFLocal", &numFLocal, 1, true);
+#endif
    }
 }
 
