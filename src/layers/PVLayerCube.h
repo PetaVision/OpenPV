@@ -11,7 +11,6 @@
 #include "../include/pv_common.h"
 #include "../utils/conversions.h"
 #include "../include/pv_types.h"
-#include "accumulate_functions.h"
 
 #ifdef __cplusplus
 extern "C" {
