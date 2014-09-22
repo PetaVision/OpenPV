@@ -12,10 +12,10 @@ HyPerCol "column" = {
     progressInterval                    = 1.0;
     writeProgressToErr                  = false;
     outputPath                          = "output/";
+    printParamsFilename                 = "pv.params";
     filenamesContainLayerNames          = 2;
     filenamesContainConnectionNames     = 2;
-    checkpointRead                      = false;
-    // checkpointReadDir;
+    initializeFromCheckpointDir         = "";
     // checkpointReadDirIndex;
     checkpointWrite                     = false;
     // checkpointWriteDir;
@@ -26,7 +26,6 @@ HyPerCol "column" = {
 };
 
 ANNLayer "Layer A" = {
-    restart                             = false;
     nxScale                             = 1;
     nyScale                             = 1;
     nf                                  = 4;
@@ -41,13 +40,12 @@ ANNLayer "Layer A" = {
     InitVType                           = "ZeroV";
 
     VThresh                             = -infinity;
-    VMin                                = -infinity;
-    VShift                              = 0.0;
-    VMax                                = infinity;
+    AMin                                = -infinity;
+    AShift                              = 0.0;
+    AMax                                = infinity;
 };
 
 ANNLayer "Layer B One to One" = {
-    restart                             = false;
     nxScale                             = 1;
     nyScale                             = 1;
     nf                                  = 4;
@@ -62,13 +60,12 @@ ANNLayer "Layer B One to One" = {
     InitVType                           = "ZeroV";
 
     VThresh                             = -infinity;
-    VMin                                = -infinity;
-    VShift                              = 0.0;
-    VMax                                = infinity;
+    AMin                                = -infinity;
+    AShift                              = 0.0;
+    AMax                                = infinity;
 };
 
 ANNLayer "Layer B Many to One" = {
-    restart                             = false;
     nxScale                             = 0.25;
     nyScale                             = 0.25;
     nf                                  = 8;
@@ -83,13 +80,12 @@ ANNLayer "Layer B Many to One" = {
     InitVType                           = "ZeroV";
 
     VThresh                             = -infinity;
-    VMin                                = -infinity;
-    VShift                              = 0.0;
-    VMax                                = infinity;
+    AMin                                = -infinity;
+    AShift                              = 0.0;
+    AMax                                = infinity;
 };
 
 ANNLayer "Layer B One to Many" = {
-    restart                             = false;
     nxScale                             = 4;
     nyScale                             = 4;
     nf                                  = 2;
@@ -104,9 +100,9 @@ ANNLayer "Layer B One to Many" = {
     InitVType                           = "ZeroV";
 
     VThresh                             = -infinity;
-    VMin                                = -infinity;
-    VShift                              = 0.0;
-    VMax                                = infinity;
+    AMin                                = -infinity;
+    AShift                              = 0.0;
+    AMax                                = infinity;
 };
 
 HyPerConn "Original Map for One to One Test" = {
