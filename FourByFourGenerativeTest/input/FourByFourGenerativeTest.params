@@ -9,16 +9,19 @@ debugParsing = false;
 HyPerCol "column" = {
     nx = 4;
     ny = 4;
-    dt = 1;
+    dt = 1.0;
+    dtAdaptFlag = false;
     randomSeed = 609627238;
     startTime = 0.0;
-    numSteps = 10000;
-    progressStep = 2000;
+    stopTime = 10000.0;
+    progressInterval = 2000.0;
     writeProgressToErr = false;
+    errorOnNotANumber = false;
     outputPath = "output/";
+    printParamsFilename = "pv.params";
     filenamesContainLayerNames = true;
     filenamesContainConnectionNames = true;
-    checkpointRead = false;
+    initializeFromCheckpointDir = "";
     checkpointWrite = false;
     // checkpointWriteDir = "checkpoints";
     // checkpointWriteStepInterval = 1;
@@ -42,7 +45,6 @@ Movie "Slideshow" = {
     imageListPath = "./input/filenames.txt";
     readPvpFile = false;
 
-    restart = 0;
     nxScale = 1;
     nyScale = 1;
     nf = 1;
@@ -53,6 +55,7 @@ Movie "Slideshow" = {
     writeSparseActivity = false;
     
     writeImages = 0;
+    writeFrameToTimestamp = false;
     useImageBCflag = false;
     inverseFlag = false;
     normalizeLuminanceFlag = false;
@@ -62,26 +65,28 @@ Movie "Slideshow" = {
     skip_frame_index = 0;
 
     displayPeriod = 50;
+    flipOnTimescaleError = true;
     echoFramePathnameFlag = false;
     jitterFlag = 0;
     randomMovie = 0;
     offsetX = 0;
     offsetY = 0;
+    offsetAnchor = "tl";
 };
 
 Retina "Retina" = {
-    restart = 0;
     nxScale = 1;
     nyScale = 1;
     nf = 1;
     phase = 0;
     writeStep = -1;
+    writeSparseActivity = 0;
     mirrorBCflag = 1;
     spikingFlag = false;
-    writeSparseActivity = 0;
-    
     // refractoryPeriod = 5; // Not used for nonspiking retinas
     // absRefractoryPeriod = 3;
+    triggerFlag = false;
+    
 
     foregroundRate = 1000;
     backgroundRate = 0;
@@ -93,7 +98,6 @@ Retina "Retina" = {
 };
 
 ANNLayer "AnaRetina" = {
-    restart = 0;
     nxScale = 1;
     nyScale = 1;
     nf = 1;
@@ -101,17 +105,18 @@ ANNLayer "AnaRetina" = {
     writeStep = -1;
     mirrorBCflag = 1;
     writeSparseActivity = 0;
+    triggerFlag = false;
 
     InitVType = "ZeroV";
 
-    VMax = infinity;
+    AMax = infinity;
     VThresh = -infinity;
-    VMin = -infinity;
-    VShift = 0.0;
+    AMin = -infinity;
+    AShift = 0.0;
+    VWidth = 0.0;
 };
 
 LogLatWTAGenLayer "Layer A" = {
-    restart = 0;
     nxScale = 0.25;
     nyScale = 0.25;
     nf = 8;
@@ -120,12 +125,15 @@ LogLatWTAGenLayer "Layer A" = {
     initialWriteTime = 0;
     mirrorBCflag = 1;
     writeSparseActivity = 0;
+    triggerFlag = false;
+
     InitVType = "ZeroV";
 
-    VMax = infinity;
+    AMax = infinity;
     VThresh = 0;
-    VMin = 0;
-    VShift = 0.0;
+    AMin = 0;
+    AShift = 0.0;
+    VWidth = 0.0;
 
     relaxation = 1E-1;
     activityThreshold = 0;
@@ -136,7 +144,6 @@ LogLatWTAGenLayer "Layer A" = {
 };
 
 PoolingANNLayer "Pooling AnaLayer A" = {
-    restart = 0;
     nxScale = 0.25;
     nyScale = 0.25;
     nf = 8;
@@ -144,19 +151,20 @@ PoolingANNLayer "Pooling AnaLayer A" = {
     writeStep = -1;
     mirrorBCflag = 1;
     writeSparseActivity = 0;
+    triggerFlag = false;
         
     InitVType = "ZeroV";
 
-    VMax = infinity;
+    AMax = infinity;
     VThresh = -infinity;
-    VMin = -infinity;
-    VShift = 0.0;
+    AMin = -infinity;
+    AShift = 0.0;
+    VWidth = 0.0;
     
     bias = 0;
 };
 
 PoolingANNLayer "Arrow AnaLayer A" = {
-    restart = 0;
     nxScale = 0.25;
     nyScale = 0.25;
     nf = 8;
@@ -164,19 +172,20 @@ PoolingANNLayer "Arrow AnaLayer A" = {
     writeStep = -1;
     mirrorBCflag = 1;
     writeSparseActivity = 0;
+    triggerFlag = false;
         
     InitVType = "ZeroV";
 
-    VMax = infinity;
+    AMax = infinity;
     VThresh = -infinity;
-    VMin = -infinity;
-    VShift = 0.0;
+    AMin = -infinity;
+    AShift = 0.0;
+    VWidth = 0.0;
     
     bias = 1;
 };
 
 ANNLayer "Flat AnaLayer A" = {
-    restart = 0;
     nxScale = 0.25;
     nyScale = 0.25;
     nf = 8;
@@ -184,17 +193,18 @@ ANNLayer "Flat AnaLayer A" = {
     writeStep = -1;
     mirrorBCflag = 1;
     writeSparseActivity = 0;
+    triggerFlag = false;
         
     InitVType = "ZeroV";
 
-    VMax = infinity;
+    AMax = infinity;
     VThresh = -infinity;
-    VMin = -infinity;
-    VShift = 0.0;
+    AMin = -infinity;
+    AShift = 0.0;
+    VWidth = 0.0;
 };
 
 ANNLayer "CataLayer B" = {
-    restart = 0;
     nxScale = 0.25;
     nyScale = 0.25;
     nf = 2;
@@ -202,19 +212,20 @@ ANNLayer "CataLayer B" = {
     writeStep = -1;
     mirrorBCflag = 1;
     writeSparseActivity = 0;
+    triggerFlag = false;
         
     InitVType = "ZeroV";
 
-    VMax = infinity;
+    AMax = infinity;
     VThresh = -infinity;
-    VMin = -infinity;
-    VShift = 0.0;
+    AMin = -infinity;
+    AShift = 0.0;
+    VWidth = 0.0;
 };
 
 TrainingLayer "Layer B" = {
     trainingLabelsPath = "./input/trainlabels.txt";
 
-    restart = 0;
     nxScale = 0.25;
     nyScale = 0.25;
     nf = 2;
@@ -222,11 +233,13 @@ TrainingLayer "Layer B" = {
     writeStep = -1;
     mirrorBCflag = 1;
     writeSparseActivity = 0;
+    triggerFlag = false;
     
-    VMax = infinity;
+    AMax = infinity;
     VThresh = -infinity;
-    VMin = -infinity;
-    VShift = 0.0;
+    AMin = -infinity;
+    AShift = 0.0;
+    VWidth = 0.0;
     strength = 1.0;
     
     displayPeriod = 50;
@@ -234,7 +247,6 @@ TrainingLayer "Layer B" = {
 };
 
 PtwiseProductLayer "Energy AnaLayer A" = {
-    restart = 0;
     nxScale = 0.25;
     nyScale = 0.25;
     nf = 8;
@@ -242,13 +254,15 @@ PtwiseProductLayer "Energy AnaLayer A" = {
     writeStep = -1;
     mirrorBCflag = 1;
     writeSparseActivity = 0;
+    triggerFlag = false;
         
     InitVType = "ZeroV";
 
-    VMax = infinity;
+    AMax = infinity;
     VThresh = -infinity;
-    VMin = -infinity;
-    VShift = 0.0;
+    AMin = -infinity;
+    AShift = 0.0;
+    VWidth = 0.0;
 };
 
 
@@ -267,9 +281,9 @@ PtwiseProductLayer "Energy AnaLayer A" = {
 //  9  Flat AnaLayer A to Arrow AnaLayer A                   IdentConn         -
 //
 // 10  Arrow AnaLayer A to Layer B                           PoolingGenConn    aux (weights B)
-// 11  Layer A to CataLayer B                                CloneKernelConn   - (weights B)
+// 11  Layer A to CataLayer B                                CloneConn         - (weights B)
 // 12  CataLayer B to Layer A                                TransposeConn     + (weights B^T)
-// 13  Layer B to Flat AnaLayer A                            CloneKernelConn   - (weights B^T)
+// 13  Layer B to Flat AnaLayer A                            CloneConn         - (weights B^T)
 //
 // 14  Layer B to CataLayer B                                IdentConn         +
 // 15  CataLayer B to Layer B                                IdentConn         -
@@ -334,6 +348,7 @@ GenerativeConn "AnaRetina to Layer A" = {
     preActivityIsNotRate = false;
     dWMax = 1.0;
 
+    triggerFlag = false;
     weightUpdatePeriod = 10;
     initialWeightUpdateTime = 0;
     relaxation = 2E-1;
@@ -470,6 +485,7 @@ PoolingGenConn "Arrow AnaLayer A to Layer B" = {
 
     imprintingFlag = false;
     weightDecayFlag = false;
+    triggerFlag = false;
     weightUpdatePeriod = 10;
     initialWeightUpdateTime = 0;
     relaxation = 1E-1;
@@ -484,7 +500,7 @@ PoolingGenConn "Arrow AnaLayer A to Layer B" = {
     minL2NormTolerated = 0.0;
 };
 
-CloneKernelConn "Layer A to CataLayer B" = {
+CloneConn "Layer A to CataLayer B" = {
     preLayerName = "Layer A";
     postLayerName = "CataLayer B";
     
@@ -521,7 +537,7 @@ TransposeConn "CataLayer B to Layer A" = {
     updateGSynFromPostPerspective = false;
 };
 
-CloneKernelConn "Layer B to Flat AnaLayer A" = {
+CloneConn "Layer B to Flat AnaLayer A" = {
     preLayerName = "Layer B";
     postLayerName = "Flat AnaLayer A";
 
@@ -595,6 +611,8 @@ L2NormProbe "AnaRetina Energy" = {
     coeff = 1;
     probeOutputFile = "AnaRetina_Energy.txt";
     message = "AnaRetina Energy                ";
+    triggerFlag = false;
+    nnzThreshold = false;
 };
 
 L2NormProbe "AnaLayer A Energy" = {
@@ -603,6 +621,8 @@ L2NormProbe "AnaLayer A Energy" = {
     coeff = 0.5;
     probeOutputFile = "AnaLayer_A_Energy.txt";
     message = "AnaLayer A Energy               ";
+    triggerFlag = false;
+    nnzThreshold = false;
 };
 
 L2NormProbe "CataLayer B Energy" = {
@@ -611,6 +631,8 @@ L2NormProbe "CataLayer B Energy" = {
     coeff = 1;
     probeOutputFile = "CataLayer_B_Energy.txt";
     message = "CataLayer B Energy              ";
+    triggerFlag = false;
+    nnzThreshold = false;
 };
 
 LogLatWTAProbe "Layer A Lateral Competition Penalty" = {
@@ -619,6 +641,8 @@ LogLatWTAProbe "Layer A Lateral Competition Penalty" = {
     coeff = 1.0;
     probeOutputFile = "Layer_A_LatCompPenalty.txt";
     message = "Layer A Competition Penalty     ";
+    triggerFlag = false;
+    nnzThreshold = false;
 };
 
 LogLatWTAProbe "Layer B Lateral Competition Penalty" = {
@@ -627,4 +651,6 @@ LogLatWTAProbe "Layer B Lateral Competition Penalty" = {
     coeff = 1.0;
     probeOutputFile = "Layer_B_LatCompPenalty.txt";
     message = "Layer B Competition Penalty     ";
+    triggerFlag = false;
+    nnzThreshold = false;
 };
