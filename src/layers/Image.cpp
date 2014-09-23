@@ -169,7 +169,6 @@ void Image::ioParam_offsetAnchor(enum ParamsIOFlag ioFlag){
    if (ioFlag==PARAMS_IO_READ) {
       int status = PV_SUCCESS;
       if (strlen(offsetAnchor) != (size_t) 2) {
-         std::cout << "here\n";
          status = PV_FAILURE;
       }
       else {
