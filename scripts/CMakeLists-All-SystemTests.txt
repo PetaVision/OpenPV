@@ -83,14 +83,14 @@ set(MPI_CXX_COMPILER_NAME "${CMAKE_CXX_COMPILER}")
 
 add_subdirectory(${PV_DIR})
 # # Insert additional add_subdirectory commands to add other projects.
-add_subdirectory(AdjustAxonalArborsTest
-add_subdirectory(ArborSystemTest
-add_subdirectory(BasicSystemTest
-add_subdirectory(BinningLayerTest
-add_subdirectory(CheckpointSystemTest
-add_subdirectory(CloneHyPerConnTest
-add_subdirectory(CloneKernelConnTest
-add_subdirectory(CloneVLayerTest
+add_subdirectory(AdjustAxonalArborsTest)
+add_subdirectory(ArborSystemTest)
+add_subdirectory(BasicSystemTest)
+add_subdirectory(BinningLayerTest)
+add_subdirectory(CheckpointSystemTest)
+add_subdirectory(CloneHyPerConnTest)
+add_subdirectory(CloneKernelConnTest)
+add_subdirectory(CloneVLayerTest)
 add_subdirectory(ConnectionRestartTest)
 add_subdirectory(DatastoreDelayTest)
 add_subdirectory(DelaysToFeaturesTest)
