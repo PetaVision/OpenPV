@@ -173,17 +173,18 @@ int CloneConn::communicateInitInfo() {
       fprintf(stderr, "CloneConn \"%s\" error in rank %d process: originalConnName \"%s\" is not a connection in the column.\n",
             name, parent->columnId(), originalConnName);
    }
+   if (!originalConn->getInitInfoCommunicatedFlag()) {
+      if (parent->columnId()==0) {
+         const char * connectiontype = parent->parameters()->groupKeywordFromName(name);
+         printf("%s \"%s\" must wait until original connection \"%s\" has finished its communicateInitInfo stage.\n", connectiontype, name, originalConn->getName());
+      }
+      return PV_POSTPONE;
+   }
 
    // Copy some parameters from originalConn.  Check if parameters exist is
    // the clone's param group, and issue a warning (if the param has the right
    // value) or an error (if it has the wrong value).
-   int status = PV_SUCCESS;
-   PVParams * params = parent->parameters();
-   const char * classname = params->groupKeywordFromName(name);
-   sharedWeights = originalConn->usingSharedWeights();
-   parent->parameters()->handleUnnecessaryParameter(name, "sharedWeights", sharedWeights);
-   numAxonalArborLists = originalConn->numberOfAxonalArborLists();
-   parent->parameters()->handleUnnecessaryParameter(name, "numAxonalArbors", numAxonalArborLists);
+   int status = cloneParameters();
    status = HyPerConn::communicateInitInfo();
    if (status != PV_SUCCESS) return status;
 
@@ -193,6 +194,7 @@ int CloneConn::communicateInitInfo() {
 
    if (preLoc->nx != origPreLoc->nx || preLoc->ny != origPreLoc->ny || preLoc->nf != origPreLoc->nf ) {
       if (parent->icCommunicator()->commRank()==0) {
+         const char * classname = parent->parameters()->groupKeywordFromName(name);
          fprintf(stderr, "%s \"%s\" error in rank %d process: CloneConn and originalConn \"%s\" must have presynaptic layers with the same nx,ny,nf.\n",
                classname, name, parent->columnId(), originalConn->getName());
          fprintf(stderr, "{nx=%d, ny=%d, nf=%d} versus {nx=%d, ny=%d, nf=%d}\n",
@@ -206,10 +208,6 @@ int CloneConn::communicateInitInfo() {
    pre->synchronizeMarginWidth(originalConn->preSynapticLayer());
 
    //Redudant read in case it's a clone of a clone
-   numAxonalArborLists = originalConn->numberOfAxonalArborLists();
-   shrinkPatches_flag = originalConn->getShrinkPatches_flag();
-   parent->parameters()->handleUnnecessaryParameter(name, "shrinkPatches", shrinkPatches_flag);
-   useWindowPost = originalConn->getUseWindowPost();
 
    return status;
 }
@@ -226,6 +224,24 @@ int CloneConn::setPatchSize() {
    parent->parameters()->handleUnnecessaryParameter(name, "nxpShrunken", nxpShrunken);
    parent->parameters()->handleUnnecessaryParameter(name, "nypShrunken", nypShrunken);
    parent->parameters()->handleUnnecessaryParameter(name, "nfp", nfp);
+   return PV_SUCCESS;
+}
+
+int CloneConn::cloneParameters() {
+   // Copy sharedWeights, numAxonalArborLists, shrinkPatches_flag, useWindowPost from originalConn
+
+   PVParams * params = parent->parameters();
+
+   sharedWeights = originalConn->usingSharedWeights();
+   params->handleUnnecessaryParameter(name, "sharedWeights", sharedWeights);
+
+   numAxonalArborLists = originalConn->numberOfAxonalArborLists();
+   params->handleUnnecessaryParameter(name, "numAxonalArbors", numAxonalArborLists);
+
+   shrinkPatches_flag = originalConn->getShrinkPatches_flag();
+   parent->parameters()->handleUnnecessaryParameter(name, "shrinkPatches", shrinkPatches_flag);
+
+   useWindowPost = originalConn->getUseWindowPost();
    return PV_SUCCESS;
 }
 

@@ -24,7 +24,7 @@ protected:
    int initialize(const char * name, HyPerCol * hc);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    virtual void ioParam_keepKernelsSynchronized(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_useWindowPost(enum ParamsIOFlag ioFlag);
+   virtual int cloneParameters();
 
 private:
    int initialize_base();
