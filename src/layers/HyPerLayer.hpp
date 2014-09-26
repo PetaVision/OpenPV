@@ -275,8 +275,8 @@ protected:
    void recvOnePreNeuronActivity(HyPerConn * conn, int patchIndex, int arbor, pvadata_t a, pvgsyndata_t * postBufferStart, void * auxPtr);
 
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
-   virtual int recvSynapticInputGpu(HyPerConn * conn, const PVLayerCube * cube, int arborID, bool firstRun);
-   virtual int recvSynapticInputFromPostGpu(HyPerConn * conn, const PVLayerCube * activity, int arborID, bool firstRun);
+   virtual int recvSynapticInputGpu(HyPerConn * conn, const PVLayerCube * cube, int arborID);
+   virtual int recvSynapticInputFromPostGpu(HyPerConn * conn, const PVLayerCube * activity, int arborID);
 #endif 
 
 
