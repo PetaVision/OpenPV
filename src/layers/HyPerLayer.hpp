@@ -172,11 +172,11 @@ protected:
    /**
     * @brief initVType: Specifies how to initialize the V buffer. 
     * @details Possible choices include
-    * - \link InitV::ioParamGroup_ConstantV() ConstantV \endlink: Sets V to a constant value
-    * - \link InitV::ioParamGroup_ZeroV() ZeroV \endlink: Sets V to zero
-    * - \link InitV::ioParamGroup_UniformRandomV() UniformRandomV \endlink: Sets V with a uniform distribution
-    * - \link InitV::ioParamGroup_GaussianRandomV() GaussianRandomV \endlink: Sets V with a gaussian distribution
-    * - \link InitV::ioparamGroup_InitVFromFile() InitVFromFile \endlink: Sets V to specified pvp file
+    * - @link InitV::ioParamGroup_ConstantV ConstantV@endlink: Sets V to a constant value
+    * - @link InitV::ioParamGroup_ZeroV ZeroV@endlink: Sets V to zero
+    * - @link InitV::ioParamGroup_UniformRandomV UniformRandomV@endlink: Sets V with a uniform distribution
+    * - @link InitV::ioParamGroup_GaussianRandomV GaussianRandomV@endlink: Sets V with a gaussian distribution
+    * - @link InitV::ioparamGroup_InitVFromFile InitVFromFile@endlink: Sets V to specified pvp file
     *
     * Further parameters are needed depending on initialization type.
     */

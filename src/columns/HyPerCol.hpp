@@ -183,36 +183,176 @@ private:
    int initialize(const char * name, int argc, char ** argv, PVParams * params);
    int ioParams(enum ParamsIOFlag ioFlag);
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+
+   /** 
+    * List of parameters needed from the HyPerCol class
+    * @name HyPerCol Parameters
+    * @{
+    */
+
+   /**
+    * @brief startTime: The set starting time for the run
+    */
    virtual void ioParam_startTime(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_dt(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_dtAdaptFlag(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_dtScaleMax(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_dtScaleMin(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_dtChangeMax(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_dtChangeMin(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_dtMinToleratedTimeScale(enum ParamsIOFlag ioFlag);
+   /**
+    * @brief stopTime: The set stopping time for the run
+    */
    virtual void ioParam_stopTime(enum ParamsIOFlag ioFlag);
+   /**
+    * @brief dt: The default delta time to use.
+    * @details This dt is used for advancing the run time.
+    */
+   virtual void ioParam_dt(enum ParamsIOFlag ioFlag);
+   /**
+    * @brief dtAdaptFlag: A flag to determine if the run is using an adaptive timestep
+    */
+   virtual void ioParam_dtAdaptFlag(enum ParamsIOFlag ioFlag);
+   /**
+    * @brief dtScaleMax: If dtAdaptFlag is set, specifies the maximum timescale allowed
+    */
+   virtual void ioParam_dtScaleMax(enum ParamsIOFlag ioFlag);
+   /**
+    * @brief dtScaleMin: If dtAdaptFlag is set, specifies the default timescale
+    * @details The parameter name is misleading, since dtAdapt can drop below timescale min
+    */
+   virtual void ioParam_dtScaleMin(enum ParamsIOFlag ioFlag);
+   /**
+    * @brief dtChangeMax: If dtAdaptFlag is set, specifies the upper limit of adaptive dt based on error
+    * @details dt will only adapt if the percent change in error is between dtChangeMin and dtChangeMax
+    */
+   virtual void ioParam_dtChangeMax(enum ParamsIOFlag ioFlag);
+   /**
+    * @brief dtChangeMin: If dtAdaptFlag is set, specifies the lower limit of adaptive dt based on error
+    * @details dt will only adapt if the percent change in error is between dtChangeMin and dtChangeMax.
+    * Defaults to 0
+    */
+   virtual void ioParam_dtChangeMin(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief dtMinToleratedTimeScale: If dtAdaptFlag, specifies the minimum value dt can drop to before exiting
+    * @details Program will exit if timeScale drops below this value
+    */
+   virtual void ioParam_dtMinToleratedTimeScale(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief progressInterval: Specifies how often a progress report prints out
+    * @details Units of dt
+    */
    virtual void ioParam_progressInterval(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief writeProgressToErr: Sepcifies if the run prints progress output to stderr
+    */
    virtual void ioParam_writeProgressToErr(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief outputPath: Specifies the absolute or relative output path of the run
+    */
    virtual void ioParam_outputPath(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief printParamsFilename: Specifies the output params filename.
+    * @details Defaults to pv.params. The output params file will be put into outputPath.
+    */
    virtual void ioParam_printParamsFilename(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief randomSeed: The seed for the random number generator for reproducability
+    */
    virtual void ioParam_randomSeed(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief nx: Specifies the size of the column
+    */
    virtual void ioParam_nx(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief ny: Specifies the size of the column
+    */
    virtual void ioParam_ny(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief filenamesContainLayerNames: Specifies if layer names gets printed out to output connection pvp files
+    * @details Options are 0, 1, or 2.
+    * - 0: connections have form a5.pvp
+    * - 1: layers have form a5_NameOfLayer.pvp
+    * - 2: layers have form NameOfLayer.pvp
+    */
    virtual void ioParam_filenamesContainLayerNames(enum ParamsIOFlag ioFlag);
+   /**
+    * @brief filenamesContainConnectionNames: Specifies if connection names gets printed out to output connection pvp files
+    * @details Options are 0, 1, or 2.
+    * - 0: connections have form w5.pvp
+    * - 1: layers have form w5_NameOfConnection.pvp
+    * - 2: layers have form NameOfConnection.pvp
+    */
    virtual void ioParam_filenamesContainConnectionNames(enum ParamsIOFlag ioFlag);
+   /**
+    * @brief initializeFromChckpointDir: Sets directory for layers and connection to initialize from.
+    */
    virtual void ioParam_initializeFromCheckpointDir(enum ParamsIOFlag ioFlag);
+   /**
+    * @brief defaultInitializeFromCheckpointFlag: Flag to set the default for layers and connections.
+    * @details Sets the default for layers and connections to use for initialize from checkpoint
+    * based off of initializeFromCheckpointDir. Only used if initializeFromCheckpointDir is set.
+    */
    virtual void ioParam_defaultInitializeFromCheckpointFlag(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief checkpointRead: Depreciated. Use <-c foo/Checkpoint100>
+    */
    virtual void ioParam_checkpointRead(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief checkpointWrite: Flag to determine if the run writes checkpoints. 
+    */
    virtual void ioParam_checkpointWrite(enum ParamsIOFlag ioFlag);
+   /**
+    * @brief checkpointWriteDir: If checkpointWrite is set, specifies the output checkpoint directory.
+    */
    virtual void ioParam_checkpointWriteDir(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief checkpointWriteTriggerMode: If checkpointWrite is set, specifies the method to checkpoint. 
+    * @details Possible choices include
+    * - step: Checkpoint off of timesteps
+    * - time: Checkpoint off of simulation time
+    * - clock: Checkpoint off of clock time. Not implemented yet.
+    */
    virtual void ioParam_checkpointWriteTriggerMode(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief checkpointWriteStepInterval: If checkpointWrite on step, specifies the number of steps between checkpoints.
+    */
    virtual void ioParam_checkpointWriteStepInterval(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief checkpointWriteTimeInteval: If checkpointWrite on time, specifies the amount of simulation time between checkpoints.
+    */
    virtual void ioParam_checkpointWriteTimeInterval(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief deleteOlderCheckpoints: If checkpointWrite, specifies if the run should delete older checkpoints when writing new ones.
+    */
    virtual void ioParam_deleteOlderCheckpoints(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief supressLastOutput: If checkpointWrite, specifies if the run should supress the final written checkpoint for the end of the run.
+    */
    virtual void ioParam_suppressLastOutput(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief writeTimescales: If dtAdaptFlag, specifies if the timescales should be written
+    * @details The timescales get written to outputPath/HyPerCol_timescales.txt.
+    */
    virtual void ioParam_writeTimescales(enum ParamsIOFlag ioFlag); 
+
+   /**
+    * @brief errorOnNotANumber: Specifies if the run should check on each timestep for nans in activity.
+    */
    virtual void ioParam_errorOnNotANumber(enum ParamsIOFlag ioFlag);
+
+   /** @} */
 
    int checkDirExists(const char * dirname, struct stat * pathstat);
 
