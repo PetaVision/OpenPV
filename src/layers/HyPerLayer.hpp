@@ -156,24 +156,117 @@ public:
    virtual double getTimeScale()      {return -1.0;};
 protected:
 
+   /**
+    * The function that calls all ioParam functions
+    */
    virtual int  ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+
+   
+
+   /** 
+    * @addtogroup PV_Params Parameters
+    * HyPerLayer Parameters
+    * @{
+    */
+
+   /**
+    * nxScale: Defines the relationship between the x column size and the layer size.
+    * Must be 2^n or 1/2^n
+    */
    virtual void ioParam_nxScale(enum ParamsIOFlag ioFlag);
+   /**
+    * nxScale: Defines the relationship between the y column size and the layer size.
+    * Must be 2^n or 1/2^n
+    */
    virtual void ioParam_nyScale(enum ParamsIOFlag ioFlag);
+   /**
+    * nyScale: Defines how many features this layer has
+    */
    virtual void ioParam_nf(enum ParamsIOFlag ioFlag);
+
+   /**
+    * marginWidth: Deprecated
+    */
    virtual void ioParam_marginWidth(enum ParamsIOFlag ioFlag);
+
+   /**
+    * phase: Defines the ordering in which each layer is updated
+    */
    virtual void ioParam_phase(enum ParamsIOFlag ioFlag);
+
+   /**
+    * mirrorBCflag: If set to true, the margin will mirror the data
+    */
    virtual void ioParam_mirrorBCflag(enum ParamsIOFlag ioFlag);
+
+   /**
+    * valueBC: Uses the specified value for the margin area
+    * Note that this parameter only gets read if mirrorBC is false
+    */
    virtual void ioParam_valueBC(enum ParamsIOFlag ioFlag);
+
+   /**
+    * restart: Deprecated
+    */
    virtual void ioParam_restart(enum ParamsIOFlag ioFlag); // Deprecating in favor of initializeFromCheckpointFlag?
+
+   /**
+    * initializeFromCheckpointFlag: If set to true, initialize using checkpoint direcgtory set in HyPerCol.
+    * Note that checkpoint read directory must be set in HyPerCol to initialize from checkpoint.
+    */
    virtual void ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag);
+
+   /**
+    * initVType: Specifies how to initialize the V buffer. Possible choices include
+    * "ConstantV": Sets V to a constant value
+    * "ZeroV": Sets V to zero
+    * "InitVFromFile": Sets V to specified pvp file
+    * "UniformRandomV": Sets V with a uniform distribution
+    * "GaussianRandomV": Sets V with a gaussian distribution
+    */
    virtual void ioParam_InitVType(enum ParamsIOFlag ioFlag);
+
+   /**
+    * triggerFlag: Specifies if this layer is being triggered
+    * Defaults to false
+    */
    virtual void ioParam_triggerFlag(enum ParamsIOFlag ioFlag);
+
+   /**
+    * triggerLayerName: If trigger flag is set, specifies the layer this current layer is triggering off of.
+    */
    virtual void ioParam_triggerLayerName(enum ParamsIOFlag ioFlag);
+
+   /**
+    * triggerOffset: If trigger flag is set, specifies a positive value that allows the current layer to be 
+    * triggered triggerOffset timesteps before this layer's trigger.
+    */
    virtual void ioParam_triggerOffset(enum ParamsIOFlag ioFlag);
+
+   /**
+    * writeStep: Specifies how often to output a pvp file for this layer
+    * Defaults to every timestep
+    */
    virtual void ioParam_writeStep(enum ParamsIOFlag ioFlag);
+
+   /**
+    * initialWriteTime: Specifies the first timestep to start outputing pvp files
+    */
    virtual void ioParam_initialWriteTime(enum ParamsIOFlag ioFlag);
+
+   /**
+    * writeSparseActivity: Specifies if the output written should be a sparse activity file
+    */
    virtual void ioParam_writeSparseActivity(enum ParamsIOFlag ioFlag);
+
+   /**
+    * writeSparseValues: If writeSparseActivity is set, specifies if the pvp file should write out values along with location
+    * of a sparse pvp file
+    */
    virtual void ioParam_writeSparseValues(enum ParamsIOFlag ioFlag);
+   /**
+    * @}
+    */
 
    static int equalizeMargins(HyPerLayer * layer1, HyPerLayer * layer2);
 
@@ -244,6 +337,8 @@ public:
     * A virtual function to determine if updateState method needs to be called
     * Default behaviour is dependent on the flag triggerFlag. If true, will call attached trigger layer's needUpdate
     * If triggerFlag is false, this function will return true
+    * @param time The current timestep of the run
+    * @param dt The current non-adaptive dt of the run
     * @return Returns if the update needs to happen
     */
    virtual bool needUpdate(double time, double dt);
