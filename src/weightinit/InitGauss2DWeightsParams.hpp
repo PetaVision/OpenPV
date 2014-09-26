@@ -13,6 +13,30 @@
 namespace PV {
 
 class InitGauss2DWeightsParams: public PV::InitWeightsParams {
+protected:
+
+   /** 
+    * List of parameters needed from the InitGauss2DWeightParams class
+    * @anchor Gauss2DWeightParams
+    * @name InitGauss2DWeight Parameters
+    * @{
+    */
+   virtual void ioParam_aspect(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_sigma(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_rMax(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_rMin(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_strength(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_numOrientationsPost(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_numOrientationsPre(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_deltaThetaMax(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_thetaMax(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_numFlanks(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_flankShift(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_rotate(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_bowtieFlag(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_bowtieAngle(enum ParamsIOFlag ioFlag);
+   void ioParam_aspectRelatedParams(enum ParamsIOFlag ioFlag);
+   /** @} */
 public:
    InitGauss2DWeightsParams();
    InitGauss2DWeightsParams(HyPerConn * parentConn);
@@ -55,21 +79,7 @@ protected:
    int initialize_base();
    int initialize(HyPerConn * parentConn);
 
-   virtual void ioParam_aspect(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_sigma(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_rMax(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_rMin(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_strength(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_numOrientationsPost(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_numOrientationsPre(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_deltaThetaMax(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_thetaMax(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_numFlanks(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_flankShift(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_rotate(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_bowtieFlag(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_bowtieAngle(enum ParamsIOFlag ioFlag);
-   void ioParam_aspectRelatedParams(enum ParamsIOFlag ioFlag);
+
    bool needAspectParams();
    void calculateThetas(int kfPre_tmp, int patchIndex);
 

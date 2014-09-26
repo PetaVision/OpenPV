@@ -2245,8 +2245,7 @@ int HyPerLayer::recvSynapticInputFromPostGpu(HyPerConn * conn, const PVLayerCube
       CLBuffer * d_preActivity = sourceToTargetConn->preSynapticLayer()->getDeviceActivity();
 #endif
 #ifdef PV_USE_CUDA
-      //std::cout << "preActivity size: " << sourceToTargetConn->preSynapticLayer()->getNumExtended() << "\n";
-      PVCuda::CudaBuffer * d_preActivity = sourceToTargetConn->preSynapticLayer()->getDeviceActivity();
+      PVCuda::CudaBuffer* d_preActivity = sourceToTargetConn->preSynapticLayer()->getDeviceActivity();
 #endif
       assert(d_preActivity);
       d_preActivity->copyToDevice(h_preActivity);

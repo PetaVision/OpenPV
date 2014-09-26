@@ -54,31 +54,33 @@ int pvpatch_accumulate_from_post(int nk, CL_MEM_LOCAL float * v, CL_MEM_LOCAL fl
    while(k < nk){
       //GPUs can do 2, 4, 8, and 16 vector multiplications
       if(nk - k > 16){
-         CL_MEM_LOCAL float16 * activity16 = (CL_MEM_LOCAL float16*) (a+k);
-         CL_MEM_LOCAL float16 * weight16   = (CL_MEM_LOCAL float16*) (w+k);
-         float16 ans16 = *activity16 * *weight16;
+         float16 activity16 = (float16)(a[k], a[k+1], a[k+2], a[k+3], a[k+4], a[k+5], a[k+6], a[k+7],
+                               a[k+8], a[k+9], a[k+10], a[k+11], a[k+12], a[k+13], a[k+14], a[k+15]);
+         float16 weight16 = (float16)(w[k], w[k+1], w[k+2], w[k+3], w[k+4], w[k+5], w[k+6], w[k+7],
+                               w[k+8], w[k+9], w[k+10], w[k+11], w[k+12], w[k+13], w[k+14], w[k+15]);
+         float16 ans16 = activity16 * weight16;
          *v += (ans16.s0 + ans16.s1 + ans16.s2 + ans16.s3 + ans16.s4 + ans16.s5 + ans16.s6 + ans16.s7 + 
                 ans16.s8 + ans16.s9 + ans16.sa + ans16.sb + ans16.sc + ans16.sd + ans16.se + ans16.sf) * dt_factor;
          k += 16;
       }
       else if(nk - k > 8){
-         CL_MEM_LOCAL float8 * activity8 = (CL_MEM_LOCAL float8*) (a+k);
-         CL_MEM_LOCAL float8 * weight8   = (CL_MEM_LOCAL float8*) (w+k);
-         float8 ans8 = *activity8 * *weight8;
+         float8 activity8 = (float8)(a[k], a[k+1], a[k+2], a[k+3], a[k+4], a[k+5], a[k+6], a[k+7]);
+         float8 weight8 = (float8)(w[k], w[k+1], w[k+2], w[k+3], w[k+4], w[k+5], w[k+6], w[k+7]);
+         float8 ans8 = activity8 * weight8;
          *v += (ans8.s0 + ans8.s1 + ans8.s2 + ans8.s3 + ans8.s4 + ans8.s5 + ans8.s6 + ans8.s7) * dt_factor;
          k += 8;
       }
       else if(nk - k > 4){
-         CL_MEM_LOCAL float4 * activity4 = (CL_MEM_LOCAL float4*) (a+k);
-         CL_MEM_LOCAL float4 * weight4   = (CL_MEM_LOCAL float4*) (w+k);
-         float4 ans4 = *activity4 * *weight4;
+         float4 activity4 = (float4)(a[k], a[k+1], a[k+2], a[k+3]);
+         float4 weight4 = (float4)(w[k], w[k+1], w[k+2], w[k+3]);
+         float4 ans4 = activity4 * weight4;
          *v += (ans4.x + ans4.y + ans4.z + ans4.w) * dt_factor;
          k += 4;
       }
       else if(nk - k > 2){ 
-         CL_MEM_LOCAL float2 * activity2 = (CL_MEM_LOCAL float2*) (a+k);
-         CL_MEM_LOCAL float2 * weight2   = (CL_MEM_LOCAL float2*) (w+k);
-         float2 ans2 = *activity2 * *weight2;
+         float2 activity2 = (float2)(a[k], a[k+1]);
+         float2 weight2 = (float2)(w[k], w[k+1]);
+         float2 ans2 = activity2 * weight2;
          *v += (ans2.x + ans2.y) * dt_factor;
          k += 2;
       }
@@ -184,19 +186,12 @@ void HyPerLayer_recv_post(
          //Copy global to local, do this with all threads
          //Pre buffer
          async_work_group_copy(preBuffer, &(preData[localStartSourceExt + ky * sy]), numXfBuffer, event1);
-         //for(int i = localIndex; i < numXfBuffer; i+=numThreads){
-         //   preBuffer[i] = preData[localStartSourceExt + ky * sy + i];
-         //}
 
          //Weights
          async_work_group_copy(weightsBuffer, &weights[wIdx+ky * syp], nxp*nfp, event2);
-         //for(int i = localIndex; i < nxp*nfp; i+= numThreads){
-         //   weightsBuffer[i] = weights[wIdx + ky * syp + i];
-         //}
 
          wait_group_events(1, event1);
          wait_group_events(1, event2);
-         barrier(CLK_LOCAL_MEM_FENCE);
          
          CL_MEM_LOCAL float * activityY = &(preBuffer[xOffset * nfp]);
          //CL_MEM_GLOBAL float * activityY = &(preData[startSourceExt + ky * sy]);
@@ -206,9 +201,6 @@ void HyPerLayer_recv_post(
          pvpatch_accumulate_from_post(numPerStride, postAddr, activityY, weightsBuffer, dt_factor, (void*)0);
          barrier(CLK_LOCAL_MEM_FENCE);
       }
-
-      //Barrier to make sure the work group's postbuffer is set
-      barrier(CLK_LOCAL_MEM_FENCE);
 
       //Sum into global memory
       postGsyn[kTargetRes] += postBuffer[localIndex];

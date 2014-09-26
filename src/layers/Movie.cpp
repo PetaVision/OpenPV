@@ -525,7 +525,7 @@ int Movie::outputState(double timed, bool last)
 {
    if (writeImages) {
       char basicFilename[PV_PATH_MAX + 1];
-      snprintf(basicFilename, PV_PATH_MAX, "%s/Movie_%.2f.%s", movieOutputPath, timed, writeImagesExtension);
+      snprintf(basicFilename, PV_PATH_MAX, "%s/%s_%.2f.%s", movieOutputPath, name, timed, writeImagesExtension);
       write(basicFilename);
    }
 

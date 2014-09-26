@@ -97,8 +97,8 @@ protected:
 
    /**
     * @brief jitterType: If jitter flag is set, specifies the type of jitter. 0 for random walk, 1 for random jump
-    * @details Random Walk: Jitters the specified step in any direction <br />
-    * Random Jump: Jitters any value between -step and step in any direction
+    * @details - Random Walk: Jitters the specified step in any direction
+    * - Random Jump: Jitters any value between -step and step in any direction
     */
    virtual void ioParam_jitterType(enum ParamsIOFlag ioFlag);
 

@@ -394,7 +394,6 @@ public:
    static int getPreAndPostLayerNames(const char * name, PVParams * params, char ** preLayerNamePtr, char ** postLayerNamePtr);
    static int inferPreAndPostFromConnName(const char * name, PVParams * params, char ** preLayerNamePtr, char ** postLayerNamePtr);
    virtual int handleMissingPreAndPostLayerNames();
-   virtual void ioParam_strength(enum ParamsIOFlag, float * strength, bool warnIfAbsent=true);
 
 #ifdef USE_SHMGET
    virtual bool getShmgetFlag(){
@@ -623,52 +622,355 @@ protected:
    virtual int setWeightInitializer();
    virtual InitWeights * createInitWeightsObject(const char * weightInitTypeStr);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+
+   /** 
+    * List of parameters needed from the HyPerConn class
+    * @name HyPerConn Parameters
+    * @{
+    */
+
+   /**
+    * @brief preLayerName: Specifies the connection's pre layer
+    * @details Required parameter
+    */
    virtual void ioParam_preLayerName(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief postLayerName: Specifies the connection's post layer
+    * @details Required parameter
+    */
    virtual void ioParam_postLayerName(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief channelCode: Specifies which channel in the post layer this connection is attached to
+    * @details Channels can be -1 for no update, or >= 0 for channel number. <br />
+    * 0 is excitatory, 1 is inhibitory
+    */
    virtual void ioParam_channelCode(enum ParamsIOFlag ioFlag);
+
    // virtual void ioParam_initWeightsFile(enum ParamsIOFlag ioFlag);
+   /**
+    * @brief sharedWeights: Defines if the HyPerConn uses shared weights (kernelConn)
+    */
    virtual void ioParam_sharedWeights(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief initializeFromCheckpointFlag: If set to true, initialize using checkpoint direcgtory set in HyPerCol.
+    * @details Checkpoint read directory must be set in HyPerCol to initialize from checkpoint.
+    */
    virtual void ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief weightInitType: Specifies the initialization method of weights
+    * @details Possible choices are
+    * - @link InitGauss2DWeightsParams Gauss2DWeight@endlink: 
+    *   Initializes weights with a gaussian distribution in x and y over each f
+    *
+    * - @link InitCocircWeightsParams CoCircWeight@endlink:
+    *   Initializes cocircular weights
+    *
+    * - @link InitUniformWeightsParams UniformWeight@endlink:
+    *   Initializes weights with a single uniform weight
+    *
+    * - @link InitSmartWeights SmartWeight@endlink:
+    *   TODO
+    *
+    * - @link InitDistributedWeightsParams DistributedWeight@endlink:
+    *   TODO
+    *
+    * - @link InitByArborWeights ArborWeight@endlink:
+    *   Initializes different weights in different arbors
+    *
+    * - @link InitBIDSLateralParams BIDSLateral@endlink:
+    *   TODO
+    *
+    * - @link InitUniformRandomWeightsParams UniformRandomWeight@endlink:
+    *   Initializes weights with a uniform distribution
+    *
+    * - @link InitGaussianRandomWeightsParams GaussianRandomWeight@endlink:
+    *   Initializes individual weights with a gaussian distribution
+    *
+    * - @link InitGaborWeightsParams GaborWeight@endlink:
+    *   TODO
+    *
+    * - @link InitPoolWeightsParams PoolWeight@endlink:
+    *   TODO
+    *
+    * - @link InitRuleWeightsParams RuleWeight@endlink:
+    *   TODO
+    *
+    * - @link InitSubUnitWeightsParams SubUnitWeight@endlink:
+    *   TODO
+    *
+    * - @link InitIdentWeightsParams IdentWeight@endlink:
+    *   Initializes weights for ident conn (one to one with a strength to 1)
+    *
+    * - @link InitOneToOneWeightsParams OneToOneWeight@endlink:
+    *   Initializes weights as a multiple of the identity matrix
+    *
+    * - @link InitOneToOneWeightsWithDelaysParams OneToOneWeightsWithDelays@endlink:
+    *   Initializes weights as a multiple of the identity matrix with delays
+    *
+    * - @link InitSpreadOverArborsWeightsParams SpreadOverArborsWeight@endlink:
+    *   Initializes weights where different part of the weights over different arbors
+    *
+    * - @link Init3DGaussWeightsParams Gauss3DWeight@endlink:
+    *   Initializes weights with a gaussian distribution in x, y, and f
+    *
+    * - @link InitWindowed3DGaussWeightsParams Windowed3DGaussWeights@endlink:
+    *   Initializes weights with a gaussian distribution in x, y, and f over windows
+    *
+    * - @link InitMTWeightsParams MTWeight@endlink:
+    *   TODO
+    *
+    * - @link InitWeightsParams FileWeight@endlink:
+    *   Initializes weights from a specified pvp file.
+    *
+    * Further parameters are needed depending on initialization type
+    */
+
    virtual void ioParam_weightInitType(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief numAxonalArbors: Specifies the number of arbors to use in this connection
+    */
    virtual void ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief plasticityFlag: Specifies if the weights will be updated
+    */
    virtual void ioParam_plasticityFlag(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief weightUpdatePeriod: If plasticity flag is set, specifies the update period of weights
+    */
    virtual void ioParam_weightUpdatePeriod(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief initialWeightUpdateTime: If plasticity flag is set, specifies the inital weight update time
+    */
    virtual void ioParam_initialWeightUpdateTime(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief triggerFlag: If plasticity flag is set, allows weight updates to be triggered off layers
+    */
    virtual void ioParam_triggerFlag(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief triggerLayerName: If trigger flag is set, specifies the layer to trigger off of
+    */
    virtual void ioParam_triggerLayerName(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief triggerOffset: If trigger flag is set, triggers <triggerOffset> timesteps before target trigger
+    * @details Defaults to 0.
+    */
    virtual void ioParam_triggerOffset(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief pvpatchAccumulateType: Specifies the method to accumulate synaptic input
+    * @details Possible choices are
+    * - convolve: Accumulates through convolution
+    * - stochastic: Accumulates through stochastic release
+    * - maxpooling: Accumulates through max pooling
+    *
+    * Defaults to convolve.
+    */
    virtual void ioParam_pvpatchAccumulateType(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief preActivityIsNotRate: If true, pre activity is spike rate. If false, pre activity is value
+    * @details The post synaptic layer needs to interpret pre synaptic activity as a spike rate
+    * Other situations interpret as a value. This flag sets either one or the other.
+    */
    virtual void ioParam_preActivityIsNotRate(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief writeStep: Specifies the write period of the connection.
+    * @details Defaults to every timestep. -1 to not write at all.
+    */
    virtual void ioParam_writeStep(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief initialWriteTime: If writeStep is >= 0, sets the initial write time of the connection.
+    */
    virtual void ioParam_initialWriteTime(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief writeCompressedWeights: If writeStep >= 0, weights written our are bytes as opposed to floats.
+    */
    virtual void ioParam_writeCompressedWeights(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief writeCompressedCheckpoints: Checkpoint weights are written compressed.
+    * @details The parent HyPerCol must be writing checkpoints for this flag to be used
+    */
    virtual void ioParam_writeCompressedCheckpoints(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief selfFlag: Indicates if pre and post is the same layer.
+    * @details The default value for selfFlag should be pre==post, but at the time ioParams(PARAMS_IO_READ) is called,
+    * pre and post have not been set.  So we read the value with no warning if it's present;
+    * if it's absent, set the value to pre==post in the communicateInitInfo stage and issue
+    * the using-default-value warning then.
+    */
    virtual void ioParam_selfFlag(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief combine_dW_with_W_flag: If plasticity flag is set, specifies if dW buffer is allocated
+    * @details dW buffer, if not allocated, will point to weight buffer and accumulate weights as
+    * it gets them
+    */
    virtual void ioParam_combine_dW_with_W_flag(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief delay: Specifies a delay which the post layer will receive data
+    */
    virtual void ioParam_delay(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief nxp: Specifies the x patch size
+    * @details If one pre to many post, nxp restricted to many * an odd number
+    * If many pre to one post or one pre to one post, nxp restricted to an odd number
+    */
    virtual void ioParam_nxp(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief nyp: Specifies the y patch size
+    * @details If one pre to many post, nyp restricted to many * an odd number
+    * If many pre to one post or one pre to one post, nyp restricted to an odd number
+    */
    virtual void ioParam_nyp(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief nxpShrunken: Specifies a shrunken patch size
+    */
    virtual void ioParam_nxpShrunken(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief nypShrunken: Specifies a shrunken patch size
+    */
    virtual void ioParam_nypShrunken(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief nfp: Specifies the post feature patch size
+    */
    virtual void ioParam_nfp(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief shrinkPatches: Optimization for shrinking a patch to it's non-zero values 
+    */
    virtual void ioParam_shrinkPatches(enum ParamsIOFlag ioFlag);
+   
+   /**
+    * @brief shrinkPatchesThresh: If shrinkPatches flag is set, specifies threshold to consider weight as zero
+    */
    virtual void ioParam_shrinkPatchesThresh(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief updateGSynFromPostPerspective: Specifies if the connection should push from pre or pull from post.
+    */
    virtual void ioParam_updateGSynFromPostPerspective(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief dWMax: If plasticity flag is set, specifies the learning rate of the weight updates.
+    */
    virtual void ioParam_dWMax(enum ParamsIOFlag ioFlag);
+   
+   /**
+    * @brief normalizeMethod: Specifies the normalization method for weights
+    * @details Weights will be normalized after initialization and after each weight update.
+    * Possible choices are:
+    * - @link NormalizeSum normalizeSum@endlink: 
+    *   Normalization where sum of weights add up to strength
+    * - @link NormalizeL2 normalizeL2@endlink: 
+    *   Normaliztion method where L2 of weights add up to strength
+    * - @link NormalizeMax normalizeMax@endlink: 
+    *   Normaliztion method where Max is clamped at strength
+    * - @link NormalizeContrastZeroMean normalizeContrastZeroMean@endlink: 
+    *   Normalization method for a weight with specified mean and std
+    * - @link NormalizeScale normalizeScale@endlink: 
+    *   TODO
+    * - none: Do not normalize 
+    *
+    * Further parameters are needed depending on initialization type.
+    */
    virtual void ioParam_normalizeMethod(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief sharedWeights: Deprecated
+    */
    virtual void ioParam_shmget_flag(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief keepKernelsSynchronized: If using sharedWeights and plasticityFlag, sets if kernels should be synchronized during the run.
+    */
    virtual void ioParam_keepKernelsSynchronized(enum ParamsIOFlag ioFlag);
+   
+   /**
+    * @brief useWindowPost: If using sharedWeights, numAxonalArbors, and plasticityFlag is set,
+    * specifies if windows are from post perspective.
+    */
    virtual void ioParam_useWindowPost(enum ParamsIOFlag ioFlag);
 
+public:
+   /**
+    * @brief strength: A value that specifies the strength of the connection
+    * @details - @link InitGauss2DWeightsParams Gauses2DWeight@endlink: 
+    *   Sets initialization of sum of the weights to strength
+    * - @link Init3DGaussWeightsParams Gauss3DWeight@endlink:
+    *   Sets initialization of sum of the weights to strength
+    * - @link NormalizeSum normalizeSum@endlink:
+    *   Sets sum of weights to strength
+    * - @link NormalizeL2 normalizeL2@endlink:
+    *   Sets normaliztion L2 to strength 
+    * - @link NormalizeMax normalizeMax@endlink:
+    *   Sets normalization max to strength
+    */
+   virtual void ioParam_strength(enum ParamsIOFlag, float * strength, bool warnIfAbsent=true);
+protected:
+
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+   /**
+    * @brief receiveGpu: Allows receive synaptic input on the gpu
+    */
    virtual void ioParam_receiveGpu(enum ParamsIOFlag ioFlag);
+   /**
+    * @brief preDataLocal: If not using CUDNN, specifies if preData should be in local memory
+    */
    virtual void ioParam_preDataLocal(enum ParamsIOFlag ioFlag);
+   /**
+    * @brief numXLocal: Specifies number of local threads to run in x direction
+    * @details Only set if receiving from gpu. Not used if using receive CUDNN from post. 
+    */
    virtual void ioParam_numXLocal(enum ParamsIOFlag ioFlag);
+   /**
+    * @brief numYLocal: Specifies number of local threads to run in xydirection
+    * @details Only set if receiving from gpu. Not used if using receive CUDNN from post. 
+    * Must be divisible by post layer x size. numXLocal * numYLocal * numFLocal must be less
+    * than the amount of local threads specified by the hardware.
+    */
    virtual void ioParam_numYLocal(enum ParamsIOFlag ioFlag);
+   /**
+    * @brief numYLocal: Specifies number of local threads to run in xydirection
+    * @details Only set if receiving from gpu. Not used if using receive CUDNN from post. 
+    * If using preDataLocal and recv form post, must be set to 1. numXLocal * numYLocal * numFLocal
+    * must be less than the amount of local threads specified by the hardware. Must be set to 1.
+    */
    virtual void ioParam_numFLocal(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief postGroupXSize: Specifies size of post neurons in recv from pre gpu
+    * @details Only set if receiving from gpu. Not used in recv from pre.
+    */
    virtual void ioParam_postGroupXSize(enum ParamsIOFlag ioFlag);
+   /**
+    * @brief postGroupXSize: Specifies size of post neurons in recv from pre gpu
+    * @details Only set if receiving from gpu. Not used in recv from pre.
+    */
    virtual void ioParam_postGroupYSize(enum ParamsIOFlag ioFlag);
 #endif
+   /** @} */
 
    int setParent(HyPerCol * hc);
    int setName(const char * name);

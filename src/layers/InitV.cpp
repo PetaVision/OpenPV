@@ -41,36 +41,57 @@ InitV::~InitV() {
    free(this->filename);
 }
 
+void InitV::ioParamGroup_ConstantV(enum ParamsIOFlag ioFlag){
+   parent->ioParamValue(ioFlag, groupName, "valueV", &constantValue, (pvdata_t) V_REST);
+}
+
+void InitV::ioParamGroup_ZeroV(enum ParamsIOFlag ioFlag){
+   constantValue = 0.0f;
+}
+
+void InitV::ioParamGroup_UniformRandomV(enum ParamsIOFlag ioFlag){
+   parent->ioParamValue(ioFlag, groupName, "minV", &minV, 0.0f);
+   parent->ioParamValue(ioFlag, groupName, "maxV", &maxV, minV + 1.0f);
+}
+
+void InitV::ioParamGroup_GaussianRandomV(enum ParamsIOFlag ioFlag){
+   parent->ioParamValue(ioFlag, groupName, "meanV", &meanV, 0.0f);
+   parent->ioParamValue(ioFlag, groupName, "sigmaV", &sigmaV, 1.0f);
+}
+
+void InitV::ioParamGroup_InitVFromFile(enum ParamsIOFlag ioFlag){
+   parent->ioParamString(ioFlag, groupName, "Vfilename", &filename, NULL, true/*warnIfAbsent*/);
+   if( filename == NULL ) {
+      initVTypeCode = UndefinedInitV;
+      printerr("InitV::initialize, group \"%s\": for InitVFromFile, string parameter \"Vfilename\" must be defined.  Exiting\n", groupName);
+      abort();
+   }
+}
+
+
 int InitV::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = PV_SUCCESS;
    useStderr = parent->icCommunicator()->commRank()==0;
    parent->ioParamString(ioFlag, groupName, "InitVType", &initVTypeString, "ConstantV", true/*warnIfAbsent*/);
    if( !strcmp(initVTypeString, "ConstantV") ) {
       initVTypeCode = ConstantV;
-      parent->ioParamValue(ioFlag, groupName, "valueV", &constantValue, (pvdata_t) V_REST);
+      ioParamGroup_ConstantV(ioFlag);
    }
    else if( !strcmp(initVTypeString, "ZeroV")) {
       initVTypeCode = ConstantV;
-      constantValue = 0.0f;
+      ioParamGroup_ZeroV(ioFlag);
    }
    else if( !strcmp(initVTypeString, "UniformRandomV") ) {
       initVTypeCode = UniformRandomV;
-      parent->ioParamValue(ioFlag, groupName, "minV", &minV, 0.0f);
-      parent->ioParamValue(ioFlag, groupName, "maxV", &maxV, minV + 1.0f);
+      ioParamGroup_UniformRandomV(ioFlag);
    }
    else if( !strcmp(initVTypeString, "GaussianRandomV") ) {
       initVTypeCode = GaussianRandomV;
-      parent->ioParamValue(ioFlag, groupName, "meanV", &meanV, 0.0f);
-      parent->ioParamValue(ioFlag, groupName, "sigmaV", &sigmaV, 1.0f);
+      ioParamGroup_GaussianRandomV(ioFlag);
    }
    else if( !strcmp(initVTypeString, "InitVFromFile") ) {
       initVTypeCode = InitVFromFile;
-      parent->ioParamString(ioFlag, groupName, "Vfilename", &filename, NULL, true/*warnIfAbsent*/);
-      if( filename == NULL ) {
-         initVTypeCode = UndefinedInitV;
-         printerr("InitV::initialize, group \"%s\": for InitVFromFile, string parameter \"Vfilename\" must be defined.  Exiting\n", groupName);
-         abort();
-      }
+      ioParamGroup_InitVFromFile(ioFlag);
    }
    else {
       initVTypeCode = UndefinedInitV;

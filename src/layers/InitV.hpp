@@ -31,7 +31,40 @@ enum InitVType {
 };
 
 class InitV {
+protected:
+   /** 
+    * List of parameters needed from the InitV class
+    * @name InitV Parameters
+    * @{
+    */
+   
+   /**
+    * @brief valueV: The value to initialize the V buffer with
+    */
+   virtual void ioParamGroup_ConstantV(enum ParamsIOFlag ioFlag);
 
+   /**
+    * @brief No other parameters nessessary
+    */
+   virtual void ioParamGroup_ZeroV(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief minV: The minimum value to generate uniform random V's with <br />
+    * @brief maxV: The maximum value to generate uniform random V's with
+    */
+   virtual void ioParamGroup_UniformRandomV(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief meanV: The mean to generate guassian random V's with <br />
+    * @brief sigmaV: The standard deviation to generate gaussian random V's with
+    */
+   virtual void ioParamGroup_GaussianRandomV(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief Vfilename: The pvp filename to load the V buffer from
+    */
+   virtual void ioParamGroup_InitVFromFile(enum ParamsIOFlag ioFlag);
+   /** @} */
 public:
    InitV(HyPerCol * hc, const char * groupName);
    virtual ~InitV();
@@ -41,6 +74,7 @@ public:
 protected:
    InitV();
    int initialize(HyPerCol * hc, const char * groupName);
+
 
 private:
    int initialize_base();

@@ -2422,12 +2422,12 @@ int HyPerConn::allocateReceivePostKernel()
 #ifdef PV_USE_OPENCL
    CLBuffer* d_PreData = pre->getDeviceActivity();
    CLBuffer* d_PostGSyn = post->getDeviceGSyn(channel);
-   CLBuffer * d_origWData = origConn->getDeviceWData();
+   CLBuffer* d_origWData = origConn->getDeviceWData();
 #endif
 #ifdef PV_USE_CUDA
    PVCuda::CudaBuffer* d_PreData = pre->getDeviceActivity();
    PVCuda::CudaBuffer* d_PostGSyn = post->getDeviceGSyn(channel);
-   PVCuda::CudaBuffer * d_origWData = origConn->getDeviceWData();
+   PVCuda::CudaBuffer* d_origWData = origConn->getDeviceWData();
 #ifdef PV_USE_CUDNN
    PVCuda::CudaBuffer * cudnn_preData = pre->getCudnnActivity();
    PVCuda::CudaBuffer * cudnn_gSyn = post->getCudnnGSyn();

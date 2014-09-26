@@ -125,7 +125,7 @@ protected:
    
    /**
     * @brief nxScale: Defines the relationship between the x column size and the layer size.
-    * #details Must be 2^n or 1/2^n
+    * @details Must be 2^n or 1/2^n
     */
    virtual void ioParam_nxScale(enum ParamsIOFlag ioFlag);
    /**
@@ -171,13 +171,14 @@ protected:
 
    /**
     * @brief initVType: Specifies how to initialize the V buffer. 
-    * @details Possible choices include <br />
-    * "ConstantV": Sets V to a constant value <br />
-    * "ZeroV": Sets V to zero <br />
-    * "InitVFromFile": Sets V to specified pvp file <br />
-    * "UniformRandomV": Sets V with a uniform distribution <br />
-    * "GaussianRandomV": Sets V with a gaussian distribution <br />
-    * Further parameters are needed depending on choice
+    * @details Possible choices include
+    * - \link InitV::ioParamGroup_ConstantV() ConstantV \endlink: Sets V to a constant value
+    * - \link InitV::ioParamGroup_ZeroV() ZeroV \endlink: Sets V to zero
+    * - \link InitV::ioParamGroup_UniformRandomV() UniformRandomV \endlink: Sets V with a uniform distribution
+    * - \link InitV::ioParamGroup_GaussianRandomV() GaussianRandomV \endlink: Sets V with a gaussian distribution
+    * - \link InitV::ioparamGroup_InitVFromFile() InitVFromFile \endlink: Sets V to specified pvp file
+    *
+    * Further parameters are needed depending on initialization type.
     */
    virtual void ioParam_InitVType(enum ParamsIOFlag ioFlag);
 
@@ -200,7 +201,7 @@ protected:
 
    /**
     * @brief writeStep: Specifies how often to output a pvp file for this layer
-    * @details Defaults to every timestep
+    * @details Defaults to every timestep. -1 specifies not to write at all.
     */
    virtual void ioParam_writeStep(enum ParamsIOFlag ioFlag);
 
