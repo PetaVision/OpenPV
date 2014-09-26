@@ -5,6 +5,7 @@
  *      Author: rasmussn
  */
 
+
 #ifndef IMAGE_HPP_
 #define IMAGE_HPP_
 
@@ -19,148 +20,152 @@ namespace PV {
 class Image : public HyPerLayer {
 
 protected:
-   Image();
-   int initialize(const char * name, HyPerCol * hc);
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
-
    /** 
-    * @addtogroup PV_Params Parameters
-    * Parameters to be specified in param files
+    * List of parameters needed from the Image class
+    * @name Image Parameters
     * @{
     */
 
    /**
-    * imagePath: The absolute or relative path to the image input
+    * @brief imagePath: The absolute or relative path to the image input
+    * @details
     */
    virtual void ioParam_imagePath(enum ParamsIOFlag ioFlag);
 
    /**
-    * Defines an offset in image space where the column is viewing the image
-    * offsetX: offset in X direction
+    * @brief offsetX: offset in X direction <br />
     * offsetY: offset in Y direction
+    * @details Defines an offset in image space where the column is viewing the image
     */
    virtual int ioParam_offsets(enum ParamsIOFlag ioFlag); // reads offsetX, offsetY from params.  Override with empty function if a derived class doesn't use these parameters (e.g. Patterns)
 
    /**
-    * offsetAnchor: Defines where the anchor point is for the offsets. Defaults to "tl"
-    * Specified as a 2 character string, "xy"
-    * x can be 'l', 'c', or 'r' for left, center, right respectively
-    * y can be 't', 'c', or 'b' for top, center, bottom respectively
+    * @brief offsetAnchor: Defines where the anchor point is for the offsets.
+    * @details Specified as a 2 character string, "xy" <br />
+    * x can be 'l', 'c', or 'r' for left, center, right respectively <br />
+    * y can be 't', 'c', or 'b' for top, center, bottom respectively <br />
+    * Defaults to "tl"
     */
    virtual void ioParam_offsetAnchor(enum ParamsIOFlag ioFlag);
 
    /** 
-    * writeImages: A boolean flag that specifies if the Image class should output the images.
+    * @brief writeImages: A boolean flag that specifies if the Image class should output the images.
     */
    virtual void ioParam_writeImages(enum ParamsIOFlag ioFlag);
 
    /**
-    * writeImageExtension: If writeImages is set, specifies the extention of the image output.
-    * Defaults to .tif
+    * @brief writeImageExtension: If writeImages is set, specifies the extention of the image output.
+    * @details Defaults to .tif
     */
    virtual void ioParam_writeImagesExtension(enum ParamsIOFlag ioFlag);
 
    /**
-    * useImageBCFlag: Specifies if the Image layer should use the image to fill margins 
+    * @brief useImageBCFlag: Specifies if the Image layer should use the image to fill margins 
     */
    virtual void ioParam_useImageBCflag(enum ParamsIOFlag ioFlag);
 
    /**
-    * autoResizeFlag: If set to true, the image will be resized to the layer
+    * @brief autoResizeFlag: If set to true, the image will be resized to the layer
     */
    virtual void ioParam_autoResizeFlag(enum ParamsIOFlag ioFlag);
 
    /**
-    * inverseFlag: If set to true, inverts the image
+    * @brief inverseFlag: If set to true, inverts the image
     */
    virtual void ioParam_inverseFlag(enum ParamsIOFlag ioFlag);
 
    /**
-    * normalizeLuminanceFlag: If set to true, will normalize the image with a max of 1 and a min of 0
+    * @brief normalizeLuminanceFlag: If set to true, will normalize the image with a max of 1 and a min of 0
     */
    virtual void ioParam_normalizeLuminanceFlag(enum ParamsIOFlag ioFlag);
 
    /**
-    * normalizeStdDev: If normalizeLuminanceFlag is set to true and normalizeStdDev is true, the image will
+    * @brief normalizeStdDev: If normalizeLuminanceFlag and normalizeStdDev is set to true, the image will
     * normalize with a mean of 0 and std of 1
     */
    virtual void ioParam_normalizeStdDev(enum ParamsIOFlag ioFlag);
 
    /**
-    * frameNumber: If imagePath is a pvp file, frameNumber specifies which frame to use as the image 
+    * @brief frameNumber: If imagePath is a pvp file, frameNumber specifies which frame to use as the image 
     */
    virtual void ioParam_frameNumber(enum ParamsIOFlag ioFlag);
 
    /**
-    * jitterFlag: If set to true, will move the image around by specified pixels
+    * @brief jitterFlag: If set to true, will move the image around by specified pixels
     */
    virtual void ioParam_jitterFlag(enum ParamsIOFlag ioFlag);
 
    /**
-    * jitterType: If jitter flag is set, specifies the type of jitter. 0 for random walk, 1 for random jump
-    * Random Walk: Jitters the specified step in any direction
+    * @brief jitterType: If jitter flag is set, specifies the type of jitter. 0 for random walk, 1 for random jump
+    * @details Random Walk: Jitters the specified step in any direction <br />
     * Random Jump: Jitters any value between -step and step in any direction
     */
    virtual void ioParam_jitterType(enum ParamsIOFlag ioFlag);
 
    /**
-    * jitterRefactoryPeriod: If jitter flag is set, specifies the minimum amount of time until next jitter
+    * @brief jitterRefactoryPeriod: If jitter flag is set, specifies the minimum amount of time until next jitter
     */
    virtual void ioParam_jitterRefractoryPeriod(enum ParamsIOFlag ioFlag);
 
    /**
-    * stepSize: If jitter flag is set, sets the step size
+    * @brief stepSize: If jitter flag is set, sets the step size
     */
    virtual void ioParam_stepSize(enum ParamsIOFlag ioFlag);
 
    /**
-    * persistenceProb: If jitter flag is set, sets the probability that the offset returns to bias position
+    * @brief persistenceProb: If jitter flag is set, sets the probability that the offset returns to bias position
     */
    virtual void ioParam_persistenceProb(enum ParamsIOFlag ioFlag);
 
    /**
-    * recurrenceProb: If jitter flag is set, sets the probability that offset stays the same
+    * @brief recurrenceProb: If jitter flag is set, sets the probability that offset stays the same
     */
    virtual void ioParam_recurrenceProb(enum ParamsIOFlag ioFlag);
 
    /**
-    * biasChangeTime: If jitter flag is set, sets the time period for recalculating bias position
+    * @brief biasChangeTime: If jitter flag is set, sets the time period for recalculating bias position
     */
    virtual void ioParam_biasChangeTime(enum ParamsIOFlag ioFlag);
 
    /**
-    * biasConstraintMethod: If jitter flag is set, defines the method to coerce into bounding box
-    * Can be 0 (ignore), 1 (mirror BC), 2 (threshold), or 3 (circular BC)
+    * @brief biasConstraintMethod: If jitter flag is set, defines the method to coerce into bounding box
+    * @details Can be 0 (ignore), 1 (mirror BC), 2 (threshold), or 3 (circular BC)
     */
    virtual void ioParam_biasConstraintMethod(enum ParamsIOFlag ioFlag);
 
    /**
-    * offsetConstraintMethod: If jitter flag is set, defines the method to coerce into bounding box
-    * Can be 0 (ignore), 1 (mirror BC), 2 (threshold), or 3 (circular BC)
+    * @brief offsetConstraintMethod: If jitter flag is set, defines the method to coerce into bounding box
+    * @details Can be 0 (ignore), 1 (mirror BC), 2 (threshold), or 3 (circular BC)
     */
    virtual void ioParam_offsetConstraintMethod(enum ParamsIOFlag ioFlag);
 
    /**
-    * writePosition: If jitter flag is set, writes position to input/image-pos.txt
+    * @brief writePosition: If jitter flag is set, writes position to input/image-pos.txt
     */
    virtual void ioParam_writePosition(enum ParamsIOFlag ioFlag);
 
    /**
-    * Image does not have a V, so no initVType
+    * @brief initVType: Image does not have a V, do not set
     */
    virtual void ioParam_InitVType(enum ParamsIOFlag ioFlag);
 
    /**
-    * Image sets trigger flag to false, trigger setter
+    * @brief triggerFlag: Image sets trigger flag to false, do not set
     */
    virtual void ioParam_triggerFlag(enum ParamsIOFlag ioFlag);
 
    /**
-    * useParamsImage: Deprecated
+    * @brief useParamsImage: Deprecated
     */
    virtual void ioParam_useParamsImage(enum ParamsIOFlag ioFlag);
 
    /** @} */
+   
+protected:
+   Image();
+   int initialize(const char * name, HyPerCol * hc);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+
 
    int initRandState();
 

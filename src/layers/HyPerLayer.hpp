@@ -1,4 +1,4 @@
-/*
+/**
  * HyPerLayer.hpp
  *
  *  Created on: Aug 3, 2008
@@ -114,6 +114,113 @@ class PVParams;
 
 class HyPerLayer : public LayerDataInterface {
 
+
+protected:
+
+   /** 
+    * List of parameters needed from the HyPerLayer class
+    * @name HyPerLayer Parameters
+    * @{
+    */
+   
+   /**
+    * @brief nxScale: Defines the relationship between the x column size and the layer size.
+    * #details Must be 2^n or 1/2^n
+    */
+   virtual void ioParam_nxScale(enum ParamsIOFlag ioFlag);
+   /**
+    * @brief nyScale: Defines the relationship between the y column size and the layer size.
+    * @details Must be 2^n or 1/2^n
+    */
+   virtual void ioParam_nyScale(enum ParamsIOFlag ioFlag);
+   /**
+    * @brief nf: Defines how many features this layer has
+    */
+   virtual void ioParam_nf(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief marginWidth: Deprecated
+    */
+   virtual void ioParam_marginWidth(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief phase: Defines the ordering in which each layer is updated
+    */
+   virtual void ioParam_phase(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief mirrorBCflag: If set to true, the margin will mirror the data
+    */
+   virtual void ioParam_mirrorBCflag(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief valueBC: If mirrorBC is set to true, Uses the specified value for the margin area
+    */
+   virtual void ioParam_valueBC(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief restart: Deprecated
+    */
+   virtual void ioParam_restart(enum ParamsIOFlag ioFlag); // Deprecating in favor of initializeFromCheckpointFlag?
+
+   /**
+    * @brief initializeFromCheckpointFlag: If set to true, initialize using checkpoint direcgtory set in HyPerCol.
+    * @details Checkpoint read directory must be set in HyPerCol to initialize from checkpoint.
+    */
+   virtual void ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief initVType: Specifies how to initialize the V buffer. 
+    * @details Possible choices include <br />
+    * "ConstantV": Sets V to a constant value <br />
+    * "ZeroV": Sets V to zero <br />
+    * "InitVFromFile": Sets V to specified pvp file <br />
+    * "UniformRandomV": Sets V with a uniform distribution <br />
+    * "GaussianRandomV": Sets V with a gaussian distribution <br />
+    * Further parameters are needed depending on choice
+    */
+   virtual void ioParam_InitVType(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief triggerFlag: Specifies if this layer is being triggered
+    * @details Defaults to false
+    */
+   virtual void ioParam_triggerFlag(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief triggerLayerName: If trigger flag is set, specifies the layer this current layer is triggering off of.
+    */
+   virtual void ioParam_triggerLayerName(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief triggerOffset: If trigger flag is set, triggers <triggerOffset> timesteps before target trigger
+    * @details Defaults to 0
+    */
+   virtual void ioParam_triggerOffset(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief writeStep: Specifies how often to output a pvp file for this layer
+    * @details Defaults to every timestep
+    */
+   virtual void ioParam_writeStep(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief initialWriteTime: Specifies the first timestep to start outputing pvp files
+    */
+   virtual void ioParam_initialWriteTime(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief writeSparseActivity: Specifies if the output written should be a sparse activity file
+    */
+   virtual void ioParam_writeSparseActivity(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief writeSparseValues: If writeSparseActivity is set, specifies if the pvp file should write sparse value file
+    */
+   virtual void ioParam_writeSparseValues(enum ParamsIOFlag ioFlag);
+   /** @} */
+
+
 private:
    int initialize_base();
 
@@ -160,113 +267,6 @@ protected:
     * The function that calls all ioParam functions
     */
    virtual int  ioParamsFillGroup(enum ParamsIOFlag ioFlag);
-
-   
-
-   /** 
-    * @addtogroup PV_Params Parameters
-    * HyPerLayer Parameters
-    * @{
-    */
-
-   /**
-    * nxScale: Defines the relationship between the x column size and the layer size.
-    * Must be 2^n or 1/2^n
-    */
-   virtual void ioParam_nxScale(enum ParamsIOFlag ioFlag);
-   /**
-    * nxScale: Defines the relationship between the y column size and the layer size.
-    * Must be 2^n or 1/2^n
-    */
-   virtual void ioParam_nyScale(enum ParamsIOFlag ioFlag);
-   /**
-    * nyScale: Defines how many features this layer has
-    */
-   virtual void ioParam_nf(enum ParamsIOFlag ioFlag);
-
-   /**
-    * marginWidth: Deprecated
-    */
-   virtual void ioParam_marginWidth(enum ParamsIOFlag ioFlag);
-
-   /**
-    * phase: Defines the ordering in which each layer is updated
-    */
-   virtual void ioParam_phase(enum ParamsIOFlag ioFlag);
-
-   /**
-    * mirrorBCflag: If set to true, the margin will mirror the data
-    */
-   virtual void ioParam_mirrorBCflag(enum ParamsIOFlag ioFlag);
-
-   /**
-    * valueBC: Uses the specified value for the margin area
-    * Note that this parameter only gets read if mirrorBC is false
-    */
-   virtual void ioParam_valueBC(enum ParamsIOFlag ioFlag);
-
-   /**
-    * restart: Deprecated
-    */
-   virtual void ioParam_restart(enum ParamsIOFlag ioFlag); // Deprecating in favor of initializeFromCheckpointFlag?
-
-   /**
-    * initializeFromCheckpointFlag: If set to true, initialize using checkpoint direcgtory set in HyPerCol.
-    * Note that checkpoint read directory must be set in HyPerCol to initialize from checkpoint.
-    */
-   virtual void ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag);
-
-   /**
-    * initVType: Specifies how to initialize the V buffer. Possible choices include
-    * "ConstantV": Sets V to a constant value
-    * "ZeroV": Sets V to zero
-    * "InitVFromFile": Sets V to specified pvp file
-    * "UniformRandomV": Sets V with a uniform distribution
-    * "GaussianRandomV": Sets V with a gaussian distribution
-    */
-   virtual void ioParam_InitVType(enum ParamsIOFlag ioFlag);
-
-   /**
-    * triggerFlag: Specifies if this layer is being triggered
-    * Defaults to false
-    */
-   virtual void ioParam_triggerFlag(enum ParamsIOFlag ioFlag);
-
-   /**
-    * triggerLayerName: If trigger flag is set, specifies the layer this current layer is triggering off of.
-    */
-   virtual void ioParam_triggerLayerName(enum ParamsIOFlag ioFlag);
-
-   /**
-    * triggerOffset: If trigger flag is set, specifies a positive value that allows the current layer to be 
-    * triggered triggerOffset timesteps before this layer's trigger.
-    */
-   virtual void ioParam_triggerOffset(enum ParamsIOFlag ioFlag);
-
-   /**
-    * writeStep: Specifies how often to output a pvp file for this layer
-    * Defaults to every timestep
-    */
-   virtual void ioParam_writeStep(enum ParamsIOFlag ioFlag);
-
-   /**
-    * initialWriteTime: Specifies the first timestep to start outputing pvp files
-    */
-   virtual void ioParam_initialWriteTime(enum ParamsIOFlag ioFlag);
-
-   /**
-    * writeSparseActivity: Specifies if the output written should be a sparse activity file
-    */
-   virtual void ioParam_writeSparseActivity(enum ParamsIOFlag ioFlag);
-
-   /**
-    * writeSparseValues: If writeSparseActivity is set, specifies if the pvp file should write out values along with location
-    * of a sparse pvp file
-    */
-   virtual void ioParam_writeSparseValues(enum ParamsIOFlag ioFlag);
-   /**
-    * @}
-    */
 
    static int equalizeMargins(HyPerLayer * layer1, HyPerLayer * layer2);
 
@@ -602,6 +602,7 @@ public:
          allocDeviceGSyn[ch] = true;
       }
    }
+
    void setAllocDeviceActivity(){
       allocDeviceActivity = true;
    }
