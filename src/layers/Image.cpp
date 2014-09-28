@@ -1340,19 +1340,18 @@ void Image::equalBandWeights(int numBands, float * bandweight) {
 
 //Offsets based on an anchor point, so calculate offsets based off a given anchor point
 int Image::getOffsetX(){
-   //Offset on left
    if(!strcmp(offsetAnchor, "tl") || !strcmp(offsetAnchor, "cl") || !strcmp(offsetAnchor, "bl")){
-      return offsets[1];
+      return offsets[0];
    }
    //Offset in center
    else if(!strcmp(offsetAnchor, "tc") || !strcmp(offsetAnchor, "cc") || !strcmp(offsetAnchor, "bc")){
       int layerSizeX = getLayerLoc()->nxGlobal;
-      return ((imageLoc.nxGlobal/2)-(layerSizeX/2) - 1) + offsets[1];
+      return ((imageLoc.nxGlobal/2)-(layerSizeX/2) - 1) + offsets[0];
    }
    //Offset on bottom
    else if(!strcmp(offsetAnchor, "tr") || !strcmp(offsetAnchor, "cr") || !strcmp(offsetAnchor, "br")){
       int layerSizeX = getLayerLoc()->nxGlobal;
-      return (imageLoc.nxGlobal - layerSizeX - 1) + offsets[1];
+      return (imageLoc.nxGlobal - layerSizeX - 1) + offsets[0];
    }
    assert(0); // All possible cases should be covered above
    return -1; // Eliminates no-return warning
@@ -1361,17 +1360,17 @@ int Image::getOffsetX(){
 int Image::getOffsetY(){
    //Offset on top
    if(!strcmp(offsetAnchor, "tl") || !strcmp(offsetAnchor, "tc") || !strcmp(offsetAnchor, "tr")){
-      return offsets[0];
+      return offsets[1];
    }
    //Offset in center
    else if(!strcmp(offsetAnchor, "cl") || !strcmp(offsetAnchor, "cc") || !strcmp(offsetAnchor, "cr")){
       int layerSizeY = getLayerLoc()->nyGlobal;
-      return ((imageLoc.nyGlobal/2)-(layerSizeY/2) - 1) + offsets[0];
+      return ((imageLoc.nyGlobal/2)-(layerSizeY/2) - 1) + offsets[1];
    }
    //Offset on bottom
    else if(!strcmp(offsetAnchor, "bl") || !strcmp(offsetAnchor, "bc") || !strcmp(offsetAnchor, "br")){
       int layerSizeY = getLayerLoc()->nyGlobal;
-      return (imageLoc.nyGlobal-layerSizeY-1) + offsets[0];
+      return (imageLoc.nyGlobal-layerSizeY-1) + offsets[1];
    }
    assert(0); // All possible cases should be covered above
    return -1; // Eliminates no-return warning
