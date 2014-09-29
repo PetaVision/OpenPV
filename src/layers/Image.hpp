@@ -194,7 +194,6 @@ public:
 
    // primary layer interface
    //
-   virtual int recvSynapticInput(HyPerConn * conn, const PVLayerCube * cube, int neighbor);
    virtual double getDeltaUpdateTime();
    //virtual bool needUpdate(double time, double dt);
    virtual int updateState(double time, double dt);

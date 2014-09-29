@@ -1993,6 +1993,7 @@ int HyPerLayer::recvSynapticInputFromPost(HyPerConn * conn, const PVLayerCube * 
    if(conn->getChannel() == CHANNEL_NOUPDATE){
       return PV_SUCCESS;
    }
+   assert(GSyn && GSyn[conn->getChannel()]);
 
    //Cast to transpose conn
    TransposeConn * sourceToTargetConn = dynamic_cast <TransposeConn*> (conn);
@@ -2096,6 +2097,7 @@ int HyPerLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activity
    if(conn->getChannel() == CHANNEL_NOUPDATE){
       return PV_SUCCESS;
    }
+   assert(GSyn && GSyn[conn->getChannel()]);
 
    float dt_factor = getConvertToRateDeltaTimeFactor(conn);
 
@@ -2182,6 +2184,7 @@ int HyPerLayer::recvSynapticInputFromPostGpu(HyPerConn * conn, const PVLayerCube
    if(conn->getChannel() == CHANNEL_NOUPDATE){
       return PV_SUCCESS;
    }
+   assert(GSyn && GSyn[conn->getChannel()]);
 
    //Cast to transpose conn
    TransposeConn * sourceToTargetConn = dynamic_cast <TransposeConn*> (conn);
@@ -2319,6 +2322,8 @@ int HyPerLayer::recvSynapticInputGpu(HyPerConn * conn, const PVLayerCube * activ
    if(conn->getChannel() == CHANNEL_NOUPDATE){
       return PV_SUCCESS;
    }
+   assert(GSyn && GSyn[conn->getChannel()]);
+
    float dt_factor = getConvertToRateDeltaTimeFactor(conn);
 
    //Post layer recieves synaptic input

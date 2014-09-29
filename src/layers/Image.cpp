@@ -954,14 +954,6 @@ int Image::tag()
    return 0;
 }
 
-int Image::recvSynapticInput(HyPerConn * conn, const PVLayerCube * cube, int neighbor)
-{
-   // this should never be called as an image shouldn't have an incoming connection
-   recvsyn_timer->start();
-   recvsyn_timer->stop();
-   return 0;
-}
-
 double Image::getDeltaUpdateTime(){
    if(jitterFlag){
       return 1;
