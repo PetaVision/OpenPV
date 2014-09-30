@@ -824,7 +824,11 @@ protected:
    virtual void ioParam_combine_dW_with_W_flag(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief delay: Specifies a delay which the post layer will receive data
+    * @brief delay: Specifies delay(s) which the post layer will receive data
+    * @details: Delays are specified in units of dt, but are rounded to be integer multiples of dt.
+    * If delay is a scalar, all arbors of the connection have that value of delay.
+    * If delay is an array, the length must match the number of arbors and the arbors are assigned
+    * the delays sequentially.
     */
    virtual void ioParam_delay(enum ParamsIOFlag ioFlag);
 
