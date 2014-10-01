@@ -3,8 +3,9 @@
 clear all;
 close all;
 more off
+pkg load all
 global plot_flag %% if true, plot graphical output to screen, else do not generate graphical outputy
-plot_flag = true;
+plot_flag = true; %%false; %%
 global load_flag %% if true, then load "saved" data structures rather than computing them 
 load_Sparse_flag = false;
 if plot_flag
@@ -17,10 +18,10 @@ if ismac
   workspace_path = "/Users/gkenyon/workspace";
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   run_type = "PASCAL";
-  output_dir = "/Users/gkenyon/workspace/PASCAL_VOC/PASCAL_C1_task/VOC2007_train_landscape2"
-  checkpoint_parent = "/Users/gkenyon/workspace/PASCAL_VOC/PASCAL_C1_task";
+  output_dir = "/Users/gkenyon/workspace/PASCAL_VOC/PASCAL_C1X4_distal/VOC2007_train_landscape"
+  checkpoint_parent = "/Users/gkenyon/workspace/PASCAL_VOC/PASCAL_C1X4_distal";
   checkpoint_children = ...
-      {"VOC2007_train_landscape2"}; %%
+      {"VOC2007_train_landscape"}; %%
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   %%run_type = "CIFAR_C1"; 
   %%output_dir = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR_C1_task/data_batch_all8"
@@ -31,77 +32,76 @@ if ismac
 elseif isunix
   workspace_path = "/home/gkenyon/workspace";
   
-%%run_type = "noPulvinar"; %%
-  %%run_type = "color_deep"; %%
-  %%run_type = "noTopDown"; %%
-  %%run_type = "TopDown"; %%
-  %%run_type = "lateral"; %% 
-  %%run_type = "deep_plus_noise";%%
   %%run_type = "Heli_V1";
-  run_type = "Heli_C1";
-  %%run_type = "Heli_DPT";
-  %%run_type = "Heli_D";
+  %%run_type = "Heli_C1";
+  %%run_type = "Heli_DPTX3";
+  %%run_type = "Heli_V1V2V4";
+  %%run_type = "Heli_DTX3";
+  run_type = "Heli_DX3";
   %%run_type = "CIFAR_gray"; 
-  if strcmp(run_type, "color_deep")
-    %%output_dir = "/nh/compneuro/Data/vine/LCA/2013_02_01/output_2013_02_01_12x12x128_lambda_05X1_deep"; 
-    output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_24/output_2013_01_24_how2catchSquirrel_12x12x128_lambda_05X1_deep";
-    checkpoint_parent = "/nh/compneuro/Data/vine/LCA";
-    checkpoint_children = {"2013_01_24/output_2013_01_24_how2catchSquirrel_12x12x128_lambda_05X1_deep"}; 
-    %%    checkpoint_children = {"2013_02_01/output_2013_02_01_12x12x128_lambda_05X2_deep"}; 
-  elseif strcmp(run_type, "Heli_DPT")
+  if strcmp(run_type, "Heli_DPTX3")
     output_dir = ...
-	"/nh/compneuro/Data/repo/neovision-programs-petavision/LCA/Heli/TrainingPlusFormative/output_18x18x48_10x10x96_lambda_001X50_DPT";
+    	"/nh/compneuro/Data/repo/neovision-programs-petavision/LCA/Heli/TrainingPlusFormative/output_18x18x48_10x10x96_10x10x192_lambda_001X50_DPTX3c";
+%%    output_dir = ...
+%%    	"/nh/compneuro/Data/repo/neovision-programs-petavision/LCA/Heli/Challenge/026/output_18x18x48_10x10x96_10x10x192_lambda_001X050_DPTX3c";
     checkpoint_parent = "/nh/compneuro/Data/repo/neovision-programs-petavision/LCA/Heli";
-    checkpoint_children = {"TrainingPlusFormative/output_18x18x48_10x10x96_lambda_001X50_DPT"};
+    checkpoint_children = {"TrainingPlusFormative/output_18x18x48_10x10x96_10x10x192_lambda_001X50_DPTX3c"};
+%%    checkpoint_children = {"Challenge/026/output_18x18x48_10x10x96_10x10x192_lambda_001X050_DPTX3c"};
+  elseif strcmp(run_type, "Heli_DTX3")
+    output_dir = ...
+    	"/nh/compneuro/Data/repo/neovision-programs-petavision/LCA/Heli/TrainingPlusFormative/output_18x18x48_10x10x96_10x10x192_lambda_001X50_DTX3d";
+%%    output_dir = ...
+%%    	"/nh/compneuro/Data/repo/neovision-programs-petavision/LCA/Heli/Challenge/026/output_18x18x48_10x10x96_10x10x192_lambda_001X050_DTX3d";
+    checkpoint_parent = "/nh/compneuro/Data/repo/neovision-programs-petavision/LCA/Heli";
+    checkpoint_children = {"TrainingPlusFormative/output_18x18x48_10x10x96_10x10x192_lambda_001X50_DTX3d"};
+%%    checkpoint_children = {"Challenge/026/output_18x18x48_10x10x96_10x10x192_lambda_001X050_DTX3d"};
+  elseif strcmp(run_type, "Heli_DX3")
+    output_dir = ...
+    	"/nh/compneuro/Data/repo/neovision-programs-petavision/LCA/Heli/TrainingPlusFormative/output_18x18x48_10x10x96_10x10x192_lambda_001X50_DX3c";
+%%    output_dir = ...
+%%    	"/nh/compneuro/Data/repo/neovision-programs-petavision/LCA/Heli/Challenge/026/output_18x18x48_10x10x96_10x10x192_lambda_001X050_DX3c";
+    checkpoint_parent = "/nh/compneuro/Data/repo/neovision-programs-petavision/LCA/Heli";
+    checkpoint_children = {"TrainingPlusFormative/output_18x18x48_10x10x96_10x10x192_lambda_001X50_DX3c"};
+%%    checkpoint_children = {"Challenge/026/output_18x18x48_10x10x96_10x10x192_lambda_001X050_DX3c"};
+  elseif strcmp(run_type, "Heli_V1V2V4")
+%%    output_dir = ...
+%%    	"/nh/compneuro/Data/repo/neovision-programs-petavision/LCA/Heli/TrainingPlusFormative/output_18x18x48_18x18x96_18x18x192_lambda_001X50_V1V2V4b";
+%%    checkpoint_parent = "/nh/compneuro/Data/repo/neovision-programs-petavision/LCA/Heli";
+%%    checkpoint_children = {"TrainingPlusFormative/output_18x18x48_18x18x96_18x18x192_lambda_001X50_V1V2V4b"};
+    output_dir = ...
+    	"/nh/compneuro/Data/repo/neovision-programs-petavision/LCA/Heli/TrainingPlusFormative_Car_Plane/output_18x18x48_18x18x96_18x18x192_lambda_001X50_V1V2V4";
+    checkpoint_parent = "/nh/compneuro/Data/repo/neovision-programs-petavision/LCA/Heli";
+    checkpoint_children = {"TrainingPlusFormative_Car_Plane/output_18x18x48_18x18x96_18x18x192_lambda_001X50_V1V2V4"};
   elseif strcmp(run_type, "Heli_V1")
     output_dir = ...
-	"/nh/compneuro/Data/repo/neovision-programs-petavision/LCA/Heli/TrainingPlusFormative/output_18x18x48_10x10x96_lambda_001X50_V1";
+	"/nh/compneuro/Data/repo/neovision-programs-petavision/LCA/Heli/TrainingPlusFormative/output_18x18x72_lambda_001X50_V1";
     checkpoint_parent = "/nh/compneuro/Data/repo/neovision-programs-petavision/LCA/Heli";
-    checkpoint_children = {"TrainingPlusFormative/output_18x18x48_10x10x96_lambda_001X50_V1"};
+    checkpoint_children = {"TrainingPlusFormative/output_18x18x72_lambda_001X50_V1"};
+  elseif strcmp(run_type, "Heli_V2")
+    output_dir = ...
+	"/nh/compneuro/Data/repo/neovision-programs-petavision/LCA/Heli/TrainingPlusFormative/output_18x18x96_lambda_001X50_V2";
+    checkpoint_parent = "/nh/compneuro/Data/repo/neovision-programs-petavision/LCA/Heli";
+    checkpoint_children = {"TrainingPlusFormative/output_18x18x96_lambda_001X50_V2"};
   elseif strcmp(run_type, "Heli_C1")
     output_dir = ...
-    	"/nh/compneuro/Data/repo/neovision-programs-petavision/LCA/Heli/TrainingPlusFormative/output_18x18x48_2x2_10x10x96_lambda_001X50_C1";
+    	"/nh/compneuro/Data/repo/neovision-programs-petavision/LCA/Heli/TrainingPlusFormative/output_18x18x96_2x2_10x10x384_lambda_001X50_C1";
     checkpoint_parent = "/nh/compneuro/Data/repo/neovision-programs-petavision/LCA/Heli";
-    checkpoint_children = {"TrainingPlusFormative/output_18x18x48_2x2_10x10x96_lambda_001X50_C1"};
+    checkpoint_children = {"TrainingPlusFormative/output_18x18x96_2x2_10x10x384_lambda_001X50_C1"};
     %%output_dir = ...
     %%	"/nh/compneuro/Data/repo/neovision-programs-petavision/LCA/Heli/Challenge/026/output_18x18x48_2x2_10x10x96_lambda_001X50_C1";
     %%checkpoint_parent = "/nh/compneuro/Data/repo/neovision-programs-petavision/LCA/Heli";
     %%checkpoint_children = {"Challenge/026/output_18x18x48_2x2_10x10x96_lambda_001X50_C1"};
-  elseif strcmp(run_type, "Heli_D")
-    output_dir = ...
-	"/nh/compneuro/Data/repo/neovision-programs-petavision/LCA/Heli/TrainingPlusFormative/output_18x18x48_10x10x96_lambda_001X50_D";
-    checkpoint_parent = "/nh/compneuro/Data/repo/neovision-programs-petavision/LCA/Heli";
-    checkpoint_children = {"TrainingPlusFormative/output_18x18x48_10x10x96_lambda_001X50_D"};
-  elseif strcmp(run_type, "noTopDown")
-    output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_24_2013_02_01/output_2013_01_24_2013_02_01_12x12x128_lambda_05X2_noTopDown"; 
-    %%output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_24/output_2013_01_24_how2catchSquirrel_12x12x128_lambda_05X1_noTopDown";
-    checkpoint_parent = "/nh/compneuro/Data/vine/LCA";
-    %%checkpoint_children = {"2013_01_24/output_2013_01_24_how2catchSquirrel_12x12x128_lambda_05X1_noTopDown"};
-    checkpoint_children = {"2013_01_24_2013_02_01/output_2013_01_24_2013_02_01_12x12x128_lambda_05X2_noTopDown"};%% ...
-  elseif strcmp(run_type, "TopDown")
-    output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_24_2013_02_01/output_2013_01_24_2013_02_01_12x12x128_lambda_05X2_TopDown"; 
-    %%output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_24/output_2013_01_24_how2catchSquirrel_12x12x128_lambda_05X4_TopDown";
-    checkpoint_dir = output_dir;%%"/nh/compneuro/Data/vine/LCA/2013_01_31/output_2013_01_31_12x12x128_lambda_05X2_TopDown"; %% 
-    checkpoint_parent = "/nh/compneuro/Data/vine/LCA";
-%%    checkpoint_children = {"2013_01_24/output_2013_01_24_how2catchSquirrel_12x12x128_lambda_05X4_TopDown"};
-    checkpoint_children = {"2013_01_24_2013_02_01/output_2013_01_24_2013_02_01_12x12x128_lambda_05X2_TopDown"};%% ...
-  elseif strcmp(run_type, "noPulvinar")
-    %%output_dir = "/nh/compneuro/Data/vine/LCA/2013_02_01/output_2013_02_01_12x12x128_lambda_05X2_noPulvinar"; 
-    output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_24/output_2013_01_24_how2catchSquirrel_12x12x128_lambda_05X4_noPulvinar";
-    checkpoint_parent = "/nh/compneuro/Data/vine/LCA";
-    checkpoint_children = {"2013_01_24/output_2013_01_24_how2catchSquirrel_12x12x128_lambda_05X4_noPulvinar"}; 
-    %%checkpoint_children = {"2013_01_24/output_2013_01_24_12x12x128_lambda_05X2_noPulvinar"}; ...
-  elseif strcmp(run_type, "lateral")
-    output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_24_2013_02_01/output_2013_01_24_2013_02_01_12x12x128_3x3_9x9x128_lambda_05X1_lateral";
-%%    output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_24/output_2013_01_24_how2catchSquirrel_12x12x128_3x3_9x9x128_lambda_001X100_lateral";
-    checkpoint_parent = "/nh/compneuro/Data/vine/LCA";
-%%    checkpoint_children = {"2013_01_24/output_2013_01_24_how2catchSquirrel_12x12x128_3x3_9x9x128_lambda_001X100_lateral"};
-    checkpoint_children = {"2013_01_24_2013_02_01/output_2013_01_24_2013_02_01_12x12x128_3x3_9x9x128_lambda_05X1_lateral"};
+    checkpoint_children = {"Challenge/026/output_18x18x48_10x10x96_lambda_001X050_D"};
   elseif strcmp(run_type, "CIFAR_gray")
     output_dir = "/nh/compneuro/Data/CIFAR/LCA/gray32/data_batch_all2"
     checkpoint_parent = "/nh/compneuro/Data/CIFAR/LCA/gray32";
     checkpoint_children = ...
 	{"data_batch_all2"}; %%
+  elseif strcmp(run_type, "CIFAR_C1")
+    output_dir = "/nh/compneuro/Data/CIFAR/LCA/CIFAR_C1X2_lambda_0001X250_task/data_batch_all"
+    checkpoint_parent = "/nh/compneuro/Data/CIFAR/LCA/CIFAR_C1X2_lambda_0001X250_task";
+    checkpoint_children = ...
+	{"data_batch_all"}; %%
   endif
 endif %% isunix
 addpath(pwd);
@@ -118,7 +118,7 @@ if unwhiten_flag && (~exist("DoG_path") || isempty(DoG_path))
   DoG_path = output_dir;
 endif
 
-max_patches = 192; %%256; %%1024; %%  %% maximum number of weight patches to plot, typically ordered from most to least active if Sparse_flag == true
+max_patches = 2*2*192; %%256; %%1024; %%  %% maximum number of weight patches to plot, typically ordered from most to least active if Sparse_flag == true
 checkpoint_weights_movie = true; %% make movie of weights over time using list of checkpoint folders getCheckpointList(checkpoint_parent, checkpoint_children)
 
 
@@ -130,40 +130,37 @@ checkpoint_weights_movie = true; %% make movie of weights over time using list o
 %% plot Reconstructions
 analyze_Recon = true;
 if analyze_Recon
-  if strcmp(run_type, "color_deep") || strcmp(run_type, "noTopDown")
+  if strcmp(run_type, "Heli_DPTX3")  
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %% deep list
+    %% Heli_DPTX3 list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     Recon_list = ...
-	{["a1_"], ["Bipolar"];
-	 ["a2_"], ["Ganglion"];
-	 ["a5_"], ["Recon"];
-	 ["a8_"], ["Recon2"];
-	 ["a11_"], ["ReconInfra"];
-	 ["a11_"], ["ReconInfra"]};
+         {["a0_"], ["Image"];
+	 ["a3_"], ["ReconV1"];
+	 ["a7_"], ["ReconV2"];
+	 ["a9_"], ["ReconInfraV2"];
+	 ["a13_"], ["ReconV4"];
+	 ["a16_"], ["ReconInfraV4"];
+	 ["a16_"], ["ReconInfraV4"]};
     %% list of layers to unwhiten
     num_Recon_list = size(Recon_list,1);
     Recon_unwhiten_list = zeros(num_Recon_list,1);
     %%Recon_unwhiten_list([2,3,5,6]) = 1;
     %% list of layers to use as a normalization reference for unwhitening
     Recon_normalize_list = 1:num_Recon_list;
-    %%Recon_normalize_list(2) = 1;
-    %%Recon_normalize_list(3) = 1;
-    %%Recon_normalize_list(5) = 1;
-    %%Recon_normalize_list(6) = 1;
     %% list of (previous) layers to sum with current layer
     Recon_sum_list = cell(num_Recon_list,1);
-    Recon_sum_list{6} = 3;
-  elseif strcmp(run_type, "Heli_DPT")  
+    Recon_sum_list{7} = [4 2];
+  elseif strcmp(run_type, "Heli_DTX3") || strcmp(run_type, "Heli_DX3")  
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %% Heli_DPT list
+    %% Heli_DTX3 list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     Recon_list = ...
 	{["a0_"], ["Image"];
-	 ["a3_"], ["Recon"];
-	 ["a7_"], ["Recon2"];
-	 ["a9_"], ["ReconInfra"];
-	 ["a9_"], ["ReconInfra"]};
+	 ["a3_"], ["ReconV1"];
+	 ["a7_"], ["ReconInfraV2"];
+	 ["a12_"], ["ReconInfraV4"];
+	 ["a12_"], ["ReconInfraV4"]};
     %% list of layers to unwhiten
     num_Recon_list = size(Recon_list,1);
     Recon_unwhiten_list = zeros(num_Recon_list,1);
@@ -172,8 +169,25 @@ if analyze_Recon
     Recon_normalize_list = 1:num_Recon_list;
     %% list of (previous) layers to sum with current layer
     Recon_sum_list = cell(num_Recon_list,1);
-    Recon_sum_list{5} = 2;
-  elseif strcmp(run_type, "Heli_V1")  
+    Recon_sum_list{5} = [3 2];
+  elseif strcmp(run_type, "Heli_V1V2V4")  
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% Heli_V1V2V4 list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    Recon_list = ...
+	{["a0_"], ["Image"];
+	 ["a3_"], ["ReconV1"];
+	 ["a6_"], ["ReconV2"];
+	 ["a9_"], ["ReconV4"]};
+    %% list of layers to unwhiten
+    num_Recon_list = size(Recon_list,1);
+    Recon_unwhiten_list = zeros(num_Recon_list,1);
+    %%Recon_unwhiten_list([2,3,5,6]) = 1;
+    %% list of layers to use as a normalization reference for unwhitening
+    Recon_normalize_list = 1:num_Recon_list;
+    %% list of (previous) layers to sum with current layer
+    Recon_sum_list = cell(num_Recon_list,1);
+  elseif strcmp(run_type, "Heli_V1") || strcmp(run_type, "Heli_V2")  
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% Heli_V1 list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -197,8 +211,8 @@ if analyze_Recon
 	 ["a3_"], ["Recon"];
 	 ["a7_"], ["Recon2"];
 	 ["a9_"], ["ReconInfra"];
-	 ["a9_"], ["ReconInfra"];
-	 ["a13_"],["ReconMaxPoolingC1"]};
+	 ["a9_"], ["ReconInfra"]};
+%%	 ["a13_"],["ReconMaxPoolingC1"]};
     %% list of layers to unwhiten
     num_Recon_list = size(Recon_list,1);
     Recon_unwhiten_list = zeros(num_Recon_list,1);
@@ -208,37 +222,6 @@ if analyze_Recon
     %% list of (previous) layers to sum with current layer
     Recon_sum_list = cell(num_Recon_list,1);
     Recon_sum_list{5} = 3;
-  elseif strcmp(run_type, "Heli_D") 
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %% Heli_D list
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    Recon_list = ...
-	{["a0_"], ["Image"];
-	 ["a3_"], ["Recon"];
-	 ["a7_"], ["ReconInfra"]};
-    %% list of layers to unwhiten
-    num_Recon_list = size(Recon_list,1);
-    Recon_unwhiten_list = zeros(num_Recon_list,1);
-    %%Recon_unwhiten_list([2,3,5,6]) = 1;
-    %% list of layers to use as a normalization reference for unwhitening
-    Recon_normalize_list = 1:num_Recon_list;
-    %% list of (previous) layers to sum with current layer
-    Recon_sum_list = cell(num_Recon_list,1);
-  elseif strcmp(run_type, "CIFAR_deep") 
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %% CIFAR_deep list
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    Recon_list = ...
-	{["a0_"],  ["Image"];
-	 ["a3_"],  ["Recon"];
-	 ["a7_"],  ["ReconInfra"]};
-    %% list of layers to unwhiten
-    num_Recon_list = size(Recon_list,1);
-    Recon_unwhiten_list = zeros(num_Recon_list,1);
-    %% list of layers to use as a normalization reference for unwhitening
-    Recon_normalize_list = 1:num_Recon_list;
-    %% list of (previous) layers to sum with current layer
-    Recon_sum_list = cell(num_Recon_list,1);
   elseif strcmp(run_type, "CIFAR_C1") 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% CIFAR_C1 list
@@ -261,8 +244,8 @@ if analyze_Recon
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     Recon_list = ...
 	{["a0_"],  ["Image"];
-	 ["a3_"],  ["Recon"]}; %%;
-	 %%["a8_"],  ["ReconC1"];
+	 ["a3_"],  ["Recon"];
+	 ["a8_"],  ["ReconC1"]};
 	 %%["a13_"],  ["ReconS2";]};
     %% list of layers to unwhiten
     num_Recon_list = size(Recon_list,1);
@@ -285,50 +268,6 @@ if analyze_Recon
     Recon_normalize_list = 1:num_Recon_list;
     %% list of (previous) layers to sum with current layer
     Recon_sum_list = cell(num_Recon_list,1);
-  elseif strcmp(run_type, "noPulvinar") 
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %% noPulvinar list
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        Recon_list = ...
-    	{["a1_"], ["Bipolar"];
-    	 ["a2_"], ["Ganglion"];
-    	 ["a5_"], ["Recon"];
-    	 ["a9_"], ["ReconInfra"]};
-%%    Recon_list = ...
-%%	{["a5_"], ["Recon"];
-%%	 ["a9_"], ["ReconInfra"]};
-    %% list of layers to unwhiten
-    num_Recon_list = size(Recon_list,1);
-    Recon_unwhiten_list = zeros(num_Recon_list,1);
-    Recon_unwhiten_list([2,3,4]) = 1;
-    %% list of layers to use as a normalization reference for unwhitening
-    Recon_normalize_list = 1:num_Recon_list;
-    Recon_normalize_list(2) = 1;
-    Recon_normalize_list(3) = 1;
-    Recon_normalize_list(4) = 1;
-    %% list of (previous) layers to sum with current layer
-    Recon_sum_list = cell(num_Recon_list,1);
-   elseif strcmp(run_type, "TopDown")
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %% TopDown list
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        Recon_list = ...
-    	{["a1_"], ["Bipolar"];
-    	 ["a2_"], ["Ganglion"];
-    	 ["a5_"], ["Recon"];
-    	 ["a9_"], ["ReconInfra"];
-	 ["a9_"], ["ReconInfra"]};
-%%    Recon_list = ...
-%%	{["a5_"], ["Recon"];
-%%	 ["a9_"], ["ReconInfra"]};
-    %% list of layers to unwhiten
-    num_Recon_list = size(Recon_list,1);
-    unwhiten_list = zeros(num_Recon_list,1);
-    %% list of layers to use as a normalization reference for unwhitening
-    normalize_list = 1:num_Recon_list;
-    %% list of (previous) layers to sum with current layer
-    sum_list = cell(num_Recon_list,1);
-    sum_list{5} = 3;
   elseif strcmp(run_type, "V1")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% V1 list
@@ -344,31 +283,9 @@ if analyze_Recon
     Recon_normalize_list = 1:num_Recon_list;
     %% list of (previous) layers to sum with current layer
     Recon_sum_list = cell(num_Recon_list,1);
-  elseif strcmp(run_type, "lateral")
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %% lateral list
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    Recon_list = ...
-	{["a0_"], ["Image"];
-	 ["a2_"], ["Ganglion"];
-	 ["a5_"], ["Recon"];
-	 ["a8_"], ["Recon2"];
-	 ["a11_"], ["ReconInfra"];
-	 ["a11_"], ["ReconInfra"];
-	 ["a13_"], ["Recon2PlusReconInfra"];
-	 ["a16_"], ["ReconMaxPoolingV2X05"]};
-    %% list of layers to unwhiten
-    num_Recon_list = size(Recon_list,1);
-    Recon_unwhiten_list = zeros(num_Recon_list,1);
-    Recon_unwhiten_list([2,3,5,6]) = 1;
-    %% list of layers to use as a normalization reference for unwhitening
-    Recon_normalize_list = 1:num_Recon_list;
-    %% list of (previous) layers to sum with current layer
-    Recon_sum_list = cell(num_Recon_list,1);
-    Recon_sum_list{6} = 4;
   endif %% run_type
-
-
+  
+  
   %% parse center/surround pre-processing filters
   DoG_weights = [];
   if unwhiten_flag
@@ -382,8 +299,8 @@ if analyze_Recon
     [DoG_weights] = get_DoG_weights(DoG_center_path, DoG_surround_path);
   endif  %% unwhiten_flag
   
-  num_Recon_frames_per_layer = 20;
-  Recon_LIFO_flag = true; %%false;
+  num_Recon_frames_per_layer = 1;
+  Recon_LIFO_flag = true;
   [Recon_hdr, ...
    Recon_fig, ...
    Recon_fig_name, ...
@@ -601,14 +518,31 @@ if analyze_Sparse_flag
 	{["a4_"], ["V1"]; ...
 	 ["a7_"], ["V2"]; ...
 	 ["a14_"], ["MaxPoolingV2X05"]};
-  elseif strcmp(run_type, "Heli_DPT")
+  elseif strcmp(run_type, "Heli_DPTX3")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %% Heli_DPT list
+    %% Heli_DPTX3 list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     Sparse_list = ...
 	{["a2_"], ["V1"]; ...
-	 ["a6_"], ["V2"]};
-  elseif strcmp(run_type, "Heli_V1")
+	 ["a6_"], ["V2"]; ...
+	 ["a12_"], ["V4"]};
+  elseif strcmp(run_type, "Heli_DTX3") || strcmp(run_type, "Heli_DX3")  
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% Heli_DTX3 list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    Sparse_list = ...
+	{["a2_"], ["V1"]; ...
+	 ["a5_"], ["V2"]; ...
+	 ["a9_"], ["V4"]};
+  elseif strcmp(run_type, "Heli_V1V2V4")
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% Heli_V1V2V4 list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    Sparse_list = ...
+	{["a2_"], ["V1"]; ...
+	 ["a5_"], ["V2"]; ...
+	 ["a8_"], ["V4"]};
+  elseif strcmp(run_type, "Heli_V1")  || strcmp(run_type, "Heli_V2")  
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% Heli_V1 list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -645,8 +579,8 @@ if analyze_Sparse_flag
     %% PASCAL list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     Sparse_list = ...
-	{["a2_"],  ["S1"]};%%; ...
-	 %%["a6_"],  ["C1"]; ...
+	{["a2_"],  ["S1"]; ...
+	 ["a6_"],  ["C1"]}; %% ...
          %%["a10_"], ["S2"]};
     %%Sparse_frames_list = cell(2,1);
     %%Sparse_frames_list{1} = Recon_time{2}(:);
@@ -677,7 +611,7 @@ if analyze_Sparse_flag
   fraction_Sparse_frames_read = 1;
   min_Sparse_skip = 1;
   fraction_Sparse_progress = 10;
-  num_epochs = 4;
+  num_epochs = 1;
   if load_Sparse_flag
     num_procs = 1;
   else
@@ -714,51 +648,124 @@ endif %% plot_Sparse_flag
 
 
 
+%% Analyze Xcorr
+%%keyboard
+analyze_Xcorr = false; %%true;
+if analyze_Xcorr
+  num_Sparse_list = size(Sparse_list,1);
+  if num_Sparse_list ==0
+    warning(["analyze_Xcorr:num_Sparse_list == 0"]);
+  endif
+  xCorr_list = cell(num_Sparse_list,1);
+  for i_sparse = 1 : num_Sparse_list
+    xCorr_list{i_sparse} = [Sparse_list{i_sparse, 1}, Sparse_list{i_sparse,2}];
+  endfor
+  plot_corr = true;
+  numprocs = 1;
+  frames_calc = 0;
+  [...
+    iidx,             ... % Cell array, length of xCorr_list, contains vectors of point a
+   jidx,             ... % Cell array, length of xCorr_list, contains vectors of point b
+   finalCorr         ... % Cell array, length of xCorr_list, contains the corr value between a and b, ranked from most to least corr not including self
+  ] = ...
+  analyzeXCorr(...
+		xCorr_list,       ... % A list of activity files to calculate the correlation of 
+	       output_dir,       ... % The parent output directory of pv
+	       plot_corr,        ... % Flag that determines if a plot should be made
+	       frames_calc,      ... % The number of frames to calculate. Will calculate the lastest frame_calc frames. 0 is all frames
+	       numprocs          ... % The number of processes to use for parallization
+	      );
+endif
+%%keyboard
+
+
+
+
 analyze_nonSparse_flag = true;
 if analyze_nonSparse_flag
-  if strcmp(run_type, "color_deep") || strcmp(run_type, "noTopDown")
+  if strcmp(run_type, "Heli_DPTX3") 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %% deep/noTopDown list
+    %% Heli_DPTX3
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     nonSparse_list = ...
-        {["a3_"], ["Error"]; ...
-         ["a6_"], ["Error2"]; ...
-         ["a9_"], ["Error1_2"]};
+        {["a1_"], ["Error"]; ...
+         ["a4_"], ["ErrorV2"]; ...
+         ["a5_"], ["ErrorV1InfraV2"]; ...
+         ["a10_"], ["ErrorV4"]; ...
+         ["a11_"], ["ErrorV2InfraV4"]}; %%; ...
     num_nonSparse_list = size(nonSparse_list,1);
     nonSparse_skip = repmat(1, num_nonSparse_list, 1);
     nonSparse_skip(1) = 1;
     nonSparse_skip(2) = 1;
     nonSparse_skip(3) = 1;
     nonSparse_norm_list = ...
-        {["a2_"], ["Ganglion"]; ...
-         ["a8_"], ["Recon2"]; ...
-         ["a4_"], ["V1"]}; ...
-    nonSparse_norm_strength = ones(num_nonSparse_list,1);
-    Sparse_std_ndx = [0 0 1];
-    %%%%%%%%%%%%%%%%%%%%%%%%e%%%%%%%%%%%%%%%%%%%%
-  elseif strcmp(run_type, "Heli_DPT") 
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %% Heli_DPT
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    nonSparse_list = ...
-        {["a1_"], ["Error"]; ...
-         ["a4_"], ["Error2"]; ...
-         ["a5_"], ["Error1_2"]}; %%; ...
-    num_nonSparse_list = size(nonSparse_list,1);
-    nonSparse_skip = repmat(1, num_nonSparse_list, 1);
-    nonSparse_skip(1) = 10;
-    nonSparse_skip(2) = 10;
-    nonSparse_skip(3) = 10;
-    nonSparse_norm_list = ...
         {["a0_"], ["Image"]; ...
-         ["a7_"], ["Recon2"]; ...
-         ["a2_"], ["V1"]}; ...
+         ["a7_"], ["ReconV2"]; ...
+         ["a2_"], ["V1"]; ...
+         ["a13_"], ["ReconV4"]; ...
+         ["a6_"], ["V2"]}; ...
     nonSparse_norm_strength = ones(num_nonSparse_list,1);
     nonSparse_norm_strength(1) = ...
 	1/sqrt(18*18);
-    Sparse_std_ndx = [0 0 1];
+    nonSparse_norm_strength(2) = 1;
+    nonSparse_norm_strength(3) = 1;
+    nonSparse_norm_strength(4) = 1;
+    nonSparse_norm_strength(5) = 1;
+    Sparse_std_ndx = [0 0 1 0 2];
     %%%%%%%%%%%%%%%%%%%%%%%%e%%%%%%%%%%%%%%%%%%%%
-  elseif strcmp(run_type, "Heli_V1") 
+  elseif strcmp(run_type, "Heli_DTX3") || strcmp(run_type, "Heli_DX3")   
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% Heli_DTX3
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%%%%%%%%%%%%%%%%%%%%%%%e%%%%%%%%%%%%%%%%%%%%
+    nonSparse_list = ...
+        {["a1_"], ["Error"]; ...
+         ["a4_"], ["ErrorV1InfraV2"]; ...
+         ["a8_"], ["ErrorV2InfraV4"]}; %%; ...
+    num_nonSparse_list = size(nonSparse_list,1);
+    nonSparse_skip = repmat(1, num_nonSparse_list, 1);
+    nonSparse_skip(1) = 1;
+    nonSparse_skip(2) = 1;
+    nonSparse_skip(3) = 1;
+    nonSparse_norm_list = ...
+        {["a0_"], ["Image"]; ...
+         ["a2_"], ["V1"]; ...
+         ["a5_"], ["V2"]}; ...
+    nonSparse_norm_strength = ones(num_nonSparse_list,1);
+    nonSparse_norm_strength(1) = ...
+	1/sqrt(18*18);
+    Sparse_std_ndx = [0 1 2];
+  elseif strcmp(run_type, "Heli_V1V2V4") 
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% Heli_V1V2V4
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    nonSparse_list = ...
+        {["a1_"], ["ErrorV1"]; ...
+         ["a4_"], ["ErrorV2"]; ...
+         ["a7_"], ["ErrorV4"]}; %%; ...
+    num_nonSparse_list = size(nonSparse_list,1);
+    nonSparse_skip = repmat(1, num_nonSparse_list, 1);
+    nonSparse_skip(1) = 1;
+    nonSparse_skip(2) = 1;
+    nonSparse_skip(2) = 1;
+    nonSparse_norm_list = ...
+        {["a3_"], ["ReconV1"]; ...
+         ["a6_"], ["ReconV2"]; ...
+         ["a9_"], ["ReconV4"]}; ...
+%%    nonSparse_norm_list = ...
+%%        {["a0_"], ["Image"]; ...
+%%         ["a0_"], ["Image"]; ...
+%%         ["a0_"], ["Image"]}; ...
+    nonSparse_norm_strength = ones(num_nonSparse_list,1);
+%%    nonSparse_norm_strength(1) = ...
+%%	1/sqrt(18*18);
+%%    nonSparse_norm_strength(2) = ...
+%%	1/sqrt(18*18);
+%%    nonSparse_norm_strength(3) = ...
+%%	1/sqrt(18*18);
+    Sparse_std_ndx = [0 0 0];
+    %%%%%%%%%%%%%%%%%%%%%%%%e%%%%%%%%%%%%%%%%%%%%
+  elseif strcmp(run_type, "Heli_V1")  || strcmp(run_type, "Heli_V2")  
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% Heli_V1
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -784,9 +791,9 @@ if analyze_nonSparse_flag
          ["a5_"], ["Error1_2"]}; %%; ...
     num_nonSparse_list = size(nonSparse_list,1);
     nonSparse_skip = repmat(1, num_nonSparse_list, 1);
-    nonSparse_skip(1) = 10;
-    nonSparse_skip(2) = 10;
-    nonSparse_skip(3) = 10;
+    nonSparse_skip(1) = 1;
+    nonSparse_skip(2) = 1;
+    nonSparse_skip(3) = 1;
     nonSparse_norm_list = ...
         {["a0_"], ["Image"]; ...
          ["a2_"], ["V1"]; ...
@@ -795,25 +802,6 @@ if analyze_nonSparse_flag
     nonSparse_norm_strength(1) = ...
 	1/sqrt(18*18);
     Sparse_std_ndx = [0 1 1];
-    %%%%%%%%%%%%%%%%%%%%%%%%e%%%%%%%%%%%%%%%%%%%%
-  elseif strcmp(run_type, "Heli_D") 
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %% Heli_D
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    nonSparse_list = ...
-        {["a1_"], ["Error"]; ...
-         ["a4_"], ["Error1_2"]}; %%; ...
-    num_nonSparse_list = size(nonSparse_list,1);
-    nonSparse_skip = repmat(1, num_nonSparse_list, 1);
-    nonSparse_skip(1) = 1;
-    nonSparse_skip(2) = 1;
-    nonSparse_norm_list = ...
-        {["a0_"], ["Image"]; ...
-         ["a2_"], ["V1"]}; ...
-    nonSparse_norm_strength = ones(num_nonSparse_list,1);
-    nonSparse_norm_strength(1) = ...
-	1/sqrt(18*18);
-    Sparse_std_ndx = [0 1];
     %%%%%%%%%%%%%%%%%%%%%%%%e%%%%%%%%%%%%%%%%%%%%
   elseif strcmp(run_type, "CIFAR_C1") 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -847,28 +835,33 @@ if analyze_nonSparse_flag
     %% PASCAL list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     nonSparse_list = ...
-	{["a1_"], ["Error"]}; %%; ...
-         %%["a4_"], ["ErrorS1C1Local"]; ...
-	 %%["a5_"], ["ErrorS1C1Lateral"]; ...
+	{["a1_"], ["Error"]; ...
+         ["a4_"], ["ErrorS1C1Local"]; ...
+	 ["a5_"], ["ErrorS1C1Lateral"]; ...
+	 ["a9_"], ["ErrorS1C1Distal"]}; %% ...
 	 %%["a9_"], ["ErrorC1S2"]; ...
 	 %%["a15_"], ["LabelError"]};
     num_nonSparse_list = size(nonSparse_list,1);
     nonSparse_skip = repmat(1, num_nonSparse_list, 1);
-    nonSparse_skip(1) = 10;
-    %%nonSparse_skip(2) = 1;
-    %%nonSparse_skip(3) = 1;
+    nonSparse_skip(1) = 1;
+    nonSparse_skip(2) = 1;
+    nonSparse_skip(3) = 1;
+    nonSparse_skip(4) = 1;
     %%nonSparse_skip(4) = 1;
     %%nonSparse_skip(5) = 1;
     nonSparse_norm_list = ...
-        {["a0_"], ["Image"]};%%; ...
-         %%["a2_"], ["S1"]; ...
-         %%["a2_"], ["S1"]; ...
+        {["a0_"], ["Image"]; ...
+         ["a2_"], ["S1"];...
+         ["a2_"], ["S1"];...
+         ["a2_"], ["S1"]}; %%...
          %%["a6_"], ["C1"]; ...
          %%["a14_"], ["Labels"]};
     nonSparse_norm_strength = ones(num_nonSparse_list,1);
-    nonSparse_norm_strength(1) = ...
-    1/sqrt(16*16);
-    Sparse_std_ndx = [0];%% 1 1 2 0];
+    nonSparse_norm_strength(1) = 1/sqrt(18*18);
+    nonSparse_norm_strength(2) = 1;  
+    nonSparse_norm_strength(3) = 1;
+    nonSparse_norm_strength(4) = 1;
+    Sparse_std_ndx = [0 1 1 1]; %% 2 0];
   elseif strcmp(run_type, "CIFAR_gray") 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% CIFAR_gray list
@@ -974,40 +967,9 @@ endif %% analyze_nonSparse_flag
 
 plot_ReconError = true && analyze_nonSparse_flag;
 ReconError_RMS_fig_ndx = [];
+ReconError_list = [];
 if plot_ReconError
-  if strcmp(run_type, "color_deep") || strcmp(run_type, "noTopDown") 
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %% deep/noTopDown list
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    ReconError_list = ...
-        {["a5_"], ["Recon"]; ...
-         ["a11_"], ["ReconInfra"]};
-    num_ReconError_list = size(ReconError_list,1);
-    ReconError_skip = repmat(1, num_ReconError_list, 1);
-    ReconError_skip(1) = 1;
-    ReconError_skip(2) = 1;
-    ReconError_norm_list = ...
-        {["a2_"], ["Ganglion"]; ...
-         ["a2_"], ["Ganglion"]};
-    ReconError_norm_strength = ones(num_ReconError_list,1);
-    ReconError_RMS_fig_ndx = [1 1];  %% causes recon error to be overlaid on specified  nonSparse (Error) figure
-  elseif strcmp(run_type, "noPulvinar")  || strcmp(run_type, "TopDown")
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %% noPulvinar/TopDown list
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    ReconError_list = ...
-        {["a5_"], ["Recon"]; ...
-         ["a9_"], ["ReconInfra"]};
-    num_ReconError_list = size(ReconError_list,1);
-    ReconError_skip = repmat(1, num_ReconError_list, 1);
-    ReconError_skip(1) = 1;
-    ReconError_skip(2) = 1;
-    ReconError_norm_list = ...
-        {["a2_"], ["Ganglion"]; ...
-         ["a2_"], ["Ganglion"]};
-    ReconError_norm_strength = ones(num_ReconError_list,1);
-    ReconError_RMS_fig_ndx = [1 1];  %% causes recon error to be overlaid on specified  nonSparse (Error) figure
-  elseif strcmp(run_type, "V1")
+  if strcmp(run_type, "V1")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% V1 list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1020,9 +982,9 @@ if plot_ReconError
         {["a2_"], ["Ganglion"]};
     ReconError_norm_strength = ones(num_ReconError_list,1);
     ReconError_RMS_fig_ndx = [1];  %% causes recon error to be overlaid on specified  nonSparse (Error) figure
-  elseif strcmp(run_type, "Heli_DPT") || strcmp(run_type, "Heli_C1") 
+  elseif strcmp(run_type, strcmp(run_type, "Heli_C1")) 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %% Heli_DPT/Heli_C1 list
+    %% Heli_C1 list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     ReconError_list = ...
         {["a3_"], ["Recon"]; ...
@@ -1030,9 +992,9 @@ if plot_ReconError
 	 ["a13_"],["ReconMaxPoolingC1"]};
     num_ReconError_list = size(ReconError_list,1);
     ReconError_skip = repmat(1, num_ReconError_list, 1);
-    ReconError_skip(1) = 10;
-    ReconError_skip(2) = 10;
-    ReconError_skip(3) = 10;
+    ReconError_skip(1) = 1;
+    ReconError_skip(2) = 1;
+    ReconError_skip(3) = 1;
     ReconError_norm_list = ...
         {["a0_"], ["Image"]; ...
          ["a0_"], ["Image"]; ...
@@ -1041,7 +1003,70 @@ if plot_ReconError
     ReconError_norm_strength = ...
 	[1/sqrt(18*18); 1/sqrt(18*18); 1/sqrt(18*18)];
     ReconError_RMS_fig_ndx = [1 1 1];  %% causes recon error to be overlaid on specified  nonSparse (Error) figure
-  elseif strcmp(run_type, "Heli_V1") 
+  elseif strcmp(run_type, "Heli_DPTX3") 
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% Heli_DPTX3 list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    ReconError_list = ...
+        {["a3_"], ["ReconV1"]; ...
+         ["a9_"], ["ReconInfraV2"]; ...
+         ["a16_"], ["ReconInfraV4"]};
+    num_ReconError_list = size(ReconError_list,1);
+    ReconError_skip = repmat(1, num_ReconError_list, 1);
+    ReconError_skip(1) = 1;
+    ReconError_skip(2) = 1;
+    ReconError_skip(3) = 1;
+    ReconError_norm_list = ...
+        {["a0_"], ["Image"]; ...
+         ["a0_"], ["Image"]; ...
+         ["a0_"], ["Image"]};
+    ReconError_norm_strength = ones(num_ReconError_list,1);
+    ReconError_norm_strength = ...
+	[1/sqrt(18*18); 1/sqrt(18*18); 1/sqrt(18*18)];
+    ReconError_RMS_fig_ndx = [1 1 1];  %% causes recon error to be overlaid on specified  nonSparse (Error) figure
+  elseif strcmp(run_type, "Heli_DTX3") || strcmp(run_type, "Heli_DX3")  
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% Heli_DTX3 list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    ReconError_list = ...
+        {["a3_"], ["ReconV1"]; ...
+         ["a7_"], ["ReconInfraV2"]; ...
+         ["a12_"], ["ReconInfraV4"]};
+    num_ReconError_list = size(ReconError_list,1);
+    ReconError_skip = repmat(1, num_ReconError_list, 1);
+    ReconError_skip(1) = 1;
+    ReconError_skip(2) = 1;
+    ReconError_skip(3) = 1;
+    ReconError_norm_list = ...
+        {["a0_"], ["Image"]; ...
+         ["a0_"], ["Image"]; ...
+         ["a0_"], ["Image"]};
+    ReconError_norm_strength = ones(num_ReconError_list,1);
+    ReconError_norm_strength = ...
+	[1/sqrt(18*18); 1/sqrt(18*18); 1/sqrt(18*18)];
+    ReconError_RMS_fig_ndx = [1 1 1];  %% causes recon error to be overlaid on specified  nonSparse (Error) figure
+  elseif strcmp(run_type, "Heli_V1V2V4")
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% Heli_V1V2V4 list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    ReconError_list = ...
+        {["a3_"], ["ReconV1"]; ...
+         ["a6_"], ["ReconV2"]; ...
+         ["a9_"], ["ReconV4"]};
+    num_ReconError_list = size(ReconError_list,1);
+    ReconError_skip = repmat(1, num_ReconError_list, 1);
+    ReconError_skip(1) = 1;
+    ReconError_skip(2) = 1;
+    ReconError_skip(3) = 1;
+    ReconError_norm_list = ...
+        {["a0_"], ["Image"]; ...
+         ["a0_"], ["Image"]; ...
+         ["a0_"], ["Image"]};
+    ReconError_norm_strength = ones(num_ReconError_list,1);
+    ReconError_norm_strength = ...
+	[1/sqrt(18*18); 1/sqrt(18*18); 1/sqrt(18*18)];
+    ReconError_RMS_fig_ndx = [1 1 1];  %% causes recon error to be overlaid on specified  nonSparse (Error) figure
+  elseif strcmp(run_type, "Heli_V1")  
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% Heli_V1 list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1049,7 +1074,7 @@ if plot_ReconError
         {["a3_"], ["Recon"]};
     num_ReconError_list = size(ReconError_list,1);
     ReconError_skip = repmat(1, num_ReconError_list, 1);
-    ReconError_skip(1) = 1;
+    ReconError_skip(1) = 10;
     ReconError_norm_list = ...
         {["a0_"], ["Image"]};
     ReconError_norm_strength = ones(num_ReconError_list,1);
@@ -1098,20 +1123,21 @@ if plot_ReconError
     %% PASCAL list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     ReconError_list = ...
-        {["a3_"],  ["Recon"]};%%; ...
-         %%["a8_"],  ["ReconC1"]; ...
+        {["a3_"],  ["Recon"]; ...
+         ["a8_"],  ["ReconC1"]}; %%...
 	 %%["a13_"], ["ReconS2"]};
     num_ReconError_list = size(ReconError_list,1);
     ReconError_skip = repmat(1, num_ReconError_list, 1);
-    ReconError_skip(1) = 10;
-    %%ReconError_skip(2) = 1;
+    ReconError_skip(1) = 1;
+    ReconError_skip(2) = 1;
     ReconError_norm_list = ...
-        {["a0_"], ["Image"]};%%; ...
-         %%["a0_"], ["Image"]; ...
+        {["a0_"], ["Image"]; ...
+         ["a0_"], ["Image"]}; %% ...
          %%["a0_"], ["Image"]};
     ReconError_norm_strength = ...
-	[1/sqrt(16*16)];%%; 1/sqrt(16*16); 1/sqrt(16*16)];
-    ReconError_RMS_fig_ndx = [1];%% 1 1];
+	[1/sqrt(18*18); 2/sqrt(18*18); 1/sqrt(18*18)];  %% factor of 2
+    %% for ReconC1 because adding two contributions from local and lateral
+    ReconError_RMS_fig_ndx = [1 1];%% 1];
   elseif strcmp(run_type, "CIFAR_gray") 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% CIFAR_gray list
@@ -1152,7 +1178,7 @@ if plot_ReconError
     ReconError_RMS_fig_ndx = [1 1 1 1 1];
   endif %% run_type
   
-  
+  if ~isempty(ReconError_list)
   [nonSparse_times_array, ...
    nonSparse_RMS_array, ...
    nonSparse_norm_RMS_array, ...
@@ -1172,6 +1198,7 @@ if plot_ReconError
 			   min_nonSparse_skip, ...
 			   fraction_nonSparse_progress);
   drawnow;
+  endif
 endif %% plot_ReconError
 
 
@@ -1180,54 +1207,47 @@ endif %% plot_ReconError
 
 
 
-plot_ErrorVsSparse = false && analyze_Sparse_flag && analyze_nonSparse_flag;
+plot_ErrorVsSparse = true && analyze_Sparse_flag && analyze_nonSparse_flag;
 if plot_ErrorVsSparse
   ErrorVsSparse_list = [nonSparse_list; ReconError_list];
   num_ErrorVsSparse_list = size(ErrorVsSparse_list,1);
   Sparse_axis_index = ones(num_ErrorVsSparse_list,1);
-  if strcmp(run_type, "color_deep")
-    Sparse_axis_index(1) = [1,2];  %% combine sparsity of V1 + V2
+  if strcmp(run_type, "Heli_C1") 
     Sparse_axis_index(2) = 2;
     Sparse_axis_index(3) = 2;
     Sparse_axis_index(4) = 1;
     Sparse_axis_index(5) = 2;
     Sparse_axis_index(6) = 2;
-  elseif strcmp(run_type, "noTopDown") 
+    Sparse_axis_index(7) = 3;
+  elseif strcmp(run_type, "Heli_DPTX3")
+    Sparse_axis_index = zeros(num_ErrorVsSparse_list,3);
+    Sparse_axis_index(1,1) = 1;
+    Sparse_axis_index(2,1) = 2;
+    Sparse_axis_index(3,1) = 2;
+    Sparse_axis_index(4,1) = 3;
+    Sparse_axis_index(5,1) = 3;
+    Sparse_axis_index(6,1) = 1;
+    Sparse_axis_index(7,1) = 2;
+    Sparse_axis_index(8,1) = 3;
+    Sparse_axis_index(:,2) = 2;
+    Sparse_axis_index(:,3) = 3;
+  elseif strcmp(run_type, "Heli_DTX3") || strcmp(run_type, "Heli_DX3")   
     Sparse_axis_index(2) = 2;
-    Sparse_axis_index(3) = 2;
+    Sparse_axis_index(3) = 3;
     Sparse_axis_index(4) = 1;
     Sparse_axis_index(5) = 2;
-    Sparse_axis_index(6) = 2;
-  elseif strcmp(run_type, "Heli_DPT") || strcmp(run_type, "Heli_C1") 
-    Sparse_axis_index(2) = 2;
-    Sparse_axis_index(3) = 2;
-    Sparse_axis_index(4) = 1;
-    Sparse_axis_index(5) = 2;
-    Sparse_axis_index(6) = 2;
     Sparse_axis_index(6) = 3;
-  elseif strcmp(run_type, "noPulvinar") || strcmp(run_type, "TopDown")
+  elseif strcmp(run_type, "Heli_V1V2V4") 
     Sparse_axis_index(2) = 2;
-    Sparse_axis_index(3) = 1;
-    Sparse_axis_index(4) = 2;
-    Sparse_axis_index(5) = 2;
-    Sparse_axis_index(6) = 2;
-  elseif strcmp(run_type, "CIFAR_deep")
-    Sparse_axis_index(2) = 2;
-    Sparse_axis_index(3) = 2;
+    Sparse_axis_index(3) = 3;
     Sparse_axis_index(4) = 1;
     Sparse_axis_index(5) = 2;
+    Sparse_axis_index(6) = 3;
   elseif strcmp(run_type, "CIFAR_C1")
     Sparse_axis_index(2) = 2;
     Sparse_axis_index(3) = 2;
     Sparse_axis_index(4) = 1;
     Sparse_axis_index(5) = 2;
-  elseif strcmp(run_type, "lateral")
-    Sparse_axis_index(2) = 2;
-    Sparse_axis_index(3) = 2;
-    Sparse_axis_index(4) = 1;
-    Sparse_axis_index(5) = 2;
-    Sparse_axis_index(6) = 2;
-    Sparse_axis_index(7) = 2;
   endif
 
 
@@ -1255,15 +1275,29 @@ if plot_ErrorVsSparse
     num_Sparse_neurons = ...
 	Sparse_hdr{i_Sparse}.nxGlobal * Sparse_hdr{i_Sparse}.nyGlobal * Sparse_hdr{i_Sparse}.nf;
     Sparse_sum_norm = 1;
+    Sparse_sum_offset = 0;
     for i_Sparse_sum = 2 : size(Sparse_axis_index,2)
       i_Sparse = Sparse_axis_index(i_ErrorVsSparse,i_Sparse_sum);
-      Sparse_times_sum = Sparse_times_array{i_Sparse};
-      if any(Sparse_times_sum ~= Sparse_times)
+      if i_Sparse <= 0
 	continue;
       endif
+      Sparse_times_sum = Sparse_times_array{i_Sparse};
+      while(Sparse_times_sum(end-Sparse_sum_offset) > Sparse_times(end))
+	Sparse_sum_offset = Sparse_sum_offset + 1;
+      endwhile
+      Sparse_times_sum = Sparse_times_sum(1:end-Sparse_sum_offset);
+      %%Sparse_times_ndx = find(Sparse_times_sum ~= Sparse_times);
+      %%Sparse_times_sum =Sparse_times_sum(Sparse_times_ndx);
+      %%if any(Sparse_times_sum ~= Sparse_times)
+      %%	keyboard;
+      %%endif
       num_Sparse_neurons_sum = ...
 	  Sparse_hdr{i_Sparse}.nxGlobal * Sparse_hdr{i_Sparse}.nyGlobal * Sparse_hdr{i_Sparse}.nf;
-      Sparse_percent_active = Sparse_percent_active + (num_Sparse_neurons_sum / num_Sparse_neurons) * Sparse_percent_active_array{i_Sparse};
+      if length(Sparse_percent_active) > length(Sparse_percent_active_array{i_Sparse}(1:end-Sparse_sum_offset))
+	Sparse_percent_active = Sparse_percent_active(1+Sparse_sum_offset:end) + (num_Sparse_neurons_sum / num_Sparse_neurons) * Sparse_percent_active_array{i_Sparse}(1:end-Sparse_sum_offset);
+      else
+	Sparse_percent_active = Sparse_percent_active + (num_Sparse_neurons_sum / num_Sparse_neurons) * Sparse_percent_active_array{i_Sparse}(1:end-Sparse_sum_offset);
+      endif      
       Sparse_sum_norm = Sparse_sum_norm + (num_Sparse_neurons_sum / num_Sparse_neurons);
     endfor
     Sparse_percent_active = Sparse_percent_active / Sparse_sum_norm;
@@ -1339,7 +1373,8 @@ if plot_ErrorVsSparse
 	 num2str(nonSparse_times(num_nonSparse_frames), "%08d")];
     if plot_flag
       normalized_nonSparse_RMS = nonSparse_RMS(1:last_nonSparse_ndx) ./ ...
-	       (nonSparse_norm_RMS(1:last_nonSparse_ndx) + (nonSparse_norm_RMS(1:last_nonSparse_ndx) == 0));
+       	       (nonSparse_norm_RMS(1:last_nonSparse_ndx) + (nonSparse_norm_RMS(1:last_nonSparse_ndx) == 0));
+      %%normalized_nonSparse_RMS = nonSparse_RMS(1:last_nonSparse_ndx);
       max_nonSparse_RMS = max(normalized_nonSparse_RMS(:));
       ErrorVsSparse_fig = figure;
       ErrorVsSparse_hndl = ...
@@ -1359,12 +1394,13 @@ if plot_ErrorVsSparse
 	  ErrorVsSparse_name);
       saveas(ErrorVsSparse_fig, ...
 	     [ErrorVsSparse_dir, filesep, ...
-	      ErrorVsSparse_name, "png"]);
+	      ErrorVsSparse_name, ".", "png"], "png");
     endif %% plot_flag
     save("-mat", ...
 	 [ErrorVsSparse_dir, filesep, ErrorVsSparse_name, ".mat"], ...
 	 "nonSparse_times", "Sparse_vals", "nonSparse_RMS", "nonSparse_norm_RMS", ...
 	 "Sparse_bins", "mean_nonSparse_RMS", "std_nonSparse_RMS");	 
+    %keyboard;
   endfor  %% i_ErrorVsSparse
   drawnow;
 endif %% plot_ErrorVsSparse
@@ -1379,11 +1415,11 @@ plot_weights = true;
 if plot_weights
   weights_list = {};
   labelWeights_list = {};
-  if strcmp(run_type, "color_deep") || strcmp(run_type, "noTopDown") || strcmp(run_type, "Heli_DPT") || strcmp(run_type, "Heli_D") || strcmp(run_type, "Heli_V1") 
+  if strcmp(run_type, "color_deep") || strcmp(run_type, "noTopDown") || strcmp(run_type, "Heli_DPT") || strcmp(run_type, "Heli_D") || strcmp(run_type, "Heli_V1")  || strcmp(run_type, "Heli_V2")  || strcmp(run_type, "Heli_DT") 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% deep list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    sparse_ndx = [1; 2];
+    sparse_weights_ndx = [1; 2];
     if ~checkpoint_weights_movie
       weights_list = ...
           {["w4_"], ["V1ToError"]; ...
@@ -1396,12 +1432,47 @@ if plot_weights
       checkpoints_list = getCheckpointList(checkpoint_parent, checkpoint_children);
     endif %% checkpoint_weights_movie
     num_checkpoints = size(checkpoints_list,1);
-    weights_pad_size = [0, 9];
+    weights_pad_size = [0, 0];
+  elseif strcmp(run_type, "Heli_DPTX3") 
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% Heli_DPTX3 list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    sparse_weights_ndx = [1; 2; 3];
+    if ~checkpoint_weights_movie
+      weights_list = ...
+          {["w4_"], ["V1ToError"]; ...
+           ["w8_"], ["V2ToError2"]};
+      checkpoints_list = {output_dir};
+    else
+      weights_list = ...
+          {["V1ToError"], ["_W"]; ...
+           ["V2ToErrorV2"], ["_W"]; ...
+           ["V4ToErrorV4"], ["_W"]};
+      checkpoints_list = getCheckpointList(checkpoint_parent, checkpoint_children);
+    endif %% checkpoint_weights_movie
+    num_checkpoints = size(checkpoints_list,1);
+    weights_pad_size = [0 0 0]; %[27, 18, 0];
+  elseif strcmp(run_type, "Heli_DTX3")  || strcmp(run_type, "Heli_DX3")   
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% Heli_DTX3 list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    sparse_weights_ndx = [1; 2; 3];
+    if ~checkpoint_weights_movie
+      weights_list = ...
+          {["w4_"], ["V1ToError"]};
+      checkpoints_list = {output_dir};
+    else
+      weights_list = ...
+          {["V1ToError"], ["_W"]};
+      checkpoints_list = getCheckpointList(checkpoint_parent, checkpoint_children);
+    endif %% checkpoint_weights_movie
+    num_checkpoints = size(checkpoints_list,1);
+    weights_pad_size = [0]; %%[27];
   elseif strcmp(run_type, "Heli_C1") 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% deep list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    sparse_ndx = [1];
+    sparse_weights_ndx = [1];
     if ~checkpoint_weights_movie
       weights_list = ...
           {["w4_"], ["S1ToError"]};
@@ -1416,7 +1487,7 @@ if plot_weights
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% CIFAR_C1 list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    sparse_ndx = [1];
+    sparse_weights_ndx = [1];
     if ~checkpoint_weights_movie
       weights_list = ...
           {["w1_"], ["S1ToError"]};
@@ -1432,7 +1503,7 @@ if plot_weights
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% noPulvinar list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-     sparse_ndx = [1];
+     sparse_weights_ndx = [1];
     if ~checkpoint_weights_movie
       weights_list = ...
           {["w4_"], ["V1ToError"]};
@@ -1443,11 +1514,31 @@ if plot_weights
       checkpoints_list = getCheckpointList(checkpoint_parent, checkpoint_children);
     endif %% checkpoint_weights_movie
     num_checkpoints = size(checkpoints_list,1);
+  elseif strcmp(run_type, "Heli_V1V2V4") 
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% Heli_V1V2V4 list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+     sparse_weights_ndx = [1, 2, 3];
+    if ~checkpoint_weights_movie
+      weights_list = ...
+          {["w4_"], ["V1ToErrorV1"];
+	   ["w4_"], ["V2ToErrorV2"];
+	   ["w4_"], ["V4ToErrorV4"]};
+      checkpoints_list = {output_dir};
+    else
+      weights_list = ...
+          {["V1ToErrorV1"], ["_W"];
+	   ["V2ToErrorV2"], ["_W"];
+	   ["V4ToErrorV4"], ["_W"]};
+      checkpoints_list = getCheckpointList(checkpoint_parent, checkpoint_children);
+    endif %% checkpoint_weights_movie
+    num_checkpoints = size(checkpoints_list,1);
+    weights_pad_size = [0 0 0]; %%[27, 18, 0];
   elseif strcmp(run_type, "lateral")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% lateral list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    sparse_ndx = [1; 2];
+    sparse_weights_ndx = [1; 2];
     if ~checkpoint_weights_movie
       weights_list = ...
           {["w4_"], ["V1ToError"]};
@@ -1461,6 +1552,7 @@ if plot_weights
   endif %% run_type
 
   num_weights_list = size(weights_list,1);
+  weight_patch_array_list = cell(num_weights_list, 1);
   if ~exist("weights_pad_size") || length(weights_pad_size(:)) < num_weights_list
     weights_pad_size = zeros(1, num_weights_list);
   endif
@@ -1525,7 +1617,7 @@ if plot_weights
       if no_clobber && exist([weights_movie_dir, filesep, weights_name, ".png"]) && i_checkpoint ~= max_checkpoint
 	continue;
       endif
-      tmp_ndx = sparse_ndx(i_weights);
+      tmp_ndx = sparse_weights_ndx(i_weights);
       if analyze_Sparse_flag
 	tmp_rank = Sparse_hist_rank_array{tmp_ndx};
       else
@@ -1597,11 +1689,11 @@ if plot_weights
 	endif
 
 
-	patch_tmp2 = patch_tmp; %% imresize(patch_tmp, 12);
-	min_patch = min(patch_tmp2(:));
-	max_patch = max(patch_tmp2(:));
-	patch_tmp2 = (patch_tmp2 - min_patch) * 255 / (max_patch - min_patch + ((max_patch - min_patch)==0));
-	patch_tmp2 = uint8(permute(patch_tmp2, [2,1,3])); %% uint8(flipdim(permute(patch_tmp2, [2,1,3]),1));
+	patch_tmp2 = permute(patch_tmp, [2,1,3]); %%patch_tmp; %% imresize(patch_tmp, 12);
+	%%min_patch = min(patch_tmp2(:));
+	maxabs_patch = max(abs(patch_tmp2(:)));
+	patch_tmp3 = uint8(127.5 + 127.5*(patch_tmp2) / (maxabs_patch + (maxabs_patch==0)));
+	%%patch_tmp2 = uint8(permute(patch_tmp2, [2,1,3])); %% uint8(flipdim(permute(patch_tmp2, [2,1,3]),1));
 
 	pad_size = weights_pad_size(i_weights);
 	padded_patch_size = size(patch_tmp2);
@@ -1609,14 +1701,14 @@ if plot_weights
 	padded_patch_size(2) = padded_patch_size(2) + 2*pad_size;
 	patch_tmp6 = repmat(uint8(128),padded_patch_size);
 	if ndims(patch_tmp) == 3
-	  patch_tmp6(pad_size+1:padded_patch_size(1)-pad_size,pad_size+1:padded_patch_size(2)-pad_size,:) = uint8(patch_tmp2);
+	  patch_tmp6(pad_size+1:padded_patch_size(1)-pad_size,pad_size+1:padded_patch_size(2)-pad_size,:) = patch_tmp3; %%uint8(patch_tmp2);
 	else
-	  patch_tmp6(pad_size+1:padded_patch_size(1)-pad_size,pad_size+1:padded_patch_size(2)-pad_size) = uint8(patch_tmp2);
+	  patch_tmp6(pad_size+1:padded_patch_size(1)-pad_size,pad_size+1:padded_patch_size(2)-pad_size) = patch_tmp3; %%uint8(patch_tmp2);
 	endif
 	
 
 	if plot_flag && i_checkpoint == max_checkpoint
-	  imagesc(patch_tmp2); 
+	  imagesc(patch_tmp6); 
 	  if num_weights_colors == 1
 	    colormap(gray);
 	  endif
@@ -1631,13 +1723,15 @@ if plot_weights
 	endif %% plot_flag
 	if isempty(weight_patch_array)
 	  weight_patch_array = ...
-	      zeros(num_patches_rows*size(patch_tmp2,1), num_patches_cols*size(patch_tmp2,2), size(patch_tmp2,3));
-	endif
+	      zeros(num_patches_rows*size(patch_tmp6,1), num_patches_cols*size(patch_tmp6,2), size(patch_tmp6,3));
+	endif 
 	col_ndx = 1 + mod(j_patch-1, num_patches_cols);
 	row_ndx = 1 + floor((j_patch-1) / num_patches_cols);
-	weight_patch_array(((row_ndx-1)*size(patch_tmp2,1)+1):row_ndx*size(patch_tmp2,1), ...
-			   ((col_ndx-1)*size(patch_tmp2,2)+1):col_ndx*size(patch_tmp2,2),:) = ...
-	    patch_tmp2;
+	maxabs_patch = max(abs(patch_tmp6(:)));
+	%normalized_patch = 127.5 + 127.5 * (patch_tmp6 / (maxabs_patch + (maxabs_patch==0)));
+	weight_patch_array(((row_ndx-1)*size(patch_tmp6,1)+1):row_ndx*size(patch_tmp6,1), ...
+			   ((col_ndx-1)*size(patch_tmp6,2)+1):col_ndx*size(patch_tmp6,2),:) = ...
+	    uint8(patch_tmp6);
       endfor  %% j_patch
       if plot_flag && i_checkpoint == max_checkpoint
 	if ~isempty(labelWeights_vals)
@@ -1646,6 +1740,12 @@ if plot_weights
 	  saveas(weights_fig, [weights_dir, filesep, weights_name, ".png"], "png");
 	endif
       endif
+      if i_checkpoint == max_checkpoint
+	weight_patch_array_list{i_weights,1} = weight_patch_array;
+      endif
+      
+      maxabs_weight_patch_array = max(abs(weight_patch_array(:)));
+      %%weight_patch_array = uint8(127.5 + 127.5 * (weight_patch_array / (maxabs_weight_patch_array + (maxabs_weight_patch_array==0))));
       imwrite(uint8(weight_patch_array), [weights_movie_dir, filesep, weights_name, ".png"], "png");
       %% make histogram of all weights
       if plot_flag && i_checkpoint == max_checkpoint
@@ -1655,7 +1755,7 @@ if plot_weights
 	set(weights_hist_fig, "name", ...
 	    ["Hist_",  weights_list{i_weights,1}, weights_list{i_weights,2}, "_", num2str(weight_time, "%08d")]);
 	saveas(weights_hist_fig, ...
-	       [weights_dir, filesep, "weights_hist_", num2str(weight_time, "%08d")], "png");
+	       [weights_dir, filesep, "weights_hist_",  weights_list{i_weights,1}, weights_list{i_weights,2}, "_", num2str(weight_time, "%08d")], "png");
       endif
 
       if ~isempty(labelWeights_vals) && ...
@@ -1793,48 +1893,14 @@ endif  %% plot_weightLabels
 
 
 %%keyboard;
-plot_weights0_2 = true 
-plot_weights0_2_flag = true;
+analyze_weights0_2 = true 
+plot_weights0_2_flag = plot_flag;
 plot_labelWeights_flag = true;
-if plot_weights0_2
+if analyze_weights0_2
   weights1_2_list = {};
-  if strcmp(run_type, "color_deep") || strcmp(run_type, "noTopDown") 
+  if strcmp(run_type, "Heli_DPTX3") || strcmp(run_type, "Heli_DTX3")  || strcmp(run_type, "Heli_DX3")   
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %% deep list
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %% list of weights from layer2 to layer1
-    if ~checkpoint_weights_movie
-      checkpoints_list = {output_dir};
-      weights1_2_list = ...
-          {["w12_"], ["V2ToError1_2"]};
-      post1_2_list = ...
-          {["a4_"], ["V1"]};
-      %% list of weights from layer1 to image
-      weights0_1_list = ...
-          {["w4_"], ["V1ToError"]};
-      image_list = ...
-          {["a1_"], ["Bipolar"]};
-    else
-      checkpoints_list = getCheckpointList(checkpoint_parent, checkpoint_children);
-      weights1_2_list = ...
-          {["V2ToError1_2"], "_W"};
-      post1_2_list = ...
-          {["V1"], ["_A"]};
-      %% list of weights from layer1 to image
-      weights0_1_list = ...
-          {["V1ToError"], ["_W"]};
-%%      image_list = ...
-%%          {["a1_"], ["Image"]};
-      image_list = ...
-          {["Bipolar"], ["_A"]};
-    endif %% checkpoint_weights_movie
-    %% list of indices for reading rank order of presynaptic neuron as function of activation frequency
-    sparse_ndx = [2];
-    num_checkpoints = size(checkpoints_list,1);
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  elseif strcmp(run_type, "Heli_DPT") || strcmp(run_type, "Heli_D") 
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %% deep list
+    %% Heli_DPTX3/Heli_DTX3 list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% list of weights from layer2 to layer1
     if ~checkpoint_weights_movie
@@ -1851,7 +1917,7 @@ if plot_weights0_2
     else
       checkpoints_list = getCheckpointList(checkpoint_parent, checkpoint_children);
       weights1_2_list = ...
-          {["V2ToError1_2"], "_W"};
+          {["V2ToErrorV1InfraV2"], "_W"};
       post1_2_list = ...
           {["V1"], ["_A"]};
       %% list of weights from layer1 to image
@@ -1863,8 +1929,9 @@ if plot_weights0_2
           {["Image"], ["_A"]};
     endif %% checkpoint_weights_movie
     %% list of indices for reading rank order of presynaptic neuron as function of activation frequency
-    sparse_ndx = [2];
+    sparse_weights0_2_ndx = [2];
     num_checkpoints = size(checkpoints_list,1);
+    weights1_2_pad_size = [0]; %[18];
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   elseif strcmp(run_type, "Heli_C1")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1905,11 +1972,11 @@ if plot_weights0_2
 	   ["Image"], ["_A"]};
     endif %% checkpoint_weights_movie
     %% list of indices for reading rank order of presynaptic neuron as function of activation frequency
-    sparse_ndx = [2, 2];
+    sparse_weights0_2_ndx = [2, 2];
     num_checkpoints = size(checkpoints_list,1);
     weights1_2_pad_size = [8, 0];
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  elseif strcmp(run_type, "CIFAR_C1") 
+  elseif strcmp(run_type, "CIFAR_C1")  || strcmp(run_type, "PASCAL")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% CIFAR_C1 list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1918,7 +1985,8 @@ if plot_weights0_2
       checkpoints_list = {output_dir};
       weights1_2_list = ...
           {["w9_"], ["C1ToErrorS1C1Local"]; ...
-	   ["w9_"], ["C1ToErrorS1C1Lateral"]};
+	   ["w9_"], ["C1ToErrorS1C1Lateral"]; ...
+	   ["w9_"], ["C1ToErrorS1C1Distal"]};
       post1_2_list = ...
           {["a2_"], ["S1"]; ...
 	   ["a2_"], ["S1"]};
@@ -1933,101 +2001,34 @@ if plot_weights0_2
       checkpoints_list = getCheckpointList(checkpoint_parent, checkpoint_children);
       weights1_2_list = ...
           {["C1ToErrorS1C1Local"], ["_W"]; ...
-	   ["C1ToErrorS1C1Lateral"], ["_W"]};
+	   ["C1ToErrorS1C1Lateral"], ["_W"]; ...
+	   ["C1ToErrorS1C1Distal"], ["_W"]};
       post1_2_list = ...
           {["S1"], ["_A"]; ...
+	   ["S1"], ["_A"]; ...
 	   ["S1"], ["_A"]};
       %% list of weights from layer1 to image
       weights0_1_list = ...
           {["S1ToError"], ["_W"]; ...
+	   ["S1ToError"], ["_W"]; ...
 	   ["S1ToError"], ["_W"]};
 %%      image_list = ...
 %%          {["a1_"], ["Image"]};
       image_list = ...
           {["Image"], ["_A"]; ...
+	   ["Image"], ["_A"]; ...
 	   ["Image"], ["_A"]};
 %%      labelWeights_list = ...
 %%	  {["V2ToLabelError"], ["_W"]};
     endif %% checkpoint_weights_movie
     %% list of indices for reading rank order of presynaptic neuron as function of activation frequency
-    sparse_ndx = [2,2];
+    sparse_weights0_2_ndx = [2,2];
     num_checkpoints = size(checkpoints_list,1);
-    weights1_2_pad_size = [4, 0];
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  elseif strcmp(run_type, "noPulvinar") || strcmp(run_type, "TopDown")
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %% noPulvinar
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %% list of weights from layer2 to layer1
-    if ~checkpoint_weights_movie
-      checkpoints_list = {output_dir};
-      weights1_2_list = ...
-          {["w8_"], ["V2ToError1_2"]};
-      post1_2_list = ...
-          {["a4_"], ["V1"]};
-      %% list of weights from layer1 to image
-      weights0_1_list = ...
-          {["w4_"], ["V1ToError"]};
-      image_list = ...
-          {["a1_"], ["Bipolar"]};
-    else
-      checkpoints_list = getCheckpointList(checkpoint_parent, checkpoint_children);
-      weights1_2_list = ...
-          {["V2ToError1_2"], "_W"};
-      post1_2_list = ...
-          {["V1"], ["_A"]};
-      %% list of weights from layer1 to image
-      weights0_1_list = ...
-          {["V1ToError"], ["_W"]};
-%%      image_list = ...
-%%          {["a0_"], ["Image"]};
-      image_list = ...
-          {["Bipolar"], ["_A"]};
-    endif %% checkpoint_weights_movie
-    %% list of indices for reading rank order of presynaptic neuron as function of activation frequency
-    sparse_ndx = [2];
-    num_checkpoints = size(checkpoints_list,1);
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  elseif strcmp(run_type, "lateral")
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %% lateral list
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %% list of weights from layer2 to layer1
-    if ~checkpoint_weights_movie
-      checkpoints_list = {output_dir};
-      weights1_2_list = ...
-          {["w8_"], ["V2ToError2"];...
-	   ["w13_"], ["V2ToError1_2"]};
-      post1_2_list = ...
-          {["a4_"], ["V1"]; ...
-	   ["a4_"], ["V1"]};
-      %% list of weights from layer1 to image
-      weights0_1_list = ...
-          {["w4_"], ["V1ToError"]; ...
-	   ["w4_"], ["V1ToError"]};
-      image_list = ...
-          {["a1_"], ["Bipolar"]};
-    else
-      checkpoints_list = getCheckpointList(checkpoint_parent, checkpoint_children);
-      weights1_2_list = ...
-          {["V2ToError2"], ["_W"]; ...
-	   ["V2ToError1_2"], ["_W"]};
-      post1_2_list = ...
-          {["V1"], ["_A"]; ...
-	   ["V1"], ["_A"]};
-      %% list of weights from layer1 to image
-      weights0_1_list = ...
-          {["V1ToError"], ["_W"]; ...
-	   ["V1ToError"], ["_W"]};
-%%      image_list = ...
-%%          {["a1_"], ["Image"]};
-      image_list = ...
-          {["Bipolar"], ["_A"]};
-    endif %% checkpoint_weights_movie
-    %% list of indices for reading rank order of presynaptic neuron as function of activation frequency
-    sparse_ndx = [2,2];
-    num_checkpoints = size(checkpoints_list,1);
-    weights1_2_pad_size = [12, 0];
+    if strcmp(run_type, "CIFAR_C1")  
+      weights1_2_pad_size = [4, 0];
+    else strcmp(run_type, "PASCAL")
+      weights1_2_pad_size = [9, 0];
+    endif
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   endif %% run_type
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2099,7 +2100,7 @@ if plot_weights0_2
 
     for i_checkpoint = 1 : num_checkpoints
       if i_checkpoint ~= max_checkpoint 
-	%%continue;
+	continue;
       endif
       checkpoint_dir = checkpoints_list{i_checkpoint,:};
       weights1_2_file = ...
@@ -2177,7 +2178,7 @@ if plot_weights0_2
       weights0_1_time = squeeze(weights0_1_struct{i_frame}.time);
       
       %% get rank order of presynaptic elements
-      tmp_ndx = sparse_ndx(i_weights1_2);
+      tmp_ndx = sparse_weights0_2_ndx(i_weights1_2);
       if analyze_Sparse_flag
 	tmp_rank = Sparse_hist_rank_array{tmp_ndx};
       else
@@ -2338,21 +2339,21 @@ if plot_weights0_2
 	%%    uint8((flipdim(patch_tmp3,1) - min_patch) * 255 / ...
 	%%	  (max_patch - min_patch + ((max_patch - min_patch)==0)));
 	patch_tmp5 = ...
-	    uint8(127.5 + 127.5*(flipdim(patch_tmp3,1) ./ (max(abs(patch_tmp3(:))) + (max(abs(patch_tmp3(:)))==0))));
+	    (127.5 + 127.5*(flipdim(patch_tmp3,1) ./ (max(abs(patch_tmp3(:))) + (max(abs(patch_tmp3(:)))==0))));
 		  
 	pad_size = weights1_2_pad_size(i_weights1_2);
 	padded_patch_size = size(patch_tmp5);
 	padded_patch_size(1) = padded_patch_size(1) + 2*pad_size;
 	padded_patch_size(2) = padded_patch_size(2) + 2*pad_size;
-	patch_tmp6 = repmat(uint8(128),padded_patch_size);
+	patch_tmp6 = repmat(128,padded_patch_size);
 	if ndims(patch_tmp5) == 3
-	  patch_tmp6(pad_size+1:padded_patch_size(1)-pad_size,pad_size+1:padded_patch_size(2)-pad_size,:) = uint8(patch_tmp5);
+	  patch_tmp6(pad_size+1:padded_patch_size(1)-pad_size,pad_size+1:padded_patch_size(2)-pad_size,:) = (patch_tmp5);
 	else
-	  patch_tmp6(pad_size+1:padded_patch_size(1)-pad_size,pad_size+1:padded_patch_size(2)-pad_size) = uint8(patch_tmp5);
+	  patch_tmp6(pad_size+1:padded_patch_size(1)-pad_size,pad_size+1:padded_patch_size(2)-pad_size) = (patch_tmp5);
 	endif
 	
 	if plot_weights0_2_flag && i_checkpoint == max_checkpoint
-	  image(patch_tmp6); 
+	  imagesc(patch_tmp6); 
 	  if weights0_1_nfp == 1
 	    colormap(gray);
 	  endif
@@ -2375,9 +2376,11 @@ if plot_weights0_2
 	endif
 	col_ndx = 1 + mod(kf_pre1_2_rank-1, num_patches0_2_cols);
 	row_ndx = 1 + floor((kf_pre1_2_rank-1) / num_patches0_2_cols);
+	maxabs_patch0_2 = max(abs(patch_tmp6(:)));
+	%%normalized_patch0_2 = 127.5 + 127.5 * (patch_tmp6 / (maxabs_patch0_2 + (maxabs_patch0_2==0)));
 	weight_patch0_2_array((1+(row_ndx-1)*(weights0_2_nyp_shrunken+2*pad_size)):(row_ndx*(weights0_2_nyp_shrunken+2*pad_size)), ...
 			      (1+(col_ndx-1)*(weights0_2_nxp_shrunken+2*pad_size)):(col_ndx*(weights0_2_nxp_shrunken+2*pad_size)),:) = ...
-	    patch_tmp6;
+	    patch_tmp6; %%normalized_patch0_2;
 
 	%% Plot the average movie weights for a label %%
 	if plot_labelWeights_flag && i_checkpoint == max_checkpoint
@@ -2414,7 +2417,29 @@ if plot_weights0_2
 	saveas(labeledWeights_fig,  [weights_dir, filesep, labeledWeights_str, ".png"], "png");
       endif %%  ~isempty(labelWeights_vals) 
 
-      imwrite(uint8(weight_patch0_2_array), [weights1_2_movie_dir, filesep, weights1_2_name, ".png"], "png");
+      %%imwrite(uint8(weight_patch0_2_array), [weights1_2_movie_dir, filesep, weights1_2_name, ".png"], "png");
+
+      weight_patch0_2_array_list{i_weights1_2} = weight_patch0_2_array;
+      num_combine0_2 = 1;
+      for i_weights = 1 : num_weights_list
+	if sparse_weights0_2_ndx(i_weights1_2) == sparse_weights_ndx(i_weights)
+	  size_weight_patch0_2_array = size(weight_patch0_2_array_list{i_weights1_2});
+	  resized_weight_patch0_2_array = imresize(weight_patch_array_list{i_weights}, size_weight_patch0_2_array(1:2)); 
+	  maxabs_resized_weight_patch0_2_array = max(abs(resized_weight_patch0_2_array(:)));
+	  resized_weight_patch0_2_array_uint8 = ...
+	      127.5 + 127.5 * (resized_weight_patch0_2_array / (maxabs_resized_weight_patch0_2_array + (maxabs_resized_weight_patch0_2_array == 0)));
+	  weight_patch0_2_array_list{i_weights1_2} = weight_patch0_2_array_list{i_weights1_2}  + ...
+	      resized_weight_patch0_2_array_uint8;
+	  num_combine0_2 = num_combine0_2 + 1;
+	endif
+      endfor
+      weight_patch0_2_array_list{i_weights1_2} = weight_patch0_2_array_list{i_weights1_2} / num_combine0_2;
+      maxabs_weight_patch0_2_array = max(abs(weight_patch0_2_array_list{i_weights1_2}(:)));
+      weight_patch0_2_array_uint8 = ...
+	  (127.5 + 127.5*(weight_patch0_2_array_list{i_weights1_2} / (maxabs_weight_patch0_2_array + (maxabs_weight_patch0_2_array == 0))));
+      imwrite(uint8(weight_patch0_2_array_uint8), ...
+	      [weights1_2_movie_dir, filesep, weights1_2_name, ".png"], "png");
+      
       if i_checkpoint == max_checkpoint
 	save("-mat", ...
 	     [weights1_2_movie_dir, filesep, weights1_2_name, ".mat"], ...
@@ -2470,8 +2495,8 @@ endif  %% plot_weights
 deRecon_flag = true && ~isempty(labelWeights_vals);
 if deRecon_flag
   num_deRecon = 3;
-  deRecon_sparse_ndx = 2;
-  deRecon_struct = Sparse_struct_array{deRecon_sparse_ndx};
+  deRecon_sparse_weights0_2_ndx = 2;
+  deRecon_struct = Sparse_struct_array{deRecon_sparse_weights0_2_ndx};
   num_deRecon_frames = size(deRecon_struct,1);
   Recon_dir = [output_dir, filesep, "Recon"];
   for i_deRecon_frame = 1 : num_deRecon_frames
@@ -2481,7 +2506,7 @@ if deRecon_flag
     [deRecon_vals_sorted, deRecon_vals_rank] = sort(deRecon_vals, "descend");
     deRecon_indices_sorted = deRecon_indices(deRecon_vals_rank)+1;
     num_deRecon_indices = length(deRecon_indices(:));
-    deRecon_hist_rank = Sparse_hist_rank_array{deRecon_sparse_ndx}(:);
+    deRecon_hist_rank = Sparse_hist_rank_array{deRecon_sparse_weights0_2_ndx}(:);
     for i_deRecon_index = 1 : min(num_deRecon, num_deRecon_indices)
       deRecon_rank = find(deRecon_hist_rank == deRecon_indices_sorted(i_deRecon_index))
       if deRecon_rank > num_patches0_2
@@ -2520,13 +2545,35 @@ endif %% deReconFlag
 
 
 %%keyboard;
-plot_weightsN_Nplus1 = true;
+analyze_weightsN_Nplus1 = true;
 weightsN_Nplus1_list = {};
 layersN_Nplus1_list = {};
-if strcmp(run_type, "color_deep") || strcmp(run_type, "noTopDown")
+if strcmp(run_type, "Heli_DPTX3") || strcmp(run_type, "Heli_DTX3")  || strcmp(run_type, "Heli_DX3")    
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  %% deep list
+  %% Heli_DPTX3 list
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  %% list of weights from layerN to layer0 (Image)
+  if ~checkpoint_weights_movie
+    checkpoints_list = {output_dir};
+    weightsN_Nplus1_list = ...
+        {["w15_"], ["V4ToError2_4"], ["w9_"], ["V2ToError1_2"], ["w1_"], ["V1ToError"]};
+    layersN_Nplus1_list = ...
+        {["a12_"], ["V4"], ["a5_"], ["V2"], ["a2_"], ["V1"], ["a0_"], ["Image"]};
+    labelWeights_list = ...
+	{["w26_"], ["V4ToLabelError"]};
+  else
+    checkpoints_list = getCheckpointList(checkpoint_parent, checkpoint_children);
+    weightsN_Nplus1_list = ...
+        {["V4ToErrorV2InfraV4"], ["_W"], ["V2ToErrorV1InfraV2"], ["_W"], ["V1ToError"], ["_W"]};
+    layersN_Nplus1_list = ...
+        {["V4"], ["_A"], ["V2"], ["_A"], ["V1"], ["_A"], ["Image"], ["_A"]};
+    labelWeights_list = ...
+	{[], []};
+  endif %% checkpoint_weights_movie
+  %% list of indices for reading rank order of presynaptic neuron as function of activation frequency
+  sparse_weightsN_Nplus1_ndx = [3];
+  num_checkpoints = size(checkpoints_list,1);
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 elseif strcmp(run_type, "CIFAR_deep") 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2551,7 +2598,7 @@ elseif strcmp(run_type, "CIFAR_deep")
 	{["V4ToLabelError"], ["_W"]};
   endif %% checkpoint_weights_movie
   %% list of indices for reading rank order of presynaptic neuron as function of activation frequency
-  sparse_ndx = [3];
+  sparse_weightsN_Nplus1_ndx = [3];
   num_checkpoints = size(checkpoints_list,1);
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 elseif strcmp(run_type, "CIFAR_C1") 
@@ -2580,7 +2627,7 @@ elseif strcmp(run_type, "CIFAR_C1")
 	 ["S2ToLabelError"], ["_W"]};
   endif %% checkpoint_weights_movie
   %% list of indices for reading rank order of presynaptic neuron as function of activation frequency
-  sparse_ndx = [3,3];
+  sparse_weightsN_Nplus1_ndx = [3,3];
   num_checkpoints = size(checkpoints_list,1);
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 elseif strcmp(run_type, "noPulvinar")
@@ -2602,20 +2649,21 @@ endif %% run_type
 
 num_weightsN_Nplus1_list = size(weightsN_Nplus1_list,1);
 num_layersN_Nplus1_list = size(layersN_Nplus1_list,2)/2;
+weightsNminus1_Nplus1_array_list = cell(num_weightsN_Nplus1_list, num_checkpoints);
 if num_weightsN_Nplus1_list == 0
-  plot_weightsN_Nplus1 = false;
+  analyze_weightsN_Nplus1 = false;
   warning(["num_weightsN_Nplus1_list == 0"]);  
 elseif size(weightsN_Nplus1_list,2)/2 ~= num_layersN_Nplus1_list-1;
-  plot_weightsN_Nplus1 = false;
+  analyze_weightsN_Nplus1 = false;
   warning(["num_weightsN_Nplus1_list ~= num_layersN_Nplus1_list-1", ...
 	 ", num_weightsN_Nplus1_list = ", num2str(num_weightsN_Nplus1_list), ...
 	 ", num_layersN_Nplus1_list = ", num2str(num_layersN_Nplus1_list)]);
 endif
 if num_weightsN_Nplus1_list == 0
-  plot_weightsN_Nplus1 = false;
+  analyze_weightsN_Nplus1 = false;
 endif
 
-if plot_weightsN_Nplus1
+if analyze_weightsN_Nplus1
   weightsN_Nplus1_vals = cell(num_weightsN_Nplus1_list, num_layersN_Nplus1_list-1);
   weightsN_Nplus1_hdr = cell(num_weightsN_Nplus1_list, num_layersN_Nplus1_list-1);
   weightsN_Nplus1_framesize = zeros(num_weightsN_Nplus1_list, num_layersN_Nplus1_list-1);
@@ -2755,7 +2803,7 @@ if plot_weightsN_Nplus1
 
       %% get rank order of presynaptic elements
     i_layerN_Nplus1 = 1;
-    tmp_ndx = sparse_ndx(i_weightN_Nplus1);
+    tmp_ndx = sparse_weightsN_Nplus1_ndx(i_weightN_Nplus1);
     if analyze_Sparse_flag
       tmp_rank = Sparse_hist_rank_array{tmp_ndx};
     else
@@ -2770,6 +2818,10 @@ if plot_weightsN_Nplus1
 
     %% loop over checkpoints
     for i_checkpoint = 1 : num_checkpoints
+	 if(i_checkpoint ~= max_checkpoint)
+	   continue;
+	 endif
+
       checkpoint_dir = checkpoints_list{i_checkpoint,:};
 
       %% re-initialize patch sizes throughout hierarchy since these are modified during recursive deconvolution
@@ -3057,11 +3109,10 @@ if plot_weightsN_Nplus1
 	  endif  %% kf_preN_Nplus1_rank == 1
 
 	  %% rescale patch
-	  min_patch = min(patch_tmp3(:));
-	  max_patch = max(patch_tmp3(:));
+	  %%min_patch = min(patch_tmp3(:));
+	  maxabs_patch_tmp3 = max(abs(patch_tmp3(:)));
 	  patch_tmp5 = ...
-	      uint8((flipdim(patch_tmp3,1) - min_patch) * 255 / ...
-		    (max_patch - min_patch + ((max_patch - min_patch)==0)));
+	      (127.5 + 127.5*( (patch_tmp3) / (maxabs_patch_tmp3 + (maxabs_patch_tmp3==0))));
 	  
 	  if plotNminus1_Nplus1_flag
 	    imagesc(patch_tmp5); 
@@ -3094,11 +3145,14 @@ if plot_weightsN_Nplus1
 	  if  kf_preN_Nplus1_rank <= max_patches
 	    col_ndx = 1 + mod(kf_preN_Nplus1_rank-1, num_patchesN_Nplus1_cols);
 	    row_ndx = 1 + floor((kf_preN_Nplus1_rank-1) / num_patchesN_Nplus1_cols);
+	    maxabs_patchNminus1_Nplus1 = max(abs(patch_tmp5(:)));
+	    %normalized_patchNminus1_Nplus1 = 127.5 + 127.5 * (patch_tmp5 / (maxabs_patchNminus1_Nplus1 + (maxabs_patchNminus1_Nplus1==0)));
 	    weightsNminus1_Nplus1_array((1+(row_ndx-1)*weightsNminus1_Nplus1_nyp_shrunken):...
 					(row_ndx*weightsNminus1_Nplus1_nyp_shrunken), ...
 					(1+(col_ndx-1)*weightsNminus1_Nplus1_nxp_shrunken): ...
 					(col_ndx*weightsNminus1_Nplus1_nxp_shrunken),:) = ...
 		patch_tmp5;
+	    %%normalized_patchNminus1_Nplus1; %%
 	  endif
 
 	  %% set weightsN_Nplus1_vals to patch_tmp3
@@ -3149,8 +3203,29 @@ if plot_weightsN_Nplus1
 	    endfor %% label = 1:size(labelWeights_vals,1)
 	    saveas(labeledWeights_fig,  [weightsN_Nplus1_dir, filesep, labeledWeightsN_Nplus1_str, ".png"], "png");
 	  endif %%  ~isempty(labelWeights_vals) 
-	  imwrite(uint8(weightsNminus1_Nplus1_array), ...
+%%	  imwrite(uint8(weightsNminus1_Nplus1_array), ...
+%%		  [weightsN_Nplus1_movie_dir, filesep, weightsN_Nplus1_str, ".png"], "png");
+	  weightsNminus1_Nplus1_array_list{i_weightN_Nplus1} = weightsNminus1_Nplus1_array;
+	  num_combineN_Nplus1 = 1;
+	  for i_weights = 1 : num_weights_list
+	    if sparse_weightsN_Nplus1_ndx(i_weightN_Nplus1) == sparse_weights_ndx(i_weights)
+	      size_weightsNminus1_Nplus1_array = size(weightsNminus1_Nplus1_array_list{i_weightN_Nplus1});
+	      resized_weight_patch_array = imresize(weight_patch_array_list{i_weights}, size_weightsNminus1_Nplus1_array(1:2));
+	      maxabs_resized_weight_patch_array = max(abs(resized_weight_patch_array(:)));
+	      resized_weight_patchNminus1_Nplus1_array_uint8 = ...
+		  127.5 + 127.5 * (resized_weight_patch_array / (maxabs_resized_weight_patch_array + (maxabs_resized_weight_patch_array==0)));
+	      weightsNminus1_Nplus1_array_list{i_weightN_Nplus1} = weightsNminus1_Nplus1_array_list{i_weightN_Nplus1}  + ...
+		  resized_weight_patchNminus1_Nplus1_array_uint8;
+	      num_combineN_Nplus1 = num_combineN_Nplus1 + 1;
+	    endif
+	  endfor
+	  weightsNminus1_Nplus1_array_list{i_weightN_Nplus1} = weightsNminus1_Nplus1_array_list{i_weightN_Nplus1} / num_combineN_Nplus1;
+	  maxabs_weightsNminus1_Nplus1_array = max(abs(weightsNminus1_Nplus1_array_list{i_weightN_Nplus1}(:)));
+	  weightsNminus1_Nplus1_array_uint8 = ...
+	      (127.5 + 127.5*(weightsNminus1_Nplus1_array_list{i_weightN_Nplus1} / (maxabs_weightsNminus1_Nplus1_array + (maxabs_weightsNminus1_Nplus1_array == 0))));
+	  imwrite(uint8(weightsNminus1_Nplus1_array_uint8), ...
 		  [weightsN_Nplus1_movie_dir, filesep, weightsN_Nplus1_str, ".png"], "png");
+	  %keyboard;
 	endif
 	
 
@@ -3206,8 +3281,8 @@ endif  %% plot_weights
 deRecon_flag = true && ~isempty(labelWeights_vals);
 if deRecon_flag
   num_deRecon = 3;
-  deRecon_sparse_ndx = 3;
-  deRecon_struct = Sparse_struct_array{deRecon_sparse_ndx};
+  deRecon_sparse_weightsN_Nplus1_ndx = 3;
+  deRecon_struct = Sparse_struct_array{deRecon_sparse_weightsN_Nplus1_ndx};
   num_deRecon_frames = size(deRecon_struct,1);
   Recon_dir = [output_dir, filesep, "Recon"];
   for i_deRecon_frame = 1 : num_deRecon_frames
@@ -3217,7 +3292,7 @@ if deRecon_flag
     [deRecon_vals_sorted, deRecon_vals_rank] = sort(deRecon_vals, "descend");
     deRecon_indices_sorted = deRecon_indices(deRecon_vals_rank)+1;
     num_deRecon_indices = length(deRecon_indices(:));
-    deRecon_hist_rank = Sparse_hist_rank_array{deRecon_sparse_ndx}(:);
+    deRecon_hist_rank = Sparse_hist_rank_array{deRecon_sparse_weightsN_Nplus1_ndx}(:);
     for i_deRecon_index = 1 : min(num_deRecon, num_deRecon_indices)
       deRecon_rank = find(deRecon_hist_rank == deRecon_indices_sorted(i_deRecon_index))
       if deRecon_rank > num_patchesN_Nplus1
