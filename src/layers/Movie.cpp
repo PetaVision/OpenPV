@@ -496,22 +496,17 @@ bool Movie::updateImage(double time, double dt)
              std::ostringstream outStrStream;
              outStrStream.precision(15);
              outStrStream << frameNumber << "," << time << "," << filename << "\n";
-             PV_fwrite(outStrStream.str().c_str(), sizeof(char), outStrStream.str().length(), timestampFile); 
+             size_t len = outStrStream.str().length();
+             int status = PV_fwrite(outStrStream.str().c_str(), sizeof(char), len, timestampFile)==len ? PV_SUCCESS : PV_FAILURE;
+             if (status != PV_SUCCESS) {
+                fprintf(stderr, "%s \"%s\" error: Movie::updateState failed to write to timestamp file.\n", parent->parameters()->groupKeywordFromName(name), name);
+                exit(EXIT_FAILURE);
+             }
              //Flush buffer
              fflush(timestampFile->fp);
-              //fprintf(timestampFile->fp, "%d,%lf, %s\n",frameNumber, lastUpdateTime, filename);
-              //fflush(timestampFile->fp);
           }
       }
    } // randomMovie
-
-   ////Check for nan
-   //const pvdata_t * data = getLayerData();
-   //for(int k = 0; k < getNumExtended(); k++){
-   //   if(isnan(data[k])){
-   //      std::cout << "break here\n";
-   //   }
-   //}
 
    return true;
 }

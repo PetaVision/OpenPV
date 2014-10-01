@@ -42,7 +42,7 @@ long int getPV_StreamFilepos(PV_Stream * pvstream);
 long int updatePV_StreamFilepos(PV_Stream * pvstream);
 long int PV_ftell(PV_Stream * pvstream);
 int PV_fseek(PV_Stream * pvstream, long int offset, int whence);
-size_t PV_fwrite(const void * RESTRICT ptr, size_t size, size_t nitems, PV_Stream * RESTRICT pvstream);
+size_t PV_fwrite(const void * RESTRICT ptr, size_t size, size_t nitems, PV_Stream * RESTRICT pvstream, bool verify=true);
 size_t PV_fread(void * RESTRICT ptr, size_t size, size_t nitems, PV_Stream * RESTRICT pvstream);
 int PV_fclose(PV_Stream * pvstream);
 PV_Stream * PV_stdout();

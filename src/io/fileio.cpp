@@ -236,43 +236,117 @@ int PV_fseek(PV_Stream * pvstream, long offset, int whence) {
    return fseekstatus;
 }
 
-size_t PV_fwrite(const void * RESTRICT ptr, size_t size, size_t nitems, PV_Stream * RESTRICT pvstream) {
+/**
+ * @brief A wrapper for fwrite() with feedback for errors and the possibility of error recovery.
+ * @detail The syntax and purpose of PV_fwrite follows that of the standard C function fwrite(), with the following changes.
+ * The FILE* argument is replaced with a PV_Stream* pointer, and the additional argument verify (which defaults to true)
+ * provides some error checking.
+ *
+ * The function calls fwrite().  If it gets an error, it tries again, up to 5 times (the number is controlled by
+ * the preprocessor directive MAX_FILESYSTEMCALL_TRIES).  If it fails all 5 times, it fseeks to the position
+ * it was in at the start of the call, and returns zero.  If it succeeds in any of the 5 times, it returns nitems, and
+ * the file position is at the end of the written data.
+ *
+ * If verify is true and pvstream is a file (isfile is true), then after writing, the file is opened for reading
+ * and the size*nitems characters are compared to the write buffer.  If there is an error reading the data back
+ * or the data read back does not match the data written, the function returns zero and the fseek() is called
+ * to restore the file to the position it was in at the start of the call.
+ *
+ * NOTE: the purpose of this wrapper is to provide some attempts at recovery if a file system is imperfect (such as the one we've struggled with).
+ * We hope that a successful return value indicates actual success and that the feedback provided by failures prove helpful.
+ * However, the function cannot guarantee recovery from errors.
+ */
+size_t PV_fwrite(const void * RESTRICT ptr, size_t size, size_t nitems, PV_Stream * RESTRICT pvstream, bool verify) {
    int fwritecounts = 0;
    size_t writesize = nitems*size;
-   size_t stilltowrite = writesize;
+   size_t charswritten = (size_t) 0;
    const char * RESTRICT curptr = (const char * RESTRICT) ptr;
    long int fpos = pvstream->filepos; // PV_ftell(pvstream);
    if (fpos<0) {
       fprintf(stderr, "PV_fwrite error: unable to determine file position of \"%s\".  Fatal error\n", pvstream->name);
       exit(EXIT_FAILURE);
    }
-   while (stilltowrite != 0UL) {
-      size_t charswritten_thispass = fwrite(curptr, 1UL, stilltowrite, pvstream->fp);
-      stilltowrite -= charswritten_thispass;
-      pvstream->filepos += charswritten_thispass;
-      if (pvstream->filepos > pvstream->filelength) pvstream->filelength = pvstream->filepos;
-      if (stilltowrite == 0UL) {
-         if (fwritecounts>0) {
-            fprintf(stderr, "fwrite succeeded for \"%s\" on attempt %d.\n", pvstream->name, fwritecounts+1);
+   assert(fpos == ftell(pvstream->fp));
+   bool hasfailed = false;
+   for (int fwritecounts=1; fwritecounts<=MAX_FILESYSTEMCALL_TRIES; fwritecounts++) {
+      charswritten = fwrite(ptr, 1UL, writesize, pvstream->fp);
+      if (charswritten == writesize) {
+         if (hasfailed) {
+            fprintf(stderr, "fwrite succeeded for \"%s\" on attempt %d.\n", pvstream->name, fwritecounts);
          }
          break;
       }
-      curptr += charswritten_thispass;
-      fwritecounts++;
-      if (fwritecounts<MAX_FILESYSTEMCALL_TRIES) {
-         fprintf(stderr, "fwrite failure for \"%s\" on attempt %d.  %lu bytes written; %lu bytes still to write so far.\n", pvstream->name, fwritecounts, charswritten_thispass, stilltowrite);
-         sleep(1);
-         // int fseekstatus = PV_fseek(pvstream, fpos, SEEK_SET);
-         // if (fseekstatus!=0) {
-         //    fprintf(stderr, "PV_fwrite error: unable to return to original position after failed fwrite call for \"%s\".  Fatal error.\n", pvstream->name);
-         //    exit(EXIT_FAILURE);
-         // }
-      }
       else {
-    	 fprintf(stderr, "PV_fwrite failure for \"%s\": MAX_FILESYSTEMCALL_TRIES = %d exceeded, and %lu bytes of %lu written.\n", pvstream->name, MAX_FILESYSTEMCALL_TRIES, writesize-stilltowrite, writesize);
+         hasfailed = true;
+         fprintf(stderr, "fwrite failure for \"%s\" on attempt %d.  Return value %zu instead of %zu.  ", pvstream->name, fwritecounts, charswritten, writesize);
+         if (fwritecounts<MAX_FILESYSTEMCALL_TRIES) {
+            fprintf(stderr, "Retrying.\n");
+            sleep(1);
+            int fseekstatus = fseek(pvstream->fp, fpos, SEEK_SET);
+            if (fseekstatus != 0) {
+               fprintf(stderr, "PV_fwrite error: Unable to reset file position of \"%s\".  Fatal error: %s\n", pvstream->name, strerror(errno));
+               exit(EXIT_FAILURE);
+            }
+            long int ftellreturn = ftell(pvstream->fp);
+            if (fpos != ftellreturn) {
+               fprintf(stderr, "PV_fwrite error: attempted to reset file position of \"%s\" to %ld, but ftell() returned %ld.  Fatal error.\n", pvstream->name, fpos, ftellreturn);
+               exit(EXIT_FAILURE);
+            }
+         }
+         else {
+            fprintf(stderr, "MAX_FILESYSTEMCALL_TRIES exceeded.\n");
+            return (size_t) 0;
+         }
       }
    }
-   return (writesize - stilltowrite)/size;
+   if (verify && pvstream->isfile) {
+      fflush(pvstream->fp);
+      int status = PV_SUCCESS;
+      PV_Stream * readStream = PV_fopen(pvstream->name, "r");
+      if (readStream==NULL) {
+         fprintf(stderr, "PV_fwrite verification error: unable to open \"%s\" for reading: %s\n", pvstream->name, strerror(errno));
+         status = PV_FAILURE;
+      }
+      if (status == PV_SUCCESS) {
+         if (fseek(readStream->fp, pvstream->filepos, SEEK_SET)!=0) {
+            fprintf(stderr, "PV_fwrite verificationerror: unable to verify \"%s\" write of %zu chars from position %ld: %s\n", pvstream->name, writesize, pvstream->filepos, strerror(errno));
+            status = PV_FAILURE;
+         }
+      }
+      char * read_buffer = NULL;
+      if (status == PV_SUCCESS) {
+         read_buffer = (char *) malloc(writesize);
+         if (read_buffer==NULL) {
+            fprintf(stderr, "PV_fwrite verification error: unable to create readback buffer of size %zu to verify \"%s\"\n", writesize, pvstream->name);
+            status = PV_FAILURE;
+         }
+      }
+      if (status == PV_SUCCESS) {
+         for(size_t n=0; n<writesize; n++) { read_buffer[n] = ~((char *)ptr)[n]; } // Make sure read_buffer is different from ptr before reading
+      }
+      if (status == PV_SUCCESS) {
+         size_t numread = fread(read_buffer, (size_t) 1, writesize, readStream->fp);
+         if (numread != writesize) {
+            fprintf(stderr, "PV_fwrite verification error: unable to read into readback buffer for \"%s\": fread returned %zu instead of %zu\n", pvstream->name, numread, writesize);
+            status = PV_FAILURE;
+         }
+      }
+      if (status == PV_SUCCESS) {
+         status = memcmp(ptr, read_buffer, writesize)==0 ? PV_SUCCESS : PV_FAILURE;
+         if (status != PV_SUCCESS) {
+            size_t badcount=0;
+            for (size_t n=0; n<writesize; n++) { badcount += (((char *) ptr)[n]!=read_buffer[n]); }
+            fprintf(stderr, "PV_fwrite verification error: readback of %zu bytes from \"%s\" starting at position %zu failed: %zu bytes disagree.\n", pvstream->name, pvstream->filepos, badcount);
+         }
+      }
+      if (readStream) { PV_fclose(readStream); readStream = NULL; }
+      if (status != PV_SUCCESS) {
+         fseek(pvstream->fp, pvstream->filepos, SEEK_SET);
+         return 0;
+      }
+   }
+   pvstream->filepos += writesize;
+   return nitems;
 }
 
 size_t PV_fread(void * RESTRICT ptr, size_t size, size_t nitems, PV_Stream * RESTRICT pvstream) {
@@ -1716,6 +1790,10 @@ int writeWeights(const char * filename, Communicator * comm, double timed, bool 
       // use file_type passed as argument to enable different behavior
       status = pvp_write_header(pvstream, comm, timed, loc, file_type,
                                 datatype, numArbors, extended, contiguous, numParams, localSize);
+      if (status != PV_SUCCESS) {
+         fprintf(stderr, "Error writing weights to \"%s\".\n", filename);
+         exit(EXIT_FAILURE);
+      }
 
       // write extra weight parameters
       //

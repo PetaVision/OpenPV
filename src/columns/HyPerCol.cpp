@@ -249,14 +249,14 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * p
 
 //Either opencl or cuda, not both
 #if defined(PV_USE_OPENCL) && defined(PV_USE_CUDA)
-   std::cout << "HyPerCol error: Can use either OpenCL or Cuda, not both\n";
+   std::cout << "HyPerCol error: Can use either OpenCL or CUDA, not both\n";
    exit(PV_FAILURE);
 #endif
 
 #ifdef PV_USE_OPENCL
    //Make sure the directive set in CMake is set here
 #ifndef PV_DIR
-   std::cout << "HyPerCol error: PV_DIR compiler directive must be set if using opencl\n";
+   std::cout << "HyPerCol error: PV_DIR compiler directive must be set if using OpenCL\n";
    exit(PV_FAILURE);
 #endif
    srcPath = (char *) calloc(PV_PATH_MAX, sizeof(char));
@@ -1940,8 +1940,14 @@ int HyPerCol::checkpointWrite(const char * cpDir) {
       assert(chars_needed < PV_PATH_MAX);
       PV_Stream * timescalefile = PV_fopen(timescalepath,"w");
       assert(timescalefile);
-      PV_fwrite(&timeScale,1,sizeof(double),timescalefile);
-      PV_fwrite(&timeScaleTrue,1,sizeof(double),timescalefile);
+      if (PV_fwrite(&timeScale,1,sizeof(double),timescalefile) != sizeof(double)) {
+         fprintf(stderr, "HyPerCol::checkpointWrite error writing timeScale to %s\n", timescalefile->name);
+         abort();
+      }
+      if (PV_fwrite(&timeScaleTrue,1,sizeof(double),timescalefile) != sizeof(double)) {
+         fprintf(stderr, "HyPerCol::checkpointWrite error writing timeScaleTrue to %s\n", timescalefile->name);
+         abort();
+      }
       PV_fclose(timescalefile);
       chars_needed = snprintf(timescalepath, PV_PATH_MAX, "%s/timescaleinfo.txt", cpDir);
       assert(chars_needed < PV_PATH_MAX);
@@ -2046,6 +2052,11 @@ int HyPerCol::outputParams() {
 #else
       fprintf(printParamsStream->fp, "// Compiled without OpenCL.\n");
 #endif // PV_USE_OPENCL
+#ifdef PV_USE_CUDA
+      fprintf(printParamsStream->fp, "// Compiled with CUDA.\n");
+#else
+      fprintf(printParamsStream->fp, "// Compiled without CUDA.\n");
+#endif
 #ifdef PV_USE_OPENMP_THREADS
       fprintf(printParamsStream->fp, "// Compiled with OpenMP parallel code and run using %d threads.\n", numThreads);
 #else

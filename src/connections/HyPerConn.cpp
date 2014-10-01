@@ -2765,7 +2765,9 @@ int HyPerConn::writeWeights(PVPatch *** patches, pvwdata_t ** dataStart, int num
    status = PV::writeWeights(path, comm, (double) timed, append, loc, nxp, nyp,
 			nfp, minVal, maxVal, patches, dataStart, numPatches,
 			numberOfAxonalArborLists(), compressWeights, fileType);
-   assert(status == 0);
+   if(status != PV_SUCCESS) {
+      fprintf(stderr, "%s \"%s\" error in writing weights.\n", parent->parameters()->groupKeywordFromName(name), name);
+   }
 
    return status;
 }

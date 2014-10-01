@@ -2532,6 +2532,10 @@ int HyPerLayer::outputState(double timef, bool last)
          status = writeActivity(timef);
       }
    }
+   if (status!=PV_SUCCESS) {
+      fprintf(stderr, "%s \"%s\": outputState failed on rank %d process.\n", parent->parameters()->groupKeywordFromName(name), name, parent->columnId());
+      exit(EXIT_FAILURE);
+   }
 
    io_timer->stop();
    return status;
@@ -2878,7 +2882,9 @@ int HyPerLayer::readState(double * timeptr)
 int HyPerLayer::writeActivitySparse(double timed, bool includeValues)
 {
    int status = PV::writeActivitySparse(clayer->activeFP, clayer->posFP, parent->icCommunicator(), timed, clayer, includeValues);
-   incrementNBands(&writeActivitySparseCalls);
+   if (status == PV_SUCCESS) {
+      status = incrementNBands(&writeActivitySparseCalls);
+   }
    return status;
 }
 
@@ -2886,7 +2892,9 @@ int HyPerLayer::writeActivitySparse(double timed, bool includeValues)
 int HyPerLayer::writeActivity(double timed)
 {
    int status = PV::writeActivity(clayer->activeFP, parent->icCommunicator(), timed, clayer);
-   incrementNBands(&writeActivityCalls);
+   if (status == PV_SUCCESS) {
+      status = incrementNBands(&writeActivityCalls);
+   }
    return status;
 }
 
