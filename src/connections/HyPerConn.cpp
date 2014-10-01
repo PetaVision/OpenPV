@@ -232,8 +232,8 @@ int HyPerConn::initialize_base()
    this->io_timer     = NULL;
    this->update_timer = NULL;
 
-   this->wMin = 0.0;
-   this->wMax = 1.0;
+   // this->wMin = 0.0;
+   // this->wMax = 1.0;
    this->wPostTime = -1.0;
    this->wPostPatches = NULL;
    this->wPostDataStart = NULL;
@@ -4530,6 +4530,7 @@ int HyPerConn::sumWeights(int nx, int ny, int offset, pvwdata_t * dataStart, dou
    return PV_SUCCESS;
 } // sumWeights
 
+#ifdef OBSOLETE // Marked obsolete Sept 30, 2014.  Use normalize methods instead
 int HyPerConn::scaleWeights(int nx, int ny, int offset, pvwdata_t * dataStart, pvdata_t sum, pvdata_t sum2, pvdata_t maxVal)
 {
    int num_weights = nx * ny * nfp; //wp->nf;
@@ -4584,6 +4585,7 @@ int HyPerConn::scaleWeights(int nx, int ny, int offset, pvwdata_t * dataStart, p
    this->wMax = maxVal > this->wMax ? maxVal : this->wMax;
    return PV_SUCCESS;
 } // scaleWeights
+#endif // OBSOLETE
 
 // only checks for certain combinations of normalize parameter settings
 int HyPerConn::checkNormalizeWeights(float sum, float sum2, float sigma2, float maxVal)

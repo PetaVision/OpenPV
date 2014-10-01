@@ -363,8 +363,10 @@ public:
 
    int sumWeights(int nx, int ny, int offset, pvwdata_t* dataStart, double* sum,
          double* sum2, float* maxVal);
+#ifdef OBSOLETE // Marked obsolete Sept 30, 2014.  Use normalize methods instead.
    int scaleWeights(int nx, int ny, int offset, pvwdata_t* dataStart, float sum,
          float sum2, float maxVal);
+#endif // OBSOLETE
    virtual int checkNormalizeWeights(float sum, float sum2, float sigma2, float maxVal);
    virtual int checkNormalizeArbor(PVPatch** patches, pvwdata_t** dataStart,
          int numPatches, int arborId);

@@ -33,7 +33,6 @@ public:
    virtual int updateState(double time, double dt);
    virtual int updateAmpLTD();
    virtual int updateWeights(int axonID);
-   virtual int scaleWeights();
    virtual int outputState(double time, bool last=false);
 
    virtual int checkpointRead(const char * cpDir, double * timef);
@@ -79,6 +78,8 @@ protected:
    virtual int initializeThreadBuffers(const char * kernelName);
    virtual int initializeThreadKernels(const char * kernelName);
 #endif // PV_USE_OPENCL
+
+   virtual int scaleWeights();
 
    PVLayerCube * post_stdp_tr; // plasticity decrement variable for postsynaptic layer
    PVLayerCube * post_oja_tr;  // plasticity decrement variable for longer time-constant
