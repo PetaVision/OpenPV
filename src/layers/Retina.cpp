@@ -584,7 +584,7 @@ int Retina::waitOnPublish(InterColComm* comm)
  */
 int Retina::updateState(double timed, double dt)
 {
-   update_timer->start();
+   //update_timer->start();
 //#ifdef PV_USE_OPENCL
 //   if((gpuAccelerateFlag)&&(true)) {
 //      updateStateOpenCL(timed, dt);
@@ -626,7 +626,7 @@ int Retina::updateState(double timed, double dt)
    printf("----------------\n");
 
 #endif // DEBUG_PRINT
-   update_timer->stop();
+   //update_timer->stop();
    updateActiveIndices();
    return 0;
 }

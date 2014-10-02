@@ -1,6 +1,6 @@
 #include "CudaRecvPost.hpp"
 #include "../arch/cuda/cuda_util.hpp"
-#include "../arch/cuda/device_util.hpp"
+#include "conversions.hcu"
 
 namespace PVCuda{
 
@@ -470,12 +470,9 @@ void CudaRecvPost::permuteActivityPVToCudnn(){
    handleCallError();
 
    device->syncDevice();
-
-   
-
 }
 
-void CudaRecvPost::permuteGSynPVToCudnn(){
+void CudaRecvPost::permuteGSynPVToCudnn(int channel){
    //Res post activity
    int ny = params.nyRes;
    int nx = params.nxRes;
@@ -483,16 +480,18 @@ void CudaRecvPost::permuteGSynPVToCudnn(){
 
    //Calculate grid and work size
    int numNeurons = ny * nx * nf;
+   float* gSynPatchHead = &(params.postGsyn[numNeurons * channel]);
+
    int blockSize = device->get_max_threads();
    //Ceil to get all weights
    int gridSize = ceil((float)numNeurons/blockSize);
    //Call function
    //printf("Calling gsyn PVToCudnn with (%d, %d, %d)\n", ny, nx, nf);
-   CudaPermutePVToCudnn<<<gridSize, blockSize, 0, device->getStream()>>>(params.cudnn_gSyn, params.postGsyn, 1, ny, nx, nf);
+   CudaPermutePVToCudnn<<<gridSize, blockSize, 0, device->getStream()>>>(params.cudnn_gSyn, gSynPatchHead, 1, ny, nx, nf);
    handleCallError();
 }
 
-void CudaRecvPost::permuteGSynCudnnToPV(){
+void CudaRecvPost::permuteGSynCudnnToPV(int channel){
    //Res post activity
    int ny = params.nyRes;
    int nx = params.nxRes;
@@ -500,12 +499,14 @@ void CudaRecvPost::permuteGSynCudnnToPV(){
 
    //Calculate grid and work size
    int numNeurons = ny * nx * nf;
+   float* gSynPatchHead = &(params.postGsyn[numNeurons * channel]);
+
    int blockSize = device->get_max_threads();
    //Ceil to get all weights
    int gridSize = ceil((float)numNeurons/blockSize);
    //Call function
    //printf("Calling gsyn Cudnn To PV with (%d, %d, %d)\n", ny, nx, nf);
-   CudaPermuteCudnnToPV<<<gridSize, blockSize, 0, device->getStream()>>>(params.postGsyn, params.cudnn_gSyn, 1, ny, nx, nf);
+   CudaPermuteCudnnToPV<<<gridSize, blockSize, 0, device->getStream()>>>(gSynPatchHead, params.cudnn_gSyn, 1, ny, nx, nf);
    handleCallError();
 }
 

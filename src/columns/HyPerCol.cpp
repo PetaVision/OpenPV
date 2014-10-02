@@ -193,7 +193,7 @@ int HyPerCol::initialize_base() {
    writeTimescales = true; //Defaults to true
    errorOnNotANumber = false;
    numThreads = 1;
-   layerBuffer.clear();
+   recvLayerBuffer.clear();
 
    return PV_SUCCESS;
 }
@@ -1613,46 +1613,101 @@ int HyPerCol::advanceTime(double sim_time)
    for (int phase=0; phase<numPhases; phase++) {
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
       //Clear layer buffer
-      layerBuffer.clear();
+      recvLayerBuffer.clear();
+      updateLayerBuffer.clear();
+      updateLayerBufferGpu.clear();
 #endif
+
+      //Ordering needs to go recvGpu, if(recvGpu and upGpu)update, recvNoGpu, update rest 
 
       //Time recv for each phase
       // clear GSyn buffers
       for(int l = 0; l < numLayers; l++) {
          if (layers[l]->getPhase() != phase) continue;
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
-         //Save non gpu layers for later
+         //Save non gpu layer recv for later
          if(!layers[l]->getRecvGpu()){
-            layerBuffer.push_back(layers[l]);
+            recvLayerBuffer.push_back(layers[l]);
             continue;
          }
 #endif
+         //Recv GPU
          layers[l]->resetGSynBuffers(simTime, deltaTimeBase);  // deltaTimeAdapt is not used 
          phaseRecvTimers[phase]->start();
          layers[l]->recvAllSynapticInput();
          phaseRecvTimers[phase]->stop();
+         //if(recvGpu and upGpu)
+
+         //Update for gpu recv and gpu update
+#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+         if(layers[l]->getUpdateGpu()){
+#endif
+            status = layers[l]->updateStateWrapper(simTime, deltaTimeAdapt);
+            if (!exitAfterUpdate) {
+               exitAfterUpdate = status == PV_EXIT_NORMALLY;
+            }
+#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+         }
+         //If not updating on gpu, save for later
+         else{
+            updateLayerBuffer.push_back(layers[l]);
+         }
+#endif
       }
 
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
       //Run non gpu layers
-      for(std::vector<HyPerLayer*>::iterator it = layerBuffer.begin(); it < layerBuffer.end(); it++){
+      for(std::vector<HyPerLayer*>::iterator it = recvLayerBuffer.begin(); it < recvLayerBuffer.end(); it++){
          HyPerLayer * layer = *it;
          layer->resetGSynBuffers(simTime, deltaTimeBase);  // deltaTimeAdapt is not used 
          phaseRecvTimers[phase]->start();
          layer->recvAllSynapticInput();
          phaseRecvTimers[phase]->stop();
+         if(layer->getUpdateGpu()){
+            updateLayerBufferGpu.push_back(layer);
+         }
+         //Update for non gpu recv and non gpu update
+         else{
+            status = layer->updateStateWrapper(simTime, deltaTimeAdapt);
+            if (!exitAfterUpdate) {
+               exitAfterUpdate = status == PV_EXIT_NORMALLY;
+            }
+         }
       }
-      layerBuffer.clear();
 
-      //Barriers for all gpus, and copy back all gsyn
+      //Update for non gpu recv and gpu update
+      for(std::vector<HyPerLayer*>::iterator it = updateLayerBufferGpu.begin(); it < updateLayerBufferGpu.end(); it++){
+         HyPerLayer * layer = *it;
+         status = layer->updateStateWrapper(simTime, deltaTimeAdapt);
+         if (!exitAfterUpdate) {
+            exitAfterUpdate = status == PV_EXIT_NORMALLY;
+         }
+      }
+
+      //Barriers for all gpus, and copy back all data structures
       for(int l = 0; l < numLayers; l++) {
          if (layers[l]->getPhase() != phase) continue;
          phaseRecvTimers[phase]->start();
+         layers[l]->copyAllActivityFromDevice();
+         layers[l]->copyAllVFromDevice();
          layers[l]->copyAllGSynFromDevice();
          layers[l]->syncGpu();
          phaseRecvTimers[phase]->stop();
-         //Check for nan
       }
+
+      //Update for gpu recv and non gpu update
+      for(std::vector<HyPerLayer*>::iterator it = updateLayerBuffer.begin(); it < updateLayerBuffer.end(); it++){
+         HyPerLayer * layer = *it;
+         status = layer->updateStateWrapper(simTime, deltaTimeAdapt);
+         if (!exitAfterUpdate) {
+            exitAfterUpdate = status == PV_EXIT_NORMALLY;
+         }
+      }
+
+      //Clear all buffers
+      recvLayerBuffer.clear();
+      updateLayerBuffer.clear();
+      updateLayerBufferGpu.clear();
 #endif
 
 
@@ -1664,17 +1719,17 @@ int HyPerCol::advanceTime(double sim_time)
       //       layers[l]->triggerReceive(icComm);
       //    }
 
-      // Update the layers (activity)
-      // We don't put updateState in the same loop over layers as recvAllSynapticInput
-      // because we plan to have updateState update the datastore directly, and
-      // recvSynapticInput uses the datastore to compute GSyn.
-      for(int l = 0; l < numLayers; l++) {
-         if (layers[l]->getPhase() != phase) continue;
-         status = layers[l]->updateStateWrapper(simTime, deltaTimeAdapt);
-         if (!exitAfterUpdate) {
-            exitAfterUpdate = status == PV_EXIT_NORMALLY;
-         }
-      }
+      //// Update the layers (activity)
+      //// We don't put updateState in the same loop over layers as recvAllSynapticInput
+      //// because we plan to have updateState update the datastore directly, and
+      //// recvSynapticInput uses the datastore to compute GSyn.
+      //for(int l = 0; l < numLayers; l++) {
+      //   if (layers[l]->getPhase() != phase) continue;
+      //   status = layers[l]->updateStateWrapper(simTime, deltaTimeAdapt);
+      //   if (!exitAfterUpdate) {
+      //      exitAfterUpdate = status == PV_EXIT_NORMALLY;
+      //   }
+      //}
 
       // This loop separate from the update layer loop above
       // to provide time for layer data to be copied from

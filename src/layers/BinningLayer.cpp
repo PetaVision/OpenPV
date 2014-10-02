@@ -170,7 +170,7 @@ int BinningLayer::updateState(double timef, double dt) {
 
 int BinningLayer::doUpdateState(double timed, double dt, const PVLayerLoc * origLoc, const PVLayerLoc * currLoc, const pvdata_t * origData, pvdata_t * currA, float binMax, float binMin) {
    int status = PV_SUCCESS;
-   update_timer->start();
+   //update_timer->start();
    int numBins = currLoc->nf;
 
    int nx = currLoc->nx;
@@ -241,7 +241,7 @@ int BinningLayer::doUpdateState(double timed, double dt, const PVLayerLoc * orig
          }
       }
    }
-   update_timer->stop();
+   //update_timer->stop();
    return status;
 }
 

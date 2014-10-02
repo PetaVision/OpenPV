@@ -1720,7 +1720,7 @@ int HyPerConn::communicateInitInfo() {
       //we need pre activity, this conn's weights, and post gsyn on the channel of this connection
       pre->setAllocDeviceActivity();
       this->setAllocDeviceWeights();
-      post->setAllocDeviceGSyn(getChannel());
+      post->setAllocDeviceGSyn();
    }
 #endif
 
@@ -2212,12 +2212,12 @@ int HyPerConn::allocateReceivePreKernel()
 
 #ifdef PV_USE_OPENCL
    CLBuffer* d_PreData = pre->getDeviceActivity();
-   CLBuffer* d_PostGSyn = post->getDeviceGSyn(channel);
+   CLBuffer* d_PostGSyn = post->getDeviceGSyn();
 #endif
 
 #ifdef PV_USE_CUDA
    PVCuda::CudaBuffer* d_PreData = pre->getDeviceActivity();
-   PVCuda::CudaBuffer* d_PostGSyn = post->getDeviceGSyn(channel);
+   PVCuda::CudaBuffer* d_PostGSyn = post->getDeviceGSyn();
 #endif
 
    assert(d_PreData);
@@ -2421,13 +2421,14 @@ int HyPerConn::allocateReceivePostKernel()
 
 #ifdef PV_USE_OPENCL
    CLBuffer* d_PreData = pre->getDeviceActivity();
-   CLBuffer* d_PostGSyn = post->getDeviceGSyn(channel);
+   CLBuffer* d_PostGSyn = post->getDeviceGSyn();
    CLBuffer* d_origWData = origConn->getDeviceWData();
 #endif
 #ifdef PV_USE_CUDA
    PVCuda::CudaBuffer* d_PreData = pre->getDeviceActivity();
-   PVCuda::CudaBuffer* d_PostGSyn = post->getDeviceGSyn(channel);
+   PVCuda::CudaBuffer* d_PostGSyn = post->getDeviceGSyn();
    PVCuda::CudaBuffer* d_origWData = origConn->getDeviceWData();
+
 #ifdef PV_USE_CUDNN
    PVCuda::CudaBuffer * cudnn_preData = pre->getCudnnActivity();
    PVCuda::CudaBuffer * cudnn_gSyn = post->getCudnnGSyn();
@@ -2436,6 +2437,7 @@ int HyPerConn::allocateReceivePostKernel()
    assert(cudnn_gSyn);
    assert(cudnn_origWData);
 #endif
+
 #endif
 
    assert(d_PreData);

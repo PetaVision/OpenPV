@@ -165,7 +165,7 @@ int ANNDivInh::initialize(const char * name, HyPerCol * hc) {
  */
 int ANNDivInh::updateState(double time, double dt)
 {
-   update_timer->start();
+   //update_timer->start();
 //#ifdef PV_USE_OPENCL
 //   if(gpuAccelerateFlag) {
 //      updateStateOpenCL(time, dt);
@@ -190,7 +190,7 @@ int ANNDivInh::updateState(double time, double dt)
 //   }
 //#endif
 
-   update_timer->stop();
+   //update_timer->stop();
    return PV_SUCCESS;
 }
 

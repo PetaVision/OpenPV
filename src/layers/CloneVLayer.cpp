@@ -138,13 +138,13 @@ int CloneVLayer::checkpointWrite(const char * cpDir) {
 int CloneVLayer::doUpdateState(double timed, double dt, const PVLayerLoc * loc, pvdata_t * A,
          pvdata_t * V, int num_channels, pvdata_t * GSynHead, bool spiking,
          unsigned int * active_indices, unsigned int * num_active) {
-   update_timer->start();
+   //update_timer->start();
    int nx = loc->nx;
    int ny = loc->ny;
    int nf = loc->nf;
    int num_neurons = nx*ny*nf;
    int status = setActivity_HyPerLayer(num_neurons, A, V, nx, ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
-   update_timer->stop();
+   //update_timer->stop();
    return status;
 }
 

@@ -31,6 +31,11 @@ CudaKernel::~CudaKernel()
 {
 }
 
+int CudaKernel::run()
+{
+   return do_run();
+}
+
 //All global work sizes are total global
 int CudaKernel::run(int global_work_size)
 {

@@ -68,7 +68,7 @@ int ANNWhitenedLayer::doUpdateState(double time, double dt, const PVLayerLoc * l
       pvdata_t * V, int num_channels, pvdata_t * gSynHead, bool spiking,
       unsigned int * active_indices, unsigned int * num_active)
 {
-   update_timer->start();
+   //update_timer->start();
 //#ifdef PV_USE_OPENCL
 //   if(gpuAccelerateFlag) {
 //      updateStateOpenCL(time, dt);
@@ -88,7 +88,7 @@ int ANNWhitenedLayer::doUpdateState(double time, double dt, const PVLayerLoc * l
 //   }
 //#endif
 
-   update_timer->stop();
+   //update_timer->stop();
    return PV_SUCCESS;
 }
 

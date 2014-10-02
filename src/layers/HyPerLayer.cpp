@@ -172,21 +172,16 @@ int HyPerLayer::initialize_base() {
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
 //   this->krUpdate = NULL;
    this->allocDeviceV = false;
-   this->allocDeviceGSyn = NULL;
+   this->allocDeviceGSyn = false;
    this->allocDeviceActivity = false;
    this->d_V = NULL;
    this->d_GSyn = NULL;
    this->d_Activity = NULL;
    this->updatedDeviceActivity = true; //Start off always updating activity
+   this->updatedDeviceGSyn = true;
    this->recvGpu = false;
-
-//   this->clPrevTime = NULL;
-//   this->clParams = NULL;
-//   this->numKernelArgs = 0;
-//   this->numEvents = 0;
-//   this->numWait = 0;
-//   this->evList = NULL;
-   //this->gpuAccelerateFlag=false;
+   this->updateGpu = false;
+   this->krUpdate = NULL;
 #endif // PV_USE_OPENCL
 
 #if defined(PV_USE_CUDA) && defined(PV_USE_CUDNN)
@@ -202,6 +197,7 @@ int HyPerLayer::initialize_base() {
 
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
    this->gpu_recvsyn_timer = NULL;
+   this->gpu_update_timer = NULL;
 #endif
 
 #if defined(PV_USE_CUDA) && defined(PV_USE_CUDNN)
@@ -218,10 +214,10 @@ int HyPerLayer::initialize_base() {
 }
 
 ///////
-// Classes derived from HyPerLayer should call HyPerLayer::initialize themselves
-// to take advantage of virtual methods.  Note that the HyPerLayer constructor
-// does not call initialize.  This way, HyPerLayer::initialize can call virtual
-// methods and the derived class's method will be the one that gets called.
+/// Classes derived from HyPerLayer should call HyPerLayer::initialize themselves
+/// to take advantage of virtual methods.  Note that the HyPerLayer constructor
+/// does not call initialize.  This way, HyPerLayer::initialize can call virtual
+/// methods and the derived class's method will be the one that gets called.
 int HyPerLayer::initialize(const char * name, HyPerCol * hc) {
    this->name = strdup(name);
    setParent(hc); // Could this line and the parent->addLayer line be combined in a HyPerLayer method?
@@ -236,6 +232,8 @@ int HyPerLayer::initialize(const char * name, HyPerCol * hc) {
 #ifdef PV_USE_CUDA
    this->gpu_recvsyn_timer = new PVCuda::CudaTimer(getName(), "layer", "gpurecvsyn");
    this->gpu_recvsyn_timer->setStream(hc->getCudaDevice()->getStream());
+   this->gpu_update_timer = new PVCuda::CudaTimer(getName(), "layer", "gpuupdate");
+   this->gpu_update_timer->setStream(hc->getCudaDevice()->getStream());
 #ifdef PV_USE_CUDNN
    //this->permute_weights_timer = new PVCuda::CudaTimer(getName(), "layer", "gpuWeightsPermutate");
    //this->permute_weights_timer->setStream(hc->getCudaDevice()->getStream());
@@ -248,6 +246,7 @@ int HyPerLayer::initialize(const char * name, HyPerCol * hc) {
 
 #ifdef PV_USE_OPENCL
    this->gpu_recvsyn_timer = hc->getCLDevice()->createTimer(getName(), "layer", "gpurecvsyn");
+   this->gpu_update_timer = hc->getCLDevice()->createTimer(getName(), "layer", "gpuupdate");
 #endif
 
    PVParams * params = parent->parameters();
@@ -276,16 +275,6 @@ int HyPerLayer::initialize(const char * name, HyPerCol * hc) {
 //#ifdef PV_USE_OPENCL
 //   initUseGPUFlag();
 //#endif
-   
-#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
-   if(numChannels > 0){
-      //We need an allocDeviceGSyn buffer per number of channels (set in initialize base)
-      allocDeviceGSyn = (bool*) malloc(sizeof(bool) * numChannels);
-      for(int i = 0; i < numChannels; i++){
-         allocDeviceGSyn[i] = false;
-      }
-   }
-#endif
 
    return PV_SUCCESS;
 }
@@ -372,6 +361,7 @@ HyPerLayer::~HyPerLayer()
    delete io_timer;       io_timer      = NULL;
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
    delete gpu_recvsyn_timer; gpu_recvsyn_timer = NULL;
+   delete gpu_update_timer; gpu_update_timer = NULL;
 #endif
 
 #if defined(PV_USE_CUDA) && defined(PV_USE_CUDNN)
@@ -386,14 +376,15 @@ HyPerLayer::~HyPerLayer()
    freeChannels();
 
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+   if(krUpdate){
+      delete krUpdate;
+      krUpdate= NULL;
+   }
    if(d_V){
       delete d_V;
    }
    if(d_Activity){
       delete d_Activity;
-   }
-   if(allocDeviceGSyn){
-      free(allocDeviceGSyn);
    }
 
 //      delete clPrevTime;
@@ -459,10 +450,7 @@ void HyPerLayer::freeChannels()
 
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
    if (d_GSyn != NULL) {
-      for (int m = 0; m < numChannels; m++) {
-         delete d_GSyn[m];
-      }
-      free(d_GSyn);
+      delete d_GSyn;
       d_GSyn = NULL;
    }
 #endif
@@ -732,11 +720,22 @@ int HyPerLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_initialWriteTime(ioFlag);
    ioParam_writeSparseActivity(ioFlag);
    ioParam_writeSparseValues(ioFlag);
-#ifdef PV_USE_OPENCL
-//   ioParam_GPUAccelerate(ioFlag);
+#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+   ioParam_updateGpu(ioFlag);
 #endif // PV_USE_OPENCL
    return PV_SUCCESS;
 }
+
+#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+void HyPerLayer::ioParam_updateGpu(enum ParamsIOFlag ioFlag){
+   parent->ioParamValue(ioFlag, name, "updateGpu", &updateGpu, updateGpu);
+#ifdef PV_USE_OPENCL
+   if(updateGpu){
+      std::cout << "Updating from gpu is not implemented with opencl yet\n";
+   }
+#endif
+}
+#endif
 
 void HyPerLayer::ioParam_nxScale(enum ParamsIOFlag ioFlag) {
    parent->ioParamValue(ioFlag, name, "nxScale", &nxScale, nxScale);
@@ -872,6 +871,12 @@ void HyPerLayer::ioParam_writeSparseValues(enum ParamsIOFlag ioFlag) {
 
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
 
+int HyPerLayer::allocateUpdateKernel(){
+   std::cout << "Layer " << name << " of type " << parent->parameters()->groupKeywordFromName(getName()) << " does not support updating on gpus yet\n"; 
+   exit(-1);
+   return -1;
+}
+
 /**
  * Allocate GPU buffers.  This must be called after PVLayer data have
  * been allocated.
@@ -883,8 +888,6 @@ int HyPerLayer::allocateDeviceBuffers()
    
    const size_t size    = getNumNeurons()  * sizeof(float);
    const size_t size_ex = getNumExtended() * sizeof(float);
-
-   std::cout << "NumNeurons: " << getNumNeurons() << "\n";
 
 #ifdef PV_USE_OPENCL
    CLDevice * device = parent->getCLDevice();
@@ -916,36 +919,17 @@ int HyPerLayer::allocateDeviceBuffers()
 #endif
    }
 
-   bool allocGSyn = false;
+   //d_GSyn is the entire gsyn buffer. cudnn_GSyn is only one gsyn channel
+   if(allocDeviceGSyn){
 #ifdef PV_USE_OPENCL
-   d_GSyn = (CLBuffer**) malloc(sizeof(CLBuffer*) * numChannels);
+      d_GSyn = device->createBuffer(CL_MEM_READ_WRITE, size * numChannels, NULL);
 #endif
 #ifdef PV_USE_CUDA
-   d_GSyn = (PVCuda::CudaBuffer**) malloc(sizeof(PVCuda::CudaBuffer*) * numChannels);
-#endif
-   assert(d_GSyn);
-   for(int i = 0; i < numChannels; i++){
-      if(allocDeviceGSyn[i]){
-#ifdef PV_USE_OPENCL
-         d_GSyn[i] = device->createBuffer(CL_MEM_READ_WRITE, size, NULL);
-#endif
-#ifdef PV_USE_CUDA
-         d_GSyn[i] = device->createBuffer(size);
+      d_GSyn = device->createBuffer(size * numChannels);
 #endif 
-         assert(d_GSyn[i]);
-         allocGSyn = true;
-      }
-      else{
-         d_GSyn[i] = NULL;
-      }
-   }
-
-#if defined(PV_USE_CUDA) && defined(PV_USE_CUDNN)
-   if(allocGSyn){
+      assert(d_GSyn);
       cudnn_GSyn = device->createBuffer(size);
    }
-#endif
-
 
    return status;
 }
@@ -978,6 +962,17 @@ int HyPerLayer::communicateInitInfo()
          exit(EXIT_FAILURE);
       }
    }
+
+#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+   //Here, the connection tells all participating recev layers to allocate memory on gpu
+   //if receive from gpu is set. These buffers should be set in allocate
+   if(updateGpu){
+      this->setAllocDeviceGSyn();
+      this->setAllocDeviceV();
+      this->setAllocDeviceActivity();
+   }
+#endif
+
    int status = PV_SUCCESS;
 
    return status;
@@ -1220,6 +1215,13 @@ int HyPerLayer::allocateDataStructures()
       fprintf(stderr, "Connection \"%s\" unable to allocate device memory in rank %d process: %s\n", getName(), getParent()->columnId(), strerror(errno));
       exit(PV_FAILURE);
    }
+   if(updateGpu){
+      //This function needs to be overwritten as needed on a subclass basis
+      status = allocateUpdateKernel();
+      if(status == 0){
+         status = PV_SUCCESS;
+      }
+   }
 #endif
 
    //Make a data structure that stores the connections (in order of execution) this layer needs to recv from
@@ -1339,13 +1341,6 @@ int HyPerLayer::requireChannel(int channelNeeded, int * numChannelsResult) {
    if (channelNeeded >= numChannels) {
       int numOldChannels = numChannels;
       numChannels = channelNeeded+1;
-   //Here, we reallocate allocClGSyn to fit numChannels
-#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
-      allocDeviceGSyn = (bool*) realloc(allocDeviceGSyn, sizeof(bool) * numChannels);
-      for(int i = numOldChannels; i < numChannels; i++){
-         allocDeviceGSyn[i] = false;
-      }
-#endif
    }
    *numChannelsResult = numChannels;
 
@@ -1700,24 +1695,61 @@ int HyPerLayer::updateStateWrapper(double timef, double dt){
       //If this current layer's gsyn is on the gpu, only move it back when doing update state or output state
       this->clFinishGSyn();
 #endif
-      status = updateState(timef, dt);
+      update_timer->start();
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+      if(updateGpu){
+         gpu_update_timer->start();
+         status = updateStateGpu(timef, dt);
+         gpu_update_timer->stop();
+      }
+      else{
+#endif
+         status = updateState(timef, dt);
+#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+      }
       //Activity updated, set flag to true
       updatedDeviceActivity = true;
 #endif
       lastUpdateTime=parent->simulationTime();
+      update_timer->stop();
    }
    //Because of the triggerOffset, we need to check if we need to update nextUpdateTime every time
    updateNextUpdateTime();
    return status;
 }
 
+#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+//Multiple entry points into doUpdateStateGpu in case a layer overwrites updateState
+int HyPerLayer::updateStateGpu(double timef, double dt){
+   int status;
+   pvdata_t * gSynHead = GSyn==NULL ? NULL : GSyn[0];
+   assert(updateGpu);
+   status = doUpdateStateGpu(timef, dt, getLayerLoc(), getCLayer()->activity->data, getV(),
+         getNumChannels(), gSynHead, getSpikingFlag(), getCLayer()->activeIndices,
+         &getCLayer()->numActive);
+   return status;
+}
+#endif
+
 int HyPerLayer::updateState(double timef, double dt) {
    int status;
    pvdata_t * gSynHead = GSyn==NULL ? NULL : GSyn[0];
-   status = doUpdateState(timef, dt, getLayerLoc(), getCLayer()->activity->data, getV(),
-         getNumChannels(), gSynHead, getSpikingFlag(), getCLayer()->activeIndices,
-         &getCLayer()->numActive);
+
+#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+   if(updateGpu){
+      status = doUpdateStateGpu(timef, dt, getLayerLoc(), getCLayer()->activity->data, getV(),
+            getNumChannels(), gSynHead, getSpikingFlag(), getCLayer()->activeIndices,
+            &getCLayer()->numActive);
+   }
+   else{
+#endif
+      status = doUpdateState(timef, dt, getLayerLoc(), getCLayer()->activity->data, getV(),
+            getNumChannels(), gSynHead, getSpikingFlag(), getCLayer()->activeIndices,
+            &getCLayer()->numActive);
+#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+   }
+#endif
+
    if(status == PV_SUCCESS) status = updateActiveIndices();
    return status;
 }
@@ -1730,6 +1762,33 @@ int HyPerLayer::resetGSynBuffers(double timef, double dt) {
    return status;
 }
 
+
+#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+int HyPerLayer::runUpdateKernel(){
+   assert(updateGpu);
+   PVCuda::CudaBuffer * d_GSyn = getDeviceGSyn();
+   float* h_GSyn = GSyn[0];
+   //Test if we need to move gsyn on the gpu
+   if(updatedDeviceGSyn){
+      d_GSyn->copyToDevice(h_GSyn);
+      updatedDeviceGSyn = false;
+   }
+   //V and Activity are write only buffers, so we don't need to do anything with them
+   assert(krUpdate);
+   //Run kernel
+   krUpdate->run();
+   return PV_SUCCESS;
+}
+
+int HyPerLayer::doUpdateStateGpu(double timef, double dt, const PVLayerLoc * loc, pvdata_t * A,
+      pvdata_t * V, int num_channels, pvdata_t * gSynHead, bool spiking,
+      unsigned int * active_indices, unsigned int * num_active)
+{
+   std::cout << "Update state for layer " << name << " is not implemented\n";
+   exit(-1);
+   return -1;
+}
+#endif
 
 int HyPerLayer::doUpdateState(double timef, double dt, const PVLayerLoc * loc, pvdata_t * A,
       pvdata_t * V, int num_channels, pvdata_t * gSynHead, bool spiking,
@@ -1874,22 +1933,32 @@ int HyPerLayer::recvAllSynapticInput() {
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
                if(conn->getReceiveGpu()){
                   status = recvSynapticInputGpu(conn, &cube, arbor);
+                  //No need to update GSyn since it's already living on gpu
+                  updatedDeviceGSyn = false;
                }
                else
 #endif
                {
                   status = recvSynapticInput(conn, &cube, arbor);
+#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+                  //CPU updated gsyn, need to update gsyn
+                  updatedDeviceGSyn = true;
+#endif
                }
             }
             else{
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
                if(conn->getReceiveGpu()){
                   status = recvSynapticInputFromPostGpu(conn, &cube, arbor);
+                  updatedDeviceGSyn = false;
                }
                else
 #endif
                {
                   status = recvSynapticInputFromPost(conn, &cube, arbor);
+#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+                  updatedDeviceGSyn = true;
+#endif
                }
             }
             assert(status == PV_SUCCESS || status == PV_BREAK);
@@ -1911,65 +1980,84 @@ int HyPerLayer::recvAllSynapticInput() {
 
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
 float HyPerLayer::syncGpu(){
-   if(recvGpu){
+   float time = 0;
+
+   if(recvGpu || updateGpu){
 #ifdef PV_USE_CUDA
       parent->getCudaDevice()->syncDevice();
-      float time = gpu_recvsyn_timer->accumulateTime();
-#ifdef PV_USE_CUDNN
-      //time += permute_weights_timer->accumulateTime(); 
-      //time += permute_preData_timer->accumulateTime(); 
-      //time += permute_postGSyn_timer->accumulateTime();
 #endif
-      return time;
-#endif
-
 #ifdef PV_USE_OPENCL
       parent->getCLDevice()->syncDevice();
-      return 0;
 #endif
    }
-   else{
-      return 0;
+
+   if(recvGpu){
+      time += gpu_recvsyn_timer->accumulateTime();
    }
+   if(updateGpu){
+      time += gpu_update_timer->accumulateTime();
+      int status = updateActiveIndices();
+      assert(status == PV_SUCCESS);
+   }
+   return time;
 }
 #endif
 
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
 void HyPerLayer::copyAllGSynToDevice(){
-   for(int ch = 0; ch < this->numChannels; ch++){
-      //If the device gsyn is allocated for the channel
-      if(allocDeviceGSyn[ch]){
-         ChannelType enumCh = static_cast<ChannelType>(ch);
-         //Copy it to device
-         float * h_postGSyn = this->getChannel(enumCh);
+   if(allocDeviceGSyn){
+      //Copy it to device
+      float * h_postGSyn = GSyn[0];
 #ifdef PV_USE_OPENCL
-         CLBuffer * d_postGSyn = this->getDeviceGSyn(enumCh);
+      CLBuffer * d_postGSyn = this->getDeviceGSyn();
 #endif
 #ifdef PV_USE_CUDA
-         PVCuda::CudaBuffer * d_postGSyn = this->getDeviceGSyn(enumCh);
+      PVCuda::CudaBuffer * d_postGSyn = this->getDeviceGSyn();
 #endif
-         assert(d_postGSyn);
-         d_postGSyn->copyToDevice(h_postGSyn);
-      }
+      assert(d_postGSyn);
+      d_postGSyn->copyToDevice(h_postGSyn);
    }
 }
 
 void HyPerLayer::copyAllGSynFromDevice(){
-   for(int ch = 0; ch < this->numChannels; ch++){
-      //If the device gsyn is allocated for the channel
-      if(allocDeviceGSyn[ch]){
-         ChannelType enumCh = static_cast<ChannelType>(ch);
-         //Copy it to device
-         float * h_postGSyn = this->getChannel(enumCh);
+   if(allocDeviceGSyn){
+      float * h_postGSyn = GSyn[0];
 #ifdef PV_USE_OPENCL
-         CLBuffer * d_postGSyn = this->getDeviceGSyn(enumCh);
+      CLBuffer * d_postGSyn = this->getDeviceGSyn();
 #endif
 #ifdef PV_USE_CUDA
-         PVCuda::CudaBuffer * d_postGSyn = this->getDeviceGSyn(enumCh);
+      PVCuda::CudaBuffer * d_postGSyn = this->getDeviceGSyn();
 #endif
-         assert(d_postGSyn);
-         d_postGSyn->copyFromDevice(h_postGSyn);
-      }
+      assert(d_postGSyn);
+      d_postGSyn->copyFromDevice(h_postGSyn);
+   }
+}
+
+void HyPerLayer::copyAllVFromDevice(){
+   if(allocDeviceV){
+      float * h_V = getV();
+#ifdef PV_USE_OPENCL
+      CLBuffer * d_V = this->getDeviceV();
+#endif
+#ifdef PV_USE_CUDA
+      PVCuda::CudaBuffer * d_V= this->getDeviceV();
+#endif
+      assert(d_V);
+      d_V->copyFromDevice(h_V);
+   }
+}
+
+void HyPerLayer::copyAllActivityFromDevice(){
+   if(allocDeviceActivity){
+      float * h_activity = getCLayer()->activity->data;
+#ifdef PV_USE_OPENCL
+      CLBuffer * d_activity = this->getDeviceActivity();
+#endif
+#ifdef PV_USE_CUDA
+      PVCuda::CudaBuffer * d_activity= this->getDeviceActivity();
+#endif
+      assert(d_activity);
+      d_activity->copyFromDevice(h_activity);
    }
 }
 
@@ -2221,9 +2309,6 @@ int HyPerLayer::recvSynapticInputFromPostGpu(HyPerConn * conn, const PVLayerCube
    //Iterate through y patch
    int numPerStride = targetToSourceConn->xPatchSize() * targetToSourceConn->fPatchSize();
 
-   //The start of the gsyn buffer
-   pvdata_t * gSynPatchHead = this->getChannel(sourceToTargetConn->getChannel());
-
    long * startSourceExtBuf = conn->getPostToPreActivity();
    if(!startSourceExtBuf){
       std::cout << "HyPerLayer::recvFromPost error getting preToPostActivity from connection. Is shrink_patches on?\n";
@@ -2283,7 +2368,7 @@ int HyPerLayer::recvSynapticInputFromPostGpu(HyPerConn * conn, const PVLayerCube
       krRecvPost->permuteWeightsPVToCudnn();
    }
    //Permute GSyn 
-   krRecvPost->permuteGSynPVToCudnn();
+   krRecvPost->permuteGSynPVToCudnn(sourceToTargetConn->getChannel());
 #endif
 
    int totF = targetNf;
@@ -2311,7 +2396,7 @@ int HyPerLayer::recvSynapticInputFromPostGpu(HyPerConn * conn, const PVLayerCube
 
 #if defined(PV_USE_CUDA) && defined(PV_USE_CUDNN)
    //printf("Permuting gsyn back\n");
-   krRecvPost->permuteGSynCudnnToPV();
+   krRecvPost->permuteGSynCudnnToPV(sourceToTargetConn->getChannel());
 #endif
 
    return PV_SUCCESS;
@@ -2374,18 +2459,6 @@ int HyPerLayer::recvSynapticInputGpu(HyPerConn * conn, const PVLayerCube * activ
       conn->setUpdatedDeviceWFlag(false);
    }
    
-//   //Always copy gsyn, since gsyn is always going to be at least zeroed out
-//   //The start of the gsyn buffer
-//   float * h_postGSyn = this->getChannel(conn->getChannel());
-//#ifdef PV_USE_OPENCL
-//   CLBuffer * d_postGSyn = this->getDeviceGSyn(conn->getChannel());
-//#endif
-//#ifdef PV_USE_CUDA
-//   PVCuda::CudaBuffer* d_postGSyn = this->getDeviceGSyn(conn->getChannel());
-//#endif
-//   assert(d_postGSyn);
-//   d_postGSyn->copyToDevice(h_postGSyn);
-
 #ifdef PV_USE_OPENCL
    //Grab kernel from conn
    CLKernel * krRecvPre = conn->getKrRecvPre();        // CL kernel for update state call
@@ -2849,12 +2922,10 @@ int HyPerLayer::writeTimers(FILE* stream){
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
       gpu_recvsyn_timer->fprint_time(stream);
 #endif
-#if defined(PV_USE_CUDA) && defined(PV_USE_CUDNN)
-      //permute_preData_timer->fprint_time(stream);
-      //permute_weights_timer->fprint_time(stream);
-      //permute_postGSyn_timer ->fprint_time(stream);
-#endif
       update_timer->fprint_time(stream);
+#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+      gpu_update_timer->fprint_time(stream);
+#endif
       publish_timer->fprint_time(stream);
       timescale_timer->fprint_time(stream);
       io_timer->fprint_time(stream);

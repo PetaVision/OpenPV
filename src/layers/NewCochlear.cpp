@@ -261,7 +261,7 @@ namespace PV {
     
     
     int NewCochlearLayer::updateState(double time, double dt){
-        update_timer->start();
+        //update_timer->start();
         
         float numSamples = nearbyint(dt / samplePeriod); //assumes dt is an integer multiple of samplePeriod
         
@@ -367,7 +367,7 @@ namespace PV {
     HyPerLayer::setActivity();
         
         
-        update_timer->stop();
+        //update_timer->stop();
         return PV_SUCCESS;
         
     }

@@ -217,7 +217,7 @@ void MLPErrorLayer::ioParam_LossFunction(enum ParamsIOFlag ioFlag) {
 
 int MLPErrorLayer::updateState(double time, double dt)
 {
-   update_timer->start();
+   //update_timer->start();
    //assert(getNumChannels()>= 3);
 
    const PVLayerLoc * loc = getLayerLoc();
@@ -276,7 +276,7 @@ int MLPErrorLayer::updateState(double time, double dt)
       }
       A[next] = dropout[ni] ? 0 : errProp * gradient;
    }
-   update_timer->stop();
+   //update_timer->stop();
    return PV_SUCCESS;
 }
 

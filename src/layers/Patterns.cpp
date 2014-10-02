@@ -940,7 +940,7 @@ int Patterns::updateState(double timef, double dt) {
 }
 
 int Patterns::updatePattern(double timef) {
-   update_timer->start();
+   //update_timer->start();
 
    // alternate between vertical and horizontal bars
    double p = patternRandState->uniformRandom();
@@ -999,7 +999,7 @@ int Patterns::updatePattern(double timef) {
       }
    }
 
-   update_timer->stop();
+   //update_timer->stop();
 
    return (int) newPattern;
 }

@@ -29,6 +29,9 @@ protected:
    HyPerLCALayer();
    int initialize(const char * name, HyPerCol * hc);
    virtual int allocateDataStructures();
+#ifdef PV_USE_CUDA
+   virtual int setInitialValues();
+#endif
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    virtual void ioParam_numChannels(enum ParamsIOFlag ioFlag);
    virtual void ioParam_timeConstantTau(enum ParamsIOFlag ioFlag);
@@ -40,7 +43,19 @@ protected:
    virtual int doUpdateState(double time, double dt, const PVLayerLoc * loc, pvdata_t * A,
          pvdata_t * V, int num_channels, pvdata_t * gSynHead, bool spiking,
          unsigned int * active_indices, unsigned int * num_active);
+
+#ifdef PV_USE_CUDA
+   virtual int doUpdateStateGpu(double time, double dt, const PVLayerLoc * loc, pvdata_t * A,
+      pvdata_t * V, int num_channels, pvdata_t * gSynHead, bool spiking,
+      unsigned int * active_indicies, unsigned int * num_active);
+#endif
+
    virtual float getChannelTimeConst(enum ChannelType channel_type){return timeConstantTau;};
+
+#ifdef PV_USE_CUDA
+   virtual int allocateUpdateKernel();
+
+#endif
 private:
    SparsityLayerProbe* sparseProbe;
    pvdata_t timeConstantTau;

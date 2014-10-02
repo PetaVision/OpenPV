@@ -95,7 +95,7 @@ int ANNSquaredLayer::initialize(const char * name, HyPerCol * hc) {
 
 int ANNSquaredLayer::updateState(double time, double dt)
 {
-   update_timer->start();
+   //update_timer->start();
 //#ifdef PV_USE_OPENCL
 //   if((gpuAccelerateFlag)&&(true)) {
 //      updateStateOpenCL(time, dt);
@@ -116,7 +116,7 @@ int ANNSquaredLayer::updateState(double time, double dt)
 //   }
 //#endif
 
-   update_timer->stop();
+   //update_timer->stop();
    return PV_SUCCESS;
 }
 

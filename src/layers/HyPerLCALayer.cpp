@@ -8,6 +8,12 @@
 #include "HyPerLCALayer.hpp"
 #include <iostream>
 
+#ifdef PV_USE_CUDA
+
+#include "../cudakernels/CudaUpdateHyPerLCALayer.hpp"
+
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -192,11 +198,102 @@ void HyPerLCALayer::ioParam_selfInteract(enum ParamsIOFlag ioFlag) {
    }   
 }
 
+#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+int HyPerLCALayer::allocateUpdateKernel(){
+//#ifdef PV_USE_OPENCL
+//   //Not done: what's kernel name for HyPerLCALayer for opencl?
+//   int status = CL_SUCCESS;
+//   const char* kernel_name = "HyPerLayer_recv_post";
+//   char kernelPath[PV_PATH_MAX+128];
+//   char kernelFlags[PV_PATH_MAX+128];
+//
+//   CLDevice * device = parent->getCLDevice();
+//
+//   sprintf(kernelPath, "%s/../src/kernels/%s.cl", parent->getSrcPath(), kernel_name);
+//   sprintf(kernelFlags, "-D PV_USE_OPENCL -cl-fast-relaxed-math -I %s/../src/kernels/", parent->getSrcPath());
+//
+//   // create kernels
+//   krRecvPost = device->createKernel(kernelPath, kernel_name, kernelFlags);
+//#endif
+#ifdef PV_USE_CUDA
+   PVCuda::CudaDevice * device = parent->getCudaDevice();
+   //Set to temp pointer of the subclass
+   PVCuda::CudaUpdateHyPerLCALayer * updateKernel = new PVCuda::CudaUpdateHyPerLCALayer(device);
+   //Set arguments
+   const PVLayerLoc* loc = getLayerLoc();
+   const int nx = loc->nx;
+   const int ny = loc->ny;
+   const int nf = loc->nf;
+   const int num_neurons = nx*ny*nf;
+   const int lt = loc->halo.lt;
+   const int rt = loc->halo.rt;
+   const int dn = loc->halo.dn;
+   const int up = loc->halo.up;
+   const int numChannels = this->numChannels;
+   PVCuda::CudaBuffer* d_V = getDeviceV();
+   assert(d_V);
+   const float Vth = this->VThresh;
+   const float AMax = this->AMax;
+   const float AMin = this->AMin;
+   const float AShift = this->AShift;
+   const float VWidth = this->VWidth;
+   const bool selfInteract = this->selfInteract;
+   //This value is being updated every timestep, so we need to update it on the gpu
+   const float dt_tau = -1; //dt/timeConstantTau;
+   PVCuda::CudaBuffer* d_GSyn = getDeviceGSyn();
+   PVCuda::CudaBuffer* d_activity = getDeviceActivity();
+
+   //Set arguments to kernel
+   updateKernel->setArgs(
+      num_neurons,
+      nx, ny, nf, lt, rt, dn, up,
+      numChannels, 
+      d_V,
+      Vth, AMax, AMin, AShift, VWidth, selfInteract, dt_tau,
+      d_GSyn, d_activity);
+
+   //Update d_V for V initialization
+
+   //set updateKernel to krUpdate
+   krUpdate = updateKernel;
+#endif
+   return PV_SUCCESS;
+}
+#endif
+
+
+#ifdef PV_USE_CUDA
+int HyPerLCALayer::setInitialValues() {
+   //Initialize HyPerLayer initial values
+   HyPerLayer::setInitialValues();
+   //Update V to initial conditions if updating from gpu
+   if(updateGpu){
+      PVCuda::CudaBuffer* d_V = getDeviceV();
+      assert(d_V);
+      float* h_V = getV();
+      d_V->copyToDevice(h_V);
+
+      PVCuda::CudaBuffer* d_activity = getDeviceActivity();
+      assert(d_activity);
+      float * h_activity = getCLayer()->activity->data;
+      d_activity->copyToDevice(h_activity);
+   }
+}
+
+int HyPerLCALayer::doUpdateStateGpu(double time, double dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels, pvdata_t * gSynHead, bool spiking,unsigned int * active_indicies, unsigned int * num_active){
+   //Change dt to match what is passed in
+   PVCuda::CudaUpdateHyPerLCALayer* updateKernel = dynamic_cast<PVCuda::CudaUpdateHyPerLCALayer*>(krUpdate);
+   assert(updateKernel);
+   updateKernel->setDtTau(dt/timeConstantTau);
+   runUpdateKernel();
+}
+#endif
+
 int HyPerLCALayer::doUpdateState(double time, double dt, const PVLayerLoc * loc, pvdata_t * A,
       pvdata_t * V, int num_channels, pvdata_t * gSynHead, bool spiking,
       unsigned int * active_indices, unsigned int * num_active)
 {
-   update_timer->start();
+   //update_timer->start();
 //#ifdef PV_USE_OPENCL
 //   if(gpuAccelerateFlag) {
 //      updateStateOpenCL(time, dt);
@@ -225,7 +322,7 @@ int HyPerLCALayer::doUpdateState(double time, double dt, const PVLayerLoc * loc,
       }
    }
 
-   update_timer->stop();
+   //update_timer->stop();
    return PV_SUCCESS;
 }
 

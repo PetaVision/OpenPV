@@ -263,7 +263,7 @@ bool MatchingPursuitLayer::inWindowGlobalRes(int neuronIdxRes, const PVLayerLoc 
 }
 
 int MatchingPursuitLayer::updateState(double timed, double dt) {
-   update_timer->start();
+   //update_timer->start();
    PVLayerLoc loc = *getLayerLoc();
    if (syncedMovie && syncedMovie->getLastUpdateTime() > lastUpdateTime) {
       memset(getV(),0,(size_t) getNumNeurons()*sizeof(pvdata_t));
@@ -330,7 +330,7 @@ int MatchingPursuitLayer::updateState(double timed, double dt) {
    }
 #endif // PV_USE_MPI
 
-   update_timer->stop();
+   //update_timer->stop();
 
    return PV_SUCCESS;
 }

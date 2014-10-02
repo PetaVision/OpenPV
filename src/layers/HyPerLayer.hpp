@@ -65,12 +65,17 @@ DerivedLayer::initialize(arguments) {
 #include "../include/pv_types.h"
 #include "../utils/Timer.hpp"
 
-#ifndef PV_USE_OPENCL
+
+#ifdef PV_USE_CUDA
+#  undef PV_USE_CUDA
 #  include "../layers/updateStateFunctions.h"
-#else
+#  define PV_USE_CUDA
+#elif PV_USE_OPENCL
 #  undef PV_USE_OPENCL
 #  include "../layers/updateStateFunctions.h"
 #  define PV_USE_OPENCL
+#else
+#  include "../layers/updateStateFunctions.h"
 #endif //PV_USE_OPENCL
 
 #ifdef PV_USE_OPENMP_THREADS
@@ -268,6 +273,9 @@ protected:
     * The function that calls all ioParam functions
     */
    virtual int  ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+   virtual void ioParam_updateGpu(enum ParamsIOFlag ioFlag);
+#endif
 
    static int equalizeMargins(HyPerLayer * layer1, HyPerLayer * layer2);
 
@@ -334,6 +342,9 @@ public:
    //An updateState wrapper that determines if updateState needs to be called
    virtual int updateStateWrapper (double time, double dt);
    virtual int updateState (double time, double dt);
+#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+   virtual int updateStateGpu (double time, double dt);
+#endif
    /**
     * A virtual function to determine if updateState method needs to be called
     * Default behaviour is dependent on the flag triggerFlag. If true, will call attached trigger layer's needUpdate
@@ -469,6 +480,13 @@ protected:
 
    int openOutputStateFile();
    /* static methods called by updateState({long_argument_list})*/
+
+#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+   virtual int runUpdateKernel();
+   virtual int doUpdateStateGpu(double timef, double dt, const PVLayerLoc * loc, pvdata_t * A,
+         pvdata_t * V, int num_channels, pvdata_t * GSynHead, bool spiking,
+         unsigned int * active_indices, unsigned int * num_active);
+#endif
    virtual int doUpdateState(double timef, double dt, const PVLayerLoc * loc, pvdata_t * A,
          pvdata_t * V, int num_channels, pvdata_t * GSynHead, bool spiking,
          unsigned int * active_indices, unsigned int * num_active);
@@ -552,6 +570,8 @@ public:
 
    void copyAllGSynToDevice();
    void copyAllGSynFromDevice();
+   void copyAllVFromDevice();
+   void copyAllActivityFromDevice();
 
 #ifdef PV_USE_OPENCL
    CLBuffer * getDeviceV(){
@@ -564,13 +584,12 @@ public:
    }
 
 #ifdef PV_USE_OPENCL
-   CLBuffer * getDeviceGSyn(ChannelType ch) {
+   CLBuffer * getDeviceGSyn() {
 #endif
-
 #ifdef PV_USE_CUDA
-   PVCuda::CudaBuffer * getDeviceGSyn(ChannelType ch) {
+   PVCuda::CudaBuffer * getDeviceGSyn() {
 #endif
-      return (ch < this->numChannels && ch >= 0) ? d_GSyn[ch] : NULL;
+      return d_GSyn;
    }
 
 #if defined(PV_USE_CUDA) && defined(PV_USE_CUDNN)
@@ -598,10 +617,8 @@ public:
    void setAllocDeviceV(){
       allocDeviceV = true;
    }
-   void setAllocDeviceGSyn(ChannelType ch){
-      if(ch >= 0 && ch < this->numChannels){
-         allocDeviceGSyn[ch] = true;
-      }
+   void setAllocDeviceGSyn(){
+      allocDeviceGSyn = true;
    }
 
    void setAllocDeviceActivity(){
@@ -616,17 +633,27 @@ public:
       updatedDeviceActivity = in;
    }
 
+   bool getUpdatedDeviceGSynFlag(){
+      return updatedDeviceGSyn;
+   }
+
+   void setUpdatedDeviceGSynFlag(bool in){
+      updatedDeviceGSyn = in;
+   }
+
    bool getRecvGpu(){
       return recvGpu;
    }
 
+   bool getUpdateGpu(){
+      return updateGpu;
+   }
+
 #ifdef PV_USE_OPENCL
    void clFinishGSyn(){
-      for(int i = 0; i < this->numChannels; i++){
-         if(allocDeviceGSyn[i] && d_GSyn[i]){
-            d_GSyn[i]->finish(); //This should take care of every command in the queue
-            break;
-         }
+      if(allocDeviceGSyn && d_GSyn){
+         d_GSyn->finish(); //This should take care of every command in the queue
+         break;
       }
    }
    void clFinishActivity(){
@@ -643,6 +670,7 @@ public:
 //
 protected:
 
+   virtual int allocateUpdateKernel();
    virtual int allocateDeviceBuffers();
    //virtual int allocateReceivePostKernel();
 
@@ -652,23 +680,27 @@ protected:
    //
    
    bool allocDeviceV;
-   bool* allocDeviceGSyn;         // array of channels to allocate
+   bool allocDeviceGSyn;         // array of channels to allocate
    bool allocDeviceActivity;
    bool updatedDeviceActivity;
+   bool updatedDeviceGSyn;
    bool recvGpu;
+   bool updateGpu;
 
 #ifdef PV_USE_OPENCL
    CLBuffer * d_V;
-   CLBuffer **d_GSyn;         // of dynamic length numChannels
+   CLBuffer * d_GSyn;         
    CLBuffer * d_Activity;
+   CLKernel * krUpdate;
 #endif
 
 #ifdef PV_USE_CUDA
    PVCuda::CudaBuffer * d_V;
-   PVCuda::CudaBuffer **d_GSyn;         // of dynamic length numChannels
+   PVCuda::CudaBuffer * d_GSyn;      
    PVCuda::CudaBuffer * d_Activity;
+   PVCuda::CudaKernel * krUpdate;
 #ifdef PV_USE_CUDNN
-   PVCuda::CudaBuffer * cudnn_GSyn;         // of dynamic length numChannels
+   PVCuda::CudaBuffer * cudnn_GSyn; 
    PVCuda::CudaBuffer * cudnn_Activity;
 #endif //PV_USE_CUDNN
 #endif //PV_USE_CUDA
@@ -685,6 +717,7 @@ protected:
 
 #ifdef PV_USE_CUDA
    PVCuda::CudaTimer * gpu_recvsyn_timer;
+   PVCuda::CudaTimer * gpu_update_timer;
 #ifdef PV_USE_CUDNN
    //PVCuda::CudaTimer * permute_weights_timer;
    //PVCuda::CudaTimer * permute_preData_timer;

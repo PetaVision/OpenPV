@@ -65,7 +65,7 @@ namespace PV{
 
     int ANNLabelLayer::doUpdateState(double time, double dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels, pvdata_t * gSynHead, bool spiking,unsigned int * active_indices, unsigned int * num_active)
     {
-        update_timer->start();
+        //update_timer->start();
 //#ifdef PV_USE_OPENCL
 //        if(gpuAccelerateFlag) {
 //            updateStateOpenCL(time, dt);
@@ -86,7 +86,7 @@ namespace PV{
 //        }
 //#endif
 
-        update_timer->stop();
+        //update_timer->stop();
         return PV_SUCCESS;
     }
 

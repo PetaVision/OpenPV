@@ -319,7 +319,7 @@ int LIFGap::updateStateOpenCL(double time, double dt)
 int LIFGap::updateState(double time, double dt)
 {
    int status = 0;
-   update_timer->start();
+   //update_timer->start();
 
 //#ifdef PV_USE_OPENCL
 //   if((gpuAccelerateFlag)&&(true)) {
@@ -357,7 +357,7 @@ int LIFGap::updateState(double time, double dt)
 //   }
 //#endif
    updateActiveIndices();
-   update_timer->stop();
+   //update_timer->stop();
    return status;
 }
 

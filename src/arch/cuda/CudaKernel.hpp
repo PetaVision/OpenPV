@@ -26,6 +26,11 @@ public:
    CudaKernel();
    virtual ~CudaKernel();
 
+   /**
+    * Wrapper function to run the kernel where the kernel code takes care of the size of the gpu run
+    * Note that dimsSet is false if this is called
+    */
+   int run();
 
    /**
     * Wrapper function to run the kernel with the specified 1 dimensional global work size with no local work groups
@@ -75,15 +80,16 @@ protected:
    dim3 block_size;
    CudaDevice* device;
 
+   //argsSet must be set to true before being called
+   bool argsSet;
+   bool dimsSet;
+
 private:
    /**
     * A function to set the dimensions of the run
     */
    void setDims(int gWorkSizeX, int gWorkSizeY, int gWorkSizeF, int lWorkSizeX, int lWorkSizeY, int lWorkSizeF);
 
-   //argsSet must be set to true before being called
-   bool argsSet;
-   bool dimsSet;
 };
 
 }

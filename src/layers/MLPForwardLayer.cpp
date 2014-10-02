@@ -115,7 +115,7 @@ void MLPForwardLayer::ioParam_PotentialScale(enum ParamsIOFlag ioFlag) {
 
 int MLPForwardLayer::updateState(double time, double dt)
 {
-   update_timer->start();
+   //update_timer->start();
 
    const PVLayerLoc * loc = getLayerLoc();
    int nx = loc->nx;
@@ -145,7 +145,7 @@ int MLPForwardLayer::updateState(double time, double dt)
       //}
    }
    //A never updated, TODO see if you can remove A buffer
-   update_timer->stop();
+   //update_timer->stop();
    return PV_SUCCESS;
 }
 

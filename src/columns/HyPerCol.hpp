@@ -484,7 +484,9 @@ private:
 
    int numThreads;
 
-   std::vector<HyPerLayer*> layerBuffer;
+   std::vector<HyPerLayer*> recvLayerBuffer;
+   std::vector<HyPerLayer*> updateLayerBufferGpu;
+   std::vector<HyPerLayer*> updateLayerBuffer;
 
 }; // class HyPerCol
 

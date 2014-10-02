@@ -1,6 +1,6 @@
 #include "CudaRecvPre.hpp"
 #include "../arch/cuda/cuda_util.hpp"
-#include "../arch/cuda/device_util.hpp"
+#include "conversions.hcu"
 
 namespace PVCuda{
 

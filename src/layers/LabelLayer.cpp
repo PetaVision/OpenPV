@@ -190,7 +190,7 @@ int LabelLayer::initializeActivity() {
 }
 
 int LabelLayer::updateState(double time, double dt){
-   update_timer->start();
+   //update_timer->start();
 
    int status = PV_SUCCESS;
 
@@ -229,7 +229,7 @@ int LabelLayer::updateState(double time, double dt){
    //lastUpdateTime = parent->simulationTime();
    //}
 
-   update_timer->stop();
+   //update_timer->stop();
 
    return status;
 

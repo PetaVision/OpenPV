@@ -65,7 +65,7 @@ int AccumulateLayer::doUpdateState(double time, double dt, const PVLayerLoc * lo
    if (needsUpdate) {
       memset(clayer->activity->data, 0, sizeof(pvdata_t)*getNumExtended());
    }
-   update_timer->start();
+   //update_timer->start();
 //#ifdef PV_USE_OPENCL
 //   if(gpuAccelerateFlag) {
 //      updateStateOpenCL(time, dt);
@@ -86,7 +86,7 @@ int AccumulateLayer::doUpdateState(double time, double dt, const PVLayerLoc * lo
 //   }
 //#endif
 
-   update_timer->stop();
+   //update_timer->stop();
    return PV_SUCCESS;
 }
 
