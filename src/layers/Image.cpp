@@ -467,7 +467,6 @@ int Image::scatterImageFilePVP(const char * filename, int xOffset, int yOffset,
          length = countBuf[frameNumber];
          PV::PV_fseek(pvstream, framepos-sizeof(double)-sizeof(unsigned int), SEEK_SET);
          PV::PV_fread(&timed, sizeof(double), 1, pvstream);
-         std::cout << "Reading file time " << timed << " on time " << parent->simulationTime() << "\n";
          unsigned int dropLength;
          PV::PV_fread(&dropLength, sizeof(unsigned int), 1, pvstream);
          assert(dropLength == length);

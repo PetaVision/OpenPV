@@ -926,9 +926,11 @@ int HyPerLayer::allocateDeviceBuffers()
 #endif
 #ifdef PV_USE_CUDA
       d_GSyn = device->createBuffer(size * numChannels);
-#endif 
       assert(d_GSyn);
+#ifdef PV_USE_CUDNN
       cudnn_GSyn = device->createBuffer(size);
+#endif
+#endif 
    }
 
    return status;
@@ -1765,6 +1767,8 @@ int HyPerLayer::resetGSynBuffers(double timef, double dt) {
 
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
 int HyPerLayer::runUpdateKernel(){
+
+#ifdef PV_USE_CUDA
    assert(updateGpu);
    PVCuda::CudaBuffer * d_GSyn = getDeviceGSyn();
    float* h_GSyn = GSyn[0];
@@ -1777,6 +1781,7 @@ int HyPerLayer::runUpdateKernel(){
    assert(krUpdate);
    //Run kernel
    krUpdate->run();
+#endif
    return PV_SUCCESS;
 }
 
@@ -2395,7 +2400,6 @@ int HyPerLayer::recvSynapticInputFromPostGpu(HyPerConn * conn, const PVLayerCube
 #endif
 
 #if defined(PV_USE_CUDA) && defined(PV_USE_CUDNN)
-   //printf("Permuting gsyn back\n");
    krRecvPost->permuteGSynCudnnToPV(sourceToTargetConn->getChannel());
 #endif
 

@@ -70,7 +70,7 @@ DerivedLayer::initialize(arguments) {
 #  undef PV_USE_CUDA
 #  include "../layers/updateStateFunctions.h"
 #  define PV_USE_CUDA
-#elif PV_USE_OPENCL
+#elif defined(PV_USE_OPENCL)
 #  undef PV_USE_OPENCL
 #  include "../layers/updateStateFunctions.h"
 #  define PV_USE_OPENCL
@@ -653,7 +653,6 @@ public:
    void clFinishGSyn(){
       if(allocDeviceGSyn && d_GSyn){
          d_GSyn->finish(); //This should take care of every command in the queue
-         break;
       }
    }
    void clFinishActivity(){
@@ -727,6 +726,7 @@ protected:
 
 #ifdef PV_USE_OPENCL
    CLTimer * gpu_recvsyn_timer;
+   CLTimer * gpu_update_timer;
 #endif
 };
 

@@ -52,9 +52,8 @@ protected:
 
    virtual float getChannelTimeConst(enum ChannelType channel_type){return timeConstantTau;};
 
-#ifdef PV_USE_CUDA
+#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
    virtual int allocateUpdateKernel();
-
 #endif
 private:
    SparsityLayerProbe* sparseProbe;
