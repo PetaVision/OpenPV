@@ -465,7 +465,12 @@ bool Movie::updateImage(double time, double dt)
             assert(filename != NULL);
          }
          else{
-            updateFrameNum(skipFrameIndex);
+            //Only do this if it's not the first update timestep
+            //The timestep number is (time - startTime)/(width of timestep), with allowance for roundoff.
+            //But if we're using adaptive timesteps, the dt passed as a function argument is not the correct (width of timestep).  
+            if(fabs(time - (parent->getStartTime() + parent->getDeltaTime())) > (parent->getDeltaTime()/2)){
+               updateFrameNum(skipFrameIndex);
+            }
          }
       }
       if(writePosition && icComm->commRank()==0){
@@ -605,7 +610,7 @@ const char * Movie::getNextFileName(int n_skip) {
       }
       advanceFileName();
       if (echoFramePathnameFlag){
-         printf("%s\n", inputfile);
+         printf("%f: %s\n", parent->simulationTime(), inputfile);
       }
    }
 #ifdef PV_USE_MPI

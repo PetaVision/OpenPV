@@ -2106,14 +2106,16 @@ template <typename T> int scatterActivity(PV_Stream * pvstream, Communicator * c
          fprintf(stderr, "scatterActivity error: layerLoc->nf and fileLoc->nf must be equal (they are %d and %d)\n", layerLoc->nf, fileLoc->nf);
          abort();
       }
-      if (offsetX < 0 || offsetX + layerLoc->nxGlobal > fileLoc->nxGlobal ||
-            offsetY < 0 || offsetY + layerLoc->nyGlobal > fileLoc->nyGlobal) {
-         fprintf(stderr, "scatterActivity error: offset window does not completely fit inside image frame. This case has not been implemented yet.\n");
-         abort();
-      }
+
       int comm_size = comm->commSize();
       switch (filetype) {
       case PVP_NONSPIKING_ACT_FILE_TYPE:
+         //TODO for non-spiking
+         if (offsetX < 0 || offsetX + layerLoc->nxGlobal > fileLoc->nxGlobal ||
+               offsetY < 0 || offsetY + layerLoc->nyGlobal > fileLoc->nyGlobal) {
+            fprintf(stderr, "scatterActivity error: offset window does not completely fit inside image frame. This case has not been implemented yet for nonspiking activity files.\n");
+            abort();
+         }
 
          for (int r=0; r<comm_size; r++) {
             if (r==rootproc) continue; // Need to load root process last, or subsequent processes will clobber temp_buffer.
@@ -2190,6 +2192,7 @@ template <typename T> int scatterActivity(PV_Stream * pvstream, Communicator * c
           }
          free(activeNeurons);
          break;
+
      case PVP_ACT_SPARSEVALUES_FILE_TYPE:
          //Read list of active neurons and their values
          activeNeurons = (int *) calloc(numActive,datasize);
@@ -2226,7 +2229,6 @@ template <typename T> int scatterActivity(PV_Stream * pvstream, Communicator * c
          // Same thing for root process
          ky0 = layerLoc->ny*rowFromRank(rootproc, comm->numCommRows(), comm->numCommColumns());
          kx0 = layerLoc->nx*columnFromRank(rootproc, comm->numCommRows(), comm->numCommColumns());
-         std::cout << "numActive: " << numActive << " fileLoc: (" << fileLoc->nxGlobal << "," << fileLoc->nyGlobal << ")\n";
          for (int i = 0; i < numActive; i++) {
             int xpos = kxPos(activeNeurons[i], fileLoc->nxGlobal, fileLoc->nyGlobal, layerLoc->nf);
             int ypos = kyPos(activeNeurons[i], fileLoc->nxGlobal, fileLoc->nyGlobal, layerLoc->nf);
