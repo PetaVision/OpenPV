@@ -134,7 +134,7 @@ ANNLayer "reconstruction" = {
     InitVType                           = "ZeroV";
     triggerFlag                         = false;
     writeStep                           = 1.0;
-    initialWriteTime                    = 0.0;
+    initialWriteTime                    = 1.0;
     writeSparseActivity                 = false;
     VThresh                             = -infinity;
     AMin                                = -infinity;
@@ -231,7 +231,7 @@ Movie "correct" = {
     mirrorBCflag = false;
     valueBC = 0.0;
     writeStep = 1.0;
-    initialWriteTime = 0.0;
+    initialWriteTime = 1.0;
     writeSparseActivity = false;
 
     imageListPath = "input/correct.pvp";
@@ -261,7 +261,7 @@ ANNLayer "comparison" = {
     mirrorBCflag = true;
     triggerFlag = false;
     writeStep = 1.0;
-    initialWriteTime = 0.0;
+    initialWriteTime = 1.0;
     writeSparseActivity = false;
 
     InitVType = "ZeroV";
