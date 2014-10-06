@@ -82,7 +82,7 @@ ANNLayer "output" = {
     mirrorBCflag = true;
     triggerFlag = false;
     writeStep = 1.0;
-    initialWriteTime = 0.0;
+    initialWriteTime = 1.0;
     writeSparseActivity = false;
 
     InitVType = "ZeroV";
@@ -103,7 +103,7 @@ Movie "correct" = {
     mirrorBCflag = false;
     valueBC = 0.0;
     writeStep = 1.0;
-    initialWriteTime = 0.0;
+    initialWriteTime = 1.0;
     writeSparseActivity = false;
 
     imageListPath = "input/correct.pvp";
@@ -119,7 +119,7 @@ Movie "correct" = {
     displayPeriod = 1;
     randomMovie = false;
     readPvpFile = true;
-    start_frame_index = 0;
+    start_frame_index = 1;
     skip_frame_index = 1;
     writeFrameToTimestamp = true;
     flipOnTimescaleError = false;
@@ -133,7 +133,7 @@ ANNLayer "comparison" = {
     mirrorBCflag = true;
     triggerFlag = false;
     writeStep = 1.0;
-    initialWriteTime = 0.0;
+    initialWriteTime = 1.0;
     writeSparseActivity = false;
 
     InitVType = "ZeroV";
