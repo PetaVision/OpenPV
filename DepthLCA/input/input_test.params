@@ -16,17 +16,17 @@ HyPerCol "column" = {
     dt = 1.0;
     randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
     startTime = 0;
-    numSteps = 7000;
-    progressStep = 100;
-    outputPath = "/nh/compneuro/Data/Depth/LCA/input_test";
+    stopTime = 400;
+    progressStep = 1;
+    outputPath = "output/";
     filenamesContainLayerNames = true;
     filenamesContainConnectionNames = true;
-    checkpointRead = false; //true;
-    //checkpointReadDir = "/nh/compneuro/Data/Depth/LCA/dataset01_binocular/Checkpoints";
-    //checkpointReadDirIndex = 250000;
-    checkpointWrite = false;
-    checkpointWriteDir = "/nh/compneuro/Data/Depth/LCA/input_test/Checkpoints";
-    checkpointWriteStepInterval = 10000;
+    checkpointRead = true; //true;
+    checkpointReadDir = "output/Checkpoints";
+    checkpointReadDirIndex = 200;
+    checkpointWrite = true;
+    checkpointWriteDir = "output/Checkpoints";
+    checkpointWriteStepInterval = 100;
     deleteOlderCheckpoints = false;
     //suppressLastOutput = false;
     writeProgressToErr = true;
@@ -44,15 +44,15 @@ Movie "LeftImage" = {
     nxScale = 1;
     nyScale = 1;
     readPvpFile = false;
-    imageListPath = "/nh/compneuro/Data/Depth/concat_data/image_00.txt";
+    imageListPath = "/nh/compneuro/Data/newDepth/test.txt";
     writeFrameToTimestamp = true;
     nf = 1;
     writeStep = -1;
     writeSparseActivity = false;
-    displayPeriod = 1;
-    start_frame_index = 1;
+    displayPeriod = 5;
+    start_frame_index = 7;
     skip_frame_index = 1;
-    echoFramePathnameFlag = false;
+    echoFramePathnameFlag = true;
     mirrorBCflag = true;
     jitterFlag = 0;
     useImageBCflag = false;
@@ -65,61 +65,4 @@ Movie "LeftImage" = {
     randomMovie = 0;
     phase = 0;
     //useParamsImage = true;
-};
-
-Movie "LeftDepthImage" = {
-    restart = 0;
-    nxScale = 1;
-    nyScale = 1;
-    readPvpFile = false; 
-    imageListPath = "/nh/compneuro/Data/Depth/concat_data/depth_00.txt";
-    writeFrameToTimestamp = true;
-    nf = 1;
-    writeStep = -1;
-    writeSparseActivity = false;
-    displayPeriod = 1;
-    start_frame_index = 1;
-    skip_frame_index = 1;
-    echoFramePathnameFlag = false;
-    mirrorBCflag = true;
-    jitterFlag = 0;
-    useImageBCflag = false;
-    inverseFlag = false;
-    normalizeLuminanceFlag = false;
-    writeImages = false;
-    offsetX = 0;
-    offsetY = 0;
-    randomMovie = 0;
-    autoResizeFlag = 0;
-    phase = 0;
-    //useParamsImage = true;
-};
-
-Movie "RightImage" = {
-    #include "LeftImage";
-    @imageListPath = "/nh/compneuro/Data/Depth/concat_data/image_01.txt";
-};
-
-Movie "RightDepthImage" = {
-    #include "LeftDepthImage";
-    @imageListPath = "/nh/compneuro/Data/Depth/concat_data/depth_01.txt";
-};
-
-//Position layers
-Image "Position" = {
-    restart = 0;  // make only a certain layer restart
-    nxScale = 1;  
-    nyScale = 1; 
-    imagePath = "/nh/compneuro/Data/Depth/pos.pvp";
-    nf = 5; 
-    writeStep = -1;  //-1 means doesn't write for log
-    writeSparseActivity = false;
-    mirrorBCflag = true;
-    useImageBCflag = false;
-    inverseFlag = false; 
-    normalizeLuminanceFlag = false;
-    writeImages = false;
-    offsetX = 0;
-    offsetY = 0;
-    phase = 0;
 };
