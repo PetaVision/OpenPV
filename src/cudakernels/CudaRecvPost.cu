@@ -450,7 +450,7 @@ void CudaRecvPost::setArgs(
 }
 
 #ifdef PV_USE_CUDNN
-void CudaRecvPost::permuteActivityPVToCudnn(){
+void CudaRecvPost::permuteDatastorePVToCudnn(){
    //Ext pre activity
    int ny = params.preNy + params.preNbup + params.preNbdn;
    int nx = params.preNx + params.preNblt + params.preNbrt;

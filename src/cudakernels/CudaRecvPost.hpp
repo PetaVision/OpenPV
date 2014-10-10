@@ -133,7 +133,7 @@ public:
    );
 
 #ifdef PV_USE_CUDNN
-   void permuteActivityPVToCudnn();
+   void permuteDatastorePVToCudnn();
    void permuteWeightsPVToCudnn();
    void permuteGSynPVToCudnn(int channel);
    void permuteGSynCudnnToPV(int channel);

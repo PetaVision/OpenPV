@@ -1,7 +1,7 @@
 import os, sys
 import numpy as np
 from readPvpFile import readHeaderFile, readData, toFrame
-from scipy.misc import imsave
+from scipy.misc.pilutil import imsave
 #import pdb
 
 def matToImage(mat):

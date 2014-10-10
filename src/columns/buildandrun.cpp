@@ -130,6 +130,7 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
                "SigmoidLayer",
                "MLPSigmoidLayer",
              "BinningLayer",
+             "WTALayer",
              "LabelLayer",
              "TextStream",
 #ifdef PV_USE_SNDFILE
@@ -426,6 +427,10 @@ HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPe
    if( !strcmp(classkeyword, "BinningLayer") ) {
       keywordMatched = true;
       addedLayer = (HyPerLayer *) new BinningLayer(name, hc);
+   }
+   if( !strcmp(classkeyword, "WTALayer") ) {
+      keywordMatched = true;
+      addedLayer = (HyPerLayer *) new WTALayer(name, hc);
    }
    if( !strcmp(classkeyword, "TextStream") ) {
       keywordMatched = true;

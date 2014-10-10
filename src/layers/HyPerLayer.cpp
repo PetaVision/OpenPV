@@ -174,10 +174,13 @@ int HyPerLayer::initialize_base() {
    this->allocDeviceV = false;
    this->allocDeviceGSyn = false;
    this->allocDeviceActivity = false;
+   this->allocDeviceDatastore= false;
    this->d_V = NULL;
    this->d_GSyn = NULL;
    this->d_Activity = NULL;
+   this->d_Datastore= NULL;
    this->updatedDeviceActivity = true; //Start off always updating activity
+   this->updatedDeviceDatastore = true;
    this->updatedDeviceGSyn = true;
    this->recvGpu = false;
    this->updateGpu = false;
@@ -186,7 +189,7 @@ int HyPerLayer::initialize_base() {
 
 #if defined(PV_USE_CUDA) && defined(PV_USE_CUDNN)
    this->cudnn_GSyn = NULL;
-   this->cudnn_Activity = NULL;
+   this->cudnn_Datastore= NULL;
 #endif
 
    this->update_timer  = NULL;
@@ -386,6 +389,9 @@ HyPerLayer::~HyPerLayer()
    if(d_Activity){
       delete d_Activity;
    }
+   if(d_Datastore){
+      delete d_Datastore;
+   }
 
 //      delete clPrevTime;
 //      delete clParams;
@@ -396,8 +402,8 @@ HyPerLayer::~HyPerLayer()
 #endif
 
 #if defined(PV_USE_CUDA) && defined(PV_USE_CUDNN)
-   if(cudnn_Activity){
-      delete cudnn_Activity;
+   if(cudnn_Datastore){
+      delete cudnn_Datastore;
    }
 #endif
 
@@ -906,6 +912,19 @@ int HyPerLayer::allocateDeviceBuffers()
 #endif 
    }
 
+   if(allocDeviceDatastore){
+#ifdef PV_USE_OPENCL
+      d_Datastore= device->createBuffer(CL_MEM_READ_ONLY, size_ex, NULL);
+#endif
+#ifdef PV_USE_CUDA
+      d_Datastore= device->createBuffer(size_ex);
+#endif 
+#if defined(PV_USE_CUDA) && defined(PV_USE_CUDNN)
+      cudnn_Datastore = device->createBuffer(size_ex);
+      assert(cudnn_Datastore);
+#endif
+   }
+
    if(allocDeviceActivity){
 #ifdef PV_USE_OPENCL
       d_Activity = device->createBuffer(CL_MEM_READ_ONLY, size_ex, NULL);
@@ -913,10 +932,6 @@ int HyPerLayer::allocateDeviceBuffers()
 #ifdef PV_USE_CUDA
       d_Activity = device->createBuffer(size_ex);
 #endif 
-#if defined(PV_USE_CUDA) && defined(PV_USE_CUDNN)
-      cudnn_Activity = device->createBuffer(size_ex);
-      assert(cudnn_Activity);
-#endif
    }
 
    //d_GSyn is the entire gsyn buffer. cudnn_GSyn is only one gsyn channel
@@ -1198,12 +1213,15 @@ int HyPerLayer::allocateDataStructures()
    //Allocate temp buffers if needed, 1 for each thread
    if(parent->getNumThreads() > 1){
       thread_gSyn = (pvdata_t**) malloc(sizeof(pvdata_t*) * parent->getNumThreads());
+      assert(thread_gSyn);
       //Allocate one big chunk of memory for the threads
       pvdata_t* tempMem = (pvdata_t*) malloc(sizeof(pvdata_t) * getNumNeurons() * parent->getNumThreads());
+      assert(tempMem);
       //Assign thread_gSyn to different points of tempMem
       for(int i = 0; i < parent->getNumThreads(); i++){
          thread_gSyn[i] = &(tempMem[i*getNumNeurons()]);
       }
+
    }
 
    //Allocate opencl stuff on gpu if set
@@ -1692,7 +1710,6 @@ int HyPerLayer::updateStateWrapper(double timef, double dt){
    int status = PV_SUCCESS;
    //   if(needUpdate(timef, dt)){
    if(needUpdate(timef, parent->getDeltaTime())){
-      //std::cout << "Layer " << name << " updating on timestep " << timef << "\n";
 #ifdef PV_USE_OPENCL
       //If this current layer's gsyn is on the gpu, only move it back when doing update state or output state
       this->clFinishGSyn();
@@ -1711,6 +1728,7 @@ int HyPerLayer::updateStateWrapper(double timef, double dt){
       }
       //Activity updated, set flag to true
       updatedDeviceActivity = true;
+      updatedDeviceDatastore = true;
 #endif
       lastUpdateTime=parent->simulationTime();
       update_timer->stop();
@@ -2332,18 +2350,18 @@ int HyPerLayer::recvSynapticInputFromPostGpu(HyPerConn * conn, const PVLayerCube
    bool updatePreAct = false;
    //Update pre activity, post gsyn, and conn weights 
    //Only if their updated
-   if(sourceToTargetConn->preSynapticLayer()->getUpdatedDeviceActivityFlag()){
-      float * h_preActivity = activity->data;
+   if(sourceToTargetConn->preSynapticLayer()->getUpdatedDeviceDatastoreFlag()){
+      float * h_preDatastore = activity->data;
 #ifdef PV_USE_OPENCL
-      CLBuffer * d_preActivity = sourceToTargetConn->preSynapticLayer()->getDeviceActivity();
+      CLBuffer * d_preDatastore = sourceToTargetConn->preSynapticLayer()->getDeviceDatastore();
 #endif
 #ifdef PV_USE_CUDA
-      PVCuda::CudaBuffer* d_preActivity = sourceToTargetConn->preSynapticLayer()->getDeviceActivity();
+      PVCuda::CudaBuffer* d_preDatastore = sourceToTargetConn->preSynapticLayer()->getDeviceDatastore();
 #endif
-      assert(d_preActivity);
-      d_preActivity->copyToDevice(h_preActivity);
+      assert(d_preDatastore);
+      d_preDatastore->copyToDevice(h_preDatastore);
       //Device now has updated 
-      sourceToTargetConn->preSynapticLayer()->setUpdatedDeviceActivityFlag(false);
+      sourceToTargetConn->preSynapticLayer()->setUpdatedDeviceDatastoreFlag(false);
       updatePreAct = true;
    }
    
@@ -2367,7 +2385,7 @@ int HyPerLayer::recvSynapticInputFromPostGpu(HyPerConn * conn, const PVLayerCube
 
 #if defined(PV_USE_CUDA) && defined(PV_USE_CUDNN)
    if(updatePreAct){
-      krRecvPost->permuteActivityPVToCudnn();
+      krRecvPost->permuteDatastorePVToCudnn();
    }
    if(updateWeights){
       krRecvPost->permuteWeightsPVToCudnn();
@@ -2434,20 +2452,20 @@ int HyPerLayer::recvSynapticInputGpu(HyPerConn * conn, const PVLayerCube * activ
    //assert(d_GSynPatchStart);
    //d_GSynPatchStart->copyToDevice(h_GSynPatchStart, 0, NULL, NULL);
 
-   //Update pre activity, post gsyn, and conn weights 
+   //Update pre datastore, post gsyn, and conn weights 
    //Only if their updated
-   if(conn->preSynapticLayer()->getUpdatedDeviceActivityFlag()){
-      float * h_preActivity = activity->data;
+   if(conn->preSynapticLayer()->getUpdatedDeviceDatastoreFlag()){
+      float * h_preDatastore= activity->data;
 #ifdef PV_USE_OPENCL
-      CLBuffer * d_preActivity = conn->preSynapticLayer()->getDeviceActivity();
+      CLBuffer * d_preDatastore= conn->preSynapticLayer()->getDeviceDatastore();
 #endif
 #ifdef PV_USE_CUDA
-      PVCuda::CudaBuffer * d_preActivity = conn->preSynapticLayer()->getDeviceActivity();
+      PVCuda::CudaBuffer * d_preDatastore = conn->preSynapticLayer()->getDeviceDatastore();
 #endif
-      assert(d_preActivity);
-      d_preActivity->copyToDevice(h_preActivity);
+      assert(d_preDatastore);
+      d_preDatastore->copyToDevice(h_preDatastore);
       //Device now has updated 
-      conn->preSynapticLayer()->setUpdatedDeviceActivityFlag(false);
+      conn->preSynapticLayer()->setUpdatedDeviceDatastoreFlag(false);
    }
    
    if(conn->getUpdatedDeviceWFlag()){

@@ -601,16 +601,24 @@ public:
 #ifdef PV_USE_OPENCL
    CLBuffer * getDeviceActivity(){
 #endif
-
 #ifdef PV_USE_CUDA
    PVCuda::CudaBuffer * getDeviceActivity(){
 #endif
       return d_Activity;
    }
 
+#ifdef PV_USE_OPENCL
+   CLBuffer * getDeviceDatastore(){
+#endif
+#ifdef PV_USE_CUDA
+   PVCuda::CudaBuffer * getDeviceDatastore(){
+#endif
+      return d_Datastore;
+   }
+
 #if defined(PV_USE_CUDA) && defined(PV_USE_CUDNN)
-   PVCuda::CudaBuffer * getCudnnActivity(){
-      return cudnn_Activity;
+   PVCuda::CudaBuffer * getCudnnDatastore(){
+      return cudnn_Datastore;
    }
 #endif
 
@@ -625,12 +633,24 @@ public:
       allocDeviceActivity = true;
    }
 
+   void setAllocDeviceDatastore(){
+      allocDeviceDatastore= true;
+   }
+
    bool getUpdatedDeviceActivityFlag(){
       return updatedDeviceActivity;
    }
 
    void setUpdatedDeviceActivityFlag(bool in){
       updatedDeviceActivity = in;
+   }
+
+   bool getUpdatedDeviceDatastoreFlag(){
+      return updatedDeviceDatastore;
+   }
+
+   void setUpdatedDeviceDatastoreFlag(bool in){
+      updatedDeviceDatastore = in;
    }
 
    bool getUpdatedDeviceGSynFlag(){
@@ -656,7 +676,7 @@ public:
       }
    }
    void clFinishActivity(){
-      if(allocDeviceActivity && allocDeviceActivity){
+      if(allocDeviceActivity){
          d_Activity->finish();
       }
    }
@@ -681,7 +701,9 @@ protected:
    bool allocDeviceV;
    bool allocDeviceGSyn;         // array of channels to allocate
    bool allocDeviceActivity;
+   bool allocDeviceDatastore;
    bool updatedDeviceActivity;
+   bool updatedDeviceDatastore;
    bool updatedDeviceGSyn;
    bool recvGpu;
    bool updateGpu;
@@ -690,6 +712,7 @@ protected:
    CLBuffer * d_V;
    CLBuffer * d_GSyn;         
    CLBuffer * d_Activity;
+   CLBuffer * d_Datastore;
    CLKernel * krUpdate;
 #endif
 
@@ -697,10 +720,11 @@ protected:
    PVCuda::CudaBuffer * d_V;
    PVCuda::CudaBuffer * d_GSyn;      
    PVCuda::CudaBuffer * d_Activity;
+   PVCuda::CudaBuffer * d_Datastore;
    PVCuda::CudaKernel * krUpdate;
 #ifdef PV_USE_CUDNN
    PVCuda::CudaBuffer * cudnn_GSyn; 
-   PVCuda::CudaBuffer * cudnn_Activity;
+   PVCuda::CudaBuffer * cudnn_Datastore;
 #endif //PV_USE_CUDNN
 #endif //PV_USE_CUDA
 

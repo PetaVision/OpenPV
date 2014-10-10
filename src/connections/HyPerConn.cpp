@@ -1717,8 +1717,8 @@ int HyPerConn::communicateInitInfo() {
    //Here, the connection tells all participating recev layers to allocate memory on gpu
    //if receive from gpu is set. These buffers should be set in allocate
    if(receiveGpu){
-      //we need pre activity, this conn's weights, and post gsyn on the channel of this connection
-      pre->setAllocDeviceActivity();
+      //we need pre datastore, this conn's weights, and post gsyn on the channel of this connection
+      pre->setAllocDeviceDatastore();
       this->setAllocDeviceWeights();
       post->setAllocDeviceGSyn();
    }
@@ -2211,12 +2211,12 @@ int HyPerConn::allocateReceivePreKernel()
    const PVHalo * postHalo = &post->getLayerLoc()->halo;
 
 #ifdef PV_USE_OPENCL
-   CLBuffer* d_PreData = pre->getDeviceActivity();
+   CLBuffer* d_PreData = pre->getDeviceDatastore();
    CLBuffer* d_PostGSyn = post->getDeviceGSyn();
 #endif
 
 #ifdef PV_USE_CUDA
-   PVCuda::CudaBuffer* d_PreData = pre->getDeviceActivity();
+   PVCuda::CudaBuffer* d_PreData = pre->getDeviceDatastore();
    PVCuda::CudaBuffer* d_PostGSyn = post->getDeviceGSyn();
 #endif
 
@@ -2420,17 +2420,17 @@ int HyPerConn::allocateReceivePostKernel()
    const PVHalo* postHalo = &post->getLayerLoc()->halo;
 
 #ifdef PV_USE_OPENCL
-   CLBuffer* d_PreData = pre->getDeviceActivity();
+   CLBuffer* d_PreData = pre->getDeviceDatastore();
    CLBuffer* d_PostGSyn = post->getDeviceGSyn();
    CLBuffer* d_origWData = origConn->getDeviceWData();
 #endif
 #ifdef PV_USE_CUDA
-   PVCuda::CudaBuffer* d_PreData = pre->getDeviceActivity();
+   PVCuda::CudaBuffer* d_PreData = pre->getDeviceDatastore();
    PVCuda::CudaBuffer* d_PostGSyn = post->getDeviceGSyn();
    PVCuda::CudaBuffer* d_origWData = origConn->getDeviceWData();
 
 #ifdef PV_USE_CUDNN
-   PVCuda::CudaBuffer * cudnn_preData = pre->getCudnnActivity();
+   PVCuda::CudaBuffer * cudnn_preData = pre->getCudnnDatastore();
    PVCuda::CudaBuffer * cudnn_gSyn = post->getCudnnGSyn();
    PVCuda::CudaBuffer * cudnn_origWData = origConn->getCudnnWData();
    assert(cudnn_preData);
