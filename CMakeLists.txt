@@ -114,7 +114,7 @@ endif (LIB_SND_FILE)
 #endif(CMAKE_BUILD_TYPE)
 
 if(CUDNN)
-   set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -arch=sm_35; )
+   set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -arch=sm_30; )
 else(CUDNN)
    set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -arch=sm_20;)
 endif(CUDNN)
