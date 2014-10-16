@@ -1788,18 +1788,17 @@ int HyPerLayer::runUpdateKernel(){
 
 #ifdef PV_USE_CUDA
    assert(updateGpu);
-   PVCuda::CudaBuffer * d_GSyn = getDeviceGSyn();
-   float* h_GSyn = GSyn[0];
-   //Test if we need to move gsyn on the gpu
    if(updatedDeviceGSyn){
-      d_GSyn->copyToDevice(h_GSyn);
+      copyAllGSynToDevice();
       updatedDeviceGSyn = false;
    }
+
    //V and Activity are write only buffers, so we don't need to do anything with them
    assert(krUpdate);
    //Run kernel
    krUpdate->run();
 #endif
+
    return PV_SUCCESS;
 }
 
@@ -2028,7 +2027,7 @@ float HyPerLayer::syncGpu(){
 
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
 void HyPerLayer::copyAllGSynToDevice(){
-   if(allocDeviceGSyn){
+   if(recvGpu || updateGpu){
       //Copy it to device
       float * h_postGSyn = GSyn[0];
 #ifdef PV_USE_OPENCL
@@ -2043,7 +2042,8 @@ void HyPerLayer::copyAllGSynToDevice(){
 }
 
 void HyPerLayer::copyAllGSynFromDevice(){
-   if(allocDeviceGSyn){
+   //Only copy if recving
+   if(recvGpu){
       float * h_postGSyn = GSyn[0];
 #ifdef PV_USE_OPENCL
       CLBuffer * d_postGSyn = this->getDeviceGSyn();
@@ -2057,7 +2057,8 @@ void HyPerLayer::copyAllGSynFromDevice(){
 }
 
 void HyPerLayer::copyAllVFromDevice(){
-   if(allocDeviceV){
+   //Only copy if updating
+   if(updateGpu){
       float * h_V = getV();
 #ifdef PV_USE_OPENCL
       CLBuffer * d_V = this->getDeviceV();
@@ -2071,7 +2072,8 @@ void HyPerLayer::copyAllVFromDevice(){
 }
 
 void HyPerLayer::copyAllActivityFromDevice(){
-   if(allocDeviceActivity){
+   //Only copy if updating
+   if(updateGpu){
       float * h_activity = getCLayer()->activity->data;
 #ifdef PV_USE_OPENCL
       CLBuffer * d_activity = this->getDeviceActivity();
