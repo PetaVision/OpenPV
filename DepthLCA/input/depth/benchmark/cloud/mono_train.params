@@ -16,16 +16,16 @@ HyPerCol "column" = {
     dt = 1.0;
     randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
     startTime = 0;
-    stopTime= 427000; //Loop through once, first clip ran through twice 
+    stopTime= 849600; //Loop through twice
     progressStep = 1000;
-    outputPath = "/nh/compneuro/Data/Depth/LCA/benchmark/stereo_train/";
+    outputPath = "~/mountData/KITTI/LCA/mono_train/";
     filenamesContainLayerNames = true;
     filenamesContainConnectionNames = true;
     checkpointRead = false; //true;
-    //checkpointReadDir = "/nh/compneuro/Data/Depth/LCA/benchmark/stereo_train/Checkpoints";
-    //checkpointReadDirIndex = 315000;
+    //checkpointReadDir = "/nh/compneuro/Data/Depth/LCA/benchmark/mono_train/Checkpoints";
+    //checkpointReadDirIndex = 625000;
     checkpointWrite = true;
-    checkpointWriteDir = "/nh/compneuro/Data/Depth/LCA/benchmark/stereo_train/Checkpoints";
+    checkpointWriteDir = "~/mountData/KITTI/LCA/mono_train/Checkpoints";
     checkpointWriteStepInterval = 5000;
     deleteOlderCheckpoints = false;
     //suppressLastOutput = false;
@@ -49,7 +49,7 @@ Movie "LeftImage" = {
     nxScale = 1;
     nyScale = 1;
     readPvpFile = false;
-    imageListPath = "/nh/compneuro/Data/KITTI/stereo_flow/multiview/training/image_0.txt";
+    imageListPath = "~/mountData/KITTI/stereo_flow/multiview/training/image_0.txt";
     writeFrameToTimestamp = true;
     nf = 1;
     writeStep = -1;
@@ -132,9 +132,9 @@ ANNNormalizedErrorLayer "LeftError" = {
     mirrorBCflag = 0;
     writeSparseActivity = 0;
     //
-    InitVType = "ZeroV";
-    //InitVType = "InitVFromFile";
-    //Vfilename = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_slp/LeftError_V_grow_1224x368y.pvp";
+    //InitVType = "ZeroV";
+    InitVType = "InitVFromFile";
+    Vfilename = "~/mountData/KITTI/saved/saved_stack_mono_nowhite/LeftError_V_grow_1224x368y.pvp";
     //
     VThresh = 0.001; //Change this for efficiency
     VMax =  infinity;
@@ -143,7 +143,7 @@ ANNNormalizedErrorLayer "LeftError" = {
     VWidth = 0;
     valueBC = 0;
     //
-    errScale = .5; //Normal is .2
+    errScale = 1; //Normal is .2
     //
     phase = 3;  
 };
@@ -188,56 +188,6 @@ ANNLayer "LeftReconAll" = {
     #include "LeftReconS2";
 };
 
-//
-// Right eye layers
-//
-
-Movie "RightImage" = {
-    #include "LeftImage";
-    @imageListPath = "/nh/compneuro/Data/KITTI/stereo_flow/multiview/training/image_1.txt";
-};
-
-ANNLayer "RightBuffer" = {
-    #include "LeftBuffer";
-    @triggerLayerName = "RightImage";
-};
-
-RescaleLayer "RightRescale" = {
-    #include "LeftRescale";
-    @originalLayerName = "RightBuffer";
-    @triggerLayerName = "RightImage";
-};
-
-ANNNormalizedErrorLayer "RightError" = {
-    #include "LeftError";
-    //@Vfilename = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_slp/RightError_V_grow_1224x368y.pvp";
-};
-
-// for visualization only, makes no output
-ANNLayer "RightReconS2" = {
-    #include "LeftReconAll";
-    @triggerLayerName = "RightImage";
-};
-
-ANNLayer "RightReconS4" = {
-    #include "LeftReconAll";
-    @triggerLayerName = "RightImage";
-};
-
-ANNLayer "RightReconS8" = {
-    #include "LeftReconAll";
-    @triggerLayerName = "RightImage";
-};
-
-ANNLayer "RightReconAll" = {
-    #include "LeftReconAll";
-    @triggerLayerName = "RightImage";
-};
-
-//
-// Right depth eye layers
-//
-
 // binoclular layers
 
 HyPerLCALayer "V1S2" = {
@@ -254,11 +204,11 @@ HyPerLCALayer "V1S2" = {
     writeSparseActivity = 1;
     writeSparseValues   = 1;
     //
-    InitVType = "UniformRandomV";
-    minV = -1.0;
-    maxV = .03; //0.05 above VThresh
-    //InitVType = "InitVFromFile";
-    //Vfilename = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_slp/V1S2_V_grow_612x184y.pvp";
+    //InitVType = "UniformRandomV";
+    //minV = -1.0;
+    //maxV = .03; //0.05 above VThresh
+    InitVType = "InitVFromFile";
+    Vfilename = "~/mountData/KITTI/saved/saved_stack_mono_nowhite/V1S2_V_grow_612x184y.pvp";
     // 
     timeConstantTau = 200.0;
     slopeErrorStd = 0.01;
@@ -269,9 +219,8 @@ HyPerLCALayer "V1S2" = {
     VMin = 0;
     VShift = 0.0;  // 0 -> hard threshold, 1 -> soft threshold
     VWidth = 0.01; //Same as VThresh
-    updateGpu = true;
     //
-    phase = 3;
+    phase = 4;
 };
 
 HyPerLCALayer "V1S4" = {
@@ -281,7 +230,7 @@ HyPerLCALayer "V1S4" = {
     @nf = 64;
     //@VThresh = .04;
     //@VWidth  = .04;
-    //@Vfilename = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_slp/V1S4_V_grow_306x92y.pvp";
+    @Vfilename = "~/mountData/KITTI/saved/saved_stack_mono_nowhite/V1S4_V_grow_306x92y.pvp";
 };
 
 HyPerLCALayer "V1S8" = {
@@ -291,7 +240,7 @@ HyPerLCALayer "V1S8" = {
     @nf = 128;
     //@VThresh = .04;
     //@VWidth  = .04;
-    //@Vfilename = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_slp/V1S8_V_grow_153x46y.pvp";
+    @Vfilename = "~/mountData/KITTI/saved/saved_stack_mono_nowhite/V1S8_V_grow_153x46y.pvp";
 };
 
 // connections
@@ -337,22 +286,7 @@ KernelConn "LeftRescaleToLeftError" = {
     shmget_flag = false;
 };
 
-// Right eye connections
-
-IdentConn "RightImageToRightBuffer" = {
-    #include "LeftImageToLeftBuffer";
-    @preLayerName = "RightImage";
-    @postLayerName = "RightBuffer";
-};
-
-KernelConn "RightRescaleToRightError" = {
-    #include "LeftRescaleToLeftError";
-    @preLayerName = "RightRescale";
-    @postLayerName = "RightError";
-};
-
 // binocular connections
-//Left binocular connections
 
 KernelConn "V1S2ToLeftError" = {
     preLayerName = "V1S2";
@@ -367,7 +301,7 @@ KernelConn "V1S2ToLeftError" = {
     initFromLastFlag = 0;
     //
     weightInitType = "FileWeight";
-    initWeightsFile = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_slp/V1S2ToLeftError_W.pvp";
+    initWeightsFile = "~/mountData/KITTI/saved/saved_stack_mono_nowhite/V1S2ToLeftError_W.pvp";
     //weightInitType = "UniformRandomWeight";
     //wMinInit = -1.0;
     //wMaxInit = 1.0;
@@ -407,7 +341,7 @@ KernelConn "V1S4ToLeftError" = {
     @preLayerName = "V1S4";
     @nxp = 68;
     @nyp = 68;
-    @initWeightsFile = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_slp/V1S4ToLeftError_W.pvp";
+    @initWeightsFile = "~/mountData/KITTI/saved/saved_stack_mono_nowhite/V1S4ToLeftError_W.pvp";
 };
 
 KernelConn "V1S8ToLeftError" = {
@@ -415,7 +349,7 @@ KernelConn "V1S8ToLeftError" = {
     @preLayerName = "V1S8";
     @nxp = 136;
     @nyp = 136;
-    @initWeightsFile = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_slp/V1S8ToLeftError_W.pvp";
+    @initWeightsFile = "~/mountData/KITTI/saved/saved_stack_mono_nowhite/V1S8ToLeftError_W.pvp";
 };
 
 TransposeConn "LeftErrorToV1S2" = {
@@ -431,7 +365,6 @@ TransposeConn "LeftErrorToV1S2" = {
     delay = 0;
     pvpatchAccumulateType = "convolve";
     updateGSynFromPostPerspective = true;
-    receiveGpu = true;
 };
 
 TransposeConn "LeftErrorToV1S4" = {
@@ -500,76 +433,4 @@ CloneKernelConn "V1S8ToLeftReconAll" = {
     @originalConnName = "V1S8ToLeftError";
 };
 
-//Right binocular connections
-KernelConn "V1S2ToRightError" = {
-    #include "V1S2ToLeftError";
-    @postLayerName = "RightError";
-    @initWeightsFile = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_slp/V1S2ToRightError_W.pvp";
-};
-
-KernelConn "V1S4ToRightError" = {
-    #include "V1S4ToLeftError";
-    @postLayerName = "RightError";
-    @initWeightsFile = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_slp/V1S4ToRightError_W.pvp";
-};
-
-KernelConn "V1S8ToRightError" = {
-    #include "V1S8ToLeftError";
-    @postLayerName = "RightError";
-    @initWeightsFile = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_slp/V1S8ToRightError_W.pvp";
-};
-
-TransposeConn "RightErrorToV1S2" = {
-    #include "LeftErrorToV1S2";
-    @preLayerName = "RightError";
-    @originalConnName = "V1S2ToRightError";
-};
-
-TransposeConn "RightErrorToV1S4" = {
-    #include "LeftErrorToV1S4";
-    @preLayerName = "RightError";
-    @originalConnName = "V1S4ToRightError";
-};
-
-TransposeConn "RightErrorToV1S8" = {
-    #include "LeftErrorToV1S8";
-    @preLayerName = "RightError";
-    @originalConnName = "V1S8ToRightError";
-};
-
-CloneKernelConn "V1S2ToRightReconS2" = {
-    #include "V1S2ToLeftReconS2";
-    @postLayerName = "RightReconS2";
-    @originalConnName = "V1S2ToRightError";
-};
-
-CloneKernelConn "V1S4ToRightReconS4" = {
-    #include "V1S4ToLeftReconS4";
-    @postLayerName = "RightReconS4";
-    @originalConnName = "V1S4ToRightError";
-};
-
-CloneKernelConn "V1S8ToRightReconS8" = {
-    #include "V1S8ToLeftReconS8";
-    @postLayerName = "RightReconS8";
-    @originalConnName = "V1S8ToRightError";
-};
-
-CloneKernelConn "V1S2ToRightReconAll" = {
-    #include "V1S2ToLeftReconAll";
-    @postLayerName = "RightReconAll";
-    @originalConnName = "V1S2ToRightError";
-};
-
-CloneKernelConn "V1S4ToRightReconAll" = {
-    #include "V1S4ToLeftReconAll";
-    @postLayerName = "RightReconAll";
-    @originalConnName = "V1S4ToRightError";
-};
-
-CloneKernelConn "V1S8ToRightReconAll" = {
-    #include "V1S8ToLeftReconAll";
-    @postLayerName = "RightReconAll";
-    @originalConnName = "V1S8ToRightError";
-};
 
