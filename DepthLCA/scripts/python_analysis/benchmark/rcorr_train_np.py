@@ -8,23 +8,24 @@ from plotReconError import plotReconError
 #import matplotlib.pyplot as plt
 
 outputDir = "/nh/compneuro/Data/Depth/LCA/benchmark/stereo_train_rcorr_np/"
-skipFrames = 1 #Only print every 20th frame
+skipFrames = 1
 doPlotRecon = True
 doPlotErr = False
 errShowPlots = False
 layers = [
-   "a6_LeftReconS2",
-   "a7_LeftReconS4",
-   "a8_LeftReconS8",
-   "a9_LeftReconAll",
-   "a10_RightReconS2",
-   "a11_RightReconS4",
-   "a12_RightReconS8",
-   "a13_RightReconAll",
-   "a16_RCorrReconS2",
-   "a17_RCorrReconS4",
-   "a18_RCorrReconS8",
-   "a19_RCorrReconAll",
+   "a3_LeftReconS2",
+   "a4_LeftReconS4",
+   "a5_LeftReconS8",
+   "a6_LeftReconAll",
+   "a7_RightReconS2",
+   "a8_RightReconS4",
+   "a9_RightReconS8",
+   "a10_RightReconAll",
+   "a11_DepthImage",
+   "a18_RCorrReconS2",
+   "a19_RCorrReconS4",
+   "a20_RCorrReconS8",
+   "a21_RCorrReconAll",
    ]
 #Layers for constructing recon error
 preErrLayers = [

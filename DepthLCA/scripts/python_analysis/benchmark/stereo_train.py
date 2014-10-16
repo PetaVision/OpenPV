@@ -7,9 +7,9 @@ from plotReconError import plotReconError
 #For plotting
 #import matplotlib.pyplot as plt
 
-outputDir = "/nh/compneuro/Data/Depth/LCA/benchmark/stereo_train_gpu/"
-skipFrames = 20 #Only print every 20th frame
-doPlotRecon = True
+outputDir = "/nh/compneuro/Data/Depth/LCA/benchmark/stereo_train/"
+skipFrames = 10 #Only print every 20th frame
+doPlotRecon = False
 doPlotErr = True
 errShowPlots = False
 layers = [
@@ -33,11 +33,6 @@ layers = [
 #Layers for constructing recon error
 preErrLayers = [
    "a2_LeftRescale",
-   "a2_LeftRescale",
-   "a2_LeftRescale",
-   "a7_LeftReconAll",
-   "a7_LeftReconAll",
-   "a7_LeftReconAll",
    #"a26_DepthGT",
    #"a26_DepthGT",
    #"a31_RCorrReconAll",
@@ -46,12 +41,7 @@ preErrLayers = [
 ]
 
 postErrLayers = [
-   "a4_LeftReconS2",
-   "a5_LeftReconS4",
-   "a6_LeftReconS8",
-   "a4_LeftReconS2",
-   "a5_LeftReconS4",
-   "a6_LeftReconS8",
+   "a7_LeftReconAll",
    #"a23_ForwardLayer",
    #"a31_RCorrReconAll",
    #"a28_RCorrReconS2",
@@ -71,11 +61,12 @@ gtLayers = None
 
 preToPostScale = [
    .0294,
-   .0294,
-   .0294,
-   1,
-   1,
-   1,
+   #.0294,
+   #.0294,
+   #.0294,
+   #1,
+   #1,
+   #1,
    #1,
    #1,
    #1,

@@ -5,7 +5,6 @@
 
 #include "columns/buildandrun.hpp"
 #include "LocalKernelConn.hpp"
-#include "WTALayer.hpp"
 
 #define MAIN_USES_CUSTOMGROUPS
 
@@ -31,9 +30,9 @@ void * customgroup(const char * keyword, const char * name, HyPerCol * hc) {
    if ( !strcmp(keyword, "LocalKernelConn") ) {
       addedGroup = new LocalKernelConn(name, hc);
    }
-   if ( !strcmp(keyword, "WTALayer") ) {
-      addedGroup = new WTALayer(name, hc);
-   }
+   //if ( !strcmp(keyword, "WTALayer") ) {
+   //   addedGroup = new WTALayer(name, hc);
+   //}
    return addedGroup;
 }
 #endif
