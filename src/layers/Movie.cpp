@@ -328,7 +328,7 @@ int Movie::allocateDataStructures() {
          constrainOffsets();  // ensure that offsets keep loc within image bounds
       }
 
-      status = readImage(filename, getOffsetX(), getOffsetY());
+      // status = readImage(filename, getOffsetX(), getOffsetY()); // readImage already called by Image::allocateDataStructures(), above
       assert(status == PV_SUCCESS);
    }
    else {
