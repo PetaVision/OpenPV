@@ -793,6 +793,8 @@ int Communicator::exchange(pvdata_t * data,
                            const PVLayerLoc * loc)
 {
 #ifdef PV_USE_MPI
+   PVHalo const * halo = &loc->halo;
+   if (halo->lt==0 && halo->rt==0 && halo->dn==0 && halo->up==0) { return PV_SUCCESS; }
    exchange_timer->start();
 
    // don't send interior

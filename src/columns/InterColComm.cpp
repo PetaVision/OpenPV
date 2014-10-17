@@ -185,6 +185,8 @@ int Publisher::publish(HyPerLayer* pub,
 
 int Publisher::exchangeBorders(int neighbors[], int numNeighbors, const PVLayerLoc * loc, int delay/*default 0*/) {
    // Code duplication with Communicator::exchange.  Consolidate?
+   PVHalo const * halo = &loc->halo;
+   if (halo->lt==0 && halo->rt==0 && halo->dn==0 && halo->up==0) { return PV_SUCCESS; }
    int status = PV_SUCCESS;
 
 #ifdef PV_USE_MPI
