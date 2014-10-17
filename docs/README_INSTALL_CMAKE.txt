@@ -18,7 +18,7 @@ Before installing PetaVision, you need the following libraries:
     SubVersion
         http://subversion.apache.org/packages.html
 
-We recommend using apt-get on linux systems, mac ports on OSX systems, and cygwin on Windows systems to obtain the above libraries.
+We recommend using apt-get or yum on linux systems, Homebrew on OS X systems, and Cygwin on Windows systems to obtain the above libraries.
 
 If you wish to contribute (commit changes) to PetaVision, contact us to be added as a developer.
 You will need a SourceForge account, which is free at <https://sourceforge.net/user/registration>

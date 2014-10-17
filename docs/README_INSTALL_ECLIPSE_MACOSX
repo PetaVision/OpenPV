@@ -72,6 +72,11 @@ Thanks to Andree for all his assistance.
    
    depending on whether you're using OpenMP threads.
 
+   Movie layers can optionally load frames using URLs, using the wget command.  If you do not have wget installed
+   and want to load frames from URLs, run the command
+
+   brew install wget
+
 2. Launch eclipse by opening Eclipse.app in the eclipse folder from step 0.c.
    If Eclipse complains about the Java version, install an up-to-date Java Development Kit from
    <http://www.oracle.com/technetwork/java/javase/downloads/index.html>,
