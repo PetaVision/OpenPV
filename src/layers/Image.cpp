@@ -367,11 +367,15 @@ int Image::scatterImageFile(const char * file, int xOffset, int yOffset, PV::Com
             systemstring += " ";
             systemstring += file;
          }
+         printf("Downloading \"%s\" to \"%s\"...\n", file, path);
+         fflush(stdout);
          int status = system(systemstring.c_str());
          if (status != 0) {
             fprintf(stderr, "download command \"%s\" failed.  Exiting.\n", systemstring.c_str());
             exit(EXIT_FAILURE);
          }
+         printf("Finished downloading \"%s\" to \"%s\".\n", file, path);
+         fflush(stdout);
       }
       else {
          path = strdup(file);
