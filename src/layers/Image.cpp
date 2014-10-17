@@ -340,12 +340,63 @@ void Image::ioParam_useParamsImage(enum ParamsIOFlag ioFlag) {
    }
 }
 
-int Image::scatterImageFile(const char * filename, int xOffset, int yOffset, PV::Communicator * comm, const PVLayerLoc * loc, float * buf, int frameNumber, bool autoResizeFlag)
+int Image::scatterImageFile(const char * file, int xOffset, int yOffset, PV::Communicator * comm, const PVLayerLoc * loc, float * buf, int frameNumber, bool autoResizeFlag)
 {
-   if (getFileType(filename) == PVP_FILE_TYPE) {
-      return scatterImageFilePVP(filename, xOffset, yOffset, comm, loc, buf, frameNumber);
+   char * path = NULL;
+   bool usingTempFile = false;
+
+   if (parent->columnId()==0) {
+      if (strstr(file, "://") != NULL) {
+         usingTempFile = true;
+         std::string pathstring = parent->getOutputPath();
+         pathstring += "/temp.XXXXXX";
+         const char * ext = strrchr(file, '.');
+         pathstring += ext;
+         path = strdup(pathstring.c_str());
+         mkstemps(path, strlen(ext));
+         std::string systemstring;
+         if (strstr(file, "s3://") != NULL) {
+            systemstring = "aws s3 cp ";
+            systemstring += file;
+            systemstring += " ";
+            systemstring += path;
+         }
+         else { // URLs other than s3://
+            systemstring = "wget -O ";
+            systemstring += path;
+            systemstring += " ";
+            systemstring += file;
+         }
+         int status = system(systemstring.c_str());
+         if (status != 0) {
+            fprintf(stderr, "download command \"%s\" failed.  Exiting.\n", systemstring.c_str());
+            exit(EXIT_FAILURE);
+         }
+      }
+      else {
+         path = strdup(file);
+      }
    }
-   return scatterImageFileGDAL(filename, xOffset, yOffset, comm, loc, buf, autoResizeFlag);
+
+
+   int status = PV_SUCCESS;
+   if (getFileType(file) == PVP_FILE_TYPE) {
+      status = scatterImageFilePVP(path, xOffset, yOffset, comm, loc, buf, frameNumber);
+   }
+   else {
+      status = scatterImageFileGDAL(path, xOffset, yOffset, comm, loc, buf, autoResizeFlag);
+   }
+
+   if (usingTempFile) {
+      int rmstatus = remove(path);
+      if (rmstatus) {
+         fprintf(stderr, "remove(\"%s\") failed.  Exiting.\n", path);
+         exit(EXIT_FAILURE);
+      }
+   }
+   free(path);
+
+   return status;
 }
 
 int Image::scatterImageFilePVP(const char * filename, int xOffset, int yOffset,
