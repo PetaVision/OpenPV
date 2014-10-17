@@ -66,7 +66,12 @@ int getFileType(const char * filename)
  */
 int getImageInfo(const char * filename, PV::Communicator * comm, PVLayerLoc * loc, GDALColorInterp ** colorbandtypes)
 {
-   if (getFileType(filename) == PVP_FILE_TYPE) {
+   int fileType;
+   if (comm->commRank()==0) {
+      fileType = getFileType(filename);
+   }
+   MPI_Bcast(&fileType, 1, MPI_INT, 0, comm->communicator());
+   if (fileType == PVP_FILE_TYPE) {
       return getImageInfoPVP(filename, comm, loc, colorbandtypes);
    }
    return getImageInfoGDAL(filename, comm, loc, colorbandtypes);

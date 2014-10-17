@@ -323,23 +323,13 @@ int Movie::allocateDataStructures() {
       assert(!parent->parameters()->presentAndNotBeenRead(name, "start_frame_index"));
       assert(!parent->parameters()->presentAndNotBeenRead(name, "skip_frame_index"));
 
-      // get size info from image so that data buffer can be allocated
-      GDALColorInterp * colorbandtypes = NULL;
-      status = getImageInfo(filename, parent->icCommunicator(), &imageLoc, &colorbandtypes);
-      if(status != 0) {
-         fprintf(stderr, "Movie: Unable to get image info for \"%s\"\n", filename);
-         abort();
-      }
-
       assert(!parent->parameters()->presentAndNotBeenRead(name, "autoResizeFlag"));
       if (!autoResizeFlag){
          constrainOffsets();  // ensure that offsets keep loc within image bounds
       }
 
-      status = readImage(filename, getOffsetX(), getOffsetY(), colorbandtypes);
+      status = readImage(filename, getOffsetX(), getOffsetY());
       assert(status == PV_SUCCESS);
-
-      free(colorbandtypes); colorbandtypes = NULL;
    }
    else {
       if (randState==NULL) {
@@ -480,16 +470,8 @@ bool Movie::updateImage(double time, double dt)
       //while (time >= nextDisplayTime) {
       //   nextDisplayTime += displayPeriod;
       //}
-
-      GDALColorInterp * colorbandtypes = NULL;
-      int status = getImageInfo(filename, parent->icCommunicator(), &imageLoc, &colorbandtypes);
-      if( status != PV_SUCCESS ) {
-         fprintf(stderr, "Movie %s: Error getting image info \"%s\"\n", name, filename);
-         abort();
-      }
       //Set frame number (member variable in Image)
-      if( status == PV_SUCCESS ) status = readImage(filename, getOffsetX(), getOffsetY(), colorbandtypes);
-      free(colorbandtypes); colorbandtypes = NULL;
+      int status = readImage(filename, getOffsetX(), getOffsetY());
       if( status != PV_SUCCESS ) {
          fprintf(stderr, "Movie %s: Error reading file \"%s\"\n", name, filename);
          abort();

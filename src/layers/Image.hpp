@@ -217,7 +217,7 @@ public:
    virtual int tag();
 
    int readImage(const char * filename);
-   int readImage(const char * filename, int offsetX, int offsetY, GDALColorInterp * colorbandtypes);
+   int readImage(const char * filename, int offsetX, int offsetY);
    int write(const char * filename);
 
    int exchange();

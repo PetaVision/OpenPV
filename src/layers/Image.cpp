@@ -340,65 +340,20 @@ void Image::ioParam_useParamsImage(enum ParamsIOFlag ioFlag) {
    }
 }
 
-int Image::scatterImageFile(const char * file, int xOffset, int yOffset, PV::Communicator * comm, const PVLayerLoc * loc, float * buf, int frameNumber, bool autoResizeFlag)
+int Image::scatterImageFile(const char * path, int xOffset, int yOffset, PV::Communicator * comm, const PVLayerLoc * loc, float * buf, int frameNumber, bool autoResizeFlag)
 {
-   char * path = NULL;
-   bool usingTempFile = false;
-
-   if (parent->columnId()==0) {
-      if (strstr(file, "://") != NULL) {
-         usingTempFile = true;
-         std::string pathstring = parent->getOutputPath();
-         pathstring += "/temp.XXXXXX";
-         const char * ext = strrchr(file, '.');
-         pathstring += ext;
-         path = strdup(pathstring.c_str());
-         mkstemps(path, strlen(ext));
-         std::string systemstring;
-         if (strstr(file, "s3://") != NULL) {
-            systemstring = "aws s3 cp ";
-            systemstring += file;
-            systemstring += " ";
-            systemstring += path;
-         }
-         else { // URLs other than s3://
-            systemstring = "wget -O ";
-            systemstring += path;
-            systemstring += " ";
-            systemstring += file;
-         }
-         printf("Downloading \"%s\" to \"%s\"...\n", file, path);
-         fflush(stdout);
-         int status = system(systemstring.c_str());
-         if (status != 0) {
-            fprintf(stderr, "download command \"%s\" failed.  Exiting.\n", systemstring.c_str());
-            exit(EXIT_FAILURE);
-         }
-         printf("Finished downloading \"%s\" to \"%s\".\n", file, path);
-         fflush(stdout);
-      }
-      else {
-         path = strdup(file);
-      }
-   }
-
-
    int status = PV_SUCCESS;
-   if (getFileType(file) == PVP_FILE_TYPE) {
+   int fileType;
+   if (comm->commRank()==0) {
+      fileType = getFileType(filename);
+   }
+   MPI_Bcast(&fileType, 1, MPI_INT, 0, comm->communicator());
+   if (fileType == PVP_FILE_TYPE) {
       status = scatterImageFilePVP(path, xOffset, yOffset, comm, loc, buf, frameNumber);
    }
    else {
       status = scatterImageFileGDAL(path, xOffset, yOffset, comm, loc, buf, autoResizeFlag);
    }
-
-   if (usingTempFile) {
-      int rmstatus = remove(path);
-      if (rmstatus) {
-         fprintf(stderr, "remove(\"%s\") failed.  Exiting.\n", path);
-         exit(EXIT_FAILURE);
-      }
-   }
-   free(path);
 
    return status;
 }
@@ -905,16 +860,8 @@ int Image::allocateDataStructures() {
    data = clayer->activity->data;
 
    if(filename != NULL) {
-      GDALColorInterp * colorbandtypes = NULL;
-      status = getImageInfo(filename, parent->icCommunicator(), &imageLoc, &colorbandtypes);
-      if( getLayerLoc()->nf != imageLoc.nf && getLayerLoc()->nf != 1) {
-         fprintf(stderr, "Image %s: file %s has %d features but the layer has %d features.  Exiting.\n",
-               name, filename, imageLoc.nf, getLayerLoc()->nf);
-         exit(PV_FAILURE);
-      }
-      status = readImage(filename, getOffsetX(), getOffsetY(), colorbandtypes);
+      status = readImage(filename, getOffsetX(), getOffsetY());
       assert(status == PV_SUCCESS);
-      free(colorbandtypes); colorbandtypes = NULL;
    }
    else {
       this->imageLoc = * getLayerLoc();
@@ -1084,10 +1031,10 @@ int Image::clearImage()
 
 int Image::readImage(const char * filename)
 {
-   return readImage(filename, 0, 0, NULL);
+   return readImage(filename, 0, 0);
 }
 
-int Image::readImage(const char * filename, int offsetX, int offsetY, GDALColorInterp * colorbandtypes)
+int Image::readImage(const char * filename, int offsetX, int offsetY)
 {
    int status = 0;
    PVLayerLoc * loc = & clayer->loc;
@@ -1097,14 +1044,65 @@ int Image::readImage(const char * filename, int offsetX, int offsetY, GDALColorI
       loc->ny = loc->ny + loc->halo.dn + loc->halo.up;
    }
 
+   // read the image and scatter the local portions
+   char * path = NULL;
+   bool usingTempFile = false;
+
+   if (parent->columnId()==0) {
+      if (strstr(filename, "://") != NULL) {
+         usingTempFile = true;
+         std::string pathstring = parent->getOutputPath();
+         pathstring += "/temp.XXXXXX";
+         const char * ext = strrchr(filename, '.');
+         pathstring += ext;
+         path = strdup(pathstring.c_str());
+         mkstemps(path, strlen(ext));
+         std::string systemstring;
+         if (strstr(filename, "s3://") != NULL) {
+            systemstring = "aws s3 cp ";
+            systemstring += filename;
+            systemstring += " ";
+            systemstring += path;
+         }
+         else { // URLs other than s3://
+            systemstring = "wget -O ";
+            systemstring += path;
+            systemstring += " ";
+            systemstring += filename;
+         }
+         printf("Downloading \"%s\" to \"%s\"...\n", filename, path);
+         fflush(stdout);
+         int status = system(systemstring.c_str());
+         if (status != 0) {
+            fprintf(stderr, "download command \"%s\" failed.  Exiting.\n", systemstring.c_str());
+            exit(EXIT_FAILURE);
+         }
+         printf("Finished downloading \"%s\" to \"%s\".\n", filename, path);
+         fflush(stdout);
+      }
+      else {
+         path = strdup(filename);
+      }
+   }
+   GDALColorInterp * colorbandtypes = NULL;
+   status = getImageInfo(path, parent->icCommunicator(), &imageLoc, &colorbandtypes);
+   if( getLayerLoc()->nf != imageLoc.nf && getLayerLoc()->nf != 1) {
+      fprintf(stderr, "Image %s: file %s has %d features but the layer has %d features.  Exiting.\n",
+            name, filename, imageLoc.nf, getLayerLoc()->nf);
+      exit(PV_FAILURE);
+   }
+   if(status != 0) {
+      fprintf(stderr, "Movie: Unable to get image info for \"%s\"\n", filename);
+      abort();
+   }
+
    int n = loc->nx * loc->ny * imageLoc.nf;
 
    // Use number of bands in file instead of in params, to allow for grayscale conversion
    float * buf = new float[n];
    assert(buf != NULL);
 
-   // read the image and scatter the local portions
-   status = scatterImageFile(filename, offsetX, offsetY, parent->icCommunicator(), loc, buf, frameNumber, this->autoResizeFlag);
+   status = scatterImageFile(path, offsetX, offsetY, parent->icCommunicator(), loc, buf, frameNumber, this->autoResizeFlag);
    if (status != PV_SUCCESS) {
       if (parent->columnId()==0) {
          fprintf(stderr, "Image::readImage failed for layer \"%s\"\n", getName());
@@ -1112,6 +1110,16 @@ int Image::readImage(const char * filename, int offsetX, int offsetY, GDALColorI
       MPI_Barrier(parent->icCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
+
+   if (usingTempFile) {
+      int rmstatus = remove(path);
+      if (rmstatus) {
+         fprintf(stderr, "remove(\"%s\") failed.  Exiting.\n", path);
+         exit(EXIT_FAILURE);
+      }
+   }
+   free(path);
+
    assert(status == PV_SUCCESS);
    if( loc->nf == 1 && imageLoc.nf > 1 ) {
       float * graybuf = convertToGrayScale(buf,loc->nx,loc->ny,imageLoc.nf, colorbandtypes);
@@ -1126,6 +1134,7 @@ int Image::readImage(const char * filename, int offsetX, int offsetY, GDALColorI
        n = loc->nx * loc->ny * loc->nf;
        
    }
+   free(colorbandtypes); colorbandtypes = NULL;
    
    // now buf is loc->nf by loc->nx by loc->ny
 
