@@ -2769,6 +2769,7 @@ int HyPerConn::writeWeights(PVPatch *** patches, pvwdata_t ** dataStart, int num
 			numberOfAxonalArborLists(), compressWeights, fileType);
    if(status != PV_SUCCESS) {
       fprintf(stderr, "%s \"%s\" error in writing weights.\n", parent->parameters()->groupKeywordFromName(name), name);
+      exit(EXIT_FAILURE);
    }
 
    return status;
@@ -4591,6 +4592,7 @@ int HyPerConn::scaleWeights(int nx, int ny, int offset, pvwdata_t * dataStart, p
 } // scaleWeights
 #endif // OBSOLETE
 
+#ifdef OBSOLETE // Marked obsolete Oct 9, 2014.  Nobody calls checkNormalizeWeights except for checkNormalizeArbors, and nobody calls checkNormalizeArbors at all.
 // only checks for certain combinations of normalize parameter settings
 int HyPerConn::checkNormalizeWeights(float sum, float sum2, float sigma2, float maxVal)
 {
@@ -4685,6 +4687,7 @@ int HyPerConn::checkNormalizeArbor(PVPatch ** patches, pvwdata_t ** dataStart, i
       return PV_BREAK;
    } // normalizeArborsIndividually
 } // checkNormalizeArbor
+#endif // OBSOLETE
 
 int HyPerConn::normalizeWeights() {
    int status = PV_SUCCESS;
