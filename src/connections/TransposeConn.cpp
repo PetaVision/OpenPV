@@ -340,6 +340,23 @@ int TransposeConn::updateWeights(int axonID) {
    return status;
 }  // end of TransposeConn::updateWeights(int);
 
+int TransposeConn::updateState(double time, double dt) {
+   int status = PV_SUCCESS;
+   if( !plasticityFlag ) {
+      return status;
+   }
+   update_timer->start();
+   for(int arborId=0;arborId<numberOfAxonalArborLists();arborId++){
+      status = updateWeights(arborId);  // Apply changes in weights
+      if (status==PV_BREAK) { break; }
+      assert(status==PV_SUCCESS);
+   }
+   // normalizeWeights(); // normalizeWeights call moved to HyPerCol::advanceTime loop, to allow for normalization of a group of connections
+
+   update_timer->stop();
+   return status;
+}
+
 int TransposeConn::transpose(int arborId) {
    return sharedWeights ? transposeSharedWeights(arborId) : transposeNonsharedWeights(arborId);
 }

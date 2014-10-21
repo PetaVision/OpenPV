@@ -14,14 +14,15 @@ namespace PV {
 
 class TransposeConn: public HyPerConn {
 public:
-    TransposeConn();
-    TransposeConn(const char * name, HyPerCol * hc);
-    virtual ~TransposeConn();
-    virtual int communicateInitInfo();
-    virtual int allocateDataStructures();
-    inline HyPerConn * getOriginalConn() {return originalConn;}
+   TransposeConn();
+   TransposeConn(const char * name, HyPerCol * hc);
+   virtual ~TransposeConn();
+   virtual int communicateInitInfo();
+   virtual int allocateDataStructures();
+   inline HyPerConn * getOriginalConn() {return originalConn;}
 
-    virtual int updateWeights(int axonId);
+   virtual int updateWeights(int axonId);
+   virtual int updateState(double time, double dt);
 
 protected:
     int initialize_base();
