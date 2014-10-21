@@ -72,12 +72,13 @@ int CliqueConn::updateState(double time, double dt)
    }
 #endif // PV_USE_MPI
 
-   // dW and W are the same so don't copy
-   if (parent->simulationTime() >= parent->getStopTime() - parent->getDeltaTime()) {
-      if (normalizer) {
-         normalizer->normalizeWeights(this);
-      }
-   } //
+   // CliqueConn doesn't need to normalize.  Taking this out makes it easier to have normalizations over groups
+   // // dW and W are the same so don't copy
+   // if (parent->simulationTime() >= parent->getStopTime() - parent->getDeltaTime()) {
+   //    if (normalizer) {
+   //       normalizer->normalizeWeights(this);
+   //    }
+   // } //
 
 
    update_timer->stop();
