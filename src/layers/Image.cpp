@@ -86,8 +86,8 @@ int Image::initialize_base() {
    biasChangeTime = FLT_MAX;
    writePosition = 0;
    fp_pos = NULL;
-   biases[0]   = getOffsetX();
-   biases[1]   = getOffsetY();
+   biases[0]   = 0;
+   biases[1]   = 0;
    frameNumber = 0;
    randState = NULL;
    posstream = NULL;
@@ -113,8 +113,8 @@ int Image::initialize(const char * name, HyPerCol * hc) {
       assert(!params->presentAndNotBeenRead(name, "offsetX"));
       assert(!params->presentAndNotBeenRead(name, "offsetY"));
       assert(!params->presentAndNotBeenRead(name, "offsetAnchor"));
-      biases[0] = getOffsetX();
-      biases[1] = getOffsetY();
+      biases[0] = getOffsetX(this->offsetAnchor, offsets[0]);
+      biases[1] = getOffsetY(this->offsetAnchor, offsets[1]);
    }
 
    return status;
@@ -860,7 +860,7 @@ int Image::allocateDataStructures() {
    data = clayer->activity->data;
 
    if(filename != NULL) {
-      status = readImage(filename, getOffsetX(), getOffsetY());
+      status = readImage(filename, this->offsets[0], this->offsets[1], this->offsetAnchor);
       assert(status == PV_SUCCESS);
    }
    else {
@@ -892,7 +892,7 @@ int Image::allocateDataStructures() {
             abort();
          }
          fprintf(fp_pos->fp,"Layer \"%s\", t=%f, bias x=%d y=%d, offset x=%d y=%d\n",getName(),parent->simulationTime(),biases[0],biases[1],
-               getOffsetX(),getOffsetY());
+               getOffsetX(this->offsetAnchor, this->offsets[0]),getOffsetY(this->offsetAnchor, this->offsets[1]));
       }
    }
 
@@ -1031,10 +1031,15 @@ int Image::clearImage()
 
 int Image::readImage(const char * filename)
 {
-   return readImage(filename, 0, 0);
+   return readImage(filename, 0, 0, "tl");
 }
 
 int Image::readImage(const char * filename, int offsetX, int offsetY)
+{
+   return readImage(filename, offsetX, offsetY, "tl");
+}
+
+int Image::readImage(const char * filename, int offsetX, int offsetY, const char* anchor)
 {
    int status = 0;
    PVLayerLoc * loc = & clayer->loc;
@@ -1102,7 +1107,7 @@ int Image::readImage(const char * filename, int offsetX, int offsetY)
    float * buf = new float[n];
    assert(buf != NULL);
 
-   status = scatterImageFile(path, offsetX, offsetY, parent->icCommunicator(), loc, buf, frameNumber, this->autoResizeFlag);
+   status = scatterImageFile(path, getOffsetX(anchor, offsetX), getOffsetY(anchor, offsetY), parent->icCommunicator(), loc, buf, frameNumber, this->autoResizeFlag);
    if (status != PV_SUCCESS) {
       if (parent->columnId()==0) {
          fprintf(stderr, "Image::readImage failed for layer \"%s\"\n", getName());
@@ -1394,38 +1399,39 @@ void Image::equalBandWeights(int numBands, float * bandweight) {
 
 
 //Offsets based on an anchor point, so calculate offsets based off a given anchor point
-int Image::getOffsetX(){
+//Note: imageLoc must be updated before calling this function
+int Image::getOffsetX(const char* offsetAnchor, int offsetX){
    if(!strcmp(offsetAnchor, "tl") || !strcmp(offsetAnchor, "cl") || !strcmp(offsetAnchor, "bl")){
-      return offsets[0];
+      return offsetX;
    }
    //Offset in center
    else if(!strcmp(offsetAnchor, "tc") || !strcmp(offsetAnchor, "cc") || !strcmp(offsetAnchor, "bc")){
       int layerSizeX = getLayerLoc()->nxGlobal;
-      return ((imageLoc.nxGlobal/2)-(layerSizeX/2) - 1) + offsets[0];
+      return ((imageLoc.nxGlobal/2)-(layerSizeX/2) - 1) + offsetX;
    }
    //Offset on bottom
    else if(!strcmp(offsetAnchor, "tr") || !strcmp(offsetAnchor, "cr") || !strcmp(offsetAnchor, "br")){
       int layerSizeX = getLayerLoc()->nxGlobal;
-      return (imageLoc.nxGlobal - layerSizeX - 1) + offsets[0];
+      return (imageLoc.nxGlobal - layerSizeX - 1) + offsetX;
    }
    assert(0); // All possible cases should be covered above
    return -1; // Eliminates no-return warning
 }
 
-int Image::getOffsetY(){
+int Image::getOffsetY(const char* offsetAnchor, int offsetY){
    //Offset on top
    if(!strcmp(offsetAnchor, "tl") || !strcmp(offsetAnchor, "tc") || !strcmp(offsetAnchor, "tr")){
-      return offsets[1];
+      return offsetY;
    }
    //Offset in center
    else if(!strcmp(offsetAnchor, "cl") || !strcmp(offsetAnchor, "cc") || !strcmp(offsetAnchor, "cr")){
       int layerSizeY = getLayerLoc()->nyGlobal;
-      return ((imageLoc.nyGlobal/2)-(layerSizeY/2) - 1) + offsets[1];
+      return ((imageLoc.nyGlobal/2)-(layerSizeY/2) - 1) + offsetY;
    }
    //Offset on bottom
    else if(!strcmp(offsetAnchor, "bl") || !strcmp(offsetAnchor, "bc") || !strcmp(offsetAnchor, "br")){
       int layerSizeY = getLayerLoc()->nyGlobal;
-      return (imageLoc.nyGlobal-layerSizeY-1) + offsets[1];
+      return (imageLoc.nyGlobal-layerSizeY-1) + offsetY;
    }
    assert(0); // All possible cases should be covered above
    return -1; // Eliminates no-return warning
@@ -1453,7 +1459,7 @@ bool Image::jitter() {
    constrainOffsets();
 
    if(writePosition && parent->icCommunicator()->commRank()==0){
-      fprintf(fp_pos->fp,"t=%f, bias x=%d, y=%d, offset x=%d y=%d\n",timed,biases[0],biases[1],getOffsetX(),getOffsetY());
+      fprintf(fp_pos->fp,"t=%f, bias x=%d, y=%d, offset x=%d y=%d\n",timed,biases[0],biases[1],getOffsetX(this->offsetAnchor, offsets[0]), getOffsetY(this->offsetAnchor, offsets[1]));
    }
    lastUpdateTime = timed;
    return needNewImage;

@@ -890,8 +890,8 @@ int Patterns::drawDrops() {
    for(int i = 0; i < (int)vDrops.size(); i++){
       double delta_theta = fabs(atan(0.1/(double) vDrops[i].radius));
       for (double theta = 0; theta < 2*PI; theta += delta_theta){
-         int ix = (int)(round(getOffsetX() + vDrops[i].centerX + vDrops[i].radius * cos(theta)));
-         int iy = (int)(round(getOffsetY() + vDrops[i].centerY + vDrops[i].radius * sin(theta)));
+         int ix = (int)(round(getOffsetX(this->offsetAnchor, this->offsets[0]) + vDrops[i].centerX + vDrops[i].radius * cos(theta)));
+         int iy = (int)(round(getOffsetY(this->offsetAnchor, this->offsets[1]) + vDrops[i].centerY + vDrops[i].radius * sin(theta)));
          //Check edge bounds based on nx/ny size
          if(ix < nx + kx0 && iy < ny + ky0 && ix >= kx0 && iy >= ky0){
             //Random either on circle or off circle

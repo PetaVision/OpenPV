@@ -218,6 +218,7 @@ public:
 
    int readImage(const char * filename);
    int readImage(const char * filename, int offsetX, int offsetY);
+   int readImage(const char * filename, int offsetX, int offsetY, const char* anchor);
    int write(const char * filename);
 
    int exchange();
@@ -230,8 +231,8 @@ public:
    int copyToInteriorBuffer(unsigned char * buf, float fac);
 
    const char * getFilename() { return filename; }
-   int getOffsetX();
-   int getOffsetY();
+   int getOffsetX(const char* offsetAnchor, int offsetX);
+   int getOffsetY(const char* offsetAnchor, int offsetY);
    //const int * getOffsets() { return offsets; }
    
    int getBiasX() { return biases[0]; }
@@ -314,9 +315,6 @@ protected:
    bool needFrameSizesForSpiking;
    PV_Stream * posstream;
 
-private:
-   //Offsets is now private, must use getOffsetX and getOffsetY to get the offset
-   // useGrayScale no longer used; instead setting nf=1 in params with color input images calls toGrayScale()
    int offsets[2];        // offsets array points to [offsetX, offsetY]
    char* offsetAnchor;
 };

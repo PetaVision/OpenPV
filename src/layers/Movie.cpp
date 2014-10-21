@@ -471,7 +471,7 @@ bool Movie::updateImage(double time, double dt)
       //   nextDisplayTime += displayPeriod;
       //}
       //Set frame number (member variable in Image)
-      int status = readImage(filename, getOffsetX(), getOffsetY());
+      int status = readImage(filename, this->offsets[0], this->offsets[1], this->offsetAnchor);
       if( status != PV_SUCCESS ) {
          fprintf(stderr, "Movie %s: Error reading file \"%s\"\n", name, filename);
          abort();
