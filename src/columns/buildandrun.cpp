@@ -169,8 +169,10 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
                  "LCAConn",
 #endif // OBSOLETE
                  "LCALIFLateralKernelConn",
+#ifdef OBSOLETE // Marked obsolete Oct 20, 2014.  Normalizers are being generalized to allow for group normalization
                  "NoSelfKernelConn",
                    "SiblingConn",
+#endif // OBSOLETE
                  "OjaKernelConn",
                  "ReciprocalConn",
                  "TransposeConn",
@@ -643,6 +645,7 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
       keywordMatched = true;
       addedConn = (HyPerConn * ) new MapReduceKernelConn(name, hc);
    }
+#ifdef OBSOLETE // Marked obsolete Oct 20, 2014.  Normalizers are being generalized to allow for group normalization
    if( !keywordMatched && !strcmp(classkeyword, "NoSelfKernelConn") ) {
       keywordMatched = true;
       addedConn = new NoSelfKernelConn(name, hc);
@@ -651,6 +654,7 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
       keywordMatched = true;
       addedConn = new SiblingConn(name, hc);
    }
+#endif // OBSOLETE
    if( !keywordMatched && !strcmp(classkeyword, "OjaKernelConn") ) {
       keywordMatched = true;
       addedConn = new OjaKernelConn(name, hc);

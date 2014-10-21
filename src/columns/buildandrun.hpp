@@ -87,8 +87,10 @@
 #include "../connections/PoolingGenConn.hpp"
 #include "../connections/IdentConn.hpp"
 #include "../connections/LCALIFLateralKernelConn.hpp"
+#ifdef OBSOLETE // Marked obsolete Oct 20, 2014.  Normalizers are being generalized to allow for group normalization
 #include "../connections/NoSelfKernelConn.hpp"
 #include "../connections/SiblingConn.hpp"
+#endif // OBSOLETE
 #include "../connections/OjaKernelConn.hpp"
 #include "../connections/ReciprocalConn.hpp"
 #include "../connections/TransposeConn.hpp"
