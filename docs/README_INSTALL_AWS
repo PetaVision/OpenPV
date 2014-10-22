@@ -86,7 +86,10 @@ Creating a Spot Instance:
    Find the PetaVision_GPU AMI. Select it and click launch.
    Pick a GPU instance (g2.2xlarge). Click next.
    Check Request Spot Instances under Purchasing option
-   Type in an appropriate maximum price. Click next.
+   Type in an appropriate maximum price.
+   Under subnet, pick one of the 3 choices based on the current price (Table when selecting a spot instance) and price history (Spot Requests under Instances, Price History up top. Select instance type as g2.2xlarge).
+   Note the subnet.
+   Click next.
    No additional storage is required. Make sure Delete on Termination is checked. Click next.
    No tags are needed. Click next.
    Check Select an existing security group. Select the default security group. Click Review and Launch.
@@ -94,7 +97,7 @@ Creating a Spot Instance:
    Select Choose an existing key pair, and select your key pair that you created earlier.
    Check the acknowledgement, and click Request Spot Instance.
 
-Spot instances will take a second to fulfill. Looking under Instances in the left tab, you can see the status of your request.
+Spot instances will take a few minutes to fulfill. Looking under Instances in the left tab, you can see the status of your request.
 Once your instance is started, name the instance something relevant.
 
 
@@ -108,7 +111,7 @@ To ssh into your running instance:
    ssh ec2-user@<public_ip_address>
 
 To copy data to your instance:
-   scp sourceFile ec2-user@<public_ip_address>
+   scp sourceFile ec2-user@<public_ip_address>:~/destinationFile
 
 
 ******************************************
@@ -119,7 +122,9 @@ AWS Spot Instances can die at any time. We will need an EBS persistent volume to
 Create your volume:
    Go to the EC2 management page. On the left, click Volumes under Elastic Block Store. Click Create Volume.
    Adjust the size of the volume. 50 to 100 GB should be more than enough, depending on your run.
+   Select the same subnet availability zone as your running instance.
    Click create.
+   It will take a few minutes to create the volume. Name it something appropriate.
 
 In order to use this volume in a running instance, we must mount it to a running instance.
 Mounting your new volume to a running instance:
@@ -154,20 +159,20 @@ Setting up your sandbox in your persistent volume:
    cd to ~/workspace.
    Edit CMakeLists.txt using your favorite editor.
    At the end of the file, add the absolute path to your sandbox to the cmakelists. Ex:
-   add_subdirectory(~/mountData/DepthLCA ~/mountData/DepthLCA)
+   add_subdirectory(/home/ec2-user/mountData/DepthLCA /home/ec2-user/mountData/DepthLCA)
    Note that the same directory is put twice into the command add_subdirectory.
 
 Building PetaVision
    cd to ~/workspace.
    Run the following command:
-   ccmake .
+   ccmake . (Yes, there's a period there. Yes, you have to type it)
 
 Most of these variables should already be set up, but here are the important ones:
-   CMAKE_BUILD_TYPE: True
+   CMAKE_BUILD_TYPE: Release
    CUDA_GPU: True
    CUDA_RELEASE: True
    CUDNN: True
-   CUDNN_PATH: ~/cuDNN/cudnn-6.5-linux-R1
+   CUDNN_PATH: /home/ec2-user/cuDNN/cudnn-6.5-linux-R1
    Open_MP_THREADS: True
 
    Press c to configure. Press e to exit the print statements.
@@ -205,7 +210,7 @@ EBS Volume to S3 (preferred):
    Enter your access key and secret access key. The rest can be left blank.
 
    Getting your database on S3:
-   Download your database.
+   Download your database, most likely to mountData. Make sure you're EBS volume is big enough to store all of the database.
    cd to the outer directory of your database.
    Enter the following command to put your database on S3
    aws s3 cp --recursive myDatabaseFolder s3://yourBin/myDatabaseFolder
@@ -222,9 +227,9 @@ Local to S3:
 
 Once you have your data on S3, you can specify a list of urls to feed to PetaVision Movie layer.
 As an example:
-   s3://yourBin/myDatabaseFolder/img00.png
-   s3://yourBin/myDatabaseFolder/img01.png
-   s3://yourBin/myDatabaseFolder/img02.png
+   s3://myBin/myDatabaseFolder/img00.png
+   s3://myBin/myDatabaseFolder/img01.png
+   s3://myBin/myDatabaseFolder/img02.png
    ...
 
 
