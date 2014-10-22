@@ -8,10 +8,10 @@ import pdb
 
 def plotReconError(preErrLayers, postErrLayers, preToPostScale, outputDir, showPlots, skipFrames=1, gtLayers=None, gtThresh=.7) :
    if(len(preErrLayers) != len(postErrLayers)):
-      print "Pre and post error layers not the same length"
+      print("Pre and post error layers not the same length")
       sys.exit();
    if(len(preErrLayers) != len(preToPostScale)):
-      print "PreToPostScale must be same length as pre and post err layers"
+      print("PreToPostScale must be same length as pre and post err layers")
       sys.exit();
 
    if(gtLayers == None):
@@ -19,7 +19,7 @@ def plotReconError(preErrLayers, postErrLayers, preToPostScale, outputDir, showP
    else:
       plotErrVsGt = True
       if len(gtLayers) != len(preErrLayers):
-         print "gtLayers must be same length as pre and post err layers"
+         print("gtLayers must be same length as pre and post err layers")
          sys.exit();
 
    errDir = outputDir + "ErrVsTime/"
@@ -44,7 +44,7 @@ def plotReconError(preErrLayers, postErrLayers, preToPostScale, outputDir, showP
       preHeader = readHeaderFile(prePvpFile)
       postHeader = readHeaderFile(postPvpFile)
       if(preHeader["ny"] != postHeader["ny"] or preHeader["nx"] != postHeader["nx"] or preHeader["nf"] != preHeader["nf"]):
-         print "pre layer " + preErr + " and post layer " + postErr + " size not the same"
+         print("pre layer " + preErr + " and post layer " + postErr + " size not the same")
          sys.exit()
       shape = (preHeader["ny"], preHeader["nx"], preHeader["nf"])
       numPerFrame = shape[0] * shape[1] * shape[2]
@@ -68,7 +68,7 @@ def plotReconError(preErrLayers, postErrLayers, preToPostScale, outputDir, showP
       iidx = []
       idatapts = []
       while preIdx != -1 and postIdx != -1:
-         print preErr + " to " + postErr + ": " + str(int(preIdx[0]))
+         print(preErr + " to " + postErr + ": " + str(int(preIdx[0])))
          iidx.append(preIdx)
          #Find average of error layer and add data point
          diff = np.std((preMat*scale) - postMat) / np.std(preMat*scale)

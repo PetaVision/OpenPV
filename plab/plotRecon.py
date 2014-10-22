@@ -58,7 +58,7 @@ def plotRecon(layernames, outputDir, skipFrames):
       (idx, mat) = readData(pvpFile, shape, numPerFrame)
       #While not eof
       while idx != -1:
-         print layername + ": " + str(int(idx[0]))
+         print(layername + ": " + str(int(idx[0])))
          #color bands
          if header["nf"] == 1 or header["nf"] == 3:
             img = scaleMat(mat)
